@@ -348,16 +348,10 @@ by simp only [pi_Union_Inter, set.mem_singleton_iff, exists_prop, exists_eq_left
 lemma pi_Union_Inter_singleton_singleton (π : ι → set (set α)) (i : ι) :
   pi_Union_Inter π ({{i}} : set (finset ι)) = π i :=
 begin
-  have : pi_Union_Inter π ({{i}} : set (finset ι))
-    = {s : set α | ∃ (f : ι → set α) (hf : f i ∈ π i), s = f i},
-  { rw pi_Union_Inter_singleton,
-    simp only [finset.mem_singleton, forall_eq, set.Inter_Inter_eq_left], },
-  rw this,
-  simp only [exists_prop],
+  simp only [pi_Union_Inter, mem_singleton_iff, exists_prop, exists_eq_left, finset.mem_singleton,
+    forall_eq, Inter_Inter_eq_left],
   ext1 t,
-  refine ⟨λ h, _, λ h, ⟨λ i, t, h, rfl⟩⟩,
-  obtain ⟨f, hfiπ, rfl⟩ := h,
-  exact hfiπ,
+  exact ⟨λ ⟨f, hfiπ, rfl⟩, hfiπ, λ h, ⟨λ i, t, h, rfl⟩⟩,
 end
 
 lemma pi_Union_Inter_singleton_left (s : ι → set α) (S : set (finset ι)) :
@@ -365,15 +359,13 @@ lemma pi_Union_Inter_singleton_left (s : ι → set α) (S : set (finset ι)) :
 begin
   ext1 s',
   simp_rw [pi_Union_Inter, set.mem_singleton_iff, exists_prop, set.mem_set_of_eq],
-  refine ⟨λ h, _, λ h, _⟩,
-  { obtain ⟨t, htS, f, hft_eq, rfl⟩ := h,
-    refine ⟨t, htS, _⟩,
-    congr' with i x,
-    simp_rw set.mem_Inter,
-    exact ⟨λ h hit, by { rw ← hft_eq i hit, exact h hit, },
-      λ h hit, by { rw hft_eq i hit, exact h hit, }⟩, },
-  { obtain ⟨t, htS, h_eq⟩ := h,
-    exact ⟨t, htS, s, λ _ _, rfl, h_eq⟩, },
+  refine ⟨λ h, _, λ ⟨t, htS, h_eq⟩, ⟨t, htS, s, λ _ _, rfl, h_eq⟩⟩,
+  obtain ⟨t, htS, f, hft_eq, rfl⟩ := h,
+  refine ⟨t, htS, _⟩,
+  congr' with i x,
+  simp_rw set.mem_Inter,
+  exact ⟨λ h hit, by { rw ← hft_eq i hit, exact h hit, },
+    λ h hit, by { rw hft_eq i hit, exact h hit, }⟩,
 end
 
 lemma pi_Union_Inter_singleton_left_right (s : ι → set α) (t : finset ι) :

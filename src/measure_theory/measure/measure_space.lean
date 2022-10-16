@@ -503,13 +503,13 @@ end
 
 /-- One direction of the **Borel-Cantelli lemma**: if (sᵢ) is a sequence of sets such
 that `∑ μ sᵢ` is finite, then the limit superior of the `sᵢ` is a null set. -/
-lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∑' i, μ (s i) ≠ ∞) : μ (limsup at_top s) = 0 :=
+lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∑' i, μ (s i) ≠ ∞) : μ (limsup s at_top) = 0 :=
 begin
   -- First we replace the sequence `sₙ` with a sequence of measurable sets `tₙ ⊇ sₙ` of the same
   -- measure.
   set t : ℕ → set α := λ n, to_measurable μ (s n),
   have ht : ∑' i, μ (t i) ≠ ∞, by simpa only [t, measure_to_measurable] using hs,
-  suffices : μ (limsup at_top t) = 0,
+  suffices : μ (limsup t at_top) = 0,
   { have A : s ≤ t := λ n, subset_to_measurable μ (s n),
     -- TODO default args fail
     exact measure_mono_null (limsup_le_limsup (eventually_of_forall (pi.le_def.mp A))
@@ -1120,25 +1120,19 @@ begin
   exact ae_eq_image_of_ae_eq_comap f μ hfi hf h.symm,
 end
 
-
 section subtype
+
 /-! ### Subtype of a measure space -/
 
-variables [measure_space α] {p : α → Prop}
+section comap_any_measure
 
-instance subtype.measure_space : measure_space (subtype p) :=
-{ volume := measure.comap subtype.val volume,
-  ..subtype.measurable_space }
-
-lemma subtype.volume_def : (volume : measure s) = volume.comap subtype.val := rfl
-
-lemma measurable_set.null_measurable_set_subtype_coe {t : set s}
-  (hs : null_measurable_set s) (ht : measurable_set t) :
-  null_measurable_set ((coe : s → α) '' t) :=
+lemma measurable_set.null_measurable_set_subtype_coe
+  {t : set s} (hs : null_measurable_set s μ) (ht : measurable_set t) :
+  null_measurable_set ((coe : s → α) '' t) μ :=
 begin
   rw [subtype.measurable_space, comap_eq_generate_from] at ht,
   refine generate_from_induction
-    (λ t : set s, null_measurable_set (coe '' t) volume)
+    (λ t : set s, null_measurable_set (coe '' t) μ)
     {t : set s | ∃ (s' : set α), measurable_set s' ∧ coe ⁻¹' s' = t} _ _ _ _ ht,
   { rintros t' ⟨s', hs', rfl⟩,
     rw [subtype.image_preimage_coe],
@@ -1152,6 +1146,32 @@ begin
     exact null_measurable_set.Union, },
 end
 
+lemma null_measurable_set.subtype_coe {t : set s} (hs : null_measurable_set s μ)
+  (ht : null_measurable_set t (μ.comap subtype.val)) :
+  null_measurable_set ((coe : s → α) '' t) μ :=
+null_measurable_set.image coe μ subtype.coe_injective
+  (λ t, measurable_set.null_measurable_set_subtype_coe hs) ht
+
+lemma measure_subtype_coe_le_comap (hs : null_measurable_set s μ) (t : set s) :
+  μ ((coe : s → α) '' t) ≤ μ.comap subtype.val t :=
+le_comap_apply _ _ subtype.coe_injective (λ t, measurable_set.null_measurable_set_subtype_coe hs) _
+
+lemma measure_subtype_coe_eq_zero_of_comap_eq_zero (hs : null_measurable_set s μ)
+  {t : set s} (ht : μ.comap subtype.val t = 0) :
+  μ ((coe : s → α) '' t) = 0 :=
+eq_bot_iff.mpr $ (measure_subtype_coe_le_comap hs t).trans ht.le
+
+end comap_any_measure
+
+section measure_space
+variables [measure_space α] {p : α → Prop}
+
+instance subtype.measure_space : measure_space (subtype p) :=
+{ volume := measure.comap subtype.val volume,
+  ..subtype.measurable_space }
+
+lemma subtype.volume_def : (volume : measure s) = volume.comap subtype.val := rfl
+
 lemma subtype.volume_univ (hs : null_measurable_set s) :
   volume (univ : set s) = volume s :=
 begin
@@ -1163,19 +1183,14 @@ end
 
 lemma volume_subtype_coe_le_volume (hs : null_measurable_set s) (t : set s) :
   volume ((coe : s → α) '' t) ≤ volume t :=
-le_comap_apply _ _ subtype.coe_injective
-  (λ t, measurable_set.null_measurable_set_subtype_coe hs) _
+measure_subtype_coe_le_comap hs t
 
 lemma volume_subtype_coe_eq_zero_of_volume_eq_zero (hs : null_measurable_set s)
   {t : set s} (ht : volume t = 0) :
   volume ((coe : s → α) '' t) = 0 :=
-eq_bot_iff.mpr $ (volume_subtype_coe_le_volume hs t).trans ht.le
+measure_subtype_coe_eq_zero_of_comap_eq_zero hs ht
 
-lemma null_measurable_set.subtype_coe {t : set s} (hs : null_measurable_set s)
-  (ht : null_measurable_set t) :
-  null_measurable_set ((coe : s → α) '' t) :=
-null_measurable_set.image coe volume subtype.coe_injective
-  (λ t, measurable_set.null_measurable_set_subtype_coe hs) ht
+end measure_space
 
 end subtype
 

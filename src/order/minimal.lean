@@ -161,6 +161,14 @@ lemma image_minimals {α β : Type*} {r : α → α → Prop} {s : β → β →
     f '' minimals r t = minimals s (f '' t) :=
 image_maximals f t (λ x hx y hy, h₁ y hy x hx) h₂
 
+lemma rel_embedding.image_maximals {α β : Type*} {r : α → α → Prop} {s : β → β → Prop}
+  (f : r ↪r s) (t : set α) : f '' maximals r t = maximals s (f '' t) :=
+image_maximals f t (λ _ _ _ _, f.map_rel_iff.symm) (λ x _ y _ e, f.injective e)
+
+lemma rel_embedding.image_minimals {α β : Type*} {r : α → α → Prop} {s : β → β → Prop}
+  (f : r ↪r s) (t : set α) : f '' minimals r t = minimals s (f '' t) :=
+f.swap.image_maximals t
+
 variables [partial_order α]
 
 lemma is_least.mem_minimals (h : is_least s a) : a ∈ minimals (≤) s := ⟨h.1, λ b hb _, h.2 hb⟩

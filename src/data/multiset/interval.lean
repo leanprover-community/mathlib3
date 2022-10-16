@@ -13,14 +13,6 @@ import data.nat.interval
 This file provides the `locally_finite_order` instance for `multiset α` and calculates the
 cardinality of its finite intervals.
 
-## Main declarations
-
-* `finsupp.range_singleton`: Postcomposition with `has_singleton.singleton` on `finset` as a
-  `finsupp`.
-* `finsupp.range_Icc`: Postcomposition with `finset.Icc` as a `finsupp`.
-
-Both these definitions use the fact that `0 = {0}` to ensure that the resulting function is finitely
-supported.
 -/
 
 open finset dfinsupp function
@@ -74,11 +66,9 @@ dfinsupp.to_multiset.apply_symm_apply s
 
 end multiset
 
-#check multiset.to_finsupp
+namespace multiset
 
-namespace dfinsupp
-
-variables [partial_order α] [has_zero α] [locally_finite_order α] (f g : ι →₀ α)
+variables [partial_order α] [has_zero α] [locally_finite_order α] (f g : multiset α)
 
 example : locally_finite_order nat := by apply_instance
 
@@ -92,20 +82,21 @@ locally_finite_order.of_Icc (multiset α)
     sorry
   end)
 
-#eval finset.Icc ({1, 2, 3}: multiset ℕ) ({1, 2, 2, 3, 3}: multiset ℕ)
+lemma Icc_eq [decidable_eq α] :
+  finset.Icc f g = (finset.Icc f.to_dfinsupp g.to_dfinsupp).map (dfinsupp.to_multiset.to_equiv.to_embedding) := rfl
 
-lemma Icc_eq : Icc f g = (f.support ∪ g.support).finsupp (f.range_Icc g) := rfl
+lemma card_Icc [decidable_eq α]  :
+  (finset.Icc f g).card = ∏ i in (f + g).to_finset, (g.count i - f.count i) :=
+sorry
 
-lemma card_Icc : (Icc f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card :=
-card_finsupp _ _
-
-lemma card_Ico : (Ico f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card - 1 :=
+lemma card_Ico [decidable_eq α] :
+  (finset.Ico f g).card = ∏ i in (f + g).to_finset, (g.count i - f.count i) - 1 :=
 by rw [card_Ico_eq_card_Icc_sub_one, card_Icc]
 
-lemma card_Ioc : (Ioc f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card - 1 :=
+lemma card_Ioc [decidable_eq α] : (finset.Ioc f g).card = ∏ i in (f + g).to_finset, (g.count i - f.count i) - 1 :=
 by rw [card_Ioc_eq_card_Icc_sub_one, card_Icc]
 
-lemma card_Ioo : (Ioo f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card - 2 :=
+lemma card_Ioo [decidable_eq α] : (finset.Ioo f g).card = ∏ i in (f + g).to_finset, (g.count i - f.count i) - 2 :=
 by rw [card_Ioo_eq_card_Icc_sub_two, card_Icc]
 
-end finsupp
+end multiset

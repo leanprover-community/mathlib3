@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2020 Filippo A. E. Nuccio. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Filippo A. E. Nuccio
+Authors: Filippo A. E. Nuccio, Andrew Yang
 -/
 import algebraic_geometry.prime_spectrum.basic
+import topology.noetherian_space
 /-!
 This file proves additional properties of the prime spectrum a ring is Noetherian.
 -/
@@ -88,6 +89,26 @@ begin
     apply sup_le (show span A {x} * M ≤ M, from ideal.mul_le_left),
     rwa [span_mul_span, set.singleton_mul_singleton, span_singleton_le_iff_mem] },
   { rintro (hx | hy); contradiction },
+end
+
+open topological_space
+
+instance [H : is_noetherian_ring R] : noetherian_space (prime_spectrum R) :=
+begin
+  rw (noetherian_space_tfae $ prime_spectrum R).out 0 1,
+  rw [is_noetherian_ring_iff, is_noetherian_iff_well_founded] at H,
+  have : (closeds (prime_spectrum R))ᵒᵈ ↪o ideal R :=
+  { to_fun := λ s, vanishing_ideal ↑(show closeds $ prime_spectrum R, from s),
+    inj' := λ s t e, begin
+      apply_fun zero_locus ∘ (coe : _ → set R) at e,
+      dsimp at e,
+      ext1,
+      simpa only [zero_locus_vanishing_ideal_eq_closure, closure_eq_iff_is_closed.mpr s.closed,
+        closure_eq_iff_is_closed.mpr t.closed] using e,
+    end,
+    map_rel_iff' := λ s t, by { dsimp, rw [← subset_zero_locus_iff_le_vanishing_ideal,
+      zero_locus_vanishing_ideal_eq_closure, closure_eq_iff_is_closed.mpr s.closed], refl } },
+  exact this.dual.well_founded H
 end
 
 end prime_spectrum

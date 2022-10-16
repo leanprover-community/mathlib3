@@ -374,7 +374,7 @@ lemma inner_sq_add_area_form_sq (a b : E) : ⟪a, b⟫ ^ 2 + ω a b ^ 2 = ∥a�
 by simpa [sq, real_inner_self_eq_norm_sq] using o.inner_mul_inner_add_area_form_mul_area_form a b b
 
 /-- For vectors `a x y : E`, the identity `⟪a, x⟫ * ω a y - ω a x * ⟪a, y⟫ = ∥a∥ ^ 2 * ω x y`. (See
-`orientation.inner_mul_area_form_sub` for the "applied" form.)-/
+`orientation.inner_mul_area_form_sub` for the "applied" form.) -/
 lemma inner_mul_area_form_sub' (a x : E) :
   ⟪a, x⟫ • ω a - ω a x • @innerₛₗ ℝ _ _ _ a = ∥a∥ ^ 2 • ω x :=
 begin

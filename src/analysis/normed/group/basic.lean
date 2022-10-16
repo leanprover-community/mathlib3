@@ -455,6 +455,16 @@ by simpa only [div_div_div_cancel_right'] using norm_sub_norm_le' (u / w) (v / w
 lemma bounded_iff_forall_norm_le' : bounded s ↔ ∃ C, ∀ x ∈ s, ∥x∥ ≤ C :=
 by simpa only [set.subset_def, mem_closed_ball_one_iff] using bounded_iff_subset_ball (1 : E)
 
+alias bounded_iff_forall_norm_le' ↔ metric.bounded.exists_norm_le' _
+alias bounded_iff_forall_norm_le ↔ metric.bounded.exists_norm_le _
+
+attribute [to_additive metric.bounded.exists_norm_le] metric.bounded.exists_norm_le'
+
+@[to_additive metric.bounded.exists_pos_norm_le]
+lemma metric.bounded.exists_pos_norm_le' (hs : metric.bounded s) : ∃ R > 0, ∀ x ∈ s, ∥x∥ ≤ R :=
+let ⟨R₀, hR₀⟩ := hs.exists_norm_le' in
+  ⟨max R₀ 1, by positivity, λ x hx, (hR₀ x hx).trans $ le_max_left _ _⟩
+
 @[simp, to_additive mem_sphere_iff_norm]
 lemma mem_sphere_iff_norm' : b ∈ sphere a r ↔ ∥b / a∥ = r := by simp [dist_eq_norm_div]
 

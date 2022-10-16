@@ -52,7 +52,7 @@ lemma metric.bounded.smul {s : set E} (hs : bounded s) (c : 𝕜) :
   bounded (c • s) :=
 begin
   obtain ⟨R, hR⟩ : ∃ (R : ℝ), ∀ x ∈ s, ∥x∥ ≤ R := hs.exists_norm_le,
-  refine (bounded_iff_exists_norm_le).2 ⟨∥c∥ * R, _⟩,
+  refine (bounded_iff_forall_norm_le).2 ⟨∥c∥ * R, _⟩,
   assume z hz,
   obtain ⟨y, ys, rfl⟩ : ∃ (y : E), y ∈ s ∧ c • y = z := mem_smul_set.1 hz,
   calc ∥c • y∥ = ∥c∥ * ∥y∥ : norm_smul _ _

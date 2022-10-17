@@ -1382,6 +1382,10 @@ begin
   rwa closure_Iic at this
 end
 
+lemma tsum_le_of_sum_range_le {f : ℕ → ℝ≥0∞} {c : ℝ≥0∞}
+  (h : ∀ n, ∑ i in finset.range n, f i ≤ c) : ∑' n, f n ≤ c :=
+tsum_le_of_sum_range_le ennreal.summable h
+
 @[simp] lemma metric.diam_closure {α : Type*} [pseudo_metric_space α] (s : set α) :
   metric.diam (closure s) = diam s :=
 by simp only [metric.diam, emetric.diam_closure]

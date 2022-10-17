@@ -6,6 +6,7 @@ Authors: Johan Commelin
 
 import group_theory.finiteness
 import ring_theory.algebra_tower
+import ring_theory.mv_polynomial.tower
 import ring_theory.ideal.quotient
 import ring_theory.noetherian
 
@@ -457,10 +458,10 @@ begin
       rintros _ (⟨x, hx, rfl⟩|⟨⟨x, hx⟩, rfl⟩),
       all_goals
         { dsimp [g], rw [ring_hom.mem_ker, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom] },
-      { rw [aeval_map_algebra_map, ← aeval_unique],
+      { rw [mv_polynomial.aeval_map_algebra_map, ← aeval_unique],
         have := ideal.subset_span hx,
         rwa hs at this },
-      { rw [map_sub, aeval_map_algebra_map, ← aeval_unique,
+      { rw [map_sub, mv_polynomial.aeval_map_algebra_map, ← aeval_unique,
           aeval_C, ht', subtype.coe_mk, sub_self] } },
     apply leI.antisymm,
     intros x hx,
@@ -742,7 +743,7 @@ ring_hom.finite_presentation.of_finite_type
 
 lemma of_comp_finite_type (f : A →ₐ[R] B) {g : B →ₐ[R] C} (h : (g.comp f).finite_presentation)
   (h' : f.finite_type) : g.finite_presentation :=
-h.of_comp_finite_type h'
+h.of_comp_finite_type _ h'
 
 end finite_presentation
 

@@ -165,26 +165,6 @@ rfl
 open_locale pointwise
 
 -- PRed
-lemma _root_.subgroup.mul_injective_of_disjoint {H₁ H₂ : subgroup G} (h : disjoint H₁ H₂) :
-  function.injective (λ g, g.1 * g.2 : H₁ × H₂ → G) :=
-begin
-  intros x y hxy,
-  rw [←inv_mul_eq_iff_eq_mul, ←mul_assoc, ←mul_inv_eq_one, mul_assoc] at hxy,
-  replace hxy := disjoint_iff_mul_eq_one.mp h (y.1⁻¹ * x.1).prop (x.2 * y.2⁻¹).prop hxy,
-  rwa [coe_mul, coe_mul, coe_inv, coe_inv, inv_mul_eq_one, mul_inv_eq_one,
-    ←subtype.ext_iff, ←subtype.ext_iff, eq_comm, ←prod.ext_iff] at hxy,
-end
-
--- PRed
-lemma is_complement'_of_disjoint_and_mul_eq_univ {H K : subgroup G}
-  (h1 : disjoint H K) (h2 : ↑H * ↑K = (set.univ : set G)) : is_complement' H K :=
-begin
-  refine ⟨subgroup.mul_injective_of_disjoint h1, λ g, _⟩,
-  obtain ⟨h, k, hh, hk, hg⟩ := set.eq_univ_iff_forall.mp h2 g,
-  exact ⟨(⟨h, hh⟩, ⟨k, hk⟩), hg⟩,
-end
-
--- PRed
 @[simp, to_additive card_nsmul_eq_zero']
 lemma pow_card_eq_one' {G : Type*} [group G] {x : G} : x ^ nat.card G = 1 :=
 begin

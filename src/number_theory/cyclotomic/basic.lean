@@ -135,6 +135,19 @@ lemma singleton_one [h : is_cyclotomic_extension {1} A B] : (⊥ : subalgebra A 
 algebra.eq_top_iff.2 (λ x, by simpa [adjoin_singleton_one]
   using ((is_cyclotomic_extension_iff _ _ _).1 h).2 x)
 
+variables {A B}
+
+/-- If `(⊥ : subalgebra A B) = ⊤`, then `is_cyclotomic_extension ∅ A B`. -/
+lemma singleton_zero_of_bot_eq_top (h : (⊥ : subalgebra A B) = ⊤) :
+  is_cyclotomic_extension ∅ A B :=
+begin
+  refine (iff_adjoin_eq_top _ _ _).2 ⟨λ s hs, by simpa using hs, _root_.eq_top_iff.2 (λ x hx, _)⟩,
+  rw [← h] at hx,
+  simpa using hx,
+end
+
+variables (A B)
+
 /-- Transitivity of cyclotomic extensions. -/
 lemma trans (C : Type w) [comm_ring C] [nontrivial C] [algebra A C] [algebra B C]
   [is_scalar_tower A B C] [hS : is_cyclotomic_extension S A B]
@@ -211,6 +224,99 @@ begin
     rw [← adjoin_adjoin_coe_preimage, preimage_set_of_eq],
     norm_cast }
 end
+
+variables {n S}
+
+/-- If `∀ s ∈ S, n ∣ s` and `S` is not empty, then `is_cyclotomic_extension S A B` implies
+`is_cyclotomic_extension (S ∪ {n}) A B`. -/
+lemma of_union_of_dvd (h : ∀ s ∈ S, n ∣ s) (hS : S.nonempty) [H : is_cyclotomic_extension S A B] :
+  is_cyclotomic_extension (S ∪ {n}) A B :=
+begin
+  refine (iff_adjoin_eq_top _ _ _).2 ⟨λ s hs, _, _⟩,
+  { cases hs,
+    { exact H.exists_prim_root hs },
+    { simp only [mem_singleton_iff] at hs,
+      obtain ⟨m, hm⟩ := hS,
+      obtain ⟨x, hx⟩ := h m hm,
+      rw [← hs] at hx,
+      obtain ⟨ζ, hζ⟩ := H.exists_prim_root hm,
+      refine ⟨ζ ^ (x : ℕ), _⟩,
+      have : (x : ℕ) ∣ m := ⟨s, by simp only [hx, pnat.mul_coe, mul_comm]⟩,
+      convert hζ.pow_of_dvd x.ne_zero this,
+      rw [hx],
+      simp only [pnat.mul_coe, nat.mul_div_left, pnat.pos] } },
+  { refine _root_.eq_top_iff.2 _,
+    rw [← ((iff_adjoin_eq_top S A B).1 H).2],
+    refine adjoin_mono (λ x hx, _),
+    simp only [union_singleton, mem_insert_iff, mem_set_of_eq] at ⊢ hx,
+    obtain ⟨m, hm⟩ := hx,
+    refine ⟨m, ⟨_, hm.2⟩⟩,
+    right,
+      exact hm.1 }
+end
+
+/-- If `∀ s ∈ S, n ∣ s` and `S` is not empty, then `is_cyclotomic_extension S A B` if and only if
+`is_cyclotomic_extension (S ∪ {n}) A B`. -/
+lemma iff_union_of_dvd (h : ∀ s ∈ S, n ∣ s) (hS : S.nonempty) :
+  is_cyclotomic_extension S A B ↔ is_cyclotomic_extension (S ∪ {n}) A B :=
+begin
+  refine ⟨λ H, by exactI of_union_of_dvd A B h hS, λ H, (iff_adjoin_eq_top _ _ _).2 ⟨λ s hs, _, _⟩⟩,
+  { exact H.exists_prim_root (subset_union_left _ _ hs) },
+  { refine _root_.eq_top_iff.2 _,
+    rw [← ((iff_adjoin_eq_top _ A B).1 H).2],
+    refine adjoin_mono (λ x hx, _),
+    simp only [union_singleton, mem_insert_iff, mem_set_of_eq] at ⊢ hx,
+    obtain ⟨m, hm, hxpow⟩ := hx,
+    cases hm,
+    { obtain ⟨y, hy⟩ := hS,
+      refine ⟨y, ⟨hy, _⟩⟩,
+      obtain ⟨z, hz⟩ := h y hy,
+      rw [hm] at hxpow,
+      simp only [hz, pnat.mul_coe, pow_mul, hxpow, one_pow] },
+    { exact ⟨m, ⟨hm, hxpow⟩⟩ } }
+end
+
+variables (n S)
+
+/-- `is_cyclotomic_extension S A B` is equivalent to `is_cyclotomic_extension (S ∪ {1}) A B`. -/
+lemma iff_union_singleton_one :
+  is_cyclotomic_extension S A B ↔ is_cyclotomic_extension (S ∪ {1}) A B :=
+begin
+  by_cases hS : S.nonempty,
+  { exact iff_union_of_dvd _ _ (λ s hs, one_dvd _) hS },
+  replace hS : S = ∅ := set.not_nonempty_iff_eq_empty.1 hS,
+  refine ⟨λ H, _, λ H, _⟩,
+  { rw [hS] at H ⊢,
+    simp only [union_singleton, insert_emptyc_eq],
+    refine (iff_adjoin_eq_top _ _ _).2 ⟨λ s hs, ⟨1, by simp [mem_singleton_iff.1 hs]⟩, _⟩,
+    letI := H,
+    simp [adjoin_singleton_one, empty] },
+  { rw [hS, empty_union] at H,
+    refine (iff_adjoin_eq_top _ _ _).2 ⟨λ s hs, _, _⟩,
+    { exfalso,
+      rw [hS] at hs,
+      simpa [hs] },
+    { rw [hS],
+      letI := H,
+      simp [singleton_one] } }
+end
+
+variables {A B}
+
+/-- If `(⊥ : subalgebra A B) = ⊤`, then `is_cyclotomic_extension {1} A B`. -/
+lemma singleton_one_of_bot_eq_top (h : (⊥ : subalgebra A B) = ⊤) :
+  is_cyclotomic_extension {1} A B :=
+begin
+  convert (iff_union_singleton_one _ _ _).1 (singleton_zero_of_bot_eq_top h),
+  simp
+end
+
+/-- If `function.surjective (algebra_map A B)`, then `is_cyclotomic_extension {1} A B`. -/
+lemma singleton_one_of_algebra_map_bijective (h : function.surjective (algebra_map A B)) :
+  is_cyclotomic_extension {1} A B :=
+singleton_one_of_bot_eq_top (surjective_algebra_map_iff.1 h).symm
+
+variables (A B)
 
 @[protected]
 lemma ne_zero [h : is_cyclotomic_extension {n} A B] [is_domain B] : ne_zero ((n : ℕ) : B) :=

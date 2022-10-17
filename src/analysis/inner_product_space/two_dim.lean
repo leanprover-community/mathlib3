@@ -32,6 +32,24 @@ product space `E`.
   the complex number `o.kahler x y` has modulus `∥x∥ * ∥y∥`. TODO: the argument of `o.kahler x y` is
   the oriented angle (`orientation.oangle`) from `x` to `y`.
 
+## Main results
+
+* `orientation.right_angle_rotation_right_angle_rotation`: the identity `J (J x) = - x`
+
+* `orientation.nonneg_inner_and_area_form_eq_zero_iff_same_ray`: `x`, `y` are in the same ray, if
+  and only if `0 ≤ ⟪x, y⟫` and `ω x y = 0`
+
+* `orientation.kahler_mul`: the identity `o.kahler x a * o.kahler a y = ∥a∥ ^ 2 * o.kahler x y`
+
+* `complex.area_form`, `complex.right_angle_rotation`, `complex.kahler`: the concrete
+  interpretations of `area_form`, `right_angle_rotation`, `kahler` for the oriented real inner
+  product space `ℂ`
+
+* `orientation.area_form_map_complex`, `orientation.right_angle_rotation_map_complex`,
+  `orientation.kahler_map_complex`: given an orientation-preserving isometry from `E` to `ℂ`,
+  expressions for `area_form`, `right_angle_rotation`, `kahler` as the pullback of their concrete
+  interpretations on `ℂ`
+
 ## Implementation notes
 
 Notation `ω` for `orientation.area_form` and `J` for `orientation.right_angle_rotation` should be
@@ -539,6 +557,13 @@ lemma kahler_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 
   (φ : E ≃ₗᵢ[ℝ] F) (x y : F) :
   (orientation.map (fin 2) φ.to_linear_equiv o).kahler x y = o.kahler (φ.symm x) (φ.symm y) :=
 by simp [kahler_apply_apply, area_form_map]
+
+/-- The bilinear map `kahler` is invariant under pullback by a positively-oriented isometric
+automorphism. -/
+lemma kahler_comp_linear_isometry_equiv (φ : E ≃ₗᵢ[ℝ] E)
+  (hφ : 0 < (φ.to_linear_equiv : E →ₗ[ℝ] E).det) (x y : E) :
+  o.kahler (φ x) (φ y) = o.kahler x y :=
+by simp [kahler_apply_apply, o.area_form_comp_linear_isometry_equiv φ hφ]
 
 end orientation
 

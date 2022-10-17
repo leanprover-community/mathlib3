@@ -1145,6 +1145,10 @@ begin
   exact_mod_cast nnreal.tendsto_sum_nat_add f
 end
 
+lemma tsum_le_of_sum_range_le {f : ℕ → ℝ≥0∞} {c : ℝ≥0∞}
+  (h : ∀ n, ∑ i in finset.range n, f i ≤ c) : ∑' n, f n ≤ c :=
+tsum_le_of_sum_range_le ennreal.summable h
+
 lemma has_sum_lt {f g : α → ℝ≥0∞} {sf sg : ℝ≥0∞} {i : α} (h : ∀ (a : α), f a ≤ g a)
   (hi : f i < g i) (hsg : sg ≠ ⊤) (hf : has_sum f sf) (hg : has_sum g sg) : sf < sg :=
 begin
@@ -1381,10 +1385,6 @@ begin
     from map_mem_closure₂ continuous_edist hx hy (λ x hx y hy, edist_le_diam_of_mem hx hy),
   rwa closure_Iic at this
 end
-
-lemma tsum_le_of_sum_range_le {f : ℕ → ℝ≥0∞} {c : ℝ≥0∞}
-  (h : ∀ n, ∑ i in finset.range n, f i ≤ c) : ∑' n, f n ≤ c :=
-tsum_le_of_sum_range_le ennreal.summable h
 
 @[simp] lemma metric.diam_closure {α : Type*} [pseudo_metric_space α] (s : set α) :
   metric.diam (closure s) = diam s :=

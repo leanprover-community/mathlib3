@@ -65,7 +65,8 @@ instance : floor_semiring ℕ :=
   gc_ceil := λ n a, by { rw nat.cast_id, refl } }
 
 @[priority 100] -- see Note [lower instance priority]
-instance floor_semiring.to_nontrivial [strict_ordered_semiring α] [floor_semiring α] : nontrivial α :=
+instance floor_semiring.to_nontrivial [strict_ordered_semiring α] [floor_semiring α] :
+  nontrivial α :=
 begin
   refine (subsingleton_or_nontrivial α).resolve_left (λ h, _),
   refine nat.not_succ_le_self (floor_semiring.floor (0 : α)) _,

@@ -856,7 +856,7 @@ A --→ B
 ↑     ↑
 |     |
 R --→ S -/
-variables (A B : Type*) [comm_ring A] [comm_ring B] [algebra R A] [algebra R B] [algebra A B]
+variables (A B : Type*) [comm_ring A] [comm_ring B] [algebra R A] [algebra R B]
 variables [algebra A B] [algebra S B] [is_scalar_tower R A B] [is_scalar_tower R S B]
 
 variables {R B}

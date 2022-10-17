@@ -294,6 +294,18 @@ explicit for this purpose. -/
 lemma Inter_subset_of_subset {s : ι → set α} {t : set α} (i : ι) (h : s i ⊆ t) : (⋂ i, s i) ⊆ t :=
 @infi_le_of_le (set α) _ _ _ _ i h
 
+/-- This rather trivial consequence of `subset_Union₂` is convenient with `apply`, and has `i` and
+`j` explicit for this purpose. -/
+lemma subset_Union₂_of_subset {s : set α} {t : Π i, κ i → set α} (i : ι) (j : κ i) (h : s ⊆ t i j) :
+  s ⊆ ⋃ i j, t i j :=
+@le_supr₂_of_le (set α) _ _ _ _ _ i j h
+
+/-- This rather trivial consequence of `Inter₂_subset` is convenient with `apply`, and has `i` and
+`j` explicit for this purpose. -/
+lemma Inter₂_subset_of_subset {s : Π i, κ i → set α} {t : set α} (i : ι) (j : κ i) (h : s i j ⊆ t) :
+  (⋂ i j, s i j) ⊆ t :=
+@infi₂_le_of_le (set α) _ _ _ _ _ i j h
+
 lemma Union_mono {s t : ι → set α} (h : ∀ i, s i ⊆ t i) : (⋃ i, s i) ⊆ ⋃ i, t i :=
 @supr_mono (set α) _ _ s t h
 
@@ -1365,6 +1377,33 @@ begin
   { intros x hz x' hw, exact ⟨x ⊔ x', hs le_sup_left hz, ht le_sup_right hw⟩ }
 end
 
+lemma sInter_prod_sInter_subset (S : set (set α)) (T : set (set β)) :
+  ⋂₀ S ×ˢ ⋂₀ T ⊆ ⋂ r ∈ S ×ˢ T, r.1 ×ˢ r.2 :=
+subset_Inter₂ (λ x hx y hy, ⟨hy.1 x.1 hx.1, hy.2 x.2 hx.2⟩)
+
+lemma sInter_prod_sInter {S : set (set α)} {T : set (set β)} (hS : S.nonempty) (hT : T.nonempty) :
+  ⋂₀ S ×ˢ ⋂₀ T = ⋂ r ∈ S ×ˢ T, r.1 ×ˢ r.2 :=
+begin
+  obtain ⟨s₁, h₁⟩ := hS,
+  obtain ⟨s₂, h₂⟩ := hT,
+  refine set.subset.antisymm (sInter_prod_sInter_subset S T) (λ x hx, _),
+  rw mem_Inter₂ at hx,
+  exact ⟨λ s₀ h₀, (hx (s₀, s₂) ⟨h₀, h₂⟩).1, λ s₀ h₀, (hx (s₁, s₀) ⟨h₁, h₀⟩).2⟩,
+end
+
+lemma sInter_prod {S : set (set α)} (hS : S.nonempty) (t : set β) :
+  ⋂₀ S ×ˢ t = ⋂ s ∈ S, s ×ˢ t :=
+begin
+  rw [←sInter_singleton t, sInter_prod_sInter hS (singleton_nonempty t), sInter_singleton],
+  simp_rw [prod_singleton, mem_image, Inter_exists, bInter_and', Inter_Inter_eq_right],
+end
+
+lemma prod_sInter {T : set (set β)} (hT : T.nonempty) (s : set α) :
+  s ×ˢ ⋂₀ T = ⋂ t ∈ T, s ×ˢ t :=
+begin
+  rw [←sInter_singleton s, sInter_prod_sInter (singleton_nonempty s) hT, sInter_singleton],
+  simp_rw [singleton_prod, mem_image, Inter_exists, bInter_and', Inter_Inter_eq_right],
+end
 end prod
 
 section image2
@@ -1567,11 +1606,6 @@ end disjoint
 
 namespace set
 
-protected theorem disjoint_iff : disjoint s t ↔ s ∩ t ⊆ ∅ := iff.rfl
-
-theorem disjoint_iff_inter_eq_empty : disjoint s t ↔ s ∩ t = ∅ :=
-disjoint_iff
-
 lemma not_disjoint_iff : ¬disjoint s t ↔ ∃ x, x ∈ s ∧ x ∈ t :=
 not_forall.trans $ exists_congr $ λ x, not_not
 
@@ -1684,7 +1718,7 @@ by simpa using h.preimage f
 lemma preimage_eq_empty_iff {s : set β} : f ⁻¹' s = ∅ ↔ disjoint s (range f) :=
 ⟨λ h, begin
     simp only [eq_empty_iff_forall_not_mem, disjoint_iff_inter_eq_empty, not_exists,
-      mem_inter_eq, not_and, mem_range, mem_preimage] at h ⊢,
+      mem_inter_iff, not_and, mem_range, mem_preimage] at h ⊢,
     assume y hy x hx,
     rw ← hx at hy,
     exact h x hy,

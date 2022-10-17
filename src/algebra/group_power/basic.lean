@@ -68,6 +68,10 @@ by rw [pow_succ, pow_one]
 
 alias pow_two ← sq
 
+theorem pow_three' (a : M) : a^3 = a * a * a := by rw [pow_succ', pow_two]
+
+theorem pow_three (a : M) : a^3 = a * (a * a) := by rw [pow_succ, pow_two]
+
 @[to_additive]
 theorem pow_mul_comm' (a : M) (n : ℕ) : a^n * a = a * a^n := commute.pow_self a n
 
@@ -141,6 +145,17 @@ by rw [pow_bit0, (commute.refl a).mul_pow]
 @[to_additive bit1_nsmul']
 theorem pow_bit1' (a : M) (n : ℕ) : a ^ bit1 n = (a * a) ^ n * a :=
 by rw [bit1, pow_succ', pow_bit0']
+
+@[to_additive]
+lemma pow_mul_pow_eq_one {a b : M} (n : ℕ) (h : a * b = 1) :
+  a ^ n * b ^ n = 1 :=
+begin
+  induction n with n hn,
+  { simp },
+  { calc a ^ n.succ * b ^ n.succ = a ^ n * a * (b * b ^ n) : by rw [pow_succ', pow_succ]
+    ... = a ^ n * (a * b) * b ^ n : by simp only [mul_assoc]
+    ... = 1 : by simp [h, hn] }
+end
 
 lemma dvd_pow {x y : M} (hxy : x ∣ y) :
   ∀ {n : ℕ} (hn : n ≠ 0), x ∣ y^n

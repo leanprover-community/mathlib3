@@ -53,9 +53,8 @@ instance : comm_semiring ℕ :=
   nsmul_succ'    := λ n x,
     by rw [nat.succ_eq_add_one, nat.add_comm, nat.right_distrib, nat.one_mul] }
 
-instance : linear_ordered_semiring nat :=
-{ add_left_cancel            := @nat.add_left_cancel,
-  lt                         := nat.lt,
+instance : linear_ordered_comm_semiring ℕ :=
+{ lt                         := nat.lt,
   add_le_add_left            := @nat.add_le_add_left,
   le_of_add_le_add_left      := @nat.le_of_add_le_add_left,
   zero_le_one                := nat.le_of_lt (nat.zero_lt_succ 0),
@@ -65,30 +64,29 @@ instance : linear_ordered_semiring nat :=
   exists_pair_ne             := ⟨0, 1, ne_of_lt nat.zero_lt_one⟩,
   ..nat.comm_semiring, ..nat.linear_order }
 
--- all the fields are already included in the linear_ordered_semiring instance
-instance : linear_ordered_cancel_add_comm_monoid ℕ :=
-{ add_left_cancel := @nat.add_left_cancel,
-  ..nat.linear_ordered_semiring }
-
 instance : linear_ordered_comm_monoid_with_zero ℕ :=
 { mul_le_mul_left := λ a b h c, nat.mul_le_mul_left c h,
-  ..nat.linear_ordered_semiring,
+  ..nat.linear_ordered_comm_semiring,
   ..(infer_instance : comm_monoid_with_zero ℕ)}
 
-instance : ordered_comm_semiring ℕ := { .. nat.comm_semiring, .. nat.linear_ordered_semiring }
-
-/-! Extra instances to short-circuit type class resolution -/
-instance : add_comm_monoid nat    := by apply_instance
-instance : add_monoid nat         := by apply_instance
-instance : monoid nat             := by apply_instance
-instance : comm_monoid nat        := by apply_instance
-instance : comm_semigroup nat     := by apply_instance
-instance : semigroup nat          := by apply_instance
-instance : add_comm_semigroup nat := by apply_instance
-instance : add_semigroup nat      := by apply_instance
-instance : distrib nat            := by apply_instance
-instance : semiring nat           := by apply_instance
-instance : ordered_semiring nat   := by apply_instance
+/-! Extra instances to short-circuit type class resolution and ensure computability -/
+-- Not using `infer_instance` avoids `classical.choice` in the following two
+instance : linear_ordered_semiring ℕ      := infer_instance
+instance : strict_ordered_semiring ℕ      := infer_instance
+instance : strict_ordered_comm_semiring ℕ := infer_instance
+instance : ordered_semiring ℕ             := strict_ordered_semiring.to_ordered_semiring'
+instance : ordered_comm_semiring ℕ        := strict_ordered_comm_semiring.to_ordered_comm_semiring'
+instance : add_comm_monoid ℕ              := infer_instance
+instance : add_monoid ℕ                   := infer_instance
+instance : monoid ℕ                       := infer_instance
+instance : comm_monoid ℕ                  := infer_instance
+instance : comm_semigroup ℕ               := infer_instance
+instance : semigroup ℕ                    := infer_instance
+instance : add_comm_semigroup ℕ           := infer_instance
+instance : add_semigroup ℕ                := infer_instance
+instance : distrib ℕ                      := infer_instance
+instance : semiring ℕ                     := infer_instance
+instance : linear_ordered_cancel_add_comm_monoid ℕ := infer_instance
 
 instance nat.order_bot : order_bot ℕ :=
 { bot := 0, bot_le := nat.zero_le }
@@ -527,11 +525,11 @@ lemma succ_mul_pos (m : ℕ) (hn : 0 < n) : 0 < (succ m) * n :=
 mul_pos (succ_pos m) hn
 
 theorem mul_self_le_mul_self {n m : ℕ} (h : n ≤ m) : n * n ≤ m * m :=
-decidable.mul_le_mul h h (zero_le _) (zero_le _)
+mul_le_mul h h (zero_le _) (zero_le _)
 
 theorem mul_self_lt_mul_self : Π {n m : ℕ}, n < m → n * n < m * m
 | 0        m h := mul_pos h h
-| (succ n) m h := decidable.mul_lt_mul h (le_of_lt h) (succ_pos _) (zero_le _)
+| (succ n) m h := mul_lt_mul h (le_of_lt h) (succ_pos _) (zero_le _)
 
 theorem mul_self_le_mul_self_iff {n m : ℕ} : n ≤ m ↔ n * n ≤ m * m :=
 ⟨mul_self_le_mul_self, le_imp_le_of_lt_imp_lt mul_self_lt_mul_self⟩
@@ -546,13 +544,13 @@ theorem le_mul_self : Π (n : ℕ), n ≤ n * n
 lemma le_mul_of_pos_left {m n : ℕ} (h : 0 < n) : m ≤ n * m :=
 begin
   conv {to_lhs, rw [← one_mul(m)]},
-  exact decidable.mul_le_mul_of_nonneg_right h.nat_succ_le dec_trivial,
+  exact mul_le_mul_of_nonneg_right h.nat_succ_le dec_trivial,
 end
 
 lemma le_mul_of_pos_right {m n : ℕ} (h : 0 < n) : m ≤ m * n :=
 begin
   conv {to_lhs, rw [← mul_one(m)]},
-  exact decidable.mul_le_mul_of_nonneg_left h.nat_succ_le dec_trivial,
+  exact mul_le_mul_of_nonneg_left h.nat_succ_le dec_trivial,
 end
 
 theorem two_mul_ne_two_mul_add_one {n m} : 2 * n ≠ 2 * m + 1 :=
@@ -1626,9 +1624,9 @@ by { convert bit1_lt_bit0_iff, refl, }
 | ff := bit0_le_bit1_iff
 | tt := bit1_le_bit1
 
-@[simp] lemma bit0_mod_two : bit0 n % 2 = 0 := by { rw nat.mod_two_of_bodd, simp }
+lemma bit0_mod_two : bit0 n % 2 = 0 := by { rw nat.mod_two_of_bodd, simp }
 
-@[simp] lemma bit1_mod_two : bit1 n % 2 = 1 := by { rw nat.mod_two_of_bodd, simp }
+lemma bit1_mod_two : bit1 n % 2 = 1 := by { rw nat.mod_two_of_bodd, simp }
 
 lemma pos_of_bit0_pos {n : ℕ} (h : 0 < bit0 n) : 0 < n :=
 by { cases n, cases h, apply succ_pos, }

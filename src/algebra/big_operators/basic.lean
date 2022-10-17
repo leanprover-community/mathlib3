@@ -262,6 +262,16 @@ lemma prod_disj_union (h) : ∏ x in s₁.disj_union s₂ h, f x = (∏ x in s�
 by { refine eq.trans _ (fold_disj_union h), rw one_mul, refl }
 
 @[to_additive]
+lemma prod_disj_Union (s : finset ι) (t : ι → finset α) (h) :
+  ∏ x in s.disj_Union t h, f x = ∏ i in s, ∏ x in t i, f x :=
+begin
+  refine eq.trans _ (fold_disj_Union h),
+  dsimp [finset.prod, multiset.prod, multiset.fold, finset.disj_Union, finset.fold],
+  congr',
+  exact prod_const_one.symm,
+end
+
+@[to_additive]
 lemma prod_union_inter [decidable_eq α] :
   (∏ x in (s₁ ∪ s₂), f x) * (∏ x in (s₁ ∩ s₂), f x) = (∏ x in s₁, f x) * (∏ x in s₂, f x) :=
 fold_union_inter
@@ -812,6 +822,11 @@ lemma prod_extend_by_one [decidable_eq α] (s : finset α) (f : α → β) :
 prod_congr rfl $ λ i hi, if_pos hi
 
 @[simp, to_additive]
+lemma prod_ite_mem [decidable_eq α] (s t : finset α) (f : α → β) :
+  ∏ i in s, (if i ∈ t then f i else 1) = ∏ i in (s ∩ t), f i :=
+by rw [← finset.prod_filter, finset.filter_mem_eq_inter]
+
+@[simp, to_additive]
 lemma prod_dite_eq [decidable_eq α] (s : finset α) (a : α) (b : Π x : α, a = x → β) :
   (∏ x in s, (if h : a = x then b x h else 1)) = ite (a ∈ s) (b a rfl) 1 :=
 begin
@@ -1129,9 +1144,7 @@ begin
 end
 
 @[simp, to_additive] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
-by haveI := classical.dec_eq α; exact
-finset.induction_on s (by simp) (λ a s has ih,
-by rw [prod_insert has, card_insert_of_not_mem has, pow_succ, ih])
+(congr_arg _ $ s.val.map_const b).trans $ multiset.prod_repeat b s.card
 
 @[to_additive]
 lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b := by simp
@@ -1139,8 +1152,7 @@ lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b := by simp
 @[to_additive]
 lemma prod_pow (s : finset α) (n : ℕ) (f : α → β) :
   ∏ x in s, f x ^ n = (∏ x in s, f x) ^ n :=
-by haveI := classical.dec_eq α; exact
-finset.induction_on s (by simp) (by simp [mul_pow] {contextual := tt})
+multiset.prod_map_pow
 
 @[to_additive]
 lemma prod_flip {n : ℕ} (f : ℕ → β) :
@@ -1471,6 +1483,10 @@ end comm_group
 @[simp] theorem card_sigma {σ : α → Type*} (s : finset α) (t : Π a, finset (σ a)) :
   card (s.sigma t) = ∑ a in s, card (t a) :=
 multiset.card_sigma _ _
+
+@[simp] lemma card_disj_Union (s : finset α) (t : α → finset β) (h) :
+  (s.disj_Union t h).card = s.sum (λ i, (t i).card) :=
+multiset.card_bind _ _
 
 lemma card_bUnion [decidable_eq β] {s : finset α} {t : α → finset β}
   (h : ∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y)) :

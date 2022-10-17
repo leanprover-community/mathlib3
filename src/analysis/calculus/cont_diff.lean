@@ -1437,6 +1437,13 @@ variable {𝕜}
 lemma iterated_fderiv_zero_eq_comp :
   iterated_fderiv 𝕜 0 f = (continuous_multilinear_curry_fin0 𝕜 E F).symm ∘ f := rfl
 
+lemma norm_iterated_fderiv_zero :
+  ∥iterated_fderiv 𝕜 0 f x∥ = ∥f x∥ :=
+begin
+  rw [←continuous_multilinear_map.fin0_apply_norm, iterated_fderiv_zero_apply],
+  exact fin.elim0',
+end
+
 lemma iterated_fderiv_succ_apply_left {n : ℕ} (m : fin (n + 1) → E):
   (iterated_fderiv 𝕜 (n + 1) f x : (fin (n + 1) → E) → F) m
   = (fderiv 𝕜 (iterated_fderiv 𝕜 n f) x : E → (E [×n]→L[𝕜] F)) (m 0) (tail m) := rfl
@@ -2575,7 +2582,7 @@ variables {𝔸 𝔸' ι 𝕜' : Type*} [normed_ring 𝔸] [normed_algebra 𝕜 
 
 /- The product is smooth. -/
 lemma cont_diff_mul : cont_diff 𝕜 n (λ p : 𝔸 × 𝔸, p.1 * p.2) :=
-(continuous_linear_map.lmul 𝕜 𝔸).is_bounded_bilinear_map.cont_diff
+(continuous_linear_map.mul 𝕜 𝔸).is_bounded_bilinear_map.cont_diff
 
 /-- The product of two `C^n` functions within a set at a point is `C^n` within this set
 at this point. -/
@@ -2874,12 +2881,12 @@ begin
         exact (inverse_continuous_at x').continuous_within_at },
       { simp [ftaylor_series_within] } } },
   { apply cont_diff_at_succ_iff_has_fderiv_at.mpr,
-    refine ⟨λ (x : R), - lmul_left_right 𝕜 R (inverse x) (inverse x), _, _⟩,
+    refine ⟨λ (x : R), - mul_left_right 𝕜 R (inverse x) (inverse x), _, _⟩,
     { refine ⟨{y : R | is_unit y}, x.nhds, _⟩,
       rintros _ ⟨y, rfl⟩,
       rw [inverse_unit],
       exact has_fderiv_at_ring_inverse y },
-    { convert (lmul_left_right_is_bounded_bilinear 𝕜 R).cont_diff.neg.comp_cont_diff_at
+    { convert (mul_left_right_is_bounded_bilinear 𝕜 R).cont_diff.neg.comp_cont_diff_at
         (x : R) (IH.prod IH) } },
   { exact cont_diff_at_top.mpr Itop }
 end

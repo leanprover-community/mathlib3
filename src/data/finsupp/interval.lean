@@ -64,6 +64,7 @@ lemma mem_range_Icc_apply_iff : a ∈ f.range_Icc g i ↔ f i ≤ a ∧ a ≤ g 
 
 end range_Icc
 
+section partial_order
 variables [partial_order α] [has_zero α] [locally_finite_order α] (f g : ι →₀ α)
 
 instance : locally_finite_order (ι →₀ α) :=
@@ -88,5 +89,23 @@ by rw [card_Ioc_eq_card_Icc_sub_one, card_Icc]
 
 lemma card_Ioo : (Ioo f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card - 2 :=
 by rw [card_Ioo_eq_card_Icc_sub_two, card_Icc]
+
+end partial_order
+
+section canonically_ordered
+variables [decidable_eq ι] [decidable_eq α]
+variables [canonically_ordered_add_monoid α] [locally_finite_order α]
+
+variables (f : ι →₀ α)
+
+lemma card_Iic : (Iic f).card = ∏ i in f.support, (Iic (f i)).card :=
+by simp_rw [Iic_eq_Icc, card_Icc, finsupp.bot_eq_zero, support_zero, empty_union, zero_apply,
+  bot_eq_zero]
+
+lemma card_Iio : (Iio f).card = ∏ i in f.support, (Iic (f i)).card - 1 :=
+by simp_rw [Iio_eq_Ico, card_Ico, finsupp.bot_eq_zero, support_zero, empty_union, zero_apply,
+  Iic_eq_Icc, bot_eq_zero]
+
+end canonically_ordered
 
 end finsupp

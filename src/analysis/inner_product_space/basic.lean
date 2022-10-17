@@ -1347,6 +1347,12 @@ begin
   norm_num
 end
 
+/-- Pythagorean theorem, if-and-if vector inner product form using square roots. -/
+lemma norm_add_eq_sqrt_iff_real_inner_eq_zero {x y : F} :
+  ∥x + y∥ = sqrt (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) ↔ ⟪x, y⟫_ℝ = 0 :=
+by rw [←norm_add_sq_eq_norm_sq_add_norm_sq_iff_real_inner_eq_zero, eq_comm,
+  sqrt_eq_iff_mul_self_eq (add_nonneg (mul_self_nonneg _) (mul_self_nonneg _)) (norm_nonneg _)]
+
 /-- Pythagorean theorem, vector inner product form. -/
 lemma norm_add_sq_eq_norm_sq_add_norm_sq_of_inner_eq_zero (x y : E) (h : ⟪x, y⟫ = 0) :
   ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
@@ -1370,6 +1376,13 @@ begin
       mul_eq_zero],
   norm_num
 end
+
+/-- Pythagorean theorem, subtracting vectors, if-and-if vector inner product form using square
+roots. -/
+lemma norm_sub_eq_sqrt_iff_real_inner_eq_zero {x y : F} :
+  ∥x - y∥ = sqrt (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) ↔ ⟪x, y⟫_ℝ = 0 :=
+by rw [←norm_sub_sq_eq_norm_sq_add_norm_sq_iff_real_inner_eq_zero, eq_comm,
+  sqrt_eq_iff_mul_self_eq (add_nonneg (mul_self_nonneg _) (mul_self_nonneg _)) (norm_nonneg _)]
 
 /-- Pythagorean theorem, subtracting vectors, vector inner product
 form. -/

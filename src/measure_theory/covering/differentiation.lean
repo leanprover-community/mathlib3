@@ -396,7 +396,7 @@ begin
   ... < q * μ (to_measurable (ρ + μ) (u m) ∩ to_measurable (ρ + μ) (w n)) : begin
     apply (ennreal.mul_lt_mul_right h _).2 (ennreal.coe_lt_coe.2 hpq),
     suffices H : (ρ + μ) (to_measurable (ρ + μ) (u m) ∩ to_measurable (ρ + μ) (w n)) ≠ ∞,
-    { simp only [not_or_distrib, ennreal.add_eq_top, pi.add_apply, ne.def, coe_add] at H,
+    { simp only [not_or_distrib, ennreal.add_eq_top, pi.add_apply, ne.def, measure.coe_add] at H,
       exact H.2 },
     apply (lt_of_le_of_lt (measure_mono (inter_subset_left _ _)) _).ne,
     rw measure_to_measurable,
@@ -713,7 +713,7 @@ begin
   convert Ax.add Cx,
   { ext1 a,
     conv_lhs { rw [eq_add] },
-    simp only [pi.add_apply, coe_add, ennreal.add_div] },
+    simp only [pi.add_apply, measure.coe_add, ennreal.add_div] },
   { simp only [Bx, zero_add] }
 end
 

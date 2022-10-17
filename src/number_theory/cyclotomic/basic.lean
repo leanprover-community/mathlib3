@@ -118,7 +118,7 @@ end
 variables (A B)
 
 /-- Transitivity of cyclotomic extensions. -/
-lemma trans (C : Type w) [comm_ring C] [nontrivial C] [algebra A C] [algebra B C]
+lemma trans (C : Type w) [comm_ring C] [algebra A C] [algebra B C]
   [is_scalar_tower A B C] [hS : is_cyclotomic_extension S A B]
   [hT : is_cyclotomic_extension T B C] (h : function.injective (algebra_map B C)) :
   is_cyclotomic_extension (S ∪ T) A C :=
@@ -295,11 +295,7 @@ begin
   letI : algebra B C := f.to_alg_hom.to_ring_hom.to_algebra,
   haveI : is_cyclotomic_extension {1} B C := singleton_one_of_algebra_map_bijective f.surjective,
   haveI : is_scalar_tower A B C := is_scalar_tower.of_ring_hom f.to_alg_hom,
-  by_cases hC : nontrivial C,
-  { exactI (iff_union_singleton_one _ _ _).2 (trans S {1} A B C f.injective) },
-  { haveI := not_nontrivial_iff_subsingleton.1 hC,
-    haveI := equiv.subsingleton.symm f.to_equiv.symm,
-    rwa [is_cyclotomic_extension.subsingleton_iff] at ⊢ h }
+  exact (iff_union_singleton_one _ _ _).2 (trans S {1} A B C f.injective)
 end
 
 @[protected]
@@ -335,10 +331,12 @@ begin
 end
 
 /-- If `S` is finite and `is_cyclotomic_extension S A B`, then `B` is a finite `A`-algebra. -/
-lemma finite [is_domain B] [h₁ : fintype S] [h₂ : is_cyclotomic_extension S A B] : finite A B :=
+lemma finite [is_domain B] [h₁ : _root_.finite S] [h₂ : is_cyclotomic_extension S A B] :
+  finite A B :=
 begin
+  casesI nonempty_fintype S with h,
   unfreezingI {revert h₂ A B},
-  refine set.finite.induction_on (set.finite.intro h₁) (λ A B, _) (λ n S hn hS H A B, _),
+  refine set.finite.induction_on (set.finite.intro h) (λ A B, _) (λ n S hn hS H A B, _),
   { introsI _ _ _ _ _,
     refine module.finite_def.2 ⟨({1} : finset B), _⟩,
     simp [← top_to_submodule, ← empty, to_submodule_bot] },
@@ -354,7 +352,7 @@ begin
 end
 
 /-- A cyclotomic finite extension of a number field is a number field. -/
-lemma number_field [h : number_field K] [fintype S] [is_cyclotomic_extension S K L] :
+lemma number_field [h : number_field K] [_root_.finite S] [is_cyclotomic_extension S K L] :
   number_field L :=
 { to_char_zero := char_zero_of_injective_algebra_map (algebra_map K L).injective,
   to_finite_dimensional := @finite.trans _ K L _ _ _ _
@@ -364,12 +362,12 @@ lemma number_field [h : number_field K] [fintype S] [is_cyclotomic_extension S K
 localized "attribute [instance] is_cyclotomic_extension.number_field" in cyclotomic
 
 /-- A finite cyclotomic extension of an integral noetherian domain is integral -/
-lemma integral [is_domain B] [is_noetherian_ring A] [fintype S] [is_cyclotomic_extension S A B] :
-  algebra.is_integral A B :=
+lemma integral [is_domain B] [is_noetherian_ring A] [_root_.finite S]
+  [is_cyclotomic_extension S A B] : algebra.is_integral A B :=
 is_integral_of_noetherian $ is_noetherian_of_fg_of_noetherian' $ (finite S A B).out
 
 /-- If `S` is finite and `is_cyclotomic_extension S K A`, then `finite_dimensional K A`. -/
-lemma finite_dimensional (C : Type z) [fintype S] [comm_ring C] [algebra K C] [is_domain C]
+lemma finite_dimensional (C : Type z) [_root_.finite S] [comm_ring C] [algebra K C] [is_domain C]
   [is_cyclotomic_extension S K C] : finite_dimensional K C :=
 finite S K C
 
@@ -726,3 +724,5 @@ instance is_alg_closed_of_char_zero.is_cyclotomic_extension [char_zero K] :
 λ S, is_alg_closed.is_cyclotomic_extension S K (λ a ha, infer_instance)
 
 end is_alg_closed
+
+#lint

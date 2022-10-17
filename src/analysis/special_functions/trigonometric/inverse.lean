@@ -224,9 +224,17 @@ lemma maps_to_sin_Ioo : maps_to sin (Ioo (-(π / 2)) (π / 2)) (Ioo (-1) 1) :=
 lemma cos_arcsin_nonneg (x : ℝ) : 0 ≤ cos (arcsin x) :=
 cos_nonneg_of_mem_Icc ⟨neg_pi_div_two_le_arcsin _, arcsin_le_pi_div_two _⟩
 
-lemma cos_arcsin {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : cos (arcsin x) = sqrt (1 - x ^ 2) :=
-have sin (arcsin x) ^ 2 + cos (arcsin x) ^ 2 = 1 := sin_sq_add_cos_sq (arcsin x),
+lemma cos_arcsin (x : ℝ) : cos (arcsin x) = sqrt (1 - x ^ 2) :=
 begin
+  by_cases hx₁ : -1 ≤ x, swap,
+  { rw not_le at hx₁,
+    rw [arcsin_of_le_neg_one hx₁.le, cos_neg, cos_pi_div_two, sqrt_eq_zero_of_nonpos],
+    nlinarith },
+  by_cases hx₂ : x ≤ 1, swap,
+  { rw not_le at hx₂,
+    rw [arcsin_of_one_le hx₂.le, cos_pi_div_two, sqrt_eq_zero_of_nonpos],
+    nlinarith },
+  have : sin (arcsin x) ^ 2 + cos (arcsin x) ^ 2 = 1 := sin_sq_add_cos_sq (arcsin x),
   rw [← eq_sub_iff_add_eq', ← sqrt_inj (sq_nonneg _) (sub_nonneg.2 (sin_sq_le_one (arcsin x))),
     sq, sqrt_mul_self (cos_arcsin_nonneg _)] at this,
   rw [this, sin_arcsin hx₁ hx₂],
@@ -281,8 +289,24 @@ by rw [arccos, sub_eq_iff_eq_add, ← sub_eq_iff_eq_add', div_two_sub_self, neg_
 lemma arccos_neg (x : ℝ) : arccos (-x) = π - arccos x :=
 by rw [← add_halves π, arccos, arcsin_neg, arccos, add_sub_assoc, sub_sub_self, sub_neg_eq_add]
 
-lemma sin_arccos {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : sin (arccos x) = sqrt (1 - x ^ 2) :=
-by rw [arccos_eq_pi_div_two_sub_arcsin, sin_pi_div_two_sub, cos_arcsin hx₁ hx₂]
+lemma arccos_of_one_le {x : ℝ} (hx : 1 ≤ x) : arccos x = 0 :=
+by rw [arccos, arcsin_of_one_le hx, sub_self]
+
+lemma arccos_of_le_neg_one {x : ℝ} (hx : x ≤ -1) : arccos x = π :=
+by rw [arccos, arcsin_of_le_neg_one hx, sub_neg_eq_add, add_halves']
+
+lemma sin_arccos (x : ℝ) : sin (arccos x) = sqrt (1 - x ^ 2) :=
+begin
+  by_cases hx₁ : -1 ≤ x, swap,
+  { rw not_le at hx₁,
+    rw [arccos_of_le_neg_one hx₁.le, sin_pi, sqrt_eq_zero_of_nonpos],
+    nlinarith },
+  by_cases hx₂ : x ≤ 1, swap,
+  { rw not_le at hx₂,
+    rw [arccos_of_one_le hx₂.le, sin_zero, sqrt_eq_zero_of_nonpos],
+    nlinarith },
+  rw [arccos_eq_pi_div_two_sub_arcsin, sin_pi_div_two_sub, cos_arcsin]
+end
 
 @[simp] lemma arccos_le_pi_div_two {x} : arccos x ≤ π / 2 ↔ 0 ≤ x := by simp [arccos]
 

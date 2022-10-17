@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import measure_theory.constructions.pi
+import measure_theory.integral.interval_integral
+import measure_theory.integral.mean_inequalities
 
 /-!
 # Marginals of multivariate functions
@@ -243,8 +245,8 @@ variables {E : Type*} [normed_add_comm_group E] [second_countable_topology E]
   This is the marginal distribution of all variables not in `s`. -/
 def marginal (μ : ∀ i, measure (π i)) (s : finset δ) (f : (Π i, π i) → E) (x : Π i, π i) :
   E :=
-∫ y : Π i : (s : set δ), π i, f (λ i, if hi : i ∈ s then y ⟨i, hi⟩ else x i)
-  ∂(measure.pi (λ i : (s : set δ), μ i))
+∫ y : Π i : s, π i, f (λ i, if hi : i ∈ s then y ⟨i, hi⟩ else x i)
+  ∂(measure.pi (λ i : s, μ i))
 
 /-- The integrand of `marginal _ _ f` is measurable if `f` is. -/
 lemma _root_.measurable.marginal_aux {f : (Π i, π i) → E} (hf : measurable f) {s : finset δ}
@@ -270,13 +272,24 @@ local attribute [instance] finset.is_empty_coe_empty
 lemma marginal_empty (f : (Π i, π i) → E) : ∫⋯∫_ ∅, f ∂μ = f :=
 begin
   ext x,
-  simp_rw [marginal, measure.pi_empty_left _ (λ i : ((∅ : finset δ) : set δ), i.prop)],
+  simp_rw [marginal, measure.pi_empty_left _ (λ i : (∅ : finset δ), i.prop)],
   exact (integral_dirac' _ _ $ subsingleton.strongly_measurable' _).trans (by simp)
 end
 
 lemma marginal_eq {s : finset δ} {x y : Π i, π i} (f : (Π i, π i) → E)
   (h : ∀ i ∉ s, x i = y i) : (∫⋯∫_ s, f ∂μ) x = (∫⋯∫_ s, f ∂μ) y :=
 by { dsimp [marginal], rcongr, exact h _ ‹_› }
+
+variable (μ)
+lemma marginal_update {s : finset δ} (x : Π i, π i) (f : (Π i, π i) → E) {i : δ} (y : π i)
+  (hi : i ∈ s) : (∫⋯∫_ s, f ∂μ) (function.update x i y) = (∫⋯∫_ s, f ∂μ) x :=
+begin
+  refine marginal_eq f (λ j hj, _),
+  have : j ≠ i,
+  { rintro rfl, exact hj hi },
+  apply update_noteq this,
+end
+variable {μ}
 
 -- lemma mpr_refl {α} (h : α = α) (y : α) : h.mpr y = y :=
 -- by simp only [eq_mp_eq_cast, eq_self_iff_true]
@@ -293,9 +306,9 @@ lemma marginal_union (f : (Π i, π i) → E) (hf : measurable f) {s t : finset 
   (hst : disjoint s t) :
   ∫⋯∫_ s ∪ t, f ∂μ = ∫⋯∫_ t, ∫⋯∫_ s, f ∂μ ∂μ :=
 begin
-  have : (s : set δ) ∩ (t : set δ) ⊆ ∅, { exact_mod_cast hst },
-  let e : ((s ∪ t : finset δ) : set δ) ≃ (s : set δ) ⊕ (t : set δ) :=
-  (finset_union s t).trans (equiv.set.union this),
+  have : s ∩ t ⊆ ∅, { exact_mod_cast hst },
+  let e : (s ∪ t : finset δ) ≃ s ⊕ t :=
+  sorry, --(finset_union s t).trans (equiv.set.union this),
   ext x,
   simp_rw [marginal, ← measure.pi_map_left _ e.symm],
   rw [integral_map, ← measure.pi_sum, integral_map, integral_prod_symm],
@@ -318,7 +331,7 @@ end
 lemma marginal_singleton (f : (Π i, π i) → E) (hf : measurable f) (i : δ) :
   ∫⋯∫_ {i}, f ∂μ = λ x, ∫ xᵢ, f (function.update x i xᵢ) ∂(μ i) :=
 begin
-  letI : unique (({i} : finset δ) : set δ) := -- maybe remove the double coercion
+  letI : unique ({i} : finset δ) := -- maybe remove the double coercion
   -- by exact_mod_cast set.unique_singleton i,
     ⟨⟨⟨i, finset.mem_singleton_self i⟩⟩, λ j, subtype.ext $ finset.mem_singleton.mp j.2⟩,
   -- have hi : ((default : (({i} : finset δ) : set δ)) : δ) = i := rfl,
@@ -334,6 +347,20 @@ begin
   sorry,
 end
 
+lemma marginal_insert (f : (Π i, π i) → E) (hf : measurable f) {i : δ} {s : finset δ}
+  (hi : i ∉ s) :
+  ∫⋯∫_ insert i s, f ∂μ = λ x, ∫ xᵢ, (∫⋯∫_ s, λ x, f (function.update x i xᵢ) ∂μ) x ∂(μ i) :=
+sorry
+
+lemma marginal_insert_rev (f : (Π i, π i) → E) (hf : measurable f) {i : δ} {s : finset δ}
+  (hi : i ∉ s) (x : Π i, π i) :
+  ∫ xᵢ, (∫⋯∫_ s, f ∂μ) (function.update x i xᵢ) ∂(μ i) = (∫⋯∫_ insert i s, f ∂μ) x :=
+sorry
+
+lemma marginal_mono {f g : (Π i, π i) → ℝ} (hf : measurable f) (hg : measurable g) {s : finset δ}
+  (hfg : f ≤ g) : ∫⋯∫_ s, f ∂μ ≤ ∫⋯∫_ s, g ∂μ :=
+sorry
+
 lemma marginal_univ [fintype δ] (f : (Π i, π i) → E) :
   ∫⋯∫_ finset.univ, f ∂μ = λ _, ∫ x, f x ∂(measure.pi μ) :=
 begin
@@ -346,4 +373,137 @@ end
 
 end marginal
 
+variables
+
+/-- A version of Hölder with multiple arguments  "-/
+theorem integral_prod_norm_pow_le {α} [measurable_space α] {μ : measure α} (s : finset ι)
+  {f : ι → α → ℝ} (h2f : ∀ i ∈ s, 0 ≤ f i) {p : ι → ℝ} (hp : ∑ i in s, p i = 1)
+  (h2p : ∀ i ∈ s, 0 ≤ p i)
+  (hf : ∀ i ∈ s, mem_ℒp (f i) (ennreal.of_real $ p i) μ) :
+  ∫ a, ∏ i in s, f i a ^ p i ∂μ ≤ ∏ i in s, (∫ a, f i a ∂μ) ^ p i :=
+sorry
+
+
 end measure_theory
+
+open measure_theory
+open_locale pointwise
+section
+
+@[simp, to_additive] lemma finset.mul_prod_eq_prod_insert_none {α} {M} [comm_monoid M]
+  (f : α → M) (x : M)
+  (s : finset α) : x * ∏ i in s, f i = ∏ i in s.insert_none, i.elim x f :=
+(finset.prod_insert_none (λ i, i.elim x f) _).symm
+
+lemma option.elim_apply {α β ι : Type*} {f : ι → α → β} {x : α → β} {i : option ι} {y : α} :
+  i.elim x f y = i.elim (x y) (λ j, f j y) :=
+by cases i; refl
+
+lemma option.elim_pow {α β ι} [has_pow α β] {f : ι → α} {x : α} {g : ι → β} {y : β} {i : option ι} :
+  i.elim (x ^ y) (λ j, f j ^ g j) = i.elim x f ^ i.elim y g :=
+by cases i; refl
+
+lemma option.elim_pow' {α β ι} [has_pow α β] {f : ι → α} {x : α} {g : β} {y : β} {i : option ι} :
+  i.elim (x ^ y) (λ j, f j ^ g) = i.elim x f ^ i.elim y (λ _, g) :=
+by cases i; refl
+
+-- lemma option.elim_pow' {α γ β ι : Type*} [has_pow γ β] {f : ι → α → γ} {x : α → γ} {g : β} {y : β} {i : option ι}
+--   {z : α} :
+--   i.elim (x ^ y) (λ j, f j ^ g) z = i.elim (x z) (λ j, f j z) ^ i.elim y (λ _, g) :=
+-- by cases i; refl
+
+open topological_space
+variables {E : Type*} [normed_add_comm_group E] [second_countable_topology E] -- todo: remove
+  [normed_space ℝ E] [complete_space E] [measurable_space E] [borel_space E]
+variables {n k : ℕ} (u : (fin n → ℝ) → E)
+
+def finset.less_than (k : ℕ) : finset (fin n) :=
+finset.univ.filter $ λ i, (i : ℕ) < k
+
+
+def induct_step_lhs (k : ℕ) : (fin n → ℝ) → ℝ :=
+marginal (λ _, volume) (finset.less_than k) (λ x, ∥u x∥ ^ ((n : ℝ) / (n - 1)))
+
+def induct_step_rhs (k : ℕ) : (fin n → ℝ) → ℝ :=
+(marginal (λ _, volume) (finset.less_than k) (λ x, ∥fderiv ℝ u x∥)) ^ ((k : ℝ) / (n - 1)) *
+∏ i in (finset.less_than k)ᶜ, marginal (λ _, volume) (insert i (finset.less_than k))
+  (λ x, ∥fderiv ℝ u x∥) ^ ((1 : ℝ) / (n - 1))
+
+lemma integral_induct_step_lhs (k : fin n) :
+  ∫⋯∫_{k}, induct_step_lhs u k ∂(λ _, volume) = induct_step_lhs u (k + 1) :=
+begin
+  sorry
+end
+
+lemma less_than_compl_succ (k : fin n) :
+  (finset.less_than k : finset (fin n))ᶜ = insert k (finset.less_than (k + 1))ᶜ :=
+sorry
+
+lemma less_than_succ (k : fin n) :
+  (finset.less_than (k + 1) : finset (fin n)) = insert k (finset.less_than k) :=
+sorry
+
+lemma not_mem_compl_less_than_succ (k : fin n) : k ∉ (finset.less_than (k + 1) : finset (fin n))ᶜ :=
+sorry
+
+lemma mem_less_than_self (k : fin n) : k ∈ (finset.less_than (k + 1) : finset (fin n)) :=
+sorry
+
+lemma not_mem_less_than_self (k : fin n) : k ∉ (finset.less_than k : finset (fin n)) :=
+sorry
+#check@ finset.prod_insert
+-- #check@ finset.option_prod
+
+lemma induction_step (k : ℕ) : induct_step_lhs u k ≤ induct_step_rhs u k :=
+begin
+  induction k with k hk,
+  { sorry },
+  { rcases le_or_lt n k with hnk|hkn,
+    sorry,
+    -- lift k to fin n using hkn, -- todo
+    let K : fin n := ⟨k, hkn⟩,
+    have : (K : ℕ) = k := rfl,
+    simp_rw [← this] at hk ⊢, clear this, clear_value K, clear hkn k,
+    simp_rw [nat.succ_eq_add_one, ← integral_induct_step_lhs u K],
+    refine (marginal_mono sorry sorry hk).trans _,
+    simp_rw [induct_step_rhs, less_than_compl_succ],
+    rw [finset.prod_insert (not_mem_compl_less_than_succ K), ← less_than_succ],
+    rw [mul_left_comm, finset.mul_prod_eq_prod_insert_none],
+    simp_rw [marginal_singleton _ sorry],
+    have := λ x xᵢ, marginal_update (λ _, volume) x (λ (x : fin n → ℝ), ∥fderiv ℝ u x∥) xᵢ (mem_less_than_self K),
+    simp_rw [pi.mul_apply, pi.pow_apply, this],
+    clear this,
+    simp_rw [integral_mul_left, finset.prod_apply, option.elim_pow, pi.pow_apply],
+    intro x, dsimp only,
+    have h1 : (0 : ℝ) ≤ (∫⋯∫_(finset.less_than (K + 1)), (λ y, ∥fderiv ℝ u y∥) ∂(λ _, measure_space.volume)) x ^ ((1 : ℝ) / (n - 1)) :=
+    sorry,
+
+    refine (mul_le_mul_of_nonneg_left (integral_prod_norm_pow_le _ _ _ _ _) h1).trans_eq _,
+    { sorry },
+    { sorry },
+    { sorry },
+    { sorry }, -- automatic if we switch to Lebesgue
+    simp_rw [finset.prod_insert_none],
+    dsimp,
+    simp_rw [marginal_insert_rev _ sorry (not_mem_less_than_self K)],
+    rw [less_than_succ K, ← mul_assoc],
+    congr,
+    sorry,
+    -- convert (real.rpow_add_of_nonneg _ _ _).symm,
+    -- sorry,
+    -- sorry,
+    -- sorry,
+    -- sorry,
+    simp_rw [finset.prod_apply, pi.pow_apply],
+    refine finset.prod_congr rfl (λ i hi, _),
+    congr' 1,
+    rw [finset.insert.comm],
+    have h2 : K ∉ insert i (finset.less_than K : finset (fin n)),
+    { sorry },
+    simp_rw [marginal_insert_rev _ sorry h2],
+    congr, }
+end
+
+
+
+end

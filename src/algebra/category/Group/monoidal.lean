@@ -265,7 +265,7 @@ begin
   rw tensor_product.add_tmul,
 end
 
-instance (R : Mon_ AddCommGroup.{u}) : ring R.X :=
+def Mon_is_ring (R : Mon_ AddCommGroup.{u}) : ring R.X :=
 { one := 1,
   mul := (*),
   one_mul := one_mul',
@@ -274,6 +274,8 @@ instance (R : Mon_ AddCommGroup.{u}) : ring R.X :=
   left_distrib := mul_add',
   right_distrib := add_mul',
   ..(infer_instance : add_comm_group R.X) }
+
+local attribute [instance] Mon_is_ring
 
 @[simps] def Mon_to_Ring : Mon_ AddCommGroup.{u} ⥤ Ring.{u} :=
 { obj := λ M, Ring.of M.X,
@@ -301,6 +303,19 @@ int.induction_on z (by simp only [algebra_map.coe_zero, zero_mul, mul_zero])
 end) $ λ n hn, begin
   simp only [int.cast_sub, int.cast_neg, int.cast_coe_nat, algebra_map.coe_one, neg_mul, mul_neg, neg_inj] at hn ⊢,
   rw [sub_mul, neg_mul, hn, one_mul, mul_sub, mul_one, mul_neg],
+end
+
+lemma one_map_ulift_int {A : Mon_ AddCommGroup.{u}} (z : ℤ) :
+  A.one (ulift.up z) = z :=
+begin
+  induction z using int.induction_on with n hn n hn,
+  { simpa only [algebra_map.coe_zero] using A.one.map_zero, },
+  { simp only [int.cast_add, int.cast_coe_nat, algebra_map.coe_one] at hn ⊢,
+    erw [←hn, A.one.map_add (ulift.up n) (ulift.up 1)],
+    congr' 1, },
+  { simp only [int.cast_sub, int.cast_neg, int.cast_coe_nat, algebra_map.coe_one] at hn ⊢,
+    erw [←hn, A.one.map_sub (ulift.up (-n)) (ulift.up 1)],
+    congr' 1 },
 end
 
 @[simps] def Ring_to_Mon_.obj (R : Ring.{u}) : Mon_ AddCommGroup.{u} :=
@@ -397,6 +412,137 @@ end
     ext,
     simp only [ring_hom.to_add_monoid_hom_eq_coe, comp_apply, ring_hom.coe_add_monoid_hom,
       Mon_.comp_hom'],
+  end }
+
+@[simps] def Mon_equiv_Ring.unit_iso.components_hom (A : Mon_ AddCommGroup.{u}) :
+  A ⟶ Ring_to_Mon_.obj (Ring.of A.X) :=
+{ hom := add_monoid_hom.id _,
+  one_hom' := add_monoid_hom.ext $ λ ⟨z⟩,
+  begin
+    simp only [comp_apply, add_monoid_hom.id_apply],
+    erw one_map_ulift_int,
+    refl,
+  end,
+  mul_hom' := add_monoid_hom.ext $ λ z, tensor_product.induction_on z
+    (by simp only [map_zero]) (λ (x : A.X) (y : A.X),
+    begin
+      rw [comp_apply, add_monoid_hom.id_apply, tensor_monoidal_category_tensor_hom,
+        comp_apply, linear_map.to_add_monoid_hom_coe, tensor_product.map_tmul,
+        to_int_linear_map_apply, to_int_linear_map_apply, add_monoid_hom.id_apply,
+        add_monoid_hom.id_apply],
+      change A.mul _ = (Ring_to_Mon_.obj (Ring.of A.X)).mul _,
+      rw [Ring_to_Mon_.obj_mul, linear_map.to_add_monoid_hom_coe, tensor_product.lift.tmul,
+        linear_map.coe_mk, linear_map.coe_mk, mul_def],
+    end) $ λ x y h₁ h₂, by simp only [map_add, h₁, h₂] }
+
+@[simps] def Mon_equiv_Ring.unit_iso.components_inv (A : Mon_ AddCommGroup.{u}) :
+  Ring_to_Mon_.obj (Ring.of A.X) ⟶ A :=
+{ hom := add_monoid_hom.id _,
+  one_hom' := add_monoid_hom.ext $ λ ⟨z⟩,
+  begin
+    simp only [comp_apply, add_monoid_hom.id_apply],
+    change (Ring_to_Mon_.obj (Ring.of A.X)).one (ulift.up z) = A.one (ulift.up z),
+    rw [Ring_to_Mon_.obj_one_apply, one_map_ulift_int z],
+    refl,
+  end,
+  mul_hom' := add_monoid_hom.ext $ λ z, tensor_product.induction_on z
+    (by simp only [map_zero]) (λ (x y : A.X),
+    begin
+      rw [comp_apply, add_monoid_hom.id_apply, tensor_monoidal_category_tensor_hom, comp_apply,
+        linear_map.to_add_monoid_hom_coe, tensor_product.map_tmul, to_int_linear_map_apply,
+        to_int_linear_map_apply, add_monoid_hom.id_apply, add_monoid_hom.id_apply],
+      change (Ring_to_Mon_.obj (Ring.of A.X)).mul _ = A.mul _,
+      rw [Ring_to_Mon_.obj_mul, linear_map.to_add_monoid_hom_coe, tensor_product.lift.tmul,
+        linear_map.coe_mk, linear_map.coe_mk, mul_def],
+    end) $ λ a b ha hb, by simp only [map_add, ha, hb] }
+
+
+@[simps] def Mon_equiv_Ring.unit_iso :
+  𝟭 (Mon_ AddCommGroup.{u}) ≅ Mon_to_Ring.{u} ⋙ Ring_to_Mon_.{u} :=
+nat_iso.of_components (λ A,
+{ hom := Mon_equiv_Ring.unit_iso.components_hom A,
+  inv := Mon_equiv_Ring.unit_iso.components_inv A,
+  hom_inv_id' :=
+  begin
+    ext,
+    simp only [Mon_.comp_hom', comp_apply, Mon_.id_hom', id_apply],
+    refl,
+  end,
+  inv_hom_id' :=
+  begin
+    ext,
+    simp only [Mon_.comp_hom', comp_apply, Mon_.id_hom', id_apply],
+    refl,
+  end }) $ λ X Y f,
+begin
+  ext,
+  simp only [Mon_.comp_hom', comp_apply, functor.id_map, functor.comp_map, Ring_to_Mon__map_hom,
+    ring_hom.to_add_monoid_hom_eq_coe, ring_hom.coe_add_monoid_hom, Mon_to_Ring_map_apply],
+  refl,
+end
+
+@[simps] def Mon_equiv_Ring.counit_iso.component_hom (R : Ring.{u}) :
+  Ring.of (Ring_to_Mon_.obj R).X ⟶ R :=
+{ to_fun := λ x, x,
+  map_one' :=
+  begin
+    rw [one_def],
+    change (algebra_map _ _) _ = _,
+    rw map_one,
+  end,
+  map_mul' := λ x y, by rw [mul_def, Ring_to_Mon_.obj_mul, linear_map.to_add_monoid_hom_coe,
+    tensor_product.lift.tmul, linear_map.coe_mk, linear_map.coe_mk],
+  map_zero' := rfl,
+  map_add' := λ _ _, rfl }
+
+@[simps] def Mon_equiv_Ring.counit_iso.component_inv (R : Ring.{u}) :
+  R ⟶ Ring.of (Ring_to_Mon_.obj R).X :=
+{ to_fun := λ x, x,
+  map_one' :=
+  begin
+    rw one_def,
+    change _ = (algebra_map _ _) _,
+    rw (algebra_map _ _).map_one,
+  end,
+  map_mul' := λ x y, by erw [mul_def, Ring_to_Mon_.obj_mul, linear_map.to_add_monoid_hom_coe,
+    tensor_product.lift.tmul, linear_map.coe_mk],
+  map_zero' := rfl,
+  map_add' := λ _ _, rfl }
+
+@[simps] def Mon_equiv_Ring.counit_iso :
+  Ring_to_Mon_ ⋙ Mon_to_Ring ≅ 𝟭 Ring.{u} :=
+nat_iso.of_components (λ R,
+{ hom := Mon_equiv_Ring.counit_iso.component_hom _,
+  inv := Mon_equiv_Ring.counit_iso.component_inv _,
+  hom_inv_id' :=
+  begin
+    ext,
+    simp only [comp_apply, Mon_equiv_Ring.counit_iso.component_hom_apply,
+      Mon_equiv_Ring.counit_iso.component_inv_apply, id_apply],
+  end,
+  inv_hom_id' :=
+  begin
+    ext,
+    simp only [comp_apply, Mon_equiv_Ring.counit_iso.component_inv_apply,
+      Mon_equiv_Ring.counit_iso.component_hom_apply, id_apply],
+  end }) $ λ X Y f,
+begin
+  ext,
+  simp only [comp_apply, Mon_equiv_Ring.counit_iso.component_hom_apply, functor.comp_map,
+    Mon_to_Ring_map_apply, Ring_to_Mon__map_hom, ring_hom.to_add_monoid_hom_eq_coe,
+    ring_hom.coe_add_monoid_hom, functor.id_map],
+end
+
+@[simps] def Mon_equiv_Ring : Mon_ AddCommGroup.{u} ≌ Ring.{u} :=
+{ functor := Mon_to_Ring,
+  inverse := Ring_to_Mon_,
+  unit_iso := Mon_equiv_Ring.unit_iso,
+  counit_iso := Mon_equiv_Ring.counit_iso,
+  functor_unit_iso_comp' := λ A,
+  begin
+    ext,
+    simp only [comp_apply, Mon_to_Ring_map_apply, Mon_equiv_Ring.unit_iso_hom_app_hom_apply,
+      Mon_equiv_Ring.counit_iso_hom_app_apply, id_apply],
   end }
 
 end Mon_

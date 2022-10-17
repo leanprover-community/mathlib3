@@ -143,7 +143,8 @@ lemma exists_bounded_zero_one_of_closed_nnreal {α : Type*} [topological_space �
   {s t : set α} (s_closed : is_closed s) (t_closed : is_closed t) (disj : disjoint s t) :
   ∃ (f : α →ᵇ ℝ≥0), eq_on f 0 s ∧ eq_on f 1 t ∧ ⇑f ≤ 1 :=
 begin
-  rcases exists_bounded_zero_one_of_closed s_closed t_closed disj with ⟨g, ⟨g_on_s, ⟨g_on_t, g_bdd⟩⟩⟩,
+  rcases exists_bounded_zero_one_of_closed s_closed t_closed disj
+    with ⟨g, ⟨g_on_s, ⟨g_on_t, g_bdd⟩⟩⟩,
   use g.nnreal_part,
   rw bounded_continuous_function.nnreal_part_coe_fun_eq,
   refine ⟨_, _, _⟩,

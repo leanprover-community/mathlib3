@@ -249,5 +249,3 @@ lemma riesz_content.coe_to_fun_eq (Λ : (X →ᵇ ℝ≥0) →ₗ[ℝ≥0] ℝ�
   ⇑(riesz_content Λ) = (coe : ℝ≥0 → ℝ≥0∞) ∘ (riesz_content_aux Λ) := rfl
 
 end riesz_content
-
-#lint

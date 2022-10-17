@@ -724,5 +724,3 @@ instance is_alg_closed_of_char_zero.is_cyclotomic_extension [char_zero K] :
 λ S, is_alg_closed.is_cyclotomic_extension S K (λ a ha, infer_instance)
 
 end is_alg_closed
-
-#lint

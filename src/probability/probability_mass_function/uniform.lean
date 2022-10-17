@@ -32,11 +32,10 @@ section uniform_of_finset
 
 /-- Uniform distribution taking the same non-zero probability on the nonempty finset `s` -/
 def uniform_of_finset (s : finset α) (hs : s.nonempty) : pmf α :=
-of_finset (λ a, if a ∈ s then (s.card : ℝ≥0∞)⁻¹ else 0) s (Exists.rec_on hs (λ x hx,
+of_finset (λ a, if a ∈ s then s.card⁻¹ else 0) s (Exists.rec_on hs (λ x hx,
   calc ∑ (a : α) in s, ite (a ∈ s) (s.card : ℝ≥0∞)⁻¹ 0
     = ∑ (a : α) in s, (s.card : ℝ≥0∞)⁻¹ : finset.sum_congr rfl (λ x hx, by simp [hx])
-    ... = s.card • (s.card : ℝ≥0∞)⁻¹ : finset.sum_const _
-    ... = (s.card : ℝ≥0∞) * (s.card : ℝ≥0∞)⁻¹ : by rw nsmul_eq_mul
+    ... = (s.card : ℝ≥0∞) * (s.card : ℝ≥0∞)⁻¹ : by rw [finset.sum_const, nsmul_eq_mul]
     ... = 1 : ennreal.mul_inv_cancel (by simpa only [ne.def, nat.cast_eq_zero, finset.card_eq_zero]
       using (finset.nonempty_iff_ne_empty.1 hs)) (ennreal.nat_ne_top s.card)))
         (λ x hx, by simp only [hx, if_false])
@@ -44,7 +43,7 @@ of_finset (λ a, if a ∈ s then (s.card : ℝ≥0∞)⁻¹ else 0) s (Exists.re
 variables {s : finset α} (hs : s.nonempty) {a : α}
 
 @[simp] lemma uniform_of_finset_apply (a : α) :
-  uniform_of_finset s hs a = if a ∈ s then (s.card : ℝ≥0)⁻¹ else 0 := rfl
+  uniform_of_finset s hs a = if a ∈ s then s.card⁻¹ else 0 := rfl
 
 lemma uniform_of_finset_apply_of_mem (ha : a ∈ s) : uniform_of_finset s hs a = (s.card)⁻¹ :=
 by simp [ha]
@@ -158,10 +157,8 @@ variable (t : set α)
 begin
   rw [div_eq_mul_inv, ← ennreal.tsum_mul_right, to_outer_measure_apply],
   refine tsum_congr (λ x, _),
-  by_cases hx : x ∈ t,
-  { have : (multiset.card s : ℝ≥0) ≠ 0 := by simp [hs],
-    simp [set.indicator, hx, div_eq_mul_inv, ennreal.coe_inv this] },
-  { simp [hx] }
+  by_cases hx : x ∈ t;
+  simp [set.indicator, hx, div_eq_mul_inv],
 end
 
 @[simp] lemma to_measure_of_multiset_apply [measurable_space α] (ht : measurable_set t) :

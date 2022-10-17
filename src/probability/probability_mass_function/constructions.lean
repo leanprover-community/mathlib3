@@ -13,10 +13,10 @@ This file gives a number of different `pmf` constructions for common probability
 `map` and `seq` allow pushing a `pmf α` along a function `f : α → β` (or distribution of
 functions `f : pmf (α → β)`) to get a `pmf β`
 
-`of_finset` and `of_fintype` simplify the construction of a `pmf α` from a function `f : α → ℝ≥0`,
+`of_finset` and `of_fintype` simplify the construction of a `pmf α` from a function `f : α → ℝ≥0∞`,
 by allowing the "sum equals 1" constraint to be in terms of `finset.sum` instead of `tsum`.
 
-`normalize` constructs a `pmf α` by normalizing a function `f : α → ℝ≥0` by its sum,
+`normalize` constructs a `pmf α` by normalizing a function `f : α → ℝ≥0∞` by its sum,
 and `filter` uses this to filter the support of a `pmf` and re-normalize the new distribution.
 
 `bernoulli` represents the bernoulli distribution on `bool`
@@ -112,7 +112,7 @@ instance : is_lawful_monad pmf :=
 
 section of_finset
 
-/-- Given a finset `s` and a function `f : α → ℝ≥0` with sum `1` on `s`,
+/-- Given a finset `s` and a function `f : α → ℝ≥0∞` with sum `1` on `s`,
   such that `f a = 0` for `a ∉ s`, we get a `pmf` -/
 def of_finset (f : α → ℝ≥0∞) (s : finset α) (h : ∑ a in s, f a = 1)
   (h' : ∀ a ∉ s, f a = 0) : pmf α :=
@@ -150,7 +150,7 @@ end of_finset
 
 section of_fintype
 
-/-- Given a finite type `α` and a function `f : α → ℝ≥0` with sum 1, we get a `pmf`. -/
+/-- Given a finite type `α` and a function `f : α → ℝ≥0∞` with sum 1, we get a `pmf`. -/
 def of_fintype [fintype α] (f : α → ℝ≥0∞) (h : ∑ a, f a = 1) : pmf α :=
 of_finset f finset.univ h (λ a ha, absurd (finset.mem_univ a) ha)
 
@@ -191,8 +191,7 @@ variables {f : α → ℝ≥0∞} (hf0 : tsum f ≠ 0) (hf : tsum f ≠ ⊤)
 @[simp] lemma normalize_apply (a : α) : (normalize f hf0 hf) a = f a * (∑' x, f x)⁻¹ := rfl
 
 @[simp] lemma support_normalize : (normalize f hf0 hf).support = function.support f :=
-set.ext (λ a, by simp only [hf, mem_support_iff, normalize_apply, ne.def, mul_eq_zero,
-  ennreal.inv_eq_zero, or_false, function.mem_support])
+set.ext (λ a, by simp [hf, mem_support_iff])
 
 lemma mem_support_normalize_iff (a : α) : a ∈ (normalize f hf0 hf).support ↔ f a ≠ 0 := by simp
 
@@ -202,9 +201,7 @@ section filter
 
 /-- Create new `pmf` by filtering on a set with non-zero measure and normalizing -/
 def filter (p : pmf α) (s : set α) (h : ∃ a ∈ s, a ∈ p.support) : pmf α :=
-pmf.normalize (s.indicator p) (by simpa only [ne.def, tsum_eq_zero_iff ennreal.summable,
-  not_forall, set.indicator_apply_eq_zero, not_imp, apply_eq_zero_iff, not_not,
-    exists_prop] using h) (p.tsum_coe_indicator_ne_top s)
+pmf.normalize (s.indicator p) (by simpa using h) (p.tsum_coe_indicator_ne_top s)
 
 variables {p : pmf α} {s : set α} (h : ∃ a ∈ s, a ∈ p.support)
 

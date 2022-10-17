@@ -75,14 +75,10 @@ variables (p : pmf α) (f : α → pmf β) (g : β → pmf γ)
 @[simp] lemma bind_apply (b : β) : p.bind f b = ∑'a, p a * f a b := rfl
 
 @[simp] lemma support_bind : (p.bind f).support = {b | ∃ a ∈ p.support, b ∈ (f a).support} :=
-set.ext (λ b, by simp only [mem_support_iff, ennreal.tsum_eq_zero, not_or_distrib,
-  bind_apply, ne.def, mul_eq_zero, not_forall, exists_prop, set.mem_set_of_eq])
+set.ext (λ b, by simp [mem_support_iff, ennreal.tsum_eq_zero, not_or_distrib])
 
 lemma mem_support_bind_iff (b : β) : b ∈ (p.bind f).support ↔ ∃ a ∈ p.support, b ∈ (f a).support :=
 by simp only [support_bind, set.mem_set_of_eq]
-
-lemma coe_bind_apply (b : β) : (p.bind f b : ℝ≥0∞) = ∑'a, p a * f a b :=
-by simp only [bind_apply]
 
 @[simp] lemma pure_bind (a : α) (f : α → pmf β) : (pure a).bind f = f a :=
 have ∀ b a', ite (a' = a) 1 0 * f a' b = ite (a' = a) (f a b) 0, from
@@ -95,23 +91,13 @@ have ∀ a a', (p a * ite (a' = a) 1 0) = ite (a = a') (p a') 0, from
 by ext b; simp [this]
 
 @[simp] lemma bind_bind : (p.bind f).bind g = p.bind (λ a, (f a).bind g) :=
-begin
-  ext1 b,
-  simp only [ennreal.coe_eq_coe.symm, coe_bind_apply, ennreal.tsum_mul_left.symm,
-             ennreal.tsum_mul_right.symm],
-  rw [ennreal.tsum_comm],
-  simp [mul_assoc, mul_left_comm, mul_comm]
-end
+pmf.ext (λ b, by simpa only [ennreal.coe_eq_coe.symm, bind_apply, ennreal.tsum_mul_left.symm,
+    ennreal.tsum_mul_right.symm, mul_assoc, mul_left_comm, mul_comm] using ennreal.tsum_comm)
 
 lemma bind_comm (p : pmf α) (q : pmf β) (f : α → β → pmf γ) :
   p.bind (λ a, q.bind (f a)) = q.bind (λ b, p.bind (λ a, f a b)) :=
-begin
-  ext1 b,
-  simp only [ennreal.coe_eq_coe.symm, coe_bind_apply, ennreal.tsum_mul_left.symm,
-             ennreal.tsum_mul_right.symm],
-  rw [ennreal.tsum_comm],
-  simp [mul_assoc, mul_left_comm, mul_comm]
-end
+pmf.ext (λ b, by simpa only [ennreal.coe_eq_coe.symm, bind_apply, ennreal.tsum_mul_left.symm,
+  ennreal.tsum_mul_right.symm, mul_assoc, mul_left_comm, mul_comm] using ennreal.tsum_comm)
 
 section measure
 
@@ -136,7 +122,7 @@ calc (p.bind f).to_outer_measure s
 /-- The measure of a set under `p.bind f` is the sum over `a : α`
   of the probability of `a` under `p` times the measure of the set under `f a` -/
 @[simp] lemma to_measure_bind_apply [measurable_space β] (hs : measurable_set s) :
-  (p.bind f).to_measure s = ∑' a, (p a : ℝ≥0∞) * (f a).to_measure s :=
+  (p.bind f).to_measure s = ∑' a, p a * (f a).to_measure s :=
 (to_measure_apply_eq_to_outer_measure_apply (p.bind f) s hs).trans
   ((to_outer_measure_bind_apply p f s).trans (tsum_congr (λ a, congr_arg (λ x, p a * x)
   (to_measure_apply_eq_to_outer_measure_apply (f a) s hs).symm)))
@@ -270,7 +256,6 @@ end
     = ∑' a, p a * if h : p a = 0 then 0 else (f a h).to_measure s :=
 by simp only [to_measure_apply_eq_to_outer_measure_apply _ _ hs,
   to_outer_measure_bind_on_support_apply]
-
 
 end measure
 

@@ -27,7 +27,7 @@ probability mass function, discrete probability measure
 -/
 noncomputable theory
 variables {α β γ : Type*}
-open_locale classical big_operators ennreal
+open_locale classical big_operators nnreal ennreal
 
 /-- A probability mass function, or discrete probability measures is a function `α → ℝ≥0∞` such
   that the values have (infinite) sum `1`. -/
@@ -68,10 +68,9 @@ begin
       (symm $ tsum_eq_single a (λ a' ha', (p.apply_eq_zero_iff a').2 (h.symm ▸ ha'))) p.tsum_coe⟩,
   suffices : 1 < ∑' a, p a,
   from ne_of_lt this p.tsum_coe.symm,
-  have : p a' ≠ 0 := (p.mem_support_iff a').2 ha',
   have : 0 < ∑' b, ite (b = a) 0 (p b),
   from lt_of_le_of_ne' zero_le' ((tsum_ne_zero_iff ennreal.summable).2
-    ⟨a', by simpa only [this, ne.def, ite_eq_left_iff] using ha⟩),
+    ⟨a', ite_ne_left_iff.2 ⟨ha, ne.symm $ (p.mem_support_iff a').2 ha'⟩⟩),
   calc 1 = 1 + 0 : (add_zero 1).symm ... < p a + ∑' b, ite (b = a) 0 (p b) :
       ennreal.add_lt_add_of_le_of_lt ennreal.one_ne_top (le_of_eq h.symm) this
     ... = ite (a = a) (p a) 0 + ∑' b, ite (b = a) 0 (p b) : by rw [eq_self_iff_true, if_true]
@@ -121,7 +120,7 @@ end
 
 lemma to_outer_measure_apply_eq_zero_iff : p.to_outer_measure s = 0 ↔ disjoint p.support s :=
 begin
-  rw [to_outer_measure_apply, tsum_eq_zero_iff ennreal.summable],
+  rw [to_outer_measure_apply, ennreal.tsum_eq_zero],
   exact function.funext_iff.symm.trans set.indicator_eq_zero',
 end
 
@@ -135,7 +134,7 @@ begin
   { suffices : ∀ x ∉ s, p x = 0,
     from trans (tsum_congr $ λ a, (set.indicator_apply s p a).trans
       (ite_eq_left_iff.2 $ symm ∘ (this a))) p.tsum_coe,
-    exact λ a ha, (p.apply_eq_zero_iff a).2 $ set.not_mem_subset h ha },
+    exact λ a ha, (p.apply_eq_zero_iff a).2 $ set.not_mem_subset h ha }
 end
 
 @[simp]

@@ -229,7 +229,7 @@ instance (R : Mon_ AddCommGroup.{u}) : has_mul R.X :=
 
 lemma mul_def {R : Mon_ AddCommGroup.{u}} (x y : R.X) : x * y = R.mul (x ⊗ₜ y) := rfl
 
-lemma one_mul {R : Mon_ AddCommGroup.{u}} (x : R.X) : (1 : R.X) * x = x :=
+lemma one_mul' {R : Mon_ AddCommGroup.{u}} (x : R.X) : (1 : R.X) * x = x :=
 begin
   rw [mul_def, one_def],
   convert add_monoid_hom.congr_fun R.one_mul (ulift.up 1 ⊗ₜ x),
@@ -237,7 +237,7 @@ begin
     linear_map.coe_mk, one_zsmul],
 end
 
-lemma mul_one {R : Mon_ AddCommGroup.{u}} (x : R.X) : x * (1 : R.X)= x :=
+lemma mul_one' {R : Mon_ AddCommGroup.{u}} (x : R.X) : x * (1 : R.X)= x :=
 begin
   rw [mul_def, one_def],
   convert add_monoid_hom.congr_fun R.mul_one (x ⊗ₜ ulift.up 1),
@@ -245,11 +245,11 @@ begin
     linear_map.to_add_monoid_hom_coe, tensor_product.lift.tmul, linear_map.coe_mk, one_zsmul],
 end
 
-lemma mul_assoc {R : Mon_ AddCommGroup.{u}} (x y z : R.X) :
+lemma mul_assoc' {R : Mon_ AddCommGroup.{u}} (x y z : R.X) :
   x * y * z = x * (y * z) :=
 add_monoid_hom.congr_fun R.mul_assoc ((x ⊗ₜ y) ⊗ₜ z)
 
-lemma mul_add {R : Mon_ AddCommGroup.{u}} (x y z : R.X) :
+lemma mul_add' {R : Mon_ AddCommGroup.{u}} (x y z : R.X) :
   x * (y + z) = x * y + x * z :=
 begin
   rw [mul_def, mul_def, mul_def, ←R.mul.map_add (x ⊗ₜ y) (x ⊗ₜ z)],
@@ -257,7 +257,7 @@ begin
   rw tensor_product.tmul_add,
 end
 
-lemma add_mul {R : Mon_ AddCommGroup.{u}} (x y z : R.X) :
+lemma add_mul' {R : Mon_ AddCommGroup.{u}} (x y z : R.X) :
   (x + y) * z = x * z + y * z :=
 begin
   rw [mul_def, mul_def, mul_def, ←R.mul.map_add (x ⊗ₜ z) (y ⊗ₜ z)],
@@ -268,12 +268,136 @@ end
 instance (R : Mon_ AddCommGroup.{u}) : ring R.X :=
 { one := 1,
   mul := (*),
-  one_mul := one_mul,
-  mul_one := mul_one,
-  mul_assoc := mul_assoc,
-  left_distrib := mul_add,
-  right_distrib := add_mul,
+  one_mul := one_mul',
+  mul_one := mul_one',
+  mul_assoc := mul_assoc',
+  left_distrib := mul_add',
+  right_distrib := add_mul',
   ..(infer_instance : add_comm_group R.X) }
+
+@[simps] def Mon_to_Ring : Mon_ AddCommGroup.{u} ⥤ Ring.{u} :=
+{ obj := λ M, Ring.of M.X,
+  map := λ _ _ f,
+  { to_fun := f.hom,
+    map_one' := add_monoid_hom.congr_fun f.one_hom (ulift.up 1),
+    map_mul' := λ x y, add_monoid_hom.congr_fun f.mul_hom _,
+  map_zero' := map_zero _,
+  map_add' := map_add _ },
+  map_id' := λ M, ring_hom.ext $ λ x,
+  begin
+    simp only [Mon_.id_hom', ring_hom.coe_mk, id_apply],
+  end,
+  map_comp' := λ A B C f g, ring_hom.ext $ λ x,
+  begin
+    simp only [Mon_.comp_hom', ring_hom.coe_mk, comp_apply],
+  end }
+
+lemma zmul_comm {R : Type u} [ring R] (x : R) (z : ℤ) :
+  (z : R) * x = x * z :=
+int.induction_on z (by simp only [algebra_map.coe_zero, zero_mul, mul_zero])
+(λ n hn, begin
+  simp only [int.cast_add, int.cast_coe_nat, algebra_map.coe_one] at hn ⊢,
+  rw [add_mul, hn, one_mul, mul_add, mul_one],
+end) $ λ n hn, begin
+  simp only [int.cast_sub, int.cast_neg, int.cast_coe_nat, algebra_map.coe_one, neg_mul, mul_neg, neg_inj] at hn ⊢,
+  rw [sub_mul, neg_mul, hn, one_mul, mul_sub, mul_one, mul_neg],
+end
+
+@[simps] def Ring_to_Mon_.obj (R : Ring.{u}) : Mon_ AddCommGroup.{u} :=
+{ X := of R,
+  one :=
+  { to_fun := λ (z : ulift ℤ), (algebra_map ℤ R) z.down,
+    map_zero' := map_zero _,
+    map_add' := λ ⟨m⟩ ⟨n⟩, map_add _ _ _ },
+  mul := (tensor_product.lift
+  { to_fun := λ x,
+    { to_fun := λ y, (x * y : R),
+      map_add' := mul_add x,
+      map_smul' := λ (z : ℤ) r,
+      begin
+        rw [ring_hom.id_apply, zsmul_eq_mul, zsmul_eq_mul, ←mul_assoc, ←zmul_comm, mul_assoc],
+      end },
+    map_add' := λ x y, linear_map.ext $ λ z,
+    begin
+      simp only [linear_map.coe_mk, linear_map.add_apply],
+      rw add_mul,
+    end,
+    map_smul' := λ z r, begin
+      rw [ring_hom.id_apply],
+      ext1,
+      simp only [zsmul_eq_mul, linear_map.coe_mk, linear_map.mul_apply, module.End.int_cast_apply],
+      rw mul_assoc,
+    end }).to_add_monoid_hom,
+  one_mul' := begin
+    ext1 z,
+    induction z using tensor_product.induction_on with z x z x ihz ihx,
+    { simp only [map_zero] },
+    { simp only [zsmul_eq_mul, linear_map.coe_mk, eq_int_cast, tensor_monoidal_category_tensor_hom,
+        comp_apply, linear_map.to_add_monoid_hom_coe, tensor_product.map_tmul,
+        to_int_linear_map_apply, add_monoid_hom.coe_mk, id_apply, tensor_product.lift.tmul,
+        tensor_monoidal_category_left_unitor, left_unitor_hom_apply], },
+    { simp only [map_add, ihz, ihx], },
+  end,
+  mul_one' := begin
+    ext1 z,
+    induction z using tensor_product.induction_on with x z x z ihx ihz,
+    { simp only [map_zero] },
+    { simp only [zsmul_eq_mul, linear_map.coe_mk, eq_int_cast, tensor_monoidal_category_tensor_hom,
+        comp_apply, linear_map.to_add_monoid_hom_coe, tensor_product.map_tmul, id_apply,
+        to_int_linear_map_apply, add_monoid_hom.coe_mk, tensor_product.lift.tmul,
+        tensor_monoidal_category_right_unitor, right_unitor_hom],
+      rw zmul_comm, },
+    { simp only [map_add, ihx, ihz], },
+  end,
+  mul_assoc' := begin
+    ext1 z,
+    induction z using tensor_product.induction_on with z c z c ihz ihc,
+    { simp only [map_zero], },
+    { simp only [comp_apply, linear_map.to_add_monoid_hom_coe, tensor_monoidal_category_tensor_hom,
+        tensor_product.map_tmul, to_int_linear_map_apply, id_apply,
+        tensor_monoidal_category_associator_hom_apply],
+      induction z using tensor_product.induction_on with z b z b ihz ihb,
+      { simp only [map_zero, tensor_product.zero_tmul], },
+      { simp only [tensor_product.lift.tmul, linear_map.coe_mk, tensor_product.assoc_tmul, id_apply,
+          to_int_linear_map_apply, tensor_product.map_tmul, linear_map.to_add_monoid_hom_coe],
+        rw mul_assoc, },
+      { simp only [map_add, ihz, ihb, tensor_product.add_tmul], }, },
+    { simp only [map_add, ihz, ihc], },
+  end }
+
+@[simps] def Ring_to_Mon_ : Ring.{u} ⥤ Mon_ AddCommGroup.{u} :=
+{ obj := Ring_to_Mon_.obj,
+  map := λ X Y f,
+  { hom := f.to_add_monoid_hom,
+    one_hom' :=
+    begin
+      ext1 ⟨z⟩,
+      simp only [ring_hom.to_add_monoid_hom_eq_coe, comp_apply, Ring_to_Mon_.obj_one_apply,
+        eq_int_cast, ring_hom.coe_add_monoid_hom, map_int_cast],
+    end,
+    mul_hom' :=
+    begin
+      ext1 z,
+      induction z using tensor_product.induction_on with x y x y hx hy,
+      { simp only [map_zero], },
+      { simp only [Ring_to_Mon_.obj_mul, ring_hom.to_add_monoid_hom_eq_coe, comp_apply,
+          linear_map.to_add_monoid_hom_coe, tensor_product.lift.tmul, linear_map.coe_mk,
+          ring_hom.coe_add_monoid_hom, map_mul, tensor_monoidal_category_tensor_hom,
+          tensor_product.map_tmul, to_int_linear_map_apply], },
+      { simp only [map_add, hx, hy], },
+    end },
+  map_id' := λ R,
+  begin
+    ext,
+    simp only [ring_hom.to_add_monoid_hom_eq_coe, ring_hom.coe_add_monoid_hom, id_apply,
+      Mon_.id_hom'],
+  end,
+  map_comp' := λ X Y Z f g,
+  begin
+    ext,
+    simp only [ring_hom.to_add_monoid_hom_eq_coe, comp_apply, ring_hom.coe_add_monoid_hom,
+      Mon_.comp_hom'],
+  end }
 
 end Mon_
 

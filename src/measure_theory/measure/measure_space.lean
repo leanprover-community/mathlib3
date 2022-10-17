@@ -3341,13 +3341,20 @@ instance _root_.set_coe.measure_space (s : set α) : measure_space s :=
 lemma volume_set_coe_def (s : set α) : (volume : measure s) = comap (coe : s → α) volume := rfl
 
 lemma measurable_set.map_coe_volume {s : set α} (hs : measurable_set s) :
-  volume.map (coe : s → α)= restrict volume s :=
+  volume.map (coe : s → α) = restrict volume s :=
 by rw [volume_set_coe_def, (measurable_embedding.subtype_coe hs).map_comap volume,
   subtype.range_coe]
 
 lemma volume_image_subtype_coe {s : set α} (hs : measurable_set s) (t : set s) :
   volume (coe '' t : set α) = volume t :=
 (comap_subtype_coe_apply hs volume t).symm
+
+@[simp] lemma volume_preimage_coe {s t : set α} (hs : null_measurable_set s)
+  (ht : measurable_set t) : volume ((coe : s → α) ⁻¹' t) = volume (t ∩ s) :=
+by rw [volume_set_coe_def, comap_apply₀ _ _
+    subtype.coe_injective (λ h, measurable_set.null_measurable_set_subtype_coe hs)
+    (measurable_subtype_coe ht).null_measurable_set,
+    image_preimage_eq_inter_range, subtype.range_coe]
 
 end subtype
 

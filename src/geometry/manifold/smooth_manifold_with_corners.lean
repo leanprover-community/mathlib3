@@ -947,6 +947,11 @@ begin
   exact I.image_mem_nhds_within ((local_homeomorph.open_source _).mem_nhds hz)
 end
 
+/-- Conjugating a function to write it in the preferred charts around `x`.
+The manifold derivative of `f` will just be the derivative of this conjugated function. -/
+@[simp, mfld_simps] def written_in_ext_chart_at (x : M) (f : M → M') : E → E' :=
+ext_chart_at I' (f x) ∘ f ∘ (ext_chart_at I x).symm
+
 variable (𝕜)
 
 lemma ext_chart_self_eq {x : H} : ⇑(ext_chart_at I x) = I := rfl

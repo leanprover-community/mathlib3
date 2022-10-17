@@ -78,8 +78,6 @@ begin
   exact self_eq_mul_right.mpr ((quotient_group.eq_one_iff _).mpr h.2),
 end
 
-variables [finite H]
-
 lemma eq_one_of_smul_eq_one (hH : nat.coprime (nat.card H) H.index)
   (α : H.quotient_diff) (h : H) : h • α = α → h = 1 :=
 quotient.induction_on' α $ λ α hα, (pow_coprime hH).injective $

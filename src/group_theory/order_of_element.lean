@@ -691,11 +691,11 @@ noncomputable def pow_coprime {G : Type*} [group G] (h : nat.coprime (nat.card G
     rwa [zpow_add, zpow_mul, zpow_mul', zpow_coe_nat, zpow_coe_nat, zpow_coe_nat,
       h.gcd_eq_one, pow_one, pow_card_eq_one', one_zpow, one_mul, eq_comm] at key } }
 
-@[simp, to_additive] lemma pow_coprime_one (h : nat.coprime (nat.card G) n) :
+@[simp, to_additive] lemma pow_coprime_one {G : Type*} [group G] (h : nat.coprime (nat.card G) n) :
   pow_coprime h 1 = 1 := one_pow n
 
-@[simp, to_additive] lemma pow_coprime_inv (h : nat.coprime (nat.card G) n) {g : G} :
-  pow_coprime h g⁻¹ = (pow_coprime h g)⁻¹ := inv_pow g n
+@[simp, to_additive] lemma pow_coprime_inv {G : Type*} [group G] (h : nat.coprime (nat.card G) n)
+  {g : G} : pow_coprime h g⁻¹ = (pow_coprime h g)⁻¹ := inv_pow g n
 
 @[to_additive add_inf_eq_bot_of_coprime]
 lemma inf_eq_bot_of_coprime {G : Type*} [group G] {H K : subgroup G} [fintype H] [fintype K]

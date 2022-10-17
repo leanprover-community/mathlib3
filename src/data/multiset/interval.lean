@@ -60,4 +60,8 @@ lemma card_Ioo :
   (finset.Ioo f g).card = ∏ i in f.to_finset ∪ g.to_finset, (g.count i + 1 - f.count i) - 2 :=
 by rw [card_Ioo_eq_card_Icc_sub_two, card_Icc]
 
+lemma card_Iic :
+  (finset.Iic f).card = ∏ i in f.to_finset, (f.count i + 1) :=
+by simp_rw [Iic_eq_Icc, card_Icc, bot_eq_zero, to_finset_zero, empty_union, count_zero, tsub_zero]
+
 end multiset

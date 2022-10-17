@@ -455,6 +455,12 @@ begin
     .continuous_at_of_comp_left h (mem_chart_source _ _) (h.prod hf.continuous_at.snd)
 end
 
+lemma smooth_iff_target {f : N → Z.to_topological_vector_bundle_core.total_space} :
+  smooth J (I.prod 𝓘(𝕜, E')) f ↔ continuous (bundle.total_space.proj ∘ f) ∧
+  ∀ x, smooth_at J 𝓘(𝕜, E × E') (ext_chart_at (I.prod 𝓘(𝕜, E')) (f x) ∘ f) x :=
+by simp_rw [smooth, smooth_at, cont_mdiff, Z.cont_mdiff_at_iff_target, forall_and_distrib,
+  continuous_iff_continuous_at]
+
 lemma cont_mdiff_proj :
   cont_mdiff (I.prod 𝓘(𝕜, E')) I n Z.to_topological_vector_bundle_core.proj :=
 begin

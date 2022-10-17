@@ -626,12 +626,9 @@ lemma norm_integral_le_of_norm_le {g : ℝ → ℝ}
   (h : ∀ᵐ t ∂(μ.restrict $ Ι a b), ∥f t∥ ≤ g t)
   (hbound : interval_integrable g μ a b) :
   ∥∫ t in a..b, f t ∂μ∥ ≤ |∫ t in a..b, g t ∂μ| :=
-begin
-  simp [norm_interval_integral_eq, abs_interval_integral_eq],
-  rw [abs_eq_self.mpr],
-  { exact norm_integral_le_of_norm_le hbound.def h },
-  refine integral_nonneg_of_ae (h.mono $ λ t ht, (norm_nonneg _).trans ht),
-end
+by simp_rw [norm_interval_integral_eq, abs_interval_integral_eq,
+  abs_eq_self.mpr (integral_nonneg_of_ae $ h.mono $ λ t ht, (norm_nonneg _).trans ht),
+  norm_integral_le_of_norm_le hbound.def h]
 
 lemma norm_integral_le_of_norm_le_const_ae {a b C : ℝ} {f : ℝ → E}
   (h : ∀ᵐ x, x ∈ Ι a b → ∥f x∥ ≤ C) :

@@ -1359,13 +1359,13 @@ by { split_ifs with hb hb, exacts [preimage_const_of_mem hb, preimage_const_of_n
 
 theorem preimage_comp {s : set γ} : (g ∘ f) ⁻¹' s = f ⁻¹' (g ⁻¹' s) := rfl
 
-lemma preimage_comp' : preimage (g ∘ f) = preimage f ∘ preimage g := rfl
+lemma preimage_comp_eq : preimage (g ∘ f) = preimage f ∘ preimage g := rfl
 
 @[simp] lemma preimage_iterate_eq {f : α → α} {n : ℕ} :
   set.preimage (f^[n]) = ((set.preimage f)^[n]) :=
 begin
   induction n with n ih, { simp, },
-  rw [iterate_succ, iterate_succ', set.preimage_comp', ih],
+  rw [iterate_succ, iterate_succ', set.preimage_comp_eq, ih],
 end
 
 lemma preimage_preimage {g : β → γ} {f : α → β} {s : set γ} :

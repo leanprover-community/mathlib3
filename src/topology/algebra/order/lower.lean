@@ -29,11 +29,18 @@ open  set topological_space
 
 section preorder
 
+lemma upper_closure_set [preorder α] (s : set α) : 
+  upper_closure s = ⨅ a ∈ s, upper_set.Ici a := by rw upper_set.infi_Ici
+
+
 @[simp] lemma upper_set.Union_Ici [preorder α] (s : set α) : (⋃ a ∈ s, set.Ici a) =
   (upper_closure s : set α) :=
 begin
-  rw [← upper_set.infi_Ici, upper_set.coe_infi₂],
-  simp only [upper_set.coe_Ici],
+  simp only [coe_upper_closure, exists_prop],
+  --rw upper_closure_set,
+  --rw upper_set.coe_Ici,
+  --rw [← upper_set.infi_Ici, upper_set.coe_infi₂],
+  --simp only [upper_set.coe_Ici],
 end
 
 @[simp] lemma upper_set.Inter_Ici [preorder α] (s : set α) : (⋂ a ∈ s, (set.Ici a)ᶜ) =
@@ -41,6 +48,12 @@ end
 begin
   rw ← upper_set.Union_Ici,
   simp only [compl_Union],
+end
+
+lemma  Union_Ici_compl [preorder α] (F: set α) : (⋃ (a : α) (H : a ∈ F), Ici a)ᶜ = ⋂ (a : α) (H : a ∈ F), (Ici a)ᶜ :=
+begin
+rw upper_set.Union_Ici,
+rw upper_set.Inter_Ici,
 end
 
 lemma l1 [preorder α] [preorder β] (a : α) (b : β) :
@@ -139,6 +152,8 @@ begin
     finish, }
 end
 
+
+
 end preorder
 
 -- def Ici (a : α) := {x | a ≤ x}
@@ -192,68 +207,6 @@ begin
   rw [upper_set.coe_Ici, coe_upper_closure, mem_Ici, mem_set_of_eq],
   simp only [ mem_singleton_iff, exists_prop, exists_eq_left],
 end
-
-#check {s : set α | ∃ (F : set α),  F.finite ∧ s = (upper_closure F : set α)ᶜ}
-
-#check ((λ (f : set (set α)), ⋂₀ f) ''
-       {f : set (set α) | f.finite ∧ f ⊆ {s : set α | ∃ (a : α), s = (Ici a)ᶜ} ∧ (⋂₀ f).nonempty})
-
-#check is_topological_basis_of_subbasis t.topology_eq_generate_Ici_comp
-
-
-#check set.sInter
-
-#check compl_Union
-#check compl_sUnion
-
-#check upper_set.Union_Ici
-
-#check Inter_exists
-
-
-#check sInter
-#check Inter
-
-variable (F : set α)
-
-
-
-#check  ⋂ (a : α) (H: a ∈ F), (Ici a)ᶜ
-
-#check  set.Inter (λ (a : α) , Ici a)
-
-variable f:α → set β
-
-#check Inter f
-
-#check f '' F
-
-#check symm
-
-#check set.finite
-
-lemma testi : (⋂ (x : α) (H : x ∈ F), f x) = sInter (f '' F) :=
-begin
-  rw sInter_image,
-end
-
-lemma testt (a b : α) : a = b → f a = f b :=
-begin
-  exact congr_arg (λ (a : α), f a),
-end
-
-lemma teste (a b : α) : a = b ↔ b=a :=
-begin
-exact comm
-end
-
-lemma  test4 (F: set α) : (⋃ (a : α) (H : a ∈ F), Ici a)ᶜ = ⋂ (a : α) (H : a ∈ F), (Ici a)ᶜ :=
-begin
-rw upper_set.Union_Ici,
-rw upper_set.Inter_Ici,
-end
-
-#check Fᶜ
 
 lemma Ici_eq (a b : α) : Ici a = Ici b ↔  a = b :=
 begin
@@ -384,8 +337,6 @@ end
 
 include t
 
-
-
 lemma ltbasis' : is_topological_basis  {s | ∃(F : set α), F.finite ∧ s = ((upper_closure F) : set α)ᶜ∧ (upper_closure F : set α)ᶜ.nonempty } :=
 begin
   rw finite_inter,
@@ -478,6 +429,10 @@ end
 
 open classical
 
+variable (a : α)
+
+#check (closure {a} = Ici a)
+
 lemma singleton_closure (a : α) : closure {a} = Ici a :=
 begin
   rw subset_antisymm_iff,
@@ -519,6 +474,29 @@ variables [topological_space β] [partial_order β] [s : lower_topology β]
 
 include s
 
+variables [p : lower_topology (α×β)]
+
+#check is_topological_basis
+
+-- c.f. topology.stone_cech
+def upper_closure_prod_basis (α : Type u) (β : Type v) [partial_order α] [partial_order β] : set (set (α × β)):=
+{ S : set (α × β) | ∃ (F₁ : set α) (F₂ : set β), F₁.finite
+  ∧ F₂.finite ∧ ((upper_closure F₁ : set α)ᶜ ×ˢ (upper_closure F₂ : set β)ᶜ = S)
+  ∧ (upper_closure F₁ : set α)ᶜ.nonempty ∧ (upper_closure F₂ : set β)ᶜ.nonempty}
+
+#check upper_closure_prod_basis
+
+#check is_topological_basis (upper_closure_prod_basis)
+
+include p
+
+lemma upper_closure_prod_basis_is_basis : is_topological_basis (upper_closure_prod_basis)  :=
+⟨ sorry, sorry, sorry ⟩
+/-
+begin
+   sorry
+end
+-/
 --#check is_topological_basis.pro(×ˢ)d
 
 #check  {s : set α | ∃ (F : set α),  F.finite ∧ s = (upper_closure F : set α)ᶜ ∧ ((upper_closure F : set α)ᶜ.nonempty) }

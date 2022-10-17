@@ -529,14 +529,6 @@ instance : is_adic_complete (maximal_ideal ℤ_[p]) ℤ_[p] :=
         refine this.trans (max_le_iff.mpr ⟨hx, hi.le⟩) } }
   end }
 
-/-- `ℤ_[p]` with its usual ring structure is not a field. -/
-lemma not_is_field : ¬ is_field ℤ_[p] :=
-begin
-  rw ring.not_is_field_iff_exists_prime,
-  exact ⟨local_ring.maximal_ideal ℤ_[p], discrete_valuation_ring.not_a_field ℤ_[p],
-     ideal.is_maximal.is_prime' (maximal_ideal ℤ_[p])⟩,
-end
-
 end dvr
 
 end padic_int

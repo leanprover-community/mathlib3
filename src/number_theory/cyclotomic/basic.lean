@@ -298,7 +298,7 @@ begin
   by_cases hC : nontrivial C,
   { exactI (iff_union_singleton_one _ _ _).2 (trans S {1} A B C f.injective) },
   { haveI := not_nontrivial_iff_subsingleton.1 hC,
-    haveI : subsingleton B := equiv.subsingleton.symm f.to_equiv.symm,
+    haveI := equiv.subsingleton.symm f.to_equiv.symm,
     rwa [is_cyclotomic_extension.subsingleton_iff] at ⊢ h }
 end
 

@@ -331,6 +331,9 @@ instance : partial_order (multiset α) :=
   le_trans    := by rintros ⟨l₁⟩ ⟨l₂⟩ ⟨l₃⟩; exact @subperm.trans _ _ _ _,
   le_antisymm := by rintros ⟨l₁⟩ ⟨l₂⟩ h₁ h₂; exact quot.sound (subperm.antisymm h₁ h₂) }
 
+instance decidable_le [decidable_eq α] : decidable_rel ((≤) : multiset α → multiset α → Prop) :=
+λ s t, quotient.rec_on_subsingleton₂ s t list.decidable_subperm
+
 section
 variables {s t : multiset α} {a : α}
 
@@ -1077,11 +1080,19 @@ theorem map_pmap {p : α → Prop} (g : β → γ) (f : Π a, p a → β)
 quot.induction_on s $ λ l H, congr_arg coe $ map_pmap g f l H
 
 theorem pmap_eq_map_attach {p : α → Prop} (f : Π a, p a → β)
-  (s) : ∀ H, pmap f s H = s.attach.map (λ x, f x.1 (H _ x.2)) :=
+  (s) : ∀ H, pmap f s H = s.attach.map (λ x, f x (H _ x.prop)) :=
 quot.induction_on s $ λ l H, congr_arg coe $ pmap_eq_map_attach f l H
 
-theorem attach_map_val (s : multiset α) : s.attach.map subtype.val = s :=
-quot.induction_on s $ λ l, congr_arg coe $ attach_map_val l
+@[simp] lemma attach_map_coe' (s : multiset α) (f : α → β) : s.attach.map (λ i, f i) = s.map f :=
+quot.induction_on s $ λ l, congr_arg coe $ attach_map_coe' l f
+
+lemma attach_map_val' (s : multiset α) (f : α → β) : s.attach.map (λ i, f i.val) = s.map f :=
+attach_map_coe' _ _
+
+@[simp] lemma attach_map_coe (s : multiset α) : s.attach.map (coe : _ → α) = s :=
+(attach_map_coe' _ _).trans s.map_id
+
+lemma attach_map_val (s : multiset α) : s.attach.map subtype.val = s := attach_map_coe _
 
 @[simp] theorem mem_attach (s : multiset α) : ∀ x, x ∈ s.attach :=
 quot.induction_on s $ λ l, mem_attach _
@@ -1102,9 +1113,6 @@ lemma attach_cons (a : α) (m : multiset α) :
   (a ::ₘ m).attach = ⟨a, mem_cons_self a m⟩ ::ₘ (m.attach.map $ λp, ⟨p.1, mem_cons_of_mem p.2⟩) :=
 quotient.induction_on m $ assume l, congr_arg coe $ congr_arg (list.cons _) $
   by rw [list.map_pmap]; exact list.pmap_congr _ (λ _ _ _ _, subtype.eq rfl)
-
-@[simp]
-lemma attach_map_coe (m : multiset α) : multiset.map (coe : _ → α) m.attach = m := m.attach_map_val
 
 section decidable_pi_exists
 variables {m : multiset α}

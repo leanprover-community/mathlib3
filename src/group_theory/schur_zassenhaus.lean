@@ -206,7 +206,7 @@ begin
   have key := step2 h1 h2 h3 (K.map N.subtype) K.map_subtype_le,
   rw ← map_bot N.subtype at key,
   conv at key { congr, skip, to_rhs, rw [←N.subtype_range, N.subtype.range_eq_map] },
-  have inj := map_injective (show function.injective N.subtype, from subtype.coe_injective),
+  have inj := map_injective N.subtype_injective,
   rwa [inj.eq_iff, inj.eq_iff] at key,
 end
 

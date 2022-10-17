@@ -92,7 +92,7 @@ squarefree_of_dvd_of_squarefree (gcd_dvd_right _ _) hb
 
 lemma squarefree.gcd_left {a : α} (b : α) (ha : squarefree a) :
   squarefree (gcd a b) :=
-squarefree_of_dvd_of_squarefree (gcd_dvd_left _ _) hb
+squarefree_of_dvd_of_squarefree (gcd_dvd_left _ _) ha
 
 end squarefree_gcd_of_squarefree
 

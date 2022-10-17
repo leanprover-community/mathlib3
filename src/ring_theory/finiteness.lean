@@ -501,6 +501,7 @@ begin
     apply ideal.subset_span,
     apply set.mem_union_left,
     exact set.mem_image_of_mem _ hx }
+end
 
 /-- This is used to prove the strictly stronger `ker_fg_of_surjective`. Use it instead. -/
 -- TODO: extract out helper lemmas and tidy proof.

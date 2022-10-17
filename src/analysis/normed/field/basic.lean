@@ -1002,4 +1002,22 @@ def normed_division_ring.induced [division_ring R] [normed_division_ring S]
 { norm_mul' := λ x y, by { unfold norm, exact (map_mul f x y).symm ▸ norm_mul (f x) (f y) },
   .. normed_add_comm_group.induced R S f hf }
 
+/-- An injective non-unital ring homomorphism from an `field` to a `normed_ring` induces a
+`normed_field` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def normed_field.induced [field R] [normed_field S]
+  [non_unital_ring_hom_class F R S] (f : F) (hf : function.injective f) : normed_field R :=
+{ .. normed_division_ring.induced R S f hf }
+
+/-- A ring homomorphism from a `ring R` to a `semi_normed_ring S` which induces the norm structure
+`semi_normed_ring.induced` makes `R` satisfy `∥(1 : R)∥ = 1` whenever `∥(1 : S)∥ = 1`.
+
+See note [reducible non-instances] -/
+lemma norm_one_class.induced {F : Type*} (R S : Type*) [ring R] [semi_normed_ring S]
+  [norm_one_class S] [ring_hom_class F R S] (f : F) :
+  @norm_one_class R (semi_normed_ring.induced R S f).to_has_norm _ :=
+{ norm_one := (congr_arg norm (map_one f)).trans norm_one }
+
 end induced

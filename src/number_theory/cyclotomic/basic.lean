@@ -32,7 +32,7 @@ primitive roots of unity, for all `n ∈ S`.
 
 * `is_cyclotomic_extension.trans` : if `is_cyclotomic_extension S A B` and
   `is_cyclotomic_extension T B C`, then `is_cyclotomic_extension (S ∪ T) A C` if
-  `no_zero_smul_divisors B C` and `nontrivial C`.
+  `function.injective (algebra_map B C)`.
 * `is_cyclotomic_extension.union_right` : given `is_cyclotomic_extension (S ∪ T) A B`, then
   `is_cyclotomic_extension T (adjoin A { b : B | ∃ a : ℕ+, a ∈ S ∧ b ^ (a : ℕ) = 1 }) B`.
 * `is_cyclotomic_extension.union_right` : given `is_cyclotomic_extension T A B` and `S ⊆ T`, then

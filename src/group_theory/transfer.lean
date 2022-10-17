@@ -235,6 +235,12 @@ lemma index_eq_zero_of_relindex_eq_zero {G : Type*} [group G] {H K : subgroup G}
   (h : H.relindex K = 0) : H.index = 0 :=
 H.relindex_top_right.symm.trans (relindex_eq_zero_of_le_right le_top h)
 
+lemma _root_.subgroup.is_complement'.index_eq_card {G : Type*} [group G] {H K : subgroup G}
+  (h : is_complement' H K) : H.index = nat.card K :=
+begin
+  sorry,
+end
+
 section burnside_transfer
 
 open_locale pointwise
@@ -284,8 +290,8 @@ end
 
 lemma not_dvd_card_ker_transfer_sylow : ¬ p ∣ nat.card (transfer_sylow P hP).ker :=
 begin
-  -- card eq index, and ¬ p ∣ index
-  sorry,
+  rw ← (ker_transfer_sylow_is_complement P hP).symm.index_eq_card,
+  exact not_dvd_index_sylow P (mt index_eq_zero_of_relindex_eq_zero index_ne_zero_of_finite),
 end
 
 lemma ker_transfer_sylow_disjoint''' (Q : subgroup G) (hQ : is_p_group p Q) :

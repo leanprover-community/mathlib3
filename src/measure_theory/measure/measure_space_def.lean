@@ -225,6 +225,11 @@ lemma measure_Union_null [countable β] {s : β → set α} : (∀ i, μ (s i) =
   μ (⋃ i, s i) = 0 ↔ ∀ i, μ (s i) = 0 :=
 μ.to_outer_measure.Union_null_iff
 
+/-- A version of `measure_Union_null_iff` for unions indexed by Props -/
+@[simp] lemma measure_Union_null_iff' {ι : Prop} {s : ι → set α} :
+  μ (⋃ i, s i) = 0 ↔ ∀ i, μ (s i) = 0 :=
+μ.to_outer_measure.Union_null_iff'
+
 lemma measure_bUnion_null_iff {s : set ι} (hs : s.countable) {t : ι → set α} :
   μ (⋃ i ∈ s, t i) = 0 ↔ ∀ i ∈ s, μ (t i) = 0 :=
 μ.to_outer_measure.bUnion_null_iff hs

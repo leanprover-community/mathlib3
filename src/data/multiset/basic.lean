@@ -1826,6 +1826,17 @@ quotient.induction_on₂ s t $ λ l₁ l₂, quotient.eq.trans perm_iff_count
 theorem ext' {s t : multiset α} : (∀ a, count a s = count a t) → s = t :=
 ext.2
 
+
+@[ext]
+lemma add_hom_ext {A} [add_zero_class A] ⦃f g : multiset α →+ A⦄ (h : ∀ x, f {x} = g {x}) :
+  f = g :=
+begin
+  ext s,
+  induction s using multiset.induction_on with a s ih,
+  { simp only [_root_.map_zero] },
+  { simp only [←singleton_add, _root_.map_add, ih, h] }
+end
+
 @[simp] theorem coe_inter (s t : list α) : (s ∩ t : multiset α) = (s.bag_inter t : list α) :=
 by ext; simp
 

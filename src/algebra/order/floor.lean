@@ -186,8 +186,8 @@ eq_of_forall_ge_iff $ λ b, begin
   rw [ceil_le],
   obtain hb | hb := le_total n b,
   { obtain ⟨d, rfl⟩ := exists_add_of_le hb,
-    rw [nat.cast_add, add_comm n, add_comm (n : α), add_le_add_iff_right, add_le_add_iff_right, ceil_le]
-  },
+    rw [nat.cast_add, add_comm n, add_comm (n : α), add_le_add_iff_right, add_le_add_iff_right,
+        ceil_le] },
   { obtain ⟨d, rfl⟩ := exists_add_of_le hb,
     rw [nat.cast_add, add_left_comm _ b, add_left_comm _ (b : α), add_le_iff_nonpos_right,
     add_le_iff_nonpos_right, le_zero_iff, add_eq_zero_iff, ceil_eq_zero, ← @cast_eq_zero α,

@@ -20,55 +20,81 @@ namespace category_theory
 
 namespace groupoid
 
-
 universes u v u' v' u'' v''
 
 /-- Following Brown -/
 class groupoid_action (V : Type*) [groupoid V] (X : Type*) :=
-(w : X → V)
-(mul : Π (x : X) {t : V} (f : w x ⟶ t), X)
-(mul_w : Π (x : X) {t : V} (f : w x ⟶ t), w (mul x f) = t )
-(mul_id' : Π (x : X), mul x (𝟙 $ w x) = x)
-(mul_comp' : Π (x : X) {s t : V} (f : w x ⟶ s) (g : s ⟶ t),
-             mul x (f ≫ g) = mul (mul x f) ((eq_to_hom $ mul_w x f) ≫ g))
+(p : V → set X)
+(p_part : ∀ x, ∃! v, x ∈ p v) -- needed?
+(mul : Π {s t : V} (f : s ⟶ t), p s → p t)
+(mul_id' : Π (v  : V), mul (𝟙 v) = id)
+(mul_comp' : Π {r s t : V} (f : r ⟶ s) (g : s ⟶ t), (mul g) ∘ (mul f) = mul (f ≫ g))
 
-infix ` •≫ `:73 := groupoid_action.mul
-prefix ` · ` :73 := groupoid_action.w
-infix ` •≫= `:73 := groupoid_action.mul_w
+namespace action
 
-def groupoid_action.mul_w_hom {V : Type*} [groupoid V] {X : Type*} (g : groupoid_action V X)
-  (x : X) {t : V} (f : g.w x ⟶ t) := (eq_to_hom $ g.mul_w x f)
+notation x ` •≫ ` f:73 := groupoid_action.mul f x
 
-variables {V : Type*} [groupoid V] {X : Type*} [g : groupoid_action V X]
+variables  {V : Type*} [groupoid V] {X : Type*} [g : groupoid_action V X]
 
-lemma mul_id (x : X) :
-  x •≫ (𝟙 (g.w x)) = x := groupoid_action.mul_id' x
-lemma mul_comp (x : X) {s t : V} (f : g.w x ⟶ s) (h : s ⟶ t) :
-  x •≫ (f ≫ h) = (x •≫ f) •≫ (g.mul_w_hom x f ≫ h) := g.mul_comp' x f h
+lemma mul_bijective {s t : V} (f : s ⟶ t) : function.bijective (g.mul f) :=
+begin
+  sorry, -- since `g.mul $ inv f` is a twosided inverse
+end
 
-def action_map {s t : V} (f : s ⟶ t) :
-  {x | g.w x = s} → {y | g.w y = t} :=
-λ xx, ⟨xx.val •≫ (eq_to_hom xx.prop ≫ f), groupoid_action.mul_w _ _⟩
+def is_transitive :=
+∀ (x y : X),
+  ∃ (s t : V) (xs : x ∈ g.p s) (yt : y ∈ g.p t) (f : s ⟶ t),
+    ⟨x,xs⟩ •≫ f = ⟨y,yt⟩
 
-lemma action_map_bij  {s t : V} (f : s ⟶ t) :
-  function.bijective (@action_map V _ X g s t f) := sorry
+noncomputable def obj (g : groupoid_action V X) (x : X) : V := (g.p_part x).exists.some
 
-def is_transitive := ∀ (x y : X), ∃ (f : g.w x ⟶ g.w y), x •≫ f = y
+def obj_p (g : groupoid_action V X) (x : X) : x ∈ g.p (obj g x) := (g.p_part x).exists.some_spec
 
-def stabilizer (x : X) : subgroup (g.w x ⟶ g.w x) :=
-{ carrier := { f | x •≫ f = x },
-  one_mem' := mul_id x,
+noncomputable def mul' (x : X) {t : V} (f : obj g x ⟶ t) : X :=
+(⟨x,obj_p g x⟩ •≫ f).val
+
+
+notation x ` ·≫ ` f:73 := mul' x f
+
+@[simp]
+lemma mul_eq_mul' (x : X) {t : V} (f : obj g x ⟶ t) : x ·≫ f = (⟨x,obj_p g x⟩ •≫ f).val := rfl
+
+def stabilizer (v : V) (x : g.p v) : subgroup (v ⟶ v) :=
+{ carrier := {f | x •≫ f = x},
+  one_mem' := congr_fun (groupoid_action.mul_id' v) x,
   mul_mem' := λ f f' hf hf', by
-  { simp only [vertex_group_mul, set.mem_set_of_eq] at hf hf' ⊢,
-    rw groupoid_action.mul_comp',
-    nth_rewrite_rhs 0 ←hf',
-    congr,
-    assumption, sorry,
-    },
+  { rw [set.mem_set_of_eq] at hf hf' ⊢,
+    rw [vertex_group_mul, ←congr_fun (groupoid_action.mul_comp' f f') x,
+        function.comp_app,hf,hf'], },
   inv_mem' := λ f hf, by
-  { simp, rw hf, } }
+  { rw [set.mem_set_of_eq] at hf ⊢,
+    nth_rewrite 0 ←hf,
+    convert ←congr_fun (groupoid_action.mul_comp' f (inv f)) x,
+    rw [inv_eq_inv, is_iso.hom_inv_id],
+    exact congr_fun (groupoid_action.mul_id' v) x, } }
+
+instance semidirect_product : groupoid X :=
+{ hom := λ x y, { f : obj g x ⟶ obj g y | x ·≫ f = y},
+  id := λ x,
+  ⟨ 𝟙 $ obj g x,
+    by {simp only [mul', groupoid_action.mul_id', set.mem_set_of_eq, id.def], }⟩,
+  comp := λ x y z f h,
+  ⟨ f.val ≫ h.val,
+    by
+    { simp_rw [mul', set.mem_set_of_eq, ←groupoid_action.mul_comp',
+                  function.comp_app, subtype.val_eq_coe],
+      rw [subtype.coe_eq_of_eq_mk f.prop, subtype.coe_eq_of_eq_mk h.prop],
+      refl, } ⟩,
+  id_comp' := λ a b p, sorry,
+  comp_id' := λ a b p, sorry,
+  assoc' := λ a b c d p q r, sorry,
+  inv := λ a b p, sorry,
+  inv_comp' := λ a b p, sorry,
+  comp_inv' := λ a b p, sorry }
+
+
+end action
 
 end groupoid
-
 
 end category_theory

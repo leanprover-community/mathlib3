@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
 
+import algebra.homology.quasi_iso
 import algebraic_topology.extra_degeneracy
 import category_theory.abelian.homology
 import representation_theory.Rep
@@ -247,108 +248,31 @@ def classifying_space_universal_cover [monoid G] :
   map_comp' := λ i j k f g, rfl }
 
 namespace classifying_space_universal_cover
-
-open category_theory.limits category_theory.arrow
-
-variables (ι : Type w) {C : Type u} [category.{v} C] [has_terminal C]
-
-/-- The diagram `option ι ⥤ C` sending `none` to the terminal object and `some j` to `X`. -/
-def wide_cospan (X : C) : wide_pullback_shape ι ⥤ C :=
-wide_pullback_shape.wide_cospan (terminal C) (λ i : ι, X) (λ i, terminal.from X)
-
-instance unique_to_wide_cospan_none (X Y : C) : unique (Y ⟶ (wide_cospan ι X).obj none) :=
-by unfold wide_cospan; dsimp; apply_instance
-
-variables [has_finite_products C]
-
-/-- The product `Xᶥ` is the vertex of a limit cone on `wide_cospan ι X`. -/
-def wide_cospan.limit_cone [fintype ι] (X : C) : limit_cone (wide_cospan ι X) :=
-{ cone :=
-  { X := ∏ (λ i : ι, X),
-    π :=
-    { app := λ X, option.cases_on X (terminal.from _) (λ i, limit.π _ ⟨i⟩),
-      naturality' := λ i j f,
-      begin
-      cases f,
-      { cases i,
-        all_goals { dsimp, simp }},
-      { dsimp,
-        simp only [terminal.comp_from],
-        exact subsingleton.elim _ _ }
-      end } },
-  is_limit :=
-  { lift := λ s, limits.pi.lift (λ j, s.π.app (some j)),
-    fac' := λ s j, option.cases_on j (subsingleton.elim _ _) (λ j, limit.lift_π _ _),
-    uniq' := λ s f h,
-    begin
-      ext j,
-      dunfold limits.pi.lift,
-      rw limit.lift_π,
-      dsimp,
-      rw ←h (some j.as),
-      congr,
-      ext,
-      refl,
-    end } }
-
-instance has_wide_pullback [finite ι] (X : C) :
-  has_wide_pullback (arrow.mk (terminal.from X)).right
-  (λ i : ι, (arrow.mk (terminal.from X)).left) (λ i, (arrow.mk (terminal.from X)).hom) :=
-begin
-  casesI nonempty_fintype ι,
-  exact ⟨⟨wide_cospan.limit_cone ι X⟩⟩,
-end
-
--- as usual I can't think of a good name
-/-- Given an object `X : C`, the natural simplicial object sending `[n]` to `Xⁿ⁺¹`. -/
-def aux {C : Type u} [category.{v} C] [has_finite_products C] (X : C) :
-  simplicial_object C :=
-{ obj := λ n, ∏ (λ i : fin (n.unop.len + 1), X),
-  map := λ m n f, limits.pi.lift (λ i, limits.pi.π _ (f.unop.to_order_hom i)),
-  map_id' := λ f, limit.hom_ext $ λ j, by discrete_cases;
-    simpa only [limit.lift_π, category.id_comp],
-  map_comp' := λ m n o f g, limit.hom_ext $ λ j, by discrete_cases;
-    simpa only [category.assoc, limit.lift_π, fan.mk_π_app] }
-
-/-- Given an object `X : C`, the Čech nerve of the hom to the terminal object `X ⟶ ⊤_ C` is
-naturally isomorphic to a simplicial object sending `[n]` to `Xⁿ⁺¹` (when `C` is `G-Set`, this is
-`EG`, the universal cover of the classifying space of `G`. -/
-def cech_nerve_iso_aux (X : C) :
-  cech_nerve (arrow.mk (terminal.from X)) ≅ aux X :=
-iso.symm (nat_iso.of_components (λ m, ((limit.is_limit _).cone_point_unique_up_to_iso
-  (wide_cospan.limit_cone (fin (m.unop.len + 1)) X).2).symm) $ λ m n f, wide_pullback.hom_ext _ _ _
-(begin
-  intro j,
-  simp only [category.assoc],
-  dunfold aux wide_pullback.π pi.lift,
-  erw [wide_pullback.lift_π, limit.cone_point_unique_up_to_iso_inv_comp
-    (wide_cospan.limit_cone _ _).2, (limit.is_limit _).cone_point_unique_up_to_iso_inv_comp
-    (wide_cospan.limit_cone _ _).2, limit.lift_π],
-  refl,
-end)
-(@subsingleton.elim _ (@unique.subsingleton _ (limits.unique_to_terminal _)) _ _))
-
+open category_theory category_theory.limits
 variables [monoid G]
 
-/-- When the category is `G`-Set, `aux` of `G` with the left regular action is isomorphic to
-`EG`, the universal cover of the classifying space of `G` as a simplicial `G`-set. -/
-def aux_iso : aux (Action.of_mul_action G G) ≅ classifying_space_universal_cover G :=
+/-- When the category is `G`-Set, `cech_nerve_terminal_from` of `G` with the left regular action is
+isomorphic to `EG`, the universal cover of the classifying space of `G` as a simplicial `G`-set. -/
+def cech_nerve_terminal_from_iso :
+  cech_nerve_terminal_from (Action.of_mul_action G G) ≅ classifying_space_universal_cover G :=
 nat_iso.of_components (λ n, limit.iso_limit_cone (Action.of_mul_action_limit_cone _ _)) $ λ m n f,
 begin
   refine is_limit.hom_ext (Action.of_mul_action_limit_cone.{u 0} _ _).2 (λ j, _),
-  dunfold aux pi.lift,
+  dunfold cech_nerve_terminal_from pi.lift,
+  dsimp,
   rw [category.assoc, limit.iso_limit_cone_hom_π, limit.lift_π, category.assoc],
   exact (limit.iso_limit_cone_hom_π _ _).symm,
 end
 
-/-- As a simplicial set, `aux` of a monoid `G` is isomorphic to the universal cover of the
-classifying space of `G` as a simplicial set. -/
-def aux_iso_comp_forget : aux G ≅ classifying_space_universal_cover G ⋙ forget _ :=
+/-- As a simplicial set, `cech_nerve_terminal_from` of a monoid `G` is isomorphic to the universal
+cover of the classifying space of `G` as a simplicial set. -/
+def cech_nerve_terminal_from_iso_comp_forget :
+  cech_nerve_terminal_from G ≅ classifying_space_universal_cover G ⋙ forget _ :=
 nat_iso.of_components (λ n, types.product_iso _) $ λ m n f, matrix.ext $ λ i j,
   types.limit.lift_π_apply _ _ _ _
 
 variables (k G)
-open algebraic_topology simplicial_object.augmented
+open algebraic_topology simplicial_object.augmented simplicial_object category_theory.arrow
 
 /-- The universal cover of the classifying space of `G` as a simplicial set, augmented by the map
 from `fin 1 → G` to the terminal object in `Type u`. -/
@@ -358,20 +282,21 @@ simplicial_object.augment (classifying_space_universal_cover G ⋙ forget _) (te
 
 /-- The augmented Čech nerve of the map from `fin 1 → G` to the terminal object in `Type u` has an
 extra degeneracy. -/
-def extra_degeneracy_of_augmented_cech_nerve :
+def extra_degeneracy_augmented_cech_nerve :
   extra_degeneracy (arrow.mk $ terminal.from G).augmented_cech_nerve :=
 augmented_cech_nerve.extra_degeneracy (arrow.mk $ terminal.from G)
   ⟨λ x, (1 : G), @subsingleton.elim _ (@unique.subsingleton _ (limits.unique_to_terminal _)) _ _⟩
 
 /-- The universal cover of the classifying space of `G` as a simplicial set, augmented by the map
 from `fin 1 → G` to the terminal object in `Type u`, has an extra degeneracy. -/
-def extra_degeneracy_of_comp_forget_augmented :
+def extra_degeneracy_comp_forget_augmented :
   extra_degeneracy (comp_forget_augmented G) :=
 @extra_degeneracy.of_iso _ _ (arrow.mk $ terminal.from G).augmented_cech_nerve
-  (comp_forget_augmented G) (comma.iso_mk ((cech_nerve_iso_aux G).trans (aux_iso_comp_forget G))
-  (iso.refl _) $ by ext1; ext1; exact (@subsingleton.elim _ (@unique.subsingleton _
-  (limits.unique_to_terminal _)) _ _))
-(extra_degeneracy_of_augmented_cech_nerve G)
+  (comp_forget_augmented G) (comma.iso_mk ((cech_nerve_terminal_from.iso G).trans
+  (cech_nerve_terminal_from_iso_comp_forget G)) (iso.refl _) $
+  by ext1; ext1; exact (@subsingleton.elim _ (@unique.subsingleton _
+    (limits.unique_to_terminal _)) _ _))
+(extra_degeneracy_augmented_cech_nerve G)
 
 /-- The free functor `Type u ⥤ Module.{u} k` applied to the universal cover of the classifying
 space of `G` as a simplicial set, augmented by the map from `fin 1 → G` to the terminal object
@@ -382,9 +307,9 @@ def comp_forget_augmented.to_Module : simplicial_object.augmented (Module.{u} k)
 /-- If we augment the universal cover of the classifying space of `G` as a simplicial set by the
 map from `fin 1 → G` to the terminal object in `Type u`, then apply the free functor
 `Type u ⥤ Module.{u} k`, the resulting augmented simplicial `k`-module has an extra degeneracy. -/
-def extra_degeneracy_of_comp_forget_augmented_to_Module :
+def extra_degeneracy_comp_forget_augmented_to_Module :
   extra_degeneracy (comp_forget_augmented.to_Module k G) :=
-extra_degeneracy.map (extra_degeneracy_of_comp_forget_augmented G) (Module.free k)
+extra_degeneracy.map (extra_degeneracy_comp_forget_augmented G) (Module.free k)
 
 end classifying_space_universal_cover
 
@@ -441,8 +366,8 @@ space of `G` as a simplicial set, then take the alternating face map complex, th
 isomorphic to the standard resolution of the trivial `G`-representation `k` as a complex of
 `k`-modules. -/
 def comp_forget_augmented_iso : (alternating_face_map_complex.obj
-  (simplicial_object.augmented.drop.obj (comp_forget_augmented.to_Module k G)))
-  ≅ group_cohomology.resolution.forget₂_to_Module k G :=
+  (simplicial_object.augmented.drop.obj (comp_forget_augmented.to_Module k G))) ≅
+  group_cohomology.resolution.forget₂_to_Module k G :=
 eq_to_iso (functor.congr_obj (map_alternating_face_map_complex (forget₂ (Rep k G)
   (Module.{u} k))).symm (classifying_space_universal_cover G ⋙ (Rep.linearization k G).1.1))
 
@@ -454,13 +379,13 @@ def forget₂_to_Module_homotopy_equiv : homotopy_equiv
   ((forget₂ (Rep k G) _).obj $ Rep.of representation.trivial)) :=
 (homotopy_equiv.of_iso (comp_forget_augmented_iso k G).symm).trans $
   (simplicial_object.augmented.extra_degeneracy.homotopy_equiv
-  (extra_degeneracy_of_comp_forget_augmented_to_Module k G)).trans
+  (extra_degeneracy_comp_forget_augmented_to_Module k G)).trans
     (homotopy_equiv.of_iso $ (chain_complex.single₀ (Module.{u} k)).map_iso
 (@finsupp.linear_equiv.finsupp_unique k k _ _ _ (⊤_ (Type u))
   types.terminal_iso.to_equiv.unique).to_Module_iso)
 
 /-- The hom of `k`-linear `G`-representations `k[G¹] → k` sending `∑ nᵢgᵢ ↦ ∑ nᵢ`. -/
-def π : Rep.of_mul_action k G (fin 1 → G) ⟶ Rep.of representation.trivial :=
+def ε : Rep.of_mul_action k G (fin 1 → G) ⟶ Rep.of representation.trivial :=
 { hom := finsupp.total _ _ _ (λ f, (1 : k)),
   comm' := λ g,
   begin
@@ -475,7 +400,7 @@ a trivial `G`-representation, and the complex which is `k` at 0 and 0 everywhere
 `∑ nᵢgᵢ ↦ ∑ nᵢ : k[G¹] → k` at 0. -/
 lemma forget₂_to_Module_homotopy_equiv_f_0_eq :
   (forget₂_to_Module_homotopy_equiv k G).1.f 0 =
-  (forget₂ (Rep k G) _).map (π k G) :=
+  (forget₂ (Rep k G) _).map (ε k G) :=
 begin
   show (homotopy_equiv.hom _ ≫ (homotopy_equiv.hom _ ≫ homotopy_equiv.hom _)).f 0 = _,
   simp only [homological_complex.comp_f],
@@ -484,24 +409,24 @@ begin
     simp only [iso.symm_hom, eq_to_iso.inv, homological_complex.eq_to_hom_f, eq_to_hom_refl] },
   transitivity ((finsupp.total _ _ _ (λ f, (1 : k))).comp
     ((Module.free k).map (terminal.from _))),
-  { show _ = linear_map.comp _ (finsupp.lmap_domain _ _ _),
-    rw [@finsupp.lmap_domain_total (fin 1 → G) k k _ _ _ (⊤_ (Type u))
-      k _ _ (λ i, (1 : k)) (λ i, (1 : k)) (terminal.from ((classifying_space_universal_cover G).obj
+  { dsimp,
+    rw [@finsupp.lmap_domain_total (fin 1 → G) k k _ _ _ (⊤_ (Type u)) k _ _ (λ i, (1 : k))
+      (λ i, (1 : k)) (terminal.from ((classifying_space_universal_cover G).obj
       (opposite.op (simplex_category.mk 0))).V) linear_map.id (λ i, rfl), linear_map.id_comp],
     refl },
   { congr,
     { ext,
-      show finsupp.total _ k k _ (finsupp.single _ (1 : k)) = finsupp.single a 1 _,
+      dsimp [homotopy_equiv.of_iso],
       rw [finsupp.total_single, one_smul, @unique.eq_default _
         types.terminal_iso.to_equiv.unique a, finsupp.single_eq_same] },
     { exact (@subsingleton.elim _ (@unique.subsingleton _ (limits.unique_to_terminal _)) _ _) }}
 end
 
-lemma d_comp_π : (group_cohomology.resolution k G).d 1 0 ≫ π k G = 0 :=
+lemma d_comp_ε : (group_cohomology.resolution k G).d 1 0 ≫ ε k G = 0 :=
 begin
   ext1,
   refine linear_map.ext (λ x, _),
-  have : (forget₂_to_Module k G).d 1 0 ≫ (forget₂ (Rep k G) (Module.{u} k)).map (π k G) = 0,
+  have : (forget₂_to_Module k G).d 1 0 ≫ (forget₂ (Rep k G) (Module.{u} k)).map (ε k G) = 0,
   by rw [←forget₂_to_Module_homotopy_equiv_f_0_eq,
     ←(forget₂_to_Module_homotopy_equiv k G).1.2 1 0 rfl]; exact comp_zero,
   exact linear_map.ext_iff.1 this _,
@@ -561,7 +486,7 @@ lemma forget_to_Module_exact₀ :
   @kernel.of_mono _ _ _ _ _ _ _ _ $
  is_iso.mono_of_iso (chain_complex.cokernel_at_zero_of_homotopy_equiv_single₀ _).hom⟩⟩
 
-lemma exact₀ : exact ((group_cohomology.resolution k G).d 1 0) (π k G) :=
+lemma exact₀ : exact ((group_cohomology.resolution k G).d 1 0) (ε k G) :=
 (forget₂ (Rep k G) (Module.{u} k)).exact_of_exact_map
   (by rw ←forget₂_to_Module_homotopy_equiv_f_0_eq; exact forget_to_Module_exact₀ _ _)
 

@@ -119,6 +119,15 @@ The homology of a complex at index `i`.
 abbreviation homology (C : homological_complex V c) (i : ι) : V :=
 homology (C.d_to i) (C.d_from i) (C.d_to_comp_d_from i)
 
+/-- The `j`th homology of a homological complex (as kernel of 'the differential from `Cⱼ`' modulo
+the image of 'the differential to `Cⱼ`') is isomorphic to the kernel of `d : Cⱼ → Cₖ` modulo
+the image of `d : Cᵢ → Cⱼ` when `rel i j` and `rel j k`. -/
+def homology_iso (C : homological_complex V c) {i j k : ι} (hij : c.rel i j) (hjk : c.rel j k) :
+  C.homology j ≅ _root_.homology (C.d i j) (C.d j k) (C.d_comp_d i j k) :=
+homology.map_iso _ _ (arrow.iso_mk (C.X_prev_iso hij) (iso.refl _) $ by dsimp;
+  rw [C.d_to_eq hij, category.comp_id])
+(arrow.iso_mk (iso.refl _) (C.X_next_iso hjk) $ by dsimp; rw [C.d_from_comp_X_next_iso hjk,
+   category.id_comp]) rfl
 end
 
 end homological_complex
@@ -129,10 +138,7 @@ the image of `d : Cₙ₊₂ → Cₙ₊₁`. -/
 def chain_complex.homology_succ_iso [has_kernels V] [has_images V] [has_cokernels V]
   (C : chain_complex V ℕ) (n : ℕ) :
   C.homology (n + 1) ≅ homology (C.d (n + 2) (n + 1)) (C.d (n + 1) n) (C.d_comp_d _ _ _) :=
-homology.map_iso _ _ (arrow.iso_mk (C.X_prev_iso rfl) (iso.refl _) $ by dsimp;
-  rw [C.d_to_eq rfl, category.comp_id])
-(arrow.iso_mk (iso.refl _) (C.X_next_iso rfl) $ by dsimp; rw [C.d_from_comp_X_next_iso rfl,
-   category.id_comp]) rfl
+C.homology_iso rfl rfl
 
 /-- The `n + 1`th cohomology of a cochain complex (as kernel of 'the differential from `Cₙ₊₁`'
 modulo the image of 'the differential to `Cₙ₊₁`') is isomorphic to the kernel of `d : Cₙ₊₁ → Cₙ₊₂`
@@ -140,10 +146,7 @@ modulo the image of `d : Cₙ → Cₙ₊₁`. -/
 def cochain_complex.homology_succ_iso [has_kernels V] [has_images V] [has_cokernels V]
   (C : cochain_complex V ℕ) (n : ℕ) :
   C.homology (n + 1) ≅ homology (C.d n (n + 1)) (C.d (n + 1) (n + 2)) (C.d_comp_d _ _ _) :=
-homology.map_iso _ _ (arrow.iso_mk (C.X_prev_iso rfl) (iso.refl _) $ by dsimp;
-  rw [C.d_to_eq rfl, category.comp_id])
-(arrow.iso_mk (iso.refl _) (C.X_next_iso rfl) $ by dsimp; rw [C.d_from_comp_X_next_iso rfl,
-   category.id_comp]) rfl
+C.homology_iso rfl rfl
 
 open homological_complex
 

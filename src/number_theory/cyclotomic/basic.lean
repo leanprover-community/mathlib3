@@ -59,7 +59,7 @@ included in the `cyclotomic` locale.
 
 -/
 
-open polynomial algebra finite_dimensional module set
+open polynomial algebra finite_dimensional set
 
 open_locale big_operators
 
@@ -316,7 +316,7 @@ end basic
 
 section fintype
 
-lemma finite_of_singleton [is_domain B] [h : is_cyclotomic_extension {n} A B] : finite A B :=
+lemma finite_of_singleton [is_domain B] [h : is_cyclotomic_extension {n} A B] : module.finite A B :=
 begin
   classical,
   rw [module.finite_def, ← top_to_submodule, ← ((iff_adjoin_eq_top _ _ _).1 h).2],
@@ -331,8 +331,9 @@ begin
 end
 
 /-- If `S` is finite and `is_cyclotomic_extension S A B`, then `B` is a finite `A`-algebra. -/
-lemma finite [is_domain B] [h₁ : _root_.finite S] [h₂ : is_cyclotomic_extension S A B] :
-  finite A B :=
+@[protected]
+lemma finite [is_domain B] [h₁ : finite S] [h₂ : is_cyclotomic_extension S A B] :
+  module.finite A B :=
 begin
   casesI nonempty_fintype S with h,
   unfreezingI {revert h₂ A B},
@@ -344,18 +345,18 @@ begin
     haveI : is_cyclotomic_extension S A (adjoin A { b : B | ∃ (n : ℕ+),
       n ∈ S ∧ b ^ (n : ℕ) = 1 }) := union_left _ (insert n S) _ _ (subset_insert n S),
     haveI := H A (adjoin A { b : B | ∃ (n : ℕ+), n ∈ S ∧ b ^ (n : ℕ) = 1 }),
-    haveI : finite (adjoin A { b : B | ∃ (n : ℕ+), n ∈ S ∧ b ^ (n : ℕ) = 1 }) B,
+    haveI : module.finite (adjoin A { b : B | ∃ (n : ℕ+), n ∈ S ∧ b ^ (n : ℕ) = 1 }) B,
     { rw [← union_singleton] at h,
       letI := @union_right S {n} A B _ _ _ h,
       exact finite_of_singleton n _ _ },
-    exact finite.trans (adjoin A { b : B | ∃ (n : ℕ+), n ∈ S ∧ b ^ (n : ℕ) = 1 }) _ }
+    exact module.finite.trans (adjoin A { b : B | ∃ (n : ℕ+), n ∈ S ∧ b ^ (n : ℕ) = 1 }) _ }
 end
 
 /-- A cyclotomic finite extension of a number field is a number field. -/
 lemma number_field [h : number_field K] [_root_.finite S] [is_cyclotomic_extension S K L] :
   number_field L :=
 { to_char_zero := char_zero_of_injective_algebra_map (algebra_map K L).injective,
-  to_finite_dimensional := @finite.trans _ K L _ _ _ _
+  to_finite_dimensional := @module.finite.trans _ K L _ _ _ _
     (@algebra_rat L _ (char_zero_of_injective_algebra_map (algebra_map K L).injective)) _ _
     h.to_finite_dimensional (finite S K L) }
 
@@ -369,7 +370,7 @@ is_integral_of_noetherian $ is_noetherian_of_fg_of_noetherian' $ (finite S A B).
 /-- If `S` is finite and `is_cyclotomic_extension S K A`, then `finite_dimensional K A`. -/
 lemma finite_dimensional (C : Type z) [_root_.finite S] [comm_ring C] [algebra K C] [is_domain C]
   [is_cyclotomic_extension S K C] : finite_dimensional K C :=
-finite S K C
+is_cyclotomic_extension.finite S K C
 
 localized "attribute [instance] is_cyclotomic_extension.finite_dimensional" in cyclotomic
 

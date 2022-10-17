@@ -24,6 +24,8 @@ and even an equivalence between C⋆-algebras.
 
 * `ideal.to_character_space` : constructs an element of the character space from a maximal ideal in
   a commutative complex Banach algebra
+* `weak_dual.character_space.comp_continuous_map`: The functorial map taking `ψ : A →⋆ₐ[ℂ] B` to a
+  continuous function `character_space ℂ B → character_space ℂ A` given by pre-composition with `ψ`.
 
 ## Main statements
 
@@ -59,7 +61,7 @@ section complex_banach_algebra
 open ideal
 
 variables {A : Type*} [normed_comm_ring A] [normed_algebra ℂ A] [complete_space A]
-  [norm_one_class A] (I : ideal A) [ideal.is_maximal I]
+  (I : ideal A) [ideal.is_maximal I]
 
 /-- Every maximal ideal in a commutative complex Banach algebra gives rise to a character on that
 algebra. In particular, the character, which may be identified as an algebra homomorphism due to
@@ -101,23 +103,20 @@ begin
   exact (continuous_map.spectrum_eq_range (gelfand_transform ℂ A a)).symm ▸ ⟨f, hf.symm⟩,
 end
 
-instance : nonempty (character_space ℂ A) :=
-begin
-  haveI := norm_one_class.nontrivial A,
-  exact ⟨classical.some $
-    weak_dual.character_space.exists_apply_eq_zero (zero_mem_nonunits.mpr zero_ne_one)⟩,
-end
+instance [nontrivial A] : nonempty (character_space ℂ A) :=
+⟨classical.some $ weak_dual.character_space.exists_apply_eq_zero $ zero_mem_nonunits.2 zero_ne_one⟩
 
 end complex_banach_algebra
 
 section complex_cstar_algebra
 
 variables (A : Type*) [normed_comm_ring A] [normed_algebra ℂ A] [complete_space A]
-variables [star_ring A] [cstar_ring A] [star_module ℂ A] [nontrivial A]
+variables [star_ring A] [cstar_ring A] [star_module ℂ A]
 
 /-- The Gelfand transform is an isometry when the algebra is a C⋆-algebra over `ℂ`. -/
 lemma gelfand_transform_isometry : isometry (gelfand_transform ℂ A) :=
 begin
+  nontriviality A,
   refine add_monoid_hom_class.isometry_of_norm (gelfand_transform ℂ A) (λ a, _),
   have gt_map_star : gelfand_transform ℂ A (star a) = star (gelfand_transform ℂ A a),
     from continuous_map.ext (λ φ, map_star φ a),
@@ -167,3 +166,43 @@ begin
 end
 
 end complex_cstar_algebra
+
+section functoriality
+
+namespace weak_dual
+
+namespace character_space
+
+variables {A B C : Type*}
+variables [normed_ring A] [normed_algebra ℂ A] [complete_space A] [star_ring A]
+variables [normed_ring B] [normed_algebra ℂ B] [complete_space B] [star_ring B]
+variables [normed_ring C] [normed_algebra ℂ C] [complete_space C] [star_ring C]
+
+/-- The functorial map taking `ψ : A →⋆ₐ[ℂ] B` to a continuous function
+`character_space ℂ B → character_space ℂ A` obtained by pre-composition with `ψ`. -/
+@[simps]
+noncomputable def comp_continuous_map (ψ : A →⋆ₐ[ℂ] B) :
+  C(character_space ℂ B, character_space ℂ A) :=
+{ to_fun := λ φ, equiv_alg_hom.symm ((equiv_alg_hom φ).comp (ψ.to_alg_hom)),
+  continuous_to_fun := continuous.subtype_mk (continuous_of_continuous_eval $
+    λ a, map_continuous $ gelfand_transform ℂ B (ψ a)) _ }
+
+variables (A)
+
+/-- `weak_dual.character_space.comp_continuous_map` sends the identity to the identity. -/
+@[simp] lemma comp_continuous_map_id :
+  comp_continuous_map (star_alg_hom.id ℂ A) = continuous_map.id (character_space ℂ A) :=
+continuous_map.ext $ λ a, ext $ λ x, rfl
+
+variables {A}
+
+/-- `weak_dual.character_space.comp_continuous_map` is functorial. -/
+@[simp] lemma comp_continuous_map_comp (ψ₂ : B →⋆ₐ[ℂ] C) (ψ₁ : A →⋆ₐ[ℂ] B) :
+  comp_continuous_map (ψ₂.comp ψ₁) = (comp_continuous_map ψ₁).comp (comp_continuous_map ψ₂) :=
+continuous_map.ext $ λ a, ext $ λ x, rfl
+
+end character_space
+
+end weak_dual
+
+end functoriality

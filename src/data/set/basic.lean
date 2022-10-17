@@ -888,6 +888,11 @@ ssubset_singleton_iff.1 hs
 
 /-! ### Disjointness -/
 
+protected theorem disjoint_iff : disjoint s t ↔ s ∩ t ⊆ ∅ := iff.rfl
+
+theorem disjoint_iff_inter_eq_empty : disjoint s t ↔ s ∩ t = ∅ :=
+disjoint_iff
+
 lemma _root_.disjoint.inter_eq : disjoint s t → s ∩ t = ∅ := disjoint.eq_bot
 
 lemma disjoint_left : disjoint s t ↔ ∀ ⦃a⦄, a ∈ s → a ∉ t := forall_congr $ λ _, not_and
@@ -1226,6 +1231,24 @@ ext $ λ s, subset_empty_iff
 
 @[simp] theorem powerset_univ : 𝒫 (univ : set α) = univ :=
 eq_univ_of_forall subset_univ
+
+/-! ### Sets defined as an if-then-else -/
+
+lemma mem_dite_univ_right (p : Prop) [decidable p] (t : p → set α) (x : α) :
+  (x ∈ if h : p then t h else univ) ↔ (∀ h : p, x ∈ t h) :=
+by split_ifs; simp [h]
+
+@[simp] lemma mem_ite_univ_right (p : Prop) [decidable p] (t : set α) (x : α) :
+  x ∈ ite p t set.univ ↔ (p → x ∈ t) :=
+mem_dite_univ_right p (λ _, t) x
+
+lemma mem_dite_univ_left (p : Prop) [decidable p] (t : ¬ p → set α) (x : α) :
+  (x ∈ if h : p then univ else t h) ↔ (∀ h : ¬ p, x ∈ t h)  :=
+by split_ifs; simp [h]
+
+@[simp] lemma mem_ite_univ_left (p : Prop) [decidable p] (t : set α) (x : α) :
+  x ∈ ite p set.univ t ↔ (¬ p → x ∈ t) :=
+mem_dite_univ_left p (λ _, t) x
 
 /-! ### If-then-else for sets -/
 
@@ -1761,6 +1784,8 @@ begin
     exact set_coe.ext_iff.2 (@subsingleton.elim s h ⟨a, ha⟩ ⟨b, hb⟩) },
   { exact λ h, subsingleton.intro (λ a b, set_coe.ext (h a.property b.property)) }
 end
+
+lemma subsingleton.coe_sort {s : set α} : s.subsingleton → subsingleton s := s.subsingleton_coe.2
 
 /-- The `coe_sort` of a set `s` in a subsingleton type is a subsingleton.
 For the corresponding result for `subtype`, see `subtype.subsingleton`. -/

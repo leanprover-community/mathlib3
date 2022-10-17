@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import data.nat.basic
-import algebra.order.group
+import algebra.order.group.basic
 /-!
 # `with_bot ℕ`
 

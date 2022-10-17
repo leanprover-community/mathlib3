@@ -95,37 +95,6 @@ lemma iff_singleton : is_cyclotomic_extension {n} A B ↔
  (∀ x, x ∈ adjoin A { b : B | b ^ (n : ℕ) = 1 }) :=
 by simp [is_cyclotomic_extension_iff]
 
-/-- Given `(f : B ≃ₐ[A] C)`, if `is_cyclotomic_extension S A B` then
-`is_cyclotomic_extension S A C`. -/
-@[protected] lemma equiv {C : Type*} [comm_ring C] [algebra A C] [h : is_cyclotomic_extension S A B]
-  (f : B ≃ₐ[A] C) : is_cyclotomic_extension S A C :=
-begin
-  refine (iff_adjoin_eq_top _ _ _).2 ⟨λ s hs, _, _⟩,
-  { obtain ⟨a, ha⟩ := ((is_cyclotomic_extension_iff S A B).1 h).1 hs,
-    exact ⟨f a, ha.map_of_injective f.injective⟩ },
-  { have : (f.symm) '' {c : C | ∃ (s : ℕ+), s ∈ S ∧ c ^ (s : ℕ) = 1} =
-      {b : B | ∃ (s : ℕ+), s ∈ S ∧ b ^ (s : ℕ) = 1},
-    { refine set.ext (λ x, ⟨λ hx, _, λ hx, _⟩),
-      { simp only [set.mem_image, set.mem_set_of_eq] at ⊢ hx,
-        obtain ⟨c, ⟨n, ⟨hn, hcn⟩⟩, hxc⟩ := hx,
-        refine ⟨n, ⟨hn, _⟩⟩,
-        rw [← hxc, ← alg_equiv.map_pow, hcn, alg_equiv.map_one] },
-      { simp only [set.mem_image, set.mem_set_of_eq] at ⊢ hx,
-        obtain ⟨n, ⟨hn, hxn⟩⟩ := hx,
-        refine ⟨f x, ⟨⟨n, ⟨hn, _⟩⟩, by simp⟩⟩,
-        { rw [← alg_equiv.map_pow, hxn, alg_equiv.map_one] } } },
-    refine _root_.eq_top_iff.2 (λ x hx, _),
-    suffices : f.symm x ∈
-      (adjoin A {c : C | ∃ (s : ℕ+), s ∈ S ∧ c ^ ↑s = 1}).map f.symm.to_alg_hom,
-    { obtain ⟨c, hc, Hc⟩ := subalgebra.mem_map.1 this,
-      simp only [alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_alg_hom,
-        embedding_like.apply_eq_iff_eq] at Hc,
-      rwa [← Hc] },
-    rw [← adjoin_image, alg_equiv.to_alg_hom_eq_coe, alg_equiv.coe_alg_hom, this,
-      ((iff_adjoin_eq_top _ _ _).1 h).2],
-    exact mem_top }
-end
-
 /-- If `is_cyclotomic_extension ∅ A B`, then the image of `A` in `B` equals `B`. -/
 lemma empty [h : is_cyclotomic_extension ∅ A B] : (⊥ : subalgebra A B) = ⊤ :=
 by simpa [algebra.eq_top_iff, is_cyclotomic_extension_iff] using h
@@ -151,14 +120,14 @@ variables (A B)
 /-- Transitivity of cyclotomic extensions. -/
 lemma trans (C : Type w) [comm_ring C] [nontrivial C] [algebra A C] [algebra B C]
   [is_scalar_tower A B C] [hS : is_cyclotomic_extension S A B]
-  [hT : is_cyclotomic_extension T B C] [no_zero_smul_divisors B C] :
+  [hT : is_cyclotomic_extension T B C] (h : function.injective (algebra_map B C)) :
   is_cyclotomic_extension (S ∪ T) A C :=
 begin
   refine ⟨λ n hn, _, λ x, _⟩,
   { cases hn,
     { obtain ⟨b, hb⟩ := ((is_cyclotomic_extension_iff _ _ _).1 hS).1 hn,
       refine ⟨algebra_map B C b, _⟩,
-      exact hb.map_of_injective (no_zero_smul_divisors.algebra_map_injective B C) },
+      exact hb.map_of_injective h },
     { exact ((is_cyclotomic_extension_iff _ _ _).1 hT).1 hn } },
   { refine adjoin_induction (((is_cyclotomic_extension_iff _ _ _).1 hT).2 x) (λ c ⟨n, hn⟩,
       subset_adjoin ⟨n, or.inr hn.1, hn.2⟩) (λ b, _) (λ x y hx hy, subalgebra.add_mem _ hx hy)
@@ -317,6 +286,21 @@ lemma singleton_one_of_algebra_map_bijective (h : function.surjective (algebra_m
 singleton_one_of_bot_eq_top (surjective_algebra_map_iff.1 h).symm
 
 variables (A B)
+
+/-- Given `(f : B ≃ₐ[A] C)`, if `is_cyclotomic_extension S A B` then
+`is_cyclotomic_extension S A C`. -/
+@[protected] lemma equiv {C : Type*} [comm_ring C] [algebra A C] [h : is_cyclotomic_extension S A B]
+  (f : B ≃ₐ[A] C) : is_cyclotomic_extension S A C :=
+begin
+  letI : algebra B C := f.to_alg_hom.to_ring_hom.to_algebra,
+  haveI : is_cyclotomic_extension {1} B C := singleton_one_of_algebra_map_bijective f.surjective,
+  haveI : is_scalar_tower A B C := is_scalar_tower.of_ring_hom f.to_alg_hom,
+  by_cases hC : nontrivial C,
+  { exactI (iff_union_singleton_one _ _ _).2 (trans S {1} A B C f.injective) },
+  { haveI := not_nontrivial_iff_subsingleton.1 hC,
+    haveI : subsingleton B := equiv.subsingleton.symm f.to_equiv.symm,
+    rwa [is_cyclotomic_extension.subsingleton_iff] at ⊢ h }
+end
 
 @[protected]
 lemma ne_zero [h : is_cyclotomic_extension {n} A B] [is_domain B] : ne_zero ((n : ℕ) : B) :=

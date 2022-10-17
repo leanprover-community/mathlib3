@@ -65,24 +65,18 @@ end pure
 
 section bind
 
-protected lemma bind.summable (p : pmf α) (f : α → pmf β) (b : β) :
-  summable (λ a : α, p a * f a b) :=
-ennreal.summable
-
 /-- The monadic bind operation for `pmf`. -/
 def bind (p : pmf α) (f : α → pmf β) : pmf β :=
-⟨λ b, ∑'a, p a * f a b,
-  begin
-    rw [ennreal.summable.has_sum_iff, ennreal.tsum_comm],
-    simp only [ennreal.tsum_mul_left, tsum_coe, mul_one],
-  end⟩
+⟨λ b, ∑' a, p a * f a b, ennreal.summable.has_sum_iff.2 (ennreal.tsum_comm.trans $
+  by simp only [ennreal.tsum_mul_left, tsum_coe, mul_one])⟩
 
 variables (p : pmf α) (f : α → pmf β) (g : β → pmf γ)
 
 @[simp] lemma bind_apply (b : β) : p.bind f b = ∑'a, p a * f a b := rfl
 
 @[simp] lemma support_bind : (p.bind f).support = {b | ∃ a ∈ p.support, b ∈ (f a).support} :=
-set.ext (λ b, by simp [mem_support_iff, tsum_eq_zero_iff (bind.summable p f b), not_or_distrib])
+set.ext (λ b, by simp only [mem_support_iff, ennreal.tsum_eq_zero, not_or_distrib,
+  bind_apply, ne.def, mul_eq_zero, not_forall, exists_prop, set.mem_set_of_eq])
 
 lemma mem_support_bind_iff (b : β) : b ∈ (p.bind f).support ↔ ∃ a ∈ p.support, b ∈ (f a).support :=
 by simp only [support_bind, set.mem_set_of_eq]
@@ -157,9 +151,6 @@ instance : monad pmf :=
 
 section bind_on_support
 
-protected lemma bind_on_support.summable (p : pmf α) (f : Π a ∈ p.support, pmf β) (b : β) :
-  summable (λ a : α, p a * if h : p a = 0 then 0 else f a h b) := ennreal.summable
-
 /-- Generalized version of `bind` allowing `f` to only be defined on the support of `p`.
   `p.bind f` is equivalent to `p.bind_on_support (λ a _, f a)`, see `bind_on_support_eq_bind` -/
 def bind_on_support (p : pmf α) (f : Π a ∈ p.support, pmf β) : pmf β :=
@@ -181,7 +172,7 @@ variables {p : pmf α} (f : Π a ∈ p.support, pmf β)
   (p.bind_on_support f).support = {b | ∃ (a : α) (h : a ∈ p.support), b ∈ (f a h).support} :=
 begin
   refine set.ext (λ b, _),
-  simp only [tsum_eq_zero_iff (bind_on_support.summable p f b), not_or_distrib, mem_support_iff,
+  simp only [ennreal.tsum_eq_zero, not_or_distrib, mem_support_iff,
     bind_on_support_apply, ne.def, not_forall, mul_eq_zero],
   exact ⟨λ hb, let ⟨a, ⟨ha, ha'⟩⟩ := hb in ⟨a, ha, by simpa [ha] using ha'⟩,
     λ hb, let ⟨a, ha, ha'⟩ := hb in ⟨a, ⟨ha, by simpa [(mem_support_iff _ a).1 ha] using ha'⟩⟩⟩
@@ -205,8 +196,7 @@ end
 lemma bind_on_support_eq_zero_iff (b : β) :
   p.bind_on_support f b = 0 ↔ ∀ a (ha : p a ≠ 0), f a ha b = 0 :=
 begin
-  simp only [bind_on_support_apply, tsum_eq_zero_iff (bind_on_support.summable p f b),
-    mul_eq_zero, or_iff_not_imp_left],
+  simp only [bind_on_support_apply, ennreal.tsum_eq_zero, mul_eq_zero, or_iff_not_imp_left],
   exact ⟨λ h a ha, trans (dif_neg ha).symm (h a ha), λ h a ha, trans (dif_neg ha) (h a ha)⟩,
 end
 

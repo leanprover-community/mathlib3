@@ -10,7 +10,7 @@ import measure_theory.measure.measure_space
 # Probability mass functions
 
 This file is about probability mass functions or discrete probability measures:
-a function `α → ℝ≥0` such that the values have (infinite) sum `1`.
+a function `α → ℝ≥0∞` such that the values have (infinite) sum `1`.
 
 Construction of monadic `pure` and `bind` is found in `probability_mass_function/monad.lean`,
 other constructions of `pmf`s are found in `probability_mass_function/constructions.lean`.
@@ -27,10 +27,10 @@ probability mass function, discrete probability measure
 -/
 noncomputable theory
 variables {α β γ : Type*}
-open_locale classical big_operators nnreal ennreal
+open_locale classical big_operators ennreal
 
-/-- A probability mass function, or discrete probability measures is a function `α → ℝ≥0` such that
-  the values have (infinite) sum `1`. -/
+/-- A probability mass function, or discrete probability measures is a function `α → ℝ≥0∞` such
+  that the values have (infinite) sum `1`. -/
 def {u} pmf (α : Type u) : Type u := { f : α → ℝ≥0∞ // has_sum f 1 }
 
 namespace pmf
@@ -41,8 +41,6 @@ instance : has_coe_to_fun (pmf α) (λ p, α → ℝ≥0∞) := ⟨λ p a, p.1 a
 | ⟨f, hf⟩ ⟨g, hg⟩ eq :=  subtype.eq $ funext eq
 
 lemma has_sum_coe_one (p : pmf α) : has_sum p 1 := p.2
-
-lemma summable_coe (p : pmf α) : summable p := ennreal.summable
 
 @[simp] lemma tsum_coe (p : pmf α) : ∑' a, p a = 1 := p.has_sum_coe_one.tsum_eq
 
@@ -129,13 +127,12 @@ end
 
 lemma to_outer_measure_apply_eq_one_iff : p.to_outer_measure s = 1 ↔ p.support ⊆ s :=
 begin
-  rw [to_outer_measure_apply],
-  refine ⟨λ h a hap, _, λ h, _⟩,
+  refine (p.to_outer_measure_apply s).symm ▸ ⟨λ h a hap, _, λ h, _⟩,
   { refine by_contra (λ hs, ne_of_lt _ (h.trans p.tsum_coe.symm)),
     have hs' : s.indicator p a = 0 := set.indicator_apply_eq_zero.2 (λ hs', false.elim $ hs hs'),
     have hsa : s.indicator p a < p a := hs'.symm ▸ (p.apply_pos_iff a).2 hap,
     exact ennreal.tsum_lt_tsum p.tsum_coe_ne_top (λ x, set.indicator_apply_le $ λ _, le_rfl) hsa },
-  { suffices : ∀ x, x ∉ s → p x = 0,
+  { suffices : ∀ x ∉ s, p x = 0,
     from trans (tsum_congr $ λ a, (set.indicator_apply s p a).trans
       (ite_eq_left_iff.2 $ symm ∘ (this a))) p.tsum_coe,
     exact λ a ha, (p.apply_eq_zero_iff a).2 $ set.not_mem_subset h ha },

@@ -216,9 +216,14 @@ lemma index_eq_zero_of_relindex_eq_zero {G : Type*} [group G] {H K : subgroup G}
 H.relindex_top_right.symm.trans (relindex_eq_zero_of_le_right le_top h)
 
 lemma _root_.subgroup.is_complement'.index_eq_card {G : Type*} [group G] {H K : subgroup G}
-  (h : is_complement' H K) : H.index = nat.card K :=
+  (h : is_complement' H K) : K.index = nat.card H :=
 begin
-  sorry,
+  refine nat.card_congr (equiv.of_bijective (quotient_group.mk ∘ coe) _).symm,
+  refine ⟨λ x y hxy, subtype.ext (inv_mul_eq_one.mp (disjoint_def.mp h.symm.disjoint
+    (quotient_group.eq'.mp hxy) (x⁻¹ * y).2)), λ q, quotient_group.induction_on q (λ g, _)⟩,
+  obtain ⟨⟨x, y⟩, hxy⟩ := h.2 g,
+  simp only [quotient_group.eq'],
+  exact ⟨x, (_root_.congr_arg (∈ K) (inv_mul_eq_iff_eq_mul.mpr hxy.symm)).mpr y.2⟩,
 end
 
 section burnside_transfer

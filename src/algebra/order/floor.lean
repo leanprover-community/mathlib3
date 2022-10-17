@@ -889,10 +889,10 @@ begin
     split; linarith [fract_lt_one x], },
 end
 
-@[simp] lemma round_half : round (2⁻¹ : α) = 1 :=
+@[simp] lemma round_two_inv : round (2⁻¹ : α) = 1 :=
 by simp only [round_eq, ← one_div, add_halves', floor_one]
 
-@[simp] lemma round_neg_half : round (-2⁻¹ : α) = 0 :=
+@[simp] lemma round_neg_two_inv : round (-2⁻¹ : α) = 0 :=
 by simp only [round_eq, ← one_div, add_left_neg, floor_zero]
 
 @[simp] lemma round_eq_zero_iff {x : α} : round x = 0 ↔ x ∈ Ico (-(1 / 2)) ((1 : α)/2) :=

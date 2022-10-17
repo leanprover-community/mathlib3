@@ -59,7 +59,7 @@ begin
     exact aux hw, },
 end
 
-@[simp] lemma norm_neg_period (x : ℝ) :
+lemma norm_neg_period (x : ℝ) :
   ∥(x : add_circle (-p))∥ = ∥(x : add_circle p)∥ :=
 begin
   suffices : ∥(↑(-1 * x) : add_circle (-1 * p))∥ = ∥(x : add_circle p)∥,
@@ -121,7 +121,7 @@ end
 @[simp] lemma norm_half_period_eq : ∥(↑(p/2) : add_circle p)∥ = |p|/2 :=
 begin
   rcases eq_or_ne p 0 with rfl | hp, { simp, },
-  rw [norm_eq, ← mul_div_assoc, inv_mul_cancel hp, one_div, round_half, algebra_map.coe_one,
+  rw [norm_eq, ← mul_div_assoc, inv_mul_cancel hp, one_div, round_two_inv, algebra_map.coe_one,
     one_mul, (by linarith : p / 2 - p = -(p / 2)), abs_neg, abs_div, abs_two],
 end
 

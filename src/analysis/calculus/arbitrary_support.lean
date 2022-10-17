@@ -68,7 +68,7 @@ begin
   let ι := {f : E → ℝ // f.support ⊆ s ∧ has_compact_support f ∧ cont_diff ℝ ⊤ f ∧
     range f ⊆ Icc 0 1},
   obtain ⟨T, T_count, hT⟩ : ∃ T : set ι, T.countable ∧ (⋃ f ∈ T, support (f : E → ℝ)) = s,
-  sorry { have : (⋃ (f : ι), (f : E → ℝ).support) = s,
+  sorry, /- { have : (⋃ (f : ι), (f : E → ℝ).support) = s,
     { refine subset.antisymm (Union_subset (λ f, f.2.1)) _,
       assume x hx,
       rcases exists_smooth_support_subset (hs.mem_nhds hx) with ⟨f, hf⟩,
@@ -79,23 +79,35 @@ begin
     simp_rw ← this,
     apply is_open_Union_countable,
     rintros ⟨f, hf⟩,
-    exact hf.2.2.1.continuous.is_open_support },
+    exact hf.2.2.1.continuous.is_open_support }, -/
   obtain ⟨g0, hg⟩ : ∃ (g0 : ℕ → ι), T = range g0,
-  sorry { apply countable.exists_eq_range T_count,
+  sorry, /- { apply countable.exists_eq_range T_count,
     rcases eq_empty_or_nonempty T with rfl|hT,
     { simp only [Union_false, Union_empty] at hT,
       simp only [←hT, not_nonempty_empty] at h's,
       exact h's.elim },
-    { exact hT } },
+    { exact hT } }, -/
   let g : ℕ → E → ℝ := λ n, (g0 n).1,
+  have g_s : ∀ n, support (g n) ⊆ s := λ n, (g0 n).2.1,
+  have s_g : ∀ x ∈ s, ∃ n, x ∈ support (g n),
+  sorry, /- { assume x hx,
+    rw ← hT at hx,
+    obtain ⟨i, iT, hi⟩ : ∃ (i : ι) (hi : i ∈ T), x ∈ support (i : E → ℝ),
+      by simpa only [mem_Union] using hx,
+    rw [hg, mem_range] at iT,
+    rcases iT with ⟨n, hn⟩,
+    rw ← hn at hi,
+    exact ⟨n, hi⟩ }, -/
   have g_smooth : ∀ n, cont_diff ℝ ⊤ (g n) := λ n, (g0 n).2.2.2.1,
   have g_comp_supp : ∀ n, has_compact_support (g n) := λ n, (g0 n).2.2.1,
-  obtain ⟨δ, δpos, c, δc⟩ :
+  have g_nonneg : ∀ n x, 0 ≤ g n x,
+    from λ n x, ((g0 n).2.2.2.2 (mem_range_self x)).1,
+  obtain ⟨δ, δpos, c, δc, c_lt⟩ :
     ∃ (δ : ℕ → ℝ≥0), (∀ (i : ℕ), 0 < δ i) ∧ ∃ (c : nnreal), has_sum δ c ∧ c < 1,
     from nnreal.exists_pos_sum_of_countable one_ne_zero ℕ,
   have : ∀ (n : ℕ), ∃ (r : ℝ),
     0 < r ∧ ∀ i ≤ n, ∀ x, ∥iterated_fderiv ℝ i (r • g n) x∥ ≤ δ n,
-  { assume n,
+  sorry, /- { assume n,
     have : ∀ i, ∃ R, ∀ x, ∥iterated_fderiv ℝ i (λ x, g n x) x∥ ≤ R,
     { assume i,
       have : bdd_above (range (λ x, ∥iterated_fderiv ℝ i (λ (x : E), g n x) x∥)),
@@ -109,7 +121,7 @@ begin
     let M := max (((finset.range (n+1)).image R).max' (by simp)) 1,
     have M_pos : 0 < M := zero_lt_one.trans_le (le_max_right _ _),
     have δnpos : 0 < δ n := δpos n,
-    have : ∀ i ≤ n, R i ≤ M,
+    have IR : ∀ i ≤ n, R i ≤ M,
     { assume i hi,
       refine le_trans _ (le_max_left _ _),
       apply finset.le_max',
@@ -117,10 +129,32 @@ begin
       simp only [finset.mem_range],
       linarith },
     refine ⟨M⁻¹ * δ n, by positivity, λ i hi x, _⟩,
-    rw iterated_fderiv_const_smul_apply,
-    swap, { exact (g_smooth n).of_le le_top },
-    calc ∥(M⁻¹ * ↑(δ n)) • iterated_fderiv ℝ i (g n) x∥
-        = M⁻¹ * δ n * ∥iterated_fderiv ℝ i (g n) x∥ : sorry
-    ... ≤ M⁻¹ * δ n * M : sorry
-    ... = δ n : by field_simp [M_pos.ne'] }
+    calc ∥iterated_fderiv ℝ i ((M⁻¹ * δ n) • g n) x∥
+        = ∥(M⁻¹ * δ n) • iterated_fderiv ℝ i (g n) x∥ :
+      by { rw iterated_fderiv_const_smul_apply, exact (g_smooth n).of_le le_top }
+    ... = M⁻¹ * δ n * ∥iterated_fderiv ℝ i (g n) x∥ :
+      by { rw [norm_smul, real.norm_of_nonneg], positivity }
+    ... ≤ M⁻¹ * δ n * M :
+      mul_le_mul_of_nonneg_left ((hR i x).trans (IR i hi)) (by positivity)
+    ... = δ n : by field_simp [M_pos.ne'] },-/
+  choose r rpos hr using this,
+  refine ⟨λ x, (∑' n, (r n • g n) x), _, _, _⟩,
+  sorry, /-{ apply subset.antisymm,
+    { assume x hx,
+      simp only [pi.smul_apply, algebra.id.smul_eq_mul, mem_support, ne.def] at hx,
+      contrapose! hx,
+      have : ∀ n, g n x = 0,
+      { assume n,
+        contrapose! hx,
+        exact g_s n hx },
+      simp only [this, mul_zero, tsum_zero] },
+    { assume x hx,
+      obtain ⟨n, hn⟩ : ∃ n, x ∈ support (g n), from s_g x hx,
+      have I : 0 < r n * g n x,
+        from mul_pos (rpos n) (lt_of_le_of_ne (g_nonneg n x) (ne.symm hn)),
+      apply ne_of_gt (tsum_pos _ (λ i, mul_nonneg (rpos i).le (g_nonneg i x)) n I),
+      refine summable_of_nnnorm_bounded _ δc.summable (λ n, _),
+      rw [← nnreal.coe_le_coe, coe_nnnorm],
+      simpa only [norm_iterated_fderiv_zero] using hr n 0 (zero_le n) x} }-/
+
 end

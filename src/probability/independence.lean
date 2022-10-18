@@ -392,10 +392,10 @@ begin
   refine indep_sets.indep (supr₂_le (λ i _, h_le i)) (supr₂_le (λ i _, h_le i)) _ _
     (generate_from_pi_Union_Inter_measurable_set m S).symm
     (generate_from_pi_Union_Inter_measurable_set m T).symm _,
-  { refine is_pi_system_pi_Union_Inter _ (λ n, @is_pi_system_measurable_set Ω (m n)) _, },
-  { refine is_pi_system_pi_Union_Inter _ (λ n, @is_pi_system_measurable_set Ω (m n)) _ , },
+  { exact is_pi_system_pi_Union_Inter _ (λ n, @is_pi_system_measurable_set Ω (m n)) _, },
+  { exact is_pi_system_pi_Union_Inter _ (λ n, @is_pi_system_measurable_set Ω (m n)) _ , },
   { classical,
-    refine indep_sets_pi_Union_Inter_of_disjoint h_indep hST, },
+    exact indep_sets_pi_Union_Inter_of_disjoint h_indep hST, },
 end
 
 lemma indep_supr_of_directed_le {Ω} {m : ι → measurable_space Ω}

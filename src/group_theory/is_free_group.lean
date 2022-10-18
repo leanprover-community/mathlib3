@@ -31,10 +31,17 @@ For the explicit construction of free groups, see `group_theory/free_group`.
 universes u
 
 /-- `is_free_group G` means that `G` isomorphic to a free group. -/
+class is_free_add_group (G : Type u) [add_group G] :=
+(generators : Type u)
+(add_equiv [] : free_add_group generators ≃+ G)
+
+/-- `is_free_group G` means that `G` isomorphic to a free group. -/
+@[to_additive]
 class is_free_group (G : Type u) [group G] :=
 (generators : Type u)
 (mul_equiv [] : free_group generators ≃* G)
 
+@[to_additive]
 instance (X : Type*) : is_free_group (free_group X) :=
 { generators := X,
   mul_equiv := mul_equiv.refl _ }
@@ -44,19 +51,21 @@ namespace is_free_group
 variables (G : Type*) [group G] [is_free_group G]
 
 /-- Any free group is isomorphic to "the" free group. -/
-@[simps] def to_free_group : G ≃* free_group (generators G) := (mul_equiv G).symm
+@[to_additive, simps] def to_free_group : G ≃* free_group (generators G) := (mul_equiv G).symm
 
 variable {G}
 
 /-- The canonical injection of G's generators into G -/
+@[to_additive]
 def of : generators G → G := (mul_equiv G).to_fun ∘ free_group.of
 
-@[simp] lemma of_eq_free_group_of {A : Type u} : (@of (free_group A) _ _ ) = free_group.of := rfl
+@[simp, to_additive] lemma of_eq_free_group_of {A : Type u} : (@of (free_group A) _ _ ) = free_group.of := rfl
 
 variables {H : Type*} [group H]
 
 /-- The equivalence between functions on the generators and group homomorphisms from a free group
 given by those generators. -/
+@[to_additive]
 def lift : (generators G → H) ≃ (G →* H) :=
 free_group.lift.trans
   { to_fun := λ f, f.comp (mul_equiv G).symm.to_monoid_hom,
@@ -64,16 +73,16 @@ free_group.lift.trans
     left_inv := λ f, by { ext, simp, },
     right_inv := λ f, by { ext, simp, }, }
 
-@[simp] lemma lift'_eq_free_group_lift {A : Type u} :
+@[simp, to_additive] lemma lift'_eq_free_group_lift {A : Type u} :
   (@lift (free_group A) _ _ H _) = free_group.lift := rfl
 
-@[simp] lemma lift_of (f : generators G → H) (a : generators G) : lift f (of a) = f a :=
+@[simp, to_additive] lemma lift_of (f : generators G → H) (a : generators G) : lift f (of a) = f a :=
 congr_fun (lift.symm_apply_apply f) a
 
-@[simp] lemma lift_symm_apply (f : G →* H) (a : generators G) : (lift.symm f) a = f (of a) :=
+@[simp, to_additive] lemma lift_symm_apply (f : G →* H) (a : generators G) : (lift.symm f) a = f (of a) :=
 rfl
 
-@[ext] lemma ext_hom ⦃f g : G →* H⦄ (h : ∀ (a : generators G), f (of a) = g (of a)) : f = g :=
+@[ext, to_additive] lemma ext_hom ⦃f g : G →* H⦄ (h : ∀ (a : generators G), f (of a) = g (of a)) : f = g :=
 lift.symm.injective (funext h)
 
 /-- The universal property of a free group: A functions from the generators of `G` to another
@@ -81,11 +90,13 @@ group extends in a unique way to a homomorphism from `G`.
 
 Note that since `is_free_group.lift` is expressed as a bijection, it already
 expresses the universal property.  -/
+@[to_additive]
 lemma unique_lift (f : generators G → H) : ∃! F : G →* H, ∀ a, F (of a) = f a :=
 by simpa only [function.funext_iff] using lift.symm.bijective.exists_unique f
 
 /-- If a group satisfies the universal property of a free group, then it is a free group, where
 the universal property is expressed as in `is_free_group.lift` and its properties. -/
+@[to_additive]
 def of_lift {G : Type u} [group G] (X : Type u)
   (of : X → G)
   (lift : ∀ {H : Type u} [group H], by exactI (X → H) ≃ (G →* H))
@@ -110,6 +121,7 @@ def of_lift {G : Type u} [group G] (X : Type u)
 
 /-- If a group satisfies the universal property of a free group, then it is a free group, where
 the universal property is expressed as in `is_free_group.unique_lift`.  -/
+@[to_additive]
 noncomputable
 def of_unique_lift {G : Type u} [group G] (X : Type u)
   (of : X → G)
@@ -125,6 +137,7 @@ let lift_of {H : Type u} [group H] (f : X → H) (a : X) : by exactI lift f (of 
 of_lift X of @lift @lift_of
 
 /-- Being a free group transports across group isomorphisms. -/
+@[to_additive]
 def of_mul_equiv {H : Type*} [group H] (h : G ≃* H) : is_free_group H :=
 { generators := generators G, mul_equiv := (mul_equiv G).trans h }
 

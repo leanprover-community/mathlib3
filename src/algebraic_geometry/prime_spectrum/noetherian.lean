@@ -96,20 +96,9 @@ open topological_space
 instance : noetherian_space (prime_spectrum R) :=
 begin
   rw (noetherian_space_tfae $ prime_spectrum R).out 0 1,
-  have H : is_noetherian_ring R := infer_instance,
+  have H := ‹is_noetherian_ring R›,
   rw [is_noetherian_ring_iff, is_noetherian_iff_well_founded] at H,
-  have : (closeds (prime_spectrum R))ᵒᵈ ↪o ideal R :=
-  { to_fun := λ s, vanishing_ideal ↑(show closeds $ prime_spectrum R, from s),
-    inj' := λ s t e, begin
-      apply_fun zero_locus ∘ (coe : _ → set R) at e,
-      dsimp at e,
-      ext1,
-      simpa only [zero_locus_vanishing_ideal_eq_closure, closure_eq_iff_is_closed.mpr s.closed,
-        closure_eq_iff_is_closed.mpr t.closed] using e,
-    end,
-    map_rel_iff' := λ s t, by { dsimp, rw [← subset_zero_locus_iff_le_vanishing_ideal,
-      zero_locus_vanishing_ideal_eq_closure, closure_eq_iff_is_closed.mpr s.closed], refl } },
-  exact this.dual.well_founded H
+  exact (closeds_embedding R).dual.well_founded H
 end
 
 end prime_spectrum

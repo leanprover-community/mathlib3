@@ -5,6 +5,7 @@ Authors: Eric Wieser
 -/
 import data.set.pointwise.basic
 import group_theory.submonoid.membership
+import order.well_founded_set
 
 /-! # Pointwise instances on `submonoid`s and `add_submonoid`s
 

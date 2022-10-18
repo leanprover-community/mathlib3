@@ -389,21 +389,18 @@ lemma indep_supr_of_disjoint [is_probability_measure μ] {m : ι → measurable_
   (h_le : ∀ i, m i ≤ m0) (h_indep : Indep m μ) {S T : set ι} (hST : disjoint S T) :
   indep (⨆ i ∈ S, m i) (⨆ i ∈ T, m i) μ :=
 begin
-  refine indep_sets.indep (supr₂_le (λ i _, h_le i)) (supr₂_le (λ i _, h_le i)) _ _
-    (generate_from_pi_Union_Inter_subsets m S).symm
-    (generate_from_pi_Union_Inter_subsets m T).symm _,
-  { refine is_pi_system_pi_Union_Inter _ (λ n, @is_pi_system_measurable_set Ω (m n)) _ _,
-    intros s hs t ht,
+  classical,
+  have : ∀ S : set ι, sup_closed {t : finset ι | ↑t ⊆ S},
+  { intros S s hs t ht,
     simp only [finset.sup_eq_union, set.mem_set_of_eq, finset.coe_union, set.union_subset_iff],
-    exact ⟨hs, ht⟩, },
-  { refine is_pi_system_pi_Union_Inter _ (λ n, @is_pi_system_measurable_set Ω (m n)) _ _,
-    intros s t hs ht,
-    simp only [finset.sup_eq_union, set.mem_set_of_eq, finset.coe_union, set.union_subset_iff],
-    exact ⟨hs, ht⟩, },
-  { classical,
-    refine indep_sets_pi_Union_Inter_of_disjoint h_indep (λ s t hs ht, _),
-    rw finset.disjoint_iff_ne,
-    exact λ i his j hjt, set.disjoint_iff_forall_ne.mp hST i (hs his) j (ht hjt), },
+    exact ⟨hs, ht⟩ },
+  refine indep_sets.indep (supr₂_le (λ i _, h_le i)) (supr₂_le (λ i _, h_le i))
+    (is_pi_system_pi_Union_Inter _ (λ n, @is_pi_system_measurable_set Ω (m n)) _ $ this _)
+    (is_pi_system_pi_Union_Inter _ (λ n, @is_pi_system_measurable_set Ω (m n)) _ $ this _)
+    (generate_from_pi_Union_Inter_subsets m S).symm (generate_from_pi_Union_Inter_subsets m T).symm
+    (indep_sets_pi_Union_Inter_of_disjoint h_indep $ λ s t hs ht, _),
+  rw finset.disjoint_iff_ne,
+  exact λ i his j hjt, set.disjoint_iff_forall_ne.mp hST i (hs his) j (ht hjt),
 end
 
 lemma indep_supr_of_directed_le {Ω} {m : ι → measurable_space Ω}

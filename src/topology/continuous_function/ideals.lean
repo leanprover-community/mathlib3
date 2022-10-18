@@ -85,7 +85,8 @@ variable (R)
 which vanish on the complement of `s`. -/
 def ideal_of_set (s : set X) : ideal C(X, R) :=
 { carrier := {f : C(X, R) | ∀ x ∈ sᶜ, f x = 0},
-  add_mem' := λ f g hf hg x hx, by simp only [hf x hx, hg x hx, coe_add, pi.add_apply, add_zero],
+  add_mem' := λ f g hf hg x hx, by simp only [hf x hx, hg x hx, continuous_map.coe_add,
+                                              pi.add_apply, add_zero],
   zero_mem' := λ _ _, rfl,
   smul_mem' := λ c f hf x hx, mul_zero (c x) ▸ congr_arg (λ y, c x * y) (hf x hx), }
 
@@ -204,7 +205,7 @@ begin
     refine ⟨f * (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g, I.mul_mem_left f hgI, _⟩,
     rw nndist_eq_nnnorm,
     refine (nnnorm_lt_iff _ hε).2 (λ x, _),
-    simp only [coe_sub, coe_mul, pi.sub_apply, pi.mul_apply],
+    simp only [continuous_map.coe_sub, coe_mul, pi.sub_apply, pi.mul_apply],
     by_cases hx : x ∈ t,
     { simpa only [hgt hx, comp_apply, pi.one_apply, continuous_map.coe_coe, algebra_map_clm_apply,
         map_one, mul_one, sub_self, nnnorm_zero] using hε, },

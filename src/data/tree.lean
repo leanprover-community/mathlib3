@@ -124,4 +124,8 @@ lemma height_le_nodes : ∀ (x : tree α), x.height ≤ x.nodes
 | nil := nil
 | (node _ l r) := r
 
+/-- Abbreviation for making a node with `unit` data -/
+@[pattern] abbreviation unode : tree unit → tree unit → tree unit :=
+tree.node ()
+
 end tree

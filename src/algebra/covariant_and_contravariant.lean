@@ -12,6 +12,10 @@ import order.monotone
 
 # Covariants and contravariants
 
+> THIS FILE IS FROZEN, AS IT HAS BEEN PORTED TO MATHLIB4
+> https://github.com/leanprover-community/mathlib4/pull/467
+> No changes accepted with corresponding PRs to mathlib4.
+
 This file contains general lemmas and instances to work with the interactions between a relation and
 an action on a Type.
 

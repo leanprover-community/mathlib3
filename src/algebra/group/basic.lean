@@ -9,6 +9,10 @@ import algebra.group.defs
 /-!
 # Basic lemmas about semigroups, monoids, and groups
 
+> THIS FILE IS FROZEN, AS IT HAS BEEN PORTED TO MATHLIB4
+> https://github.com/leanprover-community/mathlib4/pull/457
+> No changes accepted with corresponding PRs to mathlib4.
+
 This file lists various basic lemmas about semigroups, monoids, and groups. Most proofs are
 one-liners from the corresponding axioms. For the definitions of semigroups, monoids and groups, see
 `algebra/group/defs.lean`.

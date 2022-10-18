@@ -1201,6 +1201,11 @@ protected lemma symm_diff_def (s t : set α) : s ∆ t = s \ t ∪ t \ s := rfl
 
 lemma symm_diff_subset_union : s ∆ t ⊆ s ∪ t := @symm_diff_le_sup (set α) _ _ _
 
+@[simp] lemma symm_diff_eq_empty : s ∆ t = ∅ ↔ s = t := symm_diff_eq_bot
+
+@[simp] lemma symm_diff_nonempty : (s ∆ t).nonempty ↔ s ≠ t :=
+ne_empty_iff_nonempty.symm.trans symm_diff_eq_empty.not
+
 lemma inter_symm_diff_distrib_left (s t u : set α) : s ∩ t ∆ u = (s ∩ t) ∆ (s ∩ u) :=
 inf_symm_diff_distrib_left _ _ _
 
@@ -1212,9 +1217,6 @@ h.le_symm_diff_sup_symm_diff_left
 
 lemma subset_symm_diff_union_symm_diff_right (h : disjoint t u) : s ⊆ s ∆ t ∪ s ∆ u :=
 h.le_symm_diff_sup_symm_diff_right
-
-@[simp] lemma symm_diff_nonempty : (s ∆ t).nonempty ↔ s ≠ t :=
-ne_empty_iff_nonempty.symm.trans symm_diff_eq_bot.not
 
 /-! ### Powerset -/
 

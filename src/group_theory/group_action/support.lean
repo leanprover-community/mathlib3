@@ -9,7 +9,7 @@ import data.set.pointwise
 # Support of an element under an action action
 
 Given an action of a group `G` on a type `α`, we say that a set `s : set α ` supports an element
-`a : α` if, for all `g`, `g` fixes `a` if `g` fixes `s` pointwise.#check
+`a : α` if, for all `g`, `g` fixes `a` if `g` fixes `s` pointwise.
 
 This is crucial in Fourier-Motzkin constructions.
 -/

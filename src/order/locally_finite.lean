@@ -656,6 +656,8 @@ lemma Iio_of_dual (a : αᵒᵈ) : Iio (of_dual a) = (Ioi a).map of_dual.to_embe
 
 end locally_finite_order_top
 
+namespace prod
+
 instance [locally_finite_order α] [locally_finite_order β]
   [decidable_rel ((≤) : α × β → α × β → Prop)] :
   locally_finite_order (α × β) :=
@@ -674,6 +676,21 @@ instance [locally_finite_order_bot α] [locally_finite_order_bot β]
   locally_finite_order_bot (α × β) :=
 locally_finite_order_bot.of_Iic' (α × β)
   (λ a, Iic a.fst ×ˢ Iic a.snd) (λ a x, by { rw [mem_product, mem_Iic, mem_Iic], refl })
+
+lemma Icc_eq [locally_finite_order α] [locally_finite_order β]
+  [decidable_rel ((≤) : α × β → α × β → Prop)] (p q : α × β) :
+  finset.Icc p q = finset.Icc p.1 q.1 ×ˢ finset.Icc p.2 q.2 := rfl
+
+@[simp] lemma Icc_mk_mk [locally_finite_order α] [locally_finite_order β]
+  [decidable_rel ((≤) : α × β → α × β → Prop)] (a₁ a₂ : α) (b₁ b₂ : β) :
+  finset.Icc (a₁, b₁) (a₂, b₂) = finset.Icc a₁ a₂ ×ˢ finset.Icc b₁ b₂ := rfl
+
+lemma card_Icc [locally_finite_order α] [locally_finite_order β]
+  [decidable_rel ((≤) : α × β → α × β → Prop)] (p q : α × β) :
+  (finset.Icc p q).card = (finset.Icc p.1 q.1).card * (finset.Icc p.2 q.2).card :=
+finset.card_product _ _
+
+end prod
 
 end preorder
 

@@ -1077,18 +1077,30 @@ end
 lemma ediam_thickening_le (ε : ℝ≥0) : emetric.diam (thickening ε s) ≤ emetric.diam s + 2 * ε :=
 (emetric.diam_mono $ thickening_subset_cthickening _ _).trans $ ediam_cthickening_le _
 
-lemma diam_cthickening_le {α : Type*} [pseudo_metric_space α] {s : set α} (hε : 0 ≤ ε)
-  (hs : bounded s) : diam (cthickening ε s) ≤ diam s + 2 * ε :=
+lemma diam_cthickening_le {α : Type*} [pseudo_metric_space α] (s : set α) (hε : 0 ≤ ε) :
+  diam (cthickening ε s) ≤ diam s + 2 * ε :=
 begin
-  have : (2 : ℝ≥0∞) * @coe ℝ≥0 _ _ ⟨ε, hε⟩ ≠ ⊤ := by simp,
-  refine (ennreal.to_real_mono (ennreal.add_ne_top.2 ⟨hs.ediam_ne_top, this⟩) $
-    ediam_cthickening_le ⟨ε, hε⟩).trans_eq _,
-  simp [ennreal.to_real_add hs.ediam_ne_top this, diam],
+  by_cases hs : bounded (cthickening ε s),
+  { replace hs := hs.mono (self_subset_cthickening _),
+    have : (2 : ℝ≥0∞) * @coe ℝ≥0 _ _ ⟨ε, hε⟩ ≠ ⊤ := by simp,
+    refine (ennreal.to_real_mono (ennreal.add_ne_top.2 ⟨hs.ediam_ne_top, this⟩) $
+      ediam_cthickening_le ⟨ε, hε⟩).trans_eq _,
+    simp [ennreal.to_real_add hs.ediam_ne_top this, diam] },
+  { rw diam_eq_zero_of_unbounded hs,
+    positivity }
 end
 
-lemma diam_thickening_le {α : Type*} [pseudo_metric_space α] {s : set α} (hε : 0 ≤ ε)
-  (hs : bounded s) : diam (thickening ε s) ≤ diam s + 2 * ε :=
-(diam_mono (thickening_subset_cthickening _ _) hs.cthickening).trans $ diam_cthickening_le hε hs
+lemma diam_thickening_le {α : Type*} [pseudo_metric_space α] (s : set α) (hε : 0 ≤ ε) :
+  diam (thickening ε s) ≤ diam s + 2 * ε :=
+begin
+  by_cases hs : bounded s,
+  { exact (diam_mono (thickening_subset_cthickening _ _) hs.cthickening).trans
+      (diam_cthickening_le _ hε) },
+  obtain rfl | hε := hε.eq_or_lt,
+  { simp [thickening_of_nonpos, diam_nonneg] },
+  { rw diam_eq_zero_of_unbounded (mt (bounded.mono $ self_subset_thickening hε _) hs),
+    positivity }
+end
 
 @[simp] lemma thickening_closure : thickening δ (closure s) = thickening δ s :=
 by simp_rw [thickening, inf_edist_closure]

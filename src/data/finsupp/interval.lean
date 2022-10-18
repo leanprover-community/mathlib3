@@ -51,7 +51,7 @@ section range_Icc
 variables [has_zero α] [partial_order α] [locally_finite_order α] {f g : ι →₀ α} {i : ι} {a : α}
 
 /-- Pointwise `finset.Icc` bundled as a `finsupp`. -/
-@[simps] def range_Icc (f g : ι →₀ α) : ι →₀ finset α :=
+@[simps to_fun] def range_Icc (f g : ι →₀ α) : ι →₀ finset α :=
 { to_fun := λ i, Icc (f i) (g i),
   support := f.support ∪ g.support,
   mem_support_to_fun := λ i, begin
@@ -59,6 +59,10 @@ variables [has_zero α] [partial_order α] [locally_finite_order α] {f g : ι �
       not_ne_iff],
     exact Icc_eq_singleton_iff.symm,
   end }
+
+@[simp] lemma range_Icc_support [decidable_eq ι] (f g : ι →₀ α) :
+  (range_Icc f g).support = f.support ∪ g.support :=
+by convert rfl
 
 lemma mem_range_Icc_apply_iff : a ∈ f.range_Icc g i ↔ f i ≤ a ∧ a ≤ g i := mem_Icc
 
@@ -71,29 +75,34 @@ instance : locally_finite_order (ι →₀ α) :=
 locally_finite_order.of_Icc (ι →₀ α)
   (λ f g, (f.support ∪ g.support).finsupp $ f.range_Icc g)
   (λ f g x, begin
-    refine (mem_finsupp_iff_of_support_subset $ subset.rfl).trans _,
+    refine (mem_finsupp_iff_of_support_subset $ finset.subset_of_eq $
+      range_Icc_support _ _).trans _,
     simp_rw mem_range_Icc_apply_iff,
     exact forall_and_distrib,
   end)
 
-lemma Icc_eq : Icc f g = (f.support ∪ g.support).finsupp (f.range_Icc g) := rfl
+lemma Icc_eq [decidable_eq ι] : Icc f g = (f.support ∪ g.support).finsupp (f.range_Icc g) :=
+by convert rfl
 
-lemma card_Icc : (Icc f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card :=
-card_finsupp _ _
+lemma card_Icc [decidable_eq ι] :
+  (Icc f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card :=
+by simp_rw [Icc_eq, card_finsupp, range_Icc_to_fun]
 
-lemma card_Ico : (Ico f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card - 1 :=
+lemma card_Ico [decidable_eq ι] :
+  (Ico f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card - 1 :=
 by rw [card_Ico_eq_card_Icc_sub_one, card_Icc]
 
-lemma card_Ioc : (Ioc f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card - 1 :=
+lemma card_Ioc [decidable_eq ι] :
+  (Ioc f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card - 1 :=
 by rw [card_Ioc_eq_card_Icc_sub_one, card_Icc]
 
-lemma card_Ioo : (Ioo f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card - 2 :=
+lemma card_Ioo [decidable_eq ι] :
+  (Ioo f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card - 2 :=
 by rw [card_Ioo_eq_card_Icc_sub_two, card_Icc]
 
 end partial_order
 
 section canonically_ordered
-variables [decidable_eq ι] [decidable_eq α]
 variables [canonically_ordered_add_monoid α] [locally_finite_order α]
 
 variables (f : ι →₀ α)

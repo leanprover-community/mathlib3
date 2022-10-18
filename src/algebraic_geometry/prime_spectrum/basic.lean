@@ -424,7 +424,7 @@ by rw [set.ssubset_def, vanishing_ideal_anti_mono_iff hs ht,
 /-- The antitone order embedding of closed subsets of `Spec R` into ideals of `R`. -/
 def closeds_embedding (R : Type*) [comm_ring R] :
   (topological_space.closeds $ prime_spectrum R)ᵒᵈ ↪o ideal R :=
-order_embedding.of_map_le_iff (λ s, (vanishing_ideal s.of_dual : ideal R))
+order_embedding.of_map_le_iff (λ s, vanishing_ideal s.of_dual)
   (λ s t, (vanishing_ideal_anti_mono_iff t.2 s.2).symm)
 
 lemma t1_space_iff_is_field [is_domain R] :

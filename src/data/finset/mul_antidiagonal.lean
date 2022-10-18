@@ -3,7 +3,7 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Yaël Dillies
 -/
-import data.set.pointwise.smul
+import data.set.pointwise.basic
 import data.set.mul_antidiagonal
 
 /-! # Multiplication antidiagonal as a `finset`.

@@ -7,7 +7,7 @@ import algebra.algebra.bilinear
 import algebra.module.submodule.pointwise
 import algebra.module.submodule.bilinear
 import algebra.module.opposites
-import data.finset.pointwise.basic
+import data.finset.pointwise
 import data.set.semiring
 import group_theory.group_action.sub_mul_action.pointwise
 

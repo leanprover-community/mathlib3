@@ -393,35 +393,26 @@ begin
   exact measurable_set_generate_from (hft_mem_pi x hx_mem),
 end
 
-lemma subset_pi_Union_Inter {α ι} {π : ι → set (set α)} {S : set ι}
-  (h_univ : ∀ i, set.univ ∈ π i) {i : ι} {s : finset ι} (hsS : ↑s ⊆ S) (his : i ∈ s) :
+lemma subset_pi_Union_Inter {α ι} {π : ι → set (set α)} {S : set ι} {i : ι} (his : i ∈ S) :
   π i ⊆ pi_Union_Inter π S :=
 begin
-  refine λ t ht_pii, ⟨s, hsS, (λ j, ite (j = i) t set.univ), ⟨λ m h_pm, _, _⟩⟩,
-  { split_ifs,
-    { rwa h, },
-    { exact h_univ m, }, },
-  { ext1 x,
-    simp_rw set.mem_Inter,
-    split; intro hx,
-    { intros j h_p_j,
-      split_ifs,
-      { exact hx, },
-      { exact set.mem_univ _, }, },
-    { simpa using hx i his, }, },
+  refine λ t ht_pii, ⟨{i}, _, (λ j, t), ⟨λ m h_pm, _, _⟩⟩,
+  { simp only [his, finset.coe_singleton, singleton_subset_iff], },
+  { rw finset.mem_singleton at h_pm,
+    rwa h_pm, },
+  { simp only [finset.mem_singleton, Inter_Inter_eq_left], },
 end
 
 lemma mem_pi_Union_Inter_of_measurable_set {α ι} (m : ι → measurable_space α)
-  {S : set ι} {i : ι} {t : finset ι} (htS : ↑t ⊆ S) (hit : i ∈ t) (s : set α)
+  {S : set ι} {i : ι} (hiS : i ∈ S) (s : set α)
   (hs : measurable_set[m i] s) :
   s ∈ pi_Union_Inter (λ n, {s | measurable_set[m n] s}) S :=
-subset_pi_Union_Inter (λ i, measurable_set.univ) htS hit hs
+subset_pi_Union_Inter hiS hs
 
 lemma le_generate_from_pi_Union_Inter {α ι} {π : ι → set (set α)}
-  (S : set ι) (h_univ : ∀ n, set.univ ∈ π n) {x : ι}
-  {t : finset ι} (htS : ↑t ⊆ S) (hxt : x ∈ t) :
+  (S : set ι) {x : ι} (hxS : x ∈ S) :
   generate_from (π x) ≤ generate_from (pi_Union_Inter π S) :=
-generate_from_mono (subset_pi_Union_Inter h_univ htS hxt)
+generate_from_mono (subset_pi_Union_Inter hxS)
 
 lemma measurable_set_supr_of_mem_pi_Union_Inter {α ι} (m : ι → measurable_space α)
   (S : set ι) (t : set α) (ht : t ∈ pi_Union_Inter (λ n, {s | measurable_set[m n] s}) S) :
@@ -446,7 +437,7 @@ begin
   { refine supr₂_le (λ i hi, _),
     rcases hi with ⟨p, hpS, hpi⟩,
     rw ← @generate_from_measurable_set α (m i),
-    exact generate_from_mono (mem_pi_Union_Inter_of_measurable_set m hpS hpi), },
+    exact generate_from_mono (mem_pi_Union_Inter_of_measurable_set m (hpS hpi)), },
 end
 
 -- todo change that name

@@ -997,6 +997,9 @@ theorem diff_eq (s t : set α) : s \ t = s ∩ tᶜ := rfl
 theorem mem_diff_of_mem {s t : set α} {x : α} (h1 : x ∈ s) (h2 : x ∉ t) : x ∈ s \ t :=
 ⟨h1, h2⟩
 
+lemma not_mem_diff_of_mem {s t : set α} {x : α} (hx : x ∈ t) : x ∉ s \ t :=
+λ h, h.2 hx
+
 theorem mem_of_mem_diff {s t : set α} {x : α} (h : x ∈ s \ t) : x ∈ s :=
 h.left
 

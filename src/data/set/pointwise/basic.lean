@@ -5,6 +5,7 @@ Authors: Johan Commelin, Floris van Doorn
 -/
 import data.fin.tuple.basic
 import data.set.finite
+import algebra.module.basic
 
 /-!
 # Pointwise operations of sets

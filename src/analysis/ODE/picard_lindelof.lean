@@ -385,23 +385,22 @@ lemma time_indep_cont_diff_on_nhds_is_picard_lindelof
   (hv : cont_diff_on ℝ 1 v s) (t₀ : ℝ) :
   ∃ (ε : ℝ) (hε : 0 < ε), is_picard_lindelof (λ t, v) (t₀ - ε) t₀ (t₀ + ε) x₀ :=
 begin
-  have h1 := (hv.cont_diff_within_at (mem_of_mem_nhds hs)).cont_diff_at hs,
-  obtain ⟨L, s', hs', hlip⟩ := cont_diff_at.exists_lipschitz_on_with h1,
-  have h2 := lipschitz_on_with.mono hlip (set.inter_subset_right s s'),
-  have h3 := inter_sets (nhds x₀) hs hs',
-  obtain ⟨r, hr : 0 < r, hball⟩ := metric.mem_nhds_iff.mp h3,
+  -- extract Lipschitz constant
+  obtain ⟨L, s', hs', hlip⟩ := cont_diff_at.exists_lipschitz_on_with
+    ((hv.cont_diff_within_at (mem_of_mem_nhds hs)).cont_diff_at hs),
+  -- radius of closed ball in which v is bounded
+  obtain ⟨r, hr : 0 < r, hball⟩ := metric.mem_nhds_iff.mp (inter_sets (nhds x₀) hs hs'),
   have hr' := (half_pos hr).le,
-  have h4 := (is_compact_closed_ball x₀ (r / 2)).bdd_above_image
-    (hv.continuous_on.norm.mono
-      (subset_inter_iff.mp
+  obtain ⟨C, hC⟩ := (is_compact_closed_ball x₀ (r / 2)).bdd_above_image -- uses proper_space E
+    (hv.continuous_on.norm.mono (subset_inter_iff.mp
         ((closed_ball_subset_ball (half_lt_self hr)).trans hball)).left),
-  obtain ⟨C, hC⟩ := h4,
   have hC' : 0 ≤ C,
   { apply (norm_nonneg (v x₀)).trans,
     apply hC,
     exact ⟨x₀, ⟨mem_closed_ball_self hr', rfl⟩⟩ },
   refine ⟨if C = 0 then 1 else (r / 2 / C), _, L, r / 2, C, (half_pos hr).le,
-    λ t ht, hlip.mono (set.subset_inter_iff.mp (subset_trans (metric.closed_ball_subset_ball (half_lt_self hr)) hball)).2,
+    λ t ht, hlip.mono (set.subset_inter_iff.mp
+      (subset_trans (metric.closed_ball_subset_ball (half_lt_self hr)) hball)).2,
     λ x hx, continuous_on_const, λ t ht x hx, hC ⟨x, hx, rfl⟩, _⟩,
   { split_ifs,
     { exact zero_lt_one },

@@ -334,7 +334,7 @@ instance to_semiring {R} [semiring R] (s : subsemiring R) : semiring s :=
 
 @[norm_cast] lemma coe_pow {R} [semiring R] (s : subsemiring R) (x : s) (n : ℕ) :
   ((x^n : s) : R) = (x^n : R) :=
-coe_pow x n
+coe_pow _ _ x n
 
 /-- A subsemiring of a `comm_semiring` is a `comm_semiring`. -/
 instance to_comm_semiring {R} [comm_semiring R] (s : subsemiring R) : comm_semiring s :=

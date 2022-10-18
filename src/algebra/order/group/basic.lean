@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.abs
-import algebra.order.sub
+import algebra.order.sub.basic
 import algebra.order.monoid.min_max
 import algebra.order.monoid.prod
-import algebra.order.monoid.type_tags
 import algebra.order.monoid.units
+import algebra.order.monoid.order_dual
+import algebra.order.monoid.with_top
 
 /-!
 # Ordered groups
@@ -1336,26 +1337,6 @@ instance [ordered_comm_group G] [ordered_comm_group H] :
 { .. prod.comm_group, .. prod.partial_order G H, .. prod.ordered_cancel_comm_monoid }
 
 end prod
-
-section type_tags
-
-instance [ordered_add_comm_group α] : ordered_comm_group (multiplicative α) :=
-{ ..multiplicative.comm_group,
-  ..multiplicative.ordered_comm_monoid }
-
-instance [ordered_comm_group α] : ordered_add_comm_group (additive α) :=
-{ ..additive.add_comm_group,
-  ..additive.ordered_add_comm_monoid }
-
-instance [linear_ordered_add_comm_group α] : linear_ordered_comm_group (multiplicative α) :=
-{ ..multiplicative.linear_order,
-  ..multiplicative.ordered_comm_group }
-
-instance [linear_ordered_comm_group α] : linear_ordered_add_comm_group (additive α) :=
-{ ..additive.linear_order,
-  ..additive.ordered_add_comm_group }
-
-end type_tags
 
 section norm_num_lemmas
 /- The following lemmas are stated so that the `norm_num` tactic can use them with the

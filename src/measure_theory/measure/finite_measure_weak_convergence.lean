@@ -1063,7 +1063,7 @@ lemma le_measure_compl_liminf_of_limsup_measure_le
 begin
   by_cases L_bot : L = ⊥,
   { simp only [L_bot, le_top,
-      (show liminf ⊥ (λ i, μs i Eᶜ) = ⊤, by simp only [liminf, filter.map_bot, Liminf_bot])], },
+      (show liminf (λ i, μs i Eᶜ) ⊥ = ⊤, by simp only [liminf, filter.map_bot, Liminf_bot])], },
   haveI : L.ne_bot, from {ne' := L_bot},
   have meas_Ec : μ Eᶜ = 1 - μ E,
   { simpa only [measure_univ] using measure_compl E_mble (measure_lt_top μ E).ne, },
@@ -1094,7 +1094,7 @@ lemma limsup_measure_compl_le_of_le_liminf_measure
 begin
   by_cases L_bot : L = ⊥,
   { simp only [L_bot, bot_le,
-      (show limsup ⊥ (λ i, μs i Eᶜ) = ⊥, by simp only [limsup, filter.map_bot, Limsup_bot])], },
+      (show limsup (λ i, μs i Eᶜ) ⊥ = ⊥, by simp only [limsup, filter.map_bot, Limsup_bot])], },
   haveI : L.ne_bot, from {ne' := L_bot},
   have meas_Ec : μ Eᶜ = 1 - μ E,
   { simpa only [measure_univ] using measure_compl E_mble (measure_lt_top μ E).ne, },

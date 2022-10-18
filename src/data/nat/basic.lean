@@ -150,6 +150,8 @@ open set
 theorem zero_union_range_succ : {0} ∪ range succ = univ :=
 by { ext n, cases n; simp }
 
+@[simp] protected lemma range_succ : range succ = {i | 0 < i} := by ext (_ | i); simp [succ_pos]
+
 variables {α : Type*}
 
 theorem range_of_succ (f : ℕ → α) : {f 0} ∪ range (f ∘ succ) = range f :=

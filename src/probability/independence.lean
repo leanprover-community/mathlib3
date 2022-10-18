@@ -393,7 +393,7 @@ begin
     (generate_from_pi_Union_Inter_subsets m S).symm
     (generate_from_pi_Union_Inter_subsets m T).symm _,
   { refine is_pi_system_pi_Union_Inter _ (λ n, @is_pi_system_measurable_set Ω (m n)) _ _,
-    intros s t hs ht,
+    intros s hs t ht,
     simp only [finset.sup_eq_union, set.mem_set_of_eq, finset.coe_union, set.union_subset_iff],
     exact ⟨hs, ht⟩, },
   { refine is_pi_system_pi_Union_Inter _ (λ n, @is_pi_system_measurable_set Ω (m n)) _ _,

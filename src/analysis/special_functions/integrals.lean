@@ -446,7 +446,7 @@ begin
   induction n with k ih, { norm_num },
   rw [prod_range_succ_comm, mul_left_comm, ← ih, mul_succ, integral_sin_pow],
   norm_cast,
-  simp [-cast_add] with field_simps,
+  simp [-cast_add, -coe_add_hom.coe_add] with field_simps,
 end
 
 theorem integral_sin_pow_even :
@@ -455,7 +455,7 @@ begin
   induction n with k ih, { simp },
   rw [prod_range_succ_comm, mul_left_comm, ← ih, mul_succ, integral_sin_pow],
   norm_cast,
-  simp [-cast_add] with field_simps,
+  simp [-cast_add, -coe_add_hom.coe_add] with field_simps,
 end
 
 lemma integral_sin_pow_pos : 0 < ∫ x in 0..π, sin x ^ n :=

@@ -164,6 +164,242 @@ begin
     category.comp_id],
 end
 
+@[simps] def right_unitor' (a : D) :
+  tensor_obj' α a (tensor_unit' α) ≅ a :=
+{ hom := α.functor.map (𝟙 _ ⊗ α.unit_iso.inv.app _) ≫
+    α.functor.map (right_unitor (α.inverse.obj a)).hom ≫
+    α.counit.app _,
+  inv := α.counit_iso.inv.app _ ≫ α.functor.map (right_unitor (α.inverse.obj a)).inv ≫
+    α.functor.map (𝟙 _ ⊗ α.unit.app _),
+  hom_inv_id' :=
+  begin
+    erw [←α.functor.map_comp, ←category.assoc, ←category.assoc, ←α.functor.map_comp, category.assoc,
+      category.assoc, ←category.assoc (α.counit.app _), iso.hom_inv_id_app, category.id_comp,
+      ←α.functor.map_comp, category.assoc, ←category.assoc (ρ_ (α.inverse.obj a)).hom,
+      iso.hom_inv_id, category.id_comp, ←tensor_comp, category.id_comp, iso.inv_hom_id_app,
+      tensor_id, α.functor.map_id],
+    refl,
+  end,
+  inv_hom_id' :=
+  begin
+    erw [←α.functor.map_comp, ←category.assoc _ _ (α.counit.app a), ←α.functor.map_comp,
+      ←category.assoc _ _ (α.counit.app a), category.assoc (α.counit_iso.inv.app a),
+      ←α.functor.map_comp, category.assoc (ρ_ (α.inverse.obj a)).inv,
+      ←category.assoc _ _ (ρ_ (α.inverse.obj a)).hom, ←tensor_comp, category.id_comp,
+      iso.hom_inv_id_app, tensor_id, category.id_comp, iso.inv_hom_id, α.functor.map_id,
+      category.comp_id, iso.inv_hom_id_app],
+    refl,
+  end }
+
+lemma right_unitor'_naturality {X Y : D} (f : X ⟶ Y) :
+  tensor_hom' α f (𝟙 (tensor_unit' α)) ≫ (right_unitor' α Y).hom = (right_unitor' α X).hom ≫ f :=
+begin
+  simp only [tensor_hom', functor.map_id, right_unitor'_hom, category.assoc],
+  rw [←category.assoc _ _ (α.counit.app Y), ←α.functor.map_comp,
+    ←category.assoc _ _ (α.counit.app Y), ←α.functor.map_comp,
+    ←category.assoc (tensor_hom _ _), ←tensor_comp, category.id_comp, category.comp_id,
+    ←category.assoc, ←α.functor.map_comp],
+  apply_fun α.inverse.map using α.inverse.map_injective,
+  simp only [functor.map_comp, category.assoc, equivalence.inv_fun_map,
+    equivalence.unit_inverse_comp, category.comp_id, iso.hom_inv_id_app_assoc,
+    nat_iso.cancel_nat_iso_inv_left],
+  erw [←category.assoc _ _ (α.inverse.map f), equivalence.unit_inverse_comp, category.id_comp,
+    ←right_unitor_naturality, ←category.assoc, ←tensor_comp, category.id_comp, category.comp_id],
+  refl,
+end
+
+lemma pentagon'_aux01 (W X Y Z : D) :
+  (((α_ (α.inverse.obj (tensor_obj' α W X)) (α.inverse.obj Y) (α.inverse.obj Z)).hom ≫
+        (𝟙 (α.inverse.obj (tensor_obj' α W X)) ⊗
+           α.unit_iso.hom.app (α.inverse.obj Y ⊗ α.inverse.obj Z))) ≫
+     (α.unit_iso.inv.app (α.inverse.obj W ⊗ α.inverse.obj X) ⊗
+        𝟙 (α.inverse.obj (tensor_obj' α Y Z)))) ≫
+  (α_ (α.inverse.obj W) (α.inverse.obj X) (α.inverse.obj (tensor_obj' α Y Z))).hom =
+  (tensor_hom (tensor_hom (α.unit_iso.inv.app _) (𝟙 _)) (𝟙 _)) ≫
+    ((α_ _ _ _).hom ≫ (α_ _ _ _).hom)
+    ≫ (tensor_hom (𝟙 _) (tensor_hom (𝟙 _) (α.unit.app _)))  :=
+begin
+  simp only [category.assoc, associator_conjugation, tensor_id, iso.inv_hom_id_assoc,
+    iso.cancel_iso_hom_left],
+  simp only [←category.assoc],
+  symmetry,
+  erw ←category_theory.is_iso.comp_inv_eq,
+  simp only [category.assoc, is_iso.iso.inv_hom],
+  erw [←associator_conjugation, ←tensor_comp, ←tensor_comp, category.id_comp, category.id_comp,
+    category.comp_id, tensor_id, category.comp_id],
+end
+
+lemma pentagon'_aux02 (W X Y Z : D) :
+  𝟙 (α.inverse.obj W) ⊗
+  α.unit.app (α.inverse.obj X ⊗ (𝟭 C).obj (α.inverse.obj Y ⊗ α.inverse.obj Z)) ≫
+    (α.functor ⋙ α.inverse).map (𝟙 (α.inverse.obj X) ⊗
+      α.unit.app (α.inverse.obj Y ⊗ α.inverse.obj Z)) =
+  𝟙 (α.inverse.obj W) ⊗
+  (𝟙 (α.inverse.obj X) ⊗ α.unit.app (α.inverse.obj Y ⊗ α.inverse.obj Z)) ≫
+    α.unit_iso.hom.app (α.inverse.obj X ⊗ α.inverse.obj (tensor_obj' α Y Z)) :=
+begin
+  congr' 1,
+  simp only [functor.comp_map, equivalence.inv_fun_map, iso.hom_inv_id_app_assoc],
+  congr' 1,
+end
+
+lemma pentagon'_aux0 (W X Y Z : D) :
+  ((α.unit_iso.inv.app (α.inverse.obj (tensor_obj' α W X) ⊗ α.inverse.obj Y) ⊗
+      𝟙 (α.inverse.obj Z)) ≫
+    (α_ (α.inverse.obj (tensor_obj' α W X)) (α.inverse.obj Y) (α.inverse.obj Z)).hom ≫
+      (𝟙 (α.inverse.obj (tensor_obj' α W X)) ⊗
+         α.unit_iso.hom.app (α.inverse.obj Y ⊗ α.inverse.obj Z))) ≫
+    (α.unit_iso.inv.app (α.inverse.obj W ⊗ α.inverse.obj X) ⊗
+      𝟙 (α.inverse.obj (tensor_obj' α Y Z))) ≫
+    (α_ (α.inverse.obj W) (α.inverse.obj X) (α.inverse.obj (tensor_obj' α Y Z))).hom ≫
+      (𝟙 (α.inverse.obj W) ⊗ α.unit_iso.hom.app _) =
+  ((α.unit_iso.inv.app _ ≫ (α.unit_iso.inv.app _ ⊗ 𝟙 (α.inverse.obj Y))) ⊗ (𝟙 _)) ≫
+    ((α_ (α.inverse.obj W ⊗ α.inverse.obj X) (α.inverse.obj Y) (α.inverse.obj Z)).hom ≫
+      (α_ (α.inverse.obj W) (α.inverse.obj X) (α.inverse.obj Y ⊗ α.inverse.obj Z)).hom) ≫
+  ((𝟙 (α.inverse.obj W)) ⊗ (α.unit.app _ ≫
+    ((α.functor ⋙ α.inverse).map (𝟙 (α.inverse.obj X) ⊗ α.unit.app _)))) :=
+begin
+  simp only [category.assoc],
+  rw [←category.assoc (α_ _ _ _).hom, ←category.assoc ((α_ _ _ _).hom ≫ _),
+    ←category.assoc (((α_ _ _ _).hom ≫ _) ≫ _)],
+  rw [pentagon'_aux01],
+  simp only [category.assoc, ←tensor_comp, category.id_comp],
+  rw [pentagon'_aux02],
+  simp only [←category.assoc],
+  congr' 3,
+  simp only [associator_conjugation, tensor_id, comp_tensor_id],
+  congr' 1,
+end
+
+lemma pentagon'_aux10 (W X Y Z : D) :
+  ((α_ (α.inverse.obj W) (α.inverse.obj (tensor_obj' α X Y)) (α.inverse.obj Z)).hom ≫
+     (𝟙 (α.inverse.obj W) ⊗ α.unit_iso.hom.app _)) ≫
+  (α.inverse.map (𝟙 W) ⊗
+     α.unit_inv.app (α.inverse.obj (tensor_obj' α X Y) ⊗ α.inverse.obj Z) ≫
+       (α.unit_iso.inv.app (α.inverse.obj X ⊗ α.inverse.obj Y) ⊗ 𝟙 (α.inverse.obj Z)) ≫
+         (α_ (α.inverse.obj X) (α.inverse.obj Y) (α.inverse.obj Z)).hom ≫
+           (𝟙 (α.inverse.obj X) ⊗ α.unit_iso.hom.app (α.inverse.obj Y ⊗ α.inverse.obj Z)) ≫
+             α.unit.app (α.inverse.obj X ⊗ α.inverse.obj (tensor_obj' α Y Z))) =
+  (((tensor_hom (𝟙 _) (α.unit_iso.inv.app _)) ≫ (α_ _ _ _).inv) ⊗ 𝟙 _) ≫
+
+  (((α_ (α.inverse.obj W) (α.inverse.obj X) (α.inverse.obj Y)).hom ⊗ 𝟙 (α.inverse.obj Z)) ≫
+  (α_ (α.inverse.obj W) (α.inverse.obj X ⊗ α.inverse.obj Y) (α.inverse.obj Z)).hom ≫
+    (𝟙 (α.inverse.obj W) ⊗ (α_ (α.inverse.obj X) (α.inverse.obj Y) (α.inverse.obj Z)).hom)) ≫
+
+  (tensor_hom (𝟙 _) (α.unit.app _ ≫ (α.functor ⋙ α.inverse).map (𝟙 _ ⊗ α.unit.app _))) :=
+begin
+  simp only [functor.map_id, id_tensor_comp, category.assoc, comp_tensor_id, associator_conjugation,
+    functor.comp_map, equivalence.inv_fun_map, iso.hom_inv_id_app_assoc, inv_hom_id_tensor_assoc,
+    tensor_id, category.id_comp],
+  congr' 1,
+  simp only [←category.assoc, ←tensor_comp, category.id_comp, iso.hom_inv_id_app],
+  erw [category.assoc _ _ (α_ _ _ _).hom, iso.inv_hom_id, category.comp_id, ←tensor_comp,
+    category.id_comp],
+  simp only [category.assoc],
+  congr',
+end
+
+lemma pentagon'_aux1 (W X Y Z : D) :
+  (α.unit_inv.app (α.inverse.obj (tensor_obj' α W X) ⊗ α.inverse.obj Y) ≫
+       ((α.unit_iso.inv.app (α.inverse.obj W ⊗ α.inverse.obj X) ⊗ 𝟙 (α.inverse.obj Y)) ≫
+            (α_ (α.inverse.obj W) (α.inverse.obj X) (α.inverse.obj Y)).hom ≫
+              (𝟙 (α.inverse.obj W) ⊗ α.unit_iso.hom.app (α.inverse.obj X ⊗ α.inverse.obj Y))) ≫
+         α.unit.app (α.inverse.obj W ⊗ α.inverse.obj (tensor_obj' α X Y)) ⊗
+     α.inverse.map (𝟙 Z)) ≫
+  ((α.unit_iso.inv.app (α.inverse.obj W ⊗ α.inverse.obj (tensor_obj' α X Y)) ⊗ 𝟙 (α.inverse.obj Z))
+    ≫ (α_ (α.inverse.obj W) (α.inverse.obj (tensor_obj' α X Y)) (α.inverse.obj Z)).hom ≫
+        (𝟙 (α.inverse.obj W) ⊗
+          α.unit_iso.hom.app (α.inverse.obj (tensor_obj' α X Y) ⊗ α.inverse.obj Z))) ≫
+    (α.inverse.map (𝟙 W) ⊗
+       α.unit_inv.app (α.inverse.obj (tensor_obj' α X Y) ⊗ α.inverse.obj Z) ≫
+         ((α.unit_iso.inv.app (α.inverse.obj X ⊗ α.inverse.obj Y) ⊗ 𝟙 (α.inverse.obj Z)) ≫
+              (α_ (α.inverse.obj X) (α.inverse.obj Y) (α.inverse.obj Z)).hom ≫
+                (𝟙 (α.inverse.obj X) ⊗ α.unit_iso.hom.app (α.inverse.obj Y ⊗ α.inverse.obj Z))) ≫
+           α.unit.app (α.inverse.obj X ⊗ α.inverse.obj (tensor_obj' α Y Z))) =
+  ((α.unit_iso.inv.app _ ≫ (α.unit_iso.inv.app _ ⊗ 𝟙 (α.inverse.obj Y))) ⊗ (𝟙 _)) ≫
+
+  (((α_ (α.inverse.obj W) (α.inverse.obj X) (α.inverse.obj Y)).hom ⊗ 𝟙 (α.inverse.obj Z)) ≫
+  (α_ (α.inverse.obj W) (α.inverse.obj X ⊗ α.inverse.obj Y) (α.inverse.obj Z)).hom ≫
+    (𝟙 (α.inverse.obj W) ⊗ (α_ (α.inverse.obj X) (α.inverse.obj Y) (α.inverse.obj Z)).hom)) ≫
+
+  ((𝟙 (α.inverse.obj W)) ⊗ (α.unit.app _ ≫ ((α.functor ⋙ α.inverse).map
+    (𝟙 (α.inverse.obj X) ⊗ α.unit.app _)))) :=
+begin
+  simp only [category.assoc],
+  erw [←category.assoc (α_ (α.inverse.obj W) (α.inverse.obj (tensor_obj' α X Y))
+    (α.inverse.obj Z)).hom, pentagon'_aux10],
+  conv_rhs { rw [←category.assoc (tensor_hom (α_ _ _ _).hom _), ←category.assoc (tensor_hom (α_ _ _ _).hom _ ≫ _)], },
+  simp only [←category.assoc],
+  congr' 4,
+  simp only [category.assoc],
+  rw [←tensor_comp, ←tensor_comp,
+    category.comp_id, category.comp_id, α.inverse.map_id],
+  congr' 1,
+  simp only [category.assoc],
+  rw [iso.hom_inv_id_app_assoc, ←category.assoc (tensor_hom _ _), ←category.assoc (tensor_hom _ _),
+    ←tensor_comp, category.comp_id, iso.hom_inv_id_app, tensor_id, category.id_comp],
+  simp only [category.assoc, iso.hom_inv_id, category.comp_id],
+  congr,
+end
+
+lemma pentagon' (W X Y Z : D) :
+  tensor_hom' α (associator' α W X Y).hom (𝟙 Z) ≫ (associator' α W (tensor_obj' α X Y) Z).hom ≫
+    tensor_hom' α (𝟙 W) (associator' α X Y Z).hom =
+  (associator' α (tensor_obj' α W X) Y Z).hom ≫ (associator' α W X (tensor_obj' α Y Z)).hom :=
+begin
+  conv_rhs { rw [associator'_hom, associator'_hom, ←α.functor.map_comp] },
+  rw [pentagon'_aux0, ←pentagon],
+  conv_lhs { simp only [associator'_hom, tensor_hom'_def, ←α.functor.map_comp,
+    equivalence.inv_fun_map] },
+  rw [pentagon'_aux1],
+end
+
+lemma triangle'_aux1 (X Y : D) :
+  (α.unit_iso.inv.app _ ⊗ 𝟙 (α.inverse.obj Y)) ≫
+  (α_ (α.inverse.obj X) (α.inverse.obj (tensor_unit' α)) (α.inverse.obj Y)).hom ≫
+    (𝟙 (α.inverse.obj X) ⊗
+       (α.unit_iso.inv.app (𝟙_ C) ⊗ 𝟙 (α.inverse.obj Y)) ≫ (λ_ (α.inverse.obj Y)).hom) =
+  (α.unit_iso.inv.app _ ≫
+    ((tensor_hom (𝟙 (α.inverse.obj _)) (α.unit_iso.inv.app _)) ≫
+    (ρ_ (α.inverse.obj X)).hom)) ⊗ 𝟙 _ :=
+begin
+  simp only [id_tensor_comp, comp_tensor_id, associator_conjugation, category.assoc],
+  rw [←tensor_comp, category.id_comp],
+  congr' 3,
+  erw [←triangle, ←category.assoc (α_ _ _ _).inv, iso.inv_hom_id,
+    category.id_comp, ←tensor_comp, category.id_comp],
+end
+
+lemma triangle'_aux2 (X Y : D) :
+  (𝟙 (α.inverse.obj X) ⊗ α.unit_iso.inv.app (𝟙_ C) ⊗ 𝟙 (α.inverse.obj Y)) ≫
+  (α_ (α.inverse.obj X) ((𝟭 C).obj (𝟙_ C)) (α.inverse.obj Y)).inv ≫
+    ((ρ_ (α.inverse.obj X)).hom ⊗ 𝟙 (α.inverse.obj Y)) =
+  𝟙 _ ⊗ ((tensor_hom (α.unit_iso.inv.app _) (𝟙 _)) ≫ (λ_ _).hom) :=
+begin
+  simp only [id_tensor_comp],
+  erw [←tensor_comp, category.id_comp, ←triangle, ←category.assoc (α_ _ _ _).inv,
+    iso.inv_hom_id, category.id_comp, ←tensor_comp, category.id_comp],
+end
+
+lemma triangle' (X Y : D) :
+  (associator' α X (tensor_unit' α) Y).hom ≫ tensor_hom' α (𝟙 X) (left_unitor' α Y).hom =
+  tensor_hom' α (right_unitor' α X).hom (𝟙 Y) :=
+begin
+  simp only [associator'_hom, functor.map_comp, left_unitor'_hom, iso.app_hom, category.assoc,
+    right_unitor'_hom, tensor_hom', functor.map_id, equivalence.inv_fun_map,
+    equivalence.unit_inverse_comp, category.comp_id, iso.hom_inv_id_app_assoc,
+    id_tensor_comp, comp_tensor_id, associator_conjugation],
+  simp only [←α.functor.map_comp, ←tensor_comp, category.id_comp],
+  simp only [←category.assoc (α.unit_iso.hom.app _), iso.hom_inv_id_app],
+  rw [category.id_comp],
+  rw [triangle'_aux1, triangle'_aux2],
+  congr' 1,
+  simp only [comp_tensor_id, associator_conjugation, category.assoc, id_tensor_comp],
+  erw [←triangle, ←category.assoc (α_ _ _ _).inv, iso.inv_hom_id, category.id_comp, ←tensor_comp,
+    category.id_comp],
+  congr' 1,
+end
+
 end of_equivalence
 
 def of_equivalence : monoidal_category D :=
@@ -176,10 +412,10 @@ def of_equivalence : monoidal_category D :=
   associator_naturality' := λ _ _ _ _ _ _, of_equivalence.associator'_naturality α,
   left_unitor := of_equivalence.left_unitor' α,
   left_unitor_naturality' := λ _ _, of_equivalence.left_unitor'_naturality α,
-  right_unitor := sorry,
-  right_unitor_naturality' := sorry,
-  pentagon' := sorry,
-  triangle' := sorry }
+  right_unitor := of_equivalence.right_unitor' α,
+  right_unitor_naturality' := λ _ _, of_equivalence.right_unitor'_naturality α,
+  pentagon' := of_equivalence.pentagon' α,
+  triangle' := of_equivalence.triangle' α }
 
 end monoidal_category
 

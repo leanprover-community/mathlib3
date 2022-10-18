@@ -336,22 +336,45 @@ def pi_Union_Inter (π : ι → set (set α)) (S : set ι) : set (set α) :=
 {s : set α | ∃ (t : finset ι) (htS : ↑t ⊆ S) (f : ι → set α) (hf : ∀ x, x ∈ t → f x ∈ π x),
   s = ⋂ x ∈ t, f x}
 
-lemma pi_Union_Inter_singleton (π : ι → set (set α)) (t : finset ι) :
-  pi_Union_Inter π ({t} : set (finset ι))
-    = {s : set α | ∃ (f : ι → set α) (hf : ∀ x ∈ t, f x ∈ π x), s = ⋂ i ∈ t, f i} :=
-by simp only [pi_Union_Inter, set.mem_singleton_iff, exists_prop, exists_eq_left]
-
-lemma pi_Union_Inter_singleton_singleton (π : ι → set (set α)) (i : ι) :
-  pi_Union_Inter π ({{i}} : set (finset ι)) = π i :=
+lemma pi_Union_Inter_singleton (π : ι → set (set α)) (i : ι) :
+  pi_Union_Inter π {i} = π i ∪ {univ} :=
 begin
-  simp only [pi_Union_Inter, mem_singleton_iff, exists_prop, exists_eq_left, finset.mem_singleton,
-    forall_eq, Inter_Inter_eq_left],
-  ext1 t,
-  exact ⟨λ ⟨f, hfiπ, rfl⟩, hfiπ, λ h, ⟨λ i, t, h, rfl⟩⟩,
+  simp only [pi_Union_Inter, exists_prop],
+  ext1 s,
+  rw mem_union,
+  refine ⟨_, λ h, _⟩,
+  { rintros ⟨t, hti, f, hfπ, rfl⟩,
+    by_cases hi : i ∈ t,
+    { simp only [subset_singleton_iff, finset.mem_coe] at hti,
+      have ht_eq_i : t = {i},
+      { ext1 x, rw finset.mem_singleton, exact ⟨λ h, hti x h, λ h, h.symm ▸ hi⟩, },
+      rw ht_eq_i,
+      simp only [finset.mem_singleton, Inter_Inter_eq_left],
+      exact or.inl (hfπ i hi), },
+     { have ht_empty : t = ∅,
+      { ext1 x,
+        simp only [finset.not_mem_empty, iff_false],
+        refine λ hx, hi _,
+        suffices hx_eq_i : x = i, by rwa ← hx_eq_i,
+        have hxi : x ∈ ({i} : set ι) := hti hx,
+        rwa set.mem_singleton_iff at hxi, },
+      simp only [ht_empty, Inter_false, Inter_univ],
+      exact or.inr (mem_singleton _), }, },
+  { cases h with hs hs,
+    { refine ⟨{i}, _, λ _, s, ⟨λ x hx, _, _⟩⟩,
+      { simp only [finset.coe_singleton], },
+      { rw finset.mem_singleton at hx,
+        rwa hx, },
+      { simp only [finset.mem_singleton, Inter_Inter_eq_left], }, },
+    { refine ⟨∅, _⟩,
+      simpa only [finset.coe_empty, subset_singleton_iff, mem_empty_iff_false, is_empty.forall_iff,
+        implies_true_iff, finset.not_mem_empty, Inter_false, Inter_univ, true_and, exists_const]
+        using hs, }, },
 end
 
-lemma pi_Union_Inter_singleton_left (s : ι → set α) (S : set (finset ι)) :
-  pi_Union_Inter (λ i, ({s i} : set (set α))) S = {s' : set α | ∃ t ∈ S, s' = ⋂ i ∈ t, s i} :=
+lemma pi_Union_Inter_singleton_left (s : ι → set α) (S : set ι) :
+  pi_Union_Inter (λ i, ({s i} : set (set α))) S
+    = {s' : set α | ∃ (t : finset ι) (htS : ↑t ⊆ S), s' = ⋂ i ∈ t, s i} :=
 begin
   ext1 s',
   simp_rw [pi_Union_Inter, set.mem_singleton_iff, exists_prop, set.mem_set_of_eq],
@@ -364,41 +387,19 @@ begin
     λ h hit, by { rw hft_eq i hit, exact h hit, }⟩,
 end
 
-lemma pi_Union_Inter_singleton_left_right (s : ι → set α) (t : finset ι) :
-  pi_Union_Inter (λ i, ({s i} : set (set α))) {t} = {⋂ i ∈ t, s i} :=
-begin
-  rw pi_Union_Inter_singleton_left,
-  simp only [set.mem_singleton_iff, exists_prop, exists_eq_left, set.set_of_eq_eq_singleton],
-end
-
-lemma generate_from_pi_Union_Inter_singleton_left_subsets (s : ι → set α) (S : set ι) :
-  generate_from (pi_Union_Inter (λ k : ι, {s k}) {T | ↑T ⊆ S}) =
-    generate_from {t | ∃ k ∈ S, s k = t} :=
+lemma generate_from_pi_Union_Inter_singleton_left (s : ι → set α) (S : set ι) :
+  generate_from (pi_Union_Inter (λ k, {s k}) S) = generate_from {t | ∃ k ∈ S, s k = t} :=
 begin
   refine le_antisymm (generate_from_le _) (generate_from_mono _),
   { rintro _ ⟨I, hI, f, hf, rfl⟩,
     refine finset.measurable_set_bInter _ (λ m hm, measurable_set_generate_from _),
-    refine ⟨m, _, (hf m hm).symm⟩,
-    rw ← finset.mem_coe at hm,
-    exact hI hm, },
+    exact ⟨m, hI hm, (hf m hm).symm⟩, },
   { rintro _ ⟨k, hk, rfl⟩,
     refine ⟨{k}, λ m hm, _, s, λ i hi, _, _⟩,
     { rw [finset.mem_coe, finset.mem_singleton] at hm,
       rwa hm, },
-    { rw [finset.mem_singleton] at hi,
-      rw hi,
-      exact set.mem_singleton _, },
+    { exact set.mem_singleton _, },
     { simp only [finset.mem_singleton, set.Inter_Inter_eq_left], }, },
-end
-
-lemma generate_from_pi_Union_Inter_singleton_left_subsets' (s : ι → set α) (S : finset ι) :
-  generate_from (pi_Union_Inter (λ k : ι, {s k}) {T | T ⊆ S}) =
-    generate_from {t | ∃ k ∈ S, s k = t} :=
-begin
-  have : {T | T ⊆ S} = {T | (T : set ι) ⊆ ↑S},
-  { ext1 T, simp only [finset.coe_subset], },
-  rw this,
-  exact generate_from_pi_Union_Inter_singleton_left_subsets s (S : set ι),
 end
 
 /-- If `S` is union-closed and `π` is a family of π-systems, then `pi_Union_Inter π S` is a

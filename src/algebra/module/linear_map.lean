@@ -978,6 +978,7 @@ This is essentially the same as `coe_smul_hom R M N` except it's compatible with
 def coe_linear_map (R M N : Type*) [semiring R] [has_lift_t M N] [has_smul R M] [has_smul R N] :=
 coe_semilinear_map (ring_hom.id R) M N
 
+@[priority 100] -- See note [lower instance priority]
 instance coe_linear_map.to_coe_smul_hom (M N : Type*) [has_lift_t M N]
   [has_smul R M] [has_smul R N] [coe_linear_map R M N] :
   coe_smul_hom R M N :=

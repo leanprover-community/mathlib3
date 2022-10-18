@@ -403,7 +403,7 @@ instance has_one : has_one S' := ⟨⟨1, one_mem_class.one_mem S'⟩⟩
 
 -- even though there is a generic `coe_one`, this can still be useful as a `dsimp` lemma,
 -- so keep it `@[simp]`
-@[simp, to_additive, priority 900]
+@[simp, to_additive, priority 900, nolint simp_nf]
 protected lemma coe_one : ((1 : S') : M₁) = 1 := rfl
 
 variables {S'}
@@ -432,7 +432,7 @@ instance has_pow {M} [monoid M] {A : Type*} [set_like A M] [submonoid_class A M]
 
 attribute [to_additive] submonoid_class.has_pow
 
-@[simp, norm_cast, to_additive] lemma coe_pow {M} [monoid M] {A : Type*} [set_like A M]
+@[norm_cast, to_additive] lemma coe_pow {M} [monoid M] {A : Type*} [set_like A M]
   [submonoid_class A M] {S : A} (x : S) (n : ℕ) :
   (↑(x ^ n) : M) = ↑x ^ n :=
 rfl
@@ -547,7 +547,7 @@ subtype.coe_injective.mul_one_class coe rfl (λ _ _, rfl)
   (hx : x ∈ S) (n : ℕ) : x ^ n ∈ S :=
 pow_mem hx n
 
-@[simp, norm_cast, to_additive] theorem coe_pow  {M : Type*} [monoid M] {S : submonoid M}
+@[norm_cast, to_additive] theorem coe_pow  {M : Type*} [monoid M] {S : submonoid M}
   (x : S) (n : ℕ) : ↑(x ^ n) = (x ^ n : M) :=
 rfl
 

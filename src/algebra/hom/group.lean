@@ -1316,12 +1316,12 @@ protected def monoid_hom.coe [mul_one_class M] [mul_one_class N] [coe_monoid_hom
   .. mul_hom.coe M N }
 
 @[simp, norm_cast, to_additive]
-lemma coe_pow [monoid M] [monoid N] [has_lift_t M N] [coe_monoid_hom M N]
+lemma coe_pow [monoid M] [monoid N] [coe_monoid_hom M N]
   (a : M) (n : ℕ) : ↑(a ^ n) = (↑a : N) ^ n :=
 map_pow (monoid_hom.coe M N) a n
 
 @[simp, norm_cast, to_additive]
-lemma coe_zpow [group M] [group N] [has_lift_t M N] [coe_monoid_hom M N]
+lemma coe_zpow [group M] [group N] [coe_monoid_hom M N]
   (a : M) (n : ℤ) : ↑(a ^ n) = (↑a : N) ^ n :=
 map_zpow (monoid_hom.coe M N) a n
 

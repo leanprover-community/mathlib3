@@ -355,7 +355,7 @@ protected lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := pow_mem 
 @[simp, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : R) = ↑x * ↑y := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : s) : R) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : s) : R) = 1 := rfl
-@[simp, norm_cast] lemma coe_pow (x : s) (n : ℕ) : (↑(x ^ n) : R) = x ^ n :=
+@[norm_cast] lemma coe_pow (x : s) (n : ℕ) : (↑(x ^ n) : R) = x ^ n :=
 submonoid_class.coe_pow x n
 
 -- TODO: can be generalized to `add_submonoid_class`

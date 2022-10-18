@@ -578,10 +578,12 @@ is a ring homomorphism.
 class coe_ring_hom [non_assoc_semiring R] [non_assoc_semiring S]
   extends coe_monoid_hom R S, coe_add_monoid_hom R S
 
+@[priority 100] -- See note [lower instance priority]
 instance coe_ring_hom.to_coe_non_unital_ring_hom [non_assoc_semiring R] [non_assoc_semiring S]
   [inst : coe_ring_hom R S] : coe_non_unital_ring_hom R S :=
 { .. inst }
 
+@[priority 100] -- See note [lower instance priority]
 instance coe_ring_hom.to_coe_monoid_with_zero_hom [semiring R] [semiring S]
   [inst : coe_ring_hom R S] : coe_monoid_with_zero_hom R S :=
 { .. inst }

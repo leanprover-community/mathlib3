@@ -402,7 +402,7 @@ instance : coe_mul_hom S' M :=
 
 -- even though there is a generic `coe_mul`, this can still be useful as a `dsimp` lemma,
 -- so keep it `@[simp]`
-@[simp, to_additive, priority 900]
+@[simp, to_additive, priority 900, nolint simp_nf]
 protected lemma coe_mul (x y : S') : (↑(x * y) : M) = ↑x * ↑y := rfl
 
 @[simp, to_additive, priority 900]

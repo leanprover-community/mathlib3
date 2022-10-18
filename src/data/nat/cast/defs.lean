@@ -130,10 +130,10 @@ begin
     { simp } },
 end
 
-@[simp, norm_cast] theorem cast_bit0 [add_monoid_with_one R] (n : ℕ) :
+@[norm_cast] theorem cast_bit0 [add_monoid_with_one R] (n : ℕ) :
   ((bit0 n : ℕ) : R) = bit0 n := nat.cast_add _ _
 
-@[simp, norm_cast] theorem cast_bit1 [add_monoid_with_one R] (n : ℕ) :
+@[norm_cast] theorem cast_bit1 [add_monoid_with_one R] (n : ℕ) :
   ((bit1 n : ℕ) : R) = bit1 n :=
 by rw [bit1, cast_add_one, cast_bit0]; refl
 

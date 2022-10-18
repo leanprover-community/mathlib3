@@ -103,7 +103,7 @@ instance to_semiring {R} [semiring R] [set_like S R] [subsemiring_class S R] : s
 subtype.coe_injective.semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
   (λ _, rfl)
 
-@[simp, norm_cast] lemma coe_pow {R} [semiring R] [set_like S R] [subsemiring_class S R]
+@[norm_cast] lemma coe_pow {R} [semiring R] [set_like S R] [subsemiring_class S R]
   (x : s) (n : ℕ) : ((x^n : s) : R) = (x^n : R) :=
 by apply coe_pow
 
@@ -332,13 +332,9 @@ instance no_zero_divisors [no_zero_divisors R] : no_zero_divisors s :=
 instance to_semiring {R} [semiring R] (s : subsemiring R) : semiring s :=
 { ..s.to_non_assoc_semiring, ..s.to_submonoid.to_monoid }
 
-@[simp, norm_cast] lemma coe_pow {R} [semiring R] (s : subsemiring R) (x : s) (n : ℕ) :
+@[norm_cast] lemma coe_pow {R} [semiring R] (s : subsemiring R) (x : s) (n : ℕ) :
   ((x^n : s) : R) = (x^n : R) :=
-begin
-  induction n with n ih,
-  { simp, },
-  { simp [pow_succ, ih], },
-end
+coe_pow x n
 
 /-- A subsemiring of a `comm_semiring` is a `comm_semiring`. -/
 instance to_comm_semiring {R} [comm_semiring R] (s : subsemiring R) : comm_semiring s :=

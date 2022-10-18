@@ -82,21 +82,28 @@ end ergodic
 
 namespace quasi_ergodic
 
+/-- By replacing an almost invariant set with the `limsup` of its preimages, we obtain a strictly
+invariant set of the same measure.
+
+(The `liminf` would work just as well.) -/
+lemma exists_preimage_eq_of_preimage_ae
+  (h : quasi_ergodic f μ) (hs : measurable_set s) (hs' : f⁻¹' s =ᵐ[μ] s) :
+  ∃ (t : set α), measurable_set t ∧ t =ᵐ[μ] s ∧ f⁻¹' t = t :=
+⟨limsup (λ n, (preimage f)^[n] s) at_top,
+ measurable_set.measurable_set_limsup $ λ n, @preimage_iterate_eq α f n ▸ h.measurable.iterate n hs,
+ h.to_quasi_measure_preserving.limsup_preimage_iterate_ae_eq hs',
+ (complete_lattice_hom.set_preimage f).apply_limsup_iterate s⟩
+
 /-- For a quasi ergodic map, sets that are almost invariant (rather than strictly invariant) are
 still either almost empty or full.-/
 lemma ae_empty_or_univ'
   (hf : quasi_ergodic f μ) (hs : measurable_set s) (hs' : f⁻¹' s =ᵐ[μ] s) :
   s =ᵐ[μ] (∅ : set α) ∨ s =ᵐ[μ] univ :=
 begin
-  let t := limsup (λ n, (preimage f)^[n] s) at_top, -- `liminf` would work just as well.
-  have ht₀ : t =ᵐ[μ] s := hf.to_quasi_measure_preserving.limsup_preimage_iterate_ae_eq hs',
-  have ht₁ : measurable_set t := measurable_set.measurable_set_limsup
-    (λ n, by { rw ← preimage_iterate_eq, exact hf.measurable.iterate n hs, }),
-  have ht₂ : complete_lattice_hom.set_preimage f t = t :=
-    (complete_lattice_hom.set_preimage f).apply_limsup_iterate s,
-  rcases hf.ae_empty_or_univ ht₁ ht₂ with ht₃ | ht₃;
+  obtain ⟨t, ht₀, ht₁, ht₂⟩ := exists_preimage_eq_of_preimage_ae hf hs hs',
+  rcases hf.ae_empty_or_univ ht₀ ht₂ with ht₃ | ht₃;
   [left, right];
-  exact ae_eq_trans ht₀.symm ht₃,
+  exact ae_eq_trans ht₁.symm ht₃,
 end
 
 end quasi_ergodic

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import order.symm_diff
+import logic.function.iterate
 
 /-!
 # Basic properties of sets
@@ -1359,7 +1360,9 @@ rfl
 @[simp] theorem preimage_set_of_eq {p : α → Prop} {f : β → α} : f ⁻¹' {a | p a} = {a | p (f a)} :=
 rfl
 
-@[simp] theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
+@[simp] lemma preimage_id_eq : preimage (id : α → α) = id := rfl
+
+theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
 
 @[simp] theorem preimage_id' {s : set α} : (λ x, x) ⁻¹' s = s := rfl
 
@@ -1376,6 +1379,15 @@ theorem preimage_const (b : β) (s : set β) [decidable (b ∈ s)] :
 by { split_ifs with hb hb, exacts [preimage_const_of_mem hb, preimage_const_of_not_mem hb] }
 
 theorem preimage_comp {s : set γ} : (g ∘ f) ⁻¹' s = f ⁻¹' (g ⁻¹' s) := rfl
+
+lemma preimage_comp_eq : preimage (g ∘ f) = preimage f ∘ preimage g := rfl
+
+@[simp] lemma preimage_iterate_eq {f : α → α} {n : ℕ} :
+  set.preimage (f^[n]) = ((set.preimage f)^[n]) :=
+begin
+  induction n with n ih, { simp, },
+  rw [iterate_succ, iterate_succ', set.preimage_comp_eq, ih],
+end
 
 lemma preimage_preimage {g : β → γ} {f : α → β} {s : set γ} :
   f ⁻¹' (g ⁻¹' s) = (λ x, g (f x)) ⁻¹' s :=

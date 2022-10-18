@@ -106,7 +106,7 @@ map_range_ne_locus_eq _ _ neg_zero neg_injective
 
 lemma ne_locus_neg : ne_locus (-f) g = f.ne_locus (-g) := by rw [←ne_locus_neg_neg, neg_neg]
 
-lemma ne_locus_eq_support_sub (f g : α →₀ N) : f.ne_locus g = (f - g).support :=
+lemma ne_locus_eq_support_sub : f.ne_locus g = (f - g).support :=
 by rw [←ne_locus_add_right _ _ (-g), add_right_neg, ne_locus_zero_right, sub_eq_add_neg]
 
 @[simp] lemma ne_locus_sub_left : ne_locus (f - g₁) (f - g₂) = ne_locus g₁ g₂ :=

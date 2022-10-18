@@ -573,7 +573,7 @@ with_top.coe_mul.symm.trans $
 lemma to_real_mul : ∀ {x y : ereal}, to_real (x * y) = to_real x * to_real y
 | ⊤ y := by by_cases hy : y = 0; simp [hy]
 | x ⊤ := by by_cases hx : x = 0; simp [hx]
-| (x : ℝ) (y : ℝ) := by simp [← ereal.coe_mul]
+| (x : ℝ) (y : ℝ) := by simp [← ereal.coe_mul, -coe_mul]
 | ⊥ (y : ℝ) := by by_cases hy : y = 0; simp [hy]
 | (x : ℝ) ⊥ := by by_cases hx : x = 0; simp [hx]
 | ⊥ ⊥ := by simp

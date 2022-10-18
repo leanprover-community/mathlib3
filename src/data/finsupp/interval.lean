@@ -103,8 +103,7 @@ by simp_rw [Iic_eq_Icc, card_Icc, finsupp.bot_eq_zero, support_zero, empty_union
   bot_eq_zero]
 
 lemma card_Iio : (Iio f).card = ∏ i in f.support, (Iic (f i)).card - 1 :=
-by simp_rw [Iio_eq_Ico, card_Ico, finsupp.bot_eq_zero, support_zero, empty_union, zero_apply,
-  Iic_eq_Icc, bot_eq_zero]
+by rw [card_Iio_eq_card_Iic_sub_one, card_Iic]
 
 end canonically_ordered
 

@@ -139,7 +139,7 @@ open polynomial
 
 /-- The characteristic polynomial of `fib_rec` is `X² - (X + 1)`. -/
 lemma fib_rec_char_poly_eq {β : Type*} [comm_ring β] :
-  fib_rec.char_poly = X^2 - (X + (1 : polynomial β)) :=
+  fib_rec.char_poly = X^2 - (X + (1 : β[X])) :=
 begin
   rw [fib_rec, linear_recurrence.char_poly],
   simp [finset.sum_fin_eq_sum_range, finset.sum_range_succ', monomial_eq_smul_X]

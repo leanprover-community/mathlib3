@@ -162,7 +162,7 @@ steps. -/
 structure tm2_computable_in_poly_time {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β)
   (f : α → β)
   extends tm2_computable_aux ea.Γ eb.Γ :=
-(time: polynomial ℕ)
+(time: ℕ[X])
 (outputs_fun : ∀ a, tm2_outputs_in_time tm (list.map input_alphabet.inv_fun (ea.encode a))
   (option.some ((list.map output_alphabet.inv_fun) (eb.encode (f a))))
   (time.eval (ea.encode a).length))

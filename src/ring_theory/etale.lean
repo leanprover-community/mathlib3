@@ -248,7 +248,7 @@ begin
   refl,
 end
 
-instance formally_smooth.polynomial : formally_smooth R (polynomial R) :=
+instance formally_smooth.polynomial : formally_smooth R R[X] :=
 @@formally_smooth.of_equiv _ _ _ _ _
   (formally_smooth.mv_polynomial R punit) (mv_polynomial.punit_alg_equiv R)
 

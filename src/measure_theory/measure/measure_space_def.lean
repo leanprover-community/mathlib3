@@ -225,7 +225,9 @@ lemma measure_Union_null [countable β] {s : β → set α} : (∀ i, μ (s i) =
   μ (⋃ i, s i) = 0 ↔ ∀ i, μ (s i) = 0 :=
 μ.to_outer_measure.Union_null_iff
 
-/-- A version of `measure_Union_null_iff` for unions indexed by Props -/
+/-- A version of `measure_Union_null_iff` for unions indexed by Props
+TODO: in the long run it would be better to combine this with `measure_Union_null_iff` by
+generalising to `Sort`. -/
 @[simp] lemma measure_Union_null_iff' {ι : Prop} {s : ι → set α} :
   μ (⋃ i, s i) = 0 ↔ ∀ i, μ (s i) = 0 :=
 μ.to_outer_measure.Union_null_iff'

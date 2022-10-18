@@ -117,10 +117,10 @@ by simp [int.cast_neg, neg_of_nat_eq]
 @[norm_cast] theorem cast_sub (m n) : ((m - n : ℤ) : R) = m - n :=
 by simp [int.sub_eq_add_neg, sub_eq_add_neg, int.cast_neg, int.cast_add]
 
-@[simp, norm_cast]
+@[norm_cast]
 theorem coe_nat_bit0 (n : ℕ) : (↑(bit0 n) : ℤ) = bit0 ↑n := rfl
 
-@[simp, norm_cast]
+@[norm_cast]
 theorem coe_nat_bit1 (n : ℕ) : (↑(bit1 n) : ℤ) = bit1 ↑n := rfl
 
 theorem cast_bit0 (n : ℤ) : ((bit0 n : ℤ) : R) = bit0 n :=

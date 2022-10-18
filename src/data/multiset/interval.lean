@@ -9,7 +9,7 @@ import data.dfinsupp.multiset
 import data.nat.interval
 
 /-!
-# Finite intervals of multiests
+# Finite intervals of multisets
 
 This file provides the `locally_finite_order` instance for `multiset α` and calculates the
 cardinality of its finite intervals.

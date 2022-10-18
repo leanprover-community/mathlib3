@@ -63,12 +63,12 @@ end
 @[simp] lemma to_dfinsupp_singleton (a : α) : to_dfinsupp {a} = dfinsupp.single a 1 :=
 by rw [←repeat_one, to_dfinsupp_repeat]
 
-/-- `multiset.to_dfinsupp` as an `add_equiv`.-/
+/-- `multiset.to_dfinsupp` as an `add_equiv`. -/
 @[simps apply symm_apply]
 def equiv_dfinsupp : multiset α ≃+ Π₀ a : α, ℕ :=
 add_monoid_hom.to_add_equiv
   multiset.to_dfinsupp
-  (dfinsupp.to_multiset)
+  dfinsupp.to_multiset
   (by { ext x : 1, simp })
   (by { refine @dfinsupp.add_hom_ext α (λ _, ℕ) _ _ _ _ _ _ (λ i hi, _), simp, })
 

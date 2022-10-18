@@ -9,40 +9,43 @@ local attribute [instance] prop_decidable
 
 namespace category_theory
 
-universes u v
+open subgroupoid
+open groupoid
 
-namespace groupoid
+universes u v
 
 variables {C : Type u} [groupoid C] (S : subgroupoid C) (Sn : S.is_normal)
 
-namespace quotient
-
-open subgroupoid
+namespace quotient_groupoid
 
 section isotropy
 /-!
 We first define what's here called “isotropy quotient”:
-Given a normal subgroupoid `S`, this quotient is collapses all loops of `S`, that is
+Given a normal subgroupoid `S`, this quotient is collapses all loops of `S`, i.e.
 all vertex groups.
 After quotienting by these vertex groups, the image of `S` in the quotient `is_graph_like`
 which is easy to quotient out again.
 -/
 
-section congr
+section cgr
 
 variables {c d : C} (f g h : c ⟶ d)
 
-def congr := ∃ (γ ∈ S.arrows c c) (δ ∈ S.arrows d d), g = γ ≫ f ≫ δ
-def cgr (c) (d) (f) (g) := @congr _ _ S c d f g
-/-
-lemma congr.refl (f : c ⟶ d) : congr S f f :=  ⟨(𝟙 c), Sn.wide c, (𝟙 d), Sn.wide d, by simp ⟩
-lemma congr.symm {f g : c ⟶ d} : congr S f g → congr S g f :=
+def cgr (c) (d) (f) (g) := ∃ (γ ∈ S.arrows c c) (δ ∈ S.arrows d d), g = γ ≫ f ≫ δ
+
+lemma cgr.refl (f : c ⟶ d) : cgr S c d f f :=  ⟨(𝟙 c), Sn.wide c, (𝟙 d), Sn.wide d, by simp ⟩
+lemma cgr.symm {f g : c ⟶ d} : cgr S c d f g → cgr S c d g f :=
 λ ⟨γ,hγ,δ,hδ,e⟩, ⟨inv γ, S.inv hγ, inv δ, S.inv hδ, by { rw e, simp, } ⟩
-lemma congr.tran {f g h : c ⟶ d} : congr S f g → congr S g h → congr S f h :=
+lemma cgr.tran {f g h : c ⟶ d} : cgr S c d f g → cgr S c d g h → cgr S c d f h :=
 λ ⟨γ,hγ,δ,hδ,e⟩ ⟨δ',hδ',ε,hε,e'⟩,
 ⟨δ' ≫ γ, S.mul hδ' hγ, δ ≫ ε, S.mul hδ hε, by {rw [e',e], simp, }⟩
--/
-end congr
+
+def cgr.setoid : setoid (c ⟶ d) :=
+{ r := cgr S c d , iseqv := ⟨λ f, cgr.refl S Sn f, λ f g, cgr.symm S, λ f g h, cgr.tran S⟩ }
+
+
+
+end cgr
 
 def isotropy.quotient (S : subgroupoid C) (Sn : S.is_normal) := C
 
@@ -113,7 +116,8 @@ The universal mapping property of the quotient by the isotropy part of a normal 
 -/
 
 variables  {D : Type*} [groupoid D]
-  (φ : C ⥤ D) (hφ : ∀ (c : C) (γ : c ⟶ c), γ ∈ₐ S → γ ∈ₐ ker φ)
+  (φ : C ⥤ D)
+  (hφ : S.disconnect ≤ ker φ)
 
 include hφ
 def lift : (quotient S Sn) ⥤ D :=
@@ -122,20 +126,27 @@ def lift : (quotient S Sn) ⥤ D :=
     quot.lift_on f
       ( λ f, φ.map f )
       ( λ f₁ f₂ ⟨γ,hγ,δ,hδ,e⟩, by
-        { let hφγ := hφ c γ hγ,
-          let hφδ := hφ d δ hδ,
-          simp only [mem_subgroupoid_iff, mem_ker_iff, eq_self_iff_true,
+        { rw subgroupoid.le_iff at hφ,
+          let γ' : γ ∈ S.disconnect.arrows c c := by {constructor, exact hγ, },
+          let hφγ := hφ γ',
+          let δ' : δ ∈ S.disconnect.arrows d d := by {constructor, exact hδ, },
+          let hφδ := hφ δ',
+          simp only [mem_ker_iff, eq_self_iff_true,
                      exists_true_left] at hφγ hφδ,
-          simp only [e, functor.map_comp,hφγ,hφδ,category.comp_id,category.id_comp,
+          simp only [e, functor.map_comp, hφγ, hφδ, category.comp_id, category.id_comp,
                      eq_to_hom_refl], } ),
-  map_id' := λ c, by simp,
-  map_comp' := λ a b c f g, by { apply quot.induction_on₂ f g, rintros, simp, } }
+  map_id' := λ c, by
+  { rw ←functor.map_id φ c, refl, },
+  map_comp' := λ a b c f g, by
+  { apply quot.induction_on₂ f g, rintros, rw ←functor.map_comp φ, refl, } }
 
 lemma lift_spec : (of S Sn) ⋙ (lift S Sn φ hφ) = φ :=
 begin
   apply functor.ext,
-  { rintros, dsimp only [of, lift], simp, },
-  { rintros, dsimp only [of, lift], simp, },
+  { rintros, dsimp only [of, lift],
+    simp only [functor.comp_map, eq_to_hom_refl, category.comp_id, category.id_comp], },
+  { rintros, dsimp only [of, lift],
+    simp only [functor.comp_obj], },
 end
 
 lemma lift_unique (Φ : (quotient S Sn) ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) :
@@ -143,11 +154,37 @@ lemma lift_unique (Φ : (quotient S Sn) ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) :
 begin
   subst_vars,
   apply functor.ext,
-  { rintros, dsimp [of, lift], apply quot.induction_on f, rintro f, simp, },
+  { rintros, dsimp [of, lift],
+    apply quot.induction_on f,
+    rintro f,
+    simp only [quot.lift_on_mk, functor.comp_map, category.comp_id, category.id_comp], },
   { rintros, dsimp only [of, lift], refl, }
 end
 
 end ump
+
+lemma ker_eq : ker (of S Sn) = S.disconnect :=
+begin
+  ext c d f,
+  split,
+  { rintro hf,
+    rw mem_ker_iff at hf,
+    obtain ⟨h,e⟩ := hf,
+    rw mem_disconnect_iff,
+    dsimp [of] at h e, subst h,
+    simp only [eq_self_iff_true, true_and],
+    have := @quotient.exact (c ⟶ c) (cgr.setoid S Sn) _ _ e,
+    rcases cgr.symm S this with ⟨γ,hγ,δ,hδ,rfl⟩,
+    apply S.mul hγ (S.mul (id_mem_of_tgt S hδ) hδ), },
+  { rintro ⟨_,f,hf⟩,
+    rw mem_ker_iff,
+    refine ⟨rfl,_⟩,
+    show quot.mk _ f = quot.mk _ (𝟙 _),
+    apply quot.sound,
+    refine ⟨inv f, S.inv hf, 𝟙 _, id_mem_of_tgt S hf,_⟩,
+    simp only [inv_eq_inv, category.comp_id, is_iso.inv_hom_id], }
+end
+
 
 end isotropy
 
@@ -178,9 +215,9 @@ abbreviation C_by_r := _root_.quotient (R S Sn)
 
 abbreviation r_reps : set C := set.range (@quotient.out C (R S Sn))
 
-def quotient := (full_on $ r_reps S Sn).coe
+def quotient := (subgroupoid.full $ r_reps S Sn).objs
 
-instance : groupoid (quotient S Sn) := (full_on $ r_reps S Sn).coe_groupoid
+instance : groupoid (quotient S Sn) := (subgroupoid.full $ r_reps S Sn).coe
 
 abbreviation qmk := @_root_.quotient.mk _ (R S Sn)
 noncomputable abbreviation qout := @quotient.out _ (R S Sn)
@@ -235,7 +272,7 @@ def lift : quotient S Sn ⥤ D := (fo S Sn) ⋙ φ
 include hφ
 lemma lift_spec : (of S Sn) ⋙ (lift S Sn φ) = φ :=
 begin
-  dsimp only [lift, of, fo, full_on, coe_embedding],
+  dsimp only [lift, of, fo, full, coe_embedding],
   fapply functor.ext,
   { rintro c,
     simp only [functor.comp_obj],
@@ -264,8 +301,8 @@ begin
   dsimp [lift],
   fapply functor.ext,
   { rintro ⟨c₀,⟨_,⟨_,⟨c,h⟩⟩⟩⟩,
-    simp only [lift, of, fo, full_on, coe_embedding, functor.comp_obj],
-    congr,
+    simp only [lift, of, fo, full, coe_embedding, functor.comp_obj],
+    cgr,
     rw ←h,
     change c.out = ⟦c.out⟧.out,
     simp only [quotient.out_eq], },
@@ -277,7 +314,7 @@ begin
     rw mem_ker_iff at hγ' hδ',
     obtain ⟨eγ,hγ'⟩ := hγ',
     obtain ⟨eδ,hδ'⟩ := hδ',
-    dsimp only [lift, of, fo, full_on, coe_embedding] at *,
+    dsimp only [lift, of, fo, full, coe_embedding] at *,
     simp only [inv_eq_inv, functor.comp_map] at *,
 
     sorry },
@@ -349,8 +386,6 @@ end ump
 
 end quotient
 
-end quotient
-
-end groupoid
+end quotient_groupoid
 
 end category_theory

@@ -49,7 +49,7 @@ end is_connected
 
 section graph_like
 
-/-- A subgroupoid is graph-like if it has no parallel arrows -/
+/-- A groupoid is graph-like if it has no parallel arrows -/
 def is_graph_like := ∀ (c d : C), subsingleton (c ⟶ d)
 
 lemma is_graph_like_iff : (is_graph_like C) ↔ ∀ (c : C), subsingleton (c ⟶ c) :=

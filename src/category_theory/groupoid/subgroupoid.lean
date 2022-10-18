@@ -87,6 +87,12 @@ variable (S : subgroupoid C)
 /-- The vertices of `C` on which `S` has non-trivial isotropy -/
 def objs : set C := {c : C | (S.arrows c c).nonempty}
 
+lemma mem_objs_of_src {c d : C} {f : c ⟶ d} (h : f ∈ S.arrows c d) : c ∈ S.objs :=
+⟨f ≫ inv f, S.mul h (S.inv h)⟩
+
+lemma mem_objs_of_tgt {c d : C} {f : c ⟶ d} (h : f ∈ S.arrows c d) : d ∈ S.objs :=
+⟨(inv f) ≫ f, S.mul (S.inv h) h⟩
+
 lemma id_mem_of_nonempty_isotropy (c : C) :
   c ∈ objs S → 𝟙 c ∈ S.arrows c c :=
 begin
@@ -94,6 +100,12 @@ begin
   convert S.mul hγ (S.inv hγ),
   simp only [inv_eq_inv, is_iso.hom_inv_id],
 end
+
+lemma id_mem_of_src  {c d : C} {f : c ⟶ d} (h : f ∈ S.arrows c d) : (𝟙 c) ∈ S.arrows c c :=
+id_mem_of_nonempty_isotropy S c (mem_objs_of_src S h)
+
+lemma id_mem_of_tgt  {c d : C} {f : c ⟶ d} (h : f ∈ S.arrows c d) : (𝟙 d) ∈ S.arrows d d :=
+id_mem_of_nonempty_isotropy S d (mem_objs_of_tgt S h)
 
 /-- A subgroupoid seen as a quiver on vertex set `C` -/
 def as_wide_quiver : quiver C := ⟨λ c d, subtype $ S.arrows c d⟩
@@ -222,10 +234,12 @@ lemma mem_discrete_iff {c d : C} (f : c ⟶ d):
   (f ∈ (discrete).arrows c d) ↔ (∃ (h : c = d), f = eq_to_hom h) :=
 ⟨by { rintro ⟨⟩, exact ⟨rfl, rfl⟩ }, by { rintro ⟨rfl, rfl⟩, split }⟩
 
-/-- A subgroupoid is normal if it is “wide” (meaning that its carrier set is all of `C`)
-    and satisfies the expected stability under conjugacy. -/
-structure is_normal : Prop :=
+/-- A subgroupoid is wide if its carrier set is all of `C`-/
+structure is_wide : Prop :=
 (wide : ∀ c, (𝟙 c) ∈ (S.arrows c c))
+
+/-- A subgroupoid is normal if it is wide and satisfies the expected stability under conjugacy. -/
+structure is_normal extends (is_wide S) : Prop :=
 (conj : ∀ {c d} (p : c ⟶ d) {γ : c ⟶ c} (hs : γ ∈ S.arrows c c),
               ((inv p) ≫ γ ≫ p) ∈ (S.arrows d d))
 
@@ -352,6 +366,81 @@ lemma mem_im_iff (hφ : function.injective φ.obj) {c d : D} (f : c ⟶ d) :
 by { convert map.mem_arrows_iff φ hφ ⊤ f, simp only [has_top.top, mem_univ, exists_true_left] }
 
 end hom
+
+section graph_like
+
+abbreviation is_graph_like := is_graph_like S.objs
+
+lemma is_graph_like_iff : S.is_graph_like ↔ ∀ c d : S.objs, subsingleton (S.arrows c d) :=
+⟨ λ h c d, h c d, λ h c d, h c d⟩
+
+end graph_like
+
+section disconnected
+
+abbreviation is_disconnected := is_disconnected S.objs
+
+lemma is_disconnected_iff : S.is_disconnected ↔ ∀ c d, (S.arrows c d).nonempty → c = d :=
+begin
+  split,
+  { rintro h c d ⟨f,fS⟩,
+    rw ←@subtype.mk_eq_mk _ _ c (mem_objs_of_src S fS) d (mem_objs_of_tgt S fS),
+    exact h ⟨c,mem_objs_of_src S fS⟩ ⟨d,mem_objs_of_tgt S fS⟩ ⟨⟨f,fS⟩⟩, },
+  { rintros h ⟨c,hc⟩ ⟨d,hd⟩ ⟨f,fS⟩,
+    simp only [subtype.mk_eq_mk],
+    exact h c d ⟨f,fS⟩, },
+end
+
+/-- The isotropy arrows of `S` -/
+inductive disconnect.arrows : Π (c d : C), (c ⟶ d) → Prop
+| mk (c : C) (γ : c ⟶ c) (hγ : γ ∈ S.arrows c c) : disconnect.arrows c c γ
+
+/-- The isotropy subgroupoid of `S` -/
+def disconnect : subgroupoid C :=
+{ arrows := disconnect.arrows S,
+  inv := by { rintros _ _ _ ⟨⟩, constructor, apply S.inv, assumption, },
+  mul := by { rintros _ _ _ _ ⟨⟩ _ ⟨⟩, constructor, apply S.mul; assumption, } }
+
+lemma disconnect_le : (S.disconnect) ≤ S :=
+by {rw le_iff, rintros _ _ _ ⟨⟩, assumption, }
+
+lemma disconnect_normal (Sn : S.is_normal) : S.disconnect.is_normal :=
+{ wide := λ c, by { constructor, exact Sn.wide c, },
+  conj := λ c d p γ hγ, by { constructor, apply Sn.conj, cases hγ, assumption, } }
+
+lemma mem_disconnect_iff {c d : C} (f : c ⟶ d) :
+  f ∈ S.disconnect.arrows c d ↔ (c = d ∧ f ∈ S.arrows c d) :=
+begin
+  split,
+  { rintro ⟨⟩, split, refl, assumption, },
+  { rintro ⟨rfl,_⟩, constructor, assumption, },
+end
+
+end disconnected
+
+section full
+
+variable (D : set C)
+
+/-- The arrows of the full groupoid on a set `D : set C` -/
+inductive full.arrows : Π (c d : C), (c ⟶ d) → Prop
+| mk {c d : C} (hc : c ∈ D) (hd : d ∈ D) (γ : c ⟶ d) : full.arrows c d γ
+
+/-- The full subgroupoid on a set `D : set C` -/
+def full : subgroupoid C :=
+{ arrows := full.arrows D,
+  inv := by { rintros _ _ _ ⟨⟩, constructor; assumption, },
+  mul := by { rintros _ _ _ _ ⟨⟩ _ ⟨⟩, constructor; assumption,} }
+
+lemma full_objs : (full D).objs = D :=
+begin
+  ext,
+  split,
+  { rintro ⟨f,⟨⟩⟩, assumption, },
+  { rintro h, constructor, constructor, assumption, assumption, exact 𝟙 _, }
+end
+
+end full
 
 end subgroupoid
 

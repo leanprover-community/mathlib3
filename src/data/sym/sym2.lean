@@ -402,7 +402,7 @@ private def from_vector : vector α 2 → α × α
 
 private lemma perm_card_two_iff {a₁ b₁ a₂ b₂ : α} :
   [a₁, b₁].perm [a₂, b₂] ↔ a₁ = a₂ ∧ b₁ = b₂ ∨ a₁ = b₂ ∧ b₁ = a₂ :=
-{ mp  := by { simp [← multiset.coe_eq_coe, ← multiset.cons_coe, multiset.cons_eq_cons]; tidy },
+{ mp  := by { simp [← multiset.coe_eq_coe, ← multiset.cons_coe, multiset.cons_eq_cons], tidy },
   mpr := by { intro h, cases h; rw [h.1, h.2], apply list.perm.swap', refl } }
 
 /--
@@ -547,7 +547,7 @@ begin
 end
 
 lemma filter_image_quotient_mk_is_diag [decidable_eq α] (s : finset α) :
-  ((s.product s).image quotient.mk).filter is_diag = s.diag.image quotient.mk :=
+  ((s ×ˢ s).image quotient.mk).filter is_diag = s.diag.image quotient.mk :=
 begin
   ext z,
   induction z using quotient.induction_on,
@@ -563,7 +563,7 @@ begin
 end
 
 lemma filter_image_quotient_mk_not_is_diag [decidable_eq α] (s : finset α) :
-  ((s.product s).image quotient.mk).filter (λ a : sym2 α, ¬a.is_diag) =
+  ((s ×ˢ s).image quotient.mk).filter (λ a : sym2 α, ¬a.is_diag) =
     s.off_diag.image quotient.mk :=
 begin
   ext z,

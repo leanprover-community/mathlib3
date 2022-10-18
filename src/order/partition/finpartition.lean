@@ -229,7 +229,7 @@ section inf
 variables [decidable_eq α] {a b c : α}
 
 instance : has_inf (finpartition a) :=
-⟨λ P Q, of_erase ((P.parts.product Q.parts).image $ λ bc, bc.1 ⊓ bc.2)
+⟨λ P Q, of_erase ((P.parts ×ˢ Q.parts).image $ λ bc, bc.1 ⊓ bc.2)
   begin
     rw sup_indep_iff_disjoint_erase,
     simp only [mem_image, and_imp, exists_prop, forall_exists_index, id.def, prod.exists,
@@ -250,7 +250,7 @@ instance : has_inf (finpartition a) :=
   end⟩
 
 @[simp] lemma parts_inf (P Q : finpartition a) :
-  (P ⊓ Q).parts = ((P.parts.product Q.parts).image $ λ bc : α × α, bc.1 ⊓ bc.2).erase ⊥ := rfl
+  (P ⊓ Q).parts = ((P.parts ×ˢ Q.parts).image $ λ bc : α × α, bc.1 ⊓ bc.2).erase ⊥ := rfl
 
 instance : semilattice_inf (finpartition a) :=
 { inf_le_left := λ P Q b hb, begin

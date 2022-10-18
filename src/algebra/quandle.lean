@@ -110,9 +110,9 @@ class rack (α : Type u) extends shelf α :=
 (left_inv : ∀ x, function.left_inverse (inv_act x) (act x))
 (right_inv : ∀ x, function.right_inverse (inv_act x) (act x))
 
-localized "infixr ` ◃ `:65 := shelf.act" in quandles
-localized "infixr ` ◃⁻¹ `:65 := rack.inv_act" in quandles
-localized "infixr ` →◃ `:25 := shelf_hom" in quandles
+localized "infixr (name := shelf.act) ` ◃ `:65 := shelf.act" in quandles
+localized "infixr (name := rack.inv_act) ` ◃⁻¹ `:65 := rack.inv_act" in quandles
+localized "infixr (name := shelf_hom) ` →◃ `:25 := shelf_hom" in quandles
 
 open_locale quandles
 

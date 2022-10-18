@@ -74,7 +74,7 @@ lemma splits [is_galois F E] (x : E) : (minpoly F x).splits (algebra_map F E) :=
 
 variables (F E)
 
-instance of_fixed_field (G : Type*) [group G] [fintype G] [mul_semiring_action G E] :
+instance of_fixed_field (G : Type*) [group G] [finite G] [mul_semiring_action G E] :
   is_galois (fixed_points.subfield G E) E :=
 ⟨⟩
 
@@ -208,7 +208,7 @@ begin
         (set.inclusion H_le)).mpr ⟨set.inclusion_injective H_le, this⟩).2).symm },
   apply fintype.card_congr,
   refine (fixed_points.to_alg_hom_equiv H E).trans _,
-  refine (alg_equiv_equiv_alg_hom (fixed_field H) E).symm.trans _,
+  refine (alg_equiv_equiv_alg_hom (fixed_field H) E).to_equiv.symm.trans _,
   exact (fixing_subgroup_equiv (fixed_field H)).to_equiv.symm
 end
 
@@ -339,7 +339,7 @@ lemma of_separable_splitting_field_aux
   fintype.card (K⟮x⟯.restrict_scalars F →ₐ[F] E) =
     fintype.card (K →ₐ[F] E) * finrank K K⟮x⟯ :=
 begin
-  have h : is_integral K x := is_integral_of_is_scalar_tower x
+  have h : is_integral K x := is_integral_of_is_scalar_tower
     (is_integral_of_noetherian (is_noetherian.iff_fg.2 hFE) x),
   have h1 : p ≠ 0 := λ hp, by rwa [hp, polynomial.map_zero, polynomial.roots_zero] at hx,
   have h2 : (minpoly K x) ∣ p.map (algebra_map F K),
@@ -380,8 +380,8 @@ begin
   { rw adjoin_root at this,
     apply of_card_aut_eq_finrank,
     rw ← eq.trans this (linear_equiv.finrank_eq intermediate_field.top_equiv.to_linear_equiv),
-    exact fintype.card_congr (equiv.trans (alg_equiv_equiv_alg_hom F E)
-      (alg_equiv.arrow_congr intermediate_field.top_equiv.symm alg_equiv.refl)) },
+    exact fintype.card_congr ((alg_equiv_equiv_alg_hom F E).to_equiv.trans
+      (intermediate_field.top_equiv.symm.arrow_congr alg_equiv.refl)) },
   apply intermediate_field.induction_on_adjoin_finset s P,
   { have key := intermediate_field.card_alg_hom_adjoin_integral F
       (show is_integral F (0 : E), by exact is_integral_zero),

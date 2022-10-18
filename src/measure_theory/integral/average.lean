@@ -71,33 +71,37 @@ by rw [average, smul_zero, integral_zero_measure]
 
 @[simp] lemma average_neg (f : α → E) : ⨍ x, -f x ∂μ = -⨍ x, f x ∂μ := integral_neg f
 
-lemma average_def (f : α → E) : ⨍ x, f x ∂μ = ∫ x, f x ∂((μ univ)⁻¹ • μ) := rfl
+lemma average_eq' (f : α → E) : ⨍ x, f x ∂μ = ∫ x, f x ∂((μ univ)⁻¹ • μ) := rfl
 
-lemma average_def' (f : α → E) : ⨍ x, f x ∂μ = (μ univ).to_real⁻¹ • ∫ x, f x ∂μ :=
-by rw [average_def, integral_smul_measure, ennreal.to_real_inv]
+lemma average_eq (f : α → E) : ⨍ x, f x ∂μ = (μ univ).to_real⁻¹ • ∫ x, f x ∂μ :=
+by rw [average_eq', integral_smul_measure, ennreal.to_real_inv]
 
 lemma average_eq_integral [is_probability_measure μ] (f : α → E) :
   ⨍ x, f x ∂μ = ∫ x, f x ∂μ :=
-by rw [average, measure_univ, ennreal.inv_one, one_smul]
+by rw [average, measure_univ, inv_one, one_smul]
 
 @[simp] lemma measure_smul_average [is_finite_measure μ] (f : α → E) :
   (μ univ).to_real • ⨍ x, f x ∂μ = ∫ x, f x ∂μ :=
 begin
   cases eq_or_ne μ 0 with hμ hμ,
   { rw [hμ, integral_zero_measure, average_zero_measure, smul_zero] },
-  { rw [average_def', smul_inv_smul₀],
+  { rw [average_eq, smul_inv_smul₀],
     refine (ennreal.to_real_pos _ $ measure_ne_top _ _).ne',
     rwa [ne.def, measure_univ_eq_zero] }
 end
 
 lemma set_average_eq (f : α → E) (s : set α) :
   ⨍ x in s, f x ∂μ = (μ s).to_real⁻¹ • ∫ x in s, f x ∂μ :=
-by rw [average_def', restrict_apply_univ]
+by rw [average_eq, restrict_apply_univ]
+
+lemma set_average_eq' (f : α → E) (s : set α) :
+  ⨍ x in s, f x ∂μ = ∫ x, f x ∂((μ s)⁻¹ • μ.restrict s) :=
+by simp only [average_eq', restrict_apply_univ]
 
 variable {μ}
 
 lemma average_congr {f g : α → E} (h : f =ᵐ[μ] g) : ⨍ x, f x ∂μ = ⨍ x, g x ∂μ :=
-by simp only [average_def', integral_congr_ae h]
+by simp only [average_eq, integral_congr_ae h]
 
 lemma average_add_measure [is_finite_measure μ] {ν : measure α} [is_finite_measure ν] {f : α → E}
   (hμ : integrable f μ) (hν : integrable f ν) :
@@ -107,7 +111,7 @@ lemma average_add_measure [is_finite_measure μ] {ν : measure α} [is_finite_me
 begin
   simp only [div_eq_inv_mul, mul_smul, measure_smul_average, ← smul_add,
     ← integral_add_measure hμ hν, ← ennreal.to_real_add (measure_ne_top μ _) (measure_ne_top ν _)],
-  rw [average_def', measure.add_apply]
+  rw [average_eq, measure.add_apply]
 end
 
 lemma average_pair {f : α → E} {g : α → F} (hfi : integrable f μ) (hgi : integrable g μ) :
@@ -161,5 +165,18 @@ lemma average_mem_open_segment_compl_self [is_finite_measure μ] {f : α → E} 
 by simpa only [union_compl_self, restrict_univ]
   using average_union_mem_open_segment ae_disjoint_compl_right hs.compl hs₀ hsc₀
     (measure_ne_top _ _) (measure_ne_top _ _) hfi.integrable_on hfi.integrable_on
+
+@[simp] lemma average_const [is_finite_measure μ] [h : μ.ae.ne_bot] (c : E) :
+  ⨍ x, c ∂μ = c :=
+by simp only [average_eq, integral_const, measure.restrict_apply, measurable_set.univ, one_smul,
+  univ_inter, smul_smul, ← ennreal.to_real_inv, ← ennreal.to_real_mul, ennreal.inv_mul_cancel,
+  measure_ne_top μ univ, ne.def, measure_univ_eq_zero, ae_ne_bot.1 h, not_false_iff,
+  ennreal.one_to_real]
+
+lemma set_average_const {s : set α} (hs₀ : μ s ≠ 0) (hs : μ s ≠ ∞) (c : E) :
+  ⨍ x in s, c ∂μ = c :=
+by simp only [set_average_eq, integral_const, measure.restrict_apply, measurable_set.univ,
+  univ_inter, smul_smul, ← ennreal.to_real_inv, ← ennreal.to_real_mul,
+  ennreal.inv_mul_cancel hs₀ hs, ennreal.one_to_real, one_smul]
 
 end measure_theory

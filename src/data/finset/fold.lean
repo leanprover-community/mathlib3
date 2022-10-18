@@ -18,7 +18,7 @@ variables {α β γ : Type*}
 /-! ### fold -/
 section fold
 variables (op : β → β → β) [hc : is_commutative β op] [ha : is_associative β op]
-local notation a * b := op a b
+local notation (name := op) a ` * ` b := op a b
 include hc ha
 
 /-- `fold op b f s` folds the commutative associative operation `op` over the
@@ -73,6 +73,10 @@ by rw [fold, fold, ← fold_hom op hm, multiset.map_map]
 theorem fold_disj_union {s₁ s₂ : finset α} {b₁ b₂ : β} (h) :
   (s₁.disj_union s₂ h).fold op (b₁ * b₂) f = s₁.fold op b₁ f * s₂.fold op b₂ f :=
 (congr_arg _ $ multiset.map_add _ _ _).trans (multiset.fold_add _ _ _ _ _)
+
+theorem fold_disj_Union {ι : Type*} {s : finset ι} {t : ι → finset α} {b : ι → β} {b₀ : β} (h) :
+  (s.disj_Union t h).fold op (s.fold op b₀ b) f = s.fold op b₀ (λ i, (t i).fold op (b i) f) :=
+(congr_arg _ $ multiset.map_bind _ _ _).trans (multiset.fold_bind _ _ _ _ _)
 
 theorem fold_union_inter [decidable_eq α] {s₁ s₂ : finset α} {b₁ b₂ : β} :
   (s₁ ∪ s₂).fold op b₁ f * (s₁ ∩ s₂).fold op b₂ f = s₁.fold op b₂ f * s₂.fold op b₁ f :=

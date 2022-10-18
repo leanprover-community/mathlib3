@@ -442,8 +442,7 @@ begin
     exact generate_from_mono (mem_pi_Union_Inter_of_measurable_set m (hpS hpi)), },
 end
 
--- todo change that name
-lemma generate_from_pi_Union_Inter_subsets {α ι} (m : ι → measurable_space α) (S : set ι) :
+lemma generate_from_pi_Union_Inter_measurable_set {α ι} (m : ι → measurable_space α) (S : set ι) :
   generate_from (pi_Union_Inter (λ i, {t | measurable_set[m i] t}) S)
     = ⨆ i ∈ S, m i :=
 begin

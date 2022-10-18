@@ -397,8 +397,8 @@ lemma indep_supr_of_disjoint [is_probability_measure μ] {m : ι → measurable_
   indep (⨆ i ∈ S, m i) (⨆ i ∈ T, m i) μ :=
 begin
   refine indep_sets.indep (supr₂_le (λ i _, h_le i)) (supr₂_le (λ i _, h_le i)) _ _
-    (generate_from_pi_Union_Inter_subsets m S).symm
-    (generate_from_pi_Union_Inter_subsets m T).symm _,
+    (generate_from_pi_Union_Inter_measurable_set m S).symm
+    (generate_from_pi_Union_Inter_measurable_set m T).symm _,
   { refine is_pi_system_pi_Union_Inter _ (λ n, @is_pi_system_measurable_set Ω (m n)) _, },
   { refine is_pi_system_pi_Union_Inter _ (λ n, @is_pi_system_measurable_set Ω (m n)) _ , },
   { classical,

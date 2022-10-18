@@ -378,31 +378,56 @@ begin
     exact set.Ioo_subset_Icc_self }
 end
 
-/-- A time-independent, continuously differentiable ODE satisfies the hypotheses of the
+/-- A time-independent, locally continuously differentiable ODE satisfies the hypotheses of the
   Picard-Lindelöf theorem. -/
-lemma time_indep_cont_diff_is_picard_lindelof
-  [proper_space E] (v : E → E) (hv : cont_diff ℝ 1 v) (t₀ : ℝ) (x₀ : E) :
+lemma time_indep_cont_diff_on_nhds_is_picard_lindelof
+  [proper_space E] (v : E → E) (x₀ : E) (s : set E) (hs : s ∈ nhds x₀)
+  (hv : cont_diff_on ℝ 1 v s) (t₀ : ℝ) :
   ∃ (ε : ℝ) (hε : 0 < ε), is_picard_lindelof (λ t, v) (t₀ - ε) t₀ (t₀ + ε) x₀ :=
 begin
-  obtain ⟨L, s, hs, hlip⟩ := cont_diff_at.exists_lipschitz_on_with hv.cont_diff_at,
-  rw metric.mem_nhds_iff at hs,
-  obtain ⟨r, hr : 0 < r, hball⟩ := hs,
+  have h1 := (hv.cont_diff_within_at (mem_of_mem_nhds hs)).cont_diff_at hs,
+  obtain ⟨L, s', hs', hlip⟩ := cont_diff_at.exists_lipschitz_on_with h1,
+  have h2 := lipschitz_on_with.mono hlip (set.inter_subset_right s s'),
+  have h3 := inter_sets (nhds x₀) hs hs',
+  obtain ⟨r, hr : 0 < r, hball⟩ := metric.mem_nhds_iff.mp h3,
   have hr' := (half_pos hr).le,
-  obtain ⟨C, hC⟩ := (is_compact_closed_ball x₀ (r / 2)).bdd_above_image -- uses proper_space E
-    hv.cont_diff_on.continuous_on.norm,
-  have hv : 0 ≤ C :=
-  (norm_nonneg (v x₀)).trans (hC ⟨x₀, by rwa [metric.mem_closed_ball, dist_self], rfl⟩),
+  have h4 := (is_compact_closed_ball x₀ (r / 2)).bdd_above_image
+    (hv.continuous_on.norm.mono
+      (subset_inter_iff.mp
+        ((closed_ball_subset_ball (half_lt_self hr)).trans hball)).left),
+  obtain ⟨C, hC⟩ := h4,
+  have hC' : 0 ≤ C,
+  { apply (norm_nonneg (v x₀)).trans,
+    apply hC,
+    exact ⟨x₀, ⟨mem_closed_ball_self hr', rfl⟩⟩ },
   refine ⟨if C = 0 then 1 else (r / 2 / C), _, L, r / 2, C, (half_pos hr).le,
-    λ t ht, hlip.mono (subset_trans (metric.closed_ball_subset_ball (half_lt_self hr)) hball),
+    λ t ht, hlip.mono (set.subset_inter_iff.mp (subset_trans (metric.closed_ball_subset_ball (half_lt_self hr)) hball)).2,
     λ x hx, continuous_on_const, λ t ht x hx, hC ⟨x, hx, rfl⟩, _⟩,
   { split_ifs,
     { exact zero_lt_one },
-    { exact div_pos (half_pos hr) (lt_of_le_of_ne hv (ne.symm h)) } },
+    { exact div_pos (half_pos hr) (lt_of_le_of_ne hC' (ne.symm h)) } },
   { rw [add_sub_cancel', sub_sub_cancel, max_self, mul_ite, mul_one],
     split_ifs,
     { rwa ← h at hr' },
     { exact (mul_div_cancel' (r / 2) h).le } }
 end
+
+/-- A time-independent, continuously differentiable ODE satisfies the hypotheses of the
+  Picard-Lindelöf theorem. -/
+lemma time_indep_cont_diff_is_picard_lindelof
+  [proper_space E] (v : E → E) (hv : cont_diff ℝ 1 v) (t₀ : ℝ) (x₀ : E) :
+  ∃ (ε : ℝ) (hε : 0 < ε), is_picard_lindelof (λ t, v) (t₀ - ε) t₀ (t₀ + ε) x₀ :=
+time_indep_cont_diff_on_nhds_is_picard_lindelof v x₀ set.univ univ_mem hv.cont_diff_on t₀
+
+/-- A time-independent, locally continuously differentiable ODE admits a solution in some open
+interval. -/
+theorem ODE_solution_exists.at_ball_of_cont_diff_on_nhds
+  [proper_space E] (v : E → E) (x₀ : E) (s : set E) (hs : s ∈ nhds x₀)
+  (hv : cont_diff_on ℝ 1 v s) (t₀ : ℝ) :
+  ∃ (ε : ℝ) (hε : 0 < ε) (f : ℝ → E), f t₀ = x₀ ∧
+    ∀ t ∈ metric.ball t₀ ε, has_deriv_at f (v (f t)) t :=
+let ⟨ε, hε, hpl⟩ := time_indep_cont_diff_on_nhds_is_picard_lindelof v x₀ s hs hv t₀ in
+   ⟨ε, hε, ODE_solution_exists.at_ball (λ t, v) t₀ ε hε x₀ hpl⟩
 
 /-- A time-independent, continuously differentiable ODE admits a solution in some open interval. -/
 theorem ODE_solution_exists.at_ball_of_cont_diff

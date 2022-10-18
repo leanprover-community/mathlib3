@@ -950,8 +950,7 @@ begin
   exact tsum_bUnion_le _ _ _
 end
 
-lemma tsum_ite_eq_extract {f : β → ℝ≥0∞} (hf : summable f) (b : β) :
-  ∑' x, f x = f b + ∑' x, ite (x = b) 0 (f x) :=
+lemma tsum_ite_eq_extract {f : β → ℝ≥0∞} (b : β) : ∑' x, f x = f b + ∑' x, ite (x = b) 0 (f x) :=
 tsum_ite_eq_extract' b ennreal.summable
 
 end tsum

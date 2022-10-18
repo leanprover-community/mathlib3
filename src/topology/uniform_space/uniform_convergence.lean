@@ -214,6 +214,11 @@ begin
   simp only [mem_prod_principal, hff', mem_set_of_eq],
 end
 
+lemma tendsto_uniformly_on.congr' {g : α → β}
+  (hf : tendsto_uniformly_on F f p s) (hfg : eq_on f g s) :
+  tendsto_uniformly_on F g p s :=
+λ u hu, by filter_upwards [hf u hu] with i hi a ha using hfg ha ▸ hi a ha
+
 protected lemma tendsto_uniformly.tendsto_uniformly_on
   (h : tendsto_uniformly F f p) : tendsto_uniformly_on F f p s :=
 (tendsto_uniformly_on_univ.2 h).mono (subset_univ s)

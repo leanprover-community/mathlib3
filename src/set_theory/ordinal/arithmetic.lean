@@ -2400,3 +2400,34 @@ meta def positivity_opow : expr → tactic strictness
 | _ := failed
 
 end tactic
+
+namespace acc
+variables {a b : α}
+
+/-- The length of the longest `r`-chain of elements ending in `a`. -/
+noncomputable def rank (h : acc r a) : ordinal :=
+acc.rec_on h $ λ a h ih, ordinal.sup $ λ b : {b // r b a}, order.succ $ ih b b.2
+
+lemma rank_eq (h : acc r a) :
+  h.rank = ordinal.sup (λ b : {b // r b a}, order.succ (h.inv b.2).rank) :=
+by { change (acc.intro a $ λ _, h.inv).rank = _, refl }
+
+/-- if `r a b` then the rank of `a` is less than the rank of `b`. -/
+lemma rank_lt_of_rel (hb : acc r b) (h : r a b) : (hb.inv h).rank < hb.rank :=
+(order.lt_succ _).trans_le $ by { rw hb.rank_eq, refine le_trans _ (ordinal.le_sup _ ⟨a, h⟩), refl }
+
+end acc
+
+namespace well_founded
+variables (hwf : well_founded r) {a b : α}
+include hwf
+
+/-- The length of the longest `r`-chain of elements ending in `a`. -/
+noncomputable def rank (a : α) : ordinal := (hwf.apply a).rank
+
+lemma rank_eq : hwf.rank a = ordinal.sup (λ b : {b // r b a}, order.succ $ hwf.rank b) :=
+by { rw [rank, acc.rank_eq], refl }
+
+lemma rank_lt_of_rel (h : r a b) : hwf.rank a < hwf.rank b := acc.rank_lt_of_rel _ h
+
+end well_founded

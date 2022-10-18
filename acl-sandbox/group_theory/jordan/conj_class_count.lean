@@ -847,39 +847,45 @@ begin
    exact ⟨λ c, (this c).some, λ c, (this c).some_spec⟩,
 end
 
+/-- If g and c commute, then g stabilizes the support of c -/
+lemma equiv.perm.mem_support_of_commute {g c : equiv.perm α} (hgc : g * c = c * g) :
+  ∀ (x : α), x ∈ c.support ↔ g x ∈ c.support :=
+begin
+  intro x,
+  simp only [equiv.perm.mem_support, not_iff_not, ← equiv.perm.mul_apply],
+  rw [← hgc, equiv.perm.mul_apply],
+  exact (equiv.apply_eq_iff_eq g).symm,
+end
+
 /-- Centralizer of a cycle is a power of that cycle on the cycle -/
-lemma equiv.perm.centralizer_of_cycle_on (g c : equiv.perm α) (hc : c.is_cycle) :
+lemma equiv.perm.centralizer_of_cycle_on' (g c : equiv.perm α) (hc : c.is_cycle) :
   (g * c = c * g) ↔  ∃ (hc' : ∀ (x : α), x ∈ c.support ↔ g x ∈ c.support),
-      equiv.perm.subtype_perm g hc' ∈ subgroup.zpowers
-        (c.subtype_perm_of_support) :=
+      equiv.perm.subtype_perm g hc' ∈ subgroup.zpowers (c.subtype_perm_of_support) :=
 begin
   split,
   { intro hgc,
-    have hgc' : ∀ (x : α), x ∈ c.support ↔ g x ∈ c.support,
-    { intro x,
-      simp only [equiv.perm.mem_support, not_iff_not, ← equiv.perm.mul_apply],
-      rw [← hgc, equiv.perm.mul_apply],
-      exact (equiv.apply_eq_iff_eq g).symm, },
+    let hgc' := equiv.perm.mem_support_of_commute hgc,
     use hgc',
     obtain ⟨a, ha⟩ := equiv.perm.support_of_cycle_nonempty hc,
-    have : equiv.perm.same_cycle c a (g a),
-      apply equiv.perm.is_cycle.same_cycle hc (equiv.perm.mem_support.mp ha),
-      exact equiv.perm.mem_support.mp ((hgc' a).mp ha),
+    suffices : c.same_cycle a (g a),
     simp only [equiv.perm.same_cycle] at this,
     obtain ⟨i, hi⟩ := this, use i,
     ext ⟨x, hx⟩,
     simp only [equiv.perm.subtype_perm_of_support, subtype.coe_mk, equiv.perm.subtype_perm_apply],
     rw equiv.perm.subtype_perm_apply_zpow_of_mem,
-    suffices : equiv.perm.same_cycle c a x,
+    suffices : c.same_cycle a x,
     { obtain ⟨j, rfl⟩ := this,
-      have : g * (c ^ j) = (c ^ j) * g := commute.zpow_right hgc j,
-      { simp only [← equiv.perm.mul_apply, this],
+      { simp only [← equiv.perm.mul_apply, commute.eq (commute.zpow_right hgc j)],
         rw [← zpow_add, add_comm i j, zpow_add],
         simp only [equiv.perm.mul_apply],
         simp only [embedding_like.apply_eq_iff_eq],
         exact hi, }, },
+    -- c.same_cycle a x,
     exact equiv.perm.is_cycle.same_cycle hc
-      (equiv.perm.mem_support.mp ha) (equiv.perm.mem_support.mp hx), },
+      (equiv.perm.mem_support.mp ha) (equiv.perm.mem_support.mp hx),
+    -- c.same_cycle a (g a),
+    apply equiv.perm.is_cycle.same_cycle hc (equiv.perm.mem_support.mp ha),
+    exact equiv.perm.mem_support.mp ((hgc' a).mp ha), },
   { -- converse
     rintro ⟨hc', h⟩,
     obtain ⟨i, hi⟩ := h,
@@ -906,23 +912,102 @@ begin
       exact hix.symm, } },
 end
 
-lemma equiv.perm.centralizer_of_cycle_on' (g c : equiv.perm α) (hc : c.is_cycle) :
+example  (g c : equiv.perm α) (hc : c.is_cycle) (hc' : ∀ (x : α), x ∈ c.support ↔ g x ∈ c.support) :
+      (equiv.perm.subtype_perm g hc').of_subtype ∈ subgroup.zpowers c
+      ↔  equiv.perm.subtype_perm g hc' ∈ subgroup.zpowers (c.subtype_perm_of_support) :=
+begin
+  simp only [subgroup.mem_zpowers_iff],
+  apply exists_congr,
+  intro n,
+
+  split,
+  { intro h, ext ⟨x, hx⟩, let h' := equiv.perm.congr_fun h x,
+    simp only [h', equiv.perm.subtype_perm_of_support, equiv.perm.subtype_perm_apply_zpow_of_mem, subtype.coe_mk,
+  equiv.perm.subtype_perm_apply],
+    rw equiv.perm.of_subtype_apply_of_mem,
+    simp only [subtype.coe_mk, equiv.perm.subtype_perm_apply],
+    exact hx, },
+  { intro h, ext x,
+    rw ← h,
+    by_cases hx : x ∈ c.support,
+    { rw equiv.perm.of_subtype_apply_of_mem,
+      simp only [equiv.perm.subtype_perm_of_support, equiv.perm.subtype_perm_apply_zpow_of_mem], exact hx, },
+    { rw equiv.perm.of_subtype_apply_of_not_mem,
+      rw ← equiv.perm.not_mem_support,
+      intro hx', apply hx,
+      apply equiv.perm.support_zpow_le, exact hx',
+      exact hx, }, },
+end
+
+lemma equiv.perm.zpow_eq_of_subtype_subtype_perm_iff' (g c : equiv.perm α)
+  (hc' : ∀ x, x ∈ c.support ↔ g x ∈ c.support) (n : ℤ) :
+  c ^ n = equiv.perm.of_subtype (g.subtype_perm hc')
+  ↔ c.subtype_perm_of_support ^ n = g.subtype_perm hc'
+:=
+begin
+  split,
+  { intro h, ext ⟨x, hx⟩, let h' := equiv.perm.congr_fun h x,
+    simp only [h', equiv.perm.subtype_perm_of_support, equiv.perm.subtype_perm_apply_zpow_of_mem, subtype.coe_mk,
+  equiv.perm.subtype_perm_apply],
+    rw equiv.perm.of_subtype_apply_of_mem,
+    simp only [subtype.coe_mk, equiv.perm.subtype_perm_apply],
+    exact hx, },
+  { intro h, ext x,
+    rw ← h,
+    by_cases hx : x ∈ c.support,
+    { rw equiv.perm.of_subtype_apply_of_mem,
+      simp only [equiv.perm.subtype_perm_of_support, equiv.perm.subtype_perm_apply_zpow_of_mem], exact hx, },
+    { rw equiv.perm.of_subtype_apply_of_not_mem,
+      rw ← equiv.perm.not_mem_support,
+      intro hx', apply hx,
+      apply equiv.perm.support_zpow_le, exact hx',
+      exact hx, }, },
+end
+
+lemma equiv.perm.zpow_eq_of_subtype_subtype_perm_iff (g c : equiv.perm α)
+  (s : finset α) (hg : ∀ x, x ∈ s ↔ g x ∈ s) (hc : c.support ⊆ s) (n : ℤ) :
+let hc' : ∀ x, x ∈ s ↔ c x ∈ s :=
+begin
+  intro x,
+  by_cases hx' : x ∈ c.support,
+  { simp only [hc hx', true_iff],
+    apply hc, rw equiv.perm.apply_mem_support, exact hx', },
+  rw equiv.perm.not_mem_support at hx', rw hx',
+end in
+  c ^ n = equiv.perm.of_subtype (g.subtype_perm hg)
+  ↔ c.subtype_perm hc' ^ n = g.subtype_perm hg :=
+begin
+  split,
+  { intro h, ext ⟨x, hx⟩, let h' := equiv.perm.congr_fun h x,
+    simp only [h', equiv.perm.subtype_perm_of_support, equiv.perm.subtype_perm_apply_zpow_of_mem, subtype.coe_mk,
+  equiv.perm.subtype_perm_apply],
+    rw equiv.perm.of_subtype_apply_of_mem,
+    simp only [subtype.coe_mk, equiv.perm.subtype_perm_apply],
+    exact hx, },
+  { intro h, ext x,
+    rw ← h,
+    by_cases hx : x ∈ s,
+    { rw equiv.perm.of_subtype_apply_of_mem,
+      simp only [equiv.perm.subtype_perm_apply_zpow_of_mem], exact hx, },
+    { rw equiv.perm.of_subtype_apply_of_not_mem,
+      rw ← equiv.perm.not_mem_support,
+      intro hx',
+      apply hx,
+      apply hc, apply equiv.perm.support_zpow_le, exact hx',
+      exact hx, }, },
+end
+
+lemma equiv.perm.centralizer_of_cycle_on (g c : equiv.perm α) (hc : c.is_cycle) :
   (g * c = c * g)
   ↔  ∃ (hc' : ∀ (x : α), x ∈ c.support ↔ g x ∈ c.support),
       (equiv.perm.subtype_perm g hc').of_subtype ∈ subgroup.zpowers c :=
 begin
   split,
   { intro hgc,
-    have hgc' : ∀ (x : α), x ∈ c.support ↔ g x ∈ c.support,
-    { intro x,
-      simp only [equiv.perm.mem_support, not_iff_not, ← equiv.perm.mul_apply],
-      rw [← hgc, equiv.perm.mul_apply],
-      exact (equiv.apply_eq_iff_eq g).symm, },
+    let hgc' := equiv.perm.mem_support_of_commute hgc,
     use hgc',
     obtain ⟨a, ha⟩ := equiv.perm.support_of_cycle_nonempty hc,
-    have : equiv.perm.same_cycle c a (g a),
-      apply equiv.perm.is_cycle.same_cycle hc (equiv.perm.mem_support.mp ha),
-      exact equiv.perm.mem_support.mp ((hgc' a).mp ha),
+    suffices : c.same_cycle a (g a),
     simp only [equiv.perm.same_cycle] at this,
     obtain ⟨i, hi⟩ := this, use i,
     ext x,
@@ -930,13 +1015,10 @@ begin
     { rw equiv.perm.of_subtype_apply_of_mem,
       simp only [subtype.coe_mk, equiv.perm.subtype_perm_apply],
       obtain ⟨j, rfl⟩ := equiv.perm.is_cycle.same_cycle hc
-      (equiv.perm.mem_support.mp ha) (equiv.perm.mem_support.mp hx),
-
+        (equiv.perm.mem_support.mp ha) (equiv.perm.mem_support.mp hx),
       simp only [← equiv.perm.mul_apply],
-      have : g * (c ^ j) = (c ^ j) * g := commute.zpow_right hgc j,
-      rw this,
-      have : (c ^ i) * (c ^ j) = c ^ j * c^ i := commute.zpow_zpow_self c i j,
-      rw this,
+      rw commute.eq (commute.zpow_right hgc j),
+      rw commute.eq (commute.zpow_zpow_self c i j),
       simp only [equiv.perm.mul_apply, hi],
       exact hx, },
     { rw equiv.perm.of_subtype_apply_of_not_mem,
@@ -944,7 +1026,11 @@ begin
       intro hx', apply hx,
       apply equiv.perm.support_zpow_le,
       exact hx',
-      exact hx, }, },
+      exact hx, },
+    -- c.same_cycle a (g a)
+      apply equiv.perm.is_cycle.same_cycle hc (equiv.perm.mem_support.mp ha),
+      exact equiv.perm.mem_support.mp ((hgc' a).mp ha),
+    },
   { -- converse
     rintro ⟨hc', h⟩,
     obtain ⟨i, hi⟩ := h,
@@ -970,7 +1056,6 @@ begin
       exact hx, } },
 end
 
-
 /-- A permutation restricted to the support of a cycle factor is that cycle factor -/
 lemma equiv.perm.subtype_perm_on_cycle_factor (g c : equiv.perm α) (hc : c ∈ g.cycle_factors_finset) :
   (g.subtype_perm ((equiv.perm.mem_cycle_factors_finset_support g c hc)))
@@ -989,13 +1074,13 @@ lemma equiv.perm.centralizer_mem_cycle_factors_iff (g k : equiv.perm α) (c : eq
 begin
   split,
   { intro H,
-    obtain ⟨hc', H'⟩ := (equiv.perm.centralizer_of_cycle_on k c
+    obtain ⟨hc', H'⟩ := (equiv.perm.centralizer_of_cycle_on' k c
       (equiv.perm.mem_cycle_factors_finset_iff.mp hc).1).mp H,
     rw ← equiv.perm.subtype_perm_on_cycle_factor g c hc at H',
     exact ⟨hc', H'⟩, },
   { rintro ⟨hc', H'⟩,
     rw equiv.perm.subtype_perm_on_cycle_factor g c hc at H',
-    rw equiv.perm.centralizer_of_cycle_on k c (equiv.perm.mem_cycle_factors_finset_iff.mp hc).1,
+    rw equiv.perm.centralizer_of_cycle_on' k c (equiv.perm.mem_cycle_factors_finset_iff.mp hc).1,
     exact ⟨hc', H'⟩, },
 end
 
@@ -1004,7 +1089,7 @@ lemma equiv.perm.centralizer_mem_cycle_factors_iff' (g k : equiv.perm α) (c : e
   ∃ (hc' : ∀ (x : α), x ∈ c.support ↔ k x ∈ c.support),
       (k.subtype_perm hc').of_subtype ∈ subgroup.zpowers c :=
 begin
-  apply equiv.perm.centralizer_of_cycle_on',
+  rw equiv.perm.centralizer_of_cycle_on,
   rw equiv.perm.mem_cycle_factors_finset_iff at hc,
   exact hc.1,
 end
@@ -1230,7 +1315,6 @@ begin
         apply equiv.injective e,
         rw [← subtype.coe_inj, ← ha'' (e c) i, ← ha'' (e d) j, He], }, },
   have k_apply : ∀ (c : g.cycle_factors_finset) (i : ℤ), k (Kf 1 ⟨c,i⟩) = Kf τ ⟨c,i⟩,
---  ∀ (c : g.cycle_factors_finset) (i : ℤ), k ((g ^ i) (a c)) = (g ^ i) (a (τ c)),
   { intros c i,
     simp only [k],
     rw function.extend_apply_first (Kf 1) (Kf τ) id _ ⟨c,i⟩,
@@ -1313,7 +1397,6 @@ begin
           simp only [equiv.perm.coe_one, id.def, ne.def], exact ne.symm hcd, }, },
       { simp only [ha5 x hx, ha6 x hx], }, },
 end
-
 
 example (j : ℤ) : j = 1 + (j - 1) :=
 begin

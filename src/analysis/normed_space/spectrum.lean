@@ -262,7 +262,7 @@ lemma has_fpower_series_on_ball_inverse_one_sub_smul [complete_space A] (a : A) 
     { by_cases h : ∥a∥₊ = 0,
       { simp only [nnnorm_eq_zero.mp h, norm_zero, zero_lt_one, smul_zero] },
       { have nnnorm_lt : ∥y∥₊ < ∥a∥₊⁻¹,
-          by simpa only [←ennreal.coe_inv h, mem_ball_zero_iff, metric.emetric_ball_nnreal] using hy,
+        { simpa only [←ennreal.coe_inv h, mem_ball_zero_iff, metric.emetric_ball_nnreal] using hy },
         rwa [←coe_nnnorm, ←real.lt_to_nnreal_iff_coe_lt, real.to_nnreal_one, nnnorm_smul,
           ←nnreal.lt_inv_iff_mul_lt h] } },
     simpa [←smul_pow, (normed_ring.summable_geometric_of_norm_lt_1 _ norm_lt).has_sum_iff]

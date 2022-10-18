@@ -175,6 +175,20 @@ lemma homology.ext {D : V} {k k' : homology f g w ⟶ D}
   (p : homology.π f g w ≫ k = homology.π f g w ≫ k') : k = k' :=
 by { ext, exact p, }
 
+/-- The cokernel of the map `Im f ⟶ Ker 0` is isomorphic to the cokernel of `f.` -/
+def homology_of_zero_right [has_cokernel (image_to_kernel f (0 : B ⟶ C) comp_zero)]
+  [has_cokernel f] [has_cokernel (image.ι f)] [epi (factor_thru_image f)] :
+  homology f (0 : B ⟶ C) comp_zero ≅ cokernel f :=
+(cokernel.map_iso _ _ (image_subobject_iso _) ((kernel_subobject_iso 0).trans
+  kernel_zero_iso_source) (by simp)).trans (cokernel_image_ι _)
+
+/-- The kernel of the map `Im 0 ⟶ Ker f` is isomorphic to the kernel of `f.` -/
+def homology_of_zero_left [has_zero_object V] [has_kernels V] [has_image (0 : A ⟶ B)]
+  [has_cokernel (image_to_kernel (0 : A ⟶ B) g zero_comp)] :
+  homology (0 : A ⟶ B) g zero_comp ≅ kernel g :=
+((cokernel_iso_of_eq $ image_to_kernel_zero_left _).trans cokernel_zero_iso_target).trans
+  (kernel_subobject_iso _)
+
 /-- `homology 0 0 _` is just the middle object. -/
 @[simps]
 def homology_zero_zero [has_zero_object V]

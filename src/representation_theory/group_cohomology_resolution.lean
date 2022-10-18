@@ -446,45 +446,13 @@ theorem exact_at_succ (n : ℕ) :
 (forget₂ (Rep k G) (Module.{u} k)).exact_of_exact_map
   (forget₂_to_Module_exact_succ _ _ _)
 
-section homotopy_equiv_single₀
-
-/- Not sure where to put these at the moment; algebra/homology/homotopy doesn't import
-algebra/homology/single and vice versa. -/
-variables {V : Type u} [category.{v} V] [preadditive V]
-  [has_zero_object V]
-
-/-- If a chain complex `C` is homotopy equivalent to a complex concentrated at 0 (for some
-object `X`), the cokernel of the differential `d : C₁ → C₀` is isomorphic to `X.` -/
-def chain_complex.cokernel_at_zero_of_homotopy_equiv_single₀
-  [has_cokernels V] {C : chain_complex V ℕ} {X : V}
-  (H : homotopy_equiv C ((chain_complex.single₀ _).obj X)) : cokernel (C.d 1 0) ≅ X :=
-{ hom := cokernel.desc (C.d 1 0) (H.1.f 0) $ by rw ←H.1.2 1 0 rfl; exact comp_zero,
-  inv := H.2.f 0 ≫ cokernel.π _,
-  hom_inv_id' := coequalizer.hom_ext $ by rw [←category.assoc, cokernel.π_desc, ←category.assoc,
-    ←homological_complex.comp_f, H.3.3 0]; simp,
-  inv_hom_id' := by rw [category.assoc, cokernel.π_desc, ←homological_complex.comp_f,
-    H.4.3 0]; simpa, }
-
-/-- If a cochain complex `C` is homotopy equivalent to a complex concentrated at 0 (for some
-object `X`), the kernel of the differential `d : C₀ → C₁` is isomorphic to `X.` -/
-def cochain_complex.kernel_at_zero_of_homotopy_equiv_single₀
-   [has_kernels V] {C : cochain_complex V ℕ} {X : V}
-  (H : homotopy_equiv C ((cochain_complex.single₀ _).obj X)) : kernel (C.d 0 1) ≅ X :=
-{ hom := kernel.ι _ ≫ H.1.f 0,
-  inv := kernel.lift _ (H.2.f 0) (by rw H.2.2 0 1 rfl; exact zero_comp),
-  hom_inv_id' := equalizer.hom_ext $ by rw [category.assoc, kernel.lift_ι, category.assoc,
-    ←homological_complex.comp_f, H.3.3 0]; simp,
-  inv_hom_id' := by rw [←category.assoc, kernel.lift_ι, ←homological_complex.comp_f,
-    H.4.3 0]; simpa }
-
-end homotopy_equiv_single₀
-
 lemma forget_to_Module_exact₀ :
   exact ((group_cohomology.resolution.forget₂_to_Module k G).d 1 0)
   ((forget₂_to_Module_homotopy_equiv k G).1.f 0) :=
 (preadditive.exact_iff_homology_zero _ _).2 ⟨_, ⟨(homology_iso_kernel_desc _ _ _).trans $
-  @kernel.of_mono _ _ _ _ _ _ _ _ $
- is_iso.mono_of_iso (chain_complex.cokernel_at_zero_of_homotopy_equiv_single₀ _).hom⟩⟩
+  @kernel.of_mono _ _ _ _ _ _ _ _ $ is_iso.mono_of_iso (C.homology_zero_iso.symm.trans
+  ((@as_iso _ _ _ _ _ (H.to_quasi_iso.1 0)).trans
+  ((chain_complex.homology_functor_0_single₀ V).app X))).hom⟩⟩
 
 lemma exact₀ : exact ((group_cohomology.resolution k G).d 1 0) (ε k G) :=
 (forget₂ (Rep k G) (Module.{u} k)).exact_of_exact_map

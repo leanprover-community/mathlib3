@@ -39,7 +39,7 @@ Lattice structure on antichains. Order equivalence between upper/lower sets and 
 
 open order_dual set
 
-variables {α : Type*} {ι : Sort*} {κ : ι → Sort*}
+variables {α β : Type*} {ι : Sort*} {κ : ι → Sort*}
 
 /-! ### Unbundled upper/lower sets -/
 
@@ -689,3 +689,64 @@ begin
 end
 
 end closure
+
+/-! ### Product -/
+
+section preorder
+variables [preorder α] [preorder β] {s : set α} {t : set β} {x : α × β}
+
+lemma is_upper_set.prod (hs : is_upper_set s) (ht : is_upper_set t) : is_upper_set (s ×ˢ t) :=
+λ a b h ha, ⟨hs h.1 ha.1, ht h.2 ha.2⟩
+
+lemma is_lower_set.prod (hs : is_lower_set s) (ht : is_lower_set t) : is_lower_set (s ×ˢ t) :=
+λ a b h ha, ⟨hs h.1 ha.1, ht h.2 ha.2⟩
+
+namespace upper_set
+
+/-- The product of two upper sets as an upper set. -/
+def prod (s : upper_set α) (t : upper_set β) : upper_set (α × β) := ⟨s ×ˢ t, s.2.prod t.2⟩
+
+@[simp] lemma coe_prod (s : upper_set α) (t : upper_set β) : (s.prod t : set (α × β)) = s ×ˢ t :=
+rfl
+
+@[simp] lemma mem_prod {s : upper_set α} {t : upper_set β} : x ∈ s.prod t ↔ x.1 ∈ s ∧ x.2 ∈ t :=
+iff.rfl
+
+lemma Ici_prod (x : α × β) : Ici x = (Ici x.1).prod (Ici x.2) := rfl
+@[simp] lemma Ici_prod_Ici (a : α) (b : β) : (Ici a).prod (Ici b) = Ici (a, b) := rfl
+
+@[simp] lemma bot_prod_bot : (⊥ : upper_set α).prod (⊥ : upper_set β) = ⊥ := ext univ_prod_univ
+@[simp] lemma prod_top (s : upper_set α) : s.prod (⊤ : upper_set β) = ⊤ := ext prod_empty
+@[simp] lemma top_prod (t : upper_set β) : (⊤ : upper_set α).prod t = ⊤ := ext empty_prod
+
+end upper_set
+
+namespace lower_set
+
+/-- The product of two lower sets as a lower set. -/
+def prod (s : lower_set α) (t : lower_set β) : lower_set (α × β) := ⟨s ×ˢ t, s.2.prod t.2⟩
+
+@[simp] lemma coe_prod (s : lower_set α) (t : lower_set β) : (s.prod t : set (α × β)) = s ×ˢ t :=
+rfl
+
+@[simp] lemma mem_prod {s : lower_set α} {t : lower_set β} : x ∈ s.prod t ↔ x.1 ∈ s ∧ x.2 ∈ t :=
+iff.rfl
+
+lemma Iic_prod (x : α × β) : Iic x = (Iic x.1).prod (Iic x.2) := rfl
+@[simp] lemma Ici_prod_Ici (a : α) (b : β) : (Iic a).prod (Iic b) = Iic (a, b) := rfl
+
+@[simp] lemma prod_bot (s : lower_set α) : s.prod (⊥ : lower_set β) = ⊥ := ext prod_empty
+@[simp] lemma bot_prod (t : lower_set β) : (⊥ : lower_set α).prod t = ⊥ := ext empty_prod
+@[simp] lemma top_prod_top : (⊤ : lower_set α).prod (⊤ : lower_set β) = ⊤ := ext univ_prod_univ
+
+end lower_set
+
+@[simp] lemma upper_closure_prod (s : set α) (t : set β) :
+  upper_closure (s ×ˢ t) = (upper_closure s).prod (upper_closure t) :=
+by { ext, simp [prod.le_def, and_and_and_comm _ (_ ∈ t)] }
+
+@[simp] lemma lower_closure_prod (s : set α) (t : set β) :
+  lower_closure (s ×ˢ t) = (lower_closure s).prod (lower_closure t) :=
+by { ext, simp [prod.le_def, and_and_and_comm _ (_ ∈ t)] }
+
+end preorder

@@ -348,12 +348,13 @@ end
 
 variables {m0 : measurable_space Ω} {μ : measure Ω}
 
-lemma indep_sets_pi_Union_Inter_of_disjoint [decidable_eq ι] [is_probability_measure μ]
+lemma indep_sets_pi_Union_Inter_of_disjoint [is_probability_measure μ]
   {s : ι → set (set Ω)} {S T : set ι}
   (h_indep : Indep_sets s μ) (hST : disjoint S T) :
   indep_sets (pi_Union_Inter s S) (pi_Union_Inter s T) μ :=
 begin
   rintros t1 t2 ⟨p1, hp1, f1, ht1_m, ht1_eq⟩ ⟨p2, hp2, f2, ht2_m, ht2_eq⟩,
+  classical,
   let g := λ i, ite (i ∈ p1) (f1 i) set.univ ∩ ite (i ∈ p2) (f2 i) set.univ,
   have h_P_inter : μ (t1 ∩ t2) = ∏ n in p1 ∪ p2, μ (g n),
   { have hgm : ∀ i ∈ p1 ∪ p2, g i ∈ s i,

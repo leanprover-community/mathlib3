@@ -11,7 +11,7 @@ import tactic.basic
 
 > THIS FILE IS FROZEN, AS IT HAS BEEN PORTED TO MATHLIB4
 > https://github.com/leanprover-community/mathlib4/pull/457
-> No changes accepted with corresponding PRs to mathlib4.
+> No changes accepted without a corresponding PR to mathlib4.
 
 In this file we define typeclasses for algebraic structures with one binary operation.
 The classes are named `(add_)?(comm_)?(semigroup|monoid|group)`, where `add_` means that

@@ -14,7 +14,7 @@ import order.monotone
 
 > THIS FILE IS FROZEN, AS IT HAS BEEN PORTED TO MATHLIB4
 > https://github.com/leanprover-community/mathlib4/pull/467
-> No changes accepted with corresponding PRs to mathlib4.
+> No changes accepted without a corresponding PR to mathlib4.
 
 This file contains general lemmas and instances to work with the interactions between a relation and
 an action on a Type.

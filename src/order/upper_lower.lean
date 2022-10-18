@@ -805,22 +805,6 @@ lemma Ici_le_Ioi (a : α) : Ici a ≤ Ioi a := Ioi_subset_Ici_self
 @[simp] lemma Ioi_top [order_top α] : Ioi (⊤ : α) = ⊤ := set_like.coe_injective Ioi_top
 @[simp] lemma Ici_bot [order_bot α] : Ici (⊥ : α) = ⊥ := set_like.coe_injective Ici_bot
 
-@[simp] lemma image_Ici [order_iso_class F α β] (φ : F) (a : α) :
-  upper_set.map φ (Ici a) = Ici (φ a) :=
-set_like.coe_injective $ (φ : α ≃o β).image_Ici _
-
-@[simp] lemma image_Ioi [order_iso_class F α β] (a : α) (φ : F) :
-  upper_set.map φ (Ioi a) = Ioi (φ a) :=
-set_like.coe_injective $ (φ : α ≃o β).image_Ioi _
-
-@[simp] lemma preimage_Ici [order_iso_class F α β] (b : β) (φ : F) :
-  ((upper_set.map φ : upper_set α ≃o upper_set β).symm (Ici b)) = Ici ((φ : α ≃o β).symm b) :=
-set_like.coe_injective $ (φ : α ≃o β).preimage_Ici _
-
-@[simp] lemma preimage_Ioi [order_iso_class F α β] (b : β) (φ : F) :
-  ((upper_set.map φ : upper_set α ≃o upper_set β).symm (Ioi b)) = Ioi ((φ : α ≃o β).symm b) :=
-set_like.coe_injective $ (φ : α ≃o β).preimage_Ioi _
-
 end preorder
 
 section semilattice_sup
@@ -877,22 +861,6 @@ lemma Ioi_le_Ici (a : α) : Ioi a ≤ Ici a := Ioi_subset_Ici_self
 
 @[simp] lemma Iic_top [order_top α] : Iic (⊤ : α) = ⊤ := set_like.coe_injective Iic_top
 @[simp] lemma Iio_bot [order_bot α] : Iio (⊥ : α) = ⊥ := set_like.coe_injective Iio_bot
-
-@[simp] lemma image_Iic [order_iso_class F α β] (φ : F) (a : α) :
-  lower_set_equiv φ (Iic a) = Iic (φ a) :=
-set_like.coe_injective $ (φ : α ≃o β).image_Iic _
-
-@[simp] lemma image_Iio [order_iso_class F α β] (a : α) (φ : F) :
-  lower_set_equiv φ (Iio a) = Iio (φ a) :=
-set_like.coe_injective $ (φ : α ≃o β).image_Iio _
-
-@[simp] lemma preimage_Iic [order_iso_class F α β] (b : β) (φ : F) :
-  ((lower_set_equiv φ : lower_set α ≃o lower_set β).symm (Iic b)) = Iic ((φ : α ≃o β).symm b) :=
-set_like.coe_injective $ (φ : α ≃o β).preimage_Iic _
-
-@[simp] lemma preimage_Iio [order_iso_class F α β] (b : β) (φ : F) :
-  ((lower_set_equiv φ : lower_set α ≃o lower_set β).symm (Iio b)) = Iio ((φ : α ≃o β).symm b) :=
-set_like.coe_injective $ (φ : α ≃o β).preimage_Iio _
 
 end preorder
 

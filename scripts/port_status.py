@@ -46,10 +46,10 @@ allDone = dict()
 parentsDone = dict()
 for node in graph.nodes:
     ancestors = nx.ancestors(graph, node)
-    if all(data[imported] == 'Yes' for imported in ancestors) and data[node] == 'No':
+    if all(data[imported].startswith('Yes') for imported in ancestors) and data[node].startswith('No'):
         allDone[node] = len(nx.descendants(graph, node))
     else:
-        if all(data[imported] == 'Yes' for imported in graph.predecessors(node)) and data[node] == 'No':
+        if all(data[imported].startswith('Yes') for imported in graph.predecessors(node)) and data[node].startswith('No'):
             parentsDone[node] = len(nx.descendants(graph, node))
 
 print('# The following files have all dependencies ported already, and should be ready to port:')

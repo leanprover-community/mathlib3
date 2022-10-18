@@ -62,11 +62,7 @@ lemma not_a_field : maximal_ideal R ≠ ⊥ := not_a_field'
 
 /-- A discrete valuation `R` is not a field. -/
 lemma not_is_field : ¬ is_field R :=
-begin
-  rw ring.not_is_field_iff_exists_prime,
-  exact ⟨local_ring.maximal_ideal R, discrete_valuation_ring.not_a_field R,
-     ideal.is_maximal.is_prime' (maximal_ideal R)⟩,
-end
+ring.not_is_field_iff_exists_prime.mpr ⟨_, not_a_field R, is_maximal.is_prime' (maximal_ideal R)⟩
 
 variable {R}
 

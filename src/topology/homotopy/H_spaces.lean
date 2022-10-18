@@ -26,7 +26,7 @@ noncomputable theory
 
 open_locale unit_interval
 
-open path continuous_map set.Icc
+open path continuous_map set.Icc topological_space
 
 /--
 An topological space `X` is an H-space if it behaves like a (potentially non-associative)
@@ -36,10 +36,40 @@ class H_space (X : Type u) [topological_space X] :=
 (Hmul : C(X × X, X))
 (e : X)
 (Hmul_e_e : Hmul (e, e) = e)
-(left_Hmul_e : (Hmul.comp $ (const X e).prod_mk $ continuous_map.id X).homotopy_rel
+(e_Hmul : (Hmul.comp $ (const X e).prod_mk $ continuous_map.id X).homotopy_rel
   (continuous_map.id X) {e})
-(right_Hmul_e : (Hmul.comp $ (continuous_map.id X).prod_mk $ const X e).homotopy_rel
+(Hmul_e : (Hmul.comp $ (continuous_map.id X).prod_mk $ const X e).homotopy_rel
   (continuous_map.id X) {e})
+
+/- We use the notation `⋀`, typeset as \And, to denote the binary operation `Hmul` on a H-space -/
+localized "notation (name := H_space.Hmul) x `⋀` y := H_space.Hmul (x, y) " in H_spaces
+
+def H_space.prod (X : Type u) (Y : Type v) [topological_space X] [topological_space Y]
+[H_space X] [H_space Y] : H_space (X × Y) :=
+{ Hmul := ⟨λ p, ((p.1.1 ⋀ p.2.1),  p.1.2 ⋀ p.2.2), by continuity⟩,
+  e := (H_space.e, H_space.e),
+  Hmul_e_e := by {simp only [continuous_map.coe_mk, prod.mk.inj_iff],
+    exact ⟨H_space.Hmul_e_e, H_space.Hmul_e_e⟩},
+  e_Hmul :=
+  begin
+    let G : I × (X × Y) → X × Y :=
+      (λ p, (H_space.e_Hmul (p.1, p.2.1), H_space.e_Hmul (p.1, p.2.2))),
+    have hG : continuous G := (continuous.comp H_space.e_Hmul.1.1.2 (continuous_fst.prod_mk
+      (continuous_fst.comp continuous_snd))).prod_mk (continuous.comp H_space.e_Hmul.1.1.2
+      (continuous_fst.prod_mk (continuous_snd.comp continuous_snd))),
+    use ⟨G, hG⟩,
+    { rintros ⟨x, y⟩,
+      exacts prod.mk.inj_iff.mpr ⟨(H_space.e_Hmul).1.2 x, (H_space.e_Hmul).1.2 y⟩ },
+    { rintros ⟨x, y⟩,
+      exact prod.mk.inj_iff.mpr ⟨(H_space.e_Hmul).1.3 x, (H_space.e_Hmul).1.3 y⟩ },
+    { rintros t ⟨x, y⟩ h,
+      replace h := prod.mk.inj_iff.mp (set.mem_singleton_iff.mp h),
+      exact
+        ⟨prod.mk.inj_iff.mpr ⟨homotopy_rel.eq_fst (H_space.e_Hmul) t (set.mem_singleton_iff.mpr h.1),
+          homotopy_rel.eq_fst (H_space.e_Hmul) t (set.mem_singleton_iff.mpr h.2)⟩,
+        prod.mk.inj_iff.mpr ⟨((H_space.e_Hmul).2 t x h.1).2, ((H_space.e_Hmul).2 t y h.2).2⟩⟩ },
+  end,
+  Hmul_e := sorry, }
 
 namespace topological_group
 
@@ -48,8 +78,8 @@ namespace topological_group
 { Hmul := ⟨function.uncurry has_mul.mul, continuous_mul⟩,
   e := 1,
   Hmul_e_e := one_mul 1,
-  left_Hmul_e := (homotopy_rel.refl _ _).cast rfl (by {ext1, apply one_mul}),
-  right_Hmul_e := (homotopy_rel.refl _ _).cast rfl (by {ext1, apply mul_one}) }
+  e_Hmul := (homotopy_rel.refl _ _).cast rfl (by {ext1, apply one_mul}),
+  Hmul_e := (homotopy_rel.refl _ _).cast rfl (by {ext1, apply mul_one}) }
 
 lemma one_eq_H_space_e {G : Type u} [topological_space G] [group G] [topological_group G] :
   (1 : G) = H_space.e := rfl
@@ -138,11 +168,11 @@ instance (x : X) : H_space Ω_[x] :=
 { Hmul := ⟨λ ρ, ρ.1.trans ρ.2, continuous_trans⟩,
   e := refl x,
   Hmul_e_e := refl_trans_refl,
-  left_Hmul_e :=
+  e_Hmul :=
   { to_homotopy := ⟨⟨λ p : I × Ω_[x], delayed_refl_left p.1 p.2,
       continuous_delayed_refl_left⟩, delayed_refl_left_zero, delayed_refl_left_one⟩,
     prop' := by { rintro t _ (rfl : _ = _), exact ⟨refl_trans_refl.symm, rfl⟩ } },
-  right_Hmul_e :=
+  Hmul_e :=
   { to_homotopy := ⟨⟨λ p : I × Ω_[x], delayed_refl_right p.1 p.2,
       continuous_delayed_refl_right⟩, delayed_refl_right_zero, delayed_refl_right_one⟩,
     prop' := by { rintro t _ (rfl : _ = _), exact ⟨refl_trans_refl.symm, rfl⟩ } } }

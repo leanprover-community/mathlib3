@@ -274,50 +274,54 @@ by { convert μ.transpose.row_len_anti j1 j2 hj; simp }
 
 end columns
 
-section of_row_lens
-/-! ### Equivalence between Young diagrams and weakly-decreasing lists of natural numbers
+section row_lens
+/-! ### The list of row lengths of a Young diagram
+
+This section defines `μ.row_lens : list ℕ`, the list of row lengths of a Young diagram `μ`.
+  1. `row_lens_sorted` : It is weakly decreasing (list.sorted (≥)).
+  2. `row_lens_pos` : It is strictly positive.
+
+A final lemma is proved in the next section:
+  3. `card_eq_sum_row_lens` : the cardinality of `μ` is the sum of the row lengths.
+
 -/
 
--- This probably belongs elsewhere. Is it already in mathlib?
-lemma range_is_sorted : ∀ (n : ℕ), (list.range n).sorted (≤)
-| 0 :=  list.pairwise.nil
-| (nat.succ n) := by { rw [list.range_succ_eq_map, list.sorted_cons],
-                       refine ⟨λ _ _, zero_le _, (range_is_sorted n).map _ @nat.succ_le_succ⟩ }
+-- This belongs somewhere in the list namespace. Is it already in mathlib?
+lemma range_sorted_lt (n : ℕ) : (list.range n).sorted (<) :=
+list.pairwise_iff_nth_le.mpr (λ i j _ h, by simpa only [list.nth_le_range])
+-- Ditto.
+lemma range_sorted_le (n : ℕ) : (list.range n).sorted (≤) :=
+list.pairwise.imp (@le_of_lt ℕ _) (range_sorted_lt _)
 
--- Likewise.
-lemma list_sorted_iff_inth_le {w : list ℕ} :
-  w.sorted (≥) ↔ ∀ n n', n ≤ n' → w.inth n' ≤ w.inth n :=
-begin
-  rw [list.sorted, list.pairwise_iff_nth_le],
-  split,
-  { intros hw i j hij,
-    cases eq_or_lt_of_le hij with hij hij, subst i,
-    by_cases hj : j < w.length,
-    { rw [w.inth_eq_nth_le hj, w.inth_eq_nth_le (hij.trans hj)],
-      exact hw _ _ hj hij },
-    { rw w.inth_eq_default (le_of_not_lt hj),
-      exact nat.zero_le _ }, },
-  { intros hw i j hj hij,
-    rw [← w.inth_eq_nth_le hj, ← w.inth_eq_nth_le (hij.trans hj)],
-    apply hw _ _ (le_of_lt hij), }
-end
-
+/-- List of row lengths of a Young diagram -/
 def row_lens (μ : young_diagram) : list ℕ := (list.range $ μ.col_len 0).map μ.row_len
 
-lemma row_lens_sorted (μ : young_diagram) : μ.row_lens.sorted (≥) :=
-(range_is_sorted _).map _ μ.row_len_anti
+@[simp] lemma row_lens_apply {μ : young_diagram} {i : ℕ} {hi : i < μ.row_lens.length} :
+  μ.row_lens.nth_le i hi = μ.row_len i :=
+by simp only [row_lens, list.nth_le_range, list.nth_le_map']
 
-lemma row_lens_pos (μ : young_diagram) (i : ℕ) (hi : i < μ.row_lens.length) :
-  0 < μ.row_lens.nth_le i hi :=
-by simpa only [row_lens, list.nth_le_range, list.nth_le_map', ← mem_iff_lt_row_len,
-               list.length_map, list.length_range, ← mem_iff_lt_col_len] using hi
+@[simp] lemma row_lens_length {μ : young_diagram} : μ.row_lens.length = μ.col_len 0 :=
+by simp only [row_lens, list.length_map, list.length_range]
+
+lemma row_lens_sorted (μ : young_diagram) : μ.row_lens.sorted (≥) :=
+(range_sorted_le _).map _ μ.row_len_anti
 
 lemma row_lens_pos_of_mem (μ : young_diagram) (x : ℕ) (hx : x ∈ μ.row_lens) : 0 < x :=
 begin
   rw [row_lens, list.mem_map] at hx,
   obtain ⟨i, hi, rfl : μ.row_len i = x⟩ := hx,
-  rwa [list.mem_range, ← mem_iff_lt_col_len, mem_iff_lt_row_len] at hi,
+  rwa [list.mem_range, ← mem_iff_lt_col_len, mem_iff_lt_row_len] at hi
 end
+
+end row_lens
+
+section equiv_list_row_lens
+/-! ### Equivalence between Young diagrams and lists of natural numbers
+
+This section defines `equiv_list_row_lens`, the equivalence between Young diagrams and weakly
+decreasing lists of positive natural numbers, given by row lengths.
+
+-/
 
 def cells_of_row_lens : list ℕ → finset (ℕ × ℕ)
 | [] := finset.empty
@@ -325,92 +329,97 @@ def cells_of_row_lens : list ℕ → finset (ℕ × ℕ)
                  (cells_of_row_lens ws).map
                    (function.embedding.prod_map ⟨_, nat.succ_injective⟩ (by refl))
 
-lemma mem_of_row_lens (w : list ℕ) (c : ℕ × ℕ) :
-  c ∈ cells_of_row_lens w ↔ c.snd < w.inth c.fst :=
+lemma mem_cells_of_row_lens {w : list ℕ} {c : ℕ × ℕ} :
+  c ∈ cells_of_row_lens w ↔ ∃ (h : c.fst < w.length), c.snd < w.nth_le c.fst h :=
 begin
   induction w generalizing c;
   rw cells_of_row_lens,
-  { rw [list.inth_nil], change false ↔ _ < 0,
-    simp only [nat.not_lt_zero, iff_self] },
-  { cases c with i j, cases i,
+  { change false ↔ ∃ (h : _ < 0), _, simp },
+  { rcases c with ⟨⟨_, _⟩, _⟩,
     { simp },
-    { simp [w_ih, -finset.singleton_product] }, },
+    { simpa [w_ih, -finset.singleton_product, nat.succ_lt_succ_iff] } }
 end
 
 def of_row_lens (w : list ℕ) (hw : w.sorted (≥)) : young_diagram :=
-{ cells := cells_of_row_lens w,
+{ cells        := cells_of_row_lens w,
   is_lower_set := begin
     rintros ⟨i2, j2⟩ ⟨i1, j1⟩ ⟨hi : i1 ≤ i2, hj : j1 ≤ j2⟩ hcell,
-    rw [finset.mem_coe, mem_of_row_lens] at hcell ⊢,
-    calc j1 ≤ j2        : hj
-      ...   < w.inth i2 : hcell
-      ...   ≤ w.inth i1 : list_sorted_iff_inth_le.mp hw _ _ hi,
+    rw [finset.mem_coe, mem_cells_of_row_lens] at hcell ⊢,
+    obtain ⟨h1, h2⟩ := hcell,
+    refine ⟨hi.trans_lt h1, _⟩,
+    calc j1 ≤ j2            : hj
+      ...   < w.nth_le i2 _ : h2
+      ...   ≤ w.nth_le i1 _ : _,
+    cases eq_or_lt_of_le hi,
+    { subst h },
+    { apply list.pairwise_iff_nth_le.mp hw _ _ _ h }
   end }
 
-lemma card_of_row_lens (w : list ℕ) : (cells_of_row_lens w).card = w.sum :=
-begin
-  induction w, refl,
-  rw [cells_of_row_lens, finset.card_disjoint_union],
-  { simp [w_ih] },
-  { rintros ⟨i, j⟩ h,
-    simp only [finset.inf_eq_inter, finset.mem_inter, finset.mem_product,
-               finset.mem_singleton] at h,
-    obtain ⟨⟨rfl : i = 0, hj⟩, h⟩ := h,
-    simpa using h },
-end
+lemma mem_of_row_lens {w : list ℕ} {hw : w.sorted (≥)} {c : ℕ × ℕ} :
+  c ∈ of_row_lens w hw ↔ ∃ (h : c.fst < w.length), c.snd < w.nth_le c.fst h :=
+mem_cells_of_row_lens
 
-lemma row_lens_length_of_row_lens (w : list ℕ) (hw : w.sorted (≥)) (hpos : ∀ x ∈ w, 0 < x) :
+lemma row_lens_length_of_row_lens {w : list ℕ} {hw : w.sorted (≥)} (hpos : ∀ x ∈ w, 0 < x) :
   (of_row_lens w hw).row_lens.length = w.length :=
 begin
-  simp only [row_lens, of_row_lens, ← mem_cells, mem_of_row_lens, list.inth_eq_default,
-             list.length_map, list.length_range, col_len, nat.find_eq_iff, not_not],
-  refine ⟨by simpa, λ n hn, (hpos (w.inth n) _)⟩,
-  simp only [list.inth_eq_nth_le _ hn, list.nth_le_mem],
+  simp only [row_lens_length, col_len, nat.find_eq_iff, mem_cells, mem_of_row_lens,
+             lt_self_iff_false, is_empty.exists_iff, not_not],
+  exact ⟨id, λ n hn, ⟨hn, hpos _ (list.nth_le_mem _ _ hn)⟩⟩,
 end
 
-lemma row_len_of_row_lens (w : list ℕ) (hw : w.sorted (≥)) (hpos : ∀ x ∈ w, 0 < x) (i : ℕ) :
-  (of_row_lens w hw).row_len i = w.inth i :=
-by simp [row_len, nat.find_eq_iff, of_row_lens, ← mem_cells, mem_of_row_lens]
+lemma row_len_of_row_lens {w : list ℕ} {hw : w.sorted (≥)} (hpos : ∀ x ∈ w, 0 < x)
+  (i : ℕ) (hi : i < w.length) : (of_row_lens w hw).row_len i = w.nth_le i hi :=
+by simp [row_len, nat.find_eq_iff, mem_of_row_lens, hi]
 
-def equiv_sorted_ge_nat : young_diagram ≃ {w : list ℕ // w.sorted (≥) ∧ ∀ x ∈ w, 0 < x} :=
-{ to_fun := λ μ, ⟨μ.row_lens, μ.row_lens_sorted, μ.row_lens_pos_of_mem⟩,
-  inv_fun := λ ww, of_row_lens ww.1 ww.2.1,
-  left_inv := λ μ, begin
+lemma row_lens_of_row_lens_eq_self {w : list ℕ} {hw : w.sorted (≥)} (hpos : ∀ x ∈ w, 0 < x) :
+  (of_row_lens w hw).row_lens = w :=
+begin
+  ext i r,
+  cases lt_or_ge i w.length,
+  { simp only [option.mem_def, ← list.nth_le_eq_iff, h, row_lens_length_of_row_lens hpos],
+    revert r,
+    simpa only [eq_iff_eq_cancel_right, row_lens_apply] using row_len_of_row_lens hpos _ h },
+  { rw [list.nth_eq_none_iff.mpr h, list.nth_eq_none_iff.mpr],
+    rwa [← row_lens_length_of_row_lens hpos] at h }
+end
+
+/-- Equivalence between Young diagrams and weakly decreasing lists of positive natural numbers.
+A Young diagram `μ` is equivalent to a list of row lengths. -/
+def equiv_list_row_lens : young_diagram ≃ {w : list ℕ // w.sorted (≥) ∧ ∀ x ∈ w, 0 < x} :=
+{ to_fun    := λ μ, ⟨μ.row_lens, μ.row_lens_sorted, μ.row_lens_pos_of_mem⟩,
+  inv_fun   := λ ww, of_row_lens ww.1 ww.2.1,
+  left_inv  := λ μ, begin
     ext ⟨i, j⟩,
-    change (i, j) ∈ cells_of_row_lens μ.row_lens ↔ (i, j) ∈ μ,
-    rw [mem_of_row_lens, mem_iff_lt_row_len, row_lens],
-    by_cases i < μ.col_len 0,
-    { rw [list.inth_eq_nth_le, list.nth_le_map]; simp [h] },
-    { rw list.inth_eq_default,
-      rw [← mem_iff_lt_col_len, mem_iff_lt_row_len, not_lt, le_zero_iff] at h,
-      rw h, refl,
-      simp only [list.length_map, list.length_range, not_lt.mp h], }
+    simp only [mem_cells, mem_of_row_lens, row_lens_length, row_lens_apply],
+    simpa [← mem_iff_lt_col_len, mem_iff_lt_row_len] using j.zero_le.trans_lt,
   end,
-  right_inv := begin
-    rintros ⟨w, hw⟩, simp,
-    ext i r,
-    by_cases i < w.length,
-    { simp only [option.mem_def, ← list.nth_le_eq_iff, h,
-                 row_lens_length_of_row_lens _ _ hw.2],
-      revert r,
-      simp only [eq_iff_eq_cancel_right, row_lens, row_len_of_row_lens w hw.1 hw.2 i,
-                 list.nth_le_map', list.nth_le_range, list.inth_eq_nth_le _ h] },
-    repeat {rw list.nth_eq_none_iff.mpr},
-    rwa not_lt at h,
-    rwa [not_lt, ← row_lens_length_of_row_lens _ _ hw.2] at h,
-  end
-}
+  right_inv := λ ⟨w, hw⟩, subtype.mk_eq_mk.mpr (row_lens_of_row_lens_eq_self hw.2) }
 
-end of_row_lens
+lemma card_of_row_lens {w : list ℕ} {hw : w.sorted (≥)} (hpos : ∀ x ∈ w, 0 < x) :
+  (of_row_lens w hw).card = w.sum :=
+begin
+  induction w,
+  { refl },
+  { dsimp only [young_diagram.card, of_row_lens, cells_of_row_lens] at ⊢ w_ih,
+    rw [finset.card_disjoint_union, finset.card_map,
+        @w_ih hw.of_cons (list.forall_mem_cons.mp hpos).2,
+        finset.card_product, finset.card_singleton, finset.card_range, one_mul, list.sum_cons],
+    rintro ⟨i, j⟩,
+    rw [finset.inf_eq_inter, finset.mem_inter, finset.mem_product, finset.mem_singleton,
+        finset.mem_range, finset.mem_map],
+    rintro ⟨⟨rfl : i = 0, z⟩, ⟨⟨_, _⟩, ⟨_, h⟩⟩⟩,
+    simpa using h }
+end
 
-section of_col_lens
+/-- The cardinality of a Young diagram is the sum of its row lengths. -/
+lemma card_eq_sum_row_lens {μ : young_diagram} : μ.card = μ.row_lens.sum :=
+begin
+  rw ← equiv_list_row_lens.left_inv μ,
+  change (of_row_lens _ _).card = (of_row_lens _ _).row_lens.sum,
+  rw [card_of_row_lens, row_lens_of_row_lens_eq_self];
+  exact (equiv_list_row_lens μ).2.2,
+end
 
-def col_lens (μ : young_diagram) : list ℕ :=
-  list.map μ.col_len (list.range $ μ.row_len 0)
-
-lemma col_lens_sorted (μ : young_diagram) : μ.col_lens.sorted (≥) :=
-list.pairwise.map _ μ.col_len_anti (range_is_sorted _)
-
-end of_col_lens
+end equiv_list_row_lens
 
 end young_diagram

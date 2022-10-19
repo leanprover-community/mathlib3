@@ -25,6 +25,7 @@ variables {M : Type*} [add_comm_group M] (R : Type*) [comm_ring R] [module R M] 
 variables (b : ι → M) (hb : submodule.span R (set.range b) = ⊤)
 
 open_locale big_operators
+open_locale polynomial
 
 /-- The composition of a matrix (as an endomporphism of `ι → R`) with the projection
 `(ι → R) →ₗ[R] M`.  -/

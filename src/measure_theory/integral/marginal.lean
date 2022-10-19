@@ -427,7 +427,7 @@ def rhs_aux (f : (ι → ℝ) → ℝ) (s : finset ι) : (ι → ℝ) → ℝ :=
 (marginal (λ _, volume) s f) ^ ((s.card : ℝ) / (fintype.card ι - 1)) *
 ∏ i in sᶜ, marginal (λ _, volume) (insert i s) f ^ ((1 : ℝ) / (fintype.card ι - 1))
 
-lemma induction_step' (f : (ι → ℝ) → ℝ) (hf : ∀ x, 0 ≤ f x) (s : finset ι) (i : ι) (hi : i ∉ s) :
+lemma marginal_rhs_aux_le (f : (ι → ℝ) → ℝ) (hf : ∀ x, 0 ≤ f x) (s : finset ι) (i : ι) (hi : i ∉ s) :
   ∫⋯∫_{i}, rhs_aux f s ∂(λ _, volume) ≤ rhs_aux f (insert i s) :=
 begin
     simp_rw [rhs_aux, ← insert_compl_insert hi],
@@ -468,7 +468,7 @@ begin
 end
 
 
-lemma lem1 (f : (ι → ℝ) → ℝ) (hf : ∀ x, 0 ≤ f x) (s : finset ι) :
+lemma marginal_rhs_aux_empty_le (f : (ι → ℝ) → ℝ) (hf : ∀ x, 0 ≤ f x) (s : finset ι) :
   ∫⋯∫_s, rhs_aux f ∅ ∂(λ _, volume) ≤ rhs_aux f s :=
 begin
   induction s using finset.induction with i s hi ih,
@@ -476,14 +476,14 @@ begin
   { have hi' : disjoint s {i} := sorry,
     conv_lhs { rw [finset.insert_eq, finset.union_comm, marginal_union (λ _, (volume : measure ℝ)) _ sorry hi'] },
     refine (marginal_mono sorry sorry ih).trans _,
-    exact induction_step' f hf s i hi }
+    exact marginal_rhs_aux_le f hf s i hi }
 end
 
-lemma lem2 (f : (ι → ℝ) → ℝ) (hf : ∀ x, 0 ≤ f x) :
+lemma integral_prod_integral_pow_le (f : (ι → ℝ) → ℝ) (hf : ∀ x, 0 ≤ f x) :
   ∫ x, ∏ i, (∫ xᵢ, f (function.update x i xᵢ)) ^ ((1 : ℝ) / (fintype.card ι - 1)) ≤
   (∫ x, f x)  ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) :=
 begin
-  have := lem1 f hf finset.univ 0,
+  have := marginal_rhs_aux_empty_le f hf finset.univ 0,
   simp_rw [rhs_aux, marginal_univ, finset.compl_univ, finset.prod_empty, marginal_empty,
     finset.card_empty, nat.cast_zero, zero_div, finset.compl_empty, mul_one,
     pi.mul_def, pi.pow_apply, real.rpow_zero, one_mul, finset.prod_fn, pi.pow_apply,
@@ -491,10 +491,11 @@ begin
   exact this,
 end
 
-theorem foo : ∫ x, ∥u x∥ ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) ≤
+/-- The Sobolev inequality -/
+theorem integral_pow_le : ∫ x, ∥u x∥ ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) ≤
   (∫ x, ∥fderiv ℝ u x∥)  ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) :=
 begin
-  refine le_trans _ (lem2 _ $ λ x, norm_nonneg _),
+  refine le_trans _ (integral_prod_integral_pow_le _ $ λ x, norm_nonneg _),
   sorry
 end
 

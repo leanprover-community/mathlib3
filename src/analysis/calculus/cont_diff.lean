@@ -1452,8 +1452,20 @@ lemma iterated_fderiv_succ_apply_left {n : ℕ} (m : fin (n + 1) → E):
 and the derivative of the `n`-th derivative. -/
 lemma iterated_fderiv_succ_eq_comp_left {n : ℕ} :
   iterated_fderiv 𝕜 (n + 1) f =
-  (continuous_multilinear_curry_left_equiv 𝕜 (λ(i : fin (n + 1)), E) F)
+  (continuous_multilinear_curry_left_equiv 𝕜 (λ (i : fin (n + 1)), E) F)
     ∘ (fderiv 𝕜 (iterated_fderiv 𝕜 n f)) := rfl
+
+/-- Writing explicitly the derivative of the `n`-th derivative as the composition of a currying
+linear equiv, and the `n + 1`-th derivative. -/
+lemma fderiv_iterated_fderiv {n : ℕ} :
+  fderiv 𝕜 (iterated_fderiv 𝕜 n f) =
+  (continuous_multilinear_curry_left_equiv 𝕜 (λ (i : fin (n + 1)), E) F).symm
+    ∘ (iterated_fderiv 𝕜 (n + 1) f) :=
+begin
+  rw iterated_fderiv_succ_eq_comp_left,
+  ext1 x,
+  simp only [function.comp_app, linear_isometry_equiv.symm_apply_apply],
+end
 
 lemma has_compact_support.iterated_fderiv (hf : has_compact_support f) (n : ℕ) :
   has_compact_support (iterated_fderiv 𝕜 n f) :=

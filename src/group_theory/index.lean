@@ -136,10 +136,11 @@ end
 of `b * a` and `b` belong to `H`. -/
 @[to_additive "/-- An additive subgroup has index two if and only if there exists `a` such that for
 all `b`, exactly one of `b + a` and `b` belong to `H`. -/"]
-lemma index_eq_two_iff : H.index = 2 ↔ ∃ a, ∀ b, b * a ∈ H ↔ b ∉ H :=
+lemma index_eq_two_iff : H.index = 2 ↔ ∃ a, ∀ b, xor (b * a ∈ H) (b ∈ H) :=
 begin
   simp only [index, nat.card_eq_two_iff' ((1 : G) : G ⧸ H), exists_unique, inv_mem_iff,
-    quotient_group.exists_coe, quotient_group.forall_coe, ne.def, quotient_group.eq, mul_one],
+    quotient_group.exists_coe, quotient_group.forall_coe, ne.def, quotient_group.eq, mul_one,
+    xor_iff_iff_not],
   refine exists_congr (λ a, ⟨λ ha b, ⟨λ hba hb, _, λ hb, _⟩, λ ha, ⟨_, λ b hb, _⟩⟩),
   { exact ha.1 ((mul_mem_cancel_left hb).1 hba) },
   { exact inv_inv b ▸ ha.2 _ (mt inv_mem_iff.1 hb) },
@@ -154,7 +155,8 @@ begin
   by_cases hb : b ∈ H, { simp only [hb, iff_true, mul_mem_cancel_right hb] },
   simp only [ha, hb, iff_self, iff_true],
   rcases index_eq_two_iff.1 h with ⟨c, hc⟩,
-  rwa [← (hc _).not_left, mul_assoc, mul_mem_cancel_right ((hc b).2 hb)],
+  refine (hc _).or.resolve_left _,
+  rwa [mul_assoc, mul_mem_cancel_right ((hc _).or.resolve_right hb)]
 end
 
 @[to_additive] lemma mul_self_mem_of_index_two (h : H.index = 2) (a : G) : a * a ∈ H :=

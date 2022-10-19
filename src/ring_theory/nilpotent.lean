@@ -83,15 +83,40 @@ begin
   exact (hx.map f).eq_zero,
 end
 
-lemma ring_hom.ker_is_radical_iff_reduced_of_surjective {R S F} [comm_semiring R] [comm_ring S]
+lemma ring_hom.ker_is_radical_iff_reduced_of_surjective {S F} [comm_semiring R] [comm_ring S]
   [ring_hom_class F R S] {f : F} (hf : function.surjective f) :
-  (ring_hom.ker f).radical ≤ ring_hom.ker f ↔ is_reduced S :=
+  (ring_hom.ker f).is_radical ↔ is_reduced S :=
 by simp_rw [is_reduced_iff, hf.forall, is_nilpotent, ← map_pow, ← ring_hom.mem_ker]; refl
 
-lemma ideal.is_radical_iff_quotient_reduced {R} [comm_ring R] (I : ideal R) :
-  I.radical ≤ I ↔ is_reduced (R ⧸ I) :=
+lemma ideal.is_radical_iff_quotient_reduced [comm_ring R] (I : ideal R) :
+  I.is_radical ↔ is_reduced (R ⧸ I) :=
 by { conv_lhs { rw ← @ideal.mk_ker R _ I },
   exact ring_hom.ker_is_radical_iff_reduced_of_surjective (@ideal.quotient.mk_surjective R _ I) }
+
+def is_radical [has_dvd R] [has_pow R ℕ] (y : R) : Prop := ∀ (n : ℕ) x, y ∣ x ^ n → y ∣ x
+
+lemma zero_is_radical_iff [monoid_with_zero R] : is_radical (0 : R) ↔ is_reduced R :=
+by { simp_rw [is_reduced_iff, is_nilpotent, exists_imp_distrib, ← zero_dvd_iff], exact forall_swap }
+
+lemma is_radical_iff_span_singleton [comm_semiring R] :
+  is_radical y ↔ (ideal.span ({y} : set R)).is_radical :=
+begin
+  simp_rw [is_radical, ← ideal.mem_span_singleton],
+  exact forall_swap.trans (forall_congr $ λ r, exists_imp_distrib.symm),
+end
+
+lemma is_radical_iff_pow_one_lt [monoid_with_zero R] (k : ℕ) (hk : 1 < k) :
+  is_radical y ↔ ∀ x, y ∣ x ^ k → y ∣ x :=
+⟨λ h x, h k x, λ h x, begin
+  apply cauchy_induction,
+end⟩
+
+lemma is_reduced_iff_pow_one_lt [monoid_with_zero R] (k : ℕ) (hk : 1 < k) :
+  is_reduced R ↔ ∀ x, x ^ k = 0 → x = 0 :=
+
+
+lemma is_reduced_iff_sq :
+
 
 namespace commute
 

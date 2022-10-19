@@ -644,8 +644,13 @@ def radical (I : ideal R) : ideal R :=
         (pow_add x m (c-m)).symm ▸ I.mul_mem_right _ hxmi)⟩,
   smul_mem' := λ r s ⟨n, hsni⟩, ⟨n, (mul_pow r s n).symm ▸ I.mul_mem_left (r^n) hsni⟩ }
 
+def is_radical (I : ideal R) : Prop := I.radical ≤ I
+
 theorem le_radical : I ≤ radical I :=
 λ r hri, ⟨1, (pow_one r).symm ▸ hri⟩
+
+theorem radical_eq_iff : I.radical = I ↔ I.is_radical :=
+by rw [le_antisymm_iff, and_iff_left le_radical, is_radical]
 
 variables (R)
 theorem radical_top : (radical ⊤ : ideal R) = ⊤ :=
@@ -656,8 +661,13 @@ theorem radical_mono (H : I ≤ J) : radical I ≤ radical J :=
 λ r ⟨n, hrni⟩, ⟨n, H hrni⟩
 
 variables (I)
+
 @[simp] theorem radical_idem : radical (radical I) = radical I :=
 le_antisymm (λ r ⟨n, k, hrnki⟩, ⟨n * k, (pow_mul r n k).symm ▸ hrnki⟩) le_radical
+
+theorem radical_is_radical : (radical I).is_radical :=
+by { rw ← radical_eq_iff, exact radical_idem I }
+
 variables {I}
 
 theorem radical_le_radical_iff : radical I ≤ radical J ↔ I ≤ radical J :=
@@ -669,6 +679,9 @@ theorem radical_eq_top : radical I = ⊤ ↔ I = ⊤ :=
 
 theorem is_prime.radical (H : is_prime I) : radical I = I :=
 le_antisymm (λ r ⟨n, hrni⟩, H.mem_of_pow_mem n hrni) le_radical
+
+theorem is_prime.is_radical (H : is_prime I) : I.is_radical :=
+by { rw ← radical_eq_iff, exact H.radical }
 
 variables (I J)
 theorem radical_sup : radical (I ⊔ J) = radical (radical I ⊔ radical J) :=
@@ -720,6 +733,10 @@ hrm $ this.radical.symm ▸ (Inf_le ⟨him, this⟩ : Inf {J : ideal R | I ≤ J
 @[simp] lemma radical_bot_of_is_domain {R : Type u} [comm_semiring R] [no_zero_divisors R] :
   radical (⊥ : ideal R) = ⊥ :=
 eq_bot_iff.2 (λ x hx, hx.rec_on (λ n hn, pow_eq_zero hn))
+
+lemma bot_is_radical_of_no_zero_divisors {R} [comm_semiring R] [no_zero_divisors R] :
+  (⊥ : ideal R).is_radical :=
+by { rw ← radical_eq_iff, exact radical_bot_of_is_domain }
 
 instance : comm_semiring (ideal R) := submodule.comm_semiring
 

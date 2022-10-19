@@ -45,6 +45,7 @@ ERR_UNF = 10 # unfreeze_local_instances
 WRN_IND = 11 # indentation
 WRN_BRC = 12 # curly braces
 ERR_NST = 13 # explicit reference to instance vars (_inst_1, etc)
+ERR_COM = 14 # commas must be followed by whitespace or a newline
 
 exceptions = []
 
@@ -83,6 +84,8 @@ with SCRIPTS_DIR.joinpath("style-exceptions.txt").open(encoding="utf-8") as f:
             exceptions += [(WRN_BRC, path)]
         if errno == "ERR_NST":
             exceptions += [(ERR_NST, path)]
+        if errno == "ERR_COM":
+            exceptions += [(ERR_COM, path)]
 
 new_exceptions = False
 
@@ -323,6 +326,14 @@ def unfreeze_local_instances_check(lines, path):
             errors += [(ERR_UNF, line_nr, path)]
     return errors
 
+def comma_followed_by_whitespace_check(lines, path):
+    errors = []
+    for line_nr, line in skip_comments(enumerate(lines, 1)):
+        for i, char in enumerate(line):
+            if char == "," and not (line[i+1] == "\n" or line[i+1] == " "):
+                errors += [(ERR_COM, line_nr, path)]
+    return errors
+
 def output_message(path, line_nr, code, msg):
     if len(exceptions) == 0:
         # we are generating a new exceptions file
@@ -368,6 +379,8 @@ def format_errors(errors):
             output_message(path, line_nr, "WRN_BRC", "Probable misformatting of curly braces")
         if errno == ERR_NST:
             output_message(path, line_nr, "ERR_NST", "Explicit reference to implicit instance variable name (e.g. _inst_1)")
+        if errno == ERR_COM:
+            output_message(path, line_nr, "ERR_COM", "Comma not followed by whitespace")
 
 def lint(path):
     with path.open(encoding="utf-8") as f:
@@ -395,6 +408,8 @@ def lint(path):
         errs = unfreeze_local_instances_check(lines, path)
         format_errors(errs)
         errs = instance_check(lines, path)
+        format_errors(errs)
+        errs = comma_followed_by_whitespace_check(lines, path)
         format_errors(errs)
 
 for filename in sys.argv[1:]:

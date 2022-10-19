@@ -330,7 +330,7 @@ def comma_followed_by_whitespace_check(lines, path):
     errors = []
     for line_nr, line in skip_comments(enumerate(lines, 1)):
         for i, char in enumerate(line):
-            if char == "," and not (line[i+1] == "\n" or line[i+1] == " "):
+            if char == "," and not (line[i+1] in " \'\"\n"):
                 errors += [(ERR_COM, line_nr, path)]
     return errors
 

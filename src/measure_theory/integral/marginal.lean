@@ -20,6 +20,14 @@ variables {ι ι' : Type*}
 section finset
 open finset
 
+namespace real
+
+lemma prod_rpow {ι} (s : finset ι) {f : ι → ℝ} (hf : ∀ i ∈ s, 0 ≤ f i) (r : ℝ) :
+  ∏ i in s, f i ^ r = (∏ i in s, f i) ^ r :=
+sorry
+
+end real
+
 variables {α β γ : Type*}
 
 lemma equiv.finset_image_univ_eq_univ [fintype α] [fintype β] (f : α ≃ β) :
@@ -55,6 +63,35 @@ by simp_rw [@eq_compl_comm _ _ s, compl_insert, compl_erase, compl_compl, erase_
 
 end finset
 end finset
+
+section calculus
+
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [fintype ι]
+variables {E : ι → Type*} [∀ i, normed_add_comm_group (E i)] [∀ i, normed_space 𝕜 (E i)]
+variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+
+-- ⇑(fderiv ℝ (λ (x_1 : ℝ), update x i x_1) y)
+
+
+lemma fderiv_update {x : Π i, E i} {i : ι} (y : E i) :
+  fderiv 𝕜 (function.update x i) y =
+  continuous_linear_map.pi (function.update 0 i (continuous_linear_map.id 𝕜 (E i))) :=
+sorry
+
+lemma continuous_linear_map.norm_le_norm_pi (f : Πi, F →L[𝕜] E i) (i : ι) :
+  ∥f i∥ ≤ ∥continuous_linear_map.pi f∥ :=
+sorry
+
+lemma continuous_linear_map.norm_pi [nonempty ι] (f : Πi, F →L[𝕜] E i) :
+  ∥continuous_linear_map.pi f∥ = (finset.univ.image $ λ i, ∥f i∥).max' (finset.univ_nonempty.image _) :=
+sorry
+
+variable (E)
+lemma continuous_linear_map.norm_pi_update_eq_one {i : ι} :
+  ∥continuous_linear_map.pi (function.update 0 i (continuous_linear_map.id 𝕜 (E i)))∥ = 1 :=
+sorry
+
+end calculus
 
 variables {α : ι → Type*}
 
@@ -290,6 +327,24 @@ variables {μ : ∀ i, measure (π i)} [∀ i, sigma_finite (μ i)]
 variables {E : Type*} [normed_add_comm_group E] [second_countable_topology E]
   [normed_space ℝ E] [complete_space E] [measurable_space E] [borel_space E]
 
+
+lemma integral_of_is_empty {α} [measurable_space α] [is_empty α] (μ : measure α) (f : α → E) :
+  ∫ x, f x ∂μ = 0 :=
+begin
+  convert integral_zero_measure f,
+  ext1,
+  convert measure_empty,
+end
+
+lemma _root_.has_compact_support.integral_deriv_eq {f : ℝ → E} (hf : cont_diff ℝ 1 f)
+  (h2f : has_compact_support f) (b : ℝ) :
+  ∫ x in set.Iic b, deriv f x = f b :=
+begin
+  sorry
+end
+
+
+
 /-- Integrate `f(x₁,…,xₙ)` over all variables `xᵢ` where `i ∈ s`. Return a function in the
   remaining variables (it will be constant in the `xᵢ` for `i ∈ s`).
   This is the marginal distribution of all variables not in `s`. -/
@@ -421,26 +476,26 @@ section sobolev
 open topological_space
 variables {E : Type*} [normed_add_comm_group E] [second_countable_topology E] -- todo: remove
   [normed_space ℝ E] [complete_space E] [measurable_space E] [borel_space E]
-variables (u : (ι → ℝ) → E) [fintype ι]
+variables [fintype ι] {π : ι → Type*} [Π i, measurable_space (π i)]
+  (μ : Π i, measure (π i)) [∀ i, sigma_finite (μ i)] (u : (ι → ℝ) → E)
 
-def rhs_aux (f : (ι → ℝ) → ℝ) (s : finset ι) : (ι → ℝ) → ℝ :=
-(marginal (λ _, volume) s f) ^ ((s.card : ℝ) / (fintype.card ι - 1)) *
-∏ i in sᶜ, marginal (λ _, volume) (insert i s) f ^ ((1 : ℝ) / (fintype.card ι - 1))
+def rhs_aux (f : (Π i, π i) → ℝ) (s : finset ι) : (Π i, π i) → ℝ :=
+(marginal μ s f) ^ ((s.card : ℝ) / (fintype.card ι - 1)) *
+∏ i in sᶜ, marginal μ (insert i s) f ^ ((1 : ℝ) / (fintype.card ι - 1))
 
-lemma marginal_rhs_aux_le (f : (ι → ℝ) → ℝ) (hf : ∀ x, 0 ≤ f x) (s : finset ι) (i : ι) (hi : i ∉ s) :
-  ∫⋯∫_{i}, rhs_aux f s ∂(λ _, volume) ≤ rhs_aux f (insert i s) :=
+lemma marginal_rhs_aux_le (f : (Π i, π i) → ℝ) (hf : ∀ x, 0 ≤ f x) (s : finset ι) (i : ι) (hi : i ∉ s) :
+  ∫⋯∫_{i}, rhs_aux μ f s ∂μ ≤ rhs_aux μ f (insert i s) :=
 begin
     simp_rw [rhs_aux, ← insert_compl_insert hi],
     rw [prod_insert (not_mem_compl.mpr $ mem_insert_self i s)],
     rw [mul_left_comm, mul_prod_eq_prod_insert_none],
     simp_rw [marginal_singleton _ sorry],
-    have := λ x xᵢ, marginal_update (λ _, volume) x f xᵢ (s.mem_insert_self i),
+    have := λ x xᵢ, marginal_update μ x f xᵢ (s.mem_insert_self i),
     simp_rw [pi.mul_apply, pi.pow_apply, this],
     clear this,
     simp_rw [integral_mul_left, prod_apply, option.elim_comp₂, pi.pow_apply],
     intro x, dsimp only,
-    have h1 : (0 : ℝ) ≤ (∫⋯∫_(insert i s), f ∂(λ _, measure_space.volume)) x ^
-      ((1 : ℝ) / (fintype.card ι - 1)) :=
+    have h1 : (0 : ℝ) ≤ (∫⋯∫_(insert i s), f ∂μ) x ^ ((1 : ℝ) / (fintype.card ι - 1)) :=
     sorry,
 
     refine (mul_le_mul_of_nonneg_left (integral_prod_norm_pow_le _ _ _ _ _) h1).trans_eq _,
@@ -468,22 +523,25 @@ begin
 end
 
 
-lemma marginal_rhs_aux_empty_le (f : (ι → ℝ) → ℝ) (hf : ∀ x, 0 ≤ f x) (s : finset ι) :
-  ∫⋯∫_s, rhs_aux f ∅ ∂(λ _, volume) ≤ rhs_aux f s :=
+lemma marginal_rhs_aux_empty_le (f : (Π i, π i) → ℝ) (hf : ∀ x, 0 ≤ f x) (s : finset ι) :
+  ∫⋯∫_s, rhs_aux μ f ∅ ∂μ ≤ rhs_aux μ f s :=
 begin
   induction s using finset.induction with i s hi ih,
   { rw [marginal_empty], refl', },
   { have hi' : disjoint s {i} := sorry,
-    conv_lhs { rw [finset.insert_eq, finset.union_comm, marginal_union (λ _, (volume : measure ℝ)) _ sorry hi'] },
+    conv_lhs { rw [finset.insert_eq, finset.union_comm, marginal_union μ _ sorry hi'] },
     refine (marginal_mono sorry sorry ih).trans _,
-    exact marginal_rhs_aux_le f hf s i hi }
+    exact marginal_rhs_aux_le μ f hf s i hi }
 end
 
-lemma integral_prod_integral_pow_le (f : (ι → ℝ) → ℝ) (hf : ∀ x, 0 ≤ f x) :
-  ∫ x, ∏ i, (∫ xᵢ, f (function.update x i xᵢ)) ^ ((1 : ℝ) / (fintype.card ι - 1)) ≤
-  (∫ x, f x)  ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) :=
+lemma integral_prod_integral_pow_le (f : (Π i, π i) → ℝ) (hf : ∀ x, 0 ≤ f x) :
+  ∫ x, ∏ i, (∫ xᵢ, f (function.update x i xᵢ) ∂μ i) ^ ((1 : ℝ) / (fintype.card ι - 1)) ∂measure.pi μ ≤
+  (∫ x, f x ∂measure.pi μ)  ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) :=
 begin
-  have := marginal_rhs_aux_empty_le f hf finset.univ 0,
+  casesI is_empty_or_nonempty (Π i, π i),
+  { simp_rw [integral_of_is_empty, real.zero_rpow_nonneg] },
+  inhabit (Π i, π i),
+  have := marginal_rhs_aux_empty_le μ f hf finset.univ default,
   simp_rw [rhs_aux, marginal_univ, finset.compl_univ, finset.prod_empty, marginal_empty,
     finset.card_empty, nat.cast_zero, zero_div, finset.compl_empty, mul_one,
     pi.mul_def, pi.pow_apply, real.rpow_zero, one_mul, finset.prod_fn, pi.pow_apply,
@@ -492,11 +550,50 @@ begin
 end
 
 /-- The Sobolev inequality -/
-theorem integral_pow_le : ∫ x, ∥u x∥ ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) ≤
+theorem integral_pow_le (hu : cont_diff ℝ 1 u) (h2u : has_compact_support u) :
+  ∫ x, ∥u x∥ ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) ≤
   (∫ x, ∥fderiv ℝ u x∥)  ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) :=
 begin
-  refine le_trans _ (integral_prod_integral_pow_le _ $ λ x, norm_nonneg _),
+  refine le_trans _ (integral_prod_integral_pow_le (λ _, volume) _ $ λ x, norm_nonneg _),
+  refine integral_mono sorry sorry (λ x, _),
+  dsimp only,
+  simp_rw [div_eq_mul_inv, one_mul, real.rpow_mul sorry, real.prod_rpow _ sorry],
+  refine real.rpow_le_rpow sorry _ sorry,
+  norm_cast,
+  rw [← card_univ, ← prod_const],
+  refine prod_le_prod (λ i hi, norm_nonneg _) (λ i hi, _),
+  have h3u : cont_diff ℝ 1 (λ t, u (update x i t)),
+  { sorry },
+  have h4u : has_compact_support (λ t, u (update x i t)),
+  { sorry },
+  have := h4u.integral_deriv_eq h3u (x i),
+  dsimp only at this,
+  simp_rw [update_eq_self] at this,
+  rw [← this],
+  refine (norm_integral_le_integral_norm _).trans _,
+  refine (set_integral_mono_set sorry sorry _).trans _,
+  exact set.univ,
+  refine (set.subset_univ _).eventually_le,
+  rw [integral_univ],
+  refine integral_mono sorry sorry (λ y, _),
+  dsimp only,
+  rw fderiv.comp y (hu.differentiable le_rfl).differentiable_at sorry,
+  rw [continuous_linear_map.comp_apply],
+  refine (continuous_linear_map.le_op_norm _ _).trans _,
+  conv_rhs { rw [← mul_one ∥_∥] },
+  simp_rw [fderiv_update],
+  refine mul_le_mul_of_nonneg_left _ (norm_nonneg _),
+  refine (continuous_linear_map.le_op_norm _ _).trans_eq _,
+  rw [norm_one, mul_one],
+  exact continuous_linear_map.norm_pi_update_eq_one (λ _, ℝ)
+end
+
+/-- The Sobolev inequality -/
+theorem lintegral_pow_le : ∫⁻ x, ∥u x∥₊ ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) ≤
+  (∫⁻ x, ∥fderiv ℝ u x∥₊)  ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) :=
+begin
   sorry
 end
+
 
 end sobolev

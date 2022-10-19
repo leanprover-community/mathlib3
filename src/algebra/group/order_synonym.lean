@@ -1,26 +1,31 @@
 /-
-Copyright (c) 2014 Jeremy Avigad. All rights reserved.
+Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jeremy Avigad, Leonardo de Moura, Simon Hudon, Mario Carneiro
+Authors: Yury Kudryashov, Yaël Dillies
 -/
 
 import algebra.group.defs
 import order.synonym
 
-/-! # Group structure on the type synonyms -/
+/-!
+# Group structure on the order type synonyms
+
+Transfer algebraic instances from `α` to `αᵒᵈ` and `lex α`.
+-/
+
+open order_dual
 
 variables {α β : Type*}
 
-/-! ### order_dual -/
-
-open order_dual
+/-! ### `order_dual` -/
 
 @[to_additive] instance [h : has_one α] : has_one αᵒᵈ := h
 @[to_additive] instance [h : has_mul α] : has_mul αᵒᵈ := h
 @[to_additive] instance [h : has_inv α] : has_inv αᵒᵈ := h
 @[to_additive] instance [h : has_div α] : has_div αᵒᵈ := h
 @[to_additive] instance [h : has_smul α β] : has_smul α βᵒᵈ := h
-@[to_additive] instance order_dual.has_pow [h : has_pow α β] : has_pow αᵒᵈ β := h
+@[to_additive order_dual.has_smul]
+instance order_dual.has_pow [h : has_pow α β] : has_pow αᵒᵈ β := h
 @[to_additive] instance [h : semigroup α] : semigroup αᵒᵈ := h
 @[to_additive] instance [h : comm_semigroup α] : comm_semigroup αᵒᵈ := h
 @[to_additive] instance [h : left_cancel_semigroup α] : left_cancel_semigroup αᵒᵈ := h
@@ -71,7 +76,7 @@ lemma of_dual_pow [has_pow α β] (a : αᵒᵈ) (b : β) : of_dual (a ^ b) = of
 @[to_additive] instance [h : has_inv α] : has_inv (lex α) := h
 @[to_additive] instance [h : has_div α] : has_div (lex α) := h
 @[to_additive] instance [h : has_smul α β] : has_smul α (lex β) := h
-@[to_additive] instance lex.has_pow [h : has_pow α β] : has_pow (lex α) β := h
+@[to_additive lex.has_smul] instance lex.has_pow [h : has_pow α β] : has_pow (lex α) β := h
 @[to_additive] instance [h : semigroup α] : semigroup (lex α) := h
 @[to_additive] instance [h : comm_semigroup α] : comm_semigroup (lex α) := h
 @[to_additive] instance [h : left_cancel_semigroup α] : left_cancel_semigroup (lex α) := h

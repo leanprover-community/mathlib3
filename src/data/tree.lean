@@ -136,6 +136,7 @@ by simp [unode_def]
 @[simp] lemma unode_ne_nil (a b : tree unit) : a.unode b ≠ nil := by trivial
 @[simp] lemma nil_ne_unode (a b : tree unit) : nil ≠ a.unode b := by trivial
 
+/-- Recursion on `tree unit` which uses `unode` -/
 def unit_rec_on {motive : tree unit → Sort*} (t : tree unit) (base : motive nil)
   (ind : ∀ x y, motive x → motive y → motive (x.unode y)) : motive t :=
 t.rec_on base (λ u, u.rec_on (by exact ind))

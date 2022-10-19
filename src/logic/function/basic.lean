@@ -548,8 +548,8 @@ def extend (f : α → β) (g : α → γ) (e' : β → γ) : β → γ :=
 def factors_through (g : α → γ) (f : α → β) : Prop :=
 ∀ ⦃a b⦄, f a = f b → g a = g b
 
-lemma factors_through_of_is_injective (g : α → γ) (hf : injective f) :
-g.factors_through f :=  λ a b h, congr_arg g (hf h)
+lemma injective.factors_through (g : α → γ) (hf : injective f) : g.factors_through f :=
+λ a b h, congr_arg g (hf h)
 
 lemma extend_def (f : α → β) (g : α → γ) (e' : β → γ) (b : β) [decidable (∃ a, f a = b)] :
   extend f g e' b = if h : ∃ a, f a = b then g (classical.some h) else e' b :=

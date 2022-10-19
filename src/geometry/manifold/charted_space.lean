@@ -571,6 +571,17 @@ begin
     exact hsconn.is_preconnected.image _ ((E x).continuous_on_symm.mono hssubset) },
 end
 
+/-- If `M` is modelled on `H'` and `H'` is itself modelled on `H`, then we can consider `M` as being
+modelled on `H`. -/
+def charted_space.comp (H : Type*) [topological_space H] (H' : Type*) [topological_space H']
+  (M : Type*) [topological_space M] [charted_space H H'] [charted_space H' M] :
+  charted_space H M :=
+{ atlas := image2 local_homeomorph.trans (atlas H' M) (atlas H H'),
+  chart_at := λ p : M, (chart_at H' p).trans (chart_at H (chart_at H' p p)),
+  mem_chart_source := λ p, by simp only with mfld_simps,
+  chart_mem_atlas :=
+    λ p, ⟨chart_at H' p, chart_at H _, chart_mem_atlas H' p, chart_mem_atlas H _, rfl⟩ }
+
 end
 
 /-- For technical reasons we introduce two type tags:

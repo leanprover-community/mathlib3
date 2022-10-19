@@ -3,7 +3,6 @@ Copyright (c) 2022 Vincent Beffara. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Vincent Beffara
 -/
-import analysis.complex.cauchy_integral
 import analysis.complex.removable_singularity
 import analysis.calculus.uniform_limits_deriv
 
@@ -20,92 +19,6 @@ import analysis.calculus.uniform_limits_deriv
 
 open set metric measure_theory filter complex interval_integral
 open_locale real topological_space
-
-section unif_compact
-
-variables {α β γ ι : Type*} [topological_space α] [uniform_space β] [pseudo_metric_space γ]
-  {φ : filter ι} {G H : ι → α → β} {g h : α → β} {F : ι → α → γ} {f : α → γ}
-  {s t : set α} {a : α}
-
-lemma tendsto_locally_uniformly_on_tfae [locally_compact_space α]
-  (G : ι → α → β) (g : α → β) (φ : filter ι) (ht : is_open t) :
-  [ (tendsto_locally_uniformly_on G g φ t),
-    (∀ K ⊆ t, is_compact K → tendsto_uniformly_on G g φ K),
-    (∀ x ∈ t, ∃ v ∈ 𝓝[t] x, tendsto_uniformly_on G g φ v) ].tfae :=
-begin
-  tfae_have : 1 → 2,
-  { rintro h K hK1 hK2,
-    exact (tendsto_locally_uniformly_on_iff_tendsto_uniformly_on_of_compact hK2).mp (h.mono hK1) },
-  tfae_have : 2 → 3,
-  { rintro h x hx,
-    obtain ⟨K, ⟨hK1, hK2⟩, hK3⟩ := (compact_basis_nhds x).mem_iff.mp (ht.mem_nhds hx),
-    refine ⟨K, nhds_within_le_nhds hK1, h K hK3 hK2⟩ },
-  tfae_have : 3 → 1,
-  { rintro h u hu x hx,
-    obtain ⟨v, hv1, hv2⟩ := h x hx,
-    exact ⟨v, hv1, hv2 u hu⟩ },
-  tfae_finish
-end
-
-lemma tendsto_locally_uniformly_on_iff_forall_compact [locally_compact_space α] (ht : is_open t) :
-  tendsto_locally_uniformly_on G g φ t ↔
-  ∀ K ⊆ t, is_compact K → tendsto_uniformly_on G g φ K :=
-(tendsto_locally_uniformly_on_tfae G g φ ht).out 0 1
-
-lemma tendsto_locally_uniformly_on_iff_filter :
-  tendsto_locally_uniformly_on G g φ t ↔
-  ∀ x ∈ t, tendsto_uniformly_on_filter G g φ (𝓝[t] x) :=
-begin
-  simp only [tendsto_uniformly_on_filter, eventually_prod_iff],
-  split,
-  { rintro h x hx u hu,
-    obtain ⟨s, hs1, hs2⟩ := h u hu x hx,
-    exact ⟨_, hs2, _, eventually_of_mem hs1 (λ x, id), λ i hi y hy, hi y hy⟩ },
-  { rintro h u hu x hx,
-    obtain ⟨pa, hpa, pb, hpb, h⟩ := h x hx u hu,
-    refine ⟨pb, hpb, eventually_of_mem hpa (λ i hi y hy, h hi hy)⟩ }
-end
-
-lemma tendsto_locally_uniformly_iff_filter :
-  tendsto_locally_uniformly G g φ ↔
-  ∀ x, tendsto_uniformly_on_filter G g φ (𝓝 x) :=
-by simpa [← tendsto_locally_uniformly_on_univ, ← nhds_within_univ] using
-  @tendsto_locally_uniformly_on_iff_filter _ _ _ _ _ _ _ _ univ
-
-lemma tendsto_locally_uniformly_on.tendsto_at (hg : tendsto_locally_uniformly_on G g φ t)
-  ⦃a : α⦄ (ha : a ∈ t) :
-  tendsto (λ i, G i a) φ (𝓝 (g a)) :=
-begin
-  refine ((tendsto_locally_uniformly_on_iff_filter.mp hg) a ha).tendsto_at _,
-  simpa only [filter.principal_singleton] using pure_le_nhds_within ha
-end
-
-lemma tendsto_locally_uniformly_on.unique [φ.ne_bot] [t2_space β]
-  (hg : tendsto_locally_uniformly_on G g φ t) (hh : tendsto_locally_uniformly_on G h φ t) :
-  t.eq_on g h :=
-λ a ha, tendsto_nhds_unique (hg.tendsto_at ha) (hh.tendsto_at ha)
-
-lemma tendsto_locally_uniformly_on.congr (hg : tendsto_locally_uniformly_on G g φ t)
-  (hh : ∀ n, t.eq_on (G n) (H n)) :
-  tendsto_locally_uniformly_on H g φ t :=
-begin
-  rintro u hu x hx,
-  obtain ⟨t', ht', h⟩ := hg u hu x hx,
-  refine ⟨t ∩ t', inter_mem self_mem_nhds_within ht', _⟩,
-  filter_upwards [h] with i hi y hy using hh i hy.1 ▸ hi y hy.2
-end
-
-lemma tendsto_locally_uniformly_on.congr' (hg : tendsto_locally_uniformly_on G g φ t)
-  (hh : t.eq_on g h) :
-  tendsto_locally_uniformly_on G h φ t :=
-begin
-  rintro u hu x hx,
-  obtain ⟨t', ht', h⟩ := hg u hu x hx,
-  refine ⟨t ∩ t', inter_mem self_mem_nhds_within ht', _⟩,
-  filter_upwards [h] with i hi y hy using hh hy.1 ▸ hi y hy.2
-end
-
-end unif_compact
 
 section cderiv
 

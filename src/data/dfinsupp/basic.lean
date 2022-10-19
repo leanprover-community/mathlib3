@@ -1929,3 +1929,17 @@ add_monoid_hom.congr_fun (comp_lift_add_hom h.to_add_monoid_hom g) f
 end add_equiv
 
 end
+
+section finite_infinite
+
+noncomputable instance dfinsupp.fintype {ι : Sort*} {π : ι → Sort*} [fintype ι]
+  [∀ i, fintype (π i)] [Π i, has_zero (π i)] :
+  fintype (Π₀ i, π i) :=
+by letI := classical.dec_eq ι; exact fintype.of_injective _ fun_like.coe_injective
+
+instance dfinsupp.infinite_of_right {ι : Sort*} {π : ι → Sort*} [decidable_eq ι]
+  [∀ i, infinite (π i)] [Π i, has_zero (π i)] [nonempty ι] :
+  infinite (Π₀ i, π i) :=
+infinite.of_injective (λ i, dfinsupp.single (classical.arbitrary ι) i) dfinsupp.single_injective
+
+end finite_infinite

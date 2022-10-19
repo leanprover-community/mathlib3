@@ -2130,6 +2130,20 @@ begin
   exact H'.false
 end
 
+/-- If at least one `π i` is infinite and the rest nonempty, the pi type of all `π` is infinite. -/
+def pi.infinite_of_exists_right {ι : Type*} {π : ι → Sort*} (i : ι)
+  [infinite $ π i] [∀ i, nonempty $ π i] :
+  infinite (Π i : ι, π i) :=
+infinite.of_injective (λ (p : π i) t,
+  if h : t = i then cast (congr_arg π h.symm) p
+  else classical.arbitrary _)
+  (λ x y h, by simpa using congr_fun h i)
+
+/-- See `pi.infinite_of_exists_right` for the case that only one `π i` is infinite. -/
+instance pi.infinite_of_right {ι : Type*} {π : ι → Sort*} [∀ i, infinite $ π i] [nonempty ι] :
+  infinite (Π i : ι, π i) :=
+pi.infinite_of_exists_right (classical.arbitrary ι)
+
 namespace infinite
 
 private noncomputable def nat_embedding_aux (α : Type*) [infinite α] : ℕ → α

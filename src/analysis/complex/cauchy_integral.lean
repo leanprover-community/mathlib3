@@ -503,6 +503,20 @@ lemma _root_.diff_cont_on_cl.circle_integral_sub_inv_smul {R : ℝ} {c w : ℂ} 
 circle_integral_sub_inv_smul_of_differentiable_on_off_countable countable_empty hw
   h.continuous_on_ball $ λ x hx, h.differentiable_at is_open_ball hx.1
 
+/-- **Cauchy integral formula**: if `f : ℂ → E` is complex differentiable on an open disc and is
+continuous on its closure, then for any `w` in this open ball we have
+$\frac{1}{2πi}\oint_{|z-c|=R}(z-w)^{-1}f(z)\,dz=f(w)$. -/
+lemma _root_.diff_cont_on_cl.two_pi_I_inv_smul_circle_integral_sub_inv_smul {R : ℝ} {c w : ℂ}
+  {f : ℂ → E} (hf : diff_cont_on_cl ℂ f (ball c R)) (hw : w ∈ ball c R) :
+  (2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - w)⁻¹ • f z = f w :=
+begin
+  have hR : 0 < R := not_le.mp (ball_eq_empty.not.mp (nonempty_of_mem hw).ne_empty),
+  refine two_pi_I_inv_smul_circle_integral_sub_inv_smul_of_differentiable_on_off_countable
+    countable_empty hw _ _,
+  { simpa only [closure_ball c hR.ne.symm] using hf.continuous_on },
+  { simpa only [diff_empty] using λ z hz, hf.differentiable_at is_open_ball hz }
+end
+
 /-- **Cauchy integral formula**: if `f : ℂ → E` is complex differentiable on a closed disc of radius
 `R`, then for any `w` in its interior we have $\oint_{|z-c|=R}(z-w)^{-1}f(z)\,dz=2πif(w)$. -/
 lemma _root_.differentiable_on.circle_integral_sub_inv_smul {R : ℝ} {c w : ℂ} {f : ℂ → E}

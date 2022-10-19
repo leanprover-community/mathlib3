@@ -368,7 +368,7 @@ begin
       convert fintype.card_of_is_empty,
       apply_instance },
     simp [linear_map.det_eq_one_of_finrank_eq_zero H, module.ray.ne_neg_self x] },
-  have H : finrank R M > 0,
+  have H : 0 < finrank R M,
   { rw ← h,
     exact fintype.card_pos },
   haveI : finite_dimensional R M := finite_dimensional_of_finrank H,

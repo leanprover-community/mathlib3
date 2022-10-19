@@ -85,9 +85,11 @@ lemma get_right_eq_none_iff : x.get_right = none ↔ x.is_left :=
 by cases x; simp only [get_right, is_left, coe_sort_tt, coe_sort_ff, eq_self_iff_true]
 
 @[simp] lemma bnot_is_left (x : α ⊕ β) : bnot x.is_left = x.is_right := by cases x; refl
-@[simp] lemma not_is_left : ¬x.is_left ↔ x.is_right := by cases x; simp
+@[simp] lemma is_left_eq_ff : x.is_left = ff ↔ x.is_right := by cases x; simp
+lemma not_is_left : ¬x.is_left ↔ x.is_right := by simp
 @[simp] lemma bnot_is_right (x : α ⊕ β) : bnot x.is_right = x.is_left := by cases x; refl
-@[simp] lemma not_is_right : ¬x.is_right ↔ x.is_left := by cases x; simp
+@[simp] lemma is_right_eq_ff : x.is_right = ff ↔ x.is_left := by cases x; simp
+lemma not_is_right : ¬x.is_right ↔ x.is_left := by simp
 
 lemma is_left_iff : x.is_left ↔ ∃ y, x = sum.inl y := by cases x; simp
 lemma is_right_iff : x.is_right ↔ ∃ y, x = sum.inr y := by cases x; simp

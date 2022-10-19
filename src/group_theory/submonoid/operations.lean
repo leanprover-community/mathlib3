@@ -403,7 +403,7 @@ instance has_one : has_one S' := ⟨⟨1, one_mem_class.one_mem S'⟩⟩
 
 -- even though there is a generic `coe_one`, this can still be useful as a `dsimp` lemma,
 -- so keep it `@[simp]`
-@[simp, to_additive, priority 900, nolint simp_nf]
+@[simp, priority 900, nolint simp_nf, to_additive]
 protected lemma coe_one : ((1 : S') : M₁) = 1 := rfl
 
 variables {S'}

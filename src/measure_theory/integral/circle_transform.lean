@@ -162,10 +162,11 @@ begin
   have hy2: y1 ∈ [0, 2*π], by {convert (Ico_subset_Icc_self hy1),
     simp [interval_of_le real.two_pi_pos.le]},
   have := mul_le_mul (hab ⟨⟨v, y1⟩, ⟨ball_subset_closed_ball (H hv), hy2⟩⟩)
-   (HX2 (circle_map z R y1) (circle_map_mem_sphere z hR.le y1)) (abs_nonneg _) (abs_nonneg _),
-   simp_rw hfun,
+   (HX2 (circle_map z R y1) (circle_map_mem_sphere z hR.le y1))
+   (complex.abs.nonneg _) (complex.abs.nonneg _),
+  simp_rw hfun,
   simp only [circle_transform_bounding_function, circle_transform_deriv, V, norm_eq_abs,
-    algebra.id.smul_eq_mul, deriv_circle_map, abs_mul, abs_circle_map_zero, abs_I, mul_one,
+    algebra.id.smul_eq_mul, deriv_circle_map, map_mul, abs_circle_map_zero, abs_I, mul_one,
     ←mul_assoc, mul_inv_rev, inv_I, abs_neg, abs_inv, abs_of_real, one_mul, abs_two, abs_pow,
     mem_ball, gt_iff_lt, subtype.coe_mk, set_coe.forall, mem_prod, mem_closed_ball, and_imp,
     prod.forall, normed_space.sphere_nonempty, mem_sphere_iff_norm] at *,
@@ -246,7 +247,7 @@ begin
   simp_rw [circle_integral_form, ←circle_transform_circle_int R z _ f,
     differentiable_on, differentiable_within_at],
   intros x hx,
-  have h4R : 0 < (4⁻¹*R), by {apply mul_pos, rw inv_pos, linarith, apply hR,},
+  have h4R : 0 < (4⁻¹*R), by {apply left.mul_pos, rw inv_pos, linarith, apply hR,},
   set F : ℂ → ℝ → ℂ := λ w, (λ θ, (circle_transform R z w f θ)),
   set F' : ℂ → ℝ → ℂ := λ w, circle_transform_deriv R z w f,
   have hF_meas : ∀ᶠ y in 𝓝 x, ae_strongly_measurable (F y) (volume.restrict (Ι 0 (2 * π))) ,
@@ -299,17 +300,18 @@ lemma circle_transform_sub_bound {R : ℝ} (hR : 0 < R) (f : ℂ → ℂ) (z w :
     complex.abs (circle_transform R z w f θ) ≤
     complex.abs (circle_transform R z w (λ x, r) θ) :=
 begin
-  simp only [circle_transform, abs_of_real, mul_one, algebra.id.smul_eq_mul, abs_I,
-  abs_mul, abs_inv, abs_two, ←mul_assoc, deriv_circle_map, abs_circle_map_zero],
+  simp only [circle_transform, abs_of_real, mul_one, algebra.id.smul_eq_mul, abs_I, abs_two,
+  ←mul_assoc, deriv_circle_map, abs_circle_map_zero, mul_inv_rev, inv_I, absolute_value.map_neg,
+  absolute_value.map_mul, map_inv₀, one_mul],
   apply_rules [monotone_mul_left_of_nonneg, mul_nonneg, mul_nonneg],
   simp_rw inv_nonneg,
-  apply mul_nonneg,
-  linarith,
+  swap,
+  simp_rw inv_nonneg,
+  nlinarith,
   repeat {apply _root_.abs_nonneg},
+  simp_rw inv_nonneg,
+  simp only [map_nonneg],
   simp_rw ←one_div,
-  apply div_nonneg,
-  linarith,
-  apply complex.abs_nonneg,
   simp only [abs_of_real, set_coe.forall, subtype.coe_mk] at h,
   apply h,
   apply circle_map_mem_sphere z hR.le θ,
@@ -339,7 +341,7 @@ lemma abs_sub_add_cancel_bound (x : ℂ) (r : ℝ)
 begin
   obtain ⟨b, hb⟩ := h,
   rw ←sub_add_cancel x b,
-  apply le_trans ((x - b).abs_add b) hb,
+  apply le_trans (abs.add_le (x - b) b) hb,
 end
 
 lemma circle_transform_of_unifom_limit {R : ℝ} {F : ℕ → ℂ → ℂ} (hR : 0 < R) (f : ℂ → ℂ)
@@ -356,9 +358,12 @@ begin
   have hr : 0 < ∥ r ∥,
   by {simp only [r, norm_eq_abs, abs_mul, abs_inv, abs_two, abs_of_real, abs_I, mul_one,
   abs_circle_map_zero],
-  apply mul_pos (mul_pos (inv_pos.2 (mul_pos two_pos (_root_.abs_pos.2 real.pi_ne_zero)))
-  (_root_.abs_pos_of_pos hR)) (inv_pos.2 (abs_pos.2
-    (sub_ne_zero.2 (circle_map_ne_mem_ball w.2 y)))),},
+  simp only [absolute_value.map_neg, absolute_value.map_mul, abs_I, map_inv₀, abs_of_real, abs_two, one_mul,
+  abs_circle_map_zero, mul_one],
+  apply left.mul_pos (left.mul_pos (inv_pos.2 (left.mul_pos (@two_pos ℝ _ _) (_root_.abs_pos.2 real.pi_ne_zero)))
+  (_root_.abs_pos_of_pos hR)) _,
+  simp only [inv_pos, absolute_value.pos_iff],
+  apply sub_ne_zero.2 (circle_map_ne_mem_ball w.2 y), },
   let e := (∥ r ∥)⁻¹ * (ε/2),
   have he : 0 < e, by {simp_rw e, apply mul_pos (inv_pos.2 hr) (div_pos hε two_pos) },
   obtain ⟨a, ha⟩ := (hlim e he),
@@ -411,8 +416,15 @@ begin
   (λ i , complex.abs ((circle_transform R z w (F i)) y)) hnn,
   simp only [and_imp, mem_Ioc, finset.mem_range, mem_sphere_iff_norm, norm_eq_abs] at *,
   simp_rw [←this, add_assoc, le_add_iff_nonneg_right],
-  {refine add_nonneg (finset.sum_nonneg (λ _ _, abs_nonneg _)) (add_nonneg (abs_nonneg _)
-    (abs_nonneg _))},
+  apply add_nonneg,
+  apply (finset.sum_nonneg ),
+  intros a b,
+  apply absolute_value.nonneg,
+  apply add_nonneg,
+  apply absolute_value.nonneg,
+  apply absolute_value.nonneg,
+ -- {refine add_nonneg (finset.sum_nonneg (λ _ _, absolute_value.nonneg _)) (add_nonneg (absolute_value.nonneg _)
+   -- (absolute_value.nonneg _))},
   apply abs_sub_add_cancel_bound ((circle_transform R z w (F n)) y) (bound y),
   refine ⟨circle_transform R z ↑w f y,_⟩,
   simp_rw [circle_transform_sub, bound],

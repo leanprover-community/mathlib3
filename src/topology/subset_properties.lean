@@ -1530,7 +1530,8 @@ begin
   split,
   { intros hc,
     rw ← U.preimage_bool_indicator_tt,
-    exact ⟨hc.is_open_preimage _ trivial, continuous_iff_is_closed.mp hc _ (is_closed_discrete _)⟩ },
+    exact
+      ⟨hc.is_open_preimage _ trivial, continuous_iff_is_closed.mp hc _ (is_closed_discrete _)⟩ },
   { refine λ hU, ⟨λ s hs, _⟩,
     rcases U.preimage_bool_indicator s with (h|h|h|h) ; rw h,
     exacts [is_open_univ, hU.1, hU.2.is_open_compl, is_open_empty] },

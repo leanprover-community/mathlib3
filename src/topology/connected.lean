@@ -1550,7 +1550,6 @@ end connected_component_setoid
 
 /-- A set `s` is preconnected if and only if every
 map into `bool` that is continuous on `s` is constant on `s` -/
-
 lemma is_preconnected.constant {Y : Type*} [topological_space Y] [discrete_topology Y]
   {s : set α} (hs : is_preconnected s) {f : α → Y} (hf : continuous_on f s)
   {x y : α} (hx : x ∈ s) (hy : y ∈ s) : f x = f y :=

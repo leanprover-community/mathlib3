@@ -2955,6 +2955,7 @@ open bool
 namespace set
 variables {α : Type*} (s : set α)
 
+/-- `bool_indicator` maps `x` to `tt` if `x ∈ s`, else to `ff` -/
 noncomputable def bool_indicator (x : α) :=
 @ite _ (x ∈ s) (classical.prop_decidable _) tt ff
 

@@ -10,7 +10,7 @@ import analysis.calculus.specific_functions
 
 We show that any open set is the support of a smooth function taking values in `[0, 1]`
 -/
-open set metric topological_space function
+open set metric topological_space function asymptotics
 open_locale topological_space nnreal big_operators
 
 @[to_additive]
@@ -36,34 +36,67 @@ begin
   exact cont_diff_on_iff_forall_nat_le
 end
 
-lemma summable_norm_of_summable_norm_of_lipschitz_on_with
-  {f : α → β → F} {s : set β} {x y : β}
-  (hx : x ∈ s) (hy : y ∈ s) (hfx : summable (λ n, ∥f n x∥)) {C : α → ℝ≥0}
-  (hf : ∀ n, lipschitz_on_with (C n) (f n) s) (hC : summable C) :
-  summable (λ n, ∥f n y∥) :=
+lemma summable.to_nnreal {f : α → ℝ} (hf : summable f) :
+  summable (λ n, (f n).to_nnreal) :=
 begin
-  have A : ∀ n, ∥f n y∥ ≤ ∥f n x∥ + C n * dist y x,
+  apply nnreal.summable_coe.1,
+  refine summable_of_nonneg_of_le (λ n, nnreal.coe_nonneg _) (λ n, _) (summable_norm_iff.2 hf),
+  simp only [le_abs_self, real.coe_to_nnreal', real.norm_eq_abs, max_le_iff, abs_nonneg, and_self]
+end
+
+lemma summable_of_summable_of_lipschitz_on_with
+  {f : α → β → F} {s : set β} {x y : β}
+  (hx : x ∈ s) (hy : y ∈ s) (hfx : summable (λ n, f n x)) {C : α → ℝ≥0}
+  (hf : ∀ n, lipschitz_on_with (C n) (f n) s) (hC : summable C) :
+  summable (λ n, f n y) :=
+begin
+  have A : ∀ n, ∥f n y - f n x∥ ≤ C n * dist y x,
   { assume n,
-    calc ∥f n y∥ ≤ ∥f n x∥ +  ∥f n y - f n x∥ : norm_le_norm_add_norm_sub' _ _
-    ... ≤ ∥f n x∥ + C n * dist y x :
-      by { rw ← dist_eq_norm, exact add_le_add le_rfl ((hf n).dist_le_mul _ hy _ hx) } },
-  have S : summable (λ n, ∥f n x∥ + C n * dist y x),
-    from hfx.add ((nnreal.summable_coe.2 hC).mul_right _),
-  exact summable_of_nonneg_of_le (λ n, norm_nonneg _) A S,
+    rw ← dist_eq_norm,
+    exact ((hf n).dist_le_mul _ hy _ hx) },
+  have S : summable (λ n, f n y - f n x),
+  { apply summable_of_summable_norm,
+    refine summable_of_nonneg_of_le (λ n, norm_nonneg _) A _,
+    exact (nnreal.summable_coe.2 hC).mul_right _ },
+  convert hfx.add S,
+  simp only [add_sub_cancel'_right],
 end
 
 lemma has_fderiv_within_at_tsum
-  {f : ℕ → E → F} {f' : ℕ → E → (E →L[ℝ] F)} {u : ℕ → ℝ≥0} (hu : summable u)
+  {f : α → E → F} {f' : α → E → (E →L[ℝ] F)} {u : α → ℝ} (hu : summable u)
   {s : set E} (hs : convex ℝ s)
   (hf : ∀ n x, x ∈ s → has_fderiv_within_at (f n) (f' n x) s x)
-  (hf' : ∀ n x, x ∈ s → ∥f' n x∥₊ ≤ u n)
-  {x₀ : E} (hx₀ : x₀ ∈ s) (hf0 : summable (λ n, ∥f n x₀∥)) {x : E} (hx : x ∈ s) :
+  (hf' : ∀ n x, x ∈ s → ∥f' n x∥ ≤ u n)
+  {x₀ : E} (hx₀ : x₀ ∈ s) (hf0 : summable (λ n, f n x₀)) {x : E} (hx : x ∈ s) :
   has_fderiv_within_at (λ y, ∑' n, f n y) (∑' n, f' n x) s x :=
 begin
-  have L : ∀ n, lipschitz_on_with (u n) (f n) s,
-    from λ n, hs.lipschitz_on_with_of_nnnorm_has_fderiv_within_le (hf n) (hf' n),
-  have A : ∀ y, y ∈ s → summable (λ n, ∥f n y∥),
-    from λ y hy, summable_norm_of_summable_norm_of_lipschitz_on_with hx₀ hy hf0 L hu,
+  classical,
+  have u_nonneg : ∀ n, 0 ≤ u n, from λ n, (norm_nonneg _).trans (hf' n x₀ hx₀),
+  have hf'_nn : ∀ n x, x ∈ s → ∥f' n x∥₊ ≤ (u n).to_nnreal,
+  { assume n x hx,
+    rw [← nnreal.coe_le_coe, coe_nnnorm, real.coe_to_nnreal _ (u_nonneg n)],
+    exact hf' n x hx },
+  have L : ∀ n, lipschitz_on_with (u n).to_nnreal (f n) s,
+    from λ n, hs.lipschitz_on_with_of_nnnorm_has_fderiv_within_le (hf n) (hf'_nn n),
+  have S : ∀ y, y ∈ s → summable (λ n, f n y),
+    from λ y hy, summable_of_summable_of_lipschitz_on_with hx₀ hy hf0 L hu.to_nnreal,
+  simp only [has_fderiv_within_at, has_fderiv_at_filter, is_o, is_O_with],
+  assume ε εpos,
+  obtain ⟨t, ht⟩ : ∃ (t : finset α), ∑' (n : {n // n ∉ t}), u n < ε / 2 / 2, from
+    ((tendsto_order.1 (tendsto_tsum_compl_at_top_zero u)).2 _ (half_pos (half_pos εpos))).exists,
+  have A : is_O_with (ε / 2) (𝓝[s] x)
+    (λ y, ∑ n in t, f n y - ∑ n in t, f n x - (∑ n in t, f' n x) (y - x)) (λ (x' : E), x' - x),
+  { have : has_fderiv_within_at (λ y, ∑ n in t, f n y) (∑ n in t, f' n x) s x,
+      from has_fderiv_within_at.sum (λ n hn, (hf n x hx)),
+    simp only [has_fderiv_within_at, has_fderiv_at_filter, is_o] at this,
+    exact this (half_pos εpos) },
+  filter_upwards [is_O_with_iff.1 A, self_mem_nhds_within] with y Hy hy,
+  have : ∑' n, f n y = ∑ n in t, f n y + ∑' (n : {n // n ∉ t}), f n y,
+  { have Z := S y hy,
+
+
+  } ,
+
 
 
 end

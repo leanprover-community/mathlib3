@@ -13,6 +13,8 @@ def mk_label(path: Path) -> str:
     rel = path.relative_to(Path('src'))
     return str(rel.with_suffix('')).replace(os.sep, '.')
 
+# So that the port status wiki page is human readable, we enclose the YAML with backticks,
+# which need to be removed here.
 def yaml_md_load(wikicontent: bytes):
     return yaml.safe_load(wikicontent.replace(b"```", b""))
 

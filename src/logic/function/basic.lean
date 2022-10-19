@@ -555,7 +555,7 @@ lemma extend_def (f : α → β) (g : α → γ) (e' : β → γ) (b : β) [deci
   extend f g e' b = if h : ∃ a, f a = b then g (classical.some h) else e' b :=
 by { unfold extend, congr }
 
-lemma extend_apply_of_unique (g : α → γ) (e' : β → γ)
+lemma extend_apply_of_factors_through (g : α → γ) (e' : β → γ)
   (hf : g.factors_through f) (a : α) :
   extend f g e' (f a) = g a :=
 begin
@@ -563,21 +563,21 @@ begin
   exact hf (classical.some_spec (exists_apply_eq_apply f a)),
 end
 
-@[simp] lemma extend_apply (hf : injective f) (g : α → γ) (e' : β → γ) (a : α) :
+@[simp] lemma extend_apply (hf : f.injective) (g : α → γ) (e' : β → γ) (a : α) :
   extend f g e' (f a) = g a :=
-extend_apply_of_unique g e' (factors_through_of_is_injective g hf) a
+extend_apply_of_factors_through g e' (hf.factors_through g) a
 
 @[simp] lemma extend_apply' (g : α → γ) (e' : β → γ) (b : β) (hb : ¬∃ a, f a = b) :
   extend f g e' b = e' b :=
 by simp [function.extend_def, hb]
 
-lemma apply_extend_of_unique {δ} (F : γ → δ) (g : α → γ) (e' : β → γ)
+lemma apply_extend_of_factors_through {δ} (F : γ → δ) (g : α → γ) (e' : β → γ)
   (hf : factors_through g f) (b : β) :
   F (extend f g e' b) = extend f (F ∘ g) (F ∘ e') b :=
 begin
   by_cases hb : ∃ a, f a = b,
   { cases hb with a ha, subst b,
-    rw [extend_apply_of_unique, extend_apply_of_unique],
+    rw [extend_apply_of_factors_through, extend_apply_of_factors_through],
     { intros a b h, simp only [comp_apply], apply congr_arg, exact hf h, },
     { exact hf, }, },
   { rw [extend_apply' _ _ _ hb, extend_apply' _ _ _ hb] }
@@ -585,7 +585,7 @@ end
 
 lemma apply_extend {δ} (hf : injective f) (F : γ → δ) (g : α → γ) (e' : β → γ) (b : β) :
   F (extend f g e' b) = extend f (F ∘ g) (F ∘ e') b :=
-apply_extend_of_unique F g e' ((factors_through_of_is_injective g hf)) b
+apply_extend_of_factors_through F g e' (hf.factors_through g) b
 
 lemma extend_injective (hf : injective f) (e' : β → γ) :
   injective (λ g, extend f g e') :=
@@ -597,14 +597,14 @@ begin
   exact H
 end
 
-lemma extend_comp_of_unique (g : α → γ) (e' : β → γ)
+lemma extend_comp_of_factors_through (g : α → γ) (e' : β → γ)
   (hf : factors_through g f) :
   extend f g e' ∘ f = g :=
-funext $ λ a, by simp only [comp_app, extend_apply_of_unique g e' hf]
+funext $ λ a, by simp only [comp_app, extend_apply_of_factors_through g e' hf]
 
 @[simp] lemma extend_comp (hf : injective f) (g : α → γ) (e' : β → γ) :
   extend f g e' ∘ f = g :=
-extend_comp_of_unique g e' (factors_through_of_is_injective g hf)
+extend_comp_of_factors_through g e' (hf.factors_through g)
 
 lemma injective.surjective_comp_right' (hf : injective f) (g₀ : β → γ) :
   surjective (λ g : β → γ, g ∘ f) :=

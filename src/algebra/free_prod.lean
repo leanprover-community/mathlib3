@@ -225,6 +225,8 @@ ext _ _ rfl
 
 variables [decidable_eq M] [decidable_eq N] [decidable_eq G] [decidable_eq H]
 
+instance : decidable_eq (word M N) := λ x y, decidable_of_iff' _ (ext_iff _ _)
+
 def cons' (x : M ⊕ N) (w : word M N) (h : (x :: w.to_list).chain' ((≠) on sum.is_left)) :
   word M N :=
 if hx : x ≠ sum.inl 1 ∧ x ≠ sum.inr 1

@@ -2,11 +2,11 @@ import analysis.special_functions.log.basic
 import topology.algebra.order.intermediate_value
 import group_theory.perm.fibered
 import group_theory.free_group
+import algebra.free_prod
 import data.bool.count
 import algebra.free_monoid.count
 import algebra.char_p.two
 import data.zmod.parity
-import logic.equiv.transfer_instance
 import data.ncword
 
 /-!
@@ -177,6 +177,135 @@ instance equiv_like : equiv_like generator L L :=
 end generator
 
 open generator
+
+@[derive [decidable_eq, group]]
+def word : Type := free_prod.word ℤ₂ (ℤ₂ × ℤ₂)
+
+def word.even_a : subgroup word := monoid_hom.ker free_prod.word.fst
+
+@[derive [decidable_eq, group]]
+def even_a_word : Type := free_prod.word (ℤ₂ × ℤ₂) (ℤ₂ × ℤ₂)
+
+namespace even_a_word
+
+def equiv_ker : even_a_word ≃* word.even_a := free_prod.word.z2_prod_mker_fst
+
+def proj_aux₁ : ℤ₂ → ℤ₂ → word :=
+![![1, free_prod.word.inl σ], ![free_prod.word.inl  σ, 1]]
+
+def proj_aux₂ : ℤ₂ → ℤ₂ → word :=
+![![1, free_prod.word.inr (σ, 1)], ![free_prod.word.inr (σ, σ), free_prod.word.inr (1, σ)]]
+
+def proj_aux : bool → ℤ₂ × ℤ₂ ⊕ ℤ₂ × ℤ₂ → word
+| tt (sum.inl x) := proj_aux₁ x.1 x.2
+| tt (sum.inr x) := proj_aux₂ x.1 x.2
+| ff (sum.inl x) := proj_aux₂ x.1 x.2
+| ff (sum.inr x) := proj_aux₁ x.1 x.2
+
+end even_a_word
+
+lemma exists_eta : ∃ η ∈ Ioo (0.81053 : ℝ) 0.81054, η ^ 3 + η ^ 2 + η = (2 : ℝ) :=
+mem_image_iff_bex.1 $ intermediate_value_Ioo (by norm_num)
+  (continuous.continuous_on $ by continuity) (by norm_num)
+
+def eta : ℝ := exists_eta.some
+
+local notation `η` := grigorchuk_group.eta
+
+lemma eta_gt_081053 : 0.81053 < η := exists_eta.some_spec.fst.1
+lemma eta_lt_081054 : η < 0.81054 := exists_eta.some_spec.fst.2
+@[simp] lemma eta_def : η ^ 3 + η ^ 2 + η = 2 := exists_eta.some_spec.snd
+
+lemma eta_gt_08 : 0.8 < η := lt_trans (by norm_num) eta_gt_081053
+lemma eta_pos : 0 < η := lt_trans (by norm_num) eta_gt_08
+lemma eta_nonneg : 0 ≤ η := eta_pos.le
+lemma eta_lt_one : η < 1 := eta_lt_081054.trans (by norm_num)
+lemma eta_le_one : η ≤ 1 := eta_lt_one.le
+lemma eta_lt_two : η < 2 := eta_lt_one.trans one_lt_two
+
+lemma one_lt_two_mul_eta_cube : 1 < 2 * η ^ 3 :=
+calc 1 < 2 * 0.8 ^ 3 : by norm_num
+   ... ≤ 2 * η ^ 3   :
+  mul_le_mul_of_nonneg_left (pow_le_pow_of_le_left (by norm_num) eta_gt_08.le _) two_pos.le
+
+lemma one_lt_eta_cube_add_self : 1 < η ^ 3 + η ^ 3 :=
+one_lt_two_mul_eta_cube.trans_eq (two_mul _)
+
+lemma one_lt_eta_cube_add_eta_sq : 1 < η ^ 3 + η ^ 2 :=
+one_lt_eta_cube_add_self.trans $
+  add_lt_add_left (pow_lt_pow_of_lt_one eta_pos eta_lt_one dec_trivial) _
+
+lemma one_lt_eta_cube_add_eta : 1 < η ^ 3 + η :=
+one_lt_eta_cube_add_eta_sq.trans $ add_lt_add_left (pow_lt_self eta_pos eta_lt_one one_lt_two) _
+
+def weight₁ : ℤ₂ ⊕ ℤ₂ × ℤ₂ → ℝ :=
+sum.elim ![0, 1 - η ^ 3] $ uncurry ![![0, η ^ 3], ![1 - η ^ 2, 1 - η]]
+
+lemma weight₁_pos : ∀ x : ℤ₂ ⊕ ℤ₂ × ℤ₂, x ≠ sum.inl 1 → x ≠ sum.inr 1 → 0 < weight₁ x
+| (sum.inl ⟨0, _⟩) h _ := (h rfl).elim
+| (sum.inl ⟨1, _⟩) _ _ := sub_pos.2 $ pow_lt_one eta_nonneg eta_lt_one three_ne_zero
+| (sum.inl ⟨k + 2, hk⟩) _ _ := absurd hk (by simp)
+| (sum.inr (⟨0, _⟩, ⟨0, _⟩)) _ h := (h rfl).elim
+| (sum.inr (⟨0, _⟩, ⟨1, _⟩)) _ _ := pow_pos eta_pos _
+| (sum.inr (⟨1, _⟩, ⟨0, _⟩)) _ _ := sub_pos.2 $ pow_lt_one eta_nonneg eta_lt_one two_ne_zero
+| (sum.inr (⟨1, _⟩, ⟨1, _⟩)) _ _ := sub_pos.2 eta_lt_one
+| (sum.inr (⟨k + 2, hk⟩, _)) _ _ := absurd hk (by simp)
+| (sum.inr (_, ⟨k + 2, hk⟩)) _ _ := absurd hk (by simp)
+
+lemma weight₁_le_eta_cube : ∀ x : ℤ₂ ⊕ ℤ₂ × ℤ₂, weight₁ x ≤ η ^ 3
+| (sum.inl ⟨0, _⟩) := pow_nonneg eta_nonneg _
+| (sum.inl ⟨1, _⟩) := sub_le_iff_le_add.2 one_lt_eta_cube_add_self.le
+| (sum.inl ⟨k + 2, hk⟩) := absurd hk (by simp)
+| (sum.inr (⟨0, _⟩, ⟨0, _⟩)) := pow_nonneg eta_nonneg _
+| (sum.inr (⟨0, _⟩, ⟨1, _⟩)) := le_rfl
+| (sum.inr (⟨1, _⟩, ⟨0, _⟩)) := sub_le_iff_le_add.2 one_lt_eta_cube_add_eta_sq.le
+| (sum.inr (⟨1, _⟩, ⟨1, _⟩)) := sub_le_iff_le_add.2 one_lt_eta_cube_add_eta.le
+| (sum.inr (⟨k + 2, hk⟩, _)) := absurd hk (by simp)
+| (sum.inr (_, ⟨k + 2, hk⟩)) := absurd hk (by simp)
+
+lemma weight₁_lt_one (x : ℤ₂ ⊕ ℤ₂ × ℤ₂) : weight₁ x < 1 :=
+(weight₁_le_eta_cube x).trans_lt $ pow_lt_one eta_nonneg eta_lt_one three_ne_zero
+
+lemma weight₁_nonneg (x : ℤ₂ ⊕ ℤ₂ × ℤ₂) : 0 ≤ weight₁ x :=
+begin
+  rcases eq_or_ne x (sum.inl 1) with rfl|hl, { refl },
+  rcases eq_or_ne x (sum.inr 1) with rfl|hr, { refl },
+  exact (weight₁_pos x hl hr).le
+end
+
+namespace word
+
+def weight (w : word) : ℝ := (w.to_list.map weight₁).sum
+
+@[simp] lemma weight_cons' {x : ℤ₂ ⊕ ℤ₂ × ℤ₂} {w : word} (h) :
+  weight (w.cons' x h) = weight₁ x + w.weight :=
+begin
+  simp only [weight, free_prod.word.cons'],
+  split_ifs with hx,
+  { rw [map_cons, sum_cons] },
+  { simp only [ne.def, not_and_distrib, not_not] at hx,
+    rw self_eq_add_left,
+    rcases hx with rfl|rfl; refl }
+end
+
+@[simp] lemma weight_one : weight 1 = 0 := rfl
+
+@[simp] lemma weight_of (x : ℤ₂ ⊕ ℤ₂ × ℤ₂) : weight (free_prod.word.of x) = weight₁ x :=
+(weight_cons' _).trans (add_zero _)
+
+lemma weight_nonneg (w : word) : 0 ≤ w.weight :=
+sum_nonneg $ forall_mem_map_iff.2 $ λ x _, weight₁_nonneg x
+
+lemma weight_pos {w : word} (hw : w ≠ 1) : 0 < w.weight :=
+begin
+  refine sum_pos _ _ _,
+end
+
+end word
+
+
+
+#exit
 
 @[derive [monoid, decidable_eq]] def word : Type := free_monoid generator
 
@@ -1105,21 +1234,6 @@ begin
 end
 
 end head_preserving
-
-lemma exists_eta : ∃ η ∈ Ioo (0.81053 : ℝ) 0.81054, η ^ 3 + η ^ 2 + η = (2 : ℝ) :=
-mem_image_iff_bex.1 $ intermediate_value_Ioo (by norm_num)
-  (continuous.continuous_on $ by continuity) (by norm_num)
-
-def eta : ℝ := exists_eta.some
-
-local notation `η` := grigorchuk_group.eta
-
-lemma eta_gt_081053 : 0.81053 < η := exists_eta.some_spec.fst.1
-lemma eta_lt_081054 : η < 0.81054 := exists_eta.some_spec.fst.2
-
-lemma eta_pos : 0 < η := lt_trans (by norm_num) eta_gt_081053
-lemma eta_lt_one : η < 1 := eta_lt_081054.trans (by norm_num)
-lemma eta_lt_two : η < 2 := eta_lt_one.trans one_lt_two
 
 def alpha : ℝ := log 2 / log (2 / η)
 

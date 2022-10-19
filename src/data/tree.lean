@@ -13,6 +13,9 @@ Provides binary tree storage for values of any type, with O(lg n) retrieval.
 See also `data.rbtree` for red-black trees - this version allows more operations
 to be defined and is better suited for in-kernel computation.
 
+We also specialize for `tree unit`, which is a binary tree without any
+additional data.
+
 ## References
 
 <https://leanprover-community.github.io/archive/stream/113488-general/topic/tactic.20question.html>
@@ -81,7 +84,7 @@ def map {β} (f : α → β) : tree α → tree β
 | nil := nil
 | (node a l r) := node (f a) (map l) (map r)
 
-/-- A non-nil `unit_tree`; useful when we want an arbitrary value other than `nil` -/
+/-- A non-nil `tree α`; useful when we want an arbitrary value other than `nil` -/
 abbreviation non_nil [inhabited α] : tree α := node default nil nil
 
 @[simp] lemma non_nil_ne [inhabited α] : non_nil ≠ (@nil α) := by trivial
@@ -92,19 +95,19 @@ abbreviation non_nil [inhabited α] : tree α := node default nil nil
 | (node _ a b) := a.nodes + b.nodes + 1
 
 /-- The number of leaves of a binary tree -/
-@[simp] def leaves : tree α → ℕ
+@[simp] def num_leaves : tree α → ℕ
 | nil := 1
-| (node _ a b) := a.leaves + b.leaves
+| (node _ a b) := a.num_leaves + b.num_leaves
 
 /-- The height - length of the longest path from the root - of a binary tree -/
 @[simp] def height : tree α → ℕ
 | nil := 0
 | (node _ a b) := max a.height b.height + 1
 
-lemma leaves_eq_nodes_succ (x : tree α) : x.leaves = x.nodes + 1 :=
+lemma leaves_eq_nodes_succ (x : tree α) : x.num_leaves = x.nodes + 1 :=
 by { induction x; simp [*, nat.add_comm, nat.add_assoc, nat.add_left_comm], }
 
-lemma leaves_pos (x : tree α) : 0 < x.leaves :=
+lemma leaves_pos (x : tree α) : 0 < x.num_leaves :=
 by { rw leaves_eq_nodes_succ, exact x.nodes.zero_lt_succ, }
 
 lemma height_le_nodes : ∀ (x : tree α), x.height ≤ x.nodes
@@ -136,9 +139,14 @@ by simp [unode_def]
 @[simp] lemma unode_ne_nil (a b : tree unit) : a.unode b ≠ nil := by trivial
 @[simp] lemma nil_ne_unode (a b : tree unit) : nil ≠ a.unode b := by trivial
 
-/-- Recursion on `tree unit` which uses `unode` -/
+/-- Recursion on `tree unit` using `unode` -/
+@[elab_as_eliminator]
 def unit_rec_on {motive : tree unit → Sort*} (t : tree unit) (base : motive nil)
   (ind : ∀ x y, motive x → motive y → motive (x.unode y)) : motive t :=
 t.rec_on base (λ u, u.rec_on (by exact ind))
+
+lemma left_unode_right_eq_self : ∀ {x : tree unit} (hx : x ≠ nil), x.left.unode x.right = x
+| nil h := by trivial
+| (unode a b) _ := rfl
 
 end tree

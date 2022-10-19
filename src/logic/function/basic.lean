@@ -548,6 +548,9 @@ def extend (f : α → β) (g : α → γ) (e' : β → γ) : β → γ :=
 def factors_through (g : α → γ) (f : α → β) : Prop :=
 ∀ ⦃a b⦄, f a = f b → g a = g b
 
+lemma factors_through_of_is_injective (g : α → γ) (hf : injective f) :
+g.factors_through f :=  λ a b h, congr_arg g (hf h)
+
 lemma extend_def (f : α → β) (g : α → γ) (e' : β → γ) (b : β) [decidable (∃ a, f a = b)] :
   extend f g e' b = if h : ∃ a, f a = b then g (classical.some h) else e' b :=
 by { unfold extend, congr }
@@ -562,7 +565,7 @@ end
 
 @[simp] lemma extend_apply (hf : injective f) (g : α → γ) (e' : β → γ) (a : α) :
   extend f g e' (f a) = g a :=
-extend_apply_of_unique g e' (λ a b h, congr_arg g (hf h)) a
+extend_apply_of_unique g e' (factors_through_of_is_injective g hf) a
 
 @[simp] lemma extend_apply' (g : α → γ) (e' : β → γ) (b : β) (hb : ¬∃ a, f a = b) :
   extend f g e' b = e' b :=
@@ -582,12 +585,7 @@ end
 
 lemma apply_extend {δ} (hf : injective f) (F : γ → δ) (g : α → γ) (e' : β → γ) (b : β) :
   F (extend f g e' b) = extend f (F ∘ g) (F ∘ e') b :=
-begin
-  by_cases hb : ∃ a, f a = b,
-  { cases hb with a ha, subst b,
-    rw [extend_apply hf, extend_apply hf] },
-  { rw [extend_apply' _ _ _ hb, extend_apply' _ _ _ hb] }
-end
+apply_extend_of_unique F g e' ((factors_through_of_is_injective g hf)) b
 
 lemma extend_injective (hf : injective f) (e' : β → γ) :
   injective (λ g, extend f g e') :=
@@ -602,14 +600,11 @@ end
 lemma extend_comp_of_unique (g : α → γ) (e' : β → γ)
   (hf : factors_through g f) :
   extend f g e' ∘ f = g :=
-begin
-  funext a,
-  simp only [comp_app], apply extend_apply_of_unique, exact hf,
-end
+funext $ λ a, by simp only [comp_app, extend_apply_of_unique g e' hf]
 
 @[simp] lemma extend_comp (hf : injective f) (g : α → γ) (e' : β → γ) :
   extend f g e' ∘ f = g :=
-funext $ λ a, extend_apply hf g e' a
+extend_comp_of_unique g e' (factors_through_of_is_injective g hf)
 
 lemma injective.surjective_comp_right' (hf : injective f) (g₀ : β → γ) :
   surjective (λ g : β → γ, g ∘ f) :=

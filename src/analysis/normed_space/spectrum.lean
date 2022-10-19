@@ -312,7 +312,7 @@ variables
 
 /-- The `limsup` relationship for the spectral radius used to prove `spectrum.gelfand_formula`. -/
 lemma limsup_pow_nnnorm_pow_one_div_le_spectral_radius (a : A) :
-  limsup at_top (λ n : ℕ, ↑∥a ^ n∥₊ ^ (1 / n : ℝ)) ≤ spectral_radius ℂ a :=
+  limsup (λ n : ℕ, ↑∥a ^ n∥₊ ^ (1 / n : ℝ)) at_top ≤ spectral_radius ℂ a :=
 begin
   refine ennreal.inv_le_inv.mp (le_of_forall_pos_nnreal_lt (λ r r_pos r_lt, _)),
   simp_rw [inv_limsup, ←one_div],
@@ -321,7 +321,8 @@ begin
   suffices h : (r : ℝ≥0∞) ≤ p.radius,
   { convert h,
     simp only [p.radius_eq_liminf, ←norm_to_nnreal, norm_mk_pi_field],
-    refine congr_arg _ (funext (λ n, congr_arg _ _)),
+    congr,
+    ext n,
     rw [norm_to_nnreal, ennreal.coe_rpow_def (∥a ^ n∥₊) (1 / n : ℝ), if_neg],
     exact λ ha, by linarith [ha.2, (one_div_nonneg.mpr n.cast_nonneg : 0 ≤ (1 / n : ℝ))], },
   { have H₁ := (differentiable_on_inverse_one_sub_smul r_lt).has_fpower_series_on_ball r_pos,

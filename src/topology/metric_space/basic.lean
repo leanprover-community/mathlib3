@@ -2491,6 +2491,17 @@ lemma nonempty_Inter_of_nonempty_bInter [complete_space α] {s : ℕ → set α}
 
 end diam
 
+lemma exists_local_min_mem_ball [proper_space α] [topological_space β]
+  [conditionally_complete_linear_order β] [order_topology β]
+  {f : α → β} {a z : α} {r : ℝ} (hf : continuous_on f (closed_ball a r))
+  (hz : z ∈ closed_ball a r) (hf1 : ∀ z' ∈ sphere a r, f z < f z') :
+  ∃ z ∈ ball a r, is_local_min f z :=
+begin
+  simp_rw [← closed_ball_diff_ball] at hf1,
+  exact (is_compact_closed_ball a r).exists_local_min_mem_open ball_subset_closed_ball hf hz hf1
+    is_open_ball,
+end
+
 end metric
 
 namespace tactic

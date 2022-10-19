@@ -25,7 +25,7 @@ This file defines notions of two points being on the same or opposite sides of a
 
 variables {R V V' P P' : Type*}
 
-open affine_map
+open affine_equiv affine_map
 
 namespace affine_subspace
 
@@ -796,6 +796,17 @@ begin
           inv_mul_cancel hr₂.ne.symm, one_smul, neg_vsub_eq_vsub_rev, vsub_vadd] } },
   { rintro ⟨t, p', ht, hp', rfl⟩,
     exact s_opp_side_smul_vsub_vadd_right hx hp hp' ht }
+end
+
+lemma w_opp_side_point_reflection {s : affine_subspace R P} {x : P} (y : P) (hx : x ∈ s) :
+  s.w_opp_side y (point_reflection R x y) :=
+(wbtw_point_reflection R _ _).w_opp_side₁₃ hx
+
+lemma s_opp_side_point_reflection {s : affine_subspace R P} {x y : P} (hx : x ∈ s) (hy : y ∉ s) :
+  s.s_opp_side y (point_reflection R x y) :=
+begin
+  refine (sbtw_point_reflection_of_ne R (λ h, hy _)).s_opp_side_of_not_mem_of_mem hy hx,
+  rwa ←h
 end
 
 end linear_ordered_field

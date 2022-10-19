@@ -178,6 +178,10 @@ def mk_mul_action (f : α → β → β) : mul_action (free_monoid α) β :=
   (by haveI := mk_mul_action f; exact l • b = l.to_list.foldr f b) :=
 rfl
 
+@[to_additive] lemma of_list_smul (f : α → β → β) (l : list α) (b : β) :
+  (by haveI := mk_mul_action f; exact (of_list l) • b = l.foldr f b) :=
+rfl
+
 @[simp, to_additive] lemma of_smul (f : α → β → β) (x : α) (y : β) :
   (by haveI := mk_mul_action f; exact of x • y) = f x y :=
 rfl

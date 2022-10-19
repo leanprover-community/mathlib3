@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import order.symm_diff
+import logic.function.iterate
 
 /-!
 # Basic properties of sets
@@ -105,7 +106,7 @@ instance : has_inter (set α) := ⟨(⊓)⟩
 @[simp] lemma lt_eq_ssubset : ((<) : set α → set α → Prop) = (⊂) := rfl
 
 lemma le_iff_subset : s ≤ t ↔ s ⊆ t := iff.rfl
-lemma lt_iff_ssubset : s ≤ t ↔ s ⊆ t := iff.rfl
+lemma lt_iff_ssubset : s < t ↔ s ⊂ t := iff.rfl
 
 alias le_iff_subset ↔ _root_.has_le.le.subset _root_.has_subset.subset.le
 alias lt_iff_ssubset ↔ _root_.has_lt.lt.ssubset _root_.has_ssubset.ssubset.lt
@@ -997,6 +998,9 @@ theorem diff_eq (s t : set α) : s \ t = s ∩ tᶜ := rfl
 theorem mem_diff_of_mem {s t : set α} {x : α} (h1 : x ∈ s) (h2 : x ∉ t) : x ∈ s \ t :=
 ⟨h1, h2⟩
 
+lemma not_mem_diff_of_mem {s t : set α} {x : α} (hx : x ∈ t) : x ∉ s \ t :=
+λ h, h.2 hx
+
 theorem mem_of_mem_diff {s t : set α} {x : α} (h : x ∈ s \ t) : x ∈ s :=
 h.left
 
@@ -1232,6 +1236,24 @@ ext $ λ s, subset_empty_iff
 @[simp] theorem powerset_univ : 𝒫 (univ : set α) = univ :=
 eq_univ_of_forall subset_univ
 
+/-! ### Sets defined as an if-then-else -/
+
+lemma mem_dite_univ_right (p : Prop) [decidable p] (t : p → set α) (x : α) :
+  (x ∈ if h : p then t h else univ) ↔ (∀ h : p, x ∈ t h) :=
+by split_ifs; simp [h]
+
+@[simp] lemma mem_ite_univ_right (p : Prop) [decidable p] (t : set α) (x : α) :
+  x ∈ ite p t set.univ ↔ (p → x ∈ t) :=
+mem_dite_univ_right p (λ _, t) x
+
+lemma mem_dite_univ_left (p : Prop) [decidable p] (t : ¬ p → set α) (x : α) :
+  (x ∈ if h : p then univ else t h) ↔ (∀ h : ¬ p, x ∈ t h)  :=
+by split_ifs; simp [h]
+
+@[simp] lemma mem_ite_univ_left (p : Prop) [decidable p] (t : set α) (x : α) :
+  x ∈ ite p set.univ t ↔ (¬ p → x ∈ t) :=
+mem_dite_univ_left p (λ _, t) x
+
 /-! ### If-then-else for sets -/
 
 /-- `ite` for sets: `set.ite t s s' ∩ t = s ∩ t`, `set.ite t s s' ∩ tᶜ = s' ∩ tᶜ`.
@@ -1338,7 +1360,9 @@ rfl
 @[simp] theorem preimage_set_of_eq {p : α → Prop} {f : β → α} : f ⁻¹' {a | p a} = {a | p (f a)} :=
 rfl
 
-@[simp] theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
+@[simp] lemma preimage_id_eq : preimage (id : α → α) = id := rfl
+
+theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
 
 @[simp] theorem preimage_id' {s : set α} : (λ x, x) ⁻¹' s = s := rfl
 
@@ -1355,6 +1379,15 @@ theorem preimage_const (b : β) (s : set β) [decidable (b ∈ s)] :
 by { split_ifs with hb hb, exacts [preimage_const_of_mem hb, preimage_const_of_not_mem hb] }
 
 theorem preimage_comp {s : set γ} : (g ∘ f) ⁻¹' s = f ⁻¹' (g ⁻¹' s) := rfl
+
+lemma preimage_comp_eq : preimage (g ∘ f) = preimage f ∘ preimage g := rfl
+
+@[simp] lemma preimage_iterate_eq {f : α → α} {n : ℕ} :
+  set.preimage (f^[n]) = ((set.preimage f)^[n]) :=
+begin
+  induction n with n ih, { simp, },
+  rw [iterate_succ, iterate_succ', set.preimage_comp_eq, ih],
+end
 
 lemma preimage_preimage {g : β → γ} {f : α → β} {s : set γ} :
   f ⁻¹' (g ⁻¹' s) = (λ x, g (f x)) ⁻¹' s :=
@@ -2172,6 +2205,12 @@ by rw [image_preimage_eq_inter_range, image_preimage_eq_inter_range, ← inter_d
 
 @[simp] theorem range_quot_mk (r : α → α → Prop) : range (quot.mk r) = univ :=
 (surjective_quot_mk r).range_eq
+
+lemma _root_.sum.range_eq (f : α ⊕ β → γ) : range f = range (f ∘ sum.inl) ∪ range (f ∘ sum.inr) :=
+ext $ λ x, sum.exists
+
+@[simp] lemma range_sum_elim (f : α → γ) (g : β → γ) : range (sum.elim f g) = range f ∪ range g :=
+sum.range_eq _
 
 instance can_lift (c) (p) [can_lift α β c p] :
   can_lift (set α) (set β) (('') c) (λ s, ∀ x ∈ s, p x) :=

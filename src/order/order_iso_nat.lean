@@ -148,7 +148,7 @@ theorem exists_increasing_or_nonincreasing_subseq (r : α → α → Prop) [is_t
 begin
   obtain ⟨g, hr | hnr⟩ := exists_increasing_or_nonincreasing_subseq' r f,
   { refine ⟨g, or.intro_left _ (λ m n mn, _)⟩,
-    obtain ⟨x, rfl⟩ := le_iff_exists_add.1 (nat.succ_le_iff.2 mn),
+    obtain ⟨x, rfl⟩ := exists_add_of_le (nat.succ_le_iff.2 mn),
     induction x with x ih,
     { apply hr },
     { apply is_trans.trans _ _ _ _ (hr _),

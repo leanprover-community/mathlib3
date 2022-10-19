@@ -8,6 +8,7 @@ import analysis.analytic.basic
 import analysis.complex.basic
 import data.nat.choose.cast
 import data.finset.noncomm_prod
+import topology.algebra.algebra
 
 /-!
 # Exponential in a Banach algebra
@@ -161,7 +162,7 @@ section normed
 
 section any_field_any_algebra
 
-variables {𝕂 𝔸 𝔹 : Type*} [nondiscrete_normed_field 𝕂]
+variables {𝕂 𝔸 𝔹 : Type*} [nontrivially_normed_field 𝕂]
 variables [normed_ring 𝔸] [normed_ring 𝔹] [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂 𝔹]
 
 lemma norm_exp_series_summable_of_mem_ball (x : 𝔸)
@@ -289,13 +290,13 @@ end complete_algebra
 lemma algebra_map_exp_comm_of_mem_ball [complete_space 𝕂] (x : 𝕂)
   (hx : x ∈ emetric.ball (0 : 𝕂) (exp_series 𝕂 𝕂).radius) :
   algebra_map 𝕂 𝔸 (exp 𝕂 x) = exp 𝕂 (algebra_map 𝕂 𝔸 x) :=
-map_exp_of_mem_ball _ (algebra_map_clm _ _).continuous _ hx
+map_exp_of_mem_ball _ (continuous_algebra_map 𝕂 𝔸) _ hx
 
 end any_field_any_algebra
 
 section any_field_division_algebra
 
-variables {𝕂 𝔸 : Type*} [nondiscrete_normed_field 𝕂] [normed_division_ring 𝔸] [normed_algebra 𝕂 𝔸]
+variables {𝕂 𝔸 : Type*} [nontrivially_normed_field 𝕂] [normed_division_ring 𝔸] [normed_algebra 𝕂 𝔸]
 
 variables (𝕂)
 
@@ -334,7 +335,7 @@ end any_field_division_algebra
 
 section any_field_comm_algebra
 
-variables {𝕂 𝔸 : Type*} [nondiscrete_normed_field 𝕂] [normed_comm_ring 𝔸] [normed_algebra 𝕂 𝔸]
+variables {𝕂 𝔸 : Type*} [nontrivially_normed_field 𝕂] [normed_comm_ring 𝔸] [normed_algebra 𝕂 𝔸]
   [complete_space 𝔸]
 
 /-- In a commutative Banach-algebra `𝔸` over a normed field `𝕂` of characteristic zero,
@@ -451,18 +452,17 @@ end
 /-- In a Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`, if a family of elements `f i` mutually
 commute then `exp 𝕂 (∑ i, f i) = ∏ i, exp 𝕂 (f i)`. -/
 lemma exp_sum_of_commute {ι} (s : finset ι) (f : ι → 𝔸)
-  (h : ∀ (i ∈ s) (j ∈ s), commute (f i) (f j)) :
+  (h : (s : set ι).pairwise $ λ i j, commute (f i) (f j)) :
   exp 𝕂 (∑ i in s, f i) = s.noncomm_prod (λ i, exp 𝕂 (f i))
-    (λ i hi j hj, (h i hi j hj).exp 𝕂) :=
+    (λ i hi j hj _, (h.of_refl hi hj).exp 𝕂) :=
 begin
   classical,
   induction s using finset.induction_on with a s ha ih,
   { simp },
   rw [finset.noncomm_prod_insert_of_not_mem _ _ _ _ ha, finset.sum_insert ha,
-      exp_add_of_commute, ih],
-  refine commute.sum_right _ _ _ _,
-  intros i hi,
-  exact h _ (finset.mem_insert_self _ _) _ (finset.mem_insert_of_mem hi),
+      exp_add_of_commute, ih (h.mono $ finset.subset_insert _ _)],
+  refine commute.sum_right _ _ _ (λ i hi, _),
+  exact h.of_refl (finset.mem_insert_self _ _) (finset.mem_insert_of_mem hi),
 end
 
 lemma exp_nsmul (n : ℕ) (x : 𝔸) :
@@ -590,7 +590,7 @@ lemma exp_sum {ι} (s : finset ι) (f : ι → 𝔸) :
   exp 𝕂 (∑ i in s, f i) = ∏ i in s, exp 𝕂 (f i) :=
 begin
   rw [exp_sum_of_commute, finset.noncomm_prod_eq_prod],
-  exact λ i hi j hj, commute.all _ _,
+  exact λ i hi j hj _, commute.all _ _,
 end
 
 end comm_algebra

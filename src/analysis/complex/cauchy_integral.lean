@@ -9,7 +9,7 @@ import measure_theory.integral.circle_integral
 import analysis.calculus.dslope
 import analysis.analytic.basic
 import analysis.complex.re_im_topology
-import analysis.calculus.diff_on_int_cont
+import analysis.calculus.diff_cont_on_cl
 import data.real.cardinality
 
 /-!
@@ -149,7 +149,7 @@ noncomputable theory
 
 universes u
 
-variables {E : Type u} [normed_group E] [normed_space ℂ E] [complete_space E]
+variables {E : Type u} [normed_add_comm_group E] [normed_space ℂ E] [complete_space E]
 
 namespace complex
 
@@ -477,7 +477,8 @@ begin
   { refine nonempty_diff.2 (λ hsub, _),
     have : (Ioo l u).countable,
       from (hs.preimage ((add_right_injective w).comp of_real_injective)).mono hsub,
-    rw [← cardinal.mk_set_le_aleph_0, cardinal.mk_Ioo_real (hlu₀.1.trans hlu₀.2)] at this,
+    rw [← cardinal.le_aleph_0_iff_set_countable,
+      cardinal.mk_Ioo_real (hlu₀.1.trans hlu₀.2)] at this,
     exact this.not_lt cardinal.aleph_0_lt_continuum },
   exact ⟨g x, (hlu_sub hx.1).1, (hlu_sub hx.1).2, hx.2⟩
 end
@@ -568,6 +569,10 @@ begin
   lift R to ℝ≥0 using hR0.le,
   exact ((hd.mono hRs).has_fpower_series_on_ball hR0).analytic_at
 end
+
+lemma _root_.differentiable_on.analytic_on {s : set ℂ} {f : ℂ → E} (hd : differentiable_on ℂ f s)
+  (hs : is_open s) : analytic_on ℂ f s :=
+λ z hz, hd.analytic_at (hs.mem_nhds hz)
 
 /-- A complex differentiable function `f : ℂ → E` is analytic at every point. -/
 protected lemma _root_.differentiable.analytic_at {f : ℂ → E} (hf : differentiable ℂ f) (z : ℂ) :

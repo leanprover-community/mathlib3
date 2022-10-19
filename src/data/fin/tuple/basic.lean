@@ -198,21 +198,13 @@ begin
   simp [and_assoc, exists_and_distrib_left],
 end
 
-@[simp]
-lemma range_cons {α : Type*} {n : ℕ} (x : α) (b : fin n → α) :
+lemma range_fin_succ {α} (f : fin (n + 1) → α) :
+  set.range f = insert (f 0) (set.range (fin.tail f)) :=
+set.ext $ λ y, exists_fin_succ.trans $ eq_comm.or iff.rfl
+
+@[simp] lemma range_cons {α : Type*} {n : ℕ} (x : α) (b : fin n → α) :
   set.range (fin.cons x b : fin n.succ → α) = insert x (set.range b) :=
-begin
-  ext y,
-  simp only [set.mem_range, set.mem_insert_iff],
-  split,
-  { rintros ⟨i, rfl⟩,
-    refine cases (or.inl (cons_zero _ _)) (λ i, or.inr ⟨i, _⟩) i,
-    rw cons_succ },
-  { rintros (rfl | ⟨i, hi⟩),
-    { exact ⟨0, fin.cons_zero _ _⟩ },
-    { refine ⟨i.succ, _⟩,
-      rw [cons_succ, hi] } }
-end
+by rw [range_fin_succ, cons_zero, tail_cons]
 
 /-- `fin.append ho u v` appends two vectors of lengths `m` and `n` to produce
 one of length `o = m + n`.  `ho` provides control of definitional equality
@@ -569,7 +561,7 @@ set.ext $ λ p, by simp only [mem_preimage, insert_nth_mem_Icc, hx, true_and]
 lemma preimage_insert_nth_Icc_of_not_mem {i : fin (n + 1)} {x : α i} {q₁ q₂ : Π j, α j}
   (hx : x ∉ Icc (q₁ i) (q₂ i)) :
   i.insert_nth x ⁻¹' (Icc q₁ q₂) = ∅ :=
-set.ext $ λ p, by simp only [mem_preimage, insert_nth_mem_Icc, hx, false_and, mem_empty_eq]
+set.ext $ λ p, by simp only [mem_preimage, insert_nth_mem_Icc, hx, false_and, mem_empty_iff_false]
 
 end insert_nth
 
@@ -689,5 +681,22 @@ lemma mem_find_of_unique {p : fin n → Prop} [decidable_pred p]
 mem_find_iff.2 ⟨hi, λ j hj, le_of_eq $ h i j hi hj⟩
 
 end find
+
+/-- To show two sigma pairs of tuples agree, it to show the second elements are related via
+`fin.cast`. -/
+lemma sigma_eq_of_eq_comp_cast {α : Type*} :
+  ∀ {a b : Σ ii, fin ii → α} (h : a.fst = b.fst), a.snd = b.snd ∘ fin.cast h → a = b
+| ⟨ai, a⟩ ⟨bi, b⟩ hi h :=
+begin
+  dsimp only at hi,
+  subst hi,
+  simpa using h,
+end
+
+/-- `fin.sigma_eq_of_eq_comp_cast` as an `iff`. -/
+lemma sigma_eq_iff_eq_comp_cast {α : Type*} {a b : Σ ii, fin ii → α} :
+  a = b ↔ ∃ (h : a.fst = b.fst), a.snd = b.snd ∘ fin.cast h :=
+⟨λ h, h ▸ ⟨rfl, funext $ fin.rec $ by exact λ i hi, rfl⟩,
+ λ ⟨h, h'⟩, sigma_eq_of_eq_comp_cast _ h'⟩
 
 end fin

@@ -30,7 +30,7 @@ property of uniqueness of the derivative is therefore proved in `fderiv.lean`, b
 properties of the tangent cone we prove here.
 -/
 
-variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+variables (𝕜 : Type*) [nontrivially_normed_field 𝕜]
 
 open filter set
 open_locale topological_space
@@ -63,9 +63,9 @@ def unique_diff_on (s : set E) : Prop :=
 
 end tangent_cone
 
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
-variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
-variables {G : Type*} [normed_group G] [normed_space ℝ G]
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+variables {G : Type*} [normed_add_comm_group G] [normed_space ℝ G]
 variables {𝕜} {x y : E} {s t : set E}
 
 section tangent_cone
@@ -183,7 +183,7 @@ end
 
 /-- The tangent cone of a product contains the tangent cone of each factor. -/
 lemma maps_to_tangent_cone_pi {ι : Type*} [decidable_eq ι] {E : ι → Type*}
-  [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
+  [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
   {s : Π i, set (E i)} {x : Π i, E i} {i : ι} (hi : ∀ j ≠ i, x j ∈ closure (s j)) :
   maps_to (linear_map.single i : E i →ₗ[𝕜] Π j, E j) (tangent_cone_at 𝕜 (s i) (x i))
     (tangent_cone_at 𝕜 (set.pi univ s) x) :=
@@ -324,8 +324,8 @@ begin
   exact (hs.1.prod ht.1).mono this
 end
 
-lemma unique_diff_within_at.univ_pi (ι : Type*) [fintype ι] (E : ι → Type*)
-  [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
+lemma unique_diff_within_at.univ_pi (ι : Type*) [finite ι] (E : ι → Type*)
+  [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
   (s : Π i, set (E i)) (x : Π i, E i) (h : ∀ i, unique_diff_within_at 𝕜 (s i) (x i)) :
   unique_diff_within_at 𝕜 (set.pi univ s) x :=
 begin
@@ -338,8 +338,8 @@ begin
   exact λ i, (maps_to_tangent_cone_pi $ λ j hj, (h j).2).mono subset.rfl submodule.subset_span
 end
 
-lemma unique_diff_within_at.pi (ι : Type*) [fintype ι] (E : ι → Type*)
-  [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
+lemma unique_diff_within_at.pi (ι : Type*) [finite ι] (E : ι → Type*)
+  [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
   (s : Π i, set (E i)) (x : Π i, E i) (I : set ι)
   (h : ∀ i ∈ I, unique_diff_within_at 𝕜 (s i) (x i)) :
   unique_diff_within_at 𝕜 (set.pi I s) x :=
@@ -357,16 +357,16 @@ lemma unique_diff_on.prod {t : set F} (hs : unique_diff_on 𝕜 s) (ht : unique_
 
 /-- The finite product of a family of sets of unique differentiability is a set of unique
 differentiability. -/
-lemma unique_diff_on.pi (ι : Type*) [fintype ι] (E : ι → Type*)
-  [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
+lemma unique_diff_on.pi (ι : Type*) [finite ι] (E : ι → Type*)
+  [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
   (s : Π i, set (E i)) (I : set ι) (h : ∀ i ∈ I, unique_diff_on 𝕜 (s i)) :
   unique_diff_on 𝕜 (set.pi I s) :=
 λ x hx, unique_diff_within_at.pi _ _ _ _ _ $ λ i hi, h i hi (x i) (hx i hi)
 
 /-- The finite product of a family of sets of unique differentiability is a set of unique
 differentiability. -/
-lemma unique_diff_on.univ_pi (ι : Type*) [fintype ι] (E : ι → Type*)
-  [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)]
+lemma unique_diff_on.univ_pi (ι : Type*) [finite ι] (E : ι → Type*)
+  [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
   (s : Π i, set (E i)) (h : ∀ i, unique_diff_on 𝕜 (s i)) :
   unique_diff_on 𝕜 (set.pi univ s) :=
 unique_diff_on.pi _ _ _ _ $ λ i _, h i
@@ -426,6 +426,10 @@ is_open_Ioo.unique_diff_on
 /-- The real interval `[0, 1]` is a set of unique differentiability. -/
 lemma unique_diff_on_Icc_zero_one : unique_diff_on ℝ (Icc (0:ℝ) 1) :=
 unique_diff_on_Icc zero_lt_one
+
+lemma unique_diff_within_at_Ioo {a b t : ℝ} (ht : t ∈ set.Ioo a b) :
+  unique_diff_within_at ℝ (set.Ioo a b) t :=
+is_open.unique_diff_within_at is_open_Ioo ht
 
 lemma unique_diff_within_at_Ioi (a : ℝ) : unique_diff_within_at ℝ (Ioi a) a :=
 unique_diff_within_at_convex (convex_Ioi a) (by simp) (by simp)

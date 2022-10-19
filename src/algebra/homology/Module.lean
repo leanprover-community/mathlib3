@@ -80,14 +80,19 @@ example (f g : C ⟶ D) (h : homotopy f g) (i : ι) :
 begin
   -- To check that two morphisms out of a homology group agree, it suffices to check on cycles:
   ext,
-  dsimp,
-  simp only [homology.π_map_apply],
+  simp only [homology_functor_map, homology.π_map_apply],
   -- To check that two elements are equal mod boundaries, it suffices to exhibit a boundary:
   ext1,
   swap, exact (to_prev i h.hom) x.1,
   -- Moreover, to check that two cycles are equal, it suffices to check their underlying elements:
   ext1,
-  simp [h.comm i, x.2]; abel,
+  simp only [map_add, image_to_kernel_arrow_apply, homological_complex.hom.sq_from_left,
+      Module.to_kernel_subobject_arrow, category_theory.limits.kernel_subobject_map_arrow_apply,
+      d_next_eq_d_from_from_next, function.comp_app, zero_add, Module.coe_comp,
+      linear_map.add_apply, map_zero, subtype.val_eq_coe,
+      category_theory.limits.image_subobject_arrow_comp_apply, linear_map.map_coe_ker,
+      prev_d_eq_to_prev_d_to, h.comm i, x.2],
+  abel
 end
 
 end Module

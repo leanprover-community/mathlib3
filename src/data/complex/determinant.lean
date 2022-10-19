@@ -19,7 +19,7 @@ namespace complex
 /-- The determinant of `conj_ae`, as a linear map. -/
 @[simp] lemma det_conj_ae : conj_ae.to_linear_map.det = -1 :=
 begin
-  rw [←linear_map.det_to_matrix basis_one_I, to_matrix_conj_ae, matrix.det_fin_two],
+  rw [←linear_map.det_to_matrix basis_one_I, to_matrix_conj_ae, matrix.det_fin_two_of],
   simp
 end
 

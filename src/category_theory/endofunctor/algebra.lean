@@ -115,6 +115,14 @@ instance forget_reflects_iso : reflects_isomorphisms (forget F) :=
 
 instance forget_faithful : faithful (forget F) := {}
 
+/-- An algebra morphism with an underlying epimorphism hom in `C` is an algebra epimorphism. -/
+lemma epi_of_epi {X Y : algebra F} (f : X ⟶ Y) [h : epi f.1] : epi f :=
+(forget F).epi_of_epi_map h
+
+/-- An algebra morphism with an underlying monomorphism hom in `C` is an algebra monomorphism. -/
+lemma mono_of_mono {X Y : algebra F} (f : X ⟶ Y) [h : mono f.1] : mono f :=
+(forget F).mono_of_mono_map h
+
 /--
 From a natural transformation `α : G → F` we get a functor from
 algebras of `F` to algebras of `G`.
@@ -288,6 +296,14 @@ instance forget_reflects_iso : reflects_isomorphisms (forget F) :=
 { reflects := λ A B, iso_of_iso }
 
 instance forget_faithful : faithful (forget F) := {}
+
+/-- An algebra morphism with an underlying epimorphism hom in `C` is an algebra epimorphism. -/
+lemma epi_of_epi {X Y : coalgebra F} (f : X ⟶ Y) [h : epi f.1] : epi f :=
+(forget F).epi_of_epi_map h
+
+/-- An algebra morphism with an underlying monomorphism hom in `C` is an algebra monomorphism. -/
+lemma mono_of_mono {X Y : coalgebra F} (f : X ⟶ Y) [h : mono f.1] : mono f :=
+(forget F).mono_of_mono_map h
 
 /--
 From a natural transformation `α : F → G` we get a functor from

@@ -7,7 +7,7 @@ import data.fun_like.embedding
 import data.prod.pprod
 import data.set.basic
 import data.sigma.basic
-import logic.equiv.basic
+import logic.equiv.defs
 
 /-!
 # Injective functions
@@ -18,7 +18,7 @@ universes u v w x
 namespace function
 
 /-- `α ↪ β` is a bundled injective function. -/
-@[nolint has_inhabited_instance] -- depending on cardinalities, an injective function may not exist
+@[nolint has_nonempty_instance] -- depending on cardinalities, an injective function may not exist
 structure embedding (α : Sort*) (β : Sort*) :=
 (to_fun : α → β)
 (inj'   : injective to_fun)
@@ -34,10 +34,8 @@ instance {α : Sort u} {β : Sort v} : embedding_like (α ↪ β) α β :=
   injective' := embedding.inj',
   coe_injective' := λ f g h, by { cases f, cases g, congr' } }
 
-instance {α β : Sort*} : can_lift (α → β) (α ↪ β) :=
-{ coe := coe_fn,
-  cond := injective,
-  prf := λ f hf, ⟨⟨f, hf⟩, rfl⟩ }
+instance {α β : Sort*} : can_lift (α → β) (α ↪ β) coe_fn injective :=
+{ prf := λ f hf, ⟨⟨f, hf⟩, rfl⟩ }
 
 end function
 
@@ -193,6 +191,12 @@ def subtype {α} (p : α → Prop) : subtype p ↪ α :=
 ⟨coe, λ _ _, subtype.ext_val⟩
 
 @[simp] lemma coe_subtype {α} (p : α → Prop) : ⇑(subtype p) = coe := rfl
+
+/-- `quotient.out` as an embedding. -/
+noncomputable def quotient_out (α) [s : setoid α] : quotient s ↪ α :=
+⟨_, quotient.out_injective⟩
+
+@[simp] theorem coe_quotient_out (α) [s : setoid α] : ⇑(quotient_out α) = quotient.out := rfl
 
 /-- Choosing an element `b : β` gives an embedding of `punit` into `β`. -/
 def punit {β : Sort*} (b : β) : punit ↪ β :=

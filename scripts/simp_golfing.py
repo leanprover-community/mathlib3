@@ -29,9 +29,8 @@ def extract_simp_rw_from_simp_only(filename):
         new_lines = list(lines)
         new_lines[lines.index(line)] = new_line
 
-        f = open(filename, "w")
-        f.writelines(new_lines)
-        f.close()
+        with open(filename, "w"):
+            f.writelines(new_lines)
         exit_code = os.system(f"lean --make {filename} > /dev/null")
         if exit_code != 0:
             f = open(filename, "w")

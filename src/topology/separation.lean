@@ -547,6 +547,29 @@ lemma is_closed_map_const {α β} [topological_space α] [topological_space β] 
   is_closed_map (function.const α y) :=
 is_closed_map.of_nonempty $ λ s hs h2s, by simp_rw [h2s.image_const, is_closed_singleton]
 
+lemma nhds_within_insert_of_ne [t1_space α] {x y : α} {s : set α} (hxy : x ≠ y) :
+  𝓝[insert y s] x = 𝓝[s] x :=
+begin
+  refine le_antisymm (λ t ht, _) (nhds_within_mono x $ subset_insert y s),
+  obtain ⟨o, ho, hxo, host⟩ := mem_nhds_within.mp ht,
+  refine mem_nhds_within.mpr ⟨o \ {y}, ho.sdiff is_closed_singleton, ⟨hxo, hxy⟩, _⟩,
+  rw [inter_insert_of_not_mem $ not_mem_diff_of_mem (mem_singleton y)],
+  exact (inter_subset_inter (diff_subset _ _) subset.rfl).trans host
+end
+
+/-- If `t` is a subset of `s`, except for one point,
+then `insert x s` is a neighborhood of `x` within `t`. -/
+lemma insert_mem_nhds_within_of_subset_insert [t1_space α] {x y : α} {s t : set α}
+  (hu : t ⊆ insert y s) :
+  insert x s ∈ 𝓝[t] x :=
+begin
+  rcases eq_or_ne x y with rfl|h,
+  { exact mem_of_superset self_mem_nhds_within hu },
+  refine nhds_within_mono x hu _,
+  rw [nhds_within_insert_of_ne h],
+  exact mem_of_superset self_mem_nhds_within (subset_insert x s)
+end
+
 lemma bInter_basis_nhds [t1_space α] {ι : Sort*} {p : ι → Prop} {s : ι → set α} {x : α}
   (h : (𝓝 x).has_basis p s) : (⋂ i (h : p i), s i) = {x} :=
 begin

@@ -822,6 +822,11 @@ lemma prod_extend_by_one [decidable_eq α] (s : finset α) (f : α → β) :
 prod_congr rfl $ λ i hi, if_pos hi
 
 @[simp, to_additive]
+lemma prod_ite_mem [decidable_eq α] (s t : finset α) (f : α → β) :
+  ∏ i in s, (if i ∈ t then f i else 1) = ∏ i in (s ∩ t), f i :=
+by rw [← finset.prod_filter, finset.filter_mem_eq_inter]
+
+@[simp, to_additive]
 lemma prod_dite_eq [decidable_eq α] (s : finset α) (a : α) (b : Π x : α, a = x → β) :
   (∏ x in s, (if h : a = x then b x h else 1)) = ite (a ∈ s) (b a rfl) 1 :=
 begin

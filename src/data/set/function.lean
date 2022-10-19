@@ -166,11 +166,19 @@ ext $ λ x, and.congr_right_iff.2 $ λ hx, by rw [mem_preimage, mem_preimage, he
 lemma eq_on.mono (hs : s₁ ⊆ s₂) (hf : eq_on f₁ f₂ s₂) : eq_on f₁ f₂ s₁ :=
 λ x hx, hf (hs hx)
 
+@[simp] lemma eq_on_union : eq_on f₁ f₂ (s₁ ∪ s₂) ↔ eq_on f₁ f₂ s₁ ∧ eq_on f₁ f₂ s₂ :=
+ball_or_left_distrib
+
+lemma eq_on.union (h₁ : eq_on f₁ f₂ s₁) (h₂ : eq_on f₁ f₂ s₂) : eq_on f₁ f₂ (s₁ ∪ s₂) :=
+eq_on_union.2 ⟨h₁, h₂⟩
+
 lemma eq_on.comp_left (h : s.eq_on f₁ f₂) : s.eq_on (g ∘ f₁) (g ∘ f₂) := λ a ha, congr_arg _ $ h ha
 
-lemma comp_eq_of_eq_on_range {ι : Sort*} {f : ι → α} {g₁ g₂ : α → β} (h : eq_on g₁ g₂ (range f)) :
-  g₁ ∘ f = g₂ ∘ f :=
-funext $ λ x, h $ mem_range_self _
+@[simp] lemma eq_on_range {ι : Sort*} {f : ι → α} {g₁ g₂ : α → β} :
+  eq_on g₁ g₂ (range f) ↔ g₁ ∘ f = g₂ ∘ f :=
+forall_range_iff.trans $ funext_iff.symm
+
+alias eq_on_range ↔ eq_on.comp_eq _
 
 /-! ### Congruence lemmas -/
 
@@ -282,6 +290,9 @@ lemma maps_to_iff_exists_map_subtype : maps_to f s t ↔ ∃ g : s → t, ∀ x 
 
 theorem maps_to' : maps_to f s t ↔ f '' s ⊆ t :=
 image_subset_iff.symm
+
+lemma maps_to.subset_preimage {f : α → β} {s : set α} {t : set β} (hf : maps_to f s t) :
+  s ⊆ f ⁻¹' t := hf
 
 @[simp] theorem maps_to_singleton {x : α} : maps_to f {x} t ↔ f x ∈ t := singleton_subset_iff
 
@@ -987,7 +998,7 @@ funext $ λ x, if hx : x ∈ s then by simp [hx] else by simp [hx]
 @[simp] lemma piecewise_range_comp {ι : Sort*} (f : ι → α) [Π j, decidable (j ∈ range f)]
   (g₁ g₂ : α → β) :
   (range f).piecewise g₁ g₂ ∘ f = g₁ ∘ f :=
-comp_eq_of_eq_on_range $ piecewise_eq_on _ _ _
+eq_on.comp_eq $ piecewise_eq_on _ _ _
 
 theorem maps_to.piecewise_ite {s s₁ s₂ : set α} {t t₁ t₂ : set β} {f₁ f₂ : α → β}
   [∀ i, decidable (i ∈ s)]

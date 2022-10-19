@@ -575,8 +575,6 @@ def continuous_map.C : R →+* C(α, A) :=
 @[simp] lemma continuous_map.C_apply (r : R) (a : α) : continuous_map.C r a = algebra_map R A r :=
 rfl
 
-variables [has_continuous_const_smul R A] [has_continuous_const_smul R A₂]
-
 instance continuous_map.algebra : algebra R C(α, A) :=
 { to_ring_hom := continuous_map.C,
   commutes' := λ c f, by ext x; exact algebra.commutes' _ _,
@@ -591,6 +589,22 @@ variables (R)
   C(α, A) →ₐ[R] C(α, A₂) :=
 { commutes' := λ c, continuous_map.ext $ λ _, g.commutes' _,
   .. g.to_ring_hom.comp_left_continuous α hg }
+
+variables (A)
+
+/--
+Precomposition of functions into a normed ring by a continuous map is an algebra homomorphism.
+-/
+@[simps] def continuous_map.comp_right_alg_hom {α β : Type*} [topological_space α]
+  [topological_space β] (f : C(α, β)) : C(β, A) →ₐ[R] C(α, A) :=
+{ to_fun := λ g, g.comp f,
+  map_zero' := by { ext, refl, },
+  map_add' := λ g₁ g₂, by { ext, refl, },
+  map_one' := by { ext, refl, },
+  map_mul' := λ g₁ g₂, by { ext, refl, },
+  commutes' := λ r, by { ext, refl, }, }
+
+variables {A}
 
 /-- Coercion to a function as an `alg_hom`. -/
 @[simps]

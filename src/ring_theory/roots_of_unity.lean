@@ -325,8 +325,7 @@ h.pow_ne_one_of_pos_of_lt zero_lt_one hk ∘ (pow_one ζ).trans
 lemma pow_inj (h : is_primitive_root ζ k) ⦃i j : ℕ⦄ (hi : i < k) (hj : j < k) (H : ζ ^ i = ζ ^ j) :
   i = j :=
 begin
-  wlog hij : i ≤ j generalizing i j,
-  { exact (this hj hi H.symm (le_of_not_le hij)).symm },
+  wlog hij : i ≤ j,
   apply le_antisymm hij,
   rw ← tsub_eq_zero_iff_le,
   apply nat.eq_zero_of_dvd_of_lt _ (lt_of_le_of_lt tsub_le_self hj),
@@ -396,8 +395,7 @@ protected lemma order_of (ζ : M) : is_primitive_root ζ (order_of ζ) :=
 
 lemma unique {ζ : M} (hk : is_primitive_root ζ k) (hl : is_primitive_root ζ l) : k = l :=
 begin
-  wlog hkl : k ≤ l generalizing k l,
-  { exact (this hl hk (le_of_not_le hkl)).symm },
+  wlog hkl : k ≤ l,
   rcases hkl.eq_or_lt with rfl | hkl,
   { refl },
   rcases k.eq_zero_or_pos with rfl | hk',

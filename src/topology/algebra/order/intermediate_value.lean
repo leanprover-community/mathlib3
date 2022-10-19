@@ -391,8 +391,7 @@ lemma is_preconnected_Icc : is_preconnected (Icc a b) :=
 is_preconnected_closed_iff.2
 begin
   rintros s t hs ht hab ⟨x, hx⟩ ⟨y, hy⟩,
-  wlog hxy : x ≤ y,
-  { rw union_comm at hab, rw inter_comm s, exact this t s ht hs hab y hy x hx (le_of_not_le hxy) },
+  wlog hxy : x ≤ y := le_total x y using [x y s t, y x t s],
   have xyab : Icc x y ⊆ Icc a b := Icc_subset_Icc hx.1.1 hy.1.2,
   by_contradiction hst,
   suffices : Icc x y ⊆ s,

@@ -94,8 +94,7 @@ lemma apply_eq_of_chain {c : set (partial_refinement u s)} (hc : is_chain (≤) 
   (h₁ : v₁ ∈ c) (h₂ : v₂ ∈ c) {i} (hi₁ : i ∈ v₁.carrier) (hi₂ : i ∈ v₂.carrier) :
   v₁ i = v₂ i :=
 begin
-  wlog hle : v₁ ≤ v₂,
-  { cases hc.total h₁ h₂; [skip, symmetry]; apply_assumption; assumption' },
+  wlog hle : v₁ ≤ v₂ := hc.total h₁ h₂ using [v₁ v₂, v₂ v₁],
   exact hle.2 _ hi₁,
 end
 

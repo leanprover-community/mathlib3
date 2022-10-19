@@ -13,6 +13,9 @@ def mk_label(path: Path) -> str:
     rel = path.relative_to(Path('src'))
     return str(rel.with_suffix('')).replace(os.sep, '.')
 
+def yaml_md_load(wikicontent: bytes):
+    return yaml.safe_load(wikicontent.replace(b"```", b""))
+
 graph = nx.DiGraph()
 
 for path in Path('src').glob('**/*.lean'):
@@ -35,7 +38,7 @@ for path in Path('src').glob('**/*.lean'):
                     imported = 'lean_core.' + imported
             graph.add_edge(imported, mk_label(path))
 
-data = yaml.safe_load(urlopen('https://raw.githubusercontent.com/wiki/leanprover-community/mathlib/mathlib4-port-status.md'))
+data = yaml_md_load(urlopen('https://raw.githubusercontent.com/wiki/leanprover-community/mathlib/mathlib4-port-status.md').read())
 
 # First make sure all nodes exists in the data set
 for node in graph.nodes:

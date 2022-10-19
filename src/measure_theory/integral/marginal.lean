@@ -302,6 +302,7 @@ lemma set.union_apply_right' {α} {s t : set α} [decidable_pred (λ x, x ∈ s)
   {a : α} (ha : a ∈ t) : equiv.set.union H ⟨a, set.mem_union_right _ ha⟩ = sum.inr ⟨a, ha⟩ :=
 dif_neg $ λ h, H ⟨h, ha⟩
 
+variable (μ)
 lemma marginal_union (f : (Π i, π i) → E) (hf : measurable f) {s t : finset δ}
   (hst : disjoint s t) :
   ∫⋯∫_ s ∪ t, f ∂μ = ∫⋯∫_ t, ∫⋯∫_ s, f ∂μ ∂μ :=
@@ -327,6 +328,7 @@ begin
   --   exact congr_arg_heq _ (set.union_apply_right' this hit) },
 
 end
+variable {μ}
 
 lemma marginal_singleton (f : (Π i, π i) → E) (hf : measurable f) (i : δ) :
   ∫⋯∫_ {i}, f ∂μ = λ x, ∫ xᵢ, f (function.update x i xᵢ) ∂(μ i) :=
@@ -346,6 +348,10 @@ begin
   { exact measurable.ae_measurable measurable_unique_elim },
   sorry,
 end
+
+lemma integral_update (f : (Π i, π i) → E) (hf : measurable f) (i : δ) (x : Π i, π i) :
+  (∫ xᵢ, f (function.update x i xᵢ) ∂(μ i)) = (∫⋯∫_ {i}, f ∂μ) x :=
+by simp_rw [marginal_singleton f hf i]
 
 lemma marginal_insert (f : (Π i, π i) → E) (hf : measurable f) {i : δ} {s : finset δ}
   (hi : i ∉ s) :
@@ -415,67 +421,47 @@ by cases i; refl
 open topological_space
 variables {E : Type*} [normed_add_comm_group E] [second_countable_topology E] -- todo: remove
   [normed_space ℝ E] [complete_space E] [measurable_space E] [borel_space E]
-variables {n k : ℕ} (u : (fin n → ℝ) → E)
+variables (u : (ι → ℝ) → E) [fintype ι]
 
-def finset.less_than (k : ℕ) : finset (fin n) :=
-finset.univ.filter $ λ i, (i : ℕ) < k
+def induct_step_lhs (s : finset ι) : (ι → ℝ) → ℝ :=
+marginal (λ _, volume) s (λ x, ∥u x∥ ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)))
 
+def induct_step_rhs' (f : (ι → ℝ) → ℝ) (s : finset ι) : (ι → ℝ) → ℝ :=
+(marginal (λ _, volume) s f) ^ ((s.card : ℝ) / (fintype.card ι - 1)) *
+∏ i in sᶜ, marginal (λ _, volume) (insert i s) f ^ ((1 : ℝ) / (fintype.card ι - 1))
 
-def induct_step_lhs (k : ℕ) : (fin n → ℝ) → ℝ :=
-marginal (λ _, volume) (finset.less_than k) (λ x, ∥u x∥ ^ ((n : ℝ) / (n - 1)))
+def induct_step_rhs (s : finset ι) : (ι → ℝ) → ℝ :=
+(marginal (λ _, volume) s (λ x, ∥fderiv ℝ u x∥)) ^ ((s.card : ℝ) / (fintype.card ι - 1)) *
+∏ i in sᶜ, marginal (λ _, volume) (insert i s)
+  (λ x, ∥fderiv ℝ u x∥) ^ ((1 : ℝ) / (fintype.card ι - 1))
 
-def induct_step_rhs (k : ℕ) : (fin n → ℝ) → ℝ :=
-(marginal (λ _, volume) (finset.less_than k) (λ x, ∥fderiv ℝ u x∥)) ^ ((k : ℝ) / (n - 1)) *
-∏ i in (finset.less_than k)ᶜ, marginal (λ _, volume) (insert i (finset.less_than k))
-  (λ x, ∥fderiv ℝ u x∥) ^ ((1 : ℝ) / (n - 1))
-
-lemma integral_induct_step_lhs (k : fin n) :
-  ∫⋯∫_{k}, induct_step_lhs u k ∂(λ _, volume) = induct_step_lhs u (k + 1) :=
+lemma integral_induct_step_lhs (s : finset ι) (i : ι) :
+  ∫⋯∫_{i}, induct_step_lhs u s ∂(λ _, volume) = induct_step_lhs u (insert i s) :=
 begin
   sorry
 end
 
-lemma less_than_compl_succ (k : fin n) :
-  (finset.less_than k : finset (fin n))ᶜ = insert k (finset.less_than (k + 1))ᶜ :=
-sorry
+lemma less_than_compl_succ {s : finset ι} {i : ι} (hi : i ∉ s) :
+  sᶜ = insert i (insert i s)ᶜ :=
+by sorry
 
-lemma less_than_succ (k : fin n) :
-  (finset.less_than (k + 1) : finset (fin n)) = insert k (finset.less_than k) :=
-sorry
+lemma not_mem_compl_less_than_succ (s : finset ι) (i : ι) : i ∉ (insert i s)ᶜ :=
+finset.not_mem_compl.mpr $ finset.mem_insert_self i s
 
-lemma not_mem_compl_less_than_succ (k : fin n) : k ∉ (finset.less_than (k + 1) : finset (fin n))ᶜ :=
-sorry
 
-lemma mem_less_than_self (k : fin n) : k ∈ (finset.less_than (k + 1) : finset (fin n)) :=
-sorry
-
-lemma not_mem_less_than_self (k : fin n) : k ∉ (finset.less_than k : finset (fin n)) :=
-sorry
-#check@ finset.prod_insert
--- #check@ finset.option_prod
-
-lemma induction_step (k : ℕ) : induct_step_lhs u k ≤ induct_step_rhs u k :=
+lemma induction_step' (f : (ι → ℝ) → ℝ) (hf : ∀ x, 0 ≤ f x) (s : finset ι) (i : ι) (hi : i ∉ s) :
+  ∫⋯∫_{i}, induct_step_rhs' f s ∂(λ _, volume) ≤ induct_step_rhs' f (insert i s) :=
 begin
-  induction k with k hk,
-  { sorry },
-  { rcases le_or_lt n k with hnk|hkn,
-    sorry,
-    -- lift k to fin n using hkn, -- todo
-    let K : fin n := ⟨k, hkn⟩,
-    have : (K : ℕ) = k := rfl,
-    simp_rw [← this] at hk ⊢, clear this, clear_value K, clear hkn k,
-    simp_rw [nat.succ_eq_add_one, ← integral_induct_step_lhs u K],
-    refine (marginal_mono sorry sorry hk).trans _,
-    simp_rw [induct_step_rhs, less_than_compl_succ],
-    rw [finset.prod_insert (not_mem_compl_less_than_succ K), ← less_than_succ],
+    simp_rw [induct_step_rhs', less_than_compl_succ hi],
+    rw [finset.prod_insert (not_mem_compl_less_than_succ s i)],
     rw [mul_left_comm, finset.mul_prod_eq_prod_insert_none],
     simp_rw [marginal_singleton _ sorry],
-    have := λ x xᵢ, marginal_update (λ _, volume) x (λ (x : fin n → ℝ), ∥fderiv ℝ u x∥) xᵢ (mem_less_than_self K),
+    have := λ x xᵢ, marginal_update (λ _, volume) x f xᵢ (s.mem_insert_self i),
     simp_rw [pi.mul_apply, pi.pow_apply, this],
     clear this,
     simp_rw [integral_mul_left, finset.prod_apply, option.elim_pow, pi.pow_apply],
     intro x, dsimp only,
-    have h1 : (0 : ℝ) ≤ (∫⋯∫_(finset.less_than (K + 1)), (λ y, ∥fderiv ℝ u y∥) ∂(λ _, measure_space.volume)) x ^ ((1 : ℝ) / (n - 1)) :=
+    have h1 : (0 : ℝ) ≤ (∫⋯∫_(insert i s), f ∂(λ _, measure_space.volume)) x ^ ((1 : ℝ) / (fintype.card ι - 1)) :=
     sorry,
 
     refine (mul_le_mul_of_nonneg_left (integral_prod_norm_pow_le _ _ _ _ _) h1).trans_eq _,
@@ -485,23 +471,97 @@ begin
     { sorry }, -- automatic if we switch to Lebesgue
     simp_rw [finset.prod_insert_none],
     dsimp,
-    simp_rw [marginal_insert_rev _ sorry (not_mem_less_than_self K)],
-    rw [less_than_succ K, ← mul_assoc],
+    simp_rw [marginal_insert_rev _ sorry hi],
+    rw [← mul_assoc],
     congr,
-    sorry,
-    -- convert (real.rpow_add_of_nonneg _ _ _).symm,
-    -- sorry,
-    -- sorry,
-    -- sorry,
-    -- sorry,
+    { convert (real.rpow_add_of_nonneg _ _ _).symm,
+      sorry,
+      sorry,
+      sorry,
+      sorry, },
     simp_rw [finset.prod_apply, pi.pow_apply],
-    refine finset.prod_congr rfl (λ i hi, _),
+    refine finset.prod_congr rfl (λ j hj, _),
     congr' 1,
     rw [finset.insert.comm],
-    have h2 : K ∉ insert i (finset.less_than K : finset (fin n)),
+    have h2 : i ∉ insert j s,
     { sorry },
-    simp_rw [marginal_insert_rev _ sorry h2],
-    congr, }
+    simp_rw [marginal_insert_rev _ sorry h2]
+end
+
+lemma induction_step'' (f : (ι → ℝ) → ℝ) (hf : ∀ x, 0 ≤ f x) (s : finset ι) (i : ι) (hi : i ∉ s) :
+  ∫⋯∫_{i}, induct_step_rhs' f s ∂(λ _, volume) ≤ induct_step_rhs' f (insert i s) :=
+sorry
+
+
+lemma lem1 (f : (ι → ℝ) → ℝ) (hf : ∀ x, 0 ≤ f x) (s : finset ι) :
+  ∫⋯∫_s, induct_step_rhs' f ∅ ∂(λ _, volume) ≤ induct_step_rhs' f s :=
+begin
+  induction s using finset.induction with i s hi ih,
+  { rw [marginal_empty], refl', },
+  { have hi' : disjoint s {i} := sorry,
+    conv_lhs { rw [finset.insert_eq, finset.union_comm, marginal_union (λ _, (volume : measure ℝ)) _ sorry hi'] },
+    refine (marginal_mono sorry sorry ih).trans _,
+    exact induction_step' f hf s i hi }
+end
+
+lemma lem2 (f : (ι → ℝ) → ℝ) (hf : ∀ x, 0 ≤ f x) :
+  ∫ x, ∏ i, (∫ xᵢ, f (function.update x i xᵢ)) ^ ((1 : ℝ) / (fintype.card ι - 1)) ≤
+  (∫ x, f x)  ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) :=
+begin
+  have := lem1 f hf finset.univ 0,
+  simp_rw [induct_step_rhs', marginal_univ, finset.compl_univ, finset.prod_empty, marginal_empty,
+    finset.card_empty, nat.cast_zero, zero_div, finset.compl_empty, mul_one,
+    pi.mul_def, pi.pow_apply, real.rpow_zero, one_mul, finset.prod_fn, pi.pow_apply,
+    insert_emptyc_eq, marginal_singleton f sorry] at this,
+  exact this,
+end
+
+theorem foo : ∫ x, ∥u x∥ ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) ≤
+  (∫ x, ∥fderiv ℝ u x∥)  ^ ((fintype.card ι : ℝ) / (fintype.card ι - 1)) :=
+begin
+  refine le_trans _ (lem2 _ $ λ x, norm_nonneg _),
+end
+
+lemma induction_step (s : finset ι) : induct_step_lhs u s ≤ induct_step_rhs u s :=
+begin
+  induction s using finset.induction with i s hi ih,
+  { sorry },
+  { simp_rw [← integral_induct_step_lhs u s],
+    refine (marginal_mono sorry sorry ih).trans _,
+    simp_rw [induct_step_rhs, less_than_compl_succ hi],
+    rw [finset.prod_insert (not_mem_compl_less_than_succ s i)],
+    rw [mul_left_comm, finset.mul_prod_eq_prod_insert_none],
+    simp_rw [marginal_singleton _ sorry],
+    have := λ x xᵢ, marginal_update (λ _, volume) x (λ (x : ι → ℝ), ∥fderiv ℝ u x∥) xᵢ (s.mem_insert_self i),
+    simp_rw [pi.mul_apply, pi.pow_apply, this],
+    clear this,
+    simp_rw [integral_mul_left, finset.prod_apply, option.elim_pow, pi.pow_apply],
+    intro x, dsimp only,
+    have h1 : (0 : ℝ) ≤ (∫⋯∫_(insert i s), (λ y, ∥fderiv ℝ u y∥) ∂(λ _, measure_space.volume)) x ^ ((1 : ℝ) / (fintype.card ι - 1)) :=
+    sorry,
+
+    refine (mul_le_mul_of_nonneg_left (integral_prod_norm_pow_le _ _ _ _ _) h1).trans_eq _,
+    { sorry },
+    { sorry },
+    { sorry },
+    { sorry }, -- automatic if we switch to Lebesgue
+    simp_rw [finset.prod_insert_none],
+    dsimp,
+    simp_rw [marginal_insert_rev _ sorry hi],
+    rw [← mul_assoc],
+    congr,
+    { convert (real.rpow_add_of_nonneg _ _ _).symm,
+      sorry,
+      sorry,
+      sorry,
+      sorry, },
+    simp_rw [finset.prod_apply, pi.pow_apply],
+    refine finset.prod_congr rfl (λ j hj, _),
+    congr' 1,
+    rw [finset.insert.comm],
+    have h2 : i ∉ insert j s,
+    { sorry },
+    simp_rw [marginal_insert_rev _ sorry h2] }
 end
 
 

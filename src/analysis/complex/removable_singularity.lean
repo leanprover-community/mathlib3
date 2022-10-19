@@ -134,7 +134,7 @@ begin
   have hR : 0 < R := not_le.mp (ball_eq_empty.not.mp (nonempty_of_mem hw₀).ne_empty),
   have hf' : differentiable_on ℂ (dslope f w₀) U,
     from (differentiable_on_dslope (hU.mem_nhds ((ball_subset_closed_ball.trans hc) hw₀))).mpr hf,
-  have h0 := (hf'.diff_cont_on_cl_ball hR hc).two_pi_I_inv_smul_circle_integral_sub_inv_smul hw₀,
+  have h0 := (hf'.diff_cont_on_cl_ball hc).two_pi_I_inv_smul_circle_integral_sub_inv_smul hw₀,
   rw [← dslope_same, ← h0],
   congr' 1,
   transitivity ∮ z in C(c, R), ((z - w₀) ^ 2)⁻¹ • (f z - f w₀),

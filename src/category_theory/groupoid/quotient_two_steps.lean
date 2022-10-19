@@ -206,7 +206,8 @@ By graph-likeness, the quotient be represented by the full subgroupoid induced b
 set of representatives of the vertices, which makes dealing with quotients easier.
 -/
 
-variables (Sg : S.is_graph_like) (Sw : S.is_wide)
+variables (Sw : S.is_wide)  (Sg : S.is_graph_like)
+
 
 abbreviation r := λ c d, nonempty (S.arrows c d)
 
@@ -237,6 +238,26 @@ begin
   rw quotient.out_eq,
 end
 
+noncomputable def to_reps_arrow (c : C) : c ⟶ of_reps S Sw (to_reps S Sw c) :=
+(r.symm S (of_to_reps_congr S Sw c)).some.val
+
+lemma to_reps_arrow_mem (c : C) :
+  (to_reps_arrow S Sw c) ∈ (S.arrows c (of_reps S Sw (to_reps S Sw c))) :=
+(r.symm S (of_to_reps_congr S Sw c)).some.prop
+
+
+include Sg Sw
+lemma to_reps_arrow_unique {c : C}
+  {γ : c ⟶ of_reps S Sw (to_reps S Sw c)}
+  (hγ : γ ∈ S.arrows c (of_reps S Sw (to_reps S Sw c))) :
+  γ = to_reps_arrow S Sw c :=
+begin
+  rw subgroupoid.is_graph_like_iff at Sg,
+  rw is_wide_objs S Sw at Sg, simp at Sg,
+  apply Sg, exact hγ, apply to_reps_arrow_mem,
+end
+omit Sg Sw
+
 lemma to_of_reps_eq (cc : reps S Sw) : (to_reps S Sw $ of_reps S Sw cc) = cc :=
 begin
   dsimp [of_reps, to_reps],
@@ -265,7 +286,53 @@ noncomputable def of : C ⥤ quotient S Sw :=
     { ext, simp only [inv_eq_inv, category.assoc, subtype.coe_mk,
                       coe_to_category_comp_coe, is_iso.inv_hom_id_assoc], } }
 
+lemma ker_of : ker (of S Sw) = S :=
+begin
+  sorry
+  /-dsimp only [of],
+  ext c d f,
+  split,
+  { rw mem_ker_iff,
+
+    rintro ⟨h,he⟩,
+    simp only [inv_eq_inv, subtype.mk_eq_mk, to_reps] at h he,
+    simp at h,
+    rcases h with ⟨hcd,hh⟩,
+    sorry,
+     },
+  { rintro, rw mem_ker_iff, simp, }-/
+end
+
 def fo : (quotient S Sw) ⥤ C := subgroupoid.hom _
+
+lemma of_fo_obj (c: quotient S Sw) : (of S Sw).obj ((fo S Sw).obj c) = c :=
+begin
+  cases c,
+  cases c_property,
+  rcases c_property_h,
+  rcases c_property_h_hc with ⟨_,rfl⟩,
+  dsimp [of, fo, subgroupoid.hom, subgroupoid.full, to_reps],
+  simp only [quotient.out_eq, subtype.mk_eq_mk],
+end
+
+
+lemma of_fo_map {c d : quotient S Sw} (f : c ⟶ d) :
+  (of S Sw).map ((fo S Sw).map f)
+= (eq_to_hom $ of_fo_obj S Sw c) ≫ f ≫ (eq_to_hom $ (of_fo_obj S Sw d).symm) :=
+begin
+  sorry,
+  /-
+  cases c,
+  cases c_property,
+  rcases c_property_h,
+  rcases c_property_h_hc with ⟨_,rfl⟩,
+  cases d,
+  cases d_property,
+  rcases d_property_h,
+  rcases d_property_h_hc with ⟨_,rfl⟩,
+  dsimp [of, fo, subgroupoid.hom, subgroupoid.full, to_reps],
+  simp,-/
+end
 
 section ump
 
@@ -293,35 +360,34 @@ begin
     rw mem_ker_iff at hγ' hδ',
     obtain ⟨eγ,hγ''⟩ := hγ',
     obtain ⟨eδ,hδ''⟩ := hδ',
-    simp only [subtype.coe_mk,hδ'',hγ'',inv_eq_to_hom],  },
+    simp only [subtype.coe_mk,hδ'',hγ'',inv_eq_to_hom], },
 end
 
+omit hφ
+lemma _root_.category_theory.functor.map_eq_to_hom
+  (C D : Type*) [category C] [category D] (F : C ⥤ D) (c c' : C) (h : c = c') :
+  F.map (eq_to_hom h) = eq_to_hom (congr_arg F.obj h) :=
+by { cases h, simp only [eq_to_hom_refl, functor.map_id], }
+
+include hφ
 lemma lift_unique (Φ : quotient S Sw ⥤ D) (hΦ : (of S Sw) ⋙ Φ = φ) :
   Φ = (lift S Sw φ) :=
 begin
   letI := R S Sw,
   subst_vars,
   dsimp [lift],
+  rw le_iff at hφ,
   fapply functor.ext,
-  { rintro ⟨c₀,⟨_,⟨_,⟨c,h⟩⟩⟩⟩,
-    simp only [lift, of, fo, full, subgroupoid.hom, functor.comp_obj],
-    congr,
-    rw ←h,
-    change c.out = ⟦c.out⟧.out,
-    simp only [quotient.out_eq], },
-  { rintro ⟨c,⟨_,⟨_,⟨c₀,hc⟩⟩⟩⟩ ⟨d,⟨_,⟨_,⟨d₀,hd⟩⟩⟩⟩ f,
-    obtain ⟨γ,hγ⟩ := (qex S Sw (qouteq S Sw (qmk S Sw c))).some,
-    obtain ⟨δ,hδ⟩ := (qex S Sw (qouteq S Sw (qmk S Sw d))).some,
-    let hγ' := hφ hγ,
-    let hδ' := hφ hδ,
-    rw mem_ker_iff at hγ' hδ',
-    obtain ⟨eγ,hγ'⟩ := hγ',
-    obtain ⟨eδ,hδ'⟩ := hδ',
-    dsimp only [lift, of, fo, full, subgroupoid.hom] at *,
-    simp only [inv_eq_inv, functor.comp_map] at *,
-
-    sorry },
+  { simp only [functor.comp_obj, set_coe.forall],
+    rintro x h,
+    rw of_fo_obj, },
+  { simp only [set_coe.forall, functor.comp_map],
+    rintro x h y k f,
+    rw of_fo_map,
+    simp only [functor.map_eq_to_hom, functor.map_comp, category.assoc, eq_to_hom_trans,
+               eq_to_hom_refl, category.comp_id, eq_to_hom_trans_assoc, category.id_comp], },
 end
+
 
 end ump
 

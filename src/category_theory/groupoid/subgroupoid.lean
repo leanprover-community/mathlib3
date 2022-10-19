@@ -238,6 +238,12 @@ lemma mem_discrete_iff {c d : C} (f : c ⟶ d):
 structure is_wide : Prop :=
 (wide : ∀ c, (𝟙 c) ∈ (S.arrows c c))
 
+lemma is_wide_objs (h : S.is_wide) : S.objs = ⊤ :=
+begin
+  ext, split; simp only [top_eq_univ, mem_univ, implies_true_iff, forall_true_left],
+  apply mem_objs_of_src S (h.wide x),
+end
+
 /-- A subgroupoid is normal if it is wide and satisfies the expected stability under conjugacy. -/
 structure is_normal extends (is_wide S) : Prop :=
 (conj : ∀ {c d} (p : c ⟶ d) {γ : c ⟶ c} (hs : γ ∈ S.arrows c c),

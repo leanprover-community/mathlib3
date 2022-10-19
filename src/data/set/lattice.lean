@@ -511,9 +511,8 @@ end
 
 /-! ### Unions and intersections indexed by `Prop` -/
 
-@[simp] theorem Inter_false {s : false → set α} : Inter s = univ := infi_false
-
-@[simp] theorem Union_false {s : false → set α} : Union s = ∅ := supr_false
+theorem Inter_false {s : false → set α} : Inter s = univ := infi_false
+theorem Union_false {s : false → set α} : Union s = ∅ := supr_false
 
 @[simp] theorem Inter_true {s : true → set α} : Inter s = s trivial := infi_true
 
@@ -982,6 +981,9 @@ by simp only [←sUnion_range, subtype.range_coe]
 lemma sInter_eq_Inter {s : set (set α)} : (⋂₀ s) = (⋂ (i : s), i) :=
 by simp only [←sInter_range, subtype.range_coe]
 
+@[simp] lemma Union_of_empty [is_empty ι] (s : ι → set α) : (⋃ i, s i) = ∅ := supr_of_empty _
+@[simp] lemma Inter_of_empty [is_empty ι] (s : ι → set α) : (⋂ i, s i) = univ := infi_of_empty _
+
 lemma union_eq_Union {s₁ s₂ : set α} : s₁ ∪ s₂ = ⋃ b : bool, cond b s₁ s₂ :=
 sup_eq_supr s₁ s₂
 
@@ -1189,6 +1191,18 @@ begin
   apply inj_on.image_Inter_eq,
   simpa only [Union, supr_subtype'] using h
 end
+
+lemma image_Inter {f : α → β} (hf : bijective f) (s : ι → set α) :
+  f '' (⋂ i, s i) = ⋂ i, f '' s i :=
+begin
+  casesI is_empty_or_nonempty ι,
+  { simp_rw [Inter_of_empty, image_univ_of_surjective hf.surjective] },
+  { exact (hf.injective.inj_on _).image_Inter_eq }
+end
+
+lemma image_Inter₂ {f : α → β} (hf : bijective f) (s : Π i, κ i → set α) :
+  f '' (⋂ i j, s i j) = ⋂ i j, f '' s i j :=
+by simp_rw image_Inter hf
 
 lemma inj_on_Union_of_directed {s : ι → set α} (hs : directed (⊆) s)
   {f : α → β} (hf : ∀ i, inj_on f (s i)) :

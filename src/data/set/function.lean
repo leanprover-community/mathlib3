@@ -178,6 +178,8 @@ lemma eq_on.comp_left (h : s.eq_on f₁ f₂) : s.eq_on (g ∘ f₁) (g ∘ f₂
   eq_on g₁ g₂ (range f) ↔ g₁ ∘ f = g₂ ∘ f :=
 forall_range_iff.trans $ funext_iff.symm
 
+alias eq_on_range ↔ eq_on.comp_eq _
+
 /-! ### Congruence lemmas -/
 
 section order
@@ -288,6 +290,9 @@ lemma maps_to_iff_exists_map_subtype : maps_to f s t ↔ ∃ g : s → t, ∀ x 
 
 theorem maps_to' : maps_to f s t ↔ f '' s ⊆ t :=
 image_subset_iff.symm
+
+lemma maps_to.subset_preimage {f : α → β} {s : set α} {t : set β} (hf : maps_to f s t) :
+  s ⊆ f ⁻¹' t := hf
 
 @[simp] theorem maps_to_singleton {x : α} : maps_to f {x} t ↔ f x ∈ t := singleton_subset_iff
 
@@ -993,7 +998,7 @@ funext $ λ x, if hx : x ∈ s then by simp [hx] else by simp [hx]
 @[simp] lemma piecewise_range_comp {ι : Sort*} (f : ι → α) [Π j, decidable (j ∈ range f)]
   (g₁ g₂ : α → β) :
   (range f).piecewise g₁ g₂ ∘ f = g₁ ∘ f :=
-eq_on_range.1 $ piecewise_eq_on _ _ _
+eq_on.comp_eq $ piecewise_eq_on _ _ _
 
 theorem maps_to.piecewise_ite {s s₁ s₂ : set α} {t t₁ t₂ : set β} {f₁ f₂ : α → β}
   [∀ i, decidable (i ∈ s)]

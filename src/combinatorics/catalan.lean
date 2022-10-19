@@ -57,10 +57,10 @@ by rw catalan
 lemma catalan_succ' (n : ℕ) :
   catalan (n + 1) = ∑ ij in nat.antidiagonal n, catalan ij.1 * catalan ij.2 :=
 begin
-  rw [catalan_succ, ← sum_range (λ i, catalan i * catalan (n - i))], symmetry,
-  exact sum_bij_of_inj_of_card_le (λ (ij : ℕ × ℕ) _, ij.1)
-    (λ _ h, by simpa [nat.lt_succ_iff] using fst_le h) (by tidy)
-    (λ _ _ h₁ h₂, (nat.antidiagonal_congr h₁ h₂).mpr) (by simp),
+  rw [catalan_succ, ← sum_range (λ i, catalan i * catalan (n - i))],
+  exact sum_bij' (λ b _, (b, n - b)) (λ a, by simpa [nat.lt_succ_iff] using @nat.add_sub_of_le a n)
+     (λ _ _, rfl) (λ (ij : ℕ × ℕ) _, ij.1) (λ _ h, by simpa [nat.lt_succ_iff] using fst_le h)
+     (λ _ _, rfl) (by tidy),
 end
 
 @[simp] lemma catalan_one : catalan 1 = 1 := by simp [catalan_succ]
@@ -150,8 +150,8 @@ namespace tree
 def trees_of_nodes_eq : ℕ → finset (tree unit)
 | 0 := {nil}
 | (n+1) := (finset.nat.antidiagonal n).attach.bUnion $ λ ijh,
-  have _ := nat.lt_succ_iff.mpr (fst_le ijh.2),
-  have _ := nat.lt_succ_iff.mpr (snd_le ijh.2),
+  have _ := nat.lt_succ_of_le (fst_le ijh.2),
+  have _ := nat.lt_succ_of_le (snd_le ijh.2),
   pairwise_node (trees_of_nodes_eq ijh.1.1) (trees_of_nodes_eq ijh.1.2)
 
 @[simp] lemma trees_of_nodes_eq_zero : trees_of_nodes_eq 0 = {nil} := by rw [trees_of_nodes_eq]

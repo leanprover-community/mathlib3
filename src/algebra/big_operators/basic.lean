@@ -451,34 +451,6 @@ begin
   {intros b hb, use j b hb, use hj b hb, exact (right_inv b hb).symm,},
 end
 
-/--
-  Reorder a product, but only provide an injection and the fact that there are not more terms
-  in the new product.
--/
-@[to_additive "
-  Reorder a sum, but only provide an injection and the fact that there are not more terms
-  in the new sum.
-"]
-lemma prod_bij_of_inj_of_card_le {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
-  (i : Π a ∈ s, γ) (hi : ∀ a ha, i a ha ∈ t) (h : ∀ a ha, f a = g (i a ha))
-  (i_inj : ∀ a₁ a₂ ha₁ ha₂, i a₁ ha₁ = i a₂ ha₂ → a₁ = a₂) (card_le : t.card ≤ s.card) :
-  (∏ x in s, f x) = (∏ x in t, g x) :=
-prod_bij i hi h i_inj (surj_on_of_inj_on_of_card_le i hi i_inj card_le)
-
-/--
-  Reorder a product, but only provide a surjection and the fact that there are not fewer terms
-  in the new product.
--/
-@[to_additive "
-  Reorder a sum, but only provide a surjection and the fact that there are not fewer terms
-  in the new sum.
-"]
-lemma prod_bij_of_surj_of_card_le {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
-  (i : Π a ∈ s, γ) (hi : ∀ a ha, i a ha ∈ t) (h : ∀ a ha, f a = g (i a ha))
-  (i_surj : ∀ b ∈ t, ∃ a ha, b = i a ha) (card_le : s.card ≤ t.card) :
-  (∏ x in s, f x) = (∏ x in t, g x) :=
-prod_bij i hi h (inj_on_of_surj_on_of_card_le i hi i_surj card_le) i_surj
-
 @[to_additive] lemma prod_finset_product
   (r : finset (γ × α)) (s : finset γ) (t : γ → finset α)
   (h : ∀ p : γ × α, p ∈ r ↔ p.1 ∈ s ∧ p.2 ∈ t p.1) {f : γ × α → β} :

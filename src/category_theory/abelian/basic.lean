@@ -5,7 +5,7 @@ Authors: Markus Himmel, Johan Commelin, Scott Morrison
 -/
 
 import category_theory.limits.constructions.pullbacks
-import category_theory.limits.shapes.biproducts
+import category_theory.preadditive.biproducts
 import category_theory.limits.shapes.images
 import category_theory.limits.constructions.limits_of_products_and_equalizers
 import category_theory.limits.constructions.epi_mono

@@ -199,6 +199,12 @@ theorem gcd_assoc (i j k : ℤ) : gcd (gcd i j) k = gcd i (gcd j k) := nat.gcd_a
 
 @[simp] theorem gcd_one_right (i : ℤ) : gcd i 1 = 1 := nat.gcd_one_right _
 
+@[simp] lemma gcd_neg_right {x y : ℤ} : gcd x (-y) = gcd x y :=
+by rw [int.gcd, int.gcd, nat_abs_neg]
+
+@[simp] lemma gcd_neg_left {x y : ℤ} : gcd (-x) y = gcd x y :=
+by rw [int.gcd, int.gcd, nat_abs_neg]
+
 theorem gcd_mul_left (i j k : ℤ) : gcd (i * j) (i * k) = nat_abs i * gcd j k :=
 by { rw [int.gcd, int.gcd, nat_abs_mul, nat_abs_mul], apply nat.gcd_mul_left }
 

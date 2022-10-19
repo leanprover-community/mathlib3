@@ -31,8 +31,8 @@ def extract_simp_rw_from_simp_only(filename):
 
         with open(filename, "w"):
             f.writelines(new_lines)
-        exit_code = os.system(f"lean --make {filename} > /dev/null")
-        if exit_code != 0:
+        proc = subprocess.run(["lean", "--make", filename], stdout=subprocess.DEVNULL)
+        if proc.returncode != 0:
             f = open(filename, "w")
             f.writelines(lines)
             f.close()

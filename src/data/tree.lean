@@ -128,4 +128,16 @@ lemma height_le_nodes : ∀ (x : tree α), x.height ≤ x.nodes
 @[pattern] abbreviation unode : tree unit → tree unit → tree unit :=
 tree.node ()
 
+lemma unode_def (x y : tree unit) : x.unode y = x.node () y := rfl
+
+@[simp] lemma unode_eq_unode_iff (a b c d : tree unit) : a.unode b = c.unode d ↔ a = c ∧ b = d :=
+by simp [unode_def]
+
+@[simp] lemma unode_ne_nil (a b : tree unit) : a.unode b ≠ nil := by trivial
+@[simp] lemma nil_ne_unode (a b : tree unit) : nil ≠ a.unode b := by trivial
+
+def unit_rec_on {motive : tree unit → Sort*} (t : tree unit) (base : motive nil)
+  (ind : ∀ x y, motive x → motive y → motive (x.unode y)) : motive t :=
+t.rec_on base (λ u, u.rec_on (by exact ind))
+
 end tree

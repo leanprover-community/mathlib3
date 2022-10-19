@@ -139,15 +139,15 @@ by norm_num [catalan_eq_central_binom_div, nat.central_binom, nat.choose]
 lemma catalan_three : catalan 3 = 5 :=
 by norm_num [catalan_eq_central_binom_div, nat.central_binom, nat.choose]
 
-namespace unit_tree
+namespace tree
 
 /-- Given two finsets, find all trees that can be formed with
   left child in `a` and right child in `b` -/
-@[simp] def pairwise_node (a : finset unit_tree) (b : finset unit_tree) : finset unit_tree :=
-  (a ×ˢ b).map ⟨λ x, x.1.node x.2, λ ⟨x₁, x₂⟩ ⟨y₁, y₂⟩, by { simp, tauto, }⟩
+@[simp] def pairwise_node (a : finset (tree unit)) (b : finset (tree unit)) : finset (tree unit) :=
+  (a ×ˢ b).map ⟨λ x, x.1.unode x.2, λ ⟨x₁, x₂⟩ ⟨y₁, y₂⟩, by { simp, tauto, }⟩
 
 /-- A finset of all trees with `n` nodes. See `mem_trees_of_nodes_eq` -/
-def trees_of_nodes_eq : ℕ → finset unit_tree
+def trees_of_nodes_eq : ℕ → finset (tree unit)
 | 0 := {nil}
 | (n+1) := (finset.nat.antidiagonal n).attach.bUnion $ λ ijh,
   have _ := nat.lt_succ_iff.mpr (fst_le ijh.2),
@@ -161,10 +161,10 @@ lemma trees_of_nodes_eq_succ (n : ℕ) : trees_of_nodes_eq (n + 1) =
     (trees_of_nodes_eq ij.2)) :=
 by { rw trees_of_nodes_eq, ext, simp [-pairwise_node], }
 
-@[simp] theorem mem_trees_of_nodes_eq {x : unit_tree} {n : ℕ} :
+@[simp] theorem mem_trees_of_nodes_eq {x : tree unit} {n : ℕ} :
   x ∈ trees_of_nodes_eq n ↔ x.nodes = n :=
 begin
-  induction x generalizing n;
+  induction x using tree.unit_rec_on generalizing n;
   cases n;
   simp [trees_of_nodes_eq_succ, nat.succ_eq_add_one, *],
   trivial,
@@ -180,4 +180,4 @@ begin
   { rintros ⟨i, j⟩ H ⟨i', j'⟩ H' hne a ha, clear_except ha hne, tidy, },
 end
 
-end unit_tree
+end tree

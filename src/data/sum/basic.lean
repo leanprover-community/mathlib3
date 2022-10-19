@@ -154,6 +154,22 @@ lemma elim_comp_map {α β γ δ ε : Sort*} {f₁ : α → β} {f₂ : β → �
   sum.elim f₂ g₂ ∘ sum.map f₁ g₁ = sum.elim (f₂ ∘ f₁) (g₂ ∘ g₁) :=
 by ext (_|_); refl
 
+@[simp] lemma is_left_map (f : α → β) (g : γ → δ) (x : α ⊕ γ) :
+  is_left (x.map f g) = is_left x :=
+by cases x; refl
+
+@[simp] lemma is_right_map (f : α → β) (g : γ → δ) (x : α ⊕ γ) :
+  is_right (x.map f g) = is_right x :=
+by cases x; refl
+
+@[simp] lemma get_left_map (f : α → β) (g : γ → δ) (x : α ⊕ γ) :
+  (x.map f g).get_left = x.get_left.map f :=
+by cases x; refl
+
+@[simp] lemma get_right_map (f : α → β) (g : γ → δ) (x : α ⊕ γ) :
+  (x.map f g).get_right = x.get_right.map g :=
+by cases x; refl
+
 open function (update update_eq_iff update_comp_eq_of_injective update_comp_eq_of_forall_ne)
 
 @[simp] lemma update_elim_inl [decidable_eq α] [decidable_eq (α ⊕ β)] {f : α → γ} {g : β → γ}
@@ -211,6 +227,10 @@ def swap : α ⊕ β → β ⊕ α := sum.elim inr inl
 @[simp] lemma swap_swap_eq : swap ∘ swap = @id (α ⊕ β) := funext $ swap_swap
 @[simp] lemma swap_left_inverse : function.left_inverse (@swap α β) swap := swap_swap
 @[simp] lemma swap_right_inverse : function.right_inverse (@swap α β) swap := swap_swap
+@[simp] lemma is_left_swap (x : α ⊕ β) : x.swap.is_left = x.is_right := by cases x; refl
+@[simp] lemma is_right_swap (x : α ⊕ β) : x.swap.is_right = x.is_left := by cases x; refl
+@[simp] lemma get_left_swap (x : α ⊕ β) : x.swap.get_left = x.get_right := by cases x; refl
+@[simp] lemma get_right_swap (x : α ⊕ β) : x.swap.get_right = x.get_left := by cases x; refl
 
 section lift_rel
 

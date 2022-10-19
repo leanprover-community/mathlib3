@@ -360,6 +360,8 @@ end irrational
 section polynomial
 
 open polynomial
+open_locale polynomial
+
 variables (x : ℝ) (p : ℤ[X])
 
 lemma one_lt_nat_degree_of_irrational_root (hx : irrational x) (p_nonzero : p ≠ 0)

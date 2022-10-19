@@ -21,6 +21,7 @@ Binet's formula.
 -/
 
 noncomputable theory
+open_locale polynomial
 
 /-- The golden ratio `φ := (1 + √5)/2`. -/
 @[reducible] def golden_ratio := (1 + real.sqrt 5)/2

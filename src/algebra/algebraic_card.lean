@@ -20,7 +20,7 @@ proof is given by `liouville.is_transcendental`.
 universes u v
 
 open cardinal polynomial
-open_locale cardinal
+open_locale cardinal polynomial
 
 namespace algebraic
 
@@ -35,7 +35,7 @@ variables (R : Type u) (A : Type v) [comm_ring R] [comm_ring A] [is_domain A] [a
   [no_zero_smul_divisors R A]
 
 theorem cardinal_mk_lift_le_mul :
-  cardinal.lift.{u v} (#{x : A // is_algebraic R x}) ≤ cardinal.lift.{v u} #R[X] * ℵ₀ :=
+  cardinal.lift.{u v} (#{x : A // is_algebraic R x}) ≤ cardinal.lift.{v u} #(R[X]) * ℵ₀ :=
 begin
   rw [←mk_ulift, ←mk_ulift],
   let g : ulift.{u} {x : A | is_algebraic R x} → ulift.{v} R[X] :=

@@ -540,17 +540,20 @@ along a function `f : α → β` to a function `β → γ`,
 by using the values of `g` on the range of `f`
 and the values of an auxiliary function `e' : β → γ` elsewhere.
 
-Mostly useful when `f` is injective,
-more generally when `f a  f b → g a = g b`. -/
+Mostly useful when `f` is injective, more generally when `g.factors_through f`. -/
 def extend (f : α → β) (g : α → γ) (e' : β → γ) : β → γ :=
 λ b, if h : ∃ a, f a = b then g (classical.some h) else e' b
+
+/-- g factors through f : `f a = f b → g a = g b` -/
+def factors_through (g : α → γ) (f : α → β) : Prop :=
+∀ ⦃a b⦄, f a = f b → g a = g b
 
 lemma extend_def (f : α → β) (g : α → γ) (e' : β → γ) (b : β) [decidable (∃ a, f a = b)] :
   extend f g e' b = if h : ∃ a, f a = b then g (classical.some h) else e' b :=
 by { unfold extend, congr }
 
 lemma extend_apply_of_unique (g : α → γ) (e' : β → γ)
-  (hf : ∀ ⦃a b : α⦄, f a = f b → g a = g b) (a : α) :
+  (hf : g.factors_through f) (a : α) :
   extend f g e' (f a) = g a :=
 begin
   simp only [extend_def, dif_pos, exists_apply_eq_apply],
@@ -559,17 +562,14 @@ end
 
 @[simp] lemma extend_apply (hf : injective f) (g : α → γ) (e' : β → γ) (a : α) :
   extend f g e' (f a) = g a :=
-begin
-  simp only [extend_def, dif_pos, exists_apply_eq_apply],
-  exact congr_arg g (hf $ classical.some_spec (exists_apply_eq_apply f a))
-end
+extend_apply_of_unique g e' (λ a b h, congr_arg g (hf h)) a
 
 @[simp] lemma extend_apply' (g : α → γ) (e' : β → γ) (b : β) (hb : ¬∃ a, f a = b) :
   extend f g e' b = e' b :=
 by simp [function.extend_def, hb]
 
 lemma apply_extend_of_unique {δ} (F : γ → δ) (g : α → γ) (e' : β → γ)
-  (hf : ∀ ⦃a b : α⦄, f a = f b → g a = g b) (b : β) :
+  (hf : factors_through g f) (b : β) :
   F (extend f g e' b) = extend f (F ∘ g) (F ∘ e') b :=
 begin
   by_cases hb : ∃ a, f a = b,
@@ -600,7 +600,7 @@ begin
 end
 
 lemma extend_comp_of_unique (g : α → γ) (e' : β → γ)
-  (hf : ∀ ⦃a b : α⦄, f a = f b → g a = g b) :
+  (hf : factors_through g f) :
   extend f g e' ∘ f = g :=
 begin
   funext a,

@@ -449,10 +449,15 @@ theorem exact_at_succ (n : ℕ) :
 lemma forget_to_Module_exact₀ :
   exact ((group_cohomology.resolution.forget₂_to_Module k G).d 1 0)
   ((forget₂_to_Module_homotopy_equiv k G).1.f 0) :=
-(preadditive.exact_iff_homology_zero _ _).2 ⟨_, ⟨(homology_iso_kernel_desc _ _ _).trans $
-  @kernel.of_mono _ _ _ _ _ _ _ _ $ is_iso.mono_of_iso (C.homology_zero_iso.symm.trans
-  ((@as_iso _ _ _ _ _ (H.to_quasi_iso.1 0)).trans
-  ((chain_complex.homology_functor_0_single₀ V).app X))).hom⟩⟩
+(preadditive.exact_iff_homology_zero _ _).2 ⟨_, ⟨(homology_iso_kernel_desc _ _
+(by rw ←(forget₂_to_Module_homotopy_equiv k G).1.2 1 0 rfl; exact comp_zero)).trans $
+@kernel.of_mono _ _ _ _ _ _ _ _ $ @is_iso.mono_of_iso _ _ _ _ _ $
+  ⟨⟨(forget₂_to_Module_homotopy_equiv k G).2.f 0 ≫ cokernel.π ((forget₂_to_Module k G).d 1 0),
+  coequalizer.hom_ext (by rw [←category.assoc, cokernel.π_desc _ _
+  (by rw ←(forget₂_to_Module_homotopy_equiv k G).1.2 1 0 rfl; exact comp_zero), ←category.assoc,
+    ←homological_complex.comp_f, (forget₂_to_Module_homotopy_equiv k G).3.3 0]; simp),
+  by rw [category.assoc, cokernel.π_desc, ←homological_complex.comp_f,
+    (forget₂_to_Module_homotopy_equiv k G).4.3 0]; simp⟩⟩⟩⟩
 
 lemma exact₀ : exact ((group_cohomology.resolution k G).d 1 0) (ε k G) :=
 (forget₂ (Rep k G) (Module.{u} k)).exact_of_exact_map

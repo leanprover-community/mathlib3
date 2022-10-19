@@ -6,6 +6,14 @@ Authors: Anne Baanen, Alex J. Best
 import data.finsupp.defs
 import data.fintype.basic
 
+/-!
+
+# Finiteness and infiniteness of `finsupp`
+
+Some lemmas on the combination of `finsupp`, `fintype` and `infinite`.
+
+-/
+
 noncomputable instance finsupp.fintype {ι π : Sort*} [fintype ι] [fintype π] [has_zero π] :
   fintype (ι →₀ π) :=
 by letI := classical.dec_eq ι; exact fintype.of_injective _ fun_like.coe_injective

@@ -449,6 +449,14 @@ begin
   { rintro h, constructor, constructor, assumption, assumption, exact 𝟙 _, }
 end
 
+@[simp] lemma full_mem_objs_iff {c : C} : c ∈ (full D).objs ↔ c ∈ D :=
+by { rw full_objs, }
+
+lemma full_arrow_eq_iff {c d : (full D).objs} {f g : c ⟶ d} : f = g ↔ (↑f : c.val ⟶ d.val) = ↑g :=
+begin
+  apply subtype.ext_iff,
+end
+
 end full
 
 end subgroupoid

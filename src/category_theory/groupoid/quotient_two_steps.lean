@@ -307,10 +307,10 @@ def fo : (quotient S Sw) ⥤ C := subgroupoid.hom _
 
 lemma of_fo_obj (c: quotient S Sw) : (of S Sw).obj ((fo S Sw).obj c) = c :=
 begin
-  cases c,
-  cases c_property,
-  rcases c_property_h,
-  rcases c_property_h_hc with ⟨_,rfl⟩,
+  dsimp [quotient] at c,
+  rcases c with ⟨c',h⟩,
+  rw full_mem_objs_iff at h,
+  rcases h with ⟨_,rfl⟩,
   dsimp [of, fo, subgroupoid.hom, subgroupoid.full, to_reps],
   simp only [quotient.out_eq, subtype.mk_eq_mk],
 end
@@ -320,6 +320,17 @@ lemma of_fo_map {c d : quotient S Sw} (f : c ⟶ d) :
   (of S Sw).map ((fo S Sw).map f)
 = (eq_to_hom $ of_fo_obj S Sw c) ≫ f ≫ (eq_to_hom $ (of_fo_obj S Sw d).symm) :=
 begin
+  letI := R S Sw,
+  dsimp [quotient] at c d,
+  rcases c with ⟨c',hc⟩,
+  rcases d with ⟨d',hd⟩,
+  rw full_mem_objs_iff at hc hd,
+  rcases hc with ⟨c',rfl⟩,
+  rcases hd with ⟨d',rfl⟩,
+  dsimp [of, fo, hom],
+  congr,
+  rw subtype.val_eq_coe,
+  sorry,
   sorry,
   /-
   cases c,
@@ -430,7 +441,7 @@ begin
   apply graph_like.lift,
   fapply isotropy.lift,
   exact φ,
-  rintro c γ γS, exact hφ γS,
+  exact (disconnect_le S).trans hφ,
 end
 
 lemma lift_spec : (of S Sn) ⋙ (lift S Sn φ hφ) = φ :=
@@ -439,7 +450,8 @@ begin
     graph_like.lift (map (isotropy.of S Sn) _ S) _ (isotropy.lift S Sn φ _) = φ,
   rw graph_like.lift_spec,
   apply isotropy.lift_spec,
-  { rintros a b f ⟨_,_,g,gS⟩,
+  { rw le_iff at hφ ⊢,
+    rintros a b f ⟨_,_,g,gS⟩,
     exact hφ gS, },
 end
 
@@ -448,7 +460,8 @@ def lift_unique (Φ : groupoid.quotient S Sn ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ
   Φ = (lift S Sn φ hφ) :=
 begin
   apply graph_like.lift_unique,
-  { rintros a b f ⟨_,_,g,gS⟩,
+  { rw le_iff at hφ ⊢,
+    rintros a b f ⟨_,_,g,gS⟩,
     exact hφ gS, },
   apply isotropy.lift_unique,
   exact hΦ,

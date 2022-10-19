@@ -106,7 +106,7 @@ instance : has_inter (set α) := ⟨(⊓)⟩
 @[simp] lemma lt_eq_ssubset : ((<) : set α → set α → Prop) = (⊂) := rfl
 
 lemma le_iff_subset : s ≤ t ↔ s ⊆ t := iff.rfl
-lemma lt_iff_ssubset : s ≤ t ↔ s ⊆ t := iff.rfl
+lemma lt_iff_ssubset : s < t ↔ s ⊂ t := iff.rfl
 
 alias le_iff_subset ↔ _root_.has_le.le.subset _root_.has_subset.subset.le
 alias lt_iff_ssubset ↔ _root_.has_lt.lt.ssubset _root_.has_ssubset.ssubset.lt

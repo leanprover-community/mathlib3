@@ -233,6 +233,7 @@ end of_equiv
 
 section polynomial
 
+open_locale polynomial
 variables (R : Type u) [comm_semiring R]
 
 instance formally_smooth.mv_polynomial (σ : Type u) : formally_smooth R (mv_polynomial σ R) :=

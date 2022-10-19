@@ -628,4 +628,4 @@ lemma subtype_val_to_subtype' {α : typevec n} (r : α ⊗ α ⟹ repeat n Prop)
   subtype_val r ⊚ to_subtype' r = λ i x, prod.mk i x.1.fst x.1.snd :=
 by ext i x; induction i; dsimp only [id, to_subtype', comp, subtype_val, prod.mk] at *; simp *
 
-by ext i x; induction i; dsimp only [id, to_subtype', subtype_val, prod.mk] at *; simp *
+end typevec

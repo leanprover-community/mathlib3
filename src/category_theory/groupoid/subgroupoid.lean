@@ -111,7 +111,7 @@ id_mem_of_nonempty_isotropy S d (mem_objs_of_tgt S h)
 def as_wide_quiver : quiver C := ⟨λ c d, subtype $ S.arrows c d⟩
 
 /-- The coercion of a subgroupoid as a groupoid -/
-instance coe : groupoid S.objs :=
+@[simps] instance coe : groupoid S.objs :=
 { hom := λ a b, S.arrows a.val b.val,
   id := λ a, ⟨𝟙 a.val, id_mem_of_nonempty_isotropy S a.val a.prop⟩,
   comp := λ a b c p q, ⟨p.val ≫ q.val, S.mul p.prop q.prop⟩,
@@ -364,6 +364,9 @@ lemma mem_im_iff (hφ : function.injective φ.obj) {c d : D} (f : c ⟶ d) :
   ∃ (a b : C) (g : a ⟶ b) (ha : φ.obj a = c) (hb : φ.obj b = d),
     f = (eq_to_hom ha.symm) ≫ φ.map g ≫ (eq_to_hom hb) :=
 by { convert map.mem_arrows_iff φ hφ ⊤ f, simp only [has_top.top, mem_univ, exists_true_left] }
+
+lemma is_normal_map (hφ : function.injective φ.obj) (hφ' : im φ hφ = ⊤) (Sn : S.is_normal) :
+  (map φ hφ S).is_normal := sorry
 
 end hom
 

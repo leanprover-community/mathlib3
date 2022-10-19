@@ -965,45 +965,6 @@ begin
   exact ⟨⟨m, s⟩, mk'_eq_iff.mpr e.symm⟩
 end
 
-section nontrivial
-
-include f
-
-lemma nontrival_iff :
-  nontrivial M' ↔ ∃ x : M, disjoint (S : set R) (R ∙ x).annihilator :=
-begin
-  rw [nontrivial_iff_exists_ne (0 : M'), (mk'_surjective S f).exists, prod.exists],
-  simp_rw ← set.subset_compl_iff_disjoint_right,
-  change (∃ (a : M) (b : S), ¬ mk' f a b = 0) ↔
-    ∃ x : M, ∀ y : R, y ∈ S → y ∉ (R ∙ x).annihilator,
-  simp_rw [submodule.mem_annihilator_span_singleton, mk'_eq_zero', not_exists],
-  exact ⟨λ ⟨a, _, h⟩, ⟨a, λ y hy, h ⟨y, hy⟩⟩, λ ⟨a, h⟩, ⟨a, 1, λ y, h y y.2⟩⟩
-end
-
-omit f
-
-lemma nontrival_iff' {A : Type*} [comm_semiring A] [algebra R A] (f : A →ₗ[R] M)
-  [is_localized_module S f] :
-  nontrivial M ↔ disjoint (S : set R) (algebra_map R A).ker :=
-begin
-  split,
-  { rintros ⟨a, b, e⟩ x ⟨h₁, h₂ : algebra_map R A x = 0⟩,
-    apply e,
-    obtain ⟨⟨a₁, a₂⟩, rfl : mk' f a₁ a₂ = a⟩ := mk'_surjective S f a,
-    obtain ⟨⟨b₁, b₂⟩, rfl : mk' f b₁ b₂ = b⟩ := mk'_surjective S f b,
-    rw mk'_eq_mk'_iff,
-    use ⟨x, h₁⟩,
-    simp [submonoid.smul_def, algebra.smul_def, h₂] },
-  { intro H,
-    refine ⟨⟨mk' f 1 (1 : S), 0, _⟩⟩,
-    rw [ne.def, mk'_eq_zero'],
-    suffices : ∀ x : S, algebra_map R A x ≠ 0,
-    { simpa [submonoid.smul_def, ← algebra.algebra_map_eq_smul_one] },
-    exact λ x e, H ⟨x.prop, e⟩ },
-end
-
-end nontrivial
-
 end is_localized_module
 
 end is_localized_module

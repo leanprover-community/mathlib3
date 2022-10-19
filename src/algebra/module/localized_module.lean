@@ -850,6 +850,7 @@ lemma smul_injective (s : S) : function.injective (λ m : M', s • m) :=
 lemma smul_inj (s : S) (m₁ m₂ : M') : s • m₁ = s • m₂ ↔ m₁ = m₂ :=
 (smul_injective f s).eq_iff
 
+/-- `mk' f m s` is the fraction `m/s` with respect to the localization map `f`. -/
 noncomputable
 def mk' (m : M) (s : S) : M' := from_localized_module S f (localized_module.mk m s)
 
@@ -876,6 +877,10 @@ variable {S}
 lemma mk'_cancel (m : M) (s : S) :
   mk' f (s • m) s = f m :=
 by { delta mk', rw [localized_module.mk_cancel, ← mk'_one S f], refl }
+
+lemma mk'_cancel' (m : M) (s : S) :
+  s • mk' f m s = f m :=
+by rw [submonoid.smul_def, ← mk'_smul, ← submonoid.smul_def, mk'_cancel]
 
 lemma mk'_cancel_left (m : M) (s₁ s₂ : S) :
   mk' f (s₁ • m) (s₁ * s₂) = mk' f m s₂ :=
@@ -942,13 +947,16 @@ lemma mk'_eq_zero' {m : M} (s : S) :
   mk' f m s = 0 ↔ ∃ s' : S, s' • m = 0 :=
 by simp_rw [← mk'_zero f (1 : S), mk'_eq_mk'_iff, smul_zero, one_smul, eq_comm]
 
+lemma mk_eq_mk' (s : S) (m : M) :
+  localized_module.mk m s = mk' (localized_module.mk_linear_map S M) m s :=
+by rw [eq_comm, mk'_eq_iff, submonoid.smul_def, localized_module.smul'_mk,
+  ← submonoid.smul_def, localized_module.mk_cancel, localized_module.mk_linear_map_apply]
+
 variable (S)
 
 lemma eq_zero_iff {m : M} :
   f m = 0 ↔ ∃ s' : S, s' • m = 0 :=
 (mk'_eq_zero (1 : S)).symm.trans (mk'_eq_zero' f _)
-
-variables (S f)
 
 lemma mk'_surjective : function.surjective (function.uncurry $ mk' f : M × S → M') :=
 begin

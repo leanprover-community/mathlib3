@@ -27,7 +27,7 @@ and similarly `cochain_complex V α`, with `i = j + 1`.
 There is a category structure, where morphisms are chain maps.
 
 For `C : homological_complex V c`, we define `C.X_next i`, which is either `C.X j` for some
-arbitrarily chosen `j` such that `c.r i j`, or the zero object if there is no such `j`.
+arbitrarily chosen `j` such that `c.r i j`, or `C.X i` if there is no such `j`.
 Similarly we have `C.X_prev j`.
 Defined in terms of these we have `C.d_from i : C.X i ⟶ C.X_next i` and
 `C.d_to j : C.X_prev j ⟶ C.X j`, which are either defined as `C.d i j`, or zero, as needed.
@@ -299,7 +299,7 @@ def X_prev_iso {i j : ι} (r : c.rel i j) :
 eq_to_iso $ by rw ← c.prev_eq' r
 
 /-- If there is no `i` so `c.rel i j`, then `C.X_prev j` is isomorphic to `C.X j`. -/
-def X_prev_iso_zero {j : ι} (h : ¬c.rel (c.prev j) j) :
+def X_prev_iso_self {j : ι} (h : ¬c.rel (c.prev j) j) :
   C.X_prev j ≅ C.X j :=
 eq_to_iso $ congr_arg C.X begin
   dsimp [complex_shape.prev],
@@ -308,7 +308,7 @@ eq_to_iso $ congr_arg C.X begin
   rw this at h, contradiction,
 end
 
-/-- Either `C.X j`, if there is some `j` with `c.rel i j`, or `C.X j`. -/
+/-- Either `C.X j`, if there is some `j` with `c.rel i j`, or `C.X i`. -/
 abbreviation X_next (i : ι) : V := C.X (c.next i)
 
 /-- If `c.rel i j`, then `C.X_next i` is isomorphic to `C.X j`. -/
@@ -316,8 +316,8 @@ def X_next_iso {i j : ι} (r : c.rel i j) :
   C.X_next i ≅ C.X j :=
 eq_to_iso $ by rw ← c.next_eq' r
 
-/-- If there is no `j` so `c.rel i j`, then `C.X_next i` is isomorphic to `0`. -/
-def X_next_iso_zero {i : ι} (h : ¬c.rel i (c.next i)) :
+/-- If there is no `j` so `c.rel i j`, then `C.X_next i` is isomorphic to `C.X i`. -/
+def X_next_iso_self {i : ι} (h : ¬c.rel i (c.next i)) :
   C.X_next i ≅ C.X i :=
 eq_to_iso $ congr_arg C.X begin
   dsimp [complex_shape.next],
@@ -364,16 +364,16 @@ C.shape _ _ h
   (C.X_prev_iso r).inv ≫ C.d_to j = C.d i j :=
 by simp [C.d_to_eq r]
 
-@[simp, reassoc] lemma X_prev_iso_zero_comp_d_to {j : ι} (h : ¬c.rel (c.prev j) j) :
-  (C.X_prev_iso_zero h).inv ≫ C.d_to j = 0 :=
+@[simp, reassoc] lemma X_prev_iso_self_comp_d_to {j : ι} (h : ¬c.rel (c.prev j) j) :
+  (C.X_prev_iso_self h).inv ≫ C.d_to j = 0 :=
 by simp [h]
 
 @[simp, reassoc] lemma d_from_comp_X_next_iso {i j : ι} (r : c.rel i j) :
   C.d_from i ≫ (C.X_next_iso r).hom = C.d i j :=
 by simp [C.d_from_eq r]
 
-@[simp, reassoc] lemma d_from_comp_X_next_iso_zero {i : ι} (h : ¬c.rel i (c.next i)) :
-  C.d_from i ≫ (C.X_next_iso_zero h).hom = 0 :=
+@[simp, reassoc] lemma d_from_comp_X_next_iso_self {i : ι} (h : ¬c.rel i (c.next i)) :
+  C.d_from i ≫ (C.X_next_iso_self h).hom = 0 :=
 by simp [h]
 
 @[simp]
@@ -430,7 +430,7 @@ by { ext, simp, }
 
 /-! Lemmas relating chain maps and `d_to`/`d_from`. -/
 
-/-- `f.prev j` is `f.f i` if there is some `r i j`, and zero otherwise. -/
+/-- `f.prev j` is `f.f i` if there is some `r i j`, and `f.f j` otherwise. -/
 abbreviation prev (f : hom C₁ C₂) (j : ι) : C₁.X_prev j ⟶ C₂.X_prev j := f.f _
 
 lemma prev_eq (f : hom C₁ C₂) {i j : ι} (w : c.rel i j) :
@@ -440,7 +440,7 @@ begin
   simp only [X_prev_iso, eq_to_iso_refl, iso.refl_hom, iso.refl_inv, id_comp, comp_id],
 end
 
-/-- `f.next i` is `f.f j` if there is some `r i j`, and zero otherwise. -/
+/-- `f.next i` is `f.f j` if there is some `r i j`, and `f.f j` otherwise. -/
 abbreviation next (f : hom C₁ C₂) (i : ι) : C₁.X_next i ⟶ C₂.X_next i := f.f _
 
 lemma next_eq (f : hom C₁ C₂) {i j : ι} (w : c.rel i j) :

@@ -734,9 +734,40 @@ by { rw [mem_canonical_equiv_apply, canonical_equiv, map_equiv_symm, map_equiv,
          ring_equiv.coe_mk, mem_map],
     exact ⟨λ ⟨y, mem, eq⟩, ⟨y, mem, eq⟩, λ ⟨y, mem, eq⟩, ⟨y, mem, eq⟩⟩ }
 
-@[simp] lemma canonical_equiv_flip (I) :
+lemma canonical_equiv_flip (I) :
   canonical_equiv S P P' (canonical_equiv S P' P I) = I :=
 by rw [←canonical_equiv_symm, ring_equiv.symm_apply_apply]
+
+@[simp]
+lemma canonical_equiv_canonical_equiv (P'' : Type*) [comm_ring P''] [algebra R P'']
+  [is_localization S P''] (I : fractional_ideal S P) :
+  canonical_equiv S P' P'' (canonical_equiv S P P' I) = canonical_equiv S P P'' I :=
+begin
+  ext,
+  simp only [is_localization.map_map, ring_hom_inv_pair.comp_eq₂, mem_canonical_equiv_apply,
+      exists_prop, exists_exists_and_eq_and],
+  refl
+end
+
+lemma canonical_equiv_trans_canonical_equiv (P'' : Type*) [comm_ring P'']
+  [algebra R P''] [is_localization S P''] :
+  (canonical_equiv S P P').trans (canonical_equiv S P' P'') = canonical_equiv S P P'' :=
+ring_equiv.ext (canonical_equiv_canonical_equiv S P P' P'')
+
+@[simp]
+lemma canonical_equiv_coe_ideal (I : ideal R) :
+  canonical_equiv S P P' I = I :=
+by { ext, simp [is_localization.map_eq] }
+
+omit loc'
+
+@[simp]
+lemma canonical_equiv_self : canonical_equiv S P P = ring_equiv.refl _ :=
+begin
+  rw ← canonical_equiv_trans_canonical_equiv S P P,
+  convert (canonical_equiv S P P).symm_trans_self,
+  exact (canonical_equiv_symm S P P).symm
+end
 
 end semiring
 
@@ -965,7 +996,7 @@ end quotient
 
 section field
 
-variables {R₁ K L : Type*} [comm_ring R₁] [is_domain R₁] [field K] [field L]
+variables {R₁ K L : Type*} [comm_ring R₁] [field K] [field L]
 variables [algebra R₁ K] [is_fraction_ring R₁ K] [algebra K L] [is_fraction_ring K L]
 
 lemma eq_zero_or_one (I : fractional_ideal K⁰ L) : I = 0 ∨ I = 1 :=
@@ -978,7 +1009,7 @@ begin
   { intro x_mem,
     obtain ⟨n, d, rfl⟩ := is_localization.mk'_surjective K⁰ x,
     refine ⟨n / d, _⟩,
-    rw [ring_hom.map_div, is_fraction_ring.mk'_eq_div] },
+    rw [map_div₀, is_fraction_ring.mk'_eq_div] },
   { rintro ⟨x, rfl⟩,
     obtain ⟨y, y_ne, y_mem⟩ := fractional_ideal.exists_ne_zero_mem_is_integer hI,
     rw [← div_mul_cancel x y_ne, ring_hom.map_mul, ← algebra.smul_def],
@@ -986,11 +1017,7 @@ begin
 end
 
 lemma eq_zero_or_one_of_is_field (hF : is_field R₁) (I : fractional_ideal R₁⁰ K) : I = 0 ∨ I = 1 :=
-begin
-  letI : field R₁ := hF.to_field,
-  -- TODO can this be less ugly?
-  exact @eq_zero_or_one R₁ K _ _ _ (by { unfreezingI {cases _inst_4}, convert _inst_9 }) I
-end
+by letI : field R₁ := hF.to_field; exact eq_zero_or_one I
 
 end field
 

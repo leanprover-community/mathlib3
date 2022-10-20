@@ -300,8 +300,6 @@ order_ring_iso.ext induced_map_self
 
 open order_ring_iso
 
-local attribute [instance] order_ring_hom.subsingleton order_ring_iso.subsingleton_left
-
 /-- There is a unique ordered ring homomorphism from an archimedean linear ordered field to a
 conditionally complete linear ordered field. -/
 instance : unique (α →+*o β) := unique_of_subsingleton $ induced_order_ring_hom α β
@@ -312,3 +310,18 @@ instance : unique (β ≃+*o γ) := unique_of_subsingleton $ induced_order_ring_
 
 end induced_map
 end linear_ordered_field
+
+section real
+
+variables {R S : Type*} [ordered_ring R] [linear_ordered_ring S]
+
+lemma ring_hom_monotone (hR : ∀ r : R, 0 ≤ r → ∃ s : R, s^2 = r) (f : R →+* S) : monotone f :=
+(monotone_iff_map_nonneg f).2 $ λ r h, by { obtain ⟨s, rfl⟩ := hR r h, rw map_pow, apply sq_nonneg }
+
+/-- There exists no nontrivial ring homomorphism `ℝ →+* ℝ`. -/
+instance real.ring_hom.unique : unique (ℝ →+* ℝ) :=
+{ default := ring_hom.id ℝ,
+  uniq := λ f, congr_arg order_ring_hom.to_ring_hom
+    (subsingleton.elim ⟨f, ring_hom_monotone (λ r hr, ⟨real.sqrt r, sq_sqrt hr⟩) f⟩ default), }
+
+end real

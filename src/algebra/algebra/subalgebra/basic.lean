@@ -68,8 +68,8 @@ to_subsemiring_injective.eq_iff
 equalities. -/
 protected def copy (S : subalgebra R A) (s : set A) (hs : s = ↑S) : subalgebra R A :=
 { carrier := s,
-  add_mem' := hs.symm ▸ S.add_mem',
-  mul_mem' := hs.symm ▸ S.mul_mem',
+  add_mem' := λ _ _, hs.symm ▸ S.add_mem',
+  mul_mem' := λ _ _, hs.symm ▸ S.mul_mem',
   algebra_map_mem' := hs.symm ▸ S.algebra_map_mem' }
 
 @[simp] lemma coe_copy (S : subalgebra R A) (s : set A) (hs : s = ↑S) :
@@ -188,9 +188,15 @@ instance to_comm_ring {R A}
 instance to_ordered_semiring {R A}
   [comm_semiring R] [ordered_semiring A] [algebra R A] (S : subalgebra R A) :
   ordered_semiring S := S.to_subsemiring.to_ordered_semiring
+instance to_strict_ordered_semiring {R A}
+  [comm_semiring R] [strict_ordered_semiring A] [algebra R A] (S : subalgebra R A) :
+  strict_ordered_semiring S := S.to_subsemiring.to_strict_ordered_semiring
 instance to_ordered_comm_semiring {R A}
   [comm_semiring R] [ordered_comm_semiring A] [algebra R A] (S : subalgebra R A) :
   ordered_comm_semiring S := S.to_subsemiring.to_ordered_comm_semiring
+instance to_strict_ordered_comm_semiring {R A}
+  [comm_semiring R] [strict_ordered_comm_semiring A] [algebra R A] (S : subalgebra R A) :
+  strict_ordered_comm_semiring S := S.to_subsemiring.to_strict_ordered_comm_semiring
 instance to_ordered_ring {R A}
   [comm_ring R] [ordered_ring A] [algebra R A] (S : subalgebra R A) :
   ordered_ring S := S.to_subring.to_ordered_ring
@@ -201,7 +207,9 @@ instance to_ordered_comm_ring {R A}
 instance to_linear_ordered_semiring {R A}
   [comm_semiring R] [linear_ordered_semiring A] [algebra R A] (S : subalgebra R A) :
   linear_ordered_semiring S := S.to_subsemiring.to_linear_ordered_semiring
-/-! There is no `linear_ordered_comm_semiring`. -/
+instance to_linear_ordered_comm_semiring {R A}
+ [comm_semiring R] [linear_ordered_comm_semiring A] [algebra R A] (S : subalgebra R A) :
+  linear_ordered_comm_semiring S := S.to_subsemiring.to_linear_ordered_comm_semiring
 instance to_linear_ordered_ring {R A}
   [comm_ring R] [linear_ordered_ring A] [algebra R A] (S : subalgebra R A) :
   linear_ordered_ring S := S.to_subring.to_linear_ordered_ring
@@ -278,8 +286,8 @@ protected lemma coe_sub {R : Type u} {A : Type v} [comm_ring R] [ring A] [algebr
   ↑(algebra_map R' S r) = algebra_map R' A r := rfl
 
 protected lemma coe_pow (x : S) (n : ℕ) : (↑(x^n) : A) = (↑x)^n := submonoid_class.coe_pow x n
-protected lemma coe_eq_zero {x : S} : (x : A) = 0 ↔ x = 0 := add_submonoid_class.coe_eq_zero
-protected lemma coe_eq_one {x : S} : (x : A) = 1 ↔ x = 1 := submonoid_class.coe_eq_one
+protected lemma coe_eq_zero {x : S} : (x : A) = 0 ↔ x = 0 := zero_mem_class.coe_eq_zero
+protected lemma coe_eq_one {x : S} : (x : A) = 1 ↔ x = 1 := one_mem_class.coe_eq_one
 
 -- todo: standardize on the names these morphisms
 -- compare with submodule.subtype
@@ -701,41 +709,22 @@ This is the algebra version of `submodule.top_equiv`. -/
 @[simps] def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
 alg_equiv.of_alg_hom (subalgebra.val ⊤) to_top rfl $ alg_hom.ext $ λ _, subtype.ext rfl
 
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma subsingleton_of_subsingleton [subsingleton A] : subsingleton (subalgebra R A) :=
+instance subsingleton_of_subsingleton [subsingleton A] : subsingleton (subalgebra R A) :=
 ⟨λ B C, ext (λ x, by { simp only [subsingleton.elim x 0, zero_mem B, zero_mem C] })⟩
 
-/--
-For performance reasons this is not an instance. If you need this instance, add
-```
-local attribute [instance] alg_hom.subsingleton subalgebra.subsingleton_of_subsingleton
-```
-in the section that needs it.
--/
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma _root_.alg_hom.subsingleton [subsingleton (subalgebra R A)] : subsingleton (A →ₐ[R] B) :=
+instance _root_.alg_hom.subsingleton [subsingleton (subalgebra R A)] : subsingleton (A →ₐ[R] B) :=
 ⟨λ f g, alg_hom.ext $ λ a,
   have a ∈ (⊥ : subalgebra R A) := subsingleton.elim (⊤ : subalgebra R A) ⊥ ▸ mem_top,
   let ⟨x, hx⟩ := set.mem_range.mp (mem_bot.mp this) in
   hx ▸ (f.commutes _).trans (g.commutes _).symm⟩
 
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma _root_.alg_equiv.subsingleton_left [subsingleton (subalgebra R A)] :
+instance _root_.alg_equiv.subsingleton_left [subsingleton (subalgebra R A)] :
   subsingleton (A ≃ₐ[R] B) :=
-begin
-  haveI : subsingleton (A →ₐ[R] B) := alg_hom.subsingleton,
-  exact ⟨λ f g, alg_equiv.ext
-    (λ x, alg_hom.ext_iff.mp (subsingleton.elim f.to_alg_hom g.to_alg_hom) x)⟩,
-end
+⟨λ f g, alg_equiv.ext (λ x, alg_hom.ext_iff.mp (subsingleton.elim f.to_alg_hom g.to_alg_hom) x)⟩
 
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma _root_.alg_equiv.subsingleton_right [subsingleton (subalgebra R B)] :
+instance _root_.alg_equiv.subsingleton_right [subsingleton (subalgebra R B)] :
   subsingleton (A ≃ₐ[R] B) :=
-begin
-  haveI : subsingleton (B ≃ₐ[R] A) := alg_equiv.subsingleton_left,
-  exact ⟨λ f g, eq.trans (alg_equiv.symm_symm _).symm
-    (by rw [subsingleton.elim f.symm g.symm, alg_equiv.symm_symm])⟩
-end
+⟨λ f g, by rw [← f.symm_symm, subsingleton.elim f.symm g.symm, g.symm_symm]⟩
 
 lemma range_val : S.val.range = S :=
 ext $ set.ext_iff.1 $ S.val.coe_range.trans subtype.range_val
@@ -810,12 +799,11 @@ variables (S₁ : subalgebra R B)
 
 /-- The product of two subalgebras is a subalgebra. -/
 def prod : subalgebra R (A × B) :=
-{ carrier := (S : set A) ×ˢ (S₁ : set B),
+{ carrier := S ×ˢ S₁,
   algebra_map_mem' := λ r, ⟨algebra_map_mem _ _, algebra_map_mem _ _⟩,
   .. S.to_subsemiring.prod S₁.to_subsemiring }
 
-@[simp] lemma coe_prod :
-  (prod S S₁ : set (A × B)) = (S : set A) ×ˢ (S₁ : set B):= rfl
+@[simp] lemma coe_prod : (prod S S₁ : set (A × B)) = S ×ˢ S₁ := rfl
 
 lemma prod_to_submodule :
   (S.prod S₁).to_submodule = S.to_submodule.prod S₁.to_submodule := rfl

@@ -811,12 +811,26 @@ instance _root_.module.End.semiring : semiring (module.End R M) :=
   zero_mul := zero_comp,
   left_distrib := λ f g h, comp_add _ _ _,
   right_distrib := λ f g h, add_comp _ _ _,
+  nat_cast := λ n, n • 1,
+  nat_cast_zero := add_monoid.nsmul_zero' _,
+  nat_cast_succ := λ n, (add_monoid.nsmul_succ' n 1).trans (add_comm _ _),
   .. add_monoid_with_one.unary,
   .. _root_.module.End.monoid,
   .. linear_map.add_comm_monoid }
 
+/-- See also `module.End.nat_cast_def`. -/
+@[simp] lemma _root_.module.End.nat_cast_apply (n : ℕ) (m : M) :
+  (↑n : module.End R M) m = n • m := rfl
+
 instance _root_.module.End.ring : ring (module.End R N₁) :=
-{ ..module.End.semiring, ..linear_map.add_comm_group }
+{ int_cast := λ z, z • 1,
+  int_cast_of_nat := of_nat_zsmul _,
+  int_cast_neg_succ_of_nat := zsmul_neg_succ_of_nat _,
+  ..module.End.semiring, ..linear_map.add_comm_group }
+
+/-- See also `module.End.int_cast_def`. -/
+@[simp] lemma _root_.module.End.int_cast_apply (z : ℤ) (m : N₁) :
+  (↑z : module.End R N₁) m = z • m := rfl
 
 section
 variables [monoid S] [distrib_mul_action S M] [smul_comm_class R S M]
@@ -929,5 +943,11 @@ def module_End_self_op : R ≃+* module.End Rᵐᵒᵖ R :=
   left_inv := mul_one,
   right_inv := λ f, linear_map.ext_ring_op $ mul_one _,
   ..module.to_module_End _ _ }
+
+lemma End.nat_cast_def (n : ℕ) [add_comm_monoid N₁] [module R N₁] :
+  (↑n : module.End R N₁) = module.to_module_End R N₁ n := rfl
+
+lemma End.int_cast_def (z : ℤ) [add_comm_group N₁] [module R N₁] :
+  (↑z : module.End R N₁) = module.to_module_End R N₁ z := rfl
 
 end module

@@ -237,27 +237,27 @@ as_iso (monoidal_counit (to_transported e))
 
 section Mon_
 
-def punit_to_transported.ε (e : C ≌ D) (F : lax_monoidal_functor (discrete punit) C) :
+def to_punit_to_transported.ε (e : C ≌ D) (F : lax_monoidal_functor (discrete punit) C) :
   𝟙_ (transported e) ⟶ e.functor.obj (F.to_functor.obj (𝟙_ (discrete punit))) :=
 e.functor.map F.ε
 
-def punit_to_transported.μ (e : C ≌ D) (F : lax_monoidal_functor (discrete punit) C) (X Y) :
+def to_punit_to_transported.μ (e : C ≌ D) (F : lax_monoidal_functor (discrete punit) C) (X Y) :
   (e.functor.obj (F.to_functor.obj X) ⊗ e.functor.obj (F.to_functor.obj Y) : transported e) ⟶
     e.functor.obj (F.to_functor.obj (X ⊗ Y)) :=
 ((to_transported e).μ_iso (F.to_functor.obj X) (F.to_functor.obj Y)).hom ≫
   e.functor.map (F.μ X Y)
 
-lemma punit_to_transported.associativity'_auxL (e : C ≌ D)
+lemma to_punit_to_transported.associativity'_auxL (e : C ≌ D)
   (F : lax_monoidal_functor (discrete punit) C) (X Y Z) :
-  (punit_to_transported.μ e F X Y ⊗ 𝟙 (e.functor.obj (F.to_functor.obj Z))) ≫
-    punit_to_transported.μ e F (X ⊗ Y) Z ≫ e.functor.map (F.to_functor.map (α_ X Y Z).hom) =
+  (to_punit_to_transported.μ e F X Y ⊗ 𝟙 (e.functor.obj (F.to_functor.obj Z))) ≫
+    to_punit_to_transported.μ e F (X ⊗ Y) Z ≫ e.functor.map (F.to_functor.map (α_ X Y Z).hom) =
 
   ((to_transported e).μ_iso₂' _ _ _).hom ≫
 
   (e.functor.map ((F.μ X Y ⊗ 𝟙 (F.to_functor.obj Z)) ≫ F.μ (X ⊗ Y) Z ≫
     F.to_functor.map (α_ X Y Z).hom)) :=
 begin
-  dsimp [punit_to_transported.μ],
+  dsimp [to_punit_to_transported.μ],
   simp only [comp_tensor_id, discrete.functor_map_id, category_theory.functor.map_id, assoc,
     comp_id, functor.map_comp],
   congr' 1,
@@ -270,12 +270,12 @@ begin
     ←tensor_comp, category.comp_id],
 end
 
-lemma punit_to_transported.associativity'_auxR (e : C ≌ D)
+lemma to_punit_to_transported.associativity'_auxR (e : C ≌ D)
   (F : lax_monoidal_functor (discrete punit) C) (X Y Z) :
   (α_ (e.functor.obj (F.to_functor.obj X)) (e.functor.obj (F.to_functor.obj Y))
      (e.functor.obj (F.to_functor.obj Z))).hom ≫
-  (𝟙 (e.functor.obj (F.to_functor.obj X)) ⊗ punit_to_transported.μ e F Y Z) ≫
-    punit_to_transported.μ e F X (Y ⊗ Z) =
+  (𝟙 (e.functor.obj (F.to_functor.obj X)) ⊗ to_punit_to_transported.μ e F Y Z) ≫
+    to_punit_to_transported.μ e F X (Y ⊗ Z) =
 
   ((to_transported e).μ_iso₂' _ _ _).hom ≫
 
@@ -283,7 +283,7 @@ lemma punit_to_transported.associativity'_auxR (e : C ≌ D)
     ((α_ (F.to_functor.obj X) (F.to_functor.obj Y) (F.to_functor.obj Z)).hom ≫
        (𝟙 (F.to_functor.obj X) ⊗ F.μ Y Z) ≫ F.μ X (Y ⊗ Z)) :=
 begin
-  dsimp [punit_to_transported.μ, transport_associator],
+  dsimp [to_punit_to_transported.μ, transport_associator],
   simp only [functor.map_comp, id_tensor_comp, assoc],
   simp only [←assoc],
   congr' 1,
@@ -314,18 +314,18 @@ begin
     id_comp, comp_id],
 end
 
-lemma punit_to_transported.associativity' (e : C ≌ D) (F : lax_monoidal_functor (discrete punit) C)
+lemma to_punit_to_transported.associativity' (e : C ≌ D) (F : lax_monoidal_functor (discrete punit) C)
   (X Y Z) :
-  (punit_to_transported.μ e F X Y ⊗ 𝟙 (e.functor.obj (F.to_functor.obj Z))) ≫
-    punit_to_transported.μ e F (X ⊗ Y) Z ≫ e.functor.map (F.to_functor.map (α_ X Y Z).hom) =
+  (to_punit_to_transported.μ e F X Y ⊗ 𝟙 (e.functor.obj (F.to_functor.obj Z))) ≫
+    to_punit_to_transported.μ e F (X ⊗ Y) Z ≫ e.functor.map (F.to_functor.map (α_ X Y Z).hom) =
   (α_ (e.functor.obj (F.to_functor.obj X)) (e.functor.obj (F.to_functor.obj Y))
        (e.functor.obj (F.to_functor.obj Z))).hom ≫
-    (𝟙 (e.functor.obj (F.to_functor.obj X)) ⊗ punit_to_transported.μ e F Y Z) ≫
-      punit_to_transported.μ e F X (Y ⊗ Z) :=
-by rw [punit_to_transported.associativity'_auxL, F.associativity,
-  punit_to_transported.associativity'_auxR]
+    (𝟙 (e.functor.obj (F.to_functor.obj X)) ⊗ to_punit_to_transported.μ e F Y Z) ≫
+      to_punit_to_transported.μ e F X (Y ⊗ Z) :=
+by rw [to_punit_to_transported.associativity'_auxL, F.associativity,
+  to_punit_to_transported.associativity'_auxR]
 
-lemma punit_to_transported.left_unitality_auxL
+lemma to_punit_to_transported.left_unitality_auxL
   (e : C ≌ D) (F : lax_monoidal_functor (discrete punit) C) (X : discrete punit) :
   (λ_ (e.functor.obj (F.to_functor.obj X)) : (𝟙_ (transported e)) ⊗ _ ≅ _).hom =
   ((λ_ _).hom ≫ e.functor.map (λ_ _).inv) ≫ e.functor.map (λ_ (F.to_functor.obj X)).hom :=
@@ -335,16 +335,16 @@ begin
   rw [←e.functor.map_comp, iso.inv_hom_id, e.functor.map_id, comp_id],
 end
 
-lemma punit_to_transported.left_unitality_auxR
+lemma to_punit_to_transported.left_unitality_auxR
   (e : C ≌ D) (F : lax_monoidal_functor (discrete punit) C) (X : discrete punit) :
-  (punit_to_transported.ε e F ⊗ 𝟙 (e.functor.obj (F.to_functor.obj X))) ≫
-  punit_to_transported.μ e F (𝟙_ (discrete punit)) X ≫ e.functor.map (F.to_functor.map (λ_ X).hom) =
+  (to_punit_to_transported.ε e F ⊗ 𝟙 (e.functor.obj (F.to_functor.obj X))) ≫
+  to_punit_to_transported.μ e F (𝟙_ (discrete punit)) X ≫ e.functor.map (F.to_functor.map (λ_ X).hom) =
   ((λ_ _).hom ≫ e.functor.map (λ_ _).inv) ≫
 
   e.functor.map
   ((F.ε ⊗ 𝟙 (F.to_functor.obj X)) ≫ F.μ (𝟙_ (discrete punit)) X ≫ F.to_functor.map (λ_ X).hom) :=
 begin
-  simp only [punit_to_transported.ε, punit_to_transported.μ, transport_left_unitor, monoidal_functor.μ_iso_hom, assoc,
+  simp only [to_punit_to_transported.ε, to_punit_to_transported.μ, transport_left_unitor, monoidal_functor.μ_iso_hom, assoc,
     iso.trans_hom, functor.map_iso_hom, tensor_iso_hom, iso.symm_hom, iso.app_inv, iso.refl_hom, iso.app_hom,
     functor.map_comp],
   dsimp,
@@ -366,15 +366,15 @@ begin
   rw e.counit_app_functor,
 end
 
-lemma punit_to_transported.left_unitality'
+lemma to_punit_to_transported.left_unitality'
   (e : C ≌ D) (F : lax_monoidal_functor (discrete punit) C) (X : discrete punit) :
   (λ_ (e.functor.obj (F.to_functor.obj X))).hom =
-  (punit_to_transported.ε e F ⊗ 𝟙 (e.functor.obj (F.to_functor.obj X))) ≫
-  punit_to_transported.μ e F (𝟙_ (discrete punit)) X ≫ e.functor.map (F.to_functor.map (λ_ X).hom) :=
-by rw [punit_to_transported.left_unitality_auxL, lax_monoidal_functor.left_unitality,
-    punit_to_transported.left_unitality_auxR]
+  (to_punit_to_transported.ε e F ⊗ 𝟙 (e.functor.obj (F.to_functor.obj X))) ≫
+  to_punit_to_transported.μ e F (𝟙_ (discrete punit)) X ≫ e.functor.map (F.to_functor.map (λ_ X).hom) :=
+by rw [to_punit_to_transported.left_unitality_auxL, lax_monoidal_functor.left_unitality,
+    to_punit_to_transported.left_unitality_auxR]
 
-lemma punit_to_transported.right_unitality'_auxL
+lemma to_punit_to_transported.right_unitality'_auxL
   (e : C ≌ D) (F : lax_monoidal_functor (discrete punit) C) (X : discrete punit) :
   (ρ_ (e.functor.obj (F.to_functor.obj X)) : (_ ⊗ _ : transported e) ≅ _).hom =
   ((to_transported e).μ _ _) ≫
@@ -400,15 +400,15 @@ begin
     e.inverse.map_id, e.functor.map_id, e.inverse.map_id, tensor_id, e.functor.map_id, id_comp],
 end
 
-lemma punit_to_transported.right_unitality'_auxR
+lemma to_punit_to_transported.right_unitality'_auxR
   (e : C ≌ D) (F : lax_monoidal_functor (discrete punit) C) (X : discrete punit) :
-  (tensor_hom (𝟙 (e.functor.obj (F.to_functor.obj X))) (punit_to_transported.ε e F)) ≫
-  punit_to_transported.μ e F X (𝟙_ (discrete punit)) ≫ e.functor.map (F.to_functor.map (ρ_ X).hom) =
+  (tensor_hom (𝟙 (e.functor.obj (F.to_functor.obj X))) (to_punit_to_transported.ε e F)) ≫
+  to_punit_to_transported.μ e F X (𝟙_ (discrete punit)) ≫ e.functor.map (F.to_functor.map (ρ_ X).hom) =
   ((to_transported e).μ _ _) ≫
   e.functor.map
     ((𝟙 (F.to_functor.obj X) ⊗ F.ε) ≫ F.μ X (𝟙_ (discrete punit)) ≫ F.to_functor.map (ρ_ X).hom) :=
 begin
-  simp only [punit_to_transported.ε, punit_to_transported.μ, monoidal_functor.μ_iso_hom, assoc,
+  simp only [to_punit_to_transported.ε, to_punit_to_transported.μ, monoidal_functor.μ_iso_hom, assoc,
     functor.map_comp],
   dsimp,
   simp only [←assoc],
@@ -426,30 +426,30 @@ begin
     iso.hom_inv_id_app, comp_id, ←e.functor.map_comp, ←tensor_comp, comp_id],
 end
 
-lemma punit_to_transported.right_unitality'
+lemma to_punit_to_transported.right_unitality'
   (e : C ≌ D) (F : lax_monoidal_functor (discrete punit) C) (X : discrete punit) :
   (ρ_ (e.functor.obj (F.to_functor.obj X))).hom =
-  (𝟙 (e.functor.obj (F.to_functor.obj X)) ⊗ punit_to_transported.ε e F) ≫
-    punit_to_transported.μ e F X (𝟙_ (discrete punit)) ≫ e.functor.map (F.to_functor.map (ρ_ X).hom) :=
+  (𝟙 (e.functor.obj (F.to_functor.obj X)) ⊗ to_punit_to_transported.ε e F) ≫
+    to_punit_to_transported.μ e F X (𝟙_ (discrete punit)) ≫ e.functor.map (F.to_functor.map (ρ_ X).hom) :=
 begin
-  rw [punit_to_transported.right_unitality'_auxL, lax_monoidal_functor.right_unitality,
-    punit_to_transported.right_unitality'_auxR],
+  rw [to_punit_to_transported.right_unitality'_auxL, lax_monoidal_functor.right_unitality,
+    to_punit_to_transported.right_unitality'_auxR],
 end
 
-@[simps] def punit_to_transported (e : C ≌ D) (F : lax_monoidal_functor (discrete punit) C) :
+@[simps] def to_punit_to_transported (e : C ≌ D) (F : lax_monoidal_functor (discrete punit) C) :
   lax_monoidal_functor (discrete punit) (transported e) :=
-{ ε := punit_to_transported.ε e F,
-  μ := punit_to_transported.μ e F,
+{ ε := to_punit_to_transported.ε e F,
+  μ := to_punit_to_transported.μ e F,
   μ_natural' := begin
     rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩,
     dsimp, simp only [category_theory.functor.map_id, tensor_id, id_comp, comp_id],
   end,
-  associativity' := punit_to_transported.associativity' e F,
-  left_unitality' := punit_to_transported.left_unitality' e F,
-  right_unitality' := punit_to_transported.right_unitality' e F,..(F.to_functor ⋙ e.functor)}
+  associativity' := to_punit_to_transported.associativity' e F,
+  left_unitality' := to_punit_to_transported.left_unitality' e F,
+  right_unitality' := to_punit_to_transported.right_unitality' e F,..(F.to_functor ⋙ e.functor)}
 
-@[simps] def punit_to_transported.map (e : C ≌ D) {F G : lax_monoidal_functor (discrete punit) C}
-  (α : F ⟶ G) : punit_to_transported e F ⟶ punit_to_transported e G :=
+@[simps] def to_punit_to_transported.map (e : C ≌ D) {F G : lax_monoidal_functor (discrete punit) C}
+  (α : F ⟶ G) : to_punit_to_transported e F ⟶ to_punit_to_transported e G :=
 { app := λ X, e.functor.map $ α.app X,
   naturality' :=
   begin
@@ -458,14 +458,14 @@ end
     simp only [category_theory.functor.map_id, id_comp, comp_id],
   end,
   unit' := begin
-    dsimp [punit_to_transported.ε],
+    dsimp [to_punit_to_transported.ε],
     rw [←e.functor.map_comp],
     congr',
     exact α.unit',
   end,
   tensor' := λ X Y,
   begin
-    dsimp [punit_to_transported.μ],
+    dsimp [to_punit_to_transported.μ],
     have := α.tensor' X Y,
     rw [←e.functor.map_comp, ←e.functor.map_comp, assoc, α.tensor' X Y, e.functor.map_comp,
       e.functor.map_comp, ←assoc, ←assoc],
@@ -475,34 +475,34 @@ end
     rw [assoc, assoc, is_iso.inv_hom_id, comp_id],
   end }
 
-lemma punit_to_transported.map_id (e : C ≌ D) (F) :
-  punit_to_transported.map e (𝟙 F) = 𝟙 _ :=
+lemma to_punit_to_transported.map_id (e : C ≌ D) (F) :
+  to_punit_to_transported.map e (𝟙 F) = 𝟙 _ :=
 begin
   ext ⟨⟨⟩⟩,
-  simp only [punit_to_transported.map_to_nat_trans_app],
+  simp only [to_punit_to_transported.map_to_nat_trans_app],
   erw [nat_trans.id_app, e.functor.map_id],
   refl,
 end
 
-lemma punit_to_transported.map_comp (e : C ≌ D)
+lemma to_punit_to_transported.map_comp (e : C ≌ D)
   {X Y Z : lax_monoidal_functor (discrete punit) C} (f : X ⟶ Y) (g : Y ⟶ Z) :
-  punit_to_transported.map e (f ≫ g) = punit_to_transported.map e f ≫ punit_to_transported.map e g :=
+  to_punit_to_transported.map e (f ≫ g) = to_punit_to_transported.map e f ≫ to_punit_to_transported.map e g :=
 begin
   ext,
-  simp only [punit_to_transported.map_to_nat_trans_app, monoidal_nat_trans.comp_to_nat_trans_lax, nat_trans.comp_app,
+  simp only [to_punit_to_transported.map_to_nat_trans_app, monoidal_nat_trans.comp_to_nat_trans_lax, nat_trans.comp_app,
   functor.map_comp],
 end
 
-@[simps] def punit_to_transported.functor (e : C ≌ D) :
+@[simps] def to_punit_to_transported.functor (e : C ≌ D) :
   lax_monoidal_functor (discrete punit) C ⥤ lax_monoidal_functor (discrete punit) (transported e) :=
-{ obj := punit_to_transported e,
-  map := λ _ _, punit_to_transported.map e,
-  map_id' := punit_to_transported.map_id e,
-  map_comp' := λ _ _ _, punit_to_transported.map_comp e }
+{ obj := to_punit_to_transported e,
+  map := λ _ _, to_punit_to_transported.map e,
+  map_id' := to_punit_to_transported.map_id e,
+  map_comp' := λ _ _ _, to_punit_to_transported.map_comp e }
 
 @[simps] def lax_monoid_functor_from_punit_equivalence (e : C ≌ D) :
   lax_monoidal_functor (discrete punit) C ≌ lax_monoidal_functor (discrete punit) (transported e) :=
-{ functor := punit_to_transported.functor e,
+{ functor := to_punit_to_transported.functor e,
   inverse := sorry,
   unit_iso := sorry,
   counit_iso := sorry,

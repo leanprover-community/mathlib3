@@ -224,35 +224,35 @@ end two_denominators
 
 section n_denominators
 
+example (ι : Type) (s : finset ι) (a : ι) : a ∈ (s : set ι) ↔ a ∈ s := finset.mem_coe
 -- need notation for finite products
 open_locale big_operators classical
 
-lemma div_eq_quo_add_sum_rem_div (f : R[X]) {ι : Type*} {g : ι → R[X]}
-  (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
-  (s : finset ι) :
-  ∃ (q : R[X]) (r : ι → R[X]), (∀ i, (r i).degree < (g i).degree) ∧
+lemma div_eq_quo_add_sum_rem_div (f : R[X]) {ι : Type*} {g : ι → R[X]} (s : finset ι)
+  (hg : ∀ i ∈ s, (g i).monic)
+  (hcop : set.pairwise ↑s (λ i j, is_coprime (g i) (g j))) :
+  ∃ (q : R[X]) (r : ι → R[X]), (∀ i ∈ s, (r i).degree < (g i).degree) ∧
   (↑f : K) / ∏ i in s, ↑(g i) = ↑q + ∑ i in s, ↑(r i) / ↑(g i) :=
 begin
   induction s using finset.induction_on with a b hab Hind f generalizing f,
   { refine ⟨f, (λ (i : ι), (0 : R[X])), λ i, _, by simp⟩,
-    rw [degree_zero, bot_lt_iff_ne_bot],
-    intro hdg,
-    specialize hg i,
-    rw degree_eq_bot at hdg,
-    rw hdg at hg,
-    exact not_monic_zero hg, },
+    rintro ⟨⟩, },
   { obtain ⟨q₀, r₁, r₂, hdeg₁, hdeg₂, (hf : (↑f : K) / _ = _)⟩ :=
       div_eq_quo_add_rem_div_add_rem_div R K
       (_ : monic (g a))
       (_ : monic ∏ (i : ι) in b, (g i))
       _,
-    { obtain ⟨q, r, hrheg, IH⟩ := Hind r₂,
+    { obtain ⟨q, r, hrdeg, IH⟩ := Hind (λ i hi, hg i (finset.mem_insert_of_mem hi))
+        (set.pairwise.mono (show (b : set ι) ⊆ (insert a b : finset ι),
+          from finset.coe_subset.2 $ λ i hi, finset.mem_insert_of_mem hi) hcop) r₂,
       refine ⟨q₀ + q, λ i, if i = a then r₁ else r i, _, _⟩,
       { intro i,
         split_ifs with h1,
         { cases h1,
+          intro _,
           exact hdeg₁, },
-        { apply hrheg, }, },
+        { intro hi,
+          refine hrdeg i (finset.mem_of_mem_insert_of_ne hi h1), }, },
       norm_cast at ⊢ hf IH,
       rw [finset.prod_insert hab, hf, IH, finset.sum_insert hab, if_pos rfl],
       -- use `transitivity` tactic to break this into a `ring` and a `congr`
@@ -264,28 +264,32 @@ begin
       { rintro rfl,
         exact hab hxb, },
       rw if_neg hxa, },
-    { exact hg a, },
-    { exact monic_prod_of_monic _ _ (λ i hi, hg i), },
-    { refine is_coprime.prod_right (λ i hi, hcop _ _ _),
+    { exact hg a (b.mem_insert_self a), },
+    { refine monic_prod_of_monic _ _ (λ i hi, hg i (finset.mem_insert_of_mem hi)), },
+    { refine is_coprime.prod_right (λ i hi, hcop (finset.mem_coe.2 (b.mem_insert_self a))
+       (finset.mem_coe.2 (finset.mem_insert_of_mem hi)) _),
       rintro rfl, -- this is a hidden `rw`, so I need to leave term mode
       exact hab hi, }, },
 end
 
 lemma div_eq_quo_add_sum_rem_div_unique' {f : R[X]} {ι : Type*} (s : finset ι) {g : ι → R[X]}
-  (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
+  (hg : ∀ i ∈ s, (g i).monic) (hcop : (s : set ι).pairwise (λ i j, is_coprime (g i) (g j)))
   (q : R[X]) (r : ι → R[X]) (hdeg : ∀ i, (r i).degree < (g i).degree)
   (hf : (↑f : K) / ∏ i in s, ↑(g i) = ↑q + ∑ i in s, ↑(r i) / ↑(g i)) :
-    q = (div_eq_quo_add_sum_rem_div R K f hg hcop s).some ∧
-    ∀ i ∈ s, r i = (div_eq_quo_add_sum_rem_div R K f hg hcop s).some_spec.some i :=
+    q = (div_eq_quo_add_sum_rem_div R K f s hg hcop).some ∧
+    ∀ i ∈ s, r i = (div_eq_quo_add_sum_rem_div R K f s hg hcop).some_spec.some i :=
 begin
-  let q₀ := (div_eq_quo_add_sum_rem_div R K f hg hcop s).some,
-  let r₀ := (div_eq_quo_add_sum_rem_div R K f hg hcop s).some_spec.some,
-  obtain ⟨hdeg₀, hf₀⟩ : (∀ (i : ι), (r₀ i).degree < ((λ (i : ι), g i) i).degree) ∧
+  let q₀ := (div_eq_quo_add_sum_rem_div R K f s hg hcop).some,
+  let r₀ := (div_eq_quo_add_sum_rem_div R K f s hg hcop).some_spec.some,
+  obtain ⟨hdeg₀, hf₀⟩ : (∀ i ∈ s, (r₀ i).degree < ((λ (i : ι), g i) i).degree) ∧
     ↑f / ∏ i in s, ↑((λ (i : ι), g i) i) = ↑q₀ + ∑ i in s, ↑(r₀ i) / ↑((λ (i : ι), g i) i) :=
-    (div_eq_quo_add_sum_rem_div R K f hg hcop s).some_spec.some_spec,
+    (div_eq_quo_add_sum_rem_div R K f s hg hcop).some_spec.some_spec,
   change q = q₀ ∧ ∀ i ∈ s, r i = r₀ i,
   sorry,
 end
+
+
+#exit
 
 -- uniqueness
 -- this is currently stated over a fintype.
@@ -295,7 +299,7 @@ lemma div_eq_quo_add_sum_rem_div_unique {f : R[X]} {ι : Type*} [fintype ι] {g 
   (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
   (q : R[X]) (r : ι → R[X]) (hdeg : ∀ i, (r i).degree < (g i).degree)
   (hf : (↑f : K) / ∏ i, ↑(g i) = ↑q + ∑ i, ↑(r i) / ↑(g i)) :
-    q = (div_eq_quo_add_sum_rem_div R K f hg hcop finset.univ).some ∧
+    q = (div_eq_quo_add_sum_rem_div R K f finset.univ (λ i _, hg i) hcop).some ∧
     r = (div_eq_quo_add_sum_rem_div R K f hg hcop finset.univ).some_spec.some :=
 begin
   let q₀ := (div_eq_quo_add_sum_rem_div R K f hg hcop finset.univ).some,

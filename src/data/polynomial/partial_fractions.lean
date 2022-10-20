@@ -9,7 +9,6 @@ import tactic.field_simp
 import tactic
 import data.zmod.basic
 import logic.function.basic
-import algebra_map_coe
 /-
 
 # Partial fractions
@@ -57,6 +56,19 @@ unique.
 I don't see why irreducibility is even needed.
 
 -/
+
+-- this should be elsewhere
+section comm_ring_comm_ring
+
+variables {R A : Type*} [comm_ring R] [comm_ring A] [algebra R A]
+
+-- [is_fraction_ring] bumps the imports but I have an application, probably
+-- this lemma should be elsewhere
+@[norm_cast, simp] lemma coe_inj' [is_fraction_ring R A] {a b : R} : (↑a : A) = ↑b ↔ a = b :=
+⟨λ h, is_fraction_ring.injective R A h, by rintro rfl; refl⟩
+
+end comm_ring_comm_ring
+
 
 -- Let `R` be an integral domain
 variables (R : Type) [comm_ring R] [is_domain R]

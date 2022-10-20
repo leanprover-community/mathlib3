@@ -109,14 +109,14 @@ variables (G : pgame) [impartial G]
 lemma nonpos : ¬ 0 < G :=
 λ h, begin
   have h' := neg_lt_neg_iff.2 h,
-  rw [pgame.neg_zero, lt_congr_left (neg_equiv_self G).symm] at h',
+  rw [neg_zero, lt_congr_left (neg_equiv_self G).symm] at h',
   exact (h.trans h').false
 end
 
 lemma nonneg : ¬ G < 0 :=
 λ h, begin
   have h' := neg_lt_neg_iff.2 h,
-  rw [pgame.neg_zero, lt_congr_right (neg_equiv_self G).symm] at h',
+  rw [neg_zero, lt_congr_right (neg_equiv_self G).symm] at h',
   exact (h.trans h').false
 end
 

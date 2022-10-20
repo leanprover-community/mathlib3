@@ -263,7 +263,7 @@ Affine and Euclidean Geometry:
     angles between vectors: 'inner_product_geometry.angle'
     angles between planes: ''
     inscribed angle theorem: ''
-    cocyclicity: ''
+    cocyclicity: 'euclidean_geometry.concyclic'
     group of isometries stabilizing a subset of the plane or of space: ''
     regular polygons: ''
     metric relations in the triangle: ''
@@ -323,7 +323,7 @@ Single Variable Real Analysis:
   Taylor-like theorems:
     Taylor's theorem with little-o remainder: "https://en.wikipedia.org/wiki/Taylor%27s_theorem#Taylor's_theorem_in_one_real_variable"
     Taylor's theorem with integral form for remainder: 'https://en.wikipedia.org/wiki/Taylor%27s_theorem#Explicit_formulas_for_the_remainder'
-    Taylor's theorem with Lagrange form for remainder: 'https://en.wikipedia.org/wiki/Taylor%27s_theorem#Explicit_formulas_for_the_remainder'
+    Taylor's theorem with Lagrange form for remainder: 'taylor_mean_remainder_lagrange'
     Taylor series expansions: 'https://en.wikipedia.org/wiki/Taylor_series'
   Elementary functions (trigonometric, rational, $\exp$, $\log$, etc):
     polynomial functions: 'polynomial.eval'
@@ -379,8 +379,8 @@ Single Variable Complex Analysis:
     winding number of a closed curve in $\C$ with respect to a point: ''
     Cauchy formulas: ''
     analyticity of a holomorphic function: 'differentiable_on.analytic_at'
-    principle of isolated zeros: ''
-    principle of analytic continuation: ''
+    principle of isolated zeros: 'analytic_at.eventually_eq_zero_or_eventually_ne_zero'
+    principle of analytic continuation: 'analytic_on.eq_on_of_preconnected_of_frequently_eq'
     maximum principle: 'complex.eventually_eq_of_is_local_max_norm'
     isolated singularities: ''
     Laurent series: ''
@@ -536,7 +536,7 @@ Probability Theory:
     independent events: 'probability_theory.Indep_set'
     sigma-algebra: 'measurable_space'
     independent sigma-algebra: 'probability_theory.Indep'
-    $0$-$1$ law: ''
+    $0$-$1$ law: 'probability_theory.measure_zero_or_one_of_measurable_set_limsup_at_top'
     Borel-Cantelli lemma (easy direction): 'measure_theory.measure_limsup_eq_zero'
     Borel-Cantelli lemma (difficult direction): ''
     conditional probability: 'probability_theory.cond'
@@ -592,7 +592,7 @@ Distribution calculus:
     convergence of sequences of distributions: ''
     support of a distribution: ''
   Spaces $\mathcal{S}(\R^d)$:
-    Schwartz space of rapidly decreasing functions: ''
+    Schwartz space of rapidly decreasing functions: 'schwartz_map'
     stability by derivation: ''
     stability by multiplication by a slowly growing smooth function: ''
     gaussian functions: ''

@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Kevin Kappelmann
 -/
 import tactic.abel
 import tactic.linarith
+import tactic.positivity
 
 /-!
 # Floor and ceil
@@ -518,11 +519,20 @@ ext $ λ x, floor_eq_iff
 @[simp] lemma fract_add_int (a : α) (m : ℤ) : fract (a + m) = fract a :=
 by { rw fract, simp }
 
+@[simp] lemma fract_add_nat (a : α) (m : ℕ) : fract (a + m) = fract a :=
+by { rw fract, simp }
+
 @[simp] lemma fract_sub_int (a : α) (m : ℤ) : fract (a - m) = fract a :=
 by { rw fract, simp }
 
 @[simp] lemma fract_int_add (m : ℤ) (a : α) : fract (↑m + a) = fract a :=
 by rw [add_comm, fract_add_int]
+
+@[simp] lemma fract_sub_nat (a : α) (n : ℕ) : fract (a - n) = fract a :=
+by { rw fract, simp }
+
+@[simp] lemma fract_int_nat (n : ℕ) (a : α) : fract (↑n + a) = fract a :=
+by rw [add_comm, fract_add_nat]
 
 @[simp] lemma self_sub_fract (a : α) : a - fract a = ⌊a⌋ := sub_sub_cancel _ _
 
@@ -581,6 +591,26 @@ fract_eq_self.2 ⟨fract_nonneg _, fract_lt_one _⟩
 lemma fract_add (a b : α) : ∃ z : ℤ, fract (a + b) - fract a - fract b = z :=
 ⟨⌊a⌋ + ⌊b⌋ - ⌊a + b⌋, by { unfold fract, simp [sub_eq_add_neg], abel }⟩
 
+lemma fract_neg {x : α} (hx : fract x ≠ 0) :
+  fract (-x) = 1 - fract x :=
+begin
+  rw fract_eq_iff,
+  split,
+  { rw [le_sub_iff_add_le, zero_add],
+    exact (fract_lt_one x).le, },
+  refine ⟨sub_lt_self _ (lt_of_le_of_ne' (fract_nonneg x) hx), -⌊x⌋ - 1, _⟩,
+  simp only [sub_sub_eq_add_sub, cast_sub, cast_neg, cast_one, sub_left_inj],
+  conv in (-x) {rw ← floor_add_fract x},
+  simp [-floor_add_fract],
+end
+
+@[simp]
+lemma fract_neg_eq_zero {x : α} : fract (-x) = 0 ↔ fract x = 0 :=
+begin
+  simp only [fract_eq_iff, le_refl, zero_lt_one, tsub_zero, true_and],
+  split; rintros ⟨z, hz⟩; use [-z]; simp [← hz],
+end
+
 lemma fract_mul_nat (a : α) (b : ℕ) : ∃ z : ℤ, fract a * b - fract (a * b) = z :=
 begin
   induction b with c hc,
@@ -596,7 +626,7 @@ end
 lemma preimage_fract (s : set α) : fract ⁻¹' s = ⋃ m : ℤ, (λ x, x - m) ⁻¹' (s ∩ Ico (0 : α) 1) :=
 begin
   ext x,
-  simp only [mem_preimage, mem_Union, mem_inter_eq],
+  simp only [mem_preimage, mem_Union, mem_inter_iff],
   refine ⟨λ h, ⟨⌊x⌋, h, fract_nonneg x, fract_lt_one x⟩, _⟩,
   rintro ⟨m, hms, hm0, hm1⟩,
   obtain rfl : ⌊x⌋ = m, from floor_eq_iff.2 ⟨sub_nonneg.1 hm0, sub_lt_iff_lt_add'.1 hm1⟩,
@@ -606,7 +636,7 @@ end
 lemma image_fract (s : set α) : fract '' s = ⋃ m : ℤ, (λ x, x - m) '' s ∩ Ico 0 1 :=
 begin
   ext x,
-  simp only [mem_image, mem_inter_eq, mem_Union], split,
+  simp only [mem_image, mem_inter_iff, mem_Union], split,
   { rintro ⟨y, hy, rfl⟩,
     exact ⟨⌊y⌋, ⟨y, hy, rfl⟩, fract_nonneg y, fract_lt_one y⟩ },
   { rintro ⟨m, ⟨y, hys, rfl⟩, h0, h1⟩,
@@ -668,11 +698,17 @@ lemma ceil_mono : monotone (ceil : α → ℤ) := gc_ceil_coe.monotone_l
 @[simp] lemma ceil_add_int (a : α) (z : ℤ) : ⌈a + z⌉ = ⌈a⌉ + z :=
 by rw [←neg_inj, neg_add', ←floor_neg, ←floor_neg, neg_add', floor_sub_int]
 
+@[simp] lemma ceil_add_nat (a : α) (n : ℕ) : ⌈a + n⌉ = ⌈a⌉ + n :=
+by rw [← int.cast_coe_nat, ceil_add_int]
+
 @[simp] lemma ceil_add_one (a : α) : ⌈a + 1⌉ = ⌈a⌉ + 1 :=
 by { convert ceil_add_int a (1 : ℤ), exact cast_one.symm }
 
 @[simp] lemma ceil_sub_int (a : α) (z : ℤ) : ⌈a - z⌉ = ⌈a⌉ - z :=
 eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (ceil_add_int _ _)
+
+@[simp] lemma ceil_sub_nat (a : α) (n : ℕ) : ⌈a - n⌉ = ⌈a⌉ - n :=
+by convert ceil_sub_int a n using 1; simp
 
 @[simp] lemma ceil_sub_one (a : α) : ⌈a - 1⌉ = ⌈a⌉ - 1 :=
 by rw [eq_sub_iff_add_eq, ← ceil_add_one, sub_add_cancel]
@@ -772,6 +808,38 @@ def round (x : α) : ℤ := if 2 * fract x < 1 then ⌊x⌋ else ⌈x⌉
 @[simp] lemma round_nat_cast (n : ℕ) : round (n : α) = n := by simp [round]
 
 @[simp] lemma round_int_cast (n : ℤ) : round (n : α) = n := by simp [round]
+
+@[simp]
+lemma round_add_int (x : α) (y : ℤ) : round (x + y) = round x + y :=
+by rw [round, round, int.fract_add_int, int.floor_add_int, int.ceil_add_int, ← apply_ite2, if_t_t]
+
+@[simp]
+lemma round_add_one (a : α) : round (a + 1) = round a + 1 :=
+by { convert round_add_int a 1, exact int.cast_one.symm }
+
+@[simp]
+lemma round_sub_int (x : α) (y : ℤ) : round (x - y) = round x - y :=
+by { rw [sub_eq_add_neg], norm_cast, rw [round_add_int, sub_eq_add_neg] }
+
+@[simp]
+lemma round_sub_one (a : α) : round (a - 1) = round a - 1 :=
+by { convert round_sub_int a 1, exact int.cast_one.symm }
+
+@[simp]
+lemma round_add_nat (x : α) (y : ℕ) : round (x + y) = round x + y :=
+by rw [round, round, fract_add_nat, int.floor_add_nat, int.ceil_add_nat, ← apply_ite2, if_t_t]
+
+@[simp]
+lemma round_sub_nat (x : α) (y : ℕ) : round (x - y) = round x - y :=
+by { rw [sub_eq_add_neg, ← int.cast_coe_nat], norm_cast, rw [round_add_int, sub_eq_add_neg] }
+
+@[simp]
+lemma round_int_add (x : α) (y : ℤ) : round ((y : α) + x) = y + round x :=
+by { rw [add_comm, round_add_int, add_comm] }
+
+@[simp]
+lemma round_nat_add (x : α) (y : ℕ) : round ((y : α) + x) = y + round x :=
+by { rw [add_comm, round_add_nat, add_comm] }
 
 lemma abs_sub_round_eq_min (x : α) : |x - round x| = min (fract x) (1 - fract x) :=
 begin
@@ -885,6 +953,7 @@ by simp_rw [round_eq, ←map_floor _ hf, map_add, one_div, map_inv₀, map_bit0,
 
 end int
 
+section floor_ring_to_semiring
 variables {α} [linear_ordered_ring α] [floor_ring α]
 
 /-! #### A floor ring as a floor semiring -/
@@ -919,6 +988,8 @@ by { rw [←int.ceil_to_nat, int.to_nat_of_nonneg (int.ceil_nonneg ha)] }
 lemma nat.cast_ceil_eq_cast_int_ceil (ha : 0 ≤ a) : (⌈a⌉₊ : α) = ⌈a⌉ :=
 by rw [←nat.cast_ceil_eq_int_ceil ha, int.cast_coe_nat]
 
+end floor_ring_to_semiring
+
 /-- There exists at most one `floor_ring` structure on a given linear ordered ring. -/
 lemma subsingleton_floor_ring {α} [linear_ordered_ring α] :
   subsingleton (floor_ring α) :=
@@ -928,3 +999,46 @@ begin
   have : H₁.ceil = H₂.ceil := funext (λ a, H₁.gc_ceil_coe.l_unique H₂.gc_ceil_coe $ λ _, rfl),
   cases H₁, cases H₂, congr; assumption
 end
+
+namespace tactic
+open positivity
+
+private lemma int_floor_nonneg [linear_ordered_ring α] [floor_ring α] {a : α} (ha : 0 ≤ a) :
+  0 ≤ ⌊a⌋ := int.floor_nonneg.2 ha
+private lemma int_floor_nonneg_of_pos [linear_ordered_ring α] [floor_ring α] {a : α} (ha : 0 < a) :
+  0 ≤ ⌊a⌋ := int_floor_nonneg ha.le
+
+/-- Extension for the `positivity` tactic: `int.floor` is nonnegative if its input is. -/
+@[positivity]
+meta def positivity_floor : expr → tactic strictness
+| `(⌊%%a⌋) := do
+      strictness_a ← core a,
+      match strictness_a with
+      | positive p := nonnegative <$> mk_app ``int_floor_nonneg_of_pos [p]
+      | nonnegative p := nonnegative <$> mk_app ``int_floor_nonneg [p]
+      | _ := failed
+      end
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `⌊a⌋`"
+
+private lemma nat_ceil_pos [linear_ordered_semiring α] [floor_semiring α] {a : α} :
+  0 < a → 0 < ⌈a⌉₊ := nat.ceil_pos.2
+private lemma int_ceil_pos [linear_ordered_ring α] [floor_ring α] {a : α} : 0 < a → 0 < ⌈a⌉ :=
+int.ceil_pos.2
+
+/-- Extension for the `positivity` tactic: `ceil` and `int.ceil` are positive/nonnegative if
+their input is. -/
+@[positivity]
+meta def positivity_ceil : expr → tactic strictness
+| `(⌈%%a⌉₊) := do
+      positive p ← core a, -- We already know `0 ≤ n` for all `n : ℕ`
+      positive <$> mk_app ``nat_ceil_pos [p]
+| `(⌈%%a⌉) := do
+      strictness_a ← core a,
+      match strictness_a with
+      | positive p := positive <$> mk_app ``int_ceil_pos [p]
+      | nonnegative p := nonnegative <$> mk_app ``int.ceil_nonneg [p]
+      | _ := failed
+      end
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `⌈a⌉₊` nor `⌈a⌉`"
+
+end tactic

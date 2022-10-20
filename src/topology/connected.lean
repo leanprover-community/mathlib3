@@ -441,6 +441,22 @@ lemma is_preconnected.subset_right_of_subset_union (hu : is_open u) (hv : is_ope
   s ⊆ v :=
 hs.subset_left_of_subset_union hv hu huv.symm (union_comm u v ▸ hsuv) hsv
 
+/-- If a preconnected set `s` intersects an open set `u`, and limit points of `u` inside `s` are
+contained in `u`, then the whole set `s` is contained in `u`. -/
+lemma is_preconnected.subset_of_closure_inter_subset (hs : is_preconnected s)
+  (hu : is_open u) (h'u : (s ∩ u).nonempty) (h : closure u ∩ s ⊆ u) : s ⊆ u :=
+begin
+  have A : s ⊆ u ∪ (closure u)ᶜ,
+  { assume x hx,
+    by_cases xu : x ∈ u,
+    { exact or.inl xu },
+    { right,
+      assume h'x,
+      exact xu (h (mem_inter h'x hx)) } },
+  apply hs.subset_left_of_subset_union hu is_closed_closure.is_open_compl _ A h'u,
+  exact disjoint_compl_right.mono_right (compl_subset_compl.2 subset_closure),
+end
+
 theorem is_preconnected.prod [topological_space β] {s : set α} {t : set β}
   (hs : is_preconnected s) (ht : is_preconnected t) :
   is_preconnected (s ×ˢ t) :=
@@ -683,10 +699,9 @@ set.disjoint_left.2 (λ a h1 h2, h
 
 theorem is_closed_connected_component {x : α} :
   is_closed (connected_component x) :=
-closure_eq_iff_is_closed.1 $ subset.antisymm
-  (is_connected_connected_component.closure.subset_connected_component
-    (subset_closure mem_connected_component))
-  subset_closure
+closure_subset_iff_is_closed.1 $
+  is_connected_connected_component.closure.subset_connected_component $
+    subset_closure mem_connected_component
 
 lemma continuous.image_connected_component_subset [topological_space β] {f : α → β}
   (h : continuous f) (a : α) : f '' connected_component a ⊆ connected_component (f a) :=
@@ -810,9 +825,9 @@ theorem is_clopen_iff [preconnected_space α] {s : set α} : is_clopen s ↔ s =
   h3 h2,
 by rintro (rfl | rfl); [exact is_clopen_empty, exact is_clopen_univ]⟩
 
-lemma eq_univ_of_nonempty_clopen [preconnected_space α] {s : set α}
-  (h : s.nonempty) (h' : is_clopen s) : s = univ :=
-by { rw is_clopen_iff at h', exact h'.resolve_left h.ne_empty }
+lemma is_clopen.eq_univ [preconnected_space α] {s : set α} (h' : is_clopen s) (h : s.nonempty) :
+  s = univ :=
+(is_clopen_iff.mp h').resolve_left h.ne_empty
 
 lemma frontier_eq_empty_iff [preconnected_space α] {s : set α} :
   frontier s = ∅ ↔ s = ∅ ∨ s = univ :=

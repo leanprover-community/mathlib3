@@ -31,7 +31,7 @@ open_locale big_operators
   densely_ordered, archimedean, inhabited]]
 def nnrat := {q : ℚ // 0 ≤ q}
 
-localized "notation ` ℚ≥0 ` := nnrat" in nnrat
+localized "notation (name := nnrat) `ℚ≥0` := nnrat" in nnrat
 
 namespace nnrat
 variables {α : Type*} {p q : ℚ≥0}
@@ -41,10 +41,8 @@ instance : has_coe ℚ≥0 ℚ := ⟨subtype.val⟩
 /- Simp lemma to put back `n.val` into the normal form given by the coercion. -/
 @[simp] lemma val_eq_coe (q : ℚ≥0) : q.val = q := rfl
 
-instance : can_lift ℚ ℚ≥0 :=
-{ coe := coe,
-  cond := λ q, 0 ≤ q,
-  prf := λ q hq, ⟨⟨q, hq⟩, rfl⟩ }
+instance can_lift : can_lift ℚ ℚ≥0 coe (λ q, 0 ≤ q) :=
+{ prf := λ q hq, ⟨⟨q, hq⟩, rfl⟩ }
 
 @[ext] lemma ext : (p : ℚ) = (q : ℚ) → p = q := subtype.ext
 

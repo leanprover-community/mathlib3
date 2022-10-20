@@ -396,8 +396,7 @@ begin
     { simp only [finset.mem_singleton, set.Inter_Inter_eq_left], }, },
 end
 
-/-- If `S` is union-closed and `π` is a family of π-systems, then `pi_Union_Inter π S` is a
-π-system. -/
+/-- If `π` is a family of π-systems, then `pi_Union_Inter π S` is a π-system. -/
 lemma is_pi_system_pi_Union_Inter {α ι} (π : ι → set (set α))
   (hpi : ∀ x, is_pi_system (π x)) (S : set ι) :
   is_pi_system (pi_Union_Inter π S) :=
@@ -514,9 +513,7 @@ begin
   ext1 i,
   by_cases hiS : i ∈ S,
   { simp only [hiS, csupr_pos],
-    refine le_antisymm (supr₂_le (λ t ht, le_rfl)) _,
-    rw le_supr_iff,
-    intros m' hm',
+    refine le_antisymm (supr₂_le (λ t ht, le_rfl)) (le_supr_iff.mpr (λ m' hm', _)),
     specialize hm' {i},
     simpa only [hiS, finset.coe_singleton, set.singleton_subset_iff, finset.mem_singleton,
       eq_self_iff_true, and_self, csupr_pos] using hm', },

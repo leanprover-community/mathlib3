@@ -153,6 +153,20 @@ begin
   rwa [←hlm, repr_total, ←finsupp.mem_supported R l]
 end
 
+/-- If the submodule `P` has a basis, `x ∈ P` iff it is a linear combination of basis vectors. -/
+lemma mem_submodule_iff {P : submodule R M} (b : basis ι R P) {x : M} :
+  x ∈ P ↔ ∃ (c : ι →₀ R), x = finsupp.sum c (λ i x, x • b i) :=
+begin
+  split,
+  { intro hx, use b.repr ⟨x, hx⟩,
+    calc P.subtype ⟨x, hx⟩
+        = P.subtype (b.repr.symm (b.repr ⟨x, hx⟩)) : by rw linear_equiv.symm_apply_apply
+    ... = (b.repr ⟨x, hx⟩).sum (λ i x, x • P.subtype (b i)) : _,
+    rw [basis.repr_symm_apply, P.subtype.map_finsupp_total, finsupp.total_apply] },
+  { rintros ⟨c, rfl⟩,
+    exact P.sum_mem (λ i _, P.smul_mem _ (b i).2) },
+end
+
 end repr
 
 section coord
@@ -769,6 +783,16 @@ b.sum_equiv_fun u
 lemma basis.equiv_fun_self (i j : ι) : b.equiv_fun (b i) j = if i = j then 1 else 0 :=
 by { rw [b.equiv_fun_apply, b.repr_self_apply] }
 
+lemma basis.repr_sum_self (c : ι → R) : ⇑(b.repr (∑ i, c i • b i)) = c :=
+begin
+  ext j,
+  simp only [map_sum, linear_equiv.map_smul, repr_self, finsupp.smul_single, smul_eq_mul,
+             mul_one, finset.sum_apply'],
+  rw [finset.sum_eq_single j, finsupp.single_eq_same],
+  { rintros i - hi, exact finsupp.single_eq_of_ne hi },
+  { intros, have := finset.mem_univ j, contradiction }
+end
+
 /-- Define a basis by mapping each vector `x : M` to its coordinates `e x : ι → R`,
 as long as `ι` is finite. -/
 def basis.of_equiv_fun (e : M ≃ₗ[R] (ι → R)) : basis ι R M :=
@@ -797,6 +821,13 @@ variables [smul_comm_class R S M']
 @[simp] theorem basis.constr_apply_fintype (f : ι → M') (x : M) :
   (b.constr S f : M → M') x = ∑ i, (b.equiv_fun x i) • f i :=
 by simp [b.constr_apply, b.equiv_fun_apply, finsupp.sum_fintype]
+
+/-- If the submodule `P` has a finite basis,
+`x ∈ P` iff it is a linear combination of basis vectors. -/
+lemma basis.mem_submodule_iff' [fintype ι] {P : submodule R M} (b : basis ι R P) {x : M} :
+  x ∈ P ↔ ∃ (c : ι → R), x = ∑ i, c i • b i :=
+b.mem_submodule_iff.trans $ finsupp.equiv_fun_on_fintype.exists_congr_left.trans $ exists_congr $
+λ c, by simp [finsupp.sum_fintype]
 
 end fintype
 

@@ -209,7 +209,7 @@ begin
 end
 
 lemma quasi_separated.open_cover_iff {X Y : Scheme.{u}} (𝒰 : Scheme.open_cover.{u} Y)
-  [∀ i, is_affine (𝒰.obj i)] (f : X ⟶ Y) :
+  (f : X ⟶ Y) :
   quasi_separated f ↔ ∀ i, quasi_separated (pullback.snd : pullback f (𝒰.map i) ⟶ _) :=
 quasi_separated.is_local_at_target.open_cover_iff f 𝒰
 

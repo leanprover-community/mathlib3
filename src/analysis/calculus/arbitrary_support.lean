@@ -7,11 +7,11 @@ import analysis.calculus.specific_functions
 import analysis.calculus.series
 
 /-!
-# Arbitrary support
+# Smooth functions with arbitrary supports
 
-We show that any open set is the support of a smooth function taking values in `[0, 1]`
+Let `E` be a finite-dimensional real normed vector space. We show that any open set `s` in `E` is
+the support of a smooth function taking values in `[0, 1]`, in `is_open.exists_smooth_support_eq`.
 -/
-
 
 open set metric topological_space function asymptotics
 open_locale topological_space nnreal big_operators
@@ -53,6 +53,13 @@ end
 theorem is_open.exists_smooth_support_eq {s : set E} (hs : is_open s) :
   ∃ (f : E → ℝ), f.support = s ∧ cont_diff ℝ ⊤ f ∧ set.range f ⊆ set.Icc 0 1 :=
 begin
+  /- For any given point `x` in `s`, one can construct a smooth function with support in `s` and
+  nonzero at `x`. By second-countability, it follows that we may cover `s` with the supports of
+  countably many such functions, say `g i`.
+  Then `∑ i, r i • g i` will be the desired function if `r i` is a sequence of positive numbers
+  tending quickly enough to zero. Indeed, this ensures that, for any `k ≤ i`, the `k`-th derivative
+  of `r i • g i` is bounded by a prescribed (summable) sequence `u i`. From this, the summability
+  of the series and of its successive derivatives follows. -/
   rcases eq_empty_or_nonempty s with rfl|h's,
   { exact ⟨(λ x, 0), function.support_zero, cont_diff_const,
       by simp only [range_const, singleton_subset_iff, left_mem_Icc, zero_le_one]⟩ },

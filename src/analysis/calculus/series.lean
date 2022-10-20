@@ -8,18 +8,91 @@ import analysis.calculus.specific_functions
 /-!
 # Smoothness of series
 
+We show that series of functions are continuous, or differentiable, or smooth, when each individual
+function in the series is and additionally suitable uniform summable bounds are satisfied.
+
+More specifically,
+* `continuous_tsum` ensures that a series of continuous functions is continuous.
+* `differentiable_tsum` ensures that a series of differentiable functions is differentiable.
+* `cont_diff_tsum` ensures that a series of smooth functions is smooth.
+
+We also give versions of these statements which are localized to a set.
 -/
 
-open set metric topological_space function asymptotics
+open set metric topological_space function asymptotics filter
 open_locale topological_space nnreal big_operators
 
 variables {α β E F : Type*}
-  [pseudo_metric_space β]
   [normed_add_comm_group E] [normed_space ℝ E]
-  [normed_add_comm_group F] [normed_space ℝ F] [complete_space F]
+  [normed_add_comm_group F] [complete_space F]
 
-lemma summable_of_summable_of_lipschitz_on_with
-  {F : Type*} [normed_add_comm_group F] [complete_space F]
+/-! ### Continuity -/
+
+/-- An infinite sum of functions with summable sup norm is the uniform limit of its partial sums.
+Version relative to a set, with general index set. -/
+lemma tendsto_uniformly_on_tsum {f : α → β → F} {u : α → ℝ} (hu : summable u) {s : set β}
+  (hfu : ∀ n x, x ∈ s → ∥f n x∥ ≤ u n) :
+  tendsto_uniformly_on (λ (t : finset α), (λ x, ∑ n in t, f n x)) (λ x, ∑' n, f n x) at_top s :=
+begin
+  refine tendsto_uniformly_on_iff.2 (λ ε εpos, _),
+  filter_upwards [(tendsto_order.1 (tendsto_tsum_compl_at_top_zero u)).2 _ εpos] with t ht x hx,
+  have A : summable (λ n, ∥f n x∥),
+    from summable_of_nonneg_of_le (λ n, norm_nonneg _) (λ n, hfu n x hx) hu,
+  rw [dist_eq_norm, ← sum_add_tsum_subtype_compl (summable_of_summable_norm A) t, add_sub_cancel'],
+  apply lt_of_le_of_lt _ ht,
+  apply (norm_tsum_le_tsum_norm (A.subtype _)).trans,
+  exact tsum_le_tsum (λ n, hfu _ _ hx) (A.subtype _) (hu.subtype _)
+end
+
+/-- An infinite sum of functions with summable sup norm is the uniform limit of its partial sums.
+Version relative to a set, with index set `ℕ`. -/
+lemma tendsto_uniformly_on_tsum_nat {f : ℕ → β → F} {u : ℕ → ℝ} (hu : summable u) {s : set β}
+  (hfu : ∀ n x, x ∈ s → ∥f n x∥ ≤ u n) :
+  tendsto_uniformly_on (λ N, (λ x, ∑ n in finset.range N, f n x)) (λ x, ∑' n, f n x) at_top s :=
+λ v hv, tendsto_finset_range.eventually (tendsto_uniformly_on_tsum hu hfu v hv)
+
+/-- An infinite sum of functions with summable sup norm is the uniform limit of its partial sums.
+Version with general index set. -/
+lemma tendsto_uniformly_tsum {f : α → β → F} {u : α → ℝ} (hu : summable u)
+  (hfu : ∀ n x, ∥f n x∥ ≤ u n) :
+  tendsto_uniformly (λ (t : finset α), (λ x, ∑ n in t, f n x)) (λ x, ∑' n, f n x) at_top :=
+by { rw ← tendsto_uniformly_on_univ, exact tendsto_uniformly_on_tsum hu (λ n x hx, hfu n x) }
+
+/-- An infinite sum of functions with summable sup norm is the uniform limit of its partial sums.
+Version with index set `ℕ`. -/
+lemma tendsto_uniformly_tsum_nat {f : ℕ → β → F} {u : ℕ → ℝ} (hu : summable u)
+  (hfu : ∀ n x, ∥f n x∥ ≤ u n) :
+  tendsto_uniformly (λ N, (λ x, ∑ n in finset.range N, f n x)) (λ x, ∑' n, f n x) at_top :=
+λ v hv, tendsto_finset_range.eventually (tendsto_uniformly_tsum hu hfu v hv)
+
+/-- An infinite sum of functions with summable sup norm is continuous on a set if each individual
+function is. -/
+lemma continuous_on_tsum [topological_space β]
+  {f : α → β → F} {s : set β} (hf : ∀ i, continuous_on (f i) s) {u : α → ℝ} (hu : summable u)
+  (hfu : ∀ n x, x ∈ s → ∥f n x∥ ≤ u n) :
+  continuous_on (λ x, ∑' n, f n x) s :=
+begin
+  classical,
+  refine (tendsto_uniformly_on_tsum hu hfu).continuous_on (eventually_of_forall _),
+  assume t,
+  exact continuous_on_finset_sum _ (λ i hi, hf i),
+end
+
+/-- An infinite sum of functions with summable sup norm is continuous if each individual
+function is. -/
+lemma continuous_tsum [topological_space β]
+  {f : α → β → F} (hf : ∀ i, continuous (f i)) {u : α → ℝ} (hu : summable u)
+  (hfu : ∀ n x, ∥f n x∥ ≤ u n) :
+  continuous (λ x, ∑' n, f n x) :=
+begin
+  simp_rw [continuous_iff_continuous_on_univ] at hf ⊢,
+  exact continuous_on_tsum hf hu (λ n x hx, hfu n x),
+end
+
+
+/-! ### Differentiability -/
+
+lemma summable_of_summable_of_lipschitz_on_with [pseudo_metric_space β]
   {f : α → β → F} {s : set β} {x y : β}
   (hx : x ∈ s) (hy : y ∈ s) (hfx : summable (λ n, f n x)) {C : α → ℝ≥0}
   (hf : ∀ n, lipschitz_on_with (C n) (f n) s) (hC : summable C) :
@@ -36,9 +109,11 @@ begin
   simp only [add_sub_cancel'_right],
 end
 
+variables [normed_space ℝ F]
+
 /-- Consider a series of functions `∑' n, f n x` on a convex set. If the series converges at a
 point, and all functions in the series are differentiable with a summable bound on the derivatives,
-then the series converges everywhere. -/
+then the series converges everywhere on the set. -/
 lemma summable_of_summable_has_fderiv_within_at
   {f : α → E → F} {f' : α → E → (E →L[ℝ] F)} {u : α → ℝ} (hu : summable u)
   {s : set E} (hs : convex ℝ s)
@@ -59,7 +134,7 @@ end
 
 /-- Consider a series of functions `∑' n, f n x` on a convex set. If the series converges at a
 point, and all functions in the series are differentiable with a summable bound on the derivatives,
-then the series is differentiable and its derivative is the sum of the derivatives. -/
+then the series is differentiable on the set and its derivative is the sum of the derivatives. -/
 lemma has_fderiv_within_at_tsum
   {f : α → E → F} {f' : α → E → (E →L[ℝ] F)} {u : α → ℝ} (hu : summable u)
   {s : set E} (hs : convex ℝ s)
@@ -159,71 +234,6 @@ begin
   ... = ε * ∥y - x∥ : by { rw [δ_def], ring }
 end
 
-.
-
-open filter
-
-/-- An infinite sum of functions with summable sup norm is the uniform limit of its partial sums.
-Version relative to a set, with general index set. -/
-lemma tendsto_uniformly_on_tsum {f : α → β → F} {u : α → ℝ} (hu : summable u) {s : set β}
-  (hfu : ∀ n x, x ∈ s → ∥f n x∥ ≤ u n) :
-  tendsto_uniformly_on (λ (t : finset α), (λ x, ∑ n in t, f n x)) (λ x, ∑' n, f n x) at_top s :=
-begin
-  refine tendsto_uniformly_on_iff.2 (λ ε εpos, _),
-  filter_upwards [(tendsto_order.1 (tendsto_tsum_compl_at_top_zero u)).2 _ εpos] with t ht x hx,
-  have A : summable (λ n, ∥f n x∥),
-    from summable_of_nonneg_of_le (λ n, norm_nonneg _) (λ n, hfu n x hx) hu,
-  rw [dist_eq_norm, ← sum_add_tsum_subtype_compl (summable_of_summable_norm A) t, add_sub_cancel'],
-  apply lt_of_le_of_lt _ ht,
-  apply (norm_tsum_le_tsum_norm (A.subtype _)).trans,
-  exact tsum_le_tsum (λ n, hfu _ _ hx) (A.subtype _) (hu.subtype _)
-end
-
-/-- An infinite sum of functions with summable sup norm is the uniform limit of its partial sums.
-Version relative to a set, with index set `ℕ`. -/
-lemma tendsto_uniformly_on_tsum_nat {f : ℕ → β → F} {u : ℕ → ℝ} (hu : summable u) {s : set β}
-  (hfu : ∀ n x, x ∈ s → ∥f n x∥ ≤ u n) :
-  tendsto_uniformly_on (λ N, (λ x, ∑ n in finset.range N, f n x)) (λ x, ∑' n, f n x) at_top s :=
-λ v hv, tendsto_finset_range.eventually (tendsto_uniformly_on_tsum hu hfu v hv)
-
-/-- An infinite sum of functions with summable sup norm is the uniform limit of its partial sums.
-Version with general index set. -/
-lemma tendsto_uniformly_tsum {f : α → β → F} {u : α → ℝ} (hu : summable u)
-  (hfu : ∀ n x, ∥f n x∥ ≤ u n) :
-  tendsto_uniformly (λ (t : finset α), (λ x, ∑ n in t, f n x)) (λ x, ∑' n, f n x) at_top :=
-by { rw ← tendsto_uniformly_on_univ, exact tendsto_uniformly_on_tsum hu (λ n x hx, hfu n x) }
-
-/-- An infinite sum of functions with summable sup norm is the uniform limit of its partial sums.
-Version with index set `ℕ`. -/
-lemma tendsto_uniformly_tsum_nat {f : ℕ → β → F} {u : ℕ → ℝ} (hu : summable u)
-  (hfu : ∀ n x, ∥f n x∥ ≤ u n) :
-  tendsto_uniformly (λ N, (λ x, ∑ n in finset.range N, f n x)) (λ x, ∑' n, f n x) at_top :=
-λ v hv, tendsto_finset_range.eventually (tendsto_uniformly_tsum hu hfu v hv)
-
-/-- An infinite sum of functions with summable sup norm is continuous on a set if each individual
-function is. -/
-lemma continuous_on_tsum
-  {f : α → β → F} {s : set β} (hf : ∀ i, continuous_on (f i) s) {u : α → ℝ} (hu : summable u)
-  (hfu : ∀ n x, x ∈ s → ∥f n x∥ ≤ u n) :
-  continuous_on (λ x, ∑' n, f n x) s :=
-begin
-  classical,
-  refine (tendsto_uniformly_on_tsum hu hfu).continuous_on (eventually_of_forall _),
-  assume t,
-  exact continuous_on_finset_sum _ (λ i hi, hf i),
-end
-
-/-- An infinite sum of functions with summable sup norm is continuous if each individual
-function is. -/
-lemma continuous_tsum
-  {f : α → β → F} (hf : ∀ i, continuous (f i)) {u : α → ℝ} (hu : summable u)
-  (hfu : ∀ n x, ∥f n x∥ ≤ u n) :
-  continuous (λ x, ∑' n, f n x) :=
-begin
-  simp_rw [continuous_iff_continuous_on_univ] at hf ⊢,
-  exact continuous_on_tsum hf hu (λ n x hx, hfu n x),
-end
-
 /-- Consider a series of functions `∑' n, f n x`. If the series converges at a
 point, and all functions in the series are differentiable with a summable bound on the derivatives,
 then the series converges everywhere. -/
@@ -284,6 +294,11 @@ lemma fderiv_tsum {f : α → E → F} {u : α → ℝ} (hu : summable u)
   fderiv ℝ (λ y, ∑' n, f n y) = (λ x, ∑' n, fderiv ℝ (f n) x) :=
 by { ext1 x, exact fderiv_tsum_apply hu hf hf' hf0 x}
 
+
+/-! ### Higher smoothness -/
+
+/-- Consider a series of smooth functions, with summable uniform bounds on the successive
+derivatives. Then the iterated derivative of the sum is the sum of the iterated derivative. -/
 lemma iterated_fderiv_tsum
   {f : α → E → F} {N : ℕ∞} (hf : ∀ i, cont_diff ℝ N (f i)) {u : ℕ → α → ℝ}
   (hu : ∀ (k : ℕ), (k : ℕ∞) ≤ N → summable (u k))
@@ -309,6 +324,8 @@ begin
         using h'f k.succ n x hk } }
 end
 
+/-- Consider a series of smooth functions, with summable uniform bounds on the successive
+derivatives. Then the iterated derivative of the sum is the sum of the iterated derivative. -/
 lemma iterated_fderiv_tsum_apply
   {f : α → E → F} {N : ℕ∞} (hf : ∀ i, cont_diff ℝ N (f i)) {u : ℕ → α → ℝ}
   (hu : ∀ (k : ℕ), (k : ℕ∞) ≤ N → summable (u k))

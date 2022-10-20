@@ -14,9 +14,10 @@ Some lemmas on the combination of `finsupp`, `fintype` and `infinite`.
 
 -/
 
-noncomputable instance finsupp.fintype {ι π : Sort*} [fintype ι] [fintype π] [has_zero π] :
+noncomputable instance finsupp.fintype {ι π : Sort*} [decidable_eq ι] [has_zero π]
+  [fintype ι] [fintype π]  :
   fintype (ι →₀ π) :=
-by letI := classical.dec_eq ι; exact fintype.of_injective _ fun_like.coe_injective
+fintype.of_equiv _ finsupp.equiv_fun_on_fintype.symm
 
 instance finsupp.infinite_of_right {ι π : Sort*} [infinite π] [has_zero π] [nonempty ι] :
   infinite (ι →₀ π) :=

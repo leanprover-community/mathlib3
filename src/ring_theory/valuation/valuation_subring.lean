@@ -770,10 +770,10 @@ def decomposition_subgroup.comp (A : valuation_subring L):
   (A.decomposition_subgroup K) →* ring_aut(local_ring.residue_field A):=
 (decomposition_subgroup.to_aut_k A).comp (decomposition_subgroup.to_ring_aut A)
 
-def inertia_subgroup (A :valuation_subring L) : subgroup (A.decomposition_subgroup K):=
+def inertia_subgroup (A : valuation_subring L) : subgroup (A.decomposition_subgroup K) :=
 (decomposition_subgroup.comp A).ker
 
-def inertia_subgp_galois (A :valuation_subring L)  : subgroup (L ≃ₐ[K] L) :=
+lemma inertia_subgp_galois (A : valuation_subring L)  : subgroup (L ≃ₐ[K] L) :=
 by exact A.decomposition_subgroup K
 
 end

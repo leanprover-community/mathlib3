@@ -57,14 +57,14 @@ I don't see why irreducibility is even needed.
 
 -/
 
--- this should be elsewhere
+-- this section can be deleted when #17087 hits
 section comm_ring_comm_ring
 
 variables {R A : Type*} [comm_ring R] [comm_ring A] [algebra R A]
 
 -- [is_fraction_ring] bumps the imports but I have an application, probably
 -- this lemma should be elsewhere
-@[norm_cast, simp] lemma coe_inj' [is_fraction_ring R A] {a b : R} : (↑a : A) = ↑b ↔ a = b :=
+@[norm_cast, simp] lemma is_fraction_ring.coe_inj [is_fraction_ring R A] {a b : R} : (↑a : A) = ↑b ↔ a = b :=
 ⟨λ h, is_fraction_ring.injective R A h, by rintro rfl; refl⟩
 
 end comm_ring_comm_ring

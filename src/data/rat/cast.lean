@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import data.rat.order
 import data.int.char_zero
 import algebra.field.opposite
+import algebra.big_operators.basic
 
 /-!
 # Casts for Rational Numbers
@@ -350,3 +351,22 @@ by rw [cast_def, div_eq_mul_inv, unop_mul, unop_inv, unop_nat_cast, unop_int_cas
     (commute.cast_int_right _ r.num).eq, cast_def, div_eq_mul_inv]
 
 end mul_opposite
+
+section smul
+
+namespace rat
+
+variables {K : Type*} [division_ring K]
+
+@[priority 100]
+instance distrib_smul  : distrib_smul ℚ K :=
+{ smul := (•),
+  smul_zero := λ a, by rw [smul_def, mul_zero],
+  smul_add := λ a x y, by simp only [smul_def, mul_add, cast_add] }
+
+instance is_scalar_tower_right : is_scalar_tower ℚ K K :=
+⟨λ a x y, by simp only [smul_def, smul_eq_mul, mul_assoc]⟩
+
+end rat
+
+end smul

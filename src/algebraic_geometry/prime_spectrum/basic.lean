@@ -9,7 +9,7 @@ import ring_theory.nilpotent
 import ring_theory.localization.away
 import ring_theory.ideal.prod
 import ring_theory.ideal.over
-import topology.sets.opens
+import topology.sets.closeds
 import topology.sober
 
 /-!
@@ -332,7 +332,7 @@ end
 
 lemma mem_compl_zero_locus_iff_not_mem {f : R} {I : prime_spectrum R} :
   I ∈ (zero_locus {f} : set (prime_spectrum R))ᶜ ↔ f ∉ I.as_ideal :=
-by rw [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]; refl
+by rw [set.mem_compl_iff, mem_zero_locus, set.singleton_subset_iff]; refl
 
 /-- The Zariski topology on the prime spectrum of a commutative ring
 is defined via the closed sets of the topology:
@@ -404,6 +404,27 @@ end
 lemma vanishing_ideal_closure (t : set (prime_spectrum R)) :
   vanishing_ideal (closure t) = vanishing_ideal t :=
 zero_locus_vanishing_ideal_eq_closure t ▸ (gc R).u_l_u_eq_u t
+
+lemma vanishing_ideal_anti_mono_iff {s t : set (prime_spectrum R)}
+  (ht : is_closed t) : s ⊆ t ↔ vanishing_ideal t ≤ vanishing_ideal s :=
+⟨vanishing_ideal_anti_mono, λ h,
+begin
+  rw [← ht.closure_subset_iff, ← ht.closure_eq],
+  convert ← zero_locus_anti_mono_ideal h;
+  apply zero_locus_vanishing_ideal_eq_closure,
+end⟩
+
+lemma vanishing_ideal_strict_anti_mono_iff {s t : set (prime_spectrum R)}
+  (hs : is_closed s) (ht : is_closed t) :
+  s ⊂ t ↔ vanishing_ideal t < vanishing_ideal s :=
+by rw [set.ssubset_def, vanishing_ideal_anti_mono_iff hs,
+       vanishing_ideal_anti_mono_iff ht, lt_iff_le_not_le]
+
+/-- The antitone order embedding of closed subsets of `Spec R` into ideals of `R`. -/
+def closeds_embedding (R : Type*) [comm_ring R] :
+  (topological_space.closeds $ prime_spectrum R)ᵒᵈ ↪o ideal R :=
+order_embedding.of_map_le_iff (λ s, vanishing_ideal s.of_dual)
+  (λ s t, (vanishing_ideal_anti_mono_iff s.2).symm)
 
 lemma t1_space_iff_is_field [is_domain R] :
   t1_space (prime_spectrum R) ↔ is_field R :=
@@ -659,7 +680,7 @@ lemma is_open_basic_open {a : R} : is_open ((basic_open a) : set (prime_spectrum
 
 @[simp] lemma basic_open_eq_zero_locus_compl (r : R) :
   (basic_open r : set (prime_spectrum R)) = (zero_locus {r})ᶜ :=
-set.ext $ λ x, by simpa only [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]
+set.ext $ λ x, by simpa only [set.mem_compl_iff, mem_zero_locus, set.singleton_subset_iff]
 
 @[simp] lemma basic_open_one : basic_open (1 : R) = ⊤ :=
 topological_space.opens.ext $ by simp
@@ -692,7 +713,7 @@ begin
   { rintros _ ⟨r, rfl⟩,
     exact is_open_basic_open },
   { rintros p U hp ⟨s, hs⟩,
-    rw [← compl_compl U, set.mem_compl_eq, ← hs, mem_zero_locus, set.not_subset] at hp,
+    rw [← compl_compl U, set.mem_compl_iff, ← hs, mem_zero_locus, set.not_subset] at hp,
     obtain ⟨f, hfs, hfp⟩ := hp,
     refine ⟨basic_open f, ⟨f, rfl⟩, hfp, _⟩,
     rw [← set.compl_subset_compl, ← hs, basic_open_eq_zero_locus_compl, compl_compl],
@@ -747,7 +768,7 @@ begin
   rw localization_comap_range S (submonoid.powers r),
   ext,
   simp only [mem_zero_locus, basic_open_eq_zero_locus_compl, set_like.mem_coe, set.mem_set_of_eq,
-    set.singleton_subset_iff, set.mem_compl_eq],
+    set.singleton_subset_iff, set.mem_compl_iff],
   split,
   { intros h₁ h₂,
     exact h₁ ⟨submonoid.mem_powers r, h₂⟩ },

@@ -159,8 +159,12 @@ lemma map_div_right_eq_self (μ : measure G) [is_mul_right_invariant μ] (g : G)
   map (/ g) μ = μ :=
 by simp_rw [div_eq_mul_inv, map_mul_right_eq_self μ g⁻¹]
 
-
 variables [has_measurable_mul G]
+
+@[to_additive]
+lemma measure_preserving_div_right (μ : measure G) [is_mul_right_invariant μ]
+  (g : G) : measure_preserving (/ g) μ μ :=
+by simp_rw [div_eq_mul_inv, measure_preserving_mul_right μ g⁻¹]
 
 /-- We shorten this from `measure_preimage_mul_left`, since left invariant is the preferred option
   for measures in this formalization. -/
@@ -225,6 +229,13 @@ is_inv_invariant.inv_eq_self
 lemma map_inv_eq_self (μ : measure G) [is_inv_invariant μ] : map has_inv.inv μ = μ :=
 is_inv_invariant.inv_eq_self
 
+variables [has_measurable_inv G]
+
+@[to_additive]
+lemma measure_preserving_inv (μ : measure G) [is_inv_invariant μ] :
+  measure_preserving has_inv.inv μ μ :=
+⟨measurable_inv, map_inv_eq_self μ⟩
+
 end inv
 
 section has_involutive_inv
@@ -278,21 +289,28 @@ begin
 end
 
 @[to_additive]
-lemma map_div_left_eq_self (μ : measure G) [is_inv_invariant μ] [is_mul_left_invariant μ] (g : G) :
-  map (λ t, g / t) μ = μ :=
+lemma measure_preserving_div_left (μ : measure G) [is_inv_invariant μ] [is_mul_left_invariant μ]
+  (g : G) : measure_preserving (λ t, g / t) μ μ :=
 begin
   simp_rw [div_eq_mul_inv],
-  conv_rhs { rw [← map_mul_left_eq_self μ g, ← map_inv_eq_self μ] },
-  exact (map_map (measurable_const_mul g) measurable_inv).symm
+  exact (measure_preserving_mul_left μ g).comp (measure_preserving_inv μ)
 end
+
+@[to_additive]
+lemma map_div_left_eq_self (μ : measure G) [is_inv_invariant μ] [is_mul_left_invariant μ] (g : G) :
+  map (λ t, g / t) μ = μ :=
+(measure_preserving_div_left μ g).map_eq
+
+@[to_additive]
+lemma measure_preserving_mul_right_inv (μ : measure G)
+  [is_inv_invariant μ] [is_mul_left_invariant μ] (g : G) :
+  measure_preserving (λ t, (g * t)⁻¹) μ μ :=
+(measure_preserving_inv μ).comp $ measure_preserving_mul_left μ g
 
 @[to_additive]
 lemma map_mul_right_inv_eq_self (μ : measure G) [is_inv_invariant μ] [is_mul_left_invariant μ]
   (g : G) : map (λ t, (g * t)⁻¹) μ = μ :=
-begin
-  conv_rhs { rw [← map_inv_eq_self μ, ← map_mul_left_eq_self μ g] },
-  exact (map_map measurable_inv (measurable_const_mul g)).symm
-end
+(measure_preserving_mul_right_inv μ g).map_eq
 
 @[to_additive]
 lemma map_div_left_ae (μ : measure G) [is_mul_left_invariant μ] [is_inv_invariant μ] (x : G) :

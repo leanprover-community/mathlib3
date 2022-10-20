@@ -62,7 +62,7 @@ we state lemmas in this file without spurious `coe_fn` terms. -/
 local attribute [-instance] matrix.special_linear_group.has_coe_to_fun
 local attribute [-instance] matrix.general_linear_group.has_coe_to_fun
 
-open complex (hiding abs_one abs_two abs_mul abs_add)
+open complex (hiding abs_two)
 open matrix (hiding mul_smul) matrix.special_linear_group upper_half_plane
 noncomputable theory
 

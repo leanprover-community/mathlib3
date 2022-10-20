@@ -18,6 +18,15 @@ def mk_label(path: Path) -> str:
 def yaml_md_load(wikicontent: bytes):
     return yaml.safe_load(wikicontent.replace(b"```", b""))
 
+def stripPrefix(tag : str) -> str:
+    if tag.startswith('No: '):
+        return tag[4:]
+    else:
+        if tag.startswith('No'):
+            return tag[2:].lstrip()
+        else:
+            return tag
+
 graph = nx.DiGraph()
 
 for path in Path('src').glob('**/*.lean'):
@@ -51,20 +60,23 @@ allDone = dict()
 parentsDone = dict()
 for node in graph.nodes:
     ancestors = nx.ancestors(graph, node)
-    if all(data[imported] == 'Yes' for imported in ancestors) and data[node] == 'No':
-        allDone[node] = len(nx.descendants(graph, node))
+    if all(data[imported].startswith('Yes') for imported in ancestors) and data[node].startswith('No'):
+        allDone[node] = (len(nx.descendants(graph, node)), stripPrefix(data[node]))
     else:
-        if all(data[imported] == 'Yes' for imported in graph.predecessors(node)) and data[node] == 'No':
-            parentsDone[node] = len(nx.descendants(graph, node))
+        if all(data[imported].startswith('Yes') for imported in graph.predecessors(node)) and data[node].startswith('No'):
+            parentsDone[node] = (len(nx.descendants(graph, node)), stripPrefix(data[node]))
 
 print('# The following files have all dependencies ported already, and should be ready to port:')
 print('# Earlier items in the list are required in more places in mathlib.')
-allDone = dict(sorted(allDone.items(), key=lambda item: -item[1]))
-for k in allDone:
-  print(k)
+allDone = dict(sorted(allDone.items(), key=lambda item: -item[1][0]))
+for k, v in allDone.items():
+    if v[1] == "":
+        print(k)
+    else:
+        print(k + "    -- " + v[1])
 
 print()
 print('# The following files have their immediate dependencies ported already, and may be ready to port:')
-parentsDone = dict(sorted(parentsDone.items(), key=lambda item: -item[1]))
+parentsDone = dict(sorted(parentsDone.items(), key=lambda item: -item[1][0]))
 for k in parentsDone:
   print(k)

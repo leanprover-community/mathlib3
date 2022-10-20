@@ -491,6 +491,23 @@ map_div h x y
 
 end mul_equiv
 
+/-- Given a pair of multiplicative homomorphisms `f`, `g` such that `g.comp f = id` and
+`f.comp g = id`, returns an multiplicative equivalence with `to_fun = f` and `inv_fun = g`. This
+constructor is useful if the underlying type(s) have specialized `ext` lemmas for multiplicative
+homomorphisms. -/
+@[to_additive /-"Given a pair of additive homomorphisms `f`, `g` such that `g.comp f = id` and
+`f.comp g = id`, returns an additive equivalence with `to_fun = f` and `inv_fun = g`.  This
+constructor is useful if the underlying type(s) have specialized `ext` lemmas for additive
+homomorphisms."-/, simps {fully_applied := ff}]
+def mul_hom.to_mul_equiv [has_mul M] [has_mul N] (f : M →ₙ* N) (g : N →ₙ* M)
+  (h₁ : g.comp f = mul_hom.id _) (h₂ : f.comp g = mul_hom.id _) :
+  M ≃* N :=
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := mul_hom.congr_fun h₁,
+  right_inv := mul_hom.congr_fun h₂,
+  map_mul' := f.map_mul }
+
 /-- Given a pair of monoid homomorphisms `f`, `g` such that `g.comp f = id` and `f.comp g = id`,
 returns an multiplicative equivalence with `to_fun = f` and `inv_fun = g`.  This constructor is
 useful if the underlying type(s) have specialized `ext` lemmas for monoid homomorphisms. -/

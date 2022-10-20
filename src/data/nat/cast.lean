@@ -57,8 +57,7 @@ lemma cast_comm [non_assoc_semiring α] (n : ℕ) (x : α) : (n : α) * x = x * 
 lemma commute_cast [non_assoc_semiring α] (x : α) (n : ℕ) : commute x n :=
 (n.cast_commute x).symm
 
-section
-
+section ordered_semiring
 variables [ordered_semiring α]
 
 @[mono] theorem mono_cast : monotone (coe : ℕ → α) :=
@@ -69,18 +68,22 @@ monotone_nat_of_le_succ $ λ n, by rw [nat.cast_succ]; exact le_add_of_nonneg_ri
 
 variable [nontrivial α]
 
+lemma cast_add_one_pos (n : ℕ) : 0 < (n : α) + 1 :=
+zero_lt_one.trans_le $ le_add_of_nonneg_left n.cast_nonneg
+
+@[simp] lemma cast_pos {n : ℕ} : (0 : α) < n ↔ 0 < n := by cases n; simp [cast_add_one_pos]
+
+end ordered_semiring
+
+section strict_ordered_semiring
+variables [strict_ordered_semiring α] [nontrivial α]
+
 @[simp, norm_cast] theorem cast_le {m n : ℕ} :
   (m : α) ≤ n ↔ m ≤ n :=
 strict_mono_cast.le_iff_le
 
 @[simp, norm_cast, mono] theorem cast_lt {m n : ℕ} : (m : α) < n ↔ m < n :=
 strict_mono_cast.lt_iff_lt
-
-@[simp] theorem cast_pos {n : ℕ} : (0 : α) < n ↔ 0 < n :=
-by rw [← cast_zero, cast_lt]
-
-lemma cast_add_one_pos (n : ℕ) : 0 < (n : α) + 1 :=
-  add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
 
 @[simp, norm_cast] theorem one_lt_cast {n : ℕ} : 1 < (n : α) ↔ 1 < n :=
 by rw [← cast_one, cast_lt]
@@ -94,7 +97,7 @@ by rw [← cast_one, cast_lt, lt_succ_iff, le_zero_iff]
 @[simp, norm_cast] theorem cast_le_one {n : ℕ} : (n : α) ≤ 1 ↔ n ≤ 1 :=
 by rw [← cast_one, cast_le]
 
-end
+end strict_ordered_semiring
 
 @[simp, norm_cast] theorem cast_min [linear_ordered_semiring α] {a b : ℕ} :
   (↑(min a b) : α) = min a b :=
@@ -223,32 +226,6 @@ variables [add_monoid_with_one α]
 @[simp, norm_cast] lemma unop_nat_cast (n : ℕ) : unop (n : αᵐᵒᵖ) = n := rfl
 
 end mul_opposite
-
-namespace with_top
-variables [add_monoid_with_one α]
-
-lemma add_one_le_of_lt {i n : with_top ℕ} (h : i < n) : i + 1 ≤ n :=
-begin
-  cases n, { exact le_top },
-  cases i, { exact (not_le_of_lt h le_top).elim },
-  exact with_top.coe_le_coe.2 (with_top.coe_lt_coe.1 h)
-end
-
-lemma one_le_iff_pos {n : with_top ℕ} : 1 ≤ n ↔ 0 < n :=
-⟨lt_of_lt_of_le (coe_lt_coe.mpr zero_lt_one),
-  λ h, by simpa only [zero_add] using add_one_le_of_lt h⟩
-
-@[elab_as_eliminator]
-lemma nat_induction {P : with_top ℕ → Prop} (a : with_top ℕ)
-  (h0 : P 0) (hsuc : ∀n:ℕ, P n → P n.succ) (htop : (∀n : ℕ, P n) → P ⊤) : P a :=
-begin
-  have A : ∀n:ℕ, P n := λ n, nat.rec_on n h0 hsuc,
-  cases a,
-  { exact htop A },
-  { exact A a }
-end
-
-end with_top
 
 namespace pi
 variables {π : α → Type*} [Π a, has_nat_cast (π a)]

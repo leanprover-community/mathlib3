@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Calle Sönne
 -/
 import analysis.special_functions.trigonometric.basic
+import analysis.normed.group.add_circle
 import algebra.char_zero.quotient
 import algebra.order.to_interval_mod
-import data.sign
+import topology.instances.sign
 
 /-!
 # The type of angles
@@ -22,15 +23,10 @@ noncomputable theory
 namespace real
 
 /-- The type of angles -/
-@[derive [add_comm_group, topological_space, topological_add_group]]
-def angle : Type :=
-ℝ ⧸ (add_subgroup.zmultiples (2 * π))
+@[derive [normed_add_comm_group, inhabited, has_coe_t ℝ]]
+def angle : Type := add_circle (2 * π)
 
 namespace angle
-
-instance : inhabited angle := ⟨0⟩
-
-instance : has_coe ℝ angle := ⟨quotient_add_group.mk' _⟩
 
 @[continuity] lemma continuous_coe : continuous (coe : ℝ → angle) :=
 continuous_quotient_mk
@@ -526,6 +522,26 @@ end
 lemma eq_iff_abs_to_real_eq_of_sign_eq {θ ψ : angle} (h : θ.sign = ψ.sign) :
   θ = ψ ↔ |θ.to_real| = |ψ.to_real| :=
 by simpa [h] using @eq_iff_sign_eq_and_abs_to_real_eq θ ψ
+
+lemma continuous_at_sign {θ : angle} (h0 : θ ≠ 0) (hpi : θ ≠ π) : continuous_at sign θ :=
+(continuous_at_sign_of_ne_zero (sin_ne_zero_iff.2 ⟨h0, hpi⟩)).comp continuous_sin.continuous_at
+
+lemma _root_.continuous_on.angle_sign_comp {α : Type*} [topological_space α] {f : α → angle}
+  {s : set α} (hf : continuous_on f s) (hs : ∀ z ∈ s, f z ≠ 0 ∧ f z ≠ π) :
+  continuous_on (sign ∘ f) s :=
+begin
+  refine (continuous_at.continuous_on (λ θ hθ, _)).comp hf (set.maps_to_image f s),
+  obtain ⟨z, hz, rfl⟩ := hθ,
+  exact continuous_at_sign (hs _ hz).1 (hs _ hz).2
+end
+
+/-- Suppose a function to angles is continuous on a connected set and never takes the values `0`
+or `π` on that set. Then the values of the function on that set all have the same sign. -/
+lemma sign_eq_of_continuous_on {α : Type*} [topological_space α] {f : α → angle} {s : set α}
+  {x y : α} (hc : is_connected s) (hf : continuous_on f s) (hs : ∀ z ∈ s, f z ≠ 0 ∧ f z ≠ π)
+  (hx : x ∈ s) (hy : y ∈ s) : (f y).sign = (f x).sign :=
+(hc.image _ (hf.angle_sign_comp hs)).is_preconnected.subsingleton
+  (set.mem_image_of_mem _ hy) (set.mem_image_of_mem _ hx)
 
 end angle
 

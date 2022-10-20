@@ -117,7 +117,7 @@ end
 @[simp, to_additive]
 lemma prod_take_mul_prod_drop :
   ∀ (L : list M) (i : ℕ), (L.take i).prod * (L.drop i).prod = L.prod
-| [] i := by simp
+| [] i := by simp [@zero_le' ℕ]
 | L 0 := by simp
 | (h :: t) (n+1) := by { dsimp, rw [prod_cons, prod_cons, mul_assoc, prod_take_mul_prod_drop] }
 
@@ -151,7 +151,7 @@ lemma prod_update_nth : ∀ (L : list M) (n : ℕ) (a : M),
     (L.take n).prod * (if n < L.length then a else 1) * (L.drop (n + 1)).prod
 | (x :: xs) 0     a := by simp [update_nth]
 | (x :: xs) (i+1) a := by simp [update_nth, prod_update_nth xs i a, mul_assoc]
-| []      _     _ := by simp [update_nth, (nat.zero_le _).not_lt]
+| []      _     _ := by simp [update_nth, (nat.zero_le _).not_lt, @zero_le' ℕ]
 
 open mul_opposite
 
@@ -509,7 +509,7 @@ end
 
 /-- The product of a list of positive natural numbers is positive,
 and likewise for any nontrivial ordered semiring. -/
-lemma prod_pos [ordered_semiring R] [nontrivial R] (l : list R) (h : ∀ a ∈ l, (0 : R) < a) :
+lemma prod_pos [strict_ordered_semiring R] [nontrivial R] (l : list R) (h : ∀ a ∈ l, (0 : R) < a) :
   0 < l.prod :=
 begin
   induction l with a l ih,

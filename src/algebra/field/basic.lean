@@ -3,8 +3,8 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
-import algebra.hom.ring
 import data.rat.defs
+import algebra.group_with_zero.power
 
 /-!
 # Division (semi)rings and (semi)fields
@@ -80,7 +80,7 @@ class division_semiring (α : Type*) extends semiring α, group_with_zero α
 An instance of `division_ring K` includes maps `of_rat : ℚ → K` and `qsmul : ℚ → K → K`.
 If the division ring has positive characteristic p, we define `of_rat (1 / p) = 1 / 0 = 0`
 for consistency with our division by zero convention.
-The fields `of_rat` and `qsmul are needed to implement the
+The fields `of_rat` and `qsmul` are needed to implement the
 `algebra_rat [division_ring K] : algebra ℚ K` instance, since we need to control the specific
 definitions for some special cases of `K` (in particular `K = ℚ` itself).
 See also Note [forgetful inheritance].
@@ -93,6 +93,18 @@ class division_ring (K : Type u) extends ring K, div_inv_monoid K, nontrivial K,
 (rat_cast_mk : ∀ (a : ℤ) (b : ℕ) h1 h2, rat_cast ⟨a, b, h1, h2⟩ = a * b⁻¹ . try_refl_tac)
 (qsmul : ℚ → K → K := qsmul_rec rat_cast)
 (qsmul_eq_mul' : ∀ (a : ℚ) (x : K), qsmul a x = rat_cast a * x . try_refl_tac)
+
+@[priority 100] -- see Note [lower instance priority]
+instance division_ring.to_division_semiring [division_ring α] : division_semiring α :=
+{ ..‹division_ring α›, ..(infer_instance : semiring α) }
+
+section division_ring
+variables [division_ring α]
+
+@[simp] lemma zpow_bit1_neg (x : α) (n : ℤ) : (-x) ^ bit1 n = - x ^ bit1 n :=
+by rw [zpow_bit1', zpow_bit1', neg_mul_neg, neg_mul_eq_mul_neg]
+
+end division_ring
 
 /-- A `semifield` is a `comm_semiring` with multiplicative inverses for nonzero elements. -/
 @[protect_proj, ancestor comm_semiring division_semiring comm_group_with_zero]
@@ -110,10 +122,6 @@ See also Note [forgetful inheritance].
 -/
 @[protect_proj, ancestor comm_ring div_inv_monoid nontrivial]
 class field (K : Type u) extends comm_ring K, division_ring K
-
-@[priority 100] -- see Note [lower instance priority]
-instance division_ring.to_division_semiring [division_ring α] : division_semiring α :=
-{ ..‹division_ring α›, ..(infer_instance : semiring α) }
 
 section division_semiring
 variables [division_semiring α] {a b c : α}

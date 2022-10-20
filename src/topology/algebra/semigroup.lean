@@ -80,8 +80,8 @@ begin
       mul_assoc := λ p q r, subtype.eq (mul_assoc _ _ _) },
   haveI : compact_space M' := is_compact_iff_compact_space.mp s_compact,
   haveI : nonempty M' := nonempty_subtype.mpr snemp,
-  have : ∀ p : M', continuous (* p) := λ p, continuous_subtype_mk _
-    ((continuous_mul_left p.1).comp continuous_subtype_val),
+  have : ∀ p : M', continuous (* p) := λ p,
+    ((continuous_mul_left p.1).comp continuous_subtype_val).subtype_mk _,
   obtain ⟨⟨m, hm⟩, idem⟩ := exists_idempotent_of_compact_t2_of_continuous_mul_left this,
   exact ⟨m, hm, subtype.ext_iff.mp idem⟩
 end

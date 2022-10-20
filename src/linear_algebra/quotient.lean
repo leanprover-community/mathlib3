@@ -428,6 +428,11 @@ lemma quot_equiv_of_eq_mk (h : p = p') (x : M) :
   submodule.quot_equiv_of_eq p p' h (submodule.quotient.mk x) = submodule.quotient.mk x :=
 rfl
 
+@[simp] lemma quotient.equiv_refl (P : submodule R M) (Q : submodule R M)
+  (hf : P.map (linear_equiv.refl R M : M →ₗ[R] M) = Q) :
+  quotient.equiv P Q (linear_equiv.refl R M) hf = quot_equiv_of_eq _ _ (by simpa using hf) :=
+rfl
+
 end submodule
 
 end ring

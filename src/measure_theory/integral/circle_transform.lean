@@ -282,7 +282,8 @@ begin
   simp only [F, has_deriv_at, has_deriv_at_filter, has_fderiv_within_at, mem_ball, zero_lt_mul_left,
     inv_pos, zero_lt_bit0, zero_lt_one, norm_eq_abs,
     interval_integral.interval_integrable_const] at *,
-  use continuous_linear_map.smul_right (1 : ℂ →L[ℂ] ℂ) (interval_integral (F' x) 0 (2 * π) volume),
+  refine ⟨continuous_linear_map.smul_right (1 : ℂ →L[ℂ] ℂ)
+    (interval_integral (F' x) 0 (2 * π) volume) , _⟩,
   apply (has_fderiv_at_filter.mono this.2 inf_le_left),
 end
 
@@ -358,10 +359,10 @@ begin
   have hr : 0 < ∥ r ∥,
   by {simp only [r, norm_eq_abs, abs_mul, abs_inv, abs_two, abs_of_real, abs_I, mul_one,
   abs_circle_map_zero],
-  simp only [absolute_value.map_neg, absolute_value.map_mul, abs_I, map_inv₀, abs_of_real, abs_two, one_mul,
-  abs_circle_map_zero, mul_one],
-  apply left.mul_pos (left.mul_pos (inv_pos.2 (left.mul_pos (@two_pos ℝ _ _) (_root_.abs_pos.2 real.pi_ne_zero)))
-  (_root_.abs_pos_of_pos hR)) _,
+  simp only [absolute_value.map_neg, absolute_value.map_mul, abs_I, map_inv₀, abs_of_real, abs_two,
+  one_mul, abs_circle_map_zero, mul_one],
+  apply left.mul_pos (left.mul_pos (inv_pos.2 (left.mul_pos (@two_pos ℝ _ _)
+  (_root_.abs_pos.2 real.pi_ne_zero)))  (_root_.abs_pos_of_pos hR)) _,
   simp only [inv_pos, absolute_value.pos_iff],
   apply sub_ne_zero.2 (circle_map_ne_mem_ball w.2 y), },
   let e := (∥ r ∥)⁻¹ * (ε/2),

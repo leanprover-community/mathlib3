@@ -294,7 +294,7 @@ protected lemma coe_eq_one {x : S} : (x : A) = 1 ↔ x = 1 := one_mem_class.coe_
 
 /-- Embedding of a subalgebra into the algebra. -/
 def val : S →ₐ[R] A :=
-by refine_struct { to_fun := (coe : S → A) }; intros; refl
+by refine { to_fun := (coe : S → A), .. }; intros; refl
 
 @[simp] lemma coe_val : (S.val : S → A) = coe := rfl
 

@@ -255,13 +255,13 @@ instance : add_group_with_one (cau_seq β abv) :=
   .. cau_seq.add_group }
 
 instance : ring (cau_seq β abv) :=
-by refine_struct
+by refine
      { add := (+),
        zero := (0 : cau_seq β abv),
        mul := (*),
        one := 1,
        npow := @npow_rec (cau_seq β abv) ⟨1⟩ ⟨(*)⟩,
-       .. cau_seq.add_group_with_one };
+       .. cau_seq.add_group_with_one, .. };
 intros; try { refl }; apply ext;
 simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm, sub_eq_add_neg]
 

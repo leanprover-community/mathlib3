@@ -23,7 +23,7 @@ variables {R S : Type*} (x y : punit.{u+1}) (s : set punit.{u+1})
 
 @[to_additive]
 instance : comm_group punit :=
-by refine_struct
+by refine
 { mul := λ _ _, star,
   one := star,
   inv := λ _, star,

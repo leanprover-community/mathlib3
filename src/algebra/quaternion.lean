@@ -140,13 +140,14 @@ rfl
      a₁ * b₄ + a₂ * b₃ - a₃ * b₂ + a₄ * b₁⟩ := rfl
 
 instance : add_comm_group ℍ[R, c₁, c₂] :=
-by refine_struct
+by refine
   { add := (+),
     neg := has_neg.neg,
     sub := has_sub.sub,
     zero := (0 : ℍ[R, c₁, c₂]),
     zsmul := @zsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
-    nsmul := @nsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩ };
+    nsmul := @nsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩,
+    sub_eq_add_neg := _, .. };
   intros; try { refl }; ext; simp; ring_exp
 
 instance : add_group_with_one ℍ[R, c₁, c₂] :=
@@ -161,13 +162,13 @@ instance : add_group_with_one ℍ[R, c₁, c₂] :=
   .. quaternion_algebra.add_comm_group }
 
 instance : ring ℍ[R, c₁, c₂] :=
-by refine_struct
+by refine
   { add := (+),
     mul := (*),
     one := 1,
     npow := @npow_rec _ ⟨(1 : ℍ[R, c₁, c₂])⟩ ⟨(*)⟩,
     .. quaternion_algebra.add_group_with_one,
-    .. quaternion_algebra.add_comm_group };
+    .. quaternion_algebra.add_comm_group, .. };
   intros; try { refl }; ext; simp; ring_exp
 
 instance : algebra R ℍ[R, c₁, c₂] :=

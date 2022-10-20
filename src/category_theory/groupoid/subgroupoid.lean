@@ -271,6 +271,11 @@ lemma Inf_is_normal (s : set $ subgroupoid C) (sn : ∀ S ∈ s, is_normal S) : 
 { wide := by { simp_rw [Inf, mem_Inter₂], exact λ c S Ss, (sn S Ss).wide c },
   conj := by { simp_rw [Inf, mem_Inter₂], exact λ c d p γ hγ S Ss, (sn S Ss).conj p (hγ S Ss) } }
 
+lemma discrete_is_normal : (@discrete C _).is_normal :=
+{ wide := λ c, by { constructor, },
+  conj := λ c d f γ hγ, by
+  { cases hγ, simp only [inv_eq_inv, category.id_comp, is_iso.inv_hom_id], constructor, } }
+
 lemma is_normal.vertex_subgroup (Sn : is_normal S) (c : C) (cS : c ∈ S.objs) :
   (S.vertex_subgroup cS).normal :=
 { conj_mem := λ x hx y, by { rw mul_assoc, exact Sn.conj' y hx } }
@@ -290,6 +295,14 @@ Inf {S : subgroupoid C | (∀ c d, X c d ⊆ S.arrows c d) ∧ S.is_normal}
 
 lemma generated_normal_is_normal : (generated_normal X).is_normal :=
 Inf_is_normal _ (λ S h, h.right)
+
+lemma generated_normal_le_of_normal_containing (Sn : S.is_normal) :
+  (∀ c d, X c d ⊆ S.arrows c d) → (generated_normal X) ≤ S :=
+begin
+  rintro h,
+  apply @Inf_le (subgroupoid C) _,
+  exact ⟨h,Sn⟩,
+end
 
 end generated_subgroupoid
 
@@ -327,6 +340,8 @@ def ker : subgroupoid C := comap φ discrete
 lemma mem_ker_iff {c d : C} (f : c ⟶ d) :
   f ∈ (ker φ).arrows c d ↔ ∃ (h : φ.obj c = φ.obj d), φ.map f = eq_to_hom h :=
 mem_discrete_iff (φ.map f)
+
+lemma ker_is_normal : (ker φ).is_normal := is_normal_comap φ (discrete_is_normal)
 
 /-- The family of arrows of the image of a subgroupoid under a functor injective on objects -/
 inductive map.arrows (hφ : function.injective φ.obj) (S : subgroupoid C) :
@@ -372,7 +387,9 @@ lemma mem_im_iff (hφ : function.injective φ.obj) {c d : D} (f : c ⟶ d) :
 by { convert map.mem_arrows_iff φ hφ ⊤ f, simp only [has_top.top, mem_univ, exists_true_left] }
 
 lemma is_normal_map (hφ : function.injective φ.obj) (hφ' : im φ hφ = ⊤) (Sn : S.is_normal) :
-  (map φ hφ S).is_normal := sorry
+  (map φ hφ S).is_normal :=
+{ wide := λ c, by { dsimp [map], sorry, },
+  conj := sorry }
 
 end hom
 

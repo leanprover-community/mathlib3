@@ -446,7 +446,8 @@ end
   end,
   associativity' := to_punit_to_transported.associativity' e F,
   left_unitality' := to_punit_to_transported.left_unitality' e F,
-  right_unitality' := to_punit_to_transported.right_unitality' e F,..(F.to_functor ⋙ e.functor)}
+  right_unitality' := to_punit_to_transported.right_unitality' e F,
+  ..(F.to_functor ⋙ e.functor)}
 
 @[simps] def to_punit_to_transported.map (e : C ≌ D) {F G : lax_monoidal_functor (discrete punit) C}
   (α : F ⟶ G) : to_punit_to_transported e F ⟶ to_punit_to_transported e G :=
@@ -500,10 +501,76 @@ end
   map_id' := to_punit_to_transported.map_id e,
   map_comp' := λ _ _ _, to_punit_to_transported.map_comp e }
 
+def from_punit_to_transported.ε (e : C ≌ D) (F : lax_monoidal_functor (discrete punit) (transported e)) :
+  𝟙_ C ⟶ e.inverse.obj (F.to_functor.obj (𝟙_ (discrete punit))) :=
+e.unit.app _ ≫ e.inverse.map (F.ε)
+
+def from_punit_to_transported.μ (e : C ≌ D)
+  (F : lax_monoidal_functor (discrete punit) (transported e)) (X Y) :
+e.inverse.obj (F.to_functor.obj X) ⊗ e.inverse.obj (F.to_functor.obj Y) ⟶ e.inverse.obj (F.to_functor.obj (X ⊗ Y)) :=
+(from_transported e).μ _ _ ≫ e.inverse.map (F.μ X Y)
+
+lemma from_punit_to_transported.associativity'_auxL (e : C ≌ D)
+  (F : lax_monoidal_functor (discrete punit) (transported e)) (X Y Z) :
+(from_punit_to_transported.μ e F X Y ⊗ 𝟙 (e.inverse.obj (F.to_functor.obj Z))) ≫
+    from_punit_to_transported.μ e F (X ⊗ Y) Z ≫ e.inverse.map (F.to_functor.map (α_ X Y Z).hom) =
+((from_transported e).μ_iso₂' _ _ _).hom ≫
+e.inverse.map ((F.μ X Y ⊗ 𝟙 (F.to_functor.obj Z)) ≫ F.μ (X ⊗ Y) Z ≫ F.to_functor.map (α_ X Y Z).hom) :=
+begin
+  dsimp [from_punit_to_transported.μ],
+  simp only [from_transported_to_lax_monoidal_functor_μ, assoc, comp_tensor_id,
+    associator_conjugation, discrete.functor_map_id, category_theory.functor.map_id, comp_id,
+    functor.map_comp, iso.cancel_iso_hom_left],
+  congr' 4,
+  simp only [←assoc],
+  congr' 1,
+  simp only [assoc],
+  erw [←e.inverse.map_id, (from_transported e).map_tensor'],
+  simp only [from_transported_to_lax_monoidal_functor_μ, assoc, is_iso.inv_hom_id, comp_id],
+  congr' 1,
+end
+
+lemma from_punit_to_transported.associativity'_auxR (e : C ≌ D)
+  (F : lax_monoidal_functor (discrete punit) (transported e)) (X Y Z) :
+(α_ (e.inverse.obj (F.to_functor.obj X)) (e.inverse.obj (F.to_functor.obj Y))
+     (e.inverse.obj (F.to_functor.obj Z))).hom ≫
+  (𝟙 (e.inverse.obj (F.to_functor.obj X)) ⊗ from_punit_to_transported.μ e F Y Z) ≫
+    from_punit_to_transported.μ e F X (Y ⊗ Z) =
+((from_transported e).μ_iso₂' _ _ _).hom ≫
+e.inverse.map ((α_ (F.to_functor.obj X) (F.to_functor.obj Y) (F.to_functor.obj Z)).hom ≫
+  (𝟙 (F.to_functor.obj X) ⊗ F.μ Y Z) ≫ F.μ X (Y ⊗ Z)) :=
+sorry
+
+lemma from_punit_to_transported.associativity' (e : C ≌ D)
+  (F : lax_monoidal_functor (discrete punit) (transported e)) (X Y Z) :
+(from_punit_to_transported.μ e F X Y ⊗ 𝟙 (e.inverse.obj (F.to_functor.obj Z))) ≫
+    from_punit_to_transported.μ e F (X ⊗ Y) Z ≫ e.inverse.map (F.to_functor.map (α_ X Y Z).hom) =
+(α_ (e.inverse.obj (F.to_functor.obj X)) (e.inverse.obj (F.to_functor.obj Y))
+     (e.inverse.obj (F.to_functor.obj Z))).hom ≫
+  (𝟙 (e.inverse.obj (F.to_functor.obj X)) ⊗ from_punit_to_transported.μ e F Y Z) ≫
+    from_punit_to_transported.μ e F X (Y ⊗ Z) :=
+by rw [from_punit_to_transported.associativity'_auxL, F.associativity,
+  from_punit_to_transported.associativity'_auxR]
+
 @[simps] def lax_monoid_functor_from_punit_equivalence (e : C ≌ D) :
   lax_monoidal_functor (discrete punit) C ≌ lax_monoidal_functor (discrete punit) (transported e) :=
 { functor := to_punit_to_transported.functor e,
-  inverse := sorry,
+  inverse :=
+  { obj := λ F,
+    { ε := from_punit_to_transported.ε e F,
+      μ := from_punit_to_transported.μ e F,
+      μ_natural' :=
+      begin
+        rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟩⟩,
+        dsimp, simp only [category_theory.functor.map_id, tensor_id, id_comp, comp_id],
+      end,
+      associativity' := from_punit_to_transported.associativity' e F,
+      left_unitality' := sorry,
+      right_unitality' := sorry,
+      .. (F.to_functor ⋙ e.inverse) },
+    map := _,
+    map_id' := _,
+    map_comp' := _ },
   unit_iso := sorry,
   counit_iso := sorry,
   functor_unit_iso_comp' := sorry }

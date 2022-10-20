@@ -258,8 +258,7 @@ the determinant to be `1`. -/
   linear_map.det (0 : M →ₗ[𝕜] M) = (0 : 𝕜) ^ (finite_dimensional.finrank 𝕜 M) :=
 by simp only [← zero_smul 𝕜 (1 : M →ₗ[𝕜] M), det_smul, mul_one, monoid_hom.map_one]
 
-lemma det_eq_one_of_subsingleton [nontrivial R] [subsingleton M] (f : M →ₗ[R] M) :
-  (f : M →ₗ[R] M).det = 1 :=
+lemma det_eq_one_of_subsingleton [subsingleton M] (f : M →ₗ[R] M) : (f : M →ₗ[R] M).det = 1 :=
 begin
   have b : basis (fin 0) R M := basis.empty M,
   rw ← f.det_to_matrix b,

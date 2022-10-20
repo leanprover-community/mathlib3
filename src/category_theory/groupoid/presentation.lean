@@ -2,11 +2,6 @@ import category_theory.groupoid
 import category_theory.groupoid.quotient_two_steps
 import category_theory.groupoid.free_groupoid
 
-
-open set classical function
-local attribute [instance] prop_decidable
-
-
 namespace category_theory
 
 universes u v

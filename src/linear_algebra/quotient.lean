@@ -369,6 +369,20 @@ and `f : M ≃ₗ N` maps `P` to `Q`, then `M ⧸ P` is equivalent to `N ⧸ Q`.
     quotient.equiv Q P f.symm ((submodule.map_symm_eq_iff f).mpr hf) :=
 rfl
 
+@[simp] lemma quotient.equiv_trans {N O : Type*} [add_comm_group N] [module R N]
+  [add_comm_group O] [module R O]
+  (P : submodule R M) (Q : submodule R N) (S : submodule R O)
+  (e : M ≃ₗ[R] N) (f : N ≃ₗ[R] O)
+  (he : P.map e = Q) (hf : Q.map f = S) (hef : P.map (e.trans f) = S) :
+  quotient.equiv P S (e.trans f) hef = (quotient.equiv P Q e he).trans (quotient.equiv Q S f hf) :=
+begin
+  ext,
+  -- `simp` can deal with `hef` depending on `e` and `f`
+  simp only [quotient.equiv_apply, linear_equiv.trans_apply, linear_equiv.coe_trans],
+  -- `rw` can deal with `mapq_comp` needing extra hypotheses coming from the RHS
+  rw [mapq_comp, linear_map.comp_apply]
+end
+
 end submodule
 
 open submodule

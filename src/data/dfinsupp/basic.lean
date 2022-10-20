@@ -529,6 +529,12 @@ begin
     { rw [hi, hj, dfinsupp.single_zero, dfinsupp.single_zero], }, },
 end
 
+/-- `dfinsupp.single a b` is injective in `a`. For the statement that it is injective in `b`, see
+`dfinsupp.single_injective` -/
+lemma single_left_injective {b : Π (i : ι), β i} (h : ∀ i, b i ≠ 0) :
+  function.injective (λ i, single i (b i) : ι → Π₀ i, β i) :=
+λ a a' H, (((single_eq_single_iff _ _ _ _).mp H).resolve_right $ λ hb, h _ hb.1).left
+
 @[simp] lemma single_eq_zero {i : ι} {xi : β i} : single i xi = 0 ↔ xi = 0 :=
 begin
   rw [←single_zero i, single_eq_single_iff],
@@ -1932,10 +1938,16 @@ end
 
 section finite_infinite
 
-noncomputable instance dfinsupp.fintype {ι : Sort*} {π : ι → Sort*} [fintype ι]
-  [∀ i, fintype (π i)] [Π i, has_zero (π i)] :
+instance dfinsupp.fintype {ι : Sort*} {π : ι → Sort*} [decidable_eq ι] [Π i, has_zero (π i)]
+  [fintype ι] [∀ i, fintype (π i)] :
   fintype (Π₀ i, π i) :=
-by letI := classical.dec_eq ι; exact fintype.of_injective _ fun_like.coe_injective
+fintype.of_equiv (Π i, π i) dfinsupp.equiv_fun_on_fintype.symm
+
+instance dfinsupp.infinite_of_left {ι : Sort*} {π : ι → Sort*} [decidable_eq ι]
+  [∀ i, nontrivial (π i)] [Π i, has_zero (π i)] [infinite ι] :
+  infinite (Π₀ i, π i) :=
+by choose m hm using (λ i, exists_ne (0 : π i)); exact
+infinite.of_injective _ (dfinsupp.single_left_injective hm)
 
 instance dfinsupp.infinite_of_right {ι : Sort*} {π : ι → Sort*} [decidable_eq ι]
   [∀ i, infinite (π i)] [Π i, has_zero (π i)] [nonempty ι] :

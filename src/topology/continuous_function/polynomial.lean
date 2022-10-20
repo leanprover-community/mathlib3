@@ -138,7 +138,7 @@ open continuous_map
 is the polynomials on `[a,b]`. -/
 lemma polynomial_functions.comap_comp_right_alg_hom_Icc_homeo_I (a b : ℝ) (h : a < b) :
   (polynomial_functions I).comap
-    (comp_right_alg_hom ℝ (Icc_homeo_I a b h).symm.to_continuous_map) =
+    (comp_right_alg_hom ℝ ℝ (Icc_homeo_I a b h).symm.to_continuous_map) =
     polynomial_functions (set.Icc a b) :=
 begin
   ext f,

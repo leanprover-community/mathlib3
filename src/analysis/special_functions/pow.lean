@@ -651,7 +651,7 @@ le_iff_le_iff_lt_iff_lt.2 $ rpow_lt_rpow_iff hy hx hz
 lemma le_rpow_inv_iff_of_neg (hx : 0 < x) (hy : 0 < y) (hz : z < 0) :
   x ≤ y ^ z⁻¹ ↔ y ≤ x ^ z :=
 begin
-  have hz' : 0 < -z := by rwa [lt_neg, neg_zero'],
+  have hz' : 0 < -z := by rwa [lt_neg, neg_zero],
   have hxz : 0 < x ^ (-z) := real.rpow_pos_of_pos hx _,
   have hyz : 0 < y ^ z⁻¹ := real.rpow_pos_of_pos hy _,
   rw [←real.rpow_le_rpow_iff hx.le hyz.le hz', ←real.rpow_mul hy.le],
@@ -663,7 +663,7 @@ end
 lemma lt_rpow_inv_iff_of_neg (hx : 0 < x) (hy : 0 < y) (hz : z < 0) :
   x < y ^ z⁻¹ ↔ y < x ^ z :=
 begin
-  have hz' : 0 < -z := by rwa [lt_neg, neg_zero'],
+  have hz' : 0 < -z := by rwa [lt_neg, neg_zero],
   have hxz : 0 < x ^ (-z) := real.rpow_pos_of_pos hx _,
   have hyz : 0 < y ^ z⁻¹ := real.rpow_pos_of_pos hy _,
   rw [←real.rpow_lt_rpow_iff hx.le hyz.le hz', ←real.rpow_mul hy.le],
@@ -1442,6 +1442,16 @@ begin
   rw [←nnreal.coe_rpow, real.to_nnreal_coe],
 end
 
+lemma eventually_pow_one_div_le (x : ℝ≥0) {y : ℝ≥0} (hy : 1 < y) :
+  ∀ᶠ (n : ℕ) in at_top, x ^ (1 / n : ℝ) ≤ y :=
+begin
+  obtain ⟨m, hm⟩ := add_one_pow_unbounded_of_pos x (tsub_pos_of_lt hy),
+  rw [tsub_add_cancel_of_le hy.le] at hm,
+  refine eventually_at_top.2 ⟨m + 1, λ n hn, _⟩,
+  simpa only [nnreal.rpow_one_div_le_iff (nat.cast_pos.2 $ m.succ_pos.trans_le hn),
+    nnreal.rpow_nat_cast] using hm.le.trans (pow_le_pow hy.le (m.le_succ.trans hn)),
+end
+
 end nnreal
 
 namespace real
@@ -2003,6 +2013,18 @@ begin
   exact_mod_cast hc a (by exact_mod_cast ha),
 end
 
+lemma eventually_pow_one_div_le {x : ℝ≥0∞} (hx : x ≠ ∞) {y : ℝ≥0∞} (hy : 1 < y) :
+  ∀ᶠ (n : ℕ) in at_top, x ^ (1 / n : ℝ) ≤ y :=
+begin
+  lift x to ℝ≥0 using hx,
+  by_cases y = ∞,
+  { exact eventually_of_forall (λ n, h.symm ▸ le_top) },
+  { lift y to ℝ≥0 using h,
+    have := nnreal.eventually_pow_one_div_le x (by exact_mod_cast hy : 1 < y),
+    refine this.congr (eventually_of_forall $ λ n, _),
+    rw [coe_rpow_of_nonneg x (by positivity : 0 ≤ (1 / n : ℝ)), coe_le_coe] },
+end
+
 private lemma continuous_at_rpow_const_of_pos {x : ℝ≥0∞} {y : ℝ} (h : 0 < y) :
   continuous_at (λ a : ℝ≥0∞, a ^ y) x :=
 begin
@@ -2159,6 +2181,7 @@ do
   match strictness_a with
   | nonnegative p := nonnegative <$> mk_app ``real.rpow_nonneg_of_nonneg [p, b]
   | positive p := positive <$> mk_app ``real.rpow_pos_of_pos [p, b]
+  | _ := failed
   end
 
 private lemma nnrpow_pos {a : ℝ≥0} (ha : 0 < a) (b : ℝ) : 0 < a ^ b := nnreal.rpow_pos ha

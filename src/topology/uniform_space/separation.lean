@@ -198,6 +198,9 @@ end
 instance separated_t3 [separated_space α] : t3_space α :=
 by { haveI := separated_iff_t2.mp ‹_›, exact ⟨⟩ }
 
+instance subtype.separated_space [separated_space α] (s : set α) : separated_space s :=
+separated_iff_t2.mpr subtype.t2_space
+
 lemma is_closed_of_spaced_out [separated_space α] {V₀ : set (α × α)} (V₀_in : V₀ ∈ 𝓤 α)
   {s : set α} (hs : s.pairwise (λ x y, (x, y) ∉ V₀)) : is_closed s :=
 begin

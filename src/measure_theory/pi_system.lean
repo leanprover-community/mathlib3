@@ -397,7 +397,7 @@ begin
 end
 
 /-- If `π` is a family of π-systems, then `pi_Union_Inter π S` is a π-system. -/
-lemma is_pi_system_pi_Union_Inter {α ι} (π : ι → set (set α))
+lemma is_pi_system_pi_Union_Inter (π : ι → set (set α))
   (hpi : ∀ x, is_pi_system (π x)) (S : set ι) :
   is_pi_system (pi_Union_Inter π S) :=
 begin
@@ -438,15 +438,14 @@ begin
   { exact absurd hn (by simp [hn1, h]), },
 end
 
-lemma pi_Union_Inter_mono_left {α ι} {π π' : ι → set (set α)} (h_le : ∀ i, π i ⊆ π' i)
-  (S : set ι) :
+lemma pi_Union_Inter_mono_left {π π' : ι → set (set α)} (h_le : ∀ i, π i ⊆ π' i) (S : set ι) :
   pi_Union_Inter π S ⊆ pi_Union_Inter π' S :=
 begin
   rintros s ⟨t, ht_mem, ft, hft_mem_pi, rfl⟩,
   exact ⟨t, ht_mem, ft, λ x hxt, h_le x (hft_mem_pi x hxt), rfl⟩,
 end
 
-lemma generate_from_pi_Union_Inter_le {α ι} {m : measurable_space α}
+lemma generate_from_pi_Union_Inter_le {m : measurable_space α}
   (π : ι → set (set α)) (h : ∀ n, generate_from (π n) ≤ m) (S : set ι) :
   generate_from (pi_Union_Inter π S) ≤ m :=
 begin
@@ -456,7 +455,7 @@ begin
   exact measurable_set_generate_from (hft_mem_pi x hx_mem),
 end
 
-lemma subset_pi_Union_Inter {α ι} {π : ι → set (set α)} {S : set ι} {i : ι} (his : i ∈ S) :
+lemma subset_pi_Union_Inter {π : ι → set (set α)} {S : set ι} {i : ι} (his : i ∈ S) :
   π i ⊆ pi_Union_Inter π S :=
 begin
   refine λ t ht_pii, ⟨{i}, _, (λ j, t), ⟨λ m h_pm, _, _⟩⟩,
@@ -466,18 +465,17 @@ begin
   { simp only [finset.mem_singleton, Inter_Inter_eq_left], },
 end
 
-lemma mem_pi_Union_Inter_of_measurable_set {α ι} (m : ι → measurable_space α)
+lemma mem_pi_Union_Inter_of_measurable_set (m : ι → measurable_space α)
   {S : set ι} {i : ι} (hiS : i ∈ S) (s : set α)
   (hs : measurable_set[m i] s) :
   s ∈ pi_Union_Inter (λ n, {s | measurable_set[m n] s}) S :=
 subset_pi_Union_Inter hiS hs
 
-lemma le_generate_from_pi_Union_Inter {α ι} {π : ι → set (set α)}
-  (S : set ι) {x : ι} (hxS : x ∈ S) :
+lemma le_generate_from_pi_Union_Inter {π : ι → set (set α)} (S : set ι) {x : ι} (hxS : x ∈ S) :
   generate_from (π x) ≤ generate_from (pi_Union_Inter π S) :=
 generate_from_mono (subset_pi_Union_Inter hxS)
 
-lemma measurable_set_supr_of_mem_pi_Union_Inter {α ι} (m : ι → measurable_space α)
+lemma measurable_set_supr_of_mem_pi_Union_Inter (m : ι → measurable_space α)
   (S : set ι) (t : set α) (ht : t ∈ pi_Union_Inter (λ n, {s | measurable_set[m n] s}) S) :
   measurable_set[⨆ i ∈ S, m i] t :=
 begin
@@ -488,7 +486,7 @@ begin
   exact le_supr₂ i hi',
 end
 
-lemma generate_from_pi_Union_Inter_measurable_set {α ι} (m : ι → measurable_space α) (S : set ι) :
+lemma generate_from_pi_Union_Inter_measurable_set (m : ι → measurable_space α) (S : set ι) :
   generate_from (pi_Union_Inter (λ n, {s | measurable_set[m n] s}) S) = ⨆ i ∈ S, m i :=
 begin
   refine le_antisymm _ _,

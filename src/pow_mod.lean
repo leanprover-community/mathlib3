@@ -111,7 +111,28 @@ meta def prove_pow_mod_aux :
 
 end
 
+example : my_pow_mod 5 23509285402366 23509285402367 = 1 :=
+begin
+  norm_num1,
+end
+
+example : my_pow_mod 5 (11754642701183 - 1) 11754642701183 = 1 :=
+begin
+  norm_num1,
+end
+
+example : my_pow_mod 5 23509285402366 23509285402367 = 1 ∧ my_pow_mod 5 (11754642701183 - 1) 11754642701183 = 1 :=
+begin
+  split,
+  norm_num1,
+  norm_num1,
+end
+
 def pratt_predicate (p a x : ℕ) : Prop := ∀ q ∈ x.factors, a ^ ((p - 1) / q) % p ≠ 1
+
+lemma pratt_predicate_iff (p a x : ℕ) :
+  pratt_predicate p a x ↔ ∀ q ∈ x.factors, my_pow_mod a ((p - 1) / q) p ≠ 1 :=
+iff.rfl
 
 def pratt_zero (p a : ℕ) : pratt_predicate p a 0 := by { rw [pratt_predicate], simp }
 def pratt_axiom (p a : ℕ) : pratt_predicate p a 1 := by { rw [pratt_predicate], simp }
@@ -154,73 +175,52 @@ lemma pratt_rule_2' (a : ℕ) {p : ℕ} (hp : p ≠ 0) (h' : my_pow_mod a (p - 1
   (h : pratt_predicate p a (p - 1)) : prime p :=
 pratt_rule_2 a hp h h'
 
--- these rules aren't great for integration with norm_num for now, but they're nice for testing
 
--- example : my_pow_mod 5 23509285402366 23509285402367 = 1 :=
--- begin
---   norm_num1,
--- end
+set_option profiler true
+set_option profiler.threshold 0.1
 
--- example : my_pow_mod 5 (11754642701183 - 1) 11754642701183 = 1 :=
--- begin
---   norm_num1,
--- end
-
--- example : my_pow_mod 5 23509285402366 23509285402367 = 1 ∧ my_pow_mod 5 (11754642701183 - 1) 11754642701183 = 1 :=
--- begin
---   split,
---   norm_num1,
---   norm_num1,
--- end
-
--- example : 7 ^ 1269505852555753484910 % 1269505852555753484911 = 1 :=
--- begin
---   norm_num,
--- end
-
-lemma test : 7 ^ 1269505852555753484910 % 1269505852555753484911 = 1 :=
+lemma boltons_prime : prime (15 * 2^27 + 1) :=
 begin
-  refine my_pow_mod_eq _ _ _ _ _,
-  refine my_pow_mod_aux_bit0 _ _ _ _ _ 49 49 0 0 (by norm_num1) (by norm_num1) (by norm_num1) _,
-  refine my_pow_mod_aux_bit1 _ _ _ _ _ 0 0 2401 2401 0 0 49 49 (by norm_num1) (by norm_num1)
-    (by norm_num1) (by norm_num1) (by norm_num1) (by norm_num1) _,
-  refine my_pow_mod_aux_bit1 _ _ _ _ _ 0 0 5764801 5764801 0 0 117649 117649 (by norm_num1)
-    (by norm_num1) (by norm_num1) (by norm_num1) (by norm_num1) (by norm_num1) _,
-  refine my_pow_mod_aux_bit1 _ _ _ _ _ 0 0 33232930569601 33232930569601 0 0 678223072849
-    678223072849 (by norm_num1) (by norm_num1) (by norm_num1) (by norm_num1) (by norm_num1)
-    (by norm_num1) _,
-  refine my_pow_mod_aux_bit0 _ _ _ _ _ 1104427674243920646305299201 745719402010051216175 869966
-    1104426928524518636254083026 (by norm_num1) (by norm_num1) (by norm_num1) _,
-  refine my_pow_mod_aux_bit1 _ _ _ _ _ 438042428409998988884
-    556097426534228377830055119958269350729324 833361688327230901301
-    556097426534228377830888481646596581630625 398394464504 505764104313643389425349689099144
-    732293592728383033431 505764104314375683018078072132575 (by norm_num1) (by norm_num1)
-    (by norm_num1) (by norm_num1) (by norm_num1) (by norm_num1) _,
-  refine my_pow_mod_aux_bit1 _ _ _ _ _ 547056716732318032581
-    694491703571612736654661674958057989885291 343899984206813607310
-    694491703571612736655005574942264803492601 480710997557640317587
-    610265424787338902615536835216852052429757 537956025130491963974
-    610265424787338902616074791241982544393731 (by norm_num1) (by norm_num1) (by norm_num1)
-    (by norm_num1) (by norm_num1) (by norm_num1) _,
+  have : ∀ x, x ∈ nat.factors (15 * 2^27 + 1 - 1) ↔ x = 2 ∨ x = 3 ∨ x = 5,
+  { norm_num },
+  refine pratt_rule_2' 31 (by norm_num) (by norm_num) _,
+  simp only [pratt_predicate_iff, this, forall_eq_or_imp, forall_eq],
+  norm_num,
 end
 
-#eval 833361688327230901301 * 732293592728383033431
-#eval 610265424787338902616074791241982544393731 / 1269505852555753484911
-#eval 610265424787338902616074791241982544393731 % 1269505852555753484911
-#eval 610265424787338902616074791241982544393731 - 537956025130491963974
+lemma thing0 :
+  ∀ x, x ∈ nat.factors (18446744069414584321 - 1) ↔
+    x = 2 ∨ x = 3 ∨ x = 5 ∨ x = 17 ∨ x = 257 ∨ x = 65537 :=
+by norm_num
 
--- lemma thing : prime 23509285402469 :=
--- begin
---   refine pratt_rule_2' 2 (by norm_num1) (by norm_num1) _,
---   refine pratt_rule_1' 2 11754642701234 prime_two (by norm_num1) (by norm_num1) _,
---   refine pratt_rule_1' 2 5877321350617 prime_two (by norm_num1) (by norm_num1) _,
---   refine pratt_rule_1' 127 46278120871 (by norm_num1) (by norm_num1) _ _,
---   -- { sorry },
+lemma thing1 : 18446744069414584321 ≠ 0 := by norm_num
+lemma thing2 : my_pow_mod 7 (18446744069414584321 - 1) 18446744069414584321 = 1 := by norm_num
+lemma thing3 : my_pow_mod 7 ((18446744069414584321 - 1) / 2) 18446744069414584321 ≠ 1 := by norm_num
+lemma thing4 : my_pow_mod 7 ((18446744069414584321 - 1) / 3) 18446744069414584321 ≠ 1 := by norm_num
+lemma thing5 : my_pow_mod 7 ((18446744069414584321 - 1) / 5) 18446744069414584321 ≠ 1 := by norm_num
+lemma thing6 : my_pow_mod 7 ((18446744069414584321 - 1) / 17) 18446744069414584321 ≠ 1 := by norm_num
+lemma thing7 : my_pow_mod 7 ((18446744069414584321 - 1) / 257) 18446744069414584321 ≠ 1 := by norm_num
+lemma thing8 : my_pow_mod 7 ((18446744069414584321 - 1) / 65537) 18446744069414584321 ≠ 1 := by norm_num
 
--- end
+lemma goldilocks : prime 18446744069414584321 :=
+begin
+  refine pratt_rule_2' 7 thing1 thing2 _,
+  simp only [pratt_predicate_iff, thing0, forall_eq_or_imp, forall_eq],
+  simp [thing3, thing4, thing5, thing6, thing7, thing8]
+end
 
-#eval 5877321350617 / 127
+lemma thing2' : my_pow_mod 7 18446744069414584320 18446744069414584321 = 1 := by norm_num
+
 #exit
+
+
+
+
+
+
+
+
+
 
 lemma thing : prime 1000000007 :=
 begin

@@ -39,34 +39,6 @@ open  set topological_space
 
 section preorder
 
-lemma upper_closure_set [preorder α] (s : set α) :
-  upper_closure s = ⨅ a ∈ s, upper_set.Ici a := by rw upper_set.infi_Ici
-
-
-@[simp] lemma upper_set.Union_Ici [preorder α] (s : set α) : (⋃ a ∈ s, set.Ici a) =
-  (upper_closure s : set α) :=
-begin
-  simp only [coe_upper_closure, exists_prop],
-  --rw upper_closure_set,
-  --rw upper_set.coe_Ici,
-  --rw [← upper_set.infi_Ici, upper_set.coe_infi₂],
-  --simp only [upper_set.coe_Ici],
-end
-
-@[simp] lemma upper_set.Inter_Ici [preorder α] (s : set α) : (⋂ a ∈ s, (set.Ici a)ᶜ) =
-  (upper_closure s : set α)ᶜ :=
-begin
-  rw ← upper_set.Union_Ici,
-  simp only [compl_Union],
-end
-
-lemma  Union_Ici_compl [preorder α] (F: set α) : (⋃ (a : α) (H : a ∈ F), Ici a)ᶜ = ⋂ (a : α) (H : a ∈ F), (Ici a)ᶜ :=
-begin
-rw upper_set.Union_Ici,
-rw upper_set.Inter_Ici,
-end
-
-
 
 lemma l2 [preorder α] [preorder β] (a : α) (b : β) :
   (Ici a)ᶜ ×ˢ (Ici b)ᶜ = ((univ ×ˢ Ici b) ∪ (Ici a ×ˢ univ))ᶜ :=
@@ -77,17 +49,7 @@ begin
   { intros x h, simp, simp at h,  rw and.comm, apply h, }
 end
 
-lemma upper_closure_comp_prod_upper_closure_comp [preorder α] [preorder β] (F₁ : set α) (F₂ : set β)
-  : (upper_closure F₁ : set α)ᶜ ×ˢ (upper_closure F₂ : set β)ᶜ =
-  (univ ×ˢ upper_closure F₂ ∪ upper_closure F₁ ×ˢ univ)ᶜ :=
-begin
-  rw subset_antisymm_iff,
-  split,
-  { rintros x h,
-    finish, },
-  { rintros x h,
-    finish, }
-end
+
 
 lemma upper_closure_prod [preorder α] [preorder β] (F₁ : set α) (F₂ : set β) :
   (upper_closure (F₁ ×ˢ F₂) : set (α × β)) = ((univ : set α) ×ˢ ((upper_closure F₂) : set β))
@@ -155,27 +117,10 @@ begin
     finish, }
 end
 
-
-
 end preorder
-
-
-
-
 
 section lower_topology
 
-
-
-lemma pair_union (F₁ F₂ : set α) :
-  (upper_closure F₁ : set α)ᶜ ∩ (upper_closure F₂ : set α)ᶜ = (upper_closure (F₁ ∪ F₂) : set α)ᶜ :=
-begin
-  rw [← compl_union, compl_inj_iff, upper_closure_union],
-  simp only [upper_set.coe_inf],
-end
-
-lemma univ_empty : (upper_closure (∅ : set α) : set α)ᶜ = univ :=
-  by rw [upper_closure_empty, upper_set.coe_top, compl_empty]
 
 lemma upper_closure_singleton (a : α) : upper_set.Ici a = upper_closure {a} :=
 begin
@@ -465,23 +410,7 @@ include p
 
 lemma upper_closure_prod_basis_is_basis : is_topological_basis (upper_closure_prod_basis α β)  :=
 ⟨ sorry, sorry, sorry ⟩
-/-
-begin
-   sorry
-end
--/
---#check is_topological_basis.pro(×ˢ)d
 
-#check  {s : set α | ∃ (F : set α),  F.finite ∧ s = (upper_closure F : set α)ᶜ ∧ ((upper_closure F : set α)ᶜ.nonempty) }
-
---let S := {s : set α | ∃ (F : set α),  F.finite ∧ s = (upper_closure F : set α)ᶜ ∧ ((upper_closure F : set α)ᶜ.nonempty) },
---variable (T : {s : set α | ∃ (F : set β),  F.finite ∧ s = (upper_closure F : set β)ᶜ ∧ ((upper_closure F : set β)ᶜ.nonempty) } )
-
---#check (S : set (set α))
-
-#check set.prod {s : set α | ∃ (F : set α),  F.finite ∧ s = (upper_closure F : set α)ᶜ ∧ ((upper_closure F : set α)ᶜ.nonempty) } {s : set β | ∃ (F : set β),  F.finite ∧ s = (upper_closure F : set β)ᶜ ∧ ((upper_closure F : set β)ᶜ.nonempty) }
-
---#check {p | p.1 ∈ s ∧ p.2 ∈ t}
 
 /-
 lemma prod_basis
@@ -498,7 +427,23 @@ begin
   { intros x h, simp, simp at h, rw and.comm at h, rw prod.le_def, simp, apply h, }
 end
 
+lemma upper_closure_compl_prod_upper_closure_compl (F₁ : set α) (F₂ : set β)
+  : ((upper_closure F₁).compl.prod (upper_closure F₂).compl)  =
+  (((⊥ : upper_set α).prod (upper_closure F₂)).compl ⊓ ((upper_closure F₁).prod (⊥ : upper_set β)).compl) :=
+lower_set.ext begin
+  rw subset_antisymm_iff,
+  split,
+  { rintros x h,
+    finish, },
+  { rintros x h,
+    simp,
+    simp at h,
+    rw and_comm,
+    exact h, }
+end
+
 include t
+
 
 instance : lower_topology (α × β) :=
 { topology_eq_generate_Ici_comp :=

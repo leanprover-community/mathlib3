@@ -35,6 +35,13 @@ def Ab_neg : operation₁ Ab :=
 def Ab_add : operation₂ Ab :=
 { app := λ M x, x.1 + x.2, }
 
+lemma Ab_add_comm : Ab_add.comm :=
+by { ext M x, apply add_comm, }
+
+lemma Ab_add_assoc : Ab_add.assoc :=
+by { ext M x, apply add_assoc, }
+
+
 end operations
 
 namespace internal
@@ -44,13 +51,6 @@ namespace Ab
 open concrete_category.operations limits
 
 variables {C : Type*} [category C] (M : internal Ab C)
-
-def zero [has_terminal C] := Ab_zero.on_internal_obj M
-def neg := Ab_neg.on_internal_obj M
-def add [has_binary_products C] := Ab_add.on_internal_obj M
-def yoneda_presheaf_zero := Ab_zero.on_internal_yoneda_presheaf M
-def yoneda_presheaf_neg := Ab_neg.on_internal_yoneda_presheaf M
-def yoneda_presheaf_add := Ab_add.on_internal_yoneda_presheaf M
 
 def mk (X : C)
   (yoneda_zero : (functor.const Cᵒᵖ).obj punit ⟶ yoneda.obj X)
@@ -91,6 +91,16 @@ Ab.mk X (internal_operation₀.yoneda_equiv X zero)
   (internal_operation₂.yoneda_equiv_assoc X add add_assoc)
   (internal_operation₂.yoneda_equiv_zero_add X add zero add_zero)
   (internal_operation₂.yoneda_equiv_add_left_neg X add zero neg add_left_neg)
+
+def yoneda_operation_zero := Ab_zero.to_internal_yoneda_operation₀ M
+def yoneda_operation_neg := Ab_neg.to_internal_yoneda_operation₁ M
+def yoneda_operation_add := Ab_add.to_internal_yoneda_operation₂ M
+def zero [has_terminal C] := (internal_operation₀.yoneda_equiv _).symm (yoneda_operation_zero M)
+def neg := (internal_operation₁.yoneda_equiv _).symm (yoneda_operation_neg M)
+def add [has_binary_product M.obj M.obj]:= (internal_operation₂.yoneda_equiv _).symm (yoneda_operation_add M)
+
+lemma yoneda_operation_add_comm : yoneda_operation_add M = lift₂ pr₂ pr₁ ≫ yoneda_operation_add M :=
+Ab_add.to_internal_yoneda_operation₂_comm M Ab_add_comm
 
 end Ab
 

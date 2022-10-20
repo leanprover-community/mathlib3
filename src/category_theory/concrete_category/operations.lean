@@ -95,10 +95,13 @@ namespace operation₂
 
 variables {A} (oper : operation₂ A)
 
-def assoc₁ : operation₃ A := lift₂ (pr₁₂_₃ ≫ oper) pr₃_₃ ≫ oper
-def assoc₂ : operation₃ A := lift₂ pr₁_₃ (pr₂₃_₃ ≫ oper) ≫ oper
+@[simp]
+def assoc : Prop :=
+lift₂ (pr₁₂_₃ ≫ oper) pr₃_₃ ≫ oper = lift₂ pr₁_₃ (pr₂₃_₃ ≫ oper) ≫ oper
 
-def is_assoc : Prop := oper.assoc₁ = oper.assoc₂
+@[simp]
+def comm : Prop :=
+oper = lift₂ pr₂ pr₁ ≫ oper
 
 end operation₂
 

@@ -1,4 +1,4 @@
-import category_theory.concrete_category.internal
+import category_theory.concrete_category.operations
 import algebra.category.Group.preadditive
 
 noncomputable theory
@@ -16,7 +16,7 @@ def yoneda.obj_prod_iso [has_binary_product X Y] :
   inv := { app := λ Z φ, prod.lift φ.1 φ.2, }, }
 
 @[simps]
-def yoneda.obj_prod₃_iso[has_binary_product Y Z] [has_binary_product X (prod Y Z)] :
+def yoneda.obj_prod₃_iso [has_binary_product Y Z] [has_binary_product X (prod Y Z)] :
   yoneda.obj (prod X (prod Y Z)) ≅ concat₃ (yoneda.obj X) (yoneda.obj Y) (yoneda.obj Z) :=
 { hom := { app := λ W φ, ⟨φ ≫ limits.prod.fst, φ ≫ limits.prod.snd ≫ limits.prod.fst, φ ≫ limits.prod.snd ≫ limits.prod.snd⟩, },
   inv := { app := λ W φ, prod.lift φ.1 (prod.lift φ.2.1 φ.2.2), }, }

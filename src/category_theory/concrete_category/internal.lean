@@ -1,4 +1,5 @@
 import category_theory.concrete_category.operations
+import category_theory.internal_operation
 
 universes v₁ v₂ u₁ u₂
 
@@ -76,44 +77,25 @@ lemma on_internal_presheaf_naturality {Y Y' : C} (f : Y' ⟶ Y) :
   oper.on_internal_presheaf R Y' = R.presheaf_type.map f.op (oper.on_internal_presheaf R Y) :=
 congr_fun (oper.naturality (R.presheaf.map f.op)) punit.star
 
-def on_internal_yoneda (Y : C) : Y ⟶ R.obj :=
+def to_internal_yoneda_operation₀_app (Y : C) : Y ⟶ R.obj :=
 R.iso.inv.app (op Y) (oper.on_internal_presheaf R Y)
 
-lemma on_internal_yoneda_naturality {Y Y' : C} (f : Y' ⟶ Y) :
-f ≫ oper.on_internal_yoneda R Y = oper.on_internal_yoneda R Y' :=
+lemma to_internal_yoneda_operation₀_app_naturality {Y Y' : C} (f : Y' ⟶ Y) :
+f ≫ oper.to_internal_yoneda_operation₀_app R Y = oper.to_internal_yoneda_operation₀_app R Y' :=
 begin
-  dsimp only [on_internal_yoneda],
+  dsimp only [to_internal_yoneda_operation₀_app],
   rw [← R.iso_inv_naturality, oper.on_internal_presheaf_naturality R f],
 end
 
-def on_internal_yoneda_presheaf : (functor.const Cᵒᵖ).obj punit ⟶ yoneda.obj R.obj :=
-{ app := λ X s, oper.on_internal_yoneda R X.unop,
+def to_internal_yoneda_operation₀ : internal_yoneda_operation₀ R.obj :=
+{ app := λ X s, oper.to_internal_yoneda_operation₀_app R X.unop,
   naturality' := λ X Y f, begin
     ext x,
     dsimp at x,
     have eq : x = punit.star := subsingleton.elim _ _,
     subst eq,
-    exact (oper.on_internal_yoneda_naturality R f.unop).symm,
+    exact (oper.to_internal_yoneda_operation₀_app_naturality R f.unop).symm,
   end }
-
-def on_internal_obj [has_terminal C] : ⊤_ C ⟶ R.obj :=
-oper.on_internal_yoneda R _
-
-lemma on_internal_yoneda_eq [has_terminal C] {Y : C} :
-  oper.on_internal_yoneda R Y = terminal.from Y ≫ oper.on_internal_obj R :=
-begin
-  dsimp only [on_internal_obj],
-  simp only [on_internal_yoneda_naturality],
-end
-
-lemma ext [has_terminal C]
-  (h : oper.on_internal_obj R = oper'.on_internal_obj R) :
-  oper.on_internal_yoneda_presheaf R = oper'.on_internal_yoneda_presheaf R :=
-begin
-  ext Y x,
-  dsimp only [on_internal_yoneda_presheaf],
-  simp only [on_internal_yoneda_eq, h],
-end
 
 end operation₀
 
@@ -133,45 +115,25 @@ lemma on_internal_presheaf_naturality (x : R.presheaf_type.obj (op Y)) (f : Y' �
   R.presheaf_type.map f.op (oper.on_internal_presheaf x) :=
 congr_fun (oper.naturality (R.presheaf.map f.op)) x
 
-def on_internal_yoneda (x : Y ⟶ R.obj) : Y ⟶ R.obj :=
+def to_internal_yoneda_operation₁_app (x : Y ⟶ R.obj) : Y ⟶ R.obj :=
 R.iso.inv.app _ (oper.on_internal_presheaf (R.iso.hom.app (op Y) x))
 
-lemma on_internal_yoneda_naturality (x : Y ⟶ R.obj) (f : Y' ⟶ Y) :
-  f ≫ oper.on_internal_yoneda x = oper.on_internal_yoneda (f ≫ x) :=
+lemma to_internal_yoneda_operation₁_app_naturality (x : Y ⟶ R.obj) (f : Y' ⟶ Y) :
+  f ≫ oper.to_internal_yoneda_operation₁_app x = oper.to_internal_yoneda_operation₁_app (f ≫ x) :=
 begin
-  dsimp only [on_internal_yoneda],
+  dsimp only [to_internal_yoneda_operation₁_app],
   simp only [R.iso_hom_naturality, on_internal_presheaf_naturality, R.iso_inv_naturality],
 end
 
 variable (R)
 
-def on_internal_yoneda_presheaf :
-  yoneda.obj R.obj ⟶ yoneda.obj R.obj :=
-{ app := λ X x, oper.on_internal_yoneda x,
+def to_internal_yoneda_operation₁ : internal_yoneda_operation₁ R.obj :=
+{ app := λ X x, oper.to_internal_yoneda_operation₁_app x,
   naturality' := λ X Y f, begin
     ext x,
     symmetry,
-    apply on_internal_yoneda_naturality,
+    apply to_internal_yoneda_operation₁_app_naturality,
   end, }
-
-def on_internal_obj : R.obj ⟶ R.obj :=
-oper.on_internal_yoneda (𝟙 R.obj)
-
-lemma on_internal_yoneda_eq {Y : C} (x : Y ⟶ R.obj) :
-  oper.on_internal_yoneda x = x ≫ oper.on_internal_obj R :=
-begin
-  dsimp only [on_internal_obj],
-  simp only [on_internal_yoneda_naturality, comp_id],
-end
-
-lemma ext
-  (h : oper.on_internal_obj R = oper'.on_internal_obj R) :
-  oper.on_internal_yoneda_presheaf R = oper'.on_internal_yoneda_presheaf R :=
-begin
-  ext Y x,
-  dsimp only [on_internal_yoneda_presheaf],
-  simp only [on_internal_yoneda_eq, h],
-end
 
 end operation₁
 
@@ -191,44 +153,34 @@ lemma on_internal_presheaf_naturality (x y : R.presheaf_type.obj (op Y)) (f : Y'
   R.presheaf_type.map f.op (oper.on_internal_presheaf x y) :=
 congr_fun (oper.naturality (R.presheaf.map f.op)) ⟨x,y⟩
 
-def on_internal_yoneda (x y : Y ⟶ R.obj) : Y ⟶ R.obj :=
+def to_internal_yoneda_operation₂_app (x y : Y ⟶ R.obj) : Y ⟶ R.obj :=
 R.iso.inv.app _ (oper.on_internal_presheaf (R.iso.hom.app (op Y) x) (R.iso.hom.app (op Y) y))
 
-lemma on_internal_yoneda_naturality (x y : Y ⟶ R.obj) (f : Y' ⟶ Y) :
-  f ≫ oper.on_internal_yoneda x y = oper.on_internal_yoneda (f ≫ x) (f ≫ y) :=
+lemma to_internal_yoneda_operation₂_app_naturality (x y : Y ⟶ R.obj) (f : Y' ⟶ Y) :
+  f ≫ oper.to_internal_yoneda_operation₂_app x y = oper.to_internal_yoneda_operation₂_app (f ≫ x) (f ≫ y) :=
 begin
-  dsimp only [on_internal_yoneda],
+  dsimp only [to_internal_yoneda_operation₂_app],
   simp only [R.iso_hom_naturality, on_internal_presheaf_naturality, R.iso_inv_naturality],
 end
 
 variable (R)
 
-def on_internal_yoneda_presheaf :
+def to_internal_yoneda_operation₂ :
   concat₂ (yoneda.obj R.obj) (yoneda.obj R.obj) ⟶ yoneda.obj R.obj :=
-{ app := λ X x, oper.on_internal_yoneda x.1 x.2,
+{ app := λ X x, oper.to_internal_yoneda_operation₂_app x.1 x.2,
   naturality' := λ X Y f, begin
     ext x,
     symmetry,
-    apply on_internal_yoneda_naturality,
+    apply to_internal_yoneda_operation₂_app_naturality,
   end, }
 
-def on_internal_obj [has_binary_product R.obj R.obj] : prod R.obj R.obj ⟶ R.obj :=
-oper.on_internal_yoneda limits.prod.fst limits.prod.snd
-
-lemma on_internal_yoneda_eq [has_binary_product R.obj R.obj] {Y : C} (x y : Y ⟶ R.obj) :
-  oper.on_internal_yoneda x y = prod.lift x y ≫ oper.on_internal_obj R :=
+def to_internal_yoneda_operation₂_comm (oper_comm : oper.comm):
+  (oper.to_internal_yoneda_operation₂ R) =
+    lift₂ pr₂ pr₁ ≫ (oper.to_internal_yoneda_operation₂ R) :=
 begin
-  dsimp only [on_internal_obj],
-  simp only [on_internal_yoneda_naturality, prod.lift_fst, prod.lift_snd],
-end
-
-lemma ext [has_binary_product R.obj R.obj]
-  (h : oper.on_internal_obj R = oper'.on_internal_obj R) :
-  oper.on_internal_yoneda_presheaf R = oper'.on_internal_yoneda_presheaf R :=
-begin
-  ext Y x,
-  dsimp only [on_internal_yoneda_presheaf],
-  simp only [on_internal_yoneda_eq, h],
+  dsimp at oper_comm,
+  conv_lhs { rw oper_comm, },
+  refl,
 end
 
 end operation₂

@@ -975,7 +975,7 @@ end
 
 /-- If the signs of two oriented angles between nonzero vectors are equal, the oriented angles are
 equal if and only if the unoriented angles are equal. -/
-lemma oangle_eq_iff_oangle_eq_of_sign_eq {w x y z : V} (hw : w ≠ 0) (hx : x ≠ 0) (hy : y ≠ 0)
+lemma angle_eq_iff_oangle_eq_of_sign_eq {w x y z : V} (hw : w ≠ 0) (hx : x ≠ 0) (hy : y ≠ 0)
   (hz : z ≠ 0) (hs : (o.oangle w x).sign = (o.oangle y z).sign) :
   inner_product_geometry.angle w x = inner_product_geometry.angle y z ↔
     o.oangle w x = o.oangle y z :=

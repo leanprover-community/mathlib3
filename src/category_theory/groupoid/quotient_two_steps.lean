@@ -238,18 +238,18 @@ begin
   rw quotient.out_eq,
 end
 
-noncomputable def to_reps_arrow (c : C) : c ⟶ of_reps S Sw (to_reps S Sw c) :=
-(r.symm S (of_to_reps_congr S Sw c)).some.val
+noncomputable def to_reps_arrow (c : C) : of_reps S Sw (to_reps S Sw c)  ⟶ c :=
+(of_to_reps_congr S Sw c).some.val
 
 lemma to_reps_arrow_mem (c : C) :
-  (to_reps_arrow S Sw c) ∈ (S.arrows c (of_reps S Sw (to_reps S Sw c))) :=
-(r.symm S (of_to_reps_congr S Sw c)).some.prop
+  (to_reps_arrow S Sw c) ∈ (S.arrows (of_reps S Sw (to_reps S Sw c)) c) :=
+(of_to_reps_congr S Sw c).some.prop
 
 
 include Sg Sw
 lemma to_reps_arrow_unique {c : C}
-  {γ : c ⟶ of_reps S Sw (to_reps S Sw c)}
-  (hγ : γ ∈ S.arrows c (of_reps S Sw (to_reps S Sw c))) :
+  {γ : of_reps S Sw (to_reps S Sw c) ⟶ c}
+  (hγ : γ ∈ S.arrows (of_reps S Sw (to_reps S Sw c)) c) :
   γ = to_reps_arrow S Sw c :=
 begin
   rw subgroupoid.is_graph_like_iff at Sg,
@@ -275,8 +275,10 @@ noncomputable def of : C ⥤ quotient S Sw :=
     by { dsimp [quotient], rw full_objs, simp only [subtype.coe_prop], } ⟩,
   map := λ c d f,
     let
-      γ := (of_to_reps_congr S Sw c).some.val,
-      δ := inv (of_to_reps_congr S Sw d).some.val
+      γ := (to_reps_arrow S Sw c),
+      δ := inv (to_reps_arrow S Sw d)
+      --γ := (of_to_reps_congr S Sw c).some.val,
+      --δ := inv (of_to_reps_congr S Sw d).some.val
     in
       ⟨γ ≫ f ≫ δ, by { constructor; simp, } ⟩,
   map_id' := λ _, by
@@ -332,17 +334,12 @@ begin
   rw subtype.val_eq_coe,
   sorry,
   sorry,
-  /-
-  cases c,
-  cases c_property,
-  rcases c_property_h,
-  rcases c_property_h_hc with ⟨_,rfl⟩,
-  cases d,
-  cases d_property,
-  rcases d_property_h,
-  rcases d_property_h_hc with ⟨_,rfl⟩,
-  dsimp [of, fo, subgroupoid.hom, subgroupoid.full, to_reps],
-  simp,-/
+end
+
+lemma of_fo_eq_id : (fo S Sw) ⋙ (of S Sw) = functor.id _ :=
+begin
+  apply functor.ext,
+  { rintro, simp only [functor.comp_map, functor.id_map], rw of_fo_map, },
 end
 
 section ump
@@ -364,14 +361,12 @@ begin
   { rintro c d f,
     simp only [subtype.val_eq_coe, inv_eq_inv, functor.comp_map,
                functor.map_comp, functor.map_inv],
-    obtain ⟨γ,hγ⟩ := (of_to_reps_congr S Sw c).some,
-    obtain ⟨δ,hδ⟩ := (of_to_reps_congr S Sw d).some,
-    let hγ' := hφ hγ,
-    let hδ' := hφ hδ,
+    let hγ' := hφ (to_reps_arrow_mem S Sw c),
+    let hδ' := hφ (to_reps_arrow_mem S Sw d),
     rw mem_ker_iff at hγ' hδ',
     obtain ⟨eγ,hγ''⟩ := hγ',
     obtain ⟨eδ,hδ''⟩ := hδ',
-    simp only [subtype.coe_mk,hδ'',hγ'',inv_eq_to_hom], },
+    simp only [subtype.coe_mk,hδ'',hγ'',inv_eq_to_hom], refl,  },
 end
 
 omit hφ

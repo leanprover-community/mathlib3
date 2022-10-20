@@ -6,31 +6,51 @@ Authors: Anatole Dedecker
 import topology.algebra.uniform_convergence
 
 /-!
-# Strong Topology
+# Strong topologies on the space of continuous linear maps
+
+In this file, we define the strong topologies on `E →L[𝕜] F` associated with a family
+`𝔖 : set (set E)` to be the topology of uniform convergence on the elements of `𝔖` (also called
+the topology of `𝔖`-convergence).
+
+The lemma `uniform_convergence_on.has_continuous_smul_of_image_bounded` tells us that this is a
+vector space topology if the continuous linear image of any element of `𝔖` is bounded (in the sense
+of `bornology.is_vonN_bounded`).
+
+We then declare an instance for the case where `𝔖` is exactly the set of all bounded subsets of
+`E`, giving us the so-called "topology of uniform convergence on bounded sets" (or "topology of
+bounded convergence"), which coincides with the operator norm topology in the case of
+`normed_space`s.
+
+Other useful examples include the weak-* topology (when `𝔖` is the set of finite sets or the set
+of singletons) and the topology of compact convergence (when `𝔖` is the set of relatively compact
+sets).
 
 ## Main definitions
 
-* `foo_bar`
+* `continuous_linear_map.strong_topology` is the topology mentionned above for an arbitrary `𝔖`
+* `continuous_linear_map.to_topological_space` is the topology of bounded convergence. This is
+  declared as an instance
 
 ## Main statements
 
-* `foo_bar_unique`
-
-## Notation
-
-
-
-## Implementation details
-
-
+* `continuous_linear_map.strong_topology.topological_add_group` and
+  `continuous_linear_map.strong_topology.has_continuous_smul` show that the strong topology
+  makes `E →L[𝕜] F` a topological vector space, with the assumptions on `𝔖` mentionned above
+* `continuous_linear_map.to_topological_add_group` and
+  `continuous_linear_map.to_has_continuous_smul` register these facts as instances for the special
+  case of bounded convergence
 
 ## References
 
-* [F. Bar, *Quuxes*][bibkey]
+* [N. Bourbaki, *Topological Vector Spaces*][bourbaki1987]
+
+## TODO
+
+* show that these topologies are T₂ and locally convex if the topology on `F` is
 
 ## Tags
 
-Foobars, barfoos
+uniform convergence, bounded convergence
 -/
 
 open_locale topological_space
@@ -43,13 +63,19 @@ variables {𝕜₁ 𝕜₂ : Type*} [normed_field 𝕜₁] [normed_field 𝕜₂
   (E F : Type*) [add_comm_group E] [module 𝕜₁ E]
   [add_comm_group F] [module 𝕜₂ F] [topological_space E]
 
+/-- Given `E` and `F` two topological vector spaces and `𝔖 : set (set E)`, this is the "topology
+of uniform convergence on the elements of `𝔖`" on `E →L[𝕜] F`.
+
+If the continuous linear image of any element of `𝔖` is bounded, this makes `E →L[𝕜] F` a
+topological vector space. -/
 def strong_topology [topological_space F] [topological_add_group F]
   (𝔖 : set $ set E) :
   topological_space (E →SL[σ] F) :=
 (@uniform_convergence_on.topological_space E F
   (topological_add_group.to_uniform_space F) 𝔖).induced coe_fn
 
--- Meh, TODO: find a better name
+/-- The uniform structure associated with `continuous_linear_map.strong_topology`. We make sure
+that this has nice definitional properties. -/
 def strong_uniformity [uniform_space F] [uniform_add_group F]
   (𝔖 : set (set E)) : uniform_space (E →SL[σ] F) :=
 @uniform_space.replace_topology _ (strong_topology σ E F 𝔖)
@@ -124,6 +150,8 @@ section bounded_sets
 variables {𝕜₁ 𝕜₂ : Type*} [normed_field 𝕜₁] [normed_field 𝕜₂] {σ : 𝕜₁ →+* 𝕜₂} {E F : Type*}
   [add_comm_group E] [module 𝕜₁ E] [add_comm_group F] [module 𝕜₂ F] [topological_space E]
 
+/-- The topology of bounded convergence on `E →L[𝕜] F`. This coincides with the topology induced by
+the operator norm when `E` and `F` are normed spaces. -/
 instance [topological_space F] [topological_add_group F] : topological_space (E →SL[σ] F) :=
 strong_topology σ E F {S | bornology.is_vonN_bounded 𝕜₁ S}
 

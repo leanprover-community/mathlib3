@@ -7,6 +7,10 @@ Authors: Christopher Hoskin
 /-!
 # Absolute value
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/477
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a notational class `has_abs` which adds the unary operator `abs` and the notation
 `|.|`. The concept of an absolute value occurs in lattice ordered groups and in GL and GM spaces.
 

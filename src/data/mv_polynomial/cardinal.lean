@@ -3,6 +3,7 @@ Copyright (c) 2021 Chris Hughes, Junyan Xu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Junyan Xu
 -/
+import data.finsupp.fintype
 import data.mv_polynomial.equiv
 import set_theory.cardinal.ordinal
 /-!
@@ -26,7 +27,7 @@ variables {σ : Type u} {R : Type v} [comm_semiring R]
 @[simp] lemma cardinal_mk_eq_max_lift [nonempty σ] [nontrivial R] :
   #(mv_polynomial σ R) = max (max (cardinal.lift.{u} $ #R) $ cardinal.lift.{v} $ #σ) ℵ₀ :=
 begin
-  haveI : infinite (σ →₀ ℕ) := infinite_iff.2 ((le_max_right _ _).trans (mk_finsupp_nat σ).ge),
+  letI := classical.dec_eq σ,
   refine (mk_finsupp_lift_of_infinite _ R).trans _,
   rw [mk_finsupp_nat, max_assoc, lift_max, lift_aleph_0, max_comm],
 end

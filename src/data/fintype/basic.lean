@@ -2130,6 +2130,18 @@ begin
   exact H'.false
 end
 
+instance pi.infinite_of_left {ι : Type*} {π : ι → Sort*} [decidable_eq ι] [∀ i, nontrivial $ π i]
+  [infinite ι] : infinite (Π i : ι, π i) :=
+begin
+  choose m n hm using (λ i, exists_pair_ne (π i));
+  refine infinite.of_injective (λ (i : ι) j, if i = j then n j else m j) (λ x y h, _),
+  have := congr_fun h y,
+  simp only [eq_self_iff_true, if_true] at this,
+  split_ifs at this, { assumption },
+  have := hm y,
+  contradiction
+end
+
 /-- If at least one `π i` is infinite and the rest nonempty, the pi type of all `π` is infinite. -/
 def pi.infinite_of_exists_right {ι : Type*} {π : ι → Sort*} (i : ι)
   [infinite $ π i] [∀ i, nonempty $ π i] :

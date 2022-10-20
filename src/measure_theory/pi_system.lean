@@ -440,17 +440,11 @@ end
 
 lemma pi_Union_Inter_mono_left {π π' : ι → set (set α)} (h_le : ∀ i, π i ⊆ π' i) (S : set ι) :
   pi_Union_Inter π S ⊆ pi_Union_Inter π' S :=
-begin
-  rintros s ⟨t, ht_mem, ft, hft_mem_pi, rfl⟩,
-  exact ⟨t, ht_mem, ft, λ x hxt, h_le x (hft_mem_pi x hxt), rfl⟩,
-end
+λ s ⟨t, ht_mem, ft, hft_mem_pi, h_eq⟩, ⟨t, ht_mem, ft, λ x hxt, h_le x (hft_mem_pi x hxt), h_eq⟩
 
 lemma pi_Union_Inter_mono_right {π : ι → set (set α)} {S T : set ι} (hST : S ⊆ T) :
   pi_Union_Inter π S ⊆ pi_Union_Inter π T :=
-begin
-  rintros s ⟨t, ht_mem, ft, hft_mem_pi, rfl⟩,
-  exact ⟨t, ht_mem.trans hST, ft, hft_mem_pi, rfl⟩,
-end
+λ s ⟨t, ht_mem, ft, hft_mem_pi, h_eq⟩, ⟨t, ht_mem.trans hST, ft, hft_mem_pi, h_eq⟩
 
 lemma generate_from_pi_Union_Inter_le {m : measurable_space α}
   (π : ι → set (set α)) (h : ∀ n, generate_from (π n) ≤ m) (S : set ι) :
@@ -465,11 +459,11 @@ end
 lemma subset_pi_Union_Inter {π : ι → set (set α)} {S : set ι} {i : ι} (his : i ∈ S) :
   π i ⊆ pi_Union_Inter π S :=
 begin
-  refine λ t ht_pii, ⟨{i}, _, (λ j, t), ⟨λ m h_pm, _, _⟩⟩,
-  { simp only [his, finset.coe_singleton, singleton_subset_iff], },
-  { rw finset.mem_singleton at h_pm,
-    rwa h_pm, },
-  { simp only [finset.mem_singleton, Inter_Inter_eq_left], },
+  have h_ss : {i} ⊆ S,
+  { intros j hj, rw mem_singleton_iff at hj, rwa hj, },
+  refine subset.trans _ (pi_Union_Inter_mono_right h_ss),
+  rw pi_Union_Inter_singleton,
+  exact subset_union_left _ _,
 end
 
 lemma mem_pi_Union_Inter_of_measurable_set (m : ι → measurable_space α)

@@ -1413,6 +1413,10 @@ cont_diff_zero.1 (h.of_le bot_le)
 lemma cont_diff.differentiable (h : cont_diff 𝕜 n f) (hn : 1 ≤ n) : differentiable 𝕜 f :=
 differentiable_on_univ.1 $ (cont_diff_on_univ.2 h).differentiable_on hn
 
+lemma cont_diff_iff_forall_nat_le :
+  cont_diff 𝕜 n f ↔ ∀ m : ℕ, ↑m ≤ n → cont_diff 𝕜 m f :=
+by { simp_rw [← cont_diff_on_univ], exact cont_diff_on_iff_forall_nat_le }
+
 
 /-! ### Iterated derivative -/
 

@@ -436,7 +436,7 @@ begin
       ⟨normed_space.is_vonN_bounded_closed_ball _ _ _, hε⟩, λ f hf, _⟩,
     change ∀ x, _ at hf,
     simp_rw mem_closed_ball_zero_iff at hf,
-    rw @mem_closed_ball_zero_iff _ tmp_seminormed_add_comm_group,
+    rw @mem_closed_ball_zero_iff _ seminormed_add_comm_group.to_seminormed_add_group,
     refine op_norm_le_of_shell' (div_pos one_pos hc₀) hε.le hc₁ (λ x hx₁ hxc, _),
     rw div_mul_cancel 1 hc₀.ne.symm at hx₁,
     exact (hf x hxc.le).trans (le_mul_of_one_le_right hε.le hx₁) },

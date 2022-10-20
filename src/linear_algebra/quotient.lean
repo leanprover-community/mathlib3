@@ -361,6 +361,14 @@ and `f : M ≃ₗ N` maps `P` to `Q`, then `M ⧸ P` is equivalent to `N ⧸ Q`.
   right_inv := λ x, quotient.induction_on' x (by simp),
   .. P.mapq Q (f : M →ₗ[R] N) (λ x hx, hf ▸ submodule.mem_map_of_mem hx) }
 
+@[simp] lemma quotient.equiv_symm {R M N : Type*} [comm_ring R]
+  [add_comm_group M] [module R M] [add_comm_group N] [module R N]
+  (P : submodule R M) (Q : submodule R N)
+  (f : M ≃ₗ[R] N) (hf : P.map f = Q) :
+  (quotient.equiv P Q f hf).symm =
+    quotient.equiv Q P f.symm ((submodule.map_symm_eq_iff f).mpr hf) :=
+rfl
+
 end submodule
 
 open submodule

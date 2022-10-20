@@ -492,7 +492,7 @@ by simp [lt_iff_le_not_le, pi.le_def] {contextual := tt}
 section pi
 variables {ι : Type*} {π : ι → Type*}
 
-/-- Two functions `a`, `b` are strongly less than each other if `a i < b i` for all `i`. -/
+/-- A function `a` is strongly less than a function `b`  if `a i < b i` for all `i`. -/
 def strong_lt [Π i, has_lt (π i)] (a b : Π i, π i) : Prop := ∀ i, a i < b i
 
 local infix ` ≺ `:50 := strong_lt

@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov, Rémy Degenne
 -/
-import algebra.order.group
+import algebra.order.group.basic
 import order.rel_iso
 
 /-!
@@ -912,7 +912,7 @@ begin
   ext x,
   cases lt_or_le x b with hba hba,
   { simp [hba, h₁] },
-  { simp only [mem_Iio, mem_union_eq, mem_Ioo, lt_max_iff],
+  { simp only [mem_Iio, mem_union, mem_Ioo, lt_max_iff],
     refine or_congr iff.rfl ⟨and.right, _⟩,
     exact λ h₂, ⟨h₁.trans_le hba, h₂⟩ },
 end

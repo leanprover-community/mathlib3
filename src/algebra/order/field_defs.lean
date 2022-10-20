@@ -36,7 +36,7 @@ variables {α : Type*}
 
 /-- A linear ordered semifield is a field with a linear order respecting the operations. -/
 @[protect_proj] class linear_ordered_semifield (α : Type*)
-  extends linear_ordered_semiring α, semifield α
+  extends linear_ordered_comm_semiring α, semifield α
 
 /-- A linear ordered field is a field with a linear order respecting the operations. -/
 @[protect_proj] class linear_ordered_field (α : Type*) extends linear_ordered_comm_ring α, field α

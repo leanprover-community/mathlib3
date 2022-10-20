@@ -5,6 +5,7 @@ Authors: Yury Kudryashov
 -/
 import data.nat.lattice
 import data.nat.succ_pred
+import algebra.order.sub.with_top
 
 /-!
 # Definition and basic properties of extended natural numbers
@@ -35,7 +36,7 @@ variables {m n : ℕ∞}
 @[simp, norm_cast] lemma coe_sub (m n : ℕ) : ↑(m - n) = (m - n : ℕ∞) := rfl
 @[simp, norm_cast] lemma coe_mul (m n : ℕ) : ↑(m * n) = (m * n : ℕ∞) := with_top.coe_mul
 
-instance : can_lift ℕ∞ ℕ := with_top.can_lift
+instance can_lift : can_lift ℕ∞ ℕ coe (λ n, n ≠ ⊤) := with_top.can_lift
 
 /-- Conversion of `ℕ∞` to `ℕ` sending `∞` to `0`. -/
 def to_nat : monoid_with_zero_hom ℕ∞ ℕ :=

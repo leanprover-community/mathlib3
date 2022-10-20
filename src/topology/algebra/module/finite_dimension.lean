@@ -197,6 +197,19 @@ lemma linear_map.continuous_iff_is_closed_ker (l : E →ₗ[𝕜] 𝕜) :
   continuous l ↔ is_closed (l.ker : set E) :=
 ⟨λ h, is_closed_singleton.preimage h, l.continuous_of_is_closed_ker⟩
 
+/-- Over a nontrivially normed field, any linear form which is nonzero on a nonempty open set is
+    automatically continuous. -/
+lemma linear_map.continuous_of_nonzero_on_open (l : E →ₗ[𝕜] 𝕜) (s : set E) (hs₁ : is_open s)
+  (hs₂ : s.nonempty) (hs₃ : ∀ x ∈ s, l x ≠ 0) : continuous l :=
+begin
+  refine l.continuous_of_is_closed_ker (l.is_closed_or_dense_ker.resolve_right $ λ hl, _),
+  rcases hs₂ with ⟨x, hx⟩,
+  have : x ∈ interior (l.ker : set E)ᶜ,
+  { rw mem_interior_iff_mem_nhds,
+    exact mem_of_superset (hs₁.mem_nhds hx) hs₃ },
+  rwa hl.interior_compl at this
+end
+
 variables [complete_space 𝕜]
 
 /-- This version imposes `ι` and `E` to live in the same universe, so you should instead use
@@ -314,11 +327,11 @@ def to_continuous_linear_map : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F' 
 rfl
 
 @[simp] lemma ker_to_continuous_linear_map (f : E →ₗ[𝕜] F') :
-  f.to_continuous_linear_map.ker = f.ker :=
+  ker f.to_continuous_linear_map = ker f :=
 rfl
 
 @[simp] lemma range_to_continuous_linear_map (f : E →ₗ[𝕜] F') :
-  f.to_continuous_linear_map.range = f.range :=
+  range f.to_continuous_linear_map = range f :=
 rfl
 
 end linear_map

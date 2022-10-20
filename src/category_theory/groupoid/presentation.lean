@@ -1,5 +1,5 @@
 import category_theory.groupoid
-import category_theory.groupoid.quotient_two_steps
+import category_theory.groupoid.quotient
 import category_theory.groupoid.free_groupoid
 
 namespace category_theory

@@ -1,9 +1,6 @@
 import category_theory.monoidal.of_has_finite_products
 import category_theory.monoidal.Mon_
-import algebra.category.Group.limits
-import algebra.category.Group.biproducts
 import algebra.category.Group.abelian
-import category_theory.elementwise
 import linear_algebra.tensor_product
 
 noncomputable theory

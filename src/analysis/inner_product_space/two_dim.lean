@@ -95,6 +95,12 @@ begin
   { norm_num }
 end
 
+@[simp] lemma area_form_neg_orientation : (-o).area_form = -o.area_form :=
+begin
+  ext x y,
+  simp [area_form_to_volume_form]
+end
+
 /-- Continuous linear map version of `orientation.area_form`, useful for calculus. -/
 def area_form' : E →L[ℝ] (E →L[ℝ] ℝ) :=
 ((↑(linear_map.to_continuous_linear_map : (E →ₗ[ℝ] ℝ) ≃ₗ[ℝ] (E →L[ℝ] ℝ)))
@@ -243,6 +249,19 @@ by simp
   linear_isometry_equiv.trans J J = linear_isometry_equiv.neg ℝ :=
 by ext; simp
 
+lemma right_angle_rotation_neg_orientation (x : E) :
+  (-o).right_angle_rotation x = - o.right_angle_rotation x :=
+begin
+  apply ext_inner_right ℝ,
+  intros y,
+  rw inner_right_angle_rotation_left,
+  simp
+end
+
+@[simp] lemma right_angle_rotation_trans_neg_orientation :
+  (-o).right_angle_rotation = o.right_angle_rotation.trans (linear_isometry_equiv.neg ℝ) :=
+linear_isometry_equiv.ext $ o.right_angle_rotation_neg_orientation
+
 /-- For a nonzero vector `x` in an oriented two-dimensional real inner product space `E`,
 `![x, J x]` forms an (orthogonal) basis for `E`. -/
 def basis_right_angle_rotation (x : E) (hx : x ≠ 0) : basis (fin 2) ℝ E :=
@@ -390,6 +409,9 @@ begin
   simp only [kahler_right_angle_rotation_left, kahler_right_angle_rotation_right],
   linear_combination - o.kahler x y * complex.I_sq,
 end
+
+@[simp] lemma kahler_neg_orientation (x y : E) : (-o).kahler x y = conj (o.kahler x y) :=
+by simp [kahler_apply_apply]
 
 lemma kahler_mul (a x y : E) : o.kahler x a * o.kahler a y = ∥a∥ ^ 2 * o.kahler x y :=
 begin

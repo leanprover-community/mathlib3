@@ -717,7 +717,7 @@ end pointwise_actions
 
 section
 
-variables {L: Type*} [field K] [field L] [algebra K L]
+variables {L : Type*} [field L] [algebra K L]
 
 variable (K)
 
@@ -734,7 +734,7 @@ def sub_mul_action (A : valuation_subring L) :
   begin
     convert set.smul_mem_smul_set h using 1,
     exact congr_arg coe g.prop.symm,
-end }
+  end }
 
 instance mul_action (A : valuation_subring L) :
   mul_semiring_action (A.decomposition_subgroup K) A :=
@@ -747,13 +747,13 @@ instance mul_action (A : valuation_subring L) :
 variable {K}
 
 def decomposition_subgroup.to_ring_aut (A : valuation_subring L) :
-  (A.decomposition_subgroup K) →* (ring_aut A) :=
+  A.decomposition_subgroup K →* ring_aut A :=
 { to_fun := mul_semiring_action.to_ring_equiv (A.decomposition_subgroup K) A,
   map_mul' := λ g h, ring_equiv.ext $ mul_smul g h,
   map_one' := ring_equiv.ext $ one_smul _, }
 
 def decomposition_subgroup.to_aut_k (A : valuation_subring L):
-  ring_aut A →* ring_aut(local_ring.residue_field A):=
+  ring_aut A →* ring_aut (local_ring.residue_field A):=
 { to_fun := local_ring.residue_field.map_equiv,
   map_mul' := begin
   intros φ ψ,
@@ -767,13 +767,13 @@ def decomposition_subgroup.to_aut_k (A : valuation_subring L):
   }
 
 def decomposition_subgroup.comp (A : valuation_subring L):
-  (A.decomposition_subgroup K) →* ring_aut(local_ring.residue_field A):=
+  A.decomposition_subgroup K →* ring_aut (local_ring.residue_field A) :=
 (decomposition_subgroup.to_aut_k A).comp (decomposition_subgroup.to_ring_aut A)
 
 def inertia_subgroup (A : valuation_subring L) : subgroup (A.decomposition_subgroup K) :=
 (decomposition_subgroup.comp A).ker
 
-lemma inertia_subgp_galois (A : valuation_subring L)  : subgroup (L ≃ₐ[K] L) :=
+lemma inertia_subgp_galois (A : valuation_subring L) : subgroup (L ≃ₐ[K] L) :=
 by exact A.decomposition_subgroup K
 
 end

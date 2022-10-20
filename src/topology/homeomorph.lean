@@ -278,10 +278,6 @@ def homeomorph_of_continuous_open (e : α ≃ β) (h₁ : continuous e) (h₂ : 
   end,
   to_equiv := e }
 
-/-- If an equivalence `e : α ≃ β` is an open embedding, then it is a homeomorphism. -/
-def _root_.open_embedding.to_homeomorph (e : α ≃ β) (he : open_embedding e) : α ≃ₜ β :=
-homeomorph_of_continuous_open e he.continuous he.is_open_map
-
 @[simp] lemma comp_continuous_on_iff (h : α ≃ₜ β) (f : γ → α) (s : set γ) :
   continuous_on (h ∘ f) s ↔ continuous_on f s :=
 h.inducing.continuous_on_iff.symm

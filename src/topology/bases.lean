@@ -226,11 +226,13 @@ begin
     refine ⟨f ⁻¹' W, ⟨_, hS hW, rfl⟩, ha, set.preimage_mono $ set.subset_sUnion_of_mem hW⟩ }
 end
 
+/-- If `T` is a topological basis of `α`, then `f : α → β` is an open map if and only if the image
+of every `t ∈ T` is open. -/
 protected lemma is_topological_basis.is_open_map {β} [topological_space β] {f : α → β}
-  {T : set (set α)} (hT : is_topological_basis T) (hf : ∀ t ∈ T, is_open (f '' t)) :
-  is_open_map f :=
-λ s hs, let ⟨γ, g, hs, hgT⟩ := hT.open_eq_Union hs in
-  by simpa only [hs, image_Union] using is_open_Union (λ i, hf _ (hgT i))
+  {T : set (set α)} (hT : is_topological_basis T) :
+  is_open_map f ↔ ∀ t ∈ T, is_open (f '' t) :=
+⟨λ hf t ht, hf _ (hT.is_open ht), λ hf s hs, let ⟨γ, g, hs, hgT⟩ := hT.open_eq_Union hs in
+  by simpa only [hs, image_Union] using is_open_Union (λ i, hf _ (hgT i))⟩
 
 lemma is_topological_basis_of_cover {ι} {U  : ι → set α} (Uo : ∀ i, is_open (U i))
   (Uc : (⋃ i, U i) = univ) {b : Π i, set (set (U i))} (hb : ∀ i, is_topological_basis (b i)) :

@@ -508,19 +508,29 @@ begin
 end
 
 lemma has_deriv_at_of_tendsto_localy_uniformly_on {s : set 𝕜} (hs : is_open s)
-  (hF : ∀ n, differentiable_on 𝕜 (f n) s)
-  (hf : ∀ x ∈ s, tendsto (λ n, f n x) l (𝓝 (g x)))
-  (hg : tendsto_locally_uniformly_on (deriv ∘ f) g' l s) (hx : x ∈ s) :
+  (hf' : tendsto_locally_uniformly_on f' g' l s)
+  (hf : ∀ n, ∀ x ∈ s, has_deriv_at (f n) (f' n x) x)
+  (hfg : ∀ x ∈ s, tendsto (λ n, f n x) l (𝓝 (g x)))
+  (hx : x ∈ s) :
   has_deriv_at g (g' x) x :=
 begin
   have h1 : s ∈ 𝓝 x := hs.mem_nhds hx,
-  simp_rw [tendsto_locally_uniformly_on_iff_filter] at hg,
-  specialize hg x hx,
-  rw [is_open.nhds_within_eq hs hx] at hg,
   have h3 : set.univ ×ˢ s ∈ l ×ᶠ 𝓝 x := by simp only [h1, prod_mem_prod_iff, univ_mem, and_self],
-  have h4 : ∀ᶠ (n : ι × 𝕜) in l ×ᶠ 𝓝 x, has_deriv_at (f n.1) (deriv (f n.1) n.2) n.2,
-    from eventually_of_mem h3 (λ ⟨n, z⟩ ⟨hn, hz⟩, (hF n).has_deriv_at (hs.mem_nhds hz)),
-  exact has_deriv_at_of_tendsto_uniformly_on_filter hg h4 (eventually_of_mem h1 hf),
+  have h4 : ∀ᶠ (n : ι × 𝕜) in l ×ᶠ 𝓝 x, has_deriv_at (f n.1) (f' n.1 n.2) n.2,
+    from eventually_of_mem h3 (λ ⟨n, z⟩ ⟨hn, hz⟩, hf n z hz),
+  refine has_deriv_at_of_tendsto_uniformly_on_filter _ h4 (eventually_of_mem h1 hfg),
+  simpa [is_open.nhds_within_eq hs hx] using tendsto_locally_uniformly_on_iff_filter.mp hf' x hx,
+end
+
+lemma has_deriv_at_of_tendsto_localy_uniformly_on' {s : set 𝕜} (hs : is_open s)
+  (hF : ∀ n, differentiable_on 𝕜 (f n) s)
+  (hf : ∀ x ∈ s, tendsto (λ n, f n x) l (𝓝 (g x)))
+  (hg : tendsto_locally_uniformly_on (deriv ∘ f) g' l s)
+  (hx : x ∈ s) :
+  has_deriv_at g (g' x) x :=
+begin
+  refine has_deriv_at_of_tendsto_localy_uniformly_on hs hg (λ n z hz, _) hf hx,
+  exact ((hF n z hz).differentiable_at (hs.mem_nhds hz)).has_deriv_at
 end
 
 lemma has_deriv_at_of_tendsto_uniformly_on

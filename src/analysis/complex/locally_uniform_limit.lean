@@ -145,7 +145,7 @@ begin
   have h5 : tendsto_locally_uniformly_on (deriv ∘ F) (cderiv δ f) φ (interior K),
     from h1.tendsto_locally_uniformly_on.mono interior_subset,
   have h6 : ∀ x ∈ interior K, has_deriv_at f (cderiv δ f x) x,
-    from λ x h, has_deriv_at_of_tendsto_localy_uniformly_on is_open_interior h3 h4.tendsto_at h5 h,
+    from λ x h, has_deriv_at_of_tendsto_localy_uniformly_on' is_open_interior h3 h4.tendsto_at h5 h,
   have h7 : differentiable_on ℂ f (interior K),
     from λ x hx, (h6 x hx).differentiable_at.differentiable_within_at,
   exact (h7.differentiable_at (interior_mem_nhds.mpr hKx)).differentiable_within_at

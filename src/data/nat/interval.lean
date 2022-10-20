@@ -264,3 +264,28 @@ begin
 end
 
 end finset
+
+section induction
+
+variables {P : ℕ → Prop} (h : ∀ n, P (n + 1) → P n)
+
+include h
+
+lemma nat.decreasing_induction_of_not_bdd_above (hP : ¬ bdd_above {n | P n}) (n : ℕ) : P n :=
+let ⟨m, hm, hl⟩ := not_bdd_above_iff.1 hP n in decreasing_induction h hl.le hm
+
+lemma nat.decreasing_induction_of_infinite (hP : {n | P n}.infinite) (n : ℕ) : P n :=
+nat.decreasing_induction_of_not_bdd_above h (mt bdd_above.finite hP) n
+
+lemma nat.cauchy_induction {m : ℕ} (hm : P m) (f : ℕ → ℕ)
+  (hf : ∀ x, m ≤ x → P x → x < f x ∧ P (f x)) (n : ℕ) : P n :=
+begin
+  have : ∀ k, P (f^[k] m) ∧ m ≤ (f^[k] m) ∧ (f^[k] m) < (f^[k+1] m),
+  { intro k, induction k with k ih,
+    { exact ⟨hm, le_rfl, (hf m le_rfl hm).1⟩ },
+    rw f.iterate_succ',
+    have := hf _ ih.2.1 ih.1, refine ⟨this.2, _⟩, },
+  let := order_embedding.of_strict_mono (λ k, f^[k] m) (strict_mono_nat_of_lt_succ $ λ k, _),
+end
+
+end induction

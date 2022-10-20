@@ -445,6 +445,13 @@ begin
   exact ⟨t, ht_mem, ft, λ x hxt, h_le x (hft_mem_pi x hxt), rfl⟩,
 end
 
+lemma pi_Union_Inter_mono_right {π : ι → set (set α)} {S T : set ι} (hST : S ⊆ T) :
+  pi_Union_Inter π S ⊆ pi_Union_Inter π T :=
+begin
+  rintros s ⟨t, ht_mem, ft, hft_mem_pi, rfl⟩,
+  exact ⟨t, ht_mem.trans hST, ft, hft_mem_pi, rfl⟩,
+end
+
 lemma generate_from_pi_Union_Inter_le {m : measurable_space α}
   (π : ι → set (set α)) (h : ∀ n, generate_from (π n) ≤ m) (S : set ι) :
   generate_from (pi_Union_Inter π S) ≤ m :=

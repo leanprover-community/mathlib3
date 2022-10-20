@@ -2130,9 +2130,10 @@ begin
   exact H'.false
 end
 
-instance pi.infinite_of_left {ι : Type*} {π : ι → Sort*} [decidable_eq ι] [∀ i, nontrivial $ π i]
+instance pi.infinite_of_left {ι : Type*} {π : ι → Sort*} [∀ i, nontrivial $ π i]
   [infinite ι] : infinite (Π i : ι, π i) :=
 begin
+  letI := classical.dec_eq ι,
   choose m n hm using (λ i, exists_pair_ne (π i));
   refine infinite.of_injective (λ (i : ι) j, if i = j then n j else m j) (λ x y h, _),
   have := congr_fun h y,
@@ -2143,13 +2144,14 @@ begin
 end
 
 /-- If at least one `π i` is infinite and the rest nonempty, the pi type of all `π` is infinite. -/
-def pi.infinite_of_exists_right {ι : Type*} {π : ι → Sort*} (i : ι)
+lemma pi.infinite_of_exists_right {ι : Type*} {π : ι → Type*} (i : ι)
   [infinite $ π i] [∀ i, nonempty $ π i] :
   infinite (Π i : ι, π i) :=
-infinite.of_injective (λ (p : π i) t,
+by letI := classical.dec_eq ι; exact
+(infinite.of_injective (λ (p : π i) t,
   if h : t = i then cast (congr_arg π h.symm) p
   else classical.arbitrary _)
-  (λ x y h, by simpa using congr_fun h i)
+  (λ x y h, by simpa using congr_fun h i))
 
 /-- See `pi.infinite_of_exists_right` for the case that only one `π i` is infinite. -/
 instance pi.infinite_of_right {ι : Type*} {π : ι → Sort*} [∀ i, infinite $ π i] [nonempty ι] :

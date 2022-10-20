@@ -1943,15 +1943,16 @@ instance dfinsupp.fintype {ι : Sort*} {π : ι → Sort*} [decidable_eq ι] [Π
   fintype (Π₀ i, π i) :=
 fintype.of_equiv (Π i, π i) dfinsupp.equiv_fun_on_fintype.symm
 
-instance dfinsupp.infinite_of_left {ι : Sort*} {π : ι → Sort*} [decidable_eq ι]
+instance dfinsupp.infinite_of_left {ι : Sort*} {π : ι → Sort*}
   [∀ i, nontrivial (π i)] [Π i, has_zero (π i)] [infinite ι] :
   infinite (Π₀ i, π i) :=
-by choose m hm using (λ i, exists_ne (0 : π i)); exact
+by letI := classical.dec_eq ι; choose m hm using (λ i, exists_ne (0 : π i)); exact
 infinite.of_injective _ (dfinsupp.single_left_injective hm)
 
-instance dfinsupp.infinite_of_right {ι : Sort*} {π : ι → Sort*} [decidable_eq ι]
+instance dfinsupp.infinite_of_right {ι : Sort*} {π : ι → Sort*}
   [∀ i, infinite (π i)] [Π i, has_zero (π i)] [nonempty ι] :
   infinite (Π₀ i, π i) :=
+by letI := classical.dec_eq ι; exact
 infinite.of_injective (λ i, dfinsupp.single (classical.arbitrary ι) i) dfinsupp.single_injective
 
 end finite_infinite

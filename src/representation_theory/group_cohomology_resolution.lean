@@ -3,8 +3,11 @@ Copyright (c) 2022 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
-import representation_theory.Rep
+
+import algebraic_topology.alternating_face_map_complex
+import algebraic_topology.cech_nerve
 import representation_theory.basic
+import representation_theory.Rep
 
 /-!
 # The structure of the `k[G]`-module `k[Gⁿ]`
@@ -19,6 +22,12 @@ In particular, we define an isomorphism of `k`-linear `G`-representations betwee
 This allows us to define a `k[G]`-basis on `k[Gⁿ⁺¹]`, by mapping the natural `k[G]`-basis of
 `k[G] ⊗ₖ k[Gⁿ]` along the isomorphism.
 
+We then define the standard resolution of `k` as a trivial representation, by
+taking the alternating face map complex associated to an appropriate simplicial `k`-linear
+`G`-representation. This simplicial object is the `linearization` of the simplicial `G`-set given
+by the universal cover of the classifying space of `G`. We prove this `G`-set is isomorphic to the
+Čech nerve of the natural arrow of `G`-sets `G ⟶ {pt}`.
+
 ## Main definitions
 
  * `group_cohomology.resolution.to_tensor`
@@ -26,6 +35,9 @@ This allows us to define a `k[G]`-basis on `k[Gⁿ⁺¹]`, by mapping the natura
  * `Rep.of_mul_action`
  * `group_cohomology.resolution.equiv_tensor`
  * `group_cohomology.resolution.of_mul_action_basis`
+ * `classifying_space_universal_cover`
+ * `classifying_space_universal_cover.cech_nerve_iso`
+ * `group_cohomology.resolution`
 
 ## TODO
 
@@ -47,11 +59,12 @@ over `k`.
 
 noncomputable theory
 
-universes u
+universes u v w
 
 variables {k G : Type u} [comm_ring k] {n : ℕ}
 
 open_locale tensor_product
+open category_theory
 
 local notation `Gⁿ` := fin n → G
 local notation `Gⁿ⁺¹` := fin (n + 1) → G
@@ -60,6 +73,7 @@ namespace group_cohomology.resolution
 
 open finsupp (hiding lift) fin (partial_prod) representation
 
+section basis
 variables (k G n) [group G]
 
 /-- The `k`-linear map from `k[Gⁿ⁺¹]` to `k[G] ⊗ₖ k[Gⁿ]` sending `(g₀, ..., gₙ)`
@@ -132,12 +146,6 @@ end
 
 variables (k G n)
 
-/-- Given a `G`-action on `H`, this is `k[H]` bundled with the natural representation
-`G →* End(k[H])` as a term of type `Rep k G`. -/
-abbreviation _root_.Rep.of_mul_action (G : Type u) [monoid G] (H : Type u) [mul_action G H] :
-  Rep k G :=
-Rep.of $ representation.of_mul_action k G H
-
 /-- A hom of `k`-linear representations of `G` from `k[Gⁿ⁺¹]` to `k[G] ⊗ₖ k[Gⁿ]` (on which `G` acts
 by `ρ(g₁)(g₂ ⊗ x) = (g₁ * g₂) ⊗ x`) sending `(g₀, ..., gₙ)` to
 `g₀ ⊗ (g₀⁻¹g₁, g₁⁻¹g₂, ..., gₙ₋₁⁻¹gₙ)`. -/
@@ -184,7 +192,6 @@ Action.mk_iso (linear_equiv.to_Module_iso
   right_inv := λ x, by convert to_tensor_aux_right_inv x,
   ..to_tensor_aux k G n }) (to_tensor k G n).comm
 
--- not quite sure which simp lemmas to make here
 @[simp] lemma equiv_tensor_def :
   (equiv_tensor k G n).hom = to_tensor k G n := rfl
 
@@ -216,10 +223,153 @@ def of_mul_action_basis  :
   basis (fin n → G) (monoid_algebra k G) (of_mul_action k G (fin (n + 1) → G)).as_module :=
 @basis.map _ (monoid_algebra k G) (monoid_algebra k G ⊗[k] ((fin n → G) →₀ k))
   _ _ _ _ _ _ (@algebra.tensor_product.basis k _ (monoid_algebra k G) _ _ ((fin n → G) →₀ k) _ _
-  (fin n → G) (⟨linear_equiv.refl k _⟩)) (of_mul_action_basis_aux k G n)
+  (fin n → G) ⟨linear_equiv.refl k _⟩) (of_mul_action_basis_aux k G n)
 
 lemma of_mul_action_free :
   module.free (monoid_algebra k G) (of_mul_action k G (fin (n + 1) → G)).as_module :=
 module.free.of_basis (of_mul_action_basis k G n)
+
+end basis
+end group_cohomology.resolution
+variables (G)
+
+/-- The simplicial `G`-set sending `[n]` to `Gⁿ⁺¹` equipped with the diagonal action of `G`. -/
+def classifying_space_universal_cover [monoid G] :
+  simplicial_object (Action (Type u) $ Mon.of G) :=
+{ obj := λ n, Action.of_mul_action G (fin (n.unop.len + 1) → G),
+  map := λ m n f,
+  { hom := λ x, x ∘ f.unop.to_order_hom,
+    comm' := λ g, rfl },
+  map_id' := λ n, rfl,
+  map_comp' := λ i j k f g, rfl }
+
+namespace classifying_space_universal_cover
+
+open category_theory.limits category_theory.arrow
+
+variables (ι : Type w) {C : Type u} [category.{v} C] [has_terminal C]
+
+/-- The diagram `option ι ⥤ C` sending `none` to the terminal object and `some j` to `X`. -/
+def wide_cospan (X : C) : wide_pullback_shape ι ⥤ C :=
+wide_pullback_shape.wide_cospan (terminal C) (λ i : ι, X) (λ i, terminal.from X)
+
+instance unique_to_wide_cospan_none (X Y : C) : unique (Y ⟶ (wide_cospan ι X).obj none) :=
+by unfold wide_cospan; dsimp; apply_instance
+
+variables [has_finite_products C]
+
+/-- The product `Xᶥ` is the vertex of a limit cone on `wide_cospan ι X`. -/
+def wide_cospan.limit_cone [fintype ι] (X : C) : limit_cone (wide_cospan ι X) :=
+{ cone :=
+  { X := ∏ (λ i : ι, X),
+    π :=
+    { app := λ X, option.cases_on X (terminal.from _) (λ i, limit.π _ ⟨i⟩),
+      naturality' := λ i j f,
+      begin
+      cases f,
+      { cases i,
+        all_goals { dsimp, simp }},
+      { dsimp,
+        simp only [terminal.comp_from],
+        exact subsingleton.elim _ _ }
+      end } },
+  is_limit :=
+  { lift := λ s, limits.pi.lift (λ j, s.π.app (some j)),
+    fac' := λ s j, option.cases_on j (subsingleton.elim _ _) (λ j, limit.lift_π _ _),
+    uniq' := λ s f h,
+    begin
+      ext j,
+      dunfold limits.pi.lift,
+      rw limit.lift_π,
+      dsimp,
+      rw ←h (some j.as),
+      congr,
+      ext,
+      refl,
+    end } }
+
+instance has_wide_pullback [finite ι] (X : C) :
+  has_wide_pullback (arrow.mk (terminal.from X)).right
+  (λ i : ι, (arrow.mk (terminal.from X)).left) (λ i, (arrow.mk (terminal.from X)).hom) :=
+begin
+  casesI nonempty_fintype ι,
+  exact ⟨⟨wide_cospan.limit_cone ι X⟩⟩,
+end
+
+variables [monoid G] (m : simplex_categoryᵒᵖ)
+
+/-- The `m`th object of the Čech nerve of the `G`-set hom `G ⟶ {pt}` is isomorphic to `Gᵐ⁺¹` with
+the diagonal action. -/
+def cech_nerve_obj_iso :
+  (cech_nerve (arrow.mk (terminal.from (Action.of_mul_action G G)))).obj m
+    ≅ Action.of_mul_action G (fin (m.unop.len + 1) → G) :=
+(is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (wide_cospan.limit_cone
+  (fin (m.unop.len + 1)) (Action.of_mul_action G G)).2).trans $
+  limit.iso_limit_cone (Action.of_mul_action_limit_cone _ _)
+
+/-- The Čech nerve of the `G`-set hom `G ⟶ {pt}` is naturally isomorphic to `EG`, the universal
+cover of the classifying space of `G` as a simplicial `G`-set. -/
+def cech_nerve_iso : cech_nerve (arrow.mk (terminal.from (Action.of_mul_action G G)))
+  ≅ classifying_space_universal_cover G :=
+(@nat_iso.of_components _ _ _ _ (classifying_space_universal_cover G)
+  (cech_nerve (arrow.mk (terminal.from (Action.of_mul_action G G))))
+(λ n, (cech_nerve_obj_iso G n).symm) $ λ m n f,  wide_pullback.hom_ext
+  (λ j, (arrow.mk (terminal.from (Action.of_mul_action G G))).hom) _ _
+(λ j, begin
+  simp only [category.assoc],
+  dsimp [cech_nerve_obj_iso],
+  rw [wide_pullback.lift_π, category.assoc],
+  erw [limit.cone_point_unique_up_to_iso_hom_comp (wide_cospan.limit_cone _ _).2,
+    limit.cone_point_unique_up_to_iso_hom_comp (Action.of_mul_action_limit_cone _ _).2,
+    category.assoc],
+  dunfold wide_pullback.π,
+  erw [limit.cone_point_unique_up_to_iso_inv_comp, limit.iso_limit_cone_inv_π],
+  refl,
+end)
+(@subsingleton.elim _ (@unique.subsingleton _ (limits.unique_to_terminal _)) _ _)).symm
+
+end classifying_space_universal_cover
+namespace group_cohomology.resolution
+
+section differential
+variables (k G)
+/-- The `k`-linear map underlying the differential in the standard resolution of `k` as a trivial
+`k`-linear `G`-representation. It sends `(g₀, ..., gₙ) ↦ ∑ (-1)ⁱ • (g₀, ..., ĝᵢ, ..., gₙ)`. -/
+def d (n : ℕ) : ((fin (n + 1) → G) →₀ k) →ₗ[k] ((fin n → G) →₀ k) :=
+finsupp.lift ((fin n → G) →₀ k) k (fin (n + 1) → G) (λ g, (@finset.univ (fin (n + 1)) _).sum
+  (λ p, finsupp.single (g ∘ p.succ_above) ((-1 : k) ^ (p : ℕ))))
+
+variables {k G}
+
+@[simp] lemma d_of {n : ℕ} (c : fin (n + 1) → G) :
+  d k G n (finsupp.single c 1) = finset.univ.sum (λ p : fin (n + 1), finsupp.single
+    (c ∘ p.succ_above) ((-1 : k) ^ (p : ℕ))) :=
+by simp [d]
+
+end differential
+end group_cohomology.resolution
+variables (k G) [monoid G]
+
+/-- The standard resolution of `k` as a trivial representation, defined as the alternating
+face map complex of a simplicial `k`-linear `G`-representation. -/
+def group_cohomology.resolution := (algebraic_topology.alternating_face_map_complex (Rep k G)).obj
+  (classifying_space_universal_cover G ⋙ (Rep.linearization k G).1.1)
+
+namespace group_cohomology.resolution
+
+/-- The `n`th object of the standard resolution of `k` is definitionally isomorphic to `k[Gⁿ⁺¹]`
+equipped with the representation induced by the diagonal action of `G`. -/
+def X_iso (n : ℕ) :
+  (group_cohomology.resolution k G).X n ≅ Rep.of_mul_action k G (fin (n + 1) → G) := iso.refl _
+
+/-- Simpler expression for the differential in the standard resolution of `k` as a
+`G`-representation. It sends `(g₀, ..., gₙ₊₁) ↦ ∑ (-1)ⁱ • (g₀, ..., ĝᵢ, ..., gₙ₊₁)`. -/
+theorem d_eq (n : ℕ) :
+  ((group_cohomology.resolution k G).d (n + 1) n).hom = d k G (n + 1) :=
+begin
+  ext x y,
+  dsimp [group_cohomology.resolution],
+  simpa [←@int_cast_smul k, simplicial_object.δ],
+end
 
 end group_cohomology.resolution

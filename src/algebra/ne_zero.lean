@@ -62,7 +62,7 @@ instance bit0 [canonically_ordered_add_monoid M] [ne_zero x] : ne_zero (bit0 x) 
 of_pos $ bit0_pos $ ne_zero.pos x
 
 instance bit1 [canonically_ordered_comm_semiring M] [nontrivial M] : ne_zero (bit1 x) :=
-⟨mt (λ h, le_iff_exists_add'.2 ⟨_, h.symm⟩) canonically_ordered_comm_semiring.zero_lt_one.not_le⟩
+⟨mt (λ h, le_iff_exists_add'.2 ⟨_, h.symm⟩) zero_lt_one.not_le⟩
 
 instance pow [monoid_with_zero M] [no_zero_divisors M] [ne_zero x] : ne_zero (x ^ n) :=
 ⟨pow_ne_zero n out⟩

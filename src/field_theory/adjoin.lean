@@ -886,7 +886,7 @@ end⟩
 /-- Extend a lift `x : lifts F E K` to an element `s : E` whose conjugates are all in `K` -/
 noncomputable def lifts.lift_of_splits (x : lifts F E K) {s : E} (h1 : is_integral F s)
   (h2 : (minpoly F s).splits (algebra_map F K)) : lifts F E K :=
-let h3 : is_integral x.1 s := is_integral_of_is_scalar_tower s h1 in
+let h3 : is_integral x.1 s := is_integral_of_is_scalar_tower h1 in
 let key : (minpoly x.1 s).splits x.2.to_ring_hom :=
   splits_of_splits_of_dvd _ (map_ne_zero (minpoly.ne_zero h1))
   ((splits_map_iff _ _).mpr (by {convert h2, exact ring_hom.ext (λ y, x.2.commutes y)}))

@@ -1466,10 +1466,10 @@ lemma comp_measurable {γ : Type*} {mγ : measurable_space γ} {mα : measurable
   ae_strongly_measurable (g ∘ f) μ :=
 hg.comp_ae_measurable hf.ae_measurable
 
-lemma comp_measurable' {γ : Type*} {mγ : measurable_space γ} {mα : measurable_space α} {f : γ → α}
-  {μ : measure γ} {ν : measure α} (hg : ae_strongly_measurable g ν) (hf : measurable f)
-  (h : μ.map f ≪ ν) : ae_strongly_measurable (g ∘ f) μ :=
-(hg.mono' h).comp_measurable hf
+lemma comp_quasi_measure_preserving {γ : Type*} {mγ : measurable_space γ} {mα : measurable_space α}
+  {f : γ → α} {μ : measure γ} {ν : measure α} (hg : ae_strongly_measurable g ν)
+  (hf : quasi_measure_preserving f μ ν) : ae_strongly_measurable (g ∘ f) μ :=
+(hg.mono' hf.absolutely_continuous).comp_measurable hf.measurable
 
 lemma is_separable_ae_range (hf : ae_strongly_measurable f μ) :
   ∃ (t : set β), is_separable t ∧ ∀ᵐ x ∂μ, f x ∈ t :=
@@ -1627,6 +1627,13 @@ protected lemma Union [pseudo_metrizable_space β] {s : ι → set α}
   ae_strongly_measurable f (μ.restrict (s ∪ t)) ↔
     ae_strongly_measurable f (μ.restrict s) ∧ ae_strongly_measurable f (μ.restrict t) :=
 by simp only [union_eq_Union, ae_strongly_measurable_Union_iff, bool.forall_bool, cond, and.comm]
+
+lemma ae_strongly_measurable_interval_oc_iff [linear_order α] [pseudo_metrizable_space β]
+  {f : α → β} {a b : α} :
+  ae_strongly_measurable f (μ.restrict $ interval_oc a b) ↔
+  ae_strongly_measurable f (μ.restrict $ Ioc a b) ∧
+  ae_strongly_measurable f (μ.restrict $ Ioc b a) :=
+by rw [interval_oc_eq_union, ae_strongly_measurable_union_iff]
 
 lemma smul_measure {R : Type*} [monoid R] [distrib_mul_action R ℝ≥0∞]
   [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] (h : ae_strongly_measurable f μ) (c : R) :

@@ -60,6 +60,10 @@ variables (R : Type u) [comm_ring R] [is_domain R] [discrete_valuation_ring R]
 
 lemma not_a_field : maximal_ideal R ≠ ⊥ := not_a_field'
 
+/-- A discrete valuation ring `R` is not a field. -/
+lemma not_is_field : ¬ is_field R :=
+ring.not_is_field_iff_exists_prime.mpr ⟨_, not_a_field R, is_maximal.is_prime' (maximal_ideal R)⟩
+
 variable {R}
 
 open principal_ideal_ring

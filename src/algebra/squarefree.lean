@@ -82,6 +82,20 @@ lemma squarefree_of_dvd_of_squarefree [comm_monoid R]
   squarefree x :=
 λ a h, hsq _ (h.trans hdvd)
 
+section squarefree_gcd_of_squarefree
+
+variables {α : Type*} [cancel_comm_monoid_with_zero α] [gcd_monoid α]
+
+lemma squarefree.gcd_right (a : α) {b : α} (hb : squarefree b) :
+  squarefree (gcd a b) :=
+squarefree_of_dvd_of_squarefree (gcd_dvd_right _ _) hb
+
+lemma squarefree.gcd_left {a : α} (b : α) (ha : squarefree a) :
+  squarefree (gcd a b) :=
+squarefree_of_dvd_of_squarefree (gcd_dvd_left _ _) ha
+
+end squarefree_gcd_of_squarefree
+
 namespace multiplicity
 
 section comm_monoid

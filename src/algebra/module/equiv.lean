@@ -265,7 +265,7 @@ include σ₃₁
 @[simp] theorem trans_apply (c : M₁) :
   (e₁₂.trans e₂₃ : M₁ ≃ₛₗ[σ₁₃] M₃) c = e₂₃ (e₁₂ c) := rfl
 
-@[simp] theorem coe_trans :
+theorem coe_trans :
   (e₁₂.trans e₂₃ : M₁ →ₛₗ[σ₁₃] M₃) = (e₂₃ : M₂ →ₛₗ[σ₂₃] M₃).comp (e₁₂ : M₁ →ₛₗ[σ₁₂] M₂) := rfl
 omit σ₃₁
 

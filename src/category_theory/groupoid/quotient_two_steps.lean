@@ -291,18 +291,6 @@ noncomputable def of : C ⥤ quotient S Sw :=
 lemma ker_of : ker (of S Sw) = S :=
 begin
   sorry
-  /-dsimp only [of],
-  ext c d f,
-  split,
-  { rw mem_ker_iff,
-
-    rintro ⟨h,he⟩,
-    simp only [inv_eq_inv, subtype.mk_eq_mk, to_reps] at h he,
-    simp at h,
-    rcases h with ⟨hcd,hh⟩,
-    sorry,
-     },
-  { rintro, rw mem_ker_iff, simp, }-/
 end
 
 def fo : (quotient S Sw) ⥤ C := subgroupoid.hom _
@@ -318,29 +306,50 @@ begin
 end
 
 
+private def ud {c d : quotient S Sw} (h : c ⟶ d) : c.val ⟶ d.val :=
+begin
+  exact h.val,
+end
+
+private lemma lol {c d : quotient S Sw} (h : c = d) :
+  ud S Sw (eq_to_hom h) ∈ S.arrows c.val d.val :=
+begin
+  rcases h with rfl, simp,
+  apply Sw.wide,
+end
+
+include Sg
 lemma of_fo_map {c d : quotient S Sw} (f : c ⟶ d) :
   (of S Sw).map ((fo S Sw).map f)
 = (eq_to_hom $ of_fo_obj S Sw c) ≫ f ≫ (eq_to_hom $ (of_fo_obj S Sw d).symm) :=
 begin
   letI := R S Sw,
-  dsimp [quotient] at c d,
+  dsimp only [quotient] at c d,
   rcases c with ⟨c',hc⟩,
   rcases d with ⟨d',hd⟩,
   rw full_mem_objs_iff at hc hd,
   rcases hc with ⟨c',rfl⟩,
   rcases hd with ⟨d',rfl⟩,
-  dsimp [of, fo, hom],
+  dsimp only [of, fo, hom],
+  let ec := of_fo_obj S Sw ⟨c'.out,hc⟩,
+  let ed := of_fo_obj S Sw ⟨d'.out,hd⟩,
   congr,
-  rw subtype.val_eq_coe,
-  sorry,
-  sorry,
+  { change to_reps_arrow S Sw c'.out = ud S Sw (eq_to_hom ec),
+    exact (to_reps_arrow_unique S Sw Sg (lol S Sw ec)).symm, },
+  { change groupoid.inv (to_reps_arrow S Sw d'.out) = ud S Sw (eq_to_hom ed.symm),
+    suffices : to_reps_arrow S Sw d'.out = inv (ud S Sw (eq_to_hom ed.symm)),
+    { simp only [this, inv_eq_inv, is_iso.inv_inv], },
+    symmetry,
+    apply to_reps_arrow_unique S Sw Sg,
+    apply S.inv, apply lol, }
 end
 
 lemma of_fo_eq_id : (fo S Sw) ⋙ (of S Sw) = functor.id _ :=
 begin
   apply functor.ext,
-  { rintro, simp only [functor.comp_map, functor.id_map], rw of_fo_map, },
+  { rintro, simp only [functor.comp_map, functor.id_map], rw of_fo_map, exact Sg, },
 end
+omit Sg
 
 section ump
 
@@ -375,7 +384,7 @@ lemma _root_.category_theory.functor.map_eq_to_hom
   F.map (eq_to_hom h) = eq_to_hom (congr_arg F.obj h) :=
 by { cases h, simp only [eq_to_hom_refl, functor.map_id], }
 
-include hφ
+include hφ Sg
 lemma lift_unique (Φ : quotient S Sw ⥤ D) (hΦ : (of S Sw) ⋙ Φ = φ) :
   Φ = (lift S Sw φ) :=
 begin
@@ -391,8 +400,10 @@ begin
     rintro x h y k f,
     rw of_fo_map,
     simp only [functor.map_eq_to_hom, functor.map_comp, category.assoc, eq_to_hom_trans,
-               eq_to_hom_refl, category.comp_id, eq_to_hom_trans_assoc, category.id_comp], },
+               eq_to_hom_refl, category.comp_id, eq_to_hom_trans_assoc, category.id_comp],
+    exact Sg, },
 end
+omit Sg
 
 
 end ump
@@ -455,6 +466,7 @@ def lift_unique (Φ : groupoid.quotient S Sn ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ
   Φ = (lift S Sn φ hφ) :=
 begin
   apply graph_like.lift_unique,
+  apply isotropy.map_is_graph_like,
   { rw le_iff at hφ ⊢,
     rintros a b f ⟨_,_,g,gS⟩,
     exact hφ gS, },

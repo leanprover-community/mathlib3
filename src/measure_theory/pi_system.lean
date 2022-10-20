@@ -479,46 +479,24 @@ generate_from_mono (subset_pi_Union_Inter hxS)
 
 lemma measurable_set_supr_of_mem_pi_Union_Inter {α ι} (m : ι → measurable_space α)
   (S : set ι) (t : set α) (ht : t ∈ pi_Union_Inter (λ n, {s | measurable_set[m n] s}) S) :
-  measurable_set[⨆ i (hi : ∃ (s : finset ι) (hs : ↑s ⊆ S), i ∈ s), m i] t :=
+  measurable_set[⨆ i ∈ S, m i] t :=
 begin
   rcases ht with ⟨pt, hpt, ft, ht_m, rfl⟩,
   refine pt.measurable_set_bInter (λ i hi, _),
-  suffices h_le : m i ≤ (⨆ i (hi : ∃ (s : finset ι) (hs : ↑s ⊆ S), i ∈ s), m i),
-    from h_le (ft i) (ht_m i hi),
-  have hi' : ∃ (s : finset ι) (hs : ↑s ⊆ S), i ∈ s, from ⟨pt, hpt, hi⟩,
+  suffices h_le : m i ≤ (⨆ i ∈ S, m i), from h_le (ft i) (ht_m i hi),
+  have hi' : i ∈ S := hpt hi,
   exact le_supr₂ i hi',
 end
 
-lemma generate_from_pi_Union_Inter_measurable_space {α ι} (m : ι → measurable_space α)
-  (S : set ι) :
-  generate_from (pi_Union_Inter (λ n, {s | measurable_set[m n] s}) S)
-    = ⨆ i (hi : ∃ (p : finset ι) (hp : ↑p ⊆ S), i ∈ p), m i :=
+lemma generate_from_pi_Union_Inter_measurable_set {α ι} (m : ι → measurable_space α) (S : set ι) :
+  generate_from (pi_Union_Inter (λ n, {s | measurable_set[m n] s}) S) = ⨆ i ∈ S, m i :=
 begin
   refine le_antisymm _ _,
-  { rw ← @generate_from_measurable_set α (⨆ i (hi : ∃ (p : finset ι) (hp : ↑p ⊆ S), i ∈ p), m i),
+  { rw ← @generate_from_measurable_set α (⨆ i ∈ S, m i),
     exact generate_from_mono (measurable_set_supr_of_mem_pi_Union_Inter m S), },
   { refine supr₂_le (λ i hi, _),
-    rcases hi with ⟨p, hpS, hpi⟩,
     rw ← @generate_from_measurable_set α (m i),
-    exact generate_from_mono (mem_pi_Union_Inter_of_measurable_set m (hpS hpi)), },
-end
-
-lemma generate_from_pi_Union_Inter_measurable_set {α ι} (m : ι → measurable_space α) (S : set ι) :
-  generate_from (pi_Union_Inter (λ i, {t | measurable_set[m i] t}) S)
-    = ⨆ i ∈ S, m i :=
-begin
-  rw generate_from_pi_Union_Inter_measurable_space,
-  simp only [set.mem_set_of_eq, exists_prop, supr_exists],
-  congr' 1,
-  ext1 i,
-  by_cases hiS : i ∈ S,
-  { simp only [hiS, csupr_pos],
-    refine le_antisymm (supr₂_le (λ t ht, le_rfl)) (le_supr_iff.mpr (λ m' hm', _)),
-    specialize hm' {i},
-    simpa only [hiS, finset.coe_singleton, set.singleton_subset_iff, finset.mem_singleton,
-      eq_self_iff_true, and_self, csupr_pos] using hm', },
-  { simp only [hiS, supr_false, supr₂_eq_bot, and_imp],
-    exact λ t htS hit, absurd (htS hit) hiS, },
+    exact generate_from_mono (mem_pi_Union_Inter_of_measurable_set m hi), },
 end
 
 end Union_Inter

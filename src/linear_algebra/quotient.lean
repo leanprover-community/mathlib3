@@ -350,7 +350,7 @@ end
 and `f : M ≃ₗ N` maps `P` to `Q`, then `M ⧸ P` is equivalent to `N ⧸ Q`. -/
 @[simps] def quotient.equiv {N : Type*} [add_comm_group N] [module R N]
   (P : submodule R M) (Q : submodule R N)
-  (f : M ≃ₗ[R] N) (hf : P.map (f : M →ₗ[R] N) = Q) : (M ⧸ P) ≃ₗ[R] N ⧸ Q :=
+  (f : M ≃ₗ[R] N) (hf : P.map f = Q) : (M ⧸ P) ≃ₗ[R] N ⧸ Q :=
 { to_fun := P.mapq Q (f : M →ₗ[R] N) (λ x hx, hf ▸ submodule.mem_map_of_mem hx),
   inv_fun := Q.mapq P (f.symm : N →ₗ[R] M) (λ x hx, begin
     rw [← hf, submodule.mem_map] at hx,

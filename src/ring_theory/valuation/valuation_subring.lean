@@ -715,6 +715,69 @@ set.subset_set_smul_iff
 
 end pointwise_actions
 
+section
+
+variables {L: Type*} [field K] [field L] [algebra K L]
+
+variable (K)
+
+open_locale pointwise
+
+def decomposition_subgroup (A : valuation_subring L) :
+  subgroup (L ≃ₐ[K] L) :=
+mul_action.stabilizer (L ≃ₐ[K] L) A
+
+def sub_mul_action (A : valuation_subring L) :
+  sub_mul_action (A.decomposition_subgroup K) L :=
+{ carrier := A,
+  smul_mem' := λ g l h,
+  begin
+    convert set.smul_mem_smul_set h using 1,
+    exact congr_arg coe g.prop.symm,
+end }
+
+instance mul_action (A : valuation_subring L) :
+  mul_semiring_action (A.decomposition_subgroup K) A :=
+{ smul_add :=  λ g k l, subtype.ext $ smul_add g k l,
+  smul_zero := λ g, subtype.ext $ smul_zero g,
+  smul_one := λ g, subtype.ext $ smul_one g,
+  smul_mul := λ g k l, subtype.ext $ smul_mul' g k l,
+   ..(sub_mul_action.mul_action (A.sub_mul_action K)) }
+
+variable {K}
+
+def decomposition_subgroup.to_ring_aut (A : valuation_subring L) :
+  (A.decomposition_subgroup K) →* (ring_aut A) :=
+{ to_fun := mul_semiring_action.to_ring_equiv (A.decomposition_subgroup K) A,
+  map_mul' := λ g h, ring_equiv.ext $ mul_smul g h,
+  map_one' := ring_equiv.ext $ one_smul _, }
+
+def decomposition_subgroup.to_aut_k (A : valuation_subring L):
+  ring_aut A →* ring_aut(local_ring.residue_field A):=
+{ to_fun := local_ring.residue_field.map_equiv,
+  map_mul' := begin
+  intros φ ψ,
+  ext,
+  exact local_ring.residue_field.map_comp_apply (ψ : A →+* A) (φ : A →+* A) x,
+  end,
+  map_one' := begin
+  ext,
+  apply local_ring.residue_field.map_id_apply,
+  end
+  }
+
+def decomposition_subgroup.comp (A : valuation_subring L):
+  (A.decomposition_subgroup K) →* ring_aut(local_ring.residue_field A):=
+(decomposition_subgroup.to_aut_k A).comp (decomposition_subgroup.to_ring_aut A)
+
+def inertia_subgroup (A :valuation_subring L) : subgroup (A.decomposition_subgroup K):=
+(decomposition_subgroup.comp A).ker
+
+def inertia_subgp_galois (A :valuation_subring L)  : subgroup (L ≃ₐ[K] L) :=
+by exact A.decomposition_subgroup K
+
+end
+
 end valuation_subring
 
 namespace valuation

@@ -512,44 +512,52 @@ end
       -- ALEX HOMEWORK
       --sorry,
 
+-- open_locale ennreal
+-- /-- playing with proof of `lintegral_supr'` -/
+-- theorem lintegral_supr'' {α : Type*}  {m : measurable_space α}
+--   {μ : measure_theory.measure α} {f : ℕ → α → ℝ≥0∞} (hf : ∀n, ae_measurable (f n) μ)
+--   (h_mono : ∀ᵐ x ∂μ, monotone (λ n, f n x)) :
+--   (∫⁻ a, ⨆n, f n a ∂μ) = (⨆n, ∫⁻ a, f n a ∂μ) :=
+-- begin
+--   simp_rw ←supr_apply,
+--   let p : α → (ℕ → ℝ≥0∞) → Prop := λ x, monotone,
+--   have hp : ∀ᵐ x ∂μ, p x (λ i, f i x), from h_mono,
+--   have h_ae_seq_mono : monotone (ae_seq hf p),
+--   { intros n m hnm x,
+--     by_cases hx : x ∈ ae_seq_set hf p,
+--     { exact ae_seq.prop_of_mem_ae_seq_set hf hx hnm, },
+--     { simp only [ae_seq, hx, if_false],
+--       exact le_rfl, }, },
+--   rw lintegral_congr_ae (ae_seq.supr hf hp).symm,
+--   simp_rw supr_apply,
+--   rw @lintegral_supr _ _ μ _ (ae_seq.measurable hf p) h_ae_seq_mono,
+--   congr,
+--   exact funext (λ n, lintegral_congr_ae (ae_seq.ae_seq_n_eq_fun_n_ae hf hp n)),
+-- end
 
-/-- belongs in measure_theory.integral.lebesgue -/
+/-- belongs in measure_theory.integral.lebesgue ADD TO MATHLIB 10/20/22 -/
 theorem measure_theory.lintegral_supr_directed' {α : Type*} {β : Type*} {m : measurable_space α}
   {μ : measure_theory.measure α} [countable β] {f : β → α → ennreal}
   (hf : ∀ (b : β), ae_measurable (f b) μ) (h_directed : directed has_le.le f) :
 ∫⁻ (a : α), (⨆ (b : β), f b a) ∂μ = ⨆ (b : β), ∫⁻ (a : α), f b a ∂μ :=
 begin
   simp_rw ←supr_apply,
---  have := @ae_seq β α ennreal m _ f μ hf _,
   let p : α → (β → ennreal) → Prop := λ x f', directed has_le.le f',
---  have hp : ∀ᵐ x ∂μ, p x (λ i, f i x) := directed has_le.le (ae_seq hf p),
+  have hp : ∀ᵐ x ∂μ, p x (λ i, f i x),
+  { filter_upwards with x i j,
+    obtain ⟨z, hz₁, hz₂⟩ := h_directed i j,
+    exact ⟨z, hz₁ x, hz₂ x⟩, },
   have h_ae_seq_directed : directed has_le.le (ae_seq hf p),
-  {
-    intros b₁ b₂, -- STOPPED HERE 10/14/22
-    have := ae_seq.prop_of_mem_ae_seq_set hf _ b₁ b₂,
+  { intros b₁ b₂,
     obtain ⟨z, hz₁, hz₂⟩ := h_directed b₁ b₂,
-    use z,
-    split,
-    {
-      intros x,
+    refine ⟨z, _, _⟩;
+    { intros x,
       by_cases hx : x ∈ ae_seq_set hf p,
---      convert hz₁ x,
-      have := ae_seq.prop_of_mem_ae_seq_set hf hx b₁ b₂,
-    },
-    by_cases hx : x ∈ ae_seq_set hf p,
-    { exact ae_seq.prop_of_mem_ae_seq_set hf hx hnm, },
-    { simp only [ae_seq, hx, if_false],
-      exact le_rfl, },
-    sorry,
-  },
-  have hp : ∀ᵐ (x : α) ∂μ, p x (λ (n : β), f n x),
-  {
-    dsimp [p],
-    filter_upwards with x hx,
-    intros y,
---    exact h_directed y,
-    sorry,
-  },
+      { rw ae_seq.ae_seq_eq_fun_of_mem_ae_seq_set hf hx,
+        rw ae_seq.ae_seq_eq_fun_of_mem_ae_seq_set hf hx,
+        apply_rules [hz₁, hz₂], },
+      { simp only [ae_seq, hx, if_false],
+        exact le_rfl, }, }, },
   convert (lintegral_supr_directed (ae_seq.measurable hf p) h_ae_seq_directed) using 1,
   { simp_rw ←supr_apply,
     rw lintegral_congr_ae (ae_seq.supr hf hp).symm, },

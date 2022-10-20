@@ -115,6 +115,7 @@ lemma on_internal_presheaf_naturality (x : R.presheaf_type.obj (op Y)) (f : Y' �
   R.presheaf_type.map f.op (oper.on_internal_presheaf x) :=
 congr_fun (oper.naturality (R.presheaf.map f.op)) x
 
+@[simp]
 def to_internal_yoneda_operation₁_app (x : Y ⟶ R.obj) : Y ⟶ R.obj :=
 R.iso.inv.app _ (oper.on_internal_presheaf (R.iso.hom.app (op Y) x))
 
@@ -127,6 +128,7 @@ end
 
 variable (R)
 
+@[simps]
 def to_internal_yoneda_operation₁ : internal_yoneda_operation₁ R.obj :=
 { app := λ X x, oper.to_internal_yoneda_operation₁_app x,
   naturality' := λ X Y f, begin
@@ -139,7 +141,7 @@ end operation₁
 
 namespace operation₂
 
-variables (oper oper' : operation₂ A) {R : internal A C}
+variables (oper : operation₂ A) {R : internal A C}
 
 variables {Y Y' : C}
 
@@ -153,6 +155,7 @@ lemma on_internal_presheaf_naturality (x y : R.presheaf_type.obj (op Y)) (f : Y'
   R.presheaf_type.map f.op (oper.on_internal_presheaf x y) :=
 congr_fun (oper.naturality (R.presheaf.map f.op)) ⟨x,y⟩
 
+@[simp]
 def to_internal_yoneda_operation₂_app (x y : Y ⟶ R.obj) : Y ⟶ R.obj :=
 R.iso.inv.app _ (oper.on_internal_presheaf (R.iso.hom.app (op Y) x) (R.iso.hom.app (op Y) y))
 
@@ -165,6 +168,7 @@ end
 
 variable (R)
 
+@[simps]
 def to_internal_yoneda_operation₂ :
   concat₂ (yoneda.obj R.obj) (yoneda.obj R.obj) ⟶ yoneda.obj R.obj :=
 { app := λ X x, oper.to_internal_yoneda_operation₂_app x.1 x.2,
@@ -174,13 +178,71 @@ def to_internal_yoneda_operation₂ :
     apply to_internal_yoneda_operation₂_app_naturality,
   end, }
 
-def to_internal_yoneda_operation₂_comm (oper_comm : oper.comm):
+lemma to_internal_yoneda_operation₂_comm (oper_comm : oper.comm) :
   (oper.to_internal_yoneda_operation₂ R) =
     lift₂ pr₂ pr₁ ≫ (oper.to_internal_yoneda_operation₂ R) :=
 begin
   dsimp at oper_comm,
   conv_lhs { rw oper_comm, },
   refl,
+end
+
+end operation₂
+
+namespace operation₃
+
+variables (oper : operation₃ A) {R : internal A C} {Y Y' : C}
+
+@[protected]
+def on_internal_presheaf
+  (x y z : R.presheaf_type.obj (op Y)) : R.presheaf_type.obj (op Y) :=
+oper.app (R.presheaf.obj (op Y)) ⟨x, y, z⟩
+
+lemma on_internal_presheaf_naturality (x y z : R.presheaf_type.obj (op Y)) (f : Y' ⟶ Y) :
+    oper.on_internal_presheaf (R.presheaf_type.map f.op x) (R.presheaf_type.map f.op y)
+      (R.presheaf_type.map f.op z) =
+  R.presheaf_type.map f.op (oper.on_internal_presheaf x y z) :=
+congr_fun (oper.naturality (R.presheaf.map f.op)) ⟨x, y, z⟩
+
+@[simp]
+def to_internal_yoneda_operation₃_app (x y z : Y ⟶ R.obj) : Y ⟶ R.obj :=
+R.iso.inv.app _ (oper.on_internal_presheaf (R.iso.hom.app (op Y) x) (R.iso.hom.app (op Y) y)
+  (R.iso.hom.app (op Y) z))
+
+lemma to_internal_yoneda_operation₃_app_naturality (x y z : Y ⟶ R.obj) (f : Y' ⟶ Y) :
+  f ≫ oper.to_internal_yoneda_operation₃_app x y z = oper.to_internal_yoneda_operation₃_app (f ≫ x) (f ≫ y) (f ≫ z) :=
+begin
+  dsimp only [to_internal_yoneda_operation₃_app],
+  simp only [R.iso_hom_naturality, on_internal_presheaf_naturality, R.iso_inv_naturality],
+end
+
+variable (R)
+
+@[simps]
+def to_internal_yoneda_operation₃ :
+  concat₃ (yoneda.obj R.obj) (yoneda.obj R.obj) (yoneda.obj R.obj) ⟶ yoneda.obj R.obj :=
+{ app := λ X x, oper.to_internal_yoneda_operation₃_app x.1 x.2.1 x.2.2,
+  naturality' := λ X Y f, begin
+    ext x,
+    symmetry,
+    apply to_internal_yoneda_operation₃_app_naturality,
+  end, }
+
+end operation₃
+
+namespace operation₂
+
+variables (oper : operation₂ A) (R : internal A C)
+
+lemma to_internal_yoneda_operation₂_assoc (oper_assoc : oper.assoc) :
+  lift₂ (pr₁₂_₃ ≫ oper.to_internal_yoneda_operation₂ R) pr₃_₃ ≫ oper.to_internal_yoneda_operation₂ R =
+    lift₂ pr₁_₃ (pr₂₃_₃ ≫ oper.to_internal_yoneda_operation₂ R) ≫ (oper.to_internal_yoneda_operation₂ R) :=
+begin
+  convert _root_.congr_arg (λ (m : operation₃ A), m.to_internal_yoneda_operation₃ R) oper_assoc;
+  { ext X x,
+    dsimp,
+    simp only [functor_to_types.inv_hom_id_app_apply],
+    congr, },
 end
 
 end operation₂

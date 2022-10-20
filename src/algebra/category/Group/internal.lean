@@ -102,6 +102,11 @@ def add [has_binary_product M.obj M.obj]:= (internal_operation₂.yoneda_equiv _
 lemma yoneda_operation_add_comm : yoneda_operation_add M = lift₂ pr₂ pr₁ ≫ yoneda_operation_add M :=
 Ab_add.to_internal_yoneda_operation₂_comm M Ab_add_comm
 
+lemma yoneda_operation_add_assoc :
+  lift₂ (pr₁₂_₃ ≫ yoneda_operation_add M) pr₃_₃ ≫ yoneda_operation_add M =
+    lift₂ pr₁_₃ (pr₂₃_₃ ≫ yoneda_operation_add M) ≫ yoneda_operation_add M :=
+Ab_add.to_internal_yoneda_operation₂_assoc M Ab_add_assoc
+
 end Ab
 
 end internal

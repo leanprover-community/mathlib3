@@ -1,5 +1,6 @@
 import category_theory.concrete_category.internal
 import algebra.category.Group.preadditive
+import category_theory.internal_operation
 
 noncomputable theory
 
@@ -20,58 +21,6 @@ def Ab.mk (A : Type*) (zero' : A) (neg' : A ⟶ A) (add' : A × A → A)
   add_left_neg := add_left_neg', }⟩
 
 namespace category_theory
-
-open limits concrete_category.operations
-section
-
-variables {C : Type*} [category C] (X : C)
-
-@[simps]
-def yoneda.obj_prod_iso (X Y : C) [has_binary_product X Y] :
-  yoneda.obj (prod X Y) ≅ concat₂ (yoneda.obj X) (yoneda.obj Y) :=
-{ hom := { app := λ Z φ, ⟨φ ≫ limits.prod.fst, φ ≫ limits.prod.snd⟩, },
-  inv := { app := λ Z φ, prod.lift φ.1 φ.2, }, }
-
-def internal_operation₂ [has_binary_product X X] := prod X X ⟶ X
-
-namespace internal_operation₂
-
-variable {X}
-
-def comm [has_binary_product X X] (oper : internal_operation₂ X) : Prop :=
-(limits.prod.braiding X X).hom ≫ oper = oper
-
-def assoc [has_binary_product X X] [has_binary_product X (prod X X)]
-  (oper : internal_operation₂ X) : Prop :=
-prod.lift (limits.prod.lift limits.prod.fst (limits.prod.snd ≫ limits.prod.fst) ≫ oper) (limits.prod.snd ≫ limits.prod.snd) ≫ oper =
-  prod.lift limits.prod.fst (limits.prod.snd ≫ oper) ≫ oper
-
-def zero_add [has_binary_product X X] [has_terminal C]
-  (oper : internal_operation₂ X) (zero : ⊤_ C ⟶ X) : Prop :=
-  prod.lift (terminal.from X ≫ zero) (𝟙 X) ≫ oper = 𝟙 X
-
-def add_left_neg [has_binary_product X X] [has_terminal C] (oper : internal_operation₂ X)
-  (zero : ⊤_ C ⟶ X) (neg : X ⟶ X) : Prop :=
-  prod.lift neg (𝟙 X) ≫ oper = terminal.from X ≫ zero
-
-end internal_operation₂
-
-def internal_yoneda_operation₂ := concat₂ (yoneda.obj X) (yoneda.obj X) ⟶ yoneda.obj X
-
-@[simps]
-def internal_yoneda_operation₂.equiv [has_binary_product X X] :
-  internal_yoneda_operation₂ X ≃
-  (yoneda.obj (prod X X) ⟶ yoneda.obj X) :=
-{ to_fun := λ f, (yoneda.obj_prod_iso X X).hom ≫ f,
-  inv_fun := λ f, (yoneda.obj_prod_iso X X).inv ≫ f,
-  left_inv := λ f, by { simp only [iso.inv_hom_id_assoc], },
-  right_inv := λ f, by { simp only [iso.hom_inv_id_assoc], }, }
-
-def internal_operation₂.yoneda_equiv [has_binary_product X X] :
-  internal_operation₂ X ≃ internal_yoneda_operation₂ X :=
-yoneda_equiv.symm.trans (internal_yoneda_operation₂.equiv X).symm
-
-end
 
 namespace concrete_category
 
@@ -107,9 +56,9 @@ def mk (X : C)
   (yoneda_zero : (functor.const Cᵒᵖ).obj punit ⟶ yoneda.obj X)
   (yoneda_neg : yoneda.obj X ⟶ yoneda.obj X)
   (yoneda_add : concat₂ (yoneda.obj X) (yoneda.obj X) ⟶ yoneda.obj X)
+  (yoneda_add_comm : yoneda_add = lift₂ pr₂ pr₁ ≫ yoneda_add)
   (yoneda_add_assoc : lift₂ (pr₁₂_₃ ≫ yoneda_add) pr₃_₃ ≫ yoneda_add =
     lift₂ pr₁_₃ (pr₂₃_₃ ≫ yoneda_add) ≫ yoneda_add)
-  (yoneda_add_comm : yoneda_add = lift₂ pr₂ pr₁ ≫ yoneda_add)
   (yoneda_zero_add : lift₂ (to_functor_const_punit ≫ yoneda_zero) (𝟙 _) ≫ yoneda_add = 𝟙 _ )
   (yoneda_add_left_neg : lift₂ yoneda_neg (𝟙 _) ≫ yoneda_add = to_functor_const_punit ≫ yoneda_zero) :
   internal Ab C :=
@@ -130,17 +79,18 @@ def mk (X : C)
       λ x y, congr_fun (yoneda_add.naturality f).symm ⟨x, y⟩⟩, },
   iso := by refl, }
 
-example : ℕ := 42
-
 def mk' (X : C) [has_terminal C] [has_binary_product X X] [has_binary_product X (prod X X)]
   (zero : ⊤_ C ⟶ X) (neg : X ⟶ X) (add : prod X X ⟶ X) (add_comm : internal_operation₂.comm add)
   (add_assoc : internal_operation₂.assoc add) (add_zero : internal_operation₂.zero_add add zero)
   (add_left_neg : internal_operation₂.add_left_neg add zero neg) :
   internal Ab C :=
-begin
-  refine Ab.mk X _ _ (internal_operation₂.yoneda_equiv X add) _ _ _ _,
-  all_goals { sorry, },
-end
+Ab.mk X (internal_operation₀.yoneda_equiv X zero)
+  (internal_operation₁.yoneda_equiv X neg)
+  (internal_operation₂.yoneda_equiv X add)
+  (internal_operation₂.yoneda_equiv_comm X add add_comm)
+  (internal_operation₂.yoneda_equiv_assoc X add add_assoc)
+  (internal_operation₂.yoneda_equiv_zero_add X add zero add_zero)
+  (internal_operation₂.yoneda_equiv_add_left_neg X add zero neg add_left_neg)
 
 end Ab
 

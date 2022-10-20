@@ -13,7 +13,6 @@ import algebra.hom.group
 import algebra.hom.equiv
 import data.set.lattice
 import combinatorics.quiver.connected_component
-import combinatorics.quiver.subquiver
 import group_theory.subgroup.basic
 /-!
 # Subgroupoid
@@ -238,10 +237,18 @@ lemma mem_discrete_iff {c d : C} (f : c ⟶ d):
 structure is_wide : Prop :=
 (wide : ∀ c, (𝟙 c) ∈ (S.arrows c c))
 
-lemma is_wide_objs (h : S.is_wide) : S.objs = ⊤ :=
+lemma is_wide_iff_objs_eq_univ : S.is_wide ↔  S.objs = ⊤ :=
 begin
-  ext, split; simp only [top_eq_univ, mem_univ, implies_true_iff, forall_true_left],
-  apply mem_objs_of_src S (h.wide x),
+  split,
+  { rintro h,
+    ext, split; simp only [top_eq_univ, mem_univ, implies_true_iff, forall_true_left],
+    apply mem_objs_of_src S (h.wide x), },
+  { rintro h,
+    refine ⟨_⟩,
+    rintro c,
+    let := (le_of_eq h.symm),
+    obtain ⟨γ,γS⟩ := this (set.mem_univ c),
+    exact id_mem_of_src S γS, },
 end
 
 /-- A subgroupoid is normal if it is wide and satisfies the expected stability under conjugacy. -/
@@ -377,6 +384,19 @@ lemma map_mono (hφ : function.injective φ.obj) (S T : subgroupoid C) :
   S ≤ T → map φ hφ S ≤ map φ hφ T :=
 by { rintros ST ⟨c,d,f⟩ ⟨_,_,_,h⟩, split, exact @ST ⟨_,_,_⟩ h }
 
+lemma mem_map_objs_iff  (hφ : function.injective φ.obj) (d : D) :
+  d ∈ (map φ hφ S).objs ↔ ∃ c ∈ S.objs, φ.obj c = d :=
+begin
+  dsimp [objs, map],
+  split,
+  { rintro ⟨f,hf⟩,
+    change map.arrows φ hφ S d d f at hf, rw map.mem_arrows_iff at hf,
+    obtain ⟨c,d,g,ec,ed,eg,gS,eg⟩ := hf,
+    exact ⟨c, ⟨mem_objs_of_src S eg, ec⟩⟩, },
+  { rintros ⟨c,⟨γ,γS⟩,rfl⟩,
+    exact ⟨φ.map γ,⟨γ,γS⟩⟩, }
+end
+
 /-- The image of a functor injective on objects -/
 def im (hφ : function.injective φ.obj) := map φ hφ (⊤)
 
@@ -386,10 +406,27 @@ lemma mem_im_iff (hφ : function.injective φ.obj) {c d : D} (f : c ⟶ d) :
     f = (eq_to_hom ha.symm) ≫ φ.map g ≫ (eq_to_hom hb) :=
 by { convert map.mem_arrows_iff φ hφ ⊤ f, simp only [has_top.top, mem_univ, exists_true_left] }
 
+lemma mem_im_objs_iff  (hφ : function.injective φ.obj) (d : D) :
+  d ∈ (im φ hφ).objs ↔ ∃ c : C, φ.obj c = d :=
+begin
+  dsimp only [im],
+  rw mem_map_objs_iff,
+  simp only [has_top.top, objs, univ_nonempty, set_of_true, mem_univ, exists_true_left],
+end
+
+lemma obj_surjective_of_im_eq_top  (hφ : function.injective φ.obj) (hφ' : im φ hφ = ⊤) :
+  function.surjective φ.obj :=
+begin
+  rintro d,
+  rw ←mem_im_objs_iff,
+  rw hφ', dsimp [has_top.top, objs],
+  simp only [univ_nonempty],
+end
+
 lemma is_normal_map (hφ : function.injective φ.obj) (hφ' : im φ hφ = ⊤) (Sn : S.is_normal) :
   (map φ hφ S).is_normal :=
-{ wide := λ c, by { dsimp [map], sorry, },
-  conj := sorry }
+{ wide := λ c, sorry,
+  conj := λ c d f γ hγ, sorry }
 
 end hom
 

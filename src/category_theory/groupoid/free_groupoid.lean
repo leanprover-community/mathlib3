@@ -6,10 +6,6 @@ Authors: Rémi Bottinelli
 import category_theory.category.basic
 import category_theory.functor.basic
 import category_theory.groupoid
-import category_theory.groupoid.basic
-import combinatorics.quiver.basic
-import combinatorics.quiver.symmetric
-import combinatorics.quiver.path
 import logic.relation
 import tactic.nth_rewrite
 import category_theory.path_category

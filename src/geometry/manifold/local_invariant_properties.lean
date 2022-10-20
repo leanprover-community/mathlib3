@@ -605,6 +605,48 @@ lemma is_local_structomorph_within_at_local_invariant_prop [closed_under_restric
     { simpa only [hex, hef ⟨hx, hex⟩] with mfld_simps using hfx }
   end }
 
+variables {H₁ : Type*} [topological_space H₁] {H₂ : Type*} [topological_space H₂]
+   {H₃ : Type*} [topological_space H₃] [charted_space H₁ H₂] [charted_space H₂ H₃]
+   {G₁ : structure_groupoid H₁} [has_groupoid H₂ G₁] [closed_under_restriction G₁]
+   {G₂ : structure_groupoid H₂} [has_groupoid H₃ G₂]
+
+lemma z (e e' : local_homeomorph H₁ H₁) (s : set H₁) (hs : is_open s) (h : eq_on e e' s) :
+  e.restr s ≈ e'.restr s :=
+sorry
+
+lemma zz {e e' : local_homeomorph H₁ H₁} {s : set H₁} (hs : is_open s) (h : eq_on e e' s)
+  (h' : e' ∈ G₁) :
+  e.restr s ∈ G₁ :=
+begin
+  refine G₁.eq_on_source (closed_under_restriction' h' hs) _,
+  exact z e e' s hs h
+end
+
+lemma has_groupoid.comp
+  (H : ∀ e ∈ G₂, lift_prop_on (is_local_structomorph_within_at G₁) (e : H₂ → H₂) e.source) :
+  @has_groupoid H₁ _ H₃ _ (charted_space.comp H₁ H₂ H₃) G₁ :=
+{ compatible := begin
+    rintros _ _ ⟨e, f, he, hf, rfl⟩ ⟨e', f', he', hf', rfl⟩,
+    apply G₁.locality,
+    intros x hx,
+    simp only with mfld_simps at hx,
+    have hxs : x ∈ f.symm ⁻¹' (e.symm ≫ₕ e').source,
+    { simp only [hx] with mfld_simps },
+    have hxs' : x ∈ f.target ∩ (f.symm) ⁻¹' ((e.symm ≫ₕ e').source ∩ (e.symm ≫ₕ e') ⁻¹' f'.source),
+    { simp only [hx] with mfld_simps },
+    obtain ⟨φ, hφG₁, hφ, hφ_dom⟩ := local_invariant_prop.lift_prop_on_indep_chart
+      (is_local_structomorph_within_at_local_invariant_prop G₁) (G₁.subset_maximal_atlas hf)
+      (G₁.subset_maximal_atlas hf') (H _ (G₂.compatible he he')) hxs' hxs,
+    simp_rw [← local_homeomorph.coe_trans, local_homeomorph.trans_assoc] at hφ,
+    simp_rw [local_homeomorph.trans_symm_eq_symm_trans_symm, local_homeomorph.trans_assoc],
+    have hs : is_open ((f.symm ≫ₕ (e.symm ≫ₕ e')).source ∩ φ.source) :=
+      (f.symm ≫ₕ (e.symm ≫ₕ e')).open_source.inter φ.open_source,
+    refine ⟨(f.symm ≫ₕ (e.symm ≫ₕ e')).source ∩ φ.source, hs, _, zz hs _ hφG₁⟩,
+    { simp only [hx, hφ_dom] with mfld_simps, },
+    { refine hφ.mono _,
+      mfld_set_tac },
+  end }
+
 end local_structomorph
 
 end structure_groupoid

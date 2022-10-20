@@ -30,6 +30,11 @@ class normed_add_torsor (V : out_param $ Type*) (P : Type*)
   extends add_torsor V P :=
 (dist_eq_norm' : ∀ (x y : P), dist x y = ∥(x -ᵥ y : V)∥)
 
+/-- Shortcut instance to help typeclass inference out. -/
+@[priority 100]
+instance normed_add_torsor.to_add_torsor' {V P : Type*} [normed_add_comm_group V] [metric_space P]
+  [normed_add_torsor V P] : add_torsor V P := normed_add_torsor.to_add_torsor
+
 variables {α V P W Q : Type*} [seminormed_add_comm_group V] [pseudo_metric_space P]
   [normed_add_torsor V P] [normed_add_comm_group W] [metric_space Q] [normed_add_torsor W Q]
 

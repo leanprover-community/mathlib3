@@ -3,11 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.option.basic
-import logic.nontrivial
 import order.lattice
-import order.max
-import tactic.pi_instances
+import logic.equiv.basic
 
 /-!
 # ⊤ and ⊥, bounded lattices and variants
@@ -688,6 +685,8 @@ instance [partial_order α] : partial_order (with_bot α) :=
   end,
   .. with_bot.preorder }
 
+lemma coe_strict_mono [preorder α] : strict_mono (coe : α → with_bot α) := λ a b, some_lt_some.2
+
 lemma map_le_iff [preorder α] [preorder β] (f : α → β) (mono_iff : ∀ {a b}, f a ≤ f b ↔ a ≤ b) :
   ∀ (a b : with_bot α), a.map f ≤ b.map f ↔ a ≤ b
 | ⊥       _       := by simp only [map_bot, bot_le]
@@ -1154,6 +1153,8 @@ instance [preorder α] : preorder (with_top α) :=
 instance [partial_order α] : partial_order (with_top α) :=
 { le_antisymm := λ _ _, by { simp_rw [←to_dual_le_to_dual_iff], exact function.swap le_antisymm },
   .. with_top.preorder }
+
+lemma coe_strict_mono [preorder α] : strict_mono (coe : α → with_top α) := λ a b, some_lt_some.2
 
 lemma map_le_iff [preorder α] [preorder β] (f : α → β)
   (a b : with_top α) (mono_iff : ∀ {a b}, f a ≤ f b ↔ a ≤ b) :
@@ -1777,11 +1778,9 @@ section nontrivial
 
 variables [partial_order α] [bounded_order α] [nontrivial α]
 
-lemma bot_ne_top : (⊥ : α) ≠ ⊤ :=
-λ H, not_nontrivial_iff_subsingleton.mpr (subsingleton_of_bot_eq_top H) ‹_›
-
-lemma top_ne_bot : (⊤ : α) ≠ ⊥ := bot_ne_top.symm
-lemma bot_lt_top : (⊥ : α) < ⊤ := lt_top_iff_ne_top.2 bot_ne_top
+@[simp] lemma bot_ne_top : (⊥ : α) ≠ ⊤ := λ h, not_subsingleton _ $ subsingleton_of_bot_eq_top h
+@[simp] lemma top_ne_bot : (⊤ : α) ≠ ⊥ := bot_ne_top.symm
+@[simp] lemma bot_lt_top : (⊥ : α) < ⊤ := lt_top_iff_ne_top.2 bot_ne_top
 
 end nontrivial
 

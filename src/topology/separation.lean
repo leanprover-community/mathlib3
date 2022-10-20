@@ -79,13 +79,6 @@ If the space is also compact:
 * `disjoint_nested_nhds`: Given two points `x ≠ y`, we can find neighbourhoods `x ∈ V₁ ⊆ U₁` and
   `y ∈ V₂ ⊆ U₂`, with the `Vₖ` closed and the `Uₖ` open, such that the `Uₖ` are disjoint.
 
-### Discrete spaces
-
-* `discrete_topology_iff_nhds`: Discrete topological spaces are those whose neighbourhood
-  filters are the `pure` filter (which is the principal filter at a singleton).
-* `induced_bot`/`discrete_topology_induced`: The pullback of the discrete topology
-  under an inclusion is the discrete topology.
-
 ## References
 
 https://en.wikipedia.org/wiki/Separation_axiom
@@ -550,6 +543,29 @@ lemma is_closed_map_const {α β} [topological_space α] [topological_space β] 
   is_closed_map (function.const α y) :=
 is_closed_map.of_nonempty $ λ s hs h2s, by simp_rw [h2s.image_const, is_closed_singleton]
 
+lemma nhds_within_insert_of_ne [t1_space α] {x y : α} {s : set α} (hxy : x ≠ y) :
+  𝓝[insert y s] x = 𝓝[s] x :=
+begin
+  refine le_antisymm (λ t ht, _) (nhds_within_mono x $ subset_insert y s),
+  obtain ⟨o, ho, hxo, host⟩ := mem_nhds_within.mp ht,
+  refine mem_nhds_within.mpr ⟨o \ {y}, ho.sdiff is_closed_singleton, ⟨hxo, hxy⟩, _⟩,
+  rw [inter_insert_of_not_mem $ not_mem_diff_of_mem (mem_singleton y)],
+  exact (inter_subset_inter (diff_subset _ _) subset.rfl).trans host
+end
+
+/-- If `t` is a subset of `s`, except for one point,
+then `insert x s` is a neighborhood of `x` within `t`. -/
+lemma insert_mem_nhds_within_of_subset_insert [t1_space α] {x y : α} {s t : set α}
+  (hu : t ⊆ insert y s) :
+  insert x s ∈ 𝓝[t] x :=
+begin
+  rcases eq_or_ne x y with rfl|h,
+  { exact mem_of_superset self_mem_nhds_within hu },
+  refine nhds_within_mono x hu _,
+  rw [nhds_within_insert_of_ne h],
+  exact mem_of_superset self_mem_nhds_within (subset_insert x s)
+end
+
 lemma bInter_basis_nhds [t1_space α] {ι : Sort*} {p : ι → Prop} {s : ι → set α} {x : α}
   (h : (𝓝 x).has_basis p s) : (⋂ i (h : p i), s i) = {x} :=
 begin
@@ -741,20 +757,6 @@ begin
   rw ← induced_compose,
 end
 
-/-- This lemma characterizes discrete topological spaces as those whose singletons are
-neighbourhoods. -/
-lemma discrete_topology_iff_nhds {X : Type*} [topological_space X] :
-  discrete_topology X ↔ (nhds : X → filter X) = pure :=
-begin
-  split,
-  { introI hX,
-    exact nhds_discrete X },
-  { intro h,
-    constructor,
-    apply eq_of_nhds_eq_nhds,
-    simp [h, nhds_bot] }
-end
-
 /-- The topology pulled-back under an inclusion `f : X → Y` from the discrete topology (`⊥`) is the
 discrete topology.
 This version does not assume the choice of a topology on either the source `X`
@@ -804,6 +806,17 @@ end
 @[simp] lemma disjoint_nhds_nhds [t2_space α] {x y : α} : disjoint (𝓝 x) (𝓝 y) ↔ x ≠ y :=
 ⟨λ hd he, by simpa [he, nhds_ne_bot.ne] using hd, t2_space_iff_disjoint_nhds.mp ‹_› x y⟩
 
+lemma pairwise_disjoint_nhds [t2_space α] : pairwise (disjoint on (𝓝 : α → filter α)) :=
+λ x y, disjoint_nhds_nhds.2
+
+protected lemma set.pairwise_disjoint_nhds [t2_space α] (s : set α) : s.pairwise_disjoint 𝓝 :=
+pairwise_disjoint_nhds.set_pairwise s
+
+/-- Points of a finite set can be separated by open sets from each other. -/
+lemma set.finite.t2_separation [t2_space α] {s : set α} (hs : s.finite) :
+  ∃ U : α → set α, (∀ x, x ∈ U x ∧ is_open (U x)) ∧ s.pairwise_disjoint U :=
+s.pairwise_disjoint_nhds.exists_mem_filter_basis hs nhds_basis_opens
+
 lemma is_open_set_of_disjoint_nhds_nhds :
   is_open {p : α × α | disjoint (𝓝 p.1) (𝓝 p.2)} :=
 begin
@@ -812,37 +825,6 @@ begin
   obtain ⟨U, hU, V, hV, hd⟩ := ((nhds_basis_opens x).disjoint_iff (nhds_basis_opens y)).mp h,
   exact mem_nhds_prod_iff.mpr ⟨U, hU.2.mem_nhds hU.1, V, hV.2.mem_nhds hV.1,
     λ ⟨x', y'⟩ ⟨hx', hy'⟩, disjoint_of_disjoint_of_mem hd (hU.2.mem_nhds hx') (hV.2.mem_nhds hy')⟩
-end
-
-/-- A finite set can be separated by open sets. -/
-lemma t2_separation_finset [t2_space α] (s : finset α) :
-  ∃ f : α → set α, set.pairwise_disjoint ↑s f ∧ ∀ x ∈ s, x ∈ f x ∧ is_open (f x) :=
-finset.induction_on s (by simp) begin
-  rintros t s ht ⟨f, hf, hf'⟩,
-  have hty : ∀ y : s, t ≠ y := by { rintros y rfl, exact ht y.2 },
-  choose u v hu hv htu hxv huv using λ {x} (h : t ≠ x), t2_separation h,
-  refine ⟨λ x, if ht : t = x then ⋂ y : s, u (hty y) else f x ∩ v ht, _, _⟩,
-  { rintros x hx₁ y hy₁ hxy a ⟨hx, hy⟩,
-    rw [finset.mem_coe, finset.mem_insert, eq_comm] at hx₁ hy₁,
-    rcases eq_or_ne t x with rfl | hx₂;
-    rcases eq_or_ne t y with rfl | hy₂,
-    { exact hxy rfl },
-    { simp_rw [dif_pos rfl, mem_Inter] at hx,
-      simp_rw [dif_neg hy₂] at hy,
-      exact huv hy₂ ⟨hx ⟨y, hy₁.resolve_left hy₂⟩, hy.2⟩ },
-    { simp_rw [dif_neg hx₂] at hx,
-      simp_rw [dif_pos rfl, mem_Inter] at hy,
-      exact huv hx₂ ⟨hy ⟨x, hx₁.resolve_left hx₂⟩, hx.2⟩ },
-    { simp_rw [dif_neg hx₂] at hx,
-      simp_rw [dif_neg hy₂] at hy,
-      exact hf (hx₁.resolve_left hx₂) (hy₁.resolve_left hy₂) hxy ⟨hx.1, hy.1⟩ } },
-  { intros x hx,
-    split_ifs with ht,
-    { refine ⟨mem_Inter.2 (λ y, _), is_open_Inter (λ y, hu (hty y))⟩,
-      rw ←ht,
-      exact htu (hty y) },
-    { have hx := hf' x ((finset.mem_insert.1 hx).resolve_left (ne.symm ht)),
-      exact ⟨⟨hx.1, hxv ht⟩, is_open.inter hx.2 (hv ht)⟩ } }
 end
 
 @[priority 100] -- see Note [lower instance priority]
@@ -1528,6 +1510,14 @@ begin
     V₁_closed, V₂_closed, U₁_op, U₂_op, h₁, h₂, H⟩
 end
 
+open separation_quotient
+
+/-- The `separation_quotient` of a regular space is a T₃ space. -/
+instance [regular_space α] : t3_space (separation_quotient α) :=
+{ regular := λ s, surjective_mk.forall.2 $ λ a hs ha,
+    by { rw [← disjoint_comap_iff surjective_mk, comap_mk_nhds_mk, comap_mk_nhds_set],
+         exact regular_space.regular (hs.preimage continuous_mk) ha } }
+
 end t3
 
 section normality
@@ -1576,6 +1566,24 @@ protected lemma closed_embedding.normal_space [topological_space β] [normal_spa
         (disjoint_image_of_injective hf.inj hst),
     exact (H.preimage hf.continuous).mono (subset_preimage_image _ _) (subset_preimage_image _ _)
   end }
+
+namespace separation_quotient
+
+/-- The `separation_quotient` of a normal space is a T₄ space. We don't have separate typeclasses
+for normal spaces (without T₁ assumption) and T₄ spaces, so we use the same class for assumption
+and for conclusion.
+
+One can prove this using a homeomorphism between `α` and `separation_quotient α`. We give an
+alternative proof that works without assuming that `α` is a T₁ space. -/
+instance [normal_space α] : normal_space (separation_quotient α) :=
+{ normal := λ s t hs ht hd, separated_nhds_iff_disjoint.2 $
+    begin
+      rw [← disjoint_comap_iff surjective_mk, comap_mk_nhds_set, comap_mk_nhds_set],
+      exact separated_nhds_iff_disjoint.1 (normal_separation (hs.preimage continuous_mk)
+        (ht.preimage continuous_mk) (hd.preimage mk))
+    end }
+
+end separation_quotient
 
 variable (α)
 
@@ -1662,6 +1670,22 @@ instance [t5_space α] {p : α → Prop} : t5_space {x // p x} := embedding_subt
 instance t5_space.to_normal_space [t5_space α] : normal_space α :=
 ⟨λ s t hs ht hd, separated_nhds_iff_disjoint.2 $
   completely_normal (by rwa [hs.closure_eq]) (by rwa [ht.closure_eq])⟩
+
+open separation_quotient
+
+/-- The `separation_quotient` of a completely normal space is a T₅ space. We don't have separate
+typeclasses for completely normal spaces (without T₁ assumption) and T₅ spaces, so we use the same
+class for assumption and for conclusion.
+
+One can prove this using a homeomorphism between `α` and `separation_quotient α`. We give an
+alternative proof that works without assuming that `α` is a T₁ space. -/
+instance [t5_space α] : t5_space (separation_quotient α) :=
+{ completely_normal := λ s t hd₁ hd₂,
+    begin
+      rw [← disjoint_comap_iff surjective_mk, comap_mk_nhds_set, comap_mk_nhds_set],
+      apply t5_space.completely_normal; rw [← preimage_mk_closure],
+      exacts [hd₁.preimage mk, hd₂.preimage mk]
+    end }
 
 end completely_normal
 

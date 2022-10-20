@@ -226,6 +226,28 @@ begin
   exact ⟨x, (_root_.congr_arg (∈ K) (inv_mul_eq_iff_eq_mul.mpr hxy.symm)).mpr y.2⟩,
 end
 
+lemma _root_.subgroup.eq_bot_of_card_eq' {G : Type*} [group G] (H : subgroup G)
+  (h : nat.card H = 1) : H = ⊥ :=
+begin
+  haveI := nat.finite_of_card_ne_zero (ne_of_eq_of_ne h one_ne_zero),
+  haveI := fintype.of_finite H,
+  apply eq_bot_of_card_le,
+  rw [←nat.card_eq_fintype_card, h],
+end
+
+lemma _root_.subgroup.relindex_dvd_of_le_right {G : Type*} [group G] {H K L : subgroup G}
+  (h1 : H ≤ K) (h2 : K ≤ L) : H.relindex K ∣ H.relindex L :=
+begin
+  exact ⟨K.relindex L, (relindex_mul_relindex H K L h1 h2).symm⟩,
+end
+
+lemma _root_.subgroup.card_dvd_of_le' {G : Type*} [group G] {H K : subgroup G} (h : H ≤ K) :
+  nat.card H ∣ nat.card K :=
+begin
+  rw [←relindex_bot_left, ←relindex_bot_left],
+  exact subgroup.relindex_dvd_of_le_right bot_le h,
+end
+
 section burnside_transfer
 
 open_locale pointwise
@@ -283,6 +305,10 @@ lemma ker_transfer_sylow_disjoint''' (Q : subgroup G) (hQ : is_p_group p Q) :
   disjoint (transfer_sylow P hP).ker Q :=
 begin
   have key : is_p_group p ((transfer_sylow P hP).ker ⊓ Q : subgroup G) := hQ.to_le inf_le_right,
+  rw disjoint_iff,
+  apply subgroup.eq_bot_of_card_eq',
+  have key := subgroup.card_dvd_of_le' (@inf_le_left (subgroup G) _ (transfer_sylow P hP).ker Q),
+  have key' := mt (λ h, dvd_trans h key) (not_dvd_card_ker_transfer_sylow P hP),
   sorry,
 end
 

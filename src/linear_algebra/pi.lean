@@ -253,7 +253,7 @@ begin
     exact sum_mem_supr (λ i, mem_map_of_mem (hx i trivial)) }
 end
 
-lemma le_comap_single_pi [decidable_eq ι] (p : ∀ i, submodule R (φ i)) {i} :
+lemma le_comap_single_pi [decidable_eq ι] (p : Π i, submodule R (φ i)) {i} :
   p i ≤ submodule.comap (linear_map.single i : φ i →ₗ[R] _) (submodule.pi set.univ p) :=
 begin
   intros x hx,

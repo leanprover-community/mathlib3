@@ -610,16 +610,18 @@ variables {H₁ : Type*} [topological_space H₁] {H₂ : Type*} [topological_sp
    {G₁ : structure_groupoid H₁} [has_groupoid H₂ G₁] [closed_under_restriction G₁]
    {G₂ : structure_groupoid H₂} [has_groupoid H₃ G₂]
 
-lemma z (e e' : local_homeomorph H₁ H₁) (s : set H₁) (hs : is_open s) (h : eq_on e e' s) :
-  e.restr s ≈ e'.restr s :=
-sorry
-
-lemma zz {e e' : local_homeomorph H₁ H₁} {s : set H₁} (hs : is_open s) (h : eq_on e e' s)
-  (h' : e' ∈ G₁) :
-  e.restr s ∈ G₁ :=
+-- move to `topology.local_homeomorph`
+lemma set.eq_on.restr_eq_on_source {e e' : local_homeomorph H₁ H₁}
+  (h : eq_on e e' (e.source ∩ e'.source)) :
+  e.restr e'.source ≈ e'.restr e.source :=
 begin
-  refine G₁.eq_on_source (closed_under_restriction' h' hs) _,
-  exact z e e' s hs h
+  split,
+  { rw e'.restr_source' _ e.open_source,
+    rw e.restr_source' _ e'.open_source,
+    exact set.inter_comm _ _ },
+  { rw e.restr_source' _ e'.open_source,
+    refine (eq_on.trans _ h).trans _;
+    simp only with mfld_simps },
 end
 
 lemma has_groupoid.comp
@@ -639,11 +641,13 @@ lemma has_groupoid.comp
       (G₁.subset_maximal_atlas hf') (H _ (G₂.compatible he he')) hxs' hxs,
     simp_rw [← local_homeomorph.coe_trans, local_homeomorph.trans_assoc] at hφ,
     simp_rw [local_homeomorph.trans_symm_eq_symm_trans_symm, local_homeomorph.trans_assoc],
-    have hs : is_open ((f.symm ≫ₕ (e.symm ≫ₕ e')).source ∩ φ.source) :=
-      (f.symm ≫ₕ (e.symm ≫ₕ e')).open_source.inter φ.open_source,
-    refine ⟨(f.symm ≫ₕ (e.symm ≫ₕ e')).source ∩ φ.source, hs, _, zz hs _ hφG₁⟩,
+    have hs : is_open (f.symm ≫ₕ e.symm ≫ₕ e' ≫ₕ f').source :=
+      (f.symm ≫ₕ e.symm ≫ₕ e' ≫ₕ f').open_source,
+    refine ⟨_, hs.inter φ.open_source, _, _⟩,
     { simp only [hx, hφ_dom] with mfld_simps, },
-    { refine hφ.mono _,
+    { refine G₁.eq_on_source (closed_under_restriction' hφG₁ hs) _,
+      rw local_homeomorph.restr_source_inter,
+      refine (hφ.mono _).restr_eq_on_source,
       mfld_set_tac },
   end }
 

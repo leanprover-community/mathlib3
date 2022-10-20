@@ -1,5 +1,5 @@
 import number_theory.dirichlet_character_properties
-import number_theory.spl_value
+import number_theory.teich_char
 
 lemma units.coe_map_of_dvd {a b : ℕ} (h : a ∣ b) (x : units (zmod b)) :
   is_unit (x : zmod a) :=
@@ -212,7 +212,7 @@ begin
     rw change_level at h,
     simp only [ring_hom.to_monoid_hom_eq_coe, function.comp_app, monoid_hom.coe_comp] at h,
     suffices : ((units.map ↑((algebra_map ℚ_[p] R).comp padic_int.coe.ring_hom)).comp
-      (teichmuller_character_mod_p p) ^ (p - 2)) (-1) = 1,
+      (teichmuller_character_mod_p p)⁻¹) (-1) = 1,
     swap, convert h,
     { rw units.map,
       simp only [monoid_hom.mk'_apply, ring_hom.coe_monoid_hom, units.coe_neg_one,
@@ -225,20 +225,15 @@ begin
         any_goals { apply dvd_mul_of_dvd_right, apply dvd_pow dvd_rfl (ne_zero_of_lt _),
            exact 0, apply fact.out, }, },
       simp_rw [this], refl, },
-    rw teichmuller_character_mod_p_change_level_pow at this,
     rw monoid_hom.comp_apply at this,
+    simp only [monoid_hom.inv_apply, map_inv, inv_eq_one] at this,
     rw teichmuller_character_mod_p_eval_neg_one p hp at this,
-    suffices neg_one_pow : (-1 : units R)^(p - 2) = 1,
-    { haveI : char_zero R :=
-        (ring_hom.char_zero_iff ((algebra_map ℚ_[p] R).injective)).1 infer_instance,
-      apply @nat.cast_add_one_ne_zero R _ _ _ 1,
-      rw neg_one_pow_eq_neg_one p hp at neg_one_pow,
-      rw ←eq_neg_iff_add_eq_zero, rw nat.cast_one,
-      rw ←units.eq_iff at neg_one_pow, rw units.coe_one at neg_one_pow,
-      rw units.coe_neg_one at neg_one_pow, rw neg_one_pow, },
-    { convert this, rw units.map,
-      rw ←units.eq_iff,
-      simp, }, },
+    rw ← units.eq_iff at this,
+    rw units.coe_map at this,
+    simp only [units.coe_neg_one, ring_hom.coe_monoid_hom, map_neg, map_one, units.coe_one] at this,
+    haveI : char_zero R := (ring_hom.char_zero_iff ((algebra_map ℚ_[p] R).injective)).1 infer_instance,
+    apply @nat.cast_add_one_ne_zero R _ _ _ 1,
+    rw ←eq_neg_iff_add_eq_zero, rw nat.cast_one, rw this, },
 end
 .
 

@@ -376,8 +376,7 @@ instance : group (spin_group Q) :=
   mul_left_inv := star_mul_self,
   ..submonoid.to_monoid _ }
 
-instance : has_involutive_star (spin_group Q) :=
-⟨λ _, by { ext, simp only [coe_star, star_star] }⟩
+instance : has_involutive_star (spin_group Q) := ⟨λ _, by { ext, simp only [coe_star, star_star] }⟩
 
 instance : star_semigroup (spin_group Q) :=
 ⟨λ _ _, by { ext, simp only [coe_star, submonoid.coe_mul, star_mul] }⟩

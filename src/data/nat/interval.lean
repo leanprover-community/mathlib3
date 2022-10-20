@@ -290,7 +290,7 @@ begin
   rw one_mul,
 end
 
-lemma nat.cauchy_induction_two_mul (k seed : ℕ) (hs : P seed.succ)
+lemma nat.cauchy_induction_two_mul (seed : ℕ) (hs : P seed.succ)
   (hm : ∀ n, seed < n → P n → P (2 * n)) (n : ℕ) : P n :=
 nat.cauchy_induction_mul h 2 seed one_lt_two hs hm n
 

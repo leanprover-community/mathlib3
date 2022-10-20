@@ -45,18 +45,6 @@ section pin
 open clifford_algebra mul_action
 open_locale pointwise
 
-section other_PR
-def invertible_of_invertible_ι (Q : quadratic_form R M) (m : M) [invertible (ι Q m)]
-  [invertible (2 : R)] : invertible (Q m) := sorry
-lemma ι_mul_ι_mul_inv_of_ι (a b : M) [invertible (ι Q a)] [invertible (Q a)] :
-  ι Q a * ι Q b * ⅟(ι Q a) = ι Q ((⅟(Q a) * quadratic_form.polar Q a b) • a - b) := sorry
-lemma inv_of_ι_mul_ι_mul_ι (a b : M) [invertible (ι Q a)] [invertible (Q a)] :
-  ⅟(ι Q a) * ι Q b * ι Q a = ι Q ((⅟(Q a) * quadratic_form.polar Q a b) • a - b) := sorry
-lemma map_inv_of {R : Type*} {S : Type*} {F : Type*} [mul_one_class R] [monoid S]
-  [monoid_hom_class F R S] (f : F) (r : R) [invertible r] [invertible (f r)] :
-    f (⅟r) = ⅟(f r) := sorry
-end other_PR
-
 /-- `lipschitz` is the subgroup closure of all the elements in the form of `ι Q m` where `ι`
 is the canonical linear map `M →ₗ[R] clifford_algebra Q`. -/
 def lipschitz (Q : quadratic_form R M) :=
@@ -82,7 +70,7 @@ begin
       congr';
       simp only [hz.symm, subsingleton.helim (congr_arg invertible hz.symm)], },
     letI := invertible_of_invertible_ι Q z,
-    refine ⟨(⅟(Q z) * quadratic_form.polar Q z b) • z - b, (ι_mul_ι_mul_inv_of_ι z b).symm⟩, },
+    refine ⟨(⅟(Q z) * quadratic_form.polar Q z b) • z - b, (ι_mul_ι_mul_inv_of_ι Q z b).symm⟩, },
   { rintros x ⟨z, hz1⟩ y ⟨a, ⟨b, hb⟩, ha2⟩,
     simp only [conj_act.to_conj_act_inv, distrib_mul_action.to_linear_map_apply,
       has_smul.smul, conj_act.of_conj_act_inv, conj_act.of_conj_act_to_conj_act,
@@ -98,7 +86,7 @@ begin
       congr';
       simp only [hz1.symm, subsingleton.helim (congr_arg invertible hz1.symm)], },
     letI := invertible_of_invertible_ι Q z,
-    refine ⟨(⅟(Q z) * quadratic_form.polar Q z b) • z - b, (inv_of_ι_mul_ι_mul_ι z b).symm⟩, },
+    refine ⟨(⅟(Q z) * quadratic_form.polar Q z b) • z - b, (inv_of_ι_mul_ι_mul_ι Q z b).symm⟩, },
   { simp only [conj_act.to_conj_act_one, one_smul, le_refl], },
   { intros x y hx1 hy1 z hz1,
     simp only [conj_act.to_conj_act_mul] at hz1,
@@ -142,7 +130,7 @@ begin
       { exact subsingleton.helim (congr_arg invertible hz.symm) _ _, }, },
     letI := invertible_of_invertible_ι Q z,
     refine ⟨-((⅟(Q z) * quadratic_form.polar Q z y) • z - y), by simp only
-      [map_neg, neg_mul, ι_mul_ι_mul_inv_of_ι z y]⟩, },
+      [map_neg, neg_mul, ι_mul_ι_mul_inv_of_ι Q z y]⟩, },
   { rintros x ⟨z, hz⟩ y,
     letI := x.invertible,
     letI : invertible (ι Q z) := by rwa hz,
@@ -159,7 +147,7 @@ begin
       { exact hz.symm, }, },
     letI := invertible_of_invertible_ι Q z,
     refine ⟨-((⅟(Q z) * quadratic_form.polar Q z y) • z - y), by simp only
-      [map_neg, neg_mul, inv_of_ι_mul_ι_mul_ι z y]⟩, },
+      [map_neg, neg_mul, inv_of_ι_mul_ι_mul_ι Q z y]⟩, },
   { simp only [units.coe_one, map_one, one_mul, inv_one, mul_one,
       linear_map.mem_range, exists_apply_eq_apply, forall_const], },
   { intros a b ha hb y,

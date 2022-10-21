@@ -250,8 +250,48 @@ lift₂ pr₁_₃ (pr₂₃_₃ ≫ internal_operation₂.yoneda_equiv Y add) �
   tidy,
 end
 
--- mul_smul
--- add_smul
+def mul_smul [has_binary_product X Y] [has_binary_product X X] [has_binary_product X (prod X Y)]
+  (smul : internal_operation₂_gen X Y Y) (mul : internal_operation₂ X) : Prop :=
+prod.lift (prod.lift limits.prod.fst (limits.prod.snd ≫ limits.prod.fst) ≫ mul)
+    (limits.prod.snd ≫ limits.prod.snd) ≫ smul =
+  prod.lift limits.prod.fst (limits.prod.snd ≫ smul) ≫ smul
+
+lemma yoneda_equiv_mul_smul [has_binary_product X Y] [has_binary_product X X] [has_binary_product X (prod X Y)]
+  (smul : internal_operation₂_gen X Y Y) (mul : internal_operation₂ X)
+  (mul_smul : smul.mul_smul mul) :
+lift₂ (pr₁₂_₃ ≫ (internal_operation₂.yoneda_equiv X mul)) pr₃_₃ ≫ (yoneda_equiv X Y Y smul) =
+  lift₂ pr₁_₃ (pr₂₃_₃ ≫ (yoneda_equiv X Y Y smul)) ≫ yoneda_equiv X Y Y smul :=
+(internal_operation₃_gen.yoneda_equiv X X Y Y).symm.injective begin
+  simp only [internal_operation₃_gen.yoneda_equiv_symm_apply, functor_to_types.comp,
+    lift₂_app, pr₁₂_₃_app, internal_operation₂.yoneda_equiv_apply_app, pr₃_₃_app,
+    yoneda_equiv_apply_app, pr₁_₃_app, pr₂₃_₃_app],
+  convert mul_smul,
+  tidy,
+end
+
+def add_smul [has_binary_product Y Y] [has_binary_product X X] [has_binary_product X Y]
+  [has_binary_product X (prod X Y)] (smul : internal_operation₂_gen X Y Y)
+  (add₁ : internal_operation₂ X) (add₂ : internal_operation₂ Y) : Prop :=
+prod.lift (prod.lift limits.prod.fst (limits.prod.snd ≫ limits.prod.fst) ≫ add₁)
+  (limits.prod.snd ≫ limits.prod.snd) ≫ smul =
+prod.lift
+  (prod.lift limits.prod.fst (limits.prod.snd ≫ limits.prod.snd) ≫ smul)
+  (limits.prod.snd ≫ smul) ≫ add₂
+
+lemma yoneda_equiv_add_smul [has_binary_product Y Y] [has_binary_product X X] [has_binary_product X Y]
+  [has_binary_product X (prod X Y)]
+  (smul : internal_operation₂_gen X Y Y) (add₁ : internal_operation₂ X) (add₂ : internal_operation₂ Y)
+  (add_smul : smul.add_smul add₁ add₂) :
+lift₂ (pr₁₂_₃ ≫ internal_operation₂.yoneda_equiv X add₁) pr₃_₃ ≫ yoneda_equiv X Y Y smul =
+  lift₂ (pr₁₃_₃ ≫ (yoneda_equiv X Y Y smul)) (pr₂₃_₃ ≫ (yoneda_equiv X Y Y smul)) ≫
+    internal_operation₂.yoneda_equiv Y add₂ :=
+(internal_operation₃_gen.yoneda_equiv X X Y Y).symm.injective begin
+  simp only [internal_operation₃_gen.yoneda_equiv_symm_apply, functor_to_types.comp,
+    lift₂_app, pr₁₂_₃_app, internal_operation₂.yoneda_equiv_apply_app, pr₃_₃_app,
+    yoneda_equiv_apply_app, pr₁₃_₃_app, pr₂₃_₃_app],
+  convert add_smul,
+  tidy,
+end
 
 end internal_operation₂_gen
 

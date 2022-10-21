@@ -83,7 +83,7 @@ is_localization.injective _ (le_of_eq rfl)
 variables {R K}
 
 @[norm_cast, simp] lemma coe_inj {a b : R} : (↑a : K) = ↑b ↔ a = b :=
-⟨λ h, is_fraction_ring.injective R K h, by rintro rfl; refl⟩
+(is_fraction_ring.injective R K).eq_iff
 
 @[priority 100] instance [no_zero_divisors K] : no_zero_smul_divisors R K :=
 no_zero_smul_divisors.of_algebra_map_injective $ is_fraction_ring.injective R K

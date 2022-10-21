@@ -215,7 +215,7 @@ begin
   simp only [mem_prod_principal, hff', mem_set_of_eq],
 end
 
-lemma tendsto_uniformly_on.congr' {g : α → β}
+lemma tendsto_uniformly_on.congr_right {g : α → β}
   (hf : tendsto_uniformly_on F f p s) (hfg : eq_on f g s) :
   tendsto_uniformly_on F g p s :=
 λ u hu, by filter_upwards [hf u hu] with i hi a ha using hfg ha ▸ hi a ha
@@ -816,7 +816,7 @@ by simpa [← tendsto_locally_uniformly_on_univ, ← nhds_within_univ] using
     @tendsto_locally_uniformly_on_iff_filter _ _ _ _ F f univ p _
 
 lemma tendsto_locally_uniformly_on.tendsto_at (hf : tendsto_locally_uniformly_on F f p s)
-  ⦃a : α⦄ (ha : a ∈ s) :
+  {a : α} (ha : a ∈ s) :
   tendsto (λ i, F i a) p (𝓝 (f a)) :=
 begin
   refine ((tendsto_locally_uniformly_on_iff_filter.mp hf) a ha).tendsto_at _,
@@ -838,7 +838,7 @@ begin
   filter_upwards [h] with i hi y hy using hg i hy.1 ▸ hi y hy.2
 end
 
-lemma tendsto_locally_uniformly_on.congr' {g : α → β}
+lemma tendsto_locally_uniformly_on.congr_right {g : α → β}
   (hf : tendsto_locally_uniformly_on F f p s) (hg : s.eq_on f g) :
   tendsto_locally_uniformly_on F g p s :=
 begin

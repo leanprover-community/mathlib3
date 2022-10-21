@@ -73,14 +73,6 @@ lemma mk (F : X → Type*) [Π x, topological_space (F x)] [hF : Π x, discrete_
   is_covering_map_on f s :=
 λ x hx, is_evenly_covered.to_is_evenly_covered_preimage ⟨hF x, e x hx, h x hx⟩
 
-variables {f}
-
-lemma continuous (hs : is_open (f ⁻¹' s)) (hf : is_covering_map_on f s) :
-  continuous_on f (f ⁻¹' s) :=
-begin
-  have key := λ (x : E) (hx : x ∈ f ⁻¹' s), (hf (f x) hx).continuous_at,
-end
-
 end is_covering_map_on
 
 /-- A covering map is a continuous function `f : E → X` with discrete fibers such that each point

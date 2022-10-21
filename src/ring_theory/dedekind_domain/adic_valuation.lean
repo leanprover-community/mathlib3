@@ -339,25 +339,33 @@ iff.rfl
 
 section algebra_instances
 
-@[priority 100] instance adic_valued.has_uniform_continuous_const_smul' :
-  @has_uniform_continuous_const_smul R K v.adic_valued.to_uniform_space
-    v.adic_valued.to_uniform_space _ :=
+lemma adic_valued.has_uniform_continuous_const_smul' :
+  @has_uniform_continuous_const_smul R K v.adic_valued.to_uniform_space _ :=
 @has_uniform_continuous_const_smul_of_continuous_const_smul R K _ _ _
     v.adic_valued.to_uniform_space _ _
 
-instance adic_valued.has_uniform_continuous_const_smul :
-  @has_uniform_continuous_const_smul K K v.adic_valued.to_uniform_space
-    v.adic_valued.to_uniform_space _ :=
+lemma adic_valued.has_uniform_continuous_const_smul :
+  @has_uniform_continuous_const_smul K K v.adic_valued.to_uniform_space _ :=
 @ring.has_uniform_continuous_const_smul K _ v.adic_valued.to_uniform_space _ _
 
 instance adic_completion.algebra' : algebra R (v.adic_completion K) :=
-@uniform_space.completion.algebra K _ v.adic_valued.to_uniform_space _ _ R _ _ _
+@uniform_space.completion.algebra K _ v.adic_valued.to_uniform_space _ _ R _ _
+  (adic_valued.has_uniform_continuous_const_smul' R K v)
+
+@[simp] lemma coe_smul_adic_completion' (r : R) (x : v.adic_completion K) :
+  (↑(r • x) : v.adic_completion K) = r • (x : v.adic_completion K) :=
+by simpa only [algebra.smul_def]
 
 instance : algebra K (v.adic_completion K) :=
 @uniform_space.completion.algebra' K _ v.adic_valued.to_uniform_space _ _
 
+@[simp] lemma coe_smul_adic_completion (k : K) (x : v.adic_completion K) :
+  (↑(k • x) : v.adic_completion K) = k • (x : v.adic_completion K) :=
+by simpa only [algebra.smul_def]
+
 instance : is_scalar_tower R K (v.adic_completion K) :=
-@uniform_space.completion.is_scalar_tower R K K v.adic_valued.to_uniform_space _ _ _ _ _ _
+@uniform_space.completion.is_scalar_tower R K K v.adic_valued.to_uniform_space _ _ _
+  (adic_valued.has_uniform_continuous_const_smul' R K v) _ _
 
 instance : algebra R (v.adic_completion_integers K) :=
 ({ to_fun := λ r, ⟨coe $ algebra_map R K r, by simpa only [adic_completion.is_integer,
@@ -374,6 +382,10 @@ instance : algebra R (v.adic_completion_integers K) :=
     ext,
     simp_rw [ring_hom.map_add, subring.coe_add, subtype.coe_mk, uniform_space.completion.coe_add],
   end, } : R →+* v.adic_completion_integers K).to_algebra
+
+@[simp] lemma coe_smul_adic_completion_integers (r : R) (x : v.adic_completion_integers K) :
+  (↑(r • x) : v.adic_completion K) = r • (x : v.adic_completion K) :=
+by simpa only [algebra.smul_def]
 
 instance : no_zero_smul_divisors R (v.adic_completion_integers K) :=
 { eq_zero_or_eq_zero_of_smul_eq_zero := λ c x hcx,

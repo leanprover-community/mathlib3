@@ -21,7 +21,7 @@ This file defines covering maps.
   assumed to be surjective, so the fibers are even allowed to be empty.
 -/
 
-variables {E X : Type*} [topological_space E] [topological_space X] (f : E → X)
+variables {E X : Type*} [topological_space E] [topological_space X] (f : E → X) (s : set X)
 
 open topological_fiber_bundle
 
@@ -60,6 +60,20 @@ let ⟨h1, h2⟩ := h in by exactI ⟨((classical.some h2).preimage_singleton_ho
   (classical.some_spec h2)).embedding.discrete_topology, _, h.mem_to_trivialization_base_set⟩
 
 end is_evenly_covered
+
+/-- A covering map is a continuous function `f : E → X` with discrete fibers such that each point
+  of `X` has an evenly covered neighborhood. -/
+def is_covering_map_on :=
+∀ x ∈ s, is_evenly_covered f x (f ⁻¹' {x})
+
+namespace is_covering_map_on
+
+lemma mk (F : X → Type*) [Π x, topological_space (F x)] [hF : Π x, discrete_topology (F x)]
+  (e : Π x ∈ s, trivialization (F x) f) (h : ∀ (x : X) (hx : x ∈ s), x ∈ (e x hx).base_set) :
+  is_covering_map_on f s :=
+λ x hx, is_evenly_covered.to_is_evenly_covered_preimage ⟨hF x, e x hx, h x hx⟩
+
+end is_covering_map_on
 
 /-- A covering map is a continuous function `f : E → X` with discrete fibers such that each point
   of `X` has an evenly covered neighborhood. -/
@@ -108,7 +122,12 @@ hf.is_open_map.to_quotient_map hf.continuous hf'
 
 end is_covering_map
 
-lemma is_topological_fiber_bundle.is_covering_map {B Z F : Type*} [topological_space B]
-  [topological_space Z] [topological_space F] [discrete_topology F] {f : Z → B}
-  (hf : is_topological_fiber_bundle F f) : is_covering_map f :=
+variables {f}
+
+lemma is_covering_map_iff_is_covering_map_on_univ :
+  is_covering_map f ↔ is_covering_map_on f set.univ :=
+by simp only [is_covering_map, is_covering_map_on, set.mem_univ, forall_true_left]
+
+lemma is_topological_fiber_bundle.is_covering_map {F : Type*} [topological_space F]
+  [discrete_topology F] (hf : is_topological_fiber_bundle F f) : is_covering_map f :=
 is_covering_map.mk f (λ x, F) (λ x, classical.some (hf x)) (λ x, classical.some_spec (hf x))

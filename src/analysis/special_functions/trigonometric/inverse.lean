@@ -224,6 +224,7 @@ lemma maps_to_sin_Ioo : maps_to sin (Ioo (-(π / 2)) (π / 2)) (Ioo (-1) 1) :=
 lemma cos_arcsin_nonneg (x : ℝ) : 0 ≤ cos (arcsin x) :=
 cos_nonneg_of_mem_Icc ⟨neg_pi_div_two_le_arcsin _, arcsin_le_pi_div_two _⟩
 
+-- The junk values for `arcsin` and `sqrt` make this true even outside `[-1, 1]`.
 lemma cos_arcsin (x : ℝ) : cos (arcsin x) = sqrt (1 - x ^ 2) :=
 begin
   by_cases hx₁ : -1 ≤ x, swap,
@@ -241,7 +242,7 @@ begin
 end
 
 /-- Inverse of the `cos` function, returns values in the range `0 ≤ arccos x` and `arccos x ≤ π`.
-  If the argument is not between `-1` and `1` it defaults to `π / 2` -/
+  It defaults to `π` on `(-∞, -1)` and to `0` to `(1, ∞)`. -/
 @[pp_nodot] noncomputable def arccos (x : ℝ) : ℝ :=
 π / 2 - arcsin x
 
@@ -295,6 +296,7 @@ by rw [arccos, arcsin_of_one_le hx, sub_self]
 lemma arccos_of_le_neg_one {x : ℝ} (hx : x ≤ -1) : arccos x = π :=
 by rw [arccos, arcsin_of_le_neg_one hx, sub_neg_eq_add, add_halves']
 
+-- The junk values for `arccos` and `sqrt` make this true even outside `[-1, 1]`.
 lemma sin_arccos (x : ℝ) : sin (arccos x) = sqrt (1 - x ^ 2) :=
 begin
   by_cases hx₁ : -1 ≤ x, swap,

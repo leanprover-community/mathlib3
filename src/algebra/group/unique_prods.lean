@@ -190,4 +190,4 @@ instance covariants.to_unique_prods {A} [has_mul A] [linear_order A]
   [covariant_class A A (*) (≤)] [covariant_class A A (function.swap (*)) (<)]
   [contravariant_class A A (*) (≤)] : unique_prods A :=
 { muls := λ A B hA hB, ⟨_, A.min'_mem ‹_›, _, B.min'_mem ‹_›, λ a b ha hb ab,
-    eq_and_eq_of_le_of_le_of_mul_eq (finset.min'_le _ _ ‹_›) (finset.min'_le _ _ ‹_›) ‹_›⟩ }
+    eq_and_eq_of_le_of_le_of_mul_eq (finset.min'_le _ _ ‹_›) (finset.min'_le _ _ ‹_›) ab.le⟩ }

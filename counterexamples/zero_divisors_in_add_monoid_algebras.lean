@@ -3,12 +3,10 @@ Copyright (c) 2022 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import algebra.char_p.basic
 import algebra.geom_sum
 import algebra.monoid_algebra.basic
 import data.finsupp.lex
 import data.zmod.basic
-import group_theory.order_of_element
 import algebra.group.unique_prods
 
 /-!

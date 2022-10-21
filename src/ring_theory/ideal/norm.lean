@@ -9,8 +9,8 @@ import ring_theory.dedekind_domain.ideal
 
 /-!
 # Ideal norms
-This file will define the absolute ideal norm `ideal.abs_norm (I : ideal R) : ℕ` as the cardinality of
-the quotient `R ⧸ I` (setting it to 0 if the cardinality is infinite).
+This file will define the absolute ideal norm `ideal.abs_norm (I : ideal R) : ℕ` as the cardinality
+of the quotient `R ⧸ I` (setting it to 0 if the cardinality is infinite).
 
 ## Main definitions
  * `submodule.card_quot (S : submodule R M)`: the cardinality of the quotient `M ⧸ S`, in `ℕ`.

@@ -143,6 +143,8 @@ by simp only [←cons_head_tail, eq_iff_true_of_subsingleton]
   tail (of_fn f) = of_fn (λ i, f i.succ) :=
 (of_fn_nth _).symm.trans $ by { congr, funext i, cases i, simp, }
 
+@[simp] theorem to_list_empty (v : vector α 0) : v.to_list = [] := list.length_eq_zero.mp v.2
+
 /-- The list that makes up a `vector` made up of a single element,
 retrieved via `to_list`, is equal to the list of that single element. -/
 @[simp] lemma to_list_singleton (v : vector α 1) : v.to_list = [v.head] :=
@@ -151,6 +153,12 @@ begin
   simp only [to_list_cons, to_list_nil, cons_head, eq_self_iff_true,
              and_self, singleton_tail]
 end
+
+@[simp] lemma empty_to_list_eq_ff (v : vector α (n + 1)) : v.to_list.empty = ff :=
+match v with | ⟨a :: as, _⟩ := rfl end
+
+lemma not_empty_to_list (v : vector α (n + 1)) : ¬ v.to_list.empty :=
+by simp only [empty_to_list_eq_ff, coe_sort_ff, not_false_iff]
 
 /-- Mapping under `id` does not change a vector. -/
 @[simp] lemma map_id {n : ℕ} (v : vector α n) : vector.map id v = v :=

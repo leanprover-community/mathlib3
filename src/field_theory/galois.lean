@@ -74,7 +74,7 @@ lemma splits [is_galois F E] (x : E) : (minpoly F x).splits (algebra_map F E) :=
 
 variables (F E)
 
-instance of_fixed_field (G : Type*) [group G] [fintype G] [mul_semiring_action G E] :
+instance of_fixed_field (G : Type*) [group G] [finite G] [mul_semiring_action G E] :
   is_galois (fixed_points.subfield G E) E :=
 ⟨⟩
 
@@ -339,7 +339,7 @@ lemma of_separable_splitting_field_aux
   fintype.card (K⟮x⟯.restrict_scalars F →ₐ[F] E) =
     fintype.card (K →ₐ[F] E) * finrank K K⟮x⟯ :=
 begin
-  have h : is_integral K x := is_integral_of_is_scalar_tower x
+  have h : is_integral K x := is_integral_of_is_scalar_tower
     (is_integral_of_noetherian (is_noetherian.iff_fg.2 hFE) x),
   have h1 : p ≠ 0 := λ hp, by rwa [hp, polynomial.map_zero, polynomial.roots_zero] at hx,
   have h2 : (minpoly K x) ∣ p.map (algebra_map F K),

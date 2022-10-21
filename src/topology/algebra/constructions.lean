@@ -25,7 +25,9 @@ open_locale topological_space
 namespace mul_opposite
 
 /-- Put the same topological space structure on the opposite monoid as on the original space. -/
-@[to_additive] instance [topological_space M] : topological_space Mᵐᵒᵖ :=
+@[to_additive "Put the same topological space structure on the opposite monoid as on the original
+space."]
+instance [topological_space M] : topological_space Mᵐᵒᵖ :=
 topological_space.induced (unop : Mᵐᵒᵖ → M) ‹_›
 
 variables [topological_space M]
@@ -67,8 +69,9 @@ open mul_opposite
 variables [topological_space M] [monoid M] [topological_space X]
 
 /-- The units of a monoid are equipped with a topology, via the embedding into `M × M`. -/
-@[to_additive] instance : topological_space Mˣ :=
-topological_space.induced (embed_product M) prod.topological_space
+@[to_additive "The additive units of a monoid are equipped with a topology, via the embedding into
+`M × M`."]
+instance : topological_space Mˣ := prod.topological_space.induced (embed_product M)
 
 @[to_additive] lemma inducing_embed_product : inducing (embed_product M) := ⟨rfl⟩
 

@@ -11,7 +11,6 @@ import order.conditionally_complete_lattice
 In this file we
 
 * define a `conditionally_complete_linear_order_bot` structure on `ℕ`;
-* define a `complete_linear_order` structure on `part_enat`;
 * prove a few lemmas about `supr`/`infi`/`set.Union`/`set.Inter` and natural numbers.
 -/
 
@@ -41,7 +40,7 @@ dif_neg $ λ ⟨n, hn⟩, let ⟨k, hks, hk⟩ := h.exists_nat_lt n in (hn k hks
 begin
   cases eq_empty_or_nonempty s,
   { subst h, simp only [or_true, eq_self_iff_true, iff_true, Inf, has_Inf.Inf,
-      mem_empty_eq, exists_false, dif_neg, not_false_iff] },
+      mem_empty_iff_false, exists_false, dif_neg, not_false_iff] },
   { have := ne_empty_iff_nonempty.mpr h,
     simp only [this, or_false, nat.Inf_def, h, nat.find_eq_zero] }
 end
@@ -105,7 +104,7 @@ noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
   cInf_le    := assume s a hb ha, by rw [Inf_def ⟨a, ha⟩]; exact nat.find_min' _ ha,
   cSup_empty :=
   begin
-    simp only [Sup_def, set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff,
+    simp only [Sup_def, set.mem_empty_iff_false, forall_const, forall_prop_of_false, not_false_iff,
       exists_const],
     apply bot_unique (nat.find_min' _ _),
     trivial

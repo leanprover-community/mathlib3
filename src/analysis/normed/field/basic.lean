@@ -17,7 +17,6 @@ definitions.
 
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
-noncomputable theory
 open filter metric
 open_locale topological_space big_operators nnreal ennreal uniformity pointwise
 
@@ -322,7 +321,8 @@ instance prod.semi_normed_ring [semi_normed_ring β] :
 
 /-- Seminormed ring structure on the product of finitely many seminormed rings,
   using the sup norm. -/
-instance pi.semi_normed_ring {π : ι → Type*} [fintype ι] [Π i, semi_normed_ring (π i)] :
+instance pi.semi_normed_ring {π : ι → Type*} [fintype ι]
+  [Π i, semi_normed_ring (π i)] :
   semi_normed_ring (Π i, π i) :=
 { ..pi.non_unital_semi_normed_ring,
   ..pi.seminormed_add_comm_group, }
@@ -338,7 +338,8 @@ instance : non_unital_normed_ring (ulift α) :=
 
 /-- Non-unital normed ring structure on the product of two non-unital normed rings,
 using the sup norm. -/
-instance prod.non_unital_normed_ring [non_unital_normed_ring β] : non_unital_normed_ring (α × β) :=
+instance prod.non_unital_normed_ring [non_unital_normed_ring β] :
+  non_unital_normed_ring (α × β) :=
 { norm_mul := norm_mul_le,
   ..prod.seminormed_add_comm_group }
 
@@ -433,19 +434,19 @@ protected lemma list.norm_prod (l : list α) : ∥l.prod∥ = (l.map norm).prod 
 protected lemma list.nnnorm_prod (l : list α) : ∥l.prod∥₊ = (l.map nnnorm).prod :=
 (nnnorm_hom.to_monoid_hom : α →* ℝ≥0).map_list_prod _
 
-@[simp] lemma norm_div (a b : α) : ∥a / b∥ = ∥a∥ / ∥b∥ := (norm_hom : α →*₀ ℝ).map_div a b
+@[simp] lemma norm_div (a b : α) : ∥a / b∥ = ∥a∥ / ∥b∥ := map_div₀ (norm_hom : α →*₀ ℝ) a b
 
-@[simp] lemma nnnorm_div (a b : α) : ∥a / b∥₊ = ∥a∥₊ / ∥b∥₊ := (nnnorm_hom : α →*₀ ℝ≥0).map_div a b
+@[simp] lemma nnnorm_div (a b : α) : ∥a / b∥₊ = ∥a∥₊ / ∥b∥₊ := map_div₀ (nnnorm_hom : α →*₀ ℝ≥0) a b
 
-@[simp] lemma norm_inv (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ := (norm_hom : α →*₀ ℝ).map_inv a
+@[simp] lemma norm_inv (a : α) : ∥a⁻¹∥ = ∥a∥⁻¹ := map_inv₀ (norm_hom : α →*₀ ℝ) a
 
 @[simp] lemma nnnorm_inv (a : α) : ∥a⁻¹∥₊ = ∥a∥₊⁻¹ :=
 nnreal.eq $ by simp
 
-@[simp] lemma norm_zpow : ∀ (a : α) (n : ℤ), ∥a^n∥ = ∥a∥^n := (norm_hom : α →*₀ ℝ).map_zpow
+@[simp] lemma norm_zpow : ∀ (a : α) (n : ℤ), ∥a^n∥ = ∥a∥^n := map_zpow₀ (norm_hom : α →*₀ ℝ)
 
 @[simp] lemma nnnorm_zpow : ∀ (a : α) (n : ℤ), ∥a ^ n∥₊ = ∥a∥₊ ^ n :=
-(nnnorm_hom : α →*₀ ℝ≥0).map_zpow
+map_zpow₀ (nnnorm_hom : α →*₀ ℝ≥0)
 
 /-- Multiplication on the left by a nonzero element of a normed division ring tends to infinity at
 infinity. TODO: use `bornology.cobounded` instead of `filter.comap has_norm.norm filter.at_top`. -/
@@ -479,6 +480,23 @@ begin
   refine squeeze_zero' (eventually_of_forall $ λ _, norm_nonneg _) this _,
   refine (continuous_const.sub continuous_id).norm.div_const.div_const.tendsto' _ _ _,
   simp,
+end
+
+lemma norm_one_of_pow_eq_one {x : α} {k : ℕ+} (h : x ^ (k : ℕ) = 1) :
+  ∥x∥ = 1 :=
+begin
+  rw ( _ :  ∥x∥ = 1 ↔ ∥x∥₊ = 1),
+  apply (@pow_left_inj nnreal _ _ _ ↑k zero_le' zero_le' (pnat.pos k)).mp,
+  { rw [← nnnorm_pow, one_pow, h, nnnorm_one], },
+  { exact subtype.mk_eq_mk.symm, },
+end
+
+lemma norm_map_one_of_pow_eq_one [comm_monoid β] (φ : β →* α) {x : β} {k : ℕ+}
+  (h : x ^ (k : ℕ) = 1) :
+  ∥φ x∥ = 1 :=
+begin
+  have : (φ x) ^ (k : ℕ) = 1 := by rw [← monoid_hom.map_pow, h, monoid_hom.map_one],
+  exact norm_one_of_pow_eq_one this,
 end
 
 end normed_division_ring
@@ -599,11 +617,16 @@ end densely
 
 end normed_field
 
-instance : normed_field ℝ :=
+instance : normed_comm_ring ℝ :=
+{ norm_mul := λ x y, (abs_mul x y).le,
+  .. real.normed_add_comm_group,
+  .. real.comm_ring }
+
+noncomputable instance : normed_field ℝ :=
 { norm_mul' := abs_mul,
   .. real.normed_add_comm_group }
 
-instance : densely_normed_field ℝ :=
+noncomputable instance : densely_normed_field ℝ :=
 { lt_norm_lt := λ _ _ h₀ hr, let ⟨x, h⟩ := exists_between hr in
     ⟨x, by rwa [real.norm_eq_abs, abs_of_nonneg (h₀.trans h.1.le)]⟩ }
 
@@ -614,6 +637,8 @@ abs_of_nonneg hx
 
 lemma norm_of_nonpos {x : ℝ} (hx : x ≤ 0) : ∥x∥ = -x :=
 abs_of_nonpos hx
+
+lemma le_norm_self (r : ℝ) : r ≤ ∥r∥ := le_abs_self r
 
 @[simp] lemma norm_coe_nat (n : ℕ) : ∥(n : ℝ)∥ = n := abs_of_nonneg n.cast_nonneg
 
@@ -635,6 +660,14 @@ begin
   { rw real.ennnorm_eq_of_real hx, refl' },
   { rw [ennreal.of_real_eq_zero.2 (le_of_lt (not_le.1 hx))],
     exact bot_le }
+end
+
+lemma to_nnreal_mul_nnnorm {x : ℝ} (y : ℝ) (hr : 0 ≤ x) : x.to_nnreal * ∥y∥₊ = ∥x * y∥₊ :=
+begin
+  rw real.to_nnreal_of_nonneg hr,
+  simp only [nnnorm_mul, mul_eq_mul_right_iff],
+  refine or.inl (nnreal.eq _),
+  simp only [subtype.coe_mk, coe_nnnorm, real.norm_eq_abs, abs_of_nonneg hr]
 end
 
 /-- If `E` is a nontrivial topological module over `ℝ`, then `E` has no isolated points.
@@ -784,7 +817,7 @@ suffices this : ∀ u : finset (ι × ι'), ∑ x in u, f x.1 * g x.2 ≤ s*t,
   from summable_of_sum_le (λ x, mul_nonneg (hf' _) (hg' _)) this,
 assume u,
 calc  ∑ x in u, f x.1 * g x.2
-    ≤ ∑ x in (u.image prod.fst).product (u.image prod.snd), f x.1 * g x.2 :
+    ≤ ∑ x in u.image prod.fst ×ˢ u.image prod.snd, f x.1 * g x.2 :
       sum_mono_set_of_nonneg (λ x, mul_nonneg (hf' _) (hg' _)) subset_product
 ... = ∑ x in u.image prod.fst, ∑ y in u.image prod.snd, f x * g y : sum_product
 ... = ∑ x in u.image prod.fst, f x * ∑ y in u.image prod.snd, g y :

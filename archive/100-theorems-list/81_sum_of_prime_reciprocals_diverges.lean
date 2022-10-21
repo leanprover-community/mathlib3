@@ -171,7 +171,7 @@ lemma card_le_two_pow_mul_sqrt {x k : ℕ} : card (M x k) ≤ 2 ^ k * nat.sqrt x
 begin
   let M₁ := {e ∈ M x k | squarefree (e + 1)},
   let M₂ := M (nat.sqrt x) k,
-  let K := finset.product M₁ M₂,
+  let K := M₁ ×ˢ M₂,
   let f : ℕ × ℕ → ℕ := λ mn, (mn.2 + 1) ^ 2 * (mn.1 + 1) - 1,
 
   -- Every element of `M x k` is one less than the product `(m + 1)² * (r + 1)` with `r + 1`

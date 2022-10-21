@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Junyan Xu
 -/
 import data.multiset.basic
-import order.well_founded
+import order.game_add
 
 /-!
 # Termination of a hydra game
@@ -23,10 +23,7 @@ valid "moves" of the game are modelled by the relation `cut_expand r` on `multis
 `cut_expand r s' s` is true iff `s'` is obtained by removing one head `a ∈ s` and
 adding back an arbitrary multiset `t` of heads such that all `a' ∈ t` satisfy `r a' a`.
 
-To prove this theorem, we follow the proof by Peter LeFanu Lumsdaine at
-https://mathoverflow.net/a/229084/3332, and along the way we introduce the notion of `fibration`
-of relations, and a new operation `game_add` that combines to relations to form a relation on the
-product type, which is used to define addition of games in combinatorial game theory.
+We follow the proof by Peter LeFanu Lumsdaine at https://mathoverflow.net/a/229084/3332.
 
 TODO: formalize the relations corresponding to more powerful (e.g. Kirby–Paris and Buchholz)
 hydras, and prove their well-foundedness.
@@ -34,76 +31,9 @@ hydras, and prove their well-foundedness.
 
 namespace relation
 
+open multiset prod
+
 variables {α β : Type*}
-
-section two_rels
-variables (rα : α → α → Prop) (rβ : β → β → Prop) (f : α → β)
-
-/-- A function `f : α → β` is a fibration between the relation `rα` and `rβ` if for all
-  `a : α` and `b : β`, whenever `b : β` and `f a` are related by `rβ`, `b` is the image
-  of some `a' : α` under `f`, and `a'` and `a` are related by `rα`. -/
-def fibration := ∀ ⦃a b⦄, rβ b (f a) → ∃ a', rα a' a ∧ f a' = b
-
-variables {rα rβ}
-
-/-- If `f : α → β` is a fibration between relations `rα` and `rβ`, and `a : α` is
-  accessible under `rα`, then `f a` is accessible under `rβ`. -/
-lemma _root_.acc.of_fibration (fib : fibration rα rβ f) {a} (ha : acc rα a) : acc rβ (f a) :=
-begin
-  induction ha with a ha ih,
-  refine acc.intro (f a) (λ b hr, _),
-  obtain ⟨a', hr', rfl⟩ := fib hr,
-  exact ih a' hr',
-end
-
-lemma _root_.acc.of_downward_closed (dc : ∀ {a b}, rβ b (f a) → b ∈ set.range f)
-  (a : α) (ha : acc (inv_image rβ f) a) : acc rβ (f a) :=
-ha.of_fibration f (λ a b h, let ⟨a', he⟩ := dc h in ⟨a', he.substr h, he⟩)
-
-variables (rα rβ)
-
-/-- The "addition of games" relation in combinatorial game theory, on the product type: if
-  `rα a' a` means that `a ⟶ a'` is a valid move in game `α`, and `rβ b' b` means that `b ⟶ b'`
-  is a valid move in game `β`, then `game_add rα rβ` specifies the valid moves in the juxtaposition
-  of `α` and `β`: the player is free to choose one of the games and make a move in it,
-  while leaving the other game unchanged. -/
-inductive game_add : α × β → α × β → Prop
-| fst {a' a b} : rα a' a → game_add (a',b) (a,b)
-| snd {a b' b} : rβ b' b → game_add (a,b') (a,b)
-
-/-- `game_add` is a `subrelation` of `prod.lex`. -/
-lemma game_add_le_lex : game_add rα rβ ≤ prod.lex rα rβ :=
-λ _ _ h, h.rec (λ _ _ b, prod.lex.left b b) (λ a _ _, prod.lex.right a)
-
-/-- `prod.rprod` is a subrelation of the transitive closure of `game_add`. -/
-lemma rprod_le_trans_gen_game_add : prod.rprod rα rβ ≤ trans_gen (game_add rα rβ) :=
-λ _ _ h, h.rec begin
-  intros _ _ _ _ hα hβ,
-  exact trans_gen.tail (trans_gen.single $ game_add.fst hα) (game_add.snd hβ),
-end
-
-variables {rα rβ}
-
-/-- If `a` is accessible under `rα` and `b` is accessible under `rβ`, then `(a, b)` is
-  accessible under `relation.game_add rα rβ`. Notice that `prod.lex_accessible` requires the
-  stronger condition `∀ b, acc rβ b`. -/
-lemma _root_.acc.game_add {a b} (ha : acc rα a) (hb : acc rβ b) : acc (game_add rα rβ) (a, b) :=
-begin
-  induction ha with a ha iha generalizing b,
-  induction hb with b hb ihb,
-  refine acc.intro _ (λ h, _),
-  rintro (⟨_,_,_,ra⟩|⟨_,_,_,rb⟩),
-  exacts [iha _ ra (acc.intro b hb), ihb _ rb],
-end
-
-/-- The sum of two well-founded games is well-founded. -/
-lemma _root_.well_founded.game_add (hα : well_founded rα) (hβ : well_founded rβ) :
-  well_founded (game_add rα rβ) := ⟨λ ⟨a,b⟩, (hα.apply a).game_add (hβ.apply b)⟩
-
-end two_rels
-
-section hydra
-open game_add multiset
 
 /-- The relation that specifies valid moves in our hydra game. `cut_expand r s' s`
   means that `s'` is obtained by removing one head `a ∈ s` and adding back an arbitrary
@@ -156,10 +86,10 @@ begin
   rintro ⟨s₁, s₂⟩ s ⟨t, a, hr, he⟩, dsimp at he ⊢,
   classical, obtain ⟨ha, rfl⟩ := add_singleton_eq_iff.1 he,
   rw [add_assoc, mem_add] at ha, obtain (h|h) := ha,
-  { refine ⟨(s₁.erase a + t, s₂), fst ⟨t, a, hr, _⟩, _⟩,
+  { refine ⟨(s₁.erase a + t, s₂), game_add.fst ⟨t, a, hr, _⟩, _⟩,
     { rw [add_comm, ← add_assoc, singleton_add, cons_erase h] },
     { rw [add_assoc s₁, erase_add_left_pos _ h, add_right_comm, add_assoc] } },
-  { refine ⟨(s₁, (s₂ + t).erase a), snd ⟨t, a, hr, _⟩, _⟩,
+  { refine ⟨(s₁, (s₂ + t).erase a), game_add.snd ⟨t, a, hr, _⟩, _⟩,
     { rw [add_comm, singleton_add, cons_erase h] },
     { rw [add_assoc, erase_add_right_pos _ h] } },
 end
@@ -172,7 +102,7 @@ begin
   refine multiset.induction _ _ s,
   { exact λ _, acc.intro 0 $ λ s h, (not_cut_expand_zero s h).elim },
   { intros a s ih hacc, rw ← s.singleton_add a,
-    exact ((hacc a $ s.mem_cons_self a).game_add $ ih $ λ a ha,
+    exact ((hacc a $ s.mem_cons_self a).prod_game_add $ ih $ λ a ha,
       hacc a $ mem_cons_of_mem ha).of_fibration _ (cut_expand_fibration r) },
 end
 
@@ -192,6 +122,5 @@ end
 /-- `cut_expand r` is well-founded when `r` is. -/
 theorem _root_.well_founded.cut_expand (hr : well_founded r) : well_founded (cut_expand r) :=
 ⟨by { letI h := hr.is_irrefl, exact λ s, acc_of_singleton $ λ a _, (hr.apply a).cut_expand }⟩
-end hydra
 
 end relation

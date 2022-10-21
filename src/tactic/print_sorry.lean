@@ -42,8 +42,8 @@ meta def find_all_exprs_aux (env : environment) (f : expr → bool) (g : name �
       if b then desc.insert n else desc⟩
   end
 
-/-- `tactic.find_all_exprs env test exclude nm` searches for all declarations (transively) occuring
-  in `nm` that contain a subexpression `e` such that `test e` is true.
+/-- `tactic.find_all_exprs env test exclude nm` searches for all declarations (transitively)
+  occuring in `nm` that contain a subexpression `e` such that `test e` is true.
   All declarations `n` such that `exclude n` is true (and all their descendants) are ignored. -/
 meta def find_all_exprs (env : environment) (test : expr → bool) (exclude : name → bool)
   (nm : name) : tactic $ list $ name × bool × name_set := do

@@ -103,21 +103,21 @@ section add_group
 variables [Π a, add_group (N a)] (f f₁ f₂ g g₁ g₂ : Π₀ a, N a)
 
 @[simp] lemma ne_locus_neg_neg : ne_locus (-f) (-g) = f.ne_locus g :=
-map_range_ne_locus_eq _ _ neg_zero neg_injective
+map_range_ne_locus_eq _ _ (λ a, neg_zero) (λ a, neg_injective)
 
 lemma ne_locus_neg : ne_locus (-f) g = f.ne_locus (-g) := by rw [←ne_locus_neg_neg, neg_neg]
 
 lemma ne_locus_eq_support_sub : f.ne_locus g = (f - g).support :=
-by rw [←ne_locus_add_right _ _ (-g), add_right_neg, ne_locus_zero_right, sub_eq_add_neg]
+by rw [←@ne_locus_add_right α N _ _ _ _ _ (-g), add_right_neg, ne_locus_zero_right, sub_eq_add_neg]
 
 @[simp] lemma ne_locus_sub_left : ne_locus (f - g₁) (f - g₂) = ne_locus g₁ g₂ :=
-by simp only [sub_eq_add_neg, ne_locus_add_left, ne_locus_neg_neg]
+by simp only [sub_eq_add_neg, @ne_locus_add_left α N _ _ _, ne_locus_neg_neg]
 
 @[simp] lemma ne_locus_sub_right : ne_locus (f₁ - g) (f₂ - g) = ne_locus f₁ f₂ :=
 by simpa only [sub_eq_add_neg] using ne_locus_add_right _ _ _
 
 @[simp] lemma ne_locus_self_add_right : ne_locus f (f + g) = g.support :=
-by rw [←ne_locus_zero_left, ←ne_locus_add_left f 0 g, add_zero]
+by rw [←ne_locus_zero_left, ←@ne_locus_add_left α N _ _ _ f 0 g, add_zero]
 
 @[simp] lemma ne_locus_self_add_left : ne_locus (f + g) f = g.support :=
 by rw [ne_locus_comm, ne_locus_self_add_right]

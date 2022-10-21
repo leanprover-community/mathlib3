@@ -334,21 +334,10 @@ lemma upper_closure_set_prod (F₁ : set α) (F₂ : set β) :
   (⊥ : upper_set α).prod (upper_closure F₂) ⊔ (upper_closure F₁).prod (⊥ : upper_set β) :=
 by rw [upper_closure_prod, upper_closure_prod_upper_closure]
 
-lemma l1 [preorder α] [preorder β] (a : α) (b : β) :
-  Ici (a,b) = (univ ×ˢ (Ici b)) ∩ ((Ici a) ×ˢ univ) :=
-begin
-  rw ← upper_set.coe_Ici,
-  rw ← upper_set.Ici_prod_Ici,
-  sorry,
-  /-
-  rw upper_closure_prod_upper_closure,
-  rw subset_antisymm_iff,
-  split,
-  { intros x h, simp, rw mem_Ici at h, rw prod.le_def at h, simp at h, rw and.comm, apply h, },
-  { intros x h, simp, simp at h, rw and.comm at h, rw prod.le_def, simp, apply h, }
-  -/
-end
-
+lemma prod_Ici (a : α) (b : β) : upper_set.Ici (a,b) =
+    (⊥ : upper_set α).prod (upper_set.Ici b) ⊔ (upper_set.Ici a).prod (⊥ : upper_set β) :=
+by rw [← upper_set.Ici_prod_Ici, ← upper_closure_singleton, ← upper_closure_singleton,
+    upper_closure_prod_upper_closure]
 
 lemma upper_closure_compl_prod_upper_closure_compl (F₁ : set α) (F₂ : set β)
   : ((upper_closure F₁).compl.prod (upper_closure F₂).compl)  =
@@ -367,7 +356,6 @@ end
 
 include t
 
-
 instance : lower_topology (α × β) :=
 { topology_eq_generate_Ici_comp :=
   begin
@@ -378,8 +366,7 @@ instance : lower_topology (α × β) :=
       rw mem_set_of_eq at H,
       rcases H,
       cases H_w,
-      rw ← H_h,
-      rw [is_open_compl_iff, l1],
+      rw [← H_h, ← upper_set.coe_Ici, is_open_compl_iff, prod_Ici],
       apply is_closed.inter,
       { apply is_closed.prod is_closed_univ, apply ici_is_closed, },
       { apply is_closed.prod, apply ici_is_closed, apply is_closed_univ, } },

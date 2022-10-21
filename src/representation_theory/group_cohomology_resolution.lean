@@ -291,12 +291,13 @@ augmented_cech_nerve.extra_degeneracy (arrow.mk $ terminal.from G)
 from `fin 1 → G` to the terminal object in `Type u`, has an extra degeneracy. -/
 def extra_degeneracy_comp_forget_augmented :
   extra_degeneracy (comp_forget_augmented G) :=
-@extra_degeneracy.of_iso _ _ (arrow.mk $ terminal.from G).augmented_cech_nerve
-  (comp_forget_augmented G) (comma.iso_mk ((cech_nerve_terminal_from.iso G).trans
-  (cech_nerve_terminal_from_iso_comp_forget G)) (iso.refl _) $
-  by ext1; ext1; exact (@subsingleton.elim _ (@unique.subsingleton _
-    (limits.unique_to_terminal _)) _ _))
-(extra_degeneracy_augmented_cech_nerve G)
+begin
+  refine extra_degeneracy.of_iso (_ : (arrow.mk $ terminal.from G).augmented_cech_nerve ≅ _)
+    (extra_degeneracy_augmented_cech_nerve G),
+  exact comma.iso_mk (cech_nerve_terminal_from.iso G ≪≫
+    cech_nerve_terminal_from_iso_comp_forget G) (iso.refl _)
+    (by ext : 2; apply is_terminal.hom_ext terminal_is_terminal),
+end
 
 /-- The free functor `Type u ⥤ Module.{u} k` applied to the universal cover of the classifying
 space of `G` as a simplicial set, augmented by the map from `fin 1 → G` to the terminal object
@@ -379,10 +380,10 @@ def forget₂_to_Module_homotopy_equiv : homotopy_equiv
   ((forget₂ (Rep k G) _).obj $ Rep.of representation.trivial)) :=
 (homotopy_equiv.of_iso (comp_forget_augmented_iso k G).symm).trans $
   (simplicial_object.augmented.extra_degeneracy.homotopy_equiv
-  (extra_degeneracy_comp_forget_augmented_to_Module k G)).trans
-    (homotopy_equiv.of_iso $ (chain_complex.single₀ (Module.{u} k)).map_iso
-(@finsupp.linear_equiv.finsupp_unique k k _ _ _ (⊤_ (Type u))
-  types.terminal_iso.to_equiv.unique).to_Module_iso)
+    (extra_degeneracy_comp_forget_augmented_to_Module k G)).trans
+  (homotopy_equiv.of_iso $ (chain_complex.single₀ (Module.{u} k)).map_iso
+    (@finsupp.linear_equiv.finsupp_unique k k _ _ _ (⊤_ (Type u))
+      types.terminal_iso.to_equiv.unique).to_Module_iso)
 
 /-- The hom of `k`-linear `G`-representations `k[G¹] → k` sending `∑ nᵢgᵢ ↦ ∑ nᵢ`. -/
 def ε : Rep.of_mul_action k G (fin 1 → G) ⟶ Rep.of representation.trivial :=
@@ -449,15 +450,20 @@ theorem exact_at_succ (n : ℕ) :
 lemma forget_to_Module_exact₀ :
   exact ((group_cohomology.resolution.forget₂_to_Module k G).d 1 0)
   ((forget₂_to_Module_homotopy_equiv k G).1.f 0) :=
-(preadditive.exact_iff_homology_zero _ _).2 ⟨_, ⟨(homology_iso_kernel_desc _ _
-(by rw ←(forget₂_to_Module_homotopy_equiv k G).1.2 1 0 rfl; exact comp_zero)).trans $
-@kernel.of_mono _ _ _ _ _ _ _ _ $ @is_iso.mono_of_iso _ _ _ _ _ $
-  ⟨⟨(forget₂_to_Module_homotopy_equiv k G).2.f 0 ≫ cokernel.π ((forget₂_to_Module k G).d 1 0),
-  coequalizer.hom_ext (by rw [←category.assoc, cokernel.π_desc _ _
-  (by rw ←(forget₂_to_Module_homotopy_equiv k G).1.2 1 0 rfl; exact comp_zero), ←category.assoc,
-    ←homological_complex.comp_f, (forget₂_to_Module_homotopy_equiv k G).3.3 0]; simp),
-  by rw [category.assoc, cokernel.π_desc, ←homological_complex.comp_f,
-    (forget₂_to_Module_homotopy_equiv k G).4.3 0]; simp⟩⟩⟩⟩
+begin
+  rw preadditive.exact_iff_homology_zero,
+  have h : (forget₂_to_Module k G).d 1 0 ≫ (forget₂_to_Module_homotopy_equiv k G).hom.f 0 = 0,
+  { rw ← (forget₂_to_Module_homotopy_equiv k G).1.2 1 0 rfl,
+    simp only [chain_complex.single₀_obj_X_d, comp_zero], },
+  refine ⟨h, nonempty.intro (homology_iso_kernel_desc _ _ _ ≪≫ _)⟩,
+  { suffices : is_split_mono (cokernel.desc _ _ h),
+    { haveI := this, apply kernel.of_mono, },
+      refine is_split_mono.mk' ⟨(forget₂_to_Module_homotopy_equiv k G).2.f 0 ≫
+        cokernel.π ((forget₂_to_Module k G).d 1 0), coequalizer.hom_ext _⟩,
+      rw [cokernel.π_desc_assoc, ← category.assoc, ← homological_complex.comp_f,
+        (forget₂_to_Module_homotopy_equiv k G).homotopy_hom_inv_id.comm 0],
+      simp, },
+end
 
 lemma exact₀ : exact ((group_cohomology.resolution k G).d 1 0) (ε k G) :=
 (forget₂ (Rep k G) (Module.{u} k)).exact_of_exact_map

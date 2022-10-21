@@ -717,9 +717,7 @@ end pointwise_actions
 
 section
 
-variables {L : Type*} [field L] [algebra K L]
-
-variable (K)
+variables {L : Type*} [field L] [algebra K L] (K)
 
 open_locale pointwise
 

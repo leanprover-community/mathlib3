@@ -93,6 +93,8 @@ lemma ideal.is_radical_iff_quotient_reduced [comm_ring R] (I : ideal R) :
 by { conv_lhs { rw ← @ideal.mk_ker R _ I },
   exact ring_hom.ker_is_radical_iff_reduced_of_surjective (@ideal.quotient.mk_surjective R _ I) }
 
+/-- An element `y` in a monoid is radical if for any element `x`, `y` divides `x` whenever it
+  divides a power of `x`. -/
 def is_radical [has_dvd R] [has_pow R ℕ] (y : R) : Prop := ∀ (n : ℕ) x, y ∣ x ^ n → y ∣ x
 
 lemma zero_is_radical_iff [monoid_with_zero R] : is_radical (0 : R) ↔ is_reduced R :=

@@ -644,11 +644,13 @@ def radical (I : ideal R) : ideal R :=
         (pow_add x m (c-m)).symm ▸ I.mul_mem_right _ hxmi)⟩,
   smul_mem' := λ r s ⟨n, hsni⟩, ⟨n, (mul_pow r s n).symm ▸ I.mul_mem_left (r^n) hsni⟩ }
 
+/-- An ideal is radical if it contains its radical. -/
 def is_radical (I : ideal R) : Prop := I.radical ≤ I
 
 theorem le_radical : I ≤ radical I :=
 λ r hri, ⟨1, (pow_one r).symm ▸ hri⟩
 
+/-- An ideal is radical iff it is equal to its radical. -/
 theorem radical_eq_iff : I.radical = I ↔ I.is_radical :=
 by rw [le_antisymm_iff, and_iff_left le_radical, is_radical]
 

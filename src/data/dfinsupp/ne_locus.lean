@@ -114,7 +114,7 @@ by rw [←@ne_locus_add_right α N _ _ _ _ _ (-g), add_right_neg, ne_locus_zero_
 by simp only [sub_eq_add_neg, @ne_locus_add_left α N _ _ _, ne_locus_neg_neg]
 
 @[simp] lemma ne_locus_sub_right : ne_locus (f₁ - g) (f₂ - g) = ne_locus f₁ f₂ :=
-by simpa only [sub_eq_add_neg] using ne_locus_add_right _ _ _
+by simpa only [sub_eq_add_neg] using @ne_locus_add_right α N _ _ _ _ _ _
 
 @[simp] lemma ne_locus_self_add_right : ne_locus f (f + g) = g.support :=
 by rw [←ne_locus_zero_left, ←@ne_locus_add_left α N _ _ _ f 0 g, add_zero]

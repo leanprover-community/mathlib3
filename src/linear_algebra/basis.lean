@@ -824,7 +824,7 @@ by simp [b.constr_apply, b.equiv_fun_apply, finsupp.sum_fintype]
 
 /-- If the submodule `P` has a finite basis,
 `x ∈ P` iff it is a linear combination of basis vectors. -/
-lemma basis.mem_submodule_iff' [fintype ι] {P : submodule R M} (b : basis ι R P) {x : M} :
+lemma basis.mem_submodule_iff' {P : submodule R M} (b : basis ι R P) {x : M} :
   x ∈ P ↔ ∃ (c : ι → R), x = ∑ i, c i • b i :=
 b.mem_submodule_iff.trans $ finsupp.equiv_fun_on_fintype.exists_congr_left.trans $ exists_congr $
 λ c, by simp [finsupp.sum_fintype]

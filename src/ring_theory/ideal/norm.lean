@@ -1044,3 +1044,4 @@ noncomputable def ideal.abs_norm [infinite S] [is_dedekind_domain S]
   map_mul' := λ I J, by rw card_quot_mul,
   map_one' := by rw [ideal.one_eq_top, card_quot_top],
   map_zero' := by rw [ideal.zero_eq_bot, card_quot_bot] }
+end

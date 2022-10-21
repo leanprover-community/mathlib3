@@ -591,14 +591,6 @@ begin
   exact (map_add_le_add p _ _).trans_lt (add_lt_add hy₁ hy₂)
 end
 
-lemma closed_ball_add_closed_ball_subset (p : seminorm 𝕜 E) (r₁ r₂ : ℝ) (x₁ x₂ : E):
-  p.closed_ball (x₁ : E) r₁ + p.closed_ball (x₂ : E) r₂ ⊆ p.closed_ball (x₁ + x₂) (r₁ + r₂) :=
-begin
-  rintros x ⟨y₁, y₂, hy₁, hy₂, rfl⟩,
-  rw [mem_closed_ball, add_sub_add_comm],
-  exact (map_add_le_add p _ _).trans (add_le_add hy₁ hy₂)
-end
-
 lemma closed_ball_add_closed_ball_subset (p : seminorm 𝕜 E) (r₁ r₂ : ℝ) (x₁ x₂ : E) :
   p.closed_ball (x₁ : E) r₁ + p.closed_ball (x₂ : E) r₂ ⊆ p.closed_ball (x₁ + x₂) (r₁ + r₂) :=
 begin
@@ -668,15 +660,6 @@ begin
   rw [mem_ball_zero, ←hx, map_smul_eq_mul],
   calc _ ≤ p y : mul_le_of_le_one_left (map_nonneg p _) ha
   ...    < r   : by rwa mem_ball_zero at hy
-end
-
-/-- Closed seminorm-balls at the origin are balanced. -/
-lemma balanced_closed_ball_zero (r : ℝ) : balanced 𝕜 (closed_ball p 0 r) :=
-begin
-  rintro a ha x ⟨y, hy, hx⟩,
-  rw [mem_closed_ball_zero, ←hx, map_smul_eq_mul],
-  calc _ ≤ p y : mul_le_of_le_one_left (map_nonneg p _) ha
-  ...    ≤ r   : by rwa mem_closed_ball_zero at hy
 end
 
 /-- Closed seminorm-balls at the origin are balanced. -/

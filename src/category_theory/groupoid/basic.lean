@@ -25,10 +25,8 @@ def is_graph_like := ∀ (c d : C), subsingleton (c ⟶ d)
 
 lemma is_graph_like_iff : (is_graph_like C) ↔ ∀ (c : C), subsingleton (c ⟶ c) :=
 begin
-  split,
-  { rintro h c, exact h c c,},
-  { rintros h c d, constructor, rintro f g,
-    have : inv f ≫ g = 𝟙 _, by { obtain ⟨ss⟩ := h d, apply ss, },
+  refine ⟨ λ h c, h c c, λ h c d, subsingleton.intro $ λ f g, _ ⟩,
+  { have : inv f ≫ g = 𝟙 _, by { obtain ⟨ss⟩ := (h d), apply ss, },
     calc f
        = f ≫ (inv g ≫ g) : by simp
     ...= f ≫ (inv f ≫ g) : by { apply congr_arg2, refl, rw this, simp, }

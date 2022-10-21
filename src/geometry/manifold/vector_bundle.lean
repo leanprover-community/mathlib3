@@ -23,8 +23,8 @@ instance is_topological_fiber_bundle.charted_space [topological_vector_bundle �
   chart_mem_atlas := λ x, mem_image_of_mem _ (trivialization_mem_atlas 𝕜 F E _) }
 
 def groupoid_base.local_homeomorph (φ : B → F ≃L[𝕜] F) {U : set B} (hU : is_open U)
-  (hφ : continuous (λ x, φ x : B → F →L[𝕜] F))
-  (h2φ : continuous (λ x, (φ x).symm : B → F →L[𝕜] F)) :
+  (hφ : continuous_on (λ x, φ x : B → F →L[𝕜] F) U)
+  (h2φ : continuous_on (λ x, (φ x).symm : B → F →L[𝕜] F) U) :
   local_homeomorph (B × F) (B × F) :=
 { to_fun := λ x, (x.1, φ x.1 x.2),
   inv_fun := λ x, (x.1, (φ x.1).symm x.2),
@@ -42,22 +42,43 @@ def groupoid_base.local_homeomorph (φ : B → F ≃L[𝕜] F) {U : set B} (hU :
 -- variable (𝕜)
 def groupoid_base : structure_groupoid (B × F) :=
 { members := ⋃ (φ : B → F ≃L[𝕜] F) (U : set B) (hU : is_open U)
-  (hφ : smooth IB 𝓘(𝕜, F →L[𝕜] F) (λ x, φ x : B → F →L[𝕜] F))
-  (h2φ : smooth IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (φ x).symm : B → F →L[𝕜] F)),
-  {groupoid_base.local_homeomorph φ hU hφ.continuous h2φ.continuous},
+  (hφ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, φ x : B → F →L[𝕜] F) U)
+  (h2φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (φ x).symm : B → F →L[𝕜] F) U),
+  {e | e.eq_on_source (groupoid_base.local_homeomorph φ hU hφ.continuous_on h2φ.continuous_on)},
   trans' := sorry,
   symm' := sorry,
   id_mem' := sorry,
   locality' := sorry,
   eq_on_source' := sorry }
 
-def groupoid_base' : structure_groupoid (B × F) :=
-pregroupoid.groupoid
-  { property := sorry,
-    comp := sorry,
-    id_mem := sorry,
-    locality := sorry,
-    congr := sorry }
+-- def groupoid_base' : structure_groupoid (B × F) :=
+-- pregroupoid.groupoid
+--   { property := sorry,
+--     comp := sorry,
+--     id_mem := sorry,
+--     locality := sorry,
+--     congr := sorry }
 
-def smooth_vector_bundle [topological_vector_bundle 𝕜 F E] : Prop :=
-has_groupoid (total_space E) (groupoid_base IB : structure_groupoid (B × F))
+variables (IB F E)
+
+class smooth_vector_bundle [topological_vector_bundle 𝕜 F E] : Prop :=
+(smooth_transitions : ∀ e ∈ trivialization_atlas 𝕜 F E, ∀ e' ∈ trivialization_atlas 𝕜 F E,
+  smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ b, trivialization.coord_change e e' b : B → F →L[𝕜] F)
+  (e.base_set ∩ e'.base_set))
+
+instance [topological_vector_bundle 𝕜 F E] [smooth_vector_bundle F E IB] :
+  has_groupoid (total_space E) (groupoid_base IB : structure_groupoid (B × F)) :=
+{ compatible := begin
+    rintros _ _ ⟨e, he, rfl⟩ ⟨e', he', rfl⟩,
+    dsimp,
+    apply mem_Union.mpr,
+    use (λ b, trivialization.coord_change e e' b),
+    simp_rw mem_Union,
+    use e.base_set ∩ e'.base_set,
+    use e.open_base_set.inter e'.open_base_set,
+    use smooth_vector_bundle.smooth_transitions e he e' he',
+    refine ⟨_, _, _⟩,
+    { sorry },
+    { sorry },
+    { sorry }
+  end }

@@ -1548,13 +1548,15 @@ continuous.connected_components_lift_continuous (continuous_quotient_mk.comp h)
 
 end connected_component_setoid
 
-/-- A set `s` is preconnected if and only if every
-map into `bool` that is continuous on `s` is constant on `s` -/
+/-- A preconnected set `s` has the property that every map to a
+discrete space that is continuous on `s` is constant on `s` -/
 lemma is_preconnected.constant {Y : Type*} [topological_space Y] [discrete_topology Y]
   {s : set α} (hs : is_preconnected s) {f : α → Y} (hf : continuous_on f s)
   {x y : α} (hx : x ∈ s) (hy : y ∈ s) : f x = f y :=
 (hs.image f hf).subsingleton (mem_image_of_mem f hx) (mem_image_of_mem f hy)
 
+/-- If every map to `bool` (a discrete two-element space), that is
+continuous on a set `s`, is constant on s, then s is preconnected -/
 lemma is_preconnected_of_forall_constant {s : set α}
   (hs : ∀ f : α → bool, continuous_on f s → ∀ x ∈ s, ∀ y ∈ s, f x = f y) : is_preconnected s :=
 begin
@@ -1573,10 +1575,12 @@ begin
     hs _ this x x_in_s y y_in_s
 end
 
+/-- A `preconnected_space` version of `is_preconnected.constant` -/
 lemma preconnected_space.constant {Y : Type*} [topological_space Y] [discrete_topology Y]
   (hp : preconnected_space α) {f : α → Y} (hf : continuous f) {x y : α} : f x = f y :=
 is_preconnected.constant hp.is_preconnected_univ (continuous.continuous_on hf) trivial trivial
 
+/-- A `preconnected_space` version of `is_preconnected_of_forall_constant` -/
 lemma preconnected_space_of_forall_constant (hs : ∀ f : α → bool, continuous f → ∀ x y, f x = f y) :
   preconnected_space α :=
 ⟨is_preconnected_of_forall_constant

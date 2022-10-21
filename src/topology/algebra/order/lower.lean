@@ -30,107 +30,6 @@ Approach inspired by `order_topology` from topology.algebra.order.basic
 lower topology, preorder
 -/
 
-/-
-
-universes u v
-variables {α : Type u} {β : Type v}
-
-open  set topological_space
-
-section preorder
-
-
-lemma l2 [preorder α] [preorder β] (a : α) (b : β) :
-  (Ici a)ᶜ ×ˢ (Ici b)ᶜ = ((univ ×ˢ Ici b) ∪ (Ici a ×ˢ univ))ᶜ :=
-begin
-  rw subset_antisymm_iff,
-  split,
-  { intros x h, simp, simp at h, rw and.comm, apply h, },
-  { intros x h, simp, simp at h,  rw and.comm, apply h, }
-end
-
-
-
-lemma upper_closure_prod [preorder α] [preorder β] (F₁ : set α) (F₂ : set β) :
-  (upper_closure (F₁ ×ˢ F₂) : set (α × β)) = ((univ : set α) ×ˢ ((upper_closure F₂) : set β))
-  ∩ ((upper_closure F₁ : set α) ×ˢ (univ : set β)) :=
-begin
-  rw subset_antisymm_iff,
-  split,
-  { rintros x h,
-    simp,
-    simp at h,
-    cases h with a,
-    cases h_h with b,
-    cases h_h_h,
-    cases h_h_h_right,
-    simp only at h_h_h_right_left,
-    simp only at h_h_h_right_right,
-    split,
-    { use b,
-      split,
-      exact h_h_h_left.2,
-      exact h_h_h_right_right, },
-    { use a,
-      split,
-      exact h_h_h_left.1,
-      exact h_h_h_right_left, } },
-  { rintros p h,
-    simp,
-    simp at h,
-    cases h,
-    cases h_left with b,
-    cases h_right with a,
-    cases h_left_h,
-    use a,
-    use b,
-    split,
-    { split,
-      exact h_right_h.1,
-      exact h_left_h_left, },
-    { split,
-      { simp only, exact h_right_h.2, },
-      { simp only, exact h_left_h_right, }, }, },
-end
-
-lemma l2a [preorder β] (b : β) : (univ : set α) ×ˢ (Ici b)ᶜ = (univ ×ˢ Ici b)ᶜ :=
-begin
-  rw subset_antisymm_iff,
-  split,
-  { rintros x h,
-    simp at h,
-    finish, },
-  { rintros x h,
-    simp at h,
-    finish, }
-end
-
-lemma l2b [preorder α] (a : α) : (Ici a)ᶜ ×ˢ (univ : set β) = (Ici a ×ˢ univ)ᶜ :=
-begin
-  rw subset_antisymm_iff,
-  split,
-  { rintros x h,
-    simp at h,
-    finish, },
-  { rintros x h,
-    simp at h,
-    finish, }
-end
-
-end preorder
-
-section lower_topology
-
-
-lemma upper_closure_singleton (a : α) : upper_set.Ici a = upper_closure {a} :=
-begin
-  ext,
-  rw [upper_set.coe_Ici, coe_upper_closure, mem_Ici, mem_set_of_eq],
-  simp only [ mem_singleton_iff, exists_prop, exists_eq_left],
-end
--/
-
-
 universes u
 variable {α : Type u}
 
@@ -418,14 +317,38 @@ lemma prod_basis
   is_topological_basis (image2 (×ˢ) S T) := sorry
 -/
 
+lemma upper_closure_prod_upper_closure (F₁ : set α) (F₂ : set β) :
+  (upper_closure F₁).prod (upper_closure F₂)  =
+  (⊥ : upper_set α).prod (upper_closure F₂) ⊔ (upper_closure F₁).prod (⊥ : upper_set β) :=
+upper_set.ext begin
+  rw subset_antisymm_iff,
+  split,
+  { rintros x h,
+    finish, },
+  { rintros x h,
+    finish, },
+end
+
+lemma upper_closure_set_prod (F₁ : set α) (F₂ : set β) :
+  upper_closure (F₁ ×ˢ F₂)  =
+  (⊥ : upper_set α).prod (upper_closure F₂) ⊔ (upper_closure F₁).prod (⊥ : upper_set β) :=
+by rw [upper_closure_prod, upper_closure_prod_upper_closure]
+
 lemma l1 [preorder α] [preorder β] (a : α) (b : β) :
   Ici (a,b) = (univ ×ˢ (Ici b)) ∩ ((Ici a) ×ˢ univ) :=
 begin
+  rw ← upper_set.coe_Ici,
+  rw ← upper_set.Ici_prod_Ici,
+  sorry,
+  /-
+  rw upper_closure_prod_upper_closure,
   rw subset_antisymm_iff,
   split,
   { intros x h, simp, rw mem_Ici at h, rw prod.le_def at h, simp at h, rw and.comm, apply h, },
   { intros x h, simp, simp at h, rw and.comm at h, rw prod.le_def, simp, apply h, }
+  -/
 end
+
 
 lemma upper_closure_compl_prod_upper_closure_compl (F₁ : set α) (F₂ : set β)
   : ((upper_closure F₁).compl.prod (upper_closure F₂).compl)  =

@@ -242,7 +242,7 @@ lemma mem_discrete_iff {c d : C} (f : c ⟶ d):
 structure is_wide : Prop :=
 (wide : ∀ c, (𝟙 c) ∈ (S.arrows c c))
 
-lemma is_wide_iff_objs_eq_univ : S.is_wide ↔  S.objs = ⊤ :=
+lemma is_wide_iff_objs_eq_univ : S.is_wide ↔ S.objs = ⊤ :=
 begin
   split,
   { rintro h,
@@ -255,6 +255,12 @@ begin
     obtain ⟨γ,γS⟩ := this (set.mem_univ c),
     exact id_mem_of_src S γS, },
 end
+
+lemma id_mem_of_is_wide (Sw : S.is_wide) (c : C) : (𝟙 c) ∈ S.arrows c c := Sw.wide c
+
+lemma eq_to_hom_mem_of_is_wide (Sw : S.is_wide) {c d : C} (h : c = d) :
+  (eq_to_hom h) ∈ S.arrows c d := by
+{ cases h, simp only [eq_to_hom_refl], apply id_mem_of_is_wide, exact Sw, }
 
 /-- A subgroupoid is normal if it is wide and satisfies the expected stability under conjugacy. -/
 structure is_normal extends (is_wide S) : Prop :=
@@ -399,6 +405,13 @@ lemma map_mono (hφ : function.injective φ.obj) (S T : subgroupoid C) :
   S ≤ T → map φ hφ S ≤ map φ hφ T :=
 by { rintros ST ⟨c,d,f⟩ ⟨_,_,_,h⟩, split, exact @ST ⟨_,_,_⟩ h }
 
+lemma le_map_comap (hφ : function.injective φ.obj) (S : subgroupoid C) : S ≤ comap φ (map φ hφ S) :=
+begin
+  rw le_iff,
+  rintros c d f hf,
+  constructor, exact hf,
+end
+
 lemma mem_map_objs_iff (hφ : function.injective φ.obj) (d : D) :
   d ∈ (map φ hφ S).objs ↔ ∃ c ∈ S.objs, φ.obj c = d :=
 begin
@@ -537,7 +550,7 @@ begin
   { rintro h, constructor, constructor, assumption, assumption, exact 𝟙 _, }
 end
 
-@[simp] lemma full_mem_objs_iff {c : C} : c ∈ (full D).objs ↔ c ∈ D :=
+@[simp] lemma mem_full_objs_iff {c : C} : c ∈ (full D).objs ↔ c ∈ D :=
 by { rw full_objs, }
 
 lemma full_arrow_eq_iff {c d : (full D).objs} {f g : c ⟶ d} : f = g ↔ (↑f : c.val ⟶ d.val) = ↑g :=
@@ -548,4 +561,3 @@ end full
 end subgroupoid
 
 end category_theory
-

@@ -307,7 +307,7 @@ lemma of_fo_obj (c: quotient S Sw) : (of S Sw).obj ((fo S Sw).obj c) = c :=
 begin
   dsimp [quotient] at c,
   rcases c with ⟨c',h⟩,
-  rw full_mem_objs_iff at h,
+  rw mem_full_objs_iff at h,
   rcases h with ⟨_,rfl⟩,
   dsimp [of, fo, subgroupoid.hom, subgroupoid.full, to_reps],
   simp only [quotient.out_eq, subtype.mk_eq_mk],
@@ -335,7 +335,7 @@ begin
   dsimp only [quotient] at c d,
   rcases c with ⟨c',hc⟩,
   rcases d with ⟨d',hd⟩,
-  rw full_mem_objs_iff at hc hd,
+  rw mem_full_objs_iff at hc hd,
   rcases hc with ⟨c',rfl⟩,
   rcases hd with ⟨d',rfl⟩,
   dsimp only [of, fo, hom],
@@ -357,12 +357,19 @@ begin
   apply functor.ext,
   { rintro, simp only [functor.comp_map, functor.id_map], rw of_fo_map, exact Sg, },
 end
-omit Sg
 
 lemma ker_eq : ker (of S Sw) = S :=
 begin
-  sorry
+  apply le_antisymm,
+  { rw le_iff,
+    rintro c d f hf,
+    rw mem_ker_iff at hf,
+    dsimp [of] at hf, --simp at hf,
+    obtain ⟨h,e⟩ := hf,
+    rw full_arrow_eq_iff at e, }
 end
+omit Sg
+
 
 section ump
 
@@ -494,6 +501,12 @@ begin
   change ker (isotropy.of S Sn ⋙ (graph_like.of (map (isotropy.of S Sn) _ S) _)) = S,
   rw ker_comp,
   rw graph_like.ker_eq,
+  apply le_antisymm,
+  { rw le_iff, rintros c d f hf,
+    dsimp [comap] at hf, rw mem_map_iff at hf,
+    obtain ⟨c',d',g,cc',dd',gS,e⟩ := hf,
+    subst_vars, sorry, },
+  { apply subgroupoid.le_map_comap, }
 end
 
 end quotient

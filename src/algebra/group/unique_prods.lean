@@ -167,14 +167,14 @@ end unique_mul
 finite subsets of `A` have the `unique_add` property, with respect to some element of their
 sum `A + B`. -/
 class unique_sums (G) [has_add G] : Prop :=
-( adds : ∀ {A B : finset G} (hA : A.nonempty) (hB : B.nonempty),
+(adds : ∀ {A B : finset G} (hA : A.nonempty) (hB : B.nonempty),
   ∃ (a0 ∈ A) (b0 ∈ B), unique_add A B a0 b0)
 
 /--  Let `G` be a Type with multiplication.  `unique_prods G` asserts that any two non-empty
 finite subsets of `G` have the `unique_mul` property, with respect to some element of their
 product `A * B`. -/
 class unique_prods (G) [has_mul G] : Prop :=
-( muls : ∀ {A B : finset G} (hA : A.nonempty) (hB : B.nonempty),
+(muls : ∀ {A B : finset G} (hA : A.nonempty) (hB : B.nonempty),
   ∃ (a0 ∈ A) (b0 ∈ B), unique_mul A B a0 b0 )
 
 attribute [to_additive] unique_prods

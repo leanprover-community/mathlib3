@@ -713,7 +713,8 @@ begin
   -- involution, this is also `μ`. Hence, `c^2 = 1`, which implies `c = 1`.
   constructor,
   haveI : is_haar_measure (measure.map has_inv.inv μ) :=
-    is_haar_measure_map μ (mul_equiv.inv G) continuous_inv continuous_inv,
+    is_haar_measure_map μ (mul_equiv.inv G : G →* G) continuous_inv (mul_equiv.inv G).surjective
+      (homeomorph.inv G).to_cocompact_map.cocompact_tendsto',
   obtain ⟨c, cpos, clt, hc⟩ : ∃ (c : ℝ≥0∞), (c ≠ 0) ∧ (c ≠ ∞) ∧ (measure.map has_inv.inv μ = c • μ)
     := is_haar_measure_eq_smul_is_haar_measure _ _,
   have : map has_inv.inv (map has_inv.inv μ) = c^2 • μ,

@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import algebra.char_zero.defs
+import algebra.ring.divisibility
 import algebra.hom.ring
-import algebra.order.group
+import algebra.order.group.basic
+import algebra.order.sub.canonical
 import algebra.order.ring_lemmas
 
 /-!
@@ -1490,7 +1492,7 @@ end
 
 end mul_zero_class
 
-/-- `nontrivial α` is needed here as otherwise we have `1 * ⊤ = ⊤` but also `= 0 * ⊤ = 0`. -/
+/-- `nontrivial α` is needed here as otherwise we have `1 * ⊤ = ⊤` but also `0 * ⊤ = 0`. -/
 instance [mul_zero_one_class α] [nontrivial α] : mul_zero_one_class (with_top α) :=
 { mul := (*),
   one := 1,

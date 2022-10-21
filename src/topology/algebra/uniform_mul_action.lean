@@ -30,12 +30,12 @@ variables (R : Type u) (M : Type v) (N : Type w) (X : Type x) (Y : Type y)
   [uniform_space X] [uniform_space Y]
 
 /-- An additive action such that for all `c`, the map `λ x, c +ᵥ x` is uniformly continuous. -/
-class has_uniform_continuous_const_vadd [uniform_space X] [has_vadd M X] : Prop :=
+class has_uniform_continuous_const_vadd [has_vadd M X] : Prop :=
 (uniform_continuous_const_vadd : ∀ (c : M), uniform_continuous ((+ᵥ) c : X → X))
 
 /-- A multiplicative action such that for all `c`, the map `λ x, c • x` is uniformly continuous. -/
 @[to_additive]
-class has_uniform_continuous_const_smul [uniform_space X] [has_smul M X] : Prop :=
+class has_uniform_continuous_const_smul [has_smul M X] : Prop :=
 (uniform_continuous_const_smul : ∀ (c : M), uniform_continuous ((•) c : X → X))
 
 export has_uniform_continuous_const_vadd (uniform_continuous_const_vadd)

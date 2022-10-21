@@ -51,11 +51,6 @@ say that `∥-f∥ = ∥f∥`, instead of the non-working `f.norm_neg`.
 * More versions of Hölder's inequality (for example: the case `p = 1`, `q = ∞`; a version for normed
   rings which has `∥∑' i, f i * g i∥` rather than `∑' i, ∥f i∥ * g i∥` on the RHS; a version for
   three exponents satisfying `1 / r = 1 / p + 1 / q`)
-* Equivalence with `pi_Lp`, for `α` finite
-* Equivalence with `measure_theory.Lp`, for `f : α → E` (i.e., functions rather than pi-types) and
-  the counting measure on `α`
-* Equivalence with `bounded_continuous_function`, for `f : α → E` (i.e., functions rather than
-  pi-types) and `p = ∞`, and the discrete topology on `α`
 
 -/
 
@@ -929,11 +924,14 @@ begin
   have hF : ∀ i ∉ s, F i = 0,
   { intros i hi,
     suffices : ∥f i∥ ^ p.to_real - ∥f i - ite (i ∈ s) (f i) 0∥ ^ p.to_real = 0,
-    { simpa [F, coe_fn_sum, lp.single_apply] using this, },
-    simp [if_neg hi] },
+    { simpa only [F, coe_fn_sum, lp.single_apply, coe_fn_sub, pi.sub_apply, finset.sum_apply,
+        finset.sum_dite_eq] using this, },
+    simp only [if_neg hi, sub_zero, sub_self] },
   have hF' : ∀ i ∈ s, F i = ∥f i∥ ^ p.to_real,
   { intros i hi,
-    simp [F, coe_fn_sum, lp.single_apply, if_pos hi, real.zero_rpow hp.ne'] },
+    simp only [F, coe_fn_sum, lp.single_apply, if_pos hi, sub_self, eq_self_iff_true,
+      coe_fn_sub, pi.sub_apply, finset.sum_apply, finset.sum_dite_eq, sub_eq_self],
+    simp [real.zero_rpow hp.ne'], },
   have : has_sum F (∑ i in s, F i) := has_sum_sum_of_ne_finset_zero hF,
   rwa [finset.sum_congr rfl hF'] at this,
 end

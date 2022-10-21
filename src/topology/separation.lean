@@ -543,6 +543,29 @@ lemma is_closed_map_const {α β} [topological_space α] [topological_space β] 
   is_closed_map (function.const α y) :=
 is_closed_map.of_nonempty $ λ s hs h2s, by simp_rw [h2s.image_const, is_closed_singleton]
 
+lemma nhds_within_insert_of_ne [t1_space α] {x y : α} {s : set α} (hxy : x ≠ y) :
+  𝓝[insert y s] x = 𝓝[s] x :=
+begin
+  refine le_antisymm (λ t ht, _) (nhds_within_mono x $ subset_insert y s),
+  obtain ⟨o, ho, hxo, host⟩ := mem_nhds_within.mp ht,
+  refine mem_nhds_within.mpr ⟨o \ {y}, ho.sdiff is_closed_singleton, ⟨hxo, hxy⟩, _⟩,
+  rw [inter_insert_of_not_mem $ not_mem_diff_of_mem (mem_singleton y)],
+  exact (inter_subset_inter (diff_subset _ _) subset.rfl).trans host
+end
+
+/-- If `t` is a subset of `s`, except for one point,
+then `insert x s` is a neighborhood of `x` within `t`. -/
+lemma insert_mem_nhds_within_of_subset_insert [t1_space α] {x y : α} {s t : set α}
+  (hu : t ⊆ insert y s) :
+  insert x s ∈ 𝓝[t] x :=
+begin
+  rcases eq_or_ne x y with rfl|h,
+  { exact mem_of_superset self_mem_nhds_within hu },
+  refine nhds_within_mono x hu _,
+  rw [nhds_within_insert_of_ne h],
+  exact mem_of_superset self_mem_nhds_within (subset_insert x s)
+end
+
 lemma bInter_basis_nhds [t1_space α] {ι : Sort*} {p : ι → Prop} {s : ι → set α} {x : α}
   (h : (𝓝 x).has_basis p s) : (⋂ i (h : p i), s i) = {x} :=
 begin
@@ -1487,6 +1510,14 @@ begin
     V₁_closed, V₂_closed, U₁_op, U₂_op, h₁, h₂, H⟩
 end
 
+open separation_quotient
+
+/-- The `separation_quotient` of a regular space is a T₃ space. -/
+instance [regular_space α] : t3_space (separation_quotient α) :=
+{ regular := λ s, surjective_mk.forall.2 $ λ a hs ha,
+    by { rw [← disjoint_comap_iff surjective_mk, comap_mk_nhds_mk, comap_mk_nhds_set],
+         exact regular_space.regular (hs.preimage continuous_mk) ha } }
+
 end t3
 
 section normality
@@ -1535,6 +1566,24 @@ protected lemma closed_embedding.normal_space [topological_space β] [normal_spa
         (disjoint_image_of_injective hf.inj hst),
     exact (H.preimage hf.continuous).mono (subset_preimage_image _ _) (subset_preimage_image _ _)
   end }
+
+namespace separation_quotient
+
+/-- The `separation_quotient` of a normal space is a T₄ space. We don't have separate typeclasses
+for normal spaces (without T₁ assumption) and T₄ spaces, so we use the same class for assumption
+and for conclusion.
+
+One can prove this using a homeomorphism between `α` and `separation_quotient α`. We give an
+alternative proof that works without assuming that `α` is a T₁ space. -/
+instance [normal_space α] : normal_space (separation_quotient α) :=
+{ normal := λ s t hs ht hd, separated_nhds_iff_disjoint.2 $
+    begin
+      rw [← disjoint_comap_iff surjective_mk, comap_mk_nhds_set, comap_mk_nhds_set],
+      exact separated_nhds_iff_disjoint.1 (normal_separation (hs.preimage continuous_mk)
+        (ht.preimage continuous_mk) (hd.preimage mk))
+    end }
+
+end separation_quotient
 
 variable (α)
 
@@ -1621,6 +1670,22 @@ instance [t5_space α] {p : α → Prop} : t5_space {x // p x} := embedding_subt
 instance t5_space.to_normal_space [t5_space α] : normal_space α :=
 ⟨λ s t hs ht hd, separated_nhds_iff_disjoint.2 $
   completely_normal (by rwa [hs.closure_eq]) (by rwa [ht.closure_eq])⟩
+
+open separation_quotient
+
+/-- The `separation_quotient` of a completely normal space is a T₅ space. We don't have separate
+typeclasses for completely normal spaces (without T₁ assumption) and T₅ spaces, so we use the same
+class for assumption and for conclusion.
+
+One can prove this using a homeomorphism between `α` and `separation_quotient α`. We give an
+alternative proof that works without assuming that `α` is a T₁ space. -/
+instance [t5_space α] : t5_space (separation_quotient α) :=
+{ completely_normal := λ s t hd₁ hd₂,
+    begin
+      rw [← disjoint_comap_iff surjective_mk, comap_mk_nhds_set, comap_mk_nhds_set],
+      apply t5_space.completely_normal; rw [← preimage_mk_closure],
+      exacts [hd₁.preimage mk, hd₂.preimage mk]
+    end }
 
 end completely_normal
 

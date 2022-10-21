@@ -208,14 +208,14 @@ end
 
 /-- If `∥f∥ *[μ] ∥g∥` exists, then `f *[L, μ] g` exists. -/
 lemma convolution_exists_at.of_norm' {x₀ : G}
-  (h : convolution_exists_at (λ x, ∥f x∥) (λ x, ∥g x∥) x₀ (lmul ℝ ℝ) μ)
+  (h : convolution_exists_at (λ x, ∥f x∥) (λ x, ∥g x∥) x₀ (mul ℝ ℝ) μ)
   (hmf : ae_strongly_measurable f μ)
   (hmg : ae_strongly_measurable g $ map (λ t, x₀ - t) μ) :
   convolution_exists_at f g x₀ L μ :=
 begin
   refine (h.const_mul ∥L∥).mono' (hmf.convolution_integrand_snd' L hmg)
     (eventually_of_forall $ λ x, _),
-  rw [lmul_apply, ← mul_assoc],
+  rw [mul_apply', ← mul_assoc],
   apply L.le_op_norm₂,
 end
 
@@ -236,7 +236,7 @@ lemma measure_theory.ae_strongly_measurable.convolution_integrand_swap_snd
 
 /-- If `∥f∥ *[μ] ∥g∥` exists, then `f *[L, μ] g` exists. -/
 lemma convolution_exists_at.of_norm {x₀ : G}
-  (h : convolution_exists_at (λ x, ∥f x∥) (λ x, ∥g x∥) x₀ (lmul ℝ ℝ) μ)
+  (h : convolution_exists_at (λ x, ∥f x∥) (λ x, ∥g x∥) x₀ (mul ℝ ℝ) μ)
   (hmf : ae_strongly_measurable f μ)
   (hmg : ae_strongly_measurable g μ) :
   convolution_exists_at f g x₀ L μ :=
@@ -889,9 +889,9 @@ lemma convolution_assoc (hL : ∀ (x : E) (y : E') (z : E''), L₂ (L x y) z = L
   (hg : ae_strongly_measurable g μ)
   (hk : ae_strongly_measurable k μ)
   (hfg : ∀ᵐ y ∂μ, convolution_exists_at f g y L ν)
-  (hgk : ∀ᵐ x ∂ν, convolution_exists_at (λ x, ∥g x∥) (λ x, ∥k x∥) x (lmul ℝ ℝ) μ)
-  (hfgk : convolution_exists_at (λ x, ∥f x∥) ((λ x, ∥g x∥) ⋆[lmul ℝ ℝ, μ] (λ x, ∥k x∥))
-    x₀ (lmul ℝ ℝ) ν) :
+  (hgk : ∀ᵐ x ∂ν, convolution_exists_at (λ x, ∥g x∥) (λ x, ∥k x∥) x (mul ℝ ℝ) μ)
+  (hfgk : convolution_exists_at (λ x, ∥f x∥) ((λ x, ∥g x∥) ⋆[mul ℝ ℝ, μ] (λ x, ∥k x∥))
+    x₀ (mul ℝ ℝ) ν) :
   ((f ⋆[L, ν] g) ⋆[L₂, μ] k) x₀ = (f ⋆[L₃, ν] (g ⋆[L₄, μ] k)) x₀ :=
 begin
   refine convolution_assoc' L L₂ L₃ L₄ hL hfg (hgk.mono $ λ x hx, hx.of_norm L₄ hg hk) _,
@@ -920,7 +920,7 @@ begin
     (λ t ht, (L₃ (f t)).integrable_comp $ ht.of_norm L₄ hg hk), _⟩,
   refine (hfgk.const_mul (∥L₃∥ * ∥L₄∥)).mono' h2_meas
     (((quasi_measure_preserving_sub_left_of_right_invariant ν x₀).ae hgk).mono $ λ t ht, _),
-  { simp_rw [convolution_def, lmul_apply, mul_mul_mul_comm ∥L₃∥ ∥L₄∥, ← integral_mul_left],
+  { simp_rw [convolution_def, mul_apply', mul_mul_mul_comm ∥L₃∥ ∥L₄∥, ← integral_mul_left],
     rw [real.norm_of_nonneg],
     { refine integral_mono_of_nonneg (eventually_of_forall $ λ t, norm_nonneg _)
         ((ht.const_mul _).const_mul _) (eventually_of_forall $ λ s, _),

@@ -238,6 +238,10 @@ open function
 theorem false_ne_true : false ≠ true
 | h := h.symm ▸ trivial
 
+theorem eq_true_iff {a : Prop} : (a = true) = a :=
+have (a ↔ true) = a, from propext (iff_true a),
+eq.subst (@iff_eq_eq a true) this
+
 section propositional
 variables {a b c d e f : Prop}
 

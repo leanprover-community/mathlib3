@@ -274,7 +274,7 @@ lemma nat.cauchy_induction' (seed : ℕ) (hs : P seed)
 begin
   apply nat.decreasing_induction_of_infinite h (λ hf, _),
   obtain ⟨m, hP, hm⟩ := hf.exists_maximal_wrt id _ ⟨seed, hs⟩,
-  obtain ⟨y, hl, hy⟩ := hi m ((le_or_lt seed m).resolve_right $ λ h, h.ne $ hm seed hs h.le) hP,
+  obtain ⟨y, hl, hy⟩ := hi m (le_of_not_lt $ λ hl, hl.ne $ hm seed hs hl.le) hP,
   exact hl.ne (hm y hy hl.le),
 end
 
@@ -290,7 +290,7 @@ begin
   rw one_mul,
 end
 
-lemma nat.cauchy_induction_two_mul (k seed : ℕ) (hs : P seed.succ)
+lemma nat.cauchy_induction_two_mul (seed : ℕ) (hs : P seed.succ)
   (hm : ∀ n, seed < n → P n → P (2 * n)) (n : ℕ) : P n :=
 nat.cauchy_induction_mul h 2 seed one_lt_two hs hm n
 

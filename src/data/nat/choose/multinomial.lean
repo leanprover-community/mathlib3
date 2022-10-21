@@ -182,8 +182,6 @@ end
 
 end multiset
 
-
-
 namespace finset
 
 /-! ### Multinomial theorem -/
@@ -197,10 +195,9 @@ variables {α : Type*} [decidable_eq α] (s : finset α) {R : Type*}
 -/
 theorem sum_pow_of_commute [semiring R] (x : α → R)
   (hc : (s : set α).pairwise $ λ i j, commute (x i) (x j)) :
-  ∀ n, (s.sum x) ^ n = ∑ k : s.sym n, k.1.1.multinomial * (k.1.1.map $ x).noncomm_prod
-    (λ r₁ h₁ r₂ h₂ hn, by
-    { obtain ⟨⟨a₁, H₁, rfl⟩, a₂, H₂, rfl⟩ := ⟨multiset.mem_map.1 h₁, multiset.mem_map.1 h₂⟩,
-      exact hc (mem_sym_iff.1 k.2 a₁ H₁) (mem_sym_iff.1 k.2 a₂ H₂) (mt (congr_arg x) hn) }) :=
+  ∀ n, (s.sum x) ^ n =
+  ∑ k : s.sym n, k.1.1.multinomial * (k.1.1.map $ x).noncomm_prod
+    (multiset.map_set_pairwise $ hc.mono $ mem_sym_iff.1 k.2) :=
 begin
   induction s using finset.induction with a s ha ih,
   { rw sum_empty,

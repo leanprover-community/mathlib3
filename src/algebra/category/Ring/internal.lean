@@ -2,6 +2,29 @@ import category_theory.concrete_category.operations
 import algebra.category.Ring.basic
 import algebra.category.Group.internal
 
+def Ring.mk (R : Ab) (one' : R) (mul' : R × R → R)
+  (mul_assoc : ∀ (x y z : R), mul' ⟨mul' ⟨x, y⟩, z⟩ = mul' ⟨x, mul' ⟨y, z⟩⟩)
+  (one_mul : ∀ (x : R), mul' ⟨one', x⟩ = x)
+  (mul_one : ∀ (x : R), mul' ⟨x, one'⟩ = x)
+  (add_mul : ∀ (x y z : R), mul' ⟨x + y, z⟩ = mul' ⟨x, z⟩ + mul' ⟨y, z⟩)
+  (mul_add : ∀ (x y z : R), mul' ⟨x, y + z⟩ = mul' ⟨x, y⟩ + mul' ⟨x, z⟩) : Ring :=
+⟨R.1,
+{ add := λ x y, x+y,
+  neg := λ x, -x ,
+  zero := 0,
+  zero_add := by tidy,
+  add_zero := by tidy,
+  add_assoc := add_assoc,
+  add_left_neg := add_left_neg,
+  add_comm := add_comm,
+  one := one',
+  mul := λ x y, mul' ⟨x, y⟩,
+  mul_assoc := mul_assoc,
+  one_mul := one_mul,
+  mul_one := mul_one,
+  left_distrib := mul_add,
+  right_distrib := add_mul, }⟩
+
 namespace category_theory
 
 namespace concrete_category
@@ -33,14 +56,23 @@ open concrete_category.operations
 
 variables {C : Type*} [category C]
 
+example : ℕ := 42
+
 def mk (R : internal Ab C)
-  (yoneda_one : (functor.const Cᵒᵖ).obj punit ⟶ yoneda.obj R.obj)
-  (yoneda_mul : concat₂ (yoneda.obj R.obj) (yoneda.obj R.obj) ⟶ yoneda.obj R.obj)
-  (yoneda_mul_one : lift₂ (to_functor_const_punit ≫ yoneda_one) (𝟙 _) ≫ yoneda_mul = 𝟙 _)
-  (yoneda_mul_mul : lift₂ (pr₁₂_₃ ≫ yoneda_mul) pr₃_₃ ≫ yoneda_mul =
-    lift₂ pr₁_₃ (pr₂₃_₃ ≫ yoneda_mul) ≫ yoneda_mul) :
+  (yoneda_one : internal_yoneda_operation₀ R.obj)
+  (yoneda_mul : Ab.yoneda_bilinear R R R)
+  (yoneda_one_mul : internal_yoneda_operation₂_gen.one_smul yoneda_mul.φ yoneda_one)
+  (yoneda_mul_one : internal_yoneda_operation₂_gen.smul_one yoneda_mul.φ yoneda_one)
+  (yoneda_mul_mul : internal_yoneda_operation₂_gen.mul_smul yoneda_mul.φ yoneda_mul.φ) :
   internal Ring C :=
-sorry
+{ obj := R.obj,
+  presheaf :=
+  { obj := λ Y, begin
+      refine Ring.mk (R.presheaf.obj Y) _ _ _ _ _ _ _,
+      all_goals { sorry, },
+    end,
+    map := sorry, },
+  iso := sorry,}
 
 end Ring
 

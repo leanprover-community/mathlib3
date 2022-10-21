@@ -22,6 +22,8 @@ def Ab.mk (A : Type*) (zero' : A) (neg' : A ⟶ A) (add' : A × A → A)
 
 namespace category_theory
 
+open opposite limits
+
 namespace concrete_category
 
 namespace operations
@@ -56,6 +58,14 @@ namespace Ab
 open concrete_category.operations limits
 
 variables {C : Type*} [category C] (M : internal Ab C)
+
+instance add_comm_group_presheaf_type_obj {Y : Cᵒᵖ} :
+add_comm_group (M.presheaf_type.obj Y) :=
+by { dsimp [presheaf_type], apply_instance, }
+
+instance add_comm_group_presheaf_comp_forget_obj {Y : Cᵒᵖ} :
+add_comm_group ((M.presheaf ⋙ forget Ab).obj Y) :=
+by { dsimp [presheaf_type], apply_instance, }
 
 def mk (X : C)
   (yoneda_zero : (functor.const Cᵒᵖ).obj punit ⟶ yoneda.obj X)
@@ -128,6 +138,67 @@ internal_operation₂.yoneda_equiv_symm_comm M.obj _ (yoneda_operation_add_comm 
 lemma add_assoc [has_binary_product M.obj M.obj] [has_binary_product M.obj (prod M.obj M.obj)] :
   (add M).assoc :=
 internal_operation₂.yoneda_equiv_symm_assoc M.obj _ (yoneda_operation_add_assoc M)
+
+variable {M}
+
+@[simp]
+lemma iso_hom_app_yoneda_operation_add_app {Y : C} (x₁ x₂ : Y ⟶ M.obj) :
+  M.iso.hom.app _ ((yoneda_operation_add M).app (op Y) ⟨x₁, x₂⟩) =
+  M.iso.hom.app (op Y) x₁ + M.iso.hom.app (op Y) x₂ :=
+begin
+  dsimp [yoneda_operation_add],
+  simpa only [functor_to_types.inv_hom_id_app_apply],
+end
+
+variables (M₁ M₂ M₃ : internal Ab C)
+
+structure yoneda_bilinear :=
+(φ : internal_yoneda_operation₂_gen M₁.obj M₂.obj M₃.obj)
+(right_distrib : internal_yoneda_operation₂_gen.right_distrib φ (Ab.yoneda_operation_add _)
+    (Ab.yoneda_operation_add _))
+(left_distrib : internal_yoneda_operation₂_gen.left_distrib φ (Ab.yoneda_operation_add _)
+    (Ab.yoneda_operation_add _))
+
+namespace yoneda_bilinear
+
+variables (bil : yoneda_bilinear M₁ M₂ M₃) {M₁ M₂ M₃} {Y Y' : C}
+
+def on_internal_presheaf : concat₂ M₁.presheaf_type M₂.presheaf_type ⟶ M₃.presheaf_type :=
+lift₂ (pr₁ ≫ M₁.iso.inv) (pr₂ ≫ M₂.iso.inv) ≫ bil.φ ≫ M₃.iso.hom
+
+@[simp]
+def on_internal_presheaf_curry
+  (x₁ : M₁.presheaf_type.obj (op Y)) (x₂ : M₂.presheaf_type.obj (op Y)) :
+  M₃.presheaf_type.obj (op Y) :=
+M₃.iso.hom.app _ (bil.φ.app _ ⟨M₁.iso.inv.app _ x₁, M₂.iso.inv.app _ x₂⟩)
+
+@[simp]
+lemma on_internal_presheaf_app
+  (x₁ : M₁.presheaf_type.obj (op Y)) (x₂ : M₂.presheaf_type.obj (op Y)) :
+  bil.on_internal_presheaf.app (op Y) ⟨x₁, x₂⟩ = bil.on_internal_presheaf_curry x₁ x₂ := rfl
+
+def on_internal_presheaf_curry_naturality
+  (x₁ : M₁.presheaf_type.obj (op Y)) (x₂ : M₂.presheaf_type.obj (op Y)) (f : Y' ⟶ Y) :
+  bil.on_internal_presheaf_curry (M₁.presheaf_type.map f.op x₁)
+    (M₂.presheaf_type.map f.op x₂) =
+  M₃.presheaf_type.map f.op (bil.on_internal_presheaf_curry x₁ x₂) :=
+congr_fun (bil.on_internal_presheaf.naturality f.op) ⟨x₁, x₂⟩
+
+lemma on_internal_presheaf_right_distrib
+  (x₁ x₁' : M₁.presheaf_type.obj (op Y)) (x₂ : M₂.presheaf_type.obj (op Y)) :
+bil.on_internal_presheaf_curry (x₁ + x₁') x₂ =
+  bil.on_internal_presheaf_curry x₁ x₂ + bil.on_internal_presheaf_curry x₁' x₂ :=
+begin
+  have h := congr_fun (nat_trans.congr_app bil.right_distrib (op Y))
+    ⟨M₁.iso.inv.app _ x₁, M₁.iso.inv.app _ x₁', M₂.iso.inv.app _ x₂⟩,
+  have h₂ := congr_arg (M₃.iso.hom.app _) h,
+  simp only [functor_to_types.comp, lift₂_app, pr₁₂_₃_app, pr₃_₃_app, has_coe_to_fun_Type,
+    pr₁₃_₃_app, pr₂₃_₃_app, iso_hom_app_yoneda_operation_add_app] at h₂,
+  convert h₂;
+  { dsimp, simp only [functor_to_types.inv_hom_id_app_apply], },
+end
+
+end yoneda_bilinear
 
 end Ab
 

@@ -23,15 +23,15 @@ begin
     ←pow_mod, ←mul_mod]
 end
 
-lemma my_pow_mod_aux_bit1 (a b c n m qa2 za2 ra2 a2 qac zac rac ac : ℕ)
-  (ha2 : a * a = a2) (hqa2 : n * qa2 = za2) (hra2 : ra2 + za2 = a2)
-  (hac : a * c = ac) (hqac : n * qac = zac) (hrac : rac + zac = ac)
+lemma my_pow_mod_aux_bit1 {a b c n m qa2 za2 ra2 a2 qac zac rac ac : ℕ}
+  (ha2 : a * a = a2) (hqa2 : n * qa2 = za2) (hra2 : za2 + ra2 = a2)
+  (hac : a * c = ac) (hqac : n * qac = zac) (hrac : zac + rac = ac)
   (hm : my_pow_mod_aux ra2 b rac n = m) :
   my_pow_mod_aux a (bit1 b) c n = m :=
 begin
   substs a2 za2 ac zac,
   rwa [my_pow_mod_aux, pow_bit1', mul_assoc, ←hra2, ←hrac, mul_mod, pow_mod, add_mul_mod_self_left,
-    add_mul_mod_self_left, ←pow_mod, ←mul_mod],
+    add_comm, add_mul_mod_self_left, ←pow_mod, ←mul_mod],
 end
 
 lemma my_pow_mod_eq (a b n m : ℕ) (h : my_pow_mod_aux a b 1 n = m) :
@@ -90,7 +90,7 @@ meta def prove_pow_mod_aux :
       (ic, za2, hqa2) ← prove_mul_nat ic n qa2,
       (ic, zac, hqac) ← prove_mul_nat ic n qac,
       (ic, hra2) ← prove_add_nat ic ra2 za2 a2,
-      (ic, hrac) ← prove_add_nat ic rac zac ac,
+      (ic, hrac) ← prove_add_nat ic zac rac ac,
       (ic, m, hm) ← prove_pow_mod_aux ic ra2 b rac n,
       q ← mk_app ``my_pow_mod_aux_bit1 [a, b, c, n, m, qa2, za2, ra2, a2, qac, zac, rac, ac, ha2,
         hqa2, hra2, hac, hqac, hrac, hm],
@@ -112,16 +112,12 @@ meta def prove_pow_mod_aux :
 end
 
 example : my_pow_mod 5 23509285402366 23509285402367 = 1 :=
-begin
-  norm_num1,
-end
+by norm_num1
 
 example : my_pow_mod 5 (11754642701183 - 1) 11754642701183 = 1 :=
-begin
-  norm_num1,
-end
+by norm_num1
 
-example : my_pow_mod 5 23509285402366 23509285402367 = 1 ∧ my_pow_mod 5 (11754642701183 - 1) 11754642701183 = 1 :=
+lemma x1 : my_pow_mod 5 23509285402366 23509285402367 = 1 ∧ my_pow_mod 5 (11754642701183 - 1) 11754642701183 = 1 :=
 begin
   split,
   norm_num1,

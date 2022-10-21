@@ -385,6 +385,7 @@ by simp only [map_comp, ring_hom.comp_apply]
 
 noncomputable theory
 
+/-- A ring isomorphism defines an isomorphism of residue fields -/
 def map_equiv (f : R ≃+* S):
  (local_ring.residue_field R) ≃+* (local_ring.residue_field S) :=
 { to_fun := map (f : R →+* S),

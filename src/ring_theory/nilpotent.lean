@@ -107,16 +107,13 @@ end
 
 lemma is_radical_iff_pow_one_lt [monoid_with_zero R] (k : ℕ) (hk : 1 < k) :
   is_radical y ↔ ∀ x, y ∣ x ^ k → y ∣ x :=
-⟨λ h x, h k x, λ h x, begin
-  apply cauchy_induction,
-end⟩
+⟨λ h x, h k x, λ h, k.cauchy_induction_mul
+  (λ n h x hd, h x $ (pow_succ' x n).symm ▸ hd.mul_right x) 0 hk
+  (λ x hd, pow_one x ▸ hd) (λ n _ hn x hd, h x $ hn _ $ (pow_mul x k n).subst hd)⟩
 
 lemma is_reduced_iff_pow_one_lt [monoid_with_zero R] (k : ℕ) (hk : 1 < k) :
-  is_reduced R ↔ ∀ x, x ^ k = 0 → x = 0 :=
-
-
-lemma is_reduced_iff_sq :
-
+  is_reduced R ↔ ∀ x : R, x ^ k = 0 → x = 0 :=
+by simp_rw [← zero_is_radical_iff, is_radical_iff_pow_one_lt k hk, zero_dvd_iff]
 
 namespace commute
 

@@ -177,6 +177,41 @@ end
 
 end irreducible
 
+section is_radical
+
+variables [cancel_comm_monoid_with_zero R]
+
+theorem is_radical.squarefree {x : R} (h0 : x ≠ 0) (h : is_radical x) : squarefree x :=
+begin
+  rintro z ⟨w, rfl⟩,
+  specialize h 2 (z * w) ⟨w, by simp_rw [pow_two, mul_left_comm, ← mul_assoc]⟩,
+  rwa [← one_mul (z * w), mul_assoc, mul_dvd_mul_iff_right, ← is_unit_iff_dvd_one] at h,
+  rw [mul_assoc, mul_ne_zero_iff] at h0, exact h0.2,
+end
+
+variable [gcd_monoid R]
+
+theorem squarefree.is_radical {x : R} (hx : squarefree x) : is_radical x :=
+(is_radical_iff_pow_one_lt 2 one_lt_two).2 $ λ y hy, and.right $ (dvd_gcd_iff x x y).1
+begin
+  by_cases gcd x y = 0, { rw h, apply dvd_zero },
+  replace hy := ((dvd_gcd_iff x x _).2 ⟨dvd_rfl, hy⟩).trans gcd_pow_right_dvd_pow_gcd,
+  obtain ⟨z, hz⟩ := gcd_dvd_left x y,
+  nth_rewrite 0 hz at hy ⊢,
+  rw [pow_two, mul_dvd_mul_iff_left h] at hy,
+  obtain ⟨w, hw⟩ := hy,
+  exact (hx z ⟨w, by rwa [mul_right_comm, ←hw]⟩).mul_right_dvd.2 dvd_rfl,
+end
+
+theorem is_radical_iff_squarefree_or_zero {x : R} : is_radical x ↔ squarefree x ∨ x = 0 :=
+⟨λ hx, (em $ x = 0).elim or.inr (λ h, or.inl $ hx.squarefree h),
+  or.rec squarefree.is_radical $ by { rintro rfl, rw zero_is_radical_iff, apply_instance }⟩
+
+theorem is_radical_iff_squarefree_of_ne_zero {x : R} (h : x ≠ 0) : is_radical x ↔ squarefree x :=
+⟨is_radical.squarefree h, squarefree.is_radical⟩
+
+end is_radical
+
 namespace unique_factorization_monoid
 variables [cancel_comm_monoid_with_zero R] [unique_factorization_monoid R]
 
@@ -212,46 +247,8 @@ lemma dvd_pow_iff_dvd_of_squarefree {x y : R} {n : ℕ} (hsq : squarefree x) (h0
   x ∣ y ^ n ↔ x ∣ y :=
 begin
   classical,
-  by_cases hx : x = 0,
-  { simp [hx, pow_eq_zero_iff (nat.pos_of_ne_zero h0)] },
-  by_cases hy : y = 0,
-  { simp [hy, zero_pow (nat.pos_of_ne_zero h0)] },
-  refine ⟨λ h, _, λ h, h.pow h0⟩,
-  haveI := @unique_factorization_monoid.normalization_monoid R _ ⟨⟨x, 0, hx⟩⟩ _,
-  rw [dvd_iff_normalized_factors_le_normalized_factors hx (pow_ne_zero n hy),
-    normalized_factors_pow,
-    ((squarefree_iff_nodup_normalized_factors hx).1 hsq).le_nsmul_iff_le h0] at h,
-  rwa dvd_iff_normalized_factors_le_normalized_factors hx hy,
+  haveI := unique_factorization_monoid.to_gcd_monoid R,
+  exact ⟨hsq.is_radical n y, λ h, h.pow h0⟩,
 end
-
-lemma _root_.squarefree.dvd_of_pow_dvd {x y : R} {n : ℕ}
-  (hsq : squarefree x) (h : x ∣ y ^ n) : x ∣ y :=
-if h0 : n = 0
-  then trans (by rwa [h0, pow_zero] at h) (one_dvd y)
-  else (dvd_pow_iff_dvd_of_squarefree hsq h0).1 h
-
-lemma squarefree_iff_dvd_of_pow_dvd {x : R} (h0 : x ≠ 0) :
-  squarefree x ↔ (∀ y (n : ℕ), x ∣ y ^ n → x ∣ y) :=
-⟨λ hsq y n, hsq.dvd_of_pow_dvd, λ h, begin
-  classical,
-  haveI := nontrivial_of_ne x 0 h0,
-  haveI := @unique_factorization_monoid.normalization_monoid R _ _ _,
-  obtain ⟨n, hn⟩ := (normalized_factors x).le_smul_dedup,
-  have := multiset.prod_dvd_prod_of_le hn,
-  rw multiset.prod_nsmul at this,
-  apply squarefree_of_dvd_of_squarefree (h _ n $ (normalized_factors_prod h0).symm.dvd.trans this),
-  have := λ a ha, irreducible_of_normalized_factor a (multiset.mem_dedup.1 ha),
-  rw [squarefree_iff_nodup_normalized_factors, normalized_factors_prod_eq],
-  { refine multiset.nodup.map_on (λ x hx y hy he, _) (multiset.nodup_dedup _),
-    rw multiset.mem_dedup at hx hy,
-    rwa [normalize_normalized_factor x hx, normalize_normalized_factor y hy] at he },
-  exacts [this, multiset.prod_ne_zero (λ h, (this 0 h).ne_zero rfl)],
-end⟩
-
-lemma squarefree_ideal_span_singleton_is_radical {R} [comm_ring R] [is_domain R]
-  [unique_factorization_monoid R] {x : R} (h0 : x ≠ 0) :
-  squarefree x ↔ (ideal.span {x}).radical ≤ ideal.span ({x} : set R) :=
-(squarefree_iff_dvd_of_pow_dvd h0).trans $ forall_congr $
-  λ y, by { simp_rw [← exists_imp_distrib, ← ideal.mem_span_singleton], refl }
 
 end unique_factorization_monoid

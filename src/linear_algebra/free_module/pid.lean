@@ -485,6 +485,11 @@ let ⟨m, n, bM, bN, f, a, snf⟩ := N.smith_normal_form_of_le b ⊤ le_top,
                     equiv.to_embedding_apply, function.embedding.trans_apply,
                     equiv.symm_apply_apply]⟩
 
+section ideal
+
+variables {S : Type*} [comm_ring S] [is_domain S] [algebra R S]
+variables [fintype ι]
+
 /-- If `S` a finite-dimensional ring extension of a PID `R` which is free as an `R`-module,
 then any nonzero `S`-ideal `I` is free as an `R`-submodule of `S`, and we can
 find a basis for `S` and `I` such that the inclusion map is a square diagonal
@@ -496,7 +501,6 @@ need to map `I` into a submodule of `R`.
 This is a strengthening of `submodule.basis_of_pid`.
 -/
 noncomputable def ideal.smith_normal_form
-  [fintype ι] {S : Type*} [comm_ring S] [is_domain S] [algebra R S]
   (b : basis ι R S) (I : ideal S) (hI : I ≠ ⊥) :
   basis.smith_normal_form (I.restrict_scalars R) ι (fintype.card ι) :=
 let ⟨n, bS, bI, f, a, snf⟩ := (I.restrict_scalars R).smith_normal_form b in
@@ -512,9 +516,11 @@ matrix.
 
 See also `ideal.smith_normal_form` for a version of this theorem that returns
 a `basis.smith_normal_form`.
+
+The definitions `ideal.ring_basis`, `ideal.self_basis`, `ideal.smith_coeffs` are (noncomputable)
+choices of values for this existential quantifier.
 -/
 theorem ideal.exists_smith_normal_form
-  [finite ι] {S : Type*} [comm_ring S] [is_domain S] [algebra R S]
   (b : basis ι R S) (I : ideal S) (hI : I ≠ ⊥) :
   ∃ (b' : basis ι R S) (a : ι → R) (ab' : basis ι R I),
   ∀ i, (ab' i : S) = a i • b' i :=
@@ -525,6 +531,61 @@ have fe : ∀ i, f (e.symm i) = i := e.apply_symm_apply,
 ⟨bS, a ∘ e.symm, (bI.reindex e).map ((restrict_scalars_equiv _ _ _ _).restrict_scalars R), λ i,
   by simp only [snf, fe, basis.map_apply, linear_equiv.restrict_scalars_apply,
     submodule.restrict_scalars_equiv_apply, basis.coe_reindex]⟩
+
+/-- If `S` a finite-dimensional ring extension of a PID `R` which is free as an `R`-module,
+then any nonzero `S`-ideal `I` is free as an `R`-submodule of `S`, and we can
+find a basis for `S` and `I` such that the inclusion map is a square diagonal
+matrix; this is the basis for `S`.
+See `ideal.self_basis` for the basis on `I`,
+see `ideal.smith_coeffs` for the entries of the diagonal matrix
+and `ideal.self_basis_def` for the proof that the inclusion map forms a square diagonal matrix.
+-/
+noncomputable def ideal.ring_basis (b : basis ι R S) (I : ideal S) (hI : I ≠ ⊥) : basis ι R S :=
+(ideal.exists_smith_normal_form b I hI).some
+
+/-- If `S` a finite-dimensional ring extension of a PID `R` which is free as an `R`-module,
+then any nonzero `S`-ideal `I` is free as an `R`-submodule of `S`, and we can
+find a basis for `S` and `I` such that the inclusion map is a square diagonal
+matrix; this is the basis for `I`.
+See `ideal.ring_basis` for the basis on `S`,
+see `ideal.smith_coeffs` for the entries of the diagonal matrix
+and `ideal.self_basis_def` for the proof that the inclusion map forms a square diagonal matrix.
+-/
+noncomputable def ideal.self_basis (b : basis ι R S) (I : ideal S) (hI : I ≠ ⊥) : basis ι R I :=
+(ideal.exists_smith_normal_form b I hI).some_spec.some_spec.some
+
+/-- If `S` a finite-dimensional ring extension of a PID `R` which is free as an `R`-module,
+then any nonzero `S`-ideal `I` is free as an `R`-submodule of `S`, and we can
+find a basis for `S` and `I` such that the inclusion map is a square diagonal
+matrix; these are the entries of the diagonal matrix.
+See `ideal.ring_basis` for the basis on `S`,
+see `ideal.self_basis` for the basis on `I`,
+and `ideal.self_basis_def` for the proof that the inclusion map forms a square diagonal matrix.
+-/
+noncomputable def ideal.smith_coeffs (b : basis ι R S) (I : ideal S) (hI : I ≠ ⊥) : ι → R :=
+(ideal.exists_smith_normal_form b I hI).some_spec.some
+
+/-- If `S` a finite-dimensional ring extension of a PID `R` which is free as an `R`-module,
+then any nonzero `S`-ideal `I` is free as an `R`-submodule of `S`, and we can
+find a basis for `S` and `I` such that the inclusion map is a square diagonal
+matrix.
+-/
+@[simp]
+lemma ideal.self_basis_def (b : basis ι R S) (I : ideal S) (hI : I ≠ ⊥) :
+  ∀ i, (ideal.self_basis b I hI i : S) = ideal.smith_coeffs b I hI i • ideal.ring_basis b I hI i :=
+(ideal.exists_smith_normal_form b I hI).some_spec.some_spec.some_spec
+
+@[simp]
+lemma ideal.smith_coeffs_ne_zero (b : basis ι R S) (I : ideal S) (hI : I ≠ ⊥) (i) :
+  ideal.smith_coeffs b I hI i ≠ 0 :=
+begin
+  intro hi,
+  apply basis.ne_zero (ideal.self_basis b I hI) i,
+  refine subtype.coe_injective _,
+  simp [hi]
+end
+
+end ideal
 
 end smith_normal
 

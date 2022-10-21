@@ -156,11 +156,11 @@ section atomic
 variables [partial_order α] (α)
 
 /-- A lattice is atomic iff every element other than `⊥` has an atom below it. -/
-class is_atomic [order_bot α] : Prop :=
+@[mk_iff] class is_atomic [order_bot α] : Prop :=
 (eq_bot_or_exists_atom_le : ∀ (b : α), b = ⊥ ∨ ∃ (a : α), is_atom a ∧ a ≤ b)
 
 /-- A lattice is coatomic iff every element other than `⊤` has a coatom above it. -/
-class is_coatomic [order_top α] : Prop :=
+@[mk_iff] class is_coatomic [order_top α] : Prop :=
 (eq_top_or_exists_le_coatom : ∀ (b : α), b = ⊤ ∨ ∃ (a : α), is_coatom a ∧ b ≤ a)
 
 export is_atomic (eq_bot_or_exists_atom_le) is_coatomic (eq_top_or_exists_le_coatom)
@@ -678,18 +678,13 @@ lemma is_simple_order [bounded_order α] [bounded_order β] [h : is_simple_order
   is_simple_order α :=
 f.is_simple_order_iff.mpr h
 
-lemma is_atomic_iff [order_bot α] [order_bot β] (f : α ≃o β) : is_atomic α ↔ is_atomic β :=
-begin
-  suffices : (∀ b : α, b = ⊥ ∨ ∃ (a : α), is_atom a ∧ a ≤ b) ↔
-    (∀ b : β, b = ⊥ ∨ ∃ (a : β), is_atom a ∧ a ≤ b),
-  from ⟨λ ⟨p⟩, ⟨this.mp p⟩, λ ⟨p⟩, ⟨this.mpr p⟩⟩,
-  simp only [f.surjective.forall, f.surjective.exists, ← map_bot f, f.injective.eq_iff,
-    f.le_iff_le, f.is_atom_iff]
-end
+protected lemma is_atomic_iff [order_bot α] [order_bot β] (f : α ≃o β) :
+  is_atomic α ↔ is_atomic β :=
+by simp only [is_atomic_iff, f.surjective.forall, f.surjective.exists, ← map_bot f, f.eq_iff_eq,
+  f.le_iff_le, f.is_atom_iff]
 
 lemma is_coatomic_iff [order_top α] [order_top β] (f : α ≃o β) : is_coatomic α ↔ is_coatomic β :=
-by { rw [←is_atomic_dual_iff_is_coatomic, ←is_atomic_dual_iff_is_coatomic],
-  exact f.dual.is_atomic_iff }
+by simp only [← is_atomic_dual_iff_is_coatomic, f.dual.is_atomic_iff]
 
 end order_iso
 

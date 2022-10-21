@@ -179,8 +179,7 @@ lemma sin_angle_mul_norm_mul_norm (x y : V) : real.sin (angle x y) * (∥x∥ * 
     real.sqrt (⟪x, x⟫ * ⟪y, y⟫ - ⟪x, y⟫ * ⟪x, y⟫) :=
 begin
   unfold angle,
-  rw [real.sin_arccos (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).1
-                      (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).2,
+  rw [real.sin_arccos,
       ←real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)),
       ←real.sqrt_mul' _ (mul_self_nonneg _), sq,
       real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)),

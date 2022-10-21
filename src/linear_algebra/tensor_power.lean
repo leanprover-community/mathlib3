@@ -66,7 +66,7 @@ def mul_equiv {n m : ℕ} : (⨂[R]^n M) ⊗[R] (⨂[R]^m M) ≃ₗ[R] ⨂[R]^(n
 instance ghas_mul : graded_monoid.ghas_mul (λ i, ⨂[R]^i M) :=
 { mul := λ i j a b, mul_equiv (a ⊗ₜ b) }
 
-local infix `ₜ*`:70 := @graded_monoid.ghas_mul.mul ℕ (λ i, ⨂[R]^i M) _ _ _ _
+local infix ` ₜ* `:70 := @graded_monoid.ghas_mul.mul ℕ (λ i, ⨂[R]^i M) _ _ _ _
 
 lemma ghas_mul_def {i j} (a : ⨂[R]^i M) (b : ⨂[R]^j M) : a ₜ* b = mul_equiv (a ⊗ₜ b) := rfl
 

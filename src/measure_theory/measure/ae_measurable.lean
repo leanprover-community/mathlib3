@@ -77,7 +77,7 @@ begin
     refine ⟨⋃ i, ((h i).mk f ⁻¹' t) ∩ (s i)ᶜ, measurable_set.Union $
       λ i, (measurable_mk _ ht).inter (measurable_set_to_measurable _ _).compl, _⟩,
     ext ⟨x, hx⟩,
-    simp only [mem_preimage, mem_Union, subtype.coe_mk, set.restrict, mem_inter_eq,
+    simp only [mem_preimage, mem_Union, subtype.coe_mk, set.restrict, mem_inter_iff,
       mem_compl_iff] at hx ⊢,
     split,
     { rintro ⟨i, hxt, hxs⟩, rwa hs _ _ hxs },
@@ -129,9 +129,9 @@ lemma comp_measurable {f : α → δ} {g : δ → β}
   (hg : ae_measurable g (μ.map f)) (hf : measurable f) : ae_measurable (g ∘ f) μ :=
 hg.comp_ae_measurable hf.ae_measurable
 
-lemma comp_measurable' {ν : measure δ} {f : α → δ} {g : δ → β} (hg : ae_measurable g ν)
-  (hf : measurable f) (h : μ.map f ≪ ν) : ae_measurable (g ∘ f) μ :=
-(hg.mono' h).comp_measurable hf
+lemma comp_quasi_measure_preserving {ν : measure δ} {f : α → δ} {g : δ → β} (hg : ae_measurable g ν)
+  (hf : quasi_measure_preserving f μ ν) : ae_measurable (g ∘ f) μ :=
+(hg.mono' hf.absolutely_continuous).comp_measurable hf.measurable
 
 lemma map_map_of_ae_measurable {g : β → γ} {f : α → β}
   (hg : ae_measurable g (measure.map f μ)) (hf : ae_measurable f μ) :
@@ -171,7 +171,7 @@ begin
     { simp only [g, hx, piecewise_eq_of_not_mem, not_false_iff],
       contrapose! hx,
       apply subset_to_measurable,
-      simp only [hx, mem_compl_eq, mem_set_of_eq, not_and, not_false_iff, implies_true_iff]
+      simp only [hx, mem_compl_iff, mem_set_of_eq, not_and, not_false_iff, implies_true_iff]
         {contextual := tt} } },
   { have A : μ (to_measurable μ {x | f x = H.mk f x ∧ f x ∈ t}ᶜ) = 0,
     { rw [measure_to_measurable, ← compl_mem_ae_iff, compl_compl],
@@ -181,7 +181,7 @@ begin
     simp only [g, hx, piecewise_eq_of_not_mem, not_false_iff],
     contrapose! hx,
     apply subset_to_measurable,
-    simp only [hx, mem_compl_eq, mem_set_of_eq, false_and, not_false_iff] }
+    simp only [hx, mem_compl_iff, mem_set_of_eq, false_and, not_false_iff] }
 end
 
 lemma exists_measurable_nonneg {β} [preorder β] [has_zero β] {mβ : measurable_space β} {f : α → β}

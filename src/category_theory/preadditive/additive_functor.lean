@@ -5,7 +5,7 @@ Authors: Adam Topaz, Scott Morrison
 -/
 import category_theory.limits.exact_functor
 import category_theory.limits.preserves.finite
-import category_theory.limits.preserves.shapes.biproducts
+import category_theory.preadditive.biproducts
 import category_theory.preadditive.functor_category
 
 /-!

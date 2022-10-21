@@ -183,6 +183,47 @@ begin
   apply_instance
 end
 
+instance map_π_epi : epi (G.map (coequalizer.π f g)) :=
+⟨λ W h k, by { rw ←ι_comp_coequalizer_comparison, apply (cancel_epi _).1, apply epi_comp }⟩
+
+@[reassoc]
+lemma map_π_preserves_coequalizer_inv :
+  G.map (coequalizer.π f g) ≫ (preserves_coequalizer.iso G f g).inv =
+  coequalizer.π (G.map f) (G.map g) :=
+begin
+  rw [←ι_comp_coequalizer_comparison_assoc, ←preserves_coequalizer.iso_hom,
+      iso.hom_inv_id, comp_id],
+end
+
+@[reassoc]
+lemma map_π_preserves_coequalizer_inv_desc
+  {W : D} (k : G.obj Y ⟶ W) (wk : G.map f ≫ k = G.map g ≫ k) :
+  G.map (coequalizer.π f g) ≫ (preserves_coequalizer.iso G f g).inv ≫ coequalizer.desc k wk = k :=
+by rw [←category.assoc, map_π_preserves_coequalizer_inv, coequalizer.π_desc]
+
+@[reassoc]
+lemma map_π_preserves_coequalizer_inv_colim_map
+  {X' Y' : D} (f' g' : X' ⟶ Y') [has_coequalizer f' g'] (p : G.obj X ⟶ X') (q : G.obj Y ⟶ Y')
+  (wf : (G.map f) ≫ q = p ≫ f') (wg : (G.map g) ≫ q = p ≫ g') :
+  G.map (coequalizer.π f g) ≫ (preserves_coequalizer.iso G f g).inv ≫
+  colim_map (parallel_pair_hom (G.map f) (G.map g) f' g' p q wf wg) =
+  q ≫ coequalizer.π f' g' :=
+by rw [←category.assoc, map_π_preserves_coequalizer_inv, ι_colim_map, parallel_pair_hom_app_one]
+
+@[reassoc]
+lemma map_π_preserves_coequalizer_inv_colim_map_desc
+  {X' Y' : D} (f' g' : X' ⟶ Y') [has_coequalizer f' g'] (p : G.obj X ⟶ X') (q : G.obj Y ⟶ Y')
+  (wf : (G.map f) ≫ q = p ≫ f') (wg : (G.map g) ≫ q = p ≫ g')
+  {Z' : D} (h : Y' ⟶ Z') (wh : f' ≫ h = g' ≫ h) :
+  G.map (coequalizer.π f g) ≫ (preserves_coequalizer.iso G f g).inv ≫
+  colim_map (parallel_pair_hom (G.map f) (G.map g) f' g' p q wf wg) ≫
+  coequalizer.desc h wh =
+  q ≫ h :=
+begin
+  slice_lhs 1 3 { rw map_π_preserves_coequalizer_inv_colim_map },
+  slice_lhs 2 3 { rw coequalizer.π_desc },
+end
+
 /-- Any functor preserves coequalizers of split pairs. -/
 @[priority 1]
 instance preserves_split_coequalizers (f g : X ⟶ Y) [has_split_coequalizer f g] :

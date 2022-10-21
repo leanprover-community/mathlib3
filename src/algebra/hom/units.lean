@@ -125,13 +125,24 @@ units.lift_right f
 end monoid_hom
 
 namespace is_unit
-variables {F α M N : Type*}
+variables {F G α M N : Type*}
 
 section monoid
 variables [monoid M] [monoid N]
 
 @[to_additive] lemma map [monoid_hom_class F M N] (f : F) {x : M} (h : is_unit x) : is_unit (f x) :=
 by rcases h with ⟨y, rfl⟩; exact (units.map (f : M →* N) y).is_unit
+
+@[to_additive] lemma of_left_inverse [monoid_hom_class F M N] [monoid_hom_class G N M]
+  {f : F} {x : M} (g : G) (hfg : function.left_inverse g f) (h : is_unit (f x)) :
+  is_unit x :=
+by simpa only [hfg x] using h.map g
+
+@[to_additive] lemma _root_.is_unit_map_of_left_inverse
+  [monoid_hom_class F M N] [monoid_hom_class G N M]
+  {f : F} {x : M} (g : G) (hfg : function.left_inverse g f) :
+  is_unit (f x) ↔ is_unit x :=
+⟨of_left_inverse g hfg, map _⟩
 
 /-- If a homomorphism `f : M →* N` sends each element to an `is_unit`, then it can be lifted
 to `f : M →* Nˣ`. See also `units.lift_right` for a computable version. -/

@@ -33,12 +33,17 @@ structure continuous_open_map (α β : Type*) [topological_space α] [topologica
 
 infixr ` →CO `:25 := continuous_open_map
 
+section
+set_option old_structure_cmd true
+
 /-- `continuous_open_map_class F α β` states that `F` is a type of continuous open maps.
 
 You should extend this class when you extend `continuous_open_map`. -/
 class continuous_open_map_class (F : Type*) (α β : out_param $ Type*) [topological_space α]
   [topological_space β] extends continuous_map_class F α β :=
 (map_open (f : F) : is_open_map f)
+
+end
 
 export continuous_open_map_class (map_open)
 

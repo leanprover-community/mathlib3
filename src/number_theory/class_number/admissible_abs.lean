@@ -43,7 +43,7 @@ begin
     exact int.mod_lt _ hb },
   intros i₀ i₁ hi,
   have hi : (⌊↑(A i₀ % b) / abs b • ε⌋.nat_abs : ℤ) = ⌊↑(A i₁ % b) / abs b • ε⌋.nat_abs :=
-    congr_arg (coe : ℕ → ℤ) (subtype.mk_eq_mk.mp hi),
+    congr_arg (coe : ℕ → ℤ) (fin.mk_eq_mk.mp hi),
   rw [nat_abs_of_nonneg (hfloor i₀), nat_abs_of_nonneg (hfloor i₁)] at hi,
   have hi := abs_sub_lt_one_of_floor_eq_floor hi,
   rw [abs_sub_comm, ← sub_div, abs_div, abs_of_nonneg hbε.le, div_lt_iff hbε, one_mul] at hi,

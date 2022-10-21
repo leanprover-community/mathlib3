@@ -204,33 +204,30 @@ lemma aeval_comp {A : Type*} [comm_semiring A] [algebra R A] (x : A) :
   aeval x (p.comp q) = (aeval (aeval x q) p) :=
 eval₂_comp (algebra_map R A)
 
-@[simp] lemma aeval_map {A : Type*} [comm_semiring A] [algebra R A] [algebra A B]
-  [is_scalar_tower R A B] (b : B) (p : R[X]) :
-  aeval b (p.map (algebra_map R A)) = aeval b p :=
-by rw [aeval_def, eval₂_map, ←is_scalar_tower.algebra_map_eq, ←aeval_def]
-
 theorem aeval_alg_hom (f : A →ₐ[R] B) (x : A) : aeval (f x) = f.comp (aeval x) :=
 alg_hom_ext $ by simp only [aeval_X, alg_hom.comp_apply]
 
 @[simp] theorem aeval_X_left : aeval (X : R[X]) = alg_hom.id R R[X] :=
 alg_hom_ext $ aeval_X X
 
+theorem aeval_X_left_apply (p : R[X]) : aeval X p = p :=
+alg_hom.congr_fun (@aeval_X_left R _) p
+
 theorem eval_unique (φ : R[X] →ₐ[R] A) (p) :
   φ p = eval₂ (algebra_map R A) (φ X) p :=
 by rw [← aeval_def, aeval_alg_hom, aeval_X_left, alg_hom.comp_id]
 
-theorem aeval_alg_hom_apply (f : A →ₐ[R] B) (x : A) (p : R[X]) :
+theorem aeval_alg_hom_apply {F : Type*} [alg_hom_class F R A B] (f : F) (x : A) (p : R[X]) :
   aeval (f x) p = f (aeval x p) :=
-alg_hom.ext_iff.1 (aeval_alg_hom f x) p
+begin
+  refine polynomial.induction_on p (by simp) (λ p q hp hq, _) (by simp),
+  rw [map_add, hp, hq, ← map_add, ← map_add]
+end
 
 theorem aeval_alg_equiv (f : A ≃ₐ[R] B) (x : A) : aeval (f x) = (f : A →ₐ[R] B).comp (aeval x) :=
 aeval_alg_hom (f : A →ₐ[R] B) x
 
-theorem aeval_alg_equiv_apply (f : A ≃ₐ[R] B) (x : A) (p : R[X]) :
-  aeval (f x) p = f (aeval x p) :=
-aeval_alg_hom_apply (f : A →ₐ[R] B) x p
-
-lemma aeval_algebra_map_apply (x : R) (p : R[X]) :
+lemma aeval_algebra_map_apply_eq_algebra_map_eval (x : R) (p : R[X]) :
   aeval (algebra_map R A x) p = algebra_map R A (p.eval x) :=
 aeval_alg_hom_apply (algebra.of_id R A) x p
 
@@ -239,7 +236,7 @@ aeval_alg_hom_apply (algebra.of_id R A) x p
 
 @[simp] lemma aeval_fn_apply {X : Type*} (g : R[X]) (f : X → R) (x : X) :
   ((aeval f) g) x = aeval (f x) g :=
-(aeval_alg_hom_apply (pi.eval_alg_hom _ _ x) f g).symm
+(aeval_alg_hom_apply (pi.eval_alg_hom R (λ _, R) x) f g).symm
 
 @[norm_cast] lemma aeval_subalgebra_coe
   (g : R[X]) {A : Type*} [semiring A] [algebra R A] (s : subalgebra R A) (f : s) :
@@ -375,7 +372,7 @@ begin
   have bound := calc
     (p * (X - C r)).nat_degree
          ≤ p.nat_degree + (X - C r).nat_degree : nat_degree_mul_le
-     ... ≤ p.nat_degree + 1 : add_le_add_left nat_degree_X_sub_C_le _
+     ... ≤ p.nat_degree + 1 : add_le_add_left (nat_degree_X_sub_C_le _) _
      ... < p.nat_degree + 2 : lt_add_one _,
   rw sum_over_range' _ _ (p.nat_degree + 2) bound,
   swap,

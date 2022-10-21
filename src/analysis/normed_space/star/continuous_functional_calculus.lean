@@ -10,6 +10,25 @@ import analysis.normed_space.star.induced
 
 .
 
+@[norm_cast] lemma algebra_map.coe_star {R A : Type*} [comm_semiring R] [star_ring R] [semiring A]
+  [star_ring A] [algebra R A] [star_module R A] (a : R) : (↑(star a) : A) = star ↑a :=
+algebra_map_star_comm a
+
+namespace alg_hom
+
+variables {F 𝕜 A : Type*}
+variables [normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+local notation `↑ₐ` := algebra_map 𝕜 A
+
+lemma norm_apply_le_self_mul_norm_one [alg_hom_class F 𝕜 A 𝕜] (f : F) (a : A) :
+  ∥f a∥ ≤ ∥a∥ * ∥(1 : A)∥ :=
+spectrum.norm_le_norm_mul_of_mem (apply_mem_spectrum f _)
+
+lemma norm_apply_le_self [norm_one_class A] [alg_hom_class F 𝕜 A 𝕜] (f : F) (a : A) : ∥f a∥ ≤ ∥a∥ :=
+spectrum.norm_le_norm_of_mem (apply_mem_spectrum f _)
+
+end alg_hom
+
 namespace is_unit
 
 -- this will likely behave badly if the expected type is not known because `M` can't be inferred.
@@ -131,6 +150,16 @@ variables [comm_ring R] [ring A] [algebra R A]
 local notation `σ` := spectrum R
 local notation `↑ₐ` := algebra_map R A
 
+variables (R)
+
+lemma zero_mem_iff {a : A} : (0 : R) ∈ σ a ↔ ¬is_unit a :=
+by rw [mem_iff, map_zero, zero_sub, is_unit.neg_iff]
+
+lemma zero_not_mem_iff {a : A} : (0 : R) ∉ σ a ↔ is_unit a :=
+by rw [zero_mem_iff, not_not]
+
+variables {R}
+
 lemma add_mem_iff' {a : A} {r s : R} :
   r + s ∈ spectrum R a ↔ r ∈ spectrum R (- algebra_map R A s + a) :=
 by simp only [mem_iff, sub_neg_eq_add, ←sub_sub, map_add]
@@ -150,20 +179,14 @@ lemma singleton_sub_eq (a : A) (r : R) :
   {r} - (σ a) = σ (↑ₐr - a) :=
 by rw [sub_eq_add_neg, neg_eq, singleton_add_eq, sub_eq_add_neg]
 
--- this is not needed at all
-lemma is_unit.subalgebra_coe {S : subalgebra R A} {a : S} (ha : is_unit a) : is_unit (a : A) :=
-ha.submonoid_coe
-
 -- it would be nice to state this for `subalgebra_class`, but we don't have such a thing yet
 lemma subset_subalgebra {S : subalgebra R A} (a : S) : spectrum R (a : A) ⊆ spectrum R a :=
-compl_subset_compl.2 (λ _, is_unit.submonoid_coe)
+compl_subset_compl.2 (λ _, is_unit.map S.val)
 
 -- this is why it would be nice if it was registered for `subalgebra_class`.
 lemma subset_star_subalgebra [star_ring R] [star_ring A] [star_module R A] {S : star_subalgebra R A}
   (a : S) : spectrum R (a : A) ⊆ spectrum R a :=
-compl_subset_compl.2 (λ _, is_unit.submonoid_coe)
-
-#exit
+compl_subset_compl.2 (λ _, is_unit.map S.subtype)
 
 end ring
 
@@ -253,15 +276,11 @@ to monic monomials. -/
 protected lemma map_pow (a : A) (n : ℕ) : σ (a ^ n) = (λ x, x ^ n) '' (σ a) :=
 by simpa only [aeval_X_pow, eval_pow, eval_X] using map_polynomial_aeval a (X ^ n)
 
-#exit
-
 end complex
 
 end banach_algebra
 
 end spectrum
-
-#exit
 
 namespace star_subalgebra
 
@@ -299,26 +318,131 @@ variables {A : Type*} [normed_ring A] [normed_algebra ℂ A] [complete_space A]
 variables [star_ring A] [cstar_ring A] [star_module ℂ A]
 variables {a : A} [is_star_normal a] (S : star_subalgebra ℂ A)
 
+localized "attribute [instance] complex.partial_order complex.strict_ordered_comm_ring
+  complex.star_ordered_ring" in c_star_algebra
+
 -- this will be superseded by a later result, or will it? Maybe not.
 lemma foo₁ : is_unit (star a * a) ↔ is_unit (star a) ∧ is_unit a :=
 commute.is_unit_mul_iff (star_comm_self' a)
 
-lemma is_unit_of_is_unit' (a : S) (h : is_unit (a : A)) : is_unit a :=
+lemma foo₃ : spectrum ℂ (star a * a) ⊆ set.Icc (0 : ℂ) (∥star a * a∥) :=
 begin
-  --have ha_coe := foo₁.mpr ⟨h.star, h⟩,
-  --replace h : (0 : ℂ) ∉ spectrum ℂ (a : A),
-    --from spectrum.not_mem_iff.mpr (by simpa only [map_zero, zero_sub, is_unit.neg_iff] using h),
-  --rw [←spectrum.gelfand_transform_eq, continuous_map.spectrum_eq_range] at h,
-  sorry,
+  nontriviality A,
+  set a' : elemental_algebra ℂ a := ⟨a, self_mem_elemental_algebra ℂ a⟩,
+  refine (spectrum.subset_star_subalgebra (star a' * a')).trans _,
+  rw [←spectrum.gelfand_transform_eq, continuous_map.spectrum_eq_range],
+  rintro - ⟨φ, rfl⟩,
+  rw [gelfand_transform_apply_apply, map_mul, map_star, ←star_ring_end_apply, mul_comm,
+    is_R_or_C.mul_conj, is_R_or_C.norm_sq_eq_def', sq, ←cstar_ring.norm_star_mul_self, ←map_star,
+    ←map_mul],
+  exact ⟨complex.zero_le_real.2 (norm_nonneg _),
+    complex.real_le_real.2 (alg_hom.norm_apply_le_self φ (star a' * a'))⟩,
 end
 
+.
+open_locale pointwise ennreal nnreal
 
+example (a b c : ℂ) : {a} - set.Icc b c = set.Icc (a - c) (a - b) :=
+set.singleton_sub.trans (set.image_const_sub_Icc a b c)
+
+.
+namespace complex
+
+lemma eq_coe_re_of_real_le {r : ℝ} {z : ℂ} (hz : (r : ℂ) ≤ z) : z = z.re :=
+by { ext, refl, simp only [←(complex.le_def.1 hz).2, complex.zero_im, complex.of_real_im] }
+
+lemma eq_coe_norm_of_nonneg {z : ℂ} (hz : 0 ≤ z) : z = ↑∥z∥ :=
+by rw [eq_coe_re_of_real_le hz, is_R_or_C.norm_of_real, real.norm_of_nonneg (complex.le_def.2 hz).1]
+
+end complex
+
+lemma is_unit_of_is_unit (h : is_unit (star a * a)) :
+  is_unit ((⟨star a, star_self_mem_elemental_algebra ℂ a⟩ : elemental_algebra ℂ a) * ⟨a, self_mem_elemental_algebra ℂ a⟩ ) :=
+begin
+  nontriviality A,
+  set a' : elemental_algebra ℂ a := ⟨a, self_mem_elemental_algebra ℂ a⟩,
+  have h₁ : (∥star a * a∥₊ : ℂ) ≠ 0,
+  { simpa only [coe_nnnorm, coe_coe, complex.of_real_eq_zero, ne.def]
+    using norm_ne_zero_iff.2 h.ne_zero },
+  set u : units (elemental_algebra ℂ a) := units.map (algebra_map ℂ (elemental_algebra ℂ a)).to_monoid_hom (units.mk0 _ h₁),
+  refine ⟨u.unit_of_nearby _ _, rfl⟩,
+  simp only [complex.abs_of_real, map_inv₀, units.coe_map, units.coe_inv, ring_hom.coe_monoid_hom,
+    ring_hom.to_monoid_hom_eq_coe, units.coe_mk0, units.coe_map_inv, norm_algebra_map', coe_nnnorm,
+    inv_inv, complex.norm_eq_abs, abs_norm_eq_norm, subtype.val_eq_coe, coe_coe],
+  have h₂ : ∀ z ∈ spectrum ℂ ((↑(∥star a * a∥ : ℂ) : A) - star a * a), ∥z∥₊ < ∥star a * a∥₊,
+  { intros z hz,
+    change (coe : ℂ → A) with algebra_map ℂ A at hz,
+    rw [←spectrum.singleton_sub_eq, set.singleton_sub] at hz,
+    have h₃ : z ∈ set.Icc (0 : ℂ) (∥star a * a∥),
+    { replace hz := set.image_subset _ foo₃ hz,
+      rwa [set.image_const_sub_Icc, sub_self, sub_zero] at hz },
+    refine lt_of_le_of_ne (complex.real_le_real.1 $ complex.eq_coe_norm_of_nonneg h₃.1 ▸ h₃.2) _,
+    { intros hz',
+      replace hz' := congr_arg (λ (x : ℝ≥0), ((x : ℝ) : ℂ)) hz',
+      simp only [coe_nnnorm] at hz',
+      rw ←complex.eq_coe_norm_of_nonneg h₃.1 at hz',
+      obtain ⟨w, hw₁, hw₂⟩ := hz,
+      refine (spectrum.zero_not_mem_iff ℂ).mpr h _,
+      rw [hz', sub_eq_self] at hw₂,
+      rwa hw₂ at hw₁ } },
+  { exact ennreal.coe_lt_coe.1
+    (calc (∥star a' * a' - (↑(∥star a * a∥ : ℂ) : elemental_algebra ℂ a)∥₊ : ℝ≥0∞)
+        = ∥(↑(∥star a * a∥ : ℂ) : A) - star a * a∥₊ : by { rw [←nnnorm_neg, neg_sub], refl }
+    ... = spectral_radius ℂ ((↑(∥star a * a∥ : ℂ) : A) - star a * a)
+        : begin
+            refine (is_self_adjoint.spectral_radius_eq_nnnorm _).symm,
+            rw [is_self_adjoint, star_sub, star_mul, star_star, ←algebra_map.coe_star,
+              is_R_or_C.star_def, is_R_or_C.conj_of_real],
+          end
+    ... < ∥star a * a∥₊ : spectrum.spectral_radius_lt_of_forall_lt _ h₂ ) },
+end
+
+.
+
+lemma is_unit_of_is_unit₂ (h : is_unit a) :
+  is_unit (⟨a, self_mem_elemental_algebra ℂ a⟩ : elemental_algebra ℂ a) :=
+(is_unit.mul_iff.1 $ is_unit_of_is_unit $
+  (show commute (star a) a, from star_comm_self' a).is_unit_mul_iff.2 ⟨h.star, h⟩).2
+
+.
+
+lemma is_unit_unit_inv_mem (h : is_unit a) : (↑h.unit⁻¹ : A) ∈ elemental_algebra ℂ a :=
+begin
+  have h' := is_unit_of_is_unit₂ h,
+  convert (↑h'.unit⁻¹ : elemental_algebra ℂ a).prop using 1,
+  exact left_inv_eq_right_inv h.unit.inv_mul (congr_arg coe h'.unit.mul_inv),
+end
 
 #exit
+lemma is_unit_of_is_unit₃ (x : A) (h : is_unit x) :
+  is_unit (⟨x, self_mem_elemental_algebra ℂ x⟩ : elemental_algebra ℂ x) :=
+begin
+  set x' : elemental_algebra ℂ x := ⟨x, self_mem_elemental_algebra ℂ x⟩,
+  have hx := h.star.mul h,
+  haveI := (is_self_adjoint.star_mul_self x).is_star_normal,
+  have hx' := is_unit_of_is_unit₂ hx,
+end
+
+/- this is superseded by `foo₃`.
+lemma foo₂ : spectrum ℂ (star a * a) ⊆ coe '' (set.Icc (0 : ℝ) ∥star a * a∥) :=
+begin
+  nontriviality A,
+  set a' : elemental_algebra ℂ a := ⟨a, self_mem_elemental_algebra ℂ a⟩,
+  refine (spectrum.subset_star_subalgebra (star a' * a')).trans _,
+  rw [←spectrum.gelfand_transform_eq, continuous_map.spectrum_eq_range],
+  rintro - ⟨φ, rfl⟩,
+  rw [gelfand_transform_apply_apply ℂ (elemental_algebra ℂ a), map_mul, map_star],
+  refine ⟨is_R_or_C.norm_sq (φ a'), ⟨is_R_or_C.norm_sq_nonneg _, _⟩, _⟩,
+  rw [is_R_or_C.norm_sq_eq_def', sq, ←cstar_ring.norm_star_mul_self, ←map_star, ←map_mul],
+  exact alg_hom.norm_apply_le_self φ (star a' * a'),
+  rw [←is_R_or_C.mul_conj, mul_comm, star_ring_end_apply],
+end
+-/
 
 lemma is_unit_of_is_unit (h : is_unit a) :
   is_unit (⟨a, self_mem_elemental_algebra ℂ a⟩ : elemental_algebra ℂ a) :=
 begin
+/-
   nontriviality A,
   set a' : elemental_algebra ℂ a := ⟨a, self_mem_elemental_algebra ℂ a⟩,
   have ha := foo₁.mpr ⟨h.star, h⟩,
@@ -335,7 +459,8 @@ begin
   rcases hφ'' with ⟨z, hz₁, hz₂⟩,
   rw [map_sub, map_mul, hφ, alg_hom_class.commutes, mul_zero] at hz₂,
   --have := spectrum.norm_le_norm_of_mem hφ'',
-  --simp at hφ'',
+  --simp at hφ'', -/
+  sorry
 end
 end commutative
 

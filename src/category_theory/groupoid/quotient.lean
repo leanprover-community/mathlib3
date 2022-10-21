@@ -76,9 +76,11 @@ instance : groupoid (isotropy.quotient S Sn) :=
     quot.lift_on₂ f g
       ( λ f g, quot.mk (cgr S a c) (f ≫ g) )
       ( λ f g₁ g₂ ⟨γ,hγ,δ,hδ,e⟩,
-        quot.sound ⟨(f ≫ γ ≫ inv f), Sn.conj' f hγ, δ, hδ, by { rw e, simp only [inv_eq_inv, category.assoc, is_iso.inv_hom_id_assoc], } ⟩ )
+        quot.sound ⟨(f ≫ γ ≫ inv f), Sn.conj' f hγ, δ, hδ, by
+        { rw e, simp only [inv_eq_inv, category.assoc, is_iso.inv_hom_id_assoc], } ⟩ )
       ( λ f₁ f₂ g ⟨γ,hγ,δ,hδ,e⟩,
-        quot.sound ⟨γ, hγ, (inv g ≫ δ ≫ g), Sn.conj g hδ, by { rw e, simp only [category.assoc, inv_eq_inv, is_iso.hom_inv_id_assoc], } ⟩ ),
+        quot.sound ⟨γ, hγ, (inv g ≫ δ ≫ g), Sn.conj g hδ, by
+        { rw e, simp only [category.assoc, inv_eq_inv, is_iso.hom_inv_id_assoc], } ⟩ ),
   comp_id' := λ a b, by
     { refine quot.ind (λ f, _),
       simp only [quot.lift_on₂_mk, category.comp_id], },
@@ -384,13 +386,17 @@ begin
     simp only [inv_eq_inv, subtype.mk_eq_mk, quotient.out_inj, quotient.eq],
     letI := R S Sw,
     have : c ≈ d := ⟨⟨f,fS⟩⟩,
-    use this,
-    rw subtype.ext_iff,
-    -- both in S, hence equal
-    sorry, }
+    use ⟨⟨f,fS⟩⟩,
+    simp only [subtype.ext_iff, subtype.coe_mk],
+    simp only [subgroupoid.is_graph_like_iff, (subgroupoid.is_wide_iff_objs_eq_univ S).mp Sw,
+               set.top_eq_univ, set.mem_univ, set.subsingleton_coe, set_coe.forall,
+               forall_true_left] at Sg,
+    let lhsS := S.mul (to_reps_arrow_mem S Sw c) (S.mul fS $ S.inv $ to_reps_arrow_mem S Sw d),
+    let rhsS := lol S Sw (((subtype.mk_eq_mk.trans quotient.out_inj).trans quotient.eq).mpr this),
+    let ss := Sg (of_reps S Sw (to_reps S Sw c)) (of_reps S Sw (to_reps S Sw d)),
+    simpa only [inv_eq_inv] using ss lhsS rhsS, },
 end
 omit Sg
-
 
 section ump
 

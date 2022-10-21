@@ -107,7 +107,8 @@ begin
 end
 
 instance embedding_like : embedding_like (M ↪ₑ[L] N) M N :=
-{ injective' := injective }
+{ injective' := injective,
+  .. show fun_like (M ↪ₑ[L] N) M (λ _, N), from infer_instance }
 
 @[simp] lemma map_fun (φ : M ↪ₑ[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
   φ (fun_map f x) = fun_map f (φ ∘ x) :=

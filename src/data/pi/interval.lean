@@ -28,6 +28,8 @@ locally_finite_order.of_Icc _
 
 variables (a b : Π i, α i)
 
+lemma Icc_eq : Icc a b = pi_finset (λ i, Icc (a i) (b i)) := rfl
+
 lemma card_Icc : (Icc a b).card = ∏ i, (Icc (a i) (b i)).card := card_pi_finset _
 
 lemma card_Ico : (Ico a b).card = (∏ i, (Icc (a i) (b i)).card) - 1 :=

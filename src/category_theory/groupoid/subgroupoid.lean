@@ -83,6 +83,14 @@ namespace subgroupoid
 
 variable (S : subgroupoid C)
 
+lemma mem_of_inv_mem {c d : C} (f : c ⟶ d) : inv f ∈ S.arrows d c → f ∈ S.arrows c d := sorry
+
+lemma mem_of_mul_mem {c d e : C} (f : c ⟶ d) (g : d ⟶ e) :
+  f ∈ S.arrows c d → f ≫ g ∈ S.arrows c e → g ∈ S.arrows d e := sorry
+
+lemma mem_of_mul_mem' {c d e : C} (f : c ⟶ d) (g : d ⟶ e) :
+  g ∈ S.arrows d e → f ≫ g ∈ S.arrows c e → f ∈ S.arrows c d := sorry
+
 /-- The vertices of `C` on which `S` has non-trivial isotropy -/
 def objs : set C := {c : C | (S.arrows c c).nonempty}
 

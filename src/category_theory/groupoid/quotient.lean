@@ -366,7 +366,20 @@ begin
     rw mem_ker_iff at hf,
     dsimp [of] at hf, --simp at hf,
     obtain ⟨h,e⟩ := hf,
-    rw full_arrow_eq_iff at e, }
+    rw subtype.ext_iff at e,
+    simp only [inv_eq_inv, subtype.coe_mk] at e,
+    suffices :
+      to_reps_arrow S Sw c ≫ f ≫ category_theory.inv (to_reps_arrow S Sw d) ∈
+      S.arrows (of_reps S Sw (to_reps S Sw c)) (of_reps S Sw (to_reps S Sw d)),
+    { apply mem_of_mul_mem S (to_reps_arrow S Sw c) f (to_reps_arrow_mem S Sw c),
+      apply mem_of_mul_mem' S _ (category_theory.inv $ to_reps_arrow S Sw d),
+      apply mem_of_inv_mem,
+      simp only [inv_eq_inv, is_iso.inv_inv],
+      apply to_reps_arrow_mem,
+      simpa only [category.assoc] using this, },
+    rw e, apply lol, },
+  { rw le_iff,
+    rintro c d f fS, sorry, }
 end
 omit Sg
 

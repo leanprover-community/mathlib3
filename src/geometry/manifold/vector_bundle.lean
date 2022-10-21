@@ -22,7 +22,6 @@ lemma topological_vector_bundle.trivialization.symm_coord_change
   (hb : b ∈ e'.base_set ∩ e.base_set) :
   (e.coord_change e' b).symm = e'.coord_change e b :=
 begin
-  dsimp [topological_vector_bundle.trivialization.coord_change],
   sorry,
 end
 
@@ -42,10 +41,9 @@ lemma topological_vector_bundle.trivialization.apply_symm_apply_eq_coord_change
   {b : B}
   (hb : b ∈ e.base_set ∩ e'.base_set)
   (v : F) :
-  e' ((e.to_local_homeomorph.symm) (b, v)) =
-    (b, e.coord_change e' b v) :=
+  e' ((e.to_local_homeomorph.symm) (b, v)) = (b, e.coord_change e' b v) :=
 begin
-  admit,
+  sorry,
 end
 
 end
@@ -70,6 +68,8 @@ instance is_topological_fiber_bundle.charted_space [topological_vector_bundle �
     (mem_base_set_trivialization_at 𝕜 F E x.proj),
   chart_mem_atlas := λ x, mem_image_of_mem _ (trivialization_mem_atlas 𝕜 F E _) }
 
+/-- For `B` a topological space and `F` a `𝕜`-normed space, a map from `U : set B` to `F ≃L[𝕜] F`
+determines a local homeomorphism from `B × F` to itself by its action fibrewise. -/
 def groupoid_base.local_homeomorph (φ : B → F ≃L[𝕜] F) {U : set B} (hU : is_open U)
   (hφ : continuous_on (λ x, φ x : B → F →L[𝕜] F) U)
   (h2φ : continuous_on (λ x, (φ x).symm : B → F →L[𝕜] F) U) :
@@ -87,34 +87,105 @@ def groupoid_base.local_homeomorph (φ : B → F ≃L[𝕜] F) {U : set B} (hU :
   continuous_to_fun := sorry,
   continuous_inv_fun := sorry }
 
-def groupoid_base : structure_groupoid (B × F) :=
+lemma groupoid_base.source_trans_local_homeomorph {φ : B → (F ≃L[𝕜] F)}
+  {U : set B}
+  (hU : is_open U)
+  (hφ : continuous_on (λ x, φ x : B → F →L[𝕜] F) U)
+  (h2φ : continuous_on (λ x, (φ x).symm : B → F →L[𝕜] F) U)
+  {φ' : B → (F ≃L[𝕜] F)}
+  {U' : set B}
+  (hU' : is_open U')
+  (hφ' : continuous_on (λ x, φ' x : B → F →L[𝕜] F) U')
+  (h2φ' : continuous_on (λ x, (φ' x).symm : B → F →L[𝕜] F) U') :
+  (groupoid_base.local_homeomorph φ hU hφ h2φ ≫ₕ
+      groupoid_base.local_homeomorph φ' hU' hφ' h2φ').source = (U ∩ U') ×ˢ univ :=
+begin
+  sorry,
+end
+
+lemma groupoid_base.trans_local_homeomorph_apply {φ : B → (F ≃L[𝕜] F)}
+  {U : set B}
+  (hU : is_open U)
+  (hφ : continuous_on (λ x, φ x : B → F →L[𝕜] F) U)
+  (h2φ : continuous_on (λ x, (φ x).symm : B → F →L[𝕜] F) U)
+  {φ' : B → (F ≃L[𝕜] F)}
+  {U' : set B}
+  (hU' : is_open U')
+  (hφ' : continuous_on (λ x, φ' x : B → F →L[𝕜] F) U')
+  (h2φ' : continuous_on (λ x, (φ' x).symm : B → F →L[𝕜] F) U')
+  {b : B}
+  (hb : b ∈ U ∩ U')
+  (v : F) :
+  (groupoid_base.local_homeomorph φ hU hφ h2φ ≫ₕ
+      groupoid_base.local_homeomorph φ' hU' hφ' h2φ') ⟨b, v⟩ = ⟨b, φ' b (φ b v)⟩ :=
+begin
+  sorry,
+end
+
+/-- For `B` a manifold and `F` a normed space, the groupoid on `B × F` consisting of local
+homeomorphisms which are bi-smooth and fibrewise linear. -/
+def smooth_fiberwise_linear : structure_groupoid (B × F) :=
 { members := ⋃ (φ : B → F ≃L[𝕜] F) (U : set B) (hU : is_open U)
   (hφ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, φ x : B → F →L[𝕜] F) U)
   (h2φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (φ x).symm : B → F →L[𝕜] F) U),
   {e | e.eq_on_source (groupoid_base.local_homeomorph φ hU hφ.continuous_on h2φ.continuous_on)},
-  trans' := sorry,
-  symm' := sorry,
-  id_mem' := sorry,
-  locality' := sorry,
-  eq_on_source' := sorry }
-
--- def groupoid_base' : structure_groupoid (B × F) :=
--- pregroupoid.groupoid
---   { property := sorry,
---     comp := sorry,
---     id_mem := sorry,
---     locality := sorry,
---     congr := sorry }
+  trans' := begin
+    rintros e e' ⟨-, ⟨φ, rfl⟩, -, ⟨U, rfl⟩, -, ⟨hU, rfl⟩, -, ⟨hφ, rfl⟩, -, ⟨h2φ, rfl⟩, heφ⟩
+      ⟨-, ⟨φ', rfl⟩, -, ⟨U', rfl⟩, -, ⟨hU', rfl⟩, -, ⟨hφ', rfl⟩, -, ⟨h2φ', rfl⟩, heφ'⟩,
+    dsimp at heφ heφ',
+    apply mem_Union.mpr,
+    use λ b, (φ b).trans (φ' b),
+    simp_rw mem_Union,
+    refine ⟨U ∩ U', hU.inter hU', _, _, setoid.trans (heφ.trans' heφ') ⟨_, _⟩⟩,
+    { sorry },
+    { sorry }, -- two smoothness checks
+    { apply groupoid_base.source_trans_local_homeomorph },
+    { rintros ⟨b, v⟩ hb,
+      apply groupoid_base.trans_local_homeomorph_apply,
+      rw groupoid_base.source_trans_local_homeomorph at hb,
+      simpa [-mem_inter] using hb }
+  end,
+  symm' := begin
+    rintros e ⟨-, ⟨φ, rfl⟩, -, ⟨U, rfl⟩, -, ⟨hU, rfl⟩, -, ⟨hφ, rfl⟩, -, ⟨h2φ, rfl⟩, heφ⟩,
+    dsimp at heφ,
+    apply mem_Union.mpr,
+    use λ b, (φ b).symm,
+    simp_rw mem_Union,
+    refine ⟨U, hU, h2φ, _, heφ.symm'⟩,
+    simp_rw continuous_linear_equiv.symm_symm,
+    exact hφ
+  end,
+  id_mem' := begin
+    apply mem_Union.mpr,
+    use λ b, continuous_linear_equiv.refl 𝕜 F,
+    simp_rw mem_Union,
+    refine ⟨univ, is_open_univ, cont_mdiff_on_const, cont_mdiff_on_const, ⟨_, λ b hb, _⟩⟩,
+    { simp [groupoid_base.local_homeomorph] },
+    { simp [groupoid_base.local_homeomorph] },
+  end,
+  locality' := sorry, -- a bit tricky, need to glue together a family of `φ`
+  eq_on_source' := begin
+    rintros e e' ⟨-, ⟨φ, rfl⟩, -, ⟨U, rfl⟩, -, ⟨hU, rfl⟩, -, ⟨hφ, rfl⟩, -, ⟨h2φ, rfl⟩, heφ⟩ hee',
+    apply mem_Union.mpr,
+    use φ,
+    simp_rw mem_Union,
+    refine ⟨U, hU, hφ, h2φ, setoid.trans hee' heφ⟩,
+  end }
 
 variables (IB F E)
 
+/-- Class stating that a topological vector bundle is smooth, in the sense of having smooth
+transition functions. -/
 class smooth_vector_bundle [topological_vector_bundle 𝕜 F E] : Prop :=
 (smooth_transitions : ∀ e ∈ trivialization_atlas 𝕜 F E, ∀ e' ∈ trivialization_atlas 𝕜 F E,
   smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ b, trivialization.coord_change e e' b : B → F →L[𝕜] F)
   (e.base_set ∩ e'.base_set))
 
+/-- For a smooth vector bundle `E` over `B` with fibre modelled on `F`, the change-of-co-ordinates
+between two trivializations `e`, `e'` for `E`, considered as charts to `B × F`, is smooth and
+fibrewise linear. -/
 instance [topological_vector_bundle 𝕜 F E] [smooth_vector_bundle F E IB] :
-  has_groupoid (total_space E) (groupoid_base IB : structure_groupoid (B × F)) :=
+  has_groupoid (total_space E) (smooth_fiberwise_linear IB : structure_groupoid (B × F)) :=
 { compatible := begin
     rintros _ _ ⟨e, he, rfl⟩ ⟨e', he', rfl⟩,
     dsimp,

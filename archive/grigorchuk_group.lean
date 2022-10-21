@@ -178,7 +178,7 @@ end generator
 
 open generator
 
-@[derive [decidable_eq, group]]
+@[derive [decidable_eq, group, mul_action (free_monoid (ℤ₂ ⊕ (ℤ₂ × ℤ₂)))]]
 def word : Type := free_prod.word ℤ₂ (ℤ₂ × ℤ₂)
 
 def word.even_a : subgroup word := monoid_hom.ker free_prod.word.fst
@@ -190,17 +190,13 @@ namespace even_a_word
 
 def equiv_ker : even_a_word ≃* word.even_a := free_prod.word.z2_prod_mker_fst
 
-def proj_aux₁ : ℤ₂ → ℤ₂ → word :=
-![![1, free_prod.word.inl σ], ![free_prod.word.inl  σ, 1]]
+def proj₁ : ℤ₂ × ℤ₂ →* word := free_prod.word.inl.comp (monoid_hom.fst _ _ * monoid_hom.snd _ _)
 
-def proj_aux₂ : ℤ₂ → ℤ₂ → word :=
-![![1, free_prod.word.inr (σ, 1)], ![free_prod.word.inr (σ, σ), free_prod.word.inr (1, σ)]]
+def proj₂ : ℤ₂ × ℤ₂ →* word :=
+free_prod.word.inr.comp $ (monoid_hom.fst _ _ * monoid_hom.snd _ _).prod (monoid_hom.fst _ _)
 
-def proj_aux : bool → ℤ₂ × ℤ₂ ⊕ ℤ₂ × ℤ₂ → word
-| tt (sum.inl x) := proj_aux₁ x.1 x.2
-| tt (sum.inr x) := proj_aux₂ x.1 x.2
-| ff (sum.inl x) := proj_aux₂ x.1 x.2
-| ff (sum.inr x) := proj_aux₁ x.1 x.2
+def proj : even_a_word →* word × word :=
+free_prod.word.lift (proj₁.prod proj₂) (proj₂.prod proj₁)
 
 end even_a_word
 
@@ -223,6 +219,10 @@ lemma eta_lt_one : η < 1 := eta_lt_081054.trans (by norm_num)
 lemma eta_le_one : η ≤ 1 := eta_lt_one.le
 lemma eta_lt_two : η < 2 := eta_lt_one.trans one_lt_two
 
+lemma eta_sq_lt_eta : η ^ 2 < η := pow_lt_self eta_pos eta_lt_one one_lt_two
+lemma eta_cube_lt_eta_sq : η ^ 3 < η ^ 2 := pow_lt_pow_of_lt_one eta_pos eta_lt_one dec_trivial
+lemma eta_cube_lt_eta : η ^ 3 < η := eta_cube_lt_eta_sq.trans eta_sq_lt_eta
+
 lemma one_lt_two_mul_eta_cube : 1 < 2 * η ^ 3 :=
 calc 1 < 2 * 0.8 ^ 3 : by norm_num
    ... ≤ 2 * η ^ 3   :
@@ -232,25 +232,28 @@ lemma one_lt_eta_cube_add_self : 1 < η ^ 3 + η ^ 3 :=
 one_lt_two_mul_eta_cube.trans_eq (two_mul _)
 
 lemma one_lt_eta_cube_add_eta_sq : 1 < η ^ 3 + η ^ 2 :=
-one_lt_eta_cube_add_self.trans $
-  add_lt_add_left (pow_lt_pow_of_lt_one eta_pos eta_lt_one dec_trivial) _
+one_lt_eta_cube_add_self.trans $ add_lt_add_left eta_cube_lt_eta_sq _
 
 lemma one_lt_eta_cube_add_eta : 1 < η ^ 3 + η :=
-one_lt_eta_cube_add_eta_sq.trans $ add_lt_add_left (pow_lt_self eta_pos eta_lt_one one_lt_two) _
+one_lt_eta_cube_add_eta_sq.trans $ add_lt_add_left eta_sq_lt_eta _
 
 def weight₁ : ℤ₂ ⊕ ℤ₂ × ℤ₂ → ℝ :=
 sum.elim ![0, 1 - η ^ 3] $ uncurry ![![0, η ^ 3], ![1 - η ^ 2, 1 - η]]
 
-lemma weight₁_pos : ∀ x : ℤ₂ ⊕ ℤ₂ × ℤ₂, x ≠ sum.inl 1 → x ≠ sum.inr 1 → 0 < weight₁ x
+lemma one_sub_eta_le_weight₁ :
+  ∀ {x : ℤ₂ ⊕ ℤ₂ × ℤ₂}, x ≠ sum.inl 1 → x ≠ sum.inr 1 → 1 - η ≤ weight₁ x
 | (sum.inl ⟨0, _⟩) h _ := (h rfl).elim
-| (sum.inl ⟨1, _⟩) _ _ := sub_pos.2 $ pow_lt_one eta_nonneg eta_lt_one three_ne_zero
+| (sum.inl ⟨1, _⟩) _ _ := sub_le_sub_left eta_cube_lt_eta.le _
 | (sum.inl ⟨k + 2, hk⟩) _ _ := absurd hk (by simp)
 | (sum.inr (⟨0, _⟩, ⟨0, _⟩)) _ h := (h rfl).elim
-| (sum.inr (⟨0, _⟩, ⟨1, _⟩)) _ _ := pow_pos eta_pos _
-| (sum.inr (⟨1, _⟩, ⟨0, _⟩)) _ _ := sub_pos.2 $ pow_lt_one eta_nonneg eta_lt_one two_ne_zero
-| (sum.inr (⟨1, _⟩, ⟨1, _⟩)) _ _ := sub_pos.2 eta_lt_one
+| (sum.inr (⟨0, _⟩, ⟨1, _⟩)) _ _ := sub_le_iff_le_add.2 one_lt_eta_cube_add_eta.le
+| (sum.inr (⟨1, _⟩, ⟨0, _⟩)) _ _ := sub_le_sub_left eta_sq_lt_eta.le _
+| (sum.inr (⟨1, _⟩, ⟨1, _⟩)) _ _ := le_rfl
 | (sum.inr (⟨k + 2, hk⟩, _)) _ _ := absurd hk (by simp)
 | (sum.inr (_, ⟨k + 2, hk⟩)) _ _ := absurd hk (by simp)
+
+lemma weight₁_pos {x : ℤ₂ ⊕ ℤ₂ × ℤ₂} (hl : x ≠ sum.inl 1) (hr : x ≠ sum.inr 1) : 0 < weight₁ x :=
+(sub_pos.2 eta_lt_one).trans_le (one_sub_eta_le_weight₁ hl hr)
 
 lemma weight₁_le_eta_cube : ∀ x : ℤ₂ ⊕ ℤ₂ × ℤ₂, weight₁ x ≤ η ^ 3
 | (sum.inl ⟨0, _⟩) := pow_nonneg eta_nonneg _
@@ -270,7 +273,32 @@ lemma weight₁_nonneg (x : ℤ₂ ⊕ ℤ₂ × ℤ₂) : 0 ≤ weight₁ x :=
 begin
   rcases eq_or_ne x (sum.inl 1) with rfl|hl, { refl },
   rcases eq_or_ne x (sum.inr 1) with rfl|hr, { refl },
-  exact (weight₁_pos x hl hr).le
+  exact (weight₁_pos hl hr).le
+end
+
+lemma weight₁_inl_mul_le : ∀ x y : ℤ₂,
+  weight₁ (sum.inl (x * y)) ≤ weight₁ (sum.inl x) + weight₁ (sum.inl y) :=
+multiplicative.of_add.surjective.forall.2 $ fin.forall_fin_two.2
+  ⟨λ y, by { rw [of_add_zero, one_mul], exact (zero_add _).ge },
+  multiplicative.of_add.surjective.forall.2 $ fin.forall_fin_two.2
+  ⟨(add_zero _).ge, add_nonneg (weight₁_nonneg _) (weight₁_nonneg _)⟩⟩
+
+lemma weight₁_inr_mul_le (x y : ℤ₂ × ℤ₂) :
+  weight₁ (sum.inr (x * y)) ≤ weight₁ (sum.inr x) + weight₁ (sum.inr y) :=
+begin
+  have H₁ : 1 - η ≤ η ^ 3 + (1 - η ^ 2),
+    from le_add_of_nonneg_of_le (pow_nonneg eta_nonneg _) (sub_le_sub_left eta_sq_lt_eta.le _),
+  have H₂ : η ^ 3 ≤ (1 - η) + (1 - η ^ 2), { have := eta_def, linarith },
+  have H₃ : 1 - η ^ 2 ≤ η ^ 3 + (1 - η),
+  { have : η ≤ η ^ 3 + η ^ 2, from (eta_lt_one.trans one_lt_eta_cube_add_eta_sq).le,
+    linarith },
+  rcases eq_or_ne x 1 with rfl|hx, { rw [one_mul], exact (zero_add _).ge },
+  rcases eq_or_ne y 1 with rfl|hy, { rw [mul_one], exact (add_zero _).ge },
+  rcases eq_or_ne x y with rfl|hxy,
+  { rw [show x * x = 1, by ext1; apply free_prod.word.mul_self_eq_one],
+    exact add_nonneg (weight₁_nonneg _) (weight₁_nonneg _) },
+  fin_cases x; try { exact absurd rfl hx }; fin_cases y; try { exact absurd rfl hy };
+    try { exact absurd rfl hxy }; try { assumption }; exact le_of_le_of_eq ‹_› (add_comm _ _)
 end
 
 namespace word
@@ -296,13 +324,76 @@ end
 lemma weight_nonneg (w : word) : 0 ≤ w.weight :=
 sum_nonneg $ forall_mem_map_iff.2 $ λ x _, weight₁_nonneg x
 
-lemma weight_pos {w : word} (hw : w ≠ 1) : 0 < w.weight :=
+lemma mul_length_le_weight (w : word) : (1 - η) * w.to_list.length ≤ w.weight :=
+calc (1 - η) * w.to_list.length = (w.to_list.map weight₁).length • (1 - η) :
+  by rw [length_map, nsmul_eq_mul, mul_comm]
+... ≤ w.weight : card_nsmul_le_sum _ _ $ forall_mem_map_iff.2 $
+  λ x hx, one_sub_eta_le_weight₁ (ne_of_mem_of_not_mem hx w.2) (ne_of_mem_of_not_mem hx w.3)
+
+@[simp] lemma weight_pos {w : word} : 0 < w.weight ↔ w ≠ 1 :=
 begin
-  refine sum_pos _ _ _,
+  split,
+  { rintro h rfl, exact h.ne rfl },
+  intro hne,
+  rw [ne.def, free_prod.word.ext_iff, free_prod.word.to_list_one, ← length_eq_zero] at hne,
+  calc 0 < (1 - η) * w.to_list.length :
+    mul_pos (sub_pos.2 eta_lt_one) (nat.cast_pos.2 $ pos_iff_ne_zero.2 hne)
+  ... ≤ w.weight : mul_length_le_weight w
 end
+
+@[simp] lemma weight_eq_zero {w : word} : w.weight = 0 ↔ w = 1 :=
+by rw [← weight_pos.not_left, not_lt, w.weight_nonneg.le_iff_eq]
+
+lemma weight_cons_le (x : ℤ₂ ⊕ ℤ₂ × ℤ₂) (w : word) : weight (w.cons x) ≤ weight₁ x + weight w :=
+begin
+  cases x; rcases w with ⟨(_|⟨(y|y), l⟩), hl, hr, hc⟩;
+    simp only [free_prod.word.cons, free_prod.word.cons_one, weight_cons', free_prod.word.tail,
+      list.tail, weight_of, free_prod.word.mk_nil, weight_one, add_zero];
+    simp only [weight, map_cons, sum_cons, ← add_assoc, add_le_add_iff_right, weight₁_inl_mul_le,
+      weight₁_inr_mul_le],
+end
+
+lemma weight_smul_le (w₁ : free_monoid (ℤ₂ ⊕ ℤ₂ × ℤ₂)) (w₂ : word) :
+  weight (w₁ • w₂) ≤ (w₁.to_list.map weight₁).sum + weight w₂ :=
+begin
+  induction w₁ using free_monoid.rec_on with x w₁ ihw, { exact (zero_add _).ge },
+  calc weight ((free_monoid.of x * w₁) • w₂) ≤ weight₁ x + weight (w₁ • w₂) : weight_cons_le _ _
+  ... ≤ weight₁ x + ((w₁.to_list.map weight₁).sum + weight w₂) : add_le_add_left ihw _
+  ... = _ : by simp [add_assoc]
+end
+
+lemma weight_mul_le (w₁ w₂ : word) : weight (w₁ * w₂) ≤ weight w₁ + weight w₂ :=
+weight_smul_le _ _
 
 end word
 
+namespace even_a_word
+
+lemma weight_proj₁_add_proj₂_le (x : ℤ₂ × ℤ₂) :
+  (proj₁ x).weight + (proj₂ x).weight ≤ η * (weight₁ (sum.inl σ) + weight₁ (sum.inr x)) :=
+begin
+  fin_cases x with [(1, 1), (1, σ), (σ, 1), (σ, σ)]; simp only [proj₁, proj₂, monoid_hom.comp_apply,
+    monoid_hom.mul_apply, monoid_hom.prod_apply, monoid_hom.coe_fst, monoid_hom.coe_snd, one_mul,
+    mul_one, map_one, word.weight_one, zero_add, ← free_prod.word.of_inl, ← free_prod.word.of_inr,
+    word.weight_of, free_prod.word.mul_self_eq_one],
+  show 0 + 0 ≤ η * (1 - η ^ 3 + 0),
+  { rw [add_zero, add_zero],
+    exact mul_nonneg eta_nonneg (sub_nonneg.2 $ pow_le_one _ eta_nonneg eta_le_one) },
+  show 1 - η ^ 3 + (1 - η ^ 2) ≤ η * (1 - η ^ 3 + η ^ 3),
+  { linarith [eta_def] },
+  show 1 - η ^ 3 + (1 - η) ≤ η * (1 - η ^ 3 + (1 - η ^ 2)),
+  { rw [← add_sub_add_comm, ← add_sub_add_comm, ← bit0, ← eta_def], apply le_of_eq, ring },
+  show 0 + η ^ 3 ≤ η * (1 - η ^ 3 + (1 - η)),
+  { rw [zero_add, ← add_sub_add_comm, ← bit0, ← eta_def], apply le_of_eq, ring }
+end
+
+lemma weight_proj_le_of_even (w : even_a_word) (hw : even w.to_list.length) :
+  (proj w).1.weight + (proj w).2.weight ≤ η * word.weight (free_prod.word.z2_prod_mker_fst w).1 :=
+begin
+  cases w with l hl hr hc,
+end
+
+end even_a_word
 
 
 #exit

@@ -32,15 +32,16 @@ def pm_one_space : set ℝ := {-1, 1}
 
 section preliminaries
 
-lemma pm_one_space_vals (r : ℝ) (hr : r ∈ pm_one_space) :
+def p_one_space : set ℝ := {1}
+
+lemma pm_one_space_vals {r : ℝ} (hr : r ∈ pm_one_space) :
   r = 1 ∨ r = -1 :=
 begin
   cases hr,
   { right,
     exact hr, },
   { left,
-    simp only [set.mem_singleton_iff] at hr,
-    exact hr, },
+    simpa [hr], },
 end
 
 lemma pm_one_func_vals (Za : Ω → pm_one_space) (ω : Ω) :
@@ -59,15 +60,47 @@ begin
   { exact h, },
 end
 
-lemma correlation_to_probability [has_union (Type u)] (Za Zb : Ω → pm_one_space) :
+lemma correlation_to_probability [has_union (Type u)] (Za Zb : Ω → pm_one_space)
+  (Za_measurable : measurable Za) (Zb_measurable : measurable Zb) :
   ∫ ω, (Za ω : ℝ) * (Zb ω) ∂(ℙ:measure Ω) = 1 - 2 * (ℙ {ω | (Za ω : ℝ) ≠ Zb ω }) :=
 begin
   let Ωp := {ω : Ω | (Za ω : ℝ) = 1},
   let Ωm := {ω : Ω | (Za ω : ℝ) = -1},
+
+  have pm_univ : Ωp ∪ Ωm = set.univ,
+  { ext x,
+    split,
+    { intros,
+      simp, },
+    { intros,
+      rw set.union_def,
+      simp only [set.mem_set_of_eq],
+      exact pm_one_func_vals _ _, }, },
+      
+  have pm_disjoint : disjoint Ωp Ωm,
+  { rw disjoint_iff,
+    ext x,
+    simp only [set.inf_eq_inter, set.mem_inter_iff, set.mem_set_of_eq, set.bot_eq_empty,
+      set.mem_empty_iff_false, iff_false, not_and],
+    intros h,
+    rw h,
+    norm_num, },
+  have Ωp_is : Ωp = (Za : Ω → ℝ) ⁻¹' {(1:ℝ)},
+  { 
+},
+  have Ωp_measurable : measurable_set Ωp ,
+  { convert measurable_set_preimage _ _,
+},
+
   have : ∫ ω, (Za ω : ℝ) * (Zb ω) ∂(ℙ:measure Ω) =
     ∫ ω in Ωp, (Za ω : ℝ) * (Zb ω) ∂(ℙ:measure Ω) +
     ∫ ω in Ωm, (Za ω : ℝ) * (Zb ω) ∂(ℙ:measure Ω),
-  { convert measure_theory.integral_union _ _ _ _,
+    --∫ ω in Ωm, (Za ω : ℝ) * (Zb ω) ∂(ℙ:measure Ω),
+  { convert measure_theory.integral_union pm_disjoint _ _ _,
+    { rw pm_univ,
+      exact measure.restrict_univ.symm, },
+    {  
+    },
     repeat {sorry},
     -- have : Ωp ∪ Ωm = set.univ := sorry,
   },

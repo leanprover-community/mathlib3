@@ -27,36 +27,6 @@ example : unique_sums ℚ   := by apply_instance
 example : unique_sums ℝ   := by apply_instance
 example : unique_prods ℕ+ := by apply_instance
 ```
-
-TODO: add this counterexample to the file in #16236, once it gets merged.
-A Type that does not have `unique_prods`.
-```lean
-example : ¬ unique_prods ℕ :=
-begin
-  rintros ⟨h⟩,
-  refine not_not.mpr (h (finset.singleton_nonempty 0) (finset.insert_nonempty 0 {1})) _,
-  suffices : (∃ (x : ℕ), (x = 0 ∨ x = 1) ∧ ¬x = 0) ∧ ∃ (x : ℕ), (x = 0 ∨ x = 1) ∧ ¬x = 1,
-  { simpa [unique_mul] },
-  exact ⟨⟨1, by simp⟩, ⟨0, by simp⟩⟩,
-end
-```
-
-TODO: add this counterexample to the file in #16236, once it gets merged.
-A Type that does not have `unique_sums`.
-```lean
-import data.zmod.basic
-
-example (n : ℕ) (n2 : 2 ≤ n): ¬ unique_sums (zmod n) :=
-begin
-  haveI : fintype (zmod n) := @zmod.fintype n ⟨(zero_lt_two.trans_le n2).ne'⟩,
-  haveI : nontrivial (zmod n) := char_p.nontrivial_of_char_ne_one (one_lt_two.trans_le n2).ne',
-  rintros ⟨h⟩,
-  refine not_not.mpr (h finset.univ_nonempty finset.univ_nonempty) _,
-  suffices : ∀ (x y : zmod n), ∃ (x' y' : zmod n), x' + y' = x + y ∧ (x' = x → ¬y' = y),
-  { simpa [unique_add] },
-  exact λ x y, ⟨x - 1, y + 1, sub_add_add_cancel _ _ _, by simp⟩,
-end
-```
 -/
 
 /--  Let `G` be a Type with multiplication, let `A B : finset G` be finite subsets and
@@ -167,14 +137,14 @@ end unique_mul
 finite subsets of `A` have the `unique_add` property, with respect to some element of their
 sum `A + B`. -/
 class unique_sums (G) [has_add G] : Prop :=
-( adds : ∀ {A B : finset G} (hA : A.nonempty) (hB : B.nonempty),
+(adds : ∀ {A B : finset G} (hA : A.nonempty) (hB : B.nonempty),
   ∃ (a0 ∈ A) (b0 ∈ B), unique_add A B a0 b0)
 
 /--  Let `G` be a Type with multiplication.  `unique_prods G` asserts that any two non-empty
 finite subsets of `G` have the `unique_mul` property, with respect to some element of their
 product `A * B`. -/
 class unique_prods (G) [has_mul G] : Prop :=
-( muls : ∀ {A B : finset G} (hA : A.nonempty) (hB : B.nonempty),
+(muls : ∀ {A B : finset G} (hA : A.nonempty) (hB : B.nonempty),
   ∃ (a0 ∈ A) (b0 ∈ B), unique_mul A B a0 b0 )
 
 attribute [to_additive] unique_prods

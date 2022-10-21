@@ -41,6 +41,11 @@ by { ext M x, apply add_comm, }
 lemma Ab_add_assoc : Ab_add.assoc :=
 by { ext M x, apply add_assoc, }
 
+lemma Ab_zero_add : Ab_add.add_zero Ab_zero :=
+by { ext M x, apply zero_add, }
+
+lemma Ab_add_left_neg : Ab_add.add_left_neg Ab_zero Ab_neg :=
+by { ext M x, apply add_left_neg, }
 
 end operations
 
@@ -106,6 +111,23 @@ lemma yoneda_operation_add_assoc :
   lift₂ (pr₁₂_₃ ≫ yoneda_operation_add M) pr₃_₃ ≫ yoneda_operation_add M =
     lift₂ pr₁_₃ (pr₂₃_₃ ≫ yoneda_operation_add M) ≫ yoneda_operation_add M :=
 Ab_add.to_internal_yoneda_operation₂_assoc M Ab_add_assoc
+
+lemma yoneda_operation_zero_add :
+  lift₂ (to_functor_const_punit ≫ yoneda_operation_zero M) (𝟙 _) ≫
+    yoneda_operation_add M = 𝟙 _  :=
+Ab_add.to_internal_yoneda_operation₂_add_zero M Ab_zero Ab_zero_add
+
+lemma yoneda_operation_add_left_neg :
+lift₂ (yoneda_operation_neg M) (𝟙 _) ≫ yoneda_operation_add M =
+  to_functor_const_punit ≫ yoneda_operation_zero M :=
+Ab_add.to_internal_yoneda_operation₂_add_left_neg M Ab_zero Ab_neg Ab_add_left_neg
+
+lemma add_comm [has_binary_product M.obj M.obj] : (add M).comm :=
+internal_operation₂.yoneda_equiv_symm_comm M.obj _ (yoneda_operation_add_comm M)
+
+lemma add_assoc [has_binary_product M.obj M.obj] [has_binary_product M.obj (prod M.obj M.obj)] :
+  (add M).assoc :=
+internal_operation₂.yoneda_equiv_symm_assoc M.obj _ (yoneda_operation_add_assoc M)
 
 end Ab
 

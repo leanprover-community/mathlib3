@@ -77,6 +77,7 @@ lemma on_internal_presheaf_naturality {Y Y' : C} (f : Y' ⟶ Y) :
   oper.on_internal_presheaf R Y' = R.presheaf_type.map f.op (oper.on_internal_presheaf R Y) :=
 congr_fun (oper.naturality (R.presheaf.map f.op)) punit.star
 
+@[simp]
 def to_internal_yoneda_operation₀_app (Y : C) : Y ⟶ R.obj :=
 R.iso.inv.app (op Y) (oper.on_internal_presheaf R Y)
 
@@ -87,6 +88,7 @@ begin
   rw [← R.iso_inv_naturality, oper.on_internal_presheaf_naturality R f],
 end
 
+@[simps]
 def to_internal_yoneda_operation₀ : internal_yoneda_operation₀ R.obj :=
 { app := λ X s, oper.to_internal_yoneda_operation₀_app R X.unop,
   naturality' := λ X Y f, begin
@@ -185,6 +187,33 @@ begin
   dsimp at oper_comm,
   conv_lhs { rw oper_comm, },
   refl,
+end
+
+lemma to_internal_yoneda_operation₂_add_zero (zero : operation₀ A)
+  (zero_oper : oper.add_zero zero) :
+  lift₂ (to_functor_const_punit ≫ zero.to_internal_yoneda_operation₀ R) (𝟙 _) ≫
+    oper.to_internal_yoneda_operation₂ R = 𝟙 _ :=
+begin
+  convert _root_.congr_arg (λ (m : operation₁ A), m.to_internal_yoneda_operation₁ R) zero_oper,
+  { ext X x,
+    dsimp at x ⊢,
+    simp only [functor_to_types.inv_hom_id_app_apply],
+    congr },
+  { ext X x,
+    dsimp [operation₁.on_internal_presheaf] at x ⊢,
+    simp, },
+end
+
+lemma to_internal_yoneda_operation₂_add_left_neg (zero : operation₀ A) (neg : operation₁ A)
+  (oper_left_neg : oper.add_left_neg zero neg) :
+  lift₂ (neg.to_internal_yoneda_operation₁ R) (𝟙 _) ≫ oper.to_internal_yoneda_operation₂ R =
+    to_functor_const_punit ≫ zero.to_internal_yoneda_operation₀ R :=
+begin
+  convert _root_.congr_arg (λ (m : operation₁ A), m.to_internal_yoneda_operation₁ R) oper_left_neg,
+  ext X x,
+  dsimp [operation₁.on_internal_presheaf, operation₀.on_internal_presheaf,
+    operation₂.on_internal_presheaf],
+  simp only [functor_to_types.inv_hom_id_app_apply],
 end
 
 end operation₂

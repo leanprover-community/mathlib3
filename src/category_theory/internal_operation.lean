@@ -122,6 +122,17 @@ lemma yoneda_equiv_comm [has_binary_product X X]
   rw id_comp,
 end
 
+lemma yoneda_equiv_symm_comm [has_binary_product X X]
+  (oper : internal_yoneda_operation₂ X)
+  (oper_comm : oper = lift₂ pr₂ pr₁ ≫ oper) : ((yoneda_equiv X).symm oper).comm :=
+begin
+  dsimp,
+  convert congr_arg (yoneda_equiv X).symm oper_comm.symm,
+  simp only [yoneda_equiv_symm_apply, functor_to_types.comp, lift₂_app, pr₂_app, pr₁_app],
+  convert congr_fun (oper.naturality (prod.lift limits.prod.snd limits.prod.fst : prod X X ⟶ _).op).symm ⟨limits.prod.fst, limits.prod.snd⟩,
+  tidy,
+end
+
 end internal_operation₂
 
 def internal_operation₃_gen [has_binary_product Y Z] [has_binary_product X (prod Y Z)] :=
@@ -164,6 +175,17 @@ lemma yoneda_equiv_assoc [has_binary_product X X] [has_binary_product X (prod X 
     oper_assoc],
   congr,
   tidy,
+end
+
+lemma yoneda_equiv_symm_assoc [has_binary_product X X] [has_binary_product X (prod X X)]
+  (oper : internal_yoneda_operation₂ X)
+  (oper_assoc : lift₂ (pr₁₂_₃ ≫ oper) pr₃_₃ ≫ oper = lift₂ pr₁_₃ (pr₂₃_₃ ≫ oper) ≫ oper) :
+  ((yoneda_equiv X).symm oper).assoc :=
+begin
+  dsimp,
+  convert congr_arg (internal_operation₃.yoneda_equiv X).symm oper_assoc,
+  { sorry, },
+  { sorry, },
 end
 
 lemma yoneda_equiv_zero_add [has_terminal C] [has_binary_product X X]

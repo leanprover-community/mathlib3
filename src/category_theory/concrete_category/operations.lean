@@ -103,6 +103,14 @@ lift₂ (pr₁₂_₃ ≫ oper) pr₃_₃ ≫ oper = lift₂ pr₁_₃ (pr₂₃
 def comm : Prop :=
 oper = lift₂ pr₂ pr₁ ≫ oper
 
+@[simp]
+def add_zero (zero : operation₀ A) : Prop :=
+lift₂ (to_functor_const_punit ≫ zero) (𝟙 _) ≫ oper = 𝟙 _
+
+@[simp]
+def add_left_neg (zero : operation₀ A) (neg : operation₁ A) : Prop :=
+lift₂ neg (𝟙 _) ≫ oper = to_functor_const_punit ≫ zero
+
 end operation₂
 
 end concrete_category

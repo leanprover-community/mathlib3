@@ -505,8 +505,16 @@ begin
   { rw le_iff, rintros c d f hf,
     dsimp [comap] at hf, rw mem_map_iff at hf,
     obtain ⟨c',d',g,cc',dd',gS,e⟩ := hf,
-    subst_vars, sorry, },
-  { apply subgroupoid.le_map_comap, }
+    cases isotropy.of_inj_on_objects S Sn cc',
+    cases isotropy.of_inj_on_objects S Sn dd',
+    simp only [eq_to_hom_refl, category.comp_id, category.id_comp] at e,
+    letI := @cgr.setoid _ _ S Sn.to_is_wide c d,
+    obtain ⟨γ,γS,δ,δS,e⟩ := quotient.exact e,
+    have : f = inv γ ≫ g ≫ inv δ, by { rw e, simp, },
+    rw this,
+    apply S.mul (S.inv γS) (S.mul gS $ S.inv δS), },
+  { apply subgroupoid.le_map_comap, },
+  apply isotropy.map_is_graph_like,
 end
 
 end quotient

@@ -683,15 +683,8 @@ begin
   suffices : (∀ b : α, b = ⊥ ∨ ∃ (a : α), is_atom a ∧ a ≤ b) ↔
     (∀ b : β, b = ⊥ ∨ ∃ (a : β), is_atom a ∧ a ≤ b),
   from ⟨λ ⟨p⟩, ⟨this.mp p⟩, λ ⟨p⟩, ⟨this.mpr p⟩⟩,
-  apply f.to_equiv.forall_congr,
-  simp_rw [rel_iso.coe_fn_to_equiv],
-  intro b, apply or_congr,
-  { rw [f.apply_eq_iff_eq_symm_apply, map_bot], },
-  { split,
-    { exact λ ⟨a, ha⟩, ⟨f a, ⟨(f.is_atom_iff a).mpr ha.1, f.le_iff_le.mpr ha.2⟩⟩, },
-    { rintros ⟨b, ⟨hb1, hb2⟩⟩,
-      refine ⟨f.symm b, ⟨(f.symm.is_atom_iff b).mpr hb1, _⟩⟩,
-      rwa [←f.le_iff_le, f.apply_symm_apply], }, },
+  simp only [f.surjective.forall, f.surjective.exists, ← map_bot f, f.injective.eq_iff,
+    f.le_iff_le, f.is_atom_iff]
 end
 
 lemma is_coatomic_iff [order_top α] [order_top β] (f : α ≃o β) : is_coatomic α ↔ is_coatomic β :=

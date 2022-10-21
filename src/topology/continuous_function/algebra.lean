@@ -406,7 +406,7 @@ coe_injective.comm_ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub coe_n
 /-- Coercion to a function as a `ring_hom`. -/
 @[simps]
 def coe_fn_ring_hom {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [ring β] [topological_ring β] : C(α, β) →+* (α → β) :=
+  [semiring β] [topological_semiring β] : C(α, β) →+* (α → β) :=
 { to_fun := coe_fn,
   ..(coe_fn_monoid_hom : C(α, β) →* _),
   ..(coe_fn_add_monoid_hom : C(α, β) →+ _) }
@@ -575,8 +575,6 @@ def continuous_map.C : R →+* C(α, A) :=
 @[simp] lemma continuous_map.C_apply (r : R) (a : α) : continuous_map.C r a = algebra_map R A r :=
 rfl
 
-variables [has_continuous_const_smul R A] [has_continuous_const_smul R A₂]
-
 instance continuous_map.algebra : algebra R C(α, A) :=
 { to_ring_hom := continuous_map.C,
   commutes' := λ c f, by ext x; exact algebra.commutes' _ _,
@@ -592,16 +590,28 @@ variables (R)
 { commutes' := λ c, continuous_map.ext $ λ _, g.commutes' _,
   .. g.to_ring_hom.comp_left_continuous α hg }
 
+variables (A)
+
+/--
+Precomposition of functions into a normed ring by a continuous map is an algebra homomorphism.
+-/
+@[simps] def continuous_map.comp_right_alg_hom {α β : Type*} [topological_space α]
+  [topological_space β] (f : C(α, β)) : C(β, A) →ₐ[R] C(α, A) :=
+{ to_fun := λ g, g.comp f,
+  map_zero' := by { ext, refl, },
+  map_add' := λ g₁ g₂, by { ext, refl, },
+  map_one' := by { ext, refl, },
+  map_mul' := λ g₁ g₂, by { ext, refl, },
+  commutes' := λ r, by { ext, refl, }, }
+
+variables {A}
+
 /-- Coercion to a function as an `alg_hom`. -/
 @[simps]
 def continuous_map.coe_fn_alg_hom : C(α, A) →ₐ[R] (α → A) :=
 { to_fun := coe_fn,
   commutes' := λ r, rfl,
-  -- `..(continuous_map.coe_fn_ring_hom : C(α, A) →+* _)` times out for some reason
-  map_zero' := continuous_map.coe_zero,
-  map_one' := continuous_map.coe_one,
-  map_add' := continuous_map.coe_add,
-  map_mul' := continuous_map.coe_mul }
+  ..(continuous_map.coe_fn_ring_hom : C(α, A) →+* _) }
 
 variables {R}
 

@@ -441,6 +441,22 @@ lemma is_preconnected.subset_right_of_subset_union (hu : is_open u) (hv : is_ope
   s ⊆ v :=
 hs.subset_left_of_subset_union hv hu huv.symm (union_comm u v ▸ hsuv) hsv
 
+/-- If a preconnected set `s` intersects an open set `u`, and limit points of `u` inside `s` are
+contained in `u`, then the whole set `s` is contained in `u`. -/
+lemma is_preconnected.subset_of_closure_inter_subset (hs : is_preconnected s)
+  (hu : is_open u) (h'u : (s ∩ u).nonempty) (h : closure u ∩ s ⊆ u) : s ⊆ u :=
+begin
+  have A : s ⊆ u ∪ (closure u)ᶜ,
+  { assume x hx,
+    by_cases xu : x ∈ u,
+    { exact or.inl xu },
+    { right,
+      assume h'x,
+      exact xu (h (mem_inter h'x hx)) } },
+  apply hs.subset_left_of_subset_union hu is_closed_closure.is_open_compl _ A h'u,
+  exact disjoint_compl_right.mono_right (compl_subset_compl.2 subset_closure),
+end
+
 theorem is_preconnected.prod [topological_space β] {s : set α} {t : set β}
   (hs : is_preconnected s) (ht : is_preconnected t) :
   is_preconnected (s ×ˢ t) :=

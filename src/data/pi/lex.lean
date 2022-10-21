@@ -136,4 +136,12 @@ instance lex.ordered_comm_group [linear_order ι] [∀ a, ordered_comm_group (β
   ..pi.lex.partial_order,
   ..pi.comm_group }
 
+/-- If we swap two strictly decreasing values in a function, then the result is lexicographically
+smaller than the original function. -/
+lemma lex_desc {α} [preorder ι] [decidable_eq ι] [preorder α] {f : ι → α} {i j : ι}
+  (h₁ : i < j) (h₂ : f j < f i) :
+  to_lex (f ∘ equiv.swap i j) < to_lex f :=
+⟨i, λ k hik, congr_arg f (equiv.swap_apply_of_ne_of_ne hik.ne (hik.trans h₁).ne),
+  by simpa only [pi.to_lex_apply, function.comp_app, equiv.swap_apply_left] using h₂⟩
+
 end pi

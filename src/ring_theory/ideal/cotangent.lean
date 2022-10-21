@@ -179,6 +179,14 @@ begin
   { rintros _ ⟨x, hx, rfl⟩, exact hx }
 end
 
+/-- The quotient ring of `I ⧸ I ^ 2` is `R ⧸ I`. -/
+def quot_cotangent : ((R ⧸ I ^ 2) ⧸ I.cotangent_ideal) ≃+* R ⧸ I :=
+begin
+  refine (ideal.quot_equiv_of_eq (ideal.map_eq_submodule_map _ _).symm).trans _,
+  refine (double_quot.quot_quot_equiv_quot_sup _ _).trans _,
+  exact (ideal.quot_equiv_of_eq (sup_eq_right.mpr $ ideal.pow_le_self two_ne_zero)),
+end
+
 end ideal
 
 namespace local_ring

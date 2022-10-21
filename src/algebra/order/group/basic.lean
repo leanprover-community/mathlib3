@@ -985,6 +985,8 @@ lemma abs_choice (x : α) : |x| = x ∨ |x| = -x := max_choice _ _
 
 lemma abs_le' : |a| ≤ b ↔ a ≤ b ∧ -a ≤ b := max_le_iff
 
+lemma abs_lt' : |a| < b ↔ a < b ∧ -a < b := max_lt_iff
+
 lemma le_abs : a ≤ |b| ↔ a ≤ b ∨ a ≤ -b := le_max_iff
 
 lemma le_abs_self (a : α) : a ≤ |a| := le_max_left _ _
@@ -1088,7 +1090,7 @@ decidable.not_iff_not.1 $ ne_comm.trans $ (abs_nonneg a).lt_iff_ne.symm.trans ab
 variable [covariant_class α α (swap (+)) (≤)]
 
 lemma abs_lt : |a| < b ↔ - b < a ∧ a < b :=
-max_lt_iff.trans $ and.comm.trans $ by rw [neg_lt]
+abs_lt'.trans $ and.comm.trans $ by rw [neg_lt]
 
 lemma neg_lt_of_abs_lt (h : |a| < b) : -b < a := (abs_lt.mp h).1
 

@@ -71,37 +71,43 @@ lemma is_barrel.mem_nhds {𝕜 E} [semi_normed_ring 𝕜] [add_comm_monoid E] [h
   s ∈ 𝓝 (0 : E) :=
 barreled_space.barrel_mem_nhds s hs
 
-lemma seminorm.continuous_of_lower_semicontinuous {𝕜 E} [semi_normed_ring 𝕜] [add_comm_group E]
-  [has_smul 𝕜 E] [has_smul ℝ E] [topological_space E] [barreled_space 𝕜 E] {p : seminorm 𝕜 E}
-  (h : lower_semicontinuous p) : continuous p :=
-sorry
-
-lemma is_barrel.eq_closed_ball {𝕜 E : Type*} [normed_field 𝕜] [normed_space ℝ 𝕜]
+lemma seminorm.continuous_of_lower_semicontinuous {𝕜 E} [normed_field 𝕜] [normed_algebra ℝ 𝕜]
   [add_comm_group E] [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E] [topological_space E]
+  [topological_add_group E] [has_continuous_const_smul ℝ E] [barreled_space 𝕜 E]
+  {p : seminorm 𝕜 E} (h : lower_semicontinuous p) : continuous p :=
+seminorm.continuous' (h.is_barrel_closed_ball).mem_nhds
+
+lemma is_barrel.eq_closed_ball {E} [add_comm_group E] [module ℝ E] [topological_space E]
   [topological_add_group E] [has_continuous_smul ℝ E] [locally_convex_space ℝ E] {s : set E}
-  (hs : is_barrel 𝕜 s) :
-  ∃ p : seminorm 𝕜 E, lower_semicontinuous p ∧ s = p.closed_ball 0 1 :=
+  (hs : is_barrel ℝ s) :
+  ∃ p : seminorm ℝ E, lower_semicontinuous p ∧ s = p.closed_ball 0 1 :=
 begin
-  let ι := {u : E →L[𝕜] 𝕜 // ∀ x ∈ s, ∥u x∥ ≤ 1},
+  let ι := {u : E →L[ℝ] ℝ // ∀ x ∈ s, ∥u x∥ ≤ 1},
   haveI : nonempty ι :=
     ⟨⟨0, λ x hx, by simp only [continuous_linear_map.zero_apply, norm_zero, zero_le_one]⟩⟩,
-  let p : seminorm 𝕜 E := ⨆ u : ι, (norm_seminorm 𝕜 𝕜).comp u,
-  have : (p : E → ℝ) = ⨆ u : ι, norm ∘ u,
+  let p : seminorm ℝ E := ⨆ u : ι, (norm_seminorm ℝ ℝ).comp u,
+  have p_def : (p : E → ℝ) = ⨆ u : ι, norm ∘ u,
   { sorry }, --should be easy
   use p,
   split,
-  { rw this,
+  { rw p_def,
     --refine lower_semicontinuous_supr _,
     sorry },
   { refine subset_antisymm (λ x hx, p.mem_closed_ball_zero.mpr _) _,
-    { rw [this, supr_apply],
+    { rw [p_def, supr_apply],
       exact csupr_le (λ u, u.2 x hx) },
     { refine λ x, not_imp_not.mp (λ hx, _),
       -- TODO : version where we get one directly
-      rcases geometric_hahn_banach_closed_point hs.convex hs.is_closed hx with ⟨f, u, hfs, hfx⟩,
-      have : u ≠ 0,
-      { rintro rfl,
-         },
-      --hard part
+      rcases geometric_hahn_banach_closed_point hs.convex hs.is_closed hx with ⟨f, r, hfs, hfx⟩,
+      have : 0 < r,
+      { specialize hfs 0 (hs.absorbent.zero_mem),
+        rwa map_zero at hfs },
+      have : ∀ y ∈ s, ∥(r⁻¹ • f) y∥ < 1,
+      { intros y hys,
+        rw [continuous_linear_map.smul_apply, norm_smul, norm_inv, real.norm_of_nonneg this.le,
+            inv_mul_lt_iff this, mul_one, real.norm_eq_abs, abs_lt', ← map_neg],
+        exact ⟨hfs y hys, hfs (-y) (hs.balanced.neg_mem_iff.mpr hys)⟩ },
+      let u : ι := ⟨r⁻¹ • f, λ y hys, (this y hys).le⟩,
+      rw [seminorm.mem_closed_ball_zero, not_le, p_def, supr_apply],
       sorry } }
 end

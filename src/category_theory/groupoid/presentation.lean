@@ -10,10 +10,9 @@ import category_theory.groupoid.free_groupoid
 /-!
 # Presentations of groupoids
 
-Given a quiver `V` and a family `W` of elements of the free groupoid on `V`, we construct
-a the groupoid presented by the pair `V,W`, and verify that the construction satisfies the expected
+Given a quiver `V` and a family `W` of elements of the free groupoid on `V`, we construct the
+groupoid presented by the pair `V,W`, and verify that the construction satisfies the expected
 universal property.
-
 -/
 
 namespace category_theory
@@ -24,6 +23,9 @@ open groupoid
 
 variables {V : Type u} [quiver.{v+1} V] (W : ∀ (x y : free_groupoid V), set $ x ⟶ y)
 
+/--
+The groupoid with generator `V` and relations `W`.
+-/
 def presented_groupoid :=
   quotient_groupoid _ ( subgroupoid.generated_normal_is_normal W )
 
@@ -32,6 +34,9 @@ instance : groupoid (presented_groupoid W) :=
 
 namespace presented_groupoid
 
+/--
+The inclusion of `V` in `presented_groupoid W`
+-/
 noncomputable def of : prefunctor V (presented_groupoid W) :=
 (free.of V).comp (quotient_groupoid.of _ ( subgroupoid.generated_normal_is_normal W )).to_prefunctor
 
@@ -41,6 +46,11 @@ variables {V' : Type*} [groupoid V'] (φ : prefunctor V V')
   (hφ : ∀ (x y : free_groupoid V), W x y ⊆ (subgroupoid.ker $ free.lift φ).arrows x y)
 
 include φ hφ
+
+/--
+The lift of the prefunctor `φ` to a functor `presented_groupoid W ⥤ V'`,
+assumming `φ` satisfies the relations in `W`
+ -/
 def lift : presented_groupoid W ⥤ V' :=
 begin
   fapply quotient_groupoid.lift,
@@ -50,14 +60,14 @@ begin
     apply hφ },
 end
 
-def lift_spec : (of W).comp (lift W φ hφ).to_prefunctor = φ :=
+lemma lift_spec : (of W).comp (lift W φ hφ).to_prefunctor = φ :=
 begin
   dsimp only [of, lift],
   rw [prefunctor.comp_assoc, functor.to_prefunctor_comp],
   rw [quotient_groupoid.lift_spec, free.lift_spec],
 end
 
-def lift_unique (Φ : presented_groupoid W ⥤ V') (hΦ : (of W).comp Φ.to_prefunctor = φ) :
+lemma lift_unique (Φ : presented_groupoid W ⥤ V') (hΦ : (of W).comp Φ.to_prefunctor = φ) :
   Φ = (lift W φ hφ) :=
 begin
   dsimp only [of, lift],

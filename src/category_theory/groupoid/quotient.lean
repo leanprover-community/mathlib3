@@ -379,7 +379,15 @@ begin
       simpa only [category.assoc] using this, },
     rw e, apply lol, },
   { rw le_iff,
-    rintro c d f fS, sorry, }
+    rintro c d f fS, rw mem_ker_iff,
+    dsimp [of, to_reps],
+    simp only [inv_eq_inv, subtype.mk_eq_mk, quotient.out_inj, quotient.eq],
+    letI := R S Sw,
+    have : c ≈ d := ⟨⟨f,fS⟩⟩,
+    use this,
+    rw subtype.ext_iff,
+    -- both in S, hence equal
+    sorry, }
 end
 omit Sg
 

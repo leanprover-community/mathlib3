@@ -6,23 +6,6 @@ Authors: David Wärn
 import data.set.basic
 import combinatorics.quiver.basic
 
-
-section subquiver
-
-universes v u
-
-
-structure subquiver  (V : Type u) [quiver V] :=
-( vertices : set V )
-( arrows : ∀ ⦃X Y : V⦄, (X ∈ vertices) → (Y ∈ vertices) → set (X ⟶ Y) )
-
-def is_subquiver {V : Type u} [quiver V] (S T : subquiver V) : Prop :=
-∃ (h : ∀ ⦃X⦄, X ∈ S.vertices → X ∈ T.vertices),
-  ∀ ⦃X Y : V⦄ (hX : X ∈ S.vertices) (hY :Y ∈ S.vertices),
-    S.arrows hX hY ⊆ T.arrows (h hX) (h hY)
-
-end subquiver
-
 /-!
 ## Wide subquivers
 
@@ -36,8 +19,8 @@ universes v u
 /-- A wide subquiver `H` of `G` picks out a set `H a b` of arrows from `a` to `b`
     for every pair of vertices `a b`.
 
-    NB: this does not work for `Prop`-valued quivers. It requires `G : quiver V`. -/
-def wide_subquiver (V) [quiver.{u+1} V] :=
+    NB: this does not work for `Prop`-valued quivers. It requires `G : quiver.{v+1} V`. -/
+def wide_subquiver (V) [quiver.{v+1} V] :=
 Π a b : V, set (a ⟶ b)
 
 /-- A type synonym for `V`, when thought of as a quiver having only the arrows from

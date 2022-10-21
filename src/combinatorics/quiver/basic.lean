@@ -88,7 +88,7 @@ def comp {U : Type*} [quiver U] {V : Type*} [quiver V] {W : Type*} [quiver W]
 
 @[simp]
 lemma comp_assoc
-  {U V W Z : Type*} [quiver U] [quiver V] [quiver W] [quiver Z]
+  {U : Type*} [quiver U] {V : Type*} [quiver V] {W : Type*} [quiver W] {Z : Type*} [quiver Z]
   (F : prefunctor U V) (G : prefunctor V W) (H : prefunctor W Z) :
   (F.comp G).comp H = F.comp (G.comp H) :=
 begin
@@ -124,59 +124,4 @@ instance empty_quiver (V : Type u) : quiver.{u} (empty V) := ⟨λ a b, pempty�
 
 @[simp] lemma empty_arrow {V : Type u} (a b : empty V) : (a ⟶ b) = pempty := rfl
 
-
-/-- The `quiver` instance obtained by pushing arrows of `V` along `σ` -/
-def push {V : Type u} [quiver V] {W : Type u₂} (σ : V → W) := W
-
-namespace push
-
-variables {V : Type*} [quiver V] {W : Type*} (σ : V → W)
-
-inductive push_quiver {V : Type u} [quiver.{v} V] {W : Type u₂} (σ : V → W) :
-  W → W → Type (max u u₂ v)
-| arrow {X Y : V} (f : X ⟶ Y) : push_quiver (σ X) (σ Y)
-
-instance : quiver (push σ) := ⟨λ X Y, push_quiver σ X Y⟩
-
-def of : prefunctor V (push σ) :=
-{ obj := σ,
-  map := λ X Y f, push_quiver.arrow f}
-
-local postfix ` * ` := of
-
-@[simp] lemma of_obj : ((σ *)).obj = σ := rfl
-
-variables {W' : Type*} [quiver W']
-  (φ : prefunctor V W') (τ : W → W') (h : ∀ x, φ.obj x = τ (σ x) )
-
-include φ h
-def lift : prefunctor (push σ) W' :=
-{ obj := τ,
-  map := by { apply push_quiver.rec, rintros X Y f, rw [←h X, ←h Y], exact φ.map f, } }
-
-def lift' : prefunctor (push σ) W' :=
-{ obj := τ,
-  map := @push_quiver.rec V _ W σ (λ X Y f, τ X ⟶ τ Y) (λ X Y f, by {rw [←h X,←h Y], exact φ.map f}) }
-
-lemma lift_spec_obj : (lift σ φ τ h).obj = τ := rfl
-
-lemma lift_spec_comm : (of σ).comp (lift σ φ τ h) = φ :=
-begin
-  dsimp only [of,lift],
-  fapply prefunctor.ext,
-  { rintros, simp only [prefunctor.comp_obj], symmetry, exact h X, },
-  { rintros _ _ f, simp only [prefunctor.comp_map],
-    finish, },
-  -- no idea how `finish` worked :(
-end
-lemma lift_unique (Φ : prefunctor (push σ) W') (Φ₀ : Φ.obj = τ) (Φcomm : (of σ).comp Φ = φ) :
-  Φ = (lift σ φ τ h) :=
-begin
-  dsimp [of,lift],
-  fapply prefunctor.ext,
-  { rintros, simp_rw [←Φ₀], },
-  { rintros _ _ f, induction f, subst_vars, simp only [prefunctor.comp_map, cast_eq], refl, }
-end
-
-end push
 end quiver

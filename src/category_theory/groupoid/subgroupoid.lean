@@ -157,6 +157,11 @@ instance : has_top (subgroupoid C) :=
     mul    := by { rintros, trivial, },
     inv    := by { rintros, trivial, } } ⟩
 
+lemma mem_top {c d : C} (f : c ⟶ d) : f ∈ (⊤ : subgroupoid C).arrows c d := trivial
+
+lemma mem_top_objs (c : C) : c ∈ (⊤ : subgroupoid C).objs :=
+by {dsimp [has_top.top,objs], simp only [univ_nonempty], }
+
 instance : has_bot (subgroupoid C) :=
 ⟨ { arrows := (λ _ _, ∅),
     mul    := λ _ _ _ _, false.elim,
@@ -341,6 +346,9 @@ lemma is_normal_comap {S : subgroupoid D} (Sn : is_normal S) : is_normal (comap 
     exact Sn.conj _ hγ,
   end }
 
+lemma comap_comp {E : Type*} [groupoid E] (ψ : D ⥤ E) :
+  comap (φ ⋙ ψ) = (comap φ) ∘ (comap ψ) := rfl
+
 /-- The kernel of a functor between subgroupoid is the preimage. -/
 def ker : subgroupoid C := comap φ discrete
 
@@ -350,12 +358,14 @@ mem_discrete_iff (φ.map f)
 
 lemma ker_is_normal : (ker φ).is_normal := is_normal_comap φ (discrete_is_normal)
 
+lemma ker_comp  {E : Type*} [groupoid E] (ψ : D ⥤ E) : ker (φ ⋙ ψ) = comap φ (ker ψ) := rfl
+
 /-- The family of arrows of the image of a subgroupoid under a functor injective on objects -/
 inductive map.arrows (hφ : function.injective φ.obj) (S : subgroupoid C) :
   Π (c d : D), (c ⟶ d) → Prop
 | im {c d : C} (f : c ⟶ d) (hf : f ∈ S.arrows c d) : map.arrows (φ.obj c) (φ.obj d) (φ.map f)
 
-lemma map.mem_arrows_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d : D} (f : c ⟶ d):
+lemma map.arrows_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d : D} (f : c ⟶ d):
   map.arrows φ hφ S c d f ↔
   ∃ (a b : C) (g : a ⟶ b) (ha : φ.obj a = c) (hb : φ.obj b = d) (hg : g ∈ S.arrows a b),
     f = (eq_to_hom ha.symm) ≫ φ.map g ≫ (eq_to_hom hb) :=
@@ -375,22 +385,27 @@ def map (hφ : function.injective φ.obj) (S : subgroupoid C) : subgroupoid D :=
   end,
   mul := begin
     rintro _ _ _ _ ⟨c₁,c₂,f,hf⟩ q hq,
-    obtain ⟨c₃,c₄,g,he,rfl,hg,gq⟩ := (map.mem_arrows_iff φ hφ S q).mp hq,
+    obtain ⟨c₃,c₄,g,he,rfl,hg,gq⟩ := (map.arrows_iff φ hφ S q).mp hq,
     cases hφ he, rw [gq, ← eq_conj_eq_to_hom, ← φ.map_comp],
     split, exact S.mul hf hg,
   end }
+
+lemma mem_map_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d : D} (f : c ⟶ d):
+  f ∈ (map φ hφ S).arrows c d ↔
+  ∃ (a b : C) (g : a ⟶ b) (ha : φ.obj a = c) (hb : φ.obj b = d) (hg : g ∈ S.arrows a b),
+    f = (eq_to_hom ha.symm) ≫ φ.map g ≫ (eq_to_hom hb) := map.arrows_iff φ hφ S f
 
 lemma map_mono (hφ : function.injective φ.obj) (S T : subgroupoid C) :
   S ≤ T → map φ hφ S ≤ map φ hφ T :=
 by { rintros ST ⟨c,d,f⟩ ⟨_,_,_,h⟩, split, exact @ST ⟨_,_,_⟩ h }
 
-lemma mem_map_objs_iff  (hφ : function.injective φ.obj) (d : D) :
+lemma mem_map_objs_iff (hφ : function.injective φ.obj) (d : D) :
   d ∈ (map φ hφ S).objs ↔ ∃ c ∈ S.objs, φ.obj c = d :=
 begin
   dsimp [objs, map],
   split,
   { rintro ⟨f,hf⟩,
-    change map.arrows φ hφ S d d f at hf, rw map.mem_arrows_iff at hf,
+    change map.arrows φ hφ S d d f at hf, rw map.arrows_iff at hf,
     obtain ⟨c,d,g,ec,ed,eg,gS,eg⟩ := hf,
     exact ⟨c, ⟨mem_objs_of_src S eg, ec⟩⟩, },
   { rintros ⟨c,⟨γ,γS⟩,rfl⟩,
@@ -404,7 +419,7 @@ lemma mem_im_iff (hφ : function.injective φ.obj) {c d : D} (f : c ⟶ d) :
   f ∈ (im φ hφ).arrows c d ↔
   ∃ (a b : C) (g : a ⟶ b) (ha : φ.obj a = c) (hb : φ.obj b = d),
     f = (eq_to_hom ha.symm) ≫ φ.map g ≫ (eq_to_hom hb) :=
-by { convert map.mem_arrows_iff φ hφ ⊤ f, simp only [has_top.top, mem_univ, exists_true_left] }
+by { convert map.arrows_iff φ hφ ⊤ f, simp only [has_top.top, mem_univ, exists_true_left] }
 
 lemma mem_im_objs_iff  (hφ : function.injective φ.obj) (d : D) :
   d ∈ (im φ hφ).objs ↔ ∃ c : C, φ.obj c = d :=
@@ -425,13 +440,31 @@ end
 
 lemma is_normal_map (hφ : function.injective φ.obj) (hφ' : im φ hφ = ⊤) (Sn : S.is_normal) :
   (map φ hφ S).is_normal :=
-{ wide := λ c, sorry,
-  conj := λ c d f γ hγ, sorry }
+{ wide := λ d, by
+  { obtain ⟨c,rfl⟩ := obj_surjective_of_im_eq_top φ hφ hφ' d,
+    change map.arrows φ hφ S _ _ (𝟙 _), rw ←functor.map_id,
+    constructor, exact Sn.wide c, },
+  conj := λ d d' g δ hδ, by
+  { rw mem_map_iff at hδ,
+    obtain ⟨c,c',γ,cd,cd',γS,hγ⟩ := hδ, subst_vars, cases hφ cd',
+    have : d' ∈ (im φ hφ).objs, by { rw hφ', apply mem_top_objs, },
+    rw mem_im_objs_iff at this,
+    obtain ⟨c',rfl⟩ := this,
+    have : g ∈ (im φ hφ).arrows (φ.obj c) (φ.obj c'), by
+    { rw hφ', trivial, },
+    rw mem_im_iff at this,
+    obtain ⟨b,b',f,hb,hb',_,hf⟩ := this, subst_vars, cases hφ hb, cases hφ hb',
+    change map.arrows φ hφ S (φ.obj c') (φ.obj c') _,
+    simp only [eq_to_hom_refl, category.comp_id, category.id_comp, inv_eq_inv],
+    suffices : map.arrows φ hφ S (φ.obj c') (φ.obj c') (φ.map $ inv f ≫ γ ≫ f),
+    { simp only [inv_eq_inv, functor.map_comp, functor.map_inv] at this, exact this, },
+    { constructor, apply Sn.conj f γS, } } }
 
 end hom
 
 section graph_like
 
+/-- A subgroupoid `is_graph_like` if it has at most one arrow between any two vertices. -/
 abbreviation is_graph_like := is_graph_like S.objs
 
 lemma is_graph_like_iff : S.is_graph_like ↔ ∀ c d : S.objs, subsingleton (S.arrows c d) :=
@@ -441,6 +474,7 @@ end graph_like
 
 section disconnected
 
+/-- A subgroupoid `is_disconnected` if it has only isotropy arrows. -/
 abbreviation is_disconnected := is_disconnected S.objs
 
 lemma is_disconnected_iff : S.is_disconnected ↔ ∀ c d, (S.arrows c d).nonempty → c = d :=
@@ -507,12 +541,11 @@ end
 by { rw full_objs, }
 
 lemma full_arrow_eq_iff {c d : (full D).objs} {f g : c ⟶ d} : f = g ↔ (↑f : c.val ⟶ d.val) = ↑g :=
-begin
-  apply subtype.ext_iff,
-end
+by apply subtype.ext_iff
 
 end full
 
 end subgroupoid
 
 end category_theory
+

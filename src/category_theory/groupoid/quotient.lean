@@ -260,7 +260,6 @@ lemma to_reps_arrow_mem (c : C) :
   (to_reps_arrow S Sw c) ∈ (S.arrows (of_reps S Sw (to_reps S Sw c)) c) :=
 (of_to_reps_congr S Sw c).some.prop
 
-
 include Sg Sw
 lemma to_reps_arrow_unique {c : C}
   {γ : of_reps S Sw (to_reps S Sw c) ⟶ c}
@@ -293,8 +292,6 @@ noncomputable def of : C ⥤ quotient S Sw :=
     let
       γ := (to_reps_arrow S Sw c),
       δ := inv (to_reps_arrow S Sw d)
-      --γ := (of_to_reps_congr S Sw c).some.val,
-      --δ := inv (of_to_reps_congr S Sw d).some.val
     in
       ⟨γ ≫ f ≫ δ, by { constructor; simp, } ⟩,
   map_id' := λ _, by
@@ -361,6 +358,11 @@ begin
   { rintro, simp only [functor.comp_map, functor.id_map], rw of_fo_map, exact Sg, },
 end
 omit Sg
+
+lemma ker_eq : ker (of S Sw) = S :=
+begin
+  sorry
+end
 
 section ump
 
@@ -486,6 +488,13 @@ begin
 end
 
 end ump
+
+lemma ker_eq : ker (of S Sn) = S :=
+begin
+  change ker (isotropy.of S Sn ⋙ (graph_like.of (map (isotropy.of S Sn) _ S) _)) = S,
+  rw ker_comp,
+  rw graph_like.ker_eq,
+end
 
 end quotient
 

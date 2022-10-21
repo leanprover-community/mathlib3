@@ -1,4 +1,3 @@
-import category_theory.monoidal.of_has_finite_products
 import category_theory.monoidal.Mon_
 import algebra.category.Group.abelian
 import linear_algebra.tensor_product

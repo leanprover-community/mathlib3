@@ -71,6 +71,20 @@ end subalgebra
 
 namespace star_subalgebra
 
+section arbitrary
+
+variables {R : Type*} [comm_semiring R] [star_ring R]
+variables {A : Type*} [semiring A] [algebra R A] [star_ring A] [star_module R A]
+
+lemma adjoin_le {S : star_subalgebra R A} {s : set A} (hs : s ⊆ S) : adjoin R s ≤ S :=
+star_subalgebra.gc.l_le hs
+
+lemma adjoin_le_iff {S : star_subalgebra R A} {s : set A} : adjoin R s ≤ S ↔ s ⊆ S :=
+star_subalgebra.gc _ _
+
+end arbitrary
+
+
 section arbitrary_topological_star_subalg
 
 variables {R : Type*} [comm_semiring R] [star_ring R]
@@ -91,6 +105,19 @@ lemma topological_closure_mono :
   (is_closed_topological_closure S₂)
 
 end arbitrary_topological_star_subalg
+
+section ring_topological_star_subalg
+
+variables {R : Type*} [comm_ring R] [star_ring R]
+variables {A : Type*} [topological_space A] [ring A]
+variables [algebra R A] [star_ring A] [star_module R A]
+variables [topological_ring A] [has_continuous_star A]
+
+lemma elemental_algebra_le_of_mem (S : star_subalgebra R A) (hS : is_closed (S : set A)) (a : A)
+  (ha : a ∈ S) : elemental_algebra R a ≤ S :=
+topological_closure_minimal' _ (adjoin_le $ set.singleton_subset_iff.2 ha) hS
+
+end ring_topological_star_subalg
 
 instance to_semiring {R A} [comm_semiring R] [star_ring R] [semiring A] [star_ring A]
   [algebra R A] [star_module R A] (S : star_subalgebra R A) :
@@ -406,22 +433,40 @@ lemma is_unit_of_is_unit₂ (h : is_unit a) :
 
 .
 
-lemma is_unit_unit_inv_mem (h : is_unit a) : (↑h.unit⁻¹ : A) ∈ elemental_algebra ℂ a :=
+/-- For `a : A` which is invertible in `A`, the inverse lies in any unital C⋆-subalgebra `S`
+containing `a`. -/
+lemma is_unit_coe_inv_mem {S : star_subalgebra ℂ A} (hS : is_closed (S : set A)) {x : A}
+  (h : is_unit x) (hxS : x ∈ S) : ↑h.unit⁻¹ ∈ S :=
 begin
-  have h' := is_unit_of_is_unit₂ h,
-  convert (↑h'.unit⁻¹ : elemental_algebra ℂ a).prop using 1,
-  exact left_inv_eq_right_inv h.unit.inv_mul (congr_arg coe h'.unit.mul_inv),
-end
-
-#exit
-lemma is_unit_of_is_unit₃ (x : A) (h : is_unit x) :
-  is_unit (⟨x, self_mem_elemental_algebra ℂ x⟩ : elemental_algebra ℂ x) :=
-begin
-  set x' : elemental_algebra ℂ x := ⟨x, self_mem_elemental_algebra ℂ x⟩,
   have hx := h.star.mul h,
+  suffices this : (↑hx.unit⁻¹ : A) ∈ S,
+  { rw [←one_mul (↑h.unit⁻¹ : A), ←hx.unit.inv_mul, mul_assoc, is_unit.unit_spec, mul_assoc,
+      h.mul_coe_inv, mul_one],
+    exact mul_mem this (star_mem hxS) },
+  refine elemental_algebra_le_of_mem S hS _ (mul_mem (star_mem hxS) hxS) _,
   haveI := (is_self_adjoint.star_mul_self x).is_star_normal,
   have hx' := is_unit_of_is_unit₂ hx,
+  convert (↑hx'.unit⁻¹ : elemental_algebra ℂ (star x * x)).prop using 1,
+  exact left_inv_eq_right_inv hx.unit.inv_mul (congr_arg coe hx'.unit.mul_inv),
 end
+
+/-- For a unital C⋆-subalgebra `S` of `A` and `x : S`, if `↑x : A` is invertible in `A`, then
+`x` is invertible in `S`. -/
+lemma coe_is_unit {S : star_subalgebra ℂ A} (hS : is_closed (S : set A)) {x : S} :
+  is_unit (x : A) ↔ is_unit x :=
+begin
+  refine ⟨λ hx, ⟨⟨x, ⟨(↑hx.unit⁻¹ : A), is_unit_coe_inv_mem hS hx x.prop⟩, _, _⟩, rfl⟩,
+    λ hx, hx.map S.subtype⟩,
+  exacts [subtype.coe_injective hx.mul_coe_inv, subtype.coe_injective hx.coe_inv_mul],
+end
+
+/-- **Spectral permanence**. The spectrum of an element is invariant of the C⋆-algebra in which
+it is contained. -/
+lemma spectrum_eq {S : star_subalgebra ℂ A} (hS : is_closed (S : set A)) (x : S) :
+  spectrum ℂ x = spectrum ℂ (x : A) :=
+set.ext $ λ _, not_iff_not.2 (coe_is_unit hS).symm
+
+#exit
 
 /- this is superseded by `foo₃`.
 lemma foo₂ : spectrum ℂ (star a * a) ⊆ coe '' (set.Icc (0 : ℝ) ∥star a * a∥) :=
@@ -465,14 +510,6 @@ end
 end commutative
 
 #exit
-
-lemma elemental_algebra_le_of_mem (b : adjoin ℂ ({a} : set A)) :
-  elemental_algebra ℂ (b : A) ≤ elemental_algebra ℂ a :=
-begin
-  refine topological_closure_minimal' _ _ _,
-  sorry,
-  sorry,
-end
 
 
 #exit

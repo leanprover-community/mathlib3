@@ -2,6 +2,8 @@ import category_theory.concrete_category.operations
 import algebra.category.Ring.basic
 import algebra.category.Group.internal
 
+universe v
+
 def Ring.mk (R : Ab) (one' : R) (mul' : R × R → R)
   (mul_assoc : ∀ (x y z : R), mul' ⟨mul' ⟨x, y⟩, z⟩ = mul' ⟨x, mul' ⟨y, z⟩⟩)
   (one_mul : ∀ (x : R), mul' ⟨one', x⟩ = x)
@@ -56,8 +58,6 @@ open concrete_category.operations
 
 variables {C : Type*} [category C]
 
-example : ℕ := 42
-
 def mk (R : internal Ab C)
   (yoneda_one : internal_yoneda_operation₀ R.obj)
   (yoneda_mul : Ab.yoneda_bilinear R R R)
@@ -68,11 +68,25 @@ def mk (R : internal Ab C)
 { obj := R.obj,
   presheaf :=
   { obj := λ Y, begin
-      refine Ring.mk (R.presheaf.obj Y) _ _ _ _ _ _ _,
-      all_goals { sorry, },
+      refine Ring.mk (R.presheaf.obj Y) (yoneda_one.to_presheaf Y)
+        (yoneda_mul.on_internal_presheaf.app Y) _ _ _ _ _,
+      { sorry, },
+      { sorry, },
+      { sorry, },
+      { intros x₁ x₁' x₂,
+        simp only [Ab.yoneda_bilinear.on_internal_presheaf_app,
+          Ab.yoneda_bilinear.on_internal_presheaf_right_distrib], },
+      { intros x₁ x₂ x₂',
+        simp only [Ab.yoneda_bilinear.on_internal_presheaf_app,
+          Ab.yoneda_bilinear.on_internal_presheaf_left_distrib], },
     end,
-    map := sorry, },
-  iso := sorry,}
+    map := λ Y Y' f, begin
+      refine ⟨R.presheaf_type.map f, yoneda_one.to_presheaf_map f, _, _, _⟩,
+      { sorry, },
+      { sorry, },
+      { sorry, },
+    end, },
+  iso := sorry, }
 
 end Ring
 

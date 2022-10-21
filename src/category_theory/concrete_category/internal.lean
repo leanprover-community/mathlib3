@@ -277,5 +277,22 @@ end
 end operation₂
 
 end concrete_category
+namespace internal_yoneda_operation₀
+
+open concrete_category
+
+variables {A C : Type*} [category C] [category A] [concrete_category.{v₁} A] [category.{v₁} C]
+  {M : internal A C}
+
+@[simp]
+def to_presheaf (c : internal_yoneda_operation₀ M.obj) (Y : Cᵒᵖ) :=
+  (c ≫ M.iso.hom).app Y punit.star
+
+lemma to_presheaf_map (c : internal_yoneda_operation₀ M.obj) {Y Y' : Cᵒᵖ} (f : Y ⟶ Y') :
+  (M.presheaf ⋙ forget A).map f (c.to_presheaf Y) = c.to_presheaf Y' :=
+congr_fun ((c ≫ M.iso.hom).naturality f).symm punit.star
+
+end internal_yoneda_operation₀
+
 
 end category_theory

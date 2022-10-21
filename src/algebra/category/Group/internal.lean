@@ -142,9 +142,9 @@ internal_operation₂.yoneda_equiv_symm_assoc M.obj _ (yoneda_operation_add_asso
 variable {M}
 
 @[simp]
-lemma iso_hom_app_yoneda_operation_add_app {Y : C} (x₁ x₂ : Y ⟶ M.obj) :
-  M.iso.hom.app _ ((yoneda_operation_add M).app (op Y) ⟨x₁, x₂⟩) =
-  M.iso.hom.app (op Y) x₁ + M.iso.hom.app (op Y) x₂ :=
+lemma iso_hom_app_yoneda_operation_add_app {Y : Cᵒᵖ} (x₁ x₂ : (yoneda.obj M.obj).obj Y) :
+  M.iso.hom.app _ ((yoneda_operation_add M).app Y ⟨x₁, x₂⟩) =
+  M.iso.hom.app Y x₁ + M.iso.hom.app Y x₂ :=
 begin
   dsimp [yoneda_operation_add],
   simpa only [functor_to_types.inv_hom_id_app_apply],
@@ -161,39 +161,55 @@ structure yoneda_bilinear :=
 
 namespace yoneda_bilinear
 
-variables (bil : yoneda_bilinear M₁ M₂ M₃) {M₁ M₂ M₃} {Y Y' : C}
+variables (bil : yoneda_bilinear M₁ M₂ M₃) {M₁ M₂ M₃} {Y Y' : Cᵒᵖ}
 
 def on_internal_presheaf : concat₂ M₁.presheaf_type M₂.presheaf_type ⟶ M₃.presheaf_type :=
 lift₂ (pr₁ ≫ M₁.iso.inv) (pr₂ ≫ M₂.iso.inv) ≫ bil.φ ≫ M₃.iso.hom
 
 @[simp]
 def on_internal_presheaf_curry
-  (x₁ : M₁.presheaf_type.obj (op Y)) (x₂ : M₂.presheaf_type.obj (op Y)) :
-  M₃.presheaf_type.obj (op Y) :=
+  (x₁ : M₁.presheaf_type.obj Y) (x₂ : M₂.presheaf_type.obj Y) :
+  M₃.presheaf_type.obj Y :=
 M₃.iso.hom.app _ (bil.φ.app _ ⟨M₁.iso.inv.app _ x₁, M₂.iso.inv.app _ x₂⟩)
 
 @[simp]
 lemma on_internal_presheaf_app
-  (x₁ : M₁.presheaf_type.obj (op Y)) (x₂ : M₂.presheaf_type.obj (op Y)) :
-  bil.on_internal_presheaf.app (op Y) ⟨x₁, x₂⟩ = bil.on_internal_presheaf_curry x₁ x₂ := rfl
+  (x₁ : M₁.presheaf_type.obj Y) (x₂ : M₂.presheaf_type.obj Y) :
+  bil.on_internal_presheaf.app Y ⟨x₁, x₂⟩ = bil.on_internal_presheaf_curry x₁ x₂ := rfl
 
 def on_internal_presheaf_curry_naturality
-  (x₁ : M₁.presheaf_type.obj (op Y)) (x₂ : M₂.presheaf_type.obj (op Y)) (f : Y' ⟶ Y) :
-  bil.on_internal_presheaf_curry (M₁.presheaf_type.map f.op x₁)
-    (M₂.presheaf_type.map f.op x₂) =
-  M₃.presheaf_type.map f.op (bil.on_internal_presheaf_curry x₁ x₂) :=
-congr_fun (bil.on_internal_presheaf.naturality f.op) ⟨x₁, x₂⟩
+  (x₁ : M₁.presheaf_type.obj Y) (x₂ : M₂.presheaf_type.obj Y) (f : Y ⟶ Y') :
+  bil.on_internal_presheaf_curry (M₁.presheaf_type.map f x₁)
+    (M₂.presheaf_type.map f x₂) =
+  M₃.presheaf_type.map f (bil.on_internal_presheaf_curry x₁ x₂) :=
+congr_fun (bil.on_internal_presheaf.naturality f) ⟨x₁, x₂⟩
 
+@[simp]
 lemma on_internal_presheaf_right_distrib
-  (x₁ x₁' : M₁.presheaf_type.obj (op Y)) (x₂ : M₂.presheaf_type.obj (op Y)) :
+  (x₁ x₁' : M₁.presheaf_type.obj Y) (x₂ : M₂.presheaf_type.obj Y) :
 bil.on_internal_presheaf_curry (x₁ + x₁') x₂ =
   bil.on_internal_presheaf_curry x₁ x₂ + bil.on_internal_presheaf_curry x₁' x₂ :=
 begin
-  have h := congr_fun (nat_trans.congr_app bil.right_distrib (op Y))
+  have h := congr_fun (nat_trans.congr_app bil.right_distrib Y)
     ⟨M₁.iso.inv.app _ x₁, M₁.iso.inv.app _ x₁', M₂.iso.inv.app _ x₂⟩,
   have h₂ := congr_arg (M₃.iso.hom.app _) h,
   simp only [functor_to_types.comp, lift₂_app, pr₁₂_₃_app, pr₃_₃_app, has_coe_to_fun_Type,
     pr₁₃_₃_app, pr₂₃_₃_app, iso_hom_app_yoneda_operation_add_app] at h₂,
+  convert h₂;
+  { dsimp, simp only [functor_to_types.inv_hom_id_app_apply], },
+end
+
+@[simp]
+lemma on_internal_presheaf_left_distrib
+  (x₁ : M₁.presheaf_type.obj Y) (x₂ x₂': M₂.presheaf_type.obj Y) :
+bil.on_internal_presheaf_curry x₁ (x₂ + x₂') =
+  bil.on_internal_presheaf_curry x₁ x₂ + bil.on_internal_presheaf_curry x₁ x₂' :=
+begin
+  have h := congr_fun (nat_trans.congr_app bil.left_distrib Y)
+    ⟨M₁.iso.inv.app _ x₁, M₂.iso.inv.app _ x₂, M₂.iso.inv.app _ x₂'⟩,
+  have h₂ := congr_arg (M₃.iso.hom.app _) h,
+  simp only [functor_to_types.comp, lift₂_app, pr₁_₃_app, pr₂₃_₃_app,
+    has_coe_to_fun_Type, pr₁₂_₃_app, pr₁₃_₃_app, iso_hom_app_yoneda_operation_add_app] at h₂,
   convert h₂;
   { dsimp, simp only [functor_to_types.inv_hom_id_app_apply], },
 end

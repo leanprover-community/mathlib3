@@ -171,14 +171,14 @@ end additive
 @[to_additive] lemma eq_and_eq_of_le_of_le_of_mul_eq {A} [has_mul A] [linear_order A]
   [covariant_class A A (*) (≤)] [covariant_class A A (function.swap (*)) (<)]
   [contravariant_class A A (*) (≤)]
-  {a b a0 b0 : A} (ha : a0 ≤ a) (hb : b0 ≤ b) (ab : a * b = a0 * b0) :
+  {a b a0 b0 : A} (ha : a0 ≤ a) (hb : b0 ≤ b) (ab : a * b ≤ a0 * b0) :
   a = a0 ∧ b = b0 :=
 begin
   haveI := has_mul.to_covariant_class_right A,
   have ha' : ¬a0 * b0 < a * b → ¬a0 < a := mt (λ h, mul_lt_mul_of_lt_of_le h hb),
   have hb' : ¬a0 * b0 < a * b → ¬b0 < b := mt (λ h, mul_lt_mul_of_le_of_lt ha h),
   push_neg at ha' hb',
-  exact ⟨ha.antisymm' (ha' ab.le), hb.antisymm' (hb' ab.le)⟩,
+  exact ⟨ha.antisymm' (ha' ab), hb.antisymm' (hb' ab)⟩,
 end
 
 /--  This instance asserts that if `A` has a multiplication, a linear order, and multiplication

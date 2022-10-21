@@ -205,7 +205,12 @@ variables {l l' : filter α} {p : ι → Prop} {s : ι → set α} {t : set α} 
 
 lemma has_basis_generate (s : set (set α)) :
   (generate s).has_basis (λ t, set.finite t ∧ t ⊆ s) (λ t, ⋂₀ t) :=
-⟨λ U, by simp only [mem_generate_iff, exists_prop, and.assoc, and.left_comm]⟩
+⟨begin
+  intro U,
+  rw mem_generate_iff,
+  apply exists_congr,
+  tauto
+end⟩
 
 /-- The smallest filter basis containing a given collection of sets. -/
 def filter_basis.of_sets (s : set (set α)) : filter_basis α :=

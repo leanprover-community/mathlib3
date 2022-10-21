@@ -4,6 +4,54 @@ import topology.vector_bundle.basic
 open bundle topological_vector_bundle set
 open_locale manifold
 
+section /-! ## move these -/
+
+lemma topological_vector_bundle.trivialization.symm_coord_change
+  {𝕜 : Type*} {B : Type*} {F : Type*} {E : B → Type*}
+  [nontrivially_normed_field 𝕜]
+  [Π (x : B), add_comm_monoid (E x)]
+  [Π (x : B), module 𝕜 (E x)]
+  [normed_add_comm_group F]
+  [normed_space 𝕜 F]
+  [topological_space B]
+  [topological_space (total_space E)]
+  [Π (x : B), topological_space (E x)]
+  (e : trivialization 𝕜 F E)
+  (e' : trivialization 𝕜 F E)
+  {b : B}
+  (hb : b ∈ e'.base_set ∩ e.base_set) :
+  (e.coord_change e' b).symm = e'.coord_change e b :=
+begin
+  dsimp [topological_vector_bundle.trivialization.coord_change],
+  sorry,
+end
+
+lemma topological_vector_bundle.trivialization.apply_symm_apply_eq_coord_change
+  {𝕜 : Type*} {B : Type*} {F : Type*}
+  {E : B → Type*}
+  [nontrivially_normed_field 𝕜]
+  [Π (x : B), add_comm_monoid (E x)]
+  [Π (x : B), module 𝕜 (E x)]
+  [normed_add_comm_group F]
+  [normed_space 𝕜 F]
+  [topological_space B]
+  [topological_space (total_space E)]
+  [Π (x : B), topological_space (E x)]
+  (e : trivialization 𝕜 F E)
+  (e' : trivialization 𝕜 F E)
+  {b : B}
+  (hb : b ∈ e.base_set ∩ e'.base_set)
+  (v : F) :
+  e' ((e.to_local_homeomorph.symm) (b, v)) =
+    (b, e.coord_change e' b v) :=
+begin
+  admit,
+end
+
+end
+
+/-! ## main constructions -/
+
 variables {𝕜 B F : Type*} {E : B → Type*}
 variables [nontrivially_normed_field 𝕜] [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)]
   [normed_add_comm_group F] [normed_space 𝕜 F] [topological_space B]
@@ -39,7 +87,6 @@ def groupoid_base.local_homeomorph (φ : B → F ≃L[𝕜] F) {U : set B} (hU :
   continuous_to_fun := sorry,
   continuous_inv_fun := sorry }
 
--- variable (𝕜)
 def groupoid_base : structure_groupoid (B × F) :=
 { members := ⋃ (φ : B → F ≃L[𝕜] F) (U : set B) (hU : is_open U)
   (hφ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, φ x : B → F →L[𝕜] F) U)
@@ -72,13 +119,24 @@ instance [topological_vector_bundle 𝕜 F E] [smooth_vector_bundle F E IB] :
     rintros _ _ ⟨e, he, rfl⟩ ⟨e', he', rfl⟩,
     dsimp,
     apply mem_Union.mpr,
-    use (λ b, trivialization.coord_change e e' b),
+    use λ b, trivialization.coord_change e e' b,
     simp_rw mem_Union,
     use e.base_set ∩ e'.base_set,
     use e.open_base_set.inter e'.open_base_set,
     use smooth_vector_bundle.smooth_transitions e he e' he',
     refine ⟨_, _, _⟩,
-    { sorry },
-    { sorry },
-    { sorry }
+    { rw inter_comm,
+      apply cont_mdiff_on.congr (smooth_vector_bundle.smooth_transitions e' he' e he),
+      { intros b hb,
+        rw topological_vector_bundle.trivialization.symm_coord_change e e' hb },
+      { apply_instance },
+      { apply_instance }, },
+    { simp [e.symm_trans_source_eq e'.to_fiber_bundle_trivialization,
+        groupoid_base.local_homeomorph] },
+    { rintros ⟨b, v⟩ hb,
+      have hb' : b ∈ e.base_set ∩ e'.base_set :=
+        by simpa only [local_homeomorph.trans_to_local_equiv, local_homeomorph.symm_to_local_equiv,
+        local_homeomorph.coe_coe_symm, e.symm_trans_source_eq e'.to_fiber_bundle_trivialization,
+        prod_mk_mem_set_prod_eq, mem_univ, and_true] using hb,
+      simp [groupoid_base.local_homeomorph, e.apply_symm_apply_eq_coord_change e' hb'] }
   end }

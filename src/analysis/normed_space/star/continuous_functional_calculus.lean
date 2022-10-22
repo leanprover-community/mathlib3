@@ -10,6 +10,93 @@ import analysis.normed_space.star.induced
 
 .
 
+namespace continuous_map
+
+variables {X Y Z : Type*} [topological_space X] [topological_space Y] [topological_space Z]
+variables (𝕜 : Type*) [comm_semiring 𝕜]
+variables (A : Type*) [topological_space A] [semiring A] [topological_semiring A] [star_ring A]
+variables [has_continuous_star A] [algebra 𝕜 A]
+
+/-- The functorial map taking `f : C(X, Y)` to `C(Y, A) →⋆ₐ[𝕜] C(X, A)` given by pre-composition
+with the continuous function `f`. See `continuous_map.comp_monoid_hom'` and
+`continuous_map.comp_add_monoid_hom'`, `continuous_map.comp_right_alg_hom` for bundlings of
+pre-composition into a `monoid_hom`, an `add_monoid_hom` and an `alg_hom`, respectively, under
+suitable assumptions on `A`. -/
+@[simps] def comp_star_alg_hom' (f : C(X, Y)) : C(Y, A) →⋆ₐ[𝕜] C(X, A) :=
+{ to_fun := λ g, g.comp f,
+  map_one' := one_comp _,
+  map_mul' := λ _ _, rfl,
+  map_zero' := zero_comp _,
+  map_add' := λ _ _, rfl,
+  commutes' := λ _, rfl,
+  map_star' := λ _, rfl }
+
+/-- `continuous_map.comp_star_alg_hom'` sends the identity continuous map to the identity
+`star_alg_hom` -/
+lemma comp_star_alg_hom'_id :
+  comp_star_alg_hom' 𝕜 A (continuous_map.id X) = star_alg_hom.id 𝕜 C(X, A) :=
+star_alg_hom.ext $ λ _, continuous_map.ext $ λ _, rfl
+
+/-- `continuous_map.comp_star_alg_hom` is functorial. -/
+lemma comp_star_alg_hom'_comp (g : C(Y, Z)) (f : C(X, Y)) :
+  comp_star_alg_hom' 𝕜 A (g.comp f) = (comp_star_alg_hom' 𝕜 A f).comp (comp_star_alg_hom' 𝕜 A g) :=
+star_alg_hom.ext $ λ _, continuous_map.ext $ λ _, rfl
+
+end continuous_map
+
+namespace homeomorph
+
+variables {X Y : Type*} [topological_space X] [topological_space Y]
+variables (𝕜 : Type*) [comm_semiring 𝕜]
+variables (A : Type*) [topological_space A] [semiring A] [topological_semiring A] [star_ring A]
+variables [has_continuous_star A] [algebra 𝕜 A]
+
+@[simps] def comp_star_alg_equiv (f : X ≃ₜ Y) : C(Y, A) ≃⋆ₐ[𝕜] C(X, A) :=
+{ to_fun := λ g, g.comp f,
+  inv_fun := λ g, g.comp f.symm,
+  left_inv := λ g, by simp only [continuous_map.comp_assoc, to_continuous_map_comp_symm,
+    continuous_map.comp_id],
+  right_inv := λ g, by simp only [continuous_map.comp_assoc, symm_comp_to_continuous_map,
+    continuous_map.comp_id],
+  map_smul' := λ k a, map_smul (f.to_continuous_map.comp_star_alg_hom' 𝕜 A) k a,
+  .. (f.to_continuous_map.comp_star_alg_hom' 𝕜 A) }
+
+end homeomorph
+
+namespace non_unital_star_alg_hom
+
+variables {F R A B : Type*} [monoid R] [has_star A] [has_star B] [non_unital_non_assoc_semiring A]
+variables [non_unital_non_assoc_semiring B] [distrib_mul_action R A] [distrib_mul_action R B]
+variables [non_unital_star_alg_hom_class F R A B]
+
+instance  : has_coe_t F (A →⋆ₙₐ[R] B) :=
+{ coe := λ f,
+  { to_fun := f,
+    map_smul' := map_smul f,
+    map_zero' := map_zero f,
+    map_add' := map_add f,
+    map_mul' := map_mul f,
+    map_star' := map_star f } }
+
+@[simp, protected] lemma coe_coe (f : F) : ⇑(f : A →⋆ₙₐ[R] B) = f := rfl
+
+end non_unital_star_alg_hom
+
+namespace star_alg_hom
+variables {F R A B : Type*} [comm_semiring R] [semiring A] [algebra R A] [has_star A] [semiring B]
+variables [algebra R B] [has_star B] [star_alg_hom_class F R A B]
+
+instance  : has_coe_t F (A →⋆ₐ[R] B) :=
+{ coe := λ f,
+  { to_fun := f,
+    map_one' := map_one f,
+    commutes' := alg_hom_class.commutes f,
+    ..(f : A →⋆ₙₐ[R] B) } }
+
+@[simp, protected] lemma coe_coe (f : F) : ⇑(f : A →⋆ₐ[R] B) = f := rfl
+
+end star_alg_hom
+
 @[norm_cast] lemma algebra_map.coe_star {R A : Type*} [comm_semiring R] [star_ring R] [semiring A]
   [star_ring A] [algebra R A] [star_module R A] (a : R) : (↑(star a) : A) = star ↑a :=
 algebra_map_star_comm a
@@ -82,8 +169,17 @@ star_subalgebra.gc.l_le hs
 lemma adjoin_le_iff {S : star_subalgebra R A} {s : set A} : adjoin R s ≤ S ↔ s ⊆ S :=
 star_subalgebra.gc _ _
 
-end arbitrary
+@[simps]
+def inclusion (S₁ S₂ : star_subalgebra R A) (h : S₁ ≤ S₂) : S₁ →⋆ₐ[R] S₂ :=
+{ to_fun := subtype.map id h,
+  map_one' := rfl,
+  map_mul' := λ x y, rfl,
+  map_zero' := rfl,
+  map_add' := λ x y, rfl,
+  commutes' := λ z, rfl,
+  map_star' := λ x, rfl }
 
+end arbitrary
 
 section arbitrary_topological_star_subalg
 
@@ -103,7 +199,6 @@ lemma topological_closure_mono :
   monotone (topological_closure : star_subalgebra R A → star_subalgebra R A) :=
 λ S₁ S₂ h, topological_closure_minimal' S₁ (h.trans $ le_topological_closure S₂)
   (is_closed_topological_closure S₂)
-
 end arbitrary_topological_star_subalg
 
 section ring_topological_star_subalg
@@ -112,10 +207,72 @@ variables {R : Type*} [comm_ring R] [star_ring R]
 variables {A : Type*} [topological_space A] [ring A]
 variables [algebra R A] [star_ring A] [star_module R A]
 variables [topological_ring A] [has_continuous_star A]
+variables {B : Type*} [topological_space B] [ring B]
+variables [algebra R B] [star_ring B] [star_module R B]
+variables [topological_ring B] [has_continuous_star B]
+-- why are elemental albgeras required to be `ring`s?
 
 lemma elemental_algebra_le_of_mem (S : star_subalgebra R A) (hS : is_closed (S : set A)) (a : A)
   (ha : a ∈ S) : elemental_algebra R a ≤ S :=
 topological_closure_minimal' _ (adjoin_le $ set.singleton_subset_iff.2 ha) hS
+
+lemma elemental_algebra_closed (x : A) : is_closed (elemental_algebra R x : set A) :=
+is_closed_closure
+
+/-- The coercion from an elemental algebra to the full algebra as a `closed_embedding`. -/
+def closed_embedding.coe_elemental_algebra (x : A) :
+  closed_embedding (coe : elemental_algebra R x → A) :=
+{ induced := rfl,
+  inj := subtype.coe_injective,
+  closed_range :=
+  begin
+    convert elemental_algebra_closed x,
+    exact set.ext (λ y, ⟨by {rintro ⟨y, rfl⟩, exact y.prop}, λ hy, ⟨⟨y, hy⟩, rfl⟩⟩),
+  end }
+
+/-- The `star_subalgebra.inclusion` into a star subalgebra as an `embedding`. -/
+def embedding_inclusion {S₁ S₂ : star_subalgebra R A} (h : S₁ ≤ S₂) :
+  embedding (inclusion S₁ S₂ h) :=
+{ induced := eq.symm induced_compose,
+  inj := subtype.map_injective h function.injective_id }
+
+/-- The `star_subalgebra.inclusion` into a closed star subalgebra as a `closed_embedding`. -/
+def closed_embedding_inclusion {S₁ S₂ : star_subalgebra R A} (h : S₁ ≤ S₂)
+  (hS₁ : is_closed (S₁ : set A)) :
+  closed_embedding (inclusion S₁ S₂ h) :=
+{ closed_range := is_closed_induced_iff.2
+    ⟨S₁, hS₁, by { convert (set.range_subtype_map id _).symm, rw set.image_id, refl }⟩,
+  .. embedding_inclusion h }
+
+-- this seems hard to make about `star_alg_hom_class`
+lemma ext_star_alg_hom_topological_closure [t2_space B] {S : star_subalgebra R A}
+  {φ ψ : S.topological_closure →⋆ₐ[R] B} (hφ : continuous φ) (hψ : continuous ψ)
+  (h : φ.comp (inclusion _ _ (le_topological_closure S))
+    = ψ.comp (inclusion _ _ (le_topological_closure S))) :
+  φ = ψ :=
+begin
+  rw fun_like.ext'_iff,
+  have : dense (set.range $ inclusion _ _ (le_topological_closure S)),
+  { refine embedding_subtype_coe.to_inducing.dense_iff.2 (λ x, _),
+    convert (show ↑x ∈ closure (S : set A), from x.prop),
+    rw ←set.range_comp,
+    exact set.ext (λ y, ⟨by { rintro ⟨y, rfl⟩, exact y.prop }, λ hy, ⟨⟨y, hy⟩, rfl⟩⟩), },
+  refine continuous.ext_on this hφ hψ _,
+  rintro _ ⟨x, rfl⟩,
+  simpa only using fun_like.congr_fun h x,
+end
+
+lemma ext_star_alg_hom_class_topological_closure [t2_space B] {F : Type*} {S : star_subalgebra R A}
+  [star_alg_hom_class F R S.topological_closure B] {φ ψ : F} (hφ : continuous φ) (hψ : continuous ψ)
+  (h : ∀ x : S, φ ((inclusion _ _ (le_topological_closure S) x))
+    = ψ ((inclusion _ _ (le_topological_closure S)) x)) :
+  φ = ψ :=
+begin
+  have : (φ : S.topological_closure →⋆ₐ[R] B) = (ψ : S.topological_closure →⋆ₐ[R] B),
+  { refine ext_star_alg_hom_topological_closure hφ hψ (star_alg_hom.ext _);
+    simpa only [star_alg_hom.coe_comp, star_alg_hom.coe_coe] using h },
+  simpa only [fun_like.ext'_iff, star_alg_hom.coe_coe],
+end
 
 end ring_topological_star_subalg
 
@@ -155,7 +312,6 @@ instance to_cstar_ring {R A} [comm_ring R] [star_ring R] [normed_ring A]
     unfold norm,
     rw [map_mul, map_star, cstar_ring.norm_star_mul_self],
   end }
-
 
 instance to_normed_algebra {𝕜 A} [normed_field 𝕜] [star_ring 𝕜] [semi_normed_ring A]
   [star_ring A] [normed_algebra 𝕜 A] [star_module 𝕜 A] (S : star_subalgebra 𝕜 A) :
@@ -313,45 +469,28 @@ namespace star_subalgebra
 
 section c_star_algebra
 
-section generic
+open_locale pointwise ennreal nnreal
 
-variables (A : Type*) [normed_ring A] [normed_algebra ℂ A] [complete_space A]
+open weak_dual weak_dual.character_space
+
+variables {A : Type*} [normed_ring A] [normed_algebra ℂ A] [complete_space A]
 variables [star_ring A] [cstar_ring A] [star_module ℂ A]
-variables (a : A) [is_star_normal a]
+variables (a : A) [is_star_normal a] (S : star_subalgebra ℂ A)
 
 noncomputable instance : normed_comm_ring (star_subalgebra.elemental_algebra ℂ a) :=
 { mul_comm := mul_comm, .. (infer_instance : normed_ring _) }
 
-instance : complete_space (star_subalgebra.elemental_algebra ℂ a) :=
+instance (x : A) : complete_space (star_subalgebra.elemental_algebra ℂ x) :=
 is_closed_closure.complete_space_coe
 
 -- helpful to short-circuit type class inference
 noncomputable instance : normed_algebra ℂ (star_subalgebra.elemental_algebra ℂ a) :=
 infer_instance
 
-end generic
-
-section commutative
-
-open weak_dual weak_dual.character_space
-
-/-
-we need to show that if `a : A` and `ha : is_unit a` then
-`is_unit ⟨a, self_mem_elemental_algebra a⟩`
-
-we also need to show that `elemental_algebra` is unchanged under linear perturbations.
--/
-variables {A : Type*} [normed_ring A] [normed_algebra ℂ A] [complete_space A]
-variables [star_ring A] [cstar_ring A] [star_module ℂ A]
-variables {a : A} [is_star_normal a] (S : star_subalgebra ℂ A)
-
 localized "attribute [instance] complex.partial_order complex.strict_ordered_comm_ring
   complex.star_ordered_ring" in c_star_algebra
 
--- this will be superseded by a later result, or will it? Maybe not.
-lemma foo₁ : is_unit (star a * a) ↔ is_unit (star a) ∧ is_unit a :=
-commute.is_unit_mul_iff (star_comm_self' a)
-
+-- this is just a stepping stone to the main theorem
 lemma foo₃ : spectrum ℂ (star a * a) ⊆ set.Icc (0 : ℂ) (∥star a * a∥) :=
 begin
   nontriviality A,
@@ -367,11 +506,8 @@ begin
 end
 
 .
-open_locale pointwise ennreal nnreal
 
-example (a b c : ℂ) : {a} - set.Icc b c = set.Icc (a - c) (a - b) :=
-set.singleton_sub.trans (set.image_const_sub_Icc a b c)
-
+variables {a}
 .
 namespace complex
 
@@ -401,7 +537,7 @@ begin
     change (coe : ℂ → A) with algebra_map ℂ A at hz,
     rw [←spectrum.singleton_sub_eq, set.singleton_sub] at hz,
     have h₃ : z ∈ set.Icc (0 : ℂ) (∥star a * a∥),
-    { replace hz := set.image_subset _ foo₃ hz,
+    { replace hz := set.image_subset _ (foo₃ a) hz,
       rwa [set.image_const_sub_Icc, sub_self, sub_zero] at hz },
     refine lt_of_le_of_ne (complex.real_le_real.1 $ complex.eq_coe_norm_of_nonneg h₃.1 ▸ h₃.2) _,
     { intros hz',
@@ -466,62 +602,75 @@ lemma spectrum_eq {S : star_subalgebra ℂ A} (hS : is_closed (S : set A)) (x : 
   spectrum ℂ x = spectrum ℂ (x : A) :=
 set.ext $ λ _, not_iff_not.2 (coe_is_unit hS).symm
 
-#exit
-
-/- this is superseded by `foo₃`.
-lemma foo₂ : spectrum ℂ (star a * a) ⊆ coe '' (set.Icc (0 : ℝ) ∥star a * a∥) :=
-begin
-  nontriviality A,
-  set a' : elemental_algebra ℂ a := ⟨a, self_mem_elemental_algebra ℂ a⟩,
-  refine (spectrum.subset_star_subalgebra (star a' * a')).trans _,
-  rw [←spectrum.gelfand_transform_eq, continuous_map.spectrum_eq_range],
-  rintro - ⟨φ, rfl⟩,
-  rw [gelfand_transform_apply_apply ℂ (elemental_algebra ℂ a), map_mul, map_star],
-  refine ⟨is_R_or_C.norm_sq (φ a'), ⟨is_R_or_C.norm_sq_nonneg _, _⟩, _⟩,
-  rw [is_R_or_C.norm_sq_eq_def', sq, ←cstar_ring.norm_star_mul_self, ←map_star, ←map_mul],
-  exact alg_hom.norm_apply_le_self φ (star a' * a'),
-  rw [←is_R_or_C.mul_conj, mul_comm, star_ring_end_apply],
-end
--/
-
-lemma is_unit_of_is_unit (h : is_unit a) :
-  is_unit (⟨a, self_mem_elemental_algebra ℂ a⟩ : elemental_algebra ℂ a) :=
-begin
-/-
-  nontriviality A,
-  set a' : elemental_algebra ℂ a := ⟨a, self_mem_elemental_algebra ℂ a⟩,
-  have ha := foo₁.mpr ⟨h.star, h⟩,
-  replace ha : (0 : ℂ) ∉ spectrum ℂ (star a * a),
-    from spectrum.not_mem_iff.mpr (by simpa only [map_zero, zero_sub, is_unit.neg_iff] using ha),
-  by_contra ha',
-  erw [←is_unit.neg_iff, ←zero_sub, ← map_zero (algebra_map ℂ (elemental_algebra ℂ a)),
-    ←spectrum.mem_iff, ←spectrum.gelfand_transform_eq, continuous_map.spectrum_eq_range] at ha',
-  obtain ⟨φ, hφ⟩ := ha',
-  rw [gelfand_transform_apply_apply] at hφ,
-  change ↥(character_space ℂ ↥(elemental_algebra ℂ a)) at φ,
-  have hφ'' := alg_hom.apply_mem_spectrum φ (algebra_map ℂ (elemental_algebra ℂ a) (∥star a' * a'∥ : ℂ) - star a' * a'),
-  rw [←spectrum.singleton_sub_eq, set.singleton_sub] at hφ'',
-  rcases hφ'' with ⟨z, hz₁, hz₂⟩,
-  rw [map_sub, map_mul, hφ, alg_hom_class.commutes, mul_zero] at hz₂,
-  --have := spectrum.norm_le_norm_of_mem hφ'',
-  --simp at hφ'', -/
-  sorry
-end
-end commutative
-
-#exit
-
-
-#exit
+variables (a)
 
 noncomputable def foo : character_space ℂ (elemental_algebra ℂ a) → spectrum ℂ a :=
 λ φ,
 { val := φ ⟨a, self_mem_elemental_algebra ℂ a⟩,
-  property :=
-  begin
-    have := alg_hom.apply_mem_spectrum φ
-      (⟨a, self_mem_elemental_algebra ℂ a⟩),
-  end }
+  property := by simpa only [spectrum_eq (elemental_algebra_closed a)
+    ⟨a, self_mem_elemental_algebra ℂ a⟩]
+    using alg_hom.apply_mem_spectrum φ (⟨a, self_mem_elemental_algebra ℂ a⟩) }
+
+noncomputable instance foobar : star_alg_hom_class (character_space ℂ A) ℂ A ℂ :=
+{ coe := λ f, (f : A → ℂ),
+  map_star := λ f, map_star f,
+  .. character_space.alg_hom_class }
+
+lemma foo_injective : function.injective (foo a) :=
+begin
+  intros φ ψ h,
+  simp only [foo, subtype.mk_eq_mk] at h,
+  refine ext_star_alg_hom_class_topological_closure (map_continuous φ) (map_continuous ψ) (λ x, _),
+  refine adjoin_induction' ℂ x _ _ _ _ _,
+  { intros y hy, rw set.mem_singleton_iff at hy, simp_rw hy, exact h },
+  { intros z, simp only [alg_hom_class.commutes] },
+  { intros x y hx hy,
+  calc φ (inclusion _ _ (le_topological_closure (adjoin ℂ {a})) (x + y))
+        = φ (inclusion _ _ (le_topological_closure (adjoin ℂ {a})) x
+            + inclusion _ _ (le_topological_closure (adjoin ℂ {a})) y)
+    : rfl
+    ... = ψ (inclusion _ _ (le_topological_closure (adjoin ℂ {a})) x
+            + inclusion _ _ (le_topological_closure (adjoin ℂ {a})) y)
+        : by rw [map_add φ, hx, hy, ←map_add ψ]
+    ... = ψ (inclusion _ _ (le_topological_closure (adjoin ℂ {a})) (x + y))
+    : rfl },
+  { intros x y hx hy, simp only [map_mul, hx, hy] },
+  { intros x hx, simp only [map_star, hx] },
+end
+
+.
+
+lemma foo_surjective : function.surjective (foo a) :=
+begin
+  rintros ⟨z, hz⟩,
+  have hz' := hz,
+  set a' : elemental_algebra ℂ a := ⟨a, self_mem_elemental_algebra ℂ a⟩,
+  have haa' : a = a' := rfl,
+  rw [haa', ←spectrum_eq (elemental_algebra_closed a) a', ←spectrum.gelfand_transform_eq a',
+    continuous_map.spectrum_eq_range] at hz',
+  obtain ⟨φ, rfl⟩ := hz',
+  use φ,
+  simp only [gelfand_transform_apply_apply],
+  ext1,
+  refl,
+end
+
+lemma foo_continuous : continuous (foo a) :=
+begin
+  rw continuous_induced_rng,
+  have : (coe : spectrum ℂ a → ℂ) ∘ (foo a) = (λ φ, φ ⟨a, self_mem_elemental_algebra ℂ a⟩),
+  exact funext (λ φ, rfl),
+  rw this,
+  exact map_continuous (gelfand_transform ℂ (elemental_algebra ℂ a) ⟨a, self_mem_elemental_algebra ℂ a⟩) ,
+end
+
+noncomputable def foo_homeo : character_space ℂ (elemental_algebra ℂ a) ≃ₜ spectrum ℂ a :=
+@continuous.homeo_of_equiv_compact_to_t2 _ _ _ _ _ _
+  (equiv.of_bijective (foo a) ⟨foo_injective a, foo_surjective a⟩) (foo_continuous a)
+
+noncomputable def continuous_functional_calculus :
+  C(spectrum ℂ a, ℂ) ≃⋆ₐ[ℂ] elemental_algebra ℂ a :=
+((foo_homeo a).comp_star_alg_equiv ℂ ℂ).trans (gelfand_star_transform (elemental_algebra ℂ a)).symm
 
 end c_star_algebra
 

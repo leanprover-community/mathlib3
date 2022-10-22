@@ -69,23 +69,20 @@ def mk (R : internal Ab C)
   presheaf :=
   { obj := λ Y, begin
       refine Ring.mk (R.presheaf.obj Y) (yoneda_one.to_presheaf Y)
-        (yoneda_mul.on_internal_presheaf.app Y) _ _ _ _ _,
+        (yoneda_mul.φ.on_internal_presheaf.app Y) _ _ _ _ _,
       { sorry, },
       { sorry, },
       { sorry, },
       { intros x₁ x₁' x₂,
-        simp only [Ab.yoneda_bilinear.on_internal_presheaf_app,
+        simp only [internal_yoneda_operation₂_gen.on_internal_presheaf_app,
           Ab.yoneda_bilinear.on_internal_presheaf_right_distrib], },
       { intros x₁ x₂ x₂',
-        simp only [Ab.yoneda_bilinear.on_internal_presheaf_app,
+        simp only [internal_yoneda_operation₂_gen.on_internal_presheaf_app,
           Ab.yoneda_bilinear.on_internal_presheaf_left_distrib], },
     end,
-    map := λ Y Y' f, begin
-      refine ⟨R.presheaf_type.map f, yoneda_one.to_presheaf_map f, _, _, _⟩,
-      { sorry, },
-      { sorry, },
-      { sorry, },
-    end, },
+    map := λ Y Y' f, ⟨R.presheaf_type.map f, yoneda_one.to_presheaf_map f,
+      yoneda_mul.φ.on_internal_presheaf_curry_naturality f,
+      (R.presheaf.map f).map_zero, (R.presheaf.map f).map_add⟩, },
   iso := sorry, }
 
 end Ring

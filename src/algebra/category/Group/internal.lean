@@ -163,32 +163,11 @@ namespace yoneda_bilinear
 
 variables (bil : yoneda_bilinear M₁ M₂ M₃) {M₁ M₂ M₃} {Y Y' : Cᵒᵖ}
 
-def on_internal_presheaf : concat₂ M₁.presheaf_type M₂.presheaf_type ⟶ M₃.presheaf_type :=
-lift₂ (pr₁ ≫ M₁.iso.inv) (pr₂ ≫ M₂.iso.inv) ≫ bil.φ ≫ M₃.iso.hom
-
-@[simp]
-def on_internal_presheaf_curry
-  (x₁ : M₁.presheaf_type.obj Y) (x₂ : M₂.presheaf_type.obj Y) :
-  M₃.presheaf_type.obj Y :=
-M₃.iso.hom.app _ (bil.φ.app _ ⟨M₁.iso.inv.app _ x₁, M₂.iso.inv.app _ x₂⟩)
-
-@[simp]
-lemma on_internal_presheaf_app
-  (x₁ : M₁.presheaf_type.obj Y) (x₂ : M₂.presheaf_type.obj Y) :
-  bil.on_internal_presheaf.app Y ⟨x₁, x₂⟩ = bil.on_internal_presheaf_curry x₁ x₂ := rfl
-
-def on_internal_presheaf_curry_naturality
-  (x₁ : M₁.presheaf_type.obj Y) (x₂ : M₂.presheaf_type.obj Y) (f : Y ⟶ Y') :
-  bil.on_internal_presheaf_curry (M₁.presheaf_type.map f x₁)
-    (M₂.presheaf_type.map f x₂) =
-  M₃.presheaf_type.map f (bil.on_internal_presheaf_curry x₁ x₂) :=
-congr_fun (bil.on_internal_presheaf.naturality f) ⟨x₁, x₂⟩
-
 @[simp]
 lemma on_internal_presheaf_right_distrib
   (x₁ x₁' : M₁.presheaf_type.obj Y) (x₂ : M₂.presheaf_type.obj Y) :
-bil.on_internal_presheaf_curry (x₁ + x₁') x₂ =
-  bil.on_internal_presheaf_curry x₁ x₂ + bil.on_internal_presheaf_curry x₁' x₂ :=
+bil.φ.on_internal_presheaf_curry (x₁ + x₁') x₂ =
+  bil.φ.on_internal_presheaf_curry x₁ x₂ + bil.φ.on_internal_presheaf_curry x₁' x₂ :=
 begin
   have h := congr_fun (nat_trans.congr_app bil.right_distrib Y)
     ⟨M₁.iso.inv.app _ x₁, M₁.iso.inv.app _ x₁', M₂.iso.inv.app _ x₂⟩,
@@ -202,8 +181,8 @@ end
 @[simp]
 lemma on_internal_presheaf_left_distrib
   (x₁ : M₁.presheaf_type.obj Y) (x₂ x₂': M₂.presheaf_type.obj Y) :
-bil.on_internal_presheaf_curry x₁ (x₂ + x₂') =
-  bil.on_internal_presheaf_curry x₁ x₂ + bil.on_internal_presheaf_curry x₁ x₂' :=
+bil.φ.on_internal_presheaf_curry x₁ (x₂ + x₂') =
+  bil.φ.on_internal_presheaf_curry x₁ x₂ + bil.φ.on_internal_presheaf_curry x₁ x₂' :=
 begin
   have h := congr_fun (nat_trans.congr_app bil.left_distrib Y)
     ⟨M₁.iso.inv.app _ x₁, M₂.iso.inv.app _ x₂, M₂.iso.inv.app _ x₂'⟩,

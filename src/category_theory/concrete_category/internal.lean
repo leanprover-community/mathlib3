@@ -277,22 +277,51 @@ end
 end operation₂
 
 end concrete_category
+
+open concrete_category concrete_category.operations
+
+variables {A₁ A₂ A₃ C : Type*} [category A₁] [category A₂] [category A₃] [category.{v₁} C]
+  [concrete_category.{v₁} A₁] [concrete_category.{v₁} A₂] [concrete_category.{v₁} A₃]
+  {M₁ : internal A₁ C} {M₂ : internal A₂ C} {M₃ : internal A₃ C}
+
 namespace internal_yoneda_operation₀
 
-open concrete_category
-
-variables {A C : Type*} [category C] [category A] [concrete_category.{v₁} A] [category.{v₁} C]
-  {M : internal A C}
-
 @[simp]
-def to_presheaf (c : internal_yoneda_operation₀ M.obj) (Y : Cᵒᵖ) :=
-  (c ≫ M.iso.hom).app Y punit.star
+def to_presheaf (c : internal_yoneda_operation₀ M₁.obj) (Y : Cᵒᵖ) :=
+  (c ≫ M₁.iso.hom).app Y punit.star
 
-lemma to_presheaf_map (c : internal_yoneda_operation₀ M.obj) {Y Y' : Cᵒᵖ} (f : Y ⟶ Y') :
-  (M.presheaf ⋙ forget A).map f (c.to_presheaf Y) = c.to_presheaf Y' :=
-congr_fun ((c ≫ M.iso.hom).naturality f).symm punit.star
+lemma to_presheaf_map (c : internal_yoneda_operation₀ M₁.obj) {Y Y' : Cᵒᵖ} (f : Y ⟶ Y') :
+  (M₁.presheaf ⋙ forget A₁).map f (c.to_presheaf Y) = c.to_presheaf Y' :=
+congr_fun ((c ≫ M₁.iso.hom).naturality f).symm punit.star
 
 end internal_yoneda_operation₀
 
+namespace internal_yoneda_operation₂_gen
+
+variables (oper : internal_yoneda_operation₂_gen M₁.obj M₂.obj M₃.obj) {Y Y' : Cᵒᵖ}
+
+def on_internal_presheaf : concat₂ M₁.presheaf_type M₂.presheaf_type ⟶ M₃.presheaf_type :=
+lift₂ (pr₁ ≫ M₁.iso.inv) (pr₂ ≫ M₂.iso.inv) ≫ oper ≫ M₃.iso.hom
+
+@[simp]
+def on_internal_presheaf_curry
+  (x₁ : M₁.presheaf_type.obj Y) (x₂ : M₂.presheaf_type.obj Y) :
+  M₃.presheaf_type.obj Y :=
+M₃.iso.hom.app _ (oper.app _ ⟨M₁.iso.inv.app _ x₁, M₂.iso.inv.app _ x₂⟩)
+
+@[simp]
+lemma on_internal_presheaf_app
+  (x₁ : M₁.presheaf_type.obj Y) (x₂ : M₂.presheaf_type.obj Y) :
+  oper.on_internal_presheaf.app Y ⟨x₁, x₂⟩ = oper.on_internal_presheaf_curry x₁ x₂ := rfl
+
+def on_internal_presheaf_curry_naturality
+  (f : Y ⟶ Y') (x₁ : M₁.presheaf_type.obj Y) (x₂ : M₂.presheaf_type.obj Y) :
+  M₃.presheaf_type.map f (oper.on_internal_presheaf_curry x₁ x₂) =
+  oper.on_internal_presheaf_curry (M₁.presheaf_type.map f x₁)
+    (M₂.presheaf_type.map f x₂) :=
+congr_fun (oper.on_internal_presheaf.naturality f).symm ⟨x₁, x₂⟩
+
+
+end internal_yoneda_operation₂_gen
 
 end category_theory

@@ -391,14 +391,30 @@ def map_equiv (f : R ≃+* S):
   local_ring.residue_field R ≃+* local_ring.residue_field S :=
 { to_fun := map (f : R →+* S),
   inv_fun := map (f.symm : S →+* R),
-  left_inv := λ x, by simp only [← map_map, symm_comp, map_id, ring_hom.id_apply],
-  right_inv := λ x, by simp only [← map_map, comp_symm, map_id, ring_hom.id_apply],
+  left_inv := λ x, by simp only [map_map, symm_comp, map_id, ring_hom.id_apply],
+  right_inv := λ x, by simp only [map_map, comp_symm, map_id, ring_hom.id_apply],
   map_mul' := ring_hom.map_mul _,
   map_add' := ring_hom.map_add _ }
 
 @[simp]
 lemma map_equiv.symm (f : R ≃+* S):
   (map_equiv f).symm = map_equiv f.symm := ext $ λ x, rfl
+
+/-- The group homomorphism from `ring_aut R` to `ring_aut k` where `k`
+is the residue field of `R`. -/
+def map_aut:
+  ring_aut R →* ring_aut (local_ring.residue_field R):=
+{ to_fun := map_equiv,
+  map_mul' := begin
+  intros φ ψ,
+  ext,
+  exact map_map (φ : R →+* R) (ψ : R →+* R) x,
+  end,
+  map_one' := begin
+  ext,
+  apply local_ring.residue_field.map_id_apply,
+  end
+  }
 
 end
 

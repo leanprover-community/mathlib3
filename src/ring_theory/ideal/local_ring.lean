@@ -375,25 +375,32 @@ section
 
 open ring_equiv local_ring
 
-@[simp]lemma map_id_apply {x : residue_field R} : map (ring_hom.id R) x = x :=
+@[simp]
+lemma map_id_apply {x : residue_field R} : map (ring_hom.id R) x = x :=
 by simp only [map_id, ring_hom.id_apply]
 
-@[simp]lemma map_comp_apply (f : R →+* S) (g : S →+* T) (x : residue_field R)
+@[simp]
+lemma map_map (f : R →+* S) (g : S →+* T) (x : residue_field R)
 [is_local_ring_hom f] [is_local_ring_hom g] :
-map (g.comp f) x = (map g) ((map f) x) :=
+  map (g.comp f) x = map g (map f x) :=
 by simp only [map_comp, ring_hom.comp_apply]
 
 noncomputable theory
 
 /-- A ring isomorphism defines an isomorphism of residue fields -/
+@[simps apply]
 def map_equiv (f : R ≃+* S):
- (local_ring.residue_field R) ≃+* (local_ring.residue_field S) :=
+  local_ring.residue_field R ≃+* local_ring.residue_field S :=
 { to_fun := map (f : R →+* S),
   inv_fun := map (f.symm : S →+* R),
-  left_inv := λ x, by simp only [← map_comp_apply, symm_comp, map_id, ring_hom.id_apply],
-  right_inv := λ x, by simp only [← map_comp_apply, comp_symm, map_id, ring_hom.id_apply],
+  left_inv := λ x, by simp only [← map_map, symm_comp, map_id, ring_hom.id_apply],
+  right_inv := λ x, by simp only [← map_map, comp_symm, map_id, ring_hom.id_apply],
   map_mul' := ring_hom.map_mul _,
   map_add' := ring_hom.map_add _ }
+
+@[simp]
+lemma map_equiv.symm (f : R ≃+* S):
+  (map_equiv f).symm = map_equiv f.symm := ext $ λ x, rfl
 
 end
 

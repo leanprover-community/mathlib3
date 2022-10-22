@@ -84,11 +84,6 @@ def map {β} (f : α → β) : tree α → tree β
 | nil := nil
 | (node a l r) := node (f a) (map l) (map r)
 
-/-- A non-nil `tree α`; useful when we want an arbitrary value other than `nil` -/
-abbreviation non_nil [inhabited α] : tree α := node default nil nil
-
-@[simp] lemma non_nil_ne [inhabited α] : non_nil ≠ (@nil α) := by trivial
-
 /-- The number of internal nodes (i.e. not including leaves) of a binary tree -/
 @[simp] def num_nodes : tree α → ℕ
 | nil := 0

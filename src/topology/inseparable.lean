@@ -184,6 +184,225 @@ lemma continuous.specialization_monotone (hf : continuous f) :
   @monotone _ _ (specialization_preorder X) (specialization_preorder Y) f :=
 λ x y h, h.map hf
 
+/-- A subset `S` of a topological space is stable under specialization
+if `x ∈ S → y ∈ S` for all `x ⤳ y`. -/
+def stable_under_specialisation (s : set X) : Prop :=
+∀ ⦃x y⦄, x ⤳ y → x ∈ s → y ∈ s
+
+/-- A subset `S` of a topological space is stable under specialization
+if `x ∈ S → y ∈ S` for all `y ⤳ x`. -/
+def stable_under_generalisation (s : set X) : Prop :=
+∀ ⦃x y⦄, y ⤳ x → x ∈ s → y ∈ s
+
+lemma is_closed.stable_under_specialisation {s : set X} (hs : is_closed s) :
+  stable_under_specialisation s :=
+λ x y e, e.mem_closed hs
+
+lemma is_open.stable_under_generalisation {s : set X} (hs : is_open s) :
+  stable_under_generalisation s :=
+λ x y e, e.mem_open hs
+
+lemma stable_under_generalisation.compl {s : set X} (hs : stable_under_generalisation s) :
+  stable_under_specialisation sᶜ :=
+λ x y e, mt (hs e)
+
+lemma stable_under_specialisation.compl {s : set X} (hs : stable_under_specialisation s) :
+  stable_under_generalisation sᶜ :=
+λ x y e, mt (hs e)
+
+lemma stable_under_specialisation_compl_iff {s : set X} :
+  stable_under_specialisation sᶜ ↔ stable_under_generalisation s :=
+⟨λ h, compl_compl s ▸ h.compl, λ h, h.compl⟩
+
+lemma stable_under_generalisation_compl_iff {s : set X} :
+  stable_under_generalisation sᶜ ↔ stable_under_specialisation s :=
+⟨λ h, compl_compl s ▸ h.compl, λ h, h.compl⟩
+
+lemma stable_under_specialisation_sUnion (S : set (set X))
+  (H : ∀ s ∈ S, stable_under_specialisation s) : stable_under_specialisation (⋃₀ S) :=
+λ x y e ⟨s, hs, hxs⟩, ⟨s, hs, H s hs e hxs⟩
+
+lemma stable_under_specialisation_sInter (S : set (set X))
+  (H : ∀ s ∈ S, stable_under_specialisation s) : stable_under_specialisation (⋂₀ S) :=
+λ x y e hx s hs, H s hs e (hx s hs)
+
+lemma stable_under_generalisation_sUnion (S : set (set X))
+  (H : ∀ s ∈ S, stable_under_generalisation s) : stable_under_generalisation (⋃₀ S) :=
+λ x y e ⟨s, hs, hxs⟩, ⟨s, hs, H s hs e hxs⟩
+
+lemma stable_under_generalisation_sInter (S : set (set X))
+  (H : ∀ s ∈ S, stable_under_generalisation s) : stable_under_generalisation (⋂₀ S) :=
+λ x y e hx s hs, H s hs e (hx s hs)
+
+lemma stable_under_specialisation_Union {ι : Sort*} (S : ι → set X)
+  (H : ∀ i, stable_under_specialisation (S i)) : stable_under_specialisation (⋃ i, S i) :=
+λ x y e ⟨s, ⟨i, (hi : S i = s)⟩, hxs⟩, ⟨_, ⟨i, rfl⟩, H i e (hi.symm ▸ hxs)⟩
+
+lemma stable_under_specialisation_Inter {ι : Sort*} (S : ι → set X)
+  (H : ∀ i, stable_under_specialisation (S i)) : stable_under_specialisation (⋂ i, S i) :=
+λ x y e hx s ⟨i, (hi : S i = s)⟩, hi ▸ H i e (hi.symm ▸ hx _ ⟨i, hi⟩)
+
+lemma stable_under_generalisation_Union {ι : Sort*} (S : ι → set X)
+  (H : ∀ i, stable_under_generalisation (S i)) : stable_under_generalisation (⋃ i, S i) :=
+λ x y e ⟨s, ⟨i, (hi : S i = s)⟩, hxs⟩, ⟨_, ⟨i, rfl⟩, H i e (hi.symm ▸ hxs)⟩
+
+lemma stable_under_generalisation_Inter {ι : Sort*} (S : ι → set X)
+  (H : ∀ i, stable_under_generalisation (S i)) : stable_under_generalisation (⋂ i, S i) :=
+λ x y e hx s ⟨i, (hi : S i = s)⟩, hi ▸ H i e (hi.symm ▸ hx _ ⟨i, hi⟩)
+
+lemma stable_under_specialisation_iff_forall_closure_subset {s : set X} :
+  stable_under_specialisation s ↔ ∀ x ∈ s, closure {x} ⊆ s :=
+by simp_rw [set.subset_def, ← specializes_iff_mem_closure, @forall_swap (_ ∈ s),
+    stable_under_specialisation]
+
+alias stable_under_specialisation_iff_forall_closure_subset ↔
+  stable_under_specialisation.closure_subset _
+
+lemma stable_under_specialisation_iff_Union_subset {s : set X} :
+  stable_under_specialisation s ↔ (⋃ x ∈ s, closure {x}) ⊆ s :=
+by simp_rw [Union_subset_iff, stable_under_specialisation_iff_forall_closure_subset]
+
+lemma stable_under_specialisation_iff_Union_eq {s : set X} :
+  stable_under_specialisation s ↔ (⋃ x ∈ s, closure {x}) = s :=
+stable_under_specialisation_iff_Union_subset.trans
+  ⟨λ h, le_antisymm h $
+    λ x hx, ⟨_, ⟨_, rfl⟩, _, ⟨hx, rfl⟩, subset_closure $ set.mem_singleton x⟩, eq.le⟩
+
+alias stable_under_specialisation_iff_Union_eq ↔ stable_under_specialisation.Union_eq _
+
+/-- A set is stable under specialisation iff it is the union of closed sets -/
+lemma stable_under_specialisation_iff_exists_sUnion_eq {s : set X} :
+  stable_under_specialisation s ↔ ∃ (S : set (set X)), (∀ s ∈ S, is_closed s) ∧ ⋃₀ S = s :=
+begin
+  refine ⟨λ H, ⟨(λ x : X, closure {x}) '' s, _, _⟩, λ ⟨S, hS, e⟩, e ▸
+    stable_under_specialisation_sUnion S (λ x hx, (hS x hx).stable_under_specialisation)⟩,
+  { rintros _ ⟨_, _, rfl⟩, exact is_closed_closure },
+  { conv_rhs { rw ← stable_under_specialisation_iff_Union_eq.mp H }, simp }
+end
+
+/-- A set is stable under generalisation iff it is the intersection of open sets -/
+lemma stable_under_generalisation_iff_exists_sInter_eq {s : set X} :
+  stable_under_generalisation s ↔ ∃ (S : set (set X)), (∀ s ∈ S, is_open s) ∧ ⋂₀ S = s :=
+begin
+  refine ⟨_, λ ⟨S, hS, e⟩, e ▸
+    stable_under_generalisation_sInter S (λ x hx, (hS x hx).stable_under_generalisation)⟩,
+  rw [← stable_under_specialisation_compl_iff,
+    stable_under_specialisation_iff_exists_sUnion_eq],
+  exact λ ⟨S, h₁, h₂⟩, ⟨has_compl.compl '' S, λ s ⟨t, ht, e⟩, e ▸ (h₁ t ht).is_open_compl,
+    compl_injective ((sUnion_eq_compl_sInter_compl S).symm.trans h₂)⟩
+end
+
+lemma stable_under_specialisation.preimage {s : set Y}
+  (hs : stable_under_specialisation s) (hf : continuous f) :
+  stable_under_specialisation (f ⁻¹' s) :=
+begin
+  rw ← hs.Union_eq,
+  simp only [set.preimage_Union],
+  exact stable_under_specialisation_Union _ (λ i, stable_under_specialisation_Union _ $ λ hi,
+    (is_closed_closure.preimage hf).stable_under_specialisation)
+end
+
+lemma stable_under_generalisation.preimage {s : set Y}
+  (hs : stable_under_generalisation s) (hf : continuous f) :
+  stable_under_generalisation (f ⁻¹' s) :=
+begin
+  rw ← stable_under_specialisation_compl_iff at hs ⊢,
+  rw ← set.preimage_compl,
+  exact hs.preimage hf,
+end
+
+/-- A map `f` between topological spaces is specialising if specializations lifts along `f`,
+i.e. for each `y ⬿ f x'` there is some `x ⬿ x'` whose image is `y`. -/
+def specialising (f : X → Y) : Prop :=
+∀ y x' (h : f x' ⤳ y), ∃ x, x' ⤳ x ∧ f x = y
+
+/-- A map `f` between topological spaces is generalising if generalizations lifts along `f`,
+i.e. for each `y ⤳ f x'` there is some `x ⤳ x'` whose image is `y`. -/
+def generalising (f : X → Y) : Prop :=
+∀ y x' (h : y ⤳ f x'), ∃ x ⤳ x', f x = y
+
+lemma specialising_iff_closure_singleton_subset :
+  specialising f ↔ ∀ x, closure {f x} ⊆ f '' closure {x} :=
+begin
+  simp_rw [specialising, specializes_iff_mem_closure],
+  exact forall_swap
+end
+
+alias specialising_iff_closure_singleton_subset ↔ specialising.closure_singleton_subset _
+
+lemma specialising.stable_under_specialisation_image (hf : specialising f)
+  {s : set X} (hs : stable_under_specialisation s) : stable_under_specialisation (f '' s) :=
+begin
+  rw stable_under_specialisation_iff_Union_subset,
+  have : ∀ i ∈ s, closure {f i} ⊆ f '' s :=
+    λ x hx, (hf.closure_singleton_subset x).trans (image_subset _ $ hs.closure_subset x hx),
+  simpa
+end
+
+alias specialising.stable_under_specialisation_image ← stable_under_specialisation.image
+
+lemma specialising_iff_image_singleton_stable_under_specialisation :
+  specialising f ↔ ∀ x, stable_under_specialisation (f '' closure {x}) :=
+⟨λ H _, is_closed_closure.stable_under_specialisation.image H,
+  λ H, specialising_iff_closure_singleton_subset.mpr
+    (λ x, (H x).closure_subset _ (set.mem_image_of_mem _ $ subset_closure $ set.mem_singleton x))⟩
+
+lemma specialising_iff_stable_under_specialisation_image :
+  specialising f ↔ ∀ s, stable_under_specialisation s → stable_under_specialisation (f '' s) :=
+⟨specialising.stable_under_specialisation_image,
+  λ H, specialising_iff_image_singleton_stable_under_specialisation.mpr $
+    λ x, H _ is_closed_closure.stable_under_specialisation⟩
+
+lemma specialising_iff_closure_singleton (hf : continuous f) :
+  specialising f ↔ ∀ x, closure {f x} = f '' closure {x} :=
+begin
+  rw specialising_iff_closure_singleton_subset,
+  have : ∀ x, f '' closure {x} ≤ closure {f x},
+  { rintros x _ ⟨y, hy, rfl⟩, rw ← specializes_iff_mem_closure at hy ⊢, exact hy.map hf },
+  exact forall_congr (λ x, (this x).le_iff_eq)
+end
+
+lemma specialising_iff_is_closed_image_closure_singleton (hf : continuous f) :
+  specialising f ↔ ∀ x, is_closed (f '' closure {x}) :=
+begin
+  refine ⟨λ h x, _, λ h, specialising_iff_image_singleton_stable_under_specialisation.mpr
+    (λ x, (h x).stable_under_specialisation)⟩,
+  rw ← (specialising_iff_closure_singleton hf).mp h x,
+  exact is_closed_closure
+end
+
+lemma is_closed_map.specialising (hf : is_closed_map f) : specialising f :=
+specialising_iff_image_singleton_stable_under_specialisation.mpr $
+  λ x, (hf _ is_closed_closure).stable_under_specialisation
+
+lemma specialising.stable_under_specialisation_range (h : specialising f) :
+  stable_under_specialisation (set.range f) :=
+@set.image_univ _ _ f ▸ is_closed_univ.stable_under_specialisation.image h
+
+lemma generalising.stable_under_generalisation_image (hf : generalising f) {s : set X}
+  (hs : stable_under_generalisation s) : stable_under_generalisation (f '' s) :=
+begin
+  rintros _ y e ⟨x', hx', rfl⟩,
+  obtain ⟨x, hx, rfl⟩ := hf _ _ e,
+  exact set.mem_image_of_mem _ (hs hx hx')
+end
+
+lemma generalising_iff_stable_under_generalisation_image :
+  generalising f ↔ ∀ s, stable_under_generalisation s → stable_under_generalisation (f '' s) :=
+begin
+  refine ⟨generalising.stable_under_generalisation_image, λ H y x' e, _⟩,
+  obtain ⟨x, hx, rfl⟩ := H (⋂₀ { s | is_open s ∧ x' ∈ s }) (stable_under_generalisation_sInter _ $
+    λ s hs, hs.1.stable_under_generalisation) e (set.mem_image_of_mem _ (λ s hs, hs.2)),
+  refine ⟨_, specializes_iff_forall_open.mpr $
+    λ s hs h, sInter_subset_of_mem (by exact ⟨hs, h⟩) hx, rfl⟩
+end
+
+alias generalising.stable_under_generalisation_image ← stable_under_generalisation.image
+
+lemma generalising.stable_under_generalisation_range (h : generalising f) :
+  stable_under_generalisation (set.range f) :=
+@set.image_univ _ _ f ▸ is_open_univ.stable_under_generalisation.image h
+
 /-!
 ### `inseparable` relation
 -/

@@ -1729,6 +1729,10 @@ begin
   exact ⟨𝒰.f x, 𝒰.covers x⟩
 end
 
+lemma Scheme.open_cover.supr_opens_range {X : Scheme} (𝒰 : X.open_cover) :
+(⨆ i, (𝒰.map i).opens_range) = ⊤ :=
+opens.ext $ by { rw opens.coe_supr, exact 𝒰.Union_range }
+
 lemma Scheme.open_cover.compact_space {X : Scheme} (𝒰 : X.open_cover) [finite 𝒰.J]
   [H : ∀ i, compact_space (𝒰.obj i).carrier] : compact_space X.carrier :=
 begin
@@ -1808,10 +1812,20 @@ lemma pullback_restrict_iso_restrict_hom_morphism_restrict {X Y : Scheme} (f : X
 iso.hom_inv_id_assoc _ _
 
 @[simp, reassoc]
-lemma morphism_restrict_ι  {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) :
+lemma morphism_restrict_ι {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) :
   f ∣_ U ≫ Y.of_restrict U.open_embedding = X.of_restrict _ ≫ f :=
 by { delta morphism_restrict,
   rw [category.assoc, pullback.condition.symm, pullback_restrict_iso_restrict_inv_fst_assoc] }
+
+lemma is_pullback_morphism_restrict {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) :
+  is_pullback (f ∣_ U) (X.of_restrict _) (Y.of_restrict _) f :=
+begin
+  delta morphism_restrict,
+  nth_rewrite 0 ← category.id_comp f,
+  refine (is_pullback.of_horiz_is_iso ⟨_⟩).paste_horiz
+    (is_pullback.of_has_pullback f (Y.of_restrict U.open_embedding)).flip,
+  rw [pullback_restrict_iso_restrict_inv_fst, category.comp_id],
+end
 
 lemma morphism_restrict_comp {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) (U : opens Z.carrier) :
   (f ≫ g) ∣_ U = (f ∣_ ((opens.map g.val.base).obj U) ≫ g ∣_ U : _) :=

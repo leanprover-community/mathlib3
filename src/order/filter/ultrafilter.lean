@@ -287,6 +287,8 @@ variables {f : filter α} {s : set α} {a : α}
 
 open ultrafilter
 
+lemma is_atom_pure : is_atom (pure a : filter α) := (pure a : ultrafilter α).is_atom
+
 protected lemma ne_bot.le_pure_iff (hf : f.ne_bot) : f ≤ pure a ↔ f = pure a :=
 ⟨ultrafilter.unique (pure a), le_of_eq⟩
 

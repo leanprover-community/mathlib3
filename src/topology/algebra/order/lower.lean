@@ -296,10 +296,10 @@ def upper_closure_prod_basis (α : Type u) (β : Type v) [partial_order α] [par
 
 variable {β : Type v}
 
-variables [partial_order α] [topological_space α] [t: lower_topology α]
-variables [topological_space β] [partial_order β] [s : lower_topology β]
+variables [partial_order α]
+variables  [partial_order β]
+/-
 
-include s
 
 variables [p : lower_topology (α×β)]
 
@@ -309,7 +309,7 @@ include p
 
 lemma upper_closure_prod_basis_is_basis : is_topological_basis (upper_closure_prod_basis α β)  :=
 ⟨ sorry, sorry, sorry ⟩
-
+-/
 
 /-
 lemma prod_basis
@@ -354,6 +354,26 @@ lower_set.ext begin
     exact h, }
 end
 
+lemma upper_closure_compl_prod_upper_closure_compl' (F₁ : set α) (F₂ : set β)
+  : ((upper_closure F₁).compl.prod (upper_closure F₂).compl)  =
+  (upper_closure (univ ×ˢ F₂)).compl ⊓ (upper_closure (F₁ ×ˢ univ)).compl :=
+begin
+  rw upper_closure_compl_prod_upper_closure_compl,
+  simp only [upper_closure_prod, upper_closure_univ],
+end
+
+lemma upper_closure_compl_prod_upper_closure_compl'' {α : Type u} {β : Type v} [complete_lattice α] [complete_lattice β]
+  (F₁ : set α) (F₂ : set β) : ((upper_closure F₁).compl.prod (upper_closure F₂).compl)  =
+  (upper_closure ({(⊥ : α)} ×ˢ F₂)).compl ⊓ (upper_closure (F₁ ×ˢ {(⊥ : β)})).compl :=
+by rw [upper_closure_compl_prod_upper_closure_compl, upper_closure_prod, upper_closure_prod,
+    upper_closure_singleton, upper_closure_singleton, upper_set.Ici_bot, upper_set.Ici_bot]
+
+
+#check is_topological_basis.prod
+
+variables [topological_space α] [t: lower_topology α] [topological_space β] [s : lower_topology β]
+
+include s
 include t
 
 instance : lower_topology (α × β) :=
@@ -374,6 +394,18 @@ instance : lower_topology (α × β) :=
   end }
 
 end prod
+
+section confused
+
+universes v
+
+
+
+
+
+
+
+end confused
 
 section prime
 

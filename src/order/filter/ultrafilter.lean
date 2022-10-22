@@ -271,8 +271,7 @@ lemma exists_ultrafilter_of_finite_inter_nonempty (S : set (set α))
 begin
   haveI : ne_bot (generate S) := generate_ne_bot_iff.2
     (λ t hts ht, ht.coe_to_finset ▸ cond ht.to_finset (ht.coe_to_finset.symm ▸ hts)),
-  rcases exists_le (generate S) with ⟨G, hG⟩,
-  exact ⟨G, λ t ht, hG $ generate_sets.basic ht⟩
+  exact ⟨of (generate S), λ t ht, (of_le $ generate S) $ generate_sets.basic ht⟩
 end
 
 end ultrafilter

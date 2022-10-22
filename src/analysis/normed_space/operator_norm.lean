@@ -392,12 +392,21 @@ add_group_seminorm.to_seminormed_add_comm_group
   add_le' := op_norm_add_le,
   neg' := op_norm_neg }
 
+/-- The `pseudo_metric_space` structure on `E →SL[σ₁₂] F` coming from
+`continuous_linear_map.tmp_seminormed_add_comm_group`.
+See Note [forgetful inheritance] -/
 protected def tmp_pseudo_metric_space : pseudo_metric_space (E →SL[σ₁₂] F) :=
 continuous_linear_map.tmp_seminormed_add_comm_group.to_pseudo_metric_space
 
+/-- The `uniform_space` structure on `E →SL[σ₁₂] F` coming from
+`continuous_linear_map.tmp_seminormed_add_comm_group`.
+See Note [forgetful inheritance] -/
 protected def tmp_uniform_space : uniform_space (E →SL[σ₁₂] F) :=
 continuous_linear_map.tmp_pseudo_metric_space.to_uniform_space
 
+/-- The `topological_space` structure on `E →SL[σ₁₂] F` coming from
+`continuous_linear_map.tmp_seminormed_add_comm_group`.
+See Note [forgetful inheritance] -/
 protected def tmp_topological_space : topological_space (E →SL[σ₁₂] F) :=
 continuous_linear_map.tmp_uniform_space.to_topological_space
 

@@ -227,7 +227,10 @@ begin
   have Cg : continuous g := linear_map.continuous_of_finite_dimensional g,
   have Cesymm : continuous e.symm := (e.symm : (ι → ℝ) →ₗ[ℝ] E).continuous_of_finite_dimensional,
   rw [← map_map Cesymm.measurable (Cg.comp Ce).measurable, ← map_map Cg.measurable Ce.measurable],
-  haveI : is_add_haar_measure (map e μ) := is_add_haar_measure_map μ e.to_add_equiv Ce Cesymm,
+  have he : tendsto e (cocompact E) (cocompact (ι → ℝ)) :=
+    ({ .. e } : E ≃L[ℝ] ι → ℝ).to_homeomorph.to_cocompact_map.cocompact_tendsto',
+  haveI : is_add_haar_measure (map e μ) :=
+    is_add_haar_measure_map μ (e : E →+ (ι → ℝ)) Ce e.surjective he,
   have ecomp : (e.symm) ∘ e = id,
     by { ext x, simp only [id.def, function.comp_app, linear_equiv.symm_apply_apply] },
   rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), measure.map_smul,

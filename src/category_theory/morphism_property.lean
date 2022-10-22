@@ -420,6 +420,63 @@ end
 
 end diagonal
 
+section universally
+
+/-- `P.universally` holds for a morphism `f : X ⟶ Y` iff `P` holds for all `X ×[Y] Y' ⟶ Y'`. -/
+def universally (P : morphism_property C) : morphism_property C :=
+λ X Y f, ∀ ⦃X' Y' : C⦄ (i₁ : X' ⟶ X) (i₂ : Y' ⟶ Y) (f' : X' ⟶ Y')
+  (h : is_pullback f' i₁ i₂ f), P f'
+
+lemma universally_respects_iso (P : morphism_property C) :
+  P.universally.respects_iso :=
+begin
+  constructor,
+  { intros X Y Z e f hf X' Z' i₁ i₂ f' H,
+    have : is_pullback (𝟙 _) (i₁ ≫ e.hom) i₁ e.inv := is_pullback.of_horiz_is_iso
+      ⟨by rw [category.id_comp, category.assoc, e.hom_inv_id, category.comp_id]⟩,
+    replace this := this.paste_horiz H,
+    rw [iso.inv_hom_id_assoc, category.id_comp] at this,
+    exact hf _ _ _ this },
+  { intros X Y Z e f hf X' Z' i₁ i₂ f' H,
+    have : is_pullback (𝟙 _) i₂ (i₂ ≫ e.inv) e.inv :=
+      is_pullback.of_horiz_is_iso ⟨category.id_comp _⟩,
+    replace this := H.paste_horiz this,
+    rw [category.assoc, iso.hom_inv_id, category.comp_id, category.comp_id] at this,
+    exact hf _ _ _ this },
+end
+
+lemma universally_stable_under_base_change (P : morphism_property C) :
+  P.universally.stable_under_base_change :=
+λ X Y Y' S f g f' g' H h₁ Y'' X'' i₁ i₂ f'' H', h₁ _ _ _ (H'.paste_vert H.flip)
+
+lemma stable_under_composition.universally [has_pullbacks C]
+  {P : morphism_property C} (hP : P.stable_under_composition) :
+  P.universally.stable_under_composition :=
+begin
+  intros X Y Z f g hf hg X' Z' i₁ i₂ f' H,
+  have := pullback.lift_fst _ _ (H.w.trans (category.assoc _ _ _).symm),
+  rw ← this at H ⊢,
+  apply hP _ _ _ (hg _ _ _ $ is_pullback.of_has_pullback _ _),
+  exact hf _ _ _ (H.of_right (pullback.lift_snd _ _ _) (is_pullback.of_has_pullback i₂ g))
+end
+
+lemma universally_le (P : morphism_property C) :
+  P.universally ≤ P :=
+begin
+  intros X Y f hf,
+  exact hf (𝟙 _) (𝟙 _) _ (is_pullback.of_vert_is_iso ⟨by rw [category.comp_id, category.id_comp]⟩)
+end
+
+lemma stable_under_base_change.universally_eq
+  {P : morphism_property C} (hP : P.stable_under_base_change) :
+  P.universally = P :=
+P.universally_le.antisymm $ λ X Y f hf X' Y' i₁ i₂ f' H, hP H.flip hf
+
+lemma universally_mono : monotone (universally : morphism_property C → morphism_property C) :=
+λ P₁ P₂ h X Y f h₁ X' Y' i₁ i₂ f' H, h _ _ _ (h₁ _ _ _ H)
+
+end universally
+
 end morphism_property
 
 end category_theory

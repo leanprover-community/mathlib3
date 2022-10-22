@@ -758,6 +758,10 @@ lemma continuous_within_at.continuous_at {f : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (hs : s ∈ 𝓝 x) : continuous_at f x :=
 (continuous_within_at_iff_continuous_at hs).mp h
 
+lemma is_open.continuous_on_iff {f : α → β} {s : set α} (hs : is_open s) :
+  continuous_on f s ↔ ∀ ⦃a⦄, a ∈ s → continuous_at f a :=
+ball_congr $ λ _, continuous_within_at_iff_continuous_at ∘ hs.mem_nhds
+
 lemma continuous_on.continuous_at {f : α → β} {s : set α} {x : α}
   (h : continuous_on f s) (hx : s ∈ 𝓝 x) : continuous_at f x :=
 (h x (mem_of_mem_nhds hx)).continuous_at hx

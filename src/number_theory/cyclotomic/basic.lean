@@ -5,7 +5,7 @@ Authors: Riccardo Brasca
 -/
 
 import ring_theory.polynomial.cyclotomic.basic
-import number_theory.number_field
+import number_theory.number_field.basic
 import algebra.char_p.algebra
 import field_theory.galois
 
@@ -72,11 +72,11 @@ variables [field K] [field L] [algebra K L]
 noncomputable theory
 
 /-- Given an `A`-algebra `B` and `S : set ℕ+`, we define `is_cyclotomic_extension S A B` requiring
-that there is a `a`-th primitive root of unity in `B` for all `a ∈ S` and that `B` is generated
+that there is a `n`-th primitive root of unity in `B` for all `n ∈ S` and that `B` is generated
 over `A` by the roots of `X ^ n - 1`. -/
 @[mk_iff] class is_cyclotomic_extension : Prop :=
-(exists_prim_root {a : ℕ+} (ha : a ∈ S) : ∃ r : B, is_primitive_root r a)
-(adjoin_roots : ∀ (x : B), x ∈ adjoin A { b : B | ∃ a : ℕ+, a ∈ S ∧ b ^ (a : ℕ) = 1 })
+(exists_prim_root {n : ℕ+} (ha : n ∈ S) : ∃ r : B, is_primitive_root r n)
+(adjoin_roots : ∀ (x : B), x ∈ adjoin A { b : B | ∃ n : ℕ+, n ∈ S ∧ b ^ (n : ℕ) = 1 })
 
 namespace is_cyclotomic_extension
 
@@ -84,8 +84,8 @@ section basic
 
 /-- A reformulation of `is_cyclotomic_extension` that uses `⊤`. -/
 lemma iff_adjoin_eq_top : is_cyclotomic_extension S A B ↔
- (∀ (a : ℕ+), a ∈ S → ∃ r : B, is_primitive_root r a) ∧
- (adjoin A { b : B | ∃ a : ℕ+, a ∈ S ∧ b ^ (a : ℕ) = 1 } = ⊤) :=
+ (∀ (n : ℕ+), n ∈ S → ∃ r : B, is_primitive_root r n) ∧
+ (adjoin A { b : B | ∃ n : ℕ+, n ∈ S ∧ b ^ (n : ℕ) = 1 } = ⊤) :=
 ⟨λ h, ⟨λ _, h.exists_prim_root, algebra.eq_top_iff.2 h.adjoin_roots⟩,
   λ h, ⟨h.1, algebra.eq_top_iff.1 h.2⟩⟩
 
@@ -552,12 +552,12 @@ instance [ne_zero ((n : ℕ) : A)] :
       refine ⟨⟨a.1 * b.2 + b.1 * a.2, a.2 * b.2, mul_mem_non_zero_divisors.2 ⟨a.2.2, b.2.2⟩⟩, _⟩,
       rw [set_like.coe_mk, ring_hom.map_mul, add_mul, ← mul_assoc, ha,
         mul_comm ((algebra_map _ _) ↑a.2), ← mul_assoc, hb],
-      simp },
+      simp only [map_add, map_mul] },
     { rintro y z ⟨a, ha⟩ ⟨b, hb⟩,
       refine ⟨⟨a.1 * b.1, a.2 * b.2, mul_mem_non_zero_divisors.2 ⟨a.2.2, b.2.2⟩⟩, _⟩,
       rw [set_like.coe_mk, ring_hom.map_mul, mul_comm ((algebra_map _ _) ↑a.2), mul_assoc,
         ← mul_assoc z, hb, ← mul_comm ((algebra_map _ _) ↑a.2), ← mul_assoc, ha],
-      simp }
+      simp only [map_mul] }
   end,
   eq_iff_exists := λ x y, ⟨λ h, ⟨1, by rw adjoin_algebra_injective n A K h⟩,
     λ ⟨c, hc⟩, by rw mul_right_cancel₀ (non_zero_divisors.ne_zero c.prop) hc⟩ }

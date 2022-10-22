@@ -262,7 +262,7 @@ instance : order_bot (structure_groupoid H) :=
       apply u.id_mem },
     { apply u.locality,
       assume x hx,
-      rw [hf, mem_empty_eq] at hx,
+      rw [hf, mem_empty_iff_false] at hx,
       exact hx.elim }
   end }
 
@@ -456,6 +456,7 @@ The model space is written as an explicit parameter as there can be several mode
 given topological space. For instance, a complex manifold (modelled over `ℂ^n`) will also be seen
 sometimes as a real manifold over `ℝ^(2n)`.
 -/
+@[ext]
 class charted_space (H : Type*) [topological_space H] (M : Type*) [topological_space M] :=
 (atlas []            : set (local_homeomorph M H))
 (chart_at []         : M → local_homeomorph M H)
@@ -508,6 +509,9 @@ lemma achart_def (x : M) : achart H x = ⟨chart_at H x, chart_mem_atlas H x⟩ 
 lemma coe_achart (x : M) : (achart H x : local_homeomorph M H) = chart_at H x := rfl
 @[simp, mfld_simps]
 lemma achart_val (x : M) : (achart H x).1 = chart_at H x := rfl
+
+lemma mem_achart_source (x : M) : x ∈ (achart H x).1.source :=
+mem_chart_source H x
 
 open topological_space
 
@@ -645,6 +649,9 @@ variables [topological_space H] [topological_space M] [charted_space H M]
 
 @[simp, mfld_simps] lemma prod_charted_space_chart_at :
   (chart_at (model_prod H H') x) = (chart_at H x.fst).prod (chart_at H' x.snd) := rfl
+
+lemma charted_space_self_prod : prod_charted_space H H H' H' = charted_space_self (H × H') :=
+by { ext1, { simp [prod_charted_space, atlas] }, { ext1, simp [chart_at_self_eq], refl } }
 
 end prod_charted_space
 

@@ -121,6 +121,8 @@ instance : unique (R ⧸ (⊤ : ideal R)) :=
 lemma mk_surjective : function.surjective (mk I) :=
 λ y, quotient.induction_on' y (λ x, exists.intro x rfl)
 
+instance : ring_hom_surjective (mk I) := ⟨mk_surjective⟩
+
 /-- If `I` is an ideal of a commutative ring `R`, if `q : R → R/I` is the quotient map, and if
 `s ⊆ R` is a subset, then `q⁻¹(q(s)) = ⋃ᵢ(i + s)`, the union running over all `i ∈ I`. -/
 lemma quotient_ring_saturate (I : ideal R) (s : set R) :
@@ -208,6 +210,15 @@ def lift (I : ideal R) (f : R →+* S) (H : ∀ (a : R), a ∈ I → f a = 0) :
 @[simp] lemma lift_mk (I : ideal R) (f : R →+* S) (H : ∀ (a : R), a ∈ I → f a = 0) :
   lift I f H (mk I a) = f a := rfl
 
+lemma lift_surjective_of_surjective (I : ideal R) {f : R →+* S} (H : ∀ (a : R), a ∈ I → f a = 0)
+  (hf : function.surjective f) : function.surjective (ideal.quotient.lift I f H) :=
+begin
+  intro y,
+  obtain ⟨x, rfl⟩ := hf y,
+  use ideal.quotient.mk I x,
+  simp only [ideal.quotient.lift_mk],
+end
+
 /-- The ring homomorphism from the quotient by a smaller ideal to the quotient by a larger ideal.
 
 This is the `ideal.quotient` version of `quot.factor` -/
@@ -255,33 +266,33 @@ instance module_pi : module (R ⧸ I) ((ι → R) ⧸ I.pi ι) :=
   end,
   one_smul := begin
     rintro ⟨a⟩,
-    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    convert_to ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
     congr' with i, exact one_mul (a i),
   end,
   mul_smul := begin
     rintro ⟨a⟩ ⟨b⟩ ⟨c⟩,
-    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    convert_to ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
     simp only [(•)],
     congr' with i, exact mul_assoc a b (c i),
   end,
   smul_add := begin
     rintro ⟨a⟩ ⟨b⟩ ⟨c⟩,
-    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    convert_to ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
     congr' with i, exact mul_add a (b i) (c i),
   end,
   smul_zero := begin
     rintro ⟨a⟩,
-    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    convert_to ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
     congr' with i, exact mul_zero a,
   end,
   add_smul := begin
     rintro ⟨a⟩ ⟨b⟩ ⟨c⟩,
-    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    convert_to ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
     congr' with i, exact add_mul a b (c i),
   end,
   zero_smul := begin
     rintro ⟨a⟩,
-    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    convert_to ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
     congr' with i, exact zero_mul (a i),
   end, }
 

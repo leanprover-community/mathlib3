@@ -49,21 +49,16 @@ class normed_lattice_add_comm_group (α : Type*)
 lemma solid {α : Type*} [normed_lattice_add_comm_group α] {a b : α} (h : |a| ≤ |b|) : ∥a∥ ≤ ∥b∥ :=
 normed_lattice_add_comm_group.solid a b h
 
-noncomputable instance : normed_lattice_add_comm_group ℝ :=
+instance : normed_lattice_add_comm_group ℝ :=
 { add_le_add_left := λ _ _ h _, add_le_add le_rfl h,
   solid := λ _ _, id, }
+
 /--
 A normed lattice ordered group is an ordered additive commutative group
 -/
 @[priority 100] -- see Note [lower instance priority]
 instance normed_lattice_add_comm_group_to_ordered_add_comm_group {α : Type*}
   [h : normed_lattice_add_comm_group α] : ordered_add_comm_group α := { ..h }
-
-/--
-Let `α` be a normed group with a partial order. Then the order dual is also a normed group.
--/
-@[priority 100] -- see Note [lower instance priority]
-instance {α : Type*} : Π [normed_add_comm_group α], normed_add_comm_group αᵒᵈ := id
 
 variables {α : Type*} [normed_lattice_add_comm_group α]
 open lattice_ordered_comm_group
@@ -85,8 +80,8 @@ normed lattice ordered group.
 -/
 @[priority 100] -- see Note [lower instance priority]
 instance : normed_lattice_add_comm_group αᵒᵈ :=
-{ add_le_add_left := λ a b, add_le_add_left,
-  solid := dual_solid }
+{ solid := dual_solid,
+  ..order_dual.ordered_add_comm_group, ..order_dual.normed_add_comm_group }
 
 lemma norm_abs_eq_norm (a : α) : ∥|a|∥ = ∥a∥ :=
 (solid (abs_abs a).le).antisymm (solid (abs_abs a).symm.le)

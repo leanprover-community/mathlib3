@@ -231,6 +231,10 @@ def eval (r : R) : polynomial_module R M →ₗ[R] M :=
 lemma eval_single (r : R) (i : ℕ) (m : M) : eval r (single R i m) = r ^ i • m :=
 finsupp.sum_single_index (smul_zero _)
 
+@[simp]
+lemma eval_lsingle (r : R) (i : ℕ) (m : M) : eval r (lsingle R i m) = r ^ i • m :=
+eval_single r i m
+
 lemma eval_smul (p : R[X]) (q : polynomial_module R M) (r : R) :
   eval r (p • q) = p.eval r • eval r q :=
 begin

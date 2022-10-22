@@ -387,6 +387,18 @@ def punit_prod : punit × α ≃ₜ α :=
 
 end
 
+/-- If each `β₁ i` is homeomorphic to `β₂ i`, then `Π i, β₁ i` is homeomorphic to `Π i, β₂ i`. -/
+@[simps apply to_equiv] def Pi_congr_right {ι : Type*} {β₁ β₂ : ι → Type*}
+  [Π i, topological_space (β₁ i)] [Π i, topological_space (β₂ i)] (F : Π i, β₁ i ≃ₜ β₂ i) :
+  (Π i, β₁ i) ≃ₜ (Π i, β₂ i) :=
+{ continuous_to_fun := continuous_pi (λ i, (F i).continuous.comp $ continuous_apply i),
+  continuous_inv_fun := continuous_pi (λ i, (F i).symm.continuous.comp $ continuous_apply i),
+  to_equiv := equiv.Pi_congr_right (λ i, (F i).to_equiv) }
+
+@[simp] lemma Pi_congr_right_symm {ι : Type*} {β₁ β₂ : ι → Type*} [Π i, topological_space (β₁ i)]
+  [Π i, topological_space (β₂ i)] (F : Π i, β₁ i ≃ₜ β₂ i) :
+  (Pi_congr_right F).symm = Pi_congr_right (λ i, (F i).symm) := rfl
+
 /-- `ulift α` is homeomorphic to `α`. -/
 def {u v} ulift {α : Type u} [topological_space α] : ulift.{v u} α ≃ₜ α :=
 { continuous_to_fun := continuous_ulift_down,
@@ -399,8 +411,7 @@ section distrib
 def sum_prod_distrib : (α ⊕ β) × γ ≃ₜ α × γ ⊕ β × γ :=
 homeomorph.symm $ homeomorph_of_continuous_open (equiv.sum_prod_distrib α β γ).symm
   ((continuous_inl.prod_map continuous_id).sum_elim (continuous_inr.prod_map continuous_id)) $
-  is_open_map_sum (open_embedding_inl.is_open_map.prod is_open_map.id)
-    (open_embedding_inr.is_open_map.prod is_open_map.id)
+  (is_open_map_inl.prod is_open_map.id).sum_elim (is_open_map_inr.prod is_open_map.id)
 
 /-- `α × (β ⊕ γ)` is homeomorphic to `α × β ⊕ α × γ`. -/
 def prod_sum_distrib : α × (β ⊕ γ) ≃ₜ α × β ⊕ α × γ :=
@@ -412,12 +423,9 @@ variables {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)]
 
 /-- `(Σ i, σ i) × β` is homeomorphic to `Σ i, (σ i × β)`. -/
 def sigma_prod_distrib : ((Σ i, σ i) × β) ≃ₜ (Σ i, (σ i × β)) :=
-homeomorph.symm $
-homeomorph_of_continuous_open (equiv.sigma_prod_distrib σ β).symm
-  (continuous_sigma $ λ i,
-    (continuous_sigma_mk.comp continuous_fst).prod_mk continuous_snd)
-  (is_open_map_sigma $ λ i,
-    (open_embedding_sigma_mk.prod open_embedding_id).is_open_map)
+homeomorph.symm $ homeomorph_of_continuous_open (equiv.sigma_prod_distrib σ β).symm
+  (continuous_sigma $ λ i, continuous_sigma_mk.fst'.prod_mk continuous_snd)
+  (is_open_map_sigma.2 $ λ i, is_open_map_sigma_mk.prod is_open_map.id)
 
 end distrib
 
@@ -461,6 +469,38 @@ def set.univ (α : Type*) [topological_space α] : (univ : set α) ≃ₜ α :=
     (continuous_subtype_coe.snd.subtype_mk _),
   continuous_inv_fun := (continuous_subtype_coe.fst'.prod_mk
     continuous_subtype_coe.snd').subtype_mk _ }
+
+section
+
+variable {ι : Type*}
+
+/-- The topological space `Π i, β i` can be split as a product by separating the indices in ι
+  depending on whether they satisfy a predicate p or not.-/
+@[simps] def pi_equiv_pi_subtype_prod (p : ι → Prop) (β : ι → Type*) [Π i, topological_space (β i)]
+  [decidable_pred p] : (Π i, β i) ≃ₜ (Π i : {x // p x}, β i) × Π i : {x // ¬p x}, β i :=
+{ to_equiv := equiv.pi_equiv_pi_subtype_prod p β,
+  continuous_to_fun := by apply continuous.prod_mk; exact continuous_pi (λ j, continuous_apply j),
+  continuous_inv_fun := continuous_pi $ λ j, begin
+    dsimp only [equiv.pi_equiv_pi_subtype_prod], split_ifs,
+    exacts [(continuous_apply _).comp continuous_fst, (continuous_apply _).comp continuous_snd],
+  end }
+
+variables [decidable_eq ι] (i : ι)
+
+/-- A product of topological spaces can be split as the binary product of one of the spaces and
+  the product of all the remaining spaces. -/
+@[simps] def pi_split_at (β : ι → Type*) [Π j, topological_space (β j)] :
+  (Π j, β j) ≃ₜ β i × Π j : {j // j ≠ i}, β j :=
+{ to_equiv := equiv.pi_split_at i β,
+  continuous_to_fun := (continuous_apply i).prod_mk (continuous_pi $ λ j, continuous_apply j),
+  continuous_inv_fun := continuous_pi $ λ j, by { dsimp only [equiv.pi_split_at],
+    split_ifs, subst h, exacts [continuous_fst, (continuous_apply _).comp continuous_snd] } }
+
+/-- A product of copies of a topological space can be split as the binary product of one copy and
+  the product of all the remaining copies. -/
+@[simps] def fun_split_at : (ι → β) ≃ₜ β × ({j // j ≠ i} → β) := pi_split_at i _
+
+end
 
 end homeomorph
 

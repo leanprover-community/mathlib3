@@ -143,7 +143,7 @@ The non-empty complements of the upper closures of finite subsets are a collecti
 which form a basis for the lower topology
 -/
 def lower_basis (α : Type u) [preorder α] :=
-  {s : set α | ∃ (F : set α),  F.finite ∧
+{s : set α | ∃ (F : set α), F.finite ∧
   (upper_closure F).compl.carrier = s ∧
   (upper_closure F).compl.carrier.nonempty }
 

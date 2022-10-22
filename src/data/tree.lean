@@ -90,9 +90,9 @@ abbreviation non_nil [inhabited α] : tree α := node default nil nil
 @[simp] lemma non_nil_ne [inhabited α] : non_nil ≠ (@nil α) := by trivial
 
 /-- The number of internal nodes (i.e. not including leaves) of a binary tree -/
-@[simp] def nodes : tree α → ℕ
+@[simp] def num_nodes : tree α → ℕ
 | nil := 0
-| (node _ a b) := a.nodes + b.nodes + 1
+| (node _ a b) := a.num_nodes + b.num_nodes + 1
 
 /-- The number of leaves of a binary tree -/
 @[simp] def num_leaves : tree α → ℕ
@@ -104,18 +104,18 @@ abbreviation non_nil [inhabited α] : tree α := node default nil nil
 | nil := 0
 | (node _ a b) := max a.height b.height + 1
 
-lemma leaves_eq_nodes_succ (x : tree α) : x.num_leaves = x.nodes + 1 :=
+lemma leaves_eq_nodes_succ (x : tree α) : x.num_leaves = x.num_nodes + 1 :=
 by { induction x; simp [*, nat.add_comm, nat.add_assoc, nat.add_left_comm], }
 
 lemma leaves_pos (x : tree α) : 0 < x.num_leaves :=
-by { rw leaves_eq_nodes_succ, exact x.nodes.zero_lt_succ, }
+by { rw leaves_eq_nodes_succ, exact x.num_nodes.zero_lt_succ, }
 
-lemma height_le_nodes : ∀ (x : tree α), x.height ≤ x.nodes
+lemma height_le_nodes : ∀ (x : tree α), x.height ≤ x.num_nodes
 | nil := le_refl _
 | (node _ a b) := nat.succ_le_succ
     (max_le
-      (trans a.height_le_nodes $ a.nodes.le_add_right _)
-      (trans b.height_le_nodes $ b.nodes.le_add_left _))
+      (trans a.height_le_nodes $ a.num_nodes.le_add_right _)
+      (trans b.height_le_nodes $ b.num_nodes.le_add_left _))
 
 /-- The left child of the tree, or `nil` if the tree is `nil` -/
 @[simp] def left : tree α → tree α

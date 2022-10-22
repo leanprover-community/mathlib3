@@ -380,7 +380,7 @@ by simp only [map_id, ring_hom.id_apply]
 
 @[simp] lemma map_map (f : R →+* S) (g : S →+* T) (x : residue_field R)
 [is_local_ring_hom f] [is_local_ring_hom g] :
-  map (g.comp f) x = map g (map f x) :=
+  map g (map f x) = map (g.comp f) x :=
 by simp only [map_comp, ring_hom.comp_apply]
 
 noncomputable theory

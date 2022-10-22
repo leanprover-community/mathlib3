@@ -28,7 +28,7 @@ sets).
 ## Main definitions
 
 * `continuous_linear_map.strong_topology` is the topology mentioned above for an arbitrary `𝔖`.
-* `continuous_linear_map.to_topological_space` is the topology of bounded convergence. This is
+* `continuous_linear_map.topological_space` is the topology of bounded convergence. This is
   declared as an instance.
 
 ## Main statements
@@ -36,8 +36,8 @@ sets).
 * `continuous_linear_map.strong_topology.topological_add_group` and
   `continuous_linear_map.strong_topology.has_continuous_smul` show that the strong topology
   makes `E →L[𝕜] F` a topological vector space, with the assumptions on `𝔖` mentioned above.
-* `continuous_linear_map.to_topological_add_group` and
-  `continuous_linear_map.to_has_continuous_smul` register these facts as instances for the special
+* `continuous_linear_map.topological_add_group` and
+  `continuous_linear_map.has_continuous_smul` register these facts as instances for the special
   case of bounded convergence.
 
 ## References

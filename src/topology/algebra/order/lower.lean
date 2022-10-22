@@ -126,7 +126,7 @@ section partial_order
 
 variable [partial_order α]
 
-lemma Ici_eq (a b : α) : Ici a = Ici b ↔  a = b :=
+lemma Ici_eq (a b : α) : Ici a = Ici b ↔ a = b :=
 begin
   split,
   { intro h,

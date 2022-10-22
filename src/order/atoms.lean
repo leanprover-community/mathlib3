@@ -683,7 +683,8 @@ protected lemma is_atomic_iff [order_bot α] [order_bot β] (f : α ≃o β) :
 by simp only [is_atomic_iff, f.surjective.forall, f.surjective.exists, ← map_bot f, f.eq_iff_eq,
   f.le_iff_le, f.is_atom_iff]
 
-lemma is_coatomic_iff [order_top α] [order_top β] (f : α ≃o β) : is_coatomic α ↔ is_coatomic β :=
+protected lemma is_coatomic_iff [order_top α] [order_top β] (f : α ≃o β) :
+  is_coatomic α ↔ is_coatomic β :=
 by simp only [← is_atomic_dual_iff_is_coatomic, f.dual.is_atomic_iff]
 
 end order_iso

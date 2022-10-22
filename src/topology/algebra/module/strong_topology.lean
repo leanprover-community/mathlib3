@@ -99,8 +99,7 @@ begin
 end
 
 lemma strong_topology.topological_add_group [topological_space F] [topological_add_group F]
-  (𝔖 : set (set E)) :
-  @topological_add_group (E →SL[σ] F) (strong_topology σ F 𝔖) _ :=
+  (𝔖 : set (set E)) : @topological_add_group (E →SL[σ] F) (strong_topology σ F 𝔖) _ :=
 begin
   letI : uniform_space F := topological_add_group.to_uniform_space F,
   haveI : uniform_add_group F := topological_add_comm_group_is_uniform,

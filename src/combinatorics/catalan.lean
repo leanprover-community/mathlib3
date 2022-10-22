@@ -26,6 +26,9 @@ triangulations of convex polygons.
 * `catalan_eq_central_binom_div `: The explicit formula for the Catalan number using the central
   binomial coefficient, `catalan n = nat.central_binom n / (n + 1)`.
 
+* `trees_of_nodes_eq_card_eq_catalan`: The number of binary trees with `n` internal nodes
+  is `catalan n`
+
 ## Implementation details
 
 The proof of `catalan_eq_central_binom_div` follows
@@ -147,22 +150,23 @@ namespace tree
   (a ×ˢ b).map ⟨λ x, x.1.unode x.2, λ ⟨x₁, x₂⟩ ⟨y₁, y₂⟩, by { simp, tauto, }⟩
 
 /-- A finset of all trees with `n` nodes. See `mem_trees_of_nodes_eq` -/
-def trees_of_nodes_eq : ℕ → finset (tree unit)
+def trees_of_num_nodes_eq : ℕ → finset (tree unit)
 | 0 := {nil}
 | (n+1) := (finset.nat.antidiagonal n).attach.bUnion $ λ ijh,
   have _ := nat.lt_succ_of_le (fst_le ijh.2),
   have _ := nat.lt_succ_of_le (snd_le ijh.2),
-  pairwise_node (trees_of_nodes_eq ijh.1.1) (trees_of_nodes_eq ijh.1.2)
+  pairwise_node (trees_of_num_nodes_eq ijh.1.1) (trees_of_num_nodes_eq ijh.1.2)
 
-@[simp] lemma trees_of_nodes_eq_zero : trees_of_nodes_eq 0 = {nil} := by rw [trees_of_nodes_eq]
+@[simp] lemma trees_of_nodes_eq_zero : trees_of_num_nodes_eq 0 = {nil} :=
+by rw [trees_of_num_nodes_eq]
 
-lemma trees_of_nodes_eq_succ (n : ℕ) : trees_of_nodes_eq (n + 1) =
-  (nat.antidiagonal n).bUnion (λ ij, pairwise_node (trees_of_nodes_eq ij.1)
-    (trees_of_nodes_eq ij.2)) :=
-by { rw trees_of_nodes_eq, ext, simp [-pairwise_node], }
+lemma trees_of_nodes_eq_succ (n : ℕ) : trees_of_num_nodes_eq (n + 1) =
+  (nat.antidiagonal n).bUnion (λ ij, pairwise_node (trees_of_num_nodes_eq ij.1)
+    (trees_of_num_nodes_eq ij.2)) :=
+by { rw trees_of_num_nodes_eq, ext, simp [-pairwise_node], }
 
 @[simp] theorem mem_trees_of_nodes_eq {x : tree unit} {n : ℕ} :
-  x ∈ trees_of_nodes_eq n ↔ x.nodes = n :=
+  x ∈ trees_of_num_nodes_eq n ↔ x.num_nodes = n :=
 begin
   induction x using tree.unit_rec_on generalizing n;
   cases n;
@@ -171,7 +175,7 @@ begin
 end
 
 lemma trees_of_nodes_eq_card_eq_catalan (n : ℕ) :
-  (trees_of_nodes_eq n).card = catalan n :=
+  (trees_of_num_nodes_eq n).card = catalan n :=
 begin
   induction n using nat.case_strong_induction_on with n ih,
   { simp, },

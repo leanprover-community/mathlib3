@@ -98,7 +98,7 @@ open_locale uniformity filter topological_space
 section limits_of_derivatives
 
 variables {ι : Type*} {l : filter ι}
-  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+  {E : Type*} [normed_add_comm_group E]
   {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E]
   {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
   {y : G} {f : ι → E → G} {g : E → G} {f' : ι → (E → (E →L[𝕜] G))} {g' : E → (E →L[𝕜] G)}
@@ -114,6 +114,7 @@ lemma uniform_cauchy_seq_on_filter_of_fderiv
   (hfg : cauchy (map (λ (n : ι), f n x) l)) :
   uniform_cauchy_seq_on_filter f l (𝓝 x) :=
 begin
+  letI : normed_space ℝ E, from normed_space.restrict_scalars ℝ 𝕜 _,
   rw seminormed_add_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero at
     hf' ⊢,
 
@@ -179,6 +180,7 @@ lemma uniform_cauchy_seq_on_ball_of_fderiv
   (hfg : cauchy (map (λ (n : ι), f n x) l)) :
   uniform_cauchy_seq_on f l (metric.ball x r) :=
 begin
+  letI : normed_space ℝ E, from normed_space.restrict_scalars ℝ 𝕜 _,
   haveI : ne_bot l, from (cauchy_map_iff.1 hfg).1,
   rcases le_or_lt r 0 with hr|hr,
   { simp only [metric.ball_eq_empty.2 hr, uniform_cauchy_seq_on, set.mem_empty_iff_false,
@@ -270,6 +272,7 @@ lemma difference_quotients_converge_uniformly
     (λ y : E, (∥y - x∥⁻¹ : 𝕜) • (g y - g x))
     l (𝓝 x) :=
 begin
+  letI : normed_space ℝ E, from normed_space.restrict_scalars ℝ 𝕜 _,
   rcases eq_or_ne l ⊥ with hl|hl,
   { simp only [hl, tendsto_uniformly_on_filter, bot_prod, eventually_bot, implies_true_iff] },
   haveI : ne_bot l := ⟨hl⟩,

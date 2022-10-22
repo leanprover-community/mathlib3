@@ -22,8 +22,9 @@ We also give versions of these statements which are localized to a set.
 open set metric topological_space function asymptotics filter
 open_locale topological_space nnreal big_operators
 
-variables {α β E F : Type*}
-  [normed_add_comm_group E] [normed_space ℝ E]
+variables {α β 𝕜 E F : Type*}
+  [is_R_or_C 𝕜]
+  [normed_add_comm_group E] [normed_space 𝕜 E]
   [normed_add_comm_group F] [complete_space F]
 
 /-! ### Continuity -/
@@ -92,53 +93,33 @@ end
 
 /-! ### Differentiability -/
 
-lemma summable_of_summable_of_lipschitz_on_with [pseudo_metric_space β]
-  {f : α → β → F} {s : set β} {x y : β}
-  (hx : x ∈ s) (hy : y ∈ s) (hfx : summable (λ n, f n x)) {C : α → ℝ≥0}
-  (hf : ∀ n, lipschitz_on_with (C n) (f n) s) (hC : summable C) :
-  summable (λ n, f n y) :=
-begin
-  have A : ∀ n, ∥f n y - f n x∥ ≤ C n * dist y x,
-  { assume n,
-    rw ← dist_eq_norm,
-    exact ((hf n).dist_le_mul _ hy _ hx) },
-  have S : summable (λ n, f n y - f n x),
-  { apply summable_of_norm_bounded _ _ A,
-    exact (nnreal.summable_coe.2 hC).mul_right _ },
-  convert hfx.add S,
-  simp only [add_sub_cancel'_right],
-end
-
-variables [normed_space ℝ F]
+variables [normed_space 𝕜 F]
 
 /-- Consider a series of functions `∑' n, f n x` on a convex set. If the series converges at a
 point, and all functions in the series are differentiable with a summable bound on the derivatives,
 then the series converges everywhere on the set. -/
 lemma summable_of_summable_has_fderiv_at
-  {f : α → E → F} {f' : α → E → (E →L[ℝ] F)} {u : α → ℝ} (hu : summable u)
-  {s : set E} (hs : convex ℝ s)
+  {f : α → E → F} {f' : α → E → (E →L[𝕜] F)} {u : α → ℝ} (hu : summable u)
+  {s : set E} (hs : is_open s) (h's : is_preconnected s)
   (hf : ∀ n x, x ∈ s → has_fderiv_at (f n) (f' n x) x)
   (hf' : ∀ n x, x ∈ s → ∥f' n x∥ ≤ u n)
   {x₀ : E} (hx₀ : x₀ ∈ s) (hf0 : summable (λ n, f n x₀)) {x : E} (hx : x ∈ s) :
   summable (λ n, f n x) :=
 begin
-  have u_nonneg : ∀ n, 0 ≤ u n, from λ n, (norm_nonneg _).trans (hf' n x₀ hx₀),
-  have hf'_nn : ∀ n x, x ∈ s → ∥f' n x∥₊ ≤ (u n).to_nnreal,
-  { assume n x hx,
-    rw [← nnreal.coe_le_coe, coe_nnnorm, real.coe_to_nnreal _ (u_nonneg n)],
-    exact hf' n x hx },
-  have L : ∀ n, lipschitz_on_with (u n).to_nnreal (f n) s,
-    from λ n, hs.lipschitz_on_with_of_nnnorm_has_fderiv_within_le
-      (λ x hx, (hf n x hx).has_fderiv_within_at) (hf'_nn n),
-  exact summable_of_summable_of_lipschitz_on_with hx₀ hx hf0 L hu.to_nnreal,
+  rw summable_iff_cauchy_seq_finset at hf0 ⊢,
+  have A : uniform_cauchy_seq_on (λ (t : finset α), (λ x, ∑ i in t, f' i x)) at_top s, sorry,
+  apply cauchy_map_of_uniform_cauchy_seq_on_fderiv hs h's A (λ t y hy, _) hx₀ hx hf0,
+  exact has_fderiv_at.sum (λ i hi, hf i y hy),
 end
+
+#exit
 
 /-- Consider a series of functions `∑' n, f n x` on a convex set. If the series converges at a
 point, and all functions in the series are differentiable with a summable bound on the derivatives,
 then the series is differentiable on the set and its derivative is the sum of the derivatives. -/
 lemma has_fderiv_within_at_tsum
   {f : α → E → F} {f' : α → E → (E →L[ℝ] F)} {u : α → ℝ} (hu : summable u)
-  {s : set E} (hs : convex ℝ s) (h's : is_open s)
+  {s : set E} (hs : is_open s) (h's : is_preconnected s)
   (hf : ∀ n x, x ∈ s → has_fderiv_at (f n) (f' n x) x)
   (hf' : ∀ n x, x ∈ s → ∥f' n x∥ ≤ u n)
   {x₀ : E} (hx₀ : x₀ ∈ s) (hf0 : summable (λ n, f n x₀)) {x : E} (hx : x ∈ s) :

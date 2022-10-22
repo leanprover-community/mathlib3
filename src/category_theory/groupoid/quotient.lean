@@ -13,10 +13,9 @@ import category_theory.groupoid.subgroupoid
 This file defines the quotient of a groupoid by a normal (i.e. wide and closed under conjugation)
 subgroupoid, and proves the associated universal property of the quotient.
 
-## Main results
-
-
 ## Implementation notes
+
+
 
 -/
 
@@ -69,7 +68,11 @@ end cgr
 /--
 Type synonym for the vertex set underlying the isotropy quotient
 -/
+@[nolint unused_arguments]
 def isotropy.quotient (S : subgroupoid C) (Sn : S.is_normal) := C
+
+instance (S : subgroupoid C) (Sn : S.is_normal) [h : nonempty C] :
+  nonempty (isotropy.quotient S Sn) := h
 
 namespace isotropy
 
@@ -372,7 +375,7 @@ begin
   { rw le_iff,
     rintro c d f hf,
     rw mem_ker_iff at hf,
-    dsimp [of] at hf, --simp at hf,
+    dsimp [of] at hf,
     obtain ⟨h,e⟩ := hf,
     rw subtype.ext_iff at e,
     simp only [inv_eq_inv, subtype.coe_mk] at e,
@@ -398,7 +401,8 @@ begin
                set.top_eq_univ, set.mem_univ, set.subsingleton_coe, set_coe.forall,
                forall_true_left] at Sg,
     let lhsS := S.mul (to_reps_arrow_mem S Sw c) (S.mul fS $ S.inv $ to_reps_arrow_mem S Sw d),
-    let rhsS := eq_to_hom_val_mem_S S Sw (((subtype.mk_eq_mk.trans quotient.out_inj).trans quotient.eq).mpr this),
+    let rhsS := eq_to_hom_val_mem_S S Sw
+                  (((subtype.mk_eq_mk.trans quotient.out_inj).trans quotient.eq).mpr this),
     let ss := Sg (of_reps S Sw (to_reps S Sw c)) (of_reps S Sw (to_reps S Sw d)),
     simpa only [inv_eq_inv] using ss lhsS rhsS, },
 end
@@ -408,6 +412,7 @@ section ump
 
 variables {D : Type*} [groupoid D] (φ : C ⥤ D) (hφ : S ≤ ker φ)
 
+/-- Any functor `C ⥤ D` containing `S` in its kernel lifts to `quotient S Sw ⥤ D`. -/
 def lift : quotient S Sw ⥤ D := (fo S Sw) ⋙ φ
 
 include hφ
@@ -428,16 +433,10 @@ begin
     rw mem_ker_iff at hγ' hδ',
     obtain ⟨eγ,hγ''⟩ := hγ',
     obtain ⟨eδ,hδ''⟩ := hδ',
-    simp only [subtype.coe_mk,hδ'',hγ'',inv_eq_to_hom], refl,  },
+    simp only [subtype.coe_mk, hδ'', hγ'',inv_eq_to_hom], refl,  },
 end
 
-omit hφ
-lemma _root_.category_theory.functor.map_eq_to_hom
-  (C D : Type*) [category C] [category D] (F : C ⥤ D) (c c' : C) (h : c = c') :
-  F.map (eq_to_hom h) = eq_to_hom (congr_arg F.obj h) :=
-by { cases h, simp only [eq_to_hom_refl, functor.map_id], }
-
-include hφ Sg
+include Sg
 lemma lift_unique (Φ : quotient S Sw ⥤ D) (hΦ : (of S Sw) ⋙ Φ = φ) :
   Φ = (lift S Sw φ) :=
 begin
@@ -452,7 +451,7 @@ begin
   { simp only [set_coe.forall, functor.comp_map],
     rintro x h y k f,
     rw of_fo_map,
-    simp only [functor.map_eq_to_hom, functor.map_comp, category.assoc, eq_to_hom_trans,
+    simp only [eq_to_hom_map, functor.map_comp, category.assoc, eq_to_hom_trans,
                eq_to_hom_refl, category.comp_id, eq_to_hom_trans_assoc, category.id_comp],
     exact Sg, },
 end
@@ -463,16 +462,21 @@ end ump
 end graph_like
 
 section quotient
-/-- The _actual_ quotient by `S`. -/
+/-!
+The _actual_ quotient of `C` by the normal subgroupoid `S`, obtained
+by first taking the `isotropy.quotient`, and then the `graph_like.quotient` on the image of `S`
+under this quotient.
+-/
 
 variable (Sn : S.is_normal)
 
+/-- The vertex set of the quotient -/
 def _root_.category_theory.quotient_groupoid :=
   graph_like.quotient
     (map (isotropy.of S Sn) (isotropy.of_inj_on_objects S Sn) S)
     (subgroupoid.is_normal_map
-      S
-      (isotropy.of S Sn)
+      _ /-S-/
+      _ /-(isotropy.of S Sn)-/
       (isotropy.of_inj_on_objects S Sn)
       (isotropy.of_onto S Sn)
       Sn).to_is_wide
@@ -487,7 +491,7 @@ instance : groupoid (quotient_groupoid S Sn) :=
       (isotropy.of_onto S Sn)
       Sn).to_is_wide
 
-
+/-- The morphism to the quotient -/
 noncomputable def of :
 C ⥤ quotient_groupoid S Sn := (isotropy.of _ _) ⋙ (graph_like.of _ _)
 
@@ -496,6 +500,7 @@ section ump
 variables {D : Type*} [groupoid D] (φ : C ⥤ D) (hφ : S ≤ ker φ)
 
 include hφ
+/-- Any functor containing `S` in its kernel lifts to a functor from the quotient. -/
 def lift : quotient_groupoid S Sn ⥤ D :=
 begin
   apply graph_like.lift,
@@ -515,7 +520,7 @@ begin
     exact hφ gS, },
 end
 
-def lift_unique (Φ : quotient_groupoid S Sn ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) :
+lemma lift_unique (Φ : quotient_groupoid S Sn ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) :
   Φ = (lift S Sn φ hφ) :=
 begin
   apply graph_like.lift_unique,
@@ -532,8 +537,7 @@ end ump
 lemma ker_eq : ker (of S Sn) = S :=
 begin
   change ker (isotropy.of S Sn ⋙ (graph_like.of (map (isotropy.of S Sn) _ S) _)) = S,
-  rw ker_comp,
-  rw graph_like.ker_eq,
+  rw [ker_comp, graph_like.ker_eq],
   apply le_antisymm,
   { rw le_iff, rintros c d f hf,
     dsimp [comap] at hf, rw mem_map_iff at hf,

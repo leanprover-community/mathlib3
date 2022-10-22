@@ -83,13 +83,26 @@ namespace subgroupoid
 
 variable (S : subgroupoid C)
 
-lemma mem_of_inv_mem {c d : C} (f : c ⟶ d) : inv f ∈ S.arrows d c → f ∈ S.arrows c d := sorry
+lemma mem_of_inv_mem {c d : C} (f : c ⟶ d) : inv f ∈ S.arrows d c → f ∈ S.arrows c d :=
+λ h, by
+{ suffices : inv (inv f) ∈ S.arrows c d,
+  { simpa only [inv_eq_inv, is_iso.inv_inv] using this, },
+  { apply S.inv h, }, }
 
 lemma mem_of_mul_mem {c d e : C} (f : c ⟶ d) (g : d ⟶ e) :
-  f ∈ S.arrows c d → f ≫ g ∈ S.arrows c e → g ∈ S.arrows d e := sorry
+  f ∈ S.arrows c d → f ≫ g ∈ S.arrows c e → g ∈ S.arrows d e :=
+λ hf h, by
+{ suffices : (inv f) ≫ f ≫ g ∈ S.arrows d e,
+  { simpa only [inv_eq_inv, is_iso.inv_hom_id_assoc] using this, },
+  { apply S.mul (S.inv hf) h, }, }
 
 lemma mem_of_mul_mem' {c d e : C} (f : c ⟶ d) (g : d ⟶ e) :
-  g ∈ S.arrows d e → f ≫ g ∈ S.arrows c e → f ∈ S.arrows c d := sorry
+  g ∈ S.arrows d e → f ≫ g ∈ S.arrows c e → f ∈ S.arrows c d :=
+λ hg h, by
+{ suffices : (f ≫ g) ≫ (inv g) ∈ S.arrows c d,
+  { simpa only [inv_eq_inv, is_iso.hom_inv_id, category.comp_id, category.assoc] using this, },
+  { apply S.mul h (S.inv hg), }, }
+
 
 /-- The vertices of `C` on which `S` has non-trivial isotropy -/
 def objs : set C := {c : C | (S.arrows c c).nonempty}
@@ -118,7 +131,7 @@ id_mem_of_nonempty_isotropy S d (mem_objs_of_tgt S h)
 def as_wide_quiver : quiver C := ⟨λ c d, subtype $ S.arrows c d⟩
 
 /-- The coercion of a subgroupoid as a groupoid -/
-@[simps] instance coe : groupoid S.objs :=
+instance coe : groupoid S.objs :=
 { hom := λ a b, S.arrows a.val b.val,
   id := λ a, ⟨𝟙 a.val, id_mem_of_nonempty_isotropy S a.val a.prop⟩,
   comp := λ a b c p q, ⟨p.val ≫ q.val, S.mul p.prop q.prop⟩,
@@ -128,6 +141,13 @@ def as_wide_quiver : quiver C := ⟨λ c d, subtype $ S.arrows c d⟩
   inv := λ a b p, ⟨inv p.val, S.inv p.prop⟩,
   inv_comp' := λ a b ⟨p,hp⟩, by simp only [inv_comp],
   comp_inv' := λ a b ⟨p,hp⟩, by simp only [comp_inv] }
+
+/-
+This lemma comes for free when `@[simps]` is prepended to the instance above,
+but doing so makes lean's `#lint` complaining about a non-simplifying `simp` lemma. -/
+lemma coe_to_category_comp_coe {a b c : ↥(S.objs)} (p : a ⟶ b) (q : b ⟶ c):
+  ↑(p ≫ q) = p.val ≫ q.val := rfl
+
 
 /-- The embedding of the coerced subgroupoid to its parent-/
 def hom : S.objs ⥤ C :=
@@ -569,3 +589,4 @@ end full
 end subgroupoid
 
 end category_theory
+

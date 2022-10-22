@@ -144,7 +144,7 @@ which form a basis for the lower topology
 -/
 def lower_basis (α : Type u) [preorder α] :=
 {s : set α | ∃ (F : set α), F.finite ∧
-  (upper_closure F).compl.carrier = s ∧
+  ↑(upper_closure F).compl = s ∧
   s.nonempty }
 
 variables [topological_space α] [t: lower_topology α]
@@ -199,9 +199,8 @@ begin
       { split,
         { simp only [set_of_subset_set_of, forall_exists_index, forall_apply_eq_imp_iff₂,
             implies_true_iff, exists_apply_eq_apply], },
-        { rw efn, exact h_h.2.2 } }, },
-    { rw [← h_h.2.1, efn],
-      simp only [lower_set.carrier_eq_coe, upper_set.coe_compl], } },
+        { rw efn, rw h_h.2.1,  rw upper_set.carrier_eq_coe at , exact h_h.2.2 } }, },
+    { rw [← h_h.2.1, efn], } },
   { intro h,
     cases h with f,
     rw mem_set_of_eq at h_h,
@@ -238,10 +237,9 @@ begin
       apply finite.preimage_embedding,
       exact hf, },
     { split,
-      { rw [← h_h.2, eF], refl, },
+      { rw [← h_h.2, eF], },
       { convert h_h.1.2.2,
-        rw eF,
-        simp only [lower_set.carrier_eq_coe], } } }
+        rw h_h.2, } } }
 end
 
 /-

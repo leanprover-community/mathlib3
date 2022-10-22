@@ -77,7 +77,8 @@ lemma lex.le_of_of_lex_le {a b : lex (α →₀ N)} (h : of_lex a ≤ of_lex b) 
 lex.le_of_forall_le h
 
 lemma to_lex_monotone : monotone (@to_lex (α →₀ N)) :=
-λ _ _, lex.le_of_forall_le
+λ a b h, dfinsupp.lex.le_of_forall_le
+  (id h : ∀ i, of_lex (to_dfinsupp a) i ≤ of_lex (to_dfinsupp b) i)
 
 lemma lt_of_forall_lt_of_lt (a b : lex (α →₀ N)) (i : α) :
   (∀ j < i, of_lex a j = of_lex b j) → of_lex a i < of_lex b i → a < b :=

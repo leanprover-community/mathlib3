@@ -110,17 +110,11 @@ end linear_order
 
 variable [Π i, partial_order (α i)]
 
-lemma lex.le_of_forall_le {a b : lex (Π₀ i, α i)} (h : ∀ i, of_lex a i ≤ of_lex b i) : a ≤ b :=
-le_of_lt_or_eq $ or_iff_not_imp_right.2 $ λ hne, by classical; exact
+lemma to_lex_monotone : monotone (@to_lex (Π₀ i, α i)) :=
+λ a b h, le_of_lt_or_eq $ or_iff_not_imp_right.2 $ λ hne, by classical; exact
   ⟨finset.min' _ (nonempty_ne_locus_iff.2 hne),
     λ j hj, not_mem_ne_locus.1 (λ h, (finset.min'_le _ _ h).not_lt hj),
     (h _).lt_of_ne (mem_ne_locus.1 $ finset.min'_mem _ _)⟩
-
-lemma lex.le_of_of_lex_le {a b : lex (Π₀ i, α i)} (h : of_lex a ≤ of_lex b) : a ≤ b :=
-lex.le_of_forall_le h
-
-lemma to_lex_monotone : monotone (@to_lex (Π₀ i, α i)) :=
-λ _ _, lex.le_of_forall_le
 
 lemma lt_of_forall_lt_of_lt (a b : lex (Π₀ i, α i)) (i : ι) :
   (∀ j < i, of_lex a j = of_lex b j) → of_lex a i < of_lex b i → a < b :=

@@ -424,13 +424,12 @@ theorem empty_ne_univ [nonempty α] : (∅ : set α) ≠ univ :=
 
 @[simp] theorem subset_univ (s : set α) : s ⊆ univ := λ x H, trivial
 
-theorem univ_subset_iff {s : set α} : univ ⊆ s ↔ s = univ :=
-(subset.antisymm_iff.trans $ and_iff_right (subset_univ _)).symm
+theorem univ_subset_iff {s : set α} : univ ⊆ s ↔ s = univ := @top_le_iff _ _ _ s
 
-theorem eq_univ_of_univ_subset {s : set α} : univ ⊆ s → s = univ := univ_subset_iff.1
+alias univ_subset_iff ↔ eq_univ_of_univ_subset _
 
 theorem eq_univ_iff_forall {s : set α} : s = univ ↔ ∀ x, x ∈ s :=
-univ_subset_iff.symm.trans $ forall_congr $ λ x, imp_iff_right ⟨⟩
+univ_subset_iff.symm.trans $ forall_congr $ λ x, imp_iff_right trivial
 
 theorem eq_univ_of_forall {s : set α} : (∀ x, x ∈ s) → s = univ := eq_univ_iff_forall.2
 
@@ -449,6 +448,8 @@ by simp [subset_def]
 
 lemma univ_unique [unique α] : @set.univ α = {default} :=
 set.ext $ λ x, iff_of_true trivial $ subsingleton.elim x default
+
+lemma ssubset_univ_iff : s ⊂ univ ↔ s ≠ univ := lt_top_iff_ne_top
 
 instance nontrivial_of_nonempty [nonempty α] : nontrivial (set α) := ⟨⟨∅, univ, empty_ne_univ⟩⟩
 
@@ -932,18 +933,13 @@ theorem compl_inter (s t : set α) : (s ∩ t)ᶜ = sᶜ ∪ tᶜ := compl_inf
 lemma compl_ne_univ : sᶜ ≠ univ ↔ s.nonempty :=
 compl_univ_iff.not.trans ne_empty_iff_nonempty
 
-lemma nonempty_compl {s : set α} : sᶜ.nonempty ↔ s ≠ univ :=
-ne_empty_iff_nonempty.symm.trans compl_empty_iff.not
+lemma nonempty_compl {s : set α} : sᶜ.nonempty ↔ s ≠ univ := (ne_univ_iff_exists_not_mem s).symm
 
-lemma mem_compl_singleton_iff {a x : α} : x ∈ ({a} : set α)ᶜ ↔ x ≠ a :=
-mem_singleton_iff.not
+lemma mem_compl_singleton_iff {a x : α} : x ∈ ({a} : set α)ᶜ ↔ x ≠ a := iff.rfl
 
-lemma compl_singleton_eq (a : α) : ({a} : set α)ᶜ = {x | x ≠ a} :=
-ext $ λ x, mem_compl_singleton_iff
+lemma compl_singleton_eq (a : α) : ({a} : set α)ᶜ = {x | x ≠ a} := rfl
 
-@[simp]
-lemma compl_ne_eq_singleton (a : α) : ({x | x ≠ a} : set α)ᶜ = {a} :=
-by { ext, simp, }
+@[simp] lemma compl_ne_eq_singleton (a : α) : ({x | x ≠ a} : set α)ᶜ = {a} := compl_compl _
 
 theorem union_eq_compl_compl_inter_compl (s t : set α) : s ∪ t = (sᶜ ∩ tᶜ)ᶜ :=
 ext $ λ x, or_iff_not_and_not

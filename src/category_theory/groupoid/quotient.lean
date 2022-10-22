@@ -34,10 +34,9 @@ namespace quotient_groupoid
 section isotropy
 /-!
 We first define what's here called “isotropy quotient”:
-Given a normal subgroupoid `S`, this quotient is collapses all loops of `S`, i.e.
+Given a normal subgroupoid `S`, this quotient collapses all loops of `S`, i.e.
 all vertex groups.
-After quotienting by these vertex groups, the image of `S` in the quotient `is_graph_like`
-which is easy to quotient out again.
+After quotienting by the vertex groups, the image of `S` in the quotient `is_graph_like`.
 -/
 
 section cgr
@@ -49,26 +48,34 @@ This is an equivalence relation by wideness and since `S` is a subgroupoid.
 
 variables  (Sw : S.is_wide) {c d : C} (f g h : c ⟶ d)
 
-def cgr (c) (d) (f) (g) := ∃ (γ ∈ S.arrows c c) (δ ∈ S.arrows d d), g = γ ≫ f ≫ δ
+/-- The relation on arrows -/
+private def cgr (c) (d) (f) (g) := ∃ (γ ∈ S.arrows c c) (δ ∈ S.arrows d d), g = γ ≫ f ≫ δ
 
 lemma cgr.refl (f : c ⟶ d) : cgr S c d f f :=  ⟨(𝟙 c), Sw.wide c, (𝟙 d), Sw.wide d, by simp ⟩
+
 lemma cgr.symm {f g : c ⟶ d} : cgr S c d f g → cgr S c d g f :=
 λ ⟨γ,hγ,δ,hδ,e⟩, ⟨inv γ, S.inv hγ, inv δ, S.inv hδ, by { rw e, simp, } ⟩
+
 lemma cgr.tran {f g h : c ⟶ d} : cgr S c d f g → cgr S c d g h → cgr S c d f h :=
 λ ⟨γ,hγ,δ,hδ,e⟩ ⟨δ',hδ',ε,hε,e'⟩,
 ⟨δ' ≫ γ, S.mul hδ' hγ, δ ≫ ε, S.mul hδ hε, by {rw [e',e], simp, }⟩
 
-def cgr.setoid : setoid (c ⟶ d) :=
+/-- `cgr` defines a setoid on `c ⟶ d` for all `c d : C`. -/
+private def cgr.setoid : setoid (c ⟶ d) :=
 { r := cgr S c d , iseqv := ⟨λ f, cgr.refl S Sw f, λ f g, cgr.symm S, λ f g h, cgr.tran S⟩ }
 
 end cgr
 
+/--
+Type synonym for the vertex set underlying the isotropy quotient
+-/
 def isotropy.quotient (S : subgroupoid C) (Sn : S.is_normal) := C
 
 namespace isotropy
 
 variable (Sn : S.is_normal)
 
+/-- The groupoid structure on the quotient -/
 instance : groupoid (isotropy.quotient S Sn) :=
 { hom := λ c d, quot (cgr S c d),
   id := λ c, quot.mk _ (𝟙 c),
@@ -93,7 +100,8 @@ instance : groupoid (isotropy.quotient S Sn) :=
   inv := λ a b f,
     quot.lift_on f
       ( λ f, quot.mk (cgr S b a) (inv f) )
-      ( λ f₁ f₂ ⟨γ,hγ,δ,hδ,e⟩, quot.sound ⟨inv δ, S.inv hδ, inv γ, S.inv hγ, by { rw e, simp, } ⟩ ),
+      ( λ f₁ f₂ ⟨γ,hγ,δ,hδ,e⟩, quot.sound ⟨inv δ, S.inv hδ, inv γ, S.inv hγ, by
+        { rw e, simp only [inv_eq_inv, is_iso.inv_comp, category.assoc], } ⟩ ),
   comp_inv' := λ a b f, by
     { refine quot.induction_on f (λ f, _),
       simp only [quot.lift_on₂_mk, inv_eq_inv, is_iso.hom_inv_id], },
@@ -101,13 +109,14 @@ instance : groupoid (isotropy.quotient S Sn) :=
     { refine quot.induction_on f (λ f, _),
       simp only [quot.lift_on₂_mk, inv_eq_inv, is_iso.inv_hom_id], }, }
 
+/-- The functor from `C` to its isotropy quotient by `S` -/
 def of : C ⥤ (quotient S Sn) :=
 { obj := λ c, c,
   map := λ c d f, quot.mk _ f,
   map_id' := λ _, rfl,
   map_comp' := λ _ _ _ _ _, rfl, }
 
-lemma of_inj_on_objects : function.injective (of S Sn).obj := by { intros a b e, assumption }
+lemma of_inj_on_objects : function.injective (of S Sn).obj := λ a b e, e
 
 lemma of_onto : im (of S Sn) (of_inj_on_objects S Sn) = (⊤ : subgroupoid $ quotient S Sn) :=
 le_antisymm (le_top) $ λ ⟨c,d,f⟩ _, quot.induction_on f (λ f, by { constructor, constructor, })
@@ -117,22 +126,17 @@ le_antisymm (le_top) $ λ ⟨c,d,f⟩ _, quot.induction_on f (λ f, by { constru
 lemma map_is_graph_like : (map (of S Sn) (of_inj_on_objects S Sn) S).is_graph_like :=
 begin
   rw subgroupoid.is_graph_like_iff,
-  rintro c d,
-  constructor,
-  rintro ⟨_,hf⟩ ⟨_,hg⟩,
-  cases hf,
-  cases hg,
+  refine λ c d, subsingleton.intro _,
+  rintro ⟨_,⟨_,_,f,hf⟩⟩ ⟨_,⟨_,_,g,hg⟩⟩,
   simp only [subtype.mk_eq_mk],
   apply quot.sound,
-  refine ⟨𝟙 _, Sn.wide _, inv hf_f ≫ hg_f, S.mul (S.inv _) _, _⟩,
-  assumption,
-  assumption,
+  refine ⟨𝟙 _, Sn.wide _, inv f ≫ g, S.mul (S.inv hf) hg, _⟩,
   simp only [inv_eq_inv, is_iso.hom_inv_id_assoc, category.id_comp],
 end
 
 section ump
 /-!
-The universal mapping property of the quotient by the isotropy part of a normal subgroupoid.
+The universal mapping property of the isotropy quotient of a normal subgroupoid.
 -/
 
 variables  {D : Type*} [groupoid D]
@@ -152,10 +156,8 @@ def lift : (quotient S Sn) ⥤ D :=
       ( λ f, φ.map f )
       ( λ f₁ f₂ ⟨γ,hγ,δ,hδ,e⟩, by
         { rw subgroupoid.le_iff at hφ,
-          let γ' : γ ∈ S.disconnect.arrows c c := by {constructor, exact hγ, },
-          let hφγ := hφ γ',
-          let δ' : δ ∈ S.disconnect.arrows d d := by {constructor, exact hδ, },
-          let hφδ := hφ δ',
+          let hφγ := hφ (disconnect.arrows.mk c γ hγ),
+          let hφδ := hφ (disconnect.arrows.mk d δ hδ),
           simp only [mem_ker_iff, eq_self_iff_true,
                      exists_true_left] at hφγ hφδ,
           simp only [e, functor.map_comp, hφγ, hφδ, category.comp_id, category.id_comp,
@@ -218,32 +220,36 @@ end isotropy
 
 namespace graph_like
 /-!
-Quotient of a groupoid by a normal, graph-like subgroupoid.
-By graph-likeness, the quotient be represented by the full subgroupoid induced by taking any
-set of representatives of the vertices, which makes dealing with quotients easier.
+Quotient of a groupoid by a wide, graph-like subgroupoid.
+By graph-likeness, the quotient can be represented by the full subgroupoid induced by taking any
+set of representatives of the vertices.
 -/
 
 variables (Sw : S.is_wide)  (Sg : S.is_graph_like)
 
-
+/-- Two vertices of `C` are related iff there exists an arrow of `S` joining them. -/
 abbreviation r := λ c d, nonempty (S.arrows c d)
 
 lemma r.refl (c : C) : r S c c := ⟨⟨𝟙 c, Sw.wide c⟩⟩
+
 lemma r.symm {c d : C} : r S c d → r S d c := λ ⟨⟨f,fS⟩⟩, ⟨⟨inv f, S.inv fS⟩⟩
+
 lemma r.tran {c d e : C} : r S c d → r S d e → r S c e := λ ⟨⟨f,fS⟩⟩ ⟨⟨g,gS⟩⟩, ⟨⟨f≫g, S.mul fS gS⟩⟩
 
+/-- This relation makes `C` into a setoid. -/
 def R : setoid C :=
 { r := r S ,  iseqv := ⟨λ _, r.refl S Sw _, λ _ _, r.symm S, λ _ _ _, r.tran S⟩ }
 
-instance : setoid C := R S Sw
-
+/-- A set of representatives for the relation `r` -/
 def reps : set C := set.range (@quotient.out C (R S Sw))
 
+/-- Mapping any `c : C` to its representative -/
 noncomputable def to_reps : C → reps S Sw :=
 λ c,
 ⟨ @_root_.quotient.out C (R S Sw) (@_root_.quotient.mk C (R S Sw) c),
   ⟨ @_root_.quotient.mk C (R S Sw) c, rfl ⟩ ⟩
 
+/-- Mapping a representative to its underlying element of `C` -/
 def of_reps : reps S Sw → C := λ c, c.val
 
 lemma of_to_reps_congr (c : C) : (R S Sw).r (of_reps S Sw (to_reps S Sw c)) c :=
@@ -255,6 +261,10 @@ begin
   rw quotient.out_eq,
 end
 
+/--
+Given `c : C`, there is an arrow of `S` mapping (the underlying element of) the representative
+of `c` to `c`.
+-/
 noncomputable def to_reps_arrow (c : C) : of_reps S Sw (to_reps S Sw c)  ⟶ c :=
 (of_to_reps_congr S Sw c).some.val
 
@@ -271,7 +281,7 @@ begin
   rw [subgroupoid.is_graph_like_iff, (is_wide_iff_objs_eq_univ S).mp Sw] at Sg,
   simp only [set.top_eq_univ, set.mem_univ, set.subsingleton_coe, set_coe.forall,
              forall_true_left] at Sg,
-  apply Sg, exact hγ, apply to_reps_arrow_mem,
+  exact Sg _ _ hγ (to_reps_arrow_mem S Sw c),
 end
 omit Sg Sw
 
@@ -282,10 +292,12 @@ begin
   simp only [subtype.coe_mk, quotient.out_eq, subtype.mk_eq_mk],
 end
 
+/-- The vertex set of the quotient of `C` by `S` -/
 def quotient := (subgroupoid.full $ reps S Sw).objs
 
 instance : groupoid (quotient S Sw) := (subgroupoid.full $ reps S Sw).coe
 
+/-- The morphism from `C` to its -/
 noncomputable def of : C ⥤ quotient S Sw :=
 { obj := λ c,
   ⟨ to_reps S Sw c,
@@ -295,7 +307,7 @@ noncomputable def of : C ⥤ quotient S Sw :=
       γ := (to_reps_arrow S Sw c),
       δ := inv (to_reps_arrow S Sw d)
     in
-      ⟨γ ≫ f ≫ δ, by { constructor; simp, } ⟩,
+      ⟨γ ≫ f ≫ δ, by { constructor; simp only [subtype.coe_prop], } ⟩,
   map_id' := λ _, by
     { simp only [subtype.val_eq_coe, inv_eq_inv, category.id_comp, is_iso.hom_inv_id],
       refl, },
@@ -303,6 +315,7 @@ noncomputable def of : C ⥤ quotient S Sw :=
     { ext, simp only [inv_eq_inv, category.assoc, subtype.coe_mk,
                       coe_to_category_comp_coe, is_iso.inv_hom_id_assoc], } }
 
+/-- Since the quotient is defined as a full groupoid, it embeds in `C`. -/
 def fo : (quotient S Sw) ⥤ C := subgroupoid.hom _
 
 lemma of_fo_obj (c: quotient S Sw) : (of S Sw).obj ((fo S Sw).obj c) = c :=
@@ -315,18 +328,12 @@ begin
   simp only [quotient.out_eq, subtype.mk_eq_mk],
 end
 
+/-- This definition is needed to state the lemma below without lean complaining. -/
+private def arrow_val {c d : quotient S Sw} (h : c ⟶ d) : c.val ⟶ d.val := h.val
 
-private def ud {c d : quotient S Sw} (h : c ⟶ d) : c.val ⟶ d.val :=
-begin
-  exact h.val,
-end
-
-private lemma lol {c d : quotient S Sw} (h : c = d) :
-  ud S Sw (eq_to_hom h) ∈ S.arrows c.val d.val :=
-begin
-  rcases h with rfl, simp,
-  apply Sw.wide,
-end
+private lemma eq_to_hom_val_mem_S {c d : quotient S Sw} (h : c = d) :
+  arrow_val S Sw (eq_to_hom h) ∈ S.arrows c.val d.val := by
+{ cases h, apply Sw.wide, }
 
 include Sg
 lemma of_fo_map {c d : quotient S Sw} (f : c ⟶ d) :
@@ -344,14 +351,13 @@ begin
   let ec := of_fo_obj S Sw ⟨c'.out,hc⟩,
   let ed := of_fo_obj S Sw ⟨d'.out,hd⟩,
   congr,
-  { change to_reps_arrow S Sw c'.out = ud S Sw (eq_to_hom ec),
-    exact (to_reps_arrow_unique S Sw Sg (lol S Sw ec)).symm, },
-  { change groupoid.inv (to_reps_arrow S Sw d'.out) = ud S Sw (eq_to_hom ed.symm),
-    suffices : to_reps_arrow S Sw d'.out = inv (ud S Sw (eq_to_hom ed.symm)),
+  { --change to_reps_arrow S Sw c'.out = arrow_val S Sw (eq_to_hom ec),
+    exact (to_reps_arrow_unique S Sw Sg (eq_to_hom_val_mem_S S Sw ec)).symm, },
+  { change groupoid.inv (to_reps_arrow S Sw d'.out) = arrow_val S Sw (eq_to_hom ed.symm),
+    suffices : to_reps_arrow S Sw d'.out = inv (arrow_val S Sw (eq_to_hom ed.symm)),
     { simp only [this, inv_eq_inv, is_iso.inv_inv], },
     symmetry,
-    apply to_reps_arrow_unique S Sw Sg,
-    apply S.inv, apply lol, }
+    refine to_reps_arrow_unique S Sw Sg (S.inv (eq_to_hom_val_mem_S S Sw _)), }
 end
 
 lemma of_fo_eq_id : (fo S Sw) ⋙ (of S Sw) = functor.id _ :=
@@ -379,7 +385,7 @@ begin
       simp only [inv_eq_inv, is_iso.inv_inv],
       apply to_reps_arrow_mem,
       simpa only [category.assoc] using this, },
-    rw e, apply lol, },
+    rw e, apply eq_to_hom_val_mem_S, },
   { rw le_iff,
     rintro c d f fS, rw mem_ker_iff,
     dsimp [of, to_reps],
@@ -392,7 +398,7 @@ begin
                set.top_eq_univ, set.mem_univ, set.subsingleton_coe, set_coe.forall,
                forall_true_left] at Sg,
     let lhsS := S.mul (to_reps_arrow_mem S Sw c) (S.mul fS $ S.inv $ to_reps_arrow_mem S Sw d),
-    let rhsS := lol S Sw (((subtype.mk_eq_mk.trans quotient.out_inj).trans quotient.eq).mpr this),
+    let rhsS := eq_to_hom_val_mem_S S Sw (((subtype.mk_eq_mk.trans quotient.out_inj).trans quotient.eq).mpr this),
     let ss := Sg (of_reps S Sw (to_reps S Sw c)) (of_reps S Sw (to_reps S Sw d)),
     simpa only [inv_eq_inv] using ss lhsS rhsS, },
 end

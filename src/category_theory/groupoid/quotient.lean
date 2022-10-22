@@ -13,9 +13,25 @@ import category_theory.groupoid.subgroupoid
 This file defines the quotient of a groupoid by a normal (i.e. wide and closed under conjugation)
 subgroupoid, and proves the associated universal property of the quotient.
 
+Given a groupoid `C` and normal subgroupoid `S` of `C`:
+
+* `quotient_groupoid S Sn` is the vertex type of the quotient (where `Sn` witnesses normality).
+* A groupoid instance on this type is defined.
+* `quotient_groupoid.of S Sn` is the functor from `C` to `quotient_groupoid S Sn`.
+* `lift`, `lift_spec`, `lift_unique` witness the universal property of the quotient.
+* `ker_eq` proves that the kernel of `quotient_groupoid.of` is exactly `S`.
+
 ## Implementation notes
 
+The quotient of `C` by `S` is taken in two steps:
 
+* In `isotropy`:
+  First only quotienting by the isotropy groups of `S`, so that no collapse of vertices occurs.
+
+* In `graph_like`:
+  Then by quotienting by the "remainder" of `S` in this quotient.
+  This remainder `is_graph_like`, and the second quotient can be constructed as a full subgroupoid
+  of the first.
 
 -/
 

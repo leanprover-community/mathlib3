@@ -1426,6 +1426,10 @@ lemma nonempty_of_card_le [fintype α] [fintype β]
   (h : fintype.card α ≤ fintype.card β) : nonempty (α ↪ β) :=
 by { classical, exact (trunc_of_card_le h).nonempty }
 
+lemma nonempty_iff_card_le [fintype α] [fintype β] :
+  nonempty (α ↪ β) ↔ fintype.card α ≤ fintype.card β :=
+⟨λ ⟨e⟩, fintype.card_le_of_embedding e, nonempty_of_card_le⟩
+
 lemma exists_of_card_le_finset [fintype α] {s : finset β} (h : fintype.card α ≤ s.card) :
   ∃ (f : α ↪ β), set.range f ⊆ s :=
 begin
@@ -2192,7 +2196,8 @@ begin
   exact nat.not_succ_le_self n w,
 end
 
-lemma not_injective_infinite_finite [infinite α] [finite β] (f : α → β) : ¬ injective f :=
+lemma not_injective_infinite_finite {α β : Sort*} [infinite α] [finite β] (f : α → β) :
+  ¬ injective f :=
 λ hf, (finite.of_injective f hf).not_infinite ‹_›
 
 /--
@@ -2204,14 +2209,10 @@ See also: `fintype.exists_ne_map_eq_of_card_lt`, `finite.exists_infinite_fiber`.
 -/
 lemma finite.exists_ne_map_eq_of_infinite [infinite α] [finite β] (f : α → β) :
   ∃ x y : α, x ≠ y ∧ f x = f y :=
-begin
-  classical, by_contra' hf,
-  apply not_injective_infinite_finite f,
-  intros x y, contrapose, apply hf,
-end
+by simpa only [not_forall, exists_prop, injective, and_comm] using not_injective_infinite_finite f
 
 instance function.embedding.is_empty {α β} [infinite α] [finite β] : is_empty (α ↪ β) :=
-⟨λ f, let ⟨x, y, ne, feq⟩ := finite.exists_ne_map_eq_of_infinite f in ne $ f.injective feq⟩
+⟨λ f, not_injective_infinite_finite f f.injective⟩
 
 /--
 The strong pigeonhole principle for infinitely many pigeons in
@@ -2234,7 +2235,7 @@ begin
   exact key.false,
 end
 
-lemma not_surjective_finite_infinite [finite α] [infinite β] (f : α → β) : ¬ surjective f :=
+lemma not_surjective_finite_infinite {α β} [finite α] [infinite β] (f : α → β) : ¬ surjective f :=
 λ hf, (infinite.of_surjective f hf).not_finite ‹_›
 
 section trunc

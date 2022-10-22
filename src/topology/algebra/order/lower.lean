@@ -151,7 +151,7 @@ variables [topological_space α] [t: lower_topology α]
 
 include t
 
-lemma lower_basis_is_basis : is_topological_basis  (lower_basis α) :=
+lemma lower_basis_is_basis : is_topological_basis (lower_basis α) :=
 begin
   convert is_topological_basis_of_subbasis t.topology_eq_generate_Ici_comp,
   rw image,

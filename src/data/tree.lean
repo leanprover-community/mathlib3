@@ -99,18 +99,18 @@ def map {β} (f : α → β) : tree α → tree β
 | nil := 0
 | (node _ a b) := max a.height b.height + 1
 
-lemma leaves_eq_nodes_succ (x : tree α) : x.num_leaves = x.num_nodes + 1 :=
+lemma num_leaves_eq_num_nodes_succ (x : tree α) : x.num_leaves = x.num_nodes + 1 :=
 by { induction x; simp [*, nat.add_comm, nat.add_assoc, nat.add_left_comm], }
 
-lemma leaves_pos (x : tree α) : 0 < x.num_leaves :=
-by { rw leaves_eq_nodes_succ, exact x.num_nodes.zero_lt_succ, }
+lemma num_leaves_pos (x : tree α) : 0 < x.num_leaves :=
+by { rw num_leaves_eq_num_nodes_succ, exact x.num_nodes.zero_lt_succ, }
 
-lemma height_le_nodes : ∀ (x : tree α), x.height ≤ x.num_nodes
+lemma height_le_num_nodes : ∀ (x : tree α), x.height ≤ x.num_nodes
 | nil := le_refl _
 | (node _ a b) := nat.succ_le_succ
     (max_le
-      (trans a.height_le_nodes $ a.num_nodes.le_add_right _)
-      (trans b.height_le_nodes $ b.num_nodes.le_add_left _))
+      (trans a.height_le_num_nodes $ a.num_nodes.le_add_right _)
+      (trans b.height_le_num_nodes $ b.num_nodes.le_add_left _))
 
 /-- The left child of the tree, or `nil` if the tree is `nil` -/
 @[simp] def left : tree α → tree α

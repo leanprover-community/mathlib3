@@ -361,7 +361,7 @@ end
 
 /-- Applying `residue_field.map` to the identity ring homomorphism gives the identity
 ring homomorphism. -/
-lemma map_id :
+@[simp] lemma map_id :
   local_ring.residue_field.map (ring_hom.id R) = ring_hom.id (local_ring.residue_field R) :=
 ideal.quotient.ring_hom_ext $ ring_hom.ext $ λx, rfl
 
@@ -375,12 +375,10 @@ section
 
 open ring_equiv local_ring
 
-@[simp]
-lemma map_id_apply {x : residue_field R} : map (ring_hom.id R) x = x :=
+@[simp] lemma map_id_apply {x : residue_field R} : map (ring_hom.id R) x = x :=
 by simp only [map_id, ring_hom.id_apply]
 
-@[simp]
-lemma map_map (f : R →+* S) (g : S →+* T) (x : residue_field R)
+@[simp] lemma map_map (f : R →+* S) (g : S →+* T) (x : residue_field R)
 [is_local_ring_hom f] [is_local_ring_hom g] :
   map (g.comp f) x = map g (map f x) :=
 by simp only [map_comp, ring_hom.comp_apply]

@@ -101,17 +101,17 @@ variables {ι : Type*} {l : filter ι} [ne_bot l]
   {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
   {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E]
   {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
-  {f : ι → E → G} {g : E → G} {f' : ι → (E → (E →L[𝕜] G))} {g' : E → (E →L[𝕜] G)}
+  {y : G} {f : ι → E → G} {g : E → G} {f' : ι → (E → (E →L[𝕜] G))} {g' : E → (E →L[𝕜] G)}
   {x : E}
 
 /-- If a sequence of functions real or complex functions are eventually differentiable on a
-neighborhood of `x`, they converge pointwise _at_ `x`, and their derivatives
+neighborhood of `x`, they are Cauchy _at_ `x`, and their derivatives
 converge uniformly in a neighborhood of `x`, then the functions form a uniform Cauchy sequence
 in a neighborhood of `x`. -/
 lemma uniform_cauchy_seq_on_filter_of_tendsto_uniformly_on_filter_fderiv
   (hf' : uniform_cauchy_seq_on_filter f' l (𝓝 x))
   (hf : ∀ᶠ (n : ι × E) in (l ×ᶠ 𝓝 x), has_fderiv_at (f n.1) (f' n.1 n.2) n.2)
-  (hfg : tendsto (λ n, f n x) l (𝓝 (g x))) :
+  (hfg : cauchy (map (λ (n : ι), f n x) l)) :
   uniform_cauchy_seq_on_filter f l (𝓝 x) :=
 begin
   rw seminormed_add_group.uniform_cauchy_seq_on_filter_iff_tendsto_uniformly_on_filter_zero at
@@ -154,7 +154,7 @@ begin
       (convex_ball x r) (metric.mem_ball_self hr) hy, },
   { -- This is just `hfg` run through `eventually_prod_iff`
     refine metric.tendsto_uniformly_on_filter_iff.mpr (λ ε hε, _),
-    obtain ⟨t, ht, ht'⟩ := (metric.cauchy_iff.mp hfg.cauchy_map).2 ε hε,
+    obtain ⟨t, ht, ht'⟩ := (metric.cauchy_iff.mp hfg).2 ε hε,
     exact eventually_prod_iff.mpr
     ⟨ (λ (n : ι × ι), (f n.1 x ∈ t) ∧ (f n.2 x ∈ t)),
       eventually_prod_iff.mpr ⟨_, ht, _, ht, (λ n hn n' hn', ⟨hn, hn'⟩)⟩,
@@ -174,14 +174,15 @@ with any connected, bounded, open set and replacing uniform convergence with loc
 convergence.
 -/
 lemma uniform_cauchy_seq_on_ball_of_tendsto_uniformly_on_ball_fderiv
-  {r : ℝ} (hr : 0 < r)
-  (hf' : uniform_cauchy_seq_on f' l (metric.ball x r))
+  (r : ℝ) (hf' : uniform_cauchy_seq_on f' l (metric.ball x r))
   (hf : ∀ n : ι, ∀ y : E, y ∈ metric.ball x r → has_fderiv_at (f n) (f' n y) y)
-  (hfg : tendsto (λ n, f n x) l (𝓝 (g x))) :
+  (hfg : cauchy (map (λ (n : ι), f n x) l)) :
   uniform_cauchy_seq_on f l (metric.ball x r) :=
 begin
+  rcases le_or_lt r 0 with hr|hr,
+  { simp only [metric.ball_eq_empty.2 hr, uniform_cauchy_seq_on, set.mem_empty_iff_false,
+      is_empty.forall_iff, eventually_const, implies_true_iff] },
   rw seminormed_add_group.uniform_cauchy_seq_on_iff_tendsto_uniformly_on_zero at hf' ⊢,
-
   suffices : tendsto_uniformly_on
     (λ (n : ι × ι) (z : E), f n.1 z - f n.2 z - (f n.1 x - f n.2 x)) 0
       (l ×ᶠ l) (metric.ball x r) ∧
@@ -213,13 +214,42 @@ begin
     exact this.trans hq, },
   { -- This is just `hfg` run through `eventually_prod_iff`
     refine metric.tendsto_uniformly_on_iff.mpr (λ ε hε, _),
-    obtain ⟨t, ht, ht'⟩ := (metric.cauchy_iff.mp hfg.cauchy_map).2 ε hε,
+    obtain ⟨t, ht, ht'⟩ := (metric.cauchy_iff.mp hfg).2 ε hε,
     rw eventually_prod_iff,
     refine ⟨(λ n, f n x ∈ t), ht, (λ n, f n x ∈ t), ht, _⟩,
     intros n hn n' hn' z hz,
     rw [dist_eq_norm, pi.zero_apply, zero_sub, norm_neg, ←dist_eq_norm],
     exact (ht' _ hn _ hn'), },
 end
+
+
+lemma uniform_cauchy_seq_on_of_tendsto_uniformly_on_ball_fderiv
+  {s : set E} (hs : is_open s) (h's : is_preconnected s)
+  (hf' : uniform_cauchy_seq_on f' l s)
+  (hf : ∀ n : ι, ∀ y : E, y ∈ s → has_fderiv_at (f n) (f' n y) y)
+  {x₀ x : E} (hx₀ : x₀ ∈ s) (hx : x ∈ s)
+  (hfg : cauchy (map (λ (n : ι), f n x₀) l)) :
+  cauchy (map (λ (n : ι), f n x) l) :=
+begin
+  let t := {y | y ∈ s ∧ cauchy (map (λ (n : ι), f n y) l)},
+  have : x₀ ∈ t, from ⟨hx₀, hfg⟩,
+  have : ∀ x ε, x ∈ t → metric.ball x ε ⊆ s → metric.ball x ε ⊆ t,
+  { assume x ε xt hx y hy,
+    refine ⟨hx hy, _⟩,
+    have Z := uniform_cauchy_seq_on_ball_of_tendsto_uniformly_on_ball_fderiv ε (hf'.mono hx)
+      (λ n y hy, hf n y (hx hy)) xt.2,
+
+  }
+  have : is_open t,
+  { rw metric.is_open_iff,
+    assume x hx,
+
+  }
+
+end
+
+
+#exit
 
 /-- If `f_n → g` pointwise and the derivatives `(f_n)' → h` _uniformly_ converge, then
 in fact for a fixed `y`, the difference quotients `∥z - y∥⁻¹ • (f_n z - f_n y)` converge

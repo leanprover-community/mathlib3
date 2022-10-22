@@ -3,7 +3,7 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.calculus.specific_functions
+import analysis.calculus.uniform_limits_deriv
 
 /-!
 # Smoothness of series
@@ -114,10 +114,10 @@ variables [normed_space ℝ F]
 /-- Consider a series of functions `∑' n, f n x` on a convex set. If the series converges at a
 point, and all functions in the series are differentiable with a summable bound on the derivatives,
 then the series converges everywhere on the set. -/
-lemma summable_of_summable_has_fderiv_within_at
+lemma summable_of_summable_has_fderiv_at
   {f : α → E → F} {f' : α → E → (E →L[ℝ] F)} {u : α → ℝ} (hu : summable u)
   {s : set E} (hs : convex ℝ s)
-  (hf : ∀ n x, x ∈ s → has_fderiv_within_at (f n) (f' n x) s x)
+  (hf : ∀ n x, x ∈ s → has_fderiv_at (f n) (f' n x) x)
   (hf' : ∀ n x, x ∈ s → ∥f' n x∥ ≤ u n)
   {x₀ : E} (hx₀ : x₀ ∈ s) (hf0 : summable (λ n, f n x₀)) {x : E} (hx : x ∈ s) :
   summable (λ n, f n x) :=
@@ -128,7 +128,8 @@ begin
     rw [← nnreal.coe_le_coe, coe_nnnorm, real.coe_to_nnreal _ (u_nonneg n)],
     exact hf' n x hx },
   have L : ∀ n, lipschitz_on_with (u n).to_nnreal (f n) s,
-    from λ n, hs.lipschitz_on_with_of_nnnorm_has_fderiv_within_le (hf n) (hf'_nn n),
+    from λ n, hs.lipschitz_on_with_of_nnnorm_has_fderiv_within_le
+      (λ x hx, (hf n x hx).has_fderiv_within_at) (hf'_nn n),
   exact summable_of_summable_of_lipschitz_on_with hx₀ hx hf0 L hu.to_nnreal,
 end
 
@@ -137,102 +138,17 @@ point, and all functions in the series are differentiable with a summable bound 
 then the series is differentiable on the set and its derivative is the sum of the derivatives. -/
 lemma has_fderiv_within_at_tsum
   {f : α → E → F} {f' : α → E → (E →L[ℝ] F)} {u : α → ℝ} (hu : summable u)
-  {s : set E} (hs : convex ℝ s)
-  (hf : ∀ n x, x ∈ s → has_fderiv_within_at (f n) (f' n x) s x)
+  {s : set E} (hs : convex ℝ s) (h's : is_open s)
+  (hf : ∀ n x, x ∈ s → has_fderiv_at (f n) (f' n x) x)
   (hf' : ∀ n x, x ∈ s → ∥f' n x∥ ≤ u n)
   {x₀ : E} (hx₀ : x₀ ∈ s) (hf0 : summable (λ n, f n x₀)) {x : E} (hx : x ∈ s) :
-  has_fderiv_within_at (λ y, ∑' n, f n y) (∑' n, f' n x) s x :=
+  has_fderiv_at (λ y, ∑' n, f n y) (∑' n, f' n x) x :=
 begin
   classical,
-  have u_nonneg : ∀ n, 0 ≤ u n, from λ n, (norm_nonneg _).trans (hf' n x₀ hx₀),
-  have hf'_nn : ∀ n x, x ∈ s → ∥f' n x∥₊ ≤ (u n).to_nnreal,
-  { assume n x hx,
-    rw [← nnreal.coe_le_coe, coe_nnnorm, real.coe_to_nnreal _ (u_nonneg n)],
-    exact hf' n x hx },
-  have L : ∀ n, lipschitz_on_with (u n).to_nnreal (f n) s,
-    from λ n, hs.lipschitz_on_with_of_nnnorm_has_fderiv_within_le (hf n) (hf'_nn n),
-  have S : ∀ y, y ∈ s → summable (λ n, f n y),
-    from λ y hy, summable_of_summable_has_fderiv_within_at hu hs hf hf' hx₀ hf0 hy,
-  simp only [has_fderiv_within_at, has_fderiv_at_filter, is_o, is_O_with],
-  assume ε εpos,
-  set δ : ℝ := ε / 3 with δ_def,
-  have δpos : 0 < δ, { rw [δ_def], linarith },
-  obtain ⟨t, ht⟩ : ∃ (t : finset α), ∑' (n : {n // n ∉ t}), u n < δ, from
-    ((tendsto_order.1 (tendsto_tsum_compl_at_top_zero u)).2 _ δpos).exists,
-  have A : is_O_with δ (𝓝[s] x)
-    (λ y, ∑ n in t, f n y - ∑ n in t, f n x - (∑ n in t, f' n x) (y - x)) (λ (x' : E), x' - x),
-  { have : has_fderiv_within_at (λ y, ∑ n in t, f n y) (∑ n in t, f' n x) s x,
-      from has_fderiv_within_at.sum (λ n hn, (hf n x hx)),
-    simp only [has_fderiv_within_at, has_fderiv_at_filter, is_o] at this,
-    exact this δpos },
-  filter_upwards [is_O_with_iff.1 A, self_mem_nhds_within] with y Hy hy,
-  have YX : ∀ n, ∥f n y - f n x∥ ≤ u n * ∥y - x∥,
-  { assume n,
-    rw [← dist_eq_norm, ← dist_eq_norm],
-    convert (L n).dist_le_mul _ hy _ hx,
-    rw real.coe_to_nnreal _ (u_nonneg n) },
-  calc
-  ∥∑' (n : α), f n y - ∑' (n : α), f n x - (∑' (n : α), f' n x) (y - x)∥
-  = ∥(∑ n in t, f n y - ∑ n in t, f n x - (∑ n in t, f' n x) (y - x))
-    + (∑' n : {n // n ∉ t}, f n y - ∑' n : {n // n ∉ t}, f n x
-        - (∑' n : {n // n ∉ t}, f' n x) (y - x))∥ :
-    begin
-      congr' 1,
-      have C : summable (λ n, f' n x), from summable_of_norm_bounded _ hu (λ n, hf' n x hx),
-      rw [← sum_add_tsum_subtype_compl (S y hy) t, ← sum_add_tsum_subtype_compl (S x hx) t,
-        ← sum_add_tsum_subtype_compl C t],
-      simp only [continuous_linear_map.add_apply],
-      abel,
-    end
-  ... ≤ ∥∑ n in t, f n y - ∑ n in t, f n x - (∑ n in t, f' n x) (y - x)∥
-    + ∥(∑' n : {n // n ∉ t}, f n y - ∑' n : {n // n ∉ t}, f n x )
-        - (∑' n : {n // n ∉ t}, f' n x) (y - x)∥ :
-    norm_add_le _ _
-  ... ≤ δ * ∥y - x∥ + ∥∑' n : {n // n ∉ t}, f n y - ∑' n : {n // n ∉ t}, f n x∥
-              + ∥∑' n : {n // n ∉ t}, f' n x∥ * ∥y - x∥ :
-    begin
-      rw add_assoc,
-      apply add_le_add Hy,
-      apply (norm_sub_le _ _).trans (add_le_add_left _ _),
-      apply continuous_linear_map.le_op_norm,
-    end
-  ... ≤ δ * ∥y - x∥ + ∑' n : {n // n ∉ t}, ∥f n y - f n x∥ + (∑' n : {n // n ∉ t}, u n) * ∥y - x∥ :
-    begin
-      refine add_le_add (add_le_add_left _ _) _,
-      { rw ← tsum_sub,
-        rotate, { exact (S y hy).subtype _ }, { exact (S x hx).subtype _ },
-        apply norm_tsum_le_tsum_norm,
-        have : summable (λ n, ∥f n y - f n x∥),
-          from summable_of_nonneg_of_le (λ n, norm_nonneg _) YX (hu.mul_right _),
-        exact this.subtype _ },
-      { have S' : summable (λ n, ∥f' n x∥),
-          from summable_of_nonneg_of_le (λ n, norm_nonneg _) (λ n, hf' n x hx) hu,
-        apply mul_le_mul_of_nonneg_right _ (norm_nonneg _),
-        refine (norm_tsum_le_tsum_norm (S'.subtype _)).trans _,
-        apply tsum_le_tsum,
-        { assume n, exact hf' n x hx },
-        { exact S'.subtype _ },
-        { exact hu.subtype _ } }
-    end
-  ... ≤ δ * ∥y - x∥ + ∑' n : {n // n ∉ t}, u n * ∥y - x∥ + (∑' n : {n // n ∉ t}, u n) * ∥y - x∥ :
-    begin
-      refine add_le_add_right (add_le_add_left _ _) _,
-      apply tsum_le_tsum,
-      { assume n, apply YX },
-      { have : summable (λ n, ∥f n y - f n x∥),
-          from summable_of_nonneg_of_le (λ n, norm_nonneg _) YX (hu.mul_right _),
-        exact this.subtype _ },
-      { apply summable.mul_right,
-        exact hu.subtype _ }
-    end
-  ... ≤ δ * ∥y - x∥ + δ * ∥y - x∥ + δ * ∥y - x∥ :
-    begin
-      rw [tsum_mul_right],
-      refine add_le_add (add_le_add_left _ _) _;
-      exact mul_le_mul_of_nonneg_right ht.le (norm_nonneg _),
-    end
-  ... = ε * ∥y - x∥ : by { rw [δ_def], ring }
+  apply has_fderiv_at_of_tendsto_uniformly_on h's (tendsto_uniformly_on_tsum hu hf') _ _ _ hx,
 end
+
+#exit
 
 /-- Consider a series of functions `∑' n, f n x`. If the series converges at a
 point, and all functions in the series are differentiable with a summable bound on the derivatives,

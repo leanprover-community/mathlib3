@@ -145,7 +145,7 @@ which form a basis for the lower topology
 def lower_basis (α : Type u) [preorder α] :=
 {s : set α | ∃ (F : set α), F.finite ∧
   (upper_closure F).compl.carrier = s ∧
-  (upper_closure F).compl.carrier.nonempty }
+  s.nonempty }
 
 variables [topological_space α] [t: lower_topology α]
 

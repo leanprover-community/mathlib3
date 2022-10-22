@@ -882,8 +882,8 @@ def mk_continuous_linear (f : G →ₗ[𝕜] multilinear_map 𝕜 E G') (C : ℝ
   G →L[𝕜] continuous_multilinear_map 𝕜 E G' :=
 linear_map.mk_continuous
   { to_fun := λ x, (f x).mk_continuous (C * ∥x∥) $ H x,
-    map_add' := λ x y, by { ext1, simp },
-    map_smul' := λ c x, by { ext1, simp } }
+    map_add' := λ x y, by { ext1, simp only [_root_.map_add], refl },
+    map_smul' := λ c x, by { ext1, simp only [smul_hom_class.map_smul], refl } }
   (max C 0) $ λ x, ((f x).mk_continuous_norm_le' _).trans_eq $
     by rw [max_mul_of_nonneg _ _ (norm_nonneg x), zero_mul]
 

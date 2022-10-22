@@ -264,7 +264,7 @@ nnreal.eq (nnreal.coe_nat_cast n).symm
 nnreal.eq $ by simp [real.coe_to_nnreal]
 
 /-- `real.to_nnreal` and `coe : ℝ≥0 → ℝ` form a Galois insertion. -/
-noncomputable def gi : galois_insertion real.to_nnreal coe :=
+def gi : galois_insertion real.to_nnreal coe :=
 galois_insertion.monotone_intro nnreal.coe_mono real.to_nnreal_mono
   real.le_coe_to_nnreal (λ _, real.to_nnreal_coe)
 

@@ -1,4 +1,4 @@
-import logic.equiv.basic
+import logic.equiv.defs
 import tactic.norm_swap
 
 

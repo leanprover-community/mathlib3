@@ -44,7 +44,8 @@ structure homotopy_equiv (X : Type u) (Y : Type v) [topological_space X] [topolo
 (left_inv : (inv_fun.comp to_fun).homotopic (continuous_map.id X))
 (right_inv : (to_fun.comp inv_fun).homotopic (continuous_map.id Y))
 
-localized "infix ` ≃ₕ `:25 := continuous_map.homotopy_equiv" in continuous_map
+localized "infix (name := continuous_map.homotopy_equiv)
+  ` ≃ₕ `:25 := continuous_map.homotopy_equiv" in continuous_map
 
 namespace homotopy_equiv
 

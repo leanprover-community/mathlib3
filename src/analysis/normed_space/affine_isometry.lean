@@ -197,9 +197,31 @@ instance : monoid (P →ᵃⁱ[𝕜] P) :=
 
 end affine_isometry
 
--- remark: by analogy with the `linear_isometry` file from which this is adapted, there should
--- follow here a section defining an "inclusion" affine isometry from `p : affine_subspace 𝕜 P`
--- into `P`; we omit this for now
+namespace affine_subspace
+
+include V
+
+/-- `affine_subspace.subtype` as an `affine_isometry`. -/
+def subtypeₐᵢ (s : affine_subspace 𝕜 P) [nonempty s] : s →ᵃⁱ[𝕜] P :=
+{ norm_map := s.direction.subtypeₗᵢ.norm_map,
+  .. s.subtype }
+
+lemma subtypeₐᵢ_linear (s : affine_subspace 𝕜 P) [nonempty s] :
+  s.subtypeₐᵢ.linear = s.direction.subtype :=
+rfl
+
+@[simp] lemma subtypeₐᵢ_linear_isometry (s : affine_subspace 𝕜 P) [nonempty s] :
+  s.subtypeₐᵢ.linear_isometry = s.direction.subtypeₗᵢ :=
+rfl
+
+@[simp] lemma coe_subtypeₐᵢ (s : affine_subspace 𝕜 P) [nonempty s] : ⇑s.subtypeₐᵢ = s.subtype :=
+rfl
+
+@[simp] lemma subtypeₐᵢ_to_affine_map (s : affine_subspace 𝕜 P) [nonempty s] :
+  s.subtypeₐᵢ.to_affine_map = s.subtype :=
+rfl
+
+end affine_subspace
 
 variables (𝕜 P P₂)
 include V V₂

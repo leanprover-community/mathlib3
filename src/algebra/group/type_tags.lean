@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.hom.group
-import logic.equiv.basic
+import logic.equiv.defs
+import data.finite.defs
 /-!
 # Type tags that turn additive structures into multiplicative, and vice versa
 
@@ -68,6 +69,12 @@ end multiplicative
 
 instance [inhabited α] : inhabited (additive α) := ⟨additive.of_mul default⟩
 instance [inhabited α] : inhabited (multiplicative α) := ⟨multiplicative.of_add default⟩
+
+instance [finite α] : finite (additive α) := finite.of_equiv α (by refl)
+instance [finite α] : finite (multiplicative α) := finite.of_equiv α (by refl)
+
+instance [infinite α] : infinite (additive α) := by tauto
+instance [infinite α] : infinite (multiplicative α) := by tauto
 
 instance [nontrivial α] : nontrivial (additive α) :=
 additive.of_mul.injective.nontrivial

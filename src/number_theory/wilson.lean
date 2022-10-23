@@ -29,10 +29,13 @@ open_locale nat
 namespace nat
 variable {n : ℕ}
 
-/-- For `n > 1`, `(n-1)!` is congruent to `-1` modulo `n` only if n is prime. --/
+/-- For `n ≠ 1`, `(n-1)!` is congruent to `-1` modulo `n` only if n is prime. --/
 lemma prime_of_fac_equiv_neg_one
-  (h : ((n - 1)! : zmod n) = -1) (h1 : 1 < n) : prime n :=
+  (h : ((n - 1)! : zmod n) = -1) (h1 : n ≠ 1) : prime n :=
 begin
+  rcases eq_or_ne n 0 with rfl | h0,
+  { norm_num at h },
+  replace h1 : 1 < n := n.two_le_iff.mpr ⟨h0, h1⟩,
   by_contradiction h2,
   obtain ⟨m, hm1, hm2 : 1 < m, hm3⟩ := exists_dvd_of_not_prime2 h1 h2,
   have hm : m ∣ (n - 1)! := nat.dvd_factorial (pos_of_gt hm2) (le_pred_of_lt hm3),
@@ -40,8 +43,8 @@ begin
   rw [←zmod.nat_coe_zmod_eq_zero_iff_dvd, cast_add, cast_one, h, add_left_neg],
 end
 
-/-- **Wilson's Theorem**: For `n > 1`, `(n-1)!` is congruent to `-1` modulo `n` iff n is prime. --/
-theorem prime_iff_fac_equiv_neg_one (h : 1 < n) :
+/-- **Wilson's Theorem**: For `n ≠ 1`, `(n-1)!` is congruent to `-1` modulo `n` iff n is prime. --/
+theorem prime_iff_fac_equiv_neg_one (h : n ≠ 1) :
   prime n ↔ ((n - 1)! : zmod n) = -1 :=
 begin
   refine ⟨λ h1, _, λ h2, prime_of_fac_equiv_neg_one h2 h⟩,

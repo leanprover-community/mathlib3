@@ -97,7 +97,7 @@ intermediate_value_Icc' (by norm_num) continuous_on_cos
 which one can derive all its properties. For explicit bounds on π, see `data.real.pi.bounds`. -/
 protected noncomputable def pi : ℝ := 2 * classical.some exists_cos_eq_zero
 
-localized "notation `π` := real.pi" in real
+localized "notation (name := real.pi) `π` := real.pi" in real
 
 @[simp] lemma cos_pi_div_two : cos (π / 2) = 0 :=
 by rw [real.pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _)];
@@ -761,6 +761,9 @@ tan_periodic.sub_eq x
 lemma tan_pi_sub (x : ℝ) : tan (π - x) = -tan x :=
 tan_neg x ▸ tan_periodic.sub_eq'
 
+lemma tan_pi_div_two_sub (x : ℝ) : tan (π / 2 - x) = (tan x)⁻¹ :=
+by rw [tan_eq_sin_div_cos, tan_eq_sin_div_cos, inv_div, sin_pi_div_two_sub, cos_pi_div_two_sub]
+
 lemma tan_nat_mul_pi (n : ℕ) : tan (n * π) = 0 :=
 tan_zero ▸ tan_periodic.nat_mul_eq n
 
@@ -989,6 +992,9 @@ tan_periodic.sub_eq x
 
 lemma tan_pi_sub (x : ℂ) : tan (π - x) = -tan x :=
 tan_neg x ▸ tan_periodic.sub_eq'
+
+lemma tan_pi_div_two_sub (x : ℂ) : tan (π / 2 - x) = (tan x)⁻¹ :=
+by rw [tan_eq_sin_div_cos, tan_eq_sin_div_cos, inv_div, sin_pi_div_two_sub, cos_pi_div_two_sub]
 
 lemma tan_nat_mul_pi (n : ℕ) : tan (n * π) = 0 :=
 tan_zero ▸ tan_periodic.nat_mul_eq n

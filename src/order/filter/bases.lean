@@ -332,6 +332,10 @@ lemma has_basis.eq_bot_iff (hl : l.has_basis p s) :
 not_iff_not.1 $ ne_bot_iff.symm.trans $ hl.ne_bot_iff.trans $
 by simp only [not_exists, not_and, ← ne_empty_iff_nonempty]
 
+lemma generate_ne_bot_iff {s : set (set α)} :
+  ne_bot (generate s) ↔ ∀ t ⊆ s, t.finite → (⋂₀ t).nonempty :=
+(has_basis_generate s).ne_bot_iff.trans $ by simp only [← and_imp, and_comm]
+
 lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=
 ⟨λ t, exists_mem_subset_iff.symm⟩
 

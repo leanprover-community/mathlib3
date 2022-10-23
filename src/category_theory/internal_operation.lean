@@ -133,6 +133,7 @@ begin
   tidy,
 end
 
+@[simp]
 def internal_operation₂_gen.map [has_binary_product X Y]
   (oper : internal_operation₂_gen X Y Z) (F : C ⥤ D)
   [has_binary_product (F.obj X) (F.obj Y)]
@@ -170,6 +171,34 @@ begin
   tidy,
 end
 
+variable {X}
+
+@[simp]
+def map [has_binary_product X X]
+  (oper : internal_operation₂ X) (F : C ⥤ D)
+  [has_binary_product (F.obj X) (F.obj X)]
+  [preserves_limit (pair X X) F] :
+  internal_operation₂ (F.obj X) :=
+internal_operation₂_gen.map oper F
+
+lemma comm.map [has_binary_product X X] {oper : internal_operation₂ X}
+  (comm : oper.comm) (F : C ⥤ D)
+  [has_binary_product (F.obj X) (F.obj X)]
+  [preserves_limit (pair X X) F] :
+    (oper.map F).comm :=
+begin
+  have h := _root_.congr_arg (λ x, map x F) comm,
+  dsimp at h ⊢,
+  nth_rewrite 1 ← h,
+  simp only [functor.map_comp, ← category.assoc],
+  congr' 1,
+  simp only [← cancel_mono (preserves_limit_pair.iso F X X).hom,
+    ← cancel_epi (preserves_limit_pair.iso F X X).hom, category.assoc, iso.inv_hom_id,
+    comp_id, iso.hom_inv_id_assoc, id_comp],
+  ext;
+  simp [← F.map_comp],
+end
+
 end internal_operation₂
 
 def internal_operation₃_gen [has_binary_product Y Z] [has_binary_product X (prod Y Z)] :=
@@ -201,6 +230,7 @@ internal_operation₃_gen.yoneda_equiv X X X X
 
 variables {X Y Z W}
 
+@[simp]
 def internal_operation₃_gen.map [has_binary_product Y Z] [has_binary_product X (prod Y Z)]
   (oper : internal_operation₃_gen X Y Z W) (F : C ⥤ D)
   [has_binary_product (F.obj Y) (F.obj Z)]
@@ -238,6 +268,23 @@ begin
   { sorry, },
   { sorry, },
 end
+
+lemma assoc.map [has_binary_product X X] [has_binary_product X (prod X X)]
+  {oper : internal_operation₂ X}
+  (assoc : oper.assoc) (F : C ⥤ D)
+  [has_binary_product (F.obj X) (F.obj X)]
+    [has_binary_product (F.obj X) (prod (F.obj X) (F.obj X))]
+    [has_binary_product (F.obj X) (F.obj (prod X X))]
+  [preserves_limit (pair X X) F] [preserves_limit (pair X (prod X X)) F] :
+    (oper.map F).assoc :=
+begin
+  have h := _root_.congr_arg (λ x, internal_operation₃_gen.map x F) assoc,
+  dsimp at h ⊢,
+  refine ((_ : _ = _).trans h).trans _,
+  { sorry, },
+  { sorry, },
+end
+
 
 lemma yoneda_equiv_zero_add [has_terminal C] [has_binary_product X X]
   (oper : internal_operation₂ X) (zero : internal_operation₀ X) (zero_oper : oper.zero_add zero) :

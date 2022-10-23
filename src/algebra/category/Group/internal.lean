@@ -243,7 +243,9 @@ def apply_functor (F : C ⥤ D) [has_terminal C] [has_terminal D]
   [has_binary_product (F.obj M.obj) (prod (F.obj M.obj) (F.obj M.obj))]
   [preserves_limit (functor.empty.{0} C) F] [preserves_limit (pair M.obj M.obj) F] :
   internal Ab D :=
-mk' (F.obj M.obj) ((zero M).map F) ((neg M).map F) ((add M).map F) sorry sorry sorry sorry
+mk' (F.obj M.obj) ((zero M).map F) ((neg M).map F) ((add M).map F)
+  ((add_comm M).map F) sorry sorry sorry
+#exit
 
 variables {M₁ M₂}
 

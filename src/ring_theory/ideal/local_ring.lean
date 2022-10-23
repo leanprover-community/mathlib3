@@ -383,11 +383,9 @@ by simp only [map_id, ring_hom.id_apply]
   map g (map f x) = map (g.comp f) x :=
 by simp only [map_comp, ring_hom.comp_apply]
 
-noncomputable theory
-
 /-- A ring isomorphism defines an isomorphism of residue fields -/
 @[simps apply]
-def map_equiv (f : R ≃+* S):
+noncomputable def map_equiv (f : R ≃+* S):
   local_ring.residue_field R ≃+* local_ring.residue_field S :=
 { to_fun := map (f : R →+* S),
   inv_fun := map (f.symm : S →+* R),
@@ -402,19 +400,19 @@ lemma map_equiv.symm (f : R ≃+* S):
 
 /-- The group homomorphism from `ring_aut R` to `ring_aut k` where `k`
 is the residue field of `R`. -/
-def map_aut:
+@[simps]
+noncomputable def map_aut:
   ring_aut R →* ring_aut (local_ring.residue_field R):=
 { to_fun := map_equiv,
   map_mul' := begin
   intros φ ψ,
   ext,
-  exact map_map (φ : R →+* R) (ψ : R →+* R) x,
+  exact map_comp (φ : R →+* R) (ψ : R →+* R),
   end,
   map_one' := begin
   ext,
   apply local_ring.residue_field.map_id_apply,
-  end
-  }
+  end }
 
 end
 

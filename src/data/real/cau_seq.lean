@@ -177,7 +177,7 @@ instance : has_add (cau_seq β abv) :=
       ⟨i, H⟩ := exists_forall_ge_and (f.cauchy₃ δ0) (g.cauchy₃ δ0) in
   ⟨i, λ j ij, let ⟨H₁, H₂⟩ := H _ le_rfl in Hδ (H₁ _ ij) (H₂ _ ij)⟩⟩⟩
 
-@[simp] theorem add_apply (f g : cau_seq β abv) (i : ℕ) : (f + g) i = f i + g i := rfl
+@[simp, norm_cast] theorem add_apply (f g : cau_seq β abv) (i : ℕ) : (f + g) i = f i + g i := rfl
 
 variable (abv)
 
@@ -189,7 +189,7 @@ variable {abv}
 
 local notation `const` := const abv
 
-@[simp] theorem const_apply (x : β) (i : ℕ) : (const x : ℕ → β) i = x := rfl
+@[simp, norm_cast] theorem const_apply (x : β) (i : ℕ) : (const x : ℕ → β) i = x := rfl
 
 theorem const_inj {x y : β} : (const x : cau_seq β abv) = const y ↔ x = y :=
 ⟨λ h, congr_arg (λ f:cau_seq β abv, (f:ℕ→β) 0) h, congr_arg _⟩
@@ -198,12 +198,23 @@ instance : has_zero (cau_seq β abv) := ⟨const 0⟩
 instance : has_one (cau_seq β abv) := ⟨const 1⟩
 instance : inhabited (cau_seq β abv) := ⟨0⟩
 
-@[simp] theorem zero_apply (i) : (0 : cau_seq β abv) i = 0 := rfl
-@[simp] theorem one_apply (i) : (1 : cau_seq β abv) i = 1 := rfl
+@[simp, norm_cast] theorem zero_apply (i) : (0 : cau_seq β abv) i = 0 := rfl
+@[simp, norm_cast] theorem one_apply (i) : (1 : cau_seq β abv) i = 1 := rfl
 @[simp] theorem const_zero : const 0 = 0 := rfl
 
 theorem const_add (x y : β) : const (x + y) = const x + const y :=
 rfl
+
+private lemma nsmul_aux (n : ℕ) (f : cau_seq β abv) (i : ℕ) : nsmul_rec n f i = n • f i :=
+by induction n; simp only [*, nsmul_rec, zero_apply, add_apply, zero_nsmul, succ_nsmul]
+
+instance has_nsmul : has_smul ℕ (cau_seq β abv) :=
+⟨λ n f, of_eq (nsmul_rec n f) (λ i, n • f i) $ nsmul_aux _ _⟩
+
+-- eligible for `dsimp`
+@[simp, norm_cast, nolint simp_nf]
+lemma nsmul_apply (n : ℕ) (f : cau_seq β abv) (i : ℕ) : (n • f) i = n • f i := rfl
+lemma const_nsmul (n : ℕ) (x : β) : const (n • x) = n • const x := rfl
 
 instance : has_mul (cau_seq β abv) :=
 ⟨λ f g, ⟨λ i, (f i * g i : β), λ ε ε0,
@@ -213,26 +224,35 @@ instance : has_mul (cau_seq β abv) :=
   ⟨i, λ j ij, let ⟨H₁, H₂⟩ := H _ le_rfl in
     Hδ (hF j) (hG i) (H₁ _ ij) (H₂ _ ij)⟩⟩⟩
 
-@[simp] theorem mul_apply (f g : cau_seq β abv) (i : ℕ) : (f * g) i = f i * g i := rfl
+@[simp, norm_cast] theorem mul_apply (f g : cau_seq β abv) (i : ℕ) : (f * g) i = f i * g i := rfl
 
-theorem const_mul (x y : β) : const (x * y) = const x * const y :=
-ext $ λ i, rfl
+theorem const_mul (x y : β) : const (x * y) = const x * const y := rfl
 
 instance : has_neg (cau_seq β abv) :=
 ⟨λ f, of_eq (const (-1) * f) (λ x, -f x) (λ i, by simp)⟩
 
-@[simp] theorem neg_apply (f : cau_seq β abv) (i) : (-f) i = -f i := rfl
+@[simp, norm_cast] theorem neg_apply (f : cau_seq β abv) (i) : (-f) i = -f i := rfl
 
-theorem const_neg (x : β) : const (-x) = -const x :=
-ext $ λ i, rfl
+theorem const_neg (x : β) : const (-x) = -const x := rfl
 
 instance : has_sub (cau_seq β abv) :=
 ⟨λ f g, of_eq (f + -g) (λ x, f x - g x) (λ i, by simp [sub_eq_add_neg])⟩
 
-@[simp] theorem sub_apply (f g : cau_seq β abv) (i : ℕ) : (f - g) i = f i - g i := rfl
+@[simp, norm_cast] theorem sub_apply (f g : cau_seq β abv) (i : ℕ) : (f - g) i = f i - g i := rfl
 
-theorem const_sub (x y : β) : const (x - y) = const x - const y :=
-ext $ λ i, rfl
+theorem const_sub (x y : β) : const (x - y) = const x - const y := rfl
+
+instance has_zsmul : has_smul ℤ (cau_seq β abv) :=
+⟨λ n f, of_eq (zsmul_rec n f) (λ i, n • f i) $ λ i, begin
+  induction n; unfold zsmul_rec,
+  { rw [of_nat_zsmul, nsmul_aux] },
+  { rw [zsmul_neg_succ_of_nat, neg_apply,  nsmul_aux] }
+  end⟩
+
+-- eligible for `dsimp`
+@[simp, norm_cast, nolint simp_nf]
+lemma zsmul_apply (n : ℤ) (f : cau_seq β abv) (i : ℕ) : (n • f) i = n • f i := rfl
+lemma const_zsmul (n : ℤ) (x : β) : const (n • x) = n • const x := rfl
 
 instance : add_group (cau_seq β abv) :=
 by refine_struct
@@ -240,9 +260,9 @@ by refine_struct
        neg := has_neg.neg,
        zero := (0 : cau_seq β abv),
        sub := has_sub.sub,
-       zsmul := @zsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
-       nsmul := @nsmul_rec (cau_seq β abv) ⟨0⟩ ⟨(+)⟩ };
-intros; try { refl }; apply ext; simp [add_comm, add_left_comm, sub_eq_add_neg]
+       zsmul := (•),
+       nsmul := (•) };
+intros; try { refl }; apply ext; simp [add_comm, add_left_comm, sub_eq_add_neg, add_mul]
 
 instance : add_group_with_one (cau_seq β abv) :=
 { one := 1,
@@ -254,16 +274,24 @@ instance : add_group_with_one (cau_seq β abv) :=
   int_cast_neg_succ_of_nat := λ n, congr_arg const (int.cast_neg_succ_of_nat n),
   .. cau_seq.add_group }
 
+instance : has_pow (cau_seq β abv) ℕ :=
+⟨λ f n, of_eq (npow_rec n f) (λ i, f i ^ n) $ by induction n; simp [*, npow_rec, pow_succ]⟩
+
+-- eligible for `dsimp`
+@[simp, norm_cast, nolint simp_nf]
+lemma pow_apply (f : cau_seq β abv) (n i : ℕ) : (f ^ n) i = f i ^ n := rfl
+lemma const_pow (x : β) (n : ℕ) : const (x ^ n) = const x ^ n := rfl
+
 instance : ring (cau_seq β abv) :=
 by refine_struct
      { add := (+),
        zero := (0 : cau_seq β abv),
        mul := (*),
        one := 1,
-       npow := @npow_rec (cau_seq β abv) ⟨1⟩ ⟨(*)⟩,
+       npow := λ n f, f ^ n,
        .. cau_seq.add_group_with_one };
 intros; try { refl }; apply ext;
-simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm, sub_eq_add_neg]
+simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm, sub_eq_add_neg, pow_succ]
 
 instance {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv] :
   comm_ring (cau_seq β abv) :=
@@ -449,7 +477,7 @@ let ⟨K, K0, HK⟩ := abv_pos_of_not_lim_zero hf,
 the inverses of the values of `f`. -/
 def inv (f : cau_seq β abv) (hf : ¬ lim_zero f) : cau_seq β abv := ⟨_, inv_aux hf⟩
 
-@[simp] theorem inv_apply {f : cau_seq β abv} (hf i) : inv f hf i = (f i)⁻¹ := rfl
+@[simp, norm_cast] theorem inv_apply {f : cau_seq β abv} (hf i) : inv f hf i = (f i)⁻¹ := rfl
 
 theorem inv_mul_cancel {f : cau_seq β abv} (hf) : inv f hf * f ≈ 1 :=
 λ ε ε0, let ⟨K, K0, i, H⟩ := abv_pos_of_not_lim_zero hf in
@@ -458,8 +486,7 @@ theorem inv_mul_cancel {f : cau_seq β abv} (hf) : inv f hf * f ≈ 1 :=
     abv_zero abv] using ε0⟩
 
 theorem const_inv {x : β} (hx : x ≠ 0) :
-  const abv (x⁻¹) = inv (const abv x) (by rwa const_lim_zero) :=
-ext (assume n, by simp[inv_apply, const_apply])
+  const abv (x⁻¹) = inv (const abv x) (by rwa const_lim_zero) := rfl
 
 end field
 

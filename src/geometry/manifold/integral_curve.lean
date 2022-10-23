@@ -251,7 +251,7 @@ lemma curve_exists_boundaryless
     has_mfderiv_at 𝓘(ℝ, ℝ) I γ t
       ((1 : ℝ →L[ℝ] ℝ).smul_right ((ext_chart_at I.tangent (v (γ t))) (v (γ t))).2) :=
 begin
-  apply step2 I M v h₁ h₂,
+  apply exists_integral_curve_of_cont_mdiff_tangent_vector_field I M v h₁ h₂,
   rw ext_chart_at_target,
   rw model_with_corners.boundaryless.range_eq_univ,
   rw set.inter_univ,

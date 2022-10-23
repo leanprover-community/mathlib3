@@ -204,8 +204,6 @@ coe_injective $ comap_pure.trans $
 lemma pure_injective : injective (pure : α → ultrafilter α) :=
 λ a b h, filter.pure_injective (congr_arg ultrafilter.to_filter h : _)
 
-@[simp] lemma coe_pure (a : α) : ((pure a : ultrafilter α) : filter α) = pure a := rfl
-
 instance [inhabited α] : inhabited (ultrafilter α) := ⟨pure default⟩
 instance [nonempty α] : nonempty (ultrafilter α) := nonempty.map pure infer_instance
 
@@ -293,6 +291,14 @@ lemma is_atom_pure : is_atom (pure a : filter α) := (pure a : ultrafilter α).i
 
 protected lemma ne_bot.le_pure_iff (hf : f.ne_bot) : f ≤ pure a ↔ f = pure a :=
 ⟨ultrafilter.unique (pure a), le_of_eq⟩
+
+@[simp] lemma lt_pure_iff : f < pure a ↔ f = ⊥ := (is_atom_pure a).lt_iff
+
+lemma le_pure_iff' : f ≤ pure a ↔ f = ⊥ ∨ f = pure a :=
+(is_atom_pure a).le_iff
+
+@[simp] lemma Iic_pure (a : α) : Iic (pure a : filter α) = {⊥, pure a} :=
+(is_atom_pure a).Iic_eq
 
 lemma mem_iff_ultrafilter : s ∈ f ↔ ∀ g : ultrafilter α, ↑g ≤ f → s ∈ g :=
 begin

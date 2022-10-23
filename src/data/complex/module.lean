@@ -84,8 +84,7 @@ instance [distrib_smul R ℝ] : distrib_smul R ℂ :=
   smul_zero := λ r, by ext; simp [smul_re, smul_im, smul_zero] }
 
 instance [semiring R] [distrib_mul_action R ℝ] : distrib_mul_action R ℂ :=
-{ smul_add := λ r x y, by ext; simp [smul_re, smul_im, smul_add],
-  smul_zero := λ r, by ext; simp [smul_re, smul_im, smul_zero] }
+{ ..complex.distrib_smul }
 
 instance [semiring R] [module R ℝ] : module R ℂ :=
 { add_smul := λ r s x, by ext; simp [smul_re, smul_im, add_smul],

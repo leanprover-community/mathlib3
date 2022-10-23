@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémi Bottinelli, Junyan Xu
 -/
 import category_theory.groupoid.vertex_group
-import category_theory.groupoid
 import category_theory.groupoid.basic
-import category_theory.groupoid.vertex_group
 import category_theory.groupoid
 import algebra.group.defs
 import algebra.hom.group
@@ -102,7 +100,6 @@ lemma mem_of_mul_mem' {c d e : C} (f : c ⟶ d) (g : d ⟶ e) :
 { suffices : (f ≫ g) ≫ (inv g) ∈ S.arrows c d,
   { simpa only [inv_eq_inv, is_iso.hom_inv_id, category.comp_id, category.assoc] using this, },
   { apply S.mul h (S.inv hg), }, }
-
 
 /-- The vertices of `C` on which `S` has non-trivial isotropy -/
 def objs : set C := {c : C | (S.arrows c c).nonempty}
@@ -277,10 +274,8 @@ begin
     ext, split; simp only [top_eq_univ, mem_univ, implies_true_iff, forall_true_left],
     apply mem_objs_of_src S (h.wide x), },
   { rintro h,
-    refine ⟨_⟩,
-    rintro c,
-    let := (le_of_eq h.symm),
-    obtain ⟨γ,γS⟩ := this (set.mem_univ c),
+    refine ⟨λ c, _⟩,
+    obtain ⟨γ,γS⟩ := (le_of_eq h.symm : ⊤ ⊆ S.objs) (set.mem_univ c),
     exact id_mem_of_src S γS, },
 end
 
@@ -374,11 +369,9 @@ lemma comap_mono (S T : subgroupoid D) :
 
 lemma is_normal_comap {S : subgroupoid D} (Sn : is_normal S) : is_normal (comap φ S) :=
 { wide := λ c, by { rw [comap, mem_set_of, functor.map_id], apply Sn.wide, },
-  conj := λ c d f γ hγ, begin
-    simp only [comap, mem_set_of, functor.map_comp, functor.map_inv, inv_eq_inv],
-    rw [←inv_eq_inv],
-    exact Sn.conj _ hγ,
-  end }
+  conj := λ c d f γ hγ, by
+  { simp_rw [inv_eq_inv f, comap, mem_set_of, functor.map_comp, functor.map_inv, ←inv_eq_inv],
+    exact Sn.conj _ hγ, } }
 
 lemma comap_comp {E : Type*} [groupoid E] (ψ : D ⥤ E) :
   comap (φ ⋙ ψ) = (comap φ) ∘ (comap ψ) := rfl
@@ -463,20 +456,16 @@ lemma mem_im_iff (hφ : function.injective φ.obj) {c d : D} (f : c ⟶ d) :
 by { convert map.arrows_iff φ hφ ⊤ f, simp only [has_top.top, mem_univ, exists_true_left] }
 
 lemma mem_im_objs_iff  (hφ : function.injective φ.obj) (d : D) :
-  d ∈ (im φ hφ).objs ↔ ∃ c : C, φ.obj c = d :=
-begin
-  dsimp only [im],
-  rw mem_map_objs_iff,
-  simp only [has_top.top, objs, univ_nonempty, set_of_true, mem_univ, exists_true_left],
-end
+  d ∈ (im φ hφ).objs ↔ ∃ c : C, φ.obj c = d := by
+{ simp only [im, mem_map_objs_iff, mem_top_objs, exists_true_left], }
+
 
 lemma obj_surjective_of_im_eq_top  (hφ : function.injective φ.obj) (hφ' : im φ hφ = ⊤) :
   function.surjective φ.obj :=
 begin
   rintro d,
-  rw ←mem_im_objs_iff,
-  rw hφ', dsimp [has_top.top, objs],
-  simp only [univ_nonempty],
+  rw [←mem_im_objs_iff, hφ'],
+  apply mem_top_objs,
 end
 
 lemma is_normal_map (hφ : function.injective φ.obj) (hφ' : im φ hφ = ⊤) (Sn : S.is_normal) :
@@ -589,4 +578,3 @@ end full
 end subgroupoid
 
 end category_theory
-

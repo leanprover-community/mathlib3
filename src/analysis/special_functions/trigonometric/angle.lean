@@ -123,6 +123,19 @@ by rw [eq_comm, eq_neg_self_iff]
 lemma neg_ne_self_iff {θ : angle} : -θ ≠ θ ↔ θ ≠ 0 ∧ θ ≠ π :=
 by rw [←not_or_distrib, ←neg_eq_self_iff.not]
 
+lemma two_nsmul_eq_pi_iff {θ : angle} : (2 : ℕ) • θ = π ↔ (θ = (π / 2 : ℝ) ∨ θ = (-π / 2 : ℝ)) :=
+begin
+  have h : (π : angle) = (2 : ℕ) • (π / 2 : ℝ), { rw [two_nsmul, ←coe_add, add_halves] },
+  nth_rewrite 0 h,
+  rw [two_nsmul_eq_iff],
+  congr',
+  rw [add_comm, ←coe_add, ←sub_eq_zero, ←coe_sub, add_sub_assoc, neg_div, sub_neg_eq_add,
+      add_halves, ←two_mul, coe_two_pi]
+end
+
+lemma two_zsmul_eq_pi_iff {θ : angle} : (2 : ℤ) • θ = π ↔ (θ = (π / 2 : ℝ) ∨ θ = (-π / 2 : ℝ)) :=
+by rw [two_zsmul, ←two_nsmul, two_nsmul_eq_pi_iff]
+
 theorem cos_eq_iff_coe_eq_or_eq_neg {θ ψ : ℝ} :
   cos θ = cos ψ ↔ (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
 begin
@@ -289,6 +302,13 @@ cos_antiperiodic θ
 @[simp] lemma cos_sub_pi (θ : angle) : cos (θ - π) = -cos θ :=
 cos_antiperiodic.sub_eq θ
 
+lemma cos_eq_zero_iff {θ : angle} : cos θ = 0 ↔ (θ = (π / 2 : ℝ) ∨ θ = (-π / 2 : ℝ)) :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rwa [←cos_pi_div_two, ←cos_coe, cos_eq_iff_eq_or_eq_neg, ←coe_neg, ←neg_div] at h },
+  { rcases h with rfl | rfl; simp [neg_div] }
+end
+
 @[simp] lemma coe_to_Ico_mod (θ ψ : ℝ) : ↑(to_Ico_mod ψ two_pi_pos θ) = (θ : angle) :=
 begin
   rw angle_eq_iff_two_pi_dvd_sub,
@@ -407,6 +427,19 @@ begin
       abs_eq_self.2 h.1]
 end
 
+lemma abs_to_real_eq_pi_div_two_iff {θ : angle} :
+  |θ.to_real| = π / 2 ↔ (θ = (π / 2 : ℝ) ∨ θ = (-π / 2 : ℝ)) :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw [←coe_to_real θ, neg_div],
+    rcases eq_or_eq_neg_of_abs_eq h with ha | ha; simp [ha] },
+  { rcases h with rfl | rfl,
+    { rw abs_to_real_coe_eq_self_iff,
+      exact ⟨div_nonneg real.pi_pos.le two_pos.le, div_le_self real.pi_pos.le one_le_two⟩ },
+    { rw [neg_div, coe_neg, abs_to_real_neg_coe_eq_self_iff],
+      exact ⟨div_nonneg real.pi_pos.le two_pos.le, div_le_self real.pi_pos.le one_le_two⟩ } }
+end
+
 @[simp] lemma sin_to_real (θ : angle) : real.sin θ.to_real = sin θ :=
 begin
   conv_rhs { rw ←coe_to_real θ },
@@ -522,6 +555,26 @@ end
 lemma eq_iff_abs_to_real_eq_of_sign_eq {θ ψ : angle} (h : θ.sign = ψ.sign) :
   θ = ψ ↔ |θ.to_real| = |ψ.to_real| :=
 by simpa [h] using @eq_iff_sign_eq_and_abs_to_real_eq θ ψ
+
+@[simp] lemma sign_coe_pi_div_two : (↑(π / 2) : angle).sign = 1 :=
+by rw [sign, sin_coe, sin_pi_div_two, sign_one]
+
+@[simp] lemma sign_coe_neg_pi_div_two : (↑(-π / 2) : angle).sign = -1 :=
+by rw [sign, sin_coe, neg_div, real.sin_neg, sin_pi_div_two, left.sign_neg, sign_one]
+
+lemma sign_coe_nonneg_of_nonneg_of_le_pi {θ : ℝ} (h0 : 0 ≤ θ) (hpi : θ ≤ π) :
+  0 ≤ (θ : angle).sign :=
+begin
+  rw [sign, sign_nonneg_iff],
+  exact sin_nonneg_of_nonneg_of_le_pi h0 hpi
+end
+
+lemma sign_neg_coe_nonpos_of_nonneg_of_le_pi {θ : ℝ} (h0 : 0 ≤ θ) (hpi : θ ≤ π) :
+  (-θ : angle).sign ≤ 0 :=
+begin
+  rw [sign, sign_nonpos_iff, sin_neg, left.neg_nonpos_iff],
+  exact sin_nonneg_of_nonneg_of_le_pi h0 hpi
+end
 
 lemma continuous_at_sign {θ : angle} (h0 : θ ≠ 0) (hpi : θ ≠ π) : continuous_at sign θ :=
 (continuous_at_sign_of_ne_zero (sin_ne_zero_iff.2 ⟨h0, hpi⟩)).comp continuous_sin.continuous_at

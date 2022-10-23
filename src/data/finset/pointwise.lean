@@ -90,9 +90,9 @@ rfl
 
 /-- Lift a `one_hom` to `finset` via `image`. -/
 @[to_additive zero_hom.image "Lift a `zero_hom` to `finset` via `image`", simps]
-def one_hom.image [decidable_eq β] [has_one β] [one_hom_class F α β] (m : F) :
+def one_hom.image [decidable_eq β] [has_one β] [one_hom_class F α β] (f : F) :
   one_hom (finset α) (finset β) :=
-{ to_fun := finset.image m,
+{ to_fun := finset.image f,
   map_one' := by rw [image_one, map_one, singleton_one] }
 
 end has_one
@@ -149,7 +149,7 @@ end has_involutive_inv
 /-! ### Finset addition/multiplication -/
 
 section has_mul
-variables [decidable_eq α] [decidable_eq β] [has_mul α] [has_mul β] [mul_hom_class F α β] (m : F)
+variables [decidable_eq α] [decidable_eq β] [has_mul α] [has_mul β] [mul_hom_class F α β] (f : F)
   {s s₁ s₂ t t₁ t₂ u : finset α} {a b : α}
 
 /-- The pointwise multiplication of finsets `s * t` and `t` is defined as `{x * y | x ∈ s, y ∈ t}`
@@ -214,8 +214,8 @@ image₂_inter_subset_right
 lemma subset_mul {s t : set α} : ↑u ⊆ s * t → ∃ s' t' : finset α, ↑s' ⊆ s ∧ ↑t' ⊆ t ∧ u ⊆ s' * t' :=
 subset_image₂
 
-@[to_additive] lemma image_mul : (s * t).image (m : α → β) = s.image m * t.image m :=
-image_image₂_distrib $ map_mul m
+@[to_additive] lemma image_mul : (s * t).image (f : α → β) = s.image f * t.image f :=
+image_image₂_distrib $ map_mul f
 
 /-- The singleton operation as a `mul_hom`. -/
 @[to_additive "The singleton operation as an `add_hom`."]
@@ -228,7 +228,7 @@ rfl
 /-- Lift a `mul_hom` to `finset` via `image`. -/
 @[to_additive add_hom.image "Lift an `add_hom` to `finset` via `image`", simps]
 def mul_hom.image : finset α →ₙ* finset β :=
-{ to_fun := finset.image m,
+{ to_fun := finset.image f,
   map_mul' := λ s t, image_mul _ }
 
 end has_mul
@@ -375,8 +375,8 @@ def coe_monoid_hom : finset α →* set α :=
 
 /-- Lift a `monoid_hom` to `finset` via `image`. -/
 @[to_additive add_monoid_hom.image "Lift an `add_monoid_hom` to `finset` via `image`", simps]
-def monoid_hom.image [mul_one_class β] [monoid_hom_class F α β] (m : F) : finset α →* finset β :=
-{ ..mul_hom.image m, ..one_hom.image m }
+def monoid_hom.image [mul_one_class β] [monoid_hom_class F α β] (f : F) : finset α →* finset β :=
+{ ..mul_hom.image f, ..one_hom.image f }
 
 end mul_one_class
 
@@ -550,7 +550,7 @@ s.zero_mul_subset.antisymm $ by simpa [mem_mul] using hs
 end mul_zero_class
 
 section group
-variables [group α] [division_monoid β] [monoid_hom_class F α β] (m : F) {s t : finset α} {a b : α}
+variables [group α] [division_monoid β] [monoid_hom_class F α β] (f : F) {s t : finset α} {a b : α}
 
 /-! Note that `finset` is not a `group` because `s / s ≠ 1` in general. -/
 
@@ -587,8 +587,8 @@ by simp
 lemma image_mul_right' : image (* b⁻¹) t = preimage t (* b) ((mul_left_injective _).inj_on _) :=
 by simp
 
-lemma image_div : (s / t).image (m : α → β) = s.image m / t.image m :=
-image_image₂_distrib $ map_div m
+lemma image_div : (s / t).image (f : α → β) = s.image f / t.image f :=
+image_image₂_distrib $ map_div f
 
 end group
 

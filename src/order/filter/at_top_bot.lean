@@ -164,6 +164,10 @@ lemma tendsto.eventually_ne_at_top [preorder β] [no_max_order β] {f : α → �
   (hf : tendsto f l at_top) (c : β) : ∀ᶠ x in l, f x ≠ c :=
 hf.eventually (eventually_ne_at_top c)
 
+lemma tendsto.eventually_ne_at_top' [preorder β] [no_max_order β] {f : α → β} {l : filter α}
+  (hf : tendsto f l at_top) (c : α) : ∀ᶠ x in l, x ≠ c :=
+(hf.eventually_ne_at_top (f c)).mono $ λ x, ne_of_apply_ne f
+
 lemma eventually_lt_at_bot [preorder α] [no_min_order α] (a : α) :
   ∀ᶠ x in at_bot, x < a :=
 Iio_mem_at_bot a
@@ -692,9 +696,9 @@ variable {l}
 
 end ordered_group
 
-section ordered_semiring
+section strict_ordered_semiring
 
-variables [ordered_semiring α] {l : filter β} {f g : β → α}
+variables [strict_ordered_semiring α] {l : filter β} {f g : β → α}
 
 lemma tendsto_bit1_at_top : tendsto bit1 (at_top : filter α) at_top :=
 tendsto_at_top_add_nonneg_right tendsto_bit0_at_top (λ _, zero_le_one)
@@ -715,15 +719,14 @@ A version for positive real powers exists as `tendsto_rpow_at_top`. -/
 lemma tendsto_pow_at_top {n : ℕ} (hn : n ≠ 0) : tendsto (λ x : α, x ^ n) at_top at_top :=
 tendsto_at_top_mono' _ ((eventually_ge_at_top 1).mono $ λ x hx, le_self_pow hx hn) tendsto_id
 
-end ordered_semiring
+end strict_ordered_semiring
 
 lemma zero_pow_eventually_eq [monoid_with_zero α] :
   (λ n : ℕ, (0 : α) ^ n) =ᶠ[at_top] (λ n, 0) :=
 eventually_at_top.2 ⟨1, λ n hn, zero_pow (zero_lt_one.trans_le hn)⟩
 
-section ordered_ring
-
-variables [ordered_ring α] {l : filter β} {f g : β → α}
+section strict_ordered_ring
+variables [strict_ordered_ring α] {l : filter β} {f g : β → α}
 
 lemma tendsto.at_top_mul_at_bot (hf : tendsto f l at_top) (hg : tendsto g l at_bot) :
   tendsto (λ x, f x * g x) l at_bot :=
@@ -742,7 +745,7 @@ have tendsto (λ x, (-f x) * (-g x)) l at_top :=
   (tendsto_neg_at_bot_at_top.comp hf).at_top_mul_at_top (tendsto_neg_at_bot_at_top.comp hg),
 by simpa only [neg_mul_neg] using this
 
-end ordered_ring
+end strict_ordered_ring
 
 section linear_ordered_add_comm_group
 
@@ -1650,7 +1653,7 @@ begin
   have hms_freq : ∀ (n : ℕ), x (y (ms n)) ∉ s, from λ n, hy_freq (ms n),
   have h_empty : (λ (n : ℕ), x (y (ms n))) ⁻¹' s = ∅,
   { ext1 n,
-    simp only [set.mem_preimage, set.mem_empty_eq, iff_false],
+    simp only [set.mem_preimage, set.mem_empty_iff_false, iff_false],
     exact hms_freq n, },
   rw h_empty at hms_tendsto,
   exact empty_not_mem at_top hms_tendsto,

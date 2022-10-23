@@ -58,7 +58,7 @@ begin
   { rw closure_prod_eq at this,
     intros y y_in,
     apply this ⟨x, y⟩,
-    have : B ∩ closure s ⊆ closure (B ∩ s), from closure_inter_open is_open_ball,
+    have : B ∩ closure s ⊆ closure (B ∩ s), from is_open_ball.inter_closure,
     exact ⟨this ⟨mem_ball_self δ_pos, hx⟩, this y_in⟩ },
   have key : ∀ p : E × E, p ∈ (B ∩ s) ×ˢ (B ∩ s) → ∥f p.2 - f p.1 - (f' p.2 - f' p.1)∥
     ≤ ε * ∥p.2 - p.1∥,

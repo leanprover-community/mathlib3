@@ -27,7 +27,7 @@ In this file we define the complement of a subgroup.
 - `is_complement_of_coprime` : Subgroups of coprime order are complements.
 -/
 
-open_locale big_operators
+open_locale big_operators pointwise
 
 namespace subgroup
 
@@ -368,18 +368,19 @@ lemma is_complement'.card_mul [fintype G] [fintype H] [fintype K] (h : is_comple
   fintype.card H * fintype.card K = fintype.card G :=
 h.card_mul
 
+lemma is_complement'_of_disjoint_and_mul_eq_univ
+  (h1 : disjoint H K) (h2 : ↑H * ↑K = (set.univ : set G)) : is_complement' H K :=
+begin
+  refine ⟨mul_injective_of_disjoint h1, λ g, _⟩,
+  obtain ⟨h, k, hh, hk, hg⟩ := set.eq_univ_iff_forall.mp h2 g,
+  exact ⟨(⟨h, hh⟩, ⟨k, hk⟩), hg⟩,
+end
+
 lemma is_complement'_of_card_mul_and_disjoint [fintype G] [fintype H] [fintype K]
   (h1 : fintype.card H * fintype.card K = fintype.card G) (h2 : disjoint H K) :
   is_complement' H K :=
-begin
-  refine (fintype.bijective_iff_injective_and_card _).mpr
-    ⟨λ x y h, _, (fintype.card_prod H K).trans h1⟩,
-  rw [←eq_inv_mul_iff_mul_eq, ←mul_assoc, ←mul_inv_eq_iff_eq_mul] at h,
-  change ↑(x.2 * y.2⁻¹) = ↑(x.1⁻¹ * y.1) at h,
-  rw [prod.ext_iff, ←@inv_mul_eq_one H _ x.1 y.1, ←@mul_inv_eq_one K _ x.2 y.2, subtype.ext_iff,
-      subtype.ext_iff, coe_one, coe_one, h, and_self, ←mem_bot, ←h2.eq_bot, mem_inf],
-  exact ⟨subtype.mem ((x.1)⁻¹ * (y.1)), (congr_arg (∈ K) h).mp (subtype.mem (x.2 * (y.2)⁻¹))⟩,
-end
+(fintype.bijective_iff_injective_and_card _).mpr
+  ⟨mul_injective_of_disjoint h2, (fintype.card_prod H K).trans h1⟩
 
 lemma is_complement'_iff_card_mul_and_disjoint [fintype G] [fintype H] [fintype K] :
   is_complement' H K ↔

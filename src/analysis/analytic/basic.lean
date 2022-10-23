@@ -151,6 +151,11 @@ lemma radius_eq_top_of_forall_image_add_eq_zero (n : ℕ) (hn : ∀ m, p (m + n)
 p.radius_eq_top_of_eventually_eq_zero $ mem_at_top_sets.2
   ⟨n, λ k hk, tsub_add_cancel_of_le hk ▸ hn _⟩
 
+@[simp] lemma const_formal_multilinear_series_radius {v : F} :
+  (const_formal_multilinear_series 𝕜 E v).radius = ⊤ :=
+(const_formal_multilinear_series 𝕜 E v).radius_eq_top_of_forall_image_add_eq_zero 1
+  (by simp [const_formal_multilinear_series])
+
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` tends to zero exponentially:
 for some `0 < a < 1`, `∥p n∥ rⁿ = o(aⁿ)`. -/
 lemma is_o_of_lt_radius (h : ↑r < p.radius) :
@@ -448,6 +453,23 @@ lemma has_fpower_series_at.eventually_eq_zero
   ∀ᶠ z in 𝓝 x, f z = 0 :=
 let ⟨r, hr⟩ := hf in hr.eventually_eq_zero
 
+lemma has_fpower_series_on_ball_const {c : F} {e : E} :
+  has_fpower_series_on_ball (λ _, c) (const_formal_multilinear_series 𝕜 E c) e ⊤ :=
+begin
+  refine ⟨by simp, with_top.zero_lt_top, λ y hy, has_sum_single 0 (λ n hn, _)⟩,
+  simp [const_formal_multilinear_series_apply hn]
+end
+
+lemma has_fpower_series_at_const {c : F} {e : E} :
+  has_fpower_series_at (λ _, c) (const_formal_multilinear_series 𝕜 E c) e :=
+⟨⊤, has_fpower_series_on_ball_const⟩
+
+lemma analytic_at_const {v : F} : analytic_at 𝕜 (λ _, v) x :=
+⟨const_formal_multilinear_series 𝕜 E v, has_fpower_series_at_const⟩
+
+lemma analytic_on_const {v : F} {s : set E} : analytic_on 𝕜 (λ _, v) s :=
+λ z _, analytic_at_const
+
 lemma has_fpower_series_on_ball.add
   (hf : has_fpower_series_on_ball f pf x r) (hg : has_fpower_series_on_ball g pg x r) :
   has_fpower_series_on_ball (f + g) (pf + pg) x r :=
@@ -493,6 +515,18 @@ by simpa only [sub_eq_add_neg] using hf.add hg.neg
 lemma analytic_at.sub (hf : analytic_at 𝕜 f x) (hg : analytic_at 𝕜 g x) :
   analytic_at 𝕜 (f - g) x :=
 by simpa only [sub_eq_add_neg] using hf.add hg.neg
+
+lemma analytic_on.mono {s t : set E} (hf : analytic_on 𝕜 f t) (hst : s ⊆ t) :
+  analytic_on 𝕜 f s :=
+λ z hz, hf z (hst hz)
+
+lemma analytic_on.add {s : set E} (hf : analytic_on 𝕜 f s) (hg : analytic_on 𝕜 g s) :
+  analytic_on 𝕜 (f + g) s :=
+λ z hz, (hf z hz).add (hg z hz)
+
+lemma analytic_on.sub {s : set E} (hf : analytic_on 𝕜 f s) (hg : analytic_on 𝕜 g s) :
+  analytic_on 𝕜 (f - g) s :=
+λ z hz, (hf z hz).sub (hg z hz)
 
 lemma has_fpower_series_on_ball.coeff_zero (hf : has_fpower_series_on_ball f pf x r)
   (v : fin 0 → E) : pf 0 v = f x :=

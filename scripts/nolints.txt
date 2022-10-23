@@ -10,25 +10,10 @@ apply_nolint mul_hom.ext_iff to_additive_doc
 apply_nolint one_hom.comp_assoc to_additive_doc
 
 -- category_theory/limits/filtered_colimit_commutes_finite_limit.lean
-apply_nolint category_theory.limits.colimit_limit_to_limit_colimit_injective fintype_finite
 apply_nolint category_theory.limits.colimit_limit_to_limit_colimit_is_iso fails_quickly
 
--- category_theory/limits/shapes/biproducts.lean
-apply_nolint category_theory.limits.has_biproduct.of_has_coproduct fintype_finite
-apply_nolint category_theory.limits.has_biproduct.of_has_product fintype_finite
-
--- category_theory/limits/shapes/finite_limits.lean
-apply_nolint category_theory.limits.has_colimits_of_shape_wide_pushout_shape fintype_finite
-apply_nolint category_theory.limits.has_limits_of_shape_wide_pullback_shape fintype_finite
-
 -- category_theory/limits/shapes/finite_products.lean
-apply_nolint category_theory.limits.has_colimits_of_shape_discrete fintype_finite
 apply_nolint category_theory.limits.has_fintype_coproducts fintype_finite
-apply_nolint category_theory.limits.has_fintype_products fintype_finite
-apply_nolint category_theory.limits.has_limits_of_shape_discrete fintype_finite
-
--- category_theory/preadditive/biproducts.lean
-apply_nolint category_theory.biproduct.column_nonzero_of_iso' fintype_finite
 
 -- computability/partrec.lean
 apply_nolint computable doc_blame
@@ -82,8 +67,6 @@ apply_nolint monoid.mfoldr.of_free_monoid doc_blame
 apply_nolint traversable.fold_map doc_blame
 apply_nolint traversable.foldl doc_blame
 apply_nolint traversable.foldr doc_blame
-apply_nolint traversable.free.map doc_blame
-apply_nolint traversable.free.mk doc_blame
 apply_nolint traversable.length doc_blame
 apply_nolint traversable.map_fold doc_blame
 apply_nolint traversable.mfoldl doc_blame
@@ -153,29 +136,6 @@ apply_nolint tactic.interactive.traversable_law_starter doc_blame
 apply_nolint tactic.interactive.traverse_constructor unused_arguments
 apply_nolint tactic.interactive.traverse_field unused_arguments
 apply_nolint tactic.interactive.with_prefix doc_blame
-
--- data/analysis/filter.lean
-apply_nolint cfilter has_nonempty_instance
-apply_nolint cfilter.to_realizer doc_blame
-apply_nolint filter.realizer has_nonempty_instance
-apply_nolint filter.realizer.of_eq doc_blame
-
--- data/analysis/topology.lean
-apply_nolint compact.realizer has_nonempty_instance doc_blame unused_arguments
-apply_nolint ctop has_nonempty_instance
-apply_nolint ctop.realizer has_nonempty_instance
-apply_nolint ctop.realizer.id doc_blame
-apply_nolint ctop.realizer.nhds doc_blame
-apply_nolint ctop.realizer.nhds_F unused_arguments
-apply_nolint ctop.realizer.nhds_σ unused_arguments
-apply_nolint ctop.realizer.of_equiv doc_blame
-apply_nolint ctop.to_realizer doc_blame
-apply_nolint locally_finite.realizer has_nonempty_instance doc_blame
-
--- data/finset/noncomm_prod.lean
-apply_nolint add_monoid_hom.pi_ext fintype_finite
-apply_nolint finset.noncomm_prod_union_of_disjoint to_additive_doc
-apply_nolint monoid_hom.pi_ext fintype_finite
 
 -- data/finsupp/pwo.lean
 apply_nolint finsupp.is_pwo fintype_finite
@@ -364,7 +324,6 @@ apply_nolint rbnode.is_bad_red_black doc_blame
 apply_nolint computation.bind.F doc_blame
 apply_nolint computation.bind.G doc_blame
 apply_nolint computation.bisim_o doc_blame
-apply_nolint computation.cases_on doc_blame
 apply_nolint computation.corec.F doc_blame
 apply_nolint computation.is_bisimulation doc_blame
 apply_nolint computation.lift_rel_aux doc_blame
@@ -380,14 +339,12 @@ apply_nolint computation.parallel_rec doc_blame
 
 -- data/seq/seq.lean
 apply_nolint seq.bisim_o doc_blame
-apply_nolint seq.cases_on doc_blame
 apply_nolint seq.corec.F doc_blame
 apply_nolint seq.is_bisimulation doc_blame
 apply_nolint seq.mem doc_blame
 
 -- data/seq/wseq.lean
 apply_nolint wseq.bisim_o doc_blame
-apply_nolint wseq.cases_on doc_blame
 apply_nolint wseq.destruct_append.aux doc_blame
 apply_nolint wseq.destruct_join.aux doc_blame
 apply_nolint wseq.drop.aux doc_blame

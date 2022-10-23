@@ -622,7 +622,7 @@ def bicompr (f : γ → δ) (g : α → β → γ) (a b) :=
 f (g a b)
 
 -- Suggested local notation:
-local notation f `∘₂` g := bicompr f g
+local notation f ` ∘₂ ` g := bicompr f g
 
 lemma uncurry_bicompr (f : α → β → γ) (g : γ → δ) :
   uncurry (g ∘₂ f) = (g ∘ uncurry f) := rfl
@@ -661,6 +661,8 @@ def involutive {α} (f : α → α) : Prop := ∀ x, f (f x) = x
 
 lemma involutive_iff_iter_2_eq_id {α} {f : α → α} : involutive f ↔ (f^[2] = id) :=
 funext_iff.symm
+
+lemma _root_.bool.involutive_bnot : involutive bnot := bnot_bnot
 
 namespace involutive
 variables {α : Sort u} {f : α → α} (h : involutive f)

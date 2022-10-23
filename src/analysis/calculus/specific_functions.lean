@@ -274,14 +274,14 @@ end real
 
 variables {E X : Type*}
 
-/-- `f : cont_diff_bump_of_inner c`, where `c` is a point in an inner product space, is a
+/-- `f : cont_diff_bump c`, where `c` is a point in an inner product space, is a
 bundled smooth function such that
 
 - `f` is equal to `1` in `metric.closed_ball c f.r`;
 - `support f = metric.ball c f.R`;
 - `0 ≤ f x ≤ 1` for all `x`.
 
-The structure `cont_diff_bump_of_inner` contains the data required to construct the function:
+The structure `cont_diff_bump` contains the data required to construct the function:
 real numbers `r`, `R`, and proofs of `0 < r < R`. The function itself is available through
 `coe_fn`. -/
 structure cont_diff_bump (c : E) :=
@@ -299,7 +299,7 @@ structure cont_diff_bump_base (E : Type*) [normed_add_comm_group E] [normed_spac
 (symmetric : ∀ (R : ℝ) (x : E), to_fun R (-x) = to_fun R x)
 (smooth    : ∀ (R : ℝ) (hR : 1 < R), cont_diff ℝ ⊤ (to_fun R))
 (eq_one    : ∀ (R : ℝ) (hR : 1 < R) (x : E) (hx : ∥x∥ ≤ 1), to_fun R x = 1)
-(eq_zero   : ∀ (R : ℝ) (hR : 1 < R) (x : E) (hx : R ≤ ∥x∥), to_fun R x = 0)
+(support   : ∀ (R : ℝ) (hR : 1 < R) (x : E), support (to_fun R) = ball (0 : E) ℝ)
 
 /-- In a space with `C^∞` bump functions, register some function that will be used as a basis
 to construct bump functions of arbitrary size around any point. -/

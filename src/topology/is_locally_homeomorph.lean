@@ -35,7 +35,7 @@ namespace is_locally_homeomorph_on
 /-- Proves that `f` satisfies `is_locally_homeomorph_on f s`. The condition `h` is weaker than the
 definition of `is_locally_homeomorph_on f s`, since it only requires `e : local_homeomorph X Y` to
 agree with `f` on its source `e.source`, as opposed to on the whole space `X`. -/
-lemma mk (h : ∀ x ∈ s, ∃ e : local_homeomorph X Y, x ∈ e.source ∧ ∀ x, x ∈ e.source → f x = e x) :
+lemma mk (h : ∀ x ∈ s, ∃ e : local_homeomorph X Y, x ∈ e.source ∧ ∀ y ∈ e.source, f y = e y) :
   is_locally_homeomorph_on f s :=
 begin
   intros x hx,
@@ -94,7 +94,7 @@ namespace is_locally_homeomorph
 /-- Proves that `f` satisfies `is_locally_homeomorph f`. The condition `h` is weaker than the
 definition of `is_locally_homeomorph f`, since it only requires `e : local_homeomorph X Y` to
 agree with `f` on its source `e.source`, as opposed to on the whole space `X`. -/
-lemma mk (h : ∀ x : X, ∃ e : local_homeomorph X Y, x ∈ e.source ∧ ∀ x, x ∈ e.source → f x = e x) :
+lemma mk (h : ∀ x : X, ∃ e : local_homeomorph X Y, x ∈ e.source ∧ ∀ y ∈ e.source, f y = e y) :
   is_locally_homeomorph f :=
 is_locally_homeomorph_iff_is_locally_homeomorph_on_univ.mpr
   (is_locally_homeomorph_on.mk f set.univ (λ x hx, h x))

@@ -152,6 +152,8 @@ locally_finite_order.of_Icc (Π₀ i, α i)
 
 variables (f g : Π₀ i, α i)
 
+lemma Icc_eq : Icc f g = (f.support ∪ g.support).dfinsupp (f.range_Icc g) := rfl
+
 lemma card_Icc : (Icc f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card :=
 card_dfinsupp _ _
 

@@ -2545,6 +2545,9 @@ tendsto_pure.2 rfl
 lemma tendsto_const_pure {a : filter α} {b : β} : tendsto (λ x, b) a (pure b) :=
 tendsto_pure.2 $ univ_mem' $ λ _, rfl
 
+lemma pure_le_iff {a : α} {l : filter α} : pure a ≤ l ↔ ∀ s ∈ l, a ∈ s :=
+iff.rfl
+
 lemma tendsto_pure_left {f : α → β} {a : α} {l : filter β} :
   tendsto f (pure a) l ↔ ∀ s ∈ l, f a ∈ s :=
 iff.rfl

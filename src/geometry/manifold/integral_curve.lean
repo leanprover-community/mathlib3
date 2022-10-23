@@ -217,7 +217,7 @@ begin
   exact h
 end
 
-lemma exists_integral_curve_of_cont_mdiff_tangent_vector_field
+theorem exists_integral_curve_of_cont_mdiff_tangent_vector_field
   (v : M → tangent_bundle I M) (h₁ : ∀ x, (v x).1 = x) (h₂ : cont_mdiff I I.tangent 1 v)
   (x₀ : M) (hx : (ext_chart_at I x₀) x₀ ∈ interior (ext_chart_at I x₀).target) :
   ∃ (ε : ℝ) (hε : 0 < ε) (γ : ℝ → M), γ 0 = x₀ ∧ ∀ (t : ℝ), t ∈ metric.ball (0 : ℝ) ε →

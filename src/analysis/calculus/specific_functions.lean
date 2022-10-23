@@ -299,7 +299,7 @@ structure cont_diff_bump_base (E : Type*) [normed_add_comm_group E] [normed_spac
 (symmetric : ∀ (R : ℝ) (x : E), to_fun R (-x) = to_fun R x)
 (smooth    : ∀ (R : ℝ) (hR : 1 < R), cont_diff ℝ ⊤ (to_fun R))
 (eq_one    : ∀ (R : ℝ) (hR : 1 < R) (x : E) (hx : ∥x∥ ≤ 1), to_fun R x = 1)
-(support   : ∀ (R : ℝ) (hR : 1 < R) (x : E), support (to_fun R) = ball (0 : E) ℝ)
+(support   : ∀ (R : ℝ) (hR : 1 < R), support (to_fun R) = metric.ball (0 : E) R)
 
 /-- In a space with `C^∞` bump functions, register some function that will be used as a basis
 to construct bump functions of arbitrary size around any point. -/
@@ -330,8 +330,21 @@ let e : cont_diff_bump_base E :=
   end,
   eq_one := λ R hR x hx, real.smooth_transition.one_of_one_le $
     (one_le_div (sub_pos.2 hR)).2 (sub_le_sub_left hx _),
-  eq_zero := λ R hR x hx, real.smooth_transition.zero_of_nonpos $
-    div_nonpos_of_nonpos_of_nonneg (sub_nonpos.2 hx) (sub_nonneg.2 hR.le) }
+  support := λ R hR, begin
+    apply subset.antisymm,
+    { assume x hx,
+      simp only [mem_support] at hx,
+      contrapose! hx,
+      simp only [mem_ball_zero_iff, not_lt] at hx,
+      apply real.smooth_transition.zero_of_nonpos,
+      apply div_nonpos_of_nonpos_of_nonneg;
+      linarith },
+    { assume x hx,
+      simp only [mem_ball_zero_iff] at hx,
+      apply (real.smooth_transition.pos_of_pos _).ne',
+      apply div_pos;
+      linarith }
+  end, }
 in ⟨e⟩
 
 namespace cont_diff_bump
@@ -385,6 +398,19 @@ f.nonneg
 
 lemma le_one : f x ≤ 1 :=
 (cont_diff_bump_base.mem_Icc ((some_cont_diff_bump_base E)) _ _).2
+
+lemma pos_of_mem_ball (hx : x ∈ ball c f.R) : 0 < f x :=
+begin
+  refine lt_iff_le_and_ne.2 ⟨f.nonneg, ne.symm _⟩,
+  change (f.r)⁻¹ • (x - c) ∈ support ((some_cont_diff_bump_base E).to_fun (f.R / f.r)),
+  rw cont_diff_bump_base.support _ _ f.one_lt_R_div_r,
+  simp only [dist_eq_norm, mem_ball] at hx,
+  simp [norm_smul],
+end
+
+#exit
+
+pos_of_pos $ div_pos (sub_pos.2 hx) (sub_pos.2 f.r_lt_R)
 
 lemma zero_of_le_dist (hx : f.R ≤ dist x c) : f x = 0 :=
 begin

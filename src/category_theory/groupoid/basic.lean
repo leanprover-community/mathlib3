@@ -20,7 +20,7 @@ variables (C : Type u) [groupoid C]
 
 section graph_like
 
-/-- A groupoid is graph-like if it has no parallel arrows -/
+/-- A groupoid is graph-like if it has no parallel arrows. -/
 def is_graph_like := ∀ (c d : C), subsingleton (c ⟶ d)
 
 lemma is_graph_like_iff : (is_graph_like C) ↔ ∀ (c : C), subsingleton (c ⟶ c) :=
@@ -37,7 +37,7 @@ end graph_like
 
 section disconnected
 
-/-- A subgroupoid is disconnected if it only has loops -/
+/-- A subgroupoid is disconnected if it only has loops. -/
 def is_disconnected := ∀ (c d : C), nonempty (c ⟶ d) → c = d
 
 end disconnected

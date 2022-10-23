@@ -106,6 +106,11 @@ instance has_continuous_const_smul.op [has_smul Mᵐᵒᵖ α] [is_central_scala
   has_continuous_const_smul M αᵐᵒᵖ :=
 ⟨λ c, mul_opposite.continuous_op.comp $ mul_opposite.continuous_unop.const_smul c⟩
 
+@[to_additive] instance : has_continuous_const_smul M αᵒᵈ := ‹has_continuous_const_smul α β›
+
+@[to_additive] instance order_dual.has_continuous_const_smul' : has_continuous_const_smul Mᵒᵈ α :=
+‹has_continuous_const_smul α β›
+
 @[to_additive]
 instance [has_smul M β] [has_continuous_const_smul M β] :
   has_continuous_const_smul M (α × β) :=
@@ -356,7 +361,7 @@ export properly_discontinuous_vadd (finite_disjoint_inter_image)
 
 /-- The quotient map by a group action is open, i.e. the quotient by a group action is an open
   quotient. -/
-@[to_additive "The quotient map by a group action is open, i.e. the quotient by a group 
+@[to_additive "The quotient map by a group action is open, i.e. the quotient by a group
 action is an open quotient. "]
 lemma is_open_map_quotient_mk_mul [has_continuous_const_smul Γ T] :
   is_open_map (quotient.mk : T → quotient (mul_action.orbit_rel Γ T)) :=

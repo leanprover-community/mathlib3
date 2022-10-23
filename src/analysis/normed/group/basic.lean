@@ -1512,13 +1512,23 @@ subtype.eta _ _
 
 /-- The seminorm of an element in a product space is `≤ r` if and only if the norm of each
 component is. -/
-@[to_additive pi_norm_le_iff "The seminorm of an element in a product space is `≤ r` if and only if
-the norm of each component is."]
-lemma pi_norm_le_iff' (hr : 0 ≤ r) : ∥x∥ ≤ r ↔ ∀ i, ∥x i∥ ≤ r :=
+@[to_additive pi_norm_le_iff_of_nonneg "The seminorm of an element in a product space is `≤ r` if
+and only if the norm of each component is."]
+lemma pi_norm_le_iff_of_nonneg' (hr : 0 ≤ r) : ∥x∥ ≤ r ↔ ∀ i, ∥x i∥ ≤ r :=
 by simp only [←dist_one_right, dist_pi_le_iff hr, pi.one_apply]
 
 @[to_additive pi_nnnorm_le_iff]
-lemma pi_nnnorm_le_iff' {r : ℝ≥0} : ∥x∥₊ ≤ r ↔ ∀ i, ∥x i∥₊ ≤ r := pi_norm_le_iff' r.coe_nonneg
+lemma pi_nnnorm_le_iff' {r : ℝ≥0} : ∥x∥₊ ≤ r ↔ ∀ i, ∥x i∥₊ ≤ r :=
+pi_norm_le_iff_of_nonneg' r.coe_nonneg
+
+@[to_additive pi_norm_le_iff_of_nonempty]
+lemma pi_norm_le_iff_of_nonempty' [nonempty ι] : ∥f∥ ≤ r ↔ ∀ b, ∥f b∥ ≤ r :=
+begin
+  by_cases hr : 0 ≤ r,
+  { exact pi_norm_le_iff_of_nonneg' hr },
+  { exact iff_of_false (λ h, hr $ (norm_nonneg' _).trans h)
+      (λ h, hr $ (norm_nonneg' _).trans $ h $ classical.arbitrary _) }
+end
 
 /-- The seminorm of an element in a product space is `< r` if and only if the norm of each
 component is. -/
@@ -1531,10 +1541,18 @@ by simp only [←dist_one_right, dist_pi_lt_iff hr, pi.one_apply]
 lemma pi_nnnorm_lt_iff' {r : ℝ≥0} (hr : 0 < r) : ∥x∥₊ < r ↔ ∀ i, ∥x i∥₊ < r := pi_norm_lt_iff' hr
 
 @[to_additive norm_le_pi_norm]
-lemma norm_le_pi_norm' (i : ι) : ∥f i∥ ≤ ∥f∥ := (pi_norm_le_iff' $ norm_nonneg' _).1 le_rfl i
+lemma norm_le_pi_norm' (i : ι) : ∥f i∥ ≤ ∥f∥ :=
+(pi_norm_le_iff_of_nonneg' $ norm_nonneg' _).1 le_rfl i
 
 @[to_additive nnnorm_le_pi_nnnorm]
 lemma nnnorm_le_pi_nnnorm' (i : ι) : ∥f i∥₊ ≤ ∥f∥₊ := norm_le_pi_norm' _ i
+
+@[to_additive pi_norm_const_le]
+lemma pi_norm_const_le' (a : E) : ∥(λ _ : ι, a)∥ ≤ ∥a∥ :=
+(pi_norm_le_iff_of_nonneg' $ norm_nonneg' _).2 $ λ _, le_rfl
+
+@[to_additive pi_nnnorm_const_le]
+lemma pi_nnnorm_const_le' (a : E) : ∥(λ _ : ι, a)∥₊ ≤ ∥a∥₊ := pi_norm_const_le' _
 
 @[simp, to_additive pi_norm_const]
 lemma pi_norm_const' [nonempty ι] (a : E) : ∥(λ i : ι, a)∥ = ∥a∥ :=

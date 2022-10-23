@@ -38,6 +38,9 @@ instance normed_add_torsor.to_add_torsor' {V P : Type*} [normed_add_comm_group V
 variables {α V P W Q : Type*} [seminormed_add_comm_group V] [pseudo_metric_space P]
   [normed_add_torsor V P] [normed_add_comm_group W] [metric_space Q] [normed_add_torsor W Q]
 
+instance normed_add_torsor.to_has_isometric_vadd : has_isometric_vadd V P :=
+⟨λ c, isometry.of_dist_eq $ λ x y, by simp [normed_add_torsor.dist_eq_norm']⟩
+
 /-- A `seminormed_add_comm_group` is a `normed_add_torsor` over itself. -/
 @[priority 100]
 instance seminormed_add_comm_group.to_normed_add_torsor : normed_add_torsor V V :=
@@ -107,15 +110,15 @@ open_locale pointwise
 
 @[simp] lemma vadd_ball (x : V) (y : P) (r : ℝ) :
   x +ᵥ metric.ball y r = metric.ball (x +ᵥ y) r :=
-(isometric.const_vadd P x).image_ball y r
+(isometric.const_vadd x).image_ball y r
 
 @[simp] lemma vadd_closed_ball (x : V) (y : P) (r : ℝ) :
   x +ᵥ metric.closed_ball y r = metric.closed_ball (x +ᵥ y) r :=
-(isometric.const_vadd P x).image_closed_ball y r
+(isometric.const_vadd x).image_closed_ball y r
 
 @[simp] lemma vadd_sphere (x : V) (y : P) (r : ℝ) :
   x +ᵥ metric.sphere y r = metric.sphere (x +ᵥ y) r :=
-(isometric.const_vadd P x).image_sphere y r
+(isometric.const_vadd x).image_sphere y r
 
 end pointwise
 

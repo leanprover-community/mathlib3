@@ -81,31 +81,31 @@ by { ext, refl }
 
 variables [pseudo_emetric_space G]
 
-@[to_additive]
+@[to_additive, simps apply to_equiv]
 def mul_left [has_isometric_smul G G] (c : G) : G ≃ᵢ G :=
 { to_equiv := equiv.mul_left c,
   isometry_to_fun := edist_mul_cancel_left c }
 
-@[to_additive]
+@[to_additive, simps apply to_equiv]
 def mul_right [has_isometric_smul Gᵐᵒᵖ G] (c : G) : G ≃ᵢ G :=
 { to_equiv := equiv.mul_right c,
   isometry_to_fun := λ a b, edist_mul_cancel_right a b c }
 
-@[to_additive]
+@[to_additive, simps apply to_equiv]
 def div_right [has_isometric_smul Gᵐᵒᵖ G] (c : G) : G ≃ᵢ G :=
 { to_equiv := equiv.div_right c,
   isometry_to_fun := λ a b, edist_div_cancel_right a b c }
 
 variables [has_isometric_smul G G] [has_isometric_smul Gᵐᵒᵖ G]
 
-@[to_additive]
+@[to_additive, simps apply to_equiv]
 def div_left (c : G) : G ≃ᵢ G :=
 { to_equiv := equiv.div_left c,
   isometry_to_fun := edist_div_cancel_left c }
 
 variable (G)
 
-@[to_additive]
+@[to_additive, simps apply to_equiv]
 def inv : G ≃ᵢ G :=
 { to_equiv := equiv.inv G,
   isometry_to_fun := edist_inv_inv }

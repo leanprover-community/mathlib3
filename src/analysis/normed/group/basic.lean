@@ -8,7 +8,7 @@ import analysis.normed.group.seminorm
 import order.liminf_limsup
 import topology.algebra.uniform_group
 import topology.metric_space.algebra
-import topology.metric_space.isometry
+import topology.metric_space.isometric_smul
 import topology.sequences
 
 /-!
@@ -319,11 +319,8 @@ by simpa only [dist_eq_norm_div] using dist_comm a b
 @[simp, to_additive norm_neg]
 lemma norm_inv' (a : E) : ∥a⁻¹∥ = ∥a∥ := by simpa using norm_div_rev 1 a
 
-@[simp, to_additive] lemma dist_mul_right (a₁ a₂ b : E) : dist (a₁ * b) (a₂ * b) = dist a₁ a₂ :=
-by simp [dist_eq_norm_div]
-
-@[to_additive] lemma dist_div_right (a₁ a₂ b : E) : dist (a₁ / b) (a₂ / b) = dist a₁ a₂ :=
-by simpa only [div_eq_mul_inv] using dist_mul_right _ _ _
+@[to_additive] instance normed_group.has_isometric_smul_op : has_isometric_smul Eᵐᵒᵖ E :=
+⟨λ a b c, by simp [edist_dist, dist_eq_norm_div]⟩
 
 @[simp, to_additive] lemma dist_div_eq_dist_mul_left (a b c : E) :
   dist (a / b) c = dist a (c * b) :=
@@ -482,22 +479,9 @@ def norm_group_seminorm : group_seminorm E := ⟨norm, norm_one', norm_mul_le', 
 variables {E}
 
 namespace isometric
--- TODO This material is superseded by similar constructions such as
--- `affine_isometry_equiv.const_vadd`; deduplicate
-
-/-- Multiplication `y ↦ y * x` as an `isometry`. -/
-@[to_additive "Addition `y ↦ y + x` as an `isometry`"]
-protected def mul_right (x : E) : E ≃ᵢ E :=
-{ isometry_to_fun := isometry.of_dist_eq $ λ y z, dist_mul_right _ _ _,
-  .. equiv.mul_right x }
-
-@[simp, to_additive]
-lemma mul_right_to_equiv (x : E) : (isometric.mul_right x).to_equiv = equiv.mul_right x := rfl
 
 @[simp, to_additive]
 lemma coe_mul_right (x : E) : (isometric.mul_right x : E → E) = λ y, y * x := rfl
-
-@[to_additive] lemma mul_right_apply (x y : E) : (isometric.mul_right x : E → E) y = y * x := rfl
 
 @[simp, to_additive]
 lemma mul_right_symm (x : E) : (isometric.mul_right x).symm = isometric.mul_right x⁻¹ :=
@@ -657,12 +641,6 @@ by rw [edist_eq_coe_nnnorm_div, div_one]
 @[to_additive]
 lemma mem_emetric_ball_one_iff {r : ℝ≥0∞} : a ∈ emetric.ball (1 : E) r ↔ ↑∥a∥₊ < r :=
 by rw [emetric.mem_ball, edist_eq_coe_nnnorm']
-
-@[simp, to_additive] lemma edist_mul_right (a₁ a₂ b : E) : edist (a₁ * b) (a₂ * b) = edist a₁ a₂ :=
-by simp [edist_dist]
-
-@[simp, to_additive] lemma edist_div_right (a₁ a₂ b : E) : edist (a₁ / b) (a₂ / b) = edist a₁ a₂ :=
-by simpa only [div_eq_mul_inv] using edist_mul_right _ _ _
 
 @[to_additive] lemma monoid_hom_class.lipschitz_of_bound_nnnorm [monoid_hom_class 𝓕 E F] (f : 𝓕)
   (C : ℝ≥0) (h : ∀ x, ∥f x∥₊ ≤ C * ∥x∥₊) : lipschitz_with C f :=
@@ -937,17 +915,12 @@ end induced
 section seminormed_comm_group
 variables [seminormed_comm_group E] [seminormed_comm_group F] {a a₁ a₂ b b₁ b₂ : E} {r r₁ r₂ : ℝ}
 
-@[simp, to_additive] lemma dist_mul_left (a b₁ b₂ : E) : dist (a * b₁) (a * b₂) = dist b₁ b₂ :=
-by simp [dist_eq_norm_div]
+@[to_additive]
+instance normed_group.to_has_isometric_smul : has_isometric_smul E E :=
+⟨λ a b c, by simp [edist_dist, dist_eq_norm_div]⟩
 
 @[to_additive] lemma dist_inv (x y : E) : dist x⁻¹ y = dist x y⁻¹ :=
 by simp_rw [dist_eq_norm_div, ←norm_inv' (x⁻¹ / y), inv_div, div_inv_eq_mul, mul_comm]
-
-@[simp, to_additive] lemma dist_inv_inv (a b : E) : dist a⁻¹ b⁻¹ = dist a b :=
-by rw [dist_inv, inv_inv]
-
-@[simp, to_additive] lemma dist_div_left (a b₁ b₂ : E) : dist (a / b₁) (a / b₂) = dist b₁ b₂ :=
-by simp only [div_eq_mul_inv, dist_mul_left, dist_inv_inv]
 
 @[simp, to_additive] lemma dist_self_mul_right (a b : E) : dist a (a * b) = ∥b∥ :=
 by rw [←dist_one_left, ←dist_mul_left a 1 b, mul_one]
@@ -1042,32 +1015,13 @@ by { ext c, simp only [set.mem_preimage, mem_sphere_iff_norm', div_div_eq_mul_di
 
 namespace isometric
 
-/-- Multiplication `y ↦ x * y` as an `isometry`. -/
-@[to_additive "Addition `y ↦ x + y` as an `isometry`"]
-protected def mul_left (x : E) : E ≃ᵢ E :=
-{ isometry_to_fun := isometry.of_dist_eq $ λ y z, dist_mul_left _ _ _,
-  to_equiv := equiv.mul_left x }
-
-@[simp, to_additive] lemma mul_left_to_equiv (x : E) :
-  (isometric.mul_left x).to_equiv = equiv.mul_left x := rfl
-
 @[simp, to_additive] lemma coe_mul_left (x : E) : ⇑(isometric.mul_left x) = (*) x := rfl
 
 @[simp, to_additive] lemma mul_left_symm (x : E) :
   (isometric.mul_left x).symm = isometric.mul_left x⁻¹ :=
 ext $ λ y, rfl
 
-variables (E)
-
-/-- Inversion `x ↦ x⁻¹` as an `isometry`. -/
-@[to_additive "Negation `x ↦ -x` as an `isometry`."] protected def inv : E ≃ᵢ E :=
-{ isometry_to_fun := isometry.of_dist_eq $ λ x y, dist_inv_inv _ _,
-  to_equiv := equiv.inv E }
-
-variables {E}
-
 @[simp, to_additive] lemma inv_symm : (isometric.inv E).symm = isometric.inv E := rfl
-@[simp, to_additive] lemma inv_to_equiv : (isometric.inv E).to_equiv = equiv.inv E := rfl
 @[simp, to_additive] lemma coe_inv : ⇑(isometric.inv E) = has_inv.inv := rfl
 
 end isometric
@@ -1134,12 +1088,6 @@ by { simp only [edist_nndist], norm_cast, apply nndist_mul_mul_le }
 
 @[simp, to_additive] lemma edist_mul_left (a b₁ b₂ : E) : edist (a * b₁) (a * b₂) = edist b₁ b₂ :=
 by simp [edist_dist]
-
-@[to_additive]
-lemma edist_inv (a b : E) : edist a⁻¹ b = edist a b⁻¹ := by simp_rw [edist_dist, dist_inv]
-
-@[simp, to_additive] lemma edist_inv_inv (x y : E) : edist x⁻¹ y⁻¹ = edist x y :=
-by rw [edist_inv, inv_inv]
 
 @[simp, to_additive] lemma edist_div_left (a b₁ b₂ : E) : edist (a / b₁) (a / b₂) = edist b₁ b₂ :=
 by simp only [div_eq_mul_inv, edist_mul_left, edist_inv_inv]

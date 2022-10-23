@@ -547,6 +547,9 @@ instance : inhabited (with_bot α) := ⟨⊥⟩
 lemma coe_injective : injective (coe : α → with_bot α) := option.some_injective _
 @[norm_cast] lemma coe_inj : (a : with_bot α) = b ↔ a = b := option.some_inj
 
+protected lemma «forall» {p : with_bot α → Prop} : (∀ x, p x) ↔ p ⊥ ∧ ∀ x : α, p x := option.forall
+protected lemma «exists» {p : with_bot α → Prop} : (∃ x, p x) ↔ p ⊥ ∨ ∃ x : α, p x := option.exists
+
 lemma none_eq_bot : (none : with_bot α) = (⊥ : with_bot α) := rfl
 lemma some_eq_coe (a : α) : (some a : with_bot α) = (↑a : with_bot α) := rfl
 
@@ -686,12 +689,25 @@ instance [partial_order α] : partial_order (with_bot α) :=
   .. with_bot.preorder }
 
 lemma coe_strict_mono [preorder α] : strict_mono (coe : α → with_bot α) := λ a b, some_lt_some.2
+lemma coe_mono [preorder α] : monotone (coe : α → with_bot α) := λ a b, coe_le_coe.2
+
+lemma monotone_iff [preorder α] [preorder β] {f : with_bot α → β} :
+  monotone f ↔ monotone (f ∘ coe : α → β) ∧ ∀ x : α, f ⊥ ≤ f x :=
+⟨λ h, ⟨h.comp with_bot.coe_mono, λ x, h bot_le⟩,
+  λ h, with_bot.forall.2 ⟨with_bot.forall.2 ⟨λ _, le_rfl, λ x _, h.2 x⟩,
+  λ x, with_bot.forall.2 ⟨λ h, (not_coe_le_bot _ h).elim, λ y hle, h.1 (coe_le_coe.1 hle)⟩⟩⟩
+
+lemma strict_mono_iff [preorder α] [preorder β] {f : with_bot α → β} :
+  strict_mono f ↔ strict_mono (f ∘ coe : α → β) ∧ ∀ x : α, f ⊥ < f x :=
+⟨λ h, ⟨h.comp with_bot.coe_strict_mono, λ x, h (bot_lt_coe _)⟩,
+  λ h, with_bot.forall.2 ⟨with_bot.forall.2 ⟨flip absurd (lt_irrefl _), λ x _, h.2 x⟩,
+  λ x, with_bot.forall.2 ⟨λ h, (not_lt_bot h).elim, λ y hle, h.1 (coe_lt_coe.1 hle)⟩⟩⟩
 
 lemma map_le_iff [preorder α] [preorder β] (f : α → β) (mono_iff : ∀ {a b}, f a ≤ f b ↔ a ≤ b) :
   ∀ (a b : with_bot α), a.map f ≤ b.map f ↔ a ≤ b
 | ⊥       _       := by simp only [map_bot, bot_le]
 | (a : α) ⊥       := by simp only [map_coe, map_bot, coe_ne_bot, not_coe_le_bot _]
-| (a : α) (b : α) := by simpa using mono_iff
+| (a : α) (b : α) := by simpa only [map_coe, coe_le_coe] using mono_iff
 
 lemma le_coe_get_or_else [preorder α] : ∀ (a : with_bot α) (b : α), a ≤ a.get_or_else b
 | (some a) b := le_refl a
@@ -873,6 +889,9 @@ meta instance {α : Type} [reflected _ α] [has_reflect α] : has_reflect (with_
 | (a : α) := `(coe : α → with_top α).subst `(a)
 
 instance : inhabited (with_top α) := ⟨⊤⟩
+
+protected lemma «forall» {p : with_top α → Prop} : (∀ x, p x) ↔ p ⊤ ∧ ∀ x : α, p x := option.forall
+protected lemma «exists» {p : with_top α → Prop} : (∃ x, p x) ↔ p ⊤ ∨ ∃ x : α, p x := option.exists
 
 lemma none_eq_top : (none : with_top α) = (⊤ : with_top α) := rfl
 lemma some_eq_coe (a : α) : (some a : with_top α) = (↑a : with_top α) := rfl
@@ -1155,6 +1174,7 @@ instance [partial_order α] : partial_order (with_top α) :=
   .. with_top.preorder }
 
 lemma coe_strict_mono [preorder α] : strict_mono (coe : α → with_top α) := λ a b, some_lt_some.2
+lemma coe_mono [preorder α] : monotone (coe : α → with_top α) := λ a b, coe_le_coe.2
 
 lemma map_le_iff [preorder α] [preorder β] (f : α → β)
   (a b : with_top α) (mono_iff : ∀ {a b}, f a ≤ f b ↔ a ≤ b) :

@@ -1101,10 +1101,108 @@ denumerable_iff.1 ⟨‹_›⟩
 
 @[simp] lemma aleph_0_add_aleph_0 : ℵ₀ + ℵ₀ = ℵ₀ := mk_denumerable _
 
-lemma aleph_0_mul_aleph_0 : ℵ₀ * ℵ₀ = ℵ₀ := mk_denumerable _
+@[simp] lemma aleph_0_add_nat_cast (n : ℕ) : ℵ₀ + n = ℵ₀ :=
+by { rw [← lift_mk_fin], exact le_antisymm mk_le_aleph_0 le_self_add }
+
+@[simp] lemma nat_cast_add_aleph_0 (n : ℕ) : ↑n + ℵ₀ = ℵ₀ :=
+by rw [add_comm, aleph_0_add_nat_cast]
+
+@[simp] lemma aleph_0_mul_aleph_0 : ℵ₀ * ℵ₀ = ℵ₀ := mk_denumerable _
+
+@[simp] lemma nat_cast_mul_aleph_0 {n : ℕ} (hn : n ≠ 0) : ↑n * ℵ₀ = ℵ₀ :=
+le_antisymm (lift_mk_fin n ▸ mk_le_aleph_0) $ le_mul_of_one_le_left (zero_le _) $
+  by rwa [← nat.cast_one, nat_cast_le, nat.one_le_iff_ne_zero]
+
+@[simp] lemma aleph_0_mul_nat_cast {n : ℕ} (hn : n ≠ 0) : ℵ₀ * n = ℵ₀ :=
+by rw [mul_comm, nat_cast_mul_aleph_0 hn]
 
 @[simp] lemma add_le_aleph_0 {c₁ c₂ : cardinal} : c₁ + c₂ ≤ ℵ₀ ↔ c₁ ≤ ℵ₀ ∧ c₂ ≤ ℵ₀ :=
 ⟨λ h, ⟨le_self_add.trans h, le_add_self.trans h⟩, λ h, aleph_0_add_aleph_0 ▸ add_le_add h.1 h.2⟩
+
+instance has_coe_enat : has_coe_t ℕ∞ cardinal := ⟨option.elim ℵ₀ coe⟩
+
+@[simp] lemma cast_enat_top : ((⊤ : ℕ∞) : cardinal) = ℵ₀ := rfl
+@[simp, norm_cast] lemma coe_coe (n : ℕ) : ((n : ℕ∞) : cardinal) = n := rfl
+@[simp, norm_cast] lemma cast_enat_zero : ((0 : ℕ∞) : cardinal) = 0 := rfl
+
+@[simp, norm_cast] lemma cast_enat_one : ((1 : ℕ∞) : cardinal) = 1 :=
+by rw [← nat.cast_one, coe_coe, nat.cast_one]
+
+lemma cast_enat_le_aleph_0 (n : ℕ∞) : ↑n ≤ ℵ₀ :=
+by { cases n, exacts [le_rfl, (nat_lt_aleph_0 _).le] }
+
+lemma le_aleph_0 {c} : c ≤ ℵ₀ ↔ ∃ n : ℕ∞, c = n :=
+⟨λ h, h.eq_or_lt.elim (λ h, ⟨⊤, h⟩) $ λ h, let ⟨n, hn⟩ := lt_aleph_0.1 h in ⟨n, hn⟩,
+  λ ⟨n, hn⟩, hn.symm ▸ cast_enat_le_aleph_0 _⟩
+
+@[simp] lemma aleph_0_add_enat_cast (n : ℕ∞) : ℵ₀ + n = ℵ₀ :=
+by { cases n, exacts [aleph_0_add_aleph_0, aleph_0_add_nat_cast _] }
+
+@[simp] lemma enat_cast_add_aleph_0 (n : ℕ∞) : ↑n + ℵ₀ = ℵ₀ :=
+by rw [add_comm, aleph_0_add_enat_cast]
+
+@[simp] lemma aleph_0_mul_enat_cast {n : ℕ∞} (hn : n ≠ 0) : ℵ₀ * n = ℵ₀ :=
+by { cases n, exacts [aleph_0_mul_aleph_0, aleph_0_mul_nat_cast (mt with_top.coe_eq_zero.2 hn)] }
+
+@[simp] lemma enat_cast_mul_aleph_0 {n : ℕ∞} (hn : n ≠ 0) : ↑n * ℵ₀ = ℵ₀ :=
+by rw [mul_comm, aleph_0_mul_enat_cast hn]
+
+instance can_lift_enat : can_lift cardinal ℕ∞ coe (≤ ℵ₀) :=
+⟨λ c h, (le_aleph_0.1 h).imp $ λ _, eq.symm⟩
+
+@[simp, norm_cast] lemma cast_enat_add : ∀ m n : ℕ∞, ↑(m + n) = (m + n : cardinal)
+| ⊤ n := by rw [top_add, cast_enat_top, aleph_0_add_enat_cast]
+| m ⊤ := by rw [add_top, cast_enat_top, enat_cast_add_aleph_0]
+| (m : ℕ) (n : ℕ) := by rw [← with_top.coe_add, coe_coe, nat.cast_add, coe_coe, coe_coe]
+
+@[simp, norm_cast] lemma cast_enat_mul (m n : ℕ∞) : ↑(m * n) = (m * n : cardinal) :=
+begin
+  rcases eq_or_ne m 0 with rfl|hm, { simp },
+  rcases eq_or_ne n 0 with rfl|hn, { simp },
+  induction m using with_top.rec_top_coe, { simp [hn] },
+  rw [ne.def, with_top.coe_eq_zero] at hm,
+  induction n using with_top.rec_top_coe, { simp [hm] },
+  simp only [← nat.cast_mul, coe_coe]
+end
+
+/-- Coersion `coe : ℕ∞ → cardinal` as a ring homomorphism. -/
+@[simps] def cast_enat_hom : ℕ∞ →+* cardinal :=
+⟨coe, cast_enat_one, cast_enat_mul, cast_enat_zero, cast_enat_add⟩
+
+#check strict_mono.with_top_map
+
+def to_enat_aux (c : cardinal) : ℕ∞ :=
+if hc : c < ℵ₀ then (lt_aleph_0.1 hc).some else ⊤
+
+lemma to_enat_aux_nat (n : ℕ) : to_enat_aux (n : cardinal) = n :=
+by simpa only [to_enat_aux, dif_pos (nat_lt_aleph_0 _), nat.cast_inj]
+  using (lt_aleph_0.1 (nat_lt_aleph_0 _)).some_spec.symm
+
+lemma to_enat_aux_zero : to_enat_aux 0 = 0 := to_enat_aux_nat 0
+
+lemma to_enat_aux_eq_zero {c : cardinal} : to_enat_aux c = 0 ↔ c = 0 :=
+begin
+  
+end
+
+def to_enat : cardinal →+* ℕ∞ :=
+{ to_fun := to_enat_aux,
+  map_one' := by rw [← nat.cast_one, to_enat_aux_nat, nat.cast_one],
+  map_mul' := λ x y,
+    begin
+      rcases eq_or_ne x 0 with rfl|hx₀, { simp only [to_enat_aux_zero, zero_mul] },
+      rcases eq_or_ne y 0 with rfl|hy₀, { simp only [to_enat_aux_zero, mul_zero] },
+      cases lt_or_le x ℵ₀ with hx hx,
+      { lift x to ℕ using hx,
+        cases lt_or_le y ℵ₀ with hy hy,
+        { lift y to ℕ using hy, simp only [to_enat_aux_nat, ← nat.cast_mul] },
+        { rw [to_enat_aux, dif_neg (not_lt.2 $ aleph_0_le_mul_iff.2 ⟨hx₀, hy₀, or.inr hy⟩),
+            to_enat_aux_nat, to_enat_aux, dif_neg hy.not_lt, with_top.mul_top],
+          simpa using hx₀ } },
+      {  }
+    end,
+  map_zero' := to_enat_aux_zero,
+  map_add' := _ }
 
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
   to 0. -/

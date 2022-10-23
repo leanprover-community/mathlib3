@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.calculus.uniform_limits_deriv
+import analysis.calculus.cont_diff
 
 /-!
 # Smoothness of series
@@ -95,10 +96,10 @@ end
 
 variables [normed_space 𝕜 F]
 
-/-- Consider a series of functions `∑' n, f n x` on a convex set. If the series converges at a
-point, and all functions in the series are differentiable with a summable bound on the derivatives,
-then the series converges everywhere on the set. -/
-lemma summable_of_summable_has_fderiv_at
+/-- Consider a series of functions `∑' n, f n x` on a preconnected open set. If the series converges
+at a point, and all functions in the series are differentiable with a summable bound on the
+derivatives, then the series converges everywhere on the set. -/
+lemma summable_of_summable_has_fderiv_at_of_is_preconnected
   {f : α → E → F} {f' : α → E → (E →L[𝕜] F)} {u : α → ℝ} (hu : summable u)
   {s : set E} (hs : is_open s) (h's : is_preconnected s)
   (hf : ∀ n x, x ∈ s → has_fderiv_at (f n) (f' n x) x)
@@ -107,18 +108,18 @@ lemma summable_of_summable_has_fderiv_at
   summable (λ n, f n x) :=
 begin
   rw summable_iff_cauchy_seq_finset at hf0 ⊢,
-  have A : uniform_cauchy_seq_on (λ (t : finset α), (λ x, ∑ i in t, f' i x)) at_top s, sorry,
+  have A : uniform_cauchy_seq_on (λ (t : finset α), (λ x, ∑ i in t, f' i x)) at_top s,
+    from (tendsto_uniformly_on_tsum hu hf').uniform_cauchy_seq_on,
   apply cauchy_map_of_uniform_cauchy_seq_on_fderiv hs h's A (λ t y hy, _) hx₀ hx hf0,
   exact has_fderiv_at.sum (λ i hi, hf i y hy),
 end
 
-#exit
-
-/-- Consider a series of functions `∑' n, f n x` on a convex set. If the series converges at a
-point, and all functions in the series are differentiable with a summable bound on the derivatives,
-then the series is differentiable on the set and its derivative is the sum of the derivatives. -/
-lemma has_fderiv_within_at_tsum
-  {f : α → E → F} {f' : α → E → (E →L[ℝ] F)} {u : α → ℝ} (hu : summable u)
+/-- Consider a series of functions `∑' n, f n x` on a preconnected open set. If the series converges
+at a point, and all functions in the series are differentiable with a summable bound on the
+derivatives, then the series is differentiable on the set and its derivative is the sum of the
+derivatives. -/
+lemma has_fderiv_at_tsum_of_is_preconnected
+  {f : α → E → F} {f' : α → E → (E →L[𝕜] F)} {u : α → ℝ} (hu : summable u)
   {s : set E} (hs : is_open s) (h's : is_preconnected s)
   (hf : ∀ n x, x ∈ s → has_fderiv_at (f n) (f' n x) x)
   (hf' : ∀ n x, x ∈ s → ∥f' n x∥ ≤ u n)
@@ -126,22 +127,27 @@ lemma has_fderiv_within_at_tsum
   has_fderiv_at (λ y, ∑' n, f n y) (∑' n, f' n x) x :=
 begin
   classical,
-  apply has_fderiv_at_of_tendsto_uniformly_on h's (tendsto_uniformly_on_tsum hu hf') _ _ _ hx,
+  have A : ∀ (x : E), x ∈ s → tendsto (λ (t : finset α), ∑ n in t, f n x) at_top (𝓝 (∑' n, f n x)),
+  { assume y hy,
+    apply summable.has_sum,
+    exact summable_of_summable_has_fderiv_at_of_is_preconnected hu hs h's hf hf' hx₀ hf0 hy },
+  apply has_fderiv_at_of_tendsto_uniformly_on hs
+    (tendsto_uniformly_on_tsum hu hf') (λ t y hy, _) A _ hx,
+  exact has_fderiv_at.sum (λ n hn, hf n y hy),
 end
-
-#exit
 
 /-- Consider a series of functions `∑' n, f n x`. If the series converges at a
 point, and all functions in the series are differentiable with a summable bound on the derivatives,
 then the series converges everywhere. -/
 lemma summable_of_summable_has_fderiv_at
-  {f : α → E → F} {f' : α → E → (E →L[ℝ] F)} {u : α → ℝ} (hu : summable u)
+  {f : α → E → F} {f' : α → E → (E →L[𝕜] F)} {u : α → ℝ} (hu : summable u)
   (hf : ∀ n x, has_fderiv_at (f n) (f' n x) x) (hf' : ∀ n x, ∥f' n x∥ ≤ u n)
   {x₀ : E} (hf0 : summable (λ n, f n x₀)) (x : E) :
   summable (λ n, f n x) :=
 begin
-  simp_rw [← has_fderiv_within_at_univ] at hf,
-  exact summable_of_summable_has_fderiv_within_at hu convex_univ (λ n x hx, hf n x)
+  letI : normed_space ℝ E, from normed_space.restrict_scalars ℝ 𝕜 _,
+  apply summable_of_summable_has_fderiv_at_of_is_preconnected hu is_open_univ
+    is_connected_univ.is_preconnected (λ n x hx, hf n x)
     (λ n x hx, hf' n x) (mem_univ _) hf0 (mem_univ _),
 end
 
@@ -149,13 +155,14 @@ end
 point, and all functions in the series are differentiable with a summable bound on the derivatives,
 then the series is differentiable and its derivative is the sum of the derivatives. -/
 lemma has_fderiv_at_tsum
-  {f : α → E → F} {f' : α → E → (E →L[ℝ] F)} {u : α → ℝ} (hu : summable u)
+  {f : α → E → F} {f' : α → E → (E →L[𝕜] F)} {u : α → ℝ} (hu : summable u)
   (hf : ∀ n x, has_fderiv_at (f n) (f' n x) x) (hf' : ∀ n x, ∥f' n x∥ ≤ u n)
   {x₀ : E} (hf0 : summable (λ n, f n x₀)) (x : E) :
   has_fderiv_at (λ y, ∑' n, f n y) (∑' n, f' n x) x :=
 begin
-  simp_rw [← has_fderiv_within_at_univ] at hf ⊢,
-  exact has_fderiv_within_at_tsum hu convex_univ (λ n x hx, hf n x)
+  letI : normed_space ℝ E, from normed_space.restrict_scalars ℝ 𝕜 _,
+  exact has_fderiv_at_tsum_of_is_preconnected hu is_open_univ
+    is_connected_univ.is_preconnected (λ n x hx, hf n x)
     (λ n x hx, hf' n x) (mem_univ _) hf0 (mem_univ _),
 end
 
@@ -164,9 +171,9 @@ with a summable bound on the derivatives, then the series is differentiable.
 Note that our assumptions do not ensure the pointwise convergence, but if there is no pointwise
 convergence then the series is zero everywhere so the result still holds. -/
 lemma differentiable_tsum
-  {f : α → E → F} {f' : α → E → (E →L[ℝ] F)} {u : α → ℝ} (hu : summable u)
+  {f : α → E → F} {f' : α → E → (E →L[𝕜] F)} {u : α → ℝ} (hu : summable u)
   (hf : ∀ n x, has_fderiv_at (f n) (f' n x) x) (hf' : ∀ n x, ∥f' n x∥ ≤ u n) :
-  differentiable ℝ (λ y, ∑' n, f n y) :=
+  differentiable 𝕜 (λ y, ∑' n, f n y) :=
 begin
   by_cases h : ∃ x₀, summable (λ n, f n x₀),
   { rcases h with ⟨x₀, hf0⟩,
@@ -180,15 +187,15 @@ begin
 end
 
 lemma fderiv_tsum_apply {f : α → E → F} {u : α → ℝ} (hu : summable u)
-  (hf : ∀ n, differentiable ℝ (f n)) (hf' : ∀ n x, ∥fderiv ℝ (f n) x∥ ≤ u n)
+  (hf : ∀ n, differentiable 𝕜 (f n)) (hf' : ∀ n x, ∥fderiv 𝕜 (f n) x∥ ≤ u n)
   {x₀ : E} (hf0 : summable (λ n, f n x₀)) (x : E) :
-  fderiv ℝ (λ y, ∑' n, f n y) x = ∑' n, fderiv ℝ (f n) x :=
+  fderiv 𝕜 (λ y, ∑' n, f n y) x = ∑' n, fderiv 𝕜 (f n) x :=
 (has_fderiv_at_tsum hu (λ n x, (hf n x).has_fderiv_at) hf' hf0 _).fderiv
 
 lemma fderiv_tsum {f : α → E → F} {u : α → ℝ} (hu : summable u)
-  (hf : ∀ n, differentiable ℝ (f n)) (hf' : ∀ n x, ∥fderiv ℝ (f n) x∥ ≤ u n)
+  (hf : ∀ n, differentiable 𝕜 (f n)) (hf' : ∀ n x, ∥fderiv 𝕜 (f n) x∥ ≤ u n)
   {x₀ : E} (hf0 : summable (λ n, f n x₀)) :
-  fderiv ℝ (λ y, ∑' n, f n y) = (λ x, ∑' n, fderiv ℝ (f n) x) :=
+  fderiv 𝕜 (λ y, ∑' n, f n y) = (λ x, ∑' n, fderiv 𝕜 (f n) x) :=
 by { ext1 x, exact fderiv_tsum_apply hu hf hf' hf0 x}
 
 
@@ -197,24 +204,24 @@ by { ext1 x, exact fderiv_tsum_apply hu hf hf' hf0 x}
 /-- Consider a series of smooth functions, with summable uniform bounds on the successive
 derivatives. Then the iterated derivative of the sum is the sum of the iterated derivative. -/
 lemma iterated_fderiv_tsum
-  {f : α → E → F} {N : ℕ∞} (hf : ∀ i, cont_diff ℝ N (f i)) {u : ℕ → α → ℝ}
+  {f : α → E → F} {N : ℕ∞} (hf : ∀ i, cont_diff 𝕜 N (f i)) {u : ℕ → α → ℝ}
   (hu : ∀ (k : ℕ), (k : ℕ∞) ≤ N → summable (u k))
-  (h'f : ∀ (k : ℕ) (i : α) (x : E), (k : ℕ∞) ≤ N → ∥iterated_fderiv ℝ k (f i) x∥ ≤ u k i)
+  (h'f : ∀ (k : ℕ) (i : α) (x : E), (k : ℕ∞) ≤ N → ∥iterated_fderiv 𝕜 k (f i) x∥ ≤ u k i)
   {k : ℕ} (hk : (k : ℕ∞) ≤ N) :
-  iterated_fderiv ℝ k (λ y, ∑' n, f n y) = (λ x, ∑' n, iterated_fderiv ℝ k (f n) x) :=
+  iterated_fderiv 𝕜 k (λ y, ∑' n, f n y) = (λ x, ∑' n, iterated_fderiv 𝕜 k (f n) x) :=
 begin
   induction k with k IH,
   { ext1 x,
     simp_rw [iterated_fderiv_zero_eq_comp],
-    exact (continuous_multilinear_curry_fin0 ℝ E F).symm.to_continuous_linear_equiv.map_tsum },
+    exact (continuous_multilinear_curry_fin0 𝕜 E F).symm.to_continuous_linear_equiv.map_tsum },
   { have h'k : (k : ℕ∞) < N,
       from lt_of_lt_of_le (with_top.coe_lt_coe.2 (nat.lt_succ_self _)) hk,
-    have A : summable (λ n, iterated_fderiv ℝ k (f n) 0),
+    have A : summable (λ n, iterated_fderiv 𝕜 k (f n) 0),
       from summable_of_norm_bounded (u k) (hu k h'k.le) (λ n, h'f k n 0 h'k.le),
     simp_rw [iterated_fderiv_succ_eq_comp_left, IH h'k.le],
     rw fderiv_tsum (hu _ hk) (λ n, (hf n).differentiable_iterated_fderiv h'k) _ A,
     { ext1 x,
-      exact (continuous_multilinear_curry_left_equiv ℝ (λ (i : fin (k + 1)), E) F)
+      exact (continuous_multilinear_curry_left_equiv 𝕜 (λ (i : fin (k + 1)), E) F)
         .to_continuous_linear_equiv.map_tsum },
     { assume n x,
       simpa only [iterated_fderiv_succ_eq_comp_left, linear_isometry_equiv.norm_map]
@@ -224,21 +231,21 @@ end
 /-- Consider a series of smooth functions, with summable uniform bounds on the successive
 derivatives. Then the iterated derivative of the sum is the sum of the iterated derivative. -/
 lemma iterated_fderiv_tsum_apply
-  {f : α → E → F} {N : ℕ∞} (hf : ∀ i, cont_diff ℝ N (f i)) {u : ℕ → α → ℝ}
+  {f : α → E → F} {N : ℕ∞} (hf : ∀ i, cont_diff 𝕜 N (f i)) {u : ℕ → α → ℝ}
   (hu : ∀ (k : ℕ), (k : ℕ∞) ≤ N → summable (u k))
-  (h'f : ∀ (k : ℕ) (i : α) (x : E), (k : ℕ∞) ≤ N → ∥iterated_fderiv ℝ k (f i) x∥ ≤ u k i)
+  (h'f : ∀ (k : ℕ) (i : α) (x : E), (k : ℕ∞) ≤ N → ∥iterated_fderiv 𝕜 k (f i) x∥ ≤ u k i)
   {k : ℕ} (hk : (k : ℕ∞) ≤ N) (x : E) :
-  iterated_fderiv ℝ k (λ y, ∑' n, f n y) x = ∑' n, iterated_fderiv ℝ k (f n) x :=
+  iterated_fderiv 𝕜 k (λ y, ∑' n, f n y) x = ∑' n, iterated_fderiv 𝕜 k (f n) x :=
 by rw iterated_fderiv_tsum hf hu h'f hk
 
 /-- Consider a series of functions `∑' i, f i x`. Assume that each individual function `f i` is of
 class `C^N`, and moreover there is a uniform summable upper bound on the `k`-th derivative
 for each `k ≤ N`. Then the series is also `C^N`. -/
 lemma cont_diff_tsum
-  {f : α → E → F} {N : ℕ∞} (hf : ∀ i, cont_diff ℝ N (f i)) {u : ℕ → α → ℝ}
+  {f : α → E → F} {N : ℕ∞} (hf : ∀ i, cont_diff 𝕜 N (f i)) {u : ℕ → α → ℝ}
   (hu : ∀ (k : ℕ), (k : ℕ∞) ≤ N → summable (u k))
-  (h'f : ∀ (k : ℕ) (i : α) (x : E), (k : ℕ∞) ≤ N → ∥iterated_fderiv ℝ k (f i) x∥ ≤ u k i) :
-  cont_diff ℝ N (λ x, ∑' i, f i x) :=
+  (h'f : ∀ (k : ℕ) (i : α) (x : E), (k : ℕ∞) ≤ N → ∥iterated_fderiv 𝕜 k (f i) x∥ ≤ u k i) :
+  cont_diff 𝕜 N (λ x, ∑' i, f i x) :=
 begin
   rw cont_diff_iff_continuous_differentiable,
   split,
@@ -253,8 +260,8 @@ begin
     have h'm : ((m+1 : ℕ) : ℕ∞) ≤ N,
       by simpa only [enat.coe_add, nat.cast_with_bot, enat.coe_one] using enat.add_one_le_of_lt hm,
     rw iterated_fderiv_tsum hf hu h'f hm.le,
-    have A : ∀ n x, has_fderiv_at (iterated_fderiv ℝ m (f n))
-      (fderiv ℝ (iterated_fderiv ℝ m (f n)) x) x, from λ n x,
+    have A : ∀ n x, has_fderiv_at (iterated_fderiv 𝕜 m (f n))
+      (fderiv 𝕜 (iterated_fderiv 𝕜 m (f n)) x) x, from λ n x,
         (cont_diff.differentiable_iterated_fderiv hm (hf n)).differentiable_at.has_fderiv_at,
     apply differentiable_tsum (hu _ h'm) A (λ n x, _),
     rw [fderiv_iterated_fderiv, linear_isometry_equiv.norm_map],
@@ -265,19 +272,19 @@ end
 class `C^N`, and moreover there is a uniform summable upper bound on the `k`-th derivative
 for each `k ≤ N` (except maybe for finitely many `i`s). Then the series is also `C^N`. -/
 lemma cont_diff_tsum_of_eventually
-  {f : α → E → F} {N : ℕ∞} (hf : ∀ i, cont_diff ℝ N (f i)) {u : ℕ → α → ℝ}
+  {f : α → E → F} {N : ℕ∞} (hf : ∀ i, cont_diff 𝕜 N (f i)) {u : ℕ → α → ℝ}
   (hu : ∀ (k : ℕ), (k : ℕ∞) ≤ N → summable (u k))
   (h'f : ∀ (k : ℕ), (k : ℕ∞) ≤ N → ∀ᶠ i in (filter.cofinite : filter α), ∀ (x : E),
-     ∥iterated_fderiv ℝ k (f i) x∥ ≤ u k i) :
-  cont_diff ℝ N (λ x, ∑' i, f i x) :=
+     ∥iterated_fderiv 𝕜 k (f i) x∥ ≤ u k i) :
+  cont_diff 𝕜 N (λ x, ∑' i, f i x) :=
 begin
   classical,
   apply cont_diff_iff_forall_nat_le.2 (λ m hm, _),
   let t : set α :=
-    {i : α | ¬∀ (k : ℕ), k ∈ finset.range (m + 1) → ∀ x, ∥iterated_fderiv ℝ k (f i) x∥ ≤ u k i},
+    {i : α | ¬∀ (k : ℕ), k ∈ finset.range (m + 1) → ∀ x, ∥iterated_fderiv 𝕜 k (f i) x∥ ≤ u k i},
   have ht : set.finite t,
   { have A : ∀ᶠ i in (filter.cofinite : filter α), ∀ (k : ℕ), k ∈ finset.range (m+1) →
-      ∀ (x : E), ∥iterated_fderiv ℝ k (f i) x∥ ≤ u k i,
+      ∀ (x : E), ∥iterated_fderiv 𝕜 k (f i) x∥ ≤ u k i,
     { rw eventually_all_finset,
       assume i hi,
       apply h'f,

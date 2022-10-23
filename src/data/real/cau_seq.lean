@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.order.absolute_value
+import algebra.order.smul
 import algebra.big_operators.order
 
 /-!
@@ -30,6 +30,8 @@ open_locale big_operators
 
 open is_absolute_value
 
+variables {G α β: Type*}
+
 theorem exists_forall_ge_and {α} [linear_order α] {P Q : α → Prop} :
   (∃ i, ∀ j ≥ i, P j) → (∃ i, ∀ j ≥ i, Q j) →
   ∃ i, ∀ j ≥ i, P j ∧ Q j
@@ -37,8 +39,7 @@ theorem exists_forall_ge_and {α} [linear_order α] {P Q : α → Prop} :
   ⟨c, λ j hj, ⟨h₁ _ (le_trans ac hj), h₂ _ (le_trans bc hj)⟩⟩
 
 section
-variables {α : Type*} [linear_ordered_field α]
-  {β : Type*} [ring β] (abv : β → α) [is_absolute_value abv]
+variables [linear_ordered_field α] [ring β] (abv : β → α) [is_absolute_value abv]
 
 theorem rat_add_continuous_lemma
   {ε : α} (ε0 : 0 < ε) : ∃ δ > 0, ∀ {a₁ a₂ b₁ b₂ : β},
@@ -91,8 +92,7 @@ def is_cau_seq {α : Type*} [linear_ordered_field α]
 ∀ ε > 0, ∃ i, ∀ j ≥ i, abv (f j - f i) < ε
 
 namespace is_cau_seq
-variables {α : Type*} [linear_ordered_field α]
-  {β : Type*} [ring β] {abv : β → α} [is_absolute_value abv] {f : ℕ → β}
+variables [linear_ordered_field α] [ring β] {abv : β → α} [is_absolute_value abv] {f g : ℕ → β}
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem cauchy₂ (hf : is_cau_seq abv f) {ε : α} (ε0 : 0 < ε) :
@@ -108,6 +108,12 @@ theorem cauchy₃ (hf : is_cau_seq abv f) {ε : α} (ε0 : 0 < ε) :
   ∃ i, ∀ j ≥ i, ∀ k ≥ j, abv (f k - f j) < ε :=
 let ⟨i, H⟩ := hf.cauchy₂ ε0 in ⟨i, λ j ij k jk, H _ (le_trans ij jk) _ ij⟩
 
+lemma add (hf : is_cau_seq abv f) (hg : is_cau_seq abv g) : is_cau_seq abv (f + g) :=
+λ ε ε0,
+  let ⟨δ, δ0, Hδ⟩ := rat_add_continuous_lemma abv ε0,
+      ⟨i, H⟩ := exists_forall_ge_and (hf.cauchy₃ δ0) (hg.cauchy₃ δ0) in
+  ⟨i, λ j ij, let ⟨H₁, H₂⟩ := H _ le_rfl in Hδ (H₁ _ ij) (H₂ _ ij)⟩
+
 end is_cau_seq
 
 /-- `cau_seq β abv` is the type of `β`-valued Cauchy sequences, with respect to the absolute value
@@ -117,10 +123,10 @@ def cau_seq {α : Type*} [linear_ordered_field α]
 {f : ℕ → β // is_cau_seq abv f}
 
 namespace cau_seq
-variables {α : Type*} [linear_ordered_field α]
+variables [linear_ordered_field α]
 
 section ring
-variables {β : Type*} [ring β] {abv : β → α}
+variables [ring β] {abv : β → α}
 
 instance : has_coe_to_fun (cau_seq β abv) (λ _, ℕ → β) := ⟨subtype.val⟩
 
@@ -171,11 +177,7 @@ let ⟨r, h⟩ := f.bounded in
 ⟨max r (x+1), lt_of_lt_of_le (lt_add_one _) (le_max_right _ _),
   λ i, lt_of_lt_of_le (h i) (le_max_left _ _)⟩
 
-instance : has_add (cau_seq β abv) :=
-⟨λ f g, ⟨λ i, (f i + g i : β), λ ε ε0,
-  let ⟨δ, δ0, Hδ⟩ := rat_add_continuous_lemma abv ε0,
-      ⟨i, H⟩ := exists_forall_ge_and (f.cauchy₃ δ0) (g.cauchy₃ δ0) in
-  ⟨i, λ j ij, let ⟨H₁, H₂⟩ := H _ le_rfl in Hδ (H₁ _ ij) (H₂ _ ij)⟩⟩⟩
+instance : has_add (cau_seq β abv) := ⟨λ f g, ⟨f + g, f.2.add g.2⟩⟩
 
 @[simp, norm_cast] theorem add_apply (f g : cau_seq β abv) (i : ℕ) : (f + g) i = f i + g i := rfl
 
@@ -189,6 +191,7 @@ variable {abv}
 
 local notation `const` := const abv
 
+@[simp, norm_cast] lemma coe_const (x : β) : (const x : ℕ → β) = function.const _ x := rfl
 @[simp, norm_cast] theorem const_apply (x : β) (i : ℕ) : (const x : ℕ → β) i = x := rfl
 
 theorem const_inj {x y : β} : (const x : cau_seq β abv) = const y ↔ x = y :=
@@ -198,6 +201,8 @@ instance : has_zero (cau_seq β abv) := ⟨const 0⟩
 instance : has_one (cau_seq β abv) := ⟨const 1⟩
 instance : inhabited (cau_seq β abv) := ⟨0⟩
 
+@[simp, norm_cast] lemma coe_zero : ((0 : cau_seq β abv) : ℕ → β) = 0 := rfl
+@[simp, norm_cast] lemma coe_one : ((1 : cau_seq β abv) : ℕ → β) = 1 := rfl
 @[simp, norm_cast] theorem zero_apply (i) : (0 : cau_seq β abv) i = 0 := rfl
 @[simp, norm_cast] theorem one_apply (i) : (1 : cau_seq β abv) i = 1 := rfl
 @[simp] theorem const_zero : const 0 = 0 := rfl
@@ -211,19 +216,22 @@ by induction n; simp only [*, nsmul_rec, zero_apply, add_apply, zero_nsmul, succ
 instance has_nsmul : has_smul ℕ (cau_seq β abv) :=
 ⟨λ n f, of_eq (nsmul_rec n f) (λ i, n • f i) $ nsmul_aux _ _⟩
 
+@[simp, norm_cast, nolint simp_nf]
+lemma coe_nsmul (n : ℕ) (f : cau_seq β abv) (i : ℕ) : (n • f) i = n • f i := rfl
 -- eligible for `dsimp`
 @[simp, norm_cast, nolint simp_nf]
 lemma nsmul_apply (n : ℕ) (f : cau_seq β abv) (i : ℕ) : (n • f) i = n • f i := rfl
 lemma const_nsmul (n : ℕ) (x : β) : const (n • x) = n • const x := rfl
 
 instance : has_mul (cau_seq β abv) :=
-⟨λ f g, ⟨λ i, (f i * g i : β), λ ε ε0,
+⟨λ f g, ⟨f * g, λ ε ε0,
   let ⟨F, F0, hF⟩ := f.bounded' 0, ⟨G, G0, hG⟩ := g.bounded' 0,
       ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abv ε0,
       ⟨i, H⟩ := exists_forall_ge_and (f.cauchy₃ δ0) (g.cauchy₃ δ0) in
   ⟨i, λ j ij, let ⟨H₁, H₂⟩ := H _ le_rfl in
     Hδ (hF j) (hG i) (H₁ _ ij) (H₂ _ ij)⟩⟩⟩
 
+@[simp, norm_cast] lemma coe_mul (f g : cau_seq β abv) : (⇑(f * g) : ℕ → β) = f * g := rfl
 @[simp, norm_cast] theorem mul_apply (f g : cau_seq β abv) (i : ℕ) : (f * g) i = f i * g i := rfl
 
 theorem const_mul (x y : β) : const (x * y) = const x * const y := rfl
@@ -231,6 +239,7 @@ theorem const_mul (x y : β) : const (x * y) = const x * const y := rfl
 instance : has_neg (cau_seq β abv) :=
 ⟨λ f, of_eq (const (-1) * f) (λ x, -f x) (λ i, by simp)⟩
 
+@[simp, norm_cast] lemma coe_neg (f : cau_seq β abv) : (⇑(-f) : ℕ → β) = -f := rfl
 @[simp, norm_cast] theorem neg_apply (f : cau_seq β abv) (i) : (-f) i = -f i := rfl
 
 theorem const_neg (x : β) : const (-x) = -const x := rfl
@@ -238,6 +247,7 @@ theorem const_neg (x : β) : const (-x) = -const x := rfl
 instance : has_sub (cau_seq β abv) :=
 ⟨λ f g, of_eq (f + -g) (λ x, f x - g x) (λ i, by simp [sub_eq_add_neg])⟩
 
+@[simp, norm_cast] lemma coe_sub (f g : cau_seq β abv) : (⇑(f - g) : ℕ → β) = f - g := rfl
 @[simp, norm_cast] theorem sub_apply (f g : cau_seq β abv) (i : ℕ) : (f - g) i = f i - g i := rfl
 
 theorem const_sub (x y : β) : const (x - y) = const x - const y := rfl
@@ -250,6 +260,8 @@ instance has_zsmul : has_smul ℤ (cau_seq β abv) :=
   end⟩
 
 -- eligible for `dsimp`
+@[simp, norm_cast, nolint simp_nf]
+lemma coe_zsmul (n : ℤ) (f : cau_seq β abv) : (⇑(n • f) : ℕ → β) = n • f := rfl
 @[simp, norm_cast, nolint simp_nf]
 lemma zsmul_apply (n : ℤ) (f : cau_seq β abv) (i : ℕ) : (n • f) i = n • f i := rfl
 lemma const_zsmul (n : ℤ) (x : β) : const (n • x) = n • const x := rfl
@@ -434,7 +446,7 @@ show lim_zero _ ↔ _, by rw [← const_sub, const_lim_zero, sub_eq_zero]
 end ring
 
 section comm_ring
-variables {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv]
+variables [comm_ring β] {abv : β → α} [is_absolute_value abv]
 
 lemma mul_equiv_zero' (g : cau_seq _ abv) {f : cau_seq _ abv} (hf : f ≈ 0) : f * g ≈ 0 :=
 by rw mul_comm; apply mul_equiv_zero _ hf
@@ -447,7 +459,7 @@ by simpa only [mul_sub, mul_comm, sub_add_sub_cancel]
 end comm_ring
 
 section is_domain
-variables {β : Type*} [ring β] [is_domain β] (abv : β → α) [is_absolute_value abv]
+variables [ring β] [is_domain β] (abv : β → α) [is_absolute_value abv]
 
 lemma one_not_equiv_zero : ¬ (const abv 1) ≈ (const abv 0) :=
 assume h,
@@ -464,7 +476,7 @@ absurd this one_ne_zero
 end is_domain
 
 section field
-variables {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]
+variables [field β] {abv : β → α} [is_absolute_value abv]
 
 theorem inv_aux {f : cau_seq β abv} (hf : ¬ lim_zero f) :
   ∀ ε > 0, ∃ i, ∀ j ≥ i, abv ((f j)⁻¹ - (f i)⁻¹) < ε | ε ε0 :=

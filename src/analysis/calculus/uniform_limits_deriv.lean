@@ -237,7 +237,7 @@ lemma cauchy_map_of_uniform_cauchy_seq_on_fderiv
   cauchy (map (λ n, f n x) l) :=
 begin
   haveI : ne_bot l, from (cauchy_map_iff.1 hfg).1,
-  let t := {y | y ∈ s ∧ cauchy (map (λ (n : ι), f n y) l)},
+  let t := {y | y ∈ s ∧ cauchy (map (λ n, f n y) l)},
   suffices H : s ⊆ t, from (H hx).2,
   have A : ∀ x ε, x ∈ t → metric.ball x ε ⊆ s → metric.ball x ε ⊆ t,
   from λ x ε xt hx y hy, ⟨hx hy, (uniform_cauchy_seq_on_ball_of_fderiv (hf'.mono hx)
@@ -492,7 +492,7 @@ end
 lemma uniform_cauchy_seq_on_filter_of_deriv
   (hf' : uniform_cauchy_seq_on_filter f' l (𝓝 x))
   (hf : ∀ᶠ (n : ι × 𝕜) in (l ×ᶠ 𝓝 x), has_deriv_at (f n.1) (f' n.1 n.2) n.2)
-  (hfg : cauchy (map (λ (n : ι), f n x) l)) :
+  (hfg : cauchy (map (λ n, f n x) l)) :
   uniform_cauchy_seq_on_filter f l (𝓝 x) :=
 begin
   simp_rw has_deriv_at_iff_has_fderiv_at at hf,
@@ -503,7 +503,7 @@ end
 lemma uniform_cauchy_seq_on_ball_of_tendsto_uniformly_on_ball_deriv
   {r : ℝ} (hf' : uniform_cauchy_seq_on f' l (metric.ball x r))
   (hf : ∀ n : ι, ∀ y : 𝕜, y ∈ metric.ball x r → has_deriv_at (f n) (f' n y) y)
-  (hfg : cauchy (map (λ (n : ι), f n x) l)) :
+  (hfg : cauchy (map (λ n, f n x) l)) :
   uniform_cauchy_seq_on f l (metric.ball x r) :=
 begin
   simp_rw has_deriv_at_iff_has_fderiv_at at hf,

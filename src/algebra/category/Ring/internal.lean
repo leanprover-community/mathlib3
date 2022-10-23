@@ -70,9 +70,17 @@ def mk (R : internal Ab C)
   { obj := λ Y, begin
       refine Ring.mk (R.presheaf.obj Y) (yoneda_one.to_presheaf Y)
         (yoneda_mul.φ.on_internal_presheaf.app Y) _ _ _ _ _,
-      { sorry, },
-      { sorry, },
-      { sorry, },
+      { intros x y z,
+        convert congr_fun (congr_app (_root_.congr_arg internal_yoneda_operation₃_gen.on_internal_presheaf yoneda_mul_mul) Y) ⟨x, y, z⟩,
+        tidy, },
+      { intro x,
+        convert congr_fun (congr_app (_root_.congr_arg internal_yoneda_operation₁_gen.on_internal_presheaf
+          yoneda_one_mul) Y) x,
+        tidy, },
+      { intro x,
+        convert congr_fun (congr_app (_root_.congr_arg internal_yoneda_operation₁_gen.on_internal_presheaf
+          yoneda_mul_one) Y) x,
+        tidy, },
       { intros x₁ x₁' x₂,
         simp only [internal_yoneda_operation₂_gen.on_internal_presheaf_app,
           Ab.yoneda_bilinear.on_internal_presheaf_right_distrib], },
@@ -83,7 +91,7 @@ def mk (R : internal Ab C)
     map := λ Y Y' f, ⟨R.presheaf_type.map f, yoneda_one.to_presheaf_map f,
       yoneda_mul.φ.on_internal_presheaf_curry_naturality f,
       (R.presheaf.map f).map_zero, (R.presheaf.map f).map_add⟩, },
-  iso := sorry, }
+  iso := R.iso, }
 
 end Ring
 

@@ -1,7 +1,7 @@
 import category_theory.concrete_category.operations
 import category_theory.internal_operation
 
-universes v₁ v₂ u₁ u₂
+universes v₁ v₂ v₃ u₁ u₂ u₃
 
 noncomputable theory
 
@@ -15,6 +15,7 @@ open category opposite limits
 namespace concrete_category
 
 variables (A : Type u₂) [category.{v₂} A] [concrete_category.{v₁} A]
+  (A' : Type u₃) [category.{v₃} A'] [concrete_category.{v₁} A']
   (C : Type u₁) [category.{v₁} C]
 
 /-- The category of internal `A`-objects in the category `C`. -/
@@ -59,6 +60,52 @@ congr_fun (R.iso.hom.naturality f.op) x
 lemma iso_inv_naturality (x : R.presheaf_type.obj (op Y)) (f : Y' ⟶ Y) :
   R.iso.inv.app (op Y') (R.presheaf_type.map f.op x) = f ≫ R.iso.inv.app (op Y) x :=
 congr_fun (R.iso.inv.naturality f.op) x
+
+@[simp]
+def hom.to_internal_yoneda_operation₁ {X₁ X₂ : internal A C} (f : X₁ ⟶ X₂) :
+  internal_yoneda_operation₁_gen X₁.obj X₂.obj :=
+  X₁.iso.hom ≫ (internal.type_presheaf_functor A C).map f ≫ X₂.iso.inv
+
+@[simp]
+lemma hom.to_internal_yoneda_operation₁_id (X : internal A C) :
+  hom.to_internal_yoneda_operation₁ (𝟙 X) = 𝟙 _ :=
+by { dsimp, erw [functor.map_id, id_comp, X.iso.hom_inv_id], }
+
+@[simp]
+lemma hom.to_internal_yoneda_operation₁_comp {X₁ X₂ X₃ : internal A C} (f : X₁ ⟶ X₂) (g : X₂ ⟶ X₃) :
+  hom.to_internal_yoneda_operation₁ (f ≫ g) =
+    hom.to_internal_yoneda_operation₁ f ≫ hom.to_internal_yoneda_operation₁ g :=
+by { dsimp, simp only [functor.map_comp, assoc, X₂.iso.inv_hom_id_assoc], }
+
+variables (A C)
+
+@[protected]
+def forget₂ [has_forget₂ A A'] : internal A C ⥤ internal A' C :=
+{ obj := λ R,
+  { obj := R.obj,
+    presheaf := R.presheaf ⋙ forget₂ A A',
+    iso := R.iso ≪≫ iso_whisker_left _ (eq_to_iso has_forget₂.forget_comp.symm) ≪≫
+      (functor.associator _ _ _).symm, },
+  map := λ R₁ R₂ f, whisker_right f (forget₂ A A'),
+  map_id' := λ R, begin
+    ext Y,
+    dsimp,
+    erw [nat_trans.id_app, nat_trans.id_app, functor.map_id],
+    refl,
+  end,
+  map_comp' := λ R₁ R₂ R₃ f g, begin
+    ext Y,
+    dsimp [whisker_right],
+    erw [nat_trans.comp_app, nat_trans.comp_app, functor.map_comp],
+  end, }
+
+example : ℕ := 43
+
+variables {A C}
+
+@[protected]
+def Ab (R : internal A C) [has_forget₂ A Ab.{v₁}] : internal Ab.{v₁} C :=
+(internal.forget₂ A Ab.{v₁} C).obj R
 
 end internal
 
@@ -280,9 +327,10 @@ end concrete_category
 
 open concrete_category concrete_category.operations
 
-variables {A₁ A₂ A₃ C : Type*} [category A₁] [category A₂] [category A₃] [category.{v₁} C]
-  [concrete_category.{v₁} A₁] [concrete_category.{v₁} A₂] [concrete_category.{v₁} A₃]
-  {M₁ : internal A₁ C} {M₂ : internal A₂ C} {M₃ : internal A₃ C}
+variables {A₁ A₂ A₃ A₄ C : Type*} [category A₁] [category A₂] [category A₃] [category A₄]
+  [category.{v₁} C] [concrete_category.{v₁} A₁] [concrete_category.{v₁} A₂]
+  [concrete_category.{v₁} A₃] [concrete_category.{v₁} A₄]
+  {M₁ : internal A₁ C} {M₂ : internal A₂ C} {M₃ : internal A₃ C} {M₄ : internal A₄ C}
 
 namespace internal_yoneda_operation₀
 
@@ -295,6 +343,16 @@ lemma to_presheaf_map (c : internal_yoneda_operation₀ M₁.obj) {Y Y' : Cᵒ�
 congr_fun ((c ≫ M₁.iso.hom).naturality f).symm punit.star
 
 end internal_yoneda_operation₀
+
+namespace internal_yoneda_operation₁_gen
+
+variables (oper : internal_yoneda_operation₁_gen M₁.obj M₂.obj) {Y Y' : Cᵒᵖ}
+
+@[simps]
+def on_internal_presheaf : M₁.presheaf_type ⟶ M₂.presheaf_type :=
+M₁.iso.inv ≫ oper ≫ M₂.iso.hom
+
+end internal_yoneda_operation₁_gen
 
 namespace internal_yoneda_operation₂_gen
 
@@ -321,7 +379,15 @@ def on_internal_presheaf_curry_naturality
     (M₂.presheaf_type.map f x₂) :=
 congr_fun (oper.on_internal_presheaf.naturality f).symm ⟨x₁, x₂⟩
 
-
 end internal_yoneda_operation₂_gen
+
+namespace internal_yoneda_operation₃_gen
+
+variables (oper : internal_yoneda_operation₃_gen M₁.obj M₂.obj M₃.obj M₄.obj)
+
+def on_internal_presheaf : concat₃ M₁.presheaf_type M₂.presheaf_type M₃.presheaf_type ⟶ M₄.presheaf_type :=
+lift₃ (pr₁_₃ ≫ M₁.iso.inv) (pr₂_₃ ≫ M₂.iso.inv) (pr₃_₃ ≫ M₃.iso.inv) ≫ oper ≫ M₄.iso.hom
+
+end internal_yoneda_operation₃_gen
 
 end category_theory

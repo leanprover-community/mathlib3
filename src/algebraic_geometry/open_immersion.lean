@@ -9,6 +9,7 @@ import category_theory.limits.preserves.shapes.pullbacks
 import topology.sheaves.functors
 import algebraic_geometry.Scheme
 import category_theory.limits.shapes.strict_initial
+import category_theory.limits.shapes.comm_sq
 import algebra.category.Ring.instances
 
 /-!

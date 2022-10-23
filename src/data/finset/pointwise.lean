@@ -659,7 +659,7 @@ nonempty.of_image₂_left
 nonempty.of_image₂_right
 @[to_additive] lemma smul_singleton (b : β) : s • ({b} : finset β) = s.image (• b) :=
 image₂_singleton_right
-@[simp, to_additive] lemma singleton_smul_singleton (a : α) (b : β) :
+@[to_additive] lemma singleton_smul_singleton (a : α) (b : β) :
   ({a} : finset α) • ({b} : finset β) = {a • b} :=
 image₂_singleton
 

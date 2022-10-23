@@ -398,21 +398,30 @@ noncomputable def map_equiv (f : R ≃+* S):
 lemma map_equiv.symm (f : R ≃+* S):
   (map_equiv f).symm = map_equiv f.symm := ext $ λ x, rfl
 
+@[simp]
+lemma map_equiv_trans: ∀ (x y : ring_aut R),
+  map_equiv (x * y) = map_equiv x * map_equiv y :=
+begin
+  rintros φ ψ,
+  ext,
+  exact (map_map (ψ : R →+* R) (φ : R →+* R) x).symm,
+end
+
+@[simp]
+lemma map_equiv_refl : map_equiv (1 : ring_aut R) = 1 :=
+begin
+ext,
+apply local_ring.residue_field.map_id_apply,
+end
+
 /-- The group homomorphism from `ring_aut R` to `ring_aut k` where `k`
 is the residue field of `R`. -/
 @[simps]
 noncomputable def map_aut:
   ring_aut R →* ring_aut (local_ring.residue_field R):=
 { to_fun := map_equiv,
-  map_mul' := begin
-  intros φ ψ,
-  ext,
-  exact (map_map (ψ : R →+* R) (φ : R →+* R) x).symm,
-  end,
-  map_one' := begin
-  ext,
-  apply local_ring.residue_field.map_id_apply,
-  end }
+  map_mul' := map_equiv_trans,
+  map_one' := map_equiv_refl }
 
 end
 

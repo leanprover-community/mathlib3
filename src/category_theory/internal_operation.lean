@@ -1,5 +1,6 @@
 import category_theory.concrete_category.operations
 import algebra.category.Group.preadditive
+import category_theory.limits.preserves.shapes.binary_products
 
 noncomputable theory
 
@@ -7,7 +8,7 @@ namespace category_theory
 
 open limits concrete_category concrete_category.operations opposite category
 
-variables {C : Type*} [category C] (X Y Z W : C)
+variables {C D : Type*} [category C] [category D] (X Y Z W : C)
 
 @[simps]
 def yoneda.obj_prod_iso [has_binary_product X Y] :
@@ -43,6 +44,16 @@ def internal_operation₀.yoneda_equiv [has_terminal C] :
     rw [← h, subsingleton.elim x punit.star],
   end, }
 
+variable {X}
+
+def internal_operation₀.map [has_terminal C] [has_terminal D]
+  (oper : internal_operation₀ X) (F : C ⥤ D)
+  [preserves_limit (functor.empty.{0} C) F] :
+  internal_operation₀ (F.obj X) :=
+(limits.preserves_terminal.iso F).inv ≫ F.map oper
+
+variable (X)
+
 def internal_operation₁_gen := X ⟶ Y
 abbreviation internal_operation₁ := internal_operation₁_gen X X
 def internal_yoneda_operation₁_gen := yoneda.obj X ⟶ yoneda.obj Y
@@ -58,6 +69,12 @@ def internal_operation₁.yoneda_equiv :
   internal_operation₁ X ≃ internal_yoneda_operation₁ X :=
 equiv.symm yoneda_equiv
 
+variables {X Y}
+def internal_operation₁_gen.map (oper : internal_operation₁_gen X Y) (F : C ⥤ D) :
+  internal_operation₁_gen (F.obj X) (F.obj Y) :=
+F.map oper
+
+variables (X Y)
 def internal_operation₂_gen [has_binary_product X Y] := prod X Y ⟶ Z
 abbreviation internal_operation₂ [has_binary_product X X] := internal_operation₂_gen X X X
 
@@ -104,6 +121,16 @@ def internal_operation₂_gen.yoneda_equiv [has_binary_product X Y] :
   internal_operation₂_gen X Y Z ≃ internal_yoneda_operation₂_gen X Y Z :=
 yoneda_equiv.symm.trans (internal_yoneda_operation₂_gen.equiv X Y Z).symm
 
+variables {X Y Z}
+
+def internal_operation₂_gen.map [has_binary_product X Y]
+  (oper : internal_operation₂_gen X Y Z) (F : C ⥤ D)
+  [has_binary_product (F.obj X) (F.obj Y)]
+  [preserves_limit (pair X Y) F] :
+  internal_operation₂_gen (F.obj X) (F.obj Y) (F.obj Z) :=
+(preserves_limit_pair.iso F X Y).inv ≫ F.map oper
+
+variables (X Y Z)
 namespace internal_operation₂
 
 @[simps]
@@ -161,6 +188,20 @@ yoneda_equiv.symm.trans (internal_yoneda_operation₃_gen.equiv X Y Z W).symm
 def internal_operation₃.yoneda_equiv [has_binary_product X X] [has_binary_product X (prod X X)] :
   internal_operation₃ X ≃ internal_yoneda_operation₃ X :=
 internal_operation₃_gen.yoneda_equiv X X X X
+
+variables {X Y Z W}
+
+def internal_operation₃_gen.map [has_binary_product Y Z] [has_binary_product X (prod Y Z)]
+  (oper : internal_operation₃_gen X Y Z W) (F : C ⥤ D)
+  [has_binary_product (F.obj Y) (F.obj Z)]
+  [has_binary_product (F.obj X) (F.obj (prod Y Z))]
+  [has_binary_product (F.obj X) (prod (F.obj Y) (F.obj Z))]
+  [preserves_limit (pair Y Z) F] [preserves_limit (pair X (prod Y Z)) F] :
+  internal_operation₃_gen (F.obj X) (F.obj Y) (F.obj Z) (F.obj W) :=
+limits.prod.map (𝟙 _) (preserves_limit_pair.iso F Y Z).inv ≫
+    (preserves_limit_pair.iso F X (prod Y Z)).inv ≫ F.map oper
+
+variables (X Y Z W)
 
 namespace internal_operation₂
 

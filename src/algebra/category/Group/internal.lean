@@ -1,6 +1,7 @@
 import category_theory.concrete_category.internal
 import algebra.category.Group.preadditive
 import category_theory.internal_operation
+import category_theory.limits.shapes.finite_products
 
 noncomputable theory
 
@@ -57,7 +58,7 @@ namespace Ab
 
 open concrete_category.operations limits
 
-variables {C : Type*} [category C] (M : internal Ab C)
+variables {C D : Type*} [category C] [category D] (M : internal Ab C)
 
 instance add_comm_group_presheaf_type_obj {Y : Cᵒᵖ} :
 add_comm_group (M.presheaf_type.obj Y) :=
@@ -150,6 +151,44 @@ begin
   simpa only [functor_to_types.inv_hom_id_app_apply],
 end
 
+lemma yoneda_operation_add_app_eq {Y : Cᵒᵖ} (x₁ x₂ : (yoneda.obj M.obj).obj Y)
+  [has_binary_product M.obj M.obj] :
+  (yoneda_operation_add M).app Y ⟨x₁, x₂⟩ = prod.lift x₁ x₂ ≫ add M := sorry
+
+lemma iso_inv_app_add {Y : Cᵒᵖ} (x₁ x₂ : M.presheaf.obj Y) :
+  M.iso.inv.app Y (x₁ + x₂) =
+    (yoneda_operation_add M).app Y ⟨M.iso.inv.app Y x₁, M.iso.inv.app Y x₂⟩ :=
+begin
+  have h : function.bijective (M.iso.hom.app Y),
+  { rw ← is_iso_iff_bijective,
+    apply_instance, },
+  obtain ⟨y₁, hy₁⟩ := h.surjective x₁,
+  obtain ⟨y₂, hy₂⟩ := h.surjective x₂,
+  simp only [← hy₁, ← hy₂, functor_to_types.hom_inv_id_app_apply],
+  apply h.1,
+  rw iso_hom_app_yoneda_operation_add_app y₁ y₂,
+  simp only [functor_to_types.inv_hom_id_app_apply],
+end
+
+def hom.mk' (X₁ X₂ : internal Ab C) [has_binary_product X₁.obj X₁.obj]
+  [has_binary_product X₂.obj X₂.obj] (f : X₁.obj ⟶ X₂.obj)
+  (hf : add X₁ ≫ f = limits.prod.map f f ≫ add X₂) :
+  X₁ ⟶ X₂ :=
+{ app := λ Y, add_monoid_hom.mk' ((internal_yoneda_operation₁_gen.on_internal_presheaf
+    (internal_operation₁_gen.yoneda_equiv X₁.obj X₂.obj f)).app Y) (λ a b, begin
+      dsimp at a b ⊢,
+      have h := congr_fun (congr_app (_root_.congr_arg internal_yoneda_operation₂_gen.on_internal_presheaf
+        (_root_.congr_arg (internal_operation₂_gen.yoneda_equiv _ _ _) hf)) Y) ⟨a, b⟩,
+      dsimp at h,
+      rw [iso_inv_app_add, yoneda_operation_add_app_eq, category.assoc, h,
+        ← iso_hom_app_yoneda_operation_add_app, yoneda_operation_add_app_eq, prod.lift_map_assoc],
+    end),
+  naturality' := λ Y Y' g, begin
+    ext x,
+    exact congr_fun ((internal_yoneda_operation₁_gen.on_internal_presheaf
+      (internal_operation₁_gen.yoneda_equiv X₁.obj X₂.obj f)).naturality g) x,
+  end, }
+
 variables (M₁ M₂ M₃ : internal Ab C)
 
 structure yoneda_bilinear :=
@@ -195,10 +234,37 @@ end
 
 end yoneda_bilinear
 
+variable (M)
+
+def apply_functor (F : C ⥤ D) [has_terminal C] [has_terminal D]
+  [has_binary_product M.obj M.obj] [has_binary_product (F.obj M.obj) (F.obj M.obj)]
+  [has_binary_product (F.obj M.obj) (prod (F.obj M.obj) (F.obj M.obj))]
+  [preserves_limit (functor.empty.{0} C) F] [preserves_limit (pair M.obj M.obj) F] :
+  internal Ab D :=
+mk' (F.obj M.obj) ((zero M).map F) ((neg M).map F) ((add M).map F) sorry sorry sorry sorry
+
 end Ab
 
 end internal
 
 end concrete_category
+
+namespace functor
+
+open limits concrete_category
+
+variables {C D : Type*} [category C] [category D] (F : C ⥤ D)
+  [has_finite_products C] [has_finite_products D]
+  [preserves_limits_of_shape (discrete walking_pair) F]
+  [preserves_limit (empty.{0} C) F]
+
+include F
+def map_internal_Ab : internal Ab C ⥤ internal Ab D :=
+{ obj := λ M, internal.Ab.apply_functor M F,
+  map := sorry,
+  map_id' := sorry,
+  map_comp' := sorry, }
+
+end functor
 
 end category_theory

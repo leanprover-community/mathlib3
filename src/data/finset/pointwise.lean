@@ -119,6 +119,9 @@ attribute [mono] neg_subset_neg
 
 @[simp, to_additive] lemma inv_singleton (a : α) : ({a} : finset α)⁻¹ = {a⁻¹} := image_singleton _ _
 
+@[simp, to_additive]
+lemma inv_insert (a : α) (s : finset α) : (insert a s)⁻¹ = insert a⁻¹ s⁻¹ := image_insert _ _ _
+
 end has_inv
 
 open_locale pointwise
@@ -656,9 +659,7 @@ nonempty.of_image₂_left
 nonempty.of_image₂_right
 @[to_additive] lemma smul_singleton (b : β) : s • ({b} : finset β) = s.image (• b) :=
 image₂_singleton_right
-@[to_additive] lemma singleton_smul (a : α) : ({a} : finset α) • t = t.image ((•) a) :=
-image₂_singleton_left
-@[simp, to_additive] lemma singleton_smul_singleton (a : α) (b : β) :
+@[to_additive] lemma singleton_smul_singleton (a : α) (b : β) :
   ({a} : finset α) • ({b} : finset β) = {a • b} :=
 image₂_singleton
 
@@ -779,6 +780,8 @@ lemma coe_smul_finset (a : α) (s : finset β) : (↑(a • s) : set β) = a •
 @[simp, to_additive] lemma smul_finset_nonempty : (a • s).nonempty ↔ s.nonempty :=
 nonempty.image_iff _
 @[to_additive] lemma nonempty.smul_finset (hs : s.nonempty) : (a • s).nonempty := hs.image _
+@[simp,  to_additive] lemma singleton_smul (a : α) : ({a} : finset α) • t = a • t :=
+image₂_singleton_left
 
 @[to_additive, mono]
 lemma smul_finset_subset_smul_finset : s ⊆ t → a • s ⊆ a • t := image_subset_image

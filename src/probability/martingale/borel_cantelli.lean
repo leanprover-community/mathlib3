@@ -297,7 +297,7 @@ lemma adapted_process (hs : ∀ n, measurable_set[ℱ n] (s n)) :
   ℱ.mono (finset.mem_range.1 hk) _ $ hs _
 
 lemma martingale_part_process_ae_eq (ℱ : filtration ℕ m0) (μ : measure Ω) (s : ℕ → set Ω) (n : ℕ) :
-  martingale_part ℱ μ (process s) n =
+  martingale_part (process s) ℱ μ n =
   ∑ k in finset.range n, ((s (k + 1)).indicator 1 - μ[(s (k + 1)).indicator 1 | ℱ k]) :=
 begin
   simp only [martingale_part_eq_sum, process_zero, zero_add],
@@ -306,7 +306,7 @@ begin
 end
 
 lemma predictable_part_process_ae_eq (ℱ : filtration ℕ m0) (μ : measure Ω) (s : ℕ → set Ω) (n : ℕ) :
-  predictable_part ℱ μ (process s) n =
+  predictable_part (process s) ℱ μ n =
   ∑ k in finset.range n, μ[(s (k + 1)).indicator (1 : Ω → ℝ) | ℱ k] :=
 begin
   have := martingale_part_process_ae_eq ℱ μ s n,
@@ -339,7 +339,7 @@ lemma tendsto_sum_indicator_at_top_iff [is_finite_measure μ]
   (hf : adapted ℱ f) (hint : ∀ n, integrable (f n) μ)
   (hbdd : ∀ᵐ ω ∂μ, ∀ n, |f (n + 1) ω - f n ω| ≤ R) :
   ∀ᵐ ω ∂μ, tendsto (λ n, f n ω) at_top at_top ↔
-    tendsto (λ n, predictable_part ℱ μ f n ω) at_top at_top :=
+    tendsto (λ n, predictable_part f ℱ μ n ω) at_top at_top :=
 begin
   have h₁ := (martingale_martingale_part hf hint).ae_not_tendsto_at_top_at_top
     (martingale_part_bdd_difference ℱ hbdd),
@@ -389,7 +389,7 @@ filtration `ℱ` such that for all `n`, `s n` is `ℱ n`-measurable, `at_top.lim
 everywhere equal to the set for which `∑ k, ℙ(s (k + 1) | ℱ k) = ∞`. -/
 theorem ae_mem_limsup_at_top_iff [is_finite_measure μ]
   {s : ℕ → set Ω} (hs : ∀ n, measurable_set[ℱ n] (s n)) :
-  ∀ᵐ ω ∂μ, ω ∈ limsup at_top s ↔
+  ∀ᵐ ω ∂μ, ω ∈ limsup s at_top ↔
     tendsto (λ n, ∑ k in finset.range n, μ[(s (k + 1)).indicator (1 : Ω → ℝ) | ℱ k] ω)
       at_top at_top :=
 (limsup_eq_tendsto_sum_indicator_at_top ℝ s).symm ▸ tendsto_sum_indicator_at_top_iff' hs

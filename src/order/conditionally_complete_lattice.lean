@@ -246,7 +246,7 @@ instance : conditionally_complete_lattice my_T :=
   le_inf := ...,
   inf_le_right := ...,
   inf_le_left := ...
-  -- don't care to fix sup, Inf, bot, top
+  -- don't care to fix sup, Inf
   ..conditionally_complete_lattice_of_Sup my_T _ }
 ```
 -/
@@ -293,7 +293,7 @@ instance : conditionally_complete_lattice my_T :=
   le_inf := ...,
   inf_le_right := ...,
   inf_le_left := ...
-  -- don't care to fix sup, Sup, bot, top
+  -- don't care to fix sup, Sup
   ..conditionally_complete_lattice_of_Inf my_T _ }
 ```
 -/
@@ -332,32 +332,28 @@ def conditionally_complete_lattice_of_Inf (α : Type*) [H1 : partial_order α]
 /--
 A version of `conditionally_complete_lattice_of_Sup` when we already know that `α` is a lattice.
 
-Note that this construction has bad definitional properties:
-see the doc-string on `conditionally_complete_lattice_of_Sup`.
--/
+This should only be used when it is both hard and unnecessary to provide `Inf` explicitly. -/
 def conditionally_complete_lattice_of_lattice_of_Sup (α : Type*) [H1 : lattice α]
   [H2 : has_Sup α]
   (is_lub_Sup : ∀ s : set α, bdd_above s → s.nonempty → is_lub s (Sup s)) :
   conditionally_complete_lattice α :=
-conditionally_complete_lattice_of_Sup α
+{ ..H1, ..conditionally_complete_lattice_of_Sup α
   (λ a b, ⟨a ⊔ b, forall_insert_of_forall (forall_eq.mpr le_sup_right) le_sup_left⟩)
   (λ a b, ⟨a ⊓ b, forall_insert_of_forall (forall_eq.mpr inf_le_right) inf_le_left⟩)
-  is_lub_Sup
+  is_lub_Sup }
 
 /--
 A version of `conditionally_complete_lattice_of_Inf` when we already know that `α` is a lattice.
 
-Note that this construction has bad definitional properties:
-see the doc-string on `conditionally_complete_lattice_of_Inf`.
--/
+This should only be used when it is both hard and unnecessary to provide `Sup` explicitly. -/
 def conditionally_complete_lattice_of_lattice_of_Inf (α : Type*) [H1 : lattice α]
   [H2 : has_Inf α]
   (is_glb_Inf : ∀ s : set α, bdd_below s → s.nonempty → is_glb s (Inf s)) :
   conditionally_complete_lattice α :=
-conditionally_complete_lattice_of_Inf α
+{ ..H1, ..conditionally_complete_lattice_of_Inf α
   (λ a b, ⟨a ⊔ b, forall_insert_of_forall (forall_eq.mpr le_sup_right) le_sup_left⟩)
   (λ a b, ⟨a ⊓ b, forall_insert_of_forall (forall_eq.mpr inf_le_right) inf_le_left⟩)
-  is_glb_Inf
+  is_glb_Inf }
 
 section conditionally_complete_lattice
 variables [conditionally_complete_lattice α] {s t : set α} {a b : α}

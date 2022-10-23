@@ -1433,7 +1433,7 @@ variables [measurable_space E] [opens_measurable_space E] {R : ℝ≥0}
 
 lemma ae_bdd_liminf_at_top_rpow_of_snorm_bdd {p : ℝ≥0∞}
   {f : ℕ → α → E} (hfmeas : ∀ n, measurable (f n)) (hbdd : ∀ n, snorm (f n) p μ ≤ R) :
-  ∀ᵐ x ∂μ, liminf at_top (λ n, (∥f n x∥₊ ^ p.to_real : ℝ≥0∞)) < ∞ :=
+  ∀ᵐ x ∂μ, liminf (λ n, (∥f n x∥₊ ^ p.to_real : ℝ≥0∞)) at_top < ∞ :=
 begin
   by_cases hp0 : p.to_real = 0,
   { simp only [hp0, ennreal.rpow_zero],
@@ -1456,7 +1456,7 @@ end
 
 lemma ae_bdd_liminf_at_top_of_snorm_bdd {p : ℝ≥0∞} (hp : p ≠ 0)
   {f : ℕ → α → E} (hfmeas : ∀ n, measurable (f n)) (hbdd : ∀ n, snorm (f n) p μ ≤ R) :
-  ∀ᵐ x ∂μ, liminf at_top (λ n, (∥f n x∥₊ : ℝ≥0∞)) < ∞ :=
+  ∀ᵐ x ∂μ, liminf (λ n, (∥f n x∥₊ : ℝ≥0∞)) at_top < ∞ :=
 begin
   by_cases hp' : p = ∞,
   { subst hp',
@@ -1470,14 +1470,14 @@ begin
       (ennreal.add_lt_top.2 ⟨ennreal.coe_lt_top, ennreal.one_lt_top⟩) },
   filter_upwards [ae_bdd_liminf_at_top_rpow_of_snorm_bdd hfmeas hbdd] with x hx,
   have hppos : 0 < p.to_real := ennreal.to_real_pos hp hp',
-  have : liminf at_top (λ n, (∥f n x∥₊ ^ p.to_real : ℝ≥0∞)) =
-    liminf at_top (λ n, (∥f n x∥₊ : ℝ≥0∞)) ^ p.to_real,
-  { change liminf at_top (λ n, ennreal.order_iso_rpow p.to_real hppos (∥f n x∥₊ : ℝ≥0∞)) =
-      ennreal.order_iso_rpow p.to_real hppos (liminf at_top (λ n, (∥f n x∥₊ : ℝ≥0∞))),
+  have : liminf (λ n, (∥f n x∥₊ ^ p.to_real : ℝ≥0∞)) at_top =
+    (liminf (λ n, (∥f n x∥₊ : ℝ≥0∞)) at_top)^ p.to_real,
+  { change liminf (λ n, ennreal.order_iso_rpow p.to_real hppos (∥f n x∥₊ : ℝ≥0∞)) at_top =
+      ennreal.order_iso_rpow p.to_real hppos (liminf (λ n, (∥f n x∥₊ : ℝ≥0∞)) at_top),
     refine (order_iso.liminf_apply (ennreal.order_iso_rpow p.to_real _) _ _ _ _).symm;
     is_bounded_default },
   rw this at hx,
-  rw [← ennreal.rpow_one (liminf at_top (λ n, ∥f n x∥₊)), ← mul_inv_cancel hppos.ne.symm,
+  rw [← ennreal.rpow_one (liminf (λ n, ∥f n x∥₊) at_top), ← mul_inv_cancel hppos.ne.symm,
     ennreal.rpow_mul],
   exact ennreal.rpow_lt_top_of_nonneg (inv_nonneg.2 hppos.le) hx.ne,
 end
@@ -2842,7 +2842,7 @@ linear_map.mk_continuous
 variables {𝕜}
 
 lemma range_to_Lp [normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
-  (((to_Lp p μ 𝕜).range : submodule 𝕜 (Lp E p μ)).to_add_subgroup)
+  ((linear_map.range (to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] Lp E p μ)).to_add_subgroup)
     = measure_theory.Lp.bounded_continuous_function E p μ :=
 range_to_Lp_hom p μ
 
@@ -2875,13 +2875,13 @@ def to_Lp [normed_field 𝕜] [normed_space 𝕜 E] :
 variables {𝕜}
 
 lemma range_to_Lp [normed_field 𝕜] [normed_space 𝕜 E] :
-  ((to_Lp p μ 𝕜).range : submodule 𝕜 (Lp E p μ)).to_add_subgroup
+  (linear_map.range (to_Lp p μ 𝕜 : C(α, E) →L[𝕜] Lp E p μ)).to_add_subgroup
     = measure_theory.Lp.bounded_continuous_function E p μ :=
 begin
   refine set_like.ext' _,
   have := (linear_isometry_bounded_of_compact α E 𝕜).surjective,
   convert function.surjective.range_comp this (bounded_continuous_function.to_Lp p μ 𝕜),
-  rw ← bounded_continuous_function.range_to_Lp p μ,
+  rw ←bounded_continuous_function.range_to_Lp p μ,
   refl,
 end
 

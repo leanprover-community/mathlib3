@@ -160,7 +160,7 @@ with_bot.unbot'_bot_le_iff
 
 lemma nat_degree_lt_iff_degree_lt (hp : p ≠ 0) :
   p.nat_degree < n ↔ p.degree < ↑n :=
-with_bot.unbot'_bot_lt_iff $ degree_eq_bot.not.mpr hp
+with_bot.unbot'_lt_iff $ degree_eq_bot.not.mpr hp
 
 alias nat_degree_le_iff_degree_le ↔ ..
 

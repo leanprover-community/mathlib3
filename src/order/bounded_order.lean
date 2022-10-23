@@ -701,9 +701,8 @@ lemma unbot'_bot_le_iff [has_le α] [order_bot α] {a : with_bot α} {b : α} :
   a.unbot' ⊥ ≤ b ↔ a ≤ b :=
 by cases a; simp [none_eq_bot, some_eq_coe]
 
-lemma unbot'_bot_lt_iff [preorder α] [order_bot α] {a : with_bot α} {b : α}
-  (ha : a ≠ ⊥) :
-  a.unbot' ⊥ < b ↔ a < b :=
+lemma unbot'_lt_iff [has_lt α] {a : with_bot α} {b c : α} (ha : a ≠ ⊥) :
+  a.unbot' b < c ↔ a < c :=
 begin
   lift a to α using ha,
   rw [unbot'_coe, coe_lt_coe]

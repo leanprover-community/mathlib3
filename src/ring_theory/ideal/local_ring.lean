@@ -371,58 +371,40 @@ lemma map_comp (f : T →+* R) (g : R →+* S) [is_local_ring_hom f] [is_local_r
   (local_ring.residue_field.map g).comp (local_ring.residue_field.map f) :=
 ideal.quotient.ring_hom_ext $ ring_hom.ext $ λx, rfl
 
-section
-
-open ring_equiv local_ring
-
-@[simp] lemma map_id_apply {x : residue_field R} : map (ring_hom.id R) x = x :=
-by simp only [map_id, ring_hom.id_apply]
+lemma map_id_apply (x : residue_field R) : map (ring_hom.id R) x = x :=
+fun_like.congr_fun map_id x
 
 @[simp] lemma map_map (f : R →+* S) (g : S →+* T) (x : residue_field R)
-[is_local_ring_hom f] [is_local_ring_hom g] :
+  [is_local_ring_hom f] [is_local_ring_hom g] :
   map g (map f x) = map (g.comp f) x :=
-by simp only [map_comp, ring_hom.comp_apply]
+fun_like.congr_fun (map_comp f g).symm x
 
-/-- A ring isomorphism defines an isomorphism of residue fields -/
+/-- A ring isomorphism defines an isomorphism of residue fields. -/
 @[simps apply]
 noncomputable def map_equiv (f : R ≃+* S) :
   local_ring.residue_field R ≃+* local_ring.residue_field S :=
 { to_fun := map (f : R →+* S),
   inv_fun := map (f.symm : S →+* R),
-  left_inv := λ x, by simp only [map_map, symm_comp, map_id, ring_hom.id_apply],
-  right_inv := λ x, by simp only [map_map, comp_symm, map_id, ring_hom.id_apply],
+  left_inv := λ x, by simp only [map_map, ring_equiv.symm_comp, map_id, ring_hom.id_apply],
+  right_inv := λ x, by simp only [map_map, ring_equiv.comp_symm, map_id, ring_hom.id_apply],
   map_mul' := ring_hom.map_mul _,
   map_add' := ring_hom.map_add _ }
 
-@[simp]
-lemma map_equiv.symm (f : R ≃+* S) :
-  (map_equiv f).symm = map_equiv f.symm := ext $ λ x, rfl
+@[simp] lemma map_equiv.symm (f : R ≃+* S) : (map_equiv f).symm = map_equiv f.symm := rfl
 
-@[simp]
-lemma map_equiv_trans (e₁ : R ≃+* S) (e₂ : S ≃+* T) :
+@[simp] lemma map_equiv_trans (e₁ : R ≃+* S) (e₂ : S ≃+* T) :
   map_equiv (e₁.trans e₂) = (map_equiv e₁).trans (map_equiv e₂) :=
-begin
- ext,
- simp only [coe_ring_hom_trans, map_equiv_apply, ring_equiv.coe_trans, function.comp_app, map_map],
-end
+ring_equiv.to_ring_hom_injective $ map_comp (e₁ : R →+* S) (e₂ : S →+* T)
 
-@[simp]
-lemma map_equiv_refl : map_equiv (ring_equiv.refl R) = ring_equiv.refl _ :=
-begin
- ext,
- apply local_ring.residue_field.map_id_apply,
-end
+@[simp] lemma map_equiv_refl : map_equiv (ring_equiv.refl R) = ring_equiv.refl _ :=
+ring_equiv.to_ring_hom_injective map_id
 
 /-- The group homomorphism from `ring_aut R` to `ring_aut k` where `k`
 is the residue field of `R`. -/
-@[simps]
-noncomputable def map_aut :
-  ring_aut R →* ring_aut (local_ring.residue_field R) :=
+@[simps] noncomputable def map_aut : ring_aut R →* ring_aut (local_ring.residue_field R) :=
 { to_fun := map_equiv,
-  map_mul' := λ e₁ e₂, by apply map_equiv_trans,
+  map_mul' := λ e₁ e₂, map_equiv_trans e₂ e₁,
   map_one' := map_equiv_refl }
-
-end
 
 end residue_field
 

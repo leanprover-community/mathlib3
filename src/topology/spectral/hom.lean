@@ -56,6 +56,9 @@ structure spectral_map (α β : Type*) [topological_space α] [topological_space
 (to_fun : α → β)
 (spectral' : is_spectral_map to_fun)
 
+section
+set_option old_structure_cmd true
+
 /-- `spectral_map_class F α β` states that `F` is a type of spectral maps.
 
 You should extend this class when you extend `spectral_map`. -/
@@ -63,6 +66,8 @@ class spectral_map_class (F : Type*) (α β : out_param $ Type*) [topological_sp
   [topological_space β]
   extends fun_like F α (λ _, β) :=
 (map_spectral (f : F) : is_spectral_map f)
+
+end
 
 export spectral_map_class (map_spectral)
 

@@ -19,3 +19,15 @@ is_iso.of_iso (is_localization.at_one R (localization.away (1 : R))).to_ring_equ
 instance localization_unit_is_iso' (R : CommRing) :
   @is_iso CommRing _ R _ (CommRing.of_hom $ algebra_map R (localization.away (1 : R))) :=
 by { cases R, exact localization_unit_is_iso _ }
+
+lemma is_localization.epi {R : Type*} [comm_ring R] (M : submonoid R) (S : Type*) [comm_ring S]
+  [algebra R S] [is_localization M S] : epi (CommRing.of_hom $ algebra_map R S) :=
+⟨λ T f₁ f₂, @is_localization.ring_hom_ext R _ M S _ _ T _ _ _ _⟩
+
+instance localization.epi {R : Type*} [comm_ring R] (M : submonoid R) : epi
+  (CommRing.of_hom $ algebra_map R $ localization M) :=
+is_localization.epi M _
+
+instance localization.epi' {R : CommRing} (M : submonoid R) : @epi CommRing _ R _
+  (CommRing.of_hom $ algebra_map R $ localization M : _) :=
+by { cases R, exact is_localization.epi M _ }

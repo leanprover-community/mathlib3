@@ -761,6 +761,9 @@ tan_periodic.sub_eq x
 lemma tan_pi_sub (x : ℝ) : tan (π - x) = -tan x :=
 tan_neg x ▸ tan_periodic.sub_eq'
 
+lemma tan_pi_div_two_sub (x : ℝ) : tan (π / 2 - x) = (tan x)⁻¹ :=
+by rw [tan_eq_sin_div_cos, tan_eq_sin_div_cos, inv_div, sin_pi_div_two_sub, cos_pi_div_two_sub]
+
 lemma tan_nat_mul_pi (n : ℕ) : tan (n * π) = 0 :=
 tan_zero ▸ tan_periodic.nat_mul_eq n
 
@@ -989,6 +992,9 @@ tan_periodic.sub_eq x
 
 lemma tan_pi_sub (x : ℂ) : tan (π - x) = -tan x :=
 tan_neg x ▸ tan_periodic.sub_eq'
+
+lemma tan_pi_div_two_sub (x : ℂ) : tan (π / 2 - x) = (tan x)⁻¹ :=
+by rw [tan_eq_sin_div_cos, tan_eq_sin_div_cos, inv_div, sin_pi_div_two_sub, cos_pi_div_two_sub]
 
 lemma tan_nat_mul_pi (n : ℕ) : tan (n * π) = 0 :=
 tan_zero ▸ tan_periodic.nat_mul_eq n

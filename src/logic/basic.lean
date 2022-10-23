@@ -238,6 +238,10 @@ open function
 theorem false_ne_true : false ≠ true
 | h := h.symm ▸ trivial
 
+theorem eq_true_iff {a : Prop} : (a = true) = a :=
+have (a ↔ true) = a, from propext (iff_true a),
+eq.subst (@iff_eq_eq a true) this
+
 section propositional
 variables {a b c d e f : Prop}
 
@@ -1508,6 +1512,12 @@ by by_cases P; simp [*, exists_prop_of_false not_false]
 lemma ite_eq_iff : ite P a b = c ↔ P ∧ a = c ∨ ¬ P ∧ b = c :=
 dite_eq_iff.trans $ by rw [exists_prop, exists_prop]
 
+lemma dite_eq_iff' : dite P A B = c ↔ (∀ h, A h = c) ∧ (∀ h, B h = c) :=
+⟨λ he, ⟨λ h, (dif_pos h).symm.trans he, λ h, (dif_neg h).symm.trans he⟩,
+  λ he, (em P).elim (λ h, (dif_pos h).trans $ he.1 h) (λ h, (dif_neg h).trans $ he.2 h)⟩
+
+lemma ite_eq_iff' : ite P a b = c ↔ (P → a = c) ∧ (¬ P → b = c) := dite_eq_iff'
+
 @[simp] lemma dite_eq_left_iff : dite P (λ _, a) B = a ↔ ∀ h, B h = a :=
 by by_cases P; simp [*, forall_prop_of_false not_false]
 
@@ -1598,5 +1608,15 @@ by by_cases h : P; simp [h]
 
 lemma ite_and : ite (P ∧ Q) a b = ite P (ite Q a b) b :=
 by by_cases hp : P; by_cases hq : Q; simp [hp, hq]
+
+lemma dite_dite_comm {B : Q → α} {C : ¬P → ¬Q → α} (h : P → ¬Q) :
+  (if p : P then A p else if q : Q then B q else C p q) =
+  (if q : Q then B q else if p : P then A p else C p q) :=
+dite_eq_iff'.2 ⟨λ p, by rw [dif_neg (h p), dif_pos p], λ np, by { congr, funext, rw dif_neg np }⟩
+
+lemma ite_ite_comm (h : P → ¬Q) :
+  (if P then a else if Q then b else c) =
+  (if Q then b else if P then a else c) :=
+dite_dite_comm P Q h
 
 end ite

@@ -1073,6 +1073,14 @@ by { rw ← degree_neg q at h, rw [sub_eq_add_neg, degree_add_eq_left_of_degree_
 lemma degree_sub_eq_right_of_degree_lt (h : degree p < degree q) : degree (p - q) = degree q :=
 by { rw ← degree_neg q at h, rw [sub_eq_add_neg, degree_add_eq_right_of_degree_lt h, degree_neg] }
 
+lemma nat_degree_sub_eq_left_of_nat_degree_lt (h : nat_degree q < nat_degree p) :
+  nat_degree (p - q) = nat_degree p :=
+nat_degree_eq_of_degree_eq (degree_sub_eq_left_of_degree_lt (degree_lt_degree h))
+
+lemma nat_degree_sub_eq_right_of_nat_degree_lt (h : nat_degree p < nat_degree q) :
+  nat_degree (p - q) = nat_degree q :=
+nat_degree_eq_of_degree_eq (degree_sub_eq_right_of_degree_lt (degree_lt_degree h))
+
 end ring
 
 section nonzero_ring

@@ -95,6 +95,21 @@ begin
   exact Hb _ hi _ hj,
 end
 
+/-- Dependent version of `submodule.smul_induction_on`. -/
+@[elab_as_eliminator]
+theorem smul_induction_on' {x : M} (hx : x ∈ I • N)
+  {p : Π x, x ∈ I • N → Prop}
+  (Hb : ∀ (r : R) (hr : r ∈ I) (n : M) (hn : n ∈ N),
+    p (r • n) (smul_mem_smul hr hn))
+  (H1 : ∀ x hx y hy, p x hx → p y hy → p (x + y) (submodule.add_mem _ ‹_› ‹_›)) :
+  p x hx :=
+begin
+  refine exists.elim _ (λ (h : x ∈ I • N) (H : p x h), H),
+  exact smul_induction_on hx
+    (λ a ha x hx, ⟨_, Hb _ ha _ hx⟩)
+    (λ x y ⟨_, hx⟩ ⟨_, hy⟩, ⟨_, H1 _ _ _ _ hx hy⟩),
+end
+
 theorem mem_smul_span_singleton {I : ideal R} {m : M} {x : M} :
   x ∈ I • span R ({m} : set M) ↔ ∃ y ∈ I, y • m = x :=
 ⟨λ hx, smul_induction_on hx
@@ -259,6 +274,17 @@ theorem mem_ideal_smul_span_iff_exists_sum' {ι : Type*} (s : set ι) (f : ι �
   ∃ (a : s →₀ R) (ha : ∀ i, a i ∈ I), a.sum (λ i c, c • f i) = x :=
 by rw [← submodule.mem_ideal_smul_span_iff_exists_sum, ← set.image_eq_range]
 
+lemma mem_smul_top_iff  (N : submodule R M) (x : N) :
+  x ∈ I • (⊤ : submodule R N) ↔ (x : M) ∈ I • N :=
+begin
+  change _ ↔ N.subtype x ∈ I • N,
+  have : submodule.map N.subtype (I • ⊤) = I • N,
+  { rw [submodule.map_smul'', submodule.map_top, submodule.range_subtype] },
+  rw ← this,
+  convert (function.injective.mem_set_image N.injective_subtype).symm using 1,
+  refl,
+end
+
 @[simp] lemma smul_comap_le_comap_smul (f : M →ₗ[R] M') (S : submodule R M') (I : ideal R) :
   I • S.comap f ≤ (I • S).comap f :=
 begin
@@ -309,6 +335,8 @@ variables {R : Type u} [semiring R]
 
 @[simp] lemma add_eq_sup {I J : ideal R} : I + J = I ⊔ J := rfl
 @[simp] lemma zero_eq_bot : (0 : ideal R) = ⊥ := rfl
+
+@[simp] lemma sum_eq_sup {ι : Type*} (s : finset ι) (f : ι → ideal R) : s.sum f = s.sup f := rfl
 
 end add
 
@@ -1569,6 +1597,18 @@ lemma ker_lift_injective (f : R →+* S) : function.injective (ker_lift f) :=
 assume a b, quotient.induction_on₂' a b $
   assume a b (h : f a = f b), ideal.quotient.eq.2 $
 show a - b ∈ ker f, by rw [mem_ker, map_sub, h, sub_self]
+
+lemma lift_injective_of_ker_le_ideal (I : ideal R) {f : R →+* S}
+  (H : ∀ (a : R), a ∈ I → f a = 0) (hI : f.ker ≤ I) :
+  function.injective (ideal.quotient.lift I f H) :=
+begin
+  rw [ring_hom.injective_iff_ker_eq_bot, ring_hom.ker_eq_bot_iff_eq_zero],
+  intros u hu,
+  obtain ⟨v, rfl⟩ := ideal.quotient.mk_surjective u,
+  rw ideal.quotient.lift_mk at hu,
+  rw [ideal.quotient.eq_zero_iff_mem],
+  exact hI ((ring_hom.mem_ker f).mpr hu),
+end
 
 variable {f}
 

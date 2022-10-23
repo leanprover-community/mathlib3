@@ -7,6 +7,7 @@ import algebra.ring.aut
 import algebra.ring.comp_typeclasses
 import data.rat.cast
 import group_theory.group_action.opposite
+import data.set_like.basic
 
 /-!
 # Star monoids, rings, and modules
@@ -56,6 +57,22 @@ export has_star (star)
 A star operation (e.g. complex conjugate).
 -/
 add_decl_doc star
+
+/-- `star_mem_class S G` states `S` is a type of subsets `s ⊆ G` closed under star. -/
+class star_mem_class (S R : Type*) [has_star R] [set_like S R] :=
+(star_mem : ∀ {s : S} {r : R}, r ∈ s → star r ∈ s)
+
+export star_mem_class (star_mem)
+
+namespace star_mem_class
+
+variables {S : Type u} [has_star R] [set_like S R] [hS : star_mem_class S R] (s : S)
+include hS
+
+instance : has_star s :=
+{ star := λ r, ⟨star (r : R), star_mem r.prop⟩ }
+
+end star_mem_class
 
 
 /--

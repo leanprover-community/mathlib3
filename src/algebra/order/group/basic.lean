@@ -4,7 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.abs
-import algebra.order.sub
+import algebra.order.sub.basic
+import algebra.order.monoid.min_max
+import algebra.order.monoid.prod
+import algebra.order.monoid.units
+import algebra.order.monoid.order_dual
+import algebra.order.monoid.with_top
 
 /-!
 # Ordered groups
@@ -41,6 +46,9 @@ attribute [to_additive] ordered_comm_group
 instance ordered_comm_group.to_covariant_class_left_le (α : Type u) [ordered_comm_group α] :
   covariant_class α α (*) (≤) :=
 { elim := λ a b c bc, ordered_comm_group.mul_le_mul_left b c bc a }
+
+example (α : Type u) [ordered_add_comm_group α] : covariant_class α α (swap (+)) (<) :=
+add_right_cancel_semigroup.covariant_swap_add_lt_of_covariant_swap_add_le α
 
 /--The units of an ordered commutative monoid form an ordered commutative group. -/
 @[to_additive "The units of an ordered commutative additive monoid form an ordered commutative
@@ -1030,6 +1038,9 @@ max_eq_right $ h.trans (neg_nonneg.2 h)
 lemma abs_of_neg (h : a < 0) : |a| = -a :=
 abs_of_nonpos h.le
 
+lemma abs_le_abs_of_nonneg (ha : 0 ≤ a) (hab : a ≤ b) : |a| ≤ |b| :=
+by rwa [abs_of_nonneg ha, abs_of_nonneg (ha.trans hab)]
+
 @[simp] lemma abs_zero : |0| = (0:α) :=
 abs_of_nonneg le_rfl
 
@@ -1078,6 +1089,9 @@ decidable.not_iff_not.1 $ ne_comm.trans $ (abs_nonneg a).lt_iff_ne.symm.trans ab
 (abs_nonneg a).le_iff_eq.trans abs_eq_zero
 
 variable [covariant_class α α (swap (+)) (≤)]
+
+lemma abs_le_abs_of_nonpos (ha : a ≤ 0) (hab : b ≤ a) : |a| ≤ |b| :=
+by { rw [abs_of_nonpos ha, abs_of_nonpos (hab.trans ha)], exact neg_le_neg_iff.mpr hab }
 
 lemma abs_lt : |a| < b ↔ - b < a ∧ a < b :=
 max_lt_iff.trans $ and.comm.trans $ by rw [neg_lt]
@@ -1329,26 +1343,6 @@ instance [ordered_comm_group G] [ordered_comm_group H] :
 { .. prod.comm_group, .. prod.partial_order G H, .. prod.ordered_cancel_comm_monoid }
 
 end prod
-
-section type_tags
-
-instance [ordered_add_comm_group α] : ordered_comm_group (multiplicative α) :=
-{ ..multiplicative.comm_group,
-  ..multiplicative.ordered_comm_monoid }
-
-instance [ordered_comm_group α] : ordered_add_comm_group (additive α) :=
-{ ..additive.add_comm_group,
-  ..additive.ordered_add_comm_monoid }
-
-instance [linear_ordered_add_comm_group α] : linear_ordered_comm_group (multiplicative α) :=
-{ ..multiplicative.linear_order,
-  ..multiplicative.ordered_comm_group }
-
-instance [linear_ordered_comm_group α] : linear_ordered_add_comm_group (additive α) :=
-{ ..additive.linear_order,
-  ..additive.ordered_add_comm_group }
-
-end type_tags
 
 section norm_num_lemmas
 /- The following lemmas are stated so that the `norm_num` tactic can use them with the

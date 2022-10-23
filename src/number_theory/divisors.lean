@@ -83,7 +83,8 @@ def divisors_antidiagonal : ℕ →* finset (ℕ × ℕ) :=
   end }
 
 /-- `divisors n` is the `finset` of divisors of `n`. As a special case, `divisors 0 = ∅`. -/
-def divisors : ℕ →* finset ℕ := (monoid_hom.fst ℕ ℕ).image.comp divisors_antidiagonal
+def divisors : ℕ →* finset ℕ :=
+(finset.image_monoid_hom $ monoid_hom.fst ℕ ℕ).comp divisors_antidiagonal
 
 /-- `proper_divisors n` is the `finset` of divisors of `n`, other than `n`.
   As a special case, `proper_divisors 0 = ∅`. -/

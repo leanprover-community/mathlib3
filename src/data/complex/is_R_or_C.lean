@@ -114,17 +114,17 @@ theorem ext : ∀ {z w : K}, re z = re w → im z = im w → z = w :=
 by { simp_rw ext_iff, cc }
 
 
-@[simp, norm_cast, is_R_or_C_simps, priority 900] lemma of_real_zero : ((0 : ℝ) : K) = 0 :=
+@[norm_cast] lemma of_real_zero : ((0 : ℝ) : K) = 0 :=
 by rw [of_real_alg, zero_smul]
 
 @[simp, is_R_or_C_simps] lemma zero_re' : re (0 : K) = (0 : ℝ) := re.map_zero
 
-@[simp, norm_cast, is_R_or_C_simps, priority 900] lemma of_real_one : ((1 : ℝ) : K) = 1 :=
+@[norm_cast] lemma of_real_one : ((1 : ℝ) : K) = 1 :=
 by rw [of_real_alg, one_smul]
 @[simp, is_R_or_C_simps] lemma one_re : re (1 : K) = 1 := by rw [←of_real_one, of_real_re]
 @[simp, is_R_or_C_simps] lemma one_im : im (1 : K) = 0 := by rw [←of_real_one, of_real_im]
 
-@[simp, norm_cast, priority 900] theorem of_real_inj {z w : ℝ} : (z : K) = (w : K) ↔ z = w :=
+@[norm_cast] theorem of_real_inj {z w : ℝ} : (z : K) = (w : K) ↔ z = w :=
 { mp := λ h, by { convert congr_arg re h; simp only [of_real_re] },
   mpr := λ h, by rw h }
 
@@ -137,7 +137,6 @@ by simp only [bit0, map_add]
 @[simp, is_R_or_C_simps] lemma bit1_im (z : K) : im (bit1 z) = bit0 (im z) :=
 by simp only [bit1, add_right_eq_self, add_monoid_hom.map_add, bit0_im, one_im]
 
-@[simp, is_R_or_C_simps, priority 900]
 theorem of_real_eq_zero {z : ℝ} : (z : K) = 0 ↔ z = 0 :=
 by rw [←of_real_zero]; exact of_real_inj
 
@@ -558,7 +557,8 @@ begin
 end
 
 lemma re_eq_self_of_le {a : K} (h : abs a ≤ re a) : (re a : K) = a :=
-by { rw ← re_add_im a, simp only [im_eq_zero_of_le h, add_zero, zero_mul] with is_R_or_C_simps }
+by { rw ← re_add_im a, simp only [im_eq_zero_of_le h, add_zero, zero_mul, algebra_map.coe_zero]
+  with is_R_or_C_simps, }
 
 lemma abs_add (z w : K) : abs (z + w) ≤ abs z + abs w :=
 (mul_self_le_mul_self_iff (abs_nonneg _)

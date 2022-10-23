@@ -44,9 +44,9 @@ lemma eventually_nhds_within_iff {a : α} {s : set α} {p : α → Prop} :
   (∀ᶠ x in 𝓝[s] a, p x) ↔ ∀ᶠ x in 𝓝 a, x ∈ s → p x :=
 eventually_inf_principal
 
-lemma frequently_nhds_within_iff {z : α} {p : α → Prop} :
-  (∃ᶠ x in 𝓝[≠] z, p x) ↔ (∃ᶠ x in 𝓝 z, p x ∧ x ≠ z) :=
-iff.not (by simp [eventually_nhds_within_iff, not_imp_not])
+lemma frequently_nhds_within_iff {z : α} {s : set α} {p : α → Prop} :
+  (∃ᶠ x in 𝓝[s] z, p x) ↔ (∃ᶠ x in 𝓝 z, p x ∧ x ∈ s) :=
+iff.not (by simp [eventually_nhds_within_iff, not_and'])
 
 lemma mem_closure_ne_iff_frequently_within {z : α} {s : set α} :
   z ∈ closure (s \ {z}) ↔ ∃ᶠ x in 𝓝[≠] z, x ∈ s :=
@@ -757,6 +757,10 @@ by rw [← univ_inter s, continuous_within_at_inter h, continuous_within_at_univ
 lemma continuous_within_at.continuous_at {f : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (hs : s ∈ 𝓝 x) : continuous_at f x :=
 (continuous_within_at_iff_continuous_at hs).mp h
+
+lemma is_open.continuous_on_iff {f : α → β} {s : set α} (hs : is_open s) :
+  continuous_on f s ↔ ∀ ⦃a⦄, a ∈ s → continuous_at f a :=
+ball_congr $ λ _, continuous_within_at_iff_continuous_at ∘ hs.mem_nhds
 
 lemma continuous_on.continuous_at {f : α → β} {s : set α} {x : α}
   (h : continuous_on f s) (hx : s ∈ 𝓝 x) : continuous_at f x :=

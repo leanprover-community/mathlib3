@@ -70,13 +70,19 @@ structure order_add_monoid_hom (α β : Type*) [preorder α] [preorder β] [add_
 
 infixr ` →+o `:25 := order_add_monoid_hom
 
+section
+set_option old_structure_cmd true
+
 /-- `order_add_monoid_hom_class F α β` states that `F` is a type of ordered monoid homomorphisms.
 
 You should also extend this typeclass when you extend `order_add_monoid_hom`. -/
+@[ancestor add_monoid_hom_class]
 class order_add_monoid_hom_class (F : Type*) (α β : out_param $ Type*) [preorder α] [preorder β]
   [add_zero_class α] [add_zero_class β]
   extends add_monoid_hom_class F α β :=
 (monotone (f : F) : monotone f)
+
+end
 
 -- Instances and lemmas are defined below through `@[to_additive]`.
 
@@ -101,19 +107,25 @@ structure order_monoid_hom (α β : Type*) [preorder α] [preorder β] [mul_one_
 
 infixr ` →*o `:25 := order_monoid_hom
 
+section
+set_option old_structure_cmd true
+
 /-- `order_monoid_hom_class F α β` states that `F` is a type of ordered monoid homomorphisms.
 
 You should also extend this typeclass when you extend `order_monoid_hom`. -/
-@[to_additive]
+@[ancestor monoid_hom_class, to_additive]
 class order_monoid_hom_class (F : Type*) (α β : out_param $ Type*)
   [preorder α] [preorder β] [mul_one_class α] [mul_one_class β]
   extends monoid_hom_class F α β :=
 (monotone (f : F) : monotone f)
 
+end
+
 @[priority 100, to_additive] -- See note [lower instance priority]
 instance order_monoid_hom_class.to_order_hom_class [order_monoid_hom_class F α β] :
   order_hom_class F α β :=
-{ map_rel := order_monoid_hom_class.monotone }
+{ map_rel := order_monoid_hom_class.monotone,
+  .. ‹order_monoid_hom_class F α β› }
 
 @[to_additive]
 instance [order_monoid_hom_class F α β] : has_coe_t F (α →*o β) :=
@@ -141,6 +153,9 @@ structure order_monoid_with_zero_hom (α β : Type*) [preorder α] [preorder β]
 
 infixr ` →*₀o `:25 := order_monoid_with_zero_hom
 
+section
+set_option old_structure_cmd true
+
 /-- `order_monoid_with_zero_hom_class F α β` states that `F` is a type of
 ordered monoid with zero homomorphisms.
 
@@ -149,6 +164,8 @@ class order_monoid_with_zero_hom_class (F : Type*) (α β : out_param $ Type*)
   [preorder α] [preorder β] [mul_zero_one_class α] [mul_zero_one_class β]
   extends monoid_with_zero_hom_class F α β :=
 (monotone (f : F) : monotone f)
+
+end
 
 @[priority 100] -- See note [lower instance priority]
 instance order_monoid_with_zero_hom_class.to_order_monoid_hom_class
@@ -170,6 +187,37 @@ lemma map_nonneg (ha : 0 ≤ a) : 0 ≤ f a := by { rw ←map_zero f, exact orde
 lemma map_nonpos (ha : a ≤ 0) : f a ≤ 0 := by { rw ←map_zero f, exact order_hom_class.mono _ ha }
 
 end ordered_add_comm_monoid
+
+section ordered_add_comm_group
+
+variables [ordered_add_comm_group α]
+  [ordered_add_comm_monoid β] [add_monoid_hom_class F α β] (f : F)
+
+lemma monotone_iff_map_nonneg : monotone (f : α → β) ↔ ∀ a, 0 ≤ a → 0 ≤ f a :=
+⟨λ h a, by { rw ←map_zero f, apply h }, λ h a b hl,
+  by { rw [←sub_add_cancel b a, map_add f], exact le_add_of_nonneg_left (h _ $ sub_nonneg.2 hl) }⟩
+
+lemma antitone_iff_map_nonpos : antitone (f : α → β) ↔ ∀ a, 0 ≤ a → f a ≤ 0 :=
+monotone_to_dual_comp_iff.symm.trans $ monotone_iff_map_nonneg _
+lemma monotone_iff_map_nonpos : monotone (f : α → β) ↔ ∀ a ≤ 0, f a ≤ 0 :=
+antitone_comp_of_dual_iff.symm.trans $ antitone_iff_map_nonpos _
+lemma antitone_iff_map_nonneg : antitone (f : α → β) ↔ ∀ a ≤ 0, 0 ≤ f a :=
+monotone_comp_of_dual_iff.symm.trans $ monotone_iff_map_nonneg _
+
+variable [covariant_class β β (+) (<)]
+
+lemma strict_mono_iff_map_pos : strict_mono (f : α → β) ↔ ∀ a, 0 < a → 0 < f a :=
+⟨λ h a, by { rw ←map_zero f, apply h }, λ h a b hl,
+  by { rw [←sub_add_cancel b a, map_add f], exact lt_add_of_pos_left _ (h _ $ sub_pos.2 hl) }⟩
+
+lemma strict_anti_iff_map_neg : strict_anti (f : α → β) ↔ ∀ a, 0 < a → f a < 0 :=
+strict_mono_to_dual_comp_iff.symm.trans $ strict_mono_iff_map_pos _
+lemma strict_mono_iff_map_neg : strict_mono (f : α → β) ↔ ∀ a < 0, f a < 0 :=
+strict_anti_comp_of_dual_iff.symm.trans $ strict_anti_iff_map_neg _
+lemma strict_anti_iff_map_pos : strict_anti (f : α → β) ↔ ∀ a < 0, 0 < f a :=
+strict_mono_comp_of_dual_iff.symm.trans $ strict_mono_iff_map_pos _
+
+end ordered_add_comm_group
 
 namespace order_monoid_hom
 section preorder

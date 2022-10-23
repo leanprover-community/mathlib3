@@ -92,10 +92,10 @@ def range_Icc (f g : Π₀ i, α i) : Π₀ i, finset (α i) :=
 { to_fun := λ i, Icc (f i) (g i),
   support' := f.support'.bind $ λ fs, g.support'.map $ λ gs,
     ⟨fs + gs, λ i, or_iff_not_imp_left.2 $ λ h, begin
-      have hf : f i = 0 :=
-        (fs.prop i).resolve_left (multiset.not_mem_mono (multiset.le_add_right _ _).subset h),
-      have hg : g i = 0 :=
-        (gs.prop i).resolve_left (multiset.not_mem_mono (multiset.le_add_left _ _).subset h),
+      have hf : f i = 0 := (fs.prop i).resolve_left
+        (multiset.not_mem_mono (multiset.le.subset $ multiset.le_add_right _ _) h),
+      have hg : g i = 0 := (gs.prop i).resolve_left
+        (multiset.not_mem_mono (multiset.le.subset $ multiset.le_add_left _ _) h),
       rw [hf, hg],
       exact Icc_self _,
     end⟩ }
@@ -151,6 +151,8 @@ locally_finite_order.of_Icc (Π₀ i, α i)
   end)
 
 variables (f g : Π₀ i, α i)
+
+lemma Icc_eq : Icc f g = (f.support ∪ g.support).dfinsupp (f.range_Icc g) := rfl
 
 lemma card_Icc : (Icc f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card :=
 card_dfinsupp _ _

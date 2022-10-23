@@ -275,6 +275,12 @@ begin
   rw [←inv_of_eq_nonsing_inv, matrix.inv_of_mul_self],
 end
 
+instance [invertible A] : invertible A⁻¹ :=
+by { rw ← inv_of_eq_nonsing_inv, apply_instance }
+
+@[simp] lemma inv_inv_of_invertible [invertible A] : A⁻¹⁻¹ = A :=
+by simp only [← inv_of_eq_nonsing_inv, inv_of_inv_of]
+
 @[simp] lemma mul_nonsing_inv_cancel_right (B : matrix m n α) (h : is_unit A.det) :
   B ⬝ A ⬝ A⁻¹ = B :=
 by simp [matrix.mul_assoc, mul_nonsing_inv A h]
@@ -429,8 +435,10 @@ begin
     simp [hn] },
 end
 
-@[simp] lemma inv_one : (1 : matrix n n α)⁻¹ = 1 :=
-inv_eq_left_inv (by simp)
+noncomputable instance : inv_one_class (matrix n n α) :=
+{ inv_one := inv_eq_left_inv (by simp),
+  ..matrix.has_one,
+  ..matrix.has_inv }
 
 lemma inv_smul (k : α) [invertible k] (h : is_unit A.det) : (k • A)⁻¹ = ⅟k • A⁻¹ :=
 inv_eq_left_inv (by simp [h, smul_smul])

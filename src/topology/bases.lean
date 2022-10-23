@@ -809,6 +809,56 @@ end
 
 end sum
 
+section quotient
+
+variables {X : Type*} [topological_space X] {Y : Type*} [topological_space Y] {π : X → Y}
+omit t
+
+/-- The image of a topological basis under an open quotient map is a topological basis. -/
+lemma is_topological_basis.quotient_map {V : set (set X)} (hV : is_topological_basis V)
+  (h' : quotient_map π) (h : is_open_map π) :
+  is_topological_basis (set.image π '' V) :=
+begin
+  apply is_topological_basis_of_open_of_nhds,
+  { rintros - ⟨U, U_in_V, rfl⟩,
+    apply h U (hV.is_open U_in_V), },
+  { intros y U y_in_U U_open,
+    obtain ⟨x, rfl⟩ := h'.surjective y,
+    let W := π ⁻¹' U,
+    have x_in_W : x ∈ W := y_in_U,
+    have W_open : is_open W := U_open.preimage h'.continuous,
+    obtain ⟨Z, Z_in_V, x_in_Z, Z_in_W⟩ := hV.exists_subset_of_mem_open x_in_W W_open,
+    have πZ_in_U : π '' Z ⊆ U := (set.image_subset _ Z_in_W).trans (image_preimage_subset π U),
+    exact ⟨π '' Z, ⟨Z, Z_in_V, rfl⟩, ⟨x, x_in_Z, rfl⟩, πZ_in_U⟩, },
+end
+
+/-- A second countable space is mapped by an open quotient map to a second countable space. -/
+lemma quotient_map.second_countable_topology [second_countable_topology X] (h' : quotient_map π)
+  (h : is_open_map π) :
+  second_countable_topology Y :=
+{ is_open_generated_countable :=
+  begin
+    obtain ⟨V, V_countable, V_no_empty, V_generates⟩ := exists_countable_basis X,
+    exact ⟨set.image π '' V, V_countable.image (set.image π),
+      (V_generates.quotient_map h' h).eq_generate_from⟩,
+  end }
+
+variables {S : setoid X}
+
+/-- The image of a topological basis "downstairs" in an open quotient is a topological basis. -/
+lemma is_topological_basis.quotient {V : set (set X)}
+  (hV : is_topological_basis V) (h : is_open_map (quotient.mk : X → quotient S)) :
+  is_topological_basis (set.image (quotient.mk : X → quotient S) '' V) :=
+hV.quotient_map quotient_map_quotient_mk h
+
+/-- An open quotient of a second countable space is second countable. -/
+lemma quotient.second_countable_topology [second_countable_topology X]
+  (h : is_open_map (quotient.mk : X → quotient S)) :
+  second_countable_topology (quotient S) :=
+quotient_map_quotient_mk.second_countable_topology h
+
+end quotient
+
 end topological_space
 
 open topological_space

@@ -157,9 +157,9 @@ begin
     { intros n s hn ih, rw [finset.sup_insert, finset.sum_insert hn],
       exact le_trans (μ.sup_le _ _) (add_le_add_left ih _) }},
   refine supr₂_le (λ K hK, _),
-  obtain ⟨t, ht⟩ := K.compact.elim_finite_subcover  _ (λ i, (U i).prop) _, swap,
+  obtain ⟨t, ht⟩ := K.is_compact.elim_finite_subcover  _ (λ i, (U i).prop) _, swap,
   { convert hK, rw [opens.supr_def, subtype.coe_mk] },
-  rcases K.compact.finite_compact_cover t (coe ∘ U) (λ i _, (U _).prop) (by simp only [ht])
+  rcases K.is_compact.finite_compact_cover t (coe ∘ U) (λ i _, (U _).prop) (by simp only [ht])
     with ⟨K', h1K', h2K', h3K'⟩,
   let L : ℕ → compacts G := λ n, ⟨K' n, h1K' n⟩,
   convert le_trans (h3 t L) _,

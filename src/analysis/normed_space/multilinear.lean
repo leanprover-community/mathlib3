@@ -344,17 +344,12 @@ cInf_le bounds_bdd_below
   ⟨add_nonneg (op_norm_nonneg _) (op_norm_nonneg _), λ x, by { rw add_mul,
     exact norm_add_le_of_le (le_op_norm _ _) (le_op_norm _ _) }⟩
 
+lemma op_norm_zero : ∥(0 : continuous_multilinear_map 𝕜 E G)∥ = 0 :=
+(op_norm_nonneg _).antisymm' $ op_norm_le_bound 0 le_rfl $ λ m, by simp
+
 /-- A continuous linear map is zero iff its norm vanishes. -/
 theorem op_norm_zero_iff : ∥f∥ = 0 ↔ f = 0 :=
-begin
-  split,
-  { assume h,
-    ext m,
-    simpa [h] using f.le_op_norm m },
-  { rintro rfl,
-    apply le_antisymm (op_norm_le_bound 0 le_rfl (λm, _)) (op_norm_nonneg _),
-    simp }
-end
+⟨λ h, by { ext m, simpa [h] using f.le_op_norm m }, by { rintro rfl, exact op_norm_zero }⟩
 
 section
 variables {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' G] [smul_comm_class 𝕜 𝕜' G]
@@ -373,7 +368,12 @@ lemma op_norm_neg : ∥-f∥ = ∥f∥ := by { rw norm_def, apply congr_arg, ext
 /-- Continuous multilinear maps themselves form a normed space with respect to
     the operator norm. -/
 instance normed_add_comm_group : normed_add_comm_group (continuous_multilinear_map 𝕜 E G) :=
-normed_add_comm_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
+add_group_norm.to_normed_add_comm_group
+{ to_fun := norm,
+  map_zero' := op_norm_zero,
+  neg' := op_norm_neg,
+  add_le' := op_norm_add_le,
+  eq_zero_of_map_eq_zero' := λ f, f.op_norm_zero_iff.1 }
 
 /-- An alias of `continuous_multilinear_map.normed_add_comm_group` with non-dependent types to help
 typeclass search. -/
@@ -430,10 +430,10 @@ begin
   apply le_antisymm,
   { refine (op_norm_le_bound _ (norm_nonneg f) (λ m, _)),
     dsimp,
-    rw pi_norm_le_iff,
+    rw pi_norm_le_iff_of_nonneg,
     exacts [λ i, (f i).le_of_op_norm_le m (norm_le_pi_norm f i),
       mul_nonneg (norm_nonneg f) (prod_nonneg $ λ _ _, norm_nonneg _)] },
-  { refine (pi_norm_le_iff (norm_nonneg _)).2 (λ i, _),
+  { refine (pi_norm_le_iff_of_nonneg (norm_nonneg _)).2 (λ i, _),
     refine (op_norm_le_bound _ (norm_nonneg _) (λ m, _)),
     refine le_trans _ ((pi f).le_op_norm m),
     convert norm_le_pi_norm (λ j, f j m) i }

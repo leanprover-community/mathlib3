@@ -12,6 +12,7 @@ This file defines instances for ordered group, monoid, and related structures on
 -/
 
 universes u v w
+variables {ι α β : Type*}
 variable {I : Type u}     -- The indexing type
 variable {f : I → Type v} -- The family of types already equipped with instances
 variables (x y : Π i, f i) (i : I)
@@ -73,3 +74,20 @@ instance [Π i, ordered_comm_ring (f i)] : ordered_comm_ring (Π i, f i) :=
 { ..pi.comm_ring, ..pi.ordered_ring }
 
 end pi
+
+namespace function
+variables [nonempty β] {a : α}
+
+@[simp, to_additive] lemma const_eq_one [has_one α] : const β a = 1 ↔ a = 1 :=
+by simp [funext_iff]
+
+@[simp, to_additive] lemma const_ne_one [has_one α] : const β a ≠ 1 ↔ a ≠ 1 := const_eq_one.not
+
+variables [has_zero α] [preorder α]
+
+lemma const_nonneg_of_nonneg (β : Type*) (ha : 0 ≤ a) : 0 ≤ const β a := λ _, ha
+
+@[simp] lemma const_nonneg : 0 ≤ const β a ↔ 0 ≤ a := by simp [pi.le_def]
+@[simp] lemma const_pos : 0 < const β a ↔ 0 < a := by simpa [pi.lt_def] using le_of_lt
+
+end function

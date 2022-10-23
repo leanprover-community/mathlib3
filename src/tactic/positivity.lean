@@ -6,7 +6,7 @@ Authors: Mario Carneiro, Heather Macbeth, Yaël Dillies
 import tactic.norm_num
 
 /-! # `positivity` tactic
-αᵒᵈ βᵒᵈ
+
 The `positivity` tactic in this file solves goals of the form `0 ≤ x`, `0 < x` and `x ≠ 0`.  The
 tactic works recursively according to the syntax of the expression `x`.  For example, a goal of the
 form `0 ≤ 3 * a ^ 2 + b * c` can be solved either
@@ -345,9 +345,37 @@ add_tactic_doc
 
 end interactive
 
-variables {α R : Type*}
+variables {ι α R : Type*}
 
 /-! ### `positivity` extensions for particular arithmetic operations -/
+
+section function
+open function
+variables (ι) [has_zero α] {a : α}
+
+private lemma function_const_nonneg_of_pos [preorder α] (ha : 0 < a) : 0 ≤ const ι a :=
+const_nonneg_of_nonneg _ ha.le
+
+variables [nonempty ι]
+
+private lemma function_const_ne_zero : a ≠ 0 → const ι a ≠ 0 := const_ne_zero.2
+private lemma function_const_pos [preorder α] : 0 < a → 0 < const ι a := const_pos.2
+
+/-- Extension for the `positivity` tactic: `function.const` is positive/nonnegative/nonzero if its
+input is. -/
+@[positivity]
+meta def positivity_const : expr → tactic strictness
+| `(function.const %%ι %%a) := do
+    strict_a ← core a,
+    match strict_a with
+    | positive p := positive <$> to_expr ``(function_const_pos %%ι %%p)
+        <|> nonnegative <$> to_expr ``(function_const_nonneg_of_pos %%ι %%p)
+    | nonnegative p := nonnegative <$> to_expr ``(const_nonneg_of_nonneg %%ι %%p)
+    | nonzero p := nonzero <$> to_expr ``(function_const_ne_zero %%ι %%p)
+    end
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `function.const ι a`"
+
+end function
 
 section linear_order
 variables [linear_order R] {a b c : R}

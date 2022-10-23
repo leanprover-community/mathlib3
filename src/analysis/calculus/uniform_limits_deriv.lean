@@ -101,7 +101,7 @@ variables {ι : Type*} {l : filter ι}
   {E : Type*} [normed_add_comm_group E]
   {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E]
   {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
-  {y : G} {f : ι → E → G} {g : E → G} {f' : ι → (E → (E →L[𝕜] G))} {g' : E → (E →L[𝕜] G)}
+  {f : ι → E → G} {g : E → G} {f' : ι → (E → (E →L[𝕜] G))} {g' : E → (E →L[𝕜] G)}
   {x : E}
 
 /-- If a sequence of functions real or complex functions are eventually differentiable on a
@@ -111,7 +111,7 @@ sequence in a neighborhood of `x`. -/
 lemma uniform_cauchy_seq_on_filter_of_fderiv
   (hf' : uniform_cauchy_seq_on_filter f' l (𝓝 x))
   (hf : ∀ᶠ (n : ι × E) in (l ×ᶠ 𝓝 x), has_fderiv_at (f n.1) (f' n.1 n.2) n.2)
-  (hfg : cauchy (map (λ (n : ι), f n x) l)) :
+  (hfg : cauchy (map (λ n, f n x) l)) :
   uniform_cauchy_seq_on_filter f l (𝓝 x) :=
 begin
   letI : normed_space ℝ E, from normed_space.restrict_scalars ℝ 𝕜 _,
@@ -177,7 +177,7 @@ convergence. See `cauchy_map_of_uniform_cauchy_seq_on_fderiv`.
 lemma uniform_cauchy_seq_on_ball_of_fderiv
   {r : ℝ} (hf' : uniform_cauchy_seq_on f' l (metric.ball x r))
   (hf : ∀ n : ι, ∀ y : E, y ∈ metric.ball x r → has_fderiv_at (f n) (f' n y) y)
-  (hfg : cauchy (map (λ (n : ι), f n x) l)) :
+  (hfg : cauchy (map (λ n, f n x) l)) :
   uniform_cauchy_seq_on f l (metric.ball x r) :=
 begin
   letI : normed_space ℝ E, from normed_space.restrict_scalars ℝ 𝕜 _,
@@ -233,8 +233,8 @@ lemma cauchy_map_of_uniform_cauchy_seq_on_fderiv
   (hf' : uniform_cauchy_seq_on f' l s)
   (hf : ∀ n : ι, ∀ y : E, y ∈ s → has_fderiv_at (f n) (f' n y) y)
   {x₀ x : E} (hx₀ : x₀ ∈ s) (hx : x ∈ s)
-  (hfg : cauchy (map (λ (n : ι), f n x₀) l)) :
-  cauchy (map (λ (n : ι), f n x) l) :=
+  (hfg : cauchy (map (λ n, f n x₀) l)) :
+  cauchy (map (λ n, f n x) l) :=
 begin
   haveI : ne_bot l, from (cauchy_map_iff.1 hfg).1,
   let t := {y | y ∈ s ∧ cauchy (map (λ (n : ι), f n y) l)},

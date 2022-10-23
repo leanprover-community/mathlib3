@@ -20,29 +20,19 @@ function cannot have:
 * `real.smooth_transition` is equal to zero for `x ≤ 0` and is equal to one for `x ≥ 1`; it is given
   by `exp_neg_inv_glue x / (exp_neg_inv_glue x + exp_neg_inv_glue (1 - x))`;
 
-* `f : cont_diff_bump_of_inner c`, where `c` is a point in an inner product space, is
+* `f : cont_diff_bump c`, where `c` is a point in a real vector space, is
   a bundled smooth function such that
 
   - `f` is equal to `1` in `metric.closed_ball c f.r`;
   - `support f = metric.ball c f.R`;
   - `0 ≤ f x ≤ 1` for all `x`.
 
-  The structure `cont_diff_bump_of_inner` contains the data required to construct the
+  The structure `cont_diff_bump` contains the data required to construct the
   function: real numbers `r`, `R`, and proofs of `0 < r < R`. The function itself is available
   through `coe_fn`.
 
-* If `f : cont_diff_bump_of_inner c` and `μ` is a measure on the domain of `f`, then `f.normed μ`
+* If `f : cont_diff_bump c` and `μ` is a measure on the domain of `f`, then `f.normed μ`
   is a smooth bump function with integral `1` w.r.t. `μ`.
-
-* `f : cont_diff_bump c`, where `c` is a point in a finite dimensional real vector space, is a
-  bundled smooth function such that
-
-  - `f` is equal to `1` in `euclidean.closed_ball c f.r`;
-  - `support f = euclidean.ball c f.R`;
-  - `0 ≤ f x ≤ 1` for all `x`.
-
-  The structure `cont_diff_bump` contains the data required to construct the function: real
-  numbers `r`, `R`, and proofs of `0 < r < R`. The function itself is available through `coe_fn`.
 -/
 
 noncomputable theory
@@ -405,48 +395,34 @@ begin
   change (f.r)⁻¹ • (x - c) ∈ support ((some_cont_diff_bump_base E).to_fun (f.R / f.r)),
   rw cont_diff_bump_base.support _ _ f.one_lt_R_div_r,
   simp only [dist_eq_norm, mem_ball] at hx,
-  simp [norm_smul],
+  simpa only [norm_smul, mem_ball_zero_iff, norm_eq_abs, abs_inv, abs_of_nonneg f.r_pos.le,
+    ← div_eq_inv_mul] using (div_lt_div_right f.r_pos).2 hx,
 end
-
-#exit
-
-pos_of_pos $ div_pos (sub_pos.2 hx) (sub_pos.2 f.r_lt_R)
 
 lemma zero_of_le_dist (hx : f.R ≤ dist x c) : f x = 0 :=
 begin
   rw dist_eq_norm at hx,
-  apply cont_diff_bump_base.eq_zero _ _ f.one_lt_R_div_r,
+  suffices H : (f.r)⁻¹ • (x - c) ∉ support ((some_cont_diff_bump_base E).to_fun (f.R / f.r)),
+    by simpa only [mem_support, not_not] using H,
+  rw cont_diff_bump_base.support _ _ f.one_lt_R_div_r,
   simp [norm_smul, norm_eq_abs, abs_inv, abs_of_nonneg f.r_pos.le, ← div_eq_inv_mul],
   exact div_le_div_of_le f.r_pos.le hx,
 end
 
-lemma closed_ball_subset_support : closed_ball c f.r ⊆ support (f : E → ℝ) :=
-λ x hx, by simp [function.support, one_of_mem_closed_ball _ hx]
-
-lemma ball_subset_support : ball c f.r ⊆ support (f : E → ℝ) :=
-ball_subset_closed_ball.trans f.closed_ball_subset_support
-
-lemma support_subset_ball : support (f : E → ℝ) ⊆ ball c f.R :=
+lemma support_eq : support (f : E → ℝ) = metric.ball c f.R :=
 begin
-  assume x hx,
-  simp only [mem_support, ne.def] at hx,
-  contrapose! hx,
-  apply zero_of_le_dist,
-  simpa using hx,
+  ext x,
+  suffices : f x ≠ 0 ↔ dist x c < f.R, by simpa [mem_support],
+  cases lt_or_le (dist x c) f.R with hx hx,
+  { simp only [hx, (f.pos_of_mem_ball hx).ne', ne.def, not_false_iff]},
+  { simp only [hx.not_lt, f.zero_of_le_dist hx, ne.def, eq_self_iff_true, not_true] }
 end
 
-lemma support_subset_closed_ball : support (f : E → ℝ) ⊆ closed_ball c f.R :=
-f.support_subset_ball.trans ball_subset_closed_ball
-
-lemma tsupport_subset_closed_ball : tsupport (f : E → ℝ) ⊆ closed_ball c f.R :=
-begin
-  rw [tsupport, ← closure_ball c f.R_pos.ne'],
-  exact closure_mono (support_subset_ball _),
-end
+lemma tsupport_eq : tsupport f = closed_ball c f.R :=
+by simp_rw [tsupport, f.support_eq, closure_ball _ f.R_pos.ne']
 
 protected lemma has_compact_support [finite_dimensional ℝ E] : has_compact_support f :=
-compact_of_is_closed_subset (is_compact_closed_ball c f.R) (is_closed_tsupport _)
-  f.tsupport_subset_closed_ball
+by simp_rw [has_compact_support, f.tsupport_eq, is_compact_closed_ball]
 
 lemma eventually_eq_one_of_mem_ball (h : x ∈ ball c f.r) :
   f =ᶠ[𝓝 x] 1 :=
@@ -537,8 +513,8 @@ variables [μ .is_open_pos_measure]
 lemma integral_pos : 0 < ∫ x, f x ∂μ :=
 begin
   refine (integral_pos_iff_support_of_nonneg f.nonneg' f.integrable).mpr _,
-  apply lt_of_lt_of_le _ (measure_mono f.ball_subset_support),
-  refine is_open_ball.measure_pos _ (nonempty_ball.mpr f.r_pos)
+  rw [f.support_eq],
+  refine is_open_ball.measure_pos _ (nonempty_ball.mpr f.R_pos)
 end
 
 lemma integral_normed : ∫ x, f.normed μ x ∂μ = 1 :=
@@ -548,20 +524,15 @@ begin
   exact inv_mul_cancel (f.integral_pos.ne')
 end
 
-lemma support_normed_eq : support (f.normed μ) = support f :=
-by simp_rw [cont_diff_bump.normed, support_div, support_const f.integral_pos.ne', inter_univ]
+lemma support_normed_eq : support (f.normed μ) = metric.ball c f.R :=
+by simp_rw [cont_diff_bump.normed, support_div, f.support_eq,
+  support_const f.integral_pos.ne', inter_univ]
 
-lemma support_normed_subset_ball : support (f.normed μ) ⊆ ball c f.R :=
-by { rw support_normed_eq, exact support_subset_ball _ }
-
-lemma tsupport_normed_eq : tsupport (f.normed μ) = tsupport f :=
-by simp_rw [tsupport, support_normed_eq]
+lemma tsupport_normed_eq : tsupport (f.normed μ) = metric.closed_ball c f.R :=
+by simp_rw [tsupport, f.support_normed_eq, closure_ball _ f.R_pos.ne']
 
 lemma has_compact_support_normed : has_compact_support (f.normed μ) :=
-begin
-  simp_rw [has_compact_support, tsupport_normed_eq],
-  exact f.has_compact_support
-end
+by simp_rw [has_compact_support, f.tsupport_normed_eq, is_compact_closed_ball]
 
 lemma tendsto_support_normed_small_sets {ι} {φ : ι → cont_diff_bump c} {l : filter ι}
   (hφ : tendsto (λ i, (φ i).R) l (𝓝 0)) :
@@ -574,7 +545,7 @@ begin
   rcases metric.mem_nhds_iff.mp ht with ⟨ε, hε, ht⟩,
   refine (hφ ε hε).mono (λ i hi, subset_trans _ ht),
   simp_rw [(φ i).support_normed_eq],
-  exact (φ i).support_subset_ball.trans (ball_subset_ball hi.le),
+  exact ball_subset_ball hi.le
 end
 
 variable (μ)
@@ -583,32 +554,3 @@ lemma integral_normed_smul (z : X) [normed_add_comm_group X] [normed_space ℝ X
 by simp_rw [integral_smul_const, f.integral_normed, one_smul]
 
 end cont_diff_bump
-
-/- If `E` is a finite dimensional normed space over `ℝ`, then for any point `x : E` and its
-neighborhood `s` there exists an infinitely smooth function with the following properties:
-
-* `f y = 1` in a neighborhood of `x`;
-* `f y = 0` outside of `s`;
-*  moreover, `tsupport f ⊆ s` and `f` has compact support;
-* `f y ∈ [0, 1]` for all `y`.
-
-This lemma is a simple wrapper around lemmas about bundled smooth bump functions, see
-`cont_diff_bump`. -/
-/-
-lemma exists_cont_diff_bump_function_of_mem_nhds [normed_add_comm_group E] [normed_space ℝ E]
-  [finite_dimensional ℝ E] {x : E} {s : set E} (hs : s ∈ 𝓝 x) :
-  ∃ f : E → ℝ, f =ᶠ[𝓝 x] 1 ∧ (∀ y, f y ∈ Icc (0 : ℝ) 1) ∧ cont_diff ℝ ⊤ f ∧
-    has_compact_support f ∧ tsupport f ⊆ s :=
-begin
-  have R : ℝ := sorry,
-  let f :=
-
-end
-
-#exit
-
-
-let ⟨f, hf⟩ := cont_diff_bump.exists_tsupport_subset hs in
-⟨f, f.eventually_eq_one, λ y, ⟨f.nonneg, f.le_one⟩, f.cont_diff,
-  f.has_compact_support, hf⟩
--/

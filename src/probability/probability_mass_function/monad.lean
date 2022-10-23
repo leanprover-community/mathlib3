@@ -106,7 +106,7 @@ variable (s : set β)
 @[simp] lemma to_outer_measure_bind_apply :
   (p.bind f).to_outer_measure s = ∑' a, p a * (f a).to_outer_measure s :=
 calc (p.bind f).to_outer_measure s
-  = ∑' b, if b ∈ s then ((∑' a, p a * f a b) : ℝ≥0∞) else 0 :
+  = ∑' b, if b ∈ s then ∑' a, p a * f a b else 0 :
     by simp [to_outer_measure_apply, set.indicator_apply]
   ... = ∑' b a, p a * (if b ∈ s then f a b else 0) :
     tsum_congr (λ b, by split_ifs; simp)
@@ -114,7 +114,7 @@ calc (p.bind f).to_outer_measure s
     tsum_comm' ennreal.summable (λ _, ennreal.summable) (λ _, ennreal.summable)
   ... = ∑' a, p a * ∑' b, (if b ∈ s then f a b else 0) :
     tsum_congr (λ a, ennreal.tsum_mul_left)
-  ... = ∑' a, p a * ∑' b, if b ∈ s then (f a b) else (0 : ℝ≥0∞) :
+  ... = ∑' a, p a * ∑' b, if b ∈ s then f a b else 0 :
     tsum_congr (λ a, congr_arg (λ x, (p a) * x) $ tsum_congr (λ b, by split_ifs; refl))
   ... = ∑' a, p a * (f a).to_outer_measure s :
     tsum_congr (λ a, by simp only [to_outer_measure_apply, set.indicator_apply])

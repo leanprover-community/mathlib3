@@ -136,11 +136,11 @@ section measure
 variable (t : set α)
 
 @[simp] lemma to_outer_measure_of_finset_apply :
-  (of_finset f s h h').to_outer_measure t = ↑(∑' x, t.indicator f x) :=
+  (of_finset f s h h').to_outer_measure t = ∑' x, t.indicator f x :=
 to_outer_measure_apply (of_finset f s h h') t
 
 @[simp] lemma to_measure_of_finset_apply [measurable_space α] (ht : measurable_set t) :
-  (of_finset f s h h').to_measure t = ↑(∑' x, t.indicator f x) :=
+  (of_finset f s h h').to_measure t = ∑' x, t.indicator f x :=
 (to_measure_apply_eq_to_outer_measure_apply _ t ht).trans
   (to_outer_measure_of_finset_apply h h' t)
 
@@ -167,11 +167,11 @@ section measure
 variable (s : set α)
 
 @[simp] lemma to_outer_measure_of_fintype_apply :
-  (of_fintype f h).to_outer_measure s = (∑' x, s.indicator f x) :=
+  (of_fintype f h).to_outer_measure s = ∑' x, s.indicator f x :=
 to_outer_measure_apply (of_fintype f h) s
 
 @[simp] lemma to_measure_of_fintype_apply [measurable_space α] (hs : measurable_set s) :
-  (of_fintype f h).to_measure s = ↑(∑' x, s.indicator f x) :=
+  (of_fintype f h).to_measure s = ∑' x, s.indicator f x :=
 (to_measure_apply_eq_to_outer_measure_apply _ s hs).trans
   (to_outer_measure_of_fintype_apply h s)
 

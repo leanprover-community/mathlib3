@@ -64,9 +64,9 @@ variable (t : set α)
 @[simp] lemma to_outer_measure_uniform_of_finset_apply :
   (uniform_of_finset s hs).to_outer_measure t = (s.filter (∈ t)).card / s.card :=
 calc (uniform_of_finset s hs).to_outer_measure t
-  = ↑(∑' x, if x ∈ t then (uniform_of_finset s hs x) else 0) :
+  = ∑' x, if x ∈ t then (uniform_of_finset s hs x) else 0 :
     to_outer_measure_apply (uniform_of_finset s hs) t
-  ... = ↑(∑' x, if x ∈ s ∧ x ∈ t then (s.card : ℝ≥0∞)⁻¹ else 0) :
+  ... = ∑' x, if x ∈ s ∧ x ∈ t then (s.card : ℝ≥0∞)⁻¹ else 0 :
     (tsum_congr (λ x, by simp only [uniform_of_finset_apply,
       and_comm (x ∈ s), ite_and, ennreal.coe_nat]))
   ... = (∑ x in (s.filter (∈ t)), if x ∈ s ∧ x ∈ t then (s.card : ℝ≥0∞)⁻¹ else 0) :

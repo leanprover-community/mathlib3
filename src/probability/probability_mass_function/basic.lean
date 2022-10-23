@@ -130,7 +130,8 @@ begin
   { refine by_contra (λ hs, ne_of_lt _ (h.trans p.tsum_coe.symm)),
     have hs' : s.indicator p a = 0 := set.indicator_apply_eq_zero.2 (λ hs', false.elim $ hs hs'),
     have hsa : s.indicator p a < p a := hs'.symm ▸ (p.apply_pos_iff a).2 hap,
-    exact ennreal.tsum_lt_tsum p.tsum_coe_ne_top (λ x, set.indicator_apply_le $ λ _, le_rfl) hsa },
+    exact ennreal.tsum_lt_tsum (p.tsum_coe_indicator_ne_top s)
+      (λ x, set.indicator_apply_le $ λ _, le_rfl) hsa },
   { suffices : ∀ x ∉ s, p x = 0,
     from trans (tsum_congr $ λ a, (set.indicator_apply s p a).trans
       (ite_eq_left_iff.2 $ symm ∘ (this a))) p.tsum_coe,
@@ -153,13 +154,11 @@ le_antisymm (p.to_outer_measure_mono (h.symm ▸ (set.inter_subset_left t p.supp
   (p.to_outer_measure_mono (h ▸ (set.inter_subset_left s p.support)))
 
 @[simp]
-lemma to_outer_measure_apply_fintype [fintype α] :
-  p.to_outer_measure s = ↑(∑ x, (s.indicator p x)) :=
+lemma to_outer_measure_apply_fintype [fintype α] : p.to_outer_measure s = ∑ x, (s.indicator p x) :=
 (p.to_outer_measure_apply s).trans (tsum_eq_sum (λ x h, absurd (finset.mem_univ x) h))
 
 @[simp]
-lemma to_outer_measure_caratheodory (p : pmf α) :
-  (to_outer_measure p).caratheodory = ⊤ :=
+lemma to_outer_measure_caratheodory (p : pmf α) : (to_outer_measure p).caratheodory = ⊤ :=
 begin
   refine (eq_top_iff.2 $ le_trans (le_Inf $ λ x hx, _) (le_sum_caratheodory _)),
   obtain ⟨y, hy⟩ := hx,
@@ -190,7 +189,7 @@ to_measure_apply p.to_outer_measure _ hs
 lemma to_measure_apply (hs : measurable_set s) : p.to_measure s = ∑' x, s.indicator (coe ∘ p) x :=
 (p.to_measure_apply_eq_to_outer_measure_apply s hs).trans (p.to_outer_measure_apply s)
 
-lemma to_measure_apply' (hs : measurable_set s) : p.to_measure s = ↑(∑' x, s.indicator p x) :=
+lemma to_measure_apply' (hs : measurable_set s) : p.to_measure s = ∑' x, s.indicator p x :=
 (p.to_measure_apply_eq_to_outer_measure_apply s hs).trans (p.to_outer_measure_apply s)
 
 lemma to_measure_apply_singleton (a : α) (h : measurable_set ({a} : set α)) :
@@ -228,18 +227,16 @@ section measurable_singleton_class
 variables [measurable_singleton_class α]
 
 @[simp]
-lemma to_measure_apply_finset (s : finset α) : p.to_measure s = ∑ x in s, (p x : ℝ≥0∞) :=
+lemma to_measure_apply_finset (s : finset α) : p.to_measure s = ∑ x in s, p x :=
 (p.to_measure_apply_eq_to_outer_measure_apply s s.measurable_set).trans
   (p.to_outer_measure_apply_finset s)
 
-lemma to_measure_apply_of_finite (hs : s.finite) :
-  p.to_measure s = ↑(∑' x, s.indicator p x) :=
+lemma to_measure_apply_of_finite (hs : s.finite) : p.to_measure s = ∑' x, s.indicator p x :=
 (p.to_measure_apply_eq_to_outer_measure_apply s hs.measurable_set).trans
   (p.to_outer_measure_apply s)
 
 @[simp]
-lemma to_measure_apply_fintype [fintype α] :
-  p.to_measure s = ↑(∑ x, s.indicator p x) :=
+lemma to_measure_apply_fintype [fintype α] : p.to_measure s = ∑ x, s.indicator p x :=
 (p.to_measure_apply_eq_to_outer_measure_apply s s.to_finite.measurable_set).trans
   (p.to_outer_measure_apply_fintype s)
 

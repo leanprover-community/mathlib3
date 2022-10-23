@@ -676,11 +676,14 @@ lemma forall_mem_nonempty_iff_ne_bot {f : filter α} :
   (∀ (s : set α), s ∈ f → s.nonempty) ↔ ne_bot f :=
 ⟨λ h, ⟨λ hf, empty_not_nonempty (h ∅ $ hf.symm ▸ mem_bot)⟩, @nonempty_of_mem _ _⟩
 
+instance [nonempty α] : nontrivial (filter α) :=
+⟨⟨⊤, ⊥, ne_bot.ne $ forall_mem_nonempty_iff_ne_bot.1 $ λ s hs,
+  by rwa [mem_top.1 hs, ← nonempty_iff_univ_nonempty]⟩⟩
+
 lemma nontrivial_iff_nonempty : nontrivial (filter α) ↔ nonempty α :=
-⟨λ ⟨⟨f, g, hfg⟩⟩, by_contra $
-  λ h, hfg $ by haveI : is_empty α := not_nonempty_iff.1 h; exact subsingleton.elim _ _,
-  λ ⟨x⟩, ⟨⟨⊤, ⊥, ne_bot.ne $ forall_mem_nonempty_iff_ne_bot.1 $ λ s hs,
-    by rwa [mem_top.1 hs, ← nonempty_iff_univ_nonempty]⟩⟩⟩
+⟨λ h, by_contra $ λ h',
+  by { haveI := not_nonempty_iff.1 h', exact not_subsingleton (filter α) infer_instance },
+  @filter.nontrivial α⟩
 
 lemma eq_Inf_of_mem_iff_exists_mem {S : set (filter α)} {l : filter α}
   (h : ∀ {s}, s ∈ l ↔ ∃ f ∈ S, s ∈ f) : l = Inf S :=
@@ -823,14 +826,21 @@ end⟩
 See also `infi_ne_bot_of_directed'` for a version assuming `nonempty ι` instead of `nonempty α`. -/
 lemma infi_ne_bot_of_directed {f : ι → filter α}
   [hn : nonempty α] (hd : directed (≥) f) (hb : ∀ i, ne_bot (f i)) : ne_bot (infi f) :=
-if hι : nonempty ι then @infi_ne_bot_of_directed' _ _ _ hι hd hb else
-⟨λ h : infi f = ⊥,
-  have univ ⊆ (∅ : set α),
-  begin
-    rw [←principal_mono, principal_univ, principal_empty, ←h],
-    exact (le_infi $ λ i, false.elim $ hι ⟨i⟩)
-  end,
-  let ⟨x⟩ := hn in this (mem_univ x)⟩
+begin
+  casesI is_empty_or_nonempty ι,
+  { constructor, simp [infi_of_empty f, top_ne_bot] },
+  { exact infi_ne_bot_of_directed' hd hb }
+end
+
+lemma Inf_ne_bot_of_directed' {s : set (filter α)} (hne : s.nonempty) (hd : directed_on (≥) s)
+  (hbot : ⊥ ∉ s) : ne_bot (Inf s) :=
+(Inf_eq_infi' s).symm ▸ @infi_ne_bot_of_directed' _ _ _
+  hne.to_subtype hd.directed_coe (λ ⟨f, hf⟩, ⟨ne_of_mem_of_not_mem hf hbot⟩)
+
+lemma Inf_ne_bot_of_directed [nonempty α] {s : set (filter α)} (hd : directed_on (≥) s)
+  (hbot : ⊥ ∉ s) : ne_bot (Inf s) :=
+(Inf_eq_infi' s).symm ▸ infi_ne_bot_of_directed hd.directed_coe
+  (λ ⟨f, hf⟩, ⟨ne_of_mem_of_not_mem hf hbot⟩)
 
 lemma infi_ne_bot_iff_of_directed' {f : ι → filter α} [nonempty ι] (hd : directed (≥) f) :
   ne_bot (infi f) ↔ ∀ i, ne_bot (f i) :=

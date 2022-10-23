@@ -179,6 +179,7 @@ let ⟨r, h⟩ := f.bounded in
 
 instance : has_add (cau_seq β abv) := ⟨λ f g, ⟨f + g, f.2.add g.2⟩⟩
 
+@[simp, norm_cast] lemma coe_add (f g : cau_seq β abv) : (⇑(f + g) : ℕ → β) = f + g := rfl
 @[simp, norm_cast] theorem add_apply (f g : cau_seq β abv) (i : ℕ) : (f + g) i = f i + g i := rfl
 
 variable (abv)
@@ -489,6 +490,7 @@ let ⟨K, K0, HK⟩ := abv_pos_of_not_lim_zero hf,
 the inverses of the values of `f`. -/
 def inv (f : cau_seq β abv) (hf : ¬ lim_zero f) : cau_seq β abv := ⟨_, inv_aux hf⟩
 
+@[simp, norm_cast] lemma coe_inv {f : cau_seq β abv} (hf) : (inv f hf : ℕ → β) = f⁻¹ := rfl
 @[simp, norm_cast] theorem inv_apply {f : cau_seq β abv} (hf i) : inv f hf i = (f i)⁻¹ := rfl
 
 theorem inv_mul_cancel {f : cau_seq β abv} (hf) : inv f hf * f ≈ 1 :=

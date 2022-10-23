@@ -406,7 +406,8 @@ noncomputable def map_aut:
 { to_fun := map_equiv,
   map_mul' := begin
   intros φ ψ,
-  exact map_comp (φ : R →+* R) (ψ : R →+* R),
+  ext,
+  simp only [map_equiv_apply, ← map_comp (φ : R →+* R) (ψ : R →+* R), ring_hom.id_apply, map_mul'],
   end,
   map_one' := begin
   ext,

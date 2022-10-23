@@ -735,14 +735,5 @@ end
 
 end comm_group
 
-
-@[priority 100, to_additive]
-instance is_inv_invariant_haar_measure
-  {G : Type*} [comm_group G] [topological_space G] [topological_group G] [t2_space G]
-  [measurable_space G] [borel_space G] [locally_compact_space G] [second_countable_topology G]
-  (μ : measure G) [is_haar_measure μ] :
-  is_inv_invariant μ :=
-⟨map_haar_inv μ⟩
-
 end measure
 end measure_theory

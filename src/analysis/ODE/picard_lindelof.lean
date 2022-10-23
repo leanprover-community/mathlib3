@@ -428,6 +428,28 @@ theorem ODE_solution_exists.at_ball_of_cont_diff_on_nhds
 let ⟨ε, hε, hpl⟩ := time_indep_cont_diff_on_nhds_is_picard_lindelof v x₀ s hs hv t₀ in
    ⟨ε, hε, ODE_solution_exists.at_ball (λ t, v) t₀ ε hε x₀ hpl⟩
 
+theorem ODE_solution_exists.at_ball_of_cont_diff_on_nhds_mem_set
+  [proper_space E] (v : E → E) (x₀ : E) (s : set E) (hs : s ∈ nhds x₀)
+  (hv : cont_diff_on ℝ 1 v s) (t₀ : ℝ) :
+  ∃ (ε : ℝ) (hε : 0 < ε) (f : ℝ → E), f t₀ = x₀ ∧
+    ∀ t ∈ metric.ball t₀ ε, f t ∈ s ∧ has_deriv_at f (v (f t)) t :=
+begin
+  obtain ⟨ε, hε, f, hf1, hf2⟩ := ODE_solution_exists.at_ball_of_cont_diff_on_nhds v x₀ s hs hv t₀,
+  have h : (f ⁻¹' s) ∈ nhds t₀,
+  { apply continuous_at.preimage_mem_nhds (hf2 t₀ (metric.mem_ball_self hε)).continuous_at,
+    rw hf1,
+    exact hs },
+  rw metric.mem_nhds_iff at h,
+  obtain ⟨r, hr1, hr2⟩ := h,
+  refine ⟨min r ε, lt_min hr1 hε, f, hf1, _⟩,
+  intros t ht,
+  refine ⟨_, hf2 t (set.mem_of_mem_of_subset ht (metric.ball_subset_ball (min_le_right _ _)))⟩,
+  rw ←set.mem_preimage,
+  apply set.mem_of_mem_of_subset _ hr2,
+  apply set.mem_of_mem_of_subset ht,
+  exact (metric.ball_subset_ball (min_le_left _ _))
+end
+
 /-- A time-independent, continuously differentiable ODE admits a solution in some open interval. -/
 theorem ODE_solution_exists.at_ball_of_cont_diff
   [proper_space E] (v : E → E) (hv : cont_diff ℝ 1 v) (t₀ : ℝ) (x₀ : E) :

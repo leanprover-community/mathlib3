@@ -153,7 +153,8 @@ end
 
 lemma yoneda_operation_add_app_eq {Y : Cᵒᵖ} (x₁ x₂ : (yoneda.obj M.obj).obj Y)
   [has_binary_product M.obj M.obj] :
-  (yoneda_operation_add M).app Y ⟨x₁, x₂⟩ = prod.lift x₁ x₂ ≫ add M := sorry
+  (yoneda_operation_add M).app Y ⟨x₁, x₂⟩ = prod.lift x₁ x₂ ≫ add M :=
+internal_operation₂_gen.app_eq_comp_yoneda_equiv (yoneda_operation_add M) _ _
 
 lemma iso_inv_app_add {Y : Cᵒᵖ} (x₁ x₂ : M.presheaf.obj Y) :
   M.iso.inv.app Y (x₁ + x₂) =
@@ -236,12 +237,27 @@ end yoneda_bilinear
 
 variable (M)
 
+@[simps]
 def apply_functor (F : C ⥤ D) [has_terminal C] [has_terminal D]
   [has_binary_product M.obj M.obj] [has_binary_product (F.obj M.obj) (F.obj M.obj)]
   [has_binary_product (F.obj M.obj) (prod (F.obj M.obj) (F.obj M.obj))]
   [preserves_limit (functor.empty.{0} C) F] [preserves_limit (pair M.obj M.obj) F] :
   internal Ab D :=
 mk' (F.obj M.obj) ((zero M).map F) ((neg M).map F) ((add M).map F) sorry sorry sorry sorry
+
+variables {M₁ M₂}
+
+def apply_functor_map (F : C ⥤ D) [has_terminal C] [has_terminal D]
+  [has_binary_product M₁.obj M₁.obj] [has_binary_product (F.obj M₁.obj) (F.obj M₁.obj)]
+  [has_binary_product (F.obj M₁.obj) (prod (F.obj M₁.obj) (F.obj M₁.obj))]
+  [preserves_limit (functor.empty.{0} C) F] [preserves_limit (pair M₁.obj M₁.obj) F]
+  [has_binary_product M₂.obj M₂.obj] [has_binary_product (F.obj M₂.obj) (F.obj M₂.obj)]
+  [has_binary_product (F.obj M₂.obj) (prod (F.obj M₂.obj) (F.obj M₂.obj))]
+  [preserves_limit (pair M₂.obj M₂.obj) F] (f : M₁ ⟶ M₂) :
+  apply_functor M₁ F ⟶ apply_functor M₂ F :=
+{ app := λ Y, add_monoid_hom.mk' (((internal_operation₁_gen.yoneda_equiv _ _)
+      (internal_operation₁_gen.map ((internal.obj_functor Ab C).map f) F)).app Y) sorry,
+  naturality' := sorry, }
 
 end Ab
 
@@ -259,9 +275,10 @@ variables {C D : Type*} [category C] [category D] (F : C ⥤ D)
   [preserves_limit (empty.{0} C) F]
 
 include F
+
 def map_internal_Ab : internal Ab C ⥤ internal Ab D :=
 { obj := λ M, internal.Ab.apply_functor M F,
-  map := sorry,
+  map := λ M₁ M₂ f, internal.Ab.apply_functor_map F f,
   map_id' := sorry,
   map_comp' := sorry, }
 

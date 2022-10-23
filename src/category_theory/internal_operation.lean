@@ -123,6 +123,16 @@ yoneda_equiv.symm.trans (internal_yoneda_operation₂_gen.equiv X Y Z).symm
 
 variables {X Y Z}
 
+lemma internal_operation₂_gen.app_eq_comp_yoneda_equiv [has_binary_product X Y]
+  (oper : internal_yoneda_operation₂_gen X Y Z) {T : C} (x : T ⟶ X) (y : T ⟶ Y) :
+  oper.app (op T) ⟨x, y⟩ =
+    prod.lift x y ≫ (internal_operation₂_gen.yoneda_equiv X Y Z).symm oper :=
+begin
+  convert congr_fun (oper.naturality (prod.lift x y).op)
+    ⟨limits.prod.fst, limits.prod.snd⟩,
+  tidy,
+end
+
 def internal_operation₂_gen.map [has_binary_product X Y]
   (oper : internal_operation₂_gen X Y Z) (F : C ⥤ D)
   [has_binary_product (F.obj X) (F.obj Y)]

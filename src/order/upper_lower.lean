@@ -37,38 +37,14 @@ makes them order-isomorphic to lower sets and antichains, and matches the conven
 Lattice structure on antichains. Order equivalence between upper/lower sets and antichains.
 -/
 
-namespace set
-variables {ι : Sort*} {κ : ι → Sort*} {α β : Type*} {f : α → β}
-
-open function
-
-@[simp] lemma Inter_of_empty [is_empty ι] (s : ι → set α) : (⋂ i, s i) = univ :=
-by simp only [Inter_eq_univ, is_empty.forall_iff]
-
-@[simp] lemma Union_of_empty [is_empty ι] (s : ι → set α) : (⋃ i, s i) = ∅ :=
-by simp only [Union_eq_empty, is_empty.forall_iff]
-
-lemma image_Inter (hf : bijective f) (s : ι → set α) : f '' (⋂ i, s i) = ⋂ i, f '' s i :=
-begin
-  casesI is_empty_or_nonempty ι,
-  { simp_rw [Inter_of_empty, image_univ_of_surjective hf.surjective] },
-  { exact (hf.injective.inj_on _).image_Inter_eq }
-end
-
-lemma image_Inter₂ (hf : bijective f) (s : Π i, κ i → set α) :
-  f '' (⋂ i j, s i j) = ⋂ i j, f '' s i j :=
-by simp_rw image_Inter hf
-
-end set
-
 open order_dual set
 
-variables {α β : Type*} {ι : Sort*} {κ : ι → Sort*}
+variables {α β γ : Type*} {ι : Sort*} {κ : ι → Sort*}
 
 /-! ### Unbundled upper/lower sets -/
 
 section has_le
-variables [has_le α] [has_le β] {s t : set α}
+variables [has_le α] [has_le β] [has_le β] {s t : set α}
 
 /-- An upper set in an order `α` is a set such that any element greater than one of its members is
 also a member. Also called up-set, upward-closed set. -/
@@ -160,7 +136,7 @@ alias is_upper_set_preimage_to_dual_iff ↔ _ is_lower_set.to_dual
 end has_le
 
 section preorder
-variables [preorder α] [preorder β] {s : set α} (a : α)
+variables [preorder α] [preorder β] [preorder β] {s : set α} (a : α)
 
 lemma is_upper_set_Ici : is_upper_set (Ici a) := λ _ _, ge_trans
 lemma is_lower_set_Iic : is_lower_set (Iic a) := λ _ _, le_trans
@@ -523,7 +499,7 @@ end has_le
 /-! #### Map -/
 
 section
-variables [preorder α] [preorder β]
+variables [preorder α] [preorder β] [preorder γ]
 
 namespace upper_set
 variables {f : α ≃o β} {s t : upper_set α} {a : α} {b : β}
@@ -538,8 +514,14 @@ def map (f : α ≃o β) : upper_set α ≃o upper_set β :=
 
 @[simp] lemma symm_map (f : α ≃o β) : (map f).symm = map f.symm :=
 fun_like.ext _ _ $ λ s, ext $ set.preimage_equiv_eq_image_symm _ _
+
 @[simp] lemma mem_map : b ∈ map f s ↔ f.symm b ∈ s :=
 by { rw [←f.symm_symm, ←symm_map, f.symm_symm], refl }
+
+@[simp] lemma map_refl : map (order_iso.refl α) = order_iso.refl _ := by { ext, simp }
+
+@[simp] lemma map_map (g : β ≃o γ) (f : α ≃o β) : map g (map f s) = map (f.trans g) s :=
+by { ext, simp }
 
 variables (f s t)
 
@@ -580,6 +562,11 @@ fun_like.ext _ _ $ λ s, set_like.coe_injective $ set.preimage_equiv_eq_image_sy
 
 @[simp] lemma mem_map {f : α ≃o β} {b : β} : b ∈ map f s ↔ f.symm b ∈ s :=
 by { rw [←f.symm_symm, ←symm_map, f.symm_symm], refl }
+
+@[simp] lemma map_refl : map (order_iso.refl α) = order_iso.refl _ := by { ext, simp }
+
+@[simp] lemma map_map (g : β ≃o γ) (f : α ≃o β) : map g (map f s) = map (f.trans g) s :=
+by { ext, simp }
 
 variables (f s t)
 
@@ -893,3 +880,64 @@ begin
 end
 
 end closure
+
+/-! ### Product -/
+
+section preorder
+variables [preorder α] [preorder β] {s : set α} {t : set β} {x : α × β}
+
+lemma is_upper_set.prod (hs : is_upper_set s) (ht : is_upper_set t) : is_upper_set (s ×ˢ t) :=
+λ a b h ha, ⟨hs h.1 ha.1, ht h.2 ha.2⟩
+
+lemma is_lower_set.prod (hs : is_lower_set s) (ht : is_lower_set t) : is_lower_set (s ×ˢ t) :=
+λ a b h ha, ⟨hs h.1 ha.1, ht h.2 ha.2⟩
+
+namespace upper_set
+
+/-- The product of two upper sets as an upper set. -/
+def prod (s : upper_set α) (t : upper_set β) : upper_set (α × β) := ⟨s ×ˢ t, s.2.prod t.2⟩
+
+@[simp] lemma coe_prod (s : upper_set α) (t : upper_set β) : (s.prod t : set (α × β)) = s ×ˢ t :=
+rfl
+
+@[simp] lemma mem_prod {s : upper_set α} {t : upper_set β} : x ∈ s.prod t ↔ x.1 ∈ s ∧ x.2 ∈ t :=
+iff.rfl
+
+lemma Ici_prod (x : α × β) : Ici x = (Ici x.1).prod (Ici x.2) := rfl
+@[simp] lemma Ici_prod_Ici (a : α) (b : β) : (Ici a).prod (Ici b) = Ici (a, b) := rfl
+
+@[simp] lemma bot_prod_bot : (⊥ : upper_set α).prod (⊥ : upper_set β) = ⊥ := ext univ_prod_univ
+@[simp] lemma prod_top (s : upper_set α) : s.prod (⊤ : upper_set β) = ⊤ := ext prod_empty
+@[simp] lemma top_prod (t : upper_set β) : (⊤ : upper_set α).prod t = ⊤ := ext empty_prod
+
+end upper_set
+
+namespace lower_set
+
+/-- The product of two lower sets as a lower set. -/
+def prod (s : lower_set α) (t : lower_set β) : lower_set (α × β) := ⟨s ×ˢ t, s.2.prod t.2⟩
+
+@[simp] lemma coe_prod (s : lower_set α) (t : lower_set β) : (s.prod t : set (α × β)) = s ×ˢ t :=
+rfl
+
+@[simp] lemma mem_prod {s : lower_set α} {t : lower_set β} : x ∈ s.prod t ↔ x.1 ∈ s ∧ x.2 ∈ t :=
+iff.rfl
+
+lemma Iic_prod (x : α × β) : Iic x = (Iic x.1).prod (Iic x.2) := rfl
+@[simp] lemma Ici_prod_Ici (a : α) (b : β) : (Iic a).prod (Iic b) = Iic (a, b) := rfl
+
+@[simp] lemma prod_bot (s : lower_set α) : s.prod (⊥ : lower_set β) = ⊥ := ext prod_empty
+@[simp] lemma bot_prod (t : lower_set β) : (⊥ : lower_set α).prod t = ⊥ := ext empty_prod
+@[simp] lemma top_prod_top : (⊤ : lower_set α).prod (⊤ : lower_set β) = ⊤ := ext univ_prod_univ
+
+end lower_set
+
+@[simp] lemma upper_closure_prod (s : set α) (t : set β) :
+  upper_closure (s ×ˢ t) = (upper_closure s).prod (upper_closure t) :=
+by { ext, simp [prod.le_def, and_and_and_comm _ (_ ∈ t)] }
+
+@[simp] lemma lower_closure_prod (s : set α) (t : set β) :
+  lower_closure (s ×ˢ t) = (lower_closure s).prod (lower_closure t) :=
+by { ext, simp [prod.le_def, and_and_and_comm _ (_ ∈ t)] }
+
+end preorder

@@ -413,6 +413,35 @@ begin
   exact pi_ne_zero
 end
 
+@[simp] lemma to_real_pi_div_two : ((π / 2 : ℝ) : angle).to_real = π / 2 :=
+begin
+  rw [to_real_coe_eq_self_iff],
+  exact ⟨(left.neg_neg_iff.2 real.pi_pos).trans (div_pos real.pi_pos two_pos),
+         div_le_self real.pi_pos.le one_le_two⟩
+end
+
+@[simp] lemma to_real_neg_pi_div_two : ((-π / 2 : ℝ) : angle).to_real = -π / 2 :=
+begin
+  rw [to_real_coe_eq_self_iff],
+  refine ⟨_,
+          (div_nonpos_of_nonpos_of_nonneg (left.neg_neg_iff.2 real.pi_pos).le two_pos.le).trans
+             real.pi_pos.le⟩,
+  rw neg_div,
+  exact neg_lt_neg_iff.2 (div_lt_self real.pi_pos one_lt_two)
+end
+
+lemma pi_div_two_ne_zero : ((π / 2 : ℝ) : angle) ≠ 0 :=
+begin
+  rw [←to_real_injective.ne_iff, to_real_pi_div_two, to_real_zero],
+  exact div_ne_zero real.pi_ne_zero two_ne_zero
+end
+
+lemma neg_pi_div_two_ne_zero : ((-π / 2 : ℝ) : angle) ≠ 0 :=
+begin
+  rw [←to_real_injective.ne_iff, to_real_neg_pi_div_two, to_real_zero],
+  exact div_ne_zero (neg_ne_zero.2 real.pi_ne_zero) two_ne_zero
+end
+
 lemma abs_to_real_coe_eq_self_iff {θ : ℝ} : |(θ : angle).to_real| = θ ↔ 0 ≤ θ ∧ θ ≤ π :=
 ⟨λ h, h ▸ ⟨abs_nonneg _, abs_to_real_le_pi _⟩, λ h,
  (to_real_coe_eq_self_iff.2 ⟨(left.neg_neg_iff.2 real.pi_pos).trans_le h.1, h.2⟩).symm ▸
@@ -434,10 +463,9 @@ begin
   { rw [←coe_to_real θ, neg_div],
     rcases eq_or_eq_neg_of_abs_eq h with ha | ha; simp [ha] },
   { rcases h with rfl | rfl,
-    { rw abs_to_real_coe_eq_self_iff,
-      exact ⟨div_nonneg real.pi_pos.le two_pos.le, div_le_self real.pi_pos.le one_le_two⟩ },
-    { rw [neg_div, coe_neg, abs_to_real_neg_coe_eq_self_iff],
-      exact ⟨div_nonneg real.pi_pos.le two_pos.le, div_le_self real.pi_pos.le one_le_two⟩ } }
+    { rw [to_real_pi_div_two, abs_of_nonneg (div_nonneg real.pi_pos.le two_pos.le)] },
+    { rw [to_real_neg_pi_div_two, neg_div, abs_neg,
+          abs_of_nonneg (div_nonneg real.pi_pos.le two_pos.le)] } }
 end
 
 @[simp] lemma sin_to_real (θ : angle) : real.sin θ.to_real = sin θ :=

@@ -87,9 +87,21 @@ lemma measure_preserving_mul_left (μ : measure G) [is_mul_left_invariant μ] (g
 ⟨measurable_const_mul g, map_mul_left_eq_self μ g⟩
 
 @[to_additive]
+lemma measure_preserving.mul_left (μ : measure G) [is_mul_left_invariant μ] (g : G)
+  {X : Type*} [measurable_space X] {μ' : measure X} {f : X → G} (hf : measure_preserving f μ' μ) :
+  measure_preserving (λ x, g * f x) μ' μ :=
+(measure_preserving_mul_left μ g).comp hf
+
+@[to_additive]
 lemma measure_preserving_mul_right (μ : measure G) [is_mul_right_invariant μ] (g : G) :
   measure_preserving (* g) μ μ :=
 ⟨measurable_mul_const g, map_mul_right_eq_self μ g⟩
+
+@[to_additive]
+lemma measure_preserving.mul_right (μ : measure G) [is_mul_right_invariant μ] (g : G)
+  {X : Type*} [measurable_space X] {μ' : measure X} {f : X → G} (hf : measure_preserving f μ' μ) :
+  measure_preserving (λ x, f x * g) μ' μ :=
+(measure_preserving_mul_right μ g).comp hf
 
 /-- An alternative way to prove that `μ` is left invariant under multiplication. -/
 @[to_additive /-" An alternative way to prove that `μ` is left invariant under addition. "-/]

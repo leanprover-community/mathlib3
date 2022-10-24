@@ -546,7 +546,8 @@ lemma ext {f g : A ≃⋆ₐ[R] B} (h : ∀ a, f a = g a) : f = g := fun_like.ex
 lemma ext_iff {f g : A ≃⋆ₐ[R] B} : f = g ↔ ∀ a, f a = g a  := fun_like.ext_iff
 
 /-- Star algebra equivalences are reflexive. -/
-@[refl] def refl : A ≃⋆ₐ[R] A := { map_smul' := λ r a, rfl, map_star' := λ a, rfl, ..ring_equiv.refl A }
+@[refl] def refl : A ≃⋆ₐ[R] A :=
+{ map_smul' := λ r a, rfl, map_star' := λ a, rfl, ..ring_equiv.refl A }
 
 instance : inhabited (A ≃⋆ₐ[R] A) := ⟨refl⟩
 

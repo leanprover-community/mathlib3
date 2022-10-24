@@ -276,12 +276,6 @@ end
 
 end ring_topological_star_subalg
 
-instance to_semiring {R A} [comm_semiring R] [star_ring R] [semiring A] [star_ring A]
-  [algebra R A] [star_module R A] (S : star_subalgebra R A) :
-  semiring S := S.to_subalgebra.to_semiring
-instance to_comm_semiring {R A} [comm_semiring R] [star_ring R] [comm_semiring A] [star_ring A]
-  [algebra R A] [star_module R A] (S : star_subalgebra R A) :
-  comm_semiring S := S.to_subalgebra.to_comm_semiring
 instance to_ring {R A} [comm_ring R] [star_ring R] [ring A] [star_ring A]
   [algebra R A] [star_module R A] (S : star_subalgebra R A) :
   ring S := S.to_subalgebra.to_ring
@@ -297,21 +291,17 @@ instance to_normed_ring {R A} [comm_ring R] [star_ring R] [normed_ring A]
   normed_ring S := normed_ring.induced S A S.subtype subtype.coe_injective
 instance to_semi_normed_comm_ring {R A} [comm_ring R] [star_ring R] [semi_normed_comm_ring A]
   [star_ring A] [algebra R A] [star_module R A] (S : star_subalgebra R A) :
-  semi_normed_comm_ring S := { mul_comm := mul_comm, .. (infer_instance : semi_normed_ring S) }
+  semi_normed_comm_ring S := { mul_comm := mul_comm, .. star_subalgebra.to_semi_normed_ring S }
 instance to_normed_comm_ring {R A} [comm_ring R] [star_ring R] [normed_comm_ring A]
   [star_ring A] [algebra R A] [star_module R A] (S : star_subalgebra R A) :
-  normed_comm_ring S := { mul_comm := mul_comm, .. (infer_instance : normed_ring S) }
+  normed_comm_ring S := { mul_comm := mul_comm, .. star_subalgebra.to_normed_ring S }
 
 -- this we can make into a `cstar_ring.induced` result
 instance to_cstar_ring {R A} [comm_ring R] [star_ring R] [normed_ring A]
   [star_ring A] [cstar_ring A] [algebra R A] [star_module R A] (S : star_subalgebra R A) :
   cstar_ring S :=
-{ norm_star_mul_self :=
-  begin
-    intros x,
-    unfold norm,
-    rw [map_mul, map_star, cstar_ring.norm_star_mul_self],
-  end }
+{ norm_star_mul_self := λ x,
+    by { unfold norm, rw [map_mul, map_star, cstar_ring.norm_star_mul_self] } }
 
 instance to_normed_algebra {𝕜 A} [normed_field 𝕜] [star_ring 𝕜] [semi_normed_ring A]
   [star_ring A] [normed_algebra 𝕜 A] [star_module 𝕜 A] (S : star_subalgebra 𝕜 A) :

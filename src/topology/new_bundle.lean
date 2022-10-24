@@ -451,49 +451,20 @@ variables (E)
 @[continuity] lemma continuous_proj : continuous (@total_space.proj B E) :=
 continuous_iff_continuous_at.2 $ λ x, (map_proj_nhds F x).le
 
--- /-- The projection from a topological fiber bundle to its base is an open map. -/
--- lemma is_topological_fiber_bundle.is_open_map_proj (h : is_topological_fiber_bundle F proj) :
---   is_open_map proj :=
--- is_open_map.of_nhds_le $ λ x, (h.map_proj_nhds x).ge
+/-- The projection from a topological fiber bundle to its base is an open map. -/
+lemma is_open_map_proj : is_open_map (@total_space.proj B E) :=
+is_open_map.of_nhds_le $ λ x, (map_proj_nhds F x).ge
 
--- /-- The projection from a topological fiber bundle with a nonempty fiber to its base is a surjective
--- map. -/
--- lemma is_topological_fiber_bundle.surjective_proj [nonempty F]
---   (h : is_topological_fiber_bundle F proj) :
---   function.surjective proj :=
--- λ b, let ⟨e, eb⟩ := h b, ⟨x, _, hx⟩ := e.proj_surj_on_base_set eb in ⟨x, hx⟩
+/-- The projection from a topological fiber bundle with a nonempty fiber to its base is a surjective
+map. -/
+lemma surjective_proj [nonempty F] : function.surjective (@total_space.proj B E) :=
+λ b, let ⟨p, _, hpb⟩ :=
+  (trivialization_at F E b).proj_surj_on_base_set (mem_base_set_trivialization_at F E b) in ⟨p, hpb⟩
 
--- /-- The projection from a topological fiber bundle with a nonempty fiber to its base is a quotient
--- map. -/
--- lemma is_topological_fiber_bundle.quotient_map_proj [nonempty F]
---   (h : is_topological_fiber_bundle F proj) :
---   quotient_map proj :=
--- h.is_open_map_proj.to_quotient_map h.continuous_proj h.surjective_proj
-
--- /-- The first projection in a product is a trivial topological fiber bundle. -/
--- lemma is_trivial_topological_fiber_bundle_fst :
---   is_trivial_topological_fiber_bundle F (prod.fst : B × F → B) :=
--- ⟨homeomorph.refl _, λ x, rfl⟩
-
--- /-- The first projection in a product is a topological fiber bundle. -/
--- lemma is_topological_fiber_bundle_fst : is_topological_fiber_bundle F (prod.fst : B × F → B) :=
--- is_trivial_topological_fiber_bundle_fst.is_topological_fiber_bundle
-
--- /-- The second projection in a product is a trivial topological fiber bundle. -/
--- lemma is_trivial_topological_fiber_bundle_snd :
---   is_trivial_topological_fiber_bundle F (prod.snd : F × B → B) :=
--- ⟨homeomorph.prod_comm _ _, λ x, rfl⟩
-
--- /-- The second projection in a product is a topological fiber bundle. -/
--- lemma is_topological_fiber_bundle_snd : is_topological_fiber_bundle F (prod.snd : F × B → B) :=
--- is_trivial_topological_fiber_bundle_snd.is_topological_fiber_bundle
-
--- lemma is_topological_fiber_bundle.comp_homeomorph {Z' : Type*} [topological_space Z']
---   (e : is_topological_fiber_bundle F proj) (h : Z' ≃ₜ Z) :
---   is_topological_fiber_bundle F (proj ∘ h) :=
--- λ x, let ⟨e, he⟩ := e x in
--- ⟨e.comp_homeomorph h, by simpa [topological_fiber_bundle.trivialization.comp_homeomorph] using he⟩
-
+/-- The projection from a topological fiber bundle with a nonempty fiber to its base is a quotient
+map. -/
+lemma quotient_map_proj [nonempty F] : quotient_map (@total_space.proj B E) :=
+(is_open_map_proj F E).to_quotient_map (continuous_proj F E) (surjective_proj F E)
 
 lemma continuous_total_space_mk (x : B) : continuous (@total_space_mk B E x) :=
 (total_space_mk_inducing F E x).continuous

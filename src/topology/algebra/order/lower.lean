@@ -77,11 +77,8 @@ The upper closure of a finite subset is closed in the lower topology
 -/
 lemma upper_closure_is_closed (F : set α) (h : F.finite) : is_closed (upper_closure F : set α) :=
 begin
-  rw ← upper_set.infi_Ici,
-  simp only [upper_set.coe_infi, upper_set.coe_Ici],
-  apply is_closed_bUnion h,
-  intros a h₁,
-  apply Ici_is_closed,
+  simp only [← upper_set.infi_Ici, upper_set.coe_infi],
+  exact is_closed_bUnion h (λ a h₁, Ici_is_closed a),
 end
 
 /-
@@ -158,7 +155,7 @@ def lower_basis (α : Type u) [preorder α] :=
 
 lemma lower_basis_is_basis : is_topological_basis (lower_basis α) :=
 begin
-  convert is_topological_basis_of_subbasis lower_topology_def,
+  convert is_topological_basis_of_subbasis lower_topology,
   rw image,
   ext,
   rw mem_set_of_eq,

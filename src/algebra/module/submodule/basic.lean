@@ -32,10 +32,7 @@ set_option old_structure_cmd true
 
 /-- `submodule_class S R M` says `S` is a type of submodules `s ≤ M`. -/
 class submodule_class (S : Type*) (R M : out_param $ Type*) [add_zero_class M]
-  [has_smul R M] [set_like S M] extends smul_mem_class S R M, add_submonoid_class S M
-
--- `R` becomes a metavariable but it's fine because it's an `out_param`.
-attribute [nolint dangerous_instance] submodule_class.to_add_submonoid_class
+  [has_smul R M] [set_like S M] [add_submonoid_class S M] extends smul_mem_class S R M
 
 /-- A submodule of a module is one which is closed under vector operations.
   This is a sufficient condition for the subset of vectors in the submodule
@@ -57,10 +54,12 @@ instance : set_like (submodule R M) M :=
 { coe := submodule.carrier,
   coe_injective' := λ p q h, by cases p; cases q; congr' }
 
-instance : submodule_class (submodule R M) R M :=
+instance : add_submonoid_class (submodule R M) M :=
 { zero_mem := zero_mem',
-  add_mem := add_mem',
-  smul_mem := smul_mem' }
+  add_mem := add_mem' }
+
+instance : submodule_class (submodule R M) R M :=
+{ smul_mem := smul_mem' }
 
 @[simp] theorem mem_to_add_submonoid (p : submodule R M) (x : M) : x ∈ p.to_add_submonoid ↔ x ∈ p :=
 iff.rfl
@@ -135,7 +134,7 @@ end submodule
 namespace submodule_class
 
 variables [semiring R] [add_comm_monoid M] [module R M] {A : Type*} [set_like A M]
-  [hA : submodule_class A R M] (S' : A)
+  [add_submonoid_class A M] [hA : submodule_class A R M] (S' : A)
 
 include hA
 /-- A submodule of a `module` is a `module`.  -/
@@ -314,7 +313,7 @@ variables {r : R} {x y : M}
 
 instance [module R M] : add_subgroup_class (submodule R M) M :=
 { neg_mem := λ p x, p.to_sub_mul_action.neg_mem,
-  .. submodule_class.to_add_submonoid_class (submodule R M) R M }
+  .. submodule.add_submonoid_class }
 
 protected lemma neg_mem (hx : x ∈ p) : -x ∈ p := neg_mem hx
 

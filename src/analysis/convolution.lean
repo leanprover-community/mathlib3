@@ -732,12 +732,6 @@ end normed_add_comm_group
 
 section
 
-@[to_additive]
-lemma continuous.is_open_mul_support {α β : Type*} [topological_space α] [topological_space β]
-  [t2_space β] [has_one β]
-  {f : α → β} (hf : continuous f) : is_open (mul_support f) :=
-is_open_ne_fun hf continuous_const
-
 open finite_dimensional
 
 variables {H : Type*} [normed_add_comm_group H] [normed_space ℝ H] [finite_dimensional ℝ H]
@@ -757,52 +751,60 @@ lemma has_compact_support.comp_smul {α : Type*} [has_zero α] {f : H → α}
 h.comp_homeomorph (homeomorph.smul_of_ne_zero R hR)
 
 
+lemma closed_ball_subset_ball' {α : Type*} [metric_space α] {ε₁ ε₂ : ℝ} {x y : α}
+  (h : ε₁ + dist x y < ε₂) :
+  closed_ball x ε₁ ⊆ ball y ε₂ :=
+λ z hz, calc
+  dist z y ≤ dist z x + dist x y : dist_triangle _ _ _
+  ... ≤ ε₁ + dist x y : add_le_add_right hz _
+  ... < ε₂ : h
+
+
 variable (H)
 lemma foo : ∃ g : H → ℝ, cont_diff ℝ ⊤ g ∧
-  (∀ x, g x ∈ Icc (0 : ℝ) 1) ∧ 0 < g 0 ∧ (∀ x, 1 ≤ ∥x∥ → g x = 0) ∧ (∀ x, g (-x) = g x) :=
+  (∀ x, g x ∈ Icc (0 : ℝ) 1) ∧ (support g = ball 0 1) ∧ (∀ x, g (-x) = g x) ∧
+  (has_compact_support g) :=
 sorry
 
 def e : cont_diff_bump_base H :=
 begin
   borelize H,
   let μ : measure H := measure_theory.measure.add_haar,
-  choose g g_smooth g_mem g_pos g_zero g_symm using foo H,
-  have support_g : support g ⊆ ball 0 1,
-  sorry { assume x hx,
-    by_contra',
-    simp only [mem_ball_zero_iff, not_lt] at this,
-    exact hx (g_zero x this) },
-  have comp_supp_g : has_compact_support g,
-  { apply has_compact_support.intro (is_compact_closed_ball (0 : H) 1) (λ x hx, _),
-    contrapose! hx,
-    exact ball_subset_closed_ball (support_g hx) },
+  choose g g_smooth g_mem g_support g_symm comp_supp_g using foo H,
   set φ : H → ℝ := (closed_ball (0 : H) 1).indicator (λ y, 1) with hφ,
   set c := ∫ x, g x ∂μ with hc,
   have cpos : 0 < c,
   { refine (integral_pos_iff_support_of_nonneg (λ x, (g_mem x).1) _).mpr _,
     { exact g_smooth.continuous.integrable_of_has_compact_support comp_supp_g },
-    { exact g_smooth.continuous.is_open_support.measure_pos _ ⟨0, g_pos.ne'⟩ } },
-  set g0 : ℝ → H → ℝ := λ R,
-    (λ x, (c * R^(finrank ℝ H))⁻¹ • g (R⁻¹ • x)) ⋆[lsmul ℝ ℝ, μ] φ with g0_def,
+    { rw g_support, exact measure_ball_pos _ _ zero_lt_one } },
+  set F : ℝ → H → ℝ := λ R x, (c * R^(finrank ℝ H))⁻¹ • g (R⁻¹ • x) with F_def,
+  set g0 : ℝ → H → ℝ := λ R, (F R) ⋆[lsmul ℝ ℝ, μ] φ with g0_def,
+  have Hpos : ∀ R x y, 0 < R → 0 ≤ F R y * φ (x - y),
+  sorry, /-{ assume R x y Rpos,
+    have : 0 ≤ g (R⁻¹ • y), from (g_mem _).1,
+    have : 0 ≤ φ (x - y),
+      from indicator_nonneg (by simp only [zero_le_one, implies_true_iff]) _,
+    rw F_def,
+    dsimp,
+    positivity }, -/
+  have Fsupp : ∀ R, 0 < R → support (F R) = ball (0 : H) R,
+  sorry, /- { assume R Rpos,
+    have B : R • ball (0 : H) 1 = ball 0 R,
+        by rw [smul_unit_ball Rpos.ne', real.norm_of_nonneg Rpos.le],
+    have C : R ^ finrank ℝ H ≠ 0, from pow_ne_zero _ Rpos.ne',
+    simp only [F_def, algebra.id.smul_eq_mul, support_mul, support_inv, univ_inter,
+      support_comp_inv_smul _ Rpos.ne', g_support, B, support_const cpos.ne', support_const C] }, -/
   have : ∀ R x, g0 R (-x) = g0 R x,
-  sorry { assume R x,
+  sorry, /-{ assume R x,
     apply convolution_neg_of_neg_eq,
     { apply eventually_of_forall (λ x, _),
-      simp only [g_symm, smul_neg] },
+      simp only [F_def, g_symm, smul_neg, algebra.id.smul_eq_mul, mul_eq_mul_left_iff,
+        eq_self_iff_true, true_or], },
     { apply eventually_of_forall (λ x, _),
-      simp only [φ, indicator, mem_closed_ball_zero_iff, norm_neg] } },
+      simp only [φ, indicator, mem_closed_ball_zero_iff, norm_neg] } }, -/
   have : ∀ R (x : H), 0 < R → R < 1 → x ∈ closed_ball (0 : H) (1 - R) → g0 R x = 1,
   sorry, /-{ assume R x Rpos Rone hx,
-    let F : H → ℝ := λ x, (c * R^(finrank ℝ H))⁻¹ • g (R⁻¹ • x),
-    change (F ⋆[lsmul ℝ ℝ, μ] φ) x = 1,
-    have A : support F ⊆ ball (0 : H) R,
-    { simp only [F, mul_inv_rev, algebra.id.smul_eq_mul, support_mul, support_inv,
-        support_comp_inv_smul _ Rpos.ne'],
-      refine (inter_subset_right _ _).trans _,
-      have : R • ball (0 : H) 1 = ball 0 R,
-        by rw [smul_unit_ball Rpos.ne', real.norm_of_nonneg Rpos.le],
-      rw ← this,
-      exact (set_smul_subset_set_smul_iff₀ Rpos.ne').2 support_g },
+    change ((F R) ⋆[lsmul ℝ ℝ, μ] φ) x = 1,
     have B : ∀ y ∈ ball x R, φ y = 1,
     { have C : ball x R ⊆ ball 0 1,
       { apply ball_subset_ball',
@@ -814,81 +816,71 @@ begin
       linarith [mem_ball.1 (C hy)] },
     have Bx : φ x = 1, from B _ (mem_ball_self Rpos),
     have B' : ∀ y ∈ ball x R, φ y = φ x, by { rw Bx, exact B },
-    rw convolution_eq_right' _ A B',
+    rw convolution_eq_right' _ (le_of_eq (Fsupp R Rpos)) B',
     simp only [continuous_linear_map.map_smul, mul_inv_rev, coe_smul', pi.smul_apply, lsmul_apply,
       algebra.id.smul_eq_mul, integral_mul_left, integral_mul_right],
     rw [integral_comp_inv_smul_of_pos μ _ Rpos, ← hc, Bx, mul_one, smul_eq_mul],
-    field_simp [Rpos.ne', cpos.ne'] },-/
-  have : ∀ R (x : H), 0 < R → R < 1 → x ∉ closed_ball (0 : H) (1 + R) → g0 R x = 0,
+    field_simp [Rpos.ne', cpos.ne'] }, -/
+  have : ∀ R (x : H), 0 < R → R < 1 → x ∉ ball (0 : H) (1 + R) → g0 R x = 0,
   sorry, /-{ assume R x Rpos Rone hx,
-    let F : H → ℝ := λ x, (c * R^(finrank ℝ H))⁻¹ • g (R⁻¹ • x),
-    change (F ⋆[lsmul ℝ ℝ, μ] φ) x = 0,
-    have A : support F ⊆ ball (0 : H) R,
-    { simp only [F, mul_inv_rev, algebra.id.smul_eq_mul, support_mul, support_inv,
-        support_comp_inv_smul _ Rpos.ne'],
-      refine (inter_subset_right _ _).trans _,
-      have : R • ball (0 : H) 1 = ball 0 R,
-        by rw [smul_unit_ball Rpos.ne', real.norm_of_nonneg Rpos.le],
-      rw ← this,
-      exact (set_smul_subset_set_smul_iff₀ Rpos.ne').2 support_g },
+    change (F R ⋆[lsmul ℝ ℝ, μ] φ) x = 0,
     have B : ∀ y ∈ ball x R, φ y = 0,
     { assume y hy,
       simp only [φ, indicator, mem_closed_ball_zero_iff, ite_eq_right_iff, one_ne_zero],
       assume h'y,
-      have C : closed_ball y R ⊆ closed_ball 0 (1+R),
-      { apply closed_ball_subset_closed_ball',
+      have C : ball y R ⊆ ball 0 (1+R),
+      { apply ball_subset_ball',
         rw ← dist_zero_right at h'y,
         linarith },
-      exact hx (C (ball_subset_closed_ball (mem_ball_comm.1 hy))) },
+      exact hx (C (mem_ball_comm.1 hy)) },
     have Bx : φ x = 0, from B _ (mem_ball_self Rpos),
     have B' : ∀ y ∈ ball x R, φ y = φ x, by { rw Bx, exact B },
-    rw convolution_eq_right' _ A B',
-    simp only [lsmul_apply, algebra.id.smul_eq_mul, Bx, mul_zero, integral_const] }, -/
+    rw convolution_eq_right' _ (le_of_eq (Fsupp R Rpos)) B',
+    simp only [lsmul_apply, algebra.id.smul_eq_mul, Bx, mul_zero, integral_const] },-/
   have : ∀ R (x : H), 0 < R → 0 ≤ g0 R x,
-  sorry, /-{ assume R x Rpos,
-    apply integral_nonneg (λ y, _),
-    simp only [pi.zero_apply, continuous_linear_map.map_smul, mul_inv_rev, coe_smul', pi.smul_apply,
-      lsmul_apply, algebra.id.smul_eq_mul],
-    have : 0 ≤ g (R⁻¹ • y), from (g_mem _).1,
-    have : 0 ≤ φ (x - y),
-      from indicator_nonneg (by simp only [zero_le_one, implies_true_iff]) _,
-    positivity },-/
+    from λ R x Rpos, integral_nonneg (λ y, Hpos R x y Rpos),
   have : ∀ R (x : H), 0 < R → g0 R x ≤ 1,
-  sorry, /-{ assume R x Rpos,
-    let F : H → ℝ := λ x, (c * R^(finrank ℝ H))⁻¹ • g (R⁻¹ • x),
-    have C : (F ⋆[lsmul ℝ ℝ, μ] φ) x ≤ (F ⋆[lsmul ℝ ℝ, μ] 1) x,
-    { apply integral_mono_of_nonneg,
-      { apply eventually_of_forall (λ y, _),
-        simp only [pi.zero_apply, continuous_linear_map.map_smul, mul_inv_rev, coe_smul',
-          pi.smul_apply, lsmul_apply, algebra.id.smul_eq_mul],
-        have : 0 ≤ g (R⁻¹ • y), from (g_mem _).1,
-        have : 0 ≤ φ (x - y),
-          from indicator_nonneg (by simp only [zero_le_one, implies_true_iff]) _,
-        positivity },
+  sorry, /- { assume R x Rpos,
+    have C : (F R ⋆[lsmul ℝ ℝ, μ] φ) x ≤ (F R ⋆[lsmul ℝ ℝ, μ] 1) x,
+    { apply integral_mono_of_nonneg (eventually_of_forall (λ y, Hpos R x y Rpos)),
       { refine (has_compact_support.convolution_exists_left _ _ _ _ _).integrable,
         { exact (comp_supp_g.comp_smul (inv_ne_zero Rpos.ne')).mul_left },
         { exact continuous_const.mul (g_smooth.continuous.comp (continuous_id.const_smul _)) },
         { apply locally_integrable_const (1 : ℝ), apply_instance } },
       { apply eventually_of_forall (λ y, _),
         simp only [continuous_linear_map.map_smul, mul_inv_rev, coe_smul', pi.smul_apply,
-          lsmul_apply, algebra.id.smul_eq_mul, pi.one_apply, mul_one],
-        refine mul_le_mul_of_nonneg_left _ (by positivity),
-        refine mul_le_of_le_one_right (g_mem _).1 _,
+          lsmul_apply, algebra.id.smul_eq_mul, pi.one_apply, mul_one, F_def],
+        refine mul_le_of_le_one_right (mul_nonneg (by positivity) (g_mem _).1) _,
         apply indicator_le_self' (λ x hx, zero_le_one),
         apply_instance } },
-    have D : (F ⋆[lsmul ℝ ℝ, μ] (λ y, (1 : ℝ))) x = 1,
+    have D : (F R ⋆[lsmul ℝ ℝ, μ] (λ y, (1 : ℝ))) x = 1,
     { simp only [convolution, continuous_linear_map.map_smul, mul_inv_rev, coe_smul', pi.smul_apply,
         lsmul_apply, algebra.id.smul_eq_mul, mul_one, integral_mul_left],
       rw [integral_comp_inv_smul_of_pos μ _ Rpos, ← hc, smul_eq_mul],
       field_simp [Rpos.ne', cpos.ne'] },
-    exact C.trans (le_of_eq D) },-/
+    exact C.trans (le_of_eq D) }, -/
+  have : ∀ R (x : H), 0 < R → R < 1 → x ∈ ball (0 : H) (1 + R) → 0 < g0 R x,
+  { assume R x Rpos Rone hx,
+    change 0 < (F R ⋆[lsmul ℝ ℝ, μ] φ) x,
+    refine (integral_pos_iff_support_of_nonneg (λ y, Hpos R x y Rpos) _).2 _,
+    { have F_comp : has_compact_support (F R),
+      { rw [has_compact_support_def, Fsupp R Rpos, closure_ball (0 : H) Rpos.ne'],
+        exact is_compact_closed_ball _ _ },
+      have B : locally_integrable φ μ,
+      { apply locally_integrable_indicator,
+
+      },
+      exact has_compact_support.convolution_exists_left (lsmul ℝ ℝ : ℝ →L[ℝ] ℝ →L[ℝ] ℝ) F_comp sorry B x,
+    },
+
+  },
   refine
   { to_fun := g0,
     mem_Icc := _,
     symmetric := _,
     smooth := _,
     eq_one := _,
-    eq_zero := _},
+    support := _},
 end
 
 instance {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E] :

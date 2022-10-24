@@ -60,6 +60,10 @@ lemma locally_integrable_const [is_locally_finite_measure μ] (c : E) :
   locally_integrable (λ x, c) μ :=
 λ K hK, by simp only [integrable_on_const, hK.measure_lt_top, or_true]
 
+lemma locally_integrable.indicator (hf : locally_integrable f μ)
+  {s : set X} (hs : measurable_set s) : locally_integrable (s.indicator f) μ :=
+λ K hK, (hf hK).indicator' hs
+
 section real
 variables [opens_measurable_space X] {A K : set X} {g g' : X → ℝ}
 

@@ -243,3 +243,6 @@ begin
   rw [lift_prop_on_cont_diff_groupoid_iff],
   sorry
 end
+
+
+#lint

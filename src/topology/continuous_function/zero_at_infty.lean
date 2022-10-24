@@ -44,6 +44,9 @@ localized "notation [priority 2000] (name := zero_at_infty_continuous_map)
 localized "notation (name := zero_at_infty_continuous_map.arrow)
   α ` →C₀ ` β := zero_at_infty_continuous_map α β" in zero_at_infty
 
+section
+set_option old_structure_cmd true
+
 /-- `zero_at_infty_continuous_map_class F α β` states that `F` is a type of continuous maps which
 vanish at infinity.
 
@@ -51,6 +54,8 @@ You should also extend this typeclass when you extend `zero_at_infty_continuous_
 class zero_at_infty_continuous_map_class (F : Type*) (α β : out_param $ Type*) [topological_space α]
   [has_zero β] [topological_space β] extends continuous_map_class F α β :=
 (zero_at_infty (f : F) : tendsto f (cocompact α) (𝓝 0))
+
+end
 
 export zero_at_infty_continuous_map_class (zero_at_infty)
 
@@ -315,7 +320,8 @@ f.bounded_range.mono $ image_subset_range _ _
 
 @[priority 100]
 instance : bounded_continuous_map_class F α β :=
-{ map_bounded := λ f, zero_at_infty_continuous_map.bounded f }
+{ map_bounded := λ f, zero_at_infty_continuous_map.bounded f,
+  ..‹zero_at_infty_continuous_map_class F α β› }
 
 /-- Construct a bounded continuous function from a continuous function vanishing at infinity. -/
 @[simps]

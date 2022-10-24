@@ -184,7 +184,7 @@ instance : non_unital_semi_normed_ring (ulift α) :=
 
 /-- Non-unital seminormed ring structure on the product of two non-unital seminormed rings,
   using the sup norm. -/
-noncomputable instance prod.non_unital_semi_normed_ring [non_unital_semi_normed_ring β] :
+instance prod.non_unital_semi_normed_ring [non_unital_semi_normed_ring β] :
   non_unital_semi_normed_ring (α × β) :=
 { norm_mul := assume x y,
   calc
@@ -201,7 +201,7 @@ noncomputable instance prod.non_unital_semi_normed_ring [non_unital_semi_normed_
 
 /-- Non-unital seminormed ring structure on the product of finitely many non-unital seminormed
 rings, using the sup norm. -/
-noncomputable instance pi.non_unital_semi_normed_ring {π : ι → Type*} [fintype ι]
+instance pi.non_unital_semi_normed_ring {π : ι → Type*} [fintype ι]
   [Π i, non_unital_semi_normed_ring (π i)] :
   non_unital_semi_normed_ring (Π i, π i) :=
 { norm_mul := λ x y, nnreal.coe_mono $
@@ -314,14 +314,14 @@ instance : semi_normed_ring (ulift α) :=
 
 /-- Seminormed ring structure on the product of two seminormed rings,
   using the sup norm. -/
-noncomputable instance prod.semi_normed_ring [semi_normed_ring β] :
+instance prod.semi_normed_ring [semi_normed_ring β] :
   semi_normed_ring (α × β) :=
 { ..prod.non_unital_semi_normed_ring,
   ..prod.seminormed_add_comm_group, }
 
 /-- Seminormed ring structure on the product of finitely many seminormed rings,
   using the sup norm. -/
-noncomputable instance pi.semi_normed_ring {π : ι → Type*} [fintype ι]
+instance pi.semi_normed_ring {π : ι → Type*} [fintype ι]
   [Π i, semi_normed_ring (π i)] :
   semi_normed_ring (Π i, π i) :=
 { ..pi.non_unital_semi_normed_ring,
@@ -338,15 +338,14 @@ instance : non_unital_normed_ring (ulift α) :=
 
 /-- Non-unital normed ring structure on the product of two non-unital normed rings,
 using the sup norm. -/
-noncomputable instance prod.non_unital_normed_ring [non_unital_normed_ring β] :
+instance prod.non_unital_normed_ring [non_unital_normed_ring β] :
   non_unital_normed_ring (α × β) :=
 { norm_mul := norm_mul_le,
   ..prod.seminormed_add_comm_group }
 
 /-- Normed ring structure on the product of finitely many non-unital normed rings, using the sup
 norm. -/
-noncomputable instance pi.non_unital_normed_ring {π : ι → Type*} [fintype ι]
-  [Π i, non_unital_normed_ring (π i)] :
+instance pi.non_unital_normed_ring {π : ι → Type*} [fintype ι] [Π i, non_unital_normed_ring (π i)] :
   non_unital_normed_ring (Π i, π i) :=
 { norm_mul := norm_mul_le,
   ..pi.normed_add_comm_group }
@@ -368,12 +367,12 @@ instance : normed_ring (ulift α) :=
   .. ulift.normed_add_comm_group }
 
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/
-noncomputable instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
+instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := norm_mul_le,
   ..prod.normed_add_comm_group }
 
 /-- Normed ring structure on the product of finitely many normed rings, using the sup norm. -/
-noncomputable instance pi.normed_ring {π : ι → Type*} [fintype ι] [Π i, normed_ring (π i)] :
+instance pi.normed_ring {π : ι → Type*} [fintype ι] [Π i, normed_ring (π i)] :
   normed_ring (Π i, π i) :=
 { norm_mul := norm_mul_le,
   ..pi.normed_add_comm_group }
@@ -639,6 +638,8 @@ abs_of_nonneg hx
 lemma norm_of_nonpos {x : ℝ} (hx : x ≤ 0) : ∥x∥ = -x :=
 abs_of_nonpos hx
 
+lemma le_norm_self (r : ℝ) : r ≤ ∥r∥ := le_abs_self r
+
 @[simp] lemma norm_coe_nat (n : ℕ) : ∥(n : ℝ)∥ = n := abs_of_nonneg n.cast_nonneg
 
 @[simp] lemma nnnorm_coe_nat (n : ℕ) : ∥(n : ℝ)∥₊ = n := nnreal.eq $ by simp
@@ -659,6 +660,14 @@ begin
   { rw real.ennnorm_eq_of_real hx, refl' },
   { rw [ennreal.of_real_eq_zero.2 (le_of_lt (not_le.1 hx))],
     exact bot_le }
+end
+
+lemma to_nnreal_mul_nnnorm {x : ℝ} (y : ℝ) (hr : 0 ≤ x) : x.to_nnreal * ∥y∥₊ = ∥x * y∥₊ :=
+begin
+  rw real.to_nnreal_of_nonneg hr,
+  simp only [nnnorm_mul, mul_eq_mul_right_iff],
+  refine or.inl (nnreal.eq _),
+  simp only [subtype.coe_mk, coe_nnnorm, real.norm_eq_abs, abs_of_nonneg hr]
 end
 
 /-- If `E` is a nontrivial topological module over `ℝ`, then `E` has no isolated points.

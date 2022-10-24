@@ -3,10 +3,7 @@ Copyright (c) 2015 Nathaniel Thomas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
-import algebra.big_operators.basic
 import algebra.smul_with_zero
-import data.rat.cast
-import group_theory.group_action.big_operators
 import group_theory.group_action.group
 import tactic.abel
 
@@ -170,6 +167,10 @@ lemma multiset.sum_smul {l : multiset R} {x : M} : l.sum • x = (l.map (λ r, r
 lemma finset.sum_smul {f : ι → R} {s : finset ι} {x : M} :
   (∑ i in s, f i) • x = (∑ i in s, (f i) • x) :=
 ((smul_add_hom R M).flip x).map_sum f s
+
+@[simp] lemma smul_add_one_sub_smul {R : Type*} [ring R] [module R M]
+  {r : R} {m : M} : r • m + (1 - r) • m = m :=
+by rw [← add_smul, add_sub_cancel'_right, one_smul]
 
 end add_comm_monoid
 
@@ -615,15 +616,16 @@ end smul_injective
 
 end module
 
-section division_ring
+section group_with_zero
 
-variables [division_ring R] [add_comm_group M] [module R M]
+variables [group_with_zero R] [add_monoid M] [distrib_mul_action R M]
 
+/-- This instance applies to `division_semiring`s, in particular `nnreal` and `nnrat`. -/
 @[priority 100] -- see note [lower instance priority]
-instance division_ring.to_no_zero_smul_divisors : no_zero_smul_divisors R M :=
+instance group_with_zero.to_no_zero_smul_divisors : no_zero_smul_divisors R M :=
 ⟨λ c x h, or_iff_not_imp_left.2 $ λ hc, (smul_eq_zero_iff_eq' hc).1 h⟩
 
-end division_ring
+end group_with_zero
 
 @[priority 100] -- see note [lower instance priority]
 instance rat_module.no_zero_smul_divisors [add_comm_group M] [module ℚ M] :

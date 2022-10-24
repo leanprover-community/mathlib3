@@ -344,10 +344,11 @@ quotient.induction_on' x H
 lemma quotient_lift_on_coe {β} (f : α → β) (h) (x : α) :
   quotient.lift_on' (x : α ⧸ s) f h = f x := rfl
 
-@[to_additive]
-lemma forall_coe {C : α ⧸ s → Prop} :
-  (∀ x : α ⧸ s, C x) ↔ ∀ x : α, C x :=
-⟨λ hx x, hx _, quot.ind⟩
+@[to_additive] lemma forall_coe {C : α ⧸ s → Prop} : (∀ x : α ⧸ s, C x) ↔ ∀ x : α, C x :=
+mk_surjective.forall
+
+@[to_additive] lemma exists_coe {C : α ⧸ s → Prop} : (∃ x : α ⧸ s, C x) ↔ ∃ x : α, C x :=
+mk_surjective.exists
 
 @[to_additive]
 instance (s : subgroup α) : inhabited (α ⧸ s) :=

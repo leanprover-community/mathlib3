@@ -339,15 +339,6 @@ begin
     exact hs.closure }
 end
 
-/-- If `s`, `t` are disjoint convex sets, `s` is compact and `t` is closed then we can find open
-disjoint convex sets containing them. -/
-lemma disjoint.exists_open_convexes (disj : disjoint s t) (hs₁ : convex ℝ s) (hs₂ : is_compact s)
-  (ht₁ : convex ℝ t) (ht₂ : is_closed t) :
-  ∃ u v, is_open u ∧ is_open v ∧ convex ℝ u ∧ convex ℝ v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v :=
-let ⟨δ, hδ, hst⟩ := disj.exists_thickenings hs₂ ht₂ in
-  ⟨_, _, is_open_thickening, is_open_thickening, hs₁.thickening _, ht₁.thickening _,
-    self_subset_thickening hδ _, self_subset_thickening hδ _, hst⟩
-
 /-- Given a point `x` in the convex hull of `s` and a point `y`, there exists a point
 of `s` at distance at least `dist x y` from `y`. -/
 lemma convex_hull_exists_dist_ge {s : set E} {x : E} (hx : x ∈ convex_hull ℝ s) (y : E) :
@@ -402,6 +393,22 @@ lemma dist_add_dist_of_mem_segment {x y z : E} (h : y ∈ [x -[ℝ] z]) :
 begin
   simp only [dist_eq_norm, mem_segment_iff_same_ray] at *,
   simpa only [sub_add_sub_cancel', norm_sub_rev] using h.norm_add.symm
+end
+
+/-- The set of vectors in the same ray as `x` is connected. -/
+lemma is_connected_set_of_same_ray (x : E) : is_connected {y | same_ray ℝ x y} :=
+begin
+  by_cases hx : x = 0, { simpa [hx] using is_connected_univ },
+  simp_rw ←exists_nonneg_left_iff_same_ray hx,
+  exact is_connected_Ici.image _ ((continuous_id.smul continuous_const).continuous_on)
+end
+
+/-- The set of nonzero vectors in the same ray as the nonzero vector `x` is connected. -/
+lemma is_connected_set_of_same_ray_and_ne_zero {x : E} (hx : x ≠ 0) :
+  is_connected {y | same_ray ℝ x y ∧ y ≠ 0} :=
+begin
+  simp_rw ←exists_pos_left_iff_same_ray_and_ne_zero hx,
+  exact is_connected_Ioi.image _ ((continuous_id.smul continuous_const).continuous_on)
 end
 
 end normed_space

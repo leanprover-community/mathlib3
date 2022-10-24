@@ -286,25 +286,25 @@ lemma map_map₂_distrib {n : γ → δ} {m' : α' → β' → δ} {n₁ : α �
   (map₂ m f g).map n = map₂ m' (f.map n₁) (g.map n₂) :=
 by simp_rw [map_map₂, map₂_map_left, map₂_map_right, h_distrib]
 
-/-- Symmetric of `filter.map₂_map_left_comm`. -/
+/-- Symmetric statement to `filter.map₂_map_left_comm`. -/
 lemma map_map₂_distrib_left {n : γ → δ} {m' : α' → β → δ} {n' : α → α'}
   (h_distrib : ∀ a b, n (m a b) = m' (n' a) b) :
   (map₂ m f g).map n = map₂ m' (f.map n') g :=
 map_map₂_distrib h_distrib
 
-/-- Symmetric of `filter.map_map₂_right_comm`. -/
+/-- Symmetric statement to `filter.map_map₂_right_comm`. -/
 lemma map_map₂_distrib_right {n : γ → δ} {m' : α → β' → δ} {n' : β → β'}
   (h_distrib : ∀ a b, n (m a b) = m' a (n' b)) :
   (map₂ m f g).map n = map₂ m' f (g.map n') :=
 map_map₂_distrib h_distrib
 
-/-- Symmetric of `filter.map_map₂_distrib_left`. -/
+/-- Symmetric statement to `filter.map_map₂_distrib_left`. -/
 lemma map₂_map_left_comm {m : α' → β → γ} {n : α → α'} {m' : α → β → δ} {n' : δ → γ}
   (h_left_comm : ∀ a b, m (n a) b = n' (m' a b)) :
   map₂ m (f.map n) g = (map₂ m' f g).map n' :=
 (map_map₂_distrib_left $ λ a b, (h_left_comm a b).symm).symm
 
-/-- Symmetric of `filter.map_map₂_distrib_right`. -/
+/-- Symmetric statement to `filter.map_map₂_distrib_right`. -/
 lemma map_map₂_right_comm {m : α → β' → γ} {n : β → β'} {m' : α → β → δ} {n' : δ → γ}
   (h_right_comm : ∀ a b, m a (n b) = n' (m' a b)) :
   map₂ m f (g.map n) = (map₂ m' f g).map n' :=
@@ -339,25 +339,25 @@ lemma map_map₂_antidistrib {n : γ → δ} {m' : β' → α' → δ} {n₁ : �
   (map₂ m f g).map n = map₂ m' (g.map n₁) (f.map n₂) :=
 by { rw map₂_swap m, exact map_map₂_distrib (λ _ _, h_antidistrib _ _) }
 
-/-- Symmetric of `filter.map₂_map_left_anticomm`. -/
+/-- Symmetric statement to `filter.map₂_map_left_anticomm`. -/
 lemma map_map₂_antidistrib_left {n : γ → δ} {m' : β' → α → δ} {n' : β → β'}
   (h_antidistrib : ∀ a b, n (m a b) = m' (n' b) a) :
   (map₂ m f g).map n = map₂ m' (g.map n') f :=
 map_map₂_antidistrib h_antidistrib
 
-/-- Symmetric of `filter.map_map₂_right_anticomm`. -/
+/-- Symmetric statement to `filter.map_map₂_right_anticomm`. -/
 lemma map_map₂_antidistrib_right {n : γ → δ} {m' : β → α' → δ} {n' : α → α'}
   (h_antidistrib : ∀ a b, n (m a b) = m' b (n' a)) :
   (map₂ m f g).map n = map₂ m' g (f.map n') :=
 map_map₂_antidistrib h_antidistrib
 
-/-- Symmetric of `filter.map_map₂_antidistrib_left`. -/
+/-- Symmetric statement to `filter.map_map₂_antidistrib_left`. -/
 lemma map₂_map_left_anticomm {m : α' → β → γ} {n : α → α'} {m' : β → α → δ} {n' : δ → γ}
   (h_left_anticomm : ∀ a b, m (n a) b = n' (m' b a)) :
   map₂ m (f.map n) g = (map₂ m' g f).map n' :=
 (map_map₂_antidistrib_left $ λ a b, (h_left_anticomm b a).symm).symm
 
-/-- Symmetric of `filter.map_map₂_antidistrib_right`. -/
+/-- Symmetric statement to `filter.map_map₂_antidistrib_right`. -/
 lemma map_map₂_right_anticomm {m : α → β' → γ} {n : β → β'} {m' : β → α → δ} {n' : δ → γ}
   (h_right_anticomm : ∀ a b, m a (n b) = n' (m' b a)) :
   map₂ m f (g.map n) = (map₂ m' g f).map n' :=

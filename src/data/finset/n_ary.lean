@@ -246,25 +246,25 @@ lemma image_image₂_distrib {g : γ → δ} {f' : α' → β' → δ} {g₁ : �
   (image₂ f s t).image g = image₂ f' (s.image g₁) (t.image g₂) :=
 coe_injective $ by { push_cast, exact image_image2_distrib h_distrib }
 
-/-- Symmetric of `finset.image₂_image_left_comm`. -/
+/-- Symmetric statement to `finset.image₂_image_left_comm`. -/
 lemma image_image₂_distrib_left {g : γ → δ} {f' : α' → β → δ} {g' : α → α'}
   (h_distrib : ∀ a b, g (f a b) = f' (g' a) b) :
   (image₂ f s t).image g = image₂ f' (s.image g') t :=
 coe_injective $ by { push_cast, exact image_image2_distrib_left h_distrib }
 
-/-- Symmetric of `finset.image_image₂_right_comm`. -/
+/-- Symmetric statement to `finset.image_image₂_right_comm`. -/
 lemma image_image₂_distrib_right {g : γ → δ} {f' : α → β' → δ} {g' : β → β'}
   (h_distrib : ∀ a b, g (f a b) = f' a (g' b)) :
   (image₂ f s t).image g = image₂ f' s (t.image g') :=
 coe_injective $ by { push_cast, exact image_image2_distrib_right h_distrib }
 
-/-- Symmetric of `finset.image_image₂_distrib_left`. -/
+/-- Symmetric statement to `finset.image_image₂_distrib_left`. -/
 lemma image₂_image_left_comm {f : α' → β → γ} {g : α → α'} {f' : α → β → δ} {g' : δ → γ}
   (h_left_comm : ∀ a b, f (g a) b = g' (f' a b)) :
   image₂ f (s.image g) t = (image₂ f' s t).image g' :=
 (image_image₂_distrib_left $ λ a b, (h_left_comm a b).symm).symm
 
-/-- Symmetric of `finset.image_image₂_distrib_right`. -/
+/-- Symmetric statement to `finset.image_image₂_distrib_right`. -/
 lemma image_image₂_right_comm {f : α → β' → γ} {g : β → β'} {f' : α → β → δ} {g' : δ → γ}
   (h_right_comm : ∀ a b, f a (g b) = g' (f' a b)) :
   image₂ f s (t.image g) = (image₂ f' s t).image g' :=
@@ -289,25 +289,25 @@ lemma image_image₂_antidistrib {g : γ → δ} {f' : β' → α' → δ} {g₁
   (image₂ f s t).image g = image₂ f' (t.image g₁) (s.image g₂) :=
 by { rw image₂_swap f, exact image_image₂_distrib (λ _ _, h_antidistrib _ _) }
 
-/-- Symmetric of `finset.image₂_image_left_anticomm`. -/
+/-- Symmetric statement to `finset.image₂_image_left_anticomm`. -/
 lemma image_image₂_antidistrib_left {g : γ → δ} {f' : β' → α → δ} {g' : β → β'}
   (h_antidistrib : ∀ a b, g (f a b) = f' (g' b) a) :
   (image₂ f s t).image g = image₂ f' (t.image g') s :=
 coe_injective $ by { push_cast, exact image_image2_antidistrib_left h_antidistrib }
 
-/-- Symmetric of `finset.image_image₂_right_anticomm`. -/
+/-- Symmetric statement to `finset.image_image₂_right_anticomm`. -/
 lemma image_image₂_antidistrib_right {g : γ → δ} {f' : β → α' → δ} {g' : α → α'}
   (h_antidistrib : ∀ a b, g (f a b) = f' b (g' a)) :
   (image₂ f s t).image g = image₂ f' t (s.image g') :=
 coe_injective $ by { push_cast, exact image_image2_antidistrib_right h_antidistrib }
 
-/-- Symmetric of `finset.image_image₂_antidistrib_left`. -/
+/-- Symmetric statement to `finset.image_image₂_antidistrib_left`. -/
 lemma image₂_image_left_anticomm {f : α' → β → γ} {g : α → α'} {f' : β → α → δ} {g' : δ → γ}
   (h_left_anticomm : ∀ a b, f (g a) b = g' (f' b a)) :
   image₂ f (s.image g) t = (image₂ f' t s).image g' :=
 (image_image₂_antidistrib_left $ λ a b, (h_left_anticomm b a).symm).symm
 
-/-- Symmetric of `finset.image_image₂_antidistrib_right`. -/
+/-- Symmetric statement to `finset.image_image₂_antidistrib_right`. -/
 lemma image_image₂_right_anticomm {f : α → β' → γ} {g : β → β'} {f' : β → α → δ} {g' : δ → γ}
   (h_right_anticomm : ∀ a b, f a (g b) = g' (f' b a)) :
   image₂ f s (t.image g) = (image₂ f' t s).image g' :=

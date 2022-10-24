@@ -109,25 +109,30 @@ lemma map_map₂_distrib {g : γ → δ} {f' : α' → β' → δ} {g₁ : α �
   (map₂ f a b).map g = map₂ f' (a.map g₁) (b.map g₂) :=
 by cases a; cases b; simp [h_distrib]
 
-/-- Symmetric of `option.map₂_map_left_comm`. -/
+/-!
+The following symmetric restatement are needed because unification has a hard time figuring all the
+functions if you symmetrize on the spot. This is also how the other n-ary APIs do it.
+-/
+
+/-- Symmetric statement to `option.map₂_map_left_comm`. -/
 lemma map_map₂_distrib_left {g : γ → δ} {f' : α' → β → δ} {g' : α → α'}
   (h_distrib : ∀ a b, g (f a b) = f' (g' a) b) :
   (map₂ f a b).map g = map₂ f' (a.map g') b :=
 by cases a; cases b; simp [h_distrib]
 
-/-- Symmetric of `option.map_map₂_right_comm`. -/
+/-- Symmetric statement to `option.map_map₂_right_comm`. -/
 lemma map_map₂_distrib_right {g : γ → δ} {f' : α → β' → δ} {g' : β → β'}
   (h_distrib : ∀ a b, g (f a b) = f' a (g' b)) :
   (map₂ f a b).map g = map₂ f' a (b.map g') :=
 by cases a; cases b; simp [h_distrib]
 
-/-- Symmetric of `option.map_map₂_distrib_left`. -/
+/-- Symmetric statement to `option.map_map₂_distrib_left`. -/
 lemma map₂_map_left_comm {f : α' → β → γ} {g : α → α'} {f' : α → β → δ} {g' : δ → γ}
   (h_left_comm : ∀ a b, f (g a) b = g' (f' a b)) :
   map₂ f (a.map g) b = (map₂ f' a b).map g' :=
 by cases a; cases b; simp [h_left_comm]
 
-/-- Symmetric of `option.map_map₂_distrib_right`. -/
+/-- Symmetric statement to `option.map_map₂_distrib_right`. -/
 lemma map_map₂_right_comm {f : α → β' → γ} {g : β → β'} {f' : α → β → δ} {g' : δ → γ}
   (h_right_comm : ∀ a b, f a (g b) = g' (f' a b)) :
   map₂ f a (b.map g) = (map₂ f' a b).map g' :=
@@ -138,25 +143,25 @@ lemma map_map₂_antidistrib {g : γ → δ} {f' : β' → α' → δ} {g₁ : �
   (map₂ f a b).map g = map₂ f' (b.map g₁) (a.map g₂) :=
 by cases a; cases b; simp [h_antidistrib]
 
-/-- Symmetric of `option.map₂_map_left_anticomm`. -/
+/-- Symmetric statement to `option.map₂_map_left_anticomm`. -/
 lemma map_map₂_antidistrib_left {g : γ → δ} {f' : β' → α → δ} {g' : β → β'}
   (h_antidistrib : ∀ a b, g (f a b) = f' (g' b) a) :
   (map₂ f a b).map g = map₂ f' (b.map g') a :=
 by cases a; cases b; simp [h_antidistrib]
 
-/-- Symmetric of `option.map_map₂_right_anticomm`. -/
+/-- Symmetric statement to `option.map_map₂_right_anticomm`. -/
 lemma map_map₂_antidistrib_right {g : γ → δ} {f' : β → α' → δ} {g' : α → α'}
   (h_antidistrib : ∀ a b, g (f a b) = f' b (g' a)) :
   (map₂ f a b).map g = map₂ f' b (a.map g') :=
 by cases a; cases b; simp [h_antidistrib]
 
-/-- Symmetric of `option.map_map₂_antidistrib_left`. -/
+/-- Symmetric statement to `option.map_map₂_antidistrib_left`. -/
 lemma map₂_map_left_anticomm {f : α' → β → γ} {g : α → α'} {f' : β → α → δ} {g' : δ → γ}
   (h_left_anticomm : ∀ a b, f (g a) b = g' (f' b a)) :
   map₂ f (a.map g) b = (map₂ f' b a).map g' :=
 by cases a; cases b; simp [h_left_anticomm]
 
-/-- Symmetric of `option.map_map₂_antidistrib_right`. -/
+/-- Symmetric statement to `option.map_map₂_antidistrib_right`. -/
 lemma map_map₂_right_anticomm {f : α → β' → γ} {g : β → β'} {f' : β → α → δ} {g' : δ → γ}
   (h_right_anticomm : ∀ a b, f a (g b) = g' (f' b a)) :
   map₂ f a (b.map g) = (map₂ f' b a).map g' :=

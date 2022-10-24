@@ -2835,25 +2835,25 @@ lemma image_image2_distrib {g : γ → δ} {f' : α' → β' → δ} {g₁ : α 
   (image2 f s t).image g = image2 f' (s.image g₁) (t.image g₂) :=
 by simp_rw [image_image2, image2_image_left, image2_image_right, h_distrib]
 
-/-- Symmetric of `set.image2_image_left_comm`. -/
+/-- Symmetric statement to `set.image2_image_left_comm`. -/
 lemma image_image2_distrib_left {g : γ → δ} {f' : α' → β → δ} {g' : α → α'}
   (h_distrib : ∀ a b, g (f a b) = f' (g' a) b) :
   (image2 f s t).image g = image2 f' (s.image g') t :=
 (image_image2_distrib h_distrib).trans $ by rw image_id'
 
-/-- Symmetric of `set.image_image2_right_comm`. -/
+/-- Symmetric statement to `set.image_image2_right_comm`. -/
 lemma image_image2_distrib_right {g : γ → δ} {f' : α → β' → δ} {g' : β → β'}
   (h_distrib : ∀ a b, g (f a b) = f' a (g' b)) :
   (image2 f s t).image g = image2 f' s (t.image g') :=
 (image_image2_distrib h_distrib).trans $ by rw image_id'
 
-/-- Symmetric of `set.image_image2_distrib_left`. -/
+/-- Symmetric statement to `set.image_image2_distrib_left`. -/
 lemma image2_image_left_comm {f : α' → β → γ} {g : α → α'} {f' : α → β → δ} {g' : δ → γ}
   (h_left_comm : ∀ a b, f (g a) b = g' (f' a b)) :
   image2 f (s.image g) t = (image2 f' s t).image g' :=
 (image_image2_distrib_left $ λ a b, (h_left_comm a b).symm).symm
 
-/-- Symmetric of `set.image_image2_distrib_right`. -/
+/-- Symmetric statement to `set.image_image2_distrib_right`. -/
 lemma image_image2_right_comm {f : α → β' → γ} {g : β → β'} {f' : α → β → δ} {g' : δ → γ}
   (h_right_comm : ∀ a b, f a (g b) = g' (f' a b)) :
   image2 f s (t.image g) = (image2 f' s t).image g' :=
@@ -2884,25 +2884,25 @@ lemma image_image2_antidistrib {g : γ → δ} {f' : β' → α' → δ} {g₁ :
   (image2 f s t).image g = image2 f' (t.image g₁) (s.image g₂) :=
 by { rw image2_swap f, exact image_image2_distrib (λ _ _, h_antidistrib _ _) }
 
-/-- Symmetric of `set.image2_image_left_anticomm`. -/
+/-- Symmetric statement to `set.image2_image_left_anticomm`. -/
 lemma image_image2_antidistrib_left {g : γ → δ} {f' : β' → α → δ} {g' : β → β'}
   (h_antidistrib : ∀ a b, g (f a b) = f' (g' b) a) :
   (image2 f s t).image g = image2 f' (t.image g') s :=
 (image_image2_antidistrib h_antidistrib).trans $ by rw image_id'
 
-/-- Symmetric of `set.image_image2_right_anticomm`. -/
+/-- Symmetric statement to `set.image_image2_right_anticomm`. -/
 lemma image_image2_antidistrib_right {g : γ → δ} {f' : β → α' → δ} {g' : α → α'}
   (h_antidistrib : ∀ a b, g (f a b) = f' b (g' a)) :
   (image2 f s t).image g = image2 f' t (s.image g') :=
 (image_image2_antidistrib h_antidistrib).trans $ by rw image_id'
 
-/-- Symmetric of `set.image_image2_antidistrib_left`. -/
+/-- Symmetric statement to `set.image_image2_antidistrib_left`. -/
 lemma image2_image_left_anticomm {f : α' → β → γ} {g : α → α'} {f' : β → α → δ} {g' : δ → γ}
   (h_left_anticomm : ∀ a b, f (g a) b = g' (f' b a)) :
   image2 f (s.image g) t = (image2 f' t s).image g' :=
 (image_image2_antidistrib_left $ λ a b, (h_left_anticomm b a).symm).symm
 
-/-- Symmetric of `set.image_image2_antidistrib_right`. -/
+/-- Symmetric statement to `set.image_image2_antidistrib_right`. -/
 lemma image_image2_right_anticomm {f : α → β' → γ} {g : β → β'} {f' : β → α → δ} {g' : δ → γ}
   (h_right_anticomm : ∀ a b, f a (g b) = g' (f' b a)) :
   image2 f s (t.image g) = (image2 f' t s).image g' :=

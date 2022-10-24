@@ -15,9 +15,9 @@ import group_theory.perm.list
 import group_theory.perm.cycle.concrete
 import group_theory.group_action.quotient
 import group_theory.specific_groups.alternating
-import group_theory.abelianization
+-- import group_theory.abelianization
 
-import group_theory.sylow
+-- import group_theory.sylow
 
 -- import .sub_mul_actions
 -- import .multiple_transitivity
@@ -77,7 +77,7 @@ begin
   exact (classical.some_spec (exists_apply_eq_apply f a)),
 end
 
-
+/-
 def subgroup.mul_equiv {α β : Type*} [group α] [group β] (e : mul_equiv α β)
   {G : subgroup α} {H : subgroup β} (h : ∀ g, g ∈ G ↔ e g ∈ H) :
   mul_equiv G H :=
@@ -103,6 +103,7 @@ def subgroup.mul_equiv {α β : Type*} [group α] [group β] (e : mul_equiv α �
     simp only [subtype.map_coe],
     simp only [mul_mem_class.mk_mul_mk, subgroup.coe_mk, mul_equiv.to_fun_eq_coe, map_mul],
   end, }
+-/
 
 section lists
 
@@ -228,50 +229,6 @@ end
 end stabilizers
 
 
-section junk
-
-variables (α : Type*) [decidable_eq α] [fintype α]
-
-
-def K4'  := finset.filter (λ g : equiv.perm (fin 4), g = 1 ∨ (equiv.perm.cycle_type g = {2,2}))
-  (set.univ).to_finset
-
-#check K4'
-
-/- Lean calcule K4.card = 4 mais c'est lent ! -/
--- #eval K4.card
-
-/- c = {c1,...,cm}
-  on choisit un cycle de longueur c1 : n!/(n-c1)! c1
-  un autre de longueur c2 : (n-c1)!/(n-c1-c2)! c2
-  etc., ce qui donne n!/((n - c.sum)! * c.prod)
-  et il reste à diviser par les permutations possibles des cycles de même longueur :
-  pour chaque k, dk = nombre de i tq ci = k
-  diviser par prod (dk!) -/
-
-
-def foo (c : multiset ℕ) (n : ℕ) := if (c.sum ≤ n) then
-  n.factorial / ((n - c.sum).factorial * c.prod
-  * multiset.prod ((multiset.map (λ n, (multiset.count n c).factorial) c.dedup)))
-else 0
-
-#eval foo {2} 5
-#eval foo {2,2} 4
-#eval foo {2,4} 5
-
-def f : list ℕ → list ℕ
-  | [] := list.nil
-  | (a :: l) := (a :: list.map (nat.add a) (f l))
-
-#eval f [2,5,9]
-
-def list.ranges' : list ℕ → list (finset ℕ)
-  | [] := list.nil
-  | (a :: l) := (finset.range(a) :: list.map (finset.image (nat.add a)) (list.ranges' l))
-
-#eval list.ranges' [2,5,4]
-
-end junk
 
 section ranges
 
@@ -727,6 +684,7 @@ begin
     rw H g (subgroup.mem_zpowers g), },
 end
 
+/-
 example (g : equiv.perm α) : mul_action.stabilizer (conj_act (equiv.perm α)) g
 ≃* subgroup.centralizer (subgroup.zpowers g) :=
   subgroup.mul_equiv (conj_act.of_conj_act)
@@ -743,6 +701,8 @@ example (g : equiv.perm α) : mul_action.stabilizer (conj_act (equiv.perm α)) g
 example {α β : Type*} [decidable_eq α] [decidable_eq β] [group α] [mul_action α β]
   (s : finset β) (g : α) : coe (g • s)  = g • (s : set β) :=
 finset.coe_smul_finset g s
+-/
+
 
 -- open_locale classical
 
@@ -826,14 +786,35 @@ end
 def equiv.perm.subtype_perm_of_support (c : equiv.perm α) : equiv.perm c.support :=
   equiv.perm.subtype_perm c (λ (x : α), equiv.perm.apply_mem_support.symm)
 
+/-- Restrict a permutation to a finset containing its support -/
+def equiv.perm.subtype_perm_of_support_le (c : equiv.perm α)
+(s : finset α) (hcs : c.support ≤ s) : equiv.perm s :=
+  equiv.perm.subtype_perm c
+(begin
+  intro x,
+  by_cases hx' : x ∈ c.support,
+  { simp only [hcs hx', true_iff],
+    apply hcs, rw equiv.perm.apply_mem_support, exact hx', },
+  rw equiv.perm.not_mem_support at hx', rw hx', end)
+
+lemma equiv.perm.le_support_is_invariant {c : equiv.perm α} {s : finset α}
+(hcs : c.support ≤ s) (x : α) : x ∈ s ↔ c x ∈ s :=
+begin
+  by_cases hx' : x ∈ c.support,
+  { simp only [hcs hx', true_iff],
+    exact hcs (equiv.perm.apply_mem_support.mpr hx'), },
+  rw equiv.perm.not_mem_support.mp hx',
+end
 
 /-- Support of a cycle is nonempty -/
 lemma equiv.perm.support_of_cycle_nonempty {g : equiv.perm α} (hg : g.is_cycle) :
   g.support.nonempty :=
 begin
-  rw ←  finset.card_pos,
+  rw [finset.nonempty_iff_ne_empty, ne.def, equiv.perm.support_eq_empty_iff],
+  exact equiv.perm.is_cycle.ne_one hg,
+  /- rw ←  finset.card_pos,
   apply lt_of_lt_of_le _ (equiv.perm.is_cycle.two_le_card_support hg),
-  norm_num,
+  norm_num, -/
 end
 
 
@@ -966,20 +947,12 @@ end
 
 lemma equiv.perm.zpow_eq_of_subtype_subtype_perm_iff (g c : equiv.perm α)
   (s : finset α) (hg : ∀ x, x ∈ s ↔ g x ∈ s) (hc : c.support ⊆ s) (n : ℤ) :
-let hc' : ∀ x, x ∈ s ↔ c x ∈ s :=
-begin
-  intro x,
-  by_cases hx' : x ∈ c.support,
-  { simp only [hc hx', true_iff],
-    apply hc, rw equiv.perm.apply_mem_support, exact hx', },
-  rw equiv.perm.not_mem_support at hx', rw hx',
-end in
   c ^ n = equiv.perm.of_subtype (g.subtype_perm hg)
-  ↔ c.subtype_perm hc' ^ n = g.subtype_perm hg :=
+  ↔ c.subtype_perm (equiv.perm.le_support_is_invariant hc) ^ n = g.subtype_perm hg :=
 begin
   split,
   { intro h, ext ⟨x, hx⟩, let h' := equiv.perm.congr_fun h x,
-    simp only [h', equiv.perm.subtype_perm_of_support, equiv.perm.subtype_perm_apply_zpow_of_mem, subtype.coe_mk,
+    simp only [h', equiv.perm.subtype_perm_apply_zpow_of_mem, subtype.coe_mk,
   equiv.perm.subtype_perm_apply],
     rw equiv.perm.of_subtype_apply_of_mem,
     simp only [subtype.coe_mk, equiv.perm.subtype_perm_apply],
@@ -1066,7 +1039,7 @@ begin
   exact ((equiv.perm.mem_cycle_factors_finset_iff.mp hc).2 x hx).symm,
 end
 
-lemma equiv.perm.centralizer_mem_cycle_factors_iff (g k : equiv.perm α) (c : equiv.perm α) (hc : c ∈ g.cycle_factors_finset) :
+lemma equiv.perm.centralizer_mem_cycle_factors_iff' (g k : equiv.perm α) (c : equiv.perm α) (hc : c ∈ g.cycle_factors_finset) :
   k * c = c * k ↔
   ∃ (hc' : ∀ (x : α), x ∈ c.support ↔ k x ∈ c.support),
       k.subtype_perm hc' ∈ subgroup.zpowers (g.subtype_perm
@@ -1084,7 +1057,7 @@ begin
     exact ⟨hc', H'⟩, },
 end
 
-lemma equiv.perm.centralizer_mem_cycle_factors_iff' (g k : equiv.perm α) (c : equiv.perm α) (hc : c ∈ g.cycle_factors_finset) :
+lemma equiv.perm.centralizer_mem_cycle_factors_iff (g k : equiv.perm α) (c : equiv.perm α) (hc : c ∈ g.cycle_factors_finset) :
   k * c = c * k ↔
   ∃ (hc' : ∀ (x : α), x ∈ c.support ↔ k x ∈ c.support),
       (k.subtype_perm hc').of_subtype ∈ subgroup.zpowers c :=
@@ -1938,8 +1911,8 @@ begin
 end
 
 
--- noyau : un groupe symétrique x produit de groupes cycliques
-lemma hφ_mem_ker_iff (z : equiv.perm α) :
+-- noyau : commute with each cycle of g
+lemma hφ_mem_ker_iff' (z : equiv.perm α) :
   conj_act.to_conj_act z ∈
     subgroup.map (mul_action.stabilizer (conj_act (equiv.perm α)) g).subtype (φ g).ker
   ↔ ∀ (t : equiv.perm α) (ht : t ∈ g.cycle_factors_finset), z * t = t * z :=
@@ -1991,19 +1964,20 @@ begin
 end
  -/
 
-lemma hφ_mem_ker_iff' (z : equiv.perm α) :
+-- un groupe symétrique x produit de groupes cycliques
+lemma hφ_mem_ker_iff (z : equiv.perm α) :
   conj_act.to_conj_act z ∈
     subgroup.map (mul_action.stabilizer (conj_act (equiv.perm α)) g).subtype (φ g).ker
   ↔  ∀ (s : equiv.perm α) (hs : s ∈ g.cycle_factors_finset),
     ∃ (hs' : ∀ (x : α), x ∈ s.support ↔ z x ∈ s.support),
       (equiv.perm.subtype_perm z hs').of_subtype ∈ subgroup.zpowers s :=
 begin
-  rw hφ_mem_ker_iff,
+  rw hφ_mem_ker_iff',
   refine forall_congr _,
   intro c,
   refine forall_congr _,
   intro hc,
-  rw equiv.perm.centralizer_mem_cycle_factors_iff' g z c hc,
+  rw equiv.perm.centralizer_mem_cycle_factors_iff g z c hc,
 end
 
 def ψ_aux (s : finset (equiv.perm α)) (hs : s ⊆ g.cycle_factors_finset) :
@@ -2190,7 +2164,7 @@ lemma hφ_ker_eq_ψ_range (z : equiv.perm α) :
     subgroup.map (mul_action.stabilizer (conj_act (equiv.perm α)) g).subtype (φ g).ker
   ↔  z ∈ set.range (ψ g) :=
 begin
-  rw hφ_mem_ker_iff',
+  rw hφ_mem_ker_iff,
   rw [set.mem_range],
   split,
   { intro Hz,
@@ -2201,29 +2175,35 @@ begin
       simp only [mul_action.mem_fixed_by, equiv.perm.smul_def],
       simp only [← equiv.perm.not_mem_support],
       rw not_iff_not,
-
       split,
       { intro hx,
         let hx' := id hx,
         rw ← equiv.perm.cycle_of_mem_cycle_factors_finset_iff at hx',
-
         obtain ⟨Hz'⟩ := Hz (g.cycle_of x) hx',
         specialize Hz' x,
+        simp only [equiv.perm.coe_mul, function.comp_app, equiv.perm.cycle_of_apply_self] at Hz',
         apply equiv.perm.mem_cycle_factors_finset_support_le hx',
-        rw ← Hz', rw equiv.perm.mem_support_cycle_of_iff,
-        split, apply equiv.perm.same_cycle.refl, exact hx, },
+        rw [equiv.perm.mem_support, ← Hz', ne.def, embedding_like.apply_eq_iff_eq, ← ne.def, ← equiv.perm.mem_support],
+        exact hx, },
       { intro hzx,
         let hzx' := id hzx,
         rw ← equiv.perm.cycle_of_mem_cycle_factors_finset_iff at hzx',
-        obtain ⟨Hz'⟩ := Hz (g.cycle_of (z x)) hzx',
-        specialize Hz' x,
-        simp only [equiv.perm.mem_support_cycle_of_iff,
-        equiv.perm.same_cycle.refl, true_and, and_true, hzx, iff_true] at Hz',
-        rw ← equiv.perm.same_cycle.mem_support_iff Hz',
+        have Hz' := equiv.perm.congr_fun (Hz (g.cycle_of (z x)) hzx') x,
+        simp only [equiv.perm.coe_mul, function.comp_app, equiv.perm.cycle_of_apply_self] at Hz',
+        rw ← equiv.perm.same_cycle.mem_support_iff _,
+        exact hzx,
+        refine (equiv.perm.mem_support_cycle_of_iff.mp _).1,
+        rw [equiv.perm.mem_support, ne.def,← embedding_like.apply_eq_iff_eq z, ← ne.def, Hz', ← equiv.perm.mem_support],
         exact hzx, }, },
     let u := equiv.perm.subtype_perm z hu,
     let v : Π (c : equiv.perm α), c ∈ g.cycle_factors_finset → ↥(subgroup.zpowers c) := λ c hc, ⟨
-        (equiv.perm.of_subtype (z.subtype_perm (classical.some (Hz c hc)))), classical.some_spec (Hz c hc) ⟩,
+        (equiv.perm.of_subtype (z.subtype_perm (
+          begin
+            sorry -- classical.some (Hz c hc)))
+          end))),
+          begin
+            sorry -- classical.some_spec (Hz c hc)
+          end⟩,
     use ⟨u,v⟩,
     ext x,
     by_cases hx : x ∈ g.support,
@@ -2518,327 +2498,57 @@ end
 
 end on_cycle_factors
 
-section K4
 
-namespace alternating_group
+
+#exit
+
+
+section junk
 
 variables (α : Type*) [decidable_eq α] [fintype α]
 
-def K4_carrier : finset (equiv.perm α) := finset.univ.filter (λ g, g.cycle_type = {} ∨ g.cycle_type = {2,2})
 
-example (hα4: fintype.card α = 4) (g : equiv.perm α) (n : ℕ) (hg : order_of g = 2 ^ n) : g.cycle_type = {} ∨ g.cycle_type = {2} ∨ g.cycle_type = {2, 2} ∨ g.cycle_type = {4} :=
-begin
-  rw ← equiv.perm.lcm_cycle_type  at hg,
+def K4'  := finset.filter (λ g : equiv.perm (fin 4), g = 1 ∨ (equiv.perm.cycle_type g = {2,2}))
+  (set.univ).to_finset
 
-  have hg4 : g.cycle_type.sum ≤ 4,
-  { rw ← hα4, rw equiv.perm.sum_cycle_type, apply finset.card_le_univ, },
-  simp only [← or_assoc],
-  by_cases h4 : 4 ∈ g.cycle_type,
-  { apply or.intro_right,
-    rw ← multiset.cons_erase h4,
-    apply symm,
-    rw multiset.singleton_eq_cons_iff,
-    apply and.intro (rfl),
-    rw ← multiset.cons_erase h4 at hg4,
-    simp only [multiset.sum_cons, add_le_iff_nonpos_right, le_zero_iff, multiset.sum_eq_zero_iff] at hg4,
-    ext x, simp only [multiset.count_zero, multiset.count_eq_zero],
-    intro hx,
-    apply not_le.mpr (equiv.perm.one_lt_of_mem_cycle_type (multiset.mem_of_mem_erase hx)),
-    rw hg4 x hx, norm_num, },
-  { -- 4 ∉ g.cycle_type,
-    apply or.intro_left,
-    suffices : ∃ n, g.cycle_type = multiset.repeat 2 n,
-    { obtain ⟨k, hk⟩ := this,
-      -- prove : k ← 2
-      have hk2 : k ≤ 2,
-      { rw hk at hg4, rw multiset.sum_repeat at hg4,
-        apply nat.le_of_mul_le_mul_left, rw mul_comm 2 k, exact hg4,
-        norm_num, },
-      cases nat.eq_or_lt_of_le hk2 with hk2 hk1,
-      apply or.intro_right, rw [hk, hk2], refl,
-      apply or.intro_left,
-      rw nat.lt_succ_iff at hk1,
-      cases nat.eq_or_lt_of_le hk1 with hk1 hk0,
-      apply or.intro_right, rw [hk, hk1], refl,
-      simp only [nat.lt_one_iff] at hk0,
-      apply or.intro_left, rw [hk, hk0], refl, },
+#check K4'
 
-    use g.cycle_type.card,
-    rw multiset.eq_repeat',
-    intros i hi,
-    have := multiset.dvd_lcm hi, rw [hg, nat.dvd_prime_pow] at this,
-    obtain ⟨k, ⟨hk, rfl⟩⟩ := this,
-    suffices : k = 1,
-    rw this, norm_num,
-    apply le_antisymm,
-    rw ← not_lt, intro hk1,
-    suffices : k = 2,
-    apply h4, rw this at hi, exact hi,
-    refine le_antisymm _ hk1,
-    { -- k ≤ 2
-      rw ← nat.pow_le_iff_le_right (nat.le_refl 2),
-      norm_num, rw ← hα4,
-      apply le_trans (equiv.perm.le_card_support_of_mem_cycle_type hi),
-      apply finset.card_le_univ, },
-    rw nat.one_le_iff_ne_zero, intro hk0,
-    rw hk0 at hi, norm_num at hi,
-    apply nat.lt_irrefl 1, exact equiv.perm.one_lt_of_mem_cycle_type hi,
-    norm_num, },
-end
+/- Lean calcule K4.card = 4 mais c'est lent ! -/
+-- #eval K4.card
 
-lemma mem_K4_of_order_two_pow (hα4: fintype.card α = 4)
-  (g : equiv.perm α) (hg0 : g ∈ alternating_group α) (n : ℕ) (hg : order_of g ∣ 2 ^ n) : g ∈ K4_carrier α
-:=
-begin
-  rw ← equiv.perm.lcm_cycle_type  at hg,
-  rw [equiv.perm.mem_alternating_group, equiv.perm.sign_of_cycle_type] at hg0,
-
-  have hg4 : g.cycle_type.sum ≤ 4,
-  { rw ← hα4, rw equiv.perm.sum_cycle_type, apply finset.card_le_univ, },
-
-  by_cases h4 : 4 ∈ g.cycle_type,
-  { exfalso,
-    suffices : g.cycle_type = {4},
-    rw [this, ← units.eq_iff] at hg0, norm_num at hg0,
-    rw ← multiset.cons_erase h4,
-    apply symm,
-    rw multiset.singleton_eq_cons_iff,
-    apply and.intro (rfl),
-    rw ← multiset.cons_erase h4 at hg4,
-    simp only [multiset.sum_cons, add_le_iff_nonpos_right, le_zero_iff, multiset.sum_eq_zero_iff] at hg4,
-    ext x, simp only [multiset.count_zero, multiset.count_eq_zero],
-    intro hx,
-    apply not_le.mpr (equiv.perm.one_lt_of_mem_cycle_type (multiset.mem_of_mem_erase hx)),
-    rw hg4 x hx, norm_num, },
-  { -- we know 4 ∉ g.cycle_type,
-    suffices : g.cycle_type = multiset.repeat 2 (g.cycle_type.card),
-    { rw this at hg0,
-      simp only [pow_add, pow_mul, multiset.sum_repeat, algebra.id.smul_eq_mul, multiset.card_repeat, int.units_sq, one_mul] at hg0,
-      -- prove : g.cycle_type.card ≤ 2
-      have hk2 : g.cycle_type.card ≤ 2,
-      { rw this at hg4, rw multiset.sum_repeat at hg4,
-        apply nat.le_of_mul_le_mul_left, rw mul_comm 2 _, exact hg4,
-        norm_num, },
-      cases nat.eq_or_lt_of_le hk2 with hk2 hk1,
-      -- g.cycle_type.card = 2
-      rw hk2 at this, simp only [K4_carrier, finset.mem_filter, this],
-      simp only [finset.mem_univ, multiset.repeat_succ, multiset.repeat_one, multiset.empty_eq_zero, multiset.cons_ne_zero, multiset.insert_eq_cons, eq_self_iff_true, false_or, and_self],
-      -- we know : g.cycle_type.card ≤ 1
-      rw nat.lt_succ_iff at hk1,
-      cases nat.eq_or_lt_of_le hk1 with hk1 hk0,
-      -- g.cycle_type.card = 1 : exfalso
-      exfalso, rw [hk1, ← units.eq_iff] at hg0, norm_num at hg0,
-      -- g.cycle_type.card = 0
-      simp only [nat.lt_one_iff] at hk0,
-      rw hk0 at this, simp only [K4_carrier, finset.mem_filter, this],
-      simp, },
-
-    rw multiset.eq_repeat',
-    intros i hi,
-    have := dvd_trans (multiset.dvd_lcm hi) hg,
-    rw [nat.dvd_prime_pow] at this,
-    obtain ⟨k, ⟨hk, rfl⟩⟩ := this,
-    suffices : k = 1, rw this, norm_num,
-    apply le_antisymm,
-    rw ← not_lt, intro hk1,
-    suffices : k = 2,
-    apply h4, rw this at hi, exact hi,
-    refine le_antisymm _ hk1,
-    { -- k ≤ 2
-      rw ← nat.pow_le_iff_le_right (nat.le_refl 2),
-      norm_num, rw ← hα4,
-      apply le_trans (equiv.perm.le_card_support_of_mem_cycle_type hi),
-      apply finset.card_le_univ, },
-    rw nat.one_le_iff_ne_zero, intro hk0,
-    rw hk0 at hi, norm_num at hi,
-    apply nat.lt_irrefl 1, exact equiv.perm.one_lt_of_mem_cycle_type hi,
-    norm_num, },
-end
-
-lemma K4_carrier_card (hα4 : fintype.card α = 4) : finset.card (K4_carrier α) = 4 :=
-begin
-  simp only [K4_carrier],
-  simp only [finset.filter_or],
-  rw finset.card_union_eq _,
-  simp [on_cycle_factors.equiv.perm.card_of_cycle_type, hα4],
-  norm_num,
-  -- disjoint
-  intro x, simp only [multiset.empty_eq_zero, multiset.insert_eq_cons, finset.inf_eq_inter, finset.mem_inter, finset.mem_filter,
-  finset.mem_univ, true_and, finset.bot_eq_empty, finset.not_mem_empty, and_imp],
-  intro hx, rw hx, exact multiset.zero_ne_cons,
-end
-
-lemma K4_is_sylow (hα4 : fintype.card α = 4) (S : sylow 2 (alternating_group α)) :
-  (K4_carrier α : set (equiv.perm α))= (subgroup.map (alternating_group α).subtype S) :=
-begin
-  classical,
-  suffices hS4 : fintype.card S = 4,
-  apply symm,
-  apply set.eq_of_subset_of_card_le,
-
-  { -- inclusion S ⊆ K4
-    intros k hk,
-    simp only [subgroup.coe_map, subgroup.coe_subtype, set.mem_image, set_like.mem_coe] at hk,
-    obtain ⟨⟨g, hg⟩, ⟨hg', rfl⟩⟩ := hk,
-    simp only [subgroup.coe_mk, finset.mem_coe],
-    apply mem_K4_of_order_two_pow α hα4 g hg 2,
-    norm_num,
-    rw order_of_dvd_iff_pow_eq_one,
-    have : order_of (⟨⟨g, hg⟩, hg'⟩ : S) ∣ fintype.card S := order_of_dvd_card_univ,
-    rw [hS4, order_of_dvd_iff_pow_eq_one] at this,
-    simp only [← subtype.coe_inj, submonoid_class.mk_pow, subgroup.coe_mk, subgroup.coe_one] at this,
-    exact this, },
-
-  -- card K4 ≤ card S
-  simp only [finset.coe_sort_coe, fintype.card_coe, K4_carrier_card α hα4],
-  apply le_of_eq, rw ← hS4,
-  let u : S → subgroup.map (alternating_group α).subtype S := λ g,
-    ⟨(alternating_group α).subtype g, ⟨g, ⟨g.prop, rfl⟩⟩⟩,
-  have hu : function.bijective u,
-  { split,
-    { intros x y, simp [u], },
-    { rintro ⟨x, hx⟩,
-      simp only [subgroup.mem_map, subgroup.coe_subtype, exists_prop] at hx,
-      obtain ⟨y, ⟨hy, rfl⟩⟩ := hx,
-      use ⟨y, hy⟩,
-      simp [u], }, },
-  rw fintype.card_of_bijective hu, refl,
-
-  -- card S = 4
-  rw sylow.card_eq_multiplicity, rw ← nat.factors_count_eq ,
-  -- rw nat.factorization_def,
-  suffices : list.count 2 (fintype.card (alternating_group α)).factors = 2,
-  rw this, norm_num,
-
-  suffices : fintype.card (alternating_group α) = 12,
-  rw this, norm_num,
-
-  haveI : nontrivial α, rw [← fintype.one_lt_card_iff_nontrivial, hα4], norm_num,
-  rw [← nat.mul_right_inj, two_mul_card_alternating_group, fintype.card_perm, hα4],
-  norm_num, norm_num,
-end
-
-lemma K4_carrier_is_subgroup (hα4 : fintype.card α = 4) : ∃ S : subgroup ↥(alternating_group α), (K4_carrier α : set (equiv.perm α)) = (subgroup.map (alternating_group α).subtype S) :=
-begin
-  obtain ⟨S : sylow 2 (alternating_group α)⟩ := sylow.nonempty ,
-  use S,
-  exact K4_is_sylow α hα4 S,
-end
-
-lemma K4_carrier_le_alternating (hα4: fintype.card α = 4) :
-  (K4_carrier α : set (equiv.perm α)) ⊆ (alternating_group α : set (equiv.perm α)) :=
-begin
-  obtain ⟨S, hS⟩ := K4_carrier_is_subgroup α hα4,
-  rw hS, simp only [subgroup.coe_map, subgroup.coe_subtype, set.image_subset_iff],
-  rintros ⟨g,  hg⟩ h,
-  simp only [set.mem_preimage, subgroup.coe_mk, set_like.mem_coe, hg],
-end
-
-def K4 (hα4 : fintype.card α = 4) : subgroup (alternating_group α) := {
-carrier := coe ⁻¹' (K4_carrier α : set (equiv.perm α)),
-mul_mem' :=
-begin
-  obtain ⟨S, hS⟩ := K4_carrier_is_subgroup α hα4,
-  rintros ⟨a, ha⟩ ⟨b, hb⟩ ha' hb',
-  simp only [hS, subgroup.coe_map, subgroup.coe_subtype, set.mem_preimage, subgroup.coe_mk, set.mem_image, set_like.mem_coe] at ha' hb',
-  obtain ⟨a', ⟨ha', rfl⟩⟩ := ha',
-  obtain ⟨b', ⟨hb', rfl⟩⟩ := hb',
-  simp only [hS, set.mem_preimage, set_like.eta],
-  use a' * b',
-  simp only [set_like.mem_coe, subgroup.coe_subtype, eq_self_iff_true, and_true],
-  exact mul_mem ha' hb',
-end,
-one_mem' :=
-begin
-  obtain ⟨S, hS⟩ := K4_carrier_is_subgroup α hα4,
-  simp only [hS, set.mem_preimage],
-  use 1,
-  simp only [set_like.mem_coe, subgroup.coe_subtype, eq_self_iff_true, and_true, S.one_mem],
-end,
-inv_mem' :=
-begin
-  obtain ⟨S, hS⟩ := K4_carrier_is_subgroup α hα4,
-  rintros ⟨a, ha⟩ ha',
-  simp only [hS, subgroup.coe_map, subgroup.coe_subtype, set.mem_preimage, subgroup.coe_mk, set.mem_image, set_like.mem_coe] at ha',
-  obtain ⟨a', ⟨ha', rfl⟩⟩ := ha',
-  simp only [hS, set.mem_preimage, set_like.eta],
-  use a'⁻¹,
-  simp only [inv_mem ha', set_like.mem_coe, subgroup.coe_subtype, eq_self_iff_true, and_self],
-end }
-
-theorem K4_carrier_coe (hα4 : fintype.card α = 4) :
-  (K4 α hα4).carrier = coe ⁻¹' (K4_carrier α : set (equiv.perm α)) := rfl
-
-theorem K4_mem_iff (hα4 : fintype.card α = 4) (g : alternating_group α) :
-  g ∈ K4 α hα4  ↔ (g : equiv.perm α).cycle_type = {} ∨ (g : equiv.perm α).cycle_type = {2, 2} := by simp only [K4, K4_carrier, finset.coe_filter, finset.coe_univ, set.sep_univ, set.preimage_set_of_eq, subgroup.mem_mk,
-  set.mem_set_of_eq]
-
-instance K4_fintype (hα4 : fintype.card α = 4): fintype (K4 α hα4) :=
-begin
-  haveI : decidable_pred (λ (_x : ↥(alternating_group α)), _x ∈ K4 α hα4),
-  intro x, simp_rw K4_mem_iff,
-  apply_instance,
-  apply subgroup.fintype,
-end
-
-theorem K4_card (hα4 : fintype.card α = 4) :
-  fintype.card (K4 α hα4) = 4 :=
-begin
-  let u : K4 α hα4 → K4_carrier α := λ ⟨g, hg⟩, ⟨coe g,
-  begin
-    rw [← finset.mem_coe, ← set.mem_preimage, ← K4_carrier_coe α hα4],
-    exact hg,
-  end⟩,
-  rw ← K4_carrier_card α hα4,
-  have hu : function.bijective u,
-  { split,
-    rintros ⟨x, hx⟩ ⟨y, hy⟩, simp only [subtype.mk_eq_mk, set_like.coe_eq_coe, imp_self],
-    rintro ⟨x, hx⟩,
-    use ⟨x, K4_carrier_le_alternating α hα4 hx⟩,
-    simp [← subgroup.mem_carrier, K4_carrier_coe, hx],
-    simp [u], },
-  rw fintype.card_of_bijective hu,
-  simp only [fintype.card_coe],
-end
+/- c = {c1,...,cm}
+  on choisit un cycle de longueur c1 : n!/(n-c1)! c1
+  un autre de longueur c2 : (n-c1)!/(n-c1-c2)! c2
+  etc., ce qui donne n!/((n - c.sum)! * c.prod)
+  et il reste à diviser par les permutations possibles des cycles de même longueur :
+  pour chaque k, dk = nombre de i tq ci = k
+  diviser par prod (dk!) -/
 
 
-def sK4 (hα4 : fintype.card α = 4) : sylow 2 (alternating_group α) := {
-to_subgroup := K4 α hα4,
-is_p_group' :=
-begin
-  rw is_p_group.iff_card,
-  use 2, rw K4_card α hα4, norm_num,
-end,
-is_maximal' :=
-begin
-  classical,
-  intros Q hQ hQ',
-  obtain ⟨S, hS⟩ := is_p_group.exists_le_sylow hQ,
-  rw is_p_group.iff_card  at hQ,
-  apply le_antisymm _ hQ',
-  apply le_trans hS,
-  have := K4_is_sylow α hα4 S, -- rw K4_carrier_coe at this,
-  intros g hg,
-  rw [← subgroup.mem_carrier, K4_carrier_coe, set.mem_preimage, K4_is_sylow α hα4 S],
-  simp [hg],
-end }
+def foo (c : multiset ℕ) (n : ℕ) := if (c.sum ≤ n) then
+  n.factorial / ((n - c.sum).factorial * c.prod
+  * multiset.prod ((multiset.map (λ n, (multiset.count n c).factorial) c.dedup)))
+else 0
 
-theorem sK4_is_unique_two_sylow (hα4 : fintype.card α = 4) (S : sylow 2 (alternating_group α)) : S = sK4 α hα4 :=
-begin
-  apply symm, rw sylow.ext_iff,
-  have hS := S.is_maximal',
-  have hsK4 := (sK4 α hα4).is_p_group',
-  apply hS hsK4,
-  intros g hg,
-  simp only [sK4, sylow.to_subgroup_eq_coe] at hg ⊢,
-  rw [← subgroup.mem_carrier, K4_carrier_coe, set.mem_preimage, K4_is_sylow α hα4 S],
-  simp [hg],
-end
+#eval foo {2} 5
+#eval foo {2,2} 4
+#eval foo {2,4} 5
+
+def f : list ℕ → list ℕ
+  | [] := list.nil
+  | (a :: l) := (a :: list.map (nat.add a) (f l))
+
+#eval f [2,5,9]
+
+def list.ranges' : list ℕ → list (finset ℕ)
+  | [] := list.nil
+  | (a :: l) := (finset.range(a) :: list.map (finset.image (nat.add a)) (list.ranges' l))
+
+#eval list.ranges' [2,5,4]
+
+end junk
 
 
-end alternating_group
-
-end K4
 
 open_locale classical
 

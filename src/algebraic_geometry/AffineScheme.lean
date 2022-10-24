@@ -387,7 +387,7 @@ end
 
 lemma is_affine_open.exists_basic_open_le {X : Scheme} {U : opens X.carrier}
   (hU : is_affine_open U) {V : opens X.carrier} (x : V) (h : ↑x ∈ U) :
-  ∃ f : X.presheaf.obj (op U), X.basic_open f ⊆ V ∧ ↑x ∈ X.basic_open f :=
+  ∃ f : X.presheaf.obj (op U), X.basic_open f ≤ V ∧ ↑x ∈ X.basic_open f :=
 begin
   haveI : is_affine _ := hU,
   obtain ⟨_, ⟨_, ⟨r, rfl⟩, rfl⟩, h₁, h₂⟩ := (is_basis_basic_open (X.restrict U.open_embedding))

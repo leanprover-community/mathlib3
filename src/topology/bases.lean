@@ -88,7 +88,7 @@ begin
     exact generate_open.basic t ⟨ht, he⟩ },
 end
 
-/-- If a family of sets `s` generates the topology, then nonempty intersections of finite
+/-- If a family of sets `s` generates the topology, then intersections of finite
 subcollections of `s` form a topological basis. -/
 lemma is_topological_basis_of_subbasis {s : set (set α)} (hs : t = generate_from s) :
   is_topological_basis ((λ f, ⋂₀ f) '' {f : set (set α) | f.finite ∧ f ⊆ s}) :=

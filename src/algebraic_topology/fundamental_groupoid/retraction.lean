@@ -31,22 +31,18 @@ noncomputable theory
 
 universe u
 
-open fundamental_groupoid
-open category_theory
-open fundamental_groupoid_functor
+open fundamental_groupoid category_theory fundamental_groupoid_functor
 
-open_locale fundamental_groupoid
-open_locale unit_interval
+open_locale fundamental_groupoid unit_interval
 
+-- TODO: move to other file.
 /-- Helper to convert a continuous map to an arrow in the category Top. -/
-def top_hom_of_continuous_map
+def Top.hom_of_continuous_map
   {X Y : Type*} [topological_space X] [topological_space Y] (f : C(X, Y)) : Top.of X ⟶ Top.of Y := f
 
 
 section unbundled
 
-/-- We define `A ⊆ X` to be a topological subspace by defining the property `A_filter` picking
-elements of `A` out of `X`. This inherits the topology on `X` via `subtype.topological_space`. -/
 variables {X : Type*} {A : set X} [topological_space X]
 
 /-- The inclusion map `i : A → X` for `A ⊆ X` is just the restriction of `id X` to A. -/
@@ -78,63 +74,65 @@ variables {X : Type*} {A : set X} [topological_space X]
 /-- Helper to coerce a topological retraction to a continuous map. -/
 def to_continuous_map (r : top_retraction X A) : C(X, subtype A) :=
 { to_fun := r.to_fun,
-  continuous_to_fun :=  is_top_retraction.continuous r.top_retraction' }
+  continuous_to_fun := r.top_retraction'.continuous }
 
 /-- Coercing a topological retraction `to_fun` is the same as coercing it to a continuous map
 and then to a function. -/
 lemma coe_continuous_map_eq_to_fun (r : top_retraction X A) :
-  ⇑r.to_continuous_map = r.to_fun := by refl
+  ⇑r.to_continuous_map = r.to_fun := rfl
 
 /-- A topological retraction is a continuous map. -/
 @[priority 100]
 instance top_retraction.continuous_map_class :
   continuous_map_class (top_retraction X A) X (subtype A) :=
 { coe := top_retraction.to_fun,
-  coe_injective' := λr s h, by { cases r, cases s, congr' },
-  map_continuous := λr, is_top_retraction.continuous r.top_retraction' }
+  coe_injective' := λ r s h, by { cases r, cases s, congr' },
+  map_continuous := λ r, r.top_retraction'.continuous }
+
+/-- The identity function, interpreted as a top_retraction. -/
+protected def id : top_retraction X set.univ :=
+{ to_fun := (equiv.set.univ X).symm,
+  top_retraction' := by obviously }
+
+/-- There is always a top_retraction from a space to itself, namely `id`. -/
+instance : inhabited (top_retraction X set.univ) := ⟨top_retraction.id⟩
 
 /-- We show that if a topological retraction `r : X → A` exists, then the inclusion map `i : A → X`
 is a split monomorphism in the category Top. -/
 def split_mono_of_inclusion (r : top_retraction X A) :
-  split_mono (top_hom_of_continuous_map (inclusion X A)) :=
+  split_mono (Top.hom_of_continuous_map (inclusion X A)) :=
 { retraction := r.to_continuous_map,
   id' := begin
     apply fun_like.ext,
-    rw [top_hom_of_continuous_map, Top.top_comp, Top.top_id,
-        continuous_map.coe_mk, continuous_map.coe_mk, coe_continuous_map_eq_to_fun,
-        r.top_retraction'.id_of_retraction_of_inclusion],
-    intro x, refl,
+    exact λ x, congr_fun r.top_retraction'.id_of_retraction_of_inclusion x,
   end, }
 
 /-- We show that a topological retraction `r : X → A` is a split epimorphism in the category Top. -/
 def split_epi_of_retraction (r : top_retraction X A) :
-  split_epi (top_hom_of_continuous_map r.to_continuous_map) :=
+  split_epi (Top.hom_of_continuous_map r.to_continuous_map) :=
 { section_ := inclusion X A,
   id' := begin
     apply fun_like.ext,
-    rw [top_hom_of_continuous_map, Top.top_comp, Top.top_id,
-        continuous_map.coe_mk, continuous_map.coe_mk, coe_continuous_map_eq_to_fun,
-        r.top_retraction'.id_of_retraction_of_inclusion],
-    intro x, refl,
+    exact λ x, congr_fun r.top_retraction'.id_of_retraction_of_inclusion x,
   end, }
 
 /-- We show that if a topological retraction `r : X → A` exists, then the induced arrow between
 fundamental groupoids of the inclusion map `i : A → X` is split monomorphism in the category
 Groupoid. -/
 def fundamental_groupoid_split_mono (r : top_retraction X A) :
-  split_mono (πₘ (top_hom_of_continuous_map (inclusion X A))) :=
+  split_mono (πₘ (Top.hom_of_continuous_map (inclusion X A))) :=
 split_mono.map (split_mono_of_inclusion r) fundamental_groupoid_functor
 
 /-- We show that the induced arrow between fundamental groupoids of the topological retraction
 `r : X → A` is a split epimorphism in the category Groupoid. -/
 def fundamental_groupoid_split_epi (r : top_retraction X A) :
-  split_epi (πₘ (top_hom_of_continuous_map r.to_continuous_map)) :=
+  split_epi (πₘ (Top.hom_of_continuous_map r.to_continuous_map)) :=
 split_epi.map (split_epi_of_retraction r) fundamental_groupoid_functor
 
 /-- We show that the induced arrow of the topological retraction `r : X → A` in the fundamental
 groupoid is an epimorphism. -/
 lemma fundamental_groupoid_epi_of_top_retraction (r : top_retraction X A) :
-  epi (πₘ (top_hom_of_continuous_map r.to_continuous_map)) :=
+  epi (πₘ (Top.hom_of_continuous_map r.to_continuous_map)) :=
 split_epi.epi (fundamental_groupoid_split_epi r)
 
 end top_retraction

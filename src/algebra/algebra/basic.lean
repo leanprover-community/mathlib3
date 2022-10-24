@@ -743,7 +743,8 @@ def mk' (f : A →+* B) (h : ∀ (c : R) x, f (c • x) = c • f x) : A →ₐ[
   commutes' := λ c, by simp only [algebra.algebra_map_eq_smul_one, h, f.map_one],
   .. f }
 
-@[simp] lemma coe_mk' (f : A →+* B) (h : ∀ (c : R) x, f (c • x) = c • f x) : ⇑(mk' f h) = f := rfl
+@[simp, norm_cast]
+lemma coe_mk' (f : A →+* B) (h : ∀ (c : R) x, f (c • x) = c • f x) : ⇑(mk' f h) = f := rfl
 
 section
 

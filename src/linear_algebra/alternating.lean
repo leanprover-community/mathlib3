@@ -87,7 +87,7 @@ initialize_simps_projections alternating_map (to_fun → apply)
 
 @[simp] lemma to_fun_eq_coe : f.to_fun = f := rfl
 
-@[simp] lemma coe_mk (f : (ι → M) → N) (h₁ h₂ h₃) : ⇑(⟨f, h₁, h₂, h₃⟩ :
+@[simp, norm_cast] lemma coe_mk (f : (ι → M) → N) (h₁ h₂ h₃) : ⇑(⟨f, h₁, h₂, h₃⟩ :
   alternating_map R M N ι) = f := rfl
 
 theorem congr_fun {f g : alternating_map R M N ι} (h : f = g) (x : ι → M) : f x = g x :=

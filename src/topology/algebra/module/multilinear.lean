@@ -75,7 +75,7 @@ initialize_simps_projections continuous_multilinear_map
 
 @[continuity] lemma coe_continuous : continuous (f : (Π i, M₁ i) → M₂) := f.cont
 
-@[simp] lemma coe_coe : (f.to_multilinear_map : (Π i, M₁ i) → M₂) = f := rfl
+@[simp, norm_cast] lemma coe_coe : (f.to_multilinear_map : (Π i, M₁ i) → M₂) = f := rfl
 
 theorem to_multilinear_map_inj :
   function.injective (continuous_multilinear_map.to_multilinear_map :

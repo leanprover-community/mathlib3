@@ -199,7 +199,7 @@ protected def simps.apply {R S : Type*} [semiring R] [semiring S] (σ : R →+* 
 
 initialize_simps_projections linear_map (to_fun → apply)
 
-@[simp] lemma coe_mk {σ : R →+* S} (f : M → M₃) (h₁ h₂) :
+@[simp, norm_cast] lemma coe_mk {σ : R →+* S} (f : M → M₃) (h₁ h₂) :
   ((linear_map.mk f h₁ h₂ : M →ₛₗ[σ] M₃) : M → M₃) = f := rfl
 
 /-- Identity map as a `linear_map` -/

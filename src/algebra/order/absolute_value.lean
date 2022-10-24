@@ -57,7 +57,8 @@ instance subadditive_hom_class : subadditive_hom_class (absolute_value R S) R S 
 { map_add_le_add := λ f, f.add_le',
   ..absolute_value.zero_hom_class }
 
-@[simp] lemma coe_mk (f : R →ₙ* S) {h₁ h₂ h₃} : ((absolute_value.mk f h₁ h₂ h₃) : R → S) = f := rfl
+@[simp, norm_cast]
+lemma coe_mk (f : R →ₙ* S) {h₁ h₂ h₃} : ((absolute_value.mk f h₁ h₂ h₃) : R → S) = f := rfl
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly. -/

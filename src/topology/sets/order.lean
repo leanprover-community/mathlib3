@@ -37,7 +37,7 @@ lemma clopen (s : clopen_upper_set α) : is_clopen (s : set α) := s.clopen'
 @[ext] protected lemma ext {s t : clopen_upper_set α} (h : (s : set α) = t) : s = t :=
 set_like.ext' h
 
-@[simp] lemma coe_mk (s : clopens α) (h) : (mk s h : set α) = s := rfl
+@[simp, norm_cast] lemma coe_mk (s : clopens α) (h) : (mk s h : set α) = s := rfl
 
 instance : has_sup (clopen_upper_set α) :=
 ⟨λ s t, ⟨s.to_clopens ⊔ t.to_clopens, s.upper.union t.upper⟩⟩

@@ -143,9 +143,10 @@ lemma to_fun_eq_coe (f : α →+*o β) : f.to_fun = ⇑f := rfl
 @[simp] lemma to_order_monoid_with_zero_hom_eq_coe (f : α →+*o β) :
   f.to_order_monoid_with_zero_hom = f := rfl
 
-@[simp] lemma coe_coe_ring_hom (f : α →+*o β) : ⇑(f : α →+* β) = f := rfl
-@[simp] lemma coe_coe_order_add_monoid_hom (f : α →+*o β) : ⇑(f : α →+o β) = f := rfl
-@[simp] lemma coe_coe_order_monoid_with_zero_hom (f : α →+*o β) : ⇑(f : α →*₀o β) = f := rfl
+@[simp, norm_cast] lemma coe_coe_ring_hom (f : α →+*o β) : ⇑(f : α →+* β) = f := rfl
+@[simp, norm_cast] lemma coe_coe_order_add_monoid_hom (f : α →+*o β) : ⇑(f : α →+o β) = f := rfl
+@[simp, norm_cast]
+lemma coe_coe_order_monoid_with_zero_hom (f : α →+*o β) : ⇑(f : α →*₀o β) = f := rfl
 
 @[norm_cast] lemma coe_ring_hom_apply (f : α →+*o β) (a : α) : (f : α →+* β) a = f a := rfl
 @[norm_cast] lemma coe_order_add_monoid_hom_apply (f : α →+*o β) (a : α) : (f : α →+o β) a = f a :=
@@ -235,8 +236,8 @@ lemma to_fun_eq_coe (f : α ≃+*o β) : f.to_fun = f := rfl
 
 @[ext] lemma ext {f g : α ≃+*o β} (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
 
-@[simp] lemma coe_mk (e : α ≃+* β) (h) : ⇑(⟨e, h⟩ : α ≃+*o β) = e := rfl
-@[simp] lemma mk_coe (e : α ≃+*o β) (h) : (⟨e, h⟩ : α ≃+*o β) = e := ext $ λ _, rfl
+@[simp, norm_cast] lemma coe_mk (e : α ≃+* β) (h) : ⇑(⟨e, h⟩ : α ≃+*o β) = e := rfl
+@[simp, norm_cast] lemma mk_coe (e : α ≃+*o β) (h) : (⟨e, h⟩ : α ≃+*o β) = e := ext $ λ _, rfl
 
 @[simp] lemma to_ring_equiv_eq_coe (f : α ≃+*o β) : f.to_ring_equiv = f := ring_equiv.ext $ λ _, rfl
 @[simp] lemma to_order_iso_eq_coe (f : α ≃+*o β) : f.to_order_iso = f := order_iso.ext rfl

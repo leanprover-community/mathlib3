@@ -264,8 +264,8 @@ instance : set_like (flag α) α :=
 
 @[ext] lemma ext : (s : set α) = t → s = t := set_like.ext'
 @[simp] lemma mem_coe_iff : a ∈ (s : set α) ↔ a ∈ s := iff.rfl
-@[simp] lemma coe_mk (s : set α) (h₁ h₂) : (mk s h₁ h₂ : set α) = s := rfl
-@[simp] lemma mk_coe (s : flag α) : mk (s : set α) s.chain' s.max_chain' = s := ext rfl
+@[simp, norm_cast] lemma coe_mk (s : set α) (h₁ h₂) : (mk s h₁ h₂ : set α) = s := rfl
+@[simp, norm_cast] lemma mk_coe (s : flag α) : mk (s : set α) s.chain' s.max_chain' = s := ext rfl
 
 lemma chain_le (s : flag α) : is_chain (≤) (s : set α) := s.chain'
 protected lemma max_chain (s : flag α) : is_max_chain (≤) (s : set α) := ⟨s.chain_le, s.max_chain'⟩

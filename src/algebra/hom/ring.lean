@@ -112,10 +112,10 @@ instance : has_coe_to_fun (α →ₙ+* β) (λ _, α → β) := ⟨non_unital_ri
 
 @[simp] lemma to_fun_eq_coe (f : α →ₙ+* β) : f.to_fun = f := rfl
 
-@[simp] lemma coe_mk (f : α → β) (h₁ h₂ h₃) : ⇑(⟨f, h₁, h₂, h₃⟩ : α →ₙ+* β) = f := rfl
+@[simp, norm_cast] lemma coe_mk (f : α → β) (h₁ h₂ h₃) : ⇑(⟨f, h₁, h₂, h₃⟩ : α →ₙ+* β) = f := rfl
 
-@[simp] lemma coe_coe [non_unital_ring_hom_class F α β] (f : F) : ((f : α →ₙ+* β) : α → β) = f :=
-rfl
+@[simp, norm_cast]
+lemma coe_coe [non_unital_ring_hom_class F α β] (f : F) : ((f : α →ₙ+* β) : α → β) = f := rfl
 
 @[simp] lemma coe_to_mul_hom (f : α →ₙ+* β) : ⇑f.to_mul_hom = f := rfl
 
@@ -322,10 +322,11 @@ initialize_simps_projections ring_hom (to_fun → apply)
 
 @[simp] lemma to_fun_eq_coe (f : α →+* β) : f.to_fun = f := rfl
 
-@[simp] lemma coe_mk (f : α → β) (h₁ h₂ h₃ h₄) : ⇑(⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) = f := rfl
+@[simp, norm_cast]
+lemma coe_mk (f : α → β) (h₁ h₂ h₃ h₄) : ⇑(⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) = f := rfl
 
-@[simp] lemma coe_coe {F : Type*} [ring_hom_class F α β] (f : F) : ((f : α →+* β) : α → β) = f :=
-rfl
+@[simp, norm_cast]
+lemma coe_coe {F : Type*} [ring_hom_class F α β] (f : F) : ((f : α →+* β) : α → β) = f := rfl
 
 instance has_coe_monoid_hom : has_coe (α →+* β) (α →* β) := ⟨ring_hom.to_monoid_hom⟩
 

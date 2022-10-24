@@ -90,7 +90,8 @@ variables (f g)
 
 @[simp] lemma to_fun_eq_coe : f.to_fun = f := rfl
 
-@[simp] lemma coe_mk (f) (h₁) (h₂) (h₃) : ⇑(⟨f, h₁, h₂, h₃⟩ : normed_add_group_hom V₁ V₂) = f := rfl
+@[simp, norm_cast]
+lemma coe_mk (f) (h₁) (h₂) (h₃) : ⇑(⟨f, h₁, h₂, h₃⟩ : normed_add_group_hom V₁ V₂) = f := rfl
 
 @[simp] lemma coe_mk_normed_add_group_hom (f : V₁ →+ V₂) (C) (hC) :
   ⇑(f.mk_normed_add_group_hom C hC) = f := rfl

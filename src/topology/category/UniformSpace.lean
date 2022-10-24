@@ -51,7 +51,7 @@ instance (X Y : UniformSpace) : has_coe_to_fun (X ⟶ Y) (λ _, X → Y) :=
 @[simp] lemma coe_comp {X Y Z : UniformSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g : X → Z) = g ∘ f := rfl
 @[simp] lemma coe_id (X : UniformSpace) : (𝟙 X : X → X) = id := rfl
-@[simp] lemma coe_mk {X Y : UniformSpace} (f : X → Y) (hf : uniform_continuous f) :
+@[simp, norm_cast] lemma coe_mk {X Y : UniformSpace} (f : X → Y) (hf : uniform_continuous f) :
   ((⟨f, hf⟩ : X ⟶ Y) : X → Y) = f := rfl
 
 lemma hom_ext {X Y : UniformSpace} {f g : X ⟶ Y} : (f : X → Y) = g → f = g := subtype.eq

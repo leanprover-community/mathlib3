@@ -103,19 +103,19 @@ section coe_lemmas
 
 variables (A B : special_linear_group n R)
 
-@[simp] lemma coe_mk (A : matrix n n R) (h : det A = 1) :
+@[simp, norm_cast] lemma coe_mk (A : matrix n n R) (h : det A = 1) :
   ↑(⟨A, h⟩ : special_linear_group n R) = A :=
 rfl
 
-@[simp] lemma coe_inv : ↑ₘ(A⁻¹) = adjugate A := rfl
+@[simp, norm_cast] lemma coe_inv : ↑ₘ(A⁻¹) = adjugate A := rfl
 
-@[simp] lemma coe_mul : ↑ₘ(A * B) = ↑ₘA ⬝ ↑ₘB := rfl
+@[simp, norm_cast] lemma coe_mul : ↑ₘ(A * B) = ↑ₘA ⬝ ↑ₘB := rfl
 
-@[simp] lemma coe_one : ↑ₘ(1 : special_linear_group n R) = (1 : matrix n n R) := rfl
+@[simp, norm_cast] lemma coe_one : ↑ₘ(1 : special_linear_group n R) = (1 : matrix n n R) := rfl
 
-@[simp] lemma det_coe : det ↑ₘA = 1 := A.2
+@[simp, norm_cast] lemma det_coe : det ↑ₘA = 1 := A.2
 
-@[simp] lemma coe_pow (m : ℕ) : ↑ₘ(A ^ m) = ↑ₘA ^ m := rfl
+@[simp, norm_cast] lemma coe_pow (m : ℕ) : ↑ₘ(A ^ m) = ↑ₘA ^ m := rfl
 
 lemma det_ne_zero [nontrivial R] (g : special_linear_group n R) :
   det ↑ₘg ≠ 0 :=

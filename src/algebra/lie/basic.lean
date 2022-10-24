@@ -240,7 +240,7 @@ lemma id_apply (x : L₁) : (id : L₁ →ₗ⁅R⁆ L₁) x = x := rfl
 /-- The constant 0 map is a Lie algebra morphism. -/
 instance : has_zero (L₁ →ₗ⁅R⁆ L₂) := ⟨{ map_lie' := by simp, ..(0 : L₁ →ₗ[R] L₂)}⟩
 
-@[norm_cast, simp] lemma coe_zero : ((0 : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = 0 := rfl
 
 lemma zero_apply (x : L₁) : (0 : L₁ →ₗ⁅R⁆ L₂) x = 0 := rfl
 
@@ -264,11 +264,11 @@ lemma ext_iff {f g : L₁ →ₗ⁅R⁆ L₂} : f = g ↔ ∀ x, f x = g x :=
 
 lemma congr_fun {f g : L₁ →ₗ⁅R⁆ L₂} (h : f = g) (x : L₁) : f x = g x := h ▸ rfl
 
-@[simp] lemma mk_coe (f : L₁ →ₗ⁅R⁆ L₂) (h₁ h₂ h₃) :
+@[simp, norm_cast] lemma mk_coe (f : L₁ →ₗ⁅R⁆ L₂) (h₁ h₂ h₃) :
   (⟨⟨f, h₁, h₂⟩, h₃⟩ : L₁ →ₗ⁅R⁆ L₂) = f :=
 by { ext, refl, }
 
-@[simp] lemma coe_mk (f : L₁ → L₂) (h₁ h₂ h₃) :
+@[simp, norm_cast] lemma coe_mk (f : L₁ → L₂) (h₁ h₂ h₃) :
   ((⟨⟨f, h₁, h₂⟩, h₃⟩ : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = f := rfl
 
 /-- The composition of morphisms is a morphism. -/
@@ -541,11 +541,11 @@ lemma ext_iff {f g : M →ₗ⁅R,L⁆ N} : f = g ↔ ∀ m, f m = g m :=
 
 lemma congr_fun {f g : M →ₗ⁅R,L⁆ N} (h : f = g) (x : M) : f x = g x := h ▸ rfl
 
-@[simp] lemma mk_coe (f : M →ₗ⁅R,L⁆ N) (h) :
+@[simp, norm_cast] lemma mk_coe (f : M →ₗ⁅R,L⁆ N) (h) :
   (⟨f, h⟩ : M →ₗ⁅R,L⁆ N) = f :=
 by { ext, refl, }
 
-@[simp] lemma coe_mk (f : M →ₗ[R] N) (h) :
+@[simp, norm_cast] lemma coe_mk (f : M →ₗ[R] N) (h) :
   ((⟨f, h⟩ : M →ₗ⁅R,L⁆ N) : M → N) = f :=
 by { ext, refl, }
 

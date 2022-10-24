@@ -111,11 +111,11 @@ protected def copy (f : A →⋆ₙₐ[R] B) (f' : A → B) (h : f' = f) : A →
   map_mul' := h.symm ▸ map_mul f,
   map_star' := h.symm ▸ map_star f }
 
-@[simp] lemma coe_mk (f : A → B) (h₁ h₂ h₃ h₄ h₅) :
+@[simp, norm_cast] lemma coe_mk (f : A → B) (h₁ h₂ h₃ h₄ h₅) :
   ((⟨f, h₁, h₂, h₃, h₄, h₅⟩ : A →⋆ₙₐ[R] B) : A → B) = f :=
 rfl
 
-@[simp] lemma mk_coe (f : A →⋆ₙₐ[R] B) (h₁ h₂ h₃ h₄ h₅) :
+@[simp, norm_cast] lemma mk_coe (f : A →⋆ₙₐ[R] B) (h₁ h₂ h₃ h₄ h₅) :
   (⟨f, h₁, h₂, h₃, h₄, h₅⟩ : A →⋆ₙₐ[R] B) = f :=
 by { ext, refl, }
 

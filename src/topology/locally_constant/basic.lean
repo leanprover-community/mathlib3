@@ -234,7 +234,7 @@ initialize_simps_projections locally_constant (to_fun → apply)
 
 @[simp] lemma to_fun_eq_coe (f : locally_constant X Y) : f.to_fun = f := rfl
 
-@[simp] lemma coe_mk (f : X → Y) (h) : ⇑(⟨f, h⟩ : locally_constant X Y) = f := rfl
+@[simp, norm_cast] lemma coe_mk (f : X → Y) (h) : ⇑(⟨f, h⟩ : locally_constant X Y) = f := rfl
 
 theorem congr_fun {f g : locally_constant X Y} (h : f = g) (x : X) : f x = g x :=
 congr_arg (λ h : locally_constant X Y, h x) h

@@ -531,7 +531,7 @@ coe_val_of_lt h
 
 /-- Converting a `fin (n + 1)` to `ℕ` and back results in the same
 value. -/
-@[simp] lemma coe_coe_eq_self {n : ℕ} (a : fin (n + 1)) : ((a : ℕ) : fin (n + 1)) = a :=
+@[simp, norm_cast] lemma coe_coe_eq_self {n : ℕ} (a : fin (n + 1)) : ((a : ℕ) : fin (n + 1)) = a :=
 coe_val_eq_self a
 
 lemma coe_nat_eq_last (n) : (n : fin (n + 1)) = fin.last n :=

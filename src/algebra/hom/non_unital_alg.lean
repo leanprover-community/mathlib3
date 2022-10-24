@@ -126,11 +126,11 @@ lemma ext_iff {f g : A →ₙₐ[R] B} : f = g ↔ ∀ x, f x = g x :=
 
 lemma congr_fun {f g : A →ₙₐ[R] B} (h : f = g) (x : A) : f x = g x := h ▸ rfl
 
-@[simp] lemma coe_mk (f : A → B) (h₁ h₂ h₃ h₄) :
+@[simp, norm_cast] lemma coe_mk (f : A → B) (h₁ h₂ h₃ h₄) :
   ((⟨f, h₁, h₂, h₃, h₄⟩ : A →ₙₐ[R] B) : A → B) = f :=
 rfl
 
-@[simp] lemma mk_coe (f : A →ₙₐ[R] B) (h₁ h₂ h₃ h₄) :
+@[simp, norm_cast] lemma mk_coe (f : A →ₙₐ[R] B) (h₁ h₂ h₃ h₄) :
   (⟨f, h₁, h₂, h₃, h₄⟩ : A →ₙₐ[R] B) = f :=
 by { ext, refl, }
 
@@ -190,7 +190,7 @@ instance : has_one (A →ₙₐ[R] A) :=
 ⟨{ map_mul' := by simp,
    .. (1 : A →+[R] A) }⟩
 
-@[simp] lemma coe_zero : ((0 : A →ₙₐ[R] B) : A → B) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : A →ₙₐ[R] B) : A → B) = 0 := rfl
 
 @[simp] lemma coe_one : ((1 : A →ₙₐ[R] A) : A → A) = id := rfl
 

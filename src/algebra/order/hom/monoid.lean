@@ -370,8 +370,10 @@ instance : has_coe_to_fun (α →*₀o β) (λ _, α → β) := fun_like.has_coe
 -- Other lemmas should be accessed through the `fun_like` API
 @[ext] lemma ext (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
 lemma to_fun_eq_coe (f : α →*₀o β) : f.to_fun = (f : α → β) := rfl
-@[simp] lemma coe_mk (f : α →*₀ β) (h) : (order_monoid_with_zero_hom.mk f h : α → β) = f := rfl
-@[simp] lemma mk_coe (f : α →*₀o β) (h) : order_monoid_with_zero_hom.mk (f :  α →*₀ β) h = f :=
+@[simp, norm_cast]
+lemma coe_mk (f : α →*₀ β) (h) : (order_monoid_with_zero_hom.mk f h : α → β) = f := rfl
+@[simp, norm_cast]
+lemma mk_coe (f : α →*₀o β) (h) : order_monoid_with_zero_hom.mk (f :  α →*₀ β) h = f :=
 by { ext, refl }
 
 /-- Reinterpret an ordered monoid with zero homomorphism as an order monoid homomorphism. -/

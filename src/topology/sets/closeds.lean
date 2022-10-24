@@ -41,7 +41,7 @@ lemma closed (s : closeds α) : is_closed (s : set α) := s.closed'
 
 @[ext] protected lemma ext {s t : closeds α} (h : (s : set α) = t) : s = t := set_like.ext' h
 
-@[simp] lemma coe_mk (s : set α) (h) : (mk s h : set α) = s := rfl
+@[simp, norm_cast] lemma coe_mk (s : set α) (h) : (mk s h : set α) = s := rfl
 
 /-- The closure of a set, as an element of `closeds`. -/
 protected def closure (s : set α) : closeds α := ⟨closure s, is_closed_closure⟩
@@ -144,7 +144,7 @@ lemma clopen (s : clopens α) : is_clopen (s : set α) := s.clopen'
 
 @[ext] protected lemma ext {s t : clopens α} (h : (s : set α) = t) : s = t := set_like.ext' h
 
-@[simp] lemma coe_mk (s : set α) (h) : (mk s h : set α) = s := rfl
+@[simp, norm_cast] lemma coe_mk (s : set α) (h) : (mk s h : set α) = s := rfl
 
 instance : has_sup (clopens α) := ⟨λ s t, ⟨s ∪ t, s.clopen.union t.clopen⟩⟩
 instance : has_inf (clopens α) := ⟨λ s t, ⟨s ∩ t, s.clopen.inter t.clopen⟩⟩

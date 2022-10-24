@@ -50,7 +50,7 @@ instance : can_lift (set α) (compacts α) coe is_compact :=
 
 @[ext] protected lemma ext {s t : compacts α} (h : (s : set α) = t) : s = t := set_like.ext' h
 
-@[simp] lemma coe_mk (s : set α) (h) : (mk s h : set α) = s := rfl
+@[simp, norm_cast] lemma coe_mk (s : set α) (h) : (mk s h : set α) = s := rfl
 
 @[simp] lemma carrier_eq_coe (s : compacts α) : s.carrier = s := rfl
 
@@ -135,7 +135,7 @@ def to_closeds [t2_space α] (s : nonempty_compacts α) : closeds α := ⟨s, s.
 @[ext] protected lemma ext {s t : nonempty_compacts α} (h : (s : set α) = t) : s = t :=
 set_like.ext' h
 
-@[simp] lemma coe_mk (s : compacts α) (h) : (mk s h : set α) = s := rfl
+@[simp, norm_cast] lemma coe_mk (s : compacts α) (h) : (mk s h : set α) = s := rfl
 
 @[simp] lemma carrier_eq_coe (s : nonempty_compacts α) : s.carrier = s := rfl
 
@@ -201,7 +201,7 @@ def to_nonempty_compacts (s : positive_compacts α) : nonempty_compacts α :=
 @[ext] protected lemma ext {s t : positive_compacts α} (h : (s : set α) = t) : s = t :=
 set_like.ext' h
 
-@[simp] lemma coe_mk (s : compacts α) (h) : (mk s h : set α) = s := rfl
+@[simp, norm_cast] lemma coe_mk (s : compacts α) (h) : (mk s h : set α) = s := rfl
 
 @[simp] lemma carrier_eq_coe (s : positive_compacts α) : s.carrier = s := rfl
 
@@ -272,7 +272,7 @@ lemma «open» (s : compact_opens α) : is_open (s : set α) := s.open'
 
 @[ext] protected lemma ext {s t : compact_opens α} (h : (s : set α) = t) : s = t := set_like.ext' h
 
-@[simp] lemma coe_mk (s : compacts α) (h) : (mk s h : set α) = s := rfl
+@[simp, norm_cast] lemma coe_mk (s : compacts α) (h) : (mk s h : set α) = s := rfl
 
 instance : has_sup (compact_opens α) :=
 ⟨λ s t, ⟨s.to_compacts ⊔ t.to_compacts, s.open.union t.open⟩⟩

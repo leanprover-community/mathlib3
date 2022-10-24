@@ -209,7 +209,7 @@ initialize_simps_projections rel_embedding (to_embedding_to_fun → apply, -to_e
 
 @[simp] lemma to_rel_hom_eq_coe (f : r ↪r s) : f.to_rel_hom = f := rfl
 
-@[simp] lemma coe_coe_fn (f : r ↪r s) : ((f : r →r s) : α → β) = f := rfl
+@[simp, norm_cast] lemma coe_coe_fn (f : r ↪r s) : ((f : r →r s) : α → β) = f := rfl
 
 theorem injective (f : r ↪r s) : injective f := f.inj'
 
@@ -452,7 +452,7 @@ instance : rel_hom_class (r ≃r s) r s :=
 
 @[simp] lemma to_rel_embedding_eq_coe (f : r ≃r s) : f.to_rel_embedding = f := rfl
 
-@[simp] lemma coe_coe_fn (f : r ≃r s) : ((f : r ↪r s) : α → β) = f := rfl
+@[simp, norm_cast] lemma coe_coe_fn (f : r ≃r s) : ((f : r ↪r s) : α → β) = f := rfl
 
 theorem map_rel_iff (f : r ≃r s) {a b} : s (f a) (f b) ↔ r a b := f.map_rel_iff'
 

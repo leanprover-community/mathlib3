@@ -95,10 +95,9 @@ variables [hp : fact p.prime]
 
 include hp
 
-lemma index (H : subgroup G) [finite (G ⧸ H)] :
+lemma index (H : subgroup G) [finite_index H] :
   ∃ n : ℕ, H.index = p ^ n :=
 begin
-  casesI nonempty_fintype (G ⧸ H),
   obtain ⟨n, hn⟩ := iff_card.mp (hG.to_quotient H.normal_core),
   obtain ⟨k, hk1, hk2⟩ := (nat.dvd_prime_pow hp.out).mp ((congr_arg _
     (H.normal_core.index_eq_card.trans hn)).mp (subgroup.index_dvd_of_le H.normal_core_le)),

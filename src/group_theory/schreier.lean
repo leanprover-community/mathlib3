@@ -101,12 +101,11 @@ begin
   exact closure_mul_image_eq_top hR hR1 hS,
 end
 
-lemma exists_finset_card_le_mul (hH : H.index ≠ 0) {S : finset G} (hS : closure (S : set G) = ⊤) :
+lemma exists_finset_card_le_mul [finite_index H] {S : finset G} (hS : closure (S : set G) = ⊤) :
   ∃ T : finset H, T.card ≤ H.index * S.card ∧ closure (T : set H) = ⊤ :=
 begin
   haveI : decidable_eq G := classical.dec_eq G,
   obtain ⟨R₀, hR : R₀ ∈ right_transversals (H : set G), hR1⟩ := exists_right_transversal (1 : G),
-  haveI : fintype (G ⧸ H) := fintype_of_index_ne_zero hH,
   haveI : fintype R₀ := fintype.of_equiv _ (mem_right_transversals.to_equiv hR),
   let R : finset G := set.to_finset R₀,
   replace hR : (R : set G) ∈ right_transversals (H : set G) := by rwa set.coe_to_finset,
@@ -124,15 +123,15 @@ end
 
 /-- **Schreier's Lemma**: A finite index subgroup of a finitely generated
   group is finitely generated. -/
-lemma fg_of_index_ne_zero [hG : group.fg G] (hH : H.index ≠ 0) : group.fg H :=
+instance fg_of_index_ne_zero [hG : group.fg G] [finite_index H] : group.fg H :=
 begin
   obtain ⟨S, hS⟩ := hG.1,
   obtain ⟨T, -, hT⟩ := exists_finset_card_le_mul hH hS,
   exact ⟨⟨T, hT⟩⟩,
 end
 
-lemma rank_le_index_mul_rank [hG : group.fg G] {H : subgroup G} (hH : H.index ≠ 0) :
-  @group.rank H _ (fg_of_index_ne_zero hH) ≤ H.index * group.rank G :=
+lemma rank_le_index_mul_rank [hG : group.fg G] {H : subgroup G} [finite_index H] :
+  group.rank H ≤ H.index * group.rank G :=
 begin
   haveI := fg_of_index_ne_zero hH,
   obtain ⟨S, hS₀, hS⟩ := group.rank_spec G,

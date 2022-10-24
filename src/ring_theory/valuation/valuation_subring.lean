@@ -732,7 +732,7 @@ is stable under the action of the decomposition group. -/
 def sub_mul_action (A : valuation_subring L) :
   sub_mul_action (A.decomposition_subgroup K) L :=
 { carrier := A,
-  smul_mem' := λ g l h, (g.prop.le : _ ≤ _) (set.smul_mem_smul_set x.prop) }
+  smul_mem' := λ g l h, set.mem_of_mem_of_subset (set.smul_mem_smul_set h) g.prop.le }
 
 /-- The multiplicative action of the decomposition subgroup on `A`. -/
 instance mul_action (A : valuation_subring L) :

@@ -624,6 +624,7 @@ begin
     simp only with mfld_simps },
 end
 
+variables (G₂)
 lemma has_groupoid.comp
   (H : ∀ e ∈ G₂, lift_prop_on (is_local_structomorph_within_at G₁) (e : H₂ → H₂) e.source) :
   @has_groupoid H₁ _ H₃ _ (charted_space.comp H₁ H₂ H₃) G₁ :=

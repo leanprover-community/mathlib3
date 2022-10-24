@@ -93,17 +93,15 @@ subcollections of `s` form a topological basis. -/
 lemma is_topological_basis_of_subbasis {s : set (set α)} (hs : t = generate_from s) :
   is_topological_basis ((λ f, ⋂₀ f) '' {f : set (set α) | f.finite ∧ f ⊆ s}) :=
 begin
-  refine ⟨_, _, _⟩,
+  refine ⟨_, _, hs.trans (le_antisymm (le_generate_from _) $ generate_from_mono $ λ t ht, _)⟩,
   { rintro _ ⟨t₁, ⟨hft₁, ht₁b⟩, rfl⟩ _ ⟨t₂, ⟨hft₂, ht₂b⟩, rfl⟩ x h,
-    have : ⋂₀ (t₁ ∪ t₂) = ⋂₀ t₁ ∩ ⋂₀ t₂ := sInter_union t₁ t₂,
-    exact ⟨_, ⟨t₁ ∪ t₂, ⟨hft₁.union hft₂, union_subset ht₁b ht₂b⟩, this⟩, h, subset.rfl⟩ },
+    exact ⟨_, ⟨_, ⟨hft₁.union hft₂, union_subset ht₁b ht₂b⟩, sInter_union t₁ t₂⟩, h, subset.rfl⟩ },
   { rw [sUnion_image, Union₂_eq_univ_iff],
     exact λ x, ⟨∅, ⟨finite_empty, empty_subset _⟩, sInter_empty.substr $ mem_univ x⟩ },
-  { refine hs.trans (le_antisymm (le_generate_from _) $ generate_from_mono $ λ t ht, _),
-    { rintro _ ⟨t, ⟨hft, htb⟩, rfl⟩,
-      apply is_open_sInter, exacts [hft, λ s hs, generate_open.basic _ $ htb hs] },
-    { rw ← sInter_singleton t,
-      exact ⟨{t}, ⟨finite_singleton t, singleton_subset_iff.2 ht⟩, rfl⟩ } },
+  { rintro _ ⟨t, ⟨hft, htb⟩, rfl⟩, apply is_open_sInter,
+    exacts [hft, λ s hs, generate_open.basic _ $ htb hs] },
+  { rw ← sInter_singleton t,
+    exact ⟨{t}, ⟨finite_singleton t, singleton_subset_iff.2 ht⟩, rfl⟩ },
 end
 
 /-- If a family of open sets `s` is such that every open neighbourhood contains some

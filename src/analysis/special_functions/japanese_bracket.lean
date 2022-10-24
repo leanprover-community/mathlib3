@@ -34,23 +34,20 @@ open asymptotics filter set real measure_theory finite_dimensional
 
 variables {E : Type*} [normed_add_comm_group E]
 
+lemma zero_lt_one_add_norm_sq (x : E) : 0 < 1 + ∥x∥^2 := by positivity
+
 lemma jap_le_one_add_norm (x : E) : real.sqrt (1 + ∥x∥^2) ≤ 1 + ∥x∥ :=
 begin
-  have h1 : 0 ≤ 1 + ∥x∥^2 := by positivity,
-  have h2 : 0 ≤ 1 + ∥x∥ := by positivity,
-  have h3 : 0 < 2 := by positivity,
-  refine le_of_pow_le_pow 2 h2 h3 _,
-  rw [sq_sqrt h1, add_pow_two],
-  simp,
+  refine le_of_pow_le_pow 2 (by positivity) two_pos _,
+  simp [sq_sqrt (zero_lt_one_add_norm_sq x).le, add_pow_two],
 end
 
 lemma one_add_norm_le_jap (x : E) : 1 + ∥x∥ ≤ (real.sqrt 2) * sqrt (1 + ∥x∥^2) :=
 begin
-  have h1 : 0 ≤ 1 + ∥x∥^2 := by positivity,
   have h2 : 0 ≤ (real.sqrt 2) * real.sqrt (1 + ∥x∥^2) := by positivity,
   have : (sqrt 2 * sqrt (1 + ∥x∥ ^ 2)) ^ 2 - (1 + ∥x∥) ^ 2 = (1 - ∥x∥) ^2 :=
   begin
-    rw [mul_pow, sq_sqrt h1, add_pow_two, sub_pow_two],
+    rw [mul_pow, sq_sqrt (zero_lt_one_add_norm_sq x).le, add_pow_two, sub_pow_two],
     norm_num,
     ring,
   end,
@@ -63,14 +60,14 @@ lemma rpow_neg_jap_le_one_add_norm {r : ℝ} (x : E) (hr : 0 < r) :
   (1 + ∥x∥^2)^(-r/2) ≤ 2^(r/2) * (1 + ∥x∥)^(-r) :=
 begin
   have h1 : 0 ≤ (2 : ℝ) := by positivity,
-  have h2 : 0 ≤ (1 + ∥x∥^2) := by positivity,
   have h3 : 0 < sqrt 2 := by positivity,
   have h4 : 0 < 1 + ∥x∥ := by positivity,
   have h5 : 0 < sqrt (1 + ∥x∥ ^ 2) := by positivity,
   have h6 : 0 < sqrt 2 * sqrt (1 + ∥x∥^2) := mul_pos h3 h5,
-  rw [rpow_div_two_eq_sqrt _ h1, rpow_div_two_eq_sqrt _ h2, ←inv_mul_le_iff (rpow_pos_of_pos h3 _),
-    rpow_neg h4.le, rpow_neg (sqrt_nonneg _), ←mul_inv, ←mul_rpow h3.le h5.le,
-    inv_le_inv (rpow_pos_of_pos h6 _) (rpow_pos_of_pos h4 _), rpow_le_rpow_iff h4.le h6.le hr],
+  rw [rpow_div_two_eq_sqrt _ h1, rpow_div_two_eq_sqrt _ (zero_lt_one_add_norm_sq x).le,
+    ←inv_mul_le_iff (rpow_pos_of_pos h3 _), rpow_neg h4.le, rpow_neg (sqrt_nonneg _), ←mul_inv,
+    ←mul_rpow h3.le h5.le, inv_le_inv (rpow_pos_of_pos h6 _) (rpow_pos_of_pos h4 _),
+    rpow_le_rpow_iff h4.le h6.le hr],
   exact one_add_norm_le_jap _,
 end
 

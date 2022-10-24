@@ -113,7 +113,7 @@ def lift : (Π i, M i →* N) ≃ (free_product M →* N) :=
 { to_fun := λ fi, con.lift _ (free_monoid.lift $ λ p : Σ i, M i, fi p.fst p.snd) $ con.con_gen_le
     begin
       simp_rw [con.rel_eq_coe, con.ker_rel],
-      rintros _ _ (i | ⟨i, x, y⟩),
+      rintro _ _ (i | ⟨x, y⟩),
       { change free_monoid.lift _ (free_monoid.of _) = free_monoid.lift _ 1,
         simp only [monoid_hom.map_one, free_monoid.lift_eval_of], },
       { change free_monoid.lift _ (free_monoid.of _ * free_monoid.of _) =

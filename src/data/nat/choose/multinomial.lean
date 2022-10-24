@@ -80,7 +80,12 @@ begin
   { exact finset.prod_congr rfl (λ a ha, by rw h a ha) },
 end
 
-/-! ### Connection to binomial coefficients -/
+/-! ### Connection to binomial coefficients
+
+When `nat.multinomial` is applied to a `finset` of two elements `{a, b}`, the
+result a binomial coefficient. We use `binomial` in the names of lemmas that
+involves `nat.multinomial {a, b}`.
+-/
 
 lemma binomial_eq [decidable_eq α] (h : a ≠ b) :
   multinomial {a, b} f = (f a + f b)! / ((f a)! * (f b)!) :=

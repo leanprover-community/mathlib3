@@ -378,7 +378,7 @@ namespace free_semigroup
 
 variables {α : Type u}
 
-@[to_additive, simps]
+@[to_additive]
 instance : semigroup (free_semigroup α) :=
 { mul := λ L1 L2, ⟨L1.1, L1.2 ++ L2.1 :: L2.2⟩,
   mul_assoc := λ L1 L2 L3, ext _ _ rfl $ list.append_assoc _ _ _ }
@@ -575,8 +575,9 @@ namespace free_magma
 
 variables {α : Type u} {β : Type v}
 
-@[to_additive] def to_free_semigroup : free_magma α →ₙ* free_semigroup α :=
-free_magma.lift free_semigroup.of
+/-- The canonical multiplicative morphism from `free_magma α` to `free_semigroup α`. -/
+@[to_additive "The canonical additive morphism from `free_add_magma α` to `free_add_semigroup α`."]
+def to_free_semigroup : free_magma α →ₙ* free_semigroup α := free_magma.lift free_semigroup.of
 
 @[simp, to_additive] lemma to_free_semigroup_of (x : α) :
   to_free_semigroup (of x) = free_semigroup.of x :=

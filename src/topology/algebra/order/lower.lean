@@ -69,14 +69,8 @@ lemma is_open_iff_generate_Ici_comp {s : set α} :
 /-
 Left-closed right-infinite intervals [a,∞) are closed in the lower topology
 -/
-lemma ici_is_closed (a : α) :
-  is_closed (Ici a)  :=
-begin
-  rw [← is_open_compl_iff, is_open_iff_generate_Ici_comp],
-  fconstructor,
-  rw mem_set_of_eq,
-  use a,
-end
+lemma Ici_is_closed (a : α) : is_closed (Ici a) :=
+is_open_compl_iff.1 $ generate_open.basic _ ⟨a, rfl⟩
 
 /-
 The upper closure of a finite subset is closed in the lower topology

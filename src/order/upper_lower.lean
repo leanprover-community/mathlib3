@@ -256,7 +256,7 @@ end partial_order
 /-! ### upper/lower sets and fibrations -/
 
 namespace relation
-#where
+
 variables {f : α → β} {s : set α}
 
 lemma fibration.is_lower_set_image [has_le α] [has_le β] (hf : fibration (≤) (≤) f)

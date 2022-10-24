@@ -732,11 +732,7 @@ is stable under the action of the decomposition group. -/
 def sub_mul_action (A : valuation_subring L) :
   sub_mul_action (A.decomposition_subgroup K) L :=
 { carrier := A,
-  smul_mem' := λ g l h,
-  begin
-    convert set.smul_mem_smul_set h using 1,
-    exact congr_arg coe g.prop.symm,
-end }
+  smul_mem' := λ g l h, (g.prop.le : _ ≤ _) (set.smul_mem_smul_set x.prop) }
 
 /-- The multiplicative action of the decomposition subgroup on `A`. -/
 instance mul_action (A : valuation_subring L) :
@@ -746,13 +742,6 @@ instance mul_action (A : valuation_subring L) :
   smul_one := λ g, subtype.ext $ smul_one g,
   smul_mul := λ g k l, subtype.ext $ smul_mul' g k l,
    ..(sub_mul_action.mul_action (A.sub_mul_action K)) }
-
-/-- The group homomomorphism from the decomposition group to the
-group of automorphisms of the residue field. -/
-def decomposition_subgroup.comp (A : valuation_subring L):
-  A.decomposition_subgroup K →* ring_aut (local_ring.residue_field A) :=
-( (local_ring.residue_field.map_aut).comp
-  (mul_semiring_action.to_ring_aut (A.decomposition_subgroup K) A) )
 
 /-- The inertia subgroup defined as the kernel of the group homomorphism from
 the decomposition group to the group of automorphisms of the residue field. -/

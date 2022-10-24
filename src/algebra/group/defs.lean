@@ -9,6 +9,10 @@ import tactic.basic
 /-!
 # Typeclasses for (semi)groups and monoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/457
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define typeclasses for algebraic structures with one binary operation.
 The classes are named `(add_)?(comm_)?(semigroup|monoid|group)`, where `add_` means that
 the class uses additive notation and `comm_` means that the class assumes that the binary

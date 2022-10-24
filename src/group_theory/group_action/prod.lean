@@ -41,6 +41,13 @@ variables [has_smul M α] [has_smul M β] [has_smul N α] [has_smul N β] (a : M
 @[to_additive] theorem smul_def (a : M) (x : α × β) : a • x = (a • x.1, a • x.2) := rfl
 @[simp, to_additive] theorem smul_swap : (a • x).swap = a • x.swap := rfl
 
+lemma smul_zero_mk {α : Type*} [monoid M] [add_monoid α] [distrib_mul_action M α] (a : M) (c : β) :
+  a • ((0 : α), c) = (0, a • c) :=
+by rw [prod.smul_mk, smul_zero]
+
+lemma smul_mk_zero {β : Type*} [monoid M] [add_monoid β] [distrib_mul_action M β] (a : M) (b : α) :
+  a • (b, (0 : β)) = (a • b, 0) :=
+by rw [prod.smul_mk, smul_zero]
 
 variables [has_pow α E] [has_pow β E]
 @[to_additive has_smul] instance has_pow : has_pow (α × β) E :=

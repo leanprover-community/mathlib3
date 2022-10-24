@@ -462,7 +462,7 @@ variables {E}
 
 /-- The delta distribution -/
 def delta (x : E) : 𝓢(E, F) →L[𝕜] F :=
-  (bounded_continuous_function.eval_clm 𝕜 x).comp (to_bounded_continuous_function_clm 𝕜 E F)
+(bounded_continuous_function.eval_clm 𝕜 x).comp (to_bounded_continuous_function_clm 𝕜 E F)
 
 @[simp] lemma delta_apply (x₀ : E) (f : 𝓢(E, F)) : delta 𝕜 F x₀ f = f x₀ := rfl
 

@@ -75,6 +75,8 @@ locally_finite_order.of_Icc (ι →₀ α)
     exact forall_and_distrib,
   end)
 
+lemma Icc_eq : Icc f g = (f.support ∪ g.support).finsupp (f.range_Icc g) := rfl
+
 lemma card_Icc : (Icc f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card :=
 card_finsupp _ _
 

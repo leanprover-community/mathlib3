@@ -7,6 +7,7 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 import algebra.algebra.basic
 import algebra.category.Ring.basic
 import ring_theory.ideal.operations
+import ring_theory.jacobson_ideal
 
 /-!
 
@@ -167,6 +168,15 @@ begin
   apply f.is_unit_map,
 end
 
+lemma jacobson_eq_maximal_ideal (I : ideal R) (h : I ≠ ⊤) :
+  I.jacobson = local_ring.maximal_ideal R :=
+begin
+  apply le_antisymm,
+  { exact Inf_le ⟨local_ring.le_maximal_ideal h, local_ring.maximal_ideal.is_maximal R⟩ },
+  { exact le_Inf (λ J (hJ : I ≤ J ∧ J.is_maximal),
+      le_of_eq (local_ring.eq_maximal_ideal hJ.2).symm) }
+end
+
 end local_ring
 
 end comm_ring
@@ -318,7 +328,7 @@ begin
 end
 
 section
-variables (R) [comm_ring R] [local_ring R] [comm_ring S] [local_ring S]
+variables (R) [comm_ring R] [local_ring R] [comm_ring S] [local_ring S] [comm_ring T] [local_ring T]
 
 /-- The residue field of a local ring is the quotient of the ring by its maximal ideal. -/
 def residue_field := R ⧸ maximal_ideal R
@@ -348,6 +358,53 @@ begin
   erw ideal.quotient.eq_zero_iff_mem,
   exact map_nonunit f a ha
 end
+
+/-- Applying `residue_field.map` to the identity ring homomorphism gives the identity
+ring homomorphism. -/
+@[simp] lemma map_id :
+  local_ring.residue_field.map (ring_hom.id R) = ring_hom.id (local_ring.residue_field R) :=
+ideal.quotient.ring_hom_ext $ ring_hom.ext $ λx, rfl
+
+/-- The composite of two `residue_field.map`s is the `residue_field.map` of the composite. -/
+lemma map_comp (f : T →+* R) (g : R →+* S) [is_local_ring_hom f] [is_local_ring_hom g] :
+  local_ring.residue_field.map (g.comp f) =
+  (local_ring.residue_field.map g).comp (local_ring.residue_field.map f) :=
+ideal.quotient.ring_hom_ext $ ring_hom.ext $ λx, rfl
+
+lemma map_id_apply (x : residue_field R) : map (ring_hom.id R) x = x :=
+fun_like.congr_fun map_id x
+
+@[simp] lemma map_map (f : R →+* S) (g : S →+* T) (x : residue_field R)
+  [is_local_ring_hom f] [is_local_ring_hom g] :
+  map g (map f x) = map (g.comp f) x :=
+fun_like.congr_fun (map_comp f g).symm x
+
+/-- A ring isomorphism defines an isomorphism of residue fields. -/
+@[simps apply]
+noncomputable def map_equiv (f : R ≃+* S) :
+  local_ring.residue_field R ≃+* local_ring.residue_field S :=
+{ to_fun := map (f : R →+* S),
+  inv_fun := map (f.symm : S →+* R),
+  left_inv := λ x, by simp only [map_map, ring_equiv.symm_comp, map_id, ring_hom.id_apply],
+  right_inv := λ x, by simp only [map_map, ring_equiv.comp_symm, map_id, ring_hom.id_apply],
+  map_mul' := ring_hom.map_mul _,
+  map_add' := ring_hom.map_add _ }
+
+@[simp] lemma map_equiv.symm (f : R ≃+* S) : (map_equiv f).symm = map_equiv f.symm := rfl
+
+@[simp] lemma map_equiv_trans (e₁ : R ≃+* S) (e₂ : S ≃+* T) :
+  map_equiv (e₁.trans e₂) = (map_equiv e₁).trans (map_equiv e₂) :=
+ring_equiv.to_ring_hom_injective $ map_comp (e₁ : R →+* S) (e₂ : S →+* T)
+
+@[simp] lemma map_equiv_refl : map_equiv (ring_equiv.refl R) = ring_equiv.refl _ :=
+ring_equiv.to_ring_hom_injective map_id
+
+/-- The group homomorphism from `ring_aut R` to `ring_aut k` where `k`
+is the residue field of `R`. -/
+@[simps] noncomputable def map_aut : ring_aut R →* ring_aut (local_ring.residue_field R) :=
+{ to_fun := map_equiv,
+  map_mul' := λ e₁ e₂, map_equiv_trans e₂ e₁,
+  map_one' := map_equiv_refl }
 
 end residue_field
 

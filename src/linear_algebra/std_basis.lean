@@ -47,6 +47,13 @@ def std_basis : Π (i : ι), φ i →ₗ[R] (Πi, φ i) := single
 lemma std_basis_apply (i : ι) (b : φ i) : std_basis R φ i b = update 0 i b :=
 rfl
 
+@[simp] lemma std_basis_apply' (i i' : ι) : (std_basis R (λ (_x : ι), R) i) 1 i' =
+  ite (i = i') 1 0  :=
+begin
+  rw [linear_map.std_basis_apply, function.update_apply, pi.zero_apply],
+  congr' 1, rw [eq_iff_iff, eq_comm],
+end
+
 lemma coe_std_basis (i : ι) : ⇑(std_basis R φ i) = pi.single i :=
 rfl
 

@@ -124,6 +124,74 @@ end prio
 def algebra_map (R : Type u) (A : Type v) [comm_semiring R] [semiring A] [algebra R A] : R →+* A :=
 algebra.to_ring_hom
 
+namespace algebra_map
+
+def has_lift_t (R A : Type*) [comm_semiring R] [semiring A] [algebra R A] :
+  has_lift_t R A := ⟨λ r, algebra_map R A r⟩
+
+attribute [instance, priority 900] algebra_map.has_lift_t
+
+section comm_semiring_semiring
+
+variables {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+
+@[simp, norm_cast] lemma coe_zero : (↑(0 : R) : A) = 0 := map_zero (algebra_map R A)
+@[simp, norm_cast] lemma coe_one : (↑(1 : R) : A) = 1 := map_one (algebra_map R A)
+@[norm_cast] lemma coe_add (a b : R) : (↑(a + b : R) : A) = ↑a + ↑b :=
+map_add (algebra_map R A) a b
+@[norm_cast] lemma coe_mul (a b : R) : (↑(a * b : R) : A) = ↑a * ↑b :=
+map_mul (algebra_map R A) a b
+@[norm_cast] lemma coe_pow (a : R) (n : ℕ) : (↑(a ^ n : R) : A) = ↑a ^ n :=
+map_pow (algebra_map R A) _ _
+
+end comm_semiring_semiring
+
+section comm_ring_ring
+
+variables {R A : Type*} [comm_ring R] [ring A] [algebra R A]
+
+@[norm_cast] lemma coe_neg (x : R) : (↑(-x : R) : A) = -↑x :=
+map_neg (algebra_map R A) x
+
+end comm_ring_ring
+
+section comm_semiring_comm_semiring
+
+variables {R A : Type*} [comm_semiring R] [comm_semiring A] [algebra R A]
+
+open_locale big_operators
+
+-- direct to_additive fails because of some mix-up with polynomials
+@[norm_cast] lemma coe_prod {ι : Type*} {s : finset ι} (a : ι → R) :
+  (↑( ∏ (i : ι) in s, a i : R) : A) = ∏ (i : ι) in s, (↑(a i) : A) :=
+map_prod (algebra_map R A) a s
+
+-- to_additive fails for some reason
+@[norm_cast] lemma coe_sum {ι : Type*} {s : finset ι} (a : ι → R) :
+  ↑(( ∑ (i : ι) in s, a i)) = ∑ (i : ι) in s, (↑(a i) : A) :=
+map_sum (algebra_map R A) a s
+
+attribute [to_additive] coe_prod
+
+end comm_semiring_comm_semiring
+
+section field_nontrivial
+
+variables {R A : Type*} [field R] [comm_semiring A] [nontrivial A] [algebra R A]
+
+@[norm_cast, simp] lemma coe_inj {a b : R} : (↑a : A) = ↑b ↔ a = b :=
+⟨λ h, (algebra_map R A).injective h, by rintro rfl; refl⟩
+
+@[norm_cast, simp] lemma lift_map_eq_zero_iff (a : R) : (↑a : A) = 0 ↔ a = 0 :=
+begin
+  rw (show (0 : A) = ↑(0 : R), from (map_zero (algebra_map R A)).symm),
+  norm_cast,
+end
+
+end field_nontrivial
+
+end algebra_map
+
 /-- Creating an algebra from a morphism to the center of a semiring. -/
 def ring_hom.to_algebra' {R S} [comm_semiring R] [semiring S] (i : R →+* S)
   (h : ∀ c x, i c * x = x * i c) :
@@ -196,7 +264,7 @@ lemma algebra_ext {R : Type*} [comm_semiring R] {A : Type*} [semiring A] (P Q : 
     by { haveI := Q, exact algebra_map R A r }) :
   P = Q :=
 begin
-  unfreezingI { rcases P with ⟨⟨P⟩⟩, rcases Q with ⟨⟨Q⟩⟩ },
+  unfreezingI { rcases P with @⟨⟨P⟩⟩, rcases Q with @⟨⟨Q⟩⟩ },
   congr,
   { funext r a,
     replace w := congr_arg (λ s, s * a) (w r),
@@ -401,8 +469,8 @@ lemma algebra_map_of_subring_apply {R : Type*} [comm_ring R] (S : subring R) (x 
 /-- Explicit characterization of the submonoid map in the case of an algebra.
 `S` is made explicit to help with type inference -/
 def algebra_map_submonoid (S : Type*) [semiring S] [algebra R S]
-  (M : submonoid R) : (submonoid S) :=
-submonoid.map (algebra_map R S : R →* S) M
+  (M : submonoid R) : submonoid S :=
+M.map (algebra_map R S)
 
 lemma mem_algebra_map_submonoid_of_mem {S : Type*} [semiring S] [algebra R S] {M : submonoid R}
   (x : M) : (algebra_map R S x) ∈ algebra_map_submonoid S M :=
@@ -475,6 +543,50 @@ lemma algebra_map_End_eq_smul_id (a : R) :
   [field K] [add_comm_group V] [module K V] (a : K) (ha : a ≠ 0) :
   ((algebra_map K (End K V)) a).ker = ⊥ :=
 linear_map.ker_smul _ _ ha
+
+section
+
+variables {R M}
+
+lemma End_is_unit_apply_inv_apply_of_is_unit {f : module.End R M} (h : is_unit f) (x : M) :
+  f (h.unit.inv x) = x :=
+show (f * h.unit.inv) x = x, by simp
+
+lemma End_is_unit_inv_apply_apply_of_is_unit {f : module.End R M} (h : is_unit f) (x : M) :
+  h.unit.inv (f x) = x :=
+(by simp : (h.unit.inv * f) x = x)
+
+lemma End_is_unit_iff (f : module.End R M) :
+  is_unit f ↔ function.bijective f :=
+⟨λ h, function.bijective_iff_has_inverse.mpr $
+  ⟨h.unit.inv, ⟨End_is_unit_inv_apply_apply_of_is_unit h,
+    End_is_unit_apply_inv_apply_of_is_unit h⟩⟩,
+ λ H, let e : M ≃ₗ[R] M := { ..f, ..(equiv.of_bijective f H)} in
+  ⟨⟨_, e.symm, linear_map.ext e.right_inv, linear_map.ext e.left_inv⟩, rfl⟩⟩
+
+lemma End_algebra_map_is_unit_inv_apply_eq_iff
+  {x : R} (h : is_unit (algebra_map R (module.End R M) x)) (m m' : M) :
+  h.unit⁻¹ m = m' ↔ m = x • m' :=
+{ mp := λ H, ((congr_arg h.unit H).symm.trans (End_is_unit_apply_inv_apply_of_is_unit h _)).symm,
+  mpr := λ H, H.symm ▸
+  begin
+    apply_fun h.unit using ((module.End_is_unit_iff _).mp h).injective,
+    erw [End_is_unit_apply_inv_apply_of_is_unit],
+    refl,
+  end }
+
+lemma End_algebra_map_is_unit_inv_apply_eq_iff'
+  {x : R} (h : is_unit (algebra_map R (module.End R M) x)) (m m' : M) :
+  m' = h.unit⁻¹ m ↔ m = x • m' :=
+{ mp := λ H, ((congr_arg h.unit H).trans (End_is_unit_apply_inv_apply_of_is_unit h _)).symm,
+  mpr := λ H, H.symm ▸
+  begin
+    apply_fun h.unit using ((module.End_is_unit_iff _).mp h).injective,
+    erw [End_is_unit_apply_inv_apply_of_is_unit],
+    refl,
+  end }
+
+end
 
 end module
 
@@ -659,7 +771,7 @@ def comp (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) : A →ₐ[R] C :=
 lemma comp_apply (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) (p : A) : φ₁.comp φ₂ p = φ₁ (φ₂ p) := rfl
 
 lemma comp_to_ring_hom (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) :
-  ⇑(φ₁.comp φ₂ : A →+* C) = (φ₁ : B →+* C).comp ↑φ₂ := rfl
+  (φ₁.comp φ₂ : A →+* C) = (φ₁ : B →+* C).comp ↑φ₂ := rfl
 
 @[simp] theorem comp_id : φ.comp (alg_hom.id R A) = φ :=
 ext $ λ x, rfl
@@ -907,6 +1019,7 @@ rfl
 @[simp] lemma to_ring_equiv_eq_coe : e.to_ring_equiv = e := rfl
 
 @[simp, norm_cast] lemma coe_ring_equiv : ((e : A₁ ≃+* A₂) : A₁ → A₂) = e := rfl
+
 lemma coe_ring_equiv' : (e.to_ring_equiv : A₁ → A₂) = e := rfl
 
 lemma coe_ring_equiv_injective : function.injective (coe : (A₁ ≃ₐ[R] A₂) → (A₁ ≃+* A₂)) :=
@@ -996,8 +1109,12 @@ symm_bijective.injective $ ext $ λ x, rfl
   { to_fun := f', inv_fun := f,
     ..(⟨f, f', h₁, h₂, h₃, h₄, h₅⟩ : A₁ ≃ₐ[R] A₂).symm } := rfl
 
-@[simp]
-theorem refl_symm : (alg_equiv.refl : A₁ ≃ₐ[R] A₁).symm = alg_equiv.refl := rfl
+@[simp] theorem refl_symm : (alg_equiv.refl : A₁ ≃ₐ[R] A₁).symm = alg_equiv.refl := rfl
+
+--this should be a simp lemma but causes a lint timeout
+lemma to_ring_equiv_symm (f : A₁ ≃ₐ[R] A₁) : (f : A₁ ≃+* A₁).symm = f.symm := rfl
+
+@[simp] lemma symm_to_ring_equiv : (e.symm : A₂ ≃+* A₁) = (e : A₁ ≃+* A₂).symm := rfl
 
 /-- Algebra equivalences are transitive. -/
 @[trans]
@@ -1165,6 +1282,19 @@ by { ext, refl }
 by { ext, refl }
 
 end of_linear_equiv
+
+section of_ring_equiv
+
+/-- Promotes a linear ring_equiv to an alg_equiv. -/
+@[simps]
+def of_ring_equiv {f : A₁ ≃+* A₂}
+  (hf : ∀ x, f (algebra_map R A₁ x) = algebra_map R A₂ x) : A₁ ≃ₐ[R] A₂ :=
+{ to_fun := f,
+  inv_fun := f.symm,
+  commutes' := hf,
+  .. f }
+
+end of_ring_equiv
 
 @[simps mul one {attrs := []}] instance aut : group (A₁ ≃ₐ[R] A₁) :=
 { mul := λ ϕ ψ, ψ.trans ϕ,
@@ -1595,6 +1725,10 @@ by rw [←(one_smul A m), ←smul_assoc, algebra.smul_def, mul_one, one_smul]
 
 @[simp] lemma algebra_map_smul (r : R) (m : M) : ((algebra_map R A) r) • m = r • m :=
 (algebra_compatible_smul A r m).symm
+
+lemma int_cast_smul {k V : Type*} [comm_ring k] [add_comm_group V] [module k V] (r : ℤ) (x : V) :
+  (r : k) • x = r • x :=
+algebra_map_smul k r x
 
 lemma no_zero_smul_divisors.trans (R A M : Type*) [comm_ring R] [ring A] [is_domain A] [algebra R A]
   [add_comm_group M] [module R M] [module A M] [is_scalar_tower R A M] [no_zero_smul_divisors R A]

@@ -422,13 +422,8 @@ open_locale bounded_continuous_function
 
 /-- Schwartz functions as bounded continuous functions-/
 def to_bounded_continuous_function (f : 𝓢(E, F)) : E →ᵇ F :=
-{ to_fun := f, map_bounded' :=
-  begin
-    use (schwartz_map.seminorm ℝ 0 0) f + (schwartz_map.seminorm ℝ 0 0) f,
-    intros x y,
-    refine (dist_triangle_right (f x) (f y) 0).trans (add_le_add _ _);
-    simp only [norm_le_seminorm, dist_zero_right],
-  end }
+bounded_continuous_function.of_normed_add_comm_group f (schwartz_map.continuous f)
+  (schwartz_map.seminorm ℝ 0 0 f) (norm_le_seminorm ℝ f)
 
 @[simp] lemma to_bounded_continuous_function_apply (f : 𝓢(E, F)) (x : E) :
   f.to_bounded_continuous_function x = f x := rfl
@@ -436,7 +431,7 @@ def to_bounded_continuous_function (f : 𝓢(E, F)) : E →ᵇ F :=
 variables (𝕜 E F)
 variables [is_R_or_C 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
 
-/-- The map inclusion of Schwartz functions to bounded continuous functions as a linear map. -/
+/-- The inclusion map from Schwartz functions to bounded continuous functions as a linear map. -/
 def to_bounded_continuous_function_lm : 𝓢(E, F) →ₗ[𝕜] E →ᵇ F :=
 { to_fun := λ f, f.to_bounded_continuous_function,
   map_add' := λ f g, by { ext, exact add_apply },
@@ -445,7 +440,7 @@ def to_bounded_continuous_function_lm : 𝓢(E, F) →ₗ[𝕜] E →ᵇ F :=
 @[simp] lemma to_bounded_continuous_function_lm_apply (f : 𝓢(E, F)) (x : E) :
   to_bounded_continuous_function_lm 𝕜 E F f x = f x := rfl
 
-/-- The map inclusion of Schwartz functions to bounded continuous functions as a continuous linear
+/-- The inclusion map from Schwartz functions to bounded continuous functions as a continuous linear
 map. -/
 def to_bounded_continuous_function_clm : 𝓢(E, F) →L[𝕜] E →ᵇ F :=
 { cont :=
@@ -453,9 +448,8 @@ def to_bounded_continuous_function_clm : 𝓢(E, F) →L[𝕜] E →ᵇ F :=
     change continuous (to_bounded_continuous_function_lm 𝕜 E F),
     refine seminorm.continuous_from_bounded (schwartz_with_seminorms 𝕜 E F)
       (norm_with_seminorms 𝕜 (E →ᵇ F)) _ (λ i, ⟨{0}, 1, one_ne_zero, λ f, _⟩),
-    rw [finset.sup_singleton, one_smul],
-    simp only [seminorm.comp_apply, coe_norm_seminorm, schwartz_seminorm_family_apply_zero],
-    rw bounded_continuous_function.norm_le (map_nonneg _ _),
+    rw [finset.sup_singleton, one_smul , seminorm.comp_apply, coe_norm_seminorm,
+        schwartz_seminorm_family_apply_zero, bounded_continuous_function.norm_le (map_nonneg _ _)],
     intros x,
     exact norm_le_seminorm 𝕜 _ _,
   end,

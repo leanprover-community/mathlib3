@@ -560,8 +560,7 @@ lemma monotone.div_const {β : Type*} [preorder β] {f : β → α} (hf : monoto
   {c : α} (hc : 0 ≤ c) : monotone (λ x, (f x) / c) :=
 begin
   haveI := @linear_order.decidable_le α _,
-  simpa only [div_eq_mul_inv]
-    using (decidable.monotone_mul_right_of_nonneg (inv_nonneg.2 hc)).comp hf
+  simpa only [div_eq_mul_inv] using (monotone_mul_right_of_nonneg (inv_nonneg.2 hc)).comp hf
 end
 
 lemma strict_mono.div_const {β : Type*} [preorder β] {f : β → α} (hf : strict_mono f)
@@ -867,7 +866,7 @@ end
 lemma sub_one_div_inv_le_two (a2 : 2 ≤ a) : (1 - 1 / a)⁻¹ ≤ 2 :=
 begin
   -- Take inverses on both sides to obtain `2⁻¹ ≤ 1 - 1 / a`
-  refine (inv_le_inv_of_le (inv_pos.2 zero_lt_two) _).trans_eq (inv_inv (2 : α)),
+  refine (inv_le_inv_of_le (inv_pos.2 $ zero_lt_two' α) _).trans_eq (inv_inv (2 : α)),
   -- move `1 / a` to the left and `1 - 1 / 2 = 1 / 2` to the right to obtain `1 / a ≤ ⅟ 2`
   refine (le_sub_iff_add_le.2 (_ : _ + 2⁻¹ = _ ).le).trans ((sub_le_sub_iff_left 1).2 _),
   { -- show 2⁻¹ + 2⁻¹ = 1

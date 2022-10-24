@@ -816,11 +816,14 @@ instance : has_involutive_neg pgame :=
   end,
   ..pgame.has_neg }
 
-@[simp] protected lemma neg_zero : -(0 : pgame) = 0 :=
-begin
-  dsimp [has_zero.zero, has_neg.neg, neg],
-  congr; funext i; cases i
-end
+instance : neg_zero_class pgame :=
+{ neg_zero :=
+  begin
+    dsimp [has_zero.zero, has_neg.neg, neg],
+    congr; funext i; cases i
+  end,
+  ..pgame.has_zero,
+  ..pgame.has_neg }
 
 @[simp] lemma neg_of_lists (L R : list pgame) :
   -of_lists L R = of_lists (R.map (λ x, -x)) (L.map (λ x, -x)) :=
@@ -953,34 +956,34 @@ theorem lt_neg_iff {x y : pgame} : y < -x ↔ x < -y :=
 by rw [←neg_neg x, neg_lt_neg_iff, neg_neg]
 
 @[simp] theorem neg_le_zero_iff {x : pgame} : -x ≤ 0 ↔ 0 ≤ x :=
-by rw [neg_le_iff, pgame.neg_zero]
+by rw [neg_le_iff, neg_zero]
 
 @[simp] theorem zero_le_neg_iff {x : pgame} : 0 ≤ -x ↔ x ≤ 0 :=
-by rw [le_neg_iff, pgame.neg_zero]
+by rw [le_neg_iff, neg_zero]
 
 @[simp] theorem neg_lf_zero_iff {x : pgame} : -x ⧏ 0 ↔ 0 ⧏ x :=
-by rw [neg_lf_iff, pgame.neg_zero]
+by rw [neg_lf_iff, neg_zero]
 
 @[simp] theorem zero_lf_neg_iff {x : pgame} : 0 ⧏ -x ↔ x ⧏ 0 :=
-by rw [lf_neg_iff, pgame.neg_zero]
+by rw [lf_neg_iff, neg_zero]
 
 @[simp] theorem neg_lt_zero_iff {x : pgame} : -x < 0 ↔ 0 < x :=
-by rw [neg_lt_iff, pgame.neg_zero]
+by rw [neg_lt_iff, neg_zero]
 
 @[simp] theorem zero_lt_neg_iff {x : pgame} : 0 < -x ↔ x < 0 :=
-by rw [lt_neg_iff, pgame.neg_zero]
+by rw [lt_neg_iff, neg_zero]
 
 @[simp] theorem neg_equiv_zero_iff {x : pgame} : -x ≈ 0 ↔ x ≈ 0 :=
-by rw [neg_equiv_iff, pgame.neg_zero]
+by rw [neg_equiv_iff, neg_zero]
 
 @[simp] theorem neg_fuzzy_zero_iff {x : pgame} : -x ∥ 0 ↔ x ∥ 0 :=
-by rw [neg_fuzzy_iff, pgame.neg_zero]
+by rw [neg_fuzzy_iff, neg_zero]
 
 @[simp] theorem zero_equiv_neg_iff {x : pgame} : 0 ≈ -x ↔ 0 ≈ x :=
-by rw [←neg_equiv_iff, pgame.neg_zero]
+by rw [←neg_equiv_iff, neg_zero]
 
 @[simp] theorem zero_fuzzy_neg_iff {x : pgame} : 0 ∥ -x ↔ 0 ∥ x :=
-by rw [←neg_fuzzy_iff, pgame.neg_zero]
+by rw [←neg_fuzzy_iff, neg_zero]
 
 /-! ### Addition and subtraction -/
 
@@ -1147,7 +1150,7 @@ using_well_founded { dec_tac := pgame_wf_tac }
 instance : has_sub pgame := ⟨λ x y, x + -y⟩
 
 @[simp] theorem sub_zero (x : pgame) : x - 0 = x + 0 :=
-show x + -0 = x + 0, by rw pgame.neg_zero
+show x + -0 = x + 0, by rw neg_zero
 
 /-- If `w` has the same moves as `x` and `y` has the same moves as `z`,
 then `w - y` has the same moves as `x - z`. -/
@@ -1218,7 +1221,7 @@ end
 
 theorem zero_le_add_left_neg (x : pgame) : 0 ≤ -x + x :=
 begin
-  rw [←neg_le_neg_iff, pgame.neg_zero],
+  rw [←neg_le_neg_iff, neg_zero],
   exact neg_add_le.trans (add_left_neg_le_zero _)
 end
 

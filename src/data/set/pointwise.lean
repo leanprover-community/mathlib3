@@ -166,6 +166,9 @@ lemma inv_subset_inv : s⁻¹ ⊆ t⁻¹ ↔ s ⊆ t :=
 @[simp, to_additive] lemma inv_singleton (a : α) : ({a} : set α)⁻¹ = {a⁻¹} :=
 by rw [←image_inv, image_singleton]
 
+@[simp, to_additive] lemma inv_insert (a : α) (s : set α) : (insert a s)⁻¹ = insert a⁻¹ s⁻¹ :=
+by rw [insert_eq, union_inv, inv_singleton, insert_eq]
+
 @[to_additive] lemma inv_range {ι : Sort*} {f : ι → α} : (range f)⁻¹ = range (λ i, (f i)⁻¹) :=
 by { rw ←image_inv, exact (range_comp _ _).symm }
 
@@ -1298,6 +1301,38 @@ lemma set_smul_subset_iff : a • A ⊆ B ↔ A ⊆ a⁻¹ • B :=
 lemma subset_set_smul_iff : A ⊆ a • B ↔ a⁻¹ • A ⊆ B :=
 iff.symm $ (image_subset_iff).trans $ iff.symm $ iff_of_eq $ congr_arg _ $
   image_equiv_eq_preimage_symm _ $ mul_action.to_perm _
+
+@[to_additive]
+lemma smul_inter_ne_empty_iff {s t : set α} {x : α} :
+  x • s ∩ t ≠ ∅ ↔ ∃ a b, (a ∈ t ∧ b ∈ s) ∧ a * b⁻¹ = x :=
+begin
+  rw ne_empty_iff_nonempty,
+  split,
+  { rintros ⟨a, h, ha⟩,
+    obtain ⟨b, hb, rfl⟩ := mem_smul_set.mp h,
+    exact ⟨x • b, b, ⟨ha, hb⟩, by simp⟩, },
+  { rintros ⟨a, b, ⟨ha, hb⟩, rfl⟩,
+    exact ⟨a, mem_inter (mem_smul_set.mpr ⟨b, hb, by simp⟩) ha⟩, },
+end
+
+@[to_additive]
+lemma smul_inter_ne_empty_iff' {s t : set α} {x : α} :
+  x • s ∩ t ≠ ∅ ↔ ∃ a b, (a ∈ t ∧ b ∈ s) ∧ a / b = x :=
+by simp_rw [smul_inter_ne_empty_iff, div_eq_mul_inv]
+
+@[to_additive]
+lemma op_smul_inter_ne_empty_iff {s t : set α} {x : αᵐᵒᵖ} :
+  x • s ∩ t ≠ ∅ ↔ ∃ a b, (a ∈ s ∧ b ∈ t) ∧ a⁻¹ * b = mul_opposite.unop x :=
+begin
+  rw ne_empty_iff_nonempty,
+  split,
+  { rintros ⟨a, h, ha⟩,
+    obtain ⟨b, hb, rfl⟩ := mem_smul_set.mp h,
+    exact ⟨b, x • b, ⟨hb, ha⟩, by simp⟩, },
+  { rintros ⟨a, b, ⟨ha, hb⟩, H⟩,
+    have : mul_opposite.op (a⁻¹ * b) = x := congr_arg mul_opposite.op H,
+    exact ⟨b, mem_inter (mem_smul_set.mpr ⟨a, ha, by simp [← this]⟩) hb⟩, },
+end
 
 end group
 

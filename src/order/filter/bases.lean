@@ -205,12 +205,7 @@ variables {l l' : filter α} {p : ι → Prop} {s : ι → set α} {t : set α} 
 
 lemma has_basis_generate (s : set (set α)) :
   (generate s).has_basis (λ t, set.finite t ∧ t ⊆ s) (λ t, ⋂₀ t) :=
-⟨begin
-  intro U,
-  rw mem_generate_iff,
-  apply exists_congr,
-  tauto
-end⟩
+⟨λ U, by simp only [mem_generate_iff, exists_prop, and.assoc, and.left_comm]⟩
 
 /-- The smallest filter basis containing a given collection of sets. -/
 def filter_basis.of_sets (s : set (set α)) : filter_basis α :=
@@ -331,6 +326,10 @@ lemma has_basis.eq_bot_iff (hl : l.has_basis p s) :
   l = ⊥ ↔ ∃ i, p i ∧ s i = ∅ :=
 not_iff_not.1 $ ne_bot_iff.symm.trans $ hl.ne_bot_iff.trans $
 by simp only [not_exists, not_and, ← ne_empty_iff_nonempty]
+
+lemma generate_ne_bot_iff {s : set (set α)} :
+  ne_bot (generate s) ↔ ∀ t ⊆ s, t.finite → (⋂₀ t).nonempty :=
+(has_basis_generate s).ne_bot_iff.trans $ by simp only [← and_imp, and_comm]
 
 lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=
 ⟨λ t, exists_mem_subset_iff.symm⟩
@@ -563,6 +562,31 @@ lemma has_basis.disjoint_iff (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
   disjoint l l' ↔ ∃ i (hi : p i) i' (hi' : p' i'), disjoint (s i) (s' i') :=
 not_iff_not.mp $ by simp only [disjoint_iff, ← ne.def, ← ne_bot_iff, hl.inf_basis_ne_bot_iff hl',
   not_exists, bot_eq_empty, ne_empty_iff_nonempty, inf_eq_inter]
+
+lemma _root_.disjoint.exists_mem_filter_basis (h : disjoint l l') (hl : l.has_basis p s)
+  (hl' : l'.has_basis p' s') :
+  ∃ i (hi : p i) i' (hi' : p' i'), disjoint (s i) (s' i') :=
+(hl.disjoint_iff hl').1 h
+
+lemma _root_.pairwise.exists_mem_filter_basis_of_disjoint {I : Type*} [finite I]
+  {l : I → filter α} {ι : I → Sort*} {p : Π i, ι i → Prop} {s : Π i, ι i → set α}
+  (hd : pairwise (disjoint on l)) (h : ∀ i, (l i).has_basis (p i) (s i)) :
+  ∃ ind : Π i, ι i, (∀ i, p i (ind i)) ∧ pairwise (disjoint on λ i, s i (ind i)) :=
+begin
+  rcases hd.exists_mem_filter_of_disjoint with ⟨t, htl, hd⟩,
+  choose ind hp ht using λ i, (h i).mem_iff.1 (htl i),
+  exact ⟨ind, hp, hd.mono $ λ i j hij, hij.mono (ht _) (ht _)⟩
+end
+
+lemma _root_.set.pairwise_disjoint.exists_mem_filter_basis {I : Type*} {l : I → filter α}
+  {ι : I → Sort*} {p : Π i, ι i → Prop} {s : Π i, ι i → set α} {S : set I}
+  (hd : S.pairwise_disjoint l) (hS : S.finite) (h : ∀ i, (l i).has_basis (p i) (s i)) :
+  ∃ ind : Π i, ι i, (∀ i, p i (ind i)) ∧ S.pairwise_disjoint (λ i, s i (ind i)) :=
+begin
+  rcases hd.exists_mem_filter hS with ⟨t, htl, hd⟩,
+  choose ind hp ht using λ i, (h i).mem_iff.1 (htl i),
+  exact ⟨ind, hp, hd.mono ht⟩
+end
 
 lemma inf_ne_bot_iff :
   ne_bot (l ⊓ l') ↔ ∀ ⦃s : set α⦄ (hs : s ∈ l) ⦃s'⦄ (hs' : s' ∈ l'), (s ∩ s').nonempty :=

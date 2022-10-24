@@ -81,7 +81,7 @@ begin
   simp only [upper_set.coe_infi, upper_set.coe_Ici],
   apply is_closed_bUnion h,
   intros a h₁,
-  apply ici_is_closed,
+  apply Ici_is_closed,
 end
 
 /-
@@ -111,7 +111,7 @@ lemma singleton_closure (a : α) : closure {a} = Ici a :=
 begin
   rw subset_antisymm_iff,
   split,
-  { apply closure_minimal _ (ici_is_closed a), rw [singleton_subset_iff, mem_Ici], },
+  { apply closure_minimal _ (Ici_is_closed a), rw [singleton_subset_iff, mem_Ici], },
   { unfold closure,
     refine subset_sInter _,
     intro u,

@@ -459,30 +459,6 @@ variables [nonempty ι] [nonempty ι']
 
 -- Should I merge hf₁ and hf₂ ?
 
-lemma uniform_equicontinuous_from_bounded {κ : Type*} {q : seminorm_family 𝕜 F ι'}
-  [uniform_space E] [uniform_add_group E]
-  [uniform_space F] [uniform_add_group F] (hq : with_seminorms q)
-  (f : κ → E →ₗ[𝕜] F) (hf₁ : ∀ i, bdd_above (range $ λ k, (q i).comp (f k)))
-  (hf₂ : ∀ i, continuous (⨆ k, (q i).comp (f k))) : uniform_equicontinuous (coe_fn ∘ f) :=
-begin
-  refine uniform_equicontinuous_of_equicontinuous_at_zero f
-    (metric.equicontinuous_at_of_continuity_modulus _ _ _ _),
-  rw [equicontinuous_at],
-  intros U hU,
-  rw [uniformity_eq_comap_nhds_zero, q.with_seminorms_iff_nhds_eq_infi.mp hq,
-      filter.comap_infi] at hU,
-  rcases hU with ⟨V, hV : V ∈ q.basis_sets, hU⟩,
-  rcases q.basis_sets_iff.mp hV with ⟨s₂, r, hr, hV⟩,
-  rw hV at hU,
-  rw [p.add_group_filter_basis.nhds_zero_eq, filter_basis.mem_filter_iff],
-  rcases (seminorm.is_bounded_sup hf s₂) with ⟨C, s₁, hC, hf⟩,
-  refine ⟨(s₁.sup p).ball 0 (r/C), p.basis_sets_mem _ (div_pos hr (nnreal.coe_pos.mpr hC)), _⟩,
-  refine subset.trans _ (preimage_mono hU),
-  simp_rw [←linear_map.map_zero f, ←ball_comp],
-  refine subset.trans _ (ball_antitone hf),
-  rw ball_smul (s₁.sup p) hC,
-end
-
 lemma continuous_of_continuous_comp {q : seminorm_family 𝕜 F ι'}
   [topological_space E] [topological_add_group E]
   [topological_space F] [topological_add_group F] (hq : with_seminorms q)
@@ -538,6 +514,47 @@ lemma cont_normed_space_to_with_seminorms (E) [seminormed_add_comm_group E] [nor
 begin
   rw ←seminorm.const_is_bounded (fin 1) at hf,
   exact continuous_from_bounded (norm_with_seminorms 𝕜 E) hq f hf,
+end
+
+lemma uniform_equicontinuous_of_continuous_comp_supr {κ : Type*} {q : seminorm_family 𝕜 F ι'}
+  [uniform_space E] [uniform_add_group E]
+  [u : uniform_space F] [hu : uniform_add_group F] (hq : with_seminorms q)
+  (f : κ → E →ₗ[𝕜] F) (hf₁ : ∀ i, bdd_above (range $ λ k, (q i).comp (f k)))
+  (hf₂ : ∀ i, continuous ⇑(⨆ k, (q i).comp (f k) : seminorm 𝕜 E)) :
+  uniform_equicontinuous (coe_fn ∘ f) :=
+begin
+  rw [q.with_seminorms_iff_uniform_space_eq_infi.mp hq, uniform_equicontinuous_infi_rng],
+  intro i,
+  clear hu hq u,
+  letI : seminormed_add_comm_group F := (q i).to_add_group_seminorm.to_seminormed_add_comm_group,
+  set φ : seminorm 𝕜 E := ⨆ k, (q i).comp (f k) with hφ,
+  have hφ' : filter.tendsto φ (𝓝 0) (𝓝 0),
+  { rw [← map_zero φ, hφ],
+    exact (hf₂ i).tendsto 0 },
+  refine uniform_equicontinuous_of_equicontinuous_at_zero f
+    (metric.equicontinuous_at_of_continuity_modulus φ hφ' _ $ λ x k, _),
+  change q i (f k 0 - f k x) ≤ φ x,
+  rw [map_zero, zero_sub, map_neg_eq_map, ← comp_apply],
+  revert x,
+  change (q i).comp (f k) ≤ φ,
+  exact le_csupr (hf₁ i) k
+end
+
+lemma uniform_equicontinuous_from_bounded [normed_algebra ℝ 𝕜] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
+  {κ : Type*} {p : seminorm_family 𝕜 E ι} {q : seminorm_family 𝕜 F ι'}
+  [uniform_space E] [uniform_add_group E] (hp : with_seminorms p) [has_continuous_const_smul ℝ E]
+  [uniform_space F] [uniform_add_group F] (hq : with_seminorms q) (f : κ → E →ₗ[𝕜] F)
+  (hf : ∀ i, ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ ∀ k, (q i).comp (f k) ≤ C • s.sup p) :
+  uniform_equicontinuous (coe_fn ∘ f) :=
+begin
+  casesI is_empty_or_nonempty κ,
+  { exact uniform_equicontinuous_empty _ },
+  choose! s C hC using hf,
+  have : ∀ i, bdd_above (range (λ (k : κ), (q i).comp (f k))) :=
+    λ i, ⟨(C i) • (s i).sup p, forall_range_iff.mpr (hC i).2⟩,
+  refine uniform_equicontinuous_of_continuous_comp_supr hq _ this _,
+  refine λ i, continuous_of_le _ (csupr_le (hC i).2),
+  refine continuous.const_smul sorry _, -- finite sup preserves continuity
 end
 
 end seminorm

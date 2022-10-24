@@ -1841,22 +1841,19 @@ local attribute [instance] uniform_convergence.topological_space
 /-- For a family of functions between (pseudo) metric spaces, a convenient way to prove
 equicontinuity at a point is to show that all of the functions share a common *local* continuity
 modulus. -/
-lemma equicontinuous_at_of_continuity_modulus {ι : Type*} [pseudo_metric_space β] {x₀ : α}
-  (b : α → ℝ)
+lemma equicontinuous_at_of_continuity_modulus {ι : Type*} [topological_space β] {x₀ : β}
+  (b : β → ℝ)
   (b_lim : tendsto b (𝓝 x₀) (𝓝 0))
-  (F : ι → α → β)
-  (H : ∀(x:α) i, dist (F i x₀) (F i x) ≤ b x) :
+  (F : ι → β → α)
+  (H : ∀(x:β) i, dist (F i x₀) (F i x) ≤ b x) :
   equicontinuous_at F x₀ :=
 begin
-  rw metric.equicontinuous_at_iff,
+  rw metric.equicontinuous_at_iff_right,
   intros ε ε0,
-  rcases tendsto_nhds_nhds.1 b_lim ε ε0 with ⟨δ, δ0, hδ⟩,
-  refine ⟨δ, δ0, λ x hx i, _⟩,
+  filter_upwards [b_lim (Iio_mem_nhds ε0)] with x hx i,
   calc
     dist (F i x₀) (F i x) ≤ b x : H x i
-    ... ≤ |b x| : le_abs_self _
-    ... = dist (b x) 0 : by simp [real.dist_eq]
-    ... < ε : hδ (by simpa only [real.dist_eq, tsub_zero, abs_dist] using hx)
+    ... < ε : hx
 end
 
 /-- For a family of functions between (pseudo) metric spaces, a convenient way to prove

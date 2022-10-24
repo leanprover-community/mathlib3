@@ -91,6 +91,18 @@ def uniform_equicontinuous (F : ι → β → α) : Prop :=
 protected abbreviation set.uniform_equicontinuous (H : set $ β → α) : Prop :=
 uniform_equicontinuous (coe : H → β → α)
 
+lemma equicontinuous_at_empty [h : is_empty ι] (F : ι → X → α) (x₀ : X) :
+  equicontinuous_at F x₀ :=
+λ U hU, eventually_of_forall (λ x i, h.elim i)
+
+lemma equicontinuous_empty [h : is_empty ι] (F : ι → X → α) :
+  equicontinuous F :=
+equicontinuous_at_empty F
+
+lemma uniform_equicontinuous_empty [h : is_empty ι] (F : ι → β → α) :
+  uniform_equicontinuous F :=
+λ U hU, eventually_of_forall (λ xy i, h.elim i)
+
 /-- Reformulation of equicontinuity at `x₀` comparing two variables near `x₀` instead of comparing
 only one with `x₀`. -/
 lemma equicontinuous_at_iff_pair {F : ι → X → α} {x₀ : X} : equicontinuous_at F x₀ ↔
@@ -240,6 +252,31 @@ lemma uniform_equicontinuous_infi_rng {α' : Type*} [u : κ → uniform_space α
 begin
   simp_rw [uniform_equicontinuous_iff_uniform_continuous],
   rw [uniform_convergence.infi_eq, uniform_continuous_infi_rng],
+end
+
+lemma equicontinuous_at_infi_dom {X' : Type*} [t : κ → topological_space X'] {F : ι → X' → α}
+  {x₀ : X'} {k : κ} (hk : @equicontinuous_at _ _ _ (t k) _ F x₀) :
+  @equicontinuous_at _ _ _ (⨅ k, t k) _ F x₀ :=
+begin
+  simp_rw [equicontinuous_at_iff_continuous_at, continuous_at] at ⊢ hk,
+  rw [nhds_infi],
+  exact tendsto_infi' k hk
+end
+
+lemma equicontinuous_infi_dom {X' : Type*} [t : κ → topological_space X'] {F : ι → X' → α}
+  {k : κ} (hk : @equicontinuous _ _ _ (t k) _ F) :
+  @equicontinuous _ _ _ (⨅ k, t k) _ F :=
+begin
+  simp_rw [equicontinuous_iff_continuous] at ⊢ hk,
+  exact continuous_infi_dom hk
+end
+
+lemma uniform_equicontinuous_infi_dom {β' : Type*} [u : κ → uniform_space β'] {F : ι → β' → α}
+  {k : κ} (hk : @uniform_equicontinuous _ _ _ _ (u k) F) :
+  @uniform_equicontinuous _ _ _ _ (⨅ k, u k) F :=
+begin
+  simp_rw [uniform_equicontinuous_iff_uniform_continuous] at ⊢ hk,
+  exact uniform_continuous_infi_dom hk
 end
 
 lemma filter.has_basis.equicontinuous_at_iff_left {κ : Type*} {p : κ → Prop} {s : κ → set X}

@@ -128,13 +128,13 @@ instance preorder [preorder ι] [Π i, preorder (α i)] : preorder (Σₗ i, α 
   le_trans := λ _ _ _, trans_of (lex (<) $ λ _, (≤)),
   lt_iff_le_not_le := begin
     refine λ a b, ⟨λ hab, ⟨hab.mono_right (λ i a b, le_of_lt), _⟩, _⟩,
-    { rintro (⟨j, i, b, a, hji⟩ | ⟨i, b, a, hba⟩);
-        obtain (⟨_, _, _, _, hij⟩ | ⟨_, _, _, hab⟩) := hab,
+    { rintro (⟨b, a, hji⟩ | ⟨b, a, hba⟩);
+        obtain (⟨_, _, hij⟩ | ⟨_, _, hab⟩) := hab,
       { exact hij.not_lt hji },
       { exact lt_irrefl _ hji },
       { exact lt_irrefl _ hij },
       { exact hab.not_le hba } },
-    { rintro ⟨⟨i, j, a, b, hij⟩ |⟨i, a, b, hab⟩, hba⟩,
+    { rintro ⟨⟨a, b, hij⟩ | ⟨a, b, hab⟩, hba⟩,
       { exact lex.left _ _ hij },
       { exact lex.right _ _ (hab.lt_of_not_le $ λ h, hba $ lex.right _ _ h) } }
   end,

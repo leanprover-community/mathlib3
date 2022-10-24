@@ -682,6 +682,32 @@ begin
   exact ⟨t, nhds_within_mono x h' ht, H.mono (λ n, id)⟩
 end
 
+lemma tendsto_locally_uniformly_on_Union {S : γ → set α} (hS : ∀ i, is_open (S i))
+  (h : ∀ i, tendsto_locally_uniformly_on F f p (S i)) :
+  tendsto_locally_uniformly_on F f p (⋃ i, S i) :=
+begin
+  rintro v hv x ⟨_, ⟨i, rfl⟩, hi : x ∈ S i⟩,
+  obtain ⟨t, ht, ht'⟩ := h i v hv x hi,
+  refine ⟨t, _, ht'⟩,
+  rw (hS _).nhds_within_eq hi at ht,
+  exact mem_nhds_within_of_mem_nhds ht,
+end
+
+lemma tendsto_locally_uniformly_on_bUnion {s : set γ} {S : γ → set α}
+  (hS : ∀ i ∈ s, is_open (S i)) (h : ∀ i ∈ s, tendsto_locally_uniformly_on F f p (S i)) :
+  tendsto_locally_uniformly_on F f p (⋃ i ∈ s, S i) :=
+by { rw bUnion_eq_Union, exact tendsto_locally_uniformly_on_Union (λ i, hS _ i.2) (λ i, h _ i.2) }
+
+lemma tendsto_locally_uniformly_on_sUnion (S : set (set α)) (hS : ∀ s ∈ S, is_open s)
+  (h : ∀ s ∈ S, tendsto_locally_uniformly_on F f p s) :
+  tendsto_locally_uniformly_on F f p (⋃₀ S) :=
+by { rw sUnion_eq_bUnion, exact tendsto_locally_uniformly_on_bUnion hS h }
+
+lemma tendsto_locally_uniformly_on.union {s₁ s₂ : set α} (hs₁ : is_open s₁) (hs₂ : is_open s₂)
+  (h₁ : tendsto_locally_uniformly_on F f p s₁) (h₂ : tendsto_locally_uniformly_on F f p s₂) :
+  tendsto_locally_uniformly_on F f p (s₁ ∪ s₂) :=
+by { rw ←sUnion_pair, refine tendsto_locally_uniformly_on_sUnion _ _ _; simp [*] }
+
 lemma tendsto_locally_uniformly_on_univ :
   tendsto_locally_uniformly_on F f p univ ↔ tendsto_locally_uniformly F f p :=
 by simp [tendsto_locally_uniformly_on, tendsto_locally_uniformly, nhds_within_univ]

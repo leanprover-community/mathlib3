@@ -502,9 +502,10 @@ lemma is_haar_measure_of_is_compact_nonempty_interior [topological_group G] [bor
 open filter
 
 /-- The image of a Haar measure under a continuous surjective proper group homomorphism is again
-a Haar measure. -/
+a Haar measure. See also `mul_equiv.is_haar_measure_map`. -/
 @[to_additive "The image of an additive Haar measure under a continuous surjective proper additive
-group homomorphism is again an additive Haar measure."]
+group homomorphism is again an additive Haar measure. See also
+`add_equiv.is_add_haar_measure_map`."]
 lemma is_haar_measure_map [borel_space G] [topological_group G] {H : Type*} [group H]
   [topological_space H] [measurable_space H] [borel_space H] [t2_space H] [topological_group H]
   (f : G →* H) (hf : continuous f) (h_surj : surjective f)
@@ -527,6 +528,16 @@ lemma is_haar_measure_map [borel_space G] [topological_group G] {H : Type*} [gro
     exact is_compact.measure_lt_top ((⟨⟨f, hf⟩, h_prop⟩ : cocompact_map G H).compact_preimage hK),
   end,
   to_is_open_pos_measure := hf.is_open_pos_measure_map h_surj }
+
+/-- A convenience wrapper for `measure_theory.measure.is_haar_measure_map`. -/
+@[to_additive "A convenience wrapper for `measure_theory.measure.is_add_haar_measure_map`."]
+lemma _root_.mul_equiv.is_haar_measure_map
+  [borel_space G] [topological_group G] {H : Type*} [group H]
+  [topological_space H] [measurable_space H] [borel_space H] [t2_space H] [topological_group H]
+  (e : G ≃* H) (he : continuous e) (hesymm : continuous e.symm) :
+  is_haar_measure (measure.map e μ) :=
+is_haar_measure_map μ (e : G →* H) he e.surjective
+  ({ .. e } : G ≃ₜ H).to_cocompact_map.cocompact_tendsto'
 
 /-- A Haar measure on a σ-compact space is σ-finite.
 

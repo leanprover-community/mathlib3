@@ -64,7 +64,7 @@ variable [preorder α]
 lemma lower_topology_def : (lower_topology α) = generate_from {s | ∃ a, (Ici a)ᶜ = s} := rfl
 
 lemma is_open_iff_generate_Ici_comp {s : set α} :
-  is_open s ↔ generate_open {s | ∃a, (Ici a)ᶜ = s } s := iff.rfl
+  is_open s ↔ generate_open {s | ∃ a, (Ici a)ᶜ = s} s := iff.rfl
 
 /-
 Left-closed right-infinite intervals [a,∞) are closed in the lower topology

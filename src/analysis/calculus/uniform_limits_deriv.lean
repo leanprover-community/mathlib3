@@ -16,12 +16,12 @@ _uniformly_. The formal statement appears as `has_fderiv_at_of_tendsto_locally_u
 
 ## Main statements
 
-* `uniform_cauchy_seq_on_filter_of_tendsto_uniformly_on_filter_fderiv`: If
+* `uniform_cauchy_seq_on_filter_of_fderiv`: If
     1. `f : ℕ → E → G` is a sequence of functions which have derivatives
        `f' : ℕ → E → (E →L[𝕜] G)` on a neighborhood of `x`,
     2. the functions `f` converge at `x`, and
-    3. the derivatives `f'` converge uniformly on a neighborhood of `x`,
-  then the `f` converge _uniformly_ on a neighborhood of `x`
+    3. the derivatives `f'` form a Cauchy sequence uniformly on a neighborhood of `x`,
+  then the `f` form a Cauchy sequence _uniformly_ on a neighborhood of `x`
 * `has_fderiv_at_of_tendsto_uniformly_on_filter` : Suppose (1), (2), and (3) above are true. Let
   `g` (resp. `g'`) be the limiting function of the `f` (resp. `g'`). Then `f'` is the derivative of
   `g` on a neighborhood of `x`
@@ -500,7 +500,7 @@ begin
     hf'.one_smul_right hf hfg,
 end
 
-lemma uniform_cauchy_seq_on_ball_of_tendsto_uniformly_on_ball_deriv
+lemma uniform_cauchy_seq_on_ball_of_deriv
   {r : ℝ} (hf' : uniform_cauchy_seq_on f' l (metric.ball x r))
   (hf : ∀ n : ι, ∀ y : 𝕜, y ∈ metric.ball x r → has_deriv_at (f n) (f' n y) y)
   (hfg : cauchy (map (λ n, f n x) l)) :

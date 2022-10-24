@@ -267,7 +267,6 @@ begin
   exact (hf ht).inter h.measurable_set.of_compl,
 end
 
-
 end measurable_functions
 
 section constructions
@@ -1461,5 +1460,19 @@ instance : boolean_algebra (subtype (measurable_set : set α → Prop)) :=
   sdiff_eq := λ a b, subtype.eq $ sdiff_eq,
   .. measurable_set.subtype.bounded_order,
   .. measurable_set.subtype.distrib_lattice }
+
+@[measurability] lemma measurable_set_limsup {s : ℕ → set α} (hs : ∀ n, measurable_set $ s n) :
+  measurable_set $ filter.limsup s filter.at_top :=
+begin
+  simp only [filter.limsup_eq_infi_supr_of_nat', supr_eq_Union, infi_eq_Inter],
+  exact measurable_set.Inter (λ n, measurable_set.Union $ λ m, hs $ m + n),
+end
+
+@[measurability] lemma measurable_set_liminf {s : ℕ → set α} (hs : ∀ n, measurable_set $ s n) :
+  measurable_set $ filter.liminf s filter.at_top :=
+begin
+  simp only [filter.liminf_eq_supr_infi_of_nat', supr_eq_Union, infi_eq_Inter],
+  exact measurable_set.Union (λ n, measurable_set.Inter $ λ m, hs $ m + n),
+end
 
 end measurable_set

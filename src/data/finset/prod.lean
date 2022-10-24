@@ -46,6 +46,18 @@ lemma mk_mem_product (ha : a ∈ s) (hb : b ∈ t) : (a, b) ∈ s ×ˢ t := mem_
   (↑(s ×ˢ t) : set (α × β)) = s ×ˢ t :=
 set.ext $ λ x, finset.mem_product
 
+lemma subset_product_image_fst [decidable_eq α] : (s ×ˢ t).image prod.fst ⊆ s :=
+λ i, by simp [mem_image] {contextual := tt}
+
+lemma subset_product_image_snd [decidable_eq β] : (s ×ˢ t).image prod.snd ⊆ t :=
+λ i, by simp [mem_image] {contextual := tt}
+
+lemma product_image_fst [decidable_eq α] (ht : t.nonempty) : (s ×ˢ t).image prod.fst = s :=
+by { ext i, simp [mem_image, ht.bex] }
+
+lemma product_image_snd [decidable_eq β] (ht : s.nonempty) : (s ×ˢ t).image prod.snd = t :=
+by { ext i, simp [mem_image, ht.bex] }
+
 lemma subset_product [decidable_eq α] [decidable_eq β] {s : finset (α × β)} :
   s ⊆ s.image prod.fst ×ˢ s.image prod.snd :=
 λ p hp, mem_product.2 ⟨mem_image_of_mem _ hp, mem_image_of_mem _ hp⟩
@@ -81,6 +93,14 @@ lemma filter_product (p : α → Prop) (q : β → Prop) [decidable_pred p] [dec
   (s ×ˢ t).filter (λ (x : α × β), p x.1 ∧ q x.2) = s.filter p ×ˢ t.filter q :=
 by { ext ⟨a, b⟩, simp only [mem_filter, mem_product],
      exact and_and_and_comm (a ∈ s) (b ∈ t) (p a) (q b) }
+
+lemma filter_product_left (p : α → Prop) [decidable_pred p] :
+  (s ×ˢ t).filter (λ (x : α × β), p x.1) = s.filter p ×ˢ t :=
+by simpa using filter_product p (λ _, true)
+
+lemma filter_product_right (q : β → Prop) [decidable_pred q] :
+  (s ×ˢ t).filter (λ (x : α × β), q x.2) = s ×ˢ t.filter q :=
+by simpa using filter_product (λ _ : α, true) q
 
 lemma filter_product_card (s : finset α) (t : finset β)
   (p : α → Prop) (q : β → Prop) [decidable_pred p] [decidable_pred q] :
@@ -142,7 +162,7 @@ by { ext ⟨x, y⟩, simp only [and_or_distrib_left, mem_union, mem_product] }
 end prod
 
 section diag
-variables (s t : finset α) [decidable_eq α]
+variables [decidable_eq α] (s t : finset α)
 
 /-- Given a finite set `s`, the diagonal, `s.diag` is the set of pairs of the form `(a, a)` for
 `a ∈ s`. -/
@@ -159,6 +179,9 @@ by { simp only [diag, mem_filter, mem_product], split; intros h;
 @[simp] lemma mem_off_diag (x : α × α) : x ∈ s.off_diag ↔ x.1 ∈ s ∧ x.2 ∈ s ∧ x.1 ≠ x.2 :=
 by { simp only [off_diag, mem_filter, mem_product], split; intros h;
      simp only [h, ne.def, not_false_iff, and_self] }
+
+@[simp, norm_cast] lemma coe_off_diag : (s.off_diag : set (α × α)) = (s : set α).off_diag :=
+set.ext $ mem_off_diag _
 
 @[simp] lemma diag_card : (diag s).card = s.card :=
 begin
@@ -177,6 +200,12 @@ begin
   apply filter_card_add_filter_neg_card_eq_card,
 end
 
+@[mono] lemma diag_mono : monotone (diag : finset α → finset (α × α)) :=
+λ s t h x hx, (mem_diag _ _).2 $ and.imp_left (@h _) $ (mem_diag _ _).1 hx
+
+@[mono] lemma off_diag_mono : monotone (off_diag : finset α → finset (α × α)) :=
+λ s t h x hx, (mem_off_diag _ _).2 $ and.imp (@h _) (and.imp_left $ @h _) $ (mem_off_diag _ _).1 hx
+
 @[simp] lemma diag_empty : (∅ : finset α).diag = ∅ := rfl
 
 @[simp] lemma off_diag_empty : (∅ : finset α).off_diag = ∅ := rfl
@@ -193,6 +222,12 @@ by rw [←diag_union_off_diag, union_comm, union_sdiff_self,
 lemma product_sdiff_off_diag : s ×ˢ s \ s.off_diag = s.diag :=
 by rw [←diag_union_off_diag, union_sdiff_self, sdiff_eq_self_of_disjoint (disjoint_diag_off_diag _)]
 
+lemma diag_inter : (s ∩ t).diag = s.diag ∩ t.diag :=
+ext $ λ x, by simpa only [mem_diag, mem_inter] using and_and_distrib_right _ _ _
+
+lemma off_diag_inter : (s ∩ t).off_diag = s.off_diag ∩ t.off_diag :=
+coe_injective $ by { push_cast, exact set.off_diag_inter _ _ }
+
 lemma diag_union : (s ∪ t).diag = s.diag ∪ t.diag :=
 by { ext ⟨i, j⟩, simp only [mem_diag, mem_union, or_and_distrib_right] }
 
@@ -200,15 +235,7 @@ variables {s t}
 
 lemma off_diag_union (h : disjoint s t) :
   (s ∪ t).off_diag = s.off_diag ∪ t.off_diag ∪ s ×ˢ t ∪ t ×ˢ s :=
-begin
-  rw [off_diag, union_product, product_union, product_union, union_comm _ (t ×ˢ t),
-    union_assoc, union_left_comm (s ×ˢ t), ←union_assoc, filter_union, filter_union, ←off_diag,
-    ←off_diag, filter_true_of_mem, ←union_assoc],
-  simp only [mem_union, mem_product, ne.def, prod.forall],
-  rintro i j (⟨hi, hj⟩ | ⟨hi, hj⟩),
-  { exact h.forall_ne_finset hi hj },
-  { exact h.symm.forall_ne_finset hi hj },
-end
+coe_injective $ by { push_cast, exact set.off_diag_union (disjoint_coe.2 h) }
 
 variables (a : α)
 

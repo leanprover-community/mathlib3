@@ -124,6 +124,74 @@ end prio
 def algebra_map (R : Type u) (A : Type v) [comm_semiring R] [semiring A] [algebra R A] : R →+* A :=
 algebra.to_ring_hom
 
+namespace algebra_map
+
+def has_lift_t (R A : Type*) [comm_semiring R] [semiring A] [algebra R A] :
+  has_lift_t R A := ⟨λ r, algebra_map R A r⟩
+
+attribute [instance, priority 900] algebra_map.has_lift_t
+
+section comm_semiring_semiring
+
+variables {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+
+@[simp, norm_cast] lemma coe_zero : (↑(0 : R) : A) = 0 := map_zero (algebra_map R A)
+@[simp, norm_cast] lemma coe_one : (↑(1 : R) : A) = 1 := map_one (algebra_map R A)
+@[norm_cast] lemma coe_add (a b : R) : (↑(a + b : R) : A) = ↑a + ↑b :=
+map_add (algebra_map R A) a b
+@[norm_cast] lemma coe_mul (a b : R) : (↑(a * b : R) : A) = ↑a * ↑b :=
+map_mul (algebra_map R A) a b
+@[norm_cast] lemma coe_pow (a : R) (n : ℕ) : (↑(a ^ n : R) : A) = ↑a ^ n :=
+map_pow (algebra_map R A) _ _
+
+end comm_semiring_semiring
+
+section comm_ring_ring
+
+variables {R A : Type*} [comm_ring R] [ring A] [algebra R A]
+
+@[norm_cast] lemma coe_neg (x : R) : (↑(-x : R) : A) = -↑x :=
+map_neg (algebra_map R A) x
+
+end comm_ring_ring
+
+section comm_semiring_comm_semiring
+
+variables {R A : Type*} [comm_semiring R] [comm_semiring A] [algebra R A]
+
+open_locale big_operators
+
+-- direct to_additive fails because of some mix-up with polynomials
+@[norm_cast] lemma coe_prod {ι : Type*} {s : finset ι} (a : ι → R) :
+  (↑( ∏ (i : ι) in s, a i : R) : A) = ∏ (i : ι) in s, (↑(a i) : A) :=
+map_prod (algebra_map R A) a s
+
+-- to_additive fails for some reason
+@[norm_cast] lemma coe_sum {ι : Type*} {s : finset ι} (a : ι → R) :
+  ↑(( ∑ (i : ι) in s, a i)) = ∑ (i : ι) in s, (↑(a i) : A) :=
+map_sum (algebra_map R A) a s
+
+attribute [to_additive] coe_prod
+
+end comm_semiring_comm_semiring
+
+section field_nontrivial
+
+variables {R A : Type*} [field R] [comm_semiring A] [nontrivial A] [algebra R A]
+
+@[norm_cast, simp] lemma coe_inj {a b : R} : (↑a : A) = ↑b ↔ a = b :=
+⟨λ h, (algebra_map R A).injective h, by rintro rfl; refl⟩
+
+@[norm_cast, simp] lemma lift_map_eq_zero_iff (a : R) : (↑a : A) = 0 ↔ a = 0 :=
+begin
+  rw (show (0 : A) = ↑(0 : R), from (map_zero (algebra_map R A)).symm),
+  norm_cast,
+end
+
+end field_nontrivial
+
+end algebra_map
+
 /-- Creating an algebra from a morphism to the center of a semiring. -/
 def ring_hom.to_algebra' {R S} [comm_semiring R] [semiring S] (i : R →+* S)
   (h : ∀ c x, i c * x = x * i c) :
@@ -196,7 +264,7 @@ lemma algebra_ext {R : Type*} [comm_semiring R] {A : Type*} [semiring A] (P Q : 
     by { haveI := Q, exact algebra_map R A r }) :
   P = Q :=
 begin
-  unfreezingI { rcases P with ⟨⟨P⟩⟩, rcases Q with ⟨⟨Q⟩⟩ },
+  unfreezingI { rcases P with @⟨⟨P⟩⟩, rcases Q with @⟨⟨Q⟩⟩ },
   congr,
   { funext r a,
     replace w := congr_arg (λ s, s * a) (w r),
@@ -703,7 +771,7 @@ def comp (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) : A →ₐ[R] C :=
 lemma comp_apply (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) (p : A) : φ₁.comp φ₂ p = φ₁ (φ₂ p) := rfl
 
 lemma comp_to_ring_hom (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) :
-  ⇑(φ₁.comp φ₂ : A →+* C) = (φ₁ : B →+* C).comp ↑φ₂ := rfl
+  (φ₁.comp φ₂ : A →+* C) = (φ₁ : B →+* C).comp ↑φ₂ := rfl
 
 @[simp] theorem comp_id : φ.comp (alg_hom.id R A) = φ :=
 ext $ λ x, rfl
@@ -1657,6 +1725,10 @@ by rw [←(one_smul A m), ←smul_assoc, algebra.smul_def, mul_one, one_smul]
 
 @[simp] lemma algebra_map_smul (r : R) (m : M) : ((algebra_map R A) r) • m = r • m :=
 (algebra_compatible_smul A r m).symm
+
+lemma int_cast_smul {k V : Type*} [comm_ring k] [add_comm_group V] [module k V] (r : ℤ) (x : V) :
+  (r : k) • x = r • x :=
+algebra_map_smul k r x
 
 lemma no_zero_smul_divisors.trans (R A M : Type*) [comm_ring R] [ring A] [is_domain A] [algebra R A]
   [add_comm_group M] [module R M] [module A M] [is_scalar_tower R A M] [no_zero_smul_divisors R A]

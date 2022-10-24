@@ -1203,7 +1203,7 @@ lemma le_dim_iff_exists_linear_independent_finset {n : ℕ} :
   ↑n ≤ module.rank K V ↔
     ∃ s : finset V, s.card = n ∧ linear_independent K (coe : (s : set V) → V) :=
 begin
-  simp only [le_dim_iff_exists_linear_independent, cardinal.mk_eq_nat_iff_finset],
+  simp only [le_dim_iff_exists_linear_independent, cardinal.mk_set_eq_nat_iff_finset],
   split,
   { rintro ⟨s, ⟨t, rfl, rfl⟩, si⟩,
     exact ⟨t, rfl, si⟩ },
@@ -1332,7 +1332,7 @@ lemma le_rank_iff_exists_linear_independent_finset {n : ℕ} {f : V →ₗ[K] V'
   ↑n ≤ rank f ↔ ∃ s : finset V, s.card = n ∧ linear_independent K (λ x : (s : set V), f x) :=
 begin
   simp only [le_rank_iff_exists_linear_independent, cardinal.lift_nat_cast,
-    cardinal.lift_eq_nat_iff, cardinal.mk_eq_nat_iff_finset],
+    cardinal.lift_eq_nat_iff, cardinal.mk_set_eq_nat_iff_finset],
   split,
   { rintro ⟨s, ⟨t, rfl, rfl⟩, si⟩,
     exact ⟨t, rfl, si⟩ },

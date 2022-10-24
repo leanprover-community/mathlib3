@@ -738,8 +738,7 @@ def sub_mul_action (A : valuation_subring L) :
     exact congr_arg coe g.prop.symm,
 end }
 
-/-- The multiplicative action of the decomposition subgroup on
-the type of all valuation subrings of the field. -/ -/
+/-- The multiplicative action of the decomposition subgroup on `A`. -/
 instance mul_action (A : valuation_subring L) :
   mul_semiring_action (A.decomposition_subgroup K) A :=
 { smul_add :=  λ g k l, subtype.ext $ smul_add g k l,

@@ -27,12 +27,17 @@ structure cocompact_map (α : Type u) (β : Type v) [topological_space α] [topo
   extends continuous_map α β : Type (max u v) :=
 (cocompact_tendsto' : tendsto to_fun (cocompact α) (cocompact β))
 
+section
+set_option old_structure_cmd true
+
 /-- `cocompact_map_class F α β` states that `F` is a type of cocompact continuous maps.
 
 You should also extend this typeclass when you extend `cocompact_map`. -/
 class cocompact_map_class (F : Type*) (α β : out_param $ Type*) [topological_space α]
   [topological_space β] extends continuous_map_class F α β :=
 (cocompact_tendsto (f : F) : tendsto f (cocompact α) (cocompact β))
+
+end
 
 namespace cocompact_map_class
 

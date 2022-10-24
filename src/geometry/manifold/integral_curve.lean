@@ -76,6 +76,46 @@ begin
   exact local_equiv.map_target _ hy
 end
 
+/-- Express the change of coordinates in the tangent bundle in terms of the change of
+  coordinates in the base space. -/
+lemma tangent_bundle_core_coord_change_triv
+  {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
+  (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+  (v v' : tangent_bundle I M) :
+  ((ext_chart_at I.tangent v') v).2 =
+    (fderiv_within 𝕜 ((ext_chart_at I v'.1) ∘ (ext_chart_at I v.1).symm) (set.range I)
+      ((ext_chart_at I v.1) v.1)) v.2 := rfl
+
+lemma tangent_bundle_core_coord_change_triv'
+  {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
+  (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+  (v v' : tangent_bundle I M) (hv : v.1 ∈ (ext_chart_at I v'.1).source) :
+  ((ext_chart_at I.tangent v) v).2 =
+    (fderiv_within 𝕜 ((ext_chart_at I v.1) ∘ (ext_chart_at I v'.1).symm) (set.range I)
+      ((ext_chart_at I v'.1) v.1)) ((ext_chart_at I.tangent v') v).2 :=
+begin
+  rw ext_chart_at_coe,
+  rw function.comp_apply,
+  rw model_with_corners.prod_apply,
+  dsimp only,
+  rw model_with_corners_self_coe,
+  rw id,
+  rw basic_smooth_vector_bundle_core.to_charted_space_chart_at,
+  rw basic_smooth_vector_bundle_core.chart_apply,
+  dsimp only,
+  rw bundle.total_space.proj,
+  have hi := mem_achart_source H v.1,
+  have hj : v.1 ∈ (achart H v'.1).val.to_local_equiv.source,
+  { rw ext_chart_at_source at hv,
+    exact hv },
+  rw ←basic_smooth_vector_bundle_core.coord_change_comp' _ hi hj hi,
+  refl
+end
+
 variables
   {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [proper_space E]
   {H : Type*} [topological_space H] (I : model_with_corners ℝ E H)
@@ -133,6 +173,7 @@ begin
 end
 
 -- how to generalise / simplify?
+/-- The derivative of a curve on a manifold is independent of the chosen extended chart. -/
 lemma curve_change_chart
   (v : M → tangent_bundle I M) (h₁ : ∀ x, (v x).1 = x) (x₀ : M) (γ : ℝ → M) (t : ℝ)
   (hγ₁ : (γ t) ∈ (ext_chart_at I x₀).source)
@@ -141,82 +182,32 @@ lemma curve_change_chart
   has_deriv_at (((ext_chart_at I (γ t)) ∘ (ext_chart_at I x₀).symm) ∘ ((ext_chart_at I x₀) ∘ γ))
     ((ext_chart_at I.tangent (v (γ t))) (v (γ t))).snd t :=
 begin
-  have hI : set.range I ∈ nhds ((ext_chart_at I x₀) (γ t)) :=
-    (mem_nhds_iff.mpr
-      ⟨interior (ext_chart_at I x₀).target,
-        set.subset.trans interior_subset (ext_chart_at_target_subset_range _ _),
-        is_open_interior, hγ₂⟩),
-  have : differentiable_at ℝ ((ext_chart_at I (γ t)) ∘ (ext_chart_at I (x₀)).symm)
-    (((ext_chart_at I x₀) ∘ γ) t),
-  { rw function.comp_apply,
-    refine (((cont_diff_within_at_ext_coord_change I (γ t) x₀) _).differentiable_within_at
-      le_top).differentiable_at hI,
-    rw [local_equiv.trans_source, local_equiv.symm_source],
-    use set.mem_of_mem_of_subset hγ₂ interior_subset,
-    rw [set.mem_preimage, local_equiv.left_inv _ hγ₁],
-    exact mem_ext_chart_source _ _ },
-  have h := has_fderiv_at.comp_has_deriv_at t this.has_fderiv_at hd,
-  have : (fderiv ℝ ((ext_chart_at I (γ t)) ∘ (ext_chart_at I (x₀)).symm)
-    (((ext_chart_at I x₀) ∘ γ) t)) ((ext_chart_at I.tangent (v x₀)) (v (γ t))).snd =
-    ((ext_chart_at I.tangent (v (γ t))) (v (γ t))).snd,
-  { rw [ext_chart_at_coe, ext_chart_at_coe_symm],
-    have hat : ∀ x : M, chart_at H x =
-      (⟨chart_at H x, charted_space.chart_mem_atlas _ _⟩ : atlas H M).val := λ x, rfl,
-    have hat' : ∀ x : M, (chart_at H x).symm =
-      (⟨chart_at H x, charted_space.chart_mem_atlas _ _⟩ : atlas H M).val.symm := λ x, rfl,
-    rw hat,
-    rw hat',
-    rw ←fderiv_within_of_mem_nhds hI,
-    rw ext_chart_at_coe,
-    rw function.comp_apply,
-    rw ←tangent_bundle_core_coord_change,
-    rw ext_chart_at_coe,
-    rw function.comp_apply,
-    rw model_with_corners.prod_apply,
-    have h : ∀ (α β : Type*) (a : α) (b : β), (a, b).snd = b := λ _ _ _ _, rfl,
-    rw h,
-    rw model_with_corners_self_coe,
-    rw id,
-    rw basic_smooth_vector_bundle_core.to_charted_space_chart_at,
-    have : ∀ (x : M) (z : (tangent_bundle_core I M).to_topological_vector_bundle_core.total_space),
-      (tangent_bundle_core I M).chart (chart_mem_atlas H x) z = (chart_at H x z.proj,
-      (tangent_bundle_core I M).coord_change (achart H z.proj) (achart H x) (achart H z.proj z.proj) z.2) := λ x z, rfl,
-    rw this (v x₀).fst,
-    have h : ∀ (a : H) (b : E), (a, b).snd = b := λ _ _, rfl,
-    rw h,
-    rw ←achart_def,
-    rw ←achart_def,
-    rw bundle.total_space.proj,
+  have : (v (γ t)).fst ∈ (ext_chart_at I (v x₀).fst).source,
+  { rw h₁,
     rw h₁,
-    rw h₁,
-    rw hat,
-    rw ←achart_def,
-    have : ∀ x, (achart H x₀).val x = (achart H x₀) x := λ x, rfl,
-    rw this,
-    have h1 : γ t ∈ (achart H (γ t)).val.source := by simp,
-    have h2 : γ t ∈ (achart H x₀).val.source,
-    { rw achart_val,
-      rw ←ext_chart_at_source I,
-      exact hγ₁ },
-    rw basic_smooth_vector_bundle_core.coord_change_comp_eq_self' _ h1 h2,
-    simp only [local_homeomorph.coe_coe,
-      basic_smooth_vector_bundle_core.coe_chart_at_fst,
-      model_with_corners_self_local_equiv,
-      ext_chart_at.equations._eqn_1,
-      function.comp_app,
-      local_equiv.prod_coe,
-      local_equiv.coe_trans,
-      model_with_corners_prod_to_local_equiv],
-    rw local_equiv.refl_coe,
-    rw id,
-    rw basic_smooth_vector_bundle_core.to_charted_space_chart_at,
-    rw basic_smooth_vector_bundle_core.chart_apply,
-    rw basic_smooth_vector_bundle_core.coord_change_self',
-    simp },
-  rw this at h,
-  exact h
+    exact hγ₁ },
+  rw tangent_bundle_core_coord_change_triv' I M (v (γ t)) (v x₀) this,
+  apply has_fderiv_at.comp_has_deriv_at _ _ hd,
+  rw h₁,
+  rw h₁,
+  rw function.comp_apply,
+  have : set.range I ∈ nhds ((ext_chart_at I x₀) (γ t)),
+  { rw mem_nhds_iff,
+    refine ⟨interior (ext_chart_at I x₀).target, _, is_open_interior, hγ₂⟩,
+    refine set.subset.trans interior_subset _,
+    rw ext_chart_at_target,
+    exact set.inter_subset_right _ _ },
+  apply has_fderiv_within_at.has_fderiv_at _ this,
+  apply differentiable_within_at.has_fderiv_within_at,
+  apply cont_diff_within_at.differentiable_within_at _ le_top,
+  apply cont_diff_within_at_ext_coord_change,
+  apply local_equiv.mem_symm_trans_source _ hγ₁,
+  exact mem_ext_chart_source _ _
 end
 
+/-- For any continuously differentiable vector field and any chosen non-boundary point `x₀` on the
+  manifold, an integral curve `γ : ℝ → M` exists such that `γ 0 = x₀` and the tangent vector of `γ`
+  at `t` coincides with the vector field at `γ t` for all `t` within an open interval around 0.-/
 theorem exists_integral_curve_of_cont_mdiff_tangent_vector_field
   (v : M → tangent_bundle I M) (h₁ : ∀ x, (v x).1 = x) (h₂ : cont_mdiff I I.tangent 1 v)
   (x₀ : M) (hx : (ext_chart_at I x₀) x₀ ∈ interior (ext_chart_at I x₀).target) :
@@ -244,6 +235,10 @@ begin
   exact (hf2 t' ht').1
 end
 
+/-- For any continuously differentiable vector field defined on a manifold without boundary and any
+  chosen starting point `x₀ : M`, an integral curve `γ : ℝ → M` exists such that `γ 0 = x₀` and the
+  tangent vector of `γ` at `t` coincides with the vector field at `γ t` for all `t` within an open
+  interval around 0. -/
 lemma curve_exists_boundaryless
   [hI : I.boundaryless]
   (v : M → tangent_bundle I M) (h₁ : ∀ x, (v x).1 = x) (h₂ : cont_mdiff I I.tangent 1 v) (x₀ : M) :

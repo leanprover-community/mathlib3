@@ -145,7 +145,7 @@ finite subsets of `G` have the `unique_mul` property, with respect to some eleme
 product `A * B`. -/
 class unique_prods (G) [has_mul G] : Prop :=
 (unique_mul_of_nonempty : ∀ {A B : finset G} (hA : A.nonempty) (hB : B.nonempty),
-  ∃ (a0 ∈ A) (b0 ∈ B), unique_mul A B a0 b0 )
+  ∃ (a0 ∈ A) (b0 ∈ B), unique_mul A B a0 b0)
 
 attribute [to_additive] unique_prods
 
@@ -167,7 +167,7 @@ instance {M} [has_mul M] [unique_prods M] : unique_sums (additive M) :=
 
 end additive
 
-@[to_additive] lemma eq_and_eq_of_le_of_le_of_mul_eq {A} [has_mul A] [linear_order A]
+@[to_additive] lemma eq_and_eq_of_le_of_le_of_mul_le {A} [has_mul A] [linear_order A]
   [covariant_class A A (*) (≤)] [covariant_class A A (function.swap (*)) (<)]
   [contravariant_class A A (*) (≤)]
   {a b a0 b0 : A} (ha : a0 ≤ a) (hb : b0 ≤ b) (ab : a * b ≤ a0 * b0) :
@@ -189,4 +189,4 @@ instance covariants.to_unique_prods {A} [has_mul A] [linear_order A]
   [covariant_class A A (*) (≤)] [covariant_class A A (function.swap (*)) (<)]
   [contravariant_class A A (*) (≤)] : unique_prods A :=
 { unique_mul_of_nonempty := λ A B hA hB, ⟨_, A.min'_mem ‹_›, _, B.min'_mem ‹_›, λ a b ha hb ab,
-    eq_and_eq_of_le_of_le_of_mul_eq (finset.min'_le _ _ ‹_›) (finset.min'_le _ _ ‹_›) ab.le⟩ }
+    eq_and_eq_of_le_of_le_of_mul_le (finset.min'_le _ _ ‹_›) (finset.min'_le _ _ ‹_›) ab.le⟩ }

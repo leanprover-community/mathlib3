@@ -257,6 +257,9 @@ by unfold arccos; linarith [neg_pi_div_two_le_arcsin x]
 lemma arccos_nonneg (x : ℝ) : 0 ≤ arccos x :=
 by unfold arccos; linarith [arcsin_le_pi_div_two x]
 
+@[simp] lemma arccos_pos {x : ℝ} : 0 < arccos x ↔ x < 1 :=
+by simp [arccos]
+
 lemma cos_arccos {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : cos (arccos x) = x :=
 by rw [arccos, cos_pi_div_two_sub, sin_arcsin hx₁ hx₂]
 
@@ -311,6 +314,8 @@ begin
 end
 
 @[simp] lemma arccos_le_pi_div_two {x} : arccos x ≤ π / 2 ↔ 0 ≤ x := by simp [arccos]
+
+@[simp] lemma arccos_lt_pi_div_two {x : ℝ} : arccos x < π / 2 ↔ 0 < x := by simp [arccos]
 
 @[simp] lemma arccos_le_pi_div_four {x} : arccos x ≤ π / 4 ↔ sqrt 2 / 2 ≤ x :=
 by { rw [arccos, ← pi_div_four_le_arcsin], split; { intro, linarith } }

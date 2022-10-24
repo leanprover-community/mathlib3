@@ -398,7 +398,7 @@ lemma map.arrows_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d 
     f = (eq_to_hom ha.symm) ≫ φ.map g ≫ (eq_to_hom hb) :=
 begin
   split,
-  { rintro ⟨a,b,g,hg⟩, exact ⟨a,b,g,rfl,rfl,hg, eq_conj_eq_to_hom _⟩ },
+  { rintro ⟨g,hg⟩, exact ⟨_,_,g,rfl,rfl,hg, eq_conj_eq_to_hom _⟩ },
   { rintro ⟨a,b,g,rfl,rfl,hg,rfl⟩, rw ← eq_conj_eq_to_hom, split, exact hg },
 end
 
@@ -424,7 +424,7 @@ lemma mem_map_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d : D
 
 lemma map_mono (hφ : function.injective φ.obj) (S T : subgroupoid C) :
   S ≤ T → map φ hφ S ≤ map φ hφ T :=
-by { rintros ST ⟨c,d,f⟩ ⟨_,_,_,h⟩, split, exact @ST ⟨_,_,_⟩ h }
+by { rintro ST ⟨c,d,f⟩ ⟨_,h⟩, split, exact @ST ⟨_,_,_⟩ h }
 
 lemma le_map_comap (hφ : function.injective φ.obj) (S : subgroupoid C) : S ≤ comap φ (map φ hφ S) :=
 begin

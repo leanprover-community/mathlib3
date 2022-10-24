@@ -106,10 +106,10 @@ instance has_continuous_const_smul.op [has_smul Mᵐᵒᵖ α] [is_central_scala
   has_continuous_const_smul M αᵐᵒᵖ :=
 ⟨λ c, mul_opposite.continuous_op.comp $ mul_opposite.continuous_unop.const_smul c⟩
 
-@[to_additive] instance : has_continuous_const_smul M αᵒᵈ := ‹has_continuous_const_smul α β›
+@[to_additive] instance : has_continuous_const_smul M αᵒᵈ := ‹has_continuous_const_smul M α›
 
 @[to_additive] instance order_dual.has_continuous_const_smul' : has_continuous_const_smul Mᵒᵈ α :=
-‹has_continuous_const_smul α β›
+‹has_continuous_const_smul M α›
 
 @[to_additive]
 instance [has_smul M β] [has_continuous_const_smul M β] :

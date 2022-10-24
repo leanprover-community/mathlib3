@@ -48,6 +48,9 @@ structure rel_hom {α β : Type*} (r : α → α → Prop) (s : β → β → Pr
 
 infix ` →r `:25 := rel_hom
 
+section
+set_option old_structure_cmd true
+
 /-- `rel_hom_class F r s` asserts that `F` is a type of functions such that all `f : F`
 satisfy `r a b → s (f a) (f b)`.
 
@@ -62,6 +65,8 @@ export rel_hom_class (map_rel)
 
 -- The free parameters `r` and `s` are `out_param`s so this is not dangerous.
 attribute [nolint dangerous_instance] rel_hom_class.to_fun_like
+
+end
 
 namespace rel_hom_class
 
@@ -108,7 +113,7 @@ instance : has_coe_to_fun (r →r s) (λ _, α → β) := ⟨λ o, o.to_fun⟩
 
 initialize_simps_projections rel_hom (to_fun → apply)
 
-protected theorem map_rel (f : r →r s) : ∀ {a b}, r a b → s (f a) (f b) := f.map_rel'
+protected theorem map_rel (f : r →r s) {a b} : r a b → s (f a) (f b) := f.map_rel'
 
 @[simp] theorem coe_fn_mk (f : α → β) (o) :
   (@rel_hom.mk _ _ r s f o : α → β) = f := rfl
@@ -215,7 +220,7 @@ theorem injective (f : r ↪r s) : injective f := f.inj'
 
 @[simp] theorem inj (f : r ↪r s) {a b} : f a = f b ↔ a = b := f.injective.eq_iff
 
-theorem map_rel_iff (f : r ↪r s) : ∀ {a b}, s (f a) (f b) ↔ r a b := f.map_rel_iff'
+theorem map_rel_iff (f : r ↪r s) {a b} : s (f a) (f b) ↔ r a b := f.map_rel_iff'
 
 @[simp] theorem coe_fn_mk (f : α ↪ β) (o) :
   (@rel_embedding.mk _ _ r s f o : α → β) = f := rfl
@@ -290,8 +295,8 @@ protected theorem is_strict_order : ∀ (f : r ↪r s) [is_strict_order β s], i
 protected theorem is_trichotomous : ∀ (f : r ↪r s) [is_trichotomous β s], is_trichotomous α r
 | ⟨f, o⟩ ⟨H⟩ := ⟨λ a b, (or_congr o (or_congr f.inj'.eq_iff o)).1 (H _ _)⟩
 
-protected theorem is_strict_total_order' :
-  ∀ (f : r ↪r s) [is_strict_total_order' β s], is_strict_total_order' α r
+protected theorem is_strict_total_order :
+  ∀ (f : r ↪r s) [is_strict_total_order β s], is_strict_total_order α r
 | f H := by exactI {..f.is_trichotomous, ..f.is_strict_order}
 
 protected theorem acc (f : r ↪r s) (a : α) : acc s (f a) → acc r a :=
@@ -305,7 +310,30 @@ protected theorem well_founded : ∀ (f : r ↪r s) (h : well_founded s), well_f
 | f ⟨H⟩ := ⟨λ a, f.acc _ (H _)⟩
 
 protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_well_order α r
-| f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order'}
+| f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order}
+
+/-- `quotient.out` as a relation embedding between the lift of a relation and the relation. -/
+@[simps] noncomputable def _root_.quotient.out_rel_embedding [s : setoid α] {r : α → α → Prop} (H) :
+  quotient.lift₂ r H ↪r r :=
+⟨embedding.quotient_out α, begin
+  refine λ x y, quotient.induction_on₂ x y (λ a b, _),
+  apply iff_iff_eq.2 (H _ _ _ _ _ _);
+  apply quotient.mk_out
+end⟩
+
+/-- A relation is well founded iff its lift to a quotient is. -/
+@[simp] theorem _root_.well_founded_lift₂_iff [s : setoid α] {r : α → α → Prop} {H} :
+  well_founded (quotient.lift₂ r H) ↔ well_founded r :=
+⟨λ hr, begin
+  suffices : ∀ {x : quotient s} {a : α}, ⟦a⟧ = x → acc r a,
+  { exact ⟨λ a, this rfl⟩ },
+  { refine λ x, hr.induction x _,
+    rintros x IH a rfl,
+    exact ⟨_, λ b hb, IH ⟦b⟧ hb rfl⟩ }
+end, (quotient.out_rel_embedding H).well_founded⟩
+
+alias _root_.well_founded_lift₂_iff ↔
+  _root_.well_founded.of_quotient_lift₂ _root_.well_founded.quotient_lift₂
 
 /--
 To define an relation embedding from an antisymmetric relation `r` to a reflexive relation `s` it
@@ -412,7 +440,7 @@ namespace rel_iso
 but often it is easier to write `f.to_rel_embedding` than to write explicitly `r` and `s`
 in the target type. -/
 def to_rel_embedding (f : r ≃r s) : r ↪r s :=
-⟨f.to_equiv.to_embedding, f.map_rel_iff'⟩
+⟨f.to_equiv.to_embedding, λ _ _, f.map_rel_iff'⟩
 
 theorem to_equiv_injective : injective (to_equiv : (r ≃r s) → α ≃ β)
 | ⟨e₁, o₁⟩ ⟨e₂, o₂⟩ h := by { congr, exact h }
@@ -431,7 +459,7 @@ instance : rel_hom_class (r ≃r s) r s :=
 
 @[simp] lemma coe_coe_fn (f : r ≃r s) : ((f : r ↪r s) : α → β) = f := rfl
 
-theorem map_rel_iff (f : r ≃r s) : ∀ {a b}, s (f a) (f b) ↔ r a b := f.map_rel_iff'
+theorem map_rel_iff (f : r ≃r s) {a b} : s (f a) (f b) ↔ r a b := f.map_rel_iff'
 
 @[simp] theorem coe_fn_mk (f : α ≃ β) (o : ∀ ⦃a b⦄, s (f a) (f b) ↔ r a b) :
   (rel_iso.mk f o : α → β) = f := rfl
@@ -625,7 +653,7 @@ end subrel
 
 /-- Restrict the codomain of a relation embedding. -/
 def rel_embedding.cod_restrict (p : set β) (f : r ↪r s) (H : ∀ a, f a ∈ p) : r ↪r subrel s p :=
-⟨f.to_embedding.cod_restrict p H, f.map_rel_iff'⟩
+⟨f.to_embedding.cod_restrict p H, λ _ _, f.map_rel_iff'⟩
 
 @[simp] theorem rel_embedding.cod_restrict_apply (p) (f : r ↪r s) (H a) :
   rel_embedding.cod_restrict p f H a = ⟨f a, H a⟩ := rfl

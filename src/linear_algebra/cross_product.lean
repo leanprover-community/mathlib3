@@ -58,7 +58,7 @@ begin
     simp [smul_vec3 (_ : R) (_ : R), mul_comm, mul_assoc, mul_left_comm, mul_add, sub_eq_add_neg] },
 end
 
-localized "infixl ` ×₃ `: 74 := cross_product" in matrix
+localized "infixl (name := cross_product) ` ×₃ `: 74 := cross_product" in matrix
 
 lemma cross_apply (a b : fin 3 → R) :
   a ×₃ b = ![a 1 * b 2 - a 2 * b 1,

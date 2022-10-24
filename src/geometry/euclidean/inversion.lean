@@ -49,7 +49,7 @@ begin
     rwa [dist_ne_zero] }
 end
 
-lemma inversion_of_mem_sphere (h : x ∈ sphere c R) : inversion c R x = x :=
+lemma inversion_of_mem_sphere (h : x ∈ metric.sphere c R) : inversion c R x = x :=
 h.out ▸ inversion_dist_center c x
 
 /-- Distance from the image of a point under inversion to the center. This formula accidentally

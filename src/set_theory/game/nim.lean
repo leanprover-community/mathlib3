@@ -96,22 +96,54 @@ lemma move_right_nim {o : ordinal} (i) :
   (nim o).move_right (to_right_moves_nim i) = nim i :=
 by simp
 
-instance : is_empty (nim 0).left_moves :=
+/-- A recursion principle for left moves of a nim game. -/
+@[elab_as_eliminator] def left_moves_nim_rec_on {o : ordinal} {P : (nim o).left_moves → Sort*}
+  (i : (nim o).left_moves) (H : ∀ a < o, P $ to_left_moves_nim ⟨a, H⟩) : P i :=
+by { rw ←to_left_moves_nim.apply_symm_apply i, apply H }
+
+/-- A recursion principle for right moves of a nim game. -/
+@[elab_as_eliminator] def right_moves_nim_rec_on {o : ordinal} {P : (nim o).right_moves → Sort*}
+  (i : (nim o).right_moves) (H : ∀ a < o, P $ to_right_moves_nim ⟨a, H⟩) : P i :=
+by { rw ←to_right_moves_nim.apply_symm_apply i, apply H }
+
+instance is_empty_nim_zero_left_moves : is_empty (nim 0).left_moves :=
 by { rw nim_def, exact ordinal.is_empty_out_zero }
 
-instance : is_empty (nim 0).right_moves :=
+instance is_empty_nim_zero_right_moves : is_empty (nim 0).right_moves :=
 by { rw nim_def, exact ordinal.is_empty_out_zero }
-
-instance : unique (nim 1).left_moves :=
-by { rw nim_def, exact ordinal.unique_out_one }
-
-instance : unique (nim 1).right_moves :=
-by { rw nim_def, exact ordinal.unique_out_one }
 
 /-- `nim 0` has exactly the same moves as `0`. -/
 def nim_zero_relabelling : nim 0 ≡r 0 := relabelling.is_empty _
 
 theorem nim_zero_equiv : nim 0 ≈ 0 := equiv.is_empty _
+
+noncomputable instance unique_nim_one_left_moves : unique (nim 1).left_moves :=
+(equiv.cast $ left_moves_nim 1).unique
+
+noncomputable instance unique_nim_one_right_moves : unique (nim 1).right_moves :=
+(equiv.cast $ right_moves_nim 1).unique
+
+@[simp] theorem default_nim_one_left_moves_eq :
+  (default : (nim 1).left_moves) = @to_left_moves_nim 1 ⟨0, ordinal.zero_lt_one⟩ :=
+rfl
+
+@[simp] theorem default_nim_one_right_moves_eq :
+  (default : (nim 1).right_moves) = @to_right_moves_nim 1 ⟨0, ordinal.zero_lt_one⟩ :=
+rfl
+
+@[simp] theorem to_left_moves_nim_one_symm (i) :
+  (@to_left_moves_nim 1).symm i = ⟨0, ordinal.zero_lt_one⟩ :=
+by simp
+
+@[simp] theorem to_right_moves_nim_one_symm (i) :
+  (@to_right_moves_nim 1).symm i = ⟨0, ordinal.zero_lt_one⟩ :=
+by simp
+
+theorem nim_one_move_left (x) : (nim 1).move_left x = nim 0 :=
+by simp
+
+theorem nim_one_move_right (x) : (nim 1).move_right x = nim 0 :=
+by simp
 
 /-- `nim 1` has exactly the same moves as `star`. -/
 def nim_one_relabelling : nim 1 ≡r star :=
@@ -166,17 +198,16 @@ end
 @[simp] lemma nim_add_equiv_zero_iff (o₁ o₂ : ordinal) : nim o₁ + nim o₂ ≈ 0 ↔ o₁ = o₂ :=
 begin
   split,
-  { contrapose,
-    intro h,
-    rw [impartial.not_equiv_zero_iff],
-    wlog h' : o₁ ≤ o₂ using [o₁ o₂, o₂ o₁],
-    { exact le_total o₁ o₂ },
-    { have h : o₁ < o₂ := lt_of_le_of_ne h' h,
-      rw [impartial.fuzzy_zero_iff_gf, zero_lf_le, nim_def o₂],
+  { refine not_imp_not.1 (λ (h : _ ≠ _), (impartial.not_equiv_zero_iff _).2 _),
+    obtain h | h := h.lt_or_lt,
+    { rw [impartial.fuzzy_zero_iff_gf, zero_lf_le, nim_def o₂],
       refine ⟨to_left_moves_add (sum.inr _), _⟩,
       { exact (ordinal.principal_seg_out h).top },
       { simpa using (impartial.add_self (nim o₁)).2 } },
-    { exact (fuzzy_congr_left add_comm_equiv).1 (this (ne.symm h)) } },
+    { rw [impartial.fuzzy_zero_iff_gf, zero_lf_le, nim_def o₁],
+      refine ⟨to_left_moves_add (sum.inl _), _⟩,
+      { exact (ordinal.principal_seg_out h).top },
+      { simpa using (impartial.add_self (nim o₂)).2 } } },
   { rintro rfl,
     exact impartial.add_self (nim o₁) }
 end
@@ -193,7 +224,7 @@ noncomputable def grundy_value : Π (G : pgame.{u}), ordinal.{u}
 | G := ordinal.mex.{u u} (λ i, grundy_value (G.move_left i))
 using_well_founded { dec_tac := pgame_wf_tac }
 
-lemma grundy_value_def (G : pgame) :
+lemma grundy_value_eq_mex_left (G : pgame) :
   grundy_value G = ordinal.mex.{u u} (λ i, grundy_value (G.move_left i)) :=
 by rw grundy_value
 
@@ -211,7 +242,7 @@ begin
     apply (fuzzy_congr_left (add_congr_left (equiv_nim_grundy_value (G.move_left i₁)).symm)).1,
     rw nim_add_fuzzy_zero_iff,
     intro heq,
-    rw [eq_comm, grundy_value_def G] at heq,
+    rw [eq_comm, grundy_value_eq_mex_left G] at heq,
     have h := ordinal.ne_mex _,
     rw heq at h,
     exact (h i₁).irrefl },
@@ -224,7 +255,7 @@ begin
     have h' : ∃ i : G.left_moves, (grundy_value (G.move_left i)) =
       ordinal.typein (quotient.out (grundy_value G)).r i₂,
     { revert i₂,
-      rw grundy_value_def,
+      rw grundy_value_eq_mex_left,
       intros i₂,
       have hnotin : _ ∉ _ := λ hin, (le_not_le_of_lt (ordinal.typein_lt_self i₂)).2 (cInf_le' hin),
       simpa using hnotin},
@@ -258,12 +289,26 @@ by rw [←grundy_value_eq_iff_equiv, grundy_value_zero]
 @[simp] lemma grundy_value_star : grundy_value star = 1 :=
 grundy_value_eq_iff_equiv_nim.2 nim_one_equiv.symm
 
+@[simp] lemma grundy_value_neg (G : pgame) [G.impartial] : grundy_value (-G) = grundy_value G :=
+by rw [grundy_value_eq_iff_equiv_nim, neg_equiv_iff, neg_nim, ←grundy_value_eq_iff_equiv_nim]
+
+lemma grundy_value_eq_mex_right : ∀ (G : pgame) [G.impartial],
+  grundy_value G = ordinal.mex.{u u} (λ i, grundy_value (G.move_right i))
+| ⟨l, r, L, R⟩ := begin
+  introI H,
+  rw [←grundy_value_neg, grundy_value_eq_mex_left],
+  congr,
+  ext i,
+  haveI : (R i).impartial := @impartial.move_right_impartial ⟨l, r, L, R⟩ _ i,
+  apply grundy_value_neg
+end
+
 @[simp] lemma grundy_value_nim_add_nim (n m : ℕ) :
   grundy_value (nim.{u} n + nim.{u} m) = nat.lxor n m :=
 begin
   induction n using nat.strong_induction_on with n hn generalizing m,
   induction m using nat.strong_induction_on with m hm,
-  rw [grundy_value_def],
+  rw [grundy_value_eq_mex_left],
 
   -- We want to show that `n xor m` is the smallest unreachable Grundy value. We will do this in two
   -- steps:

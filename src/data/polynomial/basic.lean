@@ -56,8 +56,9 @@ The embedding from `R` is called `C`. -/
 structure polynomial (R : Type*) [semiring R] := of_finsupp ::
 (to_finsupp : add_monoid_algebra R ℕ)
 
-localized "notation R`[X]`:9000 := polynomial R" in polynomial
-open finsupp add_monoid_algebra
+localized "notation (name := polynomial) R`[X]`:9000 := polynomial R" in polynomial
+
+open add_monoid_algebra finsupp function
 open_locale big_operators polynomial
 
 namespace polynomial
@@ -96,8 +97,9 @@ instance : has_add R[X] := ⟨add⟩
 instance {R : Type u} [ring R] : has_neg R[X] := ⟨neg⟩
 instance {R : Type u} [ring R] : has_sub R[X] := ⟨λ a b, a + -b⟩
 instance : has_mul R[X] := ⟨mul⟩
-instance {S : Type*} [monoid S] [distrib_mul_action S R] : has_smul S R[X] :=
-⟨λ r p, ⟨r • p.to_finsupp⟩⟩
+instance {S : Type*} [smul_zero_class S R] : smul_zero_class S R[X] :=
+{ smul := λ r p, ⟨r • p.to_finsupp⟩,
+  smul_zero := λ a, congr_arg of_finsupp (smul_zero a) }
 @[priority 1]  -- to avoid a bug in the `ring` tactic
 instance has_pow : has_pow R[X] ℕ := { pow := λ p n, npow_rec n p }
 
@@ -110,7 +112,7 @@ show _ = neg _, by rw neg
 @[simp] lemma of_finsupp_sub {R : Type u} [ring R] {a b} : (⟨a - b⟩ : R[X]) = ⟨a⟩ - ⟨b⟩ :=
 by { rw [sub_eq_add_neg, of_finsupp_add, of_finsupp_neg], refl }
 @[simp] lemma of_finsupp_mul (a b) : (⟨a * b⟩ : R[X]) = ⟨a⟩ * ⟨b⟩ := show _ = mul _ _, by rw mul
-@[simp] lemma of_finsupp_smul {S : Type*} [monoid S] [distrib_mul_action S R] (a : S) (b) :
+@[simp] lemma of_finsupp_smul {S : Type*} [smul_zero_class S R] (a : S) (b) :
   (⟨a • b⟩ : R[X]) = (a • ⟨b⟩ : R[X]) := rfl
 @[simp] lemma of_finsupp_pow (a) (n : ℕ) : (⟨a ^ n⟩ : R[X]) = ⟨a⟩ ^ n :=
 begin
@@ -135,7 +137,7 @@ by { cases a, rw ←of_finsupp_neg }
 by { rw [sub_eq_add_neg, ←to_finsupp_neg, ←to_finsupp_add], refl }
 @[simp] lemma to_finsupp_mul (a b : R[X]) : (a * b).to_finsupp = a.to_finsupp * b.to_finsupp :=
 by { cases a, cases b, rw ←of_finsupp_mul }
-@[simp] lemma to_finsupp_smul {S : Type*} [monoid S] [distrib_mul_action S R] (a : S) (b : R[X]) :
+@[simp] lemma to_finsupp_smul {S : Type*} [smul_zero_class S R] (a : S) (b : R[X]) :
   (a • b).to_finsupp = a • b.to_finsupp := rfl
 @[simp] lemma to_finsupp_pow (a : R[X]) (n : ℕ) : (a ^ n).to_finsupp = a.to_finsupp ^ n :=
 by { cases a, rw ←of_finsupp_pow }
@@ -194,6 +196,11 @@ instance {S₁ S₂} [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R] [di
 instance {S₁ S₂} [has_smul S₁ S₂] [monoid S₁] [monoid S₂] [distrib_mul_action S₁ R]
   [distrib_mul_action S₂ R] [is_scalar_tower S₁ S₂ R] : is_scalar_tower S₁ S₂ R[X] :=
 ⟨by { rintros _ _ ⟨⟩, simp_rw [←of_finsupp_smul, smul_assoc] }⟩
+
+instance is_scalar_tower_right {α K : Type*} [semiring K] [distrib_smul α K]
+  [is_scalar_tower α K K] : is_scalar_tower α K[X] K[X] :=
+⟨by rintros _ ⟨⟩ ⟨⟩;
+  simp_rw [smul_eq_mul, ← of_finsupp_smul, ← of_finsupp_mul, ← of_finsupp_smul, smul_mul_assoc]⟩
 
 instance {S} [monoid S] [distrib_mul_action S R] [distrib_mul_action Sᵐᵒᵖ R]
   [is_central_scalar S R] : is_central_scalar S R[X] :=
@@ -428,6 +435,11 @@ by rw [X_pow_mul, monomial_mul_X_pow]
 @[simp] def coeff : R[X] → ℕ → R
 | ⟨p⟩ := p
 
+lemma coeff_injective : injective (coeff : R[X] → ℕ → R) :=
+by { rintro ⟨p⟩ ⟨q⟩, simp only [coeff, fun_like.coe_fn_eq, imp_self] }
+
+@[simp] lemma coeff_inj : p.coeff = q.coeff ↔ p = q := coeff_injective.eq_iff
+
 lemma coeff_monomial : coeff (monomial n a) m = if n = m then a else 0 :=
 by { simp only [←of_finsupp_single, coeff, linear_map.coe_mk], rw finsupp.single_apply }
 
@@ -479,6 +491,15 @@ lemma monomial_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
 @[simp] lemma C_eq_zero : C a = 0 ↔ a = 0 :=
 calc C a = 0 ↔ C a = C 0 : by rw C_0
          ... ↔ a = 0 : C_inj
+
+lemma subsingleton_iff_subsingleton :
+  subsingleton R[X] ↔ subsingleton R :=
+⟨λ h, subsingleton_iff.mpr (λ a b, C_inj.mp (subsingleton_iff.mp h _ _)),
+  by { introI, apply_instance } ⟩
+
+lemma forall_eq_iff_forall_eq :
+  (∀ f g : R[X], f = g) ↔ (∀ a b : R, a = b) :=
+by simpa only [← subsingleton_iff] using subsingleton_iff_subsingleton
 
 theorem ext_iff {p q : R[X]} : p = q ↔ ∀ n, coeff p n = coeff q n :=
 by { rcases p, rcases q, simp [coeff, finsupp.ext_iff] }
@@ -666,6 +687,12 @@ begin
   simpa [sum, support, coeff] using finsupp.sum_smul_index hf,
 end
 
+lemma sum_monomial_eq : ∀ p : R[X], p.sum (λ n a, monomial n a) = p
+| ⟨p⟩ := (of_finsupp_sum _ _).symm.trans (congr_arg _ $ finsupp.sum_single _)
+
+lemma sum_C_mul_X_eq (p : R[X]) : p.sum (λn a, C a * X^n) = p :=
+by simp_rw [←monomial_eq_C_mul_X, sum_monomial_eq]
+
 /-- `erase p n` is the polynomial `p` in which the `X^n` term has been erased. -/
 @[irreducible] definition erase (n : ℕ) : R[X] → R[X]
 | ⟨p⟩ := ⟨p.erase n⟩
@@ -792,9 +819,7 @@ by rw [eq_neg_iff_add_eq_zero, ←monomial_add, neg_add_self, monomial_zero_righ
 @[simp] lemma support_neg {p : R[X]} : (-p).support = p.support :=
 by { rcases p, rw [←of_finsupp_neg, support, support, finsupp.support_neg] }
 
-@[simp]
-lemma C_eq_int_cast (n : ℤ) : C (n : R) = n :=
-(C : R →+* _).map_int_cast n
+@[simp] lemma C_eq_int_cast (n : ℤ) : C (n : R) = n := map_int_cast C n
 
 end ring
 

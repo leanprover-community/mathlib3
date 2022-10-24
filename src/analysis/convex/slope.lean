@@ -97,9 +97,8 @@ lemma convex_on_of_slope_mono_adjacent (hs : convex 𝕜 s)
   (hf : ∀ {x y z : 𝕜}, x ∈ s → z ∈ s → x < y → y < z →
     (f y - f x) / (y - x) ≤ (f z - f y) / (z - y)) :
   convex_on 𝕜 s f :=
-linear_order.convex_on_of_lt hs
+linear_order.convex_on_of_lt hs $ λ x hx z hz hxz a b ha hb hab,
 begin
-  assume x z hx hz hxz a b ha hb hab,
   let y := a * x + b * z,
   have hxy : x < y,
   { rw [← one_mul x, ← hab, add_mul],
@@ -140,9 +139,8 @@ lemma strict_convex_on_of_slope_strict_mono_adjacent (hs : convex 𝕜 s)
   (hf : ∀ {x y z : 𝕜}, x ∈ s → z ∈ s → x < y → y < z →
     (f y - f x) / (y - x) < (f z - f y) / (z - y)) :
   strict_convex_on 𝕜 s f :=
-linear_order.strict_convex_on_of_lt hs
+linear_order.strict_convex_on_of_lt hs $ λ x hx z hz hxz a b ha hb hab,
 begin
-  assume x z hx hz hxz a b ha hb hab,
   let y := a * x + b * z,
   have hxy : x < y,
   { rw [← one_mul x, ← hab, add_mul],

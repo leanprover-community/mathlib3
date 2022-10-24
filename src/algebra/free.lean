@@ -368,11 +368,11 @@ end assoc_quotient
 
 end magma
 
-/-- Free semigroup over a given alphabet.
-(Note: In this definition, the free semigroup does not contain the empty word.) -/
-@[to_additive "Free additive semigroup over a given alphabet."]
-def free_semigroup (α : Type u) : Type u :=
-α × list α
+/-- Free additive semigroup over a given alphabet. -/
+@[ext] structure free_add_semigroup (α : Type u) := (head : α) (tail : list α)
+
+/-- Free semigroup over a given alphabet. -/
+@[ext, to_additive] structure free_semigroup (α : Type u) := (head : α) (tail : list α)
 
 namespace free_semigroup
 
@@ -380,20 +380,27 @@ variables {α : Type u}
 
 @[to_additive]
 instance : semigroup (free_semigroup α) :=
-{ mul := λ L1 L2, (L1.1, L1.2 ++ L2.1 :: L2.2),
-  mul_assoc := λ L1 L2 L3, prod.ext rfl $ list.append_assoc _ _ _ }
+{ mul := λ L1 L2, ⟨L1.1, L1.2 ++ L2.1 :: L2.2⟩,
+  mul_assoc := λ L1 L2 L3, ext _ _ rfl $ list.append_assoc _ _ _ }
+
+@[simp, to_additive] lemma head_mul (x y : free_semigroup α) : (x * y).1 = x.1 := rfl
+
+@[simp, to_additive] lemma tail_mul (x y : free_semigroup α) : (x * y).2 = x.2 ++ (y.1 :: y.2) :=
+rfl
+
+@[simp, to_additive] lemma mk_mul_mk (x y : α) (L1 L2 : list α) :
+  mk x L1 * mk y L2 = mk x (L1 ++ y :: L2) := rfl
 
 @[simp, to_additive] lemma fst_mul (x y : free_semigroup α) : (x * y).1 = x.1 := rfl
 @[simp, to_additive] lemma snd_mul (x y : free_semigroup α) : (x * y).2 = x.2 ++ y.1 :: y.2 := rfl
 
 /-- The embedding `α → free_semigroup α`. -/
-@[to_additive "The embedding `α → free_add_semigroup α`."]
-def of (x : α) : free_semigroup α :=
-(x, [])
+@[to_additive "The embedding `α → free_add_semigroup α`.", simps]
+def of (x : α) : free_semigroup α := ⟨x, []⟩
 
 /-- Length of an element of free semigroup. -/
 @[to_additive "Length of an element of free additive semigroup"]
-def length (x : free_semigroup α) : ℕ := x.2.length + 1
+def length (x : free_semigroup α) : ℕ := x.tail.length + 1
 
 @[simp, to_additive] lemma length_mul (x y : free_semigroup α) :
   (x * y).length = x.length + y.length :=
@@ -405,15 +412,15 @@ by simp [length, ← add_assoc, add_right_comm]
 
 /-- Recursor for free semigroup using `of` and `*`. -/
 @[elab_as_eliminator, to_additive "Recursor for free additive semigroup using `of` and `+`."]
-protected def rec_on {C : free_semigroup α → Sort l} (x)
+protected def rec_on_mul {C : free_semigroup α → Sort l} (x)
   (ih1 : ∀ x, C (of x)) (ih2 : ∀ x y, C (of x) → C y → C (of x * y)) :
   C x :=
-prod.rec_on x $ λ f s, list.rec_on s ih1 (λ hd tl ih f, ih2 f (hd, tl) (ih1 f) (ih hd)) f
+free_semigroup.rec_on x $ λ f s, list.rec_on s ih1 (λ hd tl ih f, ih2 f ⟨hd, tl⟩ (ih1 f) (ih hd)) f
 
 @[ext, to_additive]
 lemma hom_ext {β : Type v} [has_mul β] {f g : free_semigroup α →ₙ* β} (h : f ∘ of = g ∘ of) :
   f = g :=
-fun_like.ext _ _ $ λ x, free_semigroup.rec_on x (congr_fun h) $
+fun_like.ext _ _ $ λ x, free_semigroup.rec_on_mul x (congr_fun h) $
   λ x y hx hy, by simp only [map_mul, *]
 
 section lift
@@ -427,7 +434,7 @@ a semigroup `β`. -/
 def lift : (α → β) ≃ (free_semigroup α →ₙ* β) :=
 { to_fun := λ f,
     { to_fun := λ x, x.2.foldl (λ a b, a * f b) (f x.1),
-      map_mul' := λ x y, by simp only [fst_mul, snd_mul, ← list.foldl_map f, list.foldl_append,
+      map_mul' := λ x y, by simp only [head_mul, tail_mul, ← list.foldl_map f, list.foldl_append,
         list.foldl_cons, list.foldl_assoc] },
   inv_fun := λ f, f ∘ of,
   left_inv := λ f, rfl,
@@ -456,7 +463,7 @@ lift $ of ∘ f
 @[simp, to_additive] lemma map_of (x) : map f (of x) = of (f x) := rfl
 
 @[simp, to_additive] lemma length_map (x) : (map f x).length = x.length :=
-free_semigroup.rec_on x (λ x, rfl) $ λ x y hx hy, by simp only [map_mul, length_mul, *]
+free_semigroup.rec_on_mul x (λ x, rfl) $ λ x y hx hy, by simp only [map_mul, length_mul, *]
 
 end map
 
@@ -474,7 +481,7 @@ instance : monad free_semigroup :=
 def rec_on_pure {C : free_semigroup α → Sort l} (x)
   (ih1 : ∀ x, C (pure x)) (ih2 : ∀ x y, C (pure x) → C y → C (pure x * y)) :
   C x :=
-free_semigroup.rec_on x ih1 ih2
+free_semigroup.rec_on_mul x ih1 ih2
 
 @[simp, to_additive]
 lemma map_pure (f : α → β) (x) : (f <$> pure x : free_semigroup β) = pure (f x) := rfl
@@ -529,8 +536,8 @@ variables [is_lawful_applicative m]
   traverse F (x * y) = (*) <$> traverse F x <*> traverse F y :=
 let ⟨x, L1⟩ := x, ⟨y, L2⟩ := y in
 list.rec_on L1 (λ x, rfl) (λ hd tl ih x,
-  show (*) <$> pure <$> F x <*> traverse F ((hd, tl) * (y, L2) : free_semigroup α) =
-  (*) <$> ((*) <$> pure <$> F x <*> traverse F (hd, tl)) <*> traverse F (y, L2),
+  show (*) <$> pure <$> F x <*> traverse F ((mk hd tl) * (mk y L2)) =
+  (*) <$> ((*) <$> pure <$> F x <*> traverse F (mk hd tl)) <*> traverse F (mk y L2),
   by rw ih; simp only [(∘), (mul_assoc _ _ _).symm] with functor_norm) x
 
 @[simp, to_additive] lemma traverse_mul' :
@@ -546,7 +553,7 @@ end
 
 @[to_additive]
 instance : is_lawful_traversable free_semigroup.{u} :=
-{ id_traverse := λ α x, free_semigroup.rec_on x (λ x, rfl)
+{ id_traverse := λ α x, free_semigroup.rec_on_mul x (λ x, rfl)
     (λ x y ih1 ih2, by rw [traverse_mul, ih1, ih2, mul_map_seq]),
   comp_traverse := λ F G hf1 hg1 hf2 hg2 α β γ f g x, rec_on_pure x
     (λ x, by resetI; simp only [traverse_pure, traverse_pure'] with functor_norm)
@@ -555,14 +562,15 @@ instance : is_lawful_traversable free_semigroup.{u} :=
   naturality := λ F G hf1 hg1 hf2 hg2 η α β f x, rec_on_pure x
     (λ x, by simp only [traverse_pure] with functor_norm)
     (λ x y ih1 ih2, by resetI; simp only [traverse_mul] with functor_norm; rw [ih1, ih2]),
-  traverse_eq_map_id := λ α β f x, free_semigroup.rec_on x (λ _, rfl)
+  traverse_eq_map_id := λ α β f x, free_semigroup.rec_on_mul x (λ _, rfl)
     (λ x y ih1 ih2, by rw [traverse_mul, ih1, ih2, map_mul', mul_map_seq]; refl),
   .. free_semigroup.is_lawful_monad }
 
 end category
 
 @[to_additive]
-instance [decidable_eq α] : decidable_eq (free_semigroup α) := prod.decidable_eq
+instance [decidable_eq α] : decidable_eq (free_semigroup α) :=
+λ x y, decidable_of_iff' _ (ext_iff _ _)
 
 end free_semigroup
 
@@ -570,8 +578,9 @@ namespace free_magma
 
 variables {α : Type u} {β : Type v}
 
-@[to_additive] def to_free_semigroup : free_magma α →ₙ* free_semigroup α :=
-free_magma.lift free_semigroup.of
+/-- The canonical multiplicative morphism from `free_magma α` to `free_semigroup α`. -/
+@[to_additive "The canonical additive morphism from `free_add_magma α` to `free_add_semigroup α`."]
+def to_free_semigroup : free_magma α →ₙ* free_semigroup α := free_magma.lift free_semigroup.of
 
 @[simp, to_additive] lemma to_free_semigroup_of (x : α) :
   to_free_semigroup (of x) = free_semigroup.of x :=

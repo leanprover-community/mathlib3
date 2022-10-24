@@ -137,15 +137,15 @@ end unique_mul
 finite subsets of `A` have the `unique_add` property, with respect to some element of their
 sum `A + B`. -/
 class unique_sums (G) [has_add G] : Prop :=
-(adds : ∀ {A B : finset G} (hA : A.nonempty) (hB : B.nonempty),
+(unique_add_of_nonempty : ∀ {A B : finset G} (hA : A.nonempty) (hB : B.nonempty),
   ∃ (a0 ∈ A) (b0 ∈ B), unique_add A B a0 b0)
 
 /--  Let `G` be a Type with multiplication.  `unique_prods G` asserts that any two non-empty
 finite subsets of `G` have the `unique_mul` property, with respect to some element of their
 product `A * B`. -/
 class unique_prods (G) [has_mul G] : Prop :=
-(muls : ∀ {A B : finset G} (hA : A.nonempty) (hB : B.nonempty),
-  ∃ (a0 ∈ A) (b0 ∈ B), unique_mul A B a0 b0 )
+(unique_mul_of_nonempty : ∀ {A B : finset G} (hA : A.nonempty) (hB : B.nonempty),
+  ∃ (a0 ∈ A) (b0 ∈ B), unique_mul A B a0 b0)
 
 attribute [to_additive] unique_prods
 
@@ -167,8 +167,7 @@ instance {M} [has_mul M] [unique_prods M] : unique_sums (additive M) :=
 
 end additive
 
---  please, golf me and rename me!
-@[to_additive] lemma eq_and_eq_of_le_of_le_of_mul_eq {A} [has_mul A] [linear_order A]
+@[to_additive] lemma eq_and_eq_of_le_of_le_of_mul_le {A} [has_mul A] [linear_order A]
   [covariant_class A A (*) (≤)] [covariant_class A A (function.swap (*)) (<)]
   [contravariant_class A A (*) (≤)]
   {a b a0 b0 : A} (ha : a0 ≤ a) (hb : b0 ≤ b) (ab : a * b ≤ a0 * b0) :

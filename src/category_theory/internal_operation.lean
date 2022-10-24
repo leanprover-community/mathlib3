@@ -75,6 +75,7 @@ def internal_operation₁_gen.map (oper : internal_operation₁_gen X Y) (F : C 
 F.map oper
 
 variables (X Y)
+
 def internal_operation₂_gen [has_binary_product X Y] := prod X Y ⟶ Z
 abbreviation internal_operation₂ [has_binary_product X X] := internal_operation₂_gen X X X
 

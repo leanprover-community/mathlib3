@@ -3,6 +3,8 @@ import algebra.category.Group.preadditive
 import category_theory.internal_operation
 import category_theory.limits.shapes.finite_products
 
+universe u
+
 noncomputable theory
 
 def Ab.mk (A : Type*) (zero' : A) (neg' : A ⟶ A) (add' : A × A → A)
@@ -68,6 +70,7 @@ instance add_comm_group_presheaf_comp_forget_obj {Y : Cᵒᵖ} :
 add_comm_group ((M.presheaf ⋙ forget Ab).obj Y) :=
 by { dsimp [presheaf_type], apply_instance, }
 
+@[simps]
 def mk (X : C)
   (yoneda_zero : (functor.const Cᵒᵖ).obj punit ⟶ yoneda.obj X)
   (yoneda_neg : yoneda.obj X ⟶ yoneda.obj X)
@@ -95,6 +98,7 @@ def mk (X : C)
       λ x y, congr_fun (yoneda_add.naturality f).symm ⟨x, y⟩⟩, },
   iso := by refl, }
 
+@[simps]
 def mk' (X : C) [has_terminal C] [has_binary_product X X] [has_binary_product X (prod X X)]
   (zero : ⊤_ C ⟶ X) (neg : X ⟶ X) (add : prod X X ⟶ X) (add_comm : internal_operation₂.comm add)
   (add_assoc : internal_operation₂.assoc add) (add_zero : internal_operation₂.zero_add add zero)
@@ -245,10 +249,10 @@ def apply_functor (F : C ⥤ D) [has_terminal C] [has_terminal D]
   internal Ab D :=
 mk' (F.obj M.obj) ((zero M).map F) ((neg M).map F) ((add M).map F)
   ((add_comm M).map F) sorry sorry sorry
-#exit
 
 variables {M₁ M₂}
 
+@[simps]
 def apply_functor_map (F : C ⥤ D) [has_terminal C] [has_terminal D]
   [has_binary_product M₁.obj M₁.obj] [has_binary_product (F.obj M₁.obj) (F.obj M₁.obj)]
   [has_binary_product (F.obj M₁.obj) (prod (F.obj M₁.obj) (F.obj M₁.obj))]
@@ -258,8 +262,7 @@ def apply_functor_map (F : C ⥤ D) [has_terminal C] [has_terminal D]
   [preserves_limit (pair M₂.obj M₂.obj) F] (f : M₁ ⟶ M₂) :
   apply_functor M₁ F ⟶ apply_functor M₂ F :=
 { app := λ Y, add_monoid_hom.mk' (((internal_operation₁_gen.yoneda_equiv _ _)
-      (internal_operation₁_gen.map ((internal.obj_functor Ab C).map f) F)).app Y) sorry,
-  naturality' := sorry, }
+      (internal_operation₁_gen.map ((internal.obj_functor Ab C).map f) F)).app Y) sorry, }
 
 end Ab
 
@@ -278,12 +281,98 @@ variables {C D : Type*} [category C] [category D] (F : C ⥤ D)
 
 include F
 
+@[simps]
 def map_internal_Ab : internal Ab C ⥤ internal Ab D :=
 { obj := λ M, internal.Ab.apply_functor M F,
   map := λ M₁ M₂ f, internal.Ab.apply_functor_map F f,
-  map_id' := sorry,
-  map_comp' := sorry, }
+  map_id' := λ M, begin
+    ext Y x,
+    dsimp [internal_operation₁_gen.map],
+    simpa only [functor.map_id, category.comp_id],
+  end,
+  map_comp' := λ M₁ M₂ M₃ f g, begin
+    ext Y x,
+    dsimp [internal_operation₁_gen.map],
+    erw [nat_trans.comp_app, functor.map_comp, functor.map_comp, ← category.assoc],
+    refl,
+  end, }
 
 end functor
+
+namespace concrete_category
+
+namespace internal
+
+namespace Ab
+
+namespace equivalence
+
+open operations
+
+instance (M : Ab.{u}) (Y : Type.{u}ᵒᵖ) :
+  add_comm_group ((yoneda.obj ((forget Ab).obj M)).obj Y) :=
+by { dsimp, apply_instance, }
+
+@[simps]
+def functor : internal Ab Type.{u} ⥤ Ab.{u} :=
+internal.presheaf_functor _ _ ⋙ (evaluation _ _).obj (op punit)
+
+@[simps]
+def inverse : Ab.{u} ⥤ internal Ab Type.{u} :=
+{ obj := λ M, mk ((forget Ab).obj M) { app := λ Y s, 0, } { app := λ Y x, -x, }
+    { app := λ Y x, x.1 + x.2, }
+    (by { ext Y x a, apply _root_.add_comm, })
+    (by { ext Y x a, apply _root_.add_assoc, })
+    (by { ext Y x a, apply zero_add, })
+    (by { ext Y x a, apply add_left_neg, }),
+  map := λ M₁ M₂ f,
+  { app := λ Y, add_monoid_hom.mk' (λ g, f ∘ g) (by tidy), }, }
+
+
+def counit_iso : equivalence.inverse ⋙ equivalence.functor ≅ (𝟭 Ab.{u}) :=
+nat_iso.of_components (λ M,
+  { hom := add_monoid_hom.mk' (λ x, x punit.star) (by tidy),
+    inv := add_monoid_hom.mk' (λ x s, x) (by tidy),
+    hom_inv_id' := by tidy,
+    inv_hom_id' := by tidy, }) (by tidy)
+
+def unit_iso : 𝟭 (internal Ab Type.{u}) ≅
+  equivalence.functor ⋙ equivalence.inverse :=
+nat_iso.of_components (λ M,
+  { hom :=
+    { app := λ Y, add_monoid_hom.mk' (λ f x,
+      M.iso.hom.app _ ((by exact λ s, x) ≫ M.iso.inv.app _ f)) (λ f g, begin
+        ext,
+        dsimp at f g ⊢,
+        rw [← iso_hom_app_yoneda_operation_add_app, iso_inv_app_add],
+        congr' 1,
+        let x' : punit ⟶ unop Y := λ s, x,
+        have h := congr_fun ((yoneda_operation_add M).naturality x'.op) ⟨M.iso.inv.app _ f, M.iso.inv.app _ g⟩,
+        exact h.symm,
+      end),
+      naturality' := sorry, },
+    inv :=
+    { app := λ Y, add_monoid_hom.mk' (λ f, M.iso.hom.app _ (λ x, M.iso.inv.app _ (f x) punit.star))
+        (begin sorry, end),
+      naturality' := sorry, },
+    hom_inv_id' := sorry,
+    inv_hom_id' := sorry, }) sorry
+
+end equivalence
+
+#exit
+def equivalence : internal Ab Type.{u} ≌ Ab.{u} :=
+{ functor := equivalence.functor,
+  inverse := equivalence.inverse,
+  unit_iso := equivalence.unit_iso,
+  counit_iso := equivalence.counit_iso,
+  functor_unit_iso_comp' := sorry, }
+
+
+end Ab
+
+end internal
+
+end concrete_category
 
 end category_theory

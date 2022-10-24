@@ -766,6 +766,8 @@ lemma foo : ∃ g : H → ℝ, cont_diff ℝ ⊤ g ∧
   (has_compact_support g) :=
 sorry
 
+set_option profiler true
+
 def e : cont_diff_bump_base H :=
 begin
   borelize H,
@@ -810,11 +812,11 @@ begin
     { have C : ball x R ⊆ ball 0 1,
       { apply ball_subset_ball',
         simp only [mem_closed_ball] at hx,
-        linarith },
+        linarith only [hx] },
       assume y hy,
       simp only [hφ, indicator, mem_closed_ball, ite_eq_left_iff, not_le, zero_ne_one],
       assume h'y,
-      linarith [mem_ball.1 (C hy)] },
+      linarith only [mem_ball.1 (C hy), h'y] },
     have Bx : φ x = 1, from B _ (mem_ball_self Rpos),
     have B' : ∀ y ∈ ball x R, φ y = φ x, by { rw Bx, exact B },
     rw convolution_eq_right' _ (le_of_eq (Fsupp R Rpos)) B',
@@ -832,7 +834,7 @@ begin
       have C : ball y R ⊆ ball 0 (1+R),
       { apply ball_subset_ball',
         rw ← dist_zero_right at h'y,
-        linarith },
+        linarith only [h'y] },
       exact hx (C (mem_ball_comm.1 hy)) },
     have Bx : φ x = 0, from B _ (mem_ball_self Rpos),
     have B' : ∀ y ∈ ball x R, φ y = φ x, by { rw Bx, exact B },
@@ -861,22 +863,22 @@ begin
       field_simp [Rpos.ne', cpos.ne'] },
     exact C.trans (le_of_eq D) }, -/
   have : ∀ R (x : H), 0 < R → R < 1 → x ∈ ball (0 : H) (1 + R) → 0 < g0 R x,
-  { assume R x Rpos Rone hx,
-    change 0 < (F R ⋆[lsmul ℝ ℝ, μ] φ) x,
+  sorry, /-{ assume R x Rpos Rone hx,
+    simp only [mem_ball_zero_iff] at hx,
     refine (integral_pos_iff_support_of_nonneg (λ y, Hpos R x y Rpos) _).2 _,
-    sorry { have F_comp : has_compact_support (F R),
+    { have F_comp : has_compact_support (F R),
       { rw [has_compact_support_def, Fsupp R Rpos, closure_ball (0 : H) Rpos.ne'],
         exact is_compact_closed_ball _ _ },
       have B : locally_integrable φ μ,
-        from (locally_integrable_const _).indicator (measurable_set_closed_ball),
+        from (locally_integrable_const _).indicator measurable_set_closed_ball,
       have C : continuous (F R),
         from (continuous.comp g_cont (continuous_id'.const_smul R⁻¹)).const_smul _,
       exact (has_compact_support.convolution_exists_left (lsmul ℝ ℝ : ℝ →L[ℝ] ℝ →L[ℝ] ℝ)
         F_comp C B x).integrable },
     { set z := (R / (1 + R)) • x with hz,
       have B : 0 < 1 + R, by linarith,
-      have : ball z (R * (1 - ∥x∥ / (1 + R))) ⊆ support (λ (y : H), F R y * φ (x - y)),
-      sorry { assume y hy,
+      have C : ball z (R * (1 + R- ∥x∥) / (1 + R)) ⊆ support (λ (y : H), F R y * φ (x - y)),
+      { assume y hy,
         simp only [support_mul, Fsupp R Rpos],
         simp only [mem_inter_iff, mem_support, ne.def, indicator_apply_eq_zero,
           mem_closed_ball_zero_iff, one_ne_zero, not_forall, not_false_iff, exists_prop, and_true],
@@ -884,24 +886,24 @@ begin
         { apply ball_subset_ball' _ hy,
           simp only [z, norm_smul, abs_of_nonneg Rpos.le, abs_of_nonneg B.le, dist_zero_right,
             real.norm_eq_abs, abs_div],
-          field_simp [B.ne', div_le_iff B],
+          simp only [div_le_iff B] with field_simps,
           ring_nf },
         { have IR : ∥R / (1 + R) - 1∥ = 1 / (1 + R),
           { rw real.norm_of_nonpos,
-            { field_simp [B.ne'] },
-            { field_simp [B.ne'],
+            { simp only [B.ne', ne.def, not_false_iff, mul_one, neg_sub, add_tsub_cancel_right]
+                with field_simps},
+            { simp only [B.ne', ne.def, not_false_iff, mul_one] with field_simps,
               apply div_nonpos_of_nonpos_of_nonneg _ B.le,
-              linarith, } },
+              linarith only, } },
           rw ← mem_closed_ball_iff_norm',
           apply closed_ball_subset_closed_ball' _ (ball_subset_closed_ball hy),
           rw [← one_smul ℝ x, dist_eq_norm, hz, ← sub_smul, one_smul, norm_smul, IR],
-          field_simp [B.ne', div_le_iff B],
+          simp only [-one_div, -mul_eq_zero, B.ne', div_le_iff B] with field_simps,
           simp only [mem_ball_zero_iff] at hx,
-          nlinarith } },
-
-    }
-
-  },
+          nlinarith only [hx, Rone] } },
+      apply lt_of_lt_of_le _ (measure_mono C),
+      apply measure_ball_pos,
+      exact div_pos (mul_pos Rpos (by linarith only [hx])) B } },-/
   refine
   { to_fun := g0,
     mem_Icc := _,

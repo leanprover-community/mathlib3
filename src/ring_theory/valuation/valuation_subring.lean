@@ -738,7 +738,8 @@ def sub_mul_action (A : valuation_subring L) :
     exact congr_arg coe g.prop.symm,
 end }
 
-/-- The multiplicative action of the decomposition subgroup on `A`. -/
+/-- The multiplicative action of the decomposition subgroup on
+the type of all valuation subrings of the field. -/ -/
 instance mul_action (A : valuation_subring L) :
   mul_semiring_action (A.decomposition_subgroup K) A :=
 { smul_add :=  λ g k l, subtype.ext $ smul_add g k l,
@@ -747,44 +748,18 @@ instance mul_action (A : valuation_subring L) :
   smul_mul := λ g k l, subtype.ext $ smul_mul' g k l,
    ..(sub_mul_action.mul_action (A.sub_mul_action K)) }
 
-variable {K}
-
-/-- The group homomorphism from the decomposition subgroup to `ring_aut A`. -/
-def decomposition_subgroup.to_ring_aut (A : valuation_subring L) :
-  A.decomposition_subgroup K →* ring_aut A :=
-{ to_fun := mul_semiring_action.to_ring_equiv (A.decomposition_subgroup K) A,
-  map_mul' := λ g h, ring_equiv.ext $ mul_smul g h,
-  map_one' := ring_equiv.ext $ one_smul _, }
-
-/-- The group homomorphism from `ring_aut A` to `ring_aut k`
-where `k` is the residue field. -/
-def decomposition_subgroup.to_aut_k (A : valuation_subring L):
-  ring_aut A →* ring_aut (local_ring.residue_field A):=
-{ to_fun := local_ring.residue_field.map_equiv,
-  map_mul' := begin
-  intros φ ψ,
-  ext,
-  exact local_ring.residue_field.map_comp_apply (ψ : A →+* A) (φ : A →+* A) x,
-  end,
-  map_one' := begin
-  ext,
-  apply local_ring.residue_field.map_id_apply,
-  end
-  }
-
-/-- The group homomomorphism from the decomposition group to `ring_aut k`. -/
+/-- The group homomomorphism from the decomposition group to the
+group of automorphisms of the residue field. -/
 def decomposition_subgroup.comp (A : valuation_subring L):
   A.decomposition_subgroup K →* ring_aut (local_ring.residue_field A) :=
-(decomposition_subgroup.to_aut_k A).comp (decomposition_subgroup.to_ring_aut A)
+(local_ring.residue_field.map_aut).comp (decomposition_subgroup.to_ring_aut A)
 
 /-- The inertia subgroup defined as the kernel of the group homomorphism from
-the decomposition group to `ring_aut k`. -/
-def inertia_subgroup (A : valuation_subring L) : subgroup (A.decomposition_subgroup K) :=
-(decomposition_subgroup.comp A).ker
-
-/-- The inertia subgroup defined as a subgroup of `(L ≃ₐ[K] L)`. -/
-def inertia_subgp_galois (A : valuation_subring L) : subgroup (L ≃ₐ[K] L) :=
-by exact A.decomposition_subgroup K
+the decomposition group to the group of automorphisms of the residue field. -/
+noncomputable def inertia_subgroup (A : valuation_subring L) :
+  subgroup (A.decomposition_subgroup K) :=
+  ( (local_ring.residue_field.map_aut).comp
+  (mul_semiring_action.to_ring_aut (A.decomposition_subgroup K) A) ).ker
 
 end
 

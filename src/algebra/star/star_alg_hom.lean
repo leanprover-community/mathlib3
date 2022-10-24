@@ -443,7 +443,7 @@ end star_alg_hom
 
 /-- A *⋆-algebra* equivalence is an equivalence preserving addition, multiplication, scalar
 multiplication and the star operation, which allows for considering both unital and non-unital
-equivalences with a single structure.  Currently, `alg_equiv` requires unital algebras, which is
+equivalences with a single structure. Currently, `alg_equiv` requires unital algebras, which is
 why this structure does not extend it. -/
 structure star_alg_equiv (R A B : Type*) [has_add A] [has_mul A] [has_smul R A] [has_star A]
   [has_add B] [has_mul B] [has_smul R B] [has_star B] extends A ≃+* B :=
@@ -546,7 +546,7 @@ lemma ext {f g : A ≃⋆ₐ[R] B} (h : ∀ a, f a = g a) : f = g := fun_like.ex
 lemma ext_iff {f g : A ≃⋆ₐ[R] B} : f = g ↔ ∀ a, f a = g a  := fun_like.ext_iff
 
 /-- Star algebra equivalences are reflexive. -/
-@[refl] def refl : A ≃⋆ₐ[R] A := { map_smul' := λ r a, rfl, map_star' := λ a, rfl, ..(1 : A ≃+* A) }
+@[refl] def refl : A ≃⋆ₐ[R] A := { map_smul' := λ r a, rfl, map_star' := λ a, rfl, ..ring_equiv.refl A }
 
 instance : inhabited (A ≃⋆ₐ[R] A) := ⟨refl⟩
 

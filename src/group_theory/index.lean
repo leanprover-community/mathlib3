@@ -264,6 +264,9 @@ eq_zero_of_zero_dvd (hKL ▸ (relindex_dvd_of_le_left L hHK))
 lemma relindex_eq_zero_of_le_right (hKL : K ≤ L) (hHK : H.relindex K = 0) : H.relindex L = 0 :=
 finite.card_eq_zero_of_embedding (quotient_subgroup_of_embedding_of_le H hKL) hHK
 
+@[to_additive] lemma index_eq_zero_of_relindex_eq_zero (h : H.relindex K = 0) : H.index = 0 :=
+H.relindex_top_right.symm.trans (relindex_eq_zero_of_le_right le_top h)
+
 @[to_additive] lemma relindex_le_of_le_left (hHK : H ≤ K) (hHL : H.relindex L ≠ 0) :
   K.relindex L ≤ H.relindex L :=
 nat.le_of_dvd (nat.pos_of_ne_zero hHL) (relindex_dvd_of_le_left L hHK)

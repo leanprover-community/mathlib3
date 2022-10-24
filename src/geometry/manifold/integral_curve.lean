@@ -120,7 +120,7 @@ lemma model_with_corners.boundaryless.is_open_target
   {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H) [I.boundaryless]
-  {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+  {M : Type*} [topological_space M] [charted_space H M]
   (x : M) : is_open (ext_chart_at I x).target :=
 begin
   rw ext_chart_at_target,
@@ -131,7 +131,7 @@ begin
 end
 
 variables
-  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [proper_space E]
+  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
   {H : Type*} [topological_space H] (I : model_with_corners ℝ E H)
   (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
@@ -139,7 +139,7 @@ variables
   preferred chart around the base point. We require that the base point not be on the boundary.
   Several useful properties of the solution are proven here, to be used in
   `exists_integral_curve_of_cont_mdiff_tangent_vector_field`. -/
-lemma exists_integral_curve_of_cont_mdiff_tangent_vector_field_aux
+lemma exists_integral_curve_of_cont_mdiff_tangent_vector_field_aux [proper_space E]
   (v : M → tangent_bundle I M) (h₁ : ∀ x, (v x).1 = x) (h₂ : cont_mdiff I I.tangent 1 v)
   (x₀ : M) (hx : (ext_chart_at I x₀) x₀ ∈ interior (ext_chart_at I x₀).target) :
   ∃ (ε : ℝ) (hε : 0 < ε) (γ : ℝ → M), γ 0 = x₀ ∧ ∀ (t : ℝ), t ∈ metric.ball (0 : ℝ) ε →
@@ -219,7 +219,7 @@ end
 /-- For any continuously differentiable vector field and any chosen non-boundary point `x₀` on the
   manifold, an integral curve `γ : ℝ → M` exists such that `γ 0 = x₀` and the tangent vector of `γ`
   at `t` coincides with the vector field at `γ t` for all `t` within an open interval around 0.-/
-theorem exists_integral_curve_of_cont_mdiff_tangent_vector_field
+theorem exists_integral_curve_of_cont_mdiff_tangent_vector_field [proper_space E]
   (v : M → tangent_bundle I M) (h₁ : ∀ x, (v x).1 = x) (h₂ : cont_mdiff I I.tangent 1 v)
   (x₀ : M) (hx : (ext_chart_at I x₀) x₀ ∈ interior (ext_chart_at I x₀).target) :
   ∃ (ε : ℝ) (hε : 0 < ε) (γ : ℝ → M), γ 0 = x₀ ∧ ∀ (t : ℝ), t ∈ metric.ball (0 : ℝ) ε →
@@ -251,7 +251,7 @@ end
   tangent vector of `γ` at `t` coincides with the vector field at `γ t` for all `t` within an open
   interval around 0. -/
 lemma curve_exists_boundaryless
-  [hI : I.boundaryless]
+  [proper_space E] [hI : I.boundaryless]
   (v : M → tangent_bundle I M) (h₁ : ∀ x, (v x).1 = x) (h₂ : cont_mdiff I I.tangent 1 v) (x₀ : M) :
   ∃ (ε : ℝ) (hε : 0 < ε) (γ : ℝ → M), γ 0 = x₀ ∧ ∀ (t : ℝ), t ∈ metric.ball (0 : ℝ) ε →
     has_mfderiv_at 𝓘(ℝ, ℝ) I γ t

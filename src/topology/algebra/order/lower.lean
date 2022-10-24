@@ -104,7 +104,7 @@ end
 The closure of a singleton {a} in the lower topology is the left-closed right-infinite interval
 [a,∞)
 -/
-lemma singleton_closure (a : α) : closure {a} = Ici a :=
+lemma closure_singleton (a : α) : closure {a} = Ici a :=
 begin
   rw subset_antisymm_iff,
   split,

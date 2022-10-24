@@ -101,6 +101,8 @@ begin
   exact closure_mul_image_eq_top hR hR1 hS,
 end
 
+variables (H)
+
 lemma exists_finset_card_le_mul [finite_index H] {S : finset G} (hS : closure (S : set G) = ⊤) :
   ∃ T : finset H, T.card ≤ H.index * S.card ∧ closure (T : set H) = ⊤ :=
 begin
@@ -126,16 +128,16 @@ end
 instance fg_of_index_ne_zero [hG : group.fg G] [finite_index H] : group.fg H :=
 begin
   obtain ⟨S, hS⟩ := hG.1,
-  obtain ⟨T, -, hT⟩ := exists_finset_card_le_mul hH hS,
+  obtain ⟨T, -, hT⟩ := exists_finset_card_le_mul H hS,
   exact ⟨⟨T, hT⟩⟩,
 end
 
-lemma rank_le_index_mul_rank [hG : group.fg G] {H : subgroup G} [finite_index H] :
+lemma rank_le_index_mul_rank [hG : group.fg G] [finite_index H] :
   group.rank H ≤ H.index * group.rank G :=
 begin
-  haveI := fg_of_index_ne_zero hH,
+  haveI := H.fg_of_index_ne_zero,
   obtain ⟨S, hS₀, hS⟩ := group.rank_spec G,
-  obtain ⟨T, hT₀, hT⟩ := exists_finset_card_le_mul hH hS,
+  obtain ⟨T, hT₀, hT⟩ := exists_finset_card_le_mul H hS,
   calc group.rank H ≤ T.card : group.rank_le H hT
   ... ≤ H.index * S.card : hT₀
   ... = H.index * group.rank G : congr_arg ((*) H.index) hS₀,
@@ -158,8 +160,10 @@ begin
   have h1 := relindex_dvd_index_of_normal (center G) (commutator G),
   -- So we can reduce to proving `|Z(G) ∩ G'| ∣ [G : Z(G)] ^ ([G : Z(G)] * n)`
   refine mul_dvd_mul _ h1,
+  -- We know that `[G' : Z(G) ∩ G'] < ∞` by `h1` and `hG`
+  haveI : finite_index ((center G).subgroup_of (commutator G)) := ⟨ne_zero_of_dvd_ne_zero hG h1⟩,
   -- We have `h2 : rank (Z(G) ∩ G') ≤ [G' : Z(G) ∩ G'] * rank G'` by Schreier's lemma
-  have h2 := rank_le_index_mul_rank (ne_zero_of_dvd_ne_zero hG h1),
+  have h2 := rank_le_index_mul_rank ((center G).subgroup_of (commutator G)),
   -- We have `h3 : [G' : Z(G) ∩ G'] * rank G' ≤ [G : Z(G)] * n` by `h1` and `rank G' ≤ n`
   have h3 := nat.mul_le_mul (nat.le_of_dvd (nat.pos_of_ne_zero hG) h1) (rank_commutator_le_card G),
   -- So we can reduce to proving `|Z(G) ∩ G'| ∣ [G : Z(G)] ^ rank (Z(G) ∩ G')`

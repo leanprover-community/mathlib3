@@ -359,7 +359,6 @@ class _root_.add_subgroup.finite_index {G : Type*} [add_group G] (H : add_subgro
 
 attribute [to_additive] finite_index
 
--- This fintype instance is needed for the transfer homomorphism.
 @[priority 100, to_additive] noncomputable instance fintype_quotient_of_finite_index
   [finite_index H] : fintype (G ⧸ H) :=
 fintype_of_index_ne_zero finite_index.finite_index

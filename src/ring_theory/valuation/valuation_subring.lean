@@ -751,11 +751,12 @@ instance mul_action (A : valuation_subring L) :
 group of automorphisms of the residue field. -/
 def decomposition_subgroup.comp (A : valuation_subring L):
   A.decomposition_subgroup K →* ring_aut (local_ring.residue_field A) :=
-(local_ring.residue_field.map_aut).comp (decomposition_subgroup.to_ring_aut A)
+( (local_ring.residue_field.map_aut).comp
+  (mul_semiring_action.to_ring_aut (A.decomposition_subgroup K) A) )
 
 /-- The inertia subgroup defined as the kernel of the group homomorphism from
 the decomposition group to the group of automorphisms of the residue field. -/
-noncomputable def inertia_subgroup (A : valuation_subring L) :
+def inertia_subgroup (A : valuation_subring L) :
   subgroup (A.decomposition_subgroup K) :=
   ( (local_ring.residue_field.map_aut).comp
   (mul_semiring_action.to_ring_aut (A.decomposition_subgroup K) A) ).ker

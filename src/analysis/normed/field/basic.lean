@@ -1012,9 +1012,7 @@ def normed_field.induced [field R] [normed_field S]
 { .. normed_division_ring.induced R S f hf }
 
 /-- A ring homomorphism from a `ring R` to a `semi_normed_ring S` which induces the norm structure
-`semi_normed_ring.induced` makes `R` satisfy `∥(1 : R)∥ = 1` whenever `∥(1 : S)∥ = 1`.
-
-See note [reducible non-instances] -/
+`semi_normed_ring.induced` makes `R` satisfy `∥(1 : R)∥ = 1` whenever `∥(1 : S)∥ = 1`. -/
 lemma norm_one_class.induced {F : Type*} (R S : Type*) [ring R] [semi_normed_ring S]
   [norm_one_class S] [ring_hom_class F R S] (f : F) :
   @norm_one_class R (semi_normed_ring.induced R S f).to_has_norm _ :=

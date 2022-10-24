@@ -103,15 +103,13 @@ lemma step.cons_left_iff {a : α} {b : bool} :
 begin
   split,
   { generalize hL : ((a, b) :: L₁ : list _) = L,
-    assume h,
-    rcases h with ⟨_ | ⟨p, s'⟩, e, a', b'⟩,
+    rintro @⟨_ | ⟨p, s'⟩, e, a', b'⟩,
     { simp at hL, simp [*] },
     { simp at hL,
       rcases hL with ⟨rfl, rfl⟩,
       refine or.inl ⟨s' ++ e, step.bnot, _⟩,
       simp } },
-  { assume h,
-    rcases h with ⟨L, h, rfl⟩ | rfl,
+  { rintro (⟨L, h, rfl⟩ | rfl),
     { exact step.cons h },
     { exact step.cons_bnot } }
 end

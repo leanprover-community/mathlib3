@@ -119,9 +119,55 @@ The homology of a complex at index `i`.
 abbreviation homology (C : homological_complex V c) (i : ι) : V :=
 homology (C.d_to i) (C.d_from i) (C.d_to_comp_d_from i)
 
+/-- The `j`th homology of a homological complex (as kernel of 'the differential from `Cⱼ`' modulo
+the image of 'the differential to `Cⱼ`') is isomorphic to the kernel of `d : Cⱼ → Cₖ` modulo
+the image of `d : Cᵢ → Cⱼ` when `rel i j` and `rel j k`. -/
+def homology_iso (C : homological_complex V c) {i j k : ι} (hij : c.rel i j) (hjk : c.rel j k) :
+  C.homology j ≅ _root_.homology (C.d i j) (C.d j k) (C.d_comp_d i j k) :=
+homology.map_iso _ _ (arrow.iso_mk (C.X_prev_iso hij) (iso.refl _) $ by dsimp;
+  rw [C.d_to_eq hij, category.comp_id])
+(arrow.iso_mk (iso.refl _) (C.X_next_iso hjk) $ by dsimp; rw [C.d_from_comp_X_next_iso hjk,
+   category.id_comp]) rfl
 end
 
 end homological_complex
+
+/-- The 0th homology of a chain complex is isomorphic to the cokernel of `d : C₁ ⟶ C₀`. -/
+def chain_complex.homology_zero_iso [has_kernels V] [has_images V] [has_cokernels V]
+  (C : chain_complex V ℕ) [epi (factor_thru_image (C.d 1 0))] :
+  C.homology 0 ≅ cokernel (C.d 1 0) :=
+(homology.map_iso _ _ (arrow.iso_mk (C.X_prev_iso rfl) (iso.refl _) $
+by rw C.d_to_eq rfl; exact (category.comp_id _).symm : arrow.mk (C.d_to 0) ≅ arrow.mk (C.d 1 0))
+  (arrow.iso_mk (iso.refl _) (iso.refl _) $
+by simp [C.d_from_eq_zero (λ (h : _ = _), one_ne_zero $ by
+  rwa chain_complex.next_nat_zero at h)] : arrow.mk (C.d_from 0) ≅ arrow.mk 0) rfl).trans $
+homology_of_zero_right _
+
+/-- The 0th cohomology of a cochain complex is isomorphic to the kernel of `d : C₀ → C₁`. -/
+def cochain_complex.homology_zero_iso [has_zero_object V]
+  [has_kernels V] [has_images V] [has_cokernels V] (C : cochain_complex V ℕ) :
+  C.homology 0 ≅ kernel (C.d 0 1) :=
+(homology.map_iso _ _ (arrow.iso_mk (C.X_prev_iso_self (by rw cochain_complex.prev_nat_zero;
+  exact one_ne_zero)) (iso.refl _) (by simp) : arrow.mk (C.d_to 0) ≅ arrow.mk 0)
+  (arrow.iso_mk (iso.refl _) (C.X_next_iso rfl)
+  (by simp) : arrow.mk (C.d_from 0) ≅ arrow.mk (C.d 0 1)) $ by simpa).trans $
+homology_of_zero_left _
+
+/-- The `n + 1`th homology of a chain complex (as kernel of 'the differential from `Cₙ₊₁`' modulo
+the image of 'the differential to `Cₙ₊₁`') is isomorphic to the kernel of `d : Cₙ₊₁ → Cₙ` modulo
+the image of `d : Cₙ₊₂ → Cₙ₊₁`. -/
+def chain_complex.homology_succ_iso [has_kernels V] [has_images V] [has_cokernels V]
+  (C : chain_complex V ℕ) (n : ℕ) :
+  C.homology (n + 1) ≅ homology (C.d (n + 2) (n + 1)) (C.d (n + 1) n) (C.d_comp_d _ _ _) :=
+C.homology_iso rfl rfl
+
+/-- The `n + 1`th cohomology of a cochain complex (as kernel of 'the differential from `Cₙ₊₁`'
+modulo the image of 'the differential to `Cₙ₊₁`') is isomorphic to the kernel of `d : Cₙ₊₁ → Cₙ₊₂`
+modulo the image of `d : Cₙ → Cₙ₊₁`. -/
+def cochain_complex.homology_succ_iso [has_kernels V] [has_images V] [has_cokernels V]
+  (C : cochain_complex V ℕ) (n : ℕ) :
+  C.homology (n + 1) ≅ homology (C.d n (n + 1)) (C.d (n + 1) (n + 2)) (C.d_comp_d _ _ _) :=
+C.homology_iso rfl rfl
 
 open homological_complex
 

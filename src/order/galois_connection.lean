@@ -200,20 +200,24 @@ end
 end partial_order
 
 section order_top
-variables [partial_order α] [preorder β] [order_top α] [order_top β] {l : α → β} {u : β → α}
-  (gc : galois_connection l u)
-include gc
+variables [partial_order α] [preorder β] [order_top α]
 
-lemma u_top : u ⊤ = ⊤ := top_unique $ gc.le_u le_top
+lemma u_eq_top {l : α → β} {u : β → α} (gc : galois_connection l u) {x} : u x = ⊤ ↔ l ⊤ ≤ x :=
+top_le_iff.symm.trans gc.le_iff_le.symm
+
+lemma u_top [order_top β] {l : α → β} {u : β → α} (gc : galois_connection l u) : u ⊤ = ⊤ :=
+gc.u_eq_top.2 le_top
 
 end order_top
 
 section order_bot
-variables [preorder α] [partial_order β] [order_bot α] [order_bot β] {l : α → β} {u : β → α}
-  (gc : galois_connection l u)
-include gc
+variables [preorder α] [partial_order β] [order_bot β]
 
-lemma l_bot : l ⊥ = ⊥ := gc.dual.u_top
+lemma l_eq_bot {l : α → β} {u : β → α} (gc : galois_connection l u) {x} : l x = ⊥ ↔ x ≤ u ⊥ :=
+gc.dual.u_eq_top
+
+lemma l_bot [order_bot α] {l : α → β} {u : β → α} (gc : galois_connection l u) : l ⊥ = ⊥ :=
+gc.dual.u_top
 
 end order_bot
 

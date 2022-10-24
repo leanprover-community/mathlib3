@@ -45,6 +45,28 @@ def to_nat : monoid_with_zero_hom ℕ∞ ℕ :=
   map_zero' := rfl,
   map_mul' := with_top.untop'_zero_mul }
 
+@[simp] lemma to_nat_coe (n : ℕ) : to_nat n = n := rfl
+@[simp] lemma to_nat_top : to_nat ⊤ = 0 := rfl
+
+lemma coe_to_nat {n : ℕ∞} (hn : n ≠ ⊤) : ↑(to_nat n) = n :=
+by { lift n to ℕ using hn, refl }
+
+lemma coe_to_nat_le (n : ℕ∞) : ↑(to_nat n) ≤ n := by { cases n, exacts [le_top, le_rfl] }
+
+lemma to_nat_add {m n : ℕ∞} (hm : m ≠ ⊤) (hn : n ≠ ⊤) : to_nat (m + n) = to_nat m + to_nat n :=
+by { lift m to ℕ using hm, lift n to ℕ using hn, refl }
+
+lemma to_nat_sub {n : ℕ∞} (hn : n ≠ ⊤) (m : ℕ∞) : to_nat (m - n) = to_nat m - to_nat n :=
+begin
+  lift n to ℕ using hn,
+  induction m using with_top.rec_top_coe,
+  { rw [with_top.top_sub_coe, to_nat_top, zero_tsub] },
+  { rw [← coe_sub, to_nat_coe, to_nat_coe, to_nat_coe] }
+end
+
+lemma to_nat_eq_iff {m : ℕ∞} {n : ℕ} (hn : n ≠ 0) : m.to_nat = n ↔ m = n :=
+by induction m using with_top.rec_top_coe; simp [hn.symm]
+
 @[simp] lemma succ_def (m : ℕ∞) : order.succ m = m + 1 := by cases m; refl
 
 lemma add_one_le_of_lt (h : m < n) : m + 1 ≤ n :=

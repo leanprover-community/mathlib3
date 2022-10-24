@@ -315,7 +315,7 @@ lemma map.mem_arrows_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {
     f = (eq_to_hom ha.symm) ≫ φ.map g ≫ (eq_to_hom hb) :=
 begin
   split,
-  { rintro ⟨a,b,g,hg⟩, exact ⟨a,b,g,rfl,rfl,hg, eq_conj_eq_to_hom _⟩ },
+  { rintro ⟨g,hg⟩, exact ⟨_,_,g,rfl,rfl,hg, eq_conj_eq_to_hom _⟩ },
   { rintro ⟨a,b,g,rfl,rfl,hg,rfl⟩, rw ← eq_conj_eq_to_hom, split, exact hg },
 end
 
@@ -328,7 +328,7 @@ def map (hφ : function.injective φ.obj) (S : subgroupoid C) : subgroupoid D :=
     split, apply S.inv, assumption,
   end,
   mul := begin
-    rintro _ _ _ _ ⟨c₁,c₂,f,hf⟩ q hq,
+    rintro _ _ _ _ ⟨f,hf⟩ q hq,
     obtain ⟨c₃,c₄,g,he,rfl,hg,gq⟩ := (map.mem_arrows_iff φ hφ S q).mp hq,
     cases hφ he, rw [gq, ← eq_conj_eq_to_hom, ← φ.map_comp],
     split, exact S.mul hf hg,
@@ -336,7 +336,7 @@ def map (hφ : function.injective φ.obj) (S : subgroupoid C) : subgroupoid D :=
 
 lemma map_mono (hφ : function.injective φ.obj) (S T : subgroupoid C) :
   S ≤ T → map φ hφ S ≤ map φ hφ T :=
-by { rintros ST ⟨c,d,f⟩ ⟨_,_,_,h⟩, split, exact @ST ⟨_,_,_⟩ h }
+by { rintro ST ⟨c,d,f⟩ ⟨_,h⟩, split, exact @ST ⟨_,_,_⟩ h }
 
 /-- The image of a functor injective on objects -/
 def im (hφ : function.injective φ.obj) := map φ hφ (⊤)

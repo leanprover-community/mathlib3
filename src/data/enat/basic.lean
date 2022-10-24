@@ -48,10 +48,12 @@ def to_nat : monoid_with_zero_hom ℕ∞ ℕ :=
 @[simp] lemma to_nat_coe (n : ℕ) : to_nat n = n := rfl
 @[simp] lemma to_nat_top : to_nat ⊤ = 0 := rfl
 
-lemma coe_to_nat {n : ℕ∞} (hn : n ≠ ⊤) : ↑(to_nat n) = n :=
-by { lift n to ℕ using hn, refl }
+@[simp] lemma coe_to_nat_eq_self : ↑n.to_nat = n ↔ n ≠ ⊤ :=
+with_top.rec_top_coe (by simp) (by simp) n
 
-lemma coe_to_nat_le (n : ℕ∞) : ↑(to_nat n) ≤ n := by { cases n, exacts [le_top, le_rfl] }
+alias coe_to_nat_eq_self ↔ _ coe_to_nat
+
+lemma coe_to_nat_le_self (n : ℕ∞) : ↑(to_nat n) ≤ n := by { cases n, exacts [le_top, le_rfl] }
 
 lemma to_nat_add {m n : ℕ∞} (hm : m ≠ ⊤) (hn : n ≠ ⊤) : to_nat (m + n) = to_nat m + to_nat n :=
 by { lift m to ℕ using hm, lift n to ℕ using hn, refl }

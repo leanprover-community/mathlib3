@@ -360,14 +360,14 @@ class _root_.add_subgroup.finite_index {G : Type*} [add_group G] (H : add_subgro
 attribute [to_additive] finite_index
 
 -- This fintype instance is needed for the transfer homomorphism.
-@[to_additive] noncomputable instance fintype_quotient_of_finite_index [finite_index H] :
-  fintype (G ⧸ H) :=
+@[priority 100, to_additive] noncomputable instance fintype_quotient_of_finite_index
+  [finite_index H] : fintype (G ⧸ H) :=
 fintype_of_index_ne_zero finite_index.finite_index
 
 @[to_additive] lemma finite_index_of_finite_quotient [finite (G ⧸ H)] : finite_index H :=
 ⟨index_ne_zero_of_finite⟩
 
-@[to_additive] instance finite_index_of_finite [finite G] : finite_index H :=
+@[priority 100, to_additive] instance finite_index_of_finite [finite G] : finite_index H :=
 finite_index_of_finite_quotient H
 
 @[to_additive] instance : finite_index (⊤ : subgroup G) :=

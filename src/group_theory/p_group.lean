@@ -95,8 +95,7 @@ variables [hp : fact p.prime]
 
 include hp
 
-lemma index (H : subgroup G) [finite_index H] :
-  ∃ n : ℕ, H.index = p ^ n :=
+lemma index (H : subgroup G) [H.finite_index] : ∃ n : ℕ, H.index = p ^ n :=
 begin
   obtain ⟨n, hn⟩ := iff_card.mp (hG.to_quotient H.normal_core),
   obtain ⟨k, hk1, hk2⟩ := (nat.dvd_prime_pow hp.out).mp ((congr_arg _
@@ -117,6 +116,7 @@ lemma card_orbit (a : α) [fintype (orbit G a)] :
 begin
   let ϕ := orbit_equiv_quotient_stabilizer G a,
   haveI := fintype.of_equiv (orbit G a) ϕ,
+  haveI := (stabilizer G a).finite_index_of_finite_quotient,
   rw [card_congr ϕ, ←subgroup.index_eq_card],
   exact hG.index (stabilizer G a),
 end

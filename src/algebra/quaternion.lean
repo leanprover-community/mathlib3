@@ -72,10 +72,10 @@ variables {R : Type*} [comm_ring R] {c₁ c₂ : R} (r x y z : R) (a b c : ℍ[R
 
 instance : has_coe_t R (ℍ[R, c₁, c₂]) := ⟨λ x, ⟨x, 0, 0, 0⟩⟩
 
-@[simp] lemma coe_re : (x : ℍ[R, c₁, c₂]).re = x := rfl
-@[simp] lemma coe_im_i : (x : ℍ[R, c₁, c₂]).im_i = 0 := rfl
-@[simp] lemma coe_im_j : (x : ℍ[R, c₁, c₂]).im_j = 0 := rfl
-@[simp] lemma coe_im_k : (x : ℍ[R, c₁, c₂]).im_k = 0 := rfl
+@[simp, norm_cast] lemma coe_re : (x : ℍ[R, c₁, c₂]).re = x := rfl
+@[simp, norm_cast] lemma coe_im_i : (x : ℍ[R, c₁, c₂]).im_i = 0 := rfl
+@[simp, norm_cast] lemma coe_im_j : (x : ℍ[R, c₁, c₂]).im_j = 0 := rfl
+@[simp, norm_cast] lemma coe_im_k : (x : ℍ[R, c₁, c₂]).im_k = 0 := rfl
 
 lemma coe_injective : function.injective (coe : R → ℍ[R, c₁, c₂]) :=
 λ x y h, congr_arg re h
@@ -211,10 +211,10 @@ variables (R c₁ c₂)
 
 end
 
-@[norm_cast, simp] lemma coe_sub : ((x - y : R) : ℍ[R, c₁, c₂]) = x - y :=
+@[simp, norm_cast] lemma coe_sub : ((x - y : R) : ℍ[R, c₁, c₂]) = x - y :=
 (algebra_map R ℍ[R, c₁, c₂]).map_sub x y
 
-@[norm_cast, simp] lemma coe_mul : ((x * y : R) : ℍ[R, c₁, c₂]) = x * y :=
+@[simp, norm_cast] lemma coe_mul : ((x * y : R) : ℍ[R, c₁, c₂]) = x * y :=
 (algebra_map R ℍ[R, c₁, c₂]).map_mul x y
 
 lemma coe_commutes : ↑r * a = a * r := algebra.commutes r a

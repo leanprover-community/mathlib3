@@ -197,7 +197,7 @@ instance : has_zero {P : M // is_Lprojection X P} :=
      λ x, by simp only [zero_smul, norm_zero, sub_zero,
                         one_smul, zero_add]⟩⟩⟩
 
-@[simp] lemma coe_zero : ↑(0 : {P : M // is_Lprojection X P}) = (0 : M) :=
+@[simp, norm_cast] lemma coe_zero : ↑(0 : {P : M // is_Lprojection X P}) = (0 : M) :=
 rfl
 
 instance : has_one {P : M // is_Lprojection X P} :=

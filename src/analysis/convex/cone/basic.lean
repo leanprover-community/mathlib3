@@ -361,7 +361,7 @@ variables [add_comm_monoid E] [module 𝕜 E]
 instance : has_zero (convex_cone 𝕜 E) := ⟨⟨0, λ _ _, by simp, λ _, by simp⟩⟩
 
 @[simp] lemma mem_zero (x : E) : x ∈ (0 : convex_cone 𝕜 E) ↔ x = 0 := iff.rfl
-@[simp] lemma coe_zero : ((0 : convex_cone 𝕜 E) : set E) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : convex_cone 𝕜 E) : set E) = 0 := rfl
 
 lemma pointed_zero : (0 : convex_cone 𝕜 E).pointed := by rw [pointed, mem_zero]
 

@@ -121,7 +121,7 @@ instance : has_zero (seminorm 𝕜 E) :=
 ⟨{ smul' := λ _ _, (mul_zero _).symm,
   ..add_group_seminorm.has_zero.zero }⟩
 
-@[simp] lemma coe_zero : ⇑(0 : seminorm 𝕜 E) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ⇑(0 : seminorm 𝕜 E) = 0 := rfl
 
 @[simp] lemma zero_apply (x : E) : (0 : seminorm 𝕜 E) x = 0 := rfl
 

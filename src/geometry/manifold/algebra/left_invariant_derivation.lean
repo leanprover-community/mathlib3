@@ -103,10 +103,10 @@ instance : has_neg (left_invariant_derivation I G) :=
 instance : has_sub (left_invariant_derivation I G) :=
 { sub := λ X Y, ⟨X - Y, λ g, by simp [left_invariant']⟩ }
 
-@[simp] lemma coe_add : ⇑(X + Y) = X + Y := rfl
-@[simp] lemma coe_zero : ⇑(0 : left_invariant_derivation I G) = 0 := rfl
-@[simp] lemma coe_neg : ⇑(-X) = -X := rfl
-@[simp] lemma coe_sub : ⇑(X - Y) = X - Y := rfl
+@[simp, norm_cast] lemma coe_add : ⇑(X + Y) = X + Y := rfl
+@[simp, norm_cast] lemma coe_zero : ⇑(0 : left_invariant_derivation I G) = 0 := rfl
+@[simp, norm_cast] lemma coe_neg : ⇑(-X) = -X := rfl
+@[simp, norm_cast] lemma coe_sub : ⇑(X - Y) = X - Y := rfl
 @[simp, norm_cast] lemma lift_add :
   (↑(X + Y) : derivation 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯) = X + Y := rfl
 @[simp, norm_cast] lemma lift_zero :

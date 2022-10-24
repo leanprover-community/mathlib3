@@ -121,12 +121,12 @@ lemma coe_fn_injective : @function.injective (α →₀ M) (α → M) coe_fn := 
 /-- Deprecated. Use `fun_like.congr_fun` instead. -/
 lemma congr_fun {f g : α →₀ M} (h : f = g) (a : α) : f a = g a := fun_like.congr_fun h _
 
-@[simp] lemma coe_mk (f : α → M) (s : finset α) (h : ∀ a, a ∈ s ↔ f a ≠ 0) :
+@[simp, norm_cast] lemma coe_mk (f : α → M) (s : finset α) (h : ∀ a, a ∈ s ↔ f a ≠ 0) :
   ⇑(⟨s, f, h⟩ : α →₀ M) = f := rfl
 
 instance : has_zero (α →₀ M) := ⟨⟨∅, 0, λ _, ⟨false.elim, λ H, H rfl⟩⟩⟩
 
-@[simp] lemma coe_zero : ⇑(0 : α →₀ M) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ⇑(0 : α →₀ M) = 0 := rfl
 lemma zero_apply {a : α} : (0 : α →₀ M) a = 0 := rfl
 @[simp] lemma support_zero : (0 : α →₀ M).support = ∅ := rfl
 
@@ -405,7 +405,8 @@ def update : α →₀ M :=
     simp [ha, hb]
   end⟩
 
-@[simp] lemma coe_update [decidable_eq α] : (f.update a b : α → M) = function.update f a b :=
+@[simp, norm_cast]
+lemma coe_update [decidable_eq α] : (f.update a b : α → M) = function.update f a b :=
 by convert rfl
 
 @[simp] lemma update_self : f.update a (f a) = f :=
@@ -726,7 +727,7 @@ variables [add_zero_class M]
 
 instance : has_add (α →₀ M) := ⟨zip_with (+) (add_zero 0)⟩
 
-@[simp] lemma coe_add (f g : α →₀ M) : ⇑(f + g) = f + g := rfl
+@[simp, norm_cast] lemma coe_add (f g : α →₀ M) : ⇑(f + g) = f + g := rfl
 lemma add_apply (g₁ g₂ : α →₀ M) (a : α) : (g₁ + g₂) a = g₁ a + g₂ a := rfl
 
 lemma support_add [decidable_eq α] {g₁ g₂ : α →₀ M} :
@@ -929,12 +930,12 @@ fun_like.coe_injective.add_comm_monoid _ coe_zero coe_add (λ _ _, rfl)
 
 instance [add_group G] : has_neg (α →₀ G) := ⟨map_range (has_neg.neg) neg_zero⟩
 
-@[simp] lemma coe_neg [add_group G] (g : α →₀ G) : ⇑(-g) = -g := rfl
+@[simp, norm_cast] lemma coe_neg [add_group G] (g : α →₀ G) : ⇑(-g) = -g := rfl
 lemma neg_apply [add_group G] (g : α →₀ G) (a : α) : (- g) a = - g a := rfl
 
 instance [add_group G] : has_sub (α →₀ G) := ⟨zip_with has_sub.sub (sub_zero _)⟩
 
-@[simp] lemma coe_sub [add_group G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
+@[simp, norm_cast] lemma coe_sub [add_group G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
 lemma sub_apply [add_group G] (g₁ g₂ : α →₀ G) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
 
 /-- Note the general `finsupp.has_smul` instance doesn't apply as `ℤ` is not distributive

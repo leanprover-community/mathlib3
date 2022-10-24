@@ -161,9 +161,9 @@ instance : has_coe_t sign_type α := ⟨cast⟩
 
 @[simp] lemma cast_eq_coe (a : sign_type) : (cast a : α) = a := rfl
 
-@[simp] lemma coe_zero : ↑(0 : sign_type) = (0 : α) := rfl
-@[simp] lemma coe_one  : ↑(1 : sign_type) = (1 : α) := rfl
-@[simp] lemma coe_neg_one : ↑(-1 : sign_type) = (-1 : α) := rfl
+@[simp, norm_cast] lemma coe_zero : ↑(0 : sign_type) = (0 : α) := rfl
+@[simp, norm_cast] lemma coe_one  : ↑(1 : sign_type) = (1 : α) := rfl
+@[simp, norm_cast] lemma coe_neg_one : ↑(-1 : sign_type) = (-1 : α) := rfl
 
 end cast
 

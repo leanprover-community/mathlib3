@@ -88,10 +88,10 @@ lemma coe_fn_injective : @function.injective (Π₀ i, β i) (Π i, β i) coe_fn
 instance : has_zero (Π₀ i, β i) := ⟨⟨0, trunc.mk $ ⟨∅, λ i, or.inr rfl⟩⟩⟩
 instance : inhabited (Π₀ i, β i) := ⟨0⟩
 
-@[simp]
+@[simp, norm_cast]
 lemma coe_mk' (f : Π i, β i) (s) : ⇑(⟨f, s⟩ : Π₀ i, β i) = f := rfl
 
-@[simp] lemma coe_zero : ⇑(0 : Π₀ i, β i) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ⇑(0 : Π₀ i, β i) = 0 := rfl
 lemma zero_apply (i : ι) : (0 : Π₀ i, β i) i = 0 := rfl
 
 /-- The composition of `f : β₁ → β₂` and `g : Π₀ i, β₁ i` is
@@ -158,7 +158,7 @@ lemma add_apply [Π i, add_zero_class (β i)] (g₁ g₂ : Π₀ i, β i) (i : �
   (g₁ + g₂) i = g₁ i + g₂ i :=
 rfl
 
-@[simp] lemma coe_add [Π i, add_zero_class (β i)] (g₁ g₂ : Π₀ i, β i) :
+@[simp, norm_cast] lemma coe_add [Π i, add_zero_class (β i)] (g₁ g₂ : Π₀ i, β i) :
   ⇑(g₁ + g₂) = g₁ + g₂ :=
 rfl
 
@@ -174,8 +174,8 @@ lemma nsmul_apply [Π i, add_monoid (β i)] (b : ℕ) (v : Π₀ i, β i) (i : �
   (b • v) i = b • (v i) :=
 rfl
 
-@[simp] lemma coe_nsmul [Π i, add_monoid (β i)] (b : ℕ) (v : Π₀ i, β i) : ⇑(b • v) = b • v :=
-rfl
+@[simp, norm_cast]
+lemma coe_nsmul [Π i, add_monoid (β i)] (b : ℕ) (v : Π₀ i, β i) : ⇑(b • v) = b • v := rfl
 
 instance [Π i, add_monoid (β i)] : add_monoid (Π₀ i, β i) :=
 fun_like.coe_injective.add_monoid _ coe_zero coe_add (λ _ _, coe_nsmul _ _)
@@ -192,7 +192,8 @@ def eval_add_monoid_hom [Π i, add_zero_class (β i)] (i : ι) : (Π₀ i, β i)
 instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (Π₀ i, β i) :=
 fun_like.coe_injective.add_comm_monoid _ coe_zero coe_add (λ _ _, coe_nsmul _ _)
 
-@[simp] lemma coe_finset_sum {α} [Π i, add_comm_monoid (β i)] (s : finset α) (g : α → Π₀ i, β i) :
+@[simp, norm_cast]
+lemma coe_finset_sum {α} [Π i, add_comm_monoid (β i)] (s : finset α) (g : α → Π₀ i, β i) :
   ⇑(∑ a in s, g a) = ∑ a in s, g a :=
 (coe_fn_add_monoid_hom : _ →+ (Π i, β i)).map_sum g s
 
@@ -207,7 +208,7 @@ instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
 lemma neg_apply [Π i, add_group (β i)] (g : Π₀ i, β i) (i : ι) : (- g) i = - g i :=
 rfl
 
-@[simp] lemma coe_neg [Π i, add_group (β i)] (g : Π₀ i, β i) : ⇑(- g) = - g :=
+@[simp, norm_cast] lemma coe_neg [Π i, add_group (β i)] (g : Π₀ i, β i) : ⇑(- g) = - g :=
 rfl
 
 instance [Π i, add_group (β i)] : has_sub (Π₀ i, β i) :=
@@ -217,7 +218,7 @@ lemma sub_apply [Π i, add_group (β i)] (g₁ g₂ : Π₀ i, β i) (i : ι) :
   (g₁ - g₂) i = g₁ i - g₂ i :=
 rfl
 
-@[simp] lemma coe_sub [Π i, add_group (β i)] (g₁ g₂ : Π₀ i, β i) :
+@[simp, norm_cast] lemma coe_sub [Π i, add_group (β i)] (g₁ g₂ : Π₀ i, β i) :
   ⇑(g₁ - g₂) = g₁ - g₂ :=
 rfl
 
@@ -229,7 +230,8 @@ instance has_int_scalar [Π i, add_group (β i)] : has_smul ℤ (Π₀ i, β i) 
 lemma zsmul_apply [Π i, add_group (β i)] (b : ℤ) (v : Π₀ i, β i) (i : ι) : (b • v) i = b • (v i) :=
 rfl
 
-@[simp] lemma coe_zsmul [Π i, add_group (β i)] (b : ℤ) (v : Π₀ i, β i) : ⇑(b • v) = b • v :=
+@[simp, norm_cast]
+lemma coe_zsmul [Π i, add_group (β i)] (b : ℤ) (v : Π₀ i, β i) : ⇑(b • v) = b • v :=
 rfl
 
 instance [Π i, add_group (β i)] : add_group (Π₀ i, β i) :=
@@ -251,7 +253,7 @@ lemma smul_apply [monoid γ] [Π i, add_monoid (β i)]
   (b • v) i = b • (v i) :=
 rfl
 
-@[simp] lemma coe_smul [monoid γ] [Π i, add_monoid (β i)]
+@[simp, norm_cast] lemma coe_smul [monoid γ] [Π i, add_monoid (β i)]
   [Π i, distrib_mul_action γ (β i)] (b : γ) (v : Π₀ i, β i) :
   ⇑(b • v) = b • v :=
 rfl
@@ -639,7 +641,7 @@ def update : Π₀ i, β i :=
 
 variables (j : ι)
 
-@[simp] lemma coe_update : (f.update i b : Π (i : ι), β i) = function.update f i b := rfl
+@[simp, norm_cast] lemma coe_update : (f.update i b : Π (i : ι), β i) = function.update f i b := rfl
 
 @[simp] lemma update_self : f.update i (f i) = f :=
 by { ext, simp }
@@ -1836,7 +1838,7 @@ lemma map_dfinsupp_prod [comm_monoid R] [comm_monoid S]
   (h : R →* S) (f : Π₀ i, β i) (g : Π i, β i → R) :
   h (f.prod g) = f.prod (λ a b, h (g a b)) := h.map_prod _ _
 
-@[to_additive]
+@[to_additive, norm_cast]
 lemma coe_dfinsupp_prod [monoid R] [comm_monoid S]
   (f : Π₀ i, β i) (g : Π i, β i → R →* S) :
   ⇑(f.prod g) = f.prod (λ a b, (g a b)) := coe_finset_prod _ _
@@ -1894,6 +1896,7 @@ lemma dfinsupp_sum_add_hom_apply [add_zero_class R] [add_comm_monoid S] [Π i, a
   (sum_add_hom g f) r = sum_add_hom (λ i, (eval r).comp (g i)) f :=
 map_dfinsupp_sum_add_hom (eval r) f g
 
+@[norm_cast]
 lemma coe_dfinsupp_sum_add_hom [add_zero_class R] [add_comm_monoid S] [Π i, add_zero_class (β i)]
   (f : Π₀ i, β i) (g : Π i, β i →+ R →+ S) :
   ⇑(sum_add_hom g f) = sum_add_hom (λ i, (coe_fn R S).comp (g i)) f :=

@@ -269,7 +269,8 @@ As a workaround, we add a type annotation: `(f + g : V₁ → V₂)`
 library_note "addition on function coercions"
 
 -- see Note [addition on function coercions]
-@[simp] lemma coe_add (f g : normed_add_group_hom V₁ V₂) : ⇑(f + g) = (f + g : V₁ → V₂) := rfl
+@[simp, norm_cast] lemma coe_add (f g : normed_add_group_hom V₁ V₂) :
+  ⇑(f + g) = (f + g : V₁ → V₂) := rfl
 @[simp] lemma add_apply (f g : normed_add_group_hom V₁ V₂) (v : V₁) :
   (f + g : normed_add_group_hom V₁ V₂) v = f v + g v := rfl
 
@@ -296,7 +297,7 @@ iff.intro
   (λ hf, by rw [hf, op_norm_zero] )
 
 -- see Note [addition on function coercions]
-@[simp] lemma coe_zero : ⇑(0 : normed_add_group_hom V₁ V₂) = (0 : V₁ → V₂) := rfl
+@[simp, norm_cast] lemma coe_zero : ⇑(0 : normed_add_group_hom V₁ V₂) = (0 : V₁ → V₂) := rfl
 @[simp] lemma zero_apply (v : V₁) : (0 : normed_add_group_hom V₁ V₂) v = 0 := rfl
 
 variables {f g}

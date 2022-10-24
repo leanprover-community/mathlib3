@@ -82,11 +82,11 @@ section coe_lemmas
 
 variables (A B : GL n R)
 
-@[simp] lemma coe_mul : ↑(A * B) = (↑A : matrix n n R) ⬝ (↑B : matrix n n R) := rfl
+@[simp, norm_cast] lemma coe_mul : ↑(A * B) = (↑A : matrix n n R) ⬝ (↑B : matrix n n R) := rfl
 
-@[simp] lemma coe_one : ↑(1 : GL n R) = (1 : matrix n n R) := rfl
+@[simp, norm_cast] lemma coe_one : ↑(1 : GL n R) = (1 : matrix n n R) := rfl
 
-lemma coe_inv : ↑(A⁻¹) = (↑A : matrix n n R)⁻¹ :=
+@[norm_cast] lemma coe_inv : ↑(A⁻¹) = (↑A : matrix n n R)⁻¹ :=
 begin
   letI := A.invertible,
   exact inv_of_eq_nonsing_inv (↑A : matrix n n R),

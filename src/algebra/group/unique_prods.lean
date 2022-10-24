@@ -137,14 +137,14 @@ end unique_mul
 finite subsets of `A` have the `unique_add` property, with respect to some element of their
 sum `A + B`. -/
 class unique_sums (G) [has_add G] : Prop :=
-(adds : ∀ {A B : finset G} (hA : A.nonempty) (hB : B.nonempty),
+(unique_add_of_nonempty : ∀ {A B : finset G} (hA : A.nonempty) (hB : B.nonempty),
   ∃ (a0 ∈ A) (b0 ∈ B), unique_add A B a0 b0)
 
 /--  Let `G` be a Type with multiplication.  `unique_prods G` asserts that any two non-empty
 finite subsets of `G` have the `unique_mul` property, with respect to some element of their
 product `A * B`. -/
 class unique_prods (G) [has_mul G] : Prop :=
-(muls : ∀ {A B : finset G} (hA : A.nonempty) (hB : B.nonempty),
+(unique_mul_of_nonempty : ∀ {A B : finset G} (hA : A.nonempty) (hB : B.nonempty),
   ∃ (a0 ∈ A) (b0 ∈ B), unique_mul A B a0 b0 )
 
 attribute [to_additive] unique_prods
@@ -152,8 +152,8 @@ attribute [to_additive] unique_prods
 namespace multiplicative
 
 instance {M} [has_add M] [unique_sums M] : unique_prods (multiplicative M) :=
-{ muls := λ A B hA hB, let A' : finset M := A in have hA': A'.nonempty := hA, by
-    { obtain ⟨a0, hA0, b0, hB0, J⟩ := unique_sums.adds hA' hB,
+{ unique_mul_of_nonempty := λ A B hA hB, let A' : finset M := A in have hA': A'.nonempty := hA, by
+    { obtain ⟨a0, hA0, b0, hB0, J⟩ := unique_sums.unique_add_of_nonempty hA' hB,
       exact ⟨of_add a0, hA0, of_add b0, hB0, λ a b aA bB H, J aA bB H⟩ } }
 
 end multiplicative
@@ -161,13 +161,12 @@ end multiplicative
 namespace additive
 
 instance {M} [has_mul M] [unique_prods M] : unique_sums (additive M) :=
-{ adds := λ A B hA hB, let A' : finset M := A in have hA': A'.nonempty := hA, by
-    { obtain ⟨a0, hA0, b0, hB0, J⟩ := unique_prods.muls hA' hB,
+{ unique_add_of_nonempty := λ A B hA hB, let A' : finset M := A in have hA': A'.nonempty := hA, by
+    { obtain ⟨a0, hA0, b0, hB0, J⟩ := unique_prods.unique_mul_of_nonempty hA' hB,
       exact ⟨of_mul a0, hA0, of_mul b0, hB0, λ a b aA bB H, J aA bB H⟩ } }
 
 end additive
 
---  please, golf me and rename me!
 @[to_additive] lemma eq_and_eq_of_le_of_le_of_mul_eq {A} [has_mul A] [linear_order A]
   [covariant_class A A (*) (≤)] [covariant_class A A (function.swap (*)) (<)]
   [contravariant_class A A (*) (≤)]
@@ -189,5 +188,5 @@ is 'very monotone', then `A` also has `unique_sums`."]
 instance covariants.to_unique_prods {A} [has_mul A] [linear_order A]
   [covariant_class A A (*) (≤)] [covariant_class A A (function.swap (*)) (<)]
   [contravariant_class A A (*) (≤)] : unique_prods A :=
-{ muls := λ A B hA hB, ⟨_, A.min'_mem ‹_›, _, B.min'_mem ‹_›, λ a b ha hb ab,
+{ unique_mul_of_nonempty := λ A B hA hB, ⟨_, A.min'_mem ‹_›, _, B.min'_mem ‹_›, λ a b ha hb ab,
     eq_and_eq_of_le_of_le_of_mul_eq (finset.min'_le _ _ ‹_›) (finset.min'_le _ _ ‹_›) ab.le⟩ }

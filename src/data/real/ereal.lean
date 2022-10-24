@@ -525,7 +525,7 @@ end
 
 /-! ### Multiplication -/
 
-@[simp] lemma coe_one : ((1 : ℝ) : ereal) = 1 := rfl
+@[simp, norm_cast] lemma coe_one : ((1 : ℝ) : ereal) = 1 := rfl
 
 @[simp, norm_cast] lemma coe_mul (x y : ℝ) : ((x * y : ℝ) : ereal) = (x : ereal) * (y : ereal) :=
 eq.trans (with_bot.coe_eq_coe.mpr with_bot.coe_mul) with_top.coe_mul

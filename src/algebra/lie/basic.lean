@@ -661,7 +661,7 @@ instance : has_coe_to_fun (M ≃ₗ⁅R,L⁆ N) (λ _, M → N) := ⟨λ e, e.to
 
 lemma injective (e : M ≃ₗ⁅R,L⁆ N) : function.injective e := e.to_equiv.injective
 
-@[simp] lemma coe_mk (f : M →ₗ⁅R,L⁆ N) (inv_fun h₁ h₂) :
+@[simp, norm_cast] lemma coe_mk (f : M →ₗ⁅R,L⁆ N) (inv_fun h₁ h₂) :
   ((⟨f, inv_fun, h₁, h₂⟩ : M ≃ₗ⁅R,L⁆ N) : M → N) = f := rfl
 
 @[simp, norm_cast] lemma coe_to_lie_module_hom (e : M ≃ₗ⁅R,L⁆ N) :

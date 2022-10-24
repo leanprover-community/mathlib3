@@ -124,13 +124,13 @@ instance [has_zero β] : has_zero C₀(α, β) := ⟨⟨0, tendsto_const_nhds⟩
 
 instance [has_zero β] : inhabited C₀(α, β) := ⟨0⟩
 
-@[simp] lemma coe_zero [has_zero β] : ⇑(0 : C₀(α, β)) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero [has_zero β] : ⇑(0 : C₀(α, β)) = 0 := rfl
 lemma zero_apply [has_zero β] : (0 : C₀(α, β)) x = 0 := rfl
 
 instance [mul_zero_class β] [has_continuous_mul β] : has_mul C₀(α, β) :=
 ⟨λ f g, ⟨f * g, by simpa only [mul_zero] using (zero_at_infty f).mul (zero_at_infty g)⟩⟩
 
-@[simp] lemma coe_mul [mul_zero_class β] [has_continuous_mul β] (f g : C₀(α, β)) :
+@[simp, norm_cast] lemma coe_mul [mul_zero_class β] [has_continuous_mul β] (f g : C₀(α, β)) :
   ⇑(f * g) = f * g := rfl
 lemma mul_apply [mul_zero_class β] [has_continuous_mul β] (f g : C₀(α, β)) :
   (f * g) x = f x * g x := rfl

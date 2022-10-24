@@ -816,7 +816,7 @@ lemma singleton_subgraph_eq_induce {v : V} :
   G.singleton_subgraph v = (⊤ : G.subgraph).induce {v} :=
 by ext; simp [-set.bot_eq_empty, Prop.bot_eq_false] { contextual := tt }
 
-lemma subgraph_of_adj_eq_induce {v w : V} {hvw : G.adj v w} :
+lemma subgraph_of_adj_eq_induce {v w : V} (hvw : G.adj v w) :
   G.subgraph_of_adj hvw = (⊤ : G.subgraph).induce {v, w} :=
 begin
   ext,

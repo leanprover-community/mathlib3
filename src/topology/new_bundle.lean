@@ -4,148 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.bundle
-import topology.algebra.order.basic
 import topology.local_homeomorph
 
 /-!
 # Fiber bundles
 
-A topological fiber bundle with fiber `F` over a base `B` is a space projecting on `B` for which the
-fibers are all homeomorphic to `F`, such that the local situation around each point is a direct
-product. We define a predicate `is_topological_fiber_bundle F p` saying that `p : Z → B` is a
-topological fiber bundle with fiber `F`.
+Given a "base" topological space `B` and a family `E : B → Type*` for which `bundle.total_space E`
+(a type synonym for `Σ b, E b`) carries a topological space structure, a topological fiber bundle
+structure for `total_space E` with fiber `F` is a system of local homeomorphisms to `B × F`, each
+respecting the fiber structure ("local trivializations" of `total_space E`). We define an object
+`fiber_bundle F p` carrying the data of these local trivializations.
 
-It is in general nontrivial to construct a fiber bundle. A way is to start from the knowledge of
-how changes of local trivializations act on the fiber. From this, one can construct the total space
-of the bundle and its topology by a suitable gluing construction. The main content of this file is
-an implementation of this construction: starting from an object of type
-`topological_fiber_bundle_core` registering the trivialization changes, one gets the corresponding
-fiber bundle and projection.
-
-Similarly we implement the object `topological_fiber_prebundle` which allows to define a topological
-fiber bundle from trivializations given as local equivalences with minimum additional properties.
-
-## Main definitions
-
-### Basic definitions
-
-* `trivialization F p` : structure extending local homeomorphisms, defining a local
-                  trivialization of a topological space `Z` with projection `p` and fiber `F`.
-
-* `is_topological_fiber_bundle F p` : Prop saying that the map `p` between topological spaces is a
-                  fiber bundle with fiber `F`.
-
-* `is_trivial_topological_fiber_bundle F p` : Prop saying that the map `p : Z → B` between
-  topological spaces is a trivial topological fiber bundle, i.e., there exists a homeomorphism
-  `h : Z ≃ₜ B × F` such that `proj x = (h x).1`.
-
-### Operations on bundles
-
-We provide the following operations on `trivialization`s.
-
-* `trivialization.comap`: given a local trivialization `e` of a fiber bundle `p : Z → B`, a
-  continuous map `f : B' → B` and a point `b' : B'` such that `f b' ∈ e.base_set`,
-  `e.comap f hf b' hb'` is a trivialization of the pullback bundle. The pullback bundle
-  (a.k.a., the induced bundle) has total space `{(x, y) : B' × Z | f x = p y}`, and is given by
-  `λ ⟨(x, y), h⟩, x`.
-
-* `is_topological_fiber_bundle.comap`: if `p : Z → B` is a topological fiber bundle, then its
-  pullback along a continuous map `f : B' → B` is a topological fiber bundle as well.
-
-* `trivialization.comp_homeomorph`: given a local trivialization `e` of a fiber bundle
-  `p : Z → B` and a homeomorphism `h : Z' ≃ₜ Z`, returns a local trivialization of the fiber bundle
-  `p ∘ h`.
-
-* `is_topological_fiber_bundle.comp_homeomorph`: if `p : Z → B` is a topological fiber bundle
-  and `h : Z' ≃ₜ Z` is a homeomorphism, then `p ∘ h : Z' → B` is a topological fiber bundle with
-  the same fiber.
-
-### Construction of a bundle from trivializations
-
-* `bundle.total_space E` is a type synonym for `Σ (x : B), E x`, that we can endow with a suitable
-  topology.
-* `topological_fiber_bundle_core ι B F` : structure registering how changes of coordinates act
-  on the fiber `F` above open subsets of `B`, where local trivializations are indexed by `ι`.
-
-Let `Z : topological_fiber_bundle_core ι B F`. Then we define
-
-* `Z.fiber x`     : the fiber above `x`, homeomorphic to `F` (and defeq to `F` as a type).
-* `Z.total_space` : the total space of `Z`, defined as a `Type` as `Σ (b : B), F`, but with a
-  twisted topology coming from the fiber bundle structure. It is (reducibly) the same as
-  `bundle.total_space Z.fiber`.
-* `Z.proj`        : projection from `Z.total_space` to `B`. It is continuous.
-* `Z.local_triv i`: for `i : ι`, bundle trivialization above the set `Z.base_set i`, which is an
-                    open set in `B`.
-
-* `pretrivialization F proj` : trivialization as a local equivalence, mainly used when the
-                                      topology on the total space has not yet been defined.
-* `topological_fiber_prebundle F proj` : structure registering a cover of prebundle trivializations
-  and requiring that the relative transition maps are local homeomorphisms.
-* `topological_fiber_prebundle.total_space_topology a` : natural topology of the total space, making
-  the prebundle into a bundle.
-
-## Implementation notes
-
-A topological fiber bundle with fiber `F` over a base `B` is a family of spaces isomorphic to `F`,
-indexed by `B`, which is locally trivial in the following sense: there is a covering of `B` by open
-sets such that, on each such open set `s`, the bundle is isomorphic to `s × F`.
-
-To construct a fiber bundle formally, the main data is what happens when one changes trivializations
-from `s × F` to `s' × F` on `s ∩ s'`: one should get a family of homeomorphisms of `F`, depending
-continuously on the base point, satisfying basic compatibility conditions (cocycle property).
-Useful classes of bundles can then be specified by requiring that these homeomorphisms of `F`
-belong to some subgroup, preserving some structure (the "structure group of the bundle"): then
-these structures are inherited by the fibers of the bundle.
-
-Given such trivialization change data (encoded below in a structure called
-`topological_fiber_bundle_core`), one can construct the fiber bundle. The intrinsic canonical
-mathematical construction is the following.
-The fiber above `x` is the disjoint union of `F` over all trivializations, modulo the gluing
-identifications: one gets a fiber which is isomorphic to `F`, but non-canonically
-(each choice of one of the trivializations around `x` gives such an isomorphism). Given a
-trivialization over a set `s`, one gets an isomorphism between `s × F` and `proj^{-1} s`, by using
-the identification corresponding to this trivialization. One chooses the topology on the bundle that
-makes all of these into homeomorphisms.
-
-For the practical implementation, it turns out to be more convenient to avoid completely the
-gluing and quotienting construction above, and to declare above each `x` that the fiber is `F`,
-but thinking that it corresponds to the `F` coming from the choice of one trivialization around `x`.
-This has several practical advantages:
-* without any work, one gets a topological space structure on the fiber. And if `F` has more
-structure it is inherited for free by the fiber.
-* In the case of the tangent bundle of manifolds, this implies that on vector spaces the derivative
-(from `F` to `F`) and the manifold derivative (from `tangent_space I x` to `tangent_space I' (f x)`)
-are equal.
-
-A drawback is that some silly constructions will typecheck: in the case of the tangent bundle, one
-can add two vectors in different tangent spaces (as they both are elements of `F` from the point of
-view of Lean). To solve this, one could mark the tangent space as irreducible, but then one would
-lose the identification of the tangent space to `F` with `F`. There is however a big advantage of
-this situation: even if Lean can not check that two basepoints are defeq, it will accept the fact
-that the tangent spaces are the same. For instance, if two maps `f` and `g` are locally inverse to
-each other, one can express that the composition of their derivatives is the identity of
-`tangent_space I x`. One could fear issues as this composition goes from `tangent_space I x` to
-`tangent_space I (g (f x))` (which should be the same, but should not be obvious to Lean
-as it does not know that `g (f x) = x`). As these types are the same to Lean (equal to `F`), there
-are in fact no dependent type difficulties here!
-
-For this construction of a fiber bundle from a `topological_fiber_bundle_core`, we should thus
-choose for each `x` one specific trivialization around it. We include this choice in the definition
-of the `topological_fiber_bundle_core`, as it makes some constructions more
-functorial and it is a nice way to say that the trivializations cover the whole space `B`.
-
-With this definition, the type of the fiber bundle space constructed from the core data is just
-`Σ (b : B), F `, but the topology is not the product one, in general.
-
-We also take the indexing type (indexing all the trivializations) as a parameter to the fiber bundle
-core: it could always be taken as a subtype of all the maps from open subsets of `B` to continuous
-maps of `F`, but in practice it will sometimes be something else. For instance, on a manifold, one
-will use the set of charts as a good parameterization for the trivializations of the tangent bundle.
-Or for the pullback of a `topological_fiber_bundle_core`, the indexing type will be the same as
-for the initial bundle.
-
-## Tags
-Fiber bundle, topological bundle, local trivialization, structure group
 -/
 
 variables {ι : Type*} {B : Type*} {F : Type*}
@@ -155,7 +24,7 @@ open_locale topological_space classical
 
 noncomputable theory
 
-/-! ### General definition of topological fiber bundles -/
+/-! ### Pretrivializations -/
 
 section general
 
@@ -265,6 +134,8 @@ lemma symm_trans_target_eq (e e' : pretrivialization F proj) :
 by rw [← local_equiv.symm_source, symm_trans_symm, symm_trans_source_eq, inter_comm]
 
 end pretrivialization
+
+/-! ### Trivializations -/
 
 variable [topological_space Z]
 
@@ -454,6 +325,8 @@ end
 
 end trivialization
 
+/-! ### Pretrivializations and trivializations for a sigma-type -/
+
 variables (E : B → Type*)
 
 section zero
@@ -547,6 +420,8 @@ end trivialization
 
 end zero
 
+/-! ### Fiber bundles -/
+
 variables [topological_space (total_space E)] [∀ b, topological_space (E b)]
 
 class fiber_bundle :=
@@ -634,6 +509,7 @@ instance [t₁ : topological_space B] [t₂ : topological_space F] :
   topological_space (total_space (trivial B F)) :=
 induced total_space.proj t₁ ⊓ induced (trivial.proj_snd B F) t₂
 
+/-! ### The trivial fiber bundle -/
 namespace trivial
 
 variables (B F) [topological_space B] [topological_space F]
@@ -688,6 +564,8 @@ mem_singleton_iff.mp he
 end trivial
 
 end bundle
+
+/-! ### The fibrewise product of two fibre bundles -/
 
 open trivialization
 namespace bundle

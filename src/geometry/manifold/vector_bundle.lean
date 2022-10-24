@@ -5,6 +5,8 @@ open bundle topological_vector_bundle set
 open_locale manifold
 
 section /-! ## move these -/
+#check charted_space.comp
+#check structure_groupoid.has_groupoid.comp
 
 lemma topological_vector_bundle.trivialization.symm_coord_change
   {𝕜 : Type*} {B : Type*} {F : Type*} {E : B → Type*}
@@ -50,14 +52,18 @@ end
 
 /-! ## main constructions -/
 
-variables {𝕜 B F : Type*} {E : B → Type*}
+variables {𝕜 B B' F M : Type*} {E : B → Type*}
 variables [nontrivially_normed_field 𝕜] [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)]
-  [normed_add_comm_group F] [normed_space 𝕜 F] [topological_space B]
+  [normed_add_comm_group F] [normed_space 𝕜 F]
   [topological_space (total_space E)] [∀ x, topological_space (E x)]
 
   {EB : Type*} [normed_add_comm_group EB] [normed_space 𝕜 EB]
   {HB : Type*} [topological_space HB] (IB : model_with_corners 𝕜 EB HB)
-  [charted_space HB B] [smooth_manifold_with_corners IB B]
+  [topological_space B] [charted_space HB B] [smooth_manifold_with_corners IB B]
+  [topological_space B'] [charted_space HB B'] [smooth_manifold_with_corners IB B']
+  {EM : Type*} [normed_add_comm_group EM] [normed_space 𝕜 EM]
+  {HM : Type*} [topological_space HM] (IM : model_with_corners 𝕜 EM HM)
+  [topological_space M] [charted_space HM M] [smooth_manifold_with_corners IM M]
 
 -- dangerous instance
 instance is_topological_fiber_bundle.charted_space [topological_vector_bundle 𝕜 F E] :
@@ -122,6 +128,7 @@ begin
   sorry,
 end
 
+variables (F B)
 /-- For `B` a manifold and `F` a normed space, the groupoid on `B × F` consisting of local
 homeomorphisms which are bi-smooth and fibrewise linear. -/
 def smooth_fiberwise_linear : structure_groupoid (B × F) :=
@@ -172,7 +179,7 @@ def smooth_fiberwise_linear : structure_groupoid (B × F) :=
     refine ⟨U, hU, hφ, h2φ, setoid.trans hee' heφ⟩,
   end }
 
-variables (IB F E)
+variables (IB F E) {B}
 
 /-- Class stating that a topological vector bundle is smooth, in the sense of having smooth
 transition functions. -/
@@ -185,7 +192,7 @@ class smooth_vector_bundle [topological_vector_bundle 𝕜 F E] : Prop :=
 between two trivializations `e`, `e'` for `E`, considered as charts to `B × F`, is smooth and
 fibrewise linear. -/
 instance [topological_vector_bundle 𝕜 F E] [smooth_vector_bundle F E IB] :
-  has_groupoid (total_space E) (smooth_fiberwise_linear IB : structure_groupoid (B × F)) :=
+  has_groupoid (total_space E) (smooth_fiberwise_linear B F IB) :=
 { compatible := begin
     rintros _ _ ⟨e, he, rfl⟩ ⟨e', he', rfl⟩,
     dsimp,
@@ -211,3 +218,28 @@ instance [topological_vector_bundle 𝕜 F E] [smooth_vector_bundle F E IB] :
         prod_mk_mem_set_prod_eq, mem_univ, and_true] using hb,
       simp [groupoid_base.local_homeomorph, e.apply_symm_apply_eq_coord_change e' hb'] }
   end }
+
+-- #print instances charted_space
+-- #check model_prod
+-- local attribute [instance] charted_space_self
+section
+local attribute [reducible] model_prod
+
+instance is_topological_fiber_bundle.charted_space' [topological_vector_bundle 𝕜 F E] :
+  charted_space (model_prod HB F) (total_space E) :=
+charted_space.comp _ (model_prod B F) _
+end
+
+lemma lift_prop_on_cont_diff_groupoid_iff (f : local_homeomorph B B') :
+  lift_prop_on (cont_diff_groupoid ⊤ IB).is_local_structomorph_within_at f f.source
+  ↔ smooth_on IB IB f f.source ∧ smooth_on IB IB f.symm f.target :=
+sorry
+
+instance [topological_vector_bundle 𝕜 F E] [smooth_vector_bundle F E IB] :
+  smooth_manifold_with_corners (IB.prod 𝓘(𝕜, F)) (total_space E) :=
+begin
+  refine { .. structure_groupoid.has_groupoid.comp (smooth_fiberwise_linear B F IB) _ },
+  intros e he,
+  rw [lift_prop_on_cont_diff_groupoid_iff],
+  sorry
+end

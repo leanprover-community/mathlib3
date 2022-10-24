@@ -104,7 +104,7 @@ end
 The closure of a singleton {a} in the lower topology is the left-closed right-infinite interval
 [a,∞)
 -/
-lemma closure_singleton (a : α) : closure {a} = Ici a :=
+lemma lower_topology.closure_singleton (a : α) : closure {a} = Ici a :=
 begin
   rw subset_antisymm_iff,
   split,
@@ -155,7 +155,7 @@ def lower_basis (α : Type u) [preorder α] :=
 
 lemma lower_basis_is_basis : is_topological_basis (lower_basis α) :=
 begin
-  convert is_topological_basis_of_subbasis lower_topology,
+  convert is_topological_basis_of_subbasis lower_topology_def,
   rw image,
   ext,
   rw mem_set_of_eq,
@@ -252,7 +252,8 @@ instance lower_topology.to_t0_space : t0_space α :=
 begin
   rw t0_space_iff_inseparable,
   intros x y h,
-  rw [inseparable_iff_closure_eq, singleton_closure, singleton_closure, subset_antisymm_iff] at h,
+  rw [inseparable_iff_closure_eq, lower_topology.closure_singleton,
+    lower_topology.closure_singleton, subset_antisymm_iff] at h,
   rw le_antisymm_iff,
   split,
   { rw ← Ici_subset_Ici, apply h.2, },

@@ -389,7 +389,7 @@ lemma _root_.filter.eventually.trans_is_O {f : α → E} {g : α → F'} {k : α
   (hfg : ∀ᶠ x in l, ∥f x∥ ≤ ∥g x∥) (hgk : g =O[l] k) : f =O[l] k :=
 (is_O.of_bound' hfg).trans hgk
 
-lemma _root_.filter.eventually.is_O {f : E → F} {g : E → ℝ} {l : filter E}
+lemma _root_.filter.eventually.is_O {f : α → E} {g : α → ℝ} {l : filter α}
   (hfg : ∀ᶠ x in l, ∥f x∥ ≤ g x) : f =O[l] g :=
 is_O.of_bound' $ hfg.mono $ λ x hx, hx.trans $ real.le_norm_self _
 
@@ -1558,9 +1558,13 @@ theorem is_o_norm_pow_id {n : ℕ} (h : 1 < n) :
   (λ x : E', ∥x∥^n) =o[𝓝 0] (λ x, x) :=
 by simpa only [pow_one, is_o_norm_right] using @is_o_norm_pow_norm_pow E' _ _ _ h
 
+lemma is_O.eq_zero_of_norm_pow_within {f : E'' → F''} {s : set E''} {x₀ : E''} {n : ℕ}
+  (h : f =O[𝓝[s] x₀] λ x, ∥x - x₀∥ ^ n) (hx₀ : x₀ ∈ s) (hn : 0 < n) : f x₀ = 0 :=
+mem_of_mem_nhds_within hx₀ h.eq_zero_imp $ by simp_rw [sub_self, norm_zero, zero_pow hn]
+
 lemma is_O.eq_zero_of_norm_pow {f : E'' → F''} {x₀ : E''} {n : ℕ}
   (h : f =O[𝓝 x₀] λ x, ∥x - x₀∥ ^ n) (hn : 0 < n) : f x₀ = 0 :=
-mem_of_mem_nhds h.eq_zero_imp $ by simp_rw [sub_self, norm_zero, zero_pow hn]
+by { rw [← nhds_within_univ] at h, exact h.eq_zero_of_norm_pow_within (mem_univ _) hn }
 
 lemma is_o_pow_sub_pow_sub (x₀ : E') {n m : ℕ} (h : n < m) :
     (λ x, ∥x - x₀∥ ^ m) =o[𝓝 x₀] λ x, ∥x - x₀∥^n :=
@@ -1636,7 +1640,7 @@ theorem is_O_with_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed
   {f : α → Π i, E' i} {C : ℝ} (hC : 0 ≤ C) :
   is_O_with C l f g' ↔ ∀ i, is_O_with C l (λ x, f x i) g' :=
 have ∀ x, 0 ≤ C * ∥g' x∥, from λ x, mul_nonneg hC (norm_nonneg _),
-by simp only [is_O_with_iff, pi_norm_le_iff (this _), eventually_all]
+by simp only [is_O_with_iff, pi_norm_le_iff_of_nonneg (this _), eventually_all]
 
 @[simp] theorem is_O_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_add_comm_group (E' i)]
   {f : α → Π i, E' i} :

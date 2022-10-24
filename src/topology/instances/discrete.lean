@@ -41,12 +41,10 @@ begin
     (Union_of_singleton α),
 end
 
-@[priority 100]
-instance discrete_topology.order_topology_of_pred_succ' [h : discrete_topology α] [partial_order α]
+lemma bot_topological_space_eq_generate_from_of_pred_succ_order {α} [partial_order α]
   [pred_order α] [succ_order α] [no_min_order α] [no_max_order α] :
-  order_topology α :=
-⟨begin
-  rw h.eq_bot,
+  (⊥ : topological_space α) = generate_from {s | ∃ a, s = Ioi a ∨ s = Iio a} :=
+begin
   refine (eq_bot_of_singletons_open (λ a, _)).symm,
   have h_singleton_eq_inter : {a} = Iio (succ a) ∩ Ioi (pred a),
   { suffices h_singleton_eq_inter' : {a} = Iic a ∩ Ici a,
@@ -56,14 +54,29 @@ instance discrete_topology.order_topology_of_pred_succ' [h : discrete_topology �
   apply is_open.inter,
   { exact is_open_generate_from_of_mem ⟨succ a, or.inr rfl⟩, },
   { exact is_open_generate_from_of_mem ⟨pred a, or.inl rfl⟩, },
-end⟩
+end
+
+lemma discrete_topology_iff_order_topology_of_pred_succ' [partial_order α]
+  [pred_order α] [succ_order α] [no_min_order α] [no_max_order α] :
+  discrete_topology α ↔ order_topology α :=
+begin
+  refine ⟨λ h, ⟨_⟩, λ h, ⟨_⟩⟩,
+  { rw h.eq_bot,
+    exact bot_topological_space_eq_generate_from_of_pred_succ_order, },
+  { rw h.topology_eq_generate_intervals,
+    exact bot_topological_space_eq_generate_from_of_pred_succ_order.symm, },
+end
 
 @[priority 100]
-instance discrete_topology.order_topology_of_pred_succ [h : discrete_topology α] [linear_order α]
-  [pred_order α] [succ_order α] :
+instance discrete_topology.order_topology_of_pred_succ' [h : discrete_topology α] [partial_order α]
+  [pred_order α] [succ_order α] [no_min_order α] [no_max_order α] :
   order_topology α :=
-⟨begin
-  rw h.eq_bot,
+discrete_topology_iff_order_topology_of_pred_succ'.1 h
+
+lemma linear_order.bot_topological_space_eq_generate_from
+  {α} [linear_order α] [pred_order α] [succ_order α] :
+  (⊥ : topological_space α) = generate_from {s | ∃ a, s = Ioi a ∨ s = Iio a} :=
+begin
   refine (eq_bot_of_singletons_open (λ a, _)).symm,
   have h_singleton_eq_inter : {a} = Iic a ∩ Ici a,
     by rw [inter_comm, Ici_inter_Iic, Icc_self a],
@@ -88,5 +101,22 @@ instance discrete_topology.order_topology_of_pred_succ [h : discrete_topology α
       rw h_singleton_eq_inter,
       apply is_open.inter,
       { exact is_open_generate_from_of_mem ⟨succ a, or.inr rfl⟩ },
-      { exact is_open_generate_from_of_mem ⟨pred a, or.inl rfl⟩ } } }
-end⟩
+      { exact is_open_generate_from_of_mem ⟨pred a, or.inl rfl⟩ } } },
+end
+
+lemma discrete_topology_iff_order_topology_of_pred_succ
+  [linear_order α] [pred_order α] [succ_order α] :
+  discrete_topology α ↔ order_topology α :=
+begin
+  refine ⟨λ h, ⟨_⟩, λ h, ⟨_⟩⟩,
+  { rw h.eq_bot,
+    exact linear_order.bot_topological_space_eq_generate_from, },
+  { rw h.topology_eq_generate_intervals,
+    exact linear_order.bot_topological_space_eq_generate_from.symm, },
+end
+
+@[priority 100]
+instance discrete_topology.order_topology_of_pred_succ [h : discrete_topology α] [linear_order α]
+  [pred_order α] [succ_order α] :
+  order_topology α :=
+discrete_topology_iff_order_topology_of_pred_succ.mp h

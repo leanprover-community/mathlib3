@@ -141,10 +141,18 @@ begin
   { exact or.inr (hp.locally_ne_zero h) }
 end
 
+lemma eventually_eq_or_eventually_ne (hf : analytic_at 𝕜 f z₀) (hg : analytic_at 𝕜 g z₀) :
+  (∀ᶠ z in 𝓝 z₀, f z = g z) ∨ (∀ᶠ z in 𝓝[≠] z₀, f z ≠ g z) :=
+by simpa [sub_eq_zero] using (hf.sub hg).eventually_eq_zero_or_eventually_ne_zero
+
 lemma frequently_zero_iff_eventually_zero {f : 𝕜 → E} {w : 𝕜} (hf : analytic_at 𝕜 f w) :
   (∃ᶠ z in 𝓝[≠] w, f z = 0) ↔ (∀ᶠ z in 𝓝 w, f z = 0) :=
 ⟨hf.eventually_eq_zero_or_eventually_ne_zero.resolve_right,
   λ h, (h.filter_mono nhds_within_le_nhds).frequently⟩
+
+lemma frequently_eq_iff_eventually_eq (hf : analytic_at 𝕜 f z₀) (hg : analytic_at 𝕜 g z₀) :
+  (∃ᶠ z in 𝓝[≠] z₀, f z = g z) ↔ (∀ᶠ z in 𝓝 z₀, f z = g z) :=
+by simpa [sub_eq_zero] using frequently_zero_iff_eventually_zero (hf.sub hg)
 
 end analytic_at
 

@@ -76,7 +76,7 @@ lemma not_mem_iff (p : T.complete_type α) (φ : L[[α]].sentence) :
   φ.not ∈ p ↔ ¬ φ ∈ p :=
 ⟨λ hf ht, begin
   have h : ¬ is_satisfiable ({φ, φ.not} : L[[α]].Theory),
-  { rintros ⟨⟨_, _, h, _⟩⟩,
+  { rintro ⟨@⟨_, _, h, _⟩⟩,
     simp only [model_iff, mem_insert_iff, mem_singleton_iff, forall_eq_or_imp,
       forall_eq] at h,
     exact h.2 h.1 },

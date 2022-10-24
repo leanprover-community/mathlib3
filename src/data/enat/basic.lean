@@ -5,6 +5,7 @@ Authors: Yury Kudryashov
 -/
 import data.nat.lattice
 import data.nat.succ_pred
+import algebra.order.sub.with_top
 
 /-!
 # Definition and basic properties of extended natural numbers
@@ -43,6 +44,15 @@ def to_nat : monoid_with_zero_hom ℕ∞ ℕ :=
   map_one' := rfl,
   map_zero' := rfl,
   map_mul' := with_top.untop'_zero_mul }
+
+@[simp] lemma to_nat_coe (n : ℕ) : to_nat n = n := rfl
+@[simp] lemma to_nat_top : to_nat ⊤ = 0 := rfl
+
+@[simp] lemma coe_to_nat_eq_self : ↑n.to_nat = n ↔ n ≠ ⊤ :=
+with_top.rec_top_coe (by simp) (by simp) n
+
+lemma coe_to_nat_le_self (n : ℕ∞) : ↑n.to_nat ≤ n :=
+with_top.rec_top_coe le_top (λ k, le_rfl) n
 
 @[simp] lemma succ_def (m : ℕ∞) : order.succ m = m + 1 := by cases m; refl
 

@@ -482,13 +482,13 @@ lemma exists_lt_apply_of_lt_op_nnnorm {𝕜 𝕜₂ E F : Type*} [normed_add_com
   (f : E →SL[σ₁₂] F) {r : ℝ≥0} (hr : r < ∥f∥₊) : ∃ x : E, ∥x∥₊ < 1 ∧ r < ∥f x∥₊ :=
 begin
   obtain ⟨y, hy⟩ := f.exists_mul_lt_apply_of_lt_op_nnnorm hr,
-  have hy'' : ∥y∥₊ ≠ 0 := nnnorm_ne_zero_iff.2
+  have hy' : ∥y∥₊ ≠ 0 := nnnorm_ne_zero_iff.2
     (λ heq, by simpa only [heq, nnnorm_zero, map_zero, not_lt_zero'] using hy),
   have hfy : ∥f y∥₊ ≠ 0 := (zero_le'.trans_lt hy).ne',
   rw [←inv_inv (∥f y∥₊), nnreal.lt_inv_iff_mul_lt (inv_ne_zero hfy), mul_assoc, mul_comm (∥y∥₊),
-    ←mul_assoc, ←nnreal.lt_inv_iff_mul_lt hy''] at hy,
+    ←mul_assoc, ←nnreal.lt_inv_iff_mul_lt hy'] at hy,
   obtain ⟨k, hk₁, hk₂⟩ := normed_field.exists_lt_nnnorm_lt 𝕜 hy,
-  refine ⟨k • y, (nnnorm_smul k y).symm ▸ (nnreal.lt_inv_iff_mul_lt hy'').1 hk₂, _⟩,
+  refine ⟨k • y, (nnnorm_smul k y).symm ▸ (nnreal.lt_inv_iff_mul_lt hy').1 hk₂, _⟩,
   have : ∥σ₁₂ k∥₊ = ∥k∥₊ := subtype.ext ring_hom_isometric.is_iso,
   rwa [map_smulₛₗ f, nnnorm_smul, ←nnreal.div_lt_iff hfy, div_eq_mul_inv, this],
 end

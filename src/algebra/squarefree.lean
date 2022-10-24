@@ -77,10 +77,24 @@ lemma squarefree.of_mul_left [comm_monoid R] {m n : R} (hmn : squarefree (m * n)
 lemma squarefree.of_mul_right [comm_monoid R] {m n : R} (hmn : squarefree (m * n)) : squarefree n :=
 (λ p hp, hmn p (dvd_mul_of_dvd_right hp m))
 
-lemma squarefree_of_dvd_of_squarefree [comm_monoid R]
+lemma squarefree.squarefree_of_dvd [comm_monoid R]
   {x y : R} (hdvd : x ∣ y) (hsq : squarefree y) :
   squarefree x :=
 λ a h, hsq _ (h.trans hdvd)
+
+section squarefree_gcd_of_squarefree
+
+variables {α : Type*} [cancel_comm_monoid_with_zero α] [gcd_monoid α]
+
+lemma squarefree.gcd_right (a : α) {b : α} (hb : squarefree b) :
+  squarefree (gcd a b) :=
+hb.squarefree_of_dvd (gcd_dvd_right _ _)
+
+lemma squarefree.gcd_left {a : α} (b : α) (ha : squarefree a) :
+  squarefree (gcd a b) :=
+ha.squarefree_of_dvd (gcd_dvd_left _ _)
+
+end squarefree_gcd_of_squarefree
 
 namespace multiplicity
 

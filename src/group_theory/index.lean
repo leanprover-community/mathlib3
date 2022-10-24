@@ -132,6 +132,40 @@ begin
   exact relindex_mul_relindex (H ⊓ L) (K ⊓ L) L (inf_le_inf_right L hHK) inf_le_right,
 end
 
+/-- A subgroup has index two if and only if there exists `a` such that for all `b`, exactly one
+of `b * a` and `b` belong to `H`. -/
+@[to_additive "/-- An additive subgroup has index two if and only if there exists `a` such that for
+all `b`, exactly one of `b + a` and `b` belong to `H`. -/"]
+lemma index_eq_two_iff : H.index = 2 ↔ ∃ a, ∀ b, xor (b * a ∈ H) (b ∈ H) :=
+begin
+  simp only [index, nat.card_eq_two_iff' ((1 : G) : G ⧸ H), exists_unique, inv_mem_iff,
+    quotient_group.exists_coe, quotient_group.forall_coe, ne.def, quotient_group.eq, mul_one,
+    xor_iff_iff_not],
+  refine exists_congr (λ a, ⟨λ ha b, ⟨λ hba hb, _, λ hb, _⟩, λ ha, ⟨_, λ b hb, _⟩⟩),
+  { exact ha.1 ((mul_mem_cancel_left hb).1 hba) },
+  { exact inv_inv b ▸ ha.2 _ (mt inv_mem_iff.1 hb) },
+  { rw [← inv_mem_iff, ← ha, inv_mul_self], exact one_mem _ },
+  { rwa [ha, inv_mem_iff] }
+end
+
+@[to_additive] lemma mul_mem_iff_of_index_two (h : H.index = 2) {a b : G} :
+  a * b ∈ H ↔ (a ∈ H ↔ b ∈ H) :=
+begin
+  by_cases ha : a ∈ H, { simp only [ha, true_iff, mul_mem_cancel_left ha] },
+  by_cases hb : b ∈ H, { simp only [hb, iff_true, mul_mem_cancel_right hb] },
+  simp only [ha, hb, iff_self, iff_true],
+  rcases index_eq_two_iff.1 h with ⟨c, hc⟩,
+  refine (hc _).or.resolve_left _,
+  rwa [mul_assoc, mul_mem_cancel_right ((hc _).or.resolve_right hb)]
+end
+
+@[to_additive] lemma mul_self_mem_of_index_two (h : H.index = 2) (a : G) : a * a ∈ H :=
+by rw [mul_mem_iff_of_index_two h]
+
+@[to_additive two_smul_mem_of_index_two]
+lemma sq_mem_of_index_two (h : H.index = 2) (a : G) : a ^ 2 ∈ H :=
+(pow_two a).symm ▸ mul_self_mem_of_index_two h a
+
 variables (H K)
 
 @[simp, to_additive] lemma index_top : (⊤ : subgroup G).index = 1 :=

@@ -104,12 +104,20 @@ def comm : Prop :=
 oper = lift₂ pr₂ pr₁ ≫ oper
 
 @[simp]
-def add_zero (zero : operation₀ A) : Prop :=
+def zero_add (zero : operation₀ A) : Prop :=
 lift₂ (to_functor_const_punit ≫ zero) (𝟙 _) ≫ oper = 𝟙 _
 
 @[simp]
 def add_left_neg (zero : operation₀ A) (neg : operation₁ A) : Prop :=
 lift₂ neg (𝟙 _) ≫ oper = to_functor_const_punit ≫ zero
+
+@[simp]
+def right_distrib (mul : operation₂ A) (add : operation₂ A) : Prop :=
+  lift₂ (pr₁₂_₃ ≫ add) pr₃_₃ ≫ mul = lift₂ (pr₁₃_₃ ≫ mul) (pr₂₃_₃ ≫ mul) ≫ add
+
+@[simp]
+def left_distrib (mul : operation₂ A) (add : operation₂ A) : Prop :=
+  lift₂ pr₁_₃ (pr₂₃_₃ ≫ add) ≫ mul = lift₂ (pr₁₂_₃ ≫ mul) (pr₁₃_₃ ≫ mul) ≫ add
 
 end operation₂
 

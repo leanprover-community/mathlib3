@@ -48,6 +48,18 @@ def Ring_add : operation₂ Ring :=
 def Ring_mul : operation₂ Ring :=
 { app := λ R x, x.1 * x.2, }
 
+lemma Ring_right_distrib : Ring_mul.right_distrib Ring_add :=
+by { ext R x, apply add_mul, }
+
+lemma Ring_left_distrib : Ring_mul.left_distrib Ring_add :=
+by { ext R x, apply mul_add, }
+
+lemma Ring_mul_assoc : Ring_mul.assoc :=
+by { ext R x, apply mul_assoc, }
+
+lemma Ring_one_mul : Ring_mul.zero_add Ring_one  :=
+by { ext R x, apply one_mul, }
+
 end operations
 
 namespace internal

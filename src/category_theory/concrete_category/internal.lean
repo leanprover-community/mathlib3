@@ -236,12 +236,12 @@ begin
   refl,
 end
 
-lemma to_internal_yoneda_operation₂_add_zero (zero : operation₀ A)
-  (zero_oper : oper.add_zero zero) :
+lemma to_internal_yoneda_operation₂_zero_add (zero : operation₀ A)
+  (oper_zero : oper.zero_add zero) :
   lift₂ (to_functor_const_punit ≫ zero.to_internal_yoneda_operation₀ R) (𝟙 _) ≫
     oper.to_internal_yoneda_operation₂ R = 𝟙 _ :=
 begin
-  convert _root_.congr_arg (λ (m : operation₁ A), m.to_internal_yoneda_operation₁ R) zero_oper,
+  convert _root_.congr_arg (λ (m : operation₁ A), m.to_internal_yoneda_operation₁ R) oper_zero,
   { ext X x,
     dsimp at x ⊢,
     simp only [functor_to_types.inv_hom_id_app_apply],
@@ -317,8 +317,33 @@ begin
   convert _root_.congr_arg (λ (m : operation₃ A), m.to_internal_yoneda_operation₃ R) oper_assoc;
   { ext X x,
     dsimp,
-    simp only [functor_to_types.inv_hom_id_app_apply],
-    congr, },
+    simpa only [functor_to_types.inv_hom_id_app_apply], },
+end
+
+lemma to_internal_yoneda_operation₂_right_distrib (mul : operation₂ A) (add : operation₂ A)
+  (R : internal A C) (h : mul.right_distrib add) :
+  internal_yoneda_operation₂_gen.right_distrib (mul.to_internal_yoneda_operation₂ R)
+    (add.to_internal_yoneda_operation₂ R) (add.to_internal_yoneda_operation₂ R) :=
+begin
+  have h' := _root_.congr_arg (λ (m : operation₃ A), m.to_internal_yoneda_operation₃ R) h,
+  dsimp at h ⊢,
+  convert h';
+  { ext X x,
+    dsimp,
+    simpa, },
+end
+
+lemma to_internal_yoneda_operation₂_left_distrib (mul : operation₂ A) (add : operation₂ A)
+  (R : internal A C) (h : mul.left_distrib add) :
+  internal_yoneda_operation₂_gen.left_distrib (mul.to_internal_yoneda_operation₂ R)
+    (add.to_internal_yoneda_operation₂ R) (add.to_internal_yoneda_operation₂ R) :=
+begin
+  have h' := _root_.congr_arg (λ (m : operation₃ A), m.to_internal_yoneda_operation₃ R) h,
+  dsimp at h ⊢,
+  convert h';
+  { ext X x,
+    dsimp,
+    simpa, },
 end
 
 end operation₂

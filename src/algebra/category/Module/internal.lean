@@ -20,10 +20,10 @@ class module :=
 instance : module R R.Ab :=
 { smul :=
   { φ := Ring_mul.to_internal_yoneda_operation₂ R,
-    right_distrib := sorry,
-    left_distrib := sorry, },
-  one_smul := sorry,
-  mul_smul := sorry, }
+    right_distrib := operation₂.to_internal_yoneda_operation₂_right_distrib _ _ R Ring_right_distrib,
+    left_distrib := operation₂.to_internal_yoneda_operation₂_left_distrib _ _ R Ring_left_distrib, },
+  one_smul := operation₂.to_internal_yoneda_operation₂_zero_add  _ R _ Ring_one_mul,
+  mul_smul := operation₂.to_internal_yoneda_operation₂_assoc Ring_mul R Ring_mul_assoc, }
 
 @[simp]
 def is_linear_map {M₁ M₂ : internal Ab C} [module R M₁] [module R M₂] (f : M₁ ⟶ M₂) : Prop :=

@@ -314,11 +314,7 @@ instance (M : Ab.{u}) (Y : Type.{u}ᵒᵖ) :
 by { dsimp, apply_instance, }
 
 @[simps]
-def functor : internal Ab Type.{u} ⥤ Ab.{u} :=
-internal.presheaf_functor _ _ ⋙ (evaluation _ _).obj (op punit)
-
-@[simps]
-def inverse : Ab.{u} ⥤ internal Ab Type.{u} :=
+def functor : Ab.{u} ⥤ internal Ab Type.{u} :=
 { obj := λ M, mk ((forget Ab).obj M) { app := λ Y s, 0, } { app := λ Y x, -x, }
     { app := λ Y x, x.1 + x.2, }
     (by { ext Y x a, apply _root_.add_comm, })
@@ -328,46 +324,76 @@ def inverse : Ab.{u} ⥤ internal Ab Type.{u} :=
   map := λ M₁ M₂ f,
   { app := λ Y, add_monoid_hom.mk' (λ g, f ∘ g) (by tidy), }, }
 
+@[simps]
+def inverse : internal Ab Type.{u} ⥤ Ab.{u} :=
+internal.presheaf_functor _ _ ⋙ (evaluation _ _).obj (op punit)
 
-def counit_iso : equivalence.inverse ⋙ equivalence.functor ≅ (𝟭 Ab.{u}) :=
+def unit_iso : (𝟭 Ab.{u}) ≅ equivalence.functor ⋙ equivalence.inverse :=
 nat_iso.of_components (λ M,
-  { hom := add_monoid_hom.mk' (λ x, x punit.star) (by tidy),
-    inv := add_monoid_hom.mk' (λ x s, x) (by tidy),
+  { hom := add_monoid_hom.mk' (λ x s, x) (by tidy),
+    inv := add_monoid_hom.mk' (λ x, x punit.star) (by tidy),
     hom_inv_id' := by tidy,
     inv_hom_id' := by tidy, }) (by tidy)
 
-def unit_iso : 𝟭 (internal Ab Type.{u}) ≅
-  equivalence.functor ⋙ equivalence.inverse :=
+@[simps]
+def counit_iso_inv (M : internal Ab Type.{u}) :
+  M ⟶ (inverse ⋙ functor).obj M :=
+{ app := λ Y, add_monoid_hom.mk' (λ f x,
+  M.iso.hom.app _ ((by exact λ s, x) ≫ M.iso.inv.app _ f)) (λ f g, begin
+    ext,
+    dsimp at f g ⊢,
+    rw [← iso_hom_app_yoneda_operation_add_app, iso_inv_app_add],
+    congr' 1,
+    let x' : punit ⟶ unop Y := λ s, x,
+    have h := congr_fun ((yoneda_operation_add M).naturality x'.op) ⟨M.iso.inv.app _ f, M.iso.inv.app _ g⟩,
+    exact h.symm,
+  end),
+  naturality' := sorry, }
+
+@[simps]
+def counit_iso_hom (M : internal Ab Type.{u}) :
+  (inverse ⋙ functor).obj M ⟶ M :=
+{ app := λ Y, add_monoid_hom.mk' (λ f, M.iso.hom.app _ (λ x, M.iso.inv.app _ (f x) punit.star))
+    (begin sorry, end),
+  naturality' := sorry, }
+
+@[simps]
+def counit_iso : equivalence.inverse ⋙ equivalence.functor ≅ 𝟭 (internal Ab Type.{u}) :=
 nat_iso.of_components (λ M,
-  { hom :=
-    { app := λ Y, add_monoid_hom.mk' (λ f x,
-      M.iso.hom.app _ ((by exact λ s, x) ≫ M.iso.inv.app _ f)) (λ f g, begin
-        ext,
-        dsimp at f g ⊢,
-        rw [← iso_hom_app_yoneda_operation_add_app, iso_inv_app_add],
-        congr' 1,
-        let x' : punit ⟶ unop Y := λ s, x,
-        have h := congr_fun ((yoneda_operation_add M).naturality x'.op) ⟨M.iso.inv.app _ f, M.iso.inv.app _ g⟩,
-        exact h.symm,
-      end),
-      naturality' := sorry, },
-    inv :=
-    { app := λ Y, add_monoid_hom.mk' (λ f, M.iso.hom.app _ (λ x, M.iso.inv.app _ (f x) punit.star))
-        (begin sorry, end),
-      naturality' := sorry, },
-    hom_inv_id' := sorry,
-    inv_hom_id' := sorry, }) sorry
+  { hom := counit_iso_hom M,
+    inv := counit_iso_inv M,
+    hom_inv_id' := begin
+      ext Y : 2,
+      refine (nat_trans.comp_app (counit_iso_hom M) (counit_iso_inv M) Y).trans _,
+      ext f x,
+      dsimp,
+      simp only [comp_apply, add_monoid_hom.mk'_apply, functor_to_types.hom_inv_id_app_apply],
+      erw id_apply,
+      have h : is_iso (M.iso.inv.app (op punit)) := infer_instance,
+      rw is_iso_iff_bijective at h,
+      apply h.1,
+      simp only [functor_to_types.hom_inv_id_app_apply],
+      ext u,
+      have hu := subsingleton.elim u punit.star,
+      subst hu,
+      refl,
+    end,
+    inv_hom_id' := begin
+      ext Y : 2,
+      refine (nat_trans.comp_app (counit_iso_inv M) (counit_iso_hom M) Y).trans _,
+      ext f x,
+      dsimp,
+      simpa only [comp_apply, add_monoid_hom.mk'_apply, functor_to_types.hom_inv_id_app_apply,
+        types_comp_apply, functor_to_types.inv_hom_id_app_apply],
+    end, }) sorry
 
 end equivalence
 
-#exit
-def equivalence : internal Ab Type.{u} ≌ Ab.{u} :=
+def equivalence : Ab.{u} ≌ internal Ab Type.{u} :=
 { functor := equivalence.functor,
   inverse := equivalence.inverse,
   unit_iso := equivalence.unit_iso,
-  counit_iso := equivalence.counit_iso,
-  functor_unit_iso_comp' := sorry, }
-
+  counit_iso := equivalence.counit_iso, }
 
 end Ab
 

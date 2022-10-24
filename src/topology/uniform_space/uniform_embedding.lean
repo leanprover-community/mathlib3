@@ -45,6 +45,10 @@ lemma uniform_inducing.basis_uniformity {f : α → β} (hf : uniform_inducing f
   (𝓤 α).has_basis p (λ i, prod.map f f ⁻¹' s i) :=
 hf.1 ▸ H.comap _
 
+lemma uniform_inducing.cauchy_map_iff {f : α → β} (hf : uniform_inducing f) {F : filter α} :
+  cauchy (map f F) ↔ cauchy F :=
+by simp only [cauchy, map_ne_bot_iff, prod_map_map_eq, map_le_iff_le_comap, ← hf.comap_uniformity]
+
 lemma uniform_inducing_of_compose {f : α → β} {g : β → γ} (hf : uniform_continuous f)
   (hg : uniform_continuous g) (hgf : uniform_inducing (g ∘ f)) : uniform_inducing f :=
 begin

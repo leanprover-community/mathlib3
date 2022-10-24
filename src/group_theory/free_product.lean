@@ -3,7 +3,7 @@ Copyright (c) 2021 David Wärn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn, Joachim Breitner
 -/
-import algebra.free_monoid
+import algebra.free_monoid.basic
 import group_theory.congruence
 import group_theory.is_free_group
 import group_theory.subgroup.pointwise
@@ -113,7 +113,7 @@ def lift : (Π i, M i →* N) ≃ (free_product M →* N) :=
 { to_fun := λ fi, con.lift _ (free_monoid.lift $ λ p : Σ i, M i, fi p.fst p.snd) $ con.con_gen_le
     begin
       simp_rw [con.rel_eq_coe, con.ker_rel],
-      rintros _ _ (i | ⟨i, x, y⟩),
+      rintro _ _ (i | ⟨x, y⟩),
       { change free_monoid.lift _ (free_monoid.of _) = free_monoid.lift _ 1,
         simp only [monoid_hom.map_one, free_monoid.lift_eval_of], },
       { change free_monoid.lift _ (free_monoid.of _ * free_monoid.of _) =

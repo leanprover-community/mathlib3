@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import order.symm_diff
+import logic.function.iterate
 
 /-!
 # Basic properties of sets
@@ -105,7 +106,7 @@ instance : has_inter (set α) := ⟨(⊓)⟩
 @[simp] lemma lt_eq_ssubset : ((<) : set α → set α → Prop) = (⊂) := rfl
 
 lemma le_iff_subset : s ≤ t ↔ s ⊆ t := iff.rfl
-lemma lt_iff_ssubset : s ≤ t ↔ s ⊆ t := iff.rfl
+lemma lt_iff_ssubset : s < t ↔ s ⊂ t := iff.rfl
 
 alias le_iff_subset ↔ _root_.has_le.le.subset _root_.has_subset.subset.le
 alias lt_iff_ssubset ↔ _root_.has_lt.lt.ssubset _root_.has_ssubset.ssubset.lt
@@ -423,13 +424,12 @@ theorem empty_ne_univ [nonempty α] : (∅ : set α) ≠ univ :=
 
 @[simp] theorem subset_univ (s : set α) : s ⊆ univ := λ x H, trivial
 
-theorem univ_subset_iff {s : set α} : univ ⊆ s ↔ s = univ :=
-(subset.antisymm_iff.trans $ and_iff_right (subset_univ _)).symm
+theorem univ_subset_iff {s : set α} : univ ⊆ s ↔ s = univ := @top_le_iff _ _ _ s
 
-theorem eq_univ_of_univ_subset {s : set α} : univ ⊆ s → s = univ := univ_subset_iff.1
+alias univ_subset_iff ↔ eq_univ_of_univ_subset _
 
 theorem eq_univ_iff_forall {s : set α} : s = univ ↔ ∀ x, x ∈ s :=
-univ_subset_iff.symm.trans $ forall_congr $ λ x, imp_iff_right ⟨⟩
+univ_subset_iff.symm.trans $ forall_congr $ λ x, imp_iff_right trivial
 
 theorem eq_univ_of_forall {s : set α} : (∀ x, x ∈ s) → s = univ := eq_univ_iff_forall.2
 
@@ -448,6 +448,8 @@ by simp [subset_def]
 
 lemma univ_unique [unique α] : @set.univ α = {default} :=
 set.ext $ λ x, iff_of_true trivial $ subsingleton.elim x default
+
+lemma ssubset_univ_iff : s ⊂ univ ↔ s ≠ univ := lt_top_iff_ne_top
 
 instance nontrivial_of_nonempty [nonempty α] : nontrivial (set α) := ⟨⟨∅, univ, empty_ne_univ⟩⟩
 
@@ -888,6 +890,11 @@ ssubset_singleton_iff.1 hs
 
 /-! ### Disjointness -/
 
+protected theorem disjoint_iff : disjoint s t ↔ s ∩ t ⊆ ∅ := iff.rfl
+
+theorem disjoint_iff_inter_eq_empty : disjoint s t ↔ s ∩ t = ∅ :=
+disjoint_iff
+
 lemma _root_.disjoint.inter_eq : disjoint s t → s ∩ t = ∅ := disjoint.eq_bot
 
 lemma disjoint_left : disjoint s t ↔ ∀ ⦃a⦄, a ∈ s → a ∉ t := forall_congr $ λ _, not_and
@@ -926,18 +933,13 @@ theorem compl_inter (s t : set α) : (s ∩ t)ᶜ = sᶜ ∪ tᶜ := compl_inf
 lemma compl_ne_univ : sᶜ ≠ univ ↔ s.nonempty :=
 compl_univ_iff.not.trans ne_empty_iff_nonempty
 
-lemma nonempty_compl {s : set α} : sᶜ.nonempty ↔ s ≠ univ :=
-ne_empty_iff_nonempty.symm.trans compl_empty_iff.not
+lemma nonempty_compl {s : set α} : sᶜ.nonempty ↔ s ≠ univ := (ne_univ_iff_exists_not_mem s).symm
 
-lemma mem_compl_singleton_iff {a x : α} : x ∈ ({a} : set α)ᶜ ↔ x ≠ a :=
-mem_singleton_iff.not
+lemma mem_compl_singleton_iff {a x : α} : x ∈ ({a} : set α)ᶜ ↔ x ≠ a := iff.rfl
 
-lemma compl_singleton_eq (a : α) : ({a} : set α)ᶜ = {x | x ≠ a} :=
-ext $ λ x, mem_compl_singleton_iff
+lemma compl_singleton_eq (a : α) : ({a} : set α)ᶜ = {x | x ≠ a} := rfl
 
-@[simp]
-lemma compl_ne_eq_singleton (a : α) : ({x | x ≠ a} : set α)ᶜ = {a} :=
-by { ext, simp, }
+@[simp] lemma compl_ne_eq_singleton (a : α) : ({x | x ≠ a} : set α)ᶜ = {a} := compl_compl _
 
 theorem union_eq_compl_compl_inter_compl (s t : set α) : s ∪ t = (sᶜ ∩ tᶜ)ᶜ :=
 ext $ λ x, or_iff_not_and_not
@@ -991,6 +993,9 @@ theorem diff_eq (s t : set α) : s \ t = s ∩ tᶜ := rfl
 
 theorem mem_diff_of_mem {s t : set α} {x : α} (h1 : x ∈ s) (h2 : x ∉ t) : x ∈ s \ t :=
 ⟨h1, h2⟩
+
+lemma not_mem_diff_of_mem {s t : set α} {x : α} (hx : x ∈ t) : x ∉ s \ t :=
+λ h, h.2 hx
 
 theorem mem_of_mem_diff {s t : set α} {x : α} (h : x ∈ s \ t) : x ∈ s :=
 h.left
@@ -1227,6 +1232,24 @@ ext $ λ s, subset_empty_iff
 @[simp] theorem powerset_univ : 𝒫 (univ : set α) = univ :=
 eq_univ_of_forall subset_univ
 
+/-! ### Sets defined as an if-then-else -/
+
+lemma mem_dite_univ_right (p : Prop) [decidable p] (t : p → set α) (x : α) :
+  (x ∈ if h : p then t h else univ) ↔ (∀ h : p, x ∈ t h) :=
+by split_ifs; simp [h]
+
+@[simp] lemma mem_ite_univ_right (p : Prop) [decidable p] (t : set α) (x : α) :
+  x ∈ ite p t set.univ ↔ (p → x ∈ t) :=
+mem_dite_univ_right p (λ _, t) x
+
+lemma mem_dite_univ_left (p : Prop) [decidable p] (t : ¬ p → set α) (x : α) :
+  (x ∈ if h : p then univ else t h) ↔ (∀ h : ¬ p, x ∈ t h)  :=
+by split_ifs; simp [h]
+
+@[simp] lemma mem_ite_univ_left (p : Prop) [decidable p] (t : set α) (x : α) :
+  x ∈ ite p set.univ t ↔ (¬ p → x ∈ t) :=
+mem_dite_univ_left p (λ _, t) x
+
 /-! ### If-then-else for sets -/
 
 /-- `ite` for sets: `set.ite t s s' ∩ t = s ∩ t`, `set.ite t s s' ∩ tᶜ = s' ∩ tᶜ`.
@@ -1333,7 +1356,9 @@ rfl
 @[simp] theorem preimage_set_of_eq {p : α → Prop} {f : β → α} : f ⁻¹' {a | p a} = {a | p (f a)} :=
 rfl
 
-@[simp] theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
+@[simp] lemma preimage_id_eq : preimage (id : α → α) = id := rfl
+
+theorem preimage_id {s : set α} : id ⁻¹' s = s := rfl
 
 @[simp] theorem preimage_id' {s : set α} : (λ x, x) ⁻¹' s = s := rfl
 
@@ -1351,6 +1376,15 @@ by { split_ifs with hb hb, exacts [preimage_const_of_mem hb, preimage_const_of_n
 
 theorem preimage_comp {s : set γ} : (g ∘ f) ⁻¹' s = f ⁻¹' (g ⁻¹' s) := rfl
 
+lemma preimage_comp_eq : preimage (g ∘ f) = preimage f ∘ preimage g := rfl
+
+@[simp] lemma preimage_iterate_eq {f : α → α} {n : ℕ} :
+  set.preimage (f^[n]) = ((set.preimage f)^[n]) :=
+begin
+  induction n with n ih, { simp, },
+  rw [iterate_succ, iterate_succ', set.preimage_comp_eq, ih],
+end
+
 lemma preimage_preimage {g : β → γ} {f : α → β} {s : set γ} :
   f ⁻¹' (g ⁻¹' s) = (λ x, g (f x)) ⁻¹' s :=
 preimage_comp.symm
@@ -1363,6 +1397,17 @@ theorem eq_preimage_subtype_val_iff {p : α → Prop} {s : set (subtype p)} {t :
 lemma nonempty_of_nonempty_preimage {s : set β} {f : α → β} (hf : (f ⁻¹' s).nonempty) :
   s.nonempty :=
 let ⟨x, hx⟩ := hf in ⟨f x, hx⟩
+
+lemma preimage_subtype_coe_eq_compl {α : Type*} {s u v : set α} (hsuv : s ⊆ u ∪ v)
+  (H : s ∩ (u ∩ v) = ∅) : (coe : s → α) ⁻¹' u = (coe ⁻¹' v)ᶜ :=
+begin
+  ext ⟨x, x_in_s⟩,
+  split,
+  { intros x_in_u x_in_v,
+    exact eq_empty_iff_forall_not_mem.mp H x ⟨x_in_s, ⟨x_in_u, x_in_v⟩⟩ },
+  { intro hx,
+    exact or.elim (hsuv x_in_s) id (λ hx', hx.elim hx') }
+end
 
 end preimage
 
@@ -1762,6 +1807,8 @@ begin
   { exact λ h, subsingleton.intro (λ a b, set_coe.ext (h a.property b.property)) }
 end
 
+lemma subsingleton.coe_sort {s : set α} : s.subsingleton → subsingleton s := s.subsingleton_coe.2
+
 /-- The `coe_sort` of a set `s` in a subsingleton type is a subsingleton.
 For the corresponding result for `subtype`, see `subtype.subsingleton`. -/
 instance subsingleton_coe_of_subsingleton [subsingleton α] {s : set α} : subsingleton s :=
@@ -2157,6 +2204,11 @@ is_compl.compl_eq is_compl_range_inl_range_inr
 
 @[simp] lemma compl_range_inr : (range (sum.inr : β → α ⊕ β))ᶜ = range (sum.inl : α → α ⊕ β) :=
 is_compl.compl_eq is_compl_range_inl_range_inr.symm
+
+theorem image_preimage_inl_union_image_preimage_inr (s : set (α ⊕ β)) :
+  sum.inl '' (sum.inl ⁻¹' s) ∪ sum.inr '' (sum.inr ⁻¹' s) = s :=
+by rw [image_preimage_eq_inter_range, image_preimage_eq_inter_range, ← inter_distrib_left,
+  range_inl_union_range_inr, inter_univ]
 
 @[simp] theorem range_quot_mk (r : α → α → Prop) : range (quot.mk r) = univ :=
 (surjective_quot_mk r).range_eq
@@ -2901,5 +2953,48 @@ instance decidable_univ : decidable_pred (∈ (set.univ : set α)) :=
 
 instance decidable_set_of (p : α → Prop) [decidable (p a)] : decidable (a ∈ {a | p a}) :=
 by assumption
+
+end set
+
+/-! ### Indicator function valued in bool -/
+
+open bool
+
+namespace set
+variables {α : Type*} (s : set α)
+
+/-- `bool_indicator` maps `x` to `tt` if `x ∈ s`, else to `ff` -/
+noncomputable def bool_indicator (x : α) :=
+@ite _ (x ∈ s) (classical.prop_decidable _) tt ff
+
+lemma mem_iff_bool_indicator (x : α) : x ∈ s ↔ s.bool_indicator x = tt :=
+by { unfold bool_indicator, split_ifs ; tauto }
+
+lemma not_mem_iff_bool_indicator (x : α) : x ∉ s ↔ s.bool_indicator x = ff :=
+by { unfold bool_indicator, split_ifs ; tauto }
+
+lemma preimage_bool_indicator_tt : s.bool_indicator ⁻¹' {tt} = s :=
+ext (λ x, (s.mem_iff_bool_indicator x).symm)
+
+lemma preimage_bool_indicator_ff : s.bool_indicator ⁻¹' {ff} = sᶜ :=
+ext (λ x, (s.not_mem_iff_bool_indicator x).symm)
+
+open_locale classical
+
+lemma preimage_bool_indicator_eq_union (t : set bool) :
+  s.bool_indicator ⁻¹' t = (if tt ∈ t then s else ∅) ∪ (if ff ∈ t then sᶜ else ∅) :=
+begin
+  ext x,
+  dsimp [bool_indicator],
+  split_ifs ; tauto
+end
+
+lemma preimage_bool_indicator (t : set bool) :
+  s.bool_indicator ⁻¹' t = univ ∨ s.bool_indicator ⁻¹' t = s ∨
+  s.bool_indicator ⁻¹' t = sᶜ ∨ s.bool_indicator ⁻¹' t = ∅ :=
+begin
+  simp only [preimage_bool_indicator_eq_union],
+  split_ifs ; simp [s.union_compl_self]
+end
 
 end set

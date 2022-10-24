@@ -289,6 +289,26 @@ cos_antiperiodic θ
 @[simp] lemma cos_sub_pi (θ : angle) : cos (θ - π) = -cos θ :=
 cos_antiperiodic.sub_eq θ
 
+lemma sin_add (θ₁ θ₂ : real.angle) : sin (θ₁ + θ₂) = sin θ₁ * cos θ₂ + cos θ₁ * sin θ₂ :=
+begin
+  induction θ₁ using real.angle.induction_on,
+  induction θ₂ using real.angle.induction_on,
+  exact real.sin_add θ₁ θ₂
+end
+
+lemma cos_add (θ₁ θ₂ : real.angle) : cos (θ₁ + θ₂) = cos θ₁ * cos θ₂ - sin θ₁ * sin θ₂ :=
+begin
+  induction θ₂ using real.angle.induction_on,
+  induction θ₁ using real.angle.induction_on,
+  exact real.cos_add θ₁ θ₂,
+end
+
+@[simp] lemma cos_sq_add_sin_sq (θ : real.angle) : cos θ ^ 2 + sin θ ^ 2 = 1 :=
+begin
+  induction θ using real.angle.induction_on,
+  exact real.cos_sq_add_sin_sq θ,
+end
+
 @[simp] lemma coe_to_Ico_mod (θ ψ : ℝ) : ↑(to_Ico_mod ψ two_pi_pos θ) = (θ : angle) :=
 begin
   rw angle_eq_iff_two_pi_dvd_sub,

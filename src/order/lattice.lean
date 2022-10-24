@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import order.monotone
-import order.rel_classes
 import tactic.simps
 import tactic.pi_instances
 
@@ -912,6 +911,24 @@ variables (α β)
 
 instance [has_sup α] [has_sup β] : has_sup (α × β) := ⟨λp q, ⟨p.1 ⊔ q.1, p.2 ⊔ q.2⟩⟩
 instance [has_inf α] [has_inf β] : has_inf (α × β) := ⟨λp q, ⟨p.1 ⊓ q.1, p.2 ⊓ q.2⟩⟩
+
+@[simp] lemma mk_sup_mk [has_sup α] [has_sup β] (a₁ a₂ : α) (b₁ b₂ : β) :
+  (a₁, b₁) ⊔ (a₂, b₂) = (a₁ ⊔ a₂, b₁ ⊔ b₂) := rfl
+
+@[simp] lemma mk_inf_mk [has_inf α] [has_inf β] (a₁ a₂ : α) (b₁ b₂ : β) :
+  (a₁, b₁) ⊓ (a₂, b₂) = (a₁ ⊓ a₂, b₁ ⊓ b₂) := rfl
+
+@[simp] lemma fst_sup [has_sup α] [has_sup β] (p q : α × β) : (p ⊔ q).fst = p.fst ⊔ q.fst := rfl
+@[simp] lemma fst_inf [has_inf α] [has_inf β] (p q : α × β) : (p ⊓ q).fst = p.fst ⊓ q.fst := rfl
+
+@[simp] lemma snd_sup [has_sup α] [has_sup β] (p q : α × β) : (p ⊔ q).snd = p.snd ⊔ q.snd := rfl
+@[simp] lemma snd_inf [has_inf α] [has_inf β] (p q : α × β) : (p ⊓ q).snd = p.snd ⊓ q.snd := rfl
+
+@[simp] lemma swap_sup [has_sup α] [has_sup β] (p q : α × β) : (p ⊔ q).swap = p.swap ⊔ q.swap := rfl
+@[simp] lemma swap_inf [has_inf α] [has_inf β] (p q : α × β) : (p ⊓ q).swap = p.swap ⊓ q.swap := rfl
+
+lemma sup_def [has_sup α] [has_sup β] (p q : α × β) : p ⊔ q = (p.fst ⊔ q.fst, p.snd ⊔ q.snd) := rfl
+lemma inf_def [has_inf α] [has_inf β] (p q : α × β) : p ⊓ q = (p.fst ⊓ q.fst, p.snd ⊓ q.snd) := rfl
 
 instance [semilattice_sup α] [semilattice_sup β] : semilattice_sup (α × β) :=
 { sup_le := assume a b c h₁ h₂, ⟨sup_le h₁.1 h₂.1, sup_le h₁.2 h₂.2⟩,

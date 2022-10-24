@@ -638,6 +638,8 @@ abs_of_nonneg hx
 lemma norm_of_nonpos {x : ℝ} (hx : x ≤ 0) : ∥x∥ = -x :=
 abs_of_nonpos hx
 
+lemma le_norm_self (r : ℝ) : r ≤ ∥r∥ := le_abs_self r
+
 @[simp] lemma norm_coe_nat (n : ℕ) : ∥(n : ℝ)∥ = n := abs_of_nonneg n.cast_nonneg
 
 @[simp] lemma nnnorm_coe_nat (n : ℕ) : ∥(n : ℝ)∥₊ = n := nnreal.eq $ by simp
@@ -658,6 +660,14 @@ begin
   { rw real.ennnorm_eq_of_real hx, refl' },
   { rw [ennreal.of_real_eq_zero.2 (le_of_lt (not_le.1 hx))],
     exact bot_le }
+end
+
+lemma to_nnreal_mul_nnnorm {x : ℝ} (y : ℝ) (hr : 0 ≤ x) : x.to_nnreal * ∥y∥₊ = ∥x * y∥₊ :=
+begin
+  rw real.to_nnreal_of_nonneg hr,
+  simp only [nnnorm_mul, mul_eq_mul_right_iff],
+  refine or.inl (nnreal.eq _),
+  simp only [subtype.coe_mk, coe_nnnorm, real.norm_eq_abs, abs_of_nonneg hr]
 end
 
 /-- If `E` is a nontrivial topological module over `ℝ`, then `E` has no isolated points.

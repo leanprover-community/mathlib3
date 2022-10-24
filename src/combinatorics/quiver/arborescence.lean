@@ -108,9 +108,9 @@ arborescence_mk r (λ a, (shortest_path r a).length)
 (by { rintros a b c ⟨e, p, h⟩ ⟨f, q, j⟩, cases h.symm.trans j, split; refl })
 begin
   intro b,
-  rcases hp : shortest_path r b with (_ | ⟨a, _, p, e⟩),
+  rcases hp : shortest_path r b with (_ | ⟨p, e⟩),
   { exact or.inl rfl },
-  { exact or.inr ⟨a, ⟨⟨e, p, hp⟩⟩⟩ }
+  { exact or.inr ⟨_, ⟨⟨e, p, hp⟩⟩⟩ }
 end
 
 end geodesic_subtree

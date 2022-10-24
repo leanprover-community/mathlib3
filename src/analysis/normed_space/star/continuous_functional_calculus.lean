@@ -672,6 +672,11 @@ noncomputable def continuous_functional_calculus :
   C(spectrum ℂ a, ℂ) ≃⋆ₐ[ℂ] elemental_algebra ℂ a :=
 ((foo_homeo a).comp_star_alg_equiv ℂ ℂ).trans (gelfand_star_transform (elemental_algebra ℂ a)).symm
 
+lemma continuous_functional_calculus_map_id :
+  continuous_functional_calculus a ((continuous_map.id ℂ).restrict (spectrum ℂ a)) =
+    ⟨a, self_mem_elemental_algebra ℂ a⟩ :=
+star_alg_equiv.symm_apply_apply _ _
+
 end c_star_algebra
 
 

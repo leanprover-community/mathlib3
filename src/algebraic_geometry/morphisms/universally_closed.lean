@@ -31,8 +31,8 @@ open category_theory.morphism_property
 open algebraic_geometry.morphism_property (topologically)
 
 /--
-A morphism of schemes `f : X ⟶ Y` is universally closed if `X ×[Y] Y' ⟶ Y'` is a closed map
-for all base change `Y' ⟶ Y`.
+A morphism of schemes `f : X ⟶ Y` is universally closed if
+every base change `X ×[Y] Y' ⟶ Y'` is a closed map.
 -/
 @[mk_iff]
 class universally_closed (f : X ⟶ Y) : Prop :=

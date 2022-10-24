@@ -191,16 +191,24 @@ instance quotient_top.unique : unique (M ⧸ (⊤ : submodule R M)) :=
 instance quotient_top.fintype : fintype (M ⧸ (⊤ : submodule R M)) :=
 fintype.of_subsingleton 0
 
-lemma unique_quotient_iff_eq_top : nonempty (unique (M ⧸ p)) ↔ p = ⊤ :=
+variables {p}
+
+lemma subsingleton_quotient_iff_eq_top : subsingleton (M ⧸ p) ↔ p = ⊤ :=
 begin
   split,
-  { rintro ⟨h⟩,
+  { rintro h,
     refine eq_top_iff.mpr (λ x _, _),
     have this : x - 0 ∈ p := (submodule.quotient.eq p).mp (by exactI subsingleton.elim _ _),
     rwa sub_zero at this },
   { rintro rfl,
-    exact ⟨submodule.quotient_top.unique⟩ }
+    apply_instance }
 end
+
+lemma unique_quotient_iff_eq_top : nonempty (unique (M ⧸ p)) ↔ p = ⊤ :=
+⟨λ ⟨h⟩, subsingleton_quotient_iff_eq_top.mp (@@unique.subsingleton h),
+ by { rintro rfl, exact ⟨quotient_top.unique⟩ }⟩
+
+variables (p)
 
 noncomputable instance quotient.fintype [fintype M] (S : submodule R M) :
   fintype (M ⧸ S) :=

@@ -411,7 +411,7 @@ def map (hφ : function.injective φ.obj) (S : subgroupoid C) : subgroupoid D :=
     split, apply S.inv, assumption,
   end,
   mul := begin
-    rintro _ _ _ _ ⟨c₁,c₂,f,hf⟩ q hq,
+    rintro _ _ _ _ ⟨f,hf⟩ q hq,
     obtain ⟨c₃,c₄,g,he,rfl,hg,gq⟩ := (map.arrows_iff φ hφ S q).mp hq,
     cases hφ he, rw [gq, ← eq_conj_eq_to_hom, ← φ.map_comp],
     split, exact S.mul hf hg,

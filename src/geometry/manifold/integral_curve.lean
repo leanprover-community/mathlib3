@@ -116,6 +116,20 @@ begin
   refl
 end
 
+lemma model_with_corners.boundaryless.is_open_target
+  {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H) [I.boundaryless]
+  {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+  (x : M) : is_open (ext_chart_at I x).target :=
+begin
+  rw ext_chart_at_target,
+  rw model_with_corners.boundaryless.range_eq_univ,
+  rw set.inter_univ,
+  apply (model_with_corners.continuous_symm _).is_open_preimage,
+  exact local_homeomorph.open_target _
+end
+
 variables
   {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [proper_space E]
   {H : Type*} [topological_space H] (I : model_with_corners ℝ E H)
@@ -183,14 +197,11 @@ lemma curve_change_chart
     ((ext_chart_at I.tangent (v (γ t))) (v (γ t))).snd t :=
 begin
   have : (v (γ t)).fst ∈ (ext_chart_at I (v x₀).fst).source,
-  { rw h₁,
-    rw h₁,
+  { rw [h₁, h₁],
     exact hγ₁ },
   rw tangent_bundle_core_coord_change_triv' I M (v (γ t)) (v x₀) this,
   apply has_fderiv_at.comp_has_deriv_at _ _ hd,
-  rw h₁,
-  rw h₁,
-  rw function.comp_apply,
+  rw [h₁, h₁, function.comp_apply],
   have : set.range I ∈ nhds ((ext_chart_at I x₀) (γ t)),
   { rw mem_nhds_iff,
     refine ⟨interior (ext_chart_at I x₀).target, _, is_open_interior, hγ₂⟩,
@@ -247,32 +258,7 @@ lemma curve_exists_boundaryless
       ((1 : ℝ →L[ℝ] ℝ).smul_right ((ext_chart_at I.tangent (v (γ t))) (v (γ t))).2) :=
 begin
   apply exists_integral_curve_of_cont_mdiff_tangent_vector_field I M v h₁ h₂,
-  rw ext_chart_at_target,
-  rw model_with_corners.boundaryless.range_eq_univ,
-  rw set.inter_univ,
-  rw is_open.interior_eq,
-  { rw ←local_equiv.image_source_eq_target,
-    rw ←set.univ_inter ((I.symm) ⁻¹' (((chart_at H x₀).to_local_equiv) '' (chart_at H x₀).to_local_equiv.source)),
-    have : I.target = set.univ,
-    { apply set.eq_univ_of_subset _ hI.range_eq_univ,
-      rw set.range_subset_iff,
-      intro y,
-      apply local_equiv.map_source,
-      rw model_with_corners.source_eq,
-      exact set.mem_univ _ },
-    rw ←this,
-    rw ←model_with_corners.to_local_equiv_coe_symm,
-    rw ←local_equiv.image_eq_target_inter_inv_preimage,
-    { rw ←set.image_comp,
-      rw model_with_corners.to_local_equiv_coe,
-      rw local_homeomorph.coe_coe,
-      rw ←ext_chart_at_coe,
-      rw set.mem_image,
-      use x₀,
-      refine ⟨_, rfl⟩,
-      exact charted_space.mem_chart_source _ _ },
-    { rw model_with_corners.source_eq,
-      exact set.subset_univ _ } },
-  { apply (model_with_corners.continuous_symm _).is_open_preimage,
-    exact local_homeomorph.open_target _ }
+  rw is_open.interior_eq (model_with_corners.boundaryless.is_open_target I x₀),
+  apply local_equiv.map_source,
+  exact mem_ext_chart_source _ _
 end

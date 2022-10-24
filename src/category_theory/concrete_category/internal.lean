@@ -1,5 +1,6 @@
 import category_theory.concrete_category.operations
 import category_theory.internal_operation
+import category_theory.preadditive.functor_category
 
 universes v₁ v₂ v₃ u₁ u₂ u₃
 
@@ -99,13 +100,16 @@ def forget₂ [has_forget₂ A A'] : internal A C ⥤ internal A' C :=
     erw [nat_trans.comp_app, nat_trans.comp_app, functor.map_comp],
   end, }
 
-example : ℕ := 43
-
 variables {A C}
 
 @[protected]
 def Ab (R : internal A C) [has_forget₂ A Ab.{v₁}] : internal Ab.{v₁} C :=
 (internal.forget₂ A Ab.{v₁} C).obj R
+
+instance [preadditive A] : preadditive (internal A C) :=
+{ hom_group := λ M₁ M₂, (infer_instance : add_comm_group (M₁.presheaf ⟶ M₂.presheaf)),
+  add_comp' := λ M₁ M₂ M₃ f₁ f₂ g, by apply preadditive.add_comp,
+  comp_add' := λ M₁ M₂ M₃ f g₁ g₂, by apply preadditive.comp_add, }
 
 end internal
 

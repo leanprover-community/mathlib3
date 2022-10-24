@@ -168,6 +168,10 @@ lemma finset.sum_smul {f : ι → R} {s : finset ι} {x : M} :
   (∑ i in s, f i) • x = (∑ i in s, (f i) • x) :=
 ((smul_add_hom R M).flip x).map_sum f s
 
+@[simp] lemma smul_add_one_sub_smul {R : Type*} [ring R] [module R M]
+  {r : R} {m : M} : r • m + (1 - r) • m = m :=
+by rw [← add_smul, add_sub_cancel'_right, one_smul]
+
 end add_comm_monoid
 
 variables (R)

@@ -6,6 +6,8 @@ Authors: Mark Lavrentyev
 import topology.homotopy.equiv
 import category_theory.equivalence
 import algebraic_topology.fundamental_groupoid.product
+import algebra.category.Group.basic
+import algebra.category.Group.epi_mono
 
 /-!
 # A retraction from a space to a subspace is a split epimorphism
@@ -134,3 +136,20 @@ lemma fundamental_groupoid_epi_of_top_retraction (r : top_retraction X A) :
 split_epi.epi (fundamental_groupoid_split_epi r)
 
 end top_retraction
+
+
+section surjection
+
+/-- We show that there is no surjective homomorphism from the trivial group to ℤ. -/
+lemma not_surj_hom_of_unit_to_int (f : unit →* (multiplicative ℤ)) : ¬function.surjective f :=
+not_surjective_finite_infinite f
+
+/-- We show that there is no surjection from the trivial group to ℤ by showing that the arrow
+between these objects in Group is not an epimorphism. -/
+lemma not_epi_of_unit_to_int (f : Group.of unit ⟶ Group.of (multiplicative ℤ)) : ¬epi f :=
+begin
+  rw Group.epi_iff_surjective,
+  exact not_surj_hom_of_unit_to_int f,
+end
+
+end surjection

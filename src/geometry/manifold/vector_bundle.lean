@@ -1,14 +1,14 @@
 import geometry.manifold.cont_mdiff
-import topology.vector_bundle.basic
+import topology.new_vector_bundle
 
-open bundle topological_vector_bundle set
+open bundle vector_bundle set
 open_locale manifold
 
 section /-! ## move these -/
 #check charted_space.comp
 #check structure_groupoid.has_groupoid.comp
 
-lemma topological_vector_bundle.trivialization.symm_coord_change
+lemma trivialization.symm_coord_change
   {𝕜 : Type*} {B : Type*} {F : Type*} {E : B → Type*}
   [nontrivially_normed_field 𝕜]
   [Π (x : B), add_comm_monoid (E x)]
@@ -18,16 +18,16 @@ lemma topological_vector_bundle.trivialization.symm_coord_change
   [topological_space B]
   [topological_space (total_space E)]
   [Π (x : B), topological_space (E x)]
-  (e : trivialization 𝕜 F E)
-  (e' : trivialization 𝕜 F E)
+  (e : trivialization F (@total_space.proj _ E)) [e.is_linear 𝕜]
+  (e' : trivialization F (@total_space.proj _ E)) [e'.is_linear 𝕜]
   {b : B}
   (hb : b ∈ e'.base_set ∩ e.base_set) :
-  (e.coord_change e' b).symm = e'.coord_change e b :=
+  (e.coord_change 𝕜 e' b).symm = e'.coord_change 𝕜 e b :=
 begin
   sorry,
 end
 
-lemma topological_vector_bundle.trivialization.apply_symm_apply_eq_coord_change
+lemma trivialization.apply_symm_apply_eq_coord_change
   {𝕜 : Type*} {B : Type*} {F : Type*}
   {E : B → Type*}
   [nontrivially_normed_field 𝕜]
@@ -38,12 +38,12 @@ lemma topological_vector_bundle.trivialization.apply_symm_apply_eq_coord_change
   [topological_space B]
   [topological_space (total_space E)]
   [Π (x : B), topological_space (E x)]
-  (e : trivialization 𝕜 F E)
-  (e' : trivialization 𝕜 F E)
+  (e : trivialization F (@total_space.proj _ E)) [e.is_linear 𝕜]
+  (e' : trivialization F (@total_space.proj _ E)) [e'.is_linear 𝕜]
   {b : B}
   (hb : b ∈ e.base_set ∩ e'.base_set)
   (v : F) :
-  e' ((e.to_local_homeomorph.symm) (b, v)) = (b, e.coord_change e' b v) :=
+  e' ((e.to_local_homeomorph.symm) (b, v)) = (b, e.coord_change 𝕜 e' b v) :=
 begin
   sorry,
 end
@@ -53,6 +53,29 @@ end
 /-! ## main constructions -/
 
 variables {𝕜 B B' F M : Type*} {E : B → Type*}
+
+section
+variables [topological_space F] [topological_space (total_space E)] [∀ x, topological_space (E x)]
+  {HB : Type*} [topological_space HB]
+  [topological_space B] [charted_space HB B]
+
+instance fiber_bundle.charted_space [fiber_bundle F E] :
+  charted_space (B × F) (total_space E) :=
+{ atlas := (λ e : trivialization F (@total_space.proj _ E), e.to_local_homeomorph) '' trivialization_atlas F E,
+  chart_at := λ x, (trivialization_at F E x.proj).to_local_homeomorph,
+  mem_chart_source := λ x, (trivialization_at F E x.proj).mem_source.mpr
+    (mem_base_set_trivialization_at F E x.proj),
+  chart_mem_atlas := λ x, mem_image_of_mem _ (trivialization_mem_atlas F E _) }
+
+local attribute [reducible] model_prod
+
+instance fiber_bundle.charted_space' [fiber_bundle F E] :
+  charted_space (model_prod HB F) (total_space E) :=
+charted_space.comp _ (model_prod B F) _
+
+end
+
+
 variables [nontrivially_normed_field 𝕜] [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)]
   [normed_add_comm_group F] [normed_space 𝕜 F]
   [topological_space (total_space E)] [∀ x, topological_space (E x)]
@@ -65,14 +88,6 @@ variables [nontrivially_normed_field 𝕜] [∀ x, add_comm_monoid (E x)] [∀ x
   {HM : Type*} [topological_space HM] (IM : model_with_corners 𝕜 EM HM)
   [topological_space M] [charted_space HM M] [smooth_manifold_with_corners IM M]
 
--- dangerous instance
-instance is_topological_fiber_bundle.charted_space [topological_vector_bundle 𝕜 F E] :
-  charted_space (B × F) (total_space E) :=
-{ atlas := (λ e : trivialization 𝕜 F E, e.to_local_homeomorph) '' trivialization_atlas 𝕜 F E,
-  chart_at := λ x, (trivialization_at 𝕜 F E x.proj).to_local_homeomorph,
-  mem_chart_source := λ x, (trivialization_at 𝕜 F E x.proj).mem_source.mpr
-    (mem_base_set_trivialization_at 𝕜 F E x.proj),
-  chart_mem_atlas := λ x, mem_image_of_mem _ (trivialization_mem_atlas 𝕜 F E _) }
 
 /-- For `B` a topological space and `F` a `𝕜`-normed space, a map from `U : set B` to `F ≃L[𝕜] F`
 determines a local homeomorphism from `B × F` to itself by its action fibrewise. -/
@@ -183,59 +198,53 @@ variables (IB F E) {B}
 
 /-- Class stating that a topological vector bundle is smooth, in the sense of having smooth
 transition functions. -/
-class smooth_vector_bundle [topological_vector_bundle 𝕜 F E] : Prop :=
-(smooth_transitions : ∀ e ∈ trivialization_atlas 𝕜 F E, ∀ e' ∈ trivialization_atlas 𝕜 F E,
-  smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ b, trivialization.coord_change e e' b : B → F →L[𝕜] F)
+class smooth_vector_bundle [fiber_bundle F E] [vector_bundle 𝕜 F E] : Prop :=
+(smooth_transitions : ∀ (e e' : trivialization F (@total_space.proj _ E))
+  [mem_trivialization_atlas e] [mem_trivialization_atlas e'],
+  smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ b : B, (e.coord_change 𝕜 e' b : F →L[𝕜] F))
   (e.base_set ∩ e'.base_set))
 
 /-- For a smooth vector bundle `E` over `B` with fibre modelled on `F`, the change-of-co-ordinates
 between two trivializations `e`, `e'` for `E`, considered as charts to `B × F`, is smooth and
 fibrewise linear. -/
-instance [topological_vector_bundle 𝕜 F E] [smooth_vector_bundle F E IB] :
+instance [fiber_bundle F E] [vector_bundle 𝕜 F E] [smooth_vector_bundle F E IB] :
   has_groupoid (total_space E) (smooth_fiberwise_linear B F IB) :=
 { compatible := begin
-    rintros _ _ ⟨e, he, rfl⟩ ⟨e', he', rfl⟩,
-    dsimp,
+    rintros _ _ ⟨e, i : mem_trivialization_atlas e, rfl⟩ ⟨e', i' : mem_trivialization_atlas e', rfl⟩,
+    resetI,
     apply mem_Union.mpr,
-    use λ b, trivialization.coord_change e e' b,
+    use λ b, e.coord_change 𝕜 e' b,
     simp_rw mem_Union,
     use e.base_set ∩ e'.base_set,
     use e.open_base_set.inter e'.open_base_set,
-    use smooth_vector_bundle.smooth_transitions e he e' he',
+    use smooth_vector_bundle.smooth_transitions e e',
     refine ⟨_, _, _⟩,
     { rw inter_comm,
-      apply cont_mdiff_on.congr (smooth_vector_bundle.smooth_transitions e' he' e he),
+      apply cont_mdiff_on.congr (smooth_vector_bundle.smooth_transitions e' e),
       { intros b hb,
-        rw topological_vector_bundle.trivialization.symm_coord_change e e' hb },
+        rw e.symm_coord_change e' hb },
       { apply_instance },
       { apply_instance }, },
-    { simp [e.symm_trans_source_eq e'.to_fiber_bundle_trivialization,
-        groupoid_base.local_homeomorph] },
+    { simp [e.symm_trans_source_eq e', groupoid_base.local_homeomorph] },
     { rintros ⟨b, v⟩ hb,
       have hb' : b ∈ e.base_set ∩ e'.base_set :=
         by simpa only [local_homeomorph.trans_to_local_equiv, local_homeomorph.symm_to_local_equiv,
-        local_homeomorph.coe_coe_symm, e.symm_trans_source_eq e'.to_fiber_bundle_trivialization,
+        local_homeomorph.coe_coe_symm, e.symm_trans_source_eq e',
         prod_mk_mem_set_prod_eq, mem_univ, and_true] using hb,
-      simp [groupoid_base.local_homeomorph, e.apply_symm_apply_eq_coord_change e' hb'] }
+      exact e.apply_symm_apply_eq_coord_change e' hb' v, }
   end }
 
 -- #print instances charted_space
 -- #check model_prod
 -- local attribute [instance] charted_space_self
-section
-local attribute [reducible] model_prod
 
-instance is_topological_fiber_bundle.charted_space' [topological_vector_bundle 𝕜 F E] :
-  charted_space (model_prod HB F) (total_space E) :=
-charted_space.comp _ (model_prod B F) _
-end
 
 lemma lift_prop_on_cont_diff_groupoid_iff (f : local_homeomorph B B') :
   lift_prop_on (cont_diff_groupoid ⊤ IB).is_local_structomorph_within_at f f.source
   ↔ smooth_on IB IB f f.source ∧ smooth_on IB IB f.symm f.target :=
 sorry
 
-instance [topological_vector_bundle 𝕜 F E] [smooth_vector_bundle F E IB] :
+instance [fiber_bundle F E] [vector_bundle 𝕜 F E] [smooth_vector_bundle F E IB] :
   smooth_manifold_with_corners (IB.prod 𝓘(𝕜, F)) (total_space E) :=
 begin
   refine { .. structure_groupoid.has_groupoid.comp (smooth_fiberwise_linear B F IB) _ },

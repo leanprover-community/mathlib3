@@ -180,7 +180,7 @@ def finest_topology_single (P : Cᵒᵖ ⥤ Type v) : grothendieck_topology C :=
 /--
 Construct the finest (largest) Grothendieck topology for which all the given presheaves are sheaves.
 
-This is equal to the construction of https://stacks.math.columbia.edu/tag/00Z9.
+This is equal to the construction of <https://stacks.math.columbia.edu/tag/00Z9>.
 -/
 def finest_topology (Ps : set (Cᵒᵖ ⥤ Type v)) : grothendieck_topology C :=
 Inf (finest_topology_single '' Ps)
@@ -205,7 +205,7 @@ end
 The `canonical_topology` on a category is the finest (largest) topology for which every
 representable presheaf is a sheaf.
 
-See https://stacks.math.columbia.edu/tag/00ZA
+See <https://stacks.math.columbia.edu/tag/00ZA>
 -/
 def canonical_topology (C : Type u) [category.{v} C] : grothendieck_topology C :=
 finest_topology (set.range yoneda.obj)

@@ -40,13 +40,17 @@ variables {L : language.{u v}} {α : Type w} {M : Type w'} {n : ℕ}
 protected def order : language :=
 language.mk₂ empty empty empty empty unit
 
-instance order.Structure [has_le M] : language.order.Structure M :=
+namespace order
+
+instance Structure [has_le M] : language.order.Structure M :=
 Structure.mk₂ empty.elim empty.elim empty.elim empty.elim (λ _, (≤))
 
 instance : is_relational (language.order) := language.is_relational_mk₂
 
 instance : subsingleton (language.order.relations n) :=
 language.subsingleton_mk₂_relations
+
+end order
 
 /-- A language is ordered if it has a symbol representing `≤`. -/
 class is_ordered (L : language.{u v}) := (le_symb : L.relations 2)
@@ -165,7 +169,7 @@ variables [is_ordered L] [L.Structure M]
 @[simp] lemma rel_map_le_symb [has_le M] [L.is_ordered_structure M] {a b : M} :
   rel_map (le_symb : L.relations 2) ![a, b] ↔ a ≤ b :=
 begin
-  rw [← order_Lhom_le_symb, Lhom.is_expansion_on.map_on_relation],
+  rw [← order_Lhom_le_symb, Lhom.map_on_relation],
   refl,
 end
 

@@ -203,7 +203,7 @@ begin
   { exact λ j, dite (j = i) (λ h, eq_to_hom (by { cases h, refl })) (λ h, (H _ h).from _) },
   { intros j k f,
     split_ifs,
-    { cases h, cases h_1, have : f = 𝟙 _ := subsingleton.elim _ _, subst this, simpa },
+    { cases h, cases h_1, obtain rfl : f = 𝟙 _ := subsingleton.elim _ _, simpa },
     { cases h, erw category.comp_id,
       haveI : is_iso (F.map f) := (H _ h_1).is_iso_from _,
       rw ← is_iso.comp_inv_eq,

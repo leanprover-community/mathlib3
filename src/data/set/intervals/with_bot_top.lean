@@ -95,11 +95,11 @@ end with_top
 namespace with_bot
 
 @[simp] lemma preimage_coe_bot : (coe : α → with_bot α) ⁻¹' {⊥} = (∅ : set α) :=
-@with_top.preimage_coe_top (order_dual α)
+@with_top.preimage_coe_top αᵒᵈ
 
 variables [partial_order α] {a b : α}
 
-lemma range_coe : range (coe : α → with_bot α) = Ioi ⊥ := @with_top.range_coe (order_dual α) _
+lemma range_coe : range (coe : α → with_bot α) = Ioi ⊥ := @with_top.range_coe αᵒᵈ _
 
 @[simp] lemma preimage_coe_Ioi : (coe : α → with_bot α) ⁻¹' (Ioi a) = Ioi a := ext $ λ x, coe_lt_coe
 @[simp] lemma preimage_coe_Ici : (coe : α → with_bot α) ⁻¹' (Ici a) = Ici a := ext $ λ x, coe_le_coe

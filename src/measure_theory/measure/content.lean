@@ -51,7 +51,7 @@ universes u v w
 noncomputable theory
 
 open set topological_space
-open_locale nnreal ennreal
+open_locale nnreal ennreal measure_theory
 
 namespace measure_theory
 
@@ -157,9 +157,9 @@ begin
     { intros n s hn ih, rw [finset.sup_insert, finset.sum_insert hn],
       exact le_trans (μ.sup_le _ _) (add_le_add_left ih _) }},
   refine supr₂_le (λ K hK, _),
-  obtain ⟨t, ht⟩ := K.compact.elim_finite_subcover  _ (λ i, (U i).prop) _, swap,
+  obtain ⟨t, ht⟩ := K.is_compact.elim_finite_subcover  _ (λ i, (U i).prop) _, swap,
   { convert hK, rw [opens.supr_def, subtype.coe_mk] },
-  rcases K.compact.finite_compact_cover t (coe ∘ U) (λ i _, (U _).prop) (by simp only [ht])
+  rcases K.is_compact.finite_compact_cover t (coe ∘ U) (λ i _, (U _).prop) (by simp only [ht])
     with ⟨K', h1K', h2K', h3K'⟩,
   let L : ℕ → compacts G := λ n, ⟨K' n, h1K' n⟩,
   convert le_trans (h3 t L) _,
@@ -288,7 +288,7 @@ lemma is_mul_left_invariant_outer_measure [group G] [topological_group G]
 by convert μ.outer_measure_preimage (homeomorph.mul_left g) (λ K, h g) A
 
 lemma outer_measure_caratheodory (A : set G) :
-  μ.outer_measure.caratheodory.measurable_set' A ↔ ∀ (U : opens G),
+  measurable_set[μ.outer_measure.caratheodory] A ↔ ∀ (U : opens G),
   μ.outer_measure (U ∩ A) + μ.outer_measure (U \ A) ≤ μ.outer_measure U :=
 begin
   dsimp [opens], rw subtype.forall,

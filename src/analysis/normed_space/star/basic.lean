@@ -35,8 +35,8 @@ open_locale topological_space
 local postfix `⋆`:std.prec.max_plus := star
 
 /-- A normed star group is a normed group with a compatible `star` which is isometric. -/
-class normed_star_group (E : Type*) [semi_normed_group E] [star_add_monoid E] : Prop :=
-(norm_star : ∀ {x : E}, ∥x⋆∥ = ∥x∥)
+class normed_star_group (E : Type*) [seminormed_add_comm_group E] [star_add_monoid E] : Prop :=
+(norm_star : ∀ x : E, ∥x⋆∥ = ∥x∥)
 
 export normed_star_group (norm_star)
 attribute [simp] norm_star
@@ -44,53 +44,30 @@ attribute [simp] norm_star
 variables {𝕜 E α : Type*}
 
 section normed_star_group
-variables [semi_normed_group E] [star_add_monoid E] [normed_star_group E]
+variables [seminormed_add_comm_group E] [star_add_monoid E] [normed_star_group E]
+
+@[simp] lemma nnnorm_star (x : E) : ∥star x∥₊ = ∥x∥₊ := subtype.ext $ norm_star _
 
 /-- The `star` map in a normed star group is a normed group homomorphism. -/
-def star_normed_group_hom : normed_group_hom E E :=
-{ bound' := ⟨1, λ v, le_trans (norm_star.le) (one_mul _).symm.le⟩,
+def star_normed_add_group_hom : normed_add_group_hom E E :=
+{ bound' := ⟨1, λ v, le_trans (norm_star _).le (one_mul _).symm.le⟩,
   .. star_add_equiv }
 
 /-- The `star` map in a normed star group is an isometry -/
 lemma star_isometry : isometry (star : E → E) :=
-star_add_equiv.to_add_monoid_hom.isometry_of_norm (λ _, norm_star)
+show isometry star_add_equiv,
+by exact add_monoid_hom_class.isometry_of_norm star_add_equiv
+    (show ∀ x, ∥x⋆∥ = ∥x∥, from norm_star)
 
-lemma continuous_star : continuous (star : E → E) := star_isometry.continuous
-
-lemma continuous_on_star {s : set E} : continuous_on star s := continuous_star.continuous_on
-
-lemma continuous_at_star {x : E} : continuous_at star x := continuous_star.continuous_at
-
-lemma continuous_within_at_star {s : set E} {x : E} : continuous_within_at star s x :=
-continuous_star.continuous_within_at
-
-lemma tendsto_star (x : E) : filter.tendsto star (𝓝 x) (𝓝 x⋆) := continuous_star.tendsto x
-
-lemma filter.tendsto.star {f : α → E} {l : filter α} {y : E} (h : filter.tendsto f l (𝓝 y)) :
-  filter.tendsto (λ x, (f x)⋆) l (𝓝 y⋆) :=
-(continuous_star.tendsto y).comp h
-
-variables [topological_space α]
-
-lemma continuous.star {f : α → E} (hf : continuous f) : continuous (λ y, star (f y)) :=
-continuous_star.comp hf
-
-lemma continuous_at.star {f : α → E} {x : α} (hf : continuous_at f x) :
-  continuous_at (λ x, (f x)⋆) x :=
-continuous_at_star.comp hf
-
-lemma continuous_on.star {f : α → E} {s : set α} (hf : continuous_on f s) :
-  continuous_on (λ x, (f x)⋆) s :=
-continuous_star.comp_continuous_on hf
-
-lemma continuous_within_at.star {f : α → E} {s : set α} {x : α}
-  (hf : continuous_within_at f s x) : continuous_within_at (λ x, (f x)⋆) s x := hf.star
+@[priority 100]
+instance normed_star_group.to_has_continuous_star : has_continuous_star E :=
+⟨star_isometry.continuous⟩
 
 end normed_star_group
 
 instance ring_hom_isometric.star_ring_end [normed_comm_ring E] [star_ring E]
   [normed_star_group E] : ring_hom_isometric (star_ring_end E) :=
-⟨λ _, norm_star⟩
+⟨norm_star⟩
 
 /-- A C*-ring is a normed star ring that satifies the stronger condition `∥x⋆ * x∥ = ∥x∥^2`
 for every `x`. -/
@@ -133,7 +110,62 @@ by rw [norm_star_mul_self, norm_star]
 lemma nnnorm_star_mul_self {x : E} : ∥x⋆ * x∥₊ = ∥x∥₊ * ∥x∥₊ :=
 subtype.ext norm_star_mul_self
 
+@[simp]
+lemma star_mul_self_eq_zero_iff (x : E) : star x * x = 0 ↔ x = 0 :=
+by { rw [←norm_eq_zero, norm_star_mul_self], exact mul_self_eq_zero.trans norm_eq_zero }
+
+lemma star_mul_self_ne_zero_iff (x : E) : star x * x ≠ 0 ↔ x ≠ 0 :=
+by simp only [ne.def, star_mul_self_eq_zero_iff]
+
+@[simp]
+lemma mul_star_self_eq_zero_iff (x : E) : x * star x = 0 ↔ x = 0 :=
+by simpa only [star_eq_zero, star_star] using @star_mul_self_eq_zero_iff _ _ _ _ (star x)
+
+lemma mul_star_self_ne_zero_iff (x : E) : x * star x ≠ 0 ↔ x ≠ 0 :=
+by simp only [ne.def, mul_star_self_eq_zero_iff]
+
 end non_unital
+
+section prod_pi
+
+variables {ι R₁ R₂ : Type*} {R : ι → Type*}
+variables [non_unital_normed_ring R₁] [star_ring R₁] [cstar_ring R₁]
+variables [non_unital_normed_ring R₂] [star_ring R₂] [cstar_ring R₂]
+variables [Π i, non_unital_normed_ring (R i)] [Π i, star_ring (R i)]
+
+/-- This instance exists to short circuit type class resolution because of problems with
+inference involving Π-types. -/
+instance _root_.pi.star_ring' : star_ring (Π i, R i) := infer_instance
+
+variables [fintype ι] [Π i, cstar_ring (R i)]
+
+instance _root_.prod.cstar_ring : cstar_ring (R₁ × R₂) :=
+{ norm_star_mul_self := λ x,
+  begin
+    unfold norm,
+    simp only [prod.fst_mul, prod.fst_star, prod.snd_mul, prod.snd_star, norm_star_mul_self, ←sq],
+    refine le_antisymm _ _,
+    { refine max_le _ _;
+      rw [sq_le_sq, abs_of_nonneg (norm_nonneg _)],
+      exact (le_max_left _ _).trans (le_abs_self _),
+      exact (le_max_right _ _).trans (le_abs_self _) },
+    { rw le_sup_iff,
+      rcases le_total (∥x.fst∥) (∥x.snd∥) with (h | h);
+      simp [h] }
+  end }
+
+instance _root_.pi.cstar_ring : cstar_ring (Π i, R i) :=
+{ norm_star_mul_self := λ x,
+  begin
+    simp only [norm, pi.mul_apply, pi.star_apply, nnnorm_star_mul_self, ←sq],
+    norm_cast,
+    exact (finset.comp_sup_eq_sup_comp_of_is_total (λ x : nnreal, x ^ 2)
+      (λ x y h, by simpa only [sq] using mul_le_mul' h h) (by simp)).symm,
+  end }
+
+instance _root_.pi.cstar_ring' : cstar_ring (ι → R₁) := pi.cstar_ring
+
+end prod_pi
 
 section unital
 variables [normed_ring E] [star_ring E] [cstar_ring E]
@@ -177,7 +209,7 @@ norm_coe_unitary_mul ⟨U, hU⟩ A
 calc _ = ∥((U : E)⋆ * A⋆)⋆∥ : by simp only [star_star, star_mul]
   ...  = ∥(U : E)⋆ * A⋆∥    : by rw [norm_star]
   ...  = ∥A⋆∥               : norm_mem_unitary_mul (star A) (unitary.star_mem U.prop)
-  ...  = ∥A∥                : norm_star
+  ...  = ∥A∥                : norm_star _
 
 lemma norm_mul_mem_unitary (A : E) {U : E} (hU : U ∈ unitary E) : ∥A * U∥ = ∥A∥ :=
 norm_mul_coe_unitary A ⟨U, hU⟩
@@ -185,8 +217,8 @@ norm_mul_coe_unitary A ⟨U, hU⟩
 end unital
 end cstar_ring
 
-lemma nnnorm_pow_two_pow_of_self_adjoint [normed_ring E] [star_ring E] [cstar_ring E]
-  {x : E} (hx : x ∈ self_adjoint E) (n : ℕ) : ∥x ^ 2 ^ n∥₊ = ∥x∥₊ ^ (2 ^ n) :=
+lemma is_self_adjoint.nnnorm_pow_two_pow [normed_ring E] [star_ring E]
+  [cstar_ring E] {x : E} (hx : is_self_adjoint x) (n : ℕ) : ∥x ^ 2 ^ n∥₊ = ∥x∥₊ ^ (2 ^ n) :=
 begin
   induction n with k hk,
   { simp only [pow_zero, pow_one] },
@@ -197,18 +229,19 @@ end
 
 lemma self_adjoint.nnnorm_pow_two_pow [normed_ring E] [star_ring E] [cstar_ring E]
   (x : self_adjoint E) (n : ℕ) : ∥x ^ 2 ^ n∥₊ = ∥x∥₊ ^ (2 ^ n) :=
-nnnorm_pow_two_pow_of_self_adjoint x.property _
+x.prop.nnnorm_pow_two_pow _
 
 section starₗᵢ
 
-variables [comm_semiring 𝕜] [star_ring 𝕜] [normed_ring E] [star_ring E] [normed_star_group E]
+variables [comm_semiring 𝕜] [star_ring 𝕜]
+variables [seminormed_add_comm_group E] [star_add_monoid E] [normed_star_group E]
 variables [module 𝕜 E] [star_module 𝕜 E]
 
 variables (𝕜)
 /-- `star` bundled as a linear isometric equivalence -/
 def starₗᵢ : E ≃ₗᵢ⋆[𝕜] E :=
 { map_smul' := star_smul,
-  norm_map' := λ x, norm_star,
+  norm_map' := norm_star,
   .. star_add_equiv }
 
 variables {𝕜}

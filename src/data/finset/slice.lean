@@ -45,7 +45,7 @@ lemma sized_union : (A ∪ B).sized r ↔ A.sized r ∧ B.sized r :=
 ⟨λ hA, ⟨hA.mono $ subset_union_left _ _, hA.mono $ subset_union_right _ _⟩,
   λ hA x hx, hx.elim (λ h, hA.1 h) $ λ h, hA.2 h⟩
 
-alias sized_union ↔ _ set.sized.union
+alias sized_union ↔ _ sized.union
 
 --TODO: A `forall_Union` lemma would be handy here.
 @[simp] lemma sized_Union {f : ι → set (finset α)} : (⋃ i, f i).sized r ↔ ∀ i, (f i).sized r :=
@@ -81,7 +81,7 @@ variables [fintype α] {𝒜 : finset (finset α)} {s : finset α} {r : ℕ}
 lemma subset_powerset_len_univ_iff : 𝒜 ⊆ powerset_len r univ ↔ (𝒜 : set (finset α)).sized r :=
 forall_congr $ λ A, by rw [mem_powerset_len_univ_iff, mem_coe]
 
-alias subset_powerset_len_univ_iff  ↔ _ set.sized.subset_powerset_len_univ
+alias subset_powerset_len_univ_iff  ↔ _ _root_.set.sized.subset_powerset_len_univ
 
 lemma _root_.set.sized.card_le (h𝒜 : (𝒜 : set (finset α)).sized r) :
   card 𝒜 ≤ (fintype.card α).choose r :=
@@ -100,7 +100,7 @@ variables {𝒜 : finset (finset α)} {A A₁ A₂ : finset α} {r r₁ r₂ : �
 /-- The `r`-th slice of a set family is the subset of its elements which have cardinality `r`. -/
 def slice (𝒜 : finset (finset α)) (r : ℕ) : finset (finset α) := 𝒜.filter (λ i, i.card = r)
 
-localized "infix ` # `:90 := finset.slice" in finset_family
+localized "infix (name := finset.slice) ` # `:90 := finset.slice" in finset_family
 
 /-- `A` is in the `r`-th slice of `𝒜` iff it's in `𝒜` and has cardinality `r`. -/
 lemma mem_slice : A ∈ 𝒜 # r ↔ A ∈ 𝒜 ∧ A.card = r := mem_filter

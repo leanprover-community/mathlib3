@@ -39,32 +39,33 @@ by simp [antidiagonal]
 @[simp] lemma antidiagonal_zero : antidiagonal 0 = {(0, 0)} :=
 rfl
 
-lemma antidiagonal_succ {n : ℕ} :
-  antidiagonal (n + 1) = insert (0, n + 1) ((antidiagonal n).map
-  (function.embedding.prod_map ⟨nat.succ, nat.succ_injective⟩ (function.embedding.refl _))) :=
+lemma antidiagonal_succ (n : ℕ) :
+  antidiagonal (n + 1) = cons (0, n + 1) ((antidiagonal n).map
+  (function.embedding.prod_map ⟨nat.succ, nat.succ_injective⟩ (function.embedding.refl _)))
+  (by simp) :=
 begin
   apply eq_of_veq,
-  rw [insert_val_of_not_mem, map_val],
+  rw [cons_val, map_val],
   { apply multiset.nat.antidiagonal_succ },
-  { intro con, rcases mem_map.1 con with ⟨⟨a,b⟩, ⟨h1, h2⟩⟩,
-    simp only [prod.mk.inj_iff, function.embedding.coe_prod_map, prod.map_mk] at h2,
-    apply nat.succ_ne_zero a h2.1, }
 end
 
-lemma antidiagonal_succ' {n : ℕ} :
-  antidiagonal (n + 1) = insert (n + 1, 0) ((antidiagonal n).map
-  (function.embedding.prod_map (function.embedding.refl _) ⟨nat.succ, nat.succ_injective⟩)) :=
+lemma antidiagonal_succ' (n : ℕ) :
+  antidiagonal (n + 1) = cons (n + 1, 0) ((antidiagonal n).map
+  (function.embedding.prod_map (function.embedding.refl _) ⟨nat.succ, nat.succ_injective⟩))
+  (by simp) :=
 begin
   apply eq_of_veq,
-  rw [insert_val_of_not_mem, map_val],
-  { apply multiset.nat.antidiagonal_succ' },
-  { simp },
+  rw [cons_val, map_val],
+  exact multiset.nat.antidiagonal_succ',
 end
 
 lemma antidiagonal_succ_succ' {n : ℕ} :
-  antidiagonal (n + 2) = insert (0, n + 2) (insert (n + 2, 0) ((antidiagonal n).map
-  (function.embedding.prod_map ⟨nat.succ, nat.succ_injective⟩ ⟨nat.succ, nat.succ_injective⟩))) :=
-by { rw [antidiagonal_succ, antidiagonal_succ', map_insert, map_map], refl }
+  antidiagonal (n + 2) =
+    cons (0, n + 2)
+      (cons (n + 2, 0) ((antidiagonal n).map
+        (function.embedding.prod_map ⟨nat.succ, nat.succ_injective⟩ ⟨nat.succ, nat.succ_injective⟩))
+        $ by simp) (by simp) :=
+by { simp_rw [antidiagonal_succ (n + 1), antidiagonal_succ', finset.map_cons, map_map], refl }
 
 lemma map_swap_antidiagonal {n : ℕ} :
   (antidiagonal n).map ⟨prod.swap, prod.swap_right_inverse.injective⟩ = antidiagonal n :=

@@ -24,7 +24,7 @@ Show that the map induced on stalks by `to_sheafify` is the inverse of `stalk_to
 
 Show sheafification is a functor from presheaves to sheaves,
 and that it is the left adjoint of the forgetful functor,
-following https://stacks.math.columbia.edu/tag/007X.
+following <https://stacks.math.columbia.edu/tag/007X>.
 -/
 
 universes v
@@ -76,7 +76,7 @@ def to_sheafify : F ⟶ F.sheafify.1 :=
 The natural morphism from the stalk of the sheafification to the original stalk.
 In `sheafify_stalk_iso` we show this is an isomorphism.
 -/
-def stalk_to_fiber (x : X) : F.sheafify.1.stalk x ⟶ F.stalk x :=
+def stalk_to_fiber (x : X) : F.sheafify.presheaf.stalk x ⟶ F.stalk x :=
 stalk_to_fiber (sheafify.is_locally_germ F) x
 
 lemma stalk_to_fiber_surjective (x : X) : function.surjective (F.stalk_to_fiber x) :=
@@ -104,9 +104,9 @@ begin
   dsimp at e',
   use ⟨W ⊓ (U' ⊓ V'), ⟨mW, mU, mV⟩⟩,
   refine ⟨_, _, _⟩,
-  { change W ⊓ (U' ⊓ V') ⟶ U.val,
+  { change W ⊓ (U' ⊓ V') ⟶ U.obj,
     exact (opens.inf_le_right _ _) ≫ (opens.inf_le_left _ _) ≫ iU, },
-  { change W ⊓ (U' ⊓ V') ⟶ V.val,
+  { change W ⊓ (U' ⊓ V') ⟶ V.obj,
     exact (opens.inf_le_right _ _) ≫ (opens.inf_le_right _ _) ≫ iV, },
   { intro w,
     dsimp,
@@ -121,7 +121,7 @@ end
 /--
 The isomorphism betweeen a stalk of the sheafification and the original stalk.
 -/
-def sheafify_stalk_iso (x : X) : F.sheafify.1.stalk x ≅ F.stalk x :=
+def sheafify_stalk_iso (x : X) : F.sheafify.presheaf.stalk x ≅ F.stalk x :=
 (equiv.of_bijective _ ⟨stalk_to_fiber_injective _ _, stalk_to_fiber_surjective _ _⟩).to_iso
 
 -- PROJECT functoriality, and that sheafification is the left adjoint of the forgetful functor.

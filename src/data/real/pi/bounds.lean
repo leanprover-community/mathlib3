@@ -47,14 +47,14 @@ begin
       norm_num },
     rw ← le_div_iff,
     refine le_trans ((div_le_div_right _).mpr pi_le_four) _, apply pow_pos, norm_num,
-    rw [pow_succ, pow_succ, ←mul_assoc, ←div_div_eq_div_mul],
+    rw [pow_succ, pow_succ, ←mul_assoc, ←div_div],
     convert le_rfl,
     all_goals { repeat {apply pow_pos}, norm_num }},
   apply lt_of_lt_of_le this (le_of_eq _), rw [add_mul], congr' 1,
   { rw [pow_succ _ (n+1), ←mul_assoc, div_mul_cancel, mul_comm], norm_num },
   rw [pow_succ, ←pow_mul, mul_comm n 2, pow_mul, show (2 : ℝ) ^ 2 = 4, by norm_num, pow_succ,
       pow_succ, ←mul_assoc (2 : ℝ), show (2 : ℝ) * 2 = 4, by norm_num, ←mul_assoc, div_mul_cancel,
-      mul_comm ((2 : ℝ) ^ n), ←div_div_eq_div_mul, div_mul_cancel],
+      mul_comm ((2 : ℝ) ^ n), ←div_div, div_mul_cancel],
   apply pow_ne_zero, norm_num, norm_num
 end
 

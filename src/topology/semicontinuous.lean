@@ -226,16 +226,30 @@ end
 
 /-! #### Relationship with continuity -/
 
-theorem lower_semicontinuous_iff_is_open :
+theorem lower_semicontinuous_iff_is_open_preimage :
   lower_semicontinuous f ↔ ∀ y, is_open (f ⁻¹' (Ioi y)) :=
 ⟨λ H y, is_open_iff_mem_nhds.2 (λ x hx, H x y hx), λ H x y y_lt, is_open.mem_nhds (H y) y_lt⟩
 
 lemma lower_semicontinuous.is_open_preimage (hf : lower_semicontinuous f) (y : β) :
   is_open (f ⁻¹' (Ioi y)) :=
-lower_semicontinuous_iff_is_open.1 hf y
+lower_semicontinuous_iff_is_open_preimage.1 hf y
 
 section
-variables {γ : Type*} [linear_order γ] [topological_space γ] [order_topology γ]
+variables {γ : Type*} [linear_order γ]
+
+theorem lower_semicontinuous_iff_is_closed_preimage {f : α → γ} :
+  lower_semicontinuous f ↔ ∀ y, is_closed (f ⁻¹' (Iic y)) :=
+begin
+  rw lower_semicontinuous_iff_is_open_preimage,
+  congrm (∀ y, (_ : Prop)),
+  rw [← is_open_compl_iff, ← preimage_compl, compl_Iic]
+end
+
+lemma lower_semicontinuous.is_closed_preimage {f : α → γ} (hf : lower_semicontinuous f) (y : γ) :
+  is_closed (f ⁻¹' (Iic y)) :=
+lower_semicontinuous_iff_is_closed_preimage.1 hf y
+
+variables [topological_space γ] [order_topology γ]
 
 lemma continuous_within_at.lower_semicontinuous_within_at {f : α → γ}
   (h : continuous_within_at f s x) : lower_semicontinuous_within_at f s x :=
@@ -297,13 +311,12 @@ lemma continuous.comp_lower_semicontinuous
 lemma continuous_at.comp_lower_semicontinuous_within_at_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : lower_semicontinuous_within_at f s x)
   (gmon : antitone g) : upper_semicontinuous_within_at (g ∘ f) s x :=
-@continuous_at.comp_lower_semicontinuous_within_at α _ x s γ _ _ _ (order_dual δ) _ _ _
-  g f hg hf gmon
+@continuous_at.comp_lower_semicontinuous_within_at α _ x s γ _ _ _ δᵒᵈ _ _ _ g f hg hf gmon
 
 lemma continuous_at.comp_lower_semicontinuous_at_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : lower_semicontinuous_at f x)
   (gmon : antitone g) : upper_semicontinuous_at (g ∘ f) x :=
-@continuous_at.comp_lower_semicontinuous_at α _ x γ _ _ _ (order_dual δ) _ _ _ g f hg hf gmon
+@continuous_at.comp_lower_semicontinuous_at α _ x γ _ _ _ δᵒᵈ _ _ _ g f hg hf gmon
 
 lemma continuous.comp_lower_semicontinuous_on_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous g) (hf : lower_semicontinuous_on f s)
@@ -632,7 +645,7 @@ variables [has_zero β]
 
 lemma is_open.upper_semicontinuous_indicator (hs : is_open s) (hy : y ≤ 0) :
   upper_semicontinuous (indicator s (λ x, y)) :=
-@is_open.lower_semicontinuous_indicator α _ (order_dual β) _ s y _ hs hy
+@is_open.lower_semicontinuous_indicator α _ βᵒᵈ _ s y _ hs hy
 
 lemma is_open.upper_semicontinuous_on_indicator (hs : is_open s) (hy : y ≤ 0) :
   upper_semicontinuous_on (indicator s (λ x, y)) t :=
@@ -648,7 +661,7 @@ lemma is_open.upper_semicontinuous_within_at_indicator (hs : is_open s) (hy : y 
 
 lemma is_closed.upper_semicontinuous_indicator (hs : is_closed s) (hy : 0 ≤ y) :
   upper_semicontinuous (indicator s (λ x, y)) :=
-@is_closed.lower_semicontinuous_indicator α _ (order_dual β) _ s y _ hs hy
+@is_closed.lower_semicontinuous_indicator α _ βᵒᵈ _ s y _ hs hy
 
 lemma is_closed.upper_semicontinuous_on_indicator (hs : is_closed s) (hy : 0 ≤ y) :
   upper_semicontinuous_on (indicator s (λ x, y)) t :=
@@ -666,16 +679,30 @@ end
 
 /-! #### Relationship with continuity -/
 
-theorem upper_semicontinuous_iff_is_open :
+theorem upper_semicontinuous_iff_is_open_preimage :
   upper_semicontinuous f ↔ ∀ y, is_open (f ⁻¹' (Iio y)) :=
 ⟨λ H y, is_open_iff_mem_nhds.2 (λ x hx, H x y hx), λ H x y y_lt, is_open.mem_nhds (H y) y_lt⟩
 
 lemma upper_semicontinuous.is_open_preimage (hf : upper_semicontinuous f) (y : β) :
   is_open (f ⁻¹' (Iio y)) :=
-upper_semicontinuous_iff_is_open.1 hf y
+upper_semicontinuous_iff_is_open_preimage.1 hf y
 
 section
-variables {γ : Type*} [linear_order γ] [topological_space γ] [order_topology γ]
+variables {γ : Type*} [linear_order γ]
+
+theorem upper_semicontinuous_iff_is_closed_preimage {f : α → γ} :
+  upper_semicontinuous f ↔ ∀ y, is_closed (f ⁻¹' (Ici y)) :=
+begin
+  rw upper_semicontinuous_iff_is_open_preimage,
+  congrm (∀ y, (_ : Prop)),
+  rw [← is_open_compl_iff, ← preimage_compl, compl_Ici]
+end
+
+lemma upper_semicontinuous.is_closed_preimage {f : α → γ} (hf : upper_semicontinuous f) (y : γ) :
+  is_closed (f ⁻¹' (Ici y)) :=
+upper_semicontinuous_iff_is_closed_preimage.1 hf y
+
+variables [topological_space γ] [order_topology γ]
 
 lemma continuous_within_at.upper_semicontinuous_within_at {f : α → γ}
   (h : continuous_within_at f s x) : upper_semicontinuous_within_at f s x :=
@@ -704,14 +731,12 @@ variables {δ : Type*} [linear_order δ] [topological_space δ] [order_topology 
 lemma continuous_at.comp_upper_semicontinuous_within_at
   {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : upper_semicontinuous_within_at f s x)
   (gmon : monotone g) : upper_semicontinuous_within_at (g ∘ f) s x :=
-@continuous_at.comp_lower_semicontinuous_within_at α _ x s (order_dual γ) _ _ _
-  (order_dual δ) _ _ _ g f hg hf (λ x y hxy, gmon hxy)
+@continuous_at.comp_lower_semicontinuous_within_at α _ x s γᵒᵈ _ _ _ δᵒᵈ _ _ _ g f hg hf gmon.dual
 
 lemma continuous_at.comp_upper_semicontinuous_at
   {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : upper_semicontinuous_at f x)
   (gmon : monotone g) : upper_semicontinuous_at (g ∘ f) x :=
-@continuous_at.comp_lower_semicontinuous_at α _ x (order_dual γ) _ _ _
-  (order_dual δ) _ _ _ g f hg hf (λ x y hxy, gmon hxy)
+@continuous_at.comp_lower_semicontinuous_at α _ x γᵒᵈ _ _ _ δᵒᵈ _ _ _ g f hg hf gmon.dual
 
 lemma continuous.comp_upper_semicontinuous_on
   {g : γ → δ} {f : α → γ} (hg : continuous g) (hf : upper_semicontinuous_on f s)
@@ -726,13 +751,12 @@ lemma continuous.comp_upper_semicontinuous
 lemma continuous_at.comp_upper_semicontinuous_within_at_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : upper_semicontinuous_within_at f s x)
   (gmon : antitone g) : lower_semicontinuous_within_at (g ∘ f) s x :=
-@continuous_at.comp_upper_semicontinuous_within_at α _ x s γ _ _ _ (order_dual δ) _ _ _
-  g f hg hf gmon
+@continuous_at.comp_upper_semicontinuous_within_at α _ x s γ _ _ _ δᵒᵈ _ _ _ g f hg hf gmon
 
 lemma continuous_at.comp_upper_semicontinuous_at_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous_at g (f x)) (hf : upper_semicontinuous_at f x)
   (gmon : antitone g) : lower_semicontinuous_at (g ∘ f) x :=
-@continuous_at.comp_upper_semicontinuous_at α _ x γ _ _ _ (order_dual δ) _ _ _ g f hg hf gmon
+@continuous_at.comp_upper_semicontinuous_at α _ x γ _ _ _ δᵒᵈ _ _ _ g f hg hf gmon
 
 lemma continuous.comp_upper_semicontinuous_on_antitone
   {g : γ → δ} {f : α → γ} (hg : continuous g) (hf : upper_semicontinuous_on f s)
@@ -759,7 +783,7 @@ lemma upper_semicontinuous_within_at.add' {f g : α → γ}
   (hf : upper_semicontinuous_within_at f s x) (hg : upper_semicontinuous_within_at g s x)
   (hcont : continuous_at (λ (p : γ × γ), p.1 + p.2) (f x, g x)) :
   upper_semicontinuous_within_at (λ z, f z + g z) s x :=
-@lower_semicontinuous_within_at.add' α _ x s (order_dual γ) _ _ _ _ _ hf hg hcont
+@lower_semicontinuous_within_at.add' α _ x s γᵒᵈ _ _ _ _ _ hf hg hcont
 
 /-- The sum of two upper semicontinuous functions is upper semicontinuous. Formulated with an
 explicit continuity assumption on addition, for application to `ereal`. The unprimed version of
@@ -825,7 +849,7 @@ hf.add' hg (λ x, continuous_add.continuous_at)
 lemma upper_semicontinuous_within_at_sum {f : ι → α → γ} {a : finset ι}
   (ha : ∀ i ∈ a, upper_semicontinuous_within_at (f i) s x) :
   upper_semicontinuous_within_at (λ z, (∑ i in a, f i z)) s x :=
-@lower_semicontinuous_within_at_sum α _ x s ι (order_dual γ) _ _ _ _ f a ha
+@lower_semicontinuous_within_at_sum α _ x s ι γᵒᵈ _ _ _ _ f a ha
 
 lemma upper_semicontinuous_at_sum {f : ι → α → γ} {a : finset ι}
   (ha : ∀ i ∈ a, upper_semicontinuous_at (f i) x) :
@@ -855,7 +879,7 @@ variables {ι : Sort*} {δ : Type*} [complete_linear_order δ]
 lemma upper_semicontinuous_within_at_infi {f : ι → α → δ}
   (h : ∀ i, upper_semicontinuous_within_at (f i) s x) :
   upper_semicontinuous_within_at (λ x', ⨅ i, f i x') s x :=
-@lower_semicontinuous_within_at_supr α _ x s ι (order_dual δ) _ f h
+@lower_semicontinuous_within_at_supr α _ x s ι δᵒᵈ _ f h
 
 lemma upper_semicontinuous_within_at_binfi {p : ι → Prop} {f : Π i (h : p i), α → δ}
   (h : ∀ i hi, upper_semicontinuous_within_at (f i hi) s x) :
@@ -865,7 +889,7 @@ upper_semicontinuous_within_at_infi $ λ i, upper_semicontinuous_within_at_infi 
 lemma upper_semicontinuous_at_infi {f : ι → α → δ}
   (h : ∀ i, upper_semicontinuous_at (f i) x) :
   upper_semicontinuous_at (λ x', ⨅ i, f i x') x :=
-@lower_semicontinuous_at_supr α _ x ι (order_dual δ) _ f h
+@lower_semicontinuous_at_supr α _ x ι δᵒᵈ _ f h
 
 lemma upper_semicontinuous_at_binfi {p : ι → Prop} {f : Π i (h : p i), α → δ}
   (h : ∀ i hi, upper_semicontinuous_at (f i hi) x) :

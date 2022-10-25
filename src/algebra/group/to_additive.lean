@@ -6,6 +6,7 @@ Authors: Mario Carneiro, Yury Kudryashov, Floris van Doorn
 import tactic.transform_decl
 import tactic.algebra
 import tactic.lint.basic
+import tactic.alias
 
 /-!
 # Transport multiplicative to additive
@@ -218,6 +219,8 @@ meta def tr : bool → list string → list string
 | is_comm ("npow" :: s)               := add_comm_prefix is_comm "nsmul"     :: tr ff s
 | is_comm ("zpow" :: s)               := add_comm_prefix is_comm "zsmul"     :: tr ff s
 | is_comm ("is" :: "square" :: s)     := add_comm_prefix is_comm "even"      :: tr ff s
+| is_comm ("is" :: "scalar" :: "tower" :: s) :=
+   add_comm_prefix is_comm "vadd_assoc_class"   :: tr ff s
 | is_comm ("is" :: "regular" :: s)    := add_comm_prefix is_comm "is_add_regular"   :: tr ff s
 | is_comm ("is" :: "left" :: "regular" :: s)  :=
   add_comm_prefix is_comm "is_add_left_regular"  :: tr ff s
@@ -234,6 +237,9 @@ meta def tr : bool → list string → list string
 | is_comm ("unit" :: s)        := ("add_" ++ add_comm_prefix is_comm "unit")      :: tr ff s
 | is_comm ("units" :: s)       := ("add_" ++ add_comm_prefix is_comm "units")     :: tr ff s
 | is_comm ("comm" :: s)        := tr tt s
+| is_comm ("root" :: s)        := add_comm_prefix is_comm "div" :: tr ff s
+| is_comm ("rootable" :: s)    := add_comm_prefix is_comm "divisible" :: tr ff s
+| is_comm ("prods" :: s)       := add_comm_prefix is_comm "sums" :: tr ff s
 | is_comm (x :: s)             := (add_comm_prefix is_comm x :: tr ff s)
 | tt []                        := ["comm"]
 | ff []                        := []
@@ -406,7 +412,7 @@ There are some exceptions to this heuristic:
 * If an identifier has attribute `@[to_additive_ignore_args n1 n2 ...]` then all the arguments in
   positions `n1`, `n2`, ... will not be checked for unapplied identifiers (start counting from 1).
   For example, `cont_mdiff_map` has attribute `@[to_additive_ignore_args 21]`, which means
-  that its 21st argument `(n : with_top ℕ)` can contain `ℕ`
+  that its 21st argument `(n : ℕ∞)` can contain `ℕ`
   (usually in the form `has_top.top ℕ ...`) and still be additivized.
   So `@has_mul.mul (C^∞⟮I, N; I', G⟯) _ f g` will be additivized.
 
@@ -551,7 +557,11 @@ protected meta def attr : user_attribute unit value_type :=
           "versions after"),
       match val.doc with
       | some doc := add_doc_string tgt doc
-      | none := skip
+      | none := do
+        some alias_target ← tactic.alias.get_alias_target src | skip,
+        let alias_name := alias_target.to_name,
+        some add_alias_name ← pure (dict.find alias_name) | skip,
+        add_doc_string tgt alias_target.to_string
       end }
 
 add_tactic_doc

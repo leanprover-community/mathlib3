@@ -84,7 +84,7 @@ have hfd0 : 0 < f.nat_degree, from with_bot.coe_lt_coe.1
 ⟨mt degree_eq_zero_of_is_unit (λ h, by simp only [*, lt_irrefl] at *),
 begin
   rintros p q rfl,
-  rw [map_mul] at hf,
+  rw [polynomial.map_mul] at hf,
   rcases mul_eq_mul_prime_pow (show prime (X : polynomial (R ⧸ P)),
     from monic_X.prime_of_degree_eq_one degree_X) hf with
       ⟨m, n, b, c, hmnd, hbc, hp, hq⟩,

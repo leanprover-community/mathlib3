@@ -312,12 +312,12 @@ by simp_rw [←relindex_top_right, relindex_inf_le]
 begin
   haveI := fintype.of_finite ι,
   exact finset.prod_ne_zero_iff.mpr (λ i hi, hf i) ∘ nat.card_pi.symm.trans ∘
-    finite.card_eq_zero_of_embedding (quotient_infi_embedding f L),
+    finite.card_eq_zero_of_embedding (quotient_infi_subgroup_of_embedding f L),
 end
 
 @[to_additive] lemma relindex_infi_le {ι : Type*} [fintype ι] (f : ι → subgroup G) :
   (⨅ i, f i).relindex L ≤ ∏ i, (f i).relindex L :=
-le_of_le_of_eq (finite.card_le_of_embedding' (quotient_infi_embedding f L)
+le_of_le_of_eq (finite.card_le_of_embedding' (quotient_infi_subgroup_of_embedding f L)
   (λ h, let ⟨i, hi, h⟩ := finset.prod_eq_zero_iff.mp (nat.card_pi.symm.trans h) in
     relindex_eq_zero_of_le_left (infi_le f i) h)) nat.card_pi
 

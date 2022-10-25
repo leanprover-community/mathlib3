@@ -515,6 +515,6 @@ begin
   intros n hn s hfin h2 hd hU hinj,
   cases n,
   { cases hn },
-  exact @not_correct n s coe hfin.to_subtype ((nontrivial_coe _).2 h2)
+  exact @not_correct n s coe hfin.to_subtype h2.coe_sort
     ⟨hd.subtype _ _, (Union_subtype _ _).trans hU, hinj.injective, hn⟩
 end

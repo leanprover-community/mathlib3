@@ -55,8 +55,8 @@ that this holds for all `m' ∈ N`. -/
     λ s hs, set.sInter_subset_of_mem hs⟩,
   { obtain rfl | hcnemp := c.eq_empty_or_nonempty,
     { rw set.sInter_empty, apply set.univ_nonempty },
-    convert @is_compact.nonempty_Inter_of_directed_nonempty_compact_closed _ _ _
-      (set.nonempty_coe_sort.mpr hcnemp) (coe : c → set M) _ _ _ _,
+    convert @is_compact.nonempty_Inter_of_directed_nonempty_compact_closed _ _ _ hcnemp.coe_sort
+      (coe : c → set M) _ _ _ _,
     { simp only [subtype.range_coe_subtype, set.set_of_mem_eq] } ,
     { refine directed_on.directed_coe (is_chain.directed_on hc.symm) },
     exacts [λ i, (hcs i.prop).2.1, λ i, (hcs i.prop).1.is_compact, λ i, (hcs i.prop).1] },

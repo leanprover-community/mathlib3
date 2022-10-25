@@ -49,10 +49,10 @@ section real
 
 variables
 
-/-- An operator `T` on an inner product space is self-adjoint if and only if it is
+/-- An operator `T` on an inner product space is symmetric if and only if it is
 `linear_map.is_self_adjoint` with respect to the sesquilinear form given by the inner product. -/
-lemma is_self_adjoint_iff_sesq_form (T : E →ₗ[𝕜] E) :
-  is_self_adjoint T ↔
+lemma is_symmetric_iff_sesq_form (T : E →ₗ[𝕜] E) :
+  T.is_symmetric ↔
   @linear_map.is_self_adjoint 𝕜 E _ _ _ (star_ring_end 𝕜) sesq_form_of_inner T :=
 ⟨λ h x y, (h y x).symm, λ h x y, (h y x).symm⟩
 

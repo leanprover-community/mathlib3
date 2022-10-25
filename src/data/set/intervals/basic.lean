@@ -550,21 +550,12 @@ eq_singleton_iff_unique_mem.2 ⟨left_mem_Ici, λ b, h.eq_of_ge⟩
 lemma _root_.is_min.Iic_eq (h : is_min a) : Iic a = {a} := h.to_dual.Ici_eq
 
 lemma Ici_injective : function.injective (Ici : α → set α) :=
-begin
-  intros a b,
-  rw [subset_antisymm_iff, le_antisymm_iff],
-  intro h,
-  split,
-  { rw ← Ici_subset_Ici, exact h.2, },
-  { rw ← Ici_subset_Ici, exact h.1, },
-end
+λ a b h, le_antisymm (h.symm.subset le_rfl) (h.subset le_rfl)
 
-lemma Ici_eq_Ici_iff (a b : α) : Ici a = Ici b ↔ a = b := Ici_injective.eq_iff
+lemma Iic_injective : function.injective (Iic : α → set α) := @Ici_injective αᵒᵈ _
 
-lemma Iic_injective : function.injective (Iic : α → set α) := by convert @Ici_injective αᵒᵈ _
-
-lemma Iic_eq_Iic_iff : Iic a = Iic b ↔ a = b :=
-Ici_eq_Ici_iff (to_dual a) (to_dual b)
+lemma Ici_eq_Ici_iff : Ici a = Ici b ↔ a = b := Ici_injective.eq_iff
+lemma Iic_eq_Iic_iff : Iic a = Iic b ↔ a = b := @Ici_eq_Ici_iff αᵒᵈ _ _ _
 
 end partial_order
 

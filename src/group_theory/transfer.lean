@@ -142,6 +142,8 @@ lemma transfer_center_eq_pow [fintype (G ⧸ center G)] (g : G) :
   transfer (monoid_hom.id (center G)) g = ⟨g ^ (center G).index, (center G).pow_index_mem g⟩ :=
 transfer_eq_pow (id (center G)) g (λ k _ hk, by rw [←mul_right_inj, hk, mul_inv_cancel_right])
 
+variables (G)
+
 /-- The transfer homomorphism `G →* center G`. -/
 noncomputable def transfer_center_pow [fintype (G ⧸ center G)] : G →* center G :=
 { to_fun := λ g, ⟨g ^ (center G).index, (center G).pow_index_mem g⟩,
@@ -151,14 +153,6 @@ noncomputable def transfer_center_pow [fintype (G ⧸ center G)] : G →* center
 
 @[simp] lemma transfer_center_pow_apply [fintype (G ⧸ center G)] (g : G) :
   ↑(transfer_center_pow g) = g ^ (center G).index :=
-rfl
-
-/-- The transfer homomorphism `G →* center G`. -/
-noncomputable def transfer_center_pow' (h : (center G).index ≠ 0) : G →* center G :=
-@transfer_center_pow G _ (fintype_of_index_ne_zero h)
-
-@[simp] lemma transfer_center_pow'_apply (h : (center G).index ≠ 0) (g : G) :
-  ↑(transfer_center_pow' h g) = g ^ (center G).index :=
 rfl
 
 section burnside_transfer

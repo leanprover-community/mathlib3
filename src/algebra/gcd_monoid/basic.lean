@@ -757,6 +757,52 @@ instance normalization_monoid_of_unique_units : normalization_monoid α :=
   norm_unit_mul := λ x y hx hy, (mul_one 1).symm,
   norm_unit_coe_units := λ u, subsingleton.elim _ _ }
 
+instance unique_normalization_monoid_of_unique_units : unique (normalization_monoid α) :=
+{ default := normalization_monoid_of_unique_units,
+  uniq := begin
+    rintros ⟨u, huz, hum, huc⟩,
+    have : u = λ _, 1,
+    { ext : 1, apply subsingleton.elim },
+    unfold default normalization_monoid_of_unique_units,
+    subst this -- Have to use `subst` here to do dependent rewriting.
+  end }
+
+instance subsingleton_gcd_monoid_of_unique_units : subsingleton (gcd_monoid α) :=
+⟨begin
+  rintros
+    ⟨a_gcd, a_lcm, a_gcd_dvd_left, a_gcd_dvd_right, a_dvd_gcd, _⟩
+    ⟨b_gcd, b_lcm, b_gcd_dvd_left, b_gcd_dvd_right, b_dvd_gcd, _⟩,
+  have hgcd : a_gcd = b_gcd,
+  { ext a b,
+    exact associated_iff_eq.mp (associated_of_dvd_dvd
+            (b_dvd_gcd (a_gcd_dvd_left _ _) (a_gcd_dvd_right _ _))
+            (a_dvd_gcd (b_gcd_dvd_left _ _) (b_gcd_dvd_right _ _))) },
+  subst hgcd,
+  have hlcm : a_lcm = b_lcm,
+  { ext a b,
+    by_cases ha : a = 0,
+    { simp only [ha, a_lcm_zero_left, b_lcm_zero_left] },
+    by_cases hb : b = 0,
+    { simp only [hb, a_lcm_zero_right, b_lcm_zero_right] },
+    refine mul_left_cancel₀ (show a_gcd a b ≠ 0, from _) (associated_iff_eq.mp _),
+    { intro h,
+      exact ha (zero_dvd_iff.mp (h ▸ a_gcd_dvd_left a b)) },
+    exact (a_gcd_mul_lcm a b).trans (b_gcd_mul_lcm a b).symm },
+  subst hlcm
+end⟩
+
+instance subsingleton_normalized_gcd_monoid_of_unique_units :
+  subsingleton (normalized_gcd_monoid α) :=
+⟨begin
+  intros a b,
+  cases a with a_norm a_gcd,
+  cases b with b_norm b_gcd,
+  have := subsingleton.elim a_gcd b_gcd,
+  subst this,
+  have := subsingleton.elim a_norm b_norm,
+  subst this
+end⟩
+
 @[simp] lemma norm_unit_eq_one (x : α) : norm_unit x = 1 := rfl
 
 @[simp] lemma normalize_eq (x : α) : normalize x = x := mul_one x

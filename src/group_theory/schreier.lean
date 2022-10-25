@@ -154,7 +154,7 @@ begin
   -- First handle the case when `Z(G)` has infinite index and `[G : Z(G)]` is defined to be `0`
   by_cases hG : (center G).index = 0,
   { simp_rw [hG, zero_mul, zero_add, pow_one, dvd_zero] },
-  haveI : finite_index G := ⟨hG⟩,
+  haveI : finite_index (center G) := ⟨hG⟩,
   -- Rewrite as `|Z(G) ∩ G'| * [G' : Z(G) ∩ G'] ∣ [G : Z(G)] ^ ([G : Z(G)] * n) * [G : Z(G)]`
   rw [←((center G).subgroup_of (commutator G)).card_mul_index, pow_succ'],
   -- We have `h1 : [G' : Z(G) ∩ G'] ∣ [G : Z(G)]`

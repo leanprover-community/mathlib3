@@ -151,8 +151,10 @@ noncomputable def transfer_center_pow [finite_index (center G)] : G →* center 
   map_mul' := λ a b, by simp_rw [←show ∀ g, (_ : center G) = _,
     from transfer_center_eq_pow, map_mul] }
 
+variables {G}
+
 @[simp] lemma transfer_center_pow_apply [finite_index (center G)] (g : G) :
-  ↑(transfer_center_pow g) = g ^ (center G).index :=
+  ↑(transfer_center_pow G g) = g ^ (center G).index :=
 rfl
 
 section burnside_transfer

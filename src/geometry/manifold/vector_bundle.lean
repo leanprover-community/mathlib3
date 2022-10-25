@@ -210,6 +210,47 @@ begin
   sorry -- check smoothness
 end
 
+variables {ι : Type*} {F} (IB) (Z : vector_bundle_core 𝕜 B F ι)
+
+class vector_bundle_core.is_smooth' : Prop :=
+(smooth_on_coord_change [] :
+  ∀ i j, smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (Z.coord_change i j) (Z.base_set i ∩ Z.base_set j))
+
+variables [Z.is_smooth' IB]
+
+export vector_bundle_core.is_smooth'
+  (renaming smooth_on_coord_change → vector_bundle_core.smooth_on_coord_change)
+#check Z.smooth_on_coord_change IB
+
+
+namespace vector_bundle_core
+
+class is_smooth : Prop :=
+(smooth_on_coord_change [] :
+  ∀ i j, smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (Z.coord_change i j) (Z.base_set i ∩ Z.base_set j))
+
+variables [Z.is_smooth IB]
+
+lemma smooth_on_coord_change (i j : ι) :
+  smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (Z.coord_change i j) (Z.base_set i ∩ Z.base_set j) :=
+is_smooth.smooth_on_coord_change IB Z i j
+
+export vector_bundle_core.is_smooth
+  (renaming smooth_on_coord_change → vector_bundle_core.smooth_on_coord_change)
+#check Z.smooth_on_coord_change IB
+
+instance smooth_vector_bundle :
+  smooth_vector_bundle F Z.to_fiber_bundle_core.fiber IB :=
+begin
+  constructor,
+  rintros _ _ ⟨i, rfl⟩ ⟨i', rfl⟩,
+  refine (Z.smooth_on_coord_change IB i i').congr (λ b hb, _),
+  ext v,
+  simp_rw [continuous_linear_equiv.coe_coe, Z.local_triv_coord_change_eq i i' hb],
+end
+
+end vector_bundle_core
+
 variables (F₁ : Type*) [normed_add_comm_group F₁] [normed_space 𝕜 F₁]
   (E₁ : B → Type*) [topological_space (total_space E₁)]
   [Π x, add_comm_monoid (E₁ x)] [Π x, module 𝕜 (E₁ x)]

@@ -385,7 +385,7 @@ structure vector_bundle_core (ι : Type*) :=
 (mem_base_set_at   : ∀ x, x ∈ base_set (index_at x))
 (coord_change      : ι → ι → B → (F →L[𝕜] F))
 (coord_change_self : ∀ i, ∀ x ∈ base_set i, ∀ v, coord_change i i x v = v)
-(coord_change_continuous : ∀ i j, continuous_on (coord_change i j) (base_set i ∩ base_set j))
+(continuous_on_coord_change : ∀ i j, continuous_on (coord_change i j) (base_set i ∩ base_set j))
 (coord_change_comp : ∀ i j k, ∀ x ∈ (base_set i) ∩ (base_set j) ∩ (base_set k), ∀ v,
   (coord_change j k x) (coord_change i j x v) = coord_change i k x v)
 
@@ -398,8 +398,8 @@ include Z
 /-- Natural identification to a `fiber_bundle_core`. -/
 def to_fiber_bundle_core : fiber_bundle_core ι B F :=
 { coord_change := λ i j b, Z.coord_change i j b,
-  coord_change_continuous := λ i j, is_bounded_bilinear_map_apply.continuous.comp_continuous_on
-      ((Z.coord_change_continuous i j).prod_map continuous_on_id),
+  continuous_on_coord_change := λ i j, is_bounded_bilinear_map_apply.continuous.comp_continuous_on
+      ((Z.continuous_on_coord_change i j).prod_map continuous_on_id),
   ..Z }
 
 lemma coord_change_linear_comp (i j k : ι): ∀ x ∈ (Z.base_set i) ∩ (Z.base_set j) ∩ (Z.base_set k),
@@ -449,7 +449,7 @@ instance : vector_bundle 𝕜 F Z.to_fiber_bundle_core.fiber :=
   end,
   continuous_on_coord_change := begin
     rintros _ _ ⟨i, rfl⟩ ⟨i', rfl⟩,
-    refine (Z.coord_change_continuous i i').congr (λ b hb, _),
+    refine (Z.continuous_on_coord_change i i').congr (λ b hb, _),
     ext v,
     simp_rw [continuous_linear_equiv.coe_coe, Z.local_triv_coord_change_eq i i' hb],
   end }

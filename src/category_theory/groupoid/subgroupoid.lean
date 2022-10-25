@@ -519,94 +519,11 @@ lemma is_normal_map (hφ : function.injective φ.obj) (hφ' : im φ hφ = ⊤) (
     obtain ⟨b,b',f,hb,hb',_,hf⟩ := this, subst_vars, cases hφ hb, cases hφ hb',
     change map.arrows φ hφ S (φ.obj c') (φ.obj c') _,
     simp only [eq_to_hom_refl, category.comp_id, category.id_comp, inv_eq_inv],
-    suffices : map.arrows φ hφ S (φ.obj c') (φ.obj c') (φ.map $ inv f ≫ γ ≫ f),
+    suffices : map.arrows φ hφ S (φ.obj c') (φ.o  bj c') (φ.map $ inv f ≫ γ ≫ f),
     { simp only [inv_eq_inv, functor.map_comp, functor.map_inv] at this, exact this, },
     { constructor, apply Sn.conj f γS, } } }
 
 end hom
-
-section graph_like
-
-/-- A subgroupoid `is_graph_like` if it has at most one arrow between any two vertices. -/
-abbreviation is_graph_like := is_graph_like S.objs
-
-lemma is_graph_like_iff : S.is_graph_like ↔ ∀ c d : S.objs, subsingleton (S.arrows c d) :=
-⟨ λ h c d, h c d, λ h c d, h c d⟩
-
-end graph_like
-
-section disconnected
-
-/-- A subgroupoid `is_disconnected` if it has only isotropy arrows. -/
-abbreviation is_disconnected := is_disconnected S.objs
-
-lemma is_disconnected_iff : S.is_disconnected ↔ ∀ c d, (S.arrows c d).nonempty → c = d :=
-begin
-  split,
-  { rintro h c d ⟨f,fS⟩,
-    rw ←@subtype.mk_eq_mk _ _ c (mem_objs_of_src S fS) d (mem_objs_of_tgt S fS),
-    exact h ⟨c,mem_objs_of_src S fS⟩ ⟨d,mem_objs_of_tgt S fS⟩ ⟨⟨f,fS⟩⟩, },
-  { rintros h ⟨c,hc⟩ ⟨d,hd⟩ ⟨f,fS⟩,
-    simp only [subtype.mk_eq_mk],
-    exact h c d ⟨f,fS⟩, },
-end
-
-/-- The isotropy arrows of `S` -/
-inductive disconnect.arrows : Π (c d : C), (c ⟶ d) → Prop
-| mk (c : C) (γ : c ⟶ c) (hγ : γ ∈ S.arrows c c) : disconnect.arrows c c γ
-
-/-- The isotropy subgroupoid of `S` -/
-def disconnect : subgroupoid C :=
-{ arrows := disconnect.arrows S,
-  inv := by { rintros _ _ _ ⟨⟩, constructor, apply S.inv, assumption, },
-  mul := by { rintros _ _ _ _ ⟨⟩ _ ⟨⟩, constructor, apply S.mul; assumption, } }
-
-lemma disconnect_le : (S.disconnect) ≤ S :=
-by {rw le_iff, rintros _ _ _ ⟨⟩, assumption, }
-
-lemma disconnect_normal (Sn : S.is_normal) : S.disconnect.is_normal :=
-{ wide := λ c, by { constructor, exact Sn.wide c, },
-  conj := λ c d p γ hγ, by { constructor, apply Sn.conj, cases hγ, assumption, } }
-
-lemma mem_disconnect_iff {c d : C} (f : c ⟶ d) :
-  f ∈ S.disconnect.arrows c d ↔ (c = d ∧ f ∈ S.arrows c d) :=
-begin
-  split,
-  { rintro ⟨⟩, split, refl, assumption, },
-  { rintro ⟨rfl,_⟩, constructor, assumption, },
-end
-
-end disconnected
-
-section full
-
-variable (D : set C)
-
-/-- The arrows of the full groupoid on a set `D : set C` -/
-inductive full.arrows : Π (c d : C), (c ⟶ d) → Prop
-| mk {c d : C} (hc : c ∈ D) (hd : d ∈ D) (γ : c ⟶ d) : full.arrows c d γ
-
-/-- The full subgroupoid on a set `D : set C` -/
-def full : subgroupoid C :=
-{ arrows := full.arrows D,
-  inv := by { rintros _ _ _ ⟨⟩, constructor; assumption, },
-  mul := by { rintros _ _ _ _ ⟨⟩ _ ⟨⟩, constructor; assumption,} }
-
-lemma full_objs : (full D).objs = D :=
-begin
-  ext,
-  split,
-  { rintro ⟨f,⟨⟩⟩, assumption, },
-  { rintro h, constructor, constructor, assumption, assumption, exact 𝟙 _, }
-end
-
-@[simp] lemma mem_full_objs_iff {c : C} : c ∈ (full D).objs ↔ c ∈ D :=
-by { rw full_objs, }
-
-lemma full_arrow_eq_iff {c d : (full D).objs} {f g : c ⟶ d} : f = g ↔ (↑f : c.val ⟶ d.val) = ↑g :=
-by apply subtype.ext_iff
-
-end full
 
 end subgroupoid
 

@@ -464,6 +464,10 @@ lemma filter.has_basis.lift'_closure_eq_self {l : filter α} {p : ι → Prop} {
 le_antisymm (h.ge_iff.2 $ λ i hi, (hc i hi).closure_eq ▸ mem_lift' (h.mem_of_mem hi))
   l.le_lift'_closure
 
+@[simp] lemma filter.lift'_closure_eq_bot {l : filter α} : l.lift' closure = ⊥ ↔ l = ⊥ :=
+⟨λ h, bot_unique $ h ▸ l.le_lift'_closure,
+  λ h, h.symm ▸ by rw [lift'_bot (monotone_closure _), closure_empty, principal_empty]⟩
+
 /-- A set is dense in a topological space if every point belongs to its closure. -/
 def dense (s : set α) : Prop := ∀ x, x ∈ closure s
 

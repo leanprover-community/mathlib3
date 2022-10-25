@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best, Xavier Roblot
 -/
 
-import analysis.normed_space.basic
 import number_theory.number_field.basic
 import topology.algebra.polynomial
+import number_theory.number_field.aux
 
 /-!
 # Embeddings of number fields
@@ -121,5 +121,62 @@ begin
 end
 
 end bounded
+
+section place
+
+variables {A : Type*} [normed_division_ring A] (K : Type*) [field K] (φ : K →+* A)
+
+/-- An embedding into a normed division ring defines a place on `K` -/
+def place : K → ℝ := norm ∘ φ
+
+end place
+
+section infinite_place
+
+open_locale complex_conjugate
+
+variables {K : Type*} [field K]
+
+/-- An embedding is real if its fixed by complex conjugation. -/
+def is_real (φ : K →+* ℂ): Prop := conj ∘ φ =  φ
+
+/-- An embedding is real if its not fixed by complex conjugation. -/
+def is_complex (φ : K →+* ℂ): Prop := conj ∘ φ ≠ φ
+
+/-- Two complex embeddings define the same place iff they are equal or complex conjugate. -/
+lemma complex_place_eq_iff {φ ψ : K →+* ℂ} :
+  place K φ = place K ψ ↔ φ = ψ ∨ conj ∘ φ = ψ :=
+begin
+  split,
+  { intro h,
+    obtain ⟨_, hiφ⟩ := function.injective.has_left_inverse φ.injective,
+    let ι := ring_equiv.of_left_inverse hiφ,
+    let ψ₀ : φ.field_range →+* ℂ := ring_hom.comp ψ ι.symm.to_ring_hom,
+    have hlip : lipschitz_with 1 (ring_hom.comp ψ ι.symm.to_ring_hom),
+    { change lipschitz_with 1 (ψ ∘ ι.symm),
+      apply lipschitz_with.of_dist_le_mul,
+      intros x y,
+      rw [nonneg.coe_one, one_mul, complex.normed_field.dist_eq, ← map_sub, ← map_sub],
+      convert (le_of_eq (congr_fun h (ι.symm (x - y))).symm) using 1,
+      rw [place, function.comp_app, ← ring_equiv.of_left_inverse_apply hiφ _,
+        ring_equiv.apply_symm_apply ι _],
+      refl, },
+    cases (subfield.eq_id_or_conj_uniform_continuous φ.field_range hlip.uniform_continuous)
+      with he he,
+    { left, ext1 x,
+      convert (congr_fun he (ι x)).symm,
+      exact (ring_equiv.apply_symm_apply ι.symm x).symm, },
+    { right, ext1 x,
+      convert (congr_fun he (ι x)).symm,
+      exact (ring_equiv.apply_symm_apply ι.symm x).symm, }},
+  { rintros (⟨h⟩ | ⟨h⟩),
+    { ext x, convert congr_arg complex.abs (ring_hom.congr_fun h x), },
+    { ext x,
+      rw [place, place, function.comp_app, function.comp_app, complex.norm_eq_abs,
+        complex.norm_eq_abs, ← complex.abs_conj],
+      convert congr_arg complex.abs (congr_fun h x), }},
+end
+
+end infinite_place
 
 end number_field.embeddings

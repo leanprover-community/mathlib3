@@ -164,11 +164,12 @@ variables [fiber_bundle F E] [vector_bundle 𝕜 F E]
 /-- Class stating that a topological vector bundle is smooth, in the sense of having smooth
 transition functions. -/
 class smooth_vector_bundle : Prop :=
-(smooth_transitions : ∀ (e e' : trivialization F (@total_space.proj _ E))
+(smooth_on_coord_change : ∀ (e e' : trivialization F (@total_space.proj _ E))
   [mem_trivialization_atlas e] [mem_trivialization_atlas e'],
   smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ b : B, (e.coord_change 𝕜 e' b : F →L[𝕜] F))
   (e.base_set ∩ e'.base_set))
 
+export smooth_vector_bundle (smooth_on_coord_change)
 variables [smooth_vector_bundle F E IB]
 
 /-- For a smooth vector bundle `E` over `B` with fibre modelled on `F`, the change-of-co-ordinates
@@ -183,10 +184,10 @@ instance : has_groupoid (total_space E) (smooth_fiberwise_linear B F IB) :=
     simp_rw mem_Union,
     use e.base_set ∩ e'.base_set,
     use e.open_base_set.inter e'.open_base_set,
-    use smooth_vector_bundle.smooth_transitions e e',
+    use smooth_on_coord_change e e',
     refine ⟨_, _, _⟩,
     { rw inter_comm,
-      apply cont_mdiff_on.congr (smooth_vector_bundle.smooth_transitions e' e),
+      apply cont_mdiff_on.congr (smooth_on_coord_change e' e),
       { intros b hb,
         rw e.symm_coord_change 𝕜 e' hb },
       { apply_instance },
@@ -209,5 +210,43 @@ begin
   sorry -- check smoothness
 end
 
+variables (F₁ : Type*) [normed_add_comm_group F₁] [normed_space 𝕜 F₁]
+  (E₁ : B → Type*) [topological_space (total_space E₁)]
+  [Π x, add_comm_monoid (E₁ x)] [Π x, module 𝕜 (E₁ x)]
 
-#lint
+variables (F₂ : Type*) [normed_add_comm_group F₂] [normed_space 𝕜 F₂]
+  (E₂ : B → Type*) [topological_space (total_space E₂)]
+  [Π x, add_comm_monoid (E₂ x)] [Π x, module 𝕜 (E₂ x)]
+variables [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E₂ x)]
+  [fiber_bundle F₁ E₁] [fiber_bundle F₂ E₂]
+  [vector_bundle 𝕜 F₁ E₁] [vector_bundle 𝕜 F₂ E₂]
+  [smooth_vector_bundle F₁ E₁ IB] [smooth_vector_bundle F₂ E₂ IB]
+
+/-- The product of two vector bundles is a vector bundle. -/
+instance _root_.bundle.prod.smooth_vector_bundle :
+  smooth_vector_bundle (F₁ × F₂) (E₁ ×ᵇ E₂) IB :=
+begin
+  constructor,
+  rintros - -
+    ⟨⟨e₁, e₂⟩, ⟨i₁ : mem_trivialization_atlas e₁, i₂ : mem_trivialization_atlas e₂⟩, rfl⟩
+    ⟨⟨e₁', e₂'⟩, ⟨i₁' : mem_trivialization_atlas e₁', i₂' : mem_trivialization_atlas e₂'⟩, rfl⟩,
+  resetI,
+  sorry
+  -- refine (((smooth_on_coord_change e₁ e₁').mono _).prod_mapL 𝕜
+  --   ((smooth_on_coord_change e₂ e₂').mono _)).congr _,
+  -- dsimp only [base_set_prod] with mfld_simps,
+  -- { mfld_set_tac },
+  -- { mfld_set_tac },
+  -- { rintro b hb,
+  --   rw [continuous_linear_map.ext_iff],
+  --   rintro ⟨v₁, v₂⟩,
+  --   show (e₁.prod e₂).coord_change R (e₁'.prod e₂') b (v₁, v₂) =
+  --     (e₁.coord_change R e₁' b v₁, e₂.coord_change R e₂' b v₂),
+  --   rw [e₁.coord_change_apply R e₁', e₂.coord_change_apply R e₂',
+  --     (e₁.prod e₂).coord_change_apply' R],
+  --   exacts [rfl, hb, ⟨hb.1.2, hb.2.2⟩, ⟨hb.1.1, hb.2.1⟩] }
+end
+
+
+
+-- #lint

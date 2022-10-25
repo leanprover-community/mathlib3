@@ -220,8 +220,6 @@ def homeomorph_unit_ball [normed_space ℝ E] :
     nlinarith [norm_nonneg (y : E), (mem_ball_zero_iff.1 y.2 : ∥(y : E)∥ < 1)],
   end }
 
-#exit
-
 @[simp] lemma coe_homeomorph_unit_ball_apply_zero [normed_space ℝ E] :
   (homeomorph_unit_ball (0 : E) : E) = 0 :=
 by simp [homeomorph_unit_ball]

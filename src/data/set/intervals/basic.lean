@@ -549,7 +549,7 @@ eq_singleton_iff_unique_mem.2 ⟨left_mem_Ici, λ b, h.eq_of_ge⟩
 
 lemma _root_.is_min.Iic_eq (h : is_min a) : Iic a = {a} := h.to_dual.Ici_eq
 
-lemma Iic_injective : function.injective (Ici : α → set α) :=
+lemma Ici_injective : function.injective (Ici : α → set α) :=
 begin
   intros a b,
   rw [subset_antisymm_iff, le_antisymm_iff],
@@ -559,19 +559,10 @@ begin
   { rw ← Ici_subset_Ici, exact h.1, },
 end
 
-lemma Ici_eq_Ici_iff (a b : α) : Ici a = Ici b ↔ a = b := Iic_injective.eq_iff
+lemma Ici_eq_Ici_iff (a b : α) : Ici a = Ici b ↔ a = b := Ici_injective.eq_iff
 
 lemma Iic_eq_Iic_iff : Iic a = Iic b ↔ a = b :=
-begin
-  split,
-  { intro h,
-    rw le_antisymm_iff,
-    rw subset.antisymm_iff at h,
-    split,
-    { rw ← Iic_subset_Iic, exact h.1, },
-    { rw ← Iic_subset_Iic, exact h.2, } },
-  { apply congr_arg, }
-end
+Ici_eq_Ici_iff (to_dual a) (to_dual b)
 
 end partial_order
 

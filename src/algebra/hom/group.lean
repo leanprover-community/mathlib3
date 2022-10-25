@@ -1310,8 +1310,8 @@ class coe_is_monoid_hom [mul_one_class M] [mul_one_class N]
   extends coe_is_one_hom M N, coe_is_mul_hom M N
 
 -- `to_additive` doesn't seem to map these correctly...
-attribute [to_additive coe_is_add_monoid_hom.to_coe_zero_hom] coe_is_monoid_hom.to_coe_one_hom
-attribute [to_additive coe_is_add_monoid_hom.to_coe_is_add_hom] coe_is_monoid_hom.to_coe_mul_hom
+attribute [to_additive coe_is_add_monoid_hom.to_coe_is_zero_hom] coe_is_monoid_hom.to_coe_is_one_hom
+attribute [to_additive coe_is_add_monoid_hom.to_coe_is_add_hom] coe_is_monoid_hom.to_coe_is_mul_hom
 
 /-- `monoid_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
 bundled as a monoid homomorphism. -/

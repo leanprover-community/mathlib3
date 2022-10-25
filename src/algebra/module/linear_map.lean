@@ -980,7 +980,7 @@ def coe_is_linear_map (R M N : Type*) [semiring R] [has_lift_t M N] [has_smul R 
 coe_is_semilinear_map (ring_hom.id R) M N
 
 @[priority 100] -- See note [lower instance priority]
-instance coe_is_linear_map.to_coe_smul_hom (M N : Type*) [has_lift_t M N]
+instance coe_is_linear_map.to_coe_is_smul_hom (M N : Type*) [has_lift_t M N]
   [has_smul R M] [has_smul R N] [coe_is_linear_map R M N] :
   coe_is_smul_hom R M N :=
 { coe_smul := coe_smulₛₗ (ring_hom.id R) }

@@ -579,7 +579,7 @@ class coe_is_ring_hom [non_assoc_semiring R] [non_assoc_semiring S]
   extends coe_is_monoid_hom R S, coe_is_add_monoid_hom R S
 
 @[priority 100] -- See note [lower instance priority]
-instance coe_is_ring_hom.to_coe_non_unital_ring_hom [non_assoc_semiring R] [non_assoc_semiring S]
+instance coe_is_ring_hom.to_coe_is_non_unital_ring_hom [non_assoc_semiring R] [non_assoc_semiring S]
   [inst : coe_is_ring_hom R S] : coe_is_non_unital_ring_hom R S :=
 { .. inst }
 

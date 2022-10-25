@@ -200,34 +200,10 @@ rfl
 
 variables {α : Type*} [group α] {s t : subgroup α}
 
-/-- If `s ≤ t`, then there is a map `α ⧸ s → α ⧸ t`. -/
-@[to_additive "If `s ≤ t`, then there is an map `α ⧸ s → α ⧸ t`."]
-def quotient_map_of_le (h : s ≤ t) : α ⧸ s → α ⧸ t :=
-quotient.map' id (λ a b, by { simp_rw [quotient_group.left_rel_eq], apply h })
-
-@[simp, to_additive]
-lemma quotient_map_of_le_apply_mk (h : s ≤ t) (g : α) :
-  quotient_map_of_le h (quotient_group.mk g) = quotient_group.mk g :=
-rfl
-
-/-- The natural embedding `H ⧸ (⨅ i, f i).subgroup_of H ↪ Π i, H ⧸ (f i).subgroup_of H`. -/
-@[to_additive "There is an embedding
-  `H ⧸ (⨅ i, f i).add_subgroup_of H) ↪ Π i, H ⧸ (f i).add_subgroup_of H`."]
-def quotient_infi_embedding' {ι : Type*} (f : ι → subgroup α) : α ⧸ (⨅ i, f i) ↪ Π i, α ⧸ (f i) :=
-{ to_fun := λ q i, quotient_map_of_le (infi_le f i) q,
-  inj' := quotient.ind₂' $ by simp_rw [function.funext_iff, quotient_map_of_le_apply_mk,
-    quotient_group.eq', mem_infi, imp_self, forall_const] }
-
-@[simp, to_additive] lemma quotient_infi_embedding'_apply_mk
-  {ι : Type*} (f : ι → subgroup α) (g : α) (i : ι) :
-  quotient_infi_embedding' f (quotient_group.mk g) i = quotient_group.mk g :=
-rfl
-
 noncomputable def quotient_center_embedding_commutators (S : set G) (hS : closure S = ⊤) :
   G ⧸ center G ↪ S → {g₀ | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g₀} :=
-(quotient_equiv_of_eq (center_eq_infi' S hS)).to_embedding.trans
-  ((quotient_infi_embedding' _).trans (function.embedding.Pi_congr_right
-  (λ g, quotient_centralizer_embedding_commutators g)))
+(quotient_equiv_of_eq (center_eq_infi' S hS)).to_embedding.trans ((quotient_infi_embedding _).trans
+  (function.embedding.Pi_congr_right (λ g, quotient_centralizer_embedding_commutators g)))
 
 lemma quotient_center_embedding_commutators_apply (S : set G) (hS : closure S = ⊤) (g : G) (s : S) :
   quotient_center_embedding_commutators S hS g s = ⟨⁅g, s⁆, g, s, rfl⟩ :=

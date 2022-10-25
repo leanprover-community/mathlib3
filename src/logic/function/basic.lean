@@ -571,6 +571,13 @@ extend_apply_of_factors_through g e' (hf.factors_through g) a
   extend f g e' b = e' b :=
 by simp [function.extend_def, hb]
 
+lemma factors_through_iff (g : α → γ) [nonempty γ]:
+g.factors_through f ↔ ∃ (e : β → γ), g = e ∘ f :=
+iff.intro
+  (λ hf, ⟨extend f g (const β (classical.arbitrary γ)),
+      funext (λ x, by simp only [comp_app, extend_apply_of_factors_through g _ hf])⟩)
+  (λ h a b hf, by rw [classical.some_spec h, comp_apply, hf])
+
 lemma apply_extend_of_factors_through {δ} (F : γ → δ) (g : α → γ) (e' : β → γ)
   (hf : factors_through g f) (b : β) :
   F (extend f g e' b) = extend f (F ∘ g) (F ∘ e') b :=

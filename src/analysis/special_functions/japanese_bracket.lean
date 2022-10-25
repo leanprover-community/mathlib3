@@ -36,13 +36,13 @@ variables {E : Type*} [normed_add_comm_group E]
 
 lemma zero_lt_one_add_norm_sq (x : E) : 0 < 1 + ∥x∥^2 := by positivity
 
-lemma jap_le_one_add_norm (x : E) : real.sqrt (1 + ∥x∥^2) ≤ 1 + ∥x∥ :=
+lemma sqrt_one_add_norm_sq_le (x : E) : real.sqrt (1 + ∥x∥^2) ≤ 1 + ∥x∥ :=
 begin
   refine le_of_pow_le_pow 2 (by positivity) two_pos _,
   simp [sq_sqrt (zero_lt_one_add_norm_sq x).le, add_pow_two],
 end
 
-lemma one_add_norm_le_jap (x : E) : 1 + ∥x∥ ≤ (real.sqrt 2) * sqrt (1 + ∥x∥^2) :=
+lemma one_add_norm_le_sqrt_two_mul_sqrt (x : E) : 1 + ∥x∥ ≤ (real.sqrt 2) * sqrt (1 + ∥x∥^2) :=
 begin
   have h2 : 0 ≤ (real.sqrt 2) * real.sqrt (1 + ∥x∥^2) := by positivity,
   have : (sqrt 2 * sqrt (1 + ∥x∥ ^ 2)) ^ 2 - (1 + ∥x∥) ^ 2 = (1 - ∥x∥) ^2 :=
@@ -56,7 +56,7 @@ begin
   positivity,
 end
 
-lemma rpow_neg_jap_le_one_add_norm {r : ℝ} (x : E) (hr : 0 < r) :
+lemma rpow_neg_one_add_norm_sq_le {r : ℝ} (x : E) (hr : 0 < r) :
   (1 + ∥x∥^2)^(-r/2) ≤ 2^(r/2) * (1 + ∥x∥)^(-r) :=
 begin
   have h1 : 0 ≤ (2 : ℝ) := by positivity,
@@ -68,19 +68,17 @@ begin
     ←inv_mul_le_iff (rpow_pos_of_pos h3 _), rpow_neg h4.le, rpow_neg (sqrt_nonneg _), ←mul_inv,
     ←mul_rpow h3.le h5.le, inv_le_inv (rpow_pos_of_pos h6 _) (rpow_pos_of_pos h4 _),
     rpow_le_rpow_iff h4.le h6.le hr],
-  exact one_add_norm_le_jap _,
+  exact one_add_norm_le_sqrt_two_mul_sqrt _,
 end
 
-variables (E)
-
-lemma set_le_one_add_norm_eq_closed_ball_aux {r t : ℝ} (hr : 0 < r) (ht : 0 < t) :
-  {a : E | t ≤ (1 + ∥a∥) ^ -r} = metric.closed_ball 0 (t^(-r⁻¹) - 1) :=
+lemma le_rpow_one_add_norm_iff_norm_le {r t : ℝ} (hr : 0 < r) (ht : 0 < t) (x : E) :
+  t ≤ (1 + ∥x∥) ^ -r ↔ ∥x∥ ≤ t ^ -r⁻¹ - 1 :=
 begin
-  ext,
-  simp only [norm_eq_abs, mem_set_of_eq, mem_closed_ball_zero_iff],
   rw [le_sub_iff_add_le', neg_inv],
   exact (real.le_rpow_inv_iff_of_neg (by positivity) ht (neg_lt_zero.mpr hr)).symm,
 end
+
+variables (E)
 
 lemma closed_ball_rpow_sub_one_eq_empty_aux {r t : ℝ} (hr : 0 < r) (ht : 1 < t) :
   metric.closed_ball (0 : E) (t^(-r⁻¹) - 1) = ∅ :=
@@ -136,7 +134,9 @@ begin
   begin
     intros t ht,
     congr' 1,
-    exact set_le_one_add_norm_eq_closed_ball_aux E hr (mem_Ioi.mp ht),
+    ext,
+    simp only [mem_set_of_eq, mem_closed_ball_zero_iff],
+    exact le_rpow_one_add_norm_iff_norm_le hr (mem_Ioi.mp ht) x,
   end,
   rw set_lintegral_congr_fun measurable_set_Ioi (ae_of_all volume $ h_int),
   have hIoi_eq : Ioi (0 : ℝ) = Ioc (0 : ℝ) 1 ∪ Ioi 1 :=
@@ -179,6 +179,8 @@ begin
   simp,
 end
 
+#exit
+
 lemma integrable_one_add_norm [measure_space E] [borel_space E] [(@volume E _).is_add_haar_measure]
   {r : ℝ} (hnr : (finrank ℝ E : ℝ) < r) :
   integrable (λ (x : E), (1 + ∥x∥) ^ -r) :=
@@ -196,8 +198,8 @@ begin
   exact finite_integral_one_add_norm hnr,
 end
 
-lemma integrable_jap [measure_space E] [borel_space E] [(@volume E _).is_add_haar_measure]
-  {r : ℝ} (hnr : (finrank ℝ E : ℝ) < r) :
+lemma integrable_rpow_neg_one_add_norm_sq [measure_space E] [borel_space E]
+  [(@volume E _).is_add_haar_measure] {r : ℝ} (hnr : (finrank ℝ E : ℝ) < r) :
   integrable (λ (x : E), (1 + ∥x∥^2) ^ (-r/2)) :=
 begin
   have hr : 0 < r := lt_of_le_of_lt (finrank ℝ E).cast_nonneg hnr,
@@ -207,5 +209,5 @@ begin
   have h2 : 0 ≤ (1 + ∥x∥) ^ -r := by positivity,
   have h3 : 0 ≤ (2 : ℝ)^(r/2) := by positivity,
   simp_rw [norm_mul, norm_eq_abs, abs_of_nonneg h1, abs_of_nonneg h2, abs_of_nonneg h3],
-  exact rpow_neg_jap_le_one_add_norm _ hr,
+  exact rpow_neg_one_add_norm_sq_le _ hr,
 end

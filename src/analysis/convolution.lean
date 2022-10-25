@@ -81,6 +81,8 @@ open set function filter measure_theory measure_theory.measure topological_space
 open continuous_linear_map metric
 open_locale pointwise topological_space nnreal filter
 
+noncomputable theory
+
 variables {𝕜 G E E' E'' F F' F'' : Type*}
 variables [normed_add_comm_group E] [normed_add_comm_group E'] [normed_add_comm_group E'']
   [normed_add_comm_group F] {f f' : G → E} {g g' : G → E'} {x x' : G} {y y' : E}
@@ -759,20 +761,77 @@ lemma closed_ball_subset_ball' {α : Type*} [metric_space α] {ε₁ ε₂ : ℝ
   ... ≤ ε₁ + dist x y : add_le_add_right hz _
   ... < ε₂ : h
 
+namespace exists_cont_diff_bump_base
 
 variable (H)
-lemma foo : ∃ g : H → ℝ, cont_diff ℝ ⊤ g ∧
-  (∀ x, g x ∈ Icc (0 : ℝ) 1) ∧ (support g = ball 0 1) ∧ (∀ x, g (-x) = g x) ∧
-  (has_compact_support g) :=
+lemma foo : ∃ u : H → ℝ, cont_diff ℝ ⊤ u ∧
+  (∀ x, u x ∈ Icc (0 : ℝ) 1) ∧ (support u = ball 0 1) ∧ (∀ x, u (-x) = u x) :=
 sorry
+
+variable {H}
+
+def u (x : H) : ℝ := classical.some (foo H) x
+
+local notation `φ` := (closed_ball (0 : H) 1).indicator (λ y, 1)
+
+lemma u_smooth : cont_diff ℝ ⊤ (u : H → ℝ) := (classical.some_spec (foo H)).1
+
+lemma u_continuous : continuous (u : H → ℝ) := u_smooth.continuous
+
+lemma u_nonneg (x : H) : 0 ≤ u x := ((classical.some_spec (foo H)).2.1 x).1
+
+lemma u_le_one (x : H) : u x ≤ 1 := ((classical.some_spec (foo H)).2.1 x).2
+
+lemma u_support : support (u : H → ℝ) = ball 0 1 := (classical.some_spec (foo H)).2.2.1
+
+lemma u_symm (x : H) : u (-x) = u x := (classical.some_spec (foo H)).2.2.2 x
+
+lemma u_compact_support : has_compact_support (u : H → ℝ) :=
+begin
+  rw [has_compact_support_def, u_support, closure_ball (0 : H) one_ne_zero],
+  exact is_compact_closed_ball _ _,
+end
+
+variables [measurable_space H] [borel_space H]
+
+local notation `μ` := measure_theory.measure.add_haar
+
+lemma u_int_pos : 0 < ∫ (x : H), u x ∂μ :=
+begin
+  refine (integral_pos_iff_support_of_nonneg u_nonneg _).mpr _,
+  { exact u_continuous.integrable_of_has_compact_support u_compact_support },
+  { rw u_support, exact measure_ball_pos _ _ zero_lt_one }
+end
+
+def W (R : ℝ) (x : H) : ℝ := ((∫ (x : H), u x ∂μ) * R^(finrank ℝ H))⁻¹ • u (R⁻¹ • x)
+
+lemma W_def (R : ℝ) :
+  (W R : H → ℝ) = λ x, ((∫ (x : H), u x ∂μ) * R^(finrank ℝ H))⁻¹ • u (R⁻¹ • x) :=
+by { ext1 x, refl }
+
+lemma W_mul_φ_nonneg {R: ℝ} (x y : H) (Rpos : 0 < R) : 0 ≤ W R y * φ (x - y) :=
+begin
+  refine mul_nonneg _ (indicator_nonneg (by simp only [zero_le_one, implies_true_iff]) _),
+  apply mul_nonneg _ (u_nonneg _),
+  apply inv_nonneg.2,
+  apply mul_nonneg u_int_pos.le,
+  apply pow_nonneg Rpos.le,
+end
+
+lemma W_support {R : ℝ} (Rpos : 0 < R) : support (W R : H → ℝ) = ball 0 R :=
+begin
+  have B : R • ball (0 : H) 1 = ball 0 R,
+    by rw [smul_unit_ball Rpos.ne', real.norm_of_nonneg Rpos.le],
+  have C : R ^ finrank ℝ H ≠ 0, from pow_ne_zero _ Rpos.ne',
+  simp only [W_def, algebra.id.smul_eq_mul, support_mul, support_inv, univ_inter,
+    support_comp_inv_smul _ Rpos.ne', u_support, B, support_const u_int_pos.ne', support_const C],
+end
 
 set_option profiler true
 
 def e : cont_diff_bump_base H :=
 begin
   borelize H,
-  let μ : measure H := measure_theory.measure.add_haar,
-  choose g g_smooth g_mem g_support g_symm comp_supp_g using foo H,
   have g_cont : continuous g := g_smooth.continuous,
   set φ : H → ℝ := (closed_ball (0 : H) 1).indicator (λ y, 1) with hφ,
   set c := ∫ x, g x ∂μ with hc,

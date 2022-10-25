@@ -197,7 +197,7 @@ begin
   rintro (h|h); simp [hinj h.1, hinj h.2],
 end
 
-section set_like
+section membership
 
 /-! ### Membership and set coercion -/
 
@@ -211,7 +211,7 @@ protected def mem (x : α) (z : sym2 α) : Prop :=
 
 lemma mem_iff' {a b c : α} : sym2.mem a ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
 { mp  := by { rintro ⟨_, h⟩, rw eq_iff at h, tidy },
-  mpr := by { rintro ⟨_⟩; subst a, { exact ⟨_, rfl⟩ }, rw eq_swap, exact ⟨_, rfl⟩ } }
+  mpr := by { rintro (rfl|rfl), { exact ⟨_, rfl⟩ }, rw eq_swap, exact ⟨_, rfl⟩ } }
 
 instance : set_like (sym2 α) α :=
 { coe := λ z, {x | z.mem x},
@@ -279,7 +279,7 @@ lemma eq_of_ne_mem {x y : α} {z z' : sym2 α} (h : x ≠ y)
 instance mem.decidable [decidable_eq α] (x : α) (z : sym2 α) : decidable (x ∈ z) :=
 quotient.rec_on_subsingleton z (λ ⟨y₁, y₂⟩, decidable_of_iff' _ mem_iff)
 
-end set_like
+end membership
 
 @[simp] lemma mem_map {f : α → β} {b : β} {z : sym2 α} :
   b ∈ sym2.map f z ↔ ∃ a, a ∈ z ∧ f a = b :=

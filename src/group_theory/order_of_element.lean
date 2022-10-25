@@ -663,9 +663,8 @@ begin
 end
 
 @[to_additive] lemma subgroup.pow_index_mem {G : Type*} [group G] (H : subgroup G)
-  [finite (G ⧸ H)] [normal H] (g : G) : g ^ index H ∈ H :=
-by { casesI nonempty_fintype (G ⧸ H),
-  rw [←eq_one_iff, quotient_group.coe_pow H, index_eq_card, pow_card_eq_one] }
+  [normal H] (g : G) : g ^ index H ∈ H :=
+by rw [←eq_one_iff, quotient_group.coe_pow H, index, pow_card_eq_one']
 
 @[to_additive] lemma pow_eq_mod_card (n : ℕ) :
   x ^ n = x ^ (n % fintype.card G) :=

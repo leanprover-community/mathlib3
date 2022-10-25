@@ -51,13 +51,15 @@ variables (𝕜 : Type*) [comm_semiring 𝕜]
 variables (A : Type*) [topological_space A] [semiring A] [topological_semiring A] [star_ring A]
 variables [has_continuous_star A] [algebra 𝕜 A]
 
-@[simps] def comp_star_alg_equiv (f : X ≃ₜ Y) : C(Y, A) ≃⋆ₐ[𝕜] C(X, A) :=
-{ to_fun := λ g, g.comp f,
-  inv_fun := λ g, g.comp f.symm,
-  left_inv := λ g, by simp only [continuous_map.comp_assoc, to_continuous_map_comp_symm,
-    continuous_map.comp_id],
-  right_inv := λ g, by simp only [continuous_map.comp_assoc, symm_comp_to_continuous_map,
-    continuous_map.comp_id],
+/-- `continuous_map.star_alg_hom'` as a `star_alg_equiv` when the continuous map `f` is actually
+a homeomorphism. -/
+@[simps] def comp_star_alg_equiv' (f : X ≃ₜ Y) : C(Y, A) ≃⋆ₐ[𝕜] C(X, A) :=
+{ to_fun := (f : C(X, Y)).comp_star_alg_hom' 𝕜 A,
+  inv_fun := (f.symm : C(Y, X)).comp_star_alg_hom' 𝕜 A,
+  left_inv := λ g, by simp only [continuous_map.comp_star_alg_hom'_apply, continuous_map.comp_assoc,
+    to_continuous_map_comp_symm, continuous_map.comp_id],
+  right_inv := λ g, by simp only [continuous_map.comp_star_alg_hom'_apply,
+    continuous_map.comp_assoc, symm_comp_to_continuous_map, continuous_map.comp_id],
   map_smul' := λ k a, map_smul (f.to_continuous_map.comp_star_alg_hom' 𝕜 A) k a,
   .. (f.to_continuous_map.comp_star_alg_hom' 𝕜 A) }
 
@@ -480,8 +482,12 @@ infer_instance
 localized "attribute [instance] complex.partial_order complex.strict_ordered_comm_ring
   complex.star_ordered_ring" in c_star_algebra
 
--- this is just a stepping stone to the main theorem
-lemma foo₃ : spectrum ℂ (star a * a) ⊆ set.Icc (0 : ℂ) (∥star a * a∥) :=
+/- This lemma is used in the proof of `star_subalgebra.is_unit_of_is_unit_of_is_star_normal`,
+which in turn is the key to spectral permanence `star_subalgebra.spectrum_eq`, which is itself
+necessary for the continuous functional calculus. Using the continuous functional calculus, this
+lemma can be superseded by one that omits the `is_star_normal` hypothesis. -/
+lemma spectrum_star_mul_self_of_is_star_normal :
+  spectrum ℂ (star a * a) ⊆ set.Icc (0 : ℂ) (∥star a * a∥) :=
 begin
   nontriviality A,
   set a' : elemental_algebra ℂ a := ⟨a, self_mem_elemental_algebra ℂ a⟩,
@@ -495,10 +501,9 @@ begin
     complex.real_le_real.2 (alg_hom.norm_apply_le_self φ (star a' * a'))⟩,
 end
 
-.
 
 variables {a}
-.
+
 namespace complex
 
 lemma eq_coe_re_of_real_le {r : ℝ} {z : ℂ} (hz : (r : ℂ) ≤ z) : z = z.re :=
@@ -509,15 +514,23 @@ by rw [eq_coe_re_of_real_le hz, is_R_or_C.norm_of_real, real.norm_of_nonneg (com
 
 end complex
 
-lemma is_unit_of_is_unit (h : is_unit (star a * a)) :
-  is_unit ((⟨star a, star_self_mem_elemental_algebra ℂ a⟩ : elemental_algebra ℂ a) * ⟨a, self_mem_elemental_algebra ℂ a⟩ ) :=
+/-- This is the key lemma on the way to establishing spectral permanence for C⋆-algebras, which is
+established in `star_subalgebra.spectrum_eq`. This lemma is superseded by
+`star_subalgebra.coe_is_unit`, which does not require an `is_star_normal` hypothesis and holds for
+any closed star subalgebra. -/
+lemma is_unit_of_is_unit_of_is_star_normal (h : is_unit a) :
+  is_unit (⟨a, self_mem_elemental_algebra ℂ a⟩ : elemental_algebra ℂ a) :=
 begin
   nontriviality A,
   set a' : elemental_algebra ℂ a := ⟨a, self_mem_elemental_algebra ℂ a⟩,
+  suffices : is_unit (star a' * a'),
+  { exact (is_unit.mul_iff.1 this).2 },
+  replace h := (show commute (star a) a, from star_comm_self' a).is_unit_mul_iff.2 ⟨h.star, h⟩,
   have h₁ : (∥star a * a∥₊ : ℂ) ≠ 0,
   { simpa only [coe_nnnorm, coe_coe, complex.of_real_eq_zero, ne.def]
     using norm_ne_zero_iff.2 h.ne_zero },
-  set u : units (elemental_algebra ℂ a) := units.map (algebra_map ℂ (elemental_algebra ℂ a)).to_monoid_hom (units.mk0 _ h₁),
+  set u : units (elemental_algebra ℂ a) :=
+    units.map (algebra_map ℂ (elemental_algebra ℂ a)).to_monoid_hom (units.mk0 _ h₁),
   refine ⟨u.unit_of_nearby _ _, rfl⟩,
   simp only [complex.abs_of_real, map_inv₀, units.coe_map, units.coe_inv, ring_hom.coe_monoid_hom,
     ring_hom.to_monoid_hom_eq_coe, units.coe_mk0, units.coe_map_inv, norm_algebra_map', coe_nnnorm,
@@ -527,7 +540,7 @@ begin
     change (coe : ℂ → A) with algebra_map ℂ A at hz,
     rw [←spectrum.singleton_sub_eq, set.singleton_sub] at hz,
     have h₃ : z ∈ set.Icc (0 : ℂ) (∥star a * a∥),
-    { replace hz := set.image_subset _ (foo₃ a) hz,
+    { replace hz := set.image_subset _ (spectrum_star_mul_self_of_is_star_normal a) hz,
       rwa [set.image_const_sub_Icc, sub_self, sub_zero] at hz },
     refine lt_of_le_of_ne (complex.real_le_real.1 $ complex.eq_coe_norm_of_nonneg h₃.1 ▸ h₃.2) _,
     { intros hz',
@@ -550,15 +563,6 @@ begin
     ... < ∥star a * a∥₊ : spectrum.spectral_radius_lt_of_forall_lt _ h₂ ) },
 end
 
-.
-
-lemma is_unit_of_is_unit₂ (h : is_unit a) :
-  is_unit (⟨a, self_mem_elemental_algebra ℂ a⟩ : elemental_algebra ℂ a) :=
-(is_unit.mul_iff.1 $ is_unit_of_is_unit $
-  (show commute (star a) a, from star_comm_self' a).is_unit_mul_iff.2 ⟨h.star, h⟩).2
-
-.
-
 /-- For `a : A` which is invertible in `A`, the inverse lies in any unital C⋆-subalgebra `S`
 containing `a`. -/
 lemma is_unit_coe_inv_mem {S : star_subalgebra ℂ A} (hS : is_closed (S : set A)) {x : A}
@@ -571,7 +575,7 @@ begin
     exact mul_mem this (star_mem hxS) },
   refine elemental_algebra_le_of_mem S hS _ (mul_mem (star_mem hxS) hxS) _,
   haveI := (is_self_adjoint.star_mul_self x).is_star_normal,
-  have hx' := is_unit_of_is_unit₂ hx,
+  have hx' := is_unit_of_is_unit_of_is_star_normal hx,
   convert (↑hx'.unit⁻¹ : elemental_algebra ℂ (star x * x)).prop using 1,
   exact left_inv_eq_right_inv hx.unit.inv_mul (congr_arg coe hx'.unit.mul_inv),
 end
@@ -586,33 +590,39 @@ begin
   exacts [subtype.coe_injective hx.mul_coe_inv, subtype.coe_injective hx.coe_inv_mul],
 end
 
-/-- **Spectral permanence**. The spectrum of an element is invariant of the C⋆-algebra in which
-it is contained. -/
+/-- **Spectral permanence**. The spectrum of an element is invariant of the `star_subalgebra` in
+which it is contained. -/
 lemma spectrum_eq {S : star_subalgebra ℂ A} (hS : is_closed (S : set A)) (x : S) :
   spectrum ℂ x = spectrum ℂ (x : A) :=
 set.ext $ λ _, not_iff_not.2 (coe_is_unit hS).symm
 
 variables (a)
 
-noncomputable def foo : character_space ℂ (elemental_algebra ℂ a) → spectrum ℂ a :=
-λ φ,
-{ val := φ ⟨a, self_mem_elemental_algebra ℂ a⟩,
-  property := by simpa only [spectrum_eq (elemental_algebra_closed a)
-    ⟨a, self_mem_elemental_algebra ℂ a⟩]
-    using alg_hom.apply_mem_spectrum φ (⟨a, self_mem_elemental_algebra ℂ a⟩) }
+@[simps]
+noncomputable def character_space_elemental_algebra :
+  C(character_space ℂ (elemental_algebra ℂ a), spectrum ℂ a) :=
+{ to_fun := λ φ,
+  { val := φ ⟨a, self_mem_elemental_algebra ℂ a⟩,
+    property := by simpa only [spectrum_eq (elemental_algebra_closed a)
+      ⟨a, self_mem_elemental_algebra ℂ a⟩]
+      using alg_hom.apply_mem_spectrum φ (⟨a, self_mem_elemental_algebra ℂ a⟩) },
+  continuous_to_fun := continuous_induced_rng.2 (map_continuous $
+      gelfand_transform ℂ (elemental_algebra ℂ a) ⟨a, self_mem_elemental_algebra ℂ a⟩) }
 
 noncomputable instance foobar : star_alg_hom_class (character_space ℂ A) ℂ A ℂ :=
 { coe := λ f, (f : A → ℂ),
   map_star := λ f, map_star f,
   .. character_space.alg_hom_class }
 
-lemma foo_injective : function.injective (foo a) :=
+lemma character_space_elemental_algebra_injective :
+  function.injective (character_space_elemental_algebra a) :=
 begin
   intros φ ψ h,
-  simp only [foo, subtype.mk_eq_mk] at h,
+  simp only [character_space_elemental_algebra, subtype.mk_eq_mk] at h,
   refine ext_star_alg_hom_class_topological_closure (map_continuous φ) (map_continuous ψ) (λ x, _),
   refine adjoin_induction' ℂ x _ _ _ _ _,
-  { intros y hy, rw set.mem_singleton_iff at hy, simp_rw hy, exact h },
+  { intros y hy, rw set.mem_singleton_iff at hy, simp_rw hy,
+    simpa only [continuous_map.coe_mk, subtype.mk_eq_mk] using h},
   { intros z, simp only [alg_hom_class.commutes] },
   { intros x y hx hy,
   calc φ (inclusion _ _ (le_topological_closure (adjoin ℂ {a})) (x + y))
@@ -628,9 +638,8 @@ begin
   { intros x hx, simp only [map_star, hx] },
 end
 
-.
-
-lemma foo_surjective : function.surjective (foo a) :=
+lemma character_space_elemental_algebra_surjective :
+  function.surjective (character_space_elemental_algebra a) :=
 begin
   rintros ⟨z, hz⟩,
   have hz' := hz,
@@ -645,22 +654,27 @@ begin
   refl,
 end
 
-lemma foo_continuous : continuous (foo a) :=
-begin
-  rw continuous_induced_rng,
-  have : (coe : spectrum ℂ a → ℂ) ∘ (foo a) = (λ φ, φ ⟨a, self_mem_elemental_algebra ℂ a⟩),
-  exact funext (λ φ, rfl),
-  rw this,
-  exact map_continuous (gelfand_transform ℂ (elemental_algebra ℂ a) ⟨a, self_mem_elemental_algebra ℂ a⟩) ,
-end
-
-noncomputable def foo_homeo : character_space ℂ (elemental_algebra ℂ a) ≃ₜ spectrum ℂ a :=
+-- I think this is actually another natural transformation, but I'm not entirely sure what the
+-- category is here
+/-- The homeomorphism between the character space of the unital C⋆-subalgebra generated by a
+single normal element `a : A` and `spectrum ℂ a`. -/
+noncomputable def character_space_elemental_algebra_homeo :
+  character_space ℂ (elemental_algebra ℂ a) ≃ₜ spectrum ℂ a :=
 @continuous.homeo_of_equiv_compact_to_t2 _ _ _ _ _ _
-  (equiv.of_bijective (foo a) ⟨foo_injective a, foo_surjective a⟩) (foo_continuous a)
+  (equiv.of_bijective (character_space_elemental_algebra a)
+    ⟨character_space_elemental_algebra_injective a,
+     character_space_elemental_algebra_surjective a⟩)
+    (map_continuous $ character_space_elemental_algebra a)
 
+/-- **Continuous functional calculus.** Given a normal element `a : A` of a unital C⋆-algebra,
+the continuous functional calculus is a `star_alg_equiv` from the complex-valued continuous
+funcitons on the spectrum of `a` to the unital C⋆-subalgebra generated by `a`. Moreover, this
+equivalence identifies `(continuous_map.id ℂ).restrict (spectrum ℂ a))` with `a`; see
+`continuous_functional_calculus_map_id`. -/
 noncomputable def continuous_functional_calculus :
   C(spectrum ℂ a, ℂ) ≃⋆ₐ[ℂ] elemental_algebra ℂ a :=
-((foo_homeo a).comp_star_alg_equiv ℂ ℂ).trans (gelfand_star_transform (elemental_algebra ℂ a)).symm
+((character_space_elemental_algebra_homeo a).comp_star_alg_equiv' ℂ ℂ).trans
+  (gelfand_star_transform (elemental_algebra ℂ a)).symm
 
 lemma continuous_functional_calculus_map_id :
   continuous_functional_calculus a ((continuous_map.id ℂ).restrict (spectrum ℂ a)) =

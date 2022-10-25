@@ -58,7 +58,7 @@ preorder, order, partial order, poset, linear order, chain
 open function
 
 universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
+variables {ι : Type*} {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
 section preorder
 variables [preorder α] {a b c : α}
@@ -728,6 +728,28 @@ densely_ordered.dense
 instance order_dual.densely_ordered (α : Type u) [has_lt α] [densely_ordered α] :
   densely_ordered αᵒᵈ :=
 ⟨λ a₁ a₂ ha, (@exists_between α _ _ _ _ ha).imp $ λ a, and.symm⟩
+
+instance [preorder α] [preorder β] [densely_ordered α] [densely_ordered β] :
+  densely_ordered (α × β) :=
+⟨λ a b, begin
+  simp_rw prod.lt_iff,
+  rintro (⟨h₁, h₂⟩ | ⟨h₁, h₂⟩),
+  { obtain ⟨c, ha, hb⟩ := exists_between h₁,
+    exact ⟨(c, _), or.inl ⟨ha, h₂⟩, or.inl ⟨hb, le_rfl⟩⟩ },
+  { obtain ⟨c, ha, hb⟩ := exists_between h₂,
+    exact ⟨(_, c), or.inr ⟨h₁, ha⟩, or.inr ⟨le_rfl, hb⟩⟩ }
+end⟩
+
+instance {α : ι → Type*} [Π i, preorder (α i)] [Π i, densely_ordered (α i)] :
+  densely_ordered (Π i, α i) :=
+⟨λ a b, begin
+  classical,
+  simp_rw pi.lt_def,
+  rintro ⟨hab, i, hi⟩,
+  obtain ⟨c, ha, hb⟩ := exists_between hi,
+  exact ⟨function.update a i c, ⟨le_update_iff.2 ⟨ha.le, λ _ _, le_rfl⟩, i, by rwa update_same⟩,
+    update_le_iff.2 ⟨hb.le, λ _ _, hab _⟩, i, by rwa update_same⟩,
+end⟩
 
 lemma le_of_forall_le_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}
   (h : ∀ a, a₂ < a → a₁ ≤ a) :

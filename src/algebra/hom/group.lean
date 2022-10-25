@@ -1291,8 +1291,9 @@ lemma coe_bit0 [has_add M] [has_add N] [coe_is_add_hom M N]
 coe_add _ _
 
 @[simp, norm_cast]
-lemma coe_bit1 [has_one M] [has_add M] [has_one N] [has_add N] [coe_is_one_hom M N] [coe_is_add_hom M N]
-  (x : M) : ↑(bit1 x) = bit1 (↑x : N) :=
+lemma coe_bit1 [has_one M] [has_add M] [has_one N] [has_add N] [coe_is_one_hom M N]
+  [coe_is_add_hom M N] (x : M) :
+  ↑(bit1 x) = bit1 (↑x : N) :=
 by simp [bit1]
 
 /-- `coe_is_add_monoid_hom M N` is a class stating that the coercion map `↑ : M → N` (a.k.a. `coe`)

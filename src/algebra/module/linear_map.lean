@@ -972,7 +972,8 @@ coe_is_semilinear_map.coe_smulₛₗ' c x
 /-- `coe_is_linear_map R M N` is a class stating that the coercion map `↑ : M → N`
 (a.k.a. `coe`) is an R-linear map.
 
-This is essentially the same as `coe_is_smul_hom R M N` except it's compatible with `linear_map.coe`.
+This is essentially the same as `coe_is_smul_hom R M N` except it's compatible with
+`linear_map.coe`.
 -/
 @[reducible]
 def coe_is_linear_map (R M N : Type*) [semiring R] [has_lift_t M N] [has_smul R M] [has_smul R N] :=

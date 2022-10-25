@@ -3,8 +3,8 @@ Copyright (c) 2022 Floris van Doorn, Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Heather Macbeth
 -/
-import geometry.manifold.cont_mdiff
-import topology.new_vector_bundle
+import geometry.manifold.vector_bundle.fiberwise_linear
+import topology.vector_bundle.constructions
 
 open bundle vector_bundle set
 open_locale manifold
@@ -35,8 +35,6 @@ charted_space.comp _ (model_prod B F) _
 
 end
 
-/-! ### The groupoid of smooth, fibrewise-linear maps -/
-
 variables [nontrivially_normed_field 𝕜] [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)]
   [normed_add_comm_group F] [normed_space 𝕜 F]
   [topological_space (total_space E)] [∀ x, topological_space (E x)]
@@ -49,112 +47,6 @@ variables [nontrivially_normed_field 𝕜] [∀ x, add_comm_monoid (E x)] [∀ x
   {HM : Type*} [topological_space HM] (IM : model_with_corners 𝕜 EM HM)
   [topological_space M] [charted_space HM M] [smooth_manifold_with_corners IM M]
 
-
-/-- For `B` a topological space and `F` a `𝕜`-normed space, a map from `U : set B` to `F ≃L[𝕜] F`
-determines a local homeomorphism from `B × F` to itself by its action fibrewise. -/
-def smooth_fiberwise_linear.local_homeomorph (φ : B → F ≃L[𝕜] F) {U : set B} (hU : is_open U)
-  (hφ : continuous_on (λ x, φ x : B → F →L[𝕜] F) U)
-  (h2φ : continuous_on (λ x, (φ x).symm : B → F →L[𝕜] F) U) :
-  local_homeomorph (B × F) (B × F) :=
-{ to_fun := λ x, (x.1, φ x.1 x.2),
-  inv_fun := λ x, (x.1, (φ x.1).symm x.2),
-  source := U ×ˢ univ,
-  target := U ×ˢ univ,
-  map_source' := λ x hx, mk_mem_prod hx.1 (mem_univ _),
-  map_target' := λ x hx, mk_mem_prod hx.1 (mem_univ _),
-  left_inv' := sorry,
-  right_inv' := sorry,
-  open_source := hU.prod is_open_univ,
-  open_target := hU.prod is_open_univ,
-  continuous_to_fun := sorry,
-  continuous_inv_fun := sorry }
-
-lemma smooth_fiberwise_linear.source_trans_local_homeomorph {φ : B → (F ≃L[𝕜] F)}
-  {U : set B}
-  (hU : is_open U)
-  (hφ : continuous_on (λ x, φ x : B → F →L[𝕜] F) U)
-  (h2φ : continuous_on (λ x, (φ x).symm : B → F →L[𝕜] F) U)
-  {φ' : B → (F ≃L[𝕜] F)}
-  {U' : set B}
-  (hU' : is_open U')
-  (hφ' : continuous_on (λ x, φ' x : B → F →L[𝕜] F) U')
-  (h2φ' : continuous_on (λ x, (φ' x).symm : B → F →L[𝕜] F) U') :
-  (smooth_fiberwise_linear.local_homeomorph φ hU hφ h2φ ≫ₕ
-      smooth_fiberwise_linear.local_homeomorph φ' hU' hφ' h2φ').source = (U ∩ U') ×ˢ univ :=
-begin
-  sorry,
-end
-
-lemma smooth_fiberwise_linear.trans_local_homeomorph_apply {φ : B → (F ≃L[𝕜] F)}
-  {U : set B}
-  (hU : is_open U)
-  (hφ : continuous_on (λ x, φ x : B → F →L[𝕜] F) U)
-  (h2φ : continuous_on (λ x, (φ x).symm : B → F →L[𝕜] F) U)
-  {φ' : B → (F ≃L[𝕜] F)}
-  {U' : set B}
-  (hU' : is_open U')
-  (hφ' : continuous_on (λ x, φ' x : B → F →L[𝕜] F) U')
-  (h2φ' : continuous_on (λ x, (φ' x).symm : B → F →L[𝕜] F) U')
-  {b : B}
-  (hb : b ∈ U ∩ U')
-  (v : F) :
-  (smooth_fiberwise_linear.local_homeomorph φ hU hφ h2φ ≫ₕ
-      smooth_fiberwise_linear.local_homeomorph φ' hU' hφ' h2φ') ⟨b, v⟩ = ⟨b, φ' b (φ b v)⟩ :=
-begin
-  sorry,
-end
-
-variables (F B)
-/-- For `B` a manifold and `F` a normed space, the groupoid on `B × F` consisting of local
-homeomorphisms which are bi-smooth and fibrewise linear. -/
-def smooth_fiberwise_linear : structure_groupoid (B × F) :=
-{ members := ⋃ (φ : B → F ≃L[𝕜] F) (U : set B) (hU : is_open U)
-  (hφ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, φ x : B → F →L[𝕜] F) U)
-  (h2φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (φ x).symm : B → F →L[𝕜] F) U),
-  {e | e.eq_on_source (smooth_fiberwise_linear.local_homeomorph φ hU hφ.continuous_on h2φ.continuous_on)},
-  trans' := begin
-    rintros e e' ⟨-, ⟨φ, rfl⟩, -, ⟨U, rfl⟩, -, ⟨hU, rfl⟩, -, ⟨hφ, rfl⟩, -, ⟨h2φ, rfl⟩, heφ⟩
-      ⟨-, ⟨φ', rfl⟩, -, ⟨U', rfl⟩, -, ⟨hU', rfl⟩, -, ⟨hφ', rfl⟩, -, ⟨h2φ', rfl⟩, heφ'⟩,
-    dsimp at heφ heφ',
-    apply mem_Union.mpr,
-    use λ b, (φ b).trans (φ' b),
-    simp_rw mem_Union,
-    refine ⟨U ∩ U', hU.inter hU', _, _, setoid.trans (heφ.trans' heφ') ⟨_, _⟩⟩,
-    { sorry },
-    { sorry }, -- two smoothness checks
-    { apply smooth_fiberwise_linear.source_trans_local_homeomorph },
-    { rintros ⟨b, v⟩ hb,
-      apply smooth_fiberwise_linear.trans_local_homeomorph_apply,
-      rw smooth_fiberwise_linear.source_trans_local_homeomorph at hb,
-      simpa [-mem_inter] using hb }
-  end,
-  symm' := begin
-    rintros e ⟨-, ⟨φ, rfl⟩, -, ⟨U, rfl⟩, -, ⟨hU, rfl⟩, -, ⟨hφ, rfl⟩, -, ⟨h2φ, rfl⟩, heφ⟩,
-    dsimp at heφ,
-    apply mem_Union.mpr,
-    use λ b, (φ b).symm,
-    simp_rw mem_Union,
-    refine ⟨U, hU, h2φ, _, heφ.symm'⟩,
-    simp_rw continuous_linear_equiv.symm_symm,
-    exact hφ
-  end,
-  id_mem' := begin
-    apply mem_Union.mpr,
-    use λ b, continuous_linear_equiv.refl 𝕜 F,
-    simp_rw mem_Union,
-    refine ⟨univ, is_open_univ, cont_mdiff_on_const, cont_mdiff_on_const, ⟨_, λ b hb, _⟩⟩,
-    { simp [smooth_fiberwise_linear.local_homeomorph] },
-    { simp [smooth_fiberwise_linear.local_homeomorph] },
-  end,
-  locality' := sorry, -- a bit tricky, need to glue together a family of `φ`
-  eq_on_source' := begin
-    rintros e e' ⟨-, ⟨φ, rfl⟩, -, ⟨U, rfl⟩, -, ⟨hU, rfl⟩, -, ⟨hφ, rfl⟩, -, ⟨h2φ, rfl⟩, heφ⟩ hee',
-    apply mem_Union.mpr,
-    use φ,
-    simp_rw mem_Union,
-    refine ⟨U, hU, hφ, h2φ, setoid.trans hee' heφ⟩,
-  end }
-
 variables (IB F E) {B}
 
 /-! ### Smooth vector bundles -/
@@ -166,7 +58,7 @@ transition functions. -/
 class smooth_vector_bundle : Prop :=
 (smooth_on_coord_change : ∀ (e e' : trivialization F (@total_space.proj _ E))
   [mem_trivialization_atlas e] [mem_trivialization_atlas e'],
-  smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ b : B, (e.coord_change 𝕜 e' b : F →L[𝕜] F))
+  smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ b : B, (e.coord_changeL 𝕜 e' b : F →L[𝕜] F))
   (e.base_set ∩ e'.base_set))
 
 export smooth_vector_bundle (smooth_on_coord_change)

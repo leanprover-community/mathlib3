@@ -179,8 +179,6 @@ begin
   simp,
 end
 
-#exit
-
 lemma integrable_one_add_norm [measure_space E] [borel_space E] [(@volume E _).is_add_haar_measure]
   {r : ℝ} (hnr : (finrank ℝ E : ℝ) < r) :
   integrable (λ (x : E), (1 + ∥x∥) ^ -r) :=

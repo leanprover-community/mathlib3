@@ -399,7 +399,7 @@ include hA
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits a zero."]
 instance has_one : has_one S' := ⟨⟨1, one_mem_class.one_mem S'⟩⟩
 
-@[to_additive] instance : coe_one_hom S' M₁ := { coe_one := rfl }
+@[to_additive] instance : coe_is_one_hom S' M₁ := { coe_one := rfl }
 
 -- even though there is a generic `coe_one`, this can still be useful as a `dsimp` lemma,
 -- so keep it `@[simp]`
@@ -506,9 +506,9 @@ subtype.coe_injective.linear_ordered_cancel_comm_monoid coe rfl (λ _ _, rfl) (�
 include hA
 
 @[to_additive]
-instance : coe_monoid_hom S' M :=
-{ .. mul_mem_class.coe_mul_hom S',
-  .. one_mem_class.coe_one_hom S' }
+instance : coe_is_monoid_hom S' M :=
+{ .. mul_mem_class.coe_is_mul_hom S',
+  .. one_mem_class.coe_is_one_hom S' }
 
 /-- The natural monoid hom from a submonoid of monoid `M` to `M`. -/
 @[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`."]

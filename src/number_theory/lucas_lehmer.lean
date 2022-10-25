@@ -248,7 +248,7 @@ instance [fact (1 < (q : ℕ))] : nontrivial (X q) :=
 protected lemma coe_mul (n m : ℤ) : ((n * m : ℤ) : X q) = (n : X q) * (m : X q) :=
 by { ext; simp; ring }
 
-instance : coe_mul_hom ℤ (X q) :=
+instance : coe_is_mul_hom ℤ (X q) :=
 { coe_mul := lucas_lehmer.X.coe_mul }
 
 @[norm_cast]

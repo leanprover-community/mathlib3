@@ -359,26 +359,26 @@ section coe
 
 variables (M' X Y)
 
-/-- `coe_smul_hom M X Y` is a class stating that the coercion map `↑ : X → Y`
+/-- `coe_is_smul_hom M X Y` is a class stating that the coercion map `↑ : X → Y`
 (a.k.a. `coe`) preserves scalar multiplication by `M`.
 
 Note that there is no class corresponding to `mul_action`, `distrib_mul_action` or
-`mul_semiring_action`: instead we assume `coe_smul_hom` and `coe_add_monoid_hom` or `coe_ring_hom`
-in separate parameters.
-This is because `coe_smul_hom` has a different set of parameters from those other classes,
+`mul_semiring_action`: instead we assume `coe_is_smul_hom` and `coe_is_add_monoid_hom` or
+`coe_is_ring_hom` in separate parameters.
+This is because `coe_is_smul_hom` has a different set of parameters from those other classes,
 so extending both classes at once wouldn't work.
 -/
-class coe_smul_hom [has_lift_t X Y] :=
+class coe_is_smul_hom [has_lift_t X Y] :=
 (coe_smul : ∀ (c : M') (x : X), ↑(c • x) = c • (↑x : Y))
 
-export coe_smul_hom (coe_smul)
+export coe_is_smul_hom (coe_smul)
 
 attribute [simp, norm_cast] coe_smul
 
 /-- `mul_action_hom.coe X Y` is the map `↑ : M → N` (a.k.a. `coe`),
 bundled as a scalar-multiplication preserving map. -/
 @[simps { fully_applied := ff }]
-protected def mul_action_hom.coe [has_lift_t X Y] [coe_smul_hom M' X Y] : X →[M'] Y :=
+protected def mul_action_hom.coe [has_lift_t X Y] [coe_is_smul_hom M' X Y] : X →[M'] Y :=
 { to_fun := coe,
   map_smul' := coe_smul }
 
@@ -387,8 +387,8 @@ variables (M A B)
 /-- `distrib_mul_action_hom.coe X Y` is the map `↑ : M → N` (a.k.a. `coe`),
 bundled as an equivariant additive monoid homomorphism. -/
 @[simps { fully_applied := ff }]
-protected def distrib_mul_action_hom.coe [has_lift_t A B] [coe_add_monoid_hom A B]
-  [coe_smul_hom M A B] : A →+[M] B :=
+protected def distrib_mul_action_hom.coe [has_lift_t A B] [coe_is_add_monoid_hom A B]
+  [coe_is_smul_hom M A B] : A →+[M] B :=
 { to_fun := coe,
   .. mul_action_hom.coe M A B,
   .. add_monoid_hom.coe A B }
@@ -398,7 +398,8 @@ variables (M X Y)
 /-- `mul_semiring_action_hom.coe X Y` is the map `↑ : M → N` (a.k.a. `coe`),
 bundled as an equivariant semiring homomorphism. -/
 @[simps { fully_applied := ff }]
-protected def mul_semiring_action_hom.coe [has_lift_t R S] [coe_ring_hom R S] [coe_smul_hom M R S] :
+protected def mul_semiring_action_hom.coe [has_lift_t R S] [coe_is_ring_hom R S]
+  [coe_is_smul_hom M R S] :
   R →+*[M] S :=
 { to_fun := coe,
   .. distrib_mul_action_hom.coe M R S,

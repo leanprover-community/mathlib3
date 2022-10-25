@@ -160,12 +160,12 @@ by { apply with_top.coe_lt_coe.2, exact with_bot.bot_lt_coe _ }
 @[norm_cast] protected lemma coe_mul (x y : ℝ) : (↑(x * y) : ereal) = x * y :=
 (with_top.coe_eq_coe.2 with_bot.coe_mul).trans with_top.coe_mul
 
-instance : coe_monoid_with_zero_hom ℝ ereal :=
+instance : coe_is_monoid_with_zero_hom ℝ ereal :=
 { coe_one := ereal.coe_one,
   coe_mul := ereal.coe_mul,
   coe_zero := ereal.coe_zero }
 
-instance : coe_add_monoid_hom ℝ ereal :=
+instance : coe_is_add_monoid_hom ℝ ereal :=
 { coe_zero := ereal.coe_zero,
   coe_add := ereal.coe_add }
 

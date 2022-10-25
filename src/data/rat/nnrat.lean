@@ -67,7 +67,7 @@ open _root_.rat (to_nnrat)
 
 @[simp] lemma coe_nonneg (q : ℚ≥0) : (0 : ℚ) ≤ q := q.2
 
-instance : coe_ring_hom ℚ≥0 ℚ :=
+instance : coe_is_ring_hom ℚ≥0 ℚ :=
 { coe_one := rfl,
   coe_zero := rfl,
   coe_add := λ _ _, rfl,

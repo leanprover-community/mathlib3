@@ -229,7 +229,7 @@ lemma coe_ne_zero : (r : ℝ≥0∞) ≠ 0 ↔ r ≠ 0 := not_congr coe_eq_coe
 @[norm_cast] protected lemma coe_add : ↑(r + p) = (r + p : ℝ≥0∞) := with_top.coe_add
 @[norm_cast] protected lemma coe_mul : ↑(r * p) = (r * p : ℝ≥0∞) := with_top.coe_mul
 
-instance : coe_ring_hom ℝ≥0 ℝ≥0∞ :=
+instance : coe_is_ring_hom ℝ≥0 ℝ≥0∞ :=
 { coe_add := λ _ _, ennreal.coe_add,
   coe_zero := ennreal.coe_zero,
   coe_mul := λ _ _, ennreal.coe_mul,

@@ -25,10 +25,10 @@ variables {α β : Type*}
 
 namespace nat
 
-instance (α : Type*) [add_monoid_with_one α] : coe_one_hom ℕ α :=
+instance (α : Type*) [add_monoid_with_one α] : coe_is_one_hom ℕ α :=
 { coe_one := cast_one }
 
-instance (α : Type*) [add_monoid_with_one α] : coe_add_monoid_hom ℕ α :=
+instance (α : Type*) [add_monoid_with_one α] : coe_is_add_monoid_hom ℕ α :=
 { coe_add := cast_add,
   coe_zero := cast_zero }
 
@@ -43,10 +43,10 @@ add_monoid_hom.coe ℕ α
   ((m * n : ℕ) : α) = m * n :=
 by induction n; simp [mul_succ, mul_add, *]
 
-instance (α : Type*) [non_assoc_semiring α] : coe_ring_hom ℕ α :=
+instance (α : Type*) [non_assoc_semiring α] : coe_is_ring_hom ℕ α :=
 { coe_mul := cast_mul,
   coe_one := cast_one,
-  .. nat.coe_add_monoid_hom α }
+  .. nat.coe_is_add_monoid_hom α }
 
 /-- `coe : ℕ → α` as a `ring_hom` -/
 def cast_ring_hom (α : Type*) [non_assoc_semiring α] : ℕ →+* α :=

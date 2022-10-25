@@ -191,7 +191,7 @@ by rw [bit1, cast_add, cast_one, cast_bit0]; refl
 
 variables (α) [char_zero α]
 
-instance : coe_ring_hom ℚ α :=
+instance : coe_is_ring_hom ℚ α :=
 { coe_one := cast_one,
   coe_mul := cast_mul,
   coe_zero := cast_zero,

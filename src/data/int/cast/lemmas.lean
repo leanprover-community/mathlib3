@@ -44,11 +44,11 @@ theorem cast_mul [non_assoc_ring α] : ∀ m n, ((m * n : ℤ) : α) = m * n :=
   ((ite P m n : ℤ) : α) = ite P m n :=
 apply_ite _ _ _ _
 
-instance (α : Type*) [add_group_with_one α] : coe_add_monoid_hom ℤ α :=
+instance (α : Type*) [add_group_with_one α] : coe_is_add_monoid_hom ℤ α :=
 { coe_zero := cast_zero,
   coe_add := cast_add }
 
-instance (α : Type*) [add_group_with_one α] : coe_one_hom ℤ α :=
+instance (α : Type*) [add_group_with_one α] : coe_is_one_hom ℤ α :=
 { coe_one := cast_one }
 
 /-- `coe : ℤ → α` as an `add_monoid_hom`. -/
@@ -56,10 +56,10 @@ def cast_add_hom (α : Type*) [add_group_with_one α] : ℤ →+ α := add_monoi
 
 @[simp] lemma coe_cast_add_hom [add_group_with_one α] : ⇑(cast_add_hom α) = coe := rfl
 
-instance (α : Type*) [non_assoc_ring α] : coe_ring_hom ℤ α :=
+instance (α : Type*) [non_assoc_ring α] : coe_is_ring_hom ℤ α :=
 { coe_mul := cast_mul,
-  .. int.coe_one_hom α,
-  .. int.coe_add_monoid_hom α }
+  .. int.coe_is_one_hom α,
+  .. int.coe_is_add_monoid_hom α }
 
 /-- `coe : ℤ → α` as a `ring_hom`. -/
 def cast_ring_hom (α : Type*) [non_assoc_ring α] : ℤ →+* α :=

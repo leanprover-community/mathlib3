@@ -116,7 +116,7 @@ instance : coe_mul_hom (special_linear_group n R) (matrix n n R) :=
 
 @[simp] protected lemma coe_one : ↑ₘ(1 : special_linear_group n R) = (1 : matrix n n R) := rfl
 
-instance : coe_one_hom (special_linear_group n R) (matrix n n R) :=
+instance : coe_is_one_hom (special_linear_group n R) (matrix n n R) :=
 { coe_one := special_linear_group.coe_one }
 
 @[simp] lemma det_coe : det ↑ₘA = 1 := A.2

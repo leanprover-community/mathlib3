@@ -208,11 +208,11 @@ protected lemma nonempty : (p : set M).nonempty := ⟨0, p.zero_mem⟩
 
 @[simp] lemma mk_eq_zero {x} (h : x ∈ p) : (⟨x, h⟩ : p) = 0 ↔ x = 0 := subtype.ext_iff_val
 
-instance : coe_add_monoid_hom p M :=
+instance : coe_is_add_monoid_hom p M :=
 { coe_zero := rfl,
   coe_add := λ _ _, rfl }
 
-instance : coe_linear_map R p M :=
+instance : coe_is_linear_map R p M :=
 { coe_smulₛₗ' := λ _ _, rfl }
 
 variables {p}

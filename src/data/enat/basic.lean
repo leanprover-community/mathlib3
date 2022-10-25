@@ -38,7 +38,7 @@ protected lemma coe_add (m n : ℕ) : ↑(m + n) = (m + n : ℕ∞) := rfl
 protected lemma coe_sub (m n : ℕ) : ↑(m - n) = (m - n : ℕ∞) := rfl
 protected lemma coe_mul (m n : ℕ) : ↑(m * n) = (m * n : ℕ∞) := with_top.coe_mul
 
-instance : coe_ring_hom ℕ ℕ∞ :=
+instance : coe_is_ring_hom ℕ ℕ∞ :=
 { coe_one := rfl,
   coe_zero := rfl,
   coe_add := λ _ _, rfl,

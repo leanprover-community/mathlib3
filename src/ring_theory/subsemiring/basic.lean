@@ -86,9 +86,9 @@ instance no_zero_divisors [no_zero_divisors R] : no_zero_divisors s :=
   or.cases_on (eq_zero_or_eq_zero_of_mul_eq_zero $ subtype.ext_iff.mp h)
     (λ h, or.inl $ subtype.eq h) (λ h, or.inr $ subtype.eq h) }
 
-instance : coe_ring_hom s R :=
-{ .. submonoid_class.coe_monoid_hom s,
-  .. add_submonoid_class.coe_add_monoid_hom s }
+instance : coe_is_ring_hom s R :=
+{ .. submonoid_class.coe_is_monoid_hom s,
+  .. add_submonoid_class.coe_is_add_monoid_hom s }
 
 /-- The natural ring hom from a subsemiring of semiring `R` to `R`. -/
 def subtype : s →+* R := ring_hom.coe s R

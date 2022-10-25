@@ -45,7 +45,7 @@ instance [has_sub α] : has_sub (completion α) := ⟨completion.map₂ has_sub.
 @[norm_cast]
 protected lemma uniform_space.completion.coe_zero [has_zero α] : ((0 : α) : completion α) = 0 := rfl
 
-instance [has_zero α] : coe_zero_hom α (completion α) := ⟨uniform_space.completion.coe_zero⟩
+instance [has_zero α] : coe_is_zero_hom α (completion α) := ⟨uniform_space.completion.coe_zero⟩
 
 end group
 
@@ -106,9 +106,9 @@ instance : add_monoid (completion α) :=
     (λ a, by rw_mod_cast succ_nsmul ),
   .. completion.has_zero, ..completion.has_add, }
 
-instance : coe_add_monoid_hom α (completion α) :=
+instance : coe_is_add_monoid_hom α (completion α) :=
 { coe_add := λ a b, (map₂_coe_coe a b (+) uniform_continuous_add).symm,
-  .. uniform_space.completion.coe_zero_hom }
+  .. uniform_space.completion.coe_is_zero_hom }
 
 instance : sub_neg_monoid (completion α) :=
 { sub_eq_add_neg := λ a b, completion.induction_on₂ a b

@@ -488,7 +488,7 @@ structure fiber_bundle_core (ι : Type*) (B : Type*) [topological_space B]
 (mem_base_set_at   : ∀ x, x ∈ base_set (index_at x))
 (coord_change      : ι → ι → B → F → F)
 (coord_change_self : ∀ i, ∀ x ∈ base_set i, ∀ v, coord_change i i x v = v)
-(coord_change_continuous : ∀ i j, continuous_on (λp : B × F, coord_change i j p.1 p.2)
+(continuous_on_coord_change : ∀ i j, continuous_on (λp : B × F, coord_change i j p.1 p.2)
                                                (((base_set i) ∩ (base_set j)) ×ˢ univ))
 (coord_change_comp : ∀ i j k, ∀ x ∈ (base_set i) ∩ (base_set j) ∩ (base_set k), ∀ v,
   (coord_change j k x) (coord_change i j x v) = coord_change i k x v)
@@ -555,9 +555,9 @@ def triv_change (i j : ι) : local_homeomorph (B × F) (B × F) :=
   open_target :=
     (is_open.inter (C.is_open_base_set i) (C.is_open_base_set j)).prod is_open_univ,
   continuous_to_fun  :=
-    continuous_on.prod continuous_fst.continuous_on (C.coord_change_continuous i j),
+    continuous_on.prod continuous_fst.continuous_on (C.continuous_on_coord_change i j),
   continuous_inv_fun := by simpa [inter_comm]
-    using continuous_on.prod continuous_fst.continuous_on (C.coord_change_continuous j i) }
+    using continuous_on.prod continuous_fst.continuous_on (C.continuous_on_coord_change j i) }
 
 @[simp, mfld_simps] lemma mem_triv_change_source (i j : ι) (p : B × F) :
   p ∈ (C.triv_change i j).source ↔ p.1 ∈ C.base_set i ∩ C.base_set j :=
@@ -782,7 +782,7 @@ begin
     rw [preimage_inter, preimage_comp],
     by_cases (b ∈ C.base_set i),
     { have hc : continuous (λ (x : C.fiber b), (C.coord_change (C.index_at b) i b) x),
-        from (C.coord_change_continuous (C.index_at b) i).comp_continuous
+        from (C.continuous_on_coord_change (C.index_at b) i).comp_continuous
           (continuous_const.prod_mk continuous_id) (λ x, ⟨⟨C.mem_base_set_at b, h⟩, mem_univ x⟩),
       exact (((C.local_triv i).open_target.inter ht).preimage (continuous.prod.mk b)).preimage hc },
     { rw [(C.local_triv i).target_eq, ←base_set_at, mk_preimage_prod_right_eq_empty h,

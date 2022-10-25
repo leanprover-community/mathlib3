@@ -375,9 +375,10 @@ mt $ by { rintro rfl, exact norm_one' }
 lemma norm_of_subsingleton' [subsingleton E] (a : E) : ∥a∥ = 0 :=
 by rw [subsingleton.elim a 1, norm_one']
 
-lemma zero_lt_one_add_norm_sq (x : E) : 0 < 1 + ∥x∥^2 := by positivity
-
 attribute [nontriviality] norm_of_subsingleton
+
+@[to_additive zero_lt_one_add_norm_sq]
+lemma zero_lt_one_add_norm_sq' (x : E) : 0 < 1 + ∥x∥^2 := by positivity
 
 @[to_additive] lemma norm_div_le (a b : E) : ∥a / b∥ ≤ ∥a∥ + ∥b∥ :=
 by simpa [dist_eq_norm_div] using dist_triangle a 1 b

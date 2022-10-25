@@ -165,6 +165,18 @@ begin
       alg_hom.to_ring_hom_eq_coe, alg_hom.comp_left_continuous_apply] },
 end
 
+/-- The Gelfand transform as a `star_alg_equiv` between a commutative unital C⋆-algebra over `ℂ`
+and the continuous functions on its `character_space`. -/
+@[simps]
+noncomputable def gelfand_star_transform : A ≃⋆ₐ[ℂ] C(character_space ℂ A, ℂ) :=
+star_alg_equiv.of_bijective
+  (show A →⋆ₐ[ℂ] C(character_space ℂ A, ℂ), from
+  { map_star' := λ x, continuous_map.ext $ λ φ, by simp only [alg_hom.to_fun_eq_coe,
+      is_R_or_C.star_def, eq_self_iff_true, continuous_map.star_apply,
+      weak_dual.gelfand_transform_apply_apply, map_star φ],
+    .. gelfand_transform ℂ A })
+  (gelfand_transform_bijective A)
+
 end complex_cstar_algebra
 
 section functoriality

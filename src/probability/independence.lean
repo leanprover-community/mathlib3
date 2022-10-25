@@ -467,6 +467,30 @@ begin
   exact (generate_from_Union_measurable_set _).symm,
 end
 
+lemma Indep_set.indep_generate_from_lt [preorder ι] [is_probability_measure μ]
+  {s : ι → set Ω} (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (i : ι) :
+  indep (generate_from {s i}) (generate_from {t | ∃ j < i, s j = t}) μ :=
+begin
+  convert hs.indep_generate_from_of_disjoint hsm {i} {j | j < i}
+    (λ x ⟨hx₁, hx₂⟩, (set.mem_set_of.1 hx₂).ne $ set.mem_singleton_iff.1 hx₁),
+  simp only [set.mem_singleton_iff, exists_prop, exists_eq_left, set.set_of_eq_eq_singleton'],
+end
+
+lemma Indep_set.indep_generate_from_le [linear_order ι] [is_probability_measure μ]
+  {s : ι → set Ω} (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ)
+  (i : ι) {k : ι} (hk : i < k) :
+  indep (generate_from {s k}) (generate_from {t | ∃ j ≤ i, s j = t}) μ :=
+begin
+  convert hs.indep_generate_from_of_disjoint hsm {k} {j | j ≤ i}
+    (λ x ⟨hx₁, hx₂⟩, not_lt.2 (set.mem_set_of.2 hx₂) $ (set.mem_singleton_iff.1 hx₁).symm ▸ hk),
+  simp only [set.mem_singleton_iff, exists_prop, exists_eq_left, set.set_of_eq_eq_singleton'],
+end
+
+lemma Indep_set.indep_generate_from_le_nat [is_probability_measure μ]
+  {s : ℕ → set Ω} (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (n : ℕ):
+  indep (generate_from {s (n + 1)}) (generate_from {t | ∃ k ≤ n, s k = t}) μ :=
+hs.indep_generate_from_le hsm _ n.lt_succ_self
+
 lemma indep_supr_of_monotone [semilattice_sup ι] {Ω} {m : ι → measurable_space Ω}
   {m' m0 : measurable_space Ω} {μ : measure Ω} [is_probability_measure μ]
   (h_indep : ∀ i, indep (m i) m' μ) (h_le : ∀ i, m i ≤ m0) (h_le' : m' ≤ m0) (hm : monotone m) :

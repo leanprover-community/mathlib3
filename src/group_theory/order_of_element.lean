@@ -654,7 +654,7 @@ lemma pow_card_eq_one : x ^ fintype.card G = 1 :=
 let ⟨m, hm⟩ := @order_of_dvd_card_univ _ x _ _ in
 by simp [hm, pow_mul, pow_order_of_eq_one]
 
--- todo: remove `finite_index` hypothesis once #16989 is merged
+-- todo: remove `finite_index` hypothesis (#16989)
 @[to_additive] lemma subgroup.pow_index_mem {G : Type*} [group G] (H : subgroup G)
   [finite_index H] [normal H] (g : G) : g ^ index H ∈ H :=
 by rw [←eq_one_iff, quotient_group.coe_pow H, index_eq_card, pow_card_eq_one]

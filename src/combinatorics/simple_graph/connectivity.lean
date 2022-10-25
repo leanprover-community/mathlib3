@@ -635,19 +635,11 @@ end
 instance [decidable_eq V] {u v : V} (p : G.walk u v) : decidable p.is_path :=
 by { rw is_path_def, apply_instance }
 
-lemma list.nodup.card_le {α : Type*} [fintype α] {l : list α} (h : l.nodup) :
-  l.length ≤ fintype.card α :=
-begin
-  classical,
-  rw ← list.to_finset_card_of_nodup h,
-  apply finset.card_le_univ,
-end
-
 lemma is_path.length_lt [fintype V] {u v : V} {p : G.walk u v} (hp : p.is_path) :
   p.length < fintype.card V :=
 begin
   rw [nat.lt_iff_add_one_le, ← length_support],
-  exact hp.support_nodup.card_le,
+  exact hp.support_nodup.length_le_card,
 end
 
 /-! ### Walk decompositions -/

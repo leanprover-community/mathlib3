@@ -344,10 +344,9 @@ lemma arccos_eq_arcsin {x : ℝ} (h : 0 ≤ x) :
 lemma arcsin_eq_arccos {x : ℝ} (h : 0 ≤ x) :
   arcsin x = arccos (sqrt (1 - x ^ 2)) :=
 begin
-  rw eq_comm,
-  convert arccos_cos (arcsin_nonneg.2 h)
-                     ((arcsin_le_pi_div_two _).trans (div_le_self pi_pos.le (by norm_num))),
-  exact (cos_arcsin _).symm
+  rw [eq_comm, ← cos_arcsin],
+  exact arccos_cos (arcsin_nonneg.2 h)
+    ((arcsin_le_pi_div_two _).trans (div_le_self pi_pos.le one_le_two))
 end
 
 end real

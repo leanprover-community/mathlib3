@@ -502,11 +502,6 @@ meta def no_hypotheses_case : tactic (option format) :=
 (do `[ring], return $ some "ring") <|>
   fail "polyrith did not find any relevant hypotheses and the goal is not provable by ring"
 
-/-- Tactic for the special case when there are no variables. -/
-meta def no_variables_case : tactic (option format) :=
-(do `[ring], return $ some "ring") <|>
-  fail "polyrith did not find any variables and the goal is not provable by ring"
-
 /--
 This is the main body of the `polyrith` tactic. It takes in the following inputs:
 * `(only_on : bool)` - This represents whether the user used the key word "only"
@@ -535,8 +530,7 @@ meta def _root_.tactic.polyrith (only_on : bool) (hyps : list pexpr) : tactic (o
 do
   sleep 10, -- otherwise can lead to weird errors when actively editing code with polyrith calls
   (eq_names, m, R, args) ← create_args only_on hyps,
-  if eq_names.length = 0 then no_hypotheses_case else
-  if m.length = 0 then no_variables_case else do
+  if eq_names.length = 0 then no_hypotheses_case else do
   sage_out ← sage_output args,
   if is_trace_enabled_for `polyrith then do
     convert_sage_output sage_out,

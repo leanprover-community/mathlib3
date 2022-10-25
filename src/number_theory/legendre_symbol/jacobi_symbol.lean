@@ -67,7 +67,7 @@ Jacobi symbol when `b` is odd and gives less meaningful values when it is not (e
 is `1` when `b = 0`). This is called `jacobi_sym a b`.
 
 We define localized notation (locale `number_theory_symbols`) `J(a | b)` for the Jacobi
-symbol `jacobi_sym a b`. (Unfortunately, there is no subscript "J" in unicode.)
+symbol `jacobi_sym a b`.
 -/
 
 open nat zmod

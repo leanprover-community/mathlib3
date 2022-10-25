@@ -3,6 +3,7 @@ Copyright (c) 2020 Alexander Bentkamp, Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Sébastien Gouëzel, Eric Wieser
 -/
+import linear_algebra.orientation
 import algebra.order.smul
 import data.complex.basic
 import data.fin.vec_notation
@@ -78,9 +79,12 @@ instance [monoid R] [mul_action R ℝ] : mul_action R ℂ :=
 { one_smul := λ x, by ext; simp [smul_re, smul_im, one_smul],
   mul_smul := λ r s x, by ext; simp [smul_re, smul_im, mul_smul] }
 
-instance [semiring R] [distrib_mul_action R ℝ] : distrib_mul_action R ℂ :=
+instance [distrib_smul R ℝ] : distrib_smul R ℂ :=
 { smul_add := λ r x y, by ext; simp [smul_re, smul_im, smul_add],
   smul_zero := λ r, by ext; simp [smul_re, smul_im, smul_zero] }
+
+instance [semiring R] [distrib_mul_action R ℝ] : distrib_mul_action R ℂ :=
+{ ..complex.distrib_smul }
 
 instance [semiring R] [module R ℝ] : module R ℂ :=
 { add_smul := λ r s x, by ext; simp [smul_re, smul_im, add_smul],
@@ -164,6 +168,9 @@ by simp [← finrank_eq_dim, finrank_real_complex, bit0]
 circle. -/
 lemma finrank_real_complex_fact : fact (finrank ℝ ℂ = 2) := ⟨finrank_real_complex⟩
 
+/-- The standard orientation on `ℂ`. -/
+protected noncomputable def orientation : orientation ℝ ℂ (fin 2) := complex.basis_one_I.orientation
+
 end complex
 
 /- Register as an instance (with low priority) the fact that a complex vector space is also a real
@@ -180,6 +187,13 @@ restrict_scalars.is_scalar_tower ℝ ℂ E
   (x : ℝ) (y : E) :
   (x : ℂ) • y = x • y :=
 rfl
+
+/-- The scalar action of `ℝ` on a `ℂ`-module `E` induced by `module.complex_to_real` commutes with
+another scalar action of `M` on `E` whenever the action of `ℂ` commutes with the action of `M`. -/
+@[priority 900]
+instance smul_comm_class.complex_to_real {M E : Type*}
+  [add_comm_group E] [module ℂ E] [has_smul M E] [smul_comm_class ℂ M E] : smul_comm_class ℝ M E :=
+{ smul_comm := λ r _ _, (smul_comm (r : ℂ) _ _ : _) }
 
 @[priority 100]
 instance finite_dimensional.complex_to_real (E : Type*) [add_comm_group E] [module ℂ E]

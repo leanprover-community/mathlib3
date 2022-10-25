@@ -211,8 +211,7 @@ instance prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
 /-- The coarsening of a valuation ring associated to a prime ideal. -/
 def of_prime (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   valuation_subring K :=
-of_le A (localization.subalgebra.of_field K P.prime_compl $
-  le_non_zero_divisors_of_no_zero_divisors $ not_not_intro P.zero_mem).to_subring $
+of_le A (localization.subalgebra.of_field K _ P.prime_compl_le_non_zero_divisors).to_subring $
   λ a ha, subalgebra.algebra_map_mem _ (⟨a, ha⟩ : A)
 
 instance of_prime_algebra (A : valuation_subring K) (P : ideal A) [P.is_prime] :
@@ -619,7 +618,7 @@ the units of the residue field of `A`. -/
 def units_mod_principal_units_equiv_residue_field_units :
   (A.unit_group ⧸ (A.principal_unit_group.comap A.unit_group.subtype)) ≃*
   (local_ring.residue_field A)ˣ :=
-mul_equiv.trans (quotient_group.equiv_quotient_of_eq A.ker_unit_group_to_residue_field_units.symm)
+(quotient_group.quotient_mul_equiv_of_eq A.ker_unit_group_to_residue_field_units.symm).trans
   (quotient_group.quotient_ker_equiv_of_surjective _ A.surjective_unit_group_to_residue_field_units)
 
 @[simp]

@@ -42,16 +42,13 @@ end
 
 lemma one_add_norm_le_sqrt_two_mul_sqrt (x : E) : 1 + ∥x∥ ≤ (real.sqrt 2) * sqrt (1 + ∥x∥^2) :=
 begin
-  have h2 : 0 ≤ (real.sqrt 2) * real.sqrt (1 + ∥x∥^2) := by positivity,
-  have : (sqrt 2 * sqrt (1 + ∥x∥ ^ 2)) ^ 2 - (1 + ∥x∥) ^ 2 = (1 - ∥x∥) ^2 :=
-  begin
-    rw [mul_pow, sq_sqrt (zero_lt_one_add_norm_sq x).le, add_pow_two, sub_pow_two],
-    norm_num,
-    ring,
-  end,
-  refine le_of_pow_le_pow 2 h2 (by norm_num) _,
-  rw [←sub_nonneg, this],
-  positivity,
+  suffices : (sqrt 2 * sqrt (1 + ∥x∥ ^ 2)) ^ 2 - (1 + ∥x∥) ^ 2 = (1 - ∥x∥) ^2,
+  { refine le_of_pow_le_pow 2 (by positivity) (by norm_num) _,
+    rw [←sub_nonneg, this],
+    positivity, },
+  rw [mul_pow, sq_sqrt (zero_lt_one_add_norm_sq x).le, add_pow_two, sub_pow_two],
+  norm_num,
+  ring,
 end
 
 lemma rpow_neg_one_add_norm_sq_le {r : ℝ} (x : E) (hr : 0 < r) :

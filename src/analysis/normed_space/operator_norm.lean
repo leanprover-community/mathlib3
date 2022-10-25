@@ -479,16 +479,16 @@ by { lift r to ℝ≥0 using hr₀, exact f.exists_mul_lt_apply_of_lt_op_nnnorm 
 lemma exists_lt_apply_of_lt_op_nnnorm {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
   [seminormed_add_comm_group F] [densely_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
   {σ₁₂ : 𝕜 →+* 𝕜₂} [normed_space 𝕜 E] [normed_space 𝕜₂ F] [ring_hom_isometric σ₁₂]
-  (f : E →SL[σ₁₂] F) {r : ℝ≥0} (hr : r < ∥f∥₊) : ∃ x : E, ∥x∥₊ ≤ 1 ∧ r < ∥f x∥₊ :=
+  (f : E →SL[σ₁₂] F) {r : ℝ≥0} (hr : r < ∥f∥₊) : ∃ x : E, ∥x∥₊ < 1 ∧ r < ∥f x∥₊ :=
 begin
   obtain ⟨y, hy⟩ := f.exists_mul_lt_apply_of_lt_op_nnnorm hr,
-  have hy'' : ∥y∥₊ ≠ 0 := nnnorm_ne_zero_iff.2
+  have hy' : ∥y∥₊ ≠ 0 := nnnorm_ne_zero_iff.2
     (λ heq, by simpa only [heq, nnnorm_zero, map_zero, not_lt_zero'] using hy),
   have hfy : ∥f y∥₊ ≠ 0 := (zero_le'.trans_lt hy).ne',
   rw [←inv_inv (∥f y∥₊), nnreal.lt_inv_iff_mul_lt (inv_ne_zero hfy), mul_assoc, mul_comm (∥y∥₊),
-    ←mul_assoc, ←nnreal.lt_inv_iff_mul_lt hy''] at hy,
+    ←mul_assoc, ←nnreal.lt_inv_iff_mul_lt hy'] at hy,
   obtain ⟨k, hk₁, hk₂⟩ := normed_field.exists_lt_nnnorm_lt 𝕜 hy,
-  refine ⟨k • y, (nnnorm_smul k y).symm ▸ (nnreal.le_inv_iff_mul_le hy'').1 hk₂.le, _⟩,
+  refine ⟨k • y, (nnnorm_smul k y).symm ▸ (nnreal.lt_inv_iff_mul_lt hy').1 hk₂, _⟩,
   have : ∥σ₁₂ k∥₊ = ∥k∥₊ := subtype.ext ring_hom_isometric.is_iso,
   rwa [map_smulₛₗ f, nnnorm_smul, ←nnreal.div_lt_iff hfy, div_eq_mul_inv, this],
 end
@@ -496,31 +496,52 @@ end
 lemma exists_lt_apply_of_lt_op_norm {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
   [seminormed_add_comm_group F] [densely_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
   {σ₁₂ : 𝕜 →+* 𝕜₂} [normed_space 𝕜 E] [normed_space 𝕜₂ F] [ring_hom_isometric σ₁₂]
-  (f : E →SL[σ₁₂] F) {r : ℝ} (hr : r < ∥f∥) : ∃ x : E, ∥x∥ ≤ 1 ∧ r < ∥f x∥ :=
+  (f : E →SL[σ₁₂] F) {r : ℝ} (hr : r < ∥f∥) : ∃ x : E, ∥x∥ < 1 ∧ r < ∥f x∥ :=
 begin
   by_cases hr₀ : r < 0,
-  { refine ⟨0, by simpa using hr₀⟩, },
+  { exact ⟨0, by simpa using hr₀⟩, },
   { lift r to ℝ≥0 using not_lt.1 hr₀,
     exact f.exists_lt_apply_of_lt_op_nnnorm hr, }
 end
 
-lemma op_nnnorm_eq_Sup_unit_ball {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
+lemma Sup_unit_ball_eq_nnnorm {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
   [seminormed_add_comm_group F] [densely_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
   {σ₁₂ : 𝕜 →+* 𝕜₂} [normed_space 𝕜 E] [normed_space 𝕜₂ F] [ring_hom_isometric σ₁₂]
-  (f : E →SL[σ₁₂] F) : Sup ((λ x, ∥f x∥₊) '' {x : E | ∥x∥₊ ≤ 1}) = ∥f∥₊ :=
+  (f : E →SL[σ₁₂] F) : Sup ((λ x, ∥f x∥₊) '' ball 0 1) = ∥f∥₊ :=
 begin
-  have hball : {x : E | ∥x∥₊ ≤ 1}.nonempty := ⟨0, nnnorm_zero.trans_le zero_le_one⟩,
-  refine cSup_eq_of_forall_le_of_forall_lt_exists_gt (hball.image _) _ (λ ub hub, _),
-  { rintro - ⟨x, hx, rfl⟩, exact f.unit_le_op_norm x hx },
+  refine cSup_eq_of_forall_le_of_forall_lt_exists_gt ((nonempty_ball.mpr zero_lt_one).image _)
+    _ (λ ub hub, _),
+  { rintro - ⟨x, hx, rfl⟩,
+    simpa only [mul_one] using f.le_op_norm_of_le (mem_ball_zero_iff.1 hx).le },
   { obtain ⟨x, hx, hxf⟩ := f.exists_lt_apply_of_lt_op_nnnorm hub,
-    exact ⟨_, ⟨x, hx, rfl⟩, hxf⟩, }
+    exact ⟨_, ⟨x, mem_ball_zero_iff.2 hx, rfl⟩, hxf⟩ },
 end
 
-lemma op_norm_eq_Sup_unit_ball {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
+lemma Sup_unit_ball_eq_norm {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
   [seminormed_add_comm_group F] [densely_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
   {σ₁₂ : 𝕜 →+* 𝕜₂} [normed_space 𝕜 E] [normed_space 𝕜₂ F] [ring_hom_isometric σ₁₂]
-  (f : E →SL[σ₁₂] F) : Sup ((λ x, ∥f x∥) '' {x : E | ∥x∥ ≤ 1}) = ∥f∥ :=
-by simpa only [nnreal.coe_Sup, set.image_image] using nnreal.coe_eq.2 f.op_nnnorm_eq_Sup_unit_ball
+  (f : E →SL[σ₁₂] F) : Sup ((λ x, ∥f x∥) '' ball 0 1) = ∥f∥ :=
+by simpa only [nnreal.coe_Sup, set.image_image] using nnreal.coe_eq.2 f.Sup_unit_ball_eq_nnnorm
+
+lemma Sup_closed_unit_ball_eq_nnnorm {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
+  [seminormed_add_comm_group F] [densely_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
+  {σ₁₂ : 𝕜 →+* 𝕜₂} [normed_space 𝕜 E] [normed_space 𝕜₂ F] [ring_hom_isometric σ₁₂]
+  (f : E →SL[σ₁₂] F) : Sup ((λ x, ∥f x∥₊) '' closed_ball 0 1) = ∥f∥₊ :=
+begin
+  have hbdd : ∀ y ∈ (λ x, ∥f x∥₊) '' closed_ball 0 1, y ≤ ∥f∥₊,
+  { rintro - ⟨x, hx, rfl⟩, exact f.unit_le_op_norm x (mem_closed_ball_zero_iff.1 hx) },
+  refine le_antisymm (cSup_le ((nonempty_closed_ball.mpr zero_le_one).image _) hbdd) _,
+  rw ←Sup_unit_ball_eq_nnnorm,
+  exact cSup_le_cSup ⟨∥f∥₊, hbdd⟩ ((nonempty_ball.2 zero_lt_one).image _)
+    (set.image_subset _ ball_subset_closed_ball),
+end
+
+lemma Sup_closed_unit_ball_eq_norm {𝕜 𝕜₂ E F : Type*} [normed_add_comm_group E]
+  [seminormed_add_comm_group F] [densely_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
+  {σ₁₂ : 𝕜 →+* 𝕜₂} [normed_space 𝕜 E] [normed_space 𝕜₂ F] [ring_hom_isometric σ₁₂]
+  (f : E →SL[σ₁₂] F) : Sup ((λ x, ∥f x∥) '' closed_ball 0 1) = ∥f∥ :=
+by simpa only [nnreal.coe_Sup, set.image_image] using nnreal.coe_eq.2
+  f.Sup_closed_unit_ball_eq_nnnorm
 
 end Sup
 

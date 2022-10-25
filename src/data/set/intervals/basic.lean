@@ -549,6 +549,30 @@ eq_singleton_iff_unique_mem.2 ⟨left_mem_Ici, λ b, h.eq_of_ge⟩
 
 lemma _root_.is_min.Iic_eq (h : is_min a) : Iic a = {a} := h.to_dual.Ici_eq
 
+lemma Ici_eq_Ici_iff : Ici a = Ici b ↔ a = b :=
+begin
+  split,
+  { intro h,
+    rw le_antisymm_iff,
+    rw subset.antisymm_iff at h,
+    split,
+    { rw ← Ici_subset_Ici, exact h.2, },
+    { rw ← Ici_subset_Ici, exact h.1, } },
+  { apply congr_arg, }
+end
+
+lemma Iic_eq_Iic_iff : Iic a = Iic b ↔ a = b :=
+begin
+  split,
+  { intro h,
+    rw le_antisymm_iff,
+    rw subset.antisymm_iff at h,
+    split,
+    { rw ← Iic_subset_Iic, exact h.1, },
+    { rw ← Iic_subset_Iic, exact h.2, } },
+  { apply congr_arg, }
+end
+
 end partial_order
 
 section order_top

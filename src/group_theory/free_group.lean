@@ -103,15 +103,13 @@ lemma step.cons_left_iff {a : α} {b : bool} :
 begin
   split,
   { generalize hL : ((a, b) :: L₁ : list _) = L,
-    assume h,
-    rcases h with ⟨_ | ⟨p, s'⟩, e, a', b'⟩,
+    rintro @⟨_ | ⟨p, s'⟩, e, a', b'⟩,
     { simp at hL, simp [*] },
     { simp at hL,
       rcases hL with ⟨rfl, rfl⟩,
       refine or.inl ⟨s' ++ e, step.bnot, _⟩,
       simp } },
-  { assume h,
-    rcases h with ⟨L, h, rfl⟩ | rfl,
+  { rintro (⟨L, h, rfl⟩ | rfl),
     { exact step.cons h },
     { exact step.cons_bnot } }
 end
@@ -275,8 +273,7 @@ protected theorem sublist : red L₁ L₂ → L₂ <+ L₁ :=
 refl_trans_gen_of_transitive_reflexive
   (λl, list.sublist.refl l) (λa b c hab hbc, list.sublist.trans hbc hab) (λa b, red.step.sublist)
 
-theorem length_le (h : red L₁ L₂) : L₂.length ≤ L₁.length :=
-list.length_le_of_sublist h.sublist
+theorem length_le (h : red L₁ L₂) : L₂.length ≤ L₁.length := h.sublist.length_le
 
 theorem sizeof_of_step : ∀ {L₁ L₂ : list (α × bool)}, step L₁ L₂ → L₂.sizeof < L₁.sizeof
 | _ _ (@step.bnot _ L1 L2 x b) :=

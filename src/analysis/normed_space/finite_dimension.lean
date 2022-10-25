@@ -671,7 +671,7 @@ begin
   intros N g hg,
   have : ∀ i, summable (λ x, ∥g x i∥) := λ i, (pi.summable.1 hg i).abs,
   refine summable_of_norm_bounded _ (summable_sum (λ i (hi : i ∈ finset.univ), this i)) (λ x, _),
-  rw [norm_norm, pi_norm_le_iff],
+  rw [norm_norm, pi_norm_le_iff_of_nonneg],
   { refine λ i, finset.single_le_sum (λ i hi, _) (finset.mem_univ i),
     exact norm_nonneg (g x i) },
   { exact finset.sum_nonneg (λ _ _, norm_nonneg _) }

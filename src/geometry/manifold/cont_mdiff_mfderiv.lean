@@ -72,6 +72,16 @@ lemma cont_mdiff.mdifferentiable (hf : cont_mdiff I I' n f) (hn : 1 ≤ n) :
   mdifferentiable I I' f :=
 λ x, (hf x).mdifferentiable_at hn
 
+lemma smooth_within_at.mdifferentiable_within_at
+  (hf : smooth_within_at I I' f s x) : mdifferentiable_within_at I I' f s x :=
+hf.mdifferentiable_within_at le_top
+
+lemma smooth_at.mdifferentiable_at (hf : smooth_at I I' f x) : mdifferentiable_at I I' f x :=
+hf.mdifferentiable_at le_top
+
+lemma smooth_on.mdifferentiable_on (hf : smooth_on I I' f s) : mdifferentiable_on I I' f s :=
+hf.mdifferentiable_on le_top
+
 lemma smooth.mdifferentiable (hf : smooth I I' f) : mdifferentiable I I' f :=
 cont_mdiff.mdifferentiable hf le_top
 
@@ -444,6 +454,12 @@ begin
   exact (Z'.local_triv ⟨chart_at _ (f x).1, chart_mem_atlas _ _⟩).to_fiber_bundle_trivialization
     .continuous_at_of_comp_left h (mem_chart_source _ _) (h.prod hf.continuous_at.snd)
 end
+
+lemma smooth_iff_target {f : N → Z.to_topological_vector_bundle_core.total_space} :
+  smooth J (I.prod 𝓘(𝕜, E')) f ↔ continuous (bundle.total_space.proj ∘ f) ∧
+  ∀ x, smooth_at J 𝓘(𝕜, E × E') (ext_chart_at (I.prod 𝓘(𝕜, E')) (f x) ∘ f) x :=
+by simp_rw [smooth, smooth_at, cont_mdiff, Z.cont_mdiff_at_iff_target, forall_and_distrib,
+  continuous_iff_continuous_at]
 
 lemma cont_mdiff_proj :
   cont_mdiff (I.prod 𝓘(𝕜, E')) I n Z.to_topological_vector_bundle_core.proj :=

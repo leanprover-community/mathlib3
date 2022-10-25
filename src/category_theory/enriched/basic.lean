@@ -158,7 +158,7 @@ def enriched_category_Type_equiv_category (C : Type u₁) :
     { ext X ⟨⟩, refl, },
     { ext X Y Z ⟨f, g⟩, refl, }
   end,
-  right_inv := λ 𝒞, by { rcases 𝒞 with ⟨⟨⟨⟩⟩⟩, dsimp, congr, }, }.
+  right_inv := λ 𝒞, by { rcases 𝒞 with @⟨@⟨⟨⟩⟩⟩, dsimp, congr, }, }.
 
 section
 variables {W : Type (v+1)} [category.{v} W] [monoidal_category W] [enriched_category W C]

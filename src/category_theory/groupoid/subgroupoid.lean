@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémi Bottinelli, Junyan Xu
 -/
 import category_theory.groupoid.vertex_group
-import category_theory.groupoid.basic
 import category_theory.groupoid
 import algebra.group.defs
 import algebra.hom.group

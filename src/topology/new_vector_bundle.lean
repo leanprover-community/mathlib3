@@ -423,7 +423,7 @@ variables [vector_bundle R F₁ E₁] [vector_bundle R F₂ E₂]
 instance prod.is_linear [e₁.is_linear R] [e₂.is_linear R] : (e₁.prod e₂).is_linear R :=
 { linear := λ x ⟨h₁, h₂⟩, (((e₁.linear R h₁).mk' _).prod_map ((e₂.linear R h₂).mk' _)).is_linear }
 
-variables {e₁ e₂}
+variables {e₁ e₂} (R)
 
 lemma prod_apply {x : B} (hx₁ : x ∈ e₁.base_set) (hx₂ : x ∈ e₂.base_set) (v₁ : E₁ x)
   (v₂ : E₂ x) :
@@ -446,37 +446,44 @@ variables [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E
 /-- The product of two vector bundles is a vector bundle. -/
 instance _root_.bundle.prod.vector_bundle :
   vector_bundle R (F₁ × F₂) (E₁ ×ᵇ E₂) :=
-{ trivialization_linear := sorry,
-  continuous_on_coord_change := begin
-    rintros _ _ ⟨⟨e₁, e₂⟩, ⟨he₁, he₂⟩, rfl⟩ ⟨⟨e₁', e₂'⟩, ⟨he₁', he₂'⟩, rfl⟩,
-    dsimp only at *,
+{ trivialization_linear := begin
+    rintros - ⟨⟨e₁, e₂⟩, ⟨i₁ : mem_trivialization_atlas e₁, i₂ : mem_trivialization_atlas e₂⟩, rfl⟩,
     resetI,
-    have := continuous_on_coord_change e₁ e₁',
-    have := continuous_on_coord_change R e₂ e₂' he₂ he₂',
-    refine (((continuous_on_coord_change e₁ he₁ e₁' he₁').mono _).prod_mapL R
-      ((continuous_on_coord_change e₂ he₂ e₂' he₂').mono _)).congr _;
+    apply prod.is_linear,
+  end,
+  continuous_on_coord_change := begin
+    rintros - -
+      ⟨⟨e₁, e₂⟩, ⟨i₁ : mem_trivialization_atlas e₁, i₂ : mem_trivialization_atlas e₂⟩, rfl⟩
+      ⟨⟨e₁', e₂'⟩, ⟨i₁' : mem_trivialization_atlas e₁', i₂' : mem_trivialization_atlas e₂'⟩, rfl⟩,
+    resetI,
+    refine (((continuous_on_coord_change e₁ e₁').mono _).prod_mapL R
+      ((continuous_on_coord_change e₂ e₂').mono _)).congr _;
     dsimp only [base_set_prod] with mfld_simps,
     { mfld_set_tac },
     { mfld_set_tac },
     { rintro b hb,
       rw [continuous_linear_map.ext_iff],
       rintro ⟨v₁, v₂⟩,
-      show (e₁.prod e₂).coord_change (e₁'.prod e₂') b (v₁, v₂) =
-        (e₁.coord_change e₁' b v₁, e₂.coord_change e₂' b v₂),
-      rw [e₁.coord_change_apply e₁', e₂.coord_change_apply e₂', (e₁.prod e₂).coord_change_apply'],
+      show (e₁.prod e₂).coord_change R (e₁'.prod e₂') b (v₁, v₂) =
+        (e₁.coord_change R e₁' b v₁, e₂.coord_change R e₂' b v₂),
+      rw [e₁.coord_change_apply R e₁', e₂.coord_change_apply R e₂',
+        (e₁.prod e₂).coord_change_apply' R],
       exacts [rfl, hb, ⟨hb.1.2, hb.2.2⟩, ⟨hb.1.1, hb.2.1⟩] }
   end }
 
 variables {R F₁ E₁ F₂ E₂}
 
-@[simp] lemma trivialization.continuous_linear_equiv_at_prod {e₁ : trivialization R F₁ E₁}
-  {e₂ : trivialization R F₂ E₂} {x : B} (hx₁ : x ∈ e₁.base_set) (hx₂ : x ∈ e₂.base_set) :
-  (e₁.prod e₂).continuous_linear_equiv_at x ⟨hx₁, hx₂⟩
-  = (e₁.continuous_linear_equiv_at x hx₁).prod (e₂.continuous_linear_equiv_at x hx₂) :=
+@[simp] lemma trivialization.continuous_linear_equiv_at_prod
+  (e₁ : trivialization F₁ (@total_space.proj B E₁)) [is_linear R e₁]
+  (e₂ : trivialization F₂ (@total_space.proj B E₂)) [is_linear R e₂]
+  {x : B} (hx₁ : x ∈ e₁.base_set) (hx₂ : x ∈ e₂.base_set) :
+  (e₁.prod e₂).continuous_linear_equiv_at R x ⟨hx₁, hx₂⟩
+  = (e₁.continuous_linear_equiv_at R x hx₁).prod (e₂.continuous_linear_equiv_at R x hx₂) :=
 begin
   ext1,
   funext v,
   obtain ⟨v₁, v₂⟩ := v,
-  rw [(e₁.prod e₂).continuous_linear_equiv_at_apply, trivialization.prod],
-  exact (congr_arg prod.snd (prod_apply hx₁ hx₂ v₁ v₂) : _)
+  rw [(e₁.prod e₂).continuous_linear_equiv_at_apply R, trivialization.prod],
+  dsimp,
+  exact (congr_arg prod.snd (prod_apply R hx₁ hx₂ v₁ v₂) : _)
 end

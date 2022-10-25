@@ -149,7 +149,7 @@ begin
   refine ⟨λ s x hcx, _⟩,
   specialize h (∉ s) x,
   by_cases hx : x ∈ s, { exact subset_seq_closure hx },
-  simp_rw [(∘), continuous_at, hx, not_false_iff, nhds_true, tendsto_pure, eq_true,
+  simp_rw [(∘), continuous_at, hx, not_false_iff, nhds_true, tendsto_pure, eq_true_iff,
     ← mem_compl_iff, eventually_mem_set, ← mem_interior_iff_mem_nhds, interior_compl] at h,
   rw [mem_compl_iff, imp_not_comm] at h,
   simp only [not_forall, not_eventually, mem_compl_iff, not_not] at h,

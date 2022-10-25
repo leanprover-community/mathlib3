@@ -187,26 +187,23 @@ le_antisymm (le_centralizer_iff.mp (zpowers_le.mpr (λ x, mul_inv_eq_iff_eq_mul.
 
 open quotient_group
 
-noncomputable def quotient_centralizer_embedding_commutators (g : G) :
+noncomputable def quotient_centralizer_embedding (g : G) :
   G ⧸ centralizer (zpowers (g : G)) ↪ {g₀ | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g₀} :=
-((mul_action.orbit_equiv_quotient_stabilizer (conj_act G) g).trans
-  (quotient_equiv_of_eq (stabilizer_conj_act_eq_centralizer g))).symm.to_embedding.trans
-  ⟨λ x, ⟨x * g⁻¹, let ⟨_, x, rfl⟩ := x in ⟨x, g, rfl⟩⟩,
-  λ x y, subtype.ext ∘ mul_right_cancel ∘ subtype.ext_iff.mp⟩
+((mul_action.orbit_equiv_quotient_stabilizer (conj_act G) g).trans (quotient_equiv_of_eq
+  (stabilizer_conj_act_eq_centralizer g))).symm.to_embedding.trans ⟨λ x, ⟨x * g⁻¹,
+  let ⟨_, x, rfl⟩ := x in ⟨x, g, rfl⟩⟩, λ x y, subtype.ext ∘ mul_right_cancel ∘ subtype.ext_iff.mp⟩
 
-lemma quotient_centralizer_embedding_commutators_apply (g : G) (x : G) :
-  quotient_centralizer_embedding_commutators g x = ⟨⁅x, g⁆, x, g, rfl⟩ :=
+lemma quotient_centralizer_embedding_apply (g : G) (x : G) :
+  quotient_centralizer_embedding g x = ⟨⁅x, g⁆, x, g, rfl⟩ :=
 rfl
 
-variables {α : Type*} [group α] {s t : subgroup α}
-
-noncomputable def quotient_center_embedding_commutators (S : set G) (hS : closure S = ⊤) :
+noncomputable def quotient_center_embedding (S : set G) (hS : closure S = ⊤) :
   G ⧸ center G ↪ S → {g₀ | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g₀} :=
 (quotient_equiv_of_eq (center_eq_infi' S hS)).to_embedding.trans ((quotient_infi_embedding _).trans
-  (function.embedding.Pi_congr_right (λ g, quotient_centralizer_embedding_commutators g)))
+  (function.embedding.Pi_congr_right (λ g, quotient_centralizer_embedding g)))
 
-lemma quotient_center_embedding_commutators_apply (S : set G) (hS : closure S = ⊤) (g : G) (s : S) :
-  quotient_center_embedding_commutators S hS g s = ⟨⁅g, s⁆, g, s, rfl⟩ :=
+lemma quotient_center_embedding_apply (S : set G) (hS : closure S = ⊤) (g : G) (s : S) :
+  quotient_center_embedding S hS g s = ⟨⁅g, s⁆, g, s, rfl⟩ :=
 rfl
 
 end for_mathlib

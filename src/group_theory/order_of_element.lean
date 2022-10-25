@@ -680,22 +680,22 @@ by rw [zpow_eq_mod_order_of, ← int.mod_mod_of_dvd n (int.coe_nat_dvd.2 order_o
 
 /-- If `gcd(|G|,n)=1` then the `n`th power map is a bijection -/
 @[to_additive "If `gcd(|G|,n)=1` then the smul by `n` is a bijection", simps]
-noncomputable def pow_coprime {G : Type*} [group G] (h : nat.coprime (nat.card G) n) : G ≃ G :=
+noncomputable def pow_coprime {G : Type*} [group G] (h : (nat.card G).coprime n) : G ≃ G :=
 { to_fun := λ g, g ^ n,
-  inv_fun := λ g, g ^ (nat.gcd_b (nat.card G) n),
+  inv_fun := λ g, g ^ ((nat.card G).gcd_b n),
   left_inv := λ g, by
-  { have key := congr_arg ((^) g) (nat.gcd_eq_gcd_ab (nat.card G) n),
+  { have key := congr_arg ((^) g) ((nat.card G).gcd_eq_gcd_ab n),
     rwa [zpow_add, zpow_mul, zpow_mul, zpow_coe_nat, zpow_coe_nat, zpow_coe_nat,
       h.gcd_eq_one, pow_one, pow_card_eq_one', one_zpow, one_mul, eq_comm] at key },
   right_inv := λ g, by
-  { have key := congr_arg ((^) g) (nat.gcd_eq_gcd_ab (nat.card G) n),
+  { have key := congr_arg ((^) g) ((nat.card G).gcd_eq_gcd_ab n),
     rwa [zpow_add, zpow_mul, zpow_mul', zpow_coe_nat, zpow_coe_nat, zpow_coe_nat,
       h.gcd_eq_one, pow_one, pow_card_eq_one', one_zpow, one_mul, eq_comm] at key } }
 
-@[simp, to_additive] lemma pow_coprime_one {G : Type*} [group G] (h : nat.coprime (nat.card G) n) :
+@[simp, to_additive] lemma pow_coprime_one {G : Type*} [group G] (h : (nat.card G).coprime n) :
   pow_coprime h 1 = 1 := one_pow n
 
-@[simp, to_additive] lemma pow_coprime_inv {G : Type*} [group G] (h : nat.coprime (nat.card G) n)
+@[simp, to_additive] lemma pow_coprime_inv {G : Type*} [group G] (h : (nat.card G).coprime n)
   {g : G} : pow_coprime h g⁻¹ = (pow_coprime h g)⁻¹ := inv_pow g n
 
 @[to_additive add_inf_eq_bot_of_coprime]

@@ -103,6 +103,9 @@ lemma eq_univ_of_forall  : (∀ x, x ∈ s) → s = univ := eq_univ_iff_forall.2
 @[simp, norm_cast] lemma coe_eq_univ : (s : set α) = set.univ ↔ s = univ :=
 by rw [←coe_univ, coe_inj]
 
+lemma nonempty.eq_univ [subsingleton α] : s.nonempty → s = univ :=
+by { rintro ⟨x, hx⟩, refine eq_univ_of_forall (λ y, by rwa subsingleton.elim y x) }
+
 lemma univ_nonempty_iff : (univ : finset α).nonempty ↔ nonempty α :=
 by rw [← coe_nonempty, coe_univ, set.nonempty_iff_univ_nonempty]
 

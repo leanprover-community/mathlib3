@@ -6,6 +6,7 @@ Authors: Scott Morrison, Justus Springer
 import topology.category.Top.open_nhds
 import topology.sheaves.presheaf
 import topology.sheaves.sheaf_condition.unique_gluing
+import category_theory.adjunction.evaluation
 import category_theory.limits.types
 import category_theory.limits.preserves.filtered
 import category_theory.limits.final
@@ -155,7 +156,7 @@ begin
   dsimp [stalk_pushforward, stalk_functor],
   ext1,
   tactic.op_induction',
-  cases j, cases j_val,
+  rcases j with ⟨⟨_, _⟩, _⟩,
   rw [colimit.ι_map_assoc, colimit.ι_map, colimit.ι_pre, whisker_left_app, whisker_right_app,
        pushforward.id_hom_app, eq_to_hom_map, eq_to_hom_refl],
   dsimp,
@@ -172,8 +173,7 @@ begin
   dsimp [stalk_pushforward, stalk_functor],
   ext U,
   induction U using opposite.rec,
-  cases U,
-  cases U_val,
+  rcases U with ⟨⟨_, _⟩, _⟩,
   simp only [colimit.ι_map_assoc, colimit.ι_pre_assoc,
              whisker_right_app, category.assoc],
   dsimp,
@@ -421,6 +421,29 @@ lemma app_injective_iff_stalk_functor_map_injective {F : sheaf C X}
   (∀ U : opens X, function.injective (f.app (op U))) :=
 ⟨λ h U, app_injective_of_stalk_functor_map_injective f U (λ x, h x.1),
   stalk_functor_map_injective_of_app_injective f⟩
+
+instance stalk_functor_preserves_mono (x : X) :
+  functor.preserves_monomorphisms (sheaf.forget C X ⋙ stalk_functor C x) :=
+⟨λ 𝓐 𝓑 f m, concrete_category.mono_of_injective _ $
+  (app_injective_iff_stalk_functor_map_injective f.1).mpr
+    (λ c, (@@concrete_category.mono_iff_injective_of_preserves_pullback _ _ (f.1.app (op c)) _).mp
+      ((nat_trans.mono_iff_mono_app _ f.1).mp
+        (@@category_theory.presheaf_mono_of_mono _ _ _ _ _ _ _ _ _ _ _ m) $ op c)) x⟩
+
+lemma stalk_mono_of_mono {F G : sheaf C X} (f : F ⟶ G) [mono f] :
+  Π x, mono $ (stalk_functor C x).map f.1 :=
+λ x, by convert functor.map_mono (sheaf.forget.{v} C X ⋙ stalk_functor C x) f
+
+lemma mono_of_stalk_mono {F G : sheaf C X} (f : F ⟶ G)
+  [Π x, mono $ (stalk_functor C x).map f.1] : mono f :=
+(Sheaf.hom.mono_iff_presheaf_mono _ _ _).mpr $ (nat_trans.mono_iff_mono_app _ _).mpr $ λ U,
+  (concrete_category.mono_iff_injective_of_preserves_pullback _).mpr $
+  app_injective_of_stalk_functor_map_injective f.1 U.unop $ λ ⟨x, hx⟩,
+  (concrete_category.mono_iff_injective_of_preserves_pullback _).mp $ infer_instance
+
+lemma mono_iff_stalk_mono {F G : sheaf C X} (f : F ⟶ G) :
+  mono f ↔ ∀ x, mono ((stalk_functor C x).map f.1) :=
+⟨by { introI m, exact stalk_mono_of_mono _ }, by { introI m, exact mono_of_stalk_mono _ }⟩
 
 /-- For surjectivity, we are given an arbitrary section `t` and need to find a preimage for it.
 We claim that it suffices to find preimages *locally*. That is, for each `x : U` we construct

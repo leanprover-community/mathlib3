@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Scott Morrison
 -/
 import data.finset.lattice
+import data.finset.n_ary
 import data.multiset.functor
 
 /-!
@@ -64,6 +65,12 @@ instance : applicative finset :=
 @[simp] lemma seq_left_def (s : finset α) (t : finset β)  : s <* t = if t = ∅ then ∅ else s := rfl
 @[simp] lemma seq_right_def (s : finset α) (t : finset β)  : s *> t = if s = ∅ then ∅ else t := rfl
 
+/-- `finset.image₂` in terms of monadic operations. Note that this can't be taken as the definition
+because of the lack of universe polymorphism. -/
+lemma image₂_def {α β γ : Type*} (f : α → β → γ) (s : finset α) (t : finset β) :
+  image₂ f s t = f <$> s <*> t :=
+by { ext, simp [mem_sup] }
+
 instance : is_lawful_applicative finset :=
 { seq_left_eq := λ α β s t, begin
     rw [seq_def, fmap_def, seq_left_def],
@@ -110,7 +117,7 @@ instance : is_comm_applicative finset :=
 { commutative_prod := λ α β s t, begin
     simp_rw [seq_def, fmap_def, sup_image, sup_eq_bUnion],
     change s.bUnion (λ a, t.image $ λ b, (a, b)) = t.bUnion (λ b, s.image $ λ a, (a, b)),
-    transitivity s.product t;
+    transitivity s ×ˢ t;
       [rw product_eq_bUnion, rw product_eq_bUnion_right]; congr; ext; simp_rw mem_image,
   end,
   .. finset.is_lawful_applicative }

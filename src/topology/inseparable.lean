@@ -35,10 +35,10 @@ topological space, separation setoid
 -/
 
 open set filter function
-open_locale topological_space
+open_locale topological_space filter
 
-variables {X Y : Type*} [topological_space X] [topological_space Y] {x y z : X}
-  {s : set X} {f : X → Y}
+variables {X Y Z α ι : Type*} {π : ι → Type*} [topological_space X] [topological_space Y]
+  [topological_space Z] [∀ i, topological_space (π i)] {x y z : X} {s : set X} {f : X → Y}
 
 /-!
 ### `specializes` relation
@@ -121,6 +121,11 @@ lemma specializes_iff_closure_subset :
 
 alias specializes_iff_closure_subset ↔ specializes.closure_subset _
 
+lemma filter.has_basis.specializes_iff {ι} {p : ι → Prop} {s : ι → set X}
+  (h : (𝓝 y).has_basis p s) :
+  x ⤳ y ↔ ∀ i, p i → x ∈ s i :=
+specializes_iff_pure.trans h.ge_iff
+
 lemma specializes_rfl : x ⤳ x := le_rfl
 
 @[refl] lemma specializes_refl (x : X) : x ⤳ x := specializes_rfl
@@ -145,6 +150,23 @@ by simp only [specializes_iff_mem_closure, hf.closure_eq_preimage_closure_image,
 
 lemma subtype_specializes_iff {p : X → Prop} (x y : subtype p) : x ⤳ y ↔ (x : X) ⤳ y :=
 inducing_coe.specializes_iff.symm
+
+@[simp] lemma specializes_prod {x₁ x₂ : X} {y₁ y₂ : Y} :
+  (x₁, y₁) ⤳ (x₂, y₂) ↔ x₁ ⤳ x₂ ∧ y₁ ⤳ y₂ :=
+by simp only [specializes, nhds_prod_eq, prod_le_prod]
+
+lemma specializes.prod {x₁ x₂ : X} {y₁ y₂ : Y} (hx : x₁ ⤳ x₂) (hy : y₁ ⤳ y₂) :
+  (x₁, y₁) ⤳ (x₂, y₂) :=
+specializes_prod.2 ⟨hx, hy⟩
+
+@[simp] lemma specializes_pi {f g : Π i, π i} : f ⤳ g ↔ ∀ i, f i ⤳ g i :=
+by simp only [specializes, nhds_pi, pi_le_pi]
+
+lemma not_specializes_iff_exists_open : ¬ x ⤳ y ↔ ∃ (S : set X), is_open S ∧ y ∈ S ∧ x ∉ S :=
+by { rw [specializes_iff_forall_open], push_neg, refl }
+
+lemma not_specializes_iff_exists_closed : ¬ x ⤳ y ↔ ∃ (S : set X), is_closed S ∧ x ∈ S ∧ y ∉ S :=
+by { rw [specializes_iff_forall_closed], push_neg, refl }
 
 variable (X)
 
@@ -217,6 +239,17 @@ by simp only [inseparable_iff_specializes_and, hf.specializes_iff]
 lemma subtype_inseparable_iff {p : X → Prop} (x y : subtype p) : x ~ y ↔ (x : X) ~ y :=
 inducing_coe.inseparable_iff.symm
 
+@[simp] lemma inseparable_prod {x₁ x₂ : X} {y₁ y₂ : Y} :
+  (x₁, y₁) ~ (x₂, y₂) ↔ x₁ ~ x₂ ∧ y₁ ~ y₂ :=
+by simp only [inseparable, nhds_prod_eq, prod_inj]
+
+lemma inseparable.prod {x₁ x₂ : X} {y₁ y₂ : Y} (hx : x₁ ~ x₂) (hy : y₁ ~ y₂) :
+  (x₁, y₁) ~ (x₂, y₂) :=
+inseparable_prod.2 ⟨hx, hy⟩
+
+@[simp] lemma inseparable_pi {f g : Π i, π i} : f ~ g ↔ ∀ i, f i ~ g i :=
+by simp only [inseparable, nhds_pi, funext_iff, pi_inj]
+
 namespace inseparable
 
 @[refl] lemma refl (x : X) : x ~ x := eq.refl (𝓝 x)
@@ -268,7 +301,7 @@ be a T₀ space. -/
 @[derive topological_space]
 def separation_quotient := quotient (inseparable_setoid X)
 
-variable {X}
+variables {X} {t : set (separation_quotient X)}
 
 namespace separation_quotient
 
@@ -317,7 +350,32 @@ lemma inducing_mk : inducing (mk : X → separation_quotient X) :=
 lemma is_closed_map_mk : is_closed_map (mk : X → separation_quotient X) :=
 inducing_mk.is_closed_map $ by { rw [range_mk], exact is_closed_univ }
 
+@[simp] lemma comap_mk_nhds_mk : comap mk (𝓝 (mk x)) = 𝓝 x :=
+(inducing_mk.nhds_eq_comap _).symm
+
+@[simp] lemma comap_mk_nhds_set_image : comap mk (𝓝ˢ (mk '' s)) = 𝓝ˢ s :=
+(inducing_mk.nhds_set_eq_comap _).symm
+
 lemma map_mk_nhds : map mk (𝓝 x) = 𝓝 (mk x) :=
-by rw [inducing_mk.nhds_eq_comap, map_comap_of_surjective surjective_mk]
+by rw [← comap_mk_nhds_mk, map_comap_of_surjective surjective_mk]
+
+lemma map_mk_nhds_set : map mk (𝓝ˢ s) = 𝓝ˢ (mk '' s) :=
+by rw [← comap_mk_nhds_set_image, map_comap_of_surjective surjective_mk]
+
+lemma comap_mk_nhds_set : comap mk (𝓝ˢ t) = 𝓝ˢ (mk ⁻¹' t) :=
+by conv_lhs { rw [← image_preimage_eq t surjective_mk, comap_mk_nhds_set_image] }
+
+lemma preimage_mk_closure : mk ⁻¹' (closure t) = closure (mk ⁻¹' t) :=
+is_open_map_mk.preimage_closure_eq_closure_preimage continuous_mk t
+
+lemma preimage_mk_interior : mk ⁻¹' (interior t) = interior (mk ⁻¹' t) :=
+is_open_map_mk.preimage_interior_eq_interior_preimage continuous_mk t
+
+lemma preimage_mk_frontier : mk ⁻¹' (frontier t) = frontier (mk ⁻¹' t) :=
+is_open_map_mk.preimage_frontier_eq_frontier_preimage continuous_mk t
+
+lemma image_mk_closure : mk '' closure s = closure (mk '' s) :=
+(image_closure_subset_closure_image continuous_mk).antisymm $
+  is_closed_map_mk.closure_image_subset _
 
 end separation_quotient

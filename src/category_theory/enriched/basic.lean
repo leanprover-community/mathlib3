@@ -55,7 +55,7 @@ class enriched_category (C : Type u₁) :=
   Π W X Y Z, (α_ _ _ _).inv ≫ (comp W X Y ⊗ 𝟙 _) ≫ comp W Y Z = (𝟙 _ ⊗ comp X Y Z) ≫ comp W X Z
   . obviously)
 
-notation X ` ⟶[`V`] ` Y:10 := (enriched_category.hom X Y : V)
+notation (name := enriched_category.hom) X ` ⟶[`V`] ` Y:10 := (enriched_category.hom X Y : V)
 
 variables (V) {C : Type u₁} [enriched_category V C]
 
@@ -158,7 +158,7 @@ def enriched_category_Type_equiv_category (C : Type u₁) :
     { ext X ⟨⟩, refl, },
     { ext X Y Z ⟨f, g⟩, refl, }
   end,
-  right_inv := λ 𝒞, by { rcases 𝒞 with ⟨⟨⟨⟩⟩⟩, dsimp, congr, }, }.
+  right_inv := λ 𝒞, by { rcases 𝒞 with @⟨@⟨⟨⟩⟩⟩, dsimp, congr, }, }.
 
 section
 variables {W : Type (v+1)} [category.{v} W] [monoidal_category W] [enriched_category W C]

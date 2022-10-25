@@ -81,35 +81,41 @@ variables {C : Type u₁} [category.{v} C]
 variables (Z : C → Prop)
 
 /--
-The category structure on a subtype; morphisms just ignore the property.
+A subtype-like structure for full subcategories. Morphisms just ignore the property. We don't use
+actual subtypes since the simp-normal form `↑X` of `X.val` does not work well for full
+subcategories.
 
 See <https://stacks.math.columbia.edu/tag/001D>. We do not define 'strictly full' subcategories.
 -/
-instance full_subcategory : category.{v} {X : C // Z X} :=
-induced_category.category subtype.val
+@[ext, nolint has_nonempty_instance] structure full_subcategory :=
+(obj : C)
+(property : Z obj)
+
+instance full_subcategory.category : category.{v} (full_subcategory Z) :=
+induced_category.category full_subcategory.obj
 
 /--
 The forgetful functor from a full subcategory into the original category
 ("forgetting" the condition).
 -/
-def full_subcategory_inclusion : {X : C // Z X} ⥤ C :=
-induced_functor subtype.val
+def full_subcategory_inclusion : full_subcategory Z ⥤ C :=
+induced_functor full_subcategory.obj
 
 @[simp] lemma full_subcategory_inclusion.obj {X} :
-  (full_subcategory_inclusion Z).obj X = X.val := rfl
+  (full_subcategory_inclusion Z).obj X = X.obj := rfl
 @[simp] lemma full_subcategory_inclusion.map {X Y} {f : X ⟶ Y} :
   (full_subcategory_inclusion Z).map f = f := rfl
 
 instance full_subcategory.full : full (full_subcategory_inclusion Z) :=
-induced_category.full subtype.val
+induced_category.full _
 instance full_subcategory.faithful : faithful (full_subcategory_inclusion Z) :=
-induced_category.faithful subtype.val
+induced_category.faithful _
 
 variables {Z} {Z' : C → Prop}
 
 /-- An implication of predicates `Z → Z'` induces a functor between full subcategories. -/
 @[simps]
-def full_subcategory.map (h : ∀ ⦃X⦄, Z X → Z' X) : {X // Z X} ⥤ {X // Z' X} :=
+def full_subcategory.map (h : ∀ ⦃X⦄, Z X → Z' X) : full_subcategory Z ⥤ full_subcategory Z' :=
 { obj := λ X, ⟨X.1, h X.2⟩,
   map := λ X Y f, f }
 
@@ -128,7 +134,7 @@ variables {D : Type u₂} [category.{v₂} D] (P Q : D → Prop)
 /-- A functor which maps objects to objects satisfying a certain property induces a lift through
     the full subcategory of objects satisfying that property. -/
 @[simps]
-def full_subcategory.lift (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) : C ⥤ {X // P X} :=
+def full_subcategory.lift (F : C ⥤ D) (hF : ∀ X, P (F.obj X)) : C ⥤ full_subcategory P :=
 { obj := λ X, ⟨F.obj X, hF X⟩,
   map := λ X Y f, F.map f }
 

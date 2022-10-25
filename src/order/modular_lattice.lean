@@ -310,10 +310,10 @@ instance is_modular_lattice_Iic : is_modular_lattice (set.Iic a) :=
 instance is_modular_lattice_Ici : is_modular_lattice (set.Ici a) :=
 ⟨λ x y z xz, (sup_inf_le_assoc_of_le (y : α) xz : (↑x ⊔ ↑y) ⊓ ↑z ≤ ↑x ⊔ ↑y ⊓ ↑z)⟩
 
-section is_complemented
-variables [bounded_order α] [is_complemented α]
+section complemented_lattice
+variables [bounded_order α] [complemented_lattice α]
 
-instance is_complemented_Iic : is_complemented (set.Iic a) :=
+instance complemented_lattice_Iic : complemented_lattice (set.Iic a) :=
 ⟨λ ⟨x, hx⟩, let ⟨y, hy⟩ := exists_is_compl x in
   ⟨⟨y ⊓ a, set.mem_Iic.2 inf_le_right⟩, begin
     split,
@@ -324,7 +324,7 @@ instance is_complemented_Iic : is_complemented (set.Iic a) :=
       rw [← sup_inf_assoc_of_le _ (set.mem_Iic.1 hx), top_le_iff.1 hy.2, top_inf_eq] }
   end⟩⟩
 
-instance is_complemented_Ici : is_complemented (set.Ici a) :=
+instance complemented_lattice_Ici : complemented_lattice (set.Ici a) :=
 ⟨λ ⟨x, hx⟩, let ⟨y, hy⟩ := exists_is_compl x in
   ⟨⟨y ⊔ a, set.mem_Ici.2 le_sup_right⟩, begin
     split,
@@ -335,6 +335,6 @@ instance is_complemented_Ici : is_complemented (set.Ici a) :=
       exact le_trans hy.2 le_sup_left }
   end⟩⟩
 
-end is_complemented
+end complemented_lattice
 
 end is_modular_lattice

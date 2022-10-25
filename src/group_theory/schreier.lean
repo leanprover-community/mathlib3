@@ -215,7 +215,7 @@ lemma index_center_ne_zero [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}
 begin
   haveI : nonempty {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} := ⟨⟨1, 1, 1, commutator_element_self 1⟩⟩,
   obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
-  exact mt (finite.card_eq_zero_of_embedding (quotient_center_embedding_commutators S hS2))
+  exact mt (finite.card_eq_zero_of_embedding (quotient_center_embedding S hS2))
     finite.card_pos.ne',
 end
 
@@ -224,7 +224,7 @@ lemma index_center_le_pow [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}]
 begin
   obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
   rw [←hS1, ←fintype.card_coe, ←nat.card_eq_fintype_card, ←finset.coe_sort_coe, ←nat.card_fun],
-  exact finite.card_le_of_embedding (quotient_center_embedding_commutators S hS2),
+  exact finite.card_le_of_embedding (quotient_center_embedding S hS2),
 end
 
 /-- Representatives `(g₁, g₂) : G × G` of commutators `⁅g₁, g₂⁆ ∈ G`. -/

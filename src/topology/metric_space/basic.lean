@@ -1838,7 +1838,7 @@ local attribute [-instance] Pi.topological_space
 local attribute [-instance] Pi.uniform_space
 local attribute [instance] uniform_convergence.topological_space
 
-/-- For a family of functions between (pseudo) metric spaces, a convenient way to prove
+/-- For a family of functions to a (pseudo) metric spaces, a convenient way to prove
 equicontinuity at a point is to show that all of the functions share a common *local* continuity
 modulus. -/
 lemma equicontinuous_at_of_continuity_modulus {ι : Type*} [topological_space β] {x₀ : β}
@@ -1850,10 +1850,7 @@ lemma equicontinuous_at_of_continuity_modulus {ι : Type*} [topological_space β
 begin
   rw metric.equicontinuous_at_iff_right,
   intros ε ε0,
-  filter_upwards [b_lim (Iio_mem_nhds ε0)] with x hx i,
-  calc
-    dist (F i x₀) (F i x) ≤ b x : H x i
-    ... < ε : hx
+  filter_upwards [b_lim (Iio_mem_nhds ε0)] using λ x hx i, (H x i).trans_lt hx,
 end
 
 /-- For a family of functions between (pseudo) metric spaces, a convenient way to prove
@@ -1861,8 +1858,8 @@ uniform equicontinuity is to show that all of the functions share a common *glob
 modulus. -/
 lemma uniform_equicontinuous_of_continuity_modulus {ι : Type*} [pseudo_metric_space β] (b : ℝ → ℝ)
   (b_lim : tendsto b (𝓝 0) (𝓝 0))
-  (F : ι → α → β)
-  (H : ∀(x y:α) i, dist (F i x) (F i y) ≤ b (dist x y)) :
+  (F : ι → β → α)
+  (H : ∀(x y:β) i, dist (F i x) (F i y) ≤ b (dist x y)) :
   uniform_equicontinuous F :=
 begin
   rw metric.uniform_equicontinuous_iff,
@@ -1880,8 +1877,8 @@ end
 equicontinuity is to show that all of the functions share a common *global* continuity modulus. -/
 lemma equicontinuous_of_continuity_modulus {ι : Type*} [pseudo_metric_space β] (b : ℝ → ℝ)
   (b_lim : tendsto b (𝓝 0) (𝓝 0))
-  (F : ι → α → β)
-  (H : ∀(x y:α) i, dist (F i x) (F i y) ≤ b (dist x y)) :
+  (F : ι → β → α)
+  (H : ∀(x y:β) i, dist (F i x) (F i y) ≤ b (dist x y)) :
   equicontinuous F :=
 (uniform_equicontinuous_of_continuity_modulus b b_lim F H).equicontinuous
 

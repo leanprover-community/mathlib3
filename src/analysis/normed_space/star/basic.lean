@@ -257,7 +257,7 @@ lemma starₗᵢ_apply {x : E} : starₗᵢ 𝕜 x = star x := rfl
 
 end starₗᵢ
 
-section lmul
+section mul
 
 open continuous_linear_map
 
@@ -311,4 +311,4 @@ isometry. -/
 lemma mul_flip_isometry : isometry (mul 𝕜 E).flip :=
 add_monoid_hom_class.isometry_of_norm _ (λ a, congr_arg coe $ op_nnnorm_mul_flip 𝕜 a)
 
-end lmul
+end mul

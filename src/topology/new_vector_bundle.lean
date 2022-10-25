@@ -442,7 +442,7 @@ begin
   exacts [⟨⟨hb.1, Z.mem_base_set_at b⟩, hb.2⟩, hb]
 end
 
-instance : vector_bundle 𝕜 F Z.to_fiber_bundle_core.fiber :=
+instance vector_bundle : vector_bundle 𝕜 F Z.to_fiber_bundle_core.fiber :=
 { trivialization_linear := begin
     rintro _ ⟨i, rfl⟩,
     exact Z.is_linear_local_triv i,

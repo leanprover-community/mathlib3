@@ -38,10 +38,9 @@ localized "notation (name := ext_chart_at) `𝓔(` I `, ` x `)` :=
 
 open_locale manifold
 
-/-- Express cont_mdiff_at in a fixed chosen local chart.
+section
 
-TODO: cont_mdiff_within_at, cont_mdiff_on versions -/
-lemma cont_mdiff_at_indep_ext_chart
+variables
   {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
@@ -49,6 +48,11 @@ lemma cont_mdiff_at_indep_ext_chart
   {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
   {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
   {M' : Type*} [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M']
+
+/-- Express cont_mdiff_at in a fixed chosen local chart.
+
+TODO: cont_mdiff_within_at, cont_mdiff_on versions -/
+lemma cont_mdiff_at_indep_ext_chart
   {n : ℕ∞} {f : M → M'} (x₀ : M) {x : M}
   (hx : x ∈ 𝓔(I, x₀).source) (hfx : f x ∈ 𝓔(I', f x₀).source) :
   cont_mdiff_at I I' n f x ↔ continuous_at f x ∧
@@ -71,10 +75,6 @@ begin
 end
 
 lemma vector_field_cont_mdiff_at_indep_ext_chart
-  {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-  {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
-  {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
   {n : ℕ∞} {v : M → tangent_bundle I M} (hv : ∀ x, (v x).1 = x) (x₀ : M) {x : M}
   (hx : x ∈ 𝓔(I, x₀).source) :
   cont_mdiff_at I I.tangent n v x ↔ continuous_at v x ∧
@@ -87,10 +87,6 @@ begin
 end
 
 lemma vector_field_cont_diff_on_snd_of_cont_mdiff
-  {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-  {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
-  {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
   {n : ℕ∞} {v : M → tangent_bundle I M} (h₁ : ∀ x, (v x).1 = x)
   (h₂ : cont_mdiff I I.tangent n v) (x₀ : M) :
   cont_diff_on 𝕜 n (λ (y : E), (written_in_ext_chart_at I I.tangent x₀ v y).2) 𝓔(I, x₀).target :=
@@ -107,19 +103,11 @@ end
 /-- Express the change of coordinates in the tangent bundle in terms of the change of
   coordinates in the base space. -/
 lemma tangent_bundle_core_coord_change_triv
-  {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-  (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
   (v v' : tangent_bundle I M) :
   (𝓔(I.tangent, v') v).2 =
     (fderiv_within 𝕜 (𝓔(I, v'.1) ∘ 𝓔(I, v.1).symm) (set.range I) (𝓔(I, v.1) v.1)) v.2 := rfl
 
 lemma tangent_bundle_core_coord_change_triv'
-  {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-  (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
   (v v' : tangent_bundle I M) (hv : v.1 ∈ 𝓔(I, v'.1).source) :
   (𝓔(I.tangent, v) v).2 =
     (fderiv_within 𝕜 (𝓔(I, v.1) ∘ 𝓔(I, v'.1).symm) (set.range I) (𝓔(I, v'.1) v.1))
@@ -143,30 +131,48 @@ begin
   refl
 end
 
+variable (I)
+
+/-- An interior point of a manifold is a point whose image in the model vector space is in the
+interior of the chart's target. -/
+def model_with_corners.is_interior_point
+  {M : Type*} [topological_space M] [charted_space H M] (x : M) :=
+  𝓔(I, x) x ∈ interior 𝓔(I, x).target
+
 lemma model_with_corners.boundaryless.is_open_target
-  {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H) [I.boundaryless]
-  {M : Type*} [topological_space M] [charted_space H M]
-  (x : M) : is_open 𝓔(I, x).target :=
+  [I.boundaryless] {M : Type*} [topological_space M] [charted_space H M]
+  {x : M} : is_open 𝓔(I, x).target :=
 begin
   rw [ext_chart_at_target, model_with_corners.boundaryless.range_eq_univ, set.inter_univ],
   apply (model_with_corners.continuous_symm _).is_open_preimage,
   exact local_homeomorph.open_target _
 end
 
+lemma model_with_corners.boundaryless.is_interior_point
+  [I.boundaryless] {M : Type*} [topological_space M] [charted_space H M]
+  {x : M} : I.is_interior_point x :=
+begin
+  rw model_with_corners.is_interior_point,
+  rw is_open.interior_eq (model_with_corners.boundaryless.is_open_target I),
+  apply local_equiv.map_source,
+  exact mem_ext_chart_source _ _
+end
+
+end
+
 variables
   {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
   {H : Type*} [topological_space H] (I : model_with_corners ℝ E H)
   (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+  (v : M → tangent_bundle I M)
 
 /-- We apply the ODE existence theorem to a continuously differentiable vector field written in the
   preferred chart around the base point. We require that the base point not be on the boundary.
   Several useful properties of the solution are proven here, to be used in
   `exists_integral_curve_of_cont_mdiff_tangent_vector_field`. -/
 lemma exists_integral_curve_of_cont_mdiff_tangent_vector_field_aux [proper_space E]
-  (v : M → tangent_bundle I M) (h₁ : ∀ x, (v x).1 = x) (h₂ : cont_mdiff I I.tangent 1 v)
-  (x₀ : M) (hx : 𝓔(I, x₀) x₀ ∈ interior 𝓔(I, x₀).target) :
+  (hv : ∀ x, (v x).1 = x) (hcd : cont_mdiff I I.tangent 1 v) (x₀ : M)
+  (hx : 𝓔(I, x₀) x₀ ∈ interior 𝓔(I, x₀).target) :
   ∃ (ε : ℝ) (hε : 0 < ε) (γ : ℝ → M), γ 0 = x₀ ∧ ∀ (t : ℝ), t ∈ metric.ball (0 : ℝ) ε →
     (γ t) ∈ 𝓔(I, x₀).source ∧
     𝓔(I, x₀) (γ t) ∈ interior 𝓔(I, x₀).target ∧
@@ -174,7 +180,7 @@ lemma exists_integral_curve_of_cont_mdiff_tangent_vector_field_aux [proper_space
     has_deriv_at (𝓔(I, x₀) ∘ γ) (𝓔(I.tangent, v x₀) (v (γ t))).2 t :=
 begin
   have hx1 := is_open.mem_nhds (is_open_interior) hx,
-  have hx2 := (vector_field_cont_diff_on_snd_of_cont_mdiff h₁ h₂ x₀).mono interior_subset,
+  have hx2 := (vector_field_cont_diff_on_snd_of_cont_mdiff hv hcd x₀).mono interior_subset,
   obtain ⟨ε, hε, f, hf1, hf2⟩ := ODE_solution_exists.at_ball_of_cont_diff_on_nhds_mem_set
     (prod.snd ∘ (written_in_ext_chart_at I I.tangent x₀ v))
     (𝓔(I, x₀) x₀) (interior 𝓔(I, x₀).target) hx1 hx2 0,
@@ -214,19 +220,18 @@ end
 -- how to generalise / simplify?
 /-- The derivative of a curve on a manifold is independent of the chosen extended chart. -/
 lemma curve_has_deriv_at_coord_change
-  (v : M → tangent_bundle I M) (h₁ : ∀ x, (v x).1 = x) (x₀ : M) (γ : ℝ → M) (t : ℝ)
-  (hγ₁ : (γ t) ∈ 𝓔(I, x₀).source)
-  (hγ₂ : 𝓔(I, x₀) (γ t) ∈ interior 𝓔(I, x₀).target)
+  (hv : ∀ x, (v x).1 = x) (x₀ : M) (γ : ℝ → M) (t : ℝ)
+  (hγ₁ : (γ t) ∈ 𝓔(I, x₀).source) (hγ₂ : 𝓔(I, x₀) (γ t) ∈ interior 𝓔(I, x₀).target)
   (hd : has_deriv_at (𝓔(I, x₀) ∘ γ) (𝓔(I.tangent, v x₀) (v (γ t))).2 t) :
   has_deriv_at ((𝓔(I, γ t) ∘ 𝓔(I, x₀).symm) ∘ (𝓔(I, x₀) ∘ γ))
     (𝓔(I.tangent, v (γ t)) (v (γ t))).2 t :=
 begin
   have : (v (γ t)).fst ∈ 𝓔(I, (v x₀).1).source,
-  { rw [h₁, h₁],
+  { rw [hv, hv],
     exact hγ₁ },
-  rw tangent_bundle_core_coord_change_triv' I M (v (γ t)) (v x₀) this,
+  rw tangent_bundle_core_coord_change_triv' (v (γ t)) (v x₀) this,
   apply has_fderiv_at.comp_has_deriv_at _ _ hd,
-  rw [h₁, h₁, function.comp_apply],
+  rw [hv, hv, function.comp_apply],
   have : set.range I ∈ nhds (𝓔(I, x₀) (γ t)),
   { rw mem_nhds_iff,
     refine ⟨interior 𝓔(I, x₀).target, _, is_open_interior, hγ₂⟩,
@@ -245,13 +250,13 @@ end
   manifold, an integral curve `γ : ℝ → M` exists such that `γ 0 = x₀` and the tangent vector of `γ`
   at `t` coincides with the vector field at `γ t` for all `t` within an open interval around 0.-/
 theorem exists_integral_curve_of_cont_mdiff_tangent_vector_field [proper_space E]
-  (v : M → tangent_bundle I M) (h₁ : ∀ x, (v x).1 = x) (h₂ : cont_mdiff I I.tangent 1 v)
+  (hv : ∀ x, (v x).1 = x) (hcd : cont_mdiff I I.tangent 1 v)
   (x₀ : M) (hx : 𝓔(I, x₀) x₀ ∈ interior 𝓔(I, x₀).target) :
   ∃ (ε : ℝ) (hε : 0 < ε) (γ : ℝ → M), γ 0 = x₀ ∧ ∀ (t : ℝ), t ∈ metric.ball (0 : ℝ) ε →
     has_mfderiv_at 𝓘(ℝ, ℝ) I γ t ((1 : ℝ →L[ℝ] ℝ).smul_right (𝓔(I.tangent, v(γ t)) (v (γ t))).2) :=
 begin
   obtain ⟨ε, hε, γ, hf1, hf2⟩ :=
-    exists_integral_curve_of_cont_mdiff_tangent_vector_field_aux I M v h₁ h₂ x₀ hx,
+    exists_integral_curve_of_cont_mdiff_tangent_vector_field_aux I M v hv hcd x₀ hx,
   refine ⟨ε, hε, γ, hf1, _⟩,
   intros t ht,
   rw has_mfderiv_at,
@@ -261,7 +266,7 @@ begin
     local_equiv.refl_symm, local_equiv.refl_coe, function.comp.right_id],
   apply has_deriv_within_at.has_fderiv_within_at,
   apply has_deriv_at.has_deriv_within_at,
-  have hd := curve_has_deriv_at_coord_change I M v h₁ x₀ γ t hf3 hf4 hf6,
+  have hd := curve_has_deriv_at_coord_change I M v hv x₀ γ t hf3 hf4 hf6,
   apply has_deriv_at.congr_of_eventually_eq hd,
   rw filter.eventually_eq_iff_exists_mem,
   refine ⟨metric.ball 0 ε, is_open.mem_nhds (metric.is_open_ball) ht, _⟩,
@@ -275,13 +280,9 @@ end
   tangent vector of `γ` at `t` coincides with the vector field at `γ t` for all `t` within an open
   interval around 0. -/
 lemma exists_integral_curve_of_cont_mdiff_tangent_vector_field_of_boundaryless
-  [proper_space E] [hI : I.boundaryless]
-  (v : M → tangent_bundle I M) (h₁ : ∀ x, (v x).1 = x) (h₂ : cont_mdiff I I.tangent 1 v) (x₀ : M) :
+  [proper_space E] [I.boundaryless]
+  (h₁ : ∀ x, (v x).1 = x) (h₂ : cont_mdiff I I.tangent 1 v) (x₀ : M) :
   ∃ (ε : ℝ) (hε : 0 < ε) (γ : ℝ → M), γ 0 = x₀ ∧ ∀ (t : ℝ), t ∈ metric.ball (0 : ℝ) ε →
     has_mfderiv_at 𝓘(ℝ, ℝ) I γ t ((1 : ℝ →L[ℝ] ℝ).smul_right (𝓔(I.tangent, v(γ t)) (v (γ t))).2) :=
-begin
-  apply exists_integral_curve_of_cont_mdiff_tangent_vector_field I M v h₁ h₂,
-  rw is_open.interior_eq (model_with_corners.boundaryless.is_open_target I x₀),
-  apply local_equiv.map_source,
-  exact mem_ext_chart_source _ _
-end
+exists_integral_curve_of_cont_mdiff_tangent_vector_field I M v h₁ h₂ x₀
+    (model_with_corners.boundaryless.is_interior_point I)

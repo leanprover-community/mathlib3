@@ -6,28 +6,30 @@ Authors: Rémy Degenne
 
 import order.succ_pred.basic
 import topology.algebra.order.basic
+import topology.metric_space.metrizable_uniformity
 
 /-!
 # Instances related to the discrete topology
 
-We prove that the discrete topology is a first-countable topology, and is second-countable for an
-encodable type. Also, in linear orders which are also `pred_order` and `succ_order`, the discrete
-topology is the order topology.
+We prove that the discrete topology is
+* first-countable,
+* second-countable for an encodable type,
+* equal to the order topology in linear orders which are also `pred_order` and `succ_order`,
+* metrizable.
 
 When importing this file and `data.nat.succ_pred`, the instances `second_countable_topology ℕ`
 and `order_topology ℕ` become available.
 
 -/
 
-open order set topological_space
+open order set topological_space filter
 
 variables {α : Type*} [topological_space α]
 
 @[priority 100]
 instance discrete_topology.first_countable_topology [discrete_topology α] :
   first_countable_topology α :=
-{ nhds_generated_countable :=
-    by { rw nhds_discrete, exact filter.is_countably_generated_pure } }
+{ nhds_generated_countable := by { rw nhds_discrete, exact is_countably_generated_pure } }
 
 @[priority 100]
 instance discrete_topology.second_countable_topology_of_encodable
@@ -120,3 +122,10 @@ instance discrete_topology.order_topology_of_pred_succ [h : discrete_topology α
   [pred_order α] [succ_order α] :
   order_topology α :=
 discrete_topology_iff_order_topology_of_pred_succ.mp h
+
+@[priority 100]
+instance discrete_topology.metrizable_space [discrete_topology α] : metrizable_space α :=
+begin
+  rw discrete_topology.eq_bot α,
+  exact @uniform_space.metrizable_space α ⊥ (is_countably_generated_principal _) _,
+end

@@ -289,6 +289,8 @@ protected def nonempty (s : set α) : Prop := ∃ x, x ∈ s
 
 @[simp] lemma nonempty_coe_sort {s : set α} : nonempty ↥s ↔ s.nonempty := nonempty_subtype
 
+alias nonempty_coe_sort ↔ _ nonempty.coe_sort
+
 lemma nonempty_def : s.nonempty ↔ ∃ x, x ∈ s := iff.rfl
 
 lemma nonempty_of_mem {x} (h : x ∈ s) : s.nonempty := ⟨x, h⟩
@@ -432,6 +434,9 @@ theorem eq_univ_iff_forall {s : set α} : s = univ ↔ ∀ x, x ∈ s :=
 univ_subset_iff.symm.trans $ forall_congr $ λ x, imp_iff_right trivial
 
 theorem eq_univ_of_forall {s : set α} : (∀ x, x ∈ s) → s = univ := eq_univ_iff_forall.2
+
+lemma nonempty.eq_univ [subsingleton α] : s.nonempty → s = univ :=
+by { rintro ⟨x, hx⟩, refine eq_univ_of_forall (λ y, by rwa subsingleton.elim y x) }
 
 lemma eq_univ_of_subset {s t : set α} (h : s ⊆ t) (hs : s = univ) : t = univ :=
 eq_univ_of_univ_subset $ hs ▸ h
@@ -1930,17 +1935,19 @@ lemma nontrivial_of_nontrivial (hs : s.nontrivial) : nontrivial α :=
 let ⟨x, _, y, _, hxy⟩ := hs in ⟨⟨x, y, hxy⟩⟩
 
 /-- `s`, coerced to a type, is a nontrivial type if and only if `s` is a nontrivial set. -/
-@[simp, norm_cast] lemma nontrivial_coe (s : set α) : nontrivial s ↔ s.nontrivial :=
+@[simp, norm_cast] lemma nontrivial_coe_sort {s : set α} : nontrivial s ↔ s.nontrivial :=
 by simp_rw [← nontrivial_univ_iff, set.nontrivial, mem_univ,
             exists_true_left, set_coe.exists, subtype.mk_eq_mk]
+
+alias nontrivial_coe_sort ↔ _ nontrivial.coe_sort
 
 /-- A type with a set `s` whose `coe_sort` is a nontrivial type is nontrivial.
 For the corresponding result for `subtype`, see `subtype.nontrivial_iff_exists_ne`. -/
 lemma nontrivial_of_nontrivial_coe (hs : nontrivial s) : nontrivial α :=
-by { rw [s.nontrivial_coe] at hs, exact nontrivial_of_nontrivial hs }
+nontrivial_of_nontrivial $ nontrivial_coe_sort.1 hs
 
 theorem nontrivial_mono {α : Type*} {s t : set α} (hst : s ⊆ t) (hs : nontrivial s) :
-  nontrivial t := (nontrivial_coe _).2 $ (s.nontrivial_coe.1 hs).mono hst
+  nontrivial t := nontrivial.coe_sort $ (nontrivial_coe_sort.1 hs).mono hst
 
 /-- The preimage of a nontrivial set under a surjective map is nontrivial. -/
 theorem nontrivial.preimage {s : set β} (hs : s.nontrivial) {f : α → β}
@@ -2642,7 +2649,8 @@ end image_preimage
 /-!
 ### Images of binary and ternary functions
 
-This section is very similar to `order.filter.n_ary`. Please keep them in sync.
+This section is very similar to `order.filter.n_ary`, `data.finset.n_ary`, `data.option.n_ary`.
+Please keep them in sync.
 -/
 
 section n_ary_image
@@ -2840,25 +2848,25 @@ lemma image_image2_distrib {g : γ → δ} {f' : α' → β' → δ} {g₁ : α 
   (image2 f s t).image g = image2 f' (s.image g₁) (t.image g₂) :=
 by simp_rw [image_image2, image2_image_left, image2_image_right, h_distrib]
 
-/-- Symmetric of `set.image2_image_left_comm`. -/
+/-- Symmetric statement to `set.image2_image_left_comm`. -/
 lemma image_image2_distrib_left {g : γ → δ} {f' : α' → β → δ} {g' : α → α'}
   (h_distrib : ∀ a b, g (f a b) = f' (g' a) b) :
   (image2 f s t).image g = image2 f' (s.image g') t :=
 (image_image2_distrib h_distrib).trans $ by rw image_id'
 
-/-- Symmetric of `set.image_image2_right_comm`. -/
+/-- Symmetric statement to `set.image_image2_right_comm`. -/
 lemma image_image2_distrib_right {g : γ → δ} {f' : α → β' → δ} {g' : β → β'}
   (h_distrib : ∀ a b, g (f a b) = f' a (g' b)) :
   (image2 f s t).image g = image2 f' s (t.image g') :=
 (image_image2_distrib h_distrib).trans $ by rw image_id'
 
-/-- Symmetric of `set.image_image2_distrib_left`. -/
+/-- Symmetric statement to `set.image_image2_distrib_left`. -/
 lemma image2_image_left_comm {f : α' → β → γ} {g : α → α'} {f' : α → β → δ} {g' : δ → γ}
   (h_left_comm : ∀ a b, f (g a) b = g' (f' a b)) :
   image2 f (s.image g) t = (image2 f' s t).image g' :=
 (image_image2_distrib_left $ λ a b, (h_left_comm a b).symm).symm
 
-/-- Symmetric of `set.image_image2_distrib_right`. -/
+/-- Symmetric statement to `set.image_image2_distrib_right`. -/
 lemma image_image2_right_comm {f : α → β' → γ} {g : β → β'} {f' : α → β → δ} {g' : δ → γ}
   (h_right_comm : ∀ a b, f a (g b) = g' (f' a b)) :
   image2 f s (t.image g) = (image2 f' s t).image g' :=
@@ -2889,25 +2897,25 @@ lemma image_image2_antidistrib {g : γ → δ} {f' : β' → α' → δ} {g₁ :
   (image2 f s t).image g = image2 f' (t.image g₁) (s.image g₂) :=
 by { rw image2_swap f, exact image_image2_distrib (λ _ _, h_antidistrib _ _) }
 
-/-- Symmetric of `set.image2_image_left_anticomm`. -/
+/-- Symmetric statement to `set.image2_image_left_anticomm`. -/
 lemma image_image2_antidistrib_left {g : γ → δ} {f' : β' → α → δ} {g' : β → β'}
   (h_antidistrib : ∀ a b, g (f a b) = f' (g' b) a) :
   (image2 f s t).image g = image2 f' (t.image g') s :=
 (image_image2_antidistrib h_antidistrib).trans $ by rw image_id'
 
-/-- Symmetric of `set.image_image2_right_anticomm`. -/
+/-- Symmetric statement to `set.image_image2_right_anticomm`. -/
 lemma image_image2_antidistrib_right {g : γ → δ} {f' : β → α' → δ} {g' : α → α'}
   (h_antidistrib : ∀ a b, g (f a b) = f' b (g' a)) :
   (image2 f s t).image g = image2 f' t (s.image g') :=
 (image_image2_antidistrib h_antidistrib).trans $ by rw image_id'
 
-/-- Symmetric of `set.image_image2_antidistrib_left`. -/
+/-- Symmetric statement to `set.image_image2_antidistrib_left`. -/
 lemma image2_image_left_anticomm {f : α' → β → γ} {g : α → α'} {f' : β → α → δ} {g' : δ → γ}
   (h_left_anticomm : ∀ a b, f (g a) b = g' (f' b a)) :
   image2 f (s.image g) t = (image2 f' t s).image g' :=
 (image_image2_antidistrib_left $ λ a b, (h_left_anticomm b a).symm).symm
 
-/-- Symmetric of `set.image_image2_antidistrib_right`. -/
+/-- Symmetric statement to `set.image_image2_antidistrib_right`. -/
 lemma image_image2_right_anticomm {f : α → β' → γ} {g : β → β'} {f' : β → α → δ} {g' : δ → γ}
   (h_right_anticomm : ∀ a b, f a (g b) = g' (f' b a)) :
   image2 f s (t.image g) = (image2 f' t s).image g' :=

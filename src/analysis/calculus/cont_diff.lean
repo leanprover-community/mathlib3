@@ -1144,46 +1144,6 @@ lemma cont_diff_on.continuous_on_fderiv_of_open
   continuous_on (λ x, fderiv 𝕜 f x) s :=
 ((cont_diff_on_succ_iff_fderiv_of_open hs).1 (h.of_le hn)).2.continuous_on
 
-lemma cont_diff_within_at.fderiv_within'
-  (hf : cont_diff_within_at 𝕜 n f s x) (hs : ∀ᶠ y in 𝓝[insert x s] x, unique_diff_within_at 𝕜 s y)
-  (hmn : m + 1 ≤ n) :
-  cont_diff_within_at 𝕜 m (fderiv_within 𝕜 f s) s x :=
-begin
-  have : ∀ k : ℕ, (k + 1 : ℕ∞) ≤ n → cont_diff_within_at 𝕜 k (fderiv_within 𝕜 f s) s x,
-  { intros k hkn,
-    obtain ⟨v, hv, -, f', hvf', hf'⟩ :=
-      cont_diff_within_at_succ_iff_has_fderiv_within_at'.mp (hf.of_le hkn),
-    apply hf'.congr_of_eventually_eq_insert,
-    filter_upwards [hv, hs],
-    exact λ y hy h2y, (hvf' y hy).fderiv_within h2y },
-  induction m using with_top.rec_top_coe,
-  { obtain rfl := eq_top_iff.mpr hmn,
-    rw [cont_diff_within_at_top],
-    exact λ m, this m le_top },
-  exact this m hmn
-end
-
-lemma cont_diff_within_at.fderiv_within
-  (hf : cont_diff_within_at 𝕜 n f s x) (hs : unique_diff_on 𝕜 s)
-  (hmn : (m + 1 : ℕ∞) ≤ n) (hxs : x ∈ s) :
-  cont_diff_within_at 𝕜 m (fderiv_within 𝕜 f s) s x :=
-hf.fderiv_within' (by { rw [insert_eq_of_mem hxs], exact eventually_of_mem self_mem_nhds_within hs})
-  hmn
-
-/-- If a function is at least `C^1`, its bundled derivative (mapping `(x, v)` to `Df(x) v`) is
-continuous. -/
-lemma cont_diff_on.continuous_on_fderiv_within_apply
-  (h : cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hn : 1 ≤ n) :
-  continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1 : E → F) p.2) (s ×ˢ univ) :=
-begin
-  have A : continuous (λq : (E →L[𝕜] F) × E, q.1 q.2) := is_bounded_bilinear_map_apply.continuous,
-  have B : continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1, p.2)) (s ×ˢ univ),
-  { apply continuous_on.prod _ continuous_snd.continuous_on,
-    exact continuous_on.comp (h.continuous_on_fderiv_within hs hn) continuous_fst.continuous_on
-      (prod_subset_preimage_fst _ _) },
-  exact A.comp_continuous_on B
-end
-
 /-! ### Functions with a Taylor series on the whole space -/
 
 /-- `has_ftaylor_series_up_to n f p` registers the fact that `p 0 = f` and `p (m+1)` is a

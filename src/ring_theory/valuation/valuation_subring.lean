@@ -211,8 +211,7 @@ instance prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
 /-- The coarsening of a valuation ring associated to a prime ideal. -/
 def of_prime (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   valuation_subring K :=
-of_le A (localization.subalgebra.of_field K P.prime_compl $
-  le_non_zero_divisors_of_no_zero_divisors $ not_not_intro P.zero_mem).to_subring $
+of_le A (localization.subalgebra.of_field K _ P.prime_compl_le_non_zero_divisors).to_subring $
   λ a ha, subalgebra.algebra_map_mem _ (⟨a, ha⟩ : A)
 
 instance of_prime_algebra (A : valuation_subring K) (P : ideal A) [P.is_prime] :

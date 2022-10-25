@@ -10,6 +10,7 @@ import topology.uniform_space.compact_convergence
 import topology.algebra.star
 import algebra.algebra.subalgebra.basic
 import tactic.field_simp
+import algebra.star.star_alg_hom
 
 /-!
 # Algebraic structures over continuous functions
@@ -575,8 +576,6 @@ def continuous_map.C : R →+* C(α, A) :=
 @[simp] lemma continuous_map.C_apply (r : R) (a : α) : continuous_map.C r a = algebra_map R A r :=
 rfl
 
-variables [has_continuous_const_smul R A] [has_continuous_const_smul R A₂]
-
 instance continuous_map.algebra : algebra R C(α, A) :=
 { to_ring_hom := continuous_map.C,
   commutes' := λ c f, by ext x; exact algebra.commutes' _ _,
@@ -591,6 +590,22 @@ variables (R)
   C(α, A) →ₐ[R] C(α, A₂) :=
 { commutes' := λ c, continuous_map.ext $ λ _, g.commutes' _,
   .. g.to_ring_hom.comp_left_continuous α hg }
+
+variables (A)
+
+/--
+Precomposition of functions into a normed ring by a continuous map is an algebra homomorphism.
+-/
+@[simps] def continuous_map.comp_right_alg_hom {α β : Type*} [topological_space α]
+  [topological_space β] (f : C(α, β)) : C(β, A) →ₐ[R] C(α, A) :=
+{ to_fun := λ g, g.comp f,
+  map_zero' := by { ext, refl, },
+  map_add' := λ g₁ g₂, by { ext, refl, },
+  map_one' := by { ext, refl, },
+  map_mul' := λ g₁ g₂, by { ext, refl, },
+  commutes' := λ r, by { ext, refl, }, }
+
+variables {A}
 
 /-- Coercion to a function as an `alg_hom`. -/
 @[simps]
@@ -820,5 +835,35 @@ instance [has_star R] [has_star β] [has_smul R β] [star_module R β]
 { star_smul := λ k f, ext $ λ x, star_smul _ _ }
 
 end star_structure
+
+variables {X Y Z : Type*} [topological_space X] [topological_space Y] [topological_space Z]
+variables (𝕜 : Type*) [comm_semiring 𝕜]
+variables (A : Type*) [topological_space A] [semiring A] [topological_semiring A] [star_ring A]
+variables [has_continuous_star A] [algebra 𝕜 A]
+
+/-- The functorial map taking `f : C(X, Y)` to `C(Y, A) →⋆ₐ[𝕜] C(X, A)` given by pre-composition
+with the continuous function `f`. See `continuous_map.comp_monoid_hom'` and
+`continuous_map.comp_add_monoid_hom'`, `continuous_map.comp_right_alg_hom` for bundlings of
+pre-composition into a `monoid_hom`, an `add_monoid_hom` and an `alg_hom`, respectively, under
+suitable assumptions on `A`. -/
+@[simps] def comp_star_alg_hom' (f : C(X, Y)) : C(Y, A) →⋆ₐ[𝕜] C(X, A) :=
+{ to_fun := λ g, g.comp f,
+  map_one' := one_comp _,
+  map_mul' := λ _ _, rfl,
+  map_zero' := zero_comp _,
+  map_add' := λ _ _, rfl,
+  commutes' := λ _, rfl,
+  map_star' := λ _, rfl }
+
+/-- `continuous_map.comp_star_alg_hom'` sends the identity continuous map to the identity
+`star_alg_hom` -/
+lemma comp_star_alg_hom'_id :
+  comp_star_alg_hom' 𝕜 A (continuous_map.id X) = star_alg_hom.id 𝕜 C(X, A) :=
+star_alg_hom.ext $ λ _, continuous_map.ext $ λ _, rfl
+
+/-- `continuous_map.comp_star_alg_hom` is functorial. -/
+lemma comp_star_alg_hom'_comp (g : C(Y, Z)) (f : C(X, Y)) :
+  comp_star_alg_hom' 𝕜 A (g.comp f) = (comp_star_alg_hom' 𝕜 A f).comp (comp_star_alg_hom' 𝕜 A g) :=
+star_alg_hom.ext $ λ _, continuous_map.ext $ λ _, rfl
 
 end continuous_map

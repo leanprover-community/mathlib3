@@ -18,7 +18,8 @@ import data.list.basic
   defined inductively, with traversable instance and decidable equality.
 * `magma.assoc_quotient α`: quotient of a magma `α` by the associativity equivalence relation.
 * `free_semigroup α`: free semigroup over alphabet `α`, defined as a structure with two fields
-  `head : α` and `tail : list α` (i.e. nonempty lists), with traversable instance and decidable equality.
+  `head : α` and `tail : list α` (i.e. nonempty lists), with traversable instance and decidable
+  equality.
 * `free_magma_assoc_quotient_equiv α`: isomorphism between `magma.assoc_quotient (free_magma α)` and
   `free_semigroup α`.
 * `free_magma.lift`: the universal property of the free magma, expressing its adjointness.

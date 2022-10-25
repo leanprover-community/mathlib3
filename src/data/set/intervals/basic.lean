@@ -561,6 +561,8 @@ end
 
 lemma Ici_eq_Ici_iff (a b : α) : Ici a = Ici b ↔ a = b := Ici_injective.eq_iff
 
+lemma Iic_injective : function.injective (Iic : α → set α) := by convert @Ici_injective αᵒᵈ _
+
 lemma Iic_eq_Iic_iff : Iic a = Iic b ↔ a = b :=
 Ici_eq_Ici_iff (to_dual a) (to_dual b)
 

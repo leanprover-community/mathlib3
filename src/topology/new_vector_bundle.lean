@@ -374,6 +374,96 @@ by { ext v, rw [coord_change_apply 𝕜 e e' hb], refl }
 
 end trivialization
 
+variables (𝕜 B F)
+/-- Analogous construction of `fiber_bundle_core` for vector bundles. This
+construction gives a way to construct vector bundles from a structure registering how
+trivialization changes act on fibers. -/
+structure vector_bundle_core (ι : Type*) :=
+(base_set          : ι → set B)
+(is_open_base_set  : ∀ i, is_open (base_set i))
+(index_at          : B → ι)
+(mem_base_set_at   : ∀ x, x ∈ base_set (index_at x))
+(coord_change      : ι → ι → B → (F →L[𝕜] F))
+(coord_change_self : ∀ i, ∀ x ∈ base_set i, ∀ v, coord_change i i x v = v)
+(coord_change_continuous : ∀ i j, continuous_on (coord_change i j) (base_set i ∩ base_set j))
+(coord_change_comp : ∀ i j k, ∀ x ∈ (base_set i) ∩ (base_set j) ∩ (base_set k), ∀ v,
+  (coord_change j k x) (coord_change i j x v) = coord_change i k x v)
+
+namespace vector_bundle_core
+
+variables {𝕜 B F} {ι : Type*} (Z : vector_bundle_core 𝕜 B F ι)
+
+include Z
+
+/-- Natural identification to a `fiber_bundle_core`. -/
+def to_fiber_bundle_core : fiber_bundle_core ι B F :=
+{ coord_change := λ i j b, Z.coord_change i j b,
+  coord_change_continuous := λ i j, is_bounded_bilinear_map_apply.continuous.comp_continuous_on
+      ((Z.coord_change_continuous i j).prod_map continuous_on_id),
+  ..Z }
+
+lemma coord_change_linear_comp (i j k : ι): ∀ x ∈ (Z.base_set i) ∩ (Z.base_set j) ∩ (Z.base_set k),
+  (Z.coord_change j k x).comp (Z.coord_change i j x) = Z.coord_change i k x :=
+λ x hx, by { ext v, exact Z.coord_change_comp i j k x hx v }
+
+instance add_comm_monoid_fiber : ∀ (x : B), add_comm_monoid (Z.to_fiber_bundle_core.fiber x) :=
+by delta_instance fiber_bundle_core.fiber
+instance module_fiber : ∀ (x : B), module 𝕜 (Z.to_fiber_bundle_core.fiber x) :=
+by delta_instance fiber_bundle_core.fiber
+instance add_comm_group_fiber [add_comm_group F] : ∀ (x : B), add_comm_group (Z.to_fiber_bundle_core.fiber x) :=
+by delta_instance fiber_bundle_core.fiber
+
+variables (b : B) (a : F)
+
+@[simp, mfld_simps] lemma coe_coord_change (i j : ι) :
+  Z.to_fiber_bundle_core.coord_change i j b = Z.coord_change i j b := rfl
+
+instance is_linear_local_triv (i : ι) : (Z.to_fiber_bundle_core.local_triv i).is_linear 𝕜 :=
+⟨λ x hx,
+  { map_add := λ v w, by simp only [continuous_linear_map.map_add] with mfld_simps,
+    map_smul := λ r v, by simp only [continuous_linear_map.map_smul] with mfld_simps}⟩
+
+variables (i j : ι)
+
+@[simp, mfld_simps] lemma local_triv_apply (p : Z.to_fiber_bundle_core.total_space) :
+  (Z.to_fiber_bundle_core.local_triv i) p = ⟨p.1, Z.coord_change (Z.index_at p.1) i p.1 p.2⟩ := rfl
+
+@[simp, mfld_simps] lemma local_triv_symm_fst (p : B × F) :
+  (Z.to_fiber_bundle_core.local_triv i).to_local_homeomorph.symm p =
+    ⟨p.1, Z.coord_change i (Z.index_at p.1) p.1 p.2⟩ := rfl
+
+@[simp, mfld_simps] lemma local_triv_coord_change_eq {b : B} (hb : b ∈ Z.base_set i ∩ Z.base_set j)
+  (v : F) :
+  (Z.to_fiber_bundle_core.local_triv i).coord_change 𝕜 (Z.to_fiber_bundle_core.local_triv j) b v =
+  Z.coord_change i j b v :=
+begin
+  rw [trivialization.coord_change_apply', local_triv_symm_fst, local_triv_apply,
+    coord_change_comp],
+  exacts [⟨⟨hb.1, Z.mem_base_set_at b⟩, hb.2⟩, hb]
+end
+
+instance : vector_bundle 𝕜 F Z.to_fiber_bundle_core.fiber :=
+{ trivialization_linear := begin
+    rintro _ ⟨i, rfl⟩,
+    exact Z.is_linear_local_triv i,
+  end,
+  continuous_on_coord_change := begin
+    rintros _ _ ⟨i, rfl⟩ ⟨i', rfl⟩,
+    refine (Z.coord_change_continuous i i').congr (λ b hb, _),
+    ext v,
+    simp_rw [continuous_linear_equiv.coe_coe, Z.local_triv_coord_change_eq i i' hb],
+  end }
+
+end vector_bundle_core
+
+
+
+
+
+
+
+
+
 namespace bundle.trivial
 variables (𝕜 B F)
 

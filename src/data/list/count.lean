@@ -112,7 +112,7 @@ lemma count_cons' (a b : α) (l : list α) :
   count a (b :: l) = count a l + (if a = b then 1 else 0) :=
 begin rw count_cons, split_ifs; refl end
 
-@[simp] lemma count_cons_self (a : α) (l : list α) : count a (a::l) = succ (count a l) := if_pos rfl
+@[simp] lemma count_cons_self (a : α) (l : list α) : count a (a::l) = count a l + 1 := if_pos rfl
 
 @[simp, priority 990]
 lemma count_cons_of_ne {a b : α} (h : a ≠ b) (l : list α) : count a (b::l) = count a l := if_neg h

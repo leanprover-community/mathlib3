@@ -2,27 +2,45 @@ import data.nat.parity
 
 namespace list
 
+@[simp] theorem count_bnot_add_count (l : list bool) (b : bool) : count (!b) l + count b l = length l :=
+by simp only [length_eq_countp_add_countp (eq (!b)), bool.bnot_not_eq, count]
+
+@[simp] theorem count_add_count_bnot (l : list bool) (b : bool) : count b l + count (!b) l = length l :=
+by rw [add_comm, count_bnot_add_count]
+
+@[simp] theorem count_ff_add_count_tt (l : list bool) : count ff l + count tt l = length l :=
+count_bnot_add_count l tt
+
+@[simp] theorem count_tt_add_count_ff (l : list bool) : count tt l + count ff l = length l :=
+count_bnot_add_count l ff
+
+lemma chain.count_bnot :
+  ∀ {b : bool} {l : list bool}, chain (≠) b l → count (!b) l = count b l + length l % 2
+| b [] h := rfl
+| b (x :: l) h :=
+  begin
+    obtain rfl : b = !x := bool.eq_bnot_iff.2 (rel_of_chain_cons h),
+    rw [bnot_bnot, count_cons_self, count_cons_of_ne x.bnot_ne_self,
+      chain.count_bnot (chain_of_chain_cons h), length, add_assoc, nat.mod_two_add_succ_mod_two]
+  end
+
 namespace chain'
 
 variables {l : list bool}
 
+theorem count_bnot_eq_count (hl : chain' (≠) l) (h2 : even (length l)) (b : bool) :
+  count (!b) l = count b l :=
+begin
+  cases l with x l, { refl },
+  rw [length_cons, nat.even_add_one, nat.not_even_iff] at h2,
+  suffices : count (!x) (x :: l) = count x (x :: l),
+  { cases b; cases x; try { exact this }; exact this.symm },
+  rw [count_cons_of_ne x.bnot_ne_self, hl.count_bnot, h2, count_cons_self]
+end
+
 theorem two_mul_count_bool_of_even (hl : chain' (≠) l) (h2 : even (length l)) (b : bool) :
   2 * count b l = length l :=
-begin
-  cases h2 with n hn,
-  suffices : count b l = n, by rw [this, hn, two_mul],
-  induction n with n ihn generalizing l,
-  { rw [zero_add, length_eq_zero] at hn,
-    rw [hn, count_nil] },
-  { rw [nat.succ_eq_add_one, add_add_add_comm, ← add_assoc] at hn,
-    rcases l with (_|⟨x, _|⟨y, l⟩⟩); iterate 2 { try { injection hn with hn } },
-    rw [count_cons', count_cons', @ihn l hl.tail.tail hn, add_assoc, nat.succ_eq_add_one,
-      add_right_inj],
-    have := hl.rel_head,
-    clear_dependent l ihn,
-    revert this x y b,
-    dec_trivial }
-end
+by rw [← count_bnot_add_count l b, hl.count_bnot_eq_count h2, two_mul]
 
 theorem two_mul_count_bool_eq_ite (hl : chain' (≠) l) (b : bool) :
   2 * count b l = if even (length l) then length l else

@@ -1,8 +1,7 @@
 import group_theory.subgroup.basic
 import group_theory.congruence
 import group_theory.submonoid.membership
-import algebra.char_p.two
-import data.zmod.basic
+import data.zmod.z2
 
 /-!
 -/
@@ -579,14 +578,8 @@ end dec_eq
 
 namespace word
 
-local notation `ℤ₂` := multiplicative (zmod 2)
-local notation `σ` := (multiplicative.of_add 1 : ℤ₂)
-
-lemma of_one_ne_one : σ ≠ 1 := dec_trivial
-
-lemma one_ne_iff : ∀ {x : ℤ₂}, 1 ≠ x ↔ x = σ := dec_trivial
-
-lemma mul_self_eq_one (x : ℤ₂) : x * x = 1 := char_two.add_self_eq_zero x.to_add
+local notation `ℤ₂` := mul_z2
+local notation `σ` := mul_z2.a
 
 def z2_prod_mker_fst_aux₁ : list (ℤ₂ ⊕ α) → bool → list (α ⊕ α)
 | [] _ := []
@@ -648,10 +641,10 @@ lemma z2_prod_mker_fst_inv₂ :
 | [sum.inl x, sum.inr y] h₁ h _ := absurd h $ by simpa [eq_comm] using h₁
 | (sum.inl x :: sum.inr y :: sum.inl z :: l) h₁ h₂ h₃ :=
   begin
-    simp only [mem_cons_iff, not_or_distrib, ← ne.def, one_ne_iff] at h₁,
+    simp only [mem_cons_iff, not_or_distrib, ← ne.def, mul_z2.one_ne_iff] at h₁,
     rcases h₁ with ⟨rfl, -, rfl, h₁⟩,
     have h₂' : (l.map (sum.elim id (λ _, (1 : ℤ₂)))).prod = 1,
-      by simpa [← mul_assoc, mul_self_eq_one] using h₂,
+      by simpa [← mul_assoc, mul_z2.mul_self] using h₂,
     simp only [z2_prod_mker_fst_aux₁, z2_prod_mker_fst_aux₂, bnot, cond, eq_self_iff_true, true_and],
     exact z2_prod_mker_fst_inv₂ l h₁ h₂' h₃.tail.tail.tail
   end
@@ -663,7 +656,7 @@ def z2_prod_mker_fst_fun (w : word M M) : (fst : word ℤ₂ M →* ℤ₂).mker
 ⟨⟨z2_prod_mker_fst_aux₂ w.to_list,
   begin
     induction w.to_list with x w ihw, { exact not_false },
-    cases x; simp [z2_prod_mker_fst_aux₂, ihw, of_one_ne_one.symm]
+    cases x; simp [z2_prod_mker_fst_aux₂, ihw, mul_z2.one_ne_a]
   end,
   inr_one_nmem_z2_prod_mker_fst_aux₂.2 ⟨w.2, w.3⟩,
   (chain'_z2_prod_mker_fst_aux₂ _).2 w.4⟩,
@@ -671,8 +664,7 @@ def z2_prod_mker_fst_fun (w : word M M) : (fst : word ℤ₂ M →* ℤ₂).mker
     rw [monoid_hom.mem_mker, fst, lift_apply_mk, ← free_prod.fst],
     induction w.to_list with x l ihl, { refl },
     cases x; simp only [z2_prod_mker_fst_aux₂, of_list_cons, map_mul, mk_of_inl, mk_of_inr,
-      free_prod.fst_apply_inl, free_prod.fst_apply_inr, ← mul_assoc, mul_one, ihl, ← of_add_add,
-      char_two.add_self_eq_zero, of_add_zero]
+      free_prod.fst_apply_inl, free_prod.fst_apply_inr, ← mul_assoc, mul_one, ihl, mul_z2.mul_self]
   end⟩
 
 lemma z2_prod_mker_fst_fun_cons' {x : (M ⊕ M)} {w : word M M} (h) :
@@ -699,12 +691,12 @@ def z2_prod_mker_fst : word M M ≃* (fst : word ℤ₂ M →* ℤ₂).mker :=
         simp only [z2_prod_mker_fst_fun, submonoid.mk_mul_mk, mk_mul, of_inl, of_inr];
         ext : 2; simp only [subtype.coe_mk],
       { simp only [to_list_inl hx, to_list_inl (ne.symm hl.1), z2_prod_mker_fst_aux₂, foldr,
-          cons, mul_self_eq_one, cons'_inl_one, tail, list.tail],
+          cons, mul_z2.mul_self, cons'_inl_one, tail, list.tail],
         by_cases hxy : x * y = 1,
-        { simp only [hxy, cons'_inr_one, cons, mul_self_eq_one, map_one, cons'_inl_one], refl },
+        { simp only [hxy, cons'_inr_one, cons, mul_z2.mul_self, map_one, cons'_inl_one], refl },
         { simp only [to_list_inl hxy, z2_prod_mker_fst_aux₂, cons'],
           rw [dif_pos]; [skip, simpa],
-          rw [cons, cons', dif_pos], simp [of_one_ne_one] } },
+          rw [cons, cons', dif_pos], simp [mul_z2.a_ne_one] } },
       { simp only [to_list_inr hx, to_list_inr (ne.symm hr.1), z2_prod_mker_fst_aux₂, foldr,
           cons, tail, list.tail, mk_nil, cons'_one, of_inr],
         by_cases hxy : x * y = 1,
@@ -721,10 +713,15 @@ def z2_prod_mker_fst : word M M ≃* (fst : word ℤ₂ M →* ℤ₂).mker :=
   right_inv := λ w, subtype.ext $ ext _ _ $ z2_prod_mker_fst_inv₂ w.1.1 w.1.2 w.2 w.1.4,
   map_mul' := map_mul _ }
 
-/-!
--/
-
-
+lemma to_list_coe_z2_prod_mker_fst : ∀ w : word M M,
+  (w.z2_prod_mker_fst : word ℤ₂ M).to_list =
+    (w.to_list.map (sum.elim (λ x, [sum.inl σ, sum.inr x, sum.inl σ]) (λ x, [sum.inr x]))).join
+| ⟨[], _, _, _⟩ := rfl
+| w@⟨sum.inl x::l, hl, hr, hc⟩ :=
+  congr_arg2 list.cons rfl $ congr_arg2 list.cons rfl $ congr_arg2 list.cons rfl $
+    to_list_coe_z2_prod_mker_fst { to_list := l, .. w.tail }
+| w@⟨sum.inr x::l, hl, hr, hc⟩ :=
+  congr_arg2 list.cons rfl $ to_list_coe_z2_prod_mker_fst { to_list := l, .. w.tail }
 
 end word
 

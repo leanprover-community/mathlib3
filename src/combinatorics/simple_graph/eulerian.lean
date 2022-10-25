@@ -273,7 +273,8 @@ end
 
 theorem no_euler_trail {u v : verts} (p : graph.walk u v) (h : p.is_eulerian) : false :=
 begin
-  have : finset.filter (λ (v : verts), odd (graph.degree v)) finset.univ = {verts.V1, verts.V2, verts.V3, verts.V4},
+  have : finset.filter (λ (v : verts), odd (graph.degree v)) finset.univ =
+    {verts.V1, verts.V2, verts.V3, verts.V4},
   { ext w,
     simp,
     cases w; simp [degrees_ok, degrees], },
@@ -336,7 +337,8 @@ begin
 end
 
 @[simp]
-lemma incidence_set_delete_edges (s : set (sym2 V)) (v : V) : (G.delete_edges s).incidence_set v = G.incidence_set v \ s :=
+lemma incidence_set_delete_edges (s : set (sym2 V)) (v : V) :
+  (G.delete_edges s).incidence_set v = G.incidence_set v \ s :=
 begin
   ext e,
   refine sym2.ind (λ u w, _) e,
@@ -371,7 +373,8 @@ begin
     simp, },
 end
 
-lemma finset.filter_sdiff {α : Type*} (s s' : finset α) (p : α → Prop) [decidable_pred p] [decidable_eq α] :
+lemma finset.filter_sdiff {α : Type*} (s s' : finset α) (p : α → Prop)
+  [decidable_pred p] [decidable_eq α] :
   (s \ s').filter p = s.filter (λ x, ¬ x ∈ s' ∧ p x) :=
 begin
   ext x,

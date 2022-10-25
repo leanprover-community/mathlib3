@@ -12,6 +12,7 @@ import algebra.hom.equiv
 import data.set.lattice
 import combinatorics.quiver.connected_component
 import group_theory.subgroup.basic
+import order.galois_connection
 /-!
 # Subgroupoid
 
@@ -81,25 +82,37 @@ namespace subgroupoid
 
 variable (S : subgroupoid C)
 
-lemma mem_of_inv_mem {c d : C} (f : c ⟶ d) : inv f ∈ S.arrows d c → f ∈ S.arrows c d :=
-λ h, by
-{ suffices : inv (inv f) ∈ S.arrows c d,
-  { simpa only [inv_eq_inv, is_iso.inv_inv] using this, },
-  { apply S.inv h, }, }
+lemma inv_mem_iff {c d : C} (f : c ⟶ d) : inv f ∈ S.arrows d c ↔ f ∈ S.arrows c d :=
+begin
+  split,
+  { rintro h,
+    suffices : inv (inv f) ∈ S.arrows c d,
+    { simpa only [inv_eq_inv, is_iso.inv_inv] using this, },
+    { apply S.inv h, }, },
+  { apply S.inv, },
+end
 
-lemma mem_of_mul_mem {c d e : C} (f : c ⟶ d) (g : d ⟶ e) :
-  f ∈ S.arrows c d → f ≫ g ∈ S.arrows c e → g ∈ S.arrows d e :=
-λ hf h, by
-{ suffices : (inv f) ≫ f ≫ g ∈ S.arrows d e,
-  { simpa only [inv_eq_inv, is_iso.inv_hom_id_assoc] using this, },
-  { apply S.mul (S.inv hf) h, }, }
+lemma mul_mem_cancel_left {c d e : C} {f : c ⟶ d} {g : d ⟶ e} (hf : f ∈ S.arrows c d) :
+  f ≫ g ∈ S.arrows c e ↔ g ∈ S.arrows d e :=
+begin
+  split,
+  { rintro h,
+    suffices : (inv f) ≫ f ≫ g ∈ S.arrows d e,
+    { simpa only [inv_eq_inv, is_iso.inv_hom_id_assoc] using this, },
+    { apply S.mul (S.inv hf) h, }, },
+  { apply S.mul hf, },
+end
 
-lemma mem_of_mul_mem' {c d e : C} (f : c ⟶ d) (g : d ⟶ e) :
-  g ∈ S.arrows d e → f ≫ g ∈ S.arrows c e → f ∈ S.arrows c d :=
-λ hg h, by
-{ suffices : (f ≫ g) ≫ (inv g) ∈ S.arrows c d,
-  { simpa only [inv_eq_inv, is_iso.hom_inv_id, category.comp_id, category.assoc] using this, },
-  { apply S.mul h (S.inv hg), }, }
+lemma mul_mem_cancel_right {c d e : C} {f : c ⟶ d} {g : d ⟶ e} (hg : g ∈ S.arrows d e) :
+  f ≫ g ∈ S.arrows c e ↔ f ∈ S.arrows c d :=
+begin
+  split,
+  { rintro h,
+    suffices : (f ≫ g) ≫ (inv g) ∈ S.arrows c d,
+    { simpa only [inv_eq_inv, is_iso.hom_inv_id, category.comp_id, category.assoc] using this, },
+    { apply S.mul h (S.inv hg), }, },
+  { exact λ hf, S.mul hf hg, },
+end
 
 /-- The vertices of `C` on which `S` has non-trivial isotropy -/
 def objs : set C := {c : C | (S.arrows c c).nonempty}
@@ -128,7 +141,7 @@ id_mem_of_nonempty_isotropy S d (mem_objs_of_tgt S h)
 def as_wide_quiver : quiver C := ⟨λ c d, subtype $ S.arrows c d⟩
 
 /-- The coercion of a subgroupoid as a groupoid -/
-instance coe : groupoid S.objs :=
+@[simps (lemmas_only)] instance coe : groupoid S.objs :=
 { hom := λ a b, S.arrows a.val b.val,
   id := λ a, ⟨𝟙 a.val, id_mem_of_nonempty_isotropy S a.val a.prop⟩,
   comp := λ a b c p q, ⟨p.val ≫ q.val, S.mul p.prop q.prop⟩,
@@ -138,13 +151,6 @@ instance coe : groupoid S.objs :=
   inv := λ a b p, ⟨inv p.val, S.inv p.prop⟩,
   inv_comp' := λ a b ⟨p,hp⟩, by simp only [inv_comp],
   comp_inv' := λ a b ⟨p,hp⟩, by simp only [comp_inv] }
-
-/-
-This lemma comes for free when `@[simps]` is prepended to the instance above,
-but doing so makes lean's `#lint` complaining about a non-simplifying `simp` lemma. -/
-lemma coe_to_category_comp_coe {a b c : ↥(S.objs)} (p : a ⟶ b) (q : b ⟶ c):
-  ↑(p ≫ q) = p.val ≫ q.val := rfl
-
 
 /-- The embedding of the coerced subgroupoid to its parent-/
 def hom : S.objs ⥤ C :=
@@ -361,8 +367,7 @@ begin
   { rintro h c d,
     let h' := generated_normal_contains_generated X,
     rw le_iff at h h',
-    exact ((generated_contains X c d).trans (@h' c d)).trans (@h c d),
-    }
+    exact ((generated_contains X c d).trans (@h' c d)).trans (@h c d), },
 end
 
 end generated_subgroupoid
@@ -393,7 +398,7 @@ lemma is_normal_comap {S : subgroupoid D} (Sn : is_normal S) : is_normal (comap 
   { simp_rw [inv_eq_inv f, comap, mem_set_of, functor.map_comp, functor.map_inv, ←inv_eq_inv],
     exact Sn.conj _ hγ, } }
 
-lemma comap_comp {E : Type*} [groupoid E] (ψ : D ⥤ E) :
+@[simp] lemma comap_comp {E : Type*} [groupoid E] (ψ : D ⥤ E) :
   comap (φ ⋙ ψ) = (comap φ) ∘ (comap ψ) := rfl
 
 /-- The kernel of a functor between subgroupoid is the preimage. -/
@@ -442,16 +447,21 @@ lemma mem_map_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d : D
   ∃ (a b : C) (g : a ⟶ b) (ha : φ.obj a = c) (hb : φ.obj b = d) (hg : g ∈ S.arrows a b),
     f = (eq_to_hom ha.symm) ≫ φ.map g ≫ (eq_to_hom hb) := map.arrows_iff φ hφ S f
 
+lemma galois_connection_map_comap (hφ : function.injective φ.obj) :
+  galois_connection (map φ hφ) (comap φ) :=
+begin
+  rintro S T, simp_rw [le_iff], split,
+  { exact λ h c d f fS, h (map.arrows.im f fS), },
+  { rintros h _ _ g ⟨a,gφS⟩,
+    exact h gφS, },
+end
+
 lemma map_mono (hφ : function.injective φ.obj) (S T : subgroupoid C) :
   S ≤ T → map φ hφ S ≤ map φ hφ T :=
 by { rintro ST ⟨c,d,f⟩ ⟨_,h⟩, split, exact @ST ⟨_,_,_⟩ h }
 
-lemma le_map_comap (hφ : function.injective φ.obj) (S : subgroupoid C) : S ≤ comap φ (map φ hφ S) :=
-begin
-  rw le_iff,
-  rintros c d f hf,
-  constructor, exact hf,
-end
+lemma le_map_comap (hφ : function.injective φ.obj) (S : subgroupoid C) :
+  S ≤ comap φ (map φ hφ S) := (galois_connection_map_comap φ hφ).le_u_l S
 
 lemma mem_map_objs_iff (hφ : function.injective φ.obj) (d : D) :
   d ∈ (map φ hφ S).objs ↔ ∃ c ∈ S.objs, φ.obj c = d :=
@@ -466,6 +476,10 @@ begin
     exact ⟨φ.map γ,⟨γ,γS⟩⟩, }
 end
 
+@[simp]
+lemma map_objs_eq (hφ : function.injective φ.obj) : (map φ hφ S).objs = φ.obj '' S.objs := by
+{ ext, convert mem_map_objs_iff S φ hφ x, simp only [mem_image, exists_prop], }
+
 /-- The image of a functor injective on objects -/
 def im (hφ : function.injective φ.obj) := map φ hφ (⊤)
 
@@ -478,7 +492,6 @@ by { convert map.arrows_iff φ hφ ⊤ f, simp only [has_top.top, mem_univ, exis
 lemma mem_im_objs_iff  (hφ : function.injective φ.obj) (d : D) :
   d ∈ (im φ hφ).objs ↔ ∃ c : C, φ.obj c = d := by
 { simp only [im, mem_map_objs_iff, mem_top_objs, exists_true_left], }
-
 
 lemma obj_surjective_of_im_eq_top  (hφ : function.injective φ.obj) (hφ' : im φ hφ = ⊤) :
   function.surjective φ.obj :=

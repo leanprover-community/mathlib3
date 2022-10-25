@@ -71,6 +71,14 @@ variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E]
 instance _root_.normed_space.complex_to_real : normed_space ℝ E :=
 normed_space.restrict_scalars ℝ ℂ E
 
+section complex_order
+open_locale complex_order
+
+lemma eq_coe_norm_of_nonneg {z : ℂ} (hz : 0 ≤ z) : z = ↑∥z∥ :=
+by rw [eq_coe_re_of_real_le hz, is_R_or_C.norm_of_real, real.norm_of_nonneg (complex.le_def.2 hz).1]
+
+end complex_order
+
 lemma dist_eq (z w : ℂ) : dist z w = abs (z - w) := rfl
 
 lemma dist_eq_re_im (z w : ℂ) : dist z w = real.sqrt ((z.re - w.re) ^ 2 + (z.im - w.im) ^ 2) :=

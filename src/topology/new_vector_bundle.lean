@@ -1,5 +1,5 @@
 import analysis.normed_space.bounded_linear_maps
-import topology.new_bundle
+import topology.new_fiber_bundle
 
 open topological_space filter set bundle
 open_locale topological_space classical

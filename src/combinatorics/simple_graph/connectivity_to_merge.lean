@@ -39,10 +39,6 @@ open function
 namespace simple_graph
 variables {V : Type u} {V' : Type*} (G : simple_graph V)
 
-/-- doesn't seem to be used -/
-lemma dart.to_prod_injective {G : simple_graph V} : injective (dart.to_prod : G.dart → V × V) :=
-λ d e h, by { cases d, cases e, congr' }
-
 /-! ### Walks to paths -/
 
 
@@ -60,66 +56,12 @@ def prefix_of : Π {u v w : V} (p : G.walk u v) (q : G.walk u w), Prop
 
 end walk
 
-namespace walk
-variables {G}
-
-@[simp] lemma is_cycle.not_of_nil {u : V} : ¬ (nil : G.walk u u).is_cycle :=
-by simp [is_cycle_def]
-
-lemma right_mem_support_of_mem_edges {t u v w : V} (p : G.walk v w) (he : ⟦(t, u)⟧ ∈ p.edges) :
-  u ∈ p.support :=
-by { rw sym2.eq_swap at he, exact p.mem_support_of_mem_edges he }
-
-/-- Given a walk that avoids a set of edges, produce a walk in the graph
-with those edges deleted. -/
-def to_delete_edges (s : set (sym2 V)) :
-  Π {v w : V} (p : G.walk v w) (hp : ∀ e, e ∈ p.edges → ¬ e ∈ s), (G.delete_edges s).walk v w
-| _ _ nil _ := nil
-| _ _ (cons' u v w h p) hp := cons' u v w
-  (by { simp only [h, delete_edges_adj, true_and],
-        apply hp,
-        simp only [edges_cons, list.mem_cons_iff, eq_self_iff_true, true_or] })
-  (to_delete_edges p (λ e he, hp e (by simp only [he, edges_cons, list.mem_cons_iff, or_true])))
-
-@[simp] lemma to_delete_edges_nil {s : set (sym2 V)} {v : V} :
-  (nil : G.walk v v).to_delete_edges s (by simp) = nil := rfl
-
-@[simp] lemma to_delete_edges_cons {s : set (sym2 V)} {u v w : V} {huv : G.adj u v} {p : G.walk v w}
-  {hp : ∀ e, e ∈ (cons huv p).edges → ¬ e ∈ s} :
-  (cons huv p).to_delete_edges s hp =
-    cons (by { simp only [huv, delete_edges_adj, true_and], apply hp, simp [-quotient.eq], })
-      (p.to_delete_edges s (λ e he, hp e (by simp [he]))) := rfl
-
-/-- Given a walk that avoids an edge, create a walk in the subgraph with that edge deleted. -/
-abbreviation to_delete_edge {v w : V} (e : sym2 V) (p : G.walk v w) (hp : e ∉ p.edges) :
-  (G.delete_edges {e}).walk v w :=
-p.to_delete_edges {e} (λ e', by { contrapose!, simp [hp] { contextual := tt } })
-
-end walk
 
 namespace path
 variables {G} {G' : simple_graph V'}
 
-@[simp] lemma coe_mk {u v : V} (p : G.walk u v) (h : p.is_path) : ↑(⟨p, h⟩ : G.path u v) = p := rfl
-
-@[simp] lemma path_is_path {u v : V} (p : G.path u v) : walk.is_path (p : G.walk u v) := p.property
-
-@[simp] lemma to_trail {u v : V} (p : G.path u v) : walk.is_trail (p : G.walk u v) :=
-p.property.to_trail
-
-/-- The empty path at a vertex. -/
-@[refl] def nil {u : V} : G.path u u := ⟨walk.nil, by simp⟩
-
-/-- The length-1 path given by a pair of adjacent vertices. -/
-def singleton {u v : V} (h : G.adj u v) : G.path u v :=
-⟨walk.cons h walk.nil, by simp [walk.is_path_def, walk.is_trail_def, walk.edges, G.ne_of_adj h]⟩
-
 lemma singleton_edge_mem {u v : V} (h : G.adj u v) : ⟦(u, v)⟧ ∈ (singleton h : G.walk u v).edges :=
 by simp [singleton]
-
-/-- The reverse of a path is another path.  See `simple_graph.walk.reverse`. -/
-@[symm] def reverse {u v : V} (p : G.path u v) : G.path v u :=
-⟨walk.reverse p, p.property.reverse⟩
 
 lemma support_count_eq_one [decidable_eq V] {u v w : V} {p : G.path u v}
   (hw : w ∈ (p : G.walk u v).support) : (p : G.walk u v).support.count w = 1 :=
@@ -138,14 +80,6 @@ begin
   { cases hp,
     simpa using hp_support_nodup },
 end
-
-@[simp] lemma nodup_support {u v : V} (p : G.path u v) : (p : G.walk u v).support.nodup :=
-(walk.is_path_def _).mp p.property
-
-lemma cons_is_cycle {u v : V} (p : G.path v u) (h : G.adj u v)
-  (he : ¬ ⟦(u, v)⟧ ∈ (p : G.walk v u).edges):
-  (walk.cons h ↑p).is_cycle :=
-by simp [walk.is_cycle_def, walk.cons_is_trail_iff, he]
 
 end path
 
@@ -229,10 +163,10 @@ lemma is_bridge_iff_no_cycle_contains.aux1 [decidable_eq V]
   (c : G.walk u u)
   (hc : c.is_trail)
   (he : ⟦(v, w)⟧ ∈ c.edges)
-  (hw : w ∈ (c.take_until v (c.mem_support_of_mem_edges he)).support) :
+  (hw : w ∈ (c.take_until v (c.fst_mem_support_of_mem_edges he)).support) :
   false :=
 begin
-  have hv := c.mem_support_of_mem_edges he,
+  have hv := c.fst_mem_support_of_mem_edges he,
   -- decompose c into
   --      puw     pwv     pvu
   --   u ----> w ----> v ----> u
@@ -262,8 +196,8 @@ begin
   split,
   { intros hb u c hc he,
     rw is_bridge_iff_walks_contain at hb,
-    have hvc : v ∈ c.support := walk.mem_support_of_mem_edges c he,
-    have hwc : w ∈ c.support := walk.right_mem_support_of_mem_edges c he,
+    have hvc : v ∈ c.support := walk.fst_mem_support_of_mem_edges c he,
+    have hwc : w ∈ c.support := walk.snd_mem_support_of_mem_edges c he,
     let puv := c.take_until v hvc,
     let pvu := c.drop_until v hvc,
     obtain (hw | hw') : w ∈ puv.support ∨ w ∈ pvu.support,
@@ -294,7 +228,7 @@ begin
     rw is_bridge_iff_no_cycle_contains _ hvw,
     intros u p hp,
     exact absurd hp (ha _ p), },
-  { rintros hb v (_ | ⟨_, _, _, ha, p⟩) hp,
+  { rintros hb v (_ | @⟨_, _, _, ha, p⟩) hp,
     { exact hp.not_of_nil },
     { specialize hb ha,
       rw is_bridge_iff_no_cycle_contains _ ha at hb,
@@ -325,9 +259,9 @@ begin
         obtain (⟨h,rfl⟩ | ⟨rfl,rfl⟩) | h := h,
         { rw [ih hp.1 _ hq.1] },
         { simpa using hq },
-        { exact absurd (walk.mem_support_of_mem_edges _ h) hq.2 } } },
+        { exact absurd (walk.fst_mem_support_of_mem_edges _ h) hq.2 } } },
     { rw walk.cons_is_path_iff at hp,
-      exact absurd (walk.mem_support_of_mem_edges _ h) hp.2 } }
+      exact absurd (walk.fst_mem_support_of_mem_edges _ h) hp.2 } }
 end
 
 lemma is_acyclic_of_unique_path (h : ∀ (v w : V) (p q : G.path v w), p = q) : G.is_acyclic :=
@@ -356,16 +290,15 @@ begin
     intros v w,
     let q := (hc.1 v w).some.to_path,
     use q,
-    simp only [true_and, path.path_is_path],
+    simp only [true_and, path.is_path],
     intros p hp,
     specialize hu v w ⟨p, hp⟩ q,
-    simp only [←hu, path.coe_mk], },
+    simp only [←hu, subtype.coe_mk], },
   { rintro ⟨hV, h⟩,
-    refine ⟨⟨_, _⟩, _⟩,
+    refine ⟨@connected.mk V _ _ hV, _⟩,
     { intros v w,
       obtain ⟨p, hp⟩ := h v w,
       use p, },
-    { assumption },
     { rintros v w ⟨p, hp⟩ ⟨q, hq⟩,
       simp only [unique_of_exists_unique (h v w) hp hq] } },
 end
@@ -404,31 +337,31 @@ begin
   rintros v w ⟨ha, hvw⟩ ⟨ha', hwv⟩,
   by_contra hne,
   rw sym2.eq_swap at hwv,
-  have hv := walk.mem_support_of_mem_edges _ hwv,
+  have hv := walk.fst_mem_support_of_mem_edges _ hwv,
   have h' := h.2,
   rw is_acyclic_iff at h',
   specialize h' _ _
     (G.tree_path h v root)
-    ⟨walk.drop_until _ _ hv, walk.is_path.drop_until _ (path.path_is_path _) _⟩,
+    ⟨walk.drop_until _ _ hv, walk.is_path.drop_until _ (path.is_path _) _⟩,
   have hs := congr_arg (λ p, multiset.count w ↑(walk.support p)) (walk.take_spec _ hv),
   dsimp only at hs,
   rw h' at hvw,
-  have hw := walk.mem_support_of_mem_edges _ hwv,
+  have hw := walk.fst_mem_support_of_mem_edges _ hwv,
   rw walk.coe_support_append' at hs,
   have : multiset.count w {v} = 0,
-  { simp only [multiset.singleton_eq_cons, multiset.count_eq_zero, multiset.mem_singleton],
+  { simp only [multiset.cons_zero, multiset.count_eq_zero, multiset.mem_singleton],
     simpa using ne.symm hne },
   rw [multiset.count_sub, this, tsub_zero, multiset.count_add] at hs,
   simp_rw [multiset.coe_count] at hs,
   rw [path.support_count_eq_one] at hs,
   swap, { simp },
-  rw ←path.coe_mk (walk.take_until _ _ _) at hs,
-  swap, { apply walk.is_path.take_until, apply path.path_is_path },
-  rw ←path.coe_mk (walk.drop_until _ _ _) at hs,
-  swap, { apply walk.is_path.drop_until, apply path.path_is_path },
+  rw ←subtype.coe_mk (walk.take_until _ _ _) at hs,
+  swap, { apply walk.is_path.take_until, apply path.is_path },
+  rw ←subtype.coe_mk (walk.drop_until _ _ _) at hs,
+  swap, { apply walk.is_path.drop_until, apply path.is_path },
   rw [path.support_count_eq_one, path.support_count_eq_one] at hs,
   simpa using hs,
-  apply walk.mem_support_of_mem_edges _ (by { rw [sym2.eq_swap], exact hvw }),
+  apply walk.fst_mem_support_of_mem_edges _ (by { rw [sym2.eq_swap], exact hvw }),
   apply walk.start_mem_support,
 end
 
@@ -477,7 +410,7 @@ begin
     simp only [list.mem_cons_iff, subtype.coe_mk, simple_graph.walk.edges_cons, sym2.eq_iff] at h,
     cases h,
     { obtain (⟨_,rfl⟩|⟨rfl,rfl⟩) := h; refl },
-    { have h := walk.mem_support_of_mem_edges _ h,
+    { have h := walk.fst_mem_support_of_mem_edges _ h,
       exact (hp_support_nodup.1 h).elim } },
 end
 

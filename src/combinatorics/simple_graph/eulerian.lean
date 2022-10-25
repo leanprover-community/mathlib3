@@ -125,10 +125,6 @@ begin
     exact h.is_eulerian_of_complete hl, },
 end
 
-theorem _root_.list.countp_cons {α : Type*} (p : α → Prop) [decidable_pred p] (a : α) (l : list α) :
-  list.countp p (a :: l) = list.countp p l + ite (p a) 1 0 :=
-by { by_cases h : p a; simp [h] }
-
 lemma is_trail.even_countp_edges_iff {u v : V} {p : G.walk u v} (ht : p.is_trail) (x : V) :
   even (p.edges.countp (λ e, x ∈ e)) ↔ (u ≠ v → x ≠ u ∧ x ≠ v) :=
 begin
@@ -140,12 +136,12 @@ begin
     simp only [list.countp_cons, ne.def, edges_cons, sym2.mem_iff],
     split_ifs with h,
     { obtain (rfl | rfl) := h,
-      { rw [nat.even_succ, ← ih],
+      { rw [nat.even_add_one, ← ih],
         simp only [huv.ne, imp_false, eq_self_iff_true, not_true, false_and, not_not,
           ne.def, not_false_iff, true_and, not_forall, exists_prop, iff_and_self],
         rintro rfl rfl,
         exact G.loopless _ huv, },
-      { rw [nat.even_succ, ← ih],
+      { rw [nat.even_add_one, ← ih],
         simp only [huv.ne.symm, imp_false, ←imp_iff_not_or, not_false_iff, true_and,
           ne.def, eq_self_iff_true, not_true, false_and, not_not, imp_iff_right_iff],
         rintro rfl rfl,
@@ -340,30 +336,12 @@ begin
 end
 
 @[simp]
-lemma edge_set_delete_edges (s : set (sym2 V)) : (G.delete_edges s).edge_set = G.edge_set \ s :=
-begin
-  ext e,
-  refine sym2.ind (λ u v, _) e,
-  simp,
-end
-
-@[simp]
 lemma incidence_set_delete_edges (s : set (sym2 V)) (v : V) : (G.delete_edges s).incidence_set v = G.incidence_set v \ s :=
 begin
   ext e,
   refine sym2.ind (λ u w, _) e,
   simp [mk_mem_incidence_set_iff],
   tauto,
-end
-
-@[simp]
-lemma edge_finset_delete_edges [fintype V] [decidable_eq V] [decidable_rel G.adj] (s : finset (sym2 V))
-  [decidable_rel (G.delete_edges s).adj] :
-  (G.delete_edges s).edge_finset = G.edge_finset \ s :=
-begin
-  ext e,
-  refine sym2.ind (λ u v, _) e,
-  simp,
 end
 
 lemma mem_incidence_set_of_mem {v : V} {e : sym2 V} (hv : v ∈ e) (he : e ∈ G.edge_set) :
@@ -379,8 +357,7 @@ begin
   rw [← card_incidence_set_eq_degree],
   simp_rw [incidence_set_delete_edges],
   split_ifs with h,
-  { simp,
-    rw [finset.card_sdiff],
+  { rw [← set.to_finset_card, set.to_finset_diff, finset.card_sdiff],
     simp,
     simp [h],
     exact mem_incidence_set_of_mem h he },

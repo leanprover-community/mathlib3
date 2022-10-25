@@ -35,7 +35,7 @@ As an example, when setting up the monoidal category structure on `Type`
 we use the `types_has_terminal` and `types_has_binary_products` instances.
 -/
 
-universes u
+universes u v
 
 open category_theory
 open category_theory.limits
@@ -204,7 +204,8 @@ colimit.iso_colimit_cocone_ι_inv (binary_coproduct_colimit_cocone X Y) ⟨walki
 /--
 The category of types has `Π j, f j` as the product of a type family `f : J → Type`.
 -/
-def product_limit_cone {J : Type u} (F : J → Type u) : limits.limit_cone (discrete.functor F) :=
+def product_limit_cone {J : Type u} (F : J → Type (max u v)) :
+  limits.limit_cone (discrete.functor F) :=
 { cone :=
   { X := Π j, F j,
     π := { app := λ j f, f j.as }, },
@@ -213,14 +214,14 @@ def product_limit_cone {J : Type u} (F : J → Type u) : limits.limit_cone (disc
     uniq' := λ s m w, funext $ λ x, funext $ λ j, (congr_fun (w ⟨j⟩) x : _) } }
 
 /-- The categorical product in `Type u` is the type theoretic product `Π j, F j`. -/
-noncomputable def product_iso {J : Type u} (F : J → Type u) : ∏ F ≅ Π j, F j :=
+noncomputable def product_iso {J : Type u} (F : J → Type (max u v)) : ∏ F ≅ Π j, F j :=
 limit.iso_limit_cone (product_limit_cone F)
 
-@[simp, elementwise] lemma product_iso_hom_comp_eval {J : Type u} (F : J → Type u) (j : J) :
+@[simp, elementwise] lemma product_iso_hom_comp_eval {J : Type u} (F : J → Type (max u v)) (j : J) :
   (product_iso F).hom ≫ (λ f, f j) = pi.π F j :=
 rfl
 
-@[simp, elementwise] lemma product_iso_inv_comp_π {J : Type u} (F : J → Type u) (j : J) :
+@[simp, elementwise] lemma product_iso_inv_comp_π {J : Type u} (F : J → Type (max u v)) (j : J) :
   (product_iso F).inv ≫ pi.π F j = (λ f, f j) :=
 limit.iso_limit_cone_inv_π (product_limit_cone F) ⟨j⟩
 

@@ -234,13 +234,13 @@ begin
         exists_seq_strict_anti_tendsto (0 : ℝ),
     have A : ∀ n, F (u n) ∈ closed_ball (0 : fin N → E) 2,
     { assume n,
-      simp only [pi_norm_le_iff zero_le_two, mem_closed_ball, dist_zero_right,
+      simp only [pi_norm_le_iff_of_nonneg zero_le_two, mem_closed_ball, dist_zero_right,
                  (hF (u n) (zero_lt_u n)).left, forall_const], },
     obtain ⟨f, fmem, φ, φ_mono, hf⟩ : ∃ (f ∈ closed_ball (0 : fin N → E) 2) (φ : ℕ → ℕ),
       strict_mono φ ∧ tendsto ((F ∘ u) ∘ φ) at_top (𝓝 f) :=
         is_compact.tendsto_subseq (is_compact_closed_ball _ _) A,
     refine ⟨f, λ i, _, λ i j hij, _⟩,
-    { simp only [pi_norm_le_iff zero_le_two, mem_closed_ball, dist_zero_right] at fmem,
+    { simp only [pi_norm_le_iff_of_nonneg zero_le_two, mem_closed_ball, dist_zero_right] at fmem,
       exact fmem i },
     { have A : tendsto (λ n, ∥F (u (φ n)) i - F (u (φ n)) j∥) at_top (𝓝 (∥f i - f j∥)) :=
         ((hf.apply i).sub (hf.apply j)).norm,

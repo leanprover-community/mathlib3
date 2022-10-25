@@ -767,6 +767,9 @@ begin
   convert (subperm_append_right _).mpr nil_subperm using 1
 end
 
+instance decidable_subperm : decidable_rel ((<+~) : list α → list α → Prop) :=
+λ l₁ l₂, decidable_of_iff _ list.subperm_ext_iff.symm
+
 @[simp] lemma subperm_singleton_iff {α} {l : list α} {a : α} : [a] <+~ l ↔ a ∈ l :=
 ⟨λ ⟨s, hla, h⟩, by rwa [perm_singleton.mp hla, singleton_sublist] at h,
  λ h, ⟨[a], perm.refl _, singleton_sublist.mpr h⟩⟩

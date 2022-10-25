@@ -145,8 +145,7 @@ begin
       * volume (metric.ball (0:E) 1) :=
   begin
     intros t ht,
-    rw measure.add_haar_closed_ball,
-    rw [le_sub_iff_add_le', add_zero],
+    rw [measure.add_haar_closed_ball, le_sub_iff_add_le', add_zero],
     exact real.one_le_rpow_of_pos_of_le_one_of_nonpos ht.1 ht.2 (by simp [hr.le]),
   end,
   have h_meas' : measurable (λ (a : ℝ), ennreal.of_real ((a ^ -r⁻¹ - 1) ^ finrank ℝ E)) :=

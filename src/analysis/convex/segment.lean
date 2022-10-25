@@ -133,20 +133,6 @@ lemma open_segment_subset_iff_segment_subset (hx : x ∈ s) (hy : y ∈ s) :
   open_segment 𝕜 x y ⊆ s ↔ [x -[𝕜] y] ⊆ s :=
 by simp only [←insert_endpoints_open_segment, insert_subset, *, true_and]
 
-lemma open_segment_subset_open_segment_left (h : y ∈ open_segment 𝕜 x z) :
-  open_segment 𝕜 x y ⊆ open_segment 𝕜 x z :=
-begin
-  rcases h with ⟨a, b, ha, hb, hab, rfl⟩,
-  rintro _ ⟨c, d, hc, hd, hcd, rfl⟩,
-  refine ⟨c + d * a, d * b, add_pos hc $ mul_pos hd ha, mul_pos hd hb, _, _⟩,
-  { rwa [add_assoc, ← mul_add, hab, mul_one] },
-  { simp only [add_smul, mul_smul, smul_add, add_left_comm, add_assoc] }
-end
-
-lemma open_segment_subset_open_segment_right (h : y ∈ open_segment 𝕜 x z) :
-  open_segment 𝕜 y z ⊆ open_segment 𝕜 x z :=
-by { simp only [open_segment_symm 𝕜 _ z] at *, exact open_segment_subset_open_segment_left h }
-
 end module
 end ordered_semiring
 

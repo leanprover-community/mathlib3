@@ -57,7 +57,7 @@ structure picard_lindelof (E : Type*) [normed_add_comm_group E] [normed_space �
 /-- `Prop` structure holding the hypotheses of the Picard-Lindelöf theorem.
 
 The similarly named `picard_lindelof` structure is part of the internal API for convenience, so as
-not to constantly invoke choice. -/
+not to constantly invoke choice, but is not intended for public use. -/
 structure is_picard_lindelof
   {E : Type*} [normed_add_comm_group E] (v : ℝ → E → E) (t_min t₀ t_max : ℝ) (x₀ : E)
   (L : ℝ≥0) (R C : ℝ) : Prop :=
@@ -373,8 +373,7 @@ begin
     { exact zero_lt_one },
     { exact div_pos (half_pos hr) (lt_of_le_of_ne hC' (ne.symm h)) } },
   refine ⟨ε, hε0, L, r / 2, C, _⟩,
-  exact {
-    ht₀ := by {rw ←real.closed_ball_eq_Icc, exact mem_closed_ball_self hε0.le},
+  exact { ht₀ := by {rw ←real.closed_ball_eq_Icc, exact mem_closed_ball_self hε0.le},
     hR := (half_pos hr).le,
     lipschitz := λ t ht, hlip.mono (subset_inter_iff.mp
       (subset_trans (closed_ball_subset_ball (half_lt_self hr)) hball)).2,
@@ -385,8 +384,7 @@ begin
       split_ifs,
       { rwa ← h at hr' },
       { exact (mul_div_cancel' (r / 2) h).le }
-    end
-  }
+    end }
 end
 
 /-- A time-independent, locally continuously differentiable ODE admits a solution in some open

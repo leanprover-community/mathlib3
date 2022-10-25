@@ -126,10 +126,6 @@ discrete_topology_iff_order_topology_of_pred_succ.mp h
 @[priority 100]
 instance discrete_topology.metrizable_space [discrete_topology α] : metrizable_space α :=
 begin
-  have h : is_countably_generated (⊥ : uniform_space α).uniformity,
-  { refine is_countably_generated_of_seq ⟨λ _, id_rel, _⟩,
-    rw cinfi_const,
-    refl, },
   rw discrete_topology.eq_bot α,
-  exact @uniform_space.metrizable_space α ⊥ h _,
+  exact @uniform_space.metrizable_space α ⊥ (is_countably_generated_principal _) _,
 end

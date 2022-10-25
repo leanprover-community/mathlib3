@@ -63,9 +63,9 @@ structure is_picard_lindelof
   (L : ℝ≥0) (R C : ℝ) : Prop :=
 (ht₀ : t₀ ∈ Icc t_min t_max)
 (hR : 0 ≤ R)
-(lipschitz : ∀ t ∈ set.Icc t_min t_max, lipschitz_on_with L (v t) (metric.closed_ball x₀ R))
-(cont : ∀ x ∈ metric.closed_ball x₀ R, continuous_on (λ (t : ℝ), v t x) (set.Icc t_min t_max))
-(norm_le : ∀ (t ∈ set.Icc t_min t_max) (x ∈ metric.closed_ball x₀ R), ∥v t x∥ ≤ C)
+(lipschitz : ∀ t ∈ Icc t_min t_max, lipschitz_on_with L (v t) (closed_ball x₀ R))
+(cont : ∀ x ∈ closed_ball x₀ R, continuous_on (λ (t : ℝ), v t x) (Icc t_min t_max))
+(norm_le : ∀ (t ∈ Icc t_min t_max) (x ∈ closed_ball x₀ R), ∥v t x∥ ≤ C)
 (C_mul_le_R : (C : ℝ) * linear_order.max (t_max - t₀) (t₀ - t_min) ≤ R)
 
 namespace picard_lindelof
@@ -332,8 +332,7 @@ end picard_lindelof
 
 /-- Picard-Lindelöf (Cauchy-Lipschitz) theorem. -/
 theorem exists_forall_deriv_within_Icc_eq_of_is_picard_lindelof
-  [complete_space E]
-  {v : ℝ → E → E} {t_min t₀ t_max : ℝ} (x₀ : E) {C R : ℝ} {L : ℝ≥0}
+  [complete_space E] {v : ℝ → E → E} {t_min t₀ t_max : ℝ} (x₀ : E) {C R : ℝ} {L : ℝ≥0}
   (hpl : is_picard_lindelof v t_min t₀ t_max x₀ L R C) :
   ∃ f : ℝ → E, f t₀ = x₀ ∧ ∀ t ∈ Icc t_min t_max,
     has_deriv_within_at f (v t (f t)) (Icc t_min t_max) t :=
@@ -377,8 +376,8 @@ begin
   exact {
     ht₀ := by {rw ←real.closed_ball_eq_Icc, exact mem_closed_ball_self hε0.le},
     hR := (half_pos hr).le,
-    lipschitz := λ t ht, hlip.mono (set.subset_inter_iff.mp
-      (subset_trans (metric.closed_ball_subset_ball (half_lt_self hr)) hball)).2,
+    lipschitz := λ t ht, hlip.mono (subset_inter_iff.mp
+      (subset_trans (closed_ball_subset_ball (half_lt_self hr)) hball)).2,
     cont := λ x hx, continuous_on_const,
     norm_le := λ t ht x hx, hC ⟨x, hx, rfl⟩,
     C_mul_le_R := begin
@@ -395,7 +394,7 @@ interval. -/
 theorem exists_forall_deriv_at_ball_eq_of_cont_diff_on_nhds
   {s : set E} (hv : cont_diff_on ℝ 1 v s) (hs : s ∈ nhds x₀) :
   ∃ (ε : ℝ) (hε : 0 < ε) (f : ℝ → E), f t₀ = x₀ ∧
-    ∀ t ∈ metric.ball t₀ ε, has_deriv_at f (v (f t)) t :=
+    ∀ t ∈ ball t₀ ε, has_deriv_at f (v (f t)) t :=
 begin
   obtain ⟨ε, hε, L, R, C, hpl⟩ := is_picard_lindelof_of_time_indep_cont_diff_on_nhds t₀ x₀ hv hs,
   obtain ⟨f, hf1, hf2⟩ := exists_forall_deriv_within_Icc_eq_of_is_picard_lindelof x₀ hpl,
@@ -413,6 +412,6 @@ end
 /-- A time-independent, continuously differentiable ODE admits a solution in some open interval. -/
 theorem exists_forall_deriv_at_ball_eq_of_cont_diff
   (hv : cont_diff ℝ 1 v) : ∃ (ε : ℝ) (hε : 0 < ε) (f : ℝ → E), f t₀ = x₀ ∧
-    ∀ t ∈ metric.ball t₀ ε, has_deriv_at f (v (f t)) t :=
+    ∀ t ∈ ball t₀ ε, has_deriv_at f (v (f t)) t :=
 exists_forall_deriv_at_ball_eq_of_cont_diff_on_nhds t₀ x₀ hv.cont_diff_on
   (is_open.mem_nhds is_open_univ (mem_univ _))

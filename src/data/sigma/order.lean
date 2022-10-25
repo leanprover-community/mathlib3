@@ -110,6 +110,14 @@ instance [Π i, partial_order (α i)] : partial_order (Σ i, α i) :=
   end,
   .. sigma.preorder }
 
+instance [Π i, preorder (α i)] [Π i, densely_ordered (α i)] : densely_ordered (Σ i, α i) :=
+⟨begin
+  simp_rw sigma.lt_def,
+  rintro ⟨i, a⟩ ⟨j, b⟩ ⟨(rfl : i = j), h⟩,
+  obtain ⟨c, ha, hb⟩ := exists_between h,
+  exact ⟨⟨i, c⟩, ⟨rfl, ha⟩, rfl, hb⟩,
+end⟩
+
 /-! ### Lexicographical order on `sigma` -/
 
 namespace lex
@@ -121,6 +129,12 @@ instance has_le [has_lt ι] [Π i, has_le (α i)] : has_le (Σₗ i, α i) := �
 
 /-- The lexicographical `<` on a sigma type. -/
 instance has_lt [has_lt ι] [Π i, has_lt (α i)] : has_lt (Σₗ i, α i) := ⟨lex (<) (λ i, (<))⟩
+
+lemma le_def [has_lt ι] [Π i, has_le (α i)] {a b : Σₗ i, α i} :
+  a ≤ b ↔ a.1 < b.1 ∨ ∃ (h : a.1 = b.1), h.rec a.2 ≤ b.2 := sigma.lex_iff
+
+lemma lt_def [has_lt ι] [Π i, has_lt (α i)] {a b : Σₗ i, α i} :
+  a < b ↔ a.1 < b.1 ∨ ∃ (h : a.1 = b.1), h.rec a.2 < b.2 := sigma.lex_iff
 
 /-- The lexicographical preorder on a sigma type. -/
 instance preorder [preorder ι] [Π i, preorder (α i)] : preorder (Σₗ i, α i) :=
@@ -180,6 +194,43 @@ instance bounded_order [partial_order ι] [bounded_order ι] [Π i, preorder (α
   [order_bot (α ⊥)] [order_top (α ⊤)] :
   bounded_order (Σₗ i, α i) :=
 { .. lex.order_bot, .. lex.order_top }
+
+instance [preorder ι] [densely_ordered ι] [Π i, nonempty (α i)] [Π i, preorder (α i)]
+  [Π i, densely_ordered (α i)] :
+  densely_ordered (Σₗ i, α i) :=
+⟨begin
+  simp_rw sigma.lex.lt_def,
+  rintro ⟨i, a⟩ ⟨j, b⟩ (h | ⟨(rfl : i = j), h⟩),
+  { obtain ⟨k, hi, hj⟩ := exists_between h,
+    obtain ⟨c⟩ : nonempty (α k) := infer_instance,
+    exact ⟨⟨k, c⟩, or.inl hi, or.inl hj⟩ },
+  { obtain ⟨c, ha, hb⟩ := exists_between h,
+    exact ⟨⟨i, c⟩, or.inr ⟨rfl, ha⟩, or.inr ⟨rfl, hb⟩⟩ }
+end⟩
+
+instance densely_ordered_of_no_max_order [preorder ι] [Π i, preorder (α i)]
+  [Π i, densely_ordered (α i)] [Π i, no_max_order (α i)] :
+  densely_ordered (Σₗ i, α i) :=
+⟨begin
+  simp_rw sigma.lex.lt_def,
+  rintro ⟨i, a⟩ ⟨j, b⟩ (h | ⟨(rfl : i = j), h⟩),
+  { obtain ⟨c, ha⟩ := exists_gt a,
+    exact ⟨⟨i, c⟩, or.inr ⟨rfl, ha⟩, or.inl h⟩ },
+  { obtain ⟨c, ha, hb⟩ := exists_between h,
+    exact ⟨⟨i, c⟩, or.inr ⟨rfl, ha⟩, or.inr ⟨rfl, hb⟩⟩ }
+end⟩
+
+instance densely_ordered_of_no_min_order [preorder ι] [Π i, preorder (α i)]
+  [Π i, densely_ordered (α i)] [Π i, no_min_order (α i)] :
+  densely_ordered (Σₗ i, α i) :=
+⟨begin
+  simp_rw sigma.lex.lt_def,
+  rintro ⟨i, a⟩ ⟨j, b⟩ (h | ⟨(rfl : i = j), h⟩),
+  { obtain ⟨c, hb⟩ := exists_lt b,
+    exact ⟨⟨j, c⟩, or.inl h, or.inr ⟨rfl, hb⟩⟩ },
+  { obtain ⟨c, ha, hb⟩ := exists_between h,
+    exact ⟨⟨i, c⟩, or.inr ⟨rfl, ha⟩, or.inr ⟨rfl, hb⟩⟩ }
+end⟩
 
 end lex
 end sigma

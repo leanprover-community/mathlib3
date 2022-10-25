@@ -294,7 +294,7 @@ lemma pow_lt_pow_iff_of_lt_one (h₀ : 0 < a) (h₁ : a < 1) : a ^ m < a ^ n ↔
 lemma pow_lt_pow_of_lt_one (h : 0 < a) (ha : a < 1) {i j : ℕ} (hij : i < j) : a ^ j < a ^ i :=
 (pow_lt_pow_iff_of_lt_one h ha).2 hij
 
-lemma pow_lt_self (h₀ : 0 < a) (h₁ : a < 1) (hn : 1 < n) : a ^ n < a :=
+lemma pow_lt_self_of_lt_one (h₀ : 0 < a) (h₁ : a < 1) (hn : 1 < n) : a ^ n < a :=
 calc a ^ n < a ^ 1 : pow_lt_pow_of_lt_one h₀ h₁ hn
 ... = a : pow_one _
 

@@ -624,7 +624,6 @@ lemma order_eq_card_zpowers : order_of x = fintype.card (zpowers x) :=
 
 open quotient_group
 
-/- TODO: use cardinal theory, introduce `card : set G → ℕ`, or setup decidability for cosets -/
 @[to_additive add_order_of_dvd_card_univ]
 lemma order_of_dvd_card_univ : order_of x ∣ fintype.card G :=
 begin
@@ -649,18 +648,21 @@ begin
           (by rw [eq₁, eq₂, mul_comm])
 end
 
-@[simp, to_additive card_nsmul_eq_zero]
-lemma pow_card_eq_one : x ^ fintype.card G = 1 :=
-let ⟨m, hm⟩ := @order_of_dvd_card_univ _ x _ _ in
-by simp [hm, pow_mul, pow_order_of_eq_one]
+@[to_additive add_order_of_dvd_nat_card]
+lemma order_of_dvd_nat_card {G : Type*} [group G] {x : G} : order_of x ∣ nat.card G :=
+begin
+  casesI fintype_or_infinite G with h h,
+  { simp only [nat.card_eq_fintype_card, order_of_dvd_card_univ] },
+  { simp only [card_eq_zero_of_infinite, dvd_zero] },
+end
 
 @[simp, to_additive card_nsmul_eq_zero']
 lemma pow_card_eq_one' {G : Type*} [group G] {x : G} : x ^ nat.card G = 1 :=
-begin
-  casesI fintype_or_infinite G with h h,
-  { rw [nat.card_eq_fintype_card, pow_card_eq_one] },
-  { rw [nat.card_eq_zero_of_infinite, pow_zero] },
-end
+order_of_dvd_iff_pow_eq_one.mp order_of_dvd_nat_card
+
+@[simp, to_additive card_nsmul_eq_zero]
+lemma pow_card_eq_one : x ^ fintype.card G = 1 :=
+by rw [←nat.card_eq_fintype_card, pow_card_eq_one']
 
 @[to_additive] lemma subgroup.pow_index_mem {G : Type*} [group G] (H : subgroup G)
   [normal H] (g : G) : g ^ index H ∈ H :=

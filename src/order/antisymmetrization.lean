@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import order.hom.basic
+import logic.relation
 
 /-!
 # Turning a preorder into a partial order
@@ -107,6 +108,22 @@ instance : partial_order (antisymmetrization α (≤)) :=
   le_trans := λ a b c, quotient.induction_on₃' a b c $ λ a b c, le_trans,
   lt_iff_le_not_le := λ a b, quotient.induction_on₂' a b $ λ a b, lt_iff_le_not_le,
   le_antisymm := λ a b, quotient.induction_on₂' a b $ λ a b hab hba, quotient.sound' ⟨hab, hba⟩ }
+
+lemma antisymmetrization_fibration :
+  relation.fibration (<) (<) (@to_antisymmetrization α (≤) _) :=
+by { rintro a ⟨b⟩ h, exact ⟨b, h, rfl⟩ }
+
+lemma acc_antisymmetrization_iff : acc (<) (to_antisymmetrization (≤) a) ↔ acc (<) a :=
+⟨λ h, by { have := inv_image.accessible _ h, exact this },
+  acc.of_fibration _ antisymmetrization_fibration⟩
+
+lemma well_founded_antisymmetrization_iff :
+  well_founded (@has_lt.lt (antisymmetrization α (≤)) _) ↔ well_founded (@has_lt.lt α _) :=
+⟨λ h, ⟨λ a, acc_antisymmetrization_iff.1 $ h.apply _⟩,
+  λ h, ⟨by { rintro ⟨a⟩, exact acc_antisymmetrization_iff.2 (h.apply a) }⟩⟩
+
+instance [well_founded_lt α] : well_founded_lt (antisymmetrization α (≤)) :=
+⟨well_founded_antisymmetrization_iff.2 is_well_founded.wf⟩
 
 instance [@decidable_rel α (≤)] [@decidable_rel α (<)] [is_total α (≤)] :
   linear_order (antisymmetrization α (≤)) :=

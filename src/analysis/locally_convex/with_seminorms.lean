@@ -271,7 +271,7 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [nonempty ι]
 structure with_seminorms (p : seminorm_family 𝕜 E ι) [t : topological_space E] : Prop :=
 (topology_eq_with_seminorms : t = p.module_filter_basis.topology)
 
-lemma seminorm_family.with_seminorms_eq {p : seminorm_family 𝕜 E ι} [t : topological_space E]
+lemma with_seminorms.with_seminorms_eq {p : seminorm_family 𝕜 E ι} [t : topological_space E]
   (hp : with_seminorms p) : t = p.module_filter_basis.topology := hp.1
 
 variables [topological_space E]
@@ -288,14 +288,16 @@ end topology
 section topological_add_group
 
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
-variables [topological_space E] [topological_add_group E]
+variables [t : topological_space E] [topological_add_group E]
 variables [nonempty ι]
+
+include t
 
 lemma seminorm_family.with_seminorms_of_nhds (p : seminorm_family 𝕜 E ι)
   (h : 𝓝 (0 : E) = p.module_filter_basis.to_filter_basis.filter) :
   with_seminorms p :=
 begin
-  refine ⟨topological_add_group.ext (by apply_instance)
+  refine ⟨topological_add_group.ext infer_instance
     (p.add_group_filter_basis.is_topological_add_group) _⟩,
   rw add_group_filter_basis.nhds_zero_eq,
   exact h,
@@ -325,6 +327,36 @@ begin
   exact filter.mem_infi_of_mem i (filter.preimage_mem_comap $ metric.ball_mem_nhds _ one_pos)
 end
 
+/-- The topology induced by a family of seminorms is exactly the infimum of the ones induced by
+each seminorm individually. We express this as a characterization of `with_seminorms p`. -/
+lemma seminorm_family.with_seminorms_iff_topological_space_eq_infi (p : seminorm_family 𝕜 E ι) :
+  with_seminorms p ↔ t = ⨅ i, (p i).to_add_group_seminorm.to_seminormed_add_comm_group
+    .to_uniform_space.to_topological_space :=
+begin
+  rw [p.with_seminorms_iff_nhds_eq_infi, topological_add_group.ext_iff infer_instance
+        (topological_add_group_infi $ λ i, infer_instance), nhds_infi],
+  congrm (_ = ⨅ i, _),
+  exact @comap_norm_nhds_zero _ (p i).to_add_group_seminorm.to_seminormed_add_group,
+  all_goals {apply_instance}
+end
+
+omit t
+
+/-- The uniform structure induced by a family of seminorms is exactly the infimum of the ones
+induced by each seminorm individually. We express this as a characterization of
+`with_seminorms p`. -/
+lemma seminorm_family.with_seminorms_iff_uniform_space_eq_infi [u : uniform_space E]
+  [uniform_add_group E] (p : seminorm_family 𝕜 E ι) :
+  with_seminorms p ↔ u = ⨅ i, (p i).to_add_group_seminorm.to_seminormed_add_comm_group
+    .to_uniform_space :=
+begin
+  rw [p.with_seminorms_iff_nhds_eq_infi, uniform_add_group.ext_iff infer_instance
+        (uniform_add_group_infi $ λ i, infer_instance), to_topological_space_infi, nhds_infi],
+  congrm (_ = ⨅ i, _),
+  exact @comap_norm_nhds_zero _ (p i).to_add_group_seminorm.to_seminormed_add_group,
+  all_goals {apply_instance}
+end
+
 end topological_add_group
 
 section normed_space
@@ -334,8 +366,8 @@ lemma norm_with_seminorms (𝕜 E) [normed_field 𝕜] [seminormed_add_comm_grou
   with_seminorms (λ (_ : fin 1), norm_seminorm 𝕜 E) :=
 begin
   let p : seminorm_family 𝕜 E (fin 1) := λ _, norm_seminorm 𝕜 E,
-  refine ⟨topological_add_group.ext normed_top_group
-    (p.add_group_filter_basis.is_topological_add_group) _⟩,
+  refine ⟨seminormed_add_comm_group.to_topological_add_group.ext
+    p.add_group_filter_basis.is_topological_add_group _⟩,
   refine filter.has_basis.eq_of_same_basis metric.nhds_basis_ball _,
   rw ←ball_norm_seminorm 𝕜 E,
   refine filter.has_basis.to_has_basis p.add_group_filter_basis.nhds_zero_has_basis _
@@ -493,7 +525,7 @@ variables [nonempty ι] [normed_field 𝕜] [normed_space ℝ 𝕜]
   [add_comm_group E] [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E] [topological_space E]
   [topological_add_group E]
 
-lemma seminorm_family.to_locally_convex_space {p : seminorm_family 𝕜 E ι} (hp : with_seminorms p) :
+lemma with_seminorms.to_locally_convex_space {p : seminorm_family 𝕜 E ι} (hp : with_seminorms p) :
   locally_convex_space ℝ E :=
 begin
   apply of_basis_zero ℝ E id (λ s, s ∈ p.basis_sets),
@@ -516,7 +548,7 @@ variables (𝕜) [normed_field 𝕜] [normed_space ℝ 𝕜] [seminormed_add_com
 slightly weaker instance version. -/
 lemma normed_space.to_locally_convex_space' [normed_space 𝕜 E] [module ℝ E]
   [is_scalar_tower ℝ 𝕜 E] : locally_convex_space ℝ E :=
-seminorm_family.to_locally_convex_space (norm_with_seminorms 𝕜 E)
+(norm_with_seminorms 𝕜 E).to_locally_convex_space
 
 /-- See `normed_space.to_locally_convex_space'` for a slightly stronger version which is not an
 instance. -/

@@ -1,59 +1,18 @@
+/-
+Copyright (c) 2022 Floris van Doorn, Heather Macbeth. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Floris van Doorn, Heather Macbeth
+-/
 import geometry.manifold.cont_mdiff
 import topology.new_vector_bundle
 
 open bundle vector_bundle set
 open_locale manifold
 
-section /-! ## move these -/
-#check charted_space.comp
-#check structure_groupoid.has_groupoid.comp
-
-lemma trivialization.symm_coord_change
-  {𝕜 : Type*} {B : Type*} {F : Type*} {E : B → Type*}
-  [nontrivially_normed_field 𝕜]
-  [Π (x : B), add_comm_monoid (E x)]
-  [Π (x : B), module 𝕜 (E x)]
-  [normed_add_comm_group F]
-  [normed_space 𝕜 F]
-  [topological_space B]
-  [topological_space (total_space E)]
-  [Π (x : B), topological_space (E x)]
-  (e : trivialization F (@total_space.proj _ E)) [e.is_linear 𝕜]
-  (e' : trivialization F (@total_space.proj _ E)) [e'.is_linear 𝕜]
-  {b : B}
-  (hb : b ∈ e'.base_set ∩ e.base_set) :
-  (e.coord_change 𝕜 e' b).symm = e'.coord_change 𝕜 e b :=
-begin
-  sorry,
-end
-
-lemma trivialization.apply_symm_apply_eq_coord_change
-  {𝕜 : Type*} {B : Type*} {F : Type*}
-  {E : B → Type*}
-  [nontrivially_normed_field 𝕜]
-  [Π (x : B), add_comm_monoid (E x)]
-  [Π (x : B), module 𝕜 (E x)]
-  [normed_add_comm_group F]
-  [normed_space 𝕜 F]
-  [topological_space B]
-  [topological_space (total_space E)]
-  [Π (x : B), topological_space (E x)]
-  (e : trivialization F (@total_space.proj _ E)) [e.is_linear 𝕜]
-  (e' : trivialization F (@total_space.proj _ E)) [e'.is_linear 𝕜]
-  {b : B}
-  (hb : b ∈ e.base_set ∩ e'.base_set)
-  (v : F) :
-  e' ((e.to_local_homeomorph.symm) (b, v)) = (b, e.coord_change 𝕜 e' b v) :=
-begin
-  sorry,
-end
-
-end
-
-/-! ## main constructions -/
 
 variables {𝕜 B B' F M : Type*} {E : B → Type*}
 
+/-! ### Charted space structure on a fiber bundle -/
 section
 variables [topological_space F] [topological_space (total_space E)] [∀ x, topological_space (E x)]
   {HB : Type*} [topological_space HB]
@@ -61,7 +20,8 @@ variables [topological_space F] [topological_space (total_space E)] [∀ x, topo
 
 instance fiber_bundle.charted_space [fiber_bundle F E] :
   charted_space (B × F) (total_space E) :=
-{ atlas := (λ e : trivialization F (@total_space.proj _ E), e.to_local_homeomorph) '' trivialization_atlas F E,
+{ atlas := (λ e : trivialization F (@total_space.proj _ E), e.to_local_homeomorph) ''
+    trivialization_atlas F E,
   chart_at := λ x, (trivialization_at F E x.proj).to_local_homeomorph,
   mem_chart_source := λ x, (trivialization_at F E x.proj).mem_source.mpr
     (mem_base_set_trivialization_at F E x.proj),
@@ -75,6 +35,7 @@ charted_space.comp _ (model_prod B F) _
 
 end
 
+/-! ### The groupoid of smooth, fibrewise-linear maps -/
 
 variables [nontrivially_normed_field 𝕜] [∀ x, add_comm_monoid (E x)] [∀ x, module 𝕜 (E x)]
   [normed_add_comm_group F] [normed_space 𝕜 F]
@@ -91,7 +52,7 @@ variables [nontrivially_normed_field 𝕜] [∀ x, add_comm_monoid (E x)] [∀ x
 
 /-- For `B` a topological space and `F` a `𝕜`-normed space, a map from `U : set B` to `F ≃L[𝕜] F`
 determines a local homeomorphism from `B × F` to itself by its action fibrewise. -/
-def groupoid_base.local_homeomorph (φ : B → F ≃L[𝕜] F) {U : set B} (hU : is_open U)
+def smooth_fiberwise_linear.local_homeomorph (φ : B → F ≃L[𝕜] F) {U : set B} (hU : is_open U)
   (hφ : continuous_on (λ x, φ x : B → F →L[𝕜] F) U)
   (h2φ : continuous_on (λ x, (φ x).symm : B → F →L[𝕜] F) U) :
   local_homeomorph (B × F) (B × F) :=
@@ -108,7 +69,7 @@ def groupoid_base.local_homeomorph (φ : B → F ≃L[𝕜] F) {U : set B} (hU :
   continuous_to_fun := sorry,
   continuous_inv_fun := sorry }
 
-lemma groupoid_base.source_trans_local_homeomorph {φ : B → (F ≃L[𝕜] F)}
+lemma smooth_fiberwise_linear.source_trans_local_homeomorph {φ : B → (F ≃L[𝕜] F)}
   {U : set B}
   (hU : is_open U)
   (hφ : continuous_on (λ x, φ x : B → F →L[𝕜] F) U)
@@ -118,13 +79,13 @@ lemma groupoid_base.source_trans_local_homeomorph {φ : B → (F ≃L[𝕜] F)}
   (hU' : is_open U')
   (hφ' : continuous_on (λ x, φ' x : B → F →L[𝕜] F) U')
   (h2φ' : continuous_on (λ x, (φ' x).symm : B → F →L[𝕜] F) U') :
-  (groupoid_base.local_homeomorph φ hU hφ h2φ ≫ₕ
-      groupoid_base.local_homeomorph φ' hU' hφ' h2φ').source = (U ∩ U') ×ˢ univ :=
+  (smooth_fiberwise_linear.local_homeomorph φ hU hφ h2φ ≫ₕ
+      smooth_fiberwise_linear.local_homeomorph φ' hU' hφ' h2φ').source = (U ∩ U') ×ˢ univ :=
 begin
   sorry,
 end
 
-lemma groupoid_base.trans_local_homeomorph_apply {φ : B → (F ≃L[𝕜] F)}
+lemma smooth_fiberwise_linear.trans_local_homeomorph_apply {φ : B → (F ≃L[𝕜] F)}
   {U : set B}
   (hU : is_open U)
   (hφ : continuous_on (λ x, φ x : B → F →L[𝕜] F) U)
@@ -137,8 +98,8 @@ lemma groupoid_base.trans_local_homeomorph_apply {φ : B → (F ≃L[𝕜] F)}
   {b : B}
   (hb : b ∈ U ∩ U')
   (v : F) :
-  (groupoid_base.local_homeomorph φ hU hφ h2φ ≫ₕ
-      groupoid_base.local_homeomorph φ' hU' hφ' h2φ') ⟨b, v⟩ = ⟨b, φ' b (φ b v)⟩ :=
+  (smooth_fiberwise_linear.local_homeomorph φ hU hφ h2φ ≫ₕ
+      smooth_fiberwise_linear.local_homeomorph φ' hU' hφ' h2φ') ⟨b, v⟩ = ⟨b, φ' b (φ b v)⟩ :=
 begin
   sorry,
 end
@@ -150,7 +111,7 @@ def smooth_fiberwise_linear : structure_groupoid (B × F) :=
 { members := ⋃ (φ : B → F ≃L[𝕜] F) (U : set B) (hU : is_open U)
   (hφ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, φ x : B → F →L[𝕜] F) U)
   (h2φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (φ x).symm : B → F →L[𝕜] F) U),
-  {e | e.eq_on_source (groupoid_base.local_homeomorph φ hU hφ.continuous_on h2φ.continuous_on)},
+  {e | e.eq_on_source (smooth_fiberwise_linear.local_homeomorph φ hU hφ.continuous_on h2φ.continuous_on)},
   trans' := begin
     rintros e e' ⟨-, ⟨φ, rfl⟩, -, ⟨U, rfl⟩, -, ⟨hU, rfl⟩, -, ⟨hφ, rfl⟩, -, ⟨h2φ, rfl⟩, heφ⟩
       ⟨-, ⟨φ', rfl⟩, -, ⟨U', rfl⟩, -, ⟨hU', rfl⟩, -, ⟨hφ', rfl⟩, -, ⟨h2φ', rfl⟩, heφ'⟩,
@@ -161,10 +122,10 @@ def smooth_fiberwise_linear : structure_groupoid (B × F) :=
     refine ⟨U ∩ U', hU.inter hU', _, _, setoid.trans (heφ.trans' heφ') ⟨_, _⟩⟩,
     { sorry },
     { sorry }, -- two smoothness checks
-    { apply groupoid_base.source_trans_local_homeomorph },
+    { apply smooth_fiberwise_linear.source_trans_local_homeomorph },
     { rintros ⟨b, v⟩ hb,
-      apply groupoid_base.trans_local_homeomorph_apply,
-      rw groupoid_base.source_trans_local_homeomorph at hb,
+      apply smooth_fiberwise_linear.trans_local_homeomorph_apply,
+      rw smooth_fiberwise_linear.source_trans_local_homeomorph at hb,
       simpa [-mem_inter] using hb }
   end,
   symm' := begin
@@ -182,8 +143,8 @@ def smooth_fiberwise_linear : structure_groupoid (B × F) :=
     use λ b, continuous_linear_equiv.refl 𝕜 F,
     simp_rw mem_Union,
     refine ⟨univ, is_open_univ, cont_mdiff_on_const, cont_mdiff_on_const, ⟨_, λ b hb, _⟩⟩,
-    { simp [groupoid_base.local_homeomorph] },
-    { simp [groupoid_base.local_homeomorph] },
+    { simp [smooth_fiberwise_linear.local_homeomorph] },
+    { simp [smooth_fiberwise_linear.local_homeomorph] },
   end,
   locality' := sorry, -- a bit tricky, need to glue together a family of `φ`
   eq_on_source' := begin
@@ -196,19 +157,24 @@ def smooth_fiberwise_linear : structure_groupoid (B × F) :=
 
 variables (IB F E) {B}
 
+/-! ### Smooth vector bundles -/
+
+variables [fiber_bundle F E] [vector_bundle 𝕜 F E]
+
 /-- Class stating that a topological vector bundle is smooth, in the sense of having smooth
 transition functions. -/
-class smooth_vector_bundle [fiber_bundle F E] [vector_bundle 𝕜 F E] : Prop :=
+class smooth_vector_bundle : Prop :=
 (smooth_transitions : ∀ (e e' : trivialization F (@total_space.proj _ E))
   [mem_trivialization_atlas e] [mem_trivialization_atlas e'],
   smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ b : B, (e.coord_change 𝕜 e' b : F →L[𝕜] F))
   (e.base_set ∩ e'.base_set))
 
+variables [smooth_vector_bundle F E IB]
+
 /-- For a smooth vector bundle `E` over `B` with fibre modelled on `F`, the change-of-co-ordinates
 between two trivializations `e`, `e'` for `E`, considered as charts to `B × F`, is smooth and
 fibrewise linear. -/
-instance [fiber_bundle F E] [vector_bundle 𝕜 F E] [smooth_vector_bundle F E IB] :
-  has_groupoid (total_space E) (smooth_fiberwise_linear B F IB) :=
+instance : has_groupoid (total_space E) (smooth_fiberwise_linear B F IB) :=
 { compatible := begin
     rintros _ _ ⟨e, i : mem_trivialization_atlas e, rfl⟩ ⟨e', i' : mem_trivialization_atlas e', rfl⟩,
     resetI,
@@ -222,35 +188,25 @@ instance [fiber_bundle F E] [vector_bundle 𝕜 F E] [smooth_vector_bundle F E I
     { rw inter_comm,
       apply cont_mdiff_on.congr (smooth_vector_bundle.smooth_transitions e' e),
       { intros b hb,
-        rw e.symm_coord_change e' hb },
+        rw e.symm_coord_change 𝕜 e' hb },
       { apply_instance },
       { apply_instance }, },
-    { simp [e.symm_trans_source_eq e', groupoid_base.local_homeomorph] },
+    { simp [e.symm_trans_source_eq e', smooth_fiberwise_linear.local_homeomorph] },
     { rintros ⟨b, v⟩ hb,
       have hb' : b ∈ e.base_set ∩ e'.base_set :=
         by simpa only [local_homeomorph.trans_to_local_equiv, local_homeomorph.symm_to_local_equiv,
         local_homeomorph.coe_coe_symm, e.symm_trans_source_eq e',
         prod_mk_mem_set_prod_eq, mem_univ, and_true] using hb,
-      exact e.apply_symm_apply_eq_coord_change e' hb' v, }
+      exact e.apply_symm_apply_eq_coord_change 𝕜 e' hb' v, }
   end }
 
--- #print instances charted_space
--- #check model_prod
--- local attribute [instance] charted_space_self
-
-
-lemma lift_prop_on_cont_diff_groupoid_iff (f : local_homeomorph B B') :
-  lift_prop_on (cont_diff_groupoid ⊤ IB).is_local_structomorph_within_at f f.source
-  ↔ smooth_on IB IB f f.source ∧ smooth_on IB IB f.symm f.target :=
-sorry
-
-instance [fiber_bundle F E] [vector_bundle 𝕜 F E] [smooth_vector_bundle F E IB] :
-  smooth_manifold_with_corners (IB.prod 𝓘(𝕜, F)) (total_space E) :=
+/-- A smooth vector bundle `E` is naturally a smooth manifold. -/
+instance : smooth_manifold_with_corners (IB.prod 𝓘(𝕜, F)) (total_space E) :=
 begin
   refine { .. structure_groupoid.has_groupoid.comp (smooth_fiberwise_linear B F IB) _ },
   intros e he,
-  rw [lift_prop_on_cont_diff_groupoid_iff],
-  sorry
+  rw [is_local_structomorph_on_cont_diff_groupoid_iff],
+  sorry -- check smoothness
 end
 
 

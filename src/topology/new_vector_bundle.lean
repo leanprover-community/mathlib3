@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2022 Floris van Doorn, Heather Macbeth. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Floris van Doorn, Heather Macbeth
+-/
 import analysis.normed_space.bounded_linear_maps
 import topology.new_fiber_bundle
 
@@ -15,13 +20,7 @@ variables [semiring R] [topological_space B]
 namespace pretrivialization
 
 variables [topological_space F] (e : pretrivialization F (total_space.proj : total_space E → B))
-
-variables (R) [add_comm_monoid F] [module R F] [∀ b, add_comm_monoid (E b)] [∀ b, module R (E b)]
--- variables {Z : Type*} (proj : Z → B) [∀ b, add_comm_monoid (proj ⁻¹' {b})]
---   [∀ b, module R (proj ⁻¹' {b})]
-
--- class pretrivialization.is_linear' (e : pretrivialization F proj) : Prop :=
--- (is_linear : ∀ x ∈ e.base_set, is_linear_map R (λ y : proj ⁻¹' {x}, (e (y : Z)).2))
+  (R) [add_comm_monoid F] [module R F] [∀ b, add_comm_monoid (E b)] [∀ b, module R (E b)]
 
 protected class is_linear (e : pretrivialization F (@total_space.proj B E)) : Prop :=
 (linear : ∀ b ∈ e.base_set, is_linear_map R (λ x : E b, (e (total_space_mk b x)).2))
@@ -223,6 +222,18 @@ lemma coord_change_symm_apply {b : B}
   ⇑(coord_change R e e' b).symm =
   (e'.linear_equiv_at R b hb.2).symm.trans (e.linear_equiv_at R b hb.1) :=
 congr_arg linear_equiv.inv_fun (dif_pos hb)
+
+lemma symm_coord_change {b : B} (hb : b ∈ e'.base_set ∩ e.base_set) :
+  (e.coord_change R e' b).symm = e'.coord_change R e b :=
+begin
+  sorry,
+end
+
+lemma apply_symm_apply_eq_coord_change {b : B} (hb : b ∈ e.base_set ∩ e'.base_set) (v : F) :
+  e' ((e.to_local_homeomorph.symm) (b, v)) = (b, e.coord_change R e' b v) :=
+begin
+  sorry,
+end
 
 end trivialization
 
@@ -438,10 +449,6 @@ open trivialization
 variables [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E₂ x)]
   [fiber_bundle F₁ E₁] [fiber_bundle F₂ E₂]
   [vector_bundle R F₁ E₁] [vector_bundle R F₂ E₂]
-
--- lemma eq_prod (e : _root_.trivialization (F₁ × F₂) (@total_space.proj B (E₁ ×ᵇ E₂)))
---   [he : mem_trivialization_atlas e] : e = trivialization B F :=
--- mem_singleton_iff.mp he.1
 
 /-- The product of two vector bundles is a vector bundle. -/
 instance _root_.bundle.prod.vector_bundle :

@@ -1640,3 +1640,15 @@ hf.smul hg
 lemma smooth.smul {f : M → 𝕜} {g : M → V} (hf : smooth I 𝓘(𝕜) f) (hg : smooth I 𝓘(𝕜, V) g) :
   smooth I 𝓘(𝕜, V) (λ p, f p • g p) :=
 hf.smul hg
+
+/-! ### Smoothness of (local) structomorphisms -/
+section
+variables [charted_space H M'] [IsM' : smooth_manifold_with_corners I M']
+include Is IsM'
+
+lemma is_local_structomorph_on_cont_diff_groupoid_iff (f : local_homeomorph M M') :
+  lift_prop_on (cont_diff_groupoid ⊤ I).is_local_structomorph_within_at f f.source
+  ↔ smooth_on I I f f.source ∧ smooth_on I I f.symm f.target :=
+sorry
+
+end

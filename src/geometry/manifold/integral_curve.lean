@@ -17,6 +17,17 @@ For any continuously differentiable vector field on a manifold `M` and any chose
 As a corollary, such an integral curve exists for any starting point `x₀` if `M` is a manifold
 without boundary.
 
+## Implementation details
+
+Since there is already an ODE solution existence theorem
+`ODE_solution_exists.at_ball_of_cont_diff_on_nhds`, the bulk of this file is to convert statements
+about manifolds to statements about the model space. This comes in a few steps:
+1. Express the smoothness of the vector field `v` in a single fixed chart around the starting point
+`x₀`.
+2. Use the ODE solution existence theorem to obtain a curve `γ : ℝ → M` whose derivative coincides
+with the vector field (stated in the local chart around `x₀`).
+3. Same as 2 but now stated in the local chart around `γ t`, which is how `cont_mdiff` is defined.
+
 ## Tags
 
 integral curve, vector field

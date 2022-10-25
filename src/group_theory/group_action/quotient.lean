@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Thomas Browning
 -/
 import dynamics.periodic_pts
-import group_theory.group_action.basic
+import group_theory.group_action.conj_act
 import group_theory.quotient_group
 
 /-!
@@ -287,5 +287,31 @@ begin
   classical,
   exact fintype.of_equiv _ (quotient_group.quotient_ker_equiv_range _).symm.to_equiv,
 end
+
+lemma stabilizer_conj_act_eq_centralizer (g : G) :
+  mul_action.stabilizer (conj_act G) g = (zpowers g).centralizer :=
+le_antisymm (le_centralizer_iff.mp (zpowers_le.mpr (λ x, mul_inv_eq_iff_eq_mul.mp)))
+  (λ x h, mul_inv_eq_of_eq_mul (h g (mem_zpowers g)).symm)
+
+open quotient_group
+
+noncomputable def quotient_centralizer_embedding (g : G) :
+  G ⧸ centralizer (zpowers (g : G)) ↪ {g₀ | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g₀} :=
+((mul_action.orbit_equiv_quotient_stabilizer (conj_act G) g).trans (quotient_equiv_of_eq
+  (stabilizer_conj_act_eq_centralizer g))).symm.to_embedding.trans ⟨λ x, ⟨x * g⁻¹,
+  let ⟨_, x, rfl⟩ := x in ⟨x, g, rfl⟩⟩, λ x y, subtype.ext ∘ mul_right_cancel ∘ subtype.ext_iff.mp⟩
+
+lemma quotient_centralizer_embedding_apply (g : G) (x : G) :
+  quotient_centralizer_embedding g x = ⟨⁅x, g⁆, x, g, rfl⟩ :=
+rfl
+
+noncomputable def quotient_center_embedding {S : set G} (hS : closure S = ⊤) :
+  G ⧸ center G ↪ S → {g₀ | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g₀} :=
+(quotient_equiv_of_eq (center_eq_infi' S hS)).to_embedding.trans ((quotient_infi_embedding _).trans
+  (function.embedding.Pi_congr_right (λ g, quotient_centralizer_embedding g)))
+
+lemma quotient_center_embedding_apply {S : set G} (hS : closure S = ⊤) (g : G) (s : S) :
+  quotient_center_embedding hS g s = ⟨⁅g, s⁆, g, s, rfl⟩ :=
+rfl
 
 end subgroup

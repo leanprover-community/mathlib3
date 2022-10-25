@@ -404,11 +404,11 @@ begin
                   ... ≤ μ K + ε : K'_hyp.right,
 
     { rw [μ.measure_apply ((is_open_interior).measurable_set),
-        μ.measure_apply K.compact.measurable_set],
+        μ.measure_apply K.is_compact.measurable_set],
       exact μ.outer_measure.mono K'_hyp.left },
     { rw μ.measure_apply (is_open.measurable_set is_open_interior),
       exact μ.outer_measure_interior_compacts K' } },
-  { rw (μ.measure_apply (is_compact.measurable_set K.compact)),
+  { rw (μ.measure_apply (is_compact.measurable_set K.is_compact)),
     exact μ.le_outer_measure_compacts K },
 end
 

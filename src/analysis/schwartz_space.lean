@@ -31,6 +31,7 @@ Schwartz space into a locally convex topological vector space.
 * `schwartz_map`: The Schwartz space is the space of smooth functions such that all derivatives
 decay faster than any power of `∥x∥`.
 * `schwartz_map.seminorm`: The family of seminorms as described above
+* `schwartz_map.fderiv`: The differential as a continuous linear map `𝓢(E, F) →L[𝕜] 𝓢(E, E →L[ℝ] F)`
 
 ## Main statements
 
@@ -361,6 +362,9 @@ variables (𝕜 E F)
 def _root_.schwartz_seminorm_family : seminorm_family 𝕜 𝓢(E, F) (ℕ × ℕ) :=
 λ n, seminorm 𝕜 n.1 n.2
 
+@[simp] lemma schwartz_seminorm_family_apply (n k : ℕ) :
+  schwartz_seminorm_family 𝕜 E F (n,k) = schwartz_map.seminorm 𝕜 n k := rfl
+
 instance : topological_space 𝓢(E, F) :=
 (schwartz_seminorm_family ℝ E F).module_filter_basis.topology'
 
@@ -425,12 +429,12 @@ def fderiv_aux (f : 𝓢(E, F)) : 𝓢(E, E→L[ℝ] F) :=
     exact rfl.le,
   end }
 
-@[simp] lemma fderiv_aux_apply (f : 𝓢(E, F)) (x : E):
+@[simp] lemma fderiv_aux_apply (f : 𝓢(E, F)) (x : E) :
   f.fderiv_aux x = fderiv ℝ f x := rfl
 
 variables (𝕜)
 
-def fderiv_aux' : 𝓢(E, F) →ₗ[𝕜] 𝓢(E, E →L[ℝ] F) :=
+def fderiv_lm : 𝓢(E, F) →ₗ[𝕜] 𝓢(E, E →L[ℝ] F) :=
 { to_fun := fderiv_aux,
   map_add' := λ f g,
   begin
@@ -446,20 +450,41 @@ def fderiv_aux' : 𝓢(E, F) →ₗ[𝕜] 𝓢(E, E →L[ℝ] F) :=
     exact fderiv_const_smul (f.2.differentiable le_top).differentiable_at _,
   end }
 
+lemma norm_iterated_fderiv_fderiv {n : ℕ} {f : E → F} {x : E} :
+  ∥iterated_fderiv ℝ n (fderiv ℝ f) x∥ = ∥iterated_fderiv ℝ (n + 1) f x∥ :=
+by rw [iterated_fderiv_succ_eq_comp_right, linear_isometry_equiv.norm_map]
+
+lemma norm_fderiv_iterated_fderiv (n : ℕ) {f : E → F} (x : E) :
+  ∥fderiv ℝ (iterated_fderiv ℝ n f) x∥ = ∥iterated_fderiv ℝ (n + 1) f x∥ :=
+by rw [iterated_fderiv_succ_eq_comp_left, linear_isometry_equiv.norm_map]
+
+lemma norm_iterated_fderiv_within_fderiv_within (n : ℕ) {s : set E} {f : E → F} {x : E}
+  (hs : unique_diff_on ℝ s) (hx : x ∈ s):
+  ∥iterated_fderiv_within ℝ n (fderiv_within ℝ f s) s x∥ =
+  ∥iterated_fderiv_within ℝ (n + 1) f s x∥ :=
+by rw [iterated_fderiv_within_succ_eq_comp_right hs hx, linear_isometry_equiv.norm_map]
+
+lemma norm_fderiv_within_iterated_fderiv_within (n : ℕ) {s : set E} {f : E → F} (x : E) :
+  ∥fderiv_within ℝ (iterated_fderiv_within ℝ n f s) s x∥ =
+  ∥iterated_fderiv_within ℝ (n + 1) f s x∥ :=
+by rw [iterated_fderiv_within_succ_eq_comp_left, linear_isometry_equiv.norm_map]
+
 def fderiv : 𝓢(E, F) →L[𝕜] 𝓢(E, E →L[ℝ] F) :=
 { cont :=
   begin
-    refine (fderiv_aux' 𝕜).continuous_of_locally_bounded (λ s hs, _),
-    rw (schwartz_with_seminorms 𝕜 E F).is_vonN_bounded_iff_seminorm_bounded at hs,
-    rw (schwartz_with_seminorms 𝕜 E (E →L[ℝ] F)).image_is_vonN_bounded_iff_seminorm_bounded _,
-    intros n,
-    rcases hs (n.1, n.2 + 1) with ⟨r, hr, hs'⟩,
-    use [r, hr],
-    intros u hu,
-    specialize hs' u hu,
-    sorry,
+    change continuous (fderiv_lm 𝕜 : 𝓢(E, F) →ₗ[𝕜] 𝓢(E, E →L[ℝ] F)),
+    refine seminorm.continuous_from_bounded
+      (schwartz_with_seminorms 𝕜 E F) (schwartz_with_seminorms 𝕜 E (E →L[ℝ] F)) _ _,
+    rintros ⟨k, n⟩,
+    use [{⟨k, n+1⟩}, 1, one_ne_zero],
+    intros f,
+    simp only [schwartz_seminorm_family_apply, seminorm.comp_apply, finset.sup_singleton, one_smul],
+    refine (fderiv_lm 𝕜 f).seminorm_le_bound 𝕜 k n (by positivity) _,
+    intros x,
+    refine (mul_le_mul_of_nonneg_left _ (by positivity)).trans (f.le_seminorm 𝕜 k (n+1) x),
+    exact norm_iterated_fderiv_fderiv.le,
   end,
-  ..fderiv_aux' 𝕜 }
+  ..fderiv_lm 𝕜 }
 
 
 end fderiv

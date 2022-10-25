@@ -154,6 +154,7 @@ begin
   -- First handle the case when `Z(G)` has infinite index and `[G : Z(G)]` is defined to be `0`
   by_cases hG : (center G).index = 0,
   { simp_rw [hG, zero_mul, zero_add, pow_one, dvd_zero] },
+  haveI : finite_index G := ⟨hG⟩,
   -- Rewrite as `|Z(G) ∩ G'| * [G' : Z(G) ∩ G'] ∣ [G : Z(G)] ^ ([G : Z(G)] * n) * [G : Z(G)]`
   rw [←((center G).subgroup_of (commutator G)).card_mul_index, pow_succ'],
   -- We have `h1 : [G' : Z(G) ∩ G'] ∣ [G : Z(G)]`
@@ -171,7 +172,7 @@ begin
   -- `Z(G) ∩ G'` is abelian, so it enough to prove that `g ^ [G : Z(G)] = 1` for `g ∈ Z(G) ∩ G'`
   apply card_dvd_exponent_pow_rank' _ (λ g, _),
   -- `Z(G)` is abelian, so `g ∈ Z(G) ∩ G' ≤ G' ≤ ker (transfer : G → Z(G))`
-  have := abelianization.commutator_subset_ker (monoid_hom.transfer_center_pow' hG) g.1.2,
+  have := abelianization.commutator_subset_ker (monoid_hom.transfer_center_pow G) g.1.2,
   -- `transfer g` is defeq to `g ^ [G : Z(G)]`, so we are done
   simpa only [monoid_hom.mem_ker, subtype.ext_iff] using this,
 end

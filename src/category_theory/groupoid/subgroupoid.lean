@@ -518,7 +518,7 @@ lemma is_normal_map (hφ : function.injective φ.obj) (hφ' : im φ hφ = ⊤) (
     obtain ⟨b,b',f,hb,hb',_,hf⟩ := this, subst_vars, cases hφ hb, cases hφ hb',
     change map.arrows φ hφ S (φ.obj c') (φ.obj c') _,
     simp only [eq_to_hom_refl, category.comp_id, category.id_comp, inv_eq_inv],
-    suffices : map.arrows φ hφ S (φ.obj c') (φ.o  bj c') (φ.map $ inv f ≫ γ ≫ f),
+    suffices : map.arrows φ hφ S (φ.obj c') (φ.obj c') (φ.map $ inv f ≫ γ ≫ f),
     { simp only [inv_eq_inv, functor.map_comp, functor.map_inv] at this, exact this, },
     { constructor, apply Sn.conj f γS, } } }
 

@@ -40,8 +40,7 @@ lemma to_Top_obj.ext {x : simplex_category} (f g : x.to_Top_obj) :
 def to_Top_map {x y : simplex_category} (f : x ⟶ y) : x.to_Top_obj → y.to_Top_obj :=
 λ g, ⟨λ i, ∑ j in (finset.univ.filter (λ k, f k = i)), g j,
 begin
-  dsimp [to_Top_obj],
-  simp only [finset.filter_congr_decidable, finset.sum_congr],
+  simp only [finset.filter_congr_decidable, finset.sum_congr, to_Top_obj, set.mem_set_of],
   rw ← finset.sum_bUnion,
   convert g.2,
   { rw finset.eq_univ_iff_forall,

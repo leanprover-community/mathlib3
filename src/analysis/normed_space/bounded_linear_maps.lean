@@ -315,7 +315,8 @@ H.is_O.comp_tendsto le_top
 
 protected lemma is_bounded_bilinear_map.is_O' (h : is_bounded_bilinear_map 𝕜 f) :
   f =O[⊤] (λ p : E × F, ∥p∥ * ∥p∥) :=
-h.is_O.trans (asymptotics.is_O_fst_prod'.norm_norm.mul asymptotics.is_O_snd_prod'.norm_norm)
+h.is_O.trans $ (@asymptotics.is_O_fst_prod' _ E F _ _ _ _).norm_norm.mul
+  (@asymptotics.is_O_snd_prod' _ E F _ _ _ _).norm_norm
 
 lemma is_bounded_bilinear_map.map_sub_left (h : is_bounded_bilinear_map 𝕜 f) {x y : E} {z : F} :
   f (x - y, z) = f (x, z) - f(y, z) :=
@@ -487,11 +488,12 @@ end
 
 variables (𝕜)
 
-/-- The function `lmul_left_right : 𝕜' × 𝕜' → (𝕜' →L[𝕜] 𝕜')` is a bounded bilinear map. -/
-lemma continuous_linear_map.lmul_left_right_is_bounded_bilinear
+/-- The function `continuous_linear_map.mul_left_right : 𝕜' × 𝕜' → (𝕜' →L[𝕜] 𝕜')` is a bounded
+bilinear map. -/
+lemma continuous_linear_map.mul_left_right_is_bounded_bilinear
   (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] :
-  is_bounded_bilinear_map 𝕜 (λ p : 𝕜' × 𝕜', continuous_linear_map.lmul_left_right 𝕜 𝕜' p.1 p.2) :=
-(continuous_linear_map.lmul_left_right 𝕜 𝕜').is_bounded_bilinear_map
+  is_bounded_bilinear_map 𝕜 (λ p : 𝕜' × 𝕜', continuous_linear_map.mul_left_right 𝕜 𝕜' p.1 p.2) :=
+(continuous_linear_map.mul_left_right 𝕜 𝕜').is_bounded_bilinear_map
 
 variables {𝕜}
 

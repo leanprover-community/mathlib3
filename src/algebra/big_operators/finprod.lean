@@ -97,9 +97,11 @@ if h : (mul_support (f ∘ plift.down)).finite then ∏ i in h.to_finset, f i.do
 
 end
 
-localized "notation `∑ᶠ` binders `, ` r:(scoped:67 f, finsum f) := r" in big_operators
+localized "notation (name := finsum)
+  `∑ᶠ` binders `, ` r:(scoped:67 f, finsum f) := r" in big_operators
 
-localized "notation `∏ᶠ` binders `, ` r:(scoped:67 f, finprod f) := r" in big_operators
+localized "notation (name := finprod)
+  `∏ᶠ` binders `, ` r:(scoped:67 f, finprod f) := r" in big_operators
 
 @[to_additive] lemma finprod_eq_prod_plift_of_mul_support_to_finset_subset
   {f : α → M} (hf : (mul_support (f ∘ plift.down)).finite) {s : finset (plift α)}
@@ -731,6 +733,10 @@ end
 @[to_additive "See also `finsum_eq_of_bijective`, `fintype.sum_bijective` and `finset.sum_bij`."]
 lemma finprod_comp {g : β → M} (e : α → β) (he₀ : function.bijective e) :
   ∏ᶠ i, g (e i) = ∏ᶠ j, g j := finprod_eq_of_bijective e he₀ (λ x, rfl)
+
+@[to_additive]
+lemma finprod_comp_equiv (e : α ≃ β) {f : β → M} : ∏ᶠ i, f (e i) = ∏ᶠ i', f i' :=
+finprod_comp e e.bijective
 
 @[to_additive] lemma finprod_set_coe_eq_finprod_mem (s : set α) : ∏ᶠ j : s, f j = ∏ᶠ i ∈ s, f i :=
 begin

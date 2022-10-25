@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
-import geometry.manifold.cont_mdiff
+import geometry.manifold.cont_mdiff_mfderiv
 import topology.continuous_function.basic
 
 /-!
@@ -37,9 +37,9 @@ structure cont_mdiff_map :=
 /-- Bundled smooth maps. -/
 @[reducible] def smooth_map := cont_mdiff_map I I' M M' ⊤
 
-localized "notation `C^` n `⟮` I `, ` M `; ` I' `, ` M' `⟯` :=
+localized "notation (name := cont_mdiff_map) `C^` n `⟮` I `, ` M `; ` I' `, ` M' `⟯` :=
   cont_mdiff_map I I' M M' n" in manifold
-localized "notation `C^` n `⟮` I `, ` M `; ` k `⟯` :=
+localized "notation (name := cont_mdiff_map.self) `C^` n `⟮` I `, ` M `; ` k `⟯` :=
   cont_mdiff_map I (model_with_corners_self k k) M k n" in manifold
 
 open_locale manifold

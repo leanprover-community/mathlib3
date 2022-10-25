@@ -272,13 +272,13 @@ end
 
 variable (L)
 
-lemma _root_.set.countable.substructure_closure
-  [L.countable_functions] (h : s.countable) :
-  nonempty (encodable (closure L s)) :=
+lemma _root_.set.countable.substructure_closure [countable (Σl, L.functions l)]
+  (h : s.countable) :
+  countable.{w + 1} (closure L s) :=
 begin
-  haveI : nonempty (encodable s) := h,
-  rw [encodable_iff, ← lift_le_aleph_0],
-  exact lift_card_closure_le_card_term.trans term.card_le_aleph_0,
+  haveI : countable s := h.to_subtype,
+  rw [← mk_le_aleph_0_iff, ← lift_le_aleph_0],
+  exact lift_card_closure_le_card_term.trans mk_le_aleph_0
 end
 
 variables {L} (S)

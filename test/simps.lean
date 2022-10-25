@@ -15,7 +15,7 @@ structure equiv' (α : Sort*) (β : Sort*) :=
 (left_inv  : left_inverse inv_fun to_fun)
 (right_inv : right_inverse inv_fun to_fun)
 
-local infix ` ≃ `:25 := equiv'
+local infix (name := equiv') ` ≃ `:25 := equiv'
 
 /- Since `prod` and `pprod` are a special case for `@[simps]`, we define a new structure to test
   the basic functionality.-/
@@ -421,7 +421,7 @@ example {α β} [semigroup α] [semigroup β] (x y : α × β) : (x * y).1 = x.1
 structure Semigroup :=
   (G : Type*)
   (op : G → G → G)
-  (infix * := op)
+  (infix (name := op) ` * ` := op)
   (op_assoc : ∀ (x y z : G), (x * y) * z = x * (y * z))
 
 namespace Group
@@ -481,7 +481,7 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := manual_coercion.equiv
+local infix (name := equiv) ` ≃ `:25 := manual_coercion.equiv
 
 variables {α β γ : Sort*}
 
@@ -507,7 +507,7 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := faulty_manual_coercion.equiv
+local infix (name := equiv) ` ≃ `:25 := faulty_manual_coercion.equiv
 
 variables {α β γ : Sort*}
 
@@ -530,7 +530,7 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := manual_initialize.equiv
+local infix (name := equiv) ` ≃ `:25 := manual_initialize.equiv
 
 instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
@@ -558,7 +558,7 @@ structure equiv (α : Sort u) (β : Sort v) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := faulty_universes.equiv
+local infix (name := equiv) ` ≃ `:25 := faulty_universes.equiv
 
 instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
@@ -588,7 +588,7 @@ structure equiv (α : Sort u) (β : Sort v) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := manual_universes.equiv
+local infix (name := equiv) ` ≃ `:25 := manual_universes.equiv
 
 instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨equiv.to_fun⟩
 
@@ -609,7 +609,7 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := manual_projection_names.equiv
+local infix (name := equiv) ` ≃ `:25 := manual_projection_names.equiv
 
 variables {α β γ : Sort*}
 
@@ -649,7 +649,7 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := prefix_projection_names.equiv
+local infix (name := equiv) ` ≃ `:25 := prefix_projection_names.equiv
 
 variables {α β γ : Sort*}
 
@@ -726,7 +726,7 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 
-local infix ` ≃ `:25 := nested_non_fully_applied.equiv
+local infix (name := equiv) ` ≃ `:25 := nested_non_fully_applied.equiv
 
 variables {α β γ : Sort*}
 

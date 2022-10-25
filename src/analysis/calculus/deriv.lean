@@ -1520,7 +1520,7 @@ begin
   exact fderiv_inv
 end
 
-variables {c : 𝕜 → 𝕜} {c' : 𝕜}
+variables {c : 𝕜 → 𝕜} {h : E → 𝕜} {c' : 𝕜} {z : E} {S : set E}
 
 lemma has_deriv_within_at.inv
   (hc : has_deriv_within_at c c' s x) (hx : c x ≠ 0) :
@@ -1537,21 +1537,21 @@ begin
   exact hc.inv hx
 end
 
-lemma differentiable_within_at.inv (hc : differentiable_within_at 𝕜 c s x) (hx : c x ≠ 0) :
-  differentiable_within_at 𝕜 (λx, (c x)⁻¹) s x :=
-(hc.has_deriv_within_at.inv hx).differentiable_within_at
+lemma differentiable_within_at.inv (hf : differentiable_within_at 𝕜 h S z) (hz : h z ≠ 0) :
+  differentiable_within_at 𝕜 (λx, (h x)⁻¹) S z :=
+(differentiable_at_inv.mpr hz).comp_differentiable_within_at z hf
 
-@[simp] lemma differentiable_at.inv (hc : differentiable_at 𝕜 c x) (hx : c x ≠ 0) :
-  differentiable_at 𝕜 (λx, (c x)⁻¹) x :=
-(hc.has_deriv_at.inv hx).differentiable_at
+@[simp] lemma differentiable_at.inv (hf : differentiable_at 𝕜 h z) (hz : h z ≠ 0) :
+  differentiable_at 𝕜 (λx, (h x)⁻¹) z :=
+(differentiable_at_inv.mpr hz).comp z hf
 
-lemma differentiable_on.inv (hc : differentiable_on 𝕜 c s) (hx : ∀ x ∈ s, c x ≠ 0) :
-  differentiable_on 𝕜 (λx, (c x)⁻¹) s :=
-λx h, (hc x h).inv (hx x h)
+lemma differentiable_on.inv (hf : differentiable_on 𝕜 h S) (hz : ∀ x ∈ S, h x ≠ 0) :
+  differentiable_on 𝕜 (λx, (h x)⁻¹) S :=
+λx h, (hf x h).inv (hz x h)
 
-@[simp] lemma differentiable.inv (hc : differentiable 𝕜 c) (hx : ∀ x, c x ≠ 0) :
-  differentiable 𝕜 (λx, (c x)⁻¹) :=
-λx, (hc x).inv (hx x)
+@[simp] lemma differentiable.inv (hf : differentiable 𝕜 h) (hz : ∀ x, h x ≠ 0) :
+  differentiable 𝕜 (λx, (h x)⁻¹) :=
+λx, (hf x).inv (hz x)
 
 lemma deriv_within_inv' (hc : differentiable_within_at 𝕜 c s x) (hx : c x ≠ 0)
   (hxs : unique_diff_within_at 𝕜 s x) :

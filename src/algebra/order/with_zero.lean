@@ -3,7 +3,8 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin, Patrick Massot
 -/
-import algebra.order.group
+import algebra.order.group.type_tags
+import algebra.order.monoid.with_zero
 
 /-!
 # Linearly ordered commutative groups and monoids with a zero element adjoined
@@ -25,6 +26,7 @@ in another file. However, the lemmas about it are stated here.
 set_option old_structure_cmd true
 
 /-- A linearly ordered commutative group with a zero element. -/
+@[protect_proj]
 class linear_ordered_comm_group_with_zero (α : Type*)
   extends linear_ordered_comm_monoid_with_zero α, comm_group_with_zero α
 
@@ -111,8 +113,12 @@ variables [linear_ordered_comm_group_with_zero α]
 lemma zero_lt_one₀ : (0 : α) < 1 :=
 lt_of_le_of_ne zero_le_one zero_ne_one
 
+-- TODO: Do we really need the following two?
+
+/-- Alias of `mul_le_one'` for unification. -/
 lemma mul_le_one₀ (ha : a ≤ 1) (hb : b ≤ 1) : a * b ≤ 1 := mul_le_one' ha hb
 
+/-- Alias of `one_le_mul'` for unification. -/
 lemma one_le_mul₀ (ha : 1 ≤ a) (hb : 1 ≤ b) : 1 ≤ a * b := one_le_mul ha hb
 
 lemma le_of_le_mul_right (h : c ≠ 0) (hab : a * c ≤ b * c) : a ≤ b :=
@@ -201,22 +207,6 @@ by rw [div_eq_mul_inv, le_mul_inv_iff₀ hc]
 
 lemma div_le_iff₀ (hc : c ≠ 0) : a / c ≤ b ↔ a ≤ b*c :=
 by rw [div_eq_mul_inv, mul_inv_le_iff₀ hc]
-
-lemma eq_one_of_mul_eq_one_left (ha : a ≤ 1) (hb : b ≤ 1) (hab : a * b = 1) : a = 1 :=
-le_antisymm ha $ (inv_le_one₀ $ left_ne_zero_of_mul_eq_one hab).mp $
-  eq_inv_of_mul_eq_one_right hab ▸ hb
-
-lemma eq_one_of_mul_eq_one_right (ha : a ≤ 1) (hb : b ≤ 1) (hab : a * b = 1) : b = 1 :=
-le_antisymm hb $ (inv_le_one₀ $ right_ne_zero_of_mul_eq_one hab).mp $
-  eq_inv_of_mul_eq_one_left hab ▸ ha
-
-lemma eq_one_of_mul_eq_one_left' (ha : 1 ≤ a) (hb : 1 ≤ b) (hab : a * b = 1) : a = 1 :=
-le_antisymm
-  ((one_le_inv₀ $ left_ne_zero_of_mul_eq_one hab).mp $ eq_inv_of_mul_eq_one_right hab ▸ hb) ha
-
-lemma eq_one_of_mul_eq_one_right' (ha : 1 ≤ a) (hb : 1 ≤ b) (hab : a * b = 1) : b = 1 :=
-le_antisymm
-  ((one_le_inv₀ $ right_ne_zero_of_mul_eq_one hab).mp $ eq_inv_of_mul_eq_one_left hab ▸ ha) hb
 
 /-- `equiv.mul_left₀` as an order_iso on a `linear_ordered_comm_group_with_zero.`.
 

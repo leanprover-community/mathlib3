@@ -3,8 +3,9 @@ Copyright (c) 2022 Bhavik Mehta All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Yaël Dillies
 -/
-import analysis.convex.cone
+import analysis.convex.cone.basic
 import analysis.convex.gauge
+import analysis.locally_convex.with_seminorms
 
 /-!
 # Separation Hahn-Banach theorem

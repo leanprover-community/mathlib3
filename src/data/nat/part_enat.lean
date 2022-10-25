@@ -5,7 +5,7 @@ Authors: Chris Hughes
 -/
 import algebra.hom.equiv
 import data.part
-import data.nat.enat
+import data.enat.basic
 import tactic.norm_num
 
 /-!
@@ -20,6 +20,7 @@ The following instances are defined:
 
 * `ordered_add_comm_monoid part_enat`
 * `canonically_ordered_add_monoid part_enat`
+* `complete_linear_order part_enat`
 
 There is no additive analogue of `monoid_with_zero`; if there were then `part_enat` could
 be an `add_monoid_with_top`.
@@ -86,7 +87,7 @@ instance : add_monoid_with_one part_enat :=
 
 lemma some_eq_coe (n : ℕ) : some n = n := rfl
 
-@[simp] lemma coe_inj {x y : ℕ} : (x : part_enat) = y ↔ x = y := part.some_inj
+@[simp, norm_cast] lemma coe_inj {x y : ℕ} : (x : part_enat) = y ↔ x = y := part.some_inj
 
 @[simp] lemma dom_coe (x : ℕ) : (x : part_enat).dom := trivial
 

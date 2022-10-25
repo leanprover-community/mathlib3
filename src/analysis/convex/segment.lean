@@ -48,7 +48,7 @@ the base semiring has some element between `0` and `1`. -/
 def open_segment (x y : E) : set E :=
 {z : E | ∃ (a b : 𝕜) (ha : 0 < a) (hb : 0 < b) (hab : a + b = 1), a • x + b • y = z}
 
-localized "notation `[` x ` -[` 𝕜 `] ` y `]` := segment 𝕜 x y" in convex
+localized "notation (name := segment) `[` x ` -[` 𝕜 `] ` y `]` := segment 𝕜 x y" in convex
 
 lemma segment_eq_image₂ (x y : E) :
   [x -[𝕜] y] = (λ p : 𝕜 × 𝕜, p.1 • x + p.2 • y) '' {p | 0 ≤ p.1 ∧ 0 ≤ p.2 ∧ p.1 + p.2 = 1} :=
@@ -221,7 +221,7 @@ open_segment_translate_preimage 𝕜 a b c ▸ image_preimage_eq _ $ add_left_su
 
 end ordered_ring
 
-lemma same_ray_of_mem_segment [ordered_comm_ring 𝕜] [add_comm_group E] [module 𝕜 E]
+lemma same_ray_of_mem_segment [strict_ordered_comm_ring 𝕜] [add_comm_group E] [module 𝕜 E]
   {x y z : E} (h : x ∈ [y -[𝕜] z]) : same_ray 𝕜 (x - y) (z - x) :=
 begin
   rw segment_eq_image' at h,

@@ -236,6 +236,8 @@ lemma ne_zero_of_norm_ne_zero {g : E} : ∥g∥ ≠ 0 → g ≠ 0 := mt $ by { r
 @[nontriviality] lemma norm_of_subsingleton [subsingleton E] (x : E) : ∥x∥ = 0 :=
 by rw [subsingleton.elim x 0, norm_zero]
 
+lemma zero_lt_one_add_norm_sq (x : E) : 0 < 1 + ∥x∥^2 := by positivity
+
 lemma norm_multiset_sum_le (m : multiset E) :
   ∥m.sum∥ ≤ (m.map (λ x, ∥x∥)).sum :=
 m.le_sum_of_subadditive norm norm_zero norm_add_le

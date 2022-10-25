@@ -198,10 +198,8 @@ def homeomorph_unit_ball [normed_space ℝ E] :
   end⟩,
   inv_fun := λ y, (1 - ∥(y : E)∥^2).sqrt⁻¹ • (y : E),
   left_inv := λ x,
-  begin
-    have : 0 < 1 + ∥x∥ ^ 2, by positivity,
-    field_simp [norm_smul, smul_smul, this.ne', real.sq_sqrt this.le, ← real.sqrt_div this.le],
-  end,
+  by field_simp [norm_smul, smul_smul, (zero_lt_one_add_norm_sq x).ne',
+    real.sq_sqrt (zero_lt_one_add_norm_sq x).le, ← real.sqrt_div (zero_lt_one_add_norm_sq x).le],
   right_inv := λ y,
   begin
     have : 0 < 1 - ∥(y : E)∥ ^ 2 :=
@@ -221,6 +219,8 @@ def homeomorph_unit_ball [normed_space ℝ E] :
     rw real.sqrt_ne_zero',
     nlinarith [norm_nonneg (y : E), (mem_ball_zero_iff.1 y.2 : ∥(y : E)∥ < 1)],
   end }
+
+#exit
 
 @[simp] lemma coe_homeomorph_unit_ball_apply_zero [normed_space ℝ E] :
   (homeomorph_unit_ball (0 : E) : E) = 0 :=

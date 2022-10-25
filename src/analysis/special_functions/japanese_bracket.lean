@@ -34,8 +34,6 @@ open asymptotics filter set real measure_theory finite_dimensional
 
 variables {E : Type*} [normed_add_comm_group E]
 
-lemma zero_lt_one_add_norm_sq (x : E) : 0 < 1 + ∥x∥^2 := by positivity
-
 lemma sqrt_one_add_norm_sq_le (x : E) : real.sqrt (1 + ∥x∥^2) ≤ 1 + ∥x∥ :=
 begin
   refine le_of_pow_le_pow 2 (by positivity) two_pos _,

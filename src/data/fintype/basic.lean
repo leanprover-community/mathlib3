@@ -2070,6 +2070,14 @@ namespace infinite
 
 lemma of_not_fintype (h : fintype α → false) : infinite α := is_empty_fintype.mp ⟨h⟩
 
+lemma of_equiv_set {s : set α} (hs : s ≠ set.univ) (e : α ≃ s) : infinite α :=
+of_not_fintype $ λ h, begin
+  resetI, classical,
+  have : s.to_finset ⊂ univ, by rwa [set.to_finset_ssubset_univ, set.ssubset_univ_iff],
+  refine (finset.card_lt_card this).ne _,
+  rw [finset.card_univ, fintype.card_congr e, set.to_finset_card]
+end
+
 lemma exists_not_mem_finset [infinite α] (s : finset α) : ∃ x, x ∉ s :=
 not_forall.1 $ λ h, fintype.false ⟨s, h⟩
 

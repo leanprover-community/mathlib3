@@ -87,15 +87,12 @@ class fintype (α : Type*) :=
 namespace finset
 variables [fintype α] {s : finset α}
 
-instance : order_top (finset α) :=
-{ top := fintype.elems α,
-  le_top := λ s x hx, fintype.complete x }
-
 /-- `univ` is the universal finite set of type `finset α` implied from
   the assumption `fintype α`. -/
-def univ : finset α := ⊤
+def univ : finset α := fintype.elems α
 
-@[simp] theorem mem_univ (x : α) : x ∈ (univ : finset α) := fintype.complete x
+@[simp] theorem mem_univ (x : α) : x ∈ (univ : finset α) :=
+fintype.complete x
 
 @[simp] theorem mem_univ_val : ∀ x, x ∈ (univ : finset α).1 := mem_univ
 
@@ -124,6 +121,10 @@ by rw [← not_nonempty_iff, ← univ_nonempty_iff, not_nonempty_iff_eq_empty]
 finset.ext $ λ x, iff_of_true (mem_univ _) $ mem_singleton.2 $ subsingleton.elim x default
 
 @[simp] theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
+
+instance : order_top (finset α) :=
+{ top := univ,
+  le_top := subset_univ }
 
 @[simp] lemma top_eq_univ : (⊤ : finset α) = univ := rfl
 

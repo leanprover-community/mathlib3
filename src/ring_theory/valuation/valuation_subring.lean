@@ -723,7 +723,7 @@ open_locale pointwise
 
 /-- The decomposition subgroup defined as the stabilizer of the action
 on the type of all valuation subrings of the field. -/
-def decomposition_subgroup (A : valuation_subring L) :
+@[reducible] def decomposition_subgroup (A : valuation_subring L) :
   subgroup (L ≃ₐ[K] L) :=
 mul_action.stabilizer (L ≃ₐ[K] L) A
 

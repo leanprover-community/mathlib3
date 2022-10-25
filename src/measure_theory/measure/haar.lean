@@ -62,10 +62,11 @@ noncomputable theory
 open set has_inv function topological_space measurable_space
 open_locale nnreal classical ennreal pointwise topological_space
 
-variables {G : Type*} [group G]
-
 namespace measure_theory
 namespace measure
+
+section group
+variables {G : Type*} [group G]
 
 /-! We put the internal functions in the construction of the Haar measure in a namespace,
   so that the chosen names don't clash with other declarations.
@@ -694,19 +695,25 @@ end
 
 end second_countable
 
-/-- Any Haar measure is invariant under inversion in a commutative group. -/
-@[to_additive "Any additive Haar measure is invariant under negation in a commutative group."]
-lemma map_haar_inv
-  {G : Type*} [comm_group G] [topological_space G] [topological_group G] [t2_space G]
+end group
+
+section comm_group
+
+variables {G : Type*} [comm_group G] [topological_space G] [topological_group G] [t2_space G]
   [measurable_space G] [borel_space G] [locally_compact_space G] [second_countable_topology G]
-  (μ : measure G) [is_haar_measure μ] :
-  measure.map has_inv.inv μ = μ :=
+
+/-- Any Haar measure is invariant under inversion in an abelian group. -/
+@[priority 100, to_additive
+  "Any additive Haar measure is invariant under negation in an abelian group."]
+instance is_haar_measure.is_inv_invariant (μ : measure G) [is_haar_measure μ] :
+  is_inv_invariant μ :=
 begin
   -- the image measure is a Haar measure. By uniqueness up to multiplication, it is of the form
   -- `c μ`. Applying again inversion, one gets the measure `c^2 μ`. But since inversion is an
   -- involution, this is also `μ`. Hence, `c^2 = 1`, which implies `c = 1`.
+  constructor,
   haveI : is_haar_measure (measure.map has_inv.inv μ) :=
-    is_haar_measure_map μ (mul_equiv.inv G) continuous_inv continuous_inv,
+    (mul_equiv.inv G).is_haar_measure_map μ continuous_inv continuous_inv,
   obtain ⟨c, cpos, clt, hc⟩ : ∃ (c : ℝ≥0∞), (c ≠ 0) ∧ (c ≠ ∞) ∧ (measure.map has_inv.inv μ = c • μ)
     := is_haar_measure_eq_smul_is_haar_measure _ _,
   have : map has_inv.inv (map has_inv.inv μ) = c^2 • μ,
@@ -723,25 +730,10 @@ begin
     (ennreal.mul_eq_mul_right (measure_pos_of_nonempty_interior _ K.interior_nonempty).ne'
       K.is_compact.measure_lt_top.ne).1 this,
   have : c = 1 := (ennreal.pow_strict_mono two_ne_zero).injective this,
-  rw [hc, this, one_smul]
+  rw [measure.inv, hc, this, one_smul]
 end
 
-@[simp, to_additive] lemma haar_preimage_inv
-  {G : Type*} [comm_group G] [topological_space G] [topological_group G] [t2_space G]
-  [measurable_space G] [borel_space G] [locally_compact_space G] [second_countable_topology G]
-  (μ : measure G) [is_haar_measure μ] (s : set G) :
-  μ (s⁻¹) = μ s :=
-calc μ (s⁻¹) = measure.map (has_inv.inv) μ s :
-  ((homeomorph.inv G).to_measurable_equiv.map_apply s).symm
-... = μ s : by rw map_haar_inv
-
-@[to_additive]
-lemma measure_preserving_inv
-  {G : Type*} [comm_group G] [topological_space G] [topological_group G] [t2_space G]
-  [measurable_space G] [borel_space G] [locally_compact_space G] [second_countable_topology G]
-  (μ : measure G) [is_haar_measure μ] :
-  measure_preserving has_inv.inv μ μ :=
-⟨measurable_inv, map_haar_inv μ⟩
+end comm_group
 
 end measure
 end measure_theory

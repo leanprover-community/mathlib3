@@ -81,6 +81,11 @@ lemma to_pequiv_mul_matrix [fintype m] [decidable_eq m] [semiring α] (f : m ≃
   (M : matrix m n α) : (f.to_pequiv.to_matrix ⬝ M) = λ i, M (f i) :=
 by { ext i j, rw [mul_matrix_apply, equiv.to_pequiv_apply] }
 
+lemma mul_to_pequiv_to_matrix {m n α : Type*} [fintype n] [decidable_eq n] [semiring α]
+  (f : n ≃ n) (M : matrix m n α) : (M ⬝ f.to_pequiv.to_matrix) = M.submatrix id (f.symm) :=
+matrix.ext $ λ i j, by rw [pequiv.matrix_mul_apply, ←equiv.to_pequiv_symm,
+                           equiv.to_pequiv_apply, matrix.submatrix_apply, id.def]
+
 lemma to_matrix_trans [fintype m] [decidable_eq m] [decidable_eq n] [semiring α]
   (f : l ≃. m) (g : m ≃. n) : ((f.trans g).to_matrix : matrix l n α) = f.to_matrix ⬝ g.to_matrix :=
 begin

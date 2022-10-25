@@ -924,11 +924,14 @@ begin
   have hF : ∀ i ∉ s, F i = 0,
   { intros i hi,
     suffices : ∥f i∥ ^ p.to_real - ∥f i - ite (i ∈ s) (f i) 0∥ ^ p.to_real = 0,
-    { simpa [F, coe_fn_sum, lp.single_apply] using this, },
-    simp [if_neg hi] },
+    { simpa only [F, coe_fn_sum, lp.single_apply, coe_fn_sub, pi.sub_apply, finset.sum_apply,
+        finset.sum_dite_eq] using this, },
+    simp only [if_neg hi, sub_zero, sub_self] },
   have hF' : ∀ i ∈ s, F i = ∥f i∥ ^ p.to_real,
   { intros i hi,
-    simp [F, coe_fn_sum, lp.single_apply, if_pos hi, real.zero_rpow hp.ne'] },
+    simp only [F, coe_fn_sum, lp.single_apply, if_pos hi, sub_self, eq_self_iff_true,
+      coe_fn_sub, pi.sub_apply, finset.sum_apply, finset.sum_dite_eq, sub_eq_self],
+    simp [real.zero_rpow hp.ne'], },
   have : has_sum F (∑ i in s, F i) := has_sum_sum_of_ne_finset_zero hF,
   rwa [finset.sum_congr rfl hF'] at this,
 end
@@ -945,8 +948,7 @@ begin
   have hp₀ : 0 < p := ennreal.zero_lt_one.trans_le (fact.out _),
   have hp' : 0 < p.to_real := ennreal.to_real_pos hp₀.ne' hp,
   have := lp.has_sum_norm hp' f,
-  dsimp [has_sum] at this ⊢,
-  rw metric.tendsto_nhds at this ⊢,
+  rw [has_sum, metric.tendsto_nhds] at this ⊢,
   intros ε hε,
   refine (this _ (real.rpow_pos_of_pos hε p.to_real)).mono _,
   intros s hs,
@@ -955,11 +957,12 @@ begin
   simp only [dist_eq_norm, real.norm_eq_abs] at hs ⊢,
   have H : ∥∑ i in s, lp.single p i (f i : E i) - f∥ ^ p.to_real
     = ∥f∥ ^ p.to_real - ∑ i in s, ∥f i∥ ^ p.to_real,
-  { simpa using lp.norm_compl_sum_single hp' (-f) s },
+  { simpa only [coe_fn_neg, pi.neg_apply, lp.single_neg, finset.sum_neg_distrib,
+      neg_sub_neg, norm_neg, _root_.norm_neg] using lp.norm_compl_sum_single hp' (-f) s },
   rw ← H at hs,
   have : |∥∑ i in s, lp.single p i (f i : E i) - f∥ ^ p.to_real|
     = ∥∑ i in s, lp.single p i (f i : E i) - f∥ ^ p.to_real,
-  { simp [real.abs_rpow_of_nonneg (norm_nonneg _)] },
+  { simp only [real.abs_rpow_of_nonneg (norm_nonneg _), abs_norm_eq_norm] },
   linarith
 end
 

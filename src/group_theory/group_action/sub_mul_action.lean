@@ -61,7 +61,7 @@ instance has_smul : has_smul R s := ⟨λ r x, ⟨r • x.1, smul_mem r x.2⟩�
 
 @[simp, norm_cast, to_additive, priority 900]
 -- lower priority so later simp lemmas are used first; to appease simp_nf
-lemma coe_smul (r : R) (x : s) : (↑(r • x) : M) = r • x := rfl
+protected lemma coe_smul (r : R) (x : s) : (↑(r • x) : M) = r • x := rfl
 
 @[simp, to_additive, priority 900]
 -- lower priority so later simp lemmas are used first; to appease simp_nf

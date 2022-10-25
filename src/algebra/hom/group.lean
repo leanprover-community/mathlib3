@@ -1222,6 +1222,11 @@ section coe
 The classes `coe_is_mul_hom`, `coe_is_monoid_hom`, etc. state that the coercion map `↑`
 (a.k.a. `coe`) is a homomorphism.
 
+These classes are unbundled (they take an instance of `has_lift_t R S` as a parameter, rather than
+extending `has_lift_t` or one of its subclasses) for two reasons:
+ * We wouldn't have to introduce new classes that handle transitivity (and probably cause diamonds)
+ * It doesn't matter whether a coercion is written with `has_coe` or `has_lift`, you can give it
+   a homomorphism structure in exactly the same way.
 -/
 
 variables (M N) [has_lift_t M N]

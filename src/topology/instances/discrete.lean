@@ -130,7 +130,6 @@ begin
   { refine is_countably_generated_of_seq ⟨λ _, id_rel, _⟩,
     rw cinfi_const,
     refl, },
-  convert @uniform_space.metrizable_space α ⊥ h _,
   rw discrete_topology.eq_bot α,
-  refl,
+  exact @uniform_space.metrizable_space α ⊥ h _,
 end

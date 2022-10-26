@@ -130,10 +130,10 @@ begin
   simp only [inv_eq_inv, is_iso.hom_inv_id],
 end
 
-lemma id_mem_of_src  {c d : C} {f : c ⟶ d} (h : f ∈ S.arrows c d) : (𝟙 c) ∈ S.arrows c c :=
+lemma id_mem_of_src {c d : C} {f : c ⟶ d} (h : f ∈ S.arrows c d) : (𝟙 c) ∈ S.arrows c c :=
 id_mem_of_nonempty_isotropy S c (mem_objs_of_src S h)
 
-lemma id_mem_of_tgt  {c d : C} {f : c ⟶ d} (h : f ∈ S.arrows c d) : (𝟙 d) ∈ S.arrows d d :=
+lemma id_mem_of_tgt {c d : C} {f : c ⟶ d} (h : f ∈ S.arrows c d) : (𝟙 d) ∈ S.arrows d d :=
 id_mem_of_nonempty_isotropy S d (mem_objs_of_tgt S h)
 
 /-- A subgroupoid seen as a quiver on vertex set `C` -/
@@ -190,7 +190,7 @@ instance : has_top (subgroupoid C) :=
 lemma mem_top {c d : C} (f : c ⟶ d) : f ∈ (⊤ : subgroupoid C).arrows c d := trivial
 
 lemma mem_top_objs (c : C) : c ∈ (⊤ : subgroupoid C).objs :=
-by {dsimp [has_top.top,objs], simp only [univ_nonempty], }
+by { dsimp [has_top.top,objs], simp only [univ_nonempty], }
 
 instance : has_bot (subgroupoid C) :=
 ⟨ { arrows := (λ _ _, ∅),
@@ -336,7 +336,7 @@ variable (X : ∀ c d : C, set (c ⟶ d))
 def generated : subgroupoid C :=
 Inf {S : subgroupoid C | ∀ c d, X c d ⊆ S.arrows c d}
 
-lemma generated_contains : ∀ c d : C, X c d ⊆ (generated X).arrows c d :=
+lemma subset_generated (c d : C) : X c d ⊆ (generated X).arrows c d :=
 begin
   dsimp only [generated, Inf],
   simp only [subset_Inter₂_iff],
@@ -347,7 +347,7 @@ end
 def generated_normal : subgroupoid C :=
 Inf {S : subgroupoid C | (∀ c d, X c d ⊆ S.arrows c d) ∧ S.is_normal}
 
-lemma generated_normal_contains_generated : generated X ≤ generated_normal X :=
+lemma generated_le_generated_normal : generated X ≤ generated_normal X :=
 begin
   apply @Inf_le_Inf (subgroupoid C) _,
   exact λ S ⟨h,_⟩, h,
@@ -356,8 +356,8 @@ end
 lemma generated_normal_is_normal : (generated_normal X).is_normal :=
 Inf_is_normal _ (λ S h, h.right)
 
-lemma is_normal.containing_iff_generated_normal_le {S : subgroupoid C} (Sn : S.is_normal) :
-  (∀ c d, X c d ⊆ S.arrows c d) ↔ (generated_normal X) ≤ S :=
+lemma is_normal.generated_normal_le {S : subgroupoid C} (Sn : S.is_normal) :
+  generated_normal X ≤ S ↔ ∀ c d, X c d ⊆ S.arrows c d :=
 begin
   split,
   { rintro h,

@@ -8,6 +8,7 @@ import data.nat.cast.defs
 import algebra.group.pi
 import tactic.pi_instances
 import data.sum.basic
+import algebra.ne_zero
 
 /-!
 # Cast of natural numbers (additional theorems)
@@ -195,6 +196,17 @@ map_nat_cast' f $ map_one f
 
 lemma ext_nat [ring_hom_class F ℕ R] (f g : F) : f = g :=
 ext_nat' f g $ by simp only [map_one]
+
+lemma ne_zero.nat_of_ne_zero [ring_hom_class F R S] (n : ℕ) (f : F)
+  [hn : ne_zero (n : S)] : ne_zero (n : R) :=
+begin
+  apply ne_zero.of_map f,
+  simp [hn]
+end
+
+lemma ne_zero.nat_of_injective (n : ℕ) [h : ne_zero (n : R)]
+  [ring_hom_class F R S] {f : F} (hf : function.injective f) : ne_zero (n : S) :=
+⟨λ h, (ne_zero.ne' n R) $ hf $ by simpa⟩
 
 end ring_hom_class
 

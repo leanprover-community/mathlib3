@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Neil Strickland
 -/
 import data.nat.basic
 import algebra.order.positive.ring
+import algebra.ne_zero
 
 /-!
 # The positive natural numbers
@@ -150,6 +151,8 @@ instance : contravariant_class ℕ+ ℕ+ (+) (<) := positive.contravariant_class
   ⇑order_iso.pnat_iso_nat.symm = nat.succ_pnat := rfl
 
 @[simp] theorem ne_zero (n : ℕ+) : (n : ℕ) ≠ 0 := n.2.ne'
+
+instance _root_.ne_zero.pnat (n : ℕ+) : _root_.ne_zero (n : ℕ) := ⟨n.ne_zero⟩
 
 theorem to_pnat'_coe {n : ℕ} : 0 < n → (n.to_pnat' : ℕ) = n := succ_pred_eq_of_pos
 

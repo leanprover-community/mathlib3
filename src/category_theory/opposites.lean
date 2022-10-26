@@ -222,6 +222,8 @@ nat_iso.of_components (λ X, iso.refl _) (by tidy)
 def right_op_left_op_iso (F : Cᵒᵖ ⥤ D) : F.right_op.left_op ≅ F :=
 nat_iso.of_components (λ X, iso.refl _) (by tidy)
 
+lemma right_op_left_op_eq (F : Cᵒᵖ ⥤ D) : F.right_op.left_op = F := by { cases F, refl, }
+
 end
 
 end functor

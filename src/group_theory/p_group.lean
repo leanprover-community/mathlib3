@@ -91,9 +91,23 @@ hG.of_surjective (quotient_group.mk' H) quotient.surjective_quotient_mk'
 lemma of_equiv {H : Type*} [group H] (ϕ : G ≃* H) : is_p_group p H :=
 hG.of_surjective ϕ.to_monoid_hom ϕ.surjective
 
+lemma pow_bijective' {n : ℕ} (hn : nat.coprime p n) : function.bijective ((^ n) : G → G) :=
+begin
+  have : ∀ g : G, (nat.card (subgroup.zpowers g)).coprime n := λ g, let ⟨k, hk⟩ := hG g in
+  order_eq_card_zpowers' g ▸ (hn.pow_left k).coprime_dvd_left (order_of_dvd_of_pow_eq_one hk),
+  refine function.bijective_iff_has_inverse.mpr
+    ⟨λ g, (pow_coprime (this g)).symm ⟨g, subgroup.mem_zpowers g⟩, _, _⟩,
+  { refine λ g, subtype.ext_iff.mp ((pow_coprime (this (g ^ n))).left_inv ⟨g, _⟩),
+    exact ⟨_, subtype.ext_iff.mp ((pow_coprime (this g)).left_inv ⟨g, subgroup.mem_zpowers g⟩)⟩ },
+  { exact λ g, subtype.ext_iff.mp ((pow_coprime (this g)).right_inv ⟨g, subgroup.mem_zpowers g⟩) },
+end
+
 variables [hp : fact p.prime]
 
 include hp
+
+lemma pow_bijective {n : ℕ} (hn : ¬ p ∣ n) : function.bijective ((^ n) : G → G) :=
+hG.pow_bijective' (hp.out.coprime_iff_not_dvd.mpr hn)
 
 lemma index (H : subgroup G) [finite (G ⧸ H)] :
   ∃ n : ℕ, H.index = p ^ n :=

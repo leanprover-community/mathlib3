@@ -6,7 +6,6 @@ Authors: Eric Rodriguez
 
 import data.nat.cast
 import data.pnat.basic
-import algebra.group_power.ring
 
 /-!
 # `ne_zero` typeclass
@@ -63,9 +62,6 @@ of_pos $ bit0_pos $ ne_zero.pos x
 
 instance bit1 [canonically_ordered_comm_semiring M] [nontrivial M] : ne_zero (bit1 x) :=
 ⟨mt (λ h, le_iff_exists_add'.2 ⟨_, h.symm⟩) zero_lt_one.not_le⟩
-
-instance pow [monoid_with_zero M] [no_zero_divisors M] [ne_zero x] : ne_zero (x ^ n) :=
-⟨pow_ne_zero n out⟩
 
 instance mul [has_zero M] [has_mul M] [no_zero_divisors M] [ne_zero x] [ne_zero y] :
   ne_zero (x * y) :=

@@ -591,6 +591,11 @@ not_is_field_iff_exists_ideal_bot_lt_and_lt_top.trans
     ⟨p, bot_lt_iff_ne_bot.mp (lt_of_lt_of_le bot_lt le_p), hp.is_prime⟩,
    λ ⟨p, ne_bot, prime⟩, ⟨p, bot_lt_iff_ne_bot.mpr ne_bot, lt_top_iff_ne_top.mpr prime.1⟩⟩
 
+/-- Also see `ideal.is_simple_order` for the forward direction as an instance when `R` is a
+division ring. 
+
+This result actually holds for all semirings whose nonzero elements are invertible, regardless
+of commutativity or the existence of additive inverses, but we lack the predicate to state it. -/
 lemma is_field_iff_forall_ideal_eq :
   is_field R ↔ is_simple_order (ideal R) :=
 begin

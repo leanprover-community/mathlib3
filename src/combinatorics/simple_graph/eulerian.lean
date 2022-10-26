@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
 import combinatorics.simple_graph.basic
-import combinatorics.simple_graph.connectivity
+import combinatorics.simple_graph.trails
 import combinatorics.simple_graph.connectivity_to_merge
 import data.nat.parity
 import tactic.derive_fintype
@@ -28,24 +28,6 @@ variables {V : Type*} {G : simple_graph V}
 
 namespace walk
 variables [decidable_eq V]
-
-/-- An *Eulerian trail* (also known as an "Eulerian path") is a walk
-`p` that visits every edge exactly once.  The lemma
-`simple_graph.walk.is_eulerian.is_trail` shows these are trails.
-
-Combine with `p.is_circuit` to get an Eulerian circuit (also known as an "Eulerian cycle"). -/
-def is_eulerian {u v : V} (p : G.walk u v) : Prop :=
-∀ e, e ∈ G.edge_set → p.edges.count e = 1
-
-lemma is_eulerian.is_trail {u v : V} {p : G.walk u v}
-  (h : p.is_eulerian) : p.is_trail :=
-begin
-  rw [is_trail_def, list.nodup_iff_count_le_one],
-  intro e,
-  by_cases he : e ∈ p.edges,
-  { exact (h e (edges_subset_edge_set _ he)).le },
-  { simp [he] },
-end
 
 lemma is_eulerian.complete {u v : V} {p : G.walk u v}
   (h : p.is_eulerian) {e : sym2 V} (he : e ∈ G.edge_set) : e ∈ p.edges :=
@@ -114,47 +96,6 @@ lemma is_trail.is_eulerian_of_complete [fintype G.edge_set]
   p.is_eulerian :=
 λ e he, list.count_eq_one_of_mem h.edges_nodup (hc e he)
 
-lemma is_eulerian_iff [fintype G.edge_set]
-  {u v : V} (p : G.walk u v) :
-  p.is_eulerian ↔ p.is_trail ∧ ∀ e, e ∈ G.edge_set → e ∈ p.edges :=
-begin
-  split,
-  { intro h,
-    exact ⟨h.is_trail, λ _, h.complete⟩, },
-  { rintro ⟨h, hl⟩,
-    exact h.is_eulerian_of_complete hl, },
-end
-
-lemma is_trail.even_countp_edges_iff {u v : V} {p : G.walk u v} (ht : p.is_trail) (x : V) :
-  even (p.edges.countp (λ e, x ∈ e)) ↔ (u ≠ v → x ≠ u ∧ x ≠ v) :=
-begin
-  symmetry, -- I'd proved it the other way first. TODO: fix this
-  induction p with u u v w huv p ih,
-  { simp, },
-  { rw [cons_is_trail_iff] at ht,
-    specialize ih ht.1,
-    simp only [list.countp_cons, ne.def, edges_cons, sym2.mem_iff],
-    split_ifs with h,
-    { obtain (rfl | rfl) := h,
-      { rw [nat.even_add_one, ← ih],
-        simp only [huv.ne, imp_false, eq_self_iff_true, not_true, false_and, not_not,
-          ne.def, not_false_iff, true_and, not_forall, exists_prop, iff_and_self],
-        rintro rfl rfl,
-        exact G.loopless _ huv, },
-      { rw [nat.even_add_one, ← ih],
-        simp only [huv.ne.symm, imp_false, ←imp_iff_not_or, not_false_iff, true_and,
-          ne.def, eq_self_iff_true, not_true, false_and, not_not, imp_iff_right_iff],
-        rintro rfl rfl,
-        exact G.loopless _ huv, } },
-    { rw not_or_distrib at h,
-      simp only [h.1, h.2, not_false_iff, true_and, add_zero, ne.def] at ih ⊢,
-      rw ← ih,
-      split;
-      { rintro h' h'' rfl,
-        simp only [imp_false, eq_self_iff_true, not_true, not_not] at h',
-        cases h',
-        simpa using h } } },
-end
 
 lemma incidence_finset_eq_filter [fintype V] (x : V)
   [fintype (G.neighbor_set x)] [decidable_rel G.adj] :
@@ -165,35 +106,6 @@ begin
   simp [mk_mem_incidence_set_iff],
 end
 
-lemma is_eulerian.even_degree_iff {x u v : V} {p : G.walk u v} (ht : p.is_eulerian)
-  [fintype V] [decidable_rel G.adj] :
-  even (G.degree x) ↔ (u ≠ v → x ≠ u ∧ x ≠ v) :=
-begin
-  convert ht.is_trail.even_countp_edges_iff x,
-  rw [← multiset.coe_countp, multiset.countp_eq_card_filter, ← card_incidence_finset_eq_degree],
-  change multiset.card _ = _,
-  congr' 1,
-  convert_to _ = (ht.is_trail.edges'.filter (has_mem.mem x)).val,
-  congr' 1,
-  rw [ht.edges'_eq, ← incidence_finset_eq_filter],
-end
-
-lemma is_eulerian.card_odd_degree [fintype V] [decidable_rel G.adj]
-  {u v : V} {p : G.walk u v} (ht : p.is_eulerian) :
-  ((finset.univ : finset V).filter (λ v, odd (G.degree v))).card ∈ ({0, 2} : set ℕ) :=
-begin
-  simp only [nat.odd_iff_not_even, set.mem_insert_iff, finset.card_eq_zero, set.mem_singleton_iff],
-  simp only [ht.even_degree_iff, ne.def, not_forall, not_and, not_not, exists_prop],
-  obtain (rfl | hn) := eq_or_ne u v,
-  { left,
-    simp, },
-  { right,
-    convert_to _ = ({u, v} : finset V).card,
-    { simp [hn], },
-    { congr',
-      ext x,
-      simp [hn, imp_iff_not_or], } },
-end
 
 end walk
 
@@ -229,85 +141,6 @@ begin
 end
 
 end simple_example
-
-namespace konigsberg
-
-@[derive [decidable_eq, fintype]]
-inductive verts : Type
-| V1 | V2 | V3 | V4
-| B1 | B2 | B3 | B4 | B5 | B6 | B7
-
-open verts
-
-def edges : list (verts × verts) :=
-[ (V1, B1), (V1, B2), (V1, B3), (V1, B4), (V1, B5),
-  (B1, V2), (B2, V2), (B3, V4), (B4, V3), (B5, V3),
-  (V2, B6), (B6, V4),
-  (V3, B7), (B7, V4) ]
-
-def adj (v w : verts) : bool := ((v, w) ∈ edges) || ((w, v) ∈ edges)
-
-@[simps]
-def graph : simple_graph verts :=
-{ adj := λ v w, adj v w,
-  symm := begin
-    dsimp [symmetric, adj],
-    dec_trivial,
-  end,
-  loopless := begin
-    dsimp [irreflexive, adj],
-    dec_trivial
-  end }
-
-instance : decidable_rel graph.adj :=
-λ a b, if h : adj a b then decidable.is_true h else decidable.is_false h
-
-def degrees : verts → ℕ
-| V1 := 5 | V2 := 3 | V3 := 3 | V4 := 3
-| B1 := 2 | B2 := 2 | B3 := 2 | B4 := 2 | B5 := 2 | B6 := 2 | B7 := 2
-
-lemma degrees_ok (v : verts) : graph.degree v = degrees v :=
-begin
-  cases v; refl,
-end
-
-theorem no_euler_trail {u v : verts} (p : graph.walk u v) (h : p.is_eulerian) : false :=
-begin
-  have : finset.filter (λ (v : verts), odd (graph.degree v)) finset.univ =
-    {verts.V1, verts.V2, verts.V3, verts.V4},
-  { ext w,
-    simp,
-    cases w; simp [degrees_ok, degrees], },
-  have h := h.card_odd_degree,
-  rw [this] at h,
-  simp at h,
-  norm_num at h,
-end
-
-/- Was trying to make a dec_trivial proof, but it didn't work.
-
-
-instance : decidable (¬∃ (u v : verts) (p : graph.walk u v), p.is_eulerian) :=
-infer_instance
-
---#eval graph.edge_finset.card
---#eval (graph.trail_of_len 14 V1 V1).card
-
-/- don't work
-theorem no_euler_trail' : ¬(graph.trail_of_len graph.edge_finset.card V1 V1).nonempty :=
-begin
-  dec_trivial,
-end
-
-theorem no_euler_trail : ¬∃ (u v : verts) (p : graph.walk u v), p.is_eulerian :=
-begin
-  haveI : decidable (¬∃ (u v : verts) (p : graph.walk u v), p.is_eulerian), apply_instance,
-  dec_trivial,
-end
--/
--/
-
-end konigsberg
 
 
 @[simp]

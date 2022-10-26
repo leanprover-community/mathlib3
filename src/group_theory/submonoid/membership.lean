@@ -386,21 +386,40 @@ by simp only [powers_eq_closure, map_mclosure f, set.image_singleton]
 /-- If all the elements of a set `s` commute, then `closure s` is a commutative monoid. -/
 @[to_additive "If all the elements of a set `s` commute, then `closure s` forms an additive
 commutative monoid."]
-def closure_comm_monoid_of_comm {s : set M} (hcomm : ∀ (a ∈ s) (b ∈ s), a * b = b * a) :
+def closure_comm_monoid_of_comm {s : set M} (hcomm : ∀ a b ∈ s, a * b = b * a) :
   comm_monoid (closure s) :=
 { mul_comm := λ x y,
   begin
     ext,
     simp only [submonoid.coe_mul],
-    exact closure_induction₂ x.prop y.prop hcomm
-      (λ x, by simp only [mul_one, one_mul])
-      (λ x, by simp only [mul_one, one_mul])
-      (λ x y z h₁ h₂, by rw [mul_assoc, h₂, ←mul_assoc, h₁, mul_assoc])
-      (λ x y z h₁ h₂, by rw [←mul_assoc, h₁, mul_assoc, h₂, ←mul_assoc]),
+    exact closure_induction₂ x.prop y.prop hcomm commute.one_left commute.one_right
+      (λ x y z, commute.mul_left) (λ x y z, commute.mul_right),
   end,
-  ..(closure s).to_monoid }
+  .. (closure s).to_monoid }
 
 end submonoid
+
+@[to_additive] lemma is_scalar_tower.of_mclosure_eq_top {N α} [monoid M] [mul_action M N]
+  [has_smul N α] [mul_action M α] {s : set M} (htop : submonoid.closure s = ⊤)
+  (hs : ∀ (x ∈ s) (y : N) (z : α), (x • y) • z = x • (y • z)) :
+  is_scalar_tower M N α :=
+begin
+  refine ⟨λ x, submonoid.closure_induction_left
+    (show x ∈ submonoid.closure s, by { rw [htop], apply submonoid.mem_top }) _ _⟩,
+  { intros y z, rw [one_smul, one_smul] },
+  { clear x, intros x hx x' hx' y z, rw [mul_smul, mul_smul, hs x hx, hx'] }
+end
+
+@[to_additive] lemma smul_comm_class.of_mclosure_eq_top {N α} [monoid M]
+  [has_smul N α] [mul_action M α] {s : set M} (htop : submonoid.closure s = ⊤)
+  (hs : ∀ (x ∈ s) (y : N) (z : α), x • y • z = y • x • z) :
+  smul_comm_class M N α :=
+begin
+  refine ⟨λ x, submonoid.closure_induction_left
+    (show x ∈ submonoid.closure s, by { rw [htop], apply submonoid.mem_top }) _ _⟩,
+  { intros y z, rw [one_smul, one_smul] },
+  { clear x, intros x hx x' hx' y z, rw [mul_smul, mul_smul, hx', hs x hx] }
+end
 
 namespace submonoid
 

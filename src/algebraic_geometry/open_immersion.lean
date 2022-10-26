@@ -1736,7 +1736,8 @@ end
 
 /-- The global section of the restriction is isomorphic to the sections. -/
 @[simps]
-def Scheme.restrict_functor_Γ : X.restrict_functor.op ⋙ (over.forget X).op ⋙ Scheme.Γ ≅ X.presheaf :=
+def Scheme.restrict_functor_Γ :
+  X.restrict_functor.op ⋙ (over.forget X).op ⋙ Scheme.Γ ≅ X.presheaf :=
 nat_iso.of_components
   (λ U, X.presheaf.map_iso ((eq_to_iso (unop U).open_embedding_obj_top).symm.op : _))
 begin

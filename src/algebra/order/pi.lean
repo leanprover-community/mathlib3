@@ -3,8 +3,8 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
-import algebra.ring.pi
 import algebra.order.ring
+import algebra.ring.pi
 
 /-!
 # Pi instances for ordered groups and monoids

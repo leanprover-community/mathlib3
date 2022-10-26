@@ -14,9 +14,7 @@ namespace category_theory
 
 namespace groupoid
 
-universes u v
-
-variables (C : Type u) [groupoid C]
+variables (C : Type*) [groupoid C]
 
 section graph_like
 
@@ -28,9 +26,10 @@ begin
   refine ⟨ λ h c, h c c, λ h c d, subsingleton.intro $ λ f g, _ ⟩,
   { have : inv f ≫ g = 𝟙 _, by { obtain ⟨ss⟩ := (h d), apply ss, },
     calc f
-       = f ≫ (inv g ≫ g) : by simp
-    ...= f ≫ (inv f ≫ g) : by { apply congr_arg2, refl, rw this, simp, }
-    ...= g                : by simp, }
+       = f ≫ (inv g ≫ g) : by simp only [inv_eq_inv, is_iso.inv_hom_id, category.comp_id]
+    ...= f ≫ (inv f ≫ g) : by { apply congr_arg2, refl, rw this,
+                                 simp only [inv_eq_inv, is_iso.inv_hom_id], }
+    ...= g                : by simp only [inv_eq_inv, is_iso.hom_inv_id_assoc], }
 end
 
 end graph_like

@@ -566,13 +566,13 @@ end
 
 /-- The isotropy arrows of `S` -/
 inductive disconnect.arrows : Π (c d : C), (c ⟶ d) → Prop
-| mk (c : C) (γ : c ⟶ c) (hγ : γ ∈ S.arrows c c) : disconnect.arrows c c γ
+| mk {c : C} {γ : c ⟶ c} (hγ : γ ∈ S.arrows c c) : disconnect.arrows c c γ
 
 /-- The isotropy subgroupoid of `S` -/
 def disconnect : subgroupoid C :=
 { arrows := disconnect.arrows S,
-  inv := by { rintros _ _ _ ⟨⟩, constructor, apply S.inv, assumption, },
-  mul := by { rintros _ _ _ _ ⟨⟩ _ ⟨⟩, constructor, apply S.mul; assumption, } }
+  inv := by { rintros _ _ _ ⟨h⟩, constructor, apply S.inv h, },
+  mul := by { rintros _ _ _ _ ⟨h⟩ _ ⟨h'⟩, constructor, apply S.mul h h', } }
 
 lemma disconnect_le : (S.disconnect) ≤ S :=
 by {rw le_iff, rintros _ _ _ ⟨⟩, assumption, }

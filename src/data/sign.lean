@@ -174,6 +174,13 @@ end cast
   map_one'  := rfl,
   map_mul'  := λ x y, by cases x; cases y; simp }
 
+lemma range_eq {α} (f : sign_type → α) : set.range f = {f zero, f neg, f pos} :=
+begin
+  classical,
+  simpa only [← finset.coe_singleton, ← finset.image_singleton,
+    ← fintype.coe_image_univ, finset.coe_image, ← set.image_insert_eq],
+end
+
 end sign_type
 
 variables {α : Type*}
@@ -276,7 +283,7 @@ lemma sign_mul (x y : α) : sign (x * y) = sign x * sign y :=
 begin
   rcases lt_trichotomy x 0 with hx | hx | hx; rcases lt_trichotomy y 0 with hy | hy | hy;
     simp only [sign_zero, mul_zero, zero_mul, sign_pos, sign_neg, hx, hy, mul_one, neg_one_mul,
-               neg_neg, one_mul, mul_pos_of_neg_of_neg, mul_neg_of_neg_of_pos, neg_zero',
+               neg_neg, one_mul, mul_pos_of_neg_of_neg, mul_neg_of_neg_of_pos, neg_zero,
                mul_neg_of_pos_of_neg, mul_pos]
 end
 

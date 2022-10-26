@@ -116,6 +116,21 @@ begin
     exact (n a).sets_of_superset (ht _ hat) hts },
 end
 
+lemma nhds_mk_of_nhds_single [decidable_eq α] {a₀ : α} {l : filter α} (h : pure a₀ ≤ l) (b : α) :
+  @nhds α (topological_space.mk_of_nhds $ update pure a₀ l) b =
+    (update pure a₀ l : α → filter α) b :=
+begin
+  refine nhds_mk_of_nhds _ _ (le_update_iff.mpr ⟨h, λ _ _, le_rfl⟩) (λ a s hs, _),
+  rcases eq_or_ne a a₀ with rfl|ha,
+  { refine ⟨s, hs, subset.rfl, λ b hb, _⟩,
+    rcases eq_or_ne b a with rfl|hb,
+    { exact hs },
+    { rwa [update_noteq hb] } },
+  { have hs' := hs,
+    rw [update_noteq ha] at hs ⊢,
+    exact ⟨{a}, rfl, singleton_subset_iff.mpr hs, forall_eq.2 hs'⟩ }
+end
+
 lemma nhds_mk_of_nhds_filter_basis (B : α → filter_basis α) (a : α) (h₀ : ∀ x (n ∈ B x), x ∈ n)
   (h₁ : ∀ x (n ∈ B x), ∃ n₁ ∈ B x, n₁ ⊆ n ∧ ∀ x' ∈ n₁, ∃ n₂ ∈ B x', n₂ ⊆ n) :
   @nhds α (topological_space.mk_of_nhds (λ x, (B x).filter)) a = (B a).filter :=
@@ -211,6 +226,13 @@ instance : has_le (topological_space α) :=
 protected lemma topological_space.le_def {α} {t s : topological_space α} :
   t ≤ s ↔ s.is_open ≤ t.is_open := iff.rfl
 
+lemma is_open.mono {α} {t₁ t₂ : topological_space α} {s : set α} (hs : @is_open α t₂ s)
+  (h : t₁ ≤ t₂) : @is_open α t₁ s := h s hs
+
+lemma is_closed.mono {α} {t₁ t₂ : topological_space α} {s : set α} (hs : @is_closed α t₂ s)
+  (h : t₁ ≤ t₂) : @is_closed α t₁ s :=
+(@is_open_compl_iff α t₁ s).mp $ hs.is_open_compl.mono h
+
 /-- The ordering on topologies on the type `α`.
   `t ≤ s` if every set open in `s` is also open in `t` (`t` is finer than `s`). -/
 instance : partial_order (topological_space α) :=
@@ -233,6 +255,19 @@ instance : complete_lattice (topological_space α) :=
 lemma is_open_implies_is_open_iff {a b : topological_space α} :
   (∀ s, a.is_open s → b.is_open s) ↔ b ≤ a :=
 iff.rfl
+
+/-- The only open sets in the indiscrete topology are the empty set and the whole space. -/
+lemma topological_space.is_open_top_iff {α} (U : set α) :
+  (⊤ : topological_space α).is_open U ↔ U = ∅ ∨ U = univ :=
+⟨λ h, begin
+  induction h with V h _ _ _ _ ih₁ ih₂ _ _ ih,
+  { cases h }, { exact or.inr rfl },
+  { obtain ⟨rfl|rfl, rfl|rfl⟩ := ⟨ih₁, ih₂⟩; simp },
+  { rw [sUnion_eq_empty, or_iff_not_imp_left],
+    intro h, push_neg at h, obtain ⟨U, hU, hne⟩ := h,
+    have := (ih U hU).resolve_left hne, subst this,
+    refine sUnion_eq_univ_iff.2 (λ a, ⟨_, hU, trivial⟩) },
+end, by { rintro (rfl|rfl), exacts [@is_open_empty _ ⊤, @is_open_univ _ ⊤] }⟩
 
 /-- A topological space is discrete if every set is open, that is,
   its topology equals the discrete topology `⊥`. -/
@@ -291,6 +326,31 @@ lemma forall_open_iff_discrete {X : Type*} [topological_space X] :
 lemma singletons_open_iff_discrete {X : Type*} [topological_space X] :
   (∀ a : X, is_open ({a} : set X)) ↔ discrete_topology X :=
 ⟨λ h, ⟨eq_bot_of_singletons_open h⟩, λ a _, @is_open_discrete _ _ a _⟩
+
+/-- This lemma characterizes discrete topological spaces as those whose singletons are
+neighbourhoods. -/
+lemma discrete_topology_iff_nhds [topological_space α] :
+  discrete_topology α ↔ ∀ x : α, 𝓝 x = pure x :=
+begin
+  split ; introI h,
+  { intro x,
+    rw nhds_discrete },
+  { constructor,
+    apply eq_of_nhds_eq_nhds,
+    simp [h, nhds_discrete] },
+end
+
+lemma discrete_topology_iff_nhds_ne [topological_space α] :
+  discrete_topology α ↔ ∀ x : α, 𝓝[≠] x = ⊥ :=
+begin
+  rw discrete_topology_iff_nhds,
+  apply forall_congr (λ x, _),
+  rw [nhds_within, inf_principal_eq_bot, compl_compl],
+  split ; intro h,
+  { rw h,
+    exact singleton_mem_pure },
+  { exact le_antisymm (le_pure_iff.mpr h) (pure_le_nhds x) }
+end
 
 end lattice
 
@@ -787,10 +847,10 @@ lemma continuous_Prop {p : α → Prop} : continuous p ↔ is_open {x | p x} :=
 ⟨assume h : continuous p,
   have is_open (p ⁻¹' {true}),
     from is_open_singleton_true.preimage h,
-  by simpa [preimage, eq_true] using this,
+  by simpa [preimage, eq_true_iff] using this,
   assume h : is_open {x | p x},
   continuous_generated_from $ assume s (hs : s = {true}),
-    by simp [hs, preimage, eq_true, h]⟩
+    by simp [hs, preimage, eq_true_iff, h]⟩
 
 lemma is_open_iff_continuous_mem {s : set α} : is_open s ↔ continuous (λ x, x ∈ s) :=
 continuous_Prop.symm

@@ -213,9 +213,6 @@ lemma ceil_mono : monotone (ceil : α → ℕ) := gc_ceil_coe.monotone_l
 
 @[simp] lemma ceil_pos : 0 < ⌈a⌉₊ ↔ 0 < a := by rw [lt_ceil, cast_zero]
 
-lemma ceil_nonneg (ha : 0 ≤ a) : 0 ≤ ⌈a⌉₊ :=
-by exact_mod_cast ha.trans (le_ceil a)
-
 lemma lt_of_ceil_lt (h : ⌈a⌉₊ < n) : a < n := (le_ceil a).trans_lt (nat.cast_lt.2 h)
 
 lemma le_of_ceil_le (h : ⌈a⌉₊ ≤ n) : a ≤ n := (le_ceil a).trans (nat.cast_le.2 h)

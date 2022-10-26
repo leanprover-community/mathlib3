@@ -511,9 +511,8 @@ end
 
 /-! ### Unions and intersections indexed by `Prop` -/
 
-@[simp] theorem Inter_false {s : false → set α} : Inter s = univ := infi_false
-
-@[simp] theorem Union_false {s : false → set α} : Union s = ∅ := supr_false
+theorem Inter_false {s : false → set α} : Inter s = univ := infi_false
+theorem Union_false {s : false → set α} : Union s = ∅ := supr_false
 
 @[simp] theorem Inter_true {s : true → set α} : Inter s = s trivial := infi_true
 
@@ -982,6 +981,9 @@ by simp only [←sUnion_range, subtype.range_coe]
 lemma sInter_eq_Inter {s : set (set α)} : (⋂₀ s) = (⋂ (i : s), i) :=
 by simp only [←sInter_range, subtype.range_coe]
 
+@[simp] lemma Union_of_empty [is_empty ι] (s : ι → set α) : (⋃ i, s i) = ∅ := supr_of_empty _
+@[simp] lemma Inter_of_empty [is_empty ι] (s : ι → set α) : (⋂ i, s i) = univ := infi_of_empty _
+
 lemma union_eq_Union {s₁ s₂ : set α} : s₁ ∪ s₂ = ⋃ b : bool, cond b s₁ s₂ :=
 sup_eq_supr s₁ s₂
 
@@ -1190,6 +1192,18 @@ begin
   simpa only [Union, supr_subtype'] using h
 end
 
+lemma image_Inter {f : α → β} (hf : bijective f) (s : ι → set α) :
+  f '' (⋂ i, s i) = ⋂ i, f '' s i :=
+begin
+  casesI is_empty_or_nonempty ι,
+  { simp_rw [Inter_of_empty, image_univ_of_surjective hf.surjective] },
+  { exact (hf.injective.inj_on _).image_Inter_eq }
+end
+
+lemma image_Inter₂ {f : α → β} (hf : bijective f) (s : Π i, κ i → set α) :
+  f '' (⋂ i j, s i j) = ⋂ i j, f '' s i j :=
+by simp_rw image_Inter hf
+
 lemma inj_on_Union_of_directed {s : ι → set α} (hs : directed (⊆) s)
   {f : α → β} (hf : ∀ i, inj_on f (s i)) :
   inj_on f (⋃ i, s i) :=
@@ -1377,6 +1391,33 @@ begin
   { intros x hz x' hw, exact ⟨x ⊔ x', hs le_sup_left hz, ht le_sup_right hw⟩ }
 end
 
+lemma sInter_prod_sInter_subset (S : set (set α)) (T : set (set β)) :
+  ⋂₀ S ×ˢ ⋂₀ T ⊆ ⋂ r ∈ S ×ˢ T, r.1 ×ˢ r.2 :=
+subset_Inter₂ (λ x hx y hy, ⟨hy.1 x.1 hx.1, hy.2 x.2 hx.2⟩)
+
+lemma sInter_prod_sInter {S : set (set α)} {T : set (set β)} (hS : S.nonempty) (hT : T.nonempty) :
+  ⋂₀ S ×ˢ ⋂₀ T = ⋂ r ∈ S ×ˢ T, r.1 ×ˢ r.2 :=
+begin
+  obtain ⟨s₁, h₁⟩ := hS,
+  obtain ⟨s₂, h₂⟩ := hT,
+  refine set.subset.antisymm (sInter_prod_sInter_subset S T) (λ x hx, _),
+  rw mem_Inter₂ at hx,
+  exact ⟨λ s₀ h₀, (hx (s₀, s₂) ⟨h₀, h₂⟩).1, λ s₀ h₀, (hx (s₁, s₀) ⟨h₁, h₀⟩).2⟩,
+end
+
+lemma sInter_prod {S : set (set α)} (hS : S.nonempty) (t : set β) :
+  ⋂₀ S ×ˢ t = ⋂ s ∈ S, s ×ˢ t :=
+begin
+  rw [←sInter_singleton t, sInter_prod_sInter hS (singleton_nonempty t), sInter_singleton],
+  simp_rw [prod_singleton, mem_image, Inter_exists, bInter_and', Inter_Inter_eq_right],
+end
+
+lemma prod_sInter {T : set (set β)} (hT : T.nonempty) (s : set α) :
+  s ×ˢ ⋂₀ T = ⋂ t ∈ T, s ×ˢ t :=
+begin
+  rw [←sInter_singleton s, sInter_prod_sInter (singleton_nonempty s) hT, sInter_singleton],
+  simp_rw [singleton_prod, mem_image, Inter_exists, bInter_and', Inter_Inter_eq_right],
+end
 end prod
 
 section image2
@@ -1578,11 +1619,6 @@ lemma preimage {α β} (f : α → β) {s t : set β} (h : disjoint s t) : disjo
 end disjoint
 
 namespace set
-
-protected theorem disjoint_iff : disjoint s t ↔ s ∩ t ⊆ ∅ := iff.rfl
-
-theorem disjoint_iff_inter_eq_empty : disjoint s t ↔ s ∩ t = ∅ :=
-disjoint_iff
 
 lemma not_disjoint_iff : ¬disjoint s t ↔ ∃ x, x ∈ s ∧ x ∈ t :=
 not_forall.trans $ exists_congr $ λ x, not_not
@@ -1798,38 +1834,6 @@ lemma inter_Inter_nat_succ (u : ℕ → set α) : u 0 ∩ (⋂ i, u (i + 1)) = �
 inf_infi_nat_succ u
 
 end set
-
-section sup_closed
-
-/-- A set `s` is sup-closed if for all `x₁, x₂ ∈ s`, `x₁ ⊔ x₂ ∈ s`. -/
-def sup_closed [has_sup α] (s : set α) : Prop := ∀ x1 x2, x1 ∈ s → x2 ∈ s → x1 ⊔ x2 ∈ s
-
-lemma sup_closed_singleton [semilattice_sup α] (x : α) : sup_closed ({x} : set α) :=
-λ _ _ y1_mem y2_mem, by { rw set.mem_singleton_iff at *, rw [y1_mem, y2_mem, sup_idem], }
-
-lemma sup_closed.inter [semilattice_sup α] {s t : set α} (hs : sup_closed s)
-  (ht : sup_closed t) :
-  sup_closed (s ∩ t) :=
-begin
-  intros x y hx hy,
-  rw set.mem_inter_iff at hx hy ⊢,
-  exact ⟨hs x y hx.left hy.left, ht x y hx.right hy.right⟩,
-end
-
-lemma sup_closed_of_totally_ordered [semilattice_sup α] (s : set α)
-  (hs : ∀ x y : α, x ∈ s → y ∈ s → y ≤ x ∨ x ≤ y) :
-  sup_closed s :=
-begin
-  intros x y hxs hys,
-  cases hs x y hxs hys,
-  { rwa (sup_eq_left.mpr h), },
-  { rwa (sup_eq_right.mpr h), },
-end
-
-lemma sup_closed_of_linear_order [linear_order α] (s : set α) : sup_closed s :=
-sup_closed_of_totally_ordered s (λ x y hxs hys, le_total y x)
-
-end sup_closed
 
 open set
 

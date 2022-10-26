@@ -327,6 +327,31 @@ lemma singletons_open_iff_discrete {X : Type*} [topological_space X] :
   (∀ a : X, is_open ({a} : set X)) ↔ discrete_topology X :=
 ⟨λ h, ⟨eq_bot_of_singletons_open h⟩, λ a _, @is_open_discrete _ _ a _⟩
 
+/-- This lemma characterizes discrete topological spaces as those whose singletons are
+neighbourhoods. -/
+lemma discrete_topology_iff_nhds [topological_space α] :
+  discrete_topology α ↔ ∀ x : α, 𝓝 x = pure x :=
+begin
+  split ; introI h,
+  { intro x,
+    rw nhds_discrete },
+  { constructor,
+    apply eq_of_nhds_eq_nhds,
+    simp [h, nhds_discrete] },
+end
+
+lemma discrete_topology_iff_nhds_ne [topological_space α] :
+  discrete_topology α ↔ ∀ x : α, 𝓝[≠] x = ⊥ :=
+begin
+  rw discrete_topology_iff_nhds,
+  apply forall_congr (λ x, _),
+  rw [nhds_within, inf_principal_eq_bot, compl_compl],
+  split ; intro h,
+  { rw h,
+    exact singleton_mem_pure },
+  { exact le_antisymm (le_pure_iff.mpr h) (pure_le_nhds x) }
+end
+
 end lattice
 
 section galois_connection
@@ -822,10 +847,10 @@ lemma continuous_Prop {p : α → Prop} : continuous p ↔ is_open {x | p x} :=
 ⟨assume h : continuous p,
   have is_open (p ⁻¹' {true}),
     from is_open_singleton_true.preimage h,
-  by simpa [preimage, eq_true] using this,
+  by simpa [preimage, eq_true_iff] using this,
   assume h : is_open {x | p x},
   continuous_generated_from $ assume s (hs : s = {true}),
-    by simp [hs, preimage, eq_true, h]⟩
+    by simp [hs, preimage, eq_true_iff, h]⟩
 
 lemma is_open_iff_continuous_mem {s : set α} : is_open s ↔ continuous (λ x, x ∈ s) :=
 continuous_Prop.symm

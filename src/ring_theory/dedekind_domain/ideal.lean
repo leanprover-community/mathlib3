@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 -/
 import algebra.algebra.subalgebra.pointwise
+import algebraic_geometry.prime_spectrum.maximal
 import algebraic_geometry.prime_spectrum.noetherian
 import order.hom.basic
 import ring_theory.dedekind_domain.basic
@@ -585,10 +586,8 @@ noncomputable instance fractional_ideal.semifield :
   inv_zero := inv_zero' _,
   div := (/),
   div_eq_mul_inv := fractional_ideal.div_eq_mul_inv,
-  exists_pair_ne := ⟨0, 1, (coe_to_fractional_ideal_injective le_rfl).ne
-    (by simpa using @zero_ne_one (ideal A) _ _)⟩,
   mul_inv_cancel := λ I, fractional_ideal.mul_inv_cancel,
-  .. fractional_ideal.comm_semiring }
+  .. fractional_ideal.comm_semiring, ..(coe_to_fractional_ideal_injective le_rfl).nontrivial }
 
 /-- Fractional ideals have cancellative multiplication in a Dedekind domain.
 
@@ -832,14 +831,13 @@ end
 
 end is_dedekind_domain
 
-section height_one_spectrum
-
 /-!
 ### Height one spectrum of a Dedekind domain
 If `R` is a Dedekind domain of Krull dimension 1, the maximal ideals of `R` are exactly its nonzero
 prime ideals.
 We define `height_one_spectrum` and provide lemmas to recover the facts that prime ideals of height
-one are prime and irreducible. -/
+one are prime and irreducible.
+-/
 
 namespace is_dedekind_domain
 
@@ -851,30 +849,57 @@ variables [is_domain R] [is_dedekind_domain R]
 structure height_one_spectrum :=
 (as_ideal : ideal R)
 (is_prime : as_ideal.is_prime)
-(ne_bot   : as_ideal ≠ ⊥)
+(ne_bot : as_ideal ≠ ⊥)
+
+attribute [instance] height_one_spectrum.is_prime
 
 variables (v : height_one_spectrum R) {R}
 
-lemma height_one_spectrum.prime (v : height_one_spectrum R) : prime v.as_ideal :=
-ideal.prime_of_is_prime v.ne_bot v.is_prime
+namespace height_one_spectrum
 
-lemma height_one_spectrum.irreducible (v : height_one_spectrum R) :
-  irreducible v.as_ideal :=
+instance is_maximal : v.as_ideal.is_maximal := dimension_le_one v.as_ideal v.ne_bot v.is_prime
+
+lemma prime : prime v.as_ideal := ideal.prime_of_is_prime v.ne_bot v.is_prime
+
+lemma irreducible : irreducible v.as_ideal :=
+unique_factorization_monoid.irreducible_iff_prime.mpr v.prime
+
+lemma associates_irreducible : _root_.irreducible $ associates.mk v.as_ideal :=
+(associates.irreducible_mk _).mpr v.irreducible
+
+/-- An equivalence between the height one and maximal spectra for rings of Krull dimension 1. -/
+def equiv_maximal_spectrum (hR : ¬is_field R) : height_one_spectrum R ≃ maximal_spectrum R :=
+{ to_fun    := λ v, ⟨v.as_ideal, dimension_le_one v.as_ideal v.ne_bot v.is_prime⟩,
+  inv_fun   := λ v,
+    ⟨v.as_ideal, v.is_maximal.is_prime, ring.ne_bot_of_is_maximal_of_not_is_field v.is_maximal hR⟩,
+  left_inv  := λ ⟨_, _, _⟩, rfl,
+  right_inv := λ ⟨_, _⟩, rfl }
+
+variables (R K)
+
+/-- A Dedekind domain is equal to the intersection of its localizations at all its height one
+non-zero prime ideals viewed as subalgebras of its field of fractions. -/
+theorem infi_localization_eq_bot [algebra R K] [hK : is_fraction_ring R K] :
+  (⨅ v : height_one_spectrum R,
+    localization.subalgebra.of_field K _ v.as_ideal.prime_compl_le_non_zero_divisors) = ⊥ :=
 begin
-  rw [unique_factorization_monoid.irreducible_iff_prime],
-  apply v.prime,
+  ext x,
+  rw [algebra.mem_infi],
+  split,
+  by_cases hR : is_field R,
+  { rcases function.bijective_iff_has_inverse.mp
+      (is_field.localization_map_bijective (flip non_zero_divisors.ne_zero rfl : 0 ∉ R⁰) hR)
+      with ⟨algebra_map_inv, _, algebra_map_right_inv⟩,
+    exact λ _, algebra.mem_bot.mpr ⟨algebra_map_inv x, algebra_map_right_inv x⟩,
+    exact hK },
+  all_goals { rw [← maximal_spectrum.infi_localization_eq_bot, algebra.mem_infi] },
+  { exact λ hx ⟨v, hv⟩, hx ((equiv_maximal_spectrum hR).symm ⟨v, hv⟩) },
+  { exact λ hx ⟨v, hv, hbot⟩, hx ⟨v, dimension_le_one v hbot hv⟩ }
 end
-
-lemma height_one_spectrum.associates_irreducible (v : height_one_spectrum R) :
-  irreducible (associates.mk v.as_ideal) :=
-begin
-  rw [associates.irreducible_mk _],
-  apply v.irreducible,
-end
-
-end is_dedekind_domain
 
 end height_one_spectrum
+
+end is_dedekind_domain
 
 section
 

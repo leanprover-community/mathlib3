@@ -91,7 +91,7 @@ hG.of_surjective (quotient_group.mk' H) quotient.surjective_quotient_mk'
 lemma of_equiv {H : Type*} [group H] (ϕ : G ≃* H) : is_p_group p H :=
 hG.of_surjective ϕ.to_monoid_hom ϕ.surjective
 
-lemma pow_bijective' {n : ℕ} (hn : nat.coprime p n) : function.bijective ((^ n) : G → G) :=
+lemma pow_bijective' {n : ℕ} (hn : p.coprime n) : function.bijective ((^ n) : G → G) :=
 begin
   have : ∀ g : G, (nat.card (subgroup.zpowers g)).coprime n := λ g, let ⟨k, hk⟩ := hG g in
   order_eq_card_zpowers' g ▸ (hn.pow_left k).coprime_dvd_left (order_of_dvd_of_pow_eq_one hk),

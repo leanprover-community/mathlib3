@@ -501,12 +501,12 @@ end ideal
 
 end ring
 
-section division_ring
+section division_semiring
 variables {K : Type u} [division_semiring K] (I : ideal K)
 
 namespace ideal
 
-/-- All ideals in a division ring are trivial. -/
+/-- All ideals in a division (semi)ring are trivial. -/
 lemma eq_bot_or_top : I = ⊥ ∨ I = ⊤ :=
 begin
   rw or_iff_not_imp_right,
@@ -519,8 +519,8 @@ begin
   simpa [H, h1] using I.mul_mem_left r⁻¹ hr,
 end
 
-/-- Ideals of a `division_ring` are a simple order. Thanks to the way abbreviations work, this
-automatically gives a `is_simple_module K` instance. -/
+/-- Ideals of a `division_semiring` are a simple order. Thanks to the way abbreviations work,
+this automatically gives a `is_simple_module K` instance. -/
 instance : is_simple_order (ideal K) := ⟨eq_bot_or_top⟩
 
 lemma eq_bot_of_prime [h : I.is_prime] : I = ⊥ :=
@@ -532,7 +532,7 @@ lemma bot_is_maximal : is_maximal (⊥ : ideal K) :=
 
 end ideal
 
-end division_ring
+end division_semiring
 
 section comm_ring
 

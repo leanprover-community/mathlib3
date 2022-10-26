@@ -14,80 +14,22 @@ import tactic
 -- import group_theory.perm.cycle.concrete
 -- import group_theory.group_action.quotient
 import group_theory.specific_groups.alternating
--- import group_theory.abelianization
+import group_theory.abelianization
 import group_theory.sylow
+import .multiple_primitivity
 
+import .index_normal
 import .conj_class_count
 
 namespace alternating_group
 
 variables (α : Type*) [decidable_eq α] [fintype α]
 
-def K4_carrier : finset (equiv.perm α) := finset.univ.filter (λ g, g.cycle_type = {} ∨ g.cycle_type = {2,2})
+def V4 : subgroup (alternating_group α) :=
+  subgroup.closure { g : alternating_group α | (g : equiv.perm α).cycle_type = {2,2} }
 
-example (hα4: fintype.card α = 4) (g : equiv.perm α) (n : ℕ) (hg : order_of g = 2 ^ n) : g.cycle_type = {} ∨ g.cycle_type = {2} ∨ g.cycle_type = {2, 2} ∨ g.cycle_type = {4} :=
-begin
-  rw ← equiv.perm.lcm_cycle_type  at hg,
-
-  have hg4 : g.cycle_type.sum ≤ 4,
-  { rw ← hα4, rw equiv.perm.sum_cycle_type, apply finset.card_le_univ, },
-  simp only [← or_assoc],
-  by_cases h4 : 4 ∈ g.cycle_type,
-  { apply or.intro_right,
-    rw ← multiset.cons_erase h4,
-    apply symm,
-    rw multiset.singleton_eq_cons_iff,
-    apply and.intro (rfl),
-    rw ← multiset.cons_erase h4 at hg4,
-    simp only [multiset.sum_cons, add_le_iff_nonpos_right, le_zero_iff, multiset.sum_eq_zero_iff] at hg4,
-    ext x, simp only [multiset.count_zero, multiset.count_eq_zero],
-    intro hx,
-    apply not_le.mpr (equiv.perm.one_lt_of_mem_cycle_type (multiset.mem_of_mem_erase hx)),
-    rw hg4 x hx, norm_num, },
-  { -- 4 ∉ g.cycle_type,
-    apply or.intro_left,
-    suffices : ∃ n, g.cycle_type = multiset.repeat 2 n,
-    { obtain ⟨k, hk⟩ := this,
-      -- prove : k ← 2
-      have hk2 : k ≤ 2,
-      { rw hk at hg4, rw multiset.sum_repeat at hg4,
-        apply nat.le_of_mul_le_mul_left, rw mul_comm 2 k, exact hg4,
-        norm_num, },
-      cases nat.eq_or_lt_of_le hk2 with hk2 hk1,
-      apply or.intro_right, rw [hk, hk2], refl,
-      apply or.intro_left,
-      rw nat.lt_succ_iff at hk1,
-      cases nat.eq_or_lt_of_le hk1 with hk1 hk0,
-      apply or.intro_right, rw [hk, hk1], refl,
-      simp only [nat.lt_one_iff] at hk0,
-      apply or.intro_left, rw [hk, hk0], refl, },
-
-    use g.cycle_type.card,
-    rw multiset.eq_repeat',
-    intros i hi,
-    have := multiset.dvd_lcm hi, rw [hg, nat.dvd_prime_pow] at this,
-    obtain ⟨k, ⟨hk, rfl⟩⟩ := this,
-    suffices : k = 1,
-    rw this, norm_num,
-    apply le_antisymm,
-    rw ← not_lt, intro hk1,
-    suffices : k = 2,
-    apply h4, rw this at hi, exact hi,
-    refine le_antisymm _ hk1,
-    { -- k ≤ 2
-      rw ← nat.pow_le_iff_le_right (nat.le_refl 2),
-      norm_num, rw ← hα4,
-      apply le_trans (equiv.perm.le_card_support_of_mem_cycle_type hi),
-      apply finset.card_le_univ, },
-    rw nat.one_le_iff_ne_zero, intro hk0,
-    rw hk0 at hi, norm_num at hi,
-    apply nat.lt_irrefl 1, exact equiv.perm.one_lt_of_mem_cycle_type hi,
-    norm_num, },
-end
-
-lemma mem_K4_of_order_two_pow (hα4: fintype.card α = 4)
-  (g : equiv.perm α) (hg0 : g ∈ alternating_group α) (n : ℕ) (hg : order_of g ∣ 2 ^ n) : g ∈ K4_carrier α
-:=
+lemma mem_V4_of_order_two_pow (hα4 : fintype.card α = 4)
+  (g : equiv.perm α) (hg0 : g ∈ alternating_group α) (n : ℕ) (hg : order_of g ∣ 2 ^ n) : g.cycle_type = {} ∨ g.cycle_type = {2,2} :=
 begin
   rw ← equiv.perm.lcm_cycle_type  at hg,
   rw [equiv.perm.mem_alternating_group, equiv.perm.sign_of_cycle_type] at hg0,
@@ -120,7 +62,7 @@ begin
         norm_num, },
       cases nat.eq_or_lt_of_le hk2 with hk2 hk1,
       -- g.cycle_type.card = 2
-      rw hk2 at this, simp only [K4_carrier, finset.mem_filter, this],
+      rw hk2 at this, simp only [this],
       simp only [finset.mem_univ, multiset.repeat_succ, multiset.repeat_one, multiset.empty_eq_zero, multiset.cons_ne_zero, multiset.insert_eq_cons, eq_self_iff_true, false_or, and_self],
       -- we know : g.cycle_type.card ≤ 1
       rw nat.lt_succ_iff at hk1,
@@ -129,7 +71,7 @@ begin
       exfalso, rw [hk1, ← units.eq_iff] at hg0, norm_num at hg0,
       -- g.cycle_type.card = 0
       simp only [nat.lt_one_iff] at hk0,
-      rw hk0 at this, simp only [K4_carrier, finset.mem_filter, this],
+      rw hk0 at this, simp only [this],
       simp, },
 
     rw multiset.eq_repeat',
@@ -154,184 +96,187 @@ begin
     norm_num, },
 end
 
-lemma K4_carrier_card (hα4 : fintype.card α = 4) : finset.card (K4_carrier α) = 4 :=
+open_locale classical
+
+lemma A4_card (hα4 : fintype.card α = 4) :
+  fintype.card (alternating_group α) = 12 :=
 begin
-  simp only [K4_carrier],
-  simp only [finset.filter_or],
-  rw finset.card_union_eq _,
-  simp [on_cycle_factors.equiv.perm.card_of_cycle_type, hα4],
-  norm_num,
-  -- disjoint
-  intro x, simp only [multiset.empty_eq_zero, multiset.insert_eq_cons, finset.inf_eq_inter, finset.mem_inter, finset.mem_filter,
-  finset.mem_univ, true_and, finset.bot_eq_empty, finset.not_mem_empty, and_imp],
-  intro hx, rw hx, exact multiset.zero_ne_cons,
-end
-
-lemma K4_is_sylow (hα4 : fintype.card α = 4) (S : sylow 2 (alternating_group α)) :
-  (K4_carrier α : set (equiv.perm α))= (subgroup.map (alternating_group α).subtype S) :=
-begin
-  classical,
-  suffices hS4 : fintype.card S = 4,
-  apply symm,
-  apply set.eq_of_subset_of_card_le,
-
-  { -- inclusion S ⊆ K4
-    intros k hk,
-    simp only [subgroup.coe_map, subgroup.coe_subtype, set.mem_image, set_like.mem_coe] at hk,
-    obtain ⟨⟨g, hg⟩, ⟨hg', rfl⟩⟩ := hk,
-    simp only [subgroup.coe_mk, finset.mem_coe],
-    apply mem_K4_of_order_two_pow α hα4 g hg 2,
-    norm_num,
-    rw order_of_dvd_iff_pow_eq_one,
-    have : order_of (⟨⟨g, hg⟩, hg'⟩ : S) ∣ fintype.card S := order_of_dvd_card_univ,
-    rw [hS4, order_of_dvd_iff_pow_eq_one] at this,
-    simp only [← subtype.coe_inj, submonoid_class.mk_pow, subgroup.coe_mk, subgroup.coe_one] at this,
-    exact this, },
-
-  -- card K4 ≤ card S
-  simp only [finset.coe_sort_coe, fintype.card_coe, K4_carrier_card α hα4],
-  apply le_of_eq, rw ← hS4,
-  let u : S → subgroup.map (alternating_group α).subtype S := λ g,
-    ⟨(alternating_group α).subtype g, ⟨g, ⟨g.prop, rfl⟩⟩⟩,
-  have hu : function.bijective u,
-  { split,
-    { intros x y, simp [u], },
-    { rintro ⟨x, hx⟩,
-      simp only [subgroup.mem_map, subgroup.coe_subtype, exists_prop] at hx,
-      obtain ⟨y, ⟨hy, rfl⟩⟩ := hx,
-      use ⟨y, hy⟩,
-      simp [u], }, },
-  rw fintype.card_of_bijective hu, refl,
-
-  -- card S = 4
-  rw sylow.card_eq_multiplicity, rw ← nat.factors_count_eq ,
-  -- rw nat.factorization_def,
-  suffices : list.count 2 (fintype.card (alternating_group α)).factors = 2,
-  rw this, norm_num,
-
-  suffices : fintype.card (alternating_group α) = 12,
-  rw this, norm_num,
-
   haveI : nontrivial α, rw [← fintype.one_lt_card_iff_nontrivial, hα4], norm_num,
   rw [← nat.mul_right_inj, two_mul_card_alternating_group, fintype.card_perm, hα4],
   norm_num, norm_num,
 end
 
-lemma K4_carrier_is_subgroup (hα4 : fintype.card α = 4) : ∃ S : subgroup ↥(alternating_group α), (K4_carrier α : set (equiv.perm α)) = (subgroup.map (alternating_group α).subtype S) :=
+lemma A4_sylow_card (hα4 : fintype.card α = 4) (S : sylow 2 (alternating_group α)) : fintype.card S = 4 :=
 begin
-  obtain ⟨S : sylow 2 (alternating_group α)⟩ := sylow.nonempty ,
-  use S,
-  exact K4_is_sylow α hα4 S,
+  rw [sylow.card_eq_multiplicity, ← nat.factors_count_eq, A4_card α hα4],
+  norm_num,
 end
 
-lemma K4_carrier_le_alternating (hα4: fintype.card α = 4) :
-  (K4_carrier α : set (equiv.perm α)) ⊆ (alternating_group α : set (equiv.perm α)) :=
+lemma A4_sylow_carrier (hα4 : fintype.card α = 4) (S : sylow 2 (alternating_group α)) : S.carrier = {g : alternating_group α | (g : equiv.perm α).cycle_type = 0 ∨ (g : equiv.perm α).cycle_type = {2, 2} } :=
 begin
-  obtain ⟨S, hS⟩ := K4_carrier_is_subgroup α hα4,
-  rw hS, simp only [subgroup.coe_map, subgroup.coe_subtype, set.image_subset_iff],
-  rintros ⟨g,  hg⟩ h,
-  simp only [set.mem_preimage, subgroup.coe_mk, set_like.mem_coe, hg],
+  apply set.eq_of_subset_of_card_le ,
+  { -- inclusion S ⊆ (cycle_type = 0 ∨ cycle_type = { 2, 2 })
+    intros k hk,
+    simp only [set.mem_set_of_eq],
+    obtain ⟨n, hn⟩ := (is_p_group.iff_order_of.mp S.is_p_group') ⟨k, hk⟩,
+    apply mem_V4_of_order_two_pow α hα4 ↑k k.prop n,
+    rw [← order_of_subgroup ⟨k, hk⟩, subgroup.coe_mk] at hn,
+    rw [order_of_subgroup, hn], },
+  -- card K4 ≤ card S
+  change _ ≤ fintype.card S,
+  rw A4_sylow_card α hα4 S,
+  apply le_trans (fintype.card_subtype_or _ _),
+  rw fintype.card_subtype, rw fintype.card_subtype,
+  simp only [on_cycle_factors.alternating_group.card_of_cycle_type, hα4],
+  norm_num,
 end
 
-def K4 (hα4 : fintype.card α = 4) : subgroup (alternating_group α) := {
-carrier := coe ⁻¹' (K4_carrier α : set (equiv.perm α)),
-mul_mem' :=
-begin
-  obtain ⟨S, hS⟩ := K4_carrier_is_subgroup α hα4,
-  rintros ⟨a, ha⟩ ⟨b, hb⟩ ha' hb',
-  simp only [hS, subgroup.coe_map, subgroup.coe_subtype, set.mem_preimage, subgroup.coe_mk, set.mem_image, set_like.mem_coe] at ha' hb',
-  obtain ⟨a', ⟨ha', rfl⟩⟩ := ha',
-  obtain ⟨b', ⟨hb', rfl⟩⟩ := hb',
-  simp only [hS, set.mem_preimage, set_like.eta],
-  use a' * b',
-  simp only [set_like.mem_coe, subgroup.coe_subtype, eq_self_iff_true, and_true],
-  exact mul_mem ha' hb',
-end,
-one_mem' :=
-begin
-  obtain ⟨S, hS⟩ := K4_carrier_is_subgroup α hα4,
-  simp only [hS, set.mem_preimage],
-  use 1,
-  simp only [set_like.mem_coe, subgroup.coe_subtype, eq_self_iff_true, and_true, S.one_mem],
-end,
-inv_mem' :=
-begin
-  obtain ⟨S, hS⟩ := K4_carrier_is_subgroup α hα4,
-  rintros ⟨a, ha⟩ ha',
-  simp only [hS, subgroup.coe_map, subgroup.coe_subtype, set.mem_preimage, subgroup.coe_mk, set.mem_image, set_like.mem_coe] at ha',
-  obtain ⟨a', ⟨ha', rfl⟩⟩ := ha',
-  simp only [hS, set.mem_preimage, set_like.eta],
-  use a'⁻¹,
-  simp only [inv_mem ha', set_like.mem_coe, subgroup.coe_subtype, eq_self_iff_true, and_self],
-end }
-
-theorem K4_carrier_coe (hα4 : fintype.card α = 4) :
-  (K4 α hα4).carrier = coe ⁻¹' (K4_carrier α : set (equiv.perm α)) := rfl
-
-theorem K4_mem_iff (hα4 : fintype.card α = 4) (g : alternating_group α) :
-  g ∈ K4 α hα4  ↔ (g : equiv.perm α).cycle_type = {} ∨ (g : equiv.perm α).cycle_type = {2, 2} := by simp only [K4, K4_carrier, finset.coe_filter, finset.coe_univ, set.sep_univ, set.preimage_set_of_eq, subgroup.mem_mk,
-  set.mem_set_of_eq]
-
-instance K4_fintype (hα4 : fintype.card α = 4): fintype (K4 α hα4) :=
-begin
-  haveI : decidable_pred (λ (_x : ↥(alternating_group α)), _x ∈ K4 α hα4),
-  intro x, simp_rw K4_mem_iff,
-  apply_instance,
-  apply subgroup.fintype,
-end
-
-theorem K4_card (hα4 : fintype.card α = 4) :
-  fintype.card (K4 α hα4) = 4 :=
-begin
-  let u : K4 α hα4 → K4_carrier α := λ ⟨g, hg⟩, ⟨coe g,
-  begin
-    rw [← finset.mem_coe, ← set.mem_preimage, ← K4_carrier_coe α hα4],
-    exact hg,
-  end⟩,
-  rw ← K4_carrier_card α hα4,
-  have hu : function.bijective u,
-  { split,
-    rintros ⟨x, hx⟩ ⟨y, hy⟩, simp only [subtype.mk_eq_mk, set_like.coe_eq_coe, imp_self],
-    rintro ⟨x, hx⟩,
-    use ⟨x, K4_carrier_le_alternating α hα4 hx⟩,
-    simp [← subgroup.mem_carrier, K4_carrier_coe, hx],
-    simp [u], },
-  rw fintype.card_of_bijective hu,
-  simp only [fintype.card_coe],
-end
-
-
-def sK4 (hα4 : fintype.card α = 4) : sylow 2 (alternating_group α) := {
-to_subgroup := K4 α hα4,
-is_p_group' :=
-begin
-  rw is_p_group.iff_card,
-  use 2, rw K4_card α hα4, norm_num,
-end,
-is_maximal' :=
+lemma V4_is_unique_sylow (hα4 : fintype.card α = 4) (S : sylow 2 (alternating_group α)) :
+  V4 α = S :=
 begin
   classical,
-  intros Q hQ hQ',
-  obtain ⟨S, hS⟩ := is_p_group.exists_le_sylow hQ,
-  rw is_p_group.iff_card  at hQ,
-  apply le_antisymm _ hQ',
-  apply le_trans hS,
-  have := K4_is_sylow α hα4 S, -- rw K4_carrier_coe at this,
-  intros g hg,
-  rw [← subgroup.mem_carrier, K4_carrier_coe, set.mem_preimage, K4_is_sylow α hα4 S],
-  simp [hg],
-end }
+  apply le_antisymm,
+  { simp only [V4], rw subgroup.closure_le,
+    intros g hg,
+    rw [set_like.mem_coe, ← subgroup.mem_carrier, ← sylow.to_subgroup_eq_coe, A4_sylow_carrier α hα4 S, set.mem_set_of_eq],
+    apply or.intro_right, exact hg, },
+  { intros k hk,
+    rw [← sylow.to_subgroup_eq_coe, ← subgroup.mem_carrier, A4_sylow_carrier α hα4 S, set.mem_set_of_eq] at hk,
+    cases hk with hk hk,
+    { suffices hk : k = 1, rw hk, exact subgroup.one_mem _,
+      rw [← subtype.coe_inj, subgroup.coe_one,← equiv.perm.cycle_type_eq_zero, hk], },
+    { simp only [V4],
+      apply subgroup.subset_closure ,
+      simp only [set.mem_set_of_eq],
+      exact hk, } },
+end
 
-theorem sK4_is_unique_two_sylow (hα4 : fintype.card α = 4) (S : sylow 2 (alternating_group α)) : S = sK4 α hα4 :=
+lemma A4_card_two_sylow_eq_one (hα4 : fintype.card α = 4) :
+  fintype.card (sylow 2 (alternating_group α)) = 1 :=
 begin
-  apply symm, rw sylow.ext_iff,
-  have hS := S.is_maximal',
-  have hsK4 := (sK4 α hα4).is_p_group',
-  apply hS hsK4,
-  intros g hg,
-  simp only [sK4, sylow.to_subgroup_eq_coe] at hg ⊢,
-  rw [← subgroup.mem_carrier, K4_carrier_coe, set.mem_preimage, K4_is_sylow α hα4 S],
-  simp [hg],
+  rw fintype.card_eq_one_iff ,
+  obtain ⟨S : sylow 2 (alternating_group α)⟩ := sylow.nonempty ,
+  use S,
+  intro T,
+  rw sylow.ext_iff ,
+  rw ← V4_is_unique_sylow α hα4 S,
+  rw V4_is_unique_sylow α hα4 T,
+end
+
+lemma V4_is_normal (hα4 : fintype.card α = 4) :
+  (V4 α).normal :=
+begin
+  obtain ⟨S : sylow 2 (alternating_group α)⟩ := sylow.nonempty ,
+  rw V4_is_unique_sylow α hα4 S,
+  rw ← subgroup.normalizer_eq_top ,
+  rw ← subgroup.index_eq_one,
+  rw ← card_sylow_eq_index_normalizer,
+  exact A4_card_two_sylow_eq_one α hα4,
+end
+
+lemma V4_is_characteristic (hα4 : fintype.card α = 4) :
+  (V4 α).characteristic :=
+begin
+  obtain ⟨S : sylow 2 (alternating_group α)⟩ := sylow.nonempty ,
+  rw V4_is_unique_sylow α hα4 S,
+  refine sylow.characteristic_of_normal S _,
+  rw ← V4_is_unique_sylow α hα4 S,
+  exact V4_is_normal α hα4,
+end
+
+lemma V4_card (hα4 : fintype.card α = 4) : fintype.card (V4 α) = 4 :=
+begin
+  obtain ⟨S : sylow 2 (alternating_group α)⟩ := sylow.nonempty ,
+  rw V4_is_unique_sylow α hα4 S,
+  change fintype.card S = 4,
+  exact A4_sylow_card α hα4 S,
+end
+
+lemma V4_carrier_eq (hα4 : fintype.card α = 4) :
+  (V4 α).carrier = {g : alternating_group α | (g : equiv.perm α).cycle_type = 0 ∨ (g : equiv.perm α).cycle_type = {2, 2} } :=
+begin
+  obtain ⟨S : sylow 2 (alternating_group α)⟩ := sylow.nonempty ,
+  rw V4_is_unique_sylow α hα4 S,
+  simpa only [sylow.to_subgroup_eq_coe] using A4_sylow_carrier α hα4 S,
+end
+
+theorem subgroup.quotient_is_commutative_iff_commutator_le {G : Type*} [group G] (H : subgroup G) [nH : H.normal] :
+  is_commutative (G ⧸ H) (*) ↔ commutator G ≤ H :=
+begin
+  split,
+  { intro h,
+    simp only [commutator_eq_closure, subgroup.closure_le],
+    rintros g ⟨g1, g2, rfl⟩,
+    simp only [set_like.mem_coe, ← quotient_group.eq_one_iff],
+    rw [← quotient_group.mk'_apply, map_commutator_element (quotient_group.mk' H) g1 g2],
+    simp only [quotient_group.mk'_apply, commutator_element_eq_one_iff_mul_comm, h.comm], },
+  { intro h,
+    apply is_commutative.mk,
+    intros a b,
+    obtain ⟨g1, rfl⟩ := quotient_group.mk'_surjective H a,
+    obtain ⟨g2, rfl⟩ := quotient_group.mk'_surjective H b,
+    rw ← commutator_element_eq_one_iff_mul_comm,
+    rw ← map_commutator_element _ g1 g2,
+    rw quotient_group.mk'_apply,
+    rw quotient_group.eq_one_iff ,
+    apply h,
+    apply subgroup.commutator_mem_commutator,
+    refine subgroup.mem_top g1,
+    refine subgroup.mem_top g2, },
+end
+
+lemma alternating_group.center_bot (hα4 : 4 ≤ fintype.card α) : (alternating_group α).center = ⊥ :=
+begin
+  rw eq_bot_iff,
+  rintros ⟨g, hg⟩ hg',
+  simp only [subgroup.mem_bot],
+  simp only [← subtype.coe_inj, subgroup.coe_mk, subgroup.coe_one],
+  rw ←  equiv.perm.support_eq_empty_iff,
+  rw finset.eq_empty_iff_forall_not_mem,
+  intros a ha, let b := g a,
+  have hab : b ≠ a, simp only [b], rw ← equiv.perm.mem_support, exact ha,
+
+  have : ∃ (c : α), c ≠ a ∧ c ≠ b,
+  sorry,
+  obtain ⟨c, hac, hbc⟩ := this,
+  /- alternating_group α is (n-2)-transitive, hence 2-transitive
+   may find k ∈ alternating_group α such that k a = a, k b ≠ c,
+   (k * g) a = k (g a) = k b ≠ c
+   (g * k) a = g b = c,
+
+
+  -/
+  -- finset.exists_list_nodup_eq
+
+  sorry,
+end
+
+lemma V4_eq_commutator (hα4 : fintype.card α = 4) :
+  V4 α = commutator (alternating_group α) :=
+begin
+  have V4_index: fintype.card (↥(alternating_group α) ⧸ V4 α)  = 3,
+  { rw ←  nat.mul_left_inj _,
+    rw ← subgroup.card_eq_card_quotient_mul_card_subgroup,
+    rw V4_card α hα4, rw A4_card α hα4, norm_num,
+    rw V4_card α hα4, norm_num, },
+  haveI : (V4 α).normal := V4_is_normal α hα4,
+  have : commutator (alternating_group α) ≤ V4 α,
+  rw ← subgroup.quotient_is_commutative_iff_commutator_le,
+  { apply is_commutative_of_prime_order _,
+    apply_instance,
+    exact 3,
+    exact nat.fact_prime_three,
+    exact V4_index },
+
+  have : commutator (alternating_group α) ≠ ⊥,
+  { intro h,
+    simp only [commutator, subgroup.commutator_eq_bot_iff_le_centralizer, subgroup.centralizer_top, ← eq_top_iff] at h,
+
+
+  sorry, },
+
+
+  sorry
 end
 
 

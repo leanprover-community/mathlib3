@@ -1641,7 +1641,7 @@ abbreviation _root_.algebraic_geometry.Scheme.hom.opens_functor {X Y : Scheme} (
 H.open_functor
 
 /-- The isomorphism `Γ(X, U) ⟶ Γ(Y, f(U))` induced by an open immersion `f : X ⟶ Y`. -/
-abbreviation _root_.algebraic_geometry.Scheme.hom.inv_app {X Y : Scheme} (f : X ⟶ Y)
+def _root_.algebraic_geometry.Scheme.hom.inv_app {X Y : Scheme} (f : X ⟶ Y)
   [H : is_open_immersion f] (U) :
   X.presheaf.obj (op U) ⟶ Y.presheaf.obj (op (f.opens_functor.obj U)) :=
 H.inv_app U

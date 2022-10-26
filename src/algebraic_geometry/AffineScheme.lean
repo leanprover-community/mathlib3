@@ -178,6 +178,11 @@ begin
   exact range_is_affine_open_of_open_immersion _,
 end
 
+lemma Scheme.stalk_hom_affine_ext {X : Scheme} (x : X.carrier) {Y : CommRing}
+  {f₁ f₂ : X.stalk x ⟶ Y} (ih : ∀ (U : opens X.carrier) (hU : is_affine_open U) (hxU : x ∈ U),
+    X.presheaf.germ ⟨x, hxU⟩ ≫ f₁ = X.presheaf.germ ⟨x, hxU⟩ ≫ f₂) : f₁ = f₂ :=
+Top.presheaf.stalk_hom_ext_of_is_basis (is_basis_affine_open X) _ ih
+
 /-- The open immersion `Spec 𝒪ₓ(U) ⟶ X` for an affine `U`. -/
 def is_affine_open.from_Spec {X : Scheme} {U : opens X.carrier} (hU : is_affine_open U) :
   Scheme.Spec.obj (op $ X.presheaf.obj $ op U) ⟶ X :=

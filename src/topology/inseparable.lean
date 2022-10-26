@@ -130,6 +130,8 @@ lemma specializes_rfl : x ⤳ x := le_rfl
 
 @[refl] lemma specializes_refl (x : X) : x ⤳ x := specializes_rfl
 
+lemma specializes_of_eq {x y : X} (e : x = y) : x ⤳ y := e ▸ specializes_refl x
+
 @[trans] lemma specializes.trans : x ⤳ y → y ⤳ z → x ⤳ z := le_trans
 
 lemma specializes_of_nhds_within (h₁ : 𝓝[s] x ≤ 𝓝[s] y) (h₂ : x ∈ s) : x ⤳ y :=

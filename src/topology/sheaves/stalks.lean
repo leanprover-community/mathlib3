@@ -101,6 +101,18 @@ lemma stalk_hom_ext (F : X.presheaf C) {x} {Y : C} {f₁ f₂ : F.stalk x ⟶ Y}
   (ih : ∀ (U : opens X) (hxU : x ∈ U), F.germ ⟨x, hxU⟩ ≫ f₁ = F.germ ⟨x, hxU⟩ ≫ f₂) : f₁ = f₂ :=
 colimit.hom_ext $ λ U, by { induction U using opposite.rec, cases U with U hxU, exact ih U hxU }
 
+lemma stalk_hom_ext_of_is_basis {B : set (opens X)} (hB : opens.is_basis B)
+  (F : X.presheaf C) {x} {Y : C}
+  {f₁ f₂ : F.stalk x ⟶ Y}
+  (ih : ∀ (U ∈ B) (hxU : x ∈ U), F.germ ⟨x, hxU⟩ ≫ f₁ = F.germ ⟨x, hxU⟩ ≫ f₂) : f₁ = f₂ :=
+Top.presheaf.stalk_hom_ext _
+begin
+  intros U hxU,
+  obtain ⟨V, hV, hxV, hVU : V ≤ U⟩ := opens.is_basis_iff_nbhd.mp hB hxU,
+  have := congr_arg (λ f, F.map (hom_of_le hVU).op ≫ f) (ih V hV hxV),
+  convert this using 1; rw [← category.assoc, F.germ_res]; refl
+end
+
 @[simp, reassoc, elementwise]
 lemma stalk_functor_map_germ {F G : X.presheaf C} (U : opens X) (x : U)
   (f : F ⟶ G) : germ F x ≫ (stalk_functor C x.1).map f = f.app (op U) ≫ germ G x :=
@@ -318,6 +330,16 @@ lemma stalk_specializes_stalk_pushforward (f : X ⟶ Y) (F : X.presheaf C) {x y 
   (f _* F).stalk_specializes (f.map_specializes h) ≫ F.stalk_pushforward _ f x =
     F.stalk_pushforward _ f y ≫ F.stalk_specializes h :=
 by { ext, delta stalk_pushforward, simpa [stalk_specializes] }
+
+@[simp, reassoc, elementwise]
+lemma Top.presheaf.stalk_specializes_comp (F : X.presheaf C) {x y z : X} (h : x ⤳ y) (h' : y ⤳ z) :
+  F.stalk_specializes h' ≫ F.stalk_specializes h = F.stalk_specializes (h.trans h') :=
+F.stalk_hom_ext $ λ _ _, by simp
+
+@[simp]
+lemma Top.presheaf.stalk_specializes_refl (F : X.presheaf C) (x : X) :
+  F.stalk_specializes (specializes_refl x) = 𝟙 _ :=
+F.stalk_hom_ext $ λ _ _, by { dsimp, simpa }
 
 end stalk_specializes
 

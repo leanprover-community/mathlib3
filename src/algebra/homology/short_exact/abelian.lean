@@ -29,8 +29,8 @@ lemma is_iso_of_short_exact_of_is_iso_of_is_iso (h : short_exact f g) (h' : shor
   (comm₁ : i₁ ≫ f' = f ≫ i₂) (comm₂ : i₂ ≫ g' = g ≫ i₃) [is_iso i₁] [is_iso i₃] :
   is_iso i₂ :=
 begin
-  obtain ⟨_, _, _⟩ := h,
-  obtain ⟨_, _, _⟩ := h',
+  obtain ⟨_⟩ := h,
+  obtain ⟨_⟩ := h',
   resetI,
   refine @abelian.is_iso_of_is_iso_of_is_iso_of_is_iso_of_is_iso 𝒜 _ _ 0 _ _ _ 0 _ _ _
     0 f g 0 f' g' 0 i₁ i₂ i₃ _ comm₁ comm₂ 0 0 0 0 0 _ _ _ _ _ _ _ _ _ _ _;

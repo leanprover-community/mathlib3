@@ -5,7 +5,7 @@ Authors: Damiano Testa
 -/
 import data.zmod.basic
 import ring_theory.subsemiring.basic
-import algebra.order.monoid
+import algebra.order.monoid.basic
 /-!
 
 A `canonically_ordered_comm_semiring` with two different elements `a` and `b` such that
@@ -50,7 +50,7 @@ end from_Bhavik
 
 lemma mem_zmod_2 (a : zmod 2) : a = 0 ∨ a = 1 :=
 begin
-  rcases a with ⟨_ | _ | _ | _ | a_val, _ | ⟨_, _ | ⟨_, ⟨⟩⟩⟩⟩,
+  rcases a with ⟨_|_, _|_|_|_⟩,
   { exact or.inl rfl },
   { exact or.inr rfl },
 end

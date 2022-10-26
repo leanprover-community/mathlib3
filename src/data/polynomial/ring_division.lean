@@ -575,6 +575,11 @@ then if h : (X : R[X]) ^ n - C a = 0
 else by rw [← with_bot.coe_le_coe, ← degree_X_pow_sub_C (nat.pos_of_ne_zero hn) a];
   exact card_roots (X_pow_sub_C_ne_zero (nat.pos_of_ne_zero hn) a)
 
+@[simp]
+lemma nth_roots_two_eq_zero_iff {r : R} : nth_roots 2 r = 0 ↔ ¬ is_square r :=
+by simp_rw [is_square_iff_exists_sq, eq_zero_iff_forall_not_mem,
+            mem_nth_roots (by norm_num : 0 < 2), ← not_exists, eq_comm]
+
 /-- The multiset `nth_roots ↑n (1 : R)` as a finset. -/
 def nth_roots_finset (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] : finset R :=
 multiset.to_finset (nth_roots n (1 : R))
@@ -917,6 +922,13 @@ end
 lemma card_roots_le_map [is_domain A] [is_domain B] {p : A[X]} {f : A →+* B} (h : p.map f ≠ 0) :
   p.roots.card ≤ (p.map f).roots.card :=
 by { rw ← p.roots.card_map f, exact multiset.card_le_of_le (map_roots_le h) }
+
+lemma card_roots_le_map_of_injective [is_domain A] [is_domain B] {p : A[X]} {f : A →+* B}
+  (hf : function.injective f) : p.roots.card ≤ (p.map f).roots.card :=
+begin
+  by_cases hp0 : p = 0, { simp only [hp0, roots_zero, polynomial.map_zero, multiset.card_zero], },
+  exact card_roots_le_map ((polynomial.map_ne_zero_iff hf).mpr hp0),
+end
 
 lemma roots_map_of_injective_of_card_eq_nat_degree [is_domain A] [is_domain B] {p : A[X]}
   {f : A →+* B} (hf : function.injective f) (hroots : p.roots.card = p.nat_degree) :

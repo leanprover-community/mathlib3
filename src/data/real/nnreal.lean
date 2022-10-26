@@ -485,6 +485,10 @@ end
   real.to_nnreal (bit1 r) = bit1 (real.to_nnreal r) :=
 (real.to_nnreal_add (by simp [hr]) zero_le_one).trans (by simp [bit1])
 
+lemma to_nnreal_pow {x : ℝ} (hx : 0 ≤ x) (n : ℕ) : (x ^ n).to_nnreal = (x.to_nnreal) ^ n :=
+by rw [← nnreal.coe_eq, nnreal.coe_pow, real.coe_to_nnreal _ (pow_nonneg hx _),
+  real.coe_to_nnreal x hx]
+
 end to_nnreal
 
 end real
@@ -832,6 +836,8 @@ rfl
 
 @[simp] lemma nnabs_of_nonneg {x : ℝ} (h : 0 ≤ x) : nnabs x = to_nnreal x :=
 by { ext, simp [coe_to_nnreal x h, abs_of_nonneg h] }
+
+lemma nnabs_coe (x : ℝ≥0) : nnabs x = x := by simp
 
 lemma coe_to_nnreal_le (x : ℝ) : (to_nnreal x : ℝ) ≤ |x| :=
 max_le (le_abs_self _) (abs_nonneg _)

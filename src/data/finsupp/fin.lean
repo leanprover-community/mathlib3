@@ -53,7 +53,7 @@ begin
   simp only [finsupp.cons, fin.cons, finsupp.tail, fin.tail],
   ext,
   simp only [equiv_fun_on_fintype_symm_apply_to_fun, equiv.inv_fun_as_coe,
-    finsupp.coe_mk, fin.cases_succ, equiv_fun_on_fintype],
+    finsupp.to_fun_mk, fin.cases_succ, equiv_fun_on_fintype],
   refl,
 end
 

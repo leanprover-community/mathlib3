@@ -29,6 +29,8 @@ variables {Ω : Type u} {m : measurable_space Ω} (ℙ : probability_measure Ω)
 
 def pm_one_space := ℤˣ
 
+instance int.units.measurable_space : measurable_space ℤˣ := ⊤
+
 section preliminaries
 
 lemma pm_one_space_vals' (r : ℤˣ) :
@@ -87,22 +89,14 @@ begin
     norm_num, },
 
   have Ωp_is : Ωp = (Za ⁻¹' {1}),
-  {
-    ext x,
+  { ext x,
     simp only [set.mem_set_of_eq, coe_coe, set.mem_preimage, set.mem_singleton_iff],
     norm_cast,
-    split,
-    {
-      intros h,
-      --exact_mod_cast h,
-      --simp [h],
-      sorry,
-    },
-    sorry,
-},
+    simp, },
+
   have Ωp_measurable : measurable_set Ωp ,
-  { convert measurable_set_preimage _ _,
-},
+  { convert measurable_set_preimage Za_measurable _,
+    simp, },
 
   have : ∫ ω, (Za ω : ℝ) * (Zb ω) ∂(ℙ:measure Ω) =
     ∫ ω in Ωp, (Za ω : ℝ) * (Zb ω) ∂(ℙ:measure Ω) +

@@ -13,5 +13,5 @@ begin
   ext x,
   simp only [coe_coe, set.mem_set_of_eq, set.mem_preimage, set.mem_singleton_iff],
   norm_cast,
-  sorry
+  simp,
 end

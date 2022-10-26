@@ -603,10 +603,6 @@ begin
   exact ⟨λ h, ⟨h⟩, λ h, h.2⟩
 end
 
-instance {R : Type*} [field R] :
-  is_simple_order (ideal R) :=
-is_field_iff_forall_ideal_eq.mp (field.to_is_field R)
-
 /-- When a ring is not a field, the maximal ideals are nontrivial. -/
 lemma ne_bot_of_is_maximal_of_not_is_field [nontrivial R] {M : ideal R} (max : M.is_maximal)
   (not_field : ¬ is_field R) : M ≠ ⊥ :=

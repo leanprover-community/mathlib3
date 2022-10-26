@@ -421,7 +421,7 @@ inductive map.arrows (hφ : function.injective φ.obj) (S : subgroupoid C) :
   Π (c d : D), (c ⟶ d) → Prop
 | im {c d : C} (f : c ⟶ d) (hf : f ∈ S.arrows c d) : map.arrows (φ.obj c) (φ.obj d) (φ.map f)
 
-lemma map.arrows_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d : D} (f : c ⟶ d):
+lemma map.arrows_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d : D} (f : c ⟶ d) :
   map.arrows φ hφ S c d f ↔
   ∃ (a b : C) (g : a ⟶ b) (ha : φ.obj a = c) (hb : φ.obj b = d) (hg : g ∈ S.arrows a b),
     f = (eq_to_hom ha.symm) ≫ φ.map g ≫ (eq_to_hom hb) :=
@@ -446,7 +446,7 @@ def map (hφ : function.injective φ.obj) (S : subgroupoid C) : subgroupoid D :=
     split, exact S.mul hf hg,
   end }
 
-lemma mem_map_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d : D} (f : c ⟶ d):
+lemma mem_map_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d : D} (f : c ⟶ d) :
   f ∈ (map φ hφ S).arrows c d ↔
   ∃ (a b : C) (g : a ⟶ b) (ha : φ.obj a = c) (hb : φ.obj b = d) (hg : g ∈ S.arrows a b),
     f = (eq_to_hom ha.symm) ≫ φ.map g ≫ (eq_to_hom hb) := map.arrows_iff φ hφ S f
@@ -464,10 +464,10 @@ lemma map_mono (hφ : function.injective φ.obj) (S T : subgroupoid C) :
   S ≤ T → map φ hφ S ≤ map φ hφ T :=
 λ h, (galois_connection_map_comap φ hφ).monotone_l h
 
-lemma le_map_comap (hφ : function.injective φ.obj) (S : subgroupoid C) :
+lemma le_comap_map (hφ : function.injective φ.obj) (S : subgroupoid C) :
   S ≤ comap φ (map φ hφ S) := (galois_connection_map_comap φ hφ).le_u_l S
 
-lemma comap_map_le (hφ : function.injective φ.obj) (T : subgroupoid D) :
+lemma map_comap_le (hφ : function.injective φ.obj) (T : subgroupoid D) :
   map φ hφ (comap φ T) ≤ T := (galois_connection_map_comap φ hφ).l_u_le T
 
 lemma map_le_iff_le_comap (hφ : function.injective φ.obj)
@@ -500,11 +500,11 @@ lemma mem_im_iff (hφ : function.injective φ.obj) {c d : D} (f : c ⟶ d) :
     f = (eq_to_hom ha.symm) ≫ φ.map g ≫ (eq_to_hom hb) :=
 by { convert map.arrows_iff φ hφ ⊤ f, simp only [has_top.top, mem_univ, exists_true_left] }
 
-lemma mem_im_objs_iff  (hφ : function.injective φ.obj) (d : D) :
+lemma mem_im_objs_iff (hφ : function.injective φ.obj) (d : D) :
   d ∈ (im φ hφ).objs ↔ ∃ c : C, φ.obj c = d := by
 { simp only [im, mem_map_objs_iff, mem_top_objs, exists_true_left], }
 
-lemma obj_surjective_of_im_eq_top  (hφ : function.injective φ.obj) (hφ' : im φ hφ = ⊤) :
+lemma obj_surjective_of_im_eq_top (hφ : function.injective φ.obj) (hφ' : im φ hφ = ⊤) :
   function.surjective φ.obj :=
 begin
   rintro d,

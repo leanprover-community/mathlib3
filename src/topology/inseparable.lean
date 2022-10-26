@@ -285,8 +285,7 @@ lemma stable_under_generalization_iff_exists_sInter_eq {s : set X} :
 begin
   refine ⟨_, λ ⟨S, hS, e⟩, e ▸
     stable_under_generalization_sInter S (λ x hx, (hS x hx).stable_under_generalization)⟩,
-  rw [← stable_under_specialization_compl_iff,
-    stable_under_specialization_iff_exists_sUnion_eq],
+  rw [← stable_under_specialization_compl_iff, stable_under_specialization_iff_exists_sUnion_eq],
   exact λ ⟨S, h₁, h₂⟩, ⟨has_compl.compl '' S, λ s ⟨t, ht, e⟩, e ▸ (h₁ t ht).is_open_compl,
     compl_injective ((sUnion_eq_compl_sInter_compl S).symm.trans h₂)⟩
 end

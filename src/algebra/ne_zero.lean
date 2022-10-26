@@ -45,24 +45,7 @@ instance succ : ne_zero (n + 1) := ⟨n.succ_ne_zero⟩
 
 instance one (R) [mul_zero_one_class R] [nontrivial R] : ne_zero (1 : R) := ⟨one_ne_zero⟩
 
-lemma pos (r : R) [canonically_ordered_add_monoid R] [ne_zero r] : 0 < r :=
-(zero_le r).lt_of_ne $ ne_zero.out.symm
-
 lemma of_pos [preorder M] [has_zero M] (h : 0 < x) : ne_zero x := ⟨h.ne'⟩
-lemma of_gt  [canonically_ordered_add_monoid M] (h : x < y) : ne_zero y := of_pos $ pos_of_gt h
-
--- 1 < p is still an often-used `fact`, due to `nat.prime` implying it, and it implying `nontrivial`
--- on `zmod`'s ring structure. We cannot just set this to be any `x < y`, else that becomes a
--- metavariable and it will hugely slow down typeclass inference.
-@[priority 10]
-instance of_gt' [canonically_ordered_add_monoid M] [has_one M] [fact (1 < y)] : ne_zero y :=
-of_gt $ fact.out $ 1 < y
-
-instance bit0 [canonically_ordered_add_monoid M] [ne_zero x] : ne_zero (bit0 x) :=
-of_pos $ bit0_pos $ ne_zero.pos x
-
-instance bit1 [canonically_ordered_comm_semiring M] [nontrivial M] : ne_zero (bit1 x) :=
-⟨mt (λ h, le_iff_exists_add'.2 ⟨_, h.symm⟩) zero_lt_one.not_le⟩
 
 instance pow [monoid_with_zero M] [no_zero_divisors M] [ne_zero x] : ne_zero (x ^ n) :=
 ⟨pow_ne_zero n out⟩

@@ -1666,9 +1666,13 @@ def hom.opens_range {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f] : ope
 
 end Scheme
 
+section
+
+variable (X : Scheme)
+
 /-- The functor taking open subsets of `X` to open subschemes of `X`. -/
 @[simps obj_left obj_hom map_left]
-def Scheme.restrict_functor (X : Scheme) : opens X.carrier ⥤ over X :=
+def Scheme.restrict_functor : opens X.carrier ⥤ over X :=
 { obj := λ U, over.mk (X.of_restrict U.open_embedding),
   map := λ U V i, over.hom_mk (is_open_immersion.lift (X.of_restrict _) (X.of_restrict _)
     (by { change set.range coe ⊆ set.range coe, simp_rw [subtype.range_coe], exact i.le }))
@@ -1740,6 +1744,8 @@ begin
   dsimp [-subtype.val_eq_coe, -Scheme.restrict_functor_map_left],
   rw [X.restrict_functor_map_app, ← functor.map_comp, ← functor.map_comp],
   congr' 1
+end
+
 end
 
 /-- The restriction of an isomorphism onto an open set. -/

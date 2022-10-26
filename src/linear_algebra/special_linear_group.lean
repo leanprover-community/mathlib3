@@ -111,7 +111,7 @@ rfl
 
 @[simp] protected lemma coe_mul : ↑ₘ(A * B) = ↑ₘA ⬝ ↑ₘB := rfl
 
-instance : coe_mul_hom (special_linear_group n R) (matrix n n R) :=
+instance : coe_is_mul_hom (special_linear_group n R) (matrix n n R) :=
 { coe_mul := special_linear_group.coe_mul }
 
 @[simp] protected lemma coe_one : ↑ₘ(1 : special_linear_group n R) = (1 : matrix n n R) := rfl

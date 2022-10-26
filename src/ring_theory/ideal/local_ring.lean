@@ -131,6 +131,17 @@ end
 
 @[simp] lemma mem_maximal_ideal (x) : x ∈ maximal_ideal R ↔ x ∈ nonunits R := iff.rfl
 
+lemma local_ring.is_field_iff_maximal_ideal_eq :
+  is_field R ↔ local_ring.maximal_ideal R = ⊥ :=
+begin
+  simp_rw [ring.is_field_iff_forall_ideal_eq, or_iff_not_imp_right],
+  exact ⟨λ H, H (local_ring.maximal_ideal R) (ideal.is_prime.ne_top infer_instance),
+    λ e I hI, eq_bot_iff.mpr (e ▸ local_ring.le_maximal_ideal hI)⟩,
+end
+
+lemma local_ring.maximal_ideal_eq_bot {R : Type*} [field R] : local_ring.maximal_ideal R = ⊥ :=
+local_ring.is_field_iff_maximal_ideal_eq.mp (field.to_is_field R)
+
 end local_ring
 
 end comm_semiring
@@ -258,6 +269,11 @@ instance is_local_ring_hom_of_is_iso {R S : CommRing} (f : R ⟶ S) [is_iso f] :
   is_local_ring_hom f :=
 is_local_ring_hom_of_iso (as_iso f)
 
+@[priority 100]
+instance {R S : Type*} [field R] [comm_ring S] [nontrivial S] (f : R →+* S) :
+  is_local_ring_hom f :=
+⟨λ a ha, is_unit_iff_ne_zero.mpr (λ e, @not_is_unit_zero S _ _ $ by rwa [← map_zero f, ← e])⟩
+
 end
 
 end
@@ -345,9 +361,27 @@ ideal.quotient.mk _
 noncomputable
 instance residue_field.algebra : algebra R (residue_field R) := (residue R).to_algebra
 
+instance : is_local_ring_hom (local_ring.residue R) :=
+⟨λ a ha, not_not.mp (ideal.quotient.eq_zero_iff_mem.not.mp (is_unit_iff_ne_zero.mp ha))⟩
+
 variables {R}
 
 namespace residue_field
+
+/-- A local ring homomorphism into a field can be descended onto the residue field. -/
+def lift {R S : Type*} [comm_ring R] [local_ring R] [field S]
+  (f : R →+* S) [is_local_ring_hom f] : local_ring.residue_field R →+* S :=
+ideal.quotient.lift _ f (λ a ha,
+  classical.by_contradiction (λ h, ha (is_unit_of_map_unit f a (is_unit_iff_ne_zero.mpr h))))
+
+lemma lift_comp_residue {R S : Type*} [comm_ring R] [local_ring R] [field S] (f : R →+* S)
+  [is_local_ring_hom f] : (lift f).comp (residue R) = f :=
+rfl
+
+@[simp]
+lemma lift_residue_apply {R S : Type*} [comm_ring R] [local_ring R] [field S] (f : R →+* S)
+  [is_local_ring_hom f] (x) : lift f (residue R x) = f x :=
+rfl
 
 /-- The map on residue fields induced by a local homomorphism between local rings -/
 noncomputable def map (f : R →+* S) [is_local_ring_hom f] :

@@ -590,6 +590,18 @@ not_is_field_iff_exists_ideal_bot_lt_and_lt_top.trans
     ⟨p, bot_lt_iff_ne_bot.mp (lt_of_lt_of_le bot_lt le_p), hp.is_prime⟩,
    λ ⟨p, ne_bot, prime⟩, ⟨p, bot_lt_iff_ne_bot.mpr ne_bot, lt_top_iff_ne_top.mpr prime.1⟩⟩
 
+lemma _root_.ring.is_field_iff_forall_ideal_eq [nontrivial R] :
+  is_field R ↔ ∀ I : ideal R, I = ⊥ ∨ I = ⊤ :=
+begin
+  rw [← not_iff_not, ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top],
+  push_neg,
+  simp_rw [lt_top_iff_ne_top, bot_lt_iff_ne_bot],
+end
+
+lemma field.ideal_eq {R : Type*} [field R] (I : ideal R) :
+  I = ⊥ ∨ I = ⊤ :=
+ring.is_field_iff_forall_ideal_eq.mp (field.to_is_field R) I
+
 /-- When a ring is not a field, the maximal ideals are nontrivial. -/
 lemma ne_bot_of_is_maximal_of_not_is_field [nontrivial R] {M : ideal R} (max : M.is_maximal)
   (not_field : ¬ is_field R) : M ≠ ⊥ :=

@@ -1663,7 +1663,8 @@ lemma app_eq_inv_app_app_of_comp_eq {X Y U : Scheme} (f : Y ⟶ U) (g : U ⟶ X)
     is_open_immersion.app_eq_inv_app_app_of_comp_eq_aux f g fg H V).op :=
 begin
   subst H,
-  rw [Scheme.comp_val_c_app, category.assoc, PresheafedSpace.is_open_immersion.inv_app_app_assoc,
+  rw [Scheme.comp_val_c_app, category.assoc, Scheme.hom.inv_app,
+    PresheafedSpace.is_open_immersion.inv_app_app_assoc,
     f.val.c.naturality_assoc, Top.presheaf.pushforward_obj_map, ← functor.map_comp],
   convert (category.comp_id _).symm,
   convert Y.presheaf.map_id _,

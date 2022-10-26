@@ -761,34 +761,22 @@ instance unique_normalization_monoid_of_unique_units : unique (normalization_mon
 { default := normalization_monoid_of_unique_units,
   uniq := begin
     rintros ⟨u, huz, hum, huc⟩,
-    have : u = λ _, 1,
-    { ext : 1, apply subsingleton.elim },
-    unfold default normalization_monoid_of_unique_units,
-    subst this -- Have to use `subst` here to do dependent rewriting.
+    simpa only [(subsingleton.elim _ _ : u = λ _, 1)],
   end }
 
 instance subsingleton_gcd_monoid_of_unique_units : subsingleton (gcd_monoid α) :=
-⟨begin
-  rintros
-    ⟨a_gcd, a_lcm, a_gcd_dvd_left, a_gcd_dvd_right, a_dvd_gcd, _⟩
-    ⟨b_gcd, b_lcm, b_gcd_dvd_left, b_gcd_dvd_right, b_dvd_gcd, _⟩,
-  have hgcd : a_gcd = b_gcd,
+⟨λ g₁ g₂, begin
+  have hgcd : g₁.gcd = g₂.gcd,
   { ext a b,
-    exact associated_iff_eq.mp (associated_of_dvd_dvd
-            (b_dvd_gcd (a_gcd_dvd_left _ _) (a_gcd_dvd_right _ _))
-            (a_dvd_gcd (b_gcd_dvd_left _ _) (b_gcd_dvd_right _ _))) },
-  subst hgcd,
-  have hlcm : a_lcm = b_lcm,
+    refine associated_iff_eq.mp (associated_of_dvd_dvd _ _);
+    apply dvd_gcd (gcd_dvd_left _ _) (gcd_dvd_right _ _) },
+  have hlcm : g₁.lcm = g₂.lcm,
   { ext a b,
-    by_cases ha : a = 0,
-    { simp only [ha, a_lcm_zero_left, b_lcm_zero_left] },
-    by_cases hb : b = 0,
-    { simp only [hb, a_lcm_zero_right, b_lcm_zero_right] },
-    refine mul_left_cancel₀ (show a_gcd a b ≠ 0, from _) (associated_iff_eq.mp _),
-    { intro h,
-      exact ha (zero_dvd_iff.mp (h ▸ a_gcd_dvd_left a b)) },
-    exact (a_gcd_mul_lcm a b).trans (b_gcd_mul_lcm a b).symm },
-  subst hlcm
+    refine associated_iff_eq.mp (associated_of_dvd_dvd _ _);
+    apply lcm_dvd_iff.2 ⟨dvd_lcm_left _ _, dvd_lcm_right _ _⟩ },
+  cases g₁, cases g₂,
+  dsimp only at hgcd hlcm,
+  simp only [hgcd, hlcm],
 end⟩
 
 instance subsingleton_normalized_gcd_monoid_of_unique_units :

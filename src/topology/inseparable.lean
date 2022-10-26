@@ -225,61 +225,49 @@ lemma stable_under_specialization.compl {s : set X} (hs : stable_under_specializ
 
 lemma stable_under_specialization_compl_iff {s : set X} :
   stable_under_specialization sᶜ ↔ stable_under_generalization s :=
-⟨λ h, compl_compl s ▸ h.compl, λ h, h.compl⟩
+is_lower_set_compl
 
 lemma stable_under_generalization_compl_iff {s : set X} :
   stable_under_generalization sᶜ ↔ stable_under_specialization s :=
-⟨λ h, compl_compl s ▸ h.compl, λ h, h.compl⟩
+is_upper_set_compl
 
 lemma stable_under_specialization_sUnion (S : set (set X))
   (H : ∀ s ∈ S, stable_under_specialization s) : stable_under_specialization (⋃₀ S) :=
-λ x y e ⟨s, hs, hxs⟩, ⟨s, hs, H s hs e hxs⟩
+is_lower_set_sUnion H
 
 lemma stable_under_specialization_sInter (S : set (set X))
   (H : ∀ s ∈ S, stable_under_specialization s) : stable_under_specialization (⋂₀ S) :=
-λ x y e hx s hs, H s hs e (hx s hs)
+is_lower_set_sInter H
 
 lemma stable_under_generalization_sUnion (S : set (set X))
   (H : ∀ s ∈ S, stable_under_generalization s) : stable_under_generalization (⋃₀ S) :=
-λ x y e ⟨s, hs, hxs⟩, ⟨s, hs, H s hs e hxs⟩
+is_upper_set_sUnion H
 
 lemma stable_under_generalization_sInter (S : set (set X))
   (H : ∀ s ∈ S, stable_under_generalization s) : stable_under_generalization (⋂₀ S) :=
-λ x y e hx s hs, H s hs e (hx s hs)
+is_upper_set_sInter H
 
 lemma stable_under_specialization_Union {ι : Sort*} (S : ι → set X)
   (H : ∀ i, stable_under_specialization (S i)) : stable_under_specialization (⋃ i, S i) :=
-λ x y e ⟨s, ⟨i, (hi : S i = s)⟩, hxs⟩, ⟨_, ⟨i, rfl⟩, H i e (hi.symm ▸ hxs)⟩
+is_lower_set_Union H
 
 lemma stable_under_specialization_Inter {ι : Sort*} (S : ι → set X)
   (H : ∀ i, stable_under_specialization (S i)) : stable_under_specialization (⋂ i, S i) :=
-λ x y e hx s ⟨i, (hi : S i = s)⟩, hi ▸ H i e (hi.symm ▸ hx _ ⟨i, hi⟩)
+is_lower_set_Inter H
 
 lemma stable_under_generalization_Union {ι : Sort*} (S : ι → set X)
   (H : ∀ i, stable_under_generalization (S i)) : stable_under_generalization (⋃ i, S i) :=
-λ x y e ⟨s, ⟨i, (hi : S i = s)⟩, hxs⟩, ⟨_, ⟨i, rfl⟩, H i e (hi.symm ▸ hxs)⟩
+is_upper_set_Union H
 
 lemma stable_under_generalization_Inter {ι : Sort*} (S : ι → set X)
   (H : ∀ i, stable_under_generalization (S i)) : stable_under_generalization (⋂ i, S i) :=
-λ x y e hx s ⟨i, (hi : S i = s)⟩, hi ▸ H i e (hi.symm ▸ hx _ ⟨i, hi⟩)
+is_upper_set_Inter H
 
-lemma stable_under_specialization_iff_forall_closure_subset {s : set X} :
-  stable_under_specialization s ↔ ∀ x ∈ s, closure {x} ⊆ s :=
-by simpa only [subset_def, ← specializes_iff_mem_closure, @forall_swap (_ ∈ s)]
+lemma stable_under_specialization_iff_eq_Union {s : set X} :
+  stable_under_specialization s ↔ s = ⋃ x ∈ s, closure {x} :=
+by simpa only [closure_singleton_eq_Iic] using is_lower_set_iff_eq_Inter_Iic
 
-alias stable_under_specialization_iff_forall_closure_subset ↔
-  stable_under_specialization.closure_subset _
-
-lemma stable_under_specialization_iff_Union_subset {s : set X} :
-  stable_under_specialization s ↔ (⋃ x ∈ s, closure {x}) ⊆ s :=
-by simp_rw [Union_subset_iff, stable_under_specialization_iff_forall_closure_subset]
-
-lemma stable_under_specialization_iff_Union_eq {s : set X} :
-  stable_under_specialization s ↔ (⋃ x ∈ s, closure {x}) = s :=
-stable_under_specialization_iff_Union_subset.trans
-  ⟨λ h, le_antisymm h $ λ x h, ⟨_, ⟨_, rfl⟩, _, ⟨h, rfl⟩, subset_closure $ mem_singleton x⟩, eq.le⟩
-
-alias stable_under_specialization_iff_Union_eq ↔ stable_under_specialization.Union_eq _
+alias stable_under_specialization_iff_eq_Union ↔ stable_under_specialization.eq_Union _
 
 /-- A set is stable under specialization iff it is a union of closed sets. -/
 lemma stable_under_specialization_iff_exists_sUnion_eq {s : set X} :
@@ -288,7 +276,7 @@ begin
   refine ⟨λ H, ⟨(λ x : X, closure {x}) '' s, _, _⟩, λ ⟨S, hS, e⟩, e ▸
     stable_under_specialization_sUnion S (λ x hx, (hS x hx).stable_under_specialization)⟩,
   { rintros _ ⟨_, _, rfl⟩, exact is_closed_closure },
-  { conv_rhs { rw ← stable_under_specialization_iff_Union_eq.mp H }, simp }
+  { conv_rhs { rw stable_under_specialization_iff_eq_Union.mp H }, simp }
 end
 
 /-- A set is stable under generalization iff it is an intersection of open sets. -/

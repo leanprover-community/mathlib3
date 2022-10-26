@@ -926,6 +926,23 @@ begin
   exact (upper_set.upper _).ord_connected.inter (lower_set.lower _).ord_connected,
 end
 
+lemma is_upper_set_iff_eq_upper_closure :
+  is_upper_set s ↔ s = upper_closure s :=
+iff.trans (by exact ⟨λ h, ⟨⟨s, h⟩, rfl⟩, λ ⟨s, e⟩, e.symm ▸ s.upper⟩)
+  (gi_upper_closure_coe.gc.exists_eq_u _)
+
+lemma is_upper_set_iff_eq_Union_Ici :
+  is_upper_set s ↔ s = ⋃ x ∈ s, Ici x :=
+by { rw [is_upper_set_iff_eq_upper_closure, ← upper_set.infi_Ici, upper_set.coe_infi₂], refl }
+
+lemma is_lower_set_iff_eq_lower_closure :
+  is_lower_set s ↔ s = lower_closure s :=
+@is_upper_set_iff_eq_upper_closure αᵒᵈ _ _
+
+lemma is_lower_set_iff_eq_Inter_Iic :
+  is_lower_set s ↔ s = ⋃ x ∈ s, Iic x :=
+@is_upper_set_iff_eq_Union_Ici αᵒᵈ _ s
+
 end closure
 
 /-! ### Product -/

@@ -2486,6 +2486,47 @@ begin
     exact h, },
 end
 
+theorem alternating_group.card_of_cycle_type (m: multiset ℕ) :
+  (finset.univ.filter (λ g: alternating_group α,  (g : equiv.perm α).cycle_type = m)).card =
+  if ((m.sum ≤ fintype.card α) ∧ (∀ a ∈ m, 2 ≤ a)) ∧ even (m.sum + m.card)
+  then (fintype.card α).factorial / (((fintype.card α - m.sum).factorial *
+    (m.prod * (m.dedup.map (λ (n : ℕ), (m.count n).factorial)).prod)))
+  else 0 :=
+begin
+-- use : equiv.perm.sign_of_cycle_type
+  by_cases hm : even (m.sum + m.card),
+  { -- m is even
+    rw ← finset.card_image_of_injective _ (subgroup.subtype_injective (alternating_group α)),
+    suffices : finset.image (subgroup.subtype (alternating_group α))
+      (finset.univ.filter (λ g : alternating_group α, (g : equiv.perm α).cycle_type = m))
+      = finset.univ.filter (λ g : equiv.perm α, g.cycle_type = m),
+    rw this, simp only [hm, and_true],
+    exact equiv.perm.card_of_cycle_type m,
+
+    ext g, -- split,
+    simp only [finset.mem_image, finset.mem_filter],
+    split,
+    { rintro ⟨k, ⟨hk, hk'⟩, rfl⟩,
+      apply and.intro (finset.mem_univ _),
+      simp only [subgroup.coe_subtype, hk'], },
+    { rintro ⟨_, hg⟩,
+      use g,
+      rw [equiv.perm.mem_alternating_group, equiv.perm.sign_of_cycle_type, hg, even.neg_one_pow hm],
+      split,
+      apply and.intro (finset.mem_univ _),
+      simp only [subgroup.coe_mk], exact hg,
+      simp only [subgroup.coe_subtype, subgroup.coe_mk], }, },
+  { -- m is odd
+    simp only [hm, and_false, if_false, finset.card_eq_zero, finset.eq_empty_iff_forall_not_mem],
+    rw ← nat.odd_iff_not_even at hm,
+    rintro ⟨g, hg⟩,
+    rw finset.mem_filter,
+    rintro ⟨_, hg'⟩,
+    simp only [subgroup.coe_mk] at hg',
+    rw [equiv.perm.mem_alternating_group, equiv.perm.sign_of_cycle_type, hg', odd.neg_one_pow hm, ← units.eq_iff] at hg,
+    simpa only using hg, }
+end
+
 /-- Cardinality of a centralizer in `alternating_group α` of a given `cycle_type`-/
 theorem alternating_group.conj_stabilizer_card (g : alternating_group α) (m : multiset ℕ)
   (hg : (g : equiv.perm α).cycle_type = m) :

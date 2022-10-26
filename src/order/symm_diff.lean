@@ -5,6 +5,7 @@ Authors: Adam Topaz, Bryan Gin-ge Chen, Yaël Dillies
 -/
 
 import order.boolean_algebra
+import logic.equiv.basic
 
 /-!
 # Symmetric difference and bi-implication

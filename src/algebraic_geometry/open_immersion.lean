@@ -1690,12 +1690,11 @@ def Scheme.restrict_functor : opens X.carrier ⥤ over X :=
     iterate 3 { rw [is_open_immersion.lift_fac] }
   end }
 
-@[simp, reassoc]
+@[reassoc]
 lemma Scheme.restrict_functor_map_of_restrict {U V : opens X.carrier} (i : U ⟶ V) :
   (X.restrict_functor.map i).1 ≫ X.of_restrict _ = X.of_restrict _ :=
 is_open_immersion.lift_fac _ _ _
 
-@[simp]
 lemma Scheme.restrict_functor_map_base {U V : opens X.carrier} (i : U ⟶ V) :
   (X.restrict_functor.map i).1.1.base = (opens.to_Top _).map i :=
 begin

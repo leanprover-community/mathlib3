@@ -15,23 +15,24 @@ Let $E$ be an elliptic curve over a field $F$. For a field extension $K$ of $F$,
 point on $E$ is simply a point $[X:Y:Z] \in \mathbb{P}^2$ over $K$ in the projective plane cubic
 defined by $Y^2Z + a_1XYZ + a_3YZ^2 = X^3 + a_2X^2Z + a_4XZ^2 + a_6Z^3$. This file defines the type
 of $K$-rational points on $E$ as an inductive, since any such point either lies in the affine chart
-$Z ≠ 0$ and satisfies the Weierstrass equation obtained by setting $x := X/Z$ and $y := Y/Z$, or is
-the unique point at infinity $\mathcal{O} := [0:1:0] \in \mathbb{P}^2$ obtained by setting $Z := 0$.
+$Z \ne 0$ and satisfies the Weierstrass equation obtained by setting $x = X/Z$ and $y = Y/Z$, or is
+the unique point at infinity $\mathcal{O} = [0:1:0] \in \mathbb{P}^2$ obtained by setting $Z = 0$.
 
 The set of $K$-rational points on $E$ forms an abelian group under a chord-and-tangent process.
  * The identity point is $\mathcal{O}$.
  * Given a point $P$, its negation $-P$ is defined to be the unique third point of intersection
     between $E$ and the line joining $\mathcal{O}$ and $P$, which exists by Bézout's theorem.
-    Explicitly, if $P = (x, y)$, then $-P := (x, -y - a_1x - a_3)$.
+    Explicitly, if $P = (x, y)$, then $-P = (x, -y - a_1x - a_3)$.
  * Given two points $P$ and $Q$, their addition $P + Q$ is defined to be the negation of the unique
     third point of intersection between $E$ and the line joining $P$ and $Q$, which again exists by
     Bézout's theorem. Explicitly, let $P = (x_1, y_1)$ and $Q = (x_2, y_2)$. If $x_1 = x_2$ and
     $P \ne -Q$, then this line is the tangent of $E$ at $P = Q$ and has a well-defined gradient
-    $\ell := (3x_1^2 + 2a_2x_1 + a_4 - a_1y_1) / (2y_1 + a_1x_1 + a_3)$. Otherwise $P \ne Q$ and
-    this line has a well-defined gradient $\ell := (y_1 - y_2) / (x_1 - x_2)$. The $x$-coordinate of
+    $\ell = (3x_1^2 + 2a_2x_1 + a_4 - a_1y_1) / (2y_1 + a_1x_1 + a_3)$. Otherwise $P \ne Q$ and this
+    line has a well-defined gradient $\ell = (y_1 - y_2) / (x_1 - x_2)$. The $x$-coordinate of
     $P + Q$ can then be written down explicitly as the unique third solution of the equation
-    obtained by substituting $y := \ell(x - x_1) - y_1$ into the Weierstrass equation.
-The group law on this set is then uniquely determined by these constructions. This file defines the group operations by explicit equations and proves that the set is an abelian group (TODO).
+    obtained by substituting $y = \ell(x - x_1) - y_1$ into the Weierstrass equation.
+The group law on this set is then uniquely determined by these constructions. This file defines the
+group operations by explicit equations and proves that the set is an abelian group (TODO).
 
 ## Main definitions
 
@@ -40,8 +41,8 @@ The group law on this set is then uniquely determined by these constructions. Th
 
 ## Main statements
 
- * `EllipticCurve.point.weierstrass_dbl`: doubling of a `K`-rational point on `E` lies in `E`.
- * `EllipticCurve.point.weierstrass_add`: addition of two `K`-rational points on `E` lies in `E`.
+ * `EllipticCurve.point.weierstrass_dbl`: doubling of an affine point on `E` lies in `E`.
+ * `EllipticCurve.point.weierstrass_add`: addition of two affine points on `E` lies in `E`.
  * `EllipticCurve.point.add_comm`: addition of two `K`-rational points on `E` is commutative.
  * TODO: addition of two `K`-rational points on `E` is associative (HARD), and hence forms a group.
 
@@ -70,7 +71,7 @@ variables {F : Type u} [field F] (E : EllipticCurve F) {K : Type v} [field K] [a
 
 namespace EllipticCurve
 
-/-- The proposition that an affine point $(x, y)$ lies on `E`. In other words, it satisfies the
+/-- The proposition that an affine point $(x, y)$ lies in `E`. In other words, it satisfies the
 Weierstrass equation $y^2 + a_1xy + a_3y = x^3 + a_2x^2 + a_4x + a_6$. -/
 @[simp] def weierstrass (x y : K) : Prop :=
 y ^ 2 + ↑E.a₁ * x * y + ↑E.a₃ * y = x ^ 3 + ↑E.a₂ * x ^ 2 + ↑E.a₄ * x + ↑E.a₆
@@ -112,7 +113,7 @@ include h
 /-- The $y$-coordinate of the negation of an affine point. -/
 @[simp] def neg_y : K := -y - ↑E.a₁ * x - ↑E.a₃
 
-/-- The negation of an affine point lies on `E`. -/
+/-- The negation of an affine point in `E` lies in `E`. -/
 lemma weierstrass_neg : E.weierstrass x $ neg_y h :=
 by { rw [weierstrass] at h, rw [weierstrass, neg_y, ← h], ring1 }
 
@@ -157,7 +158,7 @@ include h
 /-- The $y$-coordinate of the doubling of an affine point after applying the final negation. -/
 @[simp] def dbl_y : K := -dbl_y' h - ↑E.a₁ * dbl_x h - ↑E.a₃
 
-/-- The negation of the doubling of an affine point lies on `E`. -/
+/-- The negation of the doubling of an affine point in `E` lies in `E`. -/
 lemma weierstrass_dbl' (hy : y ≠ neg_y h) : E.weierstrass (dbl_x h) (dbl_y' h) :=
 begin
   rw [weierstrass, ← sub_eq_zero],
@@ -176,7 +177,7 @@ begin
     with { normalization_tactic := `[rw [neg_y], ring1] }
 end
 
-/-- The doubling of an affine point lies on `E`. -/
+/-- The doubling of an affine point in `E` lies in `E`. -/
 lemma weierstrass_dbl (hy : y ≠ neg_y h) : E.weierstrass (dbl_x h) (dbl_y h) :=
 weierstrass_neg $ weierstrass_dbl' h hy
 
@@ -202,7 +203,7 @@ include h₁ h₂
 /-- The $y$-coordinate of the addition of two affine points after applying the final negation. -/
 @[simp] def add_y : K := -add_y' h₁ h₂ - ↑E.a₁ * add_x h₁ h₂ - ↑E.a₃
 
-/-- The negation of the addition of two affine points lies on `E`. -/
+/-- The negation of the addition of two affine points in `E` lies in `E`. -/
 lemma weierstrass_add' (hx : x₁ ≠ x₂) : E.weierstrass (add_x h₁ h₂) (add_y' h₁ h₂) :=
 begin
   rw [weierstrass, ← sub_eq_zero],
@@ -228,7 +229,7 @@ begin
     with { normalization_tactic := `[ring1] }
 end
 
-/-- The addition of two affine points lies on `E`. -/
+/-- The addition of two affine points in `E` lies in `E`. -/
 lemma weierstrass_add (hx : x₁ ≠ x₂) : E.weierstrass (add_x h₁ h₂) (add_y h₁ h₂) :=
 weierstrass_neg $ weierstrass_add' h₁ h₂ hx
 

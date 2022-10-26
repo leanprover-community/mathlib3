@@ -369,6 +369,8 @@ open sheaf_condition_pairwise_intersections
 /--
 The sheaf condition in terms of an equalizer diagram is equivalent
 to the reformulation in terms of a limit diagram over `U i` and `U i ⊓ U j`.
+A more general version `is_sheaf_iff_is_sheaf_pairwise_intersections` without
+the `has_products` assumption is available in a later file.
 -/
 lemma is_sheaf_iff_is_sheaf_pairwise_intersections' (F : presheaf C X) :
   F.is_sheaf ↔ F.is_sheaf_pairwise_intersections :=

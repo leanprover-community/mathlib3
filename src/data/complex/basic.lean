@@ -644,7 +644,7 @@ by rw [lt_def, not_and_distrib, not_lt]
 lemma not_le_zero_iff {z : ℂ} : ¬z ≤ 0 ↔ 0 < z.re ∨ z.im ≠ 0 := not_le_iff
 lemma not_lt_zero_iff {z : ℂ} : ¬z < 0 ↔ 0 ≤ z.re ∨ z.im ≠ 0 := not_lt_iff
 
-lemma eq_coe_re_of_real_le {r : ℝ} {z : ℂ} (hz : (r : ℂ) ≤ z) : z = z.re :=
+lemma eq_re_of_real_le {r : ℝ} {z : ℂ} (hz : (r : ℂ) ≤ z) : z = z.re :=
 by { ext, refl, simp only [←(complex.le_def.1 hz).2, complex.zero_im, complex.of_real_im] }
 
 /--

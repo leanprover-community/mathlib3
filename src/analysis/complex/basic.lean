@@ -309,7 +309,7 @@ section complex_order
 open_locale complex_order
 
 lemma eq_coe_norm_of_nonneg {z : ℂ} (hz : 0 ≤ z) : z = ↑∥z∥ :=
-by rw [eq_coe_re_of_real_le hz, is_R_or_C.norm_of_real, real.norm_of_nonneg (complex.le_def.2 hz).1]
+by rw [eq_re_of_real_le hz, is_R_or_C.norm_of_real, real.norm_of_nonneg (complex.le_def.2 hz).1]
 
 end complex_order
 

@@ -45,6 +45,7 @@ noncomputable theory
 namespace continuous_map
 
 variables {X : Type*} [topological_space X] [compact_space X]
+open_locale polynomial
 
 /--
 Turn a function `f : C(X, ℝ)` into a continuous map into `set.Icc (-∥f∥) (∥f∥)`,

@@ -242,7 +242,7 @@ lemma inclusion_inj_on_objects {S T : subgroupoid C} (h : S ≤ T) :
   function.injective (inclusion h).obj :=
 λ ⟨s,hs⟩ ⟨t,ht⟩, by simpa only [inclusion, subtype.mk_eq_mk] using id
 
-lemma inclusion_faithful {S T : subgroupoid C} (h : S ≤ T) (s t : S.objs):
+lemma inclusion_faithful {S T : subgroupoid C} (h : S ≤ T) (s t : S.objs) :
   function.injective (λ (f : s ⟶ t), (inclusion h).map f) :=
 λ ⟨f,hf⟩ ⟨g,hg⟩, by { dsimp only [inclusion], simpa only [subtype.mk_eq_mk] using id }
 
@@ -265,7 +265,7 @@ def discrete : subgroupoid C :=
   inv := by { rintros _ _ _ ⟨⟩, simp only [inv_eq_inv, is_iso.inv_id], split, },
   mul := by { rintros _ _ _ _ ⟨⟩ _ ⟨⟩, rw category.comp_id, split, } }
 
-lemma mem_discrete_iff {c d : C} (f : c ⟶ d):
+lemma mem_discrete_iff {c d : C} (f : c ⟶ d) :
   (f ∈ (discrete).arrows c d) ↔ (∃ (h : c = d), f = eq_to_hom h) :=
 ⟨by { rintro ⟨⟩, exact ⟨rfl, rfl⟩ }, by { rintro ⟨rfl, rfl⟩, split }⟩
 
@@ -417,7 +417,7 @@ inductive map.arrows (hφ : function.injective φ.obj) (S : subgroupoid C) :
   Π (c d : D), (c ⟶ d) → Prop
 | im {c d : C} (f : c ⟶ d) (hf : f ∈ S.arrows c d) : map.arrows (φ.obj c) (φ.obj d) (φ.map f)
 
-lemma map.arrows_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d : D} (f : c ⟶ d):
+lemma map.arrows_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d : D} (f : c ⟶ d) :
   map.arrows φ hφ S c d f ↔
   ∃ (a b : C) (g : a ⟶ b) (ha : φ.obj a = c) (hb : φ.obj b = d) (hg : g ∈ S.arrows a b),
     f = (eq_to_hom ha.symm) ≫ φ.map g ≫ (eq_to_hom hb) :=
@@ -442,7 +442,7 @@ def map (hφ : function.injective φ.obj) (S : subgroupoid C) : subgroupoid D :=
     split, exact S.mul hf hg,
   end }
 
-lemma mem_map_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d : D} (f : c ⟶ d):
+lemma mem_map_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d : D} (f : c ⟶ d) :
   f ∈ (map φ hφ S).arrows c d ↔
   ∃ (a b : C) (g : a ⟶ b) (ha : φ.obj a = c) (hb : φ.obj b = d) (hg : g ∈ S.arrows a b),
     f = (eq_to_hom ha.symm) ≫ φ.map g ≫ (eq_to_hom hb) := map.arrows_iff φ hφ S f
@@ -530,8 +530,8 @@ section graph_like
 /-- A subgroupoid `is_graph_like` if it has at most one arrow between any two vertices. -/
 abbreviation is_graph_like := is_graph_like S.objs
 
-lemma is_graph_like_iff : S.is_graph_like ↔ ∀ c d : S.objs, subsingleton (S.arrows c d) :=
-⟨ λ h c d, h c d, λ h c d, h c d⟩
+lemma is_graph_like_iff : S.is_graph_like ↔ ∀ (c d : S.objs), subsingleton (S.arrows c d) :=
+⟨ λ h c d, h c d, λ h c d, h c d ⟩
 
 end graph_like
 
@@ -603,7 +603,8 @@ end
 @[simp] lemma mem_full_objs_iff {c : C} : c ∈ (full D).objs ↔ c ∈ D :=
 by { rw full_objs, }
 
-lemma full_arrow_eq_iff {c d : (full D).objs} {f g : c ⟶ d} : f = g ↔ (↑f : c.val ⟶ d.val) = ↑g :=
+lemma full_arrow_eq_iff {c d : (full D).objs} {f g : c ⟶ d} :
+  f = g ↔ (↑f : c.val ⟶ d.val) = ↑g :=
 by apply subtype.ext_iff
 
 end full

@@ -551,7 +551,7 @@ end comm_ring
 
 namespace ring
 
-variables {R : Type*} [comm_ring R]
+variables {R : Type*} [comm_semiring R]
 
 lemma not_is_field_of_subsingleton {R : Type*} [ring R] [subsingleton R] : ¬ is_field R :=
 λ ⟨⟨x, y, hxy⟩, _, _⟩, hxy (subsingleton.elim x y)
@@ -590,7 +590,7 @@ not_is_field_iff_exists_ideal_bot_lt_and_lt_top.trans
     ⟨p, bot_lt_iff_ne_bot.mp (lt_of_lt_of_le bot_lt le_p), hp.is_prime⟩,
    λ ⟨p, ne_bot, prime⟩, ⟨p, bot_lt_iff_ne_bot.mpr ne_bot, lt_top_iff_ne_top.mpr prime.1⟩⟩
 
-lemma _root_.ring.is_field_iff_forall_ideal_eq [nontrivial R] :
+lemma is_field_iff_forall_ideal_eq [nontrivial R] :
   is_field R ↔ ∀ I : ideal R, I = ⊥ ∨ I = ⊤ :=
 begin
   rw [← not_iff_not, ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top],

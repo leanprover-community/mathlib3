@@ -39,16 +39,4 @@ lemma mul_left_embedding_eq_mul_right_embedding {G : Type*} [cancel_comm_monoid 
   mul_left_embedding g = mul_right_embedding g :=
 by { ext, exact mul_comm _ _ }
 
-/--  Elements of a left cancel semigroup are left regular. -/
-@[to_additive "Elements of an add left cancel semigroup are add-left-regular."]
-lemma is_left_regular_of_left_cancel_semigroup [left_cancel_semigroup R] (g : R) :
-  is_left_regular g :=
-mul_right_injective g
-
-/--  Elements of a right cancel semigroup are right regular. -/
-@[to_additive "Elements of an add right cancel semigroup are add-right-regular"]
-lemma is_right_regular_of_right_cancel_semigroup [right_cancel_semigroup R] (g : R) :
-  is_right_regular g :=
-mul_left_injective g
-
 end left_or_right_cancel_semigroup

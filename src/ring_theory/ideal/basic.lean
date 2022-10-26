@@ -502,7 +502,7 @@ end ideal
 end ring
 
 section division_ring
-variables {K : Type u} [division_ring K] (I : ideal K)
+variables {K : Type u} [division_semiring K] (I : ideal K)
 
 namespace ideal
 
@@ -553,10 +553,6 @@ namespace ring
 
 variables {R : Type*} [comm_semiring R]
 
-lemma not_is_field_of_subsingleton [subsingleton R] :
-  ¬ is_field R :=
-λ ⟨⟨x, y, hxy⟩, _, _⟩, hxy (subsingleton.elim x y)
-
 lemma exists_not_is_unit_of_not_is_field [nontrivial R] (hf : ¬ is_field R) :
   ∃ x ≠ (0 : R), ¬ is_unit x :=
 begin
@@ -592,10 +588,9 @@ not_is_field_iff_exists_ideal_bot_lt_and_lt_top.trans
    λ ⟨p, ne_bot, prime⟩, ⟨p, bot_lt_iff_ne_bot.mpr ne_bot, lt_top_iff_ne_top.mpr prime.1⟩⟩
 
 /-- Also see `ideal.is_simple_order` for the forward direction as an instance when `R` is a
-division ring. 
+division (semi)ring. 
 
-This result actually holds for all semirings whose nonzero elements are invertible, regardless
-of commutativity or the existence of additive inverses, but we lack the predicate to state it. -/
+This result actually holds for all division semirings, but we lack the predicate to state it. -/
 lemma is_field_iff_forall_ideal_eq :
   is_field R ↔ is_simple_order (ideal R) :=
 begin

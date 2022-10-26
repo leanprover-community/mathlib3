@@ -126,7 +126,7 @@ omit h
 
 instance : has_neg E⟮K⟯ := ⟨neg⟩
 
-@[simp] lemma neg_def (P : E⟮K⟯) : -P = neg P := rfl
+lemma neg_def (P : E⟮K⟯) : -P = neg P := rfl
 
 @[simp] lemma neg_zero : -0 = (0 : E⟮K⟯) := rfl
 
@@ -261,7 +261,7 @@ else some _ _ $ weierstrass_add h₁ h₂ hx
 
 noncomputable instance : has_add E⟮K⟯ := ⟨add⟩
 
-@[simp] lemma add_def (P Q : E⟮K⟯) : P + Q = add P Q := rfl
+lemma add_def (P Q : E⟮K⟯) : P + Q = add P Q := rfl
 
 @[simp] lemma zero_add (P : E⟮K⟯) : 0 + P = P := by cases P; refl
 

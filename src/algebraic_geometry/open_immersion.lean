@@ -1686,6 +1686,62 @@ def Scheme.restrict_functor (X : Scheme) : opens X.carrier ⥤ over X :=
     iterate 3 { rw [is_open_immersion.lift_fac] }
   end }
 
+@[simp, reassoc]
+lemma Scheme.restrict_functor_map_of_restrict {U V : opens X.carrier} (i : U ⟶ V) :
+  (X.restrict_functor.map i).1 ≫ X.of_restrict _ = X.of_restrict _ :=
+is_open_immersion.lift_fac _ _ _
+
+@[simp]
+lemma Scheme.restrict_functor_map_base {U V : opens X.carrier} (i : U ⟶ V) :
+  (X.restrict_functor.map i).1.1.base = (opens.to_Top _).map i :=
+begin
+  ext a,
+  exact (congr_arg (λ f : X.restrict U.open_embedding ⟶ X, by exact f.1.base a)
+    (X.restrict_functor_map_of_restrict i) : _),
+end
+
+lemma Scheme.restrict_functor_map_app_aux {U V : opens X.carrier} (i : U ⟶ V) (W : opens V) :
+  U.open_embedding.is_open_map.functor.obj
+    ((opens.map (X.restrict_functor.map i).1.val.base).obj W) ≤
+    V.open_embedding.is_open_map.functor.obj W :=
+begin
+  simp only [set.image_congr, subtype.mk_le_mk, is_open_map.functor, set.image_subset_iff,
+    Scheme.restrict_functor_map_base, opens.map, subtype.coe_mk, opens.inclusion_apply,
+    set.le_eq_subset],
+  rintros _ h,
+  exact ⟨_, h, rfl⟩,
+end
+
+lemma Scheme.restrict_functor_map_app {U V : opens X.carrier} (i : U ⟶ V) (W : opens V) :
+  (X.restrict_functor.map i).1.1.c.app (op W) = X.presheaf.map
+    (hom_of_le $ X.restrict_functor_map_app_aux i W).op :=
+begin
+  have e₁ := Scheme.congr_app (X.restrict_functor_map_of_restrict i)
+    (op $ V.open_embedding.is_open_map.functor.obj W),
+  rw Scheme.comp_val_c_app at e₁,
+  have e₂ := (X.restrict_functor.map i).1.val.c.naturality (eq_to_hom W.map_functor_eq).op,
+  rw ← is_iso.eq_inv_comp at e₂,
+  dsimp at e₁ e₂ ⊢,
+  rw [e₂, W.adjunction_counit_map_functor, ← is_iso.eq_inv_comp, is_iso.inv_comp_eq,
+    ← is_iso.eq_comp_inv] at e₁,
+  simp_rw [eq_to_hom_map (opens.map _), eq_to_hom_map (is_open_map.functor _), ← functor.map_inv,
+    ← functor.map_comp] at e₁,
+  rw e₁,
+  congr' 1,
+end
+
+/-- The global section of the restriction is isomorphic to the sections. -/
+@[simps]
+def Scheme.restrict_functor_Γ : X.restrict_functor.op ⋙ (over.forget X).op ⋙ Scheme.Γ ≅ X.presheaf :=
+nat_iso.of_components
+  (λ U, X.presheaf.map_iso ((eq_to_iso (unop U).open_embedding_obj_top).symm.op : _))
+begin
+  intros U V i,
+  dsimp [-subtype.val_eq_coe, -Scheme.restrict_functor_map_left],
+  rw [X.restrict_functor_map_app, ← functor.map_comp, ← functor.map_comp],
+  congr' 1
+end
+
 /-- The restriction of an isomorphism onto an open set. -/
 noncomputable
 abbreviation Scheme.restrict_map_iso {X Y : Scheme} (f : X ⟶ Y) [is_iso f] (U : opens Y.carrier) :

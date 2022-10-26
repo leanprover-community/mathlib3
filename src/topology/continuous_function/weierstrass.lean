@@ -93,6 +93,8 @@ begin
   simp,
 end
 
+open_locale polynomial
+
 /--
 An alternative statement of Weierstrass' theorem,
 for those who like their epsilons.

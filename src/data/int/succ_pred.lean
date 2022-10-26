@@ -55,6 +55,12 @@ instance : is_pred_archimedean ℤ :=
 
 protected lemma covby_iff_succ_eq {m n : ℤ} : m ⋖ n ↔ m + 1 = n := succ_eq_iff_covby.symm
 
+@[simp] lemma sub_one_covby (z : ℤ) : z - 1 ⋖ z :=
+by rw [int.covby_iff_succ_eq, sub_add_cancel]
+
+@[simp] lemma covby_add_one (z : ℤ) : z ⋖ z + 1 :=
+int.covby_iff_succ_eq.mpr rfl
+
 end int
 
 @[simp, norm_cast] lemma nat.cast_int_covby_iff {a b : ℕ} : (a : ℤ) ⋖ b ↔ a ⋖ b :=

@@ -6,6 +6,10 @@ Authors: Damiano Testa
 import algebra.regular.basic
 import logic.embedding
 
+/-!
+# The embedding of a cancellative semigroup into itself by multiplication by a fixed element.
+-/
+
 variables {R : Type*}
 
 section left_or_right_cancel_semigroup

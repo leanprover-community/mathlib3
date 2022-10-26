@@ -253,7 +253,7 @@ alias is_lower_set_iff_Iio_subset ↔ is_lower_set.Iio_subset _
 
 end partial_order
 
-/-! ### upper/lower sets and fibrations -/
+/-! ### Upper/lower sets and fibrations -/
 
 namespace relation
 

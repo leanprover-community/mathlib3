@@ -2070,12 +2070,17 @@ namespace infinite
 
 lemma of_not_fintype (h : fintype α → false) : infinite α := is_empty_fintype.mp ⟨h⟩
 
-lemma of_equiv_set {s : set α} (hs : s ≠ set.univ) (e : α ≃ s) : infinite α :=
+/-- If `s : set α` is not equal to `set.univ` and `f : s → α` is surjective, then `α` is
+infinite. -/
+lemma of_surjective_from_set {s : set α} (hs : s ≠ set.univ) {f : s → α} (hf : surjective f) :
+  infinite α :=
 of_not_fintype $ λ h, begin
   resetI, classical,
-  have : s.to_finset ⊂ univ, by rwa [set.to_finset_ssubset_univ, set.ssubset_univ_iff],
-  refine (finset.card_lt_card this).ne _,
-  rw [finset.card_univ, fintype.card_congr e, set.to_finset_card]
+  refine lt_irrefl (fintype.card α) _,
+  calc fintype.card α ≤ fintype.card s : fintype.card_le_of_surjective f hf
+  ... = s.to_finset.card : s.to_finset_card.symm
+  ... < fintype.card α : finset.card_lt_card $
+    by rwa [set.to_finset_ssubset_univ, set.ssubset_univ_iff]
 end
 
 lemma exists_not_mem_finset [infinite α] (s : finset α) : ∃ x, x ∉ s :=

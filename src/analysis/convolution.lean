@@ -736,21 +736,35 @@ section
 
 open finite_dimensional
 
-variables {H : Type*} [normed_add_comm_group H] [normed_space ℝ H] [finite_dimensional ℝ H]
+lemma mul_support_comp_inv_smul {α β γ : Type*} [group_with_zero α] [mul_action α β] [has_one γ]
+  {R : α} (hR : R ≠ 0) (f : β → γ) :
+  mul_support (λ x, f (R⁻¹ • x)) = R • mul_support f :=
+begin
+  ext x, simp only [mem_smul_set_iff_inv_smul_mem₀ hR, mem_mul_support],
+end
 
-lemma support_comp_inv_smul (f : H → ℝ) {R : ℝ} (hR : R ≠ 0) :
+lemma support_comp_inv_smul {α β γ : Type*} [group_with_zero α] [mul_action α β] [has_zero γ]
+  {R : α} (hR : R ≠ 0) (f : β → γ) :
   support (λ x, f (R⁻¹ • x)) = R • support f :=
-by { ext x, simp only [mem_smul_set_iff_inv_smul_mem₀ hR, mem_support] }
+begin
+  ext x, simp only [mem_smul_set_iff_inv_smul_mem₀ hR, mem_support],
+end
 
-lemma has_compact_mul_support.comp_smul {α : Type*} [has_one α] {f : H → α}
-  (h : has_compact_mul_support f) {R : ℝ} (hR : R ≠ 0) :
+attribute [to_additive support_comp_inv_smul] mul_support_comp_inv_smul
+
+lemma has_compact_mul_support.comp_smul {α β γ : Type*} [has_one α] {f : β → α}
+  [topological_space β] [group_with_zero γ] [mul_action γ β] [has_continuous_const_smul γ β]
+  (h : has_compact_mul_support f) {R : γ} (hR : R ≠ 0) :
   has_compact_mul_support (λ x, f (R • x)) :=
 h.comp_homeomorph (homeomorph.smul_of_ne_zero R hR)
 
-lemma has_compact_support.comp_smul {α : Type*} [has_zero α] {f : H → α}
-  (h : has_compact_support f) {R : ℝ} (hR : R ≠ 0) :
+lemma has_compact_support.comp_smul {α β γ : Type*} [has_zero α] {f : β → α}
+  [topological_space β] [group_with_zero γ] [mul_action γ β] [has_continuous_const_smul γ β]
+  (h : has_compact_support f) {R : γ} (hR : R ≠ 0) :
   has_compact_support (λ x, f (R • x)) :=
 h.comp_homeomorph (homeomorph.smul_of_ne_zero R hR)
+
+attribute [to_additive has_compact_support.comp_smul] has_compact_mul_support.comp_smul
 
 
 lemma closed_ball_subset_ball' {α : Type*} [metric_space α] {ε₁ ε₂ : ℝ} {x y : α}
@@ -763,6 +777,12 @@ lemma closed_ball_subset_ball' {α : Type*} [metric_space α] {ε₁ ε₂ : ℝ
 
 namespace exists_cont_diff_bump_base
 
+variables {H : Type*} [normed_add_comm_group H]
+
+def φ : H → ℝ := (closed_ball (0 : H) 1).indicator (λ y, (1 : ℝ))
+
+variables [normed_space ℝ H]  [finite_dimensional ℝ H]
+
 variable (H)
 lemma foo : ∃ u : H → ℝ, cont_diff ℝ ⊤ u ∧
   (∀ x, u x ∈ Icc (0 : ℝ) 1) ∧ (support u = ball 0 1) ∧ (∀ x, u (-x) = u x) :=
@@ -771,8 +791,6 @@ sorry
 variable {H}
 
 def u (x : H) : ℝ := classical.some (foo H) x
-
-def φ : H → ℝ := (closed_ball (0 : H) 1).indicator (λ y, (1 : ℝ))
 
 variable (H)
 lemma u_smooth : cont_diff ℝ ⊤ (u : H → ℝ) := (classical.some_spec (foo H)).1
@@ -829,7 +847,7 @@ begin
     by rw [smul_unit_ball Rpos.ne', real.norm_of_nonneg Rpos.le],
   have C : R ^ finrank ℝ H ≠ 0, from pow_ne_zero _ Rpos.ne',
   simp only [W_def, algebra.id.smul_eq_mul, support_mul, support_inv, univ_inter,
-    support_comp_inv_smul _ Rpos.ne', u_support, B, support_const (u_int_pos H).ne',
+    support_comp_inv_smul Rpos.ne', u_support, B, support_const (u_int_pos H).ne',
     support_const C],
 end
 
@@ -854,7 +872,7 @@ begin
     simp only [φ, indicator, mem_closed_ball_zero_iff, norm_neg] },
 end
 
-lemma Y_eq_one_of_mem_closed_ball {R : ℝ} {x : H} (Rpos : 0 < R) (R_lt_one : R < 1)
+lemma Y_eq_one_of_mem_closed_ball {R : ℝ} {x : H} (Rpos : 0 < R)
   (hx : x ∈ closed_ball (0 : H) (1 - R)) : Y R x = 1 :=
 begin
   change (W R ⋆[lsmul ℝ ℝ, μ] φ) x = 1,
@@ -876,7 +894,7 @@ begin
   field_simp [Rpos.ne', (u_int_pos H).ne'],
 end
 
-lemma Y_eq_zero_of_not_mem_ball {R : ℝ} {x : H} (Rpos : 0 < R) (R_lt_one : R < 1)
+lemma Y_eq_zero_of_not_mem_ball {R : ℝ} {x : H} (Rpos : 0 < R)
   (hx : x ∉ ball (0 : H) (1 + R)) : Y R x = 0 :=
 begin
   change (W R ⋆[lsmul ℝ ℝ, μ] φ) x = 0,
@@ -924,46 +942,70 @@ end
 lemma Y_pos_of_mem_ball {R : ℝ} {x : H} (Rpos : 0 < R) (R_lt_one : R < 1)
   (hx : x ∈ ball (0 : H) (1 + R)) : 0 < Y R x :=
 begin
-    simp only [mem_ball_zero_iff] at hx,
-    refine (integral_pos_iff_support_of_nonneg (W_mul_φ_nonneg Rpos x) _).2 _,
-    { have F_comp : has_compact_support (W R),
-        from W_compact_support H Rpos,
-      have B : locally_integrable (φ : H → ℝ) μ,
-        from (locally_integrable_const _).indicator measurable_set_closed_ball,
-      have C : continuous (W R : H → ℝ),
-        from continuous_const.mul ((u_continuous H).comp (continuous_id.const_smul _)),
-      exact (has_compact_support.convolution_exists_left (lsmul ℝ ℝ : ℝ →L[ℝ] ℝ →L[ℝ] ℝ)
-        F_comp C B x).integrable },
-    { set z := (R / (1 + R)) • x with hz,
-      have B : 0 < 1 + R, by linarith,
-      have C : ball z (R * (1 + R- ∥x∥) / (1 + R)) ⊆ support (λ (y : H), W R y * φ (x - y)),
-      { assume y hy,
-        simp only [support_mul, W_support H Rpos],
-        simp only [φ, mem_inter_iff, mem_support, ne.def, indicator_apply_eq_zero,
-          mem_closed_ball_zero_iff, one_ne_zero, not_forall, not_false_iff, exists_prop, and_true],
-        split,
-        { apply ball_subset_ball' _ hy,
-          simp only [z, norm_smul, abs_of_nonneg Rpos.le, abs_of_nonneg B.le, dist_zero_right,
-            real.norm_eq_abs, abs_div],
-          simp only [div_le_iff B] with field_simps,
-          ring_nf },
-        { have IR : ∥R / (1 + R) - 1∥ = 1 / (1 + R),
-          { rw real.norm_of_nonpos,
-            { simp only [B.ne', ne.def, not_false_iff, mul_one, neg_sub, add_tsub_cancel_right]
-                with field_simps},
-            { simp only [B.ne', ne.def, not_false_iff, mul_one] with field_simps,
-              apply div_nonpos_of_nonpos_of_nonneg _ B.le,
-              linarith only, } },
-          rw ← mem_closed_ball_iff_norm',
-          apply closed_ball_subset_closed_ball' _ (ball_subset_closed_ball hy),
-          rw [← one_smul ℝ x, dist_eq_norm, hz, ← sub_smul, one_smul, norm_smul, IR],
-          simp only [-one_div, -mul_eq_zero, B.ne', div_le_iff B] with field_simps,
-          simp only [mem_ball_zero_iff] at hx,
-          nlinarith only [hx, Rone] } },
-      apply lt_of_lt_of_le _ (measure_mono C),
-      apply measure_ball_pos,
-      exact div_pos (mul_pos Rpos (by linarith only [hx])) B }
+  simp only [mem_ball_zero_iff] at hx,
+  refine (integral_pos_iff_support_of_nonneg (W_mul_φ_nonneg Rpos x) _).2 _,
+  { have F_comp : has_compact_support (W R),
+      from W_compact_support H Rpos,
+    have B : locally_integrable (φ : H → ℝ) μ,
+      from (locally_integrable_const _).indicator measurable_set_closed_ball,
+    have C : continuous (W R : H → ℝ),
+      from continuous_const.mul ((u_continuous H).comp (continuous_id.const_smul _)),
+    exact (has_compact_support.convolution_exists_left (lsmul ℝ ℝ : ℝ →L[ℝ] ℝ →L[ℝ] ℝ)
+      F_comp C B x).integrable },
+  { set z := (R / (1 + R)) • x with hz,
+    have B : 0 < 1 + R, by linarith,
+    have C : ball z (R * (1 + R- ∥x∥) / (1 + R)) ⊆ support (λ (y : H), W R y * φ (x - y)),
+    { assume y hy,
+      simp only [support_mul, W_support H Rpos],
+      simp only [φ, mem_inter_iff, mem_support, ne.def, indicator_apply_eq_zero,
+        mem_closed_ball_zero_iff, one_ne_zero, not_forall, not_false_iff, exists_prop, and_true],
+      split,
+      { apply ball_subset_ball' _ hy,
+        simp only [z, norm_smul, abs_of_nonneg Rpos.le, abs_of_nonneg B.le, dist_zero_right,
+          real.norm_eq_abs, abs_div],
+        simp only [div_le_iff B] with field_simps,
+        ring_nf },
+      { have IR : ∥R / (1 + R) - 1∥ = 1 / (1 + R),
+        { rw real.norm_of_nonpos,
+          { simp only [B.ne', ne.def, not_false_iff, mul_one, neg_sub, add_tsub_cancel_right]
+              with field_simps},
+          { simp only [B.ne', ne.def, not_false_iff, mul_one] with field_simps,
+            apply div_nonpos_of_nonpos_of_nonneg _ B.le,
+            linarith only, } },
+        rw ← mem_closed_ball_iff_norm',
+        apply closed_ball_subset_closed_ball' _ (ball_subset_closed_ball hy),
+        rw [← one_smul ℝ x, dist_eq_norm, hz, ← sub_smul, one_smul, norm_smul, IR],
+        simp only [-one_div, -mul_eq_zero, B.ne', div_le_iff B] with field_simps,
+        simp only [mem_ball_zero_iff] at hx,
+        nlinarith only [hx, R_lt_one] } },
+    apply lt_of_lt_of_le _ (measure_mono C),
+    apply measure_ball_pos,
+    exact div_pos (mul_pos Rpos (by linarith only [hx])) B }
 end
+
+@[to_additive]
+lemma mul_support_eq_iff {α β : Type*} [has_one β] {f : α → β} {s : set α} :
+  mul_support f = s ↔ ((∀ x, x ∈ s → f x ≠ 1) ∧ (∀ x, x ∉ s → f x = 1)) :=
+begin
+  split,
+  { rintros rfl,
+    simp },
+  { rintros ⟨hs, hsc⟩,
+    refine subset.antisymm _ hs,
+    simp only [mul_support_subset_iff, ne.def],
+    assume x hx,
+    contrapose! hx,
+    exact hsc x hx }
+end
+
+variable (H)
+
+lemma Y_support {R : ℝ} (Rpos : 0 < R) (R_lt_one : R < 1) :
+  support (Y R : H → ℝ) = ball (0 : H) (1 + R) :=
+support_eq_iff.2 ⟨λ x hx, (Y_pos_of_mem_ball Rpos R_lt_one hx).ne',
+  λ x hx, Y_eq_zero_of_not_mem_ball Rpos hx⟩
+
+variable {H}
 
 #exit
 

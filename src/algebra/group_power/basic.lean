@@ -5,8 +5,8 @@ Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.divisibility
 import algebra.group.commute
-import data.nat.basic
 import algebra.group.type_tags
+import data.nat.basic
 
 /-!
 # Power operations on monoids and groups

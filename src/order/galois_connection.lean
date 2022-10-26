@@ -766,11 +766,11 @@ end lift
 
 end galois_coinsertion
 
-/-- If `α` is a partial order with bottom element (e.g., `ℕ`, `ℝ≥0`), then
-`λ o : with_bot α, o.get_or_else ⊥` and coercion form a Galois insertion. -/
-def with_bot.gi_get_or_else_bot [preorder α] [order_bot α] :
-  galois_insertion (λ o : with_bot α, o.get_or_else ⊥) coe :=
-{ gc := λ a b, with_bot.get_or_else_bot_le_iff,
+/-- If `α` is a partial order with bottom element (e.g., `ℕ`, `ℝ≥0`), then `with_bot.unbot' ⊥` and
+coercion form a Galois insertion. -/
+def with_bot.gi_unbot'_bot [preorder α] [order_bot α] :
+  galois_insertion (with_bot.unbot' ⊥) (coe : α → with_bot α) :=
+{ gc := λ a b, with_bot.unbot'_bot_le_iff,
   le_l_u := λ a, le_rfl,
-  choice := λ o ho, _,
+  choice := λ o ho, o.unbot' ⊥,
   choice_eq := λ _ _, rfl }

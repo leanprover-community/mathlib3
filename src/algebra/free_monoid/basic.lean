@@ -25,6 +25,8 @@ def free_monoid (α) := list α
 
 namespace free_monoid
 
+@[to_additive] instance [decidable_eq α] : decidable_eq (free_monoid α) := list.decidable_eq
+
 /-- The identity equivalence between `free_monoid α` and `list α`. -/
 @[to_additive "The identity equivalence between `free_add_monoid α` and `list α`."]
 def to_list : free_monoid α ≃ list α := equiv.refl _
@@ -174,6 +176,10 @@ def mk_mul_action (f : α → β → β) : mul_action (free_monoid α) β :=
 
 @[to_additive] lemma smul_def (f : α → β → β) (l : free_monoid α) (b : β) :
   (by haveI := mk_mul_action f; exact l • b = l.to_list.foldr f b) :=
+rfl
+
+@[to_additive] lemma of_list_smul (f : α → β → β) (l : list α) (b : β) :
+  (by haveI := mk_mul_action f; exact (of_list l) • b = l.foldr f b) :=
 rfl
 
 @[simp, to_additive] lemma of_smul (f : α → β → β) (x : α) (y : β) :

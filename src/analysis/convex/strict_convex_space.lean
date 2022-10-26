@@ -96,7 +96,8 @@ lemma strict_convex_space.of_norm_combo_lt_one
 begin
   refine strict_convex_space.of_strict_convex_closed_unit_ball ℝ
     ((convex_closed_ball _ _).to_strict_convex' $ λ x hx y hy hne, _),
-  rw [interior_closed_ball (0 : E) one_ne_zero, closed_ball_diff_ball, mem_sphere_zero_iff_norm] at hx hy,
+  rw [interior_closed_ball (0 : E) one_ne_zero, closed_ball_diff_ball, mem_sphere_zero_iff_norm]
+    at hx hy,
   rcases h x y hx hy hne with ⟨a, b, hab, hlt⟩,
   use b,
   rwa [affine_map.line_map_apply_module, interior_closed_ball (0 : E) one_ne_zero,

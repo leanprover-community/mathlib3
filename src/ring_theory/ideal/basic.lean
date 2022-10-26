@@ -598,7 +598,7 @@ begin
   simp_rw [lt_top_iff_ne_top, bot_lt_iff_ne_bot],
 end
 
-lemma field.ideal_eq {R : Type*} [field R] (I : ideal R) :
+lemma _root_.field.ideal_eq {R : Type*} [field R] (I : ideal R) :
   I = ⊥ ∨ I = ⊤ :=
 ring.is_field_iff_forall_ideal_eq.mp (field.to_is_field R) I
 

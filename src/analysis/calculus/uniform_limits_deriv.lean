@@ -250,14 +250,13 @@ begin
   have st_nonempty : (s ∩ t).nonempty, from ⟨x₀, hx₀, ⟨hx₀, hfg⟩⟩,
   suffices H : closure t ∩ s ⊆ t, from h's.subset_of_closure_inter_subset open_t st_nonempty H,
   rintros x ⟨xt, xs⟩,
-  refine ⟨xs, _⟩,
   obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ) (H : ε > 0), metric.ball x ε ⊆ s,
     from metric.is_open_iff.1 hs x xs,
   obtain ⟨y, yt, hxy⟩ : ∃ (y : E) (yt : y ∈ t), dist x y < ε / 2,
     from metric.mem_closure_iff.1 xt _ (half_pos εpos),
   have B : metric.ball y (ε / 2) ⊆ metric.ball x ε,
   { apply metric.ball_subset_ball', rw dist_comm, linarith },
-  exact (A y (ε / 2) yt (B.trans hε) (metric.mem_ball.2 hxy)).2,
+  exact A y (ε / 2) yt (B.trans hε) (metric.mem_ball.2 hxy)
 end
 
 /-- If `f_n → g` pointwise and the derivatives `(f_n)' → h` _uniformly_ converge, then

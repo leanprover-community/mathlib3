@@ -759,10 +759,7 @@ instance normalization_monoid_of_unique_units : normalization_monoid α :=
 
 instance unique_normalization_monoid_of_unique_units : unique (normalization_monoid α) :=
 { default := normalization_monoid_of_unique_units,
-  uniq := begin
-    rintros ⟨u, huz, hum, huc⟩,
-    simpa only [(subsingleton.elim _ _ : u = λ _, 1)],
-  end }
+  uniq := λ ⟨u, _, _, _⟩, by simpa only [(subsingleton.elim _ _ : u = λ _, 1)] }
 
 instance subsingleton_gcd_monoid_of_unique_units : subsingleton (gcd_monoid α) :=
 ⟨λ g₁ g₂, begin

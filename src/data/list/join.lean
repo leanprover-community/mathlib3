@@ -24,6 +24,9 @@ attribute [simp] join
 | []       := iff_of_true rfl (forall_mem_nil _)
 | (l :: L) := by simp only [join, append_eq_nil, join_eq_nil, forall_mem_cons]
 
+@[simp] lemma join_singleton {l : list α} : [l].join = l :=
+by simp
+
 @[simp] lemma join_append (L₁ L₂ : list (list α)) : join (L₁ ++ L₂) = join L₁ ++ join L₂ :=
 by induction L₁; [refl, simp only [*, join, cons_append, append_assoc]]
 
@@ -137,6 +140,14 @@ begin
     simpa using this },
   { assume n h₁ h₂,
     rw [← drop_take_succ_join_eq_nth_le, ← drop_take_succ_join_eq_nth_le, join_eq, length_eq] }
+end
+
+lemma join_drop_length_sub_one {L : list (list α)} (h) :
+  (L.drop (L.length - 1)).join = L.last h :=
+begin
+  induction L using list.reverse_rec_on,
+  { cases h rfl },
+  { simp },
 end
 
 end list

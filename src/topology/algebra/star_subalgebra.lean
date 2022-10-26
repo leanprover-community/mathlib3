@@ -35,10 +35,26 @@ instance [topological_space R] [has_continuous_smul R A] (s : star_subalgebra R 
   has_continuous_smul R s :=
 s.to_subalgebra.has_continuous_smul
 
-variables [topological_semiring A] [has_continuous_star A]
-variables [topological_space B] [semiring B] [algebra R B] [star_ring B] [star_module R B]
-variables [topological_semiring B] [has_continuous_star B]
+instance [topological_semiring A] (s : star_subalgebra R A) : topological_semiring s :=
+s.to_subalgebra.topological_semiring
 
+/-- The `star_subalgebra.inclusion` of a star subalgebra is an `embedding`. -/
+lemma embedding_inclusion {S₁ S₂ : star_subalgebra R A} (h : S₁ ≤ S₂) :
+  embedding (inclusion h) :=
+{ induced := eq.symm induced_compose,
+  inj := subtype.map_injective h function.injective_id }
+
+/-- The `star_subalgebra.inclusion` of a closed star subalgebra is a `closed_embedding`. -/
+lemma closed_embedding_inclusion {S₁ S₂ : star_subalgebra R A} (h : S₁ ≤ S₂)
+  (hS₁ : is_closed (S₁ : set A)) :
+  closed_embedding (inclusion h) :=
+{ closed_range := is_closed_induced_iff.2
+    ⟨S₁, hS₁, by { convert (set.range_subtype_map id _).symm, rw set.image_id, refl }⟩,
+  .. embedding_inclusion h }
+
+variables [topological_semiring A] [has_continuous_star A]
+variables [topological_space B] [semiring B] [algebra R B] [star_ring B
+]
 /-- The closure of a star subalgebra in a topological star algebra as a star subalgebra. -/
 def topological_closure (s : star_subalgebra R A) :
   star_subalgebra R A :=
@@ -50,15 +66,17 @@ def topological_closure (s : star_subalgebra R A) :
   (s.topological_closure : set A) = closure (s : set A) :=
 rfl
 
-instance (s : star_subalgebra R A) : topological_semiring s :=
-s.to_subalgebra.topological_semiring
-
 lemma le_topological_closure (s : star_subalgebra R A) : s ≤ s.topological_closure :=
 subset_closure
 
 lemma is_closed_topological_closure (s : star_subalgebra R A) :
   is_closed (s.topological_closure : set A) :=
 is_closed_closure
+
+instance {A : Type*} [uniform_space A] [complete_space A] [semiring A] [star_ring A]
+  [topological_semiring A] [has_continuous_star A] [algebra R A] [star_module R A]
+  {S : star_subalgebra R A} : complete_space S.topological_closure :=
+is_closed_closure.complete_space_coe
 
 lemma topological_closure_minimal {s t : star_subalgebra R A} (h : s ≤ t)
   (ht : is_closed (t : set A)) : s.topological_closure ≤ t :=
@@ -83,20 +101,6 @@ def comm_ring_topological_closure {R A} [comm_ring R] [star_ring R] [topological
   [t2_space A] (s : star_subalgebra R A) (hs : ∀ (x y : s), x * y = y * x) :
   comm_ring s.topological_closure :=
 s.to_subalgebra.comm_ring_topological_closure hs
-
-/-- The `star_subalgebra.inclusion` of a star subalgebra is an `embedding`. -/
-lemma embedding_inclusion {S₁ S₂ : star_subalgebra R A} (h : S₁ ≤ S₂) :
-  embedding (inclusion h) :=
-{ induced := eq.symm induced_compose,
-  inj := subtype.map_injective h function.injective_id }
-
-/-- The `star_subalgebra.inclusion` of a closed star subalgebra is a `closed_embedding`. -/
-lemma closed_embedding_inclusion {S₁ S₂ : star_subalgebra R A} (h : S₁ ≤ S₂)
-  (hS₁ : is_closed (S₁ : set A)) :
-  closed_embedding (inclusion h) :=
-{ closed_range := is_closed_induced_iff.2
-    ⟨S₁, hS₁, by { convert (set.range_subtype_map id _).symm, rw set.image_id, refl }⟩,
-  .. embedding_inclusion h }
 
 /-- Continuous `star_alg_hom`s from the the topological closure of a `star_subalgebra` whose
 compositions with the `star_subalgebra.inclusion` map agree are, in fact, equal. -/
@@ -167,7 +171,10 @@ star_subalgebra.comm_ring_topological_closure _ mul_comm
 protected lemma is_closed (x : A) : is_closed (elemental_star_algebra R x : set A) :=
 is_closed_closure
 
-variable {R}
+instance {A : Type*} [uniform_space A] [complete_space A] [semiring A] [star_ring A]
+  [topological_semiring A] [has_continuous_star A] [algebra R A] [star_module R A] (x : A) :
+  complete_space (elemental_star_algebra R x) :=
+is_closed_closure.complete_space_coe
 
 lemma le_of_is_closed_of_mem {S : star_subalgebra R A} (hS : is_closed (S : set A)) {x : A}
   (hx : x ∈ S) : elemental_star_algebra R x ≤ S :=

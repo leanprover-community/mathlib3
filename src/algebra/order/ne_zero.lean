@@ -12,12 +12,12 @@ import algebra.order.ring
 
 namespace ne_zero
 
-variables {R S M F : Type*} {r : R} {x y : M} {n p : ℕ} {a : ℕ+}
+variables {R M : Type*} {x y : M}
 
 lemma pos (r : R) [canonically_ordered_add_monoid R] [ne_zero r] : 0 < r :=
 (zero_le r).lt_of_ne $ ne_zero.out.symm
 
-lemma of_gt  [canonically_ordered_add_monoid M] (h : x < y) : ne_zero y := of_pos $ pos_of_gt h
+lemma of_gt [canonically_ordered_add_monoid M] (h : x < y) : ne_zero y := of_pos $ pos_of_gt h
 
 -- 1 < p is still an often-used `fact`, due to `nat.prime` implying it, and it implying `nontrivial`
 -- on `zmod`'s ring structure. We cannot just set this to be any `x < y`, else that becomes a

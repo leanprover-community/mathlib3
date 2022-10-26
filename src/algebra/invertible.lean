@@ -5,7 +5,7 @@ Authors: Anne Baanen
 -/
 
 import algebra.group.units
-import algebra.ne_zero
+import algebra.group_with_zero.units
 import algebra.ring.basic
 
 /-!

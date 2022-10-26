@@ -215,13 +215,13 @@ lemma is_open.stable_under_generalization {s : set X} (hs : is_open s) :
   stable_under_generalization s :=
 λ x y e, e.mem_open hs
 
-lemma stable_under_generalization.compl {s : set X} (hs : stable_under_generalization s) :
-  stable_under_specialization sᶜ :=
-λ x y e, mt (hs e)
+lemma stable_under_generalization.compl {s : set X} :
+  stable_under_generalization s → stable_under_specialization sᶜ :=
+is_upper_set.compl
 
-lemma stable_under_specialization.compl {s : set X} (hs : stable_under_specialization s) :
-  stable_under_generalization sᶜ :=
-λ x y e, mt (hs e)
+lemma stable_under_specialization.compl {s : set X} :
+  stable_under_specialization s → stable_under_generalization sᶜ :=
+is_lower_set.compl
 
 lemma stable_under_specialization_compl_iff {s : set X} :
   stable_under_specialization sᶜ ↔ stable_under_generalization s :=

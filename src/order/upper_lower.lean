@@ -267,7 +267,7 @@ alias fibration.is_lower_set_image ← _root_.is_lower_set.image_fibration
 
 lemma fibration_iff_is_lower_set_image_Iic [preorder α] [has_le β] :
   fibration (≤) (≤) f ↔ ∀ x, is_lower_set (f '' Iic x) :=
-⟨λ h x, (is_lower_set_Iic x).image_fibration h, λ H x y' e, H x e ⟨x, le_refl x, rfl⟩⟩
+⟨λ h x, (is_lower_set_Iic x).image_fibration h, λ H x y' e, H x e ⟨x, le_rfl, rfl⟩⟩
 
 lemma fibration_iff_is_lower_set_image [preorder α] [has_le β] :
   fibration (≤) (≤) f ↔ ∀ s, is_lower_set s → is_lower_set (f '' s) :=
@@ -277,7 +277,7 @@ lemma fibration_iff_is_lower_set_image [preorder α] [has_le β] :
 lemma fibration_iff_image_Iic [preorder α] [preorder β] (hf : monotone f) :
   fibration (≤) (≤) f ↔ ∀ x, f '' Iic x = Iic (f x) :=
 ⟨λ H x, le_antisymm (λ _ ⟨y, hy, e⟩, e ▸ hf hy)
-  ((H.is_lower_set_image (is_lower_set_Iic x)).Iic_subset ⟨x, le_refl x, rfl⟩),
+  ((H.is_lower_set_image (is_lower_set_Iic x)).Iic_subset ⟨x, le_rfl, rfl⟩),
   λ H, fibration_iff_is_lower_set_image_Iic.mpr (λ x, (H x).symm ▸ is_lower_set_Iic (f x))⟩
 
 lemma fibration.is_upper_set_image [has_le α] [has_le β] (hf : fibration (≥) (≥) f)
@@ -928,8 +928,7 @@ end
 
 lemma is_upper_set_iff_eq_upper_closure :
   is_upper_set s ↔ s = upper_closure s :=
-iff.trans (by exact ⟨λ h, ⟨⟨s, h⟩, rfl⟩, λ ⟨s, e⟩, e.symm ▸ s.upper⟩)
-  (gi_upper_closure_coe.gc.exists_eq_u _)
+⟨λ h, h.upper_closure.symm, λ h, h.symm ▸ upper_set.upper _⟩
 
 lemma is_upper_set_iff_eq_Union_Ici :
   is_upper_set s ↔ s = ⋃ x ∈ s, Ici x :=

@@ -313,3 +313,15 @@ lemma is_regular_iff_ne_zero [nontrivial R] : is_regular a ↔ a ≠ 0 :=
 ⟨is_regular.ne_zero, is_regular_of_ne_zero⟩
 
 end cancel_monoid_with_zero
+
+/--  Elements of a left cancel semigroup are left regular. -/
+@[to_additive "Elements of an add left cancel semigroup are add-left-regular."]
+lemma is_left_regular_of_left_cancel_semigroup [left_cancel_semigroup R] (g : R) :
+  is_left_regular g :=
+mul_right_injective g
+
+/--  Elements of a right cancel semigroup are right regular. -/
+@[to_additive "Elements of an add right cancel semigroup are add-right-regular"]
+lemma is_right_regular_of_right_cancel_semigroup [right_cancel_semigroup R] (g : R) :
+  is_right_regular g :=
+mul_left_injective g

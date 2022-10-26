@@ -154,6 +154,25 @@ arctan_eq_of_tan_eq tan_pi_div_four $ by split; linarith [pi_pos]
 @[simp] lemma arctan_neg (x : ℝ) : arctan (-x) = - arctan x :=
 by simp [arctan_eq_arcsin, neg_div]
 
+lemma arctan_eq_arccos {x : ℝ} (h : 0 ≤ x) : arctan x = arccos ((sqrt (1 + x ^ 2))⁻¹) :=
+begin
+  rw [arctan_eq_arcsin, arccos_eq_arcsin], swap, { exact inv_nonneg.2 (sqrt_nonneg _) },
+  congr' 1,
+  rw [←sqrt_inv, sq_sqrt, ←one_div, one_sub_div, add_sub_cancel', sqrt_div, sqrt_sq h],
+  all_goals { positivity }
+end
+
+-- The junk values for `arccos` and `sqrt` make this true even for `1 < x`.
+lemma arccos_eq_arctan {x : ℝ} (h : 0 < x) :
+  arccos x = arctan (sqrt (1 - x ^ 2) / x) :=
+begin
+  rw [arccos, eq_comm],
+  refine arctan_eq_of_tan_eq _ ⟨_, _⟩,
+  { rw [tan_pi_div_two_sub, tan_arcsin, inv_div] },
+  { linarith only [arcsin_le_pi_div_two x, pi_pos] },
+  { linarith only [arcsin_pos.2 h] }
+end
+
 @[continuity]
 lemma continuous_arctan : continuous arctan :=
 continuous_subtype_coe.comp tan_order_iso.to_homeomorph.continuous_inv_fun

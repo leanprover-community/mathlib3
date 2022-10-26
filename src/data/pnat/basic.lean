@@ -151,6 +151,8 @@ instance : contravariant_class ℕ+ ℕ+ (+) (<) := positive.contravariant_class
 
 @[simp] theorem ne_zero (n : ℕ+) : (n : ℕ) ≠ 0 := n.2.ne'
 
+instance _root_.ne_zero.pnat {a : ℕ+} : _root_.ne_zero (a : ℕ) := ⟨a.ne_zero⟩
+
 theorem to_pnat'_coe {n : ℕ} : 0 < n → (n.to_pnat' : ℕ) = n := succ_pred_eq_of_pos
 
 @[simp] theorem coe_to_pnat' (n : ℕ+) : (n : ℕ).to_pnat' = n := eq (to_pnat'_coe n.pos)

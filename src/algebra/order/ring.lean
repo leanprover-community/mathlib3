@@ -1384,6 +1384,10 @@ by simp only [pos_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
 
 end canonically_ordered_comm_semiring
 
+instance ne_zero.bit1 [canonically_ordered_comm_semiring α] [nontrivial α]
+  {x : α} : ne_zero (bit1 x) :=
+⟨mt (λ h, le_iff_exists_add'.2 ⟨_, h.symm⟩) zero_lt_one.not_le⟩
+
 section sub
 
 variables [canonically_ordered_comm_semiring α] {a b c : α}

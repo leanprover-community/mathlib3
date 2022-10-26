@@ -414,6 +414,7 @@ mem_discrete_iff (φ.map f)
 
 lemma ker_is_normal : (ker φ).is_normal := is_normal_comap φ (discrete_is_normal)
 
+@[simp]
 lemma ker_comp {E : Type*} [groupoid E] (ψ : D ⥤ E) : ker (φ ⋙ ψ) = comap φ (ker ψ) := rfl
 
 /-- The family of arrows of the image of a subgroupoid under a functor injective on objects -/

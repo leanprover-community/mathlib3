@@ -133,11 +133,8 @@ end
 
 lemma local_ring.is_field_iff_maximal_ideal_eq :
   is_field R ↔ local_ring.maximal_ideal R = ⊥ :=
-begin
-  simp_rw [ring.is_field_iff_forall_ideal_eq, or_iff_not_imp_right],
-  exact ⟨λ H, H (local_ring.maximal_ideal R) (ideal.is_prime.ne_top infer_instance),
-    λ e I hI, eq_bot_iff.mpr (e ▸ local_ring.le_maximal_ideal hI)⟩,
-end
+not_iff_not.1 ⟨ring.ne_bot_of_is_maximal_of_not_is_field infer_instance,
+  λ h, ring.not_is_field_iff_exists_prime.2 ⟨_, h, ideal.is_maximal.is_prime' _⟩⟩
 
 lemma local_ring.maximal_ideal_eq_bot {R : Type*} [field R] : local_ring.maximal_ideal R = ⊥ :=
 local_ring.is_field_iff_maximal_ideal_eq.mp (field.to_is_field R)

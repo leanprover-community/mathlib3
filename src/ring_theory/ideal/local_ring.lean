@@ -131,13 +131,10 @@ end
 
 @[simp] lemma mem_maximal_ideal (x) : x ∈ maximal_ideal R ↔ x ∈ nonunits R := iff.rfl
 
-lemma local_ring.is_field_iff_maximal_ideal_eq :
-  is_field R ↔ local_ring.maximal_ideal R = ⊥ :=
-not_iff_not.1 ⟨ring.ne_bot_of_is_maximal_of_not_is_field infer_instance,
-  λ h, ring.not_is_field_iff_exists_prime.2 ⟨_, h, ideal.is_maximal.is_prime' _⟩⟩
-
-lemma local_ring.maximal_ideal_eq_bot {R : Type*} [field R] : local_ring.maximal_ideal R = ⊥ :=
-local_ring.is_field_iff_maximal_ideal_eq.mp (field.to_is_field R)
+lemma is_field_iff_maximal_ideal_eq :
+  is_field R ↔ maximal_ideal R = ⊥ :=
+not_iff_not.mp ⟨ring.ne_bot_of_is_maximal_of_not_is_field infer_instance,
+  λ h, ring.not_is_field_iff_exists_prime.mpr ⟨_, h, ideal.is_maximal.is_prime' _⟩⟩
 
 end local_ring
 
@@ -267,8 +264,8 @@ instance is_local_ring_hom_of_is_iso {R S : CommRing} (f : R ⟶ S) [is_iso f] :
 is_local_ring_hom_of_iso (as_iso f)
 
 @[priority 100]
-instance {R S : Type*} [field R] [comm_ring S] [nontrivial S] (f : R →+* S) :
-  is_local_ring_hom f :=
+instance is_local_ring_hom_of_field {R S : Type*} [field R] [comm_ring S] [nontrivial S]
+  (f : R →+* S) : is_local_ring_hom f :=
 ⟨λ a ha, is_unit_iff_ne_zero.mpr (λ e, @not_is_unit_zero S _ _ $ by rwa [← map_zero f, ← e])⟩
 
 end
@@ -373,7 +370,7 @@ ideal.quotient.lift _ f (λ a ha,
 
 lemma lift_comp_residue {R S : Type*} [comm_ring R] [local_ring R] [field S] (f : R →+* S)
   [is_local_ring_hom f] : (lift f).comp (residue R) = f :=
-rfl
+ring_hom.ext (λ _, rfl)
 
 @[simp]
 lemma lift_residue_apply {R S : Type*} [comm_ring R] [local_ring R] [field S] (f : R →+* S)
@@ -470,3 +467,7 @@ local_ring.of_is_unit_or_is_unit_one_sub_self $ λ a,
   else or.inl $ is_unit.mk0 a h
 
 end field
+
+lemma local_ring.maximal_ideal_eq_bot {R : Type*} [field R] :
+  local_ring.maximal_ideal R = ⊥ :=
+local_ring.is_field_iff_maximal_ideal_eq.mp (field.to_is_field R)

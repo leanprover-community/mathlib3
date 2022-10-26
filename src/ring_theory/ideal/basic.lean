@@ -553,7 +553,8 @@ namespace ring
 
 variables {R : Type*} [comm_semiring R]
 
-lemma not_is_field_of_subsingleton {R : Type*} [ring R] [subsingleton R] : ¬ is_field R :=
+lemma not_is_field_of_subsingleton [subsingleton R] :
+  ¬ is_field R :=
 λ ⟨⟨x, y, hxy⟩, _, _⟩, hxy (subsingleton.elim x y)
 
 lemma exists_not_is_unit_of_not_is_field [nontrivial R] (hf : ¬ is_field R) :
@@ -590,17 +591,21 @@ not_is_field_iff_exists_ideal_bot_lt_and_lt_top.trans
     ⟨p, bot_lt_iff_ne_bot.mp (lt_of_lt_of_le bot_lt le_p), hp.is_prime⟩,
    λ ⟨p, ne_bot, prime⟩, ⟨p, bot_lt_iff_ne_bot.mpr ne_bot, lt_top_iff_ne_top.mpr prime.1⟩⟩
 
-lemma is_field_iff_forall_ideal_eq [nontrivial R] :
-  is_field R ↔ ∀ I : ideal R, I = ⊥ ∨ I = ⊤ :=
+lemma is_field_iff_forall_ideal_eq :
+  is_field R ↔ is_simple_order (ideal R) :=
 begin
-  rw [← not_iff_not, ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top],
+  casesI subsingleton_or_nontrivial R,
+  { exact ⟨λ h, (not_is_field_of_subsingleton h).elim,
+      λ h, by exactI (false_of_nontrivial_of_subsingleton $ ideal R).elim⟩ },
+  rw [← not_iff_not, ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top, ← not_iff_not],
   push_neg,
-  simp_rw [lt_top_iff_ne_top, bot_lt_iff_ne_bot],
+  simp_rw [lt_top_iff_ne_top, bot_lt_iff_ne_bot, ← or_iff_not_imp_left, not_ne_iff],
+  exact ⟨λ h, ⟨h⟩, λ h, h.2⟩
 end
 
-lemma _root_.field.ideal_eq {R : Type*} [field R] (I : ideal R) :
-  I = ⊥ ∨ I = ⊤ :=
-ring.is_field_iff_forall_ideal_eq.mp (field.to_is_field R) I
+instance {R : Type*} [field R] :
+  is_simple_order (ideal R) :=
+is_field_iff_forall_ideal_eq.mp (field.to_is_field R)
 
 /-- When a ring is not a field, the maximal ideals are nontrivial. -/
 lemma ne_bot_of_is_maximal_of_not_is_field [nontrivial R] {M : ideal R} (max : M.is_maximal)

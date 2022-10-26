@@ -5,6 +5,7 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro, Anne Baanen
 -/
 import linear_algebra.quotient
 import ring_theory.ideal.basic
+import tactic.fin_cases
 /-!
 # Ideal quotients
 
@@ -409,5 +410,26 @@ noncomputable def quotient_inf_ring_equiv_pi_quotient [finite ι] (f : ι → id
   .. quotient_inf_to_pi_quotient f }
 
 end chinese_remainder
+
+/-- The product over `fin 2` of some rings is just the cartesian product of these rings. -/
+@[simps]
+def ring_equiv.fin_two (R : fin 2 → Type*) [Π i, semiring (R i)] :
+  (Π (i : fin 2), R i) ≃+* R 0 × R 1 :=
+{ to_fun := pi_fin_two_equiv R,
+  map_add' := λ a b, rfl,
+  map_mul' := λ a b, rfl,
+  .. pi_fin_two_equiv R }
+
+/-- **Chinese remainder theorem**, specialized to two ideals. -/
+noncomputable def ideal.quotient_inf_equiv_quotient_prod (I J : ideal R)
+  (coprime : I ⊔ J = ⊤) :
+  (R ⧸ (I ⊓ J)) ≃+* (R ⧸ I) × R ⧸ J :=
+let f : fin 2 → ideal R := ![I, J] in
+have hf : ∀ (i j : fin 2), i ≠ j → f i ⊔ f j = ⊤,
+by { intros i j h,
+  fin_cases i; fin_cases j; try { contradiction }; simpa [f, sup_comm] using coprime },
+(ideal.quot_equiv_of_eq (by simp [infi, inf_comm])).trans $
+(ideal.quotient_inf_ring_equiv_pi_quotient f hf).trans $
+ring_equiv.fin_two (λ i, R ⧸ f i)
 
 end ideal

@@ -100,13 +100,14 @@ begin
     refine pow_le_pow_of_le_left _ (by simp only [sub_le_self_iff, zero_le_one]) n,
     rw [le_sub_iff_add_le', add_zero],
     refine real.one_le_rpow_of_pos_of_le_one_of_nonpos hx.1 hx.2 _,
-    simp only [hr.le, right.neg_nonpos_iff, inv_nonneg],
+    rw [right.neg_nonpos_iff, inv_nonneg],
+    exact hr.le,
   end,
   refine lt_of_le_of_lt (set_lintegral_mono (by measurability) (by measurability) h_int) _,
   refine integrable_on.set_lintegral_lt_top _,
   rw ←interval_integrable_iff_integrable_Ioc_of_le zero_le_one,
   apply interval_integral.interval_integrable_rpow',
-  simp [neg_lt_neg_iff, inv_mul_lt_iff' hr, hnr],
+  rwa [neg_lt_neg_iff, inv_mul_lt_iff' hr, one_mul],
 end
 
 lemma finite_integral_one_add_norm [measure_space E] [borel_space E]
@@ -134,8 +135,7 @@ begin
     exact le_rpow_one_add_norm_iff_norm_le hr (mem_Ioi.mp ht) x,
   end,
   rw set_lintegral_congr_fun measurable_set_Ioi (ae_of_all volume $ h_int),
-  have hIoi_eq : Ioi (0 : ℝ) = Ioc (0 : ℝ) 1 ∪ Ioi 1 :=
-    (set.Ioc_union_Ioi_eq_Ioi zero_le_one).symm,
+  have hIoi_eq : Ioi (0 : ℝ) = Ioc (0 : ℝ) 1 ∪ Ioi 1 := (set.Ioc_union_Ioi_eq_Ioi zero_le_one).symm,
   have hdisjoint : disjoint (Ioc (0 : ℝ) 1) (Ioi 1) := by simp [disjoint_iff],
   rw [hIoi_eq, lintegral_union measurable_set_Ioi hdisjoint, ennreal.add_lt_top],
 
@@ -145,7 +145,8 @@ begin
       * volume (metric.ball (0:E) 1) :=
   begin
     intros t ht,
-    rw [measure.add_haar_closed_ball, le_sub_iff_add_le', add_zero],
+    refine volume.add_haar_closed_ball (0 : E) _,
+    rw [le_sub_iff_add_le', add_zero],
     exact real.one_le_rpow_of_pos_of_le_one_of_nonpos ht.1 ht.2 (by simp [hr.le]),
   end,
   have h_meas' : measurable (λ (a : ℝ), ennreal.of_real ((a ^ -r⁻¹ - 1) ^ finrank ℝ E)) :=
@@ -164,13 +165,12 @@ begin
   -- The integral from 1 to ∞ is zero:
   have h_int'' : ∀ (t : ℝ) (ht : t ∈ Ioi (1 : ℝ)),
     (volume (metric.closed_ball (0 : E) (t^(-r⁻¹) - 1)) : ennreal) = 0 :=
-  begin
-    intros t ht,
-    rw closed_ball_rpow_sub_one_eq_empty_aux E hr ht,
-    simp,
-  end,
-  rw set_lintegral_congr_fun measurable_set_Ioi (ae_of_all volume $ h_int''),
-  simp,
+  λ t ht, by rw [closed_ball_rpow_sub_one_eq_empty_aux E hr ht, measure_empty],
+
+  -- The integral over the constant zero function is finite:
+  rw [set_lintegral_congr_fun measurable_set_Ioi (ae_of_all volume $ h_int''), lintegral_const 0,
+    zero_mul],
+  exact with_top.zero_lt_top,
 end
 
 lemma integrable_one_add_norm [measure_space E] [borel_space E] [(@volume E _).is_add_haar_measure]
@@ -179,13 +179,8 @@ lemma integrable_one_add_norm [measure_space E] [borel_space E] [(@volume E _).i
 begin
   refine ⟨by measurability, _⟩,
   -- Lower Lebesgue integral
-  have : ∫⁻ (a : E), ∥(1 + ∥a∥) ^ -r∥₊ =
-    ∫⁻ (a : E), ennreal.of_real ((1 + ∥a∥) ^ -r) :=
-  begin
-    refine lintegral_nnnorm_eq_of_nonneg (λ x, _),
-    have h : 0 ≤ (1 + ∥x∥) ^ -r := rpow_nonneg_of_nonneg (by positivity) _,
-    simp [h],
-  end,
+  have : ∫⁻ (a : E), ∥(1 + ∥a∥) ^ -r∥₊ = ∫⁻ (a : E), ennreal.of_real ((1 + ∥a∥) ^ -r) :=
+  lintegral_nnnorm_eq_of_nonneg (λ _, rpow_nonneg_of_nonneg (by positivity) _),
   rw [has_finite_integral, this],
   exact finite_integral_one_add_norm hnr,
 end

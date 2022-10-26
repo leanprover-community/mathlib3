@@ -462,10 +462,17 @@ end
 
 lemma map_mono (hφ : function.injective φ.obj) (S T : subgroupoid C) :
   S ≤ T → map φ hφ S ≤ map φ hφ T :=
-by { rintro ST ⟨c,d,f⟩ ⟨_,h⟩, split, exact @ST ⟨_,_,_⟩ h }
+λ h, (galois_connection_map_comap φ hφ).monotone_l h
 
 lemma le_map_comap (hφ : function.injective φ.obj) (S : subgroupoid C) :
   S ≤ comap φ (map φ hφ S) := (galois_connection_map_comap φ hφ).le_u_l S
+
+lemma comap_map_le (hφ : function.injective φ.obj) (T : subgroupoid D) :
+  map φ hφ (comap φ T) ≤ T := (galois_connection_map_comap φ hφ).l_u_le T
+
+lemma map_le_iff_le_comap (hφ : function.injective φ.obj)
+  (S : subgroupoid C) (T : subgroupoid D) :
+  map φ hφ S ≤ T ↔ S ≤ comap φ T := (galois_connection_map_comap φ hφ).le_iff_le
 
 lemma mem_map_objs_iff (hφ : function.injective φ.obj) (d : D) :
   d ∈ (map φ hφ S).objs ↔ ∃ c ∈ S.objs, φ.obj c = d :=
@@ -532,4 +539,3 @@ end hom
 end subgroupoid
 
 end category_theory
-

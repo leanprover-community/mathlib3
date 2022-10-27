@@ -563,7 +563,7 @@ begin
   exact hf (classical.some_spec (exists_apply_eq_apply f a)),
 end
 
-@[simp] lemma extend_apply (hf : f.injective) (g : α → γ) (e' : β → γ) (a : α) :
+@[simp] lemma injective.extend_apply (hf : f.injective) (g : α → γ) (e' : β → γ) (a : α) :
   extend f g e' (f a) = g a :=
 extend_apply_of_factors_through g e' (hf.factors_through g) a
 

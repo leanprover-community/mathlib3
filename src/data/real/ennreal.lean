@@ -805,6 +805,9 @@ by { cases a; cases b; simp [← with_top.coe_sub] }
 lemma sub_ne_top (ha : a ≠ ∞) : a - b ≠ ∞ :=
 mt sub_eq_top_iff.mp $ mt and.left ha
 
+@[simp, norm_cast] lemma nat_cast_sub (m n : ℕ) : ↑(m - n) = (m - n : ℝ≥0∞) :=
+by rw [← coe_nat, nat.cast_tsub, coe_sub, coe_nat, coe_nat]
+
 protected lemma sub_eq_of_eq_add (hb : b ≠ ∞) : a = c + b → a - b = c :=
 (cancel_of_ne hb).tsub_eq_of_eq_add
 

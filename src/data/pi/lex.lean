@@ -46,6 +46,15 @@ notation `Πₗ` binders `, ` r:(scoped p, lex (Π i, p i)) := r
 @[simp] lemma to_lex_apply (x : Π i, β i) (i : ι) : to_lex x i = x i := rfl
 @[simp] lemma of_lex_apply (x : lex (Π i, β i)) (i : ι) : of_lex x i = x i := rfl
 
+lemma lex_lt_of_lt_of_preorder [Π i, preorder (β i)] {r} (hwf : well_founded r)
+  {x y : Π i, β i} (hlt : x < y) : ∃ i, (∀ j, r j i → x j ≤ y j ∧ y j ≤ x j) ∧ x i < y i :=
+let h' := pi.lt_def.1 hlt, ⟨i, hi, hl⟩ := hwf.has_min _ h'.2 in
+  ⟨i, λ j hj, ⟨h'.1 j, not_not.1 $ λ h, hl j (lt_of_le_not_le (h'.1 j) h) hj⟩, hi⟩
+
+lemma lex_lt_of_lt [Π i, partial_order (β i)] {r} (hwf : well_founded r)
+  {x y : Π i, β i} (hlt : x < y) : pi.lex r (λ i, (<)) x y :=
+by { simp_rw [pi.lex, le_antisymm_iff], exact lex_lt_of_lt_of_preorder hwf hlt }
+
 lemma is_trichotomous_lex [∀ i, is_trichotomous (β i) s] (wf : well_founded r) :
   is_trichotomous (Π i, β i) (pi.lex r @s) :=
 { trichotomous := λ a b,
@@ -86,29 +95,21 @@ noncomputable instance [linear_order ι] [is_well_order ι (<)] [∀ a, linear_o
 @linear_order_of_STO (Πₗ i, β i) (<)
   { to_is_trichotomous := is_trichotomous_lex _ _ is_well_founded.wf } (classical.dec_rel _)
 
-lemma lex.le_of_forall_le [linear_order ι] [hwf : is_well_order ι (<)] [Π a, partial_order (β a)]
-  {a b : lex (Π i, β i)} (h : ∀ i, a i ≤ b i) : a ≤ b :=
-or_iff_not_imp_left.2 $ λ hne,
-  let ⟨i, hi, hl⟩ := hwf.to_is_well_founded.wf.has_min {i | a i ≠ b i} (function.ne_iff.1 hne) in
-  ⟨i, λ j hj, by { contrapose! hl, exact ⟨j, hl, hj⟩ }, (h i).lt_of_ne hi⟩
-
-lemma lex.le_of_of_lex_le [linear_order ι] [is_well_order ι (<)] [Π a, partial_order (β a)]
-  {a b : lex (Π i, β i)} (h : of_lex a ≤ of_lex b) : a ≤ b :=
-lex.le_of_forall_le h
-
 lemma to_lex_monotone [linear_order ι] [is_well_order ι (<)] [Π a, partial_order (β a)] :
   monotone (@to_lex (Π i, β i)) :=
-λ _ _, lex.le_of_forall_le
+λ a b h, or_iff_not_imp_left.2 $ λ hne,
+  let ⟨i, hi, hl⟩ := is_well_founded.wf.has_min {i | a i ≠ b i} (function.ne_iff.1 hne) in
+  ⟨i, λ j hj, by { contrapose! hl, exact ⟨j, hl, hj⟩ }, (h i).lt_of_ne hi⟩
 
 instance [linear_order ι] [is_well_order ι (<)] [Π a, partial_order (β a)]
   [Π a, order_bot (β a)] : order_bot (lex (Π a, β a)) :=
 { bot := to_lex ⊥,
-  bot_le := λ f, lex.le_of_of_lex_le bot_le }
+  bot_le := λ f, to_lex_monotone bot_le }
 
 instance [linear_order ι] [is_well_order ι (<)] [Π a, partial_order (β a)]
   [Π a, order_top (β a)] : order_top (lex (Π a, β a)) :=
 { top := to_lex ⊤,
-  le_top := λ f, lex.le_of_of_lex_le le_top }
+  le_top := λ f, to_lex_monotone le_top }
 
 instance [linear_order ι] [is_well_order ι (<)] [Π a, partial_order (β a)]
   [Π a, bounded_order (β a)] : bounded_order (lex (Π a, β a)) :=

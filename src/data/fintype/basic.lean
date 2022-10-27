@@ -2150,6 +2150,16 @@ instance pi.infinite_of_right {ι : Type*} {π : ι → Sort*} [∀ i, infinite 
   infinite (Π i : ι, π i) :=
 pi.infinite_of_exists_right (classical.arbitrary ι)
 
+/-- Non-dependent version of `pi.infinite_of_left`. -/
+instance function.infinite_of_left {ι π : Type*} [nontrivial π]
+  [infinite ι] : infinite (ι → π) :=
+pi.infinite_of_left
+
+/-- Non-dependent version of `pi.infinite_of_exists_right` and `pi.infinite_of_right`. -/
+instance function.infinite_of_right {ι π : Type*} [infinite π] [nonempty ι] :
+  infinite (ι → π) :=
+pi.infinite_of_right
+
 namespace infinite
 
 private noncomputable def nat_embedding_aux (α : Type*) [infinite α] : ℕ → α

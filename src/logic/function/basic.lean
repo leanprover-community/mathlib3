@@ -604,7 +604,7 @@ begin
   exact H
 end
 
-lemma extend_comp_of_factors_through (g : α → γ) (e' : β → γ)
+lemma factors_through.extend_comp (g : α → γ) (e' : β → γ)
   (hf : factors_through g f) :
   extend f g e' ∘ f = g :=
 funext $ λ a, by simp only [comp_app, extend_apply_of_factors_through g e' hf]

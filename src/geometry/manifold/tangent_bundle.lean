@@ -339,23 +339,28 @@ fiber corresponds to the derivative of the coordinate change in `M`. -/
 { coord_change := λ i j x, (fderiv_within 𝕜 (j.1.extend I ∘ (i.1.extend I).symm) (range I) (I x)),
   coord_change_smooth_clm := λ i j,
   begin
-    rw I.image_eq,
+    -- simp_rw [I.image_eq, function.comp],
+    -- refine cont_diff_on.congr _ (λ x hx, by rw [I.right_inv hx.2]),
+    -- intros x hx,
+    -- refine cont_diff_within_at.fderiv_within'' _ cont_diff_within_at_id _ le_top subset.rfl _,
+    -- have : cont_diff_within_at 𝕜 ∞ _ _ (x, x).2 :=
+    --   ((has_groupoid.compatible (cont_diff_groupoid ∞ I) i.2 j.2).1 x hx),
+    -- { refine this.comp_of_mem (x, x) cont_diff_within_at_snd _,
+    --   refine nhds_within_mono _ (snd_image_prod_subset _ _) _,
+    --   rw [inter_comm], refine inter_mem_nhds_within _ _,
+    --   exact I.continuous_at_symm.preimage_mem_nhds ((local_homeomorph.open_source _).mem_nhds hx.1), },
+
+    rw [I.image_eq],
     have A : cont_diff_on 𝕜 ∞
       (I ∘ (i.1.symm.trans j.1) ∘ I.symm)
       (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) :=
       (has_groupoid.compatible (cont_diff_groupoid ∞ I) i.2 j.2).1,
     have B : unique_diff_on 𝕜 (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) :=
       I.unique_diff_preimage_source,
-    have C : cont_diff_on 𝕜 ∞
-      (λ (p : E × E), (fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
-            (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) p.1 : E → E) p.2)
-      ((I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) ×ˢ univ) :=
-      cont_diff_on_fderiv_within_apply A B le_top,
     have D : ∀ x ∈ (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I),
-      fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
-            (range I) x =
-      fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
-            (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) x,
+      fderiv_within 𝕜 (j.1.extend I ∘ (i.1.extend I).symm) (range I) x =
+      fderiv_within 𝕜 (j.1.extend I ∘ (i.1.extend I).symm)
+        (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) x,
     { assume x hx,
       have N : I.symm ⁻¹' (i.1.symm.trans j.1).source ∈ nhds x :=
         I.continuous_symm.continuous_at.preimage_mem_nhds
@@ -375,17 +380,17 @@ fiber corresponds to the derivative of the coordinate change in `M`. -/
     have A : I.symm ⁻¹' (i.1.symm.trans i.1).source ∩ range I ∈ 𝓝[range I] (I x),
     { rw inter_comm,
       apply inter_mem_nhds_within,
-      apply I.continuous_symm.continuous_at.preimage_mem_nhds
+      apply I.continuous_at_symm.preimage_mem_nhds
         (is_open.mem_nhds (local_homeomorph.open_source _) _),
-      simp only [hx, i.1.map_target] with mfld_simps },
+      simp only [hx] with mfld_simps },
     have B : ∀ᶠ y in 𝓝[range I] (I x),
-      (I ∘ i.1 ∘ i.1.symm ∘ I.symm) y = (id : E → E) y,
+      (I ∘ i.1 ∘ (i.1.extend I).symm) y = (id : E → E) y,
     { filter_upwards [A] with _ hy,
       rw ← I.image_eq at hy,
       rcases hy with ⟨z, hz⟩,
       simp only with mfld_simps at hz,
       simp only [hz.2.symm, hz.1] with mfld_simps, },
-    have C : fderiv_within 𝕜 (I ∘ i.1 ∘ i.1.symm ∘ I.symm) (range I) (I x) =
+    have C : fderiv_within 𝕜 (i.1.extend I ∘ (i.1.extend I).symm) (range I) (I x) =
              fderiv_within 𝕜 (id : E → E) (range I) (I x) :=
       filter.eventually_eq.fderiv_within_eq I.unique_diff_at_image B
       (by simp only [hx] with mfld_simps),
@@ -404,24 +409,24 @@ fiber corresponds to the derivative of the coordinate change in `M`. -/
     have U : unique_diff_within_at 𝕜
       (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I) (I x) :=
       I.unique_diff_preimage_source _ M,
-    have A : fderiv_within 𝕜 ((I ∘ u.1 ∘ j.1.symm ∘ I.symm) ∘ (I ∘ j.1 ∘ i.1.symm ∘ I.symm))
+    have A : fderiv_within 𝕜 ((I ∘ u.1 ∘ j.1.symm ∘ I.symm) ∘ (j.1.extend I ∘ (i.1.extend I).symm))
              (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
              (I x)
       = (fderiv_within 𝕜 (I ∘ u.1 ∘ j.1.symm ∘ I.symm)
              (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I)
-             ((I ∘ j.1 ∘ i.1.symm ∘ I.symm) (I x))).comp
-        (fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
+             ((j.1.extend I ∘ (i.1.extend I).symm) (I x))).comp
+        (fderiv_within 𝕜 (j.1.extend I ∘ (i.1.extend I).symm)
              (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
              (I x)),
     { apply fderiv_within.comp _ _ _ _ U,
-      show differentiable_within_at 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
+      show differentiable_within_at 𝕜 (j.1.extend I ∘ (i.1.extend I).symm)
         (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
         (I x),
       { have A : cont_diff_on 𝕜 ∞
           (I ∘ (i.1.symm.trans j.1) ∘ I.symm)
           (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) :=
         (has_groupoid.compatible (cont_diff_groupoid ∞ I) i.2 j.2).1,
-        have B : differentiable_on 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
+        have B : differentiable_on 𝕜 (j.1.extend I ∘ (i.1.extend I).symm)
           (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I),
         { apply (A.differentiable_on le_top).mono,
           have : ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ⊆
@@ -431,7 +436,7 @@ fiber corresponds to the derivative of the coordinate change in `M`. -/
         simpa only [] with mfld_simps using hx },
       show differentiable_within_at 𝕜 (I ∘ u.1 ∘ j.1.symm ∘ I.symm)
         (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I)
-        ((I ∘ j.1 ∘ i.1.symm ∘ I.symm) (I x)),
+        ((j.1.extend I ∘ (i.1.extend I).symm) (I x)),
       { have A : cont_diff_on 𝕜 ∞
           (I ∘ (j.1.symm.trans u.1) ∘ I.symm)
           (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I) :=
@@ -441,32 +446,32 @@ fiber corresponds to the derivative of the coordinate change in `M`. -/
         simp only with mfld_simps,
         exact hx.2 },
       show (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
-        ⊆ (I ∘ j.1 ∘ i.1.symm ∘ I.symm) ⁻¹' (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I),
+        ⊆ (j.1.extend I ∘ (i.1.extend I).symm) ⁻¹' (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I),
       { assume y hy,
         simp only with mfld_simps at hy,
         rw [local_homeomorph.left_inv] at hy,
         { simp only [hy] with mfld_simps },
         { exact hy.1.1.2 } } },
     have B : fderiv_within 𝕜 ((I ∘ u.1 ∘ j.1.symm ∘ I.symm)
-                          ∘ (I ∘ j.1 ∘ i.1.symm ∘ I.symm))
+                          ∘ (j.1.extend I ∘ (i.1.extend I).symm))
              (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
              (I x)
-             = fderiv_within 𝕜 (I ∘ u.1 ∘ i.1.symm ∘ I.symm)
+             = fderiv_within 𝕜 (I ∘ u.1 ∘ (i.1.extend I).symm)
              (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
              (I x),
     { have E :
         ∀ y ∈ (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I),
-          ((I ∘ u.1 ∘ j.1.symm ∘ I.symm) ∘ (I ∘ j.1 ∘ i.1.symm ∘ I.symm)) y =
-            (I ∘ u.1 ∘ i.1.symm ∘ I.symm) y,
+          ((I ∘ u.1 ∘ j.1.symm ∘ I.symm) ∘ (j.1.extend I ∘ (i.1.extend I).symm)) y =
+            (I ∘ u.1 ∘ (i.1.extend I).symm) y,
       { assume y hy,
         simp only [function.comp_app, model_with_corners.left_inv],
         rw [j.1.left_inv],
         exact hy.1.1.2 },
       exact fderiv_within_congr U E (E _ M) },
-    have C : fderiv_within 𝕜 (I ∘ u.1 ∘ i.1.symm ∘ I.symm)
+    have C : fderiv_within 𝕜 (I ∘ u.1 ∘ (i.1.extend I).symm)
              (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
              (I x) =
-             fderiv_within 𝕜 (I ∘ u.1 ∘ i.1.symm ∘ I.symm)
+             fderiv_within 𝕜 (I ∘ u.1 ∘ (i.1.extend I).symm)
              (range I) (I x),
     { rw inter_comm,
       apply fderiv_within_inter _ I.unique_diff_at_image,
@@ -474,8 +479,8 @@ fiber corresponds to the derivative of the coordinate change in `M`. -/
         (is_open.mem_nhds (local_homeomorph.open_source _) _),
       simpa only [model_with_corners.left_inv] using hx },
     have D : fderiv_within 𝕜 (I ∘ u.1 ∘ j.1.symm ∘ I.symm)
-      (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I) ((I ∘ j.1 ∘ i.1.symm ∘ I.symm) (I x)) =
-      fderiv_within 𝕜 (I ∘ u.1 ∘ j.1.symm ∘ I.symm) (range I) ((I ∘ j.1 ∘ i.1.symm ∘ I.symm) (I x)),
+      (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I) ((j.1.extend I ∘ (i.1.extend I).symm) (I x)) =
+      fderiv_within 𝕜 (I ∘ u.1 ∘ j.1.symm ∘ I.symm) (range I) ((j.1.extend I ∘ (i.1.extend I).symm) (I x)),
     { rw inter_comm,
       apply fderiv_within_inter _ I.unique_diff_at_image,
       apply I.continuous_symm.continuous_at.preimage_mem_nhds
@@ -483,10 +488,10 @@ fiber corresponds to the derivative of the coordinate change in `M`. -/
       rw [local_homeomorph.trans_source] at hx,
       simp only with mfld_simps,
       exact hx.2 },
-    have E : fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
+    have E : fderiv_within 𝕜 (j.1.extend I ∘ (i.1.extend I).symm)
                (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
                (I x) =
-             fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm) (range I) (I x),
+             fderiv_within 𝕜 (j.1.extend I ∘ (i.1.extend I).symm) (range I) (I x),
     { rw inter_comm,
       apply fderiv_within_inter _ I.unique_diff_at_image,
       apply I.continuous_symm.continuous_at.preimage_mem_nhds

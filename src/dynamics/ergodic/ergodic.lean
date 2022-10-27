@@ -14,7 +14,7 @@ respect to `μ` (or `μ` is ergodic with respect to `f`) if the only measurable 
 
 In this file we define ergodic maps / measures together with quasi-ergodic maps / measures and
 provide some basic API. Quasi-ergodicity is a weaker condition than ergodicity for which the measure
-preserving condition relaxed to quasi measure preserving.
+preserving condition is relaxed to quasi measure preserving.
 
 # Main definitions:
 
@@ -80,7 +80,7 @@ end ergodic
 namespace quasi_ergodic
 
 /-- For a quasi ergodic map, sets that are almost invariant (rather than strictly invariant) are
-still either almost empty or full.-/
+still either almost empty or full. -/
 lemma ae_empty_or_univ'
   (hf : quasi_ergodic f μ) (hs : measurable_set s) (hs' : f⁻¹' s =ᵐ[μ] s) :
   s =ᵐ[μ] (∅ : set α) ∨ s =ᵐ[μ] univ :=

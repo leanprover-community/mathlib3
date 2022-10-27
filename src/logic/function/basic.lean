@@ -555,7 +555,7 @@ lemma extend_def (f : α → β) (g : α → γ) (e' : β → γ) (b : β) [deci
   extend f g e' b = if h : ∃ a, f a = b then g (classical.some h) else e' b :=
 by { unfold extend, congr }
 
-lemma extend_apply_of_factors_through (g : α → γ) (e' : β → γ)
+lemma factors_through.extend_apply (g : α → γ) (e' : β → γ)
   (hf : g.factors_through f) (a : α) :
   extend f g e' (f a) = g a :=
 begin

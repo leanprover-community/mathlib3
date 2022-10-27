@@ -89,6 +89,9 @@ theorem to_subalgebra_injective :
 theorem to_subalgebra_inj {S U : star_subalgebra R A} : S.to_subalgebra = U.to_subalgebra ↔ S = U :=
 to_subalgebra_injective.eq_iff
 
+lemma to_subalgebra_le_iff {S₁ S₂ : star_subalgebra R A} :
+  S₁.to_subalgebra ≤ S₂.to_subalgebra ↔ S₁ ≤ S₂ := iff.rfl
+
 /-- Copy of a star subalgebra with a new `carrier` equal to the old one. Useful to fix definitional
 equalities. -/
 protected def copy (S : star_subalgebra R A) (s : set A) (hs : s = ↑S) : star_subalgebra R A :=
@@ -319,13 +322,6 @@ variables {F R A B : Type*} [comm_semiring R] [star_ring R]
 variables [semiring A] [algebra R A] [star_ring A] [star_module R A]
 variables [semiring B] [algebra R B] [star_ring B] [star_module R B]
 
-lemma ext_to_subalgebra {S₁ S₂ : star_subalgebra R A} (h : S₁.to_subalgebra = S₂.to_subalgebra) :
-  S₁ = S₂ :=
-by {ext, convert set_like.ext_iff.mp h x}
-
-lemma to_subalgebra_le_iff {S₁ S₂ : star_subalgebra R A} :
-  S₁.to_subalgebra ≤ S₂.to_subalgebra ↔ S₁ ≤ S₂ := iff.rfl
-
 variables (R)
 
 /-- The minimal star subalgebra that contains `s`. -/
@@ -335,7 +331,7 @@ variables (R)
   .. (algebra.adjoin R (s ∪ star s)) }
 
 lemma adjoin_eq_star_closure_adjoin (s : set A) : adjoin R s = (algebra.adjoin R s).star_closure :=
-ext_to_subalgebra $
+to_subalgebra_injective $
   show algebra.adjoin R (s ∪ star s) = algebra.adjoin R s ⊔ star (algebra.adjoin R s),
   from (subalgebra.star_adjoin_comm R s).symm ▸ algebra.adjoin_union s (star s)
 

@@ -132,18 +132,6 @@ section partial_order
 
 variable [partial_order α]
 
-lemma Ici_eq (a b : α) : Ici a = Ici b ↔ a = b :=
-begin
-  split,
-  { intro h,
-    rw le_antisymm_iff,
-    rw subset_antisymm_iff at h,
-    split,
-    { rw ← Ici_subset_Ici, exact h.2, },
-    { rw ← Ici_subset_Ici, exact h.1, } },
-  { apply congr_arg, }
-end
-
 /--
 The non-empty complements of the upper closures of finite subsets are a collection of lower sets
 which form a basis for the lower topology
@@ -165,7 +153,7 @@ begin
   begin
     intros a b,
     simp only [compl_inj_iff],
-    rw Ici_eq,
+    rw set.Ici_inj,
     exact congr_arg (λ ⦃a : α⦄, a),
   end⟩ : lower α ↪ set (lower α)),
   split,

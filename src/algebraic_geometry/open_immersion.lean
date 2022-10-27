@@ -1685,15 +1685,15 @@ lemma image_basic_open {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
   {U : opens X.carrier} (r : X.presheaf.obj (op U)) :
   f.opens_functor.obj (X.basic_open r) = Y.basic_open (f.inv_app U r) :=
 begin
-  have e := Scheme.preimage_basic_open f (f.inv_app U r),
-  rw [Scheme.hom.inv_app, PresheafedSpace.is_open_immersion.inv_app_app_apply,
-    Scheme.basic_open_res, opens.inter_eq, inf_eq_right.mpr _] at e,
+  have e := Scheme.preimage_basic_open f (H.inv_app U r),
+  rw [PresheafedSpace.is_open_immersion.inv_app_app_apply, Scheme.basic_open_res,
+    inf_eq_right.mpr _] at e,
   rw ← e,
   ext1,
   refine set.image_preimage_eq_inter_range.trans _,
   erw set.inter_eq_left_iff_subset,
-  refine set.subset.trans (Scheme.basic_open_subset _ _) (set.image_subset_range _ _),
-  refine le_trans (Scheme.basic_open_subset _ _) (le_of_eq _),
+  refine set.subset.trans (Scheme.basic_open_le _ _) (set.image_subset_range _ _),
+  refine le_trans (Scheme.basic_open_le _ _) (le_of_eq _),
   ext1,
   exact (set.preimage_image_eq _ H.base_open.inj).symm
 end
@@ -2003,7 +2003,7 @@ begin
   erw ← e,
   ext1, dsimp [opens.map, opens.inclusion],
   rw [set.image_preimage_eq_inter_range, set.inter_eq_left_iff_subset, subtype.range_coe],
-  exact Y.basic_open_subset r
+  exact Y.basic_open_le r
 end
 
 instance {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) [is_open_immersion f] :

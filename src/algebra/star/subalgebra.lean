@@ -52,6 +52,10 @@ instance : subsemiring_class (star_subalgebra R A) A :=
   one_mem := one_mem',
   zero_mem := zero_mem' }
 
+instance {R A} [comm_ring R] [star_ring R] [ring A] [star_ring A] [algebra R A] [star_module R A] :
+  subring_class (star_subalgebra R A) A :=
+{ neg_mem := λ s a ha, show -a ∈ s.to_subalgebra, from neg_mem ha }
+
 -- this uses the `has_star` instance `s` inherits from `star_mem_class (star_subalgebra R A) A`
 instance (s : star_subalgebra R A) : star_ring s :=
 { star := star,

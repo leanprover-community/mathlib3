@@ -60,8 +60,6 @@ section pre_order
 
 variable [preorder α]
 
-lemma lower_topology_def : (lower_topology α) = generate_from {s | ∃ a, (Ici a)ᶜ = s} := rfl
-
 lemma is_open_iff_generate_Ici_comp {s : set (lower α)} :
   is_open s ↔ generate_open {s | ∃ a, (Ici a)ᶜ = s} s := iff.rfl
 
@@ -145,7 +143,7 @@ def lower_basis (α : Type u) [preorder α] :=
 
 lemma lower_basis_is_basis : is_topological_basis (lower_basis (lower α)) :=
 begin
-  convert is_topological_basis_of_subbasis lower_topology_def,
+  convert is_topological_basis_of_subbasis rfl,
   rw image,
   ext,
   rw mem_set_of_eq,

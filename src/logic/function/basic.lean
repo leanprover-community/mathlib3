@@ -555,8 +555,7 @@ lemma extend_def (f : α → β) (g : α → γ) (e' : β → γ) (b : β) [deci
   extend f g e' b = if h : ∃ a, f a = b then g (classical.some h) else e' b :=
 by { unfold extend, congr }
 
-lemma factors_through.extend_apply (g : α → γ) (e' : β → γ)
-  (hf : g.factors_through f) (a : α) :
+lemma factors_through.extend_apply {g : α → γ} (hf : g.factors_through f) (e' : β → γ) (a : α) :
   extend f g e' (f a) = g a :=
 begin
   simp only [extend_def, dif_pos, exists_apply_eq_apply],
@@ -565,7 +564,7 @@ end
 
 @[simp] lemma injective.extend_apply (hf : f.injective) (g : α → γ) (e' : β → γ) (a : α) :
   extend f g e' (f a) = g a :=
-(hf.factors_through g).extend_apply g e' a
+(hf.factors_through g).extend_apply e' a
 
 @[simp] lemma extend_apply' (g : α → γ) (e' : β → γ) (b : β) (hb : ¬∃ a, f a = b) :
   extend f g e' b = e' b :=
@@ -573,13 +572,12 @@ by simp [function.extend_def, hb]
 
 lemma factors_through_iff (g : α → γ) [nonempty γ] :
   g.factors_through f ↔ ∃ (e : β → γ), g = e ∘ f :=
-iff.intro
-  (λ hf, ⟨extend f g (const β (classical.arbitrary γ)),
-      funext (λ x, by simp only [comp_app, hf.extend_apply g _])⟩)
-  (λ h a b hf, by rw [classical.some_spec h, comp_apply, hf])
+⟨λ hf, ⟨extend f g (const β (classical.arbitrary γ)),
+      funext (λ x, by simp only [comp_app, hf.extend_apply])⟩,
+  λ h a b hf, by rw [classical.some_spec h, comp_apply, hf]⟩
 
-lemma factors_through.apply_extend {δ} (F : γ → δ) (g : α → γ) (e' : β → γ)
-  (hf : factors_through g f) (b : β) :
+lemma factors_through.apply_extend {δ} {g : α → γ} (hf : factors_through g f)
+  (F : γ → δ) (e' : β → γ) (b : β) :
   F (extend f g e' b) = extend f (F ∘ g) (F ∘ e') b :=
 begin
   by_cases hb : ∃ a, f a = b,
@@ -592,7 +590,7 @@ end
 
 lemma injective.apply_extend {δ} (hf : injective f) (F : γ → δ) (g : α → γ) (e' : β → γ) (b : β) :
   F (extend f g e' b) = extend f (F ∘ g) (F ∘ e') b :=
-(hf.factors_through g).apply_extend F g e' b
+(hf.factors_through g).apply_extend F e' b
 
 lemma extend_injective (hf : injective f) (e' : β → γ) :
   injective (λ g, extend f g e') :=
@@ -607,7 +605,7 @@ end
 lemma factors_through.extend_comp (g : α → γ) (e' : β → γ)
   (hf : factors_through g f) :
   extend f g e' ∘ f = g :=
-funext $ λ a, by simp only [comp_app, hf.extend_apply g e']
+funext $ λ a, by simp only [comp_app, hf.extend_apply e']
 
 @[simp] lemma extend_comp (hf : injective f) (g : α → γ) (e' : β → γ) :
   extend f g e' ∘ f = g :=

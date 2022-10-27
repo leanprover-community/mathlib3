@@ -52,8 +52,7 @@ end
 lemma σ_comp_P_eq_zero (X : simplicial_object C)
   {n q : ℕ} (i : fin (n + 1)) (hi : n + 1 ≤ i + q) : (X.σ i) ≫ (P q).f (n + 1) = 0 :=
 begin
-  revert i hi,
-  induction q with q hq,
+  induction q with q hq generalizing i hi,
   { intros i hi,
     exfalso,
     have h := fin.is_lt i,

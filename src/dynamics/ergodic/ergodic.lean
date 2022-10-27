@@ -13,23 +13,25 @@ respect to `μ` (or `μ` is ergodic with respect to `f`) if the only measurable 
 `f⁻¹' s = s` are either almost empty or full.
 
 In this file we define ergodic maps / measures together with quasi-ergodic maps / measures and
-provide some basic API.
+provide some basic API. Quasi-ergodicity is a weaker condition than ergodicity for which the measure
+preserving condition relaxed to quasi measure preserving.
 
 # Main definitions:
 
  * `pre_ergodic`: the ergodicity condition without the measure preserving condition. This exists
- to share code between the `ergodic` and `quasi_ergodic` definitions.
+   to share code between the `ergodic` and `quasi_ergodic` definitions.
  * `ergodic`: the definition of ergodic maps / measures.
  * `quasi_ergodic`: the definition of quasi ergodic maps / measures.
  * `ergodic.quasi_ergodic`: an ergodic map / measure is quasi ergodic.
  * `quasi_ergodic.ae_empty_or_univ'`: when the map is quasi measure preserving, one may relax the
- strict invariance condition to almost invariance in the ergodicity condition.
+   strict invariance condition to almost invariance in the ergodicity condition.
 
 -/
 
 open set function filter measure_theory measure_theory.measure
 
-variables {α : Type*} [measurable_space α] (f : α → α) {s : set α}
+variables {α : Type*} {m : measurable_space α} (f : α → α) {s : set α}
+include m
 
 /-- A map `f : α → α` is said to be pre-ergodic with respect to a measure `μ` if any measurable
 strictly invariant set is either almost empty or full. -/

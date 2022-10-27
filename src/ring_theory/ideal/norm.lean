@@ -457,51 +457,29 @@ begin
     rw fintype.card_eq,
     exact ⟨hquot⟩ },
   choose a a_mem a_not_mem using set_like.exists_of_lt this,
-  -- TODO: can we do this with less repetition?
-  refine equiv.of_bijective (λ c', quotient.mk' _) ⟨_, _⟩,
-  { cases c' with c' hc',
-    choose c hc eq_c' using submodule.mem_map.mp hc',
-    exact (ideal.exists_mul_add_mem_pow_succ P hP a c a_mem a_not_mem hc).some },
-  { intros c₁' c₂' h,
-    cases c₁' with c₁' hc₁',
-    cases c₂' with c₂' hc₂',
-    rw subtype.mk_eq_mk,
-    replace h := (submodule.quotient.eq _).mp h,
-    simp only [mkq_apply, ideal.quotient.mk_eq_mk, mem_map] at h,
-    obtain ⟨hc₁, eq_c₁'⟩ := classical.some_spec (submodule.mem_map.mp hc₁'),
-    obtain ⟨hc₂, eq_c₂'⟩ := classical.some_spec (submodule.mem_map.mp hc₂'),
-    intro h,
-    rw [← eq_c₁', ← eq_c₂', mkq_apply, mkq_apply, submodule.quotient.eq],
-    obtain ⟨he₁, hd₁⟩ :=
-      (ideal.exists_mul_add_mem_pow_succ P hP a _ a_mem a_not_mem hc₁).some_spec.some_spec,
-    obtain ⟨he₂, hd₂⟩ :=
-      (ideal.exists_mul_add_mem_pow_succ P hP a _ a_mem a_not_mem hc₂).some_spec.some_spec,
-    rw [← hd₁, ← hd₂],
-    exact ideal.mul_add_mem_pow_succ_inj P a _ _ _ _ a_mem he₁ he₂ h },
+  choose f g hg hf using λ c (hc : c ∈ P ^ i),
+    ideal.exists_mul_add_mem_pow_succ P hP a c a_mem a_not_mem hc,
+  choose k hk_mem hk_eq using λ c' (hc' : c' ∈ (map (mkq (P ^ i.succ)) (P ^ i))),
+    submodule.mem_map.mp hc',
+  refine equiv.of_bijective (λ c', quotient.mk' (f (k c' c'.prop) (hk_mem c' c'.prop))) ⟨_, _⟩,
+  { rintros ⟨c₁', hc₁'⟩ ⟨c₂', hc₂'⟩ h,
+    rw [subtype.mk_eq_mk, ← hk_eq _ hc₁', ← hk_eq _ hc₂', mkq_apply, mkq_apply,
+        submodule.quotient.eq, ← hf _ (hk_mem _ hc₁'), ← hf _ (hk_mem _ hc₂')],
+    refine ideal.mul_add_mem_pow_succ_inj _ _ _ _ _ _ a_mem (hg _ _) (hg _ _) _,
+    simpa only [submodule.quotient.mk'_eq_mk, submodule.quotient.mk'_eq_mk, submodule.quotient.eq]
+      using h, },
   { intros d',
     refine quotient.induction_on' d' (λ d, _),
-    have hc' := ideal.mul_mem_right d _ a_mem,
-    have hd' := mem_map.mpr ⟨a * d, hc', rfl⟩,
+    have hd' := mem_map.mpr ⟨a * d, ideal.mul_mem_right d _ a_mem, rfl⟩,
     refine ⟨⟨_, hd'⟩, _⟩,
-    simp only [submodule.quotient.mk'_eq_mk, ideal.quotient.mk_eq_mk, ideal.quotient.eq],
-    obtain ⟨he, hd''⟩ :=
-      (ideal.exists_mul_add_mem_pow_succ P hP a _ a_mem a_not_mem hc').some_spec.some_spec,
-    refine ideal.mul_add_mem_pow_succ_unique P hP a _ _ 0 _ a_not_mem _ he _,
-    { exact (P ^ (i + 1)).zero_mem },
-    convert submodule.neg_mem _ (ideal.add_mem _ he he), -- Come on, Lean!
-    rw add_zero,
-    conv_lhs { congr, skip, congr, rw ← hd'' },
-    rw [eq_neg_iff_add_eq_zero, add_assoc, ← sub_sub, sub_add_cancel],
-    convert sub_self _,
-    -- At some point we used `a * d` as a witness for an existential,
-    -- so now we need to show the choice of witness doesn't matter.
-    have sub_mem := (submodule.quotient.eq _).mp (classical.some_spec (mem_map.mp hd')).2,
-    ext x,
-    split; rintro ⟨e, he, eq⟩,
-    { refine ⟨_, submodule.add_mem _ he sub_mem, _⟩,
-      rw [← add_assoc, eq], ring },
-    { refine ⟨_, submodule.sub_mem _ he sub_mem, _⟩,
-      rw [← add_sub_assoc, eq], ring } }
+    simp only [submodule.quotient.mk'_eq_mk, ideal.quotient.mk_eq_mk, ideal.quotient.eq,
+        subtype.coe_mk],
+    refine ideal.mul_add_mem_pow_succ_unique P hP a _ _ _ _ a_not_mem
+      (hg _ (hk_mem _ hd'))
+      (zero_mem _)
+      _,
+    rw [hf, add_zero],
+    exact (submodule.quotient.eq _).mp (hk_eq _ hd') }
 end
 
 /-- Multiplicativity of the ideal norm in number rings. -/

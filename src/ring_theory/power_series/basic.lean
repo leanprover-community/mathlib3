@@ -289,7 +289,7 @@ variables (σ) (R)
 /-- The constant multivariate formal power series.-/
 def C : R →+* mv_power_series σ R :=
 { map_one' := rfl,
-  map_mul' := λ a b, (monomial_mul_monomial 0 0 a b).symm,
+  map_mul' := λ a b, by simpa only [zero_add] using (monomial_mul_monomial (0 : σ →₀ ℕ) 0 a b).symm,
   map_zero' := (monomial R (0 : _)).map_zero,
   .. monomial R (0 : σ →₀ ℕ) }
 

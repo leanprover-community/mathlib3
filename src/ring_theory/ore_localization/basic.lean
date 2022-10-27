@@ -530,7 +530,7 @@ begin
   rcases ore_div_add_char' r₂ r₃ s₂ s₃ with ⟨rb, sb, hb, hb'⟩, rw hb', clear hb',
   rcases ore_div_add_char' (r₁ * sa + r₂ * ra) r₃ (s₁ * sa) s₃ with ⟨rc, sc, hc, q⟩, rw q, clear q,
   rcases ore_div_add_char' r₁ (r₂ * sb + r₃ * rb) s₁ (s₂ * sb) with ⟨rd, sd, hd, q⟩, rw q, clear q,
-  noncomm_ring, rw add_comm (r₂ * _),
+  noncomm_ring_nf, rw add_comm (r₂ * _),
   repeat { rw ←add_ore_div },
   congr' 1,
   { rcases ore_condition (sd : R) (sa * sc) with ⟨re, se, he⟩,

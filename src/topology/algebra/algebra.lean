@@ -90,7 +90,7 @@ rfl
 instance subalgebra.topological_semiring (s : subalgebra R A) : topological_semiring s :=
 s.to_subsemiring.topological_semiring
 
-lemma subalgebra.subalgebra_topological_closure (s : subalgebra R A) :
+lemma subalgebra.le_topological_closure (s : subalgebra R A) :
   s ≤ s.topological_closure :=
 subset_closure
 

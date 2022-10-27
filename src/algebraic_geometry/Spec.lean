@@ -224,7 +224,8 @@ section Spec_Γ
 open algebraic_geometry.LocallyRingedSpace
 
 /-- The counit morphism `R ⟶ Γ(Spec R)` given by `algebraic_geometry.structure_sheaf.to_open`.  -/
-@[simps] def to_Spec_Γ (R : CommRing) : R ⟶ Γ.obj (op (Spec.to_LocallyRingedSpace.obj (op R))) :=
+@[simps {rhs_md := tactic.transparency.semireducible}]
+def to_Spec_Γ (R : CommRing) : R ⟶ Γ.obj (op (Spec.to_LocallyRingedSpace.obj (op R))) :=
 structure_sheaf.to_open R ⊤
 
 instance is_iso_to_Spec_Γ (R : CommRing) : is_iso (to_Spec_Γ R) :=

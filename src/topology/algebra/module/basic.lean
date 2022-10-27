@@ -208,7 +208,7 @@ def submodule.topological_closure (s : submodule R M) : submodule R M :=
   (s.topological_closure : set M) = closure (s : set M) :=
 rfl
 
-lemma submodule.submodule_topological_closure (s : submodule R M) :
+lemma submodule.le_topological_closure (s : submodule R M) :
   s ≤ s.topological_closure :=
 subset_closure
 

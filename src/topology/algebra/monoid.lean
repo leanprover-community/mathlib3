@@ -281,7 +281,7 @@ def submonoid.topological_closure (s : submonoid M) : submonoid M :=
   mul_mem' := λ a b ha hb, s.top_closure_mul_self_subset ⟨a, b, ha, hb, rfl⟩ }
 
 @[to_additive]
-lemma submonoid.submonoid_topological_closure (s : submonoid M) :
+lemma submonoid.le_topological_closure (s : submonoid M) :
   s ≤ s.topological_closure :=
 subset_closure
 

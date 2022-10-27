@@ -528,7 +528,7 @@ def subgroup.topological_closure (s : subgroup G) : subgroup G :=
   (s.topological_closure : set G) = closure s :=
 rfl
 
-@[to_additive] lemma subgroup.subgroup_topological_closure (s : subgroup G) :
+@[to_additive] lemma subgroup.le_topological_closure (s : subgroup G) :
   s ≤ s.topological_closure :=
 subset_closure
 

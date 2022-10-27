@@ -908,11 +908,11 @@ lemma rec_heq_of_heq {β} {C : α → Sort*} {x : C a} {y : β} (eq : a = b) (h 
   @eq.rec α a C x b eq == y :=
 by subst eq; exact h
 
-@[simp] lemma rec_heq_iff_heq {β} {C : α → Sort*} {x : C a} {y : β} {eq : a = b} :
+lemma rec_heq_iff_heq {β} {C : α → Sort*} {x : C a} {y : β} {eq : a = b} :
   @eq.rec α a C x b eq == y ↔ x == y :=
 by subst eq
 
-@[simp] lemma heq_rec_iff_heq {β} {C : α → Sort*} {x : β} {y : C a} {eq : a = b} :
+lemma heq_rec_iff_heq {β} {C : α → Sort*} {x : β} {y : C a} {eq : a = b} :
   x == @eq.rec α a C y b eq ↔ x == y :=
 by subst eq
 

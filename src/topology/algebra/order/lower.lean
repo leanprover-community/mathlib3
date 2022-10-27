@@ -141,6 +141,8 @@ def lower_basis (α : Type u) [preorder α] :=
   ↑(upper_closure F).compl = s ∧
   s.nonempty }
 
+#check compl_inj_iff
+
 lemma lower_basis_is_basis : is_topological_basis (lower_basis (lower α)) :=
 begin
   convert is_topological_basis_of_subbasis lower_topology_def,
@@ -149,13 +151,8 @@ begin
   rw mem_set_of_eq,
   unfold lower_basis,
   rw mem_set_of_eq,
-  let g := (⟨λ a, (Ici a)ᶜ,
-  begin
-    intros a b,
-    simp only [compl_inj_iff],
-    rw set.Ici_inj,
-    exact congr_arg (λ ⦃a : α⦄, a),
-  end⟩ : lower α ↪ set (lower α)),
+  let g := (⟨compl ∘ Ici,function.injective.comp compl_injective Ici_injective⟩
+   : lower α ↪ set (lower α)),
   split,
   { intro h,
     cases h with F,

@@ -265,7 +265,6 @@ noncomputable def dense_inducing.extend_hom {i : α →+* β} {f : α →+* γ}
       intros a b,
       simp_rw [← i.map_mul, dense_inducing.extend_eq (ue.dense_inducing dr) hf.continuous _,
         ← f.map_mul],
-    end
-  }
+    end, }
 
 end uniform_extension

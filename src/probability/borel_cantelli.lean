@@ -23,7 +23,7 @@ filtration.
 
 open_locale measure_theory probability_theory ennreal big_operators topological_space
 
-open measure_theory probability_theory measurable_space
+open measure_theory probability_theory measurable_space topological_space
 
 namespace probability_theory
 
@@ -33,18 +33,72 @@ section borel_cantelli
 
 variables [is_probability_measure μ]
 
+section move
+
+variables {β : Type*} [mβ : measurable_space β]
+
+lemma measurable.comap_le_of_measurable {f : Ω → β} (hf : measurable f) :
+  mβ.comap f ≤ m0 :=
+begin
+  rintro s ⟨t, ht, rfl⟩,
+  exact hf ht
+end
+
+lemma measurable_space.comap_measurable (f : Ω → β) :
+  measurable[mβ.comap f] f :=
+λ s hs, ⟨s, hs, rfl⟩
+
+variables [normed_add_comm_group β] [second_countable_topology β] [complete_space β]
+  [normed_space ℝ β] [borel_space β]
+
+lemma Indep_fun.indep_comap_succ_natural {f : ℕ → Ω → β}
+  (hf : ∀ (i : ℕ), strongly_measurable (f i))
+  (hfi : Indep_fun (λ (n : ℕ), mβ) f μ) (n : ℕ) :
+  indep (measurable_space.comap (f (n + 1)) mβ) (filtration.natural f hf n) μ :=
+begin
+  suffices : indep (⨆ k ∈ {n + 1}, measurable_space.comap (f k) mβ)
+    (⨆ k ∈ {k | k ≤ n}, measurable_space.comap (f k) mβ) μ,
+  { rwa supr_singleton at this },
+  refine indep_supr_of_disjoint (λ k, (hf k).measurable.comap_le_of_measurable) hfi _,
+  simp
+end
+
+lemma Indep_fun.condexp_succ_natrual_ae_eq
+  {f : ℕ → Ω → β} (hf : ∀ i, strongly_measurable (f i)) (hfi : Indep_fun (λ n, mβ) f μ) (n : ℕ) :
+  μ[f (n + 1) | filtration.natural f hf n] =ᵐ[μ] λ ω, μ[f (n + 1)] :=
+condexp_indep_eq (hf $ n + 1).measurable.comap_le_of_measurable
+  (filtration.le _ _) (measurable_space.comap_measurable $ f $ n + 1).strongly_measurable
+  (hfi.indep_comap_succ_natural hf n)
+
+end move
+
+#check indep_fun_iff_indep_set_preimage
+
+lemma Indep_set.Indep_fun_indicator (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) :
+  Indep_fun (λ n, real.measurable_space) (λ n, (s n).indicator (λ ω, 1)) μ :=
+begin
+  classical,
+  rw Indep_fun_iff_measure_inter_preimage_eq_mul,
+  rintro S π hπ,
+  simp_rw set.indicator_const_preimage_eq_union,
+  by_cases hπ' : ∃ n ∈ S, (1 : ℝ) ∉ π n,
+  { obtain ⟨n, hn, hn'⟩ := hπ',
+    rw (set.Inter₂_eq_empty_iff.2 $ λ ω, ⟨n, hn, _⟩),
+    rw finset.prod_eq_zero hn,
+    rw measure_empty,
+    simp,
+
+  },
+end
+
 lemma Indep_set.condexp_indicator_filtration_of_set_ae_eq
   (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (n : ℕ) :
   μ[(s (n + 1)).indicator (λ ω, 1 : Ω → ℝ) | filtration_of_set hsm n] =ᵐ[μ]
     λ ω, (μ (s (n + 1))).to_real :=
 begin
-  refine (condexp_indep_eq (generate_from_le
-    (λ t ht, (set.mem_singleton_iff.1 ht).symm ▸ hsm _) : generate_from {s (n + 1)} ≤ m0)
-    ((filtration_of_set hsm).le n)
-    (strongly_measurable_one.indicator (measurable_set_generate_from (set.mem_singleton _)))
-    (hs.indep_generate_from_le_nat hsm n)).trans (ae_of_all μ (λ ω, _)),
-  convert integral_indicator_const (1 : ℝ) (hsm (n + 1)),
-  rw [smul_eq_mul, mul_one],
+  rw filtration.filtration_of_set_eq_natural hsm,
+  refine (Indep_fun.condexp_succ_natrual_ae_eq _ _ n).trans _,
+  --(λ n, strongly_measurable_const.indicator (hsm n)),
 end
 
 lemma Indep_set.condexp_indicator_filtration_of_set_ae_eq'

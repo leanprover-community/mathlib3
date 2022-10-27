@@ -331,6 +331,10 @@ end
 
 end picard_lindelof
 
+lemma is_picard_lindelof.norm_le₀ {v : ℝ → E → E} {t_min t₀ t_max : ℝ} {x₀ : E} {C R : ℝ} {L : ℝ≥0}
+  (hpl : is_picard_lindelof v t_min t₀ t_max x₀ L R C) : ∥v t₀ x₀∥ ≤ C :=
+hpl.norm_le t₀ hpl.ht₀ x₀ $ mem_closed_ball_self hpl.hR
+
 /-- Picard-Lindelöf (Cauchy-Lipschitz) theorem. -/
 theorem exists_forall_deriv_within_Icc_eq_of_is_picard_lindelof
   [complete_space E] {v : ℝ → E → E} {t_min t₀ t_max : ℝ} (x₀ : E) {C R : ℝ} {L : ℝ≥0}
@@ -338,17 +342,10 @@ theorem exists_forall_deriv_within_Icc_eq_of_is_picard_lindelof
   ∃ f : ℝ → E, f t₀ = x₀ ∧ ∀ t ∈ Icc t_min t_max,
     has_deriv_within_at f (v t (f t)) (Icc t_min t_max) t :=
 begin
-  lift C to ℝ≥0 using ((norm_nonneg _).trans $ hpl.norm_le t₀ hpl.ht₀ x₀
-    (mem_closed_ball_self hpl.hR)),
+  lift C to ℝ≥0 using (norm_nonneg _).trans hpl.norm_le₀,
   lift t₀ to Icc t_min t_max using hpl.ht₀,
   exact picard_lindelof.exists_solution
-    ⟨v, t_min, t_max, t₀, x₀, C, ⟨R, hpl.hR⟩, L,
-      { ht₀ := t₀.property,
-        hR := hpl.hR,
-        lipschitz := hpl.lipschitz,
-        cont := hpl.cont,
-        norm_le := hpl.norm_le,
-        C_mul_le_R := hpl.C_mul_le_R }⟩
+    ⟨v, t_min, t_max, t₀, x₀, C, ⟨R, hpl.hR⟩, L, { ht₀ := t₀.property, ..hpl }⟩
 end
 
 variables [proper_space E] {v : E → E} (t₀ : ℝ) (x₀ : E)
@@ -357,7 +354,7 @@ variables [proper_space E] {v : E → E} (t₀ : ℝ) (x₀ : E)
   Picard-Lindelöf theorem. -/
 lemma is_picard_lindelof_of_time_indep_cont_diff_on_nhds
   {s : set E} (hv : cont_diff_on ℝ 1 v s) (hs : s ∈ 𝓝 x₀) :
-  ∃ (ε > (0 : ℝ)) (L R C), is_picard_lindelof (λ t, v) (t₀ - ε) t₀ (t₀ + ε) x₀ L R C :=
+  ∃ (ε > (0 : ℝ)) L R C, is_picard_lindelof (λ t, v) (t₀ - ε) t₀ (t₀ + ε) x₀ L R C :=
 begin
   -- extract Lipschitz constant
   obtain ⟨L, s', hs', hlip⟩ := cont_diff_at.exists_lipschitz_on_with
@@ -398,33 +395,22 @@ interval. -/
 theorem exists_forall_deriv_at_ball_eq_of_cont_diff_on_nhds
   {s : set E} (hv : cont_diff_on ℝ 1 v s) (hs : s ∈ 𝓝 x₀) :
   ∃ (ε > (0 : ℝ)) (f : ℝ → E), f t₀ = x₀ ∧
-    ∀ t ∈ Ioo (t₀ - ε) (t₀ + ε), has_deriv_at f (v (f t)) t :=
+    ∀ t ∈ Ioo (t₀ - ε) (t₀ + ε), f t ∈ s ∧ has_deriv_at f (v (f t)) t :=
 begin
   obtain ⟨ε, hε, L, R, C, hpl⟩ := is_picard_lindelof_of_time_indep_cont_diff_on_nhds t₀ x₀ hv hs,
   obtain ⟨f, hf1, hf2⟩ := exists_forall_deriv_within_Icc_eq_of_is_picard_lindelof x₀ hpl,
-  exact ⟨ε, hε, f, hf1, λ t ht, (hf2 t (Ioo_subset_Icc_self ht)).has_deriv_at
-    (Icc_mem_nhds ht.1 ht.2)⟩,
-end
-
-/-- Refinement of `exists_forall_deriv_at_ball_eq_of_cont_diff_on_nhds` where the solution maps to
-within the specified neighbourhood `s` on which `v` is continuously differentiable. -/
-theorem ODE_solution_exists.at_ball_of_cont_diff_on_nhds_mem_set
-  {s : set E} (hv : cont_diff_on ℝ 1 v s) (hs : s ∈ 𝓝 x₀) :
-  ∃ (ε > (0 : ℝ)) (f : ℝ → E), f t₀ = x₀ ∧
-    ∀ t ∈ Ioo (t₀ - ε) (t₀ + ε), f t ∈ s ∧ has_deriv_at f (v (f t)) t :=
-begin
-  obtain ⟨ε, hε, f, hf1, hf2⟩ := exists_forall_deriv_at_ball_eq_of_cont_diff_on_nhds t₀ x₀ hv hs,
+  have hf2' : ∀ t ∈ Ioo (t₀ - ε) (t₀ + ε), has_deriv_at f (v (f t)) t :=
+    λ t ht, (hf2 t (Ioo_subset_Icc_self ht)).has_deriv_at (Icc_mem_nhds ht.1 ht.2),
   have h : (f ⁻¹' s) ∈ 𝓝 t₀,
-  { apply continuous_at.preimage_mem_nhds
-    (hf2 t₀ (mem_Ioo.mpr ⟨sub_lt_self _ hε, lt_add_of_pos_right _ hε⟩)).continuous_at,
+  { have := (hf2' t₀ (mem_Ioo.mpr ⟨sub_lt_self _ hε, lt_add_of_pos_right _ hε⟩)),
+    apply continuous_at.preimage_mem_nhds this.continuous_at,
     rw hf1,
     exact hs },
   rw metric.mem_nhds_iff at h,
   obtain ⟨r, hr1, hr2⟩ := h,
   refine ⟨min r ε, lt_min hr1 hε, f, hf1, λ t ht,
-    ⟨_, hf2 t (mem_of_mem_of_subset ht (Ioo_subset_Ioo
-      (sub_le_sub_left (min_le_right _ _) _)
-      (add_le_add_left (min_le_right _ _) _)))⟩⟩,
+    ⟨_, hf2' t (mem_of_mem_of_subset ht (Ioo_subset_Ioo
+      (sub_le_sub_left (min_le_right _ _) _) (add_le_add_left (min_le_right _ _) _)))⟩⟩,
   rw ←set.mem_preimage,
   apply set.mem_of_mem_of_subset _ hr2,
   apply set.mem_of_mem_of_subset ht,
@@ -436,5 +422,5 @@ end
 theorem exists_forall_deriv_at_ball_eq_of_cont_diff
   (hv : cont_diff ℝ 1 v) : ∃ (ε > (0 : ℝ)) (f : ℝ → E), f t₀ = x₀ ∧
     ∀ t ∈ Ioo (t₀ - ε) (t₀ + ε), has_deriv_at f (v (f t)) t :=
-exists_forall_deriv_at_ball_eq_of_cont_diff_on_nhds t₀ x₀ hv.cont_diff_on
-  (is_open.mem_nhds is_open_univ (mem_univ _))
+let ⟨ε, hε, f, hf1, hf2⟩ := exists_forall_deriv_at_ball_eq_of_cont_diff_on_nhds t₀ x₀ hv.cont_diff_on
+  (is_open.mem_nhds is_open_univ (mem_univ _)) in ⟨ε, hε, f, hf1, λ t ht, (hf2 t ht).2⟩

@@ -3,10 +3,10 @@ Copyright (c) 2021 Jireh Loreaux. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
-import tactic.noncomm_ring
-import field_theory.is_alg_closed.basic
 import algebra.star.pointwise
 import algebra.star.subalgebra
+import field_theory.is_alg_closed.basic
+import tactic.noncomm_ring
 /-!
 # Spectrum of an element in an algebra
 This file develops the basic theory of the spectrum of an element of an algebra.

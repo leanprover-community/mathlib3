@@ -27,9 +27,8 @@ namespace simple_graph
 variables {V : Type*} {G : simple_graph V}
 
 namespace walk
-variables [decidable_eq V]
 
-lemma is_eulerian.complete {u v : V} {p : G.walk u v}
+lemma is_eulerian.complete [decidable_eq V] {u v : V} {p : G.walk u v}
   (h : p.is_eulerian) {e : sym2 V} (he : e ∈ G.edge_set) : e ∈ p.edges :=
 by simpa using (h e he).ge
 
@@ -61,7 +60,7 @@ begin
       exact λ h, p.edges_subset_edge_set h, } }
 end
 
-lemma is_eulerian.edges'_eq [fintype G.edge_set]
+lemma is_eulerian.edges'_eq [decidable_eq V] [fintype G.edge_set]
   {u v : V} {p : G.walk u v} (h : p.is_eulerian) :
   h.is_trail.edges' = G.edge_finset :=
 begin
@@ -72,12 +71,13 @@ begin
   { apply h.complete }
 end
 
-lemma is_eulerian.length_eq_card_edge_finset [fintype G.edge_set] {u v : V} {p : G.walk u v}
+lemma is_eulerian.length_eq_card_edge_finset [decidable_eq V]
+  [fintype G.edge_set] {u v : V} {p : G.walk u v}
   (h : p.is_eulerian) : p.length = G.edge_finset.card :=
 by simp only [h.is_trail.length_eq_card_edges', h.edges'_eq]
 
 /-- The edge set of an Eulerian graph is finite. -/
-def is_eulerian.fintype {u v : V} {p : G.walk u v}
+def is_eulerian.fintype [decidable_eq V] {u v : V} {p : G.walk u v}
   (h : p.is_eulerian) : fintype G.edge_set :=
 begin
   refine ⟨h.is_trail.edges'.attach.image (λ x, ⟨x, p.edges_subset_edge_set x.property⟩), _⟩,
@@ -87,17 +87,18 @@ begin
     exists_prop, exists_eq_right, true_and],
 end
 
-lemma is_eulerian.length_eq_card_edge_set [fintype G.edge_set] {u v : V} {p : G.walk u v}
+lemma is_eulerian.length_eq_card_edge_set [decidable_eq V]
+  [fintype G.edge_set] {u v : V} {p : G.walk u v}
   (h : p.is_eulerian) : p.length = fintype.card G.edge_set :=
 by simp [h.length_eq_card_edge_finset, edge_finset, set.to_finset_card]
 
-lemma is_trail.is_eulerian_of_complete [fintype G.edge_set]
+lemma is_trail.is_eulerian_of_complete [decidable_eq V]
   {u v : V} {p : G.walk u v} (h : p.is_trail) (hc : ∀ e, e ∈ G.edge_set → e ∈ p.edges) :
   p.is_eulerian :=
 λ e he, list.count_eq_one_of_mem h.edges_nodup (hc e he)
 
 
-lemma incidence_finset_eq_filter [fintype V] (x : V)
+lemma incidence_finset_eq_filter [decidable_eq V] [fintype V] (x : V)
   [fintype (G.neighbor_set x)] [decidable_rel G.adj] :
   G.incidence_finset x = G.edge_finset.filter (has_mem.mem x) :=
 begin
@@ -111,12 +112,14 @@ end walk
 
 namespace simple_example
 
-@[derive [decidable_eq, fintype]]
+/-- The vertices for an example graph -/
+@[derive [decidable_eq, fintype], nolint has_nonempty_instance]
 inductive verts : Type
 | V1 | V2 | V3
 
 open verts
 
+/-- The adjacency relation for an example graph, computable since it's using `bool` -/
 def adj (v w : verts) : bool := v ≠ w
 
 /-- It's a complete graph on 3 vertices -/
@@ -126,6 +129,7 @@ def graph : simple_graph verts :=
   symm := λ v w, begin simp [adj, eq_comm] end,
   loopless := λ v, by simp [adj] }
 
+/-- The definition of a particular trail in this graph. -/
 def trail : graph.walk V1 V1 :=
 begin
   refine walk.cons (_ : adj V1 V2) (walk.cons (_ : adj V2 V3) (walk.cons (_ : adj V3 V1) walk.nil));

@@ -325,7 +325,7 @@ def extension_of_max_adjoin (h : module.Baer R Q) (y : N) :
           ↑((extension_of_max_adjoin.fst i a) + (extension_of_max_adjoin.fst i b)) +
           (extension_of_max_adjoin.snd i a + extension_of_max_adjoin.snd i b) • y,
         { rw [extension_of_max_adjoin.eqn, extension_of_max_adjoin.eqn, add_smul],
-          abel, },
+          abel_nf, },
         rw [extension_of_max_adjoin.extension_to_fun_wd i f h (a + b) _ _ eq1,
           linear_pmap.map_add, map_add],
         unfold extension_of_max_adjoin.extension_to_fun,

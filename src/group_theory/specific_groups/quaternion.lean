@@ -89,7 +89,7 @@ instance : group (quaternion_group n) :=
     begin
       rintros (i | i) (j | j) (k | k);
       simp only [mul];
-      abel,
+      abel_nf,
       simp only [neg_mul, one_mul, int.cast_one, zsmul_eq_mul, int.cast_neg,
                  add_right_inj],
       calc -(n : zmod (2 * n)) = 0 - n : by rw zero_sub

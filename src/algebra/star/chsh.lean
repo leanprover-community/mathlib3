@@ -198,7 +198,7 @@ begin
     -- move Aᵢ to the left of Bᵢ
     simp only [←T.A₀B₀_commutes, ←T.A₀B₁_commutes, ←T.A₁B₀_commutes, ←T.A₁B₁_commutes],
     -- collect terms, simplify coefficients, and collect terms again:
-    abel,
+    abel_nf,
     -- all terms coincide, but the last one. Simplify all other terms
     simp only [M],
     simp only [neg_mul, int.cast_bit0, one_mul, mul_inv_cancel_of_invertible,

@@ -225,7 +225,7 @@ begin
       rw normed_add_group_hom.comp_range,
       apply add_subgroup.mem_map_of_mem,
       simp only [incl_range, mem_ker] },
-    { calc ∥hatg - (g - g')∥ = ∥hatg - g + g'∥ : by abel
+    { calc ∥hatg - (g - g')∥ = ∥hatg - g + g'∥ : by abel_nf
       ... ≤ ∥hatg - g∥ + ∥(g' : completion G)∥ : norm_add_le _ _
       ... < δ + C'*∥f∥*∥hatg - g∥ : by linarith
       ... ≤ δ + C'*∥f∥*δ : add_le_add_left (mul_le_mul_of_nonneg_left hg.le hCf) δ

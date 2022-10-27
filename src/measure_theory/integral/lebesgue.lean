@@ -292,7 +292,7 @@ def extend [measurable_space β] (f₁ : α →ₛ γ) (g : α → β)
 
 @[simp] lemma extend_apply [measurable_space β] (f₁ : α →ₛ γ) {g : α → β}
   (hg : measurable_embedding g) (f₂ : β →ₛ γ) (x : α) : (f₁.extend g hg f₂) (g x) = f₁ x :=
-function.extend_apply hg.injective _ _ _
+hg.injective.extend_apply _ _ _
 
 @[simp] lemma extend_apply' [measurable_space β] (f₁ : α →ₛ γ) {g : α → β}
   (hg : measurable_embedding g) (f₂ : β →ₛ γ) {y : β} (h : ¬∃ x, g x = y) :

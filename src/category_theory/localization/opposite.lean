@@ -25,6 +25,8 @@ variables {C D : Type*} [category C] [category D] {L : C ⥤ D} {W : morphism_pr
 
 namespace localization
 
+/-- If `L : C ⥤ D` satisfies the universal property of the localisation
+for `W : morphism_property C`, then `L.op` also does. -/
 def strict_universal_property_fixed_target.op {E : Type*} [category E]
   (h : strict_universal_property_fixed_target L W Eᵒᵖ):
   strict_universal_property_fixed_target L.op W.op E :=

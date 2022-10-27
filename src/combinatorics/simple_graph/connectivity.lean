@@ -144,6 +144,13 @@ def append : Π {u v w : V}, G.walk u v → G.walk v w → G.walk u w
 | _ _ _ nil q := q
 | _ _ _ (cons h p) q := cons h (p.append q)
 
+/-- The reversed version of `simple_graph.walk.cons`, concatenating an edge to
+the end of a walk. -/
+def concat {u v w : V} (p : G.walk u v) (h : G.adj v w) : G.walk u w := p.append (cons h nil)
+
+lemma concat_eq_append {u v w : V} (p : G.walk u v) (h : G.adj v w) :
+  p.concat h = p.append (cons h nil) := rfl
+
 /-- The concatenation of the reverse of the first walk with the second walk. -/
 protected def reverse_aux : Π {u v w : V}, G.walk u v → G.walk u w → G.walk v w
 | _ _ _ nil q := q
@@ -208,6 +215,26 @@ lemma append_assoc : Π {u v w x : V} (p : G.walk u v) (q : G.walk v w) (r : G.w
   (hu : u = u') (hv : v = v') (hw : w = w') :
   (p.copy hu hv).append (q.copy hv hw) = (p.append q).copy hu hw := by { subst_vars, refl }
 
+@[simp] lemma concat_nil {u v : V} (h : G.adj u v) : nil.concat h = cons h nil := rfl
+
+@[simp] lemma concat_cons {u v w x : V} (h : G.adj u v) (p : G.walk v w) (h' : G.adj w x) :
+  (cons h p).concat h' = cons h (p.concat h') := rfl
+
+lemma append_concat {u v w x : V} (p : G.walk u v) (q : G.walk v w) (h : G.adj w x) :
+  p.append (q.concat h) = (p.append q).concat h := append_assoc _ _ _
+
+lemma concat_append {u v w x : V} (p : G.walk u v) (h : G.adj v w) (q : G.walk w x) :
+  (p.concat h).append q = p.append (cons h q) :=
+by rw [concat_eq_append, ← append_assoc, cons_nil_append]
+
+/-- A non-trivial `cons` walk is representable as a `concat` walk. -/
+def cons_eq_concat : Π {u v w : V} (h : G.adj u v) (p : G.walk v w),
+  Σ' (x : V) (q : G.walk u x) (h' : G.adj x w), cons h p = q.concat h'
+| _ _ _ h nil := ⟨_, nil, h, rfl⟩
+| _ _ _ h (cons h' p) :=
+  let res := cons_eq_concat h' p in
+  ⟨res.1, cons h res.2.1, res.2.2.1, by { rw concat_cons, congr, exact res.2.2.2 }⟩
+
 @[simp] lemma reverse_nil {u : V} : (nil : G.walk u u).reverse = nil := rfl
 
 lemma reverse_singleton {u v : V} (h : G.adj u v) :
@@ -243,6 +270,10 @@ by simp [reverse]
   (p.append q).reverse = q.reverse.append p.reverse :=
 by simp [reverse]
 
+@[simp] lemma reverse_concat {u v w : V} (p : G.walk u v) (h : G.adj v w) :
+  (p.concat h).reverse = cons (G.symm h) p.reverse :=
+by simp [concat_eq_append]
+
 @[simp] lemma reverse_reverse : Π {u v : V} (p : G.walk u v), p.reverse.reverse = p
 | _ _ nil := rfl
 | _ _ (cons h p) := by simp [reverse_reverse]
@@ -260,6 +291,25 @@ by { subst_vars, refl }
   (p.append q).length = p.length + q.length
 | _ _ _ nil _ := by simp
 | _ _ _ (cons _ _) _ := by simp [length_append, add_left_comm, add_comm]
+
+@[simp] lemma length_concat {u v w : V} (p : G.walk u v) (h : G.adj v w) :
+  (p.concat h).length = p.length + 1 := length_append _ _
+
+lemma cons_eq_concat.length {u v w : V} (h : G.adj u v) (p : G.walk v w) :
+  (cons_eq_concat h p).2.1.length = p.length :=
+begin
+  induction p generalizing u,
+  { refl },
+  { generalize : cons_eq_concat h (cons p_h p_p) = res,
+    obtain ⟨x, a, b, res⟩ := res,
+    specialize p_ih p_h,
+    generalize_hyp : cons_eq_concat p_h p_p = res' at p_ih,
+    obtain ⟨y, c, d, res'⟩ := res',
+    have res2 := congr_arg length res,
+    have res'2 := congr_arg length res',
+    simp only [length_cons, length_concat, add_left_inj] at res2 res'2 ⊢,
+    rw [res'2, p_ih, ← res2], }
+end
 
 @[simp] protected lemma length_reverse_aux : Π {u v w : V} (p : G.walk u v) (q : G.walk u w),
   (p.reverse_aux q).length = p.length + q.length
@@ -284,6 +334,49 @@ end
 @[simp] lemma length_eq_zero_iff {u : V} {p : G.walk u u} : p.length = 0 ↔ p = nil :=
 by cases p; simp
 
+section concat_rec
+
+variables
+  {motive : Π (u v : V), G.walk u v → Sort*}
+  (Hnil : Π {u : V}, motive u u nil)
+  (Hconcat : Π {u v w : V} (p : G.walk u v) (h : G.adj v w), motive u v p → motive u w (p.concat h))
+
+/-- Auxiliary definition for `simple_graph.walk.concat_rec` -/
+def concat_rec_aux : Π {u v : V} (p : G.walk u v), motive v u p.reverse
+| _ _ nil := Hnil
+| _ _ (cons h p) := eq.rec (Hconcat p.reverse (G.symm h) (concat_rec_aux p)) (reverse_cons h p).symm
+
+lemma concat_rec_aux_concat {u v w : V} (p : G.walk u v) (h : G.adj v w) :
+  concat_rec_aux @Hnil @Hconcat (p.concat h).reverse
+  == Hconcat p.reverse.reverse h (concat_rec_aux @Hnil @Hconcat p.reverse) :=
+begin
+  transitivity concat_rec_aux @Hnil @Hconcat (cons h.symm p.reverse),
+  { congr, simp },
+  simp [concat_rec_aux],
+end
+
+/-- Recursor on walks by inducting on `simple_graph.walk.concat`. -/
+@[elab_as_eliminator]
+def concat_rec {u v : V} (p : G.walk u v) : motive u v p :=
+eq.rec (concat_rec_aux @Hnil @Hconcat p.reverse) (reverse_reverse p)
+
+@[simp] lemma concat_rec_nil (u : V) :
+  @concat_rec _ _ motive @Hnil @Hconcat _ _ (nil : G.walk u u) = Hnil := rfl
+
+@[simp] lemma concat_rec_concat {u v w : V} (p : G.walk u v) (h : G.adj v w) :
+  @concat_rec _ _ motive @Hnil @Hconcat _ _ (p.concat h)
+  = Hconcat p h (concat_rec @Hnil @Hconcat p) :=
+begin
+  simp only [concat_rec],
+  apply eq_of_heq,
+  apply rec_heq_of_heq,
+  have := concat_rec_aux_concat @Hnil @Hconcat p h,
+  refine heq.trans this _,
+  congr; simp,
+end
+
+end concat_rec
+
 /-- The `support` of a walk is the list of vertices it visits in order. -/
 def support : Π {u v : V}, G.walk u v → list V
 | u v nil := [u]
@@ -302,6 +395,9 @@ def edges {u v : V} (p : G.walk u v) : list (sym2 V) := p.darts.map dart.edge
 
 @[simp] lemma support_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).support = u :: p.support := rfl
+
+@[simp] lemma support_concat {u v w : V} (p : G.walk u v) (h : G.adj v w) :
+  (p.concat h).support = p.support.concat w := by induction p; simp [*]
 
 @[simp] lemma support_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
   (p.copy hu hv).support = p.support := by { subst_vars, refl }
@@ -414,6 +510,9 @@ lemma edges_subset_edge_set : Π {u v : V} (p : G.walk u v) ⦃e : sym2 V⦄
 @[simp] lemma darts_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).darts = ⟨(u, v), h⟩ :: p.darts := rfl
 
+@[simp] lemma darts_concat {u v w : V} (p : G.walk u v) (h : G.adj v w) :
+  (p.concat h).darts = p.darts.concat ⟨(v, w), h⟩ := by induction p; simp [*]
+
 @[simp] lemma darts_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
   (p.copy hu hv).darts = p.darts := by { subst_vars, refl }
 
@@ -449,6 +548,9 @@ by simpa! using congr_arg list.init (map_fst_darts_append p)
 
 @[simp] lemma edges_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).edges = ⟦(u, v)⟧ :: p.edges := rfl
+
+@[simp] lemma edges_concat {u v w : V} (p : G.walk u v) (h : G.adj v w) :
+  (p.concat h).edges = p.edges.concat ⟦(v, w)⟧ := by simp [edges]
 
 @[simp] lemma edges_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
   (p.copy hu hv).edges = p.edges := by { subst_vars, refl }

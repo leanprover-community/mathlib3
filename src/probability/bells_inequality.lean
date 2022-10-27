@@ -30,14 +30,10 @@ variables {Ω : Type u} {m : measurable_space Ω} (ℙ : probability_measure Ω)
 def pm_one_space := ℤˣ
 
 instance int.units.measurable_space : measurable_space ℤˣ := ⊤
+-- units.measurable_space
+
 
 section preliminaries
-
-lemma pm_one_space_vals' (r : ℤˣ) :
-  r = 1 ∨ r = -1 :=
-begin
-  exact int.units_eq_one_or r,
-end
 
 lemma pm_one_space_vals (r : ℤˣ) :
   (r : ℝ) = 1 ∨ (r : ℝ) = -1 :=
@@ -46,19 +42,35 @@ begin
   rw hh; simp,
 end
 
-lemma pm_one_func_vals (Za : Ω → ℤˣ) (ω : Ω) :
+lemma pm_one_func_vals_ℝ (Za : Ω → ℤˣ) (ω : Ω) :
   ((Za ω) : ℝ) = 1 ∨ ((Za ω) : ℝ)  = -1 :=
 begin
   apply pm_one_space_vals,
 end
 
-lemma neq_one_pm_one_space {Za : Ω → ℤˣ} {ω : Ω} (hω : (Za ω : ℝ) ≠ 1) :
+lemma pm_one_func_vals (Za : Ω → ℤˣ) (ω : Ω) :
+  Za ω = 1 ∨ Za ω  = -1 := int.units_eq_one_or _
+
+lemma neq_one_pm_one_space_ℝ {Za : Ω → ℤˣ} {ω : Ω} (hω : (Za ω : ℝ) ≠ 1) :
   (Za ω : ℝ)  = -1 :=
 begin
-  cases pm_one_func_vals Za ω,
+  cases pm_one_func_vals_ℝ Za ω,
   { exfalso,
     exact hω h, },
   { exact h, },
+end
+
+lemma one_ne_neg_one_Z_units : (1 : ℤˣ) ≠ -1 .
+
+lemma neq_one_pm_one_space {Za : Ω → ℤˣ} {ω : Ω} (hω : Za ω = 1) :
+  ¬ Za ω = -1 :=
+begin
+  cases pm_one_func_vals Za ω,
+  { rw h,
+    exact one_ne_neg_one_Z_units, },
+  { exfalso,
+    rw hω at h,
+    exact one_ne_neg_one_Z_units h, },
 end
 
 lemma correlation_to_probability [has_union (Type u)]
@@ -66,8 +78,10 @@ lemma correlation_to_probability [has_union (Type u)]
   (Za_measurable : measurable Za) (Zb_measurable : measurable Zb) :
   ∫ ω, (Za ω : ℝ) * (Zb ω) ∂(ℙ:measure Ω) = 1 - 2 * (ℙ {ω | (Za ω : ℝ) ≠ Zb ω }) :=
 begin
-  let Ωp := {ω : Ω | (Za ω : ℝ) = 1},
-  let Ωm := {ω : Ω | (Za ω : ℝ) = -1},
+--  let Ωp := {ω : Ω | (Za ω : ℝ) = 1},
+--  let Ωm := {ω : Ω | (Za ω : ℝ) = -1},
+  let Ωp := Za ⁻¹' {1},
+  let Ωm := Za ⁻¹' {-1},
 
   have pm_univ : Ωp ∪ Ωm = set.univ,
   { ext x,
@@ -76,25 +90,22 @@ begin
       simp, },
     { intros,
       rw set.union_def,
-      simp only [set.mem_set_of_eq],
-      exact pm_one_func_vals _ _, }, },
+      simp only [set.mem_set_of_eq, set.mem_preimage, set.mem_singleton_iff],
+      --have := pm_one_func_vals,
+      exact_mod_cast pm_one_func_vals Za x, }, },
 
   have pm_disjoint : disjoint Ωp Ωm,
   { rw disjoint_iff,
     ext x,
-    simp only [set.inf_eq_inter, set.mem_inter_iff, set.mem_set_of_eq, set.bot_eq_empty,
-      set.mem_empty_iff_false, iff_false, not_and],
-    intros h,
-    rw h,
-    norm_num, },
-
-  have Ωp_is : Ωp = (Za ⁻¹' {1}),
-  { ext x,
-    simp only [set.mem_set_of_eq, coe_coe, set.mem_preimage, set.mem_singleton_iff],
-    norm_cast,
-    simp, },
+    simp only [set.inf_eq_inter, set.mem_inter_iff, set.mem_preimage, set.mem_singleton_iff,
+      set.bot_eq_empty, set.mem_empty_iff_false, iff_false, not_and],
+    apply neq_one_pm_one_space, },
 
   have Ωp_measurable : measurable_set Ωp ,
+  { convert measurable_set_preimage Za_measurable _,
+    simp, },
+
+  have Ωm_measurable : measurable_set Ωm ,
   { convert measurable_set_preimage Za_measurable _,
     simp, },
 
@@ -105,7 +116,9 @@ begin
   { convert measure_theory.integral_union pm_disjoint _ _ _,
     { rw pm_univ,
       exact measure.restrict_univ.symm, },
+    { exact Ωm_measurable, },
     {
+
     },
     repeat {sorry},
     -- have : Ωp ∪ Ωm = set.univ := sorry,

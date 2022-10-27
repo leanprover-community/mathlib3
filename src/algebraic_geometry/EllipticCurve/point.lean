@@ -29,8 +29,11 @@ The set of $K$-rational points on $E$ forms an abelian group under a chord-and-t
     $P \ne -Q$, then this line is the tangent of $E$ at $P = Q$ and has a well-defined gradient
     $\ell = (3x_1^2 + 2a_2x_1 + a_4 - a_1y_1) / (2y_1 + a_1x_1 + a_3)$. Otherwise $P \ne Q$ and this
     line has a well-defined gradient $\ell = (y_1 - y_2) / (x_1 - x_2)$. The $x$-coordinate of
-    $P + Q$ can then be written down explicitly as the unique third solution of the equation
-    obtained by substituting $y = \ell(x - x_1) - y_1$ into the Weierstrass equation.
+    $P + Q$ is then the unique third solution of the equation obtained by substituting the line
+    $y = \ell(x - x_1) + y_1$ into the Weierstrass equation, and can be written down explicitly by
+    inspecting the $x^2$ terms of this equation as $x = \ell^2 + a_1\ell - a_2 - x_1 - x_2$. The
+    $y$-coordinate of $P + Q$, after applying the final negation that maps $y$ to $-y - a_1x - a_3$,
+    is precisely $y = -(\ell(x - x_1) + y_1) - x - a_3$.
 The group law on this set is then uniquely determined by these constructions. This file defines the
 group operations by explicit equations and proves that the set is an abelian group (TODO).
 
@@ -41,8 +44,6 @@ group operations by explicit equations and proves that the set is an abelian gro
 
 ## Main statements
 
- * `EllipticCurve.point.weierstrass_dbl`: doubling of an affine point on `E` lies in `E`.
- * `EllipticCurve.point.weierstrass_add`: addition of two affine points on `E` lies in `E`.
  * `EllipticCurve.point.add_comm`: addition of two `K`-rational points on `E` is commutative.
  * TODO: addition of two `K`-rational points on `E` is associative (HARD), and hence forms a group.
 
@@ -78,8 +79,9 @@ y ^ 2 + ↑E.a₁ * x * y + ↑E.a₃ * y = x ^ 3 + ↑E.a₂ * x ^ 2 + ↑E.a�
 
 variables (K)
 
-/-- The group of `K`-rational points `E⟮K⟯` on an elliptic curve `E` over `F`. This consists of
-the unique point at infinity and the affine points satisfying the Weierstrass equation. -/
+/-- The group of `K`-rational points `E⟮K⟯` on an elliptic curve `E` over `F`. This consists of the
+unique point at infinity `EllipticCurve.point.zero`and the affine points `EllipticCurve.point.some`
+satisfying the Weierstrass equation $y^2 + a_1xy + a_3y = x^3 + a_2x^2 + a_4x + a_6$. -/
 inductive point
 | zero
 | some (x y : K) (h : E.weierstrass x y)
@@ -92,7 +94,11 @@ namespace point
 
 instance : inhabited E⟮K⟯ := ⟨zero⟩
 
-/-! ### Zero in `E⟮K⟯` -/
+/-!
+### Zero in `E⟮K⟯`
+
+Use `0` instead of `EllipticCurve.point.zero`.
+-/
 
 section zero
 
@@ -102,7 +108,11 @@ instance : has_zero E⟮K⟯ := ⟨zero⟩
 
 end zero
 
-/-! ### Negation in `E⟮K⟯` -/
+/-!
+### Negation in `E⟮K⟯`
+
+Given `P : E⟮K⟯`, use `-P` instead of `neg P`.
+-/
 
 section negation
 
@@ -111,7 +121,7 @@ variables {x y : K} (h : E.weierstrass x y)
 include h
 
 /-- The $y$-coordinate of the negation of an affine point. -/
-@[simp] def neg_y : K := -y - ↑E.a₁ * x - ↑E.a₃
+@[simp, nolint unused_arguments] def neg_y : K := -y - ↑E.a₁ * x - ↑E.a₃
 
 /-- The negation of an affine point in `E` lies in `E`. -/
 lemma weierstrass_neg : E.weierstrass x $ neg_y h :=
@@ -138,7 +148,11 @@ instance : has_involutive_neg E⟮K⟯ := ⟨neg, neg_neg⟩
 
 end negation
 
-/-! ### Doubling in `E⟮K⟯` -/
+/-!
+### Doubling in `E⟮K⟯`
+
+Given `P : E⟮K⟯`, use `2 • P` instead of `P + P` (TODO: immediate once `add_comm_group` is defined).
+-/
 
 section doubling
 
@@ -146,19 +160,22 @@ variables {x y : K} (h : E.weierstrass x y)
 
 include h
 
-/-- The gradient of the tangent line at an affine point. -/
+/-- The gradient of the tangent line of `E` at an affine point $(x, y)$. This is not well-defined
+only in the case of $y = -y - a_1x - a_3$, which is precisely when the tangent is vertical. -/
 @[simp] def dbl_L : K := (3 * x ^ 2 + 2 * ↑E.a₂ * x + ↑E.a₄ - ↑E.a₁ * y) / (y - neg_y h)
 
-/-- The $x$-coordinate of the doubling of an affine point. -/
+/-- The $x$-coordinate of the doubling of an affine point whose tangent is not vertical. -/
 @[simp] def dbl_x : K := dbl_L h ^ 2 + ↑E.a₁ * dbl_L h - ↑E.a₂ - 2 * x
 
-/-- The $y$-coordinate of the doubling of an affine point before applying the final negation. -/
+/-- The $y$-coordinate of the doubling of an affine point whose tangent is not vertical,
+before applying the final negation that maps $y$ to $-y - a_1x - a_3$. -/
 @[simp] def dbl_y' : K := dbl_L h * (dbl_x h - x) + y
 
-/-- The $y$-coordinate of the doubling of an affine point after applying the final negation. -/
+/-- The $y$-coordinate of the doubling of an affine point whose tangent is not vertical. -/
 @[simp] def dbl_y : K := -dbl_y' h - ↑E.a₁ * dbl_x h - ↑E.a₃
 
-/-- The negation of the doubling of an affine point in `E` lies in `E`. -/
+/-- The doubling of an affine point in `E` whose tangent is not vertical,
+before applying the final negation that maps $y$ to $-y - a_1x - a_3$, lies in `E`. -/
 lemma weierstrass_dbl' (hy : y ≠ neg_y h) : E.weierstrass (dbl_x h) (dbl_y' h) :=
 begin
   rw [weierstrass, ← sub_eq_zero],
@@ -177,13 +194,17 @@ begin
     with { normalization_tactic := `[rw [neg_y], ring1] }
 end
 
-/-- The doubling of an affine point in `E` lies in `E`. -/
+/-- The doubling of an affine point in `E` whose tangent is not vertical lies in `E`. -/
 lemma weierstrass_dbl (hy : y ≠ neg_y h) : E.weierstrass (dbl_x h) (dbl_y h) :=
 weierstrass_neg $ weierstrass_dbl' h hy
 
 end doubling
 
-/-! ### Addition in `E⟮K⟯` -/
+/-!
+### Addition in `E⟮K⟯`
+
+Given `P Q : E⟮K⟯`, use `P + Q` instead of `add P Q`.
+-/
 
 section addition
 
@@ -191,19 +212,22 @@ variables {x₁ y₁ x₂ y₂ : K} (h₁ : E.weierstrass x₁ y₁) (h₂ : E.w
 
 include h₁ h₂
 
-/-- The gradient of the line joining two affine points. -/
-@[simp] def add_L : K := (y₁ - y₂) / (x₁ - x₂)
+/-- The gradient of the line joining two affine points $(x_1, y_1)$ and $(x_2, y_2)$. This is not
+well-defined only in the case of $x_1 = x_2$, where the line becomes a tangent of `E`. -/
+@[simp, nolint unused_arguments] def add_L : K := (y₁ - y₂) / (x₁ - x₂)
 
-/-- The $x$-coordinate of the addition of two affine points. -/
+/-- The $x$-coordinate of the addition of two affine points with distinct $x$-coordinates. -/
 @[simp] def add_x : K := add_L h₁ h₂ ^ 2 + ↑E.a₁ * add_L h₁ h₂ - ↑E.a₂ - x₁ - x₂
 
-/-- The $y$-coordinate of the addition of two affine points before applying the final negation. -/
+/-- The $y$-coordinate of the addition of two affine points with distinct $x$-coordinates,
+before applying the final negation that maps $y$ to $-y - a_1x - a_3$. -/
 @[simp] def add_y' : K := add_L h₁ h₂ * (add_x h₁ h₂ - x₁) + y₁
 
-/-- The $y$-coordinate of the addition of two affine points after applying the final negation. -/
+/-- The $y$-coordinate of the addition of two affine points with distinct $x$-coordinates. -/
 @[simp] def add_y : K := -add_y' h₁ h₂ - ↑E.a₁ * add_x h₁ h₂ - ↑E.a₃
 
-/-- The negation of the addition of two affine points in `E` lies in `E`. -/
+/-- The addition of two affine points in `E` with distinct $x$-coordinates,
+before applying the final negation that maps $y$ to $-y - a_1x - a_3$, lies in `E`. -/
 lemma weierstrass_add' (hx : x₁ ≠ x₂) : E.weierstrass (add_x h₁ h₂) (add_y' h₁ h₂) :=
 begin
   rw [weierstrass, ← sub_eq_zero],
@@ -229,7 +253,7 @@ begin
     with { normalization_tactic := `[ring1] }
 end
 
-/-- The addition of two affine points in `E` lies in `E`. -/
+/-- The addition of two affine points in `E` with distinct $x$-coordinates lies in `E`. -/
 lemma weierstrass_add (hx : x₁ ≠ x₂) : E.weierstrass (add_x h₁ h₂) (add_y h₁ h₂) :=
 weierstrass_neg $ weierstrass_add' h₁ h₂ hx
 
@@ -300,7 +324,11 @@ some_add_some_of_x_ne h₁ h₂ hx
 
 end addition
 
-/-! ### Axioms in `E⟮K⟯` -/
+/-!
+### Axioms in `E⟮K⟯`
+
+TODO: Associativity of addition.
+-/
 
 section add_comm_group
 

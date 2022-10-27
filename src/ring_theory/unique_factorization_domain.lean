@@ -466,6 +466,18 @@ begin
   exact multiset.rel_refl_of_refl_on (λ y hy, associated.refl _),
 end
 
+@[simp] lemma factors_pos (x : α) (hx : x ≠ 0) : 0 < factors x ↔ ¬ is_unit x :=
+begin
+  split,
+  { intros h hx,
+    obtain ⟨p, hp⟩ := multiset.exists_mem_of_ne_zero h.ne',
+    exact (prime_of_factor _ hp).not_unit (is_unit_of_dvd_unit (dvd_of_mem_factors hp) hx) },
+  { intros h,
+    obtain ⟨p, hp⟩ := exists_mem_factors hx h,
+    exact bot_lt_iff_ne_bot.mpr (mt multiset.eq_zero_iff_forall_not_mem.mp
+      (not_forall.mpr ⟨p, not_not.mpr hp⟩)) },
+end
+
 end unique_factorization_monoid
 
 namespace unique_factorization_monoid
@@ -626,18 +638,6 @@ begin
     λ h, (normalized_factors_prod hx).symm.trans (trans (by rw h) (normalized_factors_prod hy))⟩,
   apply le_antisymm; rw [← dvd_iff_normalized_factors_le_normalized_factors],
   all_goals { simp [*, h.dvd, h.symm.dvd], },
-end
-
-@[simp] lemma factors_pos (x : α) (hx : x ≠ 0) : 0 < factors x ↔ ¬ is_unit x :=
-begin
-  split,
-  { intros h hx,
-    obtain ⟨p, hp⟩ := multiset.exists_mem_of_ne_zero h.ne',
-    exact (prime_of_factor _ hp).not_unit (is_unit_of_dvd_unit (dvd_of_mem_factors hp) hx) },
-  { intros h,
-    obtain ⟨p, hp⟩ := exists_mem_factors hx h,
-    exact bot_lt_iff_ne_bot.mpr (mt multiset.eq_zero_iff_forall_not_mem.mp
-      (not_forall.mpr ⟨p, not_not.mpr hp⟩)) },
 end
 
 theorem normalized_factors_of_irreducible_pow {p : α} (hp : irreducible p) (k : ℕ) :

@@ -406,6 +406,30 @@ begin
     (Icc_mem_nhds ht.1 ht.2)⟩,
 end
 
+theorem ODE_solution_exists.at_ball_of_cont_diff_on_nhds_mem_set
+  {s : set E} (hv : cont_diff_on ℝ 1 v s) (hs : s ∈ 𝓝 x₀) :
+  ∃ (ε : ℝ) (hε : 0 < ε) (f : ℝ → E), f t₀ = x₀ ∧
+    ∀ t ∈ Ioo (t₀ - ε) (t₀ + ε), f t ∈ s ∧ has_deriv_at f (v (f t)) t :=
+begin
+  obtain ⟨ε, hε, f, hf1, hf2⟩ := exists_forall_deriv_at_ball_eq_of_cont_diff_on_nhds t₀ x₀ hv hs,
+  have h : (f ⁻¹' s) ∈ 𝓝 t₀,
+  { apply continuous_at.preimage_mem_nhds
+    (hf2 t₀ (mem_Ioo.mpr ⟨sub_lt_self _ hε, lt_add_of_pos_right _ hε⟩)).continuous_at,
+    rw hf1,
+    exact hs },
+  rw metric.mem_nhds_iff at h,
+  obtain ⟨r, hr1, hr2⟩ := h,
+  refine ⟨min r ε, lt_min hr1 hε, f, hf1, λ t ht,
+    ⟨_, hf2 t (mem_of_mem_of_subset ht (Ioo_subset_Ioo
+      (sub_le_sub_left (min_le_right _ _) _)
+      (add_le_add_left (min_le_right _ _) _)))⟩⟩,
+  rw ←set.mem_preimage,
+  apply set.mem_of_mem_of_subset _ hr2,
+  apply set.mem_of_mem_of_subset ht,
+  rw ←real.ball_eq_Ioo,
+  exact (metric.ball_subset_ball (min_le_left _ _))
+end
+
 /-- A time-independent, continuously differentiable ODE admits a solution in some open interval. -/
 theorem exists_forall_deriv_at_ball_eq_of_cont_diff
   (hv : cont_diff ℝ 1 v) : ∃ (ε > (0 : ℝ)) (f : ℝ → E), f t₀ = x₀ ∧

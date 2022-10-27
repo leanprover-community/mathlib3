@@ -15,6 +15,6 @@ example [add_comm_group α] (n : ℕ) (a : α) : 0 + n • a = n • a := by abe
 def id' (x : α) := x
 example [add_comm_group α] : a + b - b - id' a = 0 :=
 begin
-  success_if_fail { abel; done },
-  abel!
+  success_if_fail { abel_nf; done },
+  abel_nf!,
 end

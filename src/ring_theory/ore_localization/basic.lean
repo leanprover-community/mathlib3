@@ -446,7 +446,7 @@ begin
   symmetry, rw ore_div_eq_iff,
   use sc * sd, use rc * sd,
   split; simp only [submonoid.coe_mul],
-  { noncomm_ring, assoc_rw [hd, hc], noncomm_ring },
+  { simp only [add_mul], assoc_rw [hd, hc], noncomm_ring },
   { assoc_rewrite [hc], noncomm_ring }
 end
 

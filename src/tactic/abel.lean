@@ -422,7 +422,7 @@ match loc with
 | _ := failed
 end <|>
 do abel_nf red SOP loc,
-   trace "Try this: abel_nf"
+   fail "Try this: abel_nf"
 
 
 add_tactic_doc

@@ -26,11 +26,8 @@ variables {σ : Type u} {R : Type v} [comm_semiring R]
 
 @[simp] lemma cardinal_mk_eq_max_lift [nonempty σ] [nontrivial R] :
   #(mv_polynomial σ R) = max (max (cardinal.lift.{u} $ #R) $ cardinal.lift.{v} $ #σ) ℵ₀ :=
-begin
-  letI := classical.dec_eq σ,
-  refine (mk_finsupp_lift_of_infinite _ R).trans _,
-  rw [mk_finsupp_nat, max_assoc, lift_max, lift_aleph_0, max_comm],
-end
+(mk_finsupp_lift_of_infinite _ R).trans $
+by rw [mk_finsupp_nat, max_assoc, lift_max, lift_aleph_0, max_comm]
 
 @[simp] lemma cardinal_mk_eq_lift [is_empty σ] : #(mv_polynomial σ R) = cardinal.lift.{u} (#R) :=
 ((is_empty_ring_equiv R σ).to_equiv.trans equiv.ulift.{u}.symm).cardinal_eq

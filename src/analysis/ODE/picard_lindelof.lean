@@ -11,13 +11,18 @@ import topology.metric_space.contracting
 
 In this file we prove that an ordinary differential equation $\dot x=v(t, x)$ such that $v$ is
 Lipschitz continuous in $x$ and continuous in $t$ has a local solution, see
-`exists_forall_deriv_within_Icc_eq_of_lipschitz_of_continuous`.
+`exists_forall_deriv_within_Icc_eq_of_is_picard_lindelof`.
+
+As a corollary, we prove that a time-independent locally continuously differentiable ODE has a
+local solution.
 
 ## Implementation notes
 
 In order to split the proof into small lemmas, we introduce a structure `picard_lindelof` that holds
 all assumptions of the main theorem. This structure and lemmas in the `picard_lindelof` namespace
-should be treated as private implementation details.
+should be treated as private implementation details. This is not to be confused with the `Prop`-
+valued structure `is_picard_lindelof`, which holds the long hypotheses of the Picard-Lindelöf
+theorem for actual use as part of the public API.
 
 We only prove existence of a solution in this file. For uniqueness see `ODE_solution_unique` and
 related theorems in `analysis.ODE.gronwall`.

@@ -144,9 +144,11 @@ variable [has_zero M]
 
 /-! We expose fields of `finsupp'` in a more convenient way for the `finsupp` API. -/
 
+/-- Coerces a finitely supported function into the function itself. -/
 abbreviation to_fun : (α →₀ M) → α → M := finsupp'.to_fun
+/-- The finite set of values on which this function takes nonzero values. -/
 abbreviation support : (α →₀ M) → finset α := finsupp'.support
-abbreviation mem_support_to_fun : ∀ (f : α →₀ M), ∀a, a ∈ f.support ↔ f.to_fun a ≠ 0 :=
+lemma mem_support_to_fun : ∀ (f : α →₀ M), ∀a, a ∈ f.support ↔ f.to_fun a ≠ 0 :=
 finsupp'.mem_support_to_fun
 
 lemma to_fun_def (f : α →₀ M) : f.to_fun = finsupp'.to_fun f := rfl

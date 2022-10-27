@@ -118,17 +118,23 @@ begin
   exact ⟨_, ⟨a, b, ha, hb, hab, rfl⟩, mt mem_sphere_zero_iff_norm.1 hne'⟩
 end
 
-lemma strict_convex_space.of_pairwise_sphere_norm_ne_two
-  (h : (sphere (0 : E) 1).pairwise $ λ x y, ∥x + y∥ ≠ 2) :
+lemma strict_convex_space.of_norm_add_ne_two
+  (h : ∀ ⦃x y : E⦄, ∥x∥ = 1 → ∥y∥ = 1 → x ≠ y → ∥x + y∥ ≠ 2) :
   strict_convex_space ℝ E :=
 begin
   refine strict_convex_space.of_norm_combo_ne_one
     (λ x y hx hy hne, ⟨1/2, 1/2, one_half_pos.le, one_half_pos.le, add_halves _, _⟩),
   contrapose! hne with H,
-  refine not_imp_not.1 (h (mem_sphere_zero_iff_norm.2 hx) (mem_sphere_zero_iff_norm.2 hy)) _,
+  refine not_imp_not.1 (h hx hy) _,
   rwa [← smul_add, norm_smul, real.norm_of_nonneg one_half_pos.le, one_div,
     ← div_eq_inv_mul, div_eq_one_iff_eq (@two_ne_zero ℝ _ _)] at H
 end
+
+lemma strict_convex_space.of_pairwise_sphere_norm_ne_two
+  (h : (sphere (0 : E) 1).pairwise $ λ x y, ∥x + y∥ ≠ 2) :
+  strict_convex_space ℝ E :=
+strict_convex_space.of_norm_add_ne_two $ λ x y hx hy,
+  h (mem_sphere_zero_iff_norm.2 hx) (mem_sphere_zero_iff_norm.2 hy)
 
 /-- If `∥x + y∥ = ∥x∥ + ∥y∥` implies that `x y : E` are in the same ray, then `E` is a strictly
 convex space. See also a more -/

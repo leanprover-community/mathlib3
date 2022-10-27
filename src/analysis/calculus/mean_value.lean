@@ -602,7 +602,7 @@ begin
   have hg : ∀ x ∈ s, has_fderiv_within_at g (f' x - φ) s x :=
     λ x xs, (hf x xs).sub φ.has_fderiv_within_at,
   calc ∥f y - f x - φ (y - x)∥ = ∥f y - f x - (φ y - φ x)∥ : by simp
-  ... = ∥(f y - φ y) - (f x - φ x)∥ : by abel
+  ... = ∥(f y - φ y) - (f x - φ x)∥ : by abel_nf
   ... = ∥g y - g x∥ : by simp
   ... ≤ C * ∥y - x∥ : convex.norm_image_sub_le_of_norm_has_fderiv_within_le hg bound hs xs ys,
 end

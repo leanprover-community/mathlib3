@@ -1733,7 +1733,7 @@ begin
   congr' 1,
 end
 
-/-- The global section of the restriction is isomorphic to the sections. -/
+/-- The functor that restricts to open subschemes and then takes global section is isomorphic to the structure sheaf. -/
 @[simps]
 def Scheme.restrict_functor_Γ :
   X.restrict_functor.op ⋙ (over.forget X).op ⋙ Scheme.Γ ≅ X.presheaf :=

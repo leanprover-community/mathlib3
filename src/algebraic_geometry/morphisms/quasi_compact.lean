@@ -24,6 +24,8 @@ open category_theory category_theory.limits opposite topological_space
 
 universe u
 
+open_locale algebraic_geometry
+
 namespace algebraic_geometry
 
 variables {X Y : Scheme.{u}} (f : X ⟶ Y)
@@ -286,10 +288,10 @@ end
 
 lemma exists_pow_mul_eq_zero_of_res_basic_open_eq_zero_of_is_affine_open (X : Scheme)
   {U : opens X.carrier} (hU : is_affine_open U) (x f : X.presheaf.obj (op U))
-  (H : X.presheaf.map (hom_of_le $ X.basic_open_subset f : X.basic_open f ⟶ U).op x = 0) :
+  (H : x |_ X.basic_open f = 0) :
   ∃ n : ℕ, f ^ n * x = 0 :=
 begin
-  rw ← map_zero (X.presheaf.map (hom_of_le $ X.basic_open_subset f : X.basic_open f ⟶ U).op) at H,
+  rw ← map_zero (X.presheaf.map (hom_of_le $ X.basic_open_le f : X.basic_open f ⟶ U).op) at H,
   have := (is_localization_basic_open hU f).3,
   obtain ⟨⟨_, n, rfl⟩, e⟩ := this.mp H,
   exact ⟨n, by simpa [mul_comm x] using e⟩,
@@ -299,7 +301,7 @@ end
 `f ^ n * x = 0` for some `n`. -/
 lemma exists_pow_mul_eq_zero_of_res_basic_open_eq_zero_of_is_compact (X : Scheme)
   {U : opens X.carrier} (hU : is_compact U.1) (x f : X.presheaf.obj (op U))
-  (H : X.presheaf.map (hom_of_le $ X.basic_open_subset f : X.basic_open f ⟶ U).op x = 0) :
+  (H : x |_ X.basic_open f = 0) :
   ∃ n : ℕ, f ^ n * x = 0 :=
 begin
   obtain ⟨s, hs, e⟩ := (is_compact_open_iff_eq_finset_affine_union U.1).mp ⟨hU, U.2⟩,
@@ -310,7 +312,8 @@ begin
   have H' := λ (i : s), exists_pow_mul_eq_zero_of_res_basic_open_eq_zero_of_is_affine_open X i.1.2
     (X.presheaf.map (hom_of_le (h₁ i)).op x) (X.presheaf.map (hom_of_le (h₁ i)).op f) _,
   swap,
-  { convert congr_arg (X.presheaf.map (hom_of_le _).op) H,
+  { delta Top.presheaf.restrict_open Top.presheaf.restrict at H ⊢,
+    convert congr_arg (X.presheaf.map (hom_of_le _).op) H,
     { simp only [← comp_apply, ← functor.map_comp], congr },
     { rw map_zero },
     { rw X.basic_open_res, exact set.inter_subset_right _ _ } },

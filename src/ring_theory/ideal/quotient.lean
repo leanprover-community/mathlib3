@@ -413,7 +413,7 @@ end chinese_remainder
 
 /-- The product over `fin 2` of some rings is just the cartesian product of these rings. -/
 @[simps]
-def ring_equiv.fin_two (R : fin 2 → Type*) [Π i, semiring (R i)] :
+def _root_.ring_equiv.fin_two (R : fin 2 → Type*) [Π i, semiring (R i)] :
   (Π (i : fin 2), R i) ≃+* R 0 × R 1 :=
 { to_fun := pi_fin_two_equiv R,
   map_add' := λ a b, rfl,
@@ -421,7 +421,7 @@ def ring_equiv.fin_two (R : fin 2 → Type*) [Π i, semiring (R i)] :
   .. pi_fin_two_equiv R }
 
 /-- **Chinese remainder theorem**, specialized to two ideals. -/
-noncomputable def ideal.quotient_inf_equiv_quotient_prod (I J : ideal R)
+noncomputable def quotient_inf_equiv_quotient_prod (I J : ideal R)
   (coprime : I ⊔ J = ⊤) :
   (R ⧸ (I ⊓ J)) ≃+* (R ⧸ I) × R ⧸ J :=
 let f : fin 2 → ideal R := ![I, J] in

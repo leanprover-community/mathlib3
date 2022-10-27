@@ -18,7 +18,7 @@ import order.galois_connection
 
 This file defines subgroupoids as `structure`s containing the subsets of arrows and their
 stability under composition and inversion.
-Also defined are
+Also defined are:
 
 * containment of subgroupoids is a complete lattice;
 * images and preimages of subgroupoids under a functor;

@@ -410,7 +410,7 @@ end
 within the specified neighbourhood `s` on which `v` is continuously differentiable. -/
 theorem ODE_solution_exists.at_ball_of_cont_diff_on_nhds_mem_set
   {s : set E} (hv : cont_diff_on ℝ 1 v s) (hs : s ∈ 𝓝 x₀) :
-  ∃ (ε : ℝ) (hε : 0 < ε) (f : ℝ → E), f t₀ = x₀ ∧
+  ∃ (ε > (0 : ℝ)) (f : ℝ → E), f t₀ = x₀ ∧
     ∀ t ∈ Ioo (t₀ - ε) (t₀ + ε), f t ∈ s ∧ has_deriv_at f (v (f t)) t :=
 begin
   obtain ⟨ε, hε, f, hf1, hf2⟩ := exists_forall_deriv_at_ball_eq_of_cont_diff_on_nhds t₀ x₀ hv hs,

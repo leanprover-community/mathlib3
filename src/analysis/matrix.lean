@@ -66,7 +66,7 @@ local attribute [instance] matrix.seminormed_add_comm_group
 
 lemma norm_le_iff {r : ℝ} (hr : 0 ≤ r) {A : matrix m n α} :
   ∥A∥ ≤ r ↔ ∀ i j, ∥A i j∥ ≤ r :=
-by simp [pi_norm_le_iff hr]
+by simp [pi_norm_le_iff_of_nonneg hr]
 
 lemma nnnorm_le_iff {r : ℝ≥0} {A : matrix m n α} :
   ∥A∥₊ ≤ r ↔ ∀ i j, ∥A i j∥₊ ≤ r :=

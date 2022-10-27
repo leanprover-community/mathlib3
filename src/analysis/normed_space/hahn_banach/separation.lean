@@ -5,6 +5,7 @@ Authors: Bhavik Mehta, Yaël Dillies
 -/
 import analysis.convex.cone.basic
 import analysis.convex.gauge
+import analysis.locally_convex.with_seminorms
 
 /-!
 # Separation Hahn-Banach theorem
@@ -180,7 +181,7 @@ let ⟨f, s, t, ha, hst, hb⟩ := geometric_hahn_banach_closed_compact hs₁ hs�
   is_compact_singleton (disjoint_singleton_right.2 disj)
   in ⟨f, s, ha, hst.trans $ hb x $ mem_singleton _⟩
 
-/-- Special case of `normed_space.eq_iff_forall_dual_eq`. -/
+/-- See also `normed_space.eq_iff_forall_dual_eq`. -/
 theorem geometric_hahn_banach_point_point [t1_space E] (hxy : x ≠ y) :
   ∃ (f : E →L[ℝ] ℝ), f x < f y :=
 begin

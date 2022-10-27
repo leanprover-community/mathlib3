@@ -352,7 +352,7 @@ variables [proper_space E] {v : E → E} (t₀ : ℝ) (x₀ : E)
 
 /-- A time-independent, locally continuously differentiable ODE satisfies the hypotheses of the
   Picard-Lindelöf theorem. -/
-lemma is_picard_lindelof_of_time_indep_cont_diff_on_nhds
+lemma exists_is_picard_lindelof_const_of_cont_diff_on_nhds
   {s : set E} (hv : cont_diff_on ℝ 1 v s) (hs : s ∈ 𝓝 x₀) :
   ∃ (ε > (0 : ℝ)) L R C, is_picard_lindelof (λ t, v) (t₀ - ε) t₀ (t₀ + ε) x₀ L R C :=
 begin
@@ -392,12 +392,12 @@ end
 
 /-- A time-independent, locally continuously differentiable ODE admits a solution in some open
 interval. -/
-theorem exists_forall_deriv_at_ball_eq_of_cont_diff_on_nhds
+theorem exists_forall_deriv_at_Ioo_eq_of_cont_diff_on_nhds
   {s : set E} (hv : cont_diff_on ℝ 1 v s) (hs : s ∈ 𝓝 x₀) :
   ∃ (ε > (0 : ℝ)) (f : ℝ → E), f t₀ = x₀ ∧
     ∀ t ∈ Ioo (t₀ - ε) (t₀ + ε), f t ∈ s ∧ has_deriv_at f (v (f t)) t :=
 begin
-  obtain ⟨ε, hε, L, R, C, hpl⟩ := is_picard_lindelof_of_time_indep_cont_diff_on_nhds t₀ x₀ hv hs,
+  obtain ⟨ε, hε, L, R, C, hpl⟩ := exists_is_picard_lindelof_const_of_cont_diff_on_nhds t₀ x₀ hv hs,
   obtain ⟨f, hf1, hf2⟩ := exists_forall_deriv_within_Icc_eq_of_is_picard_lindelof x₀ hpl,
   have hf2' : ∀ t ∈ Ioo (t₀ - ε) (t₀ + ε), has_deriv_at f (v (f t)) t :=
     λ t ht, (hf2 t (Ioo_subset_Icc_self ht)).has_deriv_at (Icc_mem_nhds ht.1 ht.2),
@@ -419,8 +419,8 @@ begin
 end
 
 /-- A time-independent, continuously differentiable ODE admits a solution in some open interval. -/
-theorem exists_forall_deriv_at_ball_eq_of_cont_diff
+theorem exists_forall_deriv_at_Ioo_eq_of_cont_diff
   (hv : cont_diff ℝ 1 v) : ∃ (ε > (0 : ℝ)) (f : ℝ → E), f t₀ = x₀ ∧
     ∀ t ∈ Ioo (t₀ - ε) (t₀ + ε), has_deriv_at f (v (f t)) t :=
-let ⟨ε, hε, f, hf1, hf2⟩ := exists_forall_deriv_at_ball_eq_of_cont_diff_on_nhds t₀ x₀ hv.cont_diff_on
+let ⟨ε, hε, f, hf1, hf2⟩ := exists_forall_deriv_at_Ioo_eq_of_cont_diff_on_nhds t₀ x₀ hv.cont_diff_on
   (is_open.mem_nhds is_open_univ (mem_univ _)) in ⟨ε, hε, f, hf1, λ t ht, (hf2 t ht).2⟩

@@ -7,14 +7,11 @@ import analysis.normed_space.bounded_linear_maps
 import topology.new_fiber_bundle
 
 open topological_space filter set bundle
-open_locale topological_space classical
+open_locale topological_space classical bundle
 
 noncomputable theory
 
 variables {R 𝕜 B F : Type*} {E : B → Type*}
-
--- move to bundle
-localized "notation `π` := @bundle.total_space.proj _" in bundle
 
 section
 

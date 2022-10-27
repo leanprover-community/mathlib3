@@ -17,6 +17,9 @@ respecting the fiber structure ("local trivializations" of `total_space E`). We 
 
 -/
 
+-- move to bundle
+localized "notation `π` := @bundle.total_space.proj _" in bundle
+
 variables {ι : Type*} {B : Type*} {F : Type*}
 
 open topological_space filter set bundle
@@ -332,7 +335,7 @@ variables (E : B → Type*)
 section zero
 
 namespace pretrivialization
-variables {E B F} [∀ b, has_zero (E b)] (e : pretrivialization F (@total_space.proj B E))
+variables {E B F} [∀ b, has_zero (E b)] (e : pretrivialization F (π E))
 
 /-- A fiberwise inverse to `e`. This is the function `F → E b` that induces a local inverse
 `B × F → total_space E` of `e` on `e.base_set`. It is defined to be `0` outside `e.base_set`. -/
@@ -374,7 +377,7 @@ end pretrivialization
 
 namespace trivialization
 variables [topological_space (total_space E)]
-variables {E B F} [∀ b, has_zero (E b)] (e : trivialization F (@total_space.proj B E))
+variables {E B F} [∀ b, has_zero (E b)] (e : trivialization F (π E))
 
 /-- A fiberwise inverse to `e`. The function `F → E x` that induces a local inverse
   `B × F → total_space E` of `e` on `e.base_set`. It is defined to be `0` outside `e.base_set`. -/
@@ -426,8 +429,8 @@ variables [topological_space (total_space E)] [∀ b, topological_space (E b)]
 
 class fiber_bundle :=
 (total_space_mk_inducing [] : ∀ (b : B), inducing (@total_space_mk B E b))
-(trivialization_atlas [] : set (trivialization F (total_space.proj : total_space E → B)))
-(trivialization_at [] : B → trivialization F (total_space.proj : total_space E → B))
+(trivialization_atlas [] : set (trivialization F (π E)))
+(trivialization_at [] : B → trivialization F (π E))
 (mem_base_set_trivialization_at [] : ∀ b : B, b ∈ (trivialization_at b).base_set)
 (trivialization_mem_atlas [] : ∀ b : B, trivialization_at b ∈ trivialization_atlas)
 
@@ -436,36 +439,35 @@ export fiber_bundle
 variables {F E} [fiber_bundle F E]
 
 @[mk_iff]
-class mem_trivialization_atlas (e : trivialization F (@total_space.proj B E)) : Prop :=
+class mem_trivialization_atlas (e : trivialization F (π E)) : Prop :=
 (out : e ∈ trivialization_atlas F E)
 
 namespace fiber_bundle
 
 variables (F)
 lemma map_proj_nhds (x : total_space E) :
-  map (@total_space.proj B E) (𝓝 x) = 𝓝 (total_space.proj x) :=
-(trivialization_at F E (total_space.proj x)).map_proj_nhds $
-  (trivialization_at F E (total_space.proj x)).mem_source.2 $
-  mem_base_set_trivialization_at F E (total_space.proj x)
+  map (π E) (𝓝 x) = 𝓝 x.proj :=
+(trivialization_at F E x.proj).map_proj_nhds $
+  (trivialization_at F E x.proj).mem_source.2 $ mem_base_set_trivialization_at F E x.proj
 
 variables (E)
 /-- The projection from a topological fiber bundle to its base is continuous. -/
-@[continuity] lemma continuous_proj : continuous (@total_space.proj B E) :=
+@[continuity] lemma continuous_proj : continuous (π E) :=
 continuous_iff_continuous_at.2 $ λ x, (map_proj_nhds F x).le
 
 /-- The projection from a topological fiber bundle to its base is an open map. -/
-lemma is_open_map_proj : is_open_map (@total_space.proj B E) :=
+lemma is_open_map_proj : is_open_map (π E) :=
 is_open_map.of_nhds_le $ λ x, (map_proj_nhds F x).ge
 
 /-- The projection from a topological fiber bundle with a nonempty fiber to its base is a surjective
 map. -/
-lemma surjective_proj [nonempty F] : function.surjective (@total_space.proj B E) :=
+lemma surjective_proj [nonempty F] : function.surjective (π E) :=
 λ b, let ⟨p, _, hpb⟩ :=
   (trivialization_at F E b).proj_surj_on_base_set (mem_base_set_trivialization_at F E b) in ⟨p, hpb⟩
 
 /-- The projection from a topological fiber bundle with a nonempty fiber to its base is a quotient
 map. -/
-lemma quotient_map_proj [nonempty F] : quotient_map (@total_space.proj B E) :=
+lemma quotient_map_proj [nonempty F] : quotient_map (π E) :=
 (is_open_map_proj F E).to_quotient_map (continuous_proj F E) (surjective_proj F E)
 
 lemma continuous_total_space_mk (x : B) : continuous (@total_space_mk B E x) :=
@@ -834,7 +836,7 @@ namespace trivial
 variables (B F) [topological_space B] [topological_space F]
 
 /-- Local trivialization for trivial bundle. -/
-def trivialization : trivialization F (@total_space.proj B (bundle.trivial B F)) :=
+def trivialization : trivialization F (π (bundle.trivial B F)) :=
 { to_fun := λ x, (x.fst, x.snd),
   inv_fun := λ y, ⟨y.fst, y.snd⟩,
   source := univ,
@@ -876,7 +878,7 @@ instance : fiber_bundle F (bundle.trivial B F) :=
 
 -- instance : mem_trivialization_atlas (trivialization B F) := ⟨mem_singleton _⟩
 variables {B F}
-lemma eq_trivialization (e : _root_.trivialization F (@total_space.proj B (bundle.trivial B F)))
+lemma eq_trivialization (e : _root_.trivialization F (π (bundle.trivial B F)))
   [he : mem_trivialization_atlas e] : e = trivialization B F :=
 mem_singleton_iff.mp he.1
 
@@ -920,8 +922,8 @@ variables (F₂ : Type*) [topological_space F₂]
   (E₂ : B → Type*) [topological_space (total_space E₂)]
 
 namespace trivialization
-variables (e₁ : trivialization F₁ (total_space.proj : total_space E₁ → B))
-variables (e₂ : trivialization F₂ (total_space.proj : total_space E₂ → B))
+variables (e₁ : trivialization F₁ (π E₁))
+variables (e₂ : trivialization F₂ (π E₂))
 
 include e₁ e₂
 variables {F₁ E₁ F₂ E₂}
@@ -935,7 +937,7 @@ def prod.to_fun' : total_space (E₁ ×ᵇ E₂) → B × (F₁ × F₂) :=
 variables {e₁ e₂}
 
 lemma prod.continuous_to_fun : continuous_on (prod.to_fun' e₁ e₂)
-  (@total_space.proj B (E₁ ×ᵇ E₂) ⁻¹' (e₁.base_set ∩ e₂.base_set)) :=
+  (π (E₁ ×ᵇ E₂) ⁻¹' (e₁.base_set ∩ e₂.base_set)) :=
 begin
   let f₁ : total_space (E₁ ×ᵇ E₂) → total_space E₁ × total_space E₂ :=
     λ p, ((⟨p.1, p.2.1⟩ : total_space E₁), (⟨p.1, p.2.2⟩ : total_space E₂)),
@@ -967,7 +969,7 @@ def prod.inv_fun' (p : B × (F₁ × F₂)) : total_space (E₁ ×ᵇ E₂) :=
 variables {e₁ e₂}
 
 lemma prod.left_inv {x : total_space (E₁ ×ᵇ E₂)}
-  (h : x ∈ @total_space.proj B (E₁ ×ᵇ E₂) ⁻¹' (e₁.base_set ∩ e₂.base_set)) :
+  (h : x ∈ π (E₁ ×ᵇ E₂) ⁻¹' (e₁.base_set ∩ e₂.base_set)) :
   prod.inv_fun' e₁ e₂ (prod.to_fun' e₁ e₂ x) = x :=
 begin
   obtain ⟨x, v₁, v₂⟩ := x,
@@ -1006,10 +1008,10 @@ one of `[fiber_bundle F₁ E₁] [fiber_bundle F₂ E₂]`.  We `nolint unused_a
 symmetry.
 -/
 -- @[nolint unused_arguments]
-def prod : trivialization (F₁ × F₂) (@total_space.proj B (E₁ ×ᵇ E₂)) :=
+def prod : trivialization (F₁ × F₂) (π (E₁ ×ᵇ E₂)) :=
 { to_fun := prod.to_fun' e₁ e₂,
   inv_fun := prod.inv_fun' e₁ e₂,
-  source := (@total_space.proj B (E₁ ×ᵇ E₂)) ⁻¹' (e₁.base_set ∩ e₂.base_set),
+  source := (π (E₁ ×ᵇ E₂)) ⁻¹' (e₁.base_set ∩ e₂.base_set),
   target := (e₁.base_set ∩ e₂.base_set) ×ˢ set.univ,
   map_source' := λ x h, ⟨h, set.mem_univ _⟩,
   map_target' := λ x h, h.1,
@@ -1051,7 +1053,7 @@ instance _root_.bundle.prod.fiber_bundle : fiber_bundle (F₁ × F₂) (E₁ ×�
     rw (prod.inducing_diag E₁ E₂).inducing_iff,
     exact (total_space_mk_inducing F₁ E₁ b).prod_mk (total_space_mk_inducing F₂ E₂ b),
   end,
-  trivialization_atlas := (λ (p : trivialization F₁ (@total_space.proj B E₁) × trivialization F₂ (@total_space.proj B E₂)), p.1.prod p.2) ''
+  trivialization_atlas := (λ (p : trivialization F₁ (π E₁) × trivialization F₂ (π E₂)), p.1.prod p.2) ''
     (trivialization_atlas F₁ E₁ ×ˢ trivialization_atlas F₂ E₂),
   trivialization_at := λ b, (trivialization_at F₁ E₁ b).prod (trivialization_at F₂ E₂ b),
   mem_base_set_trivialization_at :=

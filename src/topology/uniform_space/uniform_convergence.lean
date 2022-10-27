@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import topology.uniform_space.basic
+import topology.uniform_space.cauchy
 
 /-!
 # Uniform convergence
@@ -569,6 +570,18 @@ begin
   intros u hu,
   have hh : tendsto (λ x : ι, (x, x)) p (p ×ᶠ p), { exact tendsto_diag, },
   exact (hh.prod_map hh).eventually ((h.prod h') u hu),
+end
+
+/-- If a sequence of functions is uniformly Cauchy on a set, then the values at each point form
+a Cauchy sequence. -/
+lemma uniform_cauchy_seq_on.cauchy_map [hp : ne_bot p]
+  (hf : uniform_cauchy_seq_on F p s) (hx : x ∈ s) :
+  cauchy (map (λ i, F i x) p) :=
+begin
+  simp only [cauchy_map_iff, hp, true_and],
+  assume u hu,
+  rw mem_map,
+  filter_upwards [hf u hu] with p hp using hp x hx,
 end
 
 section seq_tendsto

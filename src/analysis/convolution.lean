@@ -985,6 +985,8 @@ begin
     exact div_pos (mul_pos Dpos (by linarith only [hx])) B }
 end
 
+lemma Y_smooth (R : ℝ) : cont_diff ℝ ⊤ (Y R : H → ℝ) := sorry
+
 @[to_additive]
 lemma mul_support_eq_iff {α β : Type*} [has_one β] {f : α → β} {s : set α} :
   mul_support f = s ↔ ((∀ x, x ∈ s → f x ≠ 1) ∧ (∀ x, x ∉ s → f x = 1)) :=
@@ -1028,7 +1030,10 @@ begin
       { simp only [Y_neg, smul_neg] },
       { refl },
     end,
-    smooth := _,
+    smooth := λ R hR, begin
+      simp only [hR, if_true],
+      exact (Y_smooth _).comp (cont_diff_id.const_smul _),
+    end,
     eq_one := λ R hR x hx, begin
       have A : 0 < R + 1, by linarith,
       simp only [hR, if_true],

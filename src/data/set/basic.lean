@@ -778,10 +778,6 @@ theorem mem_singleton_of_eq {x y : α} (H : x = y) : x ∈ ({y} : set α) := H
 
 theorem insert_eq (x : α) (s : set α) : insert x s = ({x} : set α) ∪ s := rfl
 
-@[simp] theorem pair_eq_singleton (a : α) : ({a, a} : set α) = {a} := union_self _
-
-theorem pair_comm (a b : α) : ({a, b} : set α) = {b, a} := union_comm _ _
-
 @[simp] theorem singleton_nonempty (a : α) : ({a} : set α).nonempty :=
 ⟨a, rfl⟩
 
@@ -819,6 +815,22 @@ eq_singleton_iff_unique_mem.trans $ and_congr_left $ λ H, ⟨λ h', ⟨_, h'⟩
 
 -- while `simp` is capable of proving this, it is not capable of turning the LHS into the RHS.
 @[simp] lemma default_coe_singleton (x : α) : (default : ({x} : set α)) = ⟨x, rfl⟩ := rfl
+
+/-! ### Lemmas about pairs -/
+
+@[simp] theorem pair_eq_singleton (a : α) : ({a, a} : set α) = {a} := union_self _
+
+theorem pair_comm (a b : α) : ({a, b} : set α) = {b, a} := union_comm _ _
+
+lemma pair_eq_pair_iff {x y z w : α} :
+  ({x, y} : set α) = {z, w} ↔ x = z ∧ y = w ∨ x = w ∧ y = z :=
+begin
+  simp only [set.subset.antisymm_iff, set.insert_subset, set.mem_insert_iff, set.mem_singleton_iff,
+    set.singleton_subset_iff],
+  split,
+  { tauto! },
+  { rintro (⟨rfl,rfl⟩|⟨rfl,rfl⟩); simp }
+end
 
 /-! ### Lemmas about sets defined as `{x ∈ s | p x}`. -/
 
@@ -2278,9 +2290,11 @@ lemma surjective_onto_range : surjective (range_factorization f) :=
 lemma image_eq_range (f : α → β) (s : set α) : f '' s = range (λ(x : s), f x) :=
 by { ext, split, rintro ⟨x, h1, h2⟩, exact ⟨⟨x, h1⟩, h2⟩, rintro ⟨⟨x, h1⟩, h2⟩, exact ⟨x, h1, h2⟩ }
 
-@[simp] lemma sum.elim_range {α β γ : Type*} (f : α → γ) (g : β → γ) :
-  range (sum.elim f g) = range f ∪ range g :=
-by simp [set.ext_iff, mem_range]
+lemma _root_.sum.range_eq (f : α ⊕ β → γ) : range f = range (f ∘ sum.inl) ∪ range (f ∘ sum.inr) :=
+ext $ λ x, sum.exists
+
+@[simp] lemma sum.elim_range (f : α → γ) (g : β → γ) : range (sum.elim f g) = range f ∪ range g :=
+sum.range_eq _
 
 lemma range_ite_subset' {p : Prop} [decidable p] {f g : α → β} :
   range (if p then f else g) ⊆ range f ∪ range g :=

@@ -20,29 +20,6 @@ then the number of fixed points of the action is congruent mod `p` to the cardin
 It also contains proofs of some corollaries of this lemma about existence of fixed points.
 -/
 
-namespace nat
-
-lemma xgcd_one_left {s t r' s' t'} : xgcd_aux 1 s t r' s' t' = (1, s, t) :=
-by simp only [xgcd_aux, mod_one]
-
-@[simp] theorem gcd_a_one_left {s : ℕ} : gcd_a 1 s = 1 :=
-by rw [gcd_a, xgcd, xgcd_one_left]
-
-@[simp] theorem gcd_b_one_left {s : ℕ} : gcd_b 1 s = 0 :=
-by rw [gcd_b, xgcd, xgcd_one_left]
-
-@[simp] theorem gcd_a_one_right : ∀ {s : ℕ}, s ≠ 1 → gcd_a s 1 = 0
-| 0       := λ h, gcd_a_zero_left
-| 1       := λ h, (h rfl).elim
-| (s + 2) := λ h, by simp only [gcd_a, xgcd, xgcd_aux, one_mod, mod_one]; refl
-
-@[simp] theorem gcd_b_one_right : ∀ {s : ℕ}, s ≠ 1 → gcd_b s 1 = 1
-| 0       := λ h, gcd_b_zero_left
-| 1       := λ h, (h rfl).elim
-| (s + 2) := λ h, by simp only [gcd_b, xgcd, xgcd_aux, one_mod, mod_one]; refl
-
-end nat
-
 open_locale big_operators
 
 open fintype mul_action
@@ -118,28 +95,13 @@ lemma order_of_coprime {n : ℕ} (hn : p.coprime n) (g : G) : (order_of g).copri
 let ⟨k, hk⟩ := hG g in (hn.pow_left k).coprime_dvd_left (order_of_dvd_of_pow_eq_one hk)
 
 noncomputable def pow_equiv' {n : ℕ} (hn : p.coprime n) : G ≃ G :=
+let h : ∀ g : G, (nat.card (subgroup.zpowers g)).coprime n :=
+λ g, order_eq_card_zpowers' g ▸ hG.order_of_coprime hn g in
 { to_fun := (^ n),
-  inv_fun := λ g, g ^ ((order_of g).gcd_b n),
-  left_inv := λ g, by
-  { simp only,
-    by_cases hp : p = 0,
-    { rw [hp, nat.coprime_zero_left] at hn,
-      rw [hn, pow_one],
-      by_cases hg : order_of g = 1,
-      { rwa [hg, nat.gcd_b_one_left, zpow_zero, eq_comm, ←order_of_eq_one_iff] },
-      { rw [nat.gcd_b_one_right hg, zpow_one] } },
-    replace hp := (is_of_fin_order_iff_pow_eq_one g).mpr
-      (let ⟨n, hn'⟩ := hG g in ⟨p ^ n, pow_pos (nat.pos_of_ne_zero hp) n, hn'⟩),
-    have gcd_eq_one : (order_of g).gcd n = 1 := order_of_coprime hG hn g,
-    rw [order_of_pow'' g n hp, gcd_eq_one, nat.div_one],
-    have key := congr_arg ((^) g) ((order_of g).gcd_eq_gcd_ab n),
-    rwa [zpow_add, zpow_mul, zpow_mul, zpow_coe_nat, zpow_coe_nat, zpow_coe_nat,
-      pow_order_of_eq_one, one_zpow, one_mul, gcd_eq_one, pow_one, eq_comm] at key },
-  right_inv := λ g, by
-  { have gcd_eq_one : (order_of g).gcd n = 1 := order_of_coprime hG hn g,
-    have key := congr_arg ((^) g) ((order_of g).gcd_eq_gcd_ab n),
-    rwa [zpow_add, zpow_mul, zpow_mul', zpow_coe_nat, zpow_coe_nat, zpow_coe_nat,
-      pow_order_of_eq_one, one_zpow, one_mul, gcd_eq_one, pow_one, eq_comm] at key } }
+  inv_fun := λ g, (pow_coprime (h g)).symm ⟨g, subgroup.mem_zpowers g⟩,
+  left_inv := λ g, subtype.ext_iff.1 $ (pow_coprime (h (g ^ n))).left_inv
+    ⟨g, _, subtype.ext_iff.1 $ (pow_coprime (h g)).left_inv ⟨g, subgroup.mem_zpowers g⟩⟩,
+  right_inv := λ g, subtype.ext_iff.1 $ (pow_coprime (h g)).right_inv ⟨g, subgroup.mem_zpowers g⟩ }
 
 variables [hp : fact p.prime]
 

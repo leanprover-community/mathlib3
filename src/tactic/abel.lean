@@ -364,7 +364,7 @@ This version of `abel` fails if the target is not an equality
 that is provable by the axioms of commutative monoids/groups.
 
 `abel1!` will use a more aggressive reducibility setting to identify atoms.
-This can prove goals that `abel` cannot, but is more expensive.
+This can prove goals that `abel1` cannot, but is more expensive.
 -/
 meta def abel1 (red : parse (tk "!")?) : tactic unit :=
 do `(%%e₁ = %%e₂) ← target,
@@ -385,10 +385,24 @@ do mode ← ident?, match mode with
 end
 
 /--
+Rewrite all additive monoid/group expressions into a normal form.
+If there is an `at` specifier, it rewrites the given target into a normal form.
+
+`abel_nf!` will use a more aggressive reducibility setting to identify atoms.
+-/
+meta def abel_nf (red : parse (tk "!")?) (SOP : parse abel.mode) (loc : parse location) :
+  tactic unit :=
+do ns ← loc.get_locals,
+   let red := if red.is_some then semireducible else reducible,
+   tt ← tactic.replace_at (normalize red SOP) ns loc.include_goal
+      | fail "abel failed to simplify",
+   when loc.include_goal $ try tactic.reflexivity
+
+/--
 Evaluate expressions in the language of *additive*, commutative monoids and groups.
 It attempts to prove the goal outright if there is no `at`
 specifier and the target is an equality, but if this
-fails, it falls back to rewriting all monoid expressions into a normal form.
+fails, it falls back to rewriting all monoid/group expressions into a normal form.
 If there is an `at` specifier, it rewrites the given target into a normal form.
 
 `abel!` will use a more aggressive reducibility setting to identify atoms.
@@ -407,11 +421,21 @@ match loc with
 | interactive.loc.ns [none] := abel1 red
 | _ := failed
 end <|>
-do ns ← loc.get_locals,
-   let red := if red.is_some then semireducible else reducible,
-   tt ← tactic.replace_at (normalize red SOP) ns loc.include_goal
-      | fail "abel failed to simplify",
-   when loc.include_goal $ try tactic.reflexivity
+do abel_nf red SOP loc,
+   trace "Try this: abel_nf"
+
+
+add_tactic_doc
+{ name        := "abel1",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.abel1],
+  tags        := ["arithmetic", "decision procedure"] }
+
+add_tactic_doc
+{ name        := "abel_nf",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.abel_nf],
+  tags        := ["arithmetic", "simplification"] }
 
 add_tactic_doc
 { name        := "abel",

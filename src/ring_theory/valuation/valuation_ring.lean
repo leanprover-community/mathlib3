@@ -29,7 +29,6 @@ We also provide the equivalence of the following notions for a domain `R` in `va
 3. "divides" is a total relation on the elements of `R`.
 4. "contains" is a total relation on the ideals of `R`.
 5. `R` is a local bezout domain.
-value_group
 -/
 
 universes u v w

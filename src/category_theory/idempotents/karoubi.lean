@@ -6,7 +6,6 @@ Authors: Joël Riou
 
 import category_theory.idempotents.basic
 import category_theory.preadditive.additive_functor
-import category_theory.equivalence
 
 /-!
 # The Karoubi envelope of a category

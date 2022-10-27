@@ -5,9 +5,7 @@ Authors: Bhavik Mehta, E. W. Ayers
 -/
 
 import category_theory.sites.sieves
-import category_theory.limits.shapes.pullbacks
 import category_theory.limits.shapes.multiequalizer
-import category_theory.category.preorder
 import order.copy
 
 /-!

@@ -4,10 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang, Kevin Buzzard
 -/
 
-import algebra.homology.exact
-import category_theory.types
 import category_theory.preadditive.projective
-import category_theory.limits.shapes.biproducts
 
 /-!
 # Injective objects and categories with enough injectives

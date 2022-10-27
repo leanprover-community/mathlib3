@@ -3,8 +3,6 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
-import category_theory.limits.shapes.finite_products
-import category_theory.limits.shapes.kernels
 import category_theory.limits.shapes.normal_mono.equalizers
 import category_theory.abelian.images
 import category_theory.preadditive

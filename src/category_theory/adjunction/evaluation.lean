@@ -5,7 +5,6 @@ Authors: Adam Topaz
 -/
 
 import category_theory.limits.shapes.products
-import category_theory.functor.epi_mono
 
 /-!
 

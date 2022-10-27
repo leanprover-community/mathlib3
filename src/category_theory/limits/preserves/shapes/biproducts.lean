@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import category_theory.limits.shapes.biproducts
-import category_theory.limits.preserves.shapes.zero
 import category_theory.limits.preserves.shapes.binary_products
 import category_theory.limits.preserves.shapes.products
 

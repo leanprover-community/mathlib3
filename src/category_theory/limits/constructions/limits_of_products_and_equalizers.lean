@@ -3,9 +3,6 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Scott Morrison
 -/
-import category_theory.limits.shapes.equalizers
-import category_theory.limits.shapes.finite_products
-import category_theory.limits.preserves.shapes.products
 import category_theory.limits.preserves.shapes.equalizers
 import category_theory.limits.preserves.finite
 import category_theory.limits.constructions.finite_products_of_binary_products

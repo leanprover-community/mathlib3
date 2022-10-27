@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Yury Kudryashov
 -/
 import category_theory.concrete_category.basic
-import category_theory.concrete_category.bundled
 
 /-!
 # Category instances for algebraic structures that use bundled homs.

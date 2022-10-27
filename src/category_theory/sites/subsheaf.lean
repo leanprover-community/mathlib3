@@ -5,7 +5,6 @@ Authors: Andrew Yang
 -/
 import category_theory.elementwise
 import category_theory.sites.compatible_sheafification
-import category_theory.limits.constructions.epi_mono
 import category_theory.adjunction.evaluation
 
 /-!

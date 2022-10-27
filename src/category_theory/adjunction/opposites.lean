@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Thomas Read, Andrew Yang
 -/
 
-import category_theory.adjunction.basic
 import category_theory.yoneda
-import category_theory.opposites
 
 /-!
 # Opposite adjunctions

@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import category_theory.category.Cat
-import category_theory.groupoid
-import category_theory.types
 
 /-!
 # Objects of a category up to an isomorphism

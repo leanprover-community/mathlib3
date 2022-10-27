@@ -7,7 +7,6 @@ import category_theory.limits.connected
 import category_theory.limits.constructions.over.products
 import category_theory.limits.constructions.over.connected
 import category_theory.limits.constructions.limits_of_products_and_equalizers
-import category_theory.limits.constructions.equalizers
 
 /-!
 # Limits in the over category

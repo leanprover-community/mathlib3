@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import data.fintype.basic
 import category_theory.discrete_category
-import category_theory.opposites
 import category_theory.category.ulift
 
 /-!

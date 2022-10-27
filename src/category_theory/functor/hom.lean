@@ -3,7 +3,6 @@ Copyright (c) 2018 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Scott Morrison
 -/
-import category_theory.products.basic
 import category_theory.types
 
 /-!

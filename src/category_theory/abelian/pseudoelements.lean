@@ -3,8 +3,6 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
-import category_theory.abelian.exact
-import category_theory.over
 import algebra.category.Module.abelian
 
 /-!

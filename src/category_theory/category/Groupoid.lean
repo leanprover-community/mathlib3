@@ -5,8 +5,6 @@ Authors: Yury Kudryashov
 -/
 import category_theory.single_obj
 import category_theory.limits.shapes.products
-import category_theory.pi.basic
-import category_theory.limits.is_limit
 
 /-!
 # Category of groupoids

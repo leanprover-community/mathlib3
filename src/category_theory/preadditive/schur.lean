@@ -3,10 +3,8 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison
 -/
-import algebra.group.ext
 import category_theory.simple
 import category_theory.linear
-import category_theory.endomorphism
 import algebra.algebra.spectrum
 
 /-!

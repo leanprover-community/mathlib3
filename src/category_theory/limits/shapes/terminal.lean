@@ -5,7 +5,6 @@ Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.pempty
 import category_theory.limits.has_limits
-import category_theory.epi_mono
 import category_theory.category.preorder
 
 /-!

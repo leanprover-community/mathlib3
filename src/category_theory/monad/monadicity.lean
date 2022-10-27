@@ -5,7 +5,6 @@ Authors: Bhavik Mehta
 -/
 
 import category_theory.limits.preserves.shapes.equalizers
-import category_theory.limits.shapes.reflexive
 import category_theory.monad.coequalizer
 import category_theory.monad.limits
 

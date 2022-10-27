@@ -5,7 +5,6 @@ Authors: Andrew Yang
 -/
 import category_theory.adjunction.comma
 import category_theory.limits.preserves.shapes.terminal
-import category_theory.structured_arrow
 import category_theory.limits.shapes.equivalence
 
 /-!

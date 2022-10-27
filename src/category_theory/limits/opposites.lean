@@ -5,7 +5,6 @@ Authors: Scott Morrison, Floris van Doorn
 -/
 import category_theory.limits.filtered
 import category_theory.limits.shapes.finite_products
-import category_theory.discrete_category
 import tactic.equiv_rw
 
 /-!

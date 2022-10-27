@@ -5,7 +5,6 @@ Authors: Scott Morrison, Johan Commelin
 -/
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.images
-import category_theory.isomorphism_classes
 
 /-!
 # Zero objects

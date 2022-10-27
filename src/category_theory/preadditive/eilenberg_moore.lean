@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
 
-import category_theory.preadditive.default
 import category_theory.monad.algebra
 import category_theory.preadditive.additive_functor
 

@@ -5,8 +5,6 @@ Authors: Scott Morrison
 -/
 import category_theory.limits.types
 import category_theory.limits.shapes.products
-import category_theory.limits.shapes.binary_products
-import category_theory.limits.shapes.terminal
 import tactic.elementwise
 
 /-!

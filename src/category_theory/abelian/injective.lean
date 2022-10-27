@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob von Raumer
 -/
 
-import category_theory.abelian.exact
 import category_theory.preadditive.injective
-import category_theory.preadditive.yoneda
 
 /-!
 # Injective objects in abelian categories

@@ -136,10 +136,7 @@ which form a basis for the lower topology
 -/
 def lower_basis (α : Type u) [preorder α] :=
 {s : set α | ∃ (F : set α), F.finite ∧
-  ↑(upper_closure F).compl = s ∧
-  s.nonempty }
-
-#check compl_inj_iff
+  ↑(upper_closure F).compl = s }
 
 lemma lower_basis_is_basis : is_topological_basis (lower_basis (lower α)) :=
 begin
@@ -181,11 +178,9 @@ begin
       cases h_h,
       casesI nonempty_fintype F,
       apply_instance, },
-      { split,
-        { simp only [set_of_subset_set_of, forall_exists_index, forall_apply_eq_imp_iff₂,
-            implies_true_iff, exists_apply_eq_apply], },
-        { rw efn, rw h_h.2.1,  rw upper_set.carrier_eq_coe at , exact h_h.2.2 } }, },
-    { rw [← h_h.2.1, efn], } },
+      simp only [set_of_subset_set_of, forall_exists_index, forall_apply_eq_imp_iff₂, exists_apply_eq_apply, implies_true_iff],
+    },
+    { rw [← h_h.2, efn], } },
   { intro h,
     cases h with f,
     rw mem_set_of_eq at h_h,
@@ -202,7 +197,7 @@ begin
       split,
       { rw mem_set_of_eq,
       intro hs,
-      have es: ∃ (a : α), (Ici a)ᶜ = s := by exact h_h.1.2.1 hs,
+      have es: ∃ (a : α), (Ici a)ᶜ = s := by exact h_h.1.2 hs,
       cases es with a,
       use a,
       split,
@@ -221,10 +216,7 @@ begin
       rw eF',
       apply finite.preimage_embedding,
       exact hf, },
-    { split,
-      { rw [← h_h.2, eF], },
-      { convert h_h.1.2.2,
-        rw h_h.2, } } }
+    { rw [← h_h.2, eF], } }
 end
 
 instance (α : Type u) [p : partial_order α] : partial_order (lower α) := p

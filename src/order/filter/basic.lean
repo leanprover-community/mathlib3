@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Jeremy Avigad
 import control.traversable.instances
 import data.set.finite
 import order.copy
-import order.atoms
 import tactic.monotonicity
 
 /-!

@@ -291,12 +291,18 @@ example (f : ℕ → α) : ∑ i in {0, 1, 2}, f i = f 0 + f 1 + f 2 := by norm_
 example (f : ℕ → α) : ∑ i in {0, 2, 2, 3, 1, 0}, f i = f 0 + f 1 + f 2 + f 3 := by norm_num; ring
 example (f : ℕ → α) : ∑ i in {0, 2, 2 - 3, 3 - 1, 1, 0}, f i = f 0 + f 1 + f 2 := by norm_num; ring
 example : (∑ i in finset.range 10, (i^2 : ℕ)) = 285 := by norm_num
+example : (∑ i in finset.Icc 5 10, (i^2 : ℕ)) = 355 := by norm_num
+example : (∑ i in finset.Ico 5 10, (i^2 : ℕ)) = 255 := by norm_num
+example : (∑ i in finset.Ioc 5 10, (i^2 : ℕ)) = 330 := by norm_num
+example : (∑ i in finset.Ioo 5 10, (i^2 : ℕ)) = 230 := by norm_num
+example : (∑ i : ℤ in finset.Ioo (-5) 5, i^2) = 60 := by norm_num
 example (f : ℕ → α) : ∑ i in finset.mk {0, 1, 2} dec_trivial, f i = f 0 + f 1 + f 2 :=
   by norm_num; ring
 
 -- Combined with other `norm_num` extensions:
 example : ∏ i in finset.range 9, nat.sqrt (i + 1) = 96 := by norm_num
 example : ∏ i in {1, 4, 9, 16}, nat.sqrt i = 24 := by norm_num
+example : ∏ i in finset.Icc 0 8, nat.sqrt (i + 1) = 96 := by norm_num
 
 -- Nested operations:
 example : ∑ i : fin 2, ∑ j : fin 2, ![![0, 1], ![2, 3]] i j = 6 := by norm_num

@@ -86,7 +86,7 @@ inductive point
 | zero
 | some (x y : K) (h : E.weierstrass x y)
 
-localized "notation E⟮K⟯ := point E K" in point
+localized "notation E⟮K⟯ := point E K" in EllipticCurve
 
 variables {E K}
 
@@ -94,13 +94,13 @@ namespace point
 
 instance : inhabited E⟮K⟯ := ⟨zero⟩
 
+section zero
+
 /-!
 ### Zero in `E⟮K⟯`
 
 Use `0` instead of `EllipticCurve.point.zero`.
 -/
-
-section zero
 
 instance : has_zero E⟮K⟯ := ⟨zero⟩
 
@@ -108,13 +108,13 @@ instance : has_zero E⟮K⟯ := ⟨zero⟩
 
 end zero
 
+section negation
+
 /-!
 ### Negation in `E⟮K⟯`
 
 Given `P : E⟮K⟯`, use `-P` instead of `neg P`.
 -/
-
-section negation
 
 variables {x y : K} (h : E.weierstrass x y)
 
@@ -129,7 +129,7 @@ by { rw [weierstrass] at h, rw [weierstrass, neg_y, ← h], ring1 }
 
 omit h
 
-/-- Negation in `E⟮K⟯`. -/
+/-- Negation in `E⟮K⟯`. Given `P : E⟮K⟯`, use `-P` instead of `neg P`. -/
 @[simp] def neg : E⟮K⟯ → E⟮K⟯
 | 0            := 0
 | (some x y h) := some x (neg_y h) $ weierstrass_neg h
@@ -148,13 +148,13 @@ instance : has_involutive_neg E⟮K⟯ := ⟨neg, neg_neg⟩
 
 end negation
 
+section doubling
+
 /-!
 ### Doubling in `E⟮K⟯`
 
 Given `P : E⟮K⟯`, use `2 • P` instead of `P + P` (TODO: immediate once `add_comm_group` is defined).
 -/
-
-section doubling
 
 variables {x y : K} (h : E.weierstrass x y)
 
@@ -200,13 +200,13 @@ weierstrass_neg $ weierstrass_dbl' h hy
 
 end doubling
 
+section addition
+
 /-!
 ### Addition in `E⟮K⟯`
 
 Given `P Q : E⟮K⟯`, use `P + Q` instead of `add P Q`.
 -/
-
-section addition
 
 variables {x₁ y₁ x₂ y₂ : K} (h₁ : E.weierstrass x₁ y₁) (h₂ : E.weierstrass x₂ y₂)
 
@@ -274,7 +274,7 @@ omit h₁ h₂
 
 open_locale classical
 
-/-- Addition in `E⟮K⟯`. -/
+/-- Addition in `E⟮K⟯`. Given `P Q : E⟮K⟯`, use `P + Q` instead of `add P Q`. -/
 @[simp] noncomputable def add : E⟮K⟯ → E⟮K⟯ → E⟮K⟯
 | 0               P               := P
 | P               0               := P
@@ -324,13 +324,13 @@ some_add_some_of_x_ne h₁ h₂ hx
 
 end addition
 
+section add_comm_group
+
 /-!
 ### Axioms in `E⟮K⟯`
 
 TODO: Associativity of addition.
 -/
-
-section add_comm_group
 
 @[simp] lemma add_left_neg (P : E⟮K⟯) : -P + P = 0 :=
 by { cases P, { refl }, { simp only [neg_some, some_add_some_of_y_eq] } }

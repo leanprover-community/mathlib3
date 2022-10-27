@@ -330,6 +330,12 @@ lemma eq_of_forall_ge_iff [partial_order α] {a b : α}
   (H : ∀ c, a ≤ c ↔ b ≤ c) : a = b :=
 ((H _).2 le_rfl).antisymm ((H _).1 le_rfl)
 
+lemma eq_of_forall_lt_iff [linear_order α] {a b : α} (h : ∀ c, c < a ↔ c < b) : a = b :=
+(le_of_forall_lt $ λ _, (h _).1).antisymm $ le_of_forall_lt $ λ _, (h _).2
+
+lemma eq_of_forall_gt_iff [linear_order α] {a b : α} (h : ∀ c, a < c ↔ b < c) : a = b :=
+(le_of_forall_lt' $ λ _, (h _).2).antisymm $ le_of_forall_lt' $ λ _, (h _).1
+
 /-- A symmetric relation implies two values are equal, when it implies they're less-equal.  -/
 lemma rel_imp_eq_of_rel_imp_le [partial_order β] (r : α → α → Prop) [is_symm α r] {f : α → β}
   (h : ∀ a b, r a b → f a ≤ f b) {a b : α} : r a b → f a = f b :=

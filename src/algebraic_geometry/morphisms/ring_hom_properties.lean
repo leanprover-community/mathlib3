@@ -98,8 +98,7 @@ begin
     rw [opens.open_embedding_obj_top, opens.functor_obj_map_obj],
     convert (X.basic_open_res (Scheme.Γ.map f.op r) (hom_of_le le_top).op).symm using 1,
     rw [opens.open_embedding_obj_top, opens.open_embedding_obj_top, inf_comm,
-      Scheme.Γ_map_op, ← Scheme.preimage_basic_open],
-    refl },
+      Scheme.Γ_map_op, ← Scheme.preimage_basic_open] },
   { apply is_localization.ring_hom_ext (submonoid.powers r) _,
     swap, { exact algebraic_geometry.Γ_restrict_is_localization Y r },
     rw [is_localization.away.map, is_localization.map_comp, ring_hom.algebra_map_to_algebra,
@@ -332,7 +331,7 @@ begin
     { refine X.presheaf.map
         (@hom_of_le _ _ ((is_open_map.functor _).obj _) ((is_open_map.functor _).obj _) _).op,
       rw [unop_op, unop_op, opens.open_embedding_obj_top, opens.open_embedding_obj_top],
-      exact X.basic_open_subset _ },
+      exact X.basic_open_le _ },
     { rw [op_comp, op_comp, functor.map_comp, functor.map_comp],
       refine (eq.trans _ (category.assoc _ _ _).symm : _),
       congr' 1,

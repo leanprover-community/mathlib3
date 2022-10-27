@@ -273,6 +273,11 @@ lemma covby.unique_left (ha : a ⋖ c) (hb : b ⋖ c) : a = b :=
 lemma covby.unique_right (hb : a ⋖ b) (hc : a ⋖ c) : b = c :=
 (hb.ge_of_gt hc.lt).antisymm $ hc.ge_of_gt hb.lt
 
+/-- If `a`, `b`, `c` are consecutive and `a < x < c` then `x = b`. -/
+lemma covby.eq_of_between {x : α} (hab : a ⋖ b) (hbc : b ⋖ c) (hax : a < x) (hxc : x < c) :
+  x = b :=
+le_antisymm (le_of_not_lt $ λ h, hbc.2 h hxc) (le_of_not_lt $ hab.2 hax)
+
 end linear_order
 
 namespace set

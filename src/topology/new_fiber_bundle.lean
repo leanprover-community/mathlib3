@@ -435,13 +435,15 @@ export fiber_bundle
 
 variables {F E} [fiber_bundle F E]
 
-@[class] def mem_trivialization_atlas (e : trivialization F (@total_space.proj B E)) : Prop :=
-e ∈ trivialization_atlas F E
+@[mk_iff]
+class mem_trivialization_atlas (e : trivialization F (@total_space.proj B E)) : Prop :=
+(out : e ∈ trivialization_atlas F E)
 
 namespace fiber_bundle
 
 variables (F)
-lemma map_proj_nhds (x : total_space E) : map (@total_space.proj B E) (𝓝 x) = 𝓝 (total_space.proj x) :=
+lemma map_proj_nhds (x : total_space E) :
+  map (@total_space.proj B E) (𝓝 x) = 𝓝 (total_space.proj x) :=
 (trivialization_at F E (total_space.proj x)).map_proj_nhds $
   (trivialization_at F E (total_space.proj x)).mem_source.2 $
   mem_base_set_trivialization_at F E (total_space.proj x)
@@ -876,7 +878,7 @@ instance : fiber_bundle F (bundle.trivial B F) :=
 variables {B F}
 lemma eq_trivialization (e : _root_.trivialization F (@total_space.proj B (bundle.trivial B F)))
   [he : mem_trivialization_atlas e] : e = trivialization B F :=
-mem_singleton_iff.mp he
+mem_singleton_iff.mp he.1
 
 end trivial
 

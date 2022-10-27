@@ -13,16 +13,19 @@ noncomputable theory
 
 variables {R 𝕜 B F : Type*} {E : B → Type*}
 
+-- move to bundle
+localized "notation `π` := @bundle.total_space.proj _" in bundle
+
 section
 
 variables [semiring R] [topological_space B]
 
 namespace pretrivialization
 
-variables [topological_space F] (e : pretrivialization F (total_space.proj : total_space E → B))
+variables [topological_space F] (e : pretrivialization F (π E))
   (R) [add_comm_monoid F] [module R F] [∀ b, add_comm_monoid (E b)] [∀ b, module R (E b)]
 
-protected class is_linear (e : pretrivialization F (@total_space.proj B E)) : Prop :=
+protected class is_linear (e : pretrivialization F (π E)) : Prop :=
 (linear : ∀ b ∈ e.base_set, is_linear_map R (λ x : E b, (e (total_space_mk b x)).2))
 
 variables [e.is_linear R]
@@ -98,10 +101,10 @@ namespace trivialization
 variables [topological_space F] [add_comm_monoid F] [module R F] [∀ b, add_comm_monoid (E b)] [∀ b, module R (E b)]
 variables (R) [topological_space (total_space E)]
 
-class is_linear (e : trivialization F (total_space.proj : total_space E → B)) : Prop :=
+class is_linear (e : trivialization F (π E)) : Prop :=
 (linear : ∀ x ∈ e.base_set, is_linear_map R (λ y : E x, (e (total_space_mk x y)).2))
 
-variables (e e' : trivialization F (total_space.proj : total_space E → B))
+variables (e e' : trivialization F (π E))
 variables [e.is_linear R] [e'.is_linear R]
 
 lemma linear {b : B} (hb : b ∈ e.base_set) :
@@ -243,13 +246,13 @@ variables [topological_space (total_space E)]
 variables [nontrivially_normed_field 𝕜]
 variables [normed_add_comm_group F] [∀ b, add_comm_monoid (E b)] [∀ b, topological_space (E b)]
 variables [normed_space 𝕜 F] [∀ b, module 𝕜 (E b)]
-variables (𝕜) (e e' : trivialization F (@total_space.proj B E))
+variables (𝕜) (e e' : trivialization F (π E))
 
 variables (F E) [fiber_bundle F E]
 
-class vector_bundle  : Prop :=
-(trivialization_linear : ∀ e [mem_trivialization_atlas e], trivialization.is_linear 𝕜 e)
-(continuous_on_coord_change : ∀ (e e' : trivialization F (@total_space.proj B E))
+class vector_bundle : Prop :=
+(trivialization_linear : ∀ e [mem_trivialization_atlas e], e.is_linear 𝕜)
+(continuous_on_coord_change : ∀ (e e' : trivialization F (π E))
   [he : mem_trivialization_atlas e]
   [he' : mem_trivialization_atlas e'], by {
   haveI : e.is_linear 𝕜 := @trivialization_linear e he,
@@ -265,7 +268,7 @@ variables [vector_bundle 𝕜 F E]
 -- instance vector_bundle.trivialization_linear' [mem_trivialization_atlas e] : e.is_linear 𝕜 :=
 -- vector_bundle.trivialization_linear e ‹_›
 
-example [fiber_bundle F E] [vector_bundle 𝕜 F E] (e e' : trivialization F (@total_space.proj B E))
+example [fiber_bundle F E] [vector_bundle 𝕜 F E] (e e' : trivialization F (π E))
   [mem_trivialization_atlas e] [mem_trivialization_atlas e'] :
   continuous_on
   (λ b, trivialization.coord_change 𝕜 e e' b : B → F →L[𝕜] F) (e.base_set ∩ e'.base_set) :=
@@ -509,8 +512,8 @@ variables (F₂ : Type*) [normed_add_comm_group F₂] [normed_space R F₂]
   [Π x, add_comm_monoid (E₂ x)] [Π x, module R (E₂ x)]
 
 namespace trivialization
-variables (e₁ : trivialization F₁ (total_space.proj : total_space E₁ → B))
-variables (e₂ : trivialization F₂ (total_space.proj : total_space E₂ → B))
+variables (e₁ : trivialization F₁ (π E₁))
+variables (e₂ : trivialization F₂ (π E₂))
 variables [e₁.is_linear R] [e₂.is_linear R]
 
 include e₁ e₂
@@ -544,7 +547,7 @@ variables [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E
 instance _root_.bundle.prod.vector_bundle :
   vector_bundle R (F₁ × F₂) (E₁ ×ᵇ E₂) :=
 { trivialization_linear := begin
-    rintros - ⟨⟨e₁, e₂⟩, ⟨i₁ : mem_trivialization_atlas e₁, i₂ : mem_trivialization_atlas e₂⟩, rfl⟩,
+    rintros - ⟨⟨e₁, e₂⟩, ⟨i₁, i₂⟩, rfl⟩,
     resetI,
     apply prod.is_linear,
   end,
@@ -571,8 +574,8 @@ instance _root_.bundle.prod.vector_bundle :
 variables {R F₁ E₁ F₂ E₂}
 
 @[simp] lemma trivialization.continuous_linear_equiv_at_prod
-  (e₁ : trivialization F₁ (@total_space.proj B E₁)) [is_linear R e₁]
-  (e₂ : trivialization F₂ (@total_space.proj B E₂)) [is_linear R e₂]
+  (e₁ : trivialization F₁ (π E₁)) [is_linear R e₁]
+  (e₂ : trivialization F₂ (π E₂)) [is_linear R e₂]
   {x : B} (hx₁ : x ∈ e₁.base_set) (hx₂ : x ∈ e₂.base_set) :
   (e₁.prod e₂).continuous_linear_equiv_at R x ⟨hx₁, hx₂⟩
   = (e₁.continuous_linear_equiv_at R x hx₁).prod (e₂.continuous_linear_equiv_at R x hx₂) :=

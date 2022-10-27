@@ -356,14 +356,14 @@ variables [proper_space E] {v : E → E} (t₀ : ℝ) (x₀ : E)
 /-- A time-independent, locally continuously differentiable ODE satisfies the hypotheses of the
   Picard-Lindelöf theorem. -/
 lemma is_picard_lindelof_of_time_indep_cont_diff_on_nhds
-  {s : set E} (hv : cont_diff_on ℝ 1 v s) (hs : s ∈ nhds x₀) :
-  ∃ (ε : ℝ) (hε : 0 < ε) (L R C), is_picard_lindelof (λ t, v) (t₀ - ε) t₀ (t₀ + ε) x₀ L R C :=
+  {s : set E} (hv : cont_diff_on ℝ 1 v s) (hs : s ∈ 𝓝 x₀) :
+  ∃ (ε > (0 : ℝ)) (L R C), is_picard_lindelof (λ t, v) (t₀ - ε) t₀ (t₀ + ε) x₀ L R C :=
 begin
   -- extract Lipschitz constant
   obtain ⟨L, s', hs', hlip⟩ := cont_diff_at.exists_lipschitz_on_with
     ((hv.cont_diff_within_at (mem_of_mem_nhds hs)).cont_diff_at hs),
   -- radius of closed ball in which v is bounded
-  obtain ⟨r, hr : 0 < r, hball⟩ := metric.mem_nhds_iff.mp (inter_sets (nhds x₀) hs hs'),
+  obtain ⟨r, hr : 0 < r, hball⟩ := metric.mem_nhds_iff.mp (inter_sets (𝓝 x₀) hs hs'),
   have hr' := (half_pos hr).le,
   obtain ⟨C, hC⟩ := (is_compact_closed_ball x₀ (r / 2)).bdd_above_image -- uses proper_space E
     (hv.continuous_on.norm.mono (subset_inter_iff.mp
@@ -396,26 +396,19 @@ end
 /-- A time-independent, locally continuously differentiable ODE admits a solution in some open
 interval. -/
 theorem exists_forall_deriv_at_ball_eq_of_cont_diff_on_nhds
-  {s : set E} (hv : cont_diff_on ℝ 1 v s) (hs : s ∈ nhds x₀) :
+  {s : set E} (hv : cont_diff_on ℝ 1 v s) (hs : s ∈ 𝓝 x₀) :
   ∃ (ε : ℝ) (hε : 0 < ε) (f : ℝ → E), f t₀ = x₀ ∧
-    ∀ t ∈ ball t₀ ε, has_deriv_at f (v (f t)) t :=
+    ∀ t ∈ Ioo (t₀ - ε) (t₀ + ε), has_deriv_at f (v (f t)) t :=
 begin
   obtain ⟨ε, hε, L, R, C, hpl⟩ := is_picard_lindelof_of_time_indep_cont_diff_on_nhds t₀ x₀ hv hs,
   obtain ⟨f, hf1, hf2⟩ := exists_forall_deriv_within_Icc_eq_of_is_picard_lindelof x₀ hpl,
-  refine ⟨ε, hε, f, hf1, _⟩,
-  intros t ht,
-  refine (hf2 t _).has_deriv_at _,
-  { rw ←real.closed_ball_eq_Icc,
-    exact mem_of_mem_of_subset ht ball_subset_closed_ball },
-  { rw _root_.mem_nhds_iff,
-    use ball t₀ ε,
-    rw ←real.closed_ball_eq_Icc,
-    exact ⟨ball_subset_closed_ball, is_open_ball, ht⟩ }
+  exact ⟨ε, hε, f, hf1, λ t ht, (hf2 t (Ioo_subset_Icc_self ht)).has_deriv_at
+    (Icc_mem_nhds ht.1 ht.2)⟩,
 end
 
 /-- A time-independent, continuously differentiable ODE admits a solution in some open interval. -/
 theorem exists_forall_deriv_at_ball_eq_of_cont_diff
   (hv : cont_diff ℝ 1 v) : ∃ (ε : ℝ) (hε : 0 < ε) (f : ℝ → E), f t₀ = x₀ ∧
-    ∀ t ∈ ball t₀ ε, has_deriv_at f (v (f t)) t :=
+    ∀ t ∈ Ioo (t₀ - ε) (t₀ + ε), has_deriv_at f (v (f t)) t :=
 exists_forall_deriv_at_ball_eq_of_cont_diff_on_nhds t₀ x₀ hv.cont_diff_on
   (is_open.mem_nhds is_open_univ (mem_univ _))

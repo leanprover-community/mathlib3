@@ -590,7 +590,7 @@ begin
   { rw [extend_apply' _ _ _ hb, extend_apply' _ _ _ hb] }
 end
 
-lemma apply_extend {δ} (hf : injective f) (F : γ → δ) (g : α → γ) (e' : β → γ) (b : β) :
+lemma injective.apply_extend {δ} (hf : injective f) (F : γ → δ) (g : α → γ) (e' : β → γ) (b : β) :
   F (extend f g e' b) = extend f (F ∘ g) (F ∘ e') b :=
 apply_extend_of_factors_through F g e' (hf.factors_through g) b
 

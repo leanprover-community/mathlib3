@@ -17,6 +17,7 @@ As a consequence, the complex numbers are algebraically closed.
 
 open complex polynomial metric filter set
 open_locale classical
+open_locale polynomial
 
 namespace complex
 

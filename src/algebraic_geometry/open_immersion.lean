@@ -1647,7 +1647,7 @@ def _root_.algebraic_geometry.Scheme.hom.inv_app {X Y : Scheme} (f : X ⟶ Y)
 H.inv_app U
 
 lemma app_eq_inv_app_app_of_comp_eq_aux {X Y U : Scheme} (f : Y ⟶ U) (g : U ⟶ X)
-  (fg = f ≫ g) [h : is_open_immersion g] (V : opens U.carrier) :
+  (fg : Y ⟶ X) (H : fg = f ≫ g) [h : is_open_immersion g] (V : opens U.carrier) :
   (opens.map f.1.base).obj V = (opens.map fg.1.base).obj (g.opens_functor.obj V) :=
 begin
   subst H,
@@ -1658,7 +1658,7 @@ begin
 end
 
 lemma app_eq_inv_app_app_of_comp_eq {X Y U : Scheme} (f : Y ⟶ U) (g : U ⟶ X)
-  (fg = f ≫ g) [h : is_open_immersion g] (V : opens U.carrier) :
+  (fg : Y ⟶ X) (H : fg = f ≫ g) [h : is_open_immersion g] (V : opens U.carrier) :
   f.1.c.app (op V) = g.inv_app _ ≫ fg.1.c.app _ ≫ Y.presheaf.map (eq_to_hom $
     is_open_immersion.app_eq_inv_app_app_of_comp_eq_aux f g fg H V).op :=
 begin

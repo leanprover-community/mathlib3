@@ -132,6 +132,40 @@ begin
   exact relindex_mul_relindex (H ⊓ L) (K ⊓ L) L (inf_le_inf_right L hHK) inf_le_right,
 end
 
+/-- A subgroup has index two if and only if there exists `a` such that for all `b`, exactly one
+of `b * a` and `b` belong to `H`. -/
+@[to_additive "/-- An additive subgroup has index two if and only if there exists `a` such that for
+all `b`, exactly one of `b + a` and `b` belong to `H`. -/"]
+lemma index_eq_two_iff : H.index = 2 ↔ ∃ a, ∀ b, xor (b * a ∈ H) (b ∈ H) :=
+begin
+  simp only [index, nat.card_eq_two_iff' ((1 : G) : G ⧸ H), exists_unique, inv_mem_iff,
+    quotient_group.exists_coe, quotient_group.forall_coe, ne.def, quotient_group.eq, mul_one,
+    xor_iff_iff_not],
+  refine exists_congr (λ a, ⟨λ ha b, ⟨λ hba hb, _, λ hb, _⟩, λ ha, ⟨_, λ b hb, _⟩⟩),
+  { exact ha.1 ((mul_mem_cancel_left hb).1 hba) },
+  { exact inv_inv b ▸ ha.2 _ (mt inv_mem_iff.1 hb) },
+  { rw [← inv_mem_iff, ← ha, inv_mul_self], exact one_mem _ },
+  { rwa [ha, inv_mem_iff] }
+end
+
+@[to_additive] lemma mul_mem_iff_of_index_two (h : H.index = 2) {a b : G} :
+  a * b ∈ H ↔ (a ∈ H ↔ b ∈ H) :=
+begin
+  by_cases ha : a ∈ H, { simp only [ha, true_iff, mul_mem_cancel_left ha] },
+  by_cases hb : b ∈ H, { simp only [hb, iff_true, mul_mem_cancel_right hb] },
+  simp only [ha, hb, iff_self, iff_true],
+  rcases index_eq_two_iff.1 h with ⟨c, hc⟩,
+  refine (hc _).or.resolve_left _,
+  rwa [mul_assoc, mul_mem_cancel_right ((hc _).or.resolve_right hb)]
+end
+
+@[to_additive] lemma mul_self_mem_of_index_two (h : H.index = 2) (a : G) : a * a ∈ H :=
+by rw [mul_mem_iff_of_index_two h]
+
+@[to_additive two_smul_mem_of_index_two]
+lemma sq_mem_of_index_two (h : H.index = 2) (a : G) : a ^ 2 ∈ H :=
+(pow_two a).symm ▸ mul_self_mem_of_index_two h a
+
 variables (H K)
 
 @[simp, to_additive] lemma index_top : (⊤ : subgroup G).index = 1 :=
@@ -230,6 +264,9 @@ eq_zero_of_zero_dvd (hKL ▸ (relindex_dvd_of_le_left L hHK))
 lemma relindex_eq_zero_of_le_right (hKL : K ≤ L) (hHK : H.relindex K = 0) : H.relindex L = 0 :=
 finite.card_eq_zero_of_embedding (quotient_subgroup_of_embedding_of_le H hKL) hHK
 
+@[to_additive] lemma index_eq_zero_of_relindex_eq_zero (h : H.relindex K = 0) : H.index = 0 :=
+H.relindex_top_right.symm.trans (relindex_eq_zero_of_le_right le_top h)
+
 @[to_additive] lemma relindex_le_of_le_left (hHK : H ≤ K) (hHL : H.relindex L ≠ 0) :
   K.relindex L ≤ H.relindex L :=
 nat.le_of_dvd (nat.pos_of_ne_zero hHL) (relindex_dvd_of_le_left L hHK)
@@ -275,12 +312,12 @@ by simp_rw [←relindex_top_right, relindex_inf_le]
 begin
   haveI := fintype.of_finite ι,
   exact finset.prod_ne_zero_iff.mpr (λ i hi, hf i) ∘ nat.card_pi.symm.trans ∘
-    finite.card_eq_zero_of_embedding (quotient_infi_embedding f L),
+    finite.card_eq_zero_of_embedding (quotient_infi_subgroup_of_embedding f L),
 end
 
 @[to_additive] lemma relindex_infi_le {ι : Type*} [fintype ι] (f : ι → subgroup G) :
   (⨅ i, f i).relindex L ≤ ∏ i, (f i).relindex L :=
-le_of_le_of_eq (finite.card_le_of_embedding' (quotient_infi_embedding f L)
+le_of_le_of_eq (finite.card_le_of_embedding' (quotient_infi_subgroup_of_embedding f L)
   (λ h, let ⟨i, hi, h⟩ := finset.prod_eq_zero_iff.mp (nat.card_pi.symm.trans h) in
     relindex_eq_zero_of_le_left (infi_le f i) h)) nat.card_pi
 

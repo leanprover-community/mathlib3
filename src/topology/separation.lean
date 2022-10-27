@@ -908,14 +908,16 @@ not_not.1 $ λ hne, this (is_closed_diagonal.is_open_compl.mem_nhds hne)
   where for every pair `x ≠ y`, there are two open sets, with the intersection of closures
   empty, one containing `x` and the other `y` . -/
 class t2_5_space (α : Type u) [topological_space α]: Prop :=
-(t2_5 : ∀ x y  (h : x ≠ y), ∃ (U V: set α), is_open U ∧  is_open V ∧
-                                            disjoint (closure U) (closure V) ∧ x ∈ U ∧ y ∈ V)
+(t2_5 : ∀ ⦃x y : α⦄  (h : x ≠ y), disjoint ((𝓝 x).lift' closure) ((𝓝 y).lift' closure))
+
+@[simp] lemma disjoint_lift'_closure_nhds [t2_5_space α] {x y : α} :
+  disjoint ((𝓝 x).lift' closure) ((𝓝 y).lift' closure) ↔ x ≠ y :=
+⟨λ h hxy, by simpa [hxy, nhds_ne_bot.ne] using h, λ h, t2_5_space.t2_5 h⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance t2_5_space.t2_space [t2_5_space α] : t2_space α :=
-⟨λ x y hxy,
-  let ⟨U, V, hU, hV, hUV, hh⟩ := t2_5_space.t2_5 x y hxy in
-  ⟨U, V, hU, hV, hh.1, hh.2, hUV.mono subset_closure subset_closure⟩⟩
+t2_space_iff_disjoint_nhds.2 $
+  λ x y hne, (disjoint_lift'_closure_nhds.2 hne).mono (le_lift'_closure _) (le_lift'_closure _)
 
 section lim
 variables [t2_space α] {f : filter α}
@@ -1468,20 +1470,13 @@ class t3_space (α : Type u) [topological_space α] extends t0_space α, regular
 @[priority 100] -- see Note [lower instance priority]
 instance t3_space.t2_5_space [t3_space α] : t2_5_space α :=
 begin
-  haveI : t2_space α,
-  { refine t2_space_iff_disjoint_nhds.mpr (λ x y hne, _),
-    have : x ∉ closure {y} ∨ y ∉ closure {x},
-      from (t0_space_iff_or_not_mem_closure α).mp infer_instance x y hne,
-    wlog H : x ∉ closure {y} := this using [x y, y x] tactic.skip,
-    { rwa [← disjoint_nhds_nhds_set, nhds_set_singleton] at H },
-    { exact λ h, (this h.symm).symm } },
-  -- TODO: reformulate `t2_5_space` in terms of `(𝓝 x).lift' closure`
   refine ⟨λ x y hne, _⟩,
-  rcases ((closed_nhds_basis x).disjoint_iff (closed_nhds_basis y)).1
-    (disjoint_nhds_nhds.mpr hne) with ⟨U, ⟨hxU, hUc⟩, V, ⟨hyV, hVc⟩, hd⟩,
-  exact ⟨interior U, interior V, is_open_interior, is_open_interior,
-    hd.mono (closure_minimal interior_subset hUc) (closure_minimal interior_subset hVc),
-    mem_interior_iff_mem_nhds.2 hxU, mem_interior_iff_mem_nhds.2 hyV⟩
+  rw [lift'_nhds_closure, lift'_nhds_closure],
+  have : x ∉ closure {y} ∨ y ∉ closure {x},
+    from (t0_space_iff_or_not_mem_closure α).mp infer_instance x y hne,
+  wlog H : x ∉ closure {y} := this using [x y, y x] tactic.skip,
+  { rwa [← disjoint_nhds_nhds_set, nhds_set_singleton] at H },
+  { exact λ h, (this h.symm).symm }
 end
 
 protected lemma embedding.t3_space [topological_space β] [t3_space β] {f : α → β}

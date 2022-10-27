@@ -73,7 +73,6 @@ zero_lt_one.trans_le $ le_add_of_nonneg_left n.cast_nonneg
 
 @[simp] lemma cast_pos {n : ℕ} : (0 : α) < n ↔ 0 < n := by cases n; simp [cast_add_one_pos]
 
-
 end ordered_semiring
 
 /-- A version of `nat.cast_sub` that works for `ℝ≥0` and `ℚ≥0`. Note that this proof doesn't work

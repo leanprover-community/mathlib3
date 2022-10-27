@@ -5,7 +5,6 @@ Authors: Sébastien Gouëzel
 -/
 import topology.vector_bundle.basic
 import geometry.manifold.smooth_manifold_with_corners
-import geometry.manifold.cont_mdiff
 import data.set.prod
 
 /-!
@@ -78,46 +77,6 @@ universe u
 
 open topological_space set
 open_locale manifold topological_space
-
-
-namespace model_with_corners
-
-open filter
-
-variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
-  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
-  {H : Type*} [topological_space H]
-  {M : Type*} [topological_space M] (f : local_homeomorph M H) (I : model_with_corners 𝕜 E H)
-
-lemma nhds_within_eq_bot {x : H} {s : set H} : 𝓝[s] x = ⊥ ↔ x ∉ closure s :=
-by rw [mem_closure_iff_nhds_within_ne_bot, not_ne_bot]
-
-lemma image_mem_nhds_within_of_mem {x : E} {s : set H} (hs : s ∈ 𝓝 (I.symm x)) :
-  I '' s ∈ 𝓝[range I] x :=
-begin
-  by_cases hx : x ∈ range I,
-  { obtain ⟨x, rfl⟩ := hx, rw [I.left_inv] at hs, exact I.image_mem_nhds_within hs },
-  { rw [← I.closed_range.closure_eq, ← nhds_within_eq_bot] at hx, rw [hx], exact mem_bot }
-end
-
-lemma cont_mdiff_at_extend [charted_space H M] [smooth_manifold_with_corners I M]
-  {x' : M} (h : x' ∈ f.source)
-  (hf : f ∈ atlas H M) {n : ℕ∞} : cont_mdiff_at I 𝓘(𝕜, E) n (f.extend I) x' :=
-begin
-  refine (cont_mdiff_at_iff_of_mem_source h (mem_chart_source _ _)).mpr _,
-  rw [← ext_chart_at_source I] at h,
-  refine ⟨ext_chart_at_continuous_at' _ _ h, _⟩,
-  refine cont_diff_within_at_id.congr_of_eventually_eq _ _,
-  { refine eventually_eq_of_mem (ext_chart_at_target_mem_nhds_within' I x h) (λ x₂ hx₂, _),
-    simp_rw [function.comp_apply, (ext_chart_at I x).right_inv hx₂], refl },
-  simp_rw [function.comp_apply, (ext_chart_at I x).right_inv ((ext_chart_at I x).maps_to h)], refl
-end
-
-lemma cont_mdiff_at_ext_chart_at : cont_mdiff_at I 𝓘(𝕜, E) n (ext_chart_at I x) x :=
-cont_mdiff_at_ext_chart_at' $ mem_chart_source H x
-
-
-end model_with_corners
 
 /-- Core structure used to create a smooth bundle above `M` (a manifold over the model with
 corner `I`) with fiber the normed vector space `F` over `𝕜`, which is trivial in the chart domains

@@ -198,7 +198,7 @@ lemma closed_image_of_closed {s : set M} (hsc : is_closed s) (hs : s ⊆ support
 begin
   rw f.image_eq_inter_preimage_of_subset_support hs,
   refine continuous_on.preimage_closed_of_closed
-    ((ext_chart_continuous_on_symm _ _).mono f.closed_ball_subset) _ hsc,
+    ((ext_chart_at_continuous_on_symm _ _).mono f.closed_ball_subset) _ hsc,
   exact is_closed.inter is_closed_closed_ball I.closed_range
 end
 

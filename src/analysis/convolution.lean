@@ -1014,23 +1014,40 @@ end helper_definitions
 def e : cont_diff_bump_base H :=
 begin
   borelize H,
+  have IR : ∀ (R : ℝ), 1 < R → 0 < (R - 1) / (R + 1),
+  { assume R hR, apply div_pos; linarith },
   refine
-  { to_fun := λ R x, if 1 < R then Y ((R + 1) / (R - 1)) (((R - 1) / 2)⁻¹ • x) else 0,
+  { to_fun := λ R x, if 1 < R then Y ((R - 1) / (R + 1)) (((R + 1) / 2)⁻¹ • x) else 0,
     mem_Icc := λ R x, begin
       split_ifs,
-      { have A : 1 < (R + 1) / (R - 1), by { rw one_lt_div _; linarith },
-        refine ⟨Y_nonneg _ _, Y_le_one _ (zero_lt_one.trans A)⟩ },
+      { refine ⟨Y_nonneg _ _, Y_le_one _ (IR R h)⟩ },
       { simp only [pi.zero_apply, left_mem_Icc, zero_le_one] }
     end,
-    symmetric := sorry, -- λ R x, by { split_ifs; simp [Y_neg] },
+    symmetric := λ R x, begin
+      split_ifs,
+      { simp only [Y_neg, smul_neg] },
+      { refl },
+    end,
     smooth := _,
-    eq_one := _,
+    eq_one := λ R hR x hx, begin
+      have A : 0 < R + 1, by linarith,
+      simp only [hR, if_true],
+      apply Y_eq_one_of_mem_closed_ball (IR R hR),
+      simp only [norm_smul, inv_div, mem_closed_ball_zero_iff, real.norm_eq_abs, abs_div,
+                 abs_two, abs_of_nonneg A.le],
+      calc 2 / (R + 1) * ∥x∥ ≤ 2 / (R + 1) * 1 :
+        mul_le_mul_of_nonneg_left hx (div_nonneg zero_le_two A.le)
+      ... = 1 - (R - 1) / (R + 1) : by { field_simp [A.ne'], ring }
+    end,
     support := λ R hR, begin
-      have A : 0 < (R - 1) / 2, by linarith,
-      have B : 1 < (R + 1) / (R - 1), by { rw one_lt_div _; linarith },
-      simp only [hR, if_true, support_comp_inv_smul A.ne'],
-      rw Y_support,
-
+      have A : 0 < (R + 1) / 2, by linarith,
+      have A' : 0 < R + 1, by linarith,
+      have C :  (R - 1) / (R + 1) < 1, by { apply (div_lt_one _ ).2; linarith },
+      simp only [hR, if_true, support_comp_inv_smul A.ne', Y_support _ (IR R hR) C, smul_ball A.ne',
+        real.norm_of_nonneg A.le, smul_zero],
+      congr' 1,
+      field_simp [A'.ne'],
+      ring,
     end},
 end
 

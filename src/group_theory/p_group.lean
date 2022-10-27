@@ -94,6 +94,7 @@ hG.of_surjective ϕ.to_monoid_hom ϕ.surjective
 lemma order_of_coprime {n : ℕ} (hn : p.coprime n) (g : G) : (order_of g).coprime n :=
 let ⟨k, hk⟩ := hG g in (hn.pow_left k).coprime_dvd_left (order_of_dvd_of_pow_eq_one hk)
 
+/-- If `gcd(p,n) = 1`, then the `n`th power map is a bijection. -/
 noncomputable def pow_equiv' {n : ℕ} (hn : p.coprime n) : G ≃ G :=
 let h : ∀ g : G, (nat.card (subgroup.zpowers g)).coprime n :=
 λ g, order_eq_card_zpowers' g ▸ hG.order_of_coprime hn g in
@@ -107,6 +108,7 @@ variables [hp : fact p.prime]
 
 include hp
 
+/-- If `p ∤ n`, then the `n`th power map is a bijection. -/
 noncomputable def pow_equiv {n : ℕ} (hn : ¬ p ∣ n) : G ≃ G :=
 pow_equiv' hG (hp.out.coprime_iff_not_dvd.mpr hn)
 

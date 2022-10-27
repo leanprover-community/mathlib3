@@ -178,7 +178,8 @@ between two trivializations `e`, `e'` for `E`, considered as charts to `B × F`,
 fibrewise linear. -/
 instance : has_groupoid (total_space E) (smooth_fiberwise_linear B F IB) :=
 { compatible := begin
-    rintros _ _ ⟨e, i : mem_trivialization_atlas e, rfl⟩ ⟨e', i' : mem_trivialization_atlas e', rfl⟩,
+    rintros _ _ ⟨e, i, rfl⟩ ⟨e', i', rfl⟩,
+    simp_rw [← mem_trivialization_atlas_iff] at i i',
     resetI,
     apply mem_Union.mpr,
     use λ b, e.coord_change 𝕜 e' b,
@@ -253,9 +254,8 @@ instance _root_.bundle.prod.smooth_vector_bundle :
   smooth_vector_bundle (F₁ × F₂) (E₁ ×ᵇ E₂) IB :=
 begin
   constructor,
-  rintros - -
-    ⟨⟨e₁, e₂⟩, ⟨i₁ : mem_trivialization_atlas e₁, i₂ : mem_trivialization_atlas e₂⟩, rfl⟩
-    ⟨⟨e₁', e₂'⟩, ⟨i₁' : mem_trivialization_atlas e₁', i₂' : mem_trivialization_atlas e₂'⟩, rfl⟩,
+  rintros - - ⟨⟨e₁, e₂⟩, ⟨i₁, i₂⟩, rfl⟩ ⟨⟨e₁', e₂'⟩, ⟨i₁', i₂'⟩, rfl⟩,
+  simp_rw [← mem_trivialization_atlas_iff] at i₁ i₂ i₁' i₂',
   resetI,
   sorry
   -- refine (((smooth_on_coord_change e₁ e₁').mono _).prod_mapL 𝕜

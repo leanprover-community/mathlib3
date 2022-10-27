@@ -16,12 +16,12 @@ _uniformly_. The formal statement appears as `has_fderiv_at_of_tendsto_locally_u
 
 ## Main statements
 
-* `uniform_cauchy_seq_on_filter_of_tendsto_uniformly_on_filter_fderiv`: If
+* `uniform_cauchy_seq_on_filter_of_fderiv`: If
     1. `f : ℕ → E → G` is a sequence of functions which have derivatives
        `f' : ℕ → E → (E →L[𝕜] G)` on a neighborhood of `x`,
     2. the functions `f` converge at `x`, and
-    3. the derivatives `f'` converge uniformly on a neighborhood of `x`,
-  then the `f` converge _uniformly_ on a neighborhood of `x`
+    3. the derivatives `f'` form a Cauchy sequence uniformly on a neighborhood of `x`,
+  then the `f` form a Cauchy sequence _uniformly_ on a neighborhood of `x`
 * `has_fderiv_at_of_tendsto_uniformly_on_filter` : Suppose (1), (2), and (3) above are true. Let
   `g` (resp. `g'`) be the limiting function of the `f` (resp. `g'`). Then `f'` is the derivative of
   `g` on a neighborhood of `x`
@@ -111,7 +111,7 @@ sequence in a neighborhood of `x`. -/
 lemma uniform_cauchy_seq_on_filter_of_fderiv
   (hf' : uniform_cauchy_seq_on_filter f' l (𝓝 x))
   (hf : ∀ᶠ (n : ι × E) in (l ×ᶠ 𝓝 x), has_fderiv_at (f n.1) (f' n.1 n.2) n.2)
-  (hfg : cauchy (map (λ (n : ι), f n x) l)) :
+  (hfg : cauchy (map (λ n, f n x) l)) :
   uniform_cauchy_seq_on_filter f l (𝓝 x) :=
 begin
   letI : normed_space ℝ E, from normed_space.restrict_scalars ℝ 𝕜 _,
@@ -177,7 +177,7 @@ convergence. See `cauchy_map_of_uniform_cauchy_seq_on_fderiv`.
 lemma uniform_cauchy_seq_on_ball_of_fderiv
   {r : ℝ} (hf' : uniform_cauchy_seq_on f' l (metric.ball x r))
   (hf : ∀ n : ι, ∀ y : E, y ∈ metric.ball x r → has_fderiv_at (f n) (f' n y) y)
-  (hfg : cauchy (map (λ (n : ι), f n x) l)) :
+  (hfg : cauchy (map (λ n, f n x) l)) :
   uniform_cauchy_seq_on f l (metric.ball x r) :=
 begin
   letI : normed_space ℝ E, from normed_space.restrict_scalars ℝ 𝕜 _,
@@ -233,11 +233,11 @@ lemma cauchy_map_of_uniform_cauchy_seq_on_fderiv
   (hf' : uniform_cauchy_seq_on f' l s)
   (hf : ∀ n : ι, ∀ y : E, y ∈ s → has_fderiv_at (f n) (f' n y) y)
   {x₀ x : E} (hx₀ : x₀ ∈ s) (hx : x ∈ s)
-  (hfg : cauchy (map (λ (n : ι), f n x₀) l)) :
-  cauchy (map (λ (n : ι), f n x) l) :=
+  (hfg : cauchy (map (λ n, f n x₀) l)) :
+  cauchy (map (λ n, f n x) l) :=
 begin
   haveI : ne_bot l, from (cauchy_map_iff.1 hfg).1,
-  let t := {y | y ∈ s ∧ cauchy (map (λ (n : ι), f n y) l)},
+  let t := {y | y ∈ s ∧ cauchy (map (λ n, f n y) l)},
   suffices H : s ⊆ t, from (H hx).2,
   have A : ∀ x ε, x ∈ t → metric.ball x ε ⊆ s → metric.ball x ε ⊆ t,
   from λ x ε xt hx y hy, ⟨hx hy, (uniform_cauchy_seq_on_ball_of_fderiv (hf'.mono hx)
@@ -250,14 +250,13 @@ begin
   have st_nonempty : (s ∩ t).nonempty, from ⟨x₀, hx₀, ⟨hx₀, hfg⟩⟩,
   suffices H : closure t ∩ s ⊆ t, from h's.subset_of_closure_inter_subset open_t st_nonempty H,
   rintros x ⟨xt, xs⟩,
-  refine ⟨xs, _⟩,
   obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ) (H : ε > 0), metric.ball x ε ⊆ s,
     from metric.is_open_iff.1 hs x xs,
   obtain ⟨y, yt, hxy⟩ : ∃ (y : E) (yt : y ∈ t), dist x y < ε / 2,
     from metric.mem_closure_iff.1 xt _ (half_pos εpos),
   have B : metric.ball y (ε / 2) ⊆ metric.ball x ε,
   { apply metric.ball_subset_ball', rw dist_comm, linarith },
-  exact (A y (ε / 2) yt (B.trans hε) (metric.mem_ball.2 hxy)).2,
+  exact A y (ε / 2) yt (B.trans hε) (metric.mem_ball.2 hxy)
 end
 
 /-- If `f_n → g` pointwise and the derivatives `(f_n)' → h` _uniformly_ converge, then
@@ -492,7 +491,7 @@ end
 lemma uniform_cauchy_seq_on_filter_of_deriv
   (hf' : uniform_cauchy_seq_on_filter f' l (𝓝 x))
   (hf : ∀ᶠ (n : ι × 𝕜) in (l ×ᶠ 𝓝 x), has_deriv_at (f n.1) (f' n.1 n.2) n.2)
-  (hfg : cauchy (map (λ (n : ι), f n x) l)) :
+  (hfg : cauchy (map (λ n, f n x) l)) :
   uniform_cauchy_seq_on_filter f l (𝓝 x) :=
 begin
   simp_rw has_deriv_at_iff_has_fderiv_at at hf,
@@ -500,10 +499,10 @@ begin
     hf'.one_smul_right hf hfg,
 end
 
-lemma uniform_cauchy_seq_on_ball_of_tendsto_uniformly_on_ball_deriv
+lemma uniform_cauchy_seq_on_ball_of_deriv
   {r : ℝ} (hf' : uniform_cauchy_seq_on f' l (metric.ball x r))
   (hf : ∀ n : ι, ∀ y : 𝕜, y ∈ metric.ball x r → has_deriv_at (f n) (f' n y) y)
-  (hfg : cauchy (map (λ (n : ι), f n x) l)) :
+  (hfg : cauchy (map (λ n, f n x) l)) :
   uniform_cauchy_seq_on f l (metric.ball x r) :=
 begin
   simp_rw has_deriv_at_iff_has_fderiv_at at hf,

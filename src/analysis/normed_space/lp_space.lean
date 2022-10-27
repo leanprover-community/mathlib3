@@ -948,8 +948,7 @@ begin
   have hp₀ : 0 < p := ennreal.zero_lt_one.trans_le (fact.out _),
   have hp' : 0 < p.to_real := ennreal.to_real_pos hp₀.ne' hp,
   have := lp.has_sum_norm hp' f,
-  dsimp [has_sum] at this ⊢,
-  rw metric.tendsto_nhds at this ⊢,
+  rw [has_sum, metric.tendsto_nhds] at this ⊢,
   intros ε hε,
   refine (this _ (real.rpow_pos_of_pos hε p.to_real)).mono _,
   intros s hs,
@@ -958,11 +957,12 @@ begin
   simp only [dist_eq_norm, real.norm_eq_abs] at hs ⊢,
   have H : ∥∑ i in s, lp.single p i (f i : E i) - f∥ ^ p.to_real
     = ∥f∥ ^ p.to_real - ∑ i in s, ∥f i∥ ^ p.to_real,
-  { simpa using lp.norm_compl_sum_single hp' (-f) s },
+  { simpa only [coe_fn_neg, pi.neg_apply, lp.single_neg, finset.sum_neg_distrib,
+      neg_sub_neg, norm_neg, _root_.norm_neg] using lp.norm_compl_sum_single hp' (-f) s },
   rw ← H at hs,
   have : |∥∑ i in s, lp.single p i (f i : E i) - f∥ ^ p.to_real|
     = ∥∑ i in s, lp.single p i (f i : E i) - f∥ ^ p.to_real,
-  { simp [real.abs_rpow_of_nonneg (norm_nonneg _)] },
+  { simp only [real.abs_rpow_of_nonneg (norm_nonneg _), abs_norm_eq_norm] },
   linarith
 end
 

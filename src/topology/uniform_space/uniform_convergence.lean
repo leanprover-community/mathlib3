@@ -574,14 +574,13 @@ end
 
 /-- If a sequence of functions is uniformly Cauchy on a set, then the values at each point form
 a Cauchy sequence. -/
-lemma uniform_cauchy_seq_on.cauchy_map [hp : p.ne_bot]
+lemma uniform_cauchy_seq_on.cauchy_map [hp : ne_bot p]
   (hf : uniform_cauchy_seq_on F p s) (hx : x ∈ s) :
   cauchy (map (λ i, F i x) p) :=
 begin
   simp only [cauchy_map_iff, hp, true_and],
-  simp only [uniform_cauchy_seq_on] at hf,
   assume u hu,
-  simp only [mem_map],
+  rw mem_map,
   filter_upwards [hf u hu] with p hp using hp x hx,
 end
 

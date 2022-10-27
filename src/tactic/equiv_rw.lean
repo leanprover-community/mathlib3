@@ -3,6 +3,10 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import logic.equiv.defs
+import tactic.clear
+import tactic.simp_result
+import tactic.apply
 import control.equiv_functor.instances -- these make equiv_rw more powerful!
 import logic.equiv.functor              -- so do these!
 

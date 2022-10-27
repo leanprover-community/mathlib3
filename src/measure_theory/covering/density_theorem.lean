@@ -134,17 +134,43 @@ end
 
 end
 
-/-- A version of *Lebesgue's density theorem* for a sequence of closed balls whose centres are
+section applications
+variables [sigma_compact_space α] [borel_space α] [is_locally_finite_measure μ]
+  {E : Type*} [normed_add_comm_group E]
+
+/-- A version of *Lebesgue's density theorem* for a sequence of closed balls whose centers are
 not required to be fixed.
 
 See also `besicovitch.ae_tendsto_measure_inter_div`. -/
-lemma ae_tendsto_measure_inter_div
-  [sigma_compact_space α] [borel_space α] [is_locally_finite_measure μ] (S : set α) (K : ℝ) :
+lemma ae_tendsto_measure_inter_div (S : set α) (K : ℝ) :
   ∀ᵐ x ∂μ.restrict S, ∀ {ι : Type*} {l : filter ι} (w : ι → α) (δ : ι → ℝ)
     (δlim : tendsto δ l (𝓝[>] 0))
     (xmem : ∀ᶠ j in l, x ∈ closed_ball (w j) (K * δ j)),
     tendsto (λ j, μ (S ∩ closed_ball (w j) (δ j)) / μ (closed_ball (w j) (δ j))) l (𝓝 1) :=
 by filter_upwards [(vitali_family μ K).ae_tendsto_measure_inter_div S] with x hx ι l w δ δlim xmem
 using hx.comp (tendsto_closed_ball_filter_at μ _ _ δlim xmem)
+
+/-- A version of *Lebesgue differentiation theorem* for a sequence of closed balls whose
+centers are not required to be fixed. -/
+lemma ae_tendsto_average_norm_sub {f : α → E} (hf : integrable f μ) (K : ℝ) :
+  ∀ᵐ x ∂μ, ∀ {ι : Type*} {l : filter ι} (w : ι → α) (δ : ι → ℝ)
+    (δlim : tendsto δ l (𝓝[>] 0))
+    (xmem : ∀ᶠ j in l, x ∈ closed_ball (w j) (K * δ j)),
+    tendsto (λ j, ⨍ y in closed_ball (w j) (δ j), ∥f y - f x∥ ∂μ) l (𝓝 0) :=
+by filter_upwards [(vitali_family μ K).ae_tendsto_average_norm_sub hf] with x hx ι l w δ δlim xmem
+using hx.comp (tendsto_closed_ball_filter_at μ _ _ δlim xmem)
+
+/-- A version of *Lebesgue differentiation theorem* for a sequence of closed balls whose
+centers are not required to be fixed. -/
+lemma ae_tendsto_average [normed_space ℝ E] [complete_space E]
+  {f : α → E} (hf : integrable f μ) (K : ℝ) :
+  ∀ᵐ x ∂μ, ∀ {ι : Type*} {l : filter ι} (w : ι → α) (δ : ι → ℝ)
+    (δlim : tendsto δ l (𝓝[>] 0))
+    (xmem : ∀ᶠ j in l, x ∈ closed_ball (w j) (K * δ j)),
+    tendsto (λ j, ⨍ y in closed_ball (w j) (δ j), f y ∂μ) l (𝓝 (f x)) :=
+by filter_upwards [(vitali_family μ K).ae_tendsto_average hf] with x hx ι l w δ δlim xmem
+using hx.comp (tendsto_closed_ball_filter_at μ _ _ δlim xmem)
+
+end applications
 
 end is_doubling_measure

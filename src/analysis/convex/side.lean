@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
 import analysis.convex.between
+import analysis.convex.topology
 
 /-!
 # Sides of affine subspaces
@@ -25,7 +26,7 @@ This file defines notions of two points being on the same or opposite sides of a
 
 variables {R V V' P P' : Type*}
 
-open affine_map
+open affine_equiv affine_map
 
 namespace affine_subspace
 
@@ -798,6 +799,130 @@ begin
     exact s_opp_side_smul_vsub_vadd_right hx hp hp' ht }
 end
 
+lemma w_opp_side_point_reflection {s : affine_subspace R P} {x : P} (y : P) (hx : x ∈ s) :
+  s.w_opp_side y (point_reflection R x y) :=
+(wbtw_point_reflection R _ _).w_opp_side₁₃ hx
+
+lemma s_opp_side_point_reflection {s : affine_subspace R P} {x y : P} (hx : x ∈ s) (hy : y ∉ s) :
+  s.s_opp_side y (point_reflection R x y) :=
+begin
+  refine (sbtw_point_reflection_of_ne R (λ h, hy _)).s_opp_side_of_not_mem_of_mem hy hx,
+  rwa ←h
+end
+
 end linear_ordered_field
+
+section normed
+
+variables [seminormed_add_comm_group V] [normed_space ℝ V] [pseudo_metric_space P]
+variables [normed_add_torsor V P]
+
+include V
+
+lemma is_connected_set_of_w_same_side {s : affine_subspace ℝ P} (x : P)
+  (h : (s : set P).nonempty) : is_connected {y | s.w_same_side x y} :=
+begin
+  obtain ⟨p, hp⟩ := h,
+  haveI : nonempty s := ⟨⟨p, hp⟩⟩,
+  by_cases hx : x ∈ s,
+  { convert is_connected_univ,
+    { simp [w_same_side_of_left_mem, hx] },
+    { exact add_torsor.connected_space V P } },
+  { rw [set_of_w_same_side_eq_image2 hx hp, ←set.image_prod],
+    refine (is_connected_Ici.prod (is_connected_iff_connected_space.2 _)).image _
+           ((continuous_fst.smul continuous_const).vadd continuous_snd).continuous_on,
+    convert add_torsor.connected_space s.direction s }
+end
+
+lemma is_preconnected_set_of_w_same_side (s : affine_subspace ℝ P) (x : P) :
+  is_preconnected {y | s.w_same_side x y} :=
+begin
+  rcases set.eq_empty_or_nonempty (s : set P) with h | h,
+  { convert is_preconnected_empty,
+    rw coe_eq_bot_iff at h,
+    simp only [h, not_w_same_side_bot],
+    refl },
+  { exact (is_connected_set_of_w_same_side x h).is_preconnected }
+end
+
+lemma is_connected_set_of_s_same_side {s : affine_subspace ℝ P} {x : P} (hx : x ∉ s)
+  (h : (s : set P).nonempty) : is_connected {y | s.s_same_side x y} :=
+begin
+  obtain ⟨p, hp⟩ := h,
+  haveI : nonempty s := ⟨⟨p, hp⟩⟩,
+  rw [set_of_s_same_side_eq_image2 hx hp, ←set.image_prod],
+  refine (is_connected_Ioi.prod (is_connected_iff_connected_space.2 _)).image _
+         ((continuous_fst.smul continuous_const).vadd continuous_snd).continuous_on,
+  convert add_torsor.connected_space s.direction s
+end
+
+lemma is_preconnected_set_of_s_same_side (s : affine_subspace ℝ P) (x : P) :
+  is_preconnected {y | s.s_same_side x y} :=
+begin
+  rcases set.eq_empty_or_nonempty (s : set P) with h | h,
+  { convert is_preconnected_empty,
+    rw coe_eq_bot_iff at h,
+    simp only [h, not_s_same_side_bot],
+    refl },
+  { by_cases hx : x ∈ s,
+    { convert is_preconnected_empty,
+      simp only [hx, s_same_side, not_true, false_and, and_false],
+      refl },
+    { exact (is_connected_set_of_s_same_side hx h).is_preconnected } }
+end
+
+lemma is_connected_set_of_w_opp_side {s : affine_subspace ℝ P} (x : P)
+  (h : (s : set P).nonempty) : is_connected {y | s.w_opp_side x y} :=
+begin
+  obtain ⟨p, hp⟩ := h,
+  haveI : nonempty s := ⟨⟨p, hp⟩⟩,
+  by_cases hx : x ∈ s,
+  { convert is_connected_univ,
+    { simp [w_opp_side_of_left_mem, hx] },
+    { exact add_torsor.connected_space V P } },
+  { rw [set_of_w_opp_side_eq_image2 hx hp, ←set.image_prod],
+    refine (is_connected_Iic.prod (is_connected_iff_connected_space.2 _)).image _
+           ((continuous_fst.smul continuous_const).vadd continuous_snd).continuous_on,
+    convert add_torsor.connected_space s.direction s }
+end
+
+lemma is_preconnected_set_of_w_opp_side (s : affine_subspace ℝ P) (x : P) :
+  is_preconnected {y | s.w_opp_side x y} :=
+begin
+  rcases set.eq_empty_or_nonempty (s : set P) with h | h,
+  { convert is_preconnected_empty,
+    rw coe_eq_bot_iff at h,
+    simp only [h, not_w_opp_side_bot],
+    refl },
+  { exact (is_connected_set_of_w_opp_side x h).is_preconnected }
+end
+
+lemma is_connected_set_of_s_opp_side {s : affine_subspace ℝ P} {x : P} (hx : x ∉ s)
+  (h : (s : set P).nonempty) : is_connected {y | s.s_opp_side x y} :=
+begin
+  obtain ⟨p, hp⟩ := h,
+  haveI : nonempty s := ⟨⟨p, hp⟩⟩,
+  rw [set_of_s_opp_side_eq_image2 hx hp, ←set.image_prod],
+  refine (is_connected_Iio.prod (is_connected_iff_connected_space.2 _)).image _
+         ((continuous_fst.smul continuous_const).vadd continuous_snd).continuous_on,
+  convert add_torsor.connected_space s.direction s
+end
+
+lemma is_preconnected_set_of_s_opp_side (s : affine_subspace ℝ P) (x : P) :
+  is_preconnected {y | s.s_opp_side x y} :=
+begin
+  rcases set.eq_empty_or_nonempty (s : set P) with h | h,
+  { convert is_preconnected_empty,
+    rw coe_eq_bot_iff at h,
+    simp only [h, not_s_opp_side_bot],
+    refl },
+  { by_cases hx : x ∈ s,
+    { convert is_preconnected_empty,
+      simp only [hx, s_opp_side, not_true, false_and, and_false],
+      refl },
+    { exact (is_connected_set_of_s_opp_side hx h).is_preconnected } }
+end
+
+end normed
 
 end affine_subspace

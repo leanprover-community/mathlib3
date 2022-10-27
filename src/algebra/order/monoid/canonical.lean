@@ -7,7 +7,7 @@ import algebra.order.monoid.basic
 import order.min_max
 
 /-!
-# Canonical ordered monoids
+# Canonically ordered monoids
 -/
 
 universe u

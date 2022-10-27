@@ -8,6 +8,7 @@ import algebra.module.submodule.pointwise
 import algebra.module.opposites
 import data.finset.pointwise
 import data.set.semiring
+import data.set.pointwise.big_operators
 import group_theory.group_action.sub_mul_action.pointwise
 
 /-!

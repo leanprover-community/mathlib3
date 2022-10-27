@@ -5,6 +5,7 @@ Authors: Aaron Anderson
 -/
 import ring_theory.power_series.basic
 import data.finsupp.pwo
+import data.finset.mul_antidiagonal
 
 /-!
 # Hahn Series
@@ -1155,7 +1156,7 @@ end algebra
 
 section valuation
 
-variables (Γ R) [linear_ordered_add_comm_group Γ] [ring R] [is_domain R]
+variables (Γ R) [linear_ordered_cancel_add_comm_monoid Γ] [ring R] [is_domain R]
 
 /-- The additive valuation on `hahn_series Γ R`, returning the smallest index at which
   a Hahn Series has a nonzero coefficient, or `⊤` for the 0 series.  -/
@@ -1204,7 +1205,7 @@ end
 end valuation
 
 lemma is_pwo_Union_support_powers
-  [linear_ordered_add_comm_group Γ] [ring R] [is_domain R]
+  [linear_ordered_cancel_add_comm_monoid Γ] [ring R] [is_domain R]
   {x : hahn_series Γ R} (hx : 0 < add_val Γ R x) :
   (⋃ n : ℕ, (x ^ n).support).is_pwo :=
 begin
@@ -1527,7 +1528,7 @@ end emb_domain
 
 section powers
 
-variables [linear_ordered_add_comm_group Γ] [comm_ring R] [is_domain R]
+variables [linear_ordered_cancel_add_comm_monoid Γ] [comm_ring R] [is_domain R]
 
 /-- The powers of an element of positive valuation form a summable family. -/
 def powers (x : hahn_series Γ R) (hx : 0 < add_val Γ R x) :

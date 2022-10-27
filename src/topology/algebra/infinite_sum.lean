@@ -1392,6 +1392,17 @@ end
 
 end topological_group
 
+section preorder
+
+variables {E : Type*} [preorder E] [add_comm_monoid E]
+  [topological_space E] [order_closed_topology E] [t2_space E]
+
+lemma tsum_le_of_sum_range_le {f : ℕ → E} {c : E} (hsum : summable f)
+  (h : ∀ n, ∑ i in finset.range n, f i ≤ c) : ∑' n, f n ≤ c :=
+let ⟨l, hl⟩ := hsum in hl.tsum_eq.symm ▸ le_of_tendsto' hl.tendsto_sum_nat h
+
+end preorder
+
 section linear_order
 
 /-! For infinite sums taking values in a linearly ordered monoid, the existence of a least upper

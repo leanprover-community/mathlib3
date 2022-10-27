@@ -52,7 +52,7 @@ def lower_topology (α : Type u) [preorder α] : topological_space α :=
   generate_from {s | ∃ a, (Ici a)ᶜ = s}
 
 instance lower.topological_space (α : Type u) [preorder α] :
-  topological_space (lower α) := lower_topology α
+  topological_space (lower α) := lower_topology (lower α)
 
 
 section pre_order

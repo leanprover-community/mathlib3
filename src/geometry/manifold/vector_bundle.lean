@@ -9,7 +9,7 @@ import topology.new_vector_bundle
 noncomputable theory
 
 open bundle vector_bundle set
-open_locale manifold topological_space
+open_locale manifold topological_space bundle
 
 section
 variables {𝕜 B B' F M : Type*} {E : B → Type*}
@@ -22,8 +22,7 @@ variables [topological_space F] [topological_space (total_space E)] [∀ x, topo
 
 instance fiber_bundle.charted_space [fiber_bundle F E] :
   charted_space (B × F) (total_space E) :=
-{ atlas := (λ e : trivialization F (@total_space.proj _ E), e.to_local_homeomorph) ''
-    trivialization_atlas F E,
+{ atlas := (λ e : trivialization F (π E), e.to_local_homeomorph) '' trivialization_atlas F E,
   chart_at := λ x, (trivialization_at F E x.proj).to_local_homeomorph,
   mem_chart_source := λ x, (trivialization_at F E x.proj).mem_source.mpr
     (mem_base_set_trivialization_at F E x.proj),
@@ -166,7 +165,7 @@ variables [fiber_bundle F E] [vector_bundle 𝕜 F E]
 /-- Class stating that a topological vector bundle is smooth, in the sense of having smooth
 transition functions. -/
 class smooth_vector_bundle : Prop :=
-(smooth_on_coord_change : ∀ (e e' : trivialization F (@total_space.proj _ E))
+(smooth_on_coord_change : ∀ (e e' : trivialization F (π E))
   [mem_trivialization_atlas e] [mem_trivialization_atlas e'],
   smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ b : B, (e.coord_change 𝕜 e' b : F →L[𝕜] F))
   (e.base_set ∩ e'.base_set))

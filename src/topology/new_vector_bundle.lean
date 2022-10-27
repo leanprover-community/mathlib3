@@ -545,13 +545,13 @@ instance _root_.bundle.prod.vector_bundle :
   vector_bundle R (F₁ × F₂) (E₁ ×ᵇ E₂) :=
 { trivialization_linear := begin
     rintros - ⟨⟨e₁, e₂⟩, ⟨i₁, i₂⟩, rfl⟩,
+    simp_rw [← mem_trivialization_atlas_iff] at i₁ i₂,
     resetI,
     apply prod.is_linear,
   end,
   continuous_on_coord_change := begin
-    rintros - -
-      ⟨⟨e₁, e₂⟩, ⟨i₁ : mem_trivialization_atlas e₁, i₂ : mem_trivialization_atlas e₂⟩, rfl⟩
-      ⟨⟨e₁', e₂'⟩, ⟨i₁' : mem_trivialization_atlas e₁', i₂' : mem_trivialization_atlas e₂'⟩, rfl⟩,
+    rintros - - ⟨⟨e₁, e₂⟩, ⟨i₁, i₂⟩, rfl⟩ ⟨⟨e₁', e₂'⟩, ⟨i₁', i₂'⟩, rfl⟩,
+    simp_rw [← mem_trivialization_atlas_iff] at i₁ i₂ i₁' i₂',
     resetI,
     refine (((continuous_on_coord_change e₁ e₁').mono _).prod_mapL R
       ((continuous_on_coord_change e₂ e₂').mono _)).congr _;

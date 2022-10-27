@@ -578,7 +578,7 @@ iff.intro
       funext (λ x, by simp only [comp_app, extend_apply_of_factors_through g _ hf])⟩)
   (λ h a b hf, by rw [classical.some_spec h, comp_apply, hf])
 
-lemma apply_extend_of_factors_through {δ} (F : γ → δ) (g : α → γ) (e' : β → γ)
+lemma factors_through.apply_extend {δ} (F : γ → δ) (g : α → γ) (e' : β → γ)
   (hf : factors_through g f) (b : β) :
   F (extend f g e' b) = extend f (F ∘ g) (F ∘ e') b :=
 begin

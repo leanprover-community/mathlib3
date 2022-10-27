@@ -9,6 +9,7 @@ import measure_theory.function.locally_integrable
 import analysis.calculus.specific_functions
 import analysis.calculus.parametric_integral
 import measure_theory.measure.haar_lebesgue
+import analysis.calculus.arbitrary_support
 
 /-!
 # Convolution of functions
@@ -732,6 +733,253 @@ end
 
 end normed_add_comm_group
 
+namespace cont_diff_bump
+
+variables {n : ℕ∞}
+variables [normed_space ℝ E']
+variables [normed_add_comm_group G] [normed_space ℝ G] [nonempty (cont_diff_bump_base G)]
+variables [complete_space E']
+variables {a : G} {φ : cont_diff_bump (0 : G)}
+
+/-- If `φ` is a bump function, compute `(φ ⋆ g) x₀` if `g` is constant on `metric.ball x₀ φ.D`. -/
+lemma convolution_eq_right {x₀ : G}
+  (hg : ∀ x ∈ ball x₀ φ.R, g x = g x₀) : (φ ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀ = integral μ φ • g x₀ :=
+by simp_rw [convolution_eq_right' _ φ.support_eq.subset hg, lsmul_apply, integral_smul_const]
+
+variables [borel_space G]
+variables [is_locally_finite_measure μ] [is_open_pos_measure μ]
+variables [finite_dimensional ℝ G]
+
+/-- If `φ` is a normed bump function, compute `φ ⋆ g` if `g` is constant on `metric.ball x₀ φ.D`. -/
+lemma normed_convolution_eq_right {x₀ : G}
+  (hg : ∀ x ∈ ball x₀ φ.R, g x = g x₀) : (φ.normed μ ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀ = g x₀ :=
+by { simp_rw [convolution_eq_right' _ φ.support_normed_eq.subset hg, lsmul_apply],
+  exact integral_normed_smul φ μ (g x₀) }
+
+variables [is_add_left_invariant μ]
+
+/-- If `φ` is a normed bump function, approximate `(φ ⋆ g) x₀` if `g` is near `g x₀` on a ball with
+radius `φ.D` around `x₀`. -/
+lemma dist_normed_convolution_le {x₀ : G} {ε : ℝ}
+  (hmg : ae_strongly_measurable g μ)
+  (hg : ∀ x ∈ ball x₀ φ.R, dist (g x) (g x₀) ≤ ε) :
+  dist ((φ.normed μ ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀) (g x₀) ≤ ε :=
+dist_convolution_le (by simp_rw [← dist_self (g x₀), hg x₀ (mem_ball_self φ.R_pos)])
+  φ.support_normed_eq.subset φ.nonneg_normed φ.integral_normed hmg hg
+
+/-- `(φ i ⋆ g i) (k i)` tends to `z₀` as `i` tends to some filter `l` if
+* `φ` is a sequence of normed bump functions such that `(φ i).D` tends to `0` as `i` tends to `l`;
+* `g i` is `mu`-a.e. strongly measurable as `i` tends to `l`;
+* `g i x` tends to `z₀` as `(i, x)` tends to `l ×ᶠ 𝓝 x₀`;
+* `k i` tends to `x₀`. -/
+lemma convolution_tendsto_right {ι} {φ : ι → cont_diff_bump (0 : G)}
+  {g : ι → G → E'} {k : ι → G} {x₀ : G} {z₀ : E'} {l : filter ι}
+  (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))
+  (hig : ∀ᶠ i in l, ae_strongly_measurable (g i) μ)
+  (hcg : tendsto (uncurry g) (l ×ᶠ 𝓝 x₀) (𝓝 z₀))
+  (hk : tendsto k l (𝓝 x₀)) :
+  tendsto (λ i, ((λ x, (φ i).normed μ x) ⋆[lsmul ℝ ℝ, μ] g i : G → E') (k i)) l (𝓝 z₀) :=
+convolution_tendsto_right (eventually_of_forall $ λ i, (φ i).nonneg_normed)
+  (eventually_of_forall $ λ i, (φ i).integral_normed)
+  (tendsto_support_normed_small_sets hφ) hig hcg hk
+
+/-- Special case of `cont_diff_bump_of_inner.convolution_tendsto_right` where `g` is continuous,
+  and the limit is taken only in the first function. -/
+lemma convolution_tendsto_right_of_continuous {ι} {φ : ι → cont_diff_bump (0 : G)}
+  {l : filter ι} (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))
+  (hg : continuous g) (x₀ : G) :
+  tendsto (λ i, ((λ x, (φ i).normed μ x) ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀) l (𝓝 (g x₀)) :=
+convolution_tendsto_right hφ (eventually_of_forall $ λ _, hg.ae_strongly_measurable)
+  ((hg.tendsto x₀).comp tendsto_snd) tendsto_const_nhds
+
+end cont_diff_bump
+
+end measurability
+
+end nontrivially_normed_field
+
+open_locale convolution
+
+
+section is_R_or_C
+
+variables [is_R_or_C 𝕜]
+variables [normed_space 𝕜 E]
+variables [normed_space 𝕜 E']
+variables [normed_space 𝕜 E'']
+variables [normed_space ℝ F] [normed_space 𝕜 F]
+variables {n : ℕ∞}
+variables [complete_space F]
+variables [measurable_space G] {μ : measure G}
+variables (L : E →L[𝕜] E' →L[𝕜] F)
+
+section assoc
+variables [normed_add_comm_group F'] [normed_space ℝ F'] [normed_space 𝕜 F'] [complete_space F']
+variables [normed_add_comm_group F''] [normed_space ℝ F''] [normed_space 𝕜 F''] [complete_space F'']
+variables {k : G → E''}
+variables (L₂ : F →L[𝕜] E'' →L[𝕜] F')
+variables (L₃ : E →L[𝕜] F'' →L[𝕜] F')
+variables (L₄ : E' →L[𝕜] E'' →L[𝕜] F'')
+variables [add_group G]
+variables [sigma_finite μ]
+
+lemma integral_convolution
+  [has_measurable_add₂ G] [has_measurable_neg G] [is_add_right_invariant μ]
+  [normed_space ℝ E] [normed_space ℝ E']
+  [complete_space E] [complete_space E']
+  (hf : integrable f μ) (hg : integrable g μ) :
+  ∫ x, (f ⋆[L, μ] g) x ∂μ = L (∫ x, f x ∂μ) (∫ x, g x ∂μ) :=
+begin
+  refine (integral_integral_swap (by apply hf.convolution_integrand L hg)).trans _,
+  simp_rw [integral_comp_comm _ (hg.comp_sub_right _), integral_sub_right_eq_self],
+  exact (L.flip (∫ x, g x ∂μ)).integral_comp_comm hf,
+end
+
+variables [has_measurable_add G] {ν : measure G} [sigma_finite ν] [is_add_right_invariant ν]
+
+
+/-- Convolution is associative.
+To do: prove that `hi` follows from simpler conditions. -/
+lemma convolution_assoc (hL : ∀ (x : E) (y : E') (z : E''), L₂ (L x y) z = L₃ x (L₄ y z))
+  {x₀ : G}
+  (h₄ : convolution_exists g k L₄ ν)
+  (h₁ : convolution_exists f g L μ)
+  (hi : integrable (uncurry (λ x y, (L₃ (f y)) ((L₄ (g (x - y))) (k (x₀ - x))))) (ν.prod μ)) :
+  ((f ⋆[L, μ] g) ⋆[L₂, ν] k) x₀ = (f ⋆[L₃, μ] (g ⋆[L₄, ν] k)) x₀ :=
+begin
+  have h1 := λ t, (L₂.flip (k (x₀ - t))).integral_comp_comm (h₁ t),
+  dsimp only [flip_apply] at h1,
+  simp_rw [convolution_def, ← (L₃ (f _)).integral_comp_comm (h₄ (x₀ - _)), ← h1, hL],
+  rw [integral_integral_swap hi],
+  congr', ext t,
+  rw [eq_comm, ← integral_sub_right_eq_self _ t],
+  { simp_rw [sub_sub_sub_cancel_right] },
+  { apply_instance },
+end
+
+end assoc
+
+variables [normed_add_comm_group G] [borel_space G]
+variables [second_countable_topology G] [sigma_compact_space G]
+
+lemma convolution_precompR_apply {g : G → E'' →L[𝕜] E'}
+  (hf : locally_integrable f μ) (hcg : has_compact_support g) (hg : continuous g)
+  (x₀ : G) (x : E'') : (f ⋆[L.precompR E'', μ] g) x₀ x = (f ⋆[L, μ] (λ a, g a x)) x₀  :=
+begin
+  have := hcg.convolution_exists_right (L.precompR E'') hf hg x₀,
+  simp_rw [convolution_def, continuous_linear_map.integral_apply this],
+  refl,
+end
+
+variables [sigma_finite μ] [is_add_left_invariant μ]
+variables [normed_space 𝕜 G] [proper_space G]
+
+/-- Compute the total derivative of `f ⋆ g` if `g` is `C^1` with compact support and `f` is locally
+integrable. To write down the total derivative as a convolution, we use
+`continuous_linear_map.precompR`. -/
+lemma has_compact_support.has_fderiv_at_convolution_right
+  (hcg : has_compact_support g) (hf : locally_integrable f μ) (hg : cont_diff 𝕜 1 g) (x₀ : G) :
+  has_fderiv_at (f ⋆[L, μ] g) ((f ⋆[L.precompR G, μ] fderiv 𝕜 g) x₀) x₀ :=
+begin
+  set L' := L.precompR G,
+  have h1 : ∀ᶠ x in 𝓝 x₀, ae_strongly_measurable (λ t, L (f t) (g (x - t))) μ :=
+  eventually_of_forall
+    (hf.ae_strongly_measurable.convolution_integrand_snd L hg.continuous.ae_strongly_measurable),
+  have h2 : ∀ x, ae_strongly_measurable (λ t, L' (f t) (fderiv 𝕜 g (x - t))) μ,
+  { exact hf.ae_strongly_measurable.convolution_integrand_snd L'
+      (hg.continuous_fderiv le_rfl).ae_strongly_measurable },
+  have h3 : ∀ x t, has_fderiv_at (λ x, g (x - t)) (fderiv 𝕜 g (x - t)) x,
+  { intros x t,
+    simpa using (hg.differentiable le_rfl).differentiable_at.has_fderiv_at.comp x
+      ((has_fderiv_at_id x).sub (has_fderiv_at_const t x)) },
+  let K' := - tsupport (fderiv 𝕜 g) + closed_ball x₀ 1,
+  have hK' : is_compact K' := (hcg.fderiv 𝕜).neg.add (is_compact_closed_ball x₀ 1),
+  refine has_fderiv_at_integral_of_dominated_of_fderiv_le
+    zero_lt_one h1 _ (h2 x₀) _ _ _,
+  { exact K'.indicator (λ t, ∥L'∥ * ∥f t∥ * (⨆ x, ∥fderiv 𝕜 g x∥)) },
+  { exact hcg.convolution_exists_right L hf hg.continuous x₀ },
+  { refine eventually_of_forall (λ t x hx, _),
+    exact (hcg.fderiv 𝕜).convolution_integrand_bound_right L'
+      (hg.continuous_fderiv le_rfl) (ball_subset_closed_ball hx) },
+  { rw [integrable_indicator_iff hK'.measurable_set],
+    exact ((hf hK').norm.const_mul _).mul_const _ },
+  { exact eventually_of_forall (λ t x hx, (L _).has_fderiv_at.comp x (h3 x t)) },
+end
+
+lemma has_compact_support.has_fderiv_at_convolution_left [is_neg_invariant μ]
+  (hcf : has_compact_support f) (hf : cont_diff 𝕜 1 f) (hg : locally_integrable g μ) (x₀ : G) :
+  has_fderiv_at (f ⋆[L, μ] g) ((fderiv 𝕜 f ⋆[L.precompL G, μ] g) x₀) x₀ :=
+begin
+  simp only [← convolution_flip] {single_pass := tt},
+  exact hcf.has_fderiv_at_convolution_right L.flip hg hf x₀,
+end
+
+lemma has_compact_support.cont_diff_convolution_right [finite_dimensional 𝕜 G]
+  (hcg : has_compact_support g) (hf : locally_integrable f μ) (hg : cont_diff 𝕜 n g) :
+  cont_diff 𝕜 n (f ⋆[L, μ] g) :=
+begin
+  induction n using enat.nat_induction with n ih ih generalizing g,
+  { rw [cont_diff_zero] at hg ⊢,
+    exact hcg.continuous_convolution_right L hf hg },
+  { have h : ∀ x, has_fderiv_at (f ⋆[L, μ] g) ((f ⋆[L.precompR G, μ] fderiv 𝕜 g) x) x :=
+      hcg.has_fderiv_at_convolution_right L hf hg.one_of_succ,
+    rw cont_diff_succ_iff_fderiv_apply,
+    split,
+    { exact λ x₀, ⟨_, h x₀⟩ },
+    { simp_rw [fderiv_eq h, convolution_precompR_apply L hf (hcg.fderiv 𝕜)
+        (hg.one_of_succ.continuous_fderiv le_rfl)],
+      intro x,
+      refine ih _ _,
+      { refine @has_compact_support.comp_left _ _ _ _ _ _ (λ (G : _ →L[𝕜] _), G x) _
+          (hcg.fderiv 𝕜) (continuous_linear_map.zero_apply x) },
+      { revert x, rw [← cont_diff_clm_apply],
+        exact (cont_diff_succ_iff_fderiv.mp hg).2 } } },
+  { rw [cont_diff_top] at hg ⊢, exact λ n, ih n hcg (hg n) }
+end
+
+lemma has_compact_support.cont_diff_convolution_left [finite_dimensional 𝕜 G] [is_neg_invariant μ]
+  (hcf : has_compact_support f) (hf : cont_diff 𝕜 n f) (hg : locally_integrable g μ) :
+  cont_diff 𝕜 n (f ⋆[L, μ] g) :=
+by { rw [← convolution_flip], exact hcf.cont_diff_convolution_right L.flip hg hf }
+
+end is_R_or_C
+
+section real
+/-! The one-variable case -/
+
+variables [is_R_or_C 𝕜]
+variables [normed_space 𝕜 E]
+variables [normed_space 𝕜 E']
+variables [normed_space ℝ F] [normed_space 𝕜 F]
+variables {f₀ : 𝕜 → E} {g₀ : 𝕜 → E'}
+variables {n : ℕ∞}
+variables (L : E →L[𝕜] E' →L[𝕜] F)
+variables [complete_space F]
+variables {μ : measure 𝕜}
+variables [is_add_left_invariant μ] [sigma_finite μ]
+
+lemma has_compact_support.has_deriv_at_convolution_right
+  (hf : locally_integrable f₀ μ) (hcg : has_compact_support g₀) (hg : cont_diff 𝕜 1 g₀)
+  (x₀ : 𝕜) :
+  has_deriv_at (f₀ ⋆[L, μ] g₀) ((f₀ ⋆[L, μ] deriv g₀) x₀) x₀ :=
+begin
+  convert (hcg.has_fderiv_at_convolution_right L hf hg x₀).has_deriv_at,
+  rw [convolution_precompR_apply L hf (hcg.fderiv 𝕜) (hg.continuous_fderiv le_rfl)],
+  refl,
+end
+
+lemma has_compact_support.has_deriv_at_convolution_left [is_neg_invariant μ]
+  (hcf : has_compact_support f₀) (hf : cont_diff 𝕜 1 f₀)
+  (hg : locally_integrable g₀ μ) (x₀ : 𝕜) :
+  has_deriv_at (f₀ ⋆[L, μ] g₀) ((deriv f₀ ⋆[L, μ] g₀) x₀) x₀ :=
+begin
+  simp only [← convolution_flip] {single_pass := tt},
+  exact hcf.has_deriv_at_convolution_right L.flip hg hf x₀,
+end
+
+end real
+
+
 section
 
 open finite_dimensional
@@ -752,33 +1000,14 @@ end
 
 attribute [to_additive support_comp_inv_smul] mul_support_comp_inv_smul
 
-lemma has_compact_mul_support.comp_smul {α β γ : Type*} [has_one α] {f : β → α}
-  [topological_space β] [group_with_zero γ] [mul_action γ β] [has_continuous_const_smul γ β]
-  (h : has_compact_mul_support f) {D : γ} (hD : D ≠ 0) :
-  has_compact_mul_support (λ x, f (D • x)) :=
-h.comp_homeomorph (homeomorph.smul_of_ne_zero D hD)
 
-lemma has_compact_support.comp_smul {α β γ : Type*} [has_zero α] {f : β → α}
-  [topological_space β] [group_with_zero γ] [mul_action γ β] [has_continuous_const_smul γ β]
-  (h : has_compact_support f) {D : γ} (hD : D ≠ 0) :
-  has_compact_support (λ x, f (D • x)) :=
-h.comp_homeomorph (homeomorph.smul_of_ne_zero D hD)
-
-attribute [to_additive has_compact_support.comp_smul] has_compact_mul_support.comp_smul
-
-
-lemma closed_ball_subset_ball' {α : Type*} [metric_space α] {ε₁ ε₂ : ℝ} {x y : α}
-  (h : ε₁ + dist x y < ε₂) :
-  closed_ball x ε₁ ⊆ ball y ε₂ :=
-λ z hz, calc
-  dist z y ≤ dist z x + dist x y : dist_triangle _ _ _
-  ... ≤ ε₁ + dist x y : add_le_add_right hz _
-  ... < ε₂ : h
 
 namespace exists_cont_diff_bump_base
 
 variables {H : Type*} [normed_add_comm_group H]
 
+/-- An auxiliary function to construct partitions of unity on finite-dimensional real vector spaces.
+It is the characteristic function of the closed unit ball. -/
 def φ : H → ℝ := (closed_ball (0 : H) 1).indicator (λ y, (1 : ℝ))
 
 variables [normed_space ℝ H]  [finite_dimensional ℝ H]
@@ -786,20 +1015,48 @@ variables [normed_space ℝ H]  [finite_dimensional ℝ H]
 section helper_definitions
 
 variable (H)
-lemma foo : ∃ u : H → ℝ, cont_diff ℝ ⊤ u ∧
+lemma u_exists : ∃ u : H → ℝ, cont_diff ℝ ⊤ u ∧
   (∀ x, u x ∈ Icc (0 : ℝ) 1) ∧ (support u = ball 0 1) ∧ (∀ x, u (-x) = u x) :=
-sorry
+begin
+  have A : is_open (ball (0 : H) 1), from is_open_ball,
+  obtain ⟨f, f_support, f_smooth, f_range⟩ :
+    ∃ (f : H → ℝ), f.support = ball (0 : H) 1 ∧ cont_diff ℝ ⊤ f ∧ set.range f ⊆ set.Icc 0 1,
+    from A.exists_smooth_support_eq,
+  have B : ∀ x, f x ∈ Icc (0 : ℝ) 1 := λ x, f_range (mem_range_self x),
+  refine ⟨λ x, (f x + f (-x)) / 2, _, _, _, _⟩,
+  { exact (f_smooth.add (f_smooth.comp cont_diff_neg)).div_const },
+  { assume x,
+    split,
+    { linarith [(B x).1, (B (-x)).1] },
+    { linarith [(B x).2, (B (-x)).2] } },
+  { refine support_eq_iff.2 ⟨λ x hx, _, λ x hx, _⟩,
+    { apply ne_of_gt,
+      have : 0 < f x,
+      { apply lt_of_le_of_ne (B x).1 (ne.symm _),
+        rwa ← f_support at hx },
+      linarith [(B (-x)).1] },
+    { have I1 : x ∉ support f, by rwa f_support,
+      have I2 : -x ∉ support f,
+      { rw f_support,
+        simp only at hx,
+        simpa using hx },
+      simp only [mem_support, not_not] at I1 I2,
+      simp only [I1, I2, add_zero, zero_div] } },
+  { assume x, simp only [add_comm, neg_neg] }
+end
 
 variable {H}
 
-def u (x : H) : ℝ := classical.some (foo H) x
+/-- An auxiliary function to construct partitions of unity on finite-dimensional real vector spaces,
+which is smooth, symmetric, and with support equal to the unit ball. -/
+def u (x : H) : ℝ := classical.some (u_exists H) x
 
 variable (H)
-lemma u_smooth : cont_diff ℝ ⊤ (u : H → ℝ) := (classical.some_spec (foo H)).1
+lemma u_smooth : cont_diff ℝ ⊤ (u : H → ℝ) := (classical.some_spec (u_exists H)).1
 
 lemma u_continuous : continuous (u : H → ℝ) := (u_smooth H).continuous
 
-lemma u_support : support (u : H → ℝ) = ball 0 1 := (classical.some_spec (foo H)).2.2.1
+lemma u_support : support (u : H → ℝ) = ball 0 1 := (classical.some_spec (u_exists H)).2.2.1
 
 lemma u_compact_support : has_compact_support (u : H → ℝ) :=
 begin
@@ -808,11 +1065,11 @@ begin
 end
 variable {H}
 
-lemma u_nonneg (x : H) : 0 ≤ u x := ((classical.some_spec (foo H)).2.1 x).1
+lemma u_nonneg (x : H) : 0 ≤ u x := ((classical.some_spec (u_exists H)).2.1 x).1
 
-lemma u_le_one (x : H) : u x ≤ 1 := ((classical.some_spec (foo H)).2.1 x).2
+lemma u_le_one (x : H) : u x ≤ 1 := ((classical.some_spec (u_exists H)).2.1 x).2
 
-lemma u_symm (x : H) : u (-x) = u x := (classical.some_spec (foo H)).2.2.2 x
+lemma u_symm (x : H) : u (-x) = u x := (classical.some_spec (u_exists H)).2.2.2 x
 
 variables [measurable_space H] [borel_space H]
 
@@ -827,6 +1084,8 @@ begin
 end
 variable {H}
 
+/-- An auxiliary function to construct partitions of unity on finite-dimensional real vector spaces,
+which is smooth, symmetric, with support equal to the ball of radius `D` and integral `1`. -/
 def W (D : ℝ) (x : H) : ℝ := ((∫ (x : H), u x ∂μ) * |D|^(finrank ℝ H))⁻¹ • u (D⁻¹ • x)
 
 lemma W_def (D : ℝ) :
@@ -860,7 +1119,10 @@ begin
 end
 variable {H}
 
-
+/-- An auxiliary function to construct partitions of unity on finite-dimensional real vector spaces.
+It is the convolution between a smooth function of integral `1` supported in the ball of radius `D`,
+with the indicator function of the closed unit ball. Therefore, it is smooth, equal to `1` on the
+ball of radius `1 - D`, with support equal to the ball of radius `1 + D`. -/
 def Y (D : ℝ) : H → ℝ := W D ⋆[lsmul ℝ ℝ, μ] φ
 
 lemma Y_neg (D : ℝ) (x : H) : Y D (-x) = Y D x :=
@@ -985,22 +1247,14 @@ begin
     exact div_pos (mul_pos Dpos (by linarith only [hx])) B }
 end
 
-lemma Y_smooth (R : ℝ) : cont_diff ℝ ⊤ (Y R : H → ℝ) := sorry
-
-@[to_additive]
-lemma mul_support_eq_iff {α β : Type*} [has_one β] {f : α → β} {s : set α} :
-  mul_support f = s ↔ ((∀ x, x ∈ s → f x ≠ 1) ∧ (∀ x, x ∉ s → f x = 1)) :=
+lemma Y_smooth {D : ℝ} (Dpos : 0 < D) : cont_diff ℝ ⊤ (Y D : H → ℝ) :=
 begin
-  split,
-  { rintros rfl,
-    simp },
-  { rintros ⟨hs, hsc⟩,
-    refine subset.antisymm _ hs,
-    simp only [mul_support_subset_iff, ne.def],
-    assume x hx,
-    contrapose! hx,
-    exact hsc x hx }
+  apply has_compact_support.cont_diff_convolution_left,
+  { apply W_compact_support H Dpos },
+  { exact (cont_diff.comp (u_smooth H) (cont_diff_id.const_smul _)).const_smul _ },
+  { exact (locally_integrable_const _).indicator measurable_set_closed_ball }
 end
+
 
 variable (H)
 
@@ -1013,12 +1267,15 @@ variable {H}
 
 end helper_definitions
 
-def e : cont_diff_bump_base H :=
+
+instance {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E] :
+  nonempty (cont_diff_bump_base E) :=
 begin
-  borelize H,
+  refine ⟨_⟩,
+  borelize E,
   have IR : ∀ (R : ℝ), 1 < R → 0 < (R - 1) / (R + 1),
   { assume R hR, apply div_pos; linarith },
-  refine
+  exact
   { to_fun := λ R x, if 1 < R then Y ((R - 1) / (R + 1)) (((R + 1) / 2)⁻¹ • x) else 0,
     mem_Icc := λ R x, begin
       split_ifs,
@@ -1032,7 +1289,7 @@ begin
     end,
     smooth := λ R hR, begin
       simp only [hR, if_true],
-      exact (Y_smooth _).comp (cont_diff_id.const_smul _),
+      exact (Y_smooth (IR _ hR)).comp (cont_diff_id.const_smul _),
     end,
     eq_one := λ R hR x hx, begin
       have A : 0 < R + 1, by linarith,
@@ -1056,263 +1313,6 @@ begin
     end},
 end
 
-#exit
-
-instance {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E] :
-  nonempty (cont_diff_bump_base E) := sorry
-
-
+end exists_cont_diff_bump_base
 
 end
-
-#exit
-
-convolution_eq_right' {x₀ : G} {D : ℝ}
-  (hf : support f ⊆ ball (0 : G) D)
-  (hg : ∀ x ∈ ball x₀ D, g x = g x₀) : (f ⋆[L, μ] g) x₀ = ∫ t, L (f t) (g x₀) ∂μ :=
-
-namespace cont_diff_bump
-
-variables {n : ℕ∞}
-variables [normed_space ℝ E']
-variables [normed_add_comm_group G] [normed_space ℝ G] [nonempty (cont_diff_bump_base G)]
-variables [complete_space E']
-variables {a : G} {φ : cont_diff_bump (0 : G)}
-
-/-- If `φ` is a bump function, compute `(φ ⋆ g) x₀` if `g` is constant on `metric.ball x₀ φ.D`. -/
-lemma convolution_eq_right {x₀ : G}
-  (hg : ∀ x ∈ ball x₀ φ.D, g x = g x₀) : (φ ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀ = integral μ φ • g x₀ :=
-by simp_rw [convolution_eq_right' _ φ.support_subset_ball hg, lsmul_apply, integral_smul_const]
-
-variables [borel_space G]
-variables [is_locally_finite_measure μ] [is_open_pos_measure μ]
-variables [finite_dimensional ℝ G]
-
-/-- If `φ` is a normed bump function, compute `φ ⋆ g` if `g` is constant on `metric.ball x₀ φ.D`. -/
-lemma normed_convolution_eq_right {x₀ : G}
-  (hg : ∀ x ∈ ball x₀ φ.D, g x = g x₀) : (φ.normed μ ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀ = g x₀ :=
-by { simp_rw [convolution_eq_right' _ φ.support_normed_subset_ball hg, lsmul_apply],
-  exact integral_normed_smul φ μ (g x₀) }
-
-variables [is_add_left_invariant μ]
-
-/-- If `φ` is a normed bump function, approximate `(φ ⋆ g) x₀` if `g` is near `g x₀` on a ball with
-radius `φ.D` around `x₀`. -/
-lemma dist_normed_convolution_le {x₀ : G} {ε : ℝ}
-  (hmg : ae_strongly_measurable g μ)
-  (hg : ∀ x ∈ ball x₀ φ.D, dist (g x) (g x₀) ≤ ε) :
-  dist ((φ.normed μ ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀) (g x₀) ≤ ε :=
-dist_convolution_le (by simp_rw [← dist_self (g x₀), hg x₀ (mem_ball_self φ.D_pos)])
-  φ.support_normed_subset_ball φ.nonneg_normed φ.integral_normed hmg hg
-
-/-- `(φ i ⋆ g i) (k i)` tends to `z₀` as `i` tends to some filter `l` if
-* `φ` is a sequence of normed bump functions such that `(φ i).D` tends to `0` as `i` tends to `l`;
-* `g i` is `mu`-a.e. strongly measurable as `i` tends to `l`;
-* `g i x` tends to `z₀` as `(i, x)` tends to `l ×ᶠ 𝓝 x₀`;
-* `k i` tends to `x₀`. -/
-lemma convolution_tendsto_right {ι} {φ : ι → cont_diff_bump (0 : G)}
-  {g : ι → G → E'} {k : ι → G} {x₀ : G} {z₀ : E'} {l : filter ι}
-  (hφ : tendsto (λ i, (φ i).D) l (𝓝 0))
-  (hig : ∀ᶠ i in l, ae_strongly_measurable (g i) μ)
-  (hcg : tendsto (uncurry g) (l ×ᶠ 𝓝 x₀) (𝓝 z₀))
-  (hk : tendsto k l (𝓝 x₀)) :
-  tendsto (λ i, ((λ x, (φ i).normed μ x) ⋆[lsmul ℝ ℝ, μ] g i : G → E') (k i)) l (𝓝 z₀) :=
-convolution_tendsto_right (eventually_of_forall $ λ i, (φ i).nonneg_normed)
-  (eventually_of_forall $ λ i, (φ i).integral_normed)
-  (tendsto_support_normed_small_sets hφ) hig hcg hk
-
-/-- Special case of `cont_diff_bump_of_inner.convolution_tendsto_right` where `g` is continuous,
-  and the limit is taken only in the first function. -/
-lemma convolution_tendsto_right_of_continuous {ι} {φ : ι → cont_diff_bump (0 : G)}
-  {l : filter ι} (hφ : tendsto (λ i, (φ i).D) l (𝓝 0))
-  (hg : continuous g) (x₀ : G) :
-  tendsto (λ i, ((λ x, (φ i).normed μ x) ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀) l (𝓝 (g x₀)) :=
-convolution_tendsto_right hφ (eventually_of_forall $ λ _, hg.ae_strongly_measurable)
-  ((hg.tendsto x₀).comp tendsto_snd) tendsto_const_nhds
-
-end cont_diff_bump
-
-end measurability
-
-end nontrivially_normed_field
-
-open_locale convolution
-
-
-section is_D_or_C
-
-variables [is_D_or_C 𝕜]
-variables [normed_space 𝕜 E]
-variables [normed_space 𝕜 E']
-variables [normed_space 𝕜 E'']
-variables [normed_space ℝ F] [normed_space 𝕜 F]
-variables {n : ℕ∞}
-variables [complete_space F]
-variables [measurable_space G] {μ : measure G}
-variables (L : E →L[𝕜] E' →L[𝕜] F)
-
-section assoc
-variables [normed_add_comm_group F'] [normed_space ℝ F'] [normed_space 𝕜 F'] [complete_space F']
-variables [normed_add_comm_group F''] [normed_space ℝ F''] [normed_space 𝕜 F''] [complete_space F'']
-variables {k : G → E''}
-variables (L₂ : F →L[𝕜] E'' →L[𝕜] F')
-variables (L₃ : E →L[𝕜] F'' →L[𝕜] F')
-variables (L₄ : E' →L[𝕜] E'' →L[𝕜] F'')
-variables [add_group G]
-variables [sigma_finite μ]
-
-lemma integral_convolution
-  [has_measurable_add₂ G] [has_measurable_neg G] [is_add_right_invariant μ]
-  [normed_space ℝ E] [normed_space ℝ E']
-  [complete_space E] [complete_space E']
-  (hf : integrable f μ) (hg : integrable g μ) :
-  ∫ x, (f ⋆[L, μ] g) x ∂μ = L (∫ x, f x ∂μ) (∫ x, g x ∂μ) :=
-begin
-  refine (integral_integral_swap (by apply hf.convolution_integrand L hg)).trans _,
-  simp_rw [integral_comp_comm _ (hg.comp_sub_right _), integral_sub_right_eq_self],
-  exact (L.flip (∫ x, g x ∂μ)).integral_comp_comm hf,
-end
-
-variables [has_measurable_add G] {ν : measure G} [sigma_finite ν] [is_add_right_invariant ν]
-
-
-/-- Convolution is associative.
-To do: prove that `hi` follows from simpler conditions. -/
-lemma convolution_assoc (hL : ∀ (x : E) (y : E') (z : E''), L₂ (L x y) z = L₃ x (L₄ y z))
-  {x₀ : G}
-  (h₄ : convolution_exists g k L₄ ν)
-  (h₁ : convolution_exists f g L μ)
-  (hi : integrable (uncurry (λ x y, (L₃ (f y)) ((L₄ (g (x - y))) (k (x₀ - x))))) (ν.prod μ)) :
-  ((f ⋆[L, μ] g) ⋆[L₂, ν] k) x₀ = (f ⋆[L₃, μ] (g ⋆[L₄, ν] k)) x₀ :=
-begin
-  have h1 := λ t, (L₂.flip (k (x₀ - t))).integral_comp_comm (h₁ t),
-  dsimp only [flip_apply] at h1,
-  simp_rw [convolution_def, ← (L₃ (f _)).integral_comp_comm (h₄ (x₀ - _)), ← h1, hL],
-  rw [integral_integral_swap hi],
-  congr', ext t,
-  rw [eq_comm, ← integral_sub_right_eq_self _ t],
-  { simp_rw [sub_sub_sub_cancel_right] },
-  { apply_instance },
-end
-
-end assoc
-
-variables [normed_add_comm_group G] [borel_space G]
-variables [second_countable_topology G] [sigma_compact_space G]
-
-lemma convolution_precompD_apply {g : G → E'' →L[𝕜] E'}
-  (hf : locally_integrable f μ) (hcg : has_compact_support g) (hg : continuous g)
-  (x₀ : G) (x : E'') : (f ⋆[L.precompD E'', μ] g) x₀ x = (f ⋆[L, μ] (λ a, g a x)) x₀  :=
-begin
-  have := hcg.convolution_exists_right (L.precompD E'') hf hg x₀,
-  simp_rw [convolution_def, continuous_linear_map.integral_apply this],
-  refl,
-end
-
-variables [sigma_finite μ] [is_add_left_invariant μ]
-variables [normed_space 𝕜 G] [proper_space G]
-
-/-- Compute the total derivative of `f ⋆ g` if `g` is `C^1` with compact support and `f` is locally
-integrable. To write down the total derivative as a convolution, we use
-`continuous_linear_map.precompD`. -/
-lemma has_compact_support.has_fderiv_at_convolution_right
-  (hcg : has_compact_support g) (hf : locally_integrable f μ) (hg : cont_diff 𝕜 1 g) (x₀ : G) :
-  has_fderiv_at (f ⋆[L, μ] g) ((f ⋆[L.precompD G, μ] fderiv 𝕜 g) x₀) x₀ :=
-begin
-  set L' := L.precompD G,
-  have h1 : ∀ᶠ x in 𝓝 x₀, ae_strongly_measurable (λ t, L (f t) (g (x - t))) μ :=
-  eventually_of_forall
-    (hf.ae_strongly_measurable.convolution_integrand_snd L hg.continuous.ae_strongly_measurable),
-  have h2 : ∀ x, ae_strongly_measurable (λ t, L' (f t) (fderiv 𝕜 g (x - t))) μ,
-  { exact hf.ae_strongly_measurable.convolution_integrand_snd L'
-      (hg.continuous_fderiv le_rfl).ae_strongly_measurable },
-  have h3 : ∀ x t, has_fderiv_at (λ x, g (x - t)) (fderiv 𝕜 g (x - t)) x,
-  { intros x t,
-    simpa using (hg.differentiable le_rfl).differentiable_at.has_fderiv_at.comp x
-      ((has_fderiv_at_id x).sub (has_fderiv_at_const t x)) },
-  let K' := - tsupport (fderiv 𝕜 g) + closed_ball x₀ 1,
-  have hK' : is_compact K' := (hcg.fderiv 𝕜).neg.add (is_compact_closed_ball x₀ 1),
-  refine has_fderiv_at_integral_of_dominated_of_fderiv_le
-    zero_lt_one h1 _ (h2 x₀) _ _ _,
-  { exact K'.indicator (λ t, ∥L'∥ * ∥f t∥ * (⨆ x, ∥fderiv 𝕜 g x∥)) },
-  { exact hcg.convolution_exists_right L hf hg.continuous x₀ },
-  { refine eventually_of_forall (λ t x hx, _),
-    exact (hcg.fderiv 𝕜).convolution_integrand_bound_right L'
-      (hg.continuous_fderiv le_rfl) (ball_subset_closed_ball hx) },
-  { rw [integrable_indicator_iff hK'.measurable_set],
-    exact ((hf hK').norm.const_mul _).mul_const _ },
-  { exact eventually_of_forall (λ t x hx, (L _).has_fderiv_at.comp x (h3 x t)) },
-end
-
-lemma has_compact_support.has_fderiv_at_convolution_left [is_neg_invariant μ]
-  (hcf : has_compact_support f) (hf : cont_diff 𝕜 1 f) (hg : locally_integrable g μ) (x₀ : G) :
-  has_fderiv_at (f ⋆[L, μ] g) ((fderiv 𝕜 f ⋆[L.precompL G, μ] g) x₀) x₀ :=
-begin
-  simp only [← convolution_flip] {single_pass := tt},
-  exact hcf.has_fderiv_at_convolution_right L.flip hg hf x₀,
-end
-
-lemma has_compact_support.cont_diff_convolution_right [finite_dimensional 𝕜 G]
-  (hcg : has_compact_support g) (hf : locally_integrable f μ) (hg : cont_diff 𝕜 n g) :
-  cont_diff 𝕜 n (f ⋆[L, μ] g) :=
-begin
-  induction n using enat.nat_induction with n ih ih generalizing g,
-  { rw [cont_diff_zero] at hg ⊢,
-    exact hcg.continuous_convolution_right L hf hg },
-  { have h : ∀ x, has_fderiv_at (f ⋆[L, μ] g) ((f ⋆[L.precompD G, μ] fderiv 𝕜 g) x) x :=
-      hcg.has_fderiv_at_convolution_right L hf hg.one_of_succ,
-    rw cont_diff_succ_iff_fderiv_apply,
-    split,
-    { exact λ x₀, ⟨_, h x₀⟩ },
-    { simp_rw [fderiv_eq h, convolution_precompD_apply L hf (hcg.fderiv 𝕜)
-        (hg.one_of_succ.continuous_fderiv le_rfl)],
-      intro x,
-      refine ih _ _,
-      { refine @has_compact_support.comp_left _ _ _ _ _ _ (λ (G : _ →L[𝕜] _), G x) _
-          (hcg.fderiv 𝕜) (continuous_linear_map.zero_apply x) },
-      { revert x, rw [← cont_diff_clm_apply],
-        exact (cont_diff_succ_iff_fderiv.mp hg).2 } } },
-  { rw [cont_diff_top] at hg ⊢, exact λ n, ih n hcg (hg n) }
-end
-
-lemma has_compact_support.cont_diff_convolution_left [finite_dimensional 𝕜 G] [is_neg_invariant μ]
-  (hcf : has_compact_support f) (hf : cont_diff 𝕜 n f) (hg : locally_integrable g μ) :
-  cont_diff 𝕜 n (f ⋆[L, μ] g) :=
-by { rw [← convolution_flip], exact hcf.cont_diff_convolution_right L.flip hg hf }
-
-end is_D_or_C
-
-section real
-/-! The one-variable case -/
-
-variables [is_D_or_C 𝕜]
-variables [normed_space 𝕜 E]
-variables [normed_space 𝕜 E']
-variables [normed_space ℝ F] [normed_space 𝕜 F]
-variables {f₀ : 𝕜 → E} {g₀ : 𝕜 → E'}
-variables {n : ℕ∞}
-variables (L : E →L[𝕜] E' →L[𝕜] F)
-variables [complete_space F]
-variables {μ : measure 𝕜}
-variables [is_add_left_invariant μ] [sigma_finite μ]
-
-lemma has_compact_support.has_deriv_at_convolution_right
-  (hf : locally_integrable f₀ μ) (hcg : has_compact_support g₀) (hg : cont_diff 𝕜 1 g₀)
-  (x₀ : 𝕜) :
-  has_deriv_at (f₀ ⋆[L, μ] g₀) ((f₀ ⋆[L, μ] deriv g₀) x₀) x₀ :=
-begin
-  convert (hcg.has_fderiv_at_convolution_right L hf hg x₀).has_deriv_at,
-  rw [convolution_precompD_apply L hf (hcg.fderiv 𝕜) (hg.continuous_fderiv le_rfl)],
-  refl,
-end
-
-lemma has_compact_support.has_deriv_at_convolution_left [is_neg_invariant μ]
-  (hcf : has_compact_support f₀) (hf : cont_diff 𝕜 1 f₀)
-  (hg : locally_integrable g₀ μ) (x₀ : 𝕜) :
-  has_deriv_at (f₀ ⋆[L, μ] g₀) ((deriv f₀ ⋆[L, μ] g₀) x₀) x₀ :=
-begin
-  simp only [← convolution_flip] {single_pass := tt},
-  exact hcf.has_deriv_at_convolution_right L.flip hg hf x₀,
-end
-
-end real

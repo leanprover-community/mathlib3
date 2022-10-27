@@ -561,6 +561,13 @@ theorem closed_ball_subset_ball (h : ε₁ < ε₂) :
   closed_ball x ε₁ ⊆ ball x ε₂ :=
 λ y (yh : dist y x ≤ ε₁), lt_of_le_of_lt yh h
 
+lemma closed_ball_subset_ball' (h : ε₁ + dist x y < ε₂) :
+  closed_ball x ε₁ ⊆ ball y ε₂ :=
+λ z hz, calc
+  dist z y ≤ dist z x + dist x y : dist_triangle _ _ _
+  ... ≤ ε₁ + dist x y : add_le_add_right hz _
+  ... < ε₂ : h
+
 lemma dist_le_add_of_nonempty_closed_ball_inter_closed_ball
   (h : (closed_ball x ε₁ ∩ closed_ball y ε₂).nonempty) :
   dist x y ≤ ε₁ + ε₂ :=

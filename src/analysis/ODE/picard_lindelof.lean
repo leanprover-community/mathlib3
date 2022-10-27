@@ -35,25 +35,6 @@ noncomputable theory
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 
-/-- This structure holds arguments of the Picard-Lipschitz (Cauchy-Lipschitz) theorem. It is part of
-the internal API for convenience, so as not to constantly invoke choice. Unless you want to use one
-of the auxiliary lemmas, use `exists_forall_deriv_within_Icc_eq_of_lipschitz_of_continuous` instead
-of using this structure.
-
-The similarly named `is_picard_lindelof` is a bundled `Prop` holding the long hypotheses of the
-Picard-Lindelöf theorem as named arguments. It is used as part of the public API.
--/
-structure picard_lindelof (E : Type*) [normed_add_comm_group E] [normed_space ℝ E] :=
-(to_fun : ℝ → E → E)
-(t_min t_max : ℝ)
-(t₀ : Icc t_min t_max)
-(x₀ : E)
-(C R L : ℝ≥0)
-(lipschitz' : ∀ t ∈ Icc t_min t_max, lipschitz_on_with L (to_fun t) (closed_ball x₀ R))
-(cont : ∀ x ∈ closed_ball x₀ R, continuous_on (λ t, to_fun t x) (Icc t_min t_max))
-(norm_le' : ∀ (t ∈ Icc t_min t_max) (x ∈ closed_ball x₀ R), ∥to_fun t x∥ ≤ C)
-(C_mul_le_R : (C : ℝ) * max (t_max - t₀) (t₀ - t_min) ≤ R)
-
 /-- `Prop` structure holding the hypotheses of the Picard-Lindelöf theorem.
 
 The similarly named `picard_lindelof` structure is part of the internal API for convenience, so as
@@ -68,6 +49,22 @@ structure is_picard_lindelof
 (norm_le : ∀ (t ∈ Icc t_min t_max) (x ∈ closed_ball x₀ R), ∥v t x∥ ≤ C)
 (C_mul_le_R : (C : ℝ) * linear_order.max (t_max - t₀) (t₀ - t_min) ≤ R)
 
+/-- This structure holds arguments of the Picard-Lipschitz (Cauchy-Lipschitz) theorem. It is part of
+the internal API for convenience, so as not to constantly invoke choice. Unless you want to use one
+of the auxiliary lemmas, use `exists_forall_deriv_within_Icc_eq_of_lipschitz_of_continuous` instead
+of using this structure.
+
+The similarly named `is_picard_lindelof` is a bundled `Prop` holding the long hypotheses of the
+Picard-Lindelöf theorem as named arguments. It is used as part of the public API.
+-/
+structure picard_lindelof (E : Type*) [normed_add_comm_group E] [normed_space ℝ E] :=
+(to_fun : ℝ → E → E)
+(t_min t_max : ℝ)
+(t₀ : Icc t_min t_max)
+(x₀ : E)
+(C R L : ℝ≥0)
+(is_pl : is_picard_lindelof to_fun t_min t₀ t_max x₀ L R C)
+
 namespace picard_lindelof
 
 variables (v : picard_lindelof E)
@@ -75,9 +72,13 @@ variables (v : picard_lindelof E)
 instance : has_coe_to_fun (picard_lindelof E) (λ _, ℝ → E → E) := ⟨to_fun⟩
 
 instance : inhabited (picard_lindelof E) :=
-⟨⟨0, 0, 0, ⟨0, le_rfl, le_rfl⟩, 0, 0, 0, 0, λ t ht, (lipschitz_with.const 0).lipschitz_on_with _,
-  λ _ _, by simpa only [pi.zero_apply] using continuous_on_const, λ t ht x hx, norm_zero.le,
-  (zero_mul _).le⟩⟩
+⟨⟨0, 0, 0, ⟨0, le_rfl, le_rfl⟩, 0, 0, 0, 0,
+  { ht₀ := by { rw [subtype.coe_mk, Icc_self], exact mem_singleton _ },
+    hR := by refl,
+    lipschitz := λ t ht, (lipschitz_with.const 0).lipschitz_on_with _,
+    cont := λ _ _, by simpa only [pi.zero_apply] using continuous_on_const,
+    norm_le := λ t ht x hx, norm_zero.le,
+    C_mul_le_R := (zero_mul _).le }⟩⟩
 
 lemma t_min_le_t_max : v.t_min ≤ v.t_max := v.t₀.2.1.trans v.t₀.2.2
 
@@ -85,17 +86,17 @@ protected lemma nonempty_Icc : (Icc v.t_min v.t_max).nonempty := nonempty_Icc.2 
 
 protected lemma lipschitz_on_with {t} (ht : t ∈ Icc v.t_min v.t_max) :
   lipschitz_on_with v.L (v t) (closed_ball v.x₀ v.R) :=
-v.lipschitz' t ht
+v.is_pl.lipschitz t ht
 
 protected lemma continuous_on :
   continuous_on (uncurry v) (Icc v.t_min v.t_max ×ˢ closed_ball v.x₀ v.R) :=
 have continuous_on (uncurry (flip v)) (closed_ball v.x₀ v.R ×ˢ Icc v.t_min v.t_max),
-  from continuous_on_prod_of_continuous_on_lipschitz_on _ v.L v.cont v.lipschitz',
+  from continuous_on_prod_of_continuous_on_lipschitz_on _ v.L v.is_pl.cont v.is_pl.lipschitz,
 this.comp continuous_swap.continuous_on preimage_swap_prod.symm.subset
 
 lemma norm_le {t : ℝ} (ht : t ∈ Icc v.t_min v.t_max) {x : E} (hx : x ∈ closed_ball v.x₀ v.R) :
   ∥v t x∥ ≤ v.C :=
-v.norm_le' _ ht _ hx
+v.is_pl.norm_le _ ht _ hx
 
 /-- The maximum of distances from `t₀` to the endpoints of `[t_min, t_max]`. -/
 def t_dist : ℝ := max (v.t_max - v.t₀) (v.t₀ - v.t_min)
@@ -169,7 +170,7 @@ protected lemma mem_closed_ball (t : Icc v.t_min v.t_max) : f t ∈ closed_ball 
 calc dist (f t) v.x₀ = dist (f t) (f.to_fun v.t₀) : by rw f.map_t₀'
                  ... ≤ v.C * dist t v.t₀          : f.lipschitz.dist_le_mul _ _
                  ... ≤ v.C * v.t_dist             : mul_le_mul_of_nonneg_left (v.dist_t₀_le _) v.C.2
-                 ... ≤ v.R                        : v.C_mul_le_R
+                 ... ≤ v.R                        : v.is_pl.C_mul_le_R
 
 /-- Given a curve $γ \colon [t_{\min}, t_{\max}] → E$, `v_comp` is the function
 $F(t)=v(π t, γ(π t))$, where `π` is the projection $ℝ → [t_{\min}, t_{\max}]$. The integral of this
@@ -342,7 +343,12 @@ begin
   lift t₀ to Icc t_min t_max using hpl.ht₀,
   exact picard_lindelof.exists_solution
     ⟨v, t_min, t_max, t₀, x₀, C, ⟨R, hpl.hR⟩, L,
-      hpl.lipschitz, hpl.cont, hpl.norm_le, hpl.C_mul_le_R⟩
+      { ht₀ := t₀.property,
+        hR := hpl.hR,
+        lipschitz := hpl.lipschitz,
+        cont := hpl.cont,
+        norm_le := hpl.norm_le,
+        C_mul_le_R := hpl.C_mul_le_R }⟩
 end
 
 variables [proper_space E] {v : E → E} (t₀ : ℝ) (x₀ : E)

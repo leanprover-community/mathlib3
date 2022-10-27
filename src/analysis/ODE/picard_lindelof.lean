@@ -406,6 +406,8 @@ begin
     (Icc_mem_nhds ht.1 ht.2)⟩,
 end
 
+/-- Refinement of `exists_forall_deriv_at_ball_eq_of_cont_diff_on_nhds` where the solution maps to
+within the specified neighbourhood `s` on which `v` is continuously differentiable. -/
 theorem ODE_solution_exists.at_ball_of_cont_diff_on_nhds_mem_set
   {s : set E} (hv : cont_diff_on ℝ 1 v s) (hs : s ∈ 𝓝 x₀) :
   ∃ (ε : ℝ) (hε : 0 < ε) (f : ℝ → E), f t₀ = x₀ ∧

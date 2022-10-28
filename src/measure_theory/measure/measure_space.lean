@@ -1841,11 +1841,20 @@ by simp only [count, sum_apply, hs, dirac_apply', ← tsum_subtype s 1, pi.one_a
 @[simp] lemma count_empty : count (∅ : set α) = 0 :=
 by rw [count_apply measurable_set.empty, tsum_empty]
 
-@[simp] lemma count_apply_finset [measurable_singleton_class α] (s : finset α) :
+lemma count_apply_finset_of_measurable {s : finset α} (s_mble : measurable_set (s : set α)) :
   count (↑s : set α) = s.card :=
-calc count (↑s : set α) = ∑' i : (↑s : set α), 1 : count_apply s.measurable_set
+calc count (↑s : set α) = ∑' i : (↑s : set α), 1 : count_apply s_mble
                     ... = ∑ i in s, 1 : s.tsum_subtype 1
                     ... = s.card : by simp
+
+@[simp] lemma count_apply_finset [measurable_singleton_class α] (s : finset α) :
+  count (↑s : set α) = s.card :=
+count_apply_finset_of_measurable s.measurable_set
+
+lemma count_apply_finite_of_measurable {s : set α} (s_fin : s.finite) (s_mble : measurable_set s) :
+  count s = s_fin.to_finset.card :=
+by simp [← @count_apply_finset_of_measurable _ _ s_fin.to_finset
+             (by simpa only [finite.coe_to_finset] using s_mble)]
 
 lemma count_apply_finite [measurable_singleton_class α] (s : set α) (hs : s.finite) :
   count s = hs.to_finset.card :=
@@ -1862,15 +1871,28 @@ begin
   ... ≤ count s : measure_mono ht
 end
 
-variable [measurable_singleton_class α]
+--variable [measurable_singleton_class α]
 
-@[simp] lemma count_apply_eq_top : count s = ∞ ↔ s.infinite :=
+lemma count_apply_eq_top_of_measurable (s_mble : measurable_set s) : count s = ∞ ↔ s.infinite :=
 begin
   by_cases hs : s.finite,
-  { simp [set.infinite, hs, count_apply_finite] },
+  { simp [set.infinite, hs, count_apply_finite_of_measurable hs s_mble], },
   { change s.infinite at hs,
-    simp [hs, count_apply_infinite] }
+    simp [hs, count_apply_infinite], }
 end
+
+@[simp] lemma count_apply_eq_top [measurable_singleton_class α] : count s = ∞ ↔ s.infinite :=
+begin
+  by_cases hs : s.finite,
+  { exact count_apply_eq_top_of_measurable hs.measurable_set, },
+  { change s.infinite at hs,
+    simp [hs, count_apply_infinite], },
+end
+
+@[simp] lemma count_apply_lt_top : count s < ∞ ↔ s.finite :=
+calc count s < ∞ ↔ count s ≠ ∞ : lt_top_iff_ne_top
+             ... ↔ ¬s.infinite : not_congr count_apply_eq_top
+             ... ↔ s.finite    : not_not
 
 @[simp] lemma count_apply_lt_top : count s < ∞ ↔ s.finite :=
 calc count s < ∞ ↔ count s ≠ ∞ : lt_top_iff_ne_top

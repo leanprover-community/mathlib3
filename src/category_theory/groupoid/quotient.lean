@@ -28,9 +28,9 @@ The quotient of `C` by `S` is taken in two steps:
 * In `isotropy`:
   First only quotienting by the isotropy groups of `S`, so that no collapse of vertices occurs.
 
-* In `graph_like`:
+* In `thin`:
   Then by quotienting by the "remainder" of `S` in this quotient.
-  This remainder `is_graph_like`, and the second quotient can be constructed as a full subgroupoid
+  This remainder `is_thin`, and the second quotient can be constructed as a full subgroupoid
   of the first.
 
 -/
@@ -51,7 +51,7 @@ section isotropy
 We first define what's here called “isotropy quotient”:
 Given a normal subgroupoid `S`, this quotient collapses all loops of `S`, i.e.
 all vertex groups.
-After quotienting by the vertex groups, the image of `S` in the quotient `is_graph_like`.
+After quotienting by the vertex groups, the image of `S` in the quotient `is_thin`.
 -/
 
 section cgr
@@ -142,9 +142,9 @@ le_antisymm (le_top) $ λ ⟨c,d,f⟩ _, quot.induction_on f (λ f, by { constru
 
 
 /-- The image of `S` via the quotient is graph-like (since every loop is killed, essentially) -/
-lemma map_is_graph_like : (map (of S Sn) (of_inj_on_objects S Sn) S).is_graph_like :=
+lemma map_is_thin : (map (of S Sn) (of_inj_on_objects S Sn) S).is_thin :=
 begin
-  rw subgroupoid.is_graph_like_iff,
+  rw subgroupoid.is_thin_iff,
   refine λ c d, subsingleton.intro _,
   rintro ⟨_,⟨f,hf⟩⟩ ⟨_,⟨g,hg⟩⟩,
   simp only [subtype.mk_eq_mk],
@@ -175,8 +175,8 @@ def lift : (quotient S Sn) ⥤ D :=
       ( λ f, φ.map f )
       ( λ f₁ f₂ ⟨γ,hγ,δ,hδ,e⟩, by
         { rw subgroupoid.le_iff at hφ,
-          let hφγ := hφ (disconnect.arrows.mk c γ hγ),
-          let hφδ := hφ (disconnect.arrows.mk d δ hδ),
+          let hφγ := hφ ⟨rfl,hγ⟩,
+          let hφδ := hφ ⟨rfl,hδ⟩,
           simp only [mem_ker_iff, eq_self_iff_true,
                      exists_true_left] at hφγ hφδ,
           simp only [e, functor.map_comp, hφγ, hφδ, category.comp_id, category.id_comp,
@@ -217,13 +217,11 @@ begin
   { rintro hf,
     rw mem_ker_iff at hf,
     obtain ⟨h,e⟩ := hf,
-    rw mem_disconnect_iff,
     dsimp [of] at h e, subst h,
-    simp only [eq_self_iff_true, true_and],
     have := @quotient.exact (c ⟶ c) (cgr.setoid S ⟨Sn.wide⟩) _ _ e,
     rcases cgr.symm S this with ⟨γ,hγ,δ,hδ,rfl⟩,
-    apply S.mul hγ (S.mul (id_mem_of_tgt S hδ) hδ), },
-  { rintro ⟨_,f,hf⟩,
+    exact ⟨rfl,S.mul hγ (S.mul (id_mem_of_tgt S hδ) hδ)⟩, },
+  { rintro ⟨rfl,hf⟩,
     rw mem_ker_iff,
     refine ⟨rfl,_⟩,
     show quot.mk _ f = quot.mk _ (𝟙 _),
@@ -237,14 +235,14 @@ end isotropy
 
 end isotropy
 
-namespace graph_like
+namespace thin
 /-!
 Quotient of a groupoid by a wide, graph-like subgroupoid.
 By graph-likeness, the quotient can be represented by the full subgroupoid induced by taking any
 set of representatives of the vertices.
 -/
 
-variables (Sw : S.is_wide)  (Sg : S.is_graph_like)
+variables (Sw : S.is_wide)  (Sg : S.is_thin)
 
 /-- Two vertices of `C` are related iff there exists an arrow of `S` joining them. -/
 abbreviation r := λ c d, nonempty (S.arrows c d)
@@ -297,7 +295,7 @@ lemma to_reps_arrow_unique {c : C}
   (hγ : γ ∈ S.arrows (of_reps S Sw (to_reps S Sw c)) c) :
   γ = to_reps_arrow S Sw c :=
 begin
-  rw [subgroupoid.is_graph_like_iff, (is_wide_iff_objs_eq_univ S).mp Sw] at Sg,
+  rw [subgroupoid.is_thin_iff, (is_wide_iff_objs_eq_univ S).mp Sw] at Sg,
   simp only [set.top_eq_univ, set.mem_univ, set.subsingleton_coe, set_coe.forall,
              forall_true_left] at Sg,
   exact Sg _ _ hγ (to_reps_arrow_mem S Sw c),
@@ -413,7 +411,7 @@ begin
     have : c ≈ d := ⟨⟨f,fS⟩⟩,
     use ⟨⟨f,fS⟩⟩,
     simp only [subtype.ext_iff, subtype.coe_mk],
-    simp only [subgroupoid.is_graph_like_iff, (subgroupoid.is_wide_iff_objs_eq_univ S).mp Sw,
+    simp only [subgroupoid.is_thin_iff, (subgroupoid.is_wide_iff_objs_eq_univ S).mp Sw,
                set.top_eq_univ, set.mem_univ, set.subsingleton_coe, set_coe.forall,
                forall_true_left] at Sg,
     let lhsS := S.mul (to_reps_arrow_mem S Sw c) (S.mul fS $ S.inv $ to_reps_arrow_mem S Sw d),
@@ -475,12 +473,12 @@ omit Sg
 
 end ump
 
-end graph_like
+end thin
 
 section quotient
 /-!
 The _actual_ quotient of `C` by the normal subgroupoid `S`, obtained
-by first taking the `isotropy.quotient`, and then the `graph_like.quotient` on the image of `S`
+by first taking the `isotropy.quotient`, and then the `thin.quotient` on the image of `S`
 under this quotient.
 -/
 
@@ -488,7 +486,7 @@ variable (Sn : S.is_normal)
 
 /-- The vertex set of the quotient -/
 def _root_.category_theory.quotient_groupoid :=
-  graph_like.quotient
+  thin.quotient
     (map (isotropy.of S Sn) (isotropy.of_inj_on_objects S Sn) S)
     (subgroupoid.is_normal_map
       _ /-S-/
@@ -498,7 +496,7 @@ def _root_.category_theory.quotient_groupoid :=
       Sn).to_is_wide
 
 instance : groupoid (quotient_groupoid S Sn) :=
-  graph_like.quotient.category_theory.groupoid
+  thin.quotient.category_theory.groupoid
     (map /-(isotropy.of S Sn)-/ _ (isotropy.of_inj_on_objects S Sn) S)
     (is_normal_map
       /-S-/ _
@@ -508,7 +506,7 @@ instance : groupoid (quotient_groupoid S Sn) :=
       Sn).to_is_wide
 
 /-- The morphism to the quotient -/
-noncomputable def of : C ⥤ quotient_groupoid S Sn := (isotropy.of _ _) ⋙ (graph_like.of _ _)
+noncomputable def of : C ⥤ quotient_groupoid S Sn := (isotropy.of _ _) ⋙ (thin.of _ _)
 
 section ump
 
@@ -518,7 +516,7 @@ include hφ
 /-- Any functor containing `S` in its kernel lifts to a functor from the quotient. -/
 def lift : quotient_groupoid S Sn ⥤ D :=
 begin
-  apply graph_like.lift,
+  apply thin.lift,
   fapply isotropy.lift,
   exact φ,
   exact (disconnect_le S).trans hφ,
@@ -526,9 +524,9 @@ end
 
 lemma lift_spec : (of S Sn) ⋙ (lift S Sn φ hφ) = φ :=
 begin
-  change isotropy.of S Sn ⋙ (graph_like.of (map (isotropy.of S Sn) _ S) _) ⋙
-    graph_like.lift (map (isotropy.of S Sn) _ S) _ (isotropy.lift S Sn φ _) = φ,
-  rw graph_like.lift_spec,
+  change isotropy.of S Sn ⋙ (thin.of (map (isotropy.of S Sn) _ S) _) ⋙
+    thin.lift (map (isotropy.of S Sn) _ S) _ (isotropy.lift S Sn φ _) = φ,
+  rw thin.lift_spec,
   apply isotropy.lift_spec,
   { rw le_iff at hφ ⊢,
     rintros a b f ⟨g,gS⟩,
@@ -538,8 +536,8 @@ end
 lemma lift_unique (Φ : quotient_groupoid S Sn ⥤ D) (hΦ : (of S Sn) ⋙ Φ = φ) :
   Φ = (lift S Sn φ hφ) :=
 begin
-  apply graph_like.lift_unique,
-  apply isotropy.map_is_graph_like,
+  apply thin.lift_unique,
+  apply isotropy.map_is_thin,
   { rw le_iff at hφ ⊢,
     rintros a b f ⟨g,gS⟩,
     exact hφ gS, },
@@ -551,8 +549,8 @@ end ump
 
 lemma ker_eq : ker (of S Sn) = S :=
 begin
-  change ker (isotropy.of S Sn ⋙ (graph_like.of (map (isotropy.of S Sn) _ S) _)) = S,
-  rw [ker_comp, graph_like.ker_eq],
+  change ker (isotropy.of S Sn ⋙ (thin.of (map (isotropy.of S Sn) _ S) _)) = S,
+  rw [ker_comp, thin.ker_eq],
   apply le_antisymm,
   { rw le_iff, rintros c d f hf,
     dsimp [comap] at hf, rw mem_map_iff at hf,
@@ -566,7 +564,7 @@ begin
     rw this,
     apply S.mul (S.inv γS) (S.mul gS $ S.inv δS), },
   { apply subgroupoid.le_map_comap, },
-  apply isotropy.map_is_graph_like,
+  apply isotropy.map_is_thin,
 end
 
 end quotient

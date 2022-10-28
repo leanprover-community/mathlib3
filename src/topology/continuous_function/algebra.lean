@@ -867,3 +867,24 @@ lemma comp_star_alg_hom'_comp (g : C(Y, Z)) (f : C(X, Y)) :
 star_alg_hom.ext $ λ _, continuous_map.ext $ λ _, rfl
 
 end continuous_map
+
+namespace homeomorph
+
+variables {X Y : Type*} [topological_space X] [topological_space Y]
+variables (𝕜 : Type*) [comm_semiring 𝕜]
+variables (A : Type*) [topological_space A] [semiring A] [topological_semiring A] [star_ring A]
+variables [has_continuous_star A] [algebra 𝕜 A]
+
+/-- `continuous_map.comp_star_alg_hom'` as a `star_alg_equiv` when the continuous map `f` is
+actually a homeomorphism. -/
+@[simps] def comp_star_alg_equiv' (f : X ≃ₜ Y) : C(Y, A) ≃⋆ₐ[𝕜] C(X, A) :=
+{ to_fun := (f : C(X, Y)).comp_star_alg_hom' 𝕜 A,
+  inv_fun := (f.symm : C(Y, X)).comp_star_alg_hom' 𝕜 A,
+  left_inv := λ g, by simp only [continuous_map.comp_star_alg_hom'_apply, continuous_map.comp_assoc,
+    to_continuous_map_comp_symm, continuous_map.comp_id],
+  right_inv := λ g, by simp only [continuous_map.comp_star_alg_hom'_apply,
+    continuous_map.comp_assoc, symm_comp_to_continuous_map, continuous_map.comp_id],
+  map_smul' := λ k a, map_smul (f.to_continuous_map.comp_star_alg_hom' 𝕜 A) k a,
+  .. (f.to_continuous_map.comp_star_alg_hom' 𝕜 A) }
+
+end homeomorph

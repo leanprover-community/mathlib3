@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémi Bottinelli, Junyan Xu
 -/
 import category_theory.groupoid.vertex_group
-import category_theory.groupoid
 import category_theory.groupoid.basic
-import category_theory.groupoid.vertex_group
 import category_theory.groupoid
 import algebra.group.defs
 import algebra.hom.group
@@ -14,12 +12,13 @@ import algebra.hom.equiv
 import data.set.lattice
 import combinatorics.quiver.connected_component
 import group_theory.subgroup.basic
+import order.galois_connection
 /-!
 # Subgroupoid
 
 This file defines subgroupoids as `structure`s containing the subsets of arrows and their
 stability under composition and inversion.
-Also defined are
+Also defined are:
 
 * containment of subgroupoids is a complete lattice;
 * images and preimages of subgroupoids under a functor;
@@ -49,6 +48,7 @@ and `combinatorics.simple_graph.subgraph`.
 
 * Equivalent inductive characterization of generated (normal) subgroupoids.
 * Characterization of normal subgroupoids as kernels.
+* Prove that `full` and `disconnect` preserve intersections (and `disconnect` also unions)
 
 ## Tags
 
@@ -83,26 +83,37 @@ namespace subgroupoid
 
 variable (S : subgroupoid C)
 
-lemma mem_of_inv_mem {c d : C} (f : c ⟶ d) : inv f ∈ S.arrows d c → f ∈ S.arrows c d :=
-λ h, by
-{ suffices : inv (inv f) ∈ S.arrows c d,
-  { simpa only [inv_eq_inv, is_iso.inv_inv] using this, },
-  { apply S.inv h, }, }
+lemma inv_mem_iff {c d : C} (f : c ⟶ d) : inv f ∈ S.arrows d c ↔ f ∈ S.arrows c d :=
+begin
+  split,
+  { rintro h,
+    suffices : inv (inv f) ∈ S.arrows c d,
+    { simpa only [inv_eq_inv, is_iso.inv_inv] using this, },
+    { apply S.inv h, }, },
+  { apply S.inv, },
+end
 
-lemma mem_of_mul_mem {c d e : C} (f : c ⟶ d) (g : d ⟶ e) :
-  f ∈ S.arrows c d → f ≫ g ∈ S.arrows c e → g ∈ S.arrows d e :=
-λ hf h, by
-{ suffices : (inv f) ≫ f ≫ g ∈ S.arrows d e,
-  { simpa only [inv_eq_inv, is_iso.inv_hom_id_assoc] using this, },
-  { apply S.mul (S.inv hf) h, }, }
+lemma mul_mem_cancel_left {c d e : C} {f : c ⟶ d} {g : d ⟶ e} (hf : f ∈ S.arrows c d) :
+  f ≫ g ∈ S.arrows c e ↔ g ∈ S.arrows d e :=
+begin
+  split,
+  { rintro h,
+    suffices : (inv f) ≫ f ≫ g ∈ S.arrows d e,
+    { simpa only [inv_eq_inv, is_iso.inv_hom_id_assoc] using this, },
+    { apply S.mul (S.inv hf) h, }, },
+  { apply S.mul hf, },
+end
 
-lemma mem_of_mul_mem' {c d e : C} (f : c ⟶ d) (g : d ⟶ e) :
-  g ∈ S.arrows d e → f ≫ g ∈ S.arrows c e → f ∈ S.arrows c d :=
-λ hg h, by
-{ suffices : (f ≫ g) ≫ (inv g) ∈ S.arrows c d,
-  { simpa only [inv_eq_inv, is_iso.hom_inv_id, category.comp_id, category.assoc] using this, },
-  { apply S.mul h (S.inv hg), }, }
-
+lemma mul_mem_cancel_right {c d e : C} {f : c ⟶ d} {g : d ⟶ e} (hg : g ∈ S.arrows d e) :
+  f ≫ g ∈ S.arrows c e ↔ f ∈ S.arrows c d :=
+begin
+  split,
+  { rintro h,
+    suffices : (f ≫ g) ≫ (inv g) ∈ S.arrows c d,
+    { simpa only [inv_eq_inv, is_iso.hom_inv_id, category.comp_id, category.assoc] using this, },
+    { apply S.mul h (S.inv hg), }, },
+  { exact λ hf, S.mul hf hg, },
+end
 
 /-- The vertices of `C` on which `S` has non-trivial isotropy -/
 def objs : set C := {c : C | (S.arrows c c).nonempty}
@@ -121,16 +132,17 @@ begin
   simp only [inv_eq_inv, is_iso.hom_inv_id],
 end
 
-lemma id_mem_of_src  {c d : C} {f : c ⟶ d} (h : f ∈ S.arrows c d) : (𝟙 c) ∈ S.arrows c c :=
+lemma id_mem_of_src {c d : C} {f : c ⟶ d} (h : f ∈ S.arrows c d) : (𝟙 c) ∈ S.arrows c c :=
 id_mem_of_nonempty_isotropy S c (mem_objs_of_src S h)
 
-lemma id_mem_of_tgt  {c d : C} {f : c ⟶ d} (h : f ∈ S.arrows c d) : (𝟙 d) ∈ S.arrows d d :=
+lemma id_mem_of_tgt {c d : C} {f : c ⟶ d} (h : f ∈ S.arrows c d) : (𝟙 d) ∈ S.arrows d d :=
 id_mem_of_nonempty_isotropy S d (mem_objs_of_tgt S h)
 
 /-- A subgroupoid seen as a quiver on vertex set `C` -/
 def as_wide_quiver : quiver C := ⟨λ c d, subtype $ S.arrows c d⟩
 
 /-- The coercion of a subgroupoid as a groupoid -/
+@[simps to_category_comp_coe, simps inv_coe (lemmas_only)]
 instance coe : groupoid S.objs :=
 { hom := λ a b, S.arrows a.val b.val,
   id := λ a, ⟨𝟙 a.val, id_mem_of_nonempty_isotropy S a.val a.prop⟩,
@@ -142,12 +154,9 @@ instance coe : groupoid S.objs :=
   inv_comp' := λ a b ⟨p,hp⟩, by simp only [inv_comp],
   comp_inv' := λ a b ⟨p,hp⟩, by simp only [comp_inv] }
 
-/-
-This lemma comes for free when `@[simps]` is prepended to the instance above,
-but doing so makes lean's `#lint` complaining about a non-simplifying `simp` lemma. -/
-lemma coe_to_category_comp_coe {a b c : ↥(S.objs)} (p : a ⟶ b) (q : b ⟶ c):
-  ↑(p ≫ q) = p.val ≫ q.val := rfl
-
+@[simp] lemma coe_inv_coe' {c d : S.objs} (p : c ⟶ d) :
+  (category_theory.inv p).val = category_theory.inv p.val := by
+{ simp only [subtype.val_eq_coe, ←inv_eq_inv, coe_inv_coe], }
 
 /-- The embedding of the coerced subgroupoid to its parent-/
 def hom : S.objs ⥤ C :=
@@ -188,7 +197,7 @@ instance : has_top (subgroupoid C) :=
 lemma mem_top {c d : C} (f : c ⟶ d) : f ∈ (⊤ : subgroupoid C).arrows c d := trivial
 
 lemma mem_top_objs (c : C) : c ∈ (⊤ : subgroupoid C).objs :=
-by {dsimp [has_top.top,objs], simp only [univ_nonempty], }
+by { dsimp [has_top.top,objs], simp only [univ_nonempty], }
 
 instance : has_bot (subgroupoid C) :=
 ⟨ { arrows := (λ _ _, ∅),
@@ -239,7 +248,7 @@ lemma inclusion_inj_on_objects {S T : subgroupoid C} (h : S ≤ T) :
   function.injective (inclusion h).obj :=
 λ ⟨s,hs⟩ ⟨t,ht⟩, by simpa only [inclusion, subtype.mk_eq_mk] using id
 
-lemma inclusion_faithful {S T : subgroupoid C} (h : S ≤ T) (s t : S.objs):
+lemma inclusion_faithful {S T : subgroupoid C} (h : S ≤ T) (s t : S.objs) :
   function.injective (λ (f : s ⟶ t), (inclusion h).map f) :=
 λ ⟨f,hf⟩ ⟨g,hg⟩, by { dsimp only [inclusion], simpa only [subtype.mk_eq_mk] using id }
 
@@ -262,7 +271,7 @@ def discrete : subgroupoid C :=
   inv := by { rintros _ _ _ ⟨⟩, simp only [inv_eq_inv, is_iso.inv_id], split, },
   mul := by { rintros _ _ _ _ ⟨⟩ _ ⟨⟩, rw category.comp_id, split, } }
 
-lemma mem_discrete_iff {c d : C} (f : c ⟶ d):
+lemma mem_discrete_iff {c d : C} (f : c ⟶ d) :
   (f ∈ (discrete).arrows c d) ↔ (∃ (h : c = d), f = eq_to_hom h) :=
 ⟨by { rintro ⟨⟩, exact ⟨rfl, rfl⟩ }, by { rintro ⟨rfl, rfl⟩, split }⟩
 
@@ -270,25 +279,24 @@ lemma mem_discrete_iff {c d : C} (f : c ⟶ d):
 structure is_wide : Prop :=
 (wide : ∀ c, (𝟙 c) ∈ (S.arrows c c))
 
-lemma is_wide_iff_objs_eq_univ : S.is_wide ↔ S.objs = ⊤ :=
+lemma is_wide_iff_objs_eq_univ : S.is_wide ↔ S.objs = set.univ :=
 begin
   split,
   { rintro h,
     ext, split; simp only [top_eq_univ, mem_univ, implies_true_iff, forall_true_left],
     apply mem_objs_of_src S (h.wide x), },
   { rintro h,
-    refine ⟨_⟩,
-    rintro c,
-    let := (le_of_eq h.symm),
-    obtain ⟨γ,γS⟩ := this (set.mem_univ c),
+    refine ⟨λ c, _⟩,
+    obtain ⟨γ,γS⟩ := (le_of_eq h.symm : ⊤ ⊆ S.objs) (set.mem_univ c),
     exact id_mem_of_src S γS, },
 end
 
-lemma id_mem_of_is_wide (Sw : S.is_wide) (c : C) : (𝟙 c) ∈ S.arrows c c := Sw.wide c
+lemma is_wide.id_mem {S : subgroupoid C} (Sw : S.is_wide) (c : C) :
+  (𝟙 c) ∈ S.arrows c c := Sw.wide c
 
-lemma eq_to_hom_mem_of_is_wide (Sw : S.is_wide) {c d : C} (h : c = d) :
+lemma is_wide.eq_to_hom_mem {S : subgroupoid C} (Sw : S.is_wide) {c d : C} (h : c = d) :
   (eq_to_hom h) ∈ S.arrows c d := by
-{ cases h, simp only [eq_to_hom_refl], apply id_mem_of_is_wide, exact Sw, }
+{ cases h, simp only [eq_to_hom_refl], apply Sw.id_mem c, }
 
 /-- A subgroupoid is normal if it is wide and satisfies the expected stability under conjugacy. -/
 structure is_normal extends (is_wide S) : Prop :=
@@ -335,19 +343,37 @@ variable (X : ∀ c d : C, set (c ⟶ d))
 def generated : subgroupoid C :=
 Inf {S : subgroupoid C | ∀ c d, X c d ⊆ S.arrows c d}
 
+lemma subset_generated (c d : C) : X c d ⊆ (generated X).arrows c d :=
+begin
+  dsimp only [generated, Inf],
+  simp only [subset_Inter₂_iff],
+  exact λ S hS f fS, hS _ _ fS,
+end
+
 /-- The normal sugroupoid generated by the set of arrows `X` -/
 def generated_normal : subgroupoid C :=
 Inf {S : subgroupoid C | (∀ c d, X c d ⊆ S.arrows c d) ∧ S.is_normal}
 
+lemma generated_le_generated_normal : generated X ≤ generated_normal X :=
+begin
+  apply @Inf_le_Inf (subgroupoid C) _,
+  exact λ S ⟨h,_⟩, h,
+end
+
 lemma generated_normal_is_normal : (generated_normal X).is_normal :=
 Inf_is_normal _ (λ S h, h.right)
 
-lemma generated_normal_le_of_normal_containing (Sn : S.is_normal) :
-  (∀ c d, X c d ⊆ S.arrows c d) → (generated_normal X) ≤ S :=
+lemma is_normal.generated_normal_le {S : subgroupoid C} (Sn : S.is_normal) :
+  generated_normal X ≤ S ↔ ∀ c d, X c d ⊆ S.arrows c d :=
 begin
-  rintro h,
-  apply @Inf_le (subgroupoid C) _,
-  exact ⟨h,Sn⟩,
+  split,
+  { rintro h c d,
+    let h' := generated_le_generated_normal X,
+    rw le_iff at h h',
+    exact ((subset_generated X c d).trans (@h' c d)).trans (@h c d), },
+  { rintro h,
+    apply @Inf_le (subgroupoid C) _,
+    exact ⟨h,Sn⟩, },
 end
 
 end generated_subgroupoid
@@ -374,13 +400,11 @@ lemma comap_mono (S T : subgroupoid D) :
 
 lemma is_normal_comap {S : subgroupoid D} (Sn : is_normal S) : is_normal (comap φ S) :=
 { wide := λ c, by { rw [comap, mem_set_of, functor.map_id], apply Sn.wide, },
-  conj := λ c d f γ hγ, begin
-    simp only [comap, mem_set_of, functor.map_comp, functor.map_inv, inv_eq_inv],
-    rw [←inv_eq_inv],
-    exact Sn.conj _ hγ,
-  end }
+  conj := λ c d f γ hγ, by
+  { simp_rw [inv_eq_inv f, comap, mem_set_of, functor.map_comp, functor.map_inv, ←inv_eq_inv],
+    exact Sn.conj _ hγ, } }
 
-lemma comap_comp {E : Type*} [groupoid E] (ψ : D ⥤ E) :
+@[simp] lemma comap_comp {E : Type*} [groupoid E] (ψ : D ⥤ E) :
   comap (φ ⋙ ψ) = (comap φ) ∘ (comap ψ) := rfl
 
 /-- The kernel of a functor between subgroupoid is the preimage. -/
@@ -392,14 +416,15 @@ mem_discrete_iff (φ.map f)
 
 lemma ker_is_normal : (ker φ).is_normal := is_normal_comap φ (discrete_is_normal)
 
-lemma ker_comp  {E : Type*} [groupoid E] (ψ : D ⥤ E) : ker (φ ⋙ ψ) = comap φ (ker ψ) := rfl
+@[simp]
+lemma ker_comp {E : Type*} [groupoid E] (ψ : D ⥤ E) : ker (φ ⋙ ψ) = comap φ (ker ψ) := rfl
 
 /-- The family of arrows of the image of a subgroupoid under a functor injective on objects -/
 inductive map.arrows (hφ : function.injective φ.obj) (S : subgroupoid C) :
   Π (c d : D), (c ⟶ d) → Prop
 | im {c d : C} (f : c ⟶ d) (hf : f ∈ S.arrows c d) : map.arrows (φ.obj c) (φ.obj d) (φ.map f)
 
-lemma map.arrows_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d : D} (f : c ⟶ d):
+lemma map.arrows_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d : D} (f : c ⟶ d) :
   map.arrows φ hφ S c d f ↔
   ∃ (a b : C) (g : a ⟶ b) (ha : φ.obj a = c) (hb : φ.obj b = d) (hg : g ∈ S.arrows a b),
     f = (eq_to_hom ha.symm) ≫ φ.map g ≫ (eq_to_hom hb) :=
@@ -418,27 +443,39 @@ def map (hφ : function.injective φ.obj) (S : subgroupoid C) : subgroupoid D :=
     split, apply S.inv, assumption,
   end,
   mul := begin
-    rintro _ _ _ _ ⟨c₁,c₂,f,hf⟩ q hq,
+    rintro _ _ _ _ ⟨f,hf⟩ q hq,
     obtain ⟨c₃,c₄,g,he,rfl,hg,gq⟩ := (map.arrows_iff φ hφ S q).mp hq,
     cases hφ he, rw [gq, ← eq_conj_eq_to_hom, ← φ.map_comp],
     split, exact S.mul hf hg,
   end }
 
-lemma mem_map_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d : D} (f : c ⟶ d):
+lemma mem_map_iff (hφ : function.injective φ.obj) (S : subgroupoid C) {c d : D} (f : c ⟶ d) :
   f ∈ (map φ hφ S).arrows c d ↔
   ∃ (a b : C) (g : a ⟶ b) (ha : φ.obj a = c) (hb : φ.obj b = d) (hg : g ∈ S.arrows a b),
     f = (eq_to_hom ha.symm) ≫ φ.map g ≫ (eq_to_hom hb) := map.arrows_iff φ hφ S f
 
+lemma galois_connection_map_comap (hφ : function.injective φ.obj) :
+  galois_connection (map φ hφ) (comap φ) :=
+begin
+  rintro S T, simp_rw [le_iff], split,
+  { exact λ h c d f fS, h (map.arrows.im f fS), },
+  { rintros h _ _ g ⟨a,gφS⟩,
+    exact h gφS, },
+end
+
 lemma map_mono (hφ : function.injective φ.obj) (S T : subgroupoid C) :
   S ≤ T → map φ hφ S ≤ map φ hφ T :=
-by { rintro ST ⟨c,d,f⟩ ⟨_,h⟩, split, exact @ST ⟨_,_,_⟩ h }
+λ h, (galois_connection_map_comap φ hφ).monotone_l h
 
-lemma le_map_comap (hφ : function.injective φ.obj) (S : subgroupoid C) : S ≤ comap φ (map φ hφ S) :=
-begin
-  rw le_iff,
-  rintros c d f hf,
-  constructor, exact hf,
-end
+lemma le_comap_map (hφ : function.injective φ.obj) (S : subgroupoid C) :
+  S ≤ comap φ (map φ hφ S) := (galois_connection_map_comap φ hφ).le_u_l S
+
+lemma map_comap_le (hφ : function.injective φ.obj) (T : subgroupoid D) :
+  map φ hφ (comap φ T) ≤ T := (galois_connection_map_comap φ hφ).l_u_le T
+
+lemma map_le_iff_le_comap (hφ : function.injective φ.obj)
+  (S : subgroupoid C) (T : subgroupoid D) :
+  map φ hφ S ≤ T ↔ S ≤ comap φ T := (galois_connection_map_comap φ hφ).le_iff_le
 
 lemma mem_map_objs_iff (hφ : function.injective φ.obj) (d : D) :
   d ∈ (map φ hφ S).objs ↔ ∃ c ∈ S.objs, φ.obj c = d :=
@@ -453,6 +490,10 @@ begin
     exact ⟨φ.map γ,⟨γ,γS⟩⟩, }
 end
 
+@[simp]
+lemma map_objs_eq (hφ : function.injective φ.obj) : (map φ hφ S).objs = φ.obj '' S.objs := by
+{ ext, convert mem_map_objs_iff S φ hφ x, simp only [mem_image, exists_prop], }
+
 /-- The image of a functor injective on objects -/
 def im (hφ : function.injective φ.obj) := map φ hφ (⊤)
 
@@ -462,21 +503,16 @@ lemma mem_im_iff (hφ : function.injective φ.obj) {c d : D} (f : c ⟶ d) :
     f = (eq_to_hom ha.symm) ≫ φ.map g ≫ (eq_to_hom hb) :=
 by { convert map.arrows_iff φ hφ ⊤ f, simp only [has_top.top, mem_univ, exists_true_left] }
 
-lemma mem_im_objs_iff  (hφ : function.injective φ.obj) (d : D) :
-  d ∈ (im φ hφ).objs ↔ ∃ c : C, φ.obj c = d :=
-begin
-  dsimp only [im],
-  rw mem_map_objs_iff,
-  simp only [has_top.top, objs, univ_nonempty, set_of_true, mem_univ, exists_true_left],
-end
+lemma mem_im_objs_iff (hφ : function.injective φ.obj) (d : D) :
+  d ∈ (im φ hφ).objs ↔ ∃ c : C, φ.obj c = d := by
+{ simp only [im, mem_map_objs_iff, mem_top_objs, exists_true_left], }
 
-lemma obj_surjective_of_im_eq_top  (hφ : function.injective φ.obj) (hφ' : im φ hφ = ⊤) :
+lemma obj_surjective_of_im_eq_top (hφ : function.injective φ.obj) (hφ' : im φ hφ = ⊤) :
   function.surjective φ.obj :=
 begin
   rintro d,
-  rw ←mem_im_objs_iff,
-  rw hφ', dsimp [has_top.top, objs],
-  simp only [univ_nonempty],
+  rw [←mem_im_objs_iff, hφ'],
+  apply mem_top_objs,
 end
 
 lemma is_normal_map (hφ : function.injective φ.obj) (hφ' : im φ hφ = ⊤) (Sn : S.is_normal) :
@@ -503,15 +539,15 @@ lemma is_normal_map (hφ : function.injective φ.obj) (hφ' : im φ hφ = ⊤) (
 
 end hom
 
-section graph_like
+section thin
 
-/-- A subgroupoid `is_graph_like` if it has at most one arrow between any two vertices. -/
-abbreviation is_graph_like := is_graph_like S.objs
+/-- A subgroupoid `is_thin` if it has at most one arrow between any two vertices. -/
+abbreviation is_thin := is_thin S.objs
 
-lemma is_graph_like_iff : S.is_graph_like ↔ ∀ c d : S.objs, subsingleton (S.arrows c d) :=
-⟨ λ h c d, h c d, λ h c d, h c d⟩
+lemma is_thin_iff : S.is_thin ↔ ∀ (c d : S.objs), subsingleton (S.arrows c d) :=
+⟨λ h c d, h c d, λ h c d, h c d⟩
 
-end graph_like
+end thin
 
 section disconnected
 
@@ -523,36 +559,30 @@ begin
   split,
   { rintro h c d ⟨f,fS⟩,
     rw ←@subtype.mk_eq_mk _ _ c (mem_objs_of_src S fS) d (mem_objs_of_tgt S fS),
-    exact h ⟨c,mem_objs_of_src S fS⟩ ⟨d,mem_objs_of_tgt S fS⟩ ⟨⟨f,fS⟩⟩, },
+    exact h ⟨c,mem_objs_of_src S fS⟩ ⟨d,mem_objs_of_tgt S fS⟩ ⟨f,fS⟩, },
   { rintros h ⟨c,hc⟩ ⟨d,hd⟩ ⟨f,fS⟩,
     simp only [subtype.mk_eq_mk],
     exact h c d ⟨f,fS⟩, },
 end
 
-/-- The isotropy arrows of `S` -/
-inductive disconnect.arrows : Π (c d : C), (c ⟶ d) → Prop
-| mk (c : C) (γ : c ⟶ c) (hγ : γ ∈ S.arrows c c) : disconnect.arrows c c γ
-
 /-- The isotropy subgroupoid of `S` -/
 def disconnect : subgroupoid C :=
-{ arrows := disconnect.arrows S,
-  inv := by { rintros _ _ _ ⟨⟩, constructor, apply S.inv, assumption, },
-  mul := by { rintros _ _ _ _ ⟨⟩ _ ⟨⟩, constructor, apply S.mul; assumption, } }
+{ arrows := λ c d f, c = d ∧ f ∈ S.arrows c d,
+  inv := by { rintros _ _ _ ⟨rfl,h⟩, exact ⟨rfl, S.inv h⟩, },
+  mul := by { rintros _ _ _ _ ⟨rfl,h⟩ _ ⟨rfl,h'⟩, exact ⟨rfl, S.mul h h'⟩, } }
 
-lemma disconnect_le : (S.disconnect) ≤ S :=
-by {rw le_iff, rintros _ _ _ ⟨⟩, assumption, }
+lemma disconnect_le : S.disconnect ≤ S :=
+by { rw le_iff, rintros _ _ _ ⟨⟩, assumption, }
 
 lemma disconnect_normal (Sn : S.is_normal) : S.disconnect.is_normal :=
-{ wide := λ c, by { constructor, exact Sn.wide c, },
-  conj := λ c d p γ hγ, by { constructor, apply Sn.conj, cases hγ, assumption, } }
+{ wide := λ c, ⟨rfl, Sn.wide c⟩,
+  conj := λ c d p γ ⟨_,h'⟩, ⟨rfl, Sn.conj _ h'⟩ }
 
-lemma mem_disconnect_iff {c d : C} (f : c ⟶ d) :
-  f ∈ S.disconnect.arrows c d ↔ (c = d ∧ f ∈ S.arrows c d) :=
-begin
-  split,
-  { rintro ⟨⟩, split, refl, assumption, },
-  { rintro ⟨rfl,_⟩, constructor, assumption, },
-end
+@[simp] lemma mem_disconnect_objs_iff {c : C} : c ∈ S.disconnect.objs ↔ c ∈ S.objs :=
+⟨λ ⟨γ,⟨h,γS⟩⟩, ⟨γ,γS⟩, λ ⟨γ,γS⟩, ⟨γ,⟨rfl,γS⟩⟩⟩
+
+lemma disconnect_is_disconnected : S.disconnect.is_disconnected := by
+{ rw is_disconnected_iff, exact λ c d ⟨f,⟨h,fS⟩⟩, h }
 
 end disconnected
 
@@ -560,28 +590,37 @@ section full
 
 variable (D : set C)
 
-/-- The arrows of the full groupoid on a set `D : set C` -/
-inductive full.arrows : Π (c d : C), (c ⟶ d) → Prop
-| mk {c d : C} (hc : c ∈ D) (hd : d ∈ D) (γ : c ⟶ d) : full.arrows c d γ
-
 /-- The full subgroupoid on a set `D : set C` -/
 def full : subgroupoid C :=
-{ arrows := full.arrows D,
+{ arrows := λ c d _, c ∈ D ∧ d ∈ D,
   inv := by { rintros _ _ _ ⟨⟩, constructor; assumption, },
   mul := by { rintros _ _ _ _ ⟨⟩ _ ⟨⟩, constructor; assumption,} }
 
 lemma full_objs : (full D).objs = D :=
-begin
-  ext,
-  split,
-  { rintro ⟨f,⟨⟩⟩, assumption, },
-  { rintro h, constructor, constructor, assumption, assumption, exact 𝟙 _, }
-end
+set.ext $ λ _, ⟨λ ⟨f,⟨h,_⟩⟩, h , λ h, ⟨𝟙 _,⟨h,h⟩⟩⟩
+
+@[simp] lemma mem_full_iff {c d : C} {f : c ⟶ d} : f ∈ (full D).arrows c d ↔ c ∈ D ∧ d ∈ D :=
+⟨id, id⟩
 
 @[simp] lemma mem_full_objs_iff {c : C} : c ∈ (full D).objs ↔ c ∈ D :=
 by { rw full_objs, }
 
-lemma full_arrow_eq_iff {c d : (full D).objs} {f g : c ⟶ d} : f = g ↔ (↑f : c.val ⟶ d.val) = ↑g :=
+@[simp] lemma full_empty : full ∅ = (⊥ : subgroupoid C) := by
+{ ext, simp only [has_bot.bot, mem_full_iff, mem_empty_iff_false, and_self], }
+
+@[simp] lemma full_univ : full set.univ = (⊤ : subgroupoid C) := by
+{ ext, simp only [mem_full_iff, mem_univ, and_self, true_iff], }
+
+lemma full_mono {D E : set C} (h : D ≤ E) : full D ≤ full E :=
+begin
+  rw le_iff,
+  rintro c d f,
+  simp only [mem_full_iff],
+  exact λ ⟨hc,hd⟩, ⟨h hc, h hd⟩,
+end
+
+lemma full_arrow_eq_iff {c d : (full D).objs} {f g : c ⟶ d} :
+  f = g ↔ (↑f : c.val ⟶ d.val) = ↑g :=
 by apply subtype.ext_iff
 
 end full
@@ -589,4 +628,3 @@ end full
 end subgroupoid
 
 end category_theory
-

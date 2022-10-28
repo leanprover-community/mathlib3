@@ -14,31 +14,28 @@ namespace category_theory
 
 namespace groupoid
 
-universes u v
+variables (C : Type*) [groupoid C]
 
-variables (C : Type u) [groupoid C]
+section thin
 
-section graph_like
+/-- A groupoid is graph-like if it has no parallel arrows. -/
+def is_thin := ∀ (c d : C), subsingleton (c ⟶ d)
 
-/-- A groupoid is graph-like if it has no parallel arrows -/
-def is_graph_like := ∀ (c d : C), subsingleton (c ⟶ d)
-
-lemma is_graph_like_iff : (is_graph_like C) ↔ ∀ (c : C), subsingleton (c ⟶ c) :=
+lemma is_thin_iff : is_thin C ↔ ∀ (c : C), subsingleton (c ⟶ c) :=
 begin
-  refine ⟨ λ h c, h c c, λ h c d, subsingleton.intro $ λ f g, _ ⟩,
-  { have : inv f ≫ g = 𝟙 _, by { obtain ⟨ss⟩ := (h d), apply ss, },
-    calc f
-       = f ≫ (inv g ≫ g) : by simp
-    ...= f ≫ (inv f ≫ g) : by { apply congr_arg2, refl, rw this, simp, }
-    ...= g                : by simp, }
+  refine ⟨λ h c, h c c, λ h c d, subsingleton.intro $ λ f g, _⟩,
+  haveI := h d,
+  calc f = f ≫ (inv g ≫ g) : by simp only [inv_eq_inv, is_iso.inv_hom_id, category.comp_id]
+     ... = f ≫ (inv f ≫ g) : by congr
+     ... = g               : by simp only [inv_eq_inv, is_iso.hom_inv_id_assoc],
 end
 
-end graph_like
+end thin
 
 section disconnected
 
-/-- A subgroupoid is disconnected if it only has loops -/
-def is_disconnected := ∀ (c d : C), nonempty (c ⟶ d) → c = d
+/-- A subgroupoid is disconnected if it only has loops. -/
+def is_disconnected := ∀ (c d : C), (c ⟶ d) → c = d
 
 end disconnected
 

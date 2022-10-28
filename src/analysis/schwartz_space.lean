@@ -32,7 +32,8 @@ Schwartz space into a locally convex topological vector space.
 * `schwartz_map`: The Schwartz space is the space of smooth functions such that all derivatives
 decay faster than any power of `∥x∥`.
 * `schwartz_map.seminorm`: The family of seminorms as described above
-* `schwartz_map.fderiv`: The differential as a continuous linear map `𝓢(E, F) →L[𝕜] 𝓢(E, E →L[ℝ] F)`
+* `schwartz_map.fderiv_clm`: The differential as a continuous linear map
+`𝓢(E, F) →L[𝕜] 𝓢(E, E →L[ℝ] F)`
 
 ## Main statements
 

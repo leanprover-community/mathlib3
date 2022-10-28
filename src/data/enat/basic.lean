@@ -53,7 +53,7 @@ with_top.rec_top_coe (by simp) (by simp) n
 
 alias coe_to_nat_eq_self ↔ _ coe_to_nat
 
-lemma coe_to_nat_le_self (n : ℕ∞) : ↑(to_nat n) ≤ n := by { cases n, exacts [le_top, le_rfl] }
+lemma coe_to_nat_le_self (n : ℕ∞) : ↑(to_nat n) ≤ n := with_top.rec_top_coe le_top (λ k, le_rfl) n
 
 lemma to_nat_add {m n : ℕ∞} (hm : m ≠ ⊤) (hn : n ≠ ⊤) : to_nat (m + n) = to_nat m + to_nat n :=
 by { lift m to ℕ using hm, lift n to ℕ using hn, refl }

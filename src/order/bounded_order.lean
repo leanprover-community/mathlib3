@@ -3,11 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.option.basic
-import logic.nontrivial
 import order.lattice
-import order.max
-import tactic.pi_instances
+import data.option.basic
 
 /-!
 # ⊤ and ⊥, bounded lattices and variants
@@ -365,6 +362,10 @@ instance Prop.bounded_order : bounded_order Prop :=
   bot          := false,
   bot_le       := @false.elim }
 
+lemma Prop.bot_eq_false : (⊥ : Prop) = false := rfl
+
+lemma Prop.top_eq_true : (⊤ : Prop) = true := rfl
+
 instance Prop.le_is_total : is_total Prop (≤) :=
 ⟨λ p q, by { change (p → q) ∨ (q → p), tauto! }⟩
 
@@ -696,25 +697,19 @@ lemma map_le_iff [preorder α] [preorder β] (f : α → β) (mono_iff : ∀ {a 
 | (a : α) ⊥       := by simp only [map_coe, map_bot, coe_ne_bot, not_coe_le_bot _]
 | (a : α) (b : α) := by simpa using mono_iff
 
-lemma le_coe_get_or_else [preorder α] : ∀ (a : with_bot α) (b : α), a ≤ a.get_or_else b
-| (some a) b := le_refl a
-| none     b := λ _ h, option.no_confusion h
+lemma le_coe_unbot' [preorder α] : ∀ (a : with_bot α) (b : α), a ≤ a.unbot' b
+| (a : α) b := le_rfl
+| ⊥       b := bot_le
 
-@[simp] lemma get_or_else_bot (a : α) : option.get_or_else (⊥ : with_bot α) a = a := rfl
-
-lemma get_or_else_bot_le_iff [has_le α] [order_bot α] {a : with_bot α} {b : α} :
-  a.get_or_else ⊥ ≤ b ↔ a ≤ b :=
+lemma unbot'_bot_le_iff [has_le α] [order_bot α] {a : with_bot α} {b : α} :
+  a.unbot' ⊥ ≤ b ↔ a ≤ b :=
 by cases a; simp [none_eq_bot, some_eq_coe]
 
-lemma get_or_else_bot_lt_iff [partial_order α] [order_bot α] {a : with_bot α} {b : α}
-  (ha : a ≠ ⊥) :
-  a.get_or_else ⊥ < b ↔ a < b :=
+lemma unbot'_lt_iff [has_lt α] {a : with_bot α} {b c : α} (ha : a ≠ ⊥) :
+  a.unbot' b < c ↔ a < c :=
 begin
-  obtain ⟨a, rfl⟩ := ne_bot_iff_exists.mp ha,
-  simp only [lt_iff_le_and_ne, get_or_else_bot_le_iff, and.congr_right_iff],
-  intro h,
-  apply iff.not,
-  simp only [with_bot.coe_eq_coe, option.get_or_else_coe, iff_self],
+  lift a to α using ha,
+  rw [unbot'_coe, coe_lt_coe]
 end
 
 instance [semilattice_sup α] : semilattice_sup (with_bot α) :=

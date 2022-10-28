@@ -1081,7 +1081,13 @@ protected def vitali_family (μ : measure α) [sigma_finite μ] :
       ∧ μ (s \ (⋃ (x ∈ t), closed_ball x (r x))) = 0
       ∧ t.pairwise_disjoint (λ x, closed_ball x (r x)) :=
         exists_disjoint_closed_ball_covering_ae μ g s A (λ _, 1) (λ _ _, zero_lt_one),
-    exact ⟨t, λ x, closed_ball x (r x), ts, tdisj, λ x xt, (tg x xt).1.2, μt⟩,
+    let F : α → α × set α := λ x, (x, closed_ball x (r x)),
+    refine ⟨F '' t, _, _, _, _⟩,
+    { rintros - ⟨x, hx, rfl⟩, exact ts hx },
+    { rintros p ⟨x, hx, rfl⟩ q ⟨y, hy, rfl⟩ hxy,
+      exact tdisj hx hy (ne_of_apply_ne F hxy) },
+    { rintros - ⟨x, hx, rfl⟩, exact (tg x hx).1.2 },
+    { rwa bUnion_image }
   end }
 
 /-- The main feature of the Besicovitch Vitali family is that its filter at a point `x` corresponds

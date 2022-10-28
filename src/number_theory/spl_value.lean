@@ -1,4 +1,4 @@
-import number_theory.general_bernoullli_number_properties
+import number_theory.general_bernoullli_number_properties_three
 import topology.compact_open
 
 open_locale big_operators

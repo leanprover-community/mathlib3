@@ -3,7 +3,7 @@ Copyright (c) 2021 Ashvni Narayanan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ashvni Narayanan
 -/
-import number_theory.weight_space
+import number_theory.weight_space_eight
 import number_theory.dirichlet_character
 import number_theory.general_bernoullli_number
 import ring_theory.roots_of_unity

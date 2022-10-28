@@ -1,4 +1,4 @@
-import number_theory.weight_space
+import number_theory.weight_space_eight
 
 --variables (A : Type*) [topological_space A] [mul_one_class A]
 variables (p : ℕ) [fact p.prime] (d : ℕ)

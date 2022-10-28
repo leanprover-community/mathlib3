@@ -2067,6 +2067,17 @@ begin
   simp only [← set.preimage_iterate_eq, comp_app, preimage_compl],
 end
 
+/-- By replacing a measurable set that is almost invariant with the `limsup` of its preimages, we
+obtain a measurable set that is almost equal and strictly invariant.
+
+(The `liminf` would work just as well.) -/
+lemma exists_preimage_eq_of_preimage_ae {f : α → α} (h : quasi_measure_preserving f μ μ)
+  (hs : measurable_set s) (hs' : f⁻¹' s =ᵐ[μ] s) :
+  ∃ (t : set α), measurable_set t ∧ t =ᵐ[μ] s ∧ f⁻¹' t = t :=
+⟨limsup (λ n, (preimage f)^[n] s) at_top,
+ measurable_set.measurable_set_limsup $ λ n, @preimage_iterate_eq α f n ▸ h.measurable.iterate n hs,
+ h.limsup_preimage_iterate_ae_eq hs',
+ (complete_lattice_hom.set_preimage f).apply_limsup_iterate s⟩
 
 end quasi_measure_preserving
 

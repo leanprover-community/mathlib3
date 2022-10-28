@@ -25,15 +25,16 @@ The set of $K$-rational points on $E$ forms an abelian group under a chord-and-t
     Explicitly, if $P = (x, y)$, then $-P = (x, -y - a_1x - a_3)$.
  * Given two points $P$ and $Q$, their addition $P + Q$ is defined to be the negation of the unique
     third point of intersection between $E$ and the line joining $P$ and $Q$, which again exists by
-    Bézout's theorem. Explicitly, let $P = (x_1, y_1)$ and $Q = (x_2, y_2)$. If $x_1 = x_2$ and
-    $P \ne -Q$, then this line is the tangent of $E$ at $P = Q$ and has a well-defined gradient
-    $\ell = (3x_1^2 + 2a_2x_1 + a_4 - a_1y_1) / (2y_1 + a_1x_1 + a_3)$. Otherwise $P \ne Q$ and this
-    line has a well-defined gradient $\ell = (y_1 - y_2) / (x_1 - x_2)$. The $x$-coordinate of
-    $P + Q$ is then the unique third solution of the equation obtained by substituting the line
-    $y = \ell(x - x_1) + y_1$ into the Weierstrass equation, and can be written down explicitly by
-    inspecting the $x^2$ terms of this equation as $x = \ell^2 + a_1\ell - a_2 - x_1 - x_2$. The
-    $y$-coordinate of $P + Q$, after applying the final negation that maps $y$ to $-y - a_1x - a_3$,
-    is precisely $y = -(\ell(x - x_1) + y_1) - x - a_3$.
+    Bézout's theorem. Explicitly, let $P = (x_1, y_1)$ and $Q = (x_2, y_2)$.
+      * If $x_1 = x_2$ and $P = -Q$ then this line is vertical and $P + Q = \mathcal{O}$.
+      * If $x_1 = x_2$ and $P \ne -Q$ then this line is the tangent of $E$ at $P = Q$ and has
+        gradient $\ell = (3x_1^2 + 2a_2x_1 + a_4 - a_1y_1) / (2y_1 + a_1x_1 + a_3)$.
+      * Otherwise $x_1 \ne x_2$ then this line has gradient $\ell = (y_1 - y_2) / (x_1 - x_2)$.
+    In the latter two cases, the $x$-coordinate of $P + Q$ is then the unique third solution of the
+    equation obtained by substituting the line $y = \ell(x - x_1) + y_1$ into the Weierstrass
+    equation, and can be written down explicitly as $x = \ell^2 + a_1\ell - a_2 - x_1 - x_2$ by
+    inspecting $x^2$ terms. The $y$-coordinate of $P + Q$, after applying the final negation that
+    maps $y$ to $-y - a_1x - a_3$, is precisely $y = -(\ell(x - x_1) + y_1) - x - a_3$.
 The group law on this set is then uniquely determined by these constructions. This file defines the
 group operations by explicit equations and proves that the set is an abelian group (TODO).
 

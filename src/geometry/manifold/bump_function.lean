@@ -56,8 +56,7 @@ available as `⇑f` or `f x`. Formal statements of the properties listed above i
 (pre)images under `ext_chart_at I f.c` and are given as lemmas in the `smooth_bump_function`
 namespace. -/
 structure smooth_bump_function (c : M) extends cont_diff_bump (ext_chart_at I c c) :=
-(closed_ball_subset :
-  (closed_ball (ext_chart_at I c c) R) ∩ range I ⊆ (ext_chart_at I c).target)
+(closed_ball_subset : (closed_ball (ext_chart_at I c c) R) ∩ range I ⊆ (ext_chart_at I c).target)
 
 variable {M}
 
@@ -68,7 +67,7 @@ variables {c : M} (f : smooth_bump_function I c) {x : M} {I}
 /-- The function defined by `f : smooth_bump_function c`. Use automatic coercion to function
 instead. -/
 def to_fun : M → ℝ :=
-indicator (chart_at H c).source ((f.to_cont_diff_bump : E → ℝ) ∘ ext_chart_at I c)
+indicator (chart_at H c).source (f.to_cont_diff_bump ∘ ext_chart_at I c)
 
 instance : has_coe_to_fun (smooth_bump_function I c) (λ _, M → ℝ) := ⟨to_fun⟩
 
@@ -96,62 +95,33 @@ lemma one_of_dist_le (hs : x ∈ (chart_at H c).source)
 by simp only [f.eq_on_source hs, (∘), f.to_cont_diff_bump.one_of_mem_closed_ball hd]
 
 lemma support_eq_inter_preimage :
-  support f = (chart_at H c).source ∩ (ext_chart_at I c ⁻¹' (support f.to_cont_diff_bump)) :=
-by rw [coe_def, support_indicator, (∘), support_comp_eq_preimage]
+  support f =
+    (chart_at H c).source ∩ (ext_chart_at I c ⁻¹' ball (ext_chart_at I c c) f.R) :=
+by rw [coe_def, support_indicator, (∘), support_comp_eq_preimage, ← ext_chart_at_source I,
+  ← (ext_chart_at I c).symm_image_target_inter_eq',
+  ← (ext_chart_at I c).symm_image_target_inter_eq', f.to_cont_diff_bump.support_eq]
 
-/-- The maximal support of the bump function, defined as the preimage under the chart of the
-ball of radius `f.R` inside the model vector space. -/
-def max_support : set M :=
-(chart_at H c).source ∩ (ext_chart_at I c ⁻¹' (ball (ext_chart_at I c c) f.R))
-
-/-- The maximal topological support of the bump function, defined as the preimage under the chart
-of the closed ball of radius `f.R` inside the model vector space. -/
-def max_tsupport : set M :=
-(chart_at H c).source ∩ (ext_chart_at I c ⁻¹' (closed_ball (ext_chart_at I c c) f.R))
-
-lemma max_support_subset_max_tsupport : f.max_support ⊆ f.max_tsupport :=
-inter_subset_inter_right _ (preimage_mono ball_subset_closed_ball)
-
-lemma is_open_max_support : is_open (f.max_support) :=
-ext_chart_preimage_open_of_open I c is_open_ball
+lemma open_support : is_open (support f) :=
+by { rw support_eq_inter_preimage, exact ext_chart_preimage_open_of_open I c is_open_ball }
 
 lemma support_eq_symm_image :
-  support f = (ext_chart_at I c).symm '' (support f.to_cont_diff_bump ∩ range I) :=
+  support f = (ext_chart_at I c).symm '' (ball (ext_chart_at I c c) f.R ∩ range I) :=
 begin
   rw [f.support_eq_inter_preimage, ← ext_chart_at_source I,
     ← (ext_chart_at I c).symm_image_target_inter_eq', inter_comm],
   congr' 1 with y,
-  exact and.congr_right_iff.2 (λ hy, ⟨λ h, ext_chart_at_target_subset_range _ _ h,
-    λ h, f.ball_subset ⟨f.to_cont_diff_bump.support_subset_ball hy, h⟩⟩)
+  exact and.congr_right_iff.2
+    (λ hy, ⟨λ h, ext_chart_at_target_subset_range _ _ h, λ h, f.ball_subset ⟨hy, h⟩⟩)
 end
-
-lemma max_tsupport_eq_symm_image :
-  f.max_tsupport = (ext_chart_at I c).symm '' ((closed_ball (ext_chart_at I c c) f.R) ∩ range I) :=
-begin
-  rw [max_tsupport, ← ext_chart_at_source I,
-    ← (ext_chart_at I c).symm_image_target_inter_eq', inter_comm],
-    congr' 1 with y,
-  refine and.congr_right_iff.2 (λ hy, ⟨λ h, ext_chart_at_target_subset_range _ _ h,
-    λ h, f.closed_ball_subset ⟨hy, h⟩⟩),
-end
-
-lemma support_subset_max_support : support f ⊆ f.max_support :=
-begin
-  rw [f.support_eq_inter_preimage],
-  exact inter_subset_inter_right _ (preimage_mono f.to_cont_diff_bump.support_subset_ball)
-end
-
-lemma max_support_subset_source : f.max_support ⊆ (chart_at H c).source :=
-inter_subset_left _ _
 
 lemma support_subset_source : support f ⊆ (chart_at H c).source :=
-f.support_subset_max_support.trans f.max_support_subset_source
+by { rw [f.support_eq_inter_preimage, ← ext_chart_at_source I], exact inter_subset_left _ _ }
 
-lemma image_eq_inter_preimage_of_subset_max_support {s : set M} (hs : s ⊆ f.max_support) :
+lemma image_eq_inter_preimage_of_subset_support {s : set M} (hs : s ⊆ support f) :
   ext_chart_at I c '' s =
     closed_ball (ext_chart_at I c c) f.R ∩ range I ∩ (ext_chart_at I c).symm ⁻¹' s :=
 begin
-  rw [max_support, subset_inter_iff, ← ext_chart_at_source I,
+  rw [support_eq_inter_preimage, subset_inter_iff, ← ext_chart_at_source I,
     ← image_subset_iff] at hs,
   cases hs with hse hsf,
   apply subset.antisymm,
@@ -196,20 +166,14 @@ f.eventually_eq_one.mono $ λ x hx, by { rw hx, exact one_ne_zero }
 lemma tsupport_mem_nhds : tsupport f ∈ 𝓝 c :=
 mem_of_superset f.support_mem_nhds subset_closure
 
-lemma max_support_mem_nhds : f.max_support ∈ 𝓝 c :=
-mem_of_superset f.support_mem_nhds f.support_subset_max_support
-
 lemma c_mem_support : c ∈ support f := mem_of_mem_nhds f.support_mem_nhds
 
 lemma nonempty_support : (support f).nonempty := ⟨c, f.c_mem_support⟩
 
-lemma is_compact_max_tsupport :
-  is_compact f.max_tsupport :=
-begin
-  rw max_tsupport_eq_symm_image,
-  exact ((is_compact_closed_ball _ _).inter_right I.closed_range).image_of_continuous_on
-    ((ext_chart_at_continuous_on_symm _ _).mono f.closed_ball_subset)
-end
+lemma compact_symm_image_closed_ball :
+  is_compact ((ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I)) :=
+((is_compact_closed_ball _ _).inter_right I.closed_range).image_of_continuous_on $
+  (ext_chart_at_continuous_on_symm _ _).mono f.closed_ball_subset
 
 /-- Given a smooth bump function `f : smooth_bump_function I c`, the closed ball of radius `f.R` is
 known to include the support of `f`. These closed balls (in the model normed space `E`) intersected
@@ -226,10 +190,10 @@ begin
       self_mem_nhds_within }
 end
 
-lemma closed_image_of_closed {s : set M} (hsc : is_closed s) (hs : s ⊆ f.max_support) :
+lemma closed_image_of_closed {s : set M} (hsc : is_closed s) (hs : s ⊆ support f) :
   is_closed (ext_chart_at I c '' s) :=
 begin
-  rw f.image_eq_inter_preimage_of_subset_max_support hs,
+  rw f.image_eq_inter_preimage_of_subset_support hs,
   refine continuous_on.preimage_closed_of_closed
     ((ext_chart_continuous_on_symm _ _).mono f.closed_ball_subset) _ hsc,
   exact is_closed.inter is_closed_ball I.closed_range
@@ -238,13 +202,13 @@ end
 /-- If `f` is a smooth bump function and `s` closed subset of the support of `f` (i.e., of the open
 ball of radius `f.R`), then there exists `0 < r < f.R` such that `s` is a subset of the open ball of
 radius `r`. Formally, `s ⊆ e.source ∩ e ⁻¹' (ball (e c) r)`, where `e = ext_chart_at I c`. -/
-lemma exists_r_pos_lt_subset_ball {s : set M} (hsc : is_closed s) (hs : s ⊆ max_support f) :
+lemma exists_r_pos_lt_subset_ball {s : set M} (hsc : is_closed s) (hs : s ⊆ support f) :
   ∃ r (hr : r ∈ Ioo 0 f.R), s ⊆
     (chart_at H c).source ∩ ext_chart_at I c ⁻¹' (ball (ext_chart_at I c c) r) :=
 begin
   set e := ext_chart_at I c,
   have : is_closed (e '' s) := f.closed_image_of_closed hsc hs,
-  rw [max_support, subset_inter_iff, ← image_subset_iff] at hs,
+  rw [support_eq_inter_preimage, subset_inter_iff, ← image_subset_iff] at hs,
   rcases exists_pos_lt_subset_ball f.R_pos this hs.2 with ⟨r, hrR, hr⟩,
   exact ⟨r, hrR, subset_inter hs.1 (image_subset_iff.1 hr)⟩
 end
@@ -257,71 +221,71 @@ def update_r (r : ℝ) (hr : r ∈ Ioo 0 f.R) : smooth_bump_function I c :=
 
 @[simp] lemma update_r_r {r : ℝ} (hr : r ∈ Ioo 0 f.R) : (f.update_r r hr).r = r := rfl
 
-@[simp] lemma max_support_update_r {r : ℝ} (hr : r ∈ Ioo 0 f.R) :
-  max_support (f.update_r r hr) = max_support f :=
-by simp only [max_support, update_r]
-
-@[simp] lemma max_tsupport_update_r {r : ℝ} (hr : r ∈ Ioo 0 f.R) :
-  max_tsupport (f.update_r r hr) = max_tsupport f :=
-by simp only [max_tsupport, update_r]
+@[simp] lemma support_update_r {r : ℝ} (hr : r ∈ Ioo 0 f.R) :
+  support (f.update_r r hr) = support f :=
+by simp only [support_eq_inter_preimage, update_r_R]
 
 instance : inhabited (smooth_bump_function I c) :=
 classical.inhabited_of_nonempty nhds_within_range_basis.nonempty
 
 variables [t2_space M]
 
-lemma is_closed_max_tsupport :
-  is_closed f.max_tsupport :=
-f.is_compact_max_tsupport.is_closed
+lemma closed_symm_image_closed_ball :
+  is_closed ((ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I)) :=
+f.compact_symm_image_closed_ball.is_closed
 
-lemma tsupport_subset_max_tsupport :
-  tsupport f ⊆ f.max_tsupport :=
+lemma tsupport_subset_symm_image_closed_ball :
+  tsupport f ⊆ (ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I) :=
 begin
-  rw [tsupport, support_eq_symm_image, max_tsupport_eq_symm_image],
-  refine closure_minimal (image_subset _ $ inter_subset_inter_left _
-    f.to_cont_diff_bump.support_subset_closed_ball) _,
-  rw ← max_tsupport_eq_symm_image,
-  exact f.is_closed_max_tsupport
+  rw [tsupport, support_eq_symm_image],
+  exact closure_minimal (image_subset _ $ inter_subset_inter_left _ ball_subset_closed_ball)
+    f.closed_symm_image_closed_ball
 end
-
-lemma tsupport_subset_chart_at_source :
-  tsupport f ⊆ (chart_at H c).source :=
-f.tsupport_subset_max_tsupport.trans (inter_subset_left _ _)
 
 lemma tsupport_subset_ext_chart_at_source :
   tsupport f ⊆ (ext_chart_at I c).source :=
-by { rw ext_chart_at_source, exact f.tsupport_subset_chart_at_source }
+calc tsupport f
+    ⊆ (ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I) :
+  f.tsupport_subset_symm_image_closed_ball
+... ⊆ (ext_chart_at I c).symm '' (ext_chart_at I c).target :
+  image_subset _ f.closed_ball_subset
+... = (ext_chart_at I c).source :
+  (ext_chart_at I c).symm_image_target_eq_source
 
+lemma tsupport_subset_chart_at_source :
+  tsupport f ⊆ (chart_at H c).source :=
+by simpa only [ext_chart_at_source] using f.tsupport_subset_ext_chart_at_source
 
 protected lemma has_compact_support : has_compact_support f :=
-compact_of_is_closed_subset f.is_compact_max_tsupport is_closed_closure
- f.tsupport_subset_max_tsupport
+compact_of_is_closed_subset f.compact_symm_image_closed_ball is_closed_closure
+ f.tsupport_subset_symm_image_closed_ball
 
 variables (I c)
 
-/-- The maximal topological supports of smooth bump functions centered at `c` form a
-basis of `𝓝 c`. In other words, each of these is a neighborhood of `c` and each neighborhood of `c`
-includes `f.max_tsupport` for some `f : smooth_bump_function I c`. -/
-lemma nhds_basis_max_tsupport :
-  (𝓝 c).has_basis (λ f : smooth_bump_function I c, true) (λ f, f.max_tsupport) :=
+/-- The closures of supports of smooth bump functions centered at `c` form a basis of `𝓝 c`.
+In other words, each of these closures is a neighborhood of `c` and each neighborhood of `c`
+includes `tsupport f` for some `f : smooth_bump_function I c`. -/
+lemma nhds_basis_tsupport :
+  (𝓝 c).has_basis (λ f : smooth_bump_function I c, true) (λ f, tsupport f) :=
 begin
   have : (𝓝 c).has_basis (λ f : smooth_bump_function I c, true)
     (λ f, (ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I)),
   { rw [← ext_chart_at_symm_map_nhds_within_range I c],
     exact nhds_within_range_basis.map _ },
-  simpa only [max_tsupport_eq_symm_image]
+  refine this.to_has_basis' (λ f hf, ⟨f, trivial, f.tsupport_subset_symm_image_closed_ball⟩)
+    (λ f _, f.tsupport_mem_nhds),
 end
 
 variable {c}
 
-/-- Given `s ∈ 𝓝 c`, the maxima lsupports of smooth bump functions `f : smooth_bump_function I c`
-such that `f.max_tsupport ⊆ s` form a basis of `𝓝 c`.  In other words, each of these supports is a
-neighborhood of `c` and each neighborhood of `c` includes `f.max_support` for some
-`f : smooth_bump_function I c` such that `f.max_tsupport ⊆ s`. -/
-lemma nhds_basis_max_support {s : set M} (hs : s ∈ 𝓝 c) :
-  (𝓝 c).has_basis (λ f : smooth_bump_function I c, f.max_tsupport ⊆ s) (λ f, f.max_support) :=
-((nhds_basis_max_tsupport I c).restrict_subset hs).to_has_basis'
-  (λ f hf, ⟨f, hf.2, f.max_support_subset_max_tsupport⟩) (λ f hf, f.max_support_mem_nhds)
+/-- Given `s ∈ 𝓝 c`, the supports of smooth bump functions `f : smooth_bump_function I c` such that
+`tsupport f ⊆ s` form a basis of `𝓝 c`.  In other words, each of these supports is a
+neighborhood of `c` and each neighborhood of `c` includes `support f` for some `f :
+smooth_bump_function I c` such that `tsupport f ⊆ s`. -/
+lemma nhds_basis_support {s : set M} (hs : s ∈ 𝓝 c) :
+  (𝓝 c).has_basis (λ f : smooth_bump_function I c, tsupport f ⊆ s) (λ f, support f) :=
+((nhds_basis_tsupport I c).restrict_subset hs).to_has_basis'
+  (λ f hf, ⟨f, hf.2, subset_closure⟩) (λ f hf, f.support_mem_nhds)
 
 variables [smooth_manifold_with_corners I M] {I}
 

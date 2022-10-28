@@ -1454,11 +1454,9 @@ section bridge_edges
 
 /-! ### Bridge edges -/
 
-variables (G)
-
 /-- An edge of a graph is a *bridge* if, after removing it, its incident vertices
 are no longer reachable from one another. -/
-def is_bridge (e : sym2 V) : Prop :=
+def is_bridge (G : simple_graph V) (e : sym2 V) : Prop :=
 e ∈ G.edge_set ∧
 sym2.lift ⟨λ v w, ¬ (G.delete_edges {e}).reachable v w, by simp [reachable_comm]⟩ e
 
@@ -1541,13 +1539,13 @@ begin
     { rwa [← walk.mem_support_append_iff, walk.take_spec] },
     { by_contra' h,
       specialize h (c.adj_of_mem_edges he),
-      exact reachable_delete_edges_iff_exists_cycle.aux G h c hc.to_trail he hw, },
+      exact reachable_delete_edges_iff_exists_cycle.aux h c hc.to_trail he hw, },
     { by_contra' hb,
       specialize hb (c.adj_of_mem_edges he),
       have hb' : ∀ (p : G.walk w v), ⟦(w, v)⟧ ∈ p.edges,
       { intro p,
         simpa [sym2.eq_swap] using hb p.reverse, },
-      apply reachable_delete_edges_iff_exists_cycle.aux G hb' (pvu.append puv)
+      apply reachable_delete_edges_iff_exists_cycle.aux hb' (pvu.append puv)
         (hc.to_trail.rotate hvc) _ (walk.start_mem_support _),
       rwa [walk.edges_append, list.mem_append, or_comm, ← list.mem_append,
            ← walk.edges_append, walk.take_spec, sym2.eq_swap], } },
@@ -1566,7 +1564,7 @@ end
 
 lemma is_bridge_iff_mem_and_forall_cycle_not_mem {e : sym2 V} :
   G.is_bridge e ↔ e ∈ G.edge_set ∧ ∀ {u : V} (p : G.walk u u), p.is_cycle → e ∉ p.edges :=
-sym2.ind (λ v w, is_bridge_iff_adj_and_forall_cycle_not_mem _) e
+sym2.ind (λ v w, is_bridge_iff_adj_and_forall_cycle_not_mem) e
 
 end bridge_edges
 

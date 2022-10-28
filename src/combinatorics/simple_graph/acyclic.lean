@@ -44,6 +44,8 @@ def is_acyclic : Prop := ∀ (v : V) (c : G.walk v v), ¬c.is_cycle
 /-- A *tree* is a connected acyclic graph. -/
 def is_tree : Prop := G.connected ∧ G.is_acyclic
 
+variables {G}
+
 lemma is_acyclic_iff_forall_adj_is_bridge :
   G.is_acyclic ↔ ∀ {v w : V}, G.adj v w → G.is_bridge ⟦(v, w)⟧ :=
 begin
@@ -107,7 +109,7 @@ begin
 end
 
 lemma is_acyclic_iff : G.is_acyclic ↔ ∀ (v w : V) (p q : G.path v w), p = q :=
-⟨is_acyclic.path_unique, is_acyclic_of_path_unique _⟩
+⟨is_acyclic.path_unique, is_acyclic_of_path_unique⟩
 
 lemma is_tree_iff : G.is_tree ↔ nonempty V ∧ ∀ (v w : V), ∃!(p : G.walk v w), p.is_path :=
 begin

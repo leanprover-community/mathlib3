@@ -74,6 +74,11 @@ lemma has_basis.nhds {l : filter α} {p : ι → Prop} {s : ι → set α} (h : 
   has_basis (𝓝 l) p (λ i, Iic (𝓟 (s i))) :=
 by { rw nhds_eq, exact h.lift' monotone_principal.Iic }
 
+/-- Neighborhoods of a countably generated filter is a countably generated filter. -/
+instance {l : filter α} [is_countably_generated l] : is_countably_generated (𝓝 l) :=
+let ⟨b, hb⟩ := l.exists_antitone_basis in has_countable_basis.is_countably_generated $
+  ⟨hb.nhds, set.to_countable _⟩
+
 lemma has_basis.nhds' {l : filter α} {p : ι → Prop} {s : ι → set α} (h : has_basis l p s) :
   has_basis (𝓝 l) p (λ i, {l' | s i ∈ l'}) :=
 by simpa only [Iic_principal] using h.nhds

@@ -137,8 +137,8 @@ begin
   suffices : x ∉ Uᶜ, from not_not.1 this,
   intro hxV,
   specialize hs U Uᶜ (hf {f y}) (hf {f y}ᶜ) _ ⟨y, ⟨hy, rfl⟩⟩ ⟨x, ⟨hx, hxV⟩⟩,
+  { simpa only [inter_empty, not_nonempty_empty, inter_compl_self] using hs },
   { simp only [union_compl_self, subset_univ] },
-  { simpa only [inter_empty, not_nonempty_empty, inter_compl_self] using hs }
 end
 
 lemma apply_eq_of_preconnected_space [preconnected_space X]

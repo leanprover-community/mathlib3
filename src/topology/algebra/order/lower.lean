@@ -66,7 +66,7 @@ lemma is_open_iff_generate_Ici_comp {s : set (lower α)} :
 /-
 Left-closed right-infinite intervals [a,∞) are closed in the lower topology
 -/
-lemma Ici_is_closed (a : lower α) : is_closed (Ici a) :=
+lemma is_closed_Ici (a : lower α) : is_closed (Ici a) :=
 is_open_compl_iff.1 $ generate_open.basic _ ⟨a, rfl⟩
 
 /-
@@ -76,7 +76,7 @@ lemma upper_closure_is_closed (F : set (lower α)) (h : F.finite) :
   is_closed (upper_closure F : set (lower α)) :=
 begin
   simp only [← upper_set.infi_Ici, upper_set.coe_infi],
-  exact is_closed_bUnion h (λ a h₁, Ici_is_closed a),
+  exact is_closed_bUnion h (λ a h₁, is_closed_Ici a),
 end
 
 /-
@@ -106,7 +106,7 @@ lemma lower_topology.closure_singleton (a : lower α) : closure {a} = Ici a :=
 begin
   rw subset_antisymm_iff,
   split,
-  { apply closure_minimal _ (Ici_is_closed a), rw [singleton_subset_iff, mem_Ici], },
+  { apply closure_minimal _ (is_closed_Ici a), rw [singleton_subset_iff, mem_Ici], },
   { unfold closure,
     refine subset_sInter _,
     intro u,

@@ -92,31 +92,15 @@ begin
   case sUnion : _ _ ih { exact is_lower_set_sUnion ih },
 end
 
+lemma lower_closed_is_upper {s : set (lower α)} (h : is_closed s) : is_upper_set s :=
+is_lower_set_compl.1 $ lower_open_is_lower h.is_open_compl
 /-
 The closure of a singleton {a} in the lower topology is the left-closed right-infinite interval
 [a,∞)
 -/
 lemma lower_topology.closure_singleton (a : lower α) : closure {a} = Ici a :=
-begin
-  rw subset_antisymm_iff,
-  split,
-  { apply closure_minimal _ (is_closed_Ici a), rw [singleton_subset_iff, mem_Ici], },
-  { unfold closure,
-    refine subset_sInter _,
-    intro u,
-    intro h,
-    rw mem_set_of_eq at h,
-    intro b,
-    intro hb,
-    rw mem_Ici at hb,
-    rw [singleton_subset_iff, ← is_open_compl_iff] at h,
-    by_contradiction H,
-    rw ← mem_compl_iff at H,
-    have h1: a ∈ uᶜ, from lower_open_is_lower h.left hb H,
-    rw mem_compl_iff at h1,
-    rw ← not_not_mem at h,
-    apply absurd h1 h.right, },
-end
+subset_antisymm (closure_minimal (λ b h, h.ge) $ is_closed_Ici a) $
+  is_upper_set.Ici_subset (lower_closed_is_upper is_closed_closure) (subset_closure rfl)
 
 end pre_order
 

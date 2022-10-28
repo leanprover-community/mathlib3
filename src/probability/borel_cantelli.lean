@@ -47,7 +47,7 @@ begin
   suffices : indep (⨆ k ∈ {n + 1}, measurable_space.comap (f k) mβ)
     (⨆ k ∈ {k | k ≤ n}, measurable_space.comap (f k) mβ) μ,
   { rwa supr_singleton at this },
-  refine indep_supr_of_disjoint (λ k, (hf k).measurable.comap_le_of_measurable) hfi _,
+  refine indep_supr_of_disjoint (λ k, (hf k).measurable.comap_le) hfi _,
   simp
 end
 
@@ -55,8 +55,8 @@ lemma Indep_fun.condexp_succ_natrual_ae_eq
   [second_countable_topology β] [complete_space β] [normed_space ℝ β]
   {f : ℕ → Ω → β} (hf : ∀ i, strongly_measurable (f i)) (hfi : Indep_fun (λ n, mβ) f μ) (n : ℕ) :
   μ[f (n + 1) | filtration.natural f hf n] =ᵐ[μ] λ ω, μ[f (n + 1)] :=
-condexp_indep_eq (hf $ n + 1).measurable.comap_le_of_measurable
-  (filtration.le _ _) (measurable_space.comap_measurable $ f $ n + 1).strongly_measurable
+condexp_indep_eq (hf $ n + 1).measurable.comap_le (filtration.le _ _)
+  (measurable_space.comap_measurable $ f $ n + 1).strongly_measurable
   (hfi.indep_comap_succ_natural hf n)
 
 end move

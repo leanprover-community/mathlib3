@@ -353,6 +353,14 @@ class star_ordered_ring (R : Type u) [non_unital_semiring R] [partial_order R]
 
 namespace star_ordered_ring
 
+@[priority 100] -- see note [lower instance priority]
+instance [non_unital_ring R] [partial_order R] [star_ordered_ring R] : ordered_add_comm_group R :=
+{ ..show non_unital_ring R, by apply_instance,
+  ..show partial_order R, by apply_instance,
+  ..show star_ordered_ring R, by apply_instance }
+
+end star_ordered_ring
+
 section non_unital_semiring
 
 variables [non_unital_semiring R] [partial_order R] [star_ordered_ring R]
@@ -365,8 +373,8 @@ by { nth_rewrite_rhs 0 [←star_star r], exact star_mul_self_nonneg }
 
 lemma conjugate_nonneg {a : R} (ha : 0 ≤ a) (c : R) : 0 ≤ star c * a * c :=
 begin
-  obtain ⟨x, rfl⟩ := (nonneg_iff _).1 ha,
-  refine (nonneg_iff _).2 ⟨x * c, by rw [star_mul, ←mul_assoc, mul_assoc _ _ c]⟩,
+  obtain ⟨x, rfl⟩ := (star_ordered_ring.nonneg_iff _).1 ha,
+  refine (star_ordered_ring.nonneg_iff _).2 ⟨x * c, by rw [star_mul, ←mul_assoc, mul_assoc _ _ c]⟩,
 end
 
 lemma conjugate_nonneg' {a : R} (ha : 0 ≤ a) (c : R) : 0 ≤ c * a * star c :=
@@ -377,12 +385,6 @@ end non_unital_semiring
 section non_unital_ring
 
 variables [non_unital_ring R] [partial_order R] [star_ordered_ring R]
-
-@[priority 100] -- see note [lower instance priority]
-instance : ordered_add_comm_group R :=
-{ ..show non_unital_ring R, by apply_instance,
-  ..show partial_order R, by apply_instance,
-  ..show star_ordered_ring R, by apply_instance }
 
 lemma conjugate_le_conjugate {a b : R} (hab : a ≤ b) (c : R) : star c * a * c ≤ star c * b * c :=
 begin
@@ -395,8 +397,6 @@ lemma conjugate_le_conjugate' {a b : R} (hab : a ≤ b) (c : R) : c * a * star c
 by simpa only [star_star] using conjugate_le_conjugate hab (star c)
 
 end non_unital_ring
-
-end star_ordered_ring
 
 /--
 A star module `A` over a star ring `R` is a module which is a star add monoid,

@@ -421,7 +421,7 @@ open polynomial
 /-- The **spectral mapping theorem** for polynomials in a Banach algebra over `ℂ`. -/
 lemma map_polynomial_aeval (p : ℂ[X]) :
   spectrum ℂ (aeval a p) = (λ k, eval k p) '' (spectrum ℂ a) :=
-by { nontriviality A, exact map_polynomial_aeval_of_nonempty a p (spectrum.nonempty a) }
+map_polynomial_aeval_of_nonempty a p (spectrum.nonempty a)
 
 /-- A specialization of the spectral mapping theorem for polynomials in a Banach algebra over `ℂ`
 to monic monomials. -/

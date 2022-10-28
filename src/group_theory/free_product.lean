@@ -816,7 +816,7 @@ begin
     cases (lt_or_gt_of_ne hnne0).swap with hlt hgt,
     { have h1n : 1 ≤ n := hlt,
       calc a i ^ n • X' j ⊆ a i ^ n • (Y i)ᶜ : smul_set_mono
-            ((hXYdisj j i).union_left $ hYdisj j i hij.symm).subset_compl_right
+            ((hXYdisj j i).union_left $ hYdisj hij.symm).subset_compl_right
       ... ⊆ X i :
       begin
         refine int.le_induction _ _ _ h1n,
@@ -832,7 +832,7 @@ begin
       ... ⊆ X' i : set.subset_union_left _ _, },
     { have h1n : n ≤ -1, { apply int.le_of_lt_add_one, simpa using hgt, },
       calc a i ^ n • X' j ⊆ a i ^ n • (X i)ᶜ : smul_set_mono
-            ((hXdisj j i hij.symm).union_left (hXYdisj i j).symm).subset_compl_right
+            ((hXdisj hij.symm).union_left (hXYdisj i j).symm).subset_compl_right
       ... ⊆ Y i :
       begin
         refine int.le_induction_down _ _ _ h1n,

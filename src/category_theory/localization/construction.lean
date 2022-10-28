@@ -29,19 +29,6 @@ in `D` (i.e. we have `hG : W.is_inverted_by G`), then there exists a unique func
 The expected property of `lift G hG` if expressed by the lemma `fac` and the
 uniqueness is expressed by `uniq`.
 
-TODO:
-1) implement a constructor for `is_localization L W` which would take
-as an input a *strict* universal property (`lift`/`fac`/`uniq`) similar to
-what is obtained here for `W.localization`. (Practically speaking, this is
-the easiest way to show that a functor is a localization.)
-
-2) when we have `is_localization L W`, then show that `D ⥤ E` identifies
-to the full subcategory of `C ⥤ E` consisting of `W`-inverting functors.
-
-3) provide an API for the lifting of functors `C ⥤ E`, for which
-`fac`/`uniq` assertions would be expressed as isomorphisms rather than
-by equalities of functors.
-
 ## References
 
 * [P. Gabriel, M. Zisman, *Calculus of fractions and homotopy theory*][gabriel-zisman-1967]

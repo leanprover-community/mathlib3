@@ -75,7 +75,7 @@ lemma comp_inj {p₁ p₂ : path a b} {q₁ q₂ : path b c} (hq : q₁.length =
   p₁.comp q₁ = p₂.comp q₂ ↔ p₁ = p₂ ∧ q₁ = q₂ :=
 begin
   refine ⟨λ h, _, by { rintro ⟨rfl, rfl⟩, refl }⟩,
-  induction q₁ with d₁ e₁ q₁ f₁ ih generalizing q₂; obtain _ | ⟨d₂, e₂, q₂, f₂⟩ := q₂,
+  induction q₁ with d₁ e₁ q₁ f₁ ih generalizing q₂; obtain _ | ⟨q₂, f₂⟩ := q₂,
   { exact ⟨h, rfl⟩ },
   { cases hq },
   { cases hq },

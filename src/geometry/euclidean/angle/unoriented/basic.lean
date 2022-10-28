@@ -30,7 +30,7 @@ variables {V : Type*} [inner_product_space ℝ V]
 /-- The undirected angle between two vectors. If either vector is 0,
 this is π/2. See `orientation.oangle` for the corresponding oriented angle
 definition. -/
-def angle (x y : V) : ℝ := real.arccos (inner x y / (∥x∥ * ∥y∥))
+def angle (x y : V) : ℝ := real.arccos (⟪x, y⟫ / (∥x∥ * ∥y∥))
 
 lemma continuous_at_angle {x : V × V} (hx1 : x.1 ≠ 0) (hx2 : x.2 ≠ 0) :
   continuous_at (λ y : V × V, angle y.1 y.2) x :=
@@ -72,7 +72,7 @@ lemma conformal_at.preserves_angle {E F : Type*}
 let ⟨f₁, h₁, c⟩ := H in h₁.unique h ▸ is_conformal_map.preserves_angle c u v
 
 /-- The cosine of the angle between two vectors. -/
-lemma cos_angle (x y : V) : real.cos (angle x y) = inner x y / (∥x∥ * ∥y∥) :=
+lemma cos_angle (x y : V) : real.cos (angle x y) = ⟪x, y⟫ / (∥x∥ * ∥y∥) :=
 real.cos_arccos (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).1
                 (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).2
 
@@ -167,7 +167,7 @@ by rw [angle_comm, angle_smul_right_of_neg y x hr, angle_comm]
 
 /-- The cosine of the angle between two vectors, multiplied by the
 product of their norms. -/
-lemma cos_angle_mul_norm_mul_norm (x y : V) : real.cos (angle x y) * (∥x∥ * ∥y∥) = inner x y :=
+lemma cos_angle_mul_norm_mul_norm (x y : V) : real.cos (angle x y) * (∥x∥ * ∥y∥) = ⟪x, y⟫ :=
 begin
   rw [cos_angle, div_mul_cancel_of_imp],
   simp [or_imp_distrib] { contextual := tt },
@@ -176,11 +176,10 @@ end
 /-- The sine of the angle between two vectors, multiplied by the
 product of their norms. -/
 lemma sin_angle_mul_norm_mul_norm (x y : V) : real.sin (angle x y) * (∥x∥ * ∥y∥) =
-    real.sqrt (inner x x * inner y y - inner x y * inner x y) :=
+    real.sqrt (⟪x, x⟫ * ⟪y, y⟫ - ⟪x, y⟫ * ⟪x, y⟫) :=
 begin
   unfold angle,
-  rw [real.sin_arccos (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).1
-                      (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).2,
+  rw [real.sin_arccos,
       ←real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)),
       ←real.sqrt_mul' _ (mul_self_nonneg _), sq,
       real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)),
@@ -294,8 +293,8 @@ begin
   rw ← inner_eq_neg_mul_norm_iff_angle_eq_pi hx hy,
   obtain ⟨hxy₁, hxy₂⟩ := ⟨norm_nonneg (x - y), add_nonneg (norm_nonneg x) (norm_nonneg y)⟩,
   rw [← sq_eq_sq hxy₁ hxy₂, norm_sub_pow_two_real] at h,
-  calc inner x y = (∥x∥ ^ 2 + ∥y∥ ^ 2 - (∥x∥ + ∥y∥) ^ 2) / 2 : by linarith
-  ...            = -(∥x∥ * ∥y∥) : by ring,
+  calc ⟪x, y⟫ = (∥x∥ ^ 2 + ∥y∥ ^ 2 - (∥x∥ + ∥y∥) ^ 2) / 2 : by linarith
+  ...         = -(∥x∥ * ∥y∥) : by ring,
 end
 
 /-- The norm of the sum of two non-zero vectors equals the sum of their norms
@@ -307,8 +306,8 @@ begin
   rw ← inner_eq_mul_norm_iff_angle_eq_zero hx hy,
   obtain ⟨hxy₁, hxy₂⟩ := ⟨norm_nonneg (x + y), add_nonneg (norm_nonneg x) (norm_nonneg y)⟩,
   rw [← sq_eq_sq hxy₁ hxy₂, norm_add_pow_two_real] at h,
-  calc inner x y = ((∥x∥ + ∥y∥) ^ 2 - ∥x∥ ^ 2 - ∥y∥ ^ 2)/ 2 : by linarith
-  ...            = ∥x∥ * ∥y∥ : by ring,
+  calc ⟪x, y⟫ = ((∥x∥ + ∥y∥) ^ 2 - ∥x∥ ^ 2 - ∥y∥ ^ 2)/ 2 : by linarith
+  ...         = ∥x∥ * ∥y∥ : by ring,
 end
 
 /-- The norm of the difference of two non-zero vectors equals the absolute value
@@ -320,8 +319,8 @@ begin
   rw ← inner_eq_mul_norm_iff_angle_eq_zero hx hy,
   have h1 : ∥x - y∥ ^ 2 = (∥x∥ - ∥y∥) ^ 2, { rw h, exact sq_abs (∥x∥ - ∥y∥) },
   rw norm_sub_pow_two_real at h1,
-  calc inner x y = ((∥x∥ + ∥y∥) ^ 2 - ∥x∥ ^ 2 - ∥y∥ ^ 2)/ 2 : by linarith
-  ...            = ∥x∥ * ∥y∥ : by ring,
+  calc ⟪x, y⟫ = ((∥x∥ + ∥y∥) ^ 2 - ∥x∥ ^ 2 - ∥y∥ ^ 2)/ 2 : by linarith
+  ...         = ∥x∥ * ∥y∥ : by ring,
 end
 
 /-- The norm of the sum of two vectors equals the norm of their difference if and only if

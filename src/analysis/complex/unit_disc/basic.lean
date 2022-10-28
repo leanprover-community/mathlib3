@@ -78,15 +78,32 @@ instance circle_action : mul_action circle 𝔻 := mul_action_sphere_ball
 instance is_scalar_tower_circle_circle : is_scalar_tower circle circle 𝔻 :=
 is_scalar_tower_sphere_sphere_ball
 
-instance is_scalar_tower_circle : is_scalar_tower circle 𝔻 𝔻 :=
-is_scalar_tower_sphere_ball_ball
-
-instance smul_comm_class_circle : smul_comm_class circle 𝔻 𝔻 :=
-smul_comm_class_sphere_ball_ball
+instance is_scalar_tower_circle : is_scalar_tower circle 𝔻 𝔻 := is_scalar_tower_sphere_ball_ball
+instance smul_comm_class_circle : smul_comm_class circle 𝔻 𝔻 := smul_comm_class_sphere_ball_ball
+instance smul_comm_class_circle' : smul_comm_class 𝔻 circle 𝔻 := smul_comm_class.symm _ _ _
 
 @[simp, norm_cast] lemma coe_smul_circle (z : circle) (w : 𝔻) : ↑(z • w) = (z * w : ℂ) := rfl
 
 instance closed_ball_action : mul_action (closed_ball (0 : ℂ) 1) 𝔻 := mul_action_closed_ball_ball
+
+instance is_scalar_tower_closed_ball_closed_ball :
+  is_scalar_tower (closed_ball (0 : ℂ) 1) (closed_ball (0 : ℂ) 1) 𝔻 :=
+is_scalar_tower_closed_ball_closed_ball_ball
+
+instance is_scalar_tower_closed_ball : is_scalar_tower (closed_ball (0 : ℂ) 1) 𝔻 𝔻 :=
+is_scalar_tower_closed_ball_ball_ball
+
+instance smul_comm_class_closed_ball : smul_comm_class (closed_ball (0 : ℂ) 1) 𝔻 𝔻 :=
+⟨λ a b c, subtype.ext $ mul_left_comm _ _ _⟩
+
+instance smul_comm_class_closed_ball' : smul_comm_class 𝔻 (closed_ball (0 : ℂ) 1) 𝔻 :=
+smul_comm_class.symm _ _ _
+
+instance smul_comm_class_circle_closed_ball : smul_comm_class circle (closed_ball (0 : ℂ) 1) 𝔻 :=
+smul_comm_class_sphere_closed_ball_ball
+
+instance smul_comm_class_closed_ball_circle : smul_comm_class (closed_ball (0 : ℂ) 1) circle 𝔻 :=
+smul_comm_class.symm _ _ _
 
 @[simp, norm_cast]
 lemma coe_smul_closed_ball (z : closed_ball (0 : ℂ) 1) (w : 𝔻) : ↑(z • w) = (z * w : ℂ) := rfl

@@ -31,8 +31,6 @@ variables {Ω : Type*} {m0 : measurable_space Ω} {μ : measure Ω} {s : ℕ →
 
 section borel_cantelli
 
-variables [is_probability_measure μ]
-
 section move
 
 variables {β : Type*} [mβ : measurable_space β]
@@ -48,8 +46,9 @@ lemma measurable_space.comap_measurable (f : Ω → β) :
   measurable[mβ.comap f] f :=
 λ s hs, ⟨s, hs, rfl⟩
 
-variables [normed_add_comm_group β] [second_countable_topology β] [complete_space β]
-  [normed_space ℝ β] [borel_space β]
+variables [normed_add_comm_group β] [borel_space β]
+
+variables [is_probability_measure μ]
 
 lemma Indep_fun.indep_comap_succ_natural {f : ℕ → Ω → β}
   (hf : ∀ (i : ℕ), strongly_measurable (f i))
@@ -64,6 +63,7 @@ begin
 end
 
 lemma Indep_fun.condexp_succ_natrual_ae_eq
+  [second_countable_topology β] [complete_space β] [normed_space ℝ β]
   {f : ℕ → Ω → β} (hf : ∀ i, strongly_measurable (f i)) (hfi : Indep_fun (λ n, mβ) f μ) (n : ℕ) :
   μ[f (n + 1) | filtration.natural f hf n] =ᵐ[μ] λ ω, μ[f (n + 1)] :=
 condexp_indep_eq (hf $ n + 1).measurable.comap_le_of_measurable
@@ -72,7 +72,7 @@ condexp_indep_eq (hf $ n + 1).measurable.comap_le_of_measurable
 
 end move
 
-lemma Indep_set.Indep_fun_indicator (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) :
+lemma Indep_set.Indep_fun_indicator (hs : Indep_set s μ) :
   Indep_fun (λ n, real.measurable_space) (λ n, (s n).indicator (λ ω, 1)) μ :=
 begin
   classical,
@@ -91,13 +91,15 @@ begin
   { simp only [set.empty_union, measurable_set.empty] }
 end
 
+variables [is_probability_measure μ]
+
 lemma Indep_set.condexp_indicator_filtration_of_set_ae_eq
   (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (n : ℕ) :
   μ[(s (n + 1)).indicator (λ ω, 1 : Ω → ℝ) | filtration_of_set hsm n] =ᵐ[μ]
     λ ω, (μ (s (n + 1))).to_real :=
 begin
   rw filtration.filtration_of_set_eq_natural hsm,
-  refine (Indep_fun.condexp_succ_natrual_ae_eq _ (hs.Indep_fun_indicator hsm) n).trans _,
+  refine (Indep_fun.condexp_succ_natrual_ae_eq _ hs.Indep_fun_indicator n).trans _,
   simp only [integral_indicator_const _ (hsm _), algebra.id.smul_eq_mul, mul_one],
 end
 

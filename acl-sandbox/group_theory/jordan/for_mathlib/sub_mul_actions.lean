@@ -21,7 +21,7 @@ open mul_action
 def sub_mul_action_of_compl (Y : sub_mul_action G X) : sub_mul_action G X := {
 carrier := Yᶜ,
 smul_mem' := λ g x,
-  by simp only [set_like.mem_coe, set.mem_compl_eq, sub_mul_action.smul_mem_iff', imp_self] }
+  by simp only [set_like.mem_coe, set.mem_compl_iff, sub_mul_action.smul_mem_iff', imp_self] }
 
 lemma sub_mul_action_of_compl_def (Y : sub_mul_action G X) :
   (sub_mul_action_of_compl G Y).carrier = Yᶜ := rfl
@@ -31,7 +31,7 @@ def sub_mul_action_of_stabilizer (a : X) : sub_mul_action (stabilizer G a) X := 
 carrier := { a }ᶜ,
 smul_mem' := λ g x,
 begin
-  simp only [set.mem_compl_eq, set.mem_singleton_iff],
+  simp only [set.mem_compl_iff, set.mem_singleton_iff],
   rw not_imp_not,
   rw smul_eq_iff_eq_inv_smul,
   intro hgx, rw hgx,

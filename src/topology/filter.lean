@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import order.filter.lift
-import topology.continuous_on
+import topology.separation
 import data.set.intervals.monotone
 
 /-!
@@ -22,6 +22,9 @@ This topology has the following important properties.
 
 * If `X` is an ordered topological space with order topology and no max element, then `𝓝 ∘ f` tends
   to `𝓝 filter.at_top` whenever `f` tends to `filter.at_top`.
+
+* It turns `filter X` into a T₀ space and the order on `filter X` is the dual of the
+  `specialization_order (filter X)`.
 
 ## Tags
 
@@ -47,26 +50,13 @@ lemma is_open_set_of_mem {s : set α} : is_open {l : filter α | s ∈ l} :=
 by simpa only [Iic_principal] using is_open_Iic_principal
 
 lemma is_open_iff {s : set (filter α)} :
-  is_open s ↔ ∃ T : set (set α), (⋃ t ∈ T, Iic (𝓟 t)) = s :=
+  is_open s ↔ ∃ T : set (set α), s = ⋃ t ∈ T, Iic (𝓟 t) :=
 begin
-  split,
-  { intro h, induction h,
-    case basic : t ht
-    { rcases ht with ⟨t, rfl⟩,
-      exact ⟨{t}, bUnion_singleton _ _⟩ },
-    case univ
-    { exact ⟨univ, Union₂_eq_univ_iff.2 $ λ l, ⟨univ, mem_univ _, le_principal_iff.2 univ_mem⟩⟩ },
-    case inter : s t hs' ht' hs ht
-    { clear hs' ht', rcases ⟨hs, ht⟩ with ⟨⟨s, rfl⟩, t, rfl⟩,
-      refine ⟨image2 (∩) s t, _⟩,
-      simp only [image2_eq_Union, bUnion_Union, bUnion_singleton, inter_Union, Union_inter,
-        Iic_inter_Iic, inf_principal] },
-    case sUnion : S hS' hS
-    { choose! T hT using hS,
-      use ⋃ t ∈ S, T t,
-      simp [hT, sUnion_eq_bUnion] { contextual := tt } } },
-  { rintro ⟨T, rfl⟩,
-    exact is_open_bUnion (λ t ht, is_open_Iic_principal) }
+  refine (is_open_generate_from_inter_closed _ _).trans _,
+  { simp only [forall_range_iff, Iic_inter_Iic, inf_principal],
+    exact λ _ _, mem_range_self _ },
+  { exact Union_eq_univ_iff.2 (λ l, ⟨univ, le_principal_iff.2 univ_mem⟩) },
+  { simp only [exists_subset_range_iff, sUnion_image] }
 end
 
 lemma nhds_eq (l : filter α) : 𝓝 l = l.lift' (Iic ∘ 𝓟) :=
@@ -129,16 +119,7 @@ end
 
 protected lemma mem_interior {s : set (filter α)} {l : filter α} :
   l ∈ interior s ↔ ∃ t ∈ l, Iic (𝓟 t) ⊆ s :=
-begin
-  refine mem_interior.trans ⟨_, _⟩,
-  { simp only [is_open_iff],
-    rintro ⟨_, hTs, ⟨T, rfl⟩, hT⟩,
-    simp only [Union₂_subset_iff, mem_Union₂] at hTs hT,
-    rcases hT with ⟨t, htT, ht⟩,
-    exact ⟨t, ht (mem_principal_self _), λ l' hl', hTs t htT hl'⟩ },
-  { rintro ⟨t, htl, ht⟩,
-    exact ⟨_, ht, is_open_Iic_principal, le_principal_iff.2 htl⟩ }
-end
+by rw [mem_interior_iff_mem_nhds, mem_nhds_iff]
 
 protected lemma mem_closure {s : set (filter α)} {l : filter α} :
   l ∈ closure s ↔ ∀ t ∈ l, ∃ l' ∈ s, t ∈ l' :=
@@ -147,6 +128,12 @@ by simp only [closure_eq_compl_interior_compl, filter.mem_interior, mem_compl_if
 
 @[simp] protected lemma closure_singleton (l : filter α) : closure {l} = Ici l :=
 by { ext l', simp [filter.mem_closure, filter.le_def] }
+
+@[simp] lemma specializes_iff_le {l₁ l₂ : filter α} : l₁ ⤳ l₂ ↔ l₁ ≤ l₂ :=
+by simp only [specializes_iff_closure_subset, filter.closure_singleton, Ici_subset_Ici]
+
+instance : t0_space (filter α) :=
+⟨λ x y h, (specializes_iff_le.1 h.specializes).antisymm (specializes_iff_le.1 h.symm.specializes)⟩
 
 lemma nhds_at_top [preorder α] : 𝓝 at_top = ⨅ x : α, 𝓟 (Iic (𝓟 (Ici x))) :=
 by simp only [at_top, nhds_infi, nhds_principal]
@@ -165,18 +152,16 @@ variables [topological_space X]
 
 lemma nhds_nhds (x : X) :
   𝓝 (𝓝 x) = ⨅ (s : set X) (hs : is_open s) (hx : x ∈ s), 𝓟 (Iic (𝓟 s)) :=
-by simp only [nhds_def' x, nhds_infi, nhds_principal]
+by simp only [(nhds_basis_opens x).nhds.eq_binfi, infi_and, @infi_comm _ (_ ∈ _)]
 
 lemma inducing_nhds : inducing (𝓝 : X → filter X) :=
-begin
-  refine ⟨eq_of_nhds_eq_nhds $ λ x, (nhds_def' _).trans _⟩,
-  simp only [nhds_induced, nhds_nhds, comap_infi, comap_principal, Iic_principal, set_of_mem_eq,
-    preimage_set_of_eq, ← mem_interior_iff_mem_nhds, is_open.interior_eq] { contextual := tt }
-end
+inducing_iff_nhds.2 $ λ x, (nhds_def' _).trans $
+  by simp only [nhds_nhds, comap_infi, comap_principal, Iic_principal, preimage_set_of_eq,
+    ← mem_interior_iff_mem_nhds, set_of_mem_eq, is_open.interior_eq] { contextual := tt }
 
 @[continuity] lemma continuous_nhds  : continuous (𝓝 : X → filter X) := inducing_nhds.continuous
 
-lemma tendsto.nhds {f : α → X} {l : filter α} {x : X} (h : tendsto f l (𝓝 x)) :
+protected lemma tendsto.nhds {f : α → X} {l : filter α} {x : X} (h : tendsto f l (𝓝 x)) :
   tendsto (𝓝 ∘ f) l (𝓝 (𝓝 x)) :=
 (continuous_nhds.tendsto _).comp h
 

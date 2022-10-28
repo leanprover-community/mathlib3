@@ -192,6 +192,11 @@ lemma prod_sub_preimage_iff {W : set γ} {f : α × β → γ} :
   s ×ˢ t ⊆ f ⁻¹' W ↔ ∀ a b, a ∈ s → b ∈ t → f (a, b) ∈ W :=
 by simp [subset_def]
 
+
+lemma image_prod_mk_subset_prod {f : α → β} {g : α → γ} {s : set α} :
+  (λ x, (f x, g x)) '' s ⊆ (f '' s) ×ˢ (g '' s) :=
+by { rintros _ ⟨x, hx, rfl⟩, exact mk_mem_prod (mem_image_of_mem f hx) (mem_image_of_mem g hx) }
+
 lemma image_prod_mk_subset_prod_left (hb : b ∈ t) : (λ a, (a, b)) '' s ⊆ s ×ˢ t :=
 by { rintro _ ⟨a, ha, rfl⟩, exact ⟨ha, hb⟩ }
 
@@ -275,6 +280,13 @@ set.ext $ λ a,
   by { rintro ⟨_, _, _, _, rfl⟩, exact ⟨(_, _), mem_prod.mpr ⟨‹_›, ‹_›⟩, rfl⟩ }⟩
 
 @[simp] lemma image2_mk_eq_prod : image2 prod.mk s t = s ×ˢ t := ext $ by simp
+
+@[simp] lemma image2_curry (f : α × β → γ) (s : set α) (t : set β) :
+  image2 (λ a b, f (a, b)) s t = (s ×ˢ t).image f :=
+by rw [←image2_mk_eq_prod, image_image2]
+
+@[simp] lemma image_uncurry_prod (f : α → β → γ) (s : set α) (t : set β) :
+  uncurry f '' s ×ˢ t = image2 f s t := by { rw ←image2_curry, refl }
 
 section mono
 

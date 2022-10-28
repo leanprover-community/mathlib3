@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
-import geometry.manifold.cont_mdiff
+import geometry.manifold.cont_mdiff_mfderiv
 import topology.continuous_function.basic
 
 /-!

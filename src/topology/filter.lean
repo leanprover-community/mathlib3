@@ -16,7 +16,7 @@ only if it is a union of a family of these basic open sets, see `filter.is_open_
 
 This topology has the following important properties.
 
-* If `X` is a topological space, then the map `𝓝 : X → filter X` is an inducing map.
+* If `X` is a topological space, then the map `𝓝 : X → filter X` is a topology inducing map.
 
 * In particular, it is a continuous map, so `𝓝 ∘ f` tends to `𝓝 (𝓝 a)` whenever `f` tends to `𝓝 a`.
 

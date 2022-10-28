@@ -218,6 +218,19 @@ begin
   exact subgroup.relindex_dvd_of_le_right bot_le h,
 end
 
+lemma _root_.is_p_group.card_eq_or_dvd {G : Type*} [group G] {p : ℕ} [fact p.prime]
+  (hG : is_p_group p G) : nat.card G = 1 ∨ p ∣ nat.card G :=
+begin
+  casesI fintype_or_infinite G,
+  { obtain ⟨n, hn⟩ := is_p_group.iff_card.mp hG,
+    rw [nat.card_eq_fintype_card, hn],
+    cases n,
+    { exact or.inl rfl },
+    { exact or.inr ⟨p ^ n, rfl⟩ } },
+  { rw nat.card_eq_zero_of_infinite,
+    exact or.inr ⟨0, rfl⟩ },
+end
+
 section burnside_transfer
 
 open_locale pointwise
@@ -266,43 +279,14 @@ begin
 end
 
 lemma not_dvd_card_ker_transfer_sylow : ¬ p ∣ nat.card (transfer_sylow P hP).ker :=
-begin
-  rw ← (ker_transfer_sylow_is_complement P hP).index_eq_card,
-  exact not_dvd_index_sylow P (mt index_eq_zero_of_relindex_eq_zero index_ne_zero_of_finite),
-end
+(ker_transfer_sylow_is_complement P hP).index_eq_card ▸ not_dvd_index_sylow P $
+  mt index_eq_zero_of_relindex_eq_zero index_ne_zero_of_finite
 
-lemma ker_transfer_sylow_disjoint''' (Q : subgroup G) (hQ : is_p_group p Q) :
+lemma ker_transfer_sylow_disjoint (Q : subgroup G) (hQ : is_p_group p Q) :
   disjoint (transfer_sylow P hP).ker Q :=
-begin
-  have key : is_p_group p ((transfer_sylow P hP).ker ⊓ Q : subgroup G) := hQ.to_le inf_le_right,
-  rw disjoint_iff,
-  apply subgroup.eq_bot_of_card_eq',
-  have key := subgroup.card_dvd_of_le' (@inf_le_left (subgroup G) _ (transfer_sylow P hP).ker Q),
-  have key' := mt (λ h, dvd_trans h key) (not_dvd_card_ker_transfer_sylow P hP),
-  sorry,
-end
-
-/-
-TODO: Prove that `(transfer_sylow P hP).ker` is finite of order indivisible by `p`
-TODO: Deduce disjointness for free!
--/
-
-lemma ker_transfer_sylow_disjoint : disjoint (transfer_sylow P hP).ker ↑P :=
-begin
-  exact (ker_transfer_sylow_is_complement P hP).disjoint,
-end
-
-lemma ker_transfer_sylow_disjoint' (Q : sylow p G) : disjoint (transfer_sylow P hP).ker ↑Q :=
-begin
-  obtain ⟨g, hg⟩ := exists_smul_eq G Q P,
-  rw [disjoint_iff, ←smul_left_cancel_iff (mul_aut.conj g), smul_bot, smul_inf, smul_normal,
-    ←sylow.coe_subgroup_smul, hg, ←disjoint_iff],
-  exact ker_transfer_sylow_disjoint P hP,
-end
-
-lemma ker_transfer_sylow_disjoint'' (Q : subgroup G) (hQ : is_p_group p Q) :
-  disjoint (transfer_sylow P hP).ker Q :=
-let ⟨R, hR⟩ := hQ.exists_le_sylow in (ker_transfer_sylow_disjoint' P hP R).mono_right hR
+disjoint_iff.mpr $ ((transfer_sylow P hP).ker ⊓ Q).eq_bot_of_card_eq' $
+  (hQ.to_le inf_le_right).card_eq_or_dvd.resolve_right $
+  λ h, not_dvd_card_ker_transfer_sylow P hP $ h.trans $ subgroup.card_dvd_of_le' inf_le_left
 
 end burnside_transfer
 

@@ -82,20 +82,14 @@ end
 /-
 Every subset open in the lower topology is a lower set
 -/
-lemma lower_open_is_lower {s : set (lower α)} (h: is_open s) : is_lower_set s :=
+lemma lower_open_is_lower {s : set (lower α)} (h : is_open s) : is_lower_set s :=
 begin
   rw is_open_iff_generate_Ici_comp at h,
   induction h,
-  case topological_space.generate_open.basic : u
-  { rw mem_set_of_eq at h_H,
-    choose a h_H using h_H,
-    rw ← h_H,
-    apply is_upper_set.compl,
-    apply is_upper_set_Ici, },
-  case topological_space.generate_open.univ : { exact is_lower_set_univ },
-  case topological_space.generate_open.inter : u v hu1 hv1 hu2 hv2
-    { apply is_lower_set.inter hu2 hv2 },
-  case topological_space.generate_open.sUnion : { apply is_lower_set_sUnion h_ih, },
+  case generate_open.basic : u h { obtain ⟨a, rfl⟩ := h, exact (is_upper_set_Ici a).compl },
+  case univ : { exact is_lower_set_univ },
+  case inter : u v hu1 hv1 hu2 hv2 { exact hu2.inter hv2 },
+  case sUnion : _ _ ih { exact is_lower_set_sUnion ih },
 end
 
 /-

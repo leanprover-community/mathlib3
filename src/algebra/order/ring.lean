@@ -553,7 +553,7 @@ lemma nat.strict_mono_cast : strict_mono (coe : ℕ → α) :=
 strict_mono_nat_of_lt_succ $ λ n, by { rw [nat.cast_succ], apply lt_add_one }
 
 /-- `coe : ℕ → α` as an `order_embedding` -/
-@[simps { fully_applied := ff }] def nat.cast_order_embedding [nontrivial α] : ℕ ↪o α :=
+@[simps { fully_applied := ff }] def nat.cast_order_embedding : ℕ ↪o α :=
 order_embedding.of_strict_mono coe nat.strict_mono_cast
 
 @[priority 100] -- see Note [lower instance priority]

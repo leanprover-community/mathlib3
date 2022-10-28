@@ -791,8 +791,7 @@ lemma order_iso.map_bot' [has_le α] [partial_order β] (f : α ≃o β) {x : α
   (hx : ∀ x', x ≤ x') (hy : ∀ y', y ≤ y') : f x = y :=
 by { refine le_antisymm _ (hy _), rw [← f.apply_symm_apply y, f.map_rel_iff], apply hx }
 
-@[simp] lemma order_iso.map_bot [has_le α] [partial_order β] [order_bot α] [order_bot β]
-  (f : α ≃o β) :
+lemma order_iso.map_bot [has_le α] [partial_order β] [order_bot α] [order_bot β] (f : α ≃o β) :
   f ⊥ = ⊥ :=
 f.map_bot' (λ _, bot_le) (λ _, bot_le)
 
@@ -800,8 +799,7 @@ lemma order_iso.map_top' [has_le α] [partial_order β] (f : α ≃o β) {x : α
   (hx : ∀ x', x' ≤ x) (hy : ∀ y', y' ≤ y) : f x = y :=
 f.dual.map_bot' hx hy
 
-@[simp] lemma order_iso.map_top [has_le α] [partial_order β] [order_top α] [order_top β]
-  (f : α ≃o β) :
+lemma order_iso.map_top [has_le α] [partial_order β] [order_top α] [order_top β] (f : α ≃o β) :
   f ⊤ = ⊤ :=
 f.dual.map_bot
 
@@ -813,7 +811,7 @@ lemma order_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β] (f : 
   f x ⊔ f y ≤ f (x ⊔ y) :=
 f.monotone.le_map_sup x y
 
-@[simp] lemma order_iso.map_inf [semilattice_inf α] [semilattice_inf β] (f : α ≃o β) (x y : α) :
+lemma order_iso.map_inf [semilattice_inf α] [semilattice_inf β] (f : α ≃o β) (x y : α) :
   f (x ⊓ y) = f x ⊓ f y :=
 begin
   refine (f.to_order_embedding.map_inf_le x y).antisymm _,
@@ -821,7 +819,7 @@ begin
   simpa using f.symm.to_order_embedding.map_inf_le (f x) (f y),
 end
 
-@[simp] lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β] (f : α ≃o β) (x y : α) :
+lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β] (f : α ≃o β) (x y : α) :
   f (x ⊔ y) = f x ⊔ f y :=
 f.dual.map_inf x y
 

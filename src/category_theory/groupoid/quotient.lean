@@ -146,7 +146,7 @@ lemma map_is_graph_like : (map (of S Sn) (of_inj_on_objects S Sn) S).is_graph_li
 begin
   rw subgroupoid.is_graph_like_iff,
   refine λ c d, subsingleton.intro _,
-  rintro ⟨_,⟨_,_,f,hf⟩⟩ ⟨_,⟨_,_,g,hg⟩⟩,
+  rintro ⟨_,⟨f,hf⟩⟩ ⟨_,⟨g,hg⟩⟩,
   simp only [subtype.mk_eq_mk],
   apply quot.sound,
   refine ⟨𝟙 _, Sn.wide _, inv f ≫ g, S.mul (S.inv hf) hg, _⟩,
@@ -508,8 +508,7 @@ instance : groupoid (quotient_groupoid S Sn) :=
       Sn).to_is_wide
 
 /-- The morphism to the quotient -/
-noncomputable def of :
-C ⥤ quotient_groupoid S Sn := (isotropy.of _ _) ⋙ (graph_like.of _ _)
+noncomputable def of : C ⥤ quotient_groupoid S Sn := (isotropy.of _ _) ⋙ (graph_like.of _ _)
 
 section ump
 
@@ -532,7 +531,7 @@ begin
   rw graph_like.lift_spec,
   apply isotropy.lift_spec,
   { rw le_iff at hφ ⊢,
-    rintros a b f ⟨_,_,g,gS⟩,
+    rintros a b f ⟨g,gS⟩,
     exact hφ gS, },
 end
 
@@ -542,7 +541,7 @@ begin
   apply graph_like.lift_unique,
   apply isotropy.map_is_graph_like,
   { rw le_iff at hφ ⊢,
-    rintros a b f ⟨_,_,g,gS⟩,
+    rintros a b f ⟨g,gS⟩,
     exact hφ gS, },
   apply isotropy.lift_unique,
   exact hΦ,

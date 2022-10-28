@@ -927,3 +927,97 @@ instance ring_hom_isometric.ids : ring_hom_isometric (ring_hom.id R₁) :=
 ⟨λ x, rfl⟩
 
 end ring_hom_isometric
+
+section induced
+
+variables {F : Type*} (R S : Type*)
+
+/-- A non-unital ring homomorphism from an `non_unital_ring` to a `non_unital_semi_normed_ring`
+induces a `non_unital_semi_normed_ring` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def non_unital_semi_normed_ring.induced [non_unital_ring R] [non_unital_semi_normed_ring S]
+  [non_unital_ring_hom_class F R S] (f : F) : non_unital_semi_normed_ring R :=
+{ norm_mul := λ x y, by { unfold norm, exact (map_mul f x y).symm ▸ norm_mul_le (f x) (f y) },
+  .. seminormed_add_comm_group.induced R S f }
+
+/-- An injective non-unital ring homomorphism from an `non_unital_ring` to a
+`non_unital_normed_ring` induces a `non_unital_normed_ring` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def non_unital_normed_ring.induced [non_unital_ring R] [non_unital_normed_ring S]
+  [non_unital_ring_hom_class F R S] (f : F) (hf : function.injective f) :
+  non_unital_normed_ring R :=
+{ .. non_unital_semi_normed_ring.induced R S f,
+  .. normed_add_comm_group.induced R S f hf }
+
+/-- A non-unital ring homomorphism from an `ring` to a `semi_normed_ring` induces a
+`semi_normed_ring` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def semi_normed_ring.induced [ring R] [semi_normed_ring S] [non_unital_ring_hom_class F R S]
+  (f : F) : semi_normed_ring R :=
+{ .. non_unital_semi_normed_ring.induced R S f,
+  .. seminormed_add_comm_group.induced R S f }
+
+/-- An injective non-unital ring homomorphism from an `ring` to a `normed_ring` induces a
+`normed_ring` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def normed_ring.induced [ring R] [normed_ring S] [non_unital_ring_hom_class F R S] (f : F)
+  (hf : function.injective f) : normed_ring R :=
+{ .. non_unital_semi_normed_ring.induced R S f,
+  .. normed_add_comm_group.induced R S f hf }
+
+/-- A non-unital ring homomorphism from a `comm_ring` to a `semi_normed_ring` induces a
+`semi_normed_comm_ring` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def semi_normed_comm_ring.induced [comm_ring R] [semi_normed_ring S]
+  [non_unital_ring_hom_class F R S] (f : F) : semi_normed_comm_ring R :=
+{ mul_comm := mul_comm,
+  .. non_unital_semi_normed_ring.induced R S f,
+  .. seminormed_add_comm_group.induced R S f }
+
+/-- An injective non-unital ring homomorphism from an `comm_ring` to a `normed_ring` induces a
+`normed_comm_ring` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def normed_comm_ring.induced [comm_ring R] [normed_ring S] [non_unital_ring_hom_class F R S] (f : F)
+  (hf : function.injective f) : normed_comm_ring R :=
+{ .. semi_normed_comm_ring.induced R S f,
+  .. normed_add_comm_group.induced R S f hf }
+
+/-- An injective non-unital ring homomorphism from an `division_ring` to a `normed_ring` induces a
+`normed_division_ring` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def normed_division_ring.induced [division_ring R] [normed_division_ring S]
+  [non_unital_ring_hom_class F R S] (f : F) (hf : function.injective f) : normed_division_ring R :=
+{ norm_mul' := λ x y, by { unfold norm, exact (map_mul f x y).symm ▸ norm_mul (f x) (f y) },
+  .. normed_add_comm_group.induced R S f hf }
+
+/-- An injective non-unital ring homomorphism from an `field` to a `normed_ring` induces a
+`normed_field` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def normed_field.induced [field R] [normed_field S]
+  [non_unital_ring_hom_class F R S] (f : F) (hf : function.injective f) : normed_field R :=
+{ .. normed_division_ring.induced R S f hf }
+
+/-- A ring homomorphism from a `ring R` to a `semi_normed_ring S` which induces the norm structure
+`semi_normed_ring.induced` makes `R` satisfy `∥(1 : R)∥ = 1` whenever `∥(1 : S)∥ = 1`. -/
+lemma norm_one_class.induced {F : Type*} (R S : Type*) [ring R] [semi_normed_ring S]
+  [norm_one_class S] [ring_hom_class F R S] (f : F) :
+  @norm_one_class R (semi_normed_ring.induced R S f).to_has_norm _ :=
+{ norm_one := (congr_arg norm (map_one f)).trans norm_one }
+
+end induced

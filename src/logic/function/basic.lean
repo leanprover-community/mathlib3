@@ -176,10 +176,10 @@ lemma surjective_of_right_cancellable_Prop (h : ∀ g₁ g₂ : β → Prop, g�
   surjective f :=
 begin
   specialize h (λ _, true) (λ y, ∃ x, f x = y) (funext $ λ x, _),
-  { simp only [(∘), exists_apply_eq_apply] },
   { intro y,
     have : true = ∃ x, f x = y, from congr_fun h y,
-    rw ← this, exact trivial }
+    rw ← this, exact trivial },
+  { simp only [(∘), exists_apply_eq_apply] },
 end
 
 lemma bijective_iff_exists_unique (f : α → β) : bijective f ↔

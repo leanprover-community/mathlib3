@@ -737,7 +737,7 @@ namespace cont_diff_bump
 
 variables {n : ℕ∞}
 variables [normed_space ℝ E']
-variables [normed_add_comm_group G] [normed_space ℝ G] [nonempty (cont_diff_bump_base G)]
+variables [normed_add_comm_group G] [normed_space ℝ G] [has_cont_diff_bump G]
 variables [complete_space E']
 variables {a : G} {φ : cont_diff_bump (0 : G)}
 

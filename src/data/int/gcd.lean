@@ -74,12 +74,12 @@ by rw [gcd_b, xgcd, xgcd_one_left]
 | 0       := λ h, (h rfl).elim
 | (s + 1) := λ h, by simp only [gcd_b, xgcd, xgcd_aux, zero_mod]
 
-@[simp] theorem gcd_a_one_right : ∀ {s}, s ≠ 1 → gcd_a s 1 = 0
+theorem gcd_a_one_right : ∀ {s}, s ≠ 1 → gcd_a s 1 = 0
 | 0       := λ h, gcd_a_zero_left
 | 1       := λ h, (h rfl).elim
 | (s + 2) := λ h, by simp only [gcd_a, xgcd, xgcd_aux, one_mod, mod_one]; refl
 
-@[simp] theorem gcd_b_one_right : ∀ {s}, s ≠ 1 → gcd_b s 1 = 1
+theorem gcd_b_one_right : ∀ {s}, s ≠ 1 → gcd_b s 1 = 1
 | 0       := λ h, gcd_b_zero_left
 | 1       := λ h, (h rfl).elim
 | (s + 2) := λ h, by simp only [gcd_b, xgcd, xgcd_aux, one_mod, mod_one]; refl

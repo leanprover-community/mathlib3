@@ -72,8 +72,6 @@ condexp_indep_eq (hf $ n + 1).measurable.comap_le_of_measurable
 
 end move
 
-#check indep_fun_iff_indep_set_preimage
-
 lemma Indep_set.Indep_fun_indicator (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) :
   Indep_fun (λ n, real.measurable_space) (λ n, (s n).indicator (λ ω, 1)) μ :=
 begin
@@ -81,14 +79,16 @@ begin
   rw Indep_fun_iff_measure_inter_preimage_eq_mul,
   rintro S π hπ,
   simp_rw set.indicator_const_preimage_eq_union,
-  by_cases hπ' : ∃ n ∈ S, (1 : ℝ) ∉ π n,
-  { obtain ⟨n, hn, hn'⟩ := hπ',
-    rw (set.Inter₂_eq_empty_iff.2 $ λ ω, ⟨n, hn, _⟩),
-    rw finset.prod_eq_zero hn,
-    rw measure_empty,
-    simp,
-
-  },
+  refine @hs S (λ i, ite (1 ∈ π i) (s i) ∅ ∪ ite ((0 : ℝ) ∈ π i) (s i)ᶜ ∅) _,
+  rintros i hi,
+  simp only [set.mem_set_of],
+  split_ifs,
+  { simp only [set.union_compl_self, measurable_set.univ] },
+  { rw set.union_empty,
+    exact measurable_set_generate_from (set.mem_singleton _) },
+  { rw set.empty_union,
+    exact (measurable_set_generate_from (set.mem_singleton _)).compl },
+  { simp only [set.empty_union, measurable_set.empty] }
 end
 
 lemma Indep_set.condexp_indicator_filtration_of_set_ae_eq
@@ -97,8 +97,8 @@ lemma Indep_set.condexp_indicator_filtration_of_set_ae_eq
     λ ω, (μ (s (n + 1))).to_real :=
 begin
   rw filtration.filtration_of_set_eq_natural hsm,
-  refine (Indep_fun.condexp_succ_natrual_ae_eq _ _ n).trans _,
-  --(λ n, strongly_measurable_const.indicator (hsm n)),
+  refine (Indep_fun.condexp_succ_natrual_ae_eq _ (hs.Indep_fun_indicator hsm) n).trans _,
+  simp only [integral_indicator_const _ (hsm _), algebra.id.smul_eq_mul, mul_one],
 end
 
 lemma Indep_set.condexp_indicator_filtration_of_set_ae_eq'

@@ -100,7 +100,7 @@ lemma coloring.mem_color_classes {v : V} : C.color_class (C v) ∈ C.color_class
 ⟨v, rfl⟩
 
 lemma coloring.color_classes_finite [finite α] : C.color_classes.finite :=
-set.finite_coe_iff.1 $ setoid.finite_classes_ker _
+setoid.finite_classes_ker _
 
 lemma coloring.card_color_classes_le [fintype α] [fintype C.color_classes] :
   fintype.card C.color_classes ≤ fintype.card α :=

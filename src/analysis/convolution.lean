@@ -1269,9 +1269,9 @@ end helper_definitions
 
 
 instance {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E] :
-  nonempty (cont_diff_bump_base E) :=
+  has_cont_diff_bump E :=
 begin
-  refine ⟨_⟩,
+  refine ⟨⟨_⟩⟩,
   borelize E,
   have IR : ∀ (R : ℝ), 1 < R → 0 < (R - 1) / (R + 1),
   { assume R hR, apply div_pos; linarith },

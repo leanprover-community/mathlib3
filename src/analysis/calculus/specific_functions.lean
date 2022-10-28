@@ -291,15 +291,21 @@ structure cont_diff_bump_base (E : Type*) [normed_add_comm_group E] [normed_spac
 (eq_one    : ∀ (R : ℝ) (hR : 1 < R) (x : E) (hx : ∥x∥ ≤ 1), to_fun R x = 1)
 (support   : ∀ (R : ℝ) (hR : 1 < R), support (to_fun R) = metric.ball (0 : E) R)
 
+/-- A class registering that a real vector space admits bump functions. This will be instantiated
+first for inner product spaces, and then for finite-dimensional normed spaces.
+We use a specific class instead of `nonempty (cont_diff_bump_base E)` for performance reasons. -/
+class has_cont_diff_bump (E : Type*) [normed_add_comm_group E] [normed_space ℝ E]: Prop :=
+(out : nonempty (cont_diff_bump_base E))
+
 /-- In a space with `C^∞` bump functions, register some function that will be used as a basis
 to construct bump functions of arbitrary size around any point. -/
 def some_cont_diff_bump_base (E : Type*) [normed_add_comm_group E] [normed_space ℝ E]
-  [hb : nonempty (cont_diff_bump_base E)] : cont_diff_bump_base E :=
-nonempty.some hb
+  [hb : has_cont_diff_bump E] : cont_diff_bump_base E :=
+nonempty.some hb.out
 
 /-- Any inner product space has smooth bump functions. -/
 @[priority 100] instance has_cont_diff_bump_of_inner_product_space
-  (E : Type*) [inner_product_space ℝ E] : nonempty (cont_diff_bump_base E) :=
+  (E : Type*) [inner_product_space ℝ E] : has_cont_diff_bump E :=
 let e : cont_diff_bump_base E :=
 { to_fun := λ R x, real.smooth_transition ((R - ∥x∥) / (R - 1)),
   mem_Icc := λ R x, ⟨real.smooth_transition.nonneg _, real.smooth_transition.le_one _⟩,
@@ -335,7 +341,7 @@ let e : cont_diff_bump_base E :=
       apply div_pos;
       linarith }
   end, }
-in ⟨e⟩
+in ⟨⟨e⟩⟩
 
 namespace cont_diff_bump
 
@@ -350,7 +356,7 @@ end
 instance (c : E) : inhabited (cont_diff_bump c) := ⟨⟨1, 2, zero_lt_one, one_lt_two⟩⟩
 
 variables [normed_add_comm_group E] [normed_space ℝ E]
-[nonempty (cont_diff_bump_base E)] {c : E} (f : cont_diff_bump c) {x : E} {n : ℕ∞}
+[has_cont_diff_bump E] {c : E} (f : cont_diff_bump c) {x : E} {n : ℕ∞}
 
 /-- The function defined by `f : cont_diff_bump_of_inner c`. Use automatic coercion to
 function instead. -/

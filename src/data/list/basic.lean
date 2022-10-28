@@ -2655,7 +2655,7 @@ begin
     refine split_on_p_eq_single _ _ _, intros y hy H, rw H at hy,
     refine hx hd _ hy, simp, },
   { simp only [intersperse_cons_cons, singleton_append, join],
-    specialize ih _ _, { intros l hl, apply hx l, simp at hl ⊢, tauto, }, { trivial, },
+    specialize ih (by { intros l hl, apply hx l, simp at hl ⊢, tauto, }) (by trivial),
     have := split_on_p_first (=x) hd _ x rfl _,
     { simp only [split_on] at ⊢ ih, rw this, rw ih, },
     intros y hy H, rw H at hy, exact hx hd (or.inl rfl) hy, }

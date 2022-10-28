@@ -2582,10 +2582,7 @@ begin
       -- We now have to prove, for the induction hypothesis, that the characters at positions `k`,
       -- `n + 1 ≤ k < n'` are "numeric". We already had this for `n ≤ k < n`, so we just rearrange
       -- the hypotheses we already have.
-      specialize IH hn'' _ H.right,
-      { intros k hk hk',
-        apply ho,
-        exact nat.le_of_succ_le hk' },
+      specialize IH hn'' (λ k hk hk', ho _ _ (nat.le_of_succ_le hk')) H.right,
       -- With the induction hypothesis conditions satisfier, we can extract out a list that
       -- `parser.digit.many1` would have generated from position `n + 1`, as well as the associated
       -- property of the list, that it folds into what `nat.of_digits` generates from the

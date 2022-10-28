@@ -17,16 +17,18 @@ generally follows the description for these theorems for multigraphs from [Chou1
 
 * `simple_graph.is_acyclic` is a predicate for a graph having no cyclic walks
 * `simple_graph.is_tree` is a predicate for a graph being a tree (a connected acyclic graph)
-* `simple_graph.is_bridge` for whether two vertices constitute a bridge edge
+* `simple_graph.is_bridge` for whether an edge is a bridge edge
 
 ## Main statements
 
 * `simple_graph.is_acyclic_iff` characterizes acyclicity in terms of uniqueness of paths between
   pairs of vertices.
+* `simple_graph.is_acyclic_iff_forall_edge_is_bridge` characterizes acyclicity in terms of every
+  edge being a bridge edge.
 * `simple_graph.is_tree_iff` characterizes trees in terms of existence and uniqueness of paths
   between pairs of vertices from a nonempty vertex type.
-* `simple_graph.is_bridge_iff_forall_cycle_not_mem` characterizes bridge edges in terms of
-  there being no cycle that contains them.
+* `simple_graph.is_bridge_iff_mem_and_forall_cycle_not_mem` characterizes bridge edges in terms of
+  there being no cycle containing them.
 
 ## Tags
 
@@ -45,27 +47,36 @@ def is_acyclic : Prop := ∀ (v : V) (c : G.walk v v), ¬c.is_cycle
 def is_tree : Prop := G.connected ∧ G.is_acyclic
 
 /-- An edge of a graph is a *bridge* if, after removing it, its incident vertices
-are no longer reachable from one another. Note that we do not require the vertices
-to be adjacent.
+are no longer reachable from one another. -/
+def is_bridge (e : sym2 V) : Prop :=
+e ∈ G.edge_set ∧
+sym2.lift ⟨λ v w, ¬ (G.delete_edges {e}).reachable v w, by simp [reachable_comm]⟩ e
 
-Since this is for simple graphs, we use the endpoints the edge directly.-/
-def is_bridge (v w : V) : Prop := ¬ (G.delete_edges {⟦(v, w)⟧}).reachable v w
+lemma is_bridge_iff {u v : V} :
+  G.is_bridge ⟦(u, v)⟧ ↔ G.adj u v ∧ ¬ (G.delete_edges {⟦(u, v)⟧}).reachable u v := iff.rfl
 
-lemma is_bridge_iff_forall_walk_mem_edges {v w : V} :
-  G.is_bridge v w ↔ ∀ (p : G.walk v w), ⟦(v, w)⟧ ∈ p.edges :=
+lemma reachable_delete_edges_iff_exists_walk {v w : V} :
+  (G.delete_edges {⟦(v, w)⟧}).reachable v w ↔ ∃ (p : G.walk v w), ¬ ⟦(v, w)⟧ ∈ p.edges :=
 begin
-  refine ⟨λ hb p, _, _⟩,
-  { by_contra he,
-    exact hb ⟨p.to_delete_edge _ he⟩ },
-  { rintro hpe ⟨p'⟩,
-    specialize hpe (p'.map (hom.map_spanning_subgraphs (G.delete_edges_le _))),
-    simp only [set_coe.exists, walk.edges_map, list.mem_map] at hpe,
-    obtain ⟨z, he, hd⟩ := hpe,
-    simp only [hom.map_spanning_subgraphs, rel_hom.coe_fn_mk, sym2.map_id', id.def] at hd,
-    simpa [hd] using p'.edges_subset_edge_set he }
+  split,
+  { rintro ⟨p⟩,
+    use p.map (hom.map_spanning_subgraphs (G.delete_edges_le _)),
+    simp_rw [walk.edges_map, list.mem_map, hom.map_spanning_subgraphs_apply, sym2.map_id', id.def],
+    rintro ⟨e, h, rfl⟩,
+    simpa using p.edges_subset_edge_set h, },
+  { rintro ⟨p, h⟩,
+    exact ⟨p.to_delete_edge _ h⟩, },
 end
 
-lemma is_bridge_iff_forall_cycle_not_mem.aux [decidable_eq V]
+lemma is_bridge_iff_adj_and_forall_walk_mem_edges {v w : V} :
+  G.is_bridge ⟦(v, w)⟧ ↔ G.adj v w ∧ ∀ (p : G.walk v w), ⟦(v, w)⟧ ∈ p.edges :=
+begin
+  rw is_bridge_iff,
+  apply iff.and iff.rfl,
+  rw [reachable_delete_edges_iff_exists_walk, not_exists_not],
+end
+
+lemma reachable_delete_edges_iff_exists_cycle.aux [decidable_eq V]
   {u v w : V}
   (hb : ∀ (p : G.walk v w), ⟦(v, w)⟧ ∈ p.edges)
   (c : G.walk u u)
@@ -97,56 +108,79 @@ begin
   exact list.disjoint_of_nodup_append hc hbq hpq',
 end
 
-lemma is_bridge_iff_forall_cycle_not_mem {v w : V} (h : G.adj v w) :
-  G.is_bridge v w ↔ ∀ {u : V} (p : G.walk u u), p.is_cycle → ⟦(v, w)⟧ ∉ p.edges :=
+lemma adj_and_reachable_delete_edges_iff_exists_cycle {v w : V} :
+  G.adj v w ∧ (G.delete_edges {⟦(v, w)⟧}).reachable v w ↔
+  ∃ {u : V} (p : G.walk u u), p.is_cycle ∧ ⟦(v, w)⟧ ∈ p.edges :=
 begin
   classical,
+  rw reachable_delete_edges_iff_exists_walk,
   split,
-  { intros hb u c hc he,
-    rw is_bridge_iff_forall_walk_mem_edges at hb,
+  { rintro ⟨h, p, hp⟩,
+    refine ⟨w, walk.cons h.symm p.to_path, _, _⟩,
+    { apply path.cons_is_cycle,
+      rw [sym2.eq_swap],
+      intro h,
+      exact absurd (walk.edges_to_path_subset p h) hp, },
+    simp only [sym2.eq_swap, walk.edges_cons, list.mem_cons_iff, eq_self_iff_true, true_or], },
+  { rintro ⟨u, c, hc, he⟩,
     have hvc : v ∈ c.support := walk.fst_mem_support_of_mem_edges c he,
     have hwc : w ∈ c.support := walk.snd_mem_support_of_mem_edges c he,
     let puv := c.take_until v hvc,
     let pvu := c.drop_until v hvc,
     obtain (hw | hw') : w ∈ puv.support ∨ w ∈ pvu.support,
     { rwa [← walk.mem_support_append_iff, walk.take_spec] },
-    { exact is_bridge_iff_forall_cycle_not_mem.aux G hb c hc.to_trail he hw },
-    { have hb' : ∀ (p : G.walk w v), ⟦(w, v)⟧ ∈ p.edges,
+    { by_contra' h,
+      specialize h (c.adj_of_mem_edges he),
+      exact reachable_delete_edges_iff_exists_cycle.aux G h c hc.to_trail he hw, },
+    { by_contra' hb,
+      specialize hb (c.adj_of_mem_edges he),
+      have hb' : ∀ (p : G.walk w v), ⟦(w, v)⟧ ∈ p.edges,
       { intro p,
         simpa [sym2.eq_swap] using hb p.reverse, },
-      apply is_bridge_iff_forall_cycle_not_mem.aux G hb' (pvu.append puv)
+      apply reachable_delete_edges_iff_exists_cycle.aux G hb' (pvu.append puv)
         (hc.to_trail.rotate hvc) _ (walk.start_mem_support _),
       rwa [walk.edges_append, list.mem_append, or_comm, ← list.mem_append,
            ← walk.edges_append, walk.take_spec, sym2.eq_swap], } },
-  { rw is_bridge_iff_forall_walk_mem_edges,
-    intros hc p,
-    by_contra hne,
-    apply hc (walk.cons h.symm p.to_path),
-    { apply path.cons_is_cycle,
-      rw sym2.eq_swap,
-      intro h,
-      exact absurd (walk.edges_to_path_subset p h) hne, },
-    simp only [sym2.eq_swap, walk.edges_cons, list.mem_cons_iff, eq_self_iff_true, true_or], },
 end
 
-lemma is_acyclic_iff_forall_is_bridge : G.is_acyclic ↔ ∀ {v w : V}, G.adj v w → G.is_bridge v w :=
+lemma is_bridge_iff_adj_and_forall_cycle_not_mem {v w : V} :
+  G.is_bridge ⟦(v, w)⟧ ↔ G.adj v w ∧ ∀ {u : V} (p : G.walk u u), p.is_cycle → ⟦(v, w)⟧ ∉ p.edges :=
 begin
+  rw [is_bridge_iff, and.congr_right_iff],
+  intro h,
+  rw ← not_iff_not,
+  push_neg,
+  rw ← adj_and_reachable_delete_edges_iff_exists_cycle,
+  simp only [h, true_and],
+end
+
+lemma is_bridge_iff_mem_and_forall_cycle_not_mem {e : sym2 V} :
+  G.is_bridge e ↔ e ∈ G.edge_set ∧ ∀ {u : V} (p : G.walk u u), p.is_cycle → e ∉ p.edges :=
+sym2.ind (λ v w, is_bridge_iff_adj_and_forall_cycle_not_mem _) e
+
+lemma is_acyclic_iff_forall_adj_is_bridge :
+  G.is_acyclic ↔ ∀ {v w : V}, G.adj v w → G.is_bridge ⟦(v, w)⟧ :=
+begin
+  simp_rw [is_bridge_iff_adj_and_forall_cycle_not_mem],
   split,
   { intros ha v w hvw,
-    rw is_bridge_iff_forall_cycle_not_mem _ hvw,
+    apply and.intro hvw,
     intros u p hp,
     exact absurd hp (ha _ p), },
   { rintros hb v (_ | @⟨_, _, _, ha, p⟩) hp,
     { exact hp.not_of_nil },
     { specialize hb ha,
-      rw is_bridge_iff_forall_cycle_not_mem _ ha at hb,
-      apply hb _ hp,
+      apply hb.2 _ hp,
       rw [walk.edges_cons],
       apply list.mem_cons_self } },
 end
 
-lemma is_acyclic.path_unique {G : simple_graph V} (h : G.is_acyclic)
-  {v w : V} (p q : G.path v w) : p = q :=
+lemma is_acyclic_iff_forall_edge_is_bridge :
+  G.is_acyclic ↔ ∀ (e ∈ G.edge_set), G.is_bridge e :=
+by simp [is_acyclic_iff_forall_adj_is_bridge, sym2.forall]
+
+lemma is_acyclic.path_unique {G : simple_graph V} (h : G.is_acyclic) {v w : V} (p q : G.path v w) :
+  p = q :=
 begin
   obtain ⟨p, hp⟩ := p,
   obtain ⟨q, hq⟩ := q,
@@ -155,10 +189,10 @@ begin
   { cases q,
     { refl },
     { simpa [walk.is_path_def] using hq, } },
-  { rw is_acyclic_iff_forall_is_bridge at h,
+  { rw is_acyclic_iff_forall_adj_is_bridge at h,
     specialize h ph,
-    rw is_bridge_iff_forall_walk_mem_edges at h,
-    specialize h (q.append p.reverse),
+    rw is_bridge_iff_adj_and_forall_walk_mem_edges at h,
+    replace h := h.2 (q.append p.reverse),
     simp only [walk.edges_append, walk.edges_reverse, list.mem_append, list.mem_reverse] at h,
     cases h,
     { cases q,

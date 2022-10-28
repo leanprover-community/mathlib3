@@ -409,6 +409,9 @@ lemma edges_subset_edge_set : Π {u v : V} (p : G.walk u v) ⦃e : sym2 V⦄
   (h : e ∈ p.edges), e ∈ G.edge_set
 | _ _ (cons h' p') e h := by rcases h with ⟨rfl, h⟩; solve_by_elim
 
+lemma adj_of_mem_edges {u v x y : V} (p : G.walk u v) (h : ⟦(x, y)⟧ ∈ p.edges) : G.adj x y :=
+edges_subset_edge_set p h
+
 @[simp] lemma darts_nil {u : V} : (nil : G.walk u u).darts = [] := rfl
 
 @[simp] lemma darts_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
@@ -1191,6 +1194,9 @@ protected lemma reachable.rfl {u : V} : G.reachable u u := reachable.refl _
 
 @[symm] protected lemma reachable.symm {u v : V} (huv : G.reachable u v) : G.reachable v u :=
 huv.elim (λ p, ⟨p.reverse⟩)
+
+lemma reachable_comm {u v : V} : G.reachable u v ↔ G.reachable v u :=
+⟨reachable.symm, reachable.symm⟩
 
 @[trans] protected lemma reachable.trans {u v w : V}
   (huv : G.reachable u v) (hvw : G.reachable v w) :

@@ -1107,8 +1107,8 @@ variables {Ω : Type*} [measurable_space Ω]
 def conditioned (P : probability_measure Ω) (A : set Ω) : probability_measure Ω :=
 @finite_measure.normalize Ω (nonempty_of_probability_measure P) _ (P.to_finite_measure.restrict A)
 
-lemma conditioned_apply
-  (P : probability_measure Ω) {A : set Ω} (proba_nonzero : P A ≠ 0) {E : set Ω} (E_mble : measurable_set E) :
+lemma conditioned_apply (P : probability_measure Ω) {A : set Ω}
+  (proba_nonzero : P A ≠ 0) {E : set Ω} (E_mble : measurable_set E) :
   (P.conditioned A) E = (P A)⁻¹ * P (E ∩ A) :=
 begin
   rw [conditioned, finite_measure.normalize_eq_of_nonzero],

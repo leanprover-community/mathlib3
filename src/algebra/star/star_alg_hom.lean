@@ -6,6 +6,7 @@ Authors: Jireh Loreaux
 
 import algebra.hom.non_unital_alg
 import algebra.star.prod
+import algebra.order.hom.ring
 
 /-!
 # Morphisms of star algebras
@@ -70,6 +71,29 @@ class non_unital_star_alg_hom_class (F : Type*) (R : out_param Type*) (A : out_p
 
 -- `R` becomes a metavariable but that's fine because it's an `out_param`
 attribute [nolint dangerous_instance] non_unital_star_alg_hom_class.to_star_hom_class
+
+namespace non_unital_star_alg_hom_class
+
+variables {F R A B : Type*} [monoid R]
+variables [non_unital_ring A] [distrib_mul_action R A] [partial_order A] [star_ordered_ring A]
+variables [non_unital_ring B] [distrib_mul_action R B] [partial_order B] [star_ordered_ring B]
+
+@[priority 100]
+instance [non_unital_star_alg_hom_class F R A B] : order_add_monoid_hom_class F A B :=
+{ coe := λ f, f,
+  monotone := λ f a b h,
+  begin
+    rw [←sub_nonneg] at h ⊢,
+    obtain ⟨x, hx⟩ := (star_ordered_ring.nonneg_iff (b-a)).1 h,
+    refine (star_ordered_ring.nonneg_iff _).2 ⟨f x, _⟩,
+    rw [←map_sub, hx, map_mul, map_star]
+  end,
+  .. ‹non_unital_star_alg_hom_class F R A B› }
+
+-- `R` becomes a metavariable, but it's okay because it is an `out_param`
+attribute [nolint dangerous_instance] non_unital_star_alg_hom_class.order_add_monoid_hom_class
+
+end non_unital_star_alg_hom_class
 
 namespace non_unital_star_alg_hom
 
@@ -211,14 +235,30 @@ class star_alg_hom_class (F : Type*) (R : out_param Type*) (A : out_param Type*)
 -- `R` becomes a metavariable but that's fine because it's an `out_param`
 attribute [nolint dangerous_instance] star_alg_hom_class.to_star_hom_class
 
+namespace star_alg_hom_class
+
 @[priority 100] /- See note [lower instance priority] -/
-instance star_alg_hom_class.to_non_unital_star_alg_hom_class
+instance to_non_unital_star_alg_hom_class
   (F R A B : Type*) [comm_semiring R] [semiring A] [algebra R A] [has_star A]
   [semiring B] [algebra R B] [has_star B] [star_alg_hom_class F R A B] :
   non_unital_star_alg_hom_class F R A B :=
 { map_smul := map_smul,
-  .. star_alg_hom_class.to_alg_hom_class F R A B,
-  .. star_alg_hom_class.to_star_hom_class F R A B, }
+  .. to_alg_hom_class F R A B,
+  .. to_star_hom_class F R A B, }
+
+@[priority 100]
+instance to_order_ring_hom_class (F R A B : Type*) [comm_semiring R]
+  [ring A] [algebra R A] [partial_order A] [star_ordered_ring A]
+  [ring B] [algebra R B] [partial_order B] [star_ordered_ring B]
+  [star_alg_hom_class F R A B] : order_ring_hom_class F A B :=
+{ coe := λ f, f,
+  monotone := λ f, order_hom_class.mono f,
+  .. ‹star_alg_hom_class F R A B› }
+
+-- `R` becomes a metavariable, but it's okay because it is an `out_param`
+attribute [nolint dangerous_instance] star_alg_hom_class.to_order_ring_hom_class
+
+end star_alg_hom_class
 
 namespace star_alg_hom
 
@@ -658,3 +698,27 @@ lemma of_bijective_apply {f : F} (hf : function.bijective f) (a : A) :
 end bijective
 
 end star_alg_equiv
+
+namespace star_alg_equiv_class
+
+@[priority 100]
+instance {F R A B : Type*} [monoid R]
+  [non_unital_ring A] [distrib_mul_action R A] [partial_order A] [star_ordered_ring A]
+  [non_unital_ring B] [distrib_mul_action R B] [partial_order B] [star_ordered_ring B]
+  [star_alg_equiv_class F R A B] : order_ring_iso_class F A B :=
+{ coe := λ f, f,
+  inv := λ f, equiv_like.inv f,
+  map_le_map_iff := λ f a b,
+  begin
+    -- this is really hacky, and it won't be necessary once we give a `has_coe_t` instance
+    set f' : A ≃⋆ₐ[R] B := ⟨f, equiv_like.inv f, equiv_like.left_inv f, equiv_like.right_inv f,
+      map_mul f, map_add f, map_star f, map_smul f⟩,
+    refine ⟨λ h, _, λ h, order_hom_class.mono f h⟩,
+    exact f'.symm_apply_apply a ▸ f'.symm_apply_apply b ▸ order_hom_class.mono f'.symm h,
+  end,
+  .. ‹star_alg_equiv_class F R A B› }
+
+-- `R` becomes a metavariable, but it's okay because it is an `out_param`
+attribute [nolint dangerous_instance] star_alg_equiv_class.order_ring_iso_class
+
+end star_alg_equiv_class

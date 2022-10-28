@@ -344,6 +344,19 @@ lemma cont_mdiff_within_at_iff_of_mem_maximal_atlas
     (e.extend I x) :=
 (cont_diff_within_at_local_invariant_prop I I' n).lift_prop_within_at_indep_chart he hx he' hy
 
+/-- An alternative formulation of `cont_mdiff_within_at_iff_of_mem_maximal_atlas`
+  if the set if `s` lies in `e.source`. -/
+lemma cont_mdiff_within_at_iff_image {x : M} (he : e ∈ maximal_atlas I M)
+  (he' : e' ∈ maximal_atlas I' M') (hs : s ⊆ e.source) (hx : x ∈ e.source) (hy : f x ∈ e'.source) :
+  cont_mdiff_within_at I I' n f s x ↔ continuous_within_at f s x ∧
+  cont_diff_within_at 𝕜 n (e'.extend I' ∘ f ∘ (e.extend I).symm) (e.extend I '' s) (e.extend I x) :=
+begin
+  rw [cont_mdiff_within_at_iff_of_mem_maximal_atlas he he' hx hy, and.congr_right_iff],
+  refine λ hf, cont_diff_within_at_congr_nhds _,
+  simp_rw [nhds_within_eq_iff_eventually_eq,
+    e.extend_symm_preimage_inter_range_eventually_eq I hs hx]
+end
+
 /-- One can reformulate smoothness within a set at a point as continuity within this set at this
 point, and smoothness in any chart containing that point. -/
 lemma cont_mdiff_within_at_iff_of_mem_source
@@ -473,22 +486,8 @@ lemma cont_mdiff_on_iff_of_mem_maximal_atlas
     cont_diff_on 𝕜 n (e'.extend I' ∘ f ∘ (e.extend I).symm)
     (e.extend I '' s) :=
 begin
-  split,
-  { refine λ H, ⟨λ x hx, (H x hx).1, _⟩,
-    rintro _ ⟨x, hx, rfl⟩,
-    exact ((cont_mdiff_within_at_iff_of_mem_maximal_atlas he he' (hs hx)
-      (h2s.image_subset $ mem_image_of_mem f hx)).mp (H _ hx)).2.mono
-        (e.maps_to_extend I hs).image_subset },
-  { rintro ⟨h1, h2⟩ x hx,
-    refine (cont_mdiff_within_at_iff_of_mem_maximal_atlas he he' (hs hx)
-      (h2s.image_subset $ mem_image_of_mem f hx)).mpr
-      ⟨h1.continuous_within_at hx, _⟩,
-    refine (h2 _ $ mem_image_of_mem _ hx).mono_of_mem _,
-    rw [← e.extend_source I] at hs,
-    rw [(e.extend I).image_eq_target_inter_inv_preimage hs],
-    refine inter_mem _ (e.extend_preimage_mem_nhds_within I (hs hx) self_mem_nhds_within),
-    have := e.extend_target_mem_nhds_within I (hs hx),
-    refine nhds_within_mono _ (inter_subset_right _ _) this }
+  simp_rw [continuous_on, cont_diff_on, set.ball_image_iff, ← forall_and_distrib, cont_mdiff_on],
+  exact forall₂_congr (λ x hx, cont_mdiff_within_at_iff_image he he' hs (hs hx) (h2s hx))
 end
 
 /-- If the set where you want `f` to be smooth lies entirely in a single chart, and `f` maps it
@@ -526,8 +525,8 @@ begin
     { simp only [w, hz] with mfld_simps },
     { mfld_set_tac } },
   { rintros ⟨hcont, hdiff⟩ x hx,
-    refine ((cont_diff_within_at_local_invariant_prop I I' n).lift_prop_within_at_iff $
-      hcont x hx).mpr _,
+    refine (cont_diff_within_at_local_invariant_prop I I' n).lift_prop_within_at_iff.mpr _,
+    refine ⟨hcont x hx, _⟩,
     dsimp [cont_diff_within_at_prop],
     convert hdiff x (f x) (ext_chart_at I x x) (by simp only [hx] with mfld_simps) using 1,
     mfld_set_tac }
@@ -739,18 +738,12 @@ lemma cont_mdiff_on_iff_source_of_mem_maximal_atlas
   (he : e ∈ maximal_atlas I M) (hs : s ⊆ e.source) :
   cont_mdiff_on I I' n f s ↔ cont_mdiff_on 𝓘(𝕜, E) I' n (f ∘ (e.extend I).symm) (e.extend I '' s) :=
 begin
-  split,
-  { rintro H _ ⟨x, hx, rfl⟩,
-    exact ((cont_mdiff_within_at_iff_source_of_mem_maximal_atlas he (hs hx)).mp (H _ hx)).mono
-        (e.maps_to_extend I hs).image_subset },
-  { rintro H x hx,
-    refine (cont_mdiff_within_at_iff_source_of_mem_maximal_atlas he (hs hx)).mpr _,
-    refine (H _ $ mem_image_of_mem _ hx).mono_of_mem _,
-    rw [← e.extend_source I] at hs,
-    rw [(e.extend I).image_eq_target_inter_inv_preimage hs],
-    refine inter_mem _ (e.extend_preimage_mem_nhds_within I (hs hx) self_mem_nhds_within),
-    have := e.extend_target_mem_nhds_within I (hs hx),
-    refine nhds_within_mono _ (inter_subset_right _ _) this }
+  simp_rw [cont_mdiff_on, set.ball_image_iff],
+  refine forall₂_congr (λ x hx, _),
+  rw [cont_mdiff_within_at_iff_source_of_mem_maximal_atlas he (hs hx)],
+  apply cont_mdiff_within_at_congr_nhds,
+  simp_rw [nhds_within_eq_iff_eventually_eq,
+    e.extend_symm_preimage_inter_range_eventually_eq I hs hx]
 end
 
 

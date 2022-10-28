@@ -223,13 +223,13 @@ include hG
 
 /-- `lift_prop_within_at P f s x` is equivalent to a definition where we restrict the set we are
   considering to the domain of the charts at `x` and `f x`. -/
-lemma lift_prop_within_at_iff {f : M → M'} (hf : continuous_within_at f s x) :
+lemma lift_prop_within_at_iff {f : M → M'} :
   lift_prop_within_at P f s x ↔
-  P ((chart_at H' (f x)) ∘ f ∘ (chart_at H x).symm)
+  continuous_within_at f s x ∧ P ((chart_at H' (f x)) ∘ f ∘ (chart_at H x).symm)
   ((chart_at H x).target ∩ (chart_at H x).symm ⁻¹' (s ∩ f ⁻¹' (chart_at H' (f x)).source))
   (chart_at H x x) :=
 begin
-  rw [lift_prop_within_at, iff_true_intro hf, true_and, hG.congr_set],
+  refine and_congr_right (λ hf, hG.congr_set _),
   exact local_homeomorph.preimage_eventually_eq_target_inter_preimage_inter hf
     (mem_chart_source H x) (chart_source_mem_nhds H' (f x))
 end

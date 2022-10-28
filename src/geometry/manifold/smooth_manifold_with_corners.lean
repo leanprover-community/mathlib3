@@ -845,6 +845,26 @@ lemma extend_preimage_inter_eq :
   = ((f.extend I).symm ⁻¹' s ∩ range I) ∩ ((f.extend I).symm ⁻¹' t) :=
 by mfld_set_tac
 
+lemma extend_symm_preimage_inter_range_eventually_eq_aux {s : set M} {x : M} (hx : x ∈ f.source) :
+  ((f.extend I).symm ⁻¹' s ∩ range I : set _) =ᶠ[𝓝 (f.extend I x)]
+  ((f.extend I).target ∩ (f.extend I).symm ⁻¹' s : set _) :=
+begin
+  rw [f.extend_target, inter_assoc, inter_comm (range I)],
+  conv { congr, skip, rw [← @univ_inter _ (_ ∩ _)] },
+  refine (eventually_eq_univ.mpr _).symm.inter eventually_eq.rfl,
+  refine I.continuous_at_symm.preimage_mem_nhds (f.open_target.mem_nhds _),
+  simp_rw [f.extend_coe, function.comp_apply, I.left_inv, f.maps_to hx]
+end
+
+lemma extend_symm_preimage_inter_range_eventually_eq {s : set M} {x : M}
+  (hs : s ⊆ f.source) (hx : x ∈ f.source) :
+  ((f.extend I).symm ⁻¹' s ∩ range I : set _) =ᶠ[𝓝 (f.extend I x)] f.extend I '' s :=
+begin
+  rw [← f.extend_source I] at hs,
+  rw [(f.extend I).image_eq_target_inter_inv_preimage hs],
+  exact f.extend_symm_preimage_inter_range_eventually_eq_aux I hx
+end
+
 /-! We use the name `extend_coord_change` for `(f'.extend I).symm ≫ f.extend I`. -/
 
 lemma extend_coord_change_source :

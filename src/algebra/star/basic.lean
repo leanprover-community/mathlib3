@@ -519,4 +519,3 @@ end mul_opposite
 instance star_semigroup.to_opposite_star_module [comm_monoid R] [star_semigroup R] :
   star_module Rᵐᵒᵖ R :=
 ⟨λ r s, star_mul' s r.unop⟩
-#lint

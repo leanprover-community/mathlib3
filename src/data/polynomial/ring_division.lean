@@ -818,7 +818,7 @@ begin
   rw [prod_multiset_root_eq_finset_root, polynomial.map_prod],
   refine finset.prod_dvd_of_coprime (λ a _ b _ h, _) (λ a _, _),
   { simp_rw [polynomial.map_pow, polynomial.map_sub, map_C, map_X],
-    exact (pairwise_coprime_X_sub_C (is_fraction_ring.injective R $ fraction_ring R) _ _ h).pow },
+    exact (pairwise_coprime_X_sub_C (is_fraction_ring.injective R $ fraction_ring R) h).pow },
   { exact polynomial.map_dvd _ (pow_root_multiplicity_dvd p a) },
 end
 

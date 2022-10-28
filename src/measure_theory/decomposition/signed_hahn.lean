@@ -267,7 +267,7 @@ begin
   { intro, exact measurable_set.Union (λ _, restrict_nonpos_seq_measurable_set _) },
   { intros a b hab x hx,
     simp only [exists_prop, set.mem_Union, set.mem_inter_iff, set.inf_eq_inter] at hx,
-    exact let ⟨⟨_, hx₁⟩, _, hx₂⟩ := hx in restrict_nonpos_seq_disjoint a b hab ⟨hx₁, hx₂⟩ },
+    exact let ⟨⟨_, hx₁⟩, _, hx₂⟩ := hx in restrict_nonpos_seq_disjoint hab ⟨hx₁, hx₂⟩ },
   { apply set.Union_subset,
     intros a x,
     simp only [and_imp, exists_prop, set.mem_Union],

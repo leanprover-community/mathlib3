@@ -32,12 +32,12 @@ section pairwise
 variables {f g : ι → α} {s t u : set α} {a b : α}
 
 /-- A relation `r` holds pairwise if `r i j` for all `i ≠ j`. -/
-def pairwise (r : α → α → Prop) := ∀ i j, i ≠ j → r i j
+def pairwise (r : α → α → Prop) := ∀ ⦃i j⦄, i ≠ j → r i j
 
 lemma pairwise.mono (hr : pairwise r) (h : ∀ ⦃i j⦄, r i j → p i j) : pairwise p :=
-λ i j hij, h $ hr i j hij
+λ i j hij, h $ hr hij
 
-protected lemma pairwise.eq (h : pairwise r) : ¬ r a b → a = b := not_imp_comm.1 $ h _ _
+protected lemma pairwise.eq (h : pairwise r) : ¬ r a b → a = b := not_imp_comm.1 $ @h _ _
 
 lemma pairwise_on_bool (hr : symmetric r) {a b : α} : pairwise (r on (λ c, cond c a b)) ↔ r a b :=
 by simpa [pairwise, function.on_fun] using @hr a b
@@ -47,15 +47,11 @@ lemma pairwise_disjoint_on_bool [semilattice_inf α] [order_bot α] {a b : α} :
 pairwise_on_bool disjoint.symm
 
 lemma symmetric.pairwise_on [linear_order ι] (hr : symmetric r) (f : ι → α) :
-  pairwise (r on f) ↔ ∀ m n, m < n → r (f m) (f n) :=
-⟨λ h m n hmn, h m n hmn.ne, λ h m n hmn, begin
-  obtain hmn' | hmn' := hmn.lt_or_lt,
-  { exact h _ _ hmn' },
-  { exact hr (h _ _ hmn') }
-end⟩
+  pairwise (r on f) ↔ ∀ ⦃m n⦄, m < n → r (f m) (f n) :=
+⟨λ h m n hmn, h hmn.ne, λ h m n hmn, hmn.lt_or_lt.elim (@h _ _) (λ h', hr (h h'))⟩
 
 lemma pairwise_disjoint_on [semilattice_inf α] [order_bot α] [linear_order ι] (f : ι → α) :
-  pairwise (disjoint on f) ↔ ∀ m n, m < n → disjoint (f m) (f n) :=
+  pairwise (disjoint on f) ↔ ∀ ⦃m n⦄, m < n → disjoint (f m) (f n) :=
 symmetric.pairwise_on disjoint.symm f
 
 lemma pairwise_disjoint.mono [semilattice_inf α] [order_bot α]
@@ -223,20 +219,13 @@ by { rw [sUnion_eq_Union, pairwise_Union (h.directed_coe), set_coe.forall], refl
 
 end set
 
-lemma pairwise.set_pairwise (h : pairwise r) (s : set α) : s.pairwise r := λ x hx y hy, h x y
+lemma pairwise.set_pairwise (h : pairwise r) (s : set α) : s.pairwise r := λ x hx y hy hxy, h hxy
 
 end pairwise
 
-lemma pairwise_subtype_iff_pairwise_set {α : Type*} (s : set α) (r : α → α → Prop) :
+lemma pairwise_subtype_iff_pairwise_set (s : set α) (r : α → α → Prop) :
   pairwise (λ (x : s) (y : s), r x y) ↔ s.pairwise r :=
-begin
-  split,
-  { assume h x hx y hy hxy,
-    exact h ⟨x, hx⟩ ⟨y, hy⟩ (by simpa only [subtype.mk_eq_mk, ne.def]) },
-  { rintros h ⟨x, hx⟩ ⟨y, hy⟩ hxy,
-    simp only [subtype.mk_eq_mk, ne.def] at hxy,
-    exact h hx hy hxy }
-end
+by simp only [pairwise, set.pairwise, set_coe.forall, ne.def, subtype.ext_iff, subtype.coe_mk]
 
 alias pairwise_subtype_iff_pairwise_set ↔ pairwise.set_of_subtype set.pairwise.subtype
 

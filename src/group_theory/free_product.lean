@@ -591,7 +591,7 @@ lemma lift_word_ping_pong {i j k} (w : neword H i j) (hk : j ≠ k) :
 begin
   rename [i → i', j → j', k → m, hk → hm],
   induction w with i x hne_one i j k l w₁ hne w₂  hIw₁ hIw₂ generalizing m; clear i' j',
-  { simpa using hpp _ _ hm _ hne_one, },
+  { simpa using hpp hm _ hne_one, },
   { calc lift f (neword.append w₁ hne w₂).prod • X m
         = lift f w₁.prod • lift f w₂.prod • X m : by simp [mul_action.mul_smul]
     ... ⊆ lift f w₁.prod • X k : set_smul_subset_set_smul_iff.mpr (hIw₂ hm)
@@ -607,7 +607,7 @@ begin
   have : X k ⊆ X i,
     by simpa [heq1] using lift_word_ping_pong f X hpp w hlast.symm,
   obtain ⟨x, hx⟩ := hXnonempty k,
-  exact hXdisj k i hhead ⟨hx, this hx⟩,
+  exact hXdisj hhead ⟨hx, this hx⟩,
 end
 
 include hnontriv
@@ -796,10 +796,10 @@ begin
   { intros i j hij,
     simp only [X'],
     apply disjoint.union_left; apply disjoint.union_right,
-    { exact hXdisj i j hij, },
+    { exact hXdisj hij, },
     { exact hXYdisj i j, },
     { exact (hXYdisj j i).symm, },
-    { exact hYdisj i j hij, }, },
+    { exact hYdisj hij, }, },
 
   show pairwise (λ i j, ∀ h : H i, h ≠ 1 → f i h • X' j ⊆ X' i),
   { rintros i j hij,

@@ -121,9 +121,9 @@ begin
   { exact h n le_rfl },
   rintro m hm,
   induction m with m ih,
-  { exact hdisj _ _ (nat.succ_ne_zero _).symm },
+  { exact hdisj (nat.succ_ne_zero _).symm },
   rw [partial_sups_succ, disjoint_iff, inf_sup_right, sup_eq_bot_iff, ←disjoint_iff, ←disjoint_iff],
-  exact ⟨ih (nat.le_of_succ_le hm), hdisj _ _ (nat.lt_succ_of_le hm).ne⟩,
+  exact ⟨ih (nat.le_of_succ_le hm), hdisj (nat.lt_succ_of_le hm).ne⟩,
 end
 
 end generalized_boolean_algebra

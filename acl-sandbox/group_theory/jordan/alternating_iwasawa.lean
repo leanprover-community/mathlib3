@@ -22,7 +22,10 @@ import .multiple_transitivity
 import .jordan
 import .perm_iwasawa
 
-open_locale pointwise classical
+import .V4
+
+open_locale pointwise
+-- open_locale classical
 
 open mul_action
 
@@ -86,6 +89,8 @@ variables  {α : Type*} [fintype α] [decidable_eq α]
 
 namespace alternating_group
 
+open_locale classical
+
 lemma is_pretransitive_of_fixing_subgroup (s : set α) (h0 : s.nontrivial)
   (hα : fintype.card s < fintype.card (sᶜ : set α))  :
   is_pretransitive (fixing_subgroup (alternating_group α) s)
@@ -147,7 +152,7 @@ begin
   exact stabilizer_ne_top' s hs hsc',
 end
 
-open_locale classical
+-- open_locale classical
 
 example (s t : set α) (h : s ⊆ t) : fintype.card s ≤ fintype.card t :=
 begin
@@ -303,7 +308,7 @@ begin
     { apply le_trans _ this,
       apply nat.add_le_add, exact hs,
       apply le_trans _ hs', apply le_of_eq,
-      simp only [fintype.card_of_finset, set.mem_compl_eq], },
+      simp only [fintype.card_of_finset, set.mem_compl_iff], },
     norm_num, },
 end
 
@@ -332,12 +337,25 @@ lemma stabilizer.is_preprimitive (s : set α) (hs : (sᶜ : set α).nontrivial):
   is_preprimitive (stabilizer (alternating_group α) s) s :=
 begin
   let φ : stabilizer (alternating_group α) s → equiv.perm s := mul_action.to_perm,
+  suffices hφ : function.surjective φ,
+
   let f : s →ₑ[φ] s := {
   to_fun := id,
-  map_smul' := λ g x, by simp only [id.def, equiv.perm.smul_def, to_perm_apply], },
-  have hf : function.bijective f := function.bijective_id,
-  rw is_preprimitive_of_bijective_map_iff _ hf,
-  exact equiv.perm.is_preprimitive s,
+  map_smul' := λ ⟨g, hg⟩ ⟨x, hx⟩,
+  begin
+    simp only [id.def, equiv.perm.smul_def, to_perm_apply],
+    rw ← subtype.coe_inj,
+    simp only [has_smul.stabilizer_def, subtype.coe_mk],
+    refl,
+  end },
+  suffices hf : function.bijective f, --  := function.bijective_id,
+  let this := is_preprimitive_of_bijective_map_iff',
+
+  specialize this φ,
+  refine (is_preprimitive_of_bijective_map_iff hφ hf).mp (equiv.perm.is_preprimitive s),
+
+  sorry,
+
   suffices : ∃ k : equiv.perm (sᶜ : set α), equiv.perm.sign k = -1,
   obtain ⟨k, hk_sign⟩ := this,
   have hks : (equiv.perm.of_subtype k) • s = s,
@@ -345,51 +363,56 @@ begin
     apply equiv.perm.of_subtype.mem_stabilizer', },
 
   -- function.surjective φ
-  intro g,
-  have hgs : (equiv.perm.of_subtype g) • s = s,
-  apply equiv.perm.of_subtype.mem_stabilizer,
+  have hφ : function.surjective φ,
+  { intro g,
+    have hgs : (equiv.perm.of_subtype g) • s = s,
+    apply equiv.perm.of_subtype.mem_stabilizer,
 
-  have hminus_one_ne_one : (-1 : units ℤ) ≠ 1,
-  { intro h, rw [← units.eq_iff, units.coe_one, units.coe_neg_one] at h, norm_num at h, },
+    have hminus_one_ne_one : (-1 : units ℤ) ≠ 1,
+    { intro h, rw [← units.eq_iff, units.coe_one, units.coe_neg_one] at h, norm_num at h, },
 
-  let g' := ite (equiv.perm.sign g = 1)
-    (equiv.perm.of_subtype g)
-    (equiv.perm.of_subtype g * (equiv.perm.of_subtype k)),
+    let g' := ite (equiv.perm.sign g = 1)
+      (equiv.perm.of_subtype g)
+      (equiv.perm.of_subtype g * (equiv.perm.of_subtype k)),
 
-  use g',
+    use g',
 
-  rw equiv.perm.mem_alternating_group,
-  cases int.units_eq_one_or (equiv.perm.sign g) with hsg hsg;
-  { dsimp [g'], -- rw hsg,
-    simp only [hsg, eq_self_iff_true, if_true, hminus_one_ne_one, if_false,
-      equiv.perm.sign_of_subtype,
-      equiv.perm.sign_mul, mul_neg, mul_one, neg_neg, hsg, hk_sign], },
+    rw equiv.perm.mem_alternating_group,
+    cases int.units_eq_one_or (equiv.perm.sign g) with hsg hsg;
+    { dsimp [g'], -- rw hsg,
+      simp only [hsg, eq_self_iff_true, if_true, hminus_one_ne_one, if_false,
+        equiv.perm.sign_of_subtype,
+        equiv.perm.sign_mul, mul_neg, mul_one, neg_neg, hsg, hk_sign], },
 
-  rw mem_stabilizer_iff,
-  change (ite (equiv.perm.sign g = 1)
-    (equiv.perm.of_subtype g)
-    (equiv.perm.of_subtype g * (equiv.perm.of_subtype k))) • s = s,
-  cases int.units_eq_one_or (equiv.perm.sign g) with hsg hsg,
-  { simp only [hsg,  eq_self_iff_true, if_true],
-    exact hgs, },
-  { simp only [hsg, hminus_one_ne_one, if_false],
-    rw mul_smul, rw hks, exact hgs, },
+    rw mem_stabilizer_iff,
+    change (ite (equiv.perm.sign g = 1)
+      (equiv.perm.of_subtype g)
+      (equiv.perm.of_subtype g * (equiv.perm.of_subtype k))) • s = s,
+    cases int.units_eq_one_or (equiv.perm.sign g) with hsg hsg,
+    { simp only [hsg,  eq_self_iff_true, if_true],
+      exact hgs, },
+    { simp only [hsg, hminus_one_ne_one, if_false],
+      rw mul_smul, rw hks, exact hgs, },
 
-  dsimp [φ],
-  cases int.units_eq_one_or (equiv.perm.sign g) with hsg hsg,
-  { dsimp [g'], simp only [hsg, eq_self_iff_true, if_true, hminus_one_ne_one, if_false],
-    ext,
-    simp only [to_perm_apply, has_smul.stabilizer_def, subtype.coe_mk],
-    change equiv.perm.of_subtype g ↑x = ↑(g x),
-    exact equiv.perm.of_subtype_apply_coe g x, },
-  { dsimp [g'], simp only [hsg, eq_self_iff_true, if_true, hminus_one_ne_one, if_false],
-    ext,
-    simp only [to_perm_apply, has_smul.stabilizer_def, subtype.coe_mk],
-    change ((equiv.perm.of_subtype g) * (equiv.perm.of_subtype k)) ↑x = ↑(g x),
-    rw equiv.perm.mul_apply ,
-    rw equiv.perm.of_subtype_apply_of_not_mem k _,
-    exact equiv.perm.of_subtype_apply_coe g x,
-    rw set.not_mem_compl_iff, exact x.prop, },
+    dsimp [φ],
+    cases int.units_eq_one_or (equiv.perm.sign g) with hsg hsg,
+    { dsimp [g'], simp only [hsg, eq_self_iff_true, if_true, hminus_one_ne_one, if_false],
+      ext,
+      simp only [to_perm_apply, has_smul.stabilizer_def, subtype.coe_mk],
+      change equiv.perm.of_subtype g ↑x = ↑(g x),
+      exact equiv.perm.of_subtype_apply_coe g x, },
+    { dsimp [g'], simp only [hsg, eq_self_iff_true, if_true, hminus_one_ne_one, if_false],
+      ext,
+      simp only [to_perm_apply, has_smul.stabilizer_def, subtype.coe_mk],
+      change ((equiv.perm.of_subtype g) * (equiv.perm.of_subtype k)) ↑x = ↑(g x),
+      rw equiv.perm.mul_apply ,
+      rw equiv.perm.of_subtype_apply_of_not_mem k _,
+      exact equiv.perm.of_subtype_apply_coe g x,
+      rw set.not_mem_compl_iff, exact x.prop, }, },
+
+  rw @is_preprimitive_of_bijective_map_iff _ _ _ _ _ _ _ _ φ f hφ hf,
+  exact equiv.perm.is_preprimitive s,
+  sorry,
 
   obtain ⟨a, ha, b, hb, hab⟩ := hs,
   use equiv.swap ⟨a, ha⟩ ⟨b, hb⟩,
@@ -1273,6 +1296,25 @@ begin
   norm_num,
   apply lt_of_lt_of_le _ hα, norm_num,
 end
+
+def Iw4 : iwasawa_structure (alternating_group α) (nat.finset α 4) :=
+{ T := λ (s : nat.finset α 4), (subgroup.map
+    (equiv.perm.of_subtype : equiv.perm (s : finset α) →* equiv.perm α)
+    (alternating_group (s : finset α))).subgroup_of (alternating_group α),
+  is_comm := λ ⟨s, hs⟩,
+  begin
+    apply subgroup.subgroup_of_is_commutative _,
+    haveI : (alternating_group (s : finset α)).is_commutative := { is_comm :=
+    begin
+      apply alternating_group.is_commutative_of_order_three,
+      rw fintype.card_coe, exact hs,
+    end },
+    apply subgroup.map_is_commutative (alternating_group (s : finset α)),
+  end,
+  is_conj := λ g ⟨s, hs⟩, Iw_is_conj_alt s g,
+  is_generator := Iw_is_generator_alt,
+}
+
 
 
 /-- If α has at least 5 elements, but not 8,

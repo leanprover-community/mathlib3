@@ -317,6 +317,7 @@ begin
       exact hB } }
 end
 
+
 end equivariant_map
 
 section stabilizer

@@ -44,6 +44,7 @@ lemma smul_diff_smul' [hH : normal H] (g : Gᵐᵒᵖ) :
   diff (monoid_hom.id H) (g • α) (g • β) = ⟨g.unop⁻¹ * (diff (monoid_hom.id H) α β : H) * g.unop,
     hH.mem_comm ((congr_arg (∈ H) (mul_inv_cancel_left _ _)).mpr (set_like.coe_mem _))⟩ :=
 begin
+  letI := H.fintype_quotient_of_finite_index,
   let ϕ : H →* H :=
   { to_fun := λ h, ⟨g.unop⁻¹ * h * g.unop,
       hH.mem_comm ((congr_arg (∈ H) (mul_inv_cancel_left _ _)).mpr (set_like.coe_mem _))⟩,
@@ -70,6 +71,7 @@ instance : mul_action G H.quotient_diff :=
 lemma smul_diff' (h : H) :
   diff (monoid_hom.id H) α ((op (h : G)) • β) = diff (monoid_hom.id H) α β * h ^ H.index :=
 begin
+  letI := H.fintype_quotient_of_finite_index,
   rw [diff, diff, index_eq_card, ←finset.card_univ, ←finset.prod_const, ←finset.prod_mul_distrib],
   refine finset.prod_congr rfl (λ q _, _),
   simp_rw [subtype.ext_iff, monoid_hom.id_apply, coe_mul, coe_mk, mul_assoc, mul_right_inj],

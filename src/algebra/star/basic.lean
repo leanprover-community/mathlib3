@@ -374,7 +374,7 @@ by { nth_rewrite_rhs 0 [←star_star r], exact star_mul_self_nonneg }
 lemma conjugate_nonneg {a : R} (ha : 0 ≤ a) (c : R) : 0 ≤ star c * a * c :=
 begin
   obtain ⟨x, rfl⟩ := (star_ordered_ring.nonneg_iff _).1 ha,
-  refine (star_ordered_ring.nonneg_iff _).2 ⟨x * c, by rw [star_mul, ←mul_assoc, mul_assoc _ _ c]⟩,
+  exact (star_ordered_ring.nonneg_iff _).2 ⟨x * c, by rw [star_mul, ←mul_assoc, mul_assoc _ _ c]⟩,
 end
 
 lemma conjugate_nonneg' {a : R} (ha : 0 ≤ a) (c : R) : 0 ≤ c * a * star c :=

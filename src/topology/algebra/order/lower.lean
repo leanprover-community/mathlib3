@@ -157,15 +157,7 @@ The lower topology on a partial order is T₀.
 -/
 @[priority 90] -- see Note [lower instance priority]
 instance lower_topology.to_t0_space : t0_space (lower α) :=
-begin
-  rw t0_space_iff_inseparable,
-  intros x y h,
-  rw [inseparable_iff_closure_eq, lower_topology.closure_singleton,
-    lower_topology.closure_singleton, subset_antisymm_iff] at h,
-  rw le_antisymm_iff,
-  split,
-  { rw ← Ici_subset_Ici, apply h.2, },
-  { rw ← Ici_subset_Ici, apply h.1, }
-end
+(t0_space_iff_inseparable _).2 $ λ x y h, by simpa only
+  [inseparable_iff_closure_eq, lower_topology.closure_singleton, Ici_inj] using h
 
 end partial_order

@@ -352,7 +352,7 @@ lemma concat_rec_aux_concat {u v w : V} (p : G.walk u v) (h : G.adj v w) :
 begin
   transitivity concat_rec_aux @Hnil @Hconcat (cons h.symm p.reverse),
   { congr, simp },
-  simp [concat_rec_aux],
+  simp [concat_rec_aux, rec_heq_iff_heq],
 end
 
 /-- Recursor on walks by inducting on `simple_graph.walk.concat`. -/
@@ -370,9 +370,8 @@ begin
   simp only [concat_rec],
   apply eq_of_heq,
   apply rec_heq_of_heq,
-  have := concat_rec_aux_concat @Hnil @Hconcat p h,
-  refine heq.trans this _,
-  congr; simp,
+  refine heq.trans (concat_rec_aux_concat @Hnil @Hconcat p h) _,
+  congr; simp [heq_rec_iff_heq],
 end
 
 end concat_rec

@@ -396,12 +396,10 @@ begin
     suffices :
       to_reps_arrow S Sw c ≫ f ≫ category_theory.inv (to_reps_arrow S Sw d) ∈
       S.arrows (of_reps S Sw (to_reps S Sw c)) (of_reps S Sw (to_reps S Sw d)),
-    { apply mem_of_mul_mem S (to_reps_arrow S Sw c) f (to_reps_arrow_mem S Sw c),
-      apply mem_of_mul_mem' S _ (category_theory.inv $ to_reps_arrow S Sw d),
-      apply mem_of_inv_mem,
-      simp only [inv_eq_inv, is_iso.inv_inv],
-      apply to_reps_arrow_mem,
-      simpa only [category.assoc] using this, },
+    { rw @subgroupoid.mul_mem_cancel_left _ _ S _ _ _ _ _ (to_reps_arrow_mem S Sw c) at this,
+      rw ←inv_eq_inv at this,
+      rw @subgroupoid.mul_mem_cancel_right _ _ S _ _ _ _ (inv $ to_reps_arrow S Sw d) (S.inv (to_reps_arrow_mem S Sw d)) at this,
+      exact this, },
     rw e, apply eq_to_hom_val_mem_S, },
   { rw le_iff,
     rintro c d f fS, rw mem_ker_iff,

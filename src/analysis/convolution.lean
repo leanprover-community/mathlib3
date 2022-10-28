@@ -984,24 +984,6 @@ section
 
 open finite_dimensional
 
-lemma mul_support_comp_inv_smul {α β γ : Type*} [group_with_zero α] [mul_action α β] [has_one γ]
-  {D : α} (hD : D ≠ 0) (f : β → γ) :
-  mul_support (λ x, f (D⁻¹ • x)) = D • mul_support f :=
-begin
-  ext x, simp only [mem_smul_set_iff_inv_smul_mem₀ hD, mem_mul_support],
-end
-
-lemma support_comp_inv_smul {α β γ : Type*} [group_with_zero α] [mul_action α β] [has_zero γ]
-  {D : α} (hD : D ≠ 0) (f : β → γ) :
-  support (λ x, f (D⁻¹ • x)) = D • support f :=
-begin
-  ext x, simp only [mem_smul_set_iff_inv_smul_mem₀ hD, mem_support],
-end
-
-attribute [to_additive support_comp_inv_smul] mul_support_comp_inv_smul
-
-
-
 namespace exists_cont_diff_bump_base
 
 variables {H : Type*} [normed_add_comm_group H]
@@ -1108,7 +1090,7 @@ begin
     by rw [smul_unit_ball Dpos.ne', real.norm_of_nonneg Dpos.le],
   have C : D ^ finrank ℝ H ≠ 0, from pow_ne_zero _ Dpos.ne',
   simp only [W_def, algebra.id.smul_eq_mul, support_mul, support_inv, univ_inter,
-    support_comp_inv_smul Dpos.ne', u_support, B, support_const (u_int_pos H).ne',
+    support_comp_inv_smul₀ Dpos.ne', u_support, B, support_const (u_int_pos H).ne',
     support_const C, abs_of_nonneg Dpos.le],
 end
 
@@ -1305,7 +1287,7 @@ begin
       have A : 0 < (R + 1) / 2, by linarith,
       have A' : 0 < R + 1, by linarith,
       have C :  (R - 1) / (R + 1) < 1, by { apply (div_lt_one _ ).2; linarith },
-      simp only [hR, if_true, support_comp_inv_smul A.ne', Y_support _ (IR R hR) C, smul_ball A.ne',
+      simp only [hR, if_true, support_comp_inv_smul₀ A.ne', Y_support _ (IR R hR) C, smul_ball A.ne',
         real.norm_of_nonneg A.le, smul_zero],
       congr' 1,
       field_simp [A'.ne'],

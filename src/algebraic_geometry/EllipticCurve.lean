@@ -10,47 +10,61 @@ import tactic.linear_combination
 /-!
 # The category of elliptic curves (over a field or a PID)
 
-We give a working definition of elliptic curves which is mathematically accurate
-in many cases, and also good for computation.
+We give a working definition of elliptic curves which is mathematically accurate in many cases,
+and also good for computation. The type of $K$-rational points on an elliptic curve over a field
+is defined as `EllipticCurve.point` in `src/algebraic_geometry/EllipticCurve/point.lean`.
 
 ## Mathematical background
 
-Let `S` be a scheme. The actual category of elliptic curves over `S` is a large category,
-whose objects are schemes `E` equipped with a map `E → S`, a section `S → E`, and some
-axioms (the map is smooth and proper and the fibres are geometrically connected group varieties
-of dimension one). In the special case where `S` is `Spec R` for some commutative ring `R`
-whose Picard group is trivial (this includes all fields, all principal ideal domains, and many
-other commutative rings) then it can be shown (using rather a lot of algebro-geometric machinery)
-that every elliptic curve is, up to isomorphism, a projective plane cubic defined by
-the equation `y² + a₁xy + a₃y = x³ + a₂x² + a₄x + a₆`, with `aᵢ : R`, and such that
-the discriminant of the aᵢ is a unit in `R`.
+Let $S$ be a scheme. The actual category of elliptic curves over $S$ is a large category, whose
+objects are schemes $E$ equipped with a map $E \to S$, a section $S \to E$, and some axioms (the map
+is smooth and proper and the fibres are geometrically-connected one-dimensional group varieties). In
+the special case where $S = \mathrm{Spec}(R)$ for some commutative ring $R$ whose Picard group is
+trivial (this includes all fields, all PIDs, and many other commutative rings) it can be shown
+(using a lot of algebro-geometric machinery) that every elliptic curve is, up to isomorphism, a
+projective plane cubic defined by the equation $y^2 + a_1xy + a_3y = x^3 + a_2x^2 + a_4x + a_6$,
+with $a_i \in R$, and such that the discriminant of the $a_i$ is a unit in $R$.
 
-Some more details of the construction can be found on pages 66-69 of
-[N. Katz and B. Mazur, *Arithmetic moduli of elliptic curves*][katz_mazur] or pages
-53-56 of [P. Deligne, *Courbes elliptiques: formulaire d'après J. Tate*][deligne_formulaire].
+## Main definitions
 
-## Warning
+ * `EllipticCurve`: an elliptic curve `E` over a ring `R`.
+ * `EllipticCurve.j`: the j-invariant of `E`.
+ * `EllipticCurve.two_torsion_polynomial`: the 2-torsion polynomial of `E`.
+ * `EllipticCurve.change_of_variable`: an elliptic curve induced by a change of variables on `E`.
 
-The definition in this file makes sense for all commutative rings `R`, but it only gives
-a type which can be beefed up to a category which is equivalent to the category of elliptic
-curves over `Spec R` in the case that `R` has trivial Picard group `Pic R` or, slightly more
-generally, when its `12`-torsion is trivial. The issue is that for a general ring `R`, there
-might be elliptic curves over `Spec R` in the sense of algebraic geometry which are not
-globally defined by a cubic equation valid over the entire base.
+## Main statements
 
-## TODO
+ * `EllipticCurve.two_torsion_polynomial.disc_eq`: the discriminant of `E` is a constant factor of
+    the cubic discriminant of the 2-torsion polynomial of `E`.
+ * `EllipticCurve.change_of_variable.j_eq`: the j-invariant of `E` is invariant under an admissible
+    linear change of variables.
 
-Define the `R`-points (or even `A`-points if `A` is an `R`-algebra). Care will be needed at infinity
-if `R` is not a field. Define the group law on the `R`-points. Prove associativity (hard).
+## Implementation notes
+
+The definition in this file makes sense for all commutative rings $R$, but it only gives a type
+which can be beefed up to a category which is equivalent to the category of elliptic curves over
+$\mathrm{Spec}(R)$ in the case that $R$ has trivial Picard group $\mathrm{Pic}(R)$ or, slightly more
+generally, when its $12$-torsion is trivial. The issue is that for a general ring $R$, there might
+be elliptic curves over $\mathrm{Spec}(R)$ in the sense of algebraic geometry which are not globally
+defined by a cubic equation valid over the entire base.
+
+## References
+
+ * [N. Katz and B. Mazur, *Arithmetic moduli of elliptic curves*][katz_mazur]
+ * [P. Deligne, *Courbes elliptiques: formulaire d'après J. Tate*][deligne_formulaire]
+
+## Tags
+
+elliptic curve, weierstrass equation, j invariant
 -/
 
 universes u v
 
 /-- The discriminant of an elliptic curve given by the long Weierstrass equation
-  `y² + a₁xy + a₃y = x³ + a₂x² + a₄x + a₆`. If `R` is a field, then this polynomial vanishes iff the
-  cubic curve cut out by this equation is singular. Sometimes only defined up to sign in the
-  literature; we choose the sign used by the LMFDB. For more discussion, see
-  [the LMFDB page on discriminants](https://www.lmfdb.org/knowledge/show/ec.discriminant). -/
+$y^2 + a_1xy + a_3y = x^3 + a_2x^2 + a_4x + a_6$. If $R$ is a field, then this polynomial vanishes
+iff the cubic curve cut out by this equation is singular. Sometimes only defined up to sign in the
+literature; we choose the sign used by the LMFDB. For more discussion, see
+[the LMFDB page on discriminants](https://www.lmfdb.org/knowledge/show/ec.discriminant). -/
 @[simp] def EllipticCurve.Δ_aux {R : Type u} [comm_ring R] (a₁ a₂ a₃ a₄ a₆ : R) : R :=
 let b₂ : R := a₁ ^ 2 + 4 * a₂,
     b₄ : R := 2 * a₄ + a₁ * a₃,
@@ -58,8 +72,8 @@ let b₂ : R := a₁ ^ 2 + 4 * a₂,
     b₈ : R := a₁ ^ 2 * a₆ + 4 * a₂ * a₆ - a₁ * a₃ * a₄ + a₂ * a₃ ^ 2 - a₄ ^ 2
 in  -b₂ ^ 2 * b₈ - 8 * b₄ ^ 3 - 27 * b₆ ^ 2 + 9 * b₂ * b₄ * b₆
 
-/-- The category of elliptic curves over `R` (note that this definition is only mathematically
-  correct for certain rings `R` with `Pic(R)[12] = 0`, for example if `R` is a field or a PID). -/
+/-- The category of elliptic curves over $R$ (note that this definition is only mathematically
+correct for certain rings whose Picard group has trivial 12-torsion, such as a field or a PID). -/
 structure EllipticCurve (R : Type u) [comm_ring R] :=
 (a₁ a₂ a₃ a₄ a₆ : R) (Δ : Rˣ) (Δ_eq : ↑Δ = EllipticCurve.Δ_aux a₁ a₂ a₃ a₄ a₆)
 
@@ -74,25 +88,25 @@ variables {R : Type u} [comm_ring R] (E : EllipticCurve R)
 
 section quantity
 
-/-- The `b₂` coefficient of an elliptic curve. -/
+/-- The $b₂$ coefficient of an elliptic curve. -/
 @[simp] def b₂ : R := E.a₁ ^ 2 + 4 * E.a₂
 
-/-- The `b₄` coefficient of an elliptic curve. -/
+/-- The $b₄$ coefficient of an elliptic curve. -/
 @[simp] def b₄ : R := 2 * E.a₄ + E.a₁ * E.a₃
 
-/-- The `b₆` coefficient of an elliptic curve. -/
+/-- The $b₆$ coefficient of an elliptic curve. -/
 @[simp] def b₆ : R := E.a₃ ^ 2 + 4 * E.a₆
 
-/-- The `b₈` coefficient of an elliptic curve. -/
+/-- The $b₈$ coefficient of an elliptic curve. -/
 @[simp] def b₈ : R :=
 E.a₁ ^ 2 * E.a₆ + 4 * E.a₂ * E.a₆ - E.a₁ * E.a₃ * E.a₄ + E.a₂ * E.a₃ ^ 2 - E.a₄ ^ 2
 
 lemma b_relation : 4 * E.b₈ = E.b₂ * E.b₆ - E.b₄ ^ 2 := by { simp, ring1 }
 
-/-- The `c₄` coefficient of an elliptic curve. -/
+/-- The $c₄$ coefficient of an elliptic curve. -/
 @[simp] def c₄ : R := E.b₂ ^ 2 - 24 * E.b₄
 
-/-- The `c₆` coefficient of an elliptic curve. -/
+/-- The $c₆$ coefficient of an elliptic curve. -/
 @[simp] def c₆ : R := -E.b₂ ^ 3 + 36 * E.b₂ * E.b₄ - 216 * E.b₆
 
 @[simp] lemma coe_Δ :
@@ -101,20 +115,20 @@ E.Δ_eq
 
 lemma c_relation : 1728 * ↑E.Δ = E.c₄ ^ 3 - E.c₆ ^ 2 := by { simp, ring1 }
 
-/-- The j-invariant of an elliptic curve, which is invariant under isomorphisms over `R`. -/
+/-- The j-invariant of an elliptic curve, which is invariant under isomorphisms over $R$. -/
 @[simp] def j : R := ↑E.Δ⁻¹ * E.c₄ ^ 3
 
 end quantity
 
-/-! ### `2`-torsion polynomials -/
+/-! ### 2-torsion polynomials -/
 
 section torsion_polynomial
 
 variables (A : Type v) [comm_ring A] [algebra R A]
 
-/-- The polynomial whose roots over a splitting field of `R` are the `2`-torsion points of the
-  elliptic curve when `R` is a field of characteristic different from `2`, and whose discriminant
-  happens to be a multiple of the discriminant of the elliptic curve. -/
+/-- The polynomial whose roots over a splitting field of $R$ are precisely the 2-torsion points of
+the elliptic curve when $R$ is a field of characteristic different from 2, and whose discriminant
+happens to be a multiple of the discriminant of the elliptic curve. -/
 def two_torsion_polynomial : cubic A :=
 ⟨4, algebra_map R A E.b₂, 2 * algebra_map R A E.b₄, algebra_map R A E.b₆⟩
 
@@ -134,6 +148,7 @@ lemma two_torsion_polynomial.disc_ne_zero {K : Type u} [field K] [invertible (2 
 begin
   simp only [map_mul, map_pow, map_bit0, map_one, map_zero],
   linear_combination hdisc - two_torsion_polynomial.disc_eq E A
+    with { normalization_tactic := `[ring1] }
 end
 
 end torsion_polynomial
@@ -142,9 +157,9 @@ end torsion_polynomial
 
 variables (u : Rˣ) (r s t : R)
 
-/-- The elliptic curve over `R` induced by an admissible linear change of variables
-  `(x, y) ↦ (u²x + r, u³y + u²sx + t)` for some `u ∈ Rˣ` and some `r, s, t ∈ R`.
-  When `R` is a field, any two isomorphic long Weierstrass equations are related by this. -/
+/-- The elliptic curve over $R$ induced by an admissible linear change of variables
+$(x, y) \mapsto (u^2x + r, u^3y + u^2sx + t)$ for some $u \in R^\times$ and some $r, s, t \in R$.
+When $R$ is a field, any two isomorphic long Weierstrass equations are related by this. -/
 def change_of_variable : EllipticCurve R :=
 { a₁   := ↑u⁻¹ * (E.a₁ + 2 * s),
   a₂   := ↑u⁻¹ ^ 2 * (E.a₂ - s * E.a₁ + 3 * r - s ^ 2),
@@ -201,10 +216,10 @@ by { simp [change_of_variable], ring1 }
 
 @[simp] lemma j_eq : (E.change_of_variable u r s t).j = E.j :=
 begin
-  simp only [j, c₄, Δ_eq, inv_pow, mul_inv_rev, inv_inv, units.coe_mul, units.coe_pow,
-    c₄_eq, b₂, b₄],
+  simp only [b₂, b₄, c₄, j, c₄_eq, Δ_eq, inv_inv, inv_pow, mul_inv_rev, units.coe_mul, u.coe_pow],
   have hu : (u * ↑u⁻¹ : R) ^ 12 = 1 := by rw [u.mul_inv, one_pow],
   linear_combination ↑E.Δ⁻¹ * ((E.a₁ ^ 2 + 4 * E.a₂) ^ 2 - 24 * (2 * E.a₄ + E.a₁ * E.a₃)) ^ 3 * hu
+    with { normalization_tactic := `[ring1] }
 end
 
 end change_of_variable

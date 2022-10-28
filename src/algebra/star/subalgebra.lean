@@ -33,7 +33,7 @@ Forgetting that a *-subalgebra is closed under *.
 -/
 add_decl_doc star_subalgebra.to_subalgebra
 
-variables {R A B C : Type*} [comm_semiring R] [star_ring R]
+variables {F R A B C : Type*} [comm_semiring R] [star_ring R]
 variables [semiring A] [star_ring A] [algebra R A] [star_module R A]
 variables [semiring B] [star_ring B] [algebra R B] [star_module R B]
 variables [semiring C] [star_ring C] [algebra R C] [star_module R C]
@@ -442,7 +442,7 @@ variables (R)
 def adjoin_comm_semiring_of_comm {s : set A}
   (hcomm : ∀ (a : A), a ∈ s → ∀ (b : A), b ∈ s → a * b = b * a)
   (hcomm_star : ∀ (a : A), a ∈ s → ∀ (b : A), b ∈ s → a * star b = star b * a) :
-comm_semiring (adjoin R s) :=
+  comm_semiring (adjoin R s) :=
 { mul_comm :=
   begin
     rintro ⟨x, hx⟩ ⟨y, hy⟩,
@@ -468,7 +468,7 @@ def adjoin_comm_ring_of_comm (R : Type u) {A : Type v} [comm_ring R] [star_ring 
   [ring A] [algebra R A] [star_ring A] [star_module R A] {s : set A}
   (hcomm : ∀ (a : A), a ∈ s → ∀ (b : A), b ∈ s → a * b = b * a)
   (hcomm_star : ∀ (a : A), a ∈ s → ∀ (b : A), b ∈ s → a * star b = star b * a) :
-comm_ring (adjoin R s) :=
+  comm_ring (adjoin R s) :=
 { ..star_subalgebra.adjoin_comm_semiring_of_comm R hcomm hcomm_star,
   ..(adjoin R s).to_subalgebra.to_ring }
 
@@ -488,42 +488,9 @@ instance adjoin_comm_ring_of_is_star_normal (R : Type u) {A : Type v} [comm_ring
   comm_ring (adjoin R ({x} : set A)) :=
 { mul_comm := mul_comm, ..(adjoin R ({x} : set A)).to_subalgebra.to_ring }
 
-end star_subalgebra
-
-namespace star_alg_hom
-
-variables {F R A B : Type*} [comm_semiring R] [star_ring R]
-variables [semiring A] [algebra R A] [star_ring A] [star_module R A]
-variables [semiring B] [algebra R B] [star_ring B]
-
-open star_subalgebra
-
-lemma ext_adjoin {s : set A} [star_alg_hom_class F R (adjoin R s) B] {f g : F}
-  (h : ∀ x : adjoin R s, (x : A) ∈ s → f x = g x) : f = g :=
-begin
-  refine fun_like.ext f g (λ a, adjoin_induction' a (λ x hx, _) (λ r, _) (λ x y hx hy, _)
-    (λ x y hx hy, _) (λ x hx, _)),
-  { exact h ⟨x, subset_adjoin R s hx⟩ hx },
-  { simp only [alg_hom_class.commutes] },
-  { rw [map_add, map_add, hx, hy] },
-  { rw [map_mul, map_mul, hx, hy] },
-  { rw [map_star, map_star, hx] },
-end
-
-lemma ext_adjoin_singleton {a : A} [star_alg_hom_class F R (adjoin R ({a} : set A)) B] {f g : F}
-  (h : f ⟨a, self_mem_adjoin_singleton R a⟩ = g ⟨a, self_mem_adjoin_singleton R a⟩) : f = g :=
-ext_adjoin $ λ x hx, (show x = ⟨a, self_mem_adjoin_singleton R a⟩,
-  from subtype.ext $ set.mem_singleton_iff.mp hx).symm ▸ h
-
-end star_alg_hom
-
-namespace star_subalgebra
-
 /-! ### Complete lattice structure -/
 
-variables {F R A B : Type*} [comm_semiring R] [star_ring R]
-variables [semiring A] [algebra R A] [star_ring A] [star_module R A]
-variables [semiring B] [algebra R B] [star_ring B] [star_module R B]
+variables {F R A B}
 
 instance : complete_lattice (star_subalgebra R A) :=
 galois_insertion.lift_complete_lattice star_subalgebra.gi
@@ -551,7 +518,7 @@ lemma mul_mem_sup {S T : star_subalgebra R A} {x y : A} (hx : x ∈ S) (hy : y �
   x * y ∈ S ⊔ T :=
 mul_mem (mem_sup_left hx) (mem_sup_right hy)
 
-lemma map_sup (f : A →⋆ₐ[R] B) (S T : star_subalgebra R A) : (S ⊔ T).map f = S.map f ⊔ T.map f :=
+lemma map_sup (f : A →⋆ₐ[R] B) (S T : star_subalgebra R A) : map f (S ⊔ T) = map f S ⊔ map f T :=
 (star_subalgebra.gc_map_comap f).l_sup
 
 @[simp, norm_cast]
@@ -598,3 +565,59 @@ theorem eq_top_iff {S : star_subalgebra R A} :
 ⟨λ h x, by rw h; exact mem_top, λ h, by ext x; exact ⟨λ _, mem_top, λ _, h x⟩⟩
 
 end star_subalgebra
+
+namespace star_alg_hom
+open star_subalgebra
+
+variables {F R A B : Type*} [comm_semiring R] [star_ring R]
+variables [semiring A] [algebra R A] [star_ring A] [star_module R A]
+variables [semiring B] [algebra R B] [star_ring B]
+variables [hF : star_alg_hom_class F R A B] (f g : F)
+
+include hF
+
+/-- The equalizer of two star `R`-algebra homomorphisms. -/
+def equalizer : star_subalgebra R A :=
+{ carrier := {a | f a = g a},
+  mul_mem' := λ a b (ha : f a = g a) (hb : f b = g b),
+    by rw [set.mem_set_of_eq, map_mul f, map_mul g, ha, hb],
+  add_mem' := λ a b (ha : f a = g a) (hb : f b = g b),
+    by rw [set.mem_set_of_eq, map_add f, map_add g, ha, hb],
+  algebra_map_mem' := λ r, by simp only [set.mem_set_of_eq, alg_hom_class.commutes],
+  star_mem' := λ a (ha : f a = g a), by rw [set.mem_set_of_eq, map_star f, map_star g, ha] }
+
+@[simp] lemma mem_equalizer (x : A) : x ∈ star_alg_hom.equalizer f g ↔ f x = g x := iff.rfl
+
+lemma adjoin_le_equalizer {s : set A} (h : s.eq_on f g) : adjoin R s ≤ star_alg_hom.equalizer f g :=
+adjoin_le h
+
+lemma ext_of_adjoin_eq_top {s : set A}
+  (h : adjoin R s = ⊤) ⦃f g : F⦄ (hs : s.eq_on f g) : f = g :=
+fun_like.ext f g $ λ x, star_alg_hom.adjoin_le_equalizer f g hs $ h.symm ▸ trivial
+
+omit hF
+
+lemma map_adjoin [star_module R B] (f : A →⋆ₐ[R] B) (s : set A) :
+  map f (adjoin R s) = adjoin R (f '' s) :=
+le_antisymm
+  (star_subalgebra.map_le_iff_le_comap.2 $ adjoin_le $ set.image_subset_iff.1 $ subset_adjoin R _)
+  (adjoin_le $ set.image_subset _ $ subset_adjoin R s)
+
+lemma ext_adjoin {s : set A} [star_alg_hom_class F R (adjoin R s) B] {f g : F}
+  (h : ∀ x : adjoin R s, (x : A) ∈ s → f x = g x) : f = g :=
+begin
+  refine fun_like.ext f g (λ a, adjoin_induction' a (λ x hx, _) (λ r, _) (λ x y hx hy, _)
+    (λ x y hx hy, _) (λ x hx, _)),
+  { exact h ⟨x, subset_adjoin R s hx⟩ hx },
+  { simp only [alg_hom_class.commutes] },
+  { rw [map_add, map_add, hx, hy] },
+  { rw [map_mul, map_mul, hx, hy] },
+  { rw [map_star, map_star, hx] },
+end
+
+lemma ext_adjoin_singleton {a : A} [star_alg_hom_class F R (adjoin R ({a} : set A)) B] {f g : F}
+  (h : f ⟨a, self_mem_adjoin_singleton R a⟩ = g ⟨a, self_mem_adjoin_singleton R a⟩) : f = g :=
+ext_adjoin $ λ x hx, (show x = ⟨a, self_mem_adjoin_singleton R a⟩,
+  from subtype.ext $ set.mem_singleton_iff.mp hx).symm ▸ h
+
+end star_alg_hom

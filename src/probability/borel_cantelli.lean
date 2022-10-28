@@ -61,7 +61,8 @@ lemma Indep_set.condexp_indicator_filtration_of_set_ae_eq
 begin
   rw filtration.filtration_of_set_eq_natural hsm,
   refine (Indep_fun.condexp_succ_natrual_ae_eq _ hs.Indep_fun_indicator n).trans _,
-  simp only [integral_indicator_const _ (hsm _), algebra.id.smul_eq_mul, mul_one],
+  { simp only [integral_indicator_const _ (hsm _), algebra.id.smul_eq_mul, mul_one] },
+  { apply_instance }
 end
 
 lemma Indep_set.condexp_indicator_filtration_of_set_ae_eq'

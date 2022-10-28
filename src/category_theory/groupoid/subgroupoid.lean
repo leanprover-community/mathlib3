@@ -544,7 +544,7 @@ section graph_like
 abbreviation is_graph_like := is_graph_like S.objs
 
 lemma is_graph_like_iff : S.is_graph_like ↔ ∀ (c d : S.objs), subsingleton (S.arrows c d) :=
-⟨ λ h c d, h c d, λ h c d, h c d ⟩
+⟨λ h c d, h c d, λ h c d, h c d⟩
 
 end graph_like
 
@@ -574,8 +574,8 @@ def disconnect : subgroupoid C :=
   inv := by { rintros _ _ _ ⟨h⟩, constructor, apply S.inv h, },
   mul := by { rintros _ _ _ _ ⟨h⟩ _ ⟨h'⟩, constructor, apply S.mul h h', } }
 
-lemma disconnect_le : (S.disconnect) ≤ S :=
-by {rw le_iff, rintros _ _ _ ⟨⟩, assumption, }
+lemma disconnect_le : S.disconnect ≤ S :=
+by { rw le_iff, rintros _ _ _ ⟨⟩, assumption, }
 
 lemma disconnect_normal (Sn : S.is_normal) : S.disconnect.is_normal :=
 { wide := λ c, by { constructor, exact Sn.wide c, },

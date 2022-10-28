@@ -256,12 +256,11 @@ def natural (u : ι → Ω → β) (hum : ∀ i, strongly_measurable (u i)) : fi
 
 section
 
-omit mβ
-
 open measurable_space
 
-lemma filtration_of_set_eq_natural {s : ι → set Ω} (hsm : ∀ i, measurable_set[m] (s i)) :
-  filtration_of_set hsm = natural (λ i, (s i).indicator (λ ω, 1 : Ω → ℝ))
+lemma filtration_of_set_eq_natural [mul_zero_one_class β] [nontrivial β]
+  {s : ι → set Ω} (hsm : ∀ i, measurable_set[m] (s i)) :
+  filtration_of_set hsm = natural (λ i, (s i).indicator (λ ω, 1 : Ω → β))
     (λ i, strongly_measurable_one.indicator (hsm i)) :=
 begin
   simp only [natural, filtration_of_set, measurable_space_supr_eq],
@@ -278,13 +277,13 @@ begin
     delta measurable_set at ht ⊢,
     suffices : measurable_space.generate_from
       {t | ∃ (H : n ≤ i), measurable_set[(measurable_space.comap
-        ((s n).indicator (λ ω, 1 : Ω → ℝ)) real.measurable_space)] t}
+        ((s n).indicator (λ ω, 1 : Ω → β)) mβ)] t}
      ≤ generate_from {t | ∃ (j : ι) (H : j ≤ i), s j = t},
     { exact this _ ht },
     clear ht t,
     refine generate_from_le _,
     rintro t ⟨hn, u, hu, hu'⟩,
-    obtain heq | heq | heq | heq := set.indicator_const_preimage (s n) u (1 : ℝ),
+    obtain heq | heq | heq | heq := set.indicator_const_preimage (s n) u (1 : β),
     swap 4, rw set.mem_singleton_iff at heq,
     all_goals { rw heq at hu', rw ← hu' },
     exacts [measurable_set_empty _, measurable_set.univ, measurable_set_generate_from ⟨n, hn, rfl⟩,

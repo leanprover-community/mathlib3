@@ -516,10 +516,12 @@ begin
   exact continuous_from_bounded (norm_with_seminorms 𝕜 E) hq f hf,
 end
 
+#check is_lub_pi
+
 lemma uniform_equicontinuous_of_continuous_comp_supr {κ : Type*} {q : seminorm_family 𝕜 F ι'}
   [uniform_space E] [uniform_add_group E]
   [u : uniform_space F] [hu : uniform_add_group F] (hq : with_seminorms q)
-  (f : κ → E →ₗ[𝕜] F) (hf₁ : ∀ i, bdd_above (range $ λ k, (q i).comp (f k)))
+  (f : κ → E →ₗ[𝕜] F) (hf₁ : ∀ i x, bdd_above (range $ λ k, q i (f k x)))
   (hf₂ : ∀ i, continuous ⇑(⨆ k, (q i).comp (f k) : seminorm 𝕜 E)) :
   uniform_equicontinuous (coe_fn ∘ f) :=
 begin
@@ -527,6 +529,8 @@ begin
   intro i,
   clear hu hq u,
   letI : seminormed_add_comm_group F := (q i).to_add_group_seminorm.to_seminormed_add_comm_group,
+  have hf₃ : bdd_above (range $ λ k, (q i).comp (f k)),
+  { rw [seminorm.bdd_above_iff, pi.bdd_above], },
   set φ : seminorm 𝕜 E := ⨆ k, (q i).comp (f k) with hφ,
   have hφ' : filter.tendsto φ (𝓝 0) (𝓝 0),
   { rw [← map_zero φ, hφ],

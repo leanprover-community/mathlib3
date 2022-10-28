@@ -6,6 +6,7 @@ Authors:
 
 import group_theory.group_action.basic
 import group_theory.group_action.fixing_subgroup
+import group_theory.group_action.sub_mul_action
 import data.finset.pointwise
 import .set
 
@@ -20,8 +21,8 @@ from inclusions `g • s ⊆ s`  for all `g ∈ H`.
 
 # Instances
 
-* `mul_action.of_stabilizer G s`: the action of `stabilizer G s` on `s`.
-
+-- * `mul_action.of_stabilizer G s`: the action of `stabilizer G s` on `s`.
+(REMOVED)
 
 ## TODO
 
@@ -47,12 +48,26 @@ begin
 end
 
 /-- The instance that makes the stabilizer of a set acting on that set -/
-instance has_smul.stabilizer (s : set α) :
+/- instance has_smul.stabilizer (s : set α) :
   has_smul ↥(stabilizer G s) ↥s := {
 smul := λ ⟨g, hg⟩ ⟨x, hx⟩, ⟨g • x,
   begin
     rw ← mem_stabilizer_iff.mp hg,
     exact set.smul_mem_smul_set hx,
+  end⟩, }
+-/
+
+example (s : set α) : has_smul (stabilizer G s) s :=
+begin
+sorry,
+end
+
+instance has_smul.stabilizer (s : set α) :
+  has_smul ↥(stabilizer G s) ↥s := {
+smul := λ g x, ⟨g • x,
+  begin
+    conv_rhs { rw ← mem_stabilizer_iff.mp g.prop, },
+    exact set.smul_mem_smul_set x.prop,
   end⟩, }
 
 @[simp]
@@ -64,6 +79,7 @@ begin
   refl,
 end
 
+/-
 /-- The mul_action of stabilizer a set on that set -/
 instance of_stabilizer (s : set α) :
   mul_action (stabilizer G s) s := {
@@ -74,6 +90,7 @@ begin
   rw [← subtype.coe_inj, submonoid.mk_mul_mk],
   simp only [has_smul.stabilizer_def, subtype.coe_mk, mul_action.mul_smul],
 end }
+-/
 
 lemma of_stabilizer_def (s : set α) (g : stabilizer G s) (x : s) :
   (g : G) • (x : α) = g • (x : α) := rfl
@@ -83,6 +100,7 @@ lemma of_stabilizer_set_def (s : set α) (g : stabilizer G s) (t : set α) :
 begin
 refl,
 end
+
 
 /-- To prove inclusion of a *subgroup* in a stabilizer, it is enough to prove inclusions.-/
 lemma le_stabilizer_iff (s : set α) (H : subgroup G) :

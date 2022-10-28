@@ -7,7 +7,7 @@ Authors: Antoine Chambert-Loir
 
 -- import tactic.basic tactic.group
 -- import group_theory.solvable
--- import group_theory.group_action.sub_mul_action
+import group_theory.group_action.sub_mul_action
 import group_theory.specific_groups.alternating
 -- import group_theory.perm.cycle.concrete
 
@@ -19,7 +19,6 @@ import .index_normal
 import .primitive
 import .multiple_transitivity
 
-import .jordan
 import .perm_iwasawa
 
 import .V4
@@ -332,6 +331,11 @@ begin
     exact equiv.perm.is_three_cycle.mem_alternating_group hg3, },
 end
 
+example : mul_action ↥(alternating_group α) (set α) :=
+begin
+apply_instance
+end
+
 
 lemma stabilizer.is_preprimitive (s : set α) (hs : (sᶜ : set α).nontrivial):
   is_preprimitive (stabilizer (alternating_group α) s) s :=
@@ -348,14 +352,11 @@ begin
     simp only [has_smul.stabilizer_def, subtype.coe_mk],
     refl,
   end },
-  suffices hf : function.bijective f, --  := function.bijective_id,
-  let this := is_preprimitive_of_bijective_map_iff',
+  have hf : function.bijective f := function.bijective_id,
+  rw is_preprimitive_of_bijective_map_iff _ hf,
+  exact equiv.perm.is_preprimitive s,
 
-  specialize this φ,
-  refine (is_preprimitive_of_bijective_map_iff hφ hf).mp (equiv.perm.is_preprimitive s),
-
-  sorry,
-
+  -- function.surjective φ
   suffices : ∃ k : equiv.perm (sᶜ : set α), equiv.perm.sign k = -1,
   obtain ⟨k, hk_sign⟩ := this,
   have hks : (equiv.perm.of_subtype k) • s = s,

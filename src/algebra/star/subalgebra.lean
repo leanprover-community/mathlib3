@@ -599,9 +599,8 @@ omit hF
 
 lemma map_adjoin [star_module R B] (f : A →⋆ₐ[R] B) (s : set A) :
   map f (adjoin R s) = adjoin R (f '' s) :=
-le_antisymm
-  (star_subalgebra.map_le_iff_le_comap.2 $ adjoin_le $ set.image_subset_iff.1 $ subset_adjoin R _)
-  (adjoin_le $ set.image_subset _ $ subset_adjoin R s)
+galois_connection.l_comm_of_u_comm set.image_preimage (gc_map_comap f) star_subalgebra.gc
+  star_subalgebra.gc (λ _, rfl)
 
 lemma ext_adjoin {s : set A} [star_alg_hom_class F R (adjoin R s) B] {f g : F}
   (h : ∀ x : adjoin R s, (x : A) ∈ s → f x = g x) : f = g :=

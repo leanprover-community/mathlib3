@@ -139,6 +139,13 @@ def model_with_corners.is_interior_point
   {M : Type*} [topological_space M] [charted_space H M] (x : M) :=
   𝓔(I, x) x ∈ interior 𝓔(I, x).target
 
+/- For smooth manifolds M, see Theorem 1.46 of John M. Lee.
+For general topological manifolds, see problem 17.9 of John M. Lee -/
+-- lemma model_with_corners.is_interior_point_indep_chart
+--   {x : M} (hx : I.is_interior_point x) (x' : M) (hx' : x ∈ 𝓔(I, x').source) :
+--   𝓔(I, x') x ∈ interior 𝓔(I, x').target := sorry
+
+
 lemma model_with_corners.boundaryless.is_open_target
   [I.boundaryless] {M : Type*} [topological_space M] [charted_space H M]
   {x : M} : is_open 𝓔(I, x).target :=
@@ -172,18 +179,17 @@ variables
   `exists_integral_curve_of_cont_mdiff_tangent_vector_field`. -/
 lemma exists_integral_curve_of_cont_mdiff_tangent_vector_field_aux [proper_space E]
   (hv : ∀ x, (v x).1 = x) (hcd : cont_mdiff I I.tangent 1 v) (x₀ : M)
-  (hx : 𝓔(I, x₀) x₀ ∈ interior 𝓔(I, x₀).target) :
-  ∃ (ε : ℝ) (hε : 0 < ε) (γ : ℝ → M), γ 0 = x₀ ∧ ∀ (t : ℝ), t ∈ metric.ball (0 : ℝ) ε →
+  (hx : I.is_interior_point x₀) :
+  ∃ (ε : ℝ) (hε : 0 < ε) (γ : ℝ → M), γ 0 = x₀ ∧ ∀ (t : ℝ), t ∈ set.Ioo (-ε) ε →
     (γ t) ∈ 𝓔(I, x₀).source ∧
     𝓔(I, x₀) (γ t) ∈ interior 𝓔(I, x₀).target ∧
     continuous_at γ t ∧
     has_deriv_at (𝓔(I, x₀) ∘ γ) (𝓔(I.tangent, v x₀) (v (γ t))).2 t :=
 begin
-  have hx1 := is_open.mem_nhds (is_open_interior) hx,
-  have hx2 := (vector_field_cont_diff_on_snd_of_cont_mdiff hv hcd x₀).mono interior_subset,
-  obtain ⟨ε, hε, f, hf1, hf2⟩ := ODE_solution_exists.at_ball_of_cont_diff_on_nhds_mem_set
-    (prod.snd ∘ (written_in_ext_chart_at I I.tangent x₀ v))
-    (𝓔(I, x₀) x₀) (interior 𝓔(I, x₀).target) hx1 hx2 0,
+  have hx1 := (vector_field_cont_diff_on_snd_of_cont_mdiff hv hcd x₀).mono interior_subset,
+  have hx2 := is_open.mem_nhds (is_open_interior) hx,
+  obtain ⟨ε, hε, f, hf1, hf2⟩ := exists_forall_deriv_at_ball_eq_of_cont_diff_on_nhds
+    0 (𝓔(I, x₀) x₀) hx1 hx2,
   have hf1' : (𝓔(I, x₀).symm ∘ f) 0 = x₀,
   { rw function.comp_apply,
     rw hf1,
@@ -218,7 +224,10 @@ begin
 end
 
 -- how to generalise / simplify?
-/-- The derivative of a curve on a manifold is independent of the chosen extended chart. -/
+/-- The derivative of a curve on a manifold is independent of the chosen extended chart.
+
+Note: The hypothesis `hγ₂` is equivalent to `I.is_boundary_point (γ t)`, but the equivalence has
+not been implemented in mathlib yet. -/
 lemma curve_has_deriv_at_coord_change
   (hv : ∀ x, (v x).1 = x) (x₀ : M) (γ : ℝ → M) (t : ℝ)
   (hγ₁ : (γ t) ∈ 𝓔(I, x₀).source) (hγ₂ : 𝓔(I, x₀) (γ t) ∈ interior 𝓔(I, x₀).target)
@@ -251,7 +260,7 @@ end
   at `t` coincides with the vector field at `γ t` for all `t` within an open interval around 0.-/
 theorem exists_integral_curve_of_cont_mdiff_tangent_vector_field [proper_space E]
   (hv : ∀ x, (v x).1 = x) (hcd : cont_mdiff I I.tangent 1 v)
-  (x₀ : M) (hx : 𝓔(I, x₀) x₀ ∈ interior 𝓔(I, x₀).target) :
+  (x₀ : M) (hx : I.is_interior_point x₀) :
   ∃ (ε : ℝ) (hε : 0 < ε) (γ : ℝ → M), γ 0 = x₀ ∧ ∀ (t : ℝ), t ∈ metric.ball (0 : ℝ) ε →
     has_mfderiv_at 𝓘(ℝ, ℝ) I γ t ((1 : ℝ →L[ℝ] ℝ).smul_right (𝓔(I.tangent, v(γ t)) (v (γ t))).2) :=
 begin

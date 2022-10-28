@@ -106,6 +106,7 @@ variables (H)
 lemma exists_finset_card_le_mul [finite_index H] {S : finset G} (hS : closure (S : set G) = ⊤) :
   ∃ T : finset H, T.card ≤ H.index * S.card ∧ closure (T : set H) = ⊤ :=
 begin
+  letI := H.fintype_quotient_of_finite_index,
   haveI : decidable_eq G := classical.dec_eq G,
   obtain ⟨R₀, hR : R₀ ∈ right_transversals (H : set G), hR1⟩ := exists_right_transversal (1 : G),
   haveI : fintype R₀ := fintype.of_equiv _ (mem_right_transversals.to_equiv hR),

@@ -97,6 +97,7 @@ include hp
 
 lemma index (H : subgroup G) [H.finite_index] : ∃ n : ℕ, H.index = p ^ n :=
 begin
+  haveI := H.normal_core.fintype_quotient_of_finite_index,
   obtain ⟨n, hn⟩ := iff_card.mp (hG.to_quotient H.normal_core),
   obtain ⟨k, hk1, hk2⟩ := (nat.dvd_prime_pow hp.out).mp ((congr_arg _
     (H.normal_core.index_eq_card.trans hn)).mp (subgroup.index_dvd_of_le H.normal_core_le)),

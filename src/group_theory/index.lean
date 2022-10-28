@@ -357,9 +357,14 @@ class finite_index : Prop :=
 class _root_.add_subgroup.finite_index {G : Type*} [add_group G] (H : add_subgroup G) : Prop :=
 (finite_index : H.index ≠ 0)
 
-@[priority 100, to_additive] noncomputable instance fintype_quotient_of_finite_index
-  [finite_index H] : fintype (G ⧸ H) :=
+/-- A finite index subgroup has finite quotient. -/
+@[to_additive] noncomputable def fintype_quotient_of_finite_index [finite_index H] :
+  fintype (G ⧸ H) :=
 fintype_of_index_ne_zero finite_index.finite_index
+
+@[to_additive] instance finite_quotient_of_finite_index
+  [finite_index H] : finite (G ⧸ H) :=
+H.fintype_quotient_of_finite_index.finite
 
 @[to_additive] lemma finite_index_of_finite_quotient [finite (G ⧸ H)] : finite_index H :=
 ⟨index_ne_zero_of_finite⟩

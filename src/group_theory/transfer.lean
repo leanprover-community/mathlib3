@@ -37,7 +37,8 @@ variables (R S T : left_transversals (H : set G)) [finite_index H]
 @[to_additive "The difference of two left transversals"]
 noncomputable def diff : A :=
 let α := mem_left_transversals.to_equiv S.2, β := mem_left_transversals.to_equiv T.2 in
-∏ q, ϕ ⟨(α q)⁻¹ * β q, quotient_group.left_rel_apply.mp $
+(@finset.univ (G ⧸ H) H.fintype_quotient_of_finite_index).prod $
+  λ q, ϕ ⟨(α q)⁻¹ * β q, quotient_group.left_rel_apply.mp $
   quotient.exact' ((α.symm_apply_apply q).trans (β.symm_apply_apply q).symm)⟩
 
 @[to_additive] lemma diff_mul_diff : diff ϕ R S * diff ϕ S T = diff ϕ R T :=
@@ -51,6 +52,7 @@ mul_right_eq_self.mp (diff_mul_diff ϕ T T T)
 inv_eq_of_mul_eq_one_right $ (diff_mul_diff ϕ S T S).trans $ diff_self ϕ S
 
 @[to_additive] lemma smul_diff_smul (g : G) : diff ϕ (g • S) (g • T) = diff ϕ S T :=
+let h := H.fintype_quotient_of_finite_index in by exactI
 prod_bij' (λ q _, g⁻¹ • q) (λ _ _, mem_univ _) (λ _ _, congr_arg ϕ (by simp_rw [coe_mk,
   smul_apply_eq_smul_apply_inv_smul, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left]))
   (λ q _, g • q) (λ _ _, mem_univ _) (λ q _, smul_inv_smul g q) (λ q _, inv_smul_smul g q)
@@ -86,6 +88,7 @@ lemma transfer_eq_prod_quotient_orbit_rel_zpowers_quot [finite_index H]
       quotient_group.out'_conj_pow_minimal_period_mem H g q.out'⟩ :=
 begin
   classical,
+  letI := H.fintype_quotient_of_finite_index,
   calc transfer ϕ g = ∏ (q : G ⧸ H), _ : transfer_def ϕ (transfer_transversal H g) g
   ... = _ : ((quotient_equiv_sigma_zmod H g).symm.prod_comp _).symm
   ... = _ : finset.prod_sigma _ _ _
@@ -106,7 +109,7 @@ begin
   by_cases hH : H.index = 0,
   { rw [hH, pow_zero],
     exact H.one_mem },
-  haveI : finite_index H := ⟨hH⟩,
+  letI := fintype_of_index_ne_zero hH,
   classical,
   replace key : ∀ (k : ℕ) (g₀ : G), g₀⁻¹ * g ^ k * g₀ ∈ H → g ^ k ∈ H :=
   λ k g₀ hk, (_root_.congr_arg (∈ H) (key k g₀ hk)).mp hk,
@@ -126,6 +129,7 @@ lemma transfer_eq_pow [finite_index H] (g : G)
   transfer ϕ g = ϕ ⟨g ^ H.index, transfer_eq_pow_aux g key⟩ :=
 begin
   classical,
+  letI := H.fintype_quotient_of_finite_index,
   change ∀ k g₀ (hk : g₀⁻¹ * g ^ k * g₀ ∈ H), ↑(⟨g₀⁻¹ * g ^ k * g₀, hk⟩ : H) = g ^ k at key,
   rw [transfer_eq_prod_quotient_orbit_rel_zpowers_quot, ←finset.prod_to_list, list.prod_map_hom],
   refine congr_arg ϕ (subtype.coe_injective _),

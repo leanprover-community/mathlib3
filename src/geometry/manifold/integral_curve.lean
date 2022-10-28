@@ -178,9 +178,9 @@ variables
   Several useful properties of the solution are proven here, to be used in
   `exists_integral_curve_of_cont_mdiff_tangent_vector_field`. -/
 lemma exists_integral_curve_of_cont_mdiff_tangent_vector_field_aux [proper_space E]
-  (hv : ∀ x, (v x).1 = x) (hcd : cont_mdiff I I.tangent 1 v) (x₀ : M)
+  (hv : ∀ x, (v x).1 = x) (hcd : cont_mdiff I I.tangent 1 v) (t₀ : ℝ) (x₀ : M)
   (hx : I.is_interior_point x₀) :
-  ∃ (ε : ℝ) (hε : 0 < ε) (γ : ℝ → M), γ 0 = x₀ ∧ ∀ (t : ℝ), t ∈ set.Ioo (-ε) ε →
+  ∃ (ε > (0 : ℝ)) (γ : ℝ → M), γ t₀ = x₀ ∧ ∀ (t : ℝ), t ∈ set.Ioo (t₀ - ε) (t₀ + ε) →
     (γ t) ∈ 𝓔(I, x₀).source ∧
     𝓔(I, x₀) (γ t) ∈ interior 𝓔(I, x₀).target ∧
     continuous_at γ t ∧
@@ -188,9 +188,9 @@ lemma exists_integral_curve_of_cont_mdiff_tangent_vector_field_aux [proper_space
 begin
   have hx1 := (vector_field_cont_diff_on_snd_of_cont_mdiff hv hcd x₀).mono interior_subset,
   have hx2 := is_open.mem_nhds (is_open_interior) hx,
-  obtain ⟨ε, hε, f, hf1, hf2⟩ := exists_forall_deriv_at_ball_eq_of_cont_diff_on_nhds
-    0 (𝓔(I, x₀) x₀) hx1 hx2,
-  have hf1' : (𝓔(I, x₀).symm ∘ f) 0 = x₀,
+  obtain ⟨ε, hε, f, hf1, hf2⟩ :=
+    exists_forall_deriv_at_Ioo_eq_of_cont_diff_on_nhds t₀ (𝓔(I, x₀) x₀) hx1 hx2,
+  have hf1' : (𝓔(I, x₀).symm ∘ f) t₀ = x₀,
   { rw function.comp_apply,
     rw hf1,
     exact ext_chart_at_to_inv I x₀ },
@@ -216,7 +216,7 @@ begin
     ←function.comp_apply 𝓔(I.tangent, v x₀), ←written_in_ext_chart_at],
     apply has_deriv_at.congr_of_eventually_eq hf4,
     rw filter.eventually_eq_iff_exists_mem,
-    refine ⟨metric.ball 0 ε, is_open.mem_nhds metric.is_open_ball ht, _⟩,
+    refine ⟨set.Ioo (t₀ - ε) (t₀ + ε), is_open.mem_nhds is_open_Ioo ht, _⟩,
     intros t' ht',
     rw [function.comp_apply, function.comp_apply],
     apply local_equiv.right_inv,
@@ -260,12 +260,12 @@ end
   at `t` coincides with the vector field at `γ t` for all `t` within an open interval around 0.-/
 theorem exists_integral_curve_of_cont_mdiff_tangent_vector_field [proper_space E]
   (hv : ∀ x, (v x).1 = x) (hcd : cont_mdiff I I.tangent 1 v)
-  (x₀ : M) (hx : I.is_interior_point x₀) :
-  ∃ (ε : ℝ) (hε : 0 < ε) (γ : ℝ → M), γ 0 = x₀ ∧ ∀ (t : ℝ), t ∈ metric.ball (0 : ℝ) ε →
+  (t₀ : ℝ) (x₀ : M) (hx : I.is_interior_point x₀) :
+  ∃ (ε > (0 : ℝ)) (γ : ℝ → M), γ t₀ = x₀ ∧ ∀ (t : ℝ), t ∈ set.Ioo (t₀ - ε) (t₀ + ε) →
     has_mfderiv_at 𝓘(ℝ, ℝ) I γ t ((1 : ℝ →L[ℝ] ℝ).smul_right (𝓔(I.tangent, v(γ t)) (v (γ t))).2) :=
 begin
   obtain ⟨ε, hε, γ, hf1, hf2⟩ :=
-    exists_integral_curve_of_cont_mdiff_tangent_vector_field_aux I M v hv hcd x₀ hx,
+    exists_integral_curve_of_cont_mdiff_tangent_vector_field_aux I M v hv hcd t₀ x₀ hx,
   refine ⟨ε, hε, γ, hf1, _⟩,
   intros t ht,
   rw has_mfderiv_at,
@@ -278,7 +278,7 @@ begin
   have hd := curve_has_deriv_at_coord_change I M v hv x₀ γ t hf3 hf4 hf6,
   apply has_deriv_at.congr_of_eventually_eq hd,
   rw filter.eventually_eq_iff_exists_mem,
-  refine ⟨metric.ball 0 ε, is_open.mem_nhds (metric.is_open_ball) ht, _⟩,
+  refine ⟨set.Ioo (t₀ - ε) (t₀ + ε), is_open.mem_nhds is_open_Ioo ht, _⟩,
   intros t' ht',
   rw [function.comp_apply, function.comp_apply, function.comp_apply, local_equiv.left_inv],
   exact (hf2 t' ht').1
@@ -290,8 +290,8 @@ end
   interval around 0. -/
 lemma exists_integral_curve_of_cont_mdiff_tangent_vector_field_of_boundaryless
   [proper_space E] [I.boundaryless]
-  (h₁ : ∀ x, (v x).1 = x) (h₂ : cont_mdiff I I.tangent 1 v) (x₀ : M) :
-  ∃ (ε : ℝ) (hε : 0 < ε) (γ : ℝ → M), γ 0 = x₀ ∧ ∀ (t : ℝ), t ∈ metric.ball (0 : ℝ) ε →
+  (h₁ : ∀ x, (v x).1 = x) (h₂ : cont_mdiff I I.tangent 1 v) (t₀ : ℝ) (x₀ : M) :
+  ∃ (ε > (0 : ℝ)) (γ : ℝ → M), γ t₀ = x₀ ∧ ∀ (t : ℝ), t ∈ set.Ioo (t₀ - ε) (t₀ + ε) →
     has_mfderiv_at 𝓘(ℝ, ℝ) I γ t ((1 : ℝ →L[ℝ] ℝ).smul_right (𝓔(I.tangent, v(γ t)) (v (γ t))).2) :=
-exists_integral_curve_of_cont_mdiff_tangent_vector_field I M v h₁ h₂ x₀
+exists_integral_curve_of_cont_mdiff_tangent_vector_field I M v h₁ h₂ t₀ x₀
     (model_with_corners.boundaryless.is_interior_point I)

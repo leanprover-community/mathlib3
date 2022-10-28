@@ -131,6 +131,17 @@ lemma monotone_comap : monotone (measurable_space.comap g) := assume a b h, coma
 lemma comap_map_le : (m.map f).comap f ≤ m := (gc_comap_map f).l_u_le _
 lemma le_map_comap : m ≤ (m.comap g).map g := (gc_comap_map g).le_u_l _
 
+lemma _root_.measurable.comap_le_of_measurable {f : α → β} (hf : measurable f) :
+  m'.comap f ≤ m :=
+begin
+  rintro s ⟨t, ht, rfl⟩,
+  exact hf ht
+end
+
+lemma comap_measurable (f : α → β) :
+  measurable[m'.comap f] f :=
+λ s hs, ⟨s, hs, rfl⟩
+
 end functors
 
 lemma comap_generate_from {f : α → β} {s : set (set β)} :

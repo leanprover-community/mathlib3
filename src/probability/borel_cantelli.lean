@@ -35,17 +35,6 @@ section move
 
 variables {β : Type*} [mβ : measurable_space β]
 
-lemma measurable.comap_le_of_measurable {f : Ω → β} (hf : measurable f) :
-  mβ.comap f ≤ m0 :=
-begin
-  rintro s ⟨t, ht, rfl⟩,
-  exact hf ht
-end
-
-lemma measurable_space.comap_measurable (f : Ω → β) :
-  measurable[mβ.comap f] f :=
-λ s hs, ⟨s, hs, rfl⟩
-
 variables [normed_add_comm_group β] [borel_space β]
 
 variables [is_probability_measure μ]

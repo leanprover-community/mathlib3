@@ -164,6 +164,14 @@ lemma coe_fn_eq_to_nnreal_coe_fn_to_measure (ν : finite_measure Ω) :
 lemma coe_injective : function.injective (coe : finite_measure Ω → measure Ω) :=
 subtype.coe_injective
 
+lemma apply_mono (μ : finite_measure Ω) {s₁ s₂ : set Ω} (h : s₁ ⊆ s₂) :
+  μ s₁ ≤ μ s₂ :=
+begin
+  change ((μ : measure Ω) s₁).to_nnreal ≤ ((μ : measure Ω) s₂).to_nnreal,
+  have key : (μ : measure Ω) s₁ ≤ (μ : measure Ω) s₂ := (μ : measure Ω).mono h,
+  apply (ennreal.to_nnreal_le_to_nnreal (measure_ne_top _ s₁) (measure_ne_top _ s₂)).mpr key,
+end
+
 /-- The (total) mass of a finite measure `μ` is `μ univ`, i.e., the cast to `nnreal` of
 `(μ : measure Ω) univ`. -/
 def mass (μ : finite_measure Ω) : ℝ≥0 := μ univ
@@ -242,6 +250,39 @@ function.injective.module _ coe_add_monoid_hom coe_injective coe_smul
   (c : R) (μ : finite_measure Ω) (s : set Ω) :
   (c • μ) s  = c • (μ s) :=
 by { simp only [coe_fn_smul, pi.smul_apply], }
+
+/-- Restrict a finite measure μ to a set A. -/
+def restrict (μ : finite_measure Ω) (A : set Ω) : finite_measure Ω :=
+{ val := (μ : measure Ω).restrict A,
+  property := measure_theory.is_finite_measure_restrict μ A, }
+
+lemma restrict_measure_eq (μ : finite_measure Ω) (A : set Ω) :
+  (μ.restrict A : measure Ω) = (μ : measure Ω).restrict A := rfl
+
+lemma restrict_apply_measure (μ : finite_measure Ω) (A : set Ω)
+  {s : set Ω} (s_mble : measurable_set s) :
+  (μ.restrict A : measure Ω) s = (μ : measure Ω) (s ∩ A) :=
+measure.restrict_apply s_mble
+
+lemma restrict_apply (μ : finite_measure Ω) (A : set Ω)
+  {s : set Ω} (s_mble : measurable_set s) :
+  (μ.restrict A) s = μ (s ∩ A) :=
+begin
+  apply congr_arg ennreal.to_nnreal,
+  exact measure.restrict_apply s_mble,
+end
+
+lemma restrict_mass (μ : finite_measure Ω) (A : set Ω) :
+  (μ.restrict A).mass = μ A :=
+by simp only [mass, restrict_apply μ A measurable_set.univ, univ_inter]
+
+lemma restrict_eq_zero_iff (μ : finite_measure Ω) (A : set Ω) :
+  μ.restrict A = 0 ↔ μ A = 0 :=
+by rw [← mass_zero_iff, restrict_mass]
+
+lemma restrict_nonzero_iff (μ : finite_measure Ω) (A : set Ω) :
+  μ.restrict A ≠ 0 ↔ μ A ≠ 0 :=
+by rw [← mass_nonzero_iff, restrict_mass]
 
 variables [topological_space Ω]
 
@@ -742,6 +783,22 @@ def to_finite_measure (μ : probability_measure Ω) : finite_measure Ω := ⟨μ
 by rw [← coe_fn_comp_to_finite_measure_eq_coe_fn,
   finite_measure.ennreal_coe_fn_eq_coe_fn_to_measure, coe_comp_to_finite_measure_eq_coe]
 
+lemma apply_mono (P : probability_measure Ω) {s₁ s₂ : set Ω} (h : s₁ ⊆ s₂) :
+  P s₁ ≤ P s₂ :=
+begin
+  rw ← coe_fn_comp_to_finite_measure_eq_coe_fn,
+  exact measure_theory.finite_measure.apply_mono _ h,
+end
+
+lemma nonempty_of_probability_measure (P : probability_measure Ω) : nonempty Ω :=
+begin
+  by_contra maybe_empty,
+  have zero : (P : measure Ω) univ = 0,
+    by rw [univ_eq_empty_iff.mpr (not_nonempty_iff.mp maybe_empty), measure_empty],
+  rw measure_univ at zero,
+  exact zero_ne_one zero.symm,
+end
+
 @[ext] lemma extensionality (μ ν : probability_measure Ω)
   (h : ∀ (s : set Ω), measurable_set s → μ s = ν s) :
   μ = ν :=
@@ -1039,6 +1096,44 @@ end
 end finite_measure --namespace
 
 end normalize_finite_measure -- section
+
+section conditioned_probability_measure
+
+namespace probability_measure
+
+variables {Ω : Type*} [measurable_space Ω]
+
+/-- Probability measure P conditioned on an event A. -/
+def conditioned (P : probability_measure Ω) (A : set Ω) : probability_measure Ω :=
+@finite_measure.normalize Ω (nonempty_of_probability_measure P) _ (P.to_finite_measure.restrict A)
+
+lemma conditioned_apply
+  (P : probability_measure Ω) {A : set Ω} (proba_nonzero : P A ≠ 0) {E : set Ω} (E_mble : measurable_set E) :
+  (P.conditioned A) E = (P A)⁻¹ * P (E ∩ A) :=
+begin
+  rw [conditioned, finite_measure.normalize_eq_of_nonzero],
+  { rw [measure_theory.finite_measure.restrict_apply _ _ E_mble,
+        measure_theory.finite_measure.restrict_mass, coe_fn_comp_to_finite_measure_eq_coe_fn], },
+  { rwa [measure_theory.finite_measure.restrict_nonzero_iff,
+         coe_fn_comp_to_finite_measure_eq_coe_fn], },
+end
+
+@[simp] lemma conditioned_apply_mul_apply_self
+  (P : probability_measure Ω) (A : set Ω) {E : set Ω} (E_mble : measurable_set E) :
+  ((P.conditioned A) E) * (P A) = P (E ∩ A) :=
+begin
+  by_cases h : P A = 0,
+  { simp only [h, mul_zero],
+    refine le_antisymm zero_le' _,
+    rw ← h,
+    exact apply_mono _ (inter_subset_right E A), },
+  rw [conditioned_apply P h E_mble, mul_comm, ← mul_assoc],
+  simp [mul_inv_cancel h],
+end
+
+end probability_measure --namespace
+
+end conditioned_probability_measure --section
 
 section limsup_closed_le_and_le_liminf_open
 /-! ### Portmanteau: limsup condition for closed sets iff liminf condition for open sets

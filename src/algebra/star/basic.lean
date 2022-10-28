@@ -357,23 +357,19 @@ section non_unital_semiring
 
 variables [non_unital_semiring R] [partial_order R] [star_ordered_ring R]
 
-lemma star_mul_self_nonneg
-  [non_unital_semiring R] [partial_order R] [star_ordered_ring R] {r : R} : 0 ≤ star r * r :=
+lemma star_mul_self_nonneg {r : R} : 0 ≤ star r * r :=
 (star_ordered_ring.nonneg_iff _).mpr ⟨r, rfl⟩
 
-lemma star_mul_self_nonneg'
-  [non_unital_semiring R] [partial_order R] [star_ordered_ring R] {r : R} : 0 ≤ r * star r :=
+lemma star_mul_self_nonneg' {r : R} : 0 ≤ r * star r :=
 by { nth_rewrite_rhs 0 [←star_star r], exact star_mul_self_nonneg }
 
-lemma conjugate_nonneg {R : Type*} [non_unital_semiring R] [partial_order R]
-  [star_ordered_ring R] {a : R} (ha : 0 ≤ a) (c : R) : 0 ≤ star c * a * c :=
+lemma conjugate_nonneg {a : R} (ha : 0 ≤ a) (c : R) : 0 ≤ star c * a * c :=
 begin
   obtain ⟨x, rfl⟩ := (nonneg_iff _).1 ha,
   refine (nonneg_iff _).2 ⟨x * c, by rw [star_mul, ←mul_assoc, mul_assoc _ _ c]⟩,
 end
 
-lemma conjugate_nonneg' {R : Type*} [non_unital_semiring R] [partial_order R]
-  [star_ordered_ring R] {a : R} (ha : 0 ≤ a) (c : R) : 0 ≤ c * a * star c :=
+lemma conjugate_nonneg' {a : R} (ha : 0 ≤ a) (c : R) : 0 ≤ c * a * star c :=
 by simpa only [star_star] using conjugate_nonneg ha (star c)
 
 end non_unital_semiring
@@ -388,16 +384,14 @@ instance : ordered_add_comm_group R :=
   ..show partial_order R, by apply_instance,
   ..show star_ordered_ring R, by apply_instance }
 
-lemma conjugate_le_conjugate {R : Type*} [non_unital_ring R] [partial_order R] [star_ordered_ring R]
-  {a b : R} (hab : a ≤ b) (c : R) : star c * a * c ≤ star c * b * c :=
+lemma conjugate_le_conjugate {a b : R} (hab : a ≤ b) (c : R) : star c * a * c ≤ star c * b * c :=
 begin
   rw ←sub_nonneg at hab ⊢,
   convert conjugate_nonneg hab c,
   simp only [mul_sub, sub_mul],
 end
 
-lemma conjugate_le_conjugate' {R : Type*} [non_unital_ring R] [partial_order R]
-  [star_ordered_ring R] {a b : R} (hab : a ≤ b) (c : R) : c * a * star c ≤ c * b * star c :=
+lemma conjugate_le_conjugate' {a b : R} (hab : a ≤ b) (c : R) : c * a * star c ≤ c * b * star c :=
 by simpa only [star_star] using conjugate_le_conjugate hab (star c)
 
 end non_unital_ring
@@ -525,3 +519,4 @@ end mul_opposite
 instance star_semigroup.to_opposite_star_module [comm_monoid R] [star_semigroup R] :
   star_module Rᵐᵒᵖ R :=
 ⟨λ r s, star_mul' s r.unop⟩
+#lint

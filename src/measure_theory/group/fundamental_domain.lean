@@ -111,7 +111,7 @@ h.pairwise_ae_disjoint.mono $ λ g₁ g₂ H, hν H
     begin
       lift e to G ≃ G using he,
       have : (e.symm g⁻¹)⁻¹ ≠ (e.symm 1)⁻¹, by simp [hg],
-      convert (h.pairwise_ae_disjoint _ _ this).preimage hf using 1,
+      convert (h.pairwise_ae_disjoint this).preimage hf using 1,
       { simp only [← preimage_smul_inv, preimage_preimage, ← hef _ _, e.apply_symm_apply,
           inv_inv] },
       { ext1 x,

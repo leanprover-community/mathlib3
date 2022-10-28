@@ -31,8 +31,8 @@ open category_theory.morphism_property
 open algebraic_geometry.morphism_property (topologically)
 
 /--
-A morphism of schemes `f : X ⟶ Y` is locally of finite type if for each affine `U ⊆ Y` and
-`V ⊆ f ⁻¹' U`, The induced map `Γ(Y, U) ⟶ Γ(X, V)` is of finite type.
+A morphism of schemes `f : X ⟶ Y` is universally closed if the base change `X ×[Y] Y' ⟶ Y'`
+along any morphism `Y' ⟶ Y` is (topologically) a closed map.
 -/
 @[mk_iff]
 class universally_closed (f : X ⟶ Y) : Prop :=

@@ -3,10 +3,10 @@ Copyright (c) 2021 Jireh Loreaux. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
-import tactic.noncomm_ring
-import field_theory.is_alg_closed.basic
 import algebra.star.pointwise
 import algebra.star.subalgebra
+import field_theory.is_alg_closed.basic
+import tactic.noncomm_ring
 /-!
 # Spectrum of an element in an algebra
 This file develops the basic theory of the spectrum of an element of an algebra.
@@ -188,8 +188,12 @@ lemma ne_zero_of_mem_of_unit {a : Aˣ} {r : R} (hr : r ∈ σ (a : A)) : r ≠ 0
 λ hn, (hn ▸ hr) (zero_mem_resolvent_set_of_unit a)
 
 lemma add_mem_iff {a : A} {r s : R} :
-  r + s ∈ spectrum R a ↔ r ∈ spectrum R (- algebra_map R A s + a) :=
+  r + s ∈ σ a ↔ r ∈ σ (-↑ₐs + a) :=
 by simp only [mem_iff, sub_neg_eq_add, ←sub_sub, map_add]
+
+lemma add_mem_add_iff {a : A} {r s : R} :
+  r + s ∈ σ (↑ₐs + a) ↔ r ∈ σ a  :=
+by rw [add_mem_iff, neg_add_cancel_left]
 
 lemma smul_mem_smul_iff {a : A} {s : R} {r : Rˣ} :
   r • s ∈ σ (r • a) ↔ s ∈ σ a :=
@@ -271,6 +275,9 @@ ext $ λ x,
 
 lemma add_singleton_eq (a : A) (r : R) : (σ a) + {r} = σ (a + ↑ₐr) :=
 add_comm {r} (σ a) ▸ add_comm (algebra_map R A r) a ▸ singleton_add_eq a r
+
+lemma vadd_eq (a : A) (r : R) : r +ᵥ (σ a) = σ (↑ₐr + a) :=
+(singleton_add).symm.trans $ singleton_add_eq a r
 
 lemma neg_eq (a : A) : -(σ a) = σ (-a) :=
 set.ext $ λ x, by simp only [mem_neg, mem_iff, map_neg, ←neg_add', is_unit.neg_iff, sub_neg_eq_add]

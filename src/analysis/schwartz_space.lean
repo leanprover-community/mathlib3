@@ -421,8 +421,6 @@ section fderiv
 /-! ### Derivatives of Schwartz functions -/
 
 variables {E F}
-variables [is_R_or_C 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
-
 /-- The derivative of a Schwartz function as a Schwartz function with values in the
 continuous linear maps `E→L[ℝ] F`. -/
 @[protected] def fderiv (f : 𝓢(E, F)) : 𝓢(E, E→L[ℝ] F) :=
@@ -447,6 +445,7 @@ continuous linear maps `E→L[ℝ] F`. -/
   f.fderiv x = fderiv ℝ f x := rfl
 
 variables (𝕜)
+variables [is_R_or_C 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
 
 /-- The derivative on Schwartz space as a linear map. -/
 def fderiv_lm : 𝓢(E, F) →ₗ[𝕜] 𝓢(E, E →L[ℝ] F) :=

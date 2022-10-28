@@ -48,6 +48,7 @@ and `combinatorics.simple_graph.subgraph`.
 
 * Equivalent inductive characterization of generated (normal) subgroupoids.
 * Characterization of normal subgroupoids as kernels.
+* Prove that `full` and `disconnect` preserve intersections (and `disconnect` also unions)
 
 ## Tags
 
@@ -538,15 +539,15 @@ lemma is_normal_map (hφ : function.injective φ.obj) (hφ' : im φ hφ = ⊤) (
 
 end hom
 
-section graph_like
+section thin
 
-/-- A subgroupoid `is_graph_like` if it has at most one arrow between any two vertices. -/
-abbreviation is_graph_like := is_graph_like S.objs
+/-- A subgroupoid `is_thin` if it has at most one arrow between any two vertices. -/
+abbreviation is_thin := is_thin S.objs
 
-lemma is_graph_like_iff : S.is_graph_like ↔ ∀ (c d : S.objs), subsingleton (S.arrows c d) :=
+lemma is_thin_iff : S.is_thin ↔ ∀ (c d : S.objs), subsingleton (S.arrows c d) :=
 ⟨λ h c d, h c d, λ h c d, h c d⟩
 
-end graph_like
+end thin
 
 section disconnected
 
@@ -558,36 +559,30 @@ begin
   split,
   { rintro h c d ⟨f,fS⟩,
     rw ←@subtype.mk_eq_mk _ _ c (mem_objs_of_src S fS) d (mem_objs_of_tgt S fS),
-    exact h ⟨c,mem_objs_of_src S fS⟩ ⟨d,mem_objs_of_tgt S fS⟩ ⟨⟨f,fS⟩⟩, },
+    exact h ⟨c,mem_objs_of_src S fS⟩ ⟨d,mem_objs_of_tgt S fS⟩ ⟨f,fS⟩, },
   { rintros h ⟨c,hc⟩ ⟨d,hd⟩ ⟨f,fS⟩,
     simp only [subtype.mk_eq_mk],
     exact h c d ⟨f,fS⟩, },
 end
 
-/-- The isotropy arrows of `S` -/
-inductive disconnect.arrows : Π (c d : C), (c ⟶ d) → Prop
-| mk {c : C} {γ : c ⟶ c} (hγ : γ ∈ S.arrows c c) : disconnect.arrows c c γ
-
 /-- The isotropy subgroupoid of `S` -/
 def disconnect : subgroupoid C :=
-{ arrows := disconnect.arrows S,
-  inv := by { rintros _ _ _ ⟨h⟩, constructor, apply S.inv h, },
-  mul := by { rintros _ _ _ _ ⟨h⟩ _ ⟨h'⟩, constructor, apply S.mul h h', } }
+{ arrows := λ c d f, c = d ∧ f ∈ S.arrows c d,
+  inv := by { rintros _ _ _ ⟨rfl,h⟩, exact ⟨rfl, S.inv h⟩, },
+  mul := by { rintros _ _ _ _ ⟨rfl,h⟩ _ ⟨rfl,h'⟩, exact ⟨rfl, S.mul h h'⟩, } }
 
 lemma disconnect_le : S.disconnect ≤ S :=
 by { rw le_iff, rintros _ _ _ ⟨⟩, assumption, }
 
 lemma disconnect_normal (Sn : S.is_normal) : S.disconnect.is_normal :=
-{ wide := λ c, by { constructor, exact Sn.wide c, },
-  conj := λ c d p γ hγ, by { constructor, apply Sn.conj, cases hγ, assumption, } }
+{ wide := λ c, ⟨rfl, Sn.wide c⟩,
+  conj := λ c d p γ ⟨_,h'⟩, ⟨rfl, Sn.conj _ h'⟩ }
 
-lemma mem_disconnect_iff {c d : C} (f : c ⟶ d) :
-  f ∈ S.disconnect.arrows c d ↔ (c = d ∧ f ∈ S.arrows c d) :=
-begin
-  split,
-  { rintro ⟨⟩, split, refl, assumption, },
-  { rintro ⟨rfl,_⟩, constructor, assumption, },
-end
+@[simp] lemma mem_disconnect_objs_iff {c : C} : c ∈ S.disconnect.objs ↔ c ∈ S.objs :=
+⟨λ ⟨γ,⟨h,γS⟩⟩, ⟨γ,γS⟩, λ ⟨γ,γS⟩, ⟨γ,⟨rfl,γS⟩⟩⟩
+
+lemma disconnect_is_disconnected : S.disconnect.is_disconnected := by
+{ rw is_disconnected_iff, exact λ c d ⟨f,⟨h,fS⟩⟩, h }
 
 end disconnected
 
@@ -595,26 +590,34 @@ section full
 
 variable (D : set C)
 
-/-- The arrows of the full groupoid on a set `D : set C` -/
-inductive full.arrows : Π (c d : C), (c ⟶ d) → Prop
-| mk {c d : C} (hc : c ∈ D) (hd : d ∈ D) (γ : c ⟶ d) : full.arrows c d γ
-
 /-- The full subgroupoid on a set `D : set C` -/
 def full : subgroupoid C :=
-{ arrows := full.arrows D,
+{ arrows := λ c d _, c ∈ D ∧ d ∈ D,
   inv := by { rintros _ _ _ ⟨⟩, constructor; assumption, },
   mul := by { rintros _ _ _ _ ⟨⟩ _ ⟨⟩, constructor; assumption,} }
 
 lemma full_objs : (full D).objs = D :=
-begin
-  ext,
-  split,
-  { rintro ⟨f,⟨⟩⟩, assumption, },
-  { rintro h, constructor, constructor, assumption, assumption, exact 𝟙 _, }
-end
+set.ext $ λ _, ⟨λ ⟨f,⟨h,_⟩⟩, h , λ h, ⟨𝟙 _,⟨h,h⟩⟩⟩
+
+@[simp] lemma mem_full_iff {c d : C} {f : c ⟶ d} : f ∈ (full D).arrows c d ↔ c ∈ D ∧ d ∈ D :=
+⟨id, id⟩
 
 @[simp] lemma mem_full_objs_iff {c : C} : c ∈ (full D).objs ↔ c ∈ D :=
 by { rw full_objs, }
+
+@[simp] lemma full_empty : full ∅ = (⊥ : subgroupoid C) := by
+{ ext, simp only [has_bot.bot, mem_full_iff, mem_empty_iff_false, and_self], }
+
+@[simp] lemma full_univ : full set.univ = (⊤ : subgroupoid C) := by
+{ ext, simp only [mem_full_iff, mem_univ, and_self, true_iff], }
+
+lemma full_mono {D E : set C} (h : D ≤ E) : full D ≤ full E :=
+begin
+  rw le_iff,
+  rintro c d f,
+  simp only [mem_full_iff],
+  exact λ ⟨hc,hd⟩, ⟨h hc, h hd⟩,
+end
 
 lemma full_arrow_eq_iff {c d : (full D).objs} {f g : c ⟶ d} :
   f = g ↔ (↑f : c.val ⟶ d.val) = ↑g :=

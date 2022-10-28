@@ -269,18 +269,9 @@ lemma exists_ultrafilter_of_finite_inter_nonempty (S : set (set α))
   (cond : ∀ T : finset (set α), (↑T : set (set α)) ⊆ S → (⋂₀ (↑T : set (set α))).nonempty) :
   ∃ F : ultrafilter α, S ⊆ F.sets :=
 begin
-  rsufficesI ⟨F, cond, hF⟩ : ∃ F : filter α, ne_bot F ∧ S ⊆ F.sets,
-  { obtain ⟨G : ultrafilter α, h1 : ↑G ≤ F⟩ := exists_le F,
-    exact ⟨G, λ T hT, h1 (hF hT)⟩ },
-  use filter.generate S,
-  refine ⟨_, λ T hT, filter.generate_sets.basic hT⟩,
-  rw ← forall_mem_nonempty_iff_ne_bot,
-  intros T hT,
-  rcases mem_generate_iff.mp hT with ⟨A, h1, h2, h3⟩,
-  let B := set.finite.to_finset h2,
-  rw (show A = ↑B, by simp) at *,
-  rcases cond B h1 with ⟨x, hx⟩,
-  exact ⟨x, h3 hx⟩,
+  haveI : ne_bot (generate S) := generate_ne_bot_iff.2
+    (λ t hts ht, ht.coe_to_finset ▸ cond ht.to_finset (ht.coe_to_finset.symm ▸ hts)),
+  exact ⟨of (generate S), λ t ht, (of_le $ generate S) $ generate_sets.basic ht⟩
 end
 
 end ultrafilter

@@ -141,7 +141,7 @@ lemma of_onto : im (of S Sn) (of_inj_on_objects S Sn) = (⊤ : subgroupoid $ quo
 le_antisymm (le_top) $ λ ⟨c,d,f⟩ _, quot.induction_on f (λ f, by { constructor, constructor, })
 
 
-/-- The image of `S` via the quotient is graph-like (since every loop is killed, essentially) -/
+/-- The image of `S` via the quotient is thin (since every loop is killed, essentially) -/
 lemma map_is_thin : (map (of S Sn) (of_inj_on_objects S Sn) S).is_thin :=
 begin
   rw subgroupoid.is_thin_iff,
@@ -237,8 +237,8 @@ end isotropy
 
 namespace thin
 /-!
-Quotient of a groupoid by a wide, graph-like subgroupoid.
-By graph-likeness, the quotient can be represented by the full subgroupoid induced by taking any
+Quotient of a groupoid by a wide, thin subgroupoid.
+By thinness, the quotient can be represented by the full subgroupoid induced by taking any
 set of representatives of the vertices.
 -/
 
@@ -570,3 +570,4 @@ end quotient
 end quotient_groupoid
 
 end category_theory
+

@@ -49,8 +49,8 @@ mt neg_eq_iff_add_eq_zero.2 z.coe_ne_neg_one.symm
 
 @[simp, norm_cast] lemma coe_mul (z w : 𝔻) : ↑(z * w) = (z * w : ℂ) := rfl
 
-/-- A constructor that assumes `abs z < 1` instead of `dist z 0 < 1` returns an element of `𝔻`
-instead of `↥metric.ball (0 : ℂ) 1`. -/
+/-- A constructor that assumes `abs z < 1` instead of `dist z 0 < 1` and returns an element 
+of `𝔻` instead of `↥metric.ball (0 : ℂ) 1`. -/
 def mk (z : ℂ) (hz : abs z < 1) : 𝔻 := ⟨z, mem_ball_zero_iff.2 hz⟩
 
 @[simp] lemma coe_mk (z : ℂ) (hz : abs z < 1) : (mk z hz : ℂ) = z := rfl

@@ -239,58 +239,67 @@ set.finite_coe_iff.mpr (set.finite_range _)
 def closure_commutator_representatives : subgroup G :=
 closure (prod.fst '' commutator_representatives G ∪ prod.snd '' commutator_representatives G)
 
-instance commutator_core_fg [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
+instance closure_commutator_representatives_fg [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
   group.fg (closure_commutator_representatives G) :=
 group.closure_finite_fg _
 
-lemma mylem1 [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
+lemma rank_commutator_representations_le [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
   group.rank (closure_commutator_representatives G) ≤ 2 * nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
 begin
   classical,
-  haveI := fintype.of_finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g},
-  rw nat.card_eq_fintype_card,
+  letI := fintype.of_finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g},
   let S := finset.image (λ g : {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g},
     (classical.some g.2, classical.some (classical.some_spec g.2))) finset.univ,
-  have hS : commutator_representatives G = S,
-  { rw [finset.coe_image, finset.coe_univ, set.image_univ, commutator_representatives] },
-  refine (rank_closure_finite_le_nat_card _).trans _,
-  rw [hS, ←finset.coe_image, ←finset.coe_image, ←finset.coe_union],
-  simp only [finset.coe_sort_coe],
-  rw [nat.card_eq_fintype_card, fintype.card_coe, two_mul],
-  refine (finset.card_union_le _ _).trans (add_le_add
-    (finset.card_image_le.trans finset.card_image_le)
-    (finset.card_image_le.trans finset.card_image_le)),
+  let T := S.image prod.fst ∪ S.image prod.snd,
+  have hS' : closure_commutator_representatives G = closure (T : set G),
+  { simp_rw [finset.coe_union, finset.coe_image, finset.coe_univ, set.image_univ,
+      closure_commutator_representatives, commutator_representatives] },
+  rw [subgroup.rank_congr hS', nat.card_eq_fintype_card, two_mul],
+  exact (subgroup.rank_closure_finset_le_card T).trans ((finset.card_union_le _ _).trans
+    (add_le_add (finset.card_image_le.trans finset.card_image_le)
+      (finset.card_image_le.trans finset.card_image_le))),
 end
 
-lemma mylem2 : set.image (closure_commutator_representatives G).subtype
+lemma mylem2 : (closure_commutator_representatives G).subtype ''
   {g | ∃ g₁ g₂ : closure_commutator_representatives G, ⁅g₁, g₂⁆ = g} =
     {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
 begin
-  sorry
+  apply set.subset.antisymm,
+  { rintros - ⟨-, ⟨g₁, g₂, rfl⟩, rfl⟩,
+    exact ⟨g₁, g₂, rfl⟩ },
+  { exact λ g hg, ⟨_, ⟨⟨_, subset_closure (or.inl ⟨_, ⟨⟨g, hg⟩, rfl⟩, rfl⟩)⟩, ⟨_, subset_closure
+      (or.inr ⟨_, ⟨⟨g, hg⟩, rfl⟩, rfl⟩)⟩, rfl⟩, classical.some_spec (classical.some_spec hg)⟩ },
 end
+
+lemma nat.card_image_of_injective {α β : Type*} (s : set α) (f : α → β) (hf : function.injective f) :
+  nat.card (f '' s) = nat.card s :=
+nat.card_congr (equiv.set.image f s hf).symm
 
 lemma mylem2' : nat.card {g | ∃ g₁ g₂ : closure_commutator_representatives G, ⁅g₁, g₂⁆ = g} =
   nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
 begin
-  sorry
-end
-
-lemma mylem3 : (commutator (closure_commutator_representatives G)).map
-  (closure_commutator_representatives G).subtype = commutator G :=
-begin
-  sorry
+  rw ← mylem2 G,
+  symmetry,
+  apply nat.card_image_of_injective,
+  apply subtype_injective,
 end
 
 lemma mylem3' : nat.card (commutator (closure_commutator_representatives G)) =
-  nat.card(commutator G) :=
+  nat.card (commutator G) :=
 begin
-  sorry
+  rw [commutator_eq_closure G, ←mylem2, ←monoid_hom.map_closure, ←commutator_eq_closure],
+  symmetry,
+  apply nat.card_image_of_injective,
+  apply subtype_injective,
 end
 
 instance [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
   finite {g | ∃ g₁ g₂ : closure_commutator_representatives G, ⁅g₁, g₂⁆ = g} :=
 begin
-  sorry,
+  haveI : nonempty {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} := ⟨⟨1, 1, 1, commutator_element_self 1⟩⟩,
+  apply nat.finite_of_card_ne_zero,
+  rw mylem2',
+  exact finite.card_pos.ne',
 end
 
 /-- docstring -/
@@ -304,62 +313,12 @@ begin
   have h1 := index_center_le_pow (closure_commutator_representatives G),
   have h2 := card_commutator_dvd_index_center_pow (closure_commutator_representatives G),
   rw mylem2' at h1 h2,
-  replace h1 := h1.trans (nat.pow_le_pow_of_le_right hn₀ (mylem1 G)),
+  replace h1 := h1.trans (nat.pow_le_pow_of_le_right hn₀ (rank_commutator_representations_le G)),
   replace h2 := h2.trans (pow_dvd_pow _ (add_le_add_right (mul_le_mul_right' h1 _) 1)),
   replace h2 := nat.le_of_dvd (pow_pos (nat.pos_of_ne_zero (index_center_ne_zero _)) _) h2,
   replace h2 := h2.trans (nat.pow_le_pow_of_le_left h1 _),
   rw ← pow_succ' at h2,
   rwa ← mylem3',
-
-
-
-  -- haveI := fintype.of_finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g},
-  -- have hn₀ : 0 < n := @finite.card_pos _ _ ⟨by exact ⟨1, 1, 1, commutator_element_self 1⟩⟩,
-  -- let f : {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} → G × G :=
-  -- λ g, (classical.some g.2, classical.some (classical.some_spec g.2)),
-  -- have hf : ∀ g, ⁅(f g).1, (f g).2⁆ = g := λ g, classical.some_spec (classical.some_spec g.2),
-  -- let S₀ : finset (G × G) := finset.univ.image f, -- potentially eliminate this step?
-  -- have hS₀ : S₀.card ≤ n :=
-  -- finset.card_image_le.trans_eq (finset.card_univ.trans nat.card_eq_fintype_card.symm),
-  -- let S : finset G := S₀.image prod.fst ∪ S₀.image prod.snd,
-  -- have hS : S.card ≤ n + n := (finset.card_union_le _ _).trans
-  --   (add_le_add (finset.card_image_le.trans hS₀) (finset.card_image_le.trans hS₀)),
-  -- let H := closure (S : set G),
-  -- have hH : group.rank H ≤ n + n := (rank_closure_finset_le_card S).trans hS,
-
-  -- have key : set.image H.subtype {g | ∃ g₁ g₂ : H, ⁅g₁, g₂⁆ = g} = {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g},
-  -- { refine set.subset.antisymm _ _,
-  --   { rintros - ⟨-, ⟨g₁, g₂, rfl⟩, rfl⟩,
-  --     exact ⟨g₁, g₂, (map_commutator_element H.subtype g₁ g₂).symm⟩ },
-  --   { intros g hg,
-  --     have h1 : (f ⟨g, hg⟩).1 ∈ S :=
-  --     finset.mem_union_left _ (finset.mem_image_of_mem _ (finset.mem_image_of_mem _ (finset.mem_univ _))),
-  --     have h2 : (f ⟨g, hg⟩).2 ∈ S :=
-  --     finset.mem_union_right _ (finset.mem_image_of_mem _ (finset.mem_image_of_mem _ (finset.mem_univ _))),
-  --     replace h1 : (f ⟨g, hg⟩).1 ∈ H := subset_closure h1,
-  --     replace h2 : (f ⟨g, hg⟩).2 ∈ H := subset_closure h2,
-  --     refine ⟨(⁅(⟨(f ⟨g, hg⟩).1, h1⟩ : H), (⟨(f ⟨g, hg⟩).2, h2⟩ : H)⁆ : H),
-  --       ⟨⟨(f ⟨g, hg⟩).1, h1⟩, ⟨(f ⟨g, hg⟩).2, h2⟩, rfl⟩, _⟩,
-  --     rw map_commutator_element,
-  --     exact hf ⟨g, hg⟩ } },
-
-  -- let e := (equiv.set.image H.subtype {g | ∃ g₁ g₂ : H, ⁅g₁, g₂⁆ = g} subtype.coe_injective).symm,
-  -- rw key at e,
-  -- haveI : finite {g | ∃ g₁ g₂ : H, ⁅g₁, g₂⁆ = g} := finite.of_equiv _ e,
-  -- have hn : n = nat.card {g | ∃ g₁ g₂ : H, ⁅g₁, g₂⁆ = g} := nat.card_congr e,
-  -- have hH₀ : nat.card (commutator H) = nat.card (commutator G),
-  -- { rw [commutator_eq_closure G, ←key, ←monoid_hom.map_closure, ←commutator_eq_closure H],
-  --   exact nat.card_congr (equiv.set.image H.subtype (commutator H) subtype.coe_injective) },
-
-  -- have h1 := index_center_le_pow H,
-  -- have h2 := card_commutator_dvd_index_center_pow H,
-  -- rw ← hn at h1 h2,
-  -- replace h1 := h1.trans (nat.pow_le_pow_of_le_right hn₀ hH),
-  -- replace h2 := hH₀.ge.trans (nat.le_of_dvd (pow_pos
-  --   (nat.pos_of_ne_zero (index_center_ne_zero H)) _) h2),
-  -- refine h2.trans _,
-  -- refine (nat.pow_le_pow_of_le_left h1 _).trans (nat.pow_le_pow_of_le_right
-  --   (pow_pos hn₀ _) (add_le_add_right (mul_le_mul_right' h1 _) 1)),
 end
 
 -- bounded commutators implies bounded index of center

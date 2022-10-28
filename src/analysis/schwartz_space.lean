@@ -98,6 +98,10 @@ lemma smooth (f : 𝓢(E, F)) (n : ℕ∞) : cont_diff ℝ n f := f.smooth'.of_l
 /-- Every Schwartz function is continuous. -/
 @[continuity, protected] lemma continuous (f : 𝓢(E, F)) : continuous f := (f.smooth 0).continuous
 
+/-- Every Schwartz function is differentiable. -/
+@[protected] lemma differentiable (f : 𝓢(E, F)) : differentiable ℝ f :=
+(f.smooth 1).differentiable rfl.le
+
 @[ext] lemma ext {f g : 𝓢(E, F)} (h : ∀ x, (f : E → F) x = g x) : f = g := fun_like.ext f g h
 
 section aux
@@ -437,12 +441,15 @@ continuous linear maps `E→L[ℝ] F`. -/
     cases f.3 k (n+1) with C hC,
     use C,
     intros x,
-    refine (mul_le_mul_of_nonneg_left _ (by positivity)).trans (hC x),
-    exact norm_iterated_fderiv_fderiv.le,
+    rw norm_iterated_fderiv_fderiv,
+    exact hC x,
   end }
 
 @[simp] lemma fderiv_apply (f : 𝓢(E, F)) (x : E) :
   f.fderiv x = fderiv ℝ f x := rfl
+
+lemma coe_fderiv (f : 𝓢(E, F)) :
+  (f.fderiv : E → (E →L[ℝ] F)) = fderiv ℝ f := rfl
 
 variables (𝕜)
 variables [is_R_or_C 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
@@ -450,14 +457,16 @@ variables [is_R_or_C 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
 /-- The derivative on Schwartz space as a linear map. -/
 def fderiv_lm : 𝓢(E, F) →ₗ[𝕜] 𝓢(E, E →L[ℝ] F) :=
 { to_fun := schwartz_map.fderiv,
-  map_add' := λ f g,
-  by { ext1 x, exact fderiv_add (f.2.differentiable le_top).differentiable_at
-                    (g.2.differentiable le_top).differentiable_at },
-  map_smul' := λ a f,
-  by { ext1 x, exact fderiv_const_smul (f.2.differentiable le_top).differentiable_at _ } }
+  map_add' := λ f g, ext $ λ _, fderiv_add
+    f.differentiable.differentiable_at
+    g.differentiable.differentiable_at,
+  map_smul' := λ a f, ext $ λ _, fderiv_const_smul f.differentiable.differentiable_at a }
 
 @[simp] lemma fderiv_lm_apply (f : 𝓢(E, F)) (x : E) :
   fderiv_lm 𝕜 f x = fderiv ℝ f x := rfl
+
+lemma coe_fderiv_lm (f : 𝓢(E, F)) :
+  (fderiv_lm 𝕜 f : E → (E →L[ℝ] F)) = fderiv ℝ f := rfl
 
 /-- The derivative on Schwartz space as a continuous linear map. -/
 def fderiv_clm : 𝓢(E, F) →L[𝕜] 𝓢(E, E →L[ℝ] F) :=
@@ -472,13 +481,16 @@ def fderiv_clm : 𝓢(E, F) →L[𝕜] 𝓢(E, E →L[ℝ] F) :=
     simp only [schwartz_seminorm_family_apply, seminorm.comp_apply, finset.sup_singleton, one_smul],
     refine (fderiv_lm 𝕜 f).seminorm_le_bound 𝕜 k n (by positivity) _,
     intros x,
-    refine (mul_le_mul_of_nonneg_left _ (by positivity)).trans (f.le_seminorm 𝕜 k (n+1) x),
-    exact norm_iterated_fderiv_fderiv.le,
+    rw [coe_fderiv_lm, norm_iterated_fderiv_fderiv],
+    exact f.le_seminorm 𝕜 k (n+1) x,
   end,
   ..fderiv_lm 𝕜 }
 
 @[simp] lemma fderiv_clm_apply (f : 𝓢(E, F)) (x : E) :
   fderiv_clm 𝕜 f x = fderiv ℝ f x := rfl
+
+lemma coe_fderiv_clm (f : 𝓢(E, F)) :
+  (fderiv_clm 𝕜 f : E → (E →L[ℝ] F)) = fderiv ℝ f := rfl
 
 end fderiv
 

@@ -60,7 +60,7 @@ variables (M : Type*) [group M] {α : Type*} [mul_action M α]
 def of_compl (s : sub_mul_action M α) : sub_mul_action M α := {
 carrier := sᶜ,
 smul_mem' := λ g x,
-  by simp only [set_like.mem_coe, set.mem_compl_eq, sub_mul_action.smul_mem_iff', imp_self] }
+  by simp only [set_like.mem_coe, set.mem_compl_iff, sub_mul_action.smul_mem_iff', imp_self] }
 
 lemma of_compl_def (s : sub_mul_action M α) :
   (of_compl M s).carrier = sᶜ := rfl
@@ -70,7 +70,7 @@ def of_stabilizer (a : α) : sub_mul_action (stabilizer M a) α := {
 carrier := { a }ᶜ,
 smul_mem' := λ g x,
 begin
-  simp only [set.mem_compl_eq, set.mem_singleton_iff],
+  simp only [set.mem_compl_iff, set.mem_singleton_iff],
   rw not_imp_not,
   rw smul_eq_iff_eq_inv_smul,
   intro hgx, rw hgx,

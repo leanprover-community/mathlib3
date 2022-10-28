@@ -525,6 +525,122 @@ map_smul' := λ g x, by simp only [has_smul.stabilizer_def, id.def, mul_action.o
 
 
 
+section alternating
+
+
+lemma stabilizer.is_preprimitive (s : set α) (hs : (sᶜ : set α).nontrivial):
+  is_preprimitive (stabilizer (alternating_group α) s) s :=
+begin
+  let φ : stabilizer (alternating_group α) s → equiv.perm s := mul_action.to_perm,
+  suffices hφ : function.surjective φ,
+
+  let f : s →ₑ[φ] s := {
+  to_fun := id,
+  map_smul' := λ ⟨g, hg⟩ ⟨x, hx⟩,
+  by simp only [id.def, equiv.perm.smul_def, to_perm_apply], },
+  suffices hf : function.bijective f, --  := function.bijective_id,
+  let this := is_preprimitive_of_bijective_map_iff',
+
+  specialize this φ,
+  rw is_preprimitive_of_bijective_map_iff hφ hf,
+  exact equiv.perm.is_preprimitive s,
+
+  sorry,
+
+  suffices : ∃ k : equiv.perm (sᶜ : set α), equiv.perm.sign k = -1,
+  obtain ⟨k, hk_sign⟩ := this,
+  have hks : (equiv.perm.of_subtype k) • s = s,
+  { rw ← mem_stabilizer_iff,
+    apply equiv.perm.of_subtype.mem_stabilizer', },
+
+  -- function.surjective φ
+  have hφ : function.surjective φ,
+  { intro g,
+    have hgs : (equiv.perm.of_subtype g) • s = s,
+    apply equiv.perm.of_subtype.mem_stabilizer,
+
+    have hminus_one_ne_one : (-1 : units ℤ) ≠ 1,
+    { intro h, rw [← units.eq_iff, units.coe_one, units.coe_neg_one] at h, norm_num at h, },
+
+    let g' := ite (equiv.perm.sign g = 1)
+      (equiv.perm.of_subtype g)
+      (equiv.perm.of_subtype g * (equiv.perm.of_subtype k)),
+
+    use g',
+
+    rw equiv.perm.mem_alternating_group,
+    cases int.units_eq_one_or (equiv.perm.sign g) with hsg hsg;
+    { dsimp [g'], -- rw hsg,
+      simp only [hsg, eq_self_iff_true, if_true, hminus_one_ne_one, if_false,
+        equiv.perm.sign_of_subtype,
+        equiv.perm.sign_mul, mul_neg, mul_one, neg_neg, hsg, hk_sign], },
+
+    rw mem_stabilizer_iff,
+    change (ite (equiv.perm.sign g = 1)
+      (equiv.perm.of_subtype g)
+      (equiv.perm.of_subtype g * (equiv.perm.of_subtype k))) • s = s,
+    cases int.units_eq_one_or (equiv.perm.sign g) with hsg hsg,
+    { simp only [hsg,  eq_self_iff_true, if_true],
+      exact hgs, },
+    { simp only [hsg, hminus_one_ne_one, if_false],
+      rw mul_smul, rw hks, exact hgs, },
+
+    dsimp [φ],
+    cases int.units_eq_one_or (equiv.perm.sign g) with hsg hsg,
+    { dsimp [g'], simp only [hsg, eq_self_iff_true, if_true, hminus_one_ne_one, if_false],
+      ext,
+      simp only [to_perm_apply, has_smul.stabilizer_def, subtype.coe_mk],
+      change equiv.perm.of_subtype g ↑x = ↑(g x),
+      exact equiv.perm.of_subtype_apply_coe g x, },
+    { dsimp [g'], simp only [hsg, eq_self_iff_true, if_true, hminus_one_ne_one, if_false],
+      ext,
+      simp only [to_perm_apply, has_smul.stabilizer_def, subtype.coe_mk],
+      change ((equiv.perm.of_subtype g) * (equiv.perm.of_subtype k)) ↑x = ↑(g x),
+      rw equiv.perm.mul_apply ,
+      rw equiv.perm.of_subtype_apply_of_not_mem k _,
+      exact equiv.perm.of_subtype_apply_coe g x,
+      rw set.not_mem_compl_iff, exact x.prop, }, },
+
+  rw @is_preprimitive_of_bijective_map_iff _ _ _ _ _ _ _ _ φ f hφ hf,
+  exact equiv.perm.is_preprimitive s,
+  sorry,
+
+  obtain ⟨a, ha, b, hb, hab⟩ := hs,
+  use equiv.swap ⟨a, ha⟩ ⟨b, hb⟩,
+  rw equiv.perm.sign_swap _,
+  rw ← function.injective.ne_iff (subtype.coe_injective),
+  simp only [subtype.coe_mk], exact hab,
+end
+
+example (s t : set α) (a : α) (ha : a ∈ s ⊓ t) : a ∈ s :=
+begin
+  apply @inf_le_left _ _ s t,  exact ha,
+end
+
+lemma stabilizer.is_preprimitive' (s : set α) (hsc : sᶜ.nontrivial)
+  (G : subgroup (equiv.perm α)) (hG : stabilizer (equiv.perm α) s ⊓ alternating_group α ≤ G) :
+  is_preprimitive (stabilizer G s) s :=
+begin
+  let φ : stabilizer (alternating_group α) s → stabilizer G s := λ g,
+  begin
+    use (g : alternating_group α), apply hG, rw subgroup.mem_inf,
+    split,
+    { let h := g.prop, rw mem_stabilizer_iff at h ⊢, exact h, },
+    { exact set_like.coe_mem ↑g, },
+    { rw mem_stabilizer_iff, let h := g.prop, rw mem_stabilizer_iff at h, exact h, },
+  end,
+  let f : s →ₑ[φ] s := {
+    to_fun := id,
+    map_smul' := λ ⟨⟨m, hm'⟩, hm⟩ ⟨a, ha⟩, rfl, },
+  have hf : function.surjective f := function.surjective_id,
+  apply is_preprimitive_of_surjective_map hf,
+  apply stabilizer.is_preprimitive,
+  exact hsc,
+end
+
+end alternating
+
+
 
 #exit
 

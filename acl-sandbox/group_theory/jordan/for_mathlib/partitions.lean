@@ -53,7 +53,7 @@ begin
       use t,
       apply and.intro ht.left.left,
       apply and.intro rfl,
-      intro h, rw ← set.mem_empty_eq (a : α), rw ← h,
+      intro h, rw ← set.mem_empty_iff_false (a : α), rw ← h,
       exact set.mem_inter (ht.left.right) (subtype.mem a),
       exact (ht.left.right) },
     { simp only [ne.def, set.mem_set_of_eq, exists_unique_iff_exists, exists_prop, and_imp,

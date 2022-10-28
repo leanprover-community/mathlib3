@@ -176,7 +176,7 @@ begin
     { intros i j hi hj hij,
       suffices : f ⟨i, hi⟩ ∉ s,
       { apply this, rw hij, simp only [subtype.coe_prop] },
-      simp only [← set.mem_compl_eq, subtype.coe_prop] } },
+      simp only [← set.mem_compl_iff, subtype.coe_prop] } },
 
   split,
   { ext ⟨i, hi⟩,

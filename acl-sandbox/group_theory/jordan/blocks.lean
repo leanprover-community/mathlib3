@@ -147,11 +147,12 @@ begin
       exact h },
     { apply or.intro_right,
       rintros x ⟨hx, hx'⟩,
-      simp only [set.bot_eq_empty, set.mem_empty_eq],
+      simp only [set.bot_eq_empty, set.mem_empty_iff_false],
       suffices : (g'⁻¹ • x) ∈ (g'⁻¹ * g) • B ⊓ B,
       apply h this,
-      simp only [set.inf_eq_inter, set.mem_inter_eq, ← set.mem_smul_set_iff_inv_smul_mem,
-        ← smul_smul, smul_inv_smul],
+      simp only [set.inf_eq_inter, set.mem_inter_iff],
+      simp only [← set.mem_smul_set_iff_inv_smul_mem],
+      rw ← smul_smul, rw smul_inv_smul,
       exact ⟨hx, hx'⟩ } }
 end
 
@@ -565,9 +566,9 @@ begin
   rw mem_stabilizer_iff at hg ⊢,
   cases is_block.def_one.mp hB g with h h',
   exact h,
-  exfalso, rw ← set.mem_empty_eq a,
+  exfalso, rw ← set.mem_empty_iff_false a,
   rw [disjoint_iff, set.inf_eq_inter, set.bot_eq_empty] at h',
-  rw [← h', set.mem_inter_eq],
+  rw [← h', set.mem_inter_iff],
   split,
   rw ← hg, rw set.smul_mem_smul_set_iff, exact ha,
   exact ha

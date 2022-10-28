@@ -299,6 +299,24 @@ begin
       exact hB } }
 end
 
+lemma is_preprimitive_of_bijective_map_iff'
+  (φ : M → N) (f : α →ₑ[φ] β)
+  (hφ : function.surjective φ) (hf : function.bijective f) :
+  is_preprimitive M α ↔ is_preprimitive N β :=
+begin
+  split,
+  apply is_preprimitive_of_surjective_map (hf.surjective),
+  { intro hN,
+    haveI := (is_pretransitive_of_bijective_map_iff hφ hf).mpr hN.to_is_pretransitive,
+    apply is_preprimitive.mk,
+    { intros B hB,
+      rw ← set.preimage_image_eq B hf.injective,
+      apply is_trivial_block_of_injective_map hf.injective,
+      apply hN.has_trivial_blocks,
+      apply is_block_image f hφ hf.injective,
+      exact hB } }
+end
+
 end equivariant_map
 
 section stabilizer
@@ -582,7 +600,8 @@ begin
 
   -- We reduce to proving that
   -- fintype.card (set.range f) ≤ fintype.card (set.range (λ g, g • B))
-  apply zero_lt.lt_of_mul_lt_mul_right',
+
+  apply lt_of_mul_lt_mul_right,
   apply lt_of_le_of_lt _ hf',
   rw ← card_of_block_mul_card_of_orbit_of hB hB_ne,
   apply nat.mul_le_mul_left _,
@@ -625,10 +644,7 @@ begin
   refine le_trans _ (le_trans (set.card_le_of_subset h') _),
   apply le_of_eq, refl,
   apply le_of_eq, refl,
-
-  apply zero_lt.lt_of_mul_lt_mul_left',
-  apply lt_of_le_of_lt _ hf',
-  norm_num, norm_num,
+  exact zero_le (fintype.card ↥(set.range ⇑f)),
 end
 
 /-- Theorem of Rudio (Wielandt, 1964, Th. 8.1) -/

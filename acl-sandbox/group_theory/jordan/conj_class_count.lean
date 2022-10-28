@@ -2181,29 +2181,22 @@ begin
         rw ← equiv.perm.cycle_of_mem_cycle_factors_finset_iff at hx',
         obtain ⟨Hz'⟩ := Hz (g.cycle_of x) hx',
         specialize Hz' x,
-        simp only [equiv.perm.coe_mul, function.comp_app, equiv.perm.cycle_of_apply_self] at Hz',
         apply equiv.perm.mem_cycle_factors_finset_support_le hx',
-        rw [equiv.perm.mem_support, ← Hz', ne.def, embedding_like.apply_eq_iff_eq, ← ne.def, ← equiv.perm.mem_support],
-        exact hx, },
+        rw ← Hz',
+        rw equiv.perm.mem_support_cycle_of_iff,
+        exact ⟨equiv.perm.same_cycle.refl _ _, hx⟩, },
       { intro hzx,
         let hzx' := id hzx,
         rw ← equiv.perm.cycle_of_mem_cycle_factors_finset_iff at hzx',
-        have Hz' := equiv.perm.congr_fun (Hz (g.cycle_of (z x)) hzx') x,
-        simp only [equiv.perm.coe_mul, function.comp_app, equiv.perm.cycle_of_apply_self] at Hz',
-        rw ← equiv.perm.same_cycle.mem_support_iff _,
-        exact hzx,
-        refine (equiv.perm.mem_support_cycle_of_iff.mp _).1,
-        rw [equiv.perm.mem_support, ne.def,← embedding_like.apply_eq_iff_eq z, ← ne.def, Hz', ← equiv.perm.mem_support],
-        exact hzx, }, },
+        apply equiv.perm.mem_cycle_factors_finset_support_le hzx',
+        obtain ⟨Hz'⟩ := Hz (g.cycle_of (z x)) hzx',
+        rw Hz' x,
+        rw equiv.perm.mem_support_cycle_of_iff,
+        exact ⟨equiv.perm.same_cycle.refl _ _, hzx⟩, }, },
     let u := equiv.perm.subtype_perm z hu,
-    let v : Π (c : equiv.perm α), c ∈ g.cycle_factors_finset → ↥(subgroup.zpowers c) := λ c hc, ⟨
-        (equiv.perm.of_subtype (z.subtype_perm (
-          begin
-            sorry -- classical.some (Hz c hc)))
-          end))),
-          begin
-            sorry -- classical.some_spec (Hz c hc)
-          end⟩,
+    let v : Π (c : equiv.perm α), c ∈ g.cycle_factors_finset → ↥(subgroup.zpowers c) :=
+    λ c hc, ⟨equiv.perm.of_subtype
+      (z.subtype_perm (classical.some (Hz c hc))), classical.some_spec (Hz c hc) ⟩,
     use ⟨u,v⟩,
     ext x,
     by_cases hx : x ∈ g.support,

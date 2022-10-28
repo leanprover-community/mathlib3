@@ -209,7 +209,7 @@ begin
   let g := equiv.swap a b,
   have h' : g ∈ ⊤ :=  subgroup.mem_top g,
   rw [← h , mem_stabilizer_iff] at h',
-  rw set.mem_compl_eq at hb,
+  rw set.mem_compl_iff at hb,
   apply hb,
   rw ← h',
   use a,
@@ -955,7 +955,6 @@ begin
 end
 
 
--- The main theorem, unfortunately weaker than expected
 /-- If α has at least 5 elements, then
 the only nontrivial normal sugroup of (perm α) is the alternating_group. -/
 theorem equiv.perm.normal_subgroups {α : Type*} [decidable_eq α] [fintype α]

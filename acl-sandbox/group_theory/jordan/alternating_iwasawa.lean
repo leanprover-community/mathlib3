@@ -1275,6 +1275,39 @@ begin
 end
 
 
+/-- If α has at least 5 elements, but not 8,
+then the only nontrivial normal sugroup of (perm α) is the alternating_group. -/
+theorem alternating_group.normal_subgroups' {α : Type*} [decidable_eq α] [fintype α]
+  (hα : 5 ≤ fintype.card α) (hα' : fintype.card α ≠ 8)
+  {N : subgroup (alternating_group α)} (hnN : N.normal) (ntN : nontrivial N) : N = ⊤ :=
+begin
+  rw eq_top_iff,
+  rw ← alternating_group_is_perfect hα,
+
+  have hprim : is_preprimitive (alternating_group α) (nat.finset α 4),
+  { apply nat.finset_is_preprimitive_of_alt,
+    norm_num,
+    apply lt_of_lt_of_le _ hα, norm_num,
+    exact hα', },
+  apply commutator_le_iwasawa hprim Iw4 hnN ,
+
+  -- N acts nontrivially
+  intro h,
+  obtain ⟨g, hgN, hg_ne⟩ := N.nontrivial_iff_exists_ne_one.mp ntN,
+  have hg_ne' : (to_perm g : equiv.perm α) ≠ 1,
+  { intro hg_ne', apply hg_ne,
+    ext, simp only [subgroup.coe_one, ← hg_ne'],
+    refl, },
+
+  obtain ⟨s, hs⟩ := @nat.finset.mul_action_faithful α _ _ _ _ 3 _ _ _ g hg_ne',
+  apply hs,
+  suffices : s ∈ fixed_points N (nat.finset α 3),
+  rw mem_fixed_points at this, exact this ⟨g, hgN⟩,
+  rw h, rw set.top_eq_univ, apply set.mem_univ,
+  norm_num,
+  apply lt_of_lt_of_le _ hα, norm_num,
+end
+
 
 
 /-

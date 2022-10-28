@@ -881,6 +881,26 @@ lemma Indep_fun.indep_fun_prod_range_succ [is_probability_measure μ]
   indep_fun (∏ j in finset.range n, f j) (f n) μ :=
 hf_Indep.indep_fun_finset_prod_of_not_mem hf_meas finset.not_mem_range_self
 
+lemma Indep_set.Indep_fun_indicator [has_zero β] [has_one β] {m : measurable_space β}
+  {s : ι → set Ω} (hs : Indep_set s μ) :
+  Indep_fun (λ n, m) (λ n, (s n).indicator (λ ω, 1)) μ :=
+begin
+  classical,
+  rw Indep_fun_iff_measure_inter_preimage_eq_mul,
+  rintro S π hπ,
+  simp_rw set.indicator_const_preimage_eq_union,
+  refine @hs S (λ i, ite (1 ∈ π i) (s i) ∅ ∪ ite ((0 : β) ∈ π i) (s i)ᶜ ∅) _,
+  rintros i hi,
+  simp only [set.mem_set_of],
+  split_ifs,
+  { simp only [set.union_compl_self, measurable_set.univ] },
+  { rw set.union_empty,
+    exact measurable_set_generate_from (set.mem_singleton _) },
+  { rw set.empty_union,
+    exact (measurable_set_generate_from (set.mem_singleton _)).compl },
+  { simp only [set.empty_union, measurable_set.empty] }
+end
+
 end indep_fun
 
 

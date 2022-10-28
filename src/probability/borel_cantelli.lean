@@ -28,16 +28,11 @@ open measure_theory probability_theory measurable_space topological_space
 namespace probability_theory
 
 variables {Ω : Type*} {m0 : measurable_space Ω} {μ : measure Ω} {s : ℕ → set Ω}
+  [is_probability_measure μ]
 
 section borel_cantelli
 
-section move
-
-variables {β : Type*} [mβ : measurable_space β]
-
-variables [normed_add_comm_group β] [borel_space β]
-
-variables [is_probability_measure μ]
+variables {β : Type*} [mβ : measurable_space β] [normed_add_comm_group β] [borel_space β]
 
 lemma Indep_fun.indep_comap_succ_natural {f : ℕ → Ω → β}
   (hf : ∀ (i : ℕ), strongly_measurable (f i))
@@ -58,29 +53,6 @@ lemma Indep_fun.condexp_succ_natrual_ae_eq
 condexp_indep_eq (hf $ n + 1).measurable.comap_le (filtration.le _ _)
   (measurable_space.comap_measurable $ f $ n + 1).strongly_measurable
   (hfi.indep_comap_succ_natural hf n)
-
-end move
-
-lemma Indep_set.Indep_fun_indicator (hs : Indep_set s μ) :
-  Indep_fun (λ n, real.measurable_space) (λ n, (s n).indicator (λ ω, 1)) μ :=
-begin
-  classical,
-  rw Indep_fun_iff_measure_inter_preimage_eq_mul,
-  rintro S π hπ,
-  simp_rw set.indicator_const_preimage_eq_union,
-  refine @hs S (λ i, ite (1 ∈ π i) (s i) ∅ ∪ ite ((0 : ℝ) ∈ π i) (s i)ᶜ ∅) _,
-  rintros i hi,
-  simp only [set.mem_set_of],
-  split_ifs,
-  { simp only [set.union_compl_self, measurable_set.univ] },
-  { rw set.union_empty,
-    exact measurable_set_generate_from (set.mem_singleton _) },
-  { rw set.empty_union,
-    exact (measurable_set_generate_from (set.mem_singleton _)).compl },
-  { simp only [set.empty_union, measurable_set.empty] }
-end
-
-variables [is_probability_measure μ]
 
 lemma Indep_set.condexp_indicator_filtration_of_set_ae_eq
   (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (n : ℕ) :

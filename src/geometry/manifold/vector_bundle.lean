@@ -284,14 +284,24 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
-variables (I M)
+variables (I)
+
+lemma cont_diff_on_fderiv_coord_change (i j : atlas H M) :
+  cont_diff_on 𝕜 ∞ (fderiv_within 𝕜 (j.1.extend I ∘ (i.1.extend I).symm) (range I))
+    ((i.1.extend I).symm ≫ j.1.extend I).source :=
+begin
+  sorry
+end
+
+variables (M)
 
 def tangent_bundle_core : vector_bundle_core 𝕜 M E (atlas H M) :=
 { base_set := λ i, i.1.source,
   is_open_base_set := λ i, i.1.open_source,
   index_at := achart H,
   mem_base_set_at := mem_chart_source H,
-  coord_change := λ i j x, fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm) (range I) (I (i.1 x)),
+  coord_change := λ i j x, fderiv_within 𝕜 (j.1.extend I ∘ (i.1.extend I).symm) (range I)
+    (i.1.extend I x),
   coord_change_self :=
     λ i x hx v, begin
     /- Locally, a self-change of coordinate is just the identity, thus its derivative is the
@@ -318,7 +328,12 @@ def tangent_bundle_core : vector_bundle_core 𝕜 M E (atlas H M) :=
     rw C,
     refl
   end,
-  continuous_on_coord_change := sorry,
+  continuous_on_coord_change := λ i j, begin
+      refine (cont_diff_on_fderiv_coord_change I i j).continuous_on.comp
+        ((i.1.extend_continuous_on I).mono _) _,
+      { rw [i.1.extend_source], exact inter_subset_left _ _ },
+      simp_rw [← i.1.extend_image_source_inter, maps_to_image]
+    end,
   coord_change_comp := λ i j u x hx, begin
     sorry
     -- /- The cocycle property is just the fact that the derivative of a composition is the product of
@@ -666,7 +681,11 @@ instance : vector_bundle 𝕜 E (tangent_space I : M → Type*) :=
 (tangent_bundle_core I M).vector_bundle
 
 instance tangent_bundle_core.is_smooth : (tangent_bundle_core I M).is_smooth I :=
-sorry
+begin
+  refine ⟨λ i j, _⟩,
+  rw [smooth_on, cont_mdiff_on_iff_of_mem_maximal_atlas
+    (structure_groupoid.subset_maximal_atlas _ i.2)],
+end
 
 instance tangent_bundle.smooth_vector_bundle :
   smooth_vector_bundle E (tangent_space I : M → Type*) I :=

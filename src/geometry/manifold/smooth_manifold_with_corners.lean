@@ -853,6 +853,11 @@ lemma extend_coord_change_source :
 by { simp_rw [local_equiv.trans_source, I.image_eq, extend_source, local_equiv.symm_source,
       extend_target, inter_right_comm _ (range I)], refl }
 
+lemma extend_image_source_inter :
+  f.extend I '' (f.source ∩ f'.source) = ((f.extend I).symm ≫ f'.extend I).source :=
+by simp_rw [f.extend_coord_change_source, f.extend_coe, image_comp I f, trans_source'', symm_symm,
+  symm_target]
+
 variables {f f'}
 open smooth_manifold_with_corners
 

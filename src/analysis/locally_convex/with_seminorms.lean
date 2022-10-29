@@ -516,6 +516,33 @@ begin
   exact continuous_from_bounded (norm_with_seminorms 𝕜 E) hq f hf,
 end
 
+lemma uniform_equicontinuous_iff_exists_continuous_seminorm [normed_algebra ℝ 𝕜] [module ℝ E]
+  [is_scalar_tower ℝ 𝕜 E] {κ : Type*} {q : seminorm_family 𝕜 F ι'} [uniform_space E]
+  [uniform_add_group E] [u : uniform_space F] [hu : uniform_add_group F] (hq : with_seminorms q)
+  [has_continuous_const_smul ℝ E] (f : κ → E →ₗ[𝕜] F) :
+  uniform_equicontinuous (coe_fn ∘ f) ↔
+  ∀ i, ∃ p : seminorm 𝕜 E, continuous p ∧ ∀ k, (q i).comp (f k) ≤ p :=
+begin
+  rw [q.with_seminorms_iff_uniform_space_eq_infi.mp hq, uniform_equicontinuous_infi_rng],
+  congrm (∀ i, (_ : Prop)),
+  clear hu hq u,
+  letI : seminormed_add_comm_group F := (q i).to_add_group_seminorm.to_seminormed_add_comm_group,
+  split,
+  { intros H,
+    have := H.equicontinuous 0,
+    rw metric.equicontinuous_at_iff_right at this,
+    refine ⟨⨆ k, (q i).comp (f k), seminorm.continuous _, sorry⟩,
+    filter_upwards [this 1 one_pos] with x hx,
+    sorry },
+  { rintros ⟨p, hp, hfp⟩,
+    have hp' : filter.tendsto p (𝓝 0) (𝓝 0) := map_zero p ▸ hp.tendsto 0,
+    refine uniform_equicontinuous_of_equicontinuous_at_zero f
+      (metric.equicontinuous_at_of_continuity_modulus p hp' _ $ λ x k, _),
+    change q i (f k 0 - f k x) ≤ p x,
+    rw [map_zero, zero_sub, map_neg_eq_map, ← comp_apply],
+    exact hfp k x }
+end
+
 lemma uniform_equicontinuous_of_continuous_comp_supr {κ : Type*} {q : seminorm_family 𝕜 F ι'}
   [uniform_space E] [uniform_add_group E]
   [u : uniform_space F] [hu : uniform_add_group F] (hq : with_seminorms q)

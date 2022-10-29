@@ -1090,6 +1090,10 @@ lemma finrank_le_finrank_of_le {s t : submodule K V} [finite_dimensional K t]
 calc  finrank K s = finrank K (comap t.subtype s) : (comap_subtype_equiv_of_le hst).finrank_eq.symm
 ... ≤ finrank K t : finrank_le _
 
+lemma eq_top_of_finrank_eq [finite_dimensional K V] {S : submodule K V}
+  (h : finrank K S = finrank K V) :
+  S = ⊤ := finite_dimensional.eq_of_le_of_finrank_eq le_top (by simp [h, finrank_top])
+
 lemma finrank_mono [finite_dimensional K V] :
   monotone (λ (s : submodule K V), finrank K s) :=
 λ s t, finrank_le_finrank_of_le
@@ -1345,6 +1349,21 @@ end
 lemma subalgebra.eq_bot_of_finrank_one {S : subalgebra F E} (h : finrank F S = 1) : S = ⊥ :=
 subalgebra.eq_bot_of_dim_le_one $
   by { haveI := finite_dimensional_of_finrank_eq_succ h, rw [← finrank_eq_dim, h, nat.cast_one] }
+
+lemma subalgebra.eq_bot_or_top_of_finrank (S : subalgebra F E) (hr : finrank F E = 2) :
+  S = ⊥ ∨ S = ⊤ :=
+begin
+  haveI : finite_dimensional F E := finite_dimensional_of_finrank_eq_succ hr,
+  haveI : finite_dimensional F S := finite_dimensional.finite_dimensional_submodule
+    (subalgebra.to_submodule S),
+  have : finrank F S ≤ 2, { rw ← hr, convert submodule.finrank_le S.to_submodule, },
+  have : 0 < finrank F S := finrank_pos_iff.mpr infer_instance,
+  interval_cases (finrank F S),
+  { left, exact subalgebra.eq_bot_of_finrank_one h, },
+  { right, rw ← hr at h,
+    rw ← algebra.to_submodule_eq_top,
+    exact submodule.eq_top_of_finrank_eq h, },
+end
 
 @[simp]
 theorem subalgebra.dim_eq_one_iff [nontrivial E] {S : subalgebra F E} :

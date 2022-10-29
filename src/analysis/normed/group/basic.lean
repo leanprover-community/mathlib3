@@ -895,14 +895,17 @@ end seminormed_group
 
 section induced
 
+variables (E F)
+
 /-- A group homomorphism from a `group` to a `seminormed_group` induces a `seminormed_group`
 structure on the domain. -/
 @[reducible, -- See note [reducible non-instances]
 to_additive "A group homomorphism from an `add_group` to a `seminormed_add_group` induces a
 `seminormed_add_group` structure on the domain."]
-def seminormed_group.induced [group E] [seminormed_group F] (f : E →* F) : seminormed_group E :=
+def seminormed_group.induced [group E] [seminormed_group F] [monoid_hom_class 𝓕 E F] (f : 𝓕) :
+  seminormed_group E :=
 { norm := λ x, ∥f x∥,
-  dist_eq := λ x y, by simpa only [monoid_hom.map_div, ←dist_eq_norm_div],
+  dist_eq := λ x y, by simpa only [map_div, ←dist_eq_norm_div],
   ..pseudo_metric_space.induced f _ }
 
 /-- A group homomorphism from a `comm_group` to a `seminormed_group` induces a
@@ -910,27 +913,27 @@ def seminormed_group.induced [group E] [seminormed_group F] (f : E →* F) : sem
 @[reducible, -- See note [reducible non-instances]
 to_additive "A group homomorphism from an `add_comm_group` to a `seminormed_add_group` induces a
 `seminormed_add_comm_group` structure on the domain."]
-def seminormed_comm_group.induced [comm_group E] [seminormed_group F] (f : E →* F) :
-  seminormed_comm_group E :=
-{ ..seminormed_group.induced f }
+def seminormed_comm_group.induced [comm_group E] [seminormed_group F] [monoid_hom_class 𝓕 E F]
+  (f : 𝓕) : seminormed_comm_group E :=
+{ ..seminormed_group.induced E F f }
 
 /-- An injective group homomorphism from a `group` to a `normed_group` induces a `normed_group`
 structure on the domain. -/
 @[reducible,  -- See note [reducible non-instances].
 to_additive "An injective group homomorphism from an `add_group` to a `normed_add_group` induces a
 `normed_add_group` structure on the domain."]
-def normed_group.induced [group E] [normed_group F] (f : E →* F) (h : injective f) :
-  normed_group E :=
-{ ..seminormed_group.induced f, ..metric_space.induced f h _ }
+def normed_group.induced [group E] [normed_group F] [monoid_hom_class 𝓕 E F] (f : 𝓕)
+  (h : injective f) : normed_group E :=
+{ ..seminormed_group.induced E F f, ..metric_space.induced f h _ }
 
 /-- An injective group homomorphism from an `comm_group` to a `normed_group` induces a
 `normed_comm_group` structure on the domain. -/
 @[reducible,  -- See note [reducible non-instances].
 to_additive "An injective group homomorphism from an `comm_group` to a `normed_comm_group` induces a
 `normed_comm_group` structure on the domain."]
-def normed_comm_group.induced [comm_group E] [normed_group F] (f : E →* F) (h : injective f) :
-  normed_comm_group E :=
-{ ..seminormed_group.induced f, ..metric_space.induced f h _ }
+def normed_comm_group.induced [comm_group E] [normed_group F] [monoid_hom_class 𝓕 E F] (f : 𝓕)
+  (h : injective f) : normed_comm_group E :=
+{ ..seminormed_group.induced E F f, ..metric_space.induced f h _ }
 
 end induced
 
@@ -1334,18 +1337,18 @@ lemma nnnorm_def (x : ulift E) : ∥x∥₊ = ∥x.down∥₊ := rfl
 end has_nnnorm
 
 @[to_additive] instance seminormed_group [seminormed_group E] : seminormed_group (ulift E) :=
-seminormed_group.induced ⟨ulift.down, rfl, λ _ _, rfl⟩
+seminormed_group.induced _ _ (⟨ulift.down, rfl, λ _ _, rfl⟩ : ulift E →* E)
 
 @[to_additive]
 instance seminormed_comm_group [seminormed_comm_group E] : seminormed_comm_group (ulift E) :=
-seminormed_comm_group.induced ⟨ulift.down, rfl, λ _ _, rfl⟩
+seminormed_comm_group.induced _ _ (⟨ulift.down, rfl, λ _ _, rfl⟩ : ulift E →* E)
 
 @[to_additive] instance normed_group [normed_group E] : normed_group (ulift E) :=
-normed_group.induced ⟨ulift.down, rfl, λ _ _, rfl⟩ down_injective
+normed_group.induced _ _ (⟨ulift.down, rfl, λ _ _, rfl⟩ : ulift E →* E) down_injective
 
 @[to_additive]
 instance normed_comm_group [normed_comm_group E] : normed_comm_group (ulift E) :=
-normed_comm_group.induced ⟨ulift.down, rfl, λ _ _, rfl⟩ down_injective
+normed_comm_group.induced _ _ (⟨ulift.down, rfl, λ _ _, rfl⟩ : ulift E →* E) down_injective
 
 end ulift
 
@@ -1512,13 +1515,23 @@ subtype.eta _ _
 
 /-- The seminorm of an element in a product space is `≤ r` if and only if the norm of each
 component is. -/
-@[to_additive pi_norm_le_iff "The seminorm of an element in a product space is `≤ r` if and only if
-the norm of each component is."]
-lemma pi_norm_le_iff' (hr : 0 ≤ r) : ∥x∥ ≤ r ↔ ∀ i, ∥x i∥ ≤ r :=
+@[to_additive pi_norm_le_iff_of_nonneg "The seminorm of an element in a product space is `≤ r` if
+and only if the norm of each component is."]
+lemma pi_norm_le_iff_of_nonneg' (hr : 0 ≤ r) : ∥x∥ ≤ r ↔ ∀ i, ∥x i∥ ≤ r :=
 by simp only [←dist_one_right, dist_pi_le_iff hr, pi.one_apply]
 
 @[to_additive pi_nnnorm_le_iff]
-lemma pi_nnnorm_le_iff' {r : ℝ≥0} : ∥x∥₊ ≤ r ↔ ∀ i, ∥x i∥₊ ≤ r := pi_norm_le_iff' r.coe_nonneg
+lemma pi_nnnorm_le_iff' {r : ℝ≥0} : ∥x∥₊ ≤ r ↔ ∀ i, ∥x i∥₊ ≤ r :=
+pi_norm_le_iff_of_nonneg' r.coe_nonneg
+
+@[to_additive pi_norm_le_iff_of_nonempty]
+lemma pi_norm_le_iff_of_nonempty' [nonempty ι] : ∥f∥ ≤ r ↔ ∀ b, ∥f b∥ ≤ r :=
+begin
+  by_cases hr : 0 ≤ r,
+  { exact pi_norm_le_iff_of_nonneg' hr },
+  { exact iff_of_false (λ h, hr $ (norm_nonneg' _).trans h)
+      (λ h, hr $ (norm_nonneg' _).trans $ h $ classical.arbitrary _) }
+end
 
 /-- The seminorm of an element in a product space is `< r` if and only if the norm of each
 component is. -/
@@ -1531,10 +1544,18 @@ by simp only [←dist_one_right, dist_pi_lt_iff hr, pi.one_apply]
 lemma pi_nnnorm_lt_iff' {r : ℝ≥0} (hr : 0 < r) : ∥x∥₊ < r ↔ ∀ i, ∥x i∥₊ < r := pi_norm_lt_iff' hr
 
 @[to_additive norm_le_pi_norm]
-lemma norm_le_pi_norm' (i : ι) : ∥f i∥ ≤ ∥f∥ := (pi_norm_le_iff' $ norm_nonneg' _).1 le_rfl i
+lemma norm_le_pi_norm' (i : ι) : ∥f i∥ ≤ ∥f∥ :=
+(pi_norm_le_iff_of_nonneg' $ norm_nonneg' _).1 le_rfl i
 
 @[to_additive nnnorm_le_pi_nnnorm]
 lemma nnnorm_le_pi_nnnorm' (i : ι) : ∥f i∥₊ ≤ ∥f∥₊ := norm_le_pi_norm' _ i
+
+@[to_additive pi_norm_const_le]
+lemma pi_norm_const_le' (a : E) : ∥(λ _ : ι, a)∥ ≤ ∥a∥ :=
+(pi_norm_le_iff_of_nonneg' $ norm_nonneg' _).2 $ λ _, le_rfl
+
+@[to_additive pi_nnnorm_const_le]
+lemma pi_nnnorm_const_le' (a : E) : ∥(λ _ : ι, a)∥₊ ≤ ∥a∥₊ := pi_norm_const_le' _
 
 @[simp, to_additive pi_norm_const]
 lemma pi_norm_const' [nonempty ι] (a : E) : ∥(λ i : ι, a)∥ = ∥a∥ :=
@@ -1585,7 +1606,7 @@ variables [seminormed_group E] {s : subgroup E}
 with the restriction of the norm. -/
 @[to_additive "A subgroup of a seminormed group is also a seminormed group,
 with the restriction of the norm."]
-instance seminormed_group : seminormed_group s := seminormed_group.induced s.subtype
+instance seminormed_group : seminormed_group s := seminormed_group.induced _ _ s.subtype
 
 /-- If `x` is an element of a subgroup `s` of a seminormed group `E`, its norm in `s` is equal to
 its norm in `E`. -/
@@ -1607,14 +1628,14 @@ end seminormed_group
 
 @[to_additive] instance seminormed_comm_group [seminormed_comm_group E] {s : subgroup E} :
   seminormed_comm_group s :=
-seminormed_comm_group.induced s.subtype
+seminormed_comm_group.induced _ _ s.subtype
 
 @[to_additive] instance normed_group [normed_group E] {s : subgroup E} : normed_group s :=
-normed_group.induced s.subtype subtype.coe_injective
+normed_group.induced _ _ s.subtype subtype.coe_injective
 
 @[to_additive]
 instance normed_comm_group [normed_comm_group E] {s : subgroup E} : normed_comm_group s :=
-normed_comm_group.induced s.subtype subtype.coe_injective
+normed_comm_group.induced _ _ s.subtype subtype.coe_injective
 
 end subgroup
 
@@ -1628,7 +1649,7 @@ namespace submodule
 instance seminormed_add_comm_group {_ : ring 𝕜} [seminormed_add_comm_group E] {_ : module 𝕜 E}
   (s : submodule 𝕜 E) :
   seminormed_add_comm_group s :=
-seminormed_add_comm_group.induced s.subtype.to_add_monoid_hom
+seminormed_add_comm_group.induced _ _ s.subtype.to_add_monoid_hom
 
 /-- If `x` is an element of a submodule `s` of a normed group `E`, its norm in `s` is equal to its
 norm in `E`. -/

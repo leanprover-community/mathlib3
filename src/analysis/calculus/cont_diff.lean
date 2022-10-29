@@ -783,6 +783,11 @@ lemma iterated_fderiv_within_succ_eq_comp_left {n : ℕ} :
   (continuous_multilinear_curry_left_equiv 𝕜 (λ(i : fin (n + 1)), E) F)
     ∘ (fderiv_within 𝕜 (iterated_fderiv_within 𝕜 n f s) s) := rfl
 
+lemma norm_fderiv_within_iterated_fderiv_within {n : ℕ} :
+  ∥fderiv_within 𝕜 (iterated_fderiv_within 𝕜 n f s) s x∥ =
+  ∥iterated_fderiv_within 𝕜 (n + 1) f s x∥ :=
+by rw [iterated_fderiv_within_succ_eq_comp_left, linear_isometry_equiv.norm_map]
+
 theorem iterated_fderiv_within_succ_apply_right {n : ℕ}
   (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) (m : fin (n + 1) → E) :
   (iterated_fderiv_within 𝕜 (n + 1) f s x : (fin (n + 1) → E) → F) m
@@ -821,6 +826,11 @@ lemma iterated_fderiv_within_succ_eq_comp_right {n : ℕ} (hs : unique_diff_on �
   ((continuous_multilinear_curry_right_equiv' 𝕜 n E F)
     ∘ (iterated_fderiv_within 𝕜 n (λy, fderiv_within 𝕜 f s y) s)) x :=
 by { ext m, rw iterated_fderiv_within_succ_apply_right hs hx, refl }
+
+lemma norm_iterated_fderiv_within_fderiv_within {n : ℕ} (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) :
+  ∥iterated_fderiv_within 𝕜 n (fderiv_within 𝕜 f s) s x∥ =
+  ∥iterated_fderiv_within 𝕜 (n + 1) f s x∥ :=
+by rw [iterated_fderiv_within_succ_eq_comp_right hs hx, linear_isometry_equiv.norm_map]
 
 @[simp] lemma iterated_fderiv_within_one_apply
   (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) (m : (fin 1) → E) :
@@ -1489,6 +1499,9 @@ begin
     apply (IH.fderiv 𝕜).comp_left,
     exact linear_isometry_equiv.map_zero _ }
 end
+lemma norm_fderiv_iterated_fderiv {n : ℕ} :
+  ∥fderiv 𝕜 (iterated_fderiv 𝕜 n f) x∥ = ∥iterated_fderiv 𝕜 (n + 1) f x∥ :=
+by rw [iterated_fderiv_succ_eq_comp_left, linear_isometry_equiv.norm_map]
 
 lemma iterated_fderiv_within_univ {n : ℕ} :
   iterated_fderiv_within 𝕜 n f univ = iterated_fderiv 𝕜 n f :=
@@ -1542,6 +1555,10 @@ lemma iterated_fderiv_succ_eq_comp_right {n : ℕ} :
   ((continuous_multilinear_curry_right_equiv' 𝕜 n E F)
     ∘ (iterated_fderiv 𝕜 n (λy, fderiv 𝕜 f y))) x :=
 by { ext m, rw iterated_fderiv_succ_apply_right, refl }
+
+lemma norm_iterated_fderiv_fderiv {n : ℕ} :
+  ∥iterated_fderiv 𝕜 n (fderiv 𝕜 f) x∥ = ∥iterated_fderiv 𝕜 (n + 1) f x∥ :=
+by rw [iterated_fderiv_succ_eq_comp_right, linear_isometry_equiv.norm_map]
 
 @[simp] lemma iterated_fderiv_one_apply (m : (fin 1) → E) :
   (iterated_fderiv 𝕜 1 f x : ((fin 1) → E) → F) m

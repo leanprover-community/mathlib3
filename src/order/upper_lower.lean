@@ -174,8 +174,8 @@ lemma is_lower_set.image (hs : is_lower_set s) (f : α ≃o β) : is_lower_set (
 by { change is_lower_set ((f : α ≃ β) '' s), rw set.image_equiv_eq_preimage_symm,
   exact hs.preimage f.symm.monotone }
 
-@[simp] lemma monotone_mem : monotone (∈ s) ↔ is_upper_set s := iff.rfl
-@[simp] lemma antitone_mem : antitone (∈ s) ↔ is_lower_set s := forall_swap
+@[simp] lemma set.monotone_mem : monotone (∈ s) ↔ is_upper_set s := iff.rfl
+@[simp] lemma set.antitone_mem : antitone (∈ s) ↔ is_lower_set s := forall_swap
 
 @[simp] lemma is_upper_set_set_of : is_upper_set {a | p a} ↔ monotone p := iff.rfl
 @[simp] lemma is_lower_set_set_of : is_lower_set {a | p a} ↔ antitone p := forall_swap

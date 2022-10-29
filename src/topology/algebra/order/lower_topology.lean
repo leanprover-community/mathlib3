@@ -32,7 +32,7 @@ variable (α : Type u)
 
 open set topological_space
 
-section pre_order
+section preorder
 
 variable [preorder α]
 

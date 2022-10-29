@@ -95,7 +95,7 @@ is_lower_set_compl.1 $ is_lower_set_of_is_open h.is_open_compl
 The closure of a singleton {a} in the lower topology is the left-closed right-infinite interval
 [a,∞)
 -/
-lemma closure_singleton (a : lower α) : closure {a} = Ici a :=
+@[simp] lemma closure_singleton (a : lower α) : closure {a} = Ici a :=
 subset_antisymm (closure_minimal (λ b h, h.ge) $ is_closed_Ici a) $
   (is_upper_of_is_closed is_closed_closure).Ici_subset (subset_closure rfl)
 

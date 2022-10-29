@@ -69,7 +69,7 @@ Left-closed right-infinite intervals [a,∞) are closed in the lower topology
 lemma is_closed_Ici (a : lower α) : is_closed (Ici a) :=
 is_open_compl_iff.1 $ generate_open.basic _ ⟨a, rfl⟩
 
-/-
+/--
 The upper closure of a finite subset is closed in the lower topology
 -/
 lemma is_closed_upper_closure (F : set (lower α)) (h : F.finite) :

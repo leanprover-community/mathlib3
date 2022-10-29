@@ -214,16 +214,6 @@ rfl
 private lemma nsmul_aux (n : ℕ) (f : cau_seq β abv) (i : ℕ) : nsmul_rec n f i = n • f i :=
 by induction n; simp only [*, nsmul_rec, zero_apply, add_apply, zero_nsmul, succ_nsmul]
 
-instance has_nsmul : has_smul ℕ (cau_seq β abv) :=
-⟨λ n f, of_eq (nsmul_rec n f) (λ i, n • f i) $ nsmul_aux _ _⟩
-
-@[simp, norm_cast, nolint simp_nf]
-lemma coe_nsmul (n : ℕ) (f : cau_seq β abv) (i : ℕ) : (n • f) i = n • f i := rfl
--- eligible for `dsimp`
-@[simp, norm_cast, nolint simp_nf]
-lemma nsmul_apply (n : ℕ) (f : cau_seq β abv) (i : ℕ) : (n • f) i = n • f i := rfl
-lemma const_nsmul (n : ℕ) (x : β) : const (n • x) = n • const x := rfl
-
 instance : has_mul (cau_seq β abv) :=
 ⟨λ f g, ⟨f * g, λ ε ε0,
   let ⟨F, F0, hF⟩ := f.bounded' 0, ⟨G, G0, hG⟩ := g.bounded' 0,
@@ -253,19 +243,20 @@ instance : has_sub (cau_seq β abv) :=
 
 theorem const_sub (x y : β) : const (x - y) = const x - const y := rfl
 
-instance has_zsmul : has_smul ℤ (cau_seq β abv) :=
-⟨λ n f, of_eq (zsmul_rec n f) (λ i, n • f i) $ λ i, begin
-  induction n; unfold zsmul_rec,
-  { rw [of_nat_zsmul, nsmul_aux] },
-  { rw [zsmul_neg_succ_of_nat, neg_apply,  nsmul_aux] }
-  end⟩
+section has_smul
+variables [has_smul G β] [is_scalar_tower G β β]
+
+instance : has_smul G (cau_seq β abv) :=
+⟨λ a f, of_eq (const (a • 1) * f) (a • f) $ λ i, smul_one_mul _ _⟩
 
 -- eligible for `dsimp`
 @[simp, norm_cast, nolint simp_nf]
-lemma coe_zsmul (n : ℤ) (f : cau_seq β abv) : (⇑(n • f) : ℕ → β) = n • f := rfl
+lemma coe_smul (a : G) (f : cau_seq β abv) : (⇑(a • f) : ℕ → β) = a • f := rfl
 @[simp, norm_cast, nolint simp_nf]
-lemma zsmul_apply (n : ℤ) (f : cau_seq β abv) (i : ℕ) : (n • f) i = n • f i := rfl
-lemma const_zsmul (n : ℤ) (x : β) : const (n • x) = n • const x := rfl
+lemma smul_apply (a : G) (f : cau_seq β abv) (i : ℕ) : (a • f) i = a • f i := rfl
+lemma const_smul (a : G) (x : β) : const (a • x) = a • const x := rfl
+
+end has_smul
 
 instance : add_group (cau_seq β abv) :=
 by refine_struct

@@ -392,6 +392,11 @@ lemma update_div [Π i, has_div (f i)] [decidable_eq I]
   update (f₁ / f₂) i (x₁ / x₂) = update f₁ i x₁ / update f₂ i x₂ :=
 funext $ λ j, (apply_update₂ (λ i, (/)) f₁ f₂ i x₁ x₂ j).symm
 
+variables [has_one α] [nonempty β] {a : α}
+
+@[simp, to_additive] lemma const_eq_one : const β a = 1 ↔ a = 1 := @const_inj _ _ _ _ 1
+@[simp, to_additive] lemma const_ne_one : const β a ≠ 1 ↔ a ≠ 1 := const_eq_one.not
+
 end function
 
 section piecewise

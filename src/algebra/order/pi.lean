@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
 import algebra.ring.pi
+import tactic.positivity
 
 /-!
 # Pi instances for ordered groups and monoids
@@ -76,18 +77,48 @@ instance [Π i, ordered_comm_ring (f i)] : ordered_comm_ring (Π i, f i) :=
 end pi
 
 namespace function
-variables [nonempty β] {a : α}
+variables (β) [has_one α] [preorder α] {a : α}
 
-@[simp, to_additive] lemma const_eq_one [has_one α] : const β a = 1 ↔ a = 1 :=
-by simp [funext_iff]
+@[to_additive const_nonneg_of_nonneg]
+lemma one_le_const_of_one_le (ha : 1 ≤ a) : 1 ≤ const β a := λ _, ha
 
-@[simp, to_additive] lemma const_ne_one [has_one α] : const β a ≠ 1 ↔ a ≠ 1 := const_eq_one.not
+@[to_additive] lemma const_le_one_of_le_one (ha : a ≤ 1) : const β a ≤ 1 := λ _, ha
 
-variables [has_zero α] [preorder α]
+variables {β} [nonempty β]
 
-lemma const_nonneg_of_nonneg (β : Type*) (ha : 0 ≤ a) : 0 ≤ const β a := λ _, ha
-
-@[simp] lemma const_nonneg : 0 ≤ const β a ↔ 0 ≤ a := by simp [pi.le_def]
-@[simp] lemma const_pos : 0 < const β a ↔ 0 < a := by simpa [pi.lt_def] using le_of_lt
+@[simp, to_additive const_nonneg]
+lemma one_le_const : 1 ≤ const β a ↔ 1 ≤ a := @const_le_const _ _ _ _ 1 _
+@[simp, to_additive const_pos]
+lemma one_lt_const : 1 < const β a ↔ 1 < a := @const_lt_const _ _ _ _ 1 a
+@[simp, to_additive] lemma const_le_one : const β a ≤ 1 ↔ a ≤ 1 := @const_le_const _ _ _ _ _ 1
+@[simp, to_additive] lemma const_lt_one : const β a < 1 ↔ a < 1 := @const_lt_const _ _ _ _ _ 1
 
 end function
+
+namespace tactic
+open function positivity
+variables (ι) [has_zero α] {a : α}
+
+private lemma function_const_nonneg_of_pos [preorder α] (ha : 0 < a) : 0 ≤ const ι a :=
+const_nonneg_of_nonneg _ ha.le
+
+variables [nonempty ι]
+
+private lemma function_const_ne_zero : a ≠ 0 → const ι a ≠ 0 := const_ne_zero.2
+private lemma function_const_pos [preorder α] : 0 < a → 0 < const ι a := const_pos.2
+
+/-- Extension for the `positivity` tactic: `function.const` is positive/nonnegative/nonzero if its
+input is. -/
+@[positivity]
+meta def positivity_const : expr → tactic strictness
+| `(function.const %%ι %%a) := do
+    strict_a ← core a,
+    match strict_a with
+    | positive p := positive <$> to_expr ``(function_const_pos %%ι %%p)
+        <|> nonnegative <$> to_expr ``(function_const_nonneg_of_pos %%ι %%p)
+    | nonnegative p := nonnegative <$> to_expr ``(const_nonneg_of_nonneg %%ι %%p)
+    | nonzero p := nonzero <$> to_expr ``(function_const_ne_zero %%ι %%p)
+    end
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `function.const ι a`"
+
+end tactic

@@ -113,9 +113,7 @@ variable [partial_order α]
 The non-empty complements of the upper closures of finite subsets are a collection of lower sets
 which form a basis for the lower topology
 -/
-def lower_basis (α : Type u) [preorder α] :=
-{s : set α | ∃ (F : set α), F.finite ∧
-  ↑(upper_closure F).compl = s }
+def lower_basis := {s : set α | ∃ (F : set α), F.finite ∧ ↑(upper_closure F).compl = s}
 
 lemma lower_basis_is_basis : is_topological_basis (lower_basis (lower α)) :=
 begin

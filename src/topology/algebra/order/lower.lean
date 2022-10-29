@@ -54,7 +54,7 @@ generate_from {s | ∃ a, (Ici a)ᶜ = s}
 instance lower.topological_space (α : Type u) [preorder α] :
   topological_space (lower α) := lower_topology (lower α)
 
-
+namespace lower_topology
 section pre_order
 
 

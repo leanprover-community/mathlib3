@@ -976,18 +976,19 @@ instance (α : Type*) [fintype α] : fintype (lex α) := ‹fintype α›
   fintype.card (lex α) = fintype.card α := rfl
 
 /-- Note that this is not stated with `disjoint` so that it can be used with `finset.disj_union`. -/
-lemma finset.disjoint_map_inl_map_inr {α β : Type*} [fintype α] [fintype β] (a : α ⊕ β) :
-  a ∈ (univ.map embedding.inl : finset (α ⊕ β)) → a ∉ (univ.map embedding.inr : finset (α ⊕ β)) :=
+lemma finset.disjoint_map_inl_map_inr {α β : Type*} [fintype α] [fintype β]
+  (s : finset α) (t : finset β) (a : α ⊕ β) :
+  a ∈ (s.map embedding.inl : finset (α ⊕ β)) → a ∉ (t.map embedding.inr : finset (α ⊕ β)) :=
 by { simp_rw mem_map, rintro ⟨a, _, rfl⟩ ⟨b, _, ⟨⟩⟩ }
 
 instance (α : Type u) (β : Type v) [fintype α] [fintype β] : fintype (α ⊕ β) :=
-{ elems := finset.disj_union _ _ finset.disjoint_map_inl_map_inr,
+{ elems := finset.disj_union _ _ (finset.disjoint_map_inl_map_inr univ univ),
   complete := by rintro (_ | _); simp }
 
 lemma univ_sum_type {α β : Type*} [fintype α] [fintype β] :
   (univ : finset (α ⊕ β)) =
     ((univ : finset α).map embedding.inl).disj_union ((univ : finset β).map embedding.inr)
-      finset.disjoint_map_inl_map_inr :=
+      (finset.disjoint_map_inl_map_inr _ _) :=
 rfl
 
 /-- Given that `α ⊕ β` is a fintype, `α` is also a fintype. This is non-computable as it uses

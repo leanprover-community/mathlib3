@@ -27,55 +27,47 @@ open measure_theory probability_theory measurable_space topological_space
 
 namespace probability_theory
 
-variables {Ω : Type*} {m0 : measurable_space Ω} {μ : measure Ω} {s : ℕ → set Ω}
+variables {Ω : Type*} {m0 : measurable_space Ω} {μ : measure Ω}
   [is_probability_measure μ]
 
 section borel_cantelli
 
-variables {β : Type*} [mβ : measurable_space β] [normed_add_comm_group β] [borel_space β]
+variables {ι β : Type*} [linear_order ι] [mβ : measurable_space β] [normed_add_comm_group β]
+  [borel_space β] {f : ι → Ω → β} {i j : ι} {s : ι → set Ω}
 
-lemma Indep_fun.indep_comap_succ_natural {f : ℕ → Ω → β}
-  (hf : ∀ (i : ℕ), strongly_measurable (f i))
-  (hfi : Indep_fun (λ (n : ℕ), mβ) f μ) (n : ℕ) :
-  indep (measurable_space.comap (f (n + 1)) mβ) (filtration.natural f hf n) μ :=
+lemma Indep_fun.indep_comap_natural_of_lt (hf : ∀ i, strongly_measurable (f i))
+  (hfi : Indep_fun (λ i, mβ) f μ) (hij : i < j) :
+  indep (measurable_space.comap (f j) mβ) (filtration.natural f hf i) μ :=
 begin
-  suffices : indep (⨆ k ∈ {n + 1}, measurable_space.comap (f k) mβ)
-    (⨆ k ∈ {k | k ≤ n}, measurable_space.comap (f k) mβ) μ,
+  suffices : indep (⨆ k ∈ {j}, measurable_space.comap (f k) mβ)
+    (⨆ k ∈ {k | k ≤ i}, measurable_space.comap (f k) mβ) μ,
   { rwa supr_singleton at this },
-  refine indep_supr_of_disjoint (λ k, (hf k).measurable.comap_le) hfi _,
-  simp
+  exact indep_supr_of_disjoint (λ k, (hf k).measurable.comap_le) hfi (by simpa),
 end
 
-lemma Indep_fun.condexp_succ_natrual_ae_eq
+lemma Indep_fun.condexp_natrual_ae_eq_of_lt
   [second_countable_topology β] [complete_space β] [normed_space ℝ β]
-  {f : ℕ → Ω → β} (hf : ∀ i, strongly_measurable (f i)) (hfi : Indep_fun (λ n, mβ) f μ) (n : ℕ) :
-  μ[f (n + 1) | filtration.natural f hf n] =ᵐ[μ] λ ω, μ[f (n + 1)] :=
-condexp_indep_eq (hf $ n + 1).measurable.comap_le (filtration.le _ _)
-  (measurable_space.comap_measurable $ f $ n + 1).strongly_measurable
-  (hfi.indep_comap_succ_natural hf n)
+  (hf : ∀ i, strongly_measurable (f i)) (hfi : Indep_fun (λ i, mβ) f μ) (hij : i < j) :
+  μ[f j | filtration.natural f hf i] =ᵐ[μ] λ ω, μ[f j] :=
+condexp_indep_eq (hf j).measurable.comap_le (filtration.le _ _)
+  (measurable_space.comap_measurable $ f j).strongly_measurable
+  (hfi.indep_comap_natural_of_lt hf hij)
 
 lemma Indep_set.condexp_indicator_filtration_of_set_ae_eq
-  (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (n : ℕ) :
-  μ[(s (n + 1)).indicator (λ ω, 1 : Ω → ℝ) | filtration_of_set hsm n] =ᵐ[μ]
-    λ ω, (μ (s (n + 1))).to_real :=
+  (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (hij : i < j) :
+  μ[(s j).indicator (λ ω, 1 : Ω → ℝ) | filtration_of_set hsm i] =ᵐ[μ] λ ω, (μ (s j)).to_real :=
 begin
   rw filtration.filtration_of_set_eq_natural hsm,
-  refine (Indep_fun.condexp_succ_natrual_ae_eq _ hs.Indep_fun_indicator n).trans _,
+  refine (Indep_fun.condexp_natrual_ae_eq_of_lt _ hs.Indep_fun_indicator hij).trans _,
   { simp only [integral_indicator_const _ (hsm _), algebra.id.smul_eq_mul, mul_one] },
   { apply_instance }
 end
-
-lemma Indep_set.condexp_indicator_filtration_of_set_ae_eq'
-  (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) :
-  ∀ᵐ ω ∂μ, ∀ n, μ[(s (n + 1)).indicator (1 : Ω → ℝ) | filtration_of_set hsm n] ω =
-    (μ (s (n + 1))).to_real :=
-ae_all_iff.2 (hs.condexp_indicator_filtration_of_set_ae_eq hsm)
 
 open filter
 
 /-- **The second Borel-Cantelli lemma**: Given a sequence of independent sets `(sₙ)` such that
 `∑ n, μ sₙ = ∞`, `limsup sₙ` has measure 1. -/
-lemma measure_limsup_eq_one
+lemma measure_limsup_eq_one {s : ℕ → set Ω}
   (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (hs' : ∑' n, μ (s n) = ∞) :
   μ (limsup s at_top) = 1 :=
 begin
@@ -86,7 +78,9 @@ begin
   suffices : {ω | tendsto (λ n, ∑ k in finset.range n,
     μ[(s (k + 1)).indicator (1 : Ω → ℝ) | filtration_of_set hsm k] ω) at_top at_top} =ᵐ[μ] set.univ,
   { rw [measure_congr this, measure_univ] },
-  filter_upwards [hs.condexp_indicator_filtration_of_set_ae_eq' hsm] with ω hω,
+  have : ∀ᵐ ω ∂μ, ∀ n, μ[(s (n + 1)).indicator (1 : Ω → ℝ) | filtration_of_set hsm n] ω = _ :=
+    ae_all_iff.2 (λ n, hs.condexp_indicator_filtration_of_set_ae_eq hsm n.lt_succ_self),
+  filter_upwards [this] with ω hω,
   refine eq_true_intro (_ : tendsto _ _ _),
   simp_rw hω,
   have htends : tendsto (λ n, ∑ k in finset.range n, μ (s (k + 1))) at_top (𝓝 ∞),

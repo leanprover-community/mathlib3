@@ -664,11 +664,11 @@ theorem radical_mono (H : I ≤ J) : radical I ≤ radical J :=
 
 variables (I)
 
-@[simp] theorem radical_idem : radical (radical I) = radical I :=
-le_antisymm (λ r ⟨n, k, hrnki⟩, ⟨n * k, (pow_mul r n k).symm ▸ hrnki⟩) le_radical
-
 theorem radical_is_radical : (radical I).is_radical :=
-by { rw ← radical_eq_iff, exact radical_idem I }
+λ r ⟨n, k, hrnki⟩, ⟨n * k, (pow_mul r n k).symm ▸ hrnki⟩
+
+@[simp] theorem radical_idem : radical (radical I) = radical I :=
+radical_eq_iff.2 $ radical_is_radical I
 
 variables {I}
 
@@ -679,11 +679,11 @@ theorem radical_eq_top : radical I = ⊤ ↔ I = ⊤ :=
 ⟨λ h, (eq_top_iff_one _).2 $ let ⟨n, hn⟩ := (eq_top_iff_one _).1 h in
   @one_pow R _ n ▸ hn, λ h, h.symm ▸ radical_top R⟩
 
-theorem is_prime.radical (H : is_prime I) : radical I = I :=
-le_antisymm (λ r ⟨n, hrni⟩, H.mem_of_pow_mem n hrni) le_radical
-
 theorem is_prime.is_radical (H : is_prime I) : I.is_radical :=
-by { rw ← radical_eq_iff, exact H.radical }
+λ r ⟨n, hrni⟩, H.mem_of_pow_mem n hrni
+
+theorem is_prime.radical (H : is_prime I) : radical I = I :=
+radical_eq_iff.2 H.is_radical
 
 variables (I J)
 theorem radical_sup : radical (I ⊔ J) = radical (radical I ⊔ radical J) :=
@@ -700,6 +700,7 @@ le_antisymm (le_inf (radical_mono inf_le_left) (radical_mono inf_le_right))
 theorem radical_mul : radical (I * J) = radical I ⊓ radical J :=
 le_antisymm (radical_inf I J ▸ radical_mono $ @mul_le_inf _ _ I J)
 (λ r ⟨⟨m, hrm⟩, ⟨n, hrn⟩⟩, ⟨m + n, (pow_add r m n).symm ▸ mul_mem_mul hrm hrn⟩)
+
 variables {I J}
 
 theorem is_prime.radical_le_iff (hj : is_prime J) :

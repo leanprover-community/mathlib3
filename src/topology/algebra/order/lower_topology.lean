@@ -95,7 +95,7 @@ end
 lemma lower_closed_is_upper {s : set (lower α)} (h : is_closed s) : is_upper_set s :=
 is_lower_set_compl.1 $ is_lower_set_of_is_open h.is_open_compl
 
-/-
+/--
 The closure of a singleton {a} in the lower topology is the left-closed right-infinite interval
 [a,∞)
 -/

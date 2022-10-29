@@ -268,7 +268,7 @@ lemma isometry_of_real : isometry (coe : ℝ → ℂ) := of_real_li.isometry
 @[continuity] lemma continuous_of_real : continuous (coe : ℝ → ℂ) := of_real_li.continuous
 
 /-- The only continuous ring homomorphism from `ℝ` to `ℂ` is the identity. -/
-lemma complex.ring_hom_eq_of_real_of_continuous {f : ℝ →+* ℂ} (h : continuous f) :
+lemma ring_hom_eq_of_real_of_continuous {f : ℝ →+* ℂ} (h : continuous f) :
   f = complex.of_real :=
 begin
   convert rat.dense_embedding_coe_real.dense.equalizer h

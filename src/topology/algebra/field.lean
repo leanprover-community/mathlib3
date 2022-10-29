@@ -5,6 +5,7 @@ Authors: Patrick Massot, Scott Morrison
 -/
 import topology.algebra.ring
 import topology.algebra.group_with_zero
+import topology.local_extr
 
 /-!
 # Topological fields
@@ -141,3 +142,14 @@ def affine_homeomorph (a b : 𝕜) (h : a ≠ 0) : 𝕜 ≃ₜ 𝕜 :=
   right_inv := λ y, by { simp [mul_div_cancel' _ h], }, }
 
 end affine_homeomorph
+
+section local_extr
+
+variables {α β : Type*} [topological_space α] [linear_ordered_semifield β] {a : α}
+open_locale topological_space
+
+lemma is_local_min.inv {f : α → β} {a : α} (h1 : is_local_min f a) (h2 : ∀ᶠ z in 𝓝 a, 0 < f z) :
+  is_local_max f⁻¹ a :=
+by filter_upwards [h1, h2] with z h3 h4 using (inv_le_inv h4 h2.self_of_nhds).mpr h3
+
+end local_extr

@@ -9,7 +9,7 @@ import ring_theory.nilpotent
 import ring_theory.localization.away
 import ring_theory.ideal.prod
 import ring_theory.ideal.over
-import topology.sets.opens
+import topology.sets.closeds
 import topology.sober
 
 /-!
@@ -405,6 +405,27 @@ lemma vanishing_ideal_closure (t : set (prime_spectrum R)) :
   vanishing_ideal (closure t) = vanishing_ideal t :=
 zero_locus_vanishing_ideal_eq_closure t ▸ (gc R).u_l_u_eq_u t
 
+lemma vanishing_ideal_anti_mono_iff {s t : set (prime_spectrum R)}
+  (ht : is_closed t) : s ⊆ t ↔ vanishing_ideal t ≤ vanishing_ideal s :=
+⟨vanishing_ideal_anti_mono, λ h,
+begin
+  rw [← ht.closure_subset_iff, ← ht.closure_eq],
+  convert ← zero_locus_anti_mono_ideal h;
+  apply zero_locus_vanishing_ideal_eq_closure,
+end⟩
+
+lemma vanishing_ideal_strict_anti_mono_iff {s t : set (prime_spectrum R)}
+  (hs : is_closed s) (ht : is_closed t) :
+  s ⊂ t ↔ vanishing_ideal t < vanishing_ideal s :=
+by rw [set.ssubset_def, vanishing_ideal_anti_mono_iff hs,
+       vanishing_ideal_anti_mono_iff ht, lt_iff_le_not_le]
+
+/-- The antitone order embedding of closed subsets of `Spec R` into ideals of `R`. -/
+def closeds_embedding (R : Type*) [comm_ring R] :
+  (topological_space.closeds $ prime_spectrum R)ᵒᵈ ↪o ideal R :=
+order_embedding.of_map_le_iff (λ s, vanishing_ideal s.of_dual)
+  (λ s t, (vanishing_ideal_anti_mono_iff s.2).symm)
+
 lemma t1_space_iff_is_field [is_domain R] :
   t1_space (prime_spectrum R) ↔ is_field R :=
 begin
@@ -735,7 +756,7 @@ lemma basic_open_eq_bot_iff (f : R) :
   basic_open f = ⊥ ↔ is_nilpotent f :=
 begin
   rw [← subtype.coe_injective.eq_iff, basic_open_eq_zero_locus_compl],
-  simp only [set.eq_univ_iff_forall, topological_space.opens.empty_eq, set.singleton_subset_iff,
+  simp only [set.eq_univ_iff_forall, set.singleton_subset_iff,
     topological_space.opens.coe_bot, nilpotent_iff_mem_prime, set.compl_empty_iff, mem_zero_locus,
     set_like.mem_coe],
   exact subtype.forall,

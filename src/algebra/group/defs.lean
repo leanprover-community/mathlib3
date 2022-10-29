@@ -3,11 +3,15 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Simon Hudon, Mario Carneiro
 -/
-import algebra.group.to_additive
+import tactic.to_additive
 import tactic.basic
 
 /-!
 # Typeclasses for (semi)groups and monoids
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/457
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define typeclasses for algebraic structures with one binary operation.
 The classes are named `(add_)?(comm_)?(semigroup|monoid|group)`, where `add_` means that
@@ -814,13 +818,7 @@ end group
 @[to_additive]
 lemma group.to_div_inv_monoid_injective {G : Type*} :
   function.injective (@group.to_div_inv_monoid G) :=
-begin
-  rintros ⟨⟩ ⟨⟩ h,
-  replace h := div_inv_monoid.mk.inj h,
-  dsimp at h,
-  rcases h with ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩,
-  refl
-end
+by { rintros ⟨⟩ ⟨⟩ ⟨⟩, refl }
 
 /-- A commutative group is a group with commutative `(*)`. -/
 @[protect_proj, ancestor group comm_monoid]
@@ -834,13 +832,7 @@ attribute [instance, priority 300] add_comm_group.to_add_comm_monoid
 @[to_additive]
 lemma comm_group.to_group_injective {G : Type u} :
   function.injective (@comm_group.to_group G) :=
-begin
-  rintros ⟨⟩ ⟨⟩ h,
-  replace h := group.mk.inj h,
-  dsimp at h,
-  rcases h with ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩,
-  refl
-end
+by { rintros ⟨⟩ ⟨⟩ ⟨⟩, refl }
 
 section comm_group
 

@@ -301,7 +301,7 @@ be a T₀ space. -/
 @[derive topological_space]
 def separation_quotient := quotient (inseparable_setoid X)
 
-variable {X}
+variables {X} {t : set (separation_quotient X)}
 
 namespace separation_quotient
 
@@ -350,7 +350,32 @@ lemma inducing_mk : inducing (mk : X → separation_quotient X) :=
 lemma is_closed_map_mk : is_closed_map (mk : X → separation_quotient X) :=
 inducing_mk.is_closed_map $ by { rw [range_mk], exact is_closed_univ }
 
+@[simp] lemma comap_mk_nhds_mk : comap mk (𝓝 (mk x)) = 𝓝 x :=
+(inducing_mk.nhds_eq_comap _).symm
+
+@[simp] lemma comap_mk_nhds_set_image : comap mk (𝓝ˢ (mk '' s)) = 𝓝ˢ s :=
+(inducing_mk.nhds_set_eq_comap _).symm
+
 lemma map_mk_nhds : map mk (𝓝 x) = 𝓝 (mk x) :=
-by rw [inducing_mk.nhds_eq_comap, map_comap_of_surjective surjective_mk]
+by rw [← comap_mk_nhds_mk, map_comap_of_surjective surjective_mk]
+
+lemma map_mk_nhds_set : map mk (𝓝ˢ s) = 𝓝ˢ (mk '' s) :=
+by rw [← comap_mk_nhds_set_image, map_comap_of_surjective surjective_mk]
+
+lemma comap_mk_nhds_set : comap mk (𝓝ˢ t) = 𝓝ˢ (mk ⁻¹' t) :=
+by conv_lhs { rw [← image_preimage_eq t surjective_mk, comap_mk_nhds_set_image] }
+
+lemma preimage_mk_closure : mk ⁻¹' (closure t) = closure (mk ⁻¹' t) :=
+is_open_map_mk.preimage_closure_eq_closure_preimage continuous_mk t
+
+lemma preimage_mk_interior : mk ⁻¹' (interior t) = interior (mk ⁻¹' t) :=
+is_open_map_mk.preimage_interior_eq_interior_preimage continuous_mk t
+
+lemma preimage_mk_frontier : mk ⁻¹' (frontier t) = frontier (mk ⁻¹' t) :=
+is_open_map_mk.preimage_frontier_eq_frontier_preimage continuous_mk t
+
+lemma image_mk_closure : mk '' closure s = closure (mk '' s) :=
+(image_closure_subset_closure_image continuous_mk).antisymm $
+  is_closed_map_mk.closure_image_subset _
 
 end separation_quotient

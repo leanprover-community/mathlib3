@@ -537,6 +537,9 @@ by rw [mem_sphere', mem_sphere]
 theorem ball_subset_ball (h : ε₁ ≤ ε₂) : ball x ε₁ ⊆ ball x ε₂ :=
 λ y (yx : _ < ε₁), lt_of_lt_of_le yx h
 
+lemma closed_ball_eq_bInter_ball : closed_ball x ε = ⋂ δ > ε, ball x δ :=
+by ext y; rw [mem_closed_ball, ← forall_lt_iff_le', mem_Inter₂]; refl
+
 lemma ball_subset_ball' (h : ε₁ + dist x y ≤ ε₂) : ball x ε₁ ⊆ ball y ε₂ :=
 λ z hz, calc
   dist z y ≤ dist z x + dist x y : dist_triangle _ _ _
@@ -1821,12 +1824,6 @@ nnreal.eq rfl
 lemma dist_pi_def (f g : Πb, π b) :
   dist f g = (sup univ (λb, nndist (f b) (g b)) : ℝ≥0) := rfl
 
-@[simp] lemma dist_pi_const [nonempty β] (a b : α) : dist (λ x : β, a) (λ _, b) = dist a b :=
-by simpa only [dist_edist] using congr_arg ennreal.to_real (edist_pi_const a b)
-
-@[simp] lemma nndist_pi_const [nonempty β] (a b : α) :
-  nndist (λ x : β, a) (λ _, b) = nndist a b := nnreal.eq $ dist_pi_const a b
-
 lemma nndist_pi_le_iff {f g : Πb, π b} {r : ℝ≥0} :
   nndist f g ≤ r ↔ ∀b, nndist (f b) (g b) ≤ r :=
 by simp [nndist_pi_def]
@@ -1844,6 +1841,27 @@ begin
   lift r to ℝ≥0 using hr,
   exact nndist_pi_le_iff
 end
+
+lemma dist_pi_le_iff' [nonempty β] {f g : Π b, π b} {r : ℝ} :
+  dist f g ≤ r ↔ ∀ b, dist (f b) (g b) ≤ r :=
+begin
+  by_cases hr : 0 ≤ r,
+  { exact dist_pi_le_iff hr },
+  { exact iff_of_false (λ h, hr $ dist_nonneg.trans h)
+      (λ h, hr $ dist_nonneg.trans $ h $ classical.arbitrary _) }
+end
+
+lemma dist_pi_const_le (a b : α) : dist (λ _ : β, a) (λ _, b) ≤ dist a b :=
+(dist_pi_le_iff dist_nonneg).2 $ λ _, le_rfl
+
+lemma nndist_pi_const_le (a b : α) : nndist (λ _ : β, a) (λ _, b) ≤ nndist a b :=
+nndist_pi_le_iff.2 $ λ _, le_rfl
+
+@[simp] lemma dist_pi_const [nonempty β] (a b : α) : dist (λ x : β, a) (λ _, b) = dist a b :=
+by simpa only [dist_edist] using congr_arg ennreal.to_real (edist_pi_const a b)
+
+@[simp] lemma nndist_pi_const [nonempty β] (a b : α) :
+  nndist (λ x : β, a) (λ _, b) = nndist a b := nnreal.eq $ dist_pi_const a b
 
 lemma nndist_le_pi_nndist (f g : Πb, π b) (b : β) : nndist (f b) (g b) ≤ nndist f g :=
 by { rw [nndist_pi_def], exact finset.le_sup (finset.mem_univ b) }
@@ -2490,7 +2508,29 @@ lemma nonempty_Inter_of_nonempty_bInter [complete_space α] {s : ℕ → set α}
 
 end diam
 
+lemma exists_local_min_mem_ball [proper_space α] [topological_space β]
+  [conditionally_complete_linear_order β] [order_topology β]
+  {f : α → β} {a z : α} {r : ℝ} (hf : continuous_on f (closed_ball a r))
+  (hz : z ∈ closed_ball a r) (hf1 : ∀ z' ∈ sphere a r, f z < f z') :
+  ∃ z ∈ ball a r, is_local_min f z :=
+begin
+  simp_rw [← closed_ball_diff_ball] at hf1,
+  exact (is_compact_closed_ball a r).exists_local_min_mem_open ball_subset_closed_ball hf hz hf1
+    is_open_ball,
+end
+
 end metric
+
+namespace tactic
+open positivity
+
+/-- Extension for the `positivity` tactic: the diameter of a set is always nonnegative. -/
+@[positivity]
+meta def positivity_diam : expr → tactic strictness
+| `(metric.diam %%s) := nonnegative <$> mk_app ``metric.diam_nonneg [s]
+| e := pp e >>= fail ∘ format.bracket "The expression " " is not of the form `metric.diam s`"
+
+end tactic
 
 lemma comap_dist_right_at_top_le_cocompact (x : α) : comap (λ y, dist y x) at_top ≤ cocompact α :=
 begin

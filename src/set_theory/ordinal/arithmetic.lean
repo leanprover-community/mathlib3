@@ -2422,7 +2422,9 @@ namespace well_founded
 variables (hwf : well_founded r) {a b : α}
 include hwf
 
-/-- The length of the longest `r`-chain of elements below and including in `a`. -/
+/-- The rank of an element `a` accessible under a relation `r` is defined inductively as the
+smallest ordinal greater than the ranks of all elements below it (i.e. elements `b` such that
+`r b a`). -/
 noncomputable def rank (a : α) : ordinal := (hwf.apply a).rank
 
 lemma rank_eq : hwf.rank a = ordinal.sup (λ b : {b // r b a}, order.succ $ hwf.rank b) :=
@@ -2430,12 +2432,14 @@ by { rw [rank, acc.rank_eq], refl }
 
 lemma rank_lt_of_rel (h : r a b) : hwf.rank a < hwf.rank b := acc.rank_lt_of_rel _ h
 
+omit hwf
+
 lemma rank_strict_mono [preorder α] [well_founded_lt α] :
   strict_mono (rank $ @is_well_founded.wf α (<) _) :=
 λ _ _, rank_lt_of_rel _
 
 lemma rank_strict_anti [preorder α] [well_founded_gt α] :
-  strict_anti (rank (@is_well_founded.wf α (>) _)) :=
+  strict_anti (rank $ @is_well_founded.wf α (>) _) :=
 λ _ _, rank_lt_of_rel $ @is_well_founded.wf α (>) _
 
 end well_founded

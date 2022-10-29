@@ -396,7 +396,7 @@ funext $ λ j, (apply_update₂ (λ i, (/)) f₁ f₂ i x₁ x₂ j).symm
 variables [has_one α] [nonempty ι] {a : α}
 
 @[simp, to_additive] lemma const_eq_one : const ι a = 1 ↔ a = 1 := @const_inj _ _ _ _ 1
-@[simp, to_additive] lemma const_ne_one : const ι a ≠ 1 ↔ a ≠ 1 := const_eq_one.not
+@[to_additive] lemma const_ne_one : const ι a ≠ 1 ↔ a ≠ 1 := const_eq_one.not
 
 end function
 

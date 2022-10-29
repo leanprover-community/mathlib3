@@ -122,22 +122,24 @@ variables {x y : K} (h : E.weierstrass x y)
 include h
 
 /-- The $y$-coordinate of the negation of an affine point. -/
-@[simp, nolint unused_arguments] def neg_y : K := -y - ↑E.a₁ * x - ↑E.a₃
+@[nolint unused_arguments] def neg_y : K := -y - ↑E.a₁ * x - ↑E.a₃
+
+@[simp] lemma neg_y_def : neg_y h = -y - ↑E.a₁ * x - ↑E.a₃ := rfl
 
 /-- The negation of an affine point in `E` lies in `E`. -/
 lemma weierstrass_neg : E.weierstrass x $ neg_y h :=
-by { rw [weierstrass] at h, rw [weierstrass, neg_y, ← h], ring1 }
+by { rw [weierstrass] at h, rw [weierstrass, neg_y_def, ← h], ring1 }
 
 omit h
 
 /-- Negation in `E⟮K⟯`. Given `P : E⟮K⟯`, use `-P` instead of `neg P`. -/
-@[simp] def neg : E⟮K⟯ → E⟮K⟯
+def neg : E⟮K⟯ → E⟮K⟯
 | 0            := 0
 | (some x y h) := some x (neg_y h) $ weierstrass_neg h
 
 instance : has_neg E⟮K⟯ := ⟨neg⟩
 
-lemma neg_def (P : E⟮K⟯) : -P = neg P := rfl
+@[simp] lemma neg_def (P : E⟮K⟯) : neg P = -P := rfl
 
 @[simp] lemma neg_zero : -0 = (0 : E⟮K⟯) := rfl
 
@@ -163,17 +165,27 @@ include h
 
 /-- The gradient of the tangent line of `E` at an affine point $(x, y)$. This is not well-defined
 only in the case of $y = -y - a_1x - a_3$, which is precisely when the tangent is vertical. -/
-@[simp] def dbl_L : K := (3 * x ^ 2 + 2 * ↑E.a₂ * x + ↑E.a₄ - ↑E.a₁ * y) / (y - neg_y h)
+def dbl_L : K := (3 * x ^ 2 + 2 * ↑E.a₂ * x + ↑E.a₄ - ↑E.a₁ * y) / (y - neg_y h)
+
+@[simp] lemma dbl_L_def :
+  dbl_L h = (3 * x ^ 2 + 2 * ↑E.a₂ * x + ↑E.a₄ - ↑E.a₁ * y) / (y - neg_y h) :=
+rfl
 
 /-- The $x$-coordinate of the doubling of an affine point whose tangent is not vertical. -/
-@[simp] def dbl_x : K := dbl_L h ^ 2 + ↑E.a₁ * dbl_L h - ↑E.a₂ - 2 * x
+def dbl_x : K := dbl_L h ^ 2 + ↑E.a₁ * dbl_L h - ↑E.a₂ - 2 * x
+
+@[simp] lemma dbl_x_def : dbl_x h = dbl_L h ^ 2 + ↑E.a₁ * dbl_L h - ↑E.a₂ - 2 * x := rfl
 
 /-- The $y$-coordinate of the doubling of an affine point whose tangent is not vertical,
 before applying the final negation that maps $y$ to $-y - a_1x - a_3$. -/
-@[simp] def dbl_y' : K := dbl_L h * (dbl_x h - x) + y
+def dbl_y' : K := dbl_L h * (dbl_x h - x) + y
+
+@[simp] lemma dbl_y'_def : dbl_y' h = dbl_L h * (dbl_x h - x) + y := rfl
 
 /-- The $y$-coordinate of the doubling of an affine point whose tangent is not vertical. -/
-@[simp] def dbl_y : K := -dbl_y' h - ↑E.a₁ * dbl_x h - ↑E.a₃
+def dbl_y : K := -dbl_y' h - ↑E.a₁ * dbl_x h - ↑E.a₃
+
+@[simp] lemma dbl_y_def : dbl_y h = -dbl_y' h - ↑E.a₁ * dbl_x h - ↑E.a₃ := rfl
 
 /-- The doubling of an affine point in `E` whose tangent is not vertical,
 before applying the final negation that maps $y$ to $-y - a_1x - a_3$, lies in `E`. -/
@@ -188,11 +200,11 @@ begin
                     + ↑E.a₁ ^ 2 * y - 2 * ↑E.a₂ * y - ↑E.a₁ * ↑E.a₄ - ↑E.a₂ * ↑E.a₃))
     + (8 * x ^ 3 + 8 * ↑E.a₂ * x ^ 2 - 2 * ↑E.a₁ * x * y + y ^ 2 + 2 * ↑E.a₂ ^ 2 * x + 2 * ↑E.a₄ * x
         - ↑E.a₁ * ↑E.a₂ * y + ↑E.a₃ * y + ↑E.a₂ * ↑E.a₄ - ↑E.a₆) = 0,
-  { simp only [dbl_x, dbl_y', neg_y], ring1 },
-  field_simp [-neg_y, sub_ne_zero_of_ne hy],
+  { simp only [dbl_x_def, dbl_y'_def, neg_y_def], ring1 },
+  field_simp [-neg_y_def, sub_ne_zero_of_ne hy],
   rw [weierstrass] at h,
   linear_combination (2 * y + ↑E.a₁ * x + ↑E.a₃) ^ 2 * h
-    with { normalization_tactic := `[rw [neg_y], ring1] }
+    with { normalization_tactic := `[rw [neg_y_def], ring1] }
 end
 
 /-- The doubling of an affine point in `E` whose tangent is not vertical lies in `E`. -/
@@ -215,17 +227,26 @@ include h₁ h₂
 
 /-- The gradient of the line joining two affine points $(x_1, y_1)$ and $(x_2, y_2)$. This is not
 well-defined only in the case of $x_1 = x_2$, where the line becomes a tangent of `E`. -/
-@[simp, nolint unused_arguments] def add_L : K := (y₁ - y₂) / (x₁ - x₂)
+@[nolint unused_arguments] def add_L : K := (y₁ - y₂) / (x₁ - x₂)
+
+@[simp] lemma add_L_def : add_L h₁ h₂ = (y₁ - y₂) / (x₁ - x₂) := rfl
 
 /-- The $x$-coordinate of the addition of two affine points with distinct $x$-coordinates. -/
-@[simp] def add_x : K := add_L h₁ h₂ ^ 2 + ↑E.a₁ * add_L h₁ h₂ - ↑E.a₂ - x₁ - x₂
+def add_x : K := add_L h₁ h₂ ^ 2 + ↑E.a₁ * add_L h₁ h₂ - ↑E.a₂ - x₁ - x₂
+
+@[simp] lemma add_x_def : add_x h₁ h₂ = add_L h₁ h₂ ^ 2 + ↑E.a₁ * add_L h₁ h₂ - ↑E.a₂ - x₁ - x₂ :=
+rfl
 
 /-- The $y$-coordinate of the addition of two affine points with distinct $x$-coordinates,
 before applying the final negation that maps $y$ to $-y - a_1x - a_3$. -/
-@[simp] def add_y' : K := add_L h₁ h₂ * (add_x h₁ h₂ - x₁) + y₁
+def add_y' : K := add_L h₁ h₂ * (add_x h₁ h₂ - x₁) + y₁
+
+@[simp] lemma add_y'_def : add_y' h₁ h₂ = add_L h₁ h₂ * (add_x h₁ h₂ - x₁) + y₁ := rfl
 
 /-- The $y$-coordinate of the addition of two affine points with distinct $x$-coordinates. -/
-@[simp] def add_y : K := -add_y' h₁ h₂ - ↑E.a₁ * add_x h₁ h₂ - ↑E.a₃
+def add_y : K := -add_y' h₁ h₂ - ↑E.a₁ * add_x h₁ h₂ - ↑E.a₃
+
+@[simp] lemma add_y_def : add_y h₁ h₂ = -add_y' h₁ h₂ - ↑E.a₁ * add_x h₁ h₂ - ↑E.a₃ := rfl
 
 /-- The addition of two affine points in `E` with distinct $x$-coordinates,
 before applying the final negation that maps $y$ to $-y - a_1x - a_3$, lies in `E`. -/
@@ -245,7 +266,7 @@ begin
         + 4 * ↑E.a₂ * x₁ * x₂ - ↑E.a₁ * x₁ * y₁ + 2 * ↑E.a₂ * x₂ ^ 2 - ↑E.a₁ * x₂ * y₁ + y₁ ^ 2
         + ↑E.a₂ ^ 2 * x₁ + ↑E.a₄ * x₁ + ↑E.a₂ ^ 2 * x₂ + ↑E.a₄ * x₂ - ↑E.a₁ * ↑E.a₂ * y₁
         + ↑E.a₃ * y₁ + ↑E.a₂ * ↑E.a₄ - ↑E.a₆) = 0,
-  { simp only [add_x, add_y'], ring1 },
+  { simp only [add_x_def, add_y'_def], ring1 },
   field_simp [sub_ne_zero_of_ne hx],
   rw [weierstrass] at h₁ h₂,
   linear_combination
@@ -276,7 +297,7 @@ omit h₁ h₂
 open_locale classical
 
 /-- Addition in `E⟮K⟯`. Given `P Q : E⟮K⟯`, use `P + Q` instead of `add P Q`. -/
-@[simp] noncomputable def add : E⟮K⟯ → E⟮K⟯ → E⟮K⟯
+noncomputable def add : E⟮K⟯ → E⟮K⟯ → E⟮K⟯
 | 0               P               := P
 | P               0               := P
 | (some x₁ y₁ h₁) (some x₂ y₂ h₂) :=
@@ -286,22 +307,29 @@ else some _ _ $ weierstrass_add h₁ h₂ hx
 
 noncomputable instance : has_add E⟮K⟯ := ⟨add⟩
 
-lemma add_def (P Q : E⟮K⟯) : P + Q = add P Q := rfl
+@[simp] lemma add_def (P Q : E⟮K⟯) : add P Q = P + Q := rfl
 
 @[simp] lemma zero_add (P : E⟮K⟯) : 0 + P = P := by cases P; refl
 
 @[simp] lemma add_zero (P : E⟮K⟯) : P + 0 = P := by cases P; refl
 
+@[simp] lemma some_add_some :
+  some x₁ y₁ h₁ + some x₂ y₂ h₂
+    = if hx : x₁ = x₂ then if hy : y₁ = neg_y h₂ then 0
+      else some _ _ $ weierstrass_dbl h₁ $ y_ne_of_y_ne h₁ h₂ hx hy
+      else some _ _ $ weierstrass_add h₁ h₂ hx :=
+rfl
+
 @[simp] lemma some_add_some_of_y_eq (hx : x₁ = x₂) (hy : y₁ = neg_y h₂) :
   some x₁ y₁ h₁ + some x₂ y₂ h₂ = 0 :=
-by rw [add_def, add, dif_pos hx, dif_pos hy]
+by rw [some_add_some, dif_pos hx, dif_pos hy]
 
 @[simp] lemma some_add_self_of_y_eq (hy : y₁ = neg_y h₁) : some x₁ y₁ h₁ + some x₁ y₁ h₁ = 0 :=
 some_add_some_of_y_eq h₁ h₁ rfl hy
 
 @[simp] lemma some_add_some_of_y_ne (hx : x₁ = x₂) (hy : y₁ ≠ neg_y h₂) :
   some x₁ y₁ h₁ + some x₂ y₂ h₂ = some _ _ (weierstrass_dbl h₁ $ y_ne_of_y_ne h₁ h₂ hx hy) :=
-by rw [add_def, add, dif_pos hx, dif_neg hy]
+by rw [some_add_some, dif_pos hx, dif_neg hy]
 
 lemma some_add_some_of_y_ne' (hx : x₁ = x₂) (hy : y₁ ≠ neg_y h₂) :
   some x₁ y₁ h₁ + some x₂ y₂ h₂ = -some _ _ (weierstrass_dbl' h₁ $ y_ne_of_y_ne h₁ h₂ hx hy) :=
@@ -317,7 +345,7 @@ some_add_some_of_y_ne h₁ h₁ rfl hy
 
 @[simp] lemma some_add_some_of_x_ne (hx : x₁ ≠ x₂) :
   some x₁ y₁ h₁ + some x₂ y₂ h₂ = some _ _ (weierstrass_add h₁ h₂ hx) :=
-by rw [add_def, add, dif_neg hx]
+by rw [some_add_some, dif_neg hx]
 
 lemma some_add_some_of_x_ne' (hx : x₁ ≠ x₂) :
   some x₁ y₁ h₁ + some x₂ y₂ h₂ = -some _ _ (weierstrass_add' h₁ h₂ hx) :=
@@ -343,7 +371,7 @@ begin
   by_cases hx : x₁ = x₂,
   { by_cases hy : y₁ = neg_y h₂,
     { rw [some_add_some_of_y_eq h₁ h₂ hx hy,
-          some_add_some_of_y_eq h₂ h₁ hx.symm $ by { simp only [neg_y, hx, hy], ring1 }] },
+          some_add_some_of_y_eq h₂ h₁ hx.symm $ by { simp only [neg_y_def, hx, hy], ring1 }] },
     { simp only [hx, y_eq_of_y_ne h₁ h₂ hx hy] } },
   { rw [some_add_some_of_x_ne' h₁ h₂ hx, some_add_some_of_x_ne' h₂ h₁ $ ne.symm hx, neg_inj],
     field_simp [sub_ne_zero_of_ne hx, sub_ne_zero_of_ne (ne.symm hx)],

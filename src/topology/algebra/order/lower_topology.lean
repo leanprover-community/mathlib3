@@ -101,7 +101,7 @@ The closure of a singleton {a} in the lower topology is the left-closed right-in
 -/
 lemma closure_singleton (a : lower α) : closure {a} = Ici a :=
 subset_antisymm (closure_minimal (λ b h, h.ge) $ is_closed_Ici a) $
-  (lower_closed_is_upper is_closed_closure).Ici_subset (subset_closure rfl)
+  (is_upper_of_is_closed is_closed_closure).Ici_subset (subset_closure rfl)
 
 /--
 The non-empty complements of the upper closures of finite subsets are a collection of lower sets

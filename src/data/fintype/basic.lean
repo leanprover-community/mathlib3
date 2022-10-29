@@ -1005,10 +1005,9 @@ begin
   classical,
   rw [←finset.card_univ, univ_sum_type, finset.card_union_eq],
   { simp [finset.card_univ] },
-  { intros x hx,
-    rsuffices ⟨⟨a, rfl⟩, ⟨b, hb⟩⟩ : (∃ (a : α), sum.inl a = x) ∧ ∃ (b : β), sum.inr b = x,
-    { simpa using hb },
-    simpa using hx }
+  { rw disjoint_left,
+    simp_rw mem_map,
+    rintros x ⟨a, _, rfl⟩ ⟨b, _, ⟨⟩⟩ }
 end
 
 /-- If the subtype of all-but-one elements is a `fintype` then the type itself is a `fintype`. -/

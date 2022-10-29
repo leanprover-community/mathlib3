@@ -25,7 +25,7 @@ section preorder
 variables [preorder α] {a b c : α}
 
 @[simp] lemma Iic_disjoint_Ioi (h : a ≤ b) : disjoint (Iic a) (Ioi b) :=
-λ x ⟨ha, hb⟩, not_le_of_lt (h.trans_lt hb) ha
+disjoint_left.mpr $ λ x ha hb, (h.trans_lt hb).not_le ha
 
 @[simp] lemma Iic_disjoint_Ioc (h : a ≤ b) : disjoint (Iic a) (Ioc b c) :=
 (Iic_disjoint_Ioi h).mono le_rfl (λ _, and.left)
@@ -34,7 +34,7 @@ variables [preorder α] {a b c : α}
 (Iic_disjoint_Ioc (le_refl b)).mono (λ _, and.right) le_rfl
 
 @[simp] lemma Ico_disjoint_Ico_same {a b c : α} : disjoint (Ico a b) (Ico b c) :=
-λ x hx, not_le_of_lt hx.1.2 hx.2.1
+disjoint_left.mpr $ λ x hab hbc, hab.2.not_le hbc.1
 
 @[simp] lemma Ici_disjoint_Iic : disjoint (Ici a) (Iic b) ↔ ¬(a ≤ b) :=
 by rw [set.disjoint_iff_inter_eq_empty, Ici_inter_Iic, Icc_eq_empty_iff]

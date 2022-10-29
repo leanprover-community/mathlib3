@@ -128,13 +128,15 @@ begin
     refl },
 end
 
+end lower_topology
+
 end pre_order
 
 section partial_order
 
-variable [partial_order α]
+variables (α) [partial_order α]
 
-instance (α : Type u) [p : partial_order α] : partial_order (lower α) := p
+instance : partial_order (lower α) := ‹partial_order α›
 
 /-
 The lower topology on a partial order is T₀.
@@ -145,5 +147,3 @@ instance lower_topology.to_t0_space : t0_space (lower α) :=
   [inseparable_iff_closure_eq, lower_topology.closure_singleton, Ici_inj] using h
 
 end partial_order
-
-end lower_topology

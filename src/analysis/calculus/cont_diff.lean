@@ -1611,12 +1611,10 @@ continuous. -/
 lemma cont_diff.continuous_fderiv_apply
   (h : cont_diff 𝕜 n f) (hn : 1 ≤ n) :
   continuous (λp : E × E, (fderiv 𝕜 f p.1 : E → F) p.2) :=
-begin
-  have A : continuous (λq : (E →L[𝕜] F) × E, q.1 q.2) := is_bounded_bilinear_map_apply.continuous,
-  have B : continuous (λp : E × E, (fderiv 𝕜 f p.1, p.2)) :=
+have A : continuous (λq : (E →L[𝕜] F) × E, q.1 q.2) := is_bounded_bilinear_map_apply.continuous,
+have B : continuous (λp : E × E, (fderiv 𝕜 f p.1, p.2)) :=
   ((h.continuous_fderiv hn).comp continuous_fst).prod_mk continuous_snd,
-  exact A.comp B
-end
+A.comp B
 
 /-! ### Constants -/
 
@@ -2598,7 +2596,7 @@ lemma cont_diff.sum
   {ι : Type*} {f : ι → E → F} {s : finset ι}
   (h : ∀ i ∈ s, cont_diff 𝕜 n (λ x, f i x)) :
   cont_diff 𝕜 n (λ x, (∑ i in s, f i x)) :=
-by simp only [←cont_diff_on_univ] at *; exact cont_diff_on.sum h
+by simp only [← cont_diff_on_univ] at *; exact cont_diff_on.sum h
 
 /-! ### Product of two functions -/
 

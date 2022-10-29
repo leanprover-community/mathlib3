@@ -103,12 +103,6 @@ lemma closure_singleton (a : lower α) : closure {a} = Ici a :=
 subset_antisymm (closure_minimal (λ b h, h.ge) $ is_closed_Ici a) $
   is_upper_set.Ici_subset (lower_closed_is_upper is_closed_closure) (subset_closure rfl)
 
-end pre_order
-
-section partial_order
-
-variable [partial_order α]
-
 /--
 The non-empty complements of the upper closures of finite subsets are a collection of lower sets
 which form a basis for the lower topology
@@ -134,6 +128,12 @@ begin
     simp_rw [bInter_range, Inter_subtype, ←compl_set_of, Ici_def, he, mem_Inter₂],
     refl },
 end
+
+end pre_order
+
+section partial_order
+
+variable [partial_order α]
 
 instance (α : Type u) [p : partial_order α] : partial_order (lower α) := p
 

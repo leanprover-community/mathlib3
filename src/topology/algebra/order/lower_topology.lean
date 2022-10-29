@@ -3,12 +3,8 @@ Copyright (c) 2022 Christopher Hoskin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
-
-import topology.basic
-import topology.order
-import topology.separation
-import data.set.intervals.basic
 import order.upper_lower
+import topology.separation
 
 /-!
 # Lower topology

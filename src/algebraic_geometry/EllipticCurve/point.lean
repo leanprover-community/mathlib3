@@ -313,7 +313,7 @@ noncomputable instance : has_add E⟮K⟯ := ⟨add⟩
 
 @[simp] lemma add_zero (P : E⟮K⟯) : P + 0 = P := by cases P; refl
 
-@[simp] lemma some_add_some :
+lemma some_add_some :
   some x₁ y₁ h₁ + some x₂ y₂ h₂
     = if hx : x₁ = x₂ then if hy : y₁ = neg_y h₂ then 0
       else some _ _ $ weierstrass_dbl h₁ $ y_ne_of_y_ne h₁ h₂ hx hy

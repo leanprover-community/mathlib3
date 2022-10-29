@@ -130,7 +130,7 @@ begin
   begin
     intros t ht,
     congr' 1,
-    ext,
+    ext x,
     simp only [mem_set_of_eq, mem_closed_ball_zero_iff],
     exact le_rpow_one_add_norm_iff_norm_le hr (mem_Ioi.mp ht) x,
   end,
@@ -157,10 +157,7 @@ begin
       lintegral_mul_const _ h_meas', ennreal.mul_lt_top_iff],
     left,
     -- We calculate the integral
-    use finite_integral_rpow_sub_one_pow_aux _ hnr,
-    -- The unit ball has finite measure
-    rw ←measure.add_haar_closed_unit_ball_eq_add_haar_unit_ball,
-    exact (is_compact_closed_ball _ _).measure_lt_top, },
+    exact ⟨finite_integral_rpow_sub_one_pow_aux (finrank ℝ E) hnr, measure_ball_lt_top⟩ },
 
   -- The integral from 1 to ∞ is zero:
   have h_int'' : ∀ (t : ℝ) (ht : t ∈ Ioi (1 : ℝ)),

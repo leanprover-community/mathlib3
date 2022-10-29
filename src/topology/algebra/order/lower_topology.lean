@@ -15,7 +15,7 @@ basis.
 
 ## Implementation notes
 
-Approach inspired by `order_topology` from topology.algebra.order.basic
+Approach inspired by `order_topology`.
 
 ## References
 

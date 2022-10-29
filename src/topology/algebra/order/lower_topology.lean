@@ -92,7 +92,7 @@ begin
   case sUnion : _ _ ih { exact is_lower_set_sUnion ih },
 end
 
-lemma lower_closed_is_upper {s : set (lower α)} (h : is_closed s) : is_upper_set s :=
+lemma is_upper_of_is_closed {s : set (lower α)} (h : is_closed s) : is_upper_set s :=
 is_lower_set_compl.1 $ is_lower_set_of_is_open h.is_open_compl
 
 /--

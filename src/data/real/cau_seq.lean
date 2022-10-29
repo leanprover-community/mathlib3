@@ -30,7 +30,7 @@ open_locale big_operators
 
 open is_absolute_value
 
-variables {G α β: Type*}
+variables {G α β : Type*}
 
 theorem exists_forall_ge_and {α} [linear_order α] {P Q : α → Prop} :
   (∃ i, ∀ j ≥ i, P j) → (∃ i, ∀ j ≥ i, Q j) →

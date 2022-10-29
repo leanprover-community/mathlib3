@@ -434,11 +434,7 @@ begin
 end
 
 @[simp] lemma to_real_pi_div_two : ((π / 2 : ℝ) : angle).to_real = π / 2 :=
-begin
-  rw [to_real_coe_eq_self_iff],
-  exact ⟨(left.neg_neg_iff.2 real.pi_pos).trans (div_pos real.pi_pos two_pos),
-         div_le_self real.pi_pos.le one_le_two⟩
-end
+to_real_coe_eq_self_iff.2 $ by split; linarith [pi_pos]
 
 @[simp] lemma to_real_neg_pi_div_two : ((-π / 2 : ℝ) : angle).to_real = -π / 2 :=
 begin

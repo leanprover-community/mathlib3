@@ -163,7 +163,7 @@ begin
 end
 
 /-- This lemma is useful for working with the `int_degree` of a rational function. -/
-lemma nat_degree_sub_eq_of_prod_eq {p₁ p₂ q₁ q₂ : polynomial R} (hp₁ : p₁ ≠ 0) (hq₁ : q₁ ≠ 0)
+lemma nat_degree_sub_eq_of_prod_eq {p₁ p₂ q₁ q₂ : R[X]} (hp₁ : p₁ ≠ 0) (hq₁ : q₁ ≠ 0)
   (hp₂ : p₂ ≠ 0) (hq₂ : q₂ ≠ 0) (h_eq : p₁ * q₂ = p₂ * q₁) :
   (p₁.nat_degree : ℤ) - q₁.nat_degree = (p₂.nat_degree : ℤ) - q₂.nat_degree :=
 begin
@@ -175,7 +175,7 @@ end
 variables [char_zero R]
 
 @[simp] lemma degree_bit0_eq (p : R[X]) : degree (bit0 p) = degree p :=
-by rw [bit0_eq_two_mul, degree_mul, (by simp : (2 : polynomial R) = C 2),
+by rw [bit0_eq_two_mul, degree_mul, (by simp : (2 : R[X]) = C 2),
   @polynomial.degree_C R _ _ two_ne_zero', zero_add]
 
 @[simp] lemma nat_degree_bit0_eq (p : R[X]) : nat_degree (bit0 p) = nat_degree p :=

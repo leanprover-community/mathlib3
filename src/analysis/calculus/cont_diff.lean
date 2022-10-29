@@ -3331,7 +3331,7 @@ theorem cont_diff_on_succ_iff_deriv_of_open {n : ℕ} (hs : is_open s₂) :
 begin
   rw cont_diff_on_succ_iff_deriv_within hs.unique_diff_on,
   congrm _ ∧ _,
-  exact cont_diff_on_congr (λ x, deriv_within_of_open hs)
+  exact cont_diff_on_congr (λ _, deriv_within_of_open hs)
 end
 
 /-- A function is `C^∞` on a domain with unique derivatives if and only if it is differentiable
@@ -3360,7 +3360,7 @@ theorem cont_diff_on_top_iff_deriv_of_open (hs : is_open s₂) :
 begin
   rw cont_diff_on_top_iff_deriv_within hs.unique_diff_on,
   congrm _ ∧ _,
-  exact cont_diff_on_congr (λ x, deriv_within_of_open hs)
+  exact cont_diff_on_congr (λ _, deriv_within_of_open hs)
 end
 
 lemma cont_diff_on.deriv_within

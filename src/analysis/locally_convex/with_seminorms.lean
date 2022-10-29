@@ -516,8 +516,6 @@ begin
   exact continuous_from_bounded (norm_with_seminorms 𝕜 E) hq f hf,
 end
 
-#check is_lub_pi
-
 lemma uniform_equicontinuous_of_continuous_comp_supr {κ : Type*} {q : seminorm_family 𝕜 F ι'}
   [uniform_space E] [uniform_add_group E]
   [u : uniform_space F] [hu : uniform_add_group F] (hq : with_seminorms q)
@@ -530,7 +528,8 @@ begin
   clear hu hq u,
   letI : seminormed_add_comm_group F := (q i).to_add_group_seminorm.to_seminormed_add_comm_group,
   have hf₃ : bdd_above (range $ λ k, (q i).comp (f k)),
-  { rw [seminorm.bdd_above_iff, pi.bdd_above], },
+  { rw [seminorm.bdd_above_iff, ← range_comp, bdd_above_range_pi],
+    exact hf₁ i },
   set φ : seminorm 𝕜 E := ⨆ k, (q i).comp (f k) with hφ,
   have hφ' : filter.tendsto φ (𝓝 0) (𝓝 0),
   { rw [← map_zero φ, hφ],
@@ -541,7 +540,7 @@ begin
   rw [map_zero, zero_sub, map_neg_eq_map, ← comp_apply],
   revert x,
   change (q i).comp (f k) ≤ φ,
-  exact le_csupr (hf₁ i) k
+  exact le_csupr hf₃ k
 end
 
 lemma uniform_equicontinuous_from_bounded [normed_algebra ℝ 𝕜] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
@@ -554,8 +553,8 @@ begin
   casesI is_empty_or_nonempty κ,
   { exact uniform_equicontinuous_empty _ },
   choose! s C hC using hf,
-  have : ∀ i, bdd_above (range (λ (k : κ), (q i).comp (f k))) :=
-    λ i, ⟨(C i) • (s i).sup p, forall_range_iff.mpr (hC i).2⟩,
+  have : ∀ i x, bdd_above (range (λ (k : κ), q i (f k x))) :=
+    λ i x, ⟨(C i) • (s i).sup p x, forall_range_iff.mpr (λ k, (hC i).2 k x)⟩,
   refine uniform_equicontinuous_of_continuous_comp_supr hq _ this _,
   refine λ i, continuous_of_le _ (csupr_le (hC i).2),
   refine continuous.const_smul sorry _, -- finite sup preserves continuity

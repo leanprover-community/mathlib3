@@ -2653,9 +2653,9 @@ variables {s s₁ s₂ : finset α} {t t₁ t₂ : α → finset β}
 It is the same as `s.bUnion f`, but it does not require decidable equality on the type. The
 hypothesis ensures that the sets are disjoint. -/
 def disj_Union (s : finset α) (t : α → finset β)
-  (hf : (s : set α).pairwise $ λ a b, ∀ x, x ∈ t a → x ∉ t b) : finset β :=
+  (hf : (s : set α).pairwise_disjoint t) : finset β :=
 ⟨(s.val.bind (finset.val ∘ t)), multiset.nodup_bind.mpr
-  ⟨λ a ha, (t a).nodup, s.nodup.pairwise hf⟩⟩
+  ⟨λ a ha, (t a).nodup, s.nodup.pairwise $ λ a ha b hb hab, finset.disjoint_val.1 $ hf ha hb hab⟩⟩
 
 @[simp] theorem disj_Union_val (s : finset α) (t : α → finset β) (h) :
   (s.disj_Union t h).1 = (s.1.bind (λ a, (t a).1)) := rfl
@@ -2673,8 +2673,10 @@ by simp only [set.ext_iff, mem_disj_Union, set.mem_Union, iff_self, mem_coe, imp
   disj_Union (cons a s ha) f H = (f a).disj_union
     (s.disj_Union f $
       λ b hb c hc, H (mem_cons_of_mem hb) (mem_cons_of_mem hc))
-    (λ b hb h, let ⟨c, hc, h⟩ := mem_disj_Union.mp h in
-      H (mem_cons_self a s) (mem_cons_of_mem hc) (ne_of_mem_of_not_mem hc ha).symm b hb h) :=
+    (disjoint_left.mpr $ λ b hb h, let ⟨c, hc, h⟩ := mem_disj_Union.mp h in
+      disjoint_left.mp
+        (H (mem_cons_self a s) (mem_cons_of_mem hc) (ne_of_mem_of_not_mem hc ha).symm) hb h)
+      :=
 eq_of_veq $ multiset.cons_bind _ _ _
 
 @[simp] lemma singleton_disj_Union (a : α) {h} : finset.disj_Union {a} t h = t a :=
@@ -2687,11 +2689,11 @@ eq_of_veq $ multiset.bind_map _ _ _
 
 theorem disj_Union_map {s : finset α} {t : α → finset β} {f : β ↪ γ} {h} :
   (s.disj_Union t h).map f = s.disj_Union (λa, (t a).map f)
-    (λ a ha b hb hab x hxa hxb, begin
+    (λ a ha b hb hab, disjoint_left.mpr $ λ x hxa hxb, begin
       obtain ⟨xa, hfa, rfl⟩ := mem_map.mp hxa,
       obtain ⟨xb, hfb, hfab⟩ := mem_map.mp hxb,
       obtain rfl := f.injective hfab,
-      exact h ha hb hab _ hfa hfb,
+      exact disjoint_left.mp (h ha hb hab) hfa hfb,
     end) :=
 eq_of_veq $ multiset.map_bind _ _ _
 
@@ -2699,13 +2701,13 @@ lemma disj_Union_disj_Union (s : finset α) (f : α → finset β) (g : β → f
   (s.disj_Union f h1).disj_Union g h2 =
     s.attach.disj_Union (λ a, (f a).disj_Union g $
       λ b hb c hc, h2 (mem_disj_Union.mpr ⟨_, a.prop, hb⟩) (mem_disj_Union.mpr ⟨_, a.prop, hc⟩))
-      (λ a ha b hb hab x hxa hxb, begin
+      (λ a ha b hb hab, disjoint_left.mpr $ λ x hxa hxb, begin
         obtain ⟨xa, hfa, hga⟩ := mem_disj_Union.mp hxa,
         obtain ⟨xb, hfb, hgb⟩ := mem_disj_Union.mp hxb,
-        refine h2
-          (mem_disj_Union.mpr ⟨_, a.prop, hfa⟩) (mem_disj_Union.mpr ⟨_, b.prop, hfb⟩) _ _ hga hgb,
+        refine disjoint_left.mp (h2
+          (mem_disj_Union.mpr ⟨_, a.prop, hfa⟩) (mem_disj_Union.mpr ⟨_, b.prop, hfb⟩) _) hga hgb,
         rintro rfl,
-        exact h1 a.prop b.prop (subtype.coe_injective.ne hab) _ hfa hfb,
+        exact disjoint_left.mp (h1 a.prop b.prop $ subtype.coe_injective.ne hab) hfa hfb,
       end) :=
 eq_of_veq $ multiset.bind_assoc.trans (multiset.attach_bind_coe _ _).symm
 

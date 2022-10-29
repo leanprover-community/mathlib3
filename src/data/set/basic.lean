@@ -907,7 +907,7 @@ ssubset_singleton_iff.1 hs
 
 /-! ### Disjointness -/
 
-protected theorem disjoint_iff : disjoint s t ↔ s ∩ t ⊆ ∅ := iff.rfl
+protected theorem disjoint_iff : disjoint s t ↔ s ∩ t ⊆ ∅ := disjoint_iff_inf_le
 
 theorem disjoint_iff_inter_eq_empty : disjoint s t ↔ s ∩ t = ∅ :=
 disjoint_iff

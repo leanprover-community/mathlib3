@@ -437,14 +437,7 @@ end
 to_real_coe_eq_self_iff.2 $ by split; linarith [pi_pos]
 
 @[simp] lemma to_real_neg_pi_div_two : ((-π / 2 : ℝ) : angle).to_real = -π / 2 :=
-begin
-  rw [to_real_coe_eq_self_iff],
-  refine ⟨_,
-          (div_nonpos_of_nonpos_of_nonneg (left.neg_neg_iff.2 real.pi_pos).le two_pos.le).trans
-             real.pi_pos.le⟩,
-  rw neg_div,
-  exact neg_lt_neg_iff.2 (div_lt_self real.pi_pos one_lt_two)
-end
+to_real_coe_eq_self_iff.2 $ by split; linarith [pi_pos]
 
 lemma pi_div_two_ne_zero : ((π / 2 : ℝ) : angle) ≠ 0 :=
 begin

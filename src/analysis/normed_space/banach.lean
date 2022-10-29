@@ -6,6 +6,7 @@ Authors: Sébastien Gouëzel
 import topology.metric_space.baire
 import analysis.normed_space.operator_norm
 import analysis.normed_space.affine_isometry
+import topology.algebra.module.open_mapping
 
 /-!
 # Banach open mapping theorem
@@ -37,13 +38,24 @@ structure nonlinear_right_inverse :=
 
 instance : has_coe_to_fun (nonlinear_right_inverse f) (λ _, F → E) := ⟨λ fsymm, fsymm.to_fun⟩
 
-@[simp] lemma nonlinear_right_inverse.right_inv {f : E →L[𝕜] F} (fsymm : nonlinear_right_inverse f)
-  (y : F) : f (fsymm y) = y :=
+namespace nonlinear_right_inverse
+
+variables {f}
+
+@[simp] lemma right_inv (fsymm : nonlinear_right_inverse f) (y : F) : f (fsymm y) = y :=
 fsymm.right_inv' y
 
-lemma nonlinear_right_inverse.bound {f : E →L[𝕜] F} (fsymm : nonlinear_right_inverse f) (y : F) :
-  ∥fsymm y∥ ≤ fsymm.nnnorm * ∥y∥ :=
+lemma bound (fsymm : nonlinear_right_inverse f) (y : F) : ∥fsymm y∥ ≤ fsymm.nnnorm * ∥y∥ :=
 fsymm.bound' y
+
+@[simp] lemma map_zero (fsymm : nonlinear_right_inverse f) : fsymm 0 = 0 :=
+by simpa only [norm_zero, mul_zero, norm_le_zero_iff] using fsymm.bound 0
+
+lemma continuous_at_zero (fsymm : nonlinear_right_inverse f) : continuous_at fsymm 0 :=
+continuous_at_of_locally_lipschitz one_pos fsymm.nnnorm $ λ y hy,
+  by simpa only [map_zero, dist_zero_right] using fsymm.bound y
+
+end nonlinear_right_inverse
 
 end continuous_linear_map
 
@@ -59,6 +71,15 @@ noncomputable def continuous_linear_equiv.to_nonlinear_right_inverse (f : E ≃L
 noncomputable instance (f : E ≃L[𝕜] F) :
   inhabited (continuous_linear_map.nonlinear_right_inverse (f : E →L[𝕜] F)) :=
 ⟨f.to_nonlinear_right_inverse⟩
+
+lemma affine_map.is_open_map {P Q : Type*}
+  [continuous_linear_map.open_mapping_class (ring_hom.id 𝕜) E F]
+  [metric_space P] [normed_add_torsor E P] [metric_space Q] [normed_add_torsor F Q]
+  (f : P →ᵃ[𝕜] Q) (hf : continuous f) (surj : surjective f) :
+  is_open_map f :=
+affine_map.is_open_map_linear_iff.mp $ continuous_linear_map.is_open_map
+  { cont := affine_map.continuous_linear_iff.mpr hf, .. f.linear }
+  (f.surjective_iff_linear_surjective.mpr surj)
 
 /-! ### Proof of the Banach open mapping theorem -/
 
@@ -217,65 +238,19 @@ begin
   exact ⟨x, feq, x_ineq⟩
 end
 
-/-- The Banach open mapping theorem: a surjective bounded linear map between Banach spaces is
-open. -/
-protected theorem is_open_map (surj : surjective f) : is_open_map f :=
-begin
-  assume s hs,
-  rcases exists_preimage_norm_le f surj with ⟨C, Cpos, hC⟩,
-  refine is_open_iff.2 (λy yfs, _),
-  rcases mem_image_iff_bex.1 yfs with ⟨x, xs, fxy⟩,
-  rcases is_open_iff.1 hs x xs with ⟨ε, εpos, hε⟩,
-  refine ⟨ε/C, div_pos εpos Cpos, λz hz, _⟩,
-  rcases hC (z-y) with ⟨w, wim, wnorm⟩,
-  have : f (x + w) = z, by { rw [f.map_add, wim, fxy, add_sub_cancel'_right] },
-  rw ← this,
-  have : x + w ∈ ball x ε := calc
-    dist (x+w) x = ∥w∥ : by { rw dist_eq_norm, simp }
-    ... ≤ C * ∥z - y∥ : wnorm
-    ... < C * (ε/C) : begin
-        apply mul_lt_mul_of_pos_left _ Cpos,
-        rwa [mem_ball, dist_eq_norm] at hz,
-      end
-    ... = ε : mul_div_cancel' _ (ne_of_gt Cpos),
-  exact set.mem_image_of_mem _ (hε this)
-end
-
-protected theorem quotient_map (surj : surjective f) : quotient_map f :=
-(f.is_open_map surj).to_quotient_map f.continuous surj
-
-lemma _root_.affine_map.is_open_map {P Q : Type*}
-  [metric_space P] [normed_add_torsor E P] [metric_space Q] [normed_add_torsor F Q]
-  (f : P →ᵃ[𝕜] Q) (hf : continuous f) (surj : surjective f) :
-  is_open_map f :=
-affine_map.is_open_map_linear_iff.mp $ continuous_linear_map.is_open_map
-  { cont := affine_map.continuous_linear_iff.mpr hf, .. f.linear }
-  (f.surjective_iff_linear_surjective.mpr surj)
-
-/-! ### Applications of the Banach open mapping theorem -/
-
-lemma interior_preimage (hsurj : surjective f) (s : set F) :
-  interior (f ⁻¹' s) = f ⁻¹' (interior s) :=
-((f.is_open_map hsurj).preimage_interior_eq_interior_preimage f.continuous s).symm
-
-lemma closure_preimage (hsurj : surjective f) (s : set F) :
-  closure (f ⁻¹' s) = f ⁻¹' (closure s) :=
-((f.is_open_map hsurj).preimage_closure_eq_closure_preimage f.continuous s).symm
-
-lemma frontier_preimage (hsurj : surjective f) (s : set F) :
-  frontier (f ⁻¹' s) = f ⁻¹' (frontier s) :=
-((f.is_open_map hsurj).preimage_frontier_eq_frontier_preimage f.continuous s).symm
-
 lemma exists_nonlinear_right_inverse_of_surjective (f : E →L[𝕜] F)
   (hsurj : linear_map.range f = ⊤) : ∃ (fsymm : nonlinear_right_inverse f), 0 < fsymm.nnnorm :=
 begin
   choose C hC fsymm h using exists_preimage_norm_le _ (linear_map.range_eq_top.mp hsurj),
-  use { to_fun := fsymm,
-        nnnorm := ⟨C, hC.lt.le⟩,
-        bound' := λ y, (h y).2,
-        right_inv' := λ y, (h y).1 },
-  exact hC
+  exact ⟨⟨fsymm, ⟨C, hC.lt.le⟩, λ y, (h y).2, λ y, (h y).1⟩, hC⟩
 end
+
+/-- The **Banach open mapping theorem**: a surjective bounded linear map between Banach spaces is
+open. -/
+instance open_mapping_class.of_complete_space : open_mapping_class (ring_hom.id 𝕜) E F :=
+open_mapping_class.of_right_inverse $ λ f hf,
+  let ⟨g, hg⟩ := exists_nonlinear_right_inverse_of_surjective f (linear_map.range_eq_top.2 hf)
+  in ⟨g, g.right_inv, g.continuous_at_zero, g.map_zero⟩
 
 /-- A surjective continuous linear map between Banach spaces admits a (possibly nonlinear)
 controlled right inverse. In general, it is not possible to ensure that such a right inverse
@@ -412,7 +387,7 @@ is continuous. -/
 theorem linear_map.continuous_of_is_closed_graph (hg : is_closed (g.graph : set $ E × F)) :
   continuous g :=
 begin
-  letI : complete_space g.graph := complete_space_coe_iff_is_complete.mpr hg.is_complete,
+  haveI : complete_space g.graph := hg.complete_space_coe,
   let φ₀ : E →ₗ[𝕜] E × F := linear_map.id.prod g,
   have : function.left_inverse prod.fst φ₀ := λ x, rfl,
   let φ : E ≃ₗ[𝕜] g.graph :=

@@ -66,6 +66,12 @@ instance : inhabited (affine_basis punit k punit) :=
    ind    := affine_independent_of_subsingleton k id,
    tot    := by simp }⟩
 
+include b
+
+protected lemma nonempty : nonempty ι :=
+not_is_empty_iff.mp $ λ hι,
+  by simpa only [@range_eq_empty _ _ hι, affine_subspace.span_empty, bot_ne_top] using b.tot
+
 /-- Given an affine basis for an affine space `P`, if we single out one member of the family, we
 obtain a linear basis for the model space `V`.
 
@@ -362,6 +368,9 @@ section division_ring
 variables [division_ring k] [module k V]
 include V
 
+protected lemma finite_dimensional [finite ι] (b : affine_basis ι k P) : finite_dimensional k V :=
+let ⟨i⟩ := b.nonempty in finite_dimensional.of_fintype_basis (b.basis_of i)
+
 variables (k V P)
 
 lemma exists_affine_basis : ∃ (s : set P), nonempty (affine_basis ↥s k P) :=
@@ -378,7 +387,7 @@ lemma exists_affine_basis_of_finite_dimensional {ι : Type*} [fintype ι] [finit
   nonempty (affine_basis ι k P) :=
 begin
   obtain ⟨s, ⟨⟨incl, h_ind, h_tot⟩⟩⟩ := affine_basis.exists_affine_basis k V P,
-  haveI : fintype s := fintype_of_fin_dim_affine_independent k h_ind,
+  lift s to finset P using @set.to_finite _ s (finite_of_fin_dim_affine_independent k h_ind),
   have hs : fintype.card ι = fintype.card s,
   { rw h, exact (h_ind.affine_span_eq_top_iff_card_eq_finrank_add_one.mp h_tot).symm, },
   rw ← affine_independent_equiv (fintype.equiv_of_card_eq hs) at h_ind,

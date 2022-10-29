@@ -5,7 +5,7 @@ Authors: Antoine Chambert-Loir
 -/
 
 import algebra.group.defs
-import data.set.pointwise
+import data.set.pointwise.basic
 import group_theory.group_action.defs
 
 -- import data.finset.pointwise

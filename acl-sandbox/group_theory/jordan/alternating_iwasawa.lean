@@ -331,9 +331,9 @@ begin
     exact equiv.perm.is_three_cycle.mem_alternating_group hg3, },
 end
 
-example : mul_action ↥(alternating_group α) (set α) :=
+example (s : set α) : mul_action (stabilizer (alternating_group α) s) s :=
 begin
-apply_instance
+exact mul_action_of_stabilizer ↥(alternating_group α) s,
 end
 
 
@@ -345,13 +345,7 @@ begin
 
   let f : s →ₑ[φ] s := {
   to_fun := id,
-  map_smul' := λ ⟨g, hg⟩ ⟨x, hx⟩,
-  begin
-    simp only [id.def, equiv.perm.smul_def, to_perm_apply],
-    rw ← subtype.coe_inj,
-    simp only [has_smul.stabilizer_def, subtype.coe_mk],
-    refl,
-  end },
+  map_smul' := λ ⟨g, hg⟩ ⟨x, hx⟩, by simp only [id.def, equiv.perm.smul_def, to_perm_apply], },
   have hf : function.bijective f := function.bijective_id,
   rw is_preprimitive_of_bijective_map_iff _ hf,
   exact equiv.perm.is_preprimitive s,
@@ -364,7 +358,6 @@ begin
     apply equiv.perm.of_subtype.mem_stabilizer', },
 
   -- function.surjective φ
-  have hφ : function.surjective φ,
   { intro g,
     have hgs : (equiv.perm.of_subtype g) • s = s,
     apply equiv.perm.of_subtype.mem_stabilizer,
@@ -411,10 +404,7 @@ begin
       exact equiv.perm.of_subtype_apply_coe g x,
       rw set.not_mem_compl_iff, exact x.prop, }, },
 
-  rw @is_preprimitive_of_bijective_map_iff _ _ _ _ _ _ _ _ φ f hφ hf,
-  exact equiv.perm.is_preprimitive s,
-  sorry,
-
+  -- ∃ k : equiv.perm (sᶜ : set α), equiv.perm.sign k = -1,
   obtain ⟨a, ha, b, hb, hab⟩ := hs,
   use equiv.swap ⟨a, ha⟩ ⟨b, hb⟩,
   rw equiv.perm.sign_swap _,
@@ -504,7 +494,7 @@ begin
     { apply nat.lt_irrefl (fintype.card B),
       apply lt_of_le_of_lt this,
       simp_rw hBsc, exact hα, },
-    rw ← set.smul_set_card_eq k B,
+    rw ← smul_set_card_eq k B,
     apply set.card_le_of_subset ,
     change k • B ⊆ s,
     rw [← set.disjoint_compl_right_iff_subset, ← hBsc],
@@ -514,7 +504,7 @@ begin
     rw ← set.inter_compl_self s,
     split,
       exact ha,
-      rw [← hk, ← hBsc, ← h, set.smul_mem_smul_set_iff], exact hb },
+      rw [← hk, ← hBsc, ← h, smul_mem_smul_set_iff], exact hb },
 
   /- Step 2 : A block contained in sᶜ is a subsingleton-/
   have hB_not_le_sc : ∀ (B : set α) (hB : is_block G B) (hBsc : B ⊆ sᶜ), B.subsingleton,
@@ -1298,6 +1288,7 @@ begin
   apply lt_of_lt_of_le _ hα, norm_num,
 end
 
+/-
 def Iw4 : iwasawa_structure (alternating_group α) (nat.finset α 4) :=
 { T := λ (s : nat.finset α 4), (subgroup.map
     (equiv.perm.of_subtype : equiv.perm (s : finset α) →* equiv.perm α)
@@ -1315,7 +1306,7 @@ def Iw4 : iwasawa_structure (alternating_group α) (nat.finset α 4) :=
   is_conj := λ g ⟨s, hs⟩, Iw_is_conj_alt s g,
   is_generator := Iw_is_generator_alt,
 }
-
+-/
 
 
 /-- If α has at least 5 elements, but not 8,

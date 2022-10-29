@@ -372,7 +372,7 @@ begin
     simp only [set.top_eq_univ, set.Inter_eq_univ],
     intro i, exfalso, apply hι.false, exact i },
 
-  intro g, rw set.smul_set_Inter,
+  intro g, rw smul_set_Inter,
   cases em (∃ (i : ι), disjoint (g • (B i)) (B i)) with h h,
   { obtain ⟨j,hj⟩ := h,
     apply or.intro_right,
@@ -672,7 +672,7 @@ begin
     simp only [set.mem_to_finset, set.mem_range] at hs,
     obtain ⟨g, rfl⟩ := hs,
     simp only [set.to_finset_card],
-    { refine eq.trans _ (eq.trans (set.smul_set_card_eq g B) _),
+    { refine eq.trans _ (eq.trans (smul_set_card_eq g B) _),
       all_goals { apply fintype.card_congr', refl } } }
 end
 

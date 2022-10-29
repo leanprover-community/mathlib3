@@ -380,6 +380,12 @@ begin
     rw set.not_mem_compl_iff, exact hx, }, -/
 end
 
+
+example : mul_action (equiv.perm α) (set α) :=
+begin
+exact set.mul_action_set,
+end
+
 lemma equiv.perm.stabilizer.is_preprimitive (s : set α) : is_preprimitive (stabilizer (equiv.perm α) s) s :=
 begin
   let φ : stabilizer (equiv.perm α) s → equiv.perm s := mul_action.to_perm,

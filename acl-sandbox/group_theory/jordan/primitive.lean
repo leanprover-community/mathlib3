@@ -25,7 +25,7 @@ import group_theory.abelianization
 import group_theory.commutator
 import group_theory.quotient_group
 
-import data.set.pointwise
+import data.set.pointwise.basic
 import data.nat.prime
 import data.fintype.basic
 import data.fintype.card
@@ -639,7 +639,7 @@ begin
   -- It remains to show that fintype.card β < 2 * fintype.card B
   apply lt_of_lt_of_le hf',
   simp only [mul_le_mul_left, nat.succ_pos'],
-  rw ← set.smul_set_card_eq g B,
+  rw ← smul_set_card_eq g B,
   -- This last step is disgusting :
   -- the types are identical, but not the proofs that they are finite
   refine le_trans _ (le_trans (set.card_le_of_subset h') _),

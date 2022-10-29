@@ -193,6 +193,7 @@ end
 
 end lists
 
+/-
 section stabilizers
 
 variables {G : Type*} [group G] {X : Type*} [mul_action G X] (s : set X)
@@ -226,7 +227,7 @@ begin
   refl,
 end
 
-end stabilizers
+end stabilizers -/
 
 
 
@@ -1699,20 +1700,34 @@ begin
   rw [← finset.coe_smul_finset k _, ← equiv.perm.mem_cycle_factors_conj_eq, hk],
 end
 
-instance mul_action_on_cycle_factors
- /-  mul_action (mul_action.stabilizer (conj_act (equiv.perm α)) g)
+/- instance mul_action_on_cycle_factors
+/-   mul_action (mul_action.stabilizer (conj_act (equiv.perm α)) g)
   ((g.cycle_factors_finset) : set (equiv.perm α)) -/
 := (sub_mul_action_of_stabilizer
   (conj_act (equiv.perm α))
   ((g.cycle_factors_finset) : set (equiv.perm α))).mul_action
+-/
 
-def φ : mul_action.stabilizer (conj_act (equiv.perm α)) g
-  →* equiv.perm (g.cycle_factors_finset : set (equiv.perm α)) :=
-(mul_action.to_perm_hom
-  (mul_action.stabilizer
-    (conj_act (equiv.perm α)) (g.cycle_factors_finset : set (equiv.perm α)))
-    (g.cycle_factors_finset : set (equiv.perm α))).comp
-(subgroup.inclusion (centralizer_le_stab_cycle_fact g))
+def sub_mul_action_on_cycle_factors :
+  sub_mul_action (mul_action.stabilizer (conj_act (equiv.perm α)) g) (equiv.perm α) :=
+{ carrier := (g.cycle_factors_finset : set(equiv.perm α)),
+  smul_mem' := λ k c hc,
+  begin
+    have := equiv.perm.mem_cycle_factors_conj_eq ↑k g,
+    rw (mul_action.mem_stabilizer_iff.mp k.prop) at this,
+    rw [this, finset.coe_smul_finset],
+    exact ⟨c, hc,  rfl⟩,
+  end}
+
+instance mul_action_on_cycle_factors :
+  mul_action
+    (mul_action.stabilizer (conj_act (equiv.perm α)) g)
+    (g.cycle_factors_finset : set (equiv.perm α)) :=
+(sub_mul_action_on_cycle_factors g).mul_action
+
+def φ := mul_action.to_perm_hom
+  (mul_action.stabilizer (conj_act (equiv.perm α)) g)
+  (g.cycle_factors_finset : set (equiv.perm α))
 
 lemma φ_eq : ∀ (k : conj_act (equiv.perm α))
   (hk : k ∈ mul_action.stabilizer (conj_act (equiv.perm α)) g)

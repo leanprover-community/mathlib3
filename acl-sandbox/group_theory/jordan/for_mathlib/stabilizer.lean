@@ -21,8 +21,7 @@ from inclusions `g • s ⊆ s`  for all `g ∈ H`.
 
 # Instances
 
--- * `mul_action.of_stabilizer G s`: the action of `stabilizer G s` on `s`.
-(REMOVED)
+* `mul_action.of_stabilizer G s`: the action of `stabilizer G s` on `s`.
 
 ## TODO
 
@@ -41,37 +40,23 @@ variables (G : Type*) [group G] {α : Type*} [mul_action G α]
 begin
   have : ∀ (s : set α), stabilizer G s ≤ stabilizer G sᶜ,
   { intros s g h,
-    rw [mem_stabilizer_iff, set.smul_compl_set, mem_stabilizer_iff.1 h] },
+    rw [mem_stabilizer_iff, smul_compl_set, mem_stabilizer_iff.1 h] },
   refine le_antisymm _ (this _),
   convert this _,
   exact (compl_compl _).symm,
 end
 
 /-- The instance that makes the stabilizer of a set acting on that set -/
-/- instance has_smul.stabilizer (s : set α) :
-  has_smul ↥(stabilizer G s) ↥s := {
-smul := λ ⟨g, hg⟩ ⟨x, hx⟩, ⟨g • x,
-  begin
-    rw ← mem_stabilizer_iff.mp hg,
-    exact set.smul_mem_smul_set hx,
-  end⟩, }
--/
-
-example (s : set α) : has_smul (stabilizer G s) s :=
-begin
-sorry,
-end
-
-instance has_smul.stabilizer (s : set α) :
-  has_smul ↥(stabilizer G s) ↥s := {
+instance has_smul.of_stabilizer (s : set α) :
+  has_smul (stabilizer G s) s := {
 smul := λ g x, ⟨g • x,
   begin
-    conv_rhs { rw ← mem_stabilizer_iff.mp g.prop, },
+    conv_rhs { rw ←  mem_stabilizer_iff.mp (g.prop) },
     exact set.smul_mem_smul_set x.prop,
   end⟩, }
 
 @[simp]
-lemma has_smul.stabilizer_def  (s : set α)
+lemma has_smul.smul_stabilizer_def  (s : set α)
   (g : stabilizer G s) (x : s) : coe (g • x)  = (g : G) • (x : α) :=
 begin
   rw ← subtype.coe_eta g g.prop,
@@ -79,28 +64,19 @@ begin
   refl,
 end
 
-/-
 /-- The mul_action of stabilizer a set on that set -/
 instance of_stabilizer (s : set α) :
   mul_action (stabilizer G s) s := {
-one_smul := λ ⟨x, hx⟩,
-by  rw [← subtype.coe_inj, has_smul.stabilizer_def, subgroup.coe_one, one_smul],
-mul_smul := λ ⟨g, hg⟩ ⟨k, hk⟩ ⟨x, hx⟩,
-begin
-  rw [← subtype.coe_inj, submonoid.mk_mul_mk],
-  simp only [has_smul.stabilizer_def, subtype.coe_mk, mul_action.mul_smul],
-end }
--/
+one_smul := λ x,
+  by rw [← subtype.coe_inj, has_smul.smul_stabilizer_def, subgroup.coe_one, one_smul],
+mul_smul := λ g k x,
+by simp only [← subtype.coe_inj, has_smul.smul_stabilizer_def, subgroup.coe_mul, mul_action.mul_smul], }
 
 lemma of_stabilizer_def (s : set α) (g : stabilizer G s) (x : s) :
   (g : G) • (x : α) = g • (x : α) := rfl
 
 lemma of_stabilizer_set_def (s : set α) (g : stabilizer G s) (t : set α) :
-  (g : G) • t = g • t :=
-begin
-refl,
-end
-
+  (g : G) • t = g • t := rfl
 
 /-- To prove inclusion of a *subgroup* in a stabilizer, it is enough to prove inclusions.-/
 lemma le_stabilizer_iff (s : set α) (H : subgroup G) :
@@ -158,3 +134,43 @@ begin
 end
 
 end mul_action
+
+
+#exit
+
+
+
+section stabilizers
+
+variables {G : Type*} [group G] {X : Type*} [mul_action G X] (s : set X)
+
+open_locale pointwise
+
+variables (G s)
+def sub_mul_action_of_stabilizer : sub_mul_action (mul_action.stabilizer G s) X :=
+{ carrier := s,
+  smul_mem' := λ g x hx,
+  begin
+    have h : g • x ∈ g • s := ⟨x, hx, rfl⟩,
+    let hg := g.prop, rw mul_action.mem_stabilizer_iff at hg,
+    change g • s = s at hg,
+    rw hg at h, exact h,
+  end}
+
+instance mul_action_of_stabilizer : mul_action (mul_action.stabilizer G s) s :=
+  (sub_mul_action_of_stabilizer G s).mul_action
+
+variables {G s}
+def sub_mul_action_of_stabilizer_hom : mul_action.stabilizer G s →* equiv.perm s :=
+  mul_action.to_perm_hom (mul_action.stabilizer G s) s
+
+lemma sub_mul_action_of_stabilizer_hom_def
+  (g : G) (hg : g ∈ mul_action.stabilizer G s) (x : X) (hx : x ∈ s) :
+  ↑(sub_mul_action_of_stabilizer_hom (⟨g, hg⟩ : mul_action.stabilizer G s) (⟨x, hx⟩ : s)) = g • x :=
+begin
+  simp only [sub_mul_action_of_stabilizer_hom],
+  simp only [mul_action.to_perm_hom_apply, mul_action.to_perm_apply],
+  refl,
+end
+
+end stabilizers

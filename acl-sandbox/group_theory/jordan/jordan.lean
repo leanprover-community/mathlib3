@@ -304,7 +304,7 @@ begin
     rw fintype.card_pos_iff ,
     use a },
   { simp only [finset.card_compl, set.to_finset_card],
-    rw set.smul_set_card_eq, },
+    rw smul_set_card_eq, },
   apply_instance,
 end
 
@@ -514,14 +514,14 @@ begin
         apply set.inter_subset_left,
         intro hst,
         rw set.mem_compl_iff at hb,
-        simp only [set.smul_compl_set, set.mem_compl_iff, set.not_not_mem] at hgb,
+        simp only [smul_compl_set, set.mem_compl_iff, set.not_not_mem] at hgb,
         suffices : s = g • s,
         { apply hb, rw this, exact hgb },
         apply set.eq_of_subset_of_card_le,
         { refine subset_trans hst _,
           apply set.inter_subset_right },
         { apply le_of_eq,
-          apply set.smul_set_card_eq }  },
+          apply smul_set_card_eq }  },
 
       { -- aux_pigeonhole ne marche pas !
         rw ← set.ne_empty_iff_nonempty,
@@ -747,14 +747,14 @@ theorem is_two_preprimitive_weak_jordan {n : ℕ} :
         apply set.inter_subset_left,
         intro hst,
         rw set.mem_compl_iff at hb,
-        simp only [set.smul_compl_set, set.mem_compl_iff, set.not_not_mem] at hgb,
+        simp only [smul_compl_set, set.mem_compl_iff, set.not_not_mem] at hgb,
         suffices : s = g • s,
         { apply hb, rw this, exact hgb },
         apply set.eq_of_subset_of_card_le,
         { refine subset_trans hst _,
           apply set.inter_subset_right },
         { apply le_of_eq,
-          apply set.smul_set_card_eq }  },
+          apply smul_set_card_eq }  },
 
       { -- aux_pigeonhole ne marche pas !
         rw ← set.ne_empty_iff_nonempty,
@@ -1164,8 +1164,6 @@ begin
   rw equiv.perm.is_three_cycle.card_support h3g,
   norm_num
 end
-
-#check jordan_three_cycle
 
 /- -- TODO : prove
 theorem jordan_prime_cycle [decidable_eq α] (hG : is_preprimitive G α)

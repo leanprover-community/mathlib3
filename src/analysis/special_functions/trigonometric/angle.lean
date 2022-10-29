@@ -436,8 +436,20 @@ end
 @[simp] lemma to_real_pi_div_two : ((π / 2 : ℝ) : angle).to_real = π / 2 :=
 to_real_coe_eq_self_iff.2 $ by split; linarith [pi_pos]
 
+@[simp] lemma to_real_eq_pi_div_two_iff {θ : angle} : θ.to_real = π / 2 ↔ θ = (π / 2 : ℝ) :=
+begin
+  nth_rewrite 0 ←to_real_pi_div_two,
+  exact to_real_inj
+end
+
 @[simp] lemma to_real_neg_pi_div_two : ((-π / 2 : ℝ) : angle).to_real = -π / 2 :=
 to_real_coe_eq_self_iff.2 $ by split; linarith [pi_pos]
+
+@[simp] lemma to_real_eq_neg_pi_div_two_iff {θ : angle} : θ.to_real = -π / 2 ↔ θ = (-π / 2 : ℝ) :=
+begin
+  nth_rewrite 0 ←to_real_neg_pi_div_two,
+  exact to_real_inj
+end
 
 lemma pi_div_two_ne_zero : ((π / 2 : ℝ) : angle) ≠ 0 :=
 begin
@@ -467,15 +479,8 @@ end
 
 lemma abs_to_real_eq_pi_div_two_iff {θ : angle} :
   |θ.to_real| = π / 2 ↔ (θ = (π / 2 : ℝ) ∨ θ = (-π / 2 : ℝ)) :=
-begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { rw [←coe_to_real θ, neg_div],
-    rcases eq_or_eq_neg_of_abs_eq h with ha | ha; simp [ha] },
-  { rcases h with rfl | rfl,
-    { rw [to_real_pi_div_two, abs_of_nonneg (div_nonneg real.pi_pos.le two_pos.le)] },
-    { rw [to_real_neg_pi_div_two, neg_div, abs_neg,
-          abs_of_nonneg (div_nonneg real.pi_pos.le two_pos.le)] } }
-end
+by rw [abs_eq (div_nonneg real.pi_pos.le two_pos.le), ←neg_div, to_real_eq_pi_div_two_iff,
+       to_real_eq_neg_pi_div_two_iff]
 
 @[simp] lemma sin_to_real (θ : angle) : real.sin θ.to_real = sin θ :=
 begin

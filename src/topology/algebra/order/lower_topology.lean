@@ -79,7 +79,7 @@ begin
   exact is_closed_bUnion h (λ a h₁, is_closed_Ici a),
 end
 
-/-
+/--
 Every subset open in the lower topology is a lower set
 -/
 lemma is_lower_set_of_is_open {s : set (lower α)} (h : is_open s) : is_lower_set s :=

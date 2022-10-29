@@ -1462,7 +1462,7 @@ lemma norm_iterated_fderiv_zero :
   ∥iterated_fderiv 𝕜 0 f x∥ = ∥f x∥ :=
 by rw [iterated_fderiv_zero_eq_comp, linear_isometry_equiv.norm_map]
 
-@[simp] lemma iterated_fderiv_with_zero_eq :
+lemma iterated_fderiv_with_zero_eq :
   iterated_fderiv_within 𝕜 0 f s = iterated_fderiv 𝕜 0 f :=
 by { ext, refl }
 

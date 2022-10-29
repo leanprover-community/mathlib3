@@ -123,33 +123,3 @@ end
 end bounded
 
 end number_field.embeddings
-
-section complex
-
-lemma complex.subfield_eq_of_closed {K : subfield ℂ} (hc : is_closed (K : set ℂ)) :
-  K = complex.of_real.field_range ∨ K = ⊤ :=
-begin
-  suffices : set.range (coe : ℝ → ℂ) ⊆ K,
-  { rw [set.range_subset_iff, ← complex.coe_algebra_map] at this,
-    have := subalgebra.eq_bot_or_top_of_finrank
-      (subfield.to_intermediate_field K this).to_subalgebra complex.finrank_real_complex,
-    simp_rw set_like.ext'_iff at this ⊢,
-    convert this using 2,
-    ext,
-    simp only [ring_hom.coe_field_range, set.mem_range, complex.of_real_eq_coe, algebra.coe_bot,
-      complex.coe_algebra_map], },
-  suffices : set.range (coe : ℝ → ℂ) ⊆ closure (set.range (coe : ℚ → ℂ)),
-  { refine subset_trans this _,
-    rw ← is_closed.closure_eq hc,
-    apply closure_mono,
-    rintros _ ⟨r, rfl⟩,
-    exact subfield_class.coe_rat_mem K r, },
-  rw ( by { ext1, simp only [function.comp_app, complex.of_real_rat_cast] } :
-    (coe : ℚ → ℂ) = (coe : ℝ → ℂ) ∘ (coe : ℚ → ℝ)),
-  nth_rewrite 1 set.range_comp,
-  refine subset_trans _ (image_closure_subset_closure_image complex.continuous_of_real),
-  rw dense_range.closure_range rat.dense_embedding_coe_real.dense,
-  simp only [set.image_univ],
-end
-
-end complex

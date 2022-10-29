@@ -564,6 +564,11 @@ begin
   abel,
 end
 
+/-- Rotating twice is equivalent to rotating by the sum of the angles. -/
+@[simp] lemma rotation_apply_apply (θ₁ θ₂ : real.angle) (x : V) :
+  o.rotation θ₁ (o.rotation θ₂ x) = o.rotation (θ₁ + θ₂) x :=
+by rw [←rotation_trans, linear_isometry_equiv.trans_apply]
+
 /-- Rotating the first of two vectors by `θ` scales their Kahler form by `cos θ - sin θ * I`. -/
 @[simp] lemma kahler_rotation_left (x y : V) (θ : real.angle) :
   o.kahler (o.rotation θ x) y = conj (θ.exp_map_circle : ℂ) * o.kahler x y :=

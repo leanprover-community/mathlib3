@@ -102,7 +102,7 @@ begin
   rw ← fintype.card_add_compl s,
   have  h1' : 2 < fintype.card (sᶜ : set α),
   { apply lt_of_le_of_lt _ hα,
-    rw [nat.succ_le_iff, fintype.one_lt_card_iff_nontrivial, set.nontrivial_coe],
+    rw [nat.succ_le_iff, fintype.one_lt_card_iff_nontrivial, set.nontrivial_coe_sort],
     exact h0, },
   rw [nat.add_sub_assoc (le_of_lt h1'), add_le_add_iff_left,
     nat.le_sub_iff_right (le_of_lt h1')],
@@ -331,18 +331,10 @@ begin
     exact equiv.perm.is_three_cycle.mem_alternating_group hg3, },
 end
 
-example (s : set α) : mul_action (stabilizer (alternating_group α) s) s :=
-begin
-exact mul_action_of_stabilizer ↥(alternating_group α) s,
-end
-
-
 lemma stabilizer.is_preprimitive (s : set α) (hs : (sᶜ : set α).nontrivial):
   is_preprimitive (stabilizer (alternating_group α) s) s :=
 begin
   let φ : stabilizer (alternating_group α) s → equiv.perm s := mul_action.to_perm,
-  suffices hφ : function.surjective φ,
-
   let f : s →ₑ[φ] s := {
   to_fun := id,
   map_smul' := λ ⟨g, hg⟩ ⟨x, hx⟩, by simp only [id.def, equiv.perm.smul_def, to_perm_apply], },
@@ -392,12 +384,12 @@ begin
     cases int.units_eq_one_or (equiv.perm.sign g) with hsg hsg,
     { dsimp [g'], simp only [hsg, eq_self_iff_true, if_true, hminus_one_ne_one, if_false],
       ext,
-      simp only [to_perm_apply, has_smul.stabilizer_def, subtype.coe_mk],
+      simp only [to_perm_apply, has_smul.smul_stabilizer_def, subtype.coe_mk],
       change equiv.perm.of_subtype g ↑x = ↑(g x),
       exact equiv.perm.of_subtype_apply_coe g x, },
     { dsimp [g'], simp only [hsg, eq_self_iff_true, if_true, hminus_one_ne_one, if_false],
       ext,
-      simp only [to_perm_apply, has_smul.stabilizer_def, subtype.coe_mk],
+      simp only [to_perm_apply, has_smul.smul_stabilizer_def, subtype.coe_mk],
       change ((equiv.perm.of_subtype g) * (equiv.perm.of_subtype k)) ↑x = ↑(g x),
       rw equiv.perm.mul_apply ,
       rw equiv.perm.of_subtype_apply_of_not_mem k _,
@@ -504,7 +496,7 @@ begin
     rw ← set.inter_compl_self s,
     split,
       exact ha,
-      rw [← hk, ← hBsc, ← h, smul_mem_smul_set_iff], exact hb },
+      rw [← hk, ← hBsc, ← h, set.smul_mem_smul_set_iff], exact hb },
 
   /- Step 2 : A block contained in sᶜ is a subsingleton-/
   have hB_not_le_sc : ∀ (B : set α) (hB : is_block G B) (hBsc : B ⊆ sᶜ), B.subsingleton,
@@ -531,7 +523,7 @@ begin
       let φ' : stabilizer G (sᶜ: set α) → G := coe,
       let f' : (sᶜ : set α) →ₑ[φ'] α := {
         to_fun := coe,
-        map_smul' := λ ⟨m, hm⟩ x, by simp only [has_smul.stabilizer_def], },
+        map_smul' := λ m x, by simp only [φ', has_smul.smul_stabilizer_def], },
       apply mul_action.is_block_preimage f' hB,
 
       apply stabilizer.is_preprimitive',
@@ -607,7 +599,7 @@ begin
       let φ' : stabilizer G s → G := coe,
       let f' : s →ₑ[φ'] α := {
         to_fun := coe,
-      map_smul' := λ ⟨m, hm⟩ x, by simp only [has_smul.stabilizer_def], },
+      map_smul' := λ ⟨m, hm⟩ x, by simp only [φ', has_smul.smul_stabilizer_def], },
       apply mul_action.is_block_preimage f' hB,
 
       apply stabilizer.is_preprimitive' s h1,
@@ -775,7 +767,7 @@ begin
 
     -- hα : 4 < fintype.card α
     have h0 : 2 ≤ fintype.card s,
-    rw [nat.succ_le_iff, fintype.one_lt_card_iff_nontrivial, set.nontrivial_coe],
+    rw [nat.succ_le_iff, fintype.one_lt_card_iff_nontrivial, set.nontrivial_coe_sort],
     exact h0',
     change 2 + 2 < _,
     rw ← fintype.card_add_compl s,
@@ -1343,6 +1335,8 @@ begin
 end
 
 
+
+#exit
 
 /-
 def Iw_t (s : finset α) : (equiv.perm s) →* (equiv.perm α) := equiv.perm.of_subtype

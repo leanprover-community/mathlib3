@@ -412,18 +412,13 @@ lemma equiv.perm.stabilizer.is_preprimitive' (s : set α) (G : subgroup (equiv.p
   (hG : stabilizer (equiv.perm α) s ≤ G) : is_preprimitive (stabilizer G s) s :=
 begin
   let φ : stabilizer (equiv.perm α) s → stabilizer G s :=
-  begin
-    rintro ⟨g,hg⟩,
-    use g,
-    apply hG, exact hg,
-    simp only [mem_stabilizer_iff], change g • _ = _, exact hg,
-  end,
+  λ g, ⟨⟨g, hG g.prop⟩, mem_stabilizer_iff.mp g.prop⟩,
   let f: s →ₑ[φ] s := {
     to_fun := id,
     map_smul' := λ ⟨m, hm⟩ x,
     begin
       simp only [id.def, φ, ← subtype.coe_inj],
-      simp only [has_smul.stabilizer_def, subgroup.coe_mk, equiv.perm.smul_def],
+      simp only [of_stabilizer_def, subgroup.coe_mk, equiv.perm.smul_def],
       refl,
     end, },
   have : function.surjective f := function.surjective_id,
@@ -484,7 +479,7 @@ begin
       { apply nat.lt_irrefl (fintype.card B),
         apply lt_of_le_of_lt this,
         simp_rw hBsc, exact hα, },
-      rw ← set.smul_set_card_eq k B,
+      rw ← smul_set_card_eq k B,
       apply set.card_le_of_subset ,
       change k • B ⊆ s,
       rw [← set.disjoint_compl_right_iff_subset, ← hBsc],
@@ -521,7 +516,7 @@ begin
         let φ' : stabilizer G (sᶜ: set α) → G := coe,
         let f' : (sᶜ : set α) →ₑ[φ'] α := {
           to_fun := coe,
-          map_smul' := λ ⟨m, hm⟩ x, by simp only [has_smul.stabilizer_def], },
+          map_smul' := λ m x, by simp only [φ', has_smul.smul_stabilizer_def], },
         apply mul_action.is_block_preimage f' hB,
 
         apply equiv.perm.stabilizer.is_preprimitive',
@@ -647,7 +642,7 @@ begin
       let φ' : stabilizer G s → G := coe,
       let f' : s →ₑ[φ'] α := {
         to_fun := coe,
-      map_smul' := λ ⟨m, hm⟩ x, by simp only [has_smul.stabilizer_def], },
+      map_smul' := λ m x, by simp only [φ', has_smul.smul_stabilizer_def], },
       apply mul_action.is_block_preimage f' hB,
 
       apply equiv.perm.stabilizer.is_preprimitive',

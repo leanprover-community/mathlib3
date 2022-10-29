@@ -283,6 +283,7 @@ structure cont_diff_bump (c : E) :=
 add more properties if they are useful and satisfied in the examples of inner product spaces
 and finite dimensional vector spaces, notably smooth dependence in `R` or derivative norm
 control in terms of `R`. -/
+@[nolint has_nonempty_instance]
 structure cont_diff_bump_base (E : Type*) [normed_add_comm_group E] [normed_space ℝ E] :=
 (to_fun : ℝ → E → ℝ)
 (mem_Icc   : ∀ (R : ℝ) (x : E), to_fun R x ∈ Icc (0 : ℝ) 1)

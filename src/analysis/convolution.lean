@@ -1249,7 +1249,7 @@ variable {H}
 
 end helper_definitions
 
-
+@[priority 100]
 instance {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E] :
   has_cont_diff_bump E :=
 begin
@@ -1287,12 +1287,12 @@ begin
       have A : 0 < (R + 1) / 2, by linarith,
       have A' : 0 < R + 1, by linarith,
       have C :  (R - 1) / (R + 1) < 1, by { apply (div_lt_one _ ).2; linarith },
-      simp only [hR, if_true, support_comp_inv_smul₀ A.ne', Y_support _ (IR R hR) C, smul_ball A.ne',
-        real.norm_of_nonneg A.le, smul_zero],
+      simp only [hR, if_true, support_comp_inv_smul₀ A.ne', Y_support _ (IR R hR) C,
+        smul_ball A.ne', real.norm_of_nonneg A.le, smul_zero],
       congr' 1,
       field_simp [A'.ne'],
       ring,
-    end},
+    end },
 end
 
 end exists_cont_diff_bump_base

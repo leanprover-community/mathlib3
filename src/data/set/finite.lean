@@ -1121,12 +1121,7 @@ finite.induction_on H
   (by simp only [bUnion_empty, bdd_above_empty, ball_empty_iff])
   (λ a s ha _ hs, by simp only [bUnion_insert, ball_insert_iff, bdd_above_union, hs])
 
-lemma infinite_of_not_bdd_above : ¬ bdd_above s → s.infinite :=
-begin
-  contrapose!,
-  rw not_infinite,
-  apply finite.bdd_above,
-end
+lemma infinite_of_not_bdd_above : ¬ bdd_above s → s.infinite := mt finite.bdd_above
 
 end
 

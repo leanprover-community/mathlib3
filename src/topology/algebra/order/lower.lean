@@ -72,7 +72,7 @@ is_open_compl_iff.1 $ generate_open.basic _ ⟨a, rfl⟩
 /-
 The upper closure of a finite subset is closed in the lower topology
 -/
-lemma upper_closure_is_closed (F : set (lower α)) (h : F.finite) :
+lemma is_closed_upper_closure (F : set (lower α)) (h : F.finite) :
   is_closed (upper_closure F : set (lower α)) :=
 begin
   simp only [← upper_set.infi_Ici, upper_set.coe_infi],
@@ -82,7 +82,7 @@ end
 /-
 Every subset open in the lower topology is a lower set
 -/
-lemma lower_open_is_lower {s : set (lower α)} (h : is_open s) : is_lower_set s :=
+lemma is_lower_set_of_is_open {s : set (lower α)} (h : is_open s) : is_lower_set s :=
 begin
   rw is_open_iff_generate_Ici_comp at h,
   induction h,
@@ -93,7 +93,7 @@ begin
 end
 
 lemma lower_closed_is_upper {s : set (lower α)} (h : is_closed s) : is_upper_set s :=
-is_lower_set_compl.1 $ lower_open_is_lower h.is_open_compl
+is_lower_set_compl.1 $ is_lower_set_of_is_open h.is_open_compl
 
 /-
 The closure of a singleton {a} in the lower topology is the left-closed right-infinite interval
@@ -111,7 +111,7 @@ def lower_basis (α : Type u) [preorder α] :=
 {s : set α | ∃ (F : set α), F.finite ∧
   ↑(upper_closure F).compl = s }
 
-lemma lower_basis_is_basis : is_topological_basis (lower_basis (lower α)) :=
+lemma is_topological_basis : is_topological_basis (lower_basis (lower α)) :=
 begin
   convert is_topological_basis_of_subbasis rfl,
   simp_rw [lower_basis, upper_set.coe_compl, coe_upper_closure, compl_set_of],

@@ -361,7 +361,8 @@ class _root_.add_subgroup.finite_index {G : Type*} [add_group G] (H : add_subgro
 (finite_index : H.index ≠ 0)
 
 /-- A finite index subgroup has finite quotient. -/
-@[to_additive] noncomputable def fintype_quotient_of_finite_index [finite_index H] :
+@[to_additive "A finite index subgroup has finite quotient"]
+noncomputable def fintype_quotient_of_finite_index [finite_index H] :
   fintype (G ⧸ H) :=
 fintype_of_index_ne_zero finite_index.finite_index
 

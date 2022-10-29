@@ -53,7 +53,7 @@ ones for lower semicontinuous functions using `order_dual`.
 -/
 
 open_locale topological_space big_operators ennreal
-open set
+open set function filter
 
 variables {α : Type*} [topological_space α] {β : Type*} [preorder β]
 {f g : α → β} {x : α} {s t : set α} {y z : β}
@@ -491,7 +491,8 @@ end
 /-! #### Supremum -/
 
 section
-variables {ι : Sort*} {δ : Type*} [complete_linear_order δ]
+variables {ι ι' : Sort*} {δ δ' : Type*} [complete_linear_order δ]
+  [nonempty ι'] [conditionally_complete_linear_order δ']
 
 lemma lower_semicontinuous_within_at_supr {f : ι → α → δ}
   (h : ∀ i, lower_semicontinuous_within_at (f i) s x) :
@@ -500,6 +501,16 @@ begin
   assume y hy,
   rcases lt_supr_iff.1 hy with ⟨i, hi⟩,
   filter_upwards [h i y hi] with _ hx' using lt_supr_iff.2 ⟨i, hx'⟩,
+end
+
+lemma lower_semicontinuous_within_at_csupr {f : ι' → α → δ'}
+  (bdd : ∀ᶠ y in 𝓝[s] x, bdd_above (range $ λ i, f i y))
+  (h : ∀ i, lower_semicontinuous_within_at (f i) s x) :
+  lower_semicontinuous_within_at (λ x', ⨆ i, f i x') s x :=
+begin
+  assume y hy,
+  rcases exists_lt_of_lt_csupr hy with ⟨i, hi⟩,
+  filter_upwards [h i y hi, bdd] with y hy hy' using hy.trans_le (le_csupr hy' i)
 end
 
 lemma lower_semicontinuous_within_at_bsupr {p : ι → Prop} {f : Π i (h : p i), α → δ}
@@ -515,6 +526,16 @@ begin
   exact lower_semicontinuous_within_at_supr h
 end
 
+lemma lower_semicontinuous_at_csupr {f : ι' → α → δ'}
+  (bdd : ∀ᶠ y in 𝓝 x, bdd_above (range $ λ i, f i y))
+  (h : ∀ i, lower_semicontinuous_at (f i) x) :
+  lower_semicontinuous_at (λ x', ⨆ i, f i x') x :=
+begin
+  simp_rw [← lower_semicontinuous_within_at_univ_iff] at *,
+  rw ← nhds_within_univ at bdd,
+  exact lower_semicontinuous_within_at_csupr bdd h
+end
+
 lemma lower_semicontinuous_at_bsupr {p : ι → Prop} {f : Π i (h : p i), α → δ}
   (h : ∀ i hi, lower_semicontinuous_at (f i hi) x) :
   lower_semicontinuous_at (λ x', ⨆ i hi, f i hi x') x :=
@@ -525,6 +546,13 @@ lemma lower_semicontinuous_on_supr {f : ι → α → δ}
   lower_semicontinuous_on (λ x', ⨆ i, f i x') s :=
 λ x hx, lower_semicontinuous_within_at_supr (λ i, h i x hx)
 
+lemma lower_semicontinuous_on_csupr {f : ι' → α → δ'}
+  (bdd : ∀ x ∈ s, bdd_above (range $ λ i, f i x))
+  (h : ∀ i, lower_semicontinuous_on (f i) s) :
+  lower_semicontinuous_on (λ x', ⨆ i, f i x') s :=
+λ x hx, lower_semicontinuous_within_at_csupr (eventually_nhds_within_of_forall bdd)
+  (λ i, h i x hx)
+
 lemma lower_semicontinuous_on_bsupr {p : ι → Prop} {f : Π i (h : p i), α → δ}
   (h : ∀ i hi, lower_semicontinuous_on (f i hi) s) :
   lower_semicontinuous_on (λ x', ⨆ i hi, f i hi x') s :=
@@ -534,6 +562,12 @@ lemma lower_semicontinuous_supr {f : ι → α → δ}
   (h : ∀ i, lower_semicontinuous (f i)) :
   lower_semicontinuous (λ x', ⨆ i, f i x') :=
 λ x, lower_semicontinuous_at_supr (λ i, h i x)
+
+lemma lower_semicontinuous_csupr {f : ι' → α → δ'}
+  (bdd : ∀ x, bdd_above (range $ λ i, f i x))
+  (h : ∀ i, lower_semicontinuous (f i)) :
+  lower_semicontinuous (λ x', ⨆ i, f i x') :=
+λ x, lower_semicontinuous_at_csupr (eventually_of_forall bdd) (λ i, h i x)
 
 lemma lower_semicontinuous_bsupr {p : ι → Prop} {f : Π i (h : p i), α → δ}
   (h : ∀ i hi, lower_semicontinuous (f i hi)) :
@@ -874,12 +908,19 @@ end
 /-! #### Infimum -/
 
 section
-variables {ι : Sort*} {δ : Type*} [complete_linear_order δ]
+variables {ι ι' : Sort*} {δ δ' : Type*} [complete_linear_order δ]
+  [nonempty ι'] [conditionally_complete_linear_order δ']
 
 lemma upper_semicontinuous_within_at_infi {f : ι → α → δ}
   (h : ∀ i, upper_semicontinuous_within_at (f i) s x) :
   upper_semicontinuous_within_at (λ x', ⨅ i, f i x') s x :=
 @lower_semicontinuous_within_at_supr α _ x s ι δᵒᵈ _ f h
+
+lemma upper_semicontinuous_within_at_cinfi {f : ι' → α → δ'}
+  (bdd : ∀ᶠ y in 𝓝[s] x, bdd_below (range $ λ i, f i y))
+  (h : ∀ i, upper_semicontinuous_within_at (f i) s x) :
+  upper_semicontinuous_within_at (λ x', ⨅ i, f i x') s x :=
+@lower_semicontinuous_within_at_csupr α _ x s ι' δ'ᵒᵈ _ _ f bdd h
 
 lemma upper_semicontinuous_within_at_binfi {p : ι → Prop} {f : Π i (h : p i), α → δ}
   (h : ∀ i hi, upper_semicontinuous_within_at (f i hi) s x) :
@@ -891,6 +932,12 @@ lemma upper_semicontinuous_at_infi {f : ι → α → δ}
   upper_semicontinuous_at (λ x', ⨅ i, f i x') x :=
 @lower_semicontinuous_at_supr α _ x ι δᵒᵈ _ f h
 
+lemma upper_semicontinuous_at_cinfi {f : ι' → α → δ'}
+  (bdd : ∀ᶠ y in 𝓝 x, bdd_below (range $ λ i, f i y))
+  (h : ∀ i, upper_semicontinuous_at (f i) x) :
+  upper_semicontinuous_at (λ x', ⨅ i, f i x') x :=
+@lower_semicontinuous_at_csupr α _ x ι' δ'ᵒᵈ _ _ f bdd h
+
 lemma upper_semicontinuous_at_binfi {p : ι → Prop} {f : Π i (h : p i), α → δ}
   (h : ∀ i hi, upper_semicontinuous_at (f i hi) x) :
   upper_semicontinuous_at (λ x', ⨅ i hi, f i hi x') x :=
@@ -901,6 +948,12 @@ lemma upper_semicontinuous_on_infi {f : ι → α → δ}
   upper_semicontinuous_on (λ x', ⨅ i, f i x') s :=
 λ x hx, upper_semicontinuous_within_at_infi (λ i, h i x hx)
 
+lemma upper_semicontinuous_on_cinfi {f : ι' → α → δ'}
+  (bdd : ∀ x ∈ s, bdd_below (range $ λ i, f i x))
+  (h : ∀ i, upper_semicontinuous_on (f i) s) :
+  upper_semicontinuous_on (λ x', ⨅ i, f i x') s :=
+λ x hx, upper_semicontinuous_within_at_cinfi (eventually_nhds_within_of_forall bdd) (λ i, h i x hx)
+
 lemma upper_semicontinuous_on_binfi {p : ι → Prop} {f : Π i (h : p i), α → δ}
   (h : ∀ i hi, upper_semicontinuous_on (f i hi) s) :
   upper_semicontinuous_on (λ x', ⨅ i hi, f i hi x') s :=
@@ -910,6 +963,12 @@ lemma upper_semicontinuous_infi {f : ι → α → δ}
   (h : ∀ i, upper_semicontinuous (f i)) :
   upper_semicontinuous (λ x', ⨅ i, f i x') :=
 λ x, upper_semicontinuous_at_infi (λ i, h i x)
+
+lemma upper_semicontinuous_cinfi {f : ι' → α → δ'}
+  (bdd : ∀ x, bdd_below (range $ λ i, f i x))
+  (h : ∀ i, upper_semicontinuous (f i)) :
+  upper_semicontinuous (λ x', ⨅ i, f i x') :=
+λ x, upper_semicontinuous_at_cinfi (eventually_of_forall bdd) (λ i, h i x)
 
 lemma upper_semicontinuous_binfi {p : ι → Prop} {f : Π i (h : p i), α → δ}
   (h : ∀ i hi, upper_semicontinuous (f i hi)) :

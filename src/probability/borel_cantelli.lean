@@ -92,14 +92,13 @@ begin
     rw [← sub_nonneg, finset.sum_range_succ_sub_sum],
     exact ennreal.to_real_nonneg },
   { rintro ⟨B, hB⟩,
-    refine not_eventually.2 _ (htends B.to_nnreal),
-    refine frequently_of_forall (λ n, not_lt.2 _),
+    refine not_eventually.2 (frequently_of_forall $ λ n, _) (htends B.to_nnreal),
     rw mem_upper_bounds at hB,
     specialize hB (∑ (k : ℕ) in finset.range n, μ (s (k + 1))).to_real _,
     { refine ⟨n, _⟩,
       rw ennreal.to_real_sum,
       exact λ _ _, measure_ne_top _ _ },
-    { rw ← ennreal.to_real_le_to_real (ennreal.sum_lt_top _).ne ennreal.coe_ne_top,
+    { rw [not_lt, ← ennreal.to_real_le_to_real (ennreal.sum_lt_top _).ne ennreal.coe_ne_top],
       { exact hB.trans (by simp) },
       { exact λ _ _, measure_ne_top _ _ } } }
 end

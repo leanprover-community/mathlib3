@@ -249,7 +249,7 @@ end
 lemma integrable.lintegral_lt_top {f : α → ℝ} (hf : integrable f μ) :
   ∫⁻ x, ennreal.of_real (f x) ∂μ < ∞ :=
 calc ∫⁻ x, ennreal.of_real (f x) ∂μ
-    ≤ ∫⁻ x, ↑∥f x∥₊ ∂μ : lintegral_to_real_le_lintegral_nnnorm f
+    ≤ ∫⁻ x, ↑∥f x∥₊ ∂μ : lintegral_of_real_le_lintegral_nnnorm f
 ... < ∞ : hf.2
 
 lemma integrable_on.set_lintegral_lt_top {f : α → ℝ} {s : set α} (hf : integrable_on f s μ) :

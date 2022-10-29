@@ -2206,8 +2206,8 @@ begin
   exact nat.not_succ_le_self n w,
 end
 
-lemma not_injective_infinite_finite [infinite α] [finite β] (f : α → β) : ¬ injective f :=
-λ hf, (finite.of_injective f hf).not_infinite ‹_›
+lemma not_injective_infinite_finite {α β} [infinite α] [finite β] (f : α → β) : ¬ injective f :=
+λ hf, (finite.of_injective f hf).false
 
 /--
 The pigeonhole principle for infinitely many pigeons in finitely many pigeonholes. If there are
@@ -2216,16 +2216,12 @@ same pigeonhole.
 
 See also: `fintype.exists_ne_map_eq_of_card_lt`, `finite.exists_infinite_fiber`.
 -/
-lemma finite.exists_ne_map_eq_of_infinite [infinite α] [finite β] (f : α → β) :
+lemma finite.exists_ne_map_eq_of_infinite {α β} [infinite α] [finite β] (f : α → β) :
   ∃ x y : α, x ≠ y ∧ f x = f y :=
-begin
-  classical, by_contra' hf,
-  apply not_injective_infinite_finite f,
-  intros x y, contrapose, apply hf,
-end
+by simpa only [injective, not_forall, not_imp, and.comm] using not_injective_infinite_finite f
 
 instance function.embedding.is_empty {α β} [infinite α] [finite β] : is_empty (α ↪ β) :=
-⟨λ f, let ⟨x, y, ne, feq⟩ := finite.exists_ne_map_eq_of_infinite f in ne $ f.injective feq⟩
+⟨λ f, not_injective_infinite_finite f f.2⟩
 
 /--
 The strong pigeonhole principle for infinitely many pigeons in

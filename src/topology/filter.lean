@@ -164,7 +164,7 @@ inducing_iff_nhds.2 $ λ x, (nhds_def' _).trans $
   by simp only [nhds_nhds, comap_infi, comap_principal, Iic_principal, preimage_set_of_eq,
     ← mem_interior_iff_mem_nhds, set_of_mem_eq, is_open.interior_eq] { contextual := tt }
 
-@[continuity] lemma continuous_nhds  : continuous (𝓝 : X → filter X) := inducing_nhds.continuous
+@[continuity] lemma continuous_nhds : continuous (𝓝 : X → filter X) := inducing_nhds.continuous
 
 protected lemma tendsto.nhds {f : α → X} {l : filter α} {x : X} (h : tendsto f l (𝓝 x)) :
   tendsto (𝓝 ∘ f) l (𝓝 (𝓝 x)) :=

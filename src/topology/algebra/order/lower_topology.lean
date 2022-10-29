@@ -63,7 +63,7 @@ variable [preorder α]
 lemma is_open_iff_generate_Ici_comp {s : set (lower α)} :
   is_open s ↔ generate_open {s | ∃ a, (Ici a)ᶜ = s} s := iff.rfl
 
-/-
+/--
 Left-closed right-infinite intervals [a,∞) are closed in the lower topology
 -/
 lemma is_closed_Ici (a : lower α) : is_closed (Ici a) :=

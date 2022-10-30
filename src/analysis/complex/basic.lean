@@ -269,11 +269,10 @@ lemma isometry_of_real : isometry (coe : ℝ → ℂ) := of_real_li.isometry
 lemma ring_hom_eq_of_real_of_continuous {f : ℝ →+* ℂ} (h : continuous f) :
   f = complex.of_real :=
 begin
-  refine fun_like.coe_injective _,
-  refine rat.dense_embedding_coe_real.dense.equalizer h continuous_of_real _,
-  ext1,
-  simp only [function.comp_app, map_rat_cast, of_real_rat_cast],
-end
+  convert congr_arg alg_hom.to_ring_hom
+    (subsingleton.elim (alg_hom.mk' f $ map_real_smul f h) $ algebra.of_id ℝ ℂ),
+  ext1, refl,
+end 
 
 /-- Continuous linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
 def of_real_clm : ℝ →L[ℝ] ℂ := of_real_li.to_continuous_linear_map

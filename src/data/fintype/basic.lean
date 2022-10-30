@@ -980,8 +980,8 @@ instance (α : Type u) (β : Type v) [fintype α] [fintype β] : fintype (α ⊕
 { elems := univ.disj_sum univ,
   complete := by rintro (_ | _); simp }
 
-lemma univ_sum_type {α β : Type*} [fintype α] [fintype β] :
-  (univ : finset (α ⊕ β)) = univ.disj_sum univ :=
+@[simp] lemma finset.univ_disj_sum_univ {α β : Type*} [fintype α] [fintype β] :
+  univ.disj_sum univ = (univ : finset (α ⊕ β)) :=
 rfl
 
 /-- Given that `α ⊕ β` is a fintype, `α` is also a fintype. This is non-computable as it uses

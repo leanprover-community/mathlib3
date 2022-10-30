@@ -349,24 +349,23 @@ lemma prod_sdiff [decidable_eq α] (h : s₁ ⊆ s₂) :
 by rw [←prod_union sdiff_disjoint, sdiff_union_of_subset h]
 
 @[simp, to_additive]
-lemma prod_sum_elim (s : finset α) (t : finset γ) (f : α → β) (g : γ → β) :
-  ∏ x in (s.map function.embedding.inl).disj_union (t.map function.embedding.inr)
-    (finset.disjoint_map_inl_map_inr _ _), sum.elim f g x =
-      (∏ x in s, f x) * (∏ x in t, g x) :=
+lemma prod_disj_sum (s : finset α) (t : finset γ) (f : α ⊕ γ → β) :
+  ∏ x in s.disj_sum t, f x = (∏ x in s, f (sum.inl x)) * (∏ x in t, f (sum.inr x)) :=
 begin
-  rw [prod_disj_union, prod_map, prod_map],
-  simp only [sum.elim_inl, function.embedding.inl_apply, function.embedding.inr_apply,
-      sum.elim_inr],
+  rw [←map_inl_disj_union_map_inr, prod_disj_union, prod_map, prod_map],
+  refl,
 end
+
+@[to_additive]
+lemma prod_sum_elim (s : finset α) (t : finset γ) (f : α → β) (g : γ → β) :
+  ∏ x in s.disj_sum t, sum.elim f g x = (∏ x in s, f x) * (∏ x in t, g x) :=
+by simp
 
 @[simp, to_additive]
 lemma prod_on_sum [fintype α] [fintype γ] (f : α ⊕ γ → β) :
-  ∏ (x : α ⊕ γ), f x  =
-    (∏ (x : α), f (sum.inl x)) * (∏ (x : γ), f (sum.inr x)) :=
-begin
-  convert prod_sum_elim univ univ (λ x, f (sum.inl x)) (λ x, f (sum.inr x)),
-  exact (sum.elim_comp_inl_inr _).symm,
-end
+  ∏ x : α ⊕ γ, f x  =
+    (∏ x : α, f (sum.inl x)) * (∏ x : γ, f (sum.inr x)) :=
+prod_disj_sum _ _ _
 
 @[to_additive]
 lemma prod_bUnion [decidable_eq α] {s : finset γ} {t : γ → finset α}

@@ -241,7 +241,7 @@ variables {α₁ : Type*} {α₂ : Type*} {M : Type*} [fintype α₁] [fintype �
 @[to_additive]
 lemma fintype.prod_sum_elim (f : α₁ → M) (g : α₂ → M) :
   (∏ x, sum.elim f g x) = (∏ a₁, f a₁) * (∏ a₂, g a₂) :=
-by { classical, rw [univ_sum_type, prod_sum_elim] }
+by { classical, rw [←univ_disj_sum_univ, prod_sum_elim] }
 
 @[to_additive]
 lemma fintype.prod_sum_type (f : α₁ ⊕ α₂ → M) :

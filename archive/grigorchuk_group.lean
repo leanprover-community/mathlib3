@@ -7,7 +7,6 @@ import data.bool.count
 import algebra.free_monoid.count
 import algebra.char_p.two
 import data.zmod.parity
-import data.ncword
 
 /-!
 -/
@@ -446,7 +445,6 @@ begin
 end
 
 end even_a_word
-
 
 #exit
 

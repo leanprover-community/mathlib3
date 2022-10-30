@@ -923,9 +923,6 @@ lemma nat_cast_injective : injective (coe : ℕ → cardinal) := nat.cast_inject
 
 @[simp] theorem succ_zero : succ (0 : cardinal) = 1 := by norm_cast
 
-lemma mk_set_lt [finite α] {s : set α} (hs : s ≠ univ) : #s < #α :=
-(mk_set_le s).lt_of_ne $ λ h, let ⟨e⟩ := cardinal.eq.1 h in (infinite.of_equiv_set hs e.symm).false
-
 theorem card_le_of {α : Type u} {n : ℕ} (H : ∀ s : finset α, s.card ≤ n) : # α ≤ n :=
 begin
   refine le_of_lt_succ (lt_of_not_ge $ λ hn, _),

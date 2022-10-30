@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import algebra.order.upper_lower
-import topology.algebra.const_mul_action
+import topology.algebra.group
 
 /-!
 # Topological facts about upper/lower/order-connected sets
@@ -15,12 +15,12 @@ set).
 -/
 
 open function set
+open_locale pointwise
 
-variables {α ι : Type*}
+variables {α : Type*} [topological_space α] [ordered_comm_group α]
 
-section topological_space
-variables [topological_space α] [ordered_comm_group α] [has_continuous_const_smul α α]
-  {s : set α}
+section has_continuous_const_smul
+variables [has_continuous_const_smul α α] {s : set α}
 
 @[to_additive is_upper_set.closure]
 protected lemma is_upper_set.closure' (h : is_upper_set s) : is_upper_set (closure s) :=
@@ -62,4 +62,17 @@ begin
     (lower_closure s).lower.interior'.ord_connected,
 end
 
-end topological_space
+end has_continuous_const_smul
+
+section has_continuous_mul
+variables [has_continuous_mul α] {s : set α}
+
+@[to_additive is_open.upper_closure]
+protected lemma is_open.upper_closure' (hs : is_open s) : is_open (upper_closure s : set α) :=
+by { rw [←mul_one s, ←mul_upper_closure], exact hs.mul_right }
+
+@[to_additive is_open.lower_closure]
+protected lemma is_open.lower_closure' (hs : is_open s) : is_open (lower_closure s : set α) :=
+by { rw [←mul_one s, ←mul_lower_closure], exact hs.mul_right }
+
+end has_continuous_mul

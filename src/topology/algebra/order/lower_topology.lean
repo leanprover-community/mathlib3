@@ -51,7 +51,7 @@ def lower_topology : topological_space α := generate_from {s | ∃ a, (Ici a)�
 
 instance : topological_space (with_lower_topology α) := lower_topology (with_lower_topology α)
 
-namespace lower_topology
+namespace with_lower_topology
 
 variable {α}
 

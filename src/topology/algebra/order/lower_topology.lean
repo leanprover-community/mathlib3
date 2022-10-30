@@ -10,8 +10,7 @@ import topology.separation
 # Lower topology
 
 This file introduces the lower topology on a preorder. It is shown that the lower topology on a
-partial order is T₀ and the non-empty complements of the upper closures of finite subsets form a
-basis.
+partial order is T₀ and the complements of the upper closures of finite subsets form a basis.
 
 ## Implementation notes
 

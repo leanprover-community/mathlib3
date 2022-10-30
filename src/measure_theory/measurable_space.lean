@@ -205,6 +205,18 @@ end
 lemma measurable_of_finite [finite α] [measurable_singleton_class α] (f : α → β) : measurable f :=
 λ s hs, (f ⁻¹' s).to_finite.measurable_set
 
+lemma measurable_of_countable [countable α] [measurable_singleton_class α] (f : α → β) :
+  measurable f :=
+begin
+  intros s hs,
+  classical,
+  have : f ⁻¹' s = ⋃ x : α, ite (f x ∈ s) ({x} : set α) ∅,
+  { ext1 x, simp, },
+  rw this,
+  refine measurable_set.Union (λ x, _),
+  exact measurable_set.ite' (λ _, measurable_set_singleton x) (λ _, measurable_set.empty),
+end
+
 end typeclass_measurable_space
 
 variables {m : measurable_space α}

@@ -92,7 +92,7 @@ lemma is_upper_set_of_is_closed {s : set (with_lower_topology α)} (h : is_close
 
 /--
 The closure of a singleton {a} in the lower topology is the left-closed right-infinite interval
-[a,∞)
+[a,∞).
 -/
 @[simp] lemma closure_singleton (a : with_lower_topology α) : closure {a} = Ici a :=
 subset_antisymm (closure_minimal (λ b h, h.ge) $ is_closed_Ici a) $

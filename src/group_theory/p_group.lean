@@ -95,7 +95,7 @@ lemma order_of_coprime {n : ℕ} (hn : p.coprime n) (g : G) : (order_of g).copri
 let ⟨k, hk⟩ := hG g in (hn.pow_left k).coprime_dvd_left (order_of_dvd_of_pow_eq_one hk)
 
 /-- If `gcd(p,n) = 1`, then the `n`th power map is a bijection. -/
-noncomputable def pow_equiv' {n : ℕ} (hn : p.coprime n) : G ≃ G :=
+noncomputable def pow_equiv {n : ℕ} (hn : p.coprime n) : G ≃ G :=
 let h : ∀ g : G, (nat.card (subgroup.zpowers g)).coprime n :=
   λ g, order_eq_card_zpowers' g ▸ hG.order_of_coprime hn g in
 { to_fun := (^ n),
@@ -104,11 +104,11 @@ let h : ∀ g : G, (nat.card (subgroup.zpowers g)).coprime n :=
     ⟨g, _, subtype.ext_iff.1 $ (pow_coprime (h g)).left_inv ⟨g, subgroup.mem_zpowers g⟩⟩,
   right_inv := λ g, subtype.ext_iff.1 $ (pow_coprime (h g)).right_inv ⟨g, subgroup.mem_zpowers g⟩ }
 
-@[simp] lemma pow_equiv'_apply {n : ℕ} (hn : p.coprime n) (g : G) : hG.pow_equiv' hn g = g ^ n :=
+@[simp] lemma pow_equiv_apply {n : ℕ} (hn : p.coprime n) (g : G) : hG.pow_equiv hn g = g ^ n :=
 rfl
 
-@[simp] lemma pow_equiv'_symm_apply {n : ℕ} (hn : p.coprime n) (g : G) :
-  (hG.pow_equiv' hn).symm g = g ^ (order_of g).gcd_b n :=
+@[simp] lemma pow_equiv_symm_apply {n : ℕ} (hn : p.coprime n) (g : G) :
+  (hG.pow_equiv hn).symm g = g ^ (order_of g).gcd_b n :=
 by rw order_eq_card_zpowers'; refl
 
 variables [hp : fact p.prime]
@@ -116,15 +116,8 @@ variables [hp : fact p.prime]
 include hp
 
 /-- If `p ∤ n`, then the `n`th power map is a bijection. -/
-noncomputable def pow_equiv {n : ℕ} (hn : ¬ p ∣ n) : G ≃ G :=
-pow_equiv' hG (hp.out.coprime_iff_not_dvd.mpr hn)
-
-@[simp] lemma pow_equiv_apply {n : ℕ} (hn : ¬ p ∣ n) (g : G) : hG.pow_equiv hn g = g ^ n :=
-hG.pow_equiv'_apply _ g
-
-@[simp] lemma pow_equiv_symm_apply {n : ℕ} (hn : ¬ p ∣ n) (g : G) :
-  (hG.pow_equiv hn).symm g = g ^ (order_of g).gcd_b n :=
-hG.pow_equiv'_symm_apply _ g
+@[reducible] noncomputable def pow_equiv' {n : ℕ} (hn : ¬ p ∣ n) : G ≃ G :=
+pow_equiv hG (hp.out.coprime_iff_not_dvd.mpr hn)
 
 lemma index (H : subgroup G) [finite (G ⧸ H)] :
   ∃ n : ℕ, H.index = p ^ n :=

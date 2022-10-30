@@ -42,10 +42,10 @@ Neumann boundedness in terms of that seminorm family. Together with
 seminorm, locally convex
 -/
 
-open normed_field set seminorm topological_space
+open normed_field set seminorm topological_space filter
 open_locale big_operators nnreal pointwise topological_space
 
-variables {𝕜 𝕝 E F G ι ι' : Type*}
+variables {𝕜 𝕜₂ 𝕜₃ 𝕝 E F G 𝓕 ι ι' : Type*}
 
 section filter_basis
 
@@ -449,7 +449,8 @@ lemma with_seminorms.image_is_vonN_bounded_iff_seminorm_bounded (f : G → E) {s
 by simp_rw [hp.is_vonN_bounded_iff_seminorm_bounded, set.ball_image_iff]
 
 end nontrivially_normed_field
-section continuous_bounded
+
+section continuous_of_bounded
 
 namespace seminorm
 
@@ -516,7 +517,66 @@ end
 
 end seminorm
 
-end continuous_bounded
+end continuous_of_bounded
+
+section bounded_of_countinuous
+
+namespace seminorm
+
+variables [nonempty ι] [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+  [topological_space E] {p : seminorm_family 𝕜 E ι}
+
+-- TODO better docstring
+/-- If `∥x∥ = 0` and `f` is continuous then `∥f x∥ = 0`. -/
+lemma map_eq_zero_of_bound_on_ball (hp : with_seminorms p) (q : seminorm 𝕜 E)
+  {s : finset ι} {δ : ℝ} (δ_pos : 0 < δ) (hq : ∀ y, (∀ i ∈ s, p i y < δ) → q y < 1) {x : E}
+  (hx : ∀ i ∈ s, p i x = 0) :
+  q x = 0 :=
+begin
+  refine le_antisymm (le_of_forall_pos_le_add (λ ε hε, (zero_add ε).symm ▸ _)) (map_nonneg q x),
+  sorry,
+  --exact le_of_lt (hq $ λ _ _, δ_pos)
+end
+
+--lemma seminorm.bound_of_shell (hp : with_seminorms p)
+--  (q : seminorm 𝕜 E) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)
+--  (hf : ∀ x, ε / ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ C * ∥x∥) {x : E} (hx : ∥x∥ ≠ 0) :
+--  ∥f x∥ ≤ C * ∥x∥ :=
+--begin
+--  rcases rescale_to_shell_semi_normed hc ε_pos hx with ⟨δ, hδ, δxle, leδx, δinv⟩,
+--  have := hf (δ • x) leδx δxle,
+--  simpa only [map_smulₛₗ, norm_smul, mul_left_comm C, mul_le_mul_left (norm_pos_iff.2 hδ),
+--              ring_hom_isometric.is_iso] using hf (δ • x) leδx δxle
+--end
+
+/-- A continuous linear map between seminormed spaces is bounded when the field is nontrivially
+normed. The continuity ensures boundedness on a ball of some radius `ε`. The nontriviality of the
+norm is then used to rescale any element into an element of norm in `[ε/C, ε]`, whose image has a
+controlled norm. The norm control for the original element follows by rescaling. -/
+lemma seminorm.bound_of_continuous (hp : with_seminorms p) (q : seminorm 𝕜 E)
+  (hq : continuous q) : ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ q ≤ C • s.sup p :=
+begin
+  replace hq : tendsto q (𝓝 0) (𝓝 0) := map_zero q ▸ hq.tendsto 0,
+  rw [hp.has_basis.tendsto_left_iff] at hq,
+  rcases hq _ (Iio_mem_nhds one_pos) with ⟨V, hVp, hVq⟩,
+  rcases p.basis_sets_iff.mp hVp with ⟨s, ε, ε_pos, rfl⟩,
+  let nnε : ℝ≥0 := ⟨ε, ε_pos.le⟩,
+  have nnε_ne : nnε ≠ 0 := λ H, ε_pos.ne (congr_arg coe H.symm),
+  simp only [maps_to, id, ball_finset_sup_eq_Inter _ _ _ ε_pos, mem_Inter₂, mem_ball_zero] at hVq,
+  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  have : ∥c∥₊ / nnε ≠ 0,
+    from div_ne_zero (nnnorm_ne_zero_iff.mpr $ norm_pos_iff.mp $ one_pos.trans hc) nnε_ne,
+  refine ⟨s, ∥c∥₊ / nnε, this, λ x, _⟩,
+  by_cases hx : ∀ i ∈ s, p i x = 0,
+  { refine le_trans (le_of_eq $ map_eq_zero_of_bound_on_ball hp q ε_pos hVq hx) (map_nonneg _ x), },
+  refine semilinear_map_class.bound_of_shell_semi_normed f ε_pos hc (λ x hle hlt, _) hx,
+  refine (hε _ hlt).le.trans _,
+  rwa [← div_le_iff' this, one_div_div]
+end
+
+end seminorm
+
+end bounded_of_countinuous
 
 section locally_convex_space
 

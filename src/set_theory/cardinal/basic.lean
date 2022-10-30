@@ -976,7 +976,7 @@ theorem aleph_0_le {c : cardinal} : ℵ₀ ≤ c ↔ ∀ n : ℕ, ↑n ≤ c :=
 end⟩
 
 @[simp] lemma range_nat_cast : range (coe : ℕ → cardinal) = Iio ℵ₀ :=
-ext $ λ x, (exists_congr $ λ _, eq_comm).trans lt_aleph_0.symm
+ext $ λ x, by simp only [mem_Iio, mem_range, eq_comm, lt_aleph_0]
 
 theorem mk_eq_nat_iff {α : Type u} {n : ℕ} : #α = n ↔ nonempty (α ≃ fin n) :=
 by rw [← lift_mk_fin, ← lift_uzero (#α), lift_mk_eq']

@@ -454,10 +454,10 @@ section continuous_bounded
 
 namespace seminorm
 
+section normed_field
+
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
 variables [nonempty ι] [nonempty ι']
-
--- Should I merge hf₁ and hf₂ ?
 
 lemma continuous_of_continuous_comp {q : seminorm_family 𝕜 F ι'}
   [topological_space E] [topological_add_group E]
@@ -516,10 +516,17 @@ begin
   exact continuous_from_bounded (norm_with_seminorms 𝕜 E) hq f hf,
 end
 
+end normed_field
+
+section nontrivially_normed_field
+
+variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F]
+variables [module 𝕜 F] [nonempty ι] [nonempty ι']
+
 lemma uniform_equicontinuous_iff_exists_continuous_seminorm [normed_algebra ℝ 𝕜] [module ℝ E]
   [is_scalar_tower ℝ 𝕜 E] {κ : Type*} {q : seminorm_family 𝕜 F ι'} [uniform_space E]
   [uniform_add_group E] [u : uniform_space F] [hu : uniform_add_group F] (hq : with_seminorms q)
-  [has_continuous_const_smul ℝ E] (f : κ → E →ₗ[𝕜] F) :
+  [has_continuous_const_smul ℝ E] [has_continuous_smul 𝕜 E] (f : κ → E →ₗ[𝕜] F) :
   uniform_equicontinuous (coe_fn ∘ f) ↔
   ∀ i, ∃ p : seminorm 𝕜 E, continuous p ∧ ∀ k, (q i).comp (f k) ≤ p :=
 begin
@@ -529,12 +536,20 @@ begin
   letI : seminormed_add_comm_group F := (q i).to_add_group_seminorm.to_seminormed_add_comm_group,
   split,
   { intros H,
-    have := H.equicontinuous 0,
-    rw metric.equicontinuous_at_iff_right at this,
-    refine ⟨⨆ k, (q i).comp (f k), seminorm.continuous _, sorry⟩,
-    filter_upwards [this 1 one_pos] with x hx,
-    sorry },
-  { rintros ⟨p, hp, hfp⟩,
+    have : ∀ᶠ x in 𝓝 0, ∀ k, q i (f k x) ≤ 1,
+    { filter_upwards [metric.equicontinuous_at_iff_right.mp (H.equicontinuous 0) 1 one_pos]
+        with x hx k,
+      replace hx : q i (f k 0 - f k x) ≤ 1 := (hx k).le,
+      rwa [map_zero, zero_sub, map_neg_eq_map] at hx },
+    have bdd : bdd_above (range $ λ k, (q i).comp (f k)),
+      from seminorm.bdd_above_of_absorbent (absorbent_nhds_zero this)
+        (λ x hx, ⟨1, forall_range_iff.mpr hx⟩),
+    refine ⟨⨆ k, (q i).comp (f k), seminorm.continuous' _, le_csupr bdd⟩,
+    filter_upwards [this] with x hx,
+    rw [closed_ball_supr bdd _ one_pos, mem_Inter],
+    exact λ k, (mem_closed_ball_zero _).mpr (hx k) },
+  { -- Works in trivially normed fields too
+    rintros ⟨p, hp, hfp⟩,
     have hp' : filter.tendsto p (𝓝 0) (𝓝 0) := map_zero p ▸ hp.tendsto 0,
     refine uniform_equicontinuous_of_equicontinuous_at_zero f
       (metric.equicontinuous_at_of_continuity_modulus p hp' _ $ λ x k, _),
@@ -586,6 +601,8 @@ begin
   refine λ i, continuous_of_le _ (csupr_le (hC i).2),
   refine continuous.const_smul sorry _, -- finite sup preserves continuity
 end
+
+end nontrivially_normed_field
 
 end seminorm
 

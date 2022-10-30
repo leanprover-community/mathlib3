@@ -98,7 +98,9 @@ lemma coe_div (s t : upper_set α) : (↑(s / t) : set α) = s / t := rfl
 @[to_additive] instance : mul_action α (upper_set α) := set_like.coe_injective.mul_action _ coe_smul
 
 @[to_additive]
-instance : comm_semigroup (upper_set α) := set_like.coe_injective.comm_semigroup _ coe_mul
+instance : comm_semigroup (upper_set α) :=
+{ mul := (*),
+  ..(set_like.coe_injective.comm_semigroup _ coe_mul : comm_semigroup (upper_set α)) }
 
 @[to_additive]
 private lemma one_mul (s : upper_set α) : 1 * s = s :=
@@ -132,7 +134,9 @@ lemma coe_div (s t : lower_set α) : (↑(s / t) : set α) = s / t := rfl
 @[to_additive] instance : mul_action α (lower_set α) := set_like.coe_injective.mul_action _ coe_smul
 
 @[to_additive]
-instance : comm_semigroup (lower_set α) := set_like.coe_injective.comm_semigroup _ coe_mul
+instance : comm_semigroup (lower_set α) :=
+{ mul := (*),
+  ..(set_like.coe_injective.comm_semigroup _ coe_mul : comm_semigroup (lower_set α)) }
 
 @[to_additive]
 private lemma one_mul (s : lower_set α) : 1 * s = s :=

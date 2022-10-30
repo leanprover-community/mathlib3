@@ -486,7 +486,7 @@ begin
 end
 
 /-- The tangent of an angle in a right-angled triangle as a ratio of sides. -/
-lemma tan_angle_eq_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2) :
+lemma tan_angle_of_angle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∠ p₁ p₂ p₃ = π / 2) :
   real.tan (∠ p₂ p₃ p₁) = dist p₁ p₂ / dist p₃ p₂ :=
 begin
   rw [angle, ←inner_eq_zero_iff_angle_eq_pi_div_two, real_inner_comm, ←neg_eq_zero,

@@ -904,14 +904,6 @@ lemma closure_subtype {x : {a // p a}} {s : set {a // p a}}:
   x ∈ closure s ↔ (x : α) ∈ closure ((coe : _ → α) '' s) :=
 closure_induced
 
-lemma dense_range_of_subset_closure (s : set α) :
-  dense_range (λ (x : s), (⟨x, subset_closure x.2⟩ : closure s)) :=
-begin
-  rw dense_range_iff_closure_range, ext,
-  simp only [closure_subtype, subtype.coe_prop, set.mem_univ, ← set.range_comp, function.comp,
-    subtype.coe_mk, subtype.range_coe_subtype, set.set_of_mem_eq],
-end
-
 lemma continuous_at_cod_restrict_iff {f : α → β} {t : set β} (h1 : ∀ x, f x ∈ t) {x : α} :
   continuous_at (cod_restrict f t h1) x ↔ continuous_at f x :=
 by simp_rw [inducing_coe.continuous_at_iff, function.comp, coe_cod_restrict_apply]

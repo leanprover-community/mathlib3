@@ -257,6 +257,14 @@ begin
   simp only [order_of, mul_left_iterate],
 end
 
+@[to_additive add_order_of_nsmul_coprime]
+lemma order_of_pow_coprime (h : (order_of y).coprime m) : order_of (y ^ m) = order_of y :=
+begin
+  by_cases hg : order_of y = 0,
+  { rw [m.coprime_zero_left.mp (hg ▸ h), pow_one] },
+  { rw [order_of_pow'' y m (hg.imp_symm order_of_eq_zero), h.gcd_eq_one, nat.div_one] },
+end
+
 @[to_additive]
 lemma commute.order_of_mul_dvd_lcm {x y : G} (h : commute x y) :
   order_of (x * y) ∣ nat.lcm (order_of x) (order_of y) :=

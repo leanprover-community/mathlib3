@@ -558,6 +558,18 @@ begin
     exact hfp k x }
 end
 
+lemma with_seminorms.continuous_seminorm_iff {p : seminorm_family 𝕜 E ι}
+  [uniform_space E] [uniform_add_group E] (hp : with_seminorms p) [has_continuous_const_smul 𝕜 E]
+  {q : seminorm 𝕜 E} :
+  continuous q ↔ ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ q ≤ C • s.sup p :=
+begin
+  split,
+  { intro hq, }, -- hard part
+  { rintros ⟨s, C, hC, hCs⟩,
+    refine continuous_of_le _ hCs,
+    exact continuous.const_smul sorry C } -- finite sup preserves continuity
+end
+
 lemma uniform_equicontinuous_of_continuous_comp_supr {κ : Type*} {q : seminorm_family 𝕜 F ι'}
   [uniform_space E] [uniform_add_group E]
   [u : uniform_space F] [hu : uniform_add_group F] (hq : with_seminorms q)

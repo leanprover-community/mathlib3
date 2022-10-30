@@ -179,7 +179,7 @@ let ⟨r, h⟩ := f.bounded in
 
 instance : has_add (cau_seq β abv) := ⟨λ f g, ⟨f + g, f.2.add g.2⟩⟩
 
-@[simp, norm_cast] lemma coe_add (f g : cau_seq β abv) : (⇑(f + g) : ℕ → β) = f + g := rfl
+@[simp, norm_cast] lemma coe_add (f g : cau_seq β abv) : ⇑(f + g) = f + g := rfl
 @[simp, norm_cast] theorem add_apply (f g : cau_seq β abv) (i : ℕ) : (f + g) i = f i + g i := rfl
 
 variable (abv)
@@ -192,7 +192,7 @@ variable {abv}
 
 local notation `const` := const abv
 
-@[simp, norm_cast] lemma coe_const (x : β) : (const x : ℕ → β) = function.const _ x := rfl
+@[simp, norm_cast] lemma coe_const (x : β) : ⇑(const x) = function.const _ x := rfl
 @[simp, norm_cast] theorem const_apply (x : β) (i : ℕ) : (const x : ℕ → β) i = x := rfl
 
 theorem const_inj {x y : β} : (const x : cau_seq β abv) = const y ↔ x = y :=
@@ -202,17 +202,15 @@ instance : has_zero (cau_seq β abv) := ⟨const 0⟩
 instance : has_one (cau_seq β abv) := ⟨const 1⟩
 instance : inhabited (cau_seq β abv) := ⟨0⟩
 
-@[simp, norm_cast] lemma coe_zero : ((0 : cau_seq β abv) : ℕ → β) = 0 := rfl
-@[simp, norm_cast] lemma coe_one : ((1 : cau_seq β abv) : ℕ → β) = 1 := rfl
-@[simp, norm_cast] theorem zero_apply (i) : (0 : cau_seq β abv) i = 0 := rfl
-@[simp, norm_cast] theorem one_apply (i) : (1 : cau_seq β abv) i = 1 := rfl
-@[simp] theorem const_zero : const 0 = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ⇑(0 : cau_seq β abv) = 0 := rfl
+@[simp, norm_cast] lemma coe_one : ⇑(1 : cau_seq β abv) = 1 := rfl
+@[simp, norm_cast] lemma zero_apply (i) : (0 : cau_seq β abv) i = 0 := rfl
+@[simp, norm_cast] lemma one_apply (i) : (1 : cau_seq β abv) i = 1 := rfl
+@[simp] lemma const_zero : const 0 = 0 := rfl
+@[simp] lemma const_one : const 1 = 1 := rfl
 
 theorem const_add (x y : β) : const (x + y) = const x + const y :=
 rfl
-
-private lemma nsmul_aux (n : ℕ) (f : cau_seq β abv) (i : ℕ) : nsmul_rec n f i = n • f i :=
-by induction n; simp only [*, nsmul_rec, zero_apply, add_apply, zero_nsmul, succ_nsmul]
 
 instance : has_mul (cau_seq β abv) :=
 ⟨λ f g, ⟨f * g, λ ε ε0,
@@ -222,7 +220,7 @@ instance : has_mul (cau_seq β abv) :=
   ⟨i, λ j ij, let ⟨H₁, H₂⟩ := H _ le_rfl in
     Hδ (hF j) (hG i) (H₁ _ ij) (H₂ _ ij)⟩⟩⟩
 
-@[simp, norm_cast] lemma coe_mul (f g : cau_seq β abv) : (⇑(f * g) : ℕ → β) = f * g := rfl
+@[simp, norm_cast] lemma coe_mul (f g : cau_seq β abv) : ⇑(f * g) = f * g := rfl
 @[simp, norm_cast] theorem mul_apply (f g : cau_seq β abv) (i : ℕ) : (f * g) i = f i * g i := rfl
 
 theorem const_mul (x y : β) : const (x * y) = const x * const y := rfl
@@ -230,7 +228,7 @@ theorem const_mul (x y : β) : const (x * y) = const x * const y := rfl
 instance : has_neg (cau_seq β abv) :=
 ⟨λ f, of_eq (const (-1) * f) (λ x, -f x) (λ i, by simp)⟩
 
-@[simp, norm_cast] lemma coe_neg (f : cau_seq β abv) : (⇑(-f) : ℕ → β) = -f := rfl
+@[simp, norm_cast] lemma coe_neg (f : cau_seq β abv) : ⇑(-f) = -f := rfl
 @[simp, norm_cast] theorem neg_apply (f : cau_seq β abv) (i) : (-f) i = -f i := rfl
 
 theorem const_neg (x : β) : const (-x) = -const x := rfl
@@ -238,7 +236,7 @@ theorem const_neg (x : β) : const (-x) = -const x := rfl
 instance : has_sub (cau_seq β abv) :=
 ⟨λ f g, of_eq (f + -g) (λ x, f x - g x) (λ i, by simp [sub_eq_add_neg])⟩
 
-@[simp, norm_cast] lemma coe_sub (f g : cau_seq β abv) : (⇑(f - g) : ℕ → β) = f - g := rfl
+@[simp, norm_cast] lemma coe_sub (f g : cau_seq β abv) : ⇑(f - g) = f - g := rfl
 @[simp, norm_cast] theorem sub_apply (f g : cau_seq β abv) (i : ℕ) : (f - g) i = f i - g i := rfl
 
 theorem const_sub (x y : β) : const (x - y) = const x - const y := rfl
@@ -251,7 +249,7 @@ instance : has_smul G (cau_seq β abv) :=
 
 -- eligible for `dsimp`
 @[simp, norm_cast, nolint simp_nf]
-lemma coe_smul (a : G) (f : cau_seq β abv) : (⇑(a • f) : ℕ → β) = a • f := rfl
+lemma coe_smul (a : G) (f : cau_seq β abv) : ⇑(a • f) = a • f := rfl
 @[simp, norm_cast, nolint simp_nf]
 lemma smul_apply (a : G) (f : cau_seq β abv) (i : ℕ) : (a • f) i = a • f i := rfl
 lemma const_smul (a : G) (x : β) : const (a • x) = a • const x := rfl
@@ -281,9 +279,8 @@ instance : add_group_with_one (cau_seq β abv) :=
 instance : has_pow (cau_seq β abv) ℕ :=
 ⟨λ f n, of_eq (npow_rec n f) (λ i, f i ^ n) $ by induction n; simp [*, npow_rec, pow_succ]⟩
 
--- eligible for `dsimp`
-@[simp, norm_cast, nolint simp_nf]
-lemma pow_apply (f : cau_seq β abv) (n i : ℕ) : (f ^ n) i = f i ^ n := rfl
+@[simp, norm_cast] lemma coe_pow (f : cau_seq β abv) (n : ℕ) : ⇑(f ^ n) = f ^ n := rfl
+@[simp, norm_cast] lemma pow_apply (f : cau_seq β abv) (n i : ℕ) : (f ^ n) i = f i ^ n := rfl
 lemma const_pow (x : β) (n : ℕ) : const (x ^ n) = const x ^ n := rfl
 
 instance : ring (cau_seq β abv) :=
@@ -481,7 +478,7 @@ let ⟨K, K0, HK⟩ := abv_pos_of_not_lim_zero hf,
 the inverses of the values of `f`. -/
 def inv (f : cau_seq β abv) (hf : ¬ lim_zero f) : cau_seq β abv := ⟨_, inv_aux hf⟩
 
-@[simp, norm_cast] lemma coe_inv {f : cau_seq β abv} (hf) : (inv f hf : ℕ → β) = f⁻¹ := rfl
+@[simp, norm_cast] lemma coe_inv {f : cau_seq β abv} (hf) : ⇑(inv f hf) = f⁻¹ := rfl
 @[simp, norm_cast] theorem inv_apply {f : cau_seq β abv} (hf i) : inv f hf i = (f i)⁻¹ := rfl
 
 theorem inv_mul_cancel {f : cau_seq β abv} (hf) : inv f hf * f ≈ 1 :=

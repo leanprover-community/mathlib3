@@ -204,3 +204,13 @@ begin
 end
 
 end subgroup
+
+variables (G)
+
+def commutators : set G :=
+{g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}
+
+lemma commutators_def : commutators G = {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} := rfl
+
+instance : nonempty (commutators G) :=
+⟨⟨1, 1, 1, commutator_element_self 1⟩⟩

@@ -105,6 +105,18 @@ begin
   exact ⟨k, hk2⟩,
 end
 
+lemma card_eq_or_dvd : nat.card G = 1 ∨ p ∣ nat.card G :=
+begin
+  casesI fintype_or_infinite G,
+  { obtain ⟨n, hn⟩ := iff_card.mp hG,
+    rw [nat.card_eq_fintype_card, hn],
+    cases n,
+    { exact or.inl rfl },
+    { exact or.inr ⟨p ^ n, rfl⟩ } },
+  { rw nat.card_eq_zero_of_infinite,
+    exact or.inr ⟨0, rfl⟩ },
+end
+
 lemma nontrivial_iff_card [fintype G] : nontrivial G ↔ ∃ n > 0, card G = p ^ n :=
 ⟨λ hGnt, let ⟨k, hk⟩ := iff_card.1 hG in ⟨k, nat.pos_of_ne_zero $ λ hk0,
   by rw [hk0, pow_zero] at hk; exactI fintype.one_lt_card.ne' hk, hk⟩,

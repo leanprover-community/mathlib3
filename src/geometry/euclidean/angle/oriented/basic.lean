@@ -960,7 +960,7 @@ end
 
 /-- The oriented angle between two vectors equals minus the unoriented angle if the sign is
 negative. -/
-lemma oangle_eq_angle_of_sign_eq_neg_one {x y : V} (h : (o.oangle x y).sign = -1) :
+lemma oangle_eq_neg_angle_of_sign_eq_neg_one {x y : V} (h : (o.oangle x y).sign = -1) :
   o.oangle x y = -inner_product_geometry.angle x y :=
 begin
   by_cases hx : x = 0, { exfalso, simpa [hx] using h },

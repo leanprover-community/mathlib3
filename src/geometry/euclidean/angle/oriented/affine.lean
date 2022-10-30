@@ -204,9 +204,9 @@ lemma oangle_eq_angle_of_sign_eq_one {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p�
 
 /-- The oriented angle between three points equals minus the unoriented angle if the sign is
 negative. -/
-lemma oangle_eq_angle_of_sign_eq_neg_one {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign = -1) :
+lemma oangle_eq_neg_angle_of_sign_eq_neg_one {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign = -1) :
   ∡ p₁ p₂ p₃ = -∠ p₁ p₂ p₃ :=
-(o).oangle_eq_angle_of_sign_eq_neg_one h
+(o).oangle_eq_neg_angle_of_sign_eq_neg_one h
 
 /-- The unoriented angle at `p` between two points not equal to `p` is zero if and only if the
 unoriented angle is zero. -/

@@ -6,7 +6,6 @@ Authors: Yaël Dillies
 import analysis.normed.group.pointwise
 import analysis.normed.order.basic
 import topology.algebra.order.upper_lower
-import topology.metric_space.hausdorff_distance
 
 /-!
 # Upper/lower/order-connected sets in normed groups

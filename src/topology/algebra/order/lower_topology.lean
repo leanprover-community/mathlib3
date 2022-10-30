@@ -64,7 +64,7 @@ variable {α}
 @[simp] lemma of_lower_inj {a b : with_lower_topology α} : of_lower a = of_lower b ↔ a = b :=
 iff.rfl
 
-/-- A recursor for `lex`. Use as `induction x using lex.rec`. -/
+/-- A recursor for `with_lower_topology`. Use as `induction x using with_lower_topology.rec`. -/
 protected def rec {β : with_lower_topology α → Sort*}
   (h : Π a, β (to_lower a)) : Π a, β a := λ a, h (of_lower a)
 

@@ -319,8 +319,8 @@ begin
   exact add_group_filter_basis.nhds_zero_eq _,
 end
 
-lemma with_seminorms.continuous_seminorm [module ℝ E] [normed_algebra ℝ 𝕜] [is_scalar_tower ℝ 𝕜 E]
-  [has_continuous_const_smul ℝ E] {p : seminorm_family 𝕜 E ι} (hp : with_seminorms p)
+lemma with_seminorms.continuous_seminorm {𝕜' : Type*} [nontrivially_normed_field 𝕜'] [module 𝕜' E]
+  [has_continuous_const_smul 𝕜' E] {p : seminorm_family 𝕜' E ι} (hp : with_seminorms p)
   (i : ι) : continuous (p i) :=
 begin
   refine seminorm.continuous _,
@@ -472,13 +472,6 @@ begin
   exact (map_zero _).symm
 end
 
-lemma continuous_iff_continuous_comp [normed_algebra ℝ 𝕜] [module ℝ F] [is_scalar_tower ℝ 𝕜 F]
-  {q : seminorm_family 𝕜 F ι'} [topological_space E] [topological_add_group E]
-  [topological_space F] [topological_add_group F] [has_continuous_const_smul ℝ F]
-  (hq : with_seminorms q) (f : E →ₗ[𝕜] F) :
-  continuous f ↔ ∀ i, continuous ((q i).comp f) :=
-⟨λ h i, continuous.comp (hq.continuous_seminorm i) h, continuous_of_continuous_comp hq f⟩
-
 lemma continuous_from_bounded {p : seminorm_family 𝕜 E ι} {q : seminorm_family 𝕜 F ι'}
   [topological_space E] [topological_add_group E] (hp : with_seminorms p)
   [topological_space F] [topological_add_group F] (hq : with_seminorms q)
@@ -523,10 +516,17 @@ section nontrivially_normed_field
 variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F]
 variables [module 𝕜 F] [nonempty ι] [nonempty ι']
 
-lemma uniform_equicontinuous_iff_exists_continuous_seminorm [normed_algebra ℝ 𝕜] [module ℝ E]
-  [is_scalar_tower ℝ 𝕜 E] {κ : Type*} {q : seminorm_family 𝕜 F ι'} [uniform_space E]
-  [uniform_add_group E] [u : uniform_space F] [hu : uniform_add_group F] (hq : with_seminorms q)
-  [has_continuous_const_smul ℝ E] [has_continuous_smul 𝕜 E] (f : κ → E →ₗ[𝕜] F) :
+lemma continuous_iff_continuous_comp
+  {q : seminorm_family 𝕜 F ι'} [topological_space E] [topological_add_group E]
+  [topological_space F] [topological_add_group F] [has_continuous_const_smul 𝕜 F]
+  (hq : with_seminorms q) (f : E →ₗ[𝕜] F) :
+  continuous f ↔ ∀ i, continuous ((q i).comp f) :=
+⟨λ h i, continuous.comp (hq.continuous_seminorm i) h, continuous_of_continuous_comp hq f⟩
+
+lemma uniform_equicontinuous_iff_exists_continuous_seminorm {κ : Type*}
+  {q : seminorm_family 𝕜 F ι'} [uniform_space E] [uniform_add_group E] [u : uniform_space F]
+  [hu : uniform_add_group F] (hq : with_seminorms q) [has_continuous_smul 𝕜 E]
+  (f : κ → E →ₗ[𝕜] F) :
   uniform_equicontinuous (coe_fn ∘ f) ↔
   ∀ i, ∃ p : seminorm 𝕜 E, continuous p ∧ ∀ k, (q i).comp (f k) ≤ p :=
 begin

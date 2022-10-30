@@ -165,26 +165,27 @@ rfl
 open_locale pointwise
 
 -- PR ready
-lemma _root_.is_p_group.pow_bijective' {p : ℕ} {G : Type*} [group G] (h : is_p_group p G)
-  {n : ℕ} (hn : nat.coprime p n) : function.bijective ((^ n) : G → G) :=
-begin
-  have : ∀ g : G, (nat.card (zpowers g)).coprime n,
-  { intro g,
-    rw ← order_eq_card_zpowers',
-    obtain ⟨k, hk⟩ := h g,
-    exact (hn.pow_left k).coprime_dvd_left (order_of_dvd_of_pow_eq_one hk) },
-  refine function.bijective_iff_has_inverse.mpr
-    ⟨λ g, (pow_coprime (this g)).symm ⟨g, mem_zpowers g⟩, _, _⟩,
-  { refine λ g, subtype.ext_iff.mp ((pow_coprime (this (g ^ n))).left_inv ⟨g, _⟩),
-    exact ⟨_, subtype.ext_iff.mp ((pow_coprime (this g)).left_inv ⟨g, mem_zpowers g⟩)⟩ },
-  { exact λ g, subtype.ext_iff.mp ((pow_coprime (this g)).right_inv ⟨g, mem_zpowers g⟩) },
-end
+-- lemma _root_.is_p_group.pow_bijective' {p : ℕ} {G : Type*} [group G] (h : is_p_group p G)
+--   {n : ℕ} (hn : nat.coprime p n) : function.bijective ((^ n) : G → G) :=
+-- begin
+--   have : ∀ g : G, (nat.card (zpowers g)).coprime n,
+--   { intro g,
+--     rw ← order_eq_card_zpowers',
+--     obtain ⟨k, hk⟩ := h g,
+--     exact (hn.pow_left k).coprime_dvd_left (order_of_dvd_of_pow_eq_one hk) },
+--   refine function.bijective_iff_has_inverse.mpr
+--     ⟨λ g, (pow_coprime (this g)).symm ⟨g, mem_zpowers g⟩, _, _⟩,
+--   { refine λ g, subtype.ext_iff.mp ((pow_coprime (this (g ^ n))).left_inv ⟨g, _⟩),
+--     exact ⟨_, subtype.ext_iff.mp ((pow_coprime (this g)).left_inv ⟨g, mem_zpowers g⟩)⟩ },
+--   { exact λ g, subtype.ext_iff.mp ((pow_coprime (this g)).right_inv ⟨g, mem_zpowers g⟩) },
+-- end
 
 -- PR ready
-lemma _root_.is_p_group.pow_bijective {p : ℕ} [fact p.prime] {G : Type*} [group G] (h : is_p_group p G)
-  {n : ℕ} (hn : ¬ p ∣ n) : function.bijective ((^ n) : G → G) :=
-h.pow_bijective' ((fact.out p.prime).coprime_iff_not_dvd.mpr hn)
+-- lemma _root_.is_p_group.pow_bijective {p : ℕ} [fact p.prime] {G : Type*} [group G] (h : is_p_group p G)
+--   {n : ℕ} (hn : ¬ p ∣ n) : function.bijective ((^ n) : G → G) :=
+-- h.pow_bijective' ((fact.out p.prime).coprime_iff_not_dvd.mpr hn)
 
+-- PRed
 lemma _root_.subgroup.is_complement'.index_eq_card {G : Type*} [group G] {H K : subgroup G}
   (h : is_complement' H K) : K.index = nat.card H :=
 begin
@@ -218,6 +219,7 @@ begin
   exact subgroup.relindex_dvd_of_le_right bot_le h,
 end
 
+-- PRed
 lemma _root_.is_p_group.card_eq_or_dvd {G : Type*} [group G] {p : ℕ} [fact p.prime]
   (hG : is_p_group p G) : nat.card G = 1 ∨ p ∣ nat.card G :=
 begin
@@ -262,20 +264,22 @@ lemma transfer_sylow_eq_pow (g : G) (hg : g ∈ P) : transfer_sylow P hP g =
   ⟨g ^ (P : subgroup G).index, transfer_eq_pow_aux g (transfer_sylow_eq_pow_aux P hP g hg)⟩ :=
 by apply transfer_eq_pow
 
+lemma transfer_sylow_restrict_eq_pow :
+  ⇑((transfer_sylow P hP).restrict (P : subgroup G)) = (^ (P : subgroup G).index) :=
+funext (λ g, transfer_sylow_eq_pow P hP g g.2)
+
 /-- Burnside's normal p-complement theorem: If `N(P) ≤ C(P)`, then `P` has a normal complement. -/
 lemma ker_transfer_sylow_is_complement : is_complement' (transfer_sylow P hP).ker P :=
 begin
-  have hf0 : ⇑((transfer_sylow P hP).restrict (P : subgroup G)) = (^ (P : subgroup G).index) :=
-  funext (λ g, transfer_sylow_eq_pow P hP g g.2),
-  have hf1 : function.bijective ((transfer_sylow P hP).restrict (P : subgroup G)) :=
-  hf0.symm ▸ P.2.pow_bijective (not_dvd_index_sylow P
-    (mt index_eq_zero_of_relindex_eq_zero index_ne_zero_of_finite)),
-  rw [function.bijective, ←range_top_iff_surjective, restrict_range] at hf1,
-  have := range_top_iff_surjective.mp (top_le_iff.mp (hf1.2.ge.trans (map_le_range _ P))),
+  have hf : function.bijective ((transfer_sylow P hP).restrict (P : subgroup G)) :=
+  (transfer_sylow_restrict_eq_pow P hP).symm ▸ (P.2.pow_equiv' (not_dvd_index_sylow P
+    (mt index_eq_zero_of_relindex_eq_zero index_ne_zero_of_finite))).bijective,
+  rw [function.bijective, ←range_top_iff_surjective, restrict_range] at hf,
+  have := range_top_iff_surjective.mp (top_le_iff.mp (hf.2.ge.trans (map_le_range _ P))),
   rw [←(comap_injective this).eq_iff, comap_top, comap_map_eq, sup_comm, set_like.ext'_iff,
       normal_mul, ←ker_eq_bot_iff, ←(map_injective (P : subgroup G).subtype_injective).eq_iff,
-      restrict_ker, subgroup_of_map_subtype, subgroup.map_bot, coe_top] at hf1,
-  exact is_complement'_of_disjoint_and_mul_eq_univ hf1.1.le hf1.2,
+      restrict_ker, subgroup_of_map_subtype, subgroup.map_bot, coe_top] at hf,
+  exact is_complement'_of_disjoint_and_mul_eq_univ hf.1.le hf.2,
 end
 
 lemma not_dvd_card_ker_transfer_sylow : ¬ p ∣ nat.card (transfer_sylow P hP).ker :=

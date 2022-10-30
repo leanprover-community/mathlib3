@@ -128,6 +128,8 @@ instance : order_top (finset α) :=
 
 @[simp] lemma top_eq_univ : (⊤ : finset α) = univ := rfl
 
+lemma ssubset_univ_iff {s : finset α} : s ⊂ univ ↔ s ≠ univ := @lt_top_iff_ne_top _ _ _ s
+
 section boolean_algebra
 variables [decidable_eq α] {a : α}
 
@@ -700,14 +702,23 @@ lemma to_finset_prod (s : set α) (t : set β) [fintype s] [fintype t] [fintype 
 by { ext, simp }
 
 lemma to_finset_off_diag {s : set α} [decidable_eq α] [fintype s] [fintype s.off_diag] :
-s.off_diag.to_finset = s.to_finset.off_diag := finset.ext $ by simp
+  s.off_diag.to_finset = s.to_finset.off_diag :=
+finset.ext $ by simp
+
+@[simp] lemma to_finset_eq_univ [fintype α] {s : set α} [fintype s] :
+  s.to_finset = finset.univ ↔ s = set.univ :=
+by rw [← coe_inj, coe_to_finset, coe_univ]
 
 /- TODO Without the coercion arrow (`↥`) there is an elaboration bug;
 it essentially infers `fintype.{v} (set.univ.{u} : set α)` with `v` and `u` distinct.
 Reported in leanprover-community/lean#672 -/
 @[simp] lemma to_finset_univ [fintype ↥(set.univ : set α)] [fintype α] :
   (set.univ : set α).to_finset = finset.univ :=
-by { ext, simp }
+to_finset_eq_univ.2 rfl
+
+@[simp] lemma to_finset_ssubset_univ [fintype α] {s : set α} [fintype s] :
+  s.to_finset ⊂ finset.univ ↔ s ⊂ univ :=
+by rw [← coe_ssubset, coe_to_finset, coe_univ]
 
 @[simp] lemma to_finset_range [decidable_eq α] [fintype β] (f : β → α) [fintype (set.range f)] :
   (set.range f).to_finset = finset.univ.image f :=
@@ -2195,8 +2206,8 @@ begin
   exact nat.not_succ_le_self n w,
 end
 
-lemma not_injective_infinite_finite [infinite α] [finite β] (f : α → β) : ¬ injective f :=
-λ hf, (finite.of_injective f hf).not_infinite ‹_›
+lemma not_injective_infinite_finite {α β} [infinite α] [finite β] (f : α → β) : ¬ injective f :=
+λ hf, (finite.of_injective f hf).false
 
 /--
 The pigeonhole principle for infinitely many pigeons in finitely many pigeonholes. If there are
@@ -2205,16 +2216,12 @@ same pigeonhole.
 
 See also: `fintype.exists_ne_map_eq_of_card_lt`, `finite.exists_infinite_fiber`.
 -/
-lemma finite.exists_ne_map_eq_of_infinite [infinite α] [finite β] (f : α → β) :
+lemma finite.exists_ne_map_eq_of_infinite {α β} [infinite α] [finite β] (f : α → β) :
   ∃ x y : α, x ≠ y ∧ f x = f y :=
-begin
-  classical, by_contra' hf,
-  apply not_injective_infinite_finite f,
-  intros x y, contrapose, apply hf,
-end
+by simpa only [injective, not_forall, not_imp, and.comm] using not_injective_infinite_finite f
 
 instance function.embedding.is_empty {α β} [infinite α] [finite β] : is_empty (α ↪ β) :=
-⟨λ f, let ⟨x, y, ne, feq⟩ := finite.exists_ne_map_eq_of_infinite f in ne $ f.injective feq⟩
+⟨λ f, not_injective_infinite_finite f f.2⟩
 
 /--
 The strong pigeonhole principle for infinitely many pigeons in

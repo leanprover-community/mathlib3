@@ -123,7 +123,7 @@ begin
     refl },
 end
 
-end lower_topology
+end with_lower_topology
 
 end preorder
 
@@ -139,6 +139,6 @@ The lower topology on a partial order is T₀.
 @[priority 90] -- see Note [lower instance priority]
 instance : t0_space (with_lower_topology α) :=
 (t0_space_iff_inseparable _).2 $ λ x y h, by simpa only
-  [inseparable_iff_closure_eq, lower_topology.closure_singleton, Ici_inj] using h
+  [inseparable_iff_closure_eq, with_lower_topology.closure_singleton, Ici_inj] using h
 
 end partial_order

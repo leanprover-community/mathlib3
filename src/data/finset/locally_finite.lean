@@ -387,10 +387,10 @@ by { ext, simp_rw [finset.mem_erase, mem_Ici, mem_Ioi, lt_iff_le_and_ne, and_com
 @[simp] lemma Ioi_insert [decidable_eq α] (a : α) : insert a (Ioi a) = Ici a :=
 by { ext, simp_rw [finset.mem_insert, mem_Ici, mem_Ioi, le_iff_lt_or_eq, or_comm, eq_comm] }
 
-@[simp] lemma not_mem_Ioi {b : α} : b ∉ Ioi b := λ h, lt_irrefl _ (mem_Ioi.1 h)
+@[simp] lemma not_mem_Ioi_self {b : α} : b ∉ Ioi b := λ h, lt_irrefl _ (mem_Ioi.1 h)
 
 -- Purposefully written the other way around
-lemma Ici_eq_cons_Ioi (a : α) : Ici a = (Ioi a).cons a not_mem_Ioi :=
+lemma Ici_eq_cons_Ioi (a : α) : Ici a = (Ioi a).cons a not_mem_Ioi_self :=
 by { classical, rw [cons_eq_insert, Ioi_insert] }
 
 lemma card_Ioi_eq_card_Ici_sub_one (a : α) : (Ioi a).card = (Ici a).card - 1 :=
@@ -406,10 +406,10 @@ by { ext, simp_rw [finset.mem_erase, mem_Iic, mem_Iio, lt_iff_le_and_ne, and_com
 @[simp] lemma Iio_insert [decidable_eq α] (b : α) : insert b (Iio b) = Iic b :=
 by { ext, simp_rw [finset.mem_insert, mem_Iic, mem_Iio, le_iff_lt_or_eq, or_comm] }
 
-@[simp] lemma not_mem_Iio {b : α} : b ∉ Iio b := λ h, lt_irrefl _ (mem_Iio.1 h)
+@[simp] lemma not_mem_Iio_self {b : α} : b ∉ Iio b := λ h, lt_irrefl _ (mem_Iio.1 h)
 
 -- Purposefully written the other way around
-lemma Iic_eq_cons_Iio (b : α) : Iic b = (Iio b).cons b not_mem_Iio :=
+lemma Iic_eq_cons_Iio (b : α) : Iic b = (Iio b).cons b not_mem_Iio_self :=
 by { classical, rw [cons_eq_insert, Iio_insert] }
 
 lemma card_Iio_eq_card_Iic_sub_one (a : α) : (Iio a).card = (Iic a).card - 1 :=

@@ -603,6 +603,10 @@ lemma not_mem_Ioi : c ∉ Ioi a ↔ c ≤ a := not_lt
 
 lemma not_mem_Iio : c ∉ Iio b ↔ b ≤ c := not_lt
 
+@[simp] lemma not_mem_Ioi_self : a ∉ Ioi a := lt_irrefl _
+
+@[simp] lemma not_mem_Iio_self : b ∉ Iio b := lt_irrefl _
+
 lemma not_mem_Ioc_of_le (ha : c ≤ a) : c ∉ Ioc a b :=
 not_mem_subset Ioc_subset_Ioi_self $ not_mem_Ioi.mpr ha
 

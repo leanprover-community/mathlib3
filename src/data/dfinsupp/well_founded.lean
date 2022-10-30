@@ -94,7 +94,7 @@ lemma lex.acc_of_single_erase [decidable_eq ι] {x : Π₀ i, α i} (i : ι)
   (hs : acc (dfinsupp.lex r s) (single i (x i)))
   (hu : acc (dfinsupp.lex r s) (x.erase i)) : acc (dfinsupp.lex r s) x :=
 merge_single_erase x i ▸ @acc.of_fibration _ _ _ _ _
-  (lex_fibration r s) ⟨_, _, _⟩ (inv_image.accessible snd $ hs.prod_game_add hu)
+  (lex_fibration r s) ⟨_, _⟩ (inv_image.accessible snd $ hs.prod_game_add hu)
 
 variable (hbot : ∀ ⦃i a⦄, ¬ s i a 0)
 include hbot

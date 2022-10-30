@@ -133,7 +133,7 @@ variables (α) [partial_order α]
 
 instance : partial_order (with_lower_topology α) := ‹partial_order α›
 
-/-
+/--
 The lower topology on a partial order is T₀.
 -/
 @[priority 90] -- see Note [lower instance priority]

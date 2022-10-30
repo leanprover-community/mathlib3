@@ -995,6 +995,96 @@ begin
   { exact eventually_of_forall (λ t x hx, (L _).has_fderiv_at.comp x (h3 x t)) },
 end
 
+.
+
+#where
+
+/-- If a function is continuous on a neighborhood of a compact set `k`, then it is bounded on
+a neighborhood of `k`. -/
+lemma exists_bounded_of_is_compact_of_continuous_on
+  {α β : Type*} [topological_space α] [metric_space β] {k s : set α} {f : α → β}
+  (hk : is_compact k) (hs : is_open s) (hks : k ⊆ s) (hf : continuous_on f s) :
+  ∃ t, k ⊆ t ∧ is_open t ∧ bounded (f '' t) :=
+begin
+  refine ⟨s ∩ f ⁻¹' (thickening 1 (f '' k)), _, _, _⟩,
+  { assume x hx,
+    refine ⟨hks hx, _⟩,
+    exact self_subset_thickening zero_lt_one (f '' k) (mem_image_of_mem f hx) },
+  { apply is_open_iff_mem_nhds.2 (λ x hx, _),
+    apply filter.inter_mem (hs.mem_nhds hx.1),
+    apply hf.continuous_at (hs.mem_nhds hx.1),
+    exact is_open_thickening.mem_nhds hx.2 },
+  { have : bounded (thickening 1 (f '' k)), from
+      (hk.image_of_continuous_on (hf.mono hks)).bounded.thickening,
+    apply this.mono _,
+    simp only [image_subset_iff, inter_subset_right] },
+end
+
+lemma has_compact_support.has_fderiv_at_convolution_right_with_param
+  (L : E →L[𝕜] E' →L[𝕜] F)
+  {P : Type*} [normed_add_comm_group P] [normed_space 𝕜 P]
+  {g : P × G → E'}
+  {s : set P} {k : set G} (hs : is_open s) (hk : is_compact k)
+  (hg : ∀ p, ∀ x, p ∈ s → x ∉ k → g (p, x) = 0)
+  (hf : locally_integrable f μ) (hg : cont_diff_on 𝕜 1 g (s ×ˢ univ))
+  (q₀ : P × G) (hq : q₀.1 ∈ s) :
+  true :=
+begin
+  obtain ⟨ε, C, εpos, Cnonneg, h₀ε, hε⟩ :
+    ∃ ε C, 0 < ε ∧ 0 ≤ C ∧ ball q₀.1 ε ⊆ s ∧ ∀ p x, ∥p - q₀.1∥ < ε → ∥fderiv 𝕜 g (p, x)∥ ≤ C,
+  sorry { obtain ⟨t, kt, t_open, ht⟩ : ∃ t, {q₀.1} ×ˢ k ⊆ t ∧ is_open t ∧ bounded (g '' t),
+    { apply exists_bounded_of_is_compact_of_continuous_on (is_compact_singleton.prod hk)
+        (hs.prod is_open_univ) _ hg.continuous_on,
+      simp only [prod_subset_prod_iff, hq, singleton_subset_iff, subset_univ, and_self, true_or] },
+      sorry },
+  let K' := - k + closed_ball q₀.2 ε,
+  have hK' : is_compact K' := hk.neg.add (is_compact_closed_ball _ _),
+  let bound : G → ℝ := indicator K' (λ a, ∥L∥ * ∥f a∥ * C),
+  have B : ∀ᵐ (a : G) ∂μ, ∀ (x : P × G), dist x q₀ < ε →
+    ∥(L (f a)).comp (fderiv 𝕜 g (x.fst, x.snd - a))∥ ≤ bound a,
+  sorry { apply eventually_of_forall,
+    assume a x hx,
+    refine (op_norm_comp_le _ _).trans _,
+    refine mul_le_mul (le_op_norm _ _) _ (norm_nonneg _) (by positivity),
+    by_cases H : x.2 - a ∈ k,
+    { have : a ∈ -k + closed_ball q₀.2 ε, sorry,
+      simp only [bound, indicator, this, if_true],
+      apply hε,
+      rw [prod.dist_eq, dist_eq_norm] at hx,
+      exact (le_max_left _ _).trans_lt hx },
+    { have : fderiv 𝕜 g (x.1, x.2 - a) = 0, sorry,
+      simp only [this, bound, norm_zero],
+      apply indicator_nonneg,
+      assume a ha,
+      exact Cnonneg } },
+  have C : integrable bound μ,
+  { rw [integrable_indicator_iff hK'.measurable_set],
+    exact ((hf hK').norm.const_mul _).mul_const _ },
+  have : has_fderiv_at (λ q, (f ⋆[L, μ] (λ (x : G), g (q.1, x))) q.2 : P × G → F)
+    ((f ⋆[L.precompR (P × G), μ] (λ (x : G), fderiv 𝕜 g (q₀.1, x))) q₀.2 : P × G →L[𝕜] F) q₀,
+  apply has_fderiv_at_integral_of_dominated_of_fderiv_le εpos sorry sorry sorry B C,
+
+end
+
+
+#exit
+  /-- Differentiation under integral of `x ↦ ∫ F x a` at a given point `x₀`, assuming
+`F x₀` is integrable, `x ↦ F x a` is differentiable on a ball around `x₀` for ae `a` with
+derivative norm uniformly bounded by an integrable function (the ball radius is independent of `a`),
+and `F x` is ae-measurable for `x` in a possibly smaller neighborhood of `x₀`. -/
+lemma has_fderiv_at_integral_of_dominated_of_fderiv_le {F : H → α → E} {F' : H → α → (H →L[𝕜] E)}
+  {x₀ : H} {bound : α → ℝ}
+  {ε : ℝ} (ε_pos : 0 < ε)
+  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_strongly_measurable (F x) μ)
+  (hF_int : integrable (F x₀) μ)
+  (hF'_meas : ae_strongly_measurable (F' x₀) μ)
+  (h_bound : ∀ᵐ a ∂μ, ∀ x ∈ ball x₀ ε, ∥F' x a∥ ≤ bound a)
+  (bound_integrable : integrable (bound : α → ℝ) μ)
+  (h_diff : ∀ᵐ a ∂μ, ∀ x ∈ ball x₀ ε, has_fderiv_at (λ x, F x a) (F' x a) x) :
+  has_fderiv_at (λ x, ∫ a, F x a ∂μ) (∫ a, F' x₀ a ∂μ) x₀ :=
+
+#exit
+
 lemma has_compact_support.has_fderiv_at_convolution_left [is_neg_invariant μ]
   (hcf : has_compact_support f) (hf : cont_diff 𝕜 1 f) (hg : locally_integrable g μ) (x₀ : G) :
   has_fderiv_at (f ⋆[L, μ] g) ((fderiv 𝕜 f ⋆[L.precompL G, μ] g) x₀) x₀ :=

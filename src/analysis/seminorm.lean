@@ -1035,7 +1035,7 @@ section nontrivially_normed_field
 
 variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
 
-protected lemma bdd_above_of_absorbent {p : ι → seminorm 𝕜 E} {s : set E} (hs : absorbent 𝕜 s)
+lemma bdd_above_of_absorbent {p : ι → seminorm 𝕜 E} {s : set E} (hs : absorbent 𝕜 s)
   (h : ∀ x ∈ s, bdd_above (range $ λ i, p i x)) :
   bdd_above (range p) :=
 begin
@@ -1051,6 +1051,33 @@ begin
   refine ⟨∥k∥ * M, forall_range_iff.mpr $ λ i, _⟩,
   have := (forall_range_iff.mp hM) i,
   rwa [map_smul_eq_mul, norm_inv, inv_mul_le_iff (hr.trans hk)] at this
+end
+
+/-- If there is a scalar `c` with `∥c∥>1`, then any element with nonzero norm can be
+moved by scalar multiplication to any shell of width `∥c∥`. Also recap information on the norm of
+the rescaling element that shows up in applications. -/
+lemma rescale_to_shell (p : seminorm 𝕜 E) {c : 𝕜} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {x : E}
+  (hx : p x ≠ 0) : ∃d:𝕜, d ≠ 0 ∧ p (d • x) < ε ∧ (ε/∥c∥ ≤ p (d • x)) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * p x) :=
+begin
+  have xεpos : 0 < (p x)/ε := div_pos ((ne.symm hx).le_iff_lt.1 (map_nonneg p x)) εpos,
+  rcases exists_mem_Ico_zpow xεpos hc with ⟨n, hn⟩,
+  have cpos : 0 < ∥c∥ := lt_trans (zero_lt_one : (0 :ℝ) < 1) hc,
+  have cnpos : 0 < ∥c^(n+1)∥ := by { rw norm_zpow, exact lt_trans xεpos hn.2 },
+  refine ⟨(c^(n+1))⁻¹, _, _, _, _⟩,
+  show (c ^ (n + 1))⁻¹  ≠ 0,
+    by rwa [ne.def, inv_eq_zero, ← ne.def, ← norm_pos_iff],
+  show p ((c ^ (n + 1))⁻¹ • x) < ε,
+  { rw [map_smul_eq_mul, norm_inv, ← div_eq_inv_mul, div_lt_iff cnpos, mul_comm, norm_zpow],
+    exact (div_lt_iff εpos).1 (hn.2) },
+  show ε / ∥c∥ ≤ p ((c ^ (n + 1))⁻¹ • x),
+  { rw [div_le_iff cpos, map_smul_eq_mul, norm_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos),
+        zpow_one, mul_inv_rev, mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
+        one_mul, ← div_eq_inv_mul, le_div_iff (zpow_pos_of_pos cpos _), mul_comm],
+    exact (le_div_iff εpos).1 hn.1 },
+  show ∥(c ^ (n + 1))⁻¹∥⁻¹ ≤ ε⁻¹ * ∥c∥ * p x,
+  { have : ε⁻¹ * ∥c∥ * p x = ε⁻¹ * p x * ∥c∥, by ring,
+    rw [norm_inv, inv_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos), zpow_one, this, ← div_eq_inv_mul],
+    exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
 end
 
 end nontrivially_normed_field

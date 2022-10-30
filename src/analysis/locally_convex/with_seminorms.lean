@@ -43,7 +43,7 @@ Neumann boundedness in terms of that seminorm family. Together with
 seminorm, locally convex
 -/
 
-open normed_field set seminorm topological_space
+open normed_field set seminorm topological_space filter
 open_locale big_operators nnreal pointwise topological_space uniformity
 
 variables {𝕜 E F G ι ι' : Type*}
@@ -558,13 +558,27 @@ begin
     exact hfp k x }
 end
 
+#check rescale_to_shell
+
 lemma with_seminorms.continuous_seminorm_iff {p : seminorm_family 𝕜 E ι}
   [uniform_space E] [uniform_add_group E] (hp : with_seminorms p) [has_continuous_const_smul 𝕜 E]
   {q : seminorm 𝕜 E} :
   continuous q ↔ ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ q ≤ C • s.sup p :=
 begin
   split,
-  { intro hq, }, -- hard part
+  { intro hq,
+    replace hq : tendsto q (𝓝 0) (𝓝 0) := map_zero q ▸ hq.tendsto 0,
+    rw [hp.has_basis.tendsto_iff metric.nhds_basis_ball] at hq,
+    rcases hq 1 one_pos with ⟨V, hV, hVq⟩,
+    rcases p.basis_sets_iff.mp hV with ⟨s, ε, ε_pos, rfl⟩,
+    rcases exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+    have : 0 < ∥c∥ / ε, from div_pos (zero_lt_one.trans hc) ε_pos,
+    refine ⟨s, ∥c∥₊ / ⟨ε, ε_pos.le⟩, sorry, λ x, _⟩,
+    by_cases hqx : s.sup p x = 0,
+    { sorry },
+    { rcases q.rescale_to_shell hk hr hqx with ⟨d, hd, hqdx₁, hqdx₂, hnorms⟩,
+      have := hq (Iio_mem_nhds one_pos),
+      rw [map_zero, metric.tendsto_nhds] at this }, }, -- hard part
   { rintros ⟨s, C, hC, hCs⟩,
     refine continuous_of_le _ hCs,
     exact continuous.const_smul sorry C } -- finite sup preserves continuity

@@ -10,6 +10,7 @@ import topology.uniform_space.compact_convergence
 import topology.algebra.star
 import algebra.algebra.subalgebra.basic
 import tactic.field_simp
+import algebra.star.star_alg_hom
 
 /-!
 # Algebraic structures over continuous functions
@@ -835,4 +836,55 @@ instance [has_star R] [has_star β] [has_smul R β] [star_module R β]
 
 end star_structure
 
+variables {X Y Z : Type*} [topological_space X] [topological_space Y] [topological_space Z]
+variables (𝕜 : Type*) [comm_semiring 𝕜]
+variables (A : Type*) [topological_space A] [semiring A] [topological_semiring A] [star_ring A]
+variables [has_continuous_star A] [algebra 𝕜 A]
+
+/-- The functorial map taking `f : C(X, Y)` to `C(Y, A) →⋆ₐ[𝕜] C(X, A)` given by pre-composition
+with the continuous function `f`. See `continuous_map.comp_monoid_hom'` and
+`continuous_map.comp_add_monoid_hom'`, `continuous_map.comp_right_alg_hom` for bundlings of
+pre-composition into a `monoid_hom`, an `add_monoid_hom` and an `alg_hom`, respectively, under
+suitable assumptions on `A`. -/
+@[simps] def comp_star_alg_hom' (f : C(X, Y)) : C(Y, A) →⋆ₐ[𝕜] C(X, A) :=
+{ to_fun := λ g, g.comp f,
+  map_one' := one_comp _,
+  map_mul' := λ _ _, rfl,
+  map_zero' := zero_comp _,
+  map_add' := λ _ _, rfl,
+  commutes' := λ _, rfl,
+  map_star' := λ _, rfl }
+
+/-- `continuous_map.comp_star_alg_hom'` sends the identity continuous map to the identity
+`star_alg_hom` -/
+lemma comp_star_alg_hom'_id :
+  comp_star_alg_hom' 𝕜 A (continuous_map.id X) = star_alg_hom.id 𝕜 C(X, A) :=
+star_alg_hom.ext $ λ _, continuous_map.ext $ λ _, rfl
+
+/-- `continuous_map.comp_star_alg_hom` is functorial. -/
+lemma comp_star_alg_hom'_comp (g : C(Y, Z)) (f : C(X, Y)) :
+  comp_star_alg_hom' 𝕜 A (g.comp f) = (comp_star_alg_hom' 𝕜 A f).comp (comp_star_alg_hom' 𝕜 A g) :=
+star_alg_hom.ext $ λ _, continuous_map.ext $ λ _, rfl
+
 end continuous_map
+
+namespace homeomorph
+
+variables {X Y : Type*} [topological_space X] [topological_space Y]
+variables (𝕜 : Type*) [comm_semiring 𝕜]
+variables (A : Type*) [topological_space A] [semiring A] [topological_semiring A] [star_ring A]
+variables [has_continuous_star A] [algebra 𝕜 A]
+
+/-- `continuous_map.comp_star_alg_hom'` as a `star_alg_equiv` when the continuous map `f` is
+actually a homeomorphism. -/
+@[simps] def comp_star_alg_equiv' (f : X ≃ₜ Y) : C(Y, A) ≃⋆ₐ[𝕜] C(X, A) :=
+{ to_fun := (f : C(X, Y)).comp_star_alg_hom' 𝕜 A,
+  inv_fun := (f.symm : C(Y, X)).comp_star_alg_hom' 𝕜 A,
+  left_inv := λ g, by simp only [continuous_map.comp_star_alg_hom'_apply, continuous_map.comp_assoc,
+    to_continuous_map_comp_symm, continuous_map.comp_id],
+  right_inv := λ g, by simp only [continuous_map.comp_star_alg_hom'_apply,
+    continuous_map.comp_assoc, symm_comp_to_continuous_map, continuous_map.comp_id],
+  map_smul' := λ k a, map_smul (f.to_continuous_map.comp_star_alg_hom' 𝕜 A) k a,
+  .. (f.to_continuous_map.comp_star_alg_hom' 𝕜 A) }
+
+end homeomorph

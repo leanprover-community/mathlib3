@@ -1038,6 +1038,9 @@ max_eq_right $ h.trans (neg_nonneg.2 h)
 lemma abs_of_neg (h : a < 0) : |a| = -a :=
 abs_of_nonpos h.le
 
+lemma abs_le_abs_of_nonneg (ha : 0 ≤ a) (hab : a ≤ b) : |a| ≤ |b| :=
+by rwa [abs_of_nonneg ha, abs_of_nonneg (ha.trans hab)]
+
 @[simp] lemma abs_zero : |0| = (0:α) :=
 abs_of_nonneg le_rfl
 
@@ -1086,6 +1089,9 @@ decidable.not_iff_not.1 $ ne_comm.trans $ (abs_nonneg a).lt_iff_ne.symm.trans ab
 (abs_nonneg a).le_iff_eq.trans abs_eq_zero
 
 variable [covariant_class α α (swap (+)) (≤)]
+
+lemma abs_le_abs_of_nonpos (ha : a ≤ 0) (hab : b ≤ a) : |a| ≤ |b| :=
+by { rw [abs_of_nonpos ha, abs_of_nonpos (hab.trans ha)], exact neg_le_neg_iff.mpr hab }
 
 lemma abs_lt : |a| < b ↔ - b < a ∧ a < b :=
 max_lt_iff.trans $ and.comm.trans $ by rw [neg_lt]

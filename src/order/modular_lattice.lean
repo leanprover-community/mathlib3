@@ -338,3 +338,41 @@ instance complemented_lattice_Ici : complemented_lattice (set.Ici a) :=
 end complemented_lattice
 
 end is_modular_lattice
+
+section preorder
+variables [preorder α] {a b : α}
+
+open set
+
+lemma wcovby_iff_Ioo : a ⩿ b ↔ a ≤ b ∧ Ioo a b = ∅ :=
+and_congr_right' $ by simp [eq_empty_iff_forall_not_mem]
+
+lemma covby_iff_Ioo : a ⋖ b ↔ a < b ∧ Ioo a b = ∅ :=
+and_congr_right' $ by simp [eq_empty_iff_forall_not_mem]
+
+end preorder
+
+open set
+
+variables [lattice α] [is_modular_lattice α]
+
+@[simps]
+def thing (a b : α) : Icc a (a ⊔ b) ≃o Icc (a ⊓ b) b :=
+{ to_fun := λ c, ⟨c ⊓ b, inf_le_inf_right _ c.2.1, inf_le_right⟩,
+  inv_fun := λ c, ⟨a ⊔ c, le_sup_left, sup_le_sup_left c.2.2 _⟩,
+  left_inv := λ c, subtype.ext sorry,
+  right_inv := λ c, subtype.ext sorry,
+  map_rel_iff' := sorry }
+
+@[simps]
+def thing2 (a b : α) : Ioo a (a ⊔ b) ≃o Ioo (a ⊓ b) b :=
+{ to_fun := λ c, ⟨c ⊓ b, sorry⟩,
+  inv_fun := λ c, ⟨a ⊔ c, sorry⟩,
+  left_inv := λ c, subtype.ext sorry,
+  right_inv := λ c, subtype.ext sorry,
+  map_rel_iff' := sorry }
+
+instance is_modular_lattice.to_is_lower_modular_lattice [lattice α] [is_modular_lattice α] :
+  is_lower_modular_lattice α :=
+⟨λ a b, by { simp_rw [covby_iff_Ioo, ←is_empty_coe_sort, left_lt_sup, inf_lt_right,
+    (thing2 a b).to_equiv.is_empty_congr], exact id }⟩

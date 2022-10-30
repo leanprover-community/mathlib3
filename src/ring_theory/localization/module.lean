@@ -43,14 +43,14 @@ begin
   choose a g' hg' using is_localization.exist_integer_multiples S s g,
   letI := λ i, classical.prop_decidable (i ∈ s),
   specialize hli s (λ i, if hi : i ∈ s then g' i hi else 0) _ i hi,
+  { refine ((is_localization.map_units Rₛ a).mul_right_eq_zero).mp _,
+    rw [← algebra.smul_def, ← map_zero (algebra_map R Rₛ), ← hli],
+    simp [hi, hg'] },
   { rw [← @smul_zero _ M _ _ (a : R), ← hg, finset.smul_sum],
     refine finset.sum_congr rfl (λ i hi, _),
     dsimp only,
     rw [dif_pos hi, ← is_scalar_tower.algebra_map_smul Rₛ, hg' i hi, smul_assoc],
     apply_instance },
-  refine ((is_localization.map_units Rₛ a).mul_right_eq_zero).mp _,
-  rw [← algebra.smul_def, ← map_zero (algebra_map R Rₛ), ← hli],
-  simp [hi, hg']
 end
 end add_comm_monoid
 

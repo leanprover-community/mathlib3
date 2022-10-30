@@ -42,13 +42,13 @@ lemma range_eq_top_of_cancel {f : A →* B}
   f.range = ⊤ :=
 begin
   specialize h 1 (quotient_group.mk' _) _,
+  { replace h : (quotient_group.mk' _).ker = (1 : B →* B ⧸ f.range).ker := by rw h,
+    rwa [ker_one, quotient_group.ker_mk] at h, },
   { ext1,
     simp only [one_apply, coe_comp, coe_mk', function.comp_app],
     rw [show (1 : B ⧸ f.range) = (1 : B), from quotient_group.coe_one _, quotient_group.eq,
      inv_one, one_mul],
     exact ⟨x, rfl⟩, },
-  replace h : (quotient_group.mk' _).ker = (1 : B →* B ⧸ f.range).ker := by rw h,
-  rwa [ker_one, quotient_group.ker_mk] at h,
 end
 
 end

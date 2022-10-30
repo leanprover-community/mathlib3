@@ -676,7 +676,7 @@ The Ping-Pong-Lemma.
 
 Given a group action of `G` on `X` so that the `H i` acts in a specific way on disjoint subsets
 `X i` we can prove that `lift f` is injective, and thus the image of `lift f` is isomorphic to the
-direct product of the `H i`.
+free product of the `H i`.
 
 Often the Ping-Pong-Lemma is stated with regard to subgroups `H i` that generate the whole group;
 we generalize to arbitrary group homomorphisms `f i : H i →* G` and do not require the group to be

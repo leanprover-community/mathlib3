@@ -247,11 +247,8 @@ variables [has_smul G β] [is_scalar_tower G β β]
 instance : has_smul G (cau_seq β abv) :=
 ⟨λ a f, of_eq (const (a • 1) * f) (a • f) $ λ i, smul_one_mul _ _⟩
 
--- eligible for `dsimp`
-@[simp, norm_cast, nolint simp_nf]
-lemma coe_smul (a : G) (f : cau_seq β abv) : ⇑(a • f) = a • f := rfl
-@[simp, norm_cast, nolint simp_nf]
-lemma smul_apply (a : G) (f : cau_seq β abv) (i : ℕ) : (a • f) i = a • f i := rfl
+@[simp, norm_cast] lemma coe_smul (a : G) (f : cau_seq β abv) : ⇑(a • f) = a • f := rfl
+@[simp, norm_cast] lemma smul_apply (a : G) (f : cau_seq β abv) (i : ℕ) : (a • f) i = a • f i := rfl
 lemma const_smul (a : G) (x : β) : const (a • x) = a • const x := rfl
 
 end has_smul

@@ -281,7 +281,8 @@ lemma map_inv_of {R : Type*} {S : Type*} {F : Type*} [mul_one_class R] [monoid S
   f (⅟r) = ⅟(f r) :=
 by { letI := invertible.map f r, convert rfl }
 
-/-- A function with a left-inverse that is a monoid hom is invertible.
+/-- If a function `f : R → S` has a left-inverse that is a monoid hom,
+  then `r : R` is invertible if `f r` is.
 
 The inverse is computed as `g (⅟(f r))` -/
 @[simps {attrs := []}]

@@ -409,7 +409,7 @@ lemma tendsto_nhds_within_of_tendsto_nhds_of_eventually_within {a : α} {l : fil
   tendsto f l (𝓝[s] a) :=
 tendsto_inf.2 ⟨h1, tendsto_principal.2 h2⟩
 
-lemma tendsto_nhds_within_iff {a : α} {l : filter β} {s : set α} (f : β → α) :
+lemma tendsto_nhds_within_iff {a : α} {l : filter β} {s : set α} {f : β → α} :
   tendsto f l (𝓝[s] a) ↔ tendsto f l (𝓝 a) ∧ ∀ᶠ n in l, f n ∈ s :=
 ⟨λ h, ⟨tendsto_nhds_of_tendsto_nhds_within h, eventually_mem_of_tendsto_nhds_within h⟩,
   λ h, tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _ h.1 h.2⟩

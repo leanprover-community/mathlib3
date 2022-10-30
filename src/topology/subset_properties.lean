@@ -1576,11 +1576,8 @@ theorem is_irreducible_singleton {x} : is_irreducible ({x} : set α) :=
 
 theorem is_preirreducible_iff_closure {s : set α} :
   is_preirreducible (closure s) ↔ is_preirreducible s :=
-begin
-  apply forall₄_congr (λ u v hu hv, _),
-  iterate 3 { rw closure_inter_open_nonempty_iff },
-  exacts [hu.inter hv, hv, hu],
-end
+forall₄_congr $ λ u v hu hv,
+  by { iterate 3 { rw closure_inter_open_nonempty_iff }, exacts [hu.inter hv, hv, hu] }
 
 theorem is_irreducible_iff_closure {s : set α} :
   is_irreducible (closure s) ↔ is_irreducible s :=

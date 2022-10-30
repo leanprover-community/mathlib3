@@ -210,7 +210,7 @@ lemma radical_le_jacobson : radical I ≤ jacobson I :=
 le_Inf (λ J hJ, (radical_eq_Inf I).symm ▸ Inf_le ⟨hJ.left, is_maximal.is_prime hJ.right⟩)
 
 lemma is_radical_of_eq_jacobson (h : jacobson I = I) : I.is_radical :=
-le_trans radical_le_jacobson h.le
+radical_le_jacobson.trans h.le
 
 lemma is_unit_of_sub_one_mem_jacobson_bot (r : R)
   (h : r - 1 ∈ jacobson (⊥ : ideal R)) : is_unit r :=

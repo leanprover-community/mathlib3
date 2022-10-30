@@ -84,7 +84,7 @@ lemma is_jacobson_iff_Inf_maximal' : is_jacobson R ↔
 
 lemma radical_eq_jacobson [H : is_jacobson R] (I : ideal R) : I.radical = I.jacobson :=
 le_antisymm (le_Inf (λ J ⟨hJ, hJ_max⟩, (is_prime.radical_le_iff hJ_max.is_prime).mpr hJ))
-            (H.out (radical_is_radical I) ▸ (jacobson_mono le_radical))
+            (H.out (radical_is_radical I) ▸ jacobson_mono le_radical)
 
 /-- Fields have only two ideals, and the condition holds for both of them.  -/
 @[priority 100]
@@ -100,10 +100,10 @@ begin
   rw is_jacobson_iff_Inf_maximal,
   intros p hp,
   use map f '' {J : ideal R | comap f p ≤ J ∧ J.is_maximal },
-  use λ j ⟨J, hJ, hmap⟩, hmap ▸ or.symm (map_eq_top_or_is_maximal_of_surjective f hf hJ.right),
+  use λ j ⟨J, hJ, hmap⟩, hmap ▸ (map_eq_top_or_is_maximal_of_surjective f hf hJ.right).symm,
   have : p = map f (comap f p).jacobson :=
     (is_jacobson.out' _ $ hp.is_radical.comap f).symm ▸ (map_comap_of_surjective f hf p).symm,
-  exact eq.trans this (map_Inf hf (λ J ⟨hJ, _⟩, le_trans (ideal.ker_le_comap f) hJ)),
+  exact this.trans (map_Inf hf (λ J ⟨hJ, _⟩, le_trans (ideal.ker_le_comap f) hJ)),
 end
 
 @[priority 100]
@@ -232,7 +232,7 @@ begin
   obtain ⟨hP', hPM⟩ := (is_localization.is_prime_iff_is_prime_disjoint (powers y) S P').mp hP',
   have hP := H.out hP'.is_radical,
   refine (is_localization.map_comap (powers y) S P'.jacobson).ge.trans
-    ((map_mono _).trans (le_of_eq (is_localization.map_comap (powers y) S P'))),
+    ((map_mono _).trans (is_localization.map_comap (powers y) S P').le),
   have : Inf { I : ideal R | comap (algebra_map R S) P' ≤ I ∧ I.is_maximal ∧ y ∉ I } ≤
     comap (algebra_map R S) P',
   { intros x hx,

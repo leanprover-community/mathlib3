@@ -6,6 +6,7 @@ Authors: Patrick Massot, Scott Morrison
 import topology.algebra.ring
 import topology.algebra.group_with_zero
 import topology.local_extr
+import field_theory.subfield
 
 /-!
 # Topological fields

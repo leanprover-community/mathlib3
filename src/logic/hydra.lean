@@ -34,7 +34,7 @@ namespace relation
 
 open multiset prod
 
-variable {α : Type*}
+variables {α : Type*}
 
 /-- The relation that specifies valid moves in our hydra game. `cut_expand r s' s`
   means that `s'` is obtained by removing one head `a ∈ s` and adding back an arbitrary

@@ -542,10 +542,9 @@ end hom
 section thin
 
 /-- A subgroupoid `is_thin` if it has at most one arrow between any two vertices. -/
-abbreviation is_thin := is_thin S.objs
+abbreviation is_thin := quiver.is_thin S.objs
 
-lemma is_thin_iff : S.is_thin ↔ ∀ (c d : S.objs), subsingleton (S.arrows c d) :=
-⟨λ h c d, h c d, λ h c d, h c d⟩
+lemma is_thin_iff : S.is_thin ↔ ∀ (c d : S.objs), subsingleton (S.arrows c d) := ⟨id, id⟩
 
 end thin
 
@@ -580,6 +579,9 @@ lemma disconnect_normal (Sn : S.is_normal) : S.disconnect.is_normal :=
 
 @[simp] lemma mem_disconnect_objs_iff {c : C} : c ∈ S.disconnect.objs ↔ c ∈ S.objs :=
 ⟨λ ⟨γ,⟨h,γS⟩⟩, ⟨γ,γS⟩, λ ⟨γ,γS⟩, ⟨γ,⟨rfl,γS⟩⟩⟩
+
+lemma disconnect_objs : S.disconnect.objs = S.objs := by
+{ apply set.ext, apply mem_disconnect_objs_iff, }
 
 lemma disconnect_is_disconnected : S.disconnect.is_disconnected := by
 { rw is_disconnected_iff, exact λ c d ⟨f,⟨h,fS⟩⟩, h }

@@ -5,6 +5,7 @@ Authors: Rémi Bottinelli
 -/
 import category_theory.groupoid
 import category_theory.is_connected
+import combinatorics.quiver.basic
 
 /-!
 This file defines a few basic properties of groupoids.
@@ -18,10 +19,7 @@ variables (C : Type*) [groupoid C]
 
 section thin
 
-/-- A groupoid is graph-like if it has no parallel arrows. -/
-def is_thin := ∀ (c d : C), subsingleton (c ⟶ d)
-
-lemma is_thin_iff : is_thin C ↔ ∀ (c : C), subsingleton (c ⟶ c) :=
+lemma is_thin_iff : quiver.is_thin C ↔ ∀ (c : C), subsingleton (c ⟶ c) :=
 begin
   refine ⟨λ h c, h c c, λ h c d, subsingleton.intro $ λ f g, _⟩,
   haveI := h d,

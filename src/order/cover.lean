@@ -233,10 +233,13 @@ lemma set.ord_connected.apply_covby_apply_iff (f : α ↪o β) (h : (range f).or
   e a ⋖ e b ↔ a ⋖ b :=
 (ord_connected_range (e : α ≃o β)).apply_covby_apply_iff ((e : α ≃o β) : α ↪o β)
 
+lemma covby_of_eq_or_eq (hab : a < b) (h : ∀ c, a ≤ c → c ≤ b → c = a ∨ c = b) : a ⋖ b :=
+⟨hab, λ c ha hb, (h c ha.le hb.le).elim ha.ne' hb.ne⟩
+
 end preorder
 
 section partial_order
-variables [partial_order α] {a b : α}
+variables [partial_order α] {a b c : α}
 
 lemma wcovby.covby_of_ne (h : a ⩿ b) (h2 : a ≠ b) : a ⋖ b := ⟨h.le.lt_of_ne h2, h.2⟩
 
@@ -245,6 +248,13 @@ lemma covby_iff_wcovby_and_ne : a ⋖ b ↔ a ⩿ b ∧ a ≠ b :=
 
 lemma wcovby_iff_covby_or_eq : a ⩿ b ↔ a ⋖ b ∨ a = b :=
 by rw [le_antisymm_iff, wcovby_iff_covby_or_le_and_le]
+
+lemma covby.eq_or_eq (h : a ⋖ b) (h2 : a ≤ c) (h3 : c ≤ b) : c = a ∨ c = b :=
+h.wcovby.eq_or_eq h2 h3
+
+/-- An `iff` version of `covby.eq_or_eq` and `covby_of_eq_or_eq`. -/
+lemma covby_iff_lt_and_eq_or_eq : a ⋖ b ↔ a < b ∧ ∀ c, a ≤ c → c ≤ b → c = a ∨ c = b :=
+⟨λ h, ⟨h.lt, λ c, h.eq_or_eq⟩, and.rec covby_of_eq_or_eq⟩
 
 lemma covby.Ico_eq (h : a ⋖ b) : Ico a b = {a} :=
 by rw [←Ioo_union_left h.lt, h.Ioo_eq, empty_union]

@@ -595,7 +595,7 @@ lemma is_field_iff_forall_ideal_eq :
   is_field R ↔ is_simple_order (ideal R) :=
 begin
   casesI subsingleton_or_nontrivial R,
-  { exact ⟨λ h, (not_is_field_of_subsingleton h).elim,
+  { exact ⟨λ h, (not_is_field_of_subsingleton _ h).elim,
       λ h, by exactI (false_of_nontrivial_of_subsingleton $ ideal R).elim⟩ },
   rw [← not_iff_not, ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top, ← not_iff_not],
   push_neg,

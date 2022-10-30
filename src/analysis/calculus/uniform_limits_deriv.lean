@@ -421,9 +421,9 @@ begin
   simpa [is_open.nhds_within_eq hs hx] using tendsto_locally_uniformly_on_iff_filter.mp hf' x hx,
 end
 
-/-- A slight variant of `has_fderiv_at_of_tendsto_locally_uniformly_on` with the assumption stated in
-terms of `differentiable_on` rather than `has_fderiv_at`. This makes a few proofs nicer in complex
-analysis where holomorphicity is assumed but the derivative is not known a priori. -/
+/-- A slight variant of `has_fderiv_at_of_tendsto_locally_uniformly_on` with the assumption stated
+in terms of `differentiable_on` rather than `has_fderiv_at`. This makes a few proofs nicer in
+complex analysis where holomorphicity is assumed but the derivative is not known a priori. -/
 lemma has_fderiv_at_of_tendsto_locally_uniformly_on' [ne_bot l] {s : set E} (hs : is_open s)
   (hf' : tendsto_locally_uniformly_on (fderiv 𝕜 ∘ f) g' l s)
   (hf : ∀ n, differentiable_on 𝕜 (f n) s)

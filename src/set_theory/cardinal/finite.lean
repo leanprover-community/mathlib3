@@ -24,18 +24,45 @@ universes u v
 
 variables {α : Type u} {β : Type v}
 
+protected def enat.card (α : Type*) : ℕ∞ := (#α).to_enat
+
+/-- `nat.card α` is the cardinality of `α` as a natural number.
+  If `α` is infinite, `nat.card α = 0`. -/
+protected def nat.card (α : Type*) : ℕ := (#α).to_nat
+
+@[simp] lemma nat.card_fintype [fintype α] : nat.card α = fintype.card α :=
+by rw [nat.card, mk_fintype, to_nat_nat]
+
 namespace enat
+
+lemma card_congr (e : α ≃ β) : enat.card α = enat.card β :=
+by rw [enat.card, ← to_enat_lift, lift_mk_eq.2 ⟨e⟩, to_enat_lift, enat.card]
+
+@[simp] lemma card_sum : enat.card (α ⊕ β) = enat.card α + enat.card β :=
+by simp only [enat.card, mk_sum, map_add, to_enat_lift]
+
+@[simp] lemma card_prod : enat.card (α × β) = enat.card α * enat.card β :=
+by simp only [enat.card, mk_prod, map_mul, to_enat_lift]
+
+@[simp] lemma card_option : enat.card (option α) = enat.card α + 1 :=
+by simp only [enat.card, mk_option, map_add, map_one]
+
+lemma card_eq_top : enat.card α = ⊤ ↔ infinite α :=
+to_enat_eq_top.trans infinite_iff.symm
+
+@[simp] lemma card_infinite [infinite α] : enat.card α = ⊤ := card_eq_top.2 ‹_›
+
+lemma card_fintype [fintype α] : enat.card α = fintype.card α :=
+by rw [enat.card, mk_fintype, to_enat_nat]
+
+@[simp] lemma card_finite [finite α] : enat.card α = nat.card α :=
+by { casesI nonempty_fintype α, rw [card_fintype, nat.card_fintype] }
+
+@[simp] lemma to_nat_card : (enat.card α).to_nat = nat.card α := rfl
 
 end enat
 
 namespace nat
-
-/-- `nat.card α` is the cardinality of `α` as a natural number.
-  If `α` is infinite, `nat.card α = 0`. -/
-protected def card (α : Type*) : ℕ := (#α).to_nat
-
-@[simp] lemma card_eq_fintype_card [fintype α] : nat.card α = fintype.card α :=
-by rw [nat.card, mk_fintype, to_nat_nat]
 
 @[simp] lemma card_eq_zero_of_infinite [infinite α] : nat.card α = 0 :=
 by rw [nat.card, to_nat_apply_of_aleph_0_le (aleph_0_le_mk α)]
@@ -44,13 +71,12 @@ lemma finite_of_card_ne_zero (h : nat.card α ≠ 0) : finite α :=
 not_infinite_iff_finite.mp $ h ∘ @nat.card_eq_zero_of_infinite α
 
 lemma card_congr (f : α ≃ β) : nat.card α = nat.card β :=
-by rw [nat.card, mk_congr f]
+by simp only [← enat.to_nat_card, enat.card_congr f]
 
 lemma card_eq_of_bijective (f : α → β) (hf : function.bijective f) : nat.card α = nat.card β :=
 card_congr (equiv.of_bijective f hf)
 
-lemma card_eq_of_equiv_fin {α : Type*} {n : ℕ}
-  (f : α ≃ fin n) : nat.card α = n :=
+lemma card_eq_of_equiv_fin {n : ℕ} (f : α ≃ fin n) : nat.card α = n :=
 by simpa using card_congr f
 
 /-- If the cardinality is positive, that means it is a finite type, so there is
@@ -58,9 +84,9 @@ an equivalence between `α` and `fin (nat.card α)`. See also `finite.equiv_fin`
 def equiv_fin_of_card_pos {α : Type*} (h : nat.card α ≠ 0) :
   α ≃ fin (nat.card α) :=
 begin
-  casesI fintype_or_infinite α,
-  { simpa using fintype.equiv_fin α },
-  { simpa using h },
+  haveI : finite α := finite_of_card_ne_zero h,
+  haveI := fintype.of_finite α,
+  simpa using fintype.equiv_fin α
 end
 
 lemma card_of_subsingleton (a : α) [subsingleton α] : nat.card α = 1 :=

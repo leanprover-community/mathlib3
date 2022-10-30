@@ -134,7 +134,6 @@ by rw [← Icc_diff_left, h.Icc_eq, diff_singleton_subset_iff]
 
 end partial_order
 
-
 section semilattice_sup
 variables [semilattice_sup α] {a b c : α}
 

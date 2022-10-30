@@ -65,7 +65,7 @@ lemma is_closed_Ici (a : with_lower_topology α) : is_closed (Ici a) :=
 is_open_compl_iff.1 $ generate_open.basic _ ⟨a, rfl⟩
 
 /--
-The upper closure of a finite subset is closed in the lower topology
+The upper closure of a finite subset is closed in the lower topology.
 -/
 lemma is_closed_upper_closure (F : set (with_lower_topology α)) (h : F.finite) :
   is_closed (upper_closure F : set (with_lower_topology α)) :=

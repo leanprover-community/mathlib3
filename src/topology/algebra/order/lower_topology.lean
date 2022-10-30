@@ -12,10 +12,6 @@ import topology.separation
 This file introduces the lower topology on a preorder. It is shown that the lower topology on a
 partial order is T₀ and the complements of the upper closures of finite subsets form a basis.
 
-## Implementation notes
-
-Approach inspired by `order_topology`.
-
 ## References
 
 * [Gierz et al, A Compendium of Continuous Lattices][GierzEtAl1980]

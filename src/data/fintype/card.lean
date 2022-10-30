@@ -243,7 +243,7 @@ lemma fintype.prod_sum_elim (f : α₁ → M) (g : α₂ → M) :
   (∏ x, sum.elim f g x) = (∏ a₁, f a₁) * (∏ a₂, g a₂) :=
 prod_disj_sum _ _ _
 
-@[to_additive]
+@[simp, to_additive]
 lemma fintype.prod_sum_type (f : α₁ ⊕ α₂ → M) :
   (∏ x, f x) = (∏ a₁, f (sum.inl a₁)) * (∏ a₂, f (sum.inr a₂)) :=
 prod_disj_sum _ _ _

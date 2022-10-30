@@ -164,27 +164,6 @@ rfl
 
 open_locale pointwise
 
--- PR ready
--- lemma _root_.is_p_group.pow_bijective' {p : ℕ} {G : Type*} [group G] (h : is_p_group p G)
---   {n : ℕ} (hn : nat.coprime p n) : function.bijective ((^ n) : G → G) :=
--- begin
---   have : ∀ g : G, (nat.card (zpowers g)).coprime n,
---   { intro g,
---     rw ← order_eq_card_zpowers',
---     obtain ⟨k, hk⟩ := h g,
---     exact (hn.pow_left k).coprime_dvd_left (order_of_dvd_of_pow_eq_one hk) },
---   refine function.bijective_iff_has_inverse.mpr
---     ⟨λ g, (pow_coprime (this g)).symm ⟨g, mem_zpowers g⟩, _, _⟩,
---   { refine λ g, subtype.ext_iff.mp ((pow_coprime (this (g ^ n))).left_inv ⟨g, _⟩),
---     exact ⟨_, subtype.ext_iff.mp ((pow_coprime (this g)).left_inv ⟨g, mem_zpowers g⟩)⟩ },
---   { exact λ g, subtype.ext_iff.mp ((pow_coprime (this g)).right_inv ⟨g, mem_zpowers g⟩) },
--- end
-
--- PR ready
--- lemma _root_.is_p_group.pow_bijective {p : ℕ} [fact p.prime] {G : Type*} [group G] (h : is_p_group p G)
---   {n : ℕ} (hn : ¬ p ∣ n) : function.bijective ((^ n) : G → G) :=
--- h.pow_bijective' ((fact.out p.prime).coprime_iff_not_dvd.mpr hn)
-
 -- PRed
 lemma _root_.subgroup.is_complement'.index_eq_card {G : Type*} [group G] {H K : subgroup G}
   (h : is_complement' H K) : K.index = nat.card H :=
@@ -197,6 +176,7 @@ begin
     ((_root_.congr_arg (∈ K) (inv_mul_eq_iff_eq_mul.mpr hxy.symm)).mpr y.2)⟩,
 end
 
+-- PRed
 lemma _root_.subgroup.eq_bot_of_card_eq' {G : Type*} [group G] (H : subgroup G)
   (h : nat.card H = 1) : H = ⊥ :=
 begin
@@ -206,18 +186,14 @@ begin
   rw [←nat.card_eq_fintype_card, h],
 end
 
-lemma _root_.subgroup.relindex_dvd_of_le_right {G : Type*} [group G] {H K L : subgroup G}
-  (h1 : H ≤ K) (h2 : K ≤ L) : H.relindex K ∣ H.relindex L :=
-begin
-  exact ⟨K.relindex L, (relindex_mul_relindex H K L h1 h2).symm⟩,
-end
+-- lemma _root_.subgroup.relindex_dvd_of_le_right {G : Type*} [group G] {H K L : subgroup G}
+--   (h1 : H ≤ K) (h2 : K ≤ L) : H.relindex K ∣ H.relindex L :=
+-- ⟨K.relindex L, (relindex_mul_relindex H K L h1 h2).symm⟩
 
+-- PRed
 lemma _root_.subgroup.card_dvd_of_le' {G : Type*} [group G] {H K : subgroup G} (h : H ≤ K) :
   nat.card H ∣ nat.card K :=
-begin
-  rw [←relindex_bot_left, ←relindex_bot_left],
-  exact subgroup.relindex_dvd_of_le_right bot_le h,
-end
+nat_card_dvd_of_injective (inclusion h) (inclusion_injective h)
 
 -- PRed
 lemma _root_.is_p_group.card_eq_or_dvd {G : Type*} [group G] {p : ℕ} [fact p.prime]
@@ -264,10 +240,12 @@ lemma transfer_sylow_eq_pow (g : G) (hg : g ∈ P) : transfer_sylow P hP g =
   ⟨g ^ (P : subgroup G).index, transfer_eq_pow_aux g (transfer_sylow_eq_pow_aux P hP g hg)⟩ :=
 by apply transfer_eq_pow
 
+-- PRed
 lemma transfer_sylow_restrict_eq_pow :
   ⇑((transfer_sylow P hP).restrict (P : subgroup G)) = (^ (P : subgroup G).index) :=
 funext (λ g, transfer_sylow_eq_pow P hP g g.2)
 
+-- PRed
 /-- Burnside's normal p-complement theorem: If `N(P) ≤ C(P)`, then `P` has a normal complement. -/
 lemma ker_transfer_sylow_is_complement : is_complement' (transfer_sylow P hP).ker P :=
 begin
@@ -282,10 +260,12 @@ begin
   exact is_complement'_of_disjoint_and_mul_eq_univ hf.1.le hf.2,
 end
 
+-- PR ready
 lemma not_dvd_card_ker_transfer_sylow : ¬ p ∣ nat.card (transfer_sylow P hP).ker :=
 (ker_transfer_sylow_is_complement P hP).index_eq_card ▸ not_dvd_index_sylow P $
   mt index_eq_zero_of_relindex_eq_zero index_ne_zero_of_finite
 
+-- PR ready
 lemma ker_transfer_sylow_disjoint (Q : subgroup G) (hQ : is_p_group p Q) :
   disjoint (transfer_sylow P hP).ker Q :=
 disjoint_iff.mpr $ ((transfer_sylow P hP).ker ⊓ Q).eq_bot_of_card_eq' $

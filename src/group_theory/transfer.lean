@@ -16,7 +16,13 @@ In this file we construct the transfer homomorphism.
 
 - `diff ϕ S T` : The difference of two left transversals `S` and `T` under the homomorphism `ϕ`.
 - `transfer ϕ` : The transfer homomorphism induced by `ϕ`.
-- `transfer_center_pow`: The transfer homomorphism `G →*  center G`.
+- `transfer_center_pow`: The transfer homomorphism `G →* center G`.
+
+## Main results
+- `transfer_center_pow_apply`:
+  The transfer homomorphism `G →* center G` is given by `g ↦ g ^ (center G).index`.
+- `ker_transfer_sylow_is_complement'`: Burnside's transfer (or normal `p`-complement) theorem:
+  If `hP : N(P) ≤ C(P)`, then `(transfer P hP).ker` is a normal `p`-complement.
 -/
 
 open_locale big_operators
@@ -190,17 +196,26 @@ lemma transfer_sylow_eq_pow (g : G) (hg : g ∈ P) : transfer_sylow P hP g =
   ⟨g ^ (P : subgroup G).index, transfer_eq_pow_aux g (transfer_sylow_eq_pow_aux P hP g hg)⟩ :=
 by apply transfer_eq_pow
 
-lemma ker_transfer_sylow_disjoint : disjoint (transfer_sylow P hP).ker ↑P :=
+lemma transfer_sylow_restrict_eq_pow :
+  ⇑((transfer_sylow P hP).restrict (P : subgroup G)) = (^ (P : subgroup G).index) :=
+funext (λ g, transfer_sylow_eq_pow P hP g g.2)
+
+/-- Burnside's normal p-complement theorem: If `N(P) ≤ C(P)`, then `P` has a normal complement. -/
+lemma ker_transfer_sylow_is_complement' : is_complement' (transfer_sylow P hP).ker P :=
 begin
-  intros g hg,
-  obtain ⟨j, hj⟩ := P.2 ⟨g, hg.2⟩,
-  have := pow_gcd_eq_one (⟨g, hg.2⟩ : (P : subgroup G))
-    ((transfer_sylow_eq_pow P hP g hg.2).symm.trans hg.1) hj,
-  rwa [((fact.out p.prime).coprime_pow_of_not_dvd (not_dvd_index_sylow P _)).gcd_eq_one,
-    pow_one, subtype.ext_iff] at this,
-  exact index_ne_zero_of_finite ∘ (relindex_top_right (P : subgroup G)).symm.trans ∘
-    relindex_eq_zero_of_le_right le_top,
+  have hf : function.bijective ((transfer_sylow P hP).restrict (P : subgroup G)) :=
+  (transfer_sylow_restrict_eq_pow P hP).symm ▸ (P.2.pow_equiv' (not_dvd_index_sylow P
+    (mt index_eq_zero_of_relindex_eq_zero index_ne_zero_of_finite))).bijective,
+  rw [function.bijective, ←range_top_iff_surjective, restrict_range] at hf,
+  have := range_top_iff_surjective.mp (top_le_iff.mp (hf.2.ge.trans (map_le_range _ P))),
+  rw [←(comap_injective this).eq_iff, comap_top, comap_map_eq, sup_comm, set_like.ext'_iff,
+      normal_mul, ←ker_eq_bot_iff, ←(map_injective (P : subgroup G).subtype_injective).eq_iff,
+      restrict_ker, subgroup_of_map_subtype, subgroup.map_bot, coe_top] at hf,
+  exact is_complement'_of_disjoint_and_mul_eq_univ hf.1.le hf.2,
 end
+
+lemma ker_transfer_sylow_disjoint : disjoint (transfer_sylow P hP).ker ↑P :=
+(ker_transfer_sylow_is_complement' P hP).disjoint
 
 lemma ker_transfer_sylow_disjoint' (Q : sylow p G) : disjoint (transfer_sylow P hP).ker ↑Q :=
 begin

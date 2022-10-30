@@ -75,7 +75,7 @@ begin
 end
 
 /--
-Every subset open in the lower topology is a lower set
+Every subset open in the lower topology is a lower set.
 -/
 lemma is_lower_set_of_is_open {s : set (with_lower_topology α)} (h : is_open s) : is_lower_set s :=
 begin

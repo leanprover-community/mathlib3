@@ -507,7 +507,7 @@ begin
   exact has_fderiv_at_of_tendsto_uniformly_on_filter hf' hf hfg,
 end
 
-lemma has_deriv_at_of_tendsto_localy_uniformly_on {s : set 𝕜} (hs : is_open s)
+lemma has_deriv_at_of_tendsto_locally_uniformly_on {s : set 𝕜} (hs : is_open s)
   (hf' : tendsto_locally_uniformly_on f' g' l s)
   (hf : ∀ n, ∀ x ∈ s, has_deriv_at (f n) (f' n x) x)
   (hfg : ∀ x ∈ s, tendsto (λ n, f n x) l (𝓝 (g x)))
@@ -522,17 +522,17 @@ begin
   simpa [is_open.nhds_within_eq hs hx] using tendsto_locally_uniformly_on_iff_filter.mp hf' x hx,
 end
 
-/-- A slight variant of `has_deriv_at_of_tendsto_localy_uniformly_on` with the assumption stated in
+/-- A slight variant of `has_deriv_at_of_tendsto_locally_uniformly_on` with the assumption stated in
 terms of `differentiable_on` rather than `has_deriv_at`. This makes a few proofs nicer in complex
 analysis where holomorphicity is assumed but the derivative is not known a priori. -/
-lemma has_deriv_at_of_tendsto_localy_uniformly_on' {s : set 𝕜} (hs : is_open s)
+lemma has_deriv_at_of_tendsto_locally_uniformly_on' {s : set 𝕜} (hs : is_open s)
   (hf' : tendsto_locally_uniformly_on (deriv ∘ f) g' l s)
   (hf : ∀ n, differentiable_on 𝕜 (f n) s)
   (hfg : ∀ x ∈ s, tendsto (λ n, f n x) l (𝓝 (g x)))
   (hx : x ∈ s) :
   has_deriv_at g (g' x) x :=
 begin
-  refine has_deriv_at_of_tendsto_localy_uniformly_on hs hf' (λ n z hz, _) hfg hx,
+  refine has_deriv_at_of_tendsto_locally_uniformly_on hs hf' (λ n z hz, _) hfg hx,
   exact ((hf n z hz).differentiable_at (hs.mem_nhds hz)).has_deriv_at
 end
 

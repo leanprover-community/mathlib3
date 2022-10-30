@@ -772,9 +772,9 @@ end
 
 lemma tendsto_locally_uniformly_on_tfae [locally_compact_space α]
   (G : ι → α → β) (g : α → β) (p : filter ι) (hs : is_open s) :
-  [ (tendsto_locally_uniformly_on G g p s),
+  tfae [(tendsto_locally_uniformly_on G g p s),
     (∀ K ⊆ s, is_compact K → tendsto_uniformly_on G g p K),
-    (∀ x ∈ s, ∃ v ∈ 𝓝[s] x, tendsto_uniformly_on G g p v) ].tfae :=
+    (∀ x ∈ s, ∃ v ∈ 𝓝[s] x, tendsto_uniformly_on G g p v)] :=
 begin
   tfae_have : 1 → 2,
   { rintro h K hK1 hK2,
@@ -790,7 +790,8 @@ begin
   tfae_finish
 end
 
-lemma tendsto_locally_uniformly_on_iff_forall_compact [locally_compact_space α] (hs : is_open s) :
+lemma tendsto_locally_uniformly_on_iff_forall_is_compact [locally_compact_space α]
+  (hs : is_open s) :
   tendsto_locally_uniformly_on F f p s ↔
   ∀ K ⊆ s, is_compact K → tendsto_uniformly_on F f p K :=
 (tendsto_locally_uniformly_on_tfae F f p hs).out 0 1

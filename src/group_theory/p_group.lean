@@ -119,11 +119,11 @@ include hp
 noncomputable def pow_equiv {n : ℕ} (hn : ¬ p ∣ n) : G ≃ G :=
 pow_equiv' hG (hp.out.coprime_iff_not_dvd.mpr hn)
 
-@[simp] lemma pow_equiv_apply {n : ℕ} (hn : p.coprime n) (g : G) : hG.pow_equiv' hn g = g ^ n :=
+@[simp] lemma pow_equiv_apply {n : ℕ} (hn : ¬ p ∣ n) (g : G) : hG.pow_equiv hn g = g ^ n :=
 hG.pow_equiv'_apply _ g
 
-@[simp] lemma pow_equiv_symm_apply {n : ℕ} (hn : p.coprime n) (g : G) :
-  (hG.pow_equiv' hn).symm g = g ^ (order_of g).gcd_b n :=
+@[simp] lemma pow_equiv_symm_apply {n : ℕ} (hn : ¬ p ∣ n) (g : G) :
+  (hG.pow_equiv hn).symm g = g ^ (order_of g).gcd_b n :=
 hG.pow_equiv'_symm_apply _ g
 
 lemma index (H : subgroup G) [finite (G ⧸ H)] :

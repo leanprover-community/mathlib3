@@ -2404,7 +2404,9 @@ end tactic
 namespace acc
 variables {a b : α}
 
-/-- The length of the longest `r`-chain of elements below and including `a`. -/
+/-- The rank of an element `a` accessible under a relation `r` is defined inductively as the
+smallest ordinal greater than the ranks of all elements below it (i.e. elements `b` such that
+`r b a`). -/
 noncomputable def rank (h : acc r a) : ordinal :=
 acc.rec_on h $ λ a h ih, ordinal.sup $ λ b : {b // r b a}, order.succ $ ih b b.2
 
@@ -2422,7 +2424,7 @@ namespace well_founded
 variables (hwf : well_founded r) {a b : α}
 include hwf
 
-/-- The rank of an element `a` accessible under a relation `r` is defined inductively as the
+/-- The rank of an element `a` under a well-founded relation `r` is defined inductively as the
 smallest ordinal greater than the ranks of all elements below it (i.e. elements `b` such that
 `r b a`). -/
 noncomputable def rank (a : α) : ordinal := (hwf.apply a).rank

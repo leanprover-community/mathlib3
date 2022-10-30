@@ -31,8 +31,6 @@ namespace well_founded
 variable (hwf : well_founded r)
 include hwf
 
-set_option pp.universes true
-
 /-- An arbitrary well order on `α` that extends `r`. -/
 noncomputable def well_order_extension : linear_order α :=
 let l : linear_order α := is_well_order.linear_order well_ordering_rel in by exactI

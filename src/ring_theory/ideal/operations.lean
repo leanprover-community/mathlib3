@@ -2240,7 +2240,7 @@ variables {I J}
 /-- **The Third Isomorphism theorem** for rings. See `quot_quot_equiv_quot_sup` for a version
     that does not assume an inclusion of ideals. -/
 def quot_quot_equiv_quot_of_le (h : I ≤ J) : (R ⧸ I) ⧸ (J.map I^.quotient.mk) ≃ R ⧸ J :=
-    (quot_quot_equiv_quot_sup I J).trans (ideal.quot_equiv_of_eq $ sup_eq_right.mpr h)
+(quot_quot_equiv_quot_sup I J).trans (ideal.quot_equiv_of_eq $ sup_eq_right.mpr h)
 
 @[simp]
 lemma quot_quot_equiv_quot_of_le_quot_quot_mk (x : R) (h : I ≤ J) :
@@ -2249,7 +2249,6 @@ lemma quot_quot_equiv_quot_of_le_quot_quot_mk (x : R) (h : I ≤ J) :
 @[simp]
 lemma quot_quot_equiv_quot_of_le_symm_mk (x : R) (h : I ≤ J) :
   (quot_quot_equiv_quot_of_le h).symm (J^.quotient.mk x) = (quot_quot_mk I J x) := rfl
-
 
 end
 

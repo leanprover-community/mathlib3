@@ -99,8 +99,8 @@ subset_antisymm (closure_minimal (λ b h, h.ge) $ is_closed_Ici a) $
   (is_upper_set_of_is_closed is_closed_closure).Ici_subset (subset_closure rfl)
 
 /--
-The non-empty complements of the upper closures of finite subsets are a collection of lower sets
-which form a basis for the lower topology
+The complements of the upper closures of finite subsets are a collection of lower sets
+which form a basis for the lower topology.
 -/
 def lower_basis (α : Type u) [preorder α] :=
 {s : set α | ∃ (F : set α), F.finite ∧ ↑(upper_closure F).compl = s}

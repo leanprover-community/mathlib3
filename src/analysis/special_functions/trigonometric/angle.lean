@@ -303,11 +303,7 @@ cos_antiperiodic θ
 cos_antiperiodic.sub_eq θ
 
 lemma cos_eq_zero_iff {θ : angle} : cos θ = 0 ↔ (θ = (π / 2 : ℝ) ∨ θ = (-π / 2 : ℝ)) :=
-begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { rwa [←cos_pi_div_two, ←cos_coe, cos_eq_iff_eq_or_eq_neg, ←coe_neg, ←neg_div] at h },
-  { rcases h with rfl | rfl; simp [neg_div] }
-end
+by rw [← cos_pi_div_two, ← cos_coe, cos_eq_iff_eq_or_eq_neg, ← coe_neg, ← neg_div]
 
 lemma sin_add (θ₁ θ₂ : real.angle) : sin (θ₁ + θ₂) = sin θ₁ * cos θ₂ + cos θ₁ * sin θ₂ :=
 begin
@@ -422,10 +418,7 @@ begin
 end
 
 @[simp] lemma to_real_eq_pi_iff {θ : angle} : θ.to_real = π ↔ θ = π :=
-begin
-  nth_rewrite 0 ←to_real_pi,
-  exact to_real_inj
-end
+by rw [← to_real_inj, to_real_pi]
 
 lemma pi_ne_zero : (π : angle) ≠ 0 :=
 begin
@@ -437,19 +430,13 @@ end
 to_real_coe_eq_self_iff.2 $ by split; linarith [pi_pos]
 
 @[simp] lemma to_real_eq_pi_div_two_iff {θ : angle} : θ.to_real = π / 2 ↔ θ = (π / 2 : ℝ) :=
-begin
-  nth_rewrite 0 ←to_real_pi_div_two,
-  exact to_real_inj
-end
+by rw [← to_real_inj, to_real_pi_div_two]
 
 @[simp] lemma to_real_neg_pi_div_two : ((-π / 2 : ℝ) : angle).to_real = -π / 2 :=
 to_real_coe_eq_self_iff.2 $ by split; linarith [pi_pos]
 
 @[simp] lemma to_real_eq_neg_pi_div_two_iff {θ : angle} : θ.to_real = -π / 2 ↔ θ = (-π / 2 : ℝ) :=
-begin
-  nth_rewrite 0 ←to_real_neg_pi_div_two,
-  exact to_real_inj
-end
+by rw [← to_real_inj, to_real_neg_pi_div_two]
 
 lemma pi_div_two_ne_zero : ((π / 2 : ℝ) : angle) ≠ 0 :=
 begin
@@ -483,16 +470,10 @@ by rw [abs_eq (div_nonneg real.pi_pos.le two_pos.le), ←neg_div, to_real_eq_pi_
        to_real_eq_neg_pi_div_two_iff]
 
 @[simp] lemma sin_to_real (θ : angle) : real.sin θ.to_real = sin θ :=
-begin
-  conv_rhs { rw ←coe_to_real θ },
-  refl
-end
+by conv_rhs { rw [← coe_to_real θ, sin_coe] }
 
 @[simp] lemma cos_to_real (θ : angle) : real.cos θ.to_real = cos θ :=
-begin
-  conv_rhs { rw ←coe_to_real θ },
-  refl
-end
+by conv_rhs { rw [← coe_to_real θ, cos_coe] }
 
 /-- The sign of a `real.angle` is `0` if the angle is `0` or `π`, `1` if the angle is strictly
 between `0` and `π` and `-1` is the angle is strictly between `-π` and `0`. It is defined as the

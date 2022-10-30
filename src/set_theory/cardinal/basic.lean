@@ -968,9 +968,6 @@ theorem lt_aleph_0 {c : cardinal} : c < ℵ₀ ↔ ∃ n : ℕ, c = n :=
   exact ⟨infinite.nat_embedding S⟩
 end, λ ⟨n, e⟩, e.symm ▸ nat_lt_aleph_0 _⟩
 
-theorem lt_aleph_0' {c : cardinal} : c < ℵ₀ ↔ ∃ n : ℕ, ↑n = c :=
-lt_aleph_0.trans $ exists_congr $ λ _, eq_comm
-
 theorem aleph_0_le {c : cardinal} : ℵ₀ ≤ c ↔ ∀ n : ℕ, ↑n ≤ c :=
 ⟨λ h n, (nat_lt_aleph_0 _).le.trans h,
  λ h, le_of_not_lt $ λ hn, begin
@@ -979,7 +976,7 @@ theorem aleph_0_le {c : cardinal} : ℵ₀ ≤ c ↔ ∀ n : ℕ, ↑n ≤ c :=
 end⟩
 
 @[simp] lemma range_nat_cast : range (coe : ℕ → cardinal) = Iio ℵ₀ :=
-ext $ λ x, lt_aleph_0'.symm
+ext $ λ x, (exists_congr $ λ _, eq_comm).trans lt_aleph_0.symm
 
 theorem mk_eq_nat_iff {α : Type u} {n : ℕ} : #α = n ↔ nonempty (α ≃ fin n) :=
 by rw [← lift_mk_fin, ← lift_uzero (#α), lift_mk_eq']

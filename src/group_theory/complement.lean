@@ -360,8 +360,7 @@ h.is_compl.sup_eq_top
 lemma is_complement'.disjoint (h : is_complement' H K) : disjoint H K :=
 h.is_compl.disjoint
 
-lemma is_complement'.index_eq_card (h : is_complement' H K) :
-  K.index = nat.card H :=
+lemma is_complement'.index_eq_card (h : is_complement' H K) : K.index = nat.card H :=
 begin
   refine nat.card_congr (equiv.of_bijective (quotient_group.mk ∘ coe) _).symm,
   exact ⟨λ x y hxy, subtype.ext (inv_mul_eq_one.mp (disjoint_def.mp h.symm.disjoint

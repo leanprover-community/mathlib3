@@ -3,8 +3,9 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.uniform_space.basic
 import topology.separation
+import topology.uniform_space.basic
+import topology.uniform_space.cauchy
 
 /-!
 # Uniform convergence
@@ -577,6 +578,18 @@ begin
   exact (hh.prod_map hh).eventually ((h.prod h') u hu),
 end
 
+/-- If a sequence of functions is uniformly Cauchy on a set, then the values at each point form
+a Cauchy sequence. -/
+lemma uniform_cauchy_seq_on.cauchy_map [hp : ne_bot p]
+  (hf : uniform_cauchy_seq_on F p s) (hx : x ∈ s) :
+  cauchy (map (λ i, F i x) p) :=
+begin
+  simp only [cauchy_map_iff, hp, true_and],
+  assume u hu,
+  rw mem_map,
+  filter_upwards [hf u hu] with p hp using hp x hx,
+end
+
 section seq_tendsto
 
 lemma tendsto_uniformly_on_of_seq_tendsto_uniformly_on {l : filter ι} [l.is_countably_generated]
@@ -772,9 +785,9 @@ end
 
 lemma tendsto_locally_uniformly_on_tfae [locally_compact_space α]
   (G : ι → α → β) (g : α → β) (p : filter ι) (hs : is_open s) :
-  [ (tendsto_locally_uniformly_on G g p s),
+  tfae [(tendsto_locally_uniformly_on G g p s),
     (∀ K ⊆ s, is_compact K → tendsto_uniformly_on G g p K),
-    (∀ x ∈ s, ∃ v ∈ 𝓝[s] x, tendsto_uniformly_on G g p v) ].tfae :=
+    (∀ x ∈ s, ∃ v ∈ 𝓝[s] x, tendsto_uniformly_on G g p v)] :=
 begin
   tfae_have : 1 → 2,
   { rintro h K hK1 hK2,
@@ -790,7 +803,8 @@ begin
   tfae_finish
 end
 
-lemma tendsto_locally_uniformly_on_iff_forall_compact [locally_compact_space α] (hs : is_open s) :
+lemma tendsto_locally_uniformly_on_iff_forall_is_compact [locally_compact_space α]
+  (hs : is_open s) :
   tendsto_locally_uniformly_on F f p s ↔
   ∀ K ⊆ s, is_compact K → tendsto_uniformly_on F f p K :=
 (tendsto_locally_uniformly_on_tfae F f p hs).out 0 1

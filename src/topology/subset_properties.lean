@@ -1522,6 +1522,28 @@ protected lemma quotient_map.is_clopen_preimage {f : α → β}
   (hf : quotient_map f) {s : set β} : is_clopen (f ⁻¹' s) ↔ is_clopen s :=
 and_congr hf.is_open_preimage hf.is_closed_preimage
 
+variables {X : Type*} [topological_space X]
+
+lemma continuous_bool_indicator_iff_clopen (U : set X) :
+  continuous U.bool_indicator ↔ is_clopen U :=
+begin
+  split,
+  { intros hc,
+    rw ← U.preimage_bool_indicator_tt,
+    exact
+      ⟨hc.is_open_preimage _ trivial, continuous_iff_is_closed.mp hc _ (is_closed_discrete _)⟩ },
+  { refine λ hU, ⟨λ s hs, _⟩,
+    rcases U.preimage_bool_indicator s with (h|h|h|h) ; rw h,
+    exacts [is_open_univ, hU.1, hU.2.is_open_compl, is_open_empty] },
+end
+
+lemma continuous_on_indicator_iff_clopen (s U : set X) :
+  continuous_on U.bool_indicator s ↔ is_clopen ((coe : s → X) ⁻¹' U) :=
+begin
+  rw [continuous_on_iff_continuous_restrict, ← continuous_bool_indicator_iff_clopen],
+  refl
+end
+
 end clopen
 
 section preirreducible

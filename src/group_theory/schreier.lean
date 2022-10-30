@@ -243,21 +243,39 @@ instance closure_commutator_representatives_fg [finite {g | ∃ g₁ g₂ : G, �
   group.fg (closure_commutator_representatives G) :=
 group.closure_finite_fg _
 
-lemma rank_commutator_representations_le [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
-  group.rank (closure_commutator_representatives G) ≤ 2 * nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
+lemma coe_nat_card {α : Type*} [finite α] : ↑(nat.card α) = cardinal.mk α :=
+cardinal.cast_to_nat_of_lt_aleph_0 (cardinal.lt_aleph_0_of_finite α)
+
+lemma nat.card_union_le {α : Type*} {s t : set α} [finite s] [finite t] :
+  nat.card ↥(s ∪ t) ≤ nat.card s + nat.card t :=
 begin
-  classical,
-  letI := fintype.of_finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g},
-  let S := finset.image (λ g : {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g},
-    (classical.some g.2, classical.some (classical.some_spec g.2))) finset.univ,
-  let T := S.image prod.fst ∪ S.image prod.snd,
-  have hS' : closure_commutator_representatives G = closure (T : set G),
-  { simp_rw [finset.coe_union, finset.coe_image, finset.coe_univ, set.image_univ,
-      closure_commutator_representatives, commutator_representatives] },
-  rw [subgroup.rank_congr hS', nat.card_eq_fintype_card, two_mul],
-  exact (subgroup.rank_closure_finset_le_card T).trans ((finset.card_union_le _ _).trans
-    (add_le_add (finset.card_image_le.trans finset.card_image_le)
-      (finset.card_image_le.trans finset.card_image_le))),
+  rw [←cardinal.nat_cast_le, nat.cast_add, coe_nat_card, coe_nat_card, coe_nat_card],
+  exact cardinal.mk_union_le s t,
+end
+
+universe u
+
+lemma nat.card_image_le {α β : Type u} {s : set α} [finite s] {f : α → β} :
+  nat.card (f '' s) ≤ nat.card s :=
+begin
+  rw [←cardinal.nat_cast_le, coe_nat_card, coe_nat_card],
+  exact cardinal.mk_image_le,
+end
+
+lemma nat.card_range_le {α β : Type u} [finite α] {f : α → β} :
+  nat.card (set.range f) ≤ nat.card α :=
+begin
+  rw [←cardinal.nat_cast_le, coe_nat_card, coe_nat_card],
+  exact cardinal.mk_range_le,
+end
+
+lemma rank_closure_commutator_representations_le [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
+  group.rank (closure_commutator_representatives G) ≤
+    2 * nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
+begin
+  rw two_mul,
+  exact (subgroup.rank_closure_finite_le_nat_card _).trans (nat.card_union_le.trans (add_le_add
+    (nat.card_image_le.trans nat.card_range_le) (nat.card_image_le.trans nat.card_range_le))),
 end
 
 lemma mylem2 : (closure_commutator_representatives G).subtype ''
@@ -306,7 +324,7 @@ begin
   have h1 := index_center_le_pow (closure_commutator_representatives G),
   have h2 := card_commutator_dvd_index_center_pow (closure_commutator_representatives G),
   rw mylem2' at h1 h2,
-  replace h1 := h1.trans (nat.pow_le_pow_of_le_right hn₀ (rank_commutator_representations_le G)),
+  replace h1 := h1.trans (nat.pow_le_pow_of_le_right hn₀ (rank_closure_commutator_representations_le G)),
   replace h2 := h2.trans (pow_dvd_pow _ (add_le_add_right (mul_le_mul_right' h1 _) 1)),
   replace h2 := nat.le_of_dvd (pow_pos (nat.pos_of_ne_zero (index_center_ne_zero _)) _) h2,
   replace h2 := h2.trans (nat.pow_le_pow_of_le_left h1 _),

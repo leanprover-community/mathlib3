@@ -283,6 +283,12 @@ lemma is_atom_pure : is_atom (pure a : filter α) := (pure a : ultrafilter α).i
 protected lemma ne_bot.le_pure_iff (hf : f.ne_bot) : f ≤ pure a ↔ f = pure a :=
 ⟨ultrafilter.unique (pure a), le_of_eq⟩
 
+@[simp] lemma lt_pure_iff : f < pure a ↔ f = ⊥ := is_atom_pure.lt_iff
+
+lemma le_pure_iff' : f ≤ pure a ↔ f = ⊥ ∨ f = pure a := is_atom_pure.le_iff
+
+@[simp] lemma Iic_pure (a : α) : Iic (pure a : filter α) = {⊥, pure a} := is_atom_pure.Iic_eq
+
 lemma mem_iff_ultrafilter : s ∈ f ↔ ∀ g : ultrafilter α, ↑g ≤ f → s ∈ g :=
 begin
   refine ⟨λ hf g hg, hg hf, λ H, by_contra $ λ hf, _⟩,

@@ -177,7 +177,7 @@ which always exists, does not necessarily coincide with
 "the forgetful functor" from `V` to `Type`, if such exists.
 When `V` is any of `Type`, `Top`, `AddCommGroup`, or `Module R`,
 `coyoneda_tensor_unit` is just the usual forgetful functor, however.
-For `V = Algebra R`, the usual forgetful functor is coyoneda of `polynomial R`, not of `R`.
+For `V = Algebra R`, the usual forgetful functor is coyoneda of `R[X]`, not of `R`.
 (Perhaps we should have a typeclass for this situation: `concrete_monoidal`?)
 -/
 @[nolint has_nonempty_instance unused_arguments]

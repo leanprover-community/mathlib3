@@ -93,12 +93,8 @@ variables {r s}
 lemma lex.acc_of_single_erase [decidable_eq ι] {x : Π₀ i, α i} (i : ι)
   (hs : acc (dfinsupp.lex r s) (single i (x i)))
   (hu : acc (dfinsupp.lex r s) (x.erase i)) : acc (dfinsupp.lex r s) x :=
-begin
-  classical, rw ← merge_single_erase x i,
-  convert acc.of_fibration _ (lex_fibration r s) _,
-  work_on_goal 4 { refine ⟨_, _, _⟩ }, iterate 3 { refl },
-  exact inv_image.accessible snd (hs.prod_game_add hu),
-end
+merge_single_erase x i ▸ @acc.of_fibration _ _ _ _ _
+  (lex_fibration r s) ⟨_, _, _⟩ (inv_image.accessible snd $ hs.prod_game_add hu)
 
 variable (hbot : ∀ ⦃i a⦄, ¬ s i a 0)
 include hbot

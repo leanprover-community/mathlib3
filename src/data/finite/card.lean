@@ -62,6 +62,9 @@ finite.card_pos_iff.mpr h
 
 namespace finite
 
+lemma cast_card_eq_mk {α : Type*} [finite α] : ↑(nat.card α) = cardinal.mk α :=
+cardinal.cast_to_nat_of_lt_aleph_0 (cardinal.lt_aleph_0_of_finite α)
+
 lemma card_eq [finite α] [finite β] : nat.card α = nat.card β ↔ nonempty (α ≃ β) :=
 by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, simp [fintype.card_eq] }
 
@@ -136,6 +139,19 @@ card_eq_zero_of_injective f.2 h
 
 lemma card_sum [finite α] [finite β] : nat.card (α ⊕ β) = nat.card α + nat.card β :=
 by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, simp }
+
+lemma nat.card_union_le {α : Type*} {s t : set α} [finite s] [finite t] :
+  nat.card ↥(s ∪ t) ≤ nat.card s + nat.card t :=
+begin
+  rw [←cardinal.nat_cast_le, nat.cast_add, cast_card_eq_mk, cast_card_eq_mk, cast_card_eq_mk],
+  exact cardinal.mk_union_le s t,
+end
+
+lemma nat.card_image_le {s : set α} [finite s] {f : α → β} : nat.card (f '' s) ≤ nat.card s :=
+card_le_of_surjective _ set.surjective_onto_image
+
+lemma nat.card_range_le [finite α] {f : α → β} : nat.card (set.range f) ≤ nat.card α :=
+card_le_of_surjective _ set.surjective_onto_range
 
 end finite
 

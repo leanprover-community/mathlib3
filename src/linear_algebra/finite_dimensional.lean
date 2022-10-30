@@ -1741,28 +1741,6 @@ begin
   exact subalgebra.eq_bot_of_finrank_one h,
 end
 
-lemma subalgebra.eq_bot_or_top_of_finrank (S : subalgebra F E) (hr : finrank F E = 2) :
-  S = ⊥ ∨ S = ⊤ :=
-begin
-  haveI : finite_dimensional F E := finite_dimensional_of_finrank_eq_succ hr,
-  haveI : finite_dimensional F S := finite_dimensional.finite_dimensional_submodule
-    (subalgebra.to_submodule S),
-  have : finrank F S ≤ 2, { rw ← hr, convert submodule.finrank_le S.to_submodule, },
-  have : 0 < finrank F S := finrank_pos_iff.mpr infer_instance,
-  interval_cases (finrank F S),
-  { left, exact subalgebra.eq_bot_of_finrank_one h, },
-  { right, rw ← hr at h,
-    rw ← algebra.to_submodule_eq_top,
-    exact submodule.eq_top_of_finrank_eq h, },
-end
-
-@[simp]
-lemma subalgebra.bot_eq_top_of_dim_eq_one (h : module.rank F E = 1) : (⊥ : subalgebra F E) = ⊤ :=
-begin
-  rw [← dim_top, ← subalgebra_top_dim_eq_submodule_top_dim] at h,
-  exact eq.symm (subalgebra.eq_bot_of_dim_one h),
-end
-
 @[simp]
 lemma subalgebra.bot_eq_top_of_finrank_eq_one (h : finrank F E = 1) : (⊥ : subalgebra F E) = ⊤ :=
 begin
@@ -1777,6 +1755,50 @@ theorem subalgebra.dim_eq_one_iff {S : subalgebra F E} : module.rank F S = 1 ↔
 @[simp]
 theorem subalgebra.finrank_eq_one_iff {S : subalgebra F E} : finrank F S = 1 ↔ S = ⊥ :=
 ⟨subalgebra.eq_bot_of_finrank_one, subalgebra.finrank_eq_one_of_eq_bot⟩
+
+lemma subalgebra.bot_eq_top_iff_dim_eq_one :
+  module.rank F E = 1 ↔ (⊥ : subalgebra F E) = ⊤ :=
+begin
+  rw [← dim_top, ← subalgebra_top_dim_eq_submodule_top_dim],
+  split,
+  { exact λ h, (subalgebra.eq_bot_of_dim_one h).symm, },
+  { intro h,
+    haveI : finite_dimensional F (⊤ : subalgebra F E),
+    { rw ← h, exact subalgebra.finite_dimensional_bot, },
+    rw_mod_cast [← finite_dimensional.finrank_eq_dim, subalgebra.finrank_eq_one_iff],
+    exact h.symm, }
+end
+
+@[simp]
+lemma subalgebra.bot_eq_top_of_dim_eq_one (h : module.rank F E = 1) : (⊥ : subalgebra F E) = ⊤ :=
+subalgebra.bot_eq_top_iff_dim_eq_one.mp h
+
+def subalgebra.is_simple_order_of_finrank (hr : finrank F E = 2) :
+  is_simple_order (subalgebra F E) :=
+{ to_nontrivial :=
+  begin
+    haveI : finite_dimensional F E := finite_dimensional_of_finrank_eq_succ hr,
+    use [⊥, ⊤],
+    refine subalgebra.bot_eq_top_iff_dim_eq_one.mpr.mt _,
+    by_contra,
+    rw ← finite_dimensional.finrank_eq_dim at h,
+    rw_mod_cast hr at h,
+    norm_num at h,
+  end,
+  eq_bot_or_eq_top :=
+  begin
+    intro S,
+    haveI : finite_dimensional F E := finite_dimensional_of_finrank_eq_succ hr,
+    haveI : finite_dimensional F S := finite_dimensional.finite_dimensional_submodule
+      (subalgebra.to_submodule S),
+    have : finrank F S ≤ 2, { rw ← hr, convert submodule.finrank_le S.to_submodule, },
+    have : 0 < finrank F S := finrank_pos_iff.mpr infer_instance,
+    interval_cases (finrank F S),
+    { left, exact subalgebra.eq_bot_of_finrank_one h, },
+    { right, rw ← hr at h,
+      rw ← algebra.to_submodule_eq_top,
+      exact submodule.eq_top_of_finrank_eq h, },
+  end }
 
 end subalgebra_dim
 

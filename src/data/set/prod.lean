@@ -281,6 +281,13 @@ set.ext $ λ a,
 
 @[simp] lemma image2_mk_eq_prod : image2 prod.mk s t = s ×ˢ t := ext $ by simp
 
+@[simp] lemma image2_curry (f : α × β → γ) (s : set α) (t : set β) :
+  image2 (λ a b, f (a, b)) s t = (s ×ˢ t).image f :=
+by rw [←image2_mk_eq_prod, image_image2]
+
+@[simp] lemma image_uncurry_prod (f : α → β → γ) (s : set α) (t : set β) :
+  uncurry f '' s ×ˢ t = image2 f s t := by { rw ←image2_curry, refl }
+
 section mono
 
 variables [preorder α] {f : α → set β} {g : α → set γ}

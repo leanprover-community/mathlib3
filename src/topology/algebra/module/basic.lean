@@ -1595,11 +1595,11 @@ def prod [module R₁ M₂] [module R₁ M₃] [module R₁ M₄] (e : M₁ ≃L
 rfl
 
 include σ₂₁
-theorem bijective (e : M₁ ≃SL[σ₁₂] M₂) : function.bijective e :=
+protected theorem bijective (e : M₁ ≃SL[σ₁₂] M₂) : function.bijective e :=
 e.to_linear_equiv.to_equiv.bijective
-theorem injective (e : M₁ ≃SL[σ₁₂] M₂) : function.injective e :=
+protected theorem injective (e : M₁ ≃SL[σ₁₂] M₂) : function.injective e :=
 e.to_linear_equiv.to_equiv.injective
-theorem surjective (e : M₁ ≃SL[σ₁₂] M₂) : function.surjective e :=
+protected theorem surjective (e : M₁ ≃SL[σ₁₂] M₂) : function.surjective e :=
 e.to_linear_equiv.to_equiv.surjective
 
 include σ₃₂ σ₃₁ σ₁₃

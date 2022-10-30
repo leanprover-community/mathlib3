@@ -268,7 +268,7 @@ section comm_ring
 variables {R S : Type*} [comm_ring R] [comm_ring S] [is_domain S]
 variables {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ]
 
-/-- If `I` is a prime ideal of `polynomial R` and `pX ∈ I` is a non-constant polynomial,
+/-- If `I` is a prime ideal of `R[X]` and `pX ∈ I` is a non-constant polynomial,
   then the map `R →+* R[x]/I` descends to an integral map when localizing at `pX.leading_coeff`.
   In particular `X` is integral because it satisfies `pX`, and constants are trivially integral,
   so integrality of the entire extension follows by closure under addition and multiplication. -/
@@ -513,7 +513,7 @@ begin
       convert is_integral_is_localization_polynomial_quotient P pX hpX } }
 end
 
-/-- If `R` is a Jacobson ring, and `P` is a maximal ideal of `polynomial R`,
+/-- If `R` is a Jacobson ring, and `P` is a maximal ideal of `R[X]`,
   then `R → R[X]/P` is an integral map. -/
 lemma quotient_mk_comp_C_is_integral_of_jacobson :
   ((quotient.mk P).comp C : R →+* R[X] ⧸ P).is_integral :=

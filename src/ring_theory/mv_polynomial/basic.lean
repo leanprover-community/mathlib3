@@ -123,7 +123,7 @@ end mv_polynomial
 /- this is here to avoid import cycle issues -/
 namespace polynomial
 
-/-- The monomials form a basis on `polynomial R`. -/
+/-- The monomials form a basis on `R[X]`. -/
 noncomputable def basis_monomials : basis ℕ R R[X] :=
 basis.of_repr (to_finsupp_iso_alg R).to_linear_equiv
 

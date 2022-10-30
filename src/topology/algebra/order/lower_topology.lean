@@ -59,7 +59,7 @@ lemma is_open_iff_generate_Ici_comp {s : set (with_lower_topology α)} :
   is_open s ↔ generate_open {s | ∃ a, (Ici a)ᶜ = s} s := iff.rfl
 
 /--
-Left-closed right-infinite intervals [a,∞) are closed in the lower topology
+Left-closed right-infinite intervals [a,∞) are closed in the lower topology.
 -/
 lemma is_closed_Ici (a : with_lower_topology α) : is_closed (Ici a) :=
 is_open_compl_iff.1 $ generate_open.basic _ ⟨a, rfl⟩

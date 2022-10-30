@@ -421,6 +421,20 @@ begin
   simpa [is_open.nhds_within_eq hs hx] using tendsto_locally_uniformly_on_iff_filter.mp hf' x hx,
 end
 
+/-- A slight variant of `has_fderiv_at_of_tendsto_locally_uniformly_on` with the assumption stated in
+terms of `differentiable_on` rather than `has_fderiv_at`. This makes a few proofs nicer in complex
+analysis where holomorphicity is assumed but the derivative is not known a priori. -/
+lemma has_fderiv_at_of_tendsto_locally_uniformly_on' [ne_bot l] {s : set E} (hs : is_open s)
+  (hf' : tendsto_locally_uniformly_on (fderiv 𝕜 ∘ f) g' l s)
+  (hf : ∀ n, differentiable_on 𝕜 (f n) s)
+  (hfg : ∀ x ∈ s, tendsto (λ n, f n x) l (𝓝 (g x)))
+  (hx : x ∈ s) :
+  has_fderiv_at g (g' x) x :=
+begin
+  refine has_fderiv_at_of_tendsto_locally_uniformly_on hs hf' (λ n z hz, _) hfg hx,
+  exact ((hf n z hz).differentiable_at (hs.mem_nhds hz)).has_fderiv_at
+end
+
 /-- `(d/dx) lim_{n → ∞} f n x = lim_{n → ∞} f' n x` when the `f' n` converge
 _uniformly_ to their limit on an open set containing `x`. -/
 lemma has_fderiv_at_of_tendsto_uniformly_on [ne_bot l]

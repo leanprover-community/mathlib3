@@ -74,7 +74,7 @@ lemma finset.center_mass_segment'
   (hws : ∑ i in s, ws i = 1) (hwt : ∑ i in t, wt i = 1) (a b : R) (hab : a + b = 1) :
   a • s.center_mass ws zs + b • t.center_mass wt zt =
     ((s.map embedding.inl).disj_union (t.map embedding.inr) $
-      λ x, by { simp_rw mem_map, rintro ⟨a, _, rfl⟩ ⟨b, _, ⟨⟩⟩ }).center_mass
+      finset.disjoint_map_inl_map_inr _ _).center_mass
         (sum.elim (λ i, a * ws i) (λ j, b * wt j))
         (sum.elim zs zt) :=
 begin

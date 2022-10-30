@@ -10,6 +10,7 @@ import data.finset.pi
 import data.finset.powerset
 import data.finset.prod
 import data.finset.sigma
+import data.finset.sum
 import data.finite.defs
 import data.list.nodup_equiv_fin
 import data.sym.basic
@@ -975,20 +976,12 @@ instance (α : Type*) [fintype α] : fintype (lex α) := ‹fintype α›
 @[simp] lemma fintype.card_lex (α : Type*) [fintype α] :
   fintype.card (lex α) = fintype.card α := rfl
 
-/-- Note that this is not stated with `disjoint` so that it can be used with `finset.disj_union`. -/
-lemma finset.disjoint_map_inl_map_inr {α β : Type*} [fintype α] [fintype β]
-  (s : finset α) (t : finset β) (a : α ⊕ β) :
-  a ∈ (s.map embedding.inl : finset (α ⊕ β)) → a ∉ (t.map embedding.inr : finset (α ⊕ β)) :=
-by { simp_rw mem_map, rintro ⟨a, _, rfl⟩ ⟨b, _, ⟨⟩⟩ }
-
 instance (α : Type u) (β : Type v) [fintype α] [fintype β] : fintype (α ⊕ β) :=
-{ elems := finset.disj_union _ _ (finset.disjoint_map_inl_map_inr univ univ),
+{ elems := univ.disj_sum univ,
   complete := by rintro (_ | _); simp }
 
 lemma univ_sum_type {α β : Type*} [fintype α] [fintype β] :
-  (univ : finset (α ⊕ β)) =
-    ((univ : finset α).map embedding.inl).disj_union ((univ : finset β).map embedding.inr)
-      (finset.disjoint_map_inl_map_inr _ _) :=
+  (univ : finset (α ⊕ β)) = univ.disj_sum univ :=
 rfl
 
 /-- Given that `α ⊕ β` is a fintype, `α` is also a fintype. This is non-computable as it uses
@@ -1003,11 +996,7 @@ fintype.of_injective (sum.inr : β → α ⊕ β) sum.inr_injective
 
 @[simp] theorem fintype.card_sum [fintype α] [fintype β] :
   fintype.card (α ⊕ β) = fintype.card α + fintype.card β :=
-begin
-  refine (card_disj_union _ _ _).trans _,
-  rw [card_map, card_map],
-  refl,
-end
+card_disj_sum _ _
 
 /-- If the subtype of all-but-one elements is a `fintype` then the type itself is a `fintype`. -/
 def fintype_of_fintype_ne (a : α) (h : fintype {b // b ≠ a}) : fintype α :=

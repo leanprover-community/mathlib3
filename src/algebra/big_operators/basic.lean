@@ -351,8 +351,8 @@ by rw [←prod_union sdiff_disjoint, sdiff_union_of_subset h]
 @[simp, to_additive]
 lemma prod_sum_elim (s : finset α) (t : finset γ) (f : α → β) (g : γ → β) :
   ∏ x in (s.map function.embedding.inl).disj_union (t.map function.embedding.inr)
-     finset.disjoint_map_inl_map_inr, sum.elim f g x =
-    (∏ x in s, f x) * (∏ x in t, g x) :=
+    (finset.disjoint_map_inl_map_inr _ _), sum.elim f g x =
+      (∏ x in s, f x) * (∏ x in t, g x) :=
 begin
   rw [prod_disj_union, prod_map, prod_map],
   simp only [sum.elim_inl, function.embedding.inl_apply, function.embedding.inr_apply,

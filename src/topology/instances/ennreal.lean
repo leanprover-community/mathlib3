@@ -950,6 +950,22 @@ begin
   exact tsum_bUnion_le _ _ _
 end
 
+lemma tsum_add_one_eq_top {f : ℕ → ℝ≥0∞} (hf : ∑' n, f n = ∞) (hf0 : f 0 ≠ ∞) :
+  ∑' n, f (n + 1) = ∞ :=
+begin
+  rw ← tsum_eq_tsum_of_has_sum_iff_has_sum (λ _, (not_mem_range_equiv 1).has_sum_iff),
+  swap, { apply_instance },
+  have h₁ : (∑' b : {n // n ∈ finset.range 1}, f b) + (∑' b : {n // n ∉ finset.range 1}, f b) =
+    ∑' b, f b,
+  { exact tsum_add_tsum_compl ennreal.summable ennreal.summable },
+  rw [finset.tsum_subtype, finset.sum_range_one, hf, ennreal.add_eq_top] at h₁,
+  rw ← h₁.resolve_left hf0,
+  apply tsum_congr,
+  rintro ⟨i, hi⟩,
+  simp only [multiset.mem_range, not_lt] at hi,
+  simp only [tsub_add_cancel_of_le hi, coe_not_mem_range_equiv, function.comp_app, subtype.coe_mk],
+end
+
 end tsum
 
 lemma tendsto_to_real_iff {ι} {fi : filter ι} {f : ι → ℝ≥0∞} (hf : ∀ i, f i ≠ ∞) {x : ℝ≥0∞}

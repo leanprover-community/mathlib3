@@ -486,7 +486,7 @@ begin
     simp only [mul_assoc, mul_comm b] at ⊢ hx,
     intros y hy,
     exact hx _ (fractional_ideal.mul_mem_mul hy hb) },
-  -- It turns out the subalgebra consisting of all `p(x)` for `p : polynomial A` works.
+  -- It turns out the subalgebra consisting of all `p(x)` for `p : A[X]` works.
   refine ⟨alg_hom.range (polynomial.aeval x : A[X] →ₐ[A] K),
           is_noetherian_submodule.mp (fractional_ideal.is_noetherian I⁻¹) _ (λ y hy, _),
           ⟨polynomial.X, polynomial.aeval_X x⟩⟩,

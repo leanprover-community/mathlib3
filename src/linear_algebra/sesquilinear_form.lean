@@ -387,7 +387,8 @@ variables [comm_semiring R]
 variables [add_comm_monoid M] [module R M]
 variables [add_comm_monoid M₁] [module R M₁]
 variables [add_comm_monoid M₂] [module R M₂]
-variables {B F : M →ₗ[R] M →ₗ[R] R} {B' : M₁ →ₗ[R] M₁ →ₗ[R] R} {B'' : M₂ →ₗ[R] M₂ →ₗ[R] R}
+variables {I : R →+* R}
+variables {B F : M →ₗ[R] M →ₛₗ[I] R} {B' : M₁ →ₗ[R] M₁ →ₛₗ[I] R} {B'' : M₂ →ₗ[R] M₂ →ₛₗ[I] R}
 variables {f f' : M →ₗ[R] M₁} {g g' : M₁ →ₗ[R] M}
 
 variables (B B' f g)
@@ -455,7 +456,8 @@ section add_comm_monoid
 
 variables [comm_semiring R]
 variables [add_comm_monoid M] [module R M]
-variables (B F : M →ₗ[R] M →ₗ[R] R)
+variables {I : R →+* R}
+variables (B F : M →ₗ[R] M →ₛₗ[I] R)
 
 /-- The condition for an endomorphism to be "self-adjoint" with respect to a pair of bilinear forms
 on the underlying module. In the case that these two forms are identical, this is the usual concept

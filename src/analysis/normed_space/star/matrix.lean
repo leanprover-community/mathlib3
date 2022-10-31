@@ -59,7 +59,7 @@ local attribute [instance] matrix.normed_add_comm_group
 lemma entrywise_sup_norm_bound_of_unitary {U : matrix n n 𝕜} (hU : U ∈ matrix.unitary_group n 𝕜) :
   ∥ U ∥ ≤ 1 :=
 begin
-  simp_rw pi_norm_le_iff zero_le_one,
+  simp_rw pi_norm_le_iff_of_nonneg zero_le_one,
   intros i j,
   exact entry_norm_bound_of_unitary hU _ _
 end

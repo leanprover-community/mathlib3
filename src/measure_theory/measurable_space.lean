@@ -157,6 +157,10 @@ comap_le_iff_le_map.symm
 
 alias measurable_iff_comap_le ↔ measurable.comap_le measurable.of_comap_le
 
+lemma comap_measurable {m : measurable_space β} (f : α → β) :
+  measurable[m.comap f] f :=
+λ s hs, ⟨s, hs, rfl⟩
+
 lemma measurable.mono {ma ma' : measurable_space α} {mb mb' : measurable_space β} {f : α → β}
   (hf : @measurable α β ma mb f) (ha : ma ≤ ma') (hb : mb' ≤ mb) :
   @measurable α β ma' mb' f :=

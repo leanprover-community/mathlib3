@@ -889,16 +889,13 @@ begin
   rw Indep_fun_iff_measure_inter_preimage_eq_mul,
   rintro S π hπ,
   simp_rw set.indicator_const_preimage_eq_union,
-  refine @hs S (λ i, ite (1 ∈ π i) (s i) ∅ ∪ ite ((0 : β) ∈ π i) (s i)ᶜ ∅) _,
-  rintros i hi,
-  simp only [set.mem_set_of],
-  split_ifs,
-  { simp only [set.union_compl_self, measurable_set.univ] },
-  { rw set.union_empty,
-    exact measurable_set_generate_from (set.mem_singleton _) },
-  { rw set.empty_union,
-    exact (measurable_set_generate_from (set.mem_singleton _)).compl },
-  { simp only [set.empty_union, measurable_set.empty] }
+  refine @hs S (λ i, ite (1 ∈ π i) (s i) ∅ ∪ ite ((0 : β) ∈ π i) (s i)ᶜ ∅) (λ i hi, _),
+  have hsi : measurable_set[generate_from {s i}] (s i),
+    from measurable_set_generate_from (set.mem_singleton _),
+  refine measurable_set.union (measurable_set.ite' (λ _, hsi) (λ _, _))
+    (measurable_set.ite' (λ _, hsi.compl) (λ _, _)),
+  { exact @measurable_set.empty _ (generate_from {s i}), },
+  { exact @measurable_set.empty _ (generate_from {s i}), },
 end
 
 end indep_fun

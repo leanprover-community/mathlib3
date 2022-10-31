@@ -268,19 +268,16 @@ begin
   refine le_antisymm (generate_from_le _) (generate_from_le _),
   { rintro _ ⟨j, hij, rfl⟩,
     refine measurable_set_generate_from ⟨j, measurable_set_generate_from ⟨hij, _⟩⟩,
-    delta measurable_set,
     rw comap_eq_generate_from,
     refine measurable_set_generate_from ⟨{1}, measurable_set_singleton 1, _⟩,
     ext x,
     simp [set.indicator_const_preimage_eq_union] },
   { rintro t ⟨n, ht⟩,
-    delta measurable_set at ht ⊢,
     suffices : measurable_space.generate_from
       {t | ∃ (H : n ≤ i), measurable_set[(measurable_space.comap
         ((s n).indicator (λ ω, 1 : Ω → β)) mβ)] t}
-     ≤ generate_from {t | ∃ (j : ι) (H : j ≤ i), s j = t},
+      ≤ generate_from {t | ∃ (j : ι) (H : j ≤ i), s j = t},
     { exact this _ ht },
-    clear ht t,
     refine generate_from_le _,
     rintro t ⟨hn, u, hu, hu'⟩,
     obtain heq | heq | heq | heq := set.indicator_const_preimage (s n) u (1 : β),

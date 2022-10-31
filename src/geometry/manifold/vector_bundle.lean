@@ -33,12 +33,20 @@ def fiberwise_linear.local_homeomorph (φ : B → F ≃L[𝕜] F) {U : set B} (h
   target := U ×ˢ univ,
   map_source' := λ x hx, mk_mem_prod hx.1 (mem_univ _),
   map_target' := λ x hx, mk_mem_prod hx.1 (mem_univ _),
-  left_inv' := sorry,
-  right_inv' := sorry,
+  left_inv' := λ x _, prod.ext rfl (continuous_linear_equiv.symm_apply_apply _ _),
+  right_inv' := λ x _, prod.ext rfl (continuous_linear_equiv.apply_symm_apply _ _),
   open_source := hU.prod is_open_univ,
   open_target := hU.prod is_open_univ,
-  continuous_to_fun := sorry,
-  continuous_inv_fun := sorry }
+  continuous_to_fun := begin
+    have : continuous_on (λ p : B × F, ((φ p.1 : F →L[𝕜] F), p.2)) (U ×ˢ univ),
+    { exact hφ.prod_map continuous_on_id },
+    exact continuous_on_fst.prod (is_bounded_bilinear_map_apply.continuous.comp_continuous_on this),
+  end,
+  continuous_inv_fun := begin
+    have : continuous_on (λ p : B × F, (((φ p.1).symm : F →L[𝕜] F), p.2)) (U ×ˢ univ),
+    { exact h2φ.prod_map continuous_on_id },
+    exact continuous_on_fst.prod (is_bounded_bilinear_map_apply.continuous.comp_continuous_on this),
+  end, }
 
 @[simp] lemma fiberwise_linear.source_local_homeomorph (φ : B → F ≃L[𝕜] F) {U : set B}
   (hU : is_open U)

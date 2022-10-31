@@ -1742,13 +1742,6 @@ begin
 end
 
 @[simp]
-lemma subalgebra.bot_eq_top_of_finrank_eq_one (h : finrank F E = 1) : (⊥ : subalgebra F E) = ⊤ :=
-begin
-  rw [← finrank_top, ← subalgebra_top_finrank_eq_submodule_top_finrank] at h,
-  exact eq.symm (subalgebra.eq_bot_of_finrank_one h),
-end
-
-@[simp]
 theorem subalgebra.dim_eq_one_iff {S : subalgebra F E} : module.rank F S = 1 ↔ S = ⊥ :=
 ⟨subalgebra.eq_bot_of_dim_one, subalgebra.dim_eq_one_of_eq_bot⟩
 
@@ -1764,6 +1757,10 @@ lemma subalgebra.bot_eq_top_iff_finrank_eq_one :
   finrank F E = 1 ↔ (⊥ : subalgebra F E) = ⊤ :=
 by rw [← finrank_top, ← subalgebra_top_finrank_eq_submodule_top_finrank,
        subalgebra.finrank_eq_one_iff, eq_comm]
+
+@[simp]
+lemma subalgebra.bot_eq_top_of_finrank_eq_one (h : finrank F E = 1) : (⊥ : subalgebra F E) = ⊤ :=
+subalgebra.bot_eq_top_iff_finrank_eq_one.mp h
 
 @[simp]
 lemma subalgebra.bot_eq_top_of_dim_eq_one (h : module.rank F E = 1) : (⊥ : subalgebra F E) = ⊤ :=

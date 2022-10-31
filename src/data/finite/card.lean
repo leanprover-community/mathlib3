@@ -140,6 +140,20 @@ card_eq_zero_of_injective f.2 h
 lemma card_sum [finite α] [finite β] : nat.card (α ⊕ β) = nat.card α + nat.card β :=
 by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, simp }
 
+lemma card_image_le {s : set α} [finite s] (f : α → β) : nat.card (f '' s) ≤ nat.card s :=
+card_le_of_surjective _ set.surjective_onto_image
+
+lemma card_range_le [finite α] (f : α → β) : nat.card (set.range f) ≤ nat.card α :=
+card_le_of_surjective _ set.surjective_onto_range
+
+theorem card_subtype_le [finite α] (p : α → Prop) :
+  nat.card {x // p x} ≤ nat.card α :=
+by { haveI := fintype.of_finite α, simpa using fintype.card_subtype_le p }
+
+theorem card_subtype_lt [finite α] {p : α → Prop} {x : α} (hx : ¬ p x) :
+  nat.card {x // p x} < nat.card α :=
+by { haveI := fintype.of_finite α, simpa using fintype.card_subtype_lt hx }
+
 end finite
 
 namespace set
@@ -155,18 +169,4 @@ begin
   { exact nat.card_eq_zero_of_infinite.trans_le (zero_le _) },
 end
 
-lemma card_image_le {s : set α} [finite s] {f : α → β} : nat.card (f '' s) ≤ nat.card s :=
-finite.card_le_of_surjective _ surjective_onto_image
-
-lemma card_range_le [finite α] {f : α → β} : nat.card (set.range f) ≤ nat.card α :=
-finite.card_le_of_surjective _ surjective_onto_range
-
 end set
-
-theorem finite.card_subtype_le [finite α] (p : α → Prop) :
-  nat.card {x // p x} ≤ nat.card α :=
-by { haveI := fintype.of_finite α, simpa using fintype.card_subtype_le p }
-
-theorem finite.card_subtype_lt [finite α] {p : α → Prop} {x : α} (hx : ¬ p x) :
-  nat.card {x // p x} < nat.card α :=
-by { haveI := fintype.of_finite α, simpa using fintype.card_subtype_lt hx }

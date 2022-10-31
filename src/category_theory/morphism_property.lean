@@ -273,6 +273,10 @@ lemma left_op {W : morphism_property C} {L : C ⥤ Dᵒᵖ} (h : W.is_inverted_b
   W.op.is_inverted_by L.left_op :=
 λ X Y f hf, by { haveI := h f.unop hf, dsimp, apply_instance, }
 
+lemma unop {W : morphism_property C} {L : Cᵒᵖ ⥤ Dᵒᵖ} (h : W.op.is_inverted_by L) :
+  W.is_inverted_by L.unop :=
+λ X Y f hf, by { haveI := h f.op hf, dsimp, apply_instance, }
+
 end is_inverted_by
 
 /-- Given `app : Π X, F₁.obj X ⟶ F₂.obj X` where `F₁` and `F₂` are two functors,

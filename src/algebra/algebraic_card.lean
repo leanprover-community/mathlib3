@@ -11,7 +11,7 @@ import ring_theory.algebraic
 ### Cardinality of algebraic numbers
 
 In this file, we prove variants of the following result: the cardinality of algebraic numbers under
-an R-algebra is at most `# polynomial R * ℵ₀`.
+an R-algebra is at most `# R[X] * ℵ₀`.
 
 Although this can be used to prove that real or complex transcendental numbers exist, a more direct
 proof is given by `liouville.is_transcendental`.
@@ -20,7 +20,7 @@ proof is given by `liouville.is_transcendental`.
 universes u v
 
 open cardinal polynomial
-open_locale cardinal
+open_locale cardinal polynomial
 
 namespace algebraic
 
@@ -35,10 +35,10 @@ variables (R : Type u) (A : Type v) [comm_ring R] [comm_ring A] [is_domain A] [a
   [no_zero_smul_divisors R A]
 
 theorem cardinal_mk_lift_le_mul :
-  cardinal.lift.{u v} (#{x : A // is_algebraic R x}) ≤ cardinal.lift.{v u} (#(polynomial R)) * ℵ₀ :=
+  cardinal.lift.{u v} (#{x : A // is_algebraic R x}) ≤ cardinal.lift.{v u} #(R[X]) * ℵ₀ :=
 begin
   rw [←mk_ulift, ←mk_ulift],
-  let g : ulift.{u} {x : A | is_algebraic R x} → ulift.{v} (polynomial R) :=
+  let g : ulift.{u} {x : A | is_algebraic R x} → ulift.{v} R[X] :=
     λ x, ulift.up (classical.some x.1.2),
   apply cardinal.mk_le_mk_mul_of_mk_preimage_le g (λ f, _),
   rsufficesI : fintype (g ⁻¹' {f}),
@@ -89,8 +89,8 @@ section non_lift
 variables (R A : Type u) [comm_ring R] [comm_ring A] [is_domain A] [algebra R A]
   [no_zero_smul_divisors R A]
 
-theorem cardinal_mk_le_mul : #{x : A // is_algebraic R x} ≤ #(polynomial R) * ℵ₀ :=
-by { rw [←lift_id (#_), ←lift_id (#(polynomial R))], exact cardinal_mk_lift_le_mul R A }
+theorem cardinal_mk_le_mul : #{x : A // is_algebraic R x} ≤ #R[X] * ℵ₀ :=
+by { rw [←lift_id (#_), ←lift_id #R[X]], exact cardinal_mk_lift_le_mul R A }
 
 theorem cardinal_mk_le_max : #{x : A // is_algebraic R x} ≤ max (#R) ℵ₀ :=
 by { rw [←lift_id (#_), ←lift_id (#R)], exact cardinal_mk_lift_le_max R A }

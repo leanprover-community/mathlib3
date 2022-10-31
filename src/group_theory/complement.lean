@@ -198,6 +198,15 @@ mem_left_transversals_iff_exists_unique_quotient_mk'_eq.trans
 mem_right_transversals_iff_exists_unique_quotient_mk'_eq.trans
   (function.bijective_iff_exists_unique (S.restrict quotient.mk')).symm
 
+@[to_additive] lemma card_left_transversal (h : S ∈ left_transversals (H : set G)) :
+  nat.card S = H.index :=
+nat.card_congr $ equiv.of_bijective _ $ mem_left_transversals_iff_bijective.mp h
+
+@[to_additive] lemma card_right_transversal (h : S ∈ right_transversals (H : set G)) :
+  nat.card S = H.index :=
+nat.card_congr $ (equiv.of_bijective _ $ mem_right_transversals_iff_bijective.mp h).trans $
+  quotient_group.quotient_right_rel_equiv_quotient_left_rel H
+
 @[to_additive] lemma range_mem_left_transversals {f : G ⧸ H → G} (hf : ∀ q, ↑(f q) = q) :
   set.range f ∈ left_transversals (H : set G) :=
 mem_left_transversals_iff_bijective.mpr ⟨by rintros ⟨-, q₁, rfl⟩ ⟨-, q₂, rfl⟩ h;
@@ -354,20 +363,14 @@ begin
   exact subgroup.mul_mem_sup h.2 k.2,
 end
 
-lemma is_complement'.sup_eq_top (h : subgroup.is_complement' H K) : H ⊔ K = ⊤ :=
+lemma is_complement'.sup_eq_top (h : is_complement' H K) : H ⊔ K = ⊤ :=
 h.is_compl.sup_eq_top
 
 lemma is_complement'.disjoint (h : is_complement' H K) : disjoint H K :=
 h.is_compl.disjoint
 
 lemma is_complement'.index_eq_card (h : is_complement' H K) : K.index = nat.card H :=
-begin
-  refine nat.card_congr (equiv.of_bijective (quotient_group.mk ∘ coe) _).symm,
-  exact ⟨λ x y hxy, subtype.ext (inv_mul_eq_one.mp (disjoint_def.mp h.symm.disjoint
-    (quotient_group.eq'.mp hxy) (x⁻¹ * y).2)), λ q, quotient_group.induction_on q
-      (λ g, let ⟨⟨x, y⟩, hxy⟩ := h.2 g in ⟨x, quotient_group.eq'.mpr
-        ((congr_arg (∈ K) (inv_mul_eq_iff_eq_mul.mpr hxy.symm)).mpr y.2)⟩)⟩,
-end
+(card_left_transversal h).symm
 
 lemma is_complement.card_mul [fintype G] [fintype S] [fintype T] (h : is_complement S T) :
   fintype.card S * fintype.card T = fintype.card G :=

@@ -31,7 +31,16 @@ namespace well_founded
 variable (hwf : well_founded r)
 include hwf
 
-/-- An arbitrary well order on `α` that extends `r`. -/
+/-- An arbitrary well order on `α` that extends `r`.
+
+The construction maps `r` into two well-orders: the first map is `well_founded.rank`, which is not
+necessarily injective but respects the order `r`; the other map is the identity (with an arbitrarily
+chosen well-order on `α`), which is injective but doesn't respect `r`.
+
+By taking the lexicographic product of the two, we get both properties, so we can pull it back and
+get an well-order that extend our original order `r`. Another way to view this is that we choose an
+arbitrary well-order to serve as a tiebreak between two elements of same rank.
+-/
 noncomputable def well_order_extension : linear_order α :=
 let l : linear_order α := is_well_order.linear_order well_ordering_rel in by exactI
   @linear_order.lift' α (ordinal ×ₗ α) _

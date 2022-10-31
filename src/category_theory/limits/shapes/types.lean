@@ -255,7 +255,7 @@ end
 
 /-- Any monomorphism in `Type` is an coproduct injection. -/
 noncomputable
-def types.is_coprod_of_mono {X Y : Type u} (f : X ⟶ Y) [mono f] :
+def is_coprod_of_mono {X Y : Type u} (f : X ⟶ Y) [mono f] :
   is_colimit (binary_cofan.mk f (subtype.val : (set.range f)ᶜ → Y)) :=
 nonempty.some $ (binary_cofan_is_colimit_iff _).mpr
   ⟨(mono_iff_injective f).mp infer_instance, subtype.val_injective,

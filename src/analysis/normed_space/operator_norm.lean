@@ -110,13 +110,9 @@ variables [nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
 lemma norm_image_of_norm_zero [semilinear_map_class 𝓕 σ₁₂ E F] (f : 𝓕)
   (hf : continuous f) {x : E} (hx : ∥x∥ = 0) : ∥f x∥ = 0 :=
 begin
-  refine le_antisymm (le_of_forall_pos_le_add (λ ε hε, _)) (norm_nonneg (f x)),
-  rcases normed_add_comm_group.tendsto_nhds_nhds.1 (hf.tendsto 0) ε hε with ⟨δ, δ_pos, hδ⟩,
-  replace hδ := hδ x,
-  rw [sub_zero, hx] at hδ,
-  replace hδ := le_of_lt (hδ δ_pos),
-  rw [map_zero, sub_zero] at hδ,
-  rwa [zero_add]
+  refine (@closure_zero_eq F _) ▸ (_ : f x ∈ closure ({0} : set F)),
+  have : x ∈ closure ({0} : set E) := (@closure_zero_eq E _).symm ▸ hx,
+  have := ((specializes_iff_mem_closure.mpr this).map hf).mem_closure,
 end
 
 section
@@ -140,33 +136,8 @@ norm is then used to rescale any element into an element of norm in `[ε/C, ε]`
 controlled norm. The norm control for the original element follows by rescaling. -/
 lemma semilinear_map_class.bound_of_continuous [semilinear_map_class 𝓕 σ₁₂ E F] (f : 𝓕)
   (hf : continuous f) : ∃ C, 0 < C ∧ (∀ x : E, ∥f x∥ ≤ C * ∥x∥) :=
-begin
-  rcases normed_add_comm_group.tendsto_nhds_nhds.1 (hf.tendsto 0) 1 zero_lt_one with ⟨ε, ε_pos, hε⟩,
-  simp only [sub_zero, map_zero] at hε,
-  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
-  have : 0 < ∥c∥ / ε, from div_pos (zero_lt_one.trans hc) ε_pos,
-  refine ⟨∥c∥ / ε, this, λ x, _⟩,
-  by_cases hx : ∥x∥ = 0,
-  { rw [hx, mul_zero],
-    exact le_of_eq (norm_image_of_norm_zero f hf hx) },
-  refine semilinear_map_class.bound_of_shell_semi_normed f ε_pos hc (λ x hle hlt, _) hx,
-  refine (hε _ hlt).le.trans _,
-  rwa [← div_le_iff' this, one_div_div]
-end
-
-#check seminorm.comp
-
-/-- A continuous linear map between seminormed spaces is bounded when the field is nontrivially
-normed. The continuity ensures boundedness on a ball of some radius `ε`. The nontriviality of the
-norm is then used to rescale any element into an element of norm in `[ε/C, ε]`, whose image has a
-controlled norm. The norm control for the original element follows by rescaling. -/
-lemma semilinear_map_class.bound_of_continuous' [semilinear_map_class 𝓕 σ₁₂ E F] (f : 𝓕)
-  (hf : continuous f) : ∃ C, 0 < C ∧ (∀ x : E, ∥f x∥ ≤ C * ∥x∥) :=
-begin
-  have := ((norm_seminorm 𝕜₂ F).comp f).bound_of_continuous,
-end
-
-#exit
+let φ : E →ₛₗ[σ₁₂] F := ⟨f, map_add f, map_smulₛₗ f⟩ in
+((norm_seminorm 𝕜₂ F).comp φ).bound_of_continuous_normed_space (continuous_norm.comp hf)
 
 end
 

@@ -539,6 +539,16 @@ lemma lift_prop_on_chart_symm [has_groupoid M G]
   lift_prop_on Q (chart_at H x).symm (chart_at H x).target :=
 hG.lift_prop_on_symm_of_mem_maximal_atlas hQ (chart_mem_maximal_atlas G x)
 
+lemma lift_prop_at_of_mem_groupoid (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y)
+  {f : local_homeomorph H H} (hf : f ∈ G) {x : H} (hx : x ∈ f.source) :
+  lift_prop_at Q f x :=
+lift_prop_at_of_mem_maximal_atlas hG hQ (G.mem_maximal_atlas_of_mem_groupoid hf) hx
+
+lemma lift_prop_on_of_mem_groupoid (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y)
+  {f : local_homeomorph H H} (hf : f ∈ G) :
+  lift_prop_on Q f f.source :=
+lift_prop_on_of_mem_maximal_atlas hG hQ (G.mem_maximal_atlas_of_mem_groupoid hf)
+
 lemma lift_prop_id (hG : G.local_invariant_prop G Q) (hQ : ∀ y, Q id univ y) :
   lift_prop Q (id : M → M) :=
 begin

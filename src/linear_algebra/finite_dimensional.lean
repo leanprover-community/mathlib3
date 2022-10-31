@@ -1774,9 +1774,9 @@ lemma subalgebra.is_simple_order_of_finrank (hr : finrank F E = 2) :
   begin
     intro S,
     haveI : finite_dimensional F E := finite_dimensional_of_finrank_eq_succ hr,
-    haveI : finite_dimensional F S := finite_dimensional.finite_dimensional_submodule
-      (subalgebra.to_submodule S),
-    have : finrank F S ≤ 2, { exact hr ▸ S.to_submodule.finrank_le, },
+    haveI : finite_dimensional F S :=
+      finite_dimensional.finite_dimensional_submodule S.to_submodule,
+    have : finrank F S ≤ 2 := hr ▸ S.to_submodule.finrank_le,
     have : 0 < finrank F S := finrank_pos_iff.mpr infer_instance,
     interval_cases (finrank F S),
     { left, exact subalgebra.eq_bot_of_finrank_one h, },

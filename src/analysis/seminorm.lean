@@ -35,7 +35,7 @@ seminorm, locally convex, LCTVS
 
 set_option old_structure_cmd true
 
-open normed_field set
+open normed_field set filter
 open_locale big_operators nnreal pointwise topological_space
 
 variables {R R' 𝕜 𝕝 E F G ι : Type*}
@@ -866,7 +866,7 @@ balanced_ball_zero p r (-1) (by rw [norm_neg, norm_one]) ⟨x, hx, by rw [neg_sm
 @[simp]
 lemma neg_ball (p : seminorm 𝕜 E) (r : ℝ) (x : E) :
   -ball p x r = ball p (-x) r :=
-by { ext, rw [mem_neg, mem_ball, mem_ball, ←neg_add', sub_neg_eq_add, map_neg_eq_map] }
+by { ext, rw [set.mem_neg, mem_ball, mem_ball, ←neg_add', sub_neg_eq_add, map_neg_eq_map] }
 
 @[simp]
 lemma smul_ball_preimage (p : seminorm 𝕜 E) (y : E) (r : ℝ) (a : 𝕜) (ha : a ≠ 0) :
@@ -1022,6 +1022,13 @@ begin
   rw ball_zero_eq,
   exact is_open_lt hq continuous_const
 end
+
+lemma ball_mem_nhds [topological_space E]
+  {p : seminorm 𝕝 E} (hp : continuous p) {r : ℝ} (hr : 0 < r) :
+  p.ball 0 r ∈ (𝓝 0 : filter E) :=
+have this : tendsto p (𝓝 0) (𝓝 0),
+  from map_zero p ▸ hp.tendsto 0,
+by simpa only [p.ball_zero_eq] using this (Iio_mem_nhds hr)
 
 end continuity
 

@@ -524,11 +524,27 @@ section bounded_of_countinuous
 namespace seminorm
 
 variables [nonempty ι] [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
-  [topological_space E] {p : seminorm_family 𝕜 E ι}
+  [seminormed_add_comm_group F] [normed_space 𝕜 F]
+  {p : seminorm_family 𝕜 E ι}
 
 -- TODO better docstring
 /-- If `∥x∥ = 0` and `f` is continuous then `∥f x∥ = 0`. -/
-lemma map_eq_zero_of_bound_on_ball (hp : with_seminorms p) (q : seminorm 𝕜 E)
+lemma map_eq_zero_of_norm_zero (q : seminorm 𝕜 F)
+  (hq : continuous q) {x : F} (hx : ∥x∥ = 0) : q x = 0 :=
+begin
+  replace hq : tendsto q (𝓝 0) (𝓝 0) := map_zero q ▸ hq.tendsto 0,
+  refine le_antisymm (le_of_forall_pos_le_add (λ ε ε_pos, _)) (map_nonneg q x),
+  rcases normed_add_comm_group.nhds_zero_basis_norm_lt.mem_iff.mp (hq $ Iio_mem_nhds ε_pos)
+    with ⟨δ, δ_pos, hδ⟩,
+  replace hδ : ∥x∥ < δ → q x < ε := @hδ x,
+  rw [hx] at hδ,
+  replace hδ := le_of_lt (hδ δ_pos),
+  rwa [zero_add]
+end
+
+-- TODO better docstring
+/-- If `∥x∥ = 0` and `f` is continuous then `∥f x∥ = 0`. -/
+lemma map_eq_zero_of_bound_on_ball [topological_space E] (hp : with_seminorms p) (q : seminorm 𝕜 E)
   {s : finset ι} {δ : ℝ} (δ_pos : 0 < δ) (hq : ∀ y, (∀ i ∈ s, p i y < δ) → q y < 1) {x : E}
   (hx : ∀ i ∈ s, p i x = 0) :
   q x = 0 :=
@@ -555,6 +571,7 @@ lemma seminorm.bound_of_shell_smul
   q x ≤ (C • p) x :=
 seminorm.bound_of_shell p q ε_pos hc hf hx
 
+-- Not useful, should I keep it for explicit computations?
 lemma seminorm_family.bound_of_shell_sup (p : seminorm_family 𝕜 E ι) (s : finset ι)
   (q : seminorm 𝕜 E) {ε : ℝ} {C : ℝ≥0} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)
   (hf : ∀ x, (∀ i ∈ s, p i x < ε) → ∀ j ∈ s, ε / ∥c∥ ≤ p j x → q x ≤ (C • p j) x)
@@ -570,32 +587,43 @@ begin
   exact hf y (λ k hk, (le_finset_sup_apply hk).trans_lt hlt) i hi (hiy ▸ hle)
 end
 
+lemma bound_of_continuous_normed_space (q : seminorm 𝕜 F)
+  (hq : continuous q) : ∃ C, 0 < C ∧ (∀ x : F, q x ≤ C * ∥x∥) :=
+begin
+  have hq' : tendsto q (𝓝 0) (𝓝 0) := map_zero q ▸ hq.tendsto 0,
+  rcases normed_add_comm_group.nhds_zero_basis_norm_lt.mem_iff.mp (hq' $ Iio_mem_nhds one_pos)
+    with ⟨ε, ε_pos, hε⟩,
+  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  have : 0 < ∥c∥ / ε, from div_pos (zero_lt_one.trans hc) ε_pos,
+  refine ⟨∥c∥ / ε, this, λ x, _⟩,
+  by_cases hx : ∥x∥ = 0,
+  { rw [hx, mul_zero],
+    exact le_of_eq (map_eq_zero_of_norm_zero q hq hx) },
+  refine (norm_seminorm 𝕜 F).bound_of_shell q ε_pos hc (λ x hle hlt, _) hx,
+  refine (le_of_lt $ hε hlt).trans _,
+  rwa [← div_le_iff' this, one_div_div]
+end
+
 -- TODO better dosctring
 /-- A continuous linear map between seminormed spaces is bounded when the field is nontrivially
 normed. The continuity ensures boundedness on a ball of some radius `ε`. The nontriviality of the
 norm is then used to rescale any element into an element of norm in `[ε/C, ε]`, whose image has a
 controlled norm. The norm control for the original element follows by rescaling. -/
-lemma seminorm.bound_of_continuous (hp : with_seminorms p) (q : seminorm 𝕜 E)
-  (hq : continuous q) : ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ q ≤ C • s.sup p :=
+lemma seminorm.bound_of_continuous [t : topological_space E] (hp : with_seminorms p)
+  (q : seminorm 𝕜 E) (hq : continuous q) :
+  ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ q ≤ C • s.sup p :=
 begin
-  replace hq : tendsto q (𝓝 0) (𝓝 0) := map_zero q ▸ hq.tendsto 0,
-  rw [hp.has_basis.tendsto_left_iff] at hq,
-  rcases hq _ (Iio_mem_nhds one_pos) with ⟨V, hVp, hVq⟩,
-  rcases p.basis_sets_iff.mp hVp with ⟨s, ε, ε_pos, rfl⟩,
-  let nnε : ℝ≥0 := ⟨ε, ε_pos.le⟩,
-  have nnε_ne : nnε ≠ 0 := λ H, ε_pos.ne (congr_arg coe H.symm),
-  simp only [maps_to, id, ball_finset_sup_eq_Inter _ _ _ ε_pos, mem_Inter₂, mem_ball_zero] at hVq,
-  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
-  have : ∥c∥₊ / nnε ≠ 0,
-    from div_ne_zero (nnnorm_ne_zero_iff.mpr $ norm_pos_iff.mp $ one_pos.trans hc) nnε_ne,
-  refine ⟨s, ∥c∥₊ / nnε, this, λ x, _⟩,
-  by_cases hx : ∀ i ∈ s, p i x = 0,
-  { exact le_trans (le_of_eq $ map_eq_zero_of_bound_on_ball hp q ε_pos hVq hx) (map_nonneg _ x) },
-  push_neg at hx,
-  refine p.bound_of_shell_sup s q ε_pos hc (λ y hlt i hi hle, _) hx,
-  refine (le_of_lt $ hVq hlt).trans _,
-  change 1 ≤ (∥c∥ / ε) * p i y,
-  rwa [← div_le_iff' (div_pos (one_pos.trans hc) ε_pos), one_div_div]
+  rcases hp.has_basis.mem_iff.mp (ball_mem_nhds hq one_pos) with ⟨V, hV, hε⟩,
+  rcases p.basis_sets_iff.mp hV with ⟨s, ε, ε_pos, rfl⟩,
+  clear hp hq t,
+  letI : seminormed_add_comm_group E :=
+    (s.sup p).to_add_group_seminorm.to_seminormed_add_comm_group,
+  letI : normed_space 𝕜 E :=
+  { norm_smul_le := λ a b, le_of_eq (map_smul_eq_mul (s.sup p) a b) },
+  have : continuous q,
+    from seminorm.continuous (mem_of_superset (metric.ball_mem_nhds _ ε_pos) hε),
+  rcases bound_of_continuous_normed_space q this with ⟨C, C_pos, hC⟩,
+  exact ⟨s, ⟨C, C_pos.le⟩, λ H, C_pos.ne.symm (congr_arg coe H), hC⟩
 end
 
 end seminorm

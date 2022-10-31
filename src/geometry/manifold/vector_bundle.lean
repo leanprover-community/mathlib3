@@ -40,6 +40,13 @@ def fiberwise_linear.local_homeomorph (φ : B → F ≃L[𝕜] F) {U : set B} (h
   continuous_to_fun := sorry,
   continuous_inv_fun := sorry }
 
+@[simp] lemma fiberwise_linear.source_local_homeomorph (φ : B → F ≃L[𝕜] F) {U : set B}
+  (hU : is_open U)
+  (hφ : continuous_on (λ x, φ x : B → F →L[𝕜] F) U)
+  (h2φ : continuous_on (λ x, (φ x).symm : B → F →L[𝕜] F) U) (p : B × F) :
+  fiberwise_linear.local_homeomorph φ hU hφ h2φ p = (p.1, φ p.1 p.2) :=
+rfl
+
 lemma fiberwise_linear.source_trans_local_homeomorph {φ : B → (F ≃L[𝕜] F)}
   {U : set B}
   (hU : is_open U)
@@ -79,6 +86,69 @@ variables {EB : Type*} [normed_add_comm_group EB] [normed_space 𝕜 EB]
   {HB : Type*} [topological_space HB] {IB : model_with_corners 𝕜 EB HB}
    [charted_space HB B] [smooth_manifold_with_corners IB B]
 
+lemma smooth_fibrewise_linear.locality_aux' (e : local_homeomorph (B × F) (B × F))
+  (U : set B) (hU : e.source = U ×ˢ univ)
+  (h : ∀ x ∈ U, ∃ (φ : B → (F ≃L[𝕜] F)) (u : set B) (hu : is_open u) (huU : u ⊆ U) (hux : x ∈ u)
+    (hφ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (φ x : F →L[𝕜] F)) u)
+    (h2φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, ((φ x).symm : F →L[𝕜] F)) u),
+    (e.restr (u ×ˢ univ)).eq_on_source
+      (fiberwise_linear.local_homeomorph φ hu hφ.continuous_on h2φ.continuous_on)) :
+  ∃ (Φ : B → (F ≃L[𝕜] F)) (U : set B) (hU₀ : is_open U)
+    (hΦ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (Φ x : F →L[𝕜] F)) U)
+    (h2Φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, ((Φ x).symm : F →L[𝕜] F)) U),
+    e.eq_on_source (fiberwise_linear.local_homeomorph Φ hU₀ hΦ.continuous_on h2Φ.continuous_on) :=
+begin
+  classical,
+  rw set_coe.forall' at h,
+  choose! φ u hu huU hux hφ h2φ heφ using h,
+  have H₀' : ∀ x : U, eq_on e (λ q, (q.1, φ x q.1 q.2)) (u x ×ˢ univ),
+  { intros x p hp,
+    refine (heφ x).2 _,
+    rw (heφ x).1,
+    exact hp },
+  have H₁ : ∀ (x x' : U) (y : B) (hyx : y ∈ u x) (hyx' : y ∈ u x'),
+    φ x y = φ x' y,
+  { intros p p' y hyp hyp',
+    ext v,
+    have h1 : e (y, v) = (y, φ p y v) := H₀' _ ⟨(id hyp : (y, v).fst ∈ u p), trivial⟩,
+    have h2 : e (y, v) = (y, φ p' y v) := H₀' _ ⟨(id hyp' : (y, v).fst ∈ u p'), trivial⟩,
+    exact congr_arg prod.snd (h1.symm.trans h2) },
+  have H₃ : U = ⋃ i, u i,
+  { ext x,
+    rw mem_Union,
+    refine ⟨λ h, ⟨⟨x, h⟩, hux _⟩, _⟩,
+    rintros ⟨x, hx⟩,
+    exact huU x hx },
+  have hU₀ : is_open U,
+  { rw H₃,
+    apply is_open_Union hu },
+  let Φ₀ : U → F ≃L[𝕜] F := Union_lift u (λ x, (φ x) ∘ coe) H₁ U H₃.le,
+  let Φ : B → F ≃L[𝕜] F := λ y, if hy : y ∈ U then Φ₀ ⟨y, hy⟩ else continuous_linear_equiv.refl 𝕜 F,
+  have hΦ : ∀ (y) (hy : y ∈ U), Φ y = Φ₀ ⟨y, hy⟩ := λ y hy, dif_pos hy,
+  have hΦφ : ∀ x : U, ∀ y ∈ u x, Φ y = φ x y,
+  { intros x y hyu,
+    refine (hΦ y (huU x hyu)).trans _,
+    exact Union_lift_mk ⟨y, hyu⟩ _ },
+  have hΦ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ y, (Φ y : F →L[𝕜] F)) U,
+  { apply cont_mdiff_on_of_locally_cont_mdiff_on,
+    intros x hx,
+    refine ⟨u ⟨x, hx⟩, hu ⟨x, hx⟩, hux _, _⟩,
+    refine (cont_mdiff_on.congr (hφ ⟨x, hx⟩) _).mono (inter_subset_right _ _),
+    intros y hy,
+    rw hΦφ ⟨x, hx⟩ y hy },
+  have h2Φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ y, ((Φ y).symm : F →L[𝕜] F)) U,
+  { sorry },
+  have heΦ : e.eq_on_source (fiberwise_linear.local_homeomorph Φ hU₀ hΦ.continuous_on h2Φ.continuous_on),
+  { refine ⟨hU, _⟩,
+    intros p hp,
+    rw [hU] at hp,
+    rw H₀' ⟨p.fst, hp.1⟩ ⟨hux _, hp.2⟩,
+    congrm (_, _),
+    rw hΦφ,
+    exact hux _ },
+  exact ⟨Φ, U, hU₀, hΦ, h2Φ, heΦ⟩,
+end
+
 lemma smooth_fibrewise_linear.locality_aux (e : local_homeomorph (B × F) (B × F))
   (h : ∀ p ∈ e.source, ∃ s : set (B × F), is_open s ∧ p ∈ s ∧
     ∃ (φ : B → (F ≃L[𝕜] F)) (u : set B) (hu : is_open u)
@@ -86,66 +156,46 @@ lemma smooth_fibrewise_linear.locality_aux (e : local_homeomorph (B × F) (B × 
       (h2φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, ((φ x).symm : F →L[𝕜] F)) u),
       (e.restr s).eq_on_source
             (fiberwise_linear.local_homeomorph φ hu hφ.continuous_on h2φ.continuous_on)) :
-  ∃ (Φ : B → (F ≃L[𝕜] F)) (U : set B) (hU : is_open U)
-    (hΦ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (Φ x : F →L[𝕜] F)) U)
-    (h2Φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, ((Φ x).symm : F →L[𝕜] F)) U),
-    e.eq_on_source (fiberwise_linear.local_homeomorph Φ hU hΦ.continuous_on h2Φ.continuous_on) :=
+  ∃ (U : set B) (hU : e.source = U ×ˢ univ),
+  ∀ x ∈ U, ∃ (φ : B → (F ≃L[𝕜] F)) (u : set B) (hu : is_open u) (huU : u ⊆ U) (hux : x ∈ u)
+    (hφ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (φ x : F →L[𝕜] F)) u)
+    (h2φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, ((φ x).symm : F →L[𝕜] F)) u),
+    (e.restr (u ×ˢ univ)).eq_on_source
+      (fiberwise_linear.local_homeomorph φ hu hφ.continuous_on h2φ.continuous_on) :=
 begin
-  classical,
   rw set_coe.forall' at h,
   choose! s hs hsp φ u hu hφ h2φ heφ using h,
   have H₀ : ∀ p : e.source, e.source ∩ s p = u p ×ˢ univ,
   { intros p,
     rw ← e.restr_source' (s _) (hs _),
     exact (heφ p).1 },
+  have hesu : ∀ (p) (hp : p ∈ e.source), e.source ∩ s ⟨p, hp⟩ = u ⟨p, hp⟩ ×ˢ univ := λ p hp, H₀ ⟨p, hp⟩,
   have H₀'' : ∀ p : e.source, (p : B × F).fst ∈ u p,
   { intros p,
     suffices : (p : B × F) ∈ (u p : set B) ×ˢ (univ : set F),
-    { simpa only with mfld_simps using this },
+    { simpa only [mem_prod, mem_univ, and_true] using this },
     rw ← H₀,
     exact ⟨p.prop, hsp p⟩ },
-  have H₀' : ∀ p : e.source, eq_on e (λ q, (q.1, φ p q.1 q.2)) (e.source ∩ s p),
-  { intros p,
-    rw ← e.restr_source' (s _) (hs _),
-    exact (heφ p).2 },
-  have H₁ : ∀ (p p' : e.source) (y : B) (hyp : y ∈ u p) (hyp' : y ∈ u p'),
-    φ p y = φ p' y,
-  { intros p p' y hyx hyx',
-    ext v,
-    have h1 : e (y, v) = (y, φ p y v) := H₀' _ (by simp only [H₀, hyx] with mfld_simps),
-    have h2 : e (y, v) = (y, φ p' y v) := H₀' _ (by simp only [H₀, hyx'] with mfld_simps),
-    exact congr_arg prod.snd (h1.symm.trans h2) },
-  let U : set B := sorry, --prod.fst '' e.source,
-  have hU : is_open U := sorry,
-  have H₂ : U ⊆ prod.fst '' e.source := sorry,
-  have H₂' : prod.fst '' e.source ⊆ U := sorry,
-  have H₃ : U ⊆ ⋃ i, u i := sorry,
-  have H₄ : e.source = U ×ˢ univ := sorry,
-  let Φ₀ : U → F ≃L[𝕜] F := Union_lift u (λ x, (φ x) ∘ coe) H₁ U H₃,
-  let Φ : B → F ≃L[𝕜] F := λ y, if hy : y ∈ U then Φ₀ ⟨y, hy⟩ else continuous_linear_equiv.refl 𝕜 F,
-  have hΦφ : ∀ x : e.source, ∀ y ∈ U ∩ u x, Φ y = φ x y,
-  { rintros x y ⟨hyU, hyu⟩,
-    refine (dif_pos hyU).trans _,
-    exact Union_lift_mk ⟨y, hyu⟩ _ },
-  have hΦ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ y, (Φ y : F →L[𝕜] F)) U,
-  sorry { apply cont_mdiff_on_of_locally_cont_mdiff_on,
-    intros x hx,
-    obtain ⟨p, hp, rfl⟩ := H₂ hx,
-    refine ⟨u ⟨p, hp⟩, hu ⟨p, hp⟩, H₀'' _, _⟩,
-    refine cont_mdiff_on.congr ((hφ ⟨p, hp⟩).mono _) _,
-    { mfld_set_tac },
-    intros y hy,
-    rw hΦφ ⟨p, hp⟩ y hy },
-  have h2Φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ y, ((Φ y).symm : F →L[𝕜] F)) U,
-  { sorry },
-  have heΦ : e.eq_on_source (fiberwise_linear.local_homeomorph Φ hU hΦ.continuous_on h2Φ.continuous_on),
-  { refine ⟨H₄, _⟩,
-    intros p hp,
-    rw H₀' ⟨p, hp⟩ ⟨hp, hsp _⟩,
-    congrm (_, _),
-    rw hΦφ,
-    refine ⟨H₂' (mem_image_of_mem _ hp), H₀'' _⟩ },
-  exact ⟨Φ, U, hU, hΦ, h2Φ, heΦ⟩,
+  have H₂ : ∀ p : e.source, ∀ q : B × F, q.fst ∈ u p → q ∈ e.source,
+  { intros p q hq,
+    have : q ∈ u p ×ˢ (univ : set F) := ⟨hq, trivial⟩,
+    rw ← H₀ p at this,
+    exact this.1 },
+  have H₁ : e.source = (prod.fst '' e.source) ×ˢ (univ : set F),
+  { apply has_subset.subset.antisymm,
+    { intros p hp,
+      exact ⟨⟨p, hp, rfl⟩, trivial⟩ },
+    { rintros ⟨x, v⟩ ⟨⟨p, hp : p ∈ e.source, rfl : p.fst = x⟩, -⟩,
+      exact H₂ ⟨p, hp⟩ (p.fst, v) (H₀'' ⟨p, hp⟩) } },
+  refine ⟨prod.fst '' e.source, H₁, _⟩,
+  rintros x ⟨p, hp, rfl⟩,
+  refine ⟨φ ⟨p, hp⟩, u ⟨p, hp⟩, hu ⟨p, hp⟩, _, H₀'' _, hφ ⟨p, hp⟩, h2φ ⟨p, hp⟩, _⟩,
+  { intros y hy,
+    refine ⟨(y, 0), H₂ ⟨p, hp⟩ _ _, rfl⟩,
+    exact hy },
+  { rw ← hesu,
+    rw e.restr_source_inter,
+    exact heφ ⟨p, hp⟩ },
 end
 
 variables (F B IB)
@@ -184,10 +234,12 @@ def smooth_fiberwise_linear : structure_groupoid (B × F) :=
     { simp [fiberwise_linear.local_homeomorph] },
     { simp [fiberwise_linear.local_homeomorph] },
   end,
-  locality' := begin
+  locality' := begin -- a bit tricky, need to glue together a family of `φ`
     simp_rw [mem_Union],
-    exact smooth_fibrewise_linear.locality_aux,
-  end, -- a bit tricky, need to glue together a family of `φ`
+    intros e he,
+    obtain ⟨U, hU, h⟩ := smooth_fibrewise_linear.locality_aux e he,
+    exact smooth_fibrewise_linear.locality_aux' e U hU h,
+  end,
   eq_on_source' := begin
     simp_rw [mem_Union],
     rintros e e' ⟨φ, U, hU, hφ, h2φ, heφ⟩ hee',

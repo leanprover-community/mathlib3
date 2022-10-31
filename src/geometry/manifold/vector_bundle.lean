@@ -13,7 +13,7 @@ functions. -/
 
 noncomputable theory
 
-open set
+open set topological_space
 open_locale manifold topological_space
 
 /-! ### The groupoid of smooth, fibrewise-linear maps -/
@@ -80,18 +80,72 @@ variables {EB : Type*} [normed_add_comm_group EB] [normed_space 𝕜 EB]
    [charted_space HB B] [smooth_manifold_with_corners IB B]
 
 lemma smooth_fibrewise_linear.locality_aux (e : local_homeomorph (B × F) (B × F))
-  (h : ∀ x ∈ e.source, ∃ s : set (B × F), is_open s ∧ x ∈ s ∧
-    ∃ (φ : B → (F ≃L[𝕜] F)) (U : set B) (hU : is_open U)
-      (hφ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (φ x : F →L[𝕜] F)) U)
-      (h2φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, ((φ x).symm : F →L[𝕜] F)) U),
+  (h : ∀ p ∈ e.source, ∃ s : set (B × F), is_open s ∧ p ∈ s ∧
+    ∃ (φ : B → (F ≃L[𝕜] F)) (u : set B) (hu : is_open u)
+      (hφ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (φ x : F →L[𝕜] F)) u)
+      (h2φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, ((φ x).symm : F →L[𝕜] F)) u),
       (e.restr s).eq_on_source
-            (fiberwise_linear.local_homeomorph φ hU hφ.continuous_on h2φ.continuous_on)) :
+            (fiberwise_linear.local_homeomorph φ hu hφ.continuous_on h2φ.continuous_on)) :
   ∃ (Φ : B → (F ≃L[𝕜] F)) (U : set B) (hU : is_open U)
     (hΦ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (Φ x : F →L[𝕜] F)) U)
     (h2Φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, ((Φ x).symm : F →L[𝕜] F)) U),
     e.eq_on_source (fiberwise_linear.local_homeomorph Φ hU hΦ.continuous_on h2Φ.continuous_on) :=
 begin
-  sorry
+  classical,
+  rw set_coe.forall' at h,
+  choose! s hs hsp φ u hu hφ h2φ heφ using h,
+  have H₀ : ∀ p : e.source, e.source ∩ s p = u p ×ˢ univ,
+  { intros p,
+    rw ← e.restr_source' (s _) (hs _),
+    exact (heφ p).1 },
+  have H₀'' : ∀ p : e.source, (p : B × F).fst ∈ u p,
+  { intros p,
+    suffices : (p : B × F) ∈ (u p : set B) ×ˢ (univ : set F),
+    { simpa only with mfld_simps using this },
+    rw ← H₀,
+    exact ⟨p.prop, hsp p⟩ },
+  have H₀' : ∀ p : e.source, eq_on e (λ q, (q.1, φ p q.1 q.2)) (e.source ∩ s p),
+  { intros p,
+    rw ← e.restr_source' (s _) (hs _),
+    exact (heφ p).2 },
+  have H₁ : ∀ (p p' : e.source) (y : B) (hyp : y ∈ u p) (hyp' : y ∈ u p'),
+    φ p y = φ p' y,
+  { intros p p' y hyx hyx',
+    ext v,
+    have h1 : e (y, v) = (y, φ p y v) := H₀' _ (by simp only [H₀, hyx] with mfld_simps),
+    have h2 : e (y, v) = (y, φ p' y v) := H₀' _ (by simp only [H₀, hyx'] with mfld_simps),
+    exact congr_arg prod.snd (h1.symm.trans h2) },
+  let U : set B := sorry, --prod.fst '' e.source,
+  have hU : is_open U := sorry,
+  have H₂ : U ⊆ prod.fst '' e.source := sorry,
+  have H₂' : prod.fst '' e.source ⊆ U := sorry,
+  have H₃ : U ⊆ ⋃ i, u i := sorry,
+  have H₄ : e.source = U ×ˢ univ := sorry,
+  let Φ₀ : U → F ≃L[𝕜] F := Union_lift u (λ x, (φ x) ∘ coe) H₁ U H₃,
+  let Φ : B → F ≃L[𝕜] F := λ y, if hy : y ∈ U then Φ₀ ⟨y, hy⟩ else continuous_linear_equiv.refl 𝕜 F,
+  have hΦφ : ∀ x : e.source, ∀ y ∈ U ∩ u x, Φ y = φ x y,
+  { rintros x y ⟨hyU, hyu⟩,
+    refine (dif_pos hyU).trans _,
+    exact Union_lift_mk ⟨y, hyu⟩ _ },
+  have hΦ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ y, (Φ y : F →L[𝕜] F)) U,
+  sorry { apply cont_mdiff_on_of_locally_cont_mdiff_on,
+    intros x hx,
+    obtain ⟨p, hp, rfl⟩ := H₂ hx,
+    refine ⟨u ⟨p, hp⟩, hu ⟨p, hp⟩, H₀'' _, _⟩,
+    refine cont_mdiff_on.congr ((hφ ⟨p, hp⟩).mono _) _,
+    { mfld_set_tac },
+    intros y hy,
+    rw hΦφ ⟨p, hp⟩ y hy },
+  have h2Φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ y, ((Φ y).symm : F →L[𝕜] F)) U,
+  { sorry },
+  have heΦ : e.eq_on_source (fiberwise_linear.local_homeomorph Φ hU hΦ.continuous_on h2Φ.continuous_on),
+  { refine ⟨H₄, _⟩,
+    intros p hp,
+    rw H₀' ⟨p, hp⟩ ⟨hp, hsp _⟩,
+    congrm (_, _),
+    rw hΦφ,
+    refine ⟨H₂' (mem_image_of_mem _ hp), H₀'' _⟩ },
+  exact ⟨Φ, U, hU, hΦ, h2Φ, heΦ⟩,
 end
 
 variables (F B IB)

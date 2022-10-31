@@ -224,21 +224,20 @@ end has_smul
 end add_group
 
 section module
-variables [add_comm_group E] [add_comm_group F] [add_comm_group G]
-variables [add_comm_group E₂] [add_comm_group E₃]
 variables [semi_normed_ring 𝕜₂] [semi_normed_ring 𝕜₃]
-variables [module 𝕜 E] [module 𝕜 F] [module 𝕜 G] [module 𝕜₂ E₂] [module 𝕜₃ E₃]
 variables {σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂]
 variables {σ₂₃ : 𝕜₂ →+* 𝕜₃} [ring_hom_isometric σ₂₃]
 variables {σ₁₃ : 𝕜 →+* 𝕜₃} [ring_hom_isometric σ₁₃]
+variables [add_comm_group E] [add_comm_group E₂] [add_comm_group E₃]
+variables [add_comm_group F] [add_comm_group G]
+variables [module 𝕜 E] [module 𝕜₂ E₂] [module 𝕜₃ E₃] [module 𝕜 F] [module 𝕜 G]
 variables [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
 
 /-- Composition of a seminorm with a linear map is a seminorm. -/
-def comp (p : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) :
-  seminorm 𝕜 E :=
+def comp (p : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) : seminorm 𝕜 E :=
 { to_fun    := λ x, p (f x),
   smul'     := λ k x, by rw [map_smulₛₗ, map_smul_eq_mul, ring_hom_isometric.is_iso],
-  ..(p.to_add_group_seminorm.comp (f : E →+ E₂)) }
+  ..(p.to_add_group_seminorm.comp f.to_add_monoid_hom) }
 
 lemma coe_comp (p : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) : ⇑(p.comp f) = p ∘ f := rfl
 
@@ -254,8 +253,8 @@ ext $ λ _, map_zero p
 @[simp] lemma zero_comp (f : E →ₛₗ[σ₁₂] E₂) : (0 : seminorm 𝕜₂ E₂).comp f = 0 :=
 ext $ λ _, rfl
 
-lemma comp_comp [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] (p : seminorm 𝕜₃ E₃) (g : E₂ →ₛₗ[σ₂₃] E₃)
-  (f : E →ₛₗ[σ₁₂] E₂) :
+lemma comp_comp [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] (p : seminorm 𝕜₃ E₃)
+  (g : E₂ →ₛₗ[σ₂₃] E₃) (f : E →ₛₗ[σ₁₂] E₂) :
   p.comp (g.comp f) = (p.comp g).comp f :=
 ext $ λ _, rfl
 
@@ -270,7 +269,7 @@ lemma smul_comp (p : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) (c 
   (c • p).comp f = c • (p.comp f) :=
 ext $ λ _, rfl
 
-lemma comp_mono {p : seminorm 𝕜₂ E₂} {q : seminorm 𝕜₂ E₂} (f : E →ₛₗ[σ₁₂] E₂) (hp : p ≤ q) :
+lemma comp_mono {p q : seminorm 𝕜₂ E₂} (f : E →ₛₗ[σ₁₂] E₂) (hp : p ≤ q) :
   p.comp f ≤ q.comp f := λ _, hp _
 
 /-- The composition as an `add_monoid_hom`. -/
@@ -364,9 +363,9 @@ end module
 end semi_normed_ring
 
 section semi_normed_comm_ring
-variables [semi_normed_comm_ring 𝕜] [semi_normed_comm_ring 𝕜₂]
-variables [add_comm_group E] [add_comm_group E₂] [module 𝕜 E] [module 𝕜₂ E₂]
+variables [semi_normed_ring 𝕜] [semi_normed_comm_ring 𝕜₂]
 variables {σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂]
+variables [add_comm_group E] [add_comm_group E₂] [module 𝕜 E] [module 𝕜₂ E₂]
 
 lemma comp_smul (p : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) (c : 𝕜₂) :
   p.comp (c • f) = ∥c∥₊ • p.comp f :=
@@ -645,16 +644,17 @@ end has_smul
 section module
 
 variables [module 𝕜 E]
-variables [add_comm_group F] [module 𝕜 F]
+variables [semi_normed_ring 𝕜₂] [add_comm_group E₂] [module 𝕜₂ E₂]
+variables {σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂]
 
-lemma ball_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (x : E) (r : ℝ) :
+lemma ball_comp (p : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) (x : E) (r : ℝ) :
   (p.comp f).ball x r = f ⁻¹' (p.ball (f x) r) :=
 begin
   ext,
   simp_rw [ball, mem_preimage, comp_apply, set.mem_set_of_eq, map_sub],
 end
 
-lemma closed_ball_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (x : E) (r : ℝ) :
+lemma closed_ball_comp (p : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) (x : E) (r : ℝ) :
   (p.comp f).closed_ball x r = f ⁻¹' (p.closed_ball (f x) r) :=
 begin
   ext,

@@ -539,6 +539,10 @@ by rw ← of_equiv_card f; congr
 lemma card_congr' {α β} [fintype α] [fintype β] (h : α = β) : card α = card β :=
 card_congr (by rw h)
 
+@[simp] lemma card_univ (α) [fintype α] [fintype (set.univ : set α)] :
+  card (set.univ : set α) = card α :=
+card_congr (equiv.set.univ α)
+
 section
 
 variables [fintype α] [fintype β]

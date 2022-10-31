@@ -38,6 +38,9 @@ begin
   rw [count_cons_of_ne x.bnot_ne_self, hl.count_bnot, h2, count_cons_self]
 end
 
+theorem count_ff_eq_count_tt (hl : chain' (≠) l) (h2 : even (length l)) : count ff l = count tt l :=
+hl.count_bnot_eq_count h2 tt
+
 theorem two_mul_count_bool_of_even (hl : chain' (≠) l) (h2 : even (length l)) (b : bool) :
   2 * count b l = length l :=
 by rw [← count_bnot_add_count l b, hl.count_bnot_eq_count h2, two_mul]

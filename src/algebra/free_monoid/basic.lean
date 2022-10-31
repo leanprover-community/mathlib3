@@ -149,6 +149,9 @@ lemma lift_symm_apply (f : free_monoid α →* M) : lift.symm f = f ∘ of := rf
 @[to_additive]
 lemma lift_apply (f : α → M) (l : free_monoid α) : lift f l = (l.to_list.map f).prod := rfl
 
+@[simp, to_additive]
+lemma lift_of_list (f : α → M) (l : list α) : lift f (of_list l) = (l.map f).prod := rfl
+
 @[to_additive] lemma lift_comp_of (f : α → M) : lift f ∘ of = f := lift.symm_apply_apply f
 
 @[simp, to_additive]

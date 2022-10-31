@@ -10,6 +10,8 @@ namespace mul_z2
 
 instance : fintype mul_z2 := ⟨{one, a}, λ x, by cases x; simp⟩
 
+@[simp] lemma card_eq : fintype.card mul_z2 = 2 := rfl
+
 def elim {α : Sort*} (x y : α) : mul_z2 → α := λ z, mul_z2.rec_on z x y
 
 protected def mul : mul_z2 → mul_z2 → mul_z2

@@ -77,6 +77,10 @@ clift (free_monoid.lift $ sum.elim f g)
   (λ x y, by simp only [lift_eval_of, sum.elim_inl, map_mul])
   (λ x y, by simp only [lift_eval_of, sum.elim_inr, map_mul])
 
+@[simp] lemma lift_apply_mk (f : M →* P) (g : N →* P) (x : free_monoid (M ⊕ N)) :
+  lift f g (mk x) = free_monoid.lift (sum.elim f g) x :=
+rfl
+
 @[simp] lemma lift_apply_inl (f : M →* P) (g : N →* P) (x : M) :
   lift f g (inl x) = f x :=
 (clift_apply_inl _ _ _ _ _ _).trans (lift_eval_of _ _)
@@ -204,11 +208,14 @@ instance : group (G ⋆ H) :=
 (to_list : list (M ⊕ N))
 (inl_one_nmem : sum.inl 1 ∉ to_list)
 (inr_one_nmem : sum.inr (1 : N) ∉ to_list)
-(chain'_rel : to_list.chain' ((≠) on sum.is_left))
+(chain'_ne_on : to_list.chain' ((≠) on sum.is_left))
 
 namespace word
 
 instance : has_one (word M N) := ⟨⟨[], not_mem_nil _, not_mem_nil _, chain'_nil⟩⟩
+
+lemma chain'_ne_map (w : word M N) : (w.1.map sum.is_left).chain' (≠) :=
+(list.chain'_map _).2 w.4
 
 @[simp] lemma to_list_one : (1 : word M N).to_list = [] := rfl
 @[simp] lemma mk_nil (h₁ h₂ h₃) : (mk [] h₁ h₂ h₃ : word M N) = 1 := rfl
@@ -505,8 +512,8 @@ def fst : word M N →* M := lift (monoid_hom.id _) 1
 def snd : word M N →* N := lift 1 (monoid_hom.id _)
 def to_prod : word M N →* M × N := lift (monoid_hom.inl _ _) (monoid_hom.inr _ _)
 
-@[simp] lemma lift_apply_mk (f : M →* P) (g : N →* P) (w : list (M ⊕ N)) (hl hr hc) :
-  lift f g (mk w hl hr hc) = free_prod.lift f g (free_prod.mk (of_list w)) :=
+@[simp] lemma lift_apply_mk (f : M →* P) (g : N →* P) (l : list (M ⊕ N)) (hl hr hc) :
+  lift f g (mk l hl hr hc) = (l.map (sum.elim f g)).prod :=
 rfl
 
 @[simp] lemma lift_apply_inl (f : M →* P) (g : N →* P) (x : M) :
@@ -540,6 +547,12 @@ end
 @[simp] lemma snd_apply_inl (x : M) : snd (inl x : word M N) = 1 := lift_apply_inl _ _ _
 @[simp] lemma snd_comp_inr : (snd : word M N →* N).comp inr = monoid_hom.id _ := lift_comp_inr _ _
 @[simp] lemma snd_apply_inr (x : N) : snd (inr x : word M N) = x := lift_apply_inr _ _ _
+
+lemma fst_surjective : surjective (fst : word M N → M) := left_inverse.surjective fst_apply_inl
+lemma snd_surjective : surjective (snd : word M N → N) := left_inverse.surjective snd_apply_inr
+
+@[simp] lemma range_fst : set.range (fst : word M N → M) = univ := fst_surjective.range_eq
+@[simp] lemma range_snd : set.range (snd : word M N → N) = univ := snd_surjective.range_eq
 
 @[simp] lemma to_prod_comp_inl : (to_prod : word M N →* M × N).comp inl = monoid_hom.inl _ _ :=
 lift_comp_inl _ _
@@ -650,6 +663,14 @@ lemma z2_prod_mker_fst_inv₂ :
   end
 | (sum.inl x :: sum.inr y :: sum.inr z :: l) _ _ h := (h.tail.rel_head rfl).elim
 
+lemma z2_prod_mker_fst_aux₂_eq_join : ∀ l : list (M ⊕ M),
+  z2_prod_mker_fst_aux₂ l =
+    (l.map (sum.elim (λ x, [sum.inl σ, sum.inr x, sum.inl σ]) (λ x, [sum.inr x]))).join
+| [] := rfl
+| (sum.inl x::l) := congr_arg2 list.cons rfl $ congr_arg2 list.cons rfl $ congr_arg2 list.cons rfl $
+    z2_prod_mker_fst_aux₂_eq_join l
+| (sum.inr x::l) := congr_arg2 list.cons rfl $ z2_prod_mker_fst_aux₂_eq_join l
+
 variables [decidable_eq M]
 
 def z2_prod_mker_fst_fun (w : word M M) : (fst : word ℤ₂ M →* ℤ₂).mker :=
@@ -661,10 +682,11 @@ def z2_prod_mker_fst_fun (w : word M M) : (fst : word ℤ₂ M →* ℤ₂).mker
   inr_one_nmem_z2_prod_mker_fst_aux₂.2 ⟨w.2, w.3⟩,
   (chain'_z2_prod_mker_fst_aux₂ _).2 w.4⟩,
   begin
-    rw [monoid_hom.mem_mker, fst, lift_apply_mk, ← free_prod.fst],
+    simp_rw [monoid_hom.mem_mker, fst, lift_apply_mk, z2_prod_mker_fst_aux₂_eq_join],
     induction w.to_list with x l ihl, { refl },
-    cases x; simp only [z2_prod_mker_fst_aux₂, of_list_cons, map_mul, mk_of_inl, mk_of_inr,
-      free_prod.fst_apply_inl, free_prod.fst_apply_inr, ← mul_assoc, mul_one, ihl, mul_z2.mul_self]
+    cases x; simp only [map_cons, sum.elim_inl, sum.elim_inr, join, map_append,
+      monoid_hom.one_apply, monoid_hom.id_apply, prod_append, prod_cons, one_mul, ihl, map_nil,
+      prod_nil, mul_one, mul_z2.mul_self]
   end⟩
 
 lemma z2_prod_mker_fst_fun_cons' {x : (M ⊕ M)} {w : word M M} (h) :
@@ -713,15 +735,10 @@ def z2_prod_mker_fst : word M M ≃* (fst : word ℤ₂ M →* ℤ₂).mker :=
   right_inv := λ w, subtype.ext $ ext _ _ $ z2_prod_mker_fst_inv₂ w.1.1 w.1.2 w.2 w.1.4,
   map_mul' := map_mul _ }
 
-lemma to_list_coe_z2_prod_mker_fst : ∀ w : word M M,
+lemma to_list_coe_z2_prod_mker_fst (w : word M M) :
   (w.z2_prod_mker_fst : word ℤ₂ M).to_list =
-    (w.to_list.map (sum.elim (λ x, [sum.inl σ, sum.inr x, sum.inl σ]) (λ x, [sum.inr x]))).join
-| ⟨[], _, _, _⟩ := rfl
-| w@⟨sum.inl x::l, hl, hr, hc⟩ :=
-  congr_arg2 list.cons rfl $ congr_arg2 list.cons rfl $ congr_arg2 list.cons rfl $
-    to_list_coe_z2_prod_mker_fst { to_list := l, .. w.tail }
-| w@⟨sum.inr x::l, hl, hr, hc⟩ :=
-  congr_arg2 list.cons rfl $ to_list_coe_z2_prod_mker_fst { to_list := l, .. w.tail }
+    (w.to_list.map (sum.elim (λ x, [sum.inl σ, sum.inr x, sum.inl σ]) (λ x, [sum.inr x]))).join :=
+z2_prod_mker_fst_aux₂_eq_join _
 
 end word
 

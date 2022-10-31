@@ -180,7 +180,9 @@ open generator
 @[derive [decidable_eq, group, mul_action (free_monoid (ℤ₂ ⊕ (ℤ₂ × ℤ₂)))]]
 def word : Type := free_prod.word ℤ₂ (ℤ₂ × ℤ₂)
 
-def word.even_a : subgroup word := monoid_hom.ker free_prod.word.fst
+def word.fst : word →* ℤ₂ := free_prod.word.fst
+
+def word.even_a : subgroup word := monoid_hom.ker word.fst
 
 @[derive [decidable_eq, group]]
 def even_a_word : Type := free_prod.word (ℤ₂ × ℤ₂) (ℤ₂ × ℤ₂)
@@ -203,6 +205,23 @@ free_prod.word.lift_apply_inl _ _ _
 @[simp] lemma proj_apply_inr (x : ℤ₂ × ℤ₂) : proj (free_prod.word.inr x) = (proj₂ x, proj₁ x) :=
 free_prod.word.lift_apply_inr _ _ _
 
+lemma proj_apply_mk (l hl hr hc) :
+  proj ⟨l, hl, hr, hc⟩ =
+    ((l.map $ sum.elim proj₁ proj₂).prod, (l.map $ sum.elim proj₂ proj₁).prod) :=
+begin
+  rw [proj, free_prod.word.lift_apply_mk],
+  clear hl hr hc,
+  induction l with x l ihl,
+  { refl },
+  { cases x; simp only [map_cons, sum.elim_inl, sum.elim_inr, prod_cons, ihl,
+      monoid_hom.prod_apply, prod.mk_mul_mk] }
+end
+
+lemma proj_apply (w : even_a_word) :
+  proj w =
+    ((w.1.map $ sum.elim proj₁ proj₂).prod, (w.1.map $ sum.elim proj₂ proj₁).prod) :=
+by { cases w, apply proj_apply_mk }
+
 end even_a_word
 
 lemma exists_eta : ∃ η ∈ Ioo (0.81053 : ℝ) 0.81054, η ^ 3 + η ^ 2 + η = (2 : ℝ) :=
@@ -224,7 +243,7 @@ lemma eta_lt_one : η < 1 := eta_lt_081054.trans (by norm_num)
 lemma eta_le_one : η ≤ 1 := eta_lt_one.le
 lemma eta_lt_two : η < 2 := eta_lt_one.trans one_lt_two
 
-lemma eta_sq_lt_eta : η ^ 2 < η := pow_lt_self eta_pos eta_lt_one one_lt_two
+lemma eta_sq_lt_eta : η ^ 2 < η := pow_lt_self_of_lt_one eta_pos eta_lt_one one_lt_two
 lemma eta_cube_lt_eta_sq : η ^ 3 < η ^ 2 := pow_lt_pow_of_lt_one eta_pos eta_lt_one dec_trivial
 lemma eta_cube_lt_eta : η ^ 3 < η := eta_cube_lt_eta_sq.trans eta_sq_lt_eta
 
@@ -302,6 +321,10 @@ end
 
 namespace word
 
+@[simp] lemma index_even_a : even_a.index = 2 := by simp [even_a, fst]
+
+lemma sq_mem_ker (w : word) : w ^ 2 ∈ even_a := subgroup.sq_mem_of_index_two index_even_a w
+
 def weight (w : word) : ℝ := (w.to_list.map weight₁).sum
 
 @[simp] lemma weight_cons' {x : ℤ₂ ⊕ ℤ₂ × ℤ₂} {w : word} (h) :
@@ -364,6 +387,14 @@ end
 lemma weight_mul_le (w₁ w₂ : word) : weight (w₁ * w₂) ≤ weight w₁ + weight w₂ :=
 weight_smul_le _ _
 
+lemma weight_prod_le : ∀ l : list word, weight l.prod ≤ (l.map weight).sum
+| [] := le_rfl
+| (w :: l) :=
+  begin
+    rw [prod_cons, map_cons, sum_cons],
+    exact (weight_mul_le _ _).trans (add_le_add_left (weight_prod_le _) _)
+  end
+
 end word
 
 namespace even_a_word
@@ -393,9 +424,32 @@ begin
     simp }
 end
 
-lemma weight_z2_prod_mker_fst (w : even_a_word) :
-  word.weight (free_prod.word.z2_prod_mker_fst w).1 =
-    (w.1.map (λ x, sum.elim (weight₁ ∘ sum.inr) (weight₁ ∘ sum.inr) x)).sum +
+lemma weight_proj_le_eta_mul_weight_add_length (w : even_a_word) :
+  (proj w).1.weight + (proj w).2.weight ≤
+    η * ((w.1.map $ sum.elim (weight₁ ∘ sum.inr) (weight₁ ∘ sum.inr)).sum +
+      w.1.length * weight₁ (sum.inl σ)) :=
+calc (proj w).1.weight + (proj w).2.weight
+    = (map (sum.elim proj₁ proj₂) w.1).prod.weight + (map (sum.elim proj₂ proj₁) w.1).prod.weight :
+  by simp only [proj_apply]
+... ≤ ((map (sum.elim proj₁ proj₂) w.1).map word.weight).sum
+      + ((map (sum.elim proj₂ proj₁) w.1).map word.weight).sum :
+  add_le_add (word.weight_prod_le _) (word.weight_prod_le _)
+... = (map (sum.elim (word.weight ∘ proj₁) (word.weight ∘ proj₂)
+            + sum.elim (word.weight ∘ proj₂) (word.weight ∘ proj₁)) w.1).sum :
+  by simp only [list.map_map, sum.comp_elim, sum_map_add, pi.add_def]
+... = (map (sum.elim (word.weight ∘ proj₁ + word.weight ∘ proj₂)
+        (word.weight ∘ proj₁ + word.weight ∘ proj₂)) w.1).sum :
+  congr_arg _ $ congr_arg2 _ (funext $ sum.forall.2 ⟨λ _, rfl, λ _, add_comm _ _⟩) rfl
+... ≤ (map (λ x, η * (weight₁ (sum.inl σ) +
+        sum.elim (weight₁ ∘ sum.inr) (weight₁ ∘ sum.inr) x)) w.1).sum :
+  sum_le_sum $ sum.forall.2
+    ⟨λ x hx, weight_proj₁_add_proj₂_le _, λ x hx, weight_proj₁_add_proj₂_le _⟩
+... = _ :
+  by simp only [sum_map_mul_left, add_comm, sum_map_add, map_const, sum_repeat, nsmul_eq_mul]
+
+lemma weight_equiv_ker (w : even_a_word) :
+  word.weight (equiv_ker w) =
+    (w.1.map (sum.elim (weight₁ ∘ sum.inr) (weight₁ ∘ sum.inr))).sum +
       2 * count tt (w.1.map sum.is_left) * weight₁ (sum.inl σ) :=
 begin
   cases w with l hl hr hc,
@@ -403,8 +457,8 @@ begin
   { simp only [free_prod.word.mk_nil, map_one, subtype.val_eq_coe, submonoid.coe_one,
       word.weight_one, map_nil, sum_nil, count_nil, nat.cast_zero, mul_zero, zero_mul, add_zero] },
   { replace ihl := let w := (free_prod.word.mk (x :: l) hl hr hc).tail in ihl w.2 w.3 w.4,
-    simp only [subtype.val_eq_coe, word.weight, free_prod.word.to_list_coe_z2_prod_mker_fst,
-      map_cons, list.join, list.sum_append, map_append, sum_cons]
+    simp only [subtype.val_eq_coe, word.weight, equiv_ker, map_cons, list.join,
+      free_prod.word.to_list_coe_z2_prod_mker_fst, list.sum_append, map_append, sum_cons]
       at ihl ⊢,
     rw [ihl],
     cases x; simp only [list.map, sum.is_left, sum.elim_inl, sum.elim_inr, sum_cons, sum_nil,
@@ -413,36 +467,17 @@ begin
 end
 
 lemma weight_proj_le (w : even_a_word) :
-  (proj w).1.weight + (proj w).2.weight ≤ η * (word.weight (free_prod.word.z2_prod_mker_fst w).1 +
-    (count tt (w.1.map sum.is_left) - count ff (w.1.map sum.is_left)) * weight₁ (sum.inl σ)) :=
-begin
-
-end
-
-lemma weight_proj_le (w : even_a_word) :
-  (proj w).1.weight + (proj w).2.weight ≤ η * (word.weight (free_prod.word.z2_prod_mker_fst w).1 +
-    (count tt (w.1.map sum.is_left) - count ff (w.1.map sum.is_left)) * weight₁ (sum.inl σ)) :=
-begin
-  cases w with l hl hr hc,
-  induction l with x l ihl,
-  { simp only [free_prod.word.mk_nil, map_one, prod.fst_one, word.weight_one, prod.snd_one,
-      add_zero, subtype.val_eq_coe, submonoid.coe_one, map_nil, count_nil, nat.cast_zero, tsub_zero,
-      zero_mul, mul_zero] },
-  { set w := free_prod.word.mk (x :: l) hl hr hc,
-    specialize ihl w.tail.2 w.tail.3 w.tail.4,
-
- }
-end
+  (proj w).1.weight + (proj w).2.weight ≤ η * (word.weight (equiv_ker w) +
+    (count ff (w.1.map sum.is_left) - count tt (w.1.map sum.is_left)) * weight₁ (sum.inl σ)) :=
+w.weight_proj_le_eta_mul_weight_add_length.trans_eq $ by rw [weight_equiv_ker, add_assoc, ← add_mul,
+  ← length_map sum.is_left, ← count_tt_add_count_ff, two_mul, add_add_sub_cancel, nat.cast_add]
 
 lemma weight_proj_le_of_even (w : even_a_word) (hw : even w.to_list.length) :
-  (proj w).1.weight + (proj w).2.weight ≤ η * word.weight (free_prod.word.z2_prod_mker_fst w).1 :=
-begin
-  rcases hw with ⟨n, hn⟩,
-  induction n with n ihn generalizing w; cases w with l hl hr hc,
-  { obtain rfl : l = [], from length_eq_zero.1 hn,
-    simp },
-  { }
-end
+  (proj w).1.weight + (proj w).2.weight ≤ η * word.weight (equiv_ker w) :=
+w.weight_proj_le.trans_eq $ by rw [w.chain'_ne_map.count_ff_eq_count_tt (by rwa length_map),
+  sub_self, zero_mul, add_zero]
+
+lemma weight_proj_fst_eq_snd (w : word.even_a) (hw : even (length (w : word).1))
 
 end even_a_word
 

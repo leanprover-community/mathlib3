@@ -1994,6 +1994,7 @@ meta def positivity_ennreal_of_real : expr → tactic strictness
 | `(ennreal.of_real %%r) := do
     positive p ← core r,
     positive <$> mk_app ``ennreal_of_real_pos [p]
+-- This case is handled by `tactic.positivity_canon`
 | e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `ennreal.of_real r`"
 
 end tactic

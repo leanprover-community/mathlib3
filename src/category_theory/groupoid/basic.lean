@@ -19,7 +19,7 @@ variables (C : Type*) [groupoid C]
 
 section thin
 
-lemma is_thin_iff : quiver.is_thin C ↔ ∀ (c : C), subsingleton (c ⟶ c) :=
+lemma is_thin_iff : (∀ (c d : C), subsingleton (c ⟶ d)) ↔ (∀ (c : C), subsingleton (c ⟶ c)) :=
 begin
   refine ⟨λ h c, h c c, λ h c d, subsingleton.intro $ λ f g, _⟩,
   haveI := h d,

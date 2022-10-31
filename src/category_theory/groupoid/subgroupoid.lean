@@ -542,9 +542,10 @@ end hom
 section thin
 
 /-- A subgroupoid `is_thin` if it has at most one arrow between any two vertices. -/
-abbreviation is_thin := quiver.is_thin S.objs
+abbreviation is_thin := ∀ (c d : S.objs), subsingleton (S.arrows c d)
 
-lemma is_thin_iff : S.is_thin ↔ ∀ (c d : S.objs), subsingleton (S.arrows c d) := ⟨id, id⟩
+lemma is_thin_iff : S.is_thin ↔ ∀ (c : S.objs), subsingleton (S.arrows c c) := by
+{ apply is_thin_iff, }
 
 end thin
 
@@ -602,7 +603,7 @@ lemma full_objs : (full D).objs = D :=
 set.ext $ λ _, ⟨λ ⟨f,⟨h,_⟩⟩, h , λ h, ⟨𝟙 _,⟨h,h⟩⟩⟩
 
 @[simp] lemma mem_full_iff {c d : C} {f : c ⟶ d} : f ∈ (full D).arrows c d ↔ c ∈ D ∧ d ∈ D :=
-⟨id, id⟩
+iff.rfl
 
 @[simp] lemma mem_full_objs_iff {c : C} : c ∈ (full D).objs ↔ c ∈ D :=
 by { rw full_objs, }

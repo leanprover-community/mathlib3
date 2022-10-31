@@ -140,20 +140,28 @@ card_eq_zero_of_injective f.2 h
 lemma card_sum [finite α] [finite β] : nat.card (α ⊕ β) = nat.card α + nat.card β :=
 by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, simp }
 
-lemma nat.card_union_le {α : Type*} {s t : set α} [finite s] [finite t] :
-  nat.card ↥(s ∪ t) ≤ nat.card s + nat.card t :=
+end finite
+
+namespace set
+
+lemma card_union_le {α : Type*} {s t : set α} : nat.card ↥(s ∪ t) ≤ nat.card s + nat.card t :=
 begin
-  rw [←cardinal.nat_cast_le, nat.cast_add, cast_card_eq_mk, cast_card_eq_mk, cast_card_eq_mk],
-  exact cardinal.mk_union_le s t,
+  casesI _root_.finite_or_infinite ↥(s ∪ t) with h h,
+  { rw [finite_coe_iff, finite_union, ←finite_coe_iff, ←finite_coe_iff] at h,
+    casesI h,
+    rw [←cardinal.nat_cast_le, nat.cast_add,
+        finite.cast_card_eq_mk, finite.cast_card_eq_mk, finite.cast_card_eq_mk],
+    exact cardinal.mk_union_le s t },
+  { exact nat.card_eq_zero_of_infinite.trans_le (zero_le _) },
 end
 
-lemma nat.card_image_le {s : set α} [finite s] {f : α → β} : nat.card (f '' s) ≤ nat.card s :=
-card_le_of_surjective _ set.surjective_onto_image
+lemma card_image_le {s : set α} [finite s] {f : α → β} : nat.card (f '' s) ≤ nat.card s :=
+finite.card_le_of_surjective _ surjective_onto_image
 
-lemma nat.card_range_le [finite α] {f : α → β} : nat.card (set.range f) ≤ nat.card α :=
-card_le_of_surjective _ set.surjective_onto_range
+lemma card_range_le [finite α] {f : α → β} : nat.card (set.range f) ≤ nat.card α :=
+finite.card_le_of_surjective _ surjective_onto_range
 
-end finite
+end set
 
 theorem finite.card_subtype_le [finite α] (p : α → Prop) :
   nat.card {x // p x} ≤ nat.card α :=

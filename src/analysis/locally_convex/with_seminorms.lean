@@ -533,38 +533,21 @@ variables [nonempty ι] [nontrivially_normed_field 𝕜] [add_comm_group E] [mod
   [seminormed_add_comm_group F] [normed_space 𝕜 F]
   {p : seminorm_family 𝕜 E ι}
 
--- TODO better docstring
-/-- In a semi-`normed_space`, a continuous seminorm is zero on `{x | ∥x∥ = 0}`. -/
+/-- In a semi-`normed_space`, a continuous seminorm is zero on elements of norm `0`. -/
 lemma map_eq_zero_of_norm_zero (q : seminorm 𝕜 F)
   (hq : continuous q) {x : F} (hx : ∥x∥ = 0) : q x = 0 :=
 begin
-  replace hq : tendsto q (𝓝 0) (𝓝 0) := map_zero q ▸ hq.tendsto 0,
-  refine le_antisymm (le_of_forall_pos_le_add (λ ε ε_pos, _)) (map_nonneg q x),
-  rcases normed_add_comm_group.nhds_zero_basis_norm_lt.mem_iff.mp (hq $ Iio_mem_nhds ε_pos)
-    with ⟨δ, δ_pos, hδ⟩,
-  replace hδ : ∥x∥ < δ → q x < ε := @hδ x,
-  rw [hx] at hδ,
-  replace hδ := le_of_lt (hδ δ_pos),
-  rwa [zero_add]
+  rw ← map_zero q,
+  have : x ∈ closure ({0} : set F) := (@closure_zero_eq F _).symm ▸ hx,
+  refine ((specializes_iff_mem_closure.mpr this).map hq).eq.symm,
 end
 
-lemma seminorm.bound_of_shell
-  (p q : seminorm 𝕜 E) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)
-  (hf : ∀ x, ε / ∥c∥ ≤ p x → p x < ε → q x ≤ C * p x) {x : E} (hx : p x ≠ 0) :
-  q x ≤ C * p x :=
-begin
-  rcases p.rescale_to_shell hc ε_pos hx with ⟨δ, hδ, δxle, leδx, δinv⟩,
-  have := hf (δ • x) leδx δxle,
-  simpa only [map_smul_eq_mul, mul_left_comm C, mul_le_mul_left (norm_pos_iff.2 hδ)]
-    using hf (δ • x) leδx δxle
-end
-
-lemma seminorm.bound_of_shell_smul
-  (p q : seminorm 𝕜 E) {ε : ℝ} {C : ℝ≥0} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)
-  (hf : ∀ x, ε / ∥c∥ ≤ p x → p x < ε → q x ≤ (C • p) x) {x : E} (hx : p x ≠ 0) :
-  q x ≤ (C • p) x :=
-seminorm.bound_of_shell p q ε_pos hc hf hx
-
+/-- Let `F` be a semi-`normed_space` over a `nontrivially_normed_field`, and let `q` be a
+seminorm on `F`. If `q` is continuous, then it is uniformly controlled by the norm, that is there
+is some `C > 0` such that `∀ x, q x ≤ C * ∥x∥`.
+The continuity ensures boundedness on a ball of some radius `ε`. The nontriviality of the
+norm is then used to rescale any element into an element of norm in `[ε/C, ε[`, thus with a
+controlled image by `q`. The control of `q` at the original element follows by rescaling. -/
 lemma bound_of_continuous_normed_space (q : seminorm 𝕜 F)
   (hq : continuous q) : ∃ C, 0 < C ∧ (∀ x : F, q x ≤ C * ∥x∥) :=
 begin
@@ -582,11 +565,10 @@ begin
   rwa [← div_le_iff' this, one_div_div]
 end
 
--- TODO better dosctring
-/-- A continuous linear map between seminormed spaces is bounded when the field is nontrivially
-normed. The continuity ensures boundedness on a ball of some radius `ε`. The nontriviality of the
-norm is then used to rescale any element into an element of norm in `[ε/C, ε]`, whose image has a
-controlled norm. The norm control for the original element follows by rescaling. -/
+/-- Let `E` be a topological vector `nontrivially_normed_field` whose topology is generated
+by some family of seminorms `p`, and let `q` be a seminorm on `E`. If `q` is continuous,
+then it is uniformly controlled by *finitely many* seminorms of `p`, that is there
+is some finset `s` of the index set and some `C > 0` such that `q ≤ C • s.sup p`. -/
 lemma bound_of_continuous [t : topological_space E] (hp : with_seminorms p)
   (q : seminorm 𝕜 E) (hq : continuous q) :
   ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ q ≤ C • s.sup p :=

@@ -1048,10 +1048,10 @@ section nontrivially_normed_field
 
 variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
 
--- TODO better docstring
-/-- If there is a scalar `c` with `∥c∥>1`, then any element with nonzero norm can be
-moved by scalar multiplication to any shell of width `∥c∥`. Also recap information on the norm of
-the rescaling element that shows up in applications. -/
+/-- Let `p` be a seminorm on a vector space over a `nontrivially_normed_field`.
+If there is a scalar `c` with `∥c∥>1`, then any `x` such that `p x ≠ 0` can be
+moved by scalar multiplication to any `p`-shell of width `∥c∥`. Also recap information on the
+value of `p` on the rescaling element that shows up in applications. -/
 lemma rescale_to_shell (p : seminorm 𝕜 E) {c : 𝕜} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {x : E}
   (hx : p x ≠ 0) : ∃d:𝕜, d ≠ 0 ∧ p (d • x) < ε ∧ (ε/∥c∥ ≤ p (d • x)) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * p x) :=
 begin
@@ -1075,6 +1075,28 @@ begin
     rw [norm_inv, inv_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos), zpow_one, this, ← div_eq_inv_mul],
     exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
 end
+
+/-- Let `p` and `q` be two seminorms on a vector space over a `nontrivially_normed_field`.
+If we have `q x ≤ C * p x` on some shell of the form `{x | ε/∥c∥ ≤ p x < ε}` (where `ε > 0`
+and `∥c∥ > 1`), then we also have `q x ≤ C * p x` for all `x` such that `p x ≠ 0`. -/
+lemma seminorm.bound_of_shell
+  (p q : seminorm 𝕜 E) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)
+  (hf : ∀ x, ε / ∥c∥ ≤ p x → p x < ε → q x ≤ C * p x) {x : E} (hx : p x ≠ 0) :
+  q x ≤ C * p x :=
+begin
+  rcases p.rescale_to_shell hc ε_pos hx with ⟨δ, hδ, δxle, leδx, δinv⟩,
+  have := hf (δ • x) leδx δxle,
+  simpa only [map_smul_eq_mul, mul_left_comm C, mul_le_mul_left (norm_pos_iff.2 hδ)]
+    using hf (δ • x) leδx δxle
+end
+
+/-- A version of `seminorm.bound_of_shell` expressed using pointwise scalar multiplication of
+seminorms. -/
+lemma seminorm.bound_of_shell_smul
+  (p q : seminorm 𝕜 E) {ε : ℝ} {C : ℝ≥0} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)
+  (hf : ∀ x, ε / ∥c∥ ≤ p x → p x < ε → q x ≤ (C • p) x) {x : E} (hx : p x ≠ 0) :
+  q x ≤ (C • p) x :=
+seminorm.bound_of_shell p q ε_pos hc hf hx
 
 end nontrivially_normed_field
 

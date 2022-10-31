@@ -50,7 +50,7 @@ lemma Indep_fun.condexp_natrual_ae_eq_of_lt
   (hf : ∀ i, strongly_measurable (f i)) (hfi : Indep_fun (λ i, mβ) f μ) (hij : i < j) :
   μ[f j | filtration.natural f hf i] =ᵐ[μ] λ ω, μ[f j] :=
 condexp_indep_eq (hf j).measurable.comap_le (filtration.le _ _)
-  (measurable_space.comap_measurable $ f j).strongly_measurable
+  (comap_measurable $ f j).strongly_measurable
   (hfi.indep_comap_natural_of_lt hf hij)
 
 lemma Indep_set.condexp_indicator_filtration_of_set_ae_eq

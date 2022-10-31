@@ -26,10 +26,6 @@ is required to prove the generalized Borel-Cantelli.
   given a filtration `ℱ` and a sequence of sets `s` such that `s n ∈ ℱ n` for all `n`,
   `limsup at_top s` is almost everywhere equal to the set for which `∑ ℙ[s (n + 1)∣ℱ n] = ∞`.
 
-## TODO
-
-Prove the missing second Borel-Cantelli lemma using this generalized version.
-
 -/
 
 open filter

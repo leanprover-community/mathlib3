@@ -502,7 +502,7 @@ begin
   refl
 end
 
-lemma cont_with_seminorms_normed_space (F) [seminormed_add_comm_group F] [normed_space 𝕝 F]
+lemma cont_with_seminorms_normed_space (F) [seminormed_add_comm_group F] [normed_space 𝕝₂ F]
   [uniform_space E] [uniform_add_group E]
   {p : ι → seminorm 𝕝 E} (hp : with_seminorms p) (f : E →ₛₗ[τ₁₂] F)
   (hf : ∃ (s : finset ι) C : ℝ≥0, C ≠ 0 ∧ (norm_seminorm 𝕝₂ F).comp f ≤ C • s.sup p) :
@@ -534,7 +534,7 @@ variables [nonempty ι] [nontrivially_normed_field 𝕜] [add_comm_group E] [mod
   {p : seminorm_family 𝕜 E ι}
 
 -- TODO better docstring
-/-- If `∥x∥ = 0` and `f` is continuous then `∥f x∥ = 0`. -/
+/-- In a semi-`normed_space`, a continuous seminorm is zero on `{x | ∥x∥ = 0}`. -/
 lemma map_eq_zero_of_norm_zero (q : seminorm 𝕜 F)
   (hq : continuous q) {x : F} (hx : ∥x∥ = 0) : q x = 0 :=
 begin

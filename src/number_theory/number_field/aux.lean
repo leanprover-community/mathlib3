@@ -13,7 +13,7 @@ begin
   { rw [set.range_subset_iff, ← complex.coe_algebra_map] at this,
     have := (subalgebra.is_simple_order_of_finrank complex.finrank_real_complex).eq_bot_or_eq_top
       (subfield.to_intermediate_field K this).to_subalgebra,
-    simp_rw set_like.ext'_iff at this ⊢,
+    simp_rw ← set_like.coe_set_eq at this ⊢,
     convert this using 2,
     ext,
     simp only [ring_hom.coe_field_range, set.mem_range, complex.of_real_eq_coe, algebra.coe_bot,
@@ -39,24 +39,19 @@ begin
   letI : topological_ring K.topological_closure :=
       subring.topological_ring K.topological_closure.to_subring,
   set ι := subfield.inclusion (subfield.subfield_topological_closure K),
-  -- check that uniform_inducing is not enough
-  have ue : uniform_embedding ι :=
+  have ui : uniform_inducing ι :=
   { comap_uniformity :=
-      by { erw [uniformity_subtype, uniformity_subtype, filter.comap_comap], congr, },
-    inj := ι.injective, },
-  -- check that dense_range is not enough
-  let di := ue.dense_inducing (dense_range_of_subset_closure K),
-  have t1 := (uniform_continuous_uniformly_extend ue.to_uniform_inducing di.dense hc),
-  let extψ := dense_inducing.extend_hom ue.to_uniform_inducing di.dense hc,
+      by { erw [uniformity_subtype, uniformity_subtype, filter.comap_comap], congr, }},
+  let di := ui.dense_inducing (dense_range_of_subset_closure K),
+  let extψ := dense_inducing.extend_hom ui di.dense hc,
   have hK : is_closed (K.topological_closure : set ℂ) := subfield.is_closed_topological_closure K,
-  haveI := (uniform_continuous_uniformly_extend ue.to_uniform_inducing di.dense hc).continuous,
+  haveI := (uniform_continuous_uniformly_extend ui di.dense hc).continuous,
   cases complex.subfield_eq_of_closed hK,
   { left,
     let j := ring_equiv.subfield_congr h,
     -- ψ₁ is the continuous ring hom `ℝ →+* ℂ` constructed from `j : clos (K) ≃+* ℝ`
     -- and `extψ : clos (K) →+* ℂ`
     let ψ₁ := ring_hom.comp extψ (ring_hom.comp j.symm.to_ring_hom complex.of_real.range_restrict),
-    have := complex.ring_hom_eq_of_real_of_continuous (by continuity! : continuous ψ₁),
     ext1 x,
     rsuffices ⟨r, hr⟩ : ∃ r : ℝ, complex.of_real.range_restrict r = j (ι x),
     { have := ring_hom.congr_fun
@@ -71,8 +66,7 @@ begin
       { rw ← complex.of_real.coe_range_restrict,
         rw hr,
         refl,
-      },
-    },
+      }},
     obtain ⟨r, hr⟩ := set_like.coe_mem (j (ι x)),
     use r,
     rw ← ring_hom.coe_range_restrict at hr,
@@ -81,15 +75,13 @@ begin
     -- and `extψ : clos (K) →+* ℂ`
     let ψ₁ := ring_hom.comp extψ (ring_hom.comp (ring_equiv.subfield_congr h).symm.to_ring_hom
       (subfield.top_equiv ℂ).symm.to_ring_hom),
-      cases complex.ring_hom_eq_id_or_conj_of_continuous (by continuity! : continuous ψ₁) with h h,
-    { left, ext1 z, -- too many converts
+    cases complex.ring_hom_eq_id_or_conj_of_continuous (by continuity! : continuous ψ₁) with h h,
+    { left, ext1 z,
       convert (ring_hom.congr_fun h z) using 1,
-      convert (dense_inducing.extend_eq di hc.continuous z).symm,
-    },
+      exact (dense_inducing.extend_eq di hc.continuous z).symm, },
     { right, ext1 z,
       convert (ring_hom.congr_fun h z) using 1,
-      convert (dense_inducing.extend_eq di hc.continuous z).symm,
-    }},
+      exact (dense_inducing.extend_eq di hc.continuous z).symm, }},
 end
 
 end complex_subfield

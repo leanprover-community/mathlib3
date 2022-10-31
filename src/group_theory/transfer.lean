@@ -195,20 +195,6 @@ lemma _root_.subgroup.card_dvd_of_le' {G : Type*} [group G] {H K : subgroup G} (
   nat.card H ∣ nat.card K :=
 nat_card_dvd_of_injective (inclusion h) (inclusion_injective h)
 
--- PRed
-lemma _root_.is_p_group.card_eq_or_dvd {G : Type*} [group G] {p : ℕ} [fact p.prime]
-  (hG : is_p_group p G) : nat.card G = 1 ∨ p ∣ nat.card G :=
-begin
-  casesI fintype_or_infinite G,
-  { obtain ⟨n, hn⟩ := is_p_group.iff_card.mp hG,
-    rw [nat.card_eq_fintype_card, hn],
-    cases n,
-    { exact or.inl rfl },
-    { exact or.inr ⟨p ^ n, rfl⟩ } },
-  { rw nat.card_eq_zero_of_infinite,
-    exact or.inr ⟨0, rfl⟩ },
-end
-
 section burnside_transfer
 
 open_locale pointwise

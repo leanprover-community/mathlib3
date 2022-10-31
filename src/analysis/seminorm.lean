@@ -292,6 +292,31 @@ begin
         nnreal.coe_max, subtype.coe_mk, ih] }
 end
 
+lemma exists_apply_eq_finset_sup (p : ι → seminorm 𝕜 E) {s : finset ι} (hs : s.nonempty) (x : E) :
+  ∃ i ∈ s, s.sup p x = p i x :=
+begin
+  rcases finset.exists_mem_eq_sup s hs (λ i, (⟨p i x, map_nonneg _ _⟩ : ℝ≥0)) with ⟨i, hi, hix⟩,
+  simp_rw [finset_sup_apply, hix],
+  exact ⟨i, hi, rfl⟩
+end
+
+lemma zero_or_exists_apply_eq_finset_sup (p : ι → seminorm 𝕜 E) (s : finset ι) (x : E) :
+  s.sup p x = 0 ∨ ∃ i ∈ s, s.sup p x = p i x :=
+begin
+  rcases finset.eq_empty_or_nonempty s with (rfl|hs),
+  { left, refl },
+  { right, exact exists_apply_eq_finset_sup p hs x }
+end
+
+lemma finset_sup_smul (p : ι → seminorm 𝕜 E) (s : finset ι) (C : ℝ≥0) :
+  s.sup (λ i, C • p i) = C • s.sup p :=
+begin
+  ext,
+  rw [smul_apply, finset_sup_apply, finset_sup_apply],
+  symmetry,
+  exact congr_arg (coe : ℝ≥0 → ℝ) (nnreal.mul_finset_sup C s (λ i, ⟨p i x, map_nonneg _ _⟩)),
+end
+
 lemma finset_sup_le_sum (p : ι → seminorm 𝕜 E) (s : finset ι) : s.sup p ≤ ∑ i in s, p i :=
 begin
   classical,
@@ -308,6 +333,10 @@ begin
   rw [finset_sup_apply, nnreal.coe_le_coe],
   exact finset.sup_le h,
 end
+
+lemma le_finset_sup_apply {p : ι → seminorm 𝕜 E} {s : finset ι} {x : E} {i : ι}
+  (hi : i ∈ s) : p i x ≤ s.sup p x :=
+(finset.le_sup hi : p i ≤ s.sup p) x
 
 lemma finset_sup_apply_lt {p : ι → seminorm 𝕜 E} {s : finset ι} {x : E} {a : ℝ} (ha : 0 < a)
   (h : ∀ i, i ∈ s → p i x < a) : s.sup p x < a :=
@@ -995,6 +1024,40 @@ begin
 end
 
 end continuity
+
+section nontrivially_normed_field
+
+variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+
+-- TODO better docstring
+/-- If there is a scalar `c` with `∥c∥>1`, then any element with nonzero norm can be
+moved by scalar multiplication to any shell of width `∥c∥`. Also recap information on the norm of
+the rescaling element that shows up in applications. -/
+lemma rescale_to_shell (p : seminorm 𝕜 E) {c : 𝕜} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {x : E}
+  (hx : p x ≠ 0) : ∃d:𝕜, d ≠ 0 ∧ p (d • x) < ε ∧ (ε/∥c∥ ≤ p (d • x)) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * p x) :=
+begin
+  have xεpos : 0 < (p x)/ε := div_pos ((ne.symm hx).le_iff_lt.1 (map_nonneg p x)) εpos,
+  rcases exists_mem_Ico_zpow xεpos hc with ⟨n, hn⟩,
+  have cpos : 0 < ∥c∥ := lt_trans (zero_lt_one : (0 :ℝ) < 1) hc,
+  have cnpos : 0 < ∥c^(n+1)∥ := by { rw norm_zpow, exact lt_trans xεpos hn.2 },
+  refine ⟨(c^(n+1))⁻¹, _, _, _, _⟩,
+  show (c ^ (n + 1))⁻¹  ≠ 0,
+    by rwa [ne.def, inv_eq_zero, ← ne.def, ← norm_pos_iff],
+  show p ((c ^ (n + 1))⁻¹ • x) < ε,
+  { rw [map_smul_eq_mul, norm_inv, ← div_eq_inv_mul, div_lt_iff cnpos, mul_comm, norm_zpow],
+    exact (div_lt_iff εpos).1 (hn.2) },
+  show ε / ∥c∥ ≤ p ((c ^ (n + 1))⁻¹ • x),
+  { rw [div_le_iff cpos, map_smul_eq_mul, norm_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos),
+        zpow_one, mul_inv_rev, mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
+        one_mul, ← div_eq_inv_mul, le_div_iff (zpow_pos_of_pos cpos _), mul_comm],
+    exact (le_div_iff εpos).1 hn.1 },
+  show ∥(c ^ (n + 1))⁻¹∥⁻¹ ≤ ε⁻¹ * ∥c∥ * p x,
+  { have : ε⁻¹ * ∥c∥ * p x = ε⁻¹ * p x * ∥c∥, by ring,
+    rw [norm_inv, inv_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos), zpow_one, this, ← div_eq_inv_mul],
+    exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
+end
+
+end nontrivially_normed_field
 
 end seminorm
 

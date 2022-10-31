@@ -538,17 +538,39 @@ begin
   --exact le_of_lt (hq $ λ _ _, δ_pos)
 end
 
---lemma seminorm.bound_of_shell (hp : with_seminorms p)
---  (q : seminorm 𝕜 E) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)
---  (hf : ∀ x, ε / ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ C * ∥x∥) {x : E} (hx : ∥x∥ ≠ 0) :
---  ∥f x∥ ≤ C * ∥x∥ :=
---begin
---  rcases rescale_to_shell_semi_normed hc ε_pos hx with ⟨δ, hδ, δxle, leδx, δinv⟩,
---  have := hf (δ • x) leδx δxle,
---  simpa only [map_smulₛₗ, norm_smul, mul_left_comm C, mul_le_mul_left (norm_pos_iff.2 hδ),
---              ring_hom_isometric.is_iso] using hf (δ • x) leδx δxle
---end
+lemma seminorm.bound_of_shell
+  (p q : seminorm 𝕜 E) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)
+  (hf : ∀ x, ε / ∥c∥ ≤ p x → p x < ε → q x ≤ C * p x) {x : E} (hx : p x ≠ 0) :
+  q x ≤ C * p x :=
+begin
+  rcases p.rescale_to_shell hc ε_pos hx with ⟨δ, hδ, δxle, leδx, δinv⟩,
+  have := hf (δ • x) leδx δxle,
+  simpa only [map_smul_eq_mul, mul_left_comm C, mul_le_mul_left (norm_pos_iff.2 hδ)]
+    using hf (δ • x) leδx δxle
+end
 
+lemma seminorm.bound_of_shell_smul
+  (p q : seminorm 𝕜 E) {ε : ℝ} {C : ℝ≥0} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)
+  (hf : ∀ x, ε / ∥c∥ ≤ p x → p x < ε → q x ≤ (C • p) x) {x : E} (hx : p x ≠ 0) :
+  q x ≤ (C • p) x :=
+seminorm.bound_of_shell p q ε_pos hc hf hx
+
+lemma seminorm_family.bound_of_shell_sup (p : seminorm_family 𝕜 E ι) (s : finset ι)
+  (q : seminorm 𝕜 E) {ε : ℝ} {C : ℝ≥0} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)
+  (hf : ∀ x, (∀ i ∈ s, p i x < ε) → ∀ j ∈ s, ε / ∥c∥ ≤ p j x → q x ≤ (C • p j) x)
+  {x : E} (hx : ∃ j, j ∈ s ∧ p j x ≠ 0) :
+  q x ≤ (C • s.sup p) x :=
+begin
+  rcases hx with ⟨j, hj, hjx⟩,
+  have : (s.sup p) x ≠ 0,
+    from ne_of_gt ((hjx.symm.lt_of_le $ map_nonneg _ _).trans_le (le_finset_sup_apply hj)),
+  refine (s.sup p).bound_of_shell_smul q ε_pos hc (λ y hle hlt, _) this,
+  rcases exists_apply_eq_finset_sup p ⟨j, hj⟩ y with ⟨i, hi, hiy⟩,
+  rw [smul_apply, hiy],
+  exact hf y (λ k hk, (le_finset_sup_apply hk).trans_lt hlt) i hi (hiy ▸ hle)
+end
+
+-- TODO better dosctring
 /-- A continuous linear map between seminormed spaces is bounded when the field is nontrivially
 normed. The continuity ensures boundedness on a ball of some radius `ε`. The nontriviality of the
 norm is then used to rescale any element into an element of norm in `[ε/C, ε]`, whose image has a
@@ -568,10 +590,12 @@ begin
     from div_ne_zero (nnnorm_ne_zero_iff.mpr $ norm_pos_iff.mp $ one_pos.trans hc) nnε_ne,
   refine ⟨s, ∥c∥₊ / nnε, this, λ x, _⟩,
   by_cases hx : ∀ i ∈ s, p i x = 0,
-  { refine le_trans (le_of_eq $ map_eq_zero_of_bound_on_ball hp q ε_pos hVq hx) (map_nonneg _ x), },
-  refine semilinear_map_class.bound_of_shell_semi_normed f ε_pos hc (λ x hle hlt, _) hx,
-  refine (hε _ hlt).le.trans _,
-  rwa [← div_le_iff' this, one_div_div]
+  { exact le_trans (le_of_eq $ map_eq_zero_of_bound_on_ball hp q ε_pos hVq hx) (map_nonneg _ x) },
+  push_neg at hx,
+  refine p.bound_of_shell_sup s q ε_pos hc (λ y hlt i hi hle, _) hx,
+  refine (le_of_lt $ hVq hlt).trans _,
+  change 1 ≤ (∥c∥ / ε) * p i y,
+  rwa [← div_le_iff' (div_pos (one_pos.trans hc) ε_pos), one_div_div]
 end
 
 end seminorm

@@ -7,6 +7,7 @@ import algebra.algebra.tower
 import analysis.asymptotics.asymptotics
 import analysis.normed_space.linear_isometry
 import analysis.normed_space.riesz_lemma
+import analysis.locally_convex.with_seminorms
 
 /-!
 # Operator norm on the space of continuous linear maps
@@ -152,6 +153,20 @@ begin
   refine (hε _ hlt).le.trans _,
   rwa [← div_le_iff' this, one_div_div]
 end
+
+#check seminorm.comp
+
+/-- A continuous linear map between seminormed spaces is bounded when the field is nontrivially
+normed. The continuity ensures boundedness on a ball of some radius `ε`. The nontriviality of the
+norm is then used to rescale any element into an element of norm in `[ε/C, ε]`, whose image has a
+controlled norm. The norm control for the original element follows by rescaling. -/
+lemma semilinear_map_class.bound_of_continuous' [semilinear_map_class 𝓕 σ₁₂ E F] (f : 𝓕)
+  (hf : continuous f) : ∃ C, 0 < C ∧ (∀ x : E, ∥f x∥ ≤ C * ∥x∥) :=
+begin
+  have := ((norm_seminorm 𝕜₂ F).comp f).bound_of_continuous,
+end
+
+#exit
 
 end
 

@@ -581,7 +581,7 @@ end
 normed. The continuity ensures boundedness on a ball of some radius `ε`. The nontriviality of the
 norm is then used to rescale any element into an element of norm in `[ε/C, ε]`, whose image has a
 controlled norm. The norm control for the original element follows by rescaling. -/
-lemma seminorm.bound_of_continuous [t : topological_space E] (hp : with_seminorms p)
+lemma bound_of_continuous [t : topological_space E] (hp : with_seminorms p)
   (q : seminorm 𝕜 E) (hq : continuous q) :
   ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ q ≤ C • s.sup p :=
 begin

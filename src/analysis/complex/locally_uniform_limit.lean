@@ -155,7 +155,7 @@ end
 lemma _root_.tendsto_locally_uniformly_on.deriv :
   tendsto_locally_uniformly_on (deriv ∘ F) (deriv f) φ U :=
 begin
-  refine (tendsto_locally_uniformly_on_iff_forall_compact hU).mpr (λ K hKU hK, _),
+  refine (tendsto_locally_uniformly_on_iff_forall_is_compact hU).mpr (λ K hKU hK, _),
   obtain ⟨δ, hδ, hK4, h⟩ := exists_cthickening_tendsto_uniformly_on hf hF hU hK hKU,
   refine h.congr_right (λ z hz, _),
   refine cderiv_eq_deriv hU _ hδ ((closed_ball_subset_cthickening hz δ).trans hK4),

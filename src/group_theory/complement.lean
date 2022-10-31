@@ -361,13 +361,7 @@ lemma is_complement'.disjoint (h : is_complement' H K) : disjoint H K :=
 h.is_compl.disjoint
 
 lemma is_complement'.index_eq_card (h : is_complement' H K) : K.index = nat.card H :=
-begin
-  refine nat.card_congr (equiv.of_bijective (quotient_group.mk ∘ coe) _).symm,
-  exact ⟨λ x y hxy, subtype.ext (inv_mul_eq_one.mp (disjoint_def.mp h.symm.disjoint
-    (quotient_group.eq'.mp hxy) (x⁻¹ * y).2)), λ q, quotient_group.induction_on q
-      (λ g, let ⟨⟨x, y⟩, hxy⟩ := h.2 g in ⟨x, quotient_group.eq'.mpr
-        ((congr_arg (∈ K) (inv_mul_eq_iff_eq_mul.mpr hxy.symm)).mpr y.2)⟩)⟩,
-end
+nat.card_congr (equiv.of_bijective _ $ mem_left_transversals_iff_bijective.1 h).symm
 
 lemma is_complement.card_mul [fintype G] [fintype S] [fintype T] (h : is_complement S T) :
   fintype.card S * fintype.card T = fintype.card G :=

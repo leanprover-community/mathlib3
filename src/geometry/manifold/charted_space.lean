@@ -867,6 +867,14 @@ variable (G)
 lemma structure_groupoid.id_mem_maximal_atlas : local_homeomorph.refl H ∈ G.maximal_atlas H :=
 G.subset_maximal_atlas $ by simp
 
+/-- In the model space, any element of the groupoid is in the maximal atlas. -/
+lemma structure_groupoid.mem_maximal_atlas_of_mem_groupoid {f : local_homeomorph H H} (hf : f ∈ G) :
+  f ∈ G.maximal_atlas H :=
+begin
+  rintros e (rfl : e = local_homeomorph.refl H),
+  exact ⟨G.trans (G.symm hf) G.id_mem, G.trans (G.symm G.id_mem) hf⟩,
+end
+
 end maximal_atlas
 
 section singleton

@@ -1667,14 +1667,14 @@ begin
     -- in both directions.
     intros h,
     split,
-    sorry { -- First we consider the forward direction.  It suffices to show smoothness near each `x`
+    { -- First we consider the forward direction.  It suffices to show smoothness near each `x`
       apply cont_mdiff_on_of_locally_cont_mdiff_on,
       intros x hx,
       let c := chart_at H x,
       let c' := chart_at H (f x),
       obtain ⟨-, hxf⟩ := h x hx,
-      -- Since `f` is a local structomorph, it is locally equal to some transferred element `e` of the
-      -- `cont_diff_groupoid`.
+      -- Since `f` is a local structomorph, it is locally equal to some transferred element `e` of
+      -- the `cont_diff_groupoid`.
       obtain ⟨e, he, he' : eq_on (c' ∘ f ∘ c.symm) e (c.symm ⁻¹' f.source ∩ e.source),
         hex : c x ∈ e.source⟩ := hxf (by simp only [hx] with mfld_simps),
       -- We choose a convenient set `s` in `M`.
@@ -1758,7 +1758,7 @@ begin
         { simp only [hy] with mfld_simps } },
       refine (H₁.congr H₂).mono _,
       mfld_set_tac } },
-  sorry { -- We now show the converse: a local homeomorphism `f : M → M'` which is smooth in both
+  { -- We now show the converse: a local homeomorphism `f : M → M'` which is smooth in both
     -- directions is a local structomorphism.  We do this by proposing
     -- `((chart_at H x).symm.trans f).trans (chart_at H (f x))` as a candidate for a structomorphism
     -- of `H`.

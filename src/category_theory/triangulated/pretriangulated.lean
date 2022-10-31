@@ -78,7 +78,7 @@ class pretriangulated :=
   (∃ (c : T₁.obj₃ ⟶ T₂.obj₃), (T₁.mor₂ ≫ c = b ≫ T₂.mor₂) ∧ (T₁.mor₃ ≫ a⟦1⟧' = c ≫ T₂.mor₃) ))
 
 namespace pretriangulated
-variables [pretriangulated C]
+variables [pretriangulated C] [pretriangulated D]
 
 notation `dist_triang `:20 C := distinguished_triangles C
 /--
@@ -189,12 +189,11 @@ distinguished triangle `(X,Y,Z,f,g,h)` of `C`, the triangle
 `(F(X), F(Y), F(Z), F(f), F(g), F(h) ≫ (ξ X))` is a distinguished triangle of `D`.
 See <https://stacks.math.columbia.edu/tag/014V>
 -/
-structure triangulated_functor [pretriangulated C] [pretriangulated D] extends
-  triangulated_functor_struct C D :=
+structure triangulated_functor extends triangulated_functor_struct C D :=
 (map_distinguished' : Π (T : triangle C), (T ∈ dist_triang C) →
   (to_triangulated_functor_struct.map_triangle.obj T ∈ dist_triang D) )
 
-instance [pretriangulated C] : inhabited (triangulated_functor C C) :=
+instance : inhabited (triangulated_functor C C) :=
 ⟨{obj := λ X, X,
   map := λ _ _ f, f,
   comm_shift := by refl ,
@@ -204,7 +203,7 @@ instance [pretriangulated C] : inhabited (triangulated_functor C C) :=
     rwa category.comp_id,
   end }⟩
 
-variables {C D} [pretriangulated C] [pretriangulated D]
+variables {C D}
 /--
 Given a `triangulated_functor` we can define a functor from triangles of `C` to triangles of `D`.
 -/

@@ -212,5 +212,16 @@ def commutators : set G :=
 
 lemma commutators_def : commutators G = {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} := rfl
 
+lemma one_mem_commutators : (1 : G) ∈ commutators G :=
+⟨1, 1, commutator_element_self 1⟩
+
 instance : nonempty (commutators G) :=
-⟨⟨1, 1, 1, commutator_element_self 1⟩⟩
+⟨⟨1, one_mem_commutators G⟩⟩
+
+variables {G g}
+
+lemma mem_commutators_iff : g ∈ commutators G ↔ ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g :=
+iff.rfl
+
+lemma commutator_mem_commutators : ⁅g₁, g₂⁆ ∈ commutators G :=
+⟨g₁, g₂, rfl⟩

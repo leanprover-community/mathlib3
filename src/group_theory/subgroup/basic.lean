@@ -2051,6 +2051,10 @@ iff.rfl
 @[to_additive] lemma range_eq_map (f : G →* N) : f.range = (⊤ : subgroup G).map f :=
 by ext; simp
 
+@[simp, to_additive] lemma restrict_range (f : G →* N) : (f.restrict K).range = K.map f :=
+by simp_rw [set_like.ext_iff, mem_range, mem_map, restrict_apply, set_like.exists, subtype.coe_mk,
+  iff_self, forall_const]
+
 /-- The canonical surjective group homomorphism `G →* f(G)` induced by a group
 homomorphism `G →* N`. -/
 @[to_additive "The canonical surjective `add_group` homomorphism `G →+ f(G)` induced by a group
@@ -2176,6 +2180,9 @@ lemma comap_ker (g : N →* P) (f : G →* N) : g.ker.comap f = (g.comp f).ker :
 
 @[simp, to_additive] lemma comap_bot (f : G →* N) :
   (⊥ : subgroup N).comap f = f.ker := rfl
+
+@[simp, to_additive] lemma restrict_ker (f : G →* N) : (f.restrict K).ker = f.ker.subgroup_of K :=
+rfl
 
 @[to_additive] lemma range_restrict_ker  (f : G →* N) : ker (range_restrict f) = ker f :=
 begin
@@ -3105,13 +3112,12 @@ end subgroup_normal
 @[to_additive]
 lemma disjoint_def {H₁ H₂ : subgroup G} :
   disjoint H₁ H₂ ↔ ∀ {x : G}, x ∈ H₁ → x ∈ H₂ → x = 1 :=
-show (∀ x, x ∈ H₁ ∧ x ∈ H₂ → x ∈ ({1} : set G)) ↔ _, by simp
+by simp only [disjoint, set_like.le_def, mem_inf, mem_bot, and_imp]
 
 @[to_additive]
 lemma disjoint_def' {H₁ H₂ : subgroup G} :
   disjoint H₁ H₂ ↔ ∀ {x y : G}, x ∈ H₁ → y ∈ H₂ → x = y → x = 1 :=
-disjoint_def.trans ⟨λ h x y hx hy hxy, h hx $ hxy.symm ▸ hy,
-  λ h x hx hx', h hx hx' rfl⟩
+disjoint_def.trans ⟨λ h x y hx hy hxy, h hx $ hxy.symm ▸ hy, λ h x hx hx', h hx hx' rfl⟩
 
 @[to_additive]
 lemma disjoint_iff_mul_eq_one {H₁ H₂ : subgroup G} :
@@ -3119,7 +3125,18 @@ lemma disjoint_iff_mul_eq_one {H₁ H₂ : subgroup G} :
 disjoint_def'.trans ⟨λ h x y hx hy hxy,
   let hx1 : x = 1 := h hx (H₂.inv_mem hy) (eq_inv_iff_mul_eq_one.mpr hxy) in
   ⟨hx1, by simpa [hx1] using hxy⟩,
-  λ h x y hx hy hxy, (h hx (H₂.inv_mem hy) (mul_inv_eq_one.mpr hxy)).1 ⟩
+  λ h x y hx hy hxy, (h hx (H₂.inv_mem hy) (mul_inv_eq_one.mpr hxy)).1⟩
+
+@[to_additive]
+lemma mul_injective_of_disjoint {H₁ H₂ : subgroup G} (h : disjoint H₁ H₂) :
+  function.injective (λ g, g.1 * g.2 : H₁ × H₂ → G) :=
+begin
+  intros x y hxy,
+  rw [←inv_mul_eq_iff_eq_mul, ←mul_assoc, ←mul_inv_eq_one, mul_assoc] at hxy,
+  replace hxy := disjoint_iff_mul_eq_one.mp h (y.1⁻¹ * x.1).prop (x.2 * y.2⁻¹).prop hxy,
+  rwa [coe_mul, coe_mul, coe_inv, coe_inv, inv_mul_eq_one, mul_inv_eq_one,
+    ←subtype.ext_iff, ←subtype.ext_iff, eq_comm, ←prod.ext_iff] at hxy,
+end
 
 /-- `finset.noncomm_prod` is “injective” in `f` if `f` maps into independent subgroups.  This
 generalizes (one direction of) `subgroup.disjoint_iff_mul_eq_one`. -/

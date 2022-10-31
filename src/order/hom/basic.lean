@@ -90,6 +90,9 @@ abbreviation order_iso (α β : Type*) [has_le α] [has_le β] := @rel_iso α β
 
 infix ` ≃o `:25 := order_iso
 
+section
+set_option old_structure_cmd true
+
 /-- `order_hom_class F α b` asserts that `F` is a type of `≤`-preserving morphisms. -/
 abbreviation order_hom_class (F : Type*) (α β : out_param Type*) [has_le α] [has_le β] :=
 rel_hom_class F ((≤) : α → α → Prop) ((≤) : β → β → Prop)
@@ -100,6 +103,8 @@ You should extend this class when you extend `order_iso`. -/
 class order_iso_class (F : Type*) (α β : out_param Type*) [has_le α] [has_le β]
   extends equiv_like F α β :=
 (map_le_map_iff (f : F) {a b : α} : f a ≤ f b ↔ a ≤ b)
+
+end
 
 export order_iso_class (map_le_map_iff)
 
@@ -584,6 +589,11 @@ e.to_equiv.preimage_image s
 @[simp] lemma refl_trans (e : α ≃o β) : (refl α).trans e = e := by { ext x, refl }
 
 @[simp] lemma trans_refl (e : α ≃o β) : e.trans (refl β) = e := by { ext x, refl }
+
+@[simp] lemma symm_trans_apply (e₁ : α ≃o β) (e₂ : β ≃o γ) (c : γ) :
+  (e₁.trans e₂).symm c = e₁.symm (e₂.symm c) := rfl
+
+lemma symm_trans (e₁ : α ≃o β) (e₂ : β ≃o γ) : (e₁.trans e₂).symm = e₂.symm.trans e₁.symm := rfl
 
 /-- `prod.swap` as an `order_iso`. -/
 def prod_comm : (α × β) ≃o (β × α) :=

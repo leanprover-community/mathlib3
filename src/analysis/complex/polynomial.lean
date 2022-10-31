@@ -17,6 +17,7 @@ As a consequence, the complex numbers are algebraically closed.
 
 open complex polynomial metric filter set
 open_locale classical
+open_locale polynomial
 
 namespace complex
 
@@ -25,7 +26,7 @@ namespace complex
 -/
 /-- **Fundamental theorem of algebra**: every non constant complex polynomial
   has a root -/
-lemma exists_root {f : polynomial ℂ} (hf : 0 < degree f) : ∃ z : ℂ, is_root f z :=
+lemma exists_root {f : ℂ[X]} (hf : 0 < degree f) : ∃ z : ℂ, is_root f z :=
 let ⟨z₀, hz₀⟩ := f.exists_forall_norm_le in
 exists.intro z₀ $ classical.by_contradiction $ λ hf0,
 have hfX : f - C (f.eval z₀) ≠ 0,
@@ -47,7 +48,7 @@ have hδ : ∀ z : ℂ, abs (z - z₀) = δ → abs (g.eval z - g.eval z₀) < (
   from λ z hz, hδ'₂ z (by rw [complex.dist_eq, hz];
     exact ((min_le_left _ _).trans (min_le_left _ _)).trans_lt (half_lt_self hδ'₁)),
 have hδ1 : δ ≤ 1, from le_trans (min_le_left _ _) (min_le_right _ _),
-let F : polynomial ℂ := C (f.eval z₀) + C (g.eval z₀) * (X - C z₀) ^ n in
+let F : ℂ[X] := C (f.eval z₀) + C (g.eval z₀) * (X - C z₀) ^ n in
 let z' := (-f.eval z₀ * (g.eval z₀).abs * δ ^ n /
   ((f.eval z₀).abs * g.eval z₀)) ^ (n⁻¹ : ℂ) + z₀ in
 have hF₁ : F.eval z' = f.eval z₀ - f.eval z₀ * (g.eval z₀).abs * δ ^ n / (f.eval z₀).abs,

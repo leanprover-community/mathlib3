@@ -544,8 +544,8 @@ section thin
 /-- A subgroupoid `is_thin` if it has at most one arrow between any two vertices. -/
 abbreviation is_thin := ∀ (c d : S.objs), subsingleton (S.arrows c d)
 
-lemma is_thin_iff : S.is_thin ↔ ∀ (c : S.objs), subsingleton (S.arrows c c) := by
-{ apply is_thin_iff, }
+lemma is_thin_iff : S.is_thin ↔ ∀ (c : S.objs), subsingleton (S.arrows c c) :=
+by apply is_thin_iff
 
 end thin
 
@@ -579,13 +579,13 @@ lemma disconnect_normal (Sn : S.is_normal) : S.disconnect.is_normal :=
   conj := λ c d p γ ⟨_,h'⟩, ⟨rfl, Sn.conj _ h'⟩ }
 
 @[simp] lemma mem_disconnect_objs_iff {c : C} : c ∈ S.disconnect.objs ↔ c ∈ S.objs :=
-⟨λ ⟨γ,⟨h,γS⟩⟩, ⟨γ,γS⟩, λ ⟨γ,γS⟩, ⟨γ,⟨rfl,γS⟩⟩⟩
+⟨λ ⟨γ, h, γS⟩, ⟨γ, γS⟩, λ ⟨γ, γS⟩, ⟨γ, rfl, γS⟩⟩
 
-lemma disconnect_objs : S.disconnect.objs = S.objs := by
-{ apply set.ext, apply mem_disconnect_objs_iff, }
+lemma disconnect_objs : S.disconnect.objs = S.objs :=
+by { apply set.ext, apply mem_disconnect_objs_iff, }
 
-lemma disconnect_is_disconnected : S.disconnect.is_disconnected := by
-{ rw is_disconnected_iff, exact λ c d ⟨f,⟨h,fS⟩⟩, h }
+lemma disconnect_is_disconnected : S.disconnect.is_disconnected :=
+by { rw is_disconnected_iff, exact λ c d ⟨f, h, fS⟩, h }
 
 end disconnected
 
@@ -600,13 +600,13 @@ def full : subgroupoid C :=
   mul := by { rintros _ _ _ _ ⟨⟩ _ ⟨⟩, constructor; assumption,} }
 
 lemma full_objs : (full D).objs = D :=
-set.ext $ λ _, ⟨λ ⟨f,⟨h,_⟩⟩, h , λ h, ⟨𝟙 _,⟨h,h⟩⟩⟩
+set.ext $ λ _, ⟨λ ⟨f, h, _⟩, h , λ h, ⟨𝟙 _, h, h⟩⟩
 
 @[simp] lemma mem_full_iff {c d : C} {f : c ⟶ d} : f ∈ (full D).arrows c d ↔ c ∈ D ∧ d ∈ D :=
 iff.rfl
 
 @[simp] lemma mem_full_objs_iff {c : C} : c ∈ (full D).objs ↔ c ∈ D :=
-by { rw full_objs, }
+by rw full_objs
 
 @[simp] lemma full_empty : full ∅ = (⊥ : subgroupoid C) := by
 { ext, simp only [has_bot.bot, mem_full_iff, mem_empty_iff_false, and_self], }

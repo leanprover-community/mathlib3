@@ -1758,16 +1758,12 @@ theorem subalgebra.finrank_eq_one_iff {S : subalgebra F E} : finrank F S = 1 ↔
 
 lemma subalgebra.bot_eq_top_iff_dim_eq_one :
   module.rank F E = 1 ↔ (⊥ : subalgebra F E) = ⊤ :=
-begin
-  rw [← dim_top, ← subalgebra_top_dim_eq_submodule_top_dim],
-  split,
-  { exact λ h, (subalgebra.eq_bot_of_dim_one h).symm, },
-  { intro h,
-    haveI : finite_dimensional F (⊤ : subalgebra F E),
-    { rw ← h, exact subalgebra.finite_dimensional_bot, },
-    rw_mod_cast [← finite_dimensional.finrank_eq_dim, subalgebra.finrank_eq_one_iff],
-    exact h.symm, }
-end
+by rw [← dim_top, ← subalgebra_top_dim_eq_submodule_top_dim, subalgebra.dim_eq_one_iff, eq_comm]
+
+lemma subalgebra.bot_eq_top_iff_finrank_eq_one :
+  finrank F E = 1 ↔ (⊥ : subalgebra F E) = ⊤ :=
+by rw [← finrank_top, ← subalgebra_top_finrank_eq_submodule_top_finrank,
+       subalgebra.finrank_eq_one_iff, eq_comm]
 
 @[simp]
 lemma subalgebra.bot_eq_top_of_dim_eq_one (h : module.rank F E = 1) : (⊥ : subalgebra F E) = ⊤ :=

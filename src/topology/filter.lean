@@ -49,15 +49,20 @@ generate_open.basic _ (mem_range_self _)
 lemma is_open_set_of_mem {s : set α} : is_open {l : filter α | s ∈ l} :=
 by simpa only [Iic_principal] using is_open_Iic_principal
 
+lemma is_topological_basis_Iic_principal :
+  is_topological_basis (range (Iic ∘ 𝓟 : set α → set (filter α))) :=
+{ exists_subset_inter :=
+    begin
+      rintro _ ⟨s, rfl⟩ _ ⟨t, rfl⟩ l hl,
+      exact ⟨Iic (𝓟 s) ∩ Iic (𝓟 t), ⟨s ∩ t, by simp⟩, hl, subset.rfl⟩
+    end,
+  sUnion_eq := sUnion_eq_univ_iff.2 $ λ l, ⟨Iic ⊤, ⟨univ, congr_arg Iic principal_univ⟩, le_top⟩,
+  eq_generate_from := rfl }
+
 lemma is_open_iff {s : set (filter α)} :
   is_open s ↔ ∃ T : set (set α), s = ⋃ t ∈ T, Iic (𝓟 t) :=
-begin
-  refine (is_open_generate_from_inter_closed _ _).trans _,
-  { simp only [forall_range_iff, Iic_inter_Iic, inf_principal],
-    exact λ _ _, mem_range_self _ },
-  { exact Union_eq_univ_iff.2 (λ l, ⟨univ, le_principal_iff.2 univ_mem⟩) },
-  { simp only [exists_subset_range_iff, sUnion_image] }
-end
+is_topological_basis_Iic_principal.open_iff_eq_sUnion.trans $
+  by simp only [exists_subset_range_iff, sUnion_image]
 
 lemma nhds_eq (l : filter α) : 𝓝 l = l.lift' (Iic ∘ 𝓟) :=
 nhds_generate_from.trans $ by simp only [mem_set_of_eq, and_comm (l ∈ _), infi_and, infi_range,

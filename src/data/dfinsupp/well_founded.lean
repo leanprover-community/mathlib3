@@ -61,28 +61,28 @@ open relation prod
   `dfinsupp.lex`. This is used to show that a function `x` is accessible if
   `dfinsupp.single i (x i)` is accessible for each `i` in the (finite) support of `x`
   (`dfinsupp.lex.acc_of_single`). -/
-lemma lex_fibration : fibration
+lemma lex_fibration [Π i (s : set ι), decidable (i ∈ s)] : fibration
   (inv_image (game_add (dfinsupp.lex r s) (dfinsupp.lex r s)) snd)
   (dfinsupp.lex r s)
-  (λ x, merge x.1 x.2.1 x.2.2) :=
+  (λ x, piecewise x.2.1 x.2.2 x.1) :=
 begin
   rintro ⟨p, x₁, x₂⟩ x ⟨i, hr, hs⟩,
-  simp_rw [merge_apply] at hs hr,
+  simp_rw [piecewise_apply] at hs hr,
   split_ifs at hs, classical,
   work_on_goal 1
-  { refine ⟨⟨λ j, r j i → p j, merge (λ j, r j i) x₁ x, x₂⟩, game_add.fst ⟨i, _⟩, _⟩ },
+  { refine ⟨⟨{j | r j i → j ∈ p}, piecewise x₁ x {j | r j i}, x₂⟩, game_add.fst ⟨i, _⟩, _⟩ },
   work_on_goal 3
-  { refine ⟨⟨λ j, r j i ∧ p j, x₁, merge (λ j, r j i) x₂ x⟩, game_add.snd ⟨i, _⟩, _⟩ },
+  { refine ⟨⟨{j | r j i ∧ j ∈ p}, x₁, piecewise x₂ x {j | r j i}⟩, game_add.snd ⟨i, _⟩, _⟩ },
   swap 3, iterate 2
-  { simp_rw merge_apply,
+  { simp_rw piecewise_apply,
     refine ⟨λ j h, if_pos h, _⟩,
     convert hs,
     refine ite_eq_right_iff.2 (λ h', (hr i h').symm ▸ _),
     rw if_neg h <|> rw if_pos h },
-  all_goals { ext j, simp_rw merge_apply, split_ifs with h₁ h₂ },
+  all_goals { ext j, simp_rw piecewise_apply, split_ifs with h₁ h₂ },
   { rw [hr j h₂, if_pos (h₁ h₂)] },
   { refl },
-  { rw not_imp at h₁, rw [hr j h₁.1, if_neg h₁.2] },
+  { rw [set.mem_set_of, not_imp] at h₁, rw [hr j h₁.1, if_neg h₁.2] },
   { rw [hr j h₁.1, if_pos h₁.2] },
   { rw [hr j h₂, if_neg (λ h', h₁ ⟨h₂, h'⟩)] },
   { refl },
@@ -91,10 +91,14 @@ end
 variables {r s}
 
 lemma lex.acc_of_single_erase [decidable_eq ι] {x : Π₀ i, α i} (i : ι)
-  (hs : acc (dfinsupp.lex r s) (single i (x i)))
-  (hu : acc (dfinsupp.lex r s) (x.erase i)) : acc (dfinsupp.lex r s) x :=
-merge_single_erase x i ▸ @acc.of_fibration _ _ _ _ _
-  (lex_fibration r s) ⟨_, _⟩ (inv_image.accessible snd $ hs.prod_game_add hu)
+  (hs : acc (dfinsupp.lex r s) $ single i (x i))
+  (hu : acc (dfinsupp.lex r s) $ x.erase i) : acc (dfinsupp.lex r s) x :=
+begin
+  classical,
+  convert ← @acc.of_fibration _ _ _ _ _
+    (lex_fibration r s) ⟨{i}, _⟩ (inv_image.accessible snd $ hs.prod_game_add hu),
+  convert piecewise_single_erase x i,
+end
 
 variable (hbot : ∀ ⦃i a⦄, ¬ s i a 0)
 include hbot

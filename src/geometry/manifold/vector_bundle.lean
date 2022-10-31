@@ -75,11 +75,26 @@ begin
   sorry,
 end
 
-variables (F B) {EB : Type*} [normed_add_comm_group EB] [normed_space 𝕜 EB]
-  {HB : Type*} [topological_space HB] (IB : model_with_corners 𝕜 EB HB)
+variables {EB : Type*} [normed_add_comm_group EB] [normed_space 𝕜 EB]
+  {HB : Type*} [topological_space HB] {IB : model_with_corners 𝕜 EB HB}
    [charted_space HB B] [smooth_manifold_with_corners IB B]
-  {EM : Type*} [normed_add_comm_group EM] [normed_space 𝕜 EM]
-  {HM : Type*} [topological_space HM] (IM : model_with_corners 𝕜 EM HM)
+
+lemma smooth_fibrewise_linear.locality_aux (e : local_homeomorph (B × F) (B × F))
+  (h : ∀ x ∈ e.source, ∃ s : set (B × F), is_open s ∧ x ∈ s ∧
+    ∃ (φ : B → (F ≃L[𝕜] F)) (U : set B) (hU : is_open U)
+      (hφ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (φ x : F →L[𝕜] F)) U)
+      (h2φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, ((φ x).symm : F →L[𝕜] F)) U),
+      (e.restr s).eq_on_source
+            (fiberwise_linear.local_homeomorph φ hU hφ.continuous_on h2φ.continuous_on)) :
+  ∃ (Φ : B → (F ≃L[𝕜] F)) (U : set B) (hU : is_open U)
+    (hΦ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (Φ x : F →L[𝕜] F)) U)
+    (h2Φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, ((Φ x).symm : F →L[𝕜] F)) U),
+    e.eq_on_source (fiberwise_linear.local_homeomorph Φ hU hΦ.continuous_on h2Φ.continuous_on) :=
+begin
+  sorry
+end
+
+variables (F B IB)
 
 /-- For `B` a manifold and `F` a normed space, the groupoid on `B × F` consisting of local
 homeomorphisms which are bi-smooth and fibrewise linear. -/
@@ -115,7 +130,10 @@ def smooth_fiberwise_linear : structure_groupoid (B × F) :=
     { simp [fiberwise_linear.local_homeomorph] },
     { simp [fiberwise_linear.local_homeomorph] },
   end,
-  locality' := sorry, -- a bit tricky, need to glue together a family of `φ`
+  locality' := begin
+    simp_rw [mem_Union],
+    exact smooth_fibrewise_linear.locality_aux,
+  end, -- a bit tricky, need to glue together a family of `φ`
   eq_on_source' := begin
     simp_rw [mem_Union],
     rintros e e' ⟨φ, U, hU, hφ, h2φ, heφ⟩ hee',

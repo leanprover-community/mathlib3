@@ -1871,7 +1871,6 @@ begin
   ... ≤ count s : measure_mono ht
 end
 
--- TODO: remove `variable [measurable_singleton_class α]`
 
 @[simp] lemma count_apply_eq_top' (s_mble : measurable_set s) : count s = ∞ ↔ s.infinite :=
 begin

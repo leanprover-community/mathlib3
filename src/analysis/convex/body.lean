@@ -6,7 +6,7 @@ Authors: Paul A. Reichert
 import analysis.convex.basic
 import analysis.normed_space.basic
 import data.real.nnreal
-import data.set.pointwise
+import data.set.pointwise.basic
 import topology.metric_space.metrizable
 import topology.subset_properties
 import topology.metric_space.hausdorff_distance
@@ -33,13 +33,11 @@ convex, convex body
 open_locale pointwise
 open_locale nnreal
 
-variables (V : Type*) [seminormed_add_comm_group V] [normed_space ℝ V]
-
 /--
 Let `V` be a normed space. A subset of `V` is a convex body if and only if
 it is convex, compact, and nonempty.
 -/
-structure convex_body :=
+structure convex_body (V : Type*) [seminormed_add_comm_group V] [normed_space ℝ V] :=
 (carrier : set V)
 (convex' : convex ℝ carrier)
 (is_compact' : is_compact carrier)
@@ -49,7 +47,7 @@ namespace convex_body
 
 section seminormed_space
 
-variables {V : Type}
+variables {V : Type*}
 [seminormed_add_comm_group V]
 [normed_space ℝ V]
 
@@ -137,7 +135,7 @@ end seminormed_space
 
 section normed_space
 
-variables {V : Type} [normed_add_comm_group V] [normed_space ℝ V]
+variables {V : Type*} [normed_add_comm_group V] [normed_space ℝ V]
 
 lemma dist_eq_to_real_Hausdorff_edist (K L : convex_body V) :
   dist K L = (emetric.Hausdorff_edist (K : set V) L).to_real := rfl

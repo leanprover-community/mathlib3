@@ -56,21 +56,17 @@ ht.of_dual.mul_left
 @[to_additive] lemma is_lower_set.mul_right (hs : is_lower_set s) : is_lower_set (s * t) :=
 hs.of_dual.mul_right
 
+@[to_additive] lemma is_upper_set.inv (hs : is_upper_set s) : is_lower_set s⁻¹ :=
+λ x y h, hs $ inv_le_inv' h
+
+@[to_additive] lemma is_lower_set.inv (hs : is_lower_set s) : is_upper_set s⁻¹ :=
+λ x y h, hs $ inv_le_inv' h
+
 @[to_additive] lemma is_upper_set.div_left (ht : is_upper_set t) : is_lower_set (s / t) :=
-begin
-  rw [←image2_div, ←Union_image_left],
-  refine is_lower_set_Union₂ (λ x hx, _),
-  rintro _ z hyz ⟨y, hy, rfl⟩,
-  exact ⟨x / z, ht (by rwa le_div'') hy, div_div_cancel _ _⟩,
-end
+by { rw div_eq_mul_inv, exact ht.inv.mul_left }
 
 @[to_additive] lemma is_upper_set.div_right (hs : is_upper_set s) : is_upper_set (s / t) :=
-begin
-  rw [←image2_div, ←Union_image_right],
-  refine is_upper_set_Union₂ (λ x hx, _),
-  rintro _ z hyz ⟨y, hy, rfl⟩,
-  exact ⟨x * z, hs (by rwa ←div_le_iff_le_mul') hy, mul_div_cancel''' _ _⟩,
-end
+by { rw div_eq_mul_inv, exact hs.mul_right }
 
 @[to_additive] lemma is_lower_set.div_left (ht : is_lower_set t) : is_upper_set (s / t) :=
 ht.of_dual.div_left

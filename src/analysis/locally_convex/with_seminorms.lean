@@ -542,18 +542,6 @@ begin
   rwa [zero_add]
 end
 
--- TODO better docstring
-/-- If `∥x∥ = 0` and `f` is continuous then `∥f x∥ = 0`. -/
-lemma map_eq_zero_of_bound_on_ball [topological_space E] (hp : with_seminorms p) (q : seminorm 𝕜 E)
-  {s : finset ι} {δ : ℝ} (δ_pos : 0 < δ) (hq : ∀ y, (∀ i ∈ s, p i y < δ) → q y < 1) {x : E}
-  (hx : ∀ i ∈ s, p i x = 0) :
-  q x = 0 :=
-begin
-  refine le_antisymm (le_of_forall_pos_le_add (λ ε hε, (zero_add ε).symm ▸ _)) (map_nonneg q x),
-  sorry,
-  --exact le_of_lt (hq $ λ _ _, δ_pos)
-end
-
 lemma seminorm.bound_of_shell
   (p q : seminorm 𝕜 E) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)
   (hf : ∀ x, ε / ∥c∥ ≤ p x → p x < ε → q x ≤ C * p x) {x : E} (hx : p x ≠ 0) :
@@ -570,22 +558,6 @@ lemma seminorm.bound_of_shell_smul
   (hf : ∀ x, ε / ∥c∥ ≤ p x → p x < ε → q x ≤ (C • p) x) {x : E} (hx : p x ≠ 0) :
   q x ≤ (C • p) x :=
 seminorm.bound_of_shell p q ε_pos hc hf hx
-
--- Not useful, should I keep it for explicit computations?
-lemma seminorm_family.bound_of_shell_sup (p : seminorm_family 𝕜 E ι) (s : finset ι)
-  (q : seminorm 𝕜 E) {ε : ℝ} {C : ℝ≥0} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)
-  (hf : ∀ x, (∀ i ∈ s, p i x < ε) → ∀ j ∈ s, ε / ∥c∥ ≤ p j x → q x ≤ (C • p j) x)
-  {x : E} (hx : ∃ j, j ∈ s ∧ p j x ≠ 0) :
-  q x ≤ (C • s.sup p) x :=
-begin
-  rcases hx with ⟨j, hj, hjx⟩,
-  have : (s.sup p) x ≠ 0,
-    from ne_of_gt ((hjx.symm.lt_of_le $ map_nonneg _ _).trans_le (le_finset_sup_apply hj)),
-  refine (s.sup p).bound_of_shell_smul q ε_pos hc (λ y hle hlt, _) this,
-  rcases exists_apply_eq_finset_sup p ⟨j, hj⟩ y with ⟨i, hi, hiy⟩,
-  rw [smul_apply, hiy],
-  exact hf y (λ k hk, (le_finset_sup_apply hk).trans_lt hlt) i hi (hiy ▸ hle)
-end
 
 lemma bound_of_continuous_normed_space (q : seminorm 𝕜 F)
   (hq : continuous q) : ∃ C, 0 < C ∧ (∀ x : F, q x ≤ C * ∥x∥) :=
@@ -613,17 +585,42 @@ lemma seminorm.bound_of_continuous [t : topological_space E] (hp : with_seminorm
   (q : seminorm 𝕜 E) (hq : continuous q) :
   ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ q ≤ C • s.sup p :=
 begin
+  -- The continuity of `q` gives us a finset `s` and a real `ε > 0`
+  -- such that `hε : (s.sup p).ball 0 ε ⊆ q.ball 0 1`.
   rcases hp.has_basis.mem_iff.mp (ball_mem_nhds hq one_pos) with ⟨V, hV, hε⟩,
   rcases p.basis_sets_iff.mp hV with ⟨s, ε, ε_pos, rfl⟩,
+  -- Now forget that `E` already had a topology and view it as the (semi)normed space
+  -- `(E, s.sup p)`.
   clear hp hq t,
   letI : seminormed_add_comm_group E :=
     (s.sup p).to_add_group_seminorm.to_seminormed_add_comm_group,
   letI : normed_space 𝕜 E :=
   { norm_smul_le := λ a b, le_of_eq (map_smul_eq_mul (s.sup p) a b) },
+  -- The inclusion `hε` tells us exactly that `q` is *still* continuous for this new topology
   have : continuous q,
     from seminorm.continuous (mem_of_superset (metric.ball_mem_nhds _ ε_pos) hε),
+  -- Hence we can conclude by applying `bound_of_continuous_normed_space`.
   rcases bound_of_continuous_normed_space q this with ⟨C, C_pos, hC⟩,
   exact ⟨s, ⟨C, C_pos.le⟩, λ H, C_pos.ne.symm (congr_arg coe H), hC⟩
+  -- Note that the key ingredient for this proof is that, by scaling arguments hidden in
+  -- `seminorm.continuous`, we only have to look at the `q`-ball of radius one, and the `s` we get
+  -- from that will automatically work for all other radii.
+end
+
+-- Not useful, should I keep it for explicit computations?
+lemma seminorm_family.bound_of_shell_sup (p : seminorm_family 𝕜 E ι) (s : finset ι)
+  (q : seminorm 𝕜 E) {ε : ℝ} {C : ℝ≥0} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)
+  (hf : ∀ x, (∀ i ∈ s, p i x < ε) → ∀ j ∈ s, ε / ∥c∥ ≤ p j x → q x ≤ (C • p j) x)
+  {x : E} (hx : ∃ j, j ∈ s ∧ p j x ≠ 0) :
+  q x ≤ (C • s.sup p) x :=
+begin
+  rcases hx with ⟨j, hj, hjx⟩,
+  have : (s.sup p) x ≠ 0,
+    from ne_of_gt ((hjx.symm.lt_of_le $ map_nonneg _ _).trans_le (le_finset_sup_apply hj)),
+  refine (s.sup p).bound_of_shell_smul q ε_pos hc (λ y hle hlt, _) this,
+  rcases exists_apply_eq_finset_sup p ⟨j, hj⟩ y with ⟨i, hi, hiy⟩,
+  rw [smul_apply, hiy],
+  exact hf y (λ k hk, (le_finset_sup_apply hk).trans_lt hlt) i hi (hiy ▸ hle)
 end
 
 end seminorm

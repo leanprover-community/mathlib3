@@ -705,7 +705,7 @@ def initial_iso_pempty : ⊥_ Top.{u} ≅ Top.of pempty :=
 initial_is_initial.unique_up_to_iso is_initial_pempty
 
 /-- The binary coproduct cofan in `Top`. -/
-def Top.binary_cofan (X Y : Top.{u}) : binary_cofan X Y :=
+def binary_cofan (X Y : Top.{u}) : binary_cofan X Y :=
 binary_cofan.mk (⟨sum.inl⟩ : X ⟶ Top.of (X ⊕ Y)) ⟨sum.inr⟩
 
 /-- The constructed binary coproduct cofan in `Top` is the coproduct. -/

@@ -144,7 +144,7 @@ end finite
 
 namespace set
 
-lemma card_union_le {α : Type*} {s t : set α} : nat.card ↥(s ∪ t) ≤ nat.card s + nat.card t :=
+lemma card_union_le {s t : set α} : nat.card ↥(s ∪ t) ≤ nat.card s + nat.card t :=
 begin
   casesI _root_.finite_or_infinite ↥(s ∪ t) with h h,
   { rw [finite_coe_iff, finite_union, ←finite_coe_iff, ←finite_coe_iff] at h,

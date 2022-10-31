@@ -83,11 +83,12 @@ begin
 end
 
 lemma affine_map.restrict.surjective
-  (φ : P₁ →ᵃ[k] P₂) {E : affine_subspace k P₁} [nonempty E] :
-  function.surjective (affine_map.restrict φ (le_refl (E.map φ))) :=
+  (φ : P₁ →ᵃ[k] P₂) {E : affine_subspace k P₁} {F : affine_subspace k P₂}
+  [nonempty E] [nonempty F] (h : E.map φ = F) :
+  function.surjective (affine_map.restrict φ (le_of_eq h)) :=
 begin
-  rintro ⟨x, hx : x ∈ E.map φ⟩,
-  rw [affine_subspace.mem_map] at hx,
+  rintro ⟨x, hx : x ∈ F⟩,
+  rw [←h, affine_subspace.mem_map] at hx,
   obtain ⟨y, hy, rfl⟩ := hx,
   exact ⟨⟨y, hy⟩, rfl⟩,
 end

@@ -120,7 +120,7 @@ begin
   have h3 : is_compact (cthickening δ K),
     from is_compact_of_is_closed_bounded is_closed_cthickening hK.bounded.cthickening,
   have h4 : tendsto_uniformly_on F f φ (cthickening δ K),
-    from (tendsto_locally_uniformly_on_iff_forall_compact hU).mp hf (cthickening δ K) hKU h3,
+    from (tendsto_locally_uniformly_on_iff_forall_is_compact hU).mp hf (cthickening δ K) hKU h3,
   have h5 : tendsto_uniformly_on (cderiv δ ∘ F) (cderiv δ f) φ K,
     from tendsto_uniformly_on_cderiv h2 hδ h1 hKU h4,
   refine h5.congr (eventually_of_forall (λ n z hz, _)),

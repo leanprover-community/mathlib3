@@ -207,6 +207,7 @@ end subgroup
 
 variables (G)
 
+/-- The set of commutator elements `⁅g₁, g₂⁆` in `G`. -/
 def commutators : set G :=
 {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}
 

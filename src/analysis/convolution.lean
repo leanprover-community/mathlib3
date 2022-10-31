@@ -90,7 +90,11 @@ open_locale pointwise topological_space nnreal filter
 
 noncomputable theory
 
-variables {𝕜 G E E' E'' F F' F'' : Type*}
+universes u𝕜 uG uE uE' uE'' uF uF' uF'' uP
+
+variables {𝕜 : Type u𝕜} {G : Type uG} {E : Type uE} {E' : Type uE'} {E'' : Type uE''}
+{F : Type uF} {F' : Type uF'} {F'' : Type uF''}
+
 variables [normed_add_comm_group E] [normed_add_comm_group E'] [normed_add_comm_group E'']
   [normed_add_comm_group F] {f f' : G → E} {g g' : G → E'} {x x' : G} {y y' : E}
 
@@ -1020,50 +1024,123 @@ begin
     simp only [image_subset_iff, inter_subset_right] },
 end
 
+set_option profiler true
+
 lemma has_compact_support.has_fderiv_at_convolution_right_with_param
   (L : E →L[𝕜] E' →L[𝕜] F)
-  {P : Type*} [normed_add_comm_group P] [normed_space 𝕜 P]
+  {P : Type uP} [normed_add_comm_group P] [normed_space 𝕜 P]
   {g : P × G → E'}
   {s : set P} {k : set G} (hs : is_open s) (hk : is_compact k)
-  (hg : ∀ p, ∀ x, p ∈ s → x ∉ k → g (p, x) = 0)
+  (hgs : ∀ p, ∀ x, p ∈ s → x ∉ k → g (p, x) = 0)
   (hf : locally_integrable f μ) (hg : cont_diff_on 𝕜 1 g (s ×ˢ univ))
   (q₀ : P × G) (hq : q₀.1 ∈ s) :
   true :=
+  --has_fderiv_at (λ (q : P × G), (f ⋆[L, μ] (λ (x : G), g (q.1, x))) q.2)
+  --  ((f ⋆[L.precompR (P × G), μ] (λ (x : G), fderiv 𝕜 g (q₀.1, x))) q₀.2) q₀ :=
 begin
+  let g' := fderiv 𝕜 g,
+  have g'_zero : ∀ p x, p ∈ s → x ∉ k → g' (p, x) = 0,
+  sorry, /-{ assume p x hp hx,
+    have A : fderiv 𝕜 (λ x, (0 : E')) (p, x) = 0,
+    { rw fderiv_const, refl },
+    rw ← A,
+    apply filter.eventually_eq.fderiv_eq,
+    have M2 : kᶜ ∈ 𝓝 x, from is_open.mem_nhds hk.is_closed.is_open_compl hx,
+    have M1 : s ∈ 𝓝 p, from hs.mem_nhds hp,
+    rw nhds_prod_eq,
+    filter_upwards [prod_mem_prod M1 M2],
+    rintros ⟨p, y⟩ ⟨hp, hy⟩,
+    exact hgs p y hp hy }, -/
   obtain ⟨ε, C, εpos, Cnonneg, h₀ε, hε⟩ :
-    ∃ ε C, 0 < ε ∧ 0 ≤ C ∧ ball q₀.1 ε ⊆ s ∧ ∀ p x, ∥p - q₀.1∥ < ε → ∥fderiv 𝕜 g (p, x)∥ ≤ C,
-  sorry { obtain ⟨t, kt, t_open, ht⟩ : ∃ t, {q₀.1} ×ˢ k ⊆ t ∧ is_open t ∧ bounded (g '' t),
-    { apply exists_bounded_of_is_compact_of_continuous_on (is_compact_singleton.prod hk)
-        (hs.prod is_open_univ) _ hg.continuous_on,
+    ∃ ε C, 0 < ε ∧ 0 ≤ C ∧ ball q₀.1 ε ⊆ s ∧ ∀ p x, ∥p - q₀.1∥ < ε → ∥g' (p, x)∥ ≤ C,
+  sorry, /-{ have A : is_compact ({q₀.1} ×ˢ k), from is_compact_singleton.prod hk,
+    obtain ⟨t, kt, t_open, ht⟩ : ∃ t, {q₀.1} ×ˢ k ⊆ t ∧ is_open t ∧ bounded (g' '' t),
+    { have B : continuous_on g' (s ×ˢ univ),
+        from hg.continuous_on_fderiv_of_open (hs.prod is_open_univ) le_rfl,
+      apply exists_bounded_of_is_compact_of_continuous_on A (hs.prod is_open_univ) _ B,
       simp only [prod_subset_prod_iff, hq, singleton_subset_iff, subset_univ, and_self, true_or] },
-      sorry },
+    obtain ⟨ε, εpos, hε, h'ε⟩ :
+      ∃ (ε : ℝ), 0 < ε ∧ thickening ε ({q₀.fst} ×ˢ k) ⊆ t ∧ ball q₀.1 ε ⊆ s,
+    { obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ), 0 < ε ∧ thickening ε ({q₀.fst} ×ˢ k) ⊆ t,
+        from A.exists_thickening_subset_open t_open kt,
+      obtain ⟨δ, δpos, hδ⟩ : ∃ (δ : ℝ) (H : 0 < δ), ball q₀.1 δ ⊆ s,
+        from metric.is_open_iff.1 hs _ hq,
+      refine ⟨min ε δ, lt_min εpos δpos, _, _⟩,
+      { exact subset.trans (thickening_mono (min_le_left _ _) _) hε },
+      { exact subset.trans (ball_subset_ball (min_le_right _ _)) hδ } },
+    obtain ⟨C, Cpos, hC⟩ : ∃ C, 0 < C ∧ g' '' t ⊆ closed_ball 0 C, from ht.subset_ball_lt 0 0,
+    refine ⟨ε, C, εpos, Cpos.le, h'ε, λ p x hp, _⟩,
+    have hps : p ∈ s, from h'ε (mem_ball_iff_norm.2 hp),
+    by_cases hx : x ∈ k,
+    { have H : (p, x) ∈ t,
+      { apply hε,
+        refine mem_thickening_iff.2 ⟨(q₀.1, x), _, _⟩,
+        { simp only [hx, singleton_prod, mem_image, prod.mk.inj_iff, eq_self_iff_true, true_and,
+            exists_eq_right] },
+        { rw ← dist_eq_norm at hp,
+          simpa only [prod.dist_eq, εpos, dist_self, max_lt_iff, and_true] using hp } },
+      have : g' (p, x) ∈ closed_ball (0 : P × G →L[𝕜] E') C, from hC (mem_image_of_mem _ H),
+      rwa mem_closed_ball_zero_iff at this },
+    { have : g' (p, x) = 0, from g'_zero _ _ hps hx,
+      rw this,
+      simpa only [norm_zero] using Cpos.le } }, -/
   let K' := - k + closed_ball q₀.2 ε,
   have hK' : is_compact K' := hk.neg.add (is_compact_closed_ball _ _),
   let bound : G → ℝ := indicator K' (λ a, ∥L∥ * ∥f a∥ * C),
   have B : ∀ᵐ (a : G) ∂μ, ∀ (x : P × G), dist x q₀ < ε →
-    ∥(L (f a)).comp (fderiv 𝕜 g (x.fst, x.snd - a))∥ ≤ bound a,
-  sorry { apply eventually_of_forall,
+    ∥(L (f a)).comp (g' (x.fst, x.snd - a))∥ ≤ bound a,
+  sorry, /-{ apply eventually_of_forall,
     assume a x hx,
     refine (op_norm_comp_le _ _).trans _,
-    refine mul_le_mul (le_op_norm _ _) _ (norm_nonneg _) (by positivity),
+    refine le_trans (mul_le_mul (le_op_norm _ _) le_rfl (norm_nonneg _) (by positivity)) _,
     by_cases H : x.2 - a ∈ k,
-    { have : a ∈ -k + closed_ball q₀.2 ε, sorry,
+    { have : a ∈ -k + closed_ball q₀.2 ε,
+      { refine ⟨a - x.2, x.2, by simpa only [set.mem_neg, neg_sub] using H, _,
+          by simp only [sub_add_cancel]⟩,
+        rw prod.dist_eq at hx,
+        exact mem_closed_ball.2 (le_trans (le_max_right _ _) hx.le) },
       simp only [bound, indicator, this, if_true],
+      refine mul_le_mul_of_nonneg_left _ (by positivity),
       apply hε,
       rw [prod.dist_eq, dist_eq_norm] at hx,
       exact (le_max_left _ _).trans_lt hx },
-    { have : fderiv 𝕜 g (x.1, x.2 - a) = 0, sorry,
-      simp only [this, bound, norm_zero],
+    { have : g' (x.1, x.2 - a) = 0,
+      { apply g'_zero _ _ _ H,
+        apply h₀ε,
+        rw prod.dist_eq at hx,
+        exact lt_of_le_of_lt (le_max_left _ _) hx },
+      simp only [this, bound, norm_zero, mul_zero],
       apply indicator_nonneg,
       assume a ha,
-      exact Cnonneg } },
+      positivity } },-/
   have C : integrable bound μ,
   { rw [integrable_indicator_iff hK'.measurable_set],
     exact ((hf hK').norm.const_mul _).mul_const _ },
-  have : has_fderiv_at (λ q, (f ⋆[L, μ] (λ (x : G), g (q.1, x))) q.2 : P × G → F)
-    ((f ⋆[L.precompR (P × G), μ] (λ (x : G), fderiv 𝕜 g (q₀.1, x))) q₀.2 : P × G →L[𝕜] F) q₀,
-  apply has_fderiv_at_integral_of_dominated_of_fderiv_le εpos sorry sorry sorry B C,
+  have D : ∀ᵐ (a : G) ∂μ, ∀ (x : P × G), dist x q₀ < ε →
+    has_fderiv_at (λ (x : P × G), L (f a) (g (x.fst, x.snd - a)))
+    ((L (f a)).comp (fderiv 𝕜 g (x.fst, x.snd - a))) x,
+  sorry, /- { apply eventually_of_forall,
+    assume a x hx,
+    apply (L _).has_fderiv_at.comp x,
+    have N : s ×ˢ univ ∈ 𝓝 (x.1, x.2 - a),
+    { apply (hs.prod is_open_univ).mem_nhds,
+      simp only [prod_mk_mem_set_prod_eq, mem_univ, and_true],
+      apply h₀ε,
+      rw prod.dist_eq at hx,
+      exact lt_of_le_of_lt (le_max_left _ _) hx },
+    have Z := ((hg.differentiable_on le_rfl).differentiable_at N).has_fderiv_at,
+    have Z' : has_fderiv_at (λ (x : P × G), (x.1, x.2 - a)) (continuous_linear_map.id 𝕜 (P × G)) x,
+    { have : (λ (x : P × G), (x.1, x.2 - a)) = id - (λ x, (0, a)),
+      { ext x; simp only [pi.sub_apply, id.def, prod.fst_sub, sub_zero, prod.snd_sub] },
+      simp_rw [this],
+      exact (has_fderiv_at_id x).sub_const (0, a) },
+    exact Z.comp x Z' }, -/
+  have E : ∀ᶠ (x : P × G) in 𝓝 q₀,
+    ae_strongly_measurable (λ (a : G), L (f a) (g (x.1, x.2 - a))) μ,
+  {
 
+  },
+  apply has_fderiv_at_integral_of_dominated_of_fderiv_le εpos _ _ _ B C D,
 end
 
 

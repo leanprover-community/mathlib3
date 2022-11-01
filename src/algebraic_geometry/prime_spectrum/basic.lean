@@ -359,15 +359,14 @@ lemma is_closed_iff_zero_locus (Z : set (prime_spectrum R)) :
 by rw [← is_open_compl_iff, is_open_iff, compl_compl]
 
 lemma is_closed_iff_zero_locus_ideal (Z : set (prime_spectrum R)) :
-  is_closed Z ↔ ∃ (s : ideal R), Z = zero_locus s :=
+  is_closed Z ↔ ∃ (I : ideal R), Z = zero_locus I :=
 (is_closed_iff_zero_locus _).trans
-  ⟨λ x, ⟨_, x.some_spec.trans (zero_locus_span _).symm⟩, λ x, ⟨_, x.some_spec⟩⟩
+  ⟨λ ⟨s, hs⟩, ⟨_, (zero_locus_span s).substr hs⟩, λ ⟨I, hI⟩, ⟨I, hI⟩⟩
 
 lemma is_closed_iff_zero_locus_radical_ideal (Z : set (prime_spectrum R)) :
-  is_closed Z ↔ ∃ (s : ideal R), s.radical = s ∧ Z = zero_locus s :=
+  is_closed Z ↔ ∃ (I : ideal R), I.is_radical ∧ Z = zero_locus I :=
 (is_closed_iff_zero_locus_ideal _).trans
-  ⟨λ x, ⟨_, ideal.radical_idem _, x.some_spec.trans (zero_locus_radical _).symm⟩,
-    λ x, ⟨_, x.some_spec.2⟩⟩
+  ⟨λ ⟨I, hI⟩, ⟨_, I.radical_is_radical, (zero_locus_radical I).substr hI⟩, λ ⟨I, _, hI⟩, ⟨I, hI⟩⟩
 
 lemma is_closed_zero_locus (s : set R) :
   is_closed (zero_locus s) :=
@@ -442,7 +441,7 @@ end
 
 local notation `Z(` a `)` := zero_locus (a : set R)
 
-lemma is_irreducible_zero_locus_iff_of_radical (I : ideal R) (hI : I.radical = I) :
+lemma is_irreducible_zero_locus_iff_of_radical (I : ideal R) (hI : I.is_radical) :
   is_irreducible (zero_locus (I : set R)) ↔ I.is_prime :=
 begin
   rw [ideal.is_prime_iff, is_irreducible],
@@ -454,14 +453,13 @@ begin
       { rintros h x y, exact h _ _ ⟨x, rfl⟩ ⟨y, rfl⟩ },
       { rintros h _ _ ⟨x, rfl⟩ ⟨y, rfl⟩, exact h x y } },
     { simp_rw [← zero_locus_inf, subset_zero_locus_iff_le_vanishing_ideal,
-        vanishing_ideal_zero_locus_eq_radical, hI],
+        vanishing_ideal_zero_locus_eq_radical, hI.radical],
       split,
       { intros h x y h',
         simp_rw [← set_like.mem_coe, ← set.singleton_subset_iff, ← ideal.span_le],
         apply h,
-        rw [← hI, ← ideal.radical_le_radical_iff, ideal.radical_inf, ← ideal.radical_mul,
-          ideal.radical_le_radical_iff, hI, ideal.span_mul_span],
-        simpa [ideal.span_le] using h' },
+        simpa [← hI.radical_le_iff, ideal.radical_inf, ← ideal.radical_mul,
+          hI.radical_le_iff, ideal.span_mul_span, ideal.span_le] using h' },
       { simp_rw [or_iff_not_imp_left, set_like.not_le_iff_exists],
         rintros h s t h' ⟨x, hx, hx'⟩ y hy,
         exact h (h' ⟨ideal.mul_mem_right _ _ hx, ideal.mul_mem_left _ _ hy⟩) hx' } } }
@@ -469,7 +467,7 @@ end
 
 lemma is_irreducible_zero_locus_iff (I : ideal R) :
   is_irreducible (zero_locus (I : set R)) ↔ I.radical.is_prime :=
-(zero_locus_radical I) ▸ is_irreducible_zero_locus_iff_of_radical _ I.radical_idem
+(zero_locus_radical I) ▸ is_irreducible_zero_locus_iff_of_radical _ I.radical_is_radical
 
 instance [is_domain R] : irreducible_space (prime_spectrum R) :=
 begin
@@ -484,12 +482,12 @@ begin
   rw [← h₂.closure_eq, ← zero_locus_vanishing_ideal_eq_closure,
     is_irreducible_zero_locus_iff] at h₁,
   use ⟨_, h₁⟩,
-  obtain ⟨s, hs, rfl⟩ := (is_closed_iff_zero_locus_radical_ideal _).mp h₂,
+  obtain ⟨I, hI, rfl⟩ := (is_closed_iff_zero_locus_radical_ideal _).mp h₂,
   rw is_generic_point_iff_forall_closed h₂,
   intros Z hZ hxZ,
   obtain ⟨t, rfl⟩ := (is_closed_iff_zero_locus_ideal _).mp hZ,
-  exact zero_locus_anti_mono (by simpa [hs] using hxZ),
-  simp [hs]
+  exact zero_locus_anti_mono (by simpa [hI.radical] using hxZ),
+  simp [hI.radical]
 end
 
 section comap
@@ -756,7 +754,7 @@ lemma basic_open_eq_bot_iff (f : R) :
   basic_open f = ⊥ ↔ is_nilpotent f :=
 begin
   rw [← subtype.coe_injective.eq_iff, basic_open_eq_zero_locus_compl],
-  simp only [set.eq_univ_iff_forall, topological_space.opens.empty_eq, set.singleton_subset_iff,
+  simp only [set.eq_univ_iff_forall, set.singleton_subset_iff,
     topological_space.opens.coe_bot, nilpotent_iff_mem_prime, set.compl_empty_iff, mem_zero_locus,
     set_like.mem_coe],
   exact subtype.forall,

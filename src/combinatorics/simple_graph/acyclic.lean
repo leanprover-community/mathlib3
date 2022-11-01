@@ -10,10 +10,6 @@ import combinatorics.simple_graph.connectivity
 
 This module introduces *acyclic graphs* (a.k.a. *forests*) and *trees*.
 
-The structure of the proofs for `simple_graph.is_acyclic` and `simple_graph.is_tree`, including
-supporting lemmas about `simple_graph.is_bridge`, generally follows the description for these
-theorems for multigraphs from [Chou1994].
-
 ## Main definitions
 
 * `simple_graph.is_acyclic` is a predicate for a graph having no cyclic walks
@@ -27,6 +23,12 @@ theorems for multigraphs from [Chou1994].
   edge being a bridge edge.
 * `simple_graph.is_tree_iff` characterizes trees in terms of existence and uniqueness of paths
   between pairs of vertices from a nonempty vertex type.
+
+## References
+
+The structure of the proofs for `simple_graph.is_acyclic` and `simple_graph.is_tree`, including
+supporting lemmas about `simple_graph.is_bridge`, generally follows the high-level description
+for these theorems for multigraphs from [Chou1994].
 
 ## Tags
 

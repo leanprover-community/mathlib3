@@ -33,9 +33,6 @@ Related files are:
 
 ## TODO
 
-Prove that a sigma type is a `no_max_order`, `no_min_order`, `densely_ordered` when its summands
-are.
-
 Upgrade `equiv.sigma_congr_left`, `equiv.sigma_congr`, `equiv.sigma_assoc`,
 `equiv.sigma_prod_of_equiv`, `equiv.sigma_equiv_prod`, ... to order isomorphisms.
 -/
@@ -112,10 +109,9 @@ instance [Π i, partial_order (α i)] : partial_order (Σ i, α i) :=
 
 instance [Π i, preorder (α i)] [Π i, densely_ordered (α i)] : densely_ordered (Σ i, α i) :=
 ⟨begin
-  simp_rw sigma.lt_def,
-  rintro ⟨i, a⟩ ⟨j, b⟩ ⟨(rfl : i = j), h⟩,
+  rintro ⟨i, a⟩ ⟨_, _⟩ ⟨_, _, b, h⟩,
   obtain ⟨c, ha, hb⟩ := exists_between h,
-  exact ⟨⟨i, c⟩, ⟨rfl, ha⟩, rfl, hb⟩,
+  exact ⟨⟨i, c⟩, lt.fiber i a c ha, lt.fiber i c b hb⟩,
 end⟩
 
 /-! ### Lexicographical order on `sigma` -/
@@ -195,42 +191,67 @@ instance bounded_order [partial_order ι] [bounded_order ι] [Π i, preorder (α
   bounded_order (Σₗ i, α i) :=
 { .. lex.order_bot, .. lex.order_top }
 
-instance [preorder ι] [densely_ordered ι] [Π i, nonempty (α i)] [Π i, preorder (α i)]
-  [Π i, densely_ordered (α i)] :
+instance densely_ordered [preorder ι] [densely_ordered ι] [Π i, nonempty (α i)]
+  [Π i, preorder (α i)] [Π i, densely_ordered (α i)] :
   densely_ordered (Σₗ i, α i) :=
 ⟨begin
-  simp_rw sigma.lex.lt_def,
-  rintro ⟨i, a⟩ ⟨j, b⟩ (h | ⟨(rfl : i = j), h⟩),
+  rintro ⟨i, a⟩ ⟨j, b⟩ (⟨_, _, h⟩ | ⟨_, b, h⟩),
   { obtain ⟨k, hi, hj⟩ := exists_between h,
     obtain ⟨c⟩ : nonempty (α k) := infer_instance,
-    exact ⟨⟨k, c⟩, or.inl hi, or.inl hj⟩ },
+    exact ⟨⟨k, c⟩, left _ _ hi, left _ _ hj⟩ },
   { obtain ⟨c, ha, hb⟩ := exists_between h,
-    exact ⟨⟨i, c⟩, or.inr ⟨rfl, ha⟩, or.inr ⟨rfl, hb⟩⟩ }
+    exact ⟨⟨i, c⟩, right _ _ ha, right _ _ hb⟩ }
 end⟩
 
 instance densely_ordered_of_no_max_order [preorder ι] [Π i, preorder (α i)]
   [Π i, densely_ordered (α i)] [Π i, no_max_order (α i)] :
   densely_ordered (Σₗ i, α i) :=
 ⟨begin
-  simp_rw sigma.lex.lt_def,
-  rintro ⟨i, a⟩ ⟨j, b⟩ (h | ⟨(rfl : i = j), h⟩),
+  rintro ⟨i, a⟩ ⟨j, b⟩ (⟨_, _, h⟩ | ⟨_, b, h⟩),
   { obtain ⟨c, ha⟩ := exists_gt a,
-    exact ⟨⟨i, c⟩, or.inr ⟨rfl, ha⟩, or.inl h⟩ },
+    exact ⟨⟨i, c⟩, right _ _ ha, left _ _ h⟩ },
   { obtain ⟨c, ha, hb⟩ := exists_between h,
-    exact ⟨⟨i, c⟩, or.inr ⟨rfl, ha⟩, or.inr ⟨rfl, hb⟩⟩ }
+    exact ⟨⟨i, c⟩, right _ _ ha, right _ _ hb⟩ }
 end⟩
 
 instance densely_ordered_of_no_min_order [preorder ι] [Π i, preorder (α i)]
   [Π i, densely_ordered (α i)] [Π i, no_min_order (α i)] :
   densely_ordered (Σₗ i, α i) :=
 ⟨begin
-  simp_rw sigma.lex.lt_def,
-  rintro ⟨i, a⟩ ⟨j, b⟩ (h | ⟨(rfl : i = j), h⟩),
+  rintro ⟨i, a⟩ ⟨j, b⟩ (⟨_, _, h⟩ | ⟨_, b, h⟩),
   { obtain ⟨c, hb⟩ := exists_lt b,
-    exact ⟨⟨j, c⟩, or.inl h, or.inr ⟨rfl, hb⟩⟩ },
+    exact ⟨⟨j, c⟩, left _ _ h, right _ _ hb⟩ },
   { obtain ⟨c, ha, hb⟩ := exists_between h,
-    exact ⟨⟨i, c⟩, or.inr ⟨rfl, ha⟩, or.inr ⟨rfl, hb⟩⟩ }
+    exact ⟨⟨i, c⟩, right _ _ ha, right _ _ hb⟩ }
 end⟩
+
+instance no_max_order_of_nonempty [preorder ι] [Π i, preorder (α i)] [no_max_order ι]
+  [Π i, nonempty (α i)] :
+  no_max_order (Σₗ i, α i) :=
+⟨begin
+  rintro ⟨i, a⟩,
+  obtain ⟨j, h⟩ := exists_gt i,
+  obtain ⟨b⟩ : nonempty (α j) := infer_instance,
+  exact ⟨⟨j, b⟩, left _ _ h⟩
+end⟩
+
+instance no_min_order_of_nonempty [preorder ι] [Π i, preorder (α i)] [no_max_order ι]
+  [Π i, nonempty (α i)] :
+  no_max_order (Σₗ i, α i) :=
+⟨begin
+  rintro ⟨i, a⟩,
+  obtain ⟨j, h⟩ := exists_gt i,
+  obtain ⟨b⟩ : nonempty (α j) := infer_instance,
+  exact ⟨⟨j, b⟩, left _ _ h⟩
+end⟩
+
+instance no_max_order [preorder ι] [Π i, preorder (α i)] [Π i, no_max_order (α i)] :
+  no_max_order (Σₗ i, α i) :=
+⟨by { rintro ⟨i, a⟩, obtain ⟨b, h⟩ := exists_gt a, exact ⟨⟨i, b⟩, right _ _ h⟩ }⟩
+
+instance no_min_order [preorder ι] [Π i, preorder (α i)] [Π i, no_min_order (α i)] :
+  no_min_order (Σₗ i, α i) :=
+⟨by { rintro ⟨i, a⟩, obtain ⟨b, h⟩ := exists_lt a, exact ⟨⟨i, b⟩, right _ _ h⟩ }⟩
 
 end lex
 end sigma

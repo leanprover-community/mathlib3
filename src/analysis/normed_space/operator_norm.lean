@@ -110,15 +110,13 @@ variables [nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
 lemma norm_image_of_norm_zero [semilinear_map_class 𝓕 σ₁₂ E F] (f : 𝓕)
   (hf : continuous f) {x : E} (hx : ∥x∥ = 0) : ∥f x∥ = 0 :=
 begin
-  rw [norm_eq_zero_iff_closure_zero, ← specializes_iff_mem_closure, ← map_zero f] at *,
+  rw [← mem_closure_zero_iff_norm, ← specializes_iff_mem_closure, ← map_zero f] at *,
   exact hx.map hf
 end
 
 section
 
 variables [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₂₃]
-
-#check rescale_to_shell_semi_normed
 
 lemma semilinear_map_class.bound_of_shell_semi_normed [semilinear_map_class 𝓕 σ₁₂ E F]
   (f : 𝓕) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)

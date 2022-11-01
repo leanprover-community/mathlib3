@@ -537,7 +537,7 @@ variables [nonempty ι] [nontrivially_normed_field 𝕜] [add_comm_group E] [mod
 lemma map_eq_zero_of_norm_zero (q : seminorm 𝕜 F)
   (hq : continuous q) {x : F} (hx : ∥x∥ = 0) : q x = 0 :=
 (map_zero q) ▸
-  ((specializes_iff_mem_closure.mpr $ norm_eq_zero_iff_closure_zero.mp hx).map hq).eq.symm
+  ((specializes_iff_mem_closure.mpr $ mem_closure_zero_iff_norm.mpr hx).map hq).eq.symm
 
 /-- Let `F` be a semi-`normed_space` over a `nontrivially_normed_field`, and let `q` be a
 seminorm on `F`. If `q` is continuous, then it is uniformly controlled by the norm, that is there

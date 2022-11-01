@@ -301,23 +301,22 @@ begin
   exact finite.card_pos.ne',
 end
 
-/-- docstring -/
-def myfun (n : ℕ) := (n ^ (2 * n)) ^ (n ^ (2 * n + 1) + 1)
+/-- A bound for the size of the commutator subgroup in terms of the number of commutators. -/
+def card_commutator_bound (n : ℕ) := (n ^ (2 * n)) ^ (n ^ (2 * n + 1) + 1)
 
-lemma key_lemma [finite (commutator_set G)] :
-  nat.card (commutator G) ≤ myfun (nat.card (commutator_set G)) :=
+lemma card_commutator_le_of_finite_commutator_set [finite (commutator_set G)] :
+  nat.card (commutator G) ≤ card_commutator_bound (nat.card (commutator_set G)) :=
 begin
   have h1 := index_center_le_pow (closure_commutator_representatives G),
   have h2 := card_commutator_dvd_index_center_pow (closure_commutator_representatives G),
   rw card_commutator_set_closure_commutator_representatives at h1 h2,
+  rw card_commutator_closure_commutator_representatives at h2,
   replace h1 := h1.trans (nat.pow_le_pow_of_le_right finite.card_pos
     (rank_closure_commutator_representations_le G)),
   replace h2 := h2.trans (pow_dvd_pow _ (add_le_add_right (mul_le_mul_right' h1 _) 1)),
-  rw [←pow_succ', card_commutator_closure_commutator_representatives] at h2,
+  rw ← pow_succ' at h2,
   replace h2 := nat.le_of_dvd (pow_pos (nat.pos_of_ne_zero (index_center_ne_zero _)) _) h2,
   exact h2.trans (nat.pow_le_pow_of_le_left h1 _),
 end
-
--- And then we can start Neumann...
 
 end subgroup

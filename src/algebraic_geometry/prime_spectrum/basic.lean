@@ -407,6 +407,9 @@ lemma vanishing_ideal_closure (t : set (prime_spectrum R)) :
   vanishing_ideal (closure t) = vanishing_ideal t :=
 zero_locus_vanishing_ideal_eq_closure t ▸ (gc R).u_l_u_eq_u t
 
+lemma closure_singleton (x) : closure ({x} : set (prime_spectrum R)) = zero_locus x.as_ideal :=
+by rw [← zero_locus_vanishing_ideal_eq_closure, vanishing_ideal_singleton]
+
 lemma is_radical_vanishing_ideal (s : set (prime_spectrum R)) :
   (vanishing_ideal s).is_radical :=
 by { rw [← vanishing_ideal_closure, ← zero_locus_vanishing_ideal_eq_closure,
@@ -490,8 +493,7 @@ end
 
 instance : quasi_sober (prime_spectrum R) :=
 ⟨λ S h₁ h₂, ⟨⟨_, is_irreducible_iff_vanishing_ideal_is_prime.1 h₁⟩,
-  by rw [is_generic_point, ← zero_locus_vanishing_ideal_eq_closure,
-    vanishing_ideal_singleton, zero_locus_vanishing_ideal_eq_closure, h₂.closure_eq]⟩⟩
+ by rw [is_generic_point, closure_singleton, zero_locus_vanishing_ideal_eq_closure, h₂.closure_eq]⟩⟩
 
 section comap
 variables {S : Type v} [comm_ring S] {S' : Type*} [comm_ring S']

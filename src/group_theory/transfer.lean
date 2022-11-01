@@ -6,7 +6,6 @@ Authors: Thomas Browning
 
 import group_theory.complement
 import group_theory.sylow
-import topology.algebra.continuous_monoid_hom
 
 /-!
 # The Transfer Homomorphism
@@ -188,9 +187,9 @@ variables {p : ℕ} (P : sylow p G) (hP : (P : subgroup G).normalizer ≤ (P : s
 include hP
 
 /-- The homomorphism `G →* P` in Burnside's transfer theorem. -/
-noncomputable def transfer_sylow [finite (G ⧸ (P : subgroup G))] : G →* (P : subgroup G) :=
+noncomputable def transfer_sylow [fintype (G ⧸ (P : subgroup G))] : G →* (P : subgroup G) :=
 @transfer G _ P P (@subgroup.is_commutative.comm_group G _ P
-  ⟨⟨λ a b, subtype.ext (hP (le_normalizer b.2) a a.2)⟩⟩) (monoid_hom.id P) (fintype.of_finite _)
+  ⟨⟨λ a b, subtype.ext (hP (le_normalizer b.2) a a.2)⟩⟩) (monoid_hom.id P) _
 
 variables [fact p.prime] [finite (sylow p G)]
 
@@ -204,7 +203,7 @@ begin
   exact h.trans (commute.inv_mul_cancel (hP hn (g ^ k) hg).symm),
 end
 
-variables [finite (G ⧸ (P : subgroup G))]
+variables [fintype (G ⧸ (P : subgroup G))]
 
 lemma transfer_sylow_eq_pow (g : G) (hg : g ∈ P) : transfer_sylow P hP g =
   ⟨g ^ (P : subgroup G).index, transfer_eq_pow_aux g (transfer_sylow_eq_pow_aux P hP g hg)⟩ :=

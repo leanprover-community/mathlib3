@@ -917,7 +917,7 @@ end
 
 /-- (Implementation) An auxiliary definition for `kaehler_differential.ker_total_eq`. -/
 noncomputable
-def kaehler_differential.ker_total_derivation :
+def kaehler_differential.derivation_quot_ker_total :
   derivation R S ((S →₀ S) ⧸ kaehler_differential.ker_total R S) :=
 { to_fun := λ x, 1 𝖣 x,
   map_add' := λ x y, kaehler_differential.ker_total_mkq_single_add _ _ _ _ _,
@@ -926,17 +926,17 @@ def kaehler_differential.ker_total_derivation :
   leibniz' := λ a b, (kaehler_differential.ker_total_mkq_single_mul _ _ _ _ _).trans
     (by { simp_rw [← finsupp.smul_single_one _ (1 * _ : S)], dsimp, simp }) }
 
-lemma kaehler_differential.ker_total_derivation_apply (x) :
-  kaehler_differential.ker_total_derivation R S x = (1 𝖣 x) := rfl
+lemma kaehler_differential.derivation_quot_ker_total_apply (x) :
+  kaehler_differential.derivation_quot_ker_total R S x = (1 𝖣 x) := rfl
 
-lemma kaehler_differential.ker_total_derivation_lift_comp_total :
-  (kaehler_differential.ker_total_derivation R S).lift_kaehler_differential.comp
+lemma kaehler_differential.derivation_quot_ker_total_lift_comp_total :
+  (kaehler_differential.derivation_quot_ker_total R S).lift_kaehler_differential.comp
     (finsupp.total S Ω[S⁄R] S (kaehler_differential.D R S)) = submodule.mkq _ :=
 begin
   apply finsupp.lhom_ext,
   intros a b,
   conv_rhs { rw [← finsupp.smul_single_one a b, linear_map.map_smul] },
-  simp [kaehler_differential.ker_total_derivation_apply],
+  simp [kaehler_differential.derivation_quot_ker_total_apply],
 end
 
 lemma kaehler_differential.ker_total_eq :
@@ -945,7 +945,7 @@ lemma kaehler_differential.ker_total_eq :
 begin
   apply le_antisymm,
   { conv_rhs { rw ← (kaehler_differential.ker_total R S).ker_mkq },
-    rw ← kaehler_differential.ker_total_derivation_lift_comp_total,
+    rw ← kaehler_differential.derivation_quot_ker_total_lift_comp_total,
     exact linear_map.ker_le_ker_comp _ _ },
   { rw [kaehler_differential.ker_total, submodule.span_le],
     rintros _ ((⟨⟨x, y⟩, rfl⟩|⟨⟨x, y⟩, rfl⟩)|⟨x, rfl⟩); dsimp; simp [linear_map.mem_ker] },

@@ -228,7 +228,7 @@ lemma concat_append {u v w x : V} (p : G.walk u v) (h : G.adj v w) (q : G.walk w
 by rw [concat_eq_append, ← append_assoc, cons_nil_append]
 
 /-- A non-trivial `cons` walk is representable as a `concat` walk. -/
-def exists_cons_eq_concat : Π {u v w : V} (h : G.adj u v) (p : G.walk v w),
+lemma exists_cons_eq_concat : Π {u v w : V} (h : G.adj u v) (p : G.walk v w),
   ∃ (x : V) (q : G.walk u x) (h' : G.adj x w), cons h p = q.concat h'
 | _ _ _ h nil := ⟨_, nil, h, rfl⟩
 | _ _ _ h (cons h' p) :=
@@ -239,7 +239,7 @@ def exists_cons_eq_concat : Π {u v w : V} (h : G.adj u v) (p : G.walk v w),
   end
 
 /-- A non-trivial `concat` walk is representable as a `cons` walk. -/
-def concat_eq_cons : Π {u v w : V} (p : G.walk u v) (h : G.adj v w),
+lemma exists_concat_eq_cons : Π {u v w : V} (p : G.walk u v) (h : G.adj v w),
   ∃ (x : V) (h' : G.adj u x) (q : G.walk x w), p.concat h = cons h' q
 | _ _ _ nil h := ⟨_, h, nil, rfl⟩
 | _ _ _ (cons h' p) h := ⟨_, h', walk.concat p h, concat_cons _ _ _⟩

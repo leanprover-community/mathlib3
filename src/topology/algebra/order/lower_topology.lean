@@ -6,6 +6,7 @@ Authors: Christopher Hoskin
 import order.upper_lower
 import topology.separation
 import logic.equiv.defs
+import topology.algebra.constructions
 
 /-!
 # Lower topology
@@ -161,7 +162,7 @@ end partial_order
 
 section complete_semilattice_Sup
 
-variables [topological_space α] [complete_semilattice_Sup α] [t : lower_topology α]
+variables [complete_semilattice_Sup α]
 
 lemma sUnion_Ici_compl  (s : set α):
   ⋃₀ { (Ici a)ᶜ | a ∈ s } = (Ici (Sup s))ᶜ :=
@@ -174,7 +175,8 @@ begin
     rw Ici_subset_Ici,
     apply le_Sup h, },
   { rintro a h,
-    simp only [exists_prop, mem_sUnion, mem_set_of_eq, exists_exists_and_eq_and, mem_compl_iff, mem_Ici],
+    simp only [exists_prop, mem_sUnion, mem_set_of_eq, exists_exists_and_eq_and, mem_compl_iff,
+      mem_Ici],
     simp only [mem_compl_iff, mem_Ici, Sup_le_iff, not_forall, exists_prop] at h,
     exact h, }
 end
@@ -187,10 +189,14 @@ section prod
 universes v
 
 -- c.f. topology.stone_cech
-def upper_closure_prod_basis (α : Type u) (β : Type v) [partial_order α] [partial_order β] : set (set (α × β)):=
+
+/--
+A basis for the product of the lower topology
+-/
+def upper_closure_prod_basis (α : Type u) (β : Type v) [partial_order α] [partial_order β] :
+set (set (α × β)):=
 { S : set (α × β) | ∃ (F₁ : set α) (F₂ : set β), F₁.finite
-  ∧ F₂.finite ∧ ((upper_closure F₁ : set α)ᶜ ×ˢ (upper_closure F₂ : set β)ᶜ = S)
-  ∧ (upper_closure F₁ : set α)ᶜ.nonempty ∧ (upper_closure F₂ : set β)ᶜ.nonempty}
+  ∧ F₂.finite ∧ ((upper_closure F₁ : set α)ᶜ ×ˢ (upper_closure F₂ : set β)ᶜ = S) }
 
 variable {β : Type v}
 
@@ -237,9 +243,10 @@ lemma prod_Ici (a : α) (b : β) : upper_set.Ici (a,b) =
 by rw [← upper_set.Ici_prod_Ici, ← upper_closure_singleton, ← upper_closure_singleton,
     upper_closure_prod_upper_closure]
 
-lemma upper_closure_compl_prod_upper_closure_compl (F₁ : set α) (F₂ : set β)
-  : ((upper_closure F₁).compl.prod (upper_closure F₂).compl)  =
-  (((⊥ : upper_set α).prod (upper_closure F₂)).compl ⊓ ((upper_closure F₁).prod (⊥ : upper_set β)).compl) :=
+lemma upper_closure_compl_prod_upper_closure_compl (F₁ : set α) (F₂ : set β) :
+  ((upper_closure F₁).compl.prod (upper_closure F₂).compl) =
+  (((⊥ : upper_set α).prod (upper_closure F₂)).compl ⊓
+  ((upper_closure F₁).prod (⊥ : upper_set β)).compl) :=
 lower_set.ext begin
   rw subset_antisymm_iff,
   split,
@@ -260,36 +267,29 @@ begin
   simp only [upper_closure_prod, upper_closure_univ],
 end
 
-lemma upper_closure_compl_prod_upper_closure_compl'' {α : Type u} {β : Type v} [complete_lattice α] [complete_lattice β]
-  (F₁ : set α) (F₂ : set β) : ((upper_closure F₁).compl.prod (upper_closure F₂).compl)  =
+lemma upper_closure_compl_prod_upper_closure_compl'' {α : Type u} {β : Type v}
+  [complete_lattice α] [complete_lattice β] (F₁ : set α) (F₂ : set β) :
+  ((upper_closure F₁).compl.prod (upper_closure F₂).compl)  =
   (upper_closure ({(⊥ : α)} ×ˢ F₂)).compl ⊓ (upper_closure (F₁ ×ˢ {(⊥ : β)})).compl :=
 by rw [upper_closure_compl_prod_upper_closure_compl, upper_closure_prod, upper_closure_prod,
     upper_closure_singleton, upper_closure_singleton, upper_set.Ici_bot, upper_set.Ici_bot]
 
-
-#check is_topological_basis.prod
-
-variables [topological_space α] [t: lower_topology α] [topological_space β] [s : lower_topology β]
-
-include s
-include t
-
-instance : lower_topology (α × β) :=
-{ topology_eq_generate_Ici_comp :=
-  begin
-    rw le_antisymm_iff,
-    split,
+lemma lower_topology_prod : lower_topology (α × β) =
+  @prod.topological_space α β (lower_topology α) (lower_topology β) :=
+begin
+  rw le_antisymm_iff,
+  split,
+    { sorry },
     { apply le_generate_from,
-      intros,
-      rw mem_set_of_eq at H,
-      rcases H,
-      cases H_w,
-      rw [← H_h, ← upper_set.coe_Ici, is_open_compl_iff, prod_Ici],
-      apply is_closed.inter,
-      { apply is_closed.prod is_closed_univ, apply ici_is_closed, },
-      { apply is_closed.prod, apply ici_is_closed, apply is_closed_univ, } },
-    { sorry }
-  end }
+    intros,
+    rw mem_set_of_eq at H,
+    rcases H,
+    cases H_w,
+    rw [← H_h, ← upper_set.coe_Ici, is_open_compl_iff, prod_Ici],
+    apply is_closed.inter,
+    { apply is_closed.prod is_closed_univ, apply with_lower_topology.is_closed_Ici, },
+    { apply is_closed.prod, apply with_lower_topology.is_closed_Ici, apply is_closed_univ, } },
+end
 
 end prod
 

@@ -319,4 +319,12 @@ begin
   exact h2.trans (nat.pow_le_pow_of_le_left h1 _),
 end
 
+instance [finite (commutator_set G)] : finite (commutator G) :=
+begin
+  have h2 := card_commutator_dvd_index_center_pow (closure_commutator_representatives G),
+  refine nat.finite_of_card_ne_zero (λ h, _),
+  rw [card_commutator_closure_commutator_representatives, h, zero_dvd_iff] at h2,
+  exact index_center_ne_zero (closure_commutator_representatives G) (pow_eq_zero h2),
+end
+
 end subgroup

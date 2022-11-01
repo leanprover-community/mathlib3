@@ -238,6 +238,14 @@ theorem to_submodule_injective :
 theorem to_submodule_inj {S U : subalgebra R A} : S.to_submodule = U.to_submodule ↔ S = U :=
 to_submodule_injective.eq_iff
 
+theorem to_submodule_le_to_submodule_iff {S U : subalgebra R A} :
+  S.to_submodule ≤ U.to_submodule ↔ S ≤ U :=
+set_like.coe_subset_coe.symm.trans set_like.coe_subset_coe
+
+theorem to_submodule_lt_to_submodule_iff {S U : subalgebra R A} :
+  S.to_submodule < U.to_submodule ↔ S < U :=
+set_like.coe_ssubset_coe.symm.trans set_like.coe_ssubset_coe
+
 section
 
 /-! `subalgebra`s inherit structure from their `submodule` coercions. -/

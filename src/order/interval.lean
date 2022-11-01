@@ -323,7 +323,7 @@ end
 
 @[simp, norm_cast]
 lemma disjoint_coe (s t : interval α) : disjoint (s : set α) t ↔ disjoint s t :=
-by { rw [disjoint, disjoint, le_eq_subset, ←coe_subset_coe, coe_inf], refl }
+by { rw [disjoint_iff_inf_le, disjoint_iff_inf_le, le_eq_subset, ←coe_subset_coe, coe_inf], refl }
 
 end lattice
 end interval

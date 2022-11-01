@@ -1875,8 +1875,7 @@ theorem filter_union_filter_of_codisjoint (s : finset α) (h : codisjoint p q) :
 
 theorem filter_union_filter_neg_eq [decidable_pred (λ a, ¬ p a)] (s : finset α) :
   s.filter p ∪ s.filter (λ a, ¬ p a) = s :=
-filter_union_filter_of_codisjoint _ _ _
-  (@disjoint_compl_right _ _ (order_dual.to_dual p)).dual
+filter_union_filter_of_codisjoint _ _ _ codisjoint_hnot_right
 
 end filter
 

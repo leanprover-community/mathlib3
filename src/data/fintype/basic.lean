@@ -10,6 +10,7 @@ import data.finset.pi
 import data.finset.powerset
 import data.finset.prod
 import data.finset.sigma
+import data.finset.sum
 import data.finite.defs
 import data.list.nodup_equiv_fin
 import data.sym.basic
@@ -103,6 +104,9 @@ lemma eq_univ_of_forall  : (∀ x, x ∈ s) → s = univ := eq_univ_iff_forall.2
 @[simp, norm_cast] lemma coe_eq_univ : (s : set α) = set.univ ↔ s = univ :=
 by rw [←coe_univ, coe_inj]
 
+lemma nonempty.eq_univ [subsingleton α] : s.nonempty → s = univ :=
+by { rintro ⟨x, hx⟩, refine eq_univ_of_forall (λ y, by rwa subsingleton.elim y x) }
+
 lemma univ_nonempty_iff : (univ : finset α).nonempty ↔ nonempty α :=
 by rw [← coe_nonempty, coe_univ, set.nonempty_iff_univ_nonempty]
 
@@ -124,6 +128,8 @@ instance : order_top (finset α) :=
   le_top := subset_univ }
 
 @[simp] lemma top_eq_univ : (⊤ : finset α) = univ := rfl
+
+lemma ssubset_univ_iff {s : finset α} : s ⊂ univ ↔ s ≠ univ := @lt_top_iff_ne_top _ _ _ s
 
 section boolean_algebra
 variables [decidable_eq α] {a : α}
@@ -697,14 +703,23 @@ lemma to_finset_prod (s : set α) (t : set β) [fintype s] [fintype t] [fintype 
 by { ext, simp }
 
 lemma to_finset_off_diag {s : set α} [decidable_eq α] [fintype s] [fintype s.off_diag] :
-s.off_diag.to_finset = s.to_finset.off_diag := finset.ext $ by simp
+  s.off_diag.to_finset = s.to_finset.off_diag :=
+finset.ext $ by simp
+
+@[simp] lemma to_finset_eq_univ [fintype α] {s : set α} [fintype s] :
+  s.to_finset = finset.univ ↔ s = set.univ :=
+by rw [← coe_inj, coe_to_finset, coe_univ]
 
 /- TODO Without the coercion arrow (`↥`) there is an elaboration bug;
 it essentially infers `fintype.{v} (set.univ.{u} : set α)` with `v` and `u` distinct.
 Reported in leanprover-community/lean#672 -/
 @[simp] lemma to_finset_univ [fintype ↥(set.univ : set α)] [fintype α] :
   (set.univ : set α).to_finset = finset.univ :=
-by { ext, simp }
+to_finset_eq_univ.2 rfl
+
+@[simp] lemma to_finset_ssubset_univ [fintype α] {s : set α} [fintype s] :
+  s.to_finset ⊂ finset.univ ↔ s ⊂ univ :=
+by rw [← coe_ssubset, coe_to_finset, coe_univ]
 
 @[simp] lemma to_finset_range [decidable_eq α] [fintype β] (f : β → α) [fintype (set.range f)] :
   (set.range f).to_finset = finset.univ.image f :=
@@ -961,19 +976,13 @@ instance (α : Type*) [fintype α] : fintype (lex α) := ‹fintype α›
 @[simp] lemma fintype.card_lex (α : Type*) [fintype α] :
   fintype.card (lex α) = fintype.card α := rfl
 
-lemma univ_sum_type {α β : Type*} [fintype α] [fintype β] [fintype (α ⊕ β)] [decidable_eq (α ⊕ β)] :
-  (univ : finset (α ⊕ β)) = map function.embedding.inl univ ∪ map function.embedding.inr univ :=
-begin
-  rw [eq_comm, eq_univ_iff_forall], simp only [mem_union, mem_map, exists_prop, mem_univ, true_and],
-  rintro (x|y), exacts [or.inl ⟨x, rfl⟩, or.inr ⟨y, rfl⟩]
-end
-
 instance (α : Type u) (β : Type v) [fintype α] [fintype β] : fintype (α ⊕ β) :=
-@fintype.of_equiv _ _ (@sigma.fintype _
-    (λ b, cond b (ulift α) (ulift.{(max u v) v} β)) _
-    (λ b, by cases b; apply ulift.fintype))
-  ((equiv.sum_equiv_sigma_bool _ _).symm.trans
-    (equiv.sum_congr equiv.ulift equiv.ulift))
+{ elems := univ.disj_sum univ,
+  complete := by rintro (_ | _); simp }
+
+@[simp] lemma finset.univ_disj_sum_univ {α β : Type*} [fintype α] [fintype β] :
+  univ.disj_sum univ = (univ : finset (α ⊕ β)) :=
+rfl
 
 /-- Given that `α ⊕ β` is a fintype, `α` is also a fintype. This is non-computable as it uses
 that `sum.inl` is an injection, but there's no clear inverse if `α` is empty. -/
@@ -987,15 +996,7 @@ fintype.of_injective (sum.inr : β → α ⊕ β) sum.inr_injective
 
 @[simp] theorem fintype.card_sum [fintype α] [fintype β] :
   fintype.card (α ⊕ β) = fintype.card α + fintype.card β :=
-begin
-  classical,
-  rw [←finset.card_univ, univ_sum_type, finset.card_union_eq],
-  { simp [finset.card_univ] },
-  { intros x hx,
-    rsuffices ⟨⟨a, rfl⟩, ⟨b, hb⟩⟩ : (∃ (a : α), sum.inl a = x) ∧ ∃ (b : β), sum.inr b = x,
-    { simpa using hb },
-    simpa using hx }
-end
+card_disj_sum _ _
 
 /-- If the subtype of all-but-one elements is a `fintype` then the type itself is a `fintype`. -/
 def fintype_of_fintype_ne (a : α) (h : fintype {b // b ≠ a}) : fintype α :=
@@ -2192,8 +2193,8 @@ begin
   exact nat.not_succ_le_self n w,
 end
 
-lemma not_injective_infinite_finite [infinite α] [finite β] (f : α → β) : ¬ injective f :=
-λ hf, (finite.of_injective f hf).not_infinite ‹_›
+lemma not_injective_infinite_finite {α β} [infinite α] [finite β] (f : α → β) : ¬ injective f :=
+λ hf, (finite.of_injective f hf).false
 
 /--
 The pigeonhole principle for infinitely many pigeons in finitely many pigeonholes. If there are
@@ -2202,16 +2203,12 @@ same pigeonhole.
 
 See also: `fintype.exists_ne_map_eq_of_card_lt`, `finite.exists_infinite_fiber`.
 -/
-lemma finite.exists_ne_map_eq_of_infinite [infinite α] [finite β] (f : α → β) :
+lemma finite.exists_ne_map_eq_of_infinite {α β} [infinite α] [finite β] (f : α → β) :
   ∃ x y : α, x ≠ y ∧ f x = f y :=
-begin
-  classical, by_contra' hf,
-  apply not_injective_infinite_finite f,
-  intros x y, contrapose, apply hf,
-end
+by simpa only [injective, not_forall, not_imp, and.comm] using not_injective_infinite_finite f
 
 instance function.embedding.is_empty {α β} [infinite α] [finite β] : is_empty (α ↪ β) :=
-⟨λ f, let ⟨x, y, ne, feq⟩ := finite.exists_ne_map_eq_of_infinite f in ne $ f.injective feq⟩
+⟨λ f, not_injective_infinite_finite f f.2⟩
 
 /--
 The strong pigeonhole principle for infinitely many pigeons in

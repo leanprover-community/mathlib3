@@ -540,6 +540,17 @@ tsum_eq_tsum_of_has_sum_iff_has_sum $ λ x, has_sum_subtype_iff_of_support_subse
 @[simp] lemma tsum_univ (f : β → α) : ∑' x : (set.univ : set β), f x = ∑' x, f x :=
 tsum_subtype_eq_of_support_subset $ set.subset_univ _
 
+@[simp] lemma tsum_singleton (b : β) (f : β → α) :
+  ∑' x : ({b} : set β), f x = f b :=
+begin
+  rw [tsum_subtype, tsum_eq_single b],
+  { simp },
+  { intros b' hb',
+    rw set.indicator_of_not_mem,
+    rwa set.mem_singleton_iff },
+  { apply_instance }
+end
+
 lemma tsum_image {g : γ → β} (f : β → α) {s : set γ} (hg : set.inj_on g s) :
   ∑' x : g '' s, f x = ∑' x : s, f (g x) :=
 ((equiv.set.image_of_inj_on _ _ hg).tsum_eq (λ x, f x)).symm
@@ -1394,6 +1405,17 @@ begin
 end
 
 end topological_group
+
+section preorder
+
+variables {E : Type*} [preorder E] [add_comm_monoid E]
+  [topological_space E] [order_closed_topology E] [t2_space E]
+
+lemma tsum_le_of_sum_range_le {f : ℕ → E} {c : E} (hsum : summable f)
+  (h : ∀ n, ∑ i in finset.range n, f i ≤ c) : ∑' n, f n ≤ c :=
+let ⟨l, hl⟩ := hsum in hl.tsum_eq.symm ▸ le_of_tendsto' hl.tendsto_sum_nat h
+
+end preorder
 
 section linear_order
 

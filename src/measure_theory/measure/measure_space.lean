@@ -527,6 +527,42 @@ begin
   exact λ ⟨i, hi⟩, ⟨i + (m - n), by simpa only [add_assoc, tsub_add_cancel_of_le hnm] using hi⟩
 end
 
+lemma measure_liminf_eq_zero {s : ℕ → set α} (h : ∑' i, μ (s i) ≠ ⊤) : μ (liminf s at_top) = 0 :=
+begin
+  rw ← le_zero_iff,
+  have : liminf s at_top ≤ limsup s at_top :=
+    liminf_le_limsup (by is_bounded_default) (by is_bounded_default),
+  exact (μ.mono this).trans (by simp [measure_limsup_eq_zero h]),
+end
+
+lemma limsup_ae_eq_of_forall_ae_eq (s : ℕ → set α) {t : set α} (h : ∀ n, s n =ᵐ[μ] t) :
+  -- Need `@` below because of diamond; see gh issue #16932
+  @limsup (set α) ℕ _ s at_top =ᵐ[μ] t :=
+begin
+  simp_rw ae_eq_set at h ⊢,
+  split,
+  { rw at_top.limsup_sdiff s t,
+    apply measure_limsup_eq_zero,
+    simp [h], },
+  { rw at_top.sdiff_limsup s t,
+    apply measure_liminf_eq_zero,
+    simp [h], },
+end
+
+lemma liminf_ae_eq_of_forall_ae_eq (s : ℕ → set α) {t : set α} (h : ∀ n, s n =ᵐ[μ] t) :
+  -- Need `@` below because of diamond; see gh issue #16932
+  @liminf (set α) ℕ _ s at_top =ᵐ[μ] t :=
+begin
+  simp_rw ae_eq_set at h ⊢,
+  split,
+  { rw at_top.liminf_sdiff s t,
+    apply measure_liminf_eq_zero,
+    simp [h], },
+  { rw at_top.sdiff_liminf s t,
+    apply measure_limsup_eq_zero,
+    simp [h], },
+end
+
 lemma measure_if {x : β} {t : set β} {s : set α} :
   μ (if x ∈ t then s else ∅) = indicator t (λ _, μ s) x :=
 by { split_ifs; simp [h] }
@@ -2006,6 +2042,43 @@ lemma preimage_null (h : quasi_measure_preserving f μa μb) {s : set β} (hs : 
   μa (f ⁻¹' s) = 0 :=
 preimage_null_of_map_null h.ae_measurable (h.2 hs)
 
+lemma limsup_preimage_iterate_ae_eq {f : α → α} (hf : quasi_measure_preserving f μ μ)
+  (hs : f⁻¹' s =ᵐ[μ] s) :
+  -- Need `@` below because of diamond; see gh issue #16932
+  @limsup (set α) ℕ _ (λ n, (preimage f)^[n] s) at_top =ᵐ[μ] s :=
+begin
+  have : ∀ n, (preimage f)^[n] s =ᵐ[μ] s,
+  { intros n,
+    induction n with n ih, { simp, },
+    simpa only [iterate_succ', comp_app] using ae_eq_trans (hf.ae_eq ih) hs, },
+  exact (limsup_ae_eq_of_forall_ae_eq (λ n, (preimage f)^[n] s) this).trans (ae_eq_refl _),
+end
+
+lemma liminf_preimage_iterate_ae_eq {f : α → α} (hf : quasi_measure_preserving f μ μ)
+  (hs : f⁻¹' s =ᵐ[μ] s) :
+  -- Need `@` below because of diamond; see gh issue #16932
+  @liminf (set α) ℕ _ (λ n, (preimage f)^[n] s) at_top =ᵐ[μ] s :=
+begin
+  -- Need `@` below because of diamond; see gh issue #16932
+  rw [← ae_eq_set_compl_compl, @filter.liminf_compl (set α)],
+  rw [← ae_eq_set_compl_compl, ← preimage_compl] at hs,
+  convert hf.limsup_preimage_iterate_ae_eq hs,
+  ext1 n,
+  simp only [← set.preimage_iterate_eq, comp_app, preimage_compl],
+end
+
+/-- By replacing a measurable set that is almost invariant with the `limsup` of its preimages, we
+obtain a measurable set that is almost equal and strictly invariant.
+
+(The `liminf` would work just as well.) -/
+lemma exists_preimage_eq_of_preimage_ae {f : α → α} (h : quasi_measure_preserving f μ μ)
+  (hs : measurable_set s) (hs' : f⁻¹' s =ᵐ[μ] s) :
+  ∃ (t : set α), measurable_set t ∧ t =ᵐ[μ] s ∧ f⁻¹' t = t :=
+⟨limsup (λ n, (preimage f)^[n] s) at_top,
+ measurable_set.measurable_set_limsup $ λ n, @preimage_iterate_eq α f n ▸ h.measurable.iterate n hs,
+ h.limsup_preimage_iterate_ae_eq hs',
+ (complete_lattice_hom.set_preimage f).apply_limsup_iterate s⟩
+
 end quasi_measure_preserving
 
 /-! ### The `cofinite` filter -/
@@ -2529,6 +2602,24 @@ end
 lemma is_probability_measure_map [is_probability_measure μ] {f : α → β} (hf : ae_measurable f μ) :
   is_probability_measure (map f μ) :=
 ⟨by simp [map_apply_of_ae_measurable, hf]⟩
+
+@[simp] lemma one_le_prob_iff [is_probability_measure μ] : 1 ≤ μ s ↔ μ s = 1 :=
+⟨λ h, le_antisymm prob_le_one h, λ h, h ▸ le_refl _⟩
+
+/-- Note that this is not quite as useful as it looks because the measure takes values in `ℝ≥0∞`.
+Thus the subtraction appearing is the truncated subtraction of `ℝ≥0∞`, rather than the
+better-behaved subtraction of `ℝ`. -/
+lemma prob_compl_eq_one_sub [is_probability_measure μ] (hs : measurable_set s) :
+  μ sᶜ = 1 - μ s :=
+by simpa only [measure_univ] using measure_compl hs (measure_lt_top μ s).ne
+
+@[simp] lemma prob_compl_eq_zero_iff [is_probability_measure μ] (hs : measurable_set s) :
+  μ sᶜ = 0 ↔ μ s = 1 :=
+by simp only [prob_compl_eq_one_sub hs, tsub_eq_zero_iff_le, one_le_prob_iff]
+
+@[simp] lemma prob_compl_eq_one_iff [is_probability_measure μ] (hs : measurable_set s) :
+  μ sᶜ = 1 ↔ μ s = 0 :=
+by rwa [← prob_compl_eq_zero_iff hs.compl, compl_compl]
 
 end is_probability_measure
 

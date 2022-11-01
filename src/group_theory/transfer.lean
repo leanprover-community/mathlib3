@@ -161,8 +161,6 @@ noncomputable def transfer_center_pow' (h : (center G).index ≠ 0) : G →* cen
   ↑(transfer_center_pow' h g) = g ^ (center G).index :=
 rfl
 
-open_locale pointwise
-
 -- PRed
 lemma _root_.subgroup.eq_bot_of_card_eq' {G : Type*} [group G] (H : subgroup G)
   (h : nat.card H = 1) : H = ⊥ :=
@@ -179,8 +177,6 @@ lemma _root_.subgroup.card_dvd_of_le' {G : Type*} [group G] {H K : subgroup G} (
 nat_card_dvd_of_injective (inclusion h) (inclusion_injective h)
 
 section burnside_transfer
-
-open_locale pointwise
 
 variables {p : ℕ} (P : sylow p G) (hP : (P : subgroup G).normalizer ≤ (P : subgroup G).centralizer)
 

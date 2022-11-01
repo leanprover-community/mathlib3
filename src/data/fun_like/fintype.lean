@@ -17,7 +17,7 @@ This corresponds to the following two declarations:
  * `fun_like.fintype` is a **definition** stating all `fun_like`s are finite if their domain and
    codomain are.
    This is not an instance because specific `fun_like` types might have a better-suited definition.
- * `fin_like.finite` is an **instance** stating all `fun_like`s are finite if their domain and
+ * `fun_like.finite` is an **instance** stating all `fun_like`s are finite if their domain and
    codomain are.
    This can safely be an instance because `finite` is a proposition, so there is no risk of
    non-defeq diamonds.

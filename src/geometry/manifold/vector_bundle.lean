@@ -8,8 +8,8 @@ import geometry.manifold.cont_mdiff
 /-! # Smooth vector bundles
 
 This file will eventually contain the definition of a smooth vector bundle.  For now, it contains
-preliminaries regarding an associated `structure_groupoid`, the groupoid of `smooth_fibrewise_linear`
-functions. -/
+preliminaries regarding an associated `structure_groupoid`, the groupoid of
+`smooth_fibrewise_linear` functions. -/
 
 noncomputable theory
 
@@ -87,8 +87,8 @@ variables {EB : Type*} [normed_add_comm_group EB] [normed_space 𝕜 EB]
 
 /-- Let `e` be a local homeomorphism of `B × F` whose source is `U ×ˢ univ`, for some set `U` in
 `B`, and which, at any point `x` in `U`, admits a neighbourhood `u` of `x` such that `e` is equal on
-`u ×ˢ univ` to some bi-smooth fibrewise linear local homeomorphism.  Then `e` itself is equal to some
-bi-smooth fibrewise linear local homeomorphism.
+`u ×ˢ univ` to some bi-smooth fibrewise linear local homeomorphism.  Then `e` itself is equal to
+some bi-smooth fibrewise linear local homeomorphism.
 
 This is the key mathematical point of the `locality` condition in the construction of the
 `structure_groupoid` of bi-smooth fibrewise linear local homeomorphisms.  The proof is by gluing

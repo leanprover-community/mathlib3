@@ -10,7 +10,7 @@ import data.polynomial.monic
 # Polynomials that lift
 
 Given semirings `R` and `S` with a morphism `f : R →+* S`, we define a subsemiring `lifts` of
-`polynomial S` by the image of `ring_hom.of (map f)`.
+`S[X]` by the image of `ring_hom.of (map f)`.
 Then, we prove that a polynomial that lifts can always be lifted to a polynomial of the same degree
 and that a monic polynomial that lifts can be lifted to a monic polynomial (of the same degree).
 
@@ -241,7 +241,7 @@ section algebra
 
 variables {R : Type u} [comm_semiring R] {S : Type v} [semiring S] [algebra R S]
 
-/-- The map `polynomial R → S[X]` as an algebra homomorphism. -/
+/-- The map `R[X] → S[X]` as an algebra homomorphism. -/
 def map_alg (R : Type u) [comm_semiring R] (S : Type v) [semiring S] [algebra R S] :
   R[X] →ₐ[R] S[X] := @aeval _ S[X] _ _ _ (X : S[X])
 

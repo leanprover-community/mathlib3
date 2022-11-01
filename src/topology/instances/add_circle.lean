@@ -3,6 +3,7 @@ Copyright (c) 2022 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
+import group_theory.divisible
 import algebra.order.floor
 import algebra.order.to_interval_mod
 import topology.instances.real
@@ -112,6 +113,18 @@ begin
   let y := equiv_Ico p x,
   exact ⟨y, ⟨y.2.1, y.2.2.le⟩, (equiv_Ico p).symm_apply_apply x⟩,
 end
+
+instance : divisible_by (add_circle p) ℤ :=
+{ div := λ x n, (↑(((n : 𝕜)⁻¹) * (equiv_Ico p x : 𝕜)) : add_circle p),
+  div_zero := λ x,
+    by simp only [algebra_map.coe_zero, quotient_add_group.coe_zero, inv_zero, zero_mul],
+  div_cancel := λ n x hn,
+  begin
+    replace hn : (n : 𝕜) ≠ 0, { norm_cast, assumption, },
+    change n • quotient_add_group.mk' _ ((n : 𝕜)⁻¹ * ↑(equiv_Ico p x)) = x,
+    rw [← map_zsmul, ← smul_mul_assoc, zsmul_eq_mul, mul_inv_cancel hn, one_mul],
+    exact (equiv_Ico p).symm_apply_apply x,
+  end, }
 
 end linear_ordered_field
 

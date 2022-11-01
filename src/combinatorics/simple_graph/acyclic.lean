@@ -49,7 +49,7 @@ def is_tree : Prop := G.connected ∧ G.is_acyclic
 variables {G}
 
 lemma is_acyclic_iff_forall_adj_is_bridge :
-  G.is_acyclic ↔ ∀ {v w : V}, G.adj v w → G.is_bridge ⟦(v, w)⟧ :=
+  G.is_acyclic ↔ ∀ ⦃v w : V⦄, G.adj v w → G.is_bridge ⟦(v, w)⟧ :=
 begin
   simp_rw [is_bridge_iff_adj_and_forall_cycle_not_mem],
   split,
@@ -66,7 +66,7 @@ begin
 end
 
 lemma is_acyclic_iff_forall_edge_is_bridge :
-  G.is_acyclic ↔ ∀ (e ∈ G.edge_set), G.is_bridge e :=
+  G.is_acyclic ↔ ∀ ⦃e⦄, e ∈ G.edge_set → G.is_bridge e :=
 by simp [is_acyclic_iff_forall_adj_is_bridge, sym2.forall]
 
 lemma is_acyclic.path_unique {G : simple_graph V} (h : G.is_acyclic) {v w : V} (p q : G.path v w) :
@@ -110,7 +110,7 @@ begin
     simpa [-quotient.eq, sym2.eq_swap, h] using hc },
 end
 
-lemma is_acyclic_iff : G.is_acyclic ↔ ∀ (v w : V) (p q : G.path v w), p = q :=
+lemma is_acyclic_iff : G.is_acyclic ↔ ∀ ⦃v w : V⦄ (p q : G.path v w), p = q :=
 ⟨is_acyclic.path_unique, is_acyclic_of_path_unique⟩
 
 lemma is_tree_iff : G.is_tree ↔ nonempty V ∧ ∀ (v w : V), ∃!(p : G.walk v w), p.is_path :=
@@ -125,7 +125,7 @@ begin
     use q,
     simp only [true_and, path.is_path],
     intros p hp,
-    specialize hu v w ⟨p, hp⟩ q,
+    specialize hu ⟨p, hp⟩ q,
     simp only [←hu, subtype.coe_mk], },
   { rintro ⟨hV, h⟩,
     refine ⟨@connected.mk V _ _ hV, _⟩,

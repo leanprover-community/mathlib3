@@ -330,6 +330,12 @@ lemma eq_of_forall_ge_iff [partial_order α] {a b : α}
   (H : ∀ c, a ≤ c ↔ b ≤ c) : a = b :=
 ((H _).2 le_rfl).antisymm ((H _).1 le_rfl)
 
+lemma eq_of_forall_lt_iff [linear_order α] {a b : α} (h : ∀ c, c < a ↔ c < b) : a = b :=
+(le_of_forall_lt $ λ _, (h _).1).antisymm $ le_of_forall_lt $ λ _, (h _).2
+
+lemma eq_of_forall_gt_iff [linear_order α] {a b : α} (h : ∀ c, a < c ↔ b < c) : a = b :=
+(le_of_forall_lt' $ λ _, (h _).2).antisymm $ le_of_forall_lt' $ λ _, (h _).1
+
 /-- A symmetric relation implies two values are equal, when it implies they're less-equal.  -/
 lemma rel_imp_eq_of_rel_imp_le [partial_order β] (r : α → α → Prop) [is_symm α r] {f : α → β}
   (h : ∀ a b, r a b → f a ≤ f b) {a b : α} : r a b → f a = f b :=
@@ -519,6 +525,14 @@ lemma pi.sdiff_def {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] 
 @[simp]
 lemma pi.sdiff_apply {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) (i : ι) :
   (x \ y) i = x i \ y i := rfl
+
+namespace function
+variables [preorder α] [nonempty β] {a b : α}
+
+@[simp] lemma const_le_const : const β a ≤ const β b ↔ a ≤ b := by simp [pi.le_def]
+@[simp] lemma const_lt_const : const β a < const β b ↔ a < b := by simpa [pi.lt_def] using le_of_lt
+
+end function
 
 /-! ### `min`/`max` recursors -/
 

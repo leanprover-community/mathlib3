@@ -85,6 +85,10 @@ attribute [refl] walk.nil
 
 @[simps] instance walk.inhabited (v : V) : inhabited (G.walk v v) := ⟨walk.nil⟩
 
+/-- The one-edge walk associated to a pair of adjacent vertices. -/
+@[pattern, reducible] def adj.to_walk {G : simple_graph V} {u v : V} (h : G.adj u v) :
+  G.walk u v := walk.cons h walk.nil
+
 namespace walk
 variables {G}
 
@@ -882,9 +886,9 @@ list.count_eq_one_of_mem p.property.to_trail.edges_nodup hw
 
 lemma loop_eq {v : V} (p : G.path v v) : p = path.nil :=
 begin
-  obtain (p|p) := p,
+  obtain ⟨_|_, this⟩ := p,
   { refl },
-  { simpa using p_property },
+  { simpa },
 end
 
 lemma not_mem_edges_of_loop {v : V} {e : sym2 V} {p : G.path v v} :
@@ -1176,6 +1180,12 @@ begin
   exact h.elim (λ q, hp q.to_path),
 end
 
+protected lemma walk.reachable {G : simple_graph V} {u v : V} (p : G.walk u v) :
+  G.reachable u v := ⟨p⟩
+
+protected lemma adj.reachable {u v : V} (h : G.adj u v) :
+  G.reachable u v := h.to_walk.reachable
+
 @[refl] protected lemma reachable.refl (u : V) : G.reachable u u := by { fsplit, refl }
 protected lemma reachable.rfl {u : V} : G.reachable u u := reachable.refl _
 
@@ -1201,6 +1211,10 @@ begin
     { exact reachable.trans hr ⟨walk.cons ha walk.nil⟩, }, },
 end
 
+protected lemma reachable.map {G : simple_graph V} {G' : simple_graph V'}
+  (f : G →g G') {u v : V} (h : G.reachable u v) : G'.reachable (f u) (f v) :=
+h.elim (λ p, ⟨p.map f⟩)
+
 variables (G)
 
 lemma reachable_is_equivalence : equivalence G.reachable :=
@@ -1214,7 +1228,7 @@ def preconnected : Prop := ∀ (u v : V), G.reachable u v
 
 lemma preconnected.map {G : simple_graph V} {H : simple_graph V'} (f : G →g H) (hf : surjective f)
   (hG : G.preconnected) : H.preconnected :=
-hf.forall₂.2 $ λ a b, (hG _ _).map $ walk.map _
+hf.forall₂.2 $ λ a b, nonempty.map (walk.map _) $ hG _ _
 
 lemma iso.preconnected_iff {G : simple_graph V} {H : simple_graph V'} (e : G ≃g H) :
   G.preconnected ↔ H.preconnected :=
@@ -1307,6 +1321,24 @@ variables {G}
 
 /-- A subgraph is connected if it is connected as a simple graph. -/
 abbreviation subgraph.connected (H : G.subgraph) : Prop := H.coe.connected
+
+lemma singleton_subgraph_connected {v : V} : (G.singleton_subgraph v).connected :=
+begin
+  split,
+  rintros ⟨a, ha⟩ ⟨b, hb⟩,
+  simp only [singleton_subgraph_verts, set.mem_singleton_iff] at ha hb,
+  subst_vars
+end
+
+@[simp] lemma subgraph_of_adj_connected {v w : V} (hvw : G.adj v w) :
+  (G.subgraph_of_adj hvw).connected :=
+begin
+  split,
+  rintro ⟨a, ha⟩ ⟨b, hb⟩,
+  simp only [subgraph_of_adj_verts, set.mem_insert_iff, set.mem_singleton_iff] at ha hb,
+  obtain (rfl|rfl) := ha; obtain (rfl|rfl) := hb;
+    refl <|> { apply adj.reachable, simp },
+end
 
 lemma preconnected.set_univ_walk_nonempty (hconn : G.preconnected) (u v : V) :
   (set.univ : set (G.walk u v)).nonempty :=

@@ -430,10 +430,10 @@ begin
   apply le_antisymm,
   { refine (op_norm_le_bound _ (norm_nonneg f) (λ m, _)),
     dsimp,
-    rw pi_norm_le_iff,
+    rw pi_norm_le_iff_of_nonneg,
     exacts [λ i, (f i).le_of_op_norm_le m (norm_le_pi_norm f i),
       mul_nonneg (norm_nonneg f) (prod_nonneg $ λ _ _, norm_nonneg _)] },
-  { refine (pi_norm_le_iff (norm_nonneg _)).2 (λ i, _),
+  { refine (pi_norm_le_iff_of_nonneg (norm_nonneg _)).2 (λ i, _),
     refine (op_norm_le_bound _ (norm_nonneg _) (λ m, _)),
     refine le_trans _ ((pi f).le_op_norm m),
     convert norm_le_pi_norm (λ j, f j m) i }

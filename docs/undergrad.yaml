@@ -244,7 +244,7 @@ Affine and Euclidean Geometry:
     affine function: 'affine_map'
     affine subspace: 'affine_subspace'
     barycenter: 'finset.affine_combination'
-    affine span: 'span_points'
+    affine span: 'affine_span'
     equations of affine subspace: ''
     affine groups: 'affine_equiv.group'
     affine property: 'https://en.wikipedia.org/wiki/Affine_transformation#Properties'
@@ -538,7 +538,7 @@ Probability Theory:
     independent sigma-algebra: 'probability_theory.Indep'
     $0$-$1$ law: 'probability_theory.measure_zero_or_one_of_measurable_set_limsup_at_top'
     Borel-Cantelli lemma (easy direction): 'measure_theory.measure_limsup_eq_zero'
-    Borel-Cantelli lemma (difficult direction): ''
+    Borel-Cantelli lemma (difficult direction): 'probability_theory.measure_limsup_eq_one'
     conditional probability: 'probability_theory.cond'
     law of total probability: ''
   Random variables and their laws:

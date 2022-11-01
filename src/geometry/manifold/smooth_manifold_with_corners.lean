@@ -3,7 +3,7 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.calculus.cont_diff
+import analysis.calculus.specific_functions
 import geometry.manifold.charted_space
 
 /-!
@@ -988,14 +988,33 @@ begin
 end
 
 /-- An interior point of a manifold is a point whose image in the model vector space is in the
-interior of the chart's target. -/
+interior of the chart's target.
+
+TODO : This definition refers to a chosen chart at `x`, but the property is independent of the
+choice of chart. See Theorem 1.37 (for general manifolds) and Theorem 1.46 (for smooth manifolds) of
+Introduction to Smooth Manifolds by John M. Lee.
+-/
 def is_interior_point (x : M) := (ext_chart_at I x) x ∈ interior (ext_chart_at I x).target
 
-/- For smooth manifolds M, see Theorem 1.46 of John M. Lee.
-For general topological manifolds, see problem 17.9 of John M. Lee -/
--- lemma model_with_corners.is_interior_point_indep_chart
---   {x : M} (hx : I.is_interior_point x) (x' : M) (hx' : x ∈ 𝓔(I, x').source) :
---   𝓔(I, x') x ∈ interior 𝓔(I, x').target := sorry
+localized "notation (name := ext_chart_at) `𝓔(` I `, ` x `)` :=
+  ext_chart_at I x" in manifold
+
+lemma is_interior_point.is_open_inter_of_mem {x : M}
+  (hx : I.is_interior_point x) (x' : M) (hx' : x ∈ 𝓔(I, x').source) :
+  𝓔(I, x) '' (𝓔(I, x).source ∩ 𝓔(I, x').source) ∈ 𝓝 (𝓔(I, x) x) :=
+begin
+  rw local_equiv.image_source_inter_eq,
+  rw mem_nhds_iff,
+  refine ⟨interior 𝓔(I, x).target ∩ 𝓔(I, x).symm ⁻¹' (𝓔(I, x).source ∩ 𝓔(I, x').source),
+    set.inter_subset_inter_left _ interior_subset, _, _⟩,
+  { refine continuous_on.preimage_open_of_open _ is_open_interior
+      (is_open.inter (ext_chart_at_open_source _ _) (ext_chart_at_open_source _ _)),
+    exact continuous_on.mono (ext_chart_at_continuous_on_symm _ _) interior_subset },
+  { use hx,
+    rw mem_preimage,
+    rw local_equiv.left_inv _ (mem_ext_chart_source _ _),
+    exact ⟨mem_ext_chart_source _ _, hx'⟩ }
+end
 
 lemma boundaryless.is_interior_point
   [I.boundaryless] {x : M} : I.is_interior_point x :=

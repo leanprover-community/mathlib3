@@ -47,6 +47,7 @@ and the square
   ↓   ↓
   X → Y
 is a pullback square.
+This is just an abbreviation for `is_pullback a b f f`.
 -/
 abbreviation is_kernel_pair := is_pullback a b f f
 

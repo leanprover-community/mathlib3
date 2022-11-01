@@ -268,8 +268,9 @@ begin
     ((finite.card_image_le _).trans (finite.card_range_le _ )))),
 end
 
-lemma mylem2 : (closure_commutator_representatives G).subtype ''
-  (commutator_set (closure_commutator_representatives G)) = commutator_set G :=
+lemma image_commutator_set_closure_commutator_representatives :
+  (closure_commutator_representatives G).subtype ''
+    (commutator_set (closure_commutator_representatives G)) = commutator_set G :=
 begin
   apply set.subset.antisymm,
   { rintros - ⟨-, ⟨g₁, g₂, rfl⟩, rfl⟩,
@@ -281,14 +282,15 @@ end
 lemma card_commutator_set_closure_commutator_representatives :
   nat.card (commutator_set (closure_commutator_representatives G)) = nat.card (commutator_set G) :=
 begin
-  rw ← mylem2 G,
+  rw ← image_commutator_set_closure_commutator_representatives G,
   refine nat.card_congr (equiv.set.image _ _ (subtype_injective _)),
 end
 
 lemma card_commutator_closure_commutator_representatives :
   nat.card (commutator (closure_commutator_representatives G)) = nat.card (commutator G) :=
 begin
-  rw [commutator_eq_closure G, ←commutator_set_def, ←mylem2, ←monoid_hom.map_closure,
+  rw [commutator_eq_closure G, ←commutator_set_def,
+    ←image_commutator_set_closure_commutator_representatives, ←monoid_hom.map_closure,
     commutator_set_def, ←commutator_eq_closure],
   refine nat.card_congr (equiv.set.image _ _ (subtype_injective _)),
 end

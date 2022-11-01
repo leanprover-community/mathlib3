@@ -23,6 +23,8 @@ You can cite `mathlib` using the following BibTeX entry:
 }
 ```
 
+The `mathlib` project is actively maintained and updated. In the interest of reproducibility, you may want to provide a commit hash referencing the version of `mathlib` your project uses alongside your citation.
+
 Lean was introduced in the paper ["The Lean Theorem Prover"](https://www.semanticscholar.org/paper/The-Lean-Theorem-Prover-(System-Description)-Moura-Kong/2a441a46e228ed0ea2251a4e61be6c7025b45766), by de Moura et al., which you can cite using:
 
 ```bib

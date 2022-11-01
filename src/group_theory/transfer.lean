@@ -165,18 +165,6 @@ rfl
 open_locale pointwise
 
 -- PRed
-lemma _root_.subgroup.is_complement'.index_eq_card {G : Type*} [group G] {H K : subgroup G}
-  (h : is_complement' H K) : K.index = nat.card H :=
-begin
-  refine nat.card_congr (equiv.of_bijective (quotient_group.mk ∘ coe) _).symm,
-  refine ⟨λ x y hxy, subtype.ext (inv_mul_eq_one.mp (disjoint_def.mp h.symm.disjoint
-    (quotient_group.eq'.mp hxy) (x⁻¹ * y).2)), λ q, quotient_group.induction_on q (λ g, _)⟩,
-  obtain ⟨⟨x, y⟩, hxy⟩ := h.2 g,
-  refine ⟨x, quotient_group.eq'.mpr
-    ((_root_.congr_arg (∈ K) (inv_mul_eq_iff_eq_mul.mpr hxy.symm)).mpr y.2)⟩,
-end
-
--- PRed
 lemma _root_.subgroup.eq_bot_of_card_eq' {G : Type*} [group G] (H : subgroup G)
   (h : nat.card H = 1) : H = ⊥ :=
 begin
@@ -185,10 +173,6 @@ begin
   apply eq_bot_of_card_le,
   rw [←nat.card_eq_fintype_card, h],
 end
-
--- lemma _root_.subgroup.relindex_dvd_of_le_right {G : Type*} [group G] {H K L : subgroup G}
---   (h1 : H ≤ K) (h2 : K ≤ L) : H.relindex K ∣ H.relindex L :=
--- ⟨K.relindex L, (relindex_mul_relindex H K L h1 h2).symm⟩
 
 -- PRed
 lemma _root_.subgroup.card_dvd_of_le' {G : Type*} [group G] {H K : subgroup G} (h : H ≤ K) :

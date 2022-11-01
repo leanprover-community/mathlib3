@@ -258,39 +258,14 @@ instance closure_commutator_representatives_fg [finite (commutators G)] :
   group.fg (closure_commutator_representatives G) :=
 group.closure_finite_fg _
 
-lemma coe_nat_card {α : Type*} [finite α] : ↑(nat.card α) = cardinal.mk α :=
-cardinal.cast_to_nat_of_lt_aleph_0 (cardinal.lt_aleph_0_of_finite α)
-
-lemma nat.card_union_le {α : Type*} {s t : set α} [finite s] [finite t] :
-  nat.card ↥(s ∪ t) ≤ nat.card s + nat.card t :=
-begin
-  rw [←cardinal.nat_cast_le, nat.cast_add, coe_nat_card, coe_nat_card, coe_nat_card],
-  exact cardinal.mk_union_le s t,
-end
-
-universe u
-
-lemma nat.card_image_le {α β : Type u} {s : set α} [finite s] {f : α → β} :
-  nat.card (f '' s) ≤ nat.card s :=
-begin
-  rw [←cardinal.nat_cast_le, coe_nat_card, coe_nat_card],
-  exact cardinal.mk_image_le,
-end
-
-lemma nat.card_range_le {α β : Type u} [finite α] {f : α → β} :
-  nat.card (set.range f) ≤ nat.card α :=
-begin
-  rw [←cardinal.nat_cast_le, coe_nat_card, coe_nat_card],
-  exact cardinal.mk_range_le,
-end
-
 lemma rank_closure_commutator_representations_le [finite (commutators G)] :
   group.rank (closure_commutator_representatives G) ≤
     2 * nat.card (commutators G) :=
 begin
   rw two_mul,
-  exact (subgroup.rank_closure_finite_le_nat_card _).trans (nat.card_union_le.trans (add_le_add
-    (nat.card_image_le.trans nat.card_range_le) (nat.card_image_le.trans nat.card_range_le))),
+  exact (subgroup.rank_closure_finite_le_nat_card _).trans ((set.card_union_le _ _).trans
+    (add_le_add ((finite.card_image_le _).trans (finite.card_range_le _))
+    ((finite.card_image_le _).trans (finite.card_range_le _ )))),
 end
 
 lemma mylem2 : (closure_commutator_representatives G).subtype ''

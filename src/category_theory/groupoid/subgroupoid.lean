@@ -545,7 +545,7 @@ section thin
 abbreviation is_thin := ∀ (c d : S.objs), subsingleton (S.arrows c d)
 
 lemma is_thin_iff : S.is_thin ↔ ∀ (c : S.objs), subsingleton (S.arrows c c) :=
-by { apply is_thin_iff, }
+by apply is_thin_iff
 
 end thin
 
@@ -585,7 +585,7 @@ lemma disconnect_objs : S.disconnect.objs = S.objs :=
 by { apply set.ext, apply mem_disconnect_objs_iff, }
 
 lemma disconnect_is_disconnected : S.disconnect.is_disconnected :=
-by { rw is_disconnected_iff, exact λ c d ⟨f,⟨h,fS⟩⟩, h }
+by { rw is_disconnected_iff, exact λ c d ⟨f,h,fS⟩, h }
 
 end disconnected
 

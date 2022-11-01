@@ -153,20 +153,6 @@ begin
   rwa [←hlm, repr_total, ←finsupp.mem_supported R l]
 end
 
-/-- If the submodule `P` has a basis, `x ∈ P` iff it is a linear combination of basis vectors. -/
-lemma mem_submodule_iff {P : submodule R M} (b : basis ι R P) {x : M} :
-  x ∈ P ↔ ∃ (c : ι →₀ R), x = finsupp.sum c (λ i x, x • b i) :=
-begin
-  split,
-  { intro hx, use b.repr ⟨x, hx⟩,
-    calc P.subtype ⟨x, hx⟩
-        = P.subtype (b.repr.symm (b.repr ⟨x, hx⟩)) : by rw linear_equiv.symm_apply_apply
-    ... = (b.repr ⟨x, hx⟩).sum (λ i x, x • P.subtype (b i)) : _,
-    rw [basis.repr_symm_apply, P.subtype.map_finsupp_total, finsupp.total_apply] },
-  { rintros ⟨c, rfl⟩,
-    exact P.sum_mem (λ i _, P.smul_mem _ (b i).2) },
-end
-
 end repr
 
 section coord
@@ -482,6 +468,15 @@ begin
   obtain ⟨x, y, ne⟩ : ∃ (x y : M), x ≠ y := nontrivial.exists_pair_ne,
   obtain ⟨i, _⟩ := not_forall.mp (mt b.ext_elem ne),
   exact ⟨i⟩
+end
+
+/-- If the submodule `P` has a basis, `x ∈ P` iff it is a linear combination of basis vectors. -/
+lemma mem_submodule_iff {P : submodule R M} (b : basis ι R P) {x : M} :
+  x ∈ P ↔ ∃ (c : ι →₀ R), x = finsupp.sum c (λ i x, x • b i) :=
+begin
+  conv_lhs { rw [← P.range_subtype, ← submodule.map_top, ← b.span_eq, submodule.map_span,
+    ← set.range_comp, ← finsupp.range_total] },
+  simpa only [@eq_comm _ x],
 end
 
 section constr

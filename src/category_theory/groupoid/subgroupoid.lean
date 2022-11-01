@@ -155,8 +155,8 @@ instance coe : groupoid S.objs :=
   comp_inv' := λ a b ⟨p,hp⟩, by simp only [comp_inv] }
 
 @[simp] lemma coe_inv_coe' {c d : S.objs} (p : c ⟶ d) :
-  (category_theory.inv p).val = category_theory.inv p.val := by
-{ simp only [subtype.val_eq_coe, ←inv_eq_inv, coe_inv_coe], }
+  (category_theory.inv p).val = category_theory.inv p.val :=
+by { simp only [subtype.val_eq_coe, ←inv_eq_inv, coe_inv_coe], }
 
 /-- The embedding of the coerced subgroupoid to its parent-/
 def hom : S.objs ⥤ C :=
@@ -491,8 +491,8 @@ begin
 end
 
 @[simp]
-lemma map_objs_eq (hφ : function.injective φ.obj) : (map φ hφ S).objs = φ.obj '' S.objs := by
-{ ext, convert mem_map_objs_iff S φ hφ x, simp only [mem_image, exists_prop], }
+lemma map_objs_eq (hφ : function.injective φ.obj) : (map φ hφ S).objs = φ.obj '' S.objs :=
+by { ext, convert mem_map_objs_iff S φ hφ x, simp only [mem_image, exists_prop], }
 
 /-- The image of a functor injective on objects -/
 def im (hφ : function.injective φ.obj) := map φ hφ (⊤)
@@ -545,7 +545,7 @@ section thin
 abbreviation is_thin := ∀ (c d : S.objs), subsingleton (S.arrows c d)
 
 lemma is_thin_iff : S.is_thin ↔ ∀ (c : S.objs), subsingleton (S.arrows c c) :=
-by apply is_thin_iff
+by { apply is_thin_iff, }
 
 end thin
 
@@ -585,7 +585,7 @@ lemma disconnect_objs : S.disconnect.objs = S.objs :=
 by { apply set.ext, apply mem_disconnect_objs_iff, }
 
 lemma disconnect_is_disconnected : S.disconnect.is_disconnected :=
-by { rw is_disconnected_iff, exact λ c d ⟨f, h, fS⟩, h }
+by { rw is_disconnected_iff, exact λ c d ⟨f,⟨h,fS⟩⟩, h }
 
 end disconnected
 
@@ -608,11 +608,11 @@ iff.rfl
 @[simp] lemma mem_full_objs_iff {c : C} : c ∈ (full D).objs ↔ c ∈ D :=
 by rw full_objs
 
-@[simp] lemma full_empty : full ∅ = (⊥ : subgroupoid C) := by
-{ ext, simp only [has_bot.bot, mem_full_iff, mem_empty_iff_false, and_self], }
+@[simp] lemma full_empty : full ∅ = (⊥ : subgroupoid C) :=
+by { ext, simp only [has_bot.bot, mem_full_iff, mem_empty_iff_false, and_self], }
 
-@[simp] lemma full_univ : full set.univ = (⊤ : subgroupoid C) := by
-{ ext, simp only [mem_full_iff, mem_univ, and_self, true_iff], }
+@[simp] lemma full_univ : full set.univ = (⊤ : subgroupoid C) :=
+by { ext, simp only [mem_full_iff, mem_univ, and_self, true_iff], }
 
 lemma full_mono {D E : set C} (h : D ≤ E) : full D ≤ full E :=
 begin

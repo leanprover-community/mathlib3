@@ -19,6 +19,11 @@ variables (C : Type*) [groupoid C]
 
 section thin
 
+/--
+A quiver is thin if there is at most one arrow between any pair of objects.
+For categories, this is also called being posetal.
+The “thin” adjective is used elsewhere in mathlib.
+ -/
 lemma is_thin_iff : (∀ (c d : C), subsingleton (c ⟶ d)) ↔ (∀ (c : C), subsingleton (c ⟶ c)) :=
 begin
   refine ⟨λ h c, h c c, λ h c d, subsingleton.intro $ λ f g, _⟩,

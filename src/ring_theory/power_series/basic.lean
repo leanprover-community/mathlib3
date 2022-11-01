@@ -2033,9 +2033,9 @@ instance algebra_power_series : algebra (power_series R) (power_series A) :=
 (map (algebra_map R A)).to_algebra
 
 @[priority 100] -- see Note [lower instance priority]
-instance algebra_polynomial' {A : Type*} [comm_semiring A] [algebra R (polynomial A)] :
+instance algebra_polynomial' {A : Type*} [comm_semiring A] [algebra R A[X]] :
   algebra R (power_series A) :=
-ring_hom.to_algebra $ polynomial.coe_to_power_series.ring_hom.comp (algebra_map R (polynomial A))
+ring_hom.to_algebra $ polynomial.coe_to_power_series.ring_hom.comp (algebra_map R A[X])
 
 variables (A)
 

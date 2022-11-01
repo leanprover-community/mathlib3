@@ -713,8 +713,7 @@ localized "notation (name := ext_chart_at) `𝓔(` I `, ` x `)` := ext_chart_at 
 
 lemma ext_chart_at_coe : ⇑𝓔(I, x) = I ∘ chart_at H x := rfl
 
-lemma ext_chart_at_coe_symm :
-  ⇑𝓔(I, x).symm = (chart_at H x).symm ∘ I.symm := rfl
+lemma ext_chart_at_coe_symm : ⇑𝓔(I, x).symm = (chart_at H x).symm ∘ I.symm := rfl
 
 lemma ext_chart_at_source : 𝓔(I, x).source = (chart_at H x).source :=
 by rw [ext_chart_at, local_equiv.trans_source, I.source_eq, preimage_univ, inter_univ]
@@ -730,8 +729,7 @@ lemma ext_chart_at_target (x : M) : 𝓔(I, x).target =
 by simp_rw [ext_chart_at, local_equiv.trans_target, I.target_eq, I.to_local_equiv_coe_symm,
   inter_comm]
 
-lemma ext_chart_at_to_inv :
-  𝓔(I, x).symm (𝓔(I, x) x) = x :=
+lemma ext_chart_at_to_inv : 𝓔(I, x).symm (𝓔(I, x) x) = x :=
 𝓔(I, x).left_inv (mem_ext_chart_source I x)
 
 lemma maps_to_ext_chart_at (hs : s ⊆ (chart_at H x).source) :
@@ -753,12 +751,10 @@ lemma ext_chart_at_source_mem_nhds_within' {x' : M} (h : x' ∈ 𝓔(I, x).sourc
   𝓔(I, x).source ∈ 𝓝[s] x' :=
 mem_nhds_within_of_mem_nhds (ext_chart_at_source_mem_nhds' I x h)
 
-lemma ext_chart_at_source_mem_nhds_within :
-  𝓔(I, x).source ∈ 𝓝[s] x :=
+lemma ext_chart_at_source_mem_nhds_within : 𝓔(I, x).source ∈ 𝓝[s] x :=
 mem_nhds_within_of_mem_nhds (ext_chart_at_source_mem_nhds I x)
 
-lemma ext_chart_at_continuous_on :
-  continuous_on 𝓔(I, x) 𝓔(I, x).source :=
+lemma ext_chart_at_continuous_on : continuous_on 𝓔(I, x) 𝓔(I, x).source :=
 begin
   refine I.continuous.comp_continuous_on _,
   rw ext_chart_at_source,
@@ -803,14 +799,12 @@ lemma ext_chart_at_target_subset_range : 𝓔(I, x).target ⊆ range I :=
 by simp only with mfld_simps
 
 lemma nhds_within_ext_chart_target_eq' {y : M} (hy : y ∈ 𝓔(I, x).source) :
-  𝓝[𝓔(I, x).target] (𝓔(I, x) y) =
-  𝓝[range I] (𝓔(I, x) y) :=
+  𝓝[𝓔(I, x).target] (𝓔(I, x) y) = 𝓝[range I] (𝓔(I, x) y) :=
 (nhds_within_mono _ (ext_chart_at_target_subset_range _ _)).antisymm $
   nhds_within_le_of_mem (ext_chart_at_target_mem_nhds_within' _ _ hy)
 
 lemma nhds_within_ext_chart_target_eq :
-  𝓝[𝓔(I, x).target] (𝓔(I, x) x) =
-  𝓝[range I] (𝓔(I, x) x) :=
+  𝓝[𝓔(I, x).target] (𝓔(I, x) x) = 𝓝[range I] (𝓔(I, x) x) :=
 nhds_within_ext_chart_target_eq' I x (mem_ext_chart_source I x)
 
 lemma ext_chart_continuous_at_symm'' {y : E} (h : y ∈ 𝓔(I, x).target) :
@@ -838,8 +832,7 @@ lemma ext_chart_preimage_open_of_open {s : set E} (hs : is_open s) :
 by { rw ← ext_chart_at_source I, exact ext_chart_preimage_open_of_open' I x hs }
 
 lemma ext_chart_at_map_nhds_within_eq_image' {y : M} (hy : y ∈ 𝓔(I, x).source) :
-  map 𝓔(I, x) (𝓝[s] y) =
-    𝓝[𝓔(I, x) '' (𝓔(I, x).source ∩ s)] (𝓔(I, x) y) :=
+  map 𝓔(I, x) (𝓝[s] y) = 𝓝[𝓔(I, x) '' (𝓔(I, x).source ∩ s)] (𝓔(I, x) y) :=
 by set e := 𝓔(I, x);
 calc map e (𝓝[s] y) = map e (𝓝[e.source ∩ s] y) :
   congr_arg (map e) (nhds_within_inter_of_mem (ext_chart_at_source_mem_nhds_within' I x hy)).symm
@@ -850,25 +843,21 @@ calc map e (𝓝[s] y) = map e (𝓝[e.source ∩ s] y) :
     (ext_chart_at_continuous_at' I x hy).continuous_within_at
 
 lemma ext_chart_at_map_nhds_within_eq_image :
-  map 𝓔(I, x) (𝓝[s] x) =
-    𝓝[𝓔(I, x) '' (𝓔(I, x).source ∩ s)] (𝓔(I, x) x) :=
+  map 𝓔(I, x) (𝓝[s] x) = 𝓝[𝓔(I, x) '' (𝓔(I, x).source ∩ s)] (𝓔(I, x) x) :=
 ext_chart_at_map_nhds_within_eq_image' I x (mem_ext_chart_source I x)
 
 lemma ext_chart_at_map_nhds_within' {y : M} (hy : y ∈ 𝓔(I, x).source) :
-  map 𝓔(I, x) (𝓝[s] y) =
-    𝓝[𝓔(I, x).symm ⁻¹' s ∩ range I] (𝓔(I, x) y) :=
+  map 𝓔(I, x) (𝓝[s] y) = 𝓝[𝓔(I, x).symm ⁻¹' s ∩ range I] (𝓔(I, x) y) :=
 by rw [ext_chart_at_map_nhds_within_eq_image' I x hy, nhds_within_inter,
   ← nhds_within_ext_chart_target_eq' _ _ hy, ← nhds_within_inter,
   𝓔(I, x).image_source_inter_eq', inter_comm]
 
 lemma ext_chart_at_map_nhds_within :
-  map 𝓔(I, x) (𝓝[s] x) =
-    𝓝[𝓔(I, x).symm ⁻¹' s ∩ range I] (𝓔(I, x) x) :=
+  map 𝓔(I, x) (𝓝[s] x) = 𝓝[𝓔(I, x).symm ⁻¹' s ∩ range I] (𝓔(I, x) x) :=
 ext_chart_at_map_nhds_within' I x (mem_ext_chart_source I x)
 
 lemma ext_chart_at_symm_map_nhds_within' {y : M} (hy : y ∈ 𝓔(I, x).source) :
-  map 𝓔(I, x).symm
-    (𝓝[𝓔(I, x).symm ⁻¹' s ∩ range I] (𝓔(I, x) y)) = 𝓝[s] y :=
+  map 𝓔(I, x).symm (𝓝[𝓔(I, x).symm ⁻¹' s ∩ range I] (𝓔(I, x) y)) = 𝓝[s] y :=
 begin
   rw [← ext_chart_at_map_nhds_within' I x hy, map_map, map_congr, map_id],
   exact 𝓔(I, x).left_inv_on.eq_on.eventually_eq_of_mem
@@ -880,8 +869,7 @@ lemma ext_chart_at_symm_map_nhds_within_range' {y : M} (hy : y ∈ 𝓔(I, x).so
 by rw [← nhds_within_univ, ← ext_chart_at_symm_map_nhds_within' I x hy, preimage_univ, univ_inter]
 
 lemma ext_chart_at_symm_map_nhds_within :
-  map 𝓔(I, x).symm
-    (𝓝[𝓔(I, x).symm ⁻¹' s ∩ range I] (𝓔(I, x) x)) = 𝓝[s] x :=
+  map 𝓔(I, x).symm (𝓝[𝓔(I, x).symm ⁻¹' s ∩ range I] (𝓔(I, x) x)) = 𝓝[s] x :=
 ext_chart_at_symm_map_nhds_within' I x (mem_ext_chart_source I x)
 
 lemma ext_chart_at_symm_map_nhds_within_range :
@@ -892,15 +880,13 @@ ext_chart_at_symm_map_nhds_within_range' I x (mem_ext_chart_source I x)
 in the source is a neighborhood of the preimage, within a set. -/
 lemma ext_chart_preimage_mem_nhds_within' {x' : M} (h : x' ∈ 𝓔(I, x).source)
   (ht : t ∈ 𝓝[s] x') :
-  𝓔(I, x).symm ⁻¹' t ∈
-    𝓝[𝓔(I, x).symm ⁻¹' s ∩ range I] (𝓔(I, x) x') :=
+  𝓔(I, x).symm ⁻¹' t ∈ 𝓝[𝓔(I, x).symm ⁻¹' s ∩ range I] (𝓔(I, x) x') :=
 by rwa [← ext_chart_at_symm_map_nhds_within' I x h, mem_map] at ht
 
 /-- Technical lemma ensuring that the preimage under an extended chart of a neighborhood of the
 base point is a neighborhood of the preimage, within a set. -/
 lemma ext_chart_preimage_mem_nhds_within (ht : t ∈ 𝓝[s] x) :
-  𝓔(I, x).symm ⁻¹' t ∈
-    𝓝[𝓔(I, x).symm ⁻¹' s ∩ range I] (𝓔(I, x) x) :=
+  𝓔(I, x).symm ⁻¹' t ∈ 𝓝[𝓔(I, x).symm ⁻¹' s ∩ range I] (𝓔(I, x) x) :=
 ext_chart_preimage_mem_nhds_within' I x (mem_ext_chart_source I x) ht
 
 lemma ext_chart_preimage_mem_nhds' {x' : M} (h : x' ∈ 𝓔(I, x).source) (ht : t ∈ 𝓝 x') :
@@ -929,20 +915,19 @@ by mfld_set_tac
 /-! We use the name `ext_coord_change` for `(𝓔(I, x)').symm ≫ 𝓔(I, x)`. -/
 
 lemma ext_coord_change_source (x x' : M) :
-  ((𝓔(I, x')).symm ≫ 𝓔(I, x)).source =
+  (𝓔(I, x').symm ≫ 𝓔(I, x)).source =
   I '' ((chart_at H x').symm ≫ₕ (chart_at H x)).source :=
 by { simp_rw [local_equiv.trans_source, I.image_eq, ext_chart_at_source, local_equiv.symm_source,
       ext_chart_at_target, inter_right_comm _ (range I)], refl }
 
 lemma cont_diff_on_ext_coord_change [smooth_manifold_with_corners I M] (x x' : M) :
-  cont_diff_on 𝕜 ⊤ (𝓔(I, x) ∘ (𝓔(I, x')).symm)
-  ((𝓔(I, x')).symm ≫ 𝓔(I, x)).source :=
+  cont_diff_on 𝕜 ⊤ (𝓔(I, x) ∘ 𝓔(I, x').symm) (𝓔(I, x').symm ≫ 𝓔(I, x)).source :=
 by { rw [ext_coord_change_source, I.image_eq], exact (has_groupoid.compatible
   (cont_diff_groupoid ⊤ I) (chart_mem_atlas H x') (chart_mem_atlas H x)).1 }
 
 lemma cont_diff_within_at_ext_coord_change [smooth_manifold_with_corners I M] (x x' : M) {y : E}
-  (hy : y ∈ ((𝓔(I, x')).symm ≫ 𝓔(I, x)).source) :
-  cont_diff_within_at 𝕜 ⊤ (𝓔(I, x) ∘ (𝓔(I, x')).symm) (range I) y :=
+  (hy : y ∈ (𝓔(I, x').symm ≫ 𝓔(I, x)).source) :
+  cont_diff_within_at 𝕜 ⊤ (𝓔(I, x) ∘ 𝓔(I, x').symm) (range I) y :=
 begin
   apply (cont_diff_on_ext_coord_change I x x' y hy).mono_of_mem,
   rw [ext_coord_change_source] at hy ⊢,

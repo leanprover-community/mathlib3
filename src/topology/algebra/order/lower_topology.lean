@@ -291,6 +291,17 @@ begin
     { apply is_closed.prod, apply with_lower_topology.is_closed_Ici, apply is_closed_univ, } },
 end
 
+/--
+The lower topology of the partially ordered space α × β is homeomorphic to the product topology of
+the lower topology of the partially ordered space α with the lower topology of the partially ordered
+space β
+-/
+def lower_topology_prod_hom :
+  with_lower_topology (α × β) ≃ₜ ((with_lower_topology α) × (with_lower_topology β)) :=
+{ continuous_to_fun := sorry,
+  continuous_inv_fun := sorry,
+  ..(equiv.prod_congr (@with_lower_topology.to_lower α) (@with_lower_topology.to_lower β)) }
+
 end prod
 
 section prime

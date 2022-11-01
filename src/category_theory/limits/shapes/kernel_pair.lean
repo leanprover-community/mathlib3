@@ -124,8 +124,8 @@ lemma comp_of_mono {f₁ : X ⟶ Y} {f₂ : Y ⟶ Z} [mono f₂] (small_k : is_k
     intros m m₁ m₂,
     apply small_k.is_limit.hom_ext,
     refine ((pullback_cone.mk a b _) : pullback_cone f₁ _).equalizer_ext _ _,
-    { erw (pullback_cone.is_limit.lift' small_k.is_limit s.fst s.snd _).2.1, assumption },
-    { erw (pullback_cone.is_limit.lift' small_k.is_limit s.fst s.snd _).2.2, assumption }
+    { exact m₁.trans (pullback_cone.is_limit.lift' small_k.is_limit s.fst s.snd _).2.1.symm },
+    { exact m₂.trans (pullback_cone.is_limit.lift' small_k.is_limit s.fst s.snd _).2.2.symm },
   end⟩ }
 
 /--

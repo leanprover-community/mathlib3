@@ -29,15 +29,15 @@ Lean was introduced in the paper ["The Lean Theorem Prover"](https://www.semanti
 
 ```bib
 @InProceedings{   demoura2015lean,
-  author        = "de Moura, Leonardo and Kong, Soonho and Avigad, Jeremy and
-                  van Doorn, Floris and von Raumer, Jakob",
-  editor        = "Felty, Amy P. and Middeldorp, Aart",
-  title         = "The Lean Theorem Prover (System Description)",
-  booktitle     = "Automated Deduction - CADE-25",
-  year          = "2015",
-  publisher     = "Springer International Publishing",
-  address       = "Cham",
-  pages         = "378--388",
-  isbn          = "978-3-319-21401-6"
+  author        = {de Moura, Leonardo and Kong, Soonho and Avigad, Jeremy and
+                  van Doorn, Floris and von Raumer, Jakob},
+  editor        = {Felty, Amy P. and Middeldorp, Aart},
+  title         = {The Lean Theorem Prover (System Description)},
+  booktitle     = {Automated Deduction - CADE-25},
+  year          = {2015},
+  publisher     = {Springer International Publishing},
+  address       = {Cham},
+  pages         = {378--388},
+  isbn          = {978-3-319-21401-6}
 }
 ```

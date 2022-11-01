@@ -29,7 +29,7 @@ import algebra.category.Group.epi_mono
 
 noncomputable theory
 
-universe u
+universes u v
 
 open fundamental_groupoid category_theory fundamental_groupoid_functor
 
@@ -135,6 +135,9 @@ lemma fundamental_groupoid_epi_of_top_retraction (r : top_retraction X A) :
   epi (πₘ (Top.hom_of_continuous_map r.to_continuous_map)) :=
 split_epi.epi (fundamental_groupoid_split_epi r)
 
+lemma fundamental_group_epi_of_top_retraction (r : top_retraction X A) (p : A) :
+  epi (fundamental_group X p)
+
 end top_retraction
 
 
@@ -153,3 +156,19 @@ begin
 end
 
 end surjection
+
+
+section groupoid_epi
+
+variables {G H : Groupoid.{u v}}
+
+/-- We show that there is no surjective map from a finite groupoid to an infinite one. -/
+lemma no_surjection_of_finite_to_infinite_groupoid (f : G → H) [finite G] [infinite H] : ¬function.surjective f :=
+not_surjective_finite_infinite f
+
+lemma not_epi_of_finite_to_infinite_groupoid (f : G ⟶ H) : ¬epi f :=
+begin
+  sorry, -- TODO: how to express this? is this true?
+end
+
+end groupoid_epi

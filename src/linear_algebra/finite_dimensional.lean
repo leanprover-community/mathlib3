@@ -1750,33 +1750,33 @@ theorem subalgebra.finrank_eq_one_iff {S : subalgebra F E} : finrank F S = 1 ↔
 ⟨subalgebra.eq_bot_of_finrank_one, subalgebra.finrank_eq_one_of_eq_bot⟩
 
 lemma subalgebra.bot_eq_top_iff_dim_eq_one :
-  module.rank F E = 1 ↔ (⊥ : subalgebra F E) = ⊤ :=
+  (⊥ : subalgebra F E) = ⊤ ↔ module.rank F E = 1 :=
 by rw [← dim_top, ← subalgebra_top_dim_eq_submodule_top_dim, subalgebra.dim_eq_one_iff, eq_comm]
 
 lemma subalgebra.bot_eq_top_iff_finrank_eq_one :
-  finrank F E = 1 ↔ (⊥ : subalgebra F E) = ⊤ :=
+  (⊥ : subalgebra F E) = ⊤ ↔ finrank F E = 1 :=
 by rw [← finrank_top, ← subalgebra_top_finrank_eq_submodule_top_finrank,
        subalgebra.finrank_eq_one_iff, eq_comm]
 
 @[simp]
 lemma subalgebra.bot_eq_top_of_finrank_eq_one (h : finrank F E = 1) : (⊥ : subalgebra F E) = ⊤ :=
-subalgebra.bot_eq_top_iff_finrank_eq_one.mp h
+subalgebra.bot_eq_top_iff_finrank_eq_one.2 h
 
 @[simp]
 lemma subalgebra.bot_eq_top_of_dim_eq_one (h : module.rank F E = 1) : (⊥ : subalgebra F E) = ⊤ :=
-subalgebra.bot_eq_top_iff_dim_eq_one.mp h
+subalgebra.bot_eq_top_iff_dim_eq_one.2 h
 
 lemma subalgebra.is_simple_order_of_finrank (hr : finrank F E = 2) :
   is_simple_order (subalgebra F E) :=
 { to_nontrivial :=
-    ⟨⟨⊥, ⊤, λ h, by cases hr.symm.trans (subalgebra.bot_eq_top_iff_finrank_eq_one.2 h)⟩⟩,
+    ⟨⟨⊥, ⊤, λ h, by cases hr.symm.trans (subalgebra.bot_eq_top_iff_finrank_eq_one.1 h)⟩⟩,
   eq_bot_or_eq_top :=
   begin
     intro S,
     haveI : finite_dimensional F E := finite_dimensional_of_finrank_eq_succ hr,
-    haveI : finite_dimensional F S := finite_dimensional.finite_dimensional_submodule
-      (subalgebra.to_submodule S),
-    have : finrank F S ≤ 2, { exact hr ▸ S.to_submodule.finrank_le, },
+    haveI : finite_dimensional F S :=
+      finite_dimensional.finite_dimensional_submodule S.to_submodule,
+    have : finrank F S ≤ 2 := hr ▸ S.to_submodule.finrank_le,
     have : 0 < finrank F S := finrank_pos_iff.mpr infer_instance,
     interval_cases (finrank F S),
     { left, exact subalgebra.eq_bot_of_finrank_one h, },

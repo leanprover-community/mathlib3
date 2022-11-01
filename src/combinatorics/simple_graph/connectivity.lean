@@ -1518,7 +1518,7 @@ end
 
 lemma adj_and_reachable_delete_edges_iff_exists_cycle {v w : V} :
   G.adj v w ∧ (G.delete_edges {⟦(v, w)⟧}).reachable v w ↔
-  ∃ {u : V} (p : G.walk u u), p.is_cycle ∧ ⟦(v, w)⟧ ∈ p.edges :=
+  ∃ (u : V) (p : G.walk u u), p.is_cycle ∧ ⟦(v, w)⟧ ∈ p.edges :=
 begin
   classical,
   rw reachable_delete_edges_iff_exists_walk,
@@ -1552,7 +1552,7 @@ begin
 end
 
 lemma is_bridge_iff_adj_and_forall_cycle_not_mem {v w : V} :
-  G.is_bridge ⟦(v, w)⟧ ↔ G.adj v w ∧ ∀ {u : V} (p : G.walk u u), p.is_cycle → ⟦(v, w)⟧ ∉ p.edges :=
+  G.is_bridge ⟦(v, w)⟧ ↔ G.adj v w ∧ ∀ ⦃u : V⦄ (p : G.walk u u), p.is_cycle → ⟦(v, w)⟧ ∉ p.edges :=
 begin
   rw [is_bridge_iff, and.congr_right_iff],
   intro h,
@@ -1563,7 +1563,7 @@ begin
 end
 
 lemma is_bridge_iff_mem_and_forall_cycle_not_mem {e : sym2 V} :
-  G.is_bridge e ↔ e ∈ G.edge_set ∧ ∀ {u : V} (p : G.walk u u), p.is_cycle → e ∉ p.edges :=
+  G.is_bridge e ↔ e ∈ G.edge_set ∧ ∀ ⦃u : V⦄ (p : G.walk u u), p.is_cycle → e ∉ p.edges :=
 sym2.ind (λ v w, is_bridge_iff_adj_and_forall_cycle_not_mem) e
 
 end bridge_edges

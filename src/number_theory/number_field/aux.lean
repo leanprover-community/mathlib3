@@ -18,14 +18,13 @@ begin
     ext,
     simp only [ring_hom.coe_field_range, set.mem_range, complex.of_real_eq_coe, algebra.coe_bot,
       complex.coe_algebra_map], },
-  suffices : set.range (coe : ℝ → ℂ) ⊆ closure (set.range (coe : ℚ → ℂ)),
+  suffices : set.range (coe : ℝ → ℂ) ⊆ closure (set.range ((coe : ℝ → ℂ) ∘ (coe : ℚ → ℝ))),
   { refine subset_trans this _,
     rw ← is_closed.closure_eq hc,
     apply closure_mono,
-    rintros _ ⟨r, rfl⟩,
-    exact subfield_class.coe_rat_mem K r, },
-  rw ( by { ext1, simp only [function.comp_app, complex.of_real_rat_cast] } :
-    (coe : ℚ → ℂ) = (coe : ℝ → ℂ) ∘ (coe : ℚ → ℝ)),
+    rintros _ ⟨_, rfl⟩,
+    simp only
+      [function.comp_app, complex.of_real_rat_cast, set_like.mem_coe, subfield_class.coe_rat_mem] },
   nth_rewrite 1 set.range_comp,
   refine subset_trans _ (image_closure_subset_closure_image complex.continuous_of_real),
   rw dense_range.closure_range rat.dense_embedding_coe_real.dense,
@@ -35,13 +34,13 @@ end
 lemma subfield.eq_id_or_conj_uniform_continuous (K : subfield ℂ) {ψ : K →+* ℂ}
   (hc : uniform_continuous ψ) : ψ.to_fun = K.subtype ∨ ψ.to_fun = conj ∘ K.subtype :=
 begin
+
   letI : topological_division_ring ℂ := topological_division_ring.mk,
   letI : topological_ring K.topological_closure :=
       subring.topological_ring K.topological_closure.to_subring,
   set ι := subfield.inclusion (subfield.subfield_topological_closure K),
   have ui : uniform_inducing ι :=
-  { comap_uniformity :=
-      by { erw [uniformity_subtype, uniformity_subtype, filter.comap_comap], congr, }},
+    ⟨ by { erw [uniformity_subtype, uniformity_subtype, filter.comap_comap], congr, } ⟩,
   let di := ui.dense_inducing (dense_range_of_subset_closure K),
   let extψ := dense_inducing.extend_hom ui di.dense hc,
   have hK : is_closed (K.topological_closure : set ℂ) := subfield.is_closed_topological_closure K,
@@ -56,17 +55,11 @@ begin
     rsuffices ⟨r, hr⟩ : ∃ r : ℝ, complex.of_real.range_restrict r = j (ι x),
     { have := ring_hom.congr_fun
         (complex.ring_hom_eq_of_real_of_continuous (by continuity! : continuous ψ₁)) r,
-      rw ring_hom.comp_apply at this,
-      rw ring_hom.comp_apply at this,
-      rw hr at this,
-      rw ring_equiv.to_ring_hom_eq_coe at this,
+      rw [ring_hom.comp_apply, ring_hom.comp_apply, hr, ring_equiv.to_ring_hom_eq_coe] at this,
       erw ring_equiv.symm_apply_apply at this,
       convert this using 1,
       { exact (dense_inducing.extend_eq di hc.continuous _).symm, },
-      { rw ← complex.of_real.coe_range_restrict,
-        rw hr,
-        refl,
-      }},
+      { rw [← complex.of_real.coe_range_restrict, hr], refl, }},
     obtain ⟨r, hr⟩ := set_like.coe_mem (j (ι x)),
     use r,
     rw ← ring_hom.coe_range_restrict at hr,

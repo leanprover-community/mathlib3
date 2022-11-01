@@ -358,6 +358,9 @@ variables {P X Y Z : C} {fst : P ⟶ X} {snd : P ⟶ Y} {f : X ⟶ Z} {g : Y ⟶
 lemma flip (h : is_pullback fst snd f g) : is_pullback snd fst g f :=
 of_is_limit (@pullback_cone.flip_is_limit _ _ _ _ _ _ _ _ _ _ h.w.symm h.is_limit)
 
+lemma flip_iff : is_pullback fst snd f g ↔ is_pullback snd fst g f :=
+⟨flip, flip⟩
+
 section
 
 variables [has_zero_object C] [has_zero_morphisms C]
@@ -534,6 +537,9 @@ variables {Z X Y P : C} {f : Z ⟶ X} {g : Z ⟶ Y} {inl : X ⟶ P} {inr : Y ⟶
 
 lemma flip (h : is_pushout f g inl inr) : is_pushout g f inr inl :=
 of_is_colimit (@pushout_cocone.flip_is_colimit _ _ _ _ _ _ _ _ _ _ h.w.symm h.is_colimit)
+
+lemma flip_iff : is_pushout f g inl inr ↔ is_pushout g f inr inl :=
+⟨flip, flip⟩
 
 section
 

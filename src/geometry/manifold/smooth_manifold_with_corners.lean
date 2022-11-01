@@ -996,26 +996,6 @@ Introduction to Smooth Manifolds by John M. Lee.
 -/
 def is_interior_point (x : M) := (ext_chart_at I x) x ∈ interior (ext_chart_at I x).target
 
-localized "notation (name := ext_chart_at) `𝓔(` I `, ` x `)` :=
-  ext_chart_at I x" in manifold
-
-lemma is_interior_point.is_open_inter_of_mem {x : M}
-  (hx : I.is_interior_point x) (x' : M) (hx' : x ∈ 𝓔(I, x').source) :
-  𝓔(I, x) '' (𝓔(I, x).source ∩ 𝓔(I, x').source) ∈ 𝓝 (𝓔(I, x) x) :=
-begin
-  rw local_equiv.image_source_inter_eq,
-  rw mem_nhds_iff,
-  refine ⟨interior 𝓔(I, x).target ∩ 𝓔(I, x).symm ⁻¹' (𝓔(I, x).source ∩ 𝓔(I, x').source),
-    set.inter_subset_inter_left _ interior_subset, _, _⟩,
-  { refine continuous_on.preimage_open_of_open _ is_open_interior
-      (is_open.inter (ext_chart_at_open_source _ _) (ext_chart_at_open_source _ _)),
-    exact continuous_on.mono (ext_chart_at_continuous_on_symm _ _) interior_subset },
-  { use hx,
-    rw mem_preimage,
-    rw local_equiv.left_inv _ (mem_ext_chart_source _ _),
-    exact ⟨mem_ext_chart_source _ _, hx'⟩ }
-end
-
 lemma boundaryless.is_interior_point
   [I.boundaryless] {x : M} : I.is_interior_point x :=
 begin

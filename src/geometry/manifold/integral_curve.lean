@@ -86,14 +86,15 @@ begin
   exact hx
 end
 
+/-- If `v` is a smooth vector field, then the partial function `E → E` defined by its trivialisation
+on a chosen local chart is smooth. -/
 lemma vector_field_cont_diff_on_snd_of_cont_mdiff
   {n : ℕ∞} {v : M → tangent_bundle I M} (h₁ : ∀ x, (v x).1 = x)
   (h₂ : cont_mdiff I I.tangent n v) (x₀ : M) :
   cont_diff_on 𝕜 n (λ (y : E), (written_in_ext_chart_at I I.tangent x₀ v y).2) 𝓔(I, x₀).target :=
 begin
   intros y hy,
-  rw ext_chart_at_target,
-  apply cont_diff_within_at.mono _ (set.inter_subset_right _ _),
+  apply cont_diff_within_at.mono _ (ext_chart_at_target_subset_range _ _),
   rw ←local_equiv.right_inv _ hy,
   refine cont_diff_at.comp_cont_diff_within_at _ cont_diff_at_snd _,
   apply ((vector_field_cont_mdiff_at_indep_ext_chart h₁ _ _).mp h₂.cont_mdiff_at).2,
@@ -113,16 +114,9 @@ lemma tangent_bundle_core_coord_change_triv'
     (fderiv_within 𝕜 (𝓔(I, v.1) ∘ 𝓔(I, v'.1).symm) (set.range I) (𝓔(I, v'.1) v.1))
       (𝓔(I.tangent, v') v).2 :=
 begin
-  rw ext_chart_at_coe,
-  rw function.comp_apply,
-  rw model_with_corners.prod_apply,
-  dsimp only,
-  rw model_with_corners_self_coe,
-  rw id,
-  rw basic_smooth_vector_bundle_core.to_charted_space_chart_at,
-  rw basic_smooth_vector_bundle_core.chart_apply,
-  dsimp only,
-  rw bundle.total_space.proj,
+  rw [ext_chart_at_coe, function.comp_apply, model_with_corners.prod_apply,
+    basic_smooth_vector_bundle_core.to_charted_space_chart_at,
+    basic_smooth_vector_bundle_core.chart_apply],
   have hi := mem_achart_source H v.1,
   have hj : v.1 ∈ (achart H v'.1).val.to_local_equiv.source,
   { rw ext_chart_at_source at hv,

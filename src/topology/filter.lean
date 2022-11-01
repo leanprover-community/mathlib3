@@ -148,15 +148,15 @@ instance : t0_space (filter α) :=
 lemma nhds_at_top [preorder α] : 𝓝 at_top = ⨅ x : α, 𝓟 (Iic (𝓟 (Ici x))) :=
 by simp only [at_top, nhds_infi, nhds_principal]
 
-protected lemma tendsto_nhds_at_top [preorder β] {l : filter α} {f : α → filter β} :
+protected lemma tendsto_nhds_at_top_iff [preorder β] {l : filter α} {f : α → filter β} :
   tendsto f l (𝓝 at_top) ↔ ∀ y, ∀ᶠ a in l, Ici y ∈ f a :=
 by simp only [nhds_at_top, tendsto_infi, tendsto_principal, mem_Iic, le_principal_iff]
 
 lemma nhds_at_bot [preorder α] : 𝓝 at_bot = ⨅ x : α, 𝓟 (Iic (𝓟 (Iic x))) := @nhds_at_top αᵒᵈ _
 
-protected lemma tendsto_nhds_at_bot [preorder β] {l : filter α} {f : α → filter β} :
+protected lemma tendsto_nhds_at_bot_iff [preorder β] {l : filter α} {f : α → filter β} :
   tendsto f l (𝓝 at_bot) ↔ ∀ y, ∀ᶠ a in l, Iic y ∈ f a :=
-@filter.tendsto_nhds_at_top α βᵒᵈ _ _ _
+@filter.tendsto_nhds_at_top_iff α βᵒᵈ _ _ _
 
 variables [topological_space X]
 

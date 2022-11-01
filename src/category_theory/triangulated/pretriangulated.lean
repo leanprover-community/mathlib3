@@ -78,7 +78,9 @@ class pretriangulated :=
   (∃ (c : T₁.obj₃ ⟶ T₂.obj₃), (T₁.mor₂ ≫ c = b ≫ T₂.mor₂) ∧ (T₁.mor₃ ≫ a⟦1⟧' = c ≫ T₂.mor₃) ))
 
 namespace pretriangulated
-variables [pretriangulated C] [pretriangulated D]
+variables [hC : pretriangulated C]
+
+include hC
 
 notation `dist_triang `:20 C := distinguished_triangles C
 /--
@@ -141,6 +143,8 @@ TODO: If `C` is pretriangulated with respect to a shift,
 then `Cᵒᵖ` is pretriangulated with respect to the inverse shift.
 -/
 
+omit hC
+
 /--
 The underlying structure of a triangulated functor between pretriangulated categories `C` and `D`
 is a functor `F : C ⥤ D` together with given functorial isomorphisms `ξ X : F(X⟦1⟧) ⟶ F(X)⟦1⟧`.
@@ -181,7 +185,9 @@ def map_triangle (F : triangulated_functor_struct C D) : triangle C ⥤ triangle
 
 end triangulated_functor_struct
 
-variables (C D)
+include hC
+variables (C D) [pretriangulated D]
+
 /--
 A triangulated functor between pretriangulated categories `C` and `D` is a functor `F : C ⥤ D`
 together with given functorial isomorphisms `ξ X : F(X⟦1⟧) ⟶ F(X)⟦1⟧` such that for every

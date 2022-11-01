@@ -955,7 +955,7 @@ lemma ext_chart_model_space_apply {x y : E} : 𝓔(𝓘(𝕜, E), x) y = y := rf
 variable {𝕜}
 
 lemma ext_chart_at_prod (x : M × M') :
-  𝓔((I.prod I'), x) = 𝓔(I, x.1).prod 𝓔(I', x.2) :=
+  𝓔(I.prod I', x) = 𝓔(I, x.1).prod 𝓔(I', x.2) :=
 by simp only with mfld_simps
 
 end extended_charts

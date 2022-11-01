@@ -1943,13 +1943,6 @@ instance dfinsupp.fintype {ι : Sort*} {π : ι → Sort*} [decidable_eq ι] [Π
   fintype (Π₀ i, π i) :=
 fintype.of_equiv (Π i, π i) dfinsupp.equiv_fun_on_fintype.symm
 
-/-- Weaker form of `dfinsupp.fintype`. -/
-instance dfinsupp.finite {ι : Sort*} {π : ι → Sort*} [Π i, has_zero (π i)]
-  [finite ι] [∀ i, finite (π i)] :
-  finite (Π₀ i, π i) :=
-by letI := fintype.of_finite ι;
-exact finite.of_equiv (Π i, π i) dfinsupp.equiv_fun_on_fintype.symm
-
 instance dfinsupp.infinite_of_left {ι : Sort*} {π : ι → Sort*}
   [∀ i, nontrivial (π i)] [Π i, has_zero (π i)] [infinite ι] :
   infinite (Π₀ i, π i) :=

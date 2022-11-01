@@ -209,6 +209,10 @@ end
 lemma measurable_of_finite [finite α] [measurable_singleton_class α] (f : α → β) : measurable f :=
 λ s hs, (f ⁻¹' s).to_finite.measurable_set
 
+lemma measurable_of_countable [countable α] [measurable_singleton_class α] (f : α → β) :
+  measurable f :=
+λ s hs, (f ⁻¹' s).to_countable.measurable_set
+
 end typeclass_measurable_space
 
 variables {m : measurable_space α}

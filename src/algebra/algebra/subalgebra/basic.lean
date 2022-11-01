@@ -1072,7 +1072,7 @@ begin
   { rw [ideal.eq_top_iff_one, ideal.span, finsupp.mem_span_iff_total],
     refine ⟨(finsupp.of_support_finite (λ i : ι', (⟨l i, hl i⟩ : S')) (set.to_finite _))
       .map_domain $ λ i, ⟨s' i, i, i.2, rfl⟩, S'.to_submodule.injective_subtype _⟩,
-    rw [finsupp.total_map_domain', finsupp.total_apply, finsupp.sum_fintype,
+    rw [finsupp.total_map_domain, finsupp.total_apply, finsupp.sum_fintype,
       map_sum, submodule.subtype_apply, subalgebra.coe_one],
     { exact finset.sum_attach.trans e },
     { exact λ _, zero_smul _ _ } },

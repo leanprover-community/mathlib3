@@ -933,7 +933,7 @@ Two finite-dimensional vector spaces are isomorphic if and only if they have the
 dimension.
 -/
 theorem nonempty_linear_equiv_iff_finrank_eq [finite_dimensional K V] [finite_dimensional K V₂] :
-   nonempty (V ≃ₗ[K] V₂) ↔ finrank K V = finrank K V₂ :=
+  nonempty (V ≃ₗ[K] V₂) ↔ finrank K V = finrank K V₂ :=
 ⟨λ ⟨h⟩, h.finrank_eq, λ h, nonempty_linear_equiv_of_finrank_eq h⟩
 
 variables (V V₂)
@@ -1252,6 +1252,9 @@ section field
 variables [field K] [add_comm_group V] [module K V]
 {V₂ : Type v'} [add_comm_group V₂] [module K V₂]
 
+/- generalize to division_ring -/
+/- call this strict_mono, reserve the name finrank_lt_finrank_of_lt for `finite_dimensional K t`. -/
+/- add finrank_lt_finrank_of_lt -/
 lemma finrank_lt_finrank_of_lt [finite_dimensional K V] {s t : submodule K V} (hst : s < t) :
   finrank K s < finrank K t :=
 begin

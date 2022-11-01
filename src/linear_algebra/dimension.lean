@@ -1020,12 +1020,6 @@ by simp [dim_fun']
 
 end fintype
 
-end division_ring
-
-section field
-variables [field K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
-variables [add_comm_group V'] [module K V']
-
 theorem dim_quotient_add_dim (p : submodule K V) :
   module.rank K (V ⧸ p) + module.rank K p = module.rank K V :=
 by classical; exact let ⟨f⟩ := quotient_prod_linear_equiv p in dim_prod.symm.trans f.dim_eq
@@ -1108,7 +1102,7 @@ lemma exists_mem_ne_zero_of_dim_pos {s : submodule K V} (h : 0 < module.rank K s
   ∃ b : V, b ∈ s ∧ b ≠ 0 :=
 exists_mem_ne_zero_of_ne_bot $ assume eq, by rw [eq, dim_bot] at h; exact lt_irrefl _ h
 
-end field
+end division_ring
 
 section rank
 
@@ -1141,8 +1135,10 @@ by rw [rank, rank, linear_map.range_comp]; exact dim_map_le _ _
 
 end
 
-section field
-variables [field K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
+end rank
+
+section division_ring
+variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V₁] [module K V₁]
 variables [add_comm_group V'] [module K V']
 
 lemma rank_le_domain (f : V →ₗ[K] V₁) : rank f ≤ module.rank K V :=
@@ -1162,13 +1158,6 @@ lemma rank_finset_sum_le {η} (s : finset η) (f : η → V →ₗ[K] V') :
   rank (∑ d in s, f d) ≤ ∑ d in s, rank (f d) :=
 @finset.sum_hom_rel _ _ _ _ _ (λa b, rank a ≤ b) f (λ d, rank (f d)) s (le_of_eq rank_zero)
       (λ i g c h, le_trans (rank_add_le _ _) (add_le_add_left h _))
-
-end field
-
-end rank
-
-section division_ring
-variables [division_ring K] [add_comm_group V] [module K V] [add_comm_group V'] [module K V']
 
 /-- The `ι` indexed basis on `V`, where `ι` is an empty type and `V` is zero-dimensional.
 
@@ -1301,11 +1290,6 @@ lemma module.rank_le_one_iff_top_is_principal :
   module.rank K V ≤ 1 ↔ (⊤ : submodule K V).is_principal :=
 by rw [← submodule.rank_le_one_iff_is_principal, dim_top]
 
-end division_ring
-
-section field
-variables [field K] [add_comm_group V] [module K V] [add_comm_group V'] [module K V']
-
 lemma le_rank_iff_exists_linear_independent {c : cardinal} {f : V →ₗ[K] V'} :
   c ≤ rank f ↔
   ∃ s : set V, cardinal.lift.{v'} (#s) = cardinal.lift.{v} c ∧
@@ -1340,6 +1324,6 @@ begin
     exact ⟨s, ⟨s, rfl, rfl⟩, si⟩ }
 end
 
-end field
+end division_ring
 
 end module

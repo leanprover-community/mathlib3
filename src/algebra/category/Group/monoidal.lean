@@ -17,6 +17,25 @@ namespace AddCommGroup
   map_add' := f.map_add,
   map_smul' := λ n x, by rw [ring_hom.id_apply, map_zsmul] }
 
+@[simps] def to_int_linear_map₂ {X Y Z : AddCommGroup.{u}}
+  (f : X ⟶  of (Y ⟶ Z)) : X →ₗ[ℤ] (Y →ₗ[ℤ] Z) :=
+{ to_fun := λ x,
+  { to_fun := λ y, (f x).to_fun y,
+    map_add' := λ y y', by rw [add_monoid_hom.to_fun_eq_coe, map_add],
+    map_smul' := λ r y, by rw [add_monoid_hom.to_fun_eq_coe, map_zsmul, ring_hom.id_apply] },
+  map_add' := λ x y,
+  begin
+    ext z,
+    simp only [linear_map.coe_mk, linear_map.add_apply, add_monoid_hom.to_fun_eq_coe, map_add,
+      add_monoid_hom.add_apply],
+  end,
+  map_smul' := λ r x,
+  begin
+    ext z,
+    simpa only [linear_map.coe_mk, linear_map.smul_apply, add_monoid_hom.to_fun_eq_coe, map_zsmul,
+      ring_hom.id_apply],
+  end }
+
 -- @[simps] def to_ulift_int_linear_map {X Y : AddCommGroup.{u}} (f : X ⟶ Y) : X →ₗ[ulift.{u} ℤ] Y :=
 -- { to_fun := f,
 --   map_add' := f.map_add,
@@ -555,6 +574,44 @@ instance (A : AddCommGroup.{u}) : closed A :=
 
 instance : monoidal_closed AddCommGroup.{u} :=
 { closed' := λ A, infer_instance }
+
+@[simps] def curry {A B C : AddCommGroup.{u}} (f : A ⊗ B ⟶ C) : B ⟶ of (A ⟶ C) :=
+hom_equiv'.from_tensor A B C f
+
+@[simps] def curry' {A B C : AddCommGroup.{u}} (f : A ⊗ B ⟶ C) : A ⟶ of (B ⟶ C) :=
+{ to_fun := λ a,
+  { to_fun := λ b, (curry f b).to_fun a,
+    map_zero' := by rw [add_monoid_hom.to_fun_eq_coe, map_zero, zero_apply],
+    map_add' := λ x y, by simp only [add_monoid_hom.to_fun_eq_coe, map_add,
+      add_monoid_hom.add_apply] },
+  map_zero' := add_monoid_hom.ext $ λ b, by simp only [add_monoid_hom.to_fun_eq_coe, map_zero,
+    add_monoid_hom.coe_mk, ihom_obj'_str_zero_apply],
+  map_add' := λ x y, add_monoid_hom.ext $ λ z, by simp only [add_monoid_hom.to_fun_eq_coe,
+    curry_apply_apply, add_monoid_hom.coe_mk, ihom_obj'_str_add_apply, add_tmul, map_add] }
+
+@[simps] def uncurry {A B C : AddCommGroup.{u}} (f : B ⟶ of (A ⟶ C)) : A ⊗ B ⟶ C :=
+hom_equiv'.to_tensor A B C f
+
+@[simps] def uncurry' {A B C : AddCommGroup.{u}} (f : A ⟶ of (B ⟶ C)) : A ⊗ B ⟶ C :=
+(tensor_product.lift
+  { to_fun := λ a,
+    { to_fun := λ b, uncurry f (b ⊗ₜ a),
+      map_add' := λ x y, by rw [add_tmul, map_add],
+      map_smul' := λ (z : ℤ) x, by simp only [uncurry_apply, lift.tmul, ring_hom.id_apply,
+        map_zsmul, linear_map.smul_apply] },
+    map_add' :=
+    begin
+      intros a b,
+      ext c,
+      simp only [map_add, uncurry_apply, lift.tmul, linear_map.coe_mk, linear_map.add_apply],
+    end,
+    map_smul' :=
+    begin
+      intros z a,
+      ext b,
+      simp only [map_zsmul, linear_map.smul_apply, tmul_smul, linear_map.coe_mk, eq_int_cast,
+        int.cast_id],
+    end }).to_add_monoid_hom
 
 end closed
 

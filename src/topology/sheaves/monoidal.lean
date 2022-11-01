@@ -90,10 +90,17 @@ end
 lemma emb.open_embedding (U : opens X) : open_embedding (emb U) :=
 is_open.open_embedding_subtype_coe U.2
 
-@[simps] def restrict (F : presheaf AddCommGroup X) (U : opens X) : presheaf AddCommGroup (Top.of U) :=
+@[simps] def restrict (F : presheaf AddCommGroup.{u} X) (U : opens X) : presheaf AddCommGroup (Top.of U) :=
 (emb.open_embedding U).is_open_map.functor.op ⋙ F
 
-@[simps] def restrict_functor (U : opens X) : presheaf AddCommGroup X ⥤ presheaf AddCommGroup (Top.of U) :=
+@[simps] def restrict_top {F G : presheaf AddCommGroup.{u} X} {U : opens X}
+  (α : restrict F U ⟶ restrict G U) : F.obj (op U) ⟶ G.obj (op U) :=
+F.map (hom_of_le $ by { rintros _ ⟨x, hx, rfl⟩, exact x.2 } :
+  (emb.open_embedding U).is_open_map.functor.obj ⊤ ⟶ U).op ≫ α.app (op ⊤) ≫
+  G.map (hom_of_le $ λ x hx, ⟨⟨x, hx⟩, ⟨⟩, rfl⟩ :
+    U ⟶ (emb.open_embedding U).is_open_map.functor.obj ⊤).op
+
+@[simps] def restrict_functor (U : opens X) : presheaf AddCommGroup.{u} X ⥤ presheaf AddCommGroup (Top.of U) :=
 { obj := λ F, restrict F U,
   map := λ F G α,
   { app := λ V, α.app _,
@@ -113,7 +120,7 @@ is_open.open_embedding_subtype_coe U.2
     simp only [nat_trans.comp_app],
   end }
 
-@[reducible] def restrict_subset_sections (F : presheaf AddCommGroup X) {U V : opens X} (inc : U ⟶ V)
+@[reducible] def restrict_subset_sections (F : presheaf AddCommGroup.{u} X) {U V : opens X} (inc : U ⟶ V)
   (W : opens (Top.of U)) :
   (restrict F U).obj (op W) ≅ (restrict F V).obj (op $ emb.of_subset inc W) :=
 { hom := F.map (quiver.hom.op $ hom_of_le
@@ -134,7 +141,7 @@ is_open.open_embedding_subtype_coe U.2
   hom_inv_id' := by { rw [←F.map_comp, ←op_comp], convert F.map_id _ },
   inv_hom_id' := by { rw [←F.map_comp, ←op_comp], convert F.map_id _ } }
 
-@[simps] def restrict_subset_sections_map.app {F G : presheaf AddCommGroup X}
+@[simps] def restrict_subset_sections_map.app {F G : presheaf AddCommGroup.{u} X}
   {U V : opens X} (inc : U ⟶ V)
   (α : restrict F V ⟶ restrict G V) (W : opens (Top.of U)):
   (restrict F U).obj (op W) ⟶ (restrict G U).obj (op W) :=
@@ -143,7 +150,7 @@ is_open.open_embedding_subtype_coe U.2
   map_zero' := by rw [map_zero, map_zero, map_zero],
   map_add' := λ x y, by rw [map_add, map_add, map_add] }
 
-lemma restrict_subset_sections_map.naturality {F G : presheaf AddCommGroup X}
+lemma restrict_subset_sections_map.naturality {F G : presheaf AddCommGroup.{u} X}
   {U V : opens X} (inc : U ⟶ V)
   (α : restrict F V ⟶ restrict G V)
   (W₁ W₂ : (opens (Top.of U)))
@@ -168,14 +175,14 @@ begin
   congr' 1,
 end
 
-@[simps] def restrict_subset_sections_map {F G : presheaf AddCommGroup X}
+@[simps] def restrict_subset_sections_map {F G : presheaf AddCommGroup.{u} X}
   {U V : opens X} (inc : U ⟶ V)
   (α : restrict F V ⟶ restrict G V) :
   restrict F U ⟶ restrict G U :=
 { app := λ W, restrict_subset_sections_map.app inc α W.unop,
   naturality' := λ W₁ W₂ i, restrict_subset_sections_map.naturality inc α _ _ i.unop }
 
-instance (F G : presheaf AddCommGroup X) (U : opens X) :
+instance (F G : presheaf AddCommGroup.{u} X) (U : opens X) :
   add_comm_group (restrict F U ⟶ restrict G U) :=
 begin
   haveI i1 : preadditive (presheaf AddCommGroup (Top.of U)) :=
@@ -183,18 +190,41 @@ begin
   exactI i1.1 (restrict F U) (restrict G U),
 end
 
-lemma restrict_subset_sections_map_zero {F G : presheaf AddCommGroup X}
+lemma restrict_top_zero {F G : presheaf AddCommGroup.{u} X} {U : opens X} :
+  restrict_top (0 : restrict F U ⟶ restrict G U) = 0 :=
+begin
+  ext,
+  simp only [restrict_top_apply, nat_trans.app_zero, AddCommGroup.monoidal.ihom_obj'_str_zero_apply,
+    map_zero],
+end
+
+lemma restrict_top_add {F G : presheaf AddCommGroup.{u} X} {U : opens X}
+  (α β : restrict F U ⟶ restrict G U) :
+  restrict_top (α + β) = restrict_top α + restrict_top β :=
+begin
+  ext,
+  simp only [restrict_top_apply, nat_trans.app_add, AddCommGroup.monoidal.ihom_obj'_str_add_apply,
+    map_add],
+end
+
+@[simps] def restrict_top_add_monoid_hom (F G : presheaf AddCommGroup.{u} X) (U : opens X) :
+  AddCommGroup.of (restrict F U ⟶ restrict G U) ⟶ AddCommGroup.of (F.obj (op U) ⟶ G.obj (op U)) :=
+{ to_fun := restrict_top,
+  map_zero' := restrict_top_zero,
+  map_add' := restrict_top_add }
+
+lemma restrict_subset_sections_map_zero {F G : presheaf AddCommGroup.{u} X}
   {U V : opens X} (inc : U ⟶ V) :
   restrict_subset_sections_map inc (0 : restrict F V ⟶ restrict G V) = 0 :=
 by { ext, simp }
 
-lemma restrict_subset_sections_map_add {F G : presheaf AddCommGroup X}
+lemma restrict_subset_sections_map_add {F G : presheaf AddCommGroup.{u} X}
   {U V : opens X} (inc : U ⟶ V) (α β : restrict F V ⟶ restrict G V) :
   restrict_subset_sections_map inc (α + β) = restrict_subset_sections_map inc α +
   restrict_subset_sections_map inc β :=
 by { ext, simp }
 
-lemma restrict_subset_sections_map_id {F G : presheaf AddCommGroup X} (U : opens X)
+lemma restrict_subset_sections_map_id {F G : presheaf AddCommGroup.{u} X} (U : opens X)
   (α : restrict F U ⟶ restrict G U) : restrict_subset_sections_map (𝟙 U) α = α :=
 begin
   ext W x,
@@ -211,7 +241,7 @@ begin
   convert F.map_id _,
 end
 
-lemma restrict_subset_sections_map_comp {F G : presheaf AddCommGroup X} {U V W : opens X}
+lemma restrict_subset_sections_map_comp {F G : presheaf AddCommGroup.{u} X} {U V W : opens X}
   (iUV : U ⟶ V) (iVW : V ⟶ W) (α : restrict F W ⟶ restrict G W) :
   restrict_subset_sections_map (iUV ≫ iVW) α =
   restrict_subset_sections_map iUV (restrict_subset_sections_map iVW α) :=
@@ -238,7 +268,7 @@ begin
     convert G.map_id _, },
 end
 
-@[simps] def ihom_obj (F G : presheaf AddCommGroup X) : presheaf AddCommGroup X :=
+@[simps] def ihom_obj (F G : presheaf AddCommGroup.{u} X) : presheaf AddCommGroup.{u} X :=
 { obj := λ U, AddCommGroup.of (restrict F U.unop ⟶ restrict G U.unop),
   map := λ U V inc,
   { to_fun := λ α, restrict_subset_sections_map inc.unop α,
@@ -256,25 +286,25 @@ end
     convert restrict_subset_sections_map_comp iVW.unop iUV.unop α,
   end }
 
-@[simps] def ihom_map' (F G₁ G₂ : presheaf AddCommGroup X) (γ : G₁ ⟶ G₂)
+@[simps] def ihom_map' (F G₁ G₂ : presheaf AddCommGroup.{u} X) (γ : G₁ ⟶ G₂)
   (U : opens X) (f : restrict F U ⟶ restrict G₁ U) :
   restrict F U ⟶ restrict G₂ U :=
 f ≫ (restrict_subset_sections_map (𝟙 U) ((restrict_functor U).map γ))
 
-lemma ihom_map'_zero (F G₁ G₂ : presheaf AddCommGroup X) (γ : G₁ ⟶ G₂) (U : opens X) :
+lemma ihom_map'_zero (F G₁ G₂ : presheaf AddCommGroup.{u} X) (γ : G₁ ⟶ G₂) (U : opens X) :
   ihom_map' F G₁ G₂ γ U 0 = 0 :=
 begin
   ext, simp,
 end
 
-lemma ihom_map'_add (F G₁ G₂ : presheaf AddCommGroup X) (γ : G₁ ⟶ G₂) (U : opens X)
+lemma ihom_map'_add (F G₁ G₂ : presheaf AddCommGroup.{u} X) (γ : G₁ ⟶ G₂) (U : opens X)
   (α β : restrict F U ⟶ restrict G₁ U) :
   ihom_map' F G₁ G₂ γ U (α + β) = ihom_map' F G₁ G₂ γ U α + ihom_map' F _ _ γ U β :=
 begin
   ext, simp,
 end
 
-lemma ihom_map'_naturality (F G₁ G₂ : presheaf AddCommGroup X)
+lemma ihom_map'_naturality (F G₁ G₂ : presheaf AddCommGroup.{u} X)
   (γ : G₁ ⟶ G₂) (U : opens X) (α : restrict F U ⟶ restrict G₁ U)
   {W₁ W₂ : opens (Top.of U)} (inc : W₁ ⟶ W₂) :
   (restrict F U).map inc.op ≫ (ihom_map' F G₁ G₂ γ U α).app (op W₁) =
@@ -289,7 +319,7 @@ begin
     ←op_comp, category.assoc],
 end
 
-@[simps] def ihom_map_app (F G₁ G₂ : presheaf AddCommGroup X) (γ : G₁ ⟶ G₂) (U : opens X) :
+@[simps] def ihom_map_app (F G₁ G₂ : presheaf AddCommGroup.{u} X) (γ : G₁ ⟶ G₂) (U : opens X) :
   (ihom_obj F G₁).obj (op U) ⟶ (ihom_obj F G₂).obj (op U) :=
 { to_fun := λ α,
   { app := λ W, (ihom_map' F G₁ G₂ γ U α).app W,
@@ -309,7 +339,7 @@ end
     rw [nat_trans.app_add, nat_trans.app_add],
   end }
 
-lemma ihom_map_naturality (F G₁ G₂ : presheaf AddCommGroup X) (γ : G₁ ⟶ G₂)
+lemma ihom_map_naturality (F G₁ G₂ : presheaf AddCommGroup.{u} X) (γ : G₁ ⟶ G₂)
   {U V : opens X} (iUV : U ⟶ V) :
   (ihom_obj F G₁).map iUV.op ≫ ihom_map_app F G₁ G₂ γ U =
   ihom_map_app F G₁ G₂ γ V ≫ (ihom_obj F G₂).map iUV.op :=
@@ -324,12 +354,12 @@ begin
   congr' 1,
 end
 
-@[simps] def ihom_map (F G₁ G₂ : presheaf AddCommGroup X) (γ : G₁ ⟶ G₂) :
+@[simps] def ihom_map (F G₁ G₂ : presheaf AddCommGroup.{u} X) (γ : G₁ ⟶ G₂) :
   ihom_obj F G₁ ⟶ ihom_obj F G₂ :=
 { app := λ U, ihom_map_app F G₁ G₂ γ U.unop,
   naturality' := λ U V iUV, by convert ihom_map_naturality F G₁ G₂ γ iUV.unop }
 
-lemma ihom_map_id (F G : presheaf AddCommGroup X) :
+lemma ihom_map_id (F G : presheaf AddCommGroup.{u} X) :
   ihom_map F G G (𝟙 G) = 𝟙 _ :=
 begin
   ext f U W x,
@@ -341,7 +371,7 @@ begin
   convert G.map_id _,
 end
 
-lemma ihom_map_comp (F G₁ G₂ G₃ : presheaf AddCommGroup X) (g₁₂ : G₁ ⟶ G₂) (g₂₃ : G₂ ⟶ G₃) :
+lemma ihom_map_comp (F G₁ G₂ G₃ : presheaf AddCommGroup.{u} X) (g₁₂ : G₁ ⟶ G₂) (g₂₃ : G₂ ⟶ G₃) :
   ihom_map F _ _ (g₁₂ ≫ g₂₃) = ihom_map F _ _ g₁₂ ≫ ihom_map F _ _ g₂₃ :=
 begin
   ext f U W x,
@@ -354,8 +384,8 @@ begin
   congr,
 end
 
-@[simps] def ihom (F : presheaf AddCommGroup X) :
-  presheaf AddCommGroup X ⥤ presheaf AddCommGroup X :=
+@[simps] def ihom (F : presheaf AddCommGroup.{u} X) :
+  presheaf AddCommGroup.{u} X ⥤ presheaf AddCommGroup.{u} X :=
 { obj := ihom_obj F,
   map := ihom_map F,
   map_id' := ihom_map_id F,
@@ -363,21 +393,385 @@ end
 
 local attribute [instance] AddCommGroup.monoidal.tensor_monoidal_category
 
-instance : monoidal_category (presheaf AddCommGroup X) :=
+def monoidal_presheaf_AddCommGroup : monoidal_category (presheaf AddCommGroup.{u} X) :=
 category_theory.monoidal.functor_category_monoidal
+
+local attribute [instance] monoidal_presheaf_AddCommGroup
 
 open category_theory.monoidal_category
 
-@[simps] def tensor_ihom_adj (F : presheaf AddCommGroup X) : tensor_left F ⊣ ihom F :=
-{ hom_equiv := λ G₁ G₂, _,
-  unit := _,
-  counit := _,
-  hom_equiv_unit' := _,
-  hom_equiv_counit' := _ }
+namespace tensor_ihom_adj
 
-instance : monoidal_closed (presheaf AddCommGroup X) :=
+@[simps] def hom_equiv'.from_tensor_app_apply (F G₁ G₂ : presheaf AddCommGroup.{u} X)
+  (f : F ⊗ G₁ ⟶ G₂) (U : (opens X)ᵒᵖ) (s : G₁.obj U) :
+  restrict F (unop U) ⟶ restrict G₂ (unop U) :=
+{ app := λ W, let O := (emb.open_embedding U.unop).is_open_map.functor.obj W.unop in
+    AddCommGroup.monoidal.curry (f.app (op O)) $
+      G₁.map ((hom_of_le $ by { rintros _ ⟨p, hp, rfl⟩, exact p.2 }).op : op (unop U) ⟶ op O) s,
+  naturality' := λ W₁ W₂ inc,
+  begin
+    simp only [restrict_map],
+    generalize_proofs h1 h2 h3,
+    ext t,
+    simp only [comp_apply, AddCommGroup.monoidal.curry_apply_apply],
+    erw ←fun_like.congr_fun (f.naturality (_ : op (h1.functor.obj (unop W₁)) ⟶
+      op (h1.functor.obj (unop W₂)))) (t ⊗ₜ (G₁.map (hom_of_le h3).op) s),
+    simp only [tensor_obj_map, AddCommGroup.monoidal.tensor_monoidal_category_tensor_hom,
+      comp_apply, AddCommGroup.monoidal.tensor_monoidal_category.tensor_hom'_apply,
+      tensor_product.map_tmul, AddCommGroup.to_int_linear_map_apply],
+    congr' 2,
+    rw [←comp_apply, ←G₁.map_comp, ←op_comp],
+    congr,
+  end }
+
+@[simps] def hom_equiv'.from_tensor (F G₁ G₂ : presheaf AddCommGroup.{u} X)
+  (f : F ⊗ G₁ ⟶ G₂) : (G₁ ⟶ (ihom F).obj G₂) :=
+{ app := λ U,
+  { to_fun := hom_equiv'.from_tensor_app_apply F G₁ G₂ f U,
+    map_zero' := by { ext W s, simp only [hom_equiv'.from_tensor_app_apply_app, map_zero,
+      nat_trans.app_zero], },
+    map_add' := λ s t, by { ext W x, simp only [hom_equiv'.from_tensor_app_apply_app, map_add,
+      nat_trans.app_add], } },
+  naturality' := λ U V inc,
+  begin
+    ext s W x,
+    simp only [hom_equiv'.from_tensor_app_apply_app, comp_apply, add_monoid_hom.coe_mk,
+      AddCommGroup.monoidal.curry_apply_apply],
+    dsimp only [ihom, ihom_obj],
+    simp only [add_monoid_hom.coe_mk, restrict_subset_sections_map_app,
+      restrict_subset_sections_map.app_apply, hom_equiv'.from_tensor_app_apply_app,
+      AddCommGroup.monoidal.curry_apply_apply],
+    erw [←comp_apply, ←G₁.map_comp, ←comp_apply, ←f.naturality],
+    simp only [functor.map_comp, comp_apply, tensor_obj_map, tensor_product.map_tmul,
+      AddCommGroup.monoidal.tensor_monoidal_category_tensor_hom,
+      AddCommGroup.monoidal.tensor_monoidal_category.tensor_hom'_apply,
+      AddCommGroup.to_int_linear_map_apply],
+    congr' 2,
+    { rw [←comp_apply, ←F.map_comp, ←op_comp],
+      symmetry,
+      convert id_apply _,
+      convert F.map_id _, },
+    { simp only [←comp_apply, ←G₁.map_comp],
+      congr, },
+  end }
+
+@[simps] def hom_equiv'.to_tensor_app_apply {F G₁ G₂ : presheaf AddCommGroup.{u} X}
+  (f : G₁ ⟶ (ihom F).obj G₂) (U : (opens X)ᵒᵖ) : (F ⊗ G₁).obj U ⟶ G₂.obj U :=
+(tensor_product.lift $ @AddCommGroup.to_int_linear_map₂ (F.obj U) (G₁.obj U) (G₂.obj U) $
+  AddCommGroup.monoidal.curry $ AddCommGroup.monoidal.uncurry' $ f.app U ≫
+    restrict_top_add_monoid_hom F G₂ U.unop).to_add_monoid_hom
+
+lemma hom_equiv'.to_tensor_naturality_tmul
+  {F G₁ G₂ : presheaf AddCommGroup.{u} X} (f : G₁ ⟶ (ihom F).obj G₂)
+  {U V : (opens X)ᵒᵖ} (inc : U ⟶ V) (a : (F.obj U)) (b : (G₁.obj U)) :
+  ((F ⊗ G₁).map inc ≫ hom_equiv'.to_tensor_app_apply f V)
+      (a ⊗ₜ[ℤ] b) =
+  (hom_equiv'.to_tensor_app_apply f U ≫ G₂.map inc)
+    (a ⊗ₜ[ℤ] b) :=
+begin
+  simp only [comp_apply, tensor_obj_map, AddCommGroup.monoidal.tensor_monoidal_category_tensor_hom,
+    AddCommGroup.monoidal.tensor_monoidal_category.tensor_hom'_apply, tensor_product.map_tmul,
+    AddCommGroup.to_int_linear_map_apply, hom_equiv'.to_tensor_app_apply,
+    linear_map.to_add_monoid_hom_coe, tensor_product.lift.tmul,
+    AddCommGroup.to_int_linear_map₂_apply_apply, add_monoid_hom.to_fun_eq_coe,
+    AddCommGroup.monoidal.curry_apply_apply, AddCommGroup.monoidal.uncurry'_apply,
+    linear_map.coe_mk, restrict_top_add_monoid_hom_apply, restrict_top_apply],
+  simp only [←comp_apply, ←category.assoc, ←F.map_comp],
+  simp only [category.assoc, ←G₁.map_comp],
+  rw [f.naturality, comp_apply (f.app U)],
+  dsimp,
+  simp only [restrict_subset_sections_map.app_apply, comp_apply],
+  simp only [←comp_apply, ←category.assoc, ←F.map_comp],
+  simp only [category.assoc, ←G₂.map_comp],
+  have eq1 := fun_like.congr_fun (whisker_eq (F.map _)
+    (eq_whisker (@nat_trans.naturality _ _ _ _ _ _ (f.app U b)
+        (op ⊤) (op (emb.of_subset inc.unop ⊤)) (hom_of_le le_top).op)
+      (G₂.map _))) a,
+  dsimp at eq1,
+  simp only [←category.assoc, ←F.map_comp] at eq1,
+  simp only [category.assoc, ←G₂.map_comp] at eq1,
+  convert eq1,
+end
+
+@[simps] def hom_equiv'.to_tensor (F G₁ G₂ : presheaf AddCommGroup.{u} X)
+  (f : G₁ ⟶ (ihom F).obj G₂) : F ⊗ G₁ ⟶ G₂ :=
+{ app := hom_equiv'.to_tensor_app_apply f,
+  naturality' := λ U V inc,
+  begin
+    ext x,
+    induction x using tensor_product.induction_on with a b a b iha ihb,
+    { simp only [map_zero], },
+    { apply hom_equiv'.to_tensor_naturality_tmul, },
+    { rw [map_add, iha, ihb, map_add], },
+  end }
+
+lemma hom_equiv'.left_inv (F G₁ G₂ : presheaf AddCommGroup.{u} X) (f : F ⊗ G₁ ⟶ G₂) :
+  (hom_equiv'.to_tensor F G₁ G₂) (hom_equiv'.from_tensor F G₁ G₂ f) = f :=
+begin
+  ext U x,
+  induction x using tensor_product.induction_on with a b a b ha hb,
+  { simp only [map_zero] },
+  { simp only [tensor_product.lift.tmul, linear_map.coe_mk, comp_apply, hom_equiv'.to_tensor_app,
+      hom_equiv'.from_tensor_app_apply_2, restrict_top_add_monoid_hom_apply,
+      hom_equiv'.to_tensor_app_apply_apply, AddCommGroup.to_int_linear_map₂_apply_apply,
+      add_monoid_hom.to_fun_eq_coe, AddCommGroup.monoidal.curry_apply_apply,
+      AddCommGroup.monoidal.uncurry'_apply, restrict_top_apply,
+      hom_equiv'.from_tensor_app_apply_app],
+    simp only [←comp_apply, f.naturality],
+    rw [comp_apply],
+    generalize_proofs h1 h2 h3,
+    apply_fun G₂.map ((hom_of_le _).op : op U.unop ⟶ op (h1.functor.obj ⊤)),
+    work_on_goal 3 { rintros _ ⟨x, hx, rfl⟩, exact x.2 },
+    work_on_goal 3 { rintros _ ⟨x, hx, rfl⟩, exact x.2 },
+    work_on_goal 2
+    { rw function.injective_iff_has_left_inverse,
+      refine ⟨G₂.map (hom_of_le _).op, _⟩,
+      { apply h2, },
+      { intros x,
+        rw [←comp_apply, ←G₂.map_comp, ←op_comp],
+        convert id_apply _,
+        convert G₂.map_id _, }, },
+    erw [←comp_apply (f.app U), ←fun_like.congr_fun (f.naturality _) (a ⊗ₜ b)],
+    simp only [←comp_apply, category.assoc, ←G₂.map_comp],
+    rw [show G₂.map (_ ≫ _) = 𝟙 _, from _, category.comp_id],
+    work_on_goal 2 { convert G₂.map_id _, },
+    simp only [tensor_obj_map, AddCommGroup.monoidal.tensor_monoidal_category_tensor_hom,
+      comp_apply, AddCommGroup.monoidal.tensor_monoidal_category.tensor_hom'_apply,
+      tensor_product.map_tmul, AddCommGroup.to_int_linear_map_apply],
+    congr, },
+  { rw [map_add, ha, hb, map_add] }
+end
+
+lemma hom_equiv'.right_inv (F G₁ G₂ : presheaf AddCommGroup.{u} X) (f : G₁ ⟶ (ihom F).obj G₂) :
+ hom_equiv'.from_tensor F G₁ G₂ (hom_equiv'.to_tensor F G₁ G₂ f) = f :=
+begin
+  ext U x W y,
+  simp only [tensor_product.lift.tmul, linear_map.coe_mk, comp_apply,
+    restrict_top_add_monoid_hom_apply, hom_equiv'.from_tensor_app_apply_2,
+    hom_equiv'.from_tensor_app_apply_app, hom_equiv'.to_tensor_app,
+    AddCommGroup.monoidal.curry_apply_apply, hom_equiv'.to_tensor_app_apply_apply,
+    AddCommGroup.to_int_linear_map₂_apply_apply, add_monoid_hom.to_fun_eq_coe,
+    AddCommGroup.monoidal.uncurry'_apply, restrict_top_apply],
+  rw [←comp_apply (G₁.map _), f.naturality],
+  dsimp,
+  simp only [comp_apply, ihom_obj_map_apply, quiver.hom.unop_op, restrict_subset_sections_map_app,
+    restrict_subset_sections_map.app_apply],
+  simp only [←comp_apply, ←F.map_comp],
+  simp only [category.assoc, ←G₂.map_comp, ←op_comp],
+  erw ←(f.app U x).naturality,
+  work_on_goal 2
+  { change _ ⟶ op W.unop,
+    refine (hom_of_le _).op,
+    intros p hp,
+    refine ⟨⟨p.1, p, hp, rfl⟩, ⟨⟩, _⟩,
+    ext, refl, },
+  erw [←category.assoc, ←F.map_comp, id],
+  congr' 1,
+  convert category.id_comp _,
+  convert F.map_id _,
+end
+
+@[simps] def hom_equiv' (F G₁ G₂ : presheaf AddCommGroup.{u} X) :
+  (F ⊗ G₁ ⟶ G₂) ≃ (G₁ ⟶ (ihom F).obj G₂) :=
+{ to_fun := hom_equiv'.from_tensor _ _ _,
+  inv_fun := hom_equiv'.to_tensor _ _ _,
+  left_inv := hom_equiv'.left_inv _ _ _,
+  right_inv := hom_equiv'.right_inv _ _ _ }
+
+@[simps] def unit'_app_sections (F G : presheaf AddCommGroup.{u} X) (U : (opens X)ᵒᵖ) :
+  G.obj U ⟶ AddCommGroup.of (restrict F (unop U) ⟶ restrict (F ⊗ G) U.unop) :=
+{ to_fun := λ x,
+  { app := λ W,
+    { to_fun := λ y, y ⊗ₜ G.map
+        ((hom_of_le $ by { rintros _ ⟨⟨_, h⟩, -, rfl⟩, exact h, } :
+          ((emb.open_embedding U.unop).is_open_map.functor.obj W.unop) ⟶ U.unop).op) x,
+      map_zero' := tensor_product.zero_tmul _ _,
+      map_add' := λ a b, tensor_product.add_tmul _ _ _ },
+    naturality' := λ W₁ W₂ inc,
+    begin
+      ext y,
+      simp only [restrict_map, comp_apply, add_monoid_hom.coe_mk, tensor_obj_map,
+        AddCommGroup.monoidal.tensor_monoidal_category_tensor_hom,
+        AddCommGroup.monoidal.tensor_monoidal_category.tensor_hom'_apply, tensor_product.map_tmul,
+        AddCommGroup.to_int_linear_map_apply],
+      rw [←comp_apply (G.map _), ←G.map_comp, ←op_comp],
+      congr,
+    end },
+  map_zero' :=
+  begin
+    ext,
+    simp only [add_monoid_hom.coe_mk, map_zero, tensor_product.tmul_zero, nat_trans.app_zero,
+      AddCommGroup.monoidal.ihom_obj'_str_zero_apply],
+  end,
+  map_add' := λ a b,
+  begin
+    ext,
+    simpa only [add_monoid_hom.coe_mk, map_add, nat_trans.app_add,
+      AddCommGroup.monoidal.ihom_obj'_str_add_apply] using tensor_product.tmul_add _ _ _,
+  end }
+
+lemma unit'_app_sections_naturality (F G : presheaf AddCommGroup.{u} X)
+  ⦃U V : (opens X)ᵒᵖ⦄ (inc : U ⟶ V) :
+  G.map inc ≫ unit'_app_sections F G V =
+  unit'_app_sections F G U ≫ ((tensor_left F ⋙ ihom F).obj G).map inc :=
+begin
+  ext x y z,
+  dsimp,
+  simp only [comp_apply, unit'_app_sections_apply_app_apply, ihom_obj_map_apply,
+    restrict_subset_sections_map_app, restrict_subset_sections_map.app_apply, tensor_obj_map,
+    AddCommGroup.monoidal.tensor_monoidal_category_tensor_hom,
+    AddCommGroup.monoidal.tensor_monoidal_category.tensor_hom'_apply, tensor_product.map_tmul,
+    AddCommGroup.to_int_linear_map_apply],
+  rw [←comp_apply, ←comp_apply, ←F.map_comp, ←comp_apply, ←G.map_comp, ←G.map_comp],
+  congr' 1,
+  convert_to z = (F.map (𝟙 _)) z,
+  rw [F.map_id, id_apply],
+end
+
+
+@[simps] def unit' (F : presheaf AddCommGroup.{u} X) :
+  𝟭 (presheaf AddCommGroup.{u} X) ⟶ tensor_left F ⋙ ihom F :=
+{ app := λ G,
+  { app := λ U, unit'_app_sections F G U, naturality' := unit'_app_sections_naturality F G },
+  naturality' := λ G₁ G₂ α,
+  begin
+    ext U x y z,
+    dsimp,
+    simp only [functor.id_map, nat_trans.comp_app, comp_apply, unit'_app_sections_apply_app_apply,
+      functor.comp_map, tensor_left_map, ihom_map_2, ihom_map_app_2, ihom_map_app_apply_app,
+      ihom_map'_app_apply, tensor_hom_app, nat_trans.id_app, tensor_obj_map,
+      AddCommGroup.monoidal.tensor_monoidal_category_tensor_hom, tensor_product.map_tmul,
+      AddCommGroup.monoidal.tensor_monoidal_category.tensor_hom'_apply,
+      AddCommGroup.to_int_linear_map_apply, id_apply],
+    simp only [←comp_apply, ←F.map_comp, ←G₁.map_comp],
+    rw [α.naturality, category.assoc, ←G₂.map_comp],
+    congr' 1,
+    convert_to z = (F.map (𝟙 _)) z,
+    rw [F.map_id, id_apply],
+  end }
+
+@[simps] def counit'_app_sections (F G : presheaf AddCommGroup.{u} X) (U : (opens X)ᵒᵖ) :
+  (F ⊗ ihom_obj F G).obj U ⟶ G.obj U :=
+(tensor_product.lift $ @AddCommGroup.to_int_linear_map₂ (F.obj U) _ _ $
+{ to_fun := λ x,
+  { to_fun := λ (α : (ihom_obj F G).obj U), restrict_top α x,
+    map_zero' := by rw [restrict_top_zero, add_monoid_hom.zero_apply],
+    map_add' := λ α β, by rw [restrict_top_add, add_monoid_hom.add_apply] },
+  map_zero' := by { ext, rw [add_monoid_hom.coe_mk, map_zero, add_monoid_hom.zero_apply] },
+  map_add' :=  λ _ _, by { ext, simp only [add_monoid_hom.add_apply, add_monoid_hom.coe_mk,
+    map_add] } }).to_add_monoid_hom
+
+lemma counit'_app_sections_naturality (F G : presheaf AddCommGroup.{u} X)
+  (U V : (opens X)ᵒᵖ) (inc : U ⟶ V) :
+  ((ihom F ⋙ tensor_left F).obj G).map inc ≫ counit'_app_sections F G V =
+  counit'_app_sections F G U ≫ G.map inc :=
+begin
+  ext x,
+  induction x using tensor_product.induction_on with a b a b ha hb,
+  { simp only [map_zero] },
+  { dsimp,
+    simp only [comp_apply, AddCommGroup.monoidal.tensor_monoidal_category.tensor_hom'_apply,
+      tensor_product.map_tmul, AddCommGroup.to_int_linear_map_apply, ihom_obj_map_apply,
+      counit'_app_sections_apply, tensor_product.lift.tmul,
+      AddCommGroup.to_int_linear_map₂_apply_apply, add_monoid_hom.coe_mk],
+    simp only [←comp_apply, category.assoc, ←G.map_comp],
+    simp only [←category.assoc, ←F.map_comp],
+    dsimp,
+    simp only [comp_apply, restrict_subset_sections_map.app_apply],
+    simp only [←comp_apply, category.assoc, ←G.map_comp],
+    simp only [←category.assoc, ←F.map_comp],
+    simp only [category.assoc],
+    generalize_proofs h1 h2 h3 h4 h5 h6 h7 h8,
+    have eq1 := fun_like.congr_fun (whisker_eq (F.map _)
+      (eq_whisker (@nat_trans.naturality _ _ _ _ _ _ b
+          (op ⊤) (op (emb.of_subset inc.unop ⊤)) (hom_of_le le_top).op)
+        (G.map _))) a,
+    dsimp at eq1,
+    simp only [←category.assoc, ←F.map_comp] at eq1,
+    simp only [category.assoc, ←G.map_comp] at eq1,
+    convert eq1, },
+  { simp only [map_add, ha, hb] }
+end
+
+@[simps] def counit' (F : presheaf AddCommGroup.{u} X) :
+  ihom F ⋙ tensor_left F ⟶ 𝟭 (presheaf AddCommGroup.{u} X) :=
+{ app := λ G,
+  { app := counit'_app_sections F G, naturality' := counit'_app_sections_naturality F G },
+  naturality' := λ G₁ G₂ α,
+  begin
+    ext U s,
+    induction s using tensor_product.induction_on with a b a b ha hb,
+    { simp only [map_zero] },
+    { simp only [functor.comp_map, ihom_map_2, tensor_left_map, nat_trans.comp_app, tensor_hom_app,
+        nat_trans.id_app, ihom_map_app_2, AddCommGroup.monoidal.tensor_monoidal_category_tensor_hom,
+        comp_apply, AddCommGroup.monoidal.tensor_monoidal_category.tensor_hom'_apply,
+        tensor_product.map_tmul, AddCommGroup.to_int_linear_map_apply, id_apply,
+        counit'_app_sections_apply, tensor_product.lift.tmul, add_monoid_hom.coe_mk,
+        AddCommGroup.to_int_linear_map₂_apply_apply, functor.id_map],
+      rw [ihom_map_app_apply_app, ihom_map'_app_apply],
+      simp only [←comp_apply, category.assoc, ←G₂.map_comp],
+      rw [←α.naturality, ←category.assoc (G₁.map _), ←G₁.map_comp],
+      congr },
+    { simp only [map_add, ha, hb] }
+  end }
+
+lemma hom_equiv_unit (F G₁ G₂ : presheaf AddCommGroup.{u} X) (α : (tensor_left F).obj G₁ ⟶ G₂) :
+  (tensor_ihom_adj.hom_equiv' F G₁ G₂) α = (tensor_ihom_adj.unit' F).app G₁ ≫ (ihom F).map α :=
+begin
+  ext U x y z,
+  dsimp,
+  simp only [comp_apply, ihom_map_app_apply_app, ihom_map'_app_apply, tensor_obj_map,
+    AddCommGroup.monoidal.tensor_monoidal_category_tensor_hom, unit'_app_sections_apply_app_apply,
+    AddCommGroup.monoidal.tensor_monoidal_category.tensor_hom'_apply, tensor_product.map_tmul,
+    AddCommGroup.to_int_linear_map_apply],
+  simp only [←comp_apply],
+  rw [←α.naturality],
+  dsimp,
+  simp only [comp_apply, AddCommGroup.monoidal.tensor_monoidal_category.tensor_hom'_apply,
+    tensor_product.map_tmul, AddCommGroup.to_int_linear_map_apply],
+  congr' 2,
+  { rw [←comp_apply, ←F.map_comp],
+    convert_to z = F.map (𝟙 _) z,
+    rw [F.map_id, id_apply], },
+  { rw [←comp_apply, ←comp_apply, ←G₁.map_comp, ←G₁.map_comp],
+    congr },
+end
+
+lemma hom_equiv_counit (F G₁ G₂ : presheaf AddCommGroup.{u} X) (α : G₁ ⟶ (ihom F).obj G₂) :
+  ((tensor_ihom_adj.hom_equiv' F G₁ G₂).symm) α =
+  (tensor_left F).map α ≫ (tensor_ihom_adj.counit' F).app G₂ :=
+begin
+  ext U x,
+  induction x using tensor_product.induction_on with a b a b ha hb,
+  { simp only [map_zero] },
+  { simp only [hom_equiv'_symm_apply, hom_equiv'.to_tensor_app,
+      hom_equiv'.to_tensor_app_apply_apply, tensor_product.lift.tmul,
+      AddCommGroup.to_int_linear_map₂_apply_apply, tensor_hom_app,
+      add_monoid_hom.to_fun_eq_coe, AddCommGroup.monoidal.curry_apply_apply,
+      AddCommGroup.monoidal.uncurry'_apply, linear_map.coe_mk, nat_trans.comp_app,
+      comp_apply, restrict_top_add_monoid_hom_apply, restrict_top_apply, tensor_left_map],
+    simp only [counit'_app_app, nat_trans.id_app, tensor_product.map_tmul,
+      AddCommGroup.monoidal.tensor_monoidal_category_tensor_hom, counit'_app_sections_apply,
+      AddCommGroup.monoidal.tensor_monoidal_category.tensor_hom'_apply, add_monoid_hom.coe_mk,
+      AddCommGroup.to_int_linear_map_apply, id_apply, tensor_product.lift.tmul,
+      AddCommGroup.to_int_linear_map₂_apply_apply], },
+  { rw [map_add, ha, hb, map_add] },
+end
+
+end tensor_ihom_adj
+
+@[simps] def tensor_ihom_adj (F : presheaf AddCommGroup.{u} X) : tensor_left F ⊣ ihom F :=
+{ hom_equiv := tensor_ihom_adj.hom_equiv' _,
+  unit := tensor_ihom_adj.unit' _,
+  counit := tensor_ihom_adj.counit' _,
+  hom_equiv_unit' := tensor_ihom_adj.hom_equiv_unit _,
+  hom_equiv_counit' := tensor_ihom_adj.hom_equiv_counit _ }
+
+def monoidal_closed_presheaf_AddCommGroup : monoidal_closed (presheaf AddCommGroup.{u} X) :=
 { closed' := λ F, { is_adj :=
-  ⟨ihom F, _⟩ } }
+  ⟨ihom F, tensor_ihom_adj F⟩ } }
+
+local attribute [instance] monoidal_closed_presheaf_AddCommGroup
 
 end
 

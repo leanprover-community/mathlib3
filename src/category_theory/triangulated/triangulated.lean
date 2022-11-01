@@ -40,7 +40,7 @@ structure octahedron :=
 (m₁ : Z₁₂ ⟶ Z₁₃)
 (m₃ : Z₁₃ ⟶ Z₂₃)
 (comm₁ : v₁₂ ≫ m₁ = u₂₃ ≫ v₁₃)
-(comm₂ : w₁₂ = m₁ ≫ w₁₃)
+(comm₂ : m₁ ≫ w₁₃ = w₁₂)
 (comm₃ : v₁₃ ≫ m₃ = v₂₃)
 (comm₄ : w₁₃ ≫ u₁₂⟦1⟧' = m₃ ≫ w₂₃)
 (mem : triangle.mk m₁ m₃ (w₂₃ ≫ v₁₂⟦1⟧') ∈ dist_triang C)
@@ -56,7 +56,7 @@ end
 
 namespace octahedron
 
-attribute [reassoc] comm₁ comm₃ comm₄
+attribute [reassoc] comm₁ comm₂ comm₃ comm₄
 
 variables {comm h₁₂ h₂₃ h₁₃} (h : octahedron comm h₁₂ h₂₃ h₁₃)
 
@@ -72,7 +72,7 @@ def triangle_morphism₁ : triangle.mk u₁₂ v₁₂ w₁₂ ⟶ triangle.mk u
   hom₃ := h.m₁,
   comm₁' := by { dsimp, rw [id_comp, comm], },
   comm₂' := h.comm₁,
-  comm₃' := by { dsimp, simpa only [functor.map_id, comp_id] using h.comm₂, }, }
+  comm₃' := by { dsimp, simpa only [functor.map_id, comp_id] using h.comm₂.symm, }, }
 
 /-- The second morphism of triangles given an octahedron. -/
 @[simps]

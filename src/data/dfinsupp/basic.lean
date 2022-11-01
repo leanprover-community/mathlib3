@@ -1949,10 +1949,18 @@ instance dfinsupp.infinite_of_left {ι : Sort*} {π : ι → Sort*}
 by letI := classical.dec_eq ι; choose m hm using (λ i, exists_ne (0 : π i)); exact
 infinite.of_injective _ (dfinsupp.single_left_injective hm)
 
+/-- See `dfinsupp.infinite_of_right` for this in instance form, with the drawback that
+it needs all `π i` to be infinite. -/
+lemma dfinsupp.infinite_of_exists_right {ι : Sort*} {π : ι → Sort*}
+  (i : ι) [infinite (π i)] [Π i, has_zero (π i)] :
+  infinite (Π₀ i, π i) :=
+by letI := classical.dec_eq ι; exact
+infinite.of_injective (λ j, dfinsupp.single i j) dfinsupp.single_injective
+
+/-- See `dfinsupp.infinite_of_exists_right` for the case that only one `π ι` is infinite. -/
 instance dfinsupp.infinite_of_right {ι : Sort*} {π : ι → Sort*}
   [∀ i, infinite (π i)] [Π i, has_zero (π i)] [nonempty ι] :
   infinite (Π₀ i, π i) :=
-by letI := classical.dec_eq ι; exact
-infinite.of_injective (λ i, dfinsupp.single (classical.arbitrary ι) i) dfinsupp.single_injective
+dfinsupp.infinite_of_exists_right (classical.arbitrary ι)
 
 end finite_infinite

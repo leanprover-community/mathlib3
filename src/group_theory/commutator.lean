@@ -208,21 +208,21 @@ end subgroup
 variables (G)
 
 /-- The set of commutator elements `⁅g₁, g₂⁆` in `G`. -/
-def commutators : set G :=
+def commutator_set : set G :=
 {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}
 
-lemma commutators_def : commutators G = {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} := rfl
+lemma commutator_set_def : commutator_set G = {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} := rfl
 
-lemma one_mem_commutators : (1 : G) ∈ commutators G :=
+lemma one_mem_commutator_set : (1 : G) ∈ commutator_set G :=
 ⟨1, 1, commutator_element_self 1⟩
 
-instance : nonempty (commutators G) :=
-⟨⟨1, one_mem_commutators G⟩⟩
+instance : nonempty (commutator_set G) :=
+⟨⟨1, one_mem_commutator_set G⟩⟩
 
 variables {G g}
 
-lemma mem_commutators_iff : g ∈ commutators G ↔ ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g :=
+lemma mem_commutator_set_iff : g ∈ commutator_set G ↔ ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g :=
 iff.rfl
 
-lemma commutator_mem_commutators : ⁅g₁, g₂⁆ ∈ commutators G :=
+lemma commutator_mem_commutator_set : ⁅g₁, g₂⁆ ∈ commutator_set G :=
 ⟨g₁, g₂, rfl⟩

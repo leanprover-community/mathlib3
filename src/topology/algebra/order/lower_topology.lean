@@ -300,7 +300,7 @@ def lower_topology_prod_hom :
   with_lower_topology (α × β) ≃ₜ ((with_lower_topology α) × (with_lower_topology β)) :=
 { continuous_to_fun := sorry,
   continuous_inv_fun := sorry,
-  ..(equiv.prod_congr (@with_lower_topology.to_lower α) (@with_lower_topology.to_lower β)) }
+  ..with_lower_topology.of_lower.trans (with_lower_topology.to_lower.prod_congr with_lower_topology.to_lower) }
 
 end prod
 

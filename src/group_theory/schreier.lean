@@ -145,17 +145,9 @@ end
 
 variables (G)
 
-def commutator_set : set G :=
-{g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}
-
-lemma commutator_set_def : commutator_set G = {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} := rfl
-
-instance : nonempty (commutator_set G) :=
-⟨⟨1, 1, 1, commutator_element_self 1⟩⟩
-
 /-- If `G` has `n` commutators `[g₁, g₂]`, then `|G'| ∣ [G : Z(G)] ^ ([G : Z(G)] * n + 1)`,
 where `G'` denotes the commutator of `G`. -/
-lemma card_commutator_dvd_index_center_pow [hG0 : finite (commutator_set G)] :
+lemma card_commutator_dvd_index_center_pow [finite (commutator_set G)] :
   nat.card (commutator G) ∣
     (center G).index ^ ((center G).index * nat.card (commutator_set G) + 1) :=
 begin
@@ -168,8 +160,6 @@ begin
   have h1 := relindex_dvd_index_of_normal (center G) (commutator G),
   -- So we can reduce to proving `|Z(G) ∩ G'| ∣ [G : Z(G)] ^ ([G : Z(G)] * n)`
   refine mul_dvd_mul _ h1,
-  rw commutator_set_def at hG0,
-  haveI := hG0,
   -- We have `h2 : rank (Z(G) ∩ G') ≤ [G' : Z(G) ∩ G'] * rank G'` by Schreier's lemma
   have h2 := rank_le_index_mul_rank (ne_zero_of_dvd_ne_zero hG h1),
   -- We have `h3 : [G' : Z(G) ∩ G'] * rank G' ≤ [G : Z(G)] * n` by `h1` and `rank G' ≤ n`
@@ -289,9 +279,8 @@ end
 lemma card_commutator_closure_commutator_representatives :
   nat.card (commutator (closure_commutator_representatives G)) = nat.card (commutator G) :=
 begin
-  rw [commutator_eq_closure G, ←commutator_set_def,
-    ←image_commutator_set_closure_commutator_representatives, ←monoid_hom.map_closure,
-    commutator_set_def, ←commutator_eq_closure],
+  rw [commutator_eq_closure G, ←image_commutator_set_closure_commutator_representatives,
+      ←monoid_hom.map_closure, ←commutator_eq_closure],
   refine nat.card_congr (equiv.set.image _ _ (subtype_injective _)),
 end
 

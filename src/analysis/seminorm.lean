@@ -33,6 +33,8 @@ For a module over a normed ring:
 seminorm, locally convex, LCTVS
 -/
 
+#check normed_space
+
 set_option old_structure_cmd true
 
 open normed_field set filter
@@ -1079,7 +1081,7 @@ end
 /-- Let `p` and `q` be two seminorms on a vector space over a `nontrivially_normed_field`.
 If we have `q x ≤ C * p x` on some shell of the form `{x | ε/∥c∥ ≤ p x < ε}` (where `ε > 0`
 and `∥c∥ > 1`), then we also have `q x ≤ C * p x` for all `x` such that `p x ≠ 0`. -/
-lemma seminorm.bound_of_shell
+lemma bound_of_shell
   (p q : seminorm 𝕜 E) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)
   (hf : ∀ x, ε / ∥c∥ ≤ p x → p x < ε → q x ≤ C * p x) {x : E} (hx : p x ≠ 0) :
   q x ≤ C * p x :=
@@ -1092,7 +1094,7 @@ end
 
 /-- A version of `seminorm.bound_of_shell` expressed using pointwise scalar multiplication of
 seminorms. -/
-lemma seminorm.bound_of_shell_smul
+lemma bound_of_shell_smul
   (p q : seminorm 𝕜 E) {ε : ℝ} {C : ℝ≥0} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)
   (hf : ∀ x, ε / ∥c∥ ≤ p x → p x < ε → q x ≤ (C • p) x) {x : E} (hx : p x ≠ 0) :
   q x ≤ (C • p) x :=
@@ -1130,5 +1132,23 @@ by { rw ←ball_norm_seminorm 𝕜, exact (norm_seminorm _ _).absorbent_ball hx 
 /-- Balls at the origin are balanced. -/
 lemma balanced_ball_zero : balanced 𝕜 (metric.ball (0 : E) r) :=
 by { rw ←ball_norm_seminorm 𝕜, exact (norm_seminorm _ _).balanced_ball_zero r }
+
+/-- If there is a scalar `c` with `∥c∥>1`, then any element with nonzero norm can be
+moved by scalar multiplication to any shell of width `∥c∥`. Also recap information on the norm of
+the rescaling element that shows up in applications. -/
+lemma rescale_to_shell_semi_normed {𝕝 F : Type*} [nontrivially_normed_field 𝕝]
+  [seminormed_add_comm_group F] [normed_space 𝕝 F] {c : 𝕝} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε)
+  {x : F} (hx : ∥x∥ ≠ 0) :
+  ∃d:𝕝, d ≠ 0 ∧ ∥d • x∥ < ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
+(norm_seminorm 𝕝 F).rescale_to_shell hc εpos hx
+
+/-- If there is a scalar `c` with `∥c∥>1`, then any element can be moved by scalar multiplication to
+any shell of width `∥c∥`. Also recap information on the norm of the rescaling element that shows
+up in applications. -/
+lemma rescale_to_shell {𝕝 F : Type*} [nontrivially_normed_field 𝕝]
+  [normed_add_comm_group F] [normed_space 𝕝 F] {c : 𝕝} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε)
+  {x : F} (hx : x ≠ 0) :
+  ∃d:𝕝, d ≠ 0 ∧ ∥d • x∥ < ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
+rescale_to_shell_semi_normed hc εpos (ne_of_lt (norm_pos_iff.2 hx)).symm
 
 end norm_seminorm

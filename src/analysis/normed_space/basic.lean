@@ -254,33 +254,6 @@ instance submodule.normed_space {𝕜 R : Type*} [has_smul 𝕜 R] [normed_field
   normed_space 𝕜 s :=
 { norm_smul_le := λc x, le_of_eq $ norm_smul c (x : E) }
 
-/-- If there is a scalar `c` with `∥c∥>1`, then any element with nonzero norm can be
-moved by scalar multiplication to any shell of width `∥c∥`. Also recap information on the norm of
-the rescaling element that shows up in applications. -/
-lemma rescale_to_shell_semi_normed {c : α} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {x : E}
-  (hx : ∥x∥ ≠ 0) : ∃d:α, d ≠ 0 ∧ ∥d • x∥ < ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
-begin
-  have xεpos : 0 < ∥x∥/ε := div_pos ((ne.symm hx).le_iff_lt.1 (norm_nonneg x)) εpos,
-  rcases exists_mem_Ico_zpow xεpos hc with ⟨n, hn⟩,
-  have cpos : 0 < ∥c∥ := lt_trans (zero_lt_one : (0 :ℝ) < 1) hc,
-  have cnpos : 0 < ∥c^(n+1)∥ := by { rw norm_zpow, exact lt_trans xεpos hn.2 },
-  refine ⟨(c^(n+1))⁻¹, _, _, _, _⟩,
-  show (c ^ (n + 1))⁻¹  ≠ 0,
-    by rwa [ne.def, inv_eq_zero, ← ne.def, ← norm_pos_iff],
-  show ∥(c ^ (n + 1))⁻¹ • x∥ < ε,
-  { rw [norm_smul, norm_inv, ← div_eq_inv_mul, div_lt_iff cnpos, mul_comm, norm_zpow],
-    exact (div_lt_iff εpos).1 (hn.2) },
-  show ε / ∥c∥ ≤ ∥(c ^ (n + 1))⁻¹ • x∥,
-  { rw [div_le_iff cpos, norm_smul, norm_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos),
-        zpow_one, mul_inv_rev, mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel (ne_of_gt cpos),
-        one_mul, ← div_eq_inv_mul, le_div_iff (zpow_pos_of_pos cpos _), mul_comm],
-    exact (le_div_iff εpos).1 hn.1 },
-  show ∥(c ^ (n + 1))⁻¹∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥,
-  { have : ε⁻¹ * ∥c∥ * ∥x∥ = ε⁻¹ * ∥x∥ * ∥c∥, by ring,
-    rw [norm_inv, inv_inv, norm_zpow, zpow_add₀ (ne_of_gt cpos), zpow_one, this, ← div_eq_inv_mul],
-    exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
-end
-
 end seminormed_add_comm_group
 
 /-- A linear map from a `module` to a `normed_space` induces a `normed_space` structure on the
@@ -352,15 +325,6 @@ end
 theorem frontier_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
   frontier (closed_ball x r) = sphere x r :=
 by rw [frontier, closure_closed_ball, interior_closed_ball' x r, closed_ball_diff_ball]
-
-variables {α}
-
-/-- If there is a scalar `c` with `∥c∥>1`, then any element can be moved by scalar multiplication to
-any shell of width `∥c∥`. Also recap information on the norm of the rescaling element that shows
-up in applications. -/
-lemma rescale_to_shell {c : α} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {x : E} (hx : x ≠ 0) :
-  ∃d:α, d ≠ 0 ∧ ∥d • x∥ < ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
-rescale_to_shell_semi_normed hc εpos (ne_of_lt (norm_pos_iff.2 hx)).symm
 
 end normed_add_comm_group
 

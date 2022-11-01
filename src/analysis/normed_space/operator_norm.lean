@@ -110,25 +110,22 @@ variables [nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
 lemma norm_image_of_norm_zero [semilinear_map_class 𝓕 σ₁₂ E F] (f : 𝓕)
   (hf : continuous f) {x : E} (hx : ∥x∥ = 0) : ∥f x∥ = 0 :=
 begin
-  refine (@closure_zero_eq F _) ▸ (_ : f x ∈ closure ({0} : set F)),
-  have : x ∈ closure ({0} : set E) := (@closure_zero_eq E _).symm ▸ hx,
-  have := ((specializes_iff_mem_closure.mpr this).map hf).mem_closure,
+  rw [norm_eq_zero_iff_closure_zero, ← specializes_iff_mem_closure, ← map_zero f] at *,
+  exact hx.map hf
 end
 
 section
 
 variables [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₂₃]
 
+#check rescale_to_shell_semi_normed
+
 lemma semilinear_map_class.bound_of_shell_semi_normed [semilinear_map_class 𝓕 σ₁₂ E F]
   (f : 𝓕) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)
   (hf : ∀ x, ε / ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ C * ∥x∥) {x : E} (hx : ∥x∥ ≠ 0) :
   ∥f x∥ ≤ C * ∥x∥ :=
-begin
-  rcases rescale_to_shell_semi_normed hc ε_pos hx with ⟨δ, hδ, δxle, leδx, δinv⟩,
-  have := hf (δ • x) leδx δxle,
-  simpa only [map_smulₛₗ, norm_smul, mul_left_comm C, mul_le_mul_left (norm_pos_iff.2 hδ),
-              ring_hom_isometric.is_iso] using hf (δ • x) leδx δxle
-end
+(norm_seminorm 𝕜 E).bound_of_shell ((norm_seminorm 𝕜₂ F).comp ⟨f, map_add f, map_smulₛₗ f⟩)
+  ε_pos hc hf hx
 
 /-- A continuous linear map between seminormed spaces is bounded when the field is nontrivially
 normed. The continuity ensures boundedness on a ball of some radius `ε`. The nontriviality of the

@@ -536,11 +536,8 @@ variables [nonempty ι] [nontrivially_normed_field 𝕜] [add_comm_group E] [mod
 /-- In a semi-`normed_space`, a continuous seminorm is zero on elements of norm `0`. -/
 lemma map_eq_zero_of_norm_zero (q : seminorm 𝕜 F)
   (hq : continuous q) {x : F} (hx : ∥x∥ = 0) : q x = 0 :=
-begin
-  rw ← map_zero q,
-  have : x ∈ closure ({0} : set F) := (@closure_zero_eq F _).symm ▸ hx,
-  refine ((specializes_iff_mem_closure.mpr this).map hq).eq.symm,
-end
+(map_zero q) ▸
+  ((specializes_iff_mem_closure.mpr $ norm_eq_zero_iff_closure_zero.mp hx).map hq).eq.symm
 
 /-- Let `F` be a semi-`normed_space` over a `nontrivially_normed_field`, and let `q` be a
 seminorm on `F`. If `q` is continuous, then it is uniformly controlled by the norm, that is there
@@ -596,7 +593,7 @@ begin
 end
 
 -- Not useful, should I keep it for explicit computations?
-lemma seminorm_family.bound_of_shell_sup (p : seminorm_family 𝕜 E ι) (s : finset ι)
+lemma _root_.seminorm_family.bound_of_shell_sup (p : seminorm_family 𝕜 E ι) (s : finset ι)
   (q : seminorm 𝕜 E) {ε : ℝ} {C : ℝ≥0} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)
   (hf : ∀ x, (∀ i ∈ s, p i x < ε) → ∀ j ∈ s, ε / ∥c∥ ≤ p j x → q x ≤ (C • p j) x)
   {x : E} (hx : ∃ j, j ∈ s ∧ p j x ≠ 0) :

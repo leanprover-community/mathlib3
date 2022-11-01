@@ -181,7 +181,7 @@ end
 begin
   rw [compression, card_disj_union, image_filter, card_image_of_inj_on ((erase_inj_on' _).mono $
     λ s hs, _), ←card_disjoint_union, filter_union_filter_neg_eq],
-  { exact disjoint_filter_filter_neg _ _ },
+  { exact disjoint_filter_filter_neg _ _ _ },
   rw [mem_coe, mem_filter] at hs,
   exact not_imp_comm.1 erase_eq_of_not_mem (ne_of_mem_of_not_mem hs.1 hs.2).symm,
 end

@@ -131,7 +131,7 @@ namespace weak_neumann_subgroup
 
 def commutator_bound : ℝ → ℕ := sorry
 
-def index_bound : ℝ → ℕ := λ ε, nat.ceil (2 / ε : ℝ)
+def index_bound : ℝ → ℕ := λ ε, nat.ceil (2 / ε)
 
 lemma card_commutator_le (h : ↑(comm_prob G) ≥ ε) :
   nat.card (commutator (weak_neumann_subgroup G ε)) ≤ commutator_bound ε :=
@@ -142,11 +142,20 @@ end
 lemma index_le (h : ↑(comm_prob G) ≥ ε) :
   (weak_neumann_subgroup G ε).index ≤ index_bound ε :=
 begin
+  rw index_bound,
+  refine nat.cast_le.mp (le_trans _ (nat.le_ceil (2 / ε))), -- better nat cast lemma?
   sorry,
 end
 
 instance characteristic : (weak_neumann_subgroup G ε).characteristic :=
 begin
+  rw weak_neumann_subgroup,
+  rw characteristic_iff_map_le,
+  intro ϕ,
+  rw monoid_hom.map_closure,
+  apply closure_mono,
+  rintros - ⟨g, hg : _ ≤ _, rfl⟩,
+  refine le_of_le_of_eq hg (congr_arg coe (nat.card_congr _)),
   sorry
 end
 

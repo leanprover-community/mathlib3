@@ -13,8 +13,8 @@ This file defines `finset.image₂`, the binary image of finsets. This is the fi
 
 ## Notes
 
-This file is very similar to the n-ary section of `data.set.basic` and to `order.filter.n_ary`.
-Please keep them in sync.
+This file is very similar to the n-ary section of `data.set.basic`, to `order.filter.n_ary` and to
+`data.option.n_ary`. Please keep them in sync.
 
 We do not define `finset.image₃` as its only purpose would be to prove properties of `finset.image₂`
 and `set.image2` already fulfills this task.
@@ -25,15 +25,15 @@ open function set
 namespace finset
 
 variables {α α' β β' γ γ' δ δ' ε ε' : Type*}
-  [decidable_eq α'] [decidable_eq β'] [decidable_eq γ] [decidable_eq δ] [decidable_eq δ']
-  [decidable_eq ε] [decidable_eq ε']
+  [decidable_eq α'] [decidable_eq β'] [decidable_eq γ] [decidable_eq γ'] [decidable_eq δ]
+  [decidable_eq δ'] [decidable_eq ε] [decidable_eq ε']
   {f f' : α → β → γ} {g g' : α → β → γ → δ} {s s' : finset α} {t t' : finset β} {u u' : finset γ}
   {a a' : α} {b b' : β} {c : γ}
 
 /-- The image of a binary function `f : α → β → γ` as a function `finset α → finset β → finset γ`.
 Mathematically this should be thought of as the image of the corresponding function `α × β → γ`. -/
 def image₂ (f : α → β → γ) (s : finset α) (t : finset β) : finset γ :=
-(s.product t).image $ uncurry f
+(s ×ˢ t).image $ uncurry f
 
 @[simp] lemma mem_image₂ : c ∈ image₂ f s t ↔ ∃ a b, a ∈ s ∧ b ∈ t ∧ f a b = c :=
 by simp [image₂, and_assoc]
@@ -45,6 +45,10 @@ set.ext $ λ _, mem_image₂
 lemma card_image₂_le (f : α → β → γ) (s : finset α) (t : finset β) :
   (image₂ f s t).card ≤ s.card * t.card :=
 card_image_le.trans_eq $ card_product _ _
+
+lemma card_image₂_iff :
+  (image₂ f s t).card = s.card * t.card ↔ (s ×ˢ t : set (α × β)).inj_on (λ x, f x.1 x.2) :=
+by { rw [←card_product, ←coe_product], exact card_image_iff }
 
 lemma card_image₂ (hf : injective2 f) (s : finset α) (t : finset β) :
   (image₂ f s t).card = s.card * t.card :=
@@ -93,8 +97,9 @@ lemma nonempty.of_image₂_right (h : (image₂ f s t).nonempty) : t.nonempty :=
 @[simp] lemma image₂_eq_empty_iff : image₂ f s t = ∅ ↔ s = ∅ ∨ t = ∅ :=
 by simp_rw [←not_nonempty_iff_eq_empty, image₂_nonempty_iff, not_and_distrib]
 
-@[simp] lemma image₂_singleton_left : image₂ f {a} t = t.image (f a) := ext $ λ x, by simp
+@[simp] lemma image₂_singleton_left : image₂ f {a} t = t.image (λ b, f a b) := ext $ λ x, by simp
 @[simp] lemma image₂_singleton_right : image₂ f s {b} = s.image (λ a, f a b) := ext $ λ x, by simp
+lemma image₂_singleton_left' : image₂ f {a} t = t.image (f a) := image₂_singleton_left
 
 lemma image₂_singleton : image₂ f {a} {b} = {f a b} := by simp
 
@@ -134,6 +139,47 @@ begin
     mem_insert_self _ _, ha⟩, h.trans $ image₂_subset (subset_insert _ _) $ subset_insert _ _⟩⟩,
 end
 
+variables (s t)
+
+lemma card_image₂_singleton_left (hf : injective (f a)) : (image₂ f {a} t).card = t.card :=
+by rw [image₂_singleton_left, card_image_of_injective _ hf]
+
+lemma card_image₂_singleton_right (hf : injective (λ a, f a b)) : (image₂ f s {b}).card = s.card :=
+by rw [image₂_singleton_right, card_image_of_injective _ hf]
+
+lemma image₂_singleton_inter [decidable_eq β] (t₁ t₂ : finset β) (hf : injective (f a)) :
+  image₂ f {a} (t₁ ∩ t₂) = image₂ f {a} t₁ ∩ image₂ f {a} t₂ :=
+by simp_rw [image₂_singleton_left, image_inter _ _ hf]
+
+lemma image₂_inter_singleton [decidable_eq α] (s₁ s₂ : finset α) (hf : injective (λ a, f a b)) :
+  image₂ f (s₁ ∩ s₂) {b} = image₂ f s₁ {b} ∩ image₂ f s₂ {b} :=
+by simp_rw [image₂_singleton_right, image_inter _ _ hf]
+
+lemma card_le_card_image₂_left {s : finset α} (hs : s.nonempty) (hf : ∀ a, injective (f a)) :
+  t.card ≤ (image₂ f s t).card :=
+begin
+  obtain ⟨a, ha⟩ := hs,
+  rw ←card_image₂_singleton_left _ (hf a),
+  exact card_le_of_subset (image₂_subset_right $ singleton_subset_iff.2 ha),
+end
+
+lemma card_le_card_image₂_right {t : finset β} (ht : t.nonempty)
+  (hf : ∀ b, injective (λ a, f a b)) :
+  s.card ≤ (image₂ f s t).card :=
+begin
+  obtain ⟨b, hb⟩ := ht,
+  rw ←card_image₂_singleton_right _ (hf b),
+  exact card_le_of_subset (image₂_subset_left $ singleton_subset_iff.2 hb),
+end
+
+variables {s t}
+
+lemma bUnion_image_left : s.bUnion (λ a, t.image $ f a) = image₂ f s t :=
+coe_injective $ by { push_cast, exact set.Union_image_left _ }
+
+lemma bUnion_image_right : t.bUnion (λ b, s.image $ λ a, f a b) = image₂ f s t :=
+coe_injective $ by { push_cast, exact set.Union_image_right _ }
+
 /-!
 ### Algebraic replacement rules
 
@@ -159,6 +205,17 @@ coe_injective $ by { push_cast, exact image2_image_right _ _ }
 lemma image₂_swap (f : α → β → γ) (s : finset α) (t : finset β) :
   image₂ f s t = image₂ (λ a b, f b a) t s :=
 coe_injective $ by { push_cast, exact image2_swap _ _ _ }
+
+@[simp] lemma image₂_mk_eq_product [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
+  image₂ prod.mk s t = s ×ˢ t :=
+by ext; simp [prod.ext_iff]
+
+@[simp] lemma image₂_curry (f : α × β → γ) (s : finset α) (t : finset β) :
+  image₂ (curry f) s t = (s ×ˢ t).image f :=
+by { classical, rw [←image₂_mk_eq_product, image_image₂, curry] }
+
+@[simp] lemma image_uncurry_product (f : α → β → γ) (s : finset α) (t : finset β) :
+  (s ×ˢ t).image (uncurry f) = image₂ f s t := by rw [←image₂_curry, curry_uncurry]
 
 @[simp] lemma image₂_left [decidable_eq α] (h : t.nonempty) : image₂ (λ x y, x) s t = s :=
 coe_injective $ by { push_cast, exact image2_left h }
@@ -189,54 +246,68 @@ lemma image_image₂_distrib {g : γ → δ} {f' : α' → β' → δ} {g₁ : �
   (image₂ f s t).image g = image₂ f' (s.image g₁) (t.image g₂) :=
 coe_injective $ by { push_cast, exact image_image2_distrib h_distrib }
 
-/-- Symmetric of `finset.image₂_image_left_comm`. -/
+/-- Symmetric statement to `finset.image₂_image_left_comm`. -/
 lemma image_image₂_distrib_left {g : γ → δ} {f' : α' → β → δ} {g' : α → α'}
   (h_distrib : ∀ a b, g (f a b) = f' (g' a) b) :
   (image₂ f s t).image g = image₂ f' (s.image g') t :=
 coe_injective $ by { push_cast, exact image_image2_distrib_left h_distrib }
 
-/-- Symmetric of `finset.image_image₂_right_comm`. -/
+/-- Symmetric statement to `finset.image_image₂_right_comm`. -/
 lemma image_image₂_distrib_right {g : γ → δ} {f' : α → β' → δ} {g' : β → β'}
   (h_distrib : ∀ a b, g (f a b) = f' a (g' b)) :
   (image₂ f s t).image g = image₂ f' s (t.image g') :=
 coe_injective $ by { push_cast, exact image_image2_distrib_right h_distrib }
 
-/-- Symmetric of `finset.image_image₂_distrib_left`. -/
+/-- Symmetric statement to `finset.image_image₂_distrib_left`. -/
 lemma image₂_image_left_comm {f : α' → β → γ} {g : α → α'} {f' : α → β → δ} {g' : δ → γ}
   (h_left_comm : ∀ a b, f (g a) b = g' (f' a b)) :
   image₂ f (s.image g) t = (image₂ f' s t).image g' :=
 (image_image₂_distrib_left $ λ a b, (h_left_comm a b).symm).symm
 
-/-- Symmetric of `finset.image_image₂_distrib_right`. -/
+/-- Symmetric statement to `finset.image_image₂_distrib_right`. -/
 lemma image_image₂_right_comm {f : α → β' → γ} {g : β → β'} {f' : α → β → δ} {g' : δ → γ}
   (h_right_comm : ∀ a b, f a (g b) = g' (f' a b)) :
   image₂ f s (t.image g) = (image₂ f' s t).image g' :=
 (image_image₂_distrib_right $ λ a b, (h_right_comm a b).symm).symm
+
+/-- The other direction does not hold because of the `s`-`s` cross terms on the RHS. -/
+lemma image₂_distrib_subset_left {γ : Type*} {u : finset γ} {f : α → δ → ε} {g : β → γ → δ}
+  {f₁ : α → β → β'} {f₂ : α → γ → γ'} {g' : β' → γ' → ε}
+  (h_distrib : ∀ a b c, f a (g b c) = g' (f₁ a b) (f₂ a c)) :
+  image₂ f s (image₂ g t u) ⊆ image₂ g' (image₂ f₁ s t) (image₂ f₂ s u) :=
+coe_subset.1 $ by { push_cast, exact set.image2_distrib_subset_left h_distrib }
+
+/-- The other direction does not hold because of the `u`-`u` cross terms on the RHS. -/
+lemma image₂_distrib_subset_right {γ : Type*} {u : finset γ} {f : δ → γ → ε} {g : α → β → δ}
+  {f₁ : α → γ → α'} {f₂ : β → γ → β'} {g' : α' → β' → ε}
+  (h_distrib : ∀ a b c, f (g a b) c = g' (f₁ a c) (f₂ b c)) :
+  image₂ f (image₂ g s t) u ⊆ image₂ g' (image₂ f₁ s u) (image₂ f₂ t u) :=
+coe_subset.1 $ by { push_cast, exact set.image2_distrib_subset_right h_distrib }
 
 lemma image_image₂_antidistrib {g : γ → δ} {f' : β' → α' → δ} {g₁ : β → β'} {g₂ : α → α'}
   (h_antidistrib : ∀ a b, g (f a b) = f' (g₁ b) (g₂ a)) :
   (image₂ f s t).image g = image₂ f' (t.image g₁) (s.image g₂) :=
 by { rw image₂_swap f, exact image_image₂_distrib (λ _ _, h_antidistrib _ _) }
 
-/-- Symmetric of `finset.image₂_image_left_anticomm`. -/
+/-- Symmetric statement to `finset.image₂_image_left_anticomm`. -/
 lemma image_image₂_antidistrib_left {g : γ → δ} {f' : β' → α → δ} {g' : β → β'}
   (h_antidistrib : ∀ a b, g (f a b) = f' (g' b) a) :
   (image₂ f s t).image g = image₂ f' (t.image g') s :=
 coe_injective $ by { push_cast, exact image_image2_antidistrib_left h_antidistrib }
 
-/-- Symmetric of `finset.image_image₂_right_anticomm`. -/
+/-- Symmetric statement to `finset.image_image₂_right_anticomm`. -/
 lemma image_image₂_antidistrib_right {g : γ → δ} {f' : β → α' → δ} {g' : α → α'}
   (h_antidistrib : ∀ a b, g (f a b) = f' b (g' a)) :
   (image₂ f s t).image g = image₂ f' t (s.image g') :=
 coe_injective $ by { push_cast, exact image_image2_antidistrib_right h_antidistrib }
 
-/-- Symmetric of `finset.image_image₂_antidistrib_left`. -/
+/-- Symmetric statement to `finset.image_image₂_antidistrib_left`. -/
 lemma image₂_image_left_anticomm {f : α' → β → γ} {g : α → α'} {f' : β → α → δ} {g' : δ → γ}
   (h_left_anticomm : ∀ a b, f (g a) b = g' (f' b a)) :
   image₂ f (s.image g) t = (image₂ f' t s).image g' :=
 (image_image₂_antidistrib_left $ λ a b, (h_left_anticomm b a).symm).symm
 
-/-- Symmetric of `finset.image_image₂_antidistrib_right`. -/
+/-- Symmetric statement to `finset.image_image₂_antidistrib_right`. -/
 lemma image_image₂_right_anticomm {f : α → β' → γ} {g : β → β'} {f' : β → α → δ} {g' : δ → γ}
   (h_right_anticomm : ∀ a b, f a (g b) = g' (f' b a)) :
   image₂ f s (t.image g) = (image₂ f' t s).image g' :=

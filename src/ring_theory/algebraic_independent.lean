@@ -153,8 +153,7 @@ lemma alg_hom.algebraic_independent_iff (f : A →ₐ[R] A') (hf : injective f) 
 
 @[nontriviality]
 lemma algebraic_independent_of_subsingleton [subsingleton R] : algebraic_independent R x :=
-by haveI := @mv_polynomial.unique R ι;
-  exact algebraic_independent_iff.2 (λ l hl, subsingleton.elim _ _)
+algebraic_independent_iff.2 (λ l hl, subsingleton.elim _ _)
 
 theorem algebraic_independent_equiv (e : ι ≃ ι') {f : ι' → A} :
   algebraic_independent R (f ∘ e) ↔ algebraic_independent R f :=
@@ -278,7 +277,7 @@ theorem algebraic_independent_subtype {s : set A} :
 by apply @algebraic_independent_comp_subtype _ _ _ id
 
 lemma algebraic_independent_of_finite (s : set A)
-  (H : ∀ t ⊆ s, finite t → algebraic_independent R (λ x, x : t → A)) :
+  (H : ∀ t ⊆ s, t.finite → algebraic_independent R (λ x, x : t → A)) :
   algebraic_independent R (λ x, x : s → A) :=
 algebraic_independent_subtype.2 $
   λ p hp, algebraic_independent_subtype.1 (H _ (mem_supported.1 hp) (finset.finite_to_set _)) _

@@ -3,6 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
+import algebra.order.field
 import data.rat.basic
 
 /-!
@@ -36,9 +37,9 @@ begin
   have d0 := int.coe_nat_lt.2 h₁,
   have := (mk_eq (ne_of_gt h) (ne_of_gt d0)).1 ha,
   constructor; intro h₂,
-  { apply nonneg_of_mul_nonneg_right _ d0,
+  { apply nonneg_of_mul_nonneg_left _ d0,
     rw this, exact mul_nonneg h₂ (le_of_lt h) },
-  { apply nonneg_of_mul_nonneg_right _ h,
+  { apply nonneg_of_mul_nonneg_left _ h,
     rw ← this, exact mul_nonneg h₂ (int.coe_zero_le _) },
 end
 
@@ -101,8 +102,8 @@ protected theorem le_total : a ≤ b ∨ b ≤ a :=
 by have := rat.nonneg_total (b - a); rwa neg_sub at this
 
 protected theorem le_antisymm {a b : ℚ} (hab : a ≤ b) (hba : b ≤ a) : a = b :=
-by { have := eq_neg_of_add_eq_zero (rat.nonneg_antisymm hba $ by rwa [← sub_eq_add_neg, neg_sub]),
-   rwa neg_neg at this }
+by { have := eq_neg_of_add_eq_zero_left (rat.nonneg_antisymm hba $
+ by rwa [← sub_eq_add_neg, neg_sub]), rwa neg_neg at this }
 
 protected theorem le_trans {a b c : ℚ} (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c :=
 have rat.nonneg (b - a + (c - b)), from rat.nonneg_add hab hbc,

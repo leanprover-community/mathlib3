@@ -13,7 +13,7 @@ import ring_theory.polynomial.content
 # The field of rational functions
 
 This file defines the field `ratfunc K` of rational functions over a field `K`,
-and shows it is the field of fractions of `polynomial K`.
+and shows it is the field of fractions of `K[X]`.
 
 ## Main definitions
 
@@ -24,11 +24,11 @@ Working with rational functions as polynomials:
  - `ratfunc.eval` evaluates a rational function given a value for the indeterminate
 You can use `is_fraction_ring` API to treat `ratfunc` as the field of fractions of polynomials:
  * `algebra_map K[X] (ratfunc K)` maps polynomials to rational functions
- * `is_fraction_ring.alg_equiv` maps other fields of fractions of `polynomial K` to `ratfunc K`,
+ * `is_fraction_ring.alg_equiv` maps other fields of fractions of `K[X]` to `ratfunc K`,
     in particular:
  * `fraction_ring.alg_equiv K[X] (ratfunc K)` maps the generic field of
     fraction construction to `ratfunc K`. Combine this with `alg_equiv.restrict_scalars` to change
-    the `fraction_ring K[X] ≃ₐ[polynomial K] ratfunc K` to
+    the `fraction_ring K[X] ≃ₐ[K[X]] ratfunc K` to
     `fraction_ring K[X] ≃ₐ[K] ratfunc K`.
 
 Working with rational functions as fractions:
@@ -40,18 +40,18 @@ the underlying `ratfunc.coe_alg_hom`.
 
 Lifting homomorphisms of polynomials to other types, by mapping and dividing, as long
 as the homomorphism retains the non-zero-divisor property:
-  - `ratfunc.lift_monoid_with_zero_hom` lifts a `polynomial K →*₀ G₀` to
+  - `ratfunc.lift_monoid_with_zero_hom` lifts a `K[X] →*₀ G₀` to
       a `ratfunc K →*₀ G₀`, where `[comm_ring K] [comm_group_with_zero G₀]`
-  - `ratfunc.lift_ring_hom` lifts a `polynomial K →+* L` to a `ratfunc K →+* L`,
+  - `ratfunc.lift_ring_hom` lifts a `K[X] →+* L` to a `ratfunc K →+* L`,
       where `[comm_ring K] [field L]`
-  - `ratfunc.lift_alg_hom` lifts a `polynomial K →ₐ[S] L` to a `ratfunc K →ₐ[S] L`,
+  - `ratfunc.lift_alg_hom` lifts a `K[X] →ₐ[S] L` to a `ratfunc K →ₐ[S] L`,
       where `[comm_ring K] [field L] [comm_semiring S] [algebra S K[X]] [algebra S L]`
 This is satisfied by injective homs.
 We also have lifting homomorphisms of polynomials to other polynomials,
 with the same condition on retaining the non-zero-divisor property across the map:
-  - `ratfunc.map` lifts `polynomial K →* R[X]` when `[comm_ring K] [comm_ring R]`
-  - `ratfunc.map_ring_hom` lifts `polynomial K →+* R[X]` when `[comm_ring K] [comm_ring R]`
-  - `ratfunc.map_alg_hom` lifts `polynomial K →ₐ[S] R[X]` when
+  - `ratfunc.map` lifts `K[X] →* R[X]` when `[comm_ring K] [comm_ring R]`
+  - `ratfunc.map_ring_hom` lifts `K[X] →+* R[X]` when `[comm_ring K] [comm_ring R]`
+  - `ratfunc.map_alg_hom` lifts `K[X] →ₐ[S] R[X]` when
     `[comm_ring K] [is_domain K] [comm_ring R] [is_domain R]`
 
 We also have a set of recursion and induction principles:
@@ -101,7 +101,7 @@ include hring
 /-- `ratfunc K` is `K(x)`, the field of rational functions over `K`.
 
 The inclusion of polynomials into `ratfunc` is `algebra_map K[X] (ratfunc K)`,
-the maps between `ratfunc K` and another field of fractions of `polynomial K`,
+the maps between `ratfunc K` and another field of fractions of `K[X]`,
 especially `fraction_ring K[X]`, are given by `is_localization.algebra_equiv`.
 -/
 structure ratfunc : Type u := of_fraction_ring ::
@@ -140,7 +140,9 @@ of `∀ {p q a : K[X]} (hq : q ≠ 0) (ha : a ≠ 0), f (a * p) (a * q) = f p q)
   (H : ∀ {p q p' q'} (hq : q ∈ K[X]⁰) (hq' : q' ∈ K[X]⁰), p * q' = p' * q →
     f p q = f p' q') :
   P :=
-localization.lift_on (to_fraction_ring x) (λ p q, f p q) (λ p p' q q' h, H q.2 q'.2
+localization.lift_on
+  (by exact to_fraction_ring x) -- Fix timeout by manipulating elaboration order
+  (λ p q, f p q) (λ p p' q q' h, H q.2 q'.2
   (let ⟨⟨c, hc⟩, mul_eq⟩ := (localization.r_iff_exists).mp h in
     mul_cancel_right_coe_non_zero_divisor.mp mul_eq))
 
@@ -148,7 +150,7 @@ lemma lift_on_of_fraction_ring_mk {P : Sort v} (n : K[X]) (d : K[X]⁰)
   (f : ∀ (p q : K[X]), P)
   (H : ∀ {p q p' q'} (hq : q ∈ K[X]⁰) (hq' : q' ∈ K[X]⁰), p * q' = p' * q →
     f p q = f p' q') :
-  ratfunc.lift_on (of_fraction_ring (localization.mk n d)) f @H = f n d :=
+  ratfunc.lift_on (by exact of_fraction_ring (localization.mk n d)) f @H = f n d :=
 begin
   unfold ratfunc.lift_on,
   exact localization.lift_on_mk _ _ _ _
@@ -343,24 +345,25 @@ lemma mul_inv_cancel : ∀ {p : ratfunc K} (hp : p ≠ 0), p * p⁻¹ = 1
 by simpa only [← of_fraction_ring_inv, ← of_fraction_ring_mul, ← of_fraction_ring_one]
   using _root_.mul_inv_cancel this
 
-section has_scalar
+section has_smul
 omit hdomain
 
 variables {R : Type*}
 
 /-- Scalar multiplication of rational functions. -/
-@[irreducible] protected def smul [has_scalar R (fraction_ring K[X])] :
+@[irreducible] protected def smul [has_smul R (fraction_ring K[X])] :
   R → ratfunc K → ratfunc K
 | r ⟨p⟩ := ⟨r • p⟩
 
-instance [has_scalar R (fraction_ring K[X])] : has_scalar R (ratfunc K) :=
+@[nolint fails_quickly] -- cannot reproduce
+instance [has_smul R (fraction_ring K[X])] : has_smul R (ratfunc K) :=
 ⟨ratfunc.smul⟩
 
-lemma of_fraction_ring_smul [has_scalar R (fraction_ring K[X])]
+lemma of_fraction_ring_smul [has_smul R (fraction_ring K[X])]
   (c : R) (p : fraction_ring K[X]) :
   of_fraction_ring (c • p) = c • of_fraction_ring p :=
-by unfold has_scalar.smul ratfunc.smul
-lemma to_fraction_ring_smul [has_scalar R (fraction_ring K[X])]
+by unfold has_smul.smul ratfunc.smul
+lemma to_fraction_ring_smul [has_smul R (fraction_ring K[X])]
   (c : R) (p : ratfunc K) :
   to_fraction_ring (c • p) = c • to_fraction_ring p :=
 by { cases p, rw ←of_fraction_ring_smul }
@@ -392,7 +395,7 @@ end
 instance : is_scalar_tower R K[X] (ratfunc K) :=
 ⟨λ c p q, q.induction_on' (λ q r _, by rw [← mk_smul, smul_assoc, mk_smul, mk_smul])⟩
 
-end has_scalar
+end has_smul
 
 variables (K)
 
@@ -406,7 +409,7 @@ instance : inhabited (ratfunc K) :=
 instance [nontrivial K] : nontrivial (ratfunc K) :=
 of_fraction_ring_injective.nontrivial
 
-/-- `ratfunc K` is isomorphic to the field of fractions of `polynomial K`, as rings.
+/-- `ratfunc K` is isomorphic to the field of fractions of `K[X]`, as rings.
 
 This is an auxiliary definition; `simp`-normal form is `is_localization.alg_equiv`.
 -/
@@ -437,7 +440,7 @@ meta def smul_tac : tactic unit :=
   simp only [add_comm, mul_comm, zero_smul, succ_nsmul, zsmul_eq_mul, mul_add, mul_one, mul_zero,
     neg_add, mul_neg,
     int.of_nat_eq_coe, int.coe_nat_succ, int.cast_zero, int.cast_add, int.cast_one,
-    int.cast_neg_succ_of_nat, int.cast_coe_nat,
+    int.cast_neg_succ_of_nat, int.cast_coe_nat, nat.cast_succ,
     localization.mk_zero, localization.add_mk_self, localization.neg_mk,
     of_fraction_ring_zero, ← of_fraction_ring_add, ← of_fraction_ring_neg]]
 
@@ -562,7 +565,7 @@ lemma coe_map_ring_hom_eq_coe_map [ring_hom_class F R[X] S[X]] (φ : F)
   (map_ring_hom φ hφ : ratfunc R → ratfunc S) = map φ hφ := rfl
 
 -- TODO: Generalize to `fun_like` classes,
-/-- Lift an monoid with zero homomorphism `polynomial R →*₀ G₀` to a `ratfunc R →*₀ G₀`
+/-- Lift an monoid with zero homomorphism `R[X] →*₀ G₀` to a `ratfunc R →*₀ G₀`
 on the condition that `φ` maps non zero divisors to non zero divisors,
 by mapping both the numerator and denominator and quotienting them. --/
 def lift_monoid_with_zero_hom (φ : R[X] →*₀ G₀) (hφ : R[X]⁰ ≤ G₀⁰.comap φ) :
@@ -577,7 +580,7 @@ def lift_monoid_with_zero_hom (φ : R[X] →*₀ G₀) (hφ : R[X]⁰ ≤ G₀�
                    simp only [map_one, submonoid.coe_one, div_one] },
   map_mul' := λ x y, by { cases x, cases y, induction x with p q, induction y with p' q',
     { rw [←of_fraction_ring_mul, localization.mk_mul],
-      simp only [lift_on_of_fraction_ring_mk, div_mul_div_comm₀, map_mul, submonoid.coe_mul] },
+      simp only [lift_on_of_fraction_ring_mk, div_mul_div_comm, map_mul, submonoid.coe_mul] },
     { refl },
     { refl } },
   map_zero' := by { rw [←of_fraction_ring_zero, ←localization.mk_zero (1 : R[X]⁰),
@@ -605,7 +608,7 @@ begin
   { exact λ _, rfl }
 end
 
-/-- Lift an injective ring homomorphism `polynomial R →+* L` to a `ratfunc R →+* L`
+/-- Lift an injective ring homomorphism `R[X] →+* L` to a `ratfunc R →+* L`
 by mapping both the numerator and denominator and quotienting them. --/
 def lift_ring_hom (φ : R[X] →+* L) (hφ : R[X]⁰ ≤ L⁰.comap φ) : ratfunc R →+* L :=
 { map_add' := λ x y, by { simp only [monoid_with_zero_hom.to_fun_eq_coe],
@@ -765,7 +768,7 @@ variables {L R S : Type*} [field L] [comm_ring R] [is_domain R] [comm_semiring S
   [algebra S K[X]] [algebra S L] [algebra S R[X]]
   (φ : K[X] →ₐ[S] L) (hφ : K[X]⁰ ≤ L⁰.comap φ)
 
-/-- Lift an algebra homomorphism that maps polynomials `φ : polynomial K →ₐ[S] R[X]`
+/-- Lift an algebra homomorphism that maps polynomials `φ : K[X] →ₐ[S] R[X]`
 to a `ratfunc K →ₐ[S] ratfunc R`,
 on the condition that `φ` maps non zero divisors to non zero divisors,
 by mapping both the numerator and denominator and quotienting them. -/
@@ -779,7 +782,7 @@ lemma coe_map_alg_hom_eq_coe_map (φ : K[X] →ₐ[S] R[X])
   (hφ : K[X]⁰ ≤ R[X]⁰.comap φ) :
   (map_alg_hom φ hφ : ratfunc K → ratfunc R) = map φ hφ := rfl
 
-/-- Lift an injective algebra homomorphism `polynomial K →ₐ[S] L` to a `ratfunc K →ₐ[S] L`
+/-- Lift an injective algebra homomorphism `K[X] →ₐ[S] L` to a `ratfunc K →ₐ[S] L`
 by mapping both the numerator and denominator and quotienting them. --/
 def lift_alg_hom : ratfunc K →ₐ[S] L :=
 { commutes' := λ r, by simp_rw [ring_hom.to_fun_eq_coe, alg_hom.to_ring_hom_eq_coe,
@@ -839,7 +842,7 @@ begin
   exact lift_on_condition_of_lift_on'_condition @H
 end
 
-/-- Induction principle for `ratfunc K`: if `f p q : P (p / q)` for all `p q : polynomial K`,
+/-- Induction principle for `ratfunc K`: if `f p q : P (p / q)` for all `p q : K[X]`,
 then `P` holds on all elements of `ratfunc K`.
 
 See also `induction_on'`, which is a recursion principle defined in terms of `ratfunc.mk`.
@@ -1060,7 +1063,7 @@ by rw [num_mul_eq_mul_denom_iff (denom_ne_zero x), _root_.map_neg, neg_div, num_
 lemma num_denom_mul (x y : ratfunc K) :
   (x * y).num * (x.denom * y.denom) = x.num * y.num * (x * y).denom :=
 (num_mul_eq_mul_denom_iff (mul_ne_zero (denom_ne_zero x) (denom_ne_zero y))).mpr $
-  by conv_lhs { rw [← num_div_denom x, ← num_div_denom y, div_mul_div_comm₀,
+  by conv_lhs { rw [← num_div_denom x, ← num_div_denom y, div_mul_div_comm,
                     ← ring_hom.map_mul, ← ring_hom.map_mul] }
 
 lemma num_dvd {x : ratfunc K} {p : K[X]} (hp : p ≠ 0) :
@@ -1070,7 +1073,7 @@ begin
   { rintro ⟨q, rfl⟩,
     obtain ⟨hx, hq⟩ := mul_ne_zero_iff.mp hp,
     use denom x * q,
-    rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm₀, div_self, mul_one, num_div_denom],
+    rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm, div_self, mul_one, num_div_denom],
     { exact ⟨mul_ne_zero (denom_ne_zero x) hq, rfl⟩ },
     { exact algebra_map_ne_zero hq } },
   { rintro ⟨q, hq, rfl⟩,
@@ -1084,7 +1087,7 @@ begin
   { rintro ⟨p, rfl⟩,
     obtain ⟨hx, hp⟩ := mul_ne_zero_iff.mp hq,
     use num x * p,
-    rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm₀, div_self, mul_one, num_div_denom],
+    rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm, div_self, mul_one, num_div_denom],
     { exact algebra_map_ne_zero hp } },
   { rintro ⟨p, rfl⟩,
     exact denom_div_dvd p q },
@@ -1098,14 +1101,14 @@ begin
   { simp [hy] },
   rw num_dvd (mul_ne_zero (num_ne_zero hx) (num_ne_zero hy)),
   refine ⟨x.denom * y.denom, mul_ne_zero (denom_ne_zero x) (denom_ne_zero y), _⟩,
-  rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm₀, num_div_denom, num_div_denom]
+  rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm, num_div_denom, num_div_denom]
 end
 
 lemma denom_mul_dvd (x y : ratfunc K) : denom (x * y) ∣ denom x * denom y :=
 begin
   rw denom_dvd (mul_ne_zero (denom_ne_zero x) (denom_ne_zero y)),
   refine ⟨x.num * y.num, _⟩,
-  rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm₀, num_div_denom, num_div_denom]
+  rw [ring_hom.map_mul, ring_hom.map_mul, ← div_mul_div_comm, num_div_denom, num_div_denom]
 end
 
 lemma denom_add_dvd (x y : ratfunc K) : denom (x + y) ∣ denom x * denom y :=
@@ -1269,7 +1272,7 @@ begin
   { have := polynomial.eval₂_eq_zero_of_dvd_of_eval₂_eq_zero f a (denom_mul_dvd x y) hxy,
     rw polynomial.eval₂_mul at this,
     cases mul_eq_zero.mp this; contradiction },
-  rw [div_mul_div_comm₀, eq_div_iff (mul_ne_zero hx hy), div_eq_mul_inv, mul_right_comm,
+  rw [div_mul_div_comm, eq_div_iff (mul_ne_zero hx hy), div_eq_mul_inv, mul_right_comm,
       ← div_eq_mul_inv, div_eq_iff hxy],
   repeat { rw ← polynomial.eval₂_mul },
   congr' 1,
@@ -1304,15 +1307,15 @@ by rw [int_degree, num_C, nat_degree_C, denom_C, nat_degree_one, sub_self]
 by rw [int_degree, ratfunc.num_X, polynomial.nat_degree_X, ratfunc.denom_X,
   polynomial.nat_degree_one, int.coe_nat_one, int.coe_nat_zero, sub_zero]
 
-@[simp] lemma int_degree_polynomial {p : polynomial K} :
-  int_degree (algebra_map (polynomial K) (ratfunc K) p) = nat_degree p :=
+@[simp] lemma int_degree_polynomial {p : K[X]} :
+  int_degree (algebra_map K[X] (ratfunc K) p) = nat_degree p :=
 by rw [int_degree, ratfunc.num_algebra_map, ratfunc.denom_algebra_map, polynomial.nat_degree_one,
   int.coe_nat_zero, sub_zero]
 
 lemma int_degree_mul {x y : ratfunc K} (hx : x ≠ 0) (hy : y ≠ 0) :
   int_degree (x * y) = int_degree x + int_degree y :=
 begin
-  simp only [int_degree, add_sub, sub_add, sub_sub_assoc_swap, sub_sub, sub_eq_sub_iff_add_eq_add],
+  simp only [int_degree, add_sub, sub_add, sub_sub_eq_add_sub, sub_sub, sub_eq_sub_iff_add_eq_add],
   norm_cast,
   rw [← polynomial.nat_degree_mul x.denom_ne_zero y.denom_ne_zero,
         ← polynomial.nat_degree_mul (ratfunc.num_ne_zero (mul_ne_zero hx hy))
@@ -1339,7 +1342,7 @@ nat_degree_sub_eq_of_prod_eq (num_ne_zero hxy) ((x + y).denom_ne_zero)
     (num_denom_add x y)
 
 lemma nat_degree_num_mul_right_sub_nat_degree_denom_mul_left_eq_int_degree {x : ratfunc K}
-  (hx : x ≠ 0) {s : polynomial K} (hs : s ≠ 0) :
+  (hx : x ≠ 0) {s : K[X]} (hs : s ≠ 0) :
   ((x.num * s).nat_degree : ℤ) - (s * x.denom).nat_degree = x.int_degree :=
 begin
   apply nat_degree_sub_eq_of_prod_eq (mul_ne_zero (num_ne_zero hx) hs)
@@ -1371,7 +1374,7 @@ omit hring
 variables {F : Type u} [field F] (p q : F[X]) (f g : ratfunc F)
 
 /-- The coercion `ratfunc F → laurent_series F` as bundled alg hom. -/
-def coe_alg_hom (F : Type u) [field F] : ratfunc F →ₐ[polynomial F] laurent_series F :=
+def coe_alg_hom (F : Type u) [field F] : ratfunc F →ₐ[F[X]] laurent_series F :=
 lift_alg_hom (algebra.of_id _ _) $ non_zero_divisors_le_comap_non_zero_divisors_of_injective _ $
   polynomial.algebra_map_hahn_series_injective _
 
@@ -1402,7 +1405,7 @@ lift_alg_hom_injective _ (polynomial.algebra_map_hahn_series_injective _)
 
 @[simp, norm_cast] lemma coe_div : ((f / g : ratfunc F) : laurent_series F) =
   (f : laurent_series F) / (g : laurent_series F) :=
-(coe_alg_hom F).map_div _ _
+map_div₀ (coe_alg_hom F) _ _
 
 @[simp, norm_cast] lemma coe_C (r : F) : ((C r : ratfunc F) : laurent_series F) = hahn_series.C r :=
 by rw [coe_num_denom, num_C, denom_C, coe_coe, polynomial.coe_C, coe_C, coe_coe, polynomial.coe_one,

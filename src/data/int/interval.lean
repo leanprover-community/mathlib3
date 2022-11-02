@@ -28,7 +28,7 @@ instance : locally_finite_order ℤ :=
     nat.cast_embedding.trans $ add_left_embedding (a + 1),
   finset_mem_Icc := λ a b x, begin
     simp_rw [mem_map, exists_prop, mem_range, int.lt_to_nat, function.embedding.trans_apply,
-      nat.cast_embedding_apply, add_left_embedding_apply, nat_cast_eq_coe_nat],
+      nat.cast_embedding_apply, add_left_embedding_apply],
     split,
     { rintro ⟨a, h, rfl⟩,
       rw [lt_sub_iff_add_lt, int.lt_add_one_iff, add_comm] at h,
@@ -41,7 +41,7 @@ instance : locally_finite_order ℤ :=
   end,
   finset_mem_Ico := λ a b x, begin
     simp_rw [mem_map, exists_prop, mem_range, int.lt_to_nat, function.embedding.trans_apply,
-      nat.cast_embedding_apply, add_left_embedding_apply, nat_cast_eq_coe_nat],
+      nat.cast_embedding_apply, add_left_embedding_apply],
     split,
     { rintro ⟨a, h, rfl⟩,
       exact ⟨int.le.intro rfl, lt_sub_iff_add_lt'.mp h⟩ },
@@ -52,7 +52,7 @@ instance : locally_finite_order ℤ :=
   end,
   finset_mem_Ioc := λ a b x, begin
     simp_rw [mem_map, exists_prop, mem_range, int.lt_to_nat, function.embedding.trans_apply,
-      nat.cast_embedding_apply, add_left_embedding_apply, nat_cast_eq_coe_nat],
+      nat.cast_embedding_apply, add_left_embedding_apply],
     split,
     { rintro ⟨a, h, rfl⟩,
       rw [←add_one_le_iff, le_sub_iff_add_le', add_comm _ (1 : ℤ), ←add_assoc] at h,
@@ -64,7 +64,7 @@ instance : locally_finite_order ℤ :=
   end,
   finset_mem_Ioo := λ a b x, begin
     simp_rw [mem_map, exists_prop, mem_range, int.lt_to_nat, function.embedding.trans_apply,
-      nat.cast_embedding_apply, add_left_embedding_apply, nat_cast_eq_coe_nat],
+      nat.cast_embedding_apply, add_left_embedding_apply],
     split,
     { rintro ⟨a, h, rfl⟩,
       rw [sub_sub, lt_sub_iff_add_lt'] at h,

@@ -132,7 +132,7 @@ end ulift_hom
 def {w v u} as_small (C : Type u) [category.{v} C] := ulift.{max w v} C
 
 instance : small_category (as_small.{w₁} C) :=
-{ hom := λ X Y, ulift.{(max w₁ u₁)} $ X.down ⟶ Y.down,
+{ hom := λ X Y, ulift.{max w₁ u₁} $ X.down ⟶ Y.down,
   id := λ X, ⟨𝟙 _⟩,
   comp := λ X Y Z f g, ⟨f.down ≫ g.down⟩ }
 

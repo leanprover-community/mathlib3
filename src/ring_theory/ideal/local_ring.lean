@@ -5,8 +5,9 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
 
 import algebra.algebra.basic
-import algebra.category.CommRing.basic
+import algebra.category.Ring.basic
 import ring_theory.ideal.operations
+import ring_theory.jacobson_ideal
 
 /-!
 
@@ -84,9 +85,9 @@ lemma is_unit_or_is_unit_of_is_unit_add {a b : R} (h : is_unit (a + b)) :
   is_unit a ∨ is_unit b :=
 begin
   rcases h with ⟨u, hu⟩,
-  replace hu : ↑u⁻¹ * a + ↑u⁻¹ * b = 1, from by rw [←mul_add, ←hu, units.inv_mul],
-  cases is_unit_or_is_unit_of_add_one hu; [left, right];
-    exact (is_unit_of_mul_is_unit_right (by assumption))
+  rw [←units.inv_mul_eq_one, mul_add] at hu,
+  apply or.imp _ _ (is_unit_or_is_unit_of_add_one hu);
+    exact is_unit_of_mul_is_unit_right,
 end
 
 lemma nonunits_add {a b : R} (ha : a ∈ nonunits R) (hb : b ∈ nonunits R) : a + b ∈ nonunits R:=
@@ -167,6 +168,15 @@ begin
   apply f.is_unit_map,
 end
 
+lemma jacobson_eq_maximal_ideal (I : ideal R) (h : I ≠ ⊤) :
+  I.jacobson = local_ring.maximal_ideal R :=
+begin
+  apply le_antisymm,
+  { exact Inf_le ⟨local_ring.le_maximal_ideal h, local_ring.maximal_ideal.is_maximal R⟩ },
+  { exact le_Inf (λ J (hJ : I ≤ J ∧ J.is_maximal),
+      le_of_eq (local_ring.eq_maximal_ideal hJ.2).symm) }
+end
+
 end local_ring
 
 end comm_ring
@@ -240,7 +250,7 @@ lemma is_local_ring_hom_of_iso {R S : CommRing} (f : R ≅ S) : is_local_ring_ho
 { map_nonunit := λ a ha,
   begin
     convert f.inv.is_unit_map ha,
-    rw category_theory.coe_hom_inv_id,
+    rw category_theory.iso.hom_inv_id_apply,
   end }
 
 @[priority 100] -- see Note [lower instance priority]
@@ -302,13 +312,23 @@ begin
   intros a b hab,
   obtain ⟨a, rfl⟩ := hf a,
   obtain ⟨b, rfl⟩ := hf b,
-  replace hab : is_unit (f (a + b)), from by simpa only [map_add] using hab,
+  rw ←map_add at hab,
   exact (is_unit_or_is_unit_of_is_unit_add $ is_local_ring_hom.map_nonunit _ hab).imp
     f.is_unit_map f.is_unit_map
 end
 
+/-- If `f : R →+* S` is a surjective local ring hom, then the induced units map is surjective. -/
+lemma surjective_units_map_of_local_ring_hom [comm_ring R] [comm_ring S]
+  (f : R →+* S) (hf : function.surjective f) (h : is_local_ring_hom f) :
+  function.surjective (units.map $ f.to_monoid_hom) :=
+begin
+  intro a,
+  obtain ⟨b,hb⟩ := hf (a : S),
+  use (is_unit_of_map_unit f _ (by { rw hb, exact units.is_unit _})).unit, ext, exact hb,
+end
+
 section
-variables (R) [comm_ring R] [local_ring R] [comm_ring S] [local_ring S]
+variables (R) [comm_ring R] [local_ring R] [comm_ring S] [local_ring S] [comm_ring T] [local_ring T]
 
 /-- The residue field of a local ring is the quotient of the ring by its maximal ideal. -/
 def residue_field := R ⧸ maximal_ideal R
@@ -339,11 +359,68 @@ begin
   exact map_nonunit f a ha
 end
 
+/-- Applying `residue_field.map` to the identity ring homomorphism gives the identity
+ring homomorphism. -/
+@[simp] lemma map_id :
+  local_ring.residue_field.map (ring_hom.id R) = ring_hom.id (local_ring.residue_field R) :=
+ideal.quotient.ring_hom_ext $ ring_hom.ext $ λx, rfl
+
+/-- The composite of two `residue_field.map`s is the `residue_field.map` of the composite. -/
+lemma map_comp (f : T →+* R) (g : R →+* S) [is_local_ring_hom f] [is_local_ring_hom g] :
+  local_ring.residue_field.map (g.comp f) =
+  (local_ring.residue_field.map g).comp (local_ring.residue_field.map f) :=
+ideal.quotient.ring_hom_ext $ ring_hom.ext $ λx, rfl
+
+lemma map_id_apply (x : residue_field R) : map (ring_hom.id R) x = x :=
+fun_like.congr_fun map_id x
+
+@[simp] lemma map_map (f : R →+* S) (g : S →+* T) (x : residue_field R)
+  [is_local_ring_hom f] [is_local_ring_hom g] :
+  map g (map f x) = map (g.comp f) x :=
+fun_like.congr_fun (map_comp f g).symm x
+
+/-- A ring isomorphism defines an isomorphism of residue fields. -/
+@[simps apply]
+noncomputable def map_equiv (f : R ≃+* S) :
+  local_ring.residue_field R ≃+* local_ring.residue_field S :=
+{ to_fun := map (f : R →+* S),
+  inv_fun := map (f.symm : S →+* R),
+  left_inv := λ x, by simp only [map_map, ring_equiv.symm_comp, map_id, ring_hom.id_apply],
+  right_inv := λ x, by simp only [map_map, ring_equiv.comp_symm, map_id, ring_hom.id_apply],
+  map_mul' := ring_hom.map_mul _,
+  map_add' := ring_hom.map_add _ }
+
+@[simp] lemma map_equiv.symm (f : R ≃+* S) : (map_equiv f).symm = map_equiv f.symm := rfl
+
+@[simp] lemma map_equiv_trans (e₁ : R ≃+* S) (e₂ : S ≃+* T) :
+  map_equiv (e₁.trans e₂) = (map_equiv e₁).trans (map_equiv e₂) :=
+ring_equiv.to_ring_hom_injective $ map_comp (e₁ : R →+* S) (e₂ : S →+* T)
+
+@[simp] lemma map_equiv_refl : map_equiv (ring_equiv.refl R) = ring_equiv.refl _ :=
+ring_equiv.to_ring_hom_injective map_id
+
+/-- The group homomorphism from `ring_aut R` to `ring_aut k` where `k`
+is the residue field of `R`. -/
+@[simps] noncomputable def map_aut : ring_aut R →* ring_aut (local_ring.residue_field R) :=
+{ to_fun := map_equiv,
+  map_mul' := λ e₁ e₂, map_equiv_trans e₂ e₁,
+  map_one' := map_equiv_refl }
+
 end residue_field
 
 lemma ker_eq_maximal_ideal [field K] (φ : R →+* K) (hφ : function.surjective φ) :
   φ.ker = maximal_ideal R :=
-local_ring.eq_maximal_ideal $ φ.ker_is_maximal_of_surjective hφ
+local_ring.eq_maximal_ideal $ (ring_hom.ker_is_maximal_of_surjective φ) hφ
+
+lemma is_local_ring_hom_residue :
+  is_local_ring_hom (local_ring.residue R) :=
+begin
+  constructor,
+  intros a ha,
+  by_contra,
+  erw ideal.quotient.eq_zero_iff_mem.mpr ((local_ring.mem_maximal_ideal _).mpr h) at ha,
+  exact ha.ne_zero rfl,
+end
 
 end
 

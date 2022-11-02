@@ -34,7 +34,7 @@ dual, Lax-Milgram
 -/
 
 noncomputable theory
-open is_R_or_C linear_map continuous_linear_map inner_product_space
+open is_R_or_C linear_map continuous_linear_map inner_product_space linear_map (ker range)
 open_locale real_inner_product_space nnreal
 
 universe u
@@ -66,30 +66,30 @@ lemma antilipschitz (coercive : is_coercive B) :
 begin
   rcases coercive.bounded_below with ⟨C, C_pos, below_bound⟩,
   refine ⟨(C⁻¹).to_nnreal, real.to_nnreal_pos.mpr (inv_pos.mpr C_pos), _⟩,
-  refine linear_map.antilipschitz_of_bound B♯ _,
+  refine continuous_linear_map.antilipschitz_of_bound B♯ _,
   simp_rw [real.coe_to_nnreal',
     max_eq_left_of_lt (inv_pos.mpr C_pos),
     ←inv_mul_le_iff (inv_pos.mpr C_pos)],
   simpa using below_bound,
 end
 
-lemma ker_eq_bot (coercive : is_coercive B) : B♯.ker = ⊥ :=
+lemma ker_eq_bot (coercive : is_coercive B) : ker B♯ = ⊥ :=
 begin
-  rw [←ker_coe, linear_map.ker_eq_bot],
+  rw [linear_map_class.ker_eq_bot],
   rcases coercive.antilipschitz with ⟨_, _, antilipschitz⟩,
   exact antilipschitz.injective,
 end
 
-lemma closed_range (coercive : is_coercive B) : is_closed (B♯.range : set V) :=
+lemma closed_range (coercive : is_coercive B) : is_closed (range B♯ : set V) :=
 begin
   rcases coercive.antilipschitz with ⟨_, _, antilipschitz⟩,
   exact antilipschitz.is_closed_range B♯.uniform_continuous,
 end
 
-lemma range_eq_top (coercive : is_coercive B) : B♯.range = ⊤ :=
+lemma range_eq_top (coercive : is_coercive B) : range B♯ = ⊤ :=
 begin
   haveI := coercive.closed_range.complete_space_coe,
-  rw ← B♯.range.orthogonal_orthogonal,
+  rw ← (range B♯).orthogonal_orthogonal,
   rw submodule.eq_top_iff',
   intros v w mem_w_orthogonal,
   rcases coercive with ⟨C, C_pos, coercivity⟩,

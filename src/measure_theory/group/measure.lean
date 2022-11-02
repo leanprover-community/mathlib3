@@ -3,9 +3,12 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
+import dynamics.ergodic.measure_preserving
 import measure_theory.measure.regular
 import measure_theory.group.measurable_equiv
 import measure_theory.measure.open_pos
+import measure_theory.constructions.prod
+import topology.continuous_function.cocompact_map
 
 /-!
 # Measures on Groups
@@ -34,12 +37,12 @@ namespace measure
 /-- A measure `μ` on a measurable additive group is left invariant
   if the measure of left translations of a set are equal to the measure of the set itself. -/
 class is_add_left_invariant [has_add G] (μ : measure G) : Prop :=
-( map_add_left_eq_self : ∀ g : G, map ((+) g) μ = μ)
+(map_add_left_eq_self : ∀ g : G, map ((+) g) μ = μ)
 
 /-- A measure `μ` on a measurable group is left invariant
   if the measure of left translations of a set are equal to the measure of the set itself. -/
 @[to_additive] class is_mul_left_invariant [has_mul G] (μ : measure G) : Prop :=
-( map_mul_left_eq_self : ∀ g : G, map ((*) g) μ = μ)
+(map_mul_left_eq_self : ∀ g : G, map ((*) g) μ = μ)
 
 /-- A measure `μ` on a measurable additive group is right invariant
   if the measure of right translations of a set are equal to the measure of the set itself. -/
@@ -66,9 +69,43 @@ is_mul_left_invariant.map_mul_left_eq_self g
 lemma map_mul_right_eq_self (μ : measure G) [is_mul_right_invariant μ] (g : G) : map (* g) μ = μ :=
 is_mul_right_invariant.map_mul_right_eq_self g
 
+@[to_additive]
+instance [is_mul_left_invariant μ] (c : ℝ≥0∞) : is_mul_left_invariant (c • μ) :=
+⟨λ g, by rw [measure.map_smul, map_mul_left_eq_self]⟩
+
+@[to_additive]
+instance [is_mul_right_invariant μ] (c : ℝ≥0∞) : is_mul_right_invariant (c • μ) :=
+⟨λ g, by rw [measure.map_smul, map_mul_right_eq_self]⟩
+
+section has_measurable_mul
+
+variables [has_measurable_mul G]
+
+@[to_additive]
+lemma measure_preserving_mul_left (μ : measure G) [is_mul_left_invariant μ] (g : G) :
+  measure_preserving ((*) g) μ μ :=
+⟨measurable_const_mul g, map_mul_left_eq_self μ g⟩
+
+@[to_additive]
+lemma measure_preserving.mul_left (μ : measure G) [is_mul_left_invariant μ] (g : G)
+  {X : Type*} [measurable_space X] {μ' : measure X} {f : X → G} (hf : measure_preserving f μ' μ) :
+  measure_preserving (λ x, g * f x) μ' μ :=
+(measure_preserving_mul_left μ g).comp hf
+
+@[to_additive]
+lemma measure_preserving_mul_right (μ : measure G) [is_mul_right_invariant μ] (g : G) :
+  measure_preserving (* g) μ μ :=
+⟨measurable_mul_const g, map_mul_right_eq_self μ g⟩
+
+@[to_additive]
+lemma measure_preserving.mul_right (μ : measure G) [is_mul_right_invariant μ] (g : G)
+  {X : Type*} [measurable_space X] {μ' : measure X} {f : X → G} (hf : measure_preserving f μ' μ) :
+  measure_preserving (λ x, f x * g) μ' μ :=
+(measure_preserving_mul_right μ g).comp hf
+
 /-- An alternative way to prove that `μ` is left invariant under multiplication. -/
-@[to_additive "An alternative way to prove that `μ` is left invariant under addition."]
-lemma forall_measure_preimage_mul_iff [has_measurable_mul G] (μ : measure G) :
+@[to_additive /-" An alternative way to prove that `μ` is left invariant under addition. "-/]
+lemma forall_measure_preimage_mul_iff (μ : measure G) :
   (∀ (g : G) (A : set G), measurable_set A → μ ((λ h, g * h) ⁻¹' A) = μ A) ↔
   is_mul_left_invariant μ :=
 begin
@@ -79,9 +116,9 @@ begin
   exact ⟨λ h, ⟨h⟩, λ h, h.1⟩
 end
 
-/-- An alternative way to prove that `μ` is left invariant under multiplication. -/
-@[to_additive "An alternative way to prove that `μ` is left invariant under addition."]
-lemma forall_measure_preimage_mul_right_iff [has_measurable_mul G] (μ : measure G) :
+/-- An alternative way to prove that `μ` is right invariant under multiplication. -/
+@[to_additive /-" An alternative way to prove that `μ` is right invariant under addition. "-/]
+lemma forall_measure_preimage_mul_right_iff (μ : measure G) :
   (∀ (g : G) (A : set G), measurable_set A → μ ((λ h, h * g) ⁻¹' A) = μ A) ↔
   is_mul_right_invariant μ :=
 begin
@@ -93,12 +130,36 @@ begin
 end
 
 @[to_additive]
-instance [is_mul_left_invariant μ] (c : ℝ≥0∞) : is_mul_left_invariant (c • μ) :=
-⟨λ g, by rw [map_smul, map_mul_left_eq_self]⟩
+instance [is_mul_left_invariant μ] [sigma_finite μ] {H : Type*} [has_mul H]
+  {mH : measurable_space H} {ν : measure H} [has_measurable_mul H]
+  [is_mul_left_invariant ν] [sigma_finite ν] :
+  is_mul_left_invariant (μ.prod ν) :=
+begin
+  constructor,
+  rintros ⟨g, h⟩,
+  change map (prod.map ((*) g) ((*) h)) (μ.prod ν) = μ.prod ν,
+  rw [← map_prod_map _ _ (measurable_const_mul g) (measurable_const_mul h),
+    map_mul_left_eq_self μ g, map_mul_left_eq_self ν h],
+  { rw map_mul_left_eq_self μ g, apply_instance },
+  { rw map_mul_left_eq_self ν h, apply_instance },
+end
 
 @[to_additive]
-instance [is_mul_right_invariant μ] (c : ℝ≥0∞) : is_mul_right_invariant (c • μ) :=
-⟨λ g, by rw [map_smul, map_mul_right_eq_self]⟩
+instance [is_mul_right_invariant μ] [sigma_finite μ] {H : Type*} [has_mul H]
+  {mH : measurable_space H} {ν : measure H} [has_measurable_mul H]
+  [is_mul_right_invariant ν] [sigma_finite ν] :
+  is_mul_right_invariant (μ.prod ν) :=
+begin
+  constructor,
+  rintros ⟨g, h⟩,
+  change map (prod.map (* g) (* h)) (μ.prod ν) = μ.prod ν,
+  rw [← map_prod_map _ _ (measurable_mul_const g) (measurable_mul_const h),
+    map_mul_right_eq_self μ g, map_mul_right_eq_self ν h],
+  { rw map_mul_right_eq_self μ g, apply_instance },
+  { rw map_mul_right_eq_self ν h, apply_instance },
+end
+
+end has_measurable_mul
 
 end mul
 
@@ -111,8 +172,12 @@ lemma map_div_right_eq_self (μ : measure G) [is_mul_right_invariant μ] (g : G)
   map (/ g) μ = μ :=
 by simp_rw [div_eq_mul_inv, map_mul_right_eq_self μ g⁻¹]
 
-
 variables [has_measurable_mul G]
+
+@[to_additive]
+lemma measure_preserving_div_right (μ : measure G) [is_mul_right_invariant μ]
+  (g : G) : measure_preserving (/ g) μ μ :=
+by simp_rw [div_eq_mul_inv, measure_preserving_mul_right μ g⁻¹]
 
 /-- We shorten this from `measure_preimage_mul_left`, since left invariant is the preferred option
   for measures in this formalization. -/
@@ -130,6 +195,21 @@ lemma measure_preimage_mul_right (μ : measure G) [is_mul_right_invariant μ] (g
 calc μ ((λ h, h * g) ⁻¹' A) = map (λ h, h * g) μ A :
   ((measurable_equiv.mul_right g).map_apply A).symm
 ... = μ A : by rw map_mul_right_eq_self μ g
+
+@[to_additive]
+lemma map_mul_left_ae (μ : measure G) [is_mul_left_invariant μ] (x : G) :
+  filter.map (λ h, x * h) μ.ae = μ.ae :=
+((measurable_equiv.mul_left x).map_ae μ).trans $ congr_arg ae $ map_mul_left_eq_self μ x
+
+@[to_additive]
+lemma map_mul_right_ae (μ : measure G) [is_mul_right_invariant μ] (x : G) :
+  filter.map (λ h, h * x) μ.ae = μ.ae :=
+((measurable_equiv.mul_right x).map_ae μ).trans $ congr_arg ae $ map_mul_right_eq_self μ x
+
+@[to_additive]
+lemma map_div_right_ae (μ : measure G) [is_mul_right_invariant μ] (x : G) :
+  filter.map (λ t, t / x) μ.ae = μ.ae :=
+((measurable_equiv.div_right x).map_ae μ).trans $ congr_arg ae $ map_div_right_eq_self μ x
 
 end group
 
@@ -161,6 +241,13 @@ is_inv_invariant.inv_eq_self
 @[simp, to_additive]
 lemma map_inv_eq_self (μ : measure G) [is_inv_invariant μ] : map has_inv.inv μ = μ :=
 is_inv_invariant.inv_eq_self
+
+variables [has_measurable_inv G]
+
+@[to_additive]
+lemma measure_preserving_inv (μ : measure G) [is_inv_invariant μ] :
+  measure_preserving has_inv.inv μ μ :=
+⟨measurable_inv, map_inv_eq_self μ⟩
 
 end inv
 
@@ -215,21 +302,33 @@ begin
 end
 
 @[to_additive]
-lemma map_div_left_eq_self (μ : measure G) [is_inv_invariant μ] [is_mul_left_invariant μ] (g : G) :
-  map (λ t, g / t) μ = μ :=
+lemma measure_preserving_div_left (μ : measure G) [is_inv_invariant μ] [is_mul_left_invariant μ]
+  (g : G) : measure_preserving (λ t, g / t) μ μ :=
 begin
   simp_rw [div_eq_mul_inv],
-  conv_rhs { rw [← map_mul_left_eq_self μ g, ← map_inv_eq_self μ] },
-  exact (map_map (measurable_const_mul g) measurable_inv).symm
+  exact (measure_preserving_mul_left μ g).comp (measure_preserving_inv μ)
 end
+
+@[to_additive]
+lemma map_div_left_eq_self (μ : measure G) [is_inv_invariant μ] [is_mul_left_invariant μ] (g : G) :
+  map (λ t, g / t) μ = μ :=
+(measure_preserving_div_left μ g).map_eq
+
+@[to_additive]
+lemma measure_preserving_mul_right_inv (μ : measure G)
+  [is_inv_invariant μ] [is_mul_left_invariant μ] (g : G) :
+  measure_preserving (λ t, (g * t)⁻¹) μ μ :=
+(measure_preserving_inv μ).comp $ measure_preserving_mul_left μ g
 
 @[to_additive]
 lemma map_mul_right_inv_eq_self (μ : measure G) [is_inv_invariant μ] [is_mul_left_invariant μ]
   (g : G) : map (λ t, (g * t)⁻¹) μ = μ :=
-begin
-  conv_rhs { rw [← map_inv_eq_self μ, ← map_mul_left_eq_self μ g] },
-  exact (map_map measurable_inv (measurable_const_mul g)).symm
-end
+(measure_preserving_mul_right_inv μ g).map_eq
+
+@[to_additive]
+lemma map_div_left_ae (μ : measure G) [is_mul_left_invariant μ] [is_inv_invariant μ] (x : G) :
+  filter.map (λ t, x / t) μ.ae = μ.ae :=
+((measurable_equiv.div_left x).map_ae μ).trans $ congr_arg ae $ map_div_left_eq_self μ x
 
 end mul_inv
 
@@ -316,7 +415,7 @@ begin
   calc μ K ≤ μ (⋃ (g : G) (H : g ∈ t), (λ (h : G), g * h) ⁻¹' U) : measure_mono hKt
   ... ≤ ∑ g in t, μ ((λ (h : G), g * h) ⁻¹' U) : measure_bUnion_finset_le _ _
   ... = finset.card t * μ U : by simp only [measure_preimage_mul, finset.sum_const, nsmul_eq_mul]
-  ... < ∞ : ennreal.mul_lt_top ennreal.coe_nat_ne_top h
+  ... < ∞ : ennreal.mul_lt_top (ennreal.nat_ne_top _) h
 end
 
 /-- If a left-invariant measure gives finite mass to a set with nonempty interior, then
@@ -412,32 +511,45 @@ lemma is_haar_measure_of_is_compact_nonempty_interior [topological_group G] [bor
     λ L hL, measure_lt_top_of_is_compact_of_is_mul_left_invariant' h'K h' hL,
   to_is_open_pos_measure := is_open_pos_measure_of_mul_left_invariant_of_compact K hK h }
 
-/-- The image of a Haar measure under a group homomorphism which is also a homeomorphism is again
-a Haar measure. -/
-@[to_additive "The image of an additive Haar measure under an additive group homomorphism which is
-also a homeomorphism is again an additive Haar measure."]
+open filter
+
+/-- The image of a Haar measure under a continuous surjective proper group homomorphism is again
+a Haar measure. See also `mul_equiv.is_haar_measure_map`. -/
+@[to_additive "The image of an additive Haar measure under a continuous surjective proper additive
+group homomorphism is again an additive Haar measure. See also
+`add_equiv.is_add_haar_measure_map`."]
 lemma is_haar_measure_map [borel_space G] [topological_group G] {H : Type*} [group H]
   [topological_space H] [measurable_space H] [borel_space H] [t2_space H] [topological_group H]
-  (f : G ≃* H) (hf : continuous f) (hfsymm : continuous f.symm) :
+  (f : G →* H) (hf : continuous f) (h_surj : surjective f)
+  (h_prop : tendsto f (cocompact G) (cocompact H)) :
   is_haar_measure (measure.map f μ) :=
 { to_is_mul_left_invariant := begin
     constructor,
     assume h,
     rw map_map (continuous_mul_left h).measurable hf.measurable,
-    conv_rhs { rw ← map_mul_left_eq_self μ (f.symm h) },
+    obtain ⟨g, rfl⟩ := h_surj h,
+    conv_rhs { rw ← map_mul_left_eq_self μ g },
     rw map_map hf.measurable (continuous_mul_left _).measurable,
     congr' 2,
     ext y,
-    simp only [mul_equiv.apply_symm_apply, comp_app, mul_equiv.map_mul],
+    simp only [comp_app, map_mul],
   end,
   lt_top_of_is_compact := begin
     assume K hK,
     rw map_apply hf.measurable hK.measurable_set,
-    have : f.symm '' K = f ⁻¹' K := equiv.image_eq_preimage _ _,
-    rw ← this,
-    exact is_compact.measure_lt_top (hK.image hfsymm)
+    exact is_compact.measure_lt_top ((⟨⟨f, hf⟩, h_prop⟩ : cocompact_map G H).compact_preimage hK),
   end,
-  to_is_open_pos_measure := hf.is_open_pos_measure_map f.surjective }
+  to_is_open_pos_measure := hf.is_open_pos_measure_map h_surj }
+
+/-- A convenience wrapper for `measure_theory.measure.is_haar_measure_map`. -/
+@[to_additive "A convenience wrapper for `measure_theory.measure.is_add_haar_measure_map`."]
+lemma _root_.mul_equiv.is_haar_measure_map
+  [borel_space G] [topological_group G] {H : Type*} [group H]
+  [topological_space H] [measurable_space H] [borel_space H] [t2_space H] [topological_group H]
+  (e : G ≃* H) (he : continuous e) (hesymm : continuous e.symm) :
+  is_haar_measure (measure.map e μ) :=
+is_haar_measure_map μ (e : G →* H) he e.surjective
+  ({ .. e } : G ≃ₜ H).to_cocompact_map.cocompact_tendsto'
 
 /-- A Haar measure on a σ-compact space is σ-finite.
 
@@ -451,8 +563,15 @@ instance is_haar_measure.sigma_finite [sigma_compact_space G] : sigma_finite μ 
   finite := λ n, is_compact.measure_lt_top $ is_compact_compact_covering G n,
   spanning := Union_compact_covering G }⟩⟩
 
+@[to_additive]
+instance {G : Type*} [group G] [topological_space G] {mG : measurable_space G}
+  {H : Type*} [group H] [topological_space H] {mH : measurable_space H}
+  (μ : measure G) (ν : measure H) [is_haar_measure μ] [is_haar_measure ν]
+  [sigma_finite μ] [sigma_finite ν]
+  [has_measurable_mul G] [has_measurable_mul H] :
+  is_haar_measure (μ.prod ν) := {}
+
 open_locale topological_space
-open filter
 
 /-- If the neutral element of a group is not isolated, then a Haar measure on this group has
 no atoms.
@@ -499,8 +618,9 @@ end
 
 /- The above instance applies in particular to show that an additive Haar measure on a nontrivial
 finite-dimensional real vector space has no atom. -/
-example {E : Type*} [normed_group E] [normed_space ℝ E] [nontrivial E] [finite_dimensional ℝ E]
-  [measurable_space E] [borel_space E] (μ : measure E) [is_add_haar_measure μ] :
+example {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [nontrivial E]
+  [finite_dimensional ℝ E] [measurable_space E] [borel_space E] (μ : measure E)
+  [is_add_haar_measure μ] :
   has_no_atoms μ := by apply_instance
 
 end

@@ -11,7 +11,9 @@ import group_theory.subsemigroup.center
 ## Main definitions
 
 * `set.centralizer`: the centralizer of a subset of a magma
+* `subsemigroup.centralizer`: the centralizer of a subset of a semigroup
 * `set.add_centralizer`: the centralizer of a subset of an additive magma
+* `add_subsemigroup.centralizer`: the centralizer of a subset of an additive semigroup
 
 We provide `monoid.centralizer`, `add_monoid.centralizer`, `subgroup.centralizer`, and
 `add_subgroup.centralizer` in other files.
@@ -107,3 +109,38 @@ lemma centralizer_eq_univ [comm_semigroup M] : centralizer S = univ :=
 subset.antisymm (subset_univ _) $ λ x hx y hy, mul_comm y x
 
 end set
+
+namespace subsemigroup
+section
+variables {M} [semigroup M] (S)
+
+/-- The centralizer of a subset of a semigroup `M`. -/
+@[to_additive "The centralizer of a subset of an additive semigroup."]
+def centralizer : subsemigroup M :=
+{ carrier := S.centralizer,
+  mul_mem' := λ a b, set.mul_mem_centralizer }
+
+@[simp, norm_cast, to_additive] lemma coe_centralizer : ↑(centralizer S) = S.centralizer := rfl
+
+variables {S}
+
+@[to_additive] lemma mem_centralizer_iff {z : M} : z ∈ centralizer S ↔ ∀ g ∈ S, g * z = z * g :=
+iff.rfl
+
+@[to_additive] instance decidable_mem_centralizer [decidable_eq M] [fintype M]
+  [decidable_pred (∈ S)] : decidable_pred (∈ centralizer S) :=
+λ _, decidable_of_iff' _ mem_centralizer_iff
+
+@[to_additive]
+lemma centralizer_le (h : S ⊆ T) : centralizer T ≤ centralizer S :=
+set.centralizer_subset h
+
+variables (M)
+
+@[simp, to_additive]
+lemma centralizer_univ : centralizer set.univ = center M :=
+set_like.ext' (set.centralizer_univ M)
+
+end
+
+end subsemigroup

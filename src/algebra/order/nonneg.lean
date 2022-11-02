@@ -306,8 +306,7 @@ instance canonically_linear_ordered_semifield [linear_ordered_field α] :
   canonically_linear_ordered_semifield {x : α // 0 ≤ x} :=
 { ..nonneg.linear_ordered_semifield, ..nonneg.canonically_ordered_comm_semiring }
 
-instance floor_semiring [strict_ordered_semiring α] [floor_semiring α] :
-  floor_semiring {r : α // 0 ≤ r} :=
+instance floor_semiring [ordered_semiring α] [floor_semiring α] : floor_semiring {r : α // 0 ≤ r} :=
 { floor := λ a, ⌊(a : α)⌋₊,
   ceil := λ a, ⌈(a : α)⌉₊,
   nonneg_of_floor := λ a _, a.prop,

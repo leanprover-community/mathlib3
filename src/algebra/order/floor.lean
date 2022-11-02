@@ -48,9 +48,8 @@ variables {F α β : Type*}
 /-! ### Floor semiring -/
 
 /-- A `floor_semiring` is an ordered semiring over `α` with a function
-`floor : α → ℕ` satisfying `∀ (n : ℕ) (x : α), n ≤ ⌊x⌋ ↔ (n : α) ≤ x)`.
-Note that many lemmas require a `linear_order`. Please see the above `TODO`. -/
-class floor_semiring (α) [strict_ordered_semiring α] :=
+`floor : α → ℕ` satisfying `∀ (n : ℕ) (x : α), n ≤ ⌊x⌋ ↔ (n : α) ≤ x)`. -/
+class floor_semiring (α) [ordered_semiring α] :=
 (floor : α → ℕ)
 (ceil : α → ℕ)
 (nonneg_of_floor {a : α} : floor a ≠ 0 → 0 ≤ a)
@@ -65,8 +64,7 @@ instance : floor_semiring ℕ :=
   gc_ceil := λ n a, by { rw nat.cast_id, refl } }
 
 @[priority 100] -- see Note [lower instance priority]
-instance floor_semiring.to_nontrivial [strict_ordered_semiring α] [floor_semiring α] :
-  nontrivial α :=
+instance floor_semiring.to_nontrivial [ordered_semiring α] [floor_semiring α] : nontrivial α :=
 begin
   refine (subsingleton_or_nontrivial α).resolve_left (λ h, _),
   refine nat.not_succ_le_self (floor_semiring.floor (0 : α)) _,
@@ -74,9 +72,8 @@ begin
 end
 
 namespace nat
-
 section ordered_semiring
-variables [strict_ordered_semiring α] [floor_semiring α] {a b : α} {n : ℕ}
+variables [ordered_semiring α] [floor_semiring α] {a b : α} {m n : ℕ}
 
 /-- `⌊a⌋₊` is the greatest natural `n` such that `n ≤ a`. If `a` is negative, then `⌊a⌋₊ = 0`. -/
 def floor : α → ℕ := floor_semiring.floor
@@ -98,29 +95,43 @@ lemma le_floor (h : (n : α) ≤ a) : n ≤ ⌊a⌋₊ := (le_floor_iff $ n.cast
 
 lemma floor_le (ha : 0 ≤ a) : (⌊a⌋₊ : α) ≤ a := (le_floor_iff ha).1 le_rfl
 
-@[simp] lemma floor_coe (n : ℕ) : ⌊(n : α)⌋₊ = n :=
-eq_of_forall_le_iff $ λ a, by { rw [le_floor_iff (@cast_nonneg α _ n)], exact nat.cast_le }
+@[simp] lemma floor_zero : ⌊(0 : α)⌋₊ = 0 :=
+by { rw [←le_zero_iff, ←nat.lt_succ_iff, ←not_le, le_floor_iff le_rfl, cast_one],
+  exact zero_lt_one.not_le }
 
-@[priority 100] -- see Note [lower instance priority]
-instance _root_.floor_semiring.to_char_zero :
-  char_zero α := ⟨λ m n hmn, by rw [← @floor_coe α _ _ n, ← @floor_coe α _ _ m, hmn]⟩
+lemma nonneg_of_floor_ne_zero : ⌊a⌋₊ ≠ 0 → 0 ≤ a := floor_semiring.nonneg_of_floor
 
-@[simp] lemma floor_zero : ⌊(0 : α)⌋₊ = 0 := by rw [← nat.cast_zero, floor_coe]
+lemma floor_of_not_neg (ha : ¬ 0 < a) : ⌊a⌋₊ = 0 :=
+begin
+  by_contra h,
+  obtain rfl := (nonneg_of_floor_ne_zero h).eq_of_not_lt ha,
+  exact h floor_zero,
+end
 
-@[simp] lemma floor_one : ⌊(1 : α)⌋₊ = 1 := by rw [←nat.cast_one, floor_coe]
-
-lemma floor_of_not_nonneg : ¬ 0 ≤ a → ⌊a⌋₊ = 0 :=
-imp_of_not_imp_not _ _ (λ H, not_not.mpr (floor_semiring.nonneg_of_floor H))
-
-lemma floor_of_nonpos (ha : a ≤ 0) : ⌊a⌋₊ = 0 :=
-by { classical, exact dite (0 ≤ a) (λ H, (le_antisymm H ha) ▸ floor_zero ) floor_of_not_nonneg }
+lemma floor_of_nonpos (ha : a ≤ 0) : ⌊a⌋₊ = 0 := floor_of_not_neg ha.not_lt
 
 lemma floor_mono : monotone (floor : α → ℕ) := λ a b h, begin
   by_cases ha : 0 ≤ a,
   { exact le_floor ((floor_le ha).trans h) },
-  { rw floor_of_not_nonneg ha,
+  { rw floor_of_not_neg (mt le_of_lt ha),
     exact nat.zero_le _ }
 end
+
+variables [char_zero α]
+
+@[simp] lemma floor_coe (n : ℕ) : ⌊(n : α)⌋₊ = n :=
+eq_of_forall_le_iff $ λ a, by { rw [le_floor_iff (@cast_nonneg α _ n)], exact nat.cast_le' }
+
+end ordered_semiring
+
+section strict_ordered_semiring
+variables [strict_ordered_semiring α] [nontrivial α] [floor_semiring α] {a b : α} {m n : ℕ}
+
+@[priority 100] -- see Note [lower instance priority]
+instance _root_.floor_semiring.to_char_zero : char_zero α :=
+⟨λ m n hmn, by rw [←@floor_coe α _ _ _ n, ← @floor_coe α _ _ _ m, hmn]⟩
+
+@[simp] lemma floor_one : ⌊(1 : α)⌋₊ = 1 := by rw [←nat.cast_one, floor_coe]
 
 lemma le_floor_iff' (hn : n ≠ 0) : n ≤ ⌊a⌋₊ ↔ (n : α) ≤ a :=
 begin

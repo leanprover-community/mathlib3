@@ -751,7 +751,7 @@ instance {α : ι → Type*} [Π i, preorder (α i)] [Π i, densely_ordered (α 
   simp_rw pi.lt_def,
   rintro ⟨hab, i, hi⟩,
   obtain ⟨c, ha, hb⟩ := exists_between hi,
-  exact ⟨function.update a i c, ⟨le_update_iff.2 ⟨ha.le, λ _ _, le_rfl⟩, i, by rwa update_same⟩,
+  exact ⟨a.update i c, ⟨le_update_iff.2 ⟨ha.le, λ _ _, le_rfl⟩, i, by rwa update_same⟩,
     update_le_iff.2 ⟨hb.le, λ _ _, hab _⟩, i, by rwa update_same⟩,
 end⟩
 

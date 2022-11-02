@@ -25,29 +25,11 @@ open_locale measure_theory ennreal big_operators
 
 namespace measure_theory
 
-variables {α β γ δ : Type*}
+variables {α β γ δ ι : Type*}
   {mα : measurable_space α} {μα : measure α}
   {mβ : measurable_space β} {μβ : measure β}
   {mγ : measurable_space γ} {μγ : measure γ}
   {mδ : measurable_space δ} {μδ : measure δ}
-
-/-
-localized "notation P `[` X `;` s `]` := ∫ x in s, X x ∂P" in measure_theory
-
-noncomputable
-def cond_meas {m₀ : measurable_space α} (μ : measure α) (s : set α) (m : measurable_space α) :
-  α → ℝ :=
-  μ[s.indicator (λ _, (1 : ℝ)) | m]
-
-lemma cond_meas_def : cond_meas μ s m = μ[s.indicator (λ _, (1 : ℝ)) | m] := rfl
-
-lemma set_integral_cond_meas {hm : m ≤ m₀} [sigma_finite (μ.trim hm)]
-  (hs : measurable_set s) (hμs : μ s ≠ ∞) (ht : measurable_set[m] t)  :
-  μ[cond_meas μ s m; t] = (μ (s ∩ t)).to_real :=
-by rw [cond_meas_def, set_integral_condexp hm
-    ((integrable_indicator_iff hs).mpr (integrable_on_const.mpr (or.inr hμs.lt_top))) ht,
-  integral_indicator_const _ hs, measure.restrict_apply hs, smul_eq_mul, mul_one]
--/
 
 instance measure.has_measurable_add₂ {m : measurable_space β} : has_measurable_add₂ (measure β) :=
 begin
@@ -91,10 +73,6 @@ lemma measure_le_bound (κ : kernel mα mβ) [h : is_finite_kernel κ] (a : α) 
 def singular (κ : ℕ → kernel mα mβ) : Prop :=
 ∃ s : ℕ → set (α × β), ∀ i a, κ i a {b | (a,b) ∈ s i}ᶜ = 0
 
-class is_s_finite_kernel (κ : kernel mα mβ) : Prop :=
-(tsum_finite : ∃ κs : ℕ → kernel mα mβ,
-  (∀ n, is_finite_kernel (κs n)) ∧ ∀ a, κ a = measure.sum (λ n, κs n a))
-
 variables {κ : kernel mα mβ}
 
 instance todo [h : is_markov_kernel κ] (a : α) : is_probability_measure (κ a) :=
@@ -103,40 +81,9 @@ is_markov_kernel.is_probability_measure a
 instance todo' [h : is_finite_kernel κ] (a : α) : is_finite_measure (κ a) :=
 ⟨(measure_le_bound κ a set.univ).trans_lt (is_finite_kernel.bound_lt_top κ)⟩
 
+@[priority 100]
 instance is_markov_kernel.is_finite_kernel [h : is_markov_kernel κ] : is_finite_kernel κ :=
 ⟨⟨1, ennreal.one_lt_top, λ a, prob_le_one⟩⟩
-
-instance is_finite_kernel.is_s_finite_kernel [h : is_finite_kernel κ] : is_s_finite_kernel κ :=
-⟨⟨λ n, if n = 0 then κ else 0, sorry, λ a, sorry⟩⟩
-
-namespace kernel
-
-@[ext] lemma ext {κ : kernel mα mβ} {η : kernel mα mβ} (h : ∀ a, κ a = η a) :
-  κ = η :=
-by { ext1, ext1 a, exact h a, }
-
-noncomputable
-def seq (κ : kernel mα mβ) [h : is_s_finite_kernel κ] :
-  ℕ → kernel mα mβ :=
-h.tsum_finite.some
-
-lemma measure_sum_seq (κ : kernel mα mβ) [h : is_s_finite_kernel κ] (a : α) :
-  measure.sum (λ n, seq κ n a) = κ a :=
-(h.tsum_finite.some_spec.2 a).symm
-
-instance is_finite_kernel_seq (κ : kernel mα mβ) [h : is_s_finite_kernel κ] (n : ℕ) :
-  is_finite_kernel (kernel.seq κ n) :=
-h.tsum_finite.some_spec.1 n
-
-end kernel
-
-
-/- Regular conditional distribution -/
---def is_reg_cond_distribution (κ : kernel mα mβ) (Y : α → β) : Prop :=
---∀ᵐ ω ∂μ, ∀ s : set β, κ ω s = ennreal.of_real (cond_meas μ (Y ⁻¹' s) mα ω)
-
--- ∀ᵐ ω ∂μ, ∀ s : set β, κ ω s = μ[(Y ⁻¹' s).indicator (λ _, 1) | mα] ω
--- ∀ᵐ ω ∂μ, ∀ s : set β, κ ω s = μ[Y ∈ s | mα] ω
 
 namespace kernel
 
@@ -343,6 +290,60 @@ begin
   simp only [measure.restrict_univ],
 end
 
+@[ext] lemma ext {κ : kernel mα mβ} {η : kernel mα mβ} (h : ∀ a, κ a = η a) :
+  κ = η :=
+by { ext1, ext1 a, exact h a, }
+
+protected noncomputable
+def sum [countable ι] (κ : ι → kernel mα mβ) : kernel mα mβ :=
+{ val := λ a, measure.sum (λ n, κ n a),
+  property :=
+  begin
+    refine measure.measurable_of_measurable_coe _ (λ s hs, _),
+    simp_rw measure.sum_apply _ hs,
+    exact measurable.ennreal_tsum (λ n, kernel.measurable_coe (κ n) hs),
+  end, }
+
+lemma sum_apply [countable ι] (κ : ι → kernel mα mβ) (a : α) :
+  kernel.sum κ a = measure.sum (λ n, κ n a) := rfl
+
+lemma sum_apply' [countable ι] (κ : ι → kernel mα mβ) (a : α) {s : set β} (hs : measurable_set s) :
+  kernel.sum κ a s = ∑' n, κ n a s :=
+by rw [sum_apply κ a, measure.sum_apply _ hs]
+
+lemma sum_comm [countable ι] (κ : ι → ι → kernel mα mβ) :
+  kernel.sum (λ n, kernel.sum (κ n)) = kernel.sum (λ m, kernel.sum (λ n, κ n m)) :=
+begin
+  ext1 a,
+  ext1 s hs,
+  simp_rw [sum_apply, measure.sum_apply _ hs],
+  rw ennreal.tsum_comm,
+end
+
+class is_s_finite_kernel (κ : kernel mα mβ) : Prop :=
+(tsum_finite : ∃ κs : ℕ → kernel mα mβ, (∀ n, is_finite_kernel (κs n)) ∧ κ = kernel.sum κs)
+
+@[priority 100]
+instance is_finite_kernel.is_s_finite_kernel [h : is_finite_kernel κ] : is_s_finite_kernel κ :=
+⟨⟨λ n, if n = 0 then κ else 0, sorry, sorry⟩⟩
+
+noncomputable
+def seq (κ : kernel mα mβ) [h : is_s_finite_kernel κ] :
+  ℕ → kernel mα mβ :=
+h.tsum_finite.some
+
+lemma kernel_sum_seq (κ : kernel mα mβ) [h : is_s_finite_kernel κ] :
+  kernel.sum (seq κ) = κ :=
+h.tsum_finite.some_spec.2.symm
+
+lemma measure_sum_seq (κ : kernel mα mβ) [h : is_s_finite_kernel κ] (a : α) :
+  measure.sum (λ n, seq κ n a) = κ a :=
+by rw [← kernel.sum_apply, kernel_sum_seq κ]
+
+instance is_finite_kernel_seq (κ : kernel mα mβ) [h : is_s_finite_kernel κ] (n : ℕ) :
+  is_finite_kernel (kernel.seq κ n) :=
+h.tsum_finite.some_spec.1 n
+
 lemma measurable_set_lintegral (κ : kernel mα mβ) [is_s_finite_kernel κ]
   (f : α → β → ℝ≥0∞) (hf : measurable (function.uncurry f)) {s : set β} (hs : measurable_set s) :
   measurable (λ a, ∫⁻ b in s, f a b ∂κ a) :=
@@ -443,7 +444,7 @@ begin
 end
 
 lemma comp_fun_tsum_left (κ : kernel mα mβ) (η : kernel (mα.prod mβ) mγ) [is_s_finite_kernel κ]
-  (a : α) {s : set (β × γ)} (hs : measurable_set s) :
+  (a : α) (s : set (β × γ)) :
   comp_fun κ η a s = ∑' n, comp_fun (seq κ n) η a s :=
 by simp_rw [comp_fun, (measure_sum_seq κ _).symm, lintegral_sum_measure]
 
@@ -451,7 +452,7 @@ lemma comp_fun_eq_tsum (κ : kernel mα mβ) [is_s_finite_kernel κ]
   (η : kernel (mα.prod mβ) mγ) [is_s_finite_kernel η]
   (a : α) {s : set (β × γ)} (hs : measurable_set s) :
   comp_fun κ η a s = ∑' n m, comp_fun (seq κ n) (seq η m) a s :=
-by simp_rw [comp_fun_tsum_left κ η a hs, comp_fun_tsum_right _ η a hs]
+by simp_rw [comp_fun_tsum_left κ η a s, comp_fun_tsum_right _ η a hs]
 
 lemma comp_fun_Union (κ : kernel mα mβ) (η : kernel (mα.prod mβ) mγ)
   [is_s_finite_kernel η] (a : α)
@@ -548,10 +549,31 @@ lemma comp_eq_tsum_comp (κ : kernel mα mβ) [is_s_finite_kernel κ] (η : kern
   comp κ η a s = ∑' (n m : ℕ), comp (seq κ n) (seq η m) a s :=
 by { simp_rw comp_apply_eq_comp_fun _ _ _ hs, exact comp_fun_eq_tsum κ η a hs, }
 
-lemma comp_eq_sum_measure_comp (κ : kernel mα mβ) [is_s_finite_kernel κ]
-  (η : kernel (mα.prod mβ) mγ) [is_s_finite_kernel η] (a : α) :
-  comp κ η a = measure.sum (λ n, measure.sum (λ m, comp (seq κ n) (seq η m) a)) :=
-by { ext1 s hs, simp_rw [measure.sum_apply _ hs], exact comp_eq_tsum_comp κ η a hs, }
+lemma comp_eq_sum_kernel_comp (κ : kernel mα mβ) [is_s_finite_kernel κ]
+  (η : kernel (mα.prod mβ) mγ) [is_s_finite_kernel η] :
+  comp κ η = kernel.sum (λ n, kernel.sum (λ m, comp (seq κ n) (seq η m))) :=
+by { ext a s hs, simp_rw [kernel.sum_apply' _ a hs], rw comp_eq_tsum_comp κ η a hs, }
+
+lemma comp_eq_sum_kernel_comp_left (κ : kernel mα mβ) [is_s_finite_kernel κ]
+  (η : kernel (mα.prod mβ) mγ) [is_s_finite_kernel η] :
+  comp κ η = kernel.sum (λ n, comp (seq κ n) η) :=
+begin
+  rw comp_eq_sum_kernel_comp,
+  congr,
+  ext n a s hs,
+  simp_rw [kernel.sum_apply' _ _ hs],
+  simp_rw comp_apply_eq_comp_fun _ _ _ hs,
+  rw comp_fun_tsum_right _ η a hs,
+end
+
+lemma comp_eq_sum_kernel_comp_right (κ : kernel mα mβ) [is_s_finite_kernel κ]
+  (η : kernel (mα.prod mβ) mγ) [is_s_finite_kernel η] :
+  comp κ η = kernel.sum (λ n, comp κ (seq η n)) :=
+begin
+  rw comp_eq_sum_kernel_comp,
+  simp_rw comp_eq_sum_kernel_comp_left κ _,
+  rw kernel.sum_comm,
+end
 
 lemma comp_apply_univ_le (κ : kernel mα mβ) [is_s_finite_kernel κ]
   (η : kernel (mα.prod mβ) mγ) [is_finite_kernel η] (a : α) :
@@ -576,10 +598,22 @@ instance is_finite_kernel.comp (κ : kernel mα mβ) [is_finite_kernel κ]
 ... ≤ is_finite_kernel.bound κ * is_finite_kernel.bound η :
         ennreal.mul_le_mul (measure_le_bound κ a set.univ) le_rfl, ⟩⟩
 
+lemma is_s_finite_kernel_of_eq_sum (κ : kernel mα mβ)
+  (κs : ℕ → kernel mα mβ) (hκs : ∀ n, is_s_finite_kernel (κs n)) (hκ : κ = kernel.sum κs) :
+  is_s_finite_kernel κ :=
+begin
+  sorry,
+end
+
 instance is_s_finite_kernel.comp (κ : kernel mα mβ) [is_s_finite_kernel κ]
   (η : kernel (mα.prod mβ) mγ) [is_s_finite_kernel η] :
   is_s_finite_kernel (comp κ η) :=
-sorry
+begin
+  rw comp_eq_sum_kernel_comp_left,
+  refine is_s_finite_kernel_of_eq_sum _ _ (λ n, _) rfl,
+  refine ⟨⟨λ m, comp (seq κ n) (seq η m), infer_instance, _⟩⟩,
+  rw comp_eq_sum_kernel_comp_right,
+end
 
 end composition
 
@@ -614,9 +648,9 @@ instance is_s_finite_kernel.map {mγ : measurable_space γ} (κ : kernel mα mβ
   [is_s_finite_kernel κ] {f : β → γ} (hf : measurable f) :
   is_s_finite_kernel (map κ f hf) :=
 begin
-  refine ⟨⟨λ n, map (seq κ n) f hf, infer_instance, λ a, _⟩⟩,
-  ext1 s hs,
-  rw [map_apply κ hf a hs, measure.sum_apply _ hs, ← measure_sum_seq κ,
+  refine ⟨⟨λ n, map (seq κ n) f hf, infer_instance, _⟩⟩,
+  ext a s hs,
+  rw [kernel.sum_apply, map_apply κ hf a hs, measure.sum_apply _ hs, ← measure_sum_seq κ,
     measure.sum_apply _ (hf hs)],
   simp_rw map_apply _ hf _ hs,
 end
@@ -627,7 +661,7 @@ def comap (κ : kernel mα mβ) (f : γ → α) (hf : measurable f) :
   property := (kernel.measurable κ).comp hf }
 
 lemma comap_apply {mγ : measurable_space γ} (κ : kernel mα mβ) {f : γ → α}
-  (hf : measurable f) (c : γ) {s : set β} (hs : measurable_set s) :
+  (hf : measurable f) (c : γ) (s : set β) :
   comap κ f hf c s = κ (f c) s :=
 rfl
 
@@ -636,7 +670,7 @@ instance is_finite_kernel.comap {mγ : measurable_space γ} (κ : kernel mα mβ
   is_finite_kernel (comap κ f hf) :=
 begin
   refine ⟨⟨is_finite_kernel.bound κ, is_finite_kernel.bound_lt_top κ, λ a, _⟩⟩,
-  rw comap_apply κ hf a measurable_set.univ,
+  rw comap_apply κ hf a set.univ,
   exact measure_le_bound κ _ _,
 end
 
@@ -644,11 +678,11 @@ instance is_s_finite_kernel.comap {mγ : measurable_space γ} (κ : kernel mα m
   [is_s_finite_kernel κ] {f : γ → α} (hf : measurable f) :
   is_s_finite_kernel (comap κ f hf) :=
 begin
-  refine ⟨⟨λ n, comap (seq κ n) f hf, infer_instance, λ a, _⟩⟩,
-  ext1 s hs,
-  rw [comap_apply κ hf a hs, measure.sum_apply _ hs, ← measure_sum_seq κ,
+  refine ⟨⟨λ n, comap (seq κ n) f hf, infer_instance, _⟩⟩,
+  ext a s hs,
+  rw [kernel.sum_apply, comap_apply κ hf a s, measure.sum_apply _ hs, ← measure_sum_seq κ,
     measure.sum_apply _ hs],
-  simp_rw comap_apply _ hf _ hs,
+  simp_rw comap_apply _ hf _ s,
 end
 
 def prod_mk_left (κ : kernel mα mβ) (mγ : measurable_space γ) :
@@ -656,9 +690,9 @@ def prod_mk_left (κ : kernel mα mβ) (mγ : measurable_space γ) :
 comap κ (λ a, a.2) measurable_snd
 
 lemma prod_mk_left_apply (κ : kernel mα mβ) (mγ : measurable_space γ) (ca : γ × α)
-  {s : set β} (hs : measurable_set s) :
+  (s : set β) :
   prod_mk_left κ mγ ca s = (κ ca.snd) s :=
-by rw [prod_mk_left, comap_apply _ _ _ hs]
+by rw [prod_mk_left, comap_apply _ _ _ s]
 
 instance is_finite_kernel.prod_mk_left (κ : kernel mα mβ) [is_finite_kernel κ] :
   is_finite_kernel (prod_mk_left κ mγ) :=
@@ -703,7 +737,7 @@ begin
   rw [comp2, snd_right_apply _ _ hs, comp_apply],
   swap, { exact measurable_snd hs, },
   simp only [set.mem_set_of_eq, set.set_of_mem_eq],
-  simp_rw prod_mk_left_apply _ _ _ hs,
+  simp_rw prod_mk_left_apply _ _ _ s,
 end
 
 instance is_finite_kernel.comp2 (κ : kernel mα mβ) [is_finite_kernel κ]
@@ -742,20 +776,12 @@ lemma comp2_deterministic_left_eq_comap {mγ : measurable_space γ} {f : γ → 
   comp2 (deterministic hf) κ = comap κ f hf :=
 begin
   ext a s hs,
-  simp_rw [comap_apply _ _ _ hs, comp2_apply _ _ _ hs, coe_fn_deterministic hf a,
+  simp_rw [comap_apply _ _ _ s, comp2_apply _ _ _ hs, coe_fn_deterministic hf a,
     lintegral_dirac' _ (kernel.measurable_coe κ hs)],
 end
 
 end map_comap
 
 end kernel
-
-section real
-
-def reg_cond_distribution (mα : measurable_space α) (Y : α → ℝ) :
-  kernel mα (borel ℝ) :=
-sorry
-
-end real
 
 end measure_theory

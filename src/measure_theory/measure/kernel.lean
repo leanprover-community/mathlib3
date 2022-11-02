@@ -619,6 +619,17 @@ begin
   exact measure_le_bound κ a _,
 end
 
+instance is_s_finite_kernel.map {mγ : measurable_space γ} (κ : kernel mα mβ)
+  [is_s_finite_kernel κ] {f : β → γ} (hf : measurable f) :
+  is_s_finite_kernel (map κ f hf) :=
+begin
+  refine ⟨⟨λ n, map (seq κ n) f hf, infer_instance, λ a, _⟩⟩,
+  ext1 s hs,
+  rw [map_apply κ hf a hs, measure.sum_apply _ hs, ← measure_sum_seq κ,
+    measure.sum_apply _ (hf hs)],
+  simp_rw map_apply _ hf _ hs,
+end
+
 def comap (κ : kernel mα mβ) (f : γ → α) (hf : measurable f) :
   kernel mγ mβ :=
 { val := λ a, κ (f a),
@@ -638,6 +649,17 @@ begin
   exact measure_le_bound κ _ _,
 end
 
+instance is_s_finite_kernel.comap {mγ : measurable_space γ} (κ : kernel mα mβ)
+  [is_s_finite_kernel κ] {f : γ → α} (hf : measurable f) :
+  is_s_finite_kernel (comap κ f hf) :=
+begin
+  refine ⟨⟨λ n, comap (seq κ n) f hf, infer_instance, λ a, _⟩⟩,
+  ext1 s hs,
+  rw [comap_apply κ hf a hs, measure.sum_apply _ hs, ← measure_sum_seq κ,
+    measure.sum_apply _ hs],
+  simp_rw comap_apply _ hf _ hs,
+end
+
 def prod_mk_left (κ : kernel mα mβ) (mγ : measurable_space γ) :
   kernel (mγ.prod mα) mβ :=
 comap κ (λ a, a.2) measurable_snd
@@ -649,12 +671,11 @@ by rw [prod_mk_left, comap_apply _ _ _ hs]
 
 instance is_finite_kernel.prod_mk_left (κ : kernel mα mβ) [is_finite_kernel κ] :
   is_finite_kernel (prod_mk_left κ mγ) :=
-begin
-  let C := is_finite_kernel.bound κ,
-  refine ⟨⟨C, is_finite_kernel.bound_lt_top κ, λ a, _⟩⟩,
-  rw [prod_mk_left_apply _ _ _ measurable_set.univ],
-  exact measure_le_bound κ _ _,
-end
+by { rw prod_mk_left, apply_instance, }
+
+instance is_s_finite_kernel.prod_mk_left (κ : kernel mα mβ) [is_s_finite_kernel κ] :
+  is_s_finite_kernel (prod_mk_left κ mγ) :=
+by { rw prod_mk_left, apply_instance, }
 
 noncomputable
 def snd_right (κ : kernel mα (mβ.prod mγ)) : kernel mα mγ :=
@@ -671,21 +692,20 @@ snd_right_apply _ _ measurable_set.univ
 
 instance is_finite_kernel.snd_right (κ : kernel mα (mβ.prod mγ)) [is_finite_kernel κ] :
   is_finite_kernel (snd_right κ) :=
-begin
-  let C := is_finite_kernel.bound κ,
-  refine ⟨⟨C, is_finite_kernel.bound_lt_top κ, λ a, _⟩⟩,
-  rw [snd_right_univ _ _],
-  exact measure_le_bound κ _ _,
-end
+by { rw snd_right, apply_instance, }
+
+instance is_s_finite_kernel.snd_right (κ : kernel mα (mβ.prod mγ)) [is_s_finite_kernel κ] :
+  is_s_finite_kernel (snd_right κ) :=
+by { rw snd_right, apply_instance, }
 
 noncomputable
-def comp2 (κ : kernel mα mβ) [is_finite_kernel κ]
-  (η : kernel mβ mγ) [is_finite_kernel η] :
+def comp2 (κ : kernel mα mβ) [is_s_finite_kernel κ]
+  (η : kernel mβ mγ) [is_s_finite_kernel η] :
   kernel mα mγ :=
 snd_right (comp κ (prod_mk_left η mα))
 
-lemma comp2_apply (κ : kernel mα mβ) [is_finite_kernel κ]
-  (η : kernel mβ mγ) [is_finite_kernel η] (a : α) {s : set γ}
+lemma comp2_apply (κ : kernel mα mβ) [is_s_finite_kernel κ]
+  (η : kernel mβ mγ) [is_s_finite_kernel η] (a : α) {s : set γ}
   (hs : measurable_set s) :
   comp2 κ η a s = ∫⁻ b, η b s ∂κ a :=
 begin
@@ -700,9 +720,14 @@ instance is_finite_kernel.comp2 (κ : kernel mα mβ) [is_finite_kernel κ]
   is_finite_kernel (comp2 κ η) :=
 by { rw comp2, apply_instance, }
 
-lemma comp2_assoc (κ : kernel mα mβ) [is_finite_kernel κ]
-  (η : kernel mβ mγ) [is_finite_kernel η]
-  (ξ : kernel mγ mδ) [is_finite_kernel ξ] :
+instance is_s_finite_kernel.comp2 (κ : kernel mα mβ) [is_s_finite_kernel κ]
+  (η : kernel mβ mγ) [is_s_finite_kernel η] :
+  is_s_finite_kernel (comp2 κ η) :=
+by { rw comp2, apply_instance, }
+
+lemma comp2_assoc (κ : kernel mα mβ) [is_s_finite_kernel κ]
+  (η : kernel mβ mγ) [is_s_finite_kernel η]
+  (ξ : kernel mγ mδ) [is_s_finite_kernel ξ] :
   comp2 (comp2 κ η) ξ = comp2 κ (comp2 η ξ) :=
 begin
   ext1 a,
@@ -712,7 +737,7 @@ begin
 end
 
 lemma comp2_deterministic_right_eq_map {mγ : measurable_space γ}
-  (κ : kernel mα mβ) [is_finite_kernel κ]
+  (κ : kernel mα mβ) [is_s_finite_kernel κ]
   {f : β → γ} (hf : measurable f) :
   comp2 κ (deterministic hf) = map κ f hf :=
 begin
@@ -722,7 +747,7 @@ begin
 end
 
 lemma comp2_deterministic_left_eq_comap {mγ : measurable_space γ} {f : γ → α} (hf : measurable f)
-  (κ : kernel mα mβ) [is_finite_kernel κ] :
+  (κ : kernel mα mβ) [is_s_finite_kernel κ] :
   comp2 (deterministic hf) κ = comap κ f hf :=
 begin
   ext a s hs,

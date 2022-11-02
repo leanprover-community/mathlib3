@@ -18,10 +18,8 @@ This file proves some basic results about `finset.gcd` on `ℤ`.
 
 namespace finset
 
-/-- Dividing out the gcd of a finite set results in a gcd of zero.
-
-More precisely, given a nonempty finset `s` and a function `f` from `s` to `ℤ`, if `d = s.gcd`,
-then the `gcd` of `(f i) / d` is a unit. -/
+/-- Given a nonempty finset `s` and a function `f` from `s` to `ℤ`, if `d = s.gcd`,
+then the `gcd` of `(f i) / d` is equal to `1`. -/
 theorem gcd_eq_one_of_div_gcd {β : Type*} {f : β → ℤ} (s : finset β) {x : β} (hx : x ∈ s)
   (hfz : f x ≠ 0) :
   s.gcd (λ b, f b / (s.gcd f)) = 1 :=

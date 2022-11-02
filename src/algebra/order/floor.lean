@@ -878,7 +878,8 @@ begin
     simpa only [le_add_iff_nonneg_right, sub_nonneg, cast_le] using le_floor.mpr hx, },
   { rw abs_eq_neg_self.mpr (sub_neg.mpr hx).le,
     conv_rhs { rw ← fract_add_floor x, },
-    rw [add_sub_assoc, add_comm, neg_add, neg_sub, le_add_neg_iff_add_le, sub_add_cancel, le_sub_comm],
+    rw [add_sub_assoc, add_comm, neg_add, neg_sub, le_add_neg_iff_add_le, sub_add_cancel,
+      le_sub_comm],
     norm_cast,
     exact floor_le_sub_one_iff.mpr hx, },
 end

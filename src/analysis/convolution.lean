@@ -1034,13 +1034,12 @@ lemma has_compact_support.has_fderiv_at_convolution_right_with_param
   (hgs : ∀ p, ∀ x, p ∈ s → x ∉ k → g (p, x) = 0)
   (hf : locally_integrable f μ) (hg : cont_diff_on 𝕜 1 g (s ×ˢ univ))
   (q₀ : P × G) (hq : q₀.1 ∈ s) :
-  true :=
-  --has_fderiv_at (λ (q : P × G), (f ⋆[L, μ] (λ (x : G), g (q.1, x))) q.2)
-  --  ((f ⋆[L.precompR (P × G), μ] (λ (x : G), fderiv 𝕜 g (q₀.1, x))) q₀.2) q₀ :=
+  has_fderiv_at (λ (q : P × G), (f ⋆[L, μ] (λ (x : G), g (q.1, x))) q.2)
+    ((f ⋆[L.precompR (P × G), μ] (λ (x : G), fderiv 𝕜 g (q₀.1, x))) q₀.2) q₀ :=
 begin
   let g' := fderiv 𝕜 g,
   have g'_zero : ∀ p x, p ∈ s → x ∉ k → g' (p, x) = 0,
-  sorry, /-{ assume p x hp hx,
+  { assume p x hp hx,
     have A : fderiv 𝕜 (λ x, (0 : E')) (p, x) = 0,
     { rw fderiv_const, refl },
     rw ← A,
@@ -1050,10 +1049,10 @@ begin
     rw nhds_prod_eq,
     filter_upwards [prod_mem_prod M1 M2],
     rintros ⟨p, y⟩ ⟨hp, hy⟩,
-    exact hgs p y hp hy }, -/
+    exact hgs p y hp hy },
   obtain ⟨ε, C, εpos, Cnonneg, h₀ε, hε⟩ :
     ∃ ε C, 0 < ε ∧ 0 ≤ C ∧ ball q₀.1 ε ⊆ s ∧ ∀ p x, ∥p - q₀.1∥ < ε → ∥g' (p, x)∥ ≤ C,
-  sorry, /-{ have A : is_compact ({q₀.1} ×ˢ k), from is_compact_singleton.prod hk,
+  { have A : is_compact ({q₀.1} ×ˢ k), from is_compact_singleton.prod hk,
     obtain ⟨t, kt, t_open, ht⟩ : ∃ t, {q₀.1} ×ˢ k ⊆ t ∧ is_open t ∧ bounded (g' '' t),
     { have B : continuous_on g' (s ×ˢ univ),
         from hg.continuous_on_fderiv_of_open (hs.prod is_open_univ) le_rfl,
@@ -1083,13 +1082,42 @@ begin
       rwa mem_closed_ball_zero_iff at this },
     { have : g' (p, x) = 0, from g'_zero _ _ hps hx,
       rw this,
-      simpa only [norm_zero] using Cpos.le } }, -/
-  let K' := - k + closed_ball q₀.2 ε,
+      simpa only [norm_zero] using Cpos.le } },
+  have I1 : ∀ᶠ (x : P × G) in 𝓝 q₀,
+    ae_strongly_measurable (λ (a : G), L (f a) (g (x.1, x.2 - a))) μ,
+  { have : s ×ˢ univ ∈ 𝓝 q₀,
+    { apply (hs.prod is_open_univ).mem_nhds,
+      simpa only [mem_prod, mem_univ, and_true] using hq },
+    filter_upwards [this],
+    rintros ⟨p, x⟩ ⟨hp, hx⟩,
+    have M : ae_strongly_measurable (λ (a : G), g (p, a)) μ,
+    { apply continuous.ae_strongly_measurable,
+      apply hg.continuous_on.comp_continuous (continuous_const.prod_mk continuous_id'),
+      assume x,
+      simpa only [prod_mk_mem_set_prod_eq, mem_univ, and_true] using hp },
+    exact hf.ae_strongly_measurable.convolution_integrand_snd L M x },
+  have I2 : integrable (λ (a : G), L (f a) (g (q₀.1, q₀.2 - a))) μ,
+  { have M : has_compact_support (λ x, g (q₀.1, x)),
+      from has_compact_support.intro hk (λ x hx, hgs q₀.1 x hq hx),
+    apply M.convolution_exists_right L hf _ q₀.2,
+    apply hg.continuous_on.comp_continuous (continuous_const.prod_mk continuous_id'),
+    assume x,
+    simpa only [prod_mk_mem_set_prod_eq, mem_univ, and_true] using hq },
+  have I3 : ae_strongly_measurable (λ (a : G), (L (f a)).comp (g' (q₀.fst, q₀.snd - a))) μ,
+  { have M : ae_strongly_measurable (λ x, g' (q₀.1, x)) μ,
+    { have : continuous_on g' (s ×ˢ univ),
+        from hg.continuous_on_fderiv_of_open (hs.prod is_open_univ) le_rfl,
+      apply continuous.ae_strongly_measurable,
+      apply this.comp_continuous (continuous_const.prod_mk continuous_id'),
+      assume x,
+      simpa only [prod_mk_mem_set_prod_eq, mem_univ, and_true] using hq },
+    exact hf.ae_strongly_measurable.convolution_integrand_snd (L.precompR (P × G)) M q₀.2 },
+    let K' := - k + closed_ball q₀.2 ε,
   have hK' : is_compact K' := hk.neg.add (is_compact_closed_ball _ _),
   let bound : G → ℝ := indicator K' (λ a, ∥L∥ * ∥f a∥ * C),
-  have B : ∀ᵐ (a : G) ∂μ, ∀ (x : P × G), dist x q₀ < ε →
+  have I4 : ∀ᵐ (a : G) ∂μ, ∀ (x : P × G), dist x q₀ < ε →
     ∥(L (f a)).comp (g' (x.fst, x.snd - a))∥ ≤ bound a,
-  sorry, /-{ apply eventually_of_forall,
+  { apply eventually_of_forall,
     assume a x hx,
     refine (op_norm_comp_le _ _).trans _,
     refine le_trans (mul_le_mul (le_op_norm _ _) le_rfl (norm_nonneg _) (by positivity)) _,
@@ -1112,14 +1140,14 @@ begin
       simp only [this, bound, norm_zero, mul_zero],
       apply indicator_nonneg,
       assume a ha,
-      positivity } },-/
-  have C : integrable bound μ,
+      positivity } },
+  have I5 : integrable bound μ,
   { rw [integrable_indicator_iff hK'.measurable_set],
     exact ((hf hK').norm.const_mul _).mul_const _ },
-  have D : ∀ᵐ (a : G) ∂μ, ∀ (x : P × G), dist x q₀ < ε →
+  have I6 : ∀ᵐ (a : G) ∂μ, ∀ (x : P × G), dist x q₀ < ε →
     has_fderiv_at (λ (x : P × G), L (f a) (g (x.fst, x.snd - a)))
     ((L (f a)).comp (fderiv 𝕜 g (x.fst, x.snd - a))) x,
-  sorry, /- { apply eventually_of_forall,
+  { apply eventually_of_forall,
     assume a x hx,
     apply (L _).has_fderiv_at.comp x,
     have N : s ×ˢ univ ∈ 𝓝 (x.1, x.2 - a),
@@ -1134,13 +1162,8 @@ begin
       { ext x; simp only [pi.sub_apply, id.def, prod.fst_sub, sub_zero, prod.snd_sub] },
       simp_rw [this],
       exact (has_fderiv_at_id x).sub_const (0, a) },
-    exact Z.comp x Z' }, -/
-  have E : ∀ᶠ (x : P × G) in 𝓝 q₀,
-    ae_strongly_measurable (λ (a : G), L (f a) (g (x.1, x.2 - a))) μ,
-  {
-
-  },
-  apply has_fderiv_at_integral_of_dominated_of_fderiv_le εpos _ _ _ B C D,
+    exact Z.comp x Z' },
+  exact has_fderiv_at_integral_of_dominated_of_fderiv_le εpos I1 I2 I3 I4 I5 I6,
 end
 
 

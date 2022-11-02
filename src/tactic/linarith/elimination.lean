@@ -180,7 +180,7 @@ meta def pcomp.assump (c : comp) (n : ℕ) : pcomp :=
   vars := rb_set.of_list c.vars }
 
 meta instance pcomp.to_format : has_to_format pcomp :=
-⟨λ p, to_fmt p.c.coeffs ++ to_string p.c.str ++ "0"⟩
+⟨λ p, to_fmt p.c.coeffs ++ to_string p.c.str ++ "0" ++ " (history :=" ++ to_string p.history.to_list ++ ")" ++ " (effective :=" ++ to_string p.effective.to_list ++ ")" ++ " (implicit :=" ++ to_string p.implicit.to_list ++ ")"⟩
 
 
 /-- Creates an empty set of `pcomp`s, sorted using `pcomp.cmp`. This should always be used instead
@@ -223,7 +223,8 @@ for every `p' ∈ comps`.
 meta def elim_with_set (a : ℕ) (p : pcomp) (comps : rb_set pcomp) : rb_set pcomp :=
 comps.fold mk_pcomp_set $ λ pc s,
 match pelim_var p pc a with
-| some pc := if pc.maybe_minimal a then s.insert pc else s
+| some pc := if pc.maybe_minimal a then s.insert pc else
+    trace_fmt format!"rejecting {pc}" (λ _, s)
 | none := s
 end
 
@@ -294,6 +295,8 @@ do vs ← get_max_var,
    when (a ≤ vs) $
 do ⟨pos, neg, not_present⟩ ← split_set_by_var_sign a <$> get_comps,
    let cs' := pos.fold not_present (λ p s, s.union (elim_with_set a p neg)),
+   trace_fmt format!"elim_var {a}" (λ _, pure ()),
+   trace_fmt format!"{cs'}" (λ _, pure ()),
    update (vs - 1) cs'
 
 /--
@@ -302,6 +305,8 @@ ground comparisons. If this succeeds without exception, the original `linarith` 
 -/
 meta def elim_all_vars : linarith_monad unit :=
 do mv ← get_max_var,
+   cs ← get_comps,
+   trace_fmt format!"{cs}" (λ _, pure ()),
    (list.range $ mv + 1).reverse.mmap' monad.elim_var
 
 /--
@@ -326,5 +331,71 @@ match except_t.run (state_t.run (validate >> elim_all_vars) state) with
 | (except.ok (a, _)) := tactic.failed
 | (except.error contr) := return contr.src.flatten
 end
+
+def mathlib3ex : list comp :=
+[
+⟨ineq.le, [(2, 1), (1, -1)]⟩,
+⟨ineq.le, [(3, 1), (1, -1)]⟩,
+⟨ineq.le, [(4, 1), (1, -1)]⟩,
+⟨ineq.le, [(5, -1), (1, 1)]⟩,
+⟨ineq.le, [(6, 1), (4, -1)]⟩,
+⟨ineq.le, [(7, 1), (5, -1), (2, -1), (1, 1)]⟩,
+⟨ineq.le, [(8, 1), (5, -1), (3, -1), (1, 1)]⟩,
+⟨ineq.le, [(9, 1), (8, -1)]⟩,
+⟨ineq.le, [(10, 1), (7, -1)]⟩,
+⟨ineq.le, [(11, 1), (6, -1)]⟩,
+⟨ineq.lt, [(0, -1)]⟩,
+⟨ineq.lt, [(11, -1), (10, -1), (9, -1), (5, 3)]⟩
+]
+
+def mathlib4ex : list comp :=
+[
+⟨ineq.le, [(5, -1), (2, 1)]⟩,
+⟨ineq.le, [(6, -1), (3, 1)]⟩,
+⟨ineq.le, [(7, -1), (1, 1)]⟩,
+⟨ineq.le, [(9, -1), (8, 1)]⟩,
+⟨ineq.le, [(9, 1), (4, -1)]⟩,
+⟨ineq.le, [(9, 1), (8, -1), (7, 1), (4, -1)]⟩,
+⟨ineq.le, [(10, -1), (9, 1), (6, 1), (4, -1)]⟩,
+⟨ineq.le, [(10, 1), (9, -1)]⟩,
+⟨ineq.le, [(11, -1), (5, 1)]⟩,
+⟨ineq.le, [(11, 1), (9, -1)]⟩,
+⟨ineq.lt, [(0, -1)]⟩,
+⟨ineq.lt, [(4, 3), (3, -1), (2, -1), (1, -1)]⟩
+]
+
+#eval fourier_motzkin.produce_certificate mathlib3ex 11 -- succeeds, i.e. found a contradiction
+#eval fourier_motzkin.produce_certificate mathlib4ex 11 -- fails, i.e. no contradiction found
+
+-- However, these systems of inequalities are the same,
+-- up to renaming the variables
+-- (and then sorting each linear expression so the variables are in descending order).
+
+-- This is the variable renaming scheme: apply this to the variables in `mathlib4ex`.
+def f : ℕ → ℕ
+| 0 := 0
+| 1 := 9
+| 2 := 11
+| 3 := 10
+| 4 := 5
+| 5 := 6
+| 6 := 7
+| 7 := 8
+| 8 := 3
+| 9 := 1
+| 10 := 2
+| 11 := 4
+| n := n
+
+meta def sort (L : list comp) : list comp :=
+list.qsort (λ x y : comp, x.cmp y = ordering.lt) L
+
+meta def rename (f : ℕ → ℕ) (c : comp) : comp :=
+⟨c.1, list.qsort (λ x y, x.1 > y.1) (c.2.map (λ ⟨n, a⟩, ⟨f n, a⟩))⟩
+
+#eval sort (mathlib4ex.map (rename f)) -- These two lines produce identical output.
+#eval mathlib3ex
+
+
 
 end linarith

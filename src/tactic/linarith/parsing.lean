@@ -184,6 +184,8 @@ meta def linear_forms_and_max_var (red : transparency) (pfs : list expr) :
   tactic (list comp × ℕ) :=
 do pftps ← pfs.mmap infer_type,
    (l, _, map) ← to_comp_fold red [] pftps mk_rb_map,
+   mmap ← map.to_list.mmap (λ ⟨k, v⟩, pure (k.to_list, v)),
+   linarith_trace format!"monomial map: {mmap}",
    return (l, map.size - 1)
 
 

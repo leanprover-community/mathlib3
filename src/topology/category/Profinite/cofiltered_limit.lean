@@ -127,10 +127,11 @@ begin
   rw [locally_constant.of_clopen_fiber_zero hV, ← h],
 end
 
-theorem exists_locally_constant_fintype_aux {α : Type*} [fintype α] (f : locally_constant C.X α) :
+theorem exists_locally_constant_finite_aux {α : Type*} [finite α] (f : locally_constant C.X α) :
   ∃ (j : J) (g : locally_constant (F.obj j) (α → fin 2)),
     f.map (λ a b, if a = b then (0 : fin 2) else 1) = g.comap (C.π.app _) :=
 begin
+  casesI nonempty_fintype α,
   let ι : α → α → fin 2 := λ x y, if x = y then 0 else 1,
   let ff := (f.map ι).flip,
   have hff := λ (a : α), exists_locally_constant_fin_two _ hC (ff a),
@@ -164,12 +165,12 @@ begin
   all_goals { continuity },
 end
 
-theorem exists_locally_constant_fintype_nonempty {α : Type*} [fintype α] [nonempty α]
+theorem exists_locally_constant_finite_nonempty {α : Type*} [finite α] [nonempty α]
   (f : locally_constant C.X α) :
   ∃ (j : J) (g : locally_constant (F.obj j) α), f = g.comap (C.π.app _) :=
 begin
   inhabit α,
-  obtain ⟨j,gg,h⟩ := exists_locally_constant_fintype_aux _ hC f,
+  obtain ⟨j,gg,h⟩ := exists_locally_constant_finite_aux _ hC f,
   let ι : α → α → fin 2 := λ a b, if a = b then 0 else 1,
   let σ : (α → fin 2) → α := λ f, if h : ∃ (a : α), ι a = f then h.some else arbitrary _,
   refine ⟨j, gg.map σ, _⟩,
@@ -223,7 +224,7 @@ begin
     have CD := (hD.cone_point_unique_up_to_iso (Top.limit_cone_is_limit.{u} _)).inv,
     exact cond.map CD },
   { let f' : locally_constant C.X S := ⟨S.proj, S.proj_is_locally_constant⟩,
-    obtain ⟨j, g', hj⟩ := exists_locally_constant_fintype_nonempty _ hC f',
+    obtain ⟨j, g', hj⟩ := exists_locally_constant_finite_nonempty _ hC f',
     refine ⟨j, ⟨ff ∘ g', g'.is_locally_constant.comp _⟩,_⟩,
     ext1 t,
     apply_fun (λ e, e t) at hj,

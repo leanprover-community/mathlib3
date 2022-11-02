@@ -40,6 +40,9 @@ variables (g₁ g₂ g₃ g)
 @[simp] lemma commutator_element_one_left : ⁅(1 : G), g⁆ = 1 :=
 (commute.one_left g).commutator_eq
 
+@[simp] lemma commutator_element_self : ⁅g, g⁆ = 1 :=
+(commute.refl g).commutator_eq
+
 @[simp] lemma commutator_element_inv : ⁅g₁, g₂⁆⁻¹ = ⁅g₂, g₁⁆ :=
 by simp_rw [commutator_element_def, mul_inv_rev, inv_inv, mul_assoc]
 
@@ -174,7 +177,7 @@ end
 
 /-- The commutator of direct product is contained in the direct product of the commutators.
 
-See `commutator_pi_pi_of_fintype` for equality given `fintype η`.
+See `commutator_pi_pi_of_finite` for equality given `fintype η`.
 -/
 lemma commutator_pi_pi_le {η : Type*} {Gs : η → Type*} [∀ i, group (Gs i)]
   (H K : Π i, subgroup (Gs i)) :
@@ -183,7 +186,7 @@ commutator_le.mpr $ λ p hp q hq i hi, commutator_mem_commutator (hp i hi) (hq i
 
 /-- The commutator of a finite direct product is contained in the direct product of the commutators.
 -/
-lemma commutator_pi_pi_of_fintype {η : Type*} [fintype η] {Gs : η → Type*}
+lemma commutator_pi_pi_of_finite {η : Type*} [finite η] {Gs : η → Type*}
   [∀ i, group (Gs i)] (H K : Π i, subgroup (Gs i)) :
   ⁅subgroup.pi set.univ H, subgroup.pi set.univ K⁆ = subgroup.pi set.univ (λ i, ⁅H i, K i⁆) :=
 begin
@@ -201,3 +204,25 @@ begin
 end
 
 end subgroup
+
+variables (G)
+
+/-- The set of commutator elements `⁅g₁, g₂⁆` in `G`. -/
+def commutator_set : set G :=
+{g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}
+
+lemma commutator_set_def : commutator_set G = {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} := rfl
+
+lemma one_mem_commutator_set : (1 : G) ∈ commutator_set G :=
+⟨1, 1, commutator_element_self 1⟩
+
+instance : nonempty (commutator_set G) :=
+⟨⟨1, one_mem_commutator_set G⟩⟩
+
+variables {G g}
+
+lemma mem_commutator_set_iff : g ∈ commutator_set G ↔ ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g :=
+iff.rfl
+
+lemma commutator_mem_commutator_set : ⁅g₁, g₂⁆ ∈ commutator_set G :=
+⟨g₁, g₂, rfl⟩

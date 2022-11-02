@@ -11,9 +11,9 @@ import data.set.finite
 
 This module proves the basic form of Hall's theorem.
 In constrast to the theorem described in `combinatorics.hall.basic`, this
-version requires that the indexed family `t : ι → finset α` have `ι` be a `fintype`.
+version requires that the indexed family `t : ι → finset α` have `ι` be finite.
 The `combinatorics.hall.basic` module applies a compactness argument to this version
-to remove the `fintype` constraint on `ι`.
+to remove the `finite` constraint on `ι`.
 
 The modules are split like this since the generalized statement
 depends on the topology and category theory libraries, but the finite
@@ -38,7 +38,10 @@ universes u v
 
 namespace hall_marriage_theorem
 
-variables {ι : Type u} {α : Type v} [fintype ι] {t : ι → finset α} [decidable_eq α]
+variables {ι : Type u} {α : Type v} [decidable_eq α] {t : ι → finset α}
+
+section fintype
+variables [fintype ι]
 
 lemma hall_cond_of_erase {x : ι} (a : α)
   (ha : ∀ (s : finset ι), s.nonempty → s ≠ univ → s.card < (s.bUnion t).card)
@@ -211,6 +214,11 @@ begin
     { exact sdiff_subset _ _ (hsf'' ⟨x, h⟩) } }
 end
 
+
+end fintype
+
+variables [finite ι]
+
 /--
 Here we combine the two inductive steps into a full strong induction proof,
 completing the proof the harder direction of **Hall's Marriage Theorem**.
@@ -219,6 +227,7 @@ theorem hall_hard_inductive
   (ht : ∀ (s : finset ι), s.card ≤ (s.bUnion t).card) :
   ∃ (f : ι → α), function.injective f ∧ ∀ x, f x ∈ t x :=
 begin
+  casesI nonempty_fintype ι,
   unfreezingI
   { induction hn : fintype.card ι using nat.strong_induction_on with n ih generalizing ι },
   rcases n with _|_,
@@ -229,7 +238,7 @@ begin
                     (∀ (s' : finset ι'), s'.card ≤ (s'.bUnion t').card) →
                     ∃ (f : ι' → α), function.injective f ∧ ∀ x, f x ∈ t' x,
     { introsI ι' _ _ hι' ht',
-      exact ih _ (nat.lt_succ_of_le hι') ht' rfl, },
+      exact ih _ (nat.lt_succ_of_le hι') ht' _ rfl },
     by_cases h : ∀ (s : finset ι), s.nonempty → s ≠ univ → s.card < (s.bUnion t).card,
     { exact hall_hard_inductive_step_A hn ht ih' h, },
     { push_neg at h,
@@ -241,15 +250,15 @@ end hall_marriage_theorem
 
 /--
 This is the version of **Hall's Marriage Theorem** in terms of indexed
-families of finite sets `t : ι → finset α` with `ι` a `fintype`.
+families of finite sets `t : ι → finset α` with `ι` finite.
 It states that there is a set of distinct representatives if and only
 if every union of `k` of the sets has at least `k` elements.
 
 See `finset.all_card_le_bUnion_card_iff_exists_injective` for a version
-where the `fintype ι` constraint is removed.
+where the `finite ι` constraint is removed.
 -/
 theorem finset.all_card_le_bUnion_card_iff_exists_injective'
-  {ι α : Type*} [fintype ι] [decidable_eq α] (t : ι → finset α) :
+  {ι α : Type*} [finite ι] [decidable_eq α] (t : ι → finset α) :
   (∀ (s : finset ι), s.card ≤ (s.bUnion t).card) ↔
     (∃ (f : ι → α), function.injective f ∧ ∀ x, f x ∈ t x) :=
 begin

@@ -70,26 +70,11 @@ variables {β : Type*} [decidable_eq α] {r : α → α → Prop} {l : list α}
 
 lemma pairwise_of_coe_to_finset_pairwise (hl : (l.to_finset : set α).pairwise r) (hn : l.nodup) :
   l.pairwise r :=
-begin
-  induction l with hd tl IH,
-  { simp },
-  simp only [set.pairwise_insert, pairwise_cons, to_finset_cons, finset.coe_insert,
-             finset.mem_coe, mem_to_finset, ne.def, nodup_cons] at hl hn ⊢,
-  refine ⟨λ x hx, (hl.right x hx _).left, IH hl.left hn.right⟩,
-  rintro rfl,
-  exact hn.left hx
-end
+by { rw coe_to_finset at hl, exact hn.pairwise_of_set_pairwise hl }
 
 lemma pairwise_iff_coe_to_finset_pairwise (hn : l.nodup) (hs : symmetric r) :
   (l.to_finset : set α).pairwise r ↔ l.pairwise r :=
-begin
-  refine ⟨λ h, pairwise_of_coe_to_finset_pairwise h hn, λ h, _⟩,
-  induction l with hd tl IH,
-  { simp },
-  simp only [set.pairwise_insert, to_finset_cons, finset.coe_insert, finset.mem_coe,
-             mem_to_finset, ne.def, pairwise_cons, nodup_cons] at hn h ⊢,
-  exact ⟨IH hn.right h.right, λ x hx hne, ⟨h.left _ hx, hs (h.left _ hx)⟩⟩
-end
+by { rw [coe_to_finset, hn.pairwise_coe], exact ⟨hs⟩ }
 
 lemma pairwise_disjoint_of_coe_to_finset_pairwise_disjoint {α ι}
   [semilattice_inf α] [order_bot α] [decidable_eq ι] {l : list ι} {f : ι → α}

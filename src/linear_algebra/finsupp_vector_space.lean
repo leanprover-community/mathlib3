@@ -57,6 +57,12 @@ begin
       apply range_comp_subset_range } }
 end
 
+end ring
+
+section semiring
+variables {R : Type*} {M : Type*} {ι : Type*}
+variables [semiring R] [add_comm_monoid M] [module R M]
+
 open linear_map submodule
 
 /-- The basis on `ι →₀ M` with basis vectors `λ ⟨i, x⟩, single i (b i x)`. -/
@@ -116,7 +122,7 @@ basis.of_repr (linear_equiv.refl _ _)
   (finsupp.basis_single_one : ι → (ι →₀ R)) = λ i, finsupp.single i 1 :=
 funext $ λ i, basis.apply_eq_iff.mpr rfl
 
-end ring
+end semiring
 
 section dim
 variables {K : Type u} {V : Type v} {ι : Type v}
@@ -194,7 +200,8 @@ begin
     ... = _ : by rw [← cardinal.lift_inj.1 hs.mk_eq_dim, cardinal.power_def]
 end
 
-lemma cardinal_lt_aleph_0_of_finite_dimensional [fintype K] [finite_dimensional K V] : #V < ℵ₀ :=
+lemma cardinal_lt_aleph_0_of_finite_dimensional [_root_.finite K] [finite_dimensional K V] :
+  #V < ℵ₀ :=
 begin
   letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
   rw cardinal_mk_eq_cardinal_mk_field_pow_dim K V,
@@ -203,3 +210,39 @@ begin
 end
 
 end module
+
+namespace basis
+
+variables {R M n : Type*}
+variables [decidable_eq n] [fintype n]
+variables [semiring R] [add_comm_monoid M] [module R M]
+
+lemma _root_.finset.sum_single_ite (a : R) (i : n) :
+  finset.univ.sum (λ (x : n), finsupp.single x (ite (i = x) a 0)) = finsupp.single i a :=
+begin
+  rw finset.sum_congr_set {i} (λ (x : n), finsupp.single x (ite (i = x) a 0))
+    (λ _, finsupp.single i a),
+  { simp },
+  { intros x hx,
+    rw set.mem_singleton_iff at hx,
+    simp [hx] },
+  intros x hx,
+  have hx' : ¬i = x :=
+  begin
+    refine ne_comm.mp _,
+    rwa mem_singleton_iff at hx,
+  end,
+  simp [hx'],
+end
+
+@[simp] lemma equiv_fun_symm_std_basis (b : basis n R M) (i : n) :
+  b.equiv_fun.symm (linear_map.std_basis R (λ _, R) i 1) = b i :=
+begin
+  have := equiv_like.injective b.repr,
+  apply_fun b.repr,
+  simp only [equiv_fun_symm_apply, std_basis_apply', linear_equiv.map_sum,
+    linear_equiv.map_smulₛₗ, ring_hom.id_apply, repr_self, finsupp.smul_single', boole_mul],
+  exact finset.sum_single_ite 1 i,
+end
+
+end basis

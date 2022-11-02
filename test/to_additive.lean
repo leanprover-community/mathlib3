@@ -1,4 +1,4 @@
-import algebra.group.to_additive
+import tactic.to_additive
 import algebra.group.units
 import tactic
 
@@ -22,7 +22,7 @@ attribute [to_additive test.my_has_smul.smul] my_has_pow.pow
 -- set_option pp.notation false
 
 @[priority 10000]
-local infix ` ^ `:80 := my_has_pow.pow
+local infix (name := pow) ` ^ `:80 := my_has_pow.pow
 
 @[to_additive bar1]
 def foo1 {α} [my_has_pow α ℕ] (x : α) (n : ℕ) : α := @my_has_pow.pow α ℕ _ x n

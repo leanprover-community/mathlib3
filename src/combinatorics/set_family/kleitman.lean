@@ -55,12 +55,12 @@ begin
   refine (card_le_of_subset $ bUnion_mono $ λ j hj, (hf₁ _ hj).1).trans _,
   nth_rewrite 0 cons_eq_insert i,
   rw bUnion_insert,
-  refine (card_mono $ @le_sup_sdiff _ (f' i) _ _).trans ((card_union_le _ _).trans _),
+  refine (card_mono $ @le_sup_sdiff _ _ _ $ f' i).trans ((card_union_le _ _).trans _),
   rw [union_sdiff_left, sdiff_eq_inter_compl],
   refine le_of_mul_le_mul_left _ (pow_pos zero_lt_two $ card α + 1),
   rw [pow_succ', mul_add, mul_assoc, mul_comm _ 2, mul_assoc],
-  refine (add_le_add ((mul_le_mul_left $ pow_pos two_pos _).2
-    (hf₁ _ $ mem_cons_self _ _).2.2.card_le) $ (mul_le_mul_left two_pos).2 $
+  refine (add_le_add ((mul_le_mul_left $ pow_pos (zero_lt_two' ℕ) _).2
+    (hf₁ _ $ mem_cons_self _ _).2.2.card_le) $ (mul_le_mul_left $ zero_lt_two' ℕ).2 $
     is_upper_set.card_inter_le_finset _ _).trans _,
   { rw coe_bUnion,
     exact is_upper_set_Union₂ (λ i hi, hf₂ _ $ subset_cons _ hi) },

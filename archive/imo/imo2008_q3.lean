@@ -33,7 +33,7 @@ lemma p_lemma (p : ℕ) (hpp : nat.prime p) (hp_mod_4_eq_1 : p ≡ 1 [MOD 4]) (h
 begin
   haveI := fact.mk hpp,
   have hp_mod_4_ne_3 : p % 4 ≠ 3, { linarith [(show p % 4 = 1, by exact hp_mod_4_eq_1)] },
-  obtain ⟨y, hy⟩ := (zmod.exists_sq_eq_neg_one_iff p).mpr hp_mod_4_ne_3,
+  obtain ⟨y, hy⟩ := zmod.exists_sq_eq_neg_one_iff.mpr hp_mod_4_ne_3,
 
   let m := zmod.val_min_abs y,
   let n := int.nat_abs m,
@@ -66,11 +66,11 @@ begin
   have hreal₃ : (k:ℝ) ^ 2 + 4 ≥ p, { assumption_mod_cast },
 
   have hreal₅ : (k:ℝ) > 4,
-  { apply lt_of_pow_lt_pow 2 k.cast_nonneg,
+  { refine lt_of_pow_lt_pow 2 k.cast_nonneg _,
     linarith only [hreal₂, hreal₃] },
 
   have hreal₆ : (k:ℝ) > sqrt (2 * n),
-  { apply lt_of_pow_lt_pow 2 k.cast_nonneg,
+  { refine lt_of_pow_lt_pow 2 k.cast_nonneg _,
     rw sq_sqrt (mul_nonneg zero_le_two n.cast_nonneg),
     linarith only [hreal₁, hreal₃, hreal₅] },
 

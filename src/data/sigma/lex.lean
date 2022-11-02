@@ -74,6 +74,9 @@ lemma lex.mono_right (hs : ∀ i a b, s₁ i a b → s₂ i a b) {a b : Σ i, α
   lex r s₂ a b :=
 h.mono (λ _ _, id) hs
 
+lemma lex_swap : lex r.swap s a b ↔ lex r (λ i, (s i).swap) b a :=
+by split; { rintro (⟨a, b, h⟩ | ⟨a, b, h⟩), exacts [lex.left _ _ h, lex.right _ _ h] }
+
 instance [Π i, is_refl (α i) (s i)] : is_refl _ (lex r s) := ⟨λ ⟨i, a⟩, lex.right _ _ $ refl _⟩
 
 instance [is_irrefl ι r] [Π i, is_irrefl (α i) (s i)] : is_irrefl _ (lex r s) :=

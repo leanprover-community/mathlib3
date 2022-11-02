@@ -395,6 +395,15 @@ lemma weight_prod_le : ∀ l : list word, weight l.prod ≤ (l.map weight).sum
     exact (weight_mul_le _ _).trans (add_le_add_left (weight_prod_le _) _)
   end
 
+def to_conj_even_aux : ∀ (n : ℕ) (w : word) (h : w.1.length = n),
+  {w' : word // is_conj w w' ∧ (even (length w'.1) ∨ length (w'.1) = 1) ∧
+    length w'.1 ≤ n ∧ weight w' ≤ weight w}
+| 0 w h := ⟨w, is_conj.refl _, or.inl ⟨0, h⟩, h.le, le_rfl⟩
+| 1 w h := ⟨w, is_conj.refl _, or.inr h, h.le, le_rfl⟩
+| (n + 2) w h :=
+  if hn : even n then ⟨w, is_conj.refl _, or.inl $ h.symm ▸ hn.add (even_bit0 _), h.le, le_rfl⟩
+  else if hw : w.1.head' = w.1.last' then ⟨⟨init (tail w.1), _, _, _⟩, _⟩ else _
+
 end word
 
 namespace even_a_word

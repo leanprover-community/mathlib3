@@ -372,6 +372,21 @@ instance is_finite_kernel_seq (κ : kernel mα mβ) [h : is_s_finite_kernel κ] 
   is_finite_kernel (kernel.seq κ n) :=
 h.tsum_finite.some_spec.1 n
 
+lemma aux'' (κ : kernel mα mβ) {t : set (α × β)}
+  (ht : measurable_set t) [is_s_finite_kernel κ] :
+  measurable (λ a, κ a {b | (a, b) ∈ t}) :=
+begin
+  rw ← kernel_sum_seq κ,
+  have : (λ a, kernel.sum (seq κ) a {b : β | (a, b) ∈ t})
+    = λ a, ∑' n, seq κ n a {b : β | (a, b) ∈ t},
+  { ext1 a,
+    rw kernel.sum_apply',
+    exact measurable_prod_mk_left ht, },
+  rw this,
+  refine measurable.ennreal_tsum (λ n, _),
+  exact aux' (seq κ n) ht infer_instance,
+end
+
 lemma measurable_set_lintegral (κ : kernel mα mβ) [is_s_finite_kernel κ]
   (f : α → β → ℝ≥0∞) (hf : measurable (function.uncurry f)) {s : set β} (hs : measurable_set s) :
   measurable (λ a, ∫⁻ b in s, f a b ∂κ a) :=
@@ -597,7 +612,15 @@ begin
   simp_rw this,
   rw lintegral_supr,
   rotate,
-  { sorry, },
+  { intros n,
+    have : (λ b, ∫⁻ c, (simple_func.eapprox (function.uncurry f) n) (b, c) ∂η (a, b))
+        = (λ ab, ∫⁻ c, (simple_func.eapprox (function.uncurry f) n) (ab.2, c) ∂η (ab))
+          ∘ (λ b, (a, b)),
+      { ext1 ab, refl, },
+      rw this,
+      refine measurable.comp _ measurable_prod_mk_left,
+      refine (measurable_lintegral η _
+        ((simple_func.measurable _).comp (measurable_fst.snd.prod_mk measurable_snd))), },
   { intros i j hij b,
     refine lintegral_mono (λ c, _),
     have h_mono := simple_func.monotone_eapprox (function.uncurry f) hij,
@@ -613,7 +636,9 @@ begin
     simp only [set.preimage_id'],
     rw comp_apply κ η _ hs,
     rw ← lintegral_const_mul c _,
-    swap, { sorry, },
+    swap,
+    { exact (aux'' η ((measurable_fst.snd.prod_mk measurable_snd) hs)).comp
+        measurable_prod_mk_left, },
     congr,
     ext1 b,
     classical,
@@ -625,7 +650,14 @@ begin
     change ∫⁻ x : β × γ, ((f : (β × γ) → ℝ≥0∞) x + f' x) ∂(comp κ η a)
       = ∫⁻ b, ∫⁻ (c : γ), f (b, c) + f' (b, c) ∂η (a, b) ∂κ a,
     rw [lintegral_add_left (simple_func.measurable _), hf_eq, hf'_eq, ← lintegral_add_left],
-    swap, { sorry, },
+    swap,
+    { have : (λ b, ∫⁻ c, f (b, c) ∂η (a, b))
+        = (λ ab, ∫⁻ c, f (ab.2, c) ∂η (ab)) ∘ (λ b, (a, b)),
+      { ext1 ab, refl, },
+      rw this,
+      refine measurable.comp _ measurable_prod_mk_left,
+      refine (measurable_lintegral η _
+        ((simple_func.measurable _).comp (measurable_fst.snd.prod_mk measurable_snd))), },
     congr,
     ext1 b,
     rw ← lintegral_add_left,

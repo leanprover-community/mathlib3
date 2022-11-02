@@ -432,4 +432,26 @@ by { intros i j h,
 (ideal.quotient_inf_ring_equiv_pi_quotient f hf).trans $
 ring_equiv.fin_two (λ i, R ⧸ f i)
 
+@[simp] lemma quotient_inf_equiv_quotient_prod_fst (I J : ideal R) (coprime : I ⊔ J = ⊤)
+  (x : R ⧸ (I ⊓ J)) : (quotient_inf_equiv_quotient_prod I J coprime x).fst =
+  ideal.quotient.factor (I ⊓ J) I inf_le_left x :=
+quot.induction_on x (λ x, rfl)
+
+@[simp] lemma quotient_inf_equiv_quotient_prod_snd (I J : ideal R) (coprime : I ⊔ J = ⊤)
+  (x : R ⧸ (I ⊓ J)) : (quotient_inf_equiv_quotient_prod I J coprime x).snd =
+  ideal.quotient.factor (I ⊓ J) J inf_le_right x :=
+quot.induction_on x (λ x, rfl)
+
+@[simp] lemma fst_comp_quotient_inf_equiv_quotient_prod (I J : ideal R) (coprime : I ⊔ J = ⊤) :
+  (ring_hom.fst _ _).comp
+    (quotient_inf_equiv_quotient_prod I J coprime : R ⧸ I ⊓ J →+* (R ⧸ I) × R ⧸ J) =
+  ideal.quotient.factor (I ⊓ J) I inf_le_left :=
+by ext; refl
+
+@[simp] lemma snd_comp_quotient_inf_equiv_quotient_prod (I J : ideal R) (coprime : I ⊔ J = ⊤) :
+  (ring_hom.snd _ _).comp
+    (quotient_inf_equiv_quotient_prod I J coprime : R ⧸ I ⊓ J →+* (R ⧸ I) × R ⧸ J) =
+  ideal.quotient.factor (I ⊓ J) J inf_le_right :=
+by ext; refl
+
 end ideal

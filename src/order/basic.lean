@@ -58,7 +58,7 @@ preorder, order, partial order, poset, linear order, chain
 open function
 
 universes u v w
-variables {ι : Type*} {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
+variables {ι : Type*} {α : Type u} {β : Type v} {γ : Type w} {π : ι → Type*} {r : α → α → Prop}
 
 section preorder
 variables [preorder α] {a b c : α}
@@ -489,25 +489,29 @@ lemma pi.lt_def {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] {x y
   x < y ↔ x ≤ y ∧ ∃ i, x i < y i :=
 by simp [lt_iff_le_not_le, pi.le_def] {contextual := tt}
 
-lemma le_update_iff {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] [decidable_eq ι]
-  {x y : Π i, α i} {i : ι} {a : α i} :
-  x ≤ function.update y i a ↔ x i ≤ a ∧ ∀ j ≠ i, x j ≤ y j :=
+instance pi.partial_order [Π i, partial_order (π i)] : partial_order (Π i, π i) :=
+{ le_antisymm := λ f g h1 h2, funext $ λ b, (h1 b).antisymm (h2 b),
+  ..pi.preorder }
+
+section function
+variables [decidable_eq ι] [Π i, preorder (π i)] {x y : Π i, π i} {i : ι} {a b : π i}
+
+lemma le_update_iff : x ≤ function.update y i a ↔ x i ≤ a ∧ ∀ j ≠ i, x j ≤ y j :=
 function.forall_update_iff _ (λ j z, x j ≤ z)
 
-lemma update_le_iff {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] [decidable_eq ι]
-  {x y : Π i, α i} {i : ι} {a : α i} :
-  function.update x i a ≤ y ↔ a ≤ y i ∧ ∀ j ≠ i, x j ≤ y j :=
+lemma update_le_iff : function.update x i a ≤ y ↔ a ≤ y i ∧ ∀ j ≠ i, x j ≤ y j :=
 function.forall_update_iff _ (λ j z, z ≤ y j)
 
-lemma update_le_update_iff {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] [decidable_eq ι]
-  {x y : Π i, α i} {i : ι} {a b : α i} :
+lemma update_le_update_iff :
   function.update x i a ≤ function.update y i b ↔ a ≤ b ∧ ∀ j ≠ i, x j ≤ y j :=
 by simp [update_le_iff] {contextual := tt}
 
-instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀ i, partial_order (α i)] :
-  partial_order (Π i, α i) :=
-{ le_antisymm := λ f g h1 h2, funext (λ b, (h1 b).antisymm (h2 b)),
-  ..pi.preorder }
+@[simp] lemma le_update_self_iff : x ≤ update x i a ↔ x i ≤ a := by simp [le_update_iff]
+@[simp] lemma update_le_self_iff : update x i a ≤ x ↔ a ≤ x i := by simp [update_le_iff]
+@[simp] lemma lt_update_self_iff : x < update x i a ↔ x i < a := by simp [lt_iff_le_not_le]
+@[simp] lemma update_lt_self_iff : update x i a < x ↔ a < x i := by simp [lt_iff_le_not_le]
+
+end function
 
 instance pi.has_sdiff {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] :
   has_sdiff (Π i, α i) :=

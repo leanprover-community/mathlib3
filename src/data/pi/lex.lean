@@ -101,6 +101,11 @@ lemma to_lex_monotone [linear_order ι] [is_well_order ι (<)] [Π a, partial_or
   let ⟨i, hi, hl⟩ := is_well_founded.wf.has_min {i | a i ≠ b i} (function.ne_iff.1 hne) in
   ⟨i, λ j hj, by { contrapose! hl, exact ⟨j, hl, hj⟩ }, (h i).lt_of_ne hi⟩
 
+lemma to_lex_strict_mono [linear_order ι] [is_well_order ι (<)] [Π a, partial_order (β a)] :
+  strict_mono (@to_lex (Π i, β i)) :=
+λ a b h, let ⟨i, hi, hl⟩ := is_well_founded.wf.has_min {i | a i ≠ b i} (function.ne_iff.1 h.ne) in
+  ⟨i, λ j hj, by { contrapose! hl, exact ⟨j, hl, hj⟩ }, (h.le i).lt_of_ne hi⟩
+
 instance [linear_order ι] [is_well_order ι (<)] [Π a, partial_order (β a)]
   [Π a, order_bot (β a)] : order_bot (lex (Π a, β a)) :=
 { bot := to_lex ⊥,
@@ -114,6 +119,29 @@ instance [linear_order ι] [is_well_order ι (<)] [Π a, partial_order (β a)]
 instance [linear_order ι] [is_well_order ι (<)] [Π a, partial_order (β a)]
   [Π a, bounded_order (β a)] : bounded_order (lex (Π a, β a)) :=
 { .. pi.lex.order_bot, .. pi.lex.order_top }
+
+instance [linear_order ι] [is_well_order ι (<)] [Π i, partial_order (β i)]
+  [Π i, densely_ordered (β i)] :
+  densely_ordered (lex (Π i, β i)) :=
+⟨begin
+  rintro _ _ ⟨i, h, hi⟩,
+  obtain ⟨a, ha₁, ha₂⟩ := exists_between hi,
+  refine ⟨to_lex $ function.update (of_lex a₁) _ a,
+    to_lex_strict_mono $ lt_update_self_iff.2 ha₁, _⟩,
+  refine ⟨i, λ j hj, _, _⟩,
+  { rw [to_lex_apply, function.update_noteq hj.ne, of_lex_apply, h _ hj] },
+  { simp [ha₂] }
+end⟩
+
+instance [linear_order ι] [is_well_order ι (<)] [nonempty ι] [Π i, partial_order (β i)]
+  [Π i, no_max_order (β i)] :
+  no_max_order (lex (Π i, β i)) :=
+⟨λ a, let ⟨b, hb⟩ := exists_gt (of_lex a) in ⟨_, to_lex_strict_mono hb⟩⟩
+
+instance [linear_order ι] [is_well_order ι (<)] [nonempty ι] [Π i, partial_order (β i)]
+  [Π i, no_min_order (β i)] :
+  no_min_order (lex (Π i, β i)) :=
+⟨λ a, let ⟨b, hb⟩ := exists_lt (of_lex a) in ⟨_, to_lex_strict_mono hb⟩⟩
 
 --we might want the analog of `pi.ordered_cancel_comm_monoid` as well in the future
 @[to_additive]

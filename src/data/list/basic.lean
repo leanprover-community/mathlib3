@@ -1327,15 +1327,11 @@ lemma last_eq_nth_le : ∀ (l : list α) (h : l ≠ []),
 | (a :: b :: l) h := by { rw [last_cons, last_eq_nth_le (b :: l)],
                           refl, exact cons_ne_nil b l }
 
-lemma nth_le_length_sub_one {l : list α} (h₁ h₂) :
-  l.nth_le (l.length - 1) h₂ = l.last h₁ :=
-(last_eq_nth_le l h₁).symm
-
-lemma nth_le_length_cons {l : list α} {a : α} {hh} (h : l ≠ []) :
-  (a :: l).nth_le l.length hh = l.last h :=
+lemma nth_le_length_cons {l : list α} {a : α} (h : l ≠ []) :
+  (a :: l).nth_le l.length (lt_add_one l.length) = l.last h :=
 begin
-  rw [list.nth_le_cons, dif_neg], swap, { rwa list.length_eq_zero },
-  apply list.nth_le_length_sub_one,
+  rw [nth_le_cons, dif_neg, last_eq_nth_le],
+  rwa length_eq_zero,
 end
 
 @[simp] lemma nth_concat_length : ∀ (l : list α) (a : α), (l ++ [a]).nth l.length = some a
@@ -1356,9 +1352,9 @@ begin
   induction l with x l ih generalizing n,
   { cases h },
   { by_cases h₁ : l = [],
-    { subst h₁, rw list.nth_le_singleton, simp at h, subst h, simp },
-    have h₂ := h, rw [list.length_cons, nat.lt_succ_iff, le_iff_eq_or_lt] at h₂,
-    cases n, { simp }, rw [list.drop, list.nth_le], apply ih },
+    { subst h₁, rw nth_le_singleton, simp at h, subst h, simp },
+    have h₂ := h, rw [length_cons, nat.lt_succ_iff, le_iff_eq_or_lt] at h₂,
+    cases n, { simp }, rw [drop, nth_le], apply ih },
 end
 
 @[ext]
@@ -1953,10 +1949,10 @@ lemma take_eq_take {l : list α} {m n : ℕ} :
 begin
   induction l with x l ih generalizing m n,
   { simp },
-  { simp_rw list.length_cons, split; intro h,
+  { simp_rw length_cons, split; intro h,
     { cases n, { simp at h, subst h },
       cases m, { simp at h, cases h },
-      simp only [list.take, eq_self_iff_true, true_and] at h,
+      simp only [take, eq_self_iff_true, true_and] at h,
       simpa [nat.min_succ_succ] using ih.mp h },
     { cases n, { simp at h, subst h },
       cases m, { simp [nat.min_succ_succ] at h, cases h },
@@ -1967,15 +1963,14 @@ lemma take_add {l : list α} {m n : ℕ} :
   l.take (m + n) = l.take m ++ (l.drop m).take n :=
 begin
   convert_to
-    list.take (m + n) (list.take m l ++ list.drop m l) =
-    list.take m l ++ list.take n (list.drop m l),
-  { rw list.take_append_drop },
-  rw [list.take_append_eq_append_take, list.take_all_of_le,
-    list.append_right_inj], swap,
+    take (m + n) (take m l ++ drop m l) =
+    take m l ++ take n (drop m l),
+  { rw take_append_drop },
+  rw [take_append_eq_append_take, take_all_of_le, append_right_inj], swap,
   { transitivity m,
-    { apply list.length_take_le },
+    { apply length_take_le },
     { simp }},
-  simp only [list.take_eq_take, list.length_take, list.length_drop],
+  simp only [take_eq_take, length_take, length_drop],
   generalize : l.length = k, by_cases h : m ≤ k,
   { simp [min_eq_left_iff.mpr h] },
   { push_neg at h, simp [nat.sub_eq_zero_of_le (le_of_lt h)] },
@@ -2075,9 +2070,9 @@ lemma drop_length_cons {l : list α} {a : α} (h : l ≠ []) :
 begin
   induction l with y l ih generalizing a,
   { cases h rfl },
-  { simp only [list.drop, list.length],
+  { simp only [drop, length],
     by_cases h₁ : l = [], { simp [h₁] },
-    convert ih h₁ using 2, exact list.last_cons h₁ },
+    convert ih h₁ using 2, exact last_cons h₁ },
 end
 
 /-- Dropping the elements up to `n` in `l₁ ++ l₂` is the same as dropping the elements up to `n`

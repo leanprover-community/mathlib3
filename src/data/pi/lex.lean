@@ -120,17 +120,17 @@ instance [linear_order ι] [is_well_order ι (<)] [Π a, partial_order (β a)]
   [Π a, bounded_order (β a)] : bounded_order (lex (Π a, β a)) :=
 { .. pi.lex.order_bot, .. pi.lex.order_top }
 
-instance [linear_order ι] [is_well_order ι (<)] [Π i, partial_order (β i)]
-  [Π i, densely_ordered (β i)] :
+instance [preorder ι] [Π i, preorder (β i)] [Π i, densely_ordered (β i)] :
   densely_ordered (lex (Π i, β i)) :=
 ⟨begin
   rintro _ _ ⟨i, h, hi⟩,
   obtain ⟨a, ha₁, ha₂⟩ := exists_between hi,
-  refine ⟨to_lex $ function.update (of_lex a₁) _ a,
-    to_lex_strict_mono $ lt_update_self_iff.2 ha₁, _⟩,
-  refine ⟨i, λ j hj, _, _⟩,
-  { rw [to_lex_apply, function.update_noteq hj.ne, of_lex_apply, h _ hj] },
-  { simp [ha₂] }
+  classical,
+  refine ⟨a₁.update _ a, ⟨i, λ j hj, _, _⟩, i, λ j hj, _, _⟩,
+  { rw a₁.update_noteq hj.ne a },
+  { rwa a₁.update_same i a },
+  { rw [← h j hj, a₁.update_noteq hj.ne a] },
+  { rwa a₁.update_same i a },
 end⟩
 
 instance [linear_order ι] [is_well_order ι (<)] [nonempty ι] [Π i, partial_order (β i)]

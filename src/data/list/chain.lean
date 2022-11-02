@@ -296,34 +296,19 @@ theorem chain'_iff_nth_le {R} : ∀ {l : list α},
 | [a]           := by simp
 | (a :: b :: t) :=
 begin
-  rw [chain'_cons, chain'_iff_nth_le],
-  split,
-  { rintro ⟨R, h⟩ i w,
-    cases i,
-    { exact R, },
-    { convert h i _ using 1,
-      simp only [succ_eq_add_one, add_succ_sub_one, add_zero, length, add_lt_add_iff_right] at w,
-      simpa using w, } },
-  { rintro h, split,
-    { apply h 0, simp, },
-    { intros i w, convert h (i+1) _ using 1,
-      simp only [add_zero, length, add_succ_sub_one] at w,
-      simpa using w, } },
+  rw [← and_forall_succ, chain'_cons, chain'_iff_nth_le],
+  simp only [length, nth_le, add_tsub_cancel_right, add_lt_add_iff_right, tsub_pos_iff_lt,
+    one_lt_succ_succ, true_implies_iff],
+  refl,
 end
 
 /-- If `l₁ l₂` and `l₃` are lists and `l₁ ++ l₂` and `l₂ ++ l₃` both satisfy
   `chain' R`, then so does `l₁ ++ l₂ ++ l₃` provided `l₂ ≠ []` -/
-lemma chain'.append_overlap : ∀ {l₁ l₂ l₃ : list α}
-  (h₁ : chain' R (l₁ ++ l₂)) (h₂ : chain' R (l₂ ++ l₃)) (hn : l₂ ≠ []),
-  chain' R (l₁ ++ l₂ ++ l₃)
-| []             l₂        l₃ h₁ h₂ hn := h₂
-| l₁             []        l₃ h₁ h₂ hn := (hn rfl).elim
-| [a]            (b :: l₂) l₃ h₁ h₂ hn := by { simp at *, tauto }
-| (a :: b :: l₁) (c :: l₂) l₃ h₁ h₂ hn := begin
-  simp only [cons_append, chain'_cons] at h₁ h₂ ⊢,
-  simp only [← cons_append] at h₁ h₂ ⊢,
-  exact ⟨h₁.1, chain'.append_overlap h₁.2 h₂ (cons_ne_nil _ _)⟩
-end
+lemma chain'.append_overlap {l₁ l₂ l₃ : list α}
+  (h₁ : chain' R (l₁ ++ l₂)) (h₂ : chain' R (l₂ ++ l₃)) (hn : l₂ ≠ []) :
+  chain' R (l₁ ++ l₂ ++ l₃) :=
+h₁.append h₂.right_of_append $
+  by simpa only [last'_append_of_ne_nil _ hn] using (chain'_append.1 h₂).2.2
 
 /--
 If `a` and `b` are related by the reflexive transitive closure of `r`, then there is a `r`-chain

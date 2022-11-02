@@ -717,13 +717,15 @@ end pointwise_actions
 
 section
 
-variables {L : Type*} [field K] [field L] [algebra K L]
+variables {L : Type*} [field L]
 
+/--The pullback of `A` along the ring homomorphism `K →+* L`. -/
 def comap (A : valuation_subring L) (f : K →+* L) :
   valuation_subring K :=
 { mem_or_inv_mem' := λ k, by simp [valuation_subring.mem_or_inv_mem],
   ..(A.to_subring.comap f) }
 
+/--The ring homomorphism from `comap A f` to `A`. -/
 def ring_hom.valuation_subring_comap (A : valuation_subring L) (f : K →+* L) :
    (comap A f) →+* A :=
 { to_fun := λ x, ⟨f x.1, x.2⟩,

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 import data.finset.pointwise
+import data.real.basic
 import group_theory.complement
 import group_theory.finiteness
 import group_theory.group_action.conj_act
@@ -119,52 +120,87 @@ lemma inv_card_commutator_le_comm_prob : (↑(card (commutator G)))⁻¹ ≤ com
 
 section neumann
 
-def weak_neumann_commutator_bound : ℚ → ℕ := sorry
+open subgroup
 
-def weak_neumann_index_bound : ℚ → ℕ := sorry
+variables (ε : ℝ)
 
-lemma weak_neumann :
-  ∃ K : subgroup G, K.normal ∧
-  card (commutator K) ≤ weak_neumann_commutator_bound (comm_prob G)
-  ∧ K.index ≤ weak_neumann_index_bound (comm_prob G) :=
+def weak_neumann_subgroup (ε : ℝ) : subgroup G :=
+closure ({g : G | ↑(nat.card (centralizer (zpowers g))) ≥ ε / 2 * nat.card G})
+
+namespace weak_neumann_subgroup
+
+def commutator_bound : ℝ → ℕ := sorry
+
+def index_bound : ℝ → ℕ := λ ε, nat.ceil (2 / ε : ℝ)
+
+lemma card_commutator_le (h : ↑(comm_prob G) ≥ ε) :
+  nat.card (commutator (weak_neumann_subgroup G ε)) ≤ commutator_bound ε :=
+begin
+  sorry,
+end
+
+lemma index_le (h : ↑(comm_prob G) ≥ ε) :
+  (weak_neumann_subgroup G ε).index ≤ index_bound ε :=
+begin
+  sorry,
+end
+
+instance characteristic : (weak_neumann_subgroup G ε).characteristic :=
 begin
   sorry
 end
 
-def strong_neumann_commutator_bound : ℚ → ℕ := weak_neumann_commutator_bound
+end weak_neumann_subgroup
 
-def strong_neumann_index_bound : ℚ → ℕ :=
-λ q, weak_neumann_index_bound q * (weak_neumann_commutator_bound q).factorial
+@[derive normal] def strong_neumann_subgroup (ε : ℝ) : subgroup G :=
+(commutator (weak_neumann_subgroup G ε)).centralizer.map (weak_neumann_subgroup G ε).subtype
 
-lemma strong_neumann :
-  ∃ K : subgroup G, K.normal ∧ commutator K ≤ K.center ∧
-  card (commutator K) ≤ strong_neumann_commutator_bound (comm_prob G)
-  ∧ K.index ≤ strong_neumann_index_bound (comm_prob G) :=
+namespace strong_neumann_subgroup
+
+def commutator_bound : ℝ → ℕ := weak_neumann_subgroup.commutator_bound
+
+def index_bound : ℝ → ℕ :=
+λ ε, weak_neumann_subgroup.index_bound ε * (weak_neumann_subgroup.commutator_bound ε).factorial
+
+lemma _root_.subgroup.card_dvd_of_le' {G : Type*} [group G] {H K : subgroup G} (h : H ≤ K) :
+  nat.card H ∣ nat.card K := sorry
+
+lemma card_commutator_le (h : ↑(comm_prob G) ≥ ε) :
+  nat.card (commutator (strong_neumann_subgroup G ε)) ≤ commutator_bound ε :=
 begin
-  obtain ⟨K, hK1, hK2, hK3⟩ := weak_neumann G,
-  refine ⟨(commutator K).centralizer.map K.subtype, _, _, _, _⟩,
-  { haveI : (commutator K).characteristic := by apply_instance,
-    -- why doesn't apply_instance work directly?
-    apply_instance },
-  { rw [commutator_def, commutator_def, ←subgroup.map_subtype_le_map_subtype,
-        subgroup.map_commutator, ←monoid_hom.range_eq_map, subgroup.subtype_range],
-    have key := commutator_centralizer_commutator_le_center K,
-    rw [commutator_def, ←subgroup.map_subtype_le_map_subtype, subgroup.map_commutator] at key,
-    refine key.trans _,
-    rintros - ⟨g, hg, rfl⟩,
-    refine ⟨⟨g, g, λ h hh, hg h, rfl⟩, _, rfl⟩,
-    rintros ⟨-, h, hh, rfl⟩,
-    exact subtype.ext (show _, from subtype.ext_iff.mp (hg h)) },
-  { have key : ∀ H : subgroup G, card (commutator H) = card ↥⁅H, H⁆,
-    { intro H,
-      conv_rhs { rw [←H.subtype_range, monoid_hom.range_eq_map, ←subgroup.map_commutator] },
-      exact fintype.card_congr
-        ((commutator H).equiv_map_of_injective H.subtype subtype.coe_injective).to_equiv },
-    rw key at hK2 ⊢,
-    exact let h := (commutator ↥K).centralizer.map_subtype_le in
-    (nat.le_of_dvd card_pos (subgroup.card_dvd_of_le (subgroup.commutator_mono h h))).trans hK2 },
-  {
-    sorry },
+  have key : ∀ H : subgroup G, nat.card (commutator H) = nat.card ↥⁅H, H⁆,
+  { intro H,
+    conv_rhs { rw [←H.subtype_range, monoid_hom.range_eq_map, ←subgroup.map_commutator] },
+    exact nat.card_congr
+      ((commutator H).equiv_map_of_injective H.subtype subtype.coe_injective).to_equiv },
+  rw strong_neumann_subgroup,
+  have hK2 := weak_neumann_subgroup.card_commutator_le G ε h,
+  rw key at hK2 ⊢,
+  exact let h := (commutator (weak_neumann_subgroup G ε)).centralizer.map_subtype_le in
+  (nat.le_of_dvd finite.card_pos (subgroup.card_dvd_of_le' (subgroup.commutator_mono h h))).trans hK2,
 end
+
+lemma index_le (h : ↑(comm_prob G) ≥ ε) :
+  (strong_neumann_subgroup G ε).index ≤ index_bound ε :=
+begin
+  sorry,
+end
+
+lemma commutator_le_center :
+  commutator (strong_neumann_subgroup G ε) ≤ (strong_neumann_subgroup G ε).center :=
+begin
+  rw strong_neumann_subgroup,
+  rw [commutator, commutator, ←subgroup.map_subtype_le_map_subtype,
+      subgroup.map_commutator, ←monoid_hom.range_eq_map, subgroup.subtype_range],
+  have key := commutator_centralizer_commutator_le_center (weak_neumann_subgroup G ε),
+  rw [commutator, ←subgroup.map_subtype_le_map_subtype, subgroup.map_commutator] at key,
+  refine key.trans _,
+  rintros - ⟨g, hg, rfl⟩,
+  refine ⟨⟨g, g, λ h hh, hg h, rfl⟩, _, rfl⟩,
+  rintros ⟨-, h, hh, rfl⟩,
+  exact subtype.ext (show _, from subtype.ext_iff.mp (hg h)),
+end
+
+end strong_neumann_subgroup
 
 end neumann

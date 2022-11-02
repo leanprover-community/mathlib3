@@ -5,7 +5,7 @@ Authors: Yaël Dillies, Yury Kudryashov
 -/
 import analysis.convex.strict
 import analysis.convex.topology
-import analysis.normed_space.ordered
+import analysis.normed.order.basic
 import analysis.normed_space.pointwise
 import analysis.normed_space.affine_isometry
 

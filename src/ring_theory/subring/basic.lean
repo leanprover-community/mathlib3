@@ -436,13 +436,7 @@ instance : has_top (subring R) :=
 
 /-- The ring equiv between the top element of `subring R` and `R`. -/
 @[simps]
-def top_equiv : (⊤ : subring R) ≃+* R :=
-{ to_fun := λ r, r,
-  inv_fun := λ r, ⟨r, subring.mem_top r⟩,
-  left_inv := λ r, set_like.eta r _,
-  right_inv := λ r, set_like.coe_mk r _,
-  map_mul' := (⊤ : subring R).coe_mul,
-  map_add' := (⊤ : subring R).coe_add, }
+def top_equiv : (⊤ : subring R) ≃+* R := subsemiring.top_equiv
 
 /-! ## comap -/
 

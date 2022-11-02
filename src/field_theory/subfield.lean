@@ -315,7 +315,7 @@ instance : inhabited (subfield K) := ⟨⊤⟩
 
 /-- The ring equiv between the top element of `subfield K` and `K`. -/
 @[simps]
-def top_equiv : (⊤ : subfield K) ≃+* K := subring.top_equiv
+def top_equiv : (⊤ : subfield K) ≃+* K := subsemiring.top_equiv
 
 /-! # comap -/
 

@@ -1952,20 +1952,13 @@ end
   l.take k = [] ↔ l = [] ∨ k = 0 :=
 by { cases l; cases k; simp [nat.succ_ne_zero] }
 
-lemma take_eq_take {l : list α} {m n : ℕ} :
-  l.take m = l.take n ↔ min m l.length = min n l.length :=
-begin
-  induction l with x l ih generalizing m n,
-  { simp },
-  { simp_rw length_cons, split; intro h,
-    { cases n, { simp at h, subst h },
-      cases m, { simp at h, cases h },
-      simp only [take, eq_self_iff_true, true_and] at h,
-      simpa [nat.min_succ_succ] using ih.mp h },
-    { cases n, { simp at h, subst h },
-      cases m, { simp [nat.min_succ_succ] at h, cases h },
-      simp_rw nat.min_succ_succ at h, simpa using ih.mpr h }},
-end
+lemma take_eq_take' : ∀ {l : list α} {m n : ℕ},
+  l.take m = l.take n ↔ min m l.length = min n l.length
+| [] m n := by simp
+| (x :: xs) 0 0 := by simp
+| (x :: xs) (m + 1) 0 := by simp
+| (x :: xs) 0 (n + 1) := by simp [@eq_comm ℕ 0]
+| (x :: xs) (m + 1) (n + 1) := by simp [nat.min_succ_succ, take_eq_take']
 
 lemma take_add {l : list α} {m n : ℕ} :
   l.take (m + n) = l.take m ++ (l.drop m).take n :=

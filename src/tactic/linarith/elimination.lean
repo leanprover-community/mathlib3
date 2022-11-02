@@ -81,16 +81,15 @@ The *historical set* `pcomp.history` stores the labels of expressions
 that were used in deriving the current `pcomp`.
 Variables are also indexed by natural numbers. The sets `pcomp.effective`, `pcomp.implicit`,
 and `pcomp.vars` contain variable indices.
-* `pcomp.vars` contains the variables that appear in `pcomp.c`. We store them in `pcomp` to
-  avoid recomputing the set, which requires folding over a list. (TODO: is this really needed?)
+* `pcomp.vars` contains the union of all variables that appear in the historical set.
 * `pcomp.effective` contains the variables that have been effectively eliminated from `pcomp`.
   A variable `n` is said to be *effectively eliminated* in `pcomp` if the elimination of `n`
   produced at least one of the ancestors of `pcomp`.
 * `pcomp.implicit` contains the variables that have been implicitly eliminated from `pcomp`.
   A variable `n` is said to be *implicitly eliminated* in `pcomp` if it satisfies the following
   properties:
-  - There is some `ancestor` of `pcomp` such that `n` appears in `ancestor.vars`.
-  - `n` does not appear in `pcomp.vars`.
+  - `n` appears in the historical set (i.e. in `pcomp.vars`).
+  - `n` does not appear in `p.c.vars` (i.e. it has been eliminated).
   - `n` was not effectively eliminated.
 
 We track these sets in order to compute whether the history of a `pcomp` is *minimal*.

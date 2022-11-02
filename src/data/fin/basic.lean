@@ -6,6 +6,7 @@ Authors: Robert Y. Lewis, Keeley Hoek
 import algebra.ne_zero
 import data.nat.cast
 import order.rel_iso
+import data.nat.order
 import tactic.apply_fun
 import tactic.localized
 

@@ -79,10 +79,12 @@ lemma is_finite_kernel_zero (mα : measurable_space α) (mβ : measurable_space 
 
 variables {κ : kernel mα mβ}
 
-instance todo [h : is_markov_kernel κ] (a : α) : is_probability_measure (κ a) :=
+instance is_markov_kernel.is_probability_measure' [h : is_markov_kernel κ] (a : α) :
+  is_probability_measure (κ a) :=
 is_markov_kernel.is_probability_measure a
 
-instance todo' [h : is_finite_kernel κ] (a : α) : is_finite_measure (κ a) :=
+instance is_finite_kernel.is_finite_measure [h : is_finite_kernel κ] (a : α) :
+  is_finite_measure (κ a) :=
 ⟨(measure_le_bound κ a set.univ).trans_lt (is_finite_kernel.bound_lt_top κ)⟩
 
 @[priority 100]
@@ -411,7 +413,7 @@ begin
 end
 
 noncomputable
-def of_density (κ : kernel mα mβ) [is_s_finite_kernel κ]
+def with_density (κ : kernel mα mβ) [is_s_finite_kernel κ]
   (f : α → β → ℝ≥0∞) (hf : measurable (function.uncurry f)) :
   kernel mα mβ :=
 { val := λ a, (κ a).with_density (f a),
@@ -423,6 +425,27 @@ def of_density (κ : kernel mα mβ) [is_s_finite_kernel κ]
     rw this,
     exact measurable_set_lintegral κ f hf hs,
   end, }
+
+protected lemma with_density_apply (κ : kernel mα mβ) [is_s_finite_kernel κ]
+  {f : α → β → ℝ≥0∞} (hf : measurable (function.uncurry f)) (a : α) :
+  with_density κ f hf a = (κ a).with_density (f a) := rfl
+
+lemma with_density_apply' (κ : kernel mα mβ) [is_s_finite_kernel κ]
+  {f : α → β → ℝ≥0∞} (hf : measurable (function.uncurry f)) (a : α) {s : set β}
+  (hs : measurable_set s) :
+  with_density κ f hf a s = ∫⁻ b in s, f a b ∂(κ a) :=
+by rw [kernel.with_density_apply, with_density_apply _ hs]
+
+lemma lintegral_with_density (κ : kernel mα mβ) [is_s_finite_kernel κ]
+  {f : α → β → ℝ≥0∞} (hf : measurable (function.uncurry f)) (a : α) {g : β → ℝ≥0∞}
+  (hg : measurable g) :
+  ∫⁻ b, g b ∂(with_density κ f hf a) = ∫⁻ b, f a b * g b ∂(κ a) :=
+begin
+  rw kernel.with_density_apply,
+  rw lintegral_with_density_eq_lintegral_mul _ _ hg,
+  simp_rw pi.mul_apply,
+  exact measurable.of_uncurry_left hf,
+end
 
 section composition
 

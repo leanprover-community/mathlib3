@@ -123,8 +123,8 @@ include hs
 lemma lex.acc_single [decidable_eq ι] {i : ι} (a : α i)
   (hi : acc (rᶜ ⊓ (≠)) i) : acc (dfinsupp.lex r s) (single i a) :=
 begin
-  revert a, induction hi with i hi ih,
-  refine λ a, (hs i).induction a (λ a ha, _),
+  induction hi with i hi ih generalizing a,
+  refine (hs i).induction a (λ a ha, _),
   refine acc.intro _ (λ x, _),
   rintro ⟨k, hr, hs⟩, classical,
   rw single_apply at hs,

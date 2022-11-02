@@ -42,7 +42,7 @@ notion of a preorder/thin category which says that each homset is subsingleton; 
 rather than providing a `preorder C` instance.
 -/
 instance : quiver.is_thin C :=
-λ _ _, ⟨λ r s,
+λ X Y, ⟨λ r s,
 begin
   classical,
   by_contra r_ne_s,

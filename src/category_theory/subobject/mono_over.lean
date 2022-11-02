@@ -84,11 +84,12 @@ instance mono (f : mono_over X) : mono f.arrow := f.property
 /-- The category of monomorphisms over X is a thin category,
 which makes defining its skeleton easy. -/
 instance is_thin {X : C} : quiver.is_thin (mono_over X) :=
-⟨begin
-  intros f g h₁ h₂,
-  ext1,
-  erw [← cancel_mono g.arrow, over.w h₁, over.w h₂],
-end⟩
+λ f g,
+  ⟨begin
+    intros h₁ h₂,
+    ext1,
+    erw [← cancel_mono g.arrow, over.w h₁, over.w h₂],
+  end⟩
 
 @[reassoc] lemma w {f g : mono_over X} (k : f ⟶ g) : k.left ≫ g.arrow = f.arrow := over.w _
 

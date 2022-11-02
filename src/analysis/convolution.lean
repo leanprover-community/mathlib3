@@ -95,6 +95,28 @@ universes u𝕜 uG uE uE' uE'' uF uF' uF'' uP
 variables {𝕜 : Type u𝕜} {G : Type uG} {E : Type uE} {E' : Type uE'} {E'' : Type uE''}
 {F : Type uF} {F' : Type uF'} {F'' : Type uF''}
 
+
+
+@[to_additive]
+lemma has_compact_mul_support.eq_one_or_finite_dimensional
+  (𝕜 : Type*) {E F : Type*} [is_R_or_C 𝕜] [normed_add_comm_group E] [normed_space 𝕜 E]
+  [topological_space F] [has_one F] [t2_space F]
+  {f : E → F} (hf : has_compact_mul_support f) (h'f : continuous f) :
+  f = 1 ∨ finite_dimensional 𝕜 E :=
+begin
+  by_cases h : ∀ x, f x = 1, { apply or.inl, ext x, exact h x },
+  apply or.inr,
+  push_neg at h,
+  obtain ⟨x, hx⟩ : ∃ x, f x ≠ 1, from h,
+  have : mul_support f ∈ 𝓝 x, from h'f.is_open_mul_support.mem_nhds hx,
+  obtain ⟨r, rpos, hr⟩ : ∃ (r : ℝ) (hi : 0 < r), closed_ball x r ⊆ mul_support f,
+    from nhds_basis_closed_ball.mem_iff.1 this,
+  have : is_compact (closed_ball x r),
+    from compact_of_is_closed_subset hf is_closed_ball (hr.trans (subset_mul_tsupport _)),
+  exact finite_dimensional_of_is_compact_closed_ball 𝕜 rpos this,
+end
+
+
 variables [normed_add_comm_group E] [normed_add_comm_group E'] [normed_add_comm_group E'']
   [normed_add_comm_group F] {f f' : G → E} {g g' : G → E'} {x x' : G} {y y' : E}
 
@@ -290,9 +312,9 @@ lemma measure_theory.integrable.ae_convolution_exists (hf : integrable f ν) (hg
 end right
 
 variables [topological_space G] [topological_add_group G] [borel_space G]
-  [second_countable_topology G] [sigma_compact_space G]
 
-lemma has_compact_support.convolution_exists_at {x₀ : G}
+lemma has_compact_support.convolution_exists_at
+  [second_countable_topology G] [sigma_compact_space G] {x₀ : G}
   (h : has_compact_support (λ t, L (f t) (g (x₀ - t)))) (hf : locally_integrable f μ)
   (hg : continuous g) : convolution_exists_at f g x₀ L μ :=
 ((((homeomorph.neg G).trans $ homeomorph.add_right x₀).compact_preimage.mpr h).bdd_above_image
@@ -427,10 +449,10 @@ lemma convolution_smul [smul_comm_class ℝ 𝕜 F]
   {y : 𝕜} : f ⋆[L, μ] (y • g) = y • (f ⋆[L, μ] g) :=
 by { ext, simp only [pi.smul_apply, convolution_def, ← integral_smul, (L _).map_smul] }
 
-lemma zero_convolution : 0 ⋆[L, μ] g = 0 :=
+@[simp] lemma zero_convolution : 0 ⋆[L, μ] g = 0 :=
 by { ext, simp_rw [convolution_def, pi.zero_apply, L.map_zero₂, integral_zero] }
 
-lemma convolution_zero : f ⋆[L, μ] 0 = 0 :=
+@[simp] lemma convolution_zero : f ⋆[L, μ] 0 = 0 :=
 by { ext, simp_rw [convolution_def, pi.zero_apply, (L _).map_zero, integral_zero] }
 
 lemma convolution_exists_at.distrib_add {x : G} (hfg : convolution_exists_at f g x L μ)
@@ -952,8 +974,9 @@ end
 
 end assoc
 
+
 variables [normed_add_comm_group G] [borel_space G]
-variables [second_countable_topology G] [sigma_compact_space G]
+-- variables [second_countable_topology G] [sigma_compact_space G]
 
 lemma convolution_precompR_apply {g : G → E'' →L[𝕜] E'}
   (hf : locally_integrable f μ) (hcg : has_compact_support g) (hg : continuous g)
@@ -967,13 +990,21 @@ end
 variables [sigma_finite μ] [is_add_left_invariant μ]
 variables [normed_space 𝕜 G]
 
+/- Renommer "compact_of_is_closed_subset" en "is_compact..."-/
+
 /-- Compute the total derivative of `f ⋆ g` if `g` is `C^1` with compact support and `f` is locally
 integrable. To write down the total derivative as a convolution, we use
 `continuous_linear_map.precompR`. -/
-lemma has_compact_support.has_fderiv_at_convolution_right [proper_space G]
+lemma has_compact_support.has_fderiv_at_convolution_right
   (hcg : has_compact_support g) (hf : locally_integrable f μ) (hg : cont_diff 𝕜 1 g) (x₀ : G) :
   has_fderiv_at (f ⋆[L, μ] g) ((f ⋆[L.precompR G, μ] fderiv 𝕜 g) x₀) x₀ :=
 begin
+  rcases hcg.eq_zero_or_finite_dimensional 𝕜 hg.continuous with rfl|fin_dim,
+  { have : fderiv 𝕜 (0 : G → E') = 0, from fderiv_const (0 : E'),
+    simp only [this, convolution_zero, pi.zero_apply],
+    exact has_fderiv_at_const (0 : F) x₀ },
+  resetI,
+  letI : proper_space G, from finite_dimensional.proper_is_R_or_C 𝕜 G,
   set L' := L.precompR G,
   have h1 : ∀ᶠ x in 𝓝 x₀, ae_strongly_measurable (λ t, L (f t) (g (x - t))) μ :=
   eventually_of_forall
@@ -999,6 +1030,8 @@ begin
   { exact eventually_of_forall (λ t x hx, (L _).has_fderiv_at.comp x (h3 x t)) },
 end
 
+
+#exit
 .
 
 #where

@@ -2042,8 +2042,22 @@ begin
   { assume s t,
     use [s ∪ t],
     split,
-    exact assume a, finset.sum_le_sum_of_subset (finset.subset_union_left _ _),
-    exact assume a, finset.sum_le_sum_of_subset (finset.subset_union_right _ _) }
+    { exact assume a, finset.sum_le_sum_of_subset (finset.subset_union_left _ _), },
+    { exact assume a, finset.sum_le_sum_of_subset (finset.subset_union_right _ _) } }
+end
+
+lemma lintegral_tsum' [countable β] {f : β → α → ℝ≥0∞} (hf : ∀i, ae_measurable (f i) μ) :
+  ∫⁻ a, ∑' i, f i a ∂μ = ∑' i, ∫⁻ a, f i a ∂μ :=
+begin
+  simp only [ennreal.tsum_eq_supr_sum],
+  rw [lintegral_supr_directed'],
+  { simp [lintegral_finset_sum' _ (λ i _, hf i)] },
+  { assume b, exact finset.ae_measurable_sum _ (λ i _, hf i) },
+  { assume s t,
+    use [s ∪ t],
+    split,
+    { exact assume a, finset.sum_le_sum_of_subset (finset.subset_union_left _ _), },
+    { exact assume a, finset.sum_le_sum_of_subset (finset.subset_union_right _ _) } }
 end
 
 open measure

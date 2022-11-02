@@ -1976,8 +1976,8 @@ open encodable
 
 /-- Monotone convergence for a supremum over a directed family and indexed by a countable type -/
 theorem lintegral_supr_directed [countable β] {f : β → α → ℝ≥0∞}
-  (hf : ∀b, measurable (f b)) (h_directed : directed (≤) f) :
-  ∫⁻ a, ⨆b, f b a ∂μ = ⨆b, ∫⁻ a, f b a ∂μ :=
+  (hf : ∀ b, measurable (f b)) (h_directed : directed (≤) f) :
+  ∫⁻ a, ⨆ b, f b a ∂μ = ⨆ b, ∫⁻ a, f b a ∂μ :=
 begin
   casesI nonempty_encodable β,
   casesI is_empty_or_nonempty β, { simp [supr_of_empty] },
@@ -1997,6 +1997,37 @@ begin
       { exact le_supr_of_le (encode b + 1)
           (lintegral_mono $ h_directed.le_sequence b) }
     end
+end
+
+/-- Monotone convergence for a supremum over a directed family and indexed by a countable type. -/
+theorem lintegral_supr_directed' [countable β] {f : β → α → ℝ≥0∞}
+  (hf : ∀ b, ae_measurable (f b) μ) (h_directed : directed (≤) f) :
+  ∫⁻ a, ⨆ b, f b a ∂μ = ⨆ b, ∫⁻ a, f b a ∂μ :=
+begin
+  simp_rw ←supr_apply,
+  let p : α → (β → ennreal) → Prop := λ x f', directed has_le.le f',
+  have hp : ∀ᵐ x ∂μ, p x (λ i, f i x),
+  { filter_upwards with x i j,
+    obtain ⟨z, hz₁, hz₂⟩ := h_directed i j,
+    exact ⟨z, hz₁ x, hz₂ x⟩, },
+  have h_ae_seq_directed : directed has_le.le (ae_seq hf p),
+  { intros b₁ b₂,
+    obtain ⟨z, hz₁, hz₂⟩ := h_directed b₁ b₂,
+    refine ⟨z, _, _⟩;
+    { intros x,
+      by_cases hx : x ∈ ae_seq_set hf p,
+      { repeat { rw ae_seq.ae_seq_eq_fun_of_mem_ae_seq_set hf hx },
+        apply_rules [hz₁, hz₂], },
+      { simp only [ae_seq, hx, if_false],
+        exact le_rfl, }, }, },
+  convert (lintegral_supr_directed (ae_seq.measurable hf p) h_ae_seq_directed) using 1,
+  { simp_rw ←supr_apply,
+    rw lintegral_congr_ae (ae_seq.supr hf hp).symm, },
+  { congr' 1,
+    ext1 b,
+    rw lintegral_congr_ae,
+    symmetry,
+    refine ae_seq.ae_seq_n_eq_fun_n_ae hf hp _, },
 end
 
 end

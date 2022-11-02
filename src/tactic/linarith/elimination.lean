@@ -160,9 +160,9 @@ meta def pcomp.add (c1 c2 : pcomp) (elim_var : ℕ) : pcomp :=
 let c := c1.c.add c2.c,
     src := c1.src.add c2.src,
     history := c1.history.union c2.history,
-    vars := native.rb_set.of_list c.vars,
+    vars := (c1.vars.union c2.vars),
     effective := (c1.effective.union c2.effective).insert elim_var,
-    implicit := ((c1.vars.union c2.vars).sdiff vars).erase elim_var in
+    implicit := (vars.sdiff (native.rb_set.of_list c.vars)).erase elim_var in
 ⟨c, src, history, effective, implicit, vars⟩
 
 /--

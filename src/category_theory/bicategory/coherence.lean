@@ -207,7 +207,7 @@ equivalence.mk ((normalize _).map_functor a b) (inclusion_path a b)
   (discrete.nat_iso (λ f, eq_to_iso (by { induction f; induction f; tidy })))
 
 /-- The coherence theorem for bicategories. -/
-instance locally_thin {a b : free_bicategory B} quiver.is_thin (a ⟶ b) :=
+instance locally_thin {a b : free_bicategory B} : quiver.is_thin (a ⟶ b) :=
 λ _ _, ⟨λ η θ, (normalize_equiv a b).functor.map_injective (subsingleton.elim _ _)⟩
 
 /-- Auxiliary definition for `inclusion`. -/

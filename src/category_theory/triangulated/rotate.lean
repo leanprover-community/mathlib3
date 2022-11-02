@@ -22,7 +22,7 @@ open category_theory.limits
 
 universes v v₀ v₁ v₂ u u₀ u₁ u₂
 
-namespace category_theory.triangulated
+namespace category_theory.pretriangulated
 open category_theory.category
 
 /--
@@ -47,7 +47,7 @@ applying `rotate` gives a triangle of the form:
 ```
 -/
 @[simps]
-def triangle.rotate (T : triangle C) : triangle C := triangle.mk _ T.mor₂ T.mor₃ (-T.mor₁⟦1⟧')
+def triangle.rotate (T : triangle C) : triangle C := triangle.mk T.mor₂ T.mor₃ (-T.mor₁⟦1⟧')
 
 section
 local attribute [semireducible] shift_shift_neg shift_neg_shift
@@ -68,7 +68,7 @@ not necessarily equal to `Z`, but it is isomorphic, by the `counit_iso` of `shif
 -/
 @[simps]
 def triangle.inv_rotate (T : triangle C) : triangle C :=
-triangle.mk _ (-T.mor₃⟦(-1:ℤ)⟧' ≫ (shift_shift_neg _ _).hom) T.mor₁
+triangle.mk (-T.mor₃⟦(-1:ℤ)⟧' ≫ (shift_shift_neg _ _).hom) T.mor₁
   (T.mor₂ ≫ (shift_neg_shift _ _).inv)
 
 end
@@ -351,4 +351,4 @@ by { change is_equivalence (triangle_rotation C).functor, apply_instance, }
 instance : is_equivalence (inv_rotate C) :=
 by { change is_equivalence (triangle_rotation C).inverse, apply_instance, }
 
-end category_theory.triangulated
+end category_theory.pretriangulated

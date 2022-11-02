@@ -49,6 +49,10 @@ finset.smul_sum.symm
 
 @[simp] lemma trace_transpose (A : matrix n n R) : trace Aᵀ = trace A := rfl
 
+@[simp] lemma trace_conj_transpose [star_add_monoid R] (A : matrix n n R) :
+  trace Aᴴ = star (trace A) :=
+(star_sum _ _).symm
+
 variables (n α R)
 /-- `matrix.trace` as an `add_monoid_hom` -/
 @[simps]
@@ -85,7 +89,7 @@ finset.sum_neg_distrib
 end add_comm_group
 
 section one
-variables [decidable_eq n]  [add_comm_monoid R] [has_one R]
+variables [decidable_eq n] [add_comm_monoid_with_one R]
 
 @[simp] lemma trace_one : trace (1 : matrix n n R) = fintype.card n :=
 by simp_rw [trace, diag_one, pi.one_def, finset.sum_const, nsmul_one, finset.card_univ]

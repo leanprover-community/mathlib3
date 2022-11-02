@@ -100,10 +100,10 @@ end formal_multilinear_series
 /-! ### The radius of a formal multilinear series -/
 
 
-variables [nondiscrete_normed_field 𝕜]
-[normed_group E] [normed_space 𝕜 E]
-[normed_group F] [normed_space 𝕜 F]
-[normed_group G] [normed_space 𝕜 G]
+variables [nontrivially_normed_field 𝕜]
+[normed_add_comm_group E] [normed_space 𝕜 E]
+[normed_add_comm_group F] [normed_space 𝕜 F]
+[normed_add_comm_group G] [normed_space 𝕜 G]
 
 namespace formal_multilinear_series
 
@@ -126,7 +126,7 @@ lemma le_radius_of_bound_nnreal (C : ℝ≥0) {r : ℝ≥0} (h : ∀ (n : ℕ), 
 p.le_radius_of_bound C $ λ n, by exact_mod_cast (h n)
 
 /-- If `∥pₙ∥ rⁿ = O(1)`, as `n → ∞`, then the radius of `p` is at least `r`. -/
-lemma le_radius_of_is_O (h : is_O (λ n, ∥p n∥ * r^n) (λ n, (1 : ℝ)) at_top) : ↑r ≤ p.radius :=
+lemma le_radius_of_is_O (h : (λ n, ∥p n∥ * r^n) =O[at_top] (λ n, (1 : ℝ))) : ↑r ≤ p.radius :=
 exists.elim (is_O_one_nat_at_top_iff.1 h) $ λ C hC, p.le_radius_of_bound C $
   λ n, (le_abs_self _).trans (hC n)
 
@@ -140,7 +140,7 @@ lemma le_radius_of_summable (h : summable (λ n, ∥p n∥ * r ^ n)) : ↑r ≤ 
 p.le_radius_of_summable_nnnorm $ by { simp only [← coe_nnnorm] at h, exact_mod_cast h }
 
 lemma radius_eq_top_of_forall_nnreal_is_O
-  (h : ∀ r : ℝ≥0, is_O (λ n, ∥p n∥ * r^n) (λ n, (1 : ℝ)) at_top) : p.radius = ∞ :=
+  (h : ∀ r : ℝ≥0, (λ n, ∥p n∥ * r^n) =O[at_top] (λ n, (1 : ℝ))) : p.radius = ∞ :=
 ennreal.eq_top_of_forall_nnreal_le $ λ r, p.le_radius_of_is_O (h r)
 
 lemma radius_eq_top_of_eventually_eq_zero (h : ∀ᶠ n in at_top, p n = 0) : p.radius = ∞ :=
@@ -151,10 +151,15 @@ lemma radius_eq_top_of_forall_image_add_eq_zero (n : ℕ) (hn : ∀ m, p (m + n)
 p.radius_eq_top_of_eventually_eq_zero $ mem_at_top_sets.2
   ⟨n, λ k hk, tsub_add_cancel_of_le hk ▸ hn _⟩
 
+@[simp] lemma const_formal_multilinear_series_radius {v : F} :
+  (const_formal_multilinear_series 𝕜 E v).radius = ⊤ :=
+(const_formal_multilinear_series 𝕜 E v).radius_eq_top_of_forall_image_add_eq_zero 1
+  (by simp [const_formal_multilinear_series])
+
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ` tends to zero exponentially:
 for some `0 < a < 1`, `∥p n∥ rⁿ = o(aⁿ)`. -/
 lemma is_o_of_lt_radius (h : ↑r < p.radius) :
-  ∃ a ∈ Ioo (0 : ℝ) 1, is_o (λ n, ∥p n∥ * r ^ n) (pow a) at_top :=
+  ∃ a ∈ Ioo (0 : ℝ) 1, (λ n, ∥p n∥ * r ^ n) =o[at_top] (pow a) :=
 begin
   rw (tfae_exists_lt_is_o_pow (λ n, ∥p n∥ * r ^ n) 1).out 1 4,
   simp only [radius, lt_supr_iff] at h,
@@ -170,7 +175,7 @@ end
 
 /-- For `r` strictly smaller than the radius of `p`, then `∥pₙ∥ rⁿ = o(1)`. -/
 lemma is_o_one_of_lt_radius (h : ↑r < p.radius) :
-  is_o (λ n, ∥p n∥ * r ^ n) (λ _, 1 : ℕ → ℝ) at_top :=
+  (λ n, ∥p n∥ * r ^ n) =o[at_top] (λ _, 1 : ℕ → ℝ) :=
 let ⟨a, ha, hp⟩ := p.is_o_of_lt_radius h in
 hp.trans $ (is_o_pow_pow_of_lt_left ha.1.le ha.2).congr (λ n, rfl) one_pow
 
@@ -186,7 +191,7 @@ end
 
 /-- If `r ≠ 0` and `∥pₙ∥ rⁿ = O(aⁿ)` for some `-1 < a < 1`, then `r < p.radius`. -/
 lemma lt_radius_of_is_O (h₀ : r ≠ 0) {a : ℝ} (ha : a ∈ Ioo (-1 : ℝ) 1)
-  (hp : is_O (λ n, ∥p n∥ * r ^ n) (pow a) at_top) :
+  (hp : (λ n, ∥p n∥ * r ^ n) =O[at_top] (pow a)) :
   ↑r < p.radius :=
 begin
   rcases ((tfae_exists_lt_is_o_pow (λ n, ∥p n∥ * r ^ n) 1).out 2 5).mp ⟨a, ha, hp⟩
@@ -222,7 +227,7 @@ in ⟨⟨C, hC.lt.le⟩, hC, by exact_mod_cast hp⟩
 
 lemma le_radius_of_tendsto (p : formal_multilinear_series 𝕜 E F) {l : ℝ}
   (h : tendsto (λ n, ∥p n∥ * r^n) at_top (𝓝 l)) : ↑r ≤ p.radius :=
-p.le_radius_of_is_O (is_O_one_of_tendsto _ h)
+p.le_radius_of_is_O (h.is_O_one _)
 
 lemma le_radius_of_summable_norm (p : formal_multilinear_series 𝕜 E F)
   (hs : summable (λ n, ∥p n∥ * r^n)) : ↑r ≤ p.radius :=
@@ -289,7 +294,7 @@ begin
   rcases norm_le_div_pow_of_pos_of_lt_radius p rpos rlt with ⟨C, Cpos, hCp⟩,
   refine ⟨C, r ⁻¹, Cpos, by simp [rpos], λ n, _⟩,
   convert hCp n,
-  exact inv_pow₀ _ _,
+  exact inv_pow _ _,
 end
 
 /-- The radius of the sum of two formal series is at least the minimum of their two radii. -/
@@ -407,11 +412,63 @@ lemma has_fpower_series_on_ball.mono
   has_fpower_series_on_ball f p x r' :=
 ⟨le_trans hr hf.1, r'_pos, λ y hy, hf.has_sum (emetric.ball_subset_ball hr hy)⟩
 
+lemma has_fpower_series_at.congr (hf : has_fpower_series_at f p x) (hg : f =ᶠ[𝓝 x] g) :
+  has_fpower_series_at g p x :=
+begin
+  rcases hf with ⟨r₁, h₁⟩,
+  rcases emetric.mem_nhds_iff.mp hg with ⟨r₂, h₂pos, h₂⟩,
+  exact ⟨min r₁ r₂, (h₁.mono (lt_min h₁.r_pos h₂pos) inf_le_left).congr
+    (λ y hy, h₂ (emetric.ball_subset_ball inf_le_right hy))⟩
+end
+
 protected lemma has_fpower_series_at.eventually (hf : has_fpower_series_at f p x) :
   ∀ᶠ r : ℝ≥0∞ in 𝓝[>] 0, has_fpower_series_on_ball f p x r :=
 let ⟨r, hr⟩ := hf in
 mem_of_superset (Ioo_mem_nhds_within_Ioi (left_mem_Ico.2 hr.r_pos)) $
   λ r' hr', hr.mono hr'.1 hr'.2.le
+
+lemma has_fpower_series_on_ball.eventually_has_sum (hf : has_fpower_series_on_ball f p x r) :
+  ∀ᶠ y in 𝓝 0, has_sum (λn:ℕ, p n (λ(i : fin n), y)) (f (x + y)) :=
+by filter_upwards [emetric.ball_mem_nhds (0 : E) hf.r_pos] using λ _, hf.has_sum
+
+lemma has_fpower_series_at.eventually_has_sum (hf : has_fpower_series_at f p x) :
+  ∀ᶠ y in 𝓝 0, has_sum (λn:ℕ, p n (λ(i : fin n), y)) (f (x + y)) :=
+let ⟨r, hr⟩ := hf in hr.eventually_has_sum
+
+lemma has_fpower_series_on_ball.eventually_has_sum_sub (hf : has_fpower_series_on_ball f p x r) :
+  ∀ᶠ y in 𝓝 x, has_sum (λn:ℕ, p n (λ(i : fin n), y - x)) (f y) :=
+by filter_upwards [emetric.ball_mem_nhds x hf.r_pos] with y using hf.has_sum_sub
+
+lemma has_fpower_series_at.eventually_has_sum_sub (hf : has_fpower_series_at f p x) :
+  ∀ᶠ y in 𝓝 x, has_sum (λn:ℕ, p n (λ(i : fin n), y - x)) (f y) :=
+let ⟨r, hr⟩ := hf in hr.eventually_has_sum_sub
+
+lemma has_fpower_series_on_ball.eventually_eq_zero
+  (hf : has_fpower_series_on_ball f (0 : formal_multilinear_series 𝕜 E F) x r) :
+  ∀ᶠ z in 𝓝 x, f z = 0 :=
+by filter_upwards [hf.eventually_has_sum_sub] with z hz using hz.unique has_sum_zero
+
+lemma has_fpower_series_at.eventually_eq_zero
+  (hf : has_fpower_series_at f (0 : formal_multilinear_series 𝕜 E F) x) :
+  ∀ᶠ z in 𝓝 x, f z = 0 :=
+let ⟨r, hr⟩ := hf in hr.eventually_eq_zero
+
+lemma has_fpower_series_on_ball_const {c : F} {e : E} :
+  has_fpower_series_on_ball (λ _, c) (const_formal_multilinear_series 𝕜 E c) e ⊤ :=
+begin
+  refine ⟨by simp, with_top.zero_lt_top, λ y hy, has_sum_single 0 (λ n hn, _)⟩,
+  simp [const_formal_multilinear_series_apply hn]
+end
+
+lemma has_fpower_series_at_const {c : F} {e : E} :
+  has_fpower_series_at (λ _, c) (const_formal_multilinear_series 𝕜 E c) e :=
+⟨⊤, has_fpower_series_on_ball_const⟩
+
+lemma analytic_at_const {v : F} : analytic_at 𝕜 (λ _, v) x :=
+⟨const_formal_multilinear_series 𝕜 E v, has_fpower_series_at_const⟩
+
+lemma analytic_on_const {v : F} {s : set E} : analytic_on 𝕜 (λ _, v) s :=
+λ z _, analytic_at_const
 
 lemma has_fpower_series_on_ball.add
   (hf : has_fpower_series_on_ball f pf x r) (hg : has_fpower_series_on_ball g pg x r) :
@@ -458,6 +515,18 @@ by simpa only [sub_eq_add_neg] using hf.add hg.neg
 lemma analytic_at.sub (hf : analytic_at 𝕜 f x) (hg : analytic_at 𝕜 g x) :
   analytic_at 𝕜 (f - g) x :=
 by simpa only [sub_eq_add_neg] using hf.add hg.neg
+
+lemma analytic_on.mono {s t : set E} (hf : analytic_on 𝕜 f t) (hst : s ⊆ t) :
+  analytic_on 𝕜 f s :=
+λ z hz, hf z (hst hz)
+
+lemma analytic_on.add {s : set E} (hf : analytic_on 𝕜 f s) (hg : analytic_on 𝕜 g s) :
+  analytic_on 𝕜 (f + g) s :=
+λ z hz, (hf z hz).add (hg z hz)
+
+lemma analytic_on.sub {s : set E} (hf : analytic_on 𝕜 f s) (hg : analytic_on 𝕜 g s) :
+  analytic_on 𝕜 (f - g) s :=
+λ z hz, (hf z hz).sub (hg z hz)
 
 lemma has_fpower_series_on_ball.coeff_zero (hf : has_fpower_series_on_ball f pf x r)
   (v : fin 0 → E) : pf 0 v = f x :=
@@ -552,7 +621,7 @@ end
 
 /-- Taylor formula for an analytic function, `is_O` version. -/
 lemma has_fpower_series_at.is_O_sub_partial_sum_pow (hf : has_fpower_series_at f p x) (n : ℕ) :
-  is_O (λ y : E, f (x + y) - p.partial_sum n y) (λ y, ∥y∥ ^ n) (𝓝 0) :=
+  (λ y : E, f (x + y) - p.partial_sum n y) =O[𝓝 0] (λ y, ∥y∥ ^ n) :=
 begin
   rcases hf with ⟨r, hf⟩,
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 hf.r_pos with ⟨r', r'0, h⟩,
@@ -571,8 +640,8 @@ ball, the norm of the difference `f y - f z - p 1 (λ _, y - z)` is bounded abov
 `filter.principal` on `E × E`. -/
 lemma has_fpower_series_on_ball.is_O_image_sub_image_sub_deriv_principal
   (hf : has_fpower_series_on_ball f p x r) (hr : r' < r) :
-  is_O (λ y : E × E, f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2)))
-    (λ y, ∥y - (x, x)∥ * ∥y.1 - y.2∥) (𝓟 $ emetric.ball (x, x) r') :=
+  (λ y : E × E, f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2))) =O[𝓟 (emetric.ball (x, x) r')]
+    (λ y, ∥y - (x, x)∥ * ∥y.1 - y.2∥) :=
 begin
   lift r' to ℝ≥0 using ne_top_of_lt hr,
   rcases (zero_le r').eq_or_lt with rfl|hr'0,
@@ -618,7 +687,7 @@ begin
       convert (has_sum_coe_mul_geometric_of_norm_lt_1 this).add
         ((has_sum_geometric_of_norm_lt_1 this).mul_left 2) },
     exact hA.norm_le_of_bounded hBL hAB },
-  suffices : is_O L (λ y, ∥y - (x, x)∥ * ∥y.1 - y.2∥) (𝓟 (emetric.ball (x, x) r')),
+  suffices : L =O[𝓟 (emetric.ball (x, x) r')] (λ y, ∥y - (x, x)∥ * ∥y.1 - y.2∥),
   { refine (is_O.of_bound 1 (eventually_principal.2 $ λ y hy, _)).trans this,
     rw one_mul,
     exact (hL y hy).trans (le_abs_self _) },
@@ -641,8 +710,8 @@ by simpa only [is_O_principal, mul_assoc, norm_mul, norm_norm, prod.forall,
 `f y - f z - p 1 (λ _, y - z) = O(∥(y, z) - (x, x)∥ * ∥y - z∥)` as `(y, z) → (x, x)`.
 In particular, `f` is strictly differentiable at `x`. -/
 lemma has_fpower_series_at.is_O_image_sub_norm_mul_norm_sub (hf : has_fpower_series_at f p x) :
-  is_O (λ y : E × E, f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2)))
-    (λ y, ∥y - (x, x)∥ * ∥y.1 - y.2∥) (𝓝 (x, x)) :=
+  (λ y : E × E, f y.1 - f y.2 - (p 1 (λ _, y.1 - y.2))) =O[𝓝 (x, x)]
+    (λ y, ∥y - (x, x)∥ * ∥y.1 - y.2∥) :=
 begin
   rcases hf with ⟨r, hf⟩,
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 hf.r_pos with ⟨r', r'0, h⟩,
@@ -769,7 +838,7 @@ section uniqueness
 open continuous_multilinear_map
 
 lemma asymptotics.is_O.continuous_multilinear_map_apply_eq_zero {n : ℕ} {p : E [×n]→L[𝕜] F}
-  (h : is_O (λ y, p (λ i, y)) (λ y, ∥y∥ ^ (n + 1)) (𝓝 0)) (y : E) :
+  (h : (λ y, p (λ i, y)) =O[𝓝 0] (λ y, ∥y∥ ^ (n + 1))) (y : E) :
   p (λ i, y) = 0 :=
 begin
   obtain ⟨c, c_pos, hc⟩ := h.exists_pos,
@@ -839,6 +908,17 @@ theorem has_fpower_series_at.eq_formal_multilinear_series
   (h₁ : has_fpower_series_at f p₁ x) (h₂ : has_fpower_series_at f p₂ x) :
   p₁ = p₂ :=
 sub_eq_zero.mp (has_fpower_series_at.eq_zero (by simpa only [sub_self] using h₁.sub h₂))
+
+lemma has_fpower_series_at.eq_formal_multilinear_series_of_eventually
+  {p q : formal_multilinear_series 𝕜 𝕜 E} {f g : 𝕜 → E} {x : 𝕜} (hp : has_fpower_series_at f p x)
+  (hq : has_fpower_series_at g q x) (heq : ∀ᶠ z in 𝓝 x, f z = g z) :
+  p = q :=
+(hp.congr heq).eq_formal_multilinear_series hq
+
+/-- A one-dimensional formal multilinear series representing a locally zero function is zero. -/
+lemma has_fpower_series_at.eq_zero_of_eventually {p : formal_multilinear_series 𝕜 𝕜 E} {f : 𝕜 → E}
+  {x : 𝕜} (hp : has_fpower_series_at f p x) (hf : f =ᶠ[𝓝 x] 0) : p = 0 :=
+(hp.congr hf).eq_zero
 
 /-- If a function `f : 𝕜 → E` has two power series representations at `x`, then the given radii in
 which convergence is guaranteed may be interchanged. This can be useful when the formal multilinear
@@ -1177,6 +1257,49 @@ begin
   rw is_open_iff_mem_nhds,
   rintro x ⟨p, r, hr⟩,
   exact mem_of_superset (emetric.ball_mem_nhds _ hr.r_pos) (λ y hy, hr.analytic_at_of_mem hy)
+end
+
+end
+
+section
+
+open formal_multilinear_series
+
+variables {p : formal_multilinear_series 𝕜 𝕜 E} {f : 𝕜 → E} {z₀ : 𝕜}
+
+/-- A function `f : 𝕜 → E` has `p` as power series expansion at a point `z₀` iff it is the sum of
+`p` in a neighborhood of `z₀`. This makes some proofs easier by hiding the fact that
+`has_fpower_series_at` depends on `p.radius`. -/
+lemma has_fpower_series_at_iff : has_fpower_series_at f p z₀ ↔
+  ∀ᶠ z in 𝓝 0, has_sum (λ n, z ^ n • p.coeff n) (f (z₀ + z)) :=
+begin
+  refine ⟨λ ⟨r, r_le, r_pos, h⟩, eventually_of_mem (emetric.ball_mem_nhds 0 r_pos)
+    (λ _, by simpa using h), _⟩,
+  simp only [metric.eventually_nhds_iff],
+  rintro ⟨r, r_pos, h⟩,
+  refine ⟨p.radius ⊓ r.to_nnreal, by simp, _, _⟩,
+  { simp only [r_pos.lt, lt_inf_iff, ennreal.coe_pos, real.to_nnreal_pos, and_true],
+    obtain ⟨z, z_pos, le_z⟩ := normed_field.exists_norm_lt 𝕜 r_pos.lt,
+    have : (∥z∥₊ : ennreal) ≤ p.radius,
+    by { simp only [dist_zero_right] at h,
+      apply formal_multilinear_series.le_radius_of_tendsto,
+      convert tendsto_norm.comp (h le_z).summable.tendsto_at_top_zero,
+      funext; simp [norm_smul, mul_comm] },
+    refine lt_of_lt_of_le _ this,
+    simp only [ennreal.coe_pos],
+    exact zero_lt_iff.mpr (nnnorm_ne_zero_iff.mpr (norm_pos_iff.mp z_pos)) },
+  { simp only [emetric.mem_ball, lt_inf_iff, edist_lt_coe, apply_eq_pow_smul_coeff, and_imp,
+      dist_zero_right] at h ⊢,
+    refine λ y hyp hyr, h _,
+    simpa [nndist_eq_nnnorm, real.lt_to_nnreal_iff_coe_lt] using hyr }
+end
+
+lemma has_fpower_series_at_iff' : has_fpower_series_at f p z₀ ↔
+  ∀ᶠ z in 𝓝 z₀, has_sum (λ n, (z - z₀) ^ n • p.coeff n) (f z) :=
+begin
+  rw [← map_add_left_nhds_zero, eventually_map, has_fpower_series_at_iff],
+  congrm ∀ᶠ z in (𝓝 0 : filter 𝕜), has_sum (λ n, _) (f (z₀ + z)),
+  rw add_sub_cancel'
 end
 
 end

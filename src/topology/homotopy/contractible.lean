@@ -42,10 +42,8 @@ open_locale continuous_map
 class contractible_space (X : Type*) [topological_space X] : Prop :=
 (hequiv_unit [] : nonempty (X ≃ₕ unit))
 
-
-variables (X : Type*) [topological_space X] [contractible_space X]
-
-lemma id_nullhomotopic : (continuous_map.id X).nullhomotopic :=
+lemma id_nullhomotopic (X : Type*) [topological_space X] [contractible_space X] :
+  (continuous_map.id X).nullhomotopic :=
 begin
   obtain ⟨hv⟩ := contractible_space.hequiv_unit X,
   use hv.inv_fun (),
@@ -64,10 +62,29 @@ begin
   { exact h.symm, }, { convert homotopic.refl (continuous_map.id unit), ext, },
 end
 
+variables {X Y : Type*} [topological_space X] [topological_space Y]
+
+protected lemma continuous_map.homotopy_equiv.contractible_space [contractible_space Y]
+  (e : X ≃ₕ Y) :
+  contractible_space X :=
+⟨(contractible_space.hequiv_unit Y).map e.trans⟩
+
+protected lemma continuous_map.homotopy_equiv.contractible_space_iff (e : X ≃ₕ Y) :
+  contractible_space X ↔ contractible_space Y :=
+⟨by { introI h, exact e.symm.contractible_space }, by { introI h, exact e.contractible_space }⟩
+
+protected lemma homeomorph.contractible_space [contractible_space Y] (e : X ≃ₜ Y) :
+  contractible_space X :=
+e.to_homotopy_equiv.contractible_space
+
+protected lemma homeomorph.contractible_space_iff (e : X ≃ₜ Y) :
+  contractible_space X ↔ contractible_space Y :=
+e.to_homotopy_equiv.contractible_space_iff
+
 namespace contractible_space
 
 @[priority 100]
-instance : path_connected_space X :=
+instance [contractible_space X] : path_connected_space X :=
 begin
   obtain ⟨p, ⟨h⟩⟩ := id_nullhomotopic X,
   have : ∀ x, joined p x := λ x, ⟨(h.eval_at x).symm⟩,

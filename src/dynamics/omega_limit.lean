@@ -45,10 +45,10 @@ variables {τ : Type*} {α : Type*} {β : Type*} {ι : Type*}
 def omega_limit [topological_space β] (f : filter τ) (ϕ : τ → α → β) (s : set α) : set β :=
 ⋂ u ∈ f, closure (image2 ϕ u s)
 
-localized "notation `ω` := omega_limit" in omega_limit
+localized "notation (name := omega_limit) `ω` := omega_limit" in omega_limit
 
-localized "notation `ω⁺` := omega_limit filter.at_top" in omega_limit
-localized "notation `ω⁻` := omega_limit filter.at_bot" in omega_limit
+localized "notation (name := omega_limit.at_top) `ω⁺` := omega_limit filter.at_top" in omega_limit
+localized "notation (name := omega_limit.at_bot) `ω⁻` := omega_limit filter.at_bot" in omega_limit
 
 variables [topological_space β]
 variables (f : filter τ) (ϕ : τ → α → β) (s s₁ s₂: set α)
@@ -68,7 +68,7 @@ begin
 end
 
 lemma omega_limit_mono_left {f₁ f₂ : filter τ} (hf : f₁ ≤ f₂) : ω f₁ ϕ s ⊆ ω f₂ ϕ s :=
-omega_limit_subset_of_tendsto ϕ s (tendsto_id' hf)
+omega_limit_subset_of_tendsto ϕ s (tendsto_id'.2 hf)
 
 lemma omega_limit_mono_right {s₁ s₂ : set α} (hs : s₁ ⊆ s₂) : ω f ϕ s₁ ⊆ ω f ϕ s₂ :=
 Inter₂_mono $ λ u hu, closure_mono (image2_subset subset.rfl hs)

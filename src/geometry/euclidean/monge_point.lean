@@ -49,7 +49,6 @@ generalization, the Monge point of a simplex.
 noncomputable theory
 open_locale big_operators
 open_locale classical
-open_locale real
 open_locale real_inner_product_space
 
 namespace affine
@@ -273,7 +272,7 @@ begin
   simp_rw monge_plane_def,
   congr' 3,
   { congr' 1,
-    exact insert_singleton_comm _ _ },
+    exact pair_comm _ _ },
   { ext,
     simp_rw submodule.mem_span_singleton,
     split,
@@ -403,7 +402,7 @@ end
 
 /-- A line through a vertex is the altitude through that vertex if and
 only if it is orthogonal to the opposite face. -/
-lemma affine_span_insert_singleton_eq_altitude_iff {n : ℕ} (s : simplex ℝ P (n + 1))
+lemma affine_span_pair_eq_altitude_iff {n : ℕ} (s : simplex ℝ P (n + 1))
     (i : fin (n + 2)) (p : P) :
   affine_span ℝ {p, s.points i} = s.altitude i ↔ (p ≠ s.points i ∧
     p ∈ affine_span ℝ (set.range s.points) ∧
@@ -570,7 +569,7 @@ lemma altitude_replace_orthocenter_eq_affine_span {t₁ t₂ : triangle ℝ P} {
   t₂.altitude j₂ = affine_span ℝ {t₁.points i₁, t₁.points i₂} :=
 begin
   symmetry,
-  rw [←h₂, t₂.affine_span_insert_singleton_eq_altitude_iff],
+  rw [←h₂, t₂.affine_span_pair_eq_altitude_iff],
   rw [h₂],
   use t₁.independent.injective.ne hi₁₂,
   have he : affine_span ℝ (set.range t₂.points) = affine_span ℝ (set.range t₁.points),

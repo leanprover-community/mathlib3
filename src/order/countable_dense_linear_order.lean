@@ -10,9 +10,9 @@ import order.ideal
 
 ## Results
 
-Suppose `α β` are orders, with `α` countable and `β` dense, nontrivial. Then there is an order
-embedding `α ↪ β`. If in addition `α` is dense, nonempty, without endpoints and `β` is countable,
-without endpoints, then we can upgrade this to an order isomorphism `α ≃ β`.
+Suppose `α β` are linear orders, with `α` countable and `β` dense, nontrivial. Then there is an
+order embedding `α ↪ β`. If in addition `α` is dense, nonempty, without endpoints and `β` is
+countable, without endpoints, then we can upgrade this to an order isomorphism `α ≃ β`.
 
 The idea for both results is to consider "partial isomorphisms", which identify a finite subset of
 `α` with a finite subset of `β`, and prove that for any such partial isomorphism `f` and `a : α`, we
@@ -174,7 +174,7 @@ open partial_iso
 
 variables (α β)
 
-/-- Any countable order embeds in any nontrivial dense linear order. -/
+/-- Any countable linear order embeds in any nontrivial dense linear order. -/
 theorem embedding_from_countable_to_dense [encodable α] [densely_ordered β] [nontrivial β] :
   nonempty (α ↪o β) :=
 begin

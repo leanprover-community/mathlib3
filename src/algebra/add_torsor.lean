@@ -3,7 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Yury Kudryashov
 -/
-import data.set.pointwise
+import data.set.pointwise.basic
 
 /-!
 # Torsors of additive group actions
@@ -128,7 +128,7 @@ end
 of subtracting them. -/
 @[simp] lemma neg_vsub_eq_vsub_rev (p1 p2 : P) : -(p1 -ᵥ p2) = (p2 -ᵥ p1) :=
 begin
-  refine neg_eq_of_add_eq_zero (vadd_right_cancel p1 _),
+  refine neg_eq_of_add_eq_zero_right (vadd_right_cancel p1 _),
   rw [vsub_add_vsub_cancel, vsub_self],
 end
 
@@ -335,7 +335,7 @@ def const_vadd_hom : multiplicative G →* equiv.perm P :=
 
 variable {P}
 
-open function
+open _root_.function
 
 /-- Point reflection in `x` as a permutation. -/
 def point_reflection (x : P) : perm P := (const_vsub x).trans (vadd_const x)

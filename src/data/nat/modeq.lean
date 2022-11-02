@@ -39,6 +39,8 @@ namespace modeq
 
 protected theorem rfl : a ≡ a [MOD n] := modeq.refl _
 
+instance : is_refl _ (modeq n) := ⟨modeq.refl⟩
+
 @[symm] protected theorem symm : a ≡ b [MOD n] → b ≡ a [MOD n] := eq.symm
 
 @[trans] protected theorem trans : a ≡ b [MOD n] → b ≡ c [MOD n] → a ≡ c [MOD n] := eq.trans
@@ -95,7 +97,7 @@ end
 
 protected theorem add (h₁ : a ≡ b [MOD n]) (h₂ : c ≡ d [MOD n]) : a + c ≡ b + d [MOD n] :=
 begin
-  rw [modeq_iff_dvd, int.coe_nat_add, int.coe_nat_add, add_sub_comm],
+  rw [modeq_iff_dvd, int.coe_nat_add, int.coe_nat_add, add_sub_add_comm],
   exact dvd_add h₁.dvd h₂.dvd,
 end
 
@@ -109,7 +111,7 @@ protected theorem add_left_cancel (h₁ : a ≡ b [MOD n]) (h₂ : a + c ≡ b +
   c ≡ d [MOD n] :=
 begin
   simp only [modeq_iff_dvd, int.coe_nat_add] at *,
-  rw add_sub_comm at h₂,
+  rw add_sub_add_comm at h₂,
   convert _root_.dvd_sub h₂ h₁ using 1,
   rw add_sub_cancel',
 end
@@ -307,13 +309,13 @@ lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℕ} (hmn : coprime m n) :
 λ h, ⟨h.of_modeq_mul_right _, h.of_modeq_mul_left _⟩⟩
 
 lemma coprime_of_mul_modeq_one (b : ℕ) {a n : ℕ} (h : a * b ≡ 1 [MOD n]) : coprime a n :=
-nat.coprime_of_dvd' (λ k kp ⟨ka, hka⟩ ⟨kb, hkb⟩, int.coe_nat_dvd.1 begin
-  rw [hka, hkb, modeq_iff_dvd] at h,
-  cases h with z hz,
-  rw [sub_eq_iff_eq_add] at hz,
-  rw [hz, int.coe_nat_mul, mul_assoc, mul_assoc, int.coe_nat_mul, ← mul_add],
-  exact dvd_mul_right _ _,
-end)
+begin
+  obtain ⟨g, hh⟩ := nat.gcd_dvd_right a n,
+  rw [nat.coprime_iff_gcd_eq_one, ← nat.dvd_one, ← nat.modeq_zero_iff_dvd],
+  calc 1 ≡ a * b [MOD a.gcd n] : nat.modeq.of_modeq_mul_right g (hh.subst h).symm
+  ... ≡ 0 * b [MOD a.gcd n] : (nat.modeq_zero_iff_dvd.mpr (nat.gcd_dvd_left _ _)).mul_right b
+  ... = 0 : by rw zero_mul,
+end
 
 @[simp] lemma mod_mul_right_mod (a b c : ℕ) : a % (b * c) % b = a % b :=
 (mod_modeq _ _).of_modeq_mul_right _
@@ -417,6 +419,12 @@ by simpa [modeq, show 2 * 2 = 4, by norm_num] using @modeq.of_modeq_mul_left 2 n
 lemma odd_of_mod_four_eq_three {n : ℕ} : n % 4 = 3 → n % 2 = 1 :=
 by simpa [modeq, show 2 * 2 = 4, by norm_num, show 3 % 4 = 3, by norm_num]
   using @modeq.of_modeq_mul_left 2 n 3 2
+
+/-- A natural number is odd iff it has residue `1` or `3` mod `4`-/
+lemma odd_mod_four_iff {n : ℕ} : n % 2 = 1 ↔ n % 4 = 1 ∨ n % 4 = 3 :=
+have help : ∀ (m : ℕ), m < 4 → m % 2 = 1 → m = 1 ∨ m = 3 := dec_trivial,
+⟨λ hn, help (n % 4) (mod_lt n (by norm_num)) $ (mod_mod_of_dvd n (by norm_num : 2 ∣ 4)).trans hn,
+ λ h, or.dcases_on h odd_of_mod_four_eq_one odd_of_mod_four_eq_three⟩
 
 end nat
 

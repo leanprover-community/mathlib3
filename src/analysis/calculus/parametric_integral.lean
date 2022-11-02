@@ -57,9 +57,9 @@ open topological_space measure_theory filter metric
 open_locale topological_space filter
 
 variables {α : Type*} [measurable_space α] {μ : measure α} {𝕜 : Type*} [is_R_or_C 𝕜]
-          {E : Type*} [normed_group E] [normed_space ℝ E] [normed_space 𝕜 E]
+          {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [normed_space 𝕜 E]
           [complete_space E]
-          {H : Type*} [normed_group H] [normed_space 𝕜 H]
+          {H : Type*} [normed_add_comm_group H] [normed_space 𝕜 H]
 
 /-- Differentiation under integral of `x ↦ ∫ F x a` at a given point `x₀`, assuming `F x₀` is
 integrable, `∥F x a - F x₀ a∥ ≤ bound a * ∥x - x₀∥` for `x` in a ball around `x₀` for ae `a` with

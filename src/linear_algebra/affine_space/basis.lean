@@ -66,6 +66,12 @@ instance : inhabited (affine_basis punit k punit) :=
    ind    := affine_independent_of_subsingleton k id,
    tot    := by simp }⟩
 
+include b
+
+protected lemma nonempty : nonempty ι :=
+not_is_empty_iff.mp $ λ hι,
+  by simpa only [@range_eq_empty _ _ hι, affine_subspace.span_empty, bot_ne_top] using b.tot
+
 /-- Given an affine basis for an affine space `P`, if we single out one member of the family, we
 obtain a linear basis for the model space `V`.
 
@@ -76,7 +82,7 @@ basis.mk ((affine_independent_iff_linear_independent_vsub k b.points i).mp b.ind
 begin
   suffices : submodule.span k (range (λ (j : {x // x ≠ i}), b.points ↑j -ᵥ b.points i)) =
              vector_span k (range b.points),
-  { rw [this, ← direction_affine_span, b.tot, affine_subspace.direction_top], },
+  { rw [this, ← direction_affine_span, b.tot, affine_subspace.direction_top], exact le_rfl },
   conv_rhs { rw ← image_univ, },
   rw vector_span_image_eq_span_vsub_set_right_ne k b.points (mem_univ i),
   congr,
@@ -149,6 +155,15 @@ begin
   congr,
   ext i,
   exact b.coord_apply_combination_of_mem (finset.mem_univ i) hw,
+end
+
+/-- A variant of `affine_basis.affine_combination_coord_eq_self` for the special case when the
+affine space is a module so we can talk about linear combinations. -/
+@[simp] lemma linear_combination_coord_eq_self [fintype ι] (b : affine_basis ι k V) (v : V) :
+  ∑ i, (b.coord i v) • (b.points i) = v :=
+begin
+  have hb := b.affine_combination_coord_eq_self v,
+  rwa finset.univ.affine_combination_eq_linear_combination _ _ (b.sum_coord_apply_eq_one v) at hb,
 end
 
 lemma ext_elem [fintype ι] {q₁ q₂ : P} (h : ∀ i, b.coord i q₁ = b.coord i q₂) : q₁ = q₂ :=
@@ -348,11 +363,13 @@ end
 
 end comm_ring
 
-section field
+section division_ring
 
--- TODO Relax `field` to `division_ring` (results are still true)
-variables [field k] [module k V]
+variables [division_ring k] [module k V]
 include V
+
+protected lemma finite_dimensional [finite ι] (b : affine_basis ι k P) : finite_dimensional k V :=
+let ⟨i⟩ := b.nonempty in finite_dimensional.of_fintype_basis (b.basis_of i)
 
 variables (k V P)
 
@@ -379,6 +396,6 @@ begin
   simp [h_tot],
 end
 
-end field
+end division_ring
 
 end affine_basis

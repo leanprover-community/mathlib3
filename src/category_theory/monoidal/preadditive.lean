@@ -14,6 +14,7 @@ is linear in both factors.
 -/
 
 noncomputable theory
+open_locale classical
 
 namespace category_theory
 
@@ -79,7 +80,7 @@ variables {C}
 -- `tensor_left X` is a left adjoint and hence preserves all colimits.
 -- In any case it is true in any preadditive category.
 instance (X : C) : preserves_finite_biproducts (tensor_left X) :=
-{ preserves := λ J _ _, by exactI
+{ preserves := λ J _, by exactI
   { preserves := λ f,
     { preserves := λ b i, is_bilimit_of_total _ begin
       dsimp,
@@ -87,7 +88,7 @@ instance (X : C) : preserves_finite_biproducts (tensor_left X) :=
     end } } }
 
 instance (X : C) : preserves_finite_biproducts (tensor_right X) :=
-{ preserves := λ J _ _, by exactI
+{ preserves := λ J _, by exactI
   { preserves := λ f,
     { preserves := λ b i, is_bilimit_of_total _ begin
       dsimp,
@@ -97,12 +98,12 @@ instance (X : C) : preserves_finite_biproducts (tensor_right X) :=
 variables [has_finite_biproducts C]
 
 /-- The isomorphism showing how tensor product on the left distributes over direct sums. -/
-def left_distributor {J : Type*} [decidable_eq J] [fintype J] (X : C) (f : J → C) :
+def left_distributor {J : Type} [fintype J] (X : C) (f : J → C) :
   X ⊗ (⨁ f) ≅ ⨁ (λ j, X ⊗ f j) :=
 (tensor_left X).map_biproduct f
 
 @[simp]
-lemma left_distributor_hom {J : Type*} [decidable_eq J] [fintype J] (X : C) (f : J → C) :
+lemma left_distributor_hom {J : Type} [fintype J] (X : C) (f : J → C) :
   (left_distributor X f).hom = ∑ j : J, (𝟙 X ⊗ biproduct.π f j) ≫ biproduct.ι _ j :=
 begin
   ext, dsimp [tensor_left, left_distributor],
@@ -110,14 +111,14 @@ begin
 end
 
 @[simp]
-lemma left_distributor_inv {J : Type*} [decidable_eq J] [fintype J] (X : C) (f : J → C) :
+lemma left_distributor_inv {J : Type} [fintype J] (X : C) (f : J → C) :
   (left_distributor X f).inv = ∑ j : J, biproduct.π _ j ≫ (𝟙 X ⊗ biproduct.ι f j) :=
 begin
   ext, dsimp [tensor_left, left_distributor],
   simp [preadditive.comp_sum, biproduct.ι_π_assoc, dite_comp],
 end
 
-lemma left_distributor_assoc {J : Type*} [decidable_eq J] [fintype J] (X Y : C) (f : J → C) :
+lemma left_distributor_assoc {J : Type} [fintype J] (X Y : C) (f : J → C) :
    (as_iso (𝟙 X) ⊗ left_distributor Y f) ≪≫ left_distributor X _ =
      (α_ X Y (⨁ f)).symm ≪≫ left_distributor (X ⊗ Y) f ≪≫ biproduct.map_iso (λ j, α_ X Y _) :=
 begin
@@ -136,12 +137,12 @@ begin
 end
 
 /-- The isomorphism showing how tensor product on the right distributes over direct sums. -/
-def right_distributor {J : Type*} [decidable_eq J] [fintype J] (X : C) (f : J → C) :
+def right_distributor {J : Type} [fintype J] (X : C) (f : J → C) :
   (⨁ f) ⊗ X ≅ ⨁ (λ j, f j ⊗ X)  :=
 (tensor_right X).map_biproduct f
 
 @[simp]
-lemma right_distributor_hom {J : Type*} [decidable_eq J] [fintype J] (X : C) (f : J → C) :
+lemma right_distributor_hom {J : Type} [fintype J] (X : C) (f : J → C) :
   (right_distributor X f).hom = ∑ j : J, (biproduct.π f j ⊗ 𝟙 X) ≫ biproduct.ι _ j :=
 begin
   ext, dsimp [tensor_right, right_distributor],
@@ -149,14 +150,14 @@ begin
 end
 
 @[simp]
-lemma right_distributor_inv {J : Type*} [decidable_eq J] [fintype J] (X : C) (f : J → C) :
+lemma right_distributor_inv {J : Type} [fintype J] (X : C) (f : J → C) :
   (right_distributor X f).inv = ∑ j : J, biproduct.π _ j ≫ (biproduct.ι f j ⊗ 𝟙 X) :=
 begin
   ext, dsimp [tensor_right, right_distributor],
   simp [preadditive.comp_sum, biproduct.ι_π_assoc, dite_comp],
 end
 
-lemma right_distributor_assoc {J : Type*} [decidable_eq J] [fintype J] (X Y : C) (f : J → C) :
+lemma right_distributor_assoc {J : Type} [fintype J] (X Y : C) (f : J → C) :
    (right_distributor X f ⊗ as_iso (𝟙 Y)) ≪≫ right_distributor Y _ =
      α_ (⨁ f) X Y ≪≫ right_distributor (X ⊗ Y) f ≪≫ biproduct.map_iso (λ j, (α_ _ X Y).symm) :=
 begin
@@ -174,7 +175,7 @@ begin
 end
 
 lemma left_distributor_right_distributor_assoc
-  {J : Type*} [decidable_eq J] [fintype J] (X Y : C) (f : J → C) :
+  {J : Type*} [fintype J] (X Y : C) (f : J → C) :
   (left_distributor X f ⊗ as_iso (𝟙 Y)) ≪≫ right_distributor Y _ =
     α_ X (⨁ f) Y ≪≫ (as_iso (𝟙 X) ⊗ right_distributor Y _) ≪≫ left_distributor X _ ≪≫
       biproduct.map_iso (λ j, (α_ _ _ _).symm) :=

@@ -55,6 +55,28 @@ end
 variables {n : Type u} [decidable_eq n] [fintype n]
 variables {α : Type v} [comm_ring α] [star_ring α]
 
+lemma mem_unitary_group_iff {A : matrix n n α} :
+  A ∈ matrix.unitary_group n α ↔ A * star A = 1 :=
+begin
+  refine ⟨and.right, λ hA, ⟨_, hA⟩⟩,
+  simpa only [mul_eq_mul, mul_eq_one_comm] using hA
+end
+
+lemma mem_unitary_group_iff' {A : matrix n n α} :
+  A ∈ matrix.unitary_group n α ↔ star A * A = 1 :=
+begin
+  refine ⟨and.left, λ hA, ⟨hA, _⟩⟩,
+  rwa [mul_eq_mul, mul_eq_one_comm] at hA,
+end
+
+lemma det_of_mem_unitary {A : matrix n n α} (hA : A ∈ matrix.unitary_group n α) :
+  A.det ∈ unitary α :=
+begin
+  split,
+  { simpa [star, det_transpose] using congr_arg det hA.1 },
+  { simpa [star, det_transpose] using congr_arg det hA.2 },
+end
+
 namespace unitary_group
 
 instance coe_matrix : has_coe (unitary_group n α) (matrix n n α) := ⟨subtype.val⟩
@@ -144,13 +166,27 @@ end unitary_group
 
 section orthogonal_group
 
-variables (β : Type v) [comm_ring β]
+variables (n) (β : Type v) [comm_ring β]
 
 local attribute [instance] star_ring_of_comm
 /--
 `orthogonal_group n` is the group of `n` by `n` matrices where the transpose is the inverse.
 -/
 abbreviation orthogonal_group := unitary_group n β
+
+lemma mem_orthogonal_group_iff {A : matrix n n β} :
+  A ∈ matrix.orthogonal_group n β ↔ A * star A = 1 :=
+begin
+  refine ⟨and.right, λ hA, ⟨_, hA⟩⟩,
+  simpa only [mul_eq_mul, mul_eq_one_comm] using hA
+end
+
+lemma mem_orthogonal_group_iff' {A : matrix n n β} :
+  A ∈ matrix.orthogonal_group n β ↔ star A * A = 1 :=
+begin
+  refine ⟨and.left, λ hA, ⟨hA, _⟩⟩,
+  rwa [mul_eq_mul, mul_eq_one_comm] at hA,
+end
 
 end orthogonal_group
 

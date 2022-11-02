@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Floris van Doorn, Sébastien Gouëzel, Alex J. Best
 -/
 import algebra.group_power
-import data.list.basic
+import data.list.forall2
 
 /-!
 # Sums and products from lists
@@ -89,6 +89,17 @@ lemma prod_map_mul {α : Type*} [comm_monoid α] {l : list ι} {f g : ι → α}
   (l.map $ λ i, f i * g i).prod = (l.map f).prod * (l.map g).prod :=
 l.prod_hom₂ (*) mul_mul_mul_comm (mul_one _) _ _
 
+@[simp]
+lemma prod_map_neg {α} [comm_monoid α] [has_distrib_neg α] (l : list α) :
+  (l.map has_neg.neg).prod = (-1) ^ l.length * l.prod :=
+begin
+  convert @prod_map_mul α α _ l (λ _, -1) id,
+  { ext, rw neg_one_mul, refl },
+  { convert (prod_repeat _ _).symm, rw eq_repeat,
+    use l.length_map _, intro, rw mem_map, rintro ⟨_, _, rfl⟩, refl },
+  { rw l.map_id },
+end
+
 @[to_additive]
 lemma prod_map_hom (L : list ι) (f : ι → M) {G : Type*} [monoid_hom_class G M N] (g : G) :
   (L.map (g ∘ f)).prod = g ((L.map f).prod) :=
@@ -106,7 +117,7 @@ end
 @[simp, to_additive]
 lemma prod_take_mul_prod_drop :
   ∀ (L : list M) (i : ℕ), (L.take i).prod * (L.drop i).prod = L.prod
-| [] i := by simp
+| [] i := by simp [@zero_le' ℕ]
 | L 0 := by simp
 | (h :: t) (n+1) := by { dsimp, rw [prod_cons, prod_cons, mul_assoc, prod_take_mul_prod_drop] }
 
@@ -140,7 +151,7 @@ lemma prod_update_nth : ∀ (L : list M) (n : ℕ) (a : M),
     (L.take n).prod * (if n < L.length then a else 1) * (L.drop (n + 1)).prod
 | (x :: xs) 0     a := by simp [update_nth]
 | (x :: xs) (i+1) a := by simp [update_nth, prod_update_nth xs i a, mul_assoc]
-| []      _     _ := by simp [update_nth, (nat.zero_le _).not_lt]
+| []      _     _ := by simp [update_nth, (nat.zero_le _).not_lt, @zero_le' ℕ]
 
 open mul_opposite
 
@@ -193,15 +204,46 @@ lemma _root_.commute.list_sum_left [non_unital_non_assoc_semiring R] (b : R) (l 
   commute l.sum b :=
 (commute.list_sum_right _ _ $ λ x hx, (h _ hx).symm).symm
 
+@[to_additive sum_le_sum] lemma forall₂.prod_le_prod' [preorder M]
+  [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
+  {l₁ l₂ : list M} (h : forall₂ (≤) l₁ l₂) : l₁.prod ≤ l₂.prod :=
+begin
+  induction h with a b la lb hab ih ih',
+  { refl },
+  { simpa only [prod_cons] using mul_le_mul' hab ih' }
+end
+
+/-- If `l₁` is a sublist of `l₂` and all elements of `l₂` are greater than or equal to one, then
+`l₁.prod ≤ l₂.prod`. One can prove a stronger version assuming `∀ a ∈ l₂.diff l₁, 1 ≤ a` instead
+of `∀ a ∈ l₂, 1 ≤ a` but this lemma is not yet in `mathlib`. -/
+@[to_additive sum_le_sum "If `l₁` is a sublist of `l₂` and all elements of `l₂` are nonnegative,
+then `l₁.sum ≤ l₂.sum`. One can prove a stronger version assuming `∀ a ∈ l₂.diff l₁, 0 ≤ a` instead
+of `∀ a ∈ l₂, 0 ≤ a` but this lemma is not yet in `mathlib`."]
+lemma sublist.prod_le_prod' [preorder M] [covariant_class M M (function.swap (*)) (≤)]
+  [covariant_class M M (*) (≤)] {l₁ l₂ : list M} (h : l₁ <+ l₂) (h₁ : ∀ a ∈ l₂, (1 : M) ≤ a) :
+  l₁.prod ≤ l₂.prod :=
+begin
+  induction h, { refl },
+  case cons : l₁ l₂ a ih ih'
+  { simp only [prod_cons, forall_mem_cons] at h₁ ⊢,
+    exact (ih' h₁.2).trans (le_mul_of_one_le_left' h₁.1) },
+  case cons2 : l₁ l₂ a ih ih'
+  { simp only [prod_cons, forall_mem_cons] at h₁ ⊢,
+    exact mul_le_mul_left' (ih' h₁.2) _ }
+end
+
+@[to_additive sum_le_sum] lemma sublist_forall₂.prod_le_prod' [preorder M]
+  [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
+  {l₁ l₂ : list M} (h : sublist_forall₂ (≤) l₁ l₂) (h₁ : ∀ a ∈ l₂, (1 : M) ≤ a) :
+  l₁.prod ≤ l₂.prod :=
+let ⟨l, hall, hsub⟩ := sublist_forall₂_iff.1 h
+in hall.prod_le_prod'.trans $ hsub.prod_le_prod' h₁
+
 @[to_additive sum_le_sum] lemma prod_le_prod' [preorder M]
   [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
   {l : list ι} {f g : ι → M} (h : ∀ i ∈ l, f i ≤ g i) :
   (l.map f).prod ≤ (l.map g).prod :=
-begin
-  induction l with i l ihl, { refl },
-  rw forall_mem_cons at h,
-  simpa using mul_le_mul' h.1 (ihl h.2)
-end
+forall₂.prod_le_prod' $ by simpa
 
 @[to_additive sum_lt_sum] lemma prod_lt_prod'
   [preorder M] [covariant_class M M (*) (<)] [covariant_class M M (*) (≤)]
@@ -235,7 +277,7 @@ lemma pow_card_le_prod [preorder M]
   [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
   (l : list M) (n : M) (h : ∀ (x ∈ l), n ≤ x) :
   n ^ l.length ≤ l.prod :=
-@prod_le_pow_card (order_dual M) _ _ _ _ l n h
+@prod_le_pow_card Mᵒᵈ _ _ _ _ l n h
 
 @[to_additive exists_lt_of_sum_lt] lemma exists_lt_of_prod_lt' [linear_order M]
   [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)] {l : list ι}
@@ -401,14 +443,13 @@ le_antisymm (hl₂ ▸ single_le_prod hl₁ _ hx) (hl₁ x hx)
 @[to_additive] lemma prod_eq_one_iff [canonically_ordered_monoid M] (l : list M) :
   l.prod = 1 ↔ ∀ x ∈ l, x = (1 : M) :=
 ⟨all_one_of_le_one_le_of_prod_eq_one (λ _ _, one_le _),
-begin
-  induction l,
-  { simp },
-  { intro h,
-    rw [prod_cons, mul_eq_one_iff],
-    rw forall_mem_cons at h,
-    exact ⟨h.1, l_ih h.2⟩ },
-end⟩
+  λ h, by rw [eq_repeat.2 ⟨rfl, h⟩, prod_repeat, one_pow]⟩
+
+/-- Slightly more general version of `list.prod_eq_one_iff` for a non-ordered `monoid` -/
+@[to_additive "Slightly more general version of `list.sum_eq_zero_iff`
+  for a non-ordered `add_monoid`"]
+lemma prod_eq_one [monoid M] {l : list M} (hl : ∀ (x ∈ l), x = (1 : M)) : l.prod = 1 :=
+trans (prod_eq_pow_card l 1 hl) (one_pow l.length)
 
 /-- If all elements in a list are bounded below by `1`, then the length of the list is bounded
 by the sum of the elements. -/
@@ -440,6 +481,17 @@ lemma prod_erase [decidable_eq M] [comm_monoid M] {a} :
     { simp only [list.erase, if_neg (mt eq.symm ne), prod_cons, prod_erase h, mul_left_comm a b] }
   end
 
+@[simp, to_additive]
+lemma prod_map_erase [decidable_eq ι] [comm_monoid M] (f : ι → M) {a} :
+  ∀ {l : list ι}, a ∈ l → f a * ((l.erase a).map f).prod = (l.map f).prod
+| (b :: l) h :=
+  begin
+    obtain rfl | ⟨ne, h⟩ := decidable.list.eq_or_ne_mem_of_mem h,
+    { simp only [map, erase_cons_head, prod_cons] },
+    { simp only [map, erase_cons_tail _ ne.symm, prod_cons, prod_map_erase h,
+        mul_left_comm (f a) (f b)], }
+  end
+
 lemma dvd_prod [comm_monoid M] {a} {l : list M} (ha : a ∈ l) : a ∣ l.prod :=
 let ⟨s, t, h⟩ := mem_split ha in
 by { rw [h, prod_append, prod_cons, mul_left_comm], exact dvd_mul_right _ _ }
@@ -457,7 +509,7 @@ end
 
 /-- The product of a list of positive natural numbers is positive,
 and likewise for any nontrivial ordered semiring. -/
-lemma prod_pos [ordered_semiring R] [nontrivial R] (l : list R) (h : ∀ a ∈ l, (0 : R) < a) :
+lemma prod_pos [strict_ordered_semiring R] [nontrivial R] (l : list R) (h : ∀ a ∈ l, (0 : R) < a) :
   0 < l.prod :=
 begin
   induction l with a l ih,
@@ -503,7 +555,7 @@ variables [comm_group α]
 
 @[to_additive] lemma alternating_prod_cons' :
   ∀ (a : α) (l : list α), alternating_prod (a :: l) = a * (alternating_prod l)⁻¹
-| a [] := by rw [alternating_prod_nil, one_inv, mul_one, alternating_prod_singleton]
+| a [] := by rw [alternating_prod_nil, inv_one, mul_one, alternating_prod_singleton]
 | a (b :: l) :=
 by rw [alternating_prod_cons_cons', alternating_prod_cons' b l, mul_inv, inv_inv, mul_assoc]
 

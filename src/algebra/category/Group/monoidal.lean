@@ -850,12 +850,14 @@ end Mon_
 
 section Mod
 
-variables (R : Mon_ AddCommGroup) (M : Mod R)
+variables (R : Mon_ AddCommGroup.{u}) (M : Mod R)
 
-instance has_smul_Mon_Mod : has_smul (Mon_to_Ring.obj R) M.X :=
+local attribute [instance] Mon_is_ring
+
+instance has_smul_Mon_Mod : has_smul R.X M.X :=
 { smul := λ r x, M.act (r ⊗ₜ x) }
 
-instance mul_action_Mon_Mod : mul_action (Mon_to_Ring.obj R) M.X :=
+instance mul_action_Mon_Mod : mul_action R.X M.X :=
 { one_smul := λ x,
   begin
     convert fun_like.congr_fun M.one_act ((ulift.up 1 : ulift ℤ) ⊗ₜ x),
@@ -865,18 +867,23 @@ instance mul_action_Mon_Mod : mul_action (Mon_to_Ring.obj R) M.X :=
   mul_smul := λ x y b, fun_like.congr_fun M.assoc ((x ⊗ₜ y) ⊗ₜ b),
   ..AddCommGroup.monoidal.has_smul_Mon_Mod R M }
 
-instance distrib_mul_action_Mon_Mod : distrib_mul_action (Mon_to_Ring.obj R) M.X :=
+instance distrib_mul_action_Mon_Mod : distrib_mul_action R.X M.X :=
 { smul_zero := λ r, show (M.act) (r ⊗ₜ 0) = 0, by rw [tensor_product.tmul_zero, map_zero],
   smul_add := λ r x y, show M.act _ = M.act _ + M.act _, by rw [tensor_product.tmul_add, map_add],
   ..AddCommGroup.monoidal.mul_action_Mon_Mod R M }
 
-instance module_Mon_Mod : module (Mon_to_Ring.obj R) M.X :=
+instance module_Mon_Mod : module R.X M.X :=
 { add_smul := λ r x y, show M.act _ = M.act _ + M.act _, by rw [tensor_product.add_tmul, map_add],
   zero_smul := λ x, show M.act _ = _, by rw [tensor_product.zero_tmul, map_zero],
   ..AddCommGroup.monoidal.distrib_mul_action_Mon_Mod R M }
 
-def Module_from_Mod_obj (M : Mod R) : Module (Mon_to_Ring.obj R) :=
-Module.of _ M.X
+namespace Mod_equiv_Module
+
+def Module_from_Mod_obj (M : Mod R) : Module R.X :=
+Module.of R.X M.X
+
+lemma Module_from_Mod_obj_smul (r : R.X) (M : Mod R) (m : Module_from_Mod_obj R M) :
+  @has_smul.smul R.X (Module_from_Mod_obj R M) _ r m = M.act (r ⊗ₜ m) := rfl
 
 @[simps] def Module_from_Mod_map {M M' : Mod R} (f : M ⟶ M') :
   Module_from_Mod_obj _ M ⟶ Module_from_Mod_obj _ M' :=
@@ -884,7 +891,7 @@ Module.of _ M.X
   map_add' := f.hom.map_add,
   map_smul' := λ r x, fun_like.congr_fun f.act_hom (r ⊗ₜ x) }
 
-@[simps] def Module_from_Mod : Mod R ⥤ Module (Mon_to_Ring.obj R) :=
+@[simps] def Module_from_Mod : Mod R ⥤ Module.{u} R.X :=
 { obj := Module_from_Mod_obj _,
   map := λ _ _, Module_from_Mod_map _,
   map_id' := λ M,
@@ -897,6 +904,418 @@ Module.of _ M.X
     ext,
     simp only [Module_from_Mod_map_apply, Mod.comp_hom', comp_apply],
   end }
+
+@[simps] def Mod_from_Module_obj_act (M : Module R.X) :
+  R.X ⊗ of M ⟶ of M :=
+(tensor_product.lift $ @to_int_linear_map₂ R.X (of M) (of M)
+{ to_fun := λ r,
+  { to_fun := λ m, @has_smul.smul R.X M _ r m,
+    map_zero' := smul_zero _,
+    map_add' := λ x y, by rw smul_add },
+  map_zero' :=
+  begin
+    ext,
+    simp only [zero_smul, add_monoid_hom.coe_mk, ihom_obj'_str_zero_apply],
+  end,
+  map_add' := λ x y,
+  begin
+    ext z,
+    simp only [add_monoid_hom.coe_mk, ihom_obj'_str_add_apply],
+    rw add_smul,
+  end }).to_add_monoid_hom
+
+lemma Mon_one_ulift_smul_eq_zsmul (a : ℤ) (M : Module R.X) {b : M} :
+  (R.one) (ulift.up a) • b = a • b :=
+begin
+  induction a using int.induction_on with n hn n hn,
+  { erw [R.one.map_zero, zero_smul, zero_zsmul], },
+  { erw [R.one.map_add ⟨n⟩ ⟨1⟩, add_smul, add_zsmul, hn, one_zsmul],
+    congr,
+    convert one_smul _ _, },
+  { erw [sub_zsmul, one_zsmul, R.one.map_sub ⟨-n⟩ ⟨1⟩, sub_smul, sub_eq_add_neg, hn],
+    congr,
+    convert one_smul _ _, },
+end
+
+lemma Mod_from_Module_obj_one_act (M : Module R.X) (x : (of (ulift ℤ) ⊗ of M)) :
+  ((R.one ⊗ 𝟙 (of M)) ≫ Mod_from_Module_obj_act R M) x =
+  ((λ_ (of M)).hom) x :=
+begin
+  induction x using tensor_product.induction_on with a b a b ha hb,
+  { simp only [map_zero] },
+  { simp only [tensor_monoidal_category_tensor_hom, comp_apply,
+      tensor_monoidal_category.tensor_hom'_apply, tensor_product.map_tmul,
+      to_int_linear_map_apply, id_apply, Mod_from_Module_obj_act_apply, tensor_product.lift.tmul,
+      to_int_linear_map₂_apply_apply, add_monoid_hom.coe_mk, tensor_monoidal_category_left_unitor,
+      tensor_monoidal_category.left_unitor'_hom_apply, linear_map.coe_mk],
+    cases a,
+    apply Mon_one_ulift_smul_eq_zsmul R, },
+  { rw [map_add, map_add, ha, hb] },
+end
+
+lemma Mod_from_Module_obj_assoc (M : Module R.X) (x : ((R.X ⊗ R.X) ⊗ of M)) :
+  ((R.mul ⊗ 𝟙 (of ↥M)) ≫ Mod_from_Module_obj_act R M) x =
+  ((α_ R.X R.X (of ↥M)).hom ≫ (𝟙 R.X ⊗ Mod_from_Module_obj_act R M) ≫
+    Mod_from_Module_obj_act R M) x :=
+begin
+  induction x using tensor_product.induction_on with x c x c hx hc,
+  { simp only [map_zero] },
+  { induction x using tensor_product.induction_on with a b a b ha hb,
+    { simp only [tensor_product.zero_tmul, map_zero], },
+    { simp only [tensor_monoidal_category_tensor_hom, comp_apply,
+        tensor_monoidal_category.tensor_hom'_apply, tensor_product.map_tmul,
+        to_int_linear_map_apply, id_apply, Mod_from_Module_obj_act_apply, tensor_product.lift.tmul,
+        to_int_linear_map₂_apply_apply, add_monoid_hom.coe_mk, tensor_monoidal_category_associator,
+        tensor_monoidal_category.associator'_hom_apply, tensor_product.assoc_tmul],
+      rw [←mul_smul],
+      refl, },
+    { rw [tensor_product.add_tmul, map_add, ha, hb, map_add], }, },
+  { rw [map_add, hx, hc, map_add], },
+end
+
+
+@[simps] def Mod_from_Module_obj (M : Module R.X) : Mod R :=
+{ X := of M,
+  act := Mod_from_Module_obj_act R M,
+  one_act' := by { ext, apply Mod_from_Module_obj_one_act },
+  assoc' := by { ext x, apply Mod_from_Module_obj_assoc, } }
+
+@[simps] def Mod_from_Module_map {M M' : Module R.X} (f : M ⟶ M') :
+  Mod_from_Module_obj R M ⟶ Mod_from_Module_obj R M' :=
+{ hom := f.to_add_monoid_hom,
+  act_hom' :=
+  begin
+    ext x,
+    induction x using tensor_product.induction_on with a b a b ha hb,
+    { simp only [map_zero] },
+    { simp only [Mod_from_Module_obj_act_2, comp_apply, Mod_from_Module_obj_act_apply,
+        tensor_product.lift.tmul, to_int_linear_map₂_apply_apply, add_monoid_hom.coe_mk,
+        linear_map.to_add_monoid_hom_coe, linear_map.map_smulₛₗ, ring_hom.id_apply,
+        tensor_monoidal_category_tensor_hom, tensor_monoidal_category.tensor_hom'_apply,
+        tensor_product.map_tmul, to_int_linear_map_apply, id_apply], },
+    { rw [map_add, ha, hb, map_add] },
+  end }
+
+@[simps] def Mod_from_Module : Module R.X ⥤ Mod R :=
+{ obj := Mod_from_Module_obj R,
+  map := λ _ _, Mod_from_Module_map R,
+  map_id' := λ M,
+  begin
+    ext,
+    simp only [Mod_from_Module_map_hom, linear_map.to_add_monoid_hom_coe, Mod.id_hom', id_apply],
+  end,
+  map_comp' := λ _ _ _ f g,
+  begin
+    ext,
+    simp only [Mod_from_Module_map_hom, linear_map.to_add_monoid_hom_coe, Mod.comp_hom',
+      comp_apply],
+  end }
+
+@[simps] def unit_iso :
+  𝟭 (Mod R) ≅ Module_from_Mod R ⋙ Mod_from_Module R :=
+nat_iso.of_components (λ M,
+{ hom :=
+  { hom := add_monoid_hom.id _,
+    act_hom' :=
+    begin
+      ext x,
+      induction x using tensor_product.induction_on with a b a b ha hb,
+      { simp only [map_zero] },
+      { dsimp,
+        simpa only [comp_apply, add_monoid_hom.id_apply, tensor_monoidal_category.tensor_hom'_apply,
+          tensor_product.map_tmul, to_int_linear_map_apply, id_apply, Mod_from_Module_obj_act_apply,
+          tensor_product.lift.tmul, to_int_linear_map₂_apply_apply, add_monoid_hom.coe_mk] },
+      { rw [map_add, ha, hb, map_add], },
+    end },
+  inv :=
+  { hom := add_monoid_hom.id _,
+    act_hom' :=
+    begin
+      ext x,
+      induction x using tensor_product.induction_on with a b a b ha hb,
+      { simp only [map_zero] },
+      { dsimp,
+        simpa only [comp_apply, add_monoid_hom.id_apply, tensor_monoidal_category.tensor_hom'_apply,
+          tensor_product.map_tmul, to_int_linear_map_apply, id_apply, Mod_from_Module_obj_act_apply,
+          tensor_product.lift.tmul, to_int_linear_map₂_apply_apply, add_monoid_hom.coe_mk] },
+      { rw [map_add, ha, hb, map_add], },
+    end },
+  hom_inv_id' :=
+  begin
+    ext (x : M.X),
+    simp only [comp_apply, add_monoid_hom.id_apply, id_apply, Mod.comp_hom', Mod.id_hom'],
+  end,
+  inv_hom_id' :=
+  begin
+    ext (x : M.X),
+    simp only [comp_apply, add_monoid_hom.id_apply, id_apply, Mod.comp_hom', Mod.id_hom'],
+  end }) $ λ M M' f,
+begin
+  ext (x : M.X),
+  simp only [comp_apply, add_monoid_hom.id_apply, Mod.comp_hom', functor.id_map, functor.comp_map,
+    Module_from_Mod_map_2, Mod_from_Module_map_2, Mod_from_Module_map_hom,
+    linear_map.to_add_monoid_hom_coe, Module_from_Mod_map_apply],
+end
+
+@[simps] def counit_iso :
+  Mod_from_Module R ⋙ Module_from_Mod R ≅ 𝟭 (Module.{u} R.X) :=
+nat_iso.of_components (λ M, linear_equiv.to_Module_iso'
+  { to_fun := λ x, x,
+    map_add' := λ x y, rfl,
+    map_smul' := λ r x,
+    begin
+      dsimp at *,
+      rw Module_from_Mod_obj_smul,
+      change Mod_from_Module_obj_act _ _ _ = _,
+      simp only [Mod_from_Module_obj_act_apply, tensor_product.lift.tmul,
+        to_int_linear_map₂_apply_apply, add_monoid_hom.coe_mk],
+    end,
+    inv_fun := λ x, x,
+    left_inv := λ x, rfl,
+    right_inv := λ x, rfl }) $ λ M M' l, by { ext, refl, }
+
+end Mod_equiv_Module
+
+@[simps] def Mod_equiv_Module : Mod R ≌ Module.{u} R.X :=
+{ functor := Mod_equiv_Module.Module_from_Mod R,
+  inverse := Mod_equiv_Module.Mod_from_Module R,
+  unit_iso := Mod_equiv_Module.unit_iso R,
+  counit_iso := Mod_equiv_Module.counit_iso R,
+  functor_unit_iso_comp' := λ M,
+  begin
+    ext,
+    simp only [Mod_equiv_Module.Module_from_Mod_map_2, Module.coe_comp, function.comp_app,
+      Mod_equiv_Module.Module_from_Mod_map_apply, Mod_equiv_Module.unit_iso_hom_app_hom_apply,
+      Mod_equiv_Module.counit_iso_hom_app_apply, Module.id_apply],
+  end }
+
+namespace Mod_equiv_Module'
+
+variable (S : Ring.{u})
+
+instance (M : Mod (Ring_to_Mon_.obj S)) : module S M.X :=
+{ smul := λ s m, M.act (s ⊗ₜ m),
+  one_smul := λ m,
+  begin
+    convert fun_like.congr_fun M.one_act ((ulift.up 1 : ulift ℤ) ⊗ₜ m),
+    { simp only [to_int_linear_map_apply, Ring_to_Mon_.obj_one_apply, eq_int_cast,
+        algebra_map.coe_one] },
+    { simp only [tensor_monoidal_category_left_unitor, one_zsmul,
+        tensor_monoidal_category.left_unitor'_hom_apply, tensor_product.lift.tmul,
+        linear_map.coe_mk], }
+  end,
+  mul_smul := λ x y z,
+  begin
+    convert fun_like.congr_fun M.assoc ((x ⊗ₜ y) ⊗ₜ z),
+    simp only [Ring_to_Mon_.obj_mul, to_int_linear_map_apply, linear_map.to_add_monoid_hom_coe,
+      tensor_product.lift.tmul, linear_map.coe_mk],
+  end,
+  smul_zero := λ s, show M.act (s ⊗ₜ 0) = 0, by rw [tensor_product.tmul_zero, map_zero],
+  smul_add := λ s x y, show M.act _ = M.act _ + M.act _, by rw [tensor_product.tmul_add, map_add],
+  add_smul := λ s t x, show M.act _ = M.act _ + M.act _, by rw [tensor_product.add_tmul, map_add],
+  zero_smul := λ x, show M.act _ = 0, by rw [tensor_product.zero_tmul, map_zero] }
+
+lemma Mod_to_Module_smul_def (M : Mod (Ring_to_Mon_.obj S)) (s : S) (m : M.X) :
+  s • m = M.act (s ⊗ₜ m) := rfl
+
+@[simps] def Mod_to_Module : Mod (Ring_to_Mon_.obj S) ⥤ Module S :=
+{ obj := λ M, Module.of S M.X,
+  map := λ M M' l,
+  { to_fun := l.hom,
+    map_add' := l.hom.map_add,
+    map_smul' := λ s x, fun_like.congr_fun l.act_hom (s ⊗ₜ x), },
+  map_id' := λ M,
+  begin
+    ext m,
+    simp only [Mod.id_hom', linear_map.coe_mk, id_apply],
+  end,
+  map_comp' := λ _ _ _ f g,
+  begin
+    ext m,
+    simp only [Mod.comp_hom', linear_map.coe_mk, comp_apply],
+  end }
+
+@[simps] def Module_to_Mod_obj_act (M : Module S) : (Ring_to_Mon_.obj S).X ⊗ of M ⟶ of M :=
+(tensor_product.lift $ @to_int_linear_map₂ (of S) (of M) (of M)
+{ to_fun    := λ s,
+  { to_fun    := λ m, (s • m : M),
+    map_zero' := smul_zero _,
+    map_add'  := λ x y, by rw smul_add },
+  map_zero' := by { ext, simp only [zero_smul, add_monoid_hom.coe_mk, ihom_obj'_str_zero_apply], },
+  map_add'  := λ s t, by { ext, simp only [add_monoid_hom.coe_mk, ihom_obj'_str_add_apply],
+    convert add_smul _ _ _ } }).to_add_monoid_hom
+
+lemma Module_to_Mod_obj_one_act (M : Module S) :
+  ((Ring_to_Mon_.obj S).one ⊗ 𝟙 (of M)) ≫ Module_to_Mod_obj_act S M = (λ_ (of ↥M)).hom :=
+begin
+  ext x,
+  induction x using tensor_product.induction_on with a b a b ha hb,
+  { simp only [map_zero], },
+  { cases a,
+    simp only [tensor_monoidal_category_tensor_hom, comp_apply,
+      tensor_monoidal_category.tensor_hom'_apply, tensor_product.map_tmul, to_int_linear_map_apply,
+      Ring_to_Mon_.obj_one_apply, eq_int_cast, id_apply, Module_to_Mod_obj_act_apply,
+      tensor_product.lift.tmul, to_int_linear_map₂_apply_apply, add_monoid_hom.coe_mk,
+      tensor_monoidal_category_left_unitor, tensor_monoidal_category.left_unitor'_hom_apply,
+      linear_map.coe_mk],
+    change (algebra_map ℤ S a) • _ = _,
+    induction a using int.induction_on with n hn n hn,
+    { rw [map_zero, zero_smul, zero_zsmul] },
+    { rw [map_add, add_smul, map_one, one_smul, hn, add_smul, one_zsmul] },
+    { rw [map_sub, sub_smul, map_one, one_smul, hn, sub_smul, one_zsmul] }, },
+  { rw [map_add, ha, hb, map_add], },
+end
+
+lemma Module_to_Mod_obj_assoc (M : Module S) :
+  ((Ring_to_Mon_.obj S).mul ⊗ 𝟙 (of M)) ≫ Module_to_Mod_obj_act S M =
+  (α_ (Ring_to_Mon_.obj S).X (Ring_to_Mon_.obj S).X (of M)).hom ≫
+    (𝟙 (Ring_to_Mon_.obj S).X ⊗ Module_to_Mod_obj_act S M) ≫ Module_to_Mod_obj_act S M :=
+begin
+  ext x,
+  induction x using tensor_product.induction_on with x c x c hx hc,
+  { simp only [map_zero] },
+  { induction x using tensor_product.induction_on with a b a b ha hb,
+    { simp only [map_zero, tensor_product.zero_tmul] },
+    { simp only [Ring_to_Mon_.obj_mul, tensor_monoidal_category_tensor_hom, comp_apply,
+        tensor_monoidal_category.tensor_hom'_apply, tensor_product.map_tmul,
+        to_int_linear_map_apply, linear_map.to_add_monoid_hom_coe, tensor_product.lift.tmul,
+        linear_map.coe_mk, id_apply, Module_to_Mod_obj_act_apply, to_int_linear_map₂_apply_apply,
+        add_monoid_hom.coe_mk, tensor_monoidal_category_associator,
+        tensor_monoidal_category.associator'_hom_apply, tensor_product.assoc_tmul],
+      convert mul_smul _ _ _, },
+    { rw [tensor_product.add_tmul, map_add, ha, hb, map_add] } },
+  { rw [map_add, hx, hc, map_add] }
+end
+
+@[simps] def Module_to_Mod_obj (M : Module S) : Mod (Ring_to_Mon_.obj S) :=
+{ X := of M,
+  act := Module_to_Mod_obj_act S M,
+  one_act' := Module_to_Mod_obj_one_act S M,
+  assoc' := Module_to_Mod_obj_assoc S M }
+
+@[simps] def Module_to_Mod_map (M M' : Module S) (l : M ⟶ M') :
+  Module_to_Mod_obj S M ⟶ Module_to_Mod_obj S M' :=
+{ hom := l.to_add_monoid_hom,
+  act_hom' :=
+  begin
+    ext x,
+    induction x using tensor_product.induction_on with a b a b ha hb,
+    { simp only [map_zero] },
+    { simp only [Module_to_Mod_obj_act_2, comp_apply, Module_to_Mod_obj_act_apply,
+        tensor_product.lift.tmul, to_int_linear_map₂_apply_apply, add_monoid_hom.coe_mk,
+        linear_map.to_add_monoid_hom_coe, linear_map.map_smulₛₗ, ring_hom.id_apply,
+        tensor_monoidal_category_tensor_hom, tensor_monoidal_category.tensor_hom'_apply,
+      tensor_product.map_tmul, to_int_linear_map_apply, id_apply]},
+    { rw [map_add, ha, hb, map_add] }
+  end }
+
+@[simps] def Module_to_Mod : Module S ⥤ Mod (Ring_to_Mon_.obj S) :=
+{ obj := Module_to_Mod_obj S,
+  map := Module_to_Mod_map S,
+  map_id' := λ M,
+  begin
+    ext,
+    simp only [Module_to_Mod_map_hom, linear_map.to_add_monoid_hom_coe, Mod.id_hom', id_apply],
+  end,
+  map_comp' := λ _ _ _ f g,
+  begin
+    ext,
+    simp only [Module_to_Mod_map_hom, linear_map.to_add_monoid_hom_coe, Mod.comp_hom', comp_apply],
+  end }
+
+@[simps] def unit_iso :
+  𝟭 (Mod (Ring_to_Mon_.obj S)) ≅ Mod_to_Module S ⋙ Module_to_Mod S :=
+nat_iso.of_components (λ M,
+{ hom :=
+  { hom := add_monoid_hom.id _,
+    act_hom' :=
+    begin
+      ext x,
+      induction x using tensor_product.induction_on with a b a b ha hb,
+      { simp only [map_zero] },
+      { dsimp,
+        simpa only [comp_apply, add_monoid_hom.id_apply, tensor_monoidal_category.tensor_hom'_apply,
+          tensor_product.map_tmul, to_int_linear_map_apply, id_apply, Module_to_Mod_obj_act_apply,
+          tensor_product.lift.tmul, to_int_linear_map₂_apply_apply, add_monoid_hom.coe_mk] },
+      { rw [map_add, ha, hb, map_add] }
+    end },
+  inv :=
+  { hom := add_monoid_hom.id _,
+    act_hom' :=
+    begin
+      ext x,
+      induction x using tensor_product.induction_on with a b a b ha hb,
+      { simp only [map_zero] },
+      { dsimp,
+        simpa only [comp_apply, add_monoid_hom.id_apply, tensor_monoidal_category.tensor_hom'_apply,
+          tensor_product.map_tmul, to_int_linear_map_apply, id_apply, Module_to_Mod_obj_act_apply,
+          tensor_product.lift.tmul, to_int_linear_map₂_apply_apply, add_monoid_hom.coe_mk] },
+      { rw [map_add, ha, hb, map_add] }
+    end },
+  hom_inv_id' :=
+  begin
+    ext,
+    simp only [comp_apply, add_monoid_hom.id_apply, id_apply, Mod.comp_hom', Mod.id_hom'],
+  end,
+  inv_hom_id' :=
+  begin
+    ext,
+    simp only [comp_apply, add_monoid_hom.id_apply, id_apply, Mod.comp_hom', Mod.id_hom'],
+  end }) $ λ M M' l,
+begin
+  ext,
+  simp only [comp_apply, add_monoid_hom.id_apply, Mod.comp_hom', functor.id_map, functor.comp_map,
+    Module_to_Mod_map_2, Module_to_Mod_map_hom, linear_map.to_add_monoid_hom_coe,
+    Mod_to_Module_map_apply],
+end
+
+@[simps] def counit_iso : Module_to_Mod S ⋙ Mod_to_Module S ≅ 𝟭 (Module.{u} S) :=
+nat_iso.of_components (λ M,
+{ hom :=
+  { to_fun := λ m, m,
+    map_add' := λ _ _, rfl,
+    map_smul' := λ r x,
+    begin
+      dsimp at *,
+      erw Mod_to_Module_smul_def,
+      simp only [Module_to_Mod_obj_act_2, Module_to_Mod_obj_act_apply, tensor_product.lift.tmul,
+        to_int_linear_map₂_apply_apply, add_monoid_hom.coe_mk],
+    end },
+  inv :=
+  { to_fun := λ m, m,
+    map_add' := λ _ _, rfl,
+    map_smul' := λ r x,
+    begin
+      dsimp at *,
+      erw Mod_to_Module_smul_def,
+      simp only [Module_to_Mod_obj_act_2, Module_to_Mod_obj_act_apply, tensor_product.lift.tmul,
+        to_int_linear_map₂_apply_apply, add_monoid_hom.coe_mk],
+    end },
+  hom_inv_id' :=
+  begin
+    ext,
+    simp only [Module.coe_comp, linear_map.coe_mk, Module.id_apply],
+  end,
+  inv_hom_id' :=
+  begin
+    ext,
+    simp only [Module.coe_comp, linear_map.coe_mk, Module.id_apply],
+  end }) $ λ M M' l,
+begin
+  ext,
+  simp only [Module.coe_comp, linear_map.coe_mk, functor.comp_map, Module_to_Mod_map_2,
+    function.comp_app, Mod_to_Module_map_apply, Module_to_Mod_map_hom,
+    linear_map.to_add_monoid_hom_coe, functor.id_map],
+end
+
+end Mod_equiv_Module'
+
+@[simps] def Mod_equiv_Module' (S : Ring.{u}) :  Mod (Ring_to_Mon_.obj S) ≌ Module.{u} S :=
+{ functor := Mod_equiv_Module'.Mod_to_Module S,
+  inverse := Mod_equiv_Module'.Module_to_Mod S,
+  unit_iso := Mod_equiv_Module'.unit_iso S,
+  counit_iso := Mod_equiv_Module'.counit_iso S,
+  functor_unit_iso_comp' := λ M, rfl }
 
 end Mod
 

@@ -162,7 +162,7 @@ let c := c1.c.add c2.c,
     history := c1.history.union c2.history,
     vars := (c1.vars.union c2.vars),
     effective := (c1.effective.union c2.effective).insert elim_var,
-    implicit := (vars.sdiff (native.rb_set.of_list c.vars)).erase elim_var in
+    implicit := (vars.sdiff (native.rb_set.of_list c.vars)).sdiff effective in
 ⟨c, src, history, effective, implicit, vars⟩
 
 /--

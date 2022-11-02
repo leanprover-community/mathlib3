@@ -821,6 +821,12 @@ lemma sections_smul_restriction {U V : (opens X)ᵒᵖ} (inc : U ⟶ V) (r : R.X
   M.X.map inc (r • m) = R.X.map inc r • M.X.map inc m :=
 eq.symm $ fun_like.congr_fun (M.act.naturality inc) $ r ⊗ₜ m
 
+@[simps] def forget_to_presheaf_AddCommGroup : Mod R ⥤ presheaf AddCommGroup X :=
+{ obj := Mod.X,
+  map := λ _ _ f, f.hom,
+  map_id' := λ _, rfl,
+  map_comp' := λ _ _ _ _ _, rfl }
+
 structure sheaf_of_module (R : Mon_ (presheaf AddCommGroup.{u} X)) :=
 (val : Mod R)
 (cond : is_sheaf val.X)

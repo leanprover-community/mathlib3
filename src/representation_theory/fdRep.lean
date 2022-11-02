@@ -20,7 +20,7 @@ you can construct the bundled representation as `Rep.of ρ`.
 We verify that `fdRep k G` is a `k`-linear monoidal category, and right rigid when `G` is a group.
 
 ## TODO
-* `fdRep k G ≌ { V : Rep k G // finite_dimensional k V }`
+* `fdRep k G ≌ full_subcategory (finite_dimensional k)`
 * Upgrade the right rigid structure to a rigid structure (this just needs to be done for `FinVect`).
 * `fdRep k G` has all finite (co)limits.
 * `fdRep k G` is abelian.

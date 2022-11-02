@@ -60,7 +60,7 @@ def of (V : Type u) [add_comm_group V] [module K V] [finite_dimensional K V] : F
 ⟨Module.of K V, by { change finite_dimensional K V, apply_instance }⟩
 
 instance (V W : FinVect K) : finite_dimensional K (V ⟶ W) :=
-(by apply_instance : finite_dimensional K (V →ₗ[K] W))
+(by apply_instance : finite_dimensional K (V.obj →ₗ[K] W.obj))
 
 instance : has_forget₂ (FinVect.{u} K) (Module.{u} K) :=
 by { dsimp [FinVect], apply_instance, }

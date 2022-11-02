@@ -95,8 +95,10 @@ instance induced_category : linear.{w v} R (induced_category C F) :=
 
 end induced_category
 
-instance full_subcategory (Z : C → Prop) : linear.{w v} R { X : C // Z X } :=
-linear.induced_category _
+instance full_subcategory (Z : C → Prop) : linear.{w v} R (full_subcategory Z) :=
+{ hom_module := λ X Y, @linear.hom_module R _ C _ _ _ X.obj Y.obj,
+  smul_comp' := λ P Q R f f' g, smul_comp' _ _ _ _ _ _,
+  comp_smul' := λ P Q R f g g', comp_smul' _ _ _ _ _ _, }
 
 variables (R)
 

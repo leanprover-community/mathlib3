@@ -93,7 +93,7 @@ instance full_monoidal_subcategory_inclusion_additive :
   (full_monoidal_subcategory_inclusion P).to_functor.additive :=
 functor.full_subcategory_inclusion_additive _
 
-instance [monoidal_preadditive C] : monoidal_preadditive {X : C // P X} :=
+instance [monoidal_preadditive C] : monoidal_preadditive (full_subcategory P) :=
 monoidal_preadditive_of_faithful (full_monoidal_subcategory_inclusion P)
 
 variables (R : Type*) [ring R] [linear R C]
@@ -102,7 +102,7 @@ instance full_monoidal_subcategory_inclusion_linear :
   (full_monoidal_subcategory_inclusion P).to_functor.linear R :=
 functor.full_subcategory_inclusion_linear R _
 
-instance [monoidal_preadditive C] [monoidal_linear R C] : monoidal_linear R {X : C // P X} :=
+instance [monoidal_preadditive C] [monoidal_linear R C] : monoidal_linear R (full_subcategory P) :=
 monoidal_linear_of_faithful R (full_monoidal_subcategory_inclusion P)
 
 end

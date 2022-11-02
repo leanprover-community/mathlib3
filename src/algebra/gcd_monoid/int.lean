@@ -20,10 +20,12 @@ namespace finset
 
 /-- Given a nonempty finset `s` and a function `f` from `s` to `ℤ`, if `d = s.gcd`, then the `gcd`
 of `(f i) / d` is a unit. -/
-theorem gcd_is_unit_of_div_gcd {β : Type*} {f : β → ℤ} (s : finset β) {x : β} (hx : x ∈ s)
+theorem gcd_eq_one_of_div_gcd {β : Type*} {f : β → ℤ} (s : finset β) {x : β} (hx : x ∈ s)
   (hfz : f x ≠ 0) :
-  is_unit (s.gcd (λ b, f b / (s.gcd f))) :=
+  s.gcd (λ b, f b / (s.gcd f)) = 1 :=
 begin
+  suffices : is_unit (s.gcd (λ b, f b / (s.gcd f))),
+  { simpa using normalize_coe_units this.unit },
   have : s.gcd (λ b, f b / (s.gcd f)) ≠ 0 := λ h, hfz (int.eq_zero_of_div_eq_zero (gcd_dvd hx)
     (by convert gcd_eq_zero_iff.1 h x hx)),
   have H0 : s.gcd f ≠ 0 := (not_iff_not.mpr gcd_eq_zero_iff).mpr (λ h, hfz $ h x hx),
@@ -45,8 +47,8 @@ begin
   exact (int.eq_of_mul_eq_mul_left H0 ha).symm
 end
 
-theorem gcd_is_unit_of_div_gcd_id (s : finset ℤ) {x : ℤ} (hx : x ∈ s) (hnz : x ≠ 0) :
-  is_unit (s.gcd (λ b, b / (s.gcd id))) :=
-gcd_is_unit_of_div_gcd s hx hnz
+theorem gcd_eq_one_of_div_gcd_id (s : finset ℤ) {x : ℤ} (hx : x ∈ s) (hnz : x ≠ 0) :
+  s.gcd (λ b, b / (s.gcd id)) = 1 :=
+gcd_eq_one_of_div_gcd s hx hnz
 
 end finset

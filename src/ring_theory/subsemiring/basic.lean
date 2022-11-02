@@ -404,6 +404,16 @@ instance : has_top (subsemiring R) :=
 
 @[simp] lemma coe_top : ((⊤ : subsemiring R) : set R) = set.univ := rfl
 
+/-- The ring equiv between the top element of `subsemiring R` and `R`. -/
+@[simps]
+def top_equiv : (⊤ : subsemiring R) ≃+* R :=
+{ to_fun := λ r, r,
+  inv_fun := λ r, ⟨r, subsemiring.mem_top r⟩,
+  left_inv := λ r, set_like.eta r _,
+  right_inv := λ r, set_like.coe_mk r _,
+  map_mul' := (⊤ : subsemiring R).coe_mul,
+  map_add' := (⊤ : subsemiring R).coe_add, }
+
 /-- The preimage of a subsemiring along a ring homomorphism is a subsemiring. -/
 def comap (f : R →+* S) (s : subsemiring S) : subsemiring R :=
 { carrier := f ⁻¹' s,

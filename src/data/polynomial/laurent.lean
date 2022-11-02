@@ -35,7 +35,7 @@ This choice differs from the current irreducible design of `polynomial`, that in
 the implementation via `finsupp`s.  It is closer to the original definition of polynomials.
 
 As a consequence, `laurent_polynomial` plays well with polynomials, but there is a little roughness
-in establishing the API, since the `finsupp` implementation of `polynomial R` is well-shielded.
+in establishing the API, since the `finsupp` implementation of `R[X]` is well-shielded.
 
 Unlike the case of polynomials, I felt that the exponent notation was not too easy to use, as only
 natural exponents would be allowed.  Moreover, in the end, it seems likely that we should aim to

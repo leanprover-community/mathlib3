@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.divisibility
 import algebra.group.commute
+import algebra.group.type_tags
 import data.nat.basic
 
 /-!
@@ -106,11 +107,11 @@ by rw [nat.mul_comm, pow_mul]
 
 @[to_additive nsmul_add_sub_nsmul]
 theorem pow_mul_pow_sub (a : M) {m n : ℕ} (h : m ≤ n) : a ^ m * a ^ (n - m) = a ^ n :=
-by rw [←pow_add, nat.add_comm, tsub_add_cancel_of_le h]
+by rw [←pow_add, nat.add_comm, nat.sub_add_cancel h]
 
 @[to_additive sub_nsmul_nsmul_add]
 theorem pow_sub_mul_pow (a : M) {m n : ℕ} (h : m ≤ n) : a ^ (n - m) * a ^ m = a ^ n :=
-by rw [←pow_add, tsub_add_cancel_of_le h]
+by rw [←pow_add, nat.sub_add_cancel h]
 
 /-- If `x ^ n = 1`, then `x ^ m` is the same as `x ^ (m % n)` -/
 @[to_additive nsmul_eq_mod_nsmul "If `n • x = 0`, then `m • x` is the same as `(m % n) • x`"]
@@ -286,7 +287,7 @@ section group
 variables [group G] [group H] [add_group A] [add_group B]
 
 @[to_additive sub_nsmul] lemma pow_sub (a : G) {m n : ℕ} (h : n ≤ m) : a^(m - n) = a^m * (a^n)⁻¹ :=
-eq_mul_inv_of_mul_eq $ by rw [←pow_add, tsub_add_cancel_of_le h]
+eq_mul_inv_of_mul_eq $ by rw [←pow_add, nat.sub_add_cancel h]
 
 @[to_additive] lemma pow_inv_comm (a : G) (m n : ℕ) : (a⁻¹)^m * a^n = a^n * (a⁻¹)^m :=
 (commute.refl a).inv_left.pow_pow _ _
@@ -298,7 +299,7 @@ by rw [pow_sub a⁻¹ h, inv_pow, inv_pow, inv_inv]
 end group
 
 lemma pow_dvd_pow [monoid R] (a : R) {m n : ℕ} (h : m ≤ n) :
-  a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_comm, tsub_add_cancel_of_le h]⟩
+  a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_comm, nat.sub_add_cancel h]⟩
 
 theorem pow_dvd_pow_of_dvd [comm_monoid R] {a b : R} (h : a ∣ b) : ∀ n : ℕ, a ^ n ∣ b ^ n
 | 0     := by rw [pow_zero, pow_zero]

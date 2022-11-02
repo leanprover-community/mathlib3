@@ -1479,8 +1479,7 @@ end
 lemma is_bridge_iff_adj_and_forall_walk_mem_edges {v w : V} :
   G.is_bridge ⟦(v, w)⟧ ↔ G.adj v w ∧ ∀ (p : G.walk v w), ⟦(v, w)⟧ ∈ p.edges :=
 begin
-  rw is_bridge_iff,
-  apply iff.and iff.rfl,
+  rw [is_bridge_iff, and_congr_right'],
   rw [reachable_delete_edges_iff_exists_walk, not_exists_not],
 end
 

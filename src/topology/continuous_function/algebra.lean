@@ -467,7 +467,7 @@ instance [locally_compact_space α] [topological_space R] [has_smul R M]
   exact (continuous_fst.comp continuous_fst).smul h,
 end⟩
 
-@[simp, to_additive, norm_cast]
+@[simp, norm_cast, to_additive]
 lemma coe_smul [has_smul R M] [has_continuous_const_smul R M]
   (c : R) (f : C(α, M)) : ⇑(c • f) = c • f := rfl
 

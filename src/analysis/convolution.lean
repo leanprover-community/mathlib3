@@ -965,12 +965,12 @@ begin
 end
 
 variables [sigma_finite μ] [is_add_left_invariant μ]
-variables [normed_space 𝕜 G] [proper_space G]
+variables [normed_space 𝕜 G]
 
 /-- Compute the total derivative of `f ⋆ g` if `g` is `C^1` with compact support and `f` is locally
 integrable. To write down the total derivative as a convolution, we use
 `continuous_linear_map.precompR`. -/
-lemma has_compact_support.has_fderiv_at_convolution_right
+lemma has_compact_support.has_fderiv_at_convolution_right [proper_space G]
   (hcg : has_compact_support g) (hf : locally_integrable f μ) (hg : cont_diff 𝕜 1 g) (x₀ : G) :
   has_fderiv_at (f ⋆[L, μ] g) ((f ⋆[L.precompR G, μ] fderiv 𝕜 g) x₀) x₀ :=
 begin
@@ -1026,8 +1026,7 @@ end
 
 set_option profiler true
 
-lemma has_compact_support.has_fderiv_at_convolution_right_with_param
-  (L : E →L[𝕜] E' →L[𝕜] F)
+lemma has_fderiv_at_convolution_right_with_param [proper_space G]
   {P : Type uP} [normed_add_comm_group P] [normed_space 𝕜 P]
   {g : P × G → E'}
   {s : set P} {k : set G} (hs : is_open s) (hk : is_compact k)
@@ -1167,25 +1166,7 @@ begin
 end
 
 
-#exit
-  /-- Differentiation under integral of `x ↦ ∫ F x a` at a given point `x₀`, assuming
-`F x₀` is integrable, `x ↦ F x a` is differentiable on a ball around `x₀` for ae `a` with
-derivative norm uniformly bounded by an integrable function (the ball radius is independent of `a`),
-and `F x` is ae-measurable for `x` in a possibly smaller neighborhood of `x₀`. -/
-lemma has_fderiv_at_integral_of_dominated_of_fderiv_le {F : H → α → E} {F' : H → α → (H →L[𝕜] E)}
-  {x₀ : H} {bound : α → ℝ}
-  {ε : ℝ} (ε_pos : 0 < ε)
-  (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_strongly_measurable (F x) μ)
-  (hF_int : integrable (F x₀) μ)
-  (hF'_meas : ae_strongly_measurable (F' x₀) μ)
-  (h_bound : ∀ᵐ a ∂μ, ∀ x ∈ ball x₀ ε, ∥F' x a∥ ≤ bound a)
-  (bound_integrable : integrable (bound : α → ℝ) μ)
-  (h_diff : ∀ᵐ a ∂μ, ∀ x ∈ ball x₀ ε, has_fderiv_at (λ x, F x a) (F' x a) x) :
-  has_fderiv_at (λ x, ∫ a, F x a ∂μ) (∫ a, F' x₀ a ∂μ) x₀ :=
-
-#exit
-
-lemma has_compact_support.has_fderiv_at_convolution_left [is_neg_invariant μ]
+lemma has_compact_support.has_fderiv_at_convolution_left [proper_space G] [is_neg_invariant μ]
   (hcf : has_compact_support f) (hf : cont_diff 𝕜 1 f) (hg : locally_integrable g μ) (x₀ : G) :
   has_fderiv_at (f ⋆[L, μ] g) ((fderiv 𝕜 f ⋆[L.precompL G, μ] g) x₀) x₀ :=
 begin
@@ -1197,6 +1178,7 @@ lemma has_compact_support.cont_diff_convolution_right [finite_dimensional 𝕜 G
   (hcg : has_compact_support g) (hf : locally_integrable f μ) (hg : cont_diff 𝕜 n g) :
   cont_diff 𝕜 n (f ⋆[L, μ] g) :=
 begin
+  letI : proper_space G, from finite_dimensional.proper_is_R_or_C 𝕜 G,
   induction n using enat.nat_induction with n ih ih generalizing g,
   { rw [cont_diff_zero] at hg ⊢,
     exact hcg.continuous_convolution_right L hf hg },

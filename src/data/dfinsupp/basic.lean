@@ -148,13 +148,20 @@ end⟩
   zip_with f hf g₁ g₂ i = f i (g₁ i) (g₂ i) :=
 rfl
 
+section piecewise
+variables (x y : Π₀ i, β i) (s : set ι) [Π i, decidable (i ∈ s)]
+
 /-- `x.piecewise y s` is the finitely supported function equal to `x` on the set `s`,
   and to `y` on its complement. -/
-def piecewise (x y : Π₀ i, β i) (s : set ι) [Π i, decidable (i ∈ s)] : Π₀ i, β i :=
-zip_with (λ i x y, if i ∈ s then x else y) (λ _, if_t_t _ 0) x y
+def piecewise : Π₀ i, β i := zip_with (λ i x y, if i ∈ s then x else y) (λ _, if_t_t _ 0) x y
 
-lemma piecewise_apply (x y : Π₀ i, β i) (s : set ι) [Π i, decidable (i ∈ s)] (i : ι) :
-  x.piecewise y s i = if i ∈ s then x i else y i := zip_with_apply _ _ x y i
+lemma piecewise_apply (i : ι) : x.piecewise y s i = if i ∈ s then x i else y i :=
+zip_with_apply _ _ x y i
+
+@[norm_cast] lemma coe_piecewise : ⇑(x.piecewise y s) = s.piecewise x y :=
+by { ext, apply piecewise_apply }
+
+end piecewise
 
 end basic
 

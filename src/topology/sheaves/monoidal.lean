@@ -1,18 +1,17 @@
 import category_theory.monoidal.internal.functor_category
 import algebra.category.Group.monoidal
+import algebra.category.Group.limits
+import algebra.category.Group.filtered_colimits
 import category_theory.functor.equivalence
-import category_theory.sites.sheafification
 import category_theory.closed.functor_category
 import category_theory.preadditive.functor_category
-import topology.sheaves.presheaf
+import topology.sheaves.sheaf
 
 noncomputable theory
 
 open category_theory category_theory.monoidal category_theory.limits
 
-section Ab
-
-namespace presheaf
+namespace Top.presheaf
 
 namespace monoidal
 
@@ -20,7 +19,6 @@ section
 
 universes w u₁ v₁
 variables {C : Type u₁} [category.{v₁} C]
-
 
 local attribute [instance] AddCommGroup.monoidal.tensor_monoidal_category
 
@@ -34,7 +32,7 @@ end
 
 section
 
-universes u v
+universe u
 
 variables {X : Top.{u}}
 
@@ -285,6 +283,10 @@ end
     rw [add_monoid_hom.coe_mk, comp_apply, add_monoid_hom.coe_mk, add_monoid_hom.coe_mk],
     convert restrict_subset_sections_map_comp iVW.unop iUV.unop α,
   end }
+
+lemma ihom_obj_is_sheaf_of_is_sheaf {F G : presheaf AddCommGroup.{u} X}
+  (hF : is_sheaf F) (hG : is_sheaf G) : is_sheaf (ihom_obj F G) :=
+sorry -- hard
 
 @[simps] def ihom_map' (F G₁ G₂ : presheaf AddCommGroup.{u} X) (γ : G₁ ⟶ G₂)
   (U : opens X) (f : restrict F U ⟶ restrict G₁ U) :
@@ -771,101 +773,52 @@ def monoidal_closed_presheaf_AddCommGroup : monoidal_closed (presheaf AddCommGro
 { closed' := λ F, { is_adj :=
   ⟨ihom F, tensor_ihom_adj F⟩ } }
 
-local attribute [instance] monoidal_closed_presheaf_AddCommGroup
-
 end
 
-end monoidal
+namespace presheaf_of_module
 
+open Top topological_space
 
-end presheaf
+local attribute [instance] monoidal_closed_presheaf_AddCommGroup
+local attribute [instance] monoidal_presheaf_AddCommGroup
 
-end Ab
+universe u
 
-#exit
+variables {X : Top.{u}} (R : Mon_ (presheaf AddCommGroup.{u} X)) (M : Mod R)
 
-namespace Sheaf
+instance Mon_sections_ring (U : (opens X)ᵒᵖ) : ring (R.X.obj U) :=
+((Mon_presheaf_Ab_equiv_presheaf_ring.functor.obj R).obj U).str
 
-section AddCommGroup
+instance has_smul_Mon_sections_Mod_sections (U : (opens X)ᵒᵖ) : has_smul (R.X.obj U) (M.X.obj U) :=
+{ smul := λ r x, M.act.app U (r ⊗ₜ x) }
 
-
-end AddCommGroup
-
--- need sheafification
-universes w v u
-variables {C : Type u} [category.{v} C] {J : grothendieck_topology C}
-variables {D : Type w} [category.{max v u} D]
-
-def iso.mk (X Y : Sheaf J D) (α : X.val ≅ Y.val) : X ≅ Y :=
-{ hom := ⟨α.hom⟩,
-  inv := ⟨α.inv⟩,
-  hom_inv_id' := Sheaf.hom.ext _ _ α.hom_inv_id',
-  inv_hom_id' := Sheaf.hom.ext _ _ α.inv_hom_id' }
-
-variables
-  [monoidal_category D] [monoidal_closed D]
-
-namespace ihom
-
-open category_theory.functor
-
-def ihom_obj'_val (X Y : Sheaf J D) : Cᵒᵖ ⥤ D :=
-{ obj := λ c, begin
-    haveI : monoidal_closed (Cᵒᵖ ⥤ D),
-    have := @category_theory.functor.monoidal_closed D Cᵒᵖ,
+instance mul_action_Mon_sections_Mod_sections (U : (opens X)ᵒᵖ) :
+  mul_action (R.X.obj U) (M.X.obj U) :=
+{ one_smul := λ x,
+  begin
+    convert fun_like.congr_fun (nat_trans.congr_app M.one_act U) ((ulift.up 1 : ulift ℤ) ⊗ₜ x),
+    simp only [left_unitor_hom_app, AddCommGroup.monoidal.tensor_monoidal_category_left_unitor,
+      AddCommGroup.monoidal.tensor_monoidal_category.left_unitor'_hom_apply,
+      tensor_product.lift.tmul, linear_map.coe_mk, one_zsmul],
   end,
-  map := _,
-  map_id' := _,
-  map_comp' := _ }
+  mul_smul := λ r s x, fun_like.congr_fun (nat_trans.congr_app M.assoc U) ((r ⊗ₜ s) ⊗ₜ x),
+  ..Top.presheaf.monoidal.presheaf_of_module.has_smul_Mon_sections_Mod_sections R M U }
 
-end ihom
+instance distrib_mul_action_Mon_sections_Mod_sections (U : (opens X)ᵒᵖ) :
+  distrib_mul_action (R.X.obj U) (M.X.obj U) :=
+{ smul_zero := λ r, show M.act.app U _ = _, by rw [tensor_product.tmul_zero, map_zero],
+  smul_add := λ r x y, show M.act.app U _ = M.act.app U _ + M.act.app U _,
+    by rw [tensor_product.tmul_add, map_add],
+  ..Top.presheaf.monoidal.presheaf_of_module.mul_action_Mon_sections_Mod_sections R M U }
 
-variables
-  [concrete_category.{max v u} D]
-  [preserves_limits (forget D)]
-  [∀ (P : Cᵒᵖ ⥤ D) (X : C) (S : J.cover X), has_multiequalizer (S.index P)]
-  [∀ (X : C), has_colimits_of_shape (J.cover X)ᵒᵖ D]
-  [∀ (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ (forget D)]
-  [reflects_isomorphisms (forget D)]
+instance module_Mon_sections_Mod_sections (U : (opens X)ᵒᵖ) : module (R.X.obj U) (M.X.obj U) :=
+{ add_smul := λ r s x, show M.act.app U _ = M.act.app U _ + M.act.app U _,
+    by rw [tensor_product.add_tmul, map_add],
+  zero_smul := λ x, show M.act.app U _ = 0, by rw [tensor_product.zero_tmul, map_zero],
+  ..Top.presheaf.monoidal.presheaf_of_module.distrib_mul_action_Mon_sections_Mod_sections R M U }
 
-
-namespace monoidal
-
-@[simps] def tensor_obj' (X Y : Sheaf J D) : Sheaf J D :=
-(presheaf_to_Sheaf J D).obj (X.val ⊗ Y.val : Cᵒᵖ ⥤ D)
-
-@[simps] def tensor_hom' {X X' Y Y' : Sheaf J D} (f : X ⟶ X') (g : Y ⟶ Y') :
-  tensor_obj' X Y ⟶ tensor_obj' X' Y' :=
-(presheaf_to_Sheaf J D).map (f.val ⊗ g.val)
-
-@[simps] def tensor_unit' : Sheaf J D :=
-(presheaf_to_Sheaf J D).obj
-{ obj := λ c, 𝟙_ D,
-  map := λ a b f, 𝟙 _,
-  map_id' := λ _, rfl,
-  map_comp' := λ _ _ _ _ _, (category.comp_id _).symm }
-
-instance : monoidal_category (Sheaf J D) :=
-{ -- data
-  tensor_obj := tensor_obj',
-  tensor_hom := λ _ _ _ _, tensor_hom',
-  tensor_unit := tensor_unit',
-  associator := _,
-  left_unitor := _,
-  right_unitor := _,
-
-
-  tensor_id' := _,
-  tensor_comp' := _,
-
-  associator_naturality' := _,
-
-  left_unitor_naturality' := _,
-  right_unitor_naturality' := _,
-
-  pentagon' := _,
-  triangle' := _ }
+end presheaf_of_module
 
 end monoidal
 
-end Sheaf
+end Top.presheaf

@@ -3,6 +3,8 @@ import algebra.category.Group
 import algebra.category.Ring
 import linear_algebra.tensor_product
 import category_theory.closed.monoidal
+import category_theory.monoidal.Mod
+import algebra.category.Module.basic
 
 noncomputable theory
 
@@ -35,111 +37,6 @@ namespace AddCommGroup
     simpa only [linear_map.coe_mk, linear_map.smul_apply, add_monoid_hom.to_fun_eq_coe, map_zsmul,
       ring_hom.id_apply],
   end }
-
--- @[simps] def to_ulift_int_linear_map {X Y : AddCommGroup.{u}} (f : X ⟶ Y) : X →ₗ[ulift.{u} ℤ] Y :=
--- { to_fun := f,
---   map_add' := f.map_add,
---   map_smul' := λ ⟨n⟩ x, by simpa only [ulift.smul_def, ring_hom.id_apply] using f.map_zsmul _ _ }
-
--- lemma ulift_smul_unit {X : Module (ulift ℤ)} (z : ℤ) (x : X) :
---   z • x = ulift.up z • x :=
--- by rw ulift.smul_def _ _
-
--- lemma foo (X : Module (ulift ℤ)) (m : ℤ)
---   (x : (Module.mk X : Module (ulift ℤ))) :
---   m • x = (ulift.up m) • x :=
--- by rw ulift.smul_def _ _
-
--- lemma bar  (X : Module (ulift ℤ)) (m : ℤ) :
---   (smul_zero_class.to_has_smul : has_smul (ulift ℤ) X) = ulift.has_smul_left :=
--- begin
---   admit,
--- end
-
--- @[simps] def Ab_to_ulift_int_Module : AddCommGroup.{u} ⥤ Module (ulift.{u} ℤ ) :=
--- { obj := λ X, ⟨X⟩,
---   map := λ X Y, to_ulift_int_linear_map,
---   map_id' := λ X, rfl,
---   map_comp' := λ X Y Z f g, rfl }
-
--- instance faithful_Ab_to_ulift_int_Module : faithful Ab_to_ulift_int_Module.{u} :=
--- { map_injective' := λ X Y f g h, add_monoid_hom.ext $ λ x,
---   begin
---     erw fun_like.congr_fun h x,
---     refl,
---   end }
-
--- instance ess_surj_Ab_to_ulift_int_Module : ess_surj Ab_to_ulift_int_Module.{u} :=
--- { mem_ess_image := λ Y, ⟨AddCommGroup.of Y, nonempty.intro $
---   { hom :=
---     { to_fun := λ x, x,
---       map_add' := λ _ _, rfl,
---       map_smul' := sorry },
---     inv := _,
---   hom_inv_id' := _,
---   inv_hom_id' := _ }⟩ }
-
-
--- @[simps] def equiv_Module_ulift_Z : AddCommGroup.{u} ≌ Module (ulift.{u} ℤ) :=
--- equivalence.of_fully_faithfully_ess_surj Ab_to_ulift_int_Module
--- { functor :=
---   { obj := λ X, ⟨X⟩,
---     map := λ X Y, to_ulift_int_linear_map,
---     map_id' := λ X, rfl,
---     map_comp' := λ X Y Z f g, rfl },
---   inverse :=
---   { obj := λ X, ⟨X⟩,
---     map := λ X Y, linear_map.to_add_monoid_hom,
---     map_id' := λ X, rfl,
---     map_comp' := λ X Y Z f g, rfl },
---   unit_iso := nat_iso.of_components (λ X,
---     { hom := add_monoid_hom.id _,
---       inv := add_monoid_hom.id _,
---       hom_inv_id' := rfl,
---       inv_hom_id' := rfl }) $ λ X Y f, rfl,
---   counit_iso := nat_iso.of_components (λ X,
---     { hom :=
---       { to_fun := λ x, x,
---         map_add' := λ _ _, rfl,
---         map_smul' := λ m x,
---         begin
---           rcases m with ⟨m⟩,
---           dsimp at *,
---           change ((m • x) : ↥X) = _,
---           convert ulift_smul_unit m x using 2,
---           apply bar,
---           congr,
---           sorry,
---           -- induction m using int.induction_on,
---           -- { rw [zero_smul],
---           --   rw show (ulift.up 0 : ulift ℤ) = 0, from rfl,
---           --   symmetry,
---           --   have foo : ↥X = ↥(Module.mk ↥X : Module (ulift ℤ)), refl,
---           --   have bar : (0 : ↥X) = (0 : ↥(Module.mk ↥X : Module (ulift ℤ))),
---           --     refl,
---           --   rw ← bar,
---           --   convert zero_smul (ulift ℤ) _, },
---           -- { sorry, },
---           -- { sorry, }
---         end },
---       inv :=
---       { to_fun := λ x, x,
---         map_add' := λ _ _, rfl,
---         map_smul' := λ m x,
---         begin
---           rcases m with ⟨m⟩,
---           dsimp at *,
---           sorry
---           -- induction m using int.induction_on,
---           -- { rw [zero_smul],
---           --   sorry, },
---           -- { sorry, },
---           -- { sorry, },
---         end },
---       hom_inv_id' := rfl,
---       inv_hom_id' := rfl }) $ λ X Y f, rfl,
---   functor_unit_iso_comp' := λ X, rfl }
-
 
 namespace monoidal
 
@@ -950,6 +847,58 @@ end
   end }
 
 end Mon_
+
+section Mod
+
+variables (R : Mon_ AddCommGroup) (M : Mod R)
+
+instance has_smul_Mon_Mod : has_smul (Mon_to_Ring.obj R) M.X :=
+{ smul := λ r x, M.act (r ⊗ₜ x) }
+
+instance mul_action_Mon_Mod : mul_action (Mon_to_Ring.obj R) M.X :=
+{ one_smul := λ x,
+  begin
+    convert fun_like.congr_fun M.one_act ((ulift.up 1 : ulift ℤ) ⊗ₜ x),
+    simp only [tensor_monoidal_category_left_unitor, linear_map.coe_mk, one_zsmul,
+      tensor_monoidal_category.left_unitor'_hom_apply, tensor_product.lift.tmul],
+  end,
+  mul_smul := λ x y b, fun_like.congr_fun M.assoc ((x ⊗ₜ y) ⊗ₜ b),
+  ..AddCommGroup.monoidal.has_smul_Mon_Mod R M }
+
+instance distrib_mul_action_Mon_Mod : distrib_mul_action (Mon_to_Ring.obj R) M.X :=
+{ smul_zero := λ r, show (M.act) (r ⊗ₜ 0) = 0, by rw [tensor_product.tmul_zero, map_zero],
+  smul_add := λ r x y, show M.act _ = M.act _ + M.act _, by rw [tensor_product.tmul_add, map_add],
+  ..AddCommGroup.monoidal.mul_action_Mon_Mod R M }
+
+instance module_Mon_Mod : module (Mon_to_Ring.obj R) M.X :=
+{ add_smul := λ r x y, show M.act _ = M.act _ + M.act _, by rw [tensor_product.add_tmul, map_add],
+  zero_smul := λ x, show M.act _ = _, by rw [tensor_product.zero_tmul, map_zero],
+  ..AddCommGroup.monoidal.distrib_mul_action_Mon_Mod R M }
+
+def Module_from_Mod_obj (M : Mod R) : Module (Mon_to_Ring.obj R) :=
+Module.of _ M.X
+
+@[simps] def Module_from_Mod_map {M M' : Mod R} (f : M ⟶ M') :
+  Module_from_Mod_obj _ M ⟶ Module_from_Mod_obj _ M' :=
+{ to_fun := λ x, f.hom x,
+  map_add' := f.hom.map_add,
+  map_smul' := λ r x, fun_like.congr_fun f.act_hom (r ⊗ₜ x) }
+
+@[simps] def Module_from_Mod : Mod R ⥤ Module (Mon_to_Ring.obj R) :=
+{ obj := Module_from_Mod_obj _,
+  map := λ _ _, Module_from_Mod_map _,
+  map_id' := λ M,
+  begin
+    ext,
+    simp only [Module_from_Mod_map_apply, Mod.id_hom', id_apply],
+  end,
+  map_comp' := λ M M' M'' f g,
+  begin
+    ext,
+    simp only [Module_from_Mod_map_apply, Mod.comp_hom', comp_apply],
+  end }
+
+end Mod
 
 end monoidal
 

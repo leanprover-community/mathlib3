@@ -198,7 +198,7 @@ structure hom :=
 
 namespace hom
 
-attribute [reassoc] hom.commi hom.commp hom.commf' hom.commg' hom.commπ hom.commι
+attribute [reassoc] commi commp commf' commg' commπ commι
 
 @[simps]
 def id : hom Z Z :=

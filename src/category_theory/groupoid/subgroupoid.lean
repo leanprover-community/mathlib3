@@ -542,7 +542,7 @@ end hom
 section thin
 
 /-- A subgroupoid `is_thin` if it has at most one arrow between any two vertices. -/
-abbreviation is_thin := ∀ (c d : S.objs), subsingleton (S.arrows c d)
+abbreviation is_thin := quiver.is_thin S.objs
 
 lemma is_thin_iff : S.is_thin ↔ ∀ (c : S.objs), subsingleton (S.arrows c c) :=
 by apply is_thin_iff

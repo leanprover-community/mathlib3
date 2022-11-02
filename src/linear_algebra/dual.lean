@@ -478,7 +478,53 @@ lemma dual_restrict_ker_eq_dual_annihilator (W : submodule R M) :
   W.dual_restrict.ker = W.dual_annihilator :=
 rfl
 
-lemma dual_annihilator_sup_eq_inf_dual_annihilator (U V : submodule R M) :
+/-- The `dual_annihilator` of a submodule in the dual space pulled back along the evaluation map
+`module.dual.eval`. -/
+def dual_annihilator_comap (Φ : submodule R (module.dual R M)) : submodule R M :=
+Φ.dual_annihilator.comap (module.dual.eval R M)
+
+lemma mem_dual_annihilator_comap_iff {Φ : submodule R (module.dual R M)} (x : M) :
+  x ∈ Φ.dual_annihilator_comap ↔ ∀ φ ∈ Φ, (φ x : R) = 0 :=
+by simp_rw [dual_annihilator_comap, mem_comap, mem_dual_annihilator, module.dual.eval_apply]
+
+@[simp] lemma dual_annihilator_top : (⊤ : submodule R M).dual_annihilator = ⊥ :=
+begin
+  rw eq_bot_iff,
+  intro v,
+  simp_rw [mem_dual_annihilator, mem_bot, mem_top, forall_true_left],
+  intro h,
+  exact linear_map.ext h,
+end
+
+@[simp] lemma dual_annihilator_bot : (⊥ : submodule R M).dual_annihilator = ⊤ :=
+begin
+  rw eq_top_iff,
+  intro v,
+  simp_rw [mem_dual_annihilator, mem_bot, mem_top, forall_true_left],
+  rintro _ rfl,
+  exact _root_.map_zero v,
+end
+
+@[mono] lemma dual_annihilator_anti {U V : submodule R M} (hUV : U ≤ V) :
+  V.dual_annihilator ≤ U.dual_annihilator :=
+begin
+  intro φ,
+  simp_rw [mem_dual_annihilator],
+  intros h w hw,
+  exact h w (hUV hw),
+end
+
+-- TODO: when `M` is finite-dimensional this is an equality
+lemma le_dual_annihilator_dual_annihilator_comap {U : submodule R M} :
+  U ≤ U.dual_annihilator.dual_annihilator_comap :=
+begin
+  intro v,
+  simp_rw [mem_dual_annihilator_comap_iff, mem_dual_annihilator],
+  intros hv φ h,
+  exact h _ hv,
+end
+
+lemma dual_annihilator_sup_eq (U V : submodule R M) :
   (U ⊔ V).dual_annihilator = U.dual_annihilator ⊓ V.dual_annihilator :=
 begin
   ext φ,
@@ -493,13 +539,52 @@ begin
     rw [linear_map.map_add, h.1 _ hx, h.2 _ hy, add_zero] }
 end
 
-/-- The pullback of a submodule in the dual space along the evaluation map. -/
-def dual_annihilator_comap (Φ : submodule R (module.dual R M)) : submodule R M :=
-Φ.dual_annihilator.comap (module.dual.eval R M)
+lemma dual_annihilator_supr_eq {ι : Type*} (U : ι → submodule R M) :
+  (⨆ (i : ι), U i).dual_annihilator = ⨅ (i : ι), (U i).dual_annihilator :=
+begin
+  classical,
+  ext φ,
+  simp_rw [mem_infi, mem_dual_annihilator],
+  split,
+  { simp_rw [mem_supr],
+    intros h i w hw,
+    exact h _ (λ _ hi, hi i hw), },
+  { simp_rw [submodule.mem_supr_iff_exists_dfinsupp'],
+    rintros h w ⟨f, rfl⟩,
+    simp only [linear_map.map_dfinsupp_sum],
+    transitivity f.sum (λ (i : ι) (d : U i), (0 : R)),
+    { congr,
+      ext i d,
+      exact h i d d.property, },
+    { exact @dfinsupp.sum_zero ι _ (λ i, U i) _ _ _ _ f, } }
+end
 
-lemma mem_dual_annihilator_comap_iff {Φ : submodule R (module.dual R M)} (x : M) :
-  x ∈ Φ.dual_annihilator_comap ↔ ∀ φ ∈ Φ, (φ x : R) = 0 :=
-by simp_rw [dual_annihilator_comap, mem_comap, mem_dual_annihilator, module.dual.eval_apply]
+-- TODO: when `M` is finite-dimensional this is an equality
+lemma sup_dual_annihilator_le_inf (U V : submodule R M) :
+  U.dual_annihilator ⊔ V.dual_annihilator ≤ (U ⊓ V).dual_annihilator :=
+begin
+  intro φ,
+  simp_rw [mem_sup, mem_dual_annihilator, mem_inf],
+  rintro ⟨ψ, hψ, ψ', hψ', rfl⟩ v ⟨hU, hV⟩,
+  rw [linear_map.add_apply, hψ _ hU, hψ' _ hV, zero_add],
+end
+
+-- TODO: when `M` is finite-dimensional this is an equality
+lemma supr_dual_annihilator_le_infi {ι : Type*} (U : ι → submodule R M) :
+  (⨆ (i : ι), (U i).dual_annihilator) ≤ (⨅ (i : ι), U i).dual_annihilator :=
+begin
+  classical,
+  intro φ,
+  simp_rw [mem_dual_annihilator, submodule.mem_supr_iff_exists_dfinsupp', mem_infi],
+  rintros ⟨f, rfl⟩ x hx,
+  rw [linear_map.dfinsupp_sum_apply],
+  transitivity f.sum (λ (i : ι) (d : (U i).dual_annihilator), (0 : R)),
+  { congr,
+    ext i ⟨d, hd⟩,
+    rw [mem_dual_annihilator] at hd,
+    exact hd x (hx _), },
+  { exact @dfinsupp.sum_zero ι _ (λ i, (U i).dual_annihilator) _ _ _ _ f }
+end
 
 end submodule
 

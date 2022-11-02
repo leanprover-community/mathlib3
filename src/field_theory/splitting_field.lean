@@ -10,9 +10,9 @@ import ring_theory.adjoin_root
 # Splitting fields
 
 This file introduces the notion of a splitting field of a polynomial and provides an embedding from
-a splitting field to any field that splits the polynomial. A polynomial `f : polynomial K` splits
+a splitting field to any field that splits the polynomial. A polynomial `f : K[X]` splits
 over a field extension `L` of `K` if it is zero or all of its irreducible factors over `L` have
-degree `1`. A field extension of `K` of a polynomial `f : polynomial K` is called a splitting field
+degree `1`. A field extension of `K` of a polynomial `f : K[X]` is called a splitting field
 if it is the smallest field extension of `K` such that `f` splits.
 
 ## Main definitions
@@ -866,7 +866,7 @@ namespace intermediate_field
 
 open polynomial
 
-variables [field K] [field L] [algebra K L] {p : polynomial K}
+variables [field K] [field L] [algebra K L] {p : K[X]}
 
 lemma splits_of_splits {F : intermediate_field K L} (h : p.splits (algebra_map K L))
   (hF : ∀ x ∈ p.root_set L, x ∈ F) : p.splits (algebra_map K F) :=

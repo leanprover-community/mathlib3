@@ -33,6 +33,15 @@ export has_exists_mul_of_le (exists_mul_of_le)
 
 export has_exists_add_of_le (exists_add_of_le)
 
+section mul_one_class
+variables [mul_one_class α] [preorder α] [contravariant_class α α (*) (<)] [has_exists_mul_of_le α]
+  {a b : α}
+
+@[to_additive] lemma exists_one_lt_mul_of_lt' (h : a < b) : ∃ c, 1 < c ∧ a * c = b :=
+by { obtain ⟨c, rfl⟩ := exists_mul_of_le h.le, exact ⟨c, one_lt_of_lt_mul_right h, rfl⟩ }
+
+end mul_one_class
+
 section has_exists_mul_of_le
 variables [linear_order α] [densely_ordered α] [monoid α] [has_exists_mul_of_le α]
   [covariant_class α α (*) (<)] [contravariant_class α α (*) (<)] {a b : α}

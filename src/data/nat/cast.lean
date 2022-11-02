@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import data.nat.basic
 import data.nat.cast.defs
 import algebra.group.pi
+import algebra.order.ring
 import tactic.pi_instances
 import data.sum.basic
 
@@ -92,7 +93,7 @@ by rw [← cast_one, cast_lt]
 by rw [← cast_one, cast_le]
 
 @[simp, norm_cast] theorem cast_lt_one {n : ℕ} : (n : α) < 1 ↔ n = 0 :=
-by rw [← cast_one, cast_lt, lt_succ_iff, le_zero_iff]
+by rw [← cast_one, cast_lt, lt_succ_iff]; exact le_bot_iff
 
 @[simp, norm_cast] theorem cast_le_one {n : ℕ} : (n : α) ≤ 1 ↔ n ≤ 1 :=
 by rw [← cast_one, cast_le]

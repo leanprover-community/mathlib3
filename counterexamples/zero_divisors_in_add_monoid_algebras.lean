@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import algebra.geom_sum
+import algebra.group.unique_prods
 import algebra.monoid_algebra.basic
 import data.finsupp.lex
 import data.zmod.basic
-import algebra.group.unique_prods
 
 /-!
 # Examples of zero-divisors in `add_monoid_algebra`s

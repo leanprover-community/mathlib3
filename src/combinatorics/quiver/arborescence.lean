@@ -58,7 +58,7 @@ noncomputable def arborescence_mk {V : Type u} [quiver V] (r : V)
 { root := r,
   unique_path := λ b, ⟨classical.inhabited_of_nonempty
     begin
-      rcases (show ∃ n, height b < n, from ⟨_, lt_add_one _⟩) with ⟨n, hn⟩,
+      rcases (show ∃ n, height b < n, from ⟨_, nat.lt.base _⟩) with ⟨n, hn⟩,
       induction n with n ih generalizing b,
       { exact false.elim (nat.not_lt_zero _ hn) },
       rcases root_or_arrow b with ⟨⟨⟩⟩ | ⟨a, ⟨e⟩⟩,

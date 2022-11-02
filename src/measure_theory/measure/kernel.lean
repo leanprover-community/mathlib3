@@ -58,48 +58,48 @@ begin
   { exact (measure.measurable_coe hs).comp measurable_snd, },
 end
 
-def transition_kernel (mα : measurable_space α) (mβ : measurable_space β) :
+def kernel (mα : measurable_space α) (mβ : measurable_space β) :
   add_submonoid (α → measure β) :=
 { carrier := measurable, -- ∀ s : set β, measurable_set[mβ] s → measurable[mα] (λ a, κ a s)
   zero_mem' := measurable_zero,
   add_mem' := λ f g hf hg, measurable.add hf hg, }
 
-instance : has_coe_to_fun (transition_kernel mα mβ) (λ _, α → measure β) := ⟨λ κ, κ.val⟩
+instance : has_coe_to_fun (kernel mα mβ) (λ _, α → measure β) := ⟨λ κ, κ.val⟩
 
-class is_markov_kernel (κ : transition_kernel mα mβ) : Prop :=
+class is_markov_kernel (κ : kernel mα mβ) : Prop :=
 (is_probability_measure : ∀ a, is_probability_measure (κ a))
 
-class is_finite_kernel (κ : transition_kernel mα mβ) : Prop :=
+class is_finite_kernel (κ : kernel mα mβ) : Prop :=
 (exists_univ_le : ∃ C : ℝ≥0∞, C < ∞ ∧ ∀ a, κ a set.univ ≤ C)
 
 noncomputable
-def is_finite_kernel.bound (κ : transition_kernel mα mβ) [h : is_finite_kernel κ] : ℝ≥0∞ :=
+def is_finite_kernel.bound (κ : kernel mα mβ) [h : is_finite_kernel κ] : ℝ≥0∞ :=
 h.exists_univ_le.some
 
-lemma is_finite_kernel.bound_lt_top (κ : transition_kernel mα mβ) [h : is_finite_kernel κ] :
+lemma is_finite_kernel.bound_lt_top (κ : kernel mα mβ) [h : is_finite_kernel κ] :
   is_finite_kernel.bound κ < ∞ :=
 h.exists_univ_le.some_spec.1
 
-lemma is_finite_kernel.bound_ne_top (κ : transition_kernel mα mβ) [h : is_finite_kernel κ] :
+lemma is_finite_kernel.bound_ne_top (κ : kernel mα mβ) [h : is_finite_kernel κ] :
   is_finite_kernel.bound κ ≠ ∞ :=
 (is_finite_kernel.bound_lt_top κ).ne
 
-lemma measure_le_bound (κ : transition_kernel mα mβ) [h : is_finite_kernel κ] (a : α) (s : set β) :
+lemma measure_le_bound (κ : kernel mα mβ) [h : is_finite_kernel κ] (a : α) (s : set β) :
   κ a s ≤ is_finite_kernel.bound κ :=
 (measure_mono (set.subset_univ s)).trans (h.exists_univ_le.some_spec.2 a)
 
-def singular (κ : ℕ → transition_kernel mα mβ) : Prop :=
+def singular (κ : ℕ → kernel mα mβ) : Prop :=
 ∃ s : ℕ → set (α × β), ∀ i a, κ i a {b | (a,b) ∈ s i}ᶜ = 0
 
-class is_sigma_finite_kernel (κ : transition_kernel mα mβ) : Prop :=
-(tsum_singular : ∃ κs : ℕ → transition_kernel mα mβ,
+class is_sigma_finite_kernel (κ : kernel mα mβ) : Prop :=
+(tsum_singular : ∃ κs : ℕ → kernel mα mβ,
   (∀ n, is_finite_kernel (κs n)) ∧ (∀ a s, κ a s = ∑' n, κs n a s) ∧ singular κs)
 
-class is_s_finite_kernel (κ : transition_kernel mα mβ) : Prop :=
-(tsum_finite : ∃ κs : ℕ → transition_kernel mα mβ,
+class is_s_finite_kernel (κ : kernel mα mβ) : Prop :=
+(tsum_finite : ∃ κs : ℕ → kernel mα mβ,
   (∀ n, is_finite_kernel (κs n)) ∧ ∀ a s, κ a s = ∑' n, κs n a s)
 
-variables {κ : transition_kernel mα mβ}
+variables {κ : kernel mα mβ}
 
 instance todo [h : is_markov_kernel κ] (a : α) : is_probability_measure (κ a) :=
 is_markov_kernel.is_probability_measure a
@@ -118,21 +118,21 @@ instance is_sigma_finite_kernel.is_s_finite_kernel [h : is_sigma_finite_kernel �
   is_s_finite_kernel κ :=
 ⟨⟨h.tsum_singular.some, h.tsum_singular.some_spec.1, h.tsum_singular.some_spec.2.1⟩⟩
 
-namespace transition_kernel
+namespace kernel
 
-@[ext] lemma ext {κ : transition_kernel mα mβ} {η : transition_kernel mα mβ} (h : ∀ a, κ a = η a) :
+@[ext] lemma ext {κ : kernel mα mβ} {η : kernel mα mβ} (h : ∀ a, κ a = η a) :
   κ = η :=
 by { ext1, ext1 a, exact h a, }
 
 noncomputable
-def seq (κ : transition_kernel mα mβ) [h : is_s_finite_kernel κ]
+def seq (κ : kernel mα mβ) [h : is_s_finite_kernel κ]
   [decidable (is_sigma_finite_kernel κ)] :
-  ℕ → transition_kernel mα mβ :=
+  ℕ → kernel mα mβ :=
 if hσ : is_sigma_finite_kernel κ then hσ.tsum_singular.some else h.tsum_finite.some
 
-lemma tsum_seq (κ : transition_kernel mα mβ) [h : is_s_finite_kernel κ]
+lemma tsum_seq (κ : kernel mα mβ) [h : is_s_finite_kernel κ]
   [decidable (is_sigma_finite_kernel κ)] (a : α) (s : set β) :
-  ∑' n, transition_kernel.seq κ n a s = κ a s :=
+  ∑' n, kernel.seq κ n a s = κ a s :=
 begin
   simp_rw seq,
   split_ifs with hσ hσ,
@@ -140,33 +140,33 @@ begin
   { exact (h.tsum_finite.some_spec.2 a s).symm, },
 end
 
-lemma singular_seq (κ : transition_kernel mα mβ) [h : is_sigma_finite_kernel κ]
+lemma singular_seq (κ : kernel mα mβ) [h : is_sigma_finite_kernel κ]
   [decidable (is_sigma_finite_kernel κ)] :
-  singular (transition_kernel.seq κ) :=
+  singular (kernel.seq κ) :=
 by { rw [seq, dif_pos h], exact h.tsum_singular.some_spec.2.2, }
 
-end transition_kernel
+end kernel
 
 
 /- Regular conditional distribution -/
---def is_reg_cond_distribution (κ : transition_kernel mα mβ) (Y : α → β) : Prop :=
+--def is_reg_cond_distribution (κ : kernel mα mβ) (Y : α → β) : Prop :=
 --∀ᵐ ω ∂μ, ∀ s : set β, κ ω s = ennreal.of_real (cond_meas μ (Y ⁻¹' s) mα ω)
 
 -- ∀ᵐ ω ∂μ, ∀ s : set β, κ ω s = μ[(Y ⁻¹' s).indicator (λ _, 1) | mα] ω
 -- ∀ᵐ ω ∂μ, ∀ s : set β, κ ω s = μ[Y ∈ s | mα] ω
 
-namespace transition_kernel
+namespace kernel
 
-protected lemma measurable (κ : transition_kernel mα mβ) : measurable κ := κ.prop
+protected lemma measurable (κ : kernel mα mβ) : measurable κ := κ.prop
 
-protected lemma measurable_coe (κ : transition_kernel mα mβ)
+protected lemma measurable_coe (κ : kernel mα mβ)
   {s : set β} (hs : measurable_set[mβ] s) :
   measurable[mα] (λ a, κ a s) :=
-(measure.measurable_coe hs).comp (transition_kernel.measurable κ)
+(measure.measurable_coe hs).comp (kernel.measurable κ)
 
 /-- Constant kernel, which always returns the same measure. -/
 def const (mα : measurable_space α) (mβ : measurable_space β) (μβ : measure β) :
-  transition_kernel mα mβ :=
+  kernel mα mβ :=
 { val := λ _, μβ,
   property := measure.measurable_of_measurable_coe _ (λ s hs, measurable_const), }
 
@@ -174,7 +174,7 @@ def const (mα : measurable_space α) (mβ : measurable_space β) (μβ : measur
 noncomputable
 def deterministic {mα : measurable_space α} {mβ : measurable_space β} {f : α → β}
   (hf : measurable f) :
-  transition_kernel mα mβ :=
+  kernel mα mβ :=
 { val := λ a, measure.dirac (f a),
   property :=
     begin
@@ -219,11 +219,11 @@ lemma is_markov_kernel_const [hμβ : is_probability_measure μβ] :
 
 def of_fun_of_countable (mα : measurable_space α) (mβ : measurable_space β)
   [countable α] [measurable_singleton_class α] (f : α → measure β) :
-  transition_kernel mα mβ :=
+  kernel mα mβ :=
 { val := f,
   property := measurable_of_countable f }
 
-lemma aux (κ : transition_kernel mα mβ) {s : set β} {t : set (α × β)} (hs : measurable_set s)
+lemma aux (κ : kernel mα mβ) {s : set β} {t : set (α × β)} (hs : measurable_set s)
   (ht : measurable_set t) (hκs : ∀ a, κ a s ≠ ∞) :
   measurable (λ a, κ a (s ∩ {b | (a, b) ∈ t})) :=
 begin
@@ -246,7 +246,7 @@ begin
       { refl, },
       { exact measure_empty, }, },
     rw this,
-    exact measurable.ite ht₁ (transition_kernel.measurable_coe κ (hs.inter ht₂)) measurable_const },
+    exact measurable.ite ht₁ (kernel.measurable_coe κ (hs.inter ht₂)) measurable_const },
   { intros t' ht' h_meas,
     have h_eq_sdiff : ∀ a, s ∩ {b : β | (a, b) ∈ t'ᶜ} = s \ {b : β | (a, b) ∈ t'},
     { intro a,
@@ -262,7 +262,7 @@ begin
       { exact ((@measurable_prod_mk_left α β mα mβ a) t' ht').inter hs, },
       { exact (lt_of_le_of_lt (measure_mono (set.inter_subset_right _ _)) (hκs a).lt_top).ne, }, },
     rw this,
-    exact measurable.sub (transition_kernel.measurable_coe κ hs) h_meas, },
+    exact measurable.sub (kernel.measurable_coe κ hs) h_meas, },
   { intros f h_disj hf_meas hf,
     have h_Union : (λ a, κ a (s ∩ {b : β | (a, b) ∈ ⋃ i, f i}))
       = (λ a, κ a (⋃ i, s ∩ {b : β | (a, b) ∈ f i})),
@@ -283,7 +283,7 @@ begin
     exact measurable.ennreal_tsum hf, },
 end
 
-lemma aux' (κ : transition_kernel mα mβ) {t : set (α × β)}
+lemma aux' (κ : kernel mα mβ) {t : set (α × β)}
   (ht : measurable_set t) (hκs : ∀ a, is_finite_measure (κ a)) :
   measurable (λ a, κ a {b | (a, b) ∈ t}) :=
 by { convert aux κ measurable_set.univ ht (λ a, measure_ne_top _ _), ext1 a, rw set.univ_inter, }
@@ -307,7 +307,7 @@ begin
     simp only [lintegral_const, zero_mul], },
 end
 
-lemma measurable_set_lintegral (κ : transition_kernel mα mβ) (hκ : ∀ a, is_finite_measure (κ a))
+lemma measurable_set_lintegral (κ : kernel mα mβ) (hκ : ∀ a, is_finite_measure (κ a))
   (f : α → β → ℝ≥0∞) (hf : measurable (function.uncurry f)) {s : set β} (hs : measurable_set s) :
   measurable (λ a, ∫⁻ b in s, f a b ∂κ a) :=
 begin
@@ -352,7 +352,7 @@ begin
     exact measurable.add hm₁ hm₂, },
 end
 
-lemma measurable_lintegral (κ : transition_kernel mα mβ) (hκ : ∀ a, is_finite_measure (κ a))
+lemma measurable_lintegral (κ : kernel mα mβ) (hκ : ∀ a, is_finite_measure (κ a))
   (f : α → β → ℝ≥0∞) (hf : measurable (function.uncurry f)) :
   measurable (λ a, ∫⁻ b, f a b ∂κ a) :=
 begin
@@ -361,9 +361,9 @@ begin
 end
 
 noncomputable
-def of_density (κ : transition_kernel mα mβ) (hκ : ∀ a, is_finite_measure (κ a))
+def of_density (κ : kernel mα mβ) (hκ : ∀ a, is_finite_measure (κ a))
   (f : α → β → ℝ≥0∞) (hf : measurable (function.uncurry f)) :
-  transition_kernel mα mβ :=
+  kernel mα mβ :=
 { val := λ a, (κ a).with_density (f a),
   property :=
   begin
@@ -381,17 +381,17 @@ section composition
  -/
 
 noncomputable
-def comp_fun (κ : transition_kernel mα mβ) (η : transition_kernel (mα.prod mβ) mγ) (a : α)
+def comp_fun (κ : kernel mα mβ) (η : kernel (mα.prod mβ) mγ) (a : α)
   (s : set (β × γ)) :
   ℝ≥0∞ :=
 ∫⁻ b, η (a, b) {c | (b, c) ∈ s} ∂κ a
 
-lemma comp_fun_empty (κ : transition_kernel mα mβ) (η : transition_kernel (mα.prod mβ) mγ) (a : α) :
+lemma comp_fun_empty (κ : kernel mα mβ) (η : kernel (mα.prod mβ) mγ) (a : α) :
   comp_fun κ η a ∅ = 0 :=
 by simp only [comp_fun, set.mem_empty_iff_false, set.set_of_false, measure_empty, lintegral_const,
   zero_mul]
 
-lemma comp_fun_Union (κ : transition_kernel mα mβ) (η : transition_kernel (mα.prod mβ) mγ)
+lemma comp_fun_Union (κ : kernel mα mβ) (η : kernel (mα.prod mβ) mγ)
   (hη : ∀ ab, is_finite_measure (η ab)) (a : α)
   (f : ℕ → set (β × γ)) (hf_meas : ∀ i, measurable_set (f i)) (hf_disj : pairwise (disjoint on f)) :
   comp_fun κ η a (⋃ i, f i) = ∑' i, comp_fun κ η a (f i) :=
@@ -423,14 +423,13 @@ end
 /-- Composition of kernels.
 
 About assumptions: the hypothesis `[is_finite_kernel κ]` could be replaced by
-`∀ a, is_finite_measure (κ a)` to define the composition (same for η). This would be a weaker
+`∀ a, is_finite_measure (κ a)` to define the composition (same for `η`). This would be a weaker
 hypothesis since it removes the uniform bound assumption of `is_finite_kernel`. However, that second
 property is not stable by composition, in contrast to `is_finite_kernel`. Hence we choose to use the
 typeclass with an uniform bound on `κ a univ`. -/
 noncomputable
-def comp (κ : transition_kernel mα mβ) [is_finite_kernel κ]
-  (η : transition_kernel (mα.prod mβ) mγ) [is_finite_kernel η] :
-  transition_kernel mα (mβ.prod mγ) :=
+def comp (κ : kernel mα mβ) [is_finite_kernel κ] (η : kernel (mα.prod mβ) mγ) [is_finite_kernel η] :
+  kernel mα (mβ.prod mγ) :=
 have hη : ∀ ab, is_finite_measure (η ab) := infer_instance,
 { val := λ a, measure.of_measurable (λ s hs, comp_fun κ η a s) (comp_fun_empty κ η a)
     (comp_fun_Union κ η hη a),
@@ -453,9 +452,8 @@ have hη : ∀ ab, is_finite_measure (η ab) := infer_instance,
       exact measurable_lintegral κ infer_instance (λ a b, η (a, b) {c : γ | (b, c) ∈ s}) h_meas,
     end, }
 
-lemma comp_apply (κ : transition_kernel mα mβ) [is_finite_kernel κ]
-  (η : transition_kernel (mα.prod mβ) mγ) [is_finite_kernel η] (a : α)
-  {s : set (β × γ)} (hs : measurable_set s) :
+lemma comp_apply (κ : kernel mα mβ) [is_finite_kernel κ] (η : kernel (mα.prod mβ) mγ)
+  [is_finite_kernel η] (a : α) {s : set (β × γ)} (hs : measurable_set s) :
   comp κ η a s = ∫⁻ b, η (a, b) {c | (b, c) ∈ s} ∂κ a :=
 begin
   rw [comp],
@@ -465,8 +463,8 @@ begin
   refl,
 end
 
-lemma comp_apply_univ_le (κ : transition_kernel mα mβ) [is_finite_kernel κ]
-  (η : transition_kernel (mα.prod mβ) mγ) [is_finite_kernel η] (a : α) :
+lemma comp_apply_univ_le (κ : kernel mα mβ) [is_finite_kernel κ]
+  (η : kernel (mα.prod mβ) mγ) [is_finite_kernel η] (a : α) :
   comp κ η a set.univ ≤ (κ a set.univ) * (is_finite_kernel.bound η) :=
 begin
   rw comp_apply κ η a measurable_set.univ,
@@ -478,8 +476,8 @@ begin
   ... = κ a set.univ * Cη : mul_comm _ _,
 end
 
-instance is_finite_kernel.comp (κ : transition_kernel mα mβ) [is_finite_kernel κ]
-  (η : transition_kernel (mα.prod mβ) mγ) [is_finite_kernel η] :
+instance is_finite_kernel.comp (κ : kernel mα mβ) [is_finite_kernel κ]
+  (η : kernel (mα.prod mβ) mγ) [is_finite_kernel η] :
   is_finite_kernel (comp κ η) :=
 ⟨⟨is_finite_kernel.bound κ * is_finite_kernel.bound η,
   ennreal.mul_lt_top (is_finite_kernel.bound_ne_top κ) (is_finite_kernel.bound_ne_top η),
@@ -494,12 +492,12 @@ section map_comap
 /-! ### map, comap and another composition -/
 
 noncomputable
-def map (κ : transition_kernel mα mβ) (f : β → γ) (hf : measurable f) :
-  transition_kernel mα mγ :=
+def map (κ : kernel mα mβ) (f : β → γ) (hf : measurable f) :
+  kernel mα mγ :=
 { val := λ a, (κ a).map f,
-  property := (measure.measurable_map _ hf).comp (transition_kernel.measurable κ) }
+  property := (measure.measurable_map _ hf).comp (kernel.measurable κ) }
 
-lemma map_apply {mγ : measurable_space γ} (κ : transition_kernel mα mβ) {f : β → γ}
+lemma map_apply {mγ : measurable_space γ} (κ : kernel mα mβ) {f : β → γ}
   (hf : measurable f) (a : α) {s : set γ} (hs : measurable_set s) :
   map κ f hf a s = κ a (f ⁻¹' s) :=
 begin
@@ -508,7 +506,7 @@ begin
   exact measure.map_apply hf hs,
 end
 
-instance is_finite_kernel.map {mγ : measurable_space γ} (κ : transition_kernel mα mβ)
+instance is_finite_kernel.map {mγ : measurable_space γ} (κ : kernel mα mβ)
   [is_finite_kernel κ] {f : β → γ} (hf : measurable f) :
   is_finite_kernel (map κ f hf) :=
 begin
@@ -517,17 +515,17 @@ begin
   exact measure_le_bound κ a _,
 end
 
-def comap (κ : transition_kernel mα mβ) (f : γ → α) (hf : measurable f) :
-  transition_kernel mγ mβ :=
+def comap (κ : kernel mα mβ) (f : γ → α) (hf : measurable f) :
+  kernel mγ mβ :=
 { val := λ a, κ (f a),
-  property := (transition_kernel.measurable κ).comp hf }
+  property := (kernel.measurable κ).comp hf }
 
-lemma comap_apply {mγ : measurable_space γ} (κ : transition_kernel mα mβ) {f : γ → α}
+lemma comap_apply {mγ : measurable_space γ} (κ : kernel mα mβ) {f : γ → α}
   (hf : measurable f) (c : γ) {s : set β} (hs : measurable_set s) :
   comap κ f hf c s = κ (f c) s :=
 rfl
 
-instance is_finite_kernel.comap {mγ : measurable_space γ} (κ : transition_kernel mα mβ)
+instance is_finite_kernel.comap {mγ : measurable_space γ} (κ : kernel mα mβ)
   [is_finite_kernel κ] {f : γ → α} (hf : measurable f) :
   is_finite_kernel (comap κ f hf) :=
 begin
@@ -536,16 +534,16 @@ begin
   exact measure_le_bound κ _ _,
 end
 
-def prod_mk_left (κ : transition_kernel mα mβ) (mγ : measurable_space γ) :
-  transition_kernel (mγ.prod mα) mβ :=
+def prod_mk_left (κ : kernel mα mβ) (mγ : measurable_space γ) :
+  kernel (mγ.prod mα) mβ :=
 comap κ (λ a, a.2) measurable_snd
 
-lemma prod_mk_left_apply (κ : transition_kernel mα mβ) (mγ : measurable_space γ) (ca : γ × α)
+lemma prod_mk_left_apply (κ : kernel mα mβ) (mγ : measurable_space γ) (ca : γ × α)
   {s : set β} (hs : measurable_set s) :
   prod_mk_left κ mγ ca s = (κ ca.snd) s :=
 by rw [prod_mk_left, comap_apply _ _ _ hs]
 
-instance is_finite_kernel.prod_mk_left (κ : transition_kernel mα mβ) [is_finite_kernel κ] :
+instance is_finite_kernel.prod_mk_left (κ : kernel mα mβ) [is_finite_kernel κ] :
   is_finite_kernel (prod_mk_left κ mγ) :=
 begin
   let C := is_finite_kernel.bound κ,
@@ -555,19 +553,19 @@ begin
 end
 
 noncomputable
-def snd_right (κ : transition_kernel mα (mβ.prod mγ)) : transition_kernel mα mγ :=
+def snd_right (κ : kernel mα (mβ.prod mγ)) : kernel mα mγ :=
 map κ (λ p, p.2) measurable_snd
 
-lemma snd_right_apply (κ : transition_kernel mα (mβ.prod mγ)) (a : α) {s : set γ}
+lemma snd_right_apply (κ : kernel mα (mβ.prod mγ)) (a : α) {s : set γ}
   (hs : measurable_set s) :
   snd_right κ a s = κ a {p | p.2 ∈ s} :=
 by { rw [snd_right, map_apply _ _ _ hs], refl, }
 
-lemma snd_right_univ (κ : transition_kernel mα (mβ.prod mγ)) (a : α) :
+lemma snd_right_univ (κ : kernel mα (mβ.prod mγ)) (a : α) :
   snd_right κ a set.univ = κ a set.univ :=
 snd_right_apply _ _ measurable_set.univ
 
-instance is_finite_kernel.snd_right (κ : transition_kernel mα (mβ.prod mγ)) [is_finite_kernel κ] :
+instance is_finite_kernel.snd_right (κ : kernel mα (mβ.prod mγ)) [is_finite_kernel κ] :
   is_finite_kernel (snd_right κ) :=
 begin
   let C := is_finite_kernel.bound κ,
@@ -577,13 +575,13 @@ begin
 end
 
 noncomputable
-def comp2 (κ : transition_kernel mα mβ) [is_finite_kernel κ]
-  (η : transition_kernel mβ mγ) [is_finite_kernel η] :
-  transition_kernel mα mγ :=
+def comp2 (κ : kernel mα mβ) [is_finite_kernel κ]
+  (η : kernel mβ mγ) [is_finite_kernel η] :
+  kernel mα mγ :=
 snd_right (comp κ (prod_mk_left η mα))
 
-lemma comp2_apply (κ : transition_kernel mα mβ) [is_finite_kernel κ]
-  (η : transition_kernel mβ mγ) [is_finite_kernel η] (a : α) {s : set γ}
+lemma comp2_apply (κ : kernel mα mβ) [is_finite_kernel κ]
+  (η : kernel mβ mγ) [is_finite_kernel η] (a : α) {s : set γ}
   (hs : measurable_set s) :
   comp2 κ η a s = ∫⁻ b, η b s ∂κ a :=
 begin
@@ -593,14 +591,14 @@ begin
   simp_rw prod_mk_left_apply _ _ _ hs,
 end
 
-instance is_finite_kernel.comp2 (κ : transition_kernel mα mβ) [is_finite_kernel κ]
-  (η : transition_kernel mβ mγ) [is_finite_kernel η] :
+instance is_finite_kernel.comp2 (κ : kernel mα mβ) [is_finite_kernel κ]
+  (η : kernel mβ mγ) [is_finite_kernel η] :
   is_finite_kernel (comp2 κ η) :=
 by { rw comp2, apply_instance, }
 
-lemma comp2_assoc (κ : transition_kernel mα mβ) [is_finite_kernel κ]
-  (η : transition_kernel mβ mγ) [is_finite_kernel η]
-  (ξ : transition_kernel mγ mδ) [is_finite_kernel ξ] :
+lemma comp2_assoc (κ : kernel mα mβ) [is_finite_kernel κ]
+  (η : kernel mβ mγ) [is_finite_kernel η]
+  (ξ : kernel mγ mδ) [is_finite_kernel ξ] :
   comp2 (comp2 κ η) ξ = comp2 κ (comp2 η ξ) :=
 begin
   ext1 a,
@@ -610,7 +608,7 @@ begin
 end
 
 lemma comp2_deterministic_right_eq_map {mγ : measurable_space γ}
-  (κ : transition_kernel mα mβ) [is_finite_kernel κ]
+  (κ : kernel mα mβ) [is_finite_kernel κ]
   {f : β → γ} (hf : measurable f) :
   comp2 κ (deterministic hf) = map κ f hf :=
 begin
@@ -620,22 +618,22 @@ begin
 end
 
 lemma comp2_deterministic_left_eq_comap {mγ : measurable_space γ} {f : γ → α} (hf : measurable f)
-  (κ : transition_kernel mα mβ) [is_finite_kernel κ] :
+  (κ : kernel mα mβ) [is_finite_kernel κ] :
   comp2 (deterministic hf) κ = comap κ f hf :=
 begin
   ext a s hs,
   simp_rw [comap_apply _ _ _ hs, comp2_apply _ _ _ hs, coe_fn_deterministic hf a,
-    lintegral_dirac' _ (transition_kernel.measurable_coe κ hs)],
+    lintegral_dirac' _ (kernel.measurable_coe κ hs)],
 end
 
 end map_comap
 
-end transition_kernel
+end kernel
 
 section real
 
 def reg_cond_distribution (mα : measurable_space α) (Y : α → ℝ) :
-  transition_kernel mα (borel ℝ) :=
+  kernel mα (borel ℝ) :=
 sorry
 
 end real

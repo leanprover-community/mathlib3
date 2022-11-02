@@ -267,7 +267,9 @@ section has_zero_morphisms
 variables [has_zero_morphisms V]
 
 instance : has_zero_morphisms (Action V G) :=
-{ has_zero := λ X Y, ⟨⟨0, by simp⟩⟩, }
+{ has_zero := λ X Y, ⟨⟨0, by { intro g, simp }⟩⟩,
+  comp_zero' := λ P Q f R, by { ext1, simp },
+  zero_comp' := λ P Q R f, by { ext1, simp }, }
 
 instance forget_preserves_zero_morphisms : functor.preserves_zero_morphisms (forget V G) := {}
 instance forget₂_preserves_zero_morphisms [concrete_category V] :

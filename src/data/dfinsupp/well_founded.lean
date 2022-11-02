@@ -120,11 +120,11 @@ end
 variable (hs : ∀ i, well_founded (s i))
 include hs
 
-lemma lex.acc_single [decidable_eq ι] {i : ι} (a : α i)
-  (hi : acc (rᶜ ⊓ (≠)) i) : acc (dfinsupp.lex r s) (single i a) :=
+lemma lex.acc_single [decidable_eq ι] {i : ι} (hi : acc (rᶜ ⊓ (≠)) i) :
+  ∀ a, acc (dfinsupp.lex r s) (single i a) :=
 begin
-  induction hi with i hi ih generalizing a,
-  refine (hs i).induction a (λ a ha, _),
+  induction hi with i hi ih,
+  refine λ a, (hs i).induction a (λ a ha, _),
   refine acc.intro _ (λ x, _),
   rintro ⟨k, hr, hs⟩, classical,
   rw single_apply at hs,
@@ -139,7 +139,7 @@ end
 
 lemma lex.acc [decidable_eq ι] [Π i (x : α i), decidable (x ≠ 0)] (x : Π₀ i, α i)
   (h : ∀ i ∈ x.support, acc (rᶜ ⊓ (≠)) i) : acc (dfinsupp.lex r s) x :=
-lex.acc_of_single hbot x $ λ i hi, lex.acc_single hbot hs _ (h i hi)
+lex.acc_of_single hbot x $ λ i hi, lex.acc_single hbot hs (h i hi) _
 
 theorem lex.well_founded (hr : well_founded $ rᶜ ⊓ (≠)) : well_founded (dfinsupp.lex r s) :=
 ⟨λ x, by classical; exact lex.acc hbot hs x (λ i _, hr.apply i)⟩

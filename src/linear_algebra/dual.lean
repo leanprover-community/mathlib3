@@ -478,7 +478,7 @@ lemma dual_restrict_ker_eq_dual_annihilator (W : submodule R M) :
   W.dual_restrict.ker = W.dual_annihilator :=
 rfl
 
-/-- The `dual_annihilator` of a submodule in the dual space pulled back along the evaluation map
+/-- The `dual_annihilator` of a submodule of the dual space pulled back along the evaluation map
 `module.dual.eval`. -/
 def dual_annihilator_comap (Φ : submodule R (module.dual R M)) : submodule R M :=
 Φ.dual_annihilator.comap (module.dual.eval R M)

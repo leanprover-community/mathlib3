@@ -26,10 +26,6 @@ is required to prove the generalized Borel-Cantelli.
   given a filtration `ℱ` and a sequence of sets `s` such that `s n ∈ ℱ n` for all `n`,
   `limsup at_top s` is almost everywhere equal to the set for which `∑ ℙ[s (n + 1)∣ℱ n] = ∞`.
 
-## TODO
-
-Prove the missing second Borel-Cantelli lemma using this generalized version.
-
 -/
 
 open filter
@@ -387,7 +383,7 @@ end
 /-- **Lévy's generalization of the Borel-Cantelli lemma**: given a sequence of sets `s` and a
 filtration `ℱ` such that for all `n`, `s n` is `ℱ n`-measurable, `at_top.limsup s` is almost
 everywhere equal to the set for which `∑ k, ℙ(s (k + 1) | ℱ k) = ∞`. -/
-theorem ae_mem_limsup_at_top_iff [is_finite_measure μ]
+theorem ae_mem_limsup_at_top_iff (μ : measure Ω) [is_finite_measure μ]
   {s : ℕ → set Ω} (hs : ∀ n, measurable_set[ℱ n] (s n)) :
   ∀ᵐ ω ∂μ, ω ∈ limsup s at_top ↔
     tendsto (λ n, ∑ k in finset.range n, μ[(s (k + 1)).indicator (1 : Ω → ℝ) | ℱ k] ω)

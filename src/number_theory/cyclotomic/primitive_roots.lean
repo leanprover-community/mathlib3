@@ -28,7 +28,7 @@ in the implementation details section.
   and `primitive_roots n A` given by the choice of `ζ`.
 
 ## Main results
-* `is_cyclotomic_extension.zeta_primitive_root`: `zeta n A B` is a primitive `n`-th root of unity.
+* `is_cyclotomic_extension.zeta_spec`: `zeta n A B` is a primitive `n`-th root of unity.
 * `is_cyclotomic_extension.finrank`: if `irreducible (cyclotomic n K)` (in particular for
   `K = ℚ`), then the `finrank` of a cyclotomic extension is `n.totient`.
 * `is_primitive_root.norm_eq_one`: if `irreducible (cyclotomic n K)` (in particular for `K = ℚ`),

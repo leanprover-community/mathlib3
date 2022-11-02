@@ -564,6 +564,10 @@ theorem finite.of_finite_image {s : set α} {f : α → β} (h : (f '' s).finite
 by { casesI h, exact ⟨fintype.of_injective (λ a, (⟨f a.1, mem_image_of_mem f a.2⟩ : f '' s))
                        (λ a b eq, subtype.eq $ hi a.2 b.2 $ subtype.ext_iff_val.1 eq)⟩ }
 
+lemma finite_of_finite_preimage {f : α → β} {s : set β} (h : (f ⁻¹' s).finite)
+  (hs : s ⊆ range f) : s.finite :=
+by { rw [← image_preimage_eq_of_subset hs], exact finite.image f h }
+
 theorem finite.of_preimage {f : α → β} {s : set β} (h : (f ⁻¹' s).finite) (hf : surjective f) :
   s.finite :=
 hf.image_preimage s ▸ h.image _
@@ -1117,12 +1121,7 @@ finite.induction_on H
   (by simp only [bUnion_empty, bdd_above_empty, ball_empty_iff])
   (λ a s ha _ hs, by simp only [bUnion_insert, ball_insert_iff, bdd_above_union, hs])
 
-lemma infinite_of_not_bdd_above : ¬ bdd_above s → s.infinite :=
-begin
-  contrapose!,
-  rw not_infinite,
-  apply finite.bdd_above,
-end
+lemma infinite_of_not_bdd_above : ¬ bdd_above s → s.infinite := mt finite.bdd_above
 
 end
 

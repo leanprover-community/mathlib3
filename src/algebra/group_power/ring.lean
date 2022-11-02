@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.group_power.basic
 import algebra.hom.ring
+import data.nat.order
 
 /-!
 # Power operations on monoids with zero, semirings, and rings

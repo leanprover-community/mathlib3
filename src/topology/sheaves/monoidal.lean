@@ -286,7 +286,7 @@ end
 
 lemma ihom_obj_is_sheaf_of_is_sheaf {F G : presheaf AddCommGroup.{u} X}
   (hF : is_sheaf F) (hG : is_sheaf G) : is_sheaf (ihom_obj F G) :=
-sorry -- hard
+sorry -- probably hard
 
 @[simps] def ihom_map' (F G₁ G₂ : presheaf AddCommGroup.{u} X) (γ : G₁ ⟶ G₂)
   (U : opens X) (f : restrict F U ⟶ restrict G₁ U) :
@@ -816,6 +816,10 @@ instance module_Mon_sections_Mod_sections (U : (opens X)ᵒᵖ) : module (R.X.ob
     by rw [tensor_product.add_tmul, map_add],
   zero_smul := λ x, show M.act.app U _ = 0, by rw [tensor_product.zero_tmul, map_zero],
   ..Top.presheaf.monoidal.presheaf_of_module.distrib_mul_action_Mon_sections_Mod_sections R M U }
+
+lemma sections_smul_restriction {U V : (opens X)ᵒᵖ} (inc : U ⟶ V) (r : R.X.obj U) (m : M.X.obj U) :
+  M.X.map inc (r • m) = R.X.map inc r • M.X.map inc m :=
+eq.symm $ fun_like.congr_fun (M.act.naturality inc) $ r ⊗ₜ m
 
 end presheaf_of_module
 

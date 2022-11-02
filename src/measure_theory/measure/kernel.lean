@@ -314,8 +314,7 @@ by rw [sum_apply κ a, measure.sum_apply _ hs]
 lemma sum_comm [countable ι] (κ : ι → ι → kernel mα mβ) :
   kernel.sum (λ n, kernel.sum (κ n)) = kernel.sum (λ m, kernel.sum (λ n, κ n m)) :=
 begin
-  ext1 a,
-  ext1 s hs,
+  ext a s hs,
   simp_rw [sum_apply, measure.sum_apply _ hs],
   rw ennreal.tsum_comm,
 end

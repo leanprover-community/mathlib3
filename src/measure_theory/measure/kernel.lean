@@ -690,7 +690,19 @@ lemma is_s_finite_kernel_of_eq_sum (κ : kernel mα mβ)
   (κs : ℕ → kernel mα mβ) (hκs : ∀ n, is_s_finite_kernel (κs n)) (hκ : κ = kernel.sum κs) :
   is_s_finite_kernel κ :=
 begin
-  sorry,
+  let e : ℕ ≃ (ℕ × ℕ) := denumerable.equiv₂ ℕ (ℕ × ℕ),
+  refine ⟨⟨λ n, seq (κs (e n).1) (e n).2, infer_instance, _⟩⟩,
+  have hκ_eq : κ = kernel.sum (λ n, kernel.sum (seq (κs n))),
+  { simp_rw kernel_sum_seq,
+    exact hκ, },
+  ext1 a,
+  ext1 s hs,
+  rw hκ_eq,
+  simp_rw kernel.sum_apply' _ _ hs,
+  change ∑' n m, seq (κs n) m a s = ∑' n, (λ nm : ℕ × ℕ, seq (κs nm.fst) nm.snd a s) (e n),
+  rw e.tsum_eq,
+  { rw tsum_prod' ennreal.summable (λ _, ennreal.summable), },
+  { apply_instance, },
 end
 
 instance is_s_finite_kernel.comp (κ : kernel mα mβ) [is_s_finite_kernel κ]

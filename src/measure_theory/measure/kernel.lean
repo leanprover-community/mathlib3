@@ -91,10 +91,6 @@ lemma measure_le_bound (κ : kernel mα mβ) [h : is_finite_kernel κ] (a : α) 
 def singular (κ : ℕ → kernel mα mβ) : Prop :=
 ∃ s : ℕ → set (α × β), ∀ i a, κ i a {b | (a,b) ∈ s i}ᶜ = 0
 
-class is_sigma_finite_kernel (κ : kernel mα mβ) : Prop :=
-(tsum_singular : ∃ κs : ℕ → kernel mα mβ,
-  (∀ n, is_finite_kernel (κs n)) ∧ (∀ a, κ a = measure.sum (λ n, κs n a)) ∧ singular κs)
-
 class is_s_finite_kernel (κ : kernel mα mβ) : Prop :=
 (tsum_finite : ∃ κs : ℕ → kernel mα mβ,
   (∀ n, is_finite_kernel (κs n)) ∧ ∀ a, κ a = measure.sum (λ n, κs n a))
@@ -110,13 +106,8 @@ instance todo' [h : is_finite_kernel κ] (a : α) : is_finite_measure (κ a) :=
 instance is_markov_kernel.is_finite_kernel [h : is_markov_kernel κ] : is_finite_kernel κ :=
 ⟨⟨1, ennreal.one_lt_top, λ a, prob_le_one⟩⟩
 
-instance is_finite_kernel.is_sigma_finite_kernel [h : is_finite_kernel κ] :
-  is_sigma_finite_kernel κ :=
-⟨⟨λ n, if n = 0 then κ else 0, sorry, sorry, sorry⟩⟩
-
-instance is_sigma_finite_kernel.is_s_finite_kernel [h : is_sigma_finite_kernel κ] :
-  is_s_finite_kernel κ :=
-⟨⟨h.tsum_singular.some, h.tsum_singular.some_spec.1, h.tsum_singular.some_spec.2.1⟩⟩
+instance is_finite_kernel.is_s_finite_kernel [h : is_finite_kernel κ] : is_s_finite_kernel κ :=
+sorry
 
 namespace kernel
 
@@ -125,35 +116,17 @@ namespace kernel
 by { ext1, ext1 a, exact h a, }
 
 noncomputable
-def seq (κ : kernel mα mβ) [h : is_s_finite_kernel κ]
-  [decidable (is_sigma_finite_kernel κ)] :
+def seq (κ : kernel mα mβ) [h : is_s_finite_kernel κ] :
   ℕ → kernel mα mβ :=
-if hσ : is_sigma_finite_kernel κ then hσ.tsum_singular.some else h.tsum_finite.some
+h.tsum_finite.some
 
-lemma measure_sum_seq (κ : kernel mα mβ) [h : is_s_finite_kernel κ]
-  [decidable (is_sigma_finite_kernel κ)] (a : α) :
+lemma measure_sum_seq (κ : kernel mα mβ) [h : is_s_finite_kernel κ] (a : α) :
   measure.sum (λ n, seq κ n a) = κ a :=
-begin
-  simp_rw seq,
-  split_ifs with hσ hσ,
-  { exact (hσ.tsum_singular.some_spec.2.1 a).symm, },
-  { exact (h.tsum_finite.some_spec.2 a).symm, },
-end
+(h.tsum_finite.some_spec.2 a).symm
 
-lemma singular_seq (κ : kernel mα mβ) [h : is_sigma_finite_kernel κ]
-  [decidable (is_sigma_finite_kernel κ)] :
-  singular (kernel.seq κ) :=
-by { rw [seq, dif_pos h], exact h.tsum_singular.some_spec.2.2, }
-
-instance is_finite_kernel_seq (κ : kernel mα mβ) [h : is_s_finite_kernel κ]
-  [decidable (is_sigma_finite_kernel κ)] (n : ℕ) :
+instance is_finite_kernel_seq (κ : kernel mα mβ) [h : is_s_finite_kernel κ] (n : ℕ) :
   is_finite_kernel (kernel.seq κ n) :=
-begin
-  simp_rw kernel.seq,
-  split_ifs with hσ hσ,
-  { exact hσ.tsum_singular.some_spec.1 n, },
-  { exact h.tsum_finite.some_spec.1 n, },
-end
+h.tsum_finite.some_spec.1 n
 
 end kernel
 
@@ -383,7 +356,6 @@ lemma measurable_set_lintegral (κ : kernel mα mβ) [is_s_finite_kernel κ]
   (f : α → β → ℝ≥0∞) (hf : measurable (function.uncurry f)) {s : set β} (hs : measurable_set s) :
   measurable (λ a, ∫⁻ b in s, f a b ∂κ a) :=
 begin
-  classical,
   simp_rw ← measure_sum_seq κ,
   suffices : (λ (a : α), lintegral ((measure.sum (λ n, seq κ n a)).restrict s) (f a))
     = λ a, ∑' n, ∫⁻ b in s, f a b ∂(seq κ n a),
@@ -464,7 +436,7 @@ begin
 end
 
 lemma comp_fun_tsum_right (κ : kernel mα mβ) (η : kernel (mα.prod mβ) mγ) [is_s_finite_kernel η]
-  (a : α) {s : set (β × γ)} (hs : measurable_set s) [decidable (is_sigma_finite_kernel η)] :
+  (a : α) {s : set (β × γ)} (hs : measurable_set s) :
   comp_fun κ η a s = ∑' n, comp_fun κ (seq η n) a s :=
 begin
   simp_rw [comp_fun, (measure_sum_seq η _).symm],
@@ -484,7 +456,6 @@ lemma comp_fun_Union (κ : kernel mα mβ) (η : kernel (mα.prod mβ) mγ)
   (f : ℕ → set (β × γ)) (hf_meas : ∀ i, measurable_set (f i)) (hf_disj : pairwise (disjoint on f)) :
   comp_fun κ η a (⋃ i, f i) = ∑' i, comp_fun κ η a (f i) :=
 begin
-  classical,
   rw comp_fun_tsum_right κ η a (measurable_set.Union hf_meas),
   have hn : ∀ n, comp_fun κ (seq η n) a (⋃ i, f i) = ∑' i, comp_fun κ (seq η n) a (f i),
   { intros n,
@@ -516,7 +487,6 @@ lemma measurable_comp_fun (κ : kernel mα mβ) [is_s_finite_kernel κ]
   (η : kernel (mα.prod mβ) mγ) [is_s_finite_kernel η] {s : set (β × γ)} (hs : measurable_set s) :
   measurable (λ a, comp_fun κ η a s) :=
 begin
-  classical,
   simp_rw comp_fun_tsum_right κ η _ hs,
   refine measurable.ennreal_tsum (λ n, _),
   simp only [comp_fun],

@@ -535,65 +535,60 @@ end
 --   exact funext (λ n, lintegral_congr_ae (ae_seq.ae_seq_n_eq_fun_n_ae hf hp n)),
 -- end
 
-/-- belongs in measure_theory.integral.lebesgue ADD TO MATHLIB 10/20/22 -/
-theorem measure_theory.lintegral_supr_directed' {α : Type*} {β : Type*} {m : measurable_space α}
-  {μ : measure_theory.measure α} [countable β] {f : β → α → ennreal}
-  (hf : ∀ (b : β), ae_measurable (f b) μ) (h_directed : directed has_le.le f) :
-∫⁻ (a : α), (⨆ (b : β), f b a) ∂μ = ⨆ (b : β), ∫⁻ (a : α), f b a ∂μ :=
-begin
-  simp_rw ←supr_apply,
-  let p : α → (β → ennreal) → Prop := λ x f', directed has_le.le f',
-  have hp : ∀ᵐ x ∂μ, p x (λ i, f i x),
-  { filter_upwards with x i j,
-    obtain ⟨z, hz₁, hz₂⟩ := h_directed i j,
-    exact ⟨z, hz₁ x, hz₂ x⟩, },
-  have h_ae_seq_directed : directed has_le.le (ae_seq hf p),
-  { intros b₁ b₂,
-    obtain ⟨z, hz₁, hz₂⟩ := h_directed b₁ b₂,
-    refine ⟨z, _, _⟩;
-    { intros x,
-      by_cases hx : x ∈ ae_seq_set hf p,
-      { rw ae_seq.ae_seq_eq_fun_of_mem_ae_seq_set hf hx,
-        rw ae_seq.ae_seq_eq_fun_of_mem_ae_seq_set hf hx,
-        apply_rules [hz₁, hz₂], },
-      { simp only [ae_seq, hx, if_false],
-        exact le_rfl, }, }, },
-  convert (lintegral_supr_directed (ae_seq.measurable hf p) h_ae_seq_directed) using 1,
-  { simp_rw ←supr_apply,
-    rw lintegral_congr_ae (ae_seq.supr hf hp).symm, },
-  { congr' 1,
-    ext1 b,
-    rw lintegral_congr_ae,
-    symmetry,
-    refine ae_seq.ae_seq_n_eq_fun_n_ae hf hp _, },
-end
 
-#exit
+/-- ALREADY PR'ed to mathlib! -/
+lemma lintegral_tsum' {α : Type*} {β : Type*} {m : measurable_space α}
+  {μ : measure_theory.measure α} [countable β] {f : β → α → ennreal} (hf : ∀i, ae_measurable (f i) μ) :
+  ∫⁻ a, ∑' i, f i a ∂μ = ∑' i, ∫⁻ a, f i a ∂μ := sorry
 
+
+--- remind me, why not `measure_theory.integral_integral` and
+---- tsum as integral
+/-- THIS IS WHERE WE STOPPED ON 11/2/22 -/
 lemma measure_theory.integral_tsum {α : Type*} {β : Type*} {m : measurable_space α}
   {μ : measure_theory.measure α} [encodable β] {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
   [measurable_space E] [borel_space E] [complete_space E]
   {f : β → α → E}
   (hf : ∀ (i : β), ae_strongly_measurable (f i) μ) -- (hf : ∀ (i : β), ae_measurable (f i) μ)
-  (hf' : summable (λ (i : β), ∫⁻ (a : α), ∥f i a∥₊ ∂μ))
-  --∑' (i : β), ∫⁻ (a : α), ↑∥f i a∥₊ ∂μ < ∞ )
-  -- F : α → ℝ≥0
-  -- hF : ∀ a, has_sum (λ i, ∥f i a ∥ ) (F a)
-  -- hF' : integralbe F ∂μ
-
-  -- ∀ a : α , summable (λ i, ∥f i a ∥ )
-  -- integrable (λ a, ∑' (i:β), ∥f i a ∥) ∂μ
-
-  --(hf' : ∫ (a : α), (∑' (i : β), ∣f i a|) ∂μ) < ∞
-  :
+  (hf' : summable (λ (i : β), ∫⁻ (a : α), ∥f i a∥₊ ∂μ)) :
   ∫ (a : α), (∑' (i : β), f i a) ∂μ = ∑' (i : β), ∫ (a : α), f i a ∂μ :=
 begin
-  have : ∫⁻ (a : α), (∑' (i : β), ∥f i a∥₊ ) ∂μ = ∑' (i : β), ∫⁻ (a : α), ∥f i a∥₊ ∂μ,
-  { rw lintegral_tsum,
-    exact (λ i, measurable_coe_nnreal_ennreal.comp (measurable_nnnorm.comp (hf i))), },
-
-  sorry,
+  have hhh : ∀ᵐ (a : α) ∂μ, summable (λ (n : β), (∥f n a∥₊ : ℝ)),
+  {
+    have := ae_lt_top ,
+    have := hf'.has_sum,
+    rw ← lintegral_tsum' at hf',
+    change has_finite_integral _ _ at hf',
+    sorry,
+  },
+  convert (measure_theory.has_sum_integral_of_dominated_convergence _ hf _ _ _ _).tsum_eq.symm,
+  { exact λ i a, ∥f i a∥₊, },
+  { intros n,
+    filter_upwards with x,
+    refl, },
+  { exact hhh, },
+  {
+    dsimp [integrable],
+    split,
+    { sorry, },
+    {
+      dsimp [has_finite_integral],
+      have : ∫⁻ (a : α), ∑' (n : β), ∥f n a∥₊ ∂μ < ⊤,
+      {
+        rw lintegral_tsum',
+        sorry, --exact hf', -- HOMEWORK
+        exact_mod_cast λ i, (hf i).ae_measurable.nnnorm,
+      },
+      convert this,
+      ext1 a,
+      sorry, --- HOMEWORK
+    },
+  },
+  { filter_upwards [hhh] with x hx,
+    exact (summable_of_summable_norm hx).has_sum, },
 end
+
+#exit
 
 open_locale ennreal
 

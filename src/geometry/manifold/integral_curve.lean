@@ -60,7 +60,7 @@ TODO : This definition refers to a chosen chart at `x`, but the property is inde
 choice of chart. See Theorem 1.37 (for general manifolds) and Theorem 1.46 (for smooth manifolds) of
 Introduction to Smooth Manifolds by John M. Lee.
 -/
-def is_interior_point (x : M) := (ext_chart_at I x) x ∈ interior (ext_chart_at I x).target
+def is_interior_point (x : M) := 𝓔(I, x) x ∈ interior 𝓔(I, x).target
 
 lemma boundaryless.is_interior_point
   [I.boundaryless] {x : M} : I.is_interior_point x :=
@@ -99,7 +99,7 @@ begin
   apply and_congr (continuous_within_at_iff_continuous_at
     (is_open.mem_nhds is_open_univ (set.mem_univ x))),
   rw [cont_diff_within_at_prop, written_in_ext_chart_at, ext_chart_at_coe, ext_chart_at_coe,
-    ext_chart_at_coe_symm, function.comp_apply, set.inter_comm _ (set.range I)],
+    ext_chart_at_coe_symm, set.inter_comm _ (set.range I)],
   refine cont_diff_within_at_inter ((I.continuous_at_symm).preimage_mem_nhds _),
   rw I.left_inv,
   apply (local_homeomorph.continuous_at_symm _

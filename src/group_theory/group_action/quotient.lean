@@ -6,7 +6,8 @@ Authors: Chris Hughes, Thomas Browning
 import dynamics.periodic_pts
 import group_theory.group_action.conj_act
 import group_theory.commutator
-import group_theory.quotient_group
+import group_theory.finiteness
+import group_theory.index
 
 /-!
 # Properties of group actions involving quotient groups
@@ -317,5 +318,21 @@ noncomputable def quotient_center_embedding {S : set G} (hS : closure S = ⊤) :
 lemma quotient_center_embedding_apply {S : set G} (hS : closure S = ⊤) (g : G) (s : S) :
   quotient_center_embedding hS g s = ⟨⁅g, s⁆, g, s, rfl⟩ :=
 rfl
+
+variables (G)
+
+lemma index_center_ne_zero [finite (commutator_set G)] [group.fg G] : (center G).index ≠ 0 :=
+begin
+  obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
+  exact mt (finite.card_eq_zero_of_embedding (quotient_center_embedding hS2)) finite.card_pos.ne',
+end
+
+lemma index_center_le_pow [finite (commutator_set G)] [group.fg G] :
+  (center G).index ≤ (nat.card (commutator_set G)) ^ group.rank G :=
+begin
+  obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
+  rw [←hS1, ←fintype.card_coe, ←nat.card_eq_fintype_card, ←finset.coe_sort_coe, ←nat.card_fun],
+  exact finite.card_le_of_embedding (quotient_center_embedding hS2),
+end
 
 end subgroup

@@ -387,9 +387,7 @@ section composition
  -/
 
 noncomputable
-def comp_fun (κ : kernel mα mβ) (η : kernel (mα.prod mβ) mγ) (a : α)
-  (s : set (β × γ)) :
-  ℝ≥0∞ :=
+def comp_fun (κ : kernel mα mβ) (η : kernel (mα.prod mβ) mγ) (a : α) (s : set (β × γ)) : ℝ≥0∞ :=
 ∫⁻ b, η (a, b) {c | (b, c) ∈ s} ∂κ a
 
 lemma comp_fun_empty (κ : kernel mα mβ) (η : kernel (mα.prod mβ) mγ) (a : α) :
@@ -542,6 +540,68 @@ lemma comp_apply (κ : kernel mα mβ) [is_s_finite_kernel κ] (η : kernel (mα
   [is_s_finite_kernel η] (a : α) {s : set (β × γ)} (hs : measurable_set s) :
   comp κ η a s = ∫⁻ b, η (a, b) {c | (b, c) ∈ s} ∂κ a :=
 comp_apply_eq_comp_fun κ η a hs
+
+lemma lintegral_comp (κ : kernel mα mβ) [is_s_finite_kernel κ] (η : kernel (mα.prod mβ) mγ)
+  [is_s_finite_kernel η] (a : α) {f : β → γ → ℝ≥0∞} (hf : measurable (function.uncurry f)) :
+  ∫⁻ bc, f bc.1 bc.2 ∂(comp κ η a) = ∫⁻ b, ∫⁻ c, f b c ∂(η (a, b)) ∂(κ a) :=
+begin
+  have h := simple_func.supr_eapprox_apply (function.uncurry f) hf,
+  simp only [prod.forall, function.uncurry_apply_pair] at h,
+  simp_rw [← h, prod.mk.eta],
+  rw lintegral_supr,
+  rotate,
+  { exact λ n, (simple_func.eapprox (function.uncurry f) n).measurable, },
+  { intros i j hij b,
+    have h_mono := simple_func.monotone_eapprox (function.uncurry f) hij,
+    rw ← simple_func.coe_le at h_mono,
+    exact h_mono _, },
+  have : ∀ b, ∫⁻ c, (⨆ n, simple_func.eapprox (function.uncurry f) n (b, c)) ∂η (a, b)
+    = ⨆ n, ∫⁻ c, simple_func.eapprox (function.uncurry f) n (b, c) ∂η (a, b),
+  { intro a,
+    rw lintegral_supr,
+    { exact λ n, (simple_func.eapprox (function.uncurry f) n).measurable.comp
+      measurable_prod_mk_left, },
+    { intros i j hij b,
+      have h_mono := simple_func.monotone_eapprox (function.uncurry f) hij,
+      rw ← simple_func.coe_le at h_mono,
+      exact h_mono _, }, },
+  simp_rw this,
+  rw lintegral_supr,
+  rotate,
+  { sorry, },
+  { intros i j hij b,
+    refine lintegral_mono (λ c, _),
+    have h_mono := simple_func.monotone_eapprox (function.uncurry f) hij,
+    rw ← simple_func.coe_le at h_mono,
+    exact h_mono _, },
+  congr,
+  ext1 n,
+  refine simple_func.induction _ _ (simple_func.eapprox (function.uncurry f) n),
+  { intros c s hs,
+    simp only [simple_func.const_zero, simple_func.coe_piecewise, simple_func.coe_const,
+      simple_func.coe_zero, set.piecewise_eq_indicator],
+    rw lintegral_indicator' measurable_id' hs,
+    simp only [set.preimage_id'],
+    rw comp_apply κ η _ hs,
+    rw ← lintegral_const_mul c _,
+    swap, { sorry, },
+    congr,
+    ext1 b,
+    classical,
+    rw lintegral_indicator' measurable_prod_mk_left hs,
+    refl, },
+  { intros f f' h_disj hf hf',
+    simp_rw [simple_func.coe_add],
+    simp_rw pi.add_apply,
+    change ∫⁻ x : β × γ, ((f : (β × γ) → ℝ≥0∞) x + f' x) ∂(comp κ η a)
+      = ∫⁻ b, ∫⁻ (c : γ), f (b, c) + f' (b, c) ∂η (a, b) ∂κ a,
+    rw [lintegral_add_left (simple_func.measurable _), hf, hf', ← lintegral_add_left],
+    swap, { sorry, },
+    congr,
+    ext1 b,
+    rw ← lintegral_add_left,
+    sorry, },
+end
 
 lemma comp_eq_tsum_comp (κ : kernel mα mβ) [is_s_finite_kernel κ] (η : kernel (mα.prod mβ) mγ)
   [is_s_finite_kernel η] (a : α) {s : set (β × γ)} (hs : measurable_set s) :

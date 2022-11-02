@@ -343,15 +343,6 @@ begin
   simp only [measure.restrict_univ],
 end
 
-lemma sum_measure_restrict {ι : Type*} {m : measurable_space α} {μ : ι → measure α} {s : set α}
-  (hs : measurable_set s) :
-  (measure.sum μ).restrict s = measure.sum (λ i, (μ i).restrict s) :=
-begin
-  ext1 t ht,
-  rw [measure.restrict_apply ht, measure.sum_apply _ (ht.inter hs), measure.sum_apply _ ht],
-  simp_rw measure.restrict_apply ht,
-end
-
 lemma measurable_set_lintegral (κ : kernel mα mβ) [is_s_finite_kernel κ]
   (f : α → β → ℝ≥0∞) (hf : measurable (function.uncurry f)) {s : set β} (hs : measurable_set s) :
   measurable (λ a, ∫⁻ b in s, f a b ∂κ a) :=
@@ -363,7 +354,7 @@ begin
     refine measurable.ennreal_tsum (λ n, _),
     exact measurable_set_lintegral_of_finite (seq κ n) infer_instance f hf hs, },
   ext1 a,
-  rw sum_measure_restrict hs,
+  rw measure.restrict_sum _ hs,
   rw lintegral_sum_measure,
 end
 

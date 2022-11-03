@@ -1134,6 +1134,7 @@ namespace walk
 
 variables {G}
 
+/-- The walk `p` converted to lie in `H` -/
 @[simp] def induce : Π {u v : V} (p : G.walk u v) {H : simple_graph V}
   (h : ∀ e, e ∈ p.edges → e ∈ H.edge_set), H.walk u v
 | _ _ (walk.nil) H h := walk.nil
@@ -1152,6 +1153,7 @@ lemma induce_id : p.induce (λ e ep, edges_subset_edge_set p ep) = p := by
   simp only [induce],
   simp only [p_ih, induce, eq_self_iff_true, heq_iff_eq, and_self], }
 
+/-- The path `p` converted to the larger graph `H` -/
 abbreviation induce_le (GH : G ≤ H) : H.walk u v :=
 p.induce (λ e ep, edge_set_mono GH (edges_subset_edge_set p ep))
 
@@ -1178,8 +1180,8 @@ lemma is_path_induce (pp : p.is_path) : (p.induce hp).is_path := by
   simp only [cons_is_path_iff, induce, induce_support] at pp ⊢,
   simp only [p_ih, pp, not_false_iff, and_self], }
 
-def is_cycle_induce {u : V} (p : G.walk u u) {H : simple_graph V}
-  (hp : ∀ e, e ∈ p.edges → e ∈ H.edge_set) (pc : p.is_cycle) : (p.induce hp).is_cycle := by
+lemma is_cycle_induce {u : V} (p : G.walk u u) {H : simple_graph V}
+  (hp : ∀ e, e ∈ p.edges → e ∈ H.edge_set) (pc : p.is_cycle)  : (p.induce hp).is_cycle := by
 { cases p,
   { simp only [induce, is_cycle.not_of_nil] at pc ⊢, exact pc, },
   { simp only [path.cons_is_cycle_iff, induce, induce_edges] at pc ⊢,
@@ -1187,9 +1189,10 @@ def is_cycle_induce {u : V} (p : G.walk u u) {H : simple_graph V}
     apply is_path_induce,
     exact pc.left, }, }
 
-abbreviation is_cycle_induce_le  {u : V} (p : G.walk u u) {H : simple_graph V}
-  (GH : G ≤ H) (hp : p.is_cycle) :=
-p.is_cycle_induce (λ e ep, edge_set_mono GH (edges_subset_edge_set p ep)) hp
+lemma is_cycle_induce_le {u : V} (p : G.walk u u) {H : simple_graph V}
+  (hp : ∀ e, e ∈ p.edges → e ∈ H.edge_set) (pc : p.is_cycle)
+  (GH : G ≤ H)  : (p.induce hp).is_cycle :=
+p.is_cycle_induce (λ e ep, edge_set_mono GH (edges_subset_edge_set p ep)) pc
 
 section
 include hp

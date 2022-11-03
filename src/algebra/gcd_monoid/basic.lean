@@ -558,7 +558,7 @@ end
 lemma extract_gcd {α : Type*} [cancel_comm_monoid_with_zero α] [gcd_monoid α] (x y : α) :
   ∃ x' y', x = gcd x y * x' ∧ y = gcd x y * y' ∧ is_unit (gcd x' y') :=
 begin
-  cases eq_or_ne (gcd x y) 0 with h h,
+  by_cases h : gcd x y = 0,
   { obtain ⟨rfl, rfl⟩ := (gcd_eq_zero_iff x y).1 h,
     simp_rw ← associated_one_iff_is_unit,
     exact ⟨1, 1, by rw [h, zero_mul], by rw [h, zero_mul], gcd_one_left' 1⟩ },

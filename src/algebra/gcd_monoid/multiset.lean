@@ -143,33 +143,7 @@ begin
     apply ((normalize_associated a).mul_right _).gcd_eq_right },
 end
 
-lemma extract_gcd (s : multiset α) :
-  s ≠ 0 → ∃ t : multiset α, s = t.map ((*) s.gcd) ∧ t.gcd = 1 :=
-begin
-  refine s.induction_on _ (λ a s ih, _),
-  { exact λ h, (h rfl).elim },
-  rintro -,
-  obtain rfl | h := eq_or_ne s 0,
-  { use {↑(norm_unit a)⁻¹},
-    simp_rw [cons_zero, map_singleton, gcd_singleton],
-    exact ⟨by rw (units.mul_inv_eq_iff_eq_mul _).2 (normalize_apply a), normalize_coe_units _⟩ },
-  obtain ⟨t, he, ht⟩ := ih h,
-  obtain ⟨b, c, hb, hc, hu⟩ := extract_gcd a s.gcd,
-  use b ::ₘ t.map ((*) c),
-  rw [map_cons, gcd_cons, ← hb, map_map],
-  refine ⟨congr_arg _ _, _⟩,
-  { convert he using 2, ext, rw [function.comp_app, ← mul_assoc, ← hc] },
-  rw [gcd_cons, gcd_map_mul, ht, mul_one],
-  rw [(normalize_associated c).gcd_eq_right, ← _root_.normalize_gcd, normalize_eq_one.2 hu],
-end
-
-lemma extract_gcd' (s : multiset α) (hs : ∃ x ∈ s, x ≠ (0 : α)) (t : multiset α)
-  (ht : t.map ((*) s.gcd) = s) : t.gcd = 1 :=
-begin
-  obtain ⟨x, hx, h0⟩ := hs,
-  obtain ⟨t', he, ht'⟩ := s.extract_gcd (by {rintro rfl, exact not_mem_zero _ hx}),
-  rwa map_injective (mul_right_injective₀ $ λ h, h0 $ s.gcd_eq_zero_iff.1 h x hx) (ht.trans he),
-end
+section
 
 variables [decidable_eq α]
 
@@ -192,6 +166,29 @@ by { rw [← gcd_dedup, dedup_ext.2, gcd_dedup, gcd_add], simp }
 @[simp] lemma gcd_ndinsert (a : α) (s : multiset α) :
   (ndinsert a s).gcd = gcd_monoid.gcd a s.gcd :=
 by { rw [← gcd_dedup, dedup_ext.2, gcd_dedup, gcd_cons], simp }
+
+end
+
+lemma extract_gcd' (s t : multiset α) (hs : ∃ x, x ∈ s ∧ x ≠ (0 : α))
+  (ht : s = t.map ((*) s.gcd)) : t.gcd = 1 :=
+((@mul_right_eq_self₀ _ _ s.gcd _).1 $ by conv_lhs { rw [← normalize_gcd, ← gcd_map_mul, ← ht] })
+  .resolve_right $ by { contrapose! hs, exact s.gcd_eq_zero_iff.1 hs }
+
+lemma extract_gcd (s : multiset α) (hs : s ≠ 0) :
+  ∃ t : multiset α, s = t.map ((*) s.gcd) ∧ t.gcd = 1 :=
+begin
+  classical,
+  by_cases h : ∀ x ∈ s, x = (0 : α),
+  { use repeat 1 s.card,
+    rw [map_repeat, eq_repeat, mul_one, s.gcd_eq_zero_iff.2 h, ←nsmul_singleton, ←gcd_dedup],
+    rw [dedup_nsmul (card_pos.2 hs).ne', dedup_singleton, gcd_singleton],
+    exact ⟨⟨rfl, h⟩, normalize_one⟩ },
+  { choose f hf using @gcd_dvd _ _ _ s,
+    have := _, push_neg at h,
+    refine ⟨s.pmap @f (λ _, id), this, extract_gcd' s _ h this⟩,
+    rw map_pmap, conv_lhs { rw [← s.map_id, ← s.pmap_eq_map _ _ (λ _, id)] },
+    congr, ext x hx, rw ← hf hx, refl },
+end
 
 end gcd
 

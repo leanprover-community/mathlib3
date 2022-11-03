@@ -208,33 +208,23 @@ begin
   apply ((normalize_associated a).mul_left _).gcd_eq_right
 end
 
-lemma extract_gcd (f : β → α) (h : s.nonempty) :
+lemma extract_gcd' (f g : β → α) (hs : ∃ x, x ∈ s ∧ f x ≠ 0)
+  (hg : ∀ b ∈ s, f b = s.gcd f * g b) : s.gcd g = 1 :=
+((@mul_right_eq_self₀ _ _ (s.gcd f) _).1 $
+  by conv_lhs { rw [← normalize_gcd, ← gcd_mul_left, ← gcd_congr rfl hg] }).resolve_right $
+  by {contrapose! hs, exact gcd_eq_zero_iff.1 hs}
+
+lemma extract_gcd (f : β → α) (hs : s.nonempty) :
   ∃ g : β → α, (∀ b ∈ s, f b = s.gcd f * g b) ∧ s.gcd g = 1 :=
 begin
   classical,
-  refine h.cons_induction (λ b, _) (λ a s ha _, _),
-  { use f.update b (↑(norm_unit $ f b)⁻¹),
-    simp_rw [gcd_singleton, mem_singleton, forall_eq, f.update_same _ _],
-    exact ⟨((units.mul_inv_eq_iff_eq_mul _).2 $ normalize_apply _).symm, normalize_coe_units _⟩ },
-  rintro ⟨g, he, hg⟩,
-  obtain ⟨b, c, hb, hc, hu⟩ := extract_gcd (f a) (s.gcd f),
-  use (c • g).update a b,
-  simp_rw [mem_cons, forall_eq_or_imp, cons_eq_insert, gcd_insert, function.update_same],
-  refine ⟨⟨hb, λ a' h', _⟩, _⟩,
-  { rw [function.update_noteq (ne_of_mem_of_not_mem h' ha), he a' h'],
-    conv_lhs { rw [hc, mul_assoc] }, refl },
-  { rw [← normalize_eq_one, _root_.normalize_gcd, ← (normalize_associated c).gcd_eq_right] at hu,
-    convert hu, conv_rhs { rw [← mul_one (normalize c), ← hg, ← gcd_mul_left] },
-    exact gcd_congr rfl (λ d hd, (c • g).update_noteq (ne_of_mem_of_not_mem hd ha) b) },
-end
-
-lemma extract_gcd' (f g : β → α) (hs : ∃ x ∈ s, f x ≠ 0)
-  (hg : ∀ b ∈ s, f b = s.gcd f * g b) : s.gcd g = 1 :=
-begin
-  obtain ⟨x, hx, h0⟩ := hs,
-  obtain ⟨g', he, hg'⟩ := extract_gcd f ⟨x, hx⟩,
-  refine (gcd_congr rfl $ λ b hb, _).trans hg',
-  exact mul_right_injective₀ (λ h, h0 $ gcd_eq_zero_iff.1 h x hx) ((hg b hb).symm.trans $ he b hb),
+  by_cases h : ∀ x ∈ s, f x = (0 : α),
+  { refine ⟨λ b, 1, λ b hb, by rw [h b hb, gcd_eq_zero_iff.2 h, mul_one], _⟩,
+    rw [gcd_eq_gcd_image, image_const hs, gcd_singleton, id, normalize_one] },
+  { choose g' hg using @gcd_dvd _ _ _ _ s f,
+    have := λ b hb, _, push_neg at h,
+    refine ⟨λ b, if hb : b ∈ s then g' hb else 0, this, extract_gcd' f _ h this⟩,
+    rw [dif_pos hb, hg hb] },
 end
 
 end gcd

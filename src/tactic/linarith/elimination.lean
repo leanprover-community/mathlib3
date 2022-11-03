@@ -79,12 +79,10 @@ along with information about how this comparison was derived.
 The original expressions fed into `linarith` are each assigned a unique natural number label.
 The *historical set* `pcomp.history` stores the labels of expressions
 that were used in deriving the current `pcomp`.
-Variables are also indexed by natural numbers. The sets `pcomp.effective`, `pcomp.implicit`,
-and `pcomp.vars` contain variable indices.
-* `pcomp.vars` contains the union of all variables that appear in the historical set.
+Variables are also indexed by natural numbers. The sets `pcomp.effective`, and `pcomp.implicit`,
 * `pcomp.effective` contains the variables that have been effectively eliminated from `pcomp`.
-  A variable `n` is said to be *effectively eliminated* in `pcomp` if the elimination of `n`
-  produced at least one of the ancestors of `pcomp`.
+  A variable `n` is said to be *effectively eliminated* in `p : pcomp` if the elimination of `n`
+  produced at least one of the ancestors of `p : pcomp` (or `p` itself)
 * `pcomp.implicit` contains the variables that have been implicitly eliminated from `pcomp`.
   A variable `n` is said to be *implicitly eliminated* in `pcomp` if it satisfies the following
   properties:
@@ -102,7 +100,6 @@ meta structure pcomp : Type :=
 (history : rb_set ℕ)
 (effective : rb_set ℕ)
 (implicit : rb_set ℕ)
-(vars : rb_set ℕ)
 
 /--
 Any comparison whose history is not minimal is redundant,
@@ -159,10 +156,9 @@ meta def pcomp.add (c1 c2 : pcomp) (elim_var : ℕ) : pcomp :=
 let c := c1.c.add c2.c,
     src := c1.src.add c2.src,
     history := c1.history.union c2.history,
-    vars := (c1.vars.union c2.vars),
     effective := (c1.effective.union c2.effective).insert elim_var,
-    implicit := (vars.sdiff (native.rb_set.of_list c.vars)).sdiff effective in
-⟨c, src, history, effective, implicit, vars⟩
+    implicit := (c1.implicit.union c2.implicit).sdiff effective in
+⟨c, src, history, effective, implicit⟩
 
 /--
 `pcomp.assump c n` creates a `pcomp` whose comparison is `c` and whose source is
@@ -170,13 +166,12 @@ let c := c1.c.add c2.c,
 The history is the singleton set `{n}`.
 No variables have been eliminated (effectively or implicitly).
 -/
-meta def pcomp.assump (c : comp) (n : ℕ) : pcomp :=
+meta def pcomp.assump (c : comp) (n max_var : ℕ) : pcomp :=
 { c := c,
   src := comp_source.assump n,
   history := mk_rb_set.insert n,
   effective := mk_rb_set,
-  implicit := mk_rb_set,
-  vars := rb_set.of_list c.vars }
+  implicit := (rb_set.of_list (list.range (max_var + 1))).sdiff (rb_set.of_list c.vars), }
 
 meta instance pcomp.to_format : has_to_format pcomp :=
 ⟨λ p, to_fmt p.c.coeffs ++ to_string p.c.str ++ "0"⟩
@@ -308,7 +303,7 @@ do mv ← get_max_var,
 those hypotheses. It produces an initial state for the elimination monad.
 -/
 meta def mk_linarith_structure (hyps : list comp) (max_var : ℕ) : linarith_structure :=
-let pcomp_list : list pcomp := hyps.enum.map $ λ ⟨n, cmp⟩, pcomp.assump cmp n,
+let pcomp_list : list pcomp := hyps.enum.map $ λ ⟨n, cmp⟩, pcomp.assump cmp n max_var,
     pcomp_set := rb_set.of_list_core mk_pcomp_set pcomp_list in
 ⟨max_var, pcomp_set⟩
 

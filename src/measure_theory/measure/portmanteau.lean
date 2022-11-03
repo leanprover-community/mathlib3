@@ -9,11 +9,7 @@ import measure_theory.measure.probability_measure
 # Characterizations of weak convergence of finite measures and probability measures
 
 This file will provide portmanteau characterizations of the weak convergence of finite measures
-and of probability measures, i.e., of convergence in distribution.
-
-TODOs:
-* Finish the portmanteau theorem on characterizations of weak convergence of (Borel) probability
-  measures.
+and of probability measures, i.e., of standard characterizations of convergence in distribution.
 
 ## Main definitions
 

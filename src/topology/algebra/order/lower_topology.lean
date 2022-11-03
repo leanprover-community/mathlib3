@@ -198,7 +198,7 @@ set (set (α × β)):=
 { S : set (α × β) | ∃ (F₁ : set α) (F₂ : set β), F₁.finite
   ∧ F₂.finite ∧ ((upper_closure F₁ : set α)ᶜ ×ˢ (upper_closure F₂ : set β)ᶜ = S) }
 
-variable {β : Type v}
+variable (β : Type v)
 
 variables [partial_order α]
 variables  [partial_order β]
@@ -286,14 +286,33 @@ lemma lower_topology_prod : lower_topology (α × β) =
 begin
   rw le_antisymm_iff,
   split,
-    { rw ← is_open_implies_is_open_iff,
+    { rw (prod_basis_is_topological_basis α β).eq_generate_from,
+      apply le_generate_from,
       intros U hU,
-      sorry },
+      simp only [mem_image2, exists_and_distrib_left] at hU,
+      cases hU with V,
+      cases hU_h with hV,
+      cases hU_h_right with W,
+      cases hU_h_right_h with hW hUVW,
+      rw ← hUVW,
+      rw with_lower_topology.lower_basis at hV,
+      rw mem_set_of_eq at hV,
+      cases hV with F₁,
+      rw with_lower_topology.lower_basis at hW,
+      rw mem_set_of_eq at hW,
+      cases hW with F₂,
+      rw ← hV_h.2,
+      rw ← hW_h.2,
+      rw ← lower_set.coe_prod,
+      rw upper_closure_compl_prod_upper_closure_compl',
+      rw lower_set.coe_inf,
+      apply is_open.inter,
+      sorry, sorry, },
     { apply le_generate_from,
     intros,
     rw mem_set_of_eq at H,
     rcases H,
-    cases H_w,
+    cases H_w with a b,
     rw [← H_h, ← upper_set.coe_Ici, is_open_compl_iff, prod_Ici],
     apply is_closed.inter,
     { apply is_closed.prod is_closed_univ, apply with_lower_topology.is_closed_Ici, },

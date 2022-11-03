@@ -288,7 +288,7 @@ lemma im_pos_of_dist_center_le {z : ℍ} {r : ℝ} {w : ℂ} (h : dist w (center
 calc 0 < z.im * (cosh r - sinh r) : mul_pos z.im_pos (sub_pos.2 $ sinh_lt_cosh _)
 ... = (z.center r).im - z.im * sinh r : mul_sub _ _ _
 ... ≤ (z.center r).im - dist (z.center r : ℂ) w : sub_le_sub_left (by rwa [dist_comm]) _
-... ≤ w.im : sub_le.1 $ (le_abs_self _).trans (abs_im_le_abs $ z.center r - w)
+... ≤ w.im : sub_le_comm.1 $ (le_abs_self _).trans (abs_im_le_abs $ z.center r - w)
 
 lemma image_coe_closed_ball (z : ℍ) (r : ℝ) :
   (coe : ℍ → ℂ) '' closed_ball z r = closed_ball (z.center r) (z.im * sinh r) :=

@@ -228,6 +228,15 @@ begin
     exact gcd_congr rfl (λ d hd, (c • g).update_noteq (ne_of_mem_of_not_mem hd ha) b) },
 end
 
+lemma extract_gcd' (f g : β → α) (hs : ∃ x ∈ s, f x ≠ 0)
+  (hg : ∀ b ∈ s, f b = s.gcd f * g b) : s.gcd g = 1 :=
+begin
+  obtain ⟨x, hx, h0⟩ := hs,
+  obtain ⟨g', he, hg'⟩ := extract_gcd f ⟨x, hx⟩,
+  refine (gcd_congr rfl $ λ b hb, _).trans hg',
+  exact mul_right_injective₀ (λ h, h0 $ gcd_eq_zero_iff.1 h x hx) ((hg b hb).symm.trans $ he b hb),
+end
+
 end gcd
 end finset
 

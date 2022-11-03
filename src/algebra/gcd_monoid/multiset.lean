@@ -143,7 +143,7 @@ begin
     apply ((normalize_associated a).mul_right _).gcd_eq_right },
 end
 
-theorem extract_gcd (s : multiset α) :
+lemma extract_gcd (s : multiset α) :
   s ≠ 0 → ∃ t : multiset α, s = t.map ((*) s.gcd) ∧ t.gcd = 1 :=
 begin
   refine s.induction_on _ (λ a s ih, _),
@@ -156,11 +156,19 @@ begin
   obtain ⟨t, he, ht⟩ := ih h,
   obtain ⟨b, c, hb, hc, hu⟩ := extract_gcd a s.gcd,
   use b ::ₘ t.map ((*) c),
-  rw [multiset.map_cons, multiset.gcd_cons, ← hb, multiset.map_map],
+  rw [map_cons, gcd_cons, ← hb, map_map],
   refine ⟨congr_arg _ _, _⟩,
   { convert he using 2, ext, rw [function.comp_app, ← mul_assoc, ← hc] },
-  rw [multiset.gcd_cons, multiset.gcd_map_mul, ht, mul_one],
+  rw [gcd_cons, gcd_map_mul, ht, mul_one],
   rw [(normalize_associated c).gcd_eq_right, ← _root_.normalize_gcd, normalize_eq_one.2 hu],
+end
+
+lemma extract_gcd' (s : multiset α) (hs : ∃ x ∈ s, x ≠ (0 : α)) (t : multiset α)
+  (ht : t.map ((*) s.gcd) = s) : t.gcd = 1 :=
+begin
+  obtain ⟨x, hx, h0⟩ := hs,
+  obtain ⟨t', he, ht'⟩ := s.extract_gcd (by {rintro rfl, exact not_mem_zero _ hx}),
+  rwa map_injective (mul_right_injective₀ $ λ h, h0 $ s.gcd_eq_zero_iff.1 h x hx) (ht.trans he),
 end
 
 variables [decidable_eq α]

@@ -15,7 +15,7 @@ Some lemmas on the combination of `finsupp`, `fintype` and `infinite`.
 -/
 
 noncomputable instance finsupp.fintype {ι π : Sort*} [decidable_eq ι] [has_zero π]
-  [fintype ι] [fintype π]  :
+  [fintype ι] [fintype π] :
   fintype (ι →₀ π) :=
 fintype.of_equiv _ finsupp.equiv_fun_on_fintype.symm
 

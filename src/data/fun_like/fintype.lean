@@ -50,7 +50,7 @@ fun_like.fintype G
 
 Can't be an instance because it can cause infinite loops.
 -/
-lemma fun_like.finite [finite α] [Π i, finite (β i)] : finite F :=
+lemma fun_like.finite [finite α] [∀ i, finite (β i)] : finite F :=
 finite.of_injective _ fun_like.coe_injective
 
 /-- All `fun_like`s are finite if their domain and codomain are.

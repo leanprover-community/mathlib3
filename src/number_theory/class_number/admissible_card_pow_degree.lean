@@ -5,7 +5,7 @@ Authors: Anne Baanen
 -/
 import number_theory.class_number.admissible_absolute_value
 import analysis.special_functions.pow
-import ring_theory.ideal.local_ring.basic
+import ring_theory.ideal.local_ring
 import data.polynomial.degree.card_pow_degree
 
 /-!

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import ring_theory.polynomial.basic
-import ring_theory.ideal.local_ring.basic
+import ring_theory.ideal.local_ring
 import tactic.ring_exp
 
 /-!

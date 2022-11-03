@@ -5,7 +5,7 @@ Authors: Jon Eugster
 -/
 import algebra.char_p.basic
 import data.nat.factorization.prime_pow
-import ring_theory.ideal.local_ring.basic
+import ring_theory.ideal.local_ring
 
 /-!
 # Characteristics of local rings

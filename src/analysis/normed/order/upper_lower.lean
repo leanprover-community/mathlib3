@@ -50,41 +50,6 @@ by rw [dist_comm, dist_mul_self_right]
 
 end
 
-section
-variables {α : Type*} [mul_one_class α] [has_lt α] [contravariant_class α α (*) (<)] {a b : α}
-
-@[to_additive] lemma one_lt_of_lt_mul_right : a < a * b → 1 < b :=
-by simpa only [mul_one] using (lt_of_mul_lt_mul_left' : a * 1 < a * b → 1 < b)
-
-end
-
-section
-variables {α : Type*} [mul_one_class α] [preorder α] [contravariant_class α α (*) (<)]
-  [has_exists_mul_of_le α] {a b : α}
-
-@[to_additive] lemma exists_one_lt_mul_of_lt' (h : a < b) : ∃ c, 1 < c ∧ a * c = b :=
-by { obtain ⟨c, rfl⟩ := exists_mul_of_le h.le, exact ⟨c, one_lt_of_lt_mul_right h, rfl⟩ }
-
-end
-
-section finite
-variables {α ι : Type*} [linear_ordered_semifield α] [has_exists_add_of_le α] [finite ι]
-  {x y : ι → α}
-
-lemma pi.exists_forall_pos_add_lt (h : ∀ i, x i < y i) : ∃ ε, 0 < ε ∧ ∀ i, x i + ε < y i :=
-begin
-  casesI nonempty_fintype ι,
-  casesI is_empty_or_nonempty ι,
-  { exact ⟨1, zero_lt_one, is_empty_elim⟩ },
-  choose ε hε hxε using λ i, exists_pos_add_of_lt' (h i),
-  obtain rfl : x + ε = y := funext hxε,
-  have hε : 0 < finset.univ.inf' finset.univ_nonempty ε := (finset.lt_inf'_iff _).2 (λ i _, hε _),
-  exact ⟨_, half_pos hε, λ i, add_lt_add_left ((half_lt_self hε).trans_le $ finset.inf'_le _ $
-    finset.mem_univ _) _⟩,
-end
-
-end finite
-
 section left_cancel_monoid
 variables {M : Type*} [left_cancel_monoid M] {a b : M}
 
@@ -109,74 +74,6 @@ by rw [div_lt_iff (zero_lt_two' α), mul_two, lt_add_iff_pos_left]
 
 end
 
-namespace function
-variables {α β : Type*} [nonempty β] {a : α}
-
-@[simp, to_additive] lemma const_eq_one [has_one α] : const β a = 1 ↔ a = 1 :=
-by simp [funext_iff]
-
-@[simp, to_additive] lemma const_ne_one [has_one α] : const β a ≠ 1 ↔ a ≠ 1 := const_eq_one.not
-
-variables [has_zero α] [preorder α]
-
-lemma const_nonneg_of_nonneg (β : Type*) (ha : 0 ≤ a) : 0 ≤ const β a := λ _, ha
-
-@[simp] lemma const_nonneg : 0 ≤ const β a ↔ 0 ≤ a := by simp [pi.le_def]
-@[simp] lemma const_pos : 0 < const β a ↔ 0 < a := by simpa [pi.lt_def] using le_of_lt
-
-end function
-
-namespace tactic
-open positivity
-
-private lemma ennreal_of_real_pos {r : ℝ} : 0 < r → 0 < ennreal.of_real r := ennreal.of_real_pos.2
-
-/-- Extension for the `positivity` tactic: `ennreal.of_real` is positive if its input is. -/
-@[positivity]
-meta def positivity_ennreal_of_real : expr → tactic strictness
-| `(ennreal.of_real %%r) := do
-    positive p ← core r,
-    positive <$> mk_app ``ennreal_of_real_pos [p]
-| e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `ennreal.of_real r`"
-
-open function
-
-variables (ι : Type*) {α : Type*}  [has_zero α] {a : α}
-private lemma function_const_nonneg_of_pos [preorder α] (ha : 0 < a) : 0 ≤ const ι a :=
-const_nonneg_of_nonneg _ ha.le
-
-variables [nonempty ι]
-
-private lemma function_const_ne_zero : a ≠ 0 → const ι a ≠ 0 := const_ne_zero.2
-private lemma function_const_pos [preorder α] : 0 < a → 0 < const ι a := const_pos.2
-
-/-- Extension for the `positivity` tactic: `function.const` is positive/nonnegative/nonzero if its
-input is. -/
-@[positivity]
-meta def positivity_const : expr → tactic strictness
-| `(function.const %%ι %%a) := do
-    strict_a ← core a,
-    match strict_a with
-    | positive p := positive <$> to_expr ``(function_const_pos %%ι %%p)
-        <|> nonnegative <$> to_expr ``(function_const_nonneg_of_pos %%ι %%p)
-    | nonnegative p := nonnegative <$> to_expr ``(const_nonneg_of_nonneg %%ι %%p)
-    | nonzero p := nonzero <$> to_expr ``(function_const_ne_zero %%ι %%p)
-    end
-| e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `function.const ι a`"
-
-end tactic
-
-section
-open function
-variables {ι α : Type*}
-
-example [nonempty ι] [has_zero α] {a : α} (ha : a ≠ 0) : const ι a ≠ 0 := by positivity
-example [has_zero α] [preorder α] {a : α} (ha : 0 < a) : 0 ≤ const ι a := by positivity
-example [has_zero α] [preorder α] {a : α} (ha : 0 ≤ a) : 0 ≤ const ι a := by positivity
-example [nonempty ι] [has_zero α] [preorder α] {a : α} (ha : 0 < a) : 0 < const ι a := by positivity
-
-end
-
 section
 variables {ι E : Type*} [fintype ι] [seminormed_group E] [nonempty ι]
 
@@ -189,22 +86,6 @@ pi_norm_const' a
 pi_nnnorm_const' a
 
 end
-
-namespace ennreal
-open_locale ennreal
-
-variables {a b c : ℝ≥0∞}
-
-protected lemma div_le_div_left (h : a ≤ b) (c : ℝ≥0∞) : c / b ≤ c / a :=
-ennreal.div_le_div le_rfl h
-
-protected lemma div_le_div_right (h : a ≤ b) (c : ℝ≥0∞) : a / c ≤ b / c :=
-ennreal.div_le_div h le_rfl
-
-protected lemma sub_div (h : 0 < b → b < a → c ≠ 0) : (a - b) / c = a / c - b / c :=
-by { simp_rw div_eq_mul_inv, exact ennreal.sub_mul (by simpa using h) }
-
-end ennreal
 
 section
 variables {ι : Type*} [fintype ι] [nonempty ι] {ε : ℝ}

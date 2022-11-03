@@ -8,6 +8,10 @@ import logic.basic
 /-!
 # Nonempty types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/487
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves a few extra facts about `nonempty`, which is defined in core Lean.
 
 ## Main declarations

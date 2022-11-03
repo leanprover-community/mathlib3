@@ -748,6 +748,12 @@ lipschitz_with_one_norm'.uniform_continuous
 lemma uniform_continuous_nnnorm' : uniform_continuous (λ (a : E), ∥a∥₊) :=
 uniform_continuous_norm'.subtype_mk _
 
+@[to_additive] lemma mem_closure_one_iff_norm {x : E} : x ∈ closure ({1} : set E) ↔ ∥x∥ = 0 :=
+by rw [←closed_ball_zero', mem_closed_ball_one_iff, (norm_nonneg' x).le_iff_eq]
+
+@[to_additive] lemma closure_one_eq : closure ({1} : set E) = {x | ∥x∥ = 0} :=
+set.ext (λ x, mem_closure_one_iff_norm)
+
 /-- A helper lemma used to prove that the (scalar or usual) product of a function that tends to one
 and a bounded function tends to one. This lemma is formulated for any binary operation
 `op : E → F → G` with an estimate `∥op x y∥ ≤ A * ∥x∥ * ∥y∥` for some constant A instead of

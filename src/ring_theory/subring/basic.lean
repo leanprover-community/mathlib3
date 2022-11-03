@@ -434,6 +434,10 @@ instance : has_top (subring R) :=
 
 @[simp] lemma coe_top : ((⊤ : subring R) : set R) = set.univ := rfl
 
+/-- The ring equiv between the top element of `subring R` and `R`. -/
+@[simps]
+def top_equiv : (⊤ : subring R) ≃+* R := subsemiring.top_equiv
+
 /-! ## comap -/
 
 /-- The preimage of a subring along a ring homomorphism is a subring. -/

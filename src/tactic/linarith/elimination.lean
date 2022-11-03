@@ -172,7 +172,7 @@ let c := c1.c.add c2.c,
 The history is the singleton set `{n}`.
 No variables have been eliminated (effectively or implicitly).
 -/
-meta def pcomp.assump (c : comp) (n max_var : ℕ) : pcomp :=
+meta def pcomp.assump (c : comp) (n : ℕ) : pcomp :=
 { c := c,
   src := comp_source.assump n,
   history := mk_rb_set.insert n,
@@ -310,7 +310,7 @@ do mv ← get_max_var,
 those hypotheses. It produces an initial state for the elimination monad.
 -/
 meta def mk_linarith_structure (hyps : list comp) (max_var : ℕ) : linarith_structure :=
-let pcomp_list : list pcomp := hyps.enum.map $ λ ⟨n, cmp⟩, pcomp.assump cmp n max_var,
+let pcomp_list : list pcomp := hyps.enum.map $ λ ⟨n, cmp⟩, pcomp.assump cmp n,
     pcomp_set := rb_set.of_list_core mk_pcomp_set pcomp_list in
 ⟨max_var, pcomp_set⟩
 

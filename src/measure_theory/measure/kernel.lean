@@ -95,9 +95,11 @@ def kernel.coe_add_hom (mα : measurable_space α) (mβ : measurable_space β) :
 
 @[simp] lemma kernel.zero_apply (a : α) : (0 : kernel mα mβ) a = 0 := rfl
 
+/-- A kernel is a Markov kernel if every measure in its image is a probability measure. -/
 class is_markov_kernel (κ : kernel mα mβ) : Prop :=
 (is_probability_measure : ∀ a, is_probability_measure (κ a))
 
+/-- A kernel is finite if every measure in its image is finite, with a uniform bound. -/
 class is_finite_kernel (κ : kernel mα mβ) : Prop :=
 (exists_univ_le : ∃ C : ℝ≥0∞, C < ∞ ∧ ∀ a, κ a set.univ ≤ C)
 
@@ -294,6 +296,7 @@ end
 
 end sum
 
+/-- A kernel is s-finite if it can be written as the sum of countably many finite kernels. -/
 class is_s_finite_kernel (κ : kernel mα mβ) : Prop :=
 (tsum_finite : ∃ κs : ℕ → kernel mα mβ, (∀ n, is_finite_kernel (κs n)) ∧ κ = kernel.sum κs)
 

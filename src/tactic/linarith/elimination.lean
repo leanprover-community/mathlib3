@@ -79,15 +79,16 @@ along with information about how this comparison was derived.
 The original expressions fed into `linarith` are each assigned a unique natural number label.
 The *historical set* `pcomp.history` stores the labels of expressions
 that were used in deriving the current `pcomp`.
-Variables are also indexed by natural numbers. The sets `pcomp.effective`, and `pcomp.implicit`,
+Variables are also indexed by natural numbers. The sets `PComp.effective`, `PComp.implicit`,
+and `PComp.vars` contain variable indices.
 * `pcomp.vars` contains the variables that appear in any inequality in the historical set.
 * `pcomp.effective` contains the variables that have been effectively eliminated from `pcomp`.
   A variable `n` is said to be *effectively eliminated* in `p : pcomp` if the elimination of `n`
-  produced at least one of the ancestors of `p : pcomp` (or `p` itself).
+  produced at least one of the ancestors of `p` (or `p` itself).
 * `pcomp.implicit` contains the variables that have been implicitly eliminated from `pcomp`.
-  A variable `n` is said to be *implicitly eliminated* in `pcomp` if it satisfies the following
+  A variable `n` is said to be *implicitly eliminated* in `p` if it satisfies the following
   properties:
-  - `n` appears in the historical set (i.e. in `pcomp.vars`).
+  - `n` appears in some inequality in the historical set (i.e. in `p.vars`).
   - `n` does not appear in `p.c.vars` (i.e. it has been eliminated).
   - `n` was not effectively eliminated.
 
@@ -145,8 +146,8 @@ The computation assumes, but does not enforce, that `elim_var` appears in both `
 and does not appear in the sum.
 Computing the sum of the two comparisons is easy; the complicated details lie in tracking the
 additional fields of `pcomp`.
-* `vars` is the union of `c1.vars` and `c2.vars`.
 * The historical set `pcomp.history` of `c1 + c2` is the union of the two historical sets.
+* `vars` is the union of `c1.vars` and `c2.vars`.
 * The effectively eliminated variables of `c1 + c2` are the union of the two effective sets,
   with `elim_var` inserted.
 * The implicitly eliminated variables of `c1 + c2` are those that appear in

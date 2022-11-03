@@ -236,9 +236,15 @@ instance _root_.bundle.prod.topological_vector_bundle :
       rintro ⟨v₁, v₂⟩,
       show (e₁.prod R e₂).coord_changeₗ R (e₁'.prod R e₂') b (v₁, v₂) =
         (e₁.coord_changeₗ R e₁' b v₁, e₂.coord_changeₗ R e₂' b v₂),
-      rw [e₁.coord_changeₗ_apply e₁', e₂.coord_changeₗ_apply e₂', (e₁.prod R e₂).coord_changeₗ_apply'],
+      rw [e₁.coord_changeₗ_apply e₁', e₂.coord_changeₗ_apply e₂',
+        (e₁.prod R e₂).coord_changeₗ_apply'],
       exacts [rfl, hb, ⟨hb.1.2, hb.2.2⟩, ⟨hb.1.1, hb.2.1⟩] }
   end }
+
+instance _root_.bundle.prod.mem_trivialization_atlas {e₁ : trivialization F₁ (π E₁)}
+  {e₂ : trivialization F₂ (π E₂)} [mem_trivialization_atlas R e₁] [mem_trivialization_atlas R e₂] :
+  mem_trivialization_atlas R (e₁.prod R e₂ : trivialization (F₁ × F₂) (π (E₁ ×ᵇ E₂))) :=
+{ out := ⟨e₁, e₂, by apply_instance, by apply_instance, rfl⟩ }
 
 variables {R F₁ E₁ F₂ E₂}
 

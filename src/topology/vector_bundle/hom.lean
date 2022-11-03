@@ -230,7 +230,7 @@ def _root_.bundle.continuous_linear_map.topological_vector_prebundle :
   topological_vector_prebundle 𝕜₂ (F₁ →SL[σ] F₂)
   (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂) :=
 { pretrivialization_atlas :=
-  {e |  ∃ (e₁ : trivialization F₁ (π E₁)) (e₂ : trivialization F₂ (π E₂))
+    {e |  ∃ (e₁ : trivialization F₁ (π E₁)) (e₂ : trivialization F₂ (π E₂))
     [mem_trivialization_atlas 𝕜₁ e₁] [mem_trivialization_atlas 𝕜₂ e₂], by exactI
     e = pretrivialization.continuous_linear_map σ e₁ e₂},
   pretrivialization_linear' := begin
@@ -279,6 +279,11 @@ whose base set is `e₁.base_set ∩ e₂.base_set`. -/
 def trivialization.continuous_linear_map :
   trivialization (F₁ →SL[σ] F₂) (π (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂)) :=
 topological_vector_prebundle.trivialization_of_mem_pretrivialization_atlas _ ⟨e₁, e₂, he₁, he₂, rfl⟩
+
+instance _root_.bundle.continuous_linear_map.mem_trivialization_atlas :
+  mem_trivialization_atlas 𝕜₂ (e₁.continuous_linear_map σ e₂ :
+    trivialization (F₁ →SL[σ] F₂) (π (bundle.continuous_linear_map σ F₁ E₁ F₂ E₂))) :=
+{ out := ⟨_, ⟨e₁, e₂, by apply_instance, by apply_instance, rfl⟩, rfl⟩ }
 
 variables {e₁ e₂}
 

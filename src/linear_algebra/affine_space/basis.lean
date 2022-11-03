@@ -382,6 +382,12 @@ protected lemma finite_set [finite_dimensional k V] {s : set ι} (b : affine_bas
   s.finite :=
 finite_set_of_fin_dim_affine_independent k b.ind
 
+@[simp] lemma coord_apply_centroid [char_zero k] (b : affine_basis ι k P) {s : finset ι} {i : ι}
+  (hi : i ∈ s) :
+  b.coord i (s.centroid k b.points) = (s.card : k) ⁻¹ :=
+by rw [finset.centroid, b.coord_apply_combination_of_mem hi
+  (s.sum_centroid_weights_eq_one_of_nonempty _ ⟨i, hi⟩), finset.centroid_weights]
+
 lemma card_eq_finrank_add_one [fintype ι] (b : affine_basis ι k P) :
   fintype.card ι = finite_dimensional.finrank k V + 1 :=
 begin

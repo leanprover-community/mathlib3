@@ -97,13 +97,12 @@ begin
   by_cases hn : n = 0,
   { rw [hn, pow_zero, sub_self],
     exact gal_zero_is_solvable },
-  have hn' : 0 < n := pos_iff_ne_zero.mpr hn,
-  have hn'' : (X ^ n - 1 : F[X]) ≠ 0 :=
-    λ h, one_ne_zero ((leading_coeff_X_pow_sub_one hn').symm.trans (congr_arg leading_coeff h)),
+  have hn' : (X ^ n - 1 : F[X]) ≠ 0 :=
+    λ h, one_ne_zero ((leading_coeff_X_pow_sub_one hn).symm.trans (congr_arg leading_coeff h)),
   apply is_solvable_of_comm,
   intros σ τ,
   ext a ha,
-  rw [mem_root_set hn'', alg_hom.map_sub, aeval_X_pow, aeval_one, sub_eq_zero] at ha,
+  rw [mem_root_set hn', alg_hom.map_sub, aeval_X_pow, aeval_one, sub_eq_zero] at ha,
   have key : ∀ σ : (X ^ n - 1 : F[X]).gal, ∃ m : ℕ, σ a = a ^ m,
   { intro σ,
     obtain ⟨m, hm⟩ := map_root_of_unity_eq_pow_self σ.to_alg_hom
@@ -129,9 +128,9 @@ begin
     exact gal_C_is_solvable (1 - a) },
   have hn' : 0 < n := pos_iff_ne_zero.mpr hn,
   have hn'' : X ^ n - C a ≠ 0 :=
-    λ h, one_ne_zero ((leading_coeff_X_pow_sub_C hn').symm.trans (congr_arg leading_coeff h)),
+    λ h, one_ne_zero ((leading_coeff_X_pow_sub_C hn).symm.trans (congr_arg leading_coeff h)),
   have hn''' : (X ^ n - 1 : F[X]) ≠ 0 :=
-    λ h, one_ne_zero ((leading_coeff_X_pow_sub_one hn').symm.trans (congr_arg leading_coeff h)),
+    λ h, one_ne_zero ((leading_coeff_X_pow_sub_one hn).symm.trans (congr_arg leading_coeff h)),
   have mem_range : ∀ {c}, c ^ n = 1 → ∃ d, algebra_map F (X ^ n - C a).splitting_field d = c :=
     λ c hc, ring_hom.mem_range.mp (minpoly.mem_range_of_degree_eq_one F c (h.def.resolve_left hn'''
       (minpoly.irreducible ((splitting_field.normal (X ^ n - C a)).is_integral c)) (minpoly.dvd F c

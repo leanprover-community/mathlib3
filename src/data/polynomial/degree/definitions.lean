@@ -913,21 +913,11 @@ with_bot.coe_le_coe.mp ((degree_eq_nat_degree $ ne_zero_of_coe_le_degree hdeg) �
 
 lemma degree_sum_fin_lt {n : ℕ} (f : fin n → R) :
   degree (∑ i : fin n, C (f i) * X ^ (i : ℕ)) < n :=
-begin
-  haveI : is_commutative (with_bot ℕ) max := ⟨max_comm⟩,
-  haveI : is_associative (with_bot ℕ) max := ⟨max_assoc⟩,
-  calc  (∑ i, C (f i) * X ^ (i : ℕ)).degree
-      ≤ finset.univ.fold (⊔) ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) : degree_sum_le _ _
-  ... = finset.univ.fold max ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) : rfl
-  ... < n : (finset.fold_max_lt (n : with_bot ℕ)).mpr ⟨with_bot.bot_lt_coe _, _⟩,
-
-  rintros ⟨i, hi⟩ -,
-  calc (C (f ⟨i, hi⟩) * X ^ i).degree
-      ≤ (C _).degree + (X ^ i).degree : degree_mul_le _ _
-  ... ≤ 0 + i : add_le_add degree_C_le (degree_X_pow_le i)
-  ... = i : zero_add _
-  ... < n : with_bot.some_lt_some.mpr hi,
-end
+calc  (∑ i, C (f i) * X ^ (i : ℕ)).degree ≤ finset.sup _ (λ i, (C (f i) * X ^ (i : ℕ)).degree) :
+  degree_sum_le _ _
+... < n : (finset.sup_lt_iff $ with_bot.bot_lt_coe n).2 $ λ k hk,
+  calc (C (f k) * X ^ (k : ℕ)).degree ≤ (k : ℕ) : degree_C_mul_X_pow_le _ _
+  ... < n : with_bot.coe_lt_coe.2 k.is_lt
 
 lemma degree_linear_le : degree (C a * X + C b) ≤ 1 :=
 degree_add_le_of_degree_le (degree_C_mul_X_le _) $ le_trans degree_C_le nat.with_bot.coe_nonneg
@@ -1106,21 +1096,20 @@ begin
   simp [next_coeff_of_pos_nat_degree]
 end
 
-lemma degree_X_pow_add_C {n : ℕ} (hn : 0 < n) (a : R) :
+lemma degree_X_pow_add_C {n : ℕ} (hn : n ≠ 0) (a : R) :
   degree ((X : R[X]) ^ n + C a) = n :=
 have degree (C a) < degree ((X : R[X]) ^ n),
   from calc degree (C a) ≤ 0 : degree_C_le
-  ... < degree ((X : R[X]) ^ n) : by rwa [degree_X_pow];
-    exact with_bot.coe_lt_coe.2 hn,
+  ... < degree ((X : R[X]) ^ n) : by rwa [degree_X_pow, with_bot.coe_pos, pos_iff_ne_zero],
 by rw [degree_add_eq_left_of_degree_lt this, degree_X_pow]
 
-lemma X_pow_add_C_ne_zero {n : ℕ} (hn : 0 < n) (a : R) :
+lemma X_pow_add_C_ne_zero {n : ℕ} (hn : n ≠ 0) (a : R) :
   (X : R[X]) ^ n + C a ≠ 0 :=
 mt degree_eq_bot.2 (show degree ((X : R[X]) ^ n + C a) ≠ ⊥,
   by rw degree_X_pow_add_C hn a; exact dec_trivial)
 
 theorem X_add_C_ne_zero (r : R) : X + C r ≠ 0 :=
-pow_one (X : R[X]) ▸ X_pow_add_C_ne_zero zero_lt_one r
+pow_one (X : R[X]) ▸ X_pow_add_C_ne_zero one_ne_zero r
 
 theorem zero_nmem_multiset_map_X_add_C {α : Type*} (m : multiset α) (f : α → R) :
   (0 : R[X]) ∉ m.map (λ a, X + C (f a)) :=
@@ -1131,7 +1120,7 @@ lemma nat_degree_X_pow_add_C {n : ℕ} {r : R} :
 begin
   by_cases hn : n = 0,
   { rw [hn, pow_zero, ←C_1, ←ring_hom.map_add, nat_degree_C] },
-  { exact nat_degree_eq_of_degree_eq_some (degree_X_pow_add_C (pos_iff_ne_zero.mpr hn) r) },
+  { exact nat_degree_eq_of_degree_eq_some (degree_X_pow_add_C hn r) },
 end
 
 end semiring
@@ -1140,19 +1129,19 @@ end nonzero_ring
 section semiring
 variable [semiring R]
 
-@[simp] lemma leading_coeff_X_pow_add_C {n : ℕ} (hn : 0 < n) {r : R} :
+@[simp] lemma leading_coeff_X_pow_add_C {n : ℕ} (hn : n ≠ 0) {r : R} :
   (X ^ n + C r).leading_coeff = 1 :=
 begin
   nontriviality R,
   rw [leading_coeff, nat_degree_X_pow_add_C, coeff_add, coeff_X_pow_self,
-    coeff_C, if_neg (pos_iff_ne_zero.mp hn), add_zero]
+    coeff_C_ne_zero hn, add_zero]
 end
 
 @[simp] lemma leading_coeff_X_add_C [semiring S] (r : S) :
   (X + C r).leading_coeff = 1 :=
-by rw [←pow_one (X : S[X]), leading_coeff_X_pow_add_C zero_lt_one]
+by rw [←pow_one (X : S[X]), leading_coeff_X_pow_add_C one_ne_zero]
 
-@[simp] lemma leading_coeff_X_pow_add_one {n : ℕ} (hn : 0 < n) :
+@[simp] lemma leading_coeff_X_pow_add_one {n : ℕ} (hn : n ≠ 0) :
   (X ^ n + 1 : R[X]).leading_coeff = 1 :=
 leading_coeff_X_pow_add_C hn
 
@@ -1165,11 +1154,11 @@ end semiring
 section ring
 variable [ring R]
 
-@[simp] lemma leading_coeff_X_pow_sub_C {n : ℕ} (hn : 0 < n) {r : R} :
+@[simp] lemma leading_coeff_X_pow_sub_C {n : ℕ} (hn : n ≠ 0) {r : R} :
   (X ^ n - C r).leading_coeff = 1 :=
 by rw [sub_eq_add_neg, ←map_neg C r, leading_coeff_X_pow_add_C hn]; apply_instance
 
-@[simp] lemma leading_coeff_X_pow_sub_one {n : ℕ} (hn : 0 < n) :
+@[simp] lemma leading_coeff_X_pow_sub_one {n : ℕ} (hn : n ≠ 0) :
   (X ^ n - 1 : R[X]).leading_coeff = 1 :=
 leading_coeff_X_pow_sub_C hn
 
@@ -1185,16 +1174,16 @@ nat_degree_eq_of_degree_eq_some $ degree_X_sub_C x
 lemma next_coeff_X_sub_C [ring S] (c : S) : next_coeff (X - C c) = - c :=
 by rw [sub_eq_add_neg, ←map_neg C c, next_coeff_X_add_C]
 
-lemma degree_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : R) :
+lemma degree_X_pow_sub_C {n : ℕ} (hn : n ≠ 0) (a : R) :
   degree ((X : R[X]) ^ n - C a) = n :=
 by rw [sub_eq_add_neg, ←map_neg C a, degree_X_pow_add_C hn]; apply_instance
 
-lemma X_pow_sub_C_ne_zero {n : ℕ} (hn : 0 < n) (a : R) :
+lemma X_pow_sub_C_ne_zero {n : ℕ} (hn : n ≠ 0) (a : R) :
   (X : R[X]) ^ n - C a ≠ 0 :=
 by { rw [sub_eq_add_neg, ←map_neg C a], exact X_pow_add_C_ne_zero hn _ }
 
 theorem X_sub_C_ne_zero (r : R) : X - C r ≠ 0 :=
-pow_one (X : R[X]) ▸ X_pow_sub_C_ne_zero zero_lt_one r
+pow_one (X : R[X]) ▸ X_pow_sub_C_ne_zero one_ne_zero r
 
 theorem zero_nmem_multiset_map_X_sub_C {α : Type*} (m : multiset α) (f : α → R) :
   (0 : R[X]) ∉ m.map (λ a, X - C (f a)) :=

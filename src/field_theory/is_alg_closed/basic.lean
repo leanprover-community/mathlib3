@@ -75,7 +75,7 @@ exists_root_of_splits _ (is_alg_closed.splits p) hp
 lemma exists_pow_nat_eq [is_alg_closed k] (x : k) {n : ℕ} (hn : 0 < n) : ∃ z, z ^ n = x :=
 begin
   rcases exists_root (X ^ n - C x) _ with ⟨z, hz⟩, swap,
-  { rw degree_X_pow_sub_C hn x,
+  { rw [degree_X_pow_sub_C hn x],
     exact ne_of_gt (with_bot.coe_lt_coe.2 hn) },
   use z,
   simp only [eval_C, eval_X, eval_pow, eval_sub, is_root.def] at hz,

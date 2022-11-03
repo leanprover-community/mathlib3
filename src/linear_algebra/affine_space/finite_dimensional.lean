@@ -78,9 +78,9 @@ begin
 end
 
 /-- An affine-independent subset of a finite-dimensional affine space is finite. -/
-lemma finite_set_of_fin_dim_affine_independent [finite_dimensional k V]
-  {s : set P} (hi : affine_independent k (coe : s → P)) : s.finite :=
-@set.to_finite _ _ (finite_of_fin_dim_affine_independent k hi)
+lemma finite_set_of_fin_dim_affine_independent [finite_dimensional k V] {s : set ι} {f : s → P}
+  (hi : affine_independent k f) : s.finite :=
+@set.to_finite _ s (finite_of_fin_dim_affine_independent k hi)
 
 open_locale classical
 variables {k}

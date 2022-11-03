@@ -120,7 +120,7 @@ begin
   { rw [affine_span_eq_affine_span_line_map_units (ht₁ hq) w, ht₃], },
 end
 
-lemma exists_subset_affine_independent_span_eq_top_of_open {u : set P} (hu : is_open u)
+lemma is_open.exists_subset_affine_independent_span_eq_top {u : set P} (hu : is_open u)
   (hne : u.nonempty) :
   ∃ s ⊆ u, affine_independent ℝ (coe : s → P) ∧ affine_span ℝ s = ⊤ :=
 begin
@@ -131,40 +131,34 @@ begin
 end
 
 /-- The affine span of a nonempty open set is `⊤`. -/
-lemma is_open.affine_span_eq_top_of {u : set P} (hu : is_open u) (hne : u.nonempty) :
+lemma is_open.affine_span_eq_top {u : set P} (hu : is_open u) (hne : u.nonempty) :
   affine_span ℝ u = ⊤ :=
-let ⟨
+let ⟨s, hsu, hs, hs'⟩ := hu.exists_subset_affine_independent_span_eq_top hne
+in top_unique $ hs' ▸ affine_span_mono _ hsu
+
+lemma affine_eq_top_of_nonempty_interior {s : set V} (hs : (interior $ convex_hull ℝ s).nonempty) :
+  affine_span ℝ s = ⊤ :=
+top_unique $ is_open_interior.affine_span_eq_top hs ▸
+  (affine_span_mono _ interior_subset).trans_eq (affine_span_convex_hull _)
 
 lemma interior_convex_hull_nonempty_iff_aff_span_eq_top [finite_dimensional ℝ V] {s : set V} :
   (interior (convex_hull ℝ s)).nonempty ↔ affine_span ℝ s = ⊤ :=
 begin
-  split,
-  { rintros ⟨x, hx⟩,
-    obtain ⟨u, hu₁, hu₂, hu₃⟩ := mem_interior.mp hx,
-    let t : set V := {x},
-    obtain ⟨b, hb₁, hb₂, hb₃, hb₄⟩ := exists_subset_affine_independent_span_eq_top_of_open hu₂
-      (singleton_subset_iff.mpr hu₃) (singleton_nonempty x)
-      (affine_independent_of_subsingleton ℝ (coe : t → V)),
-    rw [eq_top_iff, ← hb₄, ← affine_span_convex_hull s],
-    mono,
-    exact hb₂.trans hu₁, },
-  { intros h,
-    obtain ⟨t, hts, h_tot, h_ind⟩ := exists_affine_independent ℝ V s,
-    suffices : (interior (convex_hull ℝ (range (coe : t → V)))).nonempty,
-    { rw [subtype.range_coe_subtype, set_of_mem_eq] at this,
-      apply nonempty.mono _ this,
-      mono* },
-    lift t to finset V using finite_set_of_fin_dim_affine_independent ℝ h_ind,
-    use finset.centroid ℝ t id,
-    rw [h, ← @set_of_mem_eq V t, ← subtype.range_coe_subtype] at h_tot,
-    let b : affine_basis t ℝ V := ⟨coe, h_ind, h_tot⟩,
-    rw interior_convex_hull_aff_basis b,
-    have htne : (finset.univ : finset t).nonempty,
-    { simpa [finset.univ_nonempty_iff] using
-        affine_subspace.nonempty_of_affine_span_eq_top ℝ V V h_tot, },
-    simp [finset.centroid_def, b.coord_apply_combination_of_mem (finset.mem_univ _)
-      (finset.sum_centroid_weights_eq_one_of_nonempty ℝ (finset.univ : finset t) htne),
-      finset.centroid_weights_apply, nat.cast_pos, inv_pos, finset.card_pos.mpr htne], },
+  refine ⟨affine_eq_top_of_nonempty_interior, λ h, _⟩,
+  obtain ⟨t, hts, b, hb⟩ := affine_basis.exists_affine_subbasis h,
+  suffices : (interior (convex_hull ℝ (range (coe : t → V)))).nonempty,
+  { rw [subtype.range_coe_subtype, set_of_mem_eq] at this,
+    apply nonempty.mono _ this,
+    mono* },
+  lift t to finset V using finite_set_of_fin_dim_affine_independent ℝ _,
+  use finset.centroid ℝ t id,
+  rw [← hb, interior_convex_hull_aff_basis b],
+  have htne : (finset.univ : finset t).nonempty,
+  { simpa [finset.univ_nonempty_iff, hb] using
+      affine_subspace.nonempty_of_affine_span_eq_top ℝ V V b.tot, },
+  simp [finset.centroid_def, b.coord_apply_combination_of_mem (finset.mem_univ _)
+    (finset.sum_centroid_weights_eq_one_of_nonempty ℝ (finset.univ : finset t) htne),
+    finset.centroid_weights_apply, nat.cast_pos, inv_pos, finset.card_pos.mpr htne],
 end
 
 lemma convex.interior_nonempty_iff_affine_span_eq_top [finite_dimensional ℝ V] {s : set V}

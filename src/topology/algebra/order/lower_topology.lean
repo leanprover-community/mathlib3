@@ -202,6 +202,13 @@ variable {β : Type v}
 
 variables [partial_order α]
 variables  [partial_order β]
+
+lemma prod_basis_is_topological_basis : is_topological_basis
+    (image2 prod (with_lower_topology.lower_basis (with_lower_topology α))
+       (with_lower_topology.lower_basis (with_lower_topology β))) :=
+is_topological_basis.prod with_lower_topology.is_topological_basis
+  with_lower_topology.is_topological_basis
+
 /-
 
 
@@ -279,7 +286,9 @@ lemma lower_topology_prod : lower_topology (α × β) =
 begin
   rw le_antisymm_iff,
   split,
-    { sorry },
+    { rw ← is_open_implies_is_open_iff,
+      intros U hU,
+      sorry },
     { apply le_generate_from,
     intros,
     rw mem_set_of_eq at H,
@@ -298,9 +307,18 @@ space β
 -/
 def lower_topology_prod_hom :
   with_lower_topology (α × β) ≃ₜ ((with_lower_topology α) × (with_lower_topology β)) :=
-{ continuous_to_fun := sorry,
-  continuous_inv_fun := sorry,
-  ..with_lower_topology.of_lower.trans (with_lower_topology.to_lower.prod_congr with_lower_topology.to_lower) }
+{ continuous_to_fun :=
+  begin
+    simp only [equiv.to_fun_as_coe, equiv.coe_trans],
+    sorry,
+  end,
+  continuous_inv_fun :=
+  begin
+    simp only [equiv.inv_fun_as_coe],
+    sorry,
+  end,
+  ..with_lower_topology.of_lower.trans (with_lower_topology.to_lower.prod_congr
+    with_lower_topology.to_lower) }
 
 end prod
 

@@ -125,7 +125,8 @@ lemma is_open.affine_span_eq_top {u : set P} (hu : is_open u) (hne : u.nonempty)
 let ⟨s, hsu, hs, hs'⟩ := hu.exists_subset_affine_independent_span_eq_top hne
 in top_unique $ hs' ▸ affine_span_mono _ hsu
 
-lemma affine_eq_top_of_nonempty_interior {s : set V} (hs : (interior $ convex_hull ℝ s).nonempty) :
+lemma affine_span_eq_top_of_nonempty_interior {s : set V}
+  (hs : (interior $ convex_hull ℝ s).nonempty) :
   affine_span ℝ s = ⊤ :=
 top_unique $ is_open_interior.affine_span_eq_top hs ▸
   (affine_span_mono _ interior_subset).trans_eq (affine_span_convex_hull _)
@@ -141,7 +142,7 @@ end
 lemma interior_convex_hull_nonempty_iff_affine_span_eq_top [finite_dimensional ℝ V] {s : set V} :
   (interior (convex_hull ℝ s)).nonempty ↔ affine_span ℝ s = ⊤ :=
 begin
-  refine ⟨affine_eq_top_of_nonempty_interior, λ h, _⟩,
+  refine ⟨affine_span_eq_top_of_nonempty_interior, λ h, _⟩,
   obtain ⟨t, hts, b, hb⟩ := affine_basis.exists_affine_subbasis h,
   suffices : (interior (convex_hull ℝ (range b.points))).nonempty,
   { rw [hb, subtype.range_coe_subtype, set_of_mem_eq] at this,

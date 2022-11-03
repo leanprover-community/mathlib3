@@ -134,28 +134,6 @@ begin
     simp [h a (mem_cons_self a s), sgcd (λ x hx, h x (mem_cons_of_mem hx))] }
 end
 
-variables [decidable_eq α]
-
-@[simp] lemma gcd_dedup (s : multiset α) : (dedup s).gcd = s.gcd :=
-multiset.induction_on s (by simp) $ λ a s IH, begin
-  by_cases a ∈ s; simp [IH, h],
-  unfold gcd,
-  rw [← cons_erase h, fold_cons_left, ← gcd_assoc, gcd_same],
-  apply (associated_normalize _).gcd_eq_left,
-end
-
-@[simp] lemma gcd_ndunion (s₁ s₂ : multiset α) :
-  (ndunion s₁ s₂).gcd = gcd_monoid.gcd s₁.gcd s₂.gcd :=
-by { rw [← gcd_dedup, dedup_ext.2, gcd_dedup, gcd_add], simp }
-
-@[simp] lemma gcd_union (s₁ s₂ : multiset α) :
-  (s₁ ∪ s₂).gcd = gcd_monoid.gcd s₁.gcd s₂.gcd :=
-by { rw [← gcd_dedup, dedup_ext.2, gcd_dedup, gcd_add], simp }
-
-@[simp] lemma gcd_ndinsert (a : α) (s : multiset α) :
-  (ndinsert a s).gcd = gcd_monoid.gcd a s.gcd :=
-by { rw [← gcd_dedup, dedup_ext.2, gcd_dedup, gcd_cons], simp }
-
 lemma gcd_map_mul (a : α) (s : multiset α) :
   (s.map ((*) a)).gcd = normalize a * s.gcd :=
 begin
@@ -184,6 +162,28 @@ begin
   rw [multiset.gcd_cons, multiset.gcd_map_mul, ht, mul_one],
   rw [(normalize_associated c).gcd_eq_right, ← _root_.normalize_gcd, normalize_eq_one.2 hu],
 end
+
+variables [decidable_eq α]
+
+@[simp] lemma gcd_dedup (s : multiset α) : (dedup s).gcd = s.gcd :=
+multiset.induction_on s (by simp) $ λ a s IH, begin
+  by_cases a ∈ s; simp [IH, h],
+  unfold gcd,
+  rw [← cons_erase h, fold_cons_left, ← gcd_assoc, gcd_same],
+  apply (associated_normalize _).gcd_eq_left,
+end
+
+@[simp] lemma gcd_ndunion (s₁ s₂ : multiset α) :
+  (ndunion s₁ s₂).gcd = gcd_monoid.gcd s₁.gcd s₂.gcd :=
+by { rw [← gcd_dedup, dedup_ext.2, gcd_dedup, gcd_add], simp }
+
+@[simp] lemma gcd_union (s₁ s₂ : multiset α) :
+  (s₁ ∪ s₂).gcd = gcd_monoid.gcd s₁.gcd s₂.gcd :=
+by { rw [← gcd_dedup, dedup_ext.2, gcd_dedup, gcd_add], simp }
+
+@[simp] lemma gcd_ndinsert (a : α) (s : multiset α) :
+  (ndinsert a s).gcd = gcd_monoid.gcd a s.gcd :=
+by { rw [← gcd_dedup, dedup_ext.2, gcd_dedup, gcd_cons], simp }
 
 end gcd
 

@@ -19,7 +19,7 @@ variables (C : Type*) [groupoid C]
 
 section thin
 
-lemma is_thin_iff : (quiver.is_thin C) ↔ (∀ (c : C), subsingleton (c ⟶ c)) :=
+lemma is_thin_iff : quiver.is_thin C ↔ ∀ c : C, subsingleton (c ⟶ c) :=
 begin
   refine ⟨λ h c, h c c, λ h c d, subsingleton.intro $ λ f g, _⟩,
   haveI := h d,
@@ -32,8 +32,8 @@ end thin
 
 section disconnected
 
-/-- A subgroupoid is disconnected if it only has loops. -/
-def is_disconnected := ∀ (c d : C), (c ⟶ d) → c = d
+/-- A subgroupoid is totally disconnected if it only has loops. -/
+def is_totally_disconnected := ∀ (c d : C), (c ⟶ d) → c = d
 
 end disconnected
 

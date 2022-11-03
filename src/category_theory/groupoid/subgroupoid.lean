@@ -551,10 +551,11 @@ end thin
 
 section disconnected
 
-/-- A subgroupoid `is_disconnected` if it has only isotropy arrows. -/
-abbreviation is_disconnected := is_disconnected S.objs
+/-- A subgroupoid `is_totally_disconnected` if it has only isotropy arrows. -/
+abbreviation is_totally_disconnected := is_totally_disconnected S.objs
 
-lemma is_disconnected_iff : S.is_disconnected ↔ ∀ c d, (S.arrows c d).nonempty → c = d :=
+lemma is_totally_disconnected_iff :
+  S.is_totally_disconnected ↔ ∀ c d, (S.arrows c d).nonempty → c = d :=
 begin
   split,
   { rintro h c d ⟨f,fS⟩,
@@ -584,8 +585,8 @@ lemma disconnect_normal (Sn : S.is_normal) : S.disconnect.is_normal :=
 lemma disconnect_objs : S.disconnect.objs = S.objs :=
 by { apply set.ext, apply mem_disconnect_objs_iff, }
 
-lemma disconnect_is_disconnected : S.disconnect.is_disconnected :=
-by { rw is_disconnected_iff, exact λ c d ⟨f,h,fS⟩, h }
+lemma disconnect_is_totally_disconnected : S.disconnect.is_totally_disconnected :=
+by { rw is_totally_disconnected_iff, exact λ c d ⟨f,h,fS⟩, h }
 
 end disconnected
 

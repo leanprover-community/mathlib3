@@ -206,7 +206,7 @@ a subject of the quotient `h.Q` of `S.X₂`.
 The primary use of this structure is for the internals of
 homology API. In order to do computations, it is advisable
 to use `homology_data` which involves only the expression
-of the homology as a quotient of a subject. -/
+of the homology as a quotient of a subobject. -/
 structure homology_full_data :=
 (K Q H : C)
 (i : K ⟶ S.X₂)
@@ -442,6 +442,7 @@ lemma forget_preimage_comp {S₁ S₂ S₃ : short_complex C} (φ : S₁ ⟶ S�
 (short_complex_with_homology'.forget C).map_injective
   (by simp only [forget_preimage, functor.image_preimage, functor.map_comp])
 
+-- TODO op_equiv : (short_complex_with_homology' C)ᵒᵖ ≌ short_complex_with_homology' Cᵒᵖ
 end short_complex_with_homology'
 
 end
@@ -469,9 +470,13 @@ lemma homology_map_comp (φ : S₁ ⟶ S₂) (φ' : S₂ ⟶ S₃) :
 short_complex_with_homology'.hom.congr_φH
   (short_complex_with_homology'.forget_preimage_comp φ φ' _ _ _)
 
-/-- Assuming that all short complex have homology, this is the homology functor. -/
+variable (C)
+
+abbreviation category_with_homology := ∀ (S : short_complex C), has_homology S
+
+/-- Assuming that all short complexes have homology, this is the homology functor. -/
 @[simps]
-def homology_functor [∀ (S : short_complex C), has_homology S] :
+def homology_functor [category_with_homology C] :
   short_complex C ⥤ C :=
 { obj := λ S, S.homology,
   map := λ S₁ S₂, homology_map, }
@@ -503,7 +508,7 @@ lemma cokernel.π_desc' {C : Type*} [category C] [has_zero_morphisms C]
 (cokernel_is_cokernel f).fac (cokernel_cofork.of_π k h) walking_parallel_pair.one
 
 @[priority 100]
-instance abelian_has_homology [abelian C] : ∀ (S : short_complex C), has_homology S :=
+instance category_with_homology_of_abelian [abelian C] : category_with_homology C :=
 λ S, begin
   let K := kernel S.g,
   let Q := cokernel S.f,
@@ -617,7 +622,7 @@ variables [preadditive C] (Z₁ Z₂ : short_complex_with_homology' C)
 variables {Z₁ Z₂}
 
 /-- The negation of morphisms in `short_complex_with_homology' C` is obtained
-  by negatin the data. -/
+  by negating the data. -/
 @[simps]
 def hom.neg (ψ : Z₁ ⟶ Z₂) : Z₁ ⟶ Z₂ :=
 ⟨-ψ.φ, -ψ.φK, -ψ.φQ, -ψ.φH, by simp [ψ.commi], by simp [ψ.commp], by simp [ψ.commf'],

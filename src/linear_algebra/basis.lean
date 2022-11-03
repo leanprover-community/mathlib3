@@ -121,7 +121,7 @@ linear_equiv.apply_symm_apply _ _
 
 lemma repr_self_apply (j) [decidable (i = j)] :
   b.repr (b i) j = if i = j then 1 else 0 :=
-by rw [repr_self, finsupp.single_apply]
+by simp_rw [repr_self, finsupp.single_apply, eq_comm]
 
 @[simp] lemma repr_symm_apply (v) : b.repr.symm v = finsupp.total ι M R b v :=
 calc b.repr.symm v = b.repr.symm (v.sum finsupp.single) : by simp

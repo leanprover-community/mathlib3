@@ -620,7 +620,7 @@ begin
   rw le_iff,
   rintro c d f,
   simp only [mem_full_iff],
-  exact λ ⟨hc,hd⟩, ⟨h hc, h hd⟩,
+  exact λ ⟨hc, hd⟩, ⟨h hc, h hd⟩,
 end
 
 lemma full_arrow_eq_iff {c d : (full D).objs} {f g : c ⟶ d} :

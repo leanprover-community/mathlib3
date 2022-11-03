@@ -271,10 +271,9 @@ by { rcases h' with ⟨l₂, l₃, rfl⟩, exact h.left_of_append.right_of_appen
 
 theorem chain'.suffix (h : chain' R l) (h' : l₁ <:+ l) : chain' R l₁ := h.infix h'.is_infix
 theorem chain'.prefix (h : chain' R l) (h' : l₁ <+: l) : chain' R l₁ := h.infix h'.is_infix
-
 theorem chain'.drop (h : chain' R l) (n : ℕ) : chain' R (drop n l) := h.suffix (drop_suffix _ _)
-
 theorem chain'.init (h : chain' R l) : chain' R l.init := h.prefix l.init_prefix
+theorem chain'.take (h : chain' R l) (n : ℕ) : chain' R (take n l) := h.prefix (take_prefix _ _)
 
 theorem chain'_pair {x y} : chain' R [x, y] ↔ R x y :=
 by simp only [chain'_singleton, chain'_cons, and_true]

@@ -5,7 +5,6 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
 
 import algebra.algebra.basic
-import algebra.category.Ring.basic
 import ring_theory.ideal.operations
 import ring_theory.jacobson_ideal
 
@@ -227,10 +226,6 @@ lemma is_local_ring_hom_of_comp (f : R →+* S) (g : S →+* T) [is_local_ring_h
   is_local_ring_hom f :=
 ⟨λ a ha, (is_unit_map_iff (g.comp f) _).mp (g.is_unit_map ha)⟩
 
-instance _root_.CommRing.is_local_ring_hom_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T)
-  [is_local_ring_hom g] [is_local_ring_hom f] :
-  is_local_ring_hom (f ≫ g) := is_local_ring_hom_comp _ _
-
 /-- If `f : R →+* S` is a local ring hom, then `R` is a local ring if `S` is. -/
 lemma _root_.ring_hom.domain_local_ring {R S : Type*} [comm_semiring R] [comm_semiring S]
   [H : _root_.local_ring S] (f : R →+* S)
@@ -241,23 +236,6 @@ begin
   intros a b,
   simp_rw [←map_mem_nonunits_iff f, f.map_add],
   exact local_ring.nonunits_add
-end
-
-section
-open category_theory
-
-lemma is_local_ring_hom_of_iso {R S : CommRing} (f : R ≅ S) : is_local_ring_hom f.hom :=
-{ map_nonunit := λ a ha,
-  begin
-    convert f.inv.is_unit_map ha,
-    rw category_theory.iso.hom_inv_id_apply,
-  end }
-
-@[priority 100] -- see Note [lower instance priority]
-instance is_local_ring_hom_of_is_iso {R S : CommRing} (f : R ⟶ S) [is_iso f] :
-  is_local_ring_hom f :=
-is_local_ring_hom_of_iso (as_iso f)
-
 end
 
 end

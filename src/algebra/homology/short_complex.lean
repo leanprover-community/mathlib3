@@ -7,7 +7,7 @@ open category_theory category_theory.category category_theory.limits
   category_theory.preadditive
 open_locale zero_object
 
-variables (C : Type*) [category C]
+variables (C D : Type*) [category C] [category D]
 
 /-- A short complex in a category `C` with zero composition is the datum
 of two composable morphisms `f : X₁ ⟶ X₂` and `g : X₂ ⟶ X₃` such that
@@ -906,3 +906,77 @@ instance : functor.additive (short_complex_with_homology'.forget C) := { }
 end preadditive
 
 end short_complex_with_homology'
+
+example : ℕ := 42
+
+open category_theory.functor
+
+variables {C D}
+
+@[simps]
+def category_theory.functor.map_short_complex [has_zero_morphisms C] [has_zero_morphisms D]
+  (F : C ⥤ D) [preserves_zero_morphisms F] : short_complex C ⥤ short_complex D :=
+{ obj := λ S, short_complex.mk (F.map S.f) (F.map S.g)
+    (by rw [← F.map_comp, S.zero, F.map_zero]),
+  map := λ S₁ S₂ φ, short_complex.hom.mk (F.map φ.τ₁) (F.map φ.τ₂) (F.map φ.τ₃)
+    (by { dsimp, simp only [← F.map_comp, φ.comm₁₂], })
+    (by { dsimp, simp only [← F.map_comp, φ.comm₂₃], }), }
+
+namespace short_complex
+
+variables [has_zero_morphisms C] (S : short_complex C)
+
+@[simps]
+def map [has_zero_morphisms D] (F : C ⥤ D) [preserves_zero_morphisms F] : short_complex D :=
+F.map_short_complex.obj S
+
+/-- If `S : short_complex C`, a candidate computation of the homology of `S` can
+be given by the datum of two objects `K` and `H`, where `H` is a part of
+a kernel fork of the morphism `S.g : S.X₂ ⟶ S.X₃`, and `H` is a part of a
+cokernel cofork of a morphism `f' : S.X₁ ⟶ K` compatible with `f`. This data
+shall be an `homology_data S` when the fork and cofork are limit. -/
+@[ext]
+structure homology_pre_data :=
+(K H : C)
+(i : K ⟶ S.X₂)
+(f' : S.X₁ ⟶ K)
+(π : K ⟶ H)
+(fac : f' ≫ i = S.f)
+(hi₀ : i ≫ S.g = 0)
+(hπ₀ : f' ≫ π = 0)
+
+namespace homology_pre_data
+
+attribute [simp, reassoc] fac hi₀ hπ₀
+
+variable {S}
+
+@[simps]
+def fork (h : homology_pre_data S) : kernel_fork S.g := kernel_fork.of_ι h.i h.hi₀
+
+@[simps]
+def cofork (h : homology_pre_data S) : cokernel_cofork h.f' := cokernel_cofork.of_π h.π h.hπ₀
+
+@[simps]
+def map (h : homology_pre_data S) (F : C ⥤ D) [has_zero_morphisms D]
+  [preserves_zero_morphisms F] : homology_pre_data (S.map F) :=
+{ K := F.obj h.K,
+  H := F.obj h.H,
+  i := F.map h.i,
+  f' := F.map h.f',
+  π := F.map h.π,
+  fac := by simp only [← F.map_comp, h.fac, map_f],
+  hi₀ := by simp only [map_g, ← F.map_comp, h.hi₀, F.map_zero],
+  hπ₀ := by simp only [← F.map_comp, h.hπ₀, F.map_zero], }
+
+end homology_pre_data
+
+/-- If `S : short_complex C`, `h : homology_data S` is a notion that is weaker
+than `homology_full_data S`. It consists only of the data of a kernel `h.H` of `S.g`,
+and a cokernel `h.K` of the morphism `S.f' : S.X₁ ⟶ h.H` induced by `S.f`. When
+`[has_homology S]` holds, it is sufficent in order to compute the homology of `S`. -/
+structure homology_data extends homology_pre_data S :=
+(fork_is_limit : is_limit to_homology_pre_data.fork)
+(cofork_is_limit : is_colimit to_homology_pre_data.cofork)
+
+end short_complex

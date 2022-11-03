@@ -586,7 +586,7 @@ lemma disconnect_objs : S.disconnect.objs = S.objs :=
 by { apply set.ext, apply mem_disconnect_objs_iff, }
 
 lemma disconnect_is_totally_disconnected : S.disconnect.is_totally_disconnected :=
-by { rw is_totally_disconnected_iff, exact λ c d ⟨f,h,fS⟩, h }
+by { rw is_totally_disconnected_iff, exact λ c d ⟨f, h, fS⟩, h }
 
 end disconnected
 

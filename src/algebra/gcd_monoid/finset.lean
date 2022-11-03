@@ -208,6 +208,26 @@ begin
   apply ((normalize_associated a).mul_left _).gcd_eq_right
 end
 
+lemma extract_gcd (h : s.nonempty) :
+  ∃ g : β → α, (∀ b ∈ s, f b = s.gcd f * g b) ∧ s.gcd g = 1 :=
+begin
+  classical,
+  refine h.cons_induction (λ b, _) (λ a s ha _, _),
+  { use f.update b (↑(norm_unit $ f b)⁻¹),
+    simp_rw [gcd_singleton, mem_singleton, forall_eq, f.update_same _ _],
+    exact ⟨((units.mul_inv_eq_iff_eq_mul _).2 $ normalize_apply _).symm, normalize_coe_units _⟩ },
+  rintro ⟨g, he, hg⟩,
+  obtain ⟨b, c, hb, hc, hu⟩ := extract_gcd (f a) (s.gcd f),
+  use (c • g).update a b,
+  simp_rw [mem_cons, forall_eq_or_imp, cons_eq_insert, gcd_insert, function.update_same],
+  refine ⟨⟨hb, λ a' h', _⟩, _⟩,
+  { rw [function.update_noteq (ne_of_mem_of_not_mem h' ha), he a' h'],
+    conv_lhs { rw [hc, mul_assoc] }, refl },
+  { rw [← normalize_eq_one, _root_.normalize_gcd, ← (normalize_associated c).gcd_eq_right] at hu,
+    convert hu, conv_rhs { rw [← mul_one (normalize c), ← hg, ← gcd_mul_left] },
+    exact gcd_congr rfl (λ d hd, (c • g).update_noteq (ne_of_mem_of_not_mem hd ha) b) },
+end
+
 end gcd
 end finset
 

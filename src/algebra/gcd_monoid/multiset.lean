@@ -156,6 +156,35 @@ by { rw [← gcd_dedup, dedup_ext.2, gcd_dedup, gcd_add], simp }
   (ndinsert a s).gcd = gcd_monoid.gcd a s.gcd :=
 by { rw [← gcd_dedup, dedup_ext.2, gcd_dedup, gcd_cons], simp }
 
+lemma gcd_map_mul (a : α) (s : multiset α) :
+  (s.map ((*) a)).gcd = normalize a * s.gcd :=
+begin
+  refine s.induction_on _ (λ b s ih, _),
+  { simp_rw [map_zero, gcd_zero, mul_zero] },
+  { simp_rw [map_cons, gcd_cons, ← gcd_mul_left], rw ih,
+    apply ((normalize_associated a).mul_right _).gcd_eq_right },
+end
+
+theorem extract_gcd (s : multiset α) :
+  s ≠ 0 → ∃ t : multiset α, s = t.map ((*) s.gcd) ∧ t.gcd = 1 :=
+begin
+  refine s.induction_on _ (λ a s ih, _),
+  { exact λ h, (h rfl).elim },
+  rintro -,
+  obtain rfl | h := eq_or_ne s 0,
+  { use {↑(norm_unit a)⁻¹},
+    simp_rw [cons_zero, map_singleton, gcd_singleton],
+    exact ⟨by rw (units.mul_inv_eq_iff_eq_mul _).2 (normalize_apply a), normalize_coe_units _⟩ },
+  obtain ⟨t, he, ht⟩ := ih h,
+  obtain ⟨b, c, hb, hc, hu⟩ := extract_gcd a s.gcd,
+  use b ::ₘ t.map ((*) c),
+  rw [multiset.map_cons, multiset.gcd_cons, ← hb, multiset.map_map],
+  refine ⟨congr_arg _ _, _⟩,
+  { convert he using 2, ext, rw [function.comp_app, ← mul_assoc, ← hc] },
+  rw [multiset.gcd_cons, multiset.gcd_map_mul, ht, mul_one],
+  rw [(normalize_associated c).gcd_eq_right, ← _root_.normalize_gcd, normalize_eq_one.2 hu],
+end
+
 end gcd
 
 end multiset

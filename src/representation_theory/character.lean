@@ -5,10 +5,7 @@ Authors: Antoine Labelle
 -/
 import representation_theory.fdRep
 import linear_algebra.trace
-import representation_theory.basic
 import representation_theory.invariants
-import category_theory.simple
-import field_theory.is_alg_closed.basic
 
 /-!
 # Characters of representations
@@ -85,10 +82,6 @@ section orthogonality
 variables {G : Group.{u}} [is_alg_closed k]
 
 open_locale classical
-
--- This is in #13794
-lemma finrank_hom_simple_simple (V W : fdRep k G) [simple V] [simple W] :
-  finrank k (V ⟶ W) = if nonempty (V ≅ W) then 1 else 0 := sorry
 
 variables [fintype G] [invertible (fintype.card G : k)]
 

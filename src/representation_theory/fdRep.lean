@@ -103,18 +103,13 @@ lemma finrank_hom_simple_simple [is_alg_closed k] (V W : fdRep k G) [simple V] [
   finrank k (V ⟶ W) = if nonempty (V ≅ W) then 1 else 0 :=
 category_theory.finrank_hom_simple_simple k V W
 
--- These instances are provided in #13789
-instance : preadditive (fdRep k G) := sorry
-instance : linear k (fdRep k G) := sorry
-
 /-- The forgetful functor to `Rep k G` preserves hom-sets and their vector space structure -/
 def forget₂_hom_linear_equiv (X Y : fdRep k G) :
   (((forget₂ (fdRep k G) (Rep k G)).obj X) ⟶ ((forget₂ (fdRep k G) (Rep k G)).obj Y)) ≃ₗ[k]
   (X ⟶ Y) :=
 { to_fun := λ f, ⟨f.hom, f.comm⟩,
-  --These two should probably be `rfl` when the two instances above are unsorryied
-  map_add' := λ _ _, sorry,
-  map_smul' := λ _ _, sorry,
+  map_add' := λ _ _, rfl,
+  map_smul' := λ _ _, rfl,
   inv_fun := λ f, ⟨(forget₂ (FinVect k) (Module k)).map f.hom, f.comm⟩,
   left_inv := λ _, by { ext, refl },
   right_inv := λ _, by { ext, refl } }

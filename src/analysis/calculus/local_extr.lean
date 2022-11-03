@@ -357,24 +357,28 @@ end Rolle
 
 namespace polynomial
 
-lemma card_root_set_le_derivative {F : Type*} [field F] [algebra F ℝ] (p : F[X]) :
-  fintype.card (p.root_set ℝ) ≤ fintype.card (p.derivative.root_set ℝ) + 1 :=
+/-- The number of roots of a real polynomial is at most the number of roots of its derivative plus
+one. TODO: add a version for roots counted with multiplicities. -/
+lemma card_roots_to_finset_le_derivative (p : ℝ[X]) :
+  p.roots.to_finset.card ≤ p.derivative.roots.to_finset.card + 1 :=
 begin
-  haveI : char_zero F :=
-    (ring_hom.char_zero_iff (algebra_map F ℝ).injective).mpr (by apply_instance),
-  by_cases hp : p = 0,
-  { simp_rw [hp, derivative_zero, root_set_zero, set.empty_card', zero_le_one] },
-  by_cases hp' : p.derivative = 0,
-  { rw eq_C_of_nat_degree_eq_zero (nat_degree_eq_zero_of_derivative_eq_zero hp'),
-    simp_rw [root_set_C, set.empty_card', zero_le] },
-  simp_rw [root_set_def, finset.coe_sort_coe, fintype.card_coe],
+  cases eq_or_ne p.derivative 0 with hp' hp',
+  { rw [eq_C_of_derivative_eq_zero hp', roots_C, multiset.to_finset_zero, finset.card_empty],
+    exact zero_le _ },
+  have hp : p ≠ 0, from ne_of_apply_ne derivative (by rwa [derivative_zero]),
   refine finset.card_le_of_interleaved (λ x hx y hy hxy, _),
-  rw [←finset.mem_coe, ←root_set_def, mem_root_set hp] at hx hy,
-  obtain ⟨z, hz1, hz2⟩ := exists_deriv_eq_zero (λ x : ℝ, aeval x p) hxy
-    p.continuous_aeval.continuous_on (hx.trans hy.symm),
+  rw [multiset.mem_to_finset, mem_roots hp] at hx hy,
+  obtain ⟨z, hz1, hz2⟩ := exists_deriv_eq_zero (λ x : ℝ, eval x p) hxy
+    p.continuous_on (hx.trans hy.symm),
   refine ⟨z, _, hz1⟩,
-  rw [←finset.mem_coe, ←root_set_def, mem_root_set hp', ←hz2],
-  simp_rw [aeval_def, ←eval_map, polynomial.deriv, derivative_map],
+  rwa [multiset.mem_to_finset, mem_roots hp', is_root, ← p.deriv]
 end
+
+/-- The number of real roots of a polynomial is at most the number of roots of its derivative plus
+one. -/
+lemma card_root_set_le_derivative {F : Type*} [comm_ring F] [algebra F ℝ] (p : F[X]) :
+  fintype.card (p.root_set ℝ) ≤ fintype.card (p.derivative.root_set ℝ) + 1 :=
+by simpa only [root_set_def, finset.coe_sort_coe, fintype.card_coe, derivative_map]
+  using card_roots_to_finset_le_derivative (p.map (algebra_map F ℝ))
 
 end polynomial

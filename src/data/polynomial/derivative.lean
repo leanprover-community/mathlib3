@@ -204,6 +204,10 @@ begin
   exact hf h2
 end
 
+theorem eq_C_of_derivative_eq_zero [no_zero_divisors R] [char_zero R] {f : R[X]}
+  (h : f.derivative = 0) : f = C (f.coeff 0) :=
+eq_C_of_nat_degree_eq_zero $ nat_degree_eq_zero_of_derivative_eq_zero h
+
 @[simp] lemma derivative_mul {f g : R[X]} :
   derivative (f * g) = derivative f * g + f * derivative g :=
 calc derivative (f * g) = f.sum (λn a, g.sum (λm b, (n + m) • (C (a * b) * X^((n + m) - 1)))) :

@@ -560,10 +560,10 @@ begin
   split,
   { rintro h c d ⟨f,fS⟩,
     rw ←@subtype.mk_eq_mk _ _ c (mem_objs_of_src S fS) d (mem_objs_of_tgt S fS),
-    exact h ⟨c,mem_objs_of_src S fS⟩ ⟨d,mem_objs_of_tgt S fS⟩ ⟨f,fS⟩, },
-  { rintros h ⟨c,hc⟩ ⟨d,hd⟩ ⟨f,fS⟩,
+    exact h ⟨c, mem_objs_of_src S fS⟩ ⟨d, mem_objs_of_tgt S fS⟩ ⟨f, fS⟩, },
+  { rintros h ⟨c, hc⟩ ⟨d, hd⟩ ⟨f, fS⟩,
     simp only [subtype.mk_eq_mk],
-    exact h c d ⟨f,fS⟩, },
+    exact h c d ⟨f, fS⟩, },
 end
 
 /-- The isotropy subgroupoid of `S` -/

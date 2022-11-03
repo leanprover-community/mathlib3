@@ -1481,4 +1481,78 @@ begin
     exact ih n L hgs (hg n) }
 end
 
+lemma cont_diff_convolution_right_with_param
+  {f : G → E} {n : ℕ∞} (L : E →L[𝕜] E' →L[𝕜] F)
+  {g : P × G → E'}
+  {s : set P} {k : set G} (hs : is_open s) (hk : is_compact k)
+  (hgs : ∀ p, ∀ x, p ∈ s → x ∉ k → g (p, x) = 0)
+  (hf : locally_integrable f μ) (hg : cont_diff_on 𝕜 n g (s ×ˢ univ)) :
+  cont_diff_on 𝕜 n (λ (q : P × G), (f ⋆[L, μ] (λ (x : G), g (q.1, x))) q.2) (s ×ˢ univ) :=
+begin
+  let M : Type (max uG uE' uF uP) := sorry,
+  letI : normed_add_comm_group M := sorry,
+  letI : normed_space 𝕜 M := sorry,
+  let eG := continuous_multilinear_map 𝕜 (λ (i : fin 0), M) G,
+  letI : normed_add_comm_group eG := by apply_instance,
+  letI : normed_space 𝕜 eG := by apply_instance,
+  borelize eG,
+  let eE' := continuous_multilinear_map 𝕜 (λ (i : fin 0), M) E',
+  letI : normed_add_comm_group eE' := by apply_instance,
+  letI : normed_space 𝕜 eE' := by apply_instance,
+  let eF := continuous_multilinear_map 𝕜 (λ (i : fin 0), M) F,
+  letI : normed_add_comm_group eF := by apply_instance,
+  letI : normed_space 𝕜 eF := by apply_instance,
+  let eP := continuous_multilinear_map 𝕜 (λ (i : fin 0), M) P,
+  letI : normed_add_comm_group eP := by apply_instance,
+  letI : normed_space 𝕜 eP := by apply_instance,
+  let isoG : eG ≃L[𝕜] G := continuous_multilinear_curry_fin0 𝕜 M G,
+  let isoE' : eE' ≃L[𝕜] E' := continuous_multilinear_curry_fin0 𝕜 M E',
+  let isoF : eF ≃L[𝕜] F := continuous_multilinear_curry_fin0 𝕜 M F,
+  let isoP : eP ≃L[𝕜] P := continuous_multilinear_curry_fin0 𝕜 M P,
+  let ef := f ∘ isoG,
+  let eμ : measure eG := measure.map isoG.symm μ,
+  have hef : locally_integrable ef eμ,
+  { apply locally_integrable.comp,
+
+  }
+end
+
 end with_param
+
+#exit
+
+  let M := G × E' × F × P,
+
+
+  let Eu := continuous_multilinear_map 𝕜 (λ (i : fin 0), (E × F × G)) E,
+  letI : normed_add_comm_group Eu := by apply_instance,
+  letI : normed_space 𝕜 Eu := by apply_instance,
+  let Fu := continuous_multilinear_map 𝕜 (λ (i : fin 0), (E × F × G)) F,
+  letI : normed_add_comm_group Fu := by apply_instance,
+  letI : normed_space 𝕜 Fu := by apply_instance,
+  let Gu := continuous_multilinear_map 𝕜 (λ (i : fin 0), (E × F × G)) G,
+  letI : normed_add_comm_group Gu := by apply_instance,
+  letI : normed_space 𝕜 Gu := by apply_instance,
+  -- declare the isomorphisms
+  let isoE : Eu ≃L[𝕜] E := continuous_multilinear_curry_fin0 𝕜 (E × F × G) E,
+  let isoF : Fu ≃L[𝕜] F := continuous_multilinear_curry_fin0 𝕜 (E × F × G) F,
+  let isoG : Gu ≃L[𝕜] G := continuous_multilinear_curry_fin0 𝕜 (E × F × G) G,
+  -- lift the functions to the new spaces, check smoothness there, and then go back.
+  let fu : Eu → Fu := (isoF.symm ∘ f) ∘ isoE,
+  have fu_diff : cont_diff_on 𝕜 n fu (isoE ⁻¹' s),
+    by rwa [isoE.cont_diff_on_comp_iff, isoF.symm.comp_cont_diff_on_iff],
+  let gu : Fu → Gu := (isoG.symm ∘ g) ∘ isoF,
+  have gu_diff : cont_diff_on 𝕜 n gu (isoF ⁻¹' t),
+    by rwa [isoF.cont_diff_on_comp_iff, isoG.symm.comp_cont_diff_on_iff],
+  have main : cont_diff_on 𝕜 n (gu ∘ fu) (isoE ⁻¹' s),
+  { apply cont_diff_on.comp_same_univ gu_diff fu_diff,
+    assume y hy,
+    simp only [fu, continuous_linear_equiv.coe_apply, function.comp_app, mem_preimage],
+    rw isoF.apply_symm_apply (f (isoE y)),
+    exact st hy },
+  have : gu ∘ fu = (isoG.symm ∘ (g ∘ f)) ∘ isoE,
+  { ext y,
+    simp only [function.comp_apply, gu, fu],
+    rw isoF.apply_symm_apply (f (isoE y)) },
+  rwa [this, isoE.cont_diff_on_comp_iff, isoG.symm.comp_cont_diff_on_iff] at main
+end

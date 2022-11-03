@@ -855,6 +855,15 @@ begin
   ... = κ a set.univ * Cη : mul_comm _ _,
 end
 
+instance is_markov_kernel.comp (κ : kernel mα mβ) [is_markov_kernel κ]
+  (η : kernel (mα.prod mβ) mγ) [is_markov_kernel η] :
+  is_markov_kernel (comp κ η) :=
+⟨λ a, ⟨
+begin
+  rw comp_apply κ η a measurable_set.univ,
+  simp only [set.mem_univ, set.set_of_true, measure_univ, lintegral_one],
+end⟩⟩
+
 instance is_finite_kernel.comp (κ : kernel mα mβ) [is_finite_kernel κ]
   (η : kernel (mα.prod mβ) mγ) [is_finite_kernel η] :
   is_finite_kernel (comp κ η) :=
@@ -903,6 +912,14 @@ lemma lintegral_map {mγ : measurable_space γ} (κ : kernel mα mβ) {f : β �
   ∫⁻ b, g b ∂(map κ f hf a) = ∫⁻ a, g (f a) ∂κ a :=
 by rw [map_apply _ hf, lintegral_map hg hf]
 
+instance is_markov_kernel.map {mγ : measurable_space γ} (κ : kernel mα mβ)
+  [is_markov_kernel κ] {f : β → γ} (hf : measurable f) :
+  is_markov_kernel (map κ f hf) :=
+begin
+  refine ⟨λ a, ⟨_⟩⟩,
+  rw [map_apply' κ hf a measurable_set.univ, set.preimage_univ, measure_univ],
+end
+
 instance is_finite_kernel.map {mγ : measurable_space γ} (κ : kernel mα mβ)
   [is_finite_kernel κ] {f : β → γ} (hf : measurable f) :
   is_finite_kernel (map κ f hf) :=
@@ -938,6 +955,11 @@ lemma lintegral_comap {mγ : measurable_space γ} (κ : kernel mα mβ) {f : γ 
   ∫⁻ b, g b ∂(comap κ f hf c) = ∫⁻ b, g b ∂(κ (f c)) :=
 rfl
 
+instance is_markov_kernel.comap {mγ : measurable_space γ} (κ : kernel mα mβ)
+  [is_markov_kernel κ] {f : γ → α} (hf : measurable f) :
+  is_markov_kernel (comap κ f hf) :=
+⟨λ a, ⟨by rw [comap_apply κ hf a set.univ, measure_univ],⟩⟩
+
 instance is_finite_kernel.comap {mγ : measurable_space γ} (κ : kernel mα mβ)
   [is_finite_kernel κ] {f : γ → α} (hf : measurable f) :
   is_finite_kernel (comap κ f hf) :=
@@ -972,6 +994,10 @@ lemma lintegral_prod_mk_left (κ : kernel mα mβ) (mγ : measurable_space γ) (
   ∫⁻ b, g b ∂(prod_mk_left κ mγ ca) = ∫⁻ b, g b ∂κ ca.snd :=
 rfl
 
+instance is_markov_kernel.prod_mk_left (κ : kernel mα mβ) [is_markov_kernel κ] :
+  is_markov_kernel (prod_mk_left κ mγ) :=
+by { rw prod_mk_left, apply_instance, }
+
 instance is_finite_kernel.prod_mk_left (κ : kernel mα mβ) [is_finite_kernel κ] :
   is_finite_kernel (prod_mk_left κ mγ) :=
 by { rw prod_mk_left, apply_instance, }
@@ -996,6 +1022,10 @@ by rw [snd_right, lintegral_map _ measurable_snd a hg]
 lemma snd_right_univ (κ : kernel mα (mβ.prod mγ)) (a : α) :
   snd_right κ a set.univ = κ a set.univ :=
 snd_right_apply _ _ measurable_set.univ
+
+instance is_markov_kernel.snd_right (κ : kernel mα (mβ.prod mγ)) [is_markov_kernel κ] :
+  is_markov_kernel (snd_right κ) :=
+by { rw snd_right, apply_instance, }
 
 instance is_finite_kernel.snd_right (κ : kernel mα (mβ.prod mγ)) [is_finite_kernel κ] :
   is_finite_kernel (snd_right κ) :=
@@ -1033,6 +1063,11 @@ begin
   swap, { exact hg.comp measurable_snd, },
   refl,
 end
+
+instance is_markov_kernel.comp2 (κ : kernel mα mβ) [is_markov_kernel κ]
+  (η : kernel mβ mγ) [is_markov_kernel η] :
+  is_markov_kernel (comp2 κ η) :=
+by { rw comp2, apply_instance, }
 
 instance is_finite_kernel.comp2 (κ : kernel mα mβ) [is_finite_kernel κ]
   (η : kernel mβ mγ) [is_finite_kernel η] :

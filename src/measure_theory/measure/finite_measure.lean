@@ -11,24 +11,20 @@ import topology.algebra.module.weak_dual
 import topology.metric_space.thickened_indicator
 
 /-!
-# Weak convergence of (finite) measures
+# Finite measures
 
-This file defines the topology of weak convergence of finite measures and probability measures
-on topological spaces. The topology of weak convergence is the coarsest topology w.r.t. which
+This file defines the type of finite measures on a given measurable space. When the underlying
+space has a topology and the measurable space structure (sigma algebra) is finer than the Borel
+sigma algebra, then the type of finite measures is equipped with the topology of weak convergence
+of measures. The topology of weak convergence is the coarsest topology w.r.t. which
 for every bounded continuous `ℝ≥0`-valued function `f`, the integration of `f` against the
 measure is continuous.
-
-TODOs:
-* Include the portmanteau theorem on characterizations of weak convergence of (Borel) probability
-  measures.
 
 ## Main definitions
 
 The main definitions are the
- * types `measure_theory.finite_measure Ω` and `measure_theory.probability_measure Ω` with
-   the topologies of weak convergence;
- * `measure_theory.finite_measure.normalize`, normalizing a finite measure to a probability measure
-   (returns junk for the zero measure);
+ * type `measure_theory.finite_measure Ω` with the topology of weak convergence;
+ * type `measure_theory.finite_measure Ω` with the topology of weak convergence;
  * `measure_theory.finite_measure.to_weak_dual_bcnn : finite_measure Ω → (weak_dual ℝ≥0 (Ω →ᵇ ℝ≥0))`
    allowing to interpret a finite measure as a continuous linear functional on the space of
    bounded continuous nonnegative functions on `Ω`. This is used for the definition of the
@@ -39,46 +35,12 @@ The main definitions are the
  * Finite measures `μ` on `Ω` give rise to continuous linear functionals on the space of
    bounded continuous nonnegative functions on `Ω` via integration:
    `measure_theory.finite_measure.to_weak_dual_bcnn : finite_measure Ω → (weak_dual ℝ≥0 (Ω →ᵇ ℝ≥0))`
- * `measure_theory.finite_measure.tendsto_iff_forall_integral_tendsto` and
-   `measure_theory.probability_measure.tendsto_iff_forall_integral_tendsto`: Convergence of finite
-   measures and probability measures is characterized by the convergence of integrals of all
-   bounded continuous functions. This shows that the chosen definition of topology coincides with
-   the common textbook definition of weak convergence of measures.
-   Similar characterizations by the convergence of integrals (in the `measure_theory.lintegral`
-   sense) of all bounded continuous nonnegative functions are
-   `measure_theory.finite_measure.tendsto_iff_forall_lintegral_tendsto` and
-   `measure_theory.probability_measure.tendsto_iff_forall_lintegral_tendsto`.
- * `measure_theory.finite_measure.tendsto_normalize_iff_tendsto`: The convergence of finite
-   measures to a nonzero limit is characterized by the convergence of the probability-normalized
-   versions and of the total masses.
-
-TODO:
-* Portmanteau theorem:
-  * `measure_theory.finite_measure.limsup_measure_closed_le_of_tendsto` proves one implication.
-    The current formulation assumes `pseudo_emetric_space`. The only reason is to have
-    bounded continuous pointwise approximations to the indicator function of a closed set. Clearly
-    for example metrizability or pseudo-emetrizability would be sufficient assumptions. The
-    typeclass assumptions should be later adjusted in a way that takes into account use cases, but
-    the proof will presumably remain essentially the same.
-  * `measure_theory.limsup_measure_closed_le_iff_liminf_measure_open_ge` proves the equivalence of
-    the limsup condition for closed sets and the liminf condition for open sets for probability
-    measures.
-  * `measure_theory.tendsto_measure_of_null_frontier` proves that the liminf condition for open
-    sets (which is equivalent to the limsup condition for closed sets) implies the convergence of
-    probabilities of sets whose boundary carries no mass under the limit measure.
-  * `measure_theory.probability_measure.tendsto_measure_of_null_frontier_of_tendsto` is a
-    combination of earlier implications, which shows that weak convergence of probability measures
-    implies the convergence of probabilities of sets whose boundary carries no mass
-    under the limit measure.
-  * Prove the rest of the implications.
-    (Where formulations are currently only provided for probability measures, one can obtain the
-    finite measure formulations using the characterization of convergence of finite measures by
-    their total masses and their probability-normalized versions, i.e., by
-    `measure_theory.finite_measure.tendsto_normalize_iff_tendsto`.)
-
-## Notations
-
-No new notation is introduced.
+ * `measure_theory.finite_measure.tendsto_iff_forall_integral_tendsto`: Convergence of finite
+   measures is characterized by the convergence of integrals of all bounded continuous functions.
+   This shows that the chosen definition of topology coincides with the common textbook definition
+   of weak convergence of measures. A similar characterization by the convergence of integrals (in
+   the `measure_theory.lintegral` sense) of all bounded continuous nonnegative functions is
+   `measure_theory.finite_measure.tendsto_iff_forall_lintegral_tendsto`.
 
 ## Implementation notes
 
@@ -86,22 +48,19 @@ The topology of weak convergence of finite Borel measures will be defined using 
 `measure_theory.finite_measure Ω` to `weak_dual ℝ≥0 (Ω →ᵇ ℝ≥0)`, inheriting the topology from the
 latter.
 
-The current implementation of `measure_theory.finite_measure Ω` and
-`measure_theory.probability_measure Ω` is directly as subtypes of `measure_theory.measure Ω`, and
-the coercion to a function is the composition `ennreal.to_nnreal` and the coercion to function
-of `measure_theory.measure Ω`. Another alternative would be to use a bijection
-with `measure_theory.vector_measure Ω ℝ≥0` as an intermediate step. The choice of implementation
-should not have drastic downstream effects, so it can be changed later if appropriate.
-
-Potential advantages of using the `nnreal`-valued vector measure alternative:
- * The coercion to function would avoid need to compose with `ennreal.to_nnreal`, the
-   `nnreal`-valued API could be more directly available.
-
-Potential drawbacks of the vector measure alternative:
- * The coercion to function would lose monotonicity, as non-measurable sets would be defined to
-   have measure 0.
- * No integration theory directly. E.g., the topology definition requires
-   `measure_theory.lintegral` w.r.t. a coercion to `measure_theory.measure Ω` in any case.
+The implementation of `measure_theory.finite_measure Ω` and is directly as a subtype of
+`measure_theory.measure Ω`, and the coercion to a function is the composition `ennreal.to_nnreal`
+and the coercion to function of `measure_theory.measure Ω`. Another alternative would have been to
+use a bijection with `measure_theory.vector_measure Ω ℝ≥0` as an intermediate step. Some
+considerations:
+ * Potential advantages of using the `nnreal`-valued vector measure alternative:
+   * The coercion to function would avoid need to compose with `ennreal.to_nnreal`, the
+     `nnreal`-valued API could be more directly available.
+ * Potential drawbacks of the vector measure alternative:
+   * The coercion to function would lose monotonicity, as non-measurable sets would be defined to
+     have measure 0.
+   * No integration theory directly. E.g., the topology definition requires
+     `measure_theory.lintegral` w.r.t. a coercion to `measure_theory.measure Ω` in any case.
 
 ## References
 
@@ -109,7 +68,7 @@ Potential drawbacks of the vector measure alternative:
 
 ## Tags
 
-weak convergence of measures, finite measure, probability measure
+weak convergence of measures, finite measure
 
 -/
 

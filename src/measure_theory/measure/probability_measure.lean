@@ -5,6 +5,64 @@ Authors: Kalle Kytölä
 -/
 import measure_theory.measure.finite_measure
 
+/-!
+# Probability measures
+
+This file defines the type of probability measures on a given measurable space. When the underlying
+space has a topology and the measurable space structure (sigma algebra) is finer than the Borel
+sigma algebra, then the type of probability measures is equipped with the topology of convergence
+in distribution (weak convergence of measures). The topology of convergence in distribution is the
+coarsest topology w.r.t. which for every bounded continuous `ℝ≥0`-valued random variable `X`, the
+expected value of `X` depends continuously on the choice of probability measure. This is a special
+case of the topology of weak convergence of finite measures.
+
+## Main definitions
+
+The main definitions are the
+ * type `measure_theory.probability_measure Ω` with the topologies of convergence in distribution
+   (a.k.a. convergence in law, weak convergence of measures);
+ * `measure_theory.probability_measure.to_finite_measure`: Interpret a probability measure as
+   a finite measure. Finite measures are equipped with the topology of weak convergence of
+   measures. The topology on probability measures is inherited from that of finite measures.
+ * `measure_theory.finite_measure.normalize`, normalizing a finite measure to a probability measure
+   (returns junk for the zero measure);
+
+## Main results
+
+ * `measure_theory.probability_measure.tendsto_iff_forall_integral_tendsto`: Convergence of
+   probability measures is characterized by the convergence of expected values of all bounded
+   continuous random variables. This shows that the chosen definition of topology coincides with
+   the common textbook definition of convergence in distribution, i.e., weak convergence of
+   measures. A similar characterization by the convergence of expected values (in the
+   `measure_theory.lintegral` sense) of all bounded continuous nonnegative random variables is
+   `measure_theory.probability_measure.tendsto_iff_forall_lintegral_tendsto`.
+ * `measure_theory.finite_measure.tendsto_normalize_iff_tendsto`: The convergence of finite
+   measures to a nonzero limit is characterized by the convergence of the probability-normalized
+   versions and of the total masses.
+
+TODO:
+ * Probability measures form a convex space.
+
+## Implementation notes
+
+The topology of convergence in distribution on `measure_theory.probability_measure Ω` is inherited
+weak convergence of finite measures via the mapping
+`measure_theory.probability_measure.to_finite_measure`.
+
+Like `measure_theory.finite_measure Ω`, the implementation of `measure_theory.probability_measure Ω`
+is directly as subtypes of `measure_theory.measure Ω`, and the coercion to a function is the
+composition `ennreal.to_nnreal` and the coercion to function of `measure_theory.measure Ω`.
+
+## References
+
+* [Billingsley, *Convergence of probability measures*][billingsley1999]
+
+## Tags
+
+convergence in distribution, convergence in law, weak convergence of measures, probability measure
+
+-/
+
 noncomputable theory
 open measure_theory
 open set
@@ -18,12 +76,12 @@ section probability_measure
 /-! ### Probability measures
 
 In this section we define the type of probability measures on a measurable space `Ω`, denoted by
-`measure_theory.probability_measure Ω`. TODO: Probability measures form a convex space.
+`measure_theory.probability_measure Ω`.
 
 If `Ω` is moreover a topological space and the sigma algebra on `Ω` is finer than the Borel sigma
 algebra (i.e. `[opens_measurable_space Ω]`), then `measure_theory.probability_measure Ω` is
 equipped with the topology of weak convergence of measures. Since every probability measure is a
-finite measure, this is implemented as the induced topology from the coercion
+finite measure, this is implemented as the induced topology from the mapping
 `measure_theory.probability_measure.to_finite_measure`.
 -/
 

@@ -308,6 +308,18 @@ instance : bounded_order (subgraph G) :=
 @[simp] lemma sup_adj {H₁ H₂ : subgraph G} {v w : V} :
   (H₁ ⊔ H₂).adj v w ↔ H₁.adj v w ∨ H₂.adj v w := iff.rfl
 
+@[simp] lemma verts_sup {H H' : G.subgraph} : (H ⊔ H').verts = H.verts ∪ H'.verts := rfl
+
+@[simp] lemma verts_inf {H H' : G.subgraph} : (H ⊓ H').verts = H.verts ∩ H'.verts := rfl
+
+lemma neighbor_set_sup {H H' : G.subgraph} (v : V) :
+  (H ⊔ H').neighbor_set v = H.neighbor_set v ∪ H'.neighbor_set v :=
+by { ext w, simp }
+
+lemma neighbor_set_inf {H H' : G.subgraph} (v : V) :
+  (H ⊓ H').neighbor_set v = H.neighbor_set v ∩ H'.neighbor_set v :=
+by { ext w, simp }
+
 @[simp] lemma edge_set_top : (⊤ : subgraph G).edge_set = G.edge_set := rfl
 
 @[simp] lemma edge_set_bot : (⊥ : subgraph G).edge_set = ∅ :=
@@ -384,6 +396,23 @@ begin
     exact ⟨_, h.1 hv, rfl⟩ },
   { rintros _ _ ⟨u, v, ha, rfl, rfl⟩,
     exact ⟨_, _, h.2 ha, rfl, rfl⟩ }
+end
+
+lemma map_sup {G : simple_graph V} {G' : simple_graph W} (f : G →g G')
+  {H H' : G.subgraph} :
+  (H ⊔ H').map f = H.map f ⊔ H'.map f :=
+begin
+  ext1,
+  { simp only [set.image_union, map_verts, verts_sup]},
+  { ext,
+    simp only [relation.map, map_adj, sup_adj],
+    split,
+    { rintro ⟨a, b, h|h, rfl, rfl⟩,
+      { exact or.inl ⟨_, _, h, rfl, rfl⟩ },
+      { exact or.inr ⟨_, _, h, rfl, rfl⟩ } },
+    { rintro (⟨a, b, h, rfl, rfl⟩|⟨a, b, h, rfl, rfl⟩),
+      { exact ⟨_, _, or.inl h, rfl, rfl⟩ },
+      { exact ⟨_, _, or.inr h, rfl, rfl⟩ } } },
 end
 
 /-- Graph homomorphisms induce a contravariant function on subgraphs. -/

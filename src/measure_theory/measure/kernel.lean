@@ -277,13 +277,12 @@ lemma finset_sum_apply (I : finset ι) (κ : ι → kernel mα mβ) (a : α) :
   (∑ i in I, κ i) a = ∑ i in I, κ i a :=
 by rw [coe_finset_sum, finset.sum_apply]
 
-lemma finset_sum_apply' (I : finset ι) (κ : ι → kernel mα mβ) (a : α)
-  {s : set β} (hs : measurable_set s) :
+lemma finset_sum_apply' (I : finset ι) (κ : ι → kernel mα mβ) (a : α) (s : set β) :
   (∑ i in I, κ i) a s = ∑ i in I, κ i a s :=
 by rw [finset_sum_apply, measure.finset_sum_apply]
 
 @[simp] lemma sum_fintype [fintype ι] (κ : ι → kernel mα mβ) : kernel.sum κ = ∑ i, κ i :=
-by { ext a s hs, simp only [sum_apply' κ a hs, finset_sum_apply' _ κ a hs, tsum_fintype], }
+by { ext a s hs, simp only [sum_apply' κ a hs, finset_sum_apply' _ κ a s, tsum_fintype], }
 
 lemma sum_add [countable ι] (κ η : ι → kernel mα mβ) :
   kernel.sum (λ n, κ n + η n) = kernel.sum κ + kernel.sum η :=
@@ -386,7 +385,7 @@ begin
   { apply_instance, },
 end
 
-instance is_s_finite_kernel_sum [countable ι] {κs : ι → kernel mα mβ}
+lemma is_s_finite_kernel_sum [countable ι] {κs : ι → kernel mα mβ}
   (hκs : ∀ n, is_s_finite_kernel (κs n)) :
   is_s_finite_kernel (kernel.sum κs) :=
 begin
@@ -935,7 +934,7 @@ lemma comap_apply {mγ : measurable_space γ} (κ : kernel mα mβ) {f : γ → 
 rfl
 
 lemma lintegral_comap {mγ : measurable_space γ} (κ : kernel mα mβ) {f : γ → α}
-  (hf : measurable f) (c : γ) {g : β → ℝ≥0∞} (hg : measurable g) :
+  (hf : measurable f) (c : γ) (g : β → ℝ≥0∞) :
   ∫⁻ b, g b ∂(comap κ f hf c) = ∫⁻ b, g b ∂(κ (f c)) :=
 rfl
 
@@ -969,7 +968,7 @@ lemma prod_mk_left_apply (κ : kernel mα mβ) (mγ : measurable_space γ) (ca :
 by rw [prod_mk_left, comap_apply _ _ _ s]
 
 lemma lintegral_prod_mk_left (κ : kernel mα mβ) (mγ : measurable_space γ) (ca : γ × α)
-  {g : β → ℝ≥0∞} (hg : measurable g) :
+  (g : β → ℝ≥0∞) :
   ∫⁻ b, g b ∂(prod_mk_left κ mγ ca) = ∫⁻ b, g b ∂κ ca.snd :=
 rfl
 

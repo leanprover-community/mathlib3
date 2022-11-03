@@ -128,7 +128,7 @@ begin
   by_cases hij : i = j,
   { rw [hij], simp },
   rw matrix.std_basis_matrix.trace_zero j i (1:R) hij,
-  simp [finsupp.single_eq_pi_single, hij],
+  simp [finsupp.coe_single, hij],
 end
 
 /-- The trace of a linear map correspond to the contraction pairing under the isomorphism

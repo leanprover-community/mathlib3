@@ -780,7 +780,7 @@ basis.of_repr $ e.trans $ linear_equiv.symm $ finsupp.linear_equiv_fun_on_fintyp
 @[simp] lemma basis.coe_of_equiv_fun (e : M ≃ₗ[R] (ι → R)) :
   (basis.of_equiv_fun e : ι → M) = λ i, e.symm (function.update 0 i 1) :=
 funext $ λ i, e.injective $ funext $ λ j,
-  by simp [basis.of_equiv_fun, ←finsupp.single_eq_pi_single, finsupp.single_eq_update]
+  by simp [basis.of_equiv_fun, ←finsupp.coe_single, finsupp.single_eq_update]
 
 @[simp] lemma basis.of_equiv_fun_equiv_fun
   (v : basis ι R M) : basis.of_equiv_fun v.equiv_fun = v :=

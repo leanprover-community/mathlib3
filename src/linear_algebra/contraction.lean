@@ -102,7 +102,7 @@ theorem to_matrix_dual_tensor_hom
 begin
   ext i' j',
   by_cases hij : (i = i' ∧ j = j');
-  simp [linear_map.to_matrix_apply, finsupp.single_eq_pi_single, hij],
+  simp [linear_map.to_matrix_apply, finsupp.coe_single, hij],
   rw [and_iff_not_or_not, not_not] at hij, cases hij; simp [hij],
 end
 

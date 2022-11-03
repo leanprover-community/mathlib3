@@ -486,13 +486,13 @@ def single (i : ι) (b : β i) : Π₀ i, β i :=
 ⟨pi.single i b,
   trunc.mk ⟨{i}, λ j, (decidable.eq_or_ne j i).imp (by simp) (λ h, pi.single_eq_of_ne h _)⟩⟩
 
-lemma single_eq_pi_single {i b} : ⇑(single i b : Π₀ i, β i) = pi.single i b :=
+lemma coe_single {i b} : ⇑(single i b : Π₀ i, β i) = pi.single i b :=
 rfl
 
 @[simp] lemma single_apply {i i' b} :
   (single i b : Π₀ i, β i) i' = (if h : i = i' then eq.rec_on h b else 0) :=
 begin
-  rw [single_eq_pi_single, pi.single, function.update],
+  rw [coe_single, pi.single, function.update],
   simp [@eq_comm _ i i'],
 end
 
@@ -563,11 +563,11 @@ by { cases h, refl }
 
 @[simp] lemma equiv_fun_on_fintype_single [fintype ι] (i : ι) (m : β i) :
   (@dfinsupp.equiv_fun_on_fintype ι β _ _) (dfinsupp.single i m) = pi.single i m :=
-by { ext, simp [dfinsupp.single_eq_pi_single], }
+by { ext, simp [dfinsupp.coe_single], }
 
 @[simp] lemma equiv_fun_on_fintype_symm_single [fintype ι] (i : ι) (m : β i) :
   (@dfinsupp.equiv_fun_on_fintype ι β _ _).symm (pi.single i m) = dfinsupp.single i m :=
-by { ext i', simp only [← single_eq_pi_single, equiv_fun_on_fintype_symm_coe] }
+by { ext i', simp only [← coe_single, equiv_fun_on_fintype_symm_coe] }
 
 /-- Redefine `f i` to be `0`. -/
 def erase (i : ι) (x : Π₀ i, β i) : Π₀ i, β i :=

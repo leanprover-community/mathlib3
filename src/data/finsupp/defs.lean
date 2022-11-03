@@ -211,7 +211,7 @@ def single (a : α) (b : M) : α →₀ M :=
   simp [pi.single_eq_of_ne', ha],
 end⟩
 
-lemma single_eq_pi_single [decidable_eq α] (a : α) (b : M) : ⇑(single a b) = pi.single a b :=
+lemma coe_single [decidable_eq α] (a : α) (b : M) : ⇑(single a b) = pi.single a b :=
 by convert rfl
 
 lemma single_apply [decidable (a = a')] : single a b a' = if a' = a then b else 0 :=
@@ -227,7 +227,7 @@ pi.single_eq_same a b
 pi.single_eq_of_ne' h _
 
 lemma single_eq_update [decidable_eq α] (a : α) (b : M) : ⇑(single a b) = function.update 0 a b :=
-single_eq_pi_single _ _
+coe_single _ _
 
 @[simp] lemma single_zero (a : α) : (single a 0 : α →₀ M) = 0 :=
 coe_fn_injective $ by simpa only [single_eq_update, coe_zero]
@@ -377,11 +377,11 @@ by simp only [card_le_one_iff_subset_singleton, support_subset_singleton']
 
 @[simp] lemma equiv_fun_on_fintype_single [decidable_eq α] [fintype α] (x : α) (m : M) :
   (@finsupp.equiv_fun_on_fintype α M _ _) (finsupp.single x m) = pi.single x m :=
-by { ext, simp [finsupp.single_eq_pi_single, finsupp.equiv_fun_on_fintype], }
+finsupp.coe_single _ _
 
 @[simp] lemma equiv_fun_on_fintype_symm_single [decidable_eq α] [fintype α] (x : α) (m : M) :
   (@finsupp.equiv_fun_on_fintype α M _ _).symm (pi.single x m) = finsupp.single x m :=
-by { ext, simp [finsupp.single_eq_pi_single, finsupp.equiv_fun_on_fintype], }
+by { ext, simp [finsupp.coe_single, finsupp.equiv_fun_on_fintype], }
 
 end single
 
@@ -951,7 +951,7 @@ lemma single_add_single_eq_single_add_single [add_comm_monoid M]
   single k u + single l v = single m u + single n v ↔
   (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u + v = 0 ∧ k = l ∧ m = n) :=
 begin
-  simp_rw [fun_like.ext_iff, coe_add, single_eq_pi_single, ←funext_iff],
+  simp_rw [fun_like.ext_iff, coe_add, coe_single, ←funext_iff],
   exact pi.single_add_single_eq_single_add_single hu hv,
 end
 

@@ -111,6 +111,17 @@ open_locale pointwise
 
 variables {α ι : Type*}
 
+section
+variables [topological_space α] [preorder α] [order_closed_topology α] {s : set α}
+
+protected lemma bdd_below.closure : bdd_below s → bdd_below (closure s) :=
+by { simp_rw bdd_below_iff_subset_Ici, rintro ⟨a, ha⟩, exact ⟨a, closure_minimal ha is_closed_Ici⟩ }
+
+protected lemma bdd_above.closure : bdd_above s → bdd_above (closure s) :=
+by { simp_rw bdd_above_iff_subset_Iic, rintro ⟨a, ha⟩, exact ⟨a, closure_minimal ha is_closed_Iic⟩ }
+
+end
+
 section metric_space
 variables [normed_ordered_group α] {s : set α}
 
@@ -190,9 +201,6 @@ end finite
 
 section fintype
 variables [fintype ι] {s : set (ι → ℝ)} {x y : ι → ℝ} {δ : ℝ}
-
-protected lemma bdd_below.closure (hs : bdd_below s) : bdd_below (closure s) := sorry
-protected lemma bdd_above.closure (hs : bdd_above s) : bdd_above (closure s) := sorry
 
 lemma is_antichain.interior_eq_empty [nonempty ι] (hs : is_antichain (≤) s) : interior s = ∅ :=
 begin

@@ -8,7 +8,7 @@ import analysis.normed_space.add_torsor_bases
 import analysis.normed_space.basic
 import analysis.normed_space.linear_isometry
 import data.real.basic
-import data.set.pointwise
+import data.set.pointwise.basic
 import linear_algebra.affine_space.pointwise
 
 /-!
@@ -41,21 +41,21 @@ end
 
 -- MOVETO linear_algebra.affine_space.affine_subspace
 
+local attribute [instance, nolint fails_quickly] affine_subspace.to_add_torsor
+
 /-- The inclusion of an affine subspace as an affine map. -/
 def affine_subspace.inclusion_affine {R V P : Type} [ring R] [add_comm_group V] [module R V]
-  [add_torsor V P] (E : affine_subspace R P) [nonempty E] : E →ᵃ[R] P :=
-begin
-  refine ⟨coe, E.direction.subtype, by tauto⟩,
-end
+  [add_torsor V P] (E : affine_subspace R P) [nonempty E] :
+  E →ᵃ[R] P := ⟨coe, E.direction.subtype, by tauto⟩
 
-/-- A nonempty affine subspace of a `normed_add_torsor` is itself a `normed_add_torsor`. -/
-@[nolint fails_quickly] -- Because of the add_torsor.nonempty instance.
-instance affine_subspace.to_normed_add_torsor {R V P : Type*} [ring R]
-  [seminormed_add_comm_group V]
-  [pseudo_metric_space P] [module R V] [normed_add_torsor V P]
-  (s : affine_subspace R P) [nonempty s] : normed_add_torsor s.direction s :=
-{ dist_eq_norm' := λ x y, normed_add_torsor.dist_eq_norm' ↑x ↑y,
-  ..affine_subspace.to_add_torsor s }
+--/-- A nonempty affine subspace of a `normed_add_torsor` is itself a `normed_add_torsor`. -/
+-- @[nolint fails_quickly] -- Because of the add_torsor.nonempty instance.
+-- instance affine_subspace.to_normed_add_torsor {R V P : Type*} [ring R]
+--   [seminormed_add_comm_group V]
+--   [pseudo_metric_space P] [module R V] [normed_add_torsor V P]
+--   (s : affine_subspace R P) [nonempty s] : normed_add_torsor s.direction s :=
+-- { dist_eq_norm' := λ x y, normed_add_torsor.dist_eq_norm' x y,
+--   ..affine_subspace.to_add_torsor s }
 
 /-- The inclusion of an affine subspace of a normed affine space as an affine isometry. -/
 def affine_subspace.inclusion_affine_isometry {𝕜 V P : Type} [normed_field 𝕜]
@@ -438,7 +438,7 @@ end
   [seminormed_add_comm_group V] [module R V] [pseudo_metric_space P] [normed_add_torsor V P]
   (x : P) : intrinsic_interior R ({x} : set P) = {x} :=
 begin
-  rw [intrinsic_interior_def, interior_eq_iff_open.mpr], swap,
+  rw [intrinsic_interior_def, interior_eq_iff_is_open.mpr], swap,
   { convert is_open_univ,
     exact preimage_singleton_eq_univ x },
   { rw [set.eq_singleton_iff_unique_mem],

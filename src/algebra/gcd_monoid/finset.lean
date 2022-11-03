@@ -208,7 +208,7 @@ begin
   apply ((normalize_associated a).mul_left _).gcd_eq_right
 end
 
-lemma extract_gcd (h : s.nonempty) :
+lemma extract_gcd (f : β → α) (h : s.nonempty) :
   ∃ g : β → α, (∀ b ∈ s, f b = s.gcd f * g b) ∧ s.gcd g = 1 :=
 begin
   classical,

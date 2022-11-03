@@ -446,6 +446,9 @@ variables {F E} [topological_vector_bundle R F E]
 class mem_trivialization_atlas (e : trivialization F (π E)) : Prop :=
 (out : e ∈ trivialization_atlas R F E)
 
+instance (b : B) : mem_trivialization_atlas R (trivialization_at R F E b) :=
+{ out := topological_vector_bundle.trivialization_mem_atlas R F E b }
+
 instance trivialization_linear (e : trivialization F (π E)) [he : mem_trivialization_atlas R e] :
   e.is_linear R :=
 topological_vector_bundle.trivialization_linear' e he.out

@@ -564,6 +564,12 @@ instance : full (forget C) :=
   end,
   witness' := λ Z₁ Z₂ φ, rfl, }
 
+/-- The homology functor `short_complex_with_homology' C ⥤ C`. -/
+@[simps]
+def functor_H : short_complex_with_homology' C ⥤ C :=
+{ obj := λ Z, Z.ho.H,
+  map := λ Z₁ Z₂ ψ, ψ.φH, }
+
 variable {C}
 
 /-- A morphism in `φ : short_complex C` between objects that are equipped with
@@ -594,7 +600,9 @@ namespace short_complex
 section
 
 variables [has_zero_morphisms C] {C} (S : short_complex C) {S₁ S₂ S₃ : short_complex C}
-  [has_homology S] [has_homology S₁] [has_homology S₂] [has_homology S₃]
+
+section
+variables [has_homology S] [has_homology S₁] [has_homology S₂] [has_homology S₃]
 
 /-- The map in homology induced by a morphism of short complexes which have homology. -/
 def homology_map (φ : S₁ ⟶ S₂) : S₁.homology ⟶ S₂.homology :=
@@ -611,6 +619,107 @@ lemma homology_map_comp (φ : S₁ ⟶ S₂) (φ' : S₂ ⟶ S₃) :
   homology_map (φ ≫ φ') = homology_map φ ≫ homology_map φ' :=
 short_complex_with_homology'.hom.congr_φH
   (short_complex_with_homology'.forget_preimage_comp φ φ' _ _ _)
+
+end
+
+namespace homology_full_data
+
+variable {S}
+
+/-- Two `homology_full_data S` correspond to isomorphic objects in
+the category `short_complex_with_homology'`. -/
+def uniq (H₁ H₂ : homology_full_data S) :
+  short_complex_with_homology'.mk S H₁ ≅ short_complex_with_homology'.mk S H₂ :=
+(short_complex_with_homology'.forget C).preimage_iso (iso.refl _)
+
+@[simp]
+lemma uniq_refl (H : homology_full_data S) :
+  uniq H H = iso.refl _ :=
+begin
+  ext1,
+  apply (short_complex_with_homology'.forget C).map_injective,
+  dsimp only [uniq],
+  simp only [functor.preimage_iso_hom, iso.refl_hom, preimage_id],
+end
+
+@[simp]
+lemma uniq_trans (H₁ H₂ H₃ : homology_full_data S) :
+  uniq H₁ H₂ ≪≫ uniq H₂ H₃ = uniq H₁ H₃ :=
+begin
+  ext1,
+  apply (short_complex_with_homology'.forget C).map_injective,
+  dsimp only [uniq],
+  simp only [functor.preimage_iso_hom, iso.trans_hom, functor.map_comp, functor.image_preimage,
+    iso.refl_hom, comp_id],
+end
+
+/-- The canonical isomorphism `S.homology ≅ h.H` for `h : homology_full_data S`. -/
+def iso_H [has_homology S] (h : homology_full_data S) : S.homology ≅ h.H :=
+(short_complex_with_homology'.functor_H C).map_iso (uniq S.some_homology_full_data h)
+
+end homology_full_data
+
+/-- When `φ : S₁ ⟶ S₂` is a morphism of short complexes that are equipped with
+`H₁ : homology_full_data S₁`, `H₂ : homology_full_data S₂`, this is the datum
+of a morphism in `short_complex_with_homology' C` betwen the objects corresponding
+to `H₁` and `H₂`. This datum allows the computation of the map in homology
+induced by `φ`, see `homology_map_full_data.map_eq`. -/
+@[ext]
+structure homology_map_full_data
+  (φ : S₁ ⟶ S₂) (H₁ : homology_full_data S₁) (H₂ : homology_full_data S₂) :=
+(ψ : short_complex_with_homology'.mk S₁ H₁ ⟶ short_complex_with_homology'.mk S₂ H₂)
+(hψ : short_complex_with_homology'.hom.φ ψ = φ . obviously)
+
+namespace homology_map_full_data
+
+attribute [simp] hψ
+
+variables (φ : S₁ ⟶ S₂) (φ' : S₂ ⟶ S₃) (H₁ : homology_full_data S₁) (H₂ : homology_full_data S₂)
+  (H₃ : homology_full_data S₃)
+
+@[simps, protected]
+def some : homology_map_full_data φ H₁ H₂ :=
+{ ψ := short_complex_with_homology'.forget_preimage φ H₁ H₂, }
+
+instance : unique (homology_map_full_data φ H₁ H₂) :=
+⟨⟨some _ _ _⟩, λ h, begin
+  ext1,
+  apply (short_complex_with_homology'.forget C).map_injective,
+  simp only [short_complex_with_homology'.forget_map, hψ],
+end⟩
+
+variables {φ φ'} {H₁ H₂ H₃}
+
+@[simps]
+def comp (m : homology_map_full_data φ H₁ H₂) (m' : homology_map_full_data φ' H₂ H₃) :
+  homology_map_full_data (φ ≫ φ') H₁ H₃ :=
+{ ψ := m.ψ ≫ m'.ψ }
+
+lemma congr_φH (m : homology_map_full_data φ H₁ H₂) {φ' : S₁ ⟶ S₂}
+  (m' : homology_map_full_data φ' H₁ H₂) (h : φ = φ') :
+  m.ψ.φH = m'.ψ.φH :=
+by { subst h, rw subsingleton.elim m m', }
+
+lemma map_eq [has_homology S₁] [has_homology S₂] (m : homology_map_full_data φ H₁ H₂) :
+  homology_map φ = H₁.iso_H.hom ≫ m.ψ.φH ≫ H₂.iso_H.inv :=
+begin
+  let m₁ : homology_map_full_data (𝟙 S₁) S₁.some_homology_full_data H₁ :=
+  { ψ := (S₁.some_homology_full_data.uniq H₁).hom, },
+  let m₃ : homology_map_full_data (𝟙 S₂) H₂ S₂.some_homology_full_data :=
+  { ψ := (S₂.some_homology_full_data.uniq H₂).inv, },
+  exact congr_φH (some _ _ _) (m₁.comp (m.comp m₃)) (by rw [id_comp, comp_id]),
+end
+
+@[reassoc]
+lemma map_comm_iso_H [has_homology S₁] [has_homology S₂] (m : homology_map_full_data φ H₁ H₂) :
+  homology_map φ ≫ H₂.iso_H.hom = H₁.iso_H.hom ≫ m.ψ.φH :=
+by simp only [m.map_eq, assoc, iso.inv_hom_id, comp_id]
+
+lemma ψ_φH_eq [has_homology S₁] [has_homology S₂] (m : homology_map_full_data φ H₁ H₂) :
+  m.ψ.φH = H₁.iso_H.inv ≫ homology_map φ ≫ H₂.iso_H.hom :=
+by rw [m.map_comm_iso_H, iso.inv_hom_id_assoc]
+
+end homology_map_full_data
 
 variable (C)
 

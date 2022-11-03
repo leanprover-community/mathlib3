@@ -9,7 +9,7 @@ import algebra.category.Ring.limits
 import algebra.category.Ring.colimits
 import category_theory.limits.shapes.strict_initial
 import ring_theory.subring.basic
-import ring_theory.ideal.local_ring
+import ring_theory.ideal.local_ring.basic
 import category_theory.limits.preserves.limits
 
 /-!

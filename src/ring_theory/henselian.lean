@@ -5,7 +5,7 @@ Authors: Johan Commelin
 -/
 
 import data.polynomial.taylor
-import ring_theory.ideal.local_ring
+import ring_theory.ideal.local_ring.basic
 import linear_algebra.adic_completion
 
 /-!

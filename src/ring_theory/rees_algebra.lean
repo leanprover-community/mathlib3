@@ -5,7 +5,7 @@ Authors: Andrew Yang
 -/
 
 import ring_theory.finiteness
-import ring_theory.ideal.local_ring
+import ring_theory.ideal.local_ring.basic
 import ring_theory.nakayama
 
 /-!

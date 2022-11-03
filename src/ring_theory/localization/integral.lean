@@ -6,7 +6,7 @@ Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baan
 import algebra.ring.equiv
 import group_theory.monoid_localization
 import ring_theory.algebraic
-import ring_theory.ideal.local_ring
+import ring_theory.ideal.local_ring.basic
 import ring_theory.ideal.quotient
 import ring_theory.integral_closure
 import ring_theory.localization.fraction_ring

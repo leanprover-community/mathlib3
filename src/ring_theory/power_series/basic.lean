@@ -9,7 +9,7 @@ import data.mv_polynomial.basic
 import data.polynomial.algebra_map
 import data.polynomial.coeff
 import linear_algebra.std_basis
-import ring_theory.ideal.local_ring
+import ring_theory.ideal.local_ring.basic
 import ring_theory.multiplicity
 import tactic.linarith
 

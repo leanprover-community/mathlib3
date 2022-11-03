@@ -103,6 +103,8 @@ namespace Well_order
 
 instance : inhabited Well_order := ⟨⟨pempty, _, empty_relation.is_well_order⟩⟩
 
+@[simp] lemma eta (o : Well_order) : mk o.α o.r o.wo = o := by { cases o, refl }
+
 end Well_order
 
 /-- Equivalence relation on well orders on arbitrary types in universe `u`, given by order
@@ -140,6 +142,9 @@ by { cases w, refl }
 
 @[simp] theorem type_def (r) [wo : is_well_order α r] : (⟦⟨α, r, wo⟩⟧ : ordinal) = type r :=
 rfl
+
+@[simp] lemma type_out (o : ordinal) : ordinal.type o.out.r = o :=
+by rw [ordinal.type, Well_order.eta, quotient.out_eq]
 
 theorem type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] : type r = type s ↔ nonempty (r ≃r s) :=
@@ -572,7 +577,7 @@ def lift.initial_seg : @initial_seg ordinal.{u} ordinal.{max u v} (<) (<) :=
 /-- `ω` is the first infinite ordinal, defined as the order type of `ℕ`. -/
 def omega : ordinal.{u} := lift $ @type ℕ (<) _
 
-localized "notation `ω` := ordinal.omega" in ordinal
+localized "notation (name := ordinal.omega) `ω` := ordinal.omega" in ordinal
 
 /-- Note that the presence of this lemma makes `simp [omega]` form a loop. -/
 @[simp] theorem type_nat_lt : @type ℕ (<) _ = ω := (lift_id _).symm
@@ -678,7 +683,8 @@ instance : linear_order ordinal :=
   decidable_le := classical.dec_rel _,
   ..ordinal.partial_order }
 
-instance : is_well_order ordinal (<) := ⟨lt_wf⟩
+instance : well_founded_lt ordinal := ⟨lt_wf⟩
+instance : is_well_order ordinal (<) := { }
 
 instance : conditionally_complete_linear_order_bot ordinal :=
 is_well_order.conditionally_complete_linear_order_bot _
@@ -705,10 +711,8 @@ private theorem succ_le_iff' {a b : ordinal} : a + 1 ≤ b ↔ a < b :=
     (λ x, ⟨λ _, ⟨x, rfl⟩, λ _, sum.lex.sep _ _⟩)
     (λ x, sum.lex_inr_inr.trans ⟨false.elim, λ ⟨x, H⟩, sum.inl_ne_inr H⟩)⟩⟩),
 induction_on a $ λ α r hr, induction_on b $ λ β s hs ⟨⟨f, t, hf⟩⟩, begin
-  refine ⟨⟨@rel_embedding.of_monotone (α ⊕ punit) β _ _
-    (@sum.lex.is_well_order _ _ _ _ hr _).1.1
-    (@is_asymm_of_is_trans_of_is_irrefl _ _ hs.1.2.2 hs.1.2.1)
-    (sum.rec _ _) (λ a b, _), λ a b, _⟩⟩,
+  haveI := hs,
+  refine ⟨⟨@rel_embedding.of_monotone (α ⊕ punit) β _ _ _ _ (sum.rec _ _) (λ a b, _), λ a b, _⟩⟩,
   { exact f }, { exact λ _, t },
   { rcases a with a|_; rcases b with b|_,
     { simpa only [sum.lex_inl_inl] using f.map_rel_iff.2 },
@@ -716,7 +720,7 @@ induction_on a $ λ α r hr, induction_on b $ λ β s hs ⟨⟨f, t, hf⟩⟩, b
     { exact false.elim ∘ sum.lex_inr_inl },
     { exact false.elim ∘ sum.lex_inr_inr.1 } },
   { rcases a with a|_,
-    { intro h, have := @principal_seg.init _ _ _ _ hs.1.2.2 ⟨f, t, hf⟩ _ _ h,
+    { intro h, have := @principal_seg.init _ _ _ _ _ ⟨f, t, hf⟩ _ _ h,
       cases this with w h, exact ⟨sum.inl w, h⟩ },
     { intro h, cases (hf b).1 h with w h, exact ⟨sum.inl w, h⟩ } }
 end⟩

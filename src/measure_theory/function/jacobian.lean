@@ -220,7 +220,7 @@ begin
       { rcases hs with ⟨x, xs⟩,
         rcases s_subset x xs with ⟨n, z, hnz⟩,
         exact false.elim z.2 },
-      { exact nonempty_coe_sort.2 hT } },
+      { exact hT.coe_sort } },
     inhabit (ℕ × T × ℕ),
     exact ⟨_, encodable.surjective_decode_iget _⟩ },
   -- these sets `t q = K n z p` will do
@@ -239,7 +239,7 @@ begin
   obtain ⟨q, hq⟩ : ∃ q, F q = (n, z, p) := hF _,
   -- then `x` belongs to `t q`.
   apply mem_Union.2 ⟨q, _⟩,
-  simp only [hq, subset_closure hnz, hp, mem_inter_eq, and_self],
+  simp only [hq, subset_closure hnz, hp, mem_inter_iff, and_self],
 end
 
 variables [measurable_space E] [borel_space E] (μ : measure E) [is_add_haar_measure μ]

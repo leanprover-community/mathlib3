@@ -3,7 +3,7 @@ Copyright (c) 2021 David Wärn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn, Joachim Breitner
 -/
-import algebra.free_monoid
+import algebra.free_monoid.basic
 import group_theory.congruence
 import group_theory.is_free_group
 import group_theory.subgroup.pointwise
@@ -113,7 +113,7 @@ def lift : (Π i, M i →* N) ≃ (free_product M →* N) :=
 { to_fun := λ fi, con.lift _ (free_monoid.lift $ λ p : Σ i, M i, fi p.fst p.snd) $ con.con_gen_le
     begin
       simp_rw [con.rel_eq_coe, con.ker_rel],
-      rintros _ _ (i | ⟨i, x, y⟩),
+      rintro _ _ (i | ⟨x, y⟩),
       { change free_monoid.lift _ (free_monoid.of _) = free_monoid.lift _ 1,
         simp only [monoid_hom.map_one, free_monoid.lift_eval_of], },
       { change free_monoid.lift _ (free_monoid.of _ * free_monoid.of _) =
@@ -461,8 +461,8 @@ def to_word {i j} (w : neword M i j) : word M :=
 lemma of_word (w : word M) (h : w ≠ empty) :
   ∃ i j (w' : neword M i j), w'.to_word = w :=
 begin
-  suffices : ∃ i j (w' : neword M i j), w'.to_word.to_list = w.to_list,
-  { obtain ⟨i, j, w, h⟩ := this, refine ⟨i, j, w, _⟩, ext, rw h, },
+  rsuffices ⟨i, j, w, h⟩ : ∃ i j (w' : neword M i j), w'.to_word.to_list = w.to_list,
+  { refine ⟨i, j, w, _⟩, ext, rw h, },
   cases w with l hnot1 hchain,
   induction l with x l hi,
   { contradiction, },
@@ -676,7 +676,7 @@ The Ping-Pong-Lemma.
 
 Given a group action of `G` on `X` so that the `H i` acts in a specific way on disjoint subsets
 `X i` we can prove that `lift f` is injective, and thus the image of `lift f` is isomorphic to the
-direct product of the `H i`.
+free product of the `H i`.
 
 Often the Ping-Pong-Lemma is stated with regard to subgroups `H i` that generate the whole group;
 we generalize to arbitrary group homomorphisms `f i : H i →* G` and do not require the group to be

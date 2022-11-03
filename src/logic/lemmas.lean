@@ -3,6 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import tactic.protected
 import tactic.split_ifs
 
 /-!
@@ -16,6 +17,13 @@ convenient to be able to use the `split_ifs` tactic.
 We spell those lemmas out with `dite` and `ite` rather than the `if then else` notation because this
 would result in less delta-reduced statements.
 -/
+
+alias heq_iff_eq ↔ heq.eq eq.heq
+
+attribute [protected] heq.eq eq.heq
+
+alias ne_of_eq_of_ne ← eq.trans_ne
+alias ne_of_ne_of_eq ← ne.trans_eq
 
 variables {α : Sort*} {p q r : Prop} [decidable p] [decidable q] {a b c : α}
 

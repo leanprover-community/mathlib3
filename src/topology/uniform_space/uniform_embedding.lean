@@ -45,6 +45,10 @@ lemma uniform_inducing.basis_uniformity {f : α → β} (hf : uniform_inducing f
   (𝓤 α).has_basis p (λ i, prod.map f f ⁻¹' s i) :=
 hf.1 ▸ H.comap _
 
+lemma uniform_inducing.cauchy_map_iff {f : α → β} (hf : uniform_inducing f) {F : filter α} :
+  cauchy (map f F) ↔ cauchy F :=
+by simp only [cauchy, map_ne_bot_iff, prod_map_map_eq, map_le_iff_le_comap, ← hf.comap_uniformity]
+
 lemma uniform_inducing_of_compose {f : α → β} {g : β → γ} (hf : uniform_continuous f)
   (hg : uniform_continuous g) (hgf : uniform_inducing (g ∘ f)) : uniform_inducing f :=
 begin
@@ -413,16 +417,9 @@ end
 instance complete_space.sum [complete_space α] [complete_space β] :
   complete_space (α ⊕ β) :=
 begin
-  rw complete_space_iff_is_complete_univ,
-  have A : is_complete (range (sum.inl : α → α ⊕ β)) :=
-    uniform_embedding_inl.to_uniform_inducing.is_complete_range,
-  have B : is_complete (range (sum.inr : β → α ⊕ β)) :=
-    uniform_embedding_inr.to_uniform_inducing.is_complete_range,
-  convert A.union B,
-  apply (eq_univ_of_forall (λ x, _)).symm,
-  cases x,
-  { left, exact mem_range_self _ },
-  { right, exact mem_range_self _ }
+  rw [complete_space_iff_is_complete_univ, ← range_inl_union_range_inr],
+  exact uniform_embedding_inl.to_uniform_inducing.is_complete_range.union
+    uniform_embedding_inr.to_uniform_inducing.is_complete_range
 end
 
 end

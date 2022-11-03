@@ -118,14 +118,10 @@ variables {H : Type u} {H' : Type*} {M : Type*} {M' : Type*} {M'' : Type*}
 `local_homeomorph.trans` and `local_equiv.trans`.
 Note that, as is usual for equivs, the composition is from left to right, hence the direction of
 the arrow. -/
-localized "infixr  ` ≫ₕ `:100 := local_homeomorph.trans" in manifold
-localized "infixr  ` ≫ `:100 := local_equiv.trans" in manifold
-
-/- `simp` looks for subsingleton instances at every call. This turns out to be very
-inefficient, especially in `simp`-heavy parts of the library such as the manifold code.
-Disable two such instances to speed up things.
-NB: this is just a hack. TODO: fix `simp` properly. -/
-localized "attribute [-instance] unique.subsingleton pi.subsingleton" in manifold
+localized "infixr (name := local_homeomorph.trans)
+  ` ≫ₕ `:100 := local_homeomorph.trans" in manifold
+localized "infixr (name := local_equiv.trans)
+  ` ≫ `:100 := local_equiv.trans" in manifold
 
 open set local_homeomorph
 
@@ -266,7 +262,7 @@ instance : order_bot (structure_groupoid H) :=
       apply u.id_mem },
     { apply u.locality,
       assume x hx,
-      rw [hf, mem_empty_eq] at hx,
+      rw [hf, mem_empty_iff_false] at hx,
       exact hx.elim }
   end }
 
@@ -460,6 +456,7 @@ The model space is written as an explicit parameter as there can be several mode
 given topological space. For instance, a complex manifold (modelled over `ℂ^n`) will also be seen
 sometimes as a real manifold over `ℝ^(2n)`.
 -/
+@[ext]
 class charted_space (H : Type*) [topological_space H] (M : Type*) [topological_space M] :=
 (atlas []            : set (local_homeomorph M H))
 (chart_at []         : M → local_homeomorph M H)
@@ -512,6 +509,9 @@ lemma achart_def (x : M) : achart H x = ⟨chart_at H x, chart_mem_atlas H x⟩ 
 lemma coe_achart (x : M) : (achart H x : local_homeomorph M H) = chart_at H x := rfl
 @[simp, mfld_simps]
 lemma achart_val (x : M) : (achart H x).1 = chart_at H x := rfl
+
+lemma mem_achart_source (x : M) : x ∈ (achart H x).1.source :=
+mem_chart_source H x
 
 open topological_space
 
@@ -650,6 +650,9 @@ variables [topological_space H] [topological_space M] [charted_space H M]
 @[simp, mfld_simps] lemma prod_charted_space_chart_at :
   (chart_at (model_prod H H') x) = (chart_at H x.fst).prod (chart_at H' x.snd) := rfl
 
+lemma charted_space_self_prod : prod_charted_space H H H' H' = charted_space_self (H × H') :=
+by { ext1, { simp [prod_charted_space, atlas] }, { ext1, simp [chart_at_self_eq], refl } }
+
 end prod_charted_space
 
 /-- The product of a finite family of charted spaces is naturally a charted space, with the
@@ -780,7 +783,7 @@ has_groupoid.compatible G he he'
 
 lemma has_groupoid_of_le {G₁ G₂ : structure_groupoid H} (h : has_groupoid M G₁) (hle : G₁ ≤ G₂) :
   has_groupoid M G₂ :=
-⟨ λ e e' he he', hle ((h.compatible : _) he he') ⟩
+⟨λ e e' he he', hle (h.compatible he he')⟩
 
 lemma has_groupoid_of_pregroupoid (PG : pregroupoid H)
   (h : ∀{e e' : local_homeomorph M H}, e ∈ atlas H M → e' ∈ atlas H M

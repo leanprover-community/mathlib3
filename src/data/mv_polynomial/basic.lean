@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 
 import ring_theory.adjoin.basic
 import data.finsupp.antidiagonal
-import algebra.monoid_algebra.basic
+import algebra.monoid_algebra.support
 import order.symm_diff
 
 /-!
@@ -128,9 +128,8 @@ instance is_scalar_tower' [comm_semiring R] [comm_semiring S₁] [algebra R S₁
   is_scalar_tower R (mv_polynomial σ S₁) (mv_polynomial σ S₁) :=
 is_scalar_tower.right
 
--- TODO[gh-6025]: make this an instance once safe to do so
 /-- If `R` is a subsingleton, then `mv_polynomial σ R` has a unique element -/
-protected def unique [comm_semiring R] [subsingleton R] : unique (mv_polynomial σ R) :=
+instance unique [comm_semiring R] [subsingleton R] : unique (mv_polynomial σ R) :=
 add_monoid_algebra.unique
 
 end instances
@@ -1110,6 +1109,12 @@ lemma aeval_eq_eval₂_hom (p : mv_polynomial σ R) :
 theorem aeval_unique (φ : mv_polynomial σ R →ₐ[R] S₁) :
   φ = aeval (φ ∘ X) :=
 by { ext i, simp }
+
+lemma aeval_X_left : aeval X = alg_hom.id R (mv_polynomial σ R) :=
+(aeval_unique (alg_hom.id R _)).symm
+
+lemma aeval_X_left_apply (p : mv_polynomial σ R) : aeval X p = p :=
+alg_hom.congr_fun aeval_X_left p
 
 lemma comp_aeval {B : Type*} [comm_semiring B] [algebra R B]
   (φ : S₁ →ₐ[R] B) :

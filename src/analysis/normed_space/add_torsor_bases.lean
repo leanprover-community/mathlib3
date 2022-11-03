@@ -54,7 +54,7 @@ to this basis.
 
 TODO Restate this result for affine spaces (instead of vector spaces) once the definition of
 convexity is generalised to this setting. -/
-lemma interior_convex_hull_aff_basis {ι E : Type*} [fintype ι] [normed_add_comm_group E]
+lemma interior_convex_hull_aff_basis {ι E : Type*} [finite ι] [normed_add_comm_group E]
   [normed_space ℝ E] (b : affine_basis ι ℝ E) :
   interior (convex_hull ℝ (range b.points)) = { x | ∀ i, 0 < b.coord i x } :=
 begin
@@ -65,10 +65,7 @@ begin
     rw ← image_univ,
     exact subsingleton.image subsingleton_of_subsingleton b.points, },
   { -- The positive-dimensional case.
-    haveI : finite_dimensional ℝ E,
-    { classical,
-      obtain ⟨i⟩ := (infer_instance : nonempty ι),
-      exact finite_dimensional.of_fintype_basis (b.basis_of i), },
+    haveI : finite_dimensional ℝ E := b.finite_dimensional,
     have : convex_hull ℝ (range b.points) = ⋂ i, (b.coord i)⁻¹' Ici 0,
     { rw convex_hull_affine_basis_eq_nonneg_barycentric b, ext, simp, },
     ext,

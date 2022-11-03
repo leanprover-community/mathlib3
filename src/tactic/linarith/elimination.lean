@@ -80,9 +80,10 @@ The original expressions fed into `linarith` are each assigned a unique natural 
 The *historical set* `pcomp.history` stores the labels of expressions
 that were used in deriving the current `pcomp`.
 Variables are also indexed by natural numbers. The sets `pcomp.effective`, and `pcomp.implicit`,
+* `pcomp.vars` contains the variables that appear in any inequality in the historical set.
 * `pcomp.effective` contains the variables that have been effectively eliminated from `pcomp`.
   A variable `n` is said to be *effectively eliminated* in `p : pcomp` if the elimination of `n`
-  produced at least one of the ancestors of `p : pcomp` (or `p` itself)
+  produced at least one of the ancestors of `p : pcomp` (or `p` itself).
 * `pcomp.implicit` contains the variables that have been implicitly eliminated from `pcomp`.
   A variable `n` is said to be *implicitly eliminated* in `pcomp` if it satisfies the following
   properties:
@@ -98,6 +99,7 @@ meta structure pcomp : Type :=
 (c : comp)
 (src : comp_source)
 (history : rb_set ℕ)
+(vars : rb_set ℕ)
 (effective : rb_set ℕ)
 (implicit : rb_set ℕ)
 
@@ -111,8 +113,7 @@ This test is an overapproximation to minimality. It gives necessary but not suff
 If the history of `c` is minimal, then `c.maybe_minimal` is true,
 but `c.maybe_minimal` may also be true for some `c` with minimal history.
 Thus, if `c.maybe_minimal` is false, `c` is known not to be minimal and must be redundant.
-See http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.51.493&rep=rep1&type=pdf p.13
-(Theorem 7).
+See https://doi.org/10.1016/B978-0-444-88771-9.50019-2 (Theorem 13).
 The condition described there considers only implicitly eliminated variables that have been
 officially eliminated from the system. This is not the case for every implicitly eliminated
 variable. Consider eliminating `z` from `{x + y + z < 0, x - y - z < 0}`. The result is the set
@@ -144,21 +145,21 @@ The computation assumes, but does not enforce, that `elim_var` appears in both `
 and does not appear in the sum.
 Computing the sum of the two comparisons is easy; the complicated details lie in tracking the
 additional fields of `pcomp`.
+* `vars` is the union of `c1.vars` and `c2.vars`.
 * The historical set `pcomp.history` of `c1 + c2` is the union of the two historical sets.
-* We recompute the variables that appear in `c1 + c2` from the newly created `linexp`,
-  since some may have been implicitly eliminated.
 * The effectively eliminated variables of `c1 + c2` are the union of the two effective sets,
   with `elim_var` inserted.
-* The implicitly eliminated variables of `c1 + c2` are those that appear in at least one of
-  `c1.vars` and `c2.vars` but not in `(c1 + c2).vars`, excluding `elim_var`.
+* The implicitly eliminated variables of `c1 + c2` are those that appear in
+  `vars` but not `c.vars` or `effective`.
 -/
 meta def pcomp.add (c1 c2 : pcomp) (elim_var : ℕ) : pcomp :=
 let c := c1.c.add c2.c,
     src := c1.src.add c2.src,
     history := c1.history.union c2.history,
+    vars := c1.vars.union c2.vars,
     effective := (c1.effective.union c2.effective).insert elim_var,
-    implicit := (c1.implicit.union c2.implicit).sdiff effective in
-⟨c, src, history, effective, implicit⟩
+    implicit := (vars.sdiff (rb_set.of_list c.vars)).sdiff effective in
+⟨c, src, history, vars, effective, implicit⟩
 
 /--
 `pcomp.assump c n` creates a `pcomp` whose comparison is `c` and whose source is
@@ -170,8 +171,9 @@ meta def pcomp.assump (c : comp) (n max_var : ℕ) : pcomp :=
 { c := c,
   src := comp_source.assump n,
   history := mk_rb_set.insert n,
+  vars := rb_set.of_list c.vars,
   effective := mk_rb_set,
-  implicit := (rb_set.of_list (list.range (max_var + 1))).sdiff (rb_set.of_list c.vars), }
+  implicit := mk_rb_set, }
 
 meta instance pcomp.to_format : has_to_format pcomp :=
 ⟨λ p, to_fmt p.c.coeffs ++ to_string p.c.str ++ "0"⟩

@@ -1240,27 +1240,32 @@ end
   simp only [edges_cons, edges_nil, list.mem_singleton, forall_eq, mem_edge_set],
   exact (hp.left).symm, }
 
-abbreviation to_delete_edges (s : set (sym2 V)) (hp : ∀ e, e ∈ p.edges → ¬ e ∈ s) :
-  (G.delete_edges s).walk u v :=
-p.induce (by
-  { simp only [edge_set_delete_edges, set.mem_diff],
-    exact λ e ep, ⟨edges_subset_edge_set p ep, hp e ep⟩, })
-
-abbreviation to_delete_edge (e : sym2 V) (hp : e ∉ p.edges) : (G.delete_edges {e}).walk u v :=
-p.to_delete_edges {e} (λ e, by { contrapose!, rintro ⟨⟩, exact hp, })
-
 end walk
 
-/-
 /-! ## Deleting edges -/
 
 namespace walk
 variables {G}
 
+/-- Given a walk that avoids a set of edges, produce a walk in the graph
+with those edges deleted. -/
+@[simp, reducible]
+def to_delete_edges (s : set (sym2 V))
+  {v w : V} (p : G.walk v w) (hp : ∀ e, e ∈ p.edges → ¬ e ∈ s) : (G.delete_edges s).walk v w :=
+p.induce (by
+  { simp only [edge_set_delete_edges, set.mem_diff],
+    exact λ e ep, ⟨edges_subset_edge_set p ep, hp e ep⟩, })
+
+/-- Given a walk that avoids an edge, create a walk in the subgraph with that edge deleted.
+This is an abbreviation for `simple_graph.walk.to_delete_edges`. -/
+abbreviation to_delete_edge {v w : V} (e : sym2 V) (p : G.walk v w) (hp : e ∉ p.edges) :
+  (G.delete_edges {e}).walk v w :=
+p.to_delete_edges {e} (λ e', by { contrapose!, simp [hp] { contextual := tt } })
+
 @[simp]
 lemma map_to_delete_edges_eq (s : set (sym2 V)) {v w : V} {p : G.walk v w} (hp) :
   walk.map (hom.map_spanning_subgraphs (G.delete_edges_le s)) (p.to_delete_edges s hp) = p :=
-by induction p; simp [*]
+by rw [←induce_eq_map_spanning_subgraphs, induce_comp, induce_id]
 
 lemma is_path.to_delete_edges (s : set (sym2 V))
   {v w : V} {p : G.walk v w} (h : p.is_path) (hp) :
@@ -1274,7 +1279,6 @@ by { rw ← map_to_delete_edges_eq s hp at h, exact h.of_map }
 by { subst_vars, refl }
 
 end walk
--/
 
 /-! ## `reachable` and `connected` -/
 

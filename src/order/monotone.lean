@@ -843,3 +843,11 @@ lemma strict_anti.prod_map (hf : strict_anti f) (hg : strict_anti g) : strict_an
   exact or.imp (and.imp hf.imp hg.antitone.imp) (and.imp hf.antitone.imp hg.imp) }
 
 end partial_order
+
+namespace function
+variables [preorder α]
+
+lemma const_mono : monotone (const β : α → β → α) := λ a b h i, h
+lemma const_strict_mono [nonempty β] : strict_mono (const β : α → β → α) := λ a b, const_lt_const.2
+
+end function

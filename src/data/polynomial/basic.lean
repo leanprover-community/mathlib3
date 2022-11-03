@@ -40,7 +40,7 @@ exceptions that we make semireducible:
 * The scalar action, to permit typeclass search to unfold it to resolve potential instance
   diamonds.
 
-The raw implementation of the equivalence between `polynomial R` and `add_monoid_algebra R ℕ` is
+The raw implementation of the equivalence between `R[X]` and `add_monoid_algebra R ℕ` is
 done through `of_finsupp` and `to_finsupp` (or, equivalently, `rcases p` when `p` is a polynomial
 gives an element `q` of `add_monoid_algebra R ℕ`, and conversely `⟨q⟩` gives back `p`). The
 equivalence is also registered as a ring equiv in `polynomial.to_finsupp_iso`. These should
@@ -78,7 +78,7 @@ lemma exists_iff_exists_finsupp (P : R[X] → Prop) :
 
 /-! ### Conversions to and from `add_monoid_algebra`
 
-Since `polynomial R` is not defeq to `add_monoid_algebra R ℕ`, but instead is a structure wrapping
+Since `R[X]` is not defeq to `add_monoid_algebra R ℕ`, but instead is a structure wrapping
 it, we have to copy across all the arithmetic operators manually, along with the lemmas about how
 they unfold around `polynomial.of_finsupp` and `polynomial.to_finsupp`.
 -/
@@ -739,7 +739,7 @@ by simp [coeff_erase, h]
 
 section update
 
-/-- Replace the coefficient of a `p : polynomial p` at a given degree `n : ℕ`
+/-- Replace the coefficient of a `p : R[X]` at a given degree `n : ℕ`
 by a given value `a : R`. If `a = 0`, this is equal to `p.erase n`
 If `p.nat_degree < n` and `a ≠ 0`, this increases the degree to `n`.  -/
 def update (p : R[X]) (n : ℕ) (a : R) :

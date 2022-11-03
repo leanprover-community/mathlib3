@@ -1210,13 +1210,26 @@ sup_eq_sdiff_sup_sdiff_sup_inf
 
 lemma mem_symm_diff : a ∈ s ∆ t ↔ a ∈ s ∧ a ∉ t ∨ a ∈ t ∧ a ∉ s := iff.rfl
 
+protected lemma symm_diff_def (s t : set α) : s ∆ t = s \ t ∪ t \ s := rfl
+
 lemma symm_diff_subset_union : s ∆ t ⊆ s ∪ t := @symm_diff_le_sup (set α) _ _ _
+
+@[simp] lemma symm_diff_eq_empty : s ∆ t = ∅ ↔ s = t := symm_diff_eq_bot
+
+@[simp] lemma symm_diff_nonempty : (s ∆ t).nonempty ↔ s ≠ t :=
+ne_empty_iff_nonempty.symm.trans symm_diff_eq_empty.not
 
 lemma inter_symm_diff_distrib_left (s t u : set α) : s ∩ t ∆ u = (s ∩ t) ∆ (s ∩ u) :=
 inf_symm_diff_distrib_left _ _ _
 
 lemma inter_symm_diff_distrib_right (s t u : set α) : s ∆ t ∩ u = (s ∩ u) ∆ (t ∩ u) :=
 inf_symm_diff_distrib_right _ _ _
+
+lemma subset_symm_diff_union_symm_diff_left (h : disjoint s t) : u ⊆ s ∆ u ∪ t ∆ u :=
+h.le_symm_diff_sup_symm_diff_left
+
+lemma subset_symm_diff_union_symm_diff_right (h : disjoint t u) : s ⊆ s ∆ t ∪ s ∆ u :=
+h.le_symm_diff_sup_symm_diff_right
 
 /-! ### Powerset -/
 
@@ -1431,6 +1444,7 @@ end preimage
 /-! ### Image of a set under a function -/
 
 section image
+variables {f : α → β}
 
 /-- The image of `s : set α` by `f : α → β`, written `f '' s`,
   is the set of `y : β` such that `f x = y` for some `x ∈ s`. -/
@@ -1608,11 +1622,18 @@ begin
   exact image_subset f (subset_union_right t s)
 end
 
+lemma subset_image_symm_diff : (f '' s) ∆ (f '' t) ⊆ f '' s ∆ t :=
+(union_subset_union (subset_image_diff _ _ _) $ subset_image_diff _ _ _).trans
+  (image_union _ _ _).superset
+
 theorem image_diff {f : α → β} (hf : injective f) (s t : set α) :
   f '' (s \ t) = f '' s \ f '' t :=
 subset.antisymm
   (subset.trans (image_inter_subset _ _ _) $ inter_subset_inter_right _ $ image_compl_subset hf)
   (subset_image_diff f s t)
+
+lemma image_symm_diff (hf : injective f) (s t : set α) : f '' (s ∆ t) = (f '' s) ∆ (f '' t) :=
+by simp_rw [set.symm_diff_def, image_union, image_diff hf]
 
 lemma nonempty.image (f : α → β) {s : set α} : s.nonempty → (f '' s).nonempty
 | ⟨x, hx⟩ := ⟨f x, mem_image_of_mem f hx⟩
@@ -2145,6 +2166,15 @@ lemma image_preimage_eq_iff {f : α → β} {s : set β} : f '' (f ⁻¹' s) = s
 lemma subset_range_iff_exists_image_eq {f : α → β} {s : set β} :
   s ⊆ range f ↔ ∃ t, f '' t = s :=
 ⟨λ h, ⟨_, image_preimage_eq_iff.2 h⟩, λ ⟨t, ht⟩, ht ▸ image_subset_range _ _⟩
+
+@[simp] lemma exists_subset_range_and_iff {f : α → β} {p : set β → Prop} :
+  (∃ s, s ⊆ range f ∧ p s) ↔ ∃ s, p (f '' s) :=
+⟨λ ⟨s, hsf, hps⟩, ⟨f ⁻¹' s, (image_preimage_eq_of_subset hsf).symm ▸ hps⟩,
+  λ ⟨s, hs⟩, ⟨f '' s, image_subset_range _ _, hs⟩⟩
+
+lemma exists_subset_range_iff {f : α → β} {p : set β → Prop} :
+  (∃ s ⊆ range f, p s) ↔ ∃ s, p (f '' s) :=
+by simp only [exists_prop, exists_subset_range_and_iff]
 
 lemma range_image (f : α → β) : range (image f) = 𝒫 (range f) :=
 ext $ λ s, subset_range_iff_exists_image_eq.symm

@@ -59,7 +59,6 @@ src/tactic/omega/nat/preterm.lean : line 7 : ERR_MOD : Module docstring missing,
 src/tactic/omega/nat/sub_elim.lean : line 7 : ERR_MOD : Module docstring missing, or too late
 src/tactic/omega/prove_unsats.lean : line 7 : ERR_MOD : Module docstring missing, or too late
 src/tactic/omega/term.lean : line 7 : ERR_MOD : Module docstring missing, or too late
-src/tactic/push_neg.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/tactic/restate_axiom.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/rewrite.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/rewrite_all/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late

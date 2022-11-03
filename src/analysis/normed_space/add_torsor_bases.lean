@@ -58,12 +58,20 @@ lemma interior_convex_hull_aff_basis {ι E : Type*} [finite ι] [normed_add_comm
   [normed_space ℝ E] (b : affine_basis ι ℝ E) :
   interior (convex_hull ℝ (range b.points)) = {x | ∀ i, 0 < b.coord i x} :=
 begin
-  -- haveI : finite_dimensional ℝ E := b.finite_dimensional,
-  have : convex_hull ℝ (range b.points) = ⋂ i, (b.coord i)⁻¹' Ici 0,
-  { rw [convex_hull_affine_basis_eq_nonneg_barycentric b, set_of_forall], refl },
-  ext,
-  simp only [this, interior_Inter,
-    interior_Ici, mem_Inter, mem_set_of_eq, mem_Ioi, mem_preimage],
+  casesI subsingleton_or_nontrivial ι,
+  { -- The zero-dimensional case.
+    suffices : range (b.points) = univ, { simp [this], },
+    refine affine_subspace.eq_univ_of_subsingleton_span_eq_top _ b.tot,
+    rw ← image_univ,
+    exact subsingleton.image subsingleton_of_subsingleton b.points, },
+  { -- The positive-dimensional case.
+    haveI : finite_dimensional ℝ E := b.finite_dimensional,
+    have : convex_hull ℝ (range b.points) = ⋂ i, (b.coord i)⁻¹' Ici 0,
+    { rw [convex_hull_affine_basis_eq_nonneg_barycentric b, set_of_forall], refl },
+    ext,
+    simp only [this, interior_Inter, ← is_open_map.preimage_interior_eq_interior_preimage
+      (is_open_map_barycentric_coord b _) (continuous_barycentric_coord b _),
+      interior_Ici, mem_Inter, mem_set_of_eq, mem_Ioi, mem_preimage], },
 end
 
 variables {V P : Type*} [normed_add_comm_group V] [normed_space ℝ V] [metric_space P]

@@ -526,6 +526,14 @@ lemma pi.sdiff_def {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] 
 lemma pi.sdiff_apply {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) (i : ι) :
   (x \ y) i = x i \ y i := rfl
 
+namespace function
+variables [preorder α] [nonempty β] {a b : α}
+
+@[simp] lemma const_le_const : const β a ≤ const β b ↔ a ≤ b := by simp [pi.le_def]
+@[simp] lemma const_lt_const : const β a < const β b ↔ a < b := by simpa [pi.lt_def] using le_of_lt
+
+end function
+
 /-! ### `min`/`max` recursors -/
 
 section min_max_rec

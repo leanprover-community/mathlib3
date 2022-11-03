@@ -76,7 +76,7 @@ variables [decidable_eq ι] [has_zero M]
 
 @[simp] lemma finsupp.to_dfinsupp_single (i : ι) (m : M) :
   (finsupp.single i m).to_dfinsupp = dfinsupp.single i m :=
-by { ext, simp [finsupp.single_apply, dfinsupp.single_apply] }
+dfinsupp.coe_fn_injective $ finsupp.coe_single _ _
 
 variables [Π m : M, decidable (m ≠ 0)]
 
@@ -97,7 +97,7 @@ by { ext, simp, }
 
 @[simp] lemma dfinsupp.to_finsupp_single (i : ι) (m : M) :
   (dfinsupp.single i m : Π₀ i : ι, M).to_finsupp = finsupp.single i m :=
-by { ext, simp [finsupp.single_apply, dfinsupp.single_apply] }
+finsupp.coe_fn_injective $ (finsupp.coe_single i m).symm
 
 @[simp] lemma finsupp.to_dfinsupp_to_finsupp (f : ι →₀ M) : f.to_dfinsupp.to_finsupp = f :=
 finsupp.coe_fn_injective rfl
@@ -251,8 +251,8 @@ begin
     simp [split_apply, finsupp.single_apply] },
   suffices : finsupp.single (⟨i, a⟩ : Σ i, η i) n ⟨j, b⟩ = 0,
   { simp [split_apply, dif_neg h, this] },
-  have H : (⟨i, a⟩ : Σ i, η i) ≠ ⟨j, b⟩ := by simp [h],
-  rw [finsupp.single_apply, if_neg H]
+  rw finsupp.single_eq_of_ne,
+  simp [h],
 end
 
 -- Without this Lean fails to find the `add_zero_class` instance on `Π₀ i, (η i →₀ N)`.

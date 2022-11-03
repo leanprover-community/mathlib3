@@ -84,11 +84,11 @@ to compare the `L^p` and `L^∞` distances through it. -/
 protected def equiv : pi_Lp p α ≃ Π (i : ι), α i :=
 equiv.refl _
 
-lemma equiv_apply (x : pi_Lp p α) (i : ι) : pi_Lp.equiv p α x i = x i := rfl
-lemma equiv_symm_apply (x : Π i, α i) (i : ι) : (pi_Lp.equiv p α).symm x i = x i := rfl
+/-! Note that the unapplied versions of these lemmas are deliberately omitted, as they break
+the use of the type synonym. -/
 
-@[simp] lemma equiv_apply' (x : pi_Lp p α) : pi_Lp.equiv p α x = x := rfl
-@[simp] lemma equiv_symm_apply' (x : Π i, α i) : (pi_Lp.equiv p α).symm x = x := rfl
+@[simp] lemma equiv_apply (x : pi_Lp p α) (i : ι) : pi_Lp.equiv p α x i = x i := rfl
+@[simp] lemma equiv_symm_apply (x : Π i, α i) (i : ι) : (pi_Lp.equiv p α).symm x i = x i := rfl
 
 section dist_norm
 variables [fintype ι]
@@ -320,7 +320,7 @@ lemma lipschitz_with_equiv_aux : lipschitz_with 1 (pi_Lp.equiv p β) :=
 begin
   intros x y,
   unfreezingI { rcases p.dichotomy with (rfl | h) },
-  { simpa only [equiv_apply', ennreal.coe_one, one_mul, edist_eq_supr, edist, finset.sup_le_iff,
+  { simpa only [ennreal.coe_one, one_mul, edist_eq_supr, edist, finset.sup_le_iff,
       finset.mem_univ, forall_true_left] using le_supr (λ i, edist (x i) (y i)), },
   { have cancel : p.to_real * (1/p.to_real) = 1 := mul_div_cancel' 1 (zero_lt_one.trans_le h).ne',
     rw edist_eq_sum (zero_lt_one.trans_le h),
@@ -343,13 +343,13 @@ begin
   intros x y,
   unfreezingI { rcases p.dichotomy with (rfl | h) },
   { simp only [edist_eq_supr, ennreal.div_top, ennreal.zero_to_real, nnreal.rpow_zero,
-      ennreal.coe_one, equiv_apply', one_mul, supr_le_iff],
+      ennreal.coe_one, one_mul, supr_le_iff],
     exact λ i, finset.le_sup (finset.mem_univ i), },
   { have pos : 0 < p.to_real := zero_lt_one.trans_le h,
     have nonneg : 0 ≤ 1 / p.to_real := one_div_nonneg.2 (le_of_lt pos),
     have cancel : p.to_real * (1/p.to_real) = 1 := mul_div_cancel' 1 (ne_of_gt pos),
     rw [edist_eq_sum pos, ennreal.to_real_div 1 p],
-    simp only [edist, equiv_apply', ←one_div, ennreal.one_to_real],
+    simp only [edist, ←one_div, ennreal.one_to_real],
     calc (∑ i, edist (x i) (y i) ^ p.to_real) ^ (1 / p.to_real) ≤
     (∑ i, edist (pi_Lp.equiv p β x) (pi_Lp.equiv p β y) ^ p.to_real) ^ (1 / p.to_real) :
     begin
@@ -650,7 +650,7 @@ lemma nnnorm_equiv_symm_const' {β} [seminormed_add_comm_group β] [nonempty ι]
   fintype.card ι ^ (1 / p).to_real * ∥b∥₊ :=
 begin
   unfreezingI { rcases (em $ p = ∞) with (rfl | hp) },
-  { simp only [equiv_symm_apply', ennreal.div_top, ennreal.zero_to_real, nnreal.rpow_zero, one_mul,
+  { simp only [equiv_symm_apply, ennreal.div_top, ennreal.zero_to_real, nnreal.rpow_zero, one_mul,
       nnnorm_eq_csupr, function.const_apply, csupr_const], },
   { exact nnnorm_equiv_symm_const hp b, },
 end

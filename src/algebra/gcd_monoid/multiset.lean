@@ -187,7 +187,7 @@ begin
     have := _, push_neg at h,
     refine ⟨s.pmap @f (λ _, id), this, extract_gcd' s _ h this⟩,
     rw map_pmap, conv_lhs { rw [← s.map_id, ← s.pmap_eq_map _ _ (λ _, id)] },
-    congr, ext x hx, rw ← hf hx, refl },
+    congr' with x hx, rw [id, ← hf hx] },
 end
 
 end gcd

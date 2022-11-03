@@ -48,6 +48,14 @@ def kernel (mα : measurable_space α) (mβ : measurable_space β) :
 
 instance : has_coe_to_fun (kernel mα mβ) (λ _, α → measure β) := ⟨λ κ, κ.val⟩
 
+@[simp] lemma kernel.coe_fn_zero : ⇑(0 : kernel mα mβ) = 0 := rfl
+@[simp] lemma kernel.coe_fn_add (κ η : kernel mα mβ) : ⇑(κ + η) = κ + η := rfl
+
+/-- Coercion to function as an additive monoid homomorphism. -/
+def kernel.coe_add_hom (mα : measurable_space α) (mβ : measurable_space β) :
+  kernel mα mβ →+ (α → measure β) :=
+⟨coe_fn, kernel.coe_fn_zero, kernel.coe_fn_add⟩
+
 @[simp] lemma kernel.zero_apply (a : α) : (0 : kernel mα mβ) a = 0 := rfl
 
 class is_markov_kernel (κ : kernel mα mβ) : Prop :=
@@ -219,6 +227,30 @@ begin
   rw ennreal.tsum_comm,
 end
 
+@[simp] lemma coe_finset_sum (I : finset ι) (κ : ι → kernel mα mβ) :
+  ⇑(∑ i in I, κ i) = ∑ i in I, κ i :=
+(coe_add_hom mα mβ).map_sum _ _
+
+lemma finset_sum_apply (I : finset ι) (κ : ι → kernel mα mβ) (a : α) :
+  (∑ i in I, κ i) a = ∑ i in I, κ i a :=
+by rw [coe_finset_sum, finset.sum_apply]
+
+lemma finset_sum_apply' (I : finset ι) (κ : ι → kernel mα mβ) (a : α)
+  {s : set β} (hs : measurable_set s) :
+  (∑ i in I, κ i) a s = ∑ i in I, κ i a s :=
+by rw [finset_sum_apply, measure.finset_sum_apply]
+
+@[simp] lemma sum_fintype [fintype ι] (κ : ι → kernel mα mβ) : kernel.sum κ = ∑ i, κ i :=
+by { ext a s hs, simp only [sum_apply' κ a hs, finset_sum_apply' _ κ a hs, tsum_fintype], }
+
+lemma sum_add [countable ι] (κ η : ι → kernel mα mβ) :
+  kernel.sum (λ n, κ n + η n) = kernel.sum κ + kernel.sum η :=
+begin
+  ext a s hs,
+  simp only [coe_fn_add, pi.add_apply, sum_apply, measure.sum_apply _ hs, pi.add_apply,
+    measure.coe_add, tsum_add ennreal.summable ennreal.summable],
+end
+
 end sum
 
 class is_s_finite_kernel (κ : kernel mα mβ) : Prop :=
@@ -253,10 +285,50 @@ instance is_finite_kernel_seq (κ : kernel mα mβ) [h : is_s_finite_kernel κ] 
   is_finite_kernel (kernel.seq κ n) :=
 h.tsum_finite.some_spec.1 n
 
-lemma is_s_finite_kernel_sum {κs : ℕ → kernel mα mβ} (hκs : ∀ n, is_s_finite_kernel (κs n)) :
+instance is_finite_kernel_zero : is_finite_kernel (0 : kernel mα mβ) :=
+⟨⟨0, ennreal.coe_lt_top,
+  λ a, by simp only [zero_apply, measure.coe_zero, pi.zero_apply, le_zero_iff]⟩⟩
+
+instance is_fintie_kernel.add (κ η : kernel mα mβ) [is_finite_kernel κ] [is_finite_kernel η] :
+  is_finite_kernel (κ + η) :=
+begin
+  let Cκ := is_finite_kernel.bound κ,
+  let Cη := is_finite_kernel.bound η,
+  refine ⟨⟨Cκ + Cη,
+    ennreal.add_lt_top.mpr ⟨is_finite_kernel.bound_lt_top κ, is_finite_kernel.bound_lt_top η⟩,
+    λ a, _⟩⟩,
+  simp_rw [coe_fn_add, pi.add_apply, measure.coe_add, pi.add_apply],
+  exact add_le_add (measure_le_bound _ _ _) (measure_le_bound _ _ _),
+end
+
+instance is_s_finite_kernel.add (κ η : kernel mα mβ) [is_s_finite_kernel κ] [is_s_finite_kernel η] :
+  is_s_finite_kernel (κ + η) :=
+begin
+  refine ⟨⟨λ n, seq κ n + seq η n, λ n, infer_instance, _⟩⟩,
+  rw [sum_add, kernel_sum_seq κ, kernel_sum_seq η],
+end
+
+lemma is_s_finite_kernel.finset_sum {κs : ι → kernel mα mβ} (I : finset ι)
+  (h : ∀ i ∈ I, is_s_finite_kernel (κs i)) :
+  is_s_finite_kernel (∑ i in I, κs i) :=
+begin
+  unfreezingI
+  { induction I using finset.induction with i I hi_nmem_I h_ind h,
+    { exact classical.dec_eq ι, },
+    { rw [finset.sum_empty], apply_instance, },
+    { classical,
+      rw finset.sum_insert hi_nmem_I,
+      haveI : is_s_finite_kernel (κs i) := h i (finset.mem_insert_self _ _),
+      haveI : is_s_finite_kernel (∑ (x : ι) in I, κs x),
+        from h_ind (λ i hiI, h i (finset.mem_insert_of_mem hiI)),
+      exact is_s_finite_kernel.add _ _, }, },
+end
+
+lemma is_s_finite_kernel_sum_of_denumerable [denumerable ι] {κs : ι → kernel mα mβ}
+  (hκs : ∀ n, is_s_finite_kernel (κs n)) :
   is_s_finite_kernel (kernel.sum κs) :=
 begin
-  let e : ℕ ≃ (ℕ × ℕ) := denumerable.equiv₂ ℕ (ℕ × ℕ),
+  let e : ℕ ≃ (ι × ℕ) := denumerable.equiv₂ ℕ (ι × ℕ),
   refine ⟨⟨λ n, seq (κs (e n).1) (e n).2, infer_instance, _⟩⟩,
   have hκ_eq : kernel.sum κs = kernel.sum (λ n, kernel.sum (seq (κs n))),
   { simp_rw kernel_sum_seq, },
@@ -264,10 +336,22 @@ begin
   ext1 s hs,
   rw hκ_eq,
   simp_rw kernel.sum_apply' _ _ hs,
-  change ∑' n m, seq (κs n) m a s = ∑' n, (λ nm : ℕ × ℕ, seq (κs nm.fst) nm.snd a s) (e n),
+  change ∑' i m, seq (κs i) m a s = ∑' n, (λ im : ι × ℕ, seq (κs im.fst) im.snd a s) (e n),
   rw e.tsum_eq,
   { rw tsum_prod' ennreal.summable (λ _, ennreal.summable), },
   { apply_instance, },
+end
+
+instance is_s_finite_kernel_sum [countable ι] {κs : ι → kernel mα mβ}
+  (hκs : ∀ n, is_s_finite_kernel (κs n)) :
+  is_s_finite_kernel (kernel.sum κs) :=
+begin
+  casesI fintype_or_infinite ι,
+  { rw sum_fintype,
+    exact is_s_finite_kernel.finset_sum finset.univ (λ i _, hκs i), },
+  haveI : encodable ι := encodable.of_countable ι,
+  haveI : denumerable ι := denumerable.of_encodable_of_infinite ι,
+  exact is_s_finite_kernel_sum_of_denumerable hκs,
 end
 
 section restrict
@@ -745,10 +829,8 @@ instance is_s_finite_kernel.comp (κ : kernel mα mβ) [is_s_finite_kernel κ]
   (η : kernel (mα.prod mβ) mγ) [is_s_finite_kernel η] :
   is_s_finite_kernel (comp κ η) :=
 begin
-  rw comp_eq_sum_kernel_comp_left,
-  refine is_s_finite_kernel_sum (λ n, _),
-  refine ⟨⟨λ m, comp (seq κ n) (seq η m), infer_instance, _⟩⟩,
-  rw comp_eq_sum_kernel_comp_right,
+  rw comp_eq_sum_kernel_comp,
+  exact kernel.is_s_finite_kernel_sum (λ n, kernel.is_s_finite_kernel_sum infer_instance),
 end
 
 end composition

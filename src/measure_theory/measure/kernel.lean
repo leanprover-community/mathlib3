@@ -7,15 +7,53 @@ Authors: Rémy Degenne
 import measure_theory.constructions.prod
 
 /-!
-# Markov Kernel
+# Markov Kernels
+
+A kernel from a measurable space `α` to another measurable space `β` is a measurable map
+`α → measure β`, where the measurable space instance on `measure β` is the one defined in
+`measure_theory.measure.measurable_space`. That is, a kernel `κ` verifies that for all measurable
+sets `s` of `β`, `(λ a, κ a s)` is measurable.
 
 ## Main definitions
 
-* `foo_bar`
+Classes of kernels:
+* `kernel mα mβ`: kernels from `α` to `β`, defined as the `add_submonoid` of the measurable
+  functions in `α → measure β`.
+* `is_markov_kernel κ`: a kernel from `α` to `β` is said to be a Markov kernel if for all `a : α`,
+  `k a` is a probability measure.
+* `is_finite_kernel κ`: a kernel from `α` to `β` is said to be finite if there exists `C : ℝ≥0∞`
+  such that `C < ∞` and for all `a : α`, `κ a univ ≤ C`. This implies in particular that all
+  measures in the image of `κ` are finite, but is stronger since it requires an uniform bound. This
+  stronger condition is necessary to ensure that the composition of two finite kernels is finite.
+* `is_s_finite_kernel κ`: a kernel is called s-finite if it is a countable sum of finite kernels.
+
+Kernels built from other kernels:
+* `comp (κ : kernel mα mβ) (η : kernel (mα.prod mβ) mγ) : kernel mα (mβ.prod mγ)`: composition of
+  two s-finite kernels.
+  `∫⁻ bc, f bc.1 bc.2 ∂(comp κ η a) = ∫⁻ b, ∫⁻ c, f b c ∂(η (a, b)) ∂(κ a)`
+* `map (κ : kernel mα mβ) (f : β → γ) (hf : measurable f) : kernel mα mγ`
+  `∫⁻ b, g b ∂(map κ f hf a) = ∫⁻ a, g (f a) ∂κ a`
+* `comap (κ : kernel mα mβ) (f : γ → α) (hf : measurable f) : kernel mγ mβ`
+  `∫⁻ b, g b ∂(comap κ f hf c) = ∫⁻ b, g b ∂(κ (f c))`
+* `comp2 (κ : kernel mα mβ) (η : kernel mβ mγ) : kernel mα mγ`: another composition, special case
+  of the first one. TODO name, obviously.
+  `∫⁻ c, g c ∂(comp2 κ η a) = ∫⁻ b, ∫⁻ c, g c ∂(η b) ∂(κ a)`
 
 ## Main statements
 
-* `foo_bar_unique`
+* `ext_fun`: if `∫⁻ b, f b ∂(κ a) = ∫⁻ b, f b ∂(η a)` for all measurable functions `f`, then the
+  two kernels `κ` and `η` are equal.
+
+* `measurable_lintegral`: the function `λ a, ∫⁻ b, f a b ∂(κ a)` is measurable, for an s-finite
+  kernel `κ` and a function `f` such that `function.uncurry f` is measurable.
+
+* `lintegral_comp`: `∫⁻ bc, f bc.1 bc.2 ∂(comp κ η a) = ∫⁻ b, ∫⁻ c, f b c ∂(η (a, b)) ∂(κ a)`.
+* `is_finite_kernel.comp`
+* `is_s_finite_kernel.comp`
+
+## TODO
+
+* Introduce σ-finite kernels, if/when the need arises.
 
 -/
 
@@ -25,11 +63,9 @@ open_locale measure_theory ennreal big_operators
 
 namespace measure_theory
 
-variables {α β γ δ ι : Type*}
-  {mα : measurable_space α} {μα : measure α}
-  {mβ : measurable_space β} {μβ : measure β}
-  {mγ : measurable_space γ} {μγ : measure γ}
-  {mδ : measurable_space δ} {μδ : measure δ}
+variables {α β γ δ ι : Type*} {mα : measurable_space α} {mβ : measurable_space β}
+  {mγ : measurable_space γ} {mδ : measurable_space δ}
+  {μβ : measure β}
 
 instance measure.has_measurable_add₂ {m : measurable_space β} : has_measurable_add₂ (measure β) :=
 begin
@@ -40,6 +76,7 @@ begin
   { exact (measure.measurable_coe hs).comp measurable_snd, },
 end
 
+/-- Measurable functions `α → measure β`. -/
 def kernel (mα : measurable_space α) (mβ : measurable_space β) :
   add_submonoid (α → measure β) :=
 { carrier := measurable, -- ∀ s : set β, measurable_set[mβ] s → measurable[mα] (λ a, κ a s)
@@ -64,6 +101,8 @@ class is_markov_kernel (κ : kernel mα mβ) : Prop :=
 class is_finite_kernel (κ : kernel mα mβ) : Prop :=
 (exists_univ_le : ∃ C : ℝ≥0∞, C < ∞ ∧ ∀ a, κ a set.univ ≤ C)
 
+/-- A constant `C : ℝ≥0∞` such that `C < ∞` (`is_finite_kernel.bound_lt_top κ`) and for all
+`a : α` and `s : set β`, `κ a s ≤ C` (`measure_le_bound κ a s`). -/
 noncomputable
 def is_finite_kernel.bound (κ : kernel mα mβ) [h : is_finite_kernel κ] : ℝ≥0∞ :=
 h.exists_univ_le.some
@@ -161,18 +200,20 @@ lemma is_markov_kernel_const [hμβ : is_probability_measure μβ] :
   is_markov_kernel (const mα mβ μβ) :=
 ⟨λ a, hμβ⟩
 
+/-- In a countable space with measurable singletons, every function `α → measure β` defines a
+kernel. -/
 def of_fun_of_countable (mα : measurable_space α) (mβ : measurable_space β)
   [countable α] [measurable_singleton_class α] (f : α → measure β) :
   kernel mα mβ :=
 { val := f,
   property := measurable_of_countable f }
 
-lemma lintegral_indicator' {mβ : measurable_space β} {f : α → β} {s : set β}
-  (hf : measurable f) (hs : measurable_set s) (c : ℝ≥0∞) :
-  ∫⁻ a, s.indicator (λ _, c) (f a) ∂μα = c * μα (f ⁻¹' s) :=
+lemma lintegral_indicator' {mα : measurable_space α} {μ : measure α} {mβ : measurable_space β}
+  {f : α → β} {s : set β} (hf : measurable f) (hs : measurable_set s) (c : ℝ≥0∞) :
+  ∫⁻ a, s.indicator (λ _, c) (f a) ∂μ = c * μ (f ⁻¹' s) :=
 begin
   rw ← lintegral_add_compl _ (hf hs),
-  rw ← add_zero (c * μα (f ⁻¹' s)),
+  rw ← add_zero (c * μ (f ⁻¹' s)),
   classical,
   simp_rw [set.indicator_apply],
   congr,
@@ -202,6 +243,7 @@ end
 
 section sum
 
+/-- Sum of an indexed family of kernels. -/
 protected noncomputable
 def sum [countable ι] (κ : ι → kernel mα mβ) : kernel mα mβ :=
 { val := λ a, measure.sum (λ n, κ n a),
@@ -268,6 +310,8 @@ instance is_finite_kernel.is_s_finite_kernel [h : is_finite_kernel κ] : is_s_fi
     rw [this, tsum_ite_eq],
   end⟩⟩
 
+/-- A sequence of finite kernels such that `κ = kernel.sum (seq κ)`. See `is_finite_kernel_seq`
+and `kernel_sum_seq`. -/
 noncomputable
 def seq (κ : kernel mα mβ) [h : is_s_finite_kernel κ] :
   ℕ → kernel mα mβ :=
@@ -356,6 +400,7 @@ end
 
 section restrict
 
+/-- Restriction of a kernel to a set. -/
 protected noncomputable
 def restrict (κ : kernel mα mβ) {s : set β} (hs : measurable_set s) : kernel mα mβ :=
 { val := λ a, (κ a).restrict s,
@@ -520,6 +565,8 @@ by { simp_rw ← lintegral_restrict κ hs, exact measurable_lintegral _ _ hf }
 
 section with_density
 
+/-- Kernel with image `(κ a).with_density (f a)`. It verifies
+`∫⁻ b, g b ∂(with_density κ f hf a) = ∫⁻ b, f a b * g b ∂(κ a)`. -/
 noncomputable
 def with_density (κ : kernel mα mβ) [is_s_finite_kernel κ]
   (f : α → β → ℝ≥0∞) (hf : measurable (function.uncurry f)) :
@@ -563,6 +610,7 @@ section composition
 ### Composition of kernels
  -/
 
+/-- Auxiliary function for the definition of the composition of two kernels. -/
 noncomputable
 def comp_fun (κ : kernel mα mβ) (η : kernel (mα.prod mβ) mγ) (a : α) (s : set (β × γ)) : ℝ≥0∞ :=
 ∫⁻ b, η (a, b) {c | (b, c) ∈ s} ∂κ a
@@ -662,14 +710,7 @@ begin
   exact measurable_lintegral κ (λ a b, seq η n (a, b) {c : γ | (b, c) ∈ s}) h_meas,
 end
 
-/-- Composition of kernels.
-
-TODO update this:
-About assumptions: the hypothesis `[is_finite_kernel κ]` could be replaced by
-`∀ a, is_finite_measure (κ a)` to define the composition (same for `η`). This would be a weaker
-hypothesis since it removes the uniform bound assumption of `is_finite_kernel`. However, that second
-property is not stable by composition, in contrast to `is_finite_kernel`. Hence we choose to use the
-typeclass with an uniform bound on `κ a univ`. -/
+/-- Composition of kernels. -/
 noncomputable
 def comp (κ : kernel mα mβ) [is_s_finite_kernel κ]
   (η : kernel (mα.prod mβ) mγ) [is_s_finite_kernel η] :
@@ -838,6 +879,7 @@ end composition
 section map_comap
 /-! ### map, comap and another composition -/
 
+/-- The pushforward of a kernel. -/
 noncomputable
 def map (κ : kernel mα mβ) (f : β → γ) (hf : measurable f) :
   kernel mα mγ :=

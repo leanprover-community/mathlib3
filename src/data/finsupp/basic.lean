@@ -1076,12 +1076,12 @@ f.sum $ λp c, single p.1 (single p.2 c)
 @[simp] lemma curry_apply (f : (α × β) →₀ M) (x : α) (y : β) :
   f.curry x y = f (x, y) :=
 begin
-  have : ∀ (b : α × β), single b.fst (single b.snd (f b)) x y = if b = (x, y) then f b else 0,
+  have : ∀ (b : α × β), single b.fst (single b.snd (f b)) x y = if (x, y) = b then f b else 0,
   { rintros ⟨b₁, b₂⟩,
     simp [single_apply, ite_apply, prod.ext_iff, ite_and],
     split_ifs; simp [single_apply, *] },
   rw [finsupp.curry, sum_apply, sum_apply, finsupp.sum, finset.sum_eq_single, this, if_pos rfl],
-  { intros b hb b_ne, rw [this b, if_neg b_ne] },
+  { intros b hb b_ne, rw [this b, if_neg b_ne.symm] },
   { intros hxy, rw [this (x, y), if_pos rfl, not_mem_support_iff.mp hxy] }
 end
 

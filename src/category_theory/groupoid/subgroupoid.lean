@@ -569,8 +569,8 @@ end
 /-- The isotropy subgroupoid of `S` -/
 def disconnect : subgroupoid C :=
 { arrows := λ c d f, c = d ∧ f ∈ S.arrows c d,
-  inv := by { rintros _ _ _ ⟨rfl,h⟩, exact ⟨rfl, S.inv h⟩, },
-  mul := by { rintros _ _ _ _ ⟨rfl,h⟩ _ ⟨rfl,h'⟩, exact ⟨rfl, S.mul h h'⟩, } }
+  inv := by { rintros _ _ _ ⟨rfl, h⟩, exact ⟨rfl, S.inv h⟩, },
+  mul := by { rintros _ _ _ _ ⟨rfl, h⟩ _ ⟨rfl, h'⟩, exact ⟨rfl, S.mul h h'⟩, } }
 
 lemma disconnect_le : S.disconnect ≤ S :=
 by { rw le_iff, rintros _ _ _ ⟨⟩, assumption, }

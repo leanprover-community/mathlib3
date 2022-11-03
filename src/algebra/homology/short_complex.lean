@@ -278,6 +278,12 @@ the type `homology_full_data S` is not empty. -/
 class has_homology : Prop :=
 (cond [] : nonempty (homology_full_data S))
 
+variable {S}
+lemma has_homology.mk' (h : homology_full_data S) : has_homology S :=
+⟨nonempty.intro h⟩
+
+variable (S)
+
 /-- A choice of term of type `homology_full_data S` when `[has_homology S]`. -/
 def some_homology_full_data [has_homology S] :
   homology_full_data S := (has_homology.cond S).some
@@ -285,6 +291,142 @@ def some_homology_full_data [has_homology S] :
 /-- The homology of `S` is definition by taking the `H` field of
 `S.some_homology_full_data`. -/
 def homology [has_homology S] : C := S.some_homology_full_data.H
+
+namespace homology_full_data
+
+/-- to be moved -/
+@[simps]
+def kernel_zero {X Y : C} (f : X ⟶ Y) (hf : f = 0) :
+  is_limit (kernel_fork.of_ι (𝟙 X) (show 𝟙 X ≫ f = 0, by rw [hf, comp_zero])) :=
+kernel_fork.is_limit.of_ι _ _ (λ A x hx, x) (λ A x hx, comp_id _)
+  (λ A x hx b hb, by rw [← hb, comp_id])
+
+/-- to be moved -/
+@[simps]
+def cokernel_zero {X Y : C} (f : X ⟶ Y) (hf : f = 0) :
+  is_colimit (cokernel_cofork.of_π (𝟙 Y) (show f ≫ 𝟙 Y = 0, by rw [hf, zero_comp])) :=
+cokernel_cofork.is_colimit.of_π _ _ (λ A x hx, x) (λ A x hx, id_comp _)
+  (λ A x hx b hb, by rw [← hb, id_comp])
+
+/-- When the second morphism in a short complex is zero, and the first morphism
+has a colimit cokernel cofork, then there is a `homology_full_data` expressing that the homology
+is given by this cokernel. -/
+@[simp]
+def of_colimit_cokernel_cofork (c : cokernel_cofork S.f) (hc : is_colimit c) (hg : S.g = 0) :
+  S.homology_full_data :=
+{ K := S.X₂,
+  Q := c.X,
+  H := c.X,
+  i := 𝟙 S.X₂,
+  p := c.π,
+  π := c.π,
+  ι := 𝟙 c.X,
+  π_ι := by rw [comp_id, id_comp],
+  hi₀ := by rw [hg, comp_zero],
+  hp₀ := cokernel_cofork.condition _,
+  hi := kernel_zero _ hg,
+  hp := is_colimit.of_iso_colimit hc (cofork.ext (iso.refl _)
+    (by simpa only [iso.refl_hom, cokernel_cofork.π_of_π] using comp_id _)),
+  hπ₀ := cokernel_cofork.condition _,
+  hι₀ := begin
+    dsimp,
+    haveI := epi_of_is_colimit_cofork hc,
+    simp only [id_comp, hg, ← cancel_epi c.π,
+      cofork.is_colimit.π_desc, cofork.π_of_π, comp_zero],
+  end,
+  hπ := is_colimit.of_iso_colimit hc (cofork.ext (iso.refl _)
+    (by simpa only [iso.refl_hom, cokernel_cofork.π_of_π] using comp_id _)),
+  hι := kernel_zero _ begin
+    dsimp,
+    haveI := epi_of_is_colimit_cofork hc,
+    simp only [id_comp, hg, ← cancel_epi c.π,
+      cofork.is_colimit.π_desc, cofork.π_of_π, comp_zero],
+  end }
+
+/-- When the second morphism in a short complex is zero, and the first morphism
+has a cokernel, then there is a `homology_full_data` expressing that the homology
+is given by this cokernel. -/
+@[simp]
+def of_has_cokernel [has_cokernel S.f] (hg : S.g = 0) : S.homology_full_data :=
+of_colimit_cokernel_cofork S _ (cokernel_is_cokernel S.f) hg
+
+/-- When the first morphism in a short complex is zero, and the second morphism
+has a limit kernel fork, then there is a `homology_full_data` expressing that the homology
+is given by this kernel. -/
+@[simp]
+def of_limit_kernel_fork (k : kernel_fork S.g) (hk : is_limit k) (hf : S.f = 0) :
+  S.homology_full_data :=
+{ K := k.X,
+  Q := S.X₂,
+  H := k.X,
+  i := k.ι,
+  p := 𝟙 S.X₂,
+  π := 𝟙 k.X,
+  ι := k.ι,
+  π_ι := by rw [id_comp, comp_id],
+  hi₀ := kernel_fork.condition _,
+  hp₀ := by rw [hf, zero_comp],
+  hi := is_limit.of_iso_limit hk (fork.ext (iso.refl _)
+    (by simp only [iso.refl_hom, kernel_fork.ι_of_ι, id_comp])),
+  hp := cokernel_zero _ hf,
+  hπ₀ := begin
+    dsimp,
+    haveI := mono_of_is_limit_fork hk,
+    simp only [comp_id, hf, ← cancel_mono k.ι,
+      fork.is_limit.lift_ι, kernel_fork.ι_of_ι, zero_comp],
+  end,
+  hι₀ := kernel_fork.condition _,
+  hπ := cokernel_zero _ begin
+    dsimp,
+    haveI := mono_of_is_limit_fork hk,
+    simp only [comp_id, hf, ← cancel_mono k.ι,
+      fork.is_limit.lift_ι, kernel_fork.ι_of_ι, zero_comp],
+  end,
+  hι := is_limit.of_iso_limit hk (fork.ext (iso.refl _)
+    (by simp only [iso.refl_hom, kernel_fork.ι_of_ι, id_comp])), }
+
+/-- When the first morphism in a short complex is zero, and the second morphism
+has a kernel, then there is a `homology_full_data` expressing that the homology
+is given by this kernel. -/
+@[simp]
+def of_has_kernel [has_kernel S.g] (hf : S.f = 0) : S.homology_full_data :=
+of_limit_kernel_fork S _ (kernel_is_kernel S.g) hf
+
+/-- When both morphisms of a short complex are zero, there is a `homology_full_data`
+expressing that the homology is the middle object. -/
+@[simp]
+def of_zeros (hf : S.f = 0) (hg : S.g = 0) :
+  S.homology_full_data :=
+{ K := S.X₂,
+  Q := S.X₂,
+  H := S.X₂,
+  i := 𝟙 S.X₂,
+  p := 𝟙 S.X₂,
+  π := 𝟙 S.X₂,
+  ι := 𝟙 S.X₂,
+  π_ι := rfl,
+  hi₀ := by rw [hg, comp_zero],
+  hp₀ := by rw [hf, zero_comp],
+  hi := kernel_zero _ hg,
+  hp := cokernel_zero _ hf,
+  hπ₀ := by { dsimp, rw [comp_id, hf], },
+  hι₀ := by { dsimp, rw [id_comp, hg], },
+  hπ := cokernel_zero _ (by simp only [kernel_zero_lift, kernel_fork.ι_of_ι, hf]),
+  hι := kernel_zero _ (by simp only [cokernel_zero_desc, cokernel_cofork.π_of_π, hg]), }
+
+instance has_homology_of_has_cokernel {X Y Z : C} (f : X ⟶ Y) [has_cokernel f] :
+  has_homology (short_complex.mk f (0 : Y ⟶ Z) comp_zero) :=
+has_homology.mk' (of_has_cokernel _ rfl)
+
+instance has_homology_of_has_kernel  {X Y Z : C} (g : Y ⟶ Z) [has_kernel g] :
+  has_homology (short_complex.mk (0 : X ⟶ Y) g zero_comp) :=
+has_homology.mk' (of_has_kernel _ rfl)
+
+instance has_homology_of_zeros {X Y Z : C} :
+  has_homology (short_complex.mk (0 : X ⟶ Y) (0 : Y ⟶ Z) zero_comp) :=
+has_homology.mk' (of_zeros _ rfl rfl)
+
+end homology_full_data
 
 end short_complex
 
@@ -472,6 +614,8 @@ short_complex_with_homology'.hom.congr_φH
 
 variable (C)
 
+/-- We shall say that a category with homology is a category for which
+all short complexes have homology. -/
 abbreviation category_with_homology := ∀ (S : short_complex C), has_homology S
 
 /-- Assuming that all short complexes have homology, this is the homology functor. -/
@@ -601,7 +745,7 @@ instance category_with_homology_of_abelian [abelian C] : category_with_homology 
       cokernel.π_desc'], },
   let hι : is_limit (kernel_fork.of_ι ι hι₀) := is_limit.of_iso_limit (kernel_is_kernel _)
     (by { symmetry, exact fork.ext e he, }),
-  exact ⟨nonempty.intro ⟨K, Q, H, i, p, π, ι, π_ι, hi₀, hp₀, hi, hp, hπ₀, hι₀, hπ, hι⟩⟩,
+  exact has_homology.mk' ⟨K, Q, H, i, p, π, ι, π_ι, hi₀, hp₀, hi, hp, hπ₀, hι₀, hπ, hι⟩,
 end
 
 instance [abelian C] (S : short_complex C) : inhabited (S.homology_full_data) :=

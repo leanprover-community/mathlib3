@@ -151,6 +151,11 @@ additional fields of `pcomp`.
   with `elim_var` inserted.
 * The implicitly eliminated variables of `c1 + c2` are those that appear in
   `vars` but not `c.vars` or `effective`.
+(Note that the description of the implicitly eliminated variables of `c1 + c2` in the algorithm
+described in Section 6 of https://doi.org/10.1016/B978-0-444-88771-9.50019-2 seems to be wrong:
+that says it should be `(c1.implicit.union c2.implicit).sdiff explicit`.
+Since the implicitly eliminated sets start off empty for the assumption,
+this formula would leave them always empty.)
 -/
 meta def pcomp.add (c1 c2 : pcomp) (elim_var : ℕ) : pcomp :=
 let c := c1.c.add c2.c,

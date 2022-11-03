@@ -399,7 +399,7 @@ instance frobenius_normed_star_group [star_add_monoid α] [normed_star_group α]
 @[simp] lemma frobenius_norm_row (v : m → α) : ∥row v∥ = ∥(pi_Lp.equiv 2 _).symm v∥ :=
 begin
   rw [frobenius_norm_def, fintype.sum_unique, pi_Lp.norm_eq_of_L2, real.sqrt_eq_rpow],
-  simp only [row_apply, real.rpow_two, pi_Lp.equiv_symm_apply'],
+  simp only [row_apply, real.rpow_two, pi_Lp.equiv_symm_apply],
 end
 @[simp] lemma frobenius_nnnorm_row (v : m → α) : ∥row v∥₊ = ∥(pi_Lp.equiv 2 _).symm v∥₊ :=
 subtype.ext $ frobenius_norm_row v
@@ -407,7 +407,7 @@ subtype.ext $ frobenius_norm_row v
 @[simp] lemma frobenius_norm_col (v : n → α) : ∥col v∥ = ∥(pi_Lp.equiv 2 _).symm v∥ :=
 begin
   simp_rw [frobenius_norm_def, fintype.sum_unique, pi_Lp.norm_eq_of_L2, real.sqrt_eq_rpow],
-  simp only [col_apply, real.rpow_two, pi_Lp.equiv_symm_apply']
+  simp only [col_apply, real.rpow_two, pi_Lp.equiv_symm_apply]
 end
 @[simp] lemma frobenius_nnnorm_col (v : n → α) : ∥col v∥₊ = ∥(pi_Lp.equiv 2 _).symm v∥₊ :=
 subtype.ext $ frobenius_norm_col v

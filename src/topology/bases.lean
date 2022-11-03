@@ -173,6 +173,11 @@ lemma is_topological_basis.open_eq_sUnion {B : set (set α)}
   ∃ S ⊆ B, u = ⋃₀ S :=
 ⟨{s ∈ B | s ⊆ u}, λ s h, h.1, hB.open_eq_sUnion' ou⟩
 
+lemma is_topological_basis.open_iff_eq_sUnion {B : set (set α)}
+  (hB : is_topological_basis B) {u : set α} :
+  is_open u ↔ ∃ S ⊆ B, u = ⋃₀ S :=
+⟨hB.open_eq_sUnion, λ ⟨S, hSB, hu⟩, hu.symm ▸ is_open_sUnion (λ s hs, hB.is_open (hSB hs))⟩
+
 lemma is_topological_basis.open_eq_Union {B : set (set α)}
   (hB : is_topological_basis B) {u : set α} (ou : is_open u) :
   ∃ (β : Type u) (f : β → set α), u = (⋃ i, f i) ∧ ∀ i, f i ∈ B :=

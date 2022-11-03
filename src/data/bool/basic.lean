@@ -5,6 +5,10 @@ Authors: Leonardo de Moura, Jeremy Avigad
 -/
 
 /-!
+THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+https://github.com/leanprover-community/mathlib4/pull/534
+Any changes to this file require a corresponding PR to mathlib4.
+
 # booleans
 
 This file proves various trivial lemmas about booleans and their

@@ -536,24 +536,18 @@ lemma map_domain_apply' (S : set α) {f : α → β} (x : α →₀ M)
 begin
   rw [map_domain, sum_apply, sum],
   simp_rw single_apply,
-  have : ∀ (b : α) (ha1 : b ∈ x.support),
-    (if f b = f a then x b else 0) = if f b = f a then x a else 0,
-  { intros b hb,
-    refine if_ctx_congr iff.rfl (λ hh, _) (λ _, rfl),
-    rw hf (hS hb) ha hh, },
-  conv in (ite _ _ _)
-  { rw [this _ H], },
-  by_cases ha : a ∈ x.support,
-  { rw [← finset.add_sum_erase _ _ ha, if_pos rfl],
+  by_cases hax : a ∈ x.support,
+  { rw [← finset.add_sum_erase _ _ hax, if_pos rfl],
     convert add_zero _,
-    have : ∀ i ∈ x.support.erase a, f i ≠ f a,
-    { intros i hi,
-      exact (finset.ne_of_mem_erase hi) ∘ (hf (hS $ finset.mem_of_mem_erase hi) (hS ha)), },
-    conv in (ite _ _ _)
-    { rw if_neg (this x H), },
-    exact finset.sum_const_zero, },
-  { rw [mem_support_iff, not_not] at ha,
-    simp [ha], }
+    apply finset.sum_eq_zero,
+    intros i hi,
+    refine if_neg _,
+    exact (hf.mono hS).ne hax (finset.mem_of_mem_erase hi) (finset.ne_of_mem_erase hi).symm, },
+  { rw not_mem_support_iff.1 hax,
+    apply finset.sum_eq_zero,
+    intros i hi,
+    refine if_neg _,
+    exact hf.ne ha (hS hi) (ne_of_mem_of_not_mem hi hax).symm }
 end
 
 lemma map_domain_support_of_inj_on [decidable_eq β] {f : α → β} (s : α →₀ M)

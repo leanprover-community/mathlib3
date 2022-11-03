@@ -317,11 +317,17 @@ variables [semiring k]
 local attribute [reducible] monoid_algebra
 
 lemma mul_apply [decidable_eq G] [has_mul G] (f g : monoid_algebra k G) (x : G) :
-  (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if a₁ * a₂ = x then b₁ * b₂ else 0) :=
+  (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if x = a₁ * a₂ then b₁ * b₂ else 0) :=
 begin
   rw [mul_def],
   simp only [finsupp.sum_apply, single_apply],
+  -- decidable issues
+  congr' with a₁ b₁,
+  congr' with a₂ b₂,
+  convert rfl,
 end
+
+#exit
 
 lemma mul_apply_antidiagonal [has_mul G] (f g : monoid_algebra k G) (x : G) (s : finset (G × G))
   (hs : ∀ {p : G × G}, p ∈ s ↔ p.1 * p.2 = x) :

@@ -483,7 +483,7 @@ begin
 end
 
 lemma eq_C_of_degree_eq_zero (h : degree p = 0) : p = C (coeff p 0) :=
-eq_C_of_degree_le_zero (h ▸ le_rfl)
+eq_C_of_degree_le_zero h.le
 
 lemma degree_le_zero_iff : degree p ≤ 0 ↔ p = C (coeff p 0) :=
 ⟨eq_C_of_degree_le_zero, λ h, h.symm ▸ degree_C_le⟩

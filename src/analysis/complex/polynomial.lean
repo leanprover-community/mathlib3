@@ -16,8 +16,7 @@ As a consequence, the complex numbers are algebraically closed.
 -/
 
 open complex polynomial metric filter set
-open_locale classical
-open_locale polynomial
+open_locale polynomial topological_space
 
 namespace complex
 
@@ -27,73 +26,53 @@ namespace complex
 /-- **Fundamental theorem of algebra**: every non constant complex polynomial
   has a root -/
 lemma exists_root {f : ℂ[X]} (hf : 0 < degree f) : ∃ z : ℂ, is_root f z :=
-let ⟨z₀, hz₀⟩ := f.exists_forall_norm_le in
-exists.intro z₀ $ classical.by_contradiction $ λ hf0,
-have hfX : f - C (f.eval z₀) ≠ 0,
-  from mt sub_eq_zero.1 (λ h, not_le_of_gt hf (h.symm ▸ degree_C_le)),
-let n := root_multiplicity z₀ (f - C (f.eval z₀)) in
-let g := (f - C (f.eval z₀)) /ₘ ((X - C z₀) ^ n) in
-have hg0 : g.eval z₀ ≠ 0, from eval_div_by_monic_pow_root_multiplicity_ne_zero _ hfX,
-have hg : g * (X - C z₀) ^ n = f - C (f.eval z₀),
-  from div_by_monic_mul_pow_root_multiplicity_eq _ _,
-have hn0 : n ≠ 0, from λ hn0, by simpa [g, hn0] using hg0,
-let ⟨δ', hδ'₁, hδ'₂⟩ := continuous_iff.1 (polynomial.continuous g) z₀
-  ((g.eval z₀).abs) (abs.pos hg0) in
-let δ := min (min (δ' / 2) 1) (((f.eval z₀).abs / (g.eval z₀).abs) / 2) in
-have hf0' : 0 < (f.eval z₀).abs, from abs.pos hf0,
-have hg0' : 0 < (eval z₀ g).abs, from abs.pos hg0,
-have hfg0 : 0 < (f.eval z₀).abs / abs (eval z₀ g), from div_pos hf0' hg0',
-have hδ0 : 0 < δ, from lt_min (lt_min (half_pos hδ'₁) (by norm_num)) (half_pos hfg0),
-have hδ : ∀ z : ℂ, abs (z - z₀) = δ → abs (g.eval z - g.eval z₀) < (g.eval z₀).abs,
-  from λ z hz, hδ'₂ z (by rw [complex.dist_eq, hz];
-    exact ((min_le_left _ _).trans (min_le_left _ _)).trans_lt (half_lt_self hδ'₁)),
-have hδ1 : δ ≤ 1, from le_trans (min_le_left _ _) (min_le_right _ _),
-let F : ℂ[X] := C (f.eval z₀) + C (g.eval z₀) * (X - C z₀) ^ n in
-let z' := (-f.eval z₀ * (g.eval z₀).abs * δ ^ n /
-  ((f.eval z₀).abs * g.eval z₀)) ^ (n⁻¹ : ℂ) + z₀ in
-have hF₁ : F.eval z' = f.eval z₀ - f.eval z₀ * (g.eval z₀).abs * δ ^ n / (f.eval z₀).abs,
-  by simp only [F, cpow_nat_inv_pow _ hn0, div_eq_mul_inv, eval_pow, mul_assoc,
-      mul_comm (g.eval z₀), mul_left_comm (g.eval z₀), mul_left_comm (g.eval z₀)⁻¹, mul_inv,
-      inv_mul_cancel hg0, eval_C, eval_add, eval_neg, sub_eq_add_neg, eval_mul, eval_X,
-      add_neg_cancel_right, neg_mul, mul_one, div_eq_mul_inv];
-    simp only [mul_comm, mul_left_comm, mul_assoc],
-have hδs : (g.eval z₀).abs * δ ^ n / (f.eval z₀).abs < 1,
-  from (div_lt_one hf0').2 $ (lt_div_iff' hg0').1 $
-  calc δ ^ n ≤ δ : pow_le_of_le_one (le_of_lt hδ0) hδ1 hn0
-         ... ≤ ((f.eval z₀).abs / (g.eval z₀).abs) / 2 : min_le_right _ _
-         ... < _ : half_lt_self (div_pos hf0' hg0'),
-have hF₂ : (F.eval z').abs = (f.eval z₀).abs - (g.eval z₀).abs * δ ^ n,
-  from calc (F.eval z').abs = (f.eval z₀ - f.eval z₀ * (g.eval z₀).abs
-    * δ ^ n / (f.eval z₀).abs).abs : congr_arg abs hF₁
-  ... = abs (f.eval z₀) * complex.abs (1 - (g.eval z₀).abs * δ ^ n /
-      (f.eval z₀).abs : ℝ) : by rw [←map_mul];
-        exact congr_arg complex.abs
-          (by simp only [mul_add, mul_assoc, div_eq_mul_inv, sub_eq_add_neg, of_real_add, mul_one,
-                         of_real_one, of_real_neg, of_real_mul, of_real_pow, of_real_inv, mul_neg])
-  ... = _ : by rw [complex.abs_of_nonneg (sub_nonneg.2 (le_of_lt hδs)),
-      mul_sub, mul_div_cancel' _ (ne.symm (ne_of_lt hf0')), mul_one],
-have hef0 : abs (eval z₀ g) * (eval z₀ f).abs ≠ 0,
-  from mul_ne_zero (abs.ne_zero hg0) (abs.ne_zero hf0),
-have hz'z₀ : abs (z' - z₀) = δ,
-  by simp only [z', mul_assoc, mul_left_comm _ (_ ^ n), mul_comm _ (_ ^ n), mul_comm (eval _ f).abs,
-                _root_.mul_div_cancel _ hef0, of_real_mul, neg_mul, neg_div, map_pow, abs_of_real,
-                add_sub_cancel, abs_cpow_inv_nat, absolute_value.map_neg, map_div₀, map_mul,
-                abs_abs, complex.abs_of_nonneg hδ0.le, real.pow_nat_rpow_nat_inv hδ0.le hn0],
-have hF₃ : (f.eval z' - F.eval z').abs < (g.eval z₀).abs * δ ^ n,
-  from calc (f.eval z' - F.eval z').abs
-      = (g.eval z' - g.eval z₀).abs * (z' - z₀).abs ^ n :
-        by rw [← eq_sub_iff_add_eq.1 hg, ←map_pow abs, ←map_mul, sub_mul];
-           simp only [eval_pow, eval_add, eval_mul, eval_C, eval_X, eval_neg, sub_eq_add_neg,
-                      add_assoc, neg_add_rev, add_neg_cancel_comm_assoc]
-  ... = (g.eval z' - g.eval z₀).abs * δ ^ n : by rw hz'z₀
-  ... < _ : (mul_lt_mul_right (pow_pos hδ0 _)).2 (hδ _ hz'z₀),
-lt_irrefl (f.eval z₀).abs $
-  calc (f.eval z₀).abs ≤ (f.eval z').abs : hz₀ _
-    ... = (F.eval z' + (f.eval z' - F.eval z')).abs : by simp
-    ... ≤ (F.eval z').abs + (f.eval z' - F.eval z').abs : abs.add_le _ _
-    ... < (f.eval z₀).abs - (g.eval z₀).abs * δ ^ n + (g.eval z₀).abs * δ ^ n :
-      add_lt_add_of_le_of_lt (by rw hF₂) hF₃
-    ... = (f.eval z₀).abs : sub_add_cancel _ _
+begin
+  /- Choose a global minimum `z₀` of `∥f z∥`. -/
+  refine f.exists_forall_norm_le.imp (λ z₀ hz₀, by_contra $ λ (hf0 : eval z₀ f ≠ 0), _),
+  /- Represent `f` as `g * (X - C z₀) ^ k + C a`. -/
+  obtain ⟨a, k, g, ha0, hk0, hg0, rfl⟩ :
+    ∃ (a : ℂ) (k : ℕ) (g : ℂ[X]), a ≠ 0 ∧ 0 < k ∧ eval z₀ g ≠ 0 ∧ g * (X - C z₀) ^ k + C a = f,
+  { set a := f.eval z₀,
+    set n := root_multiplicity z₀ (f - C a),
+    have hfa : f - C a ≠ 0, from mt sub_eq_zero.1 (λ h, hf.not_le (h.symm ▸ degree_C_le)),
+    refine ⟨a, n, (f - C a) /ₘ ((X - C z₀) ^ n), hf0, (root_multiplicity_pos hfa).2 _, _, _⟩,
+    { rw [is_root, eval_sub, eval_C, sub_self] },
+    { exact eval_div_by_monic_pow_root_multiplicity_ne_zero _ hfa },
+    { exact eq_sub_iff_add_eq.1 (div_by_monic_mul_pow_root_multiplicity_eq _ _) } },
+  clear hf0 hf,
+  /- Choose `k`-th root of $-\frac{a}{g(z_0)}$. -/
+  obtain ⟨w, hw⟩ : ∃ w, w ^ k = -a / eval z₀ g, from ⟨_, cpow_nat_inv_pow _ hk0.ne'⟩,
+  /- It suffices to show that $∥f(z₀+εw)∥ < ∥f(z₀)∥$ for sufficiently small positive `ε`. We
+  substitute `f = g * (X - C z₀) ^ k + C a` and reorder terms in this inequality. -/
+  suffices : ∀ᶠ ε : ℝ in 𝓝[>] 0,
+    abs (1 - ε ^ k + ε ^ k * ((eval z₀ g - eval (z₀ + ε * w) g) / eval z₀ g)) < 1,
+  { rcases this.exists with ⟨ε, hε⟩,
+    rw [← mul_lt_mul_left (abs.pos ha0), ← map_mul, mul_one] at hε,
+    refine hε.not_le _,
+    convert hz₀ (z₀ + ε * w),
+    { rw [eval_add, eval_mul, eval_pow, eval_sub, eval_X, eval_C, eval_C, sub_self, zero_pow hk0,
+        mul_zero, zero_add] },
+    { rw [eval_add, eval_C, eval_mul, eval_pow, eval_sub, eval_X, eval_C, add_sub_cancel', mul_pow,
+        hw, sub_div, div_self hg0, div_eq_mul_inv, div_eq_mul_inv],
+      ring } },
+  /- Since `g` is continuous, the fraction `(eval z₀ g - eval (z₀ + ↑ε * w) g) / eval z₀ g` tends
+  to zero as `ε → 0`. -/
+  have hg : tendsto (λ ε : ℝ, ∥(eval z₀ g - eval (z₀ + ↑ε * w) g) / eval z₀ g∥) (𝓝 0) (𝓝 0),
+  { refine (continuous_const.sub _).div_const.norm.tendsto' _ _ _,
+    { exact g.continuous.comp (continuous_const.add $ continuous_of_real.mul continuous_const) },
+    { simp } },
+  /- Choose `ε ∈ (0, 1)` such that `(eval z₀ g - eval (z₀ + ↑ε * w) g) / eval z₀ g` has norm less
+  than one. It is easy to see that $∥f (z₀ + εw)∥ < ∥f(z₀)∥$. -/
+  filter_upwards [(hg.eventually $ gt_mem_nhds one_pos).filter_mono nhds_within_le_nhds,
+    Ioo_mem_nhds_within_Ioi (left_mem_Ico.2 (zero_lt_one' ℝ))] with ε hgε hε,
+  refine (abs.add_le _ _).trans_lt _,
+  have hε0 : 0 < ε ^ k, from pow_pos hε.1 k,
+  have hε1 : ε ^ k < 1, from pow_lt_one hε.1.le hε.2 hk0.ne',
+  rw [← of_real_pow, ← of_real_one, ← of_real_sub, abs_of_real, abs_of_pos (sub_pos.2 hε1),
+    sub_add_eq_add_sub, add_sub_assoc, add_lt_iff_neg_left, sub_lt_zero, map_mul, abs_of_real,
+    abs_of_pos hε0],
+  exact mul_lt_of_lt_one_right hε0 hgε
+end
 
 instance is_alg_closed : is_alg_closed ℂ :=
 is_alg_closed.of_exists_root _ $ λ p _ hp, complex.exists_root $ degree_pos_of_irreducible hp

@@ -115,7 +115,7 @@ begin
   obtain ⟨r, rpos, hr⟩ : ∃ (r : ℝ) (hi : 0 < r), closed_ball x r ⊆ mul_support f,
     from nhds_basis_closed_ball.mem_iff.1 this,
   have : is_compact (closed_ball x r),
-    from compact_of_is_closed_subset hf is_closed_ball (hr.trans (subset_mul_tsupport _)),
+    from is_compact_of_is_closed_subset hf is_closed_ball (hr.trans (subset_mul_tsupport _)),
   exact finite_dimensional_of_is_compact_closed_ball 𝕜 rpos this,
 end
 
@@ -352,7 +352,7 @@ variables [topological_space G] [topological_add_group G] [borel_space G]
 lemma has_compact_support.convolution_exists_at {x₀ : G}
   (h : has_compact_support (λ t, L (f t) (g (x₀ - t)))) (hf : locally_integrable f μ)
   (hg : continuous g) : convolution_exists_at f g x₀ L μ :=
-((((homeomorph.neg G).trans $ homeomorph.add_right x₀).compact_preimage.mpr h).bdd_above_image
+((((homeomorph.neg G).trans $ homeomorph.add_right x₀).is_compact_preimage.mpr h).bdd_above_image
   hg.norm.continuous_on).convolution_exists_at' L is_closed_closure.measurable_set subset_closure
   (hf h) hf.ae_strongly_measurable hg.ae_strongly_measurable
 
@@ -549,7 +549,7 @@ variables [topological_add_group G]
 
 lemma has_compact_support.convolution [t2_space G] (hcf : has_compact_support f)
   (hcg : has_compact_support g) : has_compact_support (f ⋆[L, μ] g) :=
-compact_of_is_closed_subset (hcg.is_compact.add hcf) is_closed_closure $ closure_minimal
+is_compact_of_is_closed_subset (hcg.is_compact.add hcf) is_closed_closure $ closure_minimal
   ((support_convolution_subset_swap L).trans $ add_subset_add subset_closure subset_closure)
   (hcg.is_compact.add hcf).is_closed
 
@@ -1481,6 +1481,55 @@ begin
     exact ih n L hgs (hg n) }
 end
 
+lemma continuous_linear_equiv.prod_symm {R₁ : Type*} [semiring R₁] {M₁ : Type*}
+  [topological_space M₁] [add_comm_monoid M₁] {M₂ : Type uG} [topological_space M₂]
+  [add_comm_monoid M₂]
+  {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃] {M₄ : Type*} [topological_space M₄]
+  [add_comm_monoid M₄] [module R₁ M₁] [module R₁ M₂] [module R₁ M₃] [module R₁ M₄]
+  (e : M₁ ≃L[R₁] M₂) (e' : M₃ ≃L[R₁] M₄) :
+  (e.prod e').symm = e.symm.prod e'.symm :=
+rfl
+
+namespace continuous_linear_equiv
+
+variables {U V : Type*} [normed_add_comm_group U] [normed_add_comm_group V]
+[complete_space U] [normed_space ℝ U] [complete_space V] [normed_space ℝ V]
+[normed_space 𝕜 U] [normed_space 𝕜 V]
+
+lemma integral_comp_comm {α : Type*} {m : measurable_space α} {μ : measure α}
+  (L : U ≃L[𝕜] V) (φ : α → U) : ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
+L.to_continuous_linear_map.integral_comp_comm' L.antilipschitz _
+
+end continuous_linear_equiv
+
+instance ulift.uniform_space {α : Type*} [uniform_space α] : uniform_space (ulift α) :=
+uniform_space.comap ulift.down ‹_›
+
+universes u1 u2
+
+def uniform_equiv.ulift {α : Type*} [uniform_space α] : ulift.{u1 u2} α ≃ᵤ α :=
+{ uniform_continuous_to_fun := uniform_continuous_comap,
+  uniform_continuous_inv_fun := begin
+    have hf : uniform_inducing (@equiv.ulift.{u1 u2} α).to_fun, from ⟨rfl⟩,
+    simp_rw [hf.uniform_continuous_iff],
+    exact uniform_continuous_id,
+  end,
+  .. equiv.ulift }
+
+instance ulift.complete_space {α : Type*} [uniform_space α] [h : complete_space α] :
+  complete_space (ulift.{u1 u2} α) :=
+begin
+  have A : uniform_embedding (@equiv.ulift α), from ⟨⟨rfl⟩, ulift.down_injective⟩,
+  exact (complete_space_congr A).2 h,
+end
+
+def continuous_linear_map.ulift : ulift E ≃L[𝕜] E :=
+{ map_add' := λ x y, rfl,
+  map_smul' := λ c x, rfl,
+  continuous_to_fun := continuous_ulift_down,
+  continuous_inv_fun := continuous_ulift_up,
+  .. equiv.ulift }
+→*
 lemma cont_diff_convolution_right_with_param
   {f : G → E} {n : ℕ∞} (L : E →L[𝕜] E' →L[𝕜] F)
   {g : P × G → E'}
@@ -1489,70 +1538,64 @@ lemma cont_diff_convolution_right_with_param
   (hf : locally_integrable f μ) (hg : cont_diff_on 𝕜 n g (s ×ˢ univ)) :
   cont_diff_on 𝕜 n (λ (q : P × G), (f ⋆[L, μ] (λ (x : G), g (q.1, x))) q.2) (s ×ˢ univ) :=
 begin
-  let M : Type (max uG uE' uF uP) := sorry,
-  letI : normed_add_comm_group M := sorry,
-  letI : normed_space 𝕜 M := sorry,
-  let eG := continuous_multilinear_map 𝕜 (λ (i : fin 0), M) G,
-  letI : normed_add_comm_group eG := by apply_instance,
-  letI : normed_space 𝕜 eG := by apply_instance,
+  let eG : Type (max uG uE' uF uP) := ulift G,
   borelize eG,
-  let eE' := continuous_multilinear_map 𝕜 (λ (i : fin 0), M) E',
-  letI : normed_add_comm_group eE' := by apply_instance,
-  letI : normed_space 𝕜 eE' := by apply_instance,
-  let eF := continuous_multilinear_map 𝕜 (λ (i : fin 0), M) F,
-  letI : normed_add_comm_group eF := by apply_instance,
-  letI : normed_space 𝕜 eF := by apply_instance,
-  let eP := continuous_multilinear_map 𝕜 (λ (i : fin 0), M) P,
-  letI : normed_add_comm_group eP := by apply_instance,
-  letI : normed_space 𝕜 eP := by apply_instance,
-  let isoG : eG ≃L[𝕜] G := continuous_multilinear_curry_fin0 𝕜 M G,
-  let isoE' : eE' ≃L[𝕜] E' := continuous_multilinear_curry_fin0 𝕜 M E',
-  let isoF : eF ≃L[𝕜] F := continuous_multilinear_curry_fin0 𝕜 M F,
-  let isoP : eP ≃L[𝕜] P := continuous_multilinear_curry_fin0 𝕜 M P,
+  let eE' : Type (max uE' uG uF uP) := ulift E',
+  let eF : Type (max uF uG uE' uP) := ulift F,
+  let eP : Type (max uP uG uE' uF) := ulift P,
+  have isoG : eG ≃L[𝕜] G := continuous_linear_map.ulift,
+  have isoE' : eE' ≃L[𝕜] E' := continuous_linear_map.ulift,
+  have isoF : eF ≃L[𝕜] F := continuous_linear_map.ulift,
+  have isoP : eP ≃L[𝕜] P := continuous_linear_map.ulift,
   let ef := f ∘ isoG,
   let eμ : measure eG := measure.map isoG.symm μ,
-  have hef : locally_integrable ef eμ,
-  { apply locally_integrable.comp,
-
-  }
+  haveI : sigma_finite eμ,
+  { apply isoG.symm.to_homeomorph.to_measurable_equiv.sigma_finite_map,
+    apply_instance },
+  haveI : is_add_left_invariant eμ,
+  { apply is_add_left_invariant_map, },
+  let eg := isoE'.symm ∘ g ∘ (isoP.prod isoG),
+  let eL := continuous_linear_map.comp
+    ((continuous_linear_equiv.arrow_congr isoE' isoF).symm : (E' →L[𝕜] F) →L[𝕜] eE' →L[𝕜] eF) L,
+  let R := (λ (q : eP × eG), (ef ⋆[eL, eμ] (λ (x : eG), eg (q.1, x))) q.2),
+  have R_contdiff : cont_diff_on 𝕜 n R ((isoP ⁻¹' s) ×ˢ univ),
+  { have hek : is_compact (isoG ⁻¹' k),
+      from isoG.to_homeomorph.closed_embedding.is_compact_preimage hk,
+    have hes : is_open (isoP ⁻¹' s), from isoP.continuous.is_open_preimage _ hs,
+    refine cont_diff_convolution_right_with_param_aux eL hes hek _ _ _,
+    { assume p x hp hx,
+      simp only [comp_app, continuous_linear_equiv.prod_apply, linear_isometry_equiv.coe_coe,
+        continuous_linear_equiv.map_eq_zero_iff],
+      exact hgs _ _ hp hx },
+    { sorry },
+    { apply isoE'.symm.cont_diff.comp_cont_diff_on,
+      apply hg.comp (continuous_linear_equiv.cont_diff _).cont_diff_on,
+      rintros ⟨p, x⟩ ⟨hp, hx⟩,
+      simpa only [mem_preimage, continuous_linear_equiv.prod_apply, prod_mk_mem_set_prod_eq,
+        mem_univ, and_true] using hp } },
+  have A : cont_diff_on 𝕜 n (isoF ∘ R ∘ (isoP.prod isoG).symm) (s ×ˢ univ),
+  { apply isoF.cont_diff.comp_cont_diff_on,
+    apply R_contdiff.comp (continuous_linear_equiv.cont_diff _).cont_diff_on,
+    rintros ⟨p, x⟩ ⟨hp, hx⟩,
+    simpa only [mem_preimage, mem_prod, mem_univ, and_true, continuous_linear_equiv.prod_symm,
+      continuous_linear_equiv.prod_apply, continuous_linear_equiv.apply_symm_apply] using hp },
+  have : isoF ∘ R ∘ (isoP.prod isoG).symm =
+    (λ (q : P × G), (f ⋆[L, μ] (λ (x : G), g (q.1, x))) q.2),
+  { apply funext,
+    rintros ⟨p, x⟩,
+    simp only [R, linear_isometry_equiv.coe_coe, comp_app, continuous_linear_equiv.prod_symm,
+      continuous_linear_equiv.prod_apply],
+    simp only [convolution, eL, coe_comp', continuous_linear_equiv.coe_coe, comp_app, eμ],
+    rw [closed_embedding.integral_map, ← isoF.integral_comp_comm],
+    swap, { exact isoG.symm.to_homeomorph.closed_embedding },
+    congr' 1,
+    ext1 a,
+    simp only [ef, eg, comp_app, continuous_linear_equiv.apply_symm_apply, coe_comp',
+      continuous_linear_equiv.prod_apply, continuous_linear_equiv.map_sub,
+      continuous_linear_equiv.arrow_congr, continuous_linear_equiv.arrow_congrSL_symm_apply,
+      continuous_linear_equiv.coe_coe, comp_app, continuous_linear_equiv.apply_symm_apply] },
+  simp_rw [this] at A,
+  exact A,
 end
 
 end with_param
-
-#exit
-
-  let M := G × E' × F × P,
-
-
-  let Eu := continuous_multilinear_map 𝕜 (λ (i : fin 0), (E × F × G)) E,
-  letI : normed_add_comm_group Eu := by apply_instance,
-  letI : normed_space 𝕜 Eu := by apply_instance,
-  let Fu := continuous_multilinear_map 𝕜 (λ (i : fin 0), (E × F × G)) F,
-  letI : normed_add_comm_group Fu := by apply_instance,
-  letI : normed_space 𝕜 Fu := by apply_instance,
-  let Gu := continuous_multilinear_map 𝕜 (λ (i : fin 0), (E × F × G)) G,
-  letI : normed_add_comm_group Gu := by apply_instance,
-  letI : normed_space 𝕜 Gu := by apply_instance,
-  -- declare the isomorphisms
-  let isoE : Eu ≃L[𝕜] E := continuous_multilinear_curry_fin0 𝕜 (E × F × G) E,
-  let isoF : Fu ≃L[𝕜] F := continuous_multilinear_curry_fin0 𝕜 (E × F × G) F,
-  let isoG : Gu ≃L[𝕜] G := continuous_multilinear_curry_fin0 𝕜 (E × F × G) G,
-  -- lift the functions to the new spaces, check smoothness there, and then go back.
-  let fu : Eu → Fu := (isoF.symm ∘ f) ∘ isoE,
-  have fu_diff : cont_diff_on 𝕜 n fu (isoE ⁻¹' s),
-    by rwa [isoE.cont_diff_on_comp_iff, isoF.symm.comp_cont_diff_on_iff],
-  let gu : Fu → Gu := (isoG.symm ∘ g) ∘ isoF,
-  have gu_diff : cont_diff_on 𝕜 n gu (isoF ⁻¹' t),
-    by rwa [isoF.cont_diff_on_comp_iff, isoG.symm.comp_cont_diff_on_iff],
-  have main : cont_diff_on 𝕜 n (gu ∘ fu) (isoE ⁻¹' s),
-  { apply cont_diff_on.comp_same_univ gu_diff fu_diff,
-    assume y hy,
-    simp only [fu, continuous_linear_equiv.coe_apply, function.comp_app, mem_preimage],
-    rw isoF.apply_symm_apply (f (isoE y)),
-    exact st hy },
-  have : gu ∘ fu = (isoG.symm ∘ (g ∘ f)) ∘ isoE,
-  { ext y,
-    simp only [function.comp_apply, gu, fu],
-    rw isoF.apply_symm_apply (f (isoE y)) },
-  rwa [this, isoE.cont_diff_on_comp_iff, isoG.symm.comp_cont_diff_on_iff] at main
-end

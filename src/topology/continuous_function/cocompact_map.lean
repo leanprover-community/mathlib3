@@ -22,7 +22,7 @@ open filter set
 tends to the cocompact filter along the cocompact filter. Functions for which preimages of compact
 sets are compact always satisfy this property, and the converse holds for cocompact continuous maps
 when the codomain is Hausdorff (see `cocompact_map.tendsto_of_forall_preimage` and
-`cocompact_map.compact_preimage`).
+`cocompact_map.is_compact_preimage`).
 
 Cocompact maps thus generalise proper maps, with which they correspond when the codomain is
 Hausdorff. -/
@@ -119,13 +119,13 @@ lemma tendsto_of_forall_preimage {f : α → β} (h : ∀ s, is_compact s → is
 
 /-- If the codomain is Hausdorff, preimages of compact sets are compact under a cocompact
 continuous map. -/
-lemma compact_preimage [t2_space β] (f : cocompact_map α β) ⦃s : set β⦄ (hs : is_compact s) :
+lemma is_compact_preimage [t2_space β] (f : cocompact_map α β) ⦃s : set β⦄ (hs : is_compact s) :
   is_compact (f ⁻¹' s) :=
 begin
   obtain ⟨t, ht, hts⟩ := mem_cocompact'.mp (by simpa only [preimage_image_preimage, preimage_compl]
     using mem_map.mp (cocompact_tendsto f $ mem_cocompact.mpr ⟨s, hs, compl_subset_compl.mpr
     (image_preimage_subset f _)⟩)),
-  exact compact_of_is_closed_subset ht (hs.is_closed.preimage $ map_continuous f)
+  exact is_compact_of_is_closed_subset ht (hs.is_closed.preimage $ map_continuous f)
     (by simpa using hts),
 end
 

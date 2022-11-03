@@ -109,7 +109,7 @@ instance paracompact_of_compact [compact_space X] : paracompact_space X :=
 begin
   -- the proof is trivial: we choose a finite subcover using compactness, and use it
   refine ⟨λ ι s ho hu, _⟩,
-  rcases compact_univ.elim_finite_subcover _ ho hu.ge with ⟨T, hT⟩,
+  rcases is_compact_univ.elim_finite_subcover _ ho hu.ge with ⟨T, hT⟩,
   have := hT, simp only [subset_def, mem_Union] at this,
   choose i hiT hi using λ x, this x (mem_univ x),
   refine ⟨(T : set ι), λ t, s t, λ t, ho _, _, locally_finite_of_finite _, λ t, ⟨t, subset.rfl⟩⟩,

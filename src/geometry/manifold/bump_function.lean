@@ -170,7 +170,7 @@ lemma c_mem_support : c ∈ support f := mem_of_mem_nhds f.support_mem_nhds
 
 lemma nonempty_support : (support f).nonempty := ⟨c, f.c_mem_support⟩
 
-lemma compact_symm_image_closed_ball :
+lemma is_compact_symm_image_closed_ball :
   is_compact ((ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I)) :=
 ((is_compact_closed_ball _ _).inter_right I.closed_range).image_of_continuous_on $
   (ext_chart_at_continuous_on_symm _ _).mono f.closed_ball_subset
@@ -257,7 +257,7 @@ lemma tsupport_subset_chart_at_source :
 by simpa only [ext_chart_at_source] using f.tsupport_subset_ext_chart_at_source
 
 protected lemma has_compact_support : has_compact_support f :=
-compact_of_is_closed_subset f.compact_symm_image_closed_ball is_closed_closure
+is_compact_of_is_closed_subset f.compact_symm_image_closed_ball is_closed_closure
  f.tsupport_subset_symm_image_closed_ball
 
 variables (I c)

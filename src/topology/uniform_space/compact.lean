@@ -210,7 +210,7 @@ lemma continuous_on.tendsto_uniformly [locally_compact_space α] [compact_space 
 begin
   rcases locally_compact_space.local_compact_nhds _ _ hxU with ⟨K, hxK, hKU, hK⟩,
   have : uniform_continuous_on ↿f (K ×ˢ univ),
-    from is_compact.uniform_continuous_on_of_continuous (hK.prod compact_univ)
+    from is_compact.uniform_continuous_on_of_continuous (hK.prod is_compact_univ)
       (h.mono $ prod_mono hKU subset.rfl),
   exact this.tendsto_uniformly hxK
 end

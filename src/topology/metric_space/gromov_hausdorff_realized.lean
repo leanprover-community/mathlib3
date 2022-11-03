@@ -258,7 +258,7 @@ begin
 end
 
 /-- Compactness of candidates (in bounded_continuous_functions) follows. -/
-private lemma compact_candidates_b : is_compact (candidates_b X Y) :=
+private lemma is_compact_candidates_b : is_compact (candidates_b X Y) :=
 begin
   refine arzela_ascoli₂ (Icc 0 (max_var X Y)) is_compact_Icc (candidates_b X Y)
   closed_candidates_b _ _,
@@ -428,7 +428,7 @@ variables (X : Type u) (Y : Type v) [metric_space X] [compact_space X] [nonempty
 we can finally select a candidate minimizing HD. This will be the candidate realizing the
 optimal coupling. -/
 private lemma exists_minimizer : ∃ f ∈ candidates_b X Y, ∀ g ∈ candidates_b X Y, HD f ≤ HD g :=
-compact_candidates_b.exists_forall_le candidates_b_nonempty HD_continuous.continuous_on
+is_compact_candidates_b.exists_forall_le candidates_b_nonempty HD_continuous.continuous_on
 
 private definition optimal_GH_dist : Cb X Y := classical.some (exists_minimizer X Y)
 

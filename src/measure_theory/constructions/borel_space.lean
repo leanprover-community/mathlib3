@@ -1309,7 +1309,7 @@ protected lemma is_finite_measure_on_compacts.map
   assume K hK,
   rw [measure.map_apply f.measurable hK.measurable_set],
   apply is_compact.measure_lt_top,
-  rwa f.compact_preimage
+  rwa f.is_compact_preimage
 end⟩
 
 end borel_space

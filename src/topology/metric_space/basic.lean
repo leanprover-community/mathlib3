@@ -1951,7 +1951,8 @@ export proper_space (is_compact_closed_ball)
 /-- In a proper pseudometric space, all spheres are compact. -/
 lemma is_compact_sphere {α : Type*} [pseudo_metric_space α] [proper_space α] (x : α) (r : ℝ) :
   is_compact (sphere x r) :=
-compact_of_is_closed_subset (is_compact_closed_ball x r) is_closed_sphere sphere_subset_closed_ball
+is_compact_of_is_closed_subset (is_compact_closed_ball x r) is_closed_sphere
+sphere_subset_closed_ball
 
 /-- In a proper pseudometric space, any sphere is a `compact_space` when considered as a subtype. -/
 instance {α : Type*} [pseudo_metric_space α] [proper_space α] (x : α) (r : ℝ) :
@@ -2045,7 +2046,7 @@ begin
   unfreezingI { rcases eq_empty_or_nonempty s with rfl|hne },
   { exact ⟨r / 2, ⟨half_pos hr, half_lt_self hr⟩, empty_subset _⟩ },
   have : is_compact s,
-    from compact_of_is_closed_subset (is_compact_closed_ball x r) hs
+    from is_compact_of_is_closed_subset (is_compact_closed_ball x r) hs
       (subset.trans h ball_subset_closed_ball),
   obtain ⟨y, hys, hy⟩ : ∃ y ∈ s, s ⊆ closed_ball x (dist y x),
     from this.exists_forall_ge hne (continuous_id.dist continuous_const).continuous_on,
@@ -2289,7 +2290,7 @@ begin
   unfreezingI { rcases eq_empty_or_nonempty s with (rfl|⟨x, hx⟩) },
   { exact is_compact_empty },
   { rcases hb.subset_ball x with ⟨r, hr⟩,
-    exact compact_of_is_closed_subset (is_compact_closed_ball x r) hc hr }
+    exact is_compact_of_is_closed_subset (is_compact_closed_ball x r) hc hr }
 end
 
 /-- The **Heine–Borel theorem**: In a proper space, the closure of a bounded set is compact. -/
@@ -2299,7 +2300,7 @@ is_compact_of_is_closed_bounded is_closed_closure h.closure
 
 /-- The **Heine–Borel theorem**:
 In a proper Hausdorff space, a set is compact if and only if it is closed and bounded. -/
-lemma compact_iff_closed_bounded [t2_space α] [proper_space α] :
+lemma is_compact_iff_is_closed_bounded [t2_space α] [proper_space α] :
   is_compact s ↔ is_closed s ∧ bounded s :=
 ⟨λ h, ⟨h.is_closed, h.bounded⟩, λ h, is_compact_of_is_closed_bounded h.1 h.2⟩
 

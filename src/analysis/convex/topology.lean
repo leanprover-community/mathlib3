@@ -72,7 +72,7 @@ lemma is_closed_std_simplex : is_closed (std_simplex ℝ ι) :=
   (is_closed_eq (continuous_finset_sum _ $ λ x _, continuous_apply x) continuous_const)
 
 /-- `std_simplex ℝ ι` is compact. -/
-lemma compact_std_simplex : is_compact (std_simplex ℝ ι) :=
+lemma is_compact_std_simplex : is_compact (std_simplex ℝ ι) :=
 metric.compact_iff_closed_bounded.2 ⟨is_closed_std_simplex ι, bounded_std_simplex ι⟩
 
 end std_simplex

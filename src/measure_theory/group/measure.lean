@@ -159,6 +159,23 @@ begin
   { rw map_mul_right_eq_self ν h, apply_instance },
 end
 
+@[to_additive]
+lemma is_mul_left_invariant_map {H : Type*}
+  [measurable_space H] [has_mul H] [has_measurable_mul H]
+  [is_mul_left_invariant μ]
+  (f : G →ₙ* H) (hf : measurable f) (h_surj : surjective f) :
+  is_mul_left_invariant (measure.map f μ) :=
+begin
+  refine ⟨λ h, _⟩,
+  rw map_map (measurable_const_mul _) hf,
+  obtain ⟨g, rfl⟩ := h_surj h,
+  conv_rhs { rw ← map_mul_left_eq_self μ g },
+  rw map_map hf (measurable_const_mul _),
+  congr' 2,
+  ext y,
+  simp only [comp_app, map_mul],
+end
+
 end has_measurable_mul
 
 end mul
@@ -538,21 +555,11 @@ lemma is_haar_measure_map [borel_space G] [topological_group G] {H : Type*} [gro
   (f : G →* H) (hf : continuous f) (h_surj : surjective f)
   (h_prop : tendsto f (cocompact G) (cocompact H)) :
   is_haar_measure (measure.map f μ) :=
-{ to_is_mul_left_invariant := begin
-    constructor,
-    assume h,
-    rw map_map (continuous_mul_left h).measurable hf.measurable,
-    obtain ⟨g, rfl⟩ := h_surj h,
-    conv_rhs { rw ← map_mul_left_eq_self μ g },
-    rw map_map hf.measurable (continuous_mul_left _).measurable,
-    congr' 2,
-    ext y,
-    simp only [comp_app, map_mul],
-  end,
+{ to_is_mul_left_invariant := is_mul_left_invariant_map f.to_mul_hom hf.measurable h_surj,
   lt_top_of_is_compact := begin
     assume K hK,
     rw map_apply hf.measurable hK.measurable_set,
-    exact is_compact.measure_lt_top ((⟨⟨f, hf⟩, h_prop⟩ : cocompact_map G H).compact_preimage hK),
+    exact is_compact.measure_lt_top ((⟨⟨f, hf⟩, h_prop⟩ : cocompact_map G H).is_compact_preimage hK),
   end,
   to_is_open_pos_measure := hf.is_open_pos_measure_map h_surj }
 

@@ -644,7 +644,7 @@ begin
     rcases hx' with ⟨r, hr₀, hrK⟩,
     haveI : finite_dimensional ℝ E,
       from finite_dimensional_of_is_compact_closed_ball ℝ hr₀
-        (compact_of_is_closed_subset hK metric.is_closed_ball hrK),
+        (is_compact_of_is_closed_subset hK metric.is_closed_ball hrK),
     exact exists_mem_frontier_inf_dist_compl_eq_dist hx hK.ne_univ },
   { refine ⟨x, hx', _⟩,
     rw frontier_eq_closure_inter_closure at hx',

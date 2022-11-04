@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
 import data.int.basic
+
 /-! # Least upper bound and greatest lower bound properties for integers
 
 In this file we prove that a bounded above nonempty set of integers has the greatest element, and a

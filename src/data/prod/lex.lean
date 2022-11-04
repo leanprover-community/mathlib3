@@ -121,11 +121,13 @@ instance linear_order (α β : Type*) [linear_order α] [linear_order β] : line
   decidable_eq := lex.decidable_eq _ _,
   .. prod.lex.partial_order α β }
 
-instance order_bot [partial_order α] [preorder β] [order_bot α] [order_bot β] : order_bot (α ×ₗ β) :=
+instance order_bot [partial_order α] [preorder β] [order_bot α] [order_bot β] :
+  order_bot (α ×ₗ β) :=
 { bot := to_lex ⊥,
   bot_le := λ a, to_lex_mono bot_le }
 
-instance order_top [partial_order α] [preorder β] [order_top α] [order_top β] : order_top (α ×ₗ β) :=
+instance order_top [partial_order α] [preorder β] [order_top α] [order_top β] :
+  order_top (α ×ₗ β) :=
 { top := to_lex ⊤,
   le_top := λ a, to_lex_mono le_top }
 

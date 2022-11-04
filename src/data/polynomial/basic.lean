@@ -440,8 +440,11 @@ by { rintro ⟨p⟩ ⟨q⟩, simp only [coeff, fun_like.coe_fn_eq, imp_self] }
 
 @[simp] lemma coeff_inj : p.coeff = q.coeff ↔ p = q := coeff_injective.eq_iff
 
-lemma coeff_monomial : coeff (monomial n a) m = if n = m then a else 0 :=
-by { simp only [←of_finsupp_single, coeff, linear_map.coe_mk], rw finsupp.single_apply }
+lemma coeff_monomial_eq : coeff (monomial n a) = pi.single n a :=
+by simp_rw [←of_finsupp_single, coeff, finsupp.coe_single]
+
+lemma coeff_monomial : coeff (monomial n a) m = if m = n then a else 0 :=
+by rw [coeff_monomial_eq, pi.single_apply]
 
 @[simp] lemma coeff_zero (n : ℕ) : coeff (0 : R[X]) n = 0 := rfl
 
@@ -453,12 +456,12 @@ by { rw [← monomial_zero_one, coeff_monomial], simp }
 @[simp] lemma coeff_X_zero : coeff (X : R[X]) 0 = 0 := coeff_monomial
 
 @[simp] lemma coeff_monomial_succ : coeff (monomial (n+1) a) 0 = 0 :=
-by simp [coeff_monomial]
+by simp [coeff_monomial, @eq_comm _ (0 : ℕ) ]
 
-lemma coeff_X : coeff (X : R[X]) n = if 1 = n then 1 else 0 := coeff_monomial
+lemma coeff_X : coeff (X : R[X]) n = if n = 1 then 1 else 0 := coeff_monomial
 
 lemma coeff_X_of_ne_one {n : ℕ} (hn : n ≠ 1) : coeff (X : R[X]) n = 0 :=
-by rw [coeff_X, if_neg hn.symm]
+by rw [coeff_X, if_neg hn]
 
 @[simp] lemma mem_support_iff : n ∈ p.support ↔ p.coeff n ≠ 0 :=
 by { rcases p, simp }
@@ -466,8 +469,7 @@ by { rcases p, simp }
 lemma not_mem_support_iff : n ∉ p.support ↔ p.coeff n = 0 :=
 by simp
 
-lemma coeff_C : coeff (C a) n = ite (n = 0) a 0 :=
-by { convert coeff_monomial using 2, simp [eq_comm], }
+lemma coeff_C : coeff (C a) n = ite (n = 0) a 0 := coeff_monomial
 
 @[simp] lemma coeff_C_zero : coeff (C a) 0 = a := coeff_monomial
 

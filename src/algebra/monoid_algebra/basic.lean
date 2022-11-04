@@ -327,19 +327,17 @@ begin
   convert rfl,
 end
 
-#exit
-
 lemma mul_apply_antidiagonal [has_mul G] (f g : monoid_algebra k G) (x : G) (s : finset (G × G))
   (hs : ∀ {p : G × G}, p ∈ s ↔ p.1 * p.2 = x) :
   (f * g) x = ∑ p in s, (f p.1 * g p.2) :=
-let F : G × G → k := λ p, by classical; exact if p.1 * p.2 = x then f p.1 * g p.2 else 0 in
+let F : G × G → k := λ p, by classical; exact if x = p.1 * p.2 then f p.1 * g p.2 else 0 in
 calc (f * g) x = (∑ a₁ in f.support, ∑ a₂ in g.support, F (a₁, a₂)) :
   mul_apply f g x
 ... = ∑ p in f.support ×ˢ g.support, F p : finset.sum_product.symm
-... = ∑ p in (f.support ×ˢ g.support).filter (λ p : G × G, p.1 * p.2 = x), f p.1 * g p.2 :
+... = ∑ p in (f.support ×ˢ g.support).filter (λ p : G × G, x = p.1 * p.2), f p.1 * g p.2 :
   (finset.sum_filter _ _).symm
 ... = ∑ p in s.filter (λ p : G × G, p.1 ∈ f.support ∧ p.2 ∈ g.support), f p.1 * g p.2 :
-  sum_congr (by { ext, simp only [mem_filter, mem_product, hs, and_comm] }) (λ _ _, rfl)
+  sum_congr (by { ext, simp only [mem_filter, mem_product, hs, and_comm, eq_comm] }) (λ _ _, rfl)
 ... = ∑ p in s, f p.1 * g p.2 : sum_subset (filter_subset _ _) $ λ p hps hp,
   begin
     simp only [mem_filter, mem_support_iff, not_and, not_not] at hp ⊢,
@@ -419,12 +417,14 @@ lemma mul_single_apply_aux [has_mul G] (f : monoid_algebra k G) {r : k}
   {x y z : G} (H : ∀ a, a * x = z ↔ a = y) :
   (f * single x r) z = f y * r :=
 by classical; exact
-have A : ∀ a₁ b₁, (single x r).sum (λ a₂ b₂, ite (a₁ * a₂ = z) (b₁ * b₂) 0) =
-  ite (a₁ * x = z) (b₁ * r) 0,
+have H' : ∀ a, z = a * x ↔ y = a,
+by simpa only [eq_comm] using H,
+have A : ∀ a₁ b₁, (single x r).sum (λ a₂ b₂, ite (z = a₁ * a₂) (b₁ * b₂) 0) =
+  ite (z = a₁ * x) (b₁ * r) 0,
 from λ a₁ b₁, sum_single_index $ by simp,
-calc (f * single x r) z = sum f (λ a b, if (a = y) then (b * r) else 0) :
-  by simp only [mul_apply, A, H]
-... = if y ∈ f.support then f y * r else 0 : f.support.sum_ite_eq' _ _
+calc (f * single x r) z = sum f (λ a b, if (y = a) then (b * r) else 0) :
+  by simp only [mul_apply, A, H']
+... = if y ∈ f.support then f y * r else 0 : f.support.sum_ite_eq _ _
 ... = f y * r : by split_ifs with h; simp at h; simp [h]
 
 lemma mul_single_one_apply [mul_one_class G] (f : monoid_algebra k G) (r : k) (x : G) :
@@ -435,11 +435,13 @@ lemma single_mul_apply_aux [has_mul G] (f : monoid_algebra k G) {r : k} {x y z :
   (H : ∀ a, x * a = y ↔ a = z) :
   (single x r * f) y = r * f z :=
 by classical; exact (
-have f.sum (λ a b, ite (x * a = y) (0 * b) 0) = 0, by simp,
-calc (single x r * f) y = sum f (λ a b, ite (x * a = y) (r * b) 0) :
+have H' : ∀ a, y = x * a ↔ z = a,
+by simpa only [eq_comm] using H,
+have f.sum (λ a b, ite (y = x * a) (0 * b) 0) = 0, by simp,
+calc (single x r * f) y = sum f (λ a b, ite (y = x * a) (r * b) 0) :
   (mul_apply _ _ _).trans $ sum_single_index (by exact this)
-... = f.sum (λ a b, ite (a = z) (r * b) 0) : by simp only [H]
-... = if z ∈ f.support then (r * f z) else 0 : f.support.sum_ite_eq' _ _
+... = f.sum (λ a b, ite (z = a) (r * b) 0) : by simp only [H']
+... = if z ∈ f.support then (r * f z) else 0 : f.support.sum_ite_eq _ _
 ... = _ : by split_ifs with h; simp at h; simp [h])
 
 lemma single_one_mul_apply [mul_one_class G] (f : monoid_algebra k G) (r : k) (x : G) :
@@ -1125,7 +1127,7 @@ section misc_theorems
 variables [semiring k]
 
 lemma mul_apply [decidable_eq G] [has_add G] (f g : add_monoid_algebra k G) (x : G) :
-  (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if a₁ + a₂ = x then b₁ * b₂ else 0) :=
+  (f * g) x = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, if x = a₁ + a₂ then b₁ * b₂ else 0) :=
 @monoid_algebra.mul_apply k (multiplicative G) _ _ _ _ _ _
 
 lemma mul_apply_antidiagonal [has_add G] (f g : add_monoid_algebra k G) (x : G) (s : finset (G × G))

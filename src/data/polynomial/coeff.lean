@@ -29,7 +29,7 @@ variables [semiring R] {p q r : R[X]}
 
 section coeff
 
-lemma coeff_one (n : ℕ) : coeff (1 : R[X]) n = if 0 = n then 1 else 0 :=
+lemma coeff_one (n : ℕ) : coeff (1 : R[X]) n = if n = 0 then 1 else 0 :=
 coeff_monomial
 
 @[simp]
@@ -104,7 +104,7 @@ by simp
 
 lemma coeff_C_mul_X_pow (x : R) (k n : ℕ) :
   coeff (C x * X^k : R[X]) n = if n = k then x else 0 :=
-by { rw [← monomial_eq_C_mul_X, coeff_monomial], congr' 1, simp [eq_comm] }
+by { rw [← monomial_eq_C_mul_X, coeff_monomial] }
 
 lemma coeff_C_mul_X (x : R) (n : ℕ) : coeff (C x * X : R[X]) n = if n = 1 then x else 0 :=
 by rw [← pow_one X, coeff_C_mul_X_pow]
@@ -276,7 +276,7 @@ begin
     use ψ,
     ext i,
     simp only [ψ, c', coeff_C_mul, mem_support_iff, coeff_monomial,
-               finset_sum_coeff, finset.sum_ite_eq'],
+               finset_sum_coeff, finset.sum_ite_eq],
     split_ifs with hi hi,
     { rw hc },
     { rw [not_not] at hi, rwa mul_zero } },

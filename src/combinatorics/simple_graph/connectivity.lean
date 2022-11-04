@@ -630,6 +630,16 @@ end
 @[simp] lemma is_cycle.not_of_nil {u : V} : ¬ (nil : G.walk u u).is_cycle :=
 λ h, h.ne_nil rfl
 
+lemma cons_is_cycle_iff {u v : V} (p : G.walk v u) (h : G.adj u v) :
+  (walk.cons h p).is_cycle ↔ p.is_path ∧ ¬ ⟦(u, v)⟧ ∈ p.edges :=
+begin
+  simp only [walk.is_cycle_def, walk.is_path_def, walk.is_trail_def, edges_cons, list.nodup_cons,
+             support_cons, list.tail_cons],
+  have : p.support.nodup → p.edges.nodup := edges_nodup_of_support_nodup,
+  tauto,
+end
+
+
 /-! ### Walk decompositions -/
 
 section walk_decomp
@@ -900,16 +910,6 @@ lemma cons_is_cycle {u v : V} (p : G.path v u) (h : G.adj u v)
   (he : ¬ ⟦(u, v)⟧ ∈ (p : G.walk v u).edges) : (walk.cons h ↑p).is_cycle :=
 by simp [walk.is_cycle_def, walk.cons_is_trail_iff, he]
 
-lemma cons_is_cycle_iff {u v : V} (p : G.walk v u) (h : G.adj u v) :
-  (walk.cons h p).is_cycle ↔ p.is_path ∧ ¬ ⟦(u, v)⟧ ∈ p.edges :=
-begin
-  split,
-  { simp only [walk.is_cycle_def, walk.cons_is_trail_iff, ne.def, not_false_iff, walk.support_cons,
-               list.tail_cons, true_and, simple_graph.walk.is_path_def],
-    tauto, },
-  { exact λ ⟨hp,he⟩, cons_is_cycle (⟨p,hp⟩ : G.path v u) h he, },
-end
-
 end path
 
 /-! ### Walks to paths -/
@@ -1138,22 +1138,16 @@ variables {G}
 @[protected, simp] def transfer : Π {u v : V} (p : G.walk u v) (H : simple_graph V)
   (h : ∀ e, e ∈ p.edges → e ∈ H.edge_set), H.walk u v
 | _ _ (walk.nil) H h := walk.nil
-| _ _ (walk.cons a p) H h := by
-  { refine walk.cons _ (p.transfer H _);
-    simp only [walk.edges_cons, list.mem_cons_iff, forall_eq_or_imp, mem_edge_set] at h,
-    exact h.1, exact h.2, }
+| _ _ (walk.cons' u v w a p) H h :=
+  walk.cons (h (⟦(u, v)⟧ : sym2 V) (by simp)) (p.transfer H (λ e he, h e (by simp [he])))
 
 variables {u v w : V} (p : G.walk u v) (q : G.walk v w)
   {H : simple_graph V}
   (hp : ∀ e, e ∈ p.edges → e ∈ H.edge_set)
   (hq : ∀ e, e ∈ q.edges → e ∈ H.edge_set)
 
-lemma transfer_id : p.transfer G (λ e ep, edges_subset_edge_set p ep) = p := by
-begin
-  induction p,
-  { simp only [transfer] },
-  { simp only [p_ih, transfer, eq_self_iff_true, heq_iff_eq, and_self] },
-end
+lemma transfer_id : p.transfer G (λ e ep, edges_subset_edge_set p ep) = p :=
+by { induction p; simp only [*, transfer, eq_self_iff_true, heq_iff_eq, and_self], }
 
 /-- The walk `p` transfered to the larger graph `H` -/
 abbreviation transfer_le (GH : G ≤ H) : H.walk u v :=
@@ -1161,43 +1155,28 @@ p.transfer H (λ e ep, edge_set_mono GH (edges_subset_edge_set p ep))
 
 lemma transfer_eq_map_spanning_subgraphs (GH : G ≤ H) :
   p.transfer H hp = p.map (simple_graph.hom.map_spanning_subgraphs GH) :=
-begin
-  induction p,
-  { simp only [transfer, map_nil], },
-  { simp only [p_ih, transfer, map_cons, hom.map_spanning_subgraphs_apply, eq_self_iff_true,
-             heq_iff_eq, and_self], },
-end
+by { induction p; simp only [*, transfer, map_cons, hom.map_spanning_subgraphs_apply,
+                             eq_self_iff_true, heq_iff_eq, and_self, map_nil], }
 
 @[simp] lemma edges_transfer : (p.transfer H hp).edges = p.edges :=
-begin
-  induction p,
-  { simp only [transfer, edges_nil], },
-  { simp only [p_ih, transfer, edges_cons, eq_self_iff_true, and_self], },
-end
+by { induction p; simp only [*, transfer, edges_nil, edges_cons, eq_self_iff_true, and_self], }
 
 @[simp] lemma support_transfer : (p.transfer H hp).support = p.support :=
-begin
-  induction p,
-  { simp only [transfer, support_nil, eq_self_iff_true, and_self], },
-  { simp only [p_ih, transfer, support_cons, eq_self_iff_true, and_self], },
-end
+by { induction p; simp only [*, transfer, eq_self_iff_true, and_self, support_nil, support_cons], }
 
 lemma is_path_transfer (pp : p.is_path) : (p.transfer H hp).is_path :=
 begin
-  induction p,
-  { simp only [transfer, is_path.nil], },
-  { simp only [cons_is_path_iff, transfer, support_transfer] at pp ⊢,
-  simp only [p_ih, pp, not_false_iff, and_self], },
+  induction p;
+  simp only [transfer, is_path.nil, cons_is_path_iff, support_transfer] at pp ⊢,
+  { tauto, },
 end
 
 lemma is_cycle_transfer (p : G.walk u u) (hp) (pc : p.is_cycle) : (p.transfer H hp).is_cycle :=
 begin
-  cases p,
-  { simp only [transfer, is_cycle.not_of_nil] at pc ⊢, exact pc, },
-  { simp only [path.cons_is_cycle_iff, transfer, edges_transfer] at pc ⊢,
-    refine ⟨_, pc.right⟩,
-    apply is_path_transfer,
-    exact pc.left, },
+  cases p;
+  simp only [transfer, is_cycle.not_of_nil, cons_is_cycle_iff, transfer, edges_transfer] at pc ⊢,
+  { exact pc, },
+  { refine ⟨is_path_transfer _ _ pc.left, pc.right⟩, },
 end
 
 lemma is_cycle_transfer_le (p : G.walk u u) (hp) (pc : p.is_cycle)
@@ -1206,35 +1185,31 @@ p.is_cycle_transfer (λ e ep, edge_set_mono GH (edges_subset_edge_set p ep)) pc
 
 lemma comp_transfer {K : simple_graph V} (hp' : ∀ e, e ∈ p.edges → e ∈ K.edge_set) :
   (p.transfer H hp).transfer K (by { rw p.edges_transfer hp, exact hp', }) = p.transfer K hp' :=
-begin
-  induction p,
-  { simp only [transfer], },
-  { simp only [transfer, eq_self_iff_true, heq_iff_eq, true_and],
-    apply p_ih, },
-end
+by { induction p; simp only [transfer, eq_self_iff_true, heq_iff_eq, true_and], apply p_ih, }
 
-@[simp] lemma append_transfer :
+@[simp] lemma transfer_append :
   (p.append q).transfer H
     (λ e, by { rw [edges_append, list.mem_append], exact or.rec (hp e) (hq e), }) =
   (p.transfer H hp).append (q.transfer H hq) :=
 begin
- induction p,
- { simp only [transfer, nil_append], },
- { simp only [walk.cons_append, transfer, eq_self_iff_true, heq_iff_eq, true_and],
-   apply p_ih, },
+  induction p;
+  simp only [transfer, nil_append, cons_append, eq_self_iff_true, heq_iff_eq, true_and],
+  apply p_ih,
 end
 
-@[simp] lemma reverse_transfer :
+@[simp] lemma transfer_reverse :
   p.reverse.transfer H (by { simp only [edges_reverse, list.mem_reverse], exact hp, }) =
   (p.transfer H hp).reverse :=
 begin
-  induction p,
-  { simp only [transfer, reverse_nil], },
-  { simp only [transfer, reverse_cons],
-    rw [append_transfer, p_ih], refl,
-    simp only [edges_cons, list.mem_cons_iff, forall_eq_or_imp, mem_edge_set] at hp,
-    simp only [edges_cons, edges_nil, list.mem_singleton, forall_eq, mem_edge_set],
-    exact (hp.left).symm, },
+  induction p;
+  simp only [transfer, reverse_nil, reverse_cons, edges_cons, list.mem_cons_iff, forall_eq_or_imp,
+             mem_edge_set] at hp ⊢,
+  { rw [transfer_append], rotate,
+    { simp only [edges_reverse, list.mem_reverse],
+      exact hp.right, },
+    { simp only [edges_cons, edges_nil, list.mem_singleton, forall_eq, mem_edge_set],
+      exact (hp.left).symm, },
+    { simp only [p_ih, transfer], refl, }, },
 end
 
 end walk

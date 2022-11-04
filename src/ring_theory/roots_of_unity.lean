@@ -131,8 +131,22 @@ def restrict_roots_of_unity' [monoid_hom_class F Mˣ Nˣ] (σ : F) (n : ℕ+) :
 ((σ : Mˣ →* Nˣ).comp (roots_of_unity n M).subtype).cod_restrict _ $ λ x,
   map_mem_root_of_unity _ _ x.2
 
-@[simp] lemma restrict_roots_of_unity'_coe_apply [monoid_hom_class F Mˣ Nˣ] (σ : F)
-  (ζ : roots_of_unity k M) : ↑(restrict_roots_of_unity' σ k ζ) = σ ↑ζ :=
+variables [comm_semiring R] [comm_semiring S]
+
+/-- Restrict a ring homomorphism to the nth roots of unity -/
+def restrict_roots_of_unity [ring_hom_class F R S] (σ : F) (n : ℕ+) :
+  roots_of_unity n R →* roots_of_unity n S :=
+let h : ∀ ξ : roots_of_unity n R, (σ ξ) ^ (n : ℕ) = 1 := λ ξ, by
+{ change (σ (ξ : Rˣ)) ^ (n : ℕ) = 1,
+  rw [←map_pow, ←units.coe_pow, show ((ξ : Rˣ) ^ (n : ℕ) = 1), from ξ.2,
+      units.coe_one, map_one σ] } in
+{ to_fun := λ ξ, ⟨@unit_of_invertible _ _ _ (invertible_of_pow_eq_one _ _ (h ξ) n.ne_zero),
+    by { ext, rw units.coe_pow, exact h ξ }⟩,
+  map_one' := by { ext, exact map_one σ },
+  map_mul' := λ ξ₁ ξ₂, by { ext, rw [subgroup.coe_mul, units.coe_mul], exact map_mul σ _ _ } }
+
+@[simp] lemma restrict_roots_of_unity_coe_apply [ring_hom_class F R S] (σ : F)
+  (ζ : roots_of_unity k R) : ↑(restrict_roots_of_unity σ k ζ) = σ ↑ζ :=
 rfl
 
 /-- Restrict a monoid homomorphism to the nth roots of unity. -/
@@ -710,9 +724,9 @@ lemma eq_pow_of_pow_eq_one {k : ℕ} {ζ ξ : R}
   (h : is_primitive_root ζ k) (hξ : ξ ^ k = 1) (h0 : 0 < k) :
   ∃ i < k, ζ ^ i = ξ :=
 begin
-  obtain ⟨ζ, rfl⟩ := h.is_unit h0,
-  obtain ⟨ξ, rfl⟩ := is_unit_of_pow_eq_one ξ k hξ h0,
-  obtain ⟨k, rfl⟩ : ∃ k' : ℕ+, k = k' := ⟨⟨k, h0⟩, rfl⟩,
+  lift ζ to Rˣ using h.is_unit h0,
+  lift ξ to Rˣ using is_unit_of_pow_eq_one ξ k hξ h0.ne',
+  lift k to ℕ+ using h0,
   simp only [← units.coe_pow, ← units.ext_iff],
   rw coe_units_iff at h,
   apply h.eq_pow_of_mem_roots_of_unity,

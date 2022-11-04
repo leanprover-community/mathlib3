@@ -5,7 +5,7 @@ Authors: Riccardo Brasca
 -/
 
 import linear_algebra.direct_sum.finsupp
-import logic.small
+import logic.small.basic
 import linear_algebra.std_basis
 import linear_algebra.finsupp_vector_space
 

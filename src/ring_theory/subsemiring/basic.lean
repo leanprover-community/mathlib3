@@ -879,6 +879,11 @@ def cod_restrict (f : R →+* S) (s : σS) (h : ∀ x, f x ∈ s) : R →+* s :=
   .. (f : R →* S).cod_restrict s h,
   .. (f : R →+ S).cod_restrict s h }
 
+/--The ring homomorphism from the pullback of `s` to `s`. -/
+def restrict₂ (f : R →+* S) (s : subsemiring S)
+  (h : ∀ (x : (subsemiring.comap f s)), f x ∈ s):
+  (subsemiring.comap f s) →+* s := (f.restrict (subsemiring.comap f s)).cod_restrict s h
+
 /-- Restriction of a ring homomorphism to its range interpreted as a subsemiring.
 
 This is the bundled version of `set.range_factorization`. -/

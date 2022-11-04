@@ -299,7 +299,8 @@ lemma is_compact.nonempty_Inter_of_sequence_nonempty_compact_closed
 have Zmono : antitone Z := antitone_nat_of_succ_le hZd,
 have hZd : directed (⊇) Z, from directed_of_sup Zmono,
 have ∀ i, Z i ⊆ Z 0, from assume i, Zmono $ zero_le i,
-have hZc : ∀ i, is_compact (Z i), from assume i, is_compact_of_is_closed_subset hZ0 (hZcl i) (this i),
+have hZc : ∀ i, is_compact (Z i),
+  from assume i, is_compact_of_is_closed_subset hZ0 (hZcl i) (this i),
 is_compact.nonempty_Inter_of_directed_nonempty_compact_closed Z hZd hZn hZc hZcl
 
 /-- For every open cover of a compact set, there exists a finite subcover. -/
@@ -463,7 +464,8 @@ is_compact_singleton.union hs
 /-- If `V : ι → set α` is a decreasing family of closed compact sets then any neighborhood of
 `⋂ i, V i` contains some `V i`. We assume each `V i` is compact *and* closed because `α` is
 not assumed to be Hausdorff. See `exists_subset_nhd_of_compact` for version assuming this. -/
-lemma exists_subset_nhds_of_is_compact' {ι : Type*} [nonempty ι] {V : ι → set α} (hV : directed (⊇) V)
+lemma exists_subset_nhds_of_is_compact' {ι : Type*} [nonempty ι]
+  {V : ι → set α} (hV : directed (⊇) V)
   (hV_cpct : ∀ i, is_compact (V i)) (hV_closed : ∀ i, is_closed (V i))
   {U : set α} (hU : ∀ x ∈ ⋂ i, V i, U ∈ 𝓝 x) : ∃ i, V i ⊆ U :=
 begin

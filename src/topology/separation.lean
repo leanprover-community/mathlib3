@@ -1201,7 +1201,8 @@ lemma is_compact.binary_compact_cover [t2_space α] {K U V : set α} (hK : is_co
   (hU : is_open U) (hV : is_open V) (h2K : K ⊆ U ∪ V) :
   ∃ K₁ K₂ : set α, is_compact K₁ ∧ is_compact K₂ ∧ K₁ ⊆ U ∧ K₂ ⊆ V ∧ K = K₁ ∪ K₂ :=
 begin
-  obtain ⟨O₁, O₂, h1O₁, h1O₂, h2O₁, h2O₂, hO⟩ := is_compact_is_compact_separated (hK.diff hU) (hK.diff hV)
+  obtain ⟨O₁, O₂, h1O₁, h1O₂, h2O₁, h2O₂, hO⟩ :=
+    is_compact_is_compact_separated (hK.diff hU) (hK.diff hV)
     (by rwa [disjoint_iff_inter_eq_empty, diff_inter_diff, diff_eq_empty]),
   exact ⟨_, _, hK.diff h1O₁, hK.diff h1O₂, by rwa [diff_subset_comm], by rwa [diff_subset_comm],
     by rw [← diff_inter, hO.inter_eq, diff_empty]⟩
@@ -1252,7 +1253,8 @@ lemma locally_compact_of_compact_nhds [t2_space α] (h : ∀ x : α, ∃ s, s �
   -- K \ U is again compact and doesn't contain x, so
   -- we may find open sets V, W separating x from K \ U.
   -- Then K \ W is a compact neighborhood of x contained in U.
-  let ⟨v, w, vo, wo, xv, kuw, vw⟩ := is_compact_is_compact_separated is_compact_singleton (kc.diff uo)
+  let ⟨v, w, vo, wo, xv, kuw, vw⟩ :=
+    is_compact_is_compact_separated is_compact_singleton (kc.diff uo)
       (disjoint_singleton_left.2 $ λ h, h.2 xu) in
   have wn : wᶜ ∈ 𝓝 x, from
    mem_nhds_iff.mpr ⟨v, vw.subset_compl_right, vo, singleton_subset_iff.mp xv⟩,

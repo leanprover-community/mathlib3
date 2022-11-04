@@ -79,7 +79,8 @@ begin
   haveI : nonempty ↥F := hFnemp.to_subtype,
   rw sInter_eq_Inter,
   refine is_compact.nonempty_Inter_of_directed_nonempty_compact_closed _ (λ t u, _)
-    (λ t, (hFS t.mem).1) (λ t, is_compact_of_is_closed_subset hscomp (hFS t.mem).2.1 (hFS t.mem).2.2.1)
+    (λ t, (hFS t.mem).1)
+    (λ t, is_compact_of_is_closed_subset hscomp (hFS t.mem).2.1 (hFS t.mem).2.2.1)
     (λ t, (hFS t.mem).2.1),
   obtain htu | hut := hF.total t.mem u.mem,
   exacts [⟨t, subset.rfl, htu⟩, ⟨u, hut, subset.rfl⟩],

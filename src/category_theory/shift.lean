@@ -77,7 +77,7 @@ class has_shift (C : Type u) (A : Type*) [category.{v} C] [add_monoid A] :=
 (shift : monoidal_functor (discrete A) (C ⥤ C))
 
 /-- A helper structure to construct the shift functor `(discrete A) ⥤ (C ⥤ C)`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure shift_mk_core :=
 (F : A → (C ⥤ C))
 (ε : 𝟭 C ≅ F 0)

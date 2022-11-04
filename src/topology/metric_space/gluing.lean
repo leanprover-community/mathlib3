@@ -106,7 +106,7 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
     have : (⨅ p, dist z (Φ p) + dist x (Ψ p)) ≤ (⨅ p, dist y (Φ p) + dist x (Ψ p)) + dist y z,
     { have : (⨅ p, dist y (Φ p) + dist x (Ψ p)) + dist y z =
             infi ((λt, t + dist y z) ∘ (λp, dist y (Φ p) + dist x (Ψ p))),
-      { refine map_cinfi_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _
+      { refine monotone.map_cinfi_of_continuous_at (continuous_at_id.add continuous_at_const) _
           (B _ _),
         intros x y hx, simpa },
       rw [this, comp],
@@ -124,7 +124,7 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
     have : (⨅ p, dist z (Φ p) + dist x (Ψ p)) ≤ dist x y + ⨅ p, dist z (Φ p) + dist y (Ψ p),
     { have : dist x y + (⨅ p, dist z (Φ p) + dist y (Ψ p)) =
             infi ((λt, dist x y + t) ∘ (λp, dist z (Φ p) + dist y (Ψ p))),
-      { refine map_cinfi_of_continuous_at_of_monotone (continuous_at_const.add continuous_at_id) _
+      { refine monotone.map_cinfi_of_continuous_at (continuous_at_const.add continuous_at_id) _
           (B _ _),
         intros x y hx, simpa },
       rw [this, comp],
@@ -142,7 +142,7 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
     have : (⨅ p, dist x (Φ p) + dist z (Ψ p)) ≤ dist x y + ⨅ p, dist y (Φ p) + dist z (Ψ p),
     { have : dist x y + (⨅ p, dist y (Φ p) + dist z (Ψ p)) =
             infi ((λt, dist x y + t) ∘ (λp, dist y (Φ p) + dist z (Ψ p))),
-      { refine map_cinfi_of_continuous_at_of_monotone (continuous_at_const.add continuous_at_id) _
+      { refine monotone.map_cinfi_of_continuous_at (continuous_at_const.add continuous_at_id) _
           (B _ _),
         intros x y hx, simpa },
       rw [this, comp],
@@ -160,7 +160,7 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
     have : (⨅ p, dist x (Φ p) + dist z (Ψ p)) ≤ (⨅ p, dist x (Φ p) + dist y (Ψ p)) + dist y z,
     { have : (⨅ p, dist x (Φ p) + dist y (Ψ p)) + dist y z =
             infi ((λt, t + dist y z) ∘ (λp, dist x (Φ p) + dist y (Ψ p))),
-      { refine map_cinfi_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _
+      { refine monotone.map_cinfi_of_continuous_at (continuous_at_id.add continuous_at_const) _
           (B _ _),
         intros x y hx, simpa },
       rw [this, comp],

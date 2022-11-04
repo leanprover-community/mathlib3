@@ -250,7 +250,7 @@ lemma wf_dvd_monoid.of_exists_prime_factors : wf_dvd_monoid α :=
 ⟨begin
   classical,
   refine rel_hom_class.well_founded
-    (rel_hom.mk _ _ : (dvd_not_unit : α → α → Prop) →r ((<) : with_top ℕ → with_top ℕ → Prop))
+    (rel_hom.mk _ _ : (dvd_not_unit : α → α → Prop) →r ((<) : ℕ∞ → ℕ∞ → Prop))
     (with_top.well_founded_lt nat.lt_wf),
   { intro a,
     by_cases h : a = 0, { exact ⊤ },
@@ -593,6 +593,22 @@ theorem _root_.irreducible.normalized_factors_pow {p : α} (hp : irreducible p) 
   normalized_factors (p ^ k) = multiset.repeat (normalize p) k :=
 by rw [normalized_factors_pow, normalized_factors_irreducible hp, multiset.nsmul_singleton]
 
+theorem normalized_factors_prod_eq (s : multiset α) (hs : ∀ a ∈ s, irreducible a) :
+  normalized_factors s.prod = s.map normalize :=
+begin
+  induction s using multiset.induction with a s ih,
+  { rw [multiset.prod_zero, normalized_factors_one, multiset.map_zero] },
+  { have ia := hs a (multiset.mem_cons_self a _),
+    have ib := λ b h, hs b (multiset.mem_cons_of_mem h),
+    obtain rfl | ⟨b, hb⟩ := s.empty_or_exists_mem,
+    { rw [multiset.cons_zero, multiset.prod_singleton,
+          multiset.map_singleton, normalized_factors_irreducible ia] },
+    haveI := nontrivial_of_ne b 0 (ib b hb).ne_zero,
+    rw [multiset.prod_cons, multiset.map_cons, normalized_factors_mul ia.ne_zero,
+      normalized_factors_irreducible ia, ih],
+    exacts [rfl, ib, multiset.prod_ne_zero (λ h, (ib 0 h).ne_zero rfl)] },
+end
+
 lemma dvd_iff_normalized_factors_le_normalized_factors {x y : α} (hx : x ≠ 0) (hy : y ≠ 0) :
   x ∣ y ↔ normalized_factors x ≤ normalized_factors y :=
 begin
@@ -602,6 +618,15 @@ begin
   { rw [← (normalized_factors_prod hx).dvd_iff_dvd_left,
       ← (normalized_factors_prod hy).dvd_iff_dvd_right],
     apply multiset.prod_dvd_prod_of_le }
+end
+
+lemma associated_iff_normalized_factors_eq_normalized_factors {x y : α} (hx : x ≠ 0) (hy : y ≠ 0) :
+  x ~ᵤ y ↔ normalized_factors x = normalized_factors y :=
+begin
+  refine ⟨λ h, _,
+    λ h, (normalized_factors_prod hx).symm.trans (trans (by rw h) (normalized_factors_prod hy))⟩,
+  apply le_antisymm; rw [← dvd_iff_normalized_factors_le_normalized_factors],
+  all_goals { simp [*, h.dvd, h.symm.dvd], },
 end
 
 theorem normalized_factors_of_irreducible_pow {p : α} (hp : irreducible p) (k : ℕ) :
@@ -625,6 +650,19 @@ begin
   use (normalized_factors r).card,
   have := unique_factorization_monoid.normalized_factors_prod hr,
   rwa [multiset.eq_repeat_of_mem (λ b, h), multiset.prod_repeat] at this
+end
+
+lemma normalized_factors_prod_of_prime [nontrivial α] [unique αˣ] {m : multiset α}
+  (h : ∀ p ∈ m, prime p) : (normalized_factors m.prod) = m :=
+by simpa only [←multiset.rel_eq, ←associated_eq_eq] using prime_factors_unique
+  (prime_of_normalized_factor) h (normalized_factors_prod (m.prod_ne_zero_of_prime h))
+
+lemma mem_normalized_factors_eq_of_associated {a b c : α} (ha : a ∈ normalized_factors c)
+  (hb : b ∈ normalized_factors c) (h : associated a b) : a = b :=
+begin
+  rw [← normalize_normalized_factor a ha, ← normalize_normalized_factor b hb,
+    normalize_eq_normalize_iff],
+  apply associated.dvd_dvd h,
 end
 
 end unique_factorization_monoid
@@ -1659,10 +1697,8 @@ by { ext, simp [factorization] }
 lemma associated_of_factorization_eq (a b: α) (ha: a ≠ 0) (hb: b ≠ 0)
   (h: factorization a = factorization b) : associated a b :=
 begin
-  simp only [factorization, add_equiv.apply_eq_iff_eq] at h,
-  have ha' := normalized_factors_prod ha,
-  rw h at ha',
-  exact associated.trans ha'.symm (normalized_factors_prod hb),
+  simp_rw [factorization, add_equiv.apply_eq_iff_eq] at h,
+  rwa [associated_iff_normalized_factors_eq_normalized_factors ha hb],
 end
 
 end finsupp

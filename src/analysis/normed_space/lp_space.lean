@@ -51,11 +51,6 @@ say that `∥-f∥ = ∥f∥`, instead of the non-working `f.norm_neg`.
 * More versions of Hölder's inequality (for example: the case `p = 1`, `q = ∞`; a version for normed
   rings which has `∥∑' i, f i * g i∥` rather than `∑' i, ∥f i∥ * g i∥` on the RHS; a version for
   three exponents satisfying `1 / r = 1 / p + 1 / q`)
-* Equivalence with `pi_Lp`, for `α` finite
-* Equivalence with `measure_theory.Lp`, for `f : α → E` (i.e., functions rather than pi-types) and
-  the counting measure on `α`
-* Equivalence with `bounded_continuous_function`, for `f : α → E` (i.e., functions rather than
-  pi-types) and `p = ∞`, and the discrete topology on `α`
 
 -/
 
@@ -212,7 +207,7 @@ begin
   rcases p.trichotomy with rfl | rfl | hp,
   { apply mem_ℓp_zero,
     refine (hf.finite_dsupport.union hg.finite_dsupport).subset (λ i, _),
-    simp only [pi.add_apply, ne.def, set.mem_union_eq, set.mem_set_of_eq],
+    simp only [pi.add_apply, ne.def, set.mem_union, set.mem_set_of_eq],
     contrapose!,
     rintros ⟨hf', hg'⟩,
     simp [hf', hg'] },
@@ -229,7 +224,7 @@ begin
   { refine (real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp.le).trans _,
     dsimp [C],
     split_ifs with h h,
-    { simpa using nnreal.coe_le_coe.2 (nnreal.rpow_add_le_add_rpow (∥f i∥₊) (∥g i∥₊) hp h.le) },
+    { simpa using nnreal.coe_le_coe.2 (nnreal.rpow_add_le_add_rpow (∥f i∥₊) (∥g i∥₊) hp.le h.le) },
     { let F : fin 2 → ℝ≥0 := ![∥f i∥₊, ∥g i∥₊],
       have : ∀ i, (0:ℝ) ≤ F i := λ i, (F i).coe_nonneg,
       simp only [not_lt] at h,
@@ -413,7 +408,7 @@ begin
     simpa [real.zero_rpow hp.ne'] using real.zero_rpow hp' }
 end
 
-lemma norm_eq_zero_iff ⦃f : lp E p⦄ : ∥f∥ = 0 ↔ f = 0 :=
+lemma norm_eq_zero_iff {f : lp E p} : ∥f∥ = 0 ↔ f = 0 :=
 begin
   classical,
   refine ⟨λ h, _, by { rintros rfl, exact norm_zero }⟩,
@@ -458,11 +453,13 @@ begin
 end
 
 instance [hp : fact (1 ≤ p)] : normed_add_comm_group (lp E p) :=
-normed_add_comm_group.of_core _
-{ norm_eq_zero_iff := norm_eq_zero_iff,
-  triangle := λ f g, begin
+add_group_norm.to_normed_add_comm_group
+{ to_fun := norm,
+  map_zero' := norm_zero,
+  neg' := norm_neg,
+  add_le' := λ f g, begin
     unfreezingI { rcases p.dichotomy with rfl | hp' },
-    { cases is_empty_or_nonempty α; resetI,
+    { casesI is_empty_or_nonempty α,
       { simp [lp.eq_zero' f] },
       refine (lp.is_lub_norm (f + g)).2 _,
       rintros x ⟨i, rfl⟩,
@@ -483,7 +480,7 @@ normed_add_comm_group.of_core _
       intros i,
       exact real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp''.le },
   end,
-  norm_neg := norm_neg }
+  eq_zero_of_map_eq_zero' := λ f, norm_eq_zero_iff.1 }
 
 -- TODO: define an `ennreal` version of `is_conjugate_exponent`, and then express this inequality
 -- in a better version which also covers the case `p = 1, q = ∞`.
@@ -927,11 +924,14 @@ begin
   have hF : ∀ i ∉ s, F i = 0,
   { intros i hi,
     suffices : ∥f i∥ ^ p.to_real - ∥f i - ite (i ∈ s) (f i) 0∥ ^ p.to_real = 0,
-    { simpa [F, coe_fn_sum, lp.single_apply] using this, },
-    simp [if_neg hi] },
+    { simpa only [F, coe_fn_sum, lp.single_apply, coe_fn_sub, pi.sub_apply, finset.sum_apply,
+        finset.sum_dite_eq] using this, },
+    simp only [if_neg hi, sub_zero, sub_self] },
   have hF' : ∀ i ∈ s, F i = ∥f i∥ ^ p.to_real,
   { intros i hi,
-    simp [F, coe_fn_sum, lp.single_apply, if_pos hi, real.zero_rpow hp.ne'] },
+    simp only [F, coe_fn_sum, lp.single_apply, if_pos hi, sub_self, eq_self_iff_true,
+      coe_fn_sub, pi.sub_apply, finset.sum_apply, finset.sum_dite_eq, sub_eq_self],
+    simp [real.zero_rpow hp.ne'], },
   have : has_sum F (∑ i in s, F i) := has_sum_sum_of_ne_finset_zero hF,
   rwa [finset.sum_congr rfl hF'] at this,
 end
@@ -948,8 +948,7 @@ begin
   have hp₀ : 0 < p := ennreal.zero_lt_one.trans_le (fact.out _),
   have hp' : 0 < p.to_real := ennreal.to_real_pos hp₀.ne' hp,
   have := lp.has_sum_norm hp' f,
-  dsimp [has_sum] at this ⊢,
-  rw metric.tendsto_nhds at this ⊢,
+  rw [has_sum, metric.tendsto_nhds] at this ⊢,
   intros ε hε,
   refine (this _ (real.rpow_pos_of_pos hε p.to_real)).mono _,
   intros s hs,
@@ -958,11 +957,12 @@ begin
   simp only [dist_eq_norm, real.norm_eq_abs] at hs ⊢,
   have H : ∥∑ i in s, lp.single p i (f i : E i) - f∥ ^ p.to_real
     = ∥f∥ ^ p.to_real - ∑ i in s, ∥f i∥ ^ p.to_real,
-  { simpa using lp.norm_compl_sum_single hp' (-f) s },
+  { simpa only [coe_fn_neg, pi.neg_apply, lp.single_neg, finset.sum_neg_distrib,
+      neg_sub_neg, norm_neg, _root_.norm_neg] using lp.norm_compl_sum_single hp' (-f) s },
   rw ← H at hs,
   have : |∥∑ i in s, lp.single p i (f i : E i) - f∥ ^ p.to_real|
     = ∥∑ i in s, lp.single p i (f i : E i) - f∥ ^ p.to_real,
-  { simp [real.abs_rpow_of_nonneg (norm_nonneg _)] },
+  { simp only [real.abs_rpow_of_nonneg (norm_nonneg _), abs_norm_eq_norm] },
   linarith
 end
 

@@ -330,6 +330,12 @@ lemma eq_of_forall_ge_iff [partial_order α] {a b : α}
   (H : ∀ c, a ≤ c ↔ b ≤ c) : a = b :=
 ((H _).2 le_rfl).antisymm ((H _).1 le_rfl)
 
+lemma eq_of_forall_lt_iff [linear_order α] {a b : α} (h : ∀ c, c < a ↔ c < b) : a = b :=
+(le_of_forall_lt $ λ _, (h _).1).antisymm $ le_of_forall_lt $ λ _, (h _).2
+
+lemma eq_of_forall_gt_iff [linear_order α] {a b : α} (h : ∀ c, a < c ↔ b < c) : a = b :=
+(le_of_forall_lt' $ λ _, (h _).2).antisymm $ le_of_forall_lt' $ λ _, (h _).1
+
 /-- A symmetric relation implies two values are equal, when it implies they're less-equal.  -/
 lemma rel_imp_eq_of_rel_imp_le [partial_order β] (r : α → α → Prop) [is_symm α r] {f : α → β}
   (h : ∀ a b, r a b → f a ≤ f b) {a b : α} : r a b → f a = f b :=
@@ -409,7 +415,6 @@ instance (α : Type*) [h : nonempty α] : nonempty αᵒᵈ := h
 instance (α : Type*) [h : subsingleton α] : subsingleton αᵒᵈ := h
 instance (α : Type*) [has_le α] : has_le αᵒᵈ := ⟨λ x y : α, y ≤ x⟩
 instance (α : Type*) [has_lt α] : has_lt αᵒᵈ := ⟨λ x y : α, y < x⟩
-instance (α : Type*) [has_zero α] : has_zero αᵒᵈ := ⟨(0 : α)⟩
 
 instance (α : Type*) [preorder α] : preorder αᵒᵈ :=
 { le_refl          := le_refl,
@@ -521,6 +526,14 @@ lemma pi.sdiff_def {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] 
 lemma pi.sdiff_apply {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) (i : ι) :
   (x \ y) i = x i \ y i := rfl
 
+namespace function
+variables [preorder α] [nonempty β] {a b : α}
+
+@[simp] lemma const_le_const : const β a ≤ const β b ↔ a ≤ b := by simp [pi.le_def]
+@[simp] lemma const_lt_const : const β a < const β b ↔ a < b := by simpa [pi.lt_def] using le_of_lt
+
+end function
+
 /-! ### `min`/`max` recursors -/
 
 section min_max_rec
@@ -535,6 +548,18 @@ lemma max_rec (hx : y ≤ x → p x) (hy : x ≤ y → p y) : p (max x y) := @mi
 lemma min_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (min x y) := min_rec (λ _, hx) (λ _, hy)
 lemma max_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (max x y) := max_rec (λ _, hx) (λ _, hy)
 
+lemma min_def' (x y : α) : min x y = if x < y then x else y :=
+begin
+  rw [min_comm, min_def, ← ite_not],
+  simp only [not_le],
+end
+
+lemma max_def' (x y : α) : max x y = if y < x then x else y :=
+begin
+  rw [max_comm, max_def, ← ite_not],
+  simp only [not_le],
+end
+
 end min_max_rec
 
 /-! ### `has_sup` and `has_inf` -/
@@ -544,8 +569,8 @@ end min_max_rec
 /-- Typeclass for the `⊓` (`\glb`) notation -/
 @[notation_class] class has_inf (α : Type u) := (inf : α → α → α)
 
-infix ⊔ := has_sup.sup
-infix ⊓ := has_inf.inf
+infix ` ⊔ ` := has_sup.sup
+infix ` ⊓ ` := has_inf.inf
 
 /-! ### Lifts of order instances -/
 
@@ -769,6 +794,23 @@ lemma min_eq : min a b = star := rfl
 instance : densely_ordered punit := ⟨λ _ _, false.elim⟩
 
 end punit
+
+section prop
+
+/-- Propositions form a complete boolean algebra, where the `≤` relation is given by implication. -/
+instance Prop.has_le : has_le Prop := ⟨(→)⟩
+
+@[simp] lemma le_Prop_eq : ((≤) : Prop → Prop → Prop) = (→) := rfl
+
+lemma subrelation_iff_le {r s : α → α → Prop} : subrelation r s ↔ r ≤ s := iff.rfl
+
+instance Prop.partial_order : partial_order Prop :=
+{ le_refl      := λ _, id,
+  le_trans     := λ a b c f g, g ∘ f,
+  le_antisymm  := λ a b Hab Hba, propext ⟨Hab, Hba⟩,
+  ..Prop.has_le }
+
+end prop
 
 variables {s : β → β → Prop} {t : γ → γ → Prop}
 

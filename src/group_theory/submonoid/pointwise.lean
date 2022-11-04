@@ -3,8 +3,9 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import data.set.pointwise
+import data.set.pointwise.basic
 import group_theory.submonoid.membership
+import order.well_founded_set
 
 /-! # Pointwise instances on `submonoid`s and `add_submonoid`s
 
@@ -44,7 +45,60 @@ open set
 variables {α : Type*} {G : Type*} {M : Type*} {R : Type*} {A : Type*}
 variables [monoid M] [add_monoid A]
 
+
+/-! Some lemmas about pointwise multiplication and submonoids. Ideally we put these in
+  `group_theory.submonoid.basic`, but currently we cannot because that file is imported by this. -/
 namespace submonoid
+open_locale pointwise
+
+variables {s t u : set M}
+
+@[to_additive]
+lemma mul_subset {S : submonoid M} (hs : s ⊆ S) (ht : t ⊆ S) : s * t ⊆ S :=
+by { rintro _ ⟨p, q, hp, hq, rfl⟩, exact submonoid.mul_mem _ (hs hp) (ht hq) }
+
+@[to_additive]
+lemma mul_subset_closure (hs : s ⊆ u) (ht : t ⊆ u) : s * t ⊆ submonoid.closure u :=
+mul_subset (subset.trans hs submonoid.subset_closure) (subset.trans ht submonoid.subset_closure)
+
+@[to_additive]
+lemma coe_mul_self_eq (s : submonoid M) : (s : set M) * s = s :=
+begin
+  ext x,
+  refine ⟨_, λ h, ⟨x, 1, h, s.one_mem, mul_one x⟩⟩,
+  rintro ⟨a, b, ha, hb, rfl⟩,
+  exact s.mul_mem ha hb
+end
+
+@[to_additive]
+lemma closure_mul_le (S T : set M) : closure (S * T) ≤ closure S ⊔ closure T :=
+Inf_le $ λ x ⟨s, t, hs, ht, hx⟩, hx ▸ (closure S ⊔ closure T).mul_mem
+    (set_like.le_def.mp le_sup_left $ subset_closure hs)
+    (set_like.le_def.mp le_sup_right $ subset_closure ht)
+
+@[to_additive]
+lemma sup_eq_closure (H K : submonoid M) : H ⊔ K = closure (H * K) :=
+le_antisymm
+  (sup_le
+    (λ h hh, subset_closure ⟨h, 1, hh, K.one_mem, mul_one h⟩)
+    (λ k hk, subset_closure ⟨1, k, H.one_mem, hk, one_mul k⟩))
+  (by conv_rhs { rw [← closure_eq H, ← closure_eq K] }; apply closure_mul_le)
+
+@[to_additive]
+lemma pow_smul_mem_closure_smul {N : Type*} [comm_monoid N] [mul_action M N]
+  [is_scalar_tower M N N] (r : M) (s : set N) {x : N} (hx : x ∈ closure s) :
+  ∃ n : ℕ, r ^ n • x ∈ closure (r • s) :=
+begin
+  apply @closure_induction N _ s
+    (λ (x : N), ∃ n : ℕ, r ^ n • x ∈ closure (r • s)) _ hx,
+  { intros x hx,
+    exact ⟨1, subset_closure ⟨_, hx, by rw pow_one⟩⟩ },
+  { exact ⟨0, by simpa using one_mem _⟩ },
+  { rintro x y ⟨nx, hx⟩ ⟨ny, hy⟩,
+    use nx + ny,
+    convert mul_mem hx hy,
+    rw [pow_add, smul_mul_assoc, mul_smul, mul_comm, ← smul_mul_assoc, mul_comm] }
+end
 
 variables [group G]
 
@@ -52,7 +106,7 @@ open_locale pointwise
 
 /-- The submonoid with every element inverted. -/
 @[to_additive /-" The additive submonoid with every element negated. "-/]
-protected def has_inv : has_inv (submonoid G):=
+protected def has_inv : has_inv (submonoid G) :=
 { inv := λ S,
   { carrier := (S : set G)⁻¹,
     one_mem' := show (1 : G)⁻¹ ∈ S, by { rw inv_one, exact S.one_mem },
@@ -486,3 +540,17 @@ lemma pow_subset_pow {s : add_submonoid R} {n : ℕ} : (↑s : set R)^n ⊆ ↑(
 end semiring
 
 end add_submonoid
+
+namespace set.is_pwo
+variables [ordered_cancel_comm_monoid α] {s : set α}
+
+@[to_additive]
+lemma submonoid_closure (hpos : ∀ x : α, x ∈ s → 1 ≤ x) (h : s.is_pwo) :
+  is_pwo ((submonoid.closure s) : set α) :=
+begin
+  rw submonoid.closure_eq_image_prod,
+  refine (h.partially_well_ordered_on_sublist_forall₂ (≤)).image_of_monotone_on _,
+  exact λ l1 hl1 l2 hl2 h12, h12.prod_le_prod' (λ x hx, hpos x $ hl2 x hx)
+end
+
+end set.is_pwo

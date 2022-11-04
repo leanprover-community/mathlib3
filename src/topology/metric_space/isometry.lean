@@ -232,7 +232,7 @@ begin
 end
 
 /-- `α` and `β` are isometric if there is an isometric bijection between them. -/
-@[nolint has_inhabited_instance] -- such a bijection need not exist
+@[nolint has_nonempty_instance] -- such a bijection need not exist
 structure isometric (α : Type*) (β : Type*) [pseudo_emetric_space α] [pseudo_emetric_space β]
   extends α ≃ β :=
 (isometry_to_fun  : isometry to_fun)

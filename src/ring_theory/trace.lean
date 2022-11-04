@@ -50,7 +50,7 @@ The definition is as general as possible and the assumption that we have
 fields or that the extension is finite is added to the lemmas as needed.
 
 We only define the trace for left multiplication (`algebra.left_mul_matrix`,
-i.e. `algebra.lmul_left`).
+i.e. `linear_map.mul_left`).
 For now, the definitions assume `S` is commutative, so the choice doesn't matter anyway.
 
 ## References
@@ -101,7 +101,7 @@ variables {R}
 -- Can't be a `simp` lemma because it depends on a choice of basis
 lemma trace_eq_matrix_trace [decidable_eq ι] (b : basis ι R S) (s : S) :
   trace R S s = matrix.trace (algebra.left_mul_matrix b s) :=
-by rw [trace_apply, linear_map.trace_eq_matrix_trace _ b, to_matrix_lmul_eq]
+by { rw [trace_apply, linear_map.trace_eq_matrix_trace _ b, ←to_matrix_lmul_eq], refl }
 
 /-- If `x` is in the base field `K`, then the trace is `[L : K] * x`. -/
 lemma trace_algebra_map_of_basis (x : R) :
@@ -111,7 +111,7 @@ begin
   rw [trace_apply, linear_map.trace_eq_matrix_trace R b, matrix.trace],
   convert finset.sum_const _,
   ext i,
-  simp,
+  simp [-coe_lmul_eq_mul],
 end
 omit b
 
@@ -127,13 +127,14 @@ begin
   { simp [trace_eq_zero_of_not_exists_basis K H, finrank_eq_zero_of_not_exists_basis_finset H] }
 end
 
-lemma trace_trace_of_basis [algebra S T] [is_scalar_tower R S T]
-  {ι κ : Type*} [fintype ι] [fintype κ]
+lemma trace_trace_of_basis [algebra S T] [is_scalar_tower R S T] {ι κ : Type*} [finite ι] [finite κ]
   (b : basis ι R S) (c : basis κ S T) (x : T) :
   trace R S (trace S T x) = trace R T x :=
 begin
   haveI := classical.dec_eq ι,
   haveI := classical.dec_eq κ,
+  casesI nonempty_fintype ι,
+  casesI nonempty_fintype κ,
   rw [trace_eq_matrix_trace (b.smul c), trace_eq_matrix_trace b, trace_eq_matrix_trace c,
       matrix.trace, matrix.trace, matrix.trace,
       ← finset.univ_product_univ, finset.sum_product],
@@ -143,9 +144,8 @@ begin
       finset.sum_apply i _ (λ y, left_mul_matrix b (left_mul_matrix c x y y))]
 end
 
-lemma trace_comp_trace_of_basis [algebra S T] [is_scalar_tower R S T]
-  {ι κ : Type*} [fintype ι] [fintype κ]
-  (b : basis ι R S) (c : basis κ S T) :
+lemma trace_comp_trace_of_basis [algebra S T] [is_scalar_tower R S T] {ι κ : Type*} [finite ι]
+  [fintype κ] (b : basis ι R S) (c : basis κ S T) :
   (trace R S).comp ((trace S T).restrict_scalars R) = trace R T :=
 by { ext, rw [linear_map.comp_apply, linear_map.restrict_scalars_apply, trace_trace_of_basis b c] }
 
@@ -232,7 +232,7 @@ begin
   contrapose! hx,
   obtain ⟨s, ⟨b⟩⟩ := hx,
   refine is_integral_of_mem_of_fg (K⟮x⟯).to_subalgebra _ x _,
-  { exact (submodule.fg_iff_finite_dimensional _).mpr (finite_dimensional.of_finset_basis b) },
+  { exact (submodule.fg_iff_finite_dimensional _).mpr (finite_dimensional.of_fintype_basis b) },
   { exact subset_adjoin K _ (set.mem_singleton x) }
 end
 
@@ -286,7 +286,7 @@ open polynomial
 lemma algebra.is_integral_trace [finite_dimensional L F] {x : F} (hx : _root_.is_integral R x) :
   _root_.is_integral R (algebra.trace L F x) :=
 begin
-  have hx' : _root_.is_integral L x := is_integral_of_is_scalar_tower _ hx,
+  have hx' : _root_.is_integral L x := is_integral_of_is_scalar_tower hx,
   rw [← is_integral_algebra_map_iff (algebra_map L (algebraic_closure F)).injective,
       trace_eq_sum_roots],
   { refine (is_integral.multiset_sum _).nsmul _,
@@ -491,7 +491,7 @@ lemma trace_matrix_eq_embeddings_matrix_reindex_mul_trans [fintype κ]
   (e : κ ≃ (L →ₐ[K] E)) : (trace_matrix K b).map (algebra_map K E) =
   (embeddings_matrix_reindex K E b e) ⬝ (embeddings_matrix_reindex K E b e)ᵀ :=
 by rw [trace_matrix_eq_embeddings_matrix_mul_trans, embeddings_matrix_reindex, reindex_apply,
-  transpose_minor, ← minor_mul_transpose_minor, ← equiv.coe_refl, equiv.refl_symm]
+  transpose_submatrix, ← submatrix_mul_transpose_submatrix, ← equiv.coe_refl, equiv.refl_symm]
 
 end field
 

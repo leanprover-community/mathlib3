@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.set.function
-import logic.equiv.basic
+import logic.equiv.defs
 
 /-!
 # Equivalences and sets
@@ -503,7 +503,7 @@ e.injective.preimage_surjective.forall
 lemma preimage_pi_equiv_pi_subtype_prod_symm_pi {α : Type*} {β : α → Type*}
   (p : α → Prop) [decidable_pred p] (s : Π i, set (β i)) :
   (pi_equiv_pi_subtype_prod p β).symm ⁻¹' pi univ s =
-    (pi univ (λ i : {i // p i}, s i)) ×ˢ (pi univ (λ i : {i // ¬p i}, s i)) :=
+    (pi univ (λ i : {i // p i}, s i)) ×ˢ pi univ (λ i : {i // ¬p i}, s i) :=
 begin
   ext ⟨f, g⟩,
   simp only [mem_preimage, mem_univ_pi, prod_mk_mem_set_prod_eq, subtype.forall,

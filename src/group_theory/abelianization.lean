@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Michael Howes
 -/
 import group_theory.commutator
-import group_theory.quotient_group
+import group_theory.finiteness
 
 /-!
 # The abelianization of a group
@@ -36,15 +36,28 @@ def commutator : subgroup G :=
 
 lemma commutator_def : commutator G = ⁅(⊤ : subgroup G), ⊤⁆ := rfl
 
-lemma commutator_eq_closure : commutator G = subgroup.closure {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
-by simp_rw [commutator, subgroup.commutator_def, subgroup.mem_top, exists_true_left]
+lemma commutator_eq_closure : commutator G = subgroup.closure (commutator_set G) :=
+by simp [commutator, subgroup.commutator_def, commutator_set]
 
 lemma commutator_eq_normal_closure :
-  commutator G = subgroup.normal_closure {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
-by simp_rw [commutator, subgroup.commutator_def', subgroup.mem_top, exists_true_left]
+  commutator G = subgroup.normal_closure (commutator_set G) :=
+by simp [commutator, subgroup.commutator_def', commutator_set]
 
 instance commutator_characteristic : (commutator G).characteristic :=
 subgroup.commutator_characteristic ⊤ ⊤
+
+instance [finite (commutator_set G)] : group.fg (commutator G) :=
+begin
+  rw commutator_eq_closure,
+  apply group.closure_finite_fg,
+end
+
+lemma rank_commutator_le_card [finite (commutator_set G)] :
+  group.rank (commutator G) ≤ nat.card (commutator_set G) :=
+begin
+  rw subgroup.rank_congr (commutator_eq_closure G),
+  apply subgroup.rank_closure_finite_le_nat_card,
+end
 
 lemma commutator_centralizer_commutator_le_center :
   ⁅(commutator G).centralizer, (commutator G).centralizer⁆ ≤ subgroup.center G :=

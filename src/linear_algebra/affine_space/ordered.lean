@@ -203,7 +203,7 @@ begin
   vsub_eq_sub, vsub_eq_sub, vsub_eq_sub, vadd_eq_add, vadd_eq_add,
   smul_eq_mul, add_sub_cancel, smul_sub, smul_sub, smul_sub,
   sub_le_iff_le_add, mul_inv_rev, mul_smul, mul_smul, ←smul_sub, ←smul_sub, ←smul_add, smul_smul,
-  ← mul_inv_rev, smul_le_iff_of_pos (inv_pos.2 h), inv_inv, smul_smul,
+  ← mul_inv_rev, inv_smul_le_iff h, smul_smul,
   mul_inv_cancel_right₀ (right_ne_zero_of_mul h.ne'), smul_add,
   smul_inv_smul₀ (left_ne_zero_of_mul h.ne')],
   apply_instance
@@ -236,11 +236,10 @@ begin
   rw [← line_map_apply_one_sub, ← line_map_apply_one_sub _ _ r],
   revert h, generalize : 1 - r = r', clear r, intro h,
   simp_rw [line_map_apply, slope, vsub_eq_sub, vadd_eq_add, smul_eq_mul],
-  rw [sub_add_eq_sub_sub_swap, sub_self, zero_sub, le_smul_iff_of_pos, inv_inv, smul_smul,
-    neg_mul_eq_mul_neg, neg_sub, mul_inv_cancel_right₀, le_sub, ← neg_sub (f b), smul_neg,
-    neg_add_eq_sub],
+  rw [sub_add_eq_sub_sub_swap, sub_self, zero_sub, neg_mul_eq_mul_neg, neg_sub, le_inv_smul_iff h,
+    smul_smul, mul_inv_cancel_right₀, le_sub_comm, ← neg_sub (f b), smul_neg, neg_add_eq_sub],
   { exact right_ne_zero_of_mul h.ne' },
-  { simpa [mul_sub] using h }
+  { apply_instance }
 end
 
 /-- Given `c = line_map a b r`, `c < b`, the point `(c, f c)` is non-strictly above the

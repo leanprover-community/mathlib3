@@ -19,6 +19,7 @@ that all standard intervals are `ord_connected`.
 -/
 
 open_locale interval
+open order_dual (to_dual of_dual)
 
 namespace set
 section preorder
@@ -144,18 +145,28 @@ instance [densely_ordered α] {s : set α} [hs : ord_connected s] :
 ⟨λ a b (h : (a : α) < b), let ⟨x, H⟩ := exists_between h in
     ⟨⟨x, (hs.out a.2 b.2) (Ioo_subset_Icc_self H)⟩, H⟩ ⟩
 
+@[instance] lemma ord_connected_preimage {F : Type*} [order_hom_class F α β] (f : F) {s : set β}
+  [hs : ord_connected s] : ord_connected (f ⁻¹' s) :=
+⟨λ x hx y hy z hz, hs.out hx hy ⟨order_hom_class.mono _ hz.1, order_hom_class.mono _ hz.2⟩⟩
+
 @[instance] lemma ord_connected_image {E : Type*} [order_iso_class E α β] (e : E) {s : set α}
   [hs : ord_connected s] : ord_connected (e '' s) :=
-begin
-  constructor,
-  rintro _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ z ⟨hxz, hzy⟩,
-  exact ⟨equiv_like.inv e z, hs.out hx hy ⟨(le_map_inv_iff e).mpr hxz, (map_inv_le_iff e).mpr hzy⟩,
-    equiv_like.right_inv e z⟩
-end
+by { erw [(e : α ≃o β).image_eq_preimage], apply ord_connected_preimage }
 
 @[instance] lemma ord_connected_range {E : Type*} [order_iso_class E α β] (e : E) :
   ord_connected (range e) :=
 by simp_rw [← image_univ, ord_connected_image e]
+
+@[simp] lemma dual_ord_connected_iff {s : set α} :
+  ord_connected (of_dual ⁻¹' s) ↔ ord_connected s :=
+begin
+  simp_rw [ord_connected_def, to_dual.surjective.forall, dual_Icc, subtype.forall'],
+  exact forall_swap
+end
+
+@[instance] lemma dual_ord_connected {s : set α} [ord_connected s] :
+  ord_connected (of_dual ⁻¹' s) :=
+dual_ord_connected_iff.2 ‹_›
 
 end preorder
 
@@ -177,15 +188,16 @@ lemma ord_connected_iff_interval_subset :
   ord_connected s ↔ ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), [x, y] ⊆ s :=
 ⟨λ h, h.interval_subset, λ H, ⟨λ x hx y hy, Icc_subset_interval.trans $ H hx hy⟩⟩
 
+lemma ord_connected_of_interval_subset_left (h : ∀ y ∈ s, [x, y] ⊆ s) :
+  ord_connected s :=
+ord_connected_iff_interval_subset.2 $ λ y hy z hz,
+calc [y, z] ⊆ [y, x] ∪ [x, z] : interval_subset_interval_union_interval
+... = [x, y] ∪ [x, z] : by rw [interval_swap]
+... ⊆ s : union_subset (h y hy) (h z hz)
+
 lemma ord_connected_iff_interval_subset_left (hx : x ∈ s) :
   ord_connected s ↔ ∀ ⦃y⦄, y ∈ s → [x, y] ⊆ s :=
-begin
-  refine ⟨λ hs, hs.interval_subset hx, λ hs, ord_connected_iff_interval_subset.2 $ λ y hy z hz, _⟩,
-  suffices h : [y, x] ∪ [x, z] ⊆ s,
-  { exact interval_subset_interval_union_interval.trans h },
-  rw [interval_swap, union_subset_iff],
-  exact ⟨hs hy, hs hz⟩,
-end
+⟨λ hs, hs.interval_subset hx, ord_connected_of_interval_subset_left⟩
 
 lemma ord_connected_iff_interval_subset_right (hx : x ∈ s) :
   ord_connected s ↔ ∀ ⦃y⦄, y ∈ s → [y, x] ⊆ s :=

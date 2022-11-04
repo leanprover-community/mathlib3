@@ -524,7 +524,7 @@ begin
       with mfld_simps,
     have := (tangent_bundle_core I H).coord_change_self (achart _ x_fst) x_fst
       (mem_achart_source H x_fst) x_snd,
-    ext,
+    -- ext,
     -- refine (tangent_bundle_core I H).coord_change_self _ _ trivial x_snd,
     sorry
       },

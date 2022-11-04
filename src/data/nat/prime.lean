@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import data.list.prime
 import data.list.sort
-import data.nat.gcd
+import data.nat.gcd.basic
 import data.nat.sqrt_norm_num
 import data.set.finite
 import tactic.wlog
@@ -847,18 +847,19 @@ instance inhabited_primes : inhabited primes := ⟨⟨2, prime_two⟩⟩
 
 instance coe_nat : has_coe nat.primes ℕ := ⟨subtype.val⟩
 
-theorem coe_nat_inj (p q : nat.primes) : (p : ℕ) = (q : ℕ) → p = q :=
-λ h, subtype.eq h
+theorem coe_nat_injective : function.injective (coe : nat.primes → ℕ) :=
+subtype.coe_injective
+
+theorem coe_nat_inj (p q : nat.primes) : (p : ℕ) = (q : ℕ) ↔ p = q :=
+subtype.ext_iff.symm
 
 end primes
 
-instance monoid.prime_pow {α : Type*} [monoid α] : has_pow α primes := ⟨λ x p, x^p.val⟩
+instance monoid.prime_pow {α : Type*} [monoid α] : has_pow α primes := ⟨λ x p, x^(p : ℕ)⟩
 
 end nat
 
 /-! ### Primality prover -/
-
-open norm_num
 
 namespace tactic
 namespace norm_num
@@ -940,6 +941,8 @@ begin
   rw nat.le_sqrt at this,
   exact not_le_of_lt hd this
 end
+
+open _root_.norm_num
 
 /-- Given `e` a natural numeral and `d : nat` a factor of it, return `⊢ ¬ prime e`. -/
 meta def prove_non_prime (e : expr) (n d₁ : ℕ) : tactic expr :=
@@ -1195,15 +1198,3 @@ namespace int
 lemma prime_two : prime (2 : ℤ) := nat.prime_iff_prime_int.mp nat.prime_two
 lemma prime_three : prime (3 : ℤ) := nat.prime_iff_prime_int.mp nat.prime_three
 end int
-
-section
-open finset
-/-- Exactly `n / p` naturals in `[1, n]` are multiples of `p`. -/
-lemma card_multiples (n p : ℕ) : card ((range n).filter (λ e, p ∣ e + 1)) = n / p :=
-begin
-  induction n with n hn,
-  { rw [nat.zero_div, range_zero, filter_empty, card_empty] },
-  { rw [nat.succ_div, add_ite, add_zero, range_succ, filter_insert, apply_ite card,
-      card_insert_of_not_mem (mem_filter.not.mpr (not_and_of_not_left _ not_mem_range_self)), hn] }
-end
-end

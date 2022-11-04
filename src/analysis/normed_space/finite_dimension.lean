@@ -154,7 +154,7 @@ begin
   change continuous (λ (f : E →L[𝕜] E), (f : E →ₗ[𝕜] E).det),
   by_cases h : ∃ (s : finset E), nonempty (basis ↥s 𝕜 E),
   { rcases h with ⟨s, ⟨b⟩⟩,
-    haveI : finite_dimensional 𝕜 E := finite_dimensional.of_finset_basis b,
+    haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis b,
     simp_rw linear_map.det_eq_det_to_matrix_of_finset b,
     refine continuous.matrix_det _,
     exact ((linear_map.to_matrix b b).to_linear_map.comp
@@ -216,9 +216,10 @@ begin
     exact ⟨_, e.nnnorm_symm_pos, e.antilipschitz⟩ }
 end
 
-protected lemma linear_independent.eventually {ι} [fintype ι] {f : ι → E}
+protected lemma linear_independent.eventually {ι} [finite ι] {f : ι → E}
   (hf : linear_independent 𝕜 f) : ∀ᶠ g in 𝓝 f, linear_independent 𝕜 g :=
 begin
+  casesI nonempty_fintype ι,
   simp only [fintype.linear_independent_iff'] at hf ⊢,
   rcases linear_map.exists_antilipschitz_with _ hf with ⟨K, K0, hK⟩,
   have : tendsto (λ g : ι → E, ∑ i, ∥g i - f i∥) (𝓝 f) (𝓝 $ ∑ i, ∥f i - f i∥),
@@ -237,7 +238,7 @@ begin
   exact mul_le_mul_of_nonneg_left (norm_le_pi_norm (v - u) i) (norm_nonneg _)
 end
 
-lemma is_open_set_of_linear_independent {ι : Type*} [fintype ι] :
+lemma is_open_set_of_linear_independent {ι : Type*} [finite ι] :
   is_open {f : ι → E | linear_independent 𝕜 f} :=
 is_open_iff_mem_nhds.2 $ λ f, linear_independent.eventually
 
@@ -331,14 +332,15 @@ lemma basis.op_norm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) {u : E �
 by simpa using nnreal.coe_le_coe.mpr (v.op_nnnorm_le ⟨M, hM⟩ hu)
 
 /-- A weaker version of `basis.op_nnnorm_le` that abstracts away the value of `C`. -/
-lemma basis.exists_op_nnnorm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) :
+lemma basis.exists_op_nnnorm_le {ι : Type*} [finite ι] (v : basis ι 𝕜 E) :
   ∃ C > (0 : ℝ≥0), ∀ {u : E →L[𝕜] F} (M : ℝ≥0), (∀ i, ∥u (v i)∥₊ ≤ M) → ∥u∥₊ ≤ C*M :=
-⟨ max (fintype.card ι • ∥v.equiv_funL.to_continuous_linear_map∥₊) 1,
+by casesI nonempty_fintype ι; exact
+  ⟨max (fintype.card ι • ∥v.equiv_funL.to_continuous_linear_map∥₊) 1,
   zero_lt_one.trans_le (le_max_right _ _),
   λ u M hu, (v.op_nnnorm_le M hu).trans $ mul_le_mul_of_nonneg_right (le_max_left _ _) (zero_le M)⟩
 
 /-- A weaker version of `basis.op_norm_le` that abstracts away the value of `C`. -/
-lemma basis.exists_op_norm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) :
+lemma basis.exists_op_norm_le {ι : Type*} [finite ι] (v : basis ι 𝕜 E) :
   ∃ C > (0 : ℝ), ∀ {u : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥u (v i)∥ ≤ M) → ∥u∥ ≤ C*M :=
 let ⟨C, hC, h⟩ := v.exists_op_nnnorm_le in ⟨C, hC, λ u, subtype.forall'.mpr h⟩
 
@@ -523,7 +525,7 @@ let g := linear_equiv.of_injective f (linear_map.ker_eq_bot.mp hf) in
   .. embedding_subtype_coe.comp g.to_continuous_linear_equiv.to_homeomorph.embedding }
 
 lemma continuous_linear_map.exists_right_inverse_of_surjective [finite_dimensional 𝕜 F]
-  (f : E →L[𝕜] F) (hf : f.range = ⊤) :
+  (f : E →L[𝕜] F) (hf : linear_map.range f = ⊤) :
   ∃ g : F →L[𝕜] E, f.comp g = continuous_linear_map.id 𝕜 F :=
 let ⟨g, hg⟩ := (f : E →ₗ[𝕜] F).exists_right_inverse_of_surjective hf in
 ⟨g.to_continuous_linear_map, continuous_linear_map.ext $ linear_map.ext_iff.1 hg⟩
@@ -669,7 +671,7 @@ begin
   intros N g hg,
   have : ∀ i, summable (λ x, ∥g x i∥) := λ i, (pi.summable.1 hg i).abs,
   refine summable_of_norm_bounded _ (summable_sum (λ i (hi : i ∈ finset.univ), this i)) (λ x, _),
-  rw [norm_norm, pi_norm_le_iff],
+  rw [norm_norm, pi_norm_le_iff_of_nonneg],
   { refine λ i, finset.single_le_sum (λ i hi, _) (finset.mem_univ i),
     exact norm_nonneg (g x i) },
   { exact finset.sum_nonneg (λ _ _, norm_nonneg _) }

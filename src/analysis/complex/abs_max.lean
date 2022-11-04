@@ -348,6 +348,18 @@ begin
     (λ x hx, (hr $ ball_subset_closed_ball hx).2)⟩
 end
 
+lemma eventually_eq_or_eq_zero_of_is_local_min_norm {f : E → ℂ} {c : E}
+  (hf : ∀ᶠ z in 𝓝 c, differentiable_at ℂ f z) (hc : is_local_min (norm ∘ f) c) :
+  (∀ᶠ z in 𝓝 c, f z = f c) ∨ (f c = 0) :=
+begin
+  refine or_iff_not_imp_right.mpr (λ h, _),
+  have h1 : ∀ᶠ z in 𝓝 c, f z ≠ 0 := hf.self_of_nhds.continuous_at.eventually_ne h,
+  have h2 : is_local_max (norm ∘ f)⁻¹ c := hc.inv (h1.mono (λ z, norm_pos_iff.mpr)),
+  have h3 : is_local_max (norm ∘ f⁻¹) c := by { refine h2.congr (eventually_of_forall _); simp },
+  have h4 : ∀ᶠ z in 𝓝 c, differentiable_at ℂ f⁻¹ z, by filter_upwards [hf, h1] with z h using h.inv,
+  filter_upwards [eventually_eq_of_is_local_max_norm h4 h3] with z using inv_inj.mp
+end
+
 end strict_convex
 
 /-!
@@ -369,7 +381,7 @@ begin
   have hc : is_compact (closure U), from hb.is_compact_closure,
   obtain ⟨w, hwU, hle⟩ : ∃ w ∈ closure U, is_max_on (norm ∘ f) (closure U) w,
     from hc.exists_forall_ge hne.closure hd.continuous_on.norm,
-  rw [closure_eq_interior_union_frontier, mem_union_eq] at hwU,
+  rw [closure_eq_interior_union_frontier, mem_union] at hwU,
   cases hwU, rotate, { exact ⟨w, hwU, hle⟩ },
   have : interior U ≠ univ, from ne_top_of_le_ne_top hc.ne_univ interior_subset_closure,
   rcases exists_mem_frontier_inf_dist_compl_eq_dist hwU this with ⟨z, hzU, hzw⟩,
@@ -386,7 +398,7 @@ lemma norm_le_of_forall_mem_frontier_norm_le {f : E → F} {U : set E} (hU : bou
   {z : E} (hz : z ∈ closure U) :
   ∥f z∥ ≤ C :=
 begin
-  rw [closure_eq_self_union_frontier, union_comm, mem_union_eq] at hz,
+  rw [closure_eq_self_union_frontier, union_comm, mem_union] at hz,
   cases hz, { exact hC z hz },
   /- In case of a finite dimensional domain, one can just apply
   `complex.exists_mem_frontier_is_max_on_norm`. To make it work in any Banach space, we restrict

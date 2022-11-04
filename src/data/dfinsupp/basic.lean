@@ -8,6 +8,7 @@ import algebra.module.linear_map
 import algebra.big_operators.basic
 import data.set.finite
 import group_theory.submonoid.membership
+import group_theory.group_action.big_operators
 import data.finset.preimage
 
 /-!
@@ -461,8 +462,10 @@ begin
 end
 
 omit dec
-instance [is_empty ι] : unique (Π₀ i, β i) :=
-⟨⟨0⟩, λ a, by { ext, exact is_empty_elim i }⟩
+
+instance unique [∀ i, subsingleton (β i)] : unique (Π₀ i, β i) := fun_like.coe_injective.unique
+
+instance unique_of_is_empty [is_empty ι] : unique (Π₀ i, β i) := fun_like.coe_injective.unique
 
 /-- Given `fintype ι`, `equiv_fun_on_fintype` is the `equiv` between `Π₀ i, β i` and `Π i, β i`.
   (All dependent functions on a finite type are finitely supported.) -/

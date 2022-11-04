@@ -69,7 +69,7 @@ open order_dual (of_dual to_dual)
 
 /-- The galois coinsertion between sets and opens. -/
 def gi : galois_coinsertion subtype.val (@interior α _) :=
-{ choice := λ s hs, ⟨s, interior_eq_iff_open.mp $ le_antisymm interior_subset hs⟩,
+{ choice := λ s hs, ⟨s, interior_eq_iff_is_open.mp $ le_antisymm interior_subset hs⟩,
   gc := gc,
   u_l_le := λ _, interior_subset,
   choice_eq := λ s hs, le_antisymm hs interior_subset }
@@ -151,6 +151,10 @@ by rw [← subtype.coe_injective.eq_iff, opens.coe_bot, ← set.not_nonempty_iff
 lemma ne_bot_iff_nonempty (U : opens α) : U ≠ ⊥ ↔ set.nonempty (U : set α) :=
 by rw [ne.def, ← opens.not_nonempty_iff_eq_bot, not_not]
 
+/-- An open set in the indiscrete topology is either empty or the whole space. -/
+lemma eq_bot_or_top {α} [t : topological_space α] (h : t = ⊤) (U : opens α) : U = ⊥ ∨ U = ⊤ :=
+by { simp_rw ← ext_iff, unfreezingI { subst h }, exact (is_open_top_iff U.1).1 U.2 }
+
 /-- A set of `opens α` is a basis if the set of corresponding sets is a topological basis. -/
 def is_basis (B : set (opens α)) : Prop := is_topological_basis ((coe : _ → set α) '' B)
 
@@ -186,6 +190,19 @@ begin
     rcases h U with ⟨Us, hUs, rfl⟩,
     rcases mem_Sup.1 hx with ⟨U, Us, xU⟩,
     exact ⟨U, hUs Us, xU, le_Sup Us⟩ }
+end
+
+/-- If `α` has a basis consisting of compact opens, then an open set in `α` is compact open iff
+  it is a finite union of some elements in the basis -/
+lemma is_compact_open_iff_eq_finite_Union_of_is_basis
+  {ι : Type*} (b : ι → opens α) (hb : opens.is_basis (set.range b))
+  (hb' : ∀ i, is_compact (b i : set α)) (U : set α) :
+  is_compact U ∧ is_open U ↔ ∃ (s : set ι), s.finite ∧ U = ⋃ i ∈ s, b i :=
+begin
+  apply is_compact_open_iff_eq_finite_Union_of_is_topological_basis
+    (λ i : ι, (b i).1),
+  { convert hb, ext, simp },
+  { exact hb' }
 end
 
 @[simp] lemma is_compact_element_iff (s : opens α) :
@@ -253,5 +270,7 @@ def open_nhds_of (x : α) : Type* := { s : set α // is_open s ∧ x ∈ s }
 
 instance open_nhds_of.inhabited {α : Type*} [topological_space α] (x : α) :
   inhabited (open_nhds_of x) := ⟨⟨set.univ, is_open_univ, set.mem_univ _⟩⟩
+
+instance [finite α] : finite (opens α) := subtype.finite
 
 end topological_space

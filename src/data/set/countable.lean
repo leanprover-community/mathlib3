@@ -28,7 +28,8 @@ constructive analogue of countability. (For the most part, theorems about
 -/
 protected def countable (s : set α) : Prop := nonempty (encodable s)
 
-@[simp] lemma countable_coe_iff {s : set α} : countable s ↔ s.countable := nonempty_encodable.symm
+@[simp] lemma countable_coe_iff {s : set α} : countable s ↔ s.countable :=
+encodable.nonempty_encodable.symm
 
 /-- Prove `set.countable` from a `countable` instance on the subtype. -/
 lemma to_countable (s : set α) [countable s] : s.countable := countable_coe_iff.mp ‹_›
@@ -44,11 +45,7 @@ countable_coe_iff.symm.trans (countable_iff_exists_injective s)
 on `s`. -/
 lemma countable_iff_exists_inj_on {s : set α} :
   s.countable ↔ ∃ f : α → ℕ, inj_on f s :=
-set.countable_iff_exists_injective.trans
-⟨λ ⟨f, hf⟩, ⟨λ a, if h : a ∈ s then f ⟨a, h⟩ else 0,
-   λ a as b bs h, congr_arg subtype.val $
-     hf $ by simpa [as, bs] using h⟩,
- λ ⟨f, hf⟩, ⟨_, inj_on_iff_injective.1 hf⟩⟩
+set.countable_iff_exists_injective.trans exists_inj_on_iff_injective.symm
 
 /-- Convert `set.countable s` to `encodable s` (noncomputable). -/
 protected def countable.to_encodable {s : set α} : s.countable → encodable s :=
@@ -155,7 +152,7 @@ let ⟨g, hg⟩ := countable_iff_exists_inj_on.1 hs in
 countable_iff_exists_inj_on.2 ⟨g ∘ f, hg.comp hf (maps_to_image _ _)⟩
 
 lemma countable_Union {t : ι → set α} [countable ι] (ht : ∀ i, (t i).countable) :
-  (⋃a, t a).countable :=
+  (⋃ i, t i).countable :=
 by { haveI := λ a, (ht a).to_subtype, rw Union_eq_range_psigma, apply countable_range }
 
 @[simp] lemma countable_Union_iff [countable ι] {t : ι → set α} :

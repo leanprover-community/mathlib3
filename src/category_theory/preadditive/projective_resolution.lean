@@ -66,7 +66,7 @@ you will not typically need to use this bundled object, and will instead use
   `(single C _ 0).obj Z` (all the components are equipped with `epi` instances,
   and when the category is `abelian` we will show `π` is a quasi-iso).
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure ProjectiveResolution (Z : C) :=
 (complex : chain_complex C ℕ)
 (π : homological_complex.hom complex ((chain_complex.single₀ C).obj Z))
@@ -172,11 +172,7 @@ chain_complex.mk_hom _ _ (lift_f_zero f _ _) (lift_f_one f _ _) (lift_f_one_zero
 lemma lift_commutes
   {Y Z : C} (f : Y ⟶ Z) (P : ProjectiveResolution Y) (Q : ProjectiveResolution Z) :
   lift f P Q ≫ Q.π = P.π ≫ (chain_complex.single₀ C).map f :=
-begin
-  ext n,
-  rcases n with (_|_|n);
-  { dsimp [lift, lift_f_zero, lift_f_one], simp, }
-end
+by { ext, dsimp [lift, lift_f_zero], apply factor_thru_comp, }
 
 -- Now that we've checked this property of the lift,
 -- we can seal away the actual definition.

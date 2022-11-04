@@ -31,7 +31,7 @@ Each statement about `complex.re` listed below has a counterpart about `complex.
 complex, real part, imaginary part, closure, interior, frontier
 -/
 
-open topological_fiber_bundle set
+open set
 noncomputable theory
 
 namespace complex

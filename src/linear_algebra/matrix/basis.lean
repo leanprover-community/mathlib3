@@ -72,7 +72,7 @@ by { ext M i j, refl, }
 begin
   rw basis.to_matrix,
   ext i j,
-  simp [basis.equiv_fun, matrix.one_apply, finsupp.single, eq_comm]
+  simp [basis.equiv_fun, matrix.one_apply, finsupp.single_apply, eq_comm]
 end
 
 lemma to_matrix_update [decidable_eq ι'] (x : M) :

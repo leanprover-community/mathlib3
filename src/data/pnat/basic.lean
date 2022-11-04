@@ -3,25 +3,25 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Neil Strickland
 -/
+import data.pnat.defs
 import data.nat.order
 import algebra.order.positive.ring
 
 /-!
 # The positive natural numbers
 
-This file defines the type `ℕ+` or `pnat`, the subtype of natural numbers that are positive.
+This file develops the type `ℕ+` or `pnat`, the subtype of natural numbers that are positive.
+It is defined in `data.pnat.defs`, but most of the development is deferred to here so
+that file can have very few imports.
 -/
 
-/-- `ℕ+` is the type of positive natural numbers. It is defined as a subtype,
-  and the VM representation of `ℕ+` is the same as `ℕ` because the proof
-  is not stored. -/
-@[derive [decidable_eq, add_left_cancel_semigroup, add_right_cancel_semigroup, add_comm_semigroup,
-  linear_ordered_cancel_comm_monoid, linear_order, has_add, has_mul, has_one, distrib]]
-def pnat := {n : ℕ // 0 < n}
-notation `ℕ+` := pnat
-
-instance coe_pnat_nat : has_coe ℕ+ ℕ := ⟨subtype.val⟩
-instance : has_repr ℕ+ := ⟨λ n, repr n.1⟩
+instance : add_left_cancel_semigroup ℕ+ := by { dsimp [pnat], apply_instance, }
+instance : add_right_cancel_semigroup ℕ+ := by { dsimp [pnat], apply_instance, }
+instance : add_comm_semigroup ℕ+ := by { dsimp [pnat], apply_instance, }
+instance : linear_ordered_cancel_comm_monoid ℕ+ := by { dsimp [pnat], apply_instance, }
+instance : has_add ℕ+ := by { dsimp [pnat], apply_instance, }
+instance : has_mul ℕ+ := by { dsimp [pnat], apply_instance, }
+instance : distrib ℕ+ := by { dsimp [pnat], apply_instance, }
 
 namespace pnat
 
@@ -51,13 +51,6 @@ nat_pred_strict_mono.le_iff_le
 end pnat
 
 namespace nat
-
-/-- Convert a natural number to a positive natural number. The
-  positivity assumption is inferred by `dec_trivial`. -/
-def to_pnat (n : ℕ) (h : 0 < n . tactic.exact_dec_trivial) : ℕ+ := ⟨n, h⟩
-
-/-- Write a successor as an element of `ℕ+`. -/
-def succ_pnat (n : ℕ) : ℕ+ := ⟨succ n, succ_pos n⟩
 
 @[simp] theorem succ_pnat_coe (n : ℕ) : (succ_pnat n : ℕ) = succ n := rfl
 
@@ -119,8 +112,6 @@ theorem eq {m n : ℕ+} : (m : ℕ) = n → m = n := subtype.eq
 @[simp, norm_cast] lemma coe_inj {m n : ℕ+} : (m : ℕ) = n ↔ m = n := set_coe.ext_iff
 
 lemma coe_injective : function.injective (coe : ℕ+ → ℕ) := subtype.coe_injective
-
-@[simp] theorem mk_coe (n h) : ((⟨n, h⟩ : ℕ+) : ℕ) = n := rfl
 
 @[simp, norm_cast] theorem add_coe (m n : ℕ+) : ((m + n : ℕ+) : ℕ) = m + n := rfl
 

@@ -40,6 +40,23 @@ section thickened_indicator
 
 variables {α : Type*} [pseudo_emetric_space α]
 
+lemma inf_edist_pos_iff_not_mem_closure {x : α} {E : set α} :
+  0 < inf_edist x (closure E) ↔ x ∉ closure E :=
+by simp only [mem_iff_inf_edist_zero_of_closed is_closed_closure, zero_lt_iff]
+
+lemma exists_real_pos_le_infdist_of_not_mem_closure {x : α} {E : set α} (h : x ∉ closure E) :
+  ∃ (ε : ℝ), 0 < ε ∧ ennreal.of_real ε ≤ inf_edist x E :=
+begin
+  rw ← inf_edist_pos_iff_not_mem_closure at h,
+  by_cases dist_infty : inf_edist x E = ∞,
+  { rw dist_infty,
+    use [1, zero_lt_one, le_top], },
+  { use (inf_edist x E).to_real,
+    refine ⟨(ennreal.to_real_lt_to_real ennreal.zero_ne_top dist_infty).mpr _,
+            ennreal.of_real_to_real_le⟩,
+    rwa inf_edist_closure at h, },
+end
+
 /-- The `δ`-thickened indicator of a set `E` is the function that equals `1` on `E`
 and `0` outside a `δ`-thickening of `E` and interpolates (continuously) between
 these values using `inf_edist _ E`.
@@ -251,3 +268,44 @@ begin
 end
 
 end thickened_indicator -- section
+
+section indicator
+
+variables {α : Type*} [pseudo_emetric_space α]
+
+lemma tendsto_indicator_thickening_indicator_closure (f : α → ℝ≥0∞) {δs : ℕ → ℝ}
+  (δs_pos : ∀ n, 0 < δs n) (δs_lim : tendsto δs at_top (𝓝 0)) (E : set α) :
+  tendsto (λ n, (metric.thickening (δs n) E).indicator f) at_top (𝓝 (indicator (closure E) f)) :=
+begin
+  rw tendsto_pi_nhds,
+  intro x,
+  by_cases x_mem_closure : x ∈ closure E,
+  { simp only [x_mem_closure, (λ n, closure_subset_thickening (δs_pos n) E x_mem_closure), indicator_of_mem],
+    exact tendsto_const_nhds, },
+  { have pos_dist : 0 < inf_edist x (closure E),
+    { rw mem_iff_inf_edist_zero_of_closed is_closed_closure at x_mem_closure,
+      exact zero_lt_iff.mpr x_mem_closure, },
+    obtain ⟨ε, ⟨ε_pos, ε_le⟩⟩ : ∃ (ε : ℝ), 0 < ε ∧ ennreal.of_real ε ≤ inf_edist x E,
+    { by_cases dist_infty : inf_edist x E = ∞,
+      { rw dist_infty,
+        use [1, zero_lt_one, le_top], },
+      { use (inf_edist x E).to_real,
+        refine ⟨(ennreal.to_real_lt_to_real ennreal.zero_ne_top dist_infty).mpr _,
+                ennreal.of_real_to_real_le⟩,
+        rwa inf_edist_closure at pos_dist, }, },
+    rw metric.tendsto_nhds at δs_lim,
+    specialize δs_lim ε ε_pos,
+    simp only [dist_zero_right, real.norm_eq_abs, eventually_at_top, ge_iff_le] at δs_lim,
+    rcases δs_lim with ⟨N, hN⟩,
+    apply @tendsto_at_top_of_eventually_const _ _ _ _ _ _ _ N,
+    intros n n_large,
+    have key : x ∉ thickening ε E, by rwa [thickening, mem_set_of_eq, not_lt],
+    have key' : x ∉ thickening (δs n) E,
+    { intros con,
+      have δ_small : δs n ≤ ε, from (abs_lt.mp (hN n n_large)).2.le,
+      have oops := thickening_mono δ_small E con,
+      contradiction, },
+    simp only [x_mem_closure, key', indicator_of_not_mem, not_false_iff], },
+end
+
+end indicator

@@ -5,7 +5,8 @@ Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
 import algebra.order.field_defs
 import algebra.order.with_zero
-import data.fintype.basic
+import algebra.group_with_zero.power
+-- import data.fintype.basic
 
 /-!
 # Linear ordered (semi)fields

@@ -733,8 +733,6 @@ instance order_dual.densely_ordered (α : Type u) [has_lt α] [densely_ordered �
   densely_ordered αᵒᵈ :=
 ⟨λ a₁ a₂ ha, (@exists_between α _ _ _ _ ha).imp $ λ a, and.symm⟩
 
-example [has_lt α] : densely_ordered αᵒᵈᵒᵈ ↔ densely_ordered α := iff.rfl
-
 @[simp] lemma densely_ordered_order_dual [has_lt α] : densely_ordered αᵒᵈ ↔ densely_ordered α :=
 ⟨by { convert @order_dual.densely_ordered αᵒᵈ _, casesI ‹has_lt α›, refl },
   @order_dual.densely_ordered α _⟩

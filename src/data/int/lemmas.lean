@@ -8,14 +8,10 @@ import data.int.bitwise
 import data.nat.cast
 
 /-!
-# Lemmas about the integers
+# Miscellaneous lemmas about the integers
 
-This file contains lemmas about integers, which required further imports than
-`data/int/defs/basic.lean` or `data/int/defs/order.lean`.
-
-## Recursors
-* `int.bit_cases_on`: Parity disjunction. Something is true/defined on `ℤ` if it's true/defined for
-  even and for odd values.
+This file contains lemmas about integers, which require further imports than
+`data.int.basic` or `data.int.order`.
 
 -/
 

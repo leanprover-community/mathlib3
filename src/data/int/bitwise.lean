@@ -8,6 +8,12 @@ import data.nat.pow
 
 /-!
 # Bitwise operations on integers
+
+
+## Recursors
+* `int.bit_cases_on`: Parity disjunction. Something is true/defined on `ℤ` if it's true/defined for
+  even and for odd values.
+
 -/
 
 namespace int

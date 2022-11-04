@@ -37,12 +37,15 @@ namespace Module
 variables {k : Type u} [field k]
 variables {A : Type w} [ring A] [algebra k A]
 
+/--
+Type synonym for considering a module over a `k`-algebra as a `k`-module.
+-/
 def module_of_algebra_Module (M : Module.{v} A) : module k M :=
 restrict_scalars.module k A M
 
 local attribute [instance] module_of_algebra_Module
 
-def is_scalar_tower_of_algebra_Module (M : Module.{v} A) : is_scalar_tower k A M :=
+lemma is_scalar_tower_of_algebra_Module (M : Module.{v} A) : is_scalar_tower k A M :=
 restrict_scalars.is_scalar_tower k A M
 
 local attribute [instance] is_scalar_tower_of_algebra_Module

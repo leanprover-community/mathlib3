@@ -467,8 +467,8 @@ variables {F E} [topological_vector_bundle R F E]
 /-- Given a type `E` equipped with a topological vector bundle structure, this is a `Prop` typeclass
 for trivializations of `E`, expressing that a trivialization is in the designated atlas for the
 bundle.  This is needed because lemmas about the linearity of trivializations or the continuity (as
-functions to `F →L[R] F`, where `F` is the model fibre) of the transition functions are only expected
-to hold for trivializations in the designated atlas. -/
+functions to `F →L[R] F`, where `F` is the model fibre) of the transition functions are only
+expected to hold for trivializations in the designated atlas. -/
 @[mk_iff]
 class mem_trivialization_atlas (e : trivialization F (π E)) : Prop :=
 (out : e ∈ trivialization_atlas R F E)

@@ -244,7 +244,8 @@ def _root_.bundle.continuous_linear_map.topological_vector_prebundle :
     ⟨mem_base_set_trivialization_at 𝕜₁ F₁ E₁ x, mem_base_set_trivialization_at 𝕜₂ F₂ E₂ x⟩,
   pretrivialization_mem_atlas := λ x,
     ⟨trivialization_at 𝕜₁ F₁ E₁ x, trivialization_at 𝕜₂ F₂ E₂ x, _, _, rfl⟩,
-  exists_coord_change := by { rintro _ ⟨e₁, e₂, he₁, he₂, rfl⟩ _ ⟨e₁', e₂', he₁', he₂', rfl⟩, resetI,
+  exists_coord_change := by { rintro _ ⟨e₁, e₂, he₁, he₂, rfl⟩ _ ⟨e₁', e₂', he₁', he₂', rfl⟩,
+    resetI,
     exact ⟨continuous_linear_map_coord_change σ e₁ e₁' e₂ e₂',
     continuous_on_continuous_linear_map_coord_change,
     continuous_linear_map_coord_change_apply σ e₁ e₁' e₂ e₂'⟩ } }

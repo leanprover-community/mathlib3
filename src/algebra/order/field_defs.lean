@@ -4,11 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
 import algebra.field.basic
-import algebra.group_power.lemmas
-import algebra.group_power.order
 import algebra.order.ring
-import order.bounds
-import tactic.monotonicity.basic
 
 /-!
 # Linear ordered (semi)fields

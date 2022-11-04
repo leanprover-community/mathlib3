@@ -5,6 +5,13 @@ Authors: Mario Carneiro, Neil Strickland
 -/
 import order.basic
 
+/-!
+# The positive natural numbers
+
+This file contains the definitions, and basic results.
+Most algebraic facts are deferred to `data.pnat.basic`, as they need more imports.
+-/
+
 @[derive [decidable_eq, linear_order]]
 def pnat := {n : ℕ // 0 < n}
 notation `ℕ+` := pnat

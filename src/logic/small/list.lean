@@ -6,6 +6,13 @@ Authors: Scott Morrison
 import logic.small.basic
 import data.vector.basic
 
+/-!
+# Instances for `small (list α)` and `small (vector α)`.
+
+These must not be in `logic.small.basic` as this is very low in the import hierarchy,
+and is used by category theory files which do not need everything imported by `data.vector.basic`.
+-/
+
 universes u v
 
 instance small_vector {α : Type v} {n : ℕ} [small.{u} α] :

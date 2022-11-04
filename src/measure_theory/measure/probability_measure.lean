@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä
 -/
 import measure_theory.measure.finite_measure
+import measure_theory.integral.average
 
 /-!
 # Probability measures

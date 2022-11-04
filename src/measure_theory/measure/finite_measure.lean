@@ -3,12 +3,9 @@ Copyright (c) 2021 Kalle Kytölä. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä
 -/
-import measure_theory.measure.measure_space
 import measure_theory.integral.set_integral
-import measure_theory.integral.average
 import topology.continuous_function.bounded
 import topology.algebra.module.weak_dual
-import topology.metric_space.thickened_indicator
 
 /-!
 # Finite measures
@@ -22,9 +19,8 @@ measure is continuous.
 
 ## Main definitions
 
-The main definitions are the
- * type `measure_theory.finite_measure Ω` with the topology of weak convergence;
- * type `measure_theory.finite_measure Ω` with the topology of weak convergence;
+The main definitions are
+ * the type `measure_theory.finite_measure Ω` with the topology of weak convergence;
  * `measure_theory.finite_measure.to_weak_dual_bcnn : finite_measure Ω → (weak_dual ℝ≥0 (Ω →ᵇ ℝ≥0))`
    allowing to interpret a finite measure as a continuous linear functional on the space of
    bounded continuous nonnegative functions on `Ω`. This is used for the definition of the

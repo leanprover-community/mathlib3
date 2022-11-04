@@ -492,8 +492,8 @@ instance compact_space_optimal_GH_coupling : compact_space (optimal_GH_coupling 
       rw this,
       exact mem_union_right _ (mem_image_of_mem _ (mem_univ _)) } },
   rw this,
-  exact (compact_univ.image (isometry_optimal_GH_injl X Y).continuous).union
-    (compact_univ.image (isometry_optimal_GH_injr X Y).continuous)
+  exact (is_compact_univ.image (isometry_optimal_GH_injl X Y).continuous).union
+    (is_compact_univ.image (isometry_optimal_GH_injr X Y).continuous)
 end⟩
 
 /-- For any candidate `f`, `HD(f)` is larger than or equal to the Hausdorff distance in the

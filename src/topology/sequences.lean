@@ -268,7 +268,7 @@ hs.is_seq_compact hx
 
 @[priority 100] -- see Note [lower instance priority]
 instance first_countable_topology.seq_compact_of_compact [compact_space X] : seq_compact_space X :=
-⟨compact_univ.is_seq_compact⟩
+⟨is_compact_univ.is_seq_compact⟩
 
 lemma compact_space.tendsto_subseq [compact_space X] (x : ℕ → X) :
   ∃ a (φ : ℕ → ℕ), strict_mono φ ∧ tendsto (x ∘ φ) at_top (𝓝 a) :=

@@ -53,17 +53,22 @@ open_locale classical
 variables (R 𝕜 : Type*) {B : Type*} (F : Type*) (E : B → Type*)
 
 section topological_vector_space
-variables {B F E} [semiring R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
-  [topological_space F] [add_comm_monoid F] [module R F] [topological_space B]
+variables {B F E} [semiring R]
+  [topological_space F]  [topological_space B]
 
-protected class pretrivialization.is_linear (e : pretrivialization F (π E)) : Prop :=
+/-- A mixin class for `pretrivialization`, stating that a pretrivialization is fibrewise linear with
+respect to given module structures on its fibres and the model fibre. -/
+protected class pretrivialization.is_linear [add_comm_monoid F] [module R F]
+  [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)] (e : pretrivialization F (π E)) :
+  Prop :=
 (linear : ∀ b ∈ e.base_set, is_linear_map R (λ x : E b, (e (total_space_mk b x)).2))
 
 namespace pretrivialization
 
 variables {F E} (e : pretrivialization F (π E)) {x : total_space E} {b : B} {y : E b}
 
-lemma linear [e.is_linear R] {b : B} (hb : b ∈ e.base_set) :
+lemma linear [add_comm_monoid F] [module R F] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
+  [e.is_linear R] {b : B} (hb : b ∈ e.base_set) :
   is_linear_map R (λ x : E b, (e (total_space_mk b x)).2) :=
 pretrivialization.is_linear.linear b hb
 
@@ -78,6 +83,9 @@ e.mem_target
 lemma symm_coe_proj {x : B} {y : F} (e : pretrivialization F (π E)) (h : x ∈ e.base_set) :
   (e.to_local_equiv.symm (x, y)).1 = x :=
 e.proj_symm_apply' h
+
+section has_zero
+variables [∀ x, has_zero (E x)]
 
 /-- A fiberwise inverse to `e`. This is the function `F → E b` that induces a local inverse
 `B × F → total_space E` of `e` on `e.base_set`. It is defined to be `0` outside `e.base_set`. -/
@@ -114,6 +122,10 @@ e.symm_proj_apply (total_space_mk b y) hb
 lemma apply_mk_symm (e : pretrivialization F (π E)) {b : B} (hb : b ∈ e.base_set) (y : F) :
   e (total_space_mk b (e.symm b y)) = (b, y) :=
 by rw [e.mk_symm hb, e.apply_symm_apply (e.mk_mem_target.mpr hb)]
+
+end has_zero
+
+variables [add_comm_monoid F] [module R F] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
 
 /-- A fiberwise linear inverse to `e`. -/
 @[simps] protected def symmₗ (e : pretrivialization F (π E)) [e.is_linear R] (b : B) :
@@ -186,18 +198,24 @@ end pretrivialization
 
 variables (R) [topological_space (total_space E)]
 
-protected class trivialization.is_linear (e : trivialization F (π E)) : Prop :=
+/-- A mixin class for `trivialization`, stating that a trivialization is fibrewise linear with
+respect to given module structures on its fibres and the model fibre. -/
+protected class trivialization.is_linear [add_comm_monoid F] [module R F]
+  [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)] (e : trivialization F (π E)) : Prop :=
 (linear : ∀ b ∈ e.base_set, is_linear_map R (λ x : E b, (e (total_space_mk b x)).2))
 
 namespace trivialization
 
-variables (e : trivialization F (π E)) [e.is_linear R] {x : total_space E} {b : B} {y : E b}
+variables (e : trivialization F (π E)) {x : total_space E} {b : B} {y : E b}
 
-protected lemma linear (hb : b ∈ e.base_set) :
+protected lemma linear [add_comm_monoid F] [module R F] [∀ x, add_comm_monoid (E x)]
+  [∀ x, module R (E x)] [e.is_linear R] {b : B} (hb : b ∈ e.base_set) :
   is_linear_map R (λ y : E b, (e (total_space_mk b y)).2) :=
 trivialization.is_linear.linear b hb
 
-instance to_pretrivialization.is_linear : e.to_pretrivialization.is_linear R :=
+instance to_pretrivialization.is_linear [add_comm_monoid F] [module R F]
+  [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)] [e.is_linear R] :
+  e.to_pretrivialization.is_linear R :=
 { ..(‹_› : e.is_linear R) }
 
 protected lemma continuous_on : continuous_on e e.source := e.continuous_to_fun
@@ -220,6 +238,9 @@ e.to_local_equiv.left_inv hx
 @[simp, mfld_simps] lemma symm_coe_proj {x : B} {y : F}
   (e : trivialization F (π E)) (h : x ∈ e.base_set) :
   (e.to_local_homeomorph.symm (x, y)).1 = x := e.proj_symm_apply' h
+
+section has_zero
+variables [∀ x, has_zero (E x)]
 
 /-- A fiberwise inverse to `e`. The function `F → E x` that induces a local inverse
   `B × F → total_space E` of `e` on `e.base_set`. It is defined to be `0` outside `e.base_set`. -/
@@ -260,6 +281,10 @@ begin
   rw [← e.target_eq],
   exact e.to_local_homeomorph.continuous_on_symm
 end
+
+end has_zero
+
+variables [add_comm_monoid F] [module R F] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
 
 /-- A trivialization for a topological vector bundle defines linear equivalences between the
 fibers and the model space. -/
@@ -442,6 +467,11 @@ export topological_vector_bundle (trivialization_atlas trivialization_at
 
 variables {F E} [topological_vector_bundle R F E]
 
+/-- Given a type `E` equipped with a topological vector bundle structure, this is a `Prop` typeclass
+for trivializations of `E`, expressing that a trivialization is in the designated atlas for the
+bundle.  This is needed because lemmas about the linearity of trivializations or the continuity (as
+functions to `F →L[R] F`, where `F` is the model fibre) of the transition functions are only expected
+to hold for trivializations in the designated atlas. -/
 @[mk_iff]
 class mem_trivialization_atlas (e : trivialization F (π E)) : Prop :=
 (out : e ∈ trivialization_atlas R F E)
@@ -449,6 +479,7 @@ class mem_trivialization_atlas (e : trivialization F (π E)) : Prop :=
 instance (b : B) : mem_trivialization_atlas R (trivialization_at R F E b) :=
 { out := topological_vector_bundle.trivialization_mem_atlas R F E b }
 
+@[priority 100]
 instance trivialization_linear (e : trivialization F (π E)) [he : mem_trivialization_atlas R e] :
   e.is_linear R :=
 topological_vector_bundle.trivialization_linear' e he.out
@@ -987,7 +1018,7 @@ a.to_topological_fiber_prebundle.trivialization_of_mem_pretrivialization_atlas h
 
 lemma linear_of_mem_pretrivialization_atlas (a : topological_vector_prebundle R F E)
   {e : pretrivialization F (π E)} (he : e ∈ a.pretrivialization_atlas) :
-  @trivialization.is_linear R B F _ _ _ _ _ _ _ _ a.total_space_topology
+  @trivialization.is_linear R B F _ _ _ _ a.total_space_topology _ _ _ _
     (trivialization_of_mem_pretrivialization_atlas a he) :=
 { linear := (a.pretrivialization_linear' e he).linear }
 

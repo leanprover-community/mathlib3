@@ -60,11 +60,9 @@ variables [nontrivially_normed_field R] [topological_space B]
 
 variables (F₁ : Type*) [normed_add_comm_group F₁] [normed_space R F₁]
   (E₁ : B → Type*) [topological_space (total_space E₁)]
-  [Π x, add_comm_monoid (E₁ x)] [Π x, module R (E₁ x)]
 
 variables (F₂ : Type*) [normed_add_comm_group F₂] [normed_space R F₂]
   (E₂ : B → Type*) [topological_space (total_space E₂)]
-  [Π x, add_comm_monoid (E₂ x)] [Π x, module R (E₂ x)]
 
 namespace trivialization
 variables (e₁ : trivialization F₁ (π E₁)) (e₂ : trivialization F₂ (π E₂))
@@ -102,6 +100,9 @@ begin
 end
 
 variables (e₁ e₂)
+  [Π x, add_comm_monoid (E₁ x)] [Π x, module R (E₁ x)]
+  [Π x, add_comm_monoid (E₂ x)] [Π x, module R (E₂ x)]
+
 
 /-- Given trivializations `e₁`, `e₂` for vector bundles `E₁`, `E₂` over a base `B`, the inverse
 function for the construction `topological_vector_bundle.trivialization.prod`, the induced
@@ -199,6 +200,9 @@ rfl
 end trivialization
 
 open trivialization
+
+variables [Π x, add_comm_monoid (E₁ x)] [Π x, module R (E₁ x)]
+  [Π x, add_comm_monoid (E₂ x)] [Π x, module R (E₂ x)]
 
 variables [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E₂ x)]
   [topological_vector_bundle R F₁ E₁] [topological_vector_bundle R F₂ E₂]

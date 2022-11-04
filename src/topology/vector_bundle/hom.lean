@@ -86,7 +86,6 @@ variables (F₂ : Type*) [normed_add_comm_group F₂][normed_space 𝕜₂ F₂]
 open topological_vector_bundle
 
 variables {F₁ E₁ F₂ E₂} (e₁ e₁' : trivialization F₁ (π E₁)) (e₂ e₂' : trivialization F₂ (π E₂))
-  -- [e₁.is_linear 𝕜₁] [e₁'.is_linear 𝕜₁] [e₂.is_linear 𝕜₂] [e₂'.is_linear 𝕜₂]
 variables [ring_hom_isometric σ]
 
 namespace pretrivialization
@@ -127,7 +126,6 @@ end
 
 variables (σ e₁ e₁' e₂ e₂')
   [e₁.is_linear 𝕜₁] [e₁'.is_linear 𝕜₁] [e₂.is_linear 𝕜₂] [e₂'.is_linear 𝕜₂]
-variables [Π x, has_continuous_add (E₂ x)] [Π x, has_continuous_smul 𝕜₂ (E₂ x)]
 
 /-- Given trivializations `e₁`, `e₂` for vector bundles `E₁`, `E₂` over a base `B`,
 `pretrivialization.continuous_linear_map σ e₁ e₂` is the induced pretrivialization for the
@@ -161,7 +159,8 @@ def continuous_linear_map :
   target_eq := rfl,
   proj_to_fun := λ ⟨x, f⟩ h, rfl }
 
-instance continuous_linear_map.is_linear :
+instance continuous_linear_map.is_linear
+  [Π x, has_continuous_add (E₂ x)] [Π x, has_continuous_smul 𝕜₂ (E₂ x)] :
   (pretrivialization.continuous_linear_map σ e₁ e₂).is_linear 𝕜₂ :=
 { linear := λ x h,
   { map_add := λ L L',
@@ -187,6 +186,8 @@ lemma continuous_linear_map_symm_apply (p : B × (F₁ →SL[σ] F₂)) :
   (continuous_linear_map σ e₁ e₂).to_local_equiv.symm p =
   ⟨p.1, (e₂.symmL 𝕜₂ p.1).comp $ p.2.comp $ e₁.continuous_linear_map_at 𝕜₁ p.1⟩ :=
 rfl
+
+variables [Π x, has_continuous_add (E₂ x)]
 
 lemma continuous_linear_map_symm_apply' {b : B} (hb : b ∈ e₁.base_set ∩ e₂.base_set)
   (L : F₁ →SL[σ] F₂) :

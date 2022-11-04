@@ -219,7 +219,7 @@ open subgroup
 
 /-- Representatives `(g₁, g₂) : G × G` of commutator_set `⁅g₁, g₂⁆ ∈ G`. -/
 def commutator_representatives : set (G × G) :=
-set.range (λ g : commutator_set G, (classical.some g.2, classical.some (classical.some_spec g.2)))
+set.range (λ g : commutator_set G, (g.2.some, g.2.some_spec.some))
 
 instance [finite (commutator_set G)] : finite (commutator_representatives G) :=
 set.finite_coe_iff.mpr (set.finite_range _)
@@ -233,8 +233,7 @@ instance closure_commutator_representatives_fg [finite (commutator_set G)] :
 group.closure_finite_fg _
 
 lemma rank_closure_commutator_representations_le [finite (commutator_set G)] :
-  group.rank (closure_commutator_representatives G) ≤
-    2 * nat.card (commutator_set G) :=
+  group.rank (closure_commutator_representatives G) ≤ 2 * nat.card (commutator_set G) :=
 begin
   rw two_mul,
   exact (subgroup.rank_closure_finite_le_nat_card _).trans ((set.card_union_le _ _).trans
@@ -257,7 +256,7 @@ lemma card_commutator_set_closure_commutator_representatives :
   nat.card (commutator_set (closure_commutator_representatives G)) = nat.card (commutator_set G) :=
 begin
   rw ← image_commutator_set_closure_commutator_representatives G,
-  refine nat.card_congr (equiv.set.image _ _ (subtype_injective _)),
+  exact nat.card_congr (equiv.set.image _ _ (subtype_injective _)),
 end
 
 lemma card_commutator_closure_commutator_representatives :
@@ -265,7 +264,7 @@ lemma card_commutator_closure_commutator_representatives :
 begin
   rw [commutator_eq_closure G, ←image_commutator_set_closure_commutator_representatives,
       ←monoid_hom.map_closure, ←commutator_eq_closure],
-  refine nat.card_congr (equiv.set.image _ _ (subtype_injective _)),
+  exact nat.card_congr (equiv.set.image _ _ (subtype_injective _)),
 end
 
 instance [finite (commutator_set G)] :

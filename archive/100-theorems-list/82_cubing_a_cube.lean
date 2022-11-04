@@ -6,6 +6,7 @@ Authors: Floris van Doorn
 import data.fin.tuple
 import data.real.basic
 import data.set.intervals
+import data.set.intervals.group
 import data.set.pairwise
 
 /-!

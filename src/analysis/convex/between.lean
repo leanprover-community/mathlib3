@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
 import analysis.convex.segment
+import data.set.intervals.group
 import linear_algebra.affine_space.finite_dimensional
 import tactic.field_simp
 

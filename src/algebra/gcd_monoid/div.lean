@@ -42,7 +42,7 @@ begin
 end
 
 theorem gcd_eq_one_of_div_gcd_id (s : finset ℕ) {x : ℕ} (hx : x ∈ s) (hnz : x ≠ 0) :
-  s.gcd (λ b, b / (s.gcd id)) = 1 :=
+  s.gcd (λ b, b / s.gcd id) = 1 :=
 coprime_of_div_gcd s hx hnz
 
 end nat
@@ -99,7 +99,7 @@ begin
   --exact mt finset.gcd_eq_zero_iff.1 (λ h, hfz $ h x hx),
 end
 
-/-- Given a nonempty finset `s` and a function `f` from `s` to `K[X]`, if `d = s.gcd`,
+/-- Given a nonempty finset `s` and a function `f` from `s` to `K[X]`, if `d = s.gcd f`,
 then the `gcd` of `(f i) / d` is equal to `1`. -/
 theorem div_gcd_coprime {β : Type*} {f : β → K[X]} (s : finset β) {x : β} (hx : x ∈ s)
   (hfz : f x ≠ 0) : s.gcd (λ b, f b / s.gcd f) = 1 :=

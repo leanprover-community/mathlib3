@@ -54,8 +54,8 @@ instance normed_ordered_group.to_normed_comm_group [normed_ordered_group α] : n
 ⟨normed_ordered_group.dist_eq⟩
 
 @[to_additive, priority 100]
-instance normed_linear_ordered_group.to_normed_comm_group [normed_linear_ordered_group α] :
-  normed_comm_group α :=
+instance normed_linear_ordered_group.to_normed_ordered_group [normed_linear_ordered_group α] :
+  normed_ordered_group α :=
 ⟨normed_linear_ordered_group.dist_eq⟩
 
 @[priority 100] instance normed_linear_ordered_field.to_normed_field (α : Type*)
@@ -71,10 +71,10 @@ instance : normed_linear_ordered_field ℝ :=
 ⟨dist_eq_norm, norm_mul⟩
 
 @[to_additive] instance [normed_ordered_group α] : normed_ordered_group αᵒᵈ :=
-‹normed_ordered_group α›
+{ ..normed_ordered_group.to_normed_comm_group, ..order_dual.ordered_comm_group }
 
 @[to_additive] instance [normed_linear_ordered_group α] : normed_linear_ordered_group αᵒᵈ :=
-‹normed_linear_ordered_group α›
+{ ..order_dual.normed_ordered_group, ..order_dual.linear_order _ }
 
 instance [normed_ordered_group α] : normed_ordered_add_group (additive α) :=
 { ..additive.normed_add_comm_group }

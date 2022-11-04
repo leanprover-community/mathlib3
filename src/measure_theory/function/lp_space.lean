@@ -1029,7 +1029,7 @@ begin
   begin
     rw ennreal.mul_lt_top_iff,
     refine or.inl ⟨hfq_lt_top, ennreal.rpow_lt_top_of_nonneg _ (measure_ne_top μ set.univ)⟩,
-    rwa [le_sub, sub_zero, one_div, one_div, inv_le_inv hq_pos hp_pos],
+    rwa [le_sub_comm, sub_zero, one_div, one_div, inv_le_inv hq_pos hp_pos],
   end
 end
 

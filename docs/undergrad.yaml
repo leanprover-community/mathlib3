@@ -67,7 +67,7 @@ Linear algebra:
     Jordan normal form: 'https://en.wikipedia.org/wiki/Jordan_normal_form'
   Linear representations:
     irreducible representation: 'https://en.wikipedia.org/wiki/Irreducible_representation'
-    Schur's lemma: 'https://en.wikipedia.org/wiki/Schur%27s_lemma'
+    Schur's lemma: 'fdRep.finrank_hom_simple_simple'
     examples: ''
   Exponential:
     endomorphism exponential: ''
@@ -538,7 +538,7 @@ Probability Theory:
     independent sigma-algebra: 'probability_theory.Indep'
     $0$-$1$ law: 'probability_theory.measure_zero_or_one_of_measurable_set_limsup_at_top'
     Borel-Cantelli lemma (easy direction): 'measure_theory.measure_limsup_eq_zero'
-    Borel-Cantelli lemma (difficult direction): ''
+    Borel-Cantelli lemma (difficult direction): 'probability_theory.measure_limsup_eq_one'
     conditional probability: 'probability_theory.cond'
     law of total probability: ''
   Random variables and their laws:

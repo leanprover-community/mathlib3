@@ -10,6 +10,7 @@ import data.finset.pi
 import data.finset.powerset
 import data.finset.prod
 import data.finset.sigma
+import data.finset.sum
 import data.finite.defs
 import data.list.nodup_equiv_fin
 import data.sym.basic
@@ -975,19 +976,13 @@ instance (α : Type*) [fintype α] : fintype (lex α) := ‹fintype α›
 @[simp] lemma fintype.card_lex (α : Type*) [fintype α] :
   fintype.card (lex α) = fintype.card α := rfl
 
-lemma univ_sum_type {α β : Type*} [fintype α] [fintype β] [fintype (α ⊕ β)] [decidable_eq (α ⊕ β)] :
-  (univ : finset (α ⊕ β)) = map function.embedding.inl univ ∪ map function.embedding.inr univ :=
-begin
-  rw [eq_comm, eq_univ_iff_forall], simp only [mem_union, mem_map, exists_prop, mem_univ, true_and],
-  rintro (x|y), exacts [or.inl ⟨x, rfl⟩, or.inr ⟨y, rfl⟩]
-end
-
 instance (α : Type u) (β : Type v) [fintype α] [fintype β] : fintype (α ⊕ β) :=
-@fintype.of_equiv _ _ (@sigma.fintype _
-    (λ b, cond b (ulift α) (ulift.{(max u v) v} β)) _
-    (λ b, by cases b; apply ulift.fintype))
-  ((equiv.sum_equiv_sigma_bool _ _).symm.trans
-    (equiv.sum_congr equiv.ulift equiv.ulift))
+{ elems := univ.disj_sum univ,
+  complete := by rintro (_ | _); simp }
+
+@[simp] lemma finset.univ_disj_sum_univ {α β : Type*} [fintype α] [fintype β] :
+  univ.disj_sum univ = (univ : finset (α ⊕ β)) :=
+rfl
 
 /-- Given that `α ⊕ β` is a fintype, `α` is also a fintype. This is non-computable as it uses
 that `sum.inl` is an injection, but there's no clear inverse if `α` is empty. -/
@@ -1001,15 +996,7 @@ fintype.of_injective (sum.inr : β → α ⊕ β) sum.inr_injective
 
 @[simp] theorem fintype.card_sum [fintype α] [fintype β] :
   fintype.card (α ⊕ β) = fintype.card α + fintype.card β :=
-begin
-  classical,
-  rw [←finset.card_univ, univ_sum_type, finset.card_union_eq],
-  { simp [finset.card_univ] },
-  { intros x hx,
-    rsuffices ⟨⟨a, rfl⟩, ⟨b, hb⟩⟩ : (∃ (a : α), sum.inl a = x) ∧ ∃ (b : β), sum.inr b = x,
-    { simpa using hb },
-    simpa using hx }
-end
+card_disj_sum _ _
 
 /-- If the subtype of all-but-one elements is a `fintype` then the type itself is a `fintype`. -/
 def fintype_of_fintype_ne (a : α) (h : fintype {b // b ≠ a}) : fintype α :=

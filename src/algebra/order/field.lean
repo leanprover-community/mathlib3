@@ -5,6 +5,7 @@ Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
 import algebra.order.field_defs
 import algebra.order.with_zero
+import data.fintype.basic
 
 /-!
 # Linear ordered (semi)fields
@@ -24,7 +25,7 @@ set_option old_structure_cmd true
 
 open function order_dual
 
-variables {α β : Type*}
+variables {ι α β : Type*}
 
 namespace function
 
@@ -633,6 +634,19 @@ end
 lemma is_glb.mul_right {s : set α} (ha : 0 ≤ a) (hs : is_glb s b) :
   is_glb ((λ b, b * a) '' s) (b * a) :=
 by simpa [mul_comm] using hs.mul_left ha
+
+lemma pi.exists_forall_pos_add_lt [has_exists_add_of_le α] [finite ι] {x y : ι → α}
+  (h : ∀ i, x i < y i) : ∃ ε, 0 < ε ∧ ∀ i, x i + ε < y i :=
+begin
+  casesI nonempty_fintype ι,
+  casesI is_empty_or_nonempty ι,
+  { exact ⟨1, zero_lt_one, is_empty_elim⟩ },
+  choose ε hε hxε using λ i, exists_pos_add_of_lt' (h i),
+  obtain rfl : x + ε = y := funext hxε,
+  have hε : 0 < finset.univ.inf' finset.univ_nonempty ε := (finset.lt_inf'_iff _).2 (λ i _, hε _),
+  exact ⟨_, half_pos hε, λ i, add_lt_add_left ((half_lt_self hε).trans_le $ finset.inf'_le _ $
+    finset.mem_univ _) _⟩,
+end
 
 end linear_ordered_semifield
 

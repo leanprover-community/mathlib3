@@ -3,7 +3,7 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
-import analysis.normed_space.lattice_ordered_group
+import analysis.normed.order.lattice
 import analysis.normed_space.operator_norm
 import analysis.normed_space.star.basic
 import data.real.sqrt

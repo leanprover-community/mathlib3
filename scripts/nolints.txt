@@ -4,11 +4,6 @@ run_cmd tactic.skip
 -- algebra/free_algebra.lean
 apply_nolint free_algebra.semiring check_reducibility
 
--- algebra/hom/group.lean
-apply_nolint monoid_hom.ext_iff to_additive_doc
-apply_nolint mul_hom.ext_iff to_additive_doc
-apply_nolint one_hom.comp_assoc to_additive_doc
-
 -- category_theory/limits/filtered_colimit_commutes_finite_limit.lean
 apply_nolint category_theory.limits.colimit_limit_to_limit_colimit_is_iso fails_quickly
 

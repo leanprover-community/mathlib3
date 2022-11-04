@@ -555,7 +555,7 @@ by rw [add_comm, fract_add_nat]
 
 @[simp] lemma fract_nonneg (a : α) : 0 ≤ fract a := sub_nonneg.2 $ floor_le _
 
-lemma fract_lt_one (a : α) : fract a < 1 := sub_lt.1 $ sub_one_lt_floor _
+lemma fract_lt_one (a : α) : fract a < 1 := sub_lt_comm.1 $ sub_one_lt_floor _
 
 @[simp] lemma fract_zero : fract (0 : α) = 0 := by rw [fract, floor_zero, cast_zero, sub_self]
 
@@ -878,7 +878,8 @@ begin
     simpa only [le_add_iff_nonneg_right, sub_nonneg, cast_le] using le_floor.mpr hx, },
   { rw abs_eq_neg_self.mpr (sub_neg.mpr hx).le,
     conv_rhs { rw ← fract_add_floor x, },
-    rw [add_sub_assoc, add_comm, neg_add, neg_sub, le_add_neg_iff_add_le, sub_add_cancel, le_sub],
+    rw [add_sub_assoc, add_comm, neg_add, neg_sub, le_add_neg_iff_add_le, sub_add_cancel,
+      le_sub_comm],
     norm_cast,
     exact floor_le_sub_one_iff.mpr hx, },
 end

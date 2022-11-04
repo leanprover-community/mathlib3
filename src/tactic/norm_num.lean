@@ -5,6 +5,7 @@ Authors: Simon Hudon, Mario Carneiro
 -/
 import data.rat.cast
 import data.rat.meta_defs
+import data.int.lemmas
 
 /-!
 # `norm_num`

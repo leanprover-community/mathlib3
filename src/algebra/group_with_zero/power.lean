@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import algebra.group_power.lemmas
+import data.int.bitwise
 
 /-!
 # Powers of elements of groups with an adjoined zero element

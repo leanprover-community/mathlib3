@@ -5,8 +5,6 @@ Authors: Mario Carneiro
 -/
 import data.int.order
 import data.nat.cast
-import tactic.pi_instances
-import data.sum.basic
 
 /-!
 # Cast of integers (additional theorems)
@@ -28,6 +26,10 @@ namespace int
 
 /-- Coercion `ℕ → ℤ` as a `ring_hom`. -/
 def of_nat_hom : ℕ →+* ℤ := ⟨coe, rfl, int.of_nat_mul, rfl, int.of_nat_add⟩
+
+@[simp] theorem coe_nat_pos {n : ℕ} : (0 : ℤ) < n ↔ 0 < n := nat.cast_pos
+
+lemma coe_nat_succ_pos (n : ℕ) : 0 < (n.succ : ℤ) := int.coe_nat_pos.2 (succ_pos n)
 
 section cast
 

@@ -656,8 +656,6 @@ int.to_nat_of_nonneg (sub_nonneg_of_le h)
 lemma is_unit_iff_abs_eq {x : ℤ} : is_unit x ↔ abs x = 1 :=
 by rw [is_unit_iff_nat_abs_eq, abs_eq_nat_abs, ←int.coe_nat_one, coe_nat_inj']
 
-/-! ### bitwise ops -/
-
 lemma eq_zero_of_abs_lt_dvd {m x : ℤ} (h1 : m ∣ x) (h2 : | x | < m) : x = 0 :=
 begin
   by_cases hm : m = 0, { subst m, exact zero_dvd_iff.mp h1, },

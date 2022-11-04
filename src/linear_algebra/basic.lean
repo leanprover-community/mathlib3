@@ -913,21 +913,6 @@ variables [module R M] [module R₂ M₂] [module R₃ M₃]
 include R
 open submodule
 
-section restrict
-
-variables [add_comm_monoid M₁] [module R M₁]
-
-/--
-Alternative version of `restrict` to restrict domain and codomain
-of a linear map.
--/
-@[simps] def restrict' (f : M →ₗ[R] M₁)
-  {p : submodule R M} {q : submodule R M₁} (hf : p.map f ≤ q) :
-  p →ₗ[R] q :=
-f.restrict (λ x hx, hf ⟨x, hx, rfl⟩)
-
-end restrict
-
 section finsupp
 variables {γ : Type*} [has_zero γ]
 

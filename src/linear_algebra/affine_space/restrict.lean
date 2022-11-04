@@ -49,8 +49,8 @@ def affine_map.restrict
 begin
   refine ⟨_, _, _⟩,
   { exact λ x, ⟨φ x, hEF $ affine_subspace.mem_map.mpr ⟨x, x.property, rfl⟩⟩ },
-  { refine φ.linear.restrict' _,
-    rw [←affine_subspace.map_direction],
+  { refine φ.linear.restrict (_ : E.direction ≤ F.direction.comap φ.linear),
+    rw [←submodule.map_le_iff_le_comap, ←affine_subspace.map_direction],
     exact affine_subspace.direction_le hEF },
   { intros p v,
     simp only [subtype.ext_iff, subtype.coe_mk, affine_subspace.coe_vadd],
@@ -67,8 +67,11 @@ lemma affine_map.restrict.linear
   (φ : P₁ →ᵃ[k] P₂) {E : affine_subspace k P₁} {F : affine_subspace k P₂}
   [nonempty E] [nonempty F]
   (hEF : E.map φ ≤ F) :
-  (φ.restrict hEF).linear = φ.linear.restrict'
-    (by { rw [←affine_subspace.map_direction], exact affine_subspace.direction_le hEF }) := rfl
+  (φ.restrict hEF).linear = φ.linear.restrict
+    (by {
+      change E.direction ≤ F.direction.comap φ.linear,
+      rw [←submodule.map_le_iff_le_comap, ←affine_subspace.map_direction],
+      exact affine_subspace.direction_le hEF }) := rfl
 
 lemma affine_map.restrict.injective
   {φ : P₁ →ᵃ[k] P₂}

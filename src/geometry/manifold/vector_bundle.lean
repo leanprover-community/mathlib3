@@ -34,12 +34,13 @@ end
 
 section
 
-variables {𝕜 E M H E' M' H' : Type*} [nontrivially_normed_field 𝕜]
+variables {𝕜 E M H E' M' H' H'' : Type*} [nontrivially_normed_field 𝕜]
   [normed_add_comm_group E] [normed_space 𝕜 E] [topological_space H] [topological_space M]
   (f f' : local_homeomorph M H) (I : model_with_corners 𝕜 E H)
   [normed_add_comm_group E'] [normed_space 𝕜 E'] [topological_space H'] [topological_space M']
   (I' : model_with_corners 𝕜 E' H')
   {x : M} {s t : set M}
+  [topological_space H'']
 
 namespace local_homeomorph
 lemma extend_left_inv {x : M} (hxf : x ∈ f.source) : (f.extend I).symm (f.extend I x) = x :=
@@ -74,6 +75,10 @@ begin
   { rw [← f'.extend_image_source_inter], exact mem_image_of_mem _ ⟨hxf', hxf⟩ },
   exact f'.extend_coord_change_source_mem_nhds_within' f I hxf' hxf
 end
+
+lemma symm_trans_source' (e : local_homeomorph H' H) (e' : local_homeomorph H' H'') :
+  (e.symm ≫ₕ e').source = e.target ∩ e.symm ⁻¹' (e.source ∩ e'.source) :=
+trans_source' _ _
 
 end local_homeomorph
 open local_homeomorph
@@ -474,12 +479,13 @@ instance tangent_bundle_core.is_smooth : (tangent_bundle_core I M).is_smooth I :
 begin
   refine ⟨λ i j, _⟩,
   rw [smooth_on, cont_mdiff_on_iff_source_of_mem_maximal_atlas
-    (structure_groupoid.subset_maximal_atlas _ i.2), cont_mdiff_on_iff_cont_diff_on],
-  refine (cont_diff_on_fderiv_coord_change I i j).congr _,
-  have := cont_diff_on_fderiv_coord_change I i j,
-  convert this,
-  ext x v,
-  simp_rw [function.comp_apply, tangent_bundle_core_coord_change],
+    (subset_maximal_atlas I i.2), cont_mdiff_on_iff_cont_diff_on],
+  refine ((cont_diff_on_fderiv_coord_change I i j).congr $ λ x hx, _).mono _,
+  { rw [local_equiv.trans_source'] at hx,
+    simp_rw [function.comp_apply, tangent_bundle_core_coord_change,
+      (i.1.extend I).right_inv hx.1] },
+  { exact (i.1.extend_image_source_inter j.1 I).subset },
+  { apply inter_subset_left }
 end
 
 instance tangent_bundle.smooth_vector_bundle :

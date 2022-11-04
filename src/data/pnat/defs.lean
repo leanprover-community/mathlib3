@@ -12,6 +12,9 @@ This file contains the definitions, and basic results.
 Most algebraic facts are deferred to `data.pnat.basic`, as they need more imports.
 -/
 
+/-- `ℕ+` is the type of positive natural numbers. It is defined as a subtype,
+  and the VM representation of `ℕ+` is the same as `ℕ` because the proof
+  is not stored. -/
 @[derive [decidable_eq, linear_order]]
 def pnat := {n : ℕ // 0 < n}
 notation `ℕ+` := pnat
@@ -100,7 +103,7 @@ instance : inhabited ℕ+ := ⟨1⟩
 -- Some lemmas that rewrite `pnat.mk n h`, for `n` an explicit numeral, into explicit numerals.
 @[simp] lemma mk_one {h} : (⟨1, h⟩ : ℕ+) = (1 : ℕ+) := rfl
 
-@[simp, norm_cast] theorem one_coe : ((1 : ℕ+) : ℕ) = 1 := rfl
+@[norm_cast] theorem one_coe : ((1 : ℕ+) : ℕ) = 1 := rfl
 
 @[simp, norm_cast] lemma coe_eq_one_iff {m : ℕ+} : (m : ℕ) = 1 ↔ m = 1 :=
 subtype.coe_injective.eq_iff' one_coe

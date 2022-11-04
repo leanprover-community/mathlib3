@@ -5,6 +5,7 @@ Authors: Kevin Lacker, Bryan Gin-ge Chen
 -/
 import data.nat.prime
 import data.int.basic
+
 /-!
 # Lemmas about nat.prime using `int`s
 -/

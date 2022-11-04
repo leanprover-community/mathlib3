@@ -725,15 +725,6 @@ def comap (A : valuation_subring L) (f : K →+* L) :
 { mem_or_inv_mem' := λ k, by simp [valuation_subring.mem_or_inv_mem],
   ..(A.to_subring.comap f) }
 
-/--The ring homomorphism from `comap A f` to `A`. -/
-def ring_hom.valuation_subring_comap (A : valuation_subring L) (f : K →+* L) :
-   (comap A f) →+* A :=
-{ to_fun := λ x, ⟨f x.1, x.2⟩,
-  map_one' := subtype.eq f.map_one,
-  map_mul' := λ x y, subtype.eq (f.map_mul x y),
-  map_add' := λ x y, subtype.eq (f.map_add x y),
-  map_zero' := subtype.eq f.map_zero, }
-
 end
 
 end valuation_subring

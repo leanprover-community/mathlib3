@@ -3,7 +3,6 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.int.basic
 import algebra.char_zero
 import order.locally_finite
 import data.finset.locally_finite

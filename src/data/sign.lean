@@ -5,6 +5,7 @@ Authors: Eric Rodriguez
 -/
 import algebra.big_operators.basic
 import data.fintype.card
+import data.int.lemmas
 import tactic.derive_fintype
 
 /-!

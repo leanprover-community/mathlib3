@@ -291,7 +291,7 @@ begin
     rintro _ ⟨⟨hz₁, hz₂⟩, ⟨z, hz₀⟩, rfl⟩,
     simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, max_lt_iff,
       update_same, max_eq_left hz₀] with mfld_simps at hz₁ hz₂,
-    rw lt_sub at hz₁,
+    rw lt_sub_comm at hz₁,
     ext i,
     rw subsingleton.elim i 0,
     simp only [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart,

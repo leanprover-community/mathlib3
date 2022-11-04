@@ -67,7 +67,7 @@ Linear algebra:
     Jordan normal form: 'https://en.wikipedia.org/wiki/Jordan_normal_form'
   Linear representations:
     irreducible representation: 'https://en.wikipedia.org/wiki/Irreducible_representation'
-    Schur's lemma: 'https://en.wikipedia.org/wiki/Schur%27s_lemma'
+    Schur's lemma: 'fdRep.finrank_hom_simple_simple'
     examples: ''
   Exponential:
     endomorphism exponential: ''

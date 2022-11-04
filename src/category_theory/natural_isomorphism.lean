@@ -188,6 +188,7 @@ lemma is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_is
 ⟨(is_iso.of_iso (of_components (λ X, as_iso (α.app X)) (by tidy))).1⟩
 
 /-- Horizontal composition of natural isomorphisms. -/
+@[simps]
 def hcomp {F G : C ⥤ D} {H I : D ⥤ E} (α : F ≅ G) (β : H ≅ I) : F ⋙ H ≅ G ⋙ I :=
 begin
   refine ⟨α.hom ◫ β.hom, α.inv ◫ β.inv, _, _⟩,

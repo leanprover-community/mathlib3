@@ -158,7 +158,7 @@ def piecewise : Π₀ i, β i := zip_with (λ i x y, if i ∈ s then x else y) (
 lemma piecewise_apply (i : ι) : x.piecewise y s i = if i ∈ s then x i else y i :=
 zip_with_apply _ _ x y i
 
-@[norm_cast] lemma coe_piecewise : ⇑(x.piecewise y s) = s.piecewise x y :=
+@[simp, norm_cast] lemma coe_piecewise : ⇑(x.piecewise y s) = s.piecewise x y :=
 by { ext, apply piecewise_apply }
 
 end piecewise

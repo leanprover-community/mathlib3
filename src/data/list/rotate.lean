@@ -35,7 +35,11 @@ end
 
 @[simp] lemma int.nat_mod_mod (x : ℤ) (y : ℕ) : ((x.nat_mod (y : ℤ)) % y) = x.nat_mod (y : ℤ) :=
 begin
+  cases y,
+  {},
   unfold int.nat_mod,
+  rw nat.mod_eq_of_lt,
+
   -- push_cast,
   sorry,
 end
@@ -44,17 +48,9 @@ end
 begin
   unfold int.nat_mod,
   rw ←int.coe_nat_mod,
-  -- simp, -- This is the stupidest shit I've ever seen
   simp [-int.coe_nat_mod],
 end
 
--- @[simp] lemma int.nat_mod_cast_ (x : ℤ) (y : ℕ) : x.nat_mod (y : ℤ) = (x % (y : ℤ)).to_nat :=
--- begin
---   unfold int.nat_mod,
---   rw ←int.coe_nat_mod,
---   -- simp, -- This is the stupidest shit I've ever seen
---   simp [-int.coe_nat_mod],
--- end
 
 lemma int.cast_to_nat (z : ℤ) (h : 0 ≤ z) : (z.to_nat : ℤ) = z :=
 begin

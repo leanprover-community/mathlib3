@@ -248,8 +248,11 @@ begin
   apply set.subset.antisymm,
   { rintros - ⟨-, ⟨g₁, g₂, rfl⟩, rfl⟩,
     exact ⟨g₁, g₂, rfl⟩ },
-  { exact λ g hg, ⟨_, ⟨⟨_, subset_closure (or.inl ⟨_, ⟨⟨g, hg⟩, rfl⟩, rfl⟩)⟩, ⟨_, subset_closure
-      (or.inr ⟨_, ⟨⟨g, hg⟩, rfl⟩, rfl⟩)⟩, rfl⟩, classical.some_spec (classical.some_spec hg)⟩ },
+  { exact λ g hg, ⟨_,
+      ⟨⟨_, subset_closure (or.inl ⟨_, ⟨⟨g, hg⟩, rfl⟩, rfl⟩)⟩,
+       ⟨_, subset_closure (or.inr ⟨_, ⟨⟨g, hg⟩, rfl⟩, rfl⟩)⟩,
+       rfl⟩,
+      hg.some_spec.some_spec⟩ },
 end
 
 lemma card_commutator_set_closure_commutator_representatives :

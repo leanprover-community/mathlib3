@@ -22,10 +22,10 @@ their basic properties, and then go on to prove most useful properties of `Sup` 
 in conditionally complete lattices.
 
 To differentiate the statements between complete lattices and conditionally complete
-lattices, we prefix `Inf` and `Sup` in the statements by `c`, giving `cInf` and `cSup`. For instance,
-`Inf_le` is a statement in complete lattices ensuring `Inf s ≤ x`, while `cInf_le` is the same
-statement in conditionally complete lattices with an additional assumption that `s` is
-bounded below.
+lattices, we prefix `Inf` and `Sup` in the statements by `c`, giving `cInf` and `cSup`.
+For instance, `Inf_le` is a statement in complete lattices ensuring `Inf s ≤ x`,
+while `cInf_le` is the same statement in conditionally complete lattices
+with an additional assumption that `s` is bounded below.
 -/
 
 set_option old_structure_cmd true

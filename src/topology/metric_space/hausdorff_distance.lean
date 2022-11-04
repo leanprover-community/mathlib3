@@ -931,7 +931,8 @@ begin
   refine subset_antisymm _ (empty_subset _),
   refine subset_trans (inter_subset_inter (metric.frontier_thickening_subset A)
                                           (metric.frontier_thickening_subset A)) _,
-  have obs : {x : X | emetric.inf_edist x A = ennreal.of_real r₁ } ∩ {x : X | emetric.inf_edist x A = ennreal.of_real r₂} = ∅,
+  have obs : {x : X | emetric.inf_edist x A = ennreal.of_real r₁ }
+              ∩ {x : X | emetric.inf_edist x A = ennreal.of_real r₂} = ∅,
   { rw [← disjoint_iff_inter_eq_empty],
     change disjoint ((λ x, emetric.inf_edist x A) ⁻¹' {ennreal.of_real r₁})
                     ((λ x, emetric.inf_edist x A) ⁻¹' {ennreal.of_real r₂}),
@@ -1339,6 +1340,34 @@ begin
   intro x,
   simp_rw [mem_cthickening_iff, ennreal.of_real_add hε hδ],
   exact λ hx, inf_edist_le_inf_edist_cthickening_add.trans (add_le_add_right hx _),
+end
+
+lemma frontier_cthickening_disjoint (A : set α) :
+  pairwise (disjoint on (λ (r : ℝ≥0), frontier (metric.cthickening r A))) :=
+begin
+  intros r₁ r₂ hr,
+  change disjoint (frontier (metric.cthickening r₁ A)) (frontier (metric.cthickening r₂ A)),
+  rw disjoint_iff_inter_eq_empty,
+  refine subset_antisymm _ (empty_subset _),
+  refine subset_trans (inter_subset_inter (metric.frontier_cthickening_subset A)
+                                          (metric.frontier_cthickening_subset A)) _,
+  have obs : {x : α | emetric.inf_edist x A = ennreal.of_real r₁ }
+              ∩ {x : α | emetric.inf_edist x A = ennreal.of_real r₂} = ∅,
+  { rw [← disjoint_iff_inter_eq_empty],
+    change disjoint ((λ x, emetric.inf_edist x A) ⁻¹' {ennreal.of_real r₁})
+                    ((λ x, emetric.inf_edist x A) ⁻¹' {ennreal.of_real r₂}),
+    apply disjoint.preimage,
+    rw disjoint_singleton,
+    simpa only [of_real_coe_nnreal, ne.def, coe_eq_coe] using hr, },
+  rw obs,
+end
+
+lemma frontier_cthickening_disjoint' (A : set α) (radii : set ℝ≥0) :
+  pairwise (disjoint on (λ (r : radii), frontier (metric.cthickening r A))) :=
+begin
+  intros r₁ r₂ hr,
+  apply frontier_cthickening_disjoint A r₁ r₂,
+  simp [subtype.coe_inj, hr],
 end
 
 end cthickening --section

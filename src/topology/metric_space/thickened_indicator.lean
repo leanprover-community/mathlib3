@@ -40,23 +40,6 @@ section thickened_indicator
 
 variables {α : Type*} [pseudo_emetric_space α]
 
-lemma inf_edist_pos_iff_not_mem_closure {x : α} {E : set α} :
-  0 < inf_edist x (closure E) ↔ x ∉ closure E :=
-by simp only [mem_iff_inf_edist_zero_of_closed is_closed_closure, zero_lt_iff]
-
-lemma exists_real_pos_le_infdist_of_not_mem_closure {x : α} {E : set α} (h : x ∉ closure E) :
-  ∃ (ε : ℝ), 0 < ε ∧ ennreal.of_real ε ≤ inf_edist x E :=
-begin
-  rw ← inf_edist_pos_iff_not_mem_closure at h,
-  by_cases dist_infty : inf_edist x E = ∞,
-  { rw dist_infty,
-    use [1, zero_lt_one, le_top], },
-  { use (inf_edist x E).to_real,
-    refine ⟨(ennreal.to_real_lt_to_real ennreal.zero_ne_top dist_infty).mpr _,
-            ennreal.of_real_to_real_le⟩,
-    rwa inf_edist_closure at h, },
-end
-
 /-- The `δ`-thickened indicator of a set `E` is the function that equals `1` on `E`
 and `0` outside a `δ`-thickening of `E` and interpolates (continuously) between
 these values using `inf_edist _ E`.
@@ -273,7 +256,8 @@ begin
   rw tendsto_pi_nhds,
   intro x,
   by_cases x_mem_closure : x ∈ closure E,
-  { simp only [x_mem_closure, (λ n, closure_subset_thickening (δs_pos n) E x_mem_closure), indicator_of_mem],
+  { simp only [x_mem_closure, (λ n, closure_subset_thickening (δs_pos n) E x_mem_closure),
+               indicator_of_mem],
     exact tendsto_const_nhds, },
   { have pos_dist : 0 < inf_edist x (closure E),
     { rw mem_iff_inf_edist_zero_of_closed is_closed_closure at x_mem_closure,

@@ -931,18 +931,16 @@ begin
   refine subset_antisymm _ (empty_subset _),
   refine subset_trans (inter_subset_inter (metric.frontier_thickening_subset A)
                                           (metric.frontier_thickening_subset A)) _,
-  have obs : {x : X | emetric.inf_edist x A = ennreal.of_real r₁ }
-              ∩ {x : X | emetric.inf_edist x A = ennreal.of_real r₂} = ∅,
-  { rw [← disjoint_iff_inter_eq_empty],
-    change disjoint ((λ x, emetric.inf_edist x A) ⁻¹' {ennreal.of_real r₁})
-                    ((λ x, emetric.inf_edist x A) ⁻¹' {ennreal.of_real r₂}),
-    apply disjoint.preimage,
-    rw disjoint_singleton,
-    rw [ennreal.of_real_eq_coe_nnreal (show (0 : ℝ) ≤ r₁, by linarith),
-        ennreal.of_real_eq_coe_nnreal (show (0 : ℝ) ≤ r₂, by linarith)],
-    simp only [ne.def, ennreal.coe_eq_coe, subtype.mk_eq_mk],
-    exact hr, },
-  rw obs,
+  refine subset_of_eq _,
+  rw [← disjoint_iff_inter_eq_empty],
+  change disjoint ((λ x, emetric.inf_edist x A) ⁻¹' {ennreal.of_real r₁})
+                  ((λ x, emetric.inf_edist x A) ⁻¹' {ennreal.of_real r₂}),
+  apply disjoint.preimage,
+  rw disjoint_singleton,
+  rw [ennreal.of_real_eq_coe_nnreal (show (0 : ℝ) ≤ r₁, by linarith),
+      ennreal.of_real_eq_coe_nnreal (show (0 : ℝ) ≤ r₂, by linarith)],
+  simp only [ne.def, ennreal.coe_eq_coe, subtype.mk_eq_mk],
+  exact hr,
 end
 
 lemma frontier_thickening_disjoint' (A : set X) (radii : set ℝ) :
@@ -1351,15 +1349,13 @@ begin
   refine subset_antisymm _ (empty_subset _),
   refine subset_trans (inter_subset_inter (metric.frontier_cthickening_subset A)
                                           (metric.frontier_cthickening_subset A)) _,
-  have obs : {x : α | emetric.inf_edist x A = ennreal.of_real r₁ }
-              ∩ {x : α | emetric.inf_edist x A = ennreal.of_real r₂} = ∅,
-  { rw [← disjoint_iff_inter_eq_empty],
-    change disjoint ((λ x, emetric.inf_edist x A) ⁻¹' {ennreal.of_real r₁})
-                    ((λ x, emetric.inf_edist x A) ⁻¹' {ennreal.of_real r₂}),
-    apply disjoint.preimage,
-    rw disjoint_singleton,
-    simpa only [of_real_coe_nnreal, ne.def, coe_eq_coe] using hr, },
-  rw obs,
+  refine subset_of_eq _,
+  rw [← disjoint_iff_inter_eq_empty],
+  change disjoint ((λ x, emetric.inf_edist x A) ⁻¹' {ennreal.of_real r₁})
+                  ((λ x, emetric.inf_edist x A) ⁻¹' {ennreal.of_real r₂}),
+  apply disjoint.preimage,
+  rw disjoint_singleton,
+  simpa only [of_real_coe_nnreal, ne.def, coe_eq_coe] using hr,
 end
 
 lemma frontier_cthickening_disjoint' (A : set α) (radii : set ℝ≥0) :

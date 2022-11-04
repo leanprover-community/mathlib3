@@ -104,8 +104,12 @@ rfl
   (equiv_add_circle p q hp hq).symm (x : 𝕜) = (x * (q⁻¹ * p) : 𝕜) :=
 rfl
 
-variables [floor_ring 𝕜] [hp : fact (0 < p)]
+variables [hp : fact (0 < p)]
 include hp
+
+section floor_ring
+
+variables [floor_ring 𝕜]
 
 /-- The natural equivalence between `add_circle p` and the half-open interval `[0, p)`. -/
 def equiv_Ico : add_circle p ≃ Ico 0 p :=
@@ -149,6 +153,8 @@ instance : divisible_by (add_circle p) ℤ :=
     rw [← map_zsmul, ← smul_mul_assoc, zsmul_eq_mul, mul_inv_cancel hn, one_mul],
     exact (equiv_Ico p).symm_apply_apply x,
   end, }
+
+end floor_ring
 
 section finite_order_points
 
@@ -195,7 +201,7 @@ begin
     add_order_of_div_of_gcd_eq_one hk' hgcd, mul_comm _ n', nat.div_mul_cancel (gcd_dvd_left n m)],
 end
 
-variables {p}
+variables {p} [floor_ring 𝕜]
 
 lemma exists_gcd_eq_one_of_is_of_fin_add_order {u : add_circle p} (h : is_of_fin_add_order u) :
   ∃ m, gcd (add_order_of u) m = 1 ∧

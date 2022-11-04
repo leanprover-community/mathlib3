@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Louis Carlin, Mario Carneiro
 -/
 import algebra.field.basic
+import algebra.ring.basic
 
 /-!
 # Euclidean domains

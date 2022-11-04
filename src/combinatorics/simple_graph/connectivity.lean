@@ -1128,18 +1128,18 @@ map_injective f.injective u v
 
 end path
 
-/-! ## Converting between graphs -/
+/-! ## Transferring between graphs -/
 
 namespace walk
 
 variables {G}
 
-/-- The walk `p` converted to lie in `H` -/
-@[simp] def induce : Π {u v : V} (p : G.walk u v) {H : simple_graph V}
+/-- The walk `p` transferred to lie in `H` -/
+@[simp] def transfer : Π {u v : V} (p : G.walk u v) (H : simple_graph V)
   (h : ∀ e, e ∈ p.edges → e ∈ H.edge_set), H.walk u v
 | _ _ (walk.nil) H h := walk.nil
 | _ _ (walk.cons a p) H h := by
-  { refine walk.cons _ (p.induce _);
+  { refine walk.cons _ (p.transfer H _);
     simp only [walk.edges_cons, list.mem_cons_iff, forall_eq_or_imp, mem_edge_set] at h,
     exact h.1, exact h.2, }
 
@@ -1148,102 +1148,96 @@ variables {u v w : V} (p : G.walk u v) (q : G.walk v w)
   (hp : ∀ e, e ∈ p.edges → e ∈ H.edge_set)
   (hq : ∀ e, e ∈ q.edges → e ∈ H.edge_set)
 
-lemma induce_id : p.induce (λ e, edges_subset_edge_set p) = p := by
+lemma transfer_id : p.transfer G (λ e ep, edges_subset_edge_set p ep) = p := by
 begin
   induction p,
-  { simp only [induce] },
-  { simp only [p_ih, induce, eq_self_iff_true, heq_iff_eq, and_self] },
+  { simp only [transfer] },
+  { simp only [p_ih, transfer, eq_self_iff_true, heq_iff_eq, and_self] },
 end
 
-/-- The path `p` converted to the larger graph `H` -/
-abbreviation induce_le (GH : G ≤ H) : H.walk u v :=
-p.induce (λ e ep, edge_set_mono GH (edges_subset_edge_set p ep))
+/-- The walk `p` transfered to the larger graph `H` -/
+abbreviation transfer_le (GH : G ≤ H) : H.walk u v :=
+p.transfer H (λ e ep, edge_set_mono GH (edges_subset_edge_set p ep))
 
-lemma induce_eq_map_spanning_subgraphs (GH : G ≤ H) :
-  p.induce hp = p.map (simple_graph.hom.map_spanning_subgraphs GH) := by
-{ induction p,
-  simp only [induce, map_nil],
-  simp only [p_ih, induce, map_cons, hom.map_spanning_subgraphs_apply, eq_self_iff_true,
-             heq_iff_eq, and_self], }
+lemma transfer_eq_map_spanning_subgraphs (GH : G ≤ H) :
+  p.transfer H hp = p.map (simple_graph.hom.map_spanning_subgraphs GH) :=
+begin
+  induction p,
+  { simp only [transfer, map_nil], },
+  { simp only [p_ih, transfer, map_cons, hom.map_spanning_subgraphs_apply, eq_self_iff_true,
+             heq_iff_eq, and_self], },
+end
 
-@[simp] lemma edges_induce : (p.induce hp).edges = p.edges := by
-{ induction p,
-  simp only [induce, edges_nil],
-  simp only [p_ih, induce, edges_cons, eq_self_iff_true, and_self], }
+@[simp] lemma edges_transfer : (p.transfer H hp).edges = p.edges :=
+begin
+  induction p,
+  { simp only [transfer, edges_nil], },
+  { simp only [p_ih, transfer, edges_cons, eq_self_iff_true, and_self], },
+end
 
-@[simp] lemma support_induce : (p.induce hp).support = p.support := by
-{ induction p,
-  simp only [induce, support_nil, eq_self_iff_true, and_self],
-  simp only [p_ih, induce, support_cons, eq_self_iff_true, and_self], }
+@[simp] lemma support_transfer : (p.transfer H hp).support = p.support :=
+begin
+  induction p,
+  { simp only [transfer, support_nil, eq_self_iff_true, and_self], },
+  { simp only [p_ih, transfer, support_cons, eq_self_iff_true, and_self], },
+end
 
-lemma is_path_induce (pp : p.is_path) : (p.induce hp).is_path := by
-{ induction p,
-  simp only [induce, is_path.nil],
-  simp only [cons_is_path_iff, induce, induce_support] at pp ⊢,
-  simp only [p_ih, pp, not_false_iff, and_self], }
+lemma is_path_transfer (pp : p.is_path) : (p.transfer H hp).is_path :=
+begin
+  induction p,
+  { simp only [transfer, is_path.nil], },
+  { simp only [cons_is_path_iff, transfer, support_transfer] at pp ⊢,
+  simp only [p_ih, pp, not_false_iff, and_self], },
+end
 
-lemma is_cycle_induce {u : V} (p : G.walk u u) {H : simple_graph V}
-  (hp : ∀ e, e ∈ p.edges → e ∈ H.edge_set) (pc : p.is_cycle) : (p.induce hp).is_cycle := by
-{ cases p,
-  { simp only [induce, is_cycle.not_of_nil] at pc ⊢, exact pc, },
-  { simp only [path.cons_is_cycle_iff, induce, induce_edges] at pc ⊢,
+lemma is_cycle_transfer {u : V} (p : G.walk u u) {H : simple_graph V}
+  (hp : ∀ e, e ∈ p.edges → e ∈ H.edge_set) (pc : p.is_cycle) : (p.transfer H hp).is_cycle :=
+begin
+  cases p,
+  { simp only [transfer, is_cycle.not_of_nil] at pc ⊢, exact pc, },
+  { simp only [path.cons_is_cycle_iff, transfer, edges_transfer] at pc ⊢,
     refine ⟨_, pc.right⟩,
-    apply is_path_induce,
-    exact pc.left, }, }
+    apply is_path_transfer,
+    exact pc.left, },
+end
 
-lemma is_cycle_induce_le {u : V} (p : G.walk u u) {H : simple_graph V}
+lemma is_cycle_transfer_le {u : V} (p : G.walk u u) {H : simple_graph V}
   (hp : ∀ e, e ∈ p.edges → e ∈ H.edge_set) (pc : p.is_cycle)
-  (GH : G ≤ H) : (p.induce hp).is_cycle :=
-p.is_cycle_induce (λ e ep, edge_set_mono GH (edges_subset_edge_set p ep)) pc
+  (GH : G ≤ H) : (p.transfer H hp).is_cycle :=
+p.is_cycle_transfer (λ e ep, edge_set_mono GH (edges_subset_edge_set p ep)) pc
 
-section
-include hp
-private lemma comp_edges_sub {K : simple_graph V} (hp' : ∀ e, e ∈ p.edges → e ∈ K.edge_set) :
-  ∀ e, e ∈ (p.induce hp).edges → e ∈ K.edge_set :=
-by { rw p.induce_edges hp, exact hp', }
+lemma comp_transfer {K : simple_graph V} (hp' : ∀ e, e ∈ p.edges → e ∈ K.edge_set) :
+  (p.transfer H hp).transfer K (by { rw p.edges_transfer hp, exact hp', }) = p.transfer K hp' :=
+begin
+  induction p,
+  { simp only [transfer], },
+  { simp only [transfer, eq_self_iff_true, heq_iff_eq, true_and],
+   apply p_ih, },
 end
 
-lemma induce_comp {K : simple_graph V} (hp' : ∀ e, e ∈ p.edges → e ∈ K.edge_set) :
-  (p.induce hp).induce (comp_edges_sub p hp hp') = p.induce hp' := by
-{ induction p,
-  simp only [induce],
-  simp only [induce, eq_self_iff_true, heq_iff_eq, true_and],
-  apply p_ih, }
-
-section
-include hp hq
-private lemma append_edges_sub : ∀ e, e ∈ (p.append q).edges → e ∈ H.edge_set := by
-{ rintro e,
-  simp only [edges_append, list.mem_append],
-  rintro (ep|eq),
-  exact hp e ep,
-  exact hq e eq, }
+@[simp] lemma append_transfer :
+  (p.append q).transfer H
+    (λ e, by { rw [edges_append, list.mem_append], exact or.rec (hp e) (hq e), }) =
+  (p.transfer H hp).append (q.transfer H hq) :=
+begin
+ induction p,
+ { simp only [transfer, nil_append], },
+ { simp only [walk.cons_append, transfer, eq_self_iff_true, heq_iff_eq, true_and],
+   apply p_ih, },
 end
 
-@[simp] lemma induce_append :
-  (p.append q).induce (append_edges_sub p q hp hq) =
-  (p.induce hp).append (q.induce hq) := by
-{ induction p,
-  simp only [induce, nil_append],
-  simp only [walk.cons_append, induce, eq_self_iff_true, heq_iff_eq, true_and],
-  apply p_ih, }
-
-section
-include hp
-private lemma reverse_edges_sub : ∀ e, e ∈ p.reverse.edges → e ∈ H.edge_set := by
-{ simp only [edges_reverse, list.mem_reverse],
-  exact hp }
+@[simp] lemma reverse_transfer :
+  p.reverse.transfer H (by { simp only [edges_reverse, list.mem_reverse], exact hp, }) =
+  (p.transfer H hp).reverse :=
+begin
+  induction p,
+  { simp only [transfer, reverse_nil], },
+  { simp only [transfer, reverse_cons],
+    rw [append_transfer, p_ih], refl,
+    simp only [edges_cons, list.mem_cons_iff, forall_eq_or_imp, mem_edge_set] at hp,
+    simp only [edges_cons, edges_nil, list.mem_singleton, forall_eq, mem_edge_set],
+    exact (hp.left).symm, },
 end
-
-@[simp] lemma induce_reverse :
-  p.reverse.induce (reverse_edges_sub p hp) = (p.induce hp).reverse := by
-{ induction p,
-  simp only [induce, reverse_nil],
-  simp only [induce, reverse_cons],
-  rw [induce_append, p_ih], refl,
-  simp only [edges_cons, list.mem_cons_iff, forall_eq_or_imp, mem_edge_set] at hp,
-  simp only [edges_cons, edges_nil, list.mem_singleton, forall_eq, mem_edge_set],
-  exact (hp.left).symm, }
 
 end walk
 
@@ -1257,7 +1251,7 @@ with those edges deleted. -/
 @[simp, reducible]
 def to_delete_edges (s : set (sym2 V))
   {v w : V} (p : G.walk v w) (hp : ∀ e, e ∈ p.edges → ¬ e ∈ s) : (G.delete_edges s).walk v w :=
-p.induce (by
+p.transfer _ (by
   { simp only [edge_set_delete_edges, set.mem_diff],
     exact λ e ep, ⟨edges_subset_edge_set p ep, hp e ep⟩, })
 
@@ -1270,7 +1264,7 @@ p.to_delete_edges {e} (λ e', by { contrapose!, simp [hp] { contextual := tt } }
 @[simp]
 lemma map_to_delete_edges_eq (s : set (sym2 V)) {v w : V} {p : G.walk v w} (hp) :
   walk.map (hom.map_spanning_subgraphs (G.delete_edges_le s)) (p.to_delete_edges s hp) = p :=
-by rw [←induce_eq_map_spanning_subgraphs, induce_comp, induce_id]
+by rw [←transfer_eq_map_spanning_subgraphs, comp_transfer, transfer_id]
 
 lemma is_path.to_delete_edges (s : set (sym2 V))
   {v w : V} {p : G.walk v w} (h : p.is_path) (hp) :

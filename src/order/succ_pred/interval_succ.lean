@@ -3,8 +3,8 @@ Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import order.succ_pred.basic
 import data.set.pairwise
+import order.succ_pred.basic
 
 /-!
 # Intervals `Ixx (f x) (f (order.succ x))`

@@ -5,7 +5,7 @@ Authors: Floris van Doorn
 -/
 import analysis.specific_limits.basic
 import data.rat.denumerable
-import data.set.intervals.pointwise
+import data.set.pointwise.interval
 import set_theory.cardinal.continuum
 
 /-!

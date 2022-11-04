@@ -130,6 +130,25 @@ begin
   exact h.closure_eq
 end
 
+/-- The infimum edistance of a point to a set is positive if and only if the point is not in the
+closure of the set. -/
+lemma inf_edist_pos_iff_not_mem_closure {x : α} {E : set α} :
+  0 < inf_edist x (closure E) ↔ x ∉ closure E :=
+by simp only [mem_iff_inf_edist_zero_of_closed is_closed_closure, zero_lt_iff]
+
+lemma exists_real_pos_le_infdist_of_not_mem_closure {x : α} {E : set α} (h : x ∉ closure E) :
+  ∃ (ε : ℝ), 0 < ε ∧ ennreal.of_real ε ≤ inf_edist x E :=
+begin
+  rw ← inf_edist_pos_iff_not_mem_closure at h,
+  by_cases dist_infty : inf_edist x E = ∞,
+  { rw dist_infty,
+    use [1, zero_lt_one, le_top], },
+  { use (inf_edist x E).to_real,
+    refine ⟨(ennreal.to_real_lt_to_real ennreal.zero_ne_top dist_infty).mpr _,
+            ennreal.of_real_to_real_le⟩,
+    rwa inf_edist_closure at h, },
+end
+
 lemma disjoint_closed_ball_of_lt_inf_edist {r : ℝ≥0∞} (h : r < inf_edist x s) :
   disjoint (closed_ball x r) s :=
 begin

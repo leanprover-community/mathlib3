@@ -19,6 +19,7 @@ open limits
 
 variable (F : C ⥤ D)
 
+@[protected]
 class exact :=
 (preserves_finite_limits : preserves_finite_limits F)
 (preserves_finite_colimits : preserves_finite_colimits F)
@@ -1160,6 +1161,13 @@ variable {C}
 
 def exact : Prop :=
 (∃ (h : homology_full_data S), is_zero h.H)
+
+variable {S}
+
+lemma exact.has_homology (h : exact S) : S.has_homology :=
+has_homology.mk' h.some
+
+variable (S)
 
 lemma exact_iff [has_homology S] : S.exact ↔ is_zero S.homology :=
 begin

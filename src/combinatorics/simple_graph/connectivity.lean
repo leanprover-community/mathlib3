@@ -1135,7 +1135,7 @@ namespace walk
 variables {G}
 
 /-- The walk `p` transferred to lie in `H` -/
-@[simp] def transfer : Π {u v : V} (p : G.walk u v) (H : simple_graph V)
+@[protected, simp] def transfer : Π {u v : V} (p : G.walk u v) (H : simple_graph V)
   (h : ∀ e, e ∈ p.edges → e ∈ H.edge_set), H.walk u v
 | _ _ (walk.nil) H h := walk.nil
 | _ _ (walk.cons a p) H h := by
@@ -1190,8 +1190,7 @@ begin
   simp only [p_ih, pp, not_false_iff, and_self], },
 end
 
-lemma is_cycle_transfer {u : V} (p : G.walk u u) {H : simple_graph V}
-  (hp : ∀ e, e ∈ p.edges → e ∈ H.edge_set) (pc : p.is_cycle) : (p.transfer H hp).is_cycle :=
+lemma is_cycle_transfer (p : G.walk u u) (hp) (pc : p.is_cycle) : (p.transfer H hp).is_cycle :=
 begin
   cases p,
   { simp only [transfer, is_cycle.not_of_nil] at pc ⊢, exact pc, },
@@ -1201,8 +1200,7 @@ begin
     exact pc.left, },
 end
 
-lemma is_cycle_transfer_le {u : V} (p : G.walk u u) {H : simple_graph V}
-  (hp : ∀ e, e ∈ p.edges → e ∈ H.edge_set) (pc : p.is_cycle)
+lemma is_cycle_transfer_le (p : G.walk u u) (hp) (pc : p.is_cycle)
   (GH : G ≤ H) : (p.transfer H hp).is_cycle :=
 p.is_cycle_transfer (λ e ep, edge_set_mono GH (edges_subset_edge_set p ep)) pc
 
@@ -1212,7 +1210,7 @@ begin
   induction p,
   { simp only [transfer], },
   { simp only [transfer, eq_self_iff_true, heq_iff_eq, true_and],
-   apply p_ih, },
+    apply p_ih, },
 end
 
 @[simp] lemma append_transfer :

@@ -94,7 +94,7 @@ variables [topological_space F] [topological_space (total_space E)] [∀ x, topo
   {HB : Type*} [topological_space HB]
   [topological_space B] [charted_space HB B]
 
-instance fiber_bundle.charted_space [fiber_bundle F E] :
+@[simps (mfld_cfg)] instance fiber_bundle.charted_space [fiber_bundle F E] :
   charted_space (B × F) (total_space E) :=
 { atlas := (λ e : trivialization F (π E), e.to_local_homeomorph) '' trivialization_atlas F E,
   chart_at := λ x, (trivialization_at F E x.proj).to_local_homeomorph,
@@ -469,7 +469,7 @@ variable (M)
 instance : topological_space TM :=
 (tangent_bundle_core I M).to_fiber_bundle_core.to_topological_space
 
-instance : fiber_bundle E (tangent_space I : M → Type*) :=
+@[simp, mfld_simps] instance : fiber_bundle E (tangent_space I : M → Type*) :=
 (tangent_bundle_core I M).to_fiber_bundle_core.fiber_bundle
 
 instance : vector_bundle 𝕜 E (tangent_space I : M → Type*) :=
@@ -513,19 +513,20 @@ begin
   { assume x_fst,
     have : fderiv_within 𝕜 (I ∘ I.symm) (range I) (I x_fst)
          = fderiv_within 𝕜 id (range I) (I x_fst),
-    { refine fderiv_within_congr I.unique_diff_at_image (λ y hy, _) (by simp),
-      exact model_with_corners.right_inv _ hy },
+    { refine fderiv_within_congr I.unique_diff_at_image (λ y, I.right_inv)
+        (congr_arg I $ I.left_inv x_fst) },
     rwa fderiv_within_id I.unique_diff_at_image at this },
   ext x : 1,
-  show (chart_at (model_prod H E) p : tangent_bundle I H → model_prod H E) x =
+  show (chart_at (H × E) p : tangent_bundle I H → model_prod H E) x =
     (equiv.sigma_equiv_prod H E) x,
   { cases x,
-    simp only [chart_at, tangent_bundle_core,
-      A, prod.mk.inj_iff,
-      continuous_linear_map.coe_id'] with mfld_simps,
-      sorry
-      -- refine (tangent_bundle_core I H).coord_change_self _ _ trivial x_snd,
-       },
+    simp only [model_prod, tangent_bundle_core, A, prod.mk.inj_iff, continuous_linear_map.coe_id']
+      with mfld_simps,
+    have := (tangent_bundle_core I H).coord_change_self (achart _ x_fst) x_fst
+      (mem_achart_source H x_fst) x_snd,
+    ext,
+    -- refine (tangent_bundle_core I H).coord_change_self _ _ trivial x_snd,
+      },
   show ∀ x, ((chart_at (model_prod H E) p).to_local_equiv).symm x =
     (equiv.sigma_equiv_prod H E).symm x,
   { rintros ⟨x_fst, x_snd⟩,

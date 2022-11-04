@@ -429,8 +429,8 @@ variables [topological_space (total_space E)] [∀ b, topological_space (E b)]
 
 class fiber_bundle :=
 (total_space_mk_inducing [] : ∀ (b : B), inducing (@total_space_mk B E b))
-(trivialization_atlas [] : set (trivialization F (π E)))
 (trivialization_at [] : B → trivialization F (π E))
+(trivialization_atlas [] : set (trivialization F (π E)))
 (mem_base_set_trivialization_at [] : ∀ b : B, b ∈ (trivialization_at b).base_set)
 (trivialization_mem_atlas [] : ∀ b : B, trivialization_at b ∈ trivialization_atlas)
 
@@ -791,7 +791,7 @@ begin
 end
 
 /-- A topological fiber bundle constructed from core is indeed a topological fiber bundle. -/
-instance fiber_bundle : fiber_bundle F C.fiber :=
+@[simps (mfld_cfg)] instance fiber_bundle : fiber_bundle F C.fiber :=
 { total_space_mk_inducing := λ b, ⟨ begin refine le_antisymm _ (λ s h, _),
     { rw ←continuous_iff_le_induced,
       exact continuous_total_space_mk C b, },

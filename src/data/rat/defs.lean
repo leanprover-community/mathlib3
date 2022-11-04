@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import data.int.cast
 import data.int.div
 import data.nat.gcd.basic
-import data.pnat.basic
+import data.pnat.defs
 import tactic.nth_rewrite
 
 /-!

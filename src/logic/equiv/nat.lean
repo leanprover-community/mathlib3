@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.nat.pairing
-import data.pnat.basic
+import data.pnat.defs
 
 /-!
 # Equivalences involving `ℕ`

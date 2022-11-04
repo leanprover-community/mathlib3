@@ -5,7 +5,7 @@ Authors: Eric Rodriguez
 -/
 
 import data.nat.cast
-import data.pnat.basic
+import data.pnat.defs
 import algebra.group_power.ring
 
 /-!

@@ -7,7 +7,7 @@ Authors: Johan Commelin
 import data.multiset.sort
 import data.pnat.interval
 import data.rat.order
-
+import data.pnat.basic
 import tactic.norm_num
 import tactic.field_simp
 import tactic.interval_cases

@@ -85,7 +85,7 @@ begin
   exact mt finset.gcd_eq_zero_iff.1 (λ h, hfz $ h x hx),
 end
 
-theorem gcd_eq_one_of_div_gcd_id (s : finset K[X]) {x : K[X]} (hx : x ∈ s) (hnz : x ≠ 0) :
+theorem gcd_div_gcd_id_eq_one (s : finset K[X]) {x : K[X]} (hx : x ∈ s) (hnz : x ≠ 0) :
   s.gcd (λ b, b / (s.gcd id)) = 1 :=
 coprime_of_div_gcd s hx hnz
 

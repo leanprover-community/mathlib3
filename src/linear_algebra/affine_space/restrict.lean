@@ -68,10 +68,9 @@ lemma affine_map.restrict.linear
   [nonempty E] [nonempty F]
   (hEF : E.map φ ≤ F) :
   (φ.restrict hEF).linear = φ.linear.restrict
-    (by {
-      change E.direction ≤ F.direction.comap φ.linear,
-      rw [←submodule.map_le_iff_le_comap, ←affine_subspace.map_direction],
-      exact affine_subspace.direction_le hEF }) := rfl
+    (by { change E.direction ≤ F.direction.comap φ.linear,
+          rw [←submodule.map_le_iff_le_comap, ←affine_subspace.map_direction],
+          exact affine_subspace.direction_le hEF }) := rfl
 
 lemma affine_map.restrict.injective
   {φ : P₁ →ᵃ[k] P₂}

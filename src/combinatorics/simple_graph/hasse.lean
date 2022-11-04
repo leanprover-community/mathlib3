@@ -6,6 +6,7 @@ Authors: Yaël Dillies
 import combinatorics.simple_graph.prod
 import data.fin.succ_pred
 import order.succ_pred.relation
+import order.cover.ord_connected
 
 /-!
 # The Hasse diagram as a graph

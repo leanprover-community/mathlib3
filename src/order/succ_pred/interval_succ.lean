@@ -5,6 +5,7 @@ Authors: Yury Kudryashov
 -/
 import order.succ_pred.basic
 import data.set.lattice
+import data.set.pairwise
 
 /-!
 # Intervals `Ixx (f x) (f (order.succ x))`

@@ -62,7 +62,7 @@ end
 
 theorem gcd_div_gcd_id_eq_one (s : finset ℤ) {x : ℤ} (hx : x ∈ s) (hnz : x ≠ 0) :
   s.gcd (λ b, b / (s.gcd id)) = 1 :=
-coprime_of_div_gcd s hx hnz
+coprime_div_gcd s hx hnz
 
 end int
 
@@ -72,7 +72,32 @@ open_locale polynomial classical
 
 noncomputable theory
 
-variables {K : Type*} [field K]
+variables {K R : Type*} [field K] [comm_ring R] [is_domain R] [normalized_gcd_monoid R]
+
+example (p q : R[X]) (hmonic : q.monic) : p * q /ₘ q = q :=
+begin
+  library_search!
+end
+
+theorem div_gcd_coprime' {β : Type*} {f : β → R[X]} (s : finset β) {x : β} (hx : x ∈ s)
+  (hfz : f x ≠ 0) : s.gcd (λ b, f b /ₘ s.gcd f) = 1 :=
+begin
+  obtain ⟨g, he, hg⟩ := finset.extract_gcd f ⟨x, hx⟩,
+  refine (finset.gcd_congr rfl $ λ a ha, _).trans hg,
+  have hmonic : (s.gcd f).monic,
+  {
+    sorry
+  },
+  have : s.gcd f * g a /ₘ s.gcd f = g a,
+  { nth_rewrite 0 [← polynomial.mod_by_monic_add_div (g a) hmonic],
+    ring_nf,
+    sorry
+
+
+  },
+  rw [he a ha, this],
+  --exact mt finset.gcd_eq_zero_iff.1 (λ h, hfz $ h x hx),
+end
 
 /-- Given a nonempty finset `s` and a function `f` from `s` to `K[X]`, if `d = s.gcd`,
 then the `gcd` of `(f i) / d` is equal to `1`. -/
@@ -87,7 +112,7 @@ end
 
 theorem gcd_div_gcd_id_eq_one (s : finset K[X]) {x : K[X]} (hx : x ∈ s) (hnz : x ≠ 0) :
   s.gcd (λ b, b / (s.gcd id)) = 1 :=
-coprime_of_div_gcd s hx hnz
+div_gcd_coprime s hx hnz
 
 end polynomial
 

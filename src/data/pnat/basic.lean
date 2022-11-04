@@ -15,14 +15,8 @@ It is defined in `data.pnat.defs`, but most of the development is deferred to he
 that file can have very few imports.
 -/
 
--- We use `dsimp_result` here to avoid extraneous appearances of `id` in the term.
-instance : add_left_cancel_semigroup ℕ+ := by dsimp_result { dsimp [pnat], apply_instance, }
-instance : add_right_cancel_semigroup ℕ+ := by dsimp_result { dsimp [pnat], apply_instance, }
-instance : add_comm_semigroup ℕ+ := by dsimp_result { dsimp [pnat], apply_instance, }
-instance : linear_ordered_cancel_comm_monoid ℕ+ := by dsimp_result { dsimp [pnat], apply_instance, }
-instance : has_add ℕ+ := by dsimp_result { dsimp [pnat], apply_instance, }
-instance : has_mul ℕ+ := by dsimp_result { dsimp [pnat], apply_instance, }
-instance : distrib ℕ+ := by dsimp_result { dsimp [pnat], apply_instance, }
+attribute [derive [add_left_cancel_semigroup, add_right_cancel_semigroup, add_comm_semigroup,
+  linear_ordered_cancel_comm_monoid, has_add, has_mul, distrib]] pnat
 
 namespace pnat
 

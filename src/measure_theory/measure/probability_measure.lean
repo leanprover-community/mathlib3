@@ -19,14 +19,13 @@ case of the topology of weak convergence of finite measures.
 
 ## Main definitions
 
-The main definitions are the
- * type `measure_theory.probability_measure Ω` with the topologies of convergence in distribution
-   (a.k.a. convergence in law, weak convergence of measures);
+The main definitions are
+ * the type `measure_theory.probability_measure Ω` with the topology of convergence in
+   distribution (a.k.a. convergence in law, weak convergence of measures);
  * `measure_theory.probability_measure.to_finite_measure`: Interpret a probability measure as
-   a finite measure. Finite measures are equipped with the topology of weak convergence of
-   measures. The topology on probability measures is inherited from that of finite measures.
- * `measure_theory.finite_measure.normalize`, normalizing a finite measure to a probability measure
-   (returns junk for the zero measure);
+   a finite measure;
+ * `measure_theory.finite_measure.normalize`: Normalize a finite measure to a probability measure
+   (returns junk for the zero measure).
 
 ## Main results
 
@@ -51,7 +50,7 @@ weak convergence of finite measures via the mapping
 `measure_theory.probability_measure.to_finite_measure`.
 
 Like `measure_theory.finite_measure Ω`, the implementation of `measure_theory.probability_measure Ω`
-is directly as subtypes of `measure_theory.measure Ω`, and the coercion to a function is the
+is directly as a subtype of `measure_theory.measure Ω`, and the coercion to a function is the
 composition `ennreal.to_nnreal` and the coercion to function of `measure_theory.measure Ω`.
 
 ## References

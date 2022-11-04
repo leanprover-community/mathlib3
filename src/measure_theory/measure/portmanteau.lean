@@ -9,40 +9,33 @@ import measure_theory.measure.probability_measure
 # Characterizations of weak convergence of finite measures and probability measures
 
 This file will provide portmanteau characterizations of the weak convergence of finite measures
-and of probability measures, i.e., of standard characterizations of convergence in distribution.
+and of probability measures, i.e., the standard characterizations of convergence in distribution.
 
 ## Main definitions
 
-The definitions of the topology on the types of finite measures and probability measures are
-defined in their corresponding files.
+This file does not introduce substantial new definitions: the topologies of weak convergence on
+the types of finite measures and probability measures are already defined in their corresponding
+files.
 
 ## Main results
 
-The main result will be the portmanteau theorem providing various characterizations of
+The main result will be the portmanteau theorem providing various characterizations of the
 weak convergence of measures. The separate implications are:
- * `measure_theory.finite_measure.limsup_measure_closed_le_of_tendsto` proves one implication.
-   The current formulation assumes `pseudo_emetric_space`. The only reason is to have
-   bounded continuous pointwise approximations to the indicator function of a closed set. Clearly
-   for example metrizability or pseudo-emetrizability would be sufficient assumptions. The
-   typeclass assumptions should be later adjusted in a way that takes into account use cases, but
-   the proof will presumably remain essentially the same.
- * `measure_theory.limsup_measure_closed_le_iff_liminf_measure_open_ge` proves the equivalence of
-   the limsup condition for closed sets and the liminf condition for open sets for probability
-   measures.
+ * `measure_theory.finite_measure.limsup_measure_closed_le_of_tendsto` proves that weak convergence
+   implies a limsup-condition for closed sets.
+ * `measure_theory.limsup_measure_closed_le_iff_liminf_measure_open_ge` proves for probability
+   measures the equivalence of the limsup condition for closed sets and the liminf condition for
+   open sets.
  * `measure_theory.tendsto_measure_of_null_frontier` proves that the liminf condition for open
    sets (which is equivalent to the limsup condition for closed sets) implies the convergence of
    probabilities of sets whose boundary carries no mass under the limit measure.
  * `measure_theory.probability_measure.tendsto_measure_of_null_frontier_of_tendsto` is a
    combination of earlier implications, which shows that weak convergence of probability measures
-   implies the convergence of probabilities of sets whose boundary carries no mass
-   under the limit measure.
+   implies the convergence of probabilities of sets whose boundary carries no mass under the
+   limit measure.
 
 TODO:
  * Prove the rest of the implications.
-   (Where formulations are currently only provided for probability measures, one can obtain the
-   finite measure formulations using the characterization of convergence of finite measures by
-   their total masses and their probability-normalized versions, i.e., by
-   `measure_theory.finite_measure.tendsto_normalize_iff_tendsto`.)
 
 ## Implementation notes
 
@@ -50,6 +43,18 @@ Many of the characterizations of weak convergence hold for finite measures and a
 generality and then specialized to probability measures. Some implications hold with slightly
 weaker assumptions than usually stated. The full portmanteau theorem, however, is most convenient
 for probability measures on metrizable spaces with their Borel sigmas.
+
+Some specific considerations on the assumptions in the different implications:
+ * `measure_theory.finite_measure.limsup_measure_closed_le_of_tendsto` assumes
+   `pseudo_emetric_space`. The only reason is to have bounded continuous pointwise approximations
+   to the indicator function of a closed set. Clearly for example metrizability or
+   pseudo-emetrizability would be sufficient assumptions. The typeclass assumptions should be later
+   adjusted in a way that takes into account use cases, but the proof will presumably remain
+   essentially the same.
+ * Where formulations are currently only provided for probability measures, one can obtain the
+   finite measure formulations using the characterization of convergence of finite measures by
+   their total masses and their probability-normalized versions, i.e., by
+   `measure_theory.finite_measure.tendsto_normalize_iff_tendsto`.
 
 ## References
 

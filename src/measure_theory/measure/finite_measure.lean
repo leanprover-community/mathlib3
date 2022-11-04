@@ -40,7 +40,7 @@ The main definitions are
 
 ## Implementation notes
 
-The topology of weak convergence of finite Borel measures will be defined using a mapping from
+The topology of weak convergence of finite Borel measures is defined using a mapping from
 `measure_theory.finite_measure Ω` to `weak_dual ℝ≥0 (Ω →ᵇ ℝ≥0)`, inheriting the topology from the
 latter.
 

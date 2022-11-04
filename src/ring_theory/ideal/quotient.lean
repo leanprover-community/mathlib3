@@ -3,6 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Mario Carneiro, Anne Baanen
 -/
+import algebra.ring.fin
 import linear_algebra.quotient
 import ring_theory.ideal.basic
 import tactic.fin_cases
@@ -411,15 +412,6 @@ noncomputable def quotient_inf_ring_equiv_pi_quotient [finite ι] (f : ι → id
 
 end chinese_remainder
 
-/-- The product over `fin 2` of some rings is just the cartesian product of these rings. -/
-@[simps]
-def _root_.ring_equiv.fin_two (R : fin 2 → Type*) [Π i, semiring (R i)] :
-  (Π (i : fin 2), R i) ≃+* R 0 × R 1 :=
-{ to_fun := pi_fin_two_equiv R,
-  map_add' := λ a b, rfl,
-  map_mul' := λ a b, rfl,
-  .. pi_fin_two_equiv R }
-
 /-- **Chinese remainder theorem**, specialized to two ideals. -/
 noncomputable def quotient_inf_equiv_quotient_prod (I J : ideal R)
   (coprime : I ⊔ J = ⊤) :
@@ -430,7 +422,7 @@ by { intros i j h,
   fin_cases i; fin_cases j; try { contradiction }; simpa [f, sup_comm] using coprime },
 (ideal.quot_equiv_of_eq (by simp [infi, inf_comm])).trans $
 (ideal.quotient_inf_ring_equiv_pi_quotient f hf).trans $
-ring_equiv.fin_two (λ i, R ⧸ f i)
+ring_equiv.pi_fin_two (λ i, R ⧸ f i)
 
 @[simp] lemma quotient_inf_equiv_quotient_prod_fst (I J : ideal R) (coprime : I ⊔ J = ⊤)
   (x : R ⧸ (I ⊓ J)) : (quotient_inf_equiv_quotient_prod I J coprime x).fst =

@@ -18,7 +18,7 @@ structure short_complex [has_zero_morphisms C] :=
 (g : X₂ ⟶ X₃)
 (zero : f ≫ g = 0)
 
-variable {C}
+variables {C D}
 
 namespace short_complex
 
@@ -68,6 +68,21 @@ instance : category (short_complex C) :=
 @[simp] lemma comp_τ₁ (φ₁₂ : S₁ ⟶ S₂) (φ₂₃ : S₂ ⟶ S₃) : (φ₁₂ ≫ φ₂₃).τ₁ = φ₁₂.τ₁ ≫ φ₂₃.τ₁ := rfl
 @[simp] lemma comp_τ₂ (φ₁₂ : S₁ ⟶ S₂) (φ₂₃ : S₂ ⟶ S₃) : (φ₁₂ ≫ φ₂₃).τ₂ = φ₁₂.τ₂ ≫ φ₂₃.τ₂ := rfl
 @[simp] lemma comp_τ₃ (φ₁₂ : S₁ ⟶ S₂) (φ₂₃ : S₂ ⟶ S₃) : (φ₁₂ ≫ φ₂₃).τ₃ = φ₁₂.τ₃ ≫ φ₂₃.τ₃ := rfl
+
+variables {C D}
+
+@[simps]
+def _root_.category_theory.functor.map_short_complex
+  [has_zero_morphisms D] (F : C ⥤ D) [F.preserves_zero_morphisms] : short_complex C ⥤ short_complex D :=
+{ obj := λ S, short_complex.mk (F.map S.f) (F.map S.g)
+    (by rw [← F.map_comp, S.zero, F.map_zero]),
+  map := λ S₁ S₂ φ, short_complex.hom.mk (F.map φ.τ₁) (F.map φ.τ₂) (F.map φ.τ₃)
+    (by { dsimp, simp only [← F.map_comp, φ.comm₁₂], })
+    (by { dsimp, simp only [← F.map_comp, φ.comm₂₃], }), }
+
+@[simps]
+def map [has_zero_morphisms D] (F : C ⥤ D) [F.preserves_zero_morphisms] : short_complex D :=
+F.map_short_complex.obj S
 
 /-- A constructor for isomorphisms in the category `short_complex C`-/
 @[simps]
@@ -294,6 +309,147 @@ def homology [has_homology S] : C := S.some_homology_full_data.H
 
 namespace homology_full_data
 
+
+section map
+
+variables {S} (h : homology_full_data S) (F : C ⥤ D)
+
+@[simps]
+def _root_.category_theory.limits.parallel_pair.comp_nat_iso'
+  {C D : Type*} [category C] [category D] (F : C ⥤ D) [has_zero_morphisms C] [has_zero_morphisms D]
+  [F.preserves_zero_morphisms] {X Y : C} (f : X ⟶ Y) (f' : F.obj X ⟶ F.obj Y)
+  (h : f' = F.map f) :
+  parallel_pair f 0 ⋙ F ≅ parallel_pair f' 0 :=
+parallel_pair.ext (iso.refl _) (iso.refl _) (by tidy) (by tidy)
+
+@[simps]
+def _root_.category_theory.limits.parallel_pair.comp_nat_iso
+  {C D : Type*} [category C] [category D] (F : C ⥤ D) [has_zero_morphisms C] [has_zero_morphisms D]
+  [F.preserves_zero_morphisms] {X Y : C} (f : X ⟶ Y) :
+  parallel_pair f 0 ⋙ F ≅ parallel_pair (F.map f) 0 :=
+category_theory.limits.parallel_pair.comp_nat_iso' F f _ rfl
+
+namespace map
+
+lemma π_ι : F.map h.π ≫ F.map h.ι = F.map h.i ≫ F.map h.p :=
+by simp only [← F.map_comp, h.π_ι]
+
+variables [has_zero_morphisms D] [functor.preserves_zero_morphisms F]
+
+lemma hi₀ : F.map h.i ≫ F.map S.g = 0 :=
+by simp only [← F.map_comp, h.hi₀, F.map_zero]
+
+lemma hp₀ : F.map S.f ≫ F.map h.p = 0 :=
+by simp only [← F.map_comp, h.hp₀, F.map_zero]
+
+def hi [preserves_limit (parallel_pair S.g 0) F] :
+  is_limit (kernel_fork.of_ι (F.map h.i) (hi₀ h F)) :=
+begin
+  equiv_rw (is_limit.postcompose_inv_equiv
+    (category_theory.limits.parallel_pair.comp_nat_iso F S.g) _).symm,
+  refine is_limit.of_iso_limit (is_limit_of_preserves F h.hi)
+    (cones.ext (iso.refl _) _),
+  rintro (_|_),
+  { tidy, },
+  { dsimp,
+    simp only [comp_id, id_comp, F.map_comp], },
+end
+
+lemma hf' [preserves_limit (parallel_pair S.g 0) F] :
+  F.map h.f' = (hi h F).lift (kernel_fork.of_ι (S.map F).f (S.map F).zero) :=
+begin
+  apply fork.is_limit.hom_ext (hi h F),
+  rw fork.is_limit.lift_ι,
+  simp only [fork.is_limit.lift_ι, kernel_fork.ι_of_ι, ← F.map_comp, h.f'_i, map_f],
+end
+
+def hp [preserves_colimit (parallel_pair S.f 0) F] :
+  is_colimit (cokernel_cofork.of_π (F.map h.p) (hp₀ h F)) :=
+begin
+  equiv_rw (is_colimit.precompose_hom_equiv
+    (category_theory.limits.parallel_pair.comp_nat_iso F S.f) _).symm,
+  refine is_colimit.of_iso_colimit (is_colimit_of_preserves F h.hp)
+    (cocones.ext (iso.refl _) _),
+  rintro (_|_),
+  { dsimp,
+    simp only [id_comp, comp_id, F.map_comp], },
+  { tidy, },
+end
+
+lemma hg' [preserves_colimit (parallel_pair S.f 0) F] :
+  F.map h.g' = (hp h F).desc (cokernel_cofork.of_π (S.map F).g (S.map F).zero) :=
+begin
+  apply cofork.is_colimit.hom_ext (hp h F),
+  rw cofork.is_colimit.π_desc,
+  simp only [cokernel_cofork.π_of_π, ← F.map_comp, h.p_g', map_g],
+end
+
+lemma hπ₀ [preserves_limit (parallel_pair S.g 0) F] :
+  (hi h F).lift (kernel_fork.of_ι (S.map F).f (S.map F).zero) ≫ F.map h.π = 0 :=
+by rw [← hf', ← F.map_comp, h.f'_π, F.map_zero]
+
+lemma hι₀ [preserves_colimit (parallel_pair S.f 0) F] :
+  F.map h.ι ≫ (hp h F).desc (cokernel_cofork.of_π (S.map F).g (S.map F).zero) = 0 :=
+by rw [← hg', ← F.map_comp, h.ι_g', F.map_zero]
+
+def hπ [preserves_limit (parallel_pair S.g 0) F]
+  [preserves_colimit (parallel_pair h.f' 0) F] :
+  is_colimit (cokernel_cofork.of_π (F.map h.π) (hπ₀ h F)) :=
+begin
+  equiv_rw (is_colimit.precompose_hom_equiv
+    (category_theory.limits.parallel_pair.comp_nat_iso' F h.f' _ (hf' h F).symm) _).symm,
+  refine is_colimit.of_iso_colimit (is_colimit_of_preserves F h.hπ)
+    (cocones.ext (iso.refl _) _),
+  rintro (_|_),
+  { dsimp,
+    simp only [id_comp, comp_id, F.map_comp],
+    erw hf',
+    refl, },
+  { tidy, },
+end
+
+def hι [preserves_colimit (parallel_pair S.f 0) F]
+  [preserves_limit (parallel_pair h.g' 0) F] :
+  is_limit (kernel_fork.of_ι (F.map h.ι) (hι₀ h F)) :=
+begin
+  equiv_rw (is_limit.postcompose_inv_equiv
+    (category_theory.limits.parallel_pair.comp_nat_iso' F h.g' _ (hg' h F).symm) _).symm,
+  refine is_limit.of_iso_limit (is_limit_of_preserves F h.hι)
+    (cones.ext (iso.refl _) _),
+  rintro (_|_),
+  { tidy, },
+  { dsimp,
+    simp only [comp_id, id_comp, F.map_comp],
+    erw hg',
+    refl, },
+end
+
+end map
+
+@[simp]
+def map (h : homology_full_data S) (F : C ⥤ D) [has_zero_morphisms D] [F.preserves_zero_morphisms]
+  [preserves_limit (parallel_pair S.g 0) F] [preserves_colimit (parallel_pair S.f 0) F]
+  [preserves_limit (parallel_pair h.g' 0) F] [preserves_colimit (parallel_pair h.f' 0) F] :
+  homology_full_data (S.map F) :=
+{ K := F.obj h.K,
+  Q := F.obj h.Q,
+  H := F.obj h.H,
+  i := F.map h.i,
+  p := F.map h.p,
+  π := F.map h.π,
+  ι := F.map h.ι,
+  π_ι := map.π_ι h F,
+  hi₀ := map.hi₀ h F,
+  hp₀ := map.hp₀ h F,
+  hi := map.hi h F,
+  hp := map.hp h F,
+  hπ₀ := map.hπ₀ h F,
+  hι₀ := map.hι₀ h F,
+  hπ := map.hπ h F,
+  hι := map.hι h F, }
+
+end map
+
 /-- to be moved -/
 @[simps]
 def kernel_zero {X Y : C} (f : X ⟶ Y) (hf : f = 0) :
@@ -443,11 +599,14 @@ structure short_complex_with_homology' :=
 (S : short_complex C)
 (ho : S.homology_full_data)
 
+
 namespace short_complex_with_homology'
 
 open short_complex
 
 variables {C} (Z Z₁ Z₂ Z₃ : short_complex_with_homology' C)
+
+instance : has_homology (Z.S) := has_homology.mk' Z.ho
 
 /-- A morphism in `short_complex_with_homology' C` consists of a
 morphism of short complexes and morphisms on the `K`, `Q` and `H` fields
@@ -561,8 +720,7 @@ instance : full (forget C) :=
     { rw [← cancel_epi Z₁.ho.π, ← cancel_mono Z₂.ho.ι, commπ, assoc, assoc, ← commι,
         Z₁.ho.π_ι_assoc, Z₂.ho.π_ι, commp, ← reassoc_of commi], },
     exact ⟨φ, φK, φQ, φH, commi, commp, commf', commg', commπ, by rw [φH_eq_φH', commι]⟩,
-  end,
-  witness' := λ Z₁ Z₂ φ, rfl, }
+  end, }
 
 /-- The homology functor `short_complex_with_homology' C ⥤ C`. -/
 @[simps]
@@ -651,6 +809,14 @@ begin
   dsimp only [uniq],
   simp only [functor.preimage_iso_hom, iso.trans_hom, functor.map_comp, functor.image_preimage,
     iso.refl_hom, comp_id],
+end
+
+lemma uniq_symm (H₁ H₂ : homology_full_data S) :
+  (uniq H₁ H₂).symm = uniq H₂ H₁ :=
+begin
+  ext1,
+  simpa only [← cancel_mono (uniq H₁ H₂).hom, iso.symm_hom, iso.inv_hom_id, uniq_refl]
+    using congr_arg iso.hom (uniq_trans H₂ H₁ H₂).symm,
 end
 
 /-- The canonical isomorphism `S.homology ≅ h.H` for `h : homology_full_data S`. -/
@@ -907,28 +1073,11 @@ end preadditive
 
 end short_complex_with_homology'
 
-example : ℕ := 42
-
-open category_theory.functor
-
-variables {C D}
-
-@[simps]
-def category_theory.functor.map_short_complex [has_zero_morphisms C] [has_zero_morphisms D]
-  (F : C ⥤ D) [preserves_zero_morphisms F] : short_complex C ⥤ short_complex D :=
-{ obj := λ S, short_complex.mk (F.map S.f) (F.map S.g)
-    (by rw [← F.map_comp, S.zero, F.map_zero]),
-  map := λ S₁ S₂ φ, short_complex.hom.mk (F.map φ.τ₁) (F.map φ.τ₂) (F.map φ.τ₃)
-    (by { dsimp, simp only [← F.map_comp, φ.comm₁₂], })
-    (by { dsimp, simp only [← F.map_comp, φ.comm₂₃], }), }
-
 namespace short_complex
 
-variables [has_zero_morphisms C] (S : short_complex C)
+section
 
-@[simps]
-def map [has_zero_morphisms D] (F : C ⥤ D) [preserves_zero_morphisms F] : short_complex D :=
-F.map_short_complex.obj S
+variables [has_zero_morphisms C] (S : short_complex C)
 
 /-- If `S : short_complex C`, a candidate computation of the homology of `S` can
 be given by the datum of two objects `K` and `H`, where `H` is a part of
@@ -941,13 +1090,13 @@ structure homology_pre_data :=
 (i : K ⟶ S.X₂)
 (f' : S.X₁ ⟶ K)
 (π : K ⟶ H)
-(fac : f' ≫ i = S.f)
+(f'_i : f' ≫ i = S.f)
 (hi₀ : i ≫ S.g = 0)
 (hπ₀ : f' ≫ π = 0)
 
 namespace homology_pre_data
 
-attribute [simp, reassoc] fac hi₀ hπ₀
+attribute [simp, reassoc] f'_i hi₀ hπ₀
 
 variable {S}
 
@@ -959,13 +1108,13 @@ def cofork (h : homology_pre_data S) : cokernel_cofork h.f' := cokernel_cofork.o
 
 @[simps]
 def map (h : homology_pre_data S) (F : C ⥤ D) [has_zero_morphisms D]
-  [preserves_zero_morphisms F] : homology_pre_data (S.map F) :=
+  [F.preserves_zero_morphisms] : homology_pre_data (S.map F) :=
 { K := F.obj h.K,
   H := F.obj h.H,
   i := F.map h.i,
   f' := F.map h.f',
   π := F.map h.π,
-  fac := by simp only [← F.map_comp, h.fac, map_f],
+  f'_i := by simp only [← F.map_comp, h.f'_i, map_f],
   hi₀ := by simp only [map_g, ← F.map_comp, h.hi₀, F.map_zero],
   hπ₀ := by simp only [← F.map_comp, h.hπ₀, F.map_zero], }
 
@@ -977,6 +1126,273 @@ and a cokernel `h.K` of the morphism `S.f' : S.X₁ ⟶ h.H` induced by `S.f`. W
 `[has_homology S]` holds, it is sufficent in order to compute the homology of `S`. -/
 structure homology_data extends homology_pre_data S :=
 (fork_is_limit : is_limit to_homology_pre_data.fork)
-(cofork_is_limit : is_colimit to_homology_pre_data.cofork)
+(cofork_is_colimit : is_colimit to_homology_pre_data.cofork)
+
+namespace homology_data
+
+variable {S}
+
+instance (h : homology_data S) : mono h.i :=
+⟨λ Y l₁ l₂, fork.is_limit.hom_ext h.fork_is_limit⟩
+
+instance (h : homology_data S) : epi h.π :=
+⟨λ Y l₁ l₂, cofork.is_colimit.hom_ext h.cofork_is_colimit⟩
+
+@[simps]
+def of_full_data (h : homology_full_data S) : homology_data S :=
+{ K := h.K,
+  H := h.H,
+  i := h.i,
+  f' := h.f',
+  π := h.π,
+  f'_i := h.f'_i,
+  hi₀ := h.hi₀,
+  hπ₀ := h.hπ₀,
+  fork_is_limit := h.hi,
+  cofork_is_colimit := h.hπ, }
+
+@[simps]
+def map (h : homology_data S) (F : C ⥤ D) [has_zero_morphisms D] [F.preserves_zero_morphisms]
+  [preserves_limit (parallel_pair S.g 0) F] [preserves_colimit (parallel_pair h.f' 0) F] :
+  homology_data (S.map F) :=
+{ to_homology_pre_data := h.to_homology_pre_data.map F,
+  fork_is_limit := begin
+    equiv_rw (is_limit.postcompose_inv_equiv
+      (category_theory.limits.parallel_pair.comp_nat_iso F S.g) _).symm,
+    exact is_limit.of_iso_limit (is_limit_of_preserves F h.fork_is_limit)
+      (cones.ext (iso.refl _) (by { rintro (_|_), tidy, })),
+  end,
+  cofork_is_colimit := begin
+    equiv_rw (is_colimit.precompose_hom_equiv
+      (category_theory.limits.parallel_pair.comp_nat_iso F h.f') _).symm,
+    exact is_colimit.of_iso_colimit (is_colimit_of_preserves F h.cofork_is_colimit)
+      (cocones.ext (iso.refl _) (by { rintro (_|_), tidy, })),
+  end, }
+
+end homology_data
+
+end
+
+section abelian
+
+instance homology_data.inhabited [abelian C] (S : short_complex C) :
+  inhabited (homology_data S) :=
+⟨homology_data.of_full_data default⟩
+
+instance homology_pre_data.inhabited [abelian C] (S : short_complex C) :
+  inhabited (homology_pre_data S) :=
+⟨homology_data.to_homology_pre_data default⟩
+
+end abelian
 
 end short_complex
+
+section
+
+variables [has_zero_morphisms C] (C)
+
+/-- In order to allow a convenient way to computation of the homology of
+short complexes, and to compute maps in homology, the category
+`short_complex_with_homology C` is introduced. The datum are
+similar, but weaker than that of `short_complex_with_homology' C`.
+An object in this category consists of an object `S : short_complex C`
+such that `[has_homology S]` and equipped with `ho : S.homology_data`. -/
+structure short_complex_with_homology :=
+(S : short_complex C)
+[hS : S.has_homology]
+(ho : S.homology_data)
+
+namespace short_complex_with_homology
+
+open short_complex
+
+variables {C} (Z Z₁ Z₂ Z₃ : short_complex_with_homology C)
+/-- A morphism in `short_complex_with_homology C` consists of a
+morphism of short complexes and morphisms on the `K`, `H` fields
+of the given `homology_data`, which satisfies the obvious
+compatibilities. -/
+
+@[ext]
+structure hom :=
+(φ : Z₁.S ⟶ Z₂.S)
+(φK : Z₁.ho.K ⟶ Z₂.ho.K)
+(φH : Z₁.ho.H ⟶ Z₂.ho.H)
+(commi : Z₁.ho.i ≫ short_complex.hom.τ₂ φ = φK ≫ Z₂.ho.i)
+(commf' : Z₁.ho.f' ≫ φK = φ.τ₁ ≫ Z₂.ho.f')
+(commπ : Z₁.ho.π ≫ φH = φK ≫ Z₂.ho.π)
+
+namespace hom
+
+attribute [reassoc] commi commf' commπ
+
+/-- The identity morphisms in `short_complex_with_homology C`. -/
+@[simps]
+def id : hom Z Z :=
+⟨𝟙 _, 𝟙 _, 𝟙 _, by simp, by simp, by simp⟩
+
+instance : inhabited (hom Z Z) := ⟨hom.id Z⟩
+
+variables {Z₁ Z₂ Z₃}
+
+/-- The composition of morphisms in `short_complex_with_homology C`. -/
+@[simps]
+def comp (ψ : hom Z₁ Z₂) (ψ' : hom Z₂ Z₃) : hom Z₁ Z₃ :=
+⟨ψ.φ ≫ ψ'.φ, ψ.φK ≫ ψ'.φK, ψ.φH ≫ ψ'.φH,
+  by simp only [comp_τ₂, assoc, hom.commi_assoc, hom.commi],
+  by simp only [comp_τ₁, assoc, hom.commf'_assoc, hom.commf'],
+  by simp only [assoc, hom.commπ_assoc, hom.commπ]⟩
+
+lemma congr_φ {ψ ψ' : hom Z₁ Z₂} (h : ψ = ψ') : ψ.φ = ψ'.φ := by rw h
+lemma congr_φK {ψ ψ' : hom Z₁ Z₂} (h : ψ = ψ') : ψ.φK = ψ'.φK := by rw h
+lemma congr_φH {ψ ψ' : hom Z₁ Z₂} (h : ψ = ψ') : ψ.φH = ψ'.φH := by rw h
+
+end hom
+
+@[simps]
+instance : category (short_complex_with_homology C) :=
+{ hom := hom,
+  id := hom.id,
+  comp := λ Z₁ Z₂ Z₃, hom.comp, }
+
+/-- The zero morphisms in `short_complex_with_homology C` -/
+@[simps]
+def hom.zero : Z₁ ⟶ Z₂ :=
+⟨0, 0, 0, by simp, by simp, by simp⟩
+
+@[simps]
+instance : has_zero (Z₁ ⟶ Z₂) := ⟨hom.zero _ _⟩
+
+instance : has_zero_morphisms (short_complex_with_homology C) := { }
+
+variable (C)
+
+/-- The obvious functor `short_complex_with_homology C ⥤ short_complex C` which
+forgets the `homology_full_data`. -/
+@[simps]
+def forget : short_complex_with_homology C ⥤ short_complex C :=
+{ obj := λ Z, Z.S,
+  map := λ Z₁ Z₂ ψ, ψ.φ, }
+
+instance : faithful (forget C) :=
+⟨λ Z₁ Z₂ ψ ψ' (h : ψ.φ = ψ'.φ), begin
+  have hK : ψ.φK = ψ'.φK := by simp only [← cancel_mono Z₂.ho.i, ← hom.commi, h],
+  have hH : ψ.φH = ψ'.φH := by simp only [← cancel_epi Z₁.ho.π, hom.commπ, hK],
+  ext1,
+  exacts [h, hK, hH],
+end⟩
+
+instance : full (forget C) :=
+{ preimage := λ Z₁ Z₂ (φ : Z₁.S ⟶ Z₂.S), begin
+    have hK : (Z₁.ho.i ≫ φ.τ₂) ≫ Z₂.S.g = 0,
+    { rw [assoc, φ.comm₂₃, Z₁.ho.hi₀_assoc, zero_comp], },
+    let φK := Z₂.ho.fork_is_limit.lift (kernel_fork.of_ι (Z₁.ho.i ≫ φ.τ₂) hK),
+    have commi : Z₁.ho.i ≫ φ.τ₂ = φK ≫ Z₂.ho.i := (kernel_fork.is_limit.lift' _ _ hK).2.symm,
+    have commf' : Z₁.ho.f' ≫ φK = φ.τ₁ ≫ Z₂.ho.f',
+    { rw [← cancel_mono (Z₂.ho.i), assoc, ← commi, Z₁.ho.f'_i_assoc, assoc, Z₂.ho.f'_i,
+        φ.comm₁₂], },
+    have eqH : Z₁.ho.f' ≫ φK ≫ Z₂.ho.π = 0,
+    { simp only [reassoc_of commf',homology_pre_data.hπ₀, comp_zero], },
+    let φH := Z₁.ho.cofork_is_colimit.desc (cokernel_cofork.of_π (φK ≫ Z₂.ho.π) eqH),
+    have commπ : Z₁.ho.π ≫ φH = φK ≫ Z₂.ho.π :=
+      (cokernel_cofork.is_colimit.desc' Z₁.ho.cofork_is_colimit _ eqH).2,
+    exact ⟨φ, φK, φH, commi, commf', commπ⟩,
+  end, }
+
+/-- The homology functor `short_complex_with_homology C ⥤ C`. -/
+@[simps]
+def functor_H : short_complex_with_homology C ⥤ C :=
+{ obj := λ Z, Z.ho.H,
+  map := λ Z₁ Z₂ ψ, ψ.φH, }
+
+variable {C}
+
+/-- A morphism in `φ : short_complex C` between objects that have homology and
+are equipped with `homology_data` uniquely lifts as morphism in `short_complex_with_homology`. -/
+@[simp]
+def forget_preimage {S₁ S₂ : short_complex C} [has_homology S₁] [has_homology S₂]
+  (φ : S₁ ⟶ S₂) (H₁ : S₁.homology_data) (H₂ : S₂.homology_data) :
+  mk S₁ H₁ ⟶ mk S₂ H₂ :=
+(short_complex_with_homology.forget C).preimage φ
+
+lemma forget_preimage_id {S : short_complex C} [has_homology S] (H : S.homology_data) :
+  forget_preimage (𝟙 S) H H = 𝟙 _ :=
+by simpa only [forget_preimage] using preimage_id
+
+lemma forget_preimage_comp {S₁ S₂ S₃ : short_complex C} [has_homology S₁]
+  [has_homology S₂] [has_homology S₃] (φ : S₁ ⟶ S₂) (φ' : S₂ ⟶ S₃)
+  (H₁ : S₁.homology_data) (H₂ : S₂.homology_data) (H₃ : S₃.homology_data) :
+  forget_preimage (φ ≫ φ') H₁ H₃ = forget_preimage φ H₁ H₂ ≫ forget_preimage φ' H₂ H₃ :=
+(short_complex_with_homology.forget C).map_injective
+  (by simp only [forget_preimage, functor.image_preimage, functor.map_comp])
+
+end short_complex_with_homology
+
+namespace short_complex
+
+namespace homology_data
+
+variables {S : short_complex C} [has_homology S] {C}
+
+/-- Two `homology_data S` correspond to isomorphic objects in
+the category `short_complex_with_homology'`. -/
+def uniq (H₁ H₂ : homology_data S) :
+  short_complex_with_homology.mk S H₁ ≅ short_complex_with_homology.mk S H₂ :=
+(short_complex_with_homology.forget C).preimage_iso (iso.refl _)
+
+@[simp]
+lemma uniq_refl (H : homology_data S) :
+  uniq H H = iso.refl _ :=
+begin
+  ext1,
+  apply (short_complex_with_homology.forget C).map_injective,
+  dsimp only [uniq],
+  simp only [functor.preimage_iso_hom, iso.refl_hom, preimage_id],
+end
+
+@[simp]
+lemma uniq_trans (H₁ H₂ H₃ : homology_data S) :
+  uniq H₁ H₂ ≪≫ uniq H₂ H₃ = uniq H₁ H₃ :=
+begin
+  ext1,
+  apply (short_complex_with_homology.forget C).map_injective,
+  dsimp only [uniq],
+  simp only [functor.preimage_iso_hom, iso.trans_hom, functor.map_comp, functor.image_preimage,
+    iso.refl_hom, comp_id],
+end
+
+lemma uniq_symm (H₁ H₂ : homology_data S) :
+  (uniq H₁ H₂).symm = uniq H₂ H₁ :=
+begin
+  ext1,
+  simpa only [← cancel_mono (uniq H₁ H₂).hom, iso.symm_hom, iso.inv_hom_id, uniq_refl]
+    using congr_arg iso.hom (uniq_trans H₂ H₁ H₂).symm,
+end
+
+/-- The canonical isomorphism `S.homology ≅ h.H` for `h : homology_data S`. -/
+def iso_H (h : homology_data S) : S.homology ≅ h.H :=
+(short_complex_with_homology.functor_H C).map_iso
+  (uniq (homology_data.of_full_data S.some_homology_full_data) h)
+
+end homology_data
+
+end short_complex
+
+namespace short_complex_with_homology'
+
+@[simps]
+def forget' : short_complex_with_homology' C ⥤
+  short_complex_with_homology C :=
+{ obj := λ Z, ⟨Z.S, short_complex.homology_data.of_full_data Z.ho⟩,
+  map := λ Z₁ Z₂ ψ, ⟨ψ.φ, ψ.φK, ψ.φH, ψ.commi, ψ.commf', ψ.commπ⟩, }
+
+end short_complex_with_homology'
+
+end
+
+section abelian
+
+instance short_complex_with_homology.inhabited [abelian C] :
+  inhabited (short_complex_with_homology C) :=
+⟨(short_complex_with_homology'.forget' C).obj default⟩
+
+end abelian

@@ -104,6 +104,33 @@ instance : category (short_complex C) :=
 @[simp] lemma comp_τ₂ (φ₁₂ : S₁ ⟶ S₂) (φ₂₃ : S₂ ⟶ S₃) : (φ₁₂ ≫ φ₂₃).τ₂ = φ₁₂.τ₂ ≫ φ₂₃.τ₂ := rfl
 @[simp] lemma comp_τ₃ (φ₁₂ : S₁ ⟶ S₂) (φ₂₃ : S₂ ⟶ S₃) : (φ₁₂ ≫ φ₂₃).τ₃ = φ₁₂.τ₃ ≫ φ₂₃.τ₃ := rfl
 
+/-- The first projection functor `short_complex C ⥤ C`. -/
+@[simps]
+def π₁ : short_complex C ⥤ C :=
+{ obj := λ S, S.X₁,
+  map := λ S₁ S₂ f, f.τ₁, }
+
+/-- The second projection functor `short_complex C ⥤ C`. -/
+@[simps]
+def π₂ : short_complex C ⥤ C :=
+{ obj := λ S, S.X₂,
+  map := λ S₁ S₂ f, f.τ₂, }
+
+/-- The third projection functor `short_complex C ⥤ C`. -/
+@[simps]
+def π₃ : short_complex C ⥤ C :=
+{ obj := λ S, S.X₃,
+  map := λ S₁ S₂ f, f.τ₃, }
+
+instance (f : S₁ ⟶ S₂) [is_iso f] : is_iso f.τ₁ :=
+by { change is_iso (π₁.map_iso (as_iso f)).hom, apply_instance, }
+
+instance (f : S₁ ⟶ S₂) [is_iso f] : is_iso f.τ₂ :=
+by { change is_iso (π₂.map_iso (as_iso f)).hom, apply_instance, }
+
+instance (f : S₁ ⟶ S₂) [is_iso f] : is_iso f.τ₃ :=
+by { change is_iso (π₃.map_iso (as_iso f)).hom, apply_instance, }
+
 variables {C D}
 
 @[simps]
@@ -609,7 +636,129 @@ instance has_homology_of_zeros {X Y Z : C} :
   has_homology (short_complex.mk (0 : X ⟶ Y) (0 : Y ⟶ Z) zero_comp) :=
 has_homology.mk' (of_zeros _ rfl rfl)
 
+variables {S₁ S₂}
+
+@[simp]
+def of_epi_of_is_iso_of_mono (h : homology_full_data S₁) (f : S₁ ⟶ S₂)
+  [epi f.τ₁] [is_iso f.τ₂] [mono f.τ₃] :
+  homology_full_data S₂ :=
+begin
+  let i : h.K ⟶ S₂.X₂ := h.i ≫ f.τ₂,
+  let p : S₂.X₂ ⟶ h.Q := inv f.τ₂ ≫ h.p,
+  have π_ι : h.π ≫ h.ι = i ≫ p := by simp only [h.π_ι, assoc, is_iso.hom_inv_id_assoc],
+  have hi₀ : i ≫ S₂.g = 0 := by simp only [assoc, f.comm₂₃, h.hi₀_assoc, zero_comp],
+  have hp₀ : S₂.f ≫ p = 0,
+  { simp only [p, ← cancel_epi f.τ₁, f.comm₁₂_assoc, is_iso.hom_inv_id_assoc, h.hp₀, comp_zero], },
+  have hi : is_limit (kernel_fork.of_ι i hi₀) := kernel_fork.is_limit.of_ι _ _
+    (λ A x hx, h.hi.lift (kernel_fork.of_ι (x ≫ inv f.τ₂) (by simp only [← cancel_mono f.τ₃,
+      assoc, zero_comp, ← f.comm₂₃, is_iso.inv_hom_id_assoc, hx])))
+    (λ A x hx, by simpa only [i, ← cancel_mono (inv f.τ₂), assoc, is_iso.hom_inv_id, comp_id]
+        using h.hi.fac _ walking_parallel_pair.zero)
+    (λ A x hx b hb, fork.is_limit.hom_ext h.hi begin
+      rw fork.is_limit.lift_ι,
+      simp only [fork.is_limit.lift_ι, assoc, kernel_fork.ι_of_ι, is_iso.eq_comp_inv, hb],
+    end),
+  let f' := hi.lift (kernel_fork.of_ι _ S₂.zero),
+  have eqf' : f' ≫ i = S₂.f := hi.fac (kernel_fork.of_ι _ S₂.zero) walking_parallel_pair.zero,
+  have hf' : f.τ₁ ≫ f' = h.f',
+  { simp only [← cancel_mono h.i, ← cancel_mono f.τ₂, assoc, eqf', reassoc_of h.f'_i, f.comm₁₂], },
+  have hπ₀ : f' ≫ h.π = 0,
+  { simp only [← cancel_epi f.τ₁, reassoc_of hf', h.f'_π, comp_zero], },
+  have hπ : is_colimit (cokernel_cofork.of_π h.π hπ₀) := cokernel_cofork.is_colimit.of_π _ _
+    (λ A x hx, h.hπ.desc (cokernel_cofork.of_π x begin
+      change h.f' ≫ _ = _,
+      simp only [← hf', assoc, hx, comp_zero],
+    end))
+    (λ A x hx, h.hπ.fac _ walking_parallel_pair.one)
+    (λ A x hx b hb, cofork.is_colimit.hom_ext h.hπ begin
+      rw cofork.is_colimit.π_desc,
+      simp only [hb, cokernel_cofork.π_of_π],
+    end),
+  have hp : is_colimit (cokernel_cofork.of_π p hp₀) := cokernel_cofork.is_colimit.of_π _ _
+    (λ A x hx, h.hp.desc (cokernel_cofork.of_π (f.τ₂ ≫ x)
+      (by rw [← f.comm₁₂_assoc, hx, comp_zero])))
+    (λ A x hx, by simpa only [← cancel_epi f.τ₂, assoc, is_iso.hom_inv_id_assoc] using
+        h.hp.fac _ walking_parallel_pair.one)
+    (λ A x hx b hb, cofork.is_colimit.hom_ext h.hp begin
+      rw cofork.is_colimit.π_desc,
+      simp only [cokernel_cofork.π_of_π, ← hb, assoc, is_iso.hom_inv_id_assoc],
+    end),
+  let g' := hp.desc (cokernel_cofork.of_π _ S₂.zero),
+  have eqg' : p ≫ g' = S₂.g := hp.fac (cokernel_cofork.of_π _ S₂.zero) walking_parallel_pair.one,
+  have hg' : g' = h.g' ≫ f.τ₃,
+  { haveI : epi p := epi_comp _ _,
+    rw [← cancel_epi p, eqg'],
+    simp only [assoc, h.p_g'_assoc, ← f.comm₂₃, is_iso.inv_hom_id_assoc], },
+  have hι₀ : h.ι ≫ g' = 0 := by simp only [hg', ι_g'_assoc, zero_comp],
+  have hι : is_limit (kernel_fork.of_ι h.ι hι₀) := kernel_fork.is_limit.of_ι _ _
+    (λ A x hx, h.hι.lift (kernel_fork.of_ι x begin
+      change x ≫ h.g' = 0,
+      simp only [← cancel_mono f.τ₃, assoc, ← hg', hx, zero_comp],
+    end))
+    (λ A x hx, h.hι.fac _ walking_parallel_pair.zero)
+    (λ A x hx b hb, fork.is_limit.hom_ext h.hι begin
+      rw fork.is_limit.lift_ι,
+      simp only [kernel_fork.ι_of_ι, hb],
+    end),
+  exact
+  { K := h.K,
+    Q := h.Q,
+    H := h.H,
+    i := i,
+    p := p,
+    π := h.π,
+    ι := h.ι,
+    π_ι := π_ι,
+    hi₀ := hi₀,
+    hp₀ := hp₀,
+    hi := hi,
+    hp := hp,
+    hπ₀ := hπ₀,
+    hι₀ := hι₀,
+    hπ := hπ,
+    hι := hι, },
+end
+
+example : ℕ := 42
+lemma of_epi_of_is_iso_of_mono_τ₁_f' (h : homology_full_data S₁) (f : S₁ ⟶ S₂)
+  [epi f.τ₁] [is_iso f.τ₂] [mono f.τ₃] :
+  f.τ₁ ≫ (h.of_epi_of_is_iso_of_mono f).f' = h.f' :=
+begin
+  rw ← cancel_mono (h.of_epi_of_is_iso_of_mono f).i,
+  simp only [assoc, f'_i],
+  dsimp,
+  simp only [f'_i_assoc, f.comm₁₂],
+end
+
+lemma of_epi_of_is_iso_of_mono_g' (h : homology_full_data S₁) (f : S₁ ⟶ S₂)
+  [epi f.τ₁] [is_iso f.τ₂] [mono f.τ₃] :
+  (h.of_epi_of_is_iso_of_mono f).g' = h.g' ≫ f.τ₃ :=
+begin
+  rw ← cancel_epi (h.of_epi_of_is_iso_of_mono f).p,
+  simp only [p_g'],
+  dsimp,
+  simp only [assoc, p_g'_assoc, is_iso.eq_inv_comp, f.comm₂₃],
+end
+
+@[simp]
+def of_iso (h : homology_full_data S₁) (e : S₁ ≅ S₂) : homology_full_data S₂ :=
+h.of_epi_of_is_iso_of_mono e.hom
+
 end homology_full_data
+
+variables {S₁ S₂}
+
+lemma has_homology_of_iso (e : S₁ ≅ S₂) [h₁ : has_homology S₁] : has_homology S₂ :=
+has_homology.mk' (S₁.some_homology_full_data.of_iso e)
+
+lemma has_homology_iff_of_iso (e : S₁ ≅ S₂) : has_homology S₁ ↔ has_homology S₂ :=
+begin
+  split,
+  { introI,
+    exact has_homology_of_iso e, },
+  { introI,
+    exact has_homology_of_iso e.symm, },
+end
 
 end short_complex
 
@@ -966,7 +1115,33 @@ lemma ψ_φH_eq [has_homology S₁] [has_homology S₂] (m : homology_map_full_d
   m.ψ.φH = H₁.iso_H.inv ≫ homology_map φ ≫ H₂.iso_H.hom :=
 by rw [m.map_comm_iso_H, iso.inv_hom_id_assoc]
 
+@[simps]
+def of_epi_of_is_iso_of_mono (f : S₁ ⟶ S₂) (h : homology_full_data S₁)
+  [epi f.τ₁] [is_iso f.τ₂] [mono f.τ₃] :
+  homology_map_full_data f h (h.of_epi_of_is_iso_of_mono f) :=
+{ ψ :=
+  { φ := f,
+    φK := 𝟙 _,
+    φQ := 𝟙 _,
+    φH := 𝟙 _,
+    commi := by { dsimp, simp only [id_comp], },
+    commf' := by { dsimp, simpa only [comp_id] using (h.of_epi_of_is_iso_of_mono_τ₁_f' f).symm, },
+    commp := by { dsimp, simp only [comp_id, is_iso.hom_inv_id_assoc], },
+    commg' := by { dsimp, simpa only [id_comp] using (h.of_epi_of_is_iso_of_mono_g' f).symm, },
+    commπ := by { dsimp, simp only [comp_id, id_comp], },
+    commι := by { dsimp, simp only [comp_id, id_comp], }, }, }
+
 end homology_map_full_data
+
+lemma is_iso_homology_map_of_epi_of_is_iso_of_mono (f : S₁ ⟶ S₂)
+  [has_homology S₁] [has_homology S₂]
+  [epi f.τ₁] [is_iso f.τ₂] [mono f.τ₃] :
+  is_iso (homology_map f) :=
+begin
+  rw (homology_map_full_data.of_epi_of_is_iso_of_mono f S₁.some_homology_full_data).map_eq,
+  dsimp only [homology_map_full_data.of_epi_of_is_iso_of_mono],
+  apply_instance,
+end
 
 variable (C)
 

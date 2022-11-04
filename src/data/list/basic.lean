@@ -1328,11 +1328,7 @@ lemma last_eq_nth_le : ∀ (l : list α) (h : l ≠ []),
                           refl, exact cons_ne_nil b l }
 
 lemma nth_le_length_sub_one {l : list α} (h : l.length - 1 < l.length) :
-  l.nth_le (l.length - 1) h = l.last (by {
-    by_contradiction contr,
-    rw [contr, length] at h,
-    exact nat.lt_irrefl 0 h,
-  }) :=
+  l.nth_le (l.length - 1) h = l.last (by { rintro rfl, exact nat.lt_irrefl 0 h }) :=
 (last_eq_nth_le l _).symm
 
 lemma nth_le_length_cons {l : list α} (a : α) (h : l ≠ []) :

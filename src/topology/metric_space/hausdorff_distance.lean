@@ -926,40 +926,18 @@ end
 /-- The frontier of the (open) thickening of a set is contained in an `inf_edist` level set. -/
 lemma frontier_thickening_subset (E : set α) {δ : ℝ} :
   frontier (thickening δ E) ⊆ {x : α | inf_edist x E = ennreal.of_real δ} :=
-begin
-  by_cases hδ : δ ≤ 0,
-  { simp [thickening_of_nonpos hδ], },
-  have singleton_preim :
-    {x : α | inf_edist x E = ennreal.of_real δ } = (λ x , inf_edist x E) ⁻¹' {ennreal.of_real δ},
-    by simp only [preimage, mem_singleton_iff],
-  rw [metric.thickening_eq_preimage_inf_edist, singleton_preim, ← (frontier_Iio' ⟨(0 : ℝ≥0∞),
-      ennreal.of_real_pos.mpr (show 0 < δ, by linarith)⟩)],
-  exact continuous_inf_edist.frontier_preimage_subset (Iio (ennreal.of_real δ)),
-end
+frontier_lt_subset_eq continuous_inf_edist continuous_const
 
 lemma frontier_thickening_disjoint (A : set X) :
   pairwise (disjoint on (λ (r : ℝ), frontier (thickening r A))) :=
 begin
-  intros r₁ r₂ hr,
-  change disjoint (frontier (thickening r₁ A)) (frontier (thickening r₂ A)),
-  by_cases sign_r₁ : r₁ < 0,
-  { simp [thickening_of_nonpos sign_r₁.le A], },
-  by_cases sign_r₂ : r₂ < 0,
-  { simp [thickening_of_nonpos sign_r₂.le A], },
-  rw disjoint_iff_inter_eq_empty,
-  refine subset_antisymm _ (empty_subset _),
-  refine subset_trans (inter_subset_inter (frontier_thickening_subset A)
-                                          (frontier_thickening_subset A)) _,
-  refine subset_of_eq _,
-  rw [← disjoint_iff_inter_eq_empty],
-  change disjoint ((λ x, inf_edist x A) ⁻¹' {ennreal.of_real r₁})
-                  ((λ x, inf_edist x A) ⁻¹' {ennreal.of_real r₂}),
-  apply disjoint.preimage,
-  rw disjoint_singleton,
-  rw [ennreal.of_real_eq_coe_nnreal (show (0 : ℝ) ≤ r₁, by linarith),
-      ennreal.of_real_eq_coe_nnreal (show (0 : ℝ) ≤ r₂, by linarith)],
-  simp only [ne.def, ennreal.coe_eq_coe, subtype.mk_eq_mk],
-  exact hr,
+  refine (pairwise_disjoint_on _).2 (λ r₁ r₂ hr, _),
+  cases le_total r₁ 0 with h₁ h₁,
+  { simp [thickening_of_nonpos h₁] },
+  refine ((disjoint_singleton.2 $ λ h, hr.ne _).preimage _).mono
+    (frontier_thickening_subset _) (frontier_thickening_subset _),
+  apply_fun ennreal.to_real at h,
+  rwa [ennreal.to_real_of_real h₁, ennreal.to_real_of_real (h₁.trans hr.le)] at h
 end
 
 lemma frontier_thickening_disjoint' (A : set X) (radii : set ℝ) :
@@ -1257,14 +1235,7 @@ by { rw ← cthickening_zero, exact cthickening_eq_Inter_thickening rfl.ge E, }
 /-- The frontier of the closed thickening of a set is contained in an `inf_edist` level set. -/
 lemma frontier_cthickening_subset (E : set α) {δ : ℝ} :
   frontier (cthickening δ E) ⊆ {x : α | inf_edist x E = ennreal.of_real δ} :=
-begin
-  have singleton_preim :
-    {x : α | inf_edist x E = ennreal.of_real δ } = (λ x , inf_edist x E) ⁻¹' {ennreal.of_real δ},
-  { simp only [preimage, mem_singleton_iff] },
-  rw [cthickening_eq_preimage_inf_edist, singleton_preim,
-      ← frontier_Iic' ⟨∞, ennreal.of_real_lt_top⟩],
-  exact continuous_inf_edist.frontier_preimage_subset (Iic (ennreal.of_real δ)),
-end
+frontier_le_subset_eq continuous_inf_edist continuous_const
 
 /-- The closed ball of radius `δ` centered at a point of `E` is included in the closed
 thickening of `E`. -/
@@ -1361,21 +1332,8 @@ end
 
 lemma frontier_cthickening_disjoint (A : set α) :
   pairwise (disjoint on (λ (r : ℝ≥0), frontier (cthickening r A))) :=
-begin
-  intros r₁ r₂ hr,
-  change disjoint (frontier (cthickening r₁ A)) (frontier (cthickening r₂ A)),
-  rw disjoint_iff_inter_eq_empty,
-  refine subset_antisymm _ (empty_subset _),
-  refine subset_trans (inter_subset_inter (frontier_cthickening_subset A)
-                                          (frontier_cthickening_subset A)) _,
-  refine subset_of_eq _,
-  rw [← disjoint_iff_inter_eq_empty],
-  change disjoint ((λ x, inf_edist x A) ⁻¹' {ennreal.of_real r₁})
-                  ((λ x, inf_edist x A) ⁻¹' {ennreal.of_real r₂}),
-  apply disjoint.preimage,
-  rw disjoint_singleton,
-  simpa only [of_real_coe_nnreal, ne.def, coe_eq_coe] using hr,
-end
+λ r₁ r₂ hr, ((disjoint_singleton.2 $ by simpa).preimage _).mono (frontier_cthickening_subset _)
+  (frontier_cthickening_subset _)
 
 lemma frontier_cthickening_disjoint' (A : set α) (radii : set ℝ≥0) :
   pairwise (disjoint on (λ (r : radii), frontier (cthickening r A))) :=

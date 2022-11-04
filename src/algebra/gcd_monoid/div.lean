@@ -42,7 +42,7 @@ begin
 end
 
 theorem gcd_eq_one_of_div_gcd_id (s : finset ℕ) {x : ℕ} (hx : x ∈ s) (hnz : x ≠ 0) :
-  s.gcd (λ b, b / (s.gcd id)) = 1 :=
+  s.gcd (λ b, b / s.gcd id) = 1 :=
 coprime_of_div_gcd s hx hnz
 
 end nat

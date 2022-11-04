@@ -76,7 +76,7 @@ variables {K : Type*} [field K]
 
 /-- Given a nonempty finset `s` and a function `f` from `s` to `K[X]`, if `d = s.gcd`,
 then the `gcd` of `(f i) / d` is equal to `1`. -/
-theorem coprime_of_div_gcd {β : Type*} {f : β → K[X]} (s : finset β) {x : β} (hx : x ∈ s)
+theorem div_gcd_coprime {β : Type*} {f : β → K[X]} (s : finset β) {x : β} (hx : x ∈ s)
   (hfz : f x ≠ 0) : s.gcd (λ b, f b / s.gcd f) = 1 :=
 begin
   obtain ⟨g, he, hg⟩ := finset.extract_gcd f ⟨x, hx⟩,

@@ -5,6 +5,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.nat.sqrt
 import data.set.lattice
+import algebra.order.group.min_max
 
 /-!
 #  Naturals pairing function

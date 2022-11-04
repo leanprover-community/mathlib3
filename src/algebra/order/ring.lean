@@ -6,7 +6,8 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 import algebra.char_zero.defs
 import algebra.ring.divisibility
 import algebra.hom.ring
-import algebra.order.group.basic
+import algebra.order.group.abs
+import algebra.order.group.with_top
 import algebra.order.sub.canonical
 import algebra.order.ring_lemmas
 

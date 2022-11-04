@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzza
 Amelia Livingston, Yury Kudryashov, Yakov Pechersky, Jireh Loreaux
 -/
 import group_theory.subsemigroup.basic
+import algebra.group.prod
 
 /-!
 # Operations on `subsemigroup`s

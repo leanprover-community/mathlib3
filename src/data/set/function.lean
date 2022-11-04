@@ -166,11 +166,19 @@ ext $ λ x, and.congr_right_iff.2 $ λ hx, by rw [mem_preimage, mem_preimage, he
 lemma eq_on.mono (hs : s₁ ⊆ s₂) (hf : eq_on f₁ f₂ s₂) : eq_on f₁ f₂ s₁ :=
 λ x hx, hf (hs hx)
 
+@[simp] lemma eq_on_union : eq_on f₁ f₂ (s₁ ∪ s₂) ↔ eq_on f₁ f₂ s₁ ∧ eq_on f₁ f₂ s₂ :=
+ball_or_left_distrib
+
+lemma eq_on.union (h₁ : eq_on f₁ f₂ s₁) (h₂ : eq_on f₁ f₂ s₂) : eq_on f₁ f₂ (s₁ ∪ s₂) :=
+eq_on_union.2 ⟨h₁, h₂⟩
+
 lemma eq_on.comp_left (h : s.eq_on f₁ f₂) : s.eq_on (g ∘ f₁) (g ∘ f₂) := λ a ha, congr_arg _ $ h ha
 
-lemma comp_eq_of_eq_on_range {ι : Sort*} {f : ι → α} {g₁ g₂ : α → β} (h : eq_on g₁ g₂ (range f)) :
-  g₁ ∘ f = g₂ ∘ f :=
-funext $ λ x, h $ mem_range_self _
+@[simp] lemma eq_on_range {ι : Sort*} {f : ι → α} {g₁ g₂ : α → β} :
+  eq_on g₁ g₂ (range f) ↔ g₁ ∘ f = g₂ ∘ f :=
+forall_range_iff.trans $ funext_iff.symm
+
+alias eq_on_range ↔ eq_on.comp_eq _
 
 /-! ### Congruence lemmas -/
 
@@ -261,6 +269,14 @@ subtype.map f h
 @[simp] lemma maps_to.coe_restrict_apply (h : maps_to f s t) (x : s) :
   (h.restrict f s t x : β) = f x := rfl
 
+/-- Restricting the domain and then the codomain is the same as `maps_to.restrict`. -/
+@[simp] lemma cod_restrict_restrict (h : ∀ x : s, f x ∈ t) :
+  cod_restrict (s.restrict f) t h = maps_to.restrict f s t (λ x hx, h ⟨x, hx⟩) := rfl
+
+/-- Reverse of `set.cod_restrict_restrict`. -/
+lemma maps_to.restrict_eq_cod_restrict (h : maps_to f s t) :
+  h.restrict f s t = cod_restrict (s.restrict f) t (λ x, h x.2) := rfl
+
 lemma maps_to.coe_restrict (h : set.maps_to f s t) :
   coe ∘ h.restrict f s t = s.restrict f := rfl
 
@@ -274,6 +290,9 @@ lemma maps_to_iff_exists_map_subtype : maps_to f s t ↔ ∃ g : s → t, ∀ x 
 
 theorem maps_to' : maps_to f s t ↔ f '' s ⊆ t :=
 image_subset_iff.symm
+
+lemma maps_to.subset_preimage {f : α → β} {s : set α} {t : set β} (hf : maps_to f s t) :
+  s ⊆ f ⁻¹' t := hf
 
 @[simp] theorem maps_to_singleton {x : α} : maps_to f {x} t ↔ f x ∈ t := singleton_subset_iff
 
@@ -413,6 +432,11 @@ theorem inj_on.eq_iff {x y} (h : inj_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   f x = f y ↔ x = y :=
 ⟨h hx hy, λ h, h ▸ rfl⟩
 
+lemma inj_on.ne_iff {x y} (h : inj_on f s) (hx : x ∈ s) (hy : y ∈ s) : f x ≠ f y ↔ x ≠ y :=
+(h.eq_iff hx hy).not
+
+alias inj_on.ne_iff ↔ _ inj_on.ne
+
 theorem inj_on.congr (h₁ : inj_on f₁ s) (h : eq_on f₁ f₂ s) :
   inj_on f₂ s :=
 λ x hx y hy, h hx ▸ h hy ▸ h₁ hx hy
@@ -452,11 +476,17 @@ theorem inj_on.comp (hg : inj_on g t) (hf: inj_on f s) (h : maps_to f s t) :
   inj_on (g ∘ f) s :=
 λ x hx y hy heq, hf hx hy $ hg (h hx) (h hy) heq
 
+lemma _root_.function.injective.inj_on_range (h : injective (g ∘ f)) : inj_on g (range f) :=
+by { rintros _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ H, exact congr_arg f (h H) }
+
 lemma inj_on_iff_injective : inj_on f s ↔ injective (s.restrict f) :=
 ⟨λ H a b h, subtype.eq $ H a.2 b.2 h,
  λ H a as b bs h, congr_arg subtype.val $ @H ⟨a, as⟩ ⟨b, bs⟩ h⟩
 
 alias inj_on_iff_injective ↔ inj_on.injective _
+
+lemma maps_to.restrict_inj (h : maps_to f s t) : injective (h.restrict f s t) ↔ inj_on f s :=
+by rw [h.restrict_eq_cod_restrict, injective_cod_restrict, inj_on_iff_injective]
 
 lemma exists_inj_on_iff_injective [nonempty β] :
   (∃ f : α → β, inj_on f s) ↔ ∃ f : s → β, injective f :=
@@ -804,10 +834,9 @@ theorem inv_fun_on_neg (h : ¬ ∃a∈s, f a = b) : inv_fun_on f s b = classical
 by rw [bex_def] at h; rw [inv_fun_on, dif_neg h]
 
 end function
-
-namespace set
 open function
 
+namespace set
 variables {s s₁ s₂ : set α} {t : set β} {f : α → β}
 
 theorem inj_on.left_inv_on_inv_fun_on [nonempty α] (h : inj_on f s) :
@@ -971,7 +1000,7 @@ funext $ λ x, if hx : x ∈ s then by simp [hx] else by simp [hx]
 @[simp] lemma piecewise_range_comp {ι : Sort*} (f : ι → α) [Π j, decidable (j ∈ range f)]
   (g₁ g₂ : α → β) :
   (range f).piecewise g₁ g₂ ∘ f = g₁ ∘ f :=
-comp_eq_of_eq_on_range $ piecewise_eq_on _ _ _
+eq_on.comp_eq $ piecewise_eq_on _ _ _
 
 theorem maps_to.piecewise_ite {s s₁ s₂ : set α} {t t₁ t₂ : set β} {f₁ f₂ : α → β}
   [∀ i, decidable (i ∈ s)]
@@ -1052,7 +1081,7 @@ by { intros i ht, by_cases hs : i ∈ s; simp [hf i ht, hg i ht, hs] }
   pi s (s'.piecewise t t') = pi (s ∩ s') t ∩ pi (s \ s') t' :=
 begin
   ext x,
-  simp only [mem_pi, mem_inter_eq, ← forall_and_distrib],
+  simp only [mem_pi, mem_inter_iff, ← forall_and_distrib],
   refine forall_congr (λ i, _),
   by_cases hi : i ∈ s'; simp *
 end

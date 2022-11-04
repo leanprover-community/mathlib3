@@ -5,8 +5,7 @@ Authors: Thomas Browning
 -/
 
 import group_theory.complement
-import group_theory.group_action.basic
-import group_theory.index
+import group_theory.sylow
 
 /-!
 # The Transfer Homomorphism
@@ -161,5 +160,60 @@ noncomputable def transfer_center_pow' (h : (center G).index ≠ 0) : G →* cen
 @[simp] lemma transfer_center_pow'_apply (h : (center G).index ≠ 0) (g : G) :
   ↑(transfer_center_pow' h g) = g ^ (center G).index :=
 rfl
+
+section burnside_transfer
+
+variables {p : ℕ} (P : sylow p G) (hP : (P : subgroup G).normalizer ≤ (P : subgroup G).centralizer)
+
+include hP
+
+/-- The homomorphism `G →* P` in Burnside's transfer theorem. -/
+noncomputable def transfer_sylow [fintype (G ⧸ (P : subgroup G))] : G →* (P : subgroup G) :=
+@transfer G _ P P (@subgroup.is_commutative.comm_group G _ P
+  ⟨⟨λ a b, subtype.ext (hP (le_normalizer b.2) a a.2)⟩⟩) (monoid_hom.id P) _
+
+variables [fact p.prime] [finite (sylow p G)]
+
+/-- Auxillary lemma in order to state `transfer_sylow_eq_pow`. -/
+lemma transfer_sylow_eq_pow_aux (g : G) (hg : g ∈ P) (k : ℕ) (g₀ : G) (h : g₀⁻¹ * g ^ k * g₀ ∈ P) :
+  g₀⁻¹ * g ^ k * g₀ = g ^ k :=
+begin
+  haveI : (P : subgroup G).is_commutative := ⟨⟨λ a b, subtype.ext (hP (le_normalizer b.2) a a.2)⟩⟩,
+  replace hg := (P : subgroup G).pow_mem hg k,
+  obtain ⟨n, hn, h⟩ := P.conj_eq_normalizer_conj_of_mem (g ^ k) g₀ hg h,
+  exact h.trans (commute.inv_mul_cancel (hP hn (g ^ k) hg).symm),
+end
+
+variables [fintype (G ⧸ (P : subgroup G))]
+
+lemma transfer_sylow_eq_pow (g : G) (hg : g ∈ P) : transfer_sylow P hP g =
+  ⟨g ^ (P : subgroup G).index, transfer_eq_pow_aux g (transfer_sylow_eq_pow_aux P hP g hg)⟩ :=
+by apply transfer_eq_pow
+
+lemma ker_transfer_sylow_disjoint : disjoint (transfer_sylow P hP).ker ↑P :=
+begin
+  intros g hg,
+  obtain ⟨j, hj⟩ := P.2 ⟨g, hg.2⟩,
+  have := pow_gcd_eq_one (⟨g, hg.2⟩ : (P : subgroup G))
+    ((transfer_sylow_eq_pow P hP g hg.2).symm.trans hg.1) hj,
+  rwa [((fact.out p.prime).coprime_pow_of_not_dvd (not_dvd_index_sylow P _)).gcd_eq_one,
+    pow_one, subtype.ext_iff] at this,
+  exact index_ne_zero_of_finite ∘ (relindex_top_right (P : subgroup G)).symm.trans ∘
+    relindex_eq_zero_of_le_right le_top,
+end
+
+lemma ker_transfer_sylow_disjoint' (Q : sylow p G) : disjoint (transfer_sylow P hP).ker ↑Q :=
+begin
+  obtain ⟨g, hg⟩ := exists_smul_eq G Q P,
+  rw [disjoint_iff, ←smul_left_cancel_iff (mul_aut.conj g), smul_bot, smul_inf, smul_normal,
+    ←sylow.coe_subgroup_smul, hg, ←disjoint_iff],
+  exact ker_transfer_sylow_disjoint P hP,
+end
+
+lemma ker_transfer_sylow_disjoint'' (Q : subgroup G) (hQ : is_p_group p Q) :
+  disjoint (transfer_sylow P hP).ker Q :=
+let ⟨R, hR⟩ := hQ.exists_le_sylow in (ker_transfer_sylow_disjoint' P hP R).mono_right hR
+
+end burnside_transfer
 
 end monoid_hom

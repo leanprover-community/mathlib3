@@ -151,7 +151,7 @@ lemma inv_injective : function.injective (equiv_like.inv : E → (β → α)) :=
 
 @[priority 100]
 instance to_embedding_like : embedding_like E α β :=
-{ coe := coe,
+{ coe := (coe : E → α → β),
   coe_injective' := λ e g h, coe_injective' e g h
     ((left_inv e).eq_right_inverse (h.symm ▸ right_inv g)),
   injective' := λ e, (left_inv e).injective }
@@ -174,6 +174,22 @@ function.injective.of_comp_iff' f (equiv_like.bijective e)
 @[simp] lemma bijective_comp (e : E) (f : β → γ) :
   function.bijective (f ∘ e) ↔ function.bijective f :=
 (equiv_like.bijective e).of_comp_iff f
+
+/-- This lemma is only supposed to be used in the generic context, when working with instances
+of classes extending `equiv_like`.
+For concrete isomorphism types such as `equiv`, you should use `equiv.symm_apply_apply`
+or its equivalent.
+
+TODO: define a generic form of `equiv.symm`. -/
+@[simp] lemma inv_apply_apply (e : E) (a : α) : equiv_like.inv e (e a) = a := left_inv _ _
+
+/-- This lemma is only supposed to be used in the generic context, when working with instances
+of classes extending `equiv_like`.
+For concrete isomorphism types such as `equiv`, you should use `equiv.apply_symm_apply`
+or its equivalent.
+
+TODO: define a generic form of `equiv.symm`. -/
+@[simp] lemma apply_inv_apply (e : E) (b : β) : e (equiv_like.inv e b) = b := right_inv _ _
 
 omit iE
 include iF

@@ -8,6 +8,7 @@ import algebra.module.linear_map
 import algebra.big_operators.basic
 import data.set.finite
 import group_theory.submonoid.membership
+import group_theory.group_action.big_operators
 import data.finset.preimage
 
 /-!

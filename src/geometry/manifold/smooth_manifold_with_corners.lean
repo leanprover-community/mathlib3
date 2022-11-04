@@ -124,7 +124,7 @@ localized "notation (name := with_top.nat.top) `∞` := (⊤ : ℕ∞)" in manif
 model vector space `E` over the field `𝕜`. This is all what is needed to
 define a smooth manifold with model space `H`, and model vector space `E`.
 -/
-@[nolint has_nonempty_instance]
+@[ext, nolint has_nonempty_instance]
 structure model_with_corners (𝕜 : Type*) [nontrivially_normed_field 𝕜]
   (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E] (H : Type*) [topological_space H]
   extends local_equiv H E :=
@@ -227,6 +227,9 @@ I.left_inverse.right_inv_on_range
 
 @[simp, mfld_simps] protected lemma right_inv {x : E} (hx : x ∈ range I) : I (I.symm x) = x :=
 I.right_inv_on hx
+
+lemma preimage_image (s : set H) : I ⁻¹' (I '' s) = s :=
+I.injective.preimage_image s
 
 protected lemma image_eq (s : set H) : I '' s = I.symm ⁻¹' s ∩ range I :=
 begin
@@ -364,6 +367,12 @@ rfl
 @[simp, mfld_simps] lemma model_with_corners_prod_coe_symm
   (I : model_with_corners 𝕜 E H) (I' : model_with_corners 𝕜 E' H') :
   ((I.prod I').symm : _ × _ → _ × _) = prod.map I.symm I'.symm := rfl
+
+lemma model_with_corners_self_prod : 𝓘(𝕜, E × F) = 𝓘(𝕜, E).prod 𝓘(𝕜, F) :=
+by { ext1, simp }
+
+lemma model_with_corners.range_prod : range (I.prod J) = range I ×ˢ range J :=
+by { simp_rw [← model_with_corners.target_eq], refl }
 
 end model_with_corners_prod
 
@@ -680,6 +689,9 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
   {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
   {M : Type*} [topological_space M] [charted_space H M]
+  {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
+  {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
+  {M' : Type*} [topological_space M'] [charted_space H' M']
   (x : M) {s t : set M}
 
 /-!
@@ -935,6 +947,11 @@ begin
   exact I.image_mem_nhds_within ((local_homeomorph.open_source _).mem_nhds hz)
 end
 
+/-- Conjugating a function to write it in the preferred charts around `x`.
+The manifold derivative of `f` will just be the derivative of this conjugated function. -/
+@[simp, mfld_simps] def written_in_ext_chart_at (x : M) (f : M → M') : E → E' :=
+ext_chart_at I' (f x) ∘ f ∘ (ext_chart_at I x).symm
+
 variable (𝕜)
 
 lemma ext_chart_self_eq {x : H} : ⇑(ext_chart_at I x) = I := rfl
@@ -947,5 +964,10 @@ by simp only with mfld_simps
 
 lemma ext_chart_model_space_apply {x y : E} : ext_chart_at 𝓘(𝕜, E) x y = y := rfl
 
+variable {𝕜}
+
+lemma ext_chart_at_prod (x : M × M') :
+  ext_chart_at (I.prod I') x = (ext_chart_at I x.1).prod (ext_chart_at I' x.2) :=
+by simp only with mfld_simps
 
 end extended_charts

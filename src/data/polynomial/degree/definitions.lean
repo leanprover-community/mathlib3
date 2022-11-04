@@ -42,7 +42,7 @@ inv_image.wf degree (with_bot.well_founded_lt nat.lt_wf)
 instance : has_well_founded R[X] := ⟨_, degree_lt_wf⟩
 
 /-- `nat_degree p` forces `degree p` to ℕ, by defining nat_degree 0 = 0. -/
-def nat_degree (p : R[X]) : ℕ := (degree p).get_or_else 0
+def nat_degree (p : R[X]) : ℕ := (degree p).unbot' 0
 
 /-- `leading_coeff p` gives the coefficient of the highest power of `X` in `p`-/
 def leading_coeff (p : R[X]) : R := coeff p (nat_degree p)
@@ -106,7 +106,7 @@ option.some_inj.1 $ show (nat_degree p : with_bot ℕ) = n,
   by rwa [← degree_eq_nat_degree hp0]
 
 @[simp] lemma degree_le_nat_degree : degree p ≤ nat_degree p :=
-with_bot.gi_get_or_else_bot.gc.le_u_l _
+with_bot.gi_unbot'_bot.gc.le_u_l _
 
 lemma nat_degree_eq_of_degree_eq [semiring S] {q : S[X]} (h : degree p = degree q) :
   nat_degree p = nat_degree q :=
@@ -153,20 +153,20 @@ end
 
 lemma degree_ne_of_nat_degree_ne {n : ℕ} :
   p.nat_degree ≠ n → degree p ≠ n :=
-mt $ λ h, by rw [nat_degree, h, option.get_or_else_coe]
+mt $ λ h, by rw [nat_degree, h, with_bot.unbot'_coe]
 
 theorem nat_degree_le_iff_degree_le {n : ℕ} : nat_degree p ≤ n ↔ degree p ≤ n :=
-with_bot.get_or_else_bot_le_iff
+with_bot.unbot'_bot_le_iff
 
 lemma nat_degree_lt_iff_degree_lt (hp : p ≠ 0) :
   p.nat_degree < n ↔ p.degree < ↑n :=
-with_bot.get_or_else_bot_lt_iff $ degree_eq_bot.not.mpr hp
+with_bot.unbot'_lt_iff $ degree_eq_bot.not.mpr hp
 
 alias nat_degree_le_iff_degree_le ↔ ..
 
 lemma nat_degree_le_nat_degree [semiring S] {q : S[X]} (hpq : p.degree ≤ q.degree) :
   p.nat_degree ≤ q.nat_degree :=
-with_bot.gi_get_or_else_bot.gc.monotone_l hpq
+with_bot.gi_unbot'_bot.gc.monotone_l hpq
 
 @[simp] lemma degree_C (ha : a ≠ 0) : degree (C a) = (0 : with_bot ℕ) :=
 by rw [degree, ← monomial_zero_left, support_monomial 0 ha, max_eq_sup_coe, sup_singleton,
@@ -252,6 +252,20 @@ begin
   { subst hp, exact with_bot.bot_lt_coe n },
   { rwa [degree_eq_nat_degree hp, with_bot.coe_lt_coe] }
 end
+
+lemma ext_iff_nat_degree_le {p q : R[X]} {n : ℕ} (hp : p.nat_degree ≤ n) (hq : q.nat_degree ≤ n) :
+  p = q ↔ (∀ i ≤ n, p.coeff i = q.coeff i) :=
+begin
+  refine iff.trans polynomial.ext_iff _,
+  refine forall_congr (λ i, ⟨λ h _, h, λ h, _⟩),
+  refine (le_or_lt i n).elim h (λ k, _),
+  refine (coeff_eq_zero_of_nat_degree_lt (hp.trans_lt k)).trans
+    (coeff_eq_zero_of_nat_degree_lt (hq.trans_lt k)).symm,
+end
+
+lemma ext_iff_degree_le {p q : R[X]} {n : ℕ} (hp : p.degree ≤ n) (hq : q.degree ≤ n) :
+  p = q ↔ (∀ i ≤ n, p.coeff i = q.coeff i)  :=
+ext_iff_nat_degree_le (nat_degree_le_of_degree_le hp) (nat_degree_le_of_degree_le hq)
 
 @[simp] lemma coeff_nat_degree_succ_eq_zero {p : R[X]} : p.coeff (p.nat_degree + 1) = 0 :=
 coeff_eq_zero_of_nat_degree_lt (lt_add_one _)
@@ -1058,6 +1072,14 @@ by { rw ← degree_neg q at h, rw [sub_eq_add_neg, degree_add_eq_left_of_degree_
 
 lemma degree_sub_eq_right_of_degree_lt (h : degree p < degree q) : degree (p - q) = degree q :=
 by { rw ← degree_neg q at h, rw [sub_eq_add_neg, degree_add_eq_right_of_degree_lt h, degree_neg] }
+
+lemma nat_degree_sub_eq_left_of_nat_degree_lt (h : nat_degree q < nat_degree p) :
+  nat_degree (p - q) = nat_degree p :=
+nat_degree_eq_of_degree_eq (degree_sub_eq_left_of_degree_lt (degree_lt_degree h))
+
+lemma nat_degree_sub_eq_right_of_nat_degree_lt (h : nat_degree p < nat_degree q) :
+  nat_degree (p - q) = nat_degree q :=
+nat_degree_eq_of_degree_eq (degree_sub_eq_right_of_degree_lt (degree_lt_degree h))
 
 end ring
 

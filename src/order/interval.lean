@@ -169,7 +169,8 @@ section has_le
 variables [has_le α] {s t : interval α}
 
 instance : has_coe_t (nonempty_interval α) (interval α) := with_bot.has_coe_t
-instance : can_lift (interval α) (nonempty_interval α) := with_bot.can_lift
+instance can_lift : can_lift (interval α) (nonempty_interval α) coe (λ r, r ≠ ⊥) :=
+with_bot.can_lift
 
 lemma coe_injective : injective (coe : nonempty_interval α → interval α) := with_bot.coe_injective
 @[simp, norm_cast] lemma coe_inj {s t : nonempty_interval α} : (s : interval α) = t ↔ s = t :=

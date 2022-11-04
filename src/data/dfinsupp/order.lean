@@ -111,11 +111,6 @@ instance (α : ι → Type*) [Π i, ordered_cancel_add_comm_monoid (α i)] :
     rw [add_apply, add_apply] at H,
     exact le_of_add_le_add_left H,
   end,
-  add_left_cancel := λ f g h H, ext $ λ i, begin
-    refine add_left_cancel _,
-    exact f i,
-    rw [←add_apply, ←add_apply, H],
-  end,
   .. dfinsupp.ordered_add_comm_monoid α }
 
 instance [Π i, ordered_add_comm_monoid (α i)] [Π i, contravariant_class (α i) (α i) (+) (≤)] :

@@ -34,7 +34,7 @@ begin
       cont_diff_at_const.congr_of_eventually_eq this⟩ },
   cases h₂.lt_or_lt with h₂ h₂,
   { have : 0 < sqrt (1 - x ^ 2) := sqrt_pos.2 (by nlinarith [h₁, h₂]),
-    simp only [← cos_arcsin h₁.le h₂.le, one_div] at this ⊢,
+    simp only [← cos_arcsin, one_div] at this ⊢,
     exact ⟨sin_local_homeomorph.has_strict_deriv_at_symm ⟨h₁, h₂⟩ this.ne'
       (has_strict_deriv_at_sin _),
       sin_local_homeomorph.cont_diff_at_symm_deriv this.ne' ⟨h₁, h₂⟩

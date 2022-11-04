@@ -246,6 +246,16 @@ begin
   exact ((Lp.mem_ℒp _).restrict s).mem_ℒp_of_exponent_le hp,
 end
 
+lemma integrable.lintegral_lt_top {f : α → ℝ} (hf : integrable f μ) :
+  ∫⁻ x, ennreal.of_real (f x) ∂μ < ∞ :=
+calc ∫⁻ x, ennreal.of_real (f x) ∂μ
+    ≤ ∫⁻ x, ↑∥f x∥₊ ∂μ : lintegral_of_real_le_lintegral_nnnorm f
+... < ∞ : hf.2
+
+lemma integrable_on.set_lintegral_lt_top {f : α → ℝ} {s : set α} (hf : integrable_on f s μ) :
+  ∫⁻ x in s, ennreal.of_real (f x) ∂μ < ∞ :=
+integrable.lintegral_lt_top hf
+
 /-- We say that a function `f` is *integrable at filter* `l` if it is integrable on some
 set `s ∈ l`. Equivalently, it is eventually integrable on `s` in `l.small_sets`. -/
 def integrable_at_filter (f : α → E) (l : filter α) (μ : measure α . volume_tac) :=

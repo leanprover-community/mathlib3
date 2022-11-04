@@ -9,6 +9,7 @@ import category_theory.limits.preserves.shapes.pullbacks
 import topology.sheaves.functors
 import algebraic_geometry.Scheme
 import category_theory.limits.shapes.strict_initial
+import category_theory.limits.shapes.comm_sq
 import algebra.category.Ring.instances
 
 /-!
@@ -1647,13 +1648,13 @@ lemma image_basic_open {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
 begin
   have e := Scheme.preimage_basic_open f (H.inv_app U r),
   rw [PresheafedSpace.is_open_immersion.inv_app_app_apply, Scheme.basic_open_res,
-    opens.inter_eq, inf_eq_right.mpr _] at e,
+    inf_eq_right.mpr _] at e,
   rw ← e,
   ext1,
   refine set.image_preimage_eq_inter_range.trans _,
   erw set.inter_eq_left_iff_subset,
-  refine set.subset.trans (Scheme.basic_open_subset _ _) (set.image_subset_range _ _),
-  refine le_trans (Scheme.basic_open_subset _ _) (le_of_eq _),
+  refine set.subset.trans (Scheme.basic_open_le _ _) (set.image_subset_range _ _),
+  refine le_trans (Scheme.basic_open_le _ _) (le_of_eq _),
   ext1,
   exact (set.preimage_image_eq _ H.base_open.inj).symm
 end
@@ -1728,6 +1729,10 @@ begin
   rw set.mem_Union,
   exact ⟨𝒰.f x, 𝒰.covers x⟩
 end
+
+lemma Scheme.open_cover.supr_opens_range {X : Scheme} (𝒰 : X.open_cover) :
+(⨆ i, (𝒰.map i).opens_range) = ⊤ :=
+opens.ext $ by { rw opens.coe_supr, exact 𝒰.Union_range }
 
 lemma Scheme.open_cover.compact_space {X : Scheme} (𝒰 : X.open_cover) [finite 𝒰.J]
   [H : ∀ i, compact_space (𝒰.obj i).carrier] : compact_space X.carrier :=
@@ -1808,10 +1813,20 @@ lemma pullback_restrict_iso_restrict_hom_morphism_restrict {X Y : Scheme} (f : X
 iso.hom_inv_id_assoc _ _
 
 @[simp, reassoc]
-lemma morphism_restrict_ι  {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) :
+lemma morphism_restrict_ι {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) :
   f ∣_ U ≫ Y.of_restrict U.open_embedding = X.of_restrict _ ≫ f :=
 by { delta morphism_restrict,
   rw [category.assoc, pullback.condition.symm, pullback_restrict_iso_restrict_inv_fst_assoc] }
+
+lemma is_pullback_morphism_restrict {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) :
+  is_pullback (f ∣_ U) (X.of_restrict _) (Y.of_restrict _) f :=
+begin
+  delta morphism_restrict,
+  nth_rewrite 0 ← category.id_comp f,
+  refine (is_pullback.of_horiz_is_iso ⟨_⟩).paste_horiz
+    (is_pullback.of_has_pullback f (Y.of_restrict U.open_embedding)).flip,
+  rw [pullback_restrict_iso_restrict_inv_fst, category.comp_id],
+end
 
 lemma morphism_restrict_comp {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) (U : opens Z.carrier) :
   (f ≫ g) ∣_ U = (f ∣_ ((opens.map g.val.base).obj U) ≫ g ∣_ U : _) :=
@@ -1949,7 +1964,7 @@ begin
   erw ← e,
   ext1, dsimp [opens.map, opens.inclusion],
   rw [set.image_preimage_eq_inter_range, set.inter_eq_left_iff_subset, subtype.range_coe],
-  exact Y.basic_open_subset r
+  exact Y.basic_open_le r
 end
 
 instance {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) [is_open_immersion f] :

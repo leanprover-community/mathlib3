@@ -50,8 +50,14 @@ lemma bot_eq [preorder α] {a : α} : (⊥ : {x : α // a ≤ x}) = ⟨a, le_rfl
 instance no_max_order [partial_order α] [no_max_order α] {a : α} : no_max_order {x : α // a ≤ x} :=
 set.Ici.no_max_order
 
+instance semilattice_sup [semilattice_sup α] {a : α} : semilattice_sup {x : α // a ≤ x} :=
+set.Ici.semilattice_sup
+
 instance semilattice_inf [semilattice_inf α] {a : α} : semilattice_inf {x : α // a ≤ x} :=
 set.Ici.semilattice_inf
+
+instance distrib_lattice [distrib_lattice α] {a : α} : distrib_lattice {x : α // a ≤ x} :=
+set.Ici.distrib_lattice
 
 instance densely_ordered [preorder α] [densely_ordered α] {a : α} :
   densely_ordered {x : α // a ≤ x} :=
@@ -173,7 +179,7 @@ instance add_monoid_with_one [ordered_semiring α] : add_monoid_with_one {x : α
 { nat_cast := λ n, ⟨n, nat.cast_nonneg n⟩,
   nat_cast_zero := by simp [nat.cast],
   nat_cast_succ := λ _, by simp [nat.cast]; refl,
-  .. nonneg.has_one, .. nonneg.ordered_cancel_add_comm_monoid }
+  .. nonneg.has_one, .. nonneg.ordered_add_comm_monoid }
 
 instance has_pow [ordered_semiring α] : has_pow {x : α // 0 ≤ x} ℕ :=
 { pow := λ x n, ⟨x ^ n, pow_nonneg x.2 n⟩ }
@@ -190,8 +196,18 @@ instance ordered_semiring [ordered_semiring α] : ordered_semiring {x : α // 0 
 subtype.coe_injective.ordered_semiring _
   rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
 
+instance strict_ordered_semiring [strict_ordered_semiring α] :
+  strict_ordered_semiring {x : α // 0 ≤ x} :=
+subtype.coe_injective.strict_ordered_semiring _
+  rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+
 instance ordered_comm_semiring [ordered_comm_semiring α] : ordered_comm_semiring {x : α // 0 ≤ x} :=
 subtype.coe_injective.ordered_comm_semiring _
+  rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+
+instance strict_ordered_comm_semiring [strict_ordered_comm_semiring α] :
+  strict_ordered_comm_semiring {x : α // 0 ≤ x} :=
+subtype.coe_injective.strict_ordered_comm_semiring _
   rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
 
 -- These prevent noncomputable instances being found, as it does not require `linear_order` which

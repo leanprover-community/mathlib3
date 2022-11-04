@@ -593,6 +593,22 @@ theorem _root_.irreducible.normalized_factors_pow {p : α} (hp : irreducible p) 
   normalized_factors (p ^ k) = multiset.repeat (normalize p) k :=
 by rw [normalized_factors_pow, normalized_factors_irreducible hp, multiset.nsmul_singleton]
 
+theorem normalized_factors_prod_eq (s : multiset α) (hs : ∀ a ∈ s, irreducible a) :
+  normalized_factors s.prod = s.map normalize :=
+begin
+  induction s using multiset.induction with a s ih,
+  { rw [multiset.prod_zero, normalized_factors_one, multiset.map_zero] },
+  { have ia := hs a (multiset.mem_cons_self a _),
+    have ib := λ b h, hs b (multiset.mem_cons_of_mem h),
+    obtain rfl | ⟨b, hb⟩ := s.empty_or_exists_mem,
+    { rw [multiset.cons_zero, multiset.prod_singleton,
+          multiset.map_singleton, normalized_factors_irreducible ia] },
+    haveI := nontrivial_of_ne b 0 (ib b hb).ne_zero,
+    rw [multiset.prod_cons, multiset.map_cons, normalized_factors_mul ia.ne_zero,
+      normalized_factors_irreducible ia, ih],
+    exacts [rfl, ib, multiset.prod_ne_zero (λ h, (ib 0 h).ne_zero rfl)] },
+end
+
 lemma dvd_iff_normalized_factors_le_normalized_factors {x y : α} (hx : x ≠ 0) (hy : y ≠ 0) :
   x ∣ y ↔ normalized_factors x ≤ normalized_factors y :=
 begin

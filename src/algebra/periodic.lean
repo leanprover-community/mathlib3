@@ -408,14 +408,13 @@ lemma antiperiodic.int_odd_mul_antiperiodic [ring α] [has_involutive_neg β]
   antiperiodic f (n * (2 * c) + c) :=
 λ x, by rw [← add_assoc, h, h.periodic.int_mul]
 
-lemma antiperiodic.nat_mul_eq_of_eq_zero [comm_semiring α] [subtraction_monoid β]
+lemma antiperiodic.nat_mul_eq_of_eq_zero [comm_semiring α] [neg_zero_class β]
   (h : antiperiodic f c) (hi : f 0 = 0) (n : ℕ) :
   f (n * c) = 0 :=
 begin
-  rcases nat.even_or_odd n with ⟨k, rfl⟩ | ⟨k, rfl⟩;
-  have hk : (k : α) * (2 * c) = 2 * k * c := by rw [mul_left_comm, ← mul_assoc],
-  { simpa [← two_mul, hk, hi] using (h.nat_even_mul_periodic k).eq },
-  { simpa [add_mul, hk, hi] using (h.nat_odd_mul_antiperiodic k).eq },
+  induction n with k hk,
+  { simp [hi] },
+  { simp [hk, add_mul, h (k * c)] }
 end
 
 lemma antiperiodic.int_mul_eq_of_eq_zero [comm_ring α] [subtraction_monoid β]

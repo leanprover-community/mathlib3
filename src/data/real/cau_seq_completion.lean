@@ -44,32 +44,22 @@ by have : mk f = 0 ↔ lim_zero (f - 0) := quotient.eq;
    rwa sub_zero at this
 
 instance : has_add Cauchy :=
-⟨λ x y, quotient.lift_on₂ x y (λ f g, mk (f + g)) $
-  λ f₁ g₁ f₂ g₂ hf hg, quotient.sound $
-  by simpa [(≈), setoid.r, sub_eq_add_neg, add_comm, add_left_comm, add_assoc]
-    using add_lim_zero hf hg⟩
+⟨quotient.map₂ (+) $ λ f₁ g₁ hf f₂ g₂ hg, add_equiv_add hf hg⟩
 
 @[simp] theorem mk_add (f g : cau_seq β abv) : mk f + mk g = mk (f + g) := rfl
 
 instance : has_neg Cauchy :=
-⟨λ x, quotient.lift_on x (λ f, mk (-f)) $
-  λ f₁ f₂ hf, quotient.sound $
-  by simpa [neg_sub', (≈), setoid.r] using neg_lim_zero hf⟩
+⟨quotient.map has_neg.neg $ λ f₁ f₂ hf, neg_equiv_neg hf⟩
 
 @[simp] theorem mk_neg (f : cau_seq β abv) : -mk f = mk (-f) := rfl
 
 instance : has_mul Cauchy :=
-⟨λ x y, quotient.lift_on₂ x y (λ f g, mk (f * g)) $
-  λ f₁ g₁ f₂ g₂ hf hg, quotient.sound $
-  by simpa [(≈), setoid.r, mul_add, mul_comm, add_assoc, sub_eq_add_neg] using
-    add_lim_zero (mul_lim_zero_right g₁ hf) (mul_lim_zero_right f₂ hg)⟩
+⟨quotient.map₂ (*) $ λ f₁ g₁ hf f₂ g₂ hg, mul_equiv_mul hf hg⟩
 
 @[simp] theorem mk_mul (f g : cau_seq β abv) : mk f * mk g = mk (f * g) := rfl
 
 instance : has_sub Cauchy :=
-⟨λ x y, quotient.lift_on₂ x y (λ f g, mk (f - g)) $
-  λ f₁ g₁ f₂ g₂ hf hg, quotient.sound $ show ((f₁ - g₁) - (f₂ - g₂)).lim_zero,
-    by simpa [sub_eq_add_neg, add_assoc, add_comm, add_left_comm] using sub_lim_zero hf hg⟩
+⟨quotient.map₂ has_sub.sub $ λ f₁ g₁ hf f₂ g₂ hg, sub_equiv_sub hf hg⟩
 
 @[simp] theorem mk_sub (f g : cau_seq β abv) : mk f - mk g = mk (f - g) := rfl
 

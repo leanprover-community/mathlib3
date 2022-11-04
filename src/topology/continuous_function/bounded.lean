@@ -3,7 +3,7 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
-import analysis.normed_space.lattice_ordered_group
+import analysis.normed.order.lattice
 import analysis.normed_space.operator_norm
 import analysis.normed_space.star.basic
 import data.real.sqrt
@@ -40,12 +40,17 @@ structure bounded_continuous_function (α : Type u) (β : Type v)
 localized "infixr (name := bounded_continuous_function)
   ` →ᵇ `:25 := bounded_continuous_function" in bounded_continuous_function
 
+section
+set_option old_structure_cmd true
+
 /-- `bounded_continuous_map_class F α β` states that `F` is a type of bounded continuous maps.
 
 You should also extend this typeclass when you extend `bounded_continuous_function`. -/
 class bounded_continuous_map_class (F α β : Type*) [topological_space α] [pseudo_metric_space β]
   extends continuous_map_class F α β :=
 (map_bounded (f : F) : ∃ C, ∀ x y, dist (f x) (f y) ≤ C)
+
+end
 
 export bounded_continuous_map_class (map_bounded)
 
@@ -799,6 +804,10 @@ lemma bdd_above_range_norm_comp : bdd_above $ set.range $ norm ∘ f :=
 lemma norm_eq_supr_norm : ∥f∥ = ⨆ x : α, ∥f x∥ :=
 by simp_rw [norm_def, dist_eq_supr, coe_zero, pi.zero_apply, dist_zero_right]
 
+/-- If `∥(1 : β)∥ = 1`, then `∥(1 : α →ᵇ β)∥ = 1` if `α` is nonempty. -/
+instance [nonempty α] [has_one β] [norm_one_class β] : norm_one_class (α →ᵇ β) :=
+{ norm_one := by simp only [norm_eq_supr_norm, coe_one, pi.one_apply, norm_one, csupr_const] }
+
 /-- The pointwise opposite of a bounded continuous function is again bounded continuous. -/
 instance : has_neg (α →ᵇ β) :=
 ⟨λf, of_normed_add_comm_group (-f) f.continuous.neg ∥f∥ $ λ x,
@@ -1337,7 +1346,7 @@ instance : normed_lattice_add_comm_group (α →ᵇ β) :=
     rw norm_le (norm_nonneg _),
     exact λ t, (i1 t).trans (norm_coe_le_norm g t),
   end,
-  ..bounded_continuous_function.lattice, }
+  ..bounded_continuous_function.lattice, ..bounded_continuous_function.seminormed_add_comm_group }
 
 end normed_lattice_ordered_group
 

@@ -480,7 +480,7 @@ begin
       by { congr' 1, field_simp [δ, mul_comm] },
   show ∀ᵐ (x : α) ∂μ, g x < ⊤,
   { filter_upwards [gp_lt_top] with _ hx,
-    simp [g, ereal.sub_eq_add_neg, lt_top_iff_ne_top, lt_top_iff_ne_top.1 hx], },
+    simp [g, sub_eq_add_neg, lt_top_iff_ne_top, lt_top_iff_ne_top.1 hx], },
   show ∀ x, (f x : ereal) < g x,
   { assume x,
     rw ereal.coe_real_ereal_eq_coe_to_nnreal_sub_coe_to_nnreal (f x),

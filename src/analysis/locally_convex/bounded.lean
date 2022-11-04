@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll
 -/
 import analysis.locally_convex.basic
+import analysis.locally_convex.balanced_core_hull
 import analysis.seminorm
 import topology.bornology.basic
 import topology.algebra.uniform_group
-import analysis.locally_convex.balanced_core_hull
+import topology.uniform_space.cauchy
 
 /-!
 # Von Neumann Boundedness
@@ -22,8 +23,9 @@ absorbs `s`.
 
 ## Main results
 
-* `bornology.is_vonN_bounded_of_topological_space_le`: A coarser topology admits more
+* `bornology.is_vonN_bounded.of_topological_space_le`: A coarser topology admits more
 von Neumann-bounded sets.
+* `bornology.is_vonN_bounded.image`: A continuous linear image of a bounded set is bounded.
 
 ## References
 
@@ -31,7 +33,7 @@ von Neumann-bounded sets.
 
 -/
 
-variables {𝕜 E F ι : Type*}
+variables {𝕜 𝕜' E E' F ι : Type*}
 
 open filter
 open_locale topological_space pointwise
@@ -192,53 +194,6 @@ end
 
 end uniform_add_group
 
-section continuous_linear_map
-
-variables [nontrivially_normed_field 𝕜]
-variables [add_comm_group E] [module 𝕜 E]
-variables [uniform_space E] [uniform_add_group E] [has_continuous_smul 𝕜 E]
-variables [add_comm_group F] [module 𝕜 F]
-variables [uniform_space F] [uniform_add_group F]
-
-/-- Construct a continuous linear map from a linear map `f : E →ₗ[𝕜] F` and the existence of a
-neighborhood of zero that gets mapped into a bounded set in `F`. -/
-def linear_map.clm_of_exists_bounded_image (f : E →ₗ[𝕜] F)
-  (h : ∃ (V : set E) (hV : V ∈ 𝓝 (0 : E)), bornology.is_vonN_bounded 𝕜 (f '' V)) : E →L[𝕜] F :=
-⟨f, begin
-  -- It suffices to show that `f` is continuous at `0`.
-  refine continuous_of_continuous_at_zero f _,
-  rw [continuous_at_def, f.map_zero],
-  intros U hU,
-  -- Continuity means that `U ∈ 𝓝 0` implies that `f ⁻¹' U ∈ 𝓝 0`.
-  rcases h with ⟨V, hV, h⟩,
-  rcases h hU with ⟨r, hr, h⟩,
-  rcases normed_field.exists_lt_norm 𝕜 r with ⟨x, hx⟩,
-  specialize h x hx.le,
-  -- After unfolding all the definitions, we know that `f '' V ⊆ x • U`. We use this to show the
-  -- inclusion `x⁻¹ • V ⊆ f⁻¹' U`.
-  have x_ne := norm_pos_iff.mp (hr.trans hx),
-  have : x⁻¹ • V ⊆ f⁻¹' U :=
-  calc x⁻¹ • V ⊆  x⁻¹ • (f⁻¹' (f '' V)) : set.smul_set_mono (set.subset_preimage_image ⇑f V)
-  ... ⊆ x⁻¹ • (f⁻¹' (x • U)) : set.smul_set_mono (set.preimage_mono h)
-  ... = f⁻¹' (x⁻¹ • (x • U)) :
-      by ext; simp only [set.mem_inv_smul_set_iff₀ x_ne, set.mem_preimage, linear_map.map_smul]
-  ... ⊆ f⁻¹' U : by rw inv_smul_smul₀ x_ne _,
-  -- Using this inclusion, it suffices to show that `x⁻¹ • V` is in `𝓝 0`, which is trivial.
-  refine mem_of_superset _ this,
-  convert set_smul_mem_nhds_smul hV (inv_ne_zero x_ne),
-  exact (smul_zero _).symm,
-end⟩
-
-lemma linear_map.clm_of_exists_bounded_image_coe {f : E →ₗ[𝕜] F}
-  {h : ∃ (V : set E) (hV : V ∈ 𝓝 (0 : E)), bornology.is_vonN_bounded 𝕜 (f '' V)} :
-  (f.clm_of_exists_bounded_image h : E →ₗ[𝕜] F) = f := rfl
-
-@[simp] lemma linear_map.clm_of_exists_bounded_image_apply {f : E →ₗ[𝕜] F}
-  {h : ∃ (V : set E) (hV : V ∈ 𝓝 (0 : E)), bornology.is_vonN_bounded 𝕜 (f '' V)} {x : E} :
-  f.clm_of_exists_bounded_image h x = f x := rfl
-
-end continuous_linear_map
-
 section vonN_bornology_eq_metric
 
 variables (𝕜 E) [nontrivially_normed_field 𝕜] [seminormed_add_comm_group E] [normed_space 𝕜 E]
@@ -270,6 +225,14 @@ begin
     exact ⟨∥a∥, hρball.trans metric.ball_subset_closed_ball⟩ },
   { exact λ ⟨C, hC⟩, (is_vonN_bounded_closed_ball 𝕜 E C).subset hC }
 end
+
+lemma is_vonN_bounded_iff' (s : set E) :
+  bornology.is_vonN_bounded 𝕜 s ↔ ∃ r : ℝ, ∀ (x : E) (hx : x ∈ s), ∥x∥ ≤ r :=
+by rw [normed_space.is_vonN_bounded_iff, ←metric.bounded_iff_is_bounded, bounded_iff_forall_norm_le]
+
+lemma image_is_vonN_bounded_iff (f : E' → E) (s : set E') :
+  bornology.is_vonN_bounded 𝕜 (f '' s) ↔ ∃ r : ℝ, ∀ (x : E') (hx : x ∈ s), ∥f x∥ ≤ r :=
+by simp_rw [is_vonN_bounded_iff', set.ball_image_iff]
 
 /-- In a normed space, the von Neumann bornology (`bornology.vonN_bornology`) is equal to the
 metric bornology. -/

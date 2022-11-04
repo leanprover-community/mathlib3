@@ -135,6 +135,6 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group
 variables [nonempty ι] [normed_space ℝ 𝕜] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
 
 instance {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜} : locally_convex_space ℝ (weak_bilin B) :=
-seminorm_family.to_locally_convex_space (B.weak_bilin_with_seminorms)
+(B.weak_bilin_with_seminorms).to_locally_convex_space
 
 end locally_convex

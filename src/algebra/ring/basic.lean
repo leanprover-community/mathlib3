@@ -3,10 +3,9 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Yury Kudryashov, Neil Strickland
 -/
-import algebra.divisibility
 import algebra.regular.basic
-import data.int.cast.defs
-import data.pi.algebra
+import algebra.hom.group
+import algebra.opposites
 
 /-!
 # Semirings and rings
@@ -250,14 +249,6 @@ lemma one_add_one_eq_two : 1 + 1 = (2 : α) := rfl
 
 end has_one_has_add
 
-section distrib_semigroup
-variables [has_add α] [semigroup α]
-
-theorem dvd_add [left_distrib_class α] {a b c : α} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
-dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
-
-end distrib_semigroup
-
 section distrib_mul_one_class
 variables [has_add α] [mul_one_class α]
 
@@ -372,8 +363,6 @@ lemma mul_right_apply {R : Type*} [non_unital_non_assoc_semiring R] (a r : R) :
 
 end add_monoid_hom
 
-@[simp] theorem two_dvd_bit0 [semiring α] {a : α} : 2 ∣ bit0 a := ⟨a, bit0_eq_two_mul _⟩
-
 /-- A non-unital commutative semiring is a `non_unital_semiring` with commutative multiplication.
 In other words, it is a type with the following structures: additive commutative monoid
 (`add_comm_monoid`), commutative semigroup (`comm_semigroup`), distributive laws (`distrib`), and
@@ -403,10 +392,6 @@ protected def function.surjective.non_unital_comm_semiring [has_zero γ] [has_ad
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) :
   non_unital_comm_semiring γ :=
 { .. hf.non_unital_semiring f zero add mul nsmul, .. hf.comm_semigroup f mul }
-
-lemma has_dvd.dvd.linear_comb {d x y : α} (hdx : d ∣ x) (hdy : d ∣ y) (a b : α) :
-  d ∣ (a * x + b * y) :=
-dvd_add (hdx.mul_left a) (hdy.mul_left b)
 
 end non_unital_comm_semiring
 
@@ -542,39 +527,13 @@ end mul_one_class
 section mul_zero_class
 variables [mul_zero_class α] [has_distrib_neg α]
 
-/-- Prefer `neg_zero` if `subtraction_monoid` is available. -/
-@[simp] lemma neg_zero' : (-0 : α) = 0 :=
-by rw [←zero_mul (0 : α), ←neg_mul, mul_zero, mul_zero]
+@[priority 100]
+instance mul_zero_class.neg_zero_class : neg_zero_class α :=
+{ neg_zero := by rw [←zero_mul (0 : α), ←neg_mul, mul_zero, mul_zero],
+  ..mul_zero_class.to_has_zero α,
+  ..has_distrib_neg.to_has_involutive_neg α }
 
 end mul_zero_class
-
-section semigroup
-
-variables [semigroup α] [has_distrib_neg α] {a b c : α}
-
-theorem dvd_neg_of_dvd (h : a ∣ b) : (a ∣ -b) :=
-let ⟨c, hc⟩ := h in ⟨-c, by simp [hc]⟩
-
-theorem dvd_of_dvd_neg (h : a ∣ -b) : (a ∣ b) :=
-let t := dvd_neg_of_dvd h in by rwa neg_neg at t
-
-/-- An element a of a semigroup with a distributive negation divides the negation of an element b
-iff a divides b. -/
-@[simp] lemma dvd_neg (a b : α) : (a ∣ -b) ↔ (a ∣ b) :=
-⟨dvd_of_dvd_neg, dvd_neg_of_dvd⟩
-
-theorem neg_dvd_of_dvd (h : a ∣ b) : -a ∣ b :=
-let ⟨c, hc⟩ := h in ⟨-c, by simp [hc]⟩
-
-theorem dvd_of_neg_dvd (h : -a ∣ b) : a ∣ b :=
-let t := neg_dvd_of_dvd h in by rwa neg_neg at t
-
-/-- The negation of an element a of a semigroup with a distributive negation divides
-another element b iff a divides b. -/
-@[simp] lemma neg_dvd (a b : α) : (-a ∣ b) ↔ (a ∣ b) :=
-⟨dvd_of_neg_dvd, neg_dvd_of_dvd⟩
-
-end semigroup
 
 section group
 variables [group α] [has_distrib_neg α]
@@ -825,7 +784,9 @@ protected def function.surjective.ring
 end ring
 
 namespace units
-variables [ring α] {a b : α}
+
+section has_distrib_neg
+variables [monoid α] [has_distrib_neg α] {a b : α}
 
 /-- Each element of the group of units of a ring has an additive inverse. -/
 instance : has_neg αˣ := ⟨λu, ⟨-↑u, -↑u⁻¹, by simp, by simp⟩ ⟩
@@ -840,6 +801,12 @@ instance : has_distrib_neg αˣ := units.ext.has_distrib_neg _ units.coe_neg uni
 
 @[field_simps] lemma neg_divp (a : α) (u : αˣ) : -(a /ₚ u) = (-a) /ₚ u :=
 by simp only [divp, neg_mul]
+
+end has_distrib_neg
+
+section ring
+
+variables [ring α] {a b : α}
 
 @[field_simps] lemma divp_add_divp_same (a b : α) (u : αˣ) :
   a /ₚ u + b /ₚ u = (a + b) /ₚ u :=
@@ -864,12 +831,15 @@ begin
   assoc_rw [units.mul_inv, mul_one],
 end
 
+end ring
+
 end units
 
-lemma is_unit.neg [ring α] {a : α} : is_unit a → is_unit (-a)
+lemma is_unit.neg [monoid α] [has_distrib_neg α] {a : α} : is_unit a → is_unit (-a)
 | ⟨x, hx⟩ := hx ▸ (-x).is_unit
 
-lemma is_unit.neg_iff [ring α] (a : α) : is_unit (-a) ↔ is_unit a :=
+@[simp]
+lemma is_unit.neg_iff [monoid α] [has_distrib_neg α] (a : α) : is_unit (-a) ↔ is_unit a :=
 ⟨λ h, neg_neg a ▸ h.neg, is_unit.neg⟩
 
 lemma is_unit.sub_iff [ring α] {x y : α} :
@@ -900,56 +870,6 @@ instance comm_ring.to_comm_semiring [s : comm_ring α] : comm_semiring α :=
 @[priority 100] -- see Note [lower instance priority]
 instance comm_ring.to_non_unital_comm_ring [s : comm_ring α] : non_unital_comm_ring α :=
 { mul_zero := mul_zero, zero_mul := zero_mul, ..s }
-
-section non_unital_ring
-variables [non_unital_ring α] {a b c : α}
-
-theorem dvd_sub (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b - c :=
-by { rw sub_eq_add_neg, exact dvd_add h₁ (dvd_neg_of_dvd h₂) }
-
-theorem dvd_add_iff_left (h : a ∣ c) : a ∣ b ↔ a ∣ b + c :=
-⟨λh₂, dvd_add h₂ h, λH, by have t := dvd_sub H h; rwa add_sub_cancel at t⟩
-
-theorem dvd_add_iff_right (h : a ∣ b) : a ∣ c ↔ a ∣ b + c :=
-by rw add_comm; exact dvd_add_iff_left h
-
-/-- If an element a divides another element c in a commutative ring, a divides the sum of another
-  element b with c iff a divides b. -/
-theorem dvd_add_left (h : a ∣ c) : a ∣ b + c ↔ a ∣ b :=
-(dvd_add_iff_left h).symm
-
-/-- If an element a divides another element b in a commutative ring, a divides the sum of b and
-  another element c iff a divides c. -/
-theorem dvd_add_right (h : a ∣ b) : a ∣ b + c ↔ a ∣ c :=
-(dvd_add_iff_right h).symm
-
-lemma dvd_iff_dvd_of_dvd_sub {a b c : α} (h : a ∣ (b - c)) : (a ∣ b ↔ a ∣ c) :=
-begin
-  split,
-  { intro h',
-    convert dvd_sub h' h,
-    exact eq.symm (sub_sub_self b c) },
-  { intro h',
-    convert dvd_add h h',
-    exact eq_add_of_sub_eq rfl }
-end
-
-end non_unital_ring
-
-section ring
-variables [ring α] {a b c : α}
-
-theorem two_dvd_bit1 : 2 ∣ bit1 a ↔ (2 : α) ∣ 1 := (dvd_add_iff_right (@two_dvd_bit0 _ _ a)).symm
-
-/-- An element a divides the sum a + b if and only if a divides b.-/
-@[simp] lemma dvd_add_self_left {a b : α} : a ∣ a + b ↔ a ∣ b :=
-dvd_add_right (dvd_refl a)
-
-/-- An element a divides the sum b + a if and only if a divides b.-/
-@[simp] lemma dvd_add_self_right {a b : α} : a ∣ b + a ↔ a ∣ b :=
-dvd_add_left (dvd_refl a)
-
-end ring
 
 section non_unital_comm_ring
 variables [non_unital_comm_ring α] {a b c : α}
@@ -992,14 +912,6 @@ begin
   have : c = x * (b - x) := (eq_neg_of_add_eq_zero_right h).trans (by simp [mul_sub, mul_comm]),
   refine ⟨b - x, _, by simp, by rw this⟩,
   rw [this, sub_add, ← sub_mul, sub_self]
-end
-
-lemma dvd_mul_sub_mul {k a b x y : α} (hab : k ∣ a - b) (hxy : k ∣ x - y) :
-  k ∣ a * x - b * y :=
-begin
-  convert dvd_add (hxy.mul_left a) (hab.mul_right y),
-  rw [mul_sub_left_distrib, mul_sub_right_distrib],
-  simp only [sub_eq_add_neg, add_assoc, neg_add_cancel_left],
 end
 
 end non_unital_comm_ring
@@ -1047,56 +959,6 @@ lemma succ_ne_self [non_assoc_ring α] [nontrivial α] (a : α) : a + 1 ≠ a :=
 lemma pred_ne_self [non_assoc_ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
 λ h, one_ne_zero (neg_injective ((add_right_inj a).mp (by simpa [sub_eq_add_neg] using h)))
 
-/-- Left `mul` by a `k : α` over `[ring α]` is injective, if `k` is not a zero divisor.
-The typeclass that restricts all terms of `α` to have this property is `no_zero_divisors`. -/
-lemma is_left_regular_of_non_zero_divisor [non_unital_non_assoc_ring α] (k : α)
-  (h : ∀ (x : α), k * x = 0 → x = 0) : is_left_regular k :=
-begin
-  refine λ x y (h' : k * x = k * y), sub_eq_zero.mp (h _ _),
-  rw [mul_sub, sub_eq_zero, h']
-end
-
-/-- Right `mul` by a `k : α` over `[ring α]` is injective, if `k` is not a zero divisor.
-The typeclass that restricts all terms of `α` to have this property is `no_zero_divisors`. -/
-lemma is_right_regular_of_non_zero_divisor [non_unital_non_assoc_ring α] (k : α)
-  (h : ∀ (x : α), x * k = 0 → x = 0) : is_right_regular k :=
-begin
-  refine λ x y (h' : x * k = y * k), sub_eq_zero.mp (h _ _),
-  rw [sub_mul, sub_eq_zero, h']
-end
-
-lemma is_regular_of_ne_zero' [non_unital_non_assoc_ring α] [no_zero_divisors α] {k : α}
-  (hk : k ≠ 0) : is_regular k :=
-⟨is_left_regular_of_non_zero_divisor k
-  (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left hk),
- is_right_regular_of_non_zero_divisor k
-  (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_right hk)⟩
-
-lemma is_regular_iff_ne_zero' [nontrivial α] [non_unital_non_assoc_ring α] [no_zero_divisors α]
-  {k : α} : is_regular k ↔ k ≠ 0 :=
-⟨λ h, by { rintro rfl, exact not_not.mpr h.left not_is_left_regular_zero }, is_regular_of_ne_zero'⟩
-
-/-- A ring with no zero divisors is a `cancel_monoid_with_zero`.
-
-Note this is not an instance as it forms a typeclass loop. -/
-@[reducible]
-def no_zero_divisors.to_cancel_monoid_with_zero [ring α] [no_zero_divisors α] :
-  cancel_monoid_with_zero α :=
-{ mul_left_cancel_of_ne_zero := λ a b c ha,
-    @is_regular.left _ _ _ (is_regular_of_ne_zero' ha) _ _,
-  mul_right_cancel_of_ne_zero := λ a b c hb,
-    @is_regular.right _ _ _ (is_regular_of_ne_zero' hb) _ _,
-  .. (by apply_instance : monoid_with_zero α) }
-
-/-- A commutative ring with no zero divisors is a `cancel_comm_monoid_with_zero`.
-
-Note this is not an instance as it forms a typeclass loop. -/
-@[reducible]
-def no_zero_divisors.to_cancel_comm_monoid_with_zero [comm_ring α] [no_zero_divisors α] :
-  cancel_comm_monoid_with_zero α :=
-{ .. no_zero_divisors.to_cancel_monoid_with_zero,
-  .. (by apply_instance : comm_monoid_with_zero α) }
-
 /-- A domain is a nontrivial ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`.
 
@@ -1104,20 +966,6 @@ def no_zero_divisors.to_cancel_comm_monoid_with_zero [comm_ring α] [no_zero_div
   To obtain an integral domain use `[comm_ring α] [is_domain α]`. -/
 @[protect_proj] class is_domain (α : Type u) [ring α]
   extends no_zero_divisors α, nontrivial α : Prop
-
-section is_domain
-
-@[priority 100] -- see Note [lower instance priority]
-instance is_domain.to_cancel_monoid_with_zero [ring α] [is_domain α] : cancel_monoid_with_zero α :=
-no_zero_divisors.to_cancel_monoid_with_zero
-
-variables [comm_ring α] [is_domain α]
-
-@[priority 100] -- see Note [lower instance priority]
-instance is_domain.to_cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero α :=
-no_zero_divisors.to_cancel_comm_monoid_with_zero
-
-end is_domain
 
 namespace semiconj_by
 

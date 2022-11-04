@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import algebra.big_operators.finprod
-import data.set.pointwise
+import data.set.pointwise.basic
 import topology.algebra.mul_action
 import algebra.big_operators.pi
 
@@ -251,12 +251,8 @@ variables [topological_space M] [monoid M] [has_continuous_mul M]
 @[to_additive]
 lemma submonoid.top_closure_mul_self_subset (s : submonoid M) :
   closure (s : set M) * closure s ⊆ closure s :=
-calc
-closure (s : set M) * closure s
-    = (λ p : M × M, p.1 * p.2) '' closure (s ×ˢ s) : by simp [closure_prod_eq]
-... ⊆ closure ((λ p : M × M, p.1 * p.2) '' s ×ˢ s) :
-  image_closure_subset_closure_image continuous_mul
-... = closure s : by simp [s.coe_mul_self_eq]
+image2_subset_iff.2 $ λ x hx y hy, map_mem_closure₂ continuous_mul hx hy $
+  λ a ha b hb, s.mul_mem ha hb
 
 @[to_additive]
 lemma submonoid.top_closure_mul_self_eq (s : submonoid M) :
@@ -358,10 +354,23 @@ lemma tendsto_list_prod {f : ι → α → M} {x : filter α} {a : ι → M} :
 
 @[to_additive]
 lemma continuous_list_prod {f : ι → X → M} (l : list ι)
-  (h : ∀i∈l, continuous (f i)) :
-  continuous (λa, (l.map (λi, f i a)).prod) :=
+  (h : ∀ i ∈ l, continuous (f i)) :
+  continuous (λ a, (l.map (λ i, f i a)).prod) :=
 continuous_iff_continuous_at.2 $ assume x, tendsto_list_prod l $ assume c hc,
   continuous_iff_continuous_at.1 (h c hc) x
+
+@[to_additive]
+lemma continuous_on_list_prod {f : ι → X → M} (l : list ι) {t : set X}
+  (h : ∀ i ∈ l, continuous_on (f i) t) :
+  continuous_on (λ a, (l.map (λ i, f i a)).prod) t :=
+begin
+  intros x hx,
+  rw continuous_within_at_iff_continuous_at_restrict _ hx,
+  refine tendsto_list_prod _ (λ i hi, _),
+  specialize h i hi x hx,
+  rw continuous_within_at_iff_continuous_at_restrict _ hx at h,
+  exact h,
+end
 
 @[continuity, to_additive]
 lemma continuous_pow : ∀ n : ℕ, continuous (λ a : M, a ^ n)
@@ -408,6 +417,28 @@ lemma continuous_on.pow {f : X → M} {s : set X} (hf : continuous_on f s) (n : 
   continuous_on (λ x, f x ^ n) s :=
 λ x hx, (hf x hx).pow n
 
+/-- Left-multiplication by a left-invertible element of a topological monoid is proper, i.e.,
+inverse images of compact sets are compact. -/
+lemma filter.tendsto_cocompact_mul_left {a b : M} (ha : b * a = 1) :
+  filter.tendsto (λ x : M, a * x) (filter.cocompact M) (filter.cocompact M) :=
+begin
+  refine filter.tendsto.of_tendsto_comp _ (filter.comap_cocompact_le (continuous_mul_left b)),
+  convert filter.tendsto_id,
+  ext x,
+  simp [ha],
+end
+
+/-- Right-multiplication by a right-invertible element of a topological monoid is proper, i.e.,
+inverse images of compact sets are compact. -/
+lemma filter.tendsto_cocompact_mul_right {a b : M} (ha : a * b = 1) :
+  filter.tendsto (λ x : M, x * a) (filter.cocompact M) (filter.cocompact M) :=
+begin
+  refine filter.tendsto.of_tendsto_comp _ (filter.comap_cocompact_le (continuous_mul_right b)),
+  convert filter.tendsto_id,
+  ext x,
+  simp [ha],
+end
+
 /-- If `R` acts on `A` via `A`, then continuous multiplication implies continuous scalar
 multiplication by constants.
 
@@ -425,7 +456,10 @@ instance is_scalar_tower.has_continuous_const_smul {R A : Type*} [monoid A] [has
 implies continuous scalar multiplication by constants.
 
 Notably, this instances applies when `R = Aᵐᵒᵖ` -/
-@[priority 100]
+@[priority 100, to_additive "If the action of `R` on `A` commutes with left-addition, then
+continuous addition implies continuous affine addition by constants.
+
+Notably, this instances applies when `R = Aᵃᵒᵖ`. "]
 instance smul_comm_class.has_continuous_const_smul {R A : Type*} [monoid A] [has_smul R A]
   [smul_comm_class R A A] [topological_space A] [has_continuous_mul A] :
   has_continuous_const_smul R A :=
@@ -493,13 +527,23 @@ tendsto_multiset_prod _
 
 @[continuity, to_additive]
 lemma continuous_multiset_prod {f : ι → X → M} (s : multiset ι) :
-  (∀i ∈ s, continuous (f i)) → continuous (λ a, (s.map (λ i, f i a)).prod) :=
+  (∀ i ∈ s, continuous (f i)) → continuous (λ a, (s.map (λ i, f i a)).prod) :=
 by { rcases s with ⟨l⟩, simpa using continuous_list_prod l }
+
+@[to_additive]
+lemma continuous_on_multiset_prod {f : ι → X → M} (s : multiset ι) {t : set X} :
+  (∀i ∈ s, continuous_on (f i) t) → continuous_on (λ a, (s.map (λ i, f i a)).prod) t :=
+by { rcases s with ⟨l⟩, simpa using continuous_on_list_prod l }
 
 @[continuity, to_additive]
 lemma continuous_finset_prod {f : ι → X → M} (s : finset ι) :
-  (∀ i ∈ s, continuous (f i)) → continuous (λa, ∏ i in s, f i a) :=
+  (∀ i ∈ s, continuous (f i)) → continuous (λ a, ∏ i in s, f i a) :=
 continuous_multiset_prod _
+
+@[to_additive]
+lemma continuous_on_finset_prod {f : ι → X → M} (s : finset ι) {t : set X} :
+  (∀ i ∈ s, continuous_on (f i) t) → continuous_on (λ a, ∏ i in s, f i a) t :=
+continuous_on_multiset_prod _
 
 @[to_additive] lemma eventually_eq_prod {X M : Type*} [comm_monoid M]
   {s : finset ι} {l : filter X} {f g : ι → X → M} (hs : ∀ i ∈ s, f i =ᶠ[l] g i) :

@@ -110,6 +110,10 @@ instance [lattice α] {a : α} : lattice (Ici a) :=
 { .. Ici.semilattice_inf,
   .. Ici.semilattice_sup }
 
+instance [distrib_lattice α] {a : α} : distrib_lattice (Ici a) :=
+{ le_sup_inf := λ a b c, le_sup_inf,
+  .. Ici.lattice }
+
 instance [preorder α] {a : α} : order_bot (Ici a) :=
 { bot := ⟨a, le_refl a⟩,
   bot_le := λ x, x.prop }

@@ -171,6 +171,17 @@ protected structure injective : Prop :=
 (on_function {n} : function.injective (λ f : L.functions n, on_function ϕ f))
 (on_relation {n} : function.injective (λ R : L.relations n, on_relation ϕ R))
 
+/-- Pulls a `L`-structure along a language map `ϕ : L →ᴸ L'`, and then expands it
+  to an `L'`-structure arbitrarily. -/
+noncomputable def default_expansion (ϕ : L →ᴸ L')
+  [∀ n (f : L'.functions n), decidable (f ∈ set.range (λ (f : L.functions n), on_function ϕ f))]
+  [∀ n (r : L'.relations n), decidable (r ∈ set.range (λ (r : L.relations n), on_relation ϕ r))]
+  (M : Type*) [inhabited M] [L.Structure M] : L'.Structure M :=
+{ fun_map := λ n f xs, if h' : f ∈ set.range (λ (f : L.functions n), on_function ϕ f) then
+    fun_map h'.some xs else default,
+  rel_map := λ n r xs, if h' : r ∈ set.range (λ (r : L.relations n), on_relation ϕ r) then
+    rel_map h'.some xs else default }
+
 /-- A language homomorphism is an expansion on a structure if it commutes with the interpretation of
 all symbols on that structure. -/
 class is_expansion_on (M : Type*) [L.Structure M] [L'.Structure M] : Prop :=
@@ -233,11 +244,33 @@ instance sum_inr_is_expansion_on (M : Type*)
   @fun_map (L'.sum L) M _ n (sum.inr f) x = fun_map f x :=
 (Lhom.sum_inr : L →ᴸ L'.sum L).map_on_function f x
 
+lemma sum_inl_injective : (Lhom.sum_inl : L →ᴸ L.sum L').injective :=
+⟨λ n, sum.inl_injective, λ n, sum.inl_injective⟩
+
+lemma sum_inr_injective : (Lhom.sum_inr : L' →ᴸ L.sum L').injective :=
+⟨λ n, sum.inr_injective, λ n, sum.inr_injective⟩
+
 @[priority 100] instance is_expansion_on_reduct (ϕ : L →ᴸ L') (M : Type*) [L'.Structure M] :
   @is_expansion_on L L' ϕ M (ϕ.reduct M) _ :=
 begin
   letI := ϕ.reduct M,
   exact ⟨λ _ f _, rfl, λ _ R _, rfl⟩,
+end
+
+lemma injective.is_expansion_on_default {ϕ : L →ᴸ L'}
+  [∀ n (f : L'.functions n), decidable (f ∈ set.range (λ (f : L.functions n), on_function ϕ f))]
+  [∀ n (r : L'.relations n), decidable (r ∈ set.range (λ (r : L.relations n), on_relation ϕ r))]
+  (h : ϕ.injective) (M : Type*) [inhabited M] [L.Structure M] :
+  @is_expansion_on L L' ϕ M _ (ϕ.default_expansion M) :=
+begin
+  letI := ϕ.default_expansion M,
+  refine ⟨λ n f xs, _, λ n r xs, _⟩,
+  { have hf : ϕ.on_function f ∈ set.range (λ (f : L.functions n), ϕ.on_function f) := ⟨f, rfl⟩,
+    refine (dif_pos hf).trans _,
+    rw h.on_function hf.some_spec },
+  { have hr : ϕ.on_relation r ∈ set.range (λ (r : L.relations n), ϕ.on_relation r) := ⟨r, rfl⟩,
+    refine (dif_pos hr).trans _,
+    rw h.on_relation hr.some_spec },
 end
 
 end Lhom
@@ -343,6 +376,9 @@ by rw [with_constants, card_sum, card_constants_on]
 
 /-- The language map adding constants.  -/
 @[simps] def Lhom_with_constants : L →ᴸ L[[α]] := Lhom.sum_inl
+
+lemma Lhom_with_constants_injective : (L.Lhom_with_constants α).injective :=
+Lhom.sum_inl_injective
 
 variables {α}
 

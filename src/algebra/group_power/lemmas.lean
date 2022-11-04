@@ -423,8 +423,8 @@ end
 lemma neg_one_pow_eq_pow_mod_two [ring R] {n : ℕ} : (-1 : R) ^ n = (-1) ^ (n % 2) :=
 by rw [← nat.mod_add_div n 2, pow_add, pow_mul]; simp [sq]
 
-section ordered_semiring
-variables [ordered_semiring R] {a : R}
+section strict_ordered_semiring
+variables [strict_ordered_semiring R] {a : R}
 
 /-- Bernoulli's inequality. This version works for semirings but requires
 additional hypotheses `0 ≤ a * a` and `0 ≤ (1 + a) * (1 + a)`. -/
@@ -461,7 +461,7 @@ lemma pow_le_of_le_one (h₀ : 0 ≤ a) (h₁ : a ≤ 1) {n : ℕ} (hn : n ≠ 0
 
 lemma sq_le (h₀ : 0 ≤ a) (h₁ : a ≤ 1) : a ^ 2 ≤ a := pow_le_of_le_one h₀ h₁ two_ne_zero
 
-end ordered_semiring
+end strict_ordered_semiring
 
 section linear_ordered_semiring
 

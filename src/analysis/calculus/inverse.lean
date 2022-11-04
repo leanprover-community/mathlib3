@@ -555,7 +555,7 @@ end
 
 lemma map_nhds_eq_of_surj [complete_space E] [complete_space F]
   {f : E → F} {f' : E →L[𝕜] F} {a : E}
-  (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) (h : f'.range = ⊤) :
+  (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) (h : linear_map.range f' = ⊤) :
   map f (𝓝 a) = 𝓝 (f a) :=
 begin
   let f'symm := f'.nonlinear_right_inverse_of_surjective h,

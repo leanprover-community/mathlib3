@@ -734,9 +734,40 @@ by { rw [mem_canonical_equiv_apply, canonical_equiv, map_equiv_symm, map_equiv,
          ring_equiv.coe_mk, mem_map],
     exact ⟨λ ⟨y, mem, eq⟩, ⟨y, mem, eq⟩, λ ⟨y, mem, eq⟩, ⟨y, mem, eq⟩⟩ }
 
-@[simp] lemma canonical_equiv_flip (I) :
+lemma canonical_equiv_flip (I) :
   canonical_equiv S P P' (canonical_equiv S P' P I) = I :=
 by rw [←canonical_equiv_symm, ring_equiv.symm_apply_apply]
+
+@[simp]
+lemma canonical_equiv_canonical_equiv (P'' : Type*) [comm_ring P''] [algebra R P'']
+  [is_localization S P''] (I : fractional_ideal S P) :
+  canonical_equiv S P' P'' (canonical_equiv S P P' I) = canonical_equiv S P P'' I :=
+begin
+  ext,
+  simp only [is_localization.map_map, ring_hom_inv_pair.comp_eq₂, mem_canonical_equiv_apply,
+      exists_prop, exists_exists_and_eq_and],
+  refl
+end
+
+lemma canonical_equiv_trans_canonical_equiv (P'' : Type*) [comm_ring P'']
+  [algebra R P''] [is_localization S P''] :
+  (canonical_equiv S P P').trans (canonical_equiv S P' P'') = canonical_equiv S P P'' :=
+ring_equiv.ext (canonical_equiv_canonical_equiv S P P' P'')
+
+@[simp]
+lemma canonical_equiv_coe_ideal (I : ideal R) :
+  canonical_equiv S P P' I = I :=
+by { ext, simp [is_localization.map_eq] }
+
+omit loc'
+
+@[simp]
+lemma canonical_equiv_self : canonical_equiv S P P = ring_equiv.refl _ :=
+begin
+  rw ← canonical_equiv_trans_canonical_equiv S P P,
+  convert (canonical_equiv S P P).symm_trans_self,
+  exact (canonical_equiv_symm S P P).symm
+end
 
 end semiring
 

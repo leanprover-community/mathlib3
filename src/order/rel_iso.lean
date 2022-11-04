@@ -48,6 +48,9 @@ structure rel_hom {α β : Type*} (r : α → α → Prop) (s : β → β → Pr
 
 infix ` →r `:25 := rel_hom
 
+section
+set_option old_structure_cmd true
+
 /-- `rel_hom_class F r s` asserts that `F` is a type of functions such that all `f : F`
 satisfy `r a b → s (f a) (f b)`.
 
@@ -62,6 +65,8 @@ export rel_hom_class (map_rel)
 
 -- The free parameters `r` and `s` are `out_param`s so this is not dangerous.
 attribute [nolint dangerous_instance] rel_hom_class.to_fun_like
+
+end
 
 namespace rel_hom_class
 

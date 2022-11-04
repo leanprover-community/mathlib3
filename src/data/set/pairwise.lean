@@ -37,6 +37,8 @@ def pairwise (r : α → α → Prop) := ∀ i j, i ≠ j → r i j
 lemma pairwise.mono (hr : pairwise r) (h : ∀ ⦃i j⦄, r i j → p i j) : pairwise p :=
 λ i j hij, h $ hr i j hij
 
+protected lemma pairwise.eq (h : pairwise r) : ¬ r a b → a = b := not_imp_comm.1 $ h _ _
+
 lemma pairwise_on_bool (hr : symmetric r) {a b : α} : pairwise (r on (λ c, cond c a b)) ↔ r a b :=
 by simpa [pairwise, function.on_fun] using @hr a b
 
@@ -151,7 +153,7 @@ lemma pairwise_union :
   (s ∪ t).pairwise r ↔
     s.pairwise r ∧ t.pairwise r ∧ ∀ (a ∈ s) (b ∈ t), a ≠ b → r a b ∧ r b a :=
 begin
-  simp only [set.pairwise, mem_union_eq, or_imp_distrib, forall_and_distrib],
+  simp only [set.pairwise, mem_union, or_imp_distrib, forall_and_distrib],
   exact ⟨λ H, ⟨H.1.1, H.2.2, H.2.1, λ x hx y hy hne, H.1.2 y hy x hx hne.symm⟩,
     λ H, ⟨⟨H.1, λ x hx y hy hne, H.2.2.2 y hy x hx hne.symm⟩, H.2.2.1, H.2.1⟩⟩
 end
@@ -421,3 +423,30 @@ end set
 
 lemma pairwise_disjoint_fiber (f : ι → α) : pairwise (disjoint on (λ a : α, f ⁻¹' {a})) :=
 set.pairwise_univ.1 $ set.pairwise_disjoint_fiber f univ
+
+
+section
+variables {f : ι → set α} {s t : set ι}
+
+lemma set.pairwise_disjoint.subset_of_bUnion_subset_bUnion (h₀ : (s ∪ t).pairwise_disjoint f)
+  (h₁ : ∀ i ∈ s, (f i).nonempty) (h : (⋃ i ∈ s, f i) ⊆ ⋃ i ∈ t, f i) :
+  s ⊆ t :=
+begin
+  rintro i hi,
+  obtain ⟨a, hai⟩ := h₁ i hi,
+  obtain ⟨j, hj, haj⟩ := mem_Union₂.1 (h $ mem_Union₂_of_mem hi hai),
+  rwa h₀.eq (subset_union_left _ _ hi) (subset_union_right _ _ hj)
+    (not_disjoint_iff.2 ⟨a, hai, haj⟩),
+end
+
+lemma pairwise.subset_of_bUnion_subset_bUnion (h₀ : pairwise (disjoint on f))
+  (h₁ : ∀ i ∈ s, (f i).nonempty) (h : (⋃ i ∈ s, f i) ⊆ ⋃ i ∈ t, f i) :
+  s ⊆ t :=
+set.pairwise_disjoint.subset_of_bUnion_subset_bUnion (h₀.set_pairwise _) h₁ h
+
+lemma pairwise.bUnion_injective (h₀ : pairwise (disjoint on f)) (h₁ : ∀ i, (f i).nonempty) :
+  injective (λ s : set ι, ⋃ i ∈ s, f i) :=
+λ s t h, (h₀.subset_of_bUnion_subset_bUnion (λ _ _, h₁ _) $ h.subset).antisymm $
+  h₀.subset_of_bUnion_subset_bUnion (λ _ _, h₁ _) $ h.superset
+
+end

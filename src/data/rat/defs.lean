@@ -3,9 +3,10 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import data.int.basic
-import data.nat.gcd
-import logic.encodable.basic
+import data.int.cast
+import data.nat.gcd.basic
+import data.pnat.basic
+import tactic.nth_rewrite
 
 /-!
 # Basics for the Rational Numbers
@@ -59,10 +60,6 @@ protected def repr : ℚ → string
 instance : has_repr ℚ := ⟨rat.repr⟩
 instance : has_to_string ℚ := ⟨rat.repr⟩
 meta instance : has_to_format ℚ := ⟨coe ∘ rat.repr⟩
-
-instance : encodable ℚ := encodable.of_equiv (Σ n : ℤ, {d : ℕ // 0 < d ∧ n.nat_abs.coprime d})
-  ⟨λ ⟨a, b, c, d⟩, ⟨a, b, c, d⟩, λ⟨a, b, c, d⟩, ⟨a, b, c, d⟩,
-   λ ⟨a, b, c, d⟩, rfl, λ⟨a, b, c, d⟩, rfl⟩
 
 /-- Embed an integer as a rational number -/
 def of_int (n : ℤ) : ℚ :=
@@ -764,8 +761,8 @@ by { conv_rhs { rw [←(@num_denom q), hq] }, rw [coe_int_eq_mk], refl }
 lemma denom_eq_one_iff (r : ℚ) : r.denom = 1 ↔ ↑r.num = r :=
 ⟨rat.coe_int_num_of_denom_eq_one, λ h, h ▸ rat.coe_int_denom r.num⟩
 
-instance : can_lift ℚ ℤ :=
-⟨coe, λ q, q.denom = 1, λ q hq, ⟨q.num, coe_int_num_of_denom_eq_one hq⟩⟩
+instance can_lift : can_lift ℚ ℤ coe (λ q, q.denom = 1) :=
+⟨λ q hq, ⟨q.num, coe_int_num_of_denom_eq_one hq⟩⟩
 
 theorem coe_nat_eq_mk (n : ℕ) : ↑n = n /. 1 :=
 by rw [← int.cast_coe_nat, coe_int_eq_mk]

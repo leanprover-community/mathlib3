@@ -50,6 +50,14 @@ by rw [box_prod_adj, and_iff_left rfl, or_iff_left (λ h : H.adj b b ∧ _, h.1.
 @[simp] lemma box_prod_adj_right : (G □ H).adj (a, b₁) (a, b₂) ↔ H.adj b₁ b₂ :=
 by rw [box_prod_adj, and_iff_left rfl, or_iff_right (λ h : G.adj a a ∧ _, h.1.ne rfl)]
 
+lemma box_prod_neighbor_set (x : α × β) :
+  (G □ H).neighbor_set x = ((G.neighbor_set x.1) ×ˢ {x.2}) ∪ ({x.1} ×ˢ (H.neighbor_set x.2)) :=
+begin
+  ext ⟨a',b'⟩,
+  simp only [mem_neighbor_set, set.mem_union, box_prod_adj, set.mem_prod, set.mem_singleton_iff],
+  simp only [eq_comm, and_comm],
+end
+
 variables (G H I)
 
 /-- The box product is commutative up to isomorphism. `equiv.prod_comm` as a graph isomorphism. -/
@@ -164,5 +172,31 @@ by { haveI := (nonempty_prod.1 h.nonempty).1, haveI := (nonempty_prod.1 h.nonemp
 
 @[simp] lemma box_prod_connected : (G □ H).connected ↔ G.connected ∧ H.connected :=
 ⟨λ h, ⟨h.of_box_prod_left, h.of_box_prod_right⟩, λ h, h.1.box_prod h.2⟩
+
+instance [decidable_eq α] [decidable_eq β] (x : α × β)
+  [fintype (G.neighbor_set x.1)] [fintype (H.neighbor_set x.2)] :
+  fintype ((G □ H).neighbor_set x) :=
+begin
+  rw box_prod_neighbor_set,
+  apply_instance,
+end
+
+lemma box_prod_degree (x : α × β)
+  [fintype (G.neighbor_set x.1)] [fintype (H.neighbor_set x.2)]
+  [fintype ((G □ H).neighbor_set x)] :
+  (G □ H).degree x = G.degree x.1 + H.degree x.2 :=
+begin
+  classical,
+  simp_rw [← card_neighbor_set_eq_degree, box_prod_neighbor_set,
+    ← set.to_finset_card, set.to_finset_union],
+  convert finset.card_disjoint_union _;
+    simp only [set.to_finset_prod, finset.card_product, set.to_finset_card,
+      set.card_singleton, mul_one, one_mul],
+  { rintro ⟨_,_⟩ q,
+    simp only [finset.inf_eq_inter, finset.mem_inter, finset.mem_product, set.mem_to_finset,
+      mem_neighbor_set, set.mem_singleton_iff] at q,
+    obtain ⟨⟨q, rfl⟩, ⟨rfl, _⟩⟩ := q,
+    exact (q.ne rfl).elim, },
+end
 
 end simple_graph

@@ -319,6 +319,9 @@ end
 lemma pow_ne_one_of_pos_of_lt (h0 : 0 < l) (hl : l < k) : ζ ^ l ≠ 1 :=
 mt (nat.le_of_dvd h0 ∘ h.dvd_of_pow_eq_one _) $ not_le_of_lt hl
 
+lemma ne_one (hk : 1 < k) : ζ ≠ 1 :=
+h.pow_ne_one_of_pos_of_lt zero_lt_one hk ∘ (pow_one ζ).trans
+
 lemma pow_inj (h : is_primitive_root ζ k) ⦃i j : ℕ⦄ (hi : i < k) (hj : j < k) (H : ζ ^ i = ζ ^ j) :
   i = j :=
 begin
@@ -598,6 +601,20 @@ begin
   rw [order_of_neg_one, if_neg],
   rwa ring_char.eq_iff.mpr h
 end
+
+/-- If `1 < k` then `(∑ i in range k, ζ ^ i) = 0`. -/
+lemma geom_sum_eq_zero [is_domain R] {ζ : R} (hζ : is_primitive_root ζ k) (hk : 1 < k) :
+  (∑ i in range k, ζ ^ i) = 0 :=
+begin
+  refine eq_zero_of_ne_zero_of_mul_left_eq_zero (sub_ne_zero_of_ne (hζ.ne_one hk).symm) _,
+  rw [mul_neg_geom_sum, hζ.pow_eq_one, sub_self]
+end
+
+/-- If `1 < k`, then `ζ ^ k.pred = -(∑ i in range k.pred, ζ ^ i)`. -/
+lemma pow_sub_one_eq [is_domain R] {ζ : R} (hζ : is_primitive_root ζ k) (hk : 1 < k) :
+  ζ ^ k.pred = -(∑ i in range k.pred, ζ ^ i) :=
+by rw [eq_neg_iff_add_eq_zero, add_comm, ←sum_range_succ, ←nat.succ_eq_add_one,
+  nat.succ_pred_eq_of_pos (pos_of_gt hk), hζ.geom_sum_eq_zero hk]
 
 /-- The (additive) monoid equivalence between `zmod k`
 and the powers of a primitive root of unity `ζ`. -/

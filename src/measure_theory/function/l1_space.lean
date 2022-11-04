@@ -109,12 +109,7 @@ by simp only [has_finite_integral_iff_norm, edist_dist, dist_zero_right]
 
 lemma has_finite_integral_iff_of_real {f : α → ℝ} (h : 0 ≤ᵐ[μ] f) :
   has_finite_integral f μ ↔ ∫⁻ a, ennreal.of_real (f a) ∂μ < ∞ :=
-have lintegral_eq : ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ = ∫⁻ a, ennreal.of_real (f a) ∂μ :=
-begin
-  refine lintegral_congr_ae (h.mono $ λ a h, _),
-  rwa [real.norm_eq_abs, abs_of_nonneg]
-end,
-by rw [has_finite_integral_iff_norm, lintegral_eq]
+by rw [has_finite_integral, lintegral_nnnorm_eq_of_ae_nonneg h]
 
 lemma has_finite_integral_iff_of_nnreal {f : α → ℝ≥0} :
   has_finite_integral (λ x, (f x : ℝ)) μ ↔ ∫⁻ a, f a ∂μ < ∞ :=
@@ -513,6 +508,10 @@ lemma integrable_smul_measure {f : α → β} {c : ℝ≥0∞} (h₁ : c ≠ 0) 
   integrable f (c • μ) ↔ integrable f μ :=
 ⟨λ h, by simpa only [smul_smul, ennreal.inv_mul_cancel h₁ h₂, one_smul]
   using h.smul_measure (ennreal.inv_ne_top.2 h₁), λ h, h.smul_measure h₂⟩
+
+lemma integrable_inv_smul_measure {f : α → β} {c : ℝ≥0∞} (h₁ : c ≠ 0) (h₂ : c ≠ ∞) :
+  integrable f (c⁻¹ • μ) ↔ integrable f μ :=
+integrable_smul_measure (by simpa using h₂) (by simpa using h₁)
 
 lemma integrable.to_average {f : α → β} (h : integrable f μ) :
   integrable f ((μ univ)⁻¹ • μ) :=

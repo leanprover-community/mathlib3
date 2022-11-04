@@ -93,7 +93,7 @@ lemma quasiconvex_on.sup (hf : quasiconvex_on 𝕜 s f) (hg : quasiconvex_on �
   quasiconvex_on 𝕜 s (f ⊔ g) :=
 begin
   intro r,
-  simp_rw [pi.sup_def, sup_le_iff, ←set.sep_inter_sep],
+  simp_rw [pi.sup_def, sup_le_iff, set.sep_and],
   exact (hf r).inter (hg r),
 end
 

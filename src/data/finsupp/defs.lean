@@ -524,10 +524,8 @@ noncomputable def of_support_finite
 lemma of_support_finite_coe {f : α → M} {hf : (function.support f).finite} :
   (of_support_finite f hf : α → M) = f := rfl
 
-instance : can_lift (α → M) (α →₀ M) :=
-{ coe := coe_fn,
-  cond := λ f, (function.support f).finite,
-  prf := λ f hf, ⟨of_support_finite f hf, rfl⟩ }
+instance can_lift : can_lift (α → M) (α →₀ M) coe_fn (λ f, (function.support f).finite) :=
+{ prf := λ f hf, ⟨of_support_finite f hf, rfl⟩ }
 
 end of_support_finite
 

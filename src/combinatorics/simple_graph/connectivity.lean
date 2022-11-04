@@ -886,9 +886,9 @@ list.count_eq_one_of_mem p.property.to_trail.edges_nodup hw
 
 lemma loop_eq {v : V} (p : G.path v v) : p = path.nil :=
 begin
-  obtain (p|p) := p,
+  obtain ⟨_|_, this⟩ := p,
   { refl },
-  { simpa using p_property },
+  { simpa },
 end
 
 lemma not_mem_edges_of_loop {v : V} {e : sym2 V} {p : G.path v v} :
@@ -1359,7 +1359,7 @@ lemma set_walk_length_zero_eq_of_ne {u v : V} (h : u ≠ v) :
   {p : G.walk u v | p.length = 0} = ∅ :=
 begin
   ext p,
-  simp only [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
+  simp only [set.mem_set_of_eq, set.mem_empty_iff_false, iff_false],
   exact λ h', absurd (walk.eq_of_length_eq_zero h') h,
 end
 

@@ -5,6 +5,7 @@ Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
 import algebra.order.field_defs
 import algebra.order.with_zero
+import data.fintype.basic
 
 /-!
 # Linear ordered (semi)fields
@@ -22,9 +23,9 @@ A linear ordered (semi)field is a (semi)field equipped with a linear order such 
 
 set_option old_structure_cmd true
 
-open order_dual
+open function order_dual
 
-variables {α β : Type*}
+variables {ι α β : Type*}
 
 namespace function
 
@@ -66,7 +67,7 @@ def injective.linear_ordered_field [linear_ordered_field α] [has_zero β] [has_
 end function
 
 section linear_ordered_semifield
-variables [linear_ordered_semifield α] {a b c d e : α}
+variables [linear_ordered_semifield α] {a b c d e : α} {m n : ℤ}
 
 /-- `equiv.mul_left₀` as an order_iso. -/
 @[simps {simp_rhs := tt}]
@@ -123,6 +124,14 @@ by { rw div_eq_mul_inv, exact mul_nonpos_of_nonpos_of_nonneg ha (inv_nonneg.2 hb
 
 lemma div_nonpos_of_nonneg_of_nonpos (ha : 0 ≤ a) (hb : b ≤ 0) : a / b ≤ 0 :=
 by { rw div_eq_mul_inv, exact mul_nonpos_of_nonneg_of_nonpos ha (inv_nonpos.2 hb) }
+
+lemma zpow_nonneg (ha : 0 ≤ a) : ∀ n : ℤ, 0 ≤ a ^ n
+| (n : ℕ) := by { rw zpow_coe_nat, exact pow_nonneg ha _ }
+| -[1+n]  := by { rw zpow_neg_succ_of_nat, exact inv_nonneg.2 (pow_nonneg ha _) }
+
+lemma zpow_pos_of_pos (ha : 0 < a) : ∀ n : ℤ, 0 < a ^ n
+| (n : ℕ) := by { rw zpow_coe_nat, exact pow_pos ha _ }
+| -[1+n]  := by { rw zpow_neg_succ_of_nat, exact inv_pos.2 (pow_pos ha _) }
 
 /-!
 ### Relating one division with another term.
@@ -417,6 +426,72 @@ by rwa [lt_one_div (@zero_lt_one α _ _) h1, one_div_one]
 lemma one_le_one_div (h1 : 0 < a) (h2 : a ≤ 1) : 1 ≤ 1 / a :=
 by rwa [le_one_div (@zero_lt_one α _ _) h1, one_div_one]
 
+/-! ### Integer powers -/
+
+lemma zpow_le_of_le (ha : 1 ≤ a) (h : m ≤ n) : a ^ m ≤ a ^ n :=
+begin
+  have ha₀ : 0 < a, from one_pos.trans_le ha,
+  lift n - m to ℕ using sub_nonneg.2 h with k hk,
+  calc a ^ m = a ^ m * 1 : (mul_one _).symm
+  ... ≤ a ^ m * a ^ k : mul_le_mul_of_nonneg_left (one_le_pow_of_one_le ha _) (zpow_nonneg ha₀.le _)
+  ... = a ^ n : by rw [← zpow_coe_nat, ← zpow_add₀ ha₀.ne', hk, add_sub_cancel'_right]
+end
+
+lemma zpow_le_one_of_nonpos (ha : 1 ≤ a) (hn : n ≤ 0) : a ^ n ≤ 1 :=
+(zpow_le_of_le ha hn).trans_eq $ zpow_zero _
+
+lemma one_le_zpow_of_nonneg (ha : 1 ≤ a) (hn : 0 ≤ n) : 1 ≤ a ^ n :=
+(zpow_zero _).symm.trans_le $ zpow_le_of_le ha hn
+
+protected lemma nat.zpow_pos_of_pos {a : ℕ} (h : 0 < a) (n : ℤ) : 0 < (a : α)^n :=
+by { apply zpow_pos_of_pos, exact_mod_cast h }
+
+lemma nat.zpow_ne_zero_of_pos {a : ℕ} (h : 0 < a) (n : ℤ) : (a : α)^n ≠ 0 :=
+(nat.zpow_pos_of_pos h n).ne'
+
+lemma one_lt_zpow (ha : 1 < a) : ∀ n : ℤ, 0 < n → 1 < a ^ n
+| (n : ℕ) h := (zpow_coe_nat _ _).symm.subst (one_lt_pow ha $ int.coe_nat_ne_zero.mp h.ne')
+| -[1+ n] h := ((int.neg_succ_not_pos _).mp h).elim
+
+lemma zpow_strict_mono (hx : 1 < a) : strict_mono ((^) a : ℤ → α) :=
+strict_mono_int_of_lt_succ $ λ n,
+have xpos : 0 < a, from zero_lt_one.trans hx,
+calc a ^ n < a ^ n * a : lt_mul_of_one_lt_right (zpow_pos_of_pos xpos _) hx
+... = a ^ (n + 1) : (zpow_add_one₀ xpos.ne' _).symm
+
+lemma zpow_strict_anti (h₀ : 0 < a) (h₁ : a < 1) : strict_anti ((^) a : ℤ → α) :=
+strict_anti_int_of_succ_lt $ λ n,
+calc a ^ (n + 1) = a ^ n * a : zpow_add_one₀ h₀.ne' _
+... < a ^ n * 1 : (mul_lt_mul_left $ zpow_pos_of_pos h₀ _).2 h₁
+... = a ^ n : mul_one _
+
+@[simp] lemma zpow_lt_iff_lt (hx : 1 < a) : a ^ m < a ^ n ↔ m < n := (zpow_strict_mono hx).lt_iff_lt
+@[simp] lemma zpow_le_iff_le (hx : 1 < a) : a ^ m ≤ a ^ n ↔ m ≤ n := (zpow_strict_mono hx).le_iff_le
+
+@[simp] lemma div_pow_le (ha : 0 ≤ a) (hb : 1 ≤ b) (k : ℕ) : a/b^k ≤ a :=
+div_le_self ha $ one_le_pow_of_one_le hb _
+
+lemma zpow_injective (h₀ : 0 < a) (h₁ : a ≠ 1) : injective ((^) a : ℤ → α) :=
+begin
+  rcases h₁.lt_or_lt with H|H,
+  { exact (zpow_strict_anti h₀ H).injective },
+  { exact (zpow_strict_mono H).injective }
+end
+
+@[simp] lemma zpow_inj (h₀ : 0 < a) (h₁ : a ≠ 1) : a ^ m = a ^ n ↔ m = n :=
+(zpow_injective h₀ h₁).eq_iff
+
+lemma zpow_le_max_of_min_le {x : α} (hx : 1 ≤ x) {a b c : ℤ} (h : min a b ≤ c) :
+  x ^ -c ≤ max (x ^ -a) (x ^ -b) :=
+begin
+  have : antitone (λ n : ℤ, x ^ -n) := λ m n h, zpow_le_of_le hx (neg_le_neg h),
+  exact (this h).trans_eq this.map_min,
+end
+
+lemma zpow_le_max_iff_min_le {x : α} (hx : 1 < x) {a b c : ℤ} :
+  x ^ -c ≤ max (x ^ -a) (x ^ -b) ↔ min a b ≤ c :=
+by simp_rw [le_max_iff, min_le_iff, zpow_le_iff_le hx, neg_le_neg_iff]
+
 /-!
 ### Results about halving.
 
@@ -486,8 +561,7 @@ lemma monotone.div_const {β : Type*} [preorder β] {f : β → α} (hf : monoto
   {c : α} (hc : 0 ≤ c) : monotone (λ x, (f x) / c) :=
 begin
   haveI := @linear_order.decidable_le α _,
-  simpa only [div_eq_mul_inv]
-    using (decidable.monotone_mul_right_of_nonneg (inv_nonneg.2 hc)).comp hf
+  simpa only [div_eq_mul_inv] using (monotone_mul_right_of_nonneg (inv_nonneg.2 hc)).comp hf
 end
 
 lemma strict_mono.div_const {β : Type*} [preorder β] {f : β → α} (hf : strict_mono f)
@@ -561,10 +635,23 @@ lemma is_glb.mul_right {s : set α} (ha : 0 ≤ a) (hs : is_glb s b) :
   is_glb ((λ b, b * a) '' s) (b * a) :=
 by simpa [mul_comm] using hs.mul_left ha
 
+lemma pi.exists_forall_pos_add_lt [has_exists_add_of_le α] [finite ι] {x y : ι → α}
+  (h : ∀ i, x i < y i) : ∃ ε, 0 < ε ∧ ∀ i, x i + ε < y i :=
+begin
+  casesI nonempty_fintype ι,
+  casesI is_empty_or_nonempty ι,
+  { exact ⟨1, zero_lt_one, is_empty_elim⟩ },
+  choose ε hε hxε using λ i, exists_pos_add_of_lt' (h i),
+  obtain rfl : x + ε = y := funext hxε,
+  have hε : 0 < finset.univ.inf' finset.univ_nonempty ε := (finset.lt_inf'_iff _).2 (λ i _, hε _),
+  exact ⟨_, half_pos hε, λ i, add_lt_add_left ((half_lt_self hε).trans_le $ finset.inf'_le _ $
+    finset.mem_univ _) _⟩,
+end
+
 end linear_ordered_semifield
 
 section
-variables [linear_ordered_field α] {a b c d : α}
+variables [linear_ordered_field α] {a b c d : α} {n : ℤ}
 
 /-! ### Lemmas about pos, nonneg, nonpos, neg -/
 
@@ -588,6 +675,29 @@ div_neg_iff.2 $ or.inr ⟨ha, hb⟩
 
 lemma div_neg_of_pos_of_neg (ha : 0 < a) (hb : b < 0) : a / b < 0 :=
 div_neg_iff.2 $ or.inl ⟨ha, hb⟩
+
+lemma zpow_bit0_nonneg (a : α) (n : ℤ) : 0 ≤ a ^ bit0 n :=
+(mul_self_nonneg _).trans_eq $ (zpow_bit0 _ _).symm
+
+lemma zpow_two_nonneg (a : α) : 0 ≤ a ^ (2 : ℤ) := zpow_bit0_nonneg _ _
+
+lemma zpow_bit0_pos (h : a ≠ 0) (n : ℤ) : 0 < a ^ bit0 n :=
+(zpow_bit0_nonneg a n).lt_of_ne (zpow_ne_zero _ h).symm
+
+lemma zpow_two_pos_of_ne_zero (h : a ≠ 0) : 0 < a ^ (2 : ℤ) := zpow_bit0_pos h _
+
+@[simp] lemma zpow_bit1_neg_iff : a ^ bit1 n < 0 ↔ a < 0 :=
+⟨λ h, not_le.1 $ λ h', not_le.2 h $ zpow_nonneg h' _,
+ λ h, by rw [bit1, zpow_add_one₀ h.ne]; exact mul_neg_of_pos_of_neg (zpow_bit0_pos h.ne _) h⟩
+
+@[simp] lemma zpow_bit1_nonneg_iff : 0 ≤ a ^ bit1 n ↔ 0 ≤ a :=
+le_iff_le_iff_lt_iff_lt.2 zpow_bit1_neg_iff
+
+@[simp] lemma zpow_bit1_nonpos_iff : a ^ bit1 n ≤ 0 ↔ a ≤ 0 :=
+by rw [le_iff_lt_or_eq, le_iff_lt_or_eq, zpow_bit1_neg_iff, zpow_eq_zero_iff (int.bit1_ne_zero n)]
+
+@[simp] lemma zpow_bit1_pos_iff : 0 < a ^ bit1 n ↔ 0 < a :=
+lt_iff_lt_of_le_iff_le zpow_bit1_nonpos_iff
 
 /-! ### Relating one division with another term -/
 
@@ -770,7 +880,7 @@ end
 lemma sub_one_div_inv_le_two (a2 : 2 ≤ a) : (1 - 1 / a)⁻¹ ≤ 2 :=
 begin
   -- Take inverses on both sides to obtain `2⁻¹ ≤ 1 - 1 / a`
-  refine (inv_le_inv_of_le (inv_pos.2 zero_lt_two) _).trans_eq (inv_inv (2 : α)),
+  refine (inv_le_inv_of_le (inv_pos.2 $ zero_lt_two' α) _).trans_eq (inv_inv (2 : α)),
   -- move `1 / a` to the left and `1 - 1 / 2 = 1 / 2` to the right to obtain `1 / a ≤ ⅟ 2`
   refine (le_sub_iff_add_le.2 (_ : _ + 2⁻¹ = _ ).le).trans ((sub_le_sub_iff_left 1).2 _),
   { -- show 2⁻¹ + 2⁻¹ = 1

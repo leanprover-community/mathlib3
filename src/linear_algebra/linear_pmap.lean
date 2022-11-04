@@ -73,6 +73,8 @@ lemma ext_iff {f g : E →ₗ.[R] F} :
     ∀ ⦃x : f.domain⦄ ⦃y : g.domain⦄ (h : (x:E) = y), f x = g y :=
 ⟨λ EQ, EQ ▸ ⟨rfl, λ x y h, by { congr, exact_mod_cast h }⟩, λ ⟨deq, feq⟩, ext deq feq⟩
 
+lemma ext' {s : submodule R E} {f g : s →ₗ[R] F} (h : f = g) : mk s f = mk s g := h ▸ rfl
+
 lemma map_add (f : E →ₗ.[R] F) (x y : f.domain) : f (x + y) = f x + f y :=
 f.to_fun.map_add x y
 
@@ -322,18 +324,47 @@ instance : has_smul M (E →ₗ.[R] F) :=
   { domain := f.domain,
     to_fun := a • f.to_fun }⟩
 
+@[simp] lemma smul_domain (a : M) (f : E →ₗ.[R] F) : (a • f).domain = f.domain := rfl
+
 lemma smul_apply (a : M) (f : E →ₗ.[R] F) (x : ((a • f).domain)) :
   (a • f) x = a • f x := rfl
 
 @[simp] lemma coe_smul (a : M) (f : E →ₗ.[R] F) : ⇑(a • f) = a • f := rfl
 
 instance [smul_comm_class M N F] : smul_comm_class M N (E →ₗ.[R] F) :=
-⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_comm]⟩
+⟨λ a b f, ext' $ smul_comm a b f.to_fun⟩
 
 instance [has_smul M N] [is_scalar_tower M N F] : is_scalar_tower M N (E →ₗ.[R] F) :=
-⟨λ a b f, ext rfl $ λ x y hxy, by simp_rw [smul_apply, subtype.eq hxy, smul_assoc]⟩
+⟨λ a b f, ext' $ smul_assoc a b f.to_fun⟩
+
+instance : mul_action M (E →ₗ.[R] F) :=
+{ smul := (•),
+  one_smul := λ ⟨s, f⟩, ext' $ one_smul M f,
+  mul_smul := λ a b f, ext' $ mul_smul a b f.to_fun }
 
 end smul
+
+section vadd
+
+instance : has_vadd (E →ₗ[R] F) (E →ₗ.[R] F) :=
+⟨λ f g,
+  { domain := g.domain,
+    to_fun := f.comp g.domain.subtype + g.to_fun }⟩
+
+@[simp] lemma vadd_domain (f : E →ₗ[R] F) (g : E →ₗ.[R] F) : (f +ᵥ g).domain = g.domain := rfl
+
+lemma vadd_apply (f : E →ₗ[R] F) (g : E →ₗ.[R] F) (x : (f +ᵥ g).domain) :
+  (f +ᵥ g) x = f x + g x := rfl
+
+@[simp] lemma coe_vadd (f : E →ₗ[R] F) (g : E →ₗ.[R] F) :
+  ⇑(f +ᵥ g) = f.comp g.domain.subtype + g := rfl
+
+instance : add_action (E →ₗ[R] F) (E →ₗ.[R] F) :=
+{ vadd := (+ᵥ),
+  zero_vadd := λ ⟨s, f⟩, ext' $ zero_add _,
+  add_vadd := λ f₁ f₂ ⟨s, g⟩, ext' $ linear_map.ext $ λ x, add_assoc _ _ _ }
+
+end vadd
 
 section
 
@@ -505,7 +536,7 @@ variables {M : Type*} [monoid M] [distrib_mul_action M F] [smul_comm_class R M F
 
 /-- The graph of `z • f` as a pushforward. -/
 lemma smul_graph (f : E →ₗ.[R] F) (z : M) :
-  (z • f).graph = 
+  (z • f).graph =
     f.graph.map ((linear_map.id : E →ₗ[R] E).prod_map (z • (linear_map.id : F →ₗ[R] F))) :=
 begin
   ext x, cases x,

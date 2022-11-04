@@ -84,19 +84,8 @@ theorem div_gcd_coprime' {β : Type*} {f : β → R[X]} (s : finset β) {x : β}
 begin
   obtain ⟨g, he, hg⟩ := finset.extract_gcd f ⟨x, hx⟩,
   refine (finset.gcd_congr rfl $ λ a ha, _).trans hg,
-  have hmonic : (s.gcd f).monic,
-  {
-    sorry
-  },
-  have : s.gcd f * g a /ₘ s.gcd f = g a,
-  { nth_rewrite 0 [← polynomial.mod_by_monic_add_div (g a) hmonic],
-    ring_nf,
-    sorry
-
-
-  },
-  rw [he a ha, this],
-  --exact mt finset.gcd_eq_zero_iff.1 (λ h, hfz $ h x hx),
+  rw [he a ha, polynomial.mul_div_mod_by_monic_cancel_left],
+  sorry
 end
 
 /-- Given a nonempty finset `s` and a function `f` from `s` to `K[X]`, if `d = s.gcd f`,

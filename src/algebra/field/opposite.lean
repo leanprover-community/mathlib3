@@ -7,7 +7,7 @@ import algebra.field.basic
 import algebra.ring.opposite
 
 /-!
-# Field structure on the multiplicative opposite
+# Field structure on the multiplicative/additive opposite
 -/
 
 open_locale nnrat

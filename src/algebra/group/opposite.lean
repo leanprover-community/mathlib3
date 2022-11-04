@@ -45,7 +45,6 @@ unop_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 @[to_additive] instance [has_nat_cast α] : has_nat_cast αᵐᵒᵖ := ⟨λ n, op n⟩
 @[to_additive] instance [has_int_cast α] : has_int_cast αᵐᵒᵖ := ⟨λ n, op n⟩
 
-
 instance [add_monoid_with_one α] : add_monoid_with_one αᵐᵒᵖ :=
 { nat_cast_zero := show op ((0 : ℕ) : α) = 0, by simp,
   nat_cast_succ := show ∀ n, op ((n + 1 : ℕ) : α) = op (n : ℕ) + 1, by simp,

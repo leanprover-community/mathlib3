@@ -8,8 +8,77 @@ import topology.new_vector_bundle
 
 noncomputable theory
 
-open bundle vector_bundle set
+open bundle vector_bundle set smooth_manifold_with_corners
 open_locale manifold topological_space bundle
+
+section
+
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+variables {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
+
+lemma fderiv_within_comp {g : F → G} {f : E → F} {x : E} {y : F} {s : set E} {t : set F}
+  (hg : differentiable_within_at 𝕜 g t y) (hf : differentiable_within_at 𝕜 f s x)
+  (h : maps_to f s t) (hxs : unique_diff_within_at 𝕜 s x) (hy : f x = y) :
+  fderiv_within 𝕜 (g ∘ f) s x = (fderiv_within 𝕜 g t y).comp (fderiv_within 𝕜 f s x) :=
+by { subst y, exact fderiv_within.comp x hg hf h hxs }
+
+lemma fderiv_within_fderiv_within {g : F → G} {f : E → F} {x : E} {y : F} {s : set E} {t : set F}
+  (hg : differentiable_within_at 𝕜 g t y) (hf : differentiable_within_at 𝕜 f s x)
+  (h : maps_to f s t) (hxs : unique_diff_within_at 𝕜 s x) (hy : f x = y) (v : E) :
+  fderiv_within 𝕜 g t y (fderiv_within 𝕜 f s x v) = fderiv_within 𝕜 (g ∘ f) s x v :=
+by { rw [fderiv_within_comp hg hf h hxs hy], refl }
+
+end
+
+section
+
+variables {𝕜 E M H E' M' H' : Type*} [nontrivially_normed_field 𝕜]
+  [normed_add_comm_group E] [normed_space 𝕜 E] [topological_space H] [topological_space M]
+  (f f' : local_homeomorph M H) (I : model_with_corners 𝕜 E H)
+  [normed_add_comm_group E'] [normed_space 𝕜 E'] [topological_space H'] [topological_space M']
+  (I' : model_with_corners 𝕜 E' H')
+  {x : M} {s t : set M}
+
+namespace local_homeomorph
+lemma extend_left_inv {x : M} (hxf : x ∈ f.source) : (f.extend I).symm (f.extend I x) = x :=
+(f.extend I).left_inv $ by rwa f.extend_source
+
+lemma extend_coord_change_source_mem_nhds_within {x : E}
+  (hx : x ∈ ((f.extend I).symm ≫ f'.extend I).source) :
+  ((f.extend I).symm ≫ f'.extend I).source ∈ 𝓝[range I] x :=
+begin
+  rw [f.extend_coord_change_source] at hx ⊢,
+  obtain ⟨x, hx, rfl⟩ := hx,
+  refine I.image_mem_nhds_within _,
+  refine (local_homeomorph.open_source _).mem_nhds hx
+end
+
+lemma extend_coord_change_source_mem_nhds_within' {x : M}
+  (hxf : x ∈ f.source) (hxf' : x ∈ f'.source) :
+  ((f.extend I).symm ≫ f'.extend I).source ∈ 𝓝[range I] f.extend I x :=
+begin
+  apply extend_coord_change_source_mem_nhds_within,
+  rw [← extend_image_source_inter],
+  exact mem_image_of_mem _ ⟨hxf, hxf'⟩,
+end
+
+lemma cont_diff_within_at_extend_coord_change'
+  [charted_space H M] [smooth_manifold_with_corners I M]
+  (hf : f ∈ maximal_atlas I M) (hf' : f' ∈ maximal_atlas I M) {x : M}
+  (hxf : x ∈ f.source) (hxf' : x ∈ f'.source) :
+  cont_diff_within_at 𝕜 ⊤ (f.extend I ∘ (f'.extend I).symm) (range I) (f'.extend I x) :=
+begin
+  refine (local_homeomorph.cont_diff_on_extend_coord_change I hf hf' _ _).mono_of_mem _,
+  { rw [← f'.extend_image_source_inter], exact mem_image_of_mem _ ⟨hxf', hxf⟩ },
+  exact f'.extend_coord_change_source_mem_nhds_within' f I hxf' hxf
+end
+
+end local_homeomorph
+open local_homeomorph
+
+end
 
 section
 variables {𝕜 B B' F M : Type*} {E : B → Type*}
@@ -113,7 +182,7 @@ def smooth_fiberwise_linear : structure_groupoid (B × F) :=
   (hφ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, φ x : B → F →L[𝕜] F) U)
   (h2φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (φ x).symm : B → F →L[𝕜] F) U),
   {e | e.eq_on_source (smooth_fiberwise_linear.local_homeomorph φ hU hφ.continuous_on h2φ.continuous_on)},
-  trans' := begin
+  trans' := by sorry begin
     rintros e e' ⟨-, ⟨φ, rfl⟩, -, ⟨U, rfl⟩, -, ⟨hU, rfl⟩, -, ⟨hφ, rfl⟩, -, ⟨h2φ, rfl⟩, heφ⟩
       ⟨-, ⟨φ', rfl⟩, -, ⟨U', rfl⟩, -, ⟨hU', rfl⟩, -, ⟨hφ', rfl⟩, -, ⟨h2φ', rfl⟩, heφ'⟩,
     dsimp at heφ heφ',
@@ -129,7 +198,7 @@ def smooth_fiberwise_linear : structure_groupoid (B × F) :=
       rw smooth_fiberwise_linear.source_trans_local_homeomorph at hb,
       simpa [-mem_inter] using hb }
   end,
-  symm' := begin
+  symm' := by sorry begin
     rintros e ⟨-, ⟨φ, rfl⟩, -, ⟨U, rfl⟩, -, ⟨hU, rfl⟩, -, ⟨hφ, rfl⟩, -, ⟨h2φ, rfl⟩, heφ⟩,
     dsimp at heφ,
     apply mem_Union.mpr,
@@ -139,7 +208,7 @@ def smooth_fiberwise_linear : structure_groupoid (B × F) :=
     simp_rw continuous_linear_equiv.symm_symm,
     exact hφ
   end,
-  id_mem' := begin
+  id_mem' := by sorry begin
     apply mem_Union.mpr,
     use λ b, continuous_linear_equiv.refl 𝕜 F,
     simp_rw mem_Union,
@@ -148,7 +217,7 @@ def smooth_fiberwise_linear : structure_groupoid (B × F) :=
     { simp [smooth_fiberwise_linear.local_homeomorph] },
   end,
   locality' := sorry, -- a bit tricky, need to glue together a family of `φ`
-  eq_on_source' := begin
+  eq_on_source' := by sorry begin
     rintros e e' ⟨-, ⟨φ, rfl⟩, -, ⟨U, rfl⟩, -, ⟨hU, rfl⟩, -, ⟨hφ, rfl⟩, -, ⟨h2φ, rfl⟩, heφ⟩ hee',
     apply mem_Union.mpr,
     use φ,
@@ -177,7 +246,7 @@ variables [smooth_vector_bundle F E IB]
 between two trivializations `e`, `e'` for `E`, considered as charts to `B × F`, is smooth and
 fibrewise linear. -/
 instance : has_groupoid (total_space E) (smooth_fiberwise_linear B F IB) :=
-{ compatible := begin
+{ compatible := by sorry begin
     rintros _ _ ⟨e, i, rfl⟩ ⟨e', i', rfl⟩,
     simp_rw [← mem_trivialization_atlas_iff] at i i',
     resetI,
@@ -290,43 +359,31 @@ lemma cont_diff_on_fderiv_coord_change (i j : atlas H M) :
   cont_diff_on 𝕜 ∞ (fderiv_within 𝕜 (j.1.extend I ∘ (i.1.extend I).symm) (range I))
     ((i.1.extend I).symm ≫ j.1.extend I).source :=
 begin
-  sorry
+  have h : ((i.1.extend I).symm ≫ j.1.extend I).source ⊆ range I,
+  { rw [i.1.extend_coord_change_source], apply image_subset_range },
+  intros x hx,
+  refine (cont_diff_within_at.fderiv_within_right _ I.unique_diff le_top $ h hx).mono h,
+  refine (local_homeomorph.cont_diff_on_extend_coord_change I (subset_maximal_atlas I j.2)
+    (subset_maximal_atlas I i.2) x hx).mono_of_mem _,
+  exact i.1.extend_coord_change_source_mem_nhds_within j.1 I hx
 end
 
 variables (M)
-
-def tangent_bundle_core : vector_bundle_core 𝕜 M E (atlas H M) :=
+open smooth_manifold_with_corners
+@[simps] def tangent_bundle_core : vector_bundle_core 𝕜 M E (atlas H M) :=
 { base_set := λ i, i.1.source,
   is_open_base_set := λ i, i.1.open_source,
   index_at := achart H,
   mem_base_set_at := mem_chart_source H,
   coord_change := λ i j x, fderiv_within 𝕜 (j.1.extend I ∘ (i.1.extend I).symm) (range I)
     (i.1.extend I x),
-  coord_change_self :=
-    λ i x hx v, begin
-    /- Locally, a self-change of coordinate is just the identity, thus its derivative is the
-    identity. One just needs to write this carefully, paying attention to the sets where the
-    functions are defined. -/
-    have A : I.symm ⁻¹' (i.1.symm.trans i.1).source ∩ range I ∈ 𝓝[range I] (I (i.1 x)),
-    { rw inter_comm,
-      apply inter_mem_nhds_within,
-      apply I.continuous_symm.continuous_at.preimage_mem_nhds
-        (is_open.mem_nhds (local_homeomorph.open_source _) _),
-      simp only [hx, i.1.map_target] with mfld_simps },
-    have B : ∀ᶠ y in 𝓝[range I] (I (i.1 x)),
-      (I ∘ i.1 ∘ i.1.symm ∘ I.symm) y = (id : E → E) y,
-    { filter_upwards [A] with _ hy,
-      rw ← I.image_eq at hy,
-      rcases hy with ⟨z, hz⟩,
-      simp only with mfld_simps at hz,
-      simp only [hz.2.symm, hz.1] with mfld_simps, },
-    have C : fderiv_within 𝕜 (I ∘ i.1 ∘ i.1.symm ∘ I.symm) (range I) (I (i.1 x)) =
-             fderiv_within 𝕜 (id : E → E) (range I) (I (i.1 x)) :=
-      filter.eventually_eq.fderiv_within_eq I.unique_diff_at_image B
-      (by simp only [hx] with mfld_simps),
-    rw fderiv_within_id I.unique_diff_at_image at C,
-    rw C,
-    refl
+  coord_change_self := λ i x hx v, begin
+    rw [filter.eventually_eq.fderiv_within_eq, fderiv_within_id', continuous_linear_map.id_apply],
+    { exact I.unique_diff_at_image },
+    { exact I.unique_diff_at_image },
+    { filter_upwards [i.1.extend_target_mem_nhds_within I hx] with y hy,
+      exact (i.1.extend I).right_inv hy },
+    { simp_rw [function.comp_apply, i.1.extend_left_inv I hx] }
   end,
   continuous_on_coord_change := λ i j, begin
       refine (cont_diff_on_fderiv_coord_change I i j).continuous_on.comp
@@ -334,289 +391,22 @@ def tangent_bundle_core : vector_bundle_core 𝕜 M E (atlas H M) :=
       { rw [i.1.extend_source], exact inter_subset_left _ _ },
       simp_rw [← i.1.extend_image_source_inter, maps_to_image]
     end,
-  coord_change_comp := λ i j u x hx, begin
-    sorry
-    -- /- The cocycle property is just the fact that the derivative of a composition is the product of
-    -- the derivatives. One needs however to check that all the functions one considers are smooth, and
-    -- to pay attention to the domains where these functions are defined, making this proof a little
-    -- bit cumbersome although there is nothing complicated here. -/
-    -- have M : I (i.1 x) ∈
-    --   (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I) :=
-    -- ⟨by simpa only [mem_preimage, model_with_corners.left_inv] using hx, mem_range_self _⟩,
-    -- have U : unique_diff_within_at 𝕜
-    --   (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I) (I (i.1 x)) :=
-    --   I.unique_diff_preimage_source _ M,
-    -- have A : fderiv_within 𝕜 ((I ∘ u.1 ∘ j.1.symm ∘ I.symm) ∘ (I ∘ j.1 ∘ i.1.symm ∘ I.symm))
-    --          (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
-    --          (I (i.1 x))
-    --   = (fderiv_within 𝕜 (I ∘ u.1 ∘ j.1.symm ∘ I.symm)
-    --          (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I)
-    --          ((I ∘ j.1 ∘ i.1.symm ∘ I.symm) (I (i.1 x)))).comp
-    --     (fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
-    --          (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
-    --          (I (i.1 x))),
-    -- { apply fderiv_within.comp _ _ _ _ U,
-    --   show differentiable_within_at 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
-    --     (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
-    --     (I (i.1 x)),
-    --   { have A : cont_diff_on 𝕜 ∞
-    --       (I ∘ (i.1.symm.trans j.1) ∘ I.symm)
-    --       (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) :=
-    --     (has_groupoid.compatible (cont_diff_groupoid ∞ I) i.2 j.2).1,
-    --     have B : differentiable_on 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
-    --       (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I),
-    --     { apply (A.differentiable_on le_top).mono,
-    --       have : ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ⊆
-    --         (i.1.symm.trans j.1).source := inter_subset_left _ _,
-    --       exact inter_subset_inter (preimage_mono this) (subset.refl (range I)) },
-    --     apply B,
-    --     simpa only [] with mfld_simps using hx },
-    --   show differentiable_within_at 𝕜 (I ∘ u.1 ∘ j.1.symm ∘ I.symm)
-    --     (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I)
-    --     ((I ∘ j.1 ∘ i.1.symm ∘ I.symm) (I (i.1 x))),
-    --   { have A : cont_diff_on 𝕜 ∞
-    --       (I ∘ (j.1.symm.trans u.1) ∘ I.symm)
-    --       (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I) :=
-    --     (has_groupoid.compatible (cont_diff_groupoid ∞ I) j.2 u.2).1,
-    --     apply A.differentiable_on le_top,
-    --     rw [local_homeomorph.trans_source] at hx,
-    --     simp only with mfld_simps,
-    --     exact hx.2 },
-    --   show (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
-    --     ⊆ (I ∘ j.1 ∘ i.1.symm ∘ I.symm) ⁻¹' (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I),
-    --   { assume y hy,
-    --     simp only with mfld_simps at hy,
-    --     rw [local_homeomorph.left_inv] at hy,
-    --     { simp only [hy] with mfld_simps },
-    --     { exact hy.1.1.2 } } },
-    -- have B : fderiv_within 𝕜 ((I ∘ u.1 ∘ j.1.symm ∘ I.symm)
-    --                       ∘ (I ∘ j.1 ∘ i.1.symm ∘ I.symm))
-    --          (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
-    --          (I (i.1 x))
-    --          = fderiv_within 𝕜 (I ∘ u.1 ∘ i.1.symm ∘ I.symm)
-    --          (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
-    --          (I (i.1 x)),
-    -- { have E :
-    --     ∀ y ∈ (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I),
-    --       ((I ∘ u.1 ∘ j.1.symm ∘ I.symm) ∘ (I ∘ j.1 ∘ i.1.symm ∘ I.symm)) y =
-    --         (I ∘ u.1 ∘ i.1.symm ∘ I.symm) y,
-    --   { assume y hy,
-    --     simp only [function.comp_app, model_with_corners.left_inv],
-    --     rw [j.1.left_inv],
-    --     exact hy.1.1.2 },
-    --   exact fderiv_within_congr U E (E _ M) },
-    -- have C : fderiv_within 𝕜 (I ∘ u.1 ∘ i.1.symm ∘ I.symm)
-    --          (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
-    --          (I (i.1 x)) =
-    --          fderiv_within 𝕜 (I ∘ u.1 ∘ i.1.symm ∘ I.symm)
-    --          (range I) (I (i.1 x)),
-    -- { rw inter_comm,
-    --   apply fderiv_within_inter _ I.unique_diff_at_image,
-    --   apply I.continuous_symm.continuous_at.preimage_mem_nhds
-    --     (is_open.mem_nhds (local_homeomorph.open_source _) _),
-    --   simpa only [model_with_corners.left_inv] using hx },
-    -- have D : fderiv_within 𝕜 (I ∘ u.1 ∘ j.1.symm ∘ I.symm)
-    --   (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I) ((I ∘ j.1 ∘ i.1.symm ∘ I.symm) (I (i.1 x))) =
-    --   fderiv_within 𝕜 (I ∘ u.1 ∘ j.1.symm ∘ I.symm) (range I) ((I ∘ j.1 ∘ i.1.symm ∘ I.symm) (I (i.1 x))),
-    -- { rw inter_comm,
-    --   apply fderiv_within_inter _ I.unique_diff_at_image,
-    --   apply I.continuous_symm.continuous_at.preimage_mem_nhds
-    --     (is_open.mem_nhds (local_homeomorph.open_source _) _),
-    --   rw [local_homeomorph.trans_source] at hx,
-    --   simp only with mfld_simps,
-    --   exact hx.2 },
-    -- have E : fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
-    --            (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
-    --            (I (i.1 x)) =
-    --          fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm) (range I) (I (i.1 x)),
-    -- { rw inter_comm,
-    --   apply fderiv_within_inter _ I.unique_diff_at_image,
-    --   apply I.continuous_symm.continuous_at.preimage_mem_nhds
-    --     (is_open.mem_nhds (local_homeomorph.open_source _) _),
-    --   simpa only [model_with_corners.left_inv] using hx },
-    -- rw [B, C, D, E] at A,
-    -- simp only [A, continuous_linear_map.coe_comp'] with mfld_simps,
+  coord_change_comp := begin
+    rintro i j k x ⟨⟨hxi, hxj⟩, hxk⟩ v,
+    rw [fderiv_within_fderiv_within, filter.eventually_eq.fderiv_within_eq],
+    { exact I.unique_diff_at_image },
+    { have := i.1.extend_preimage_mem_nhds I hxi (j.1.extend_source_mem_nhds I hxj),
+      filter_upwards [nhds_within_le_nhds this] with y hy,
+      simp_rw [function.comp_apply, (j.1.extend I).left_inv hy] },
+    { simp_rw [function.comp_apply, i.1.extend_left_inv I hxi, j.1.extend_left_inv I hxj] },
+    { exact (k.1.cont_diff_within_at_extend_coord_change' j.1 I (subset_maximal_atlas I k.2)
+        (subset_maximal_atlas I j.2) hxk hxj).differentiable_within_at le_top },
+    { exact (j.1.cont_diff_within_at_extend_coord_change' i.1 I (subset_maximal_atlas I j.2)
+        (subset_maximal_atlas I i.2) hxj hxi).differentiable_within_at le_top },
+    { intros x hx, exact mem_range_self _ },
+    { exact I.unique_diff_at_image },
+    { rw [function.comp_apply, i.1.extend_left_inv I hxi] }
   end }
-
---   def to_topological_vector_bundle_core : topological_vector_bundle_core 𝕜 M F (atlas H M) :=
--- { base_set := λ i, i.1.source,
---   is_open_base_set := λ i, i.1.open_source,
---   index_at := achart H,
---   mem_base_set_at := λ x, mem_chart_source H x,
---   coord_change := λ i j x, Z.coord_change i j (i.1 x),
---   coord_change_self := λ i x hx v, Z.coord_change_self i (i.1 x) (i.1.map_source hx) v,
---   coord_change_comp := λ i j k x ⟨⟨hx1, hx2⟩, hx3⟩ v, begin
---     have := Z.coord_change_comp i j k (i.1 x) _ v,
---     convert this using 2,
---     { simp only [hx1] with mfld_simps },
---     { simp only [hx1, hx2, hx3] with mfld_simps }
---   end,
---   coord_change_continuous := λ i j, begin
---     refine ((Z.coord_change_continuous i j).comp' i.1.continuous_on).mono _,
---     rintros p ⟨hp₁, hp₂⟩,
---     refine ⟨hp₁, i.1.maps_to hp₁, _⟩,
---     simp only [i.1.left_inv hp₁, hp₂] with mfld_simps
---   end }
-
--- { coord_change := λ i j x, (fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm) (range I) (I x)),
---   coord_change_smooth_clm := λ i j,
---   begin
---     rw I.image_eq,
---     have A : cont_diff_on 𝕜 ∞
---       (I ∘ (i.1.symm.trans j.1) ∘ I.symm)
---       (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) :=
---       (has_groupoid.compatible (cont_diff_groupoid ∞ I) i.2 j.2).1,
---     have B : unique_diff_on 𝕜 (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) :=
---       I.unique_diff_preimage_source,
---     have C : cont_diff_on 𝕜 ∞
---       (λ (p : E × E), (fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
---             (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) p.1 : E → E) p.2)
---       ((I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) ×ˢ univ) :=
---       cont_diff_on_fderiv_within_apply A B le_top,
---     have D : ∀ x ∈ (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I),
---       fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
---             (range I) x =
---       fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
---             (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) x,
---     { assume x hx,
---       have N : I.symm ⁻¹' (i.1.symm.trans j.1).source ∈ nhds x :=
---         I.continuous_symm.continuous_at.preimage_mem_nhds
---           (is_open.mem_nhds (local_homeomorph.open_source _) hx.1),
---       symmetry,
---       rw inter_comm,
---       exact fderiv_within_inter N (I.unique_diff _ hx.2) },
---     apply (A.fderiv_within B le_top).congr,
---     assume x hx,
---     simp only with mfld_simps at hx,
---     simp only [hx, D] with mfld_simps,
---   end,
---   coord_change_self := λ i x hx v, begin
---     /- Locally, a self-change of coordinate is just the identity, thus its derivative is the
---     identity. One just needs to write this carefully, paying attention to the sets where the
---     functions are defined. -/
---     have A : I.symm ⁻¹' (i.1.symm.trans i.1).source ∩ range I ∈ 𝓝[range I] (I x),
---     { rw inter_comm,
---       apply inter_mem_nhds_within,
---       apply I.continuous_symm.continuous_at.preimage_mem_nhds
---         (is_open.mem_nhds (local_homeomorph.open_source _) _),
---       simp only [hx, i.1.map_target] with mfld_simps },
---     have B : ∀ᶠ y in 𝓝[range I] (I x),
---       (I ∘ i.1 ∘ i.1.symm ∘ I.symm) y = (id : E → E) y,
---     { filter_upwards [A] with _ hy,
---       rw ← I.image_eq at hy,
---       rcases hy with ⟨z, hz⟩,
---       simp only with mfld_simps at hz,
---       simp only [hz.2.symm, hz.1] with mfld_simps, },
---     have C : fderiv_within 𝕜 (I ∘ i.1 ∘ i.1.symm ∘ I.symm) (range I) (I x) =
---              fderiv_within 𝕜 (id : E → E) (range I) (I x) :=
---       filter.eventually_eq.fderiv_within_eq I.unique_diff_at_image B
---       (by simp only [hx] with mfld_simps),
---     rw fderiv_within_id I.unique_diff_at_image at C,
---     rw C,
---     refl
---   end,
---   coord_change_comp := λ i j u x hx, begin
---     /- The cocycle property is just the fact that the derivative of a composition is the product of
---     the derivatives. One needs however to check that all the functions one considers are smooth, and
---     to pay attention to the domains where these functions are defined, making this proof a little
---     bit cumbersome although there is nothing complicated here. -/
---     have M : I x ∈
---       (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I) :=
---     ⟨by simpa only [mem_preimage, model_with_corners.left_inv] using hx, mem_range_self _⟩,
---     have U : unique_diff_within_at 𝕜
---       (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I) (I x) :=
---       I.unique_diff_preimage_source _ M,
---     have A : fderiv_within 𝕜 ((I ∘ u.1 ∘ j.1.symm ∘ I.symm) ∘ (I ∘ j.1 ∘ i.1.symm ∘ I.symm))
---              (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
---              (I x)
---       = (fderiv_within 𝕜 (I ∘ u.1 ∘ j.1.symm ∘ I.symm)
---              (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I)
---              ((I ∘ j.1 ∘ i.1.symm ∘ I.symm) (I x))).comp
---         (fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
---              (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
---              (I x)),
---     { apply fderiv_within.comp _ _ _ _ U,
---       show differentiable_within_at 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
---         (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
---         (I x),
---       { have A : cont_diff_on 𝕜 ∞
---           (I ∘ (i.1.symm.trans j.1) ∘ I.symm)
---           (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) :=
---         (has_groupoid.compatible (cont_diff_groupoid ∞ I) i.2 j.2).1,
---         have B : differentiable_on 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
---           (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I),
---         { apply (A.differentiable_on le_top).mono,
---           have : ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ⊆
---             (i.1.symm.trans j.1).source := inter_subset_left _ _,
---           exact inter_subset_inter (preimage_mono this) (subset.refl (range I)) },
---         apply B,
---         simpa only [] with mfld_simps using hx },
---       show differentiable_within_at 𝕜 (I ∘ u.1 ∘ j.1.symm ∘ I.symm)
---         (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I)
---         ((I ∘ j.1 ∘ i.1.symm ∘ I.symm) (I x)),
---       { have A : cont_diff_on 𝕜 ∞
---           (I ∘ (j.1.symm.trans u.1) ∘ I.symm)
---           (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I) :=
---         (has_groupoid.compatible (cont_diff_groupoid ∞ I) j.2 u.2).1,
---         apply A.differentiable_on le_top,
---         rw [local_homeomorph.trans_source] at hx,
---         simp only with mfld_simps,
---         exact hx.2 },
---       show (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
---         ⊆ (I ∘ j.1 ∘ i.1.symm ∘ I.symm) ⁻¹' (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I),
---       { assume y hy,
---         simp only with mfld_simps at hy,
---         rw [local_homeomorph.left_inv] at hy,
---         { simp only [hy] with mfld_simps },
---         { exact hy.1.1.2 } } },
---     have B : fderiv_within 𝕜 ((I ∘ u.1 ∘ j.1.symm ∘ I.symm)
---                           ∘ (I ∘ j.1 ∘ i.1.symm ∘ I.symm))
---              (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
---              (I x)
---              = fderiv_within 𝕜 (I ∘ u.1 ∘ i.1.symm ∘ I.symm)
---              (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
---              (I x),
---     { have E :
---         ∀ y ∈ (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I),
---           ((I ∘ u.1 ∘ j.1.symm ∘ I.symm) ∘ (I ∘ j.1 ∘ i.1.symm ∘ I.symm)) y =
---             (I ∘ u.1 ∘ i.1.symm ∘ I.symm) y,
---       { assume y hy,
---         simp only [function.comp_app, model_with_corners.left_inv],
---         rw [j.1.left_inv],
---         exact hy.1.1.2 },
---       exact fderiv_within_congr U E (E _ M) },
---     have C : fderiv_within 𝕜 (I ∘ u.1 ∘ i.1.symm ∘ I.symm)
---              (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
---              (I x) =
---              fderiv_within 𝕜 (I ∘ u.1 ∘ i.1.symm ∘ I.symm)
---              (range I) (I x),
---     { rw inter_comm,
---       apply fderiv_within_inter _ I.unique_diff_at_image,
---       apply I.continuous_symm.continuous_at.preimage_mem_nhds
---         (is_open.mem_nhds (local_homeomorph.open_source _) _),
---       simpa only [model_with_corners.left_inv] using hx },
---     have D : fderiv_within 𝕜 (I ∘ u.1 ∘ j.1.symm ∘ I.symm)
---       (I.symm ⁻¹' (j.1.symm.trans u.1).source ∩ range I) ((I ∘ j.1 ∘ i.1.symm ∘ I.symm) (I x)) =
---       fderiv_within 𝕜 (I ∘ u.1 ∘ j.1.symm ∘ I.symm) (range I) ((I ∘ j.1 ∘ i.1.symm ∘ I.symm) (I x)),
---     { rw inter_comm,
---       apply fderiv_within_inter _ I.unique_diff_at_image,
---       apply I.continuous_symm.continuous_at.preimage_mem_nhds
---         (is_open.mem_nhds (local_homeomorph.open_source _) _),
---       rw [local_homeomorph.trans_source] at hx,
---       simp only with mfld_simps,
---       exact hx.2 },
---     have E : fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
---                (I.symm ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I)
---                (I x) =
---              fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm) (range I) (I x),
---     { rw inter_comm,
---       apply fderiv_within_inter _ I.unique_diff_at_image,
---       apply I.continuous_symm.continuous_at.preimage_mem_nhds
---         (is_open.mem_nhds (local_homeomorph.open_source _) _),
---       simpa only [model_with_corners.left_inv] using hx },
---     rw [B, C, D, E] at A,
---     simp only [A, continuous_linear_map.coe_comp'] with mfld_simps,
---   end }
 
 variables {M}
 include I
@@ -683,8 +473,13 @@ instance : vector_bundle 𝕜 E (tangent_space I : M → Type*) :=
 instance tangent_bundle_core.is_smooth : (tangent_bundle_core I M).is_smooth I :=
 begin
   refine ⟨λ i j, _⟩,
-  rw [smooth_on, cont_mdiff_on_iff_of_mem_maximal_atlas
-    (structure_groupoid.subset_maximal_atlas _ i.2)],
+  rw [smooth_on, cont_mdiff_on_iff_source_of_mem_maximal_atlas
+    (structure_groupoid.subset_maximal_atlas _ i.2), cont_mdiff_on_iff_cont_diff_on],
+  refine (cont_diff_on_fderiv_coord_change I i j).congr _,
+  have := cont_diff_on_fderiv_coord_change I i j,
+  convert this,
+  ext x v,
+  simp_rw [function.comp_apply, tangent_bundle_core_coord_change],
 end
 
 instance tangent_bundle.smooth_vector_bundle :

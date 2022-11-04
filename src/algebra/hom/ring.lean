@@ -7,6 +7,7 @@ import algebra.ring.basic
 import algebra.divisibility
 import data.pi.algebra
 import algebra.hom.units
+import data.set.basic
 
 /-!
 # Homomorphisms of semirings and rings

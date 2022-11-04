@@ -1,10 +1,12 @@
 import category_theory.limits.preserves.shapes.zero
-import category_theory.abelian.homology
+import category_theory.limits.preserves.finite
+import category_theory.limits.shapes.finite_limits
+import category_theory.limits.shapes.kernels
+import tactic.equiv_rw
 
 noncomputable theory
 
 open category_theory category_theory.category category_theory.limits
-  category_theory.preadditive
 open_locale zero_object
 
 variables {C D : Type*} [category C] [category D]
@@ -12,6 +14,8 @@ variables {C D : Type*} [category C] [category D]
 namespace category_theory
 
 namespace functor
+
+open limits
 
 variable (F : C ⥤ D)
 
@@ -32,7 +36,7 @@ class preserves_homology (F : C ⥤ D) [has_zero_morphisms C] [has_zero_morphism
 
 @[priority 100]
 instance preserves_homology_of_exact [has_zero_morphisms C] [has_zero_morphisms D] (F : C ⥤ D)
-  [F.preserves_zero_morphisms] [F.exact]:
+  [F.preserves_zero_morphisms] [F.exact] :
   preserves_homology F :=
 { zero := infer_instance,
   preserves_kernels := infer_instance,
@@ -53,13 +57,9 @@ structure short_complex [has_zero_morphisms C] :=
 (g : X₂ ⟶ X₃)
 (zero : f ≫ g = 0)
 
-variable {C}
+variables {C} [has_zero_morphisms C]
 
 namespace short_complex
-
-section
-
-variable [has_zero_morphisms C]
 
 instance [has_zero_object C] : inhabited (short_complex C) :=
 ⟨short_complex.mk (0 : 0 ⟶ 0) (0 : 0 ⟶ 0) comp_zero⟩
@@ -184,7 +184,7 @@ def op_equiv : (short_complex C)ᵒᵖ ≌ short_complex Cᵒᵖ :=
 { functor := op_functor C,
   inverse := unop_functor C,
   unit_iso := nat_iso.of_components (λ S, (op_unop (opposite.unop S)).op)
-  (λ S₁ S₂ f, quiver.hom.unop_inj (by tidy)),
+    (λ S₁ S₂ f, quiver.hom.unop_inj (by tidy)),
   counit_iso := nat_iso.of_components (unop_op) (by tidy), }
 
 variables (S₁ S₂) {C}
@@ -198,45 +198,6 @@ def hom.zero : S₁ ⟶ S₂ :=
 instance : has_zero (S₁ ⟶ S₂) := ⟨hom.zero _ _⟩
 
 instance : has_zero_morphisms (short_complex C) := { }
-
-end
-
-section preadditive
-
-variables [preadditive C] {S₁ S₂ : short_complex C}
-
-/-- The negation of morphisms of short complexes in `C` is obtained by the
-  taking the respective negations of morphisms in the preadditive category `C`. -/
-@[simps]
-def hom.neg (φ : S₁ ⟶ S₂) : S₁ ⟶ S₂ :=
-⟨-φ.τ₁, -φ.τ₂, -φ.τ₃,
-    by simp only [neg_comp, comp_neg, neg_inj, hom.comm₁₂],
-    by simp only [neg_comp, comp_neg, neg_inj, hom.comm₂₃]⟩
-
-/-- The addition of morphisms in `short_complex C` is defined by adding
-morphisms in the preadditive category `C`. -/
-@[simps]
-def hom.add (φ φ' : S₁ ⟶ S₂) : S₁ ⟶ S₂ :=
-⟨φ.τ₁ + φ'.τ₁, φ.τ₂ + φ'.τ₂, φ.τ₃ + φ'.τ₃,
-    by simp only [add_comp, comp_add, hom.comm₁₂],
-    by simp only [add_comp, comp_add, hom.comm₂₃]⟩
-
-@[simps]
-instance : add_comm_group (S₁ ⟶ S₂) :=
-{ add := hom.add,
-  zero := hom.zero S₁ S₂,
-  neg := hom.neg,
-  add_assoc := λ φ φ' φ'', by { ext; apply add_assoc, },
-  zero_add := λ φ, by { ext; apply zero_add, },
-  add_zero := λ φ, by { ext; apply add_zero, },
-  add_left_neg := λ φ, by { ext; apply add_left_neg, },
-  add_comm := λ φ φ', by { ext; apply add_comm, }, }
-
-instance : preadditive (short_complex C) := { }
-
-end preadditive
-
-variables [has_zero_morphisms C] (S : short_complex C)
 
 /-- If `S : short_complex C`, `h : homology_full_data S` consists of
 various fields which expresses that `h.H` is the homology of `S`.
@@ -257,6 +218,7 @@ The primary use of this structure is for the internals of
 homology API. In order to do computations, it is advisable
 to use `homology_data` which involves only the expression
 of the homology as a quotient of a subobject. -/
+@[nolint has_nonempty_instance]
 structure homology_full_data :=
 (K Q H : C)
 (i : K ⟶ S.X₂)
@@ -651,15 +613,13 @@ end homology_full_data
 
 end short_complex
 
-section
-
-variables [has_zero_morphisms C] (C)
+variable (C)
 
 /-- In order to study the functoriality of the homology of short complexes,
 and its behaviour with respect to different choices of `homology_full_data`,
 the category `short_complex_with_homology C' is introduced, it consists
 of short complexes `S` equipped with `ho : S.homology_full_data`. -/
-@[ext]
+@[nolint has_nonempty_instance]
 structure short_complex_with_homology :=
 (S : short_complex C)
 (ho : S.homology_full_data)
@@ -854,13 +814,9 @@ by tidy
 -- TODO op_equiv : (short_complex_with_homology C)ᵒᵖ ≌ short_complex_with_homology Cᵒᵖ
 end short_complex_with_homology
 
-end
-
 namespace short_complex
 
-section
-
-variables [has_zero_morphisms C] {C} (S : short_complex C) {S₁ S₂ S₃ : short_complex C}
+variables {C} (S : short_complex C) {S₁ S₂ S₃ : short_complex C}
 
 section
 variables [has_homology S] [has_homology S₁] [has_homology S₂] [has_homology S₃]
@@ -955,7 +911,7 @@ end homology_full_data
 of a morphism in `short_complex_with_homology C` betwen the objects corresponding
 to `H₁` and `H₂`. This datum allows the computation of the map in homology
 induced by `φ`, see `homology_map_full_data.map_eq`. -/
-@[ext]
+@[ext, nolint has_nonempty_instance]
 structure homology_map_full_data
   (φ : S₁ ⟶ S₂) (H₁ : homology_full_data S₁) (H₂ : homology_full_data S₂) :=
 (ψ : short_complex_with_homology.mk S₁ H₁ ⟶ short_complex_with_homology.mk S₂ H₂)
@@ -1025,137 +981,7 @@ def homology_functor [category_with_homology C] :
 { obj := λ S, S.homology,
   map := λ S₁ S₂, homology_map, }
 
-end
-
-section abelian
-
-/-- change kernel.lift to get better definitional properties -/
-abbreviation kernel.lift' {C : Type*} [category C] [has_zero_morphisms C]
-  {W X Y : C} (f : X ⟶ Y) [has_kernel f] (k : W ⟶ X) (h : k ≫ f = 0) : W ⟶ kernel f :=
-(kernel_is_kernel f).lift (kernel_fork.of_ι k h)
-
-@[simp, reassoc]
-lemma kernel.lift'_ι {C : Type*} [category C] [has_zero_morphisms C]
-  {W X Y : C} (f : X ⟶ Y) [has_kernel f] (k : W ⟶ X) (h : k ≫ f = 0) :
-  kernel.lift' f k h ≫ kernel.ι f = k :=
-(kernel_is_kernel f).fac (kernel_fork.of_ι k h) walking_parallel_pair.zero
-
-/-- change cokernel.desc to get better definitional properties -/
-abbreviation cokernel.desc' {C : Type*} [category C] [has_zero_morphisms C]
-  {W X Y : C} (f : X ⟶ Y) [has_cokernel f] (k : Y ⟶ W) (h : f ≫ k = 0) : cokernel f ⟶ W :=
-(cokernel_is_cokernel f).desc (cokernel_cofork.of_π k h)
-
-@[simp, reassoc]
-lemma cokernel.π_desc' {C : Type*} [category C] [has_zero_morphisms C]
-  {W X Y : C} (f : X ⟶ Y) [has_cokernel f] (k : Y ⟶ W) (h : f ≫ k = 0) :
-  cokernel.π f ≫ cokernel.desc' f k h = k :=
-(cokernel_is_cokernel f).fac (cokernel_cofork.of_π k h) walking_parallel_pair.one
-
-@[priority 100]
-instance category_with_homology_of_abelian [abelian C] : category_with_homology C :=
-λ S, begin
-  let K := kernel S.g,
-  let Q := cokernel S.f,
-  let f' : S.X₁ ⟶ K := kernel.lift' _ _ S.zero,
-  let g' : Q ⟶ S.X₃ := cokernel.desc' _ _ S.zero,
-  let H := cokernel f',
-  let i : K ⟶ S.X₂ := kernel.ι S.g,
-  let p : S.X₂ ⟶ Q := cokernel.π S.f,
-  let π : K ⟶ H := cokernel.π f',
-  let ι : H ⟶ Q := cokernel.desc' _ (i ≫ p)
-      (by simp only [kernel.lift'_ι_assoc, cokernel.condition]),
-  have π_ι : π ≫ ι = i ≫ p := cokernel.π_desc' _ _ _,
-  have hi₀ : i ≫ S.g = 0 := kernel.condition _,
-  have hp₀ : S.f ≫ p = 0 := cokernel.condition _,
-  let hi : is_limit (kernel_fork.of_ι i hi₀) := kernel_is_kernel _,
-  let hp : is_colimit (cokernel_cofork.of_π p hp₀) := cokernel_is_cokernel _,
-  have hπ₀ : f' ≫ π = 0 := cokernel.condition _,
-  have hι₀ : ι ≫ g' = 0,
-  { simp only [← cancel_epi (cokernel.π (kernel.lift' S.g S.f S.zero)),
-      cokernel.π_desc'_assoc, assoc, cokernel.π_desc', kernel.condition, comp_zero], },
-  let hπ : is_colimit (cokernel_cofork.of_π π hπ₀) := cokernel_is_cokernel _,
-  /- The rest of the proof is the verification of `hι`.
-
-    The main idea is to construct an isomorphism `e : H ≅ kernel g'`. (By definition,
-    `H` is the cokernel of `f'`.), which is a composition of various isomorphisms
-    `H ≅ cokernel α`, `e₁ : cokernel α ≅ abelian.coimage (i ≫ p)`,
-    the isomorphism `abelian.coimage_iso_image (i ≫ p)`,
-    `e₂ : abelian.image (i ≫ p) ≅ kernel β`, and `kernel β ≅ kernel g'`.
-
-    Here `α : B ⟶ K` is the canonical map from `B := abelian.image S.f`,
-    i.e. `α` is the inclusion of cycles in boundaries). The isomorphism
-    `H ≅ cokernel α` (which is `cokernel f' ≅ cokernel α`) is easily obtained
-    from the factorisation `fac₁ : f' = f'' ≫ α` and the fact that `f''` is an epi).
-    The isomorphism `e₁ : cokernel α ≅ abelian.coimage (i ≫ p)` follows from the
-    definition of the coimage as a cokernel and the construction of an
-    isomorphism `B ≅ kernel (i ≫ p)`.
-
-    Similarly `β : Q ⟶ B'` is the canonical map to `B' := abelian.coimage S.g`, and
-    all the arguments are dual. -/
-  let B := abelian.image S.f,
-  let B' := abelian.coimage S.g,
-  let i' : B ⟶ S.X₂ := abelian.image.ι S.f,
-  let p' : S.X₂ ⟶ B' := abelian.coimage.π S.g,
-  let f'' : S.X₁ ⟶ B := abelian.factor_thru_image S.f,
-  let g'' : B' ⟶ S.X₃ := abelian.factor_thru_coimage S.g,
-  let α : B ⟶ K := kernel.lift' _ i'
-    (by simp only [← cancel_epi f'', abelian.image.fac_assoc, zero, comp_zero]),
-  let β : Q ⟶ B' := cokernel.desc' _ p'
-    (by simp only [← cancel_mono g'', assoc, cokernel.π_desc, zero, zero_comp]),
-  have fac₁ : f' = f'' ≫ α,
-  { simp only [← cancel_mono i, assoc, abelian.image.fac, kernel.lift'_ι], },
-  have fac₂ : β ≫ g'' = g',
-  { simp only [← cancel_epi p, cokernel.π_desc', cokernel.π_desc, cokernel.π_desc'_assoc], },
-  haveI : mono (α ≫ i) := by { rw [show α ≫ i = i', by simp], apply_instance, },
-  haveI : epi (p ≫ β) := by { rw [show p ≫ β = p', by simp], apply_instance, },
-  haveI : mono α := mono_of_mono α i,
-  haveI : epi β := epi_of_epi p β,
-  let hB : is_limit (kernel_fork.of_ι α (show α ≫ i ≫ p = 0, by simp)) :=
-    kernel_fork.is_limit.of_ι _ _
-      (λ A k hk, kernel.lift' _ (k ≫ i) (by rw [assoc, hk]))
-      (λ A k hk, by simp only [← cancel_mono i, assoc, kernel.lift'_ι])
-      (λ A k hk b hb, by simp only [← cancel_mono α, ← cancel_mono i, hb, assoc, kernel.lift'_ι]),
-  let hB' : is_colimit (cokernel_cofork.of_π β (show (i ≫ p) ≫ β = 0, by simp)) :=
-    cokernel_cofork.is_colimit.of_π _ _
-      (λ A k hk, cokernel.desc' _ (p ≫ k) (by rw [← assoc, hk]))
-      (λ A k hk, by simp only [← cancel_epi p, cokernel.π_desc'_assoc, cokernel.π_desc'])
-      (λ A k hk b hb, by simp only [← cancel_epi β, ← cancel_epi p, hb,
-          cokernel.π_desc'_assoc, cokernel.π_desc']),
-  let eB : B ≅ kernel (i ≫ p) :=
-    is_limit.cone_point_unique_up_to_iso hB (kernel_is_kernel (i ≫ p)),
-  let eB' : cokernel (i ≫ p) ≅ B' :=
-    is_colimit.cocone_point_unique_up_to_iso (cokernel_is_cokernel (i ≫ p)) hB',
-  have fac₃ : eB.hom ≫ kernel.ι (i ≫ p) = α :=
-    is_limit.cone_point_unique_up_to_iso_hom_comp _ _ walking_parallel_pair.zero,
-  have fac₄ : cokernel.π (i ≫ p) ≫ eB'.hom = β :=
-    is_colimit.comp_cocone_point_unique_up_to_iso_hom
-      (cokernel_is_cokernel _) _ walking_parallel_pair.one,
-  let e₁ : cokernel α ≅ abelian.coimage (i ≫ p) :=
-    cokernel_iso_of_eq fac₃.symm ≪≫ cokernel_epi_comp _ _,
-  let e₂ : abelian.image (i ≫ p) ≅ kernel β :=
-    (kernel_comp_mono _ _).symm ≪≫ kernel_iso_of_eq fac₄,
-  let e : H ≅ kernel g' := cokernel_iso_of_eq fac₁ ≪≫ cokernel_epi_comp _ _ ≪≫ e₁ ≪≫
-    abelian.coimage_iso_image (i ≫ p) ≪≫ e₂ ≪≫
-    (kernel_comp_mono _ _ ).symm ≪≫ kernel_iso_of_eq fac₂,
-  have he : e.hom ≫ kernel.ι _ = ι,
-  { ext,
-    dsimp,
-    simp only [lift_comp_kernel_iso_of_eq_hom, cokernel_iso_of_eq_hom_comp_desc_assoc, assoc,
-      kernel.lift_ι, cokernel.π_desc_assoc, abelian.coimage_image_factorisation,
-      cokernel.π_desc'], },
-  let hι : is_limit (kernel_fork.of_ι ι hι₀) := is_limit.of_iso_limit (kernel_is_kernel _)
-    (by { symmetry, exact fork.ext e he, }),
-  exact has_homology.mk' ⟨K, Q, H, i, p, π, ι, π_ι, hi₀, hp₀, hi, hp, hπ₀, hι₀, hπ, hι⟩,
-end
-
-instance [abelian C] (S : short_complex C) : inhabited (S.homology_full_data) :=
-⟨(has_homology.cond S).some⟩
-
-end abelian
-
-section
-
-variables [has_zero_morphisms C] (S : short_complex C) {S₁ S₂ : short_complex C}
+variable {C}
 
 def exact : Prop :=
 (∃ (h : homology_full_data S), is_zero h.H)
@@ -1187,65 +1013,12 @@ begin
   { exact λ h, is_zero.of_iso h (homology_map_iso e), },
 end
 
-end
-
-end short_complex
-
-namespace short_complex_with_homology
-
-instance [abelian C] : inhabited (short_complex_with_homology C) := ⟨mk default default⟩
-
-section preadditive
-
-variables [preadditive C] (Z₁ Z₂ : short_complex_with_homology C)
-
-variables {Z₁ Z₂}
-
-/-- The negation of morphisms in `short_complex_with_homology C` is obtained
-  by negating the data. -/
-@[simps]
-def hom.neg (ψ : Z₁ ⟶ Z₂) : Z₁ ⟶ Z₂ :=
-⟨-ψ.φ, -ψ.φK, -ψ.φQ, -ψ.φH, by simp [ψ.commi], by simp [ψ.commp], by simp [ψ.commf'],
-  by simp [ψ.commg'], by simp [ψ.commπ], by simp [ψ.commι]⟩
-
-/-- The addition of morphisms in `short_complex_with_homology C` is obtained
-  by adding the data. -/
-@[simps]
-def hom.add (ψ ψ' : Z₁ ⟶ Z₂) : Z₁ ⟶ Z₂ :=
-⟨ψ.φ + ψ'.φ, ψ.φK + ψ'.φK, ψ.φQ + ψ'.φQ, ψ.φH + ψ'.φH, by simp [hom.commi], by simp [hom.commp],
-  by simp [hom.commf'], by simp [hom.commg'], by simp [hom.commπ], by simp [hom.commι]⟩
-
-@[simps]
-instance : add_comm_group (Z₁ ⟶ Z₂) :=
-{ add := hom.add,
-  zero := hom.zero Z₁ Z₂,
-  neg := hom.neg,
-  add_assoc := λ φ φ' φ'', by { ext; apply add_assoc, },
-  zero_add := λ φ, by { ext; apply zero_add, },
-  add_zero := λ φ, by { ext; apply add_zero, },
-  add_left_neg := λ φ, by { ext; apply add_left_neg, },
-  add_comm := λ φ φ', by { ext; apply add_comm, }, }
-
-instance : preadditive (short_complex_with_homology C) := { }
-
-instance : functor.additive (short_complex_with_homology.forget C) := { }
-
-end preadditive
-
-end short_complex_with_homology
-
-namespace short_complex
-
-section
-
-variables [has_zero_morphisms C] (S : short_complex C)
-
 /-- If `S : short_complex C`, a candidate computation of the homology of `S` can
 be given by the datum of two objects `K` and `H`, where `H` is a part of
 a kernel fork of the morphism `S.g : S.X₂ ⟶ S.X₃`, and `H` is a part of a
 cokernel cofork of a morphism `f' : S.X₁ ⟶ K` compatible with `f`. This data
 shall be an `homology_data S` when the fork and cofork are limit. -/
-@[ext]
+@[nolint has_nonempty_instance]
 structure homology_pre_data :=
 (K H : C)
 (i : K ⟶ S.X₂)
@@ -1285,6 +1058,7 @@ end homology_pre_data
 than `homology_full_data S`. It consists only of the data of a kernel `h.H` of `S.g`,
 and a cokernel `h.K` of the morphism `S.f' : S.X₁ ⟶ h.H` induced by `S.f`. When
 `[has_homology S]` holds, it is sufficent in order to compute the homology of `S`. -/
+@[nolint has_nonempty_instance]
 structure homology_data extends homology_pre_data S :=
 (fork_is_limit : is_limit to_homology_pre_data.fork)
 (cofork_is_colimit : is_colimit to_homology_pre_data.cofork)
@@ -1332,25 +1106,7 @@ def map (h : homology_data S) (F : C ⥤ D) [has_zero_morphisms D] [F.preserves_
 
 end homology_data
 
-end
-
-section abelian
-
-instance homology_data.inhabited [abelian C] (S : short_complex C) :
-  inhabited (homology_data S) :=
-⟨homology_data.of_full_data default⟩
-
-instance homology_pre_data.inhabited [abelian C] (S : short_complex C) :
-  inhabited (homology_pre_data S) :=
-⟨homology_data.to_homology_pre_data default⟩
-
-end abelian
-
 end short_complex
-
-section
-
-variables [has_zero_morphisms C] (C)
 
 /-- In order to allow a convenient way to computation of the homology of
 short complexes, and to compute maps in homology, the category
@@ -1358,6 +1114,7 @@ short complexes, and to compute maps in homology, the category
 similar, but weaker than that of `short_complex_with_homology C`.
 An object in this category consists of an object `S : short_complex C`
 such that `[has_homology S]` and equipped with `ho : S.homology_data`. -/
+@[nolint has_nonempty_instance]
 structure short_complex_with_homology' :=
 (S : short_complex C)
 [hS : S.has_homology]
@@ -1551,25 +1308,16 @@ def forget' : short_complex_with_homology C ⥤
 
 end short_complex_with_homology
 
-end
-
-section abelian
-
-instance short_complex_with_homology'.inhabited [abelian C] :
-  inhabited (short_complex_with_homology' C) :=
-⟨(short_complex_with_homology.forget' C).obj default⟩
-
-end abelian
-
 namespace category_theory
 
 namespace functor
 
-variables [has_zero_morphisms C] [has_zero_morphisms D] (F : C ⥤ D)
+variables {C} [has_zero_morphisms D] (F : C ⥤ D)
   [preserves_zero_morphisms F] (S : short_complex C)
 
 class preserves_homology_of :=
 (condition' [] : ∀ (h : S.homology_full_data), h.is_preserved_by F)
+
 /- TODO : show that it suffices that one of these is sufficient, or more
 generally that there is an iff associated to an iso in `short_complex_with_homology`.
 

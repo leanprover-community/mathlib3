@@ -309,6 +309,20 @@ lemma chain'.append_overlap {l₁ l₂ l₃ : list α}
 h₁.append h₂.right_of_append $
   by simpa only [last'_append_of_ne_nil _ hn] using (chain'_append.1 h₂).2.2
 
+lemma chain'_join : ∀ {L : list (list α)}, [] ∉ L →
+  (chain' R L.join ↔ (∀ l ∈ L, chain' R l) ∧
+    L.chain' (λ l₁ l₂, ∀ (x ∈ l₁.last') (y ∈ l₂.head'), R x y))
+| [] _ := by simp
+| [l] _ := by simp [join]
+| (l₁ :: l₂ :: L) hL :=
+  begin
+    rw [mem_cons_iff, not_or_distrib, ← ne.def] at hL,
+    rw [join, chain'_append, chain'_join hL.2, forall_mem_cons, chain'_cons],
+    rw [mem_cons_iff, not_or_distrib, ← ne.def] at hL,
+    simp only [forall_mem_cons, and.assoc, join, head'_append_of_ne_nil _ hL.2.1.symm],
+    exact iff.rfl.and (iff.rfl.and $ iff.rfl.and and.comm)
+  end
+
 /--
 If `a` and `b` are related by the reflexive transitive closure of `r`, then there is a `r`-chain
 starting from `a` and ending on `b`.

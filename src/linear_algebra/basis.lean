@@ -361,12 +361,6 @@ else
   by letI : subsingleton R := not_nontrivial_iff_subsingleton.mp h; exact
     basis.of_repr (module.subsingleton_equiv R M (range b))
 
-lemma finsupp.single_apply_left {α β γ : Type*} [has_zero γ]
-  {f : α → β} (hf : function.injective f)
-  (x z : α) (y : γ) :
-  finsupp.single (f x) y (f z) = finsupp.single x y z :=
-by simp [finsupp.single_apply, hf.eq_iff]
-
 lemma reindex_range_self (i : ι) (h := set.mem_range_self i) :
   b.reindex_range ⟨b i, h⟩ = b i :=
 begin

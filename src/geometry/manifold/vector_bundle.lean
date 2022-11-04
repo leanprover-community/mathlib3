@@ -526,6 +526,7 @@ begin
       (mem_achart_source H x_fst) x_snd,
     ext,
     -- refine (tangent_bundle_core I H).coord_change_self _ _ trivial x_snd,
+    sorry
       },
   show ∀ x, ((chart_at (model_prod H E) p).to_local_equiv).symm x =
     (equiv.sigma_equiv_prod H E).symm x,

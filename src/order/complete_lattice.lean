@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 -/
 import data.bool.set
 import data.ulift
-import data.nat.order
+import data.nat.set
 import order.bounds
 
 /-!

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Kevin Buzzard, Scott Morrison, Johan Commelin, Chris Hughes,
   Johannes Hölzl, Yury Kudryashov
 -/
-
 import algebra.group_power.basic
+import algebra.ring.basic
 
 /-!
 # Instances on spaces of monoid and group morphisms

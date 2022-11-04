@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.algebra.basic
-import algebra.order.nonneg
+import algebra.order.nonneg.field
 
 /-!
 # Nonnegative rationals

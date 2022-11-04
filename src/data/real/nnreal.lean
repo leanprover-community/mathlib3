@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import algebra.algebra.basic
-import algebra.order.nonneg
+import algebra.order.nonneg.field
 import data.real.pointwise
 import tactic.positivity
 

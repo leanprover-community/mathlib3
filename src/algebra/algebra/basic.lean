@@ -1635,7 +1635,7 @@ instance algebra {r : comm_semiring R}
   ..(pi.ring_hom (λ i, algebra_map R (f i)) : R →+* Π i : I, f i) }
 
 lemma algebra_map_def {r : comm_semiring R}
-  [s : ∀ i, semiring (f i)] [∀ i, algebra R (f i)] (a : R) (i : I) :
+  [s : ∀ i, semiring (f i)] [∀ i, algebra R (f i)] (a : R) :
   algebra_map R (Π i, f i) a = (λ i, algebra_map R (f i) a) := rfl
 
 @[simp] lemma algebra_map_apply {r : comm_semiring R}

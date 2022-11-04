@@ -421,7 +421,7 @@ theorem arzela_ascoli₁ [compact_space β]
     f ∈ A → dist (f y) (f z) < ε) :
   is_compact A :=
 begin
-  refine compact_of_totally_bounded_is_closed _ closed,
+  refine is_compact_of_totally_bounded_is_closed _ closed,
   refine totally_bounded_of_finite_discretization (λ ε ε0, _),
   rcases exists_between ε0 with ⟨ε₁, ε₁0, εε₁⟩,
   let ε₂ := ε₁/2/2,

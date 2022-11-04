@@ -409,7 +409,7 @@ lemma is_compact_singleton {a : α} : is_compact ({a} : set α) :=
 lemma set.subsingleton.is_compact {s : set α} (hs : s.subsingleton) : is_compact s :=
 subsingleton.induction_on hs is_compact_empty $ λ x, is_compact_singleton
 
-lemma set.finite.compact_bUnion {s : set ι} {f : ι → set α} (hs : s.finite)
+lemma set.finite.is_compact_bUnion {s : set ι} {f : ι → set α} (hs : s.finite)
   (hf : ∀ i ∈ s, is_compact (f i)) :
   is_compact (⋃ i ∈ s, f i) :=
 is_compact_of_finite_subcover $ assume ι U hUo hsU,
@@ -429,18 +429,18 @@ is_compact_of_finite_subcover $ assume ι U hUo hsU,
 
 lemma finset.is_compact_bUnion (s : finset ι) {f : ι → set α} (hf : ∀ i ∈ s, is_compact (f i)) :
   is_compact (⋃ i ∈ s, f i) :=
-s.finite_to_set.compact_bUnion hf
+s.finite_to_set.is_compact_bUnion hf
 
 lemma is_compact_accumulate {K : ℕ → set α} (hK : ∀ n, is_compact (K n)) (n : ℕ) :
   is_compact (accumulate K n) :=
-(finite_le_nat n).compact_bUnion $ λ k _, hK k
+(finite_le_nat n).is_compact_bUnion $ λ k _, hK k
 
 lemma is_compact_Union {f : ι → set α} [finite ι] (h : ∀ i, is_compact (f i)) :
   is_compact (⋃ i, f i) :=
-by rw ← bUnion_univ; exact finite_univ.compact_bUnion (λ i _, h i)
+by rw ← bUnion_univ; exact finite_univ.is_compact_bUnion (λ i _, h i)
 
 lemma set.finite.is_compact (hs : s.finite) : is_compact s :=
-bUnion_of_singleton s ▸ hs.compact_bUnion (λ _ _, is_compact_singleton)
+bUnion_of_singleton s ▸ hs.is_compact_bUnion (λ _ _, is_compact_singleton)
 
 lemma is_compact.finite_of_discrete [discrete_topology α] {s : set α} (hs : is_compact s) :
   s.finite :=
@@ -510,7 +510,7 @@ begin
       exact set.subset_Union (b ∘ f') j } },
   { rintro ⟨s, hs, rfl⟩,
     split,
-    { exact hs.compact_bUnion (λ i _, hb' i) },
+    { exact hs.is_compact_bUnion (λ i _, hb' i) },
     { apply is_open_bUnion, intros i hi, exact hb.is_open (set.mem_range_self _) } },
 end
 

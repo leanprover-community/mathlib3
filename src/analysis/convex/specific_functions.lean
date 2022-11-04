@@ -6,7 +6,7 @@ Authors: Yury Kudryashov, Sébastien Gouëzel
 import analysis.calculus.mean_value
 import analysis.special_functions.pow_deriv
 import analysis.special_functions.sqrt
-import data.int.basic
+import data.int.lemmas
 
 /-!
 # Collection of convex functions

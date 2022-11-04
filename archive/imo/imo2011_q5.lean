@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alain Verberkmoes
 -/
 
-import data.int.basic
+import data.int.lemmas
 
 /-!
 # IMO 2011 Q5

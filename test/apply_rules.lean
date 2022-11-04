@@ -1,4 +1,4 @@
-import data.int.defs.order
+import data.int.order
 import data.nat.pow
 
 open nat

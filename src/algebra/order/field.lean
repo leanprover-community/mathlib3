@@ -6,6 +6,7 @@ Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 import algebra.order.field_defs
 import algebra.order.with_zero
 import algebra.parity
+import data.fintype.basic
 
 /-!
 # Linear ordered (semi)fields
@@ -26,7 +27,7 @@ set_option old_structure_cmd true
 open function order_dual
 open_locale nnrat
 
-variables {α β : Type*}
+variables {ι α β : Type*}
 
 namespace function
 
@@ -564,8 +565,7 @@ lemma monotone.div_const {β : Type*} [preorder β] {f : β → α} (hf : monoto
   {c : α} (hc : 0 ≤ c) : monotone (λ x, (f x) / c) :=
 begin
   haveI := @linear_order.decidable_le α _,
-  simpa only [div_eq_mul_inv]
-    using (decidable.monotone_mul_right_of_nonneg (inv_nonneg.2 hc)).comp hf
+  simpa only [div_eq_mul_inv] using (monotone_mul_right_of_nonneg (inv_nonneg.2 hc)).comp hf
 end
 
 lemma strict_mono.div_const {β : Type*} [preorder β] {f : β → α} (hf : strict_mono f)
@@ -638,6 +638,19 @@ end
 lemma is_glb.mul_right {s : set α} (ha : 0 ≤ a) (hs : is_glb s b) :
   is_glb ((λ b, b * a) '' s) (b * a) :=
 by simpa [mul_comm] using hs.mul_left ha
+
+lemma pi.exists_forall_pos_add_lt [has_exists_add_of_le α] [finite ι] {x y : ι → α}
+  (h : ∀ i, x i < y i) : ∃ ε, 0 < ε ∧ ∀ i, x i + ε < y i :=
+begin
+  casesI nonempty_fintype ι,
+  casesI is_empty_or_nonempty ι,
+  { exact ⟨1, zero_lt_one, is_empty_elim⟩ },
+  choose ε hε hxε using λ i, exists_pos_add_of_lt' (h i),
+  obtain rfl : x + ε = y := funext hxε,
+  have hε : 0 < finset.univ.inf' finset.univ_nonempty ε := (finset.lt_inf'_iff _).2 (λ i _, hε _),
+  exact ⟨_, half_pos hε, λ i, add_lt_add_left ((half_lt_self hε).trans_le $ finset.inf'_le _ $
+    finset.mem_univ _) _⟩,
+end
 
 end linear_ordered_semifield
 
@@ -901,7 +914,7 @@ end
 lemma sub_one_div_inv_le_two (a2 : 2 ≤ a) : (1 - 1 / a)⁻¹ ≤ 2 :=
 begin
   -- Take inverses on both sides to obtain `2⁻¹ ≤ 1 - 1 / a`
-  refine (inv_le_inv_of_le (inv_pos.2 zero_lt_two) _).trans_eq (inv_inv (2 : α)),
+  refine (inv_le_inv_of_le (inv_pos.2 $ zero_lt_two' α) _).trans_eq (inv_inv (2 : α)),
   -- move `1 / a` to the left and `1 - 1 / 2 = 1 / 2` to the right to obtain `1 / a ≤ ⅟ 2`
   refine (le_sub_iff_add_le.2 (_ : _ + 2⁻¹ = _ ).le).trans ((sub_le_sub_iff_left 1).2 _),
   { -- show 2⁻¹ + 2⁻¹ = 1

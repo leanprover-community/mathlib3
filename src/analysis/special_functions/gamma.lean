@@ -102,7 +102,7 @@ begin
     refine has_finite_integral.congr (real.Gamma_integral_convergent hs).2 _,
     refine (ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ (λ x hx, _)),
     dsimp only,
-    rw [norm_eq_abs, abs_mul, abs_of_nonneg $ le_of_lt $ exp_pos $ -x,
+    rw [norm_eq_abs, map_mul, abs_of_nonneg $ le_of_lt $ exp_pos $ -x,
       abs_cpow_eq_rpow_re_of_pos hx _],
     simp }
 end
@@ -175,7 +175,7 @@ begin
     refine (_ : continuous_at (λ x:ℂ, x ^ (s - 1)) _).comp continuous_of_real.continuous_at,
     apply continuous_at_cpow_const, rw of_real_re, exact or.inl hx.1, },
   rw ←has_finite_integral_norm_iff,
-  simp_rw [norm_eq_abs, complex.abs_mul],
+  simp_rw [norm_eq_abs, map_mul],
   refine (((real.Gamma_integral_convergent hs).mono_set
     Ioc_subset_Ioi_self).has_finite_integral.congr _).const_mul _,
   rw [eventually_eq, ae_restrict_iff'],
@@ -244,7 +244,7 @@ begin
   have : (λ (e : ℝ), ∥-(e:ℂ) ^ s * (-e).exp∥ ) =ᶠ[at_top] (λ (e : ℝ), e ^ s.re * (-1 * e).exp ),
   { refine eventually_eq_of_mem (Ioi_mem_at_top 0) _,
     intros x hx, dsimp only,
-    rw [norm_eq_abs, abs_mul, abs_neg, abs_cpow_eq_rpow_re_of_pos hx,
+    rw [norm_eq_abs, map_mul, abs.map_neg, abs_cpow_eq_rpow_re_of_pos hx,
       abs_of_nonneg (exp_pos(-x)).le, neg_mul, one_mul],},
   exact (tendsto_congr' this).mpr (tendsto_rpow_mul_exp_neg_mul_at_top_nhds_0 _ _ zero_lt_one),
 end
@@ -411,7 +411,7 @@ begin
   rcases le_or_lt 1 x with h|h,
   { -- case 1 ≤ x
     refine le_add_of_nonneg_of_le (abs_nonneg _) _,
-    rw [dGamma_integrand, dGamma_integrand_real, complex.norm_eq_abs, complex.abs_mul, abs_mul,
+    rw [dGamma_integrand, dGamma_integrand_real, complex.norm_eq_abs, map_mul, abs_mul,
       ←complex.of_real_mul, complex.abs_of_real],
     refine mul_le_mul_of_nonneg_left _ (abs_nonneg _),
     rw complex.abs_cpow_eq_rpow_re_of_pos hx,
@@ -419,7 +419,7 @@ begin
     apply rpow_le_rpow_of_exponent_le h,
     rw [complex.sub_re, complex.one_re], linarith, },
   { refine le_add_of_le_of_nonneg _ (abs_nonneg _),
-    rw [dGamma_integrand, dGamma_integrand_real, complex.norm_eq_abs, complex.abs_mul, abs_mul,
+    rw [dGamma_integrand, dGamma_integrand_real, complex.norm_eq_abs, map_mul, abs_mul,
       ←complex.of_real_mul, complex.abs_of_real],
     refine mul_le_mul_of_nonneg_left _ (abs_nonneg _),
     rw complex.abs_cpow_eq_rpow_re_of_pos hx,
@@ -510,7 +510,7 @@ begin
   { rw mem_nhds_iff, use S,
     refine ⟨subset.rfl, _, hn⟩,
     have : S = re⁻¹' Ioi (1 - n : ℝ),
-    { ext, rw [preimage,Ioi, mem_set_of_eq, mem_set_of_eq, mem_set_of_eq], exact sub_lt },
+    { ext, rw [preimage,Ioi, mem_set_of_eq, mem_set_of_eq, mem_set_of_eq], exact sub_lt_comm },
     rw this,
     refine continuous.is_open_preimage continuous_re _ is_open_Ioi, },
   apply eventually_eq_of_mem this,

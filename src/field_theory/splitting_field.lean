@@ -10,9 +10,9 @@ import ring_theory.adjoin_root
 # Splitting fields
 
 This file introduces the notion of a splitting field of a polynomial and provides an embedding from
-a splitting field to any field that splits the polynomial. A polynomial `f : polynomial K` splits
+a splitting field to any field that splits the polynomial. A polynomial `f : K[X]` splits
 over a field extension `L` of `K` if it is zero or all of its irreducible factors over `L` have
-degree `1`. A field extension of `K` of a polynomial `f : polynomial K` is called a splitting field
+degree `1`. A field extension of `K` of a polynomial `f : K[X]` is called a splitting field
 if it is the smallest field extension of `K` such that `f` splits.
 
 ## Main definitions
@@ -273,7 +273,7 @@ by rw [degree_eq_nat_degree p_ne_zero, nat_degree_eq_card_roots hsplit]
 
 theorem roots_map {f : K[X]} (hf : f.splits $ ring_hom.id K) :
   (f.map i).roots = f.roots.map i :=
-(roots_map_of_injective_card_eq_total_degree i.injective $
+(roots_map_of_injective_of_card_eq_nat_degree i.injective $
   by { convert (nat_degree_eq_card_roots hf).symm, rw map_id }).symm
 
 lemma image_root_set [algebra F K] [algebra F L] {p : F[X]} (h : p.splits (algebra_map F K))
@@ -467,7 +467,7 @@ begin
     (submodule.fg_iff_finite_dimensional _).1
       (fg_adjoin_of_finite s.finite_to_set H3)).of_subalgebra_to_submodule,
   letI := field_of_finite_dimensional F (algebra.adjoin F (↑s : set K)),
-  have H5 : is_integral (algebra.adjoin F (↑s : set K)) a := is_integral_of_is_scalar_tower a H1,
+  have H5 : is_integral (algebra.adjoin F (↑s : set K)) a := is_integral_of_is_scalar_tower H1,
   have H6 : (minpoly (algebra.adjoin F (↑s : set K)) a).splits
     (algebra_map (algebra.adjoin F (↑s : set K)) L),
   { refine polynomial.splits_of_splits_of_dvd _
@@ -476,7 +476,7 @@ begin
       ((polynomial.splits_map_iff _ _).2 _)
       (minpoly.dvd _ _ _),
     { rw ← is_scalar_tower.algebra_map_eq, exact H2 },
-    { rw [← is_scalar_tower.aeval_apply, minpoly.aeval] } },
+    { rw [polynomial.aeval_map_algebra_map, minpoly.aeval] } },
   obtain ⟨y, hy⟩ := polynomial.exists_root_of_splits _ H6 (ne_of_lt (minpoly.degree_pos H5)).symm,
   refine ⟨subalgebra.of_restrict_scalars _ _ _⟩,
   refine (adjoin_root.lift_hom (minpoly (algebra.adjoin F (↑s : set K)) a) y hy).comp _,
@@ -866,7 +866,7 @@ namespace intermediate_field
 
 open polynomial
 
-variables [field K] [field L] [algebra K L] {p : polynomial K}
+variables [field K] [field L] [algebra K L] {p : K[X]}
 
 lemma splits_of_splits {F : intermediate_field K L} (h : p.splits (algebra_map K L))
   (hF : ∀ x ∈ p.root_set L, x ∈ F) : p.splits (algebra_map K F) :=

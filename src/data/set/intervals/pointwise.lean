@@ -5,7 +5,7 @@ Authors: Yury G. Kudryashov, Patrick Massot
 -/
 import algebra.order.field
 import data.set.intervals.unordered_interval
-import data.set.pointwise
+import data.set.pointwise.basic
 
 /-!
 # (Pre)images of intervals
@@ -205,16 +205,16 @@ by simp [sub_eq_add_neg]
 -/
 
 @[simp] lemma preimage_const_sub_Ici : (λ x, a - x) ⁻¹' (Ici b) = Iic (a - b) :=
-ext $ λ x, le_sub
+ext $ λ x, le_sub_comm
 
 @[simp] lemma preimage_const_sub_Iic : (λ x, a - x) ⁻¹' (Iic b) = Ici (a - b) :=
-ext $ λ x, sub_le
+ext $ λ x, sub_le_comm
 
 @[simp] lemma preimage_const_sub_Ioi : (λ x, a - x) ⁻¹' (Ioi b) = Iio (a - b) :=
-ext $ λ x, lt_sub
+ext $ λ x, lt_sub_comm
 
 @[simp] lemma preimage_const_sub_Iio : (λ x, a - x) ⁻¹' (Iio b) = Ioi (a - b) :=
-ext $ λ x, sub_lt
+ext $ λ x, sub_lt_comm
 
 @[simp] lemma preimage_const_sub_Icc : (λ x, a - x) ⁻¹' (Icc b c) = Icc (a - c) (a - b) :=
 by simp [← Ici_inter_Iic, inter_comm]
@@ -616,6 +616,12 @@ end
 
 lemma inv_Ioi {a : α} (ha : 0 < a) : (Ioi a)⁻¹ = Ioo 0 a⁻¹ :=
 by rw [inv_eq_iff_inv_eq, inv_Ioo_0_left (inv_pos.2 ha), inv_inv]
+
+lemma image_const_mul_Ioi_zero {k : Type*} [linear_ordered_field k]
+  {x : k} (hx : 0 < x) :
+  (λ y, x * y) '' Ioi (0 : k) = Ioi 0 :=
+by erw [(units.mk0 x hx.ne').mul_left.image_eq_preimage, preimage_const_mul_Ioi 0 (inv_pos.mpr hx),
+  zero_div]
 
 /-!
 ### Images under `x ↦ a * x + b`

@@ -1120,12 +1120,6 @@ lemma dense_iff_exists_between [densely_ordered α] [nontrivial α] {s : set α}
   dense s ↔ ∀ a b, a < b → ∃ c ∈ s, a < c ∧ c < b :=
 ⟨λ h a b hab, h.exists_between hab, dense_of_exists_between⟩
 
-@[priority 100] -- see Note [lower instance priority]
-instance order_topology.t3_space : t3_space α :=
-{ to_regular_space := regular_space.of_exists_mem_nhds_is_closed_subset $
-    λ a s hs, let ⟨b, c, ha, hmem, hs⟩ := exists_Icc_mem_subset_of_mem_nhds hs
-      in ⟨Icc b c, hmem, is_closed_Icc, hs⟩ }
-
 /-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`,
 provided `a` is neither a bottom element nor a top element. -/
 lemma mem_nhds_iff_exists_Ioo_subset' {a : α} {s : set α} (hl : ∃ l, l < a) (hu : ∃ u, a < u) :
@@ -1188,8 +1182,8 @@ begin
       {x | x ∈ s ∧ x ∈ a ∧ y x ∉ a ∧ ¬(is_bot x)} ∪ {x | is_bot x},
     { assume x hx,
       by_cases h'x : is_bot x,
-      { simp only [h'x, mem_set_of_eq, mem_union_eq, not_true, and_false, false_or] },
-      { simpa only [h'x, hx.2.1, hx.2.2, mem_set_of_eq, mem_union_eq,
+      { simp only [h'x, mem_set_of_eq, mem_union, not_true, and_false, false_or] },
+      { simpa only [h'x, hx.2.1, hx.2.2, mem_set_of_eq, mem_union,
           not_false_iff, and_true, or_false] using hx.left } },
     exact countable.mono this (H.union (subsingleton_is_bot α).countable) },
   let t := {x | x ∈ s ∧ x ∈ a ∧ y x ∉ a ∧ ¬(is_bot x)},
@@ -1588,7 +1582,7 @@ variables {l : filter β} {f g : β → α}
 lemma nhds_eq_infi_abs_sub (a : α) : 𝓝 a = (⨅r>0, 𝓟 {b | |a - b| < r}) :=
 begin
   simp only [le_antisymm_iff, nhds_eq_order, le_inf_iff, le_infi_iff, le_principal_iff, mem_Ioi,
-    mem_Iio, abs_sub_lt_iff, @sub_lt_iff_lt_add _ _ _ _ _ _ a, @sub_lt _ _ _ _ a, set_of_and],
+    mem_Iio, abs_sub_lt_iff, @sub_lt_iff_lt_add _ _ _ _ _ _ a, @sub_lt_comm _ _ _ _ a, set_of_and],
   refine ⟨_, _, _⟩,
   { intros ε ε0,
     exact inter_mem_inf
@@ -1669,7 +1663,7 @@ lemma nhds_basis_Ioo_pos [no_min_order α] [no_max_order α] (a : α) :
     refine ⟨min (a-l) (u-a), by apply lt_min; rwa sub_pos, _⟩,
     rintros x ⟨hx, hx'⟩,
     apply h',
-    rw [sub_lt, lt_min_iff, sub_lt_sub_iff_left] at hx,
+    rw [sub_lt_comm, lt_min_iff, sub_lt_sub_iff_left] at hx,
     rw [← sub_lt_iff_lt_add', lt_min_iff, sub_lt_sub_iff_right] at hx',
     exact ⟨hx.1, hx'.2⟩ },
   { rintros ⟨ε, ε_pos, h⟩,
@@ -2039,11 +2033,11 @@ instance linear_ordered_field.to_topological_division_ring : topological_divisio
     rintros ε ⟨hε : ε > 0, hεt : ε ≤ t⁻¹⟩,
     refine ⟨min (t ^ 2 * ε / 2) (t / 2), by positivity, λ x h, _⟩,
     have hx : t / 2 < x,
-    { rw [set.mem_Ioo, sub_lt, lt_min_iff] at h,
+    { rw [set.mem_Ioo, sub_lt_comm, lt_min_iff] at h,
       nlinarith },
     have hx' : 0 < x := (half_pos ht).trans hx,
     have aux : 0 < 2 / t ^ 2 := by positivity,
-    rw [set.mem_Ioo, ←sub_lt_iff_lt_add', sub_lt, ←abs_sub_lt_iff] at h ⊢,
+    rw [set.mem_Ioo, ←sub_lt_iff_lt_add', sub_lt_comm, ←abs_sub_lt_iff] at h ⊢,
     rw [inv_sub_inv ht.ne' hx'.ne', abs_div, div_eq_mul_inv],
     suffices : |t * x|⁻¹ < 2 / t ^ 2,
     { rw [←abs_neg, neg_sub],
@@ -2284,6 +2278,12 @@ begin
   exact ⟨u, hu_mono, λ n, (hu_mem n).2, hux⟩
 end
 
+lemma exists_seq_strict_mono_tendsto_nhds_within [densely_ordered α] [no_min_order α]
+  [first_countable_topology α] (x : α) :
+  ∃ u : ℕ → α, strict_mono u ∧ (∀ n, u n < x) ∧ tendsto u at_top (𝓝[<] x) :=
+let ⟨u, hu, hx, h⟩ := exists_seq_strict_mono_tendsto x in ⟨u, hu, hx,
+  tendsto_nhds_within_mono_right (range_subset_iff.2 hx) $ tendsto_nhds_within_range.2 h⟩
+
 lemma exists_seq_tendsto_Sup {α : Type*} [conditionally_complete_linear_order α]
   [topological_space α] [order_topology α] [first_countable_topology α]
   {S : set α} (hS : S.nonempty) (hS' : bdd_above S) :
@@ -2314,6 +2314,11 @@ lemma exists_seq_strict_anti_tendsto [densely_ordered α] [no_max_order α]
   [first_countable_topology α] (x : α) :
   ∃ u : ℕ → α, strict_anti u ∧ (∀ n, x < u n) ∧ tendsto u at_top (𝓝 x) :=
 @exists_seq_strict_mono_tendsto αᵒᵈ _ _ _ _ _ _ x
+
+lemma exists_seq_strict_anti_tendsto_nhds_within [densely_ordered α] [no_max_order α]
+  [first_countable_topology α] (x : α) :
+  ∃ u : ℕ → α, strict_anti u ∧ (∀ n, x < u n) ∧ tendsto u at_top (𝓝[>] x) :=
+@exists_seq_strict_mono_tendsto_nhds_within αᵒᵈ _ _ _ _ _ _ _
 
 lemma exists_seq_strict_anti_strict_mono_tendsto [densely_ordered α] [first_countable_topology α]
   {x y : α} (h : x < y) :
@@ -2957,5 +2962,55 @@ lemma monotone.tendsto_nhds_within_Ioi {α β : Type*}
 @monotone.tendsto_nhds_within_Iio αᵒᵈ βᵒᵈ _ _ _ _ _ _ f Mf.dual x
 
 end conditionally_complete_linear_order
+
+section nhds_with_pos
+
+section linear_ordered_add_comm_group
+
+variables [linear_ordered_add_comm_group α] [topological_space α] [order_topology α]
+
+lemma eventually_nhds_within_pos_mem_Ioo {ε : α} (h : 0 < ε) :
+  ∀ᶠ x in 𝓝[>] 0, x ∈ Ioo 0 ε :=
+begin
+  rw [eventually_iff, mem_nhds_within],
+  exact ⟨Ioo (-ε) ε, is_open_Ioo, by simp [h], λ x hx, ⟨hx.2, hx.1.2⟩⟩,
+end
+
+lemma eventually_nhds_within_pos_mem_Ioc {ε : α} (h : 0 < ε) :
+  ∀ᶠ x in 𝓝[>] 0, x ∈ Ioc 0 ε :=
+(eventually_nhds_within_pos_mem_Ioo h).mono Ioo_subset_Ioc_self
+
+end linear_ordered_add_comm_group
+
+section linear_ordered_field
+
+variables [linear_ordered_field α] [topological_space α] [order_topology α]
+
+lemma nhds_within_pos_comap_mul_left {x : α} (hx : 0 < x) :
+  comap (λ ε, x * ε) (𝓝[>] 0) = 𝓝[>] 0 :=
+begin
+  suffices : ∀ {x : α} (hx : 0 < x), 𝓝[>] 0 ≤ comap (λ ε, x * ε) (𝓝[>] 0),
+  { refine le_antisymm _ (this hx),
+    have hr : 𝓝[>] (0 : α) = ((𝓝[>] (0 : α)).comap (λ ε, x⁻¹ * ε)).comap (λ ε, x * ε),
+    { simp [comap_comap, inv_mul_cancel hx.ne.symm, comap_id, one_mul_eq_id], },
+    conv_rhs { rw hr, },
+    rw comap_le_comap_iff (by convert univ_mem; exact (mul_left_surjective₀ hx.ne.symm).range_eq),
+    exact this (inv_pos.mpr hx), },
+  intros x hx,
+  convert nhds_within_le_comap (continuous_mul_left x).continuous_within_at,
+  { exact (mul_zero _).symm, },
+  { rw image_const_mul_Ioi_zero hx, },
+end
+
+lemma eventually_nhds_within_pos_mul_left {x : α} (hx : 0 < x)
+  {p : α → Prop} (h : ∀ᶠ ε in 𝓝[>] 0, p ε) : ∀ᶠ ε in 𝓝[>] 0, p (x * ε) :=
+begin
+  convert h.comap (λ ε, x * ε),
+  exact (nhds_within_pos_comap_mul_left hx).symm,
+end
+
+end linear_ordered_field
+
+end nhds_with_pos
 
 end order_topology

@@ -3,7 +3,7 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
-import algebra.hom.ring
+import algebra.group_with_zero.power
 import algebra.parity
 import data.rat.nnrat
 
@@ -52,7 +52,7 @@ set_option old_structure_cmd true
 universe u
 variables {α β K : Type*}
 
-/-- The default definition of the coercion `(↑(a : ℚ≥0) : K)` for a division semiring `K` is define
+/-- The default definition of the coercion `(↑(a : ℚ≥0) : K)` for a division semiring `K` is defined
 as `(a / b : K) = (a : K) * (b : K)⁻¹`. Use `coe` instead of `nnrat.cast_rec` for better
 definitional behaviour. -/
 def nnrat.cast_rec [has_lift_t ℕ K] [has_mul K] [has_inv K] : ℚ≥0 → K := λ q, ↑q.num * (↑q.denom)⁻¹

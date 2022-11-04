@@ -262,6 +262,16 @@ lemma prod_disj_union (h) : ∏ x in s₁.disj_union s₂ h, f x = (∏ x in s�
 by { refine eq.trans _ (fold_disj_union h), rw one_mul, refl }
 
 @[to_additive]
+lemma prod_disj_Union (s : finset ι) (t : ι → finset α) (h) :
+  ∏ x in s.disj_Union t h, f x = ∏ i in s, ∏ x in t i, f x :=
+begin
+  refine eq.trans _ (fold_disj_Union h),
+  dsimp [finset.prod, multiset.prod, multiset.fold, finset.disj_Union, finset.fold],
+  congr',
+  exact prod_const_one.symm,
+end
+
+@[to_additive]
 lemma prod_union_inter [decidable_eq α] :
   (∏ x in (s₁ ∪ s₂), f x) * (∏ x in (s₁ ∩ s₂), f x) = (∏ x in s₁, f x) * (∏ x in s₂, f x) :=
 fold_union_inter
@@ -339,38 +349,17 @@ lemma prod_sdiff [decidable_eq α] (h : s₁ ⊆ s₂) :
 by rw [←prod_union sdiff_disjoint, sdiff_union_of_subset h]
 
 @[simp, to_additive]
-lemma prod_sum_elim [decidable_eq (α ⊕ γ)]
-  (s : finset α) (t : finset γ) (f : α → β) (g : γ → β) :
-  ∏ x in s.map function.embedding.inl ∪ t.map function.embedding.inr, sum.elim f g x =
-    (∏ x in s, f x) * (∏ x in t, g x) :=
+lemma prod_disj_sum (s : finset α) (t : finset γ) (f : α ⊕ γ → β) :
+  ∏ x in s.disj_sum t, f x = (∏ x in s, f (sum.inl x)) * (∏ x in t, f (sum.inr x)) :=
 begin
-  rw [prod_union, prod_map, prod_map],
-  { simp only [sum.elim_inl, function.embedding.inl_apply, function.embedding.inr_apply,
-      sum.elim_inr] },
-  { simp only [disjoint_left, finset.mem_map, finset.mem_map],
-    rintros _ ⟨i, hi, rfl⟩ ⟨j, hj, H⟩,
-    cases H }
+  rw [←map_inl_disj_union_map_inr, prod_disj_union, prod_map, prod_map],
+  refl,
 end
 
-@[simp, to_additive]
-lemma prod_on_sum [fintype α] [fintype γ] (f : α ⊕ γ → β) :
-  ∏ (x : α ⊕ γ), f x  =
-    (∏ (x : α), f (sum.inl x)) * (∏ (x : γ), f (sum.inr x)) :=
-begin
-  haveI := classical.dec_eq (α ⊕ γ),
-  convert prod_sum_elim univ univ (λ x, f (sum.inl x)) (λ x, f (sum.inr x)),
-  { ext a,
-    split,
-    { intro x,
-      cases a,
-      { simp only [mem_union, mem_map, mem_univ, function.embedding.inl_apply, or_false,
-          exists_true_left, exists_apply_eq_apply, function.embedding.inr_apply, exists_false], },
-      { simp only [mem_union, mem_map, mem_univ, function.embedding.inl_apply, false_or,
-          exists_true_left, exists_false, function.embedding.inr_apply,
-          exists_apply_eq_apply], }, },
-    { simp only [mem_univ, implies_true_iff], }, },
-  { simp only [sum.elim_comp_inl_inr], },
-end
+@[to_additive]
+lemma prod_sum_elim (s : finset α) (t : finset γ) (f : α → β) (g : γ → β) :
+  ∏ x in s.disj_sum t, sum.elim f g x = (∏ x in s, f x) * (∏ x in t, g x) :=
+by simp
 
 @[to_additive]
 lemma prod_bUnion [decidable_eq α] {s : finset γ} {t : γ → finset α}
@@ -449,6 +438,23 @@ begin
   refine prod_bij i hi h _ _,
   {intros a1 a2 h1 h2 eq, rw [←left_inv a1 h1, ←left_inv a2 h2], cc,},
   {intros b hb, use j b hb, use hj b hb, exact (right_inv b hb).symm,},
+end
+
+/-- Reindexing a product over a finset along an equivalence.
+See `equiv.prod_comp` for the version where `s` and `s'` are `univ`. -/
+@[to_additive /-" Reindexing a sum over a finset along an equivalence.
+See `equiv.sum_comp` for the version where `s` and `s'` are `univ`. "-/]
+lemma equiv.prod_comp_finset {ι'} [decidable_eq ι] (e : ι ≃ ι') (f : ι' → β) {s' : finset ι'}
+  {s : finset ι}
+  (h : s = s'.image e.symm) :
+  ∏ i' in s', f i' = ∏ i in s, f (e i) :=
+begin
+  rw [h],
+  refine finset.prod_bij' (λ i' hi', e.symm i') (λ a ha, finset.mem_image_of_mem _ ha)
+    (λ a ha, by simp_rw [e.apply_symm_apply]) (λ i hi, e i) (λ a ha, _)
+    (λ a ha, e.apply_symm_apply a) (λ a ha, e.symm_apply_apply a),
+  rcases finset.mem_image.mp ha with ⟨i', hi', rfl⟩,
+  rwa [e.apply_symm_apply]
 end
 
 @[to_additive] lemma prod_finset_product
@@ -810,6 +816,11 @@ by { simp_rw apply_ite k, exact prod_ite_of_true _ _ h }
 lemma prod_extend_by_one [decidable_eq α] (s : finset α) (f : α → β) :
   ∏ i in s, (if i ∈ s then f i else 1) = ∏ i in s, f i :=
 prod_congr rfl $ λ i hi, if_pos hi
+
+@[simp, to_additive]
+lemma prod_ite_mem [decidable_eq α] (s t : finset α) (f : α → β) :
+  ∏ i in s, (if i ∈ t then f i else 1) = ∏ i in (s ∩ t), f i :=
+by rw [← finset.prod_filter, finset.filter_mem_eq_inter]
 
 @[simp, to_additive]
 lemma prod_dite_eq [decidable_eq α] (s : finset α) (a : α) (b : Π x : α, a = x → β) :
@@ -1468,6 +1479,10 @@ end comm_group
 @[simp] theorem card_sigma {σ : α → Type*} (s : finset α) (t : Π a, finset (σ a)) :
   card (s.sigma t) = ∑ a in s, card (t a) :=
 multiset.card_sigma _ _
+
+@[simp] lemma card_disj_Union (s : finset α) (t : α → finset β) (h) :
+  (s.disj_Union t h).card = s.sum (λ i, (t i).card) :=
+multiset.card_bind _ _
 
 lemma card_bUnion [decidable_eq β] {s : finset α} {t : α → finset β}
   (h : ∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y)) :

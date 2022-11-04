@@ -344,7 +344,6 @@ def homology [has_homology S] : C := S.some_homology_full_data.H
 
 namespace homology_full_data
 
-
 section map
 
 variables {S} (h : homology_full_data S) (F : C ⥤ D)
@@ -872,7 +871,7 @@ def homology_map (φ : S₁ ⟶ S₂) : S₁.homology ⟶ S₂.homology :=
     S₂.some_homology_full_data).φH
 
 @[simp]
-lemma homology_id : homology_map (𝟙 S) = 𝟙 _ :=
+lemma homology_map_id : homology_map (𝟙 S) = 𝟙 _ :=
 short_complex_with_homology.hom.congr_φH
   (short_complex_with_homology.forget_preimage_id _)
 
@@ -881,6 +880,13 @@ lemma homology_map_comp (φ : S₁ ⟶ S₂) (φ' : S₂ ⟶ S₃) :
   homology_map (φ ≫ φ') = homology_map φ ≫ homology_map φ' :=
 short_complex_with_homology.hom.congr_φH
   (short_complex_with_homology.forget_preimage_comp φ φ' _ _ _)
+
+@[simps]
+def homology_map_iso (e : S₁ ≅ S₂) : S₁.homology ≅ S₂.homology :=
+{ hom := homology_map e.hom,
+  inv := homology_map e.inv,
+  hom_inv_id' := by rw [← homology_map_comp, e.hom_inv_id, homology_map_id],
+  inv_hom_id' := by rw [← homology_map_comp, e.inv_hom_id, homology_map_id], }
 
 end
 
@@ -893,6 +899,10 @@ the category `short_complex_with_homology`. -/
 def uniq (H₁ H₂ : homology_full_data S) :
   short_complex_with_homology.mk S H₁ ≅ short_complex_with_homology.mk S H₂ :=
 (short_complex_with_homology.forget C).preimage_iso (iso.refl _)
+
+@[simps]
+def uniq_H (H₁ H₂ : homology_full_data S) : H₁.H ≅ H₂.H :=
+(short_complex_with_homology.functor_H C).map_iso (uniq H₁ H₂)
 
 @[simp]
 lemma uniq_refl (H : homology_full_data S) :
@@ -925,7 +935,7 @@ end
 
 /-- The canonical isomorphism `S.homology ≅ h.H` for `h : homology_full_data S`. -/
 def iso_H [has_homology S] (h : homology_full_data S) : S.homology ≅ h.H :=
-(short_complex_with_homology.functor_H C).map_iso (uniq S.some_homology_full_data h)
+uniq_H _ _
 
 variable (S)
 
@@ -935,7 +945,7 @@ lemma iso_H_eq_iso_refl [has_homology S] :
 begin
   ext1,
   dsimp only [iso_H],
-  simpa only [uniq_refl, functor.map_iso_refl, iso.refl_hom],
+  simpa only [uniq_H_hom, uniq_refl, functor.map_iso_refl, iso.refl_hom],
 end
 
 end homology_full_data
@@ -1142,6 +1152,42 @@ instance [abelian C] (S : short_complex C) : inhabited (S.homology_full_data) :=
 ⟨(has_homology.cond S).some⟩
 
 end abelian
+
+section
+
+variables [has_zero_morphisms C] (S : short_complex C) {S₁ S₂ : short_complex C}
+
+def exact : Prop :=
+(∃ (h : homology_full_data S), is_zero h.H)
+
+lemma exact_iff [has_homology S] : S.exact ↔ is_zero S.homology :=
+begin
+  split,
+  { rintro ⟨h, h₀⟩,
+    exact is_zero.of_iso h₀ (homology_full_data.uniq_H _ _), },
+  { exact λ h, ⟨_, h⟩, },
+end
+
+lemma exact_iff_homology_iso_zero [has_homology S] [has_zero_object C] :
+  S.exact ↔ nonempty (S.homology ≅ 0) :=
+begin
+  rw exact_iff,
+  split,
+  { exact λ h, nonempty.intro (is_zero.iso_zero h), },
+  { exact λ h, is_zero.of_iso (is_zero_zero C) h.some, },
+end
+
+lemma exact_iff_of_iso (e : S₁ ≅ S₂) [has_homology S₁] [has_homology S₂] :
+  S₁.exact ↔ S₂.exact :=
+begin
+-- the assumptions `has_homology` could be removed
+  simp only [exact_iff],
+  split,
+  { exact λ h, is_zero.of_iso h (homology_map_iso e.symm), },
+  { exact λ h, is_zero.of_iso h (homology_map_iso e), },
+end
+
+end
 
 end short_complex
 
@@ -1454,6 +1500,10 @@ def uniq (H₁ H₂ : homology_data S) :
   short_complex_with_homology'.mk S H₁ ≅ short_complex_with_homology'.mk S H₂ :=
 (short_complex_with_homology'.forget C).preimage_iso (iso.refl _)
 
+@[simps]
+def uniq_H (H₁ H₂ : homology_data S) : H₁.H ≅ H₂.H :=
+(short_complex_with_homology'.functor_H C).map_iso (uniq H₁ H₂)
+
 @[simp]
 lemma uniq_refl (H : homology_data S) :
   uniq H H = iso.refl _ :=
@@ -1485,8 +1535,7 @@ end
 
 /-- The canonical isomorphism `S.homology ≅ h.H` for `h : homology_data S`. -/
 def iso_H (h : homology_data S) : S.homology ≅ h.H :=
-(short_complex_with_homology'.functor_H C).map_iso
-  (uniq (homology_data.of_full_data S.some_homology_full_data) h)
+uniq_H (homology_data.of_full_data S.some_homology_full_data) h
 
 end homology_data
 

@@ -85,17 +85,29 @@ open_locale classical
 
 variables [fintype G] [invertible (fintype.card G : k)]
 
+/-- Orthogonality of characters for irreducible representations of finite group over an
+algebraically closed field whose characteristic doesn't divide the order of the group. -/
 lemma char_orthonormal (V W : fdRep k G) [simple V] [simple W] :
   ⅟(fintype.card G : k) • ∑ g : G, V.character g * W.character g⁻¹ =
   if nonempty (V ≅ W) then ↑1 else ↑0 :=
 begin
+  -- First, we can rewrite the summand `V.character g * W.character g⁻¹` as the character
+  -- of the representation `V ⊗ W* ≅ Hom(W, V)` applied to `g`.
   conv in (V.character _ * W.character _)
   { rw [mul_comm, ←char_dual, ←pi.mul_apply, ←char_tensor],
     rw [char_iso (fdRep.dual_tensor_iso_lin_hom W.ρ V)], } ,
+
+  -- The average over the group of the character of a representation equals the dimension of the
+  -- space of invariants.
   rw average_char_eq_finrank_invariants,
   have : (of (lin_hom W.ρ V.ρ)).ρ = lin_hom W.ρ V.ρ,
-  { exact fdRep.of_ρ (lin_hom W.ρ V.ρ) }, rw this, --`rw fdRep.of_ρ` doesn't work, why?
+  { exact fdRep.of_ρ (lin_hom W.ρ V.ρ) }, rw this,
+
+  -- The space of invariants of `Hom(W, V)` is the subspace of `G`-equivariant linear maps,
+  -- `Hom_G(W, V)`.
   rw (lin_hom.invariants_equiv_fdRep_hom W V).finrank_eq,
+
+  -- By Schur's Lemma, the dimension of `Hom_G(W, V)` is `1` is `V ≅ W` and `0` otherwise.
   rw finrank_hom_simple_simple W V,
   rw iso.nonempty_iso_symm,
   norm_num,

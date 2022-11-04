@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 -/
 import data.bool.set
 import data.ulift
-import data.nat.basic
+import data.nat.order
 import order.bounds
 
 /-!
@@ -1180,7 +1180,7 @@ lemma inf_infi_nat_succ (u : ℕ → α) : u 0 ⊓ (⨅ i, u (i + 1)) = ⨅ i, u
 
 lemma infi_nat_gt_zero_eq (f : ℕ → α) :
   (⨅ (i > 0), f i) = ⨅ i, f (i + 1) :=
-by simpa only [(by simp : ∀ (i : ℕ), i > 0 ↔ i ∈ range nat.succ)] using infi_range
+by simpa only [(by simp : ∀ i, i > 0 ↔ i ∈ range nat.succ)] using infi_range
 
 lemma supr_nat_gt_zero_eq (f : ℕ → α) :
   (⨆ (i > 0), f i) = ⨆ i, f (i + 1) :=

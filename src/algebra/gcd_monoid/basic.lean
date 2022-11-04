@@ -63,9 +63,6 @@ divisibility, gcd, lcm, normalize
 
 variables {α : Type*}
 
-
-
-
 /-- Normalization monoid: multiplying with `norm_unit` gives a normal form for associated
 elements. -/
 @[protect_proj] class normalization_monoid (α : Type*)
@@ -559,15 +556,15 @@ begin
 end
 
 lemma extract_gcd {α : Type*} [cancel_comm_monoid_with_zero α] [gcd_monoid α] (x y : α) :
-  ∃ x' y' d : α, x = d * x' ∧ y = d * y' ∧ is_unit (gcd x' y') :=
+  ∃ x' y', x = gcd x y * x' ∧ y = gcd x y * y' ∧ is_unit (gcd x' y') :=
 begin
-  cases eq_or_ne (gcd x y) 0 with h h,
+  by_cases h : gcd x y = 0,
   { obtain ⟨rfl, rfl⟩ := (gcd_eq_zero_iff x y).1 h,
     simp_rw ← associated_one_iff_is_unit,
-    exact ⟨1, 1, 0, (zero_mul 1).symm, (zero_mul 1).symm, gcd_one_left' 1⟩ },
+    exact ⟨1, 1, by rw [h, zero_mul], by rw [h, zero_mul], gcd_one_left' 1⟩ },
   obtain ⟨x', ex⟩ := gcd_dvd_left x y,
   obtain ⟨y', ey⟩ := gcd_dvd_right x y,
-  exact ⟨x', y', gcd x y, ex, ey, is_unit_gcd_of_eq_mul_gcd ex ey h⟩,
+  exact ⟨x', y', ex, ey, is_unit_gcd_of_eq_mul_gcd ex ey h⟩,
 end
 
 end gcd

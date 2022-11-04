@@ -460,6 +460,15 @@ lemma add_haar_closed_ball (x : E) {r : ℝ} (hr : 0 ≤ r) :
   μ (closed_ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
 by rw [add_haar_closed_ball' μ x hr, add_haar_closed_unit_ball_eq_add_haar_unit_ball]
 
+lemma add_haar_closed_ball_eq_add_haar_ball [nontrivial E] (x : E) (r : ℝ) :
+  μ (closed_ball x r) = μ (ball x r) :=
+begin
+  by_cases h : r < 0,
+  { rw [metric.closed_ball_eq_empty.mpr h, metric.ball_eq_empty.mpr h.le] },
+  push_neg at h,
+  rw [add_haar_closed_ball μ x h, add_haar_ball μ x h],
+end
+
 lemma add_haar_sphere_of_ne_zero (x : E) {r : ℝ} (hr : r ≠ 0) :
   μ (sphere x r) = 0 :=
 begin

@@ -14,8 +14,6 @@ In this file we define `enat` (notation: `ℕ∞`) to be `with_top ℕ` and prov
 about this type.
 -/
 
-example : char_zero (with_top ℕ) := by show_term {apply_instance}
-
 /-- Extended natural numbers `ℕ∞ = with_top ℕ`. -/
 @[derive [has_zero, add_comm_monoid_with_one, canonically_ordered_comm_semiring, nontrivial,
   linear_order, order_bot, order_top, has_bot, has_top, canonically_linear_ordered_add_monoid,

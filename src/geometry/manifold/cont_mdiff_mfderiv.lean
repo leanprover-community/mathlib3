@@ -640,18 +640,11 @@ begin
   rw [← fderiv_within_inter N (I.unique_diff (I ((chart_at H x) x)) (set.mem_range_self _)), ← B],
   congr' 2,
   apply fderiv_within_congr _ (λ y hy, _),
-  { simp only [prod.mk.inj_iff] with mfld_simps,
-    exact ((tangent_bundle_core I M).to_topological_vector_bundle_core.coord_change
-      ((tangent_bundle_core I M).to_topological_vector_bundle_core.index_at (((chart_at H x).symm)
-      (I.symm (I ((chart_at H x) x))))) ⟨chart_at H x, _⟩ (((chart_at H x).symm)
-      (I.symm (I ((chart_at H x) x))))).map_zero, },
+  { simp only [prod.mk.inj_iff] with mfld_simps },
   { apply unique_diff_within_at.inter (I.unique_diff _ _) N,
     simp only with mfld_simps },
   { simp only with mfld_simps at hy,
-    simp only [hy, prod.mk.inj_iff] with mfld_simps,
-    exact ((tangent_bundle_core I M).to_topological_vector_bundle_core.coord_change
-      ((tangent_bundle_core I M).to_topological_vector_bundle_core.index_at (((chart_at H x).symm)
-      (I.symm y))) ⟨chart_at H x, _⟩ (((chart_at H x).symm) (I.symm y))).map_zero, },
+    simp only [hy, prod.mk.inj_iff] with mfld_simps },
 end
 
 end tangent_bundle

@@ -45,7 +45,7 @@ Vector bundle
 noncomputable theory
 
 open bundle set
-open_locale classical
+open_locale classical bundle
 
 variables (R 𝕜 : Type*) {B : Type*} (F : Type*) (E : B → Type*)
 

@@ -3,8 +3,8 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 -/
-import category_theory.adjunction.basic
-import order.galois_connection
+import category_theory.equivalence
+import order.hom.basic
 
 /-!
 
@@ -14,15 +14,13 @@ We install a category instance on any preorder. This is not to be confused with 
 preorders, defined in `order/category/Preorder`.
 
 We show that monotone functions between preorders correspond to functors of the associated
-categories. Furthermore, galois connections correspond to adjoint functors.
+categories.
 
 ## Main definitions
 
 * `hom_of_le` and `le_of_hom` provide translations between inequalities in the preorder, and
   morphisms in the associated category.
 * `monotone.functor` is the functor associated to a monotone function.
-* `galois_connection.adjunction` is the adjunction associated to a galois connection.
-* `Preorder_to_Cat` is the functor embedding the category of preorders into `Cat`.
 
 -/
 
@@ -100,14 +98,6 @@ def monotone.functor {f : X → Y} (h : monotone f) : X ⥤ Y :=
 
 @[simp] lemma monotone.functor_obj {f : X → Y} (h : monotone f) : h.functor.obj = f := rfl
 
-/--
-A galois connection between preorders induces an adjunction between the associated categories.
--/
-def galois_connection.adjunction {l : X → Y} {u : Y → X} (gc : galois_connection l u) :
-  gc.monotone_l.functor ⊣ gc.monotone_u.functor :=
-category_theory.adjunction.mk_of_hom_equiv
-{ hom_equiv := λ X Y, ⟨λ f, (gc.le_u f.le).hom, λ f, (gc.l_le f.le).hom, by tidy, by tidy⟩ }
-
 end
 
 namespace category_theory
@@ -121,13 +111,6 @@ A functor between preorder categories is monotone.
 -/
 @[mono] lemma functor.monotone (f : X ⥤ Y) : monotone f.obj :=
 λ x y hxy, (f.map hxy.hom).le
-
-/--
-An adjunction between preorder categories induces a galois connection.
--/
-lemma adjunction.gc {L : X ⥤ Y} {R : Y ⥤ X} (adj : L ⊣ R) :
-  galois_connection L.obj R.obj :=
-λ x y, ⟨λ h, ((adj.hom_equiv x y).to_fun h.hom).le, λ h, ((adj.hom_equiv x y).inv_fun h.hom).le⟩
 
 end preorder
 

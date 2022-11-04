@@ -9,14 +9,11 @@ import field_theory.is_alg_closed.basic
 /-!
 # The fundamental theorem of algebra
 
-This file proves that every nonconstant complex polynomial has a root.
+This file proves that every nonconstant complex polynomial has a root using Liouville's theorem.
 
 As a consequence, the complex numbers are algebraically closed.
 -/
 
-/-open complex polynomial metric filter set
-open_locale classical
--/
 open polynomial
 open_locale polynomial
 

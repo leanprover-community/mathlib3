@@ -443,15 +443,25 @@ lemma lift_prop_on_congr_iff (h₁ : ∀ y ∈ s, g' y = g y) :
 
 omit hG
 
+lemma lift_prop_within_at_mono_of_mem
+  (mono_of_mem : ∀ ⦃s x t⦄ ⦃f : H → H'⦄, s ∈ 𝓝[t] x → P f s x → P f t x)
+  (h : lift_prop_within_at P g s x) (hst : s ∈ 𝓝[t] x) :
+  lift_prop_within_at P g t x :=
+begin
+  refine ⟨h.1.mono_of_mem hst, mono_of_mem _ h.2⟩,
+  simp_rw [← mem_map, (chart_at H x).symm.map_nhds_within_preimage_eq (mem_chart_target H x),
+    (chart_at H x).left_inv (mem_chart_source H x), hst]
+end
+
 lemma lift_prop_within_at_mono
   (mono : ∀ ⦃s x t⦄ ⦃f : H → H'⦄, t ⊆ s → P f s x → P f t x)
-  (h : lift_prop_within_at P g t x) (hst : s ⊆ t) :
-  lift_prop_within_at P g s x :=
+  (h : lift_prop_within_at P g s x) (hts : t ⊆ s) :
+  lift_prop_within_at P g t x :=
 begin
-  refine ⟨h.1.mono hst, _⟩,
+  refine ⟨h.1.mono hts, _⟩,
   apply mono (λ y hy, _) h.2,
   simp only with mfld_simps at hy,
-  simp only [hy, hst _] with mfld_simps,
+  simp only [hy, hts _] with mfld_simps,
 end
 
 lemma lift_prop_within_at_of_lift_prop_at

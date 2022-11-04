@@ -148,13 +148,13 @@ lemma cont_diff_within_at_local_invariant_prop (n : ℕ∞) :
     { assume y hy, simp only with mfld_simps at hy, simpa only [hy] with mfld_simps using hs hy.1 }
   end }
 
-lemma cont_diff_within_at_prop_mono (n : ℕ∞)
-  ⦃s x t⦄ ⦃f : H → H'⦄ (hts : t ⊆ s) (h : cont_diff_within_at_prop I I' n f s x) :
+lemma cont_diff_within_at_prop_mono_of_mem (n : ℕ∞)
+  ⦃s x t⦄ ⦃f : H → H'⦄ (hts : s ∈ 𝓝[t] x) (h : cont_diff_within_at_prop I I' n f s x) :
   cont_diff_within_at_prop I I' n f t x :=
 begin
-  apply h.mono (λ y hy, _),
-  simp only with mfld_simps at hy,
-  simp only [hy, hts _] with mfld_simps
+  refine h.mono_of_mem _,
+  refine inter_mem _ (mem_of_superset self_mem_nhds_within $ inter_subset_right _ _),
+  rwa [← filter.mem_map, ← I.image_eq, I.symm_map_nhds_within]
 end
 
 lemma cont_diff_within_at_prop_id (x : H) :
@@ -682,10 +682,19 @@ end
 
 /-! ### Restriction to a smaller set -/
 
+lemma cont_mdiff_within_at.mono_of_mem (hf : cont_mdiff_within_at I I' n f s x)
+  (hts : s ∈ 𝓝[t] x) : cont_mdiff_within_at I I' n f t x :=
+structure_groupoid.local_invariant_prop.lift_prop_within_at_mono_of_mem
+  (cont_diff_within_at_prop_mono_of_mem I I' n) hf hts
+
 lemma cont_mdiff_within_at.mono (hf : cont_mdiff_within_at I I' n f s x) (hts : t ⊆ s) :
   cont_mdiff_within_at I I' n f t x :=
-structure_groupoid.local_invariant_prop.lift_prop_within_at_mono
-  (cont_diff_within_at_prop_mono I I' n) hf hts
+hf.mono_of_mem $ mem_of_superset self_mem_nhds_within hts
+
+lemma cont_mdiff_within_at_congr_nhds (hst : 𝓝[s] x = 𝓝[t] x) :
+  cont_mdiff_within_at I I' n f s x ↔ cont_mdiff_within_at I I' n f t x :=
+⟨λ h, h.mono_of_mem $ hst ▸ self_mem_nhds_within,
+  λ h, h.mono_of_mem $ hst.symm ▸ self_mem_nhds_within⟩
 
 lemma cont_mdiff_at.cont_mdiff_within_at (hf : cont_mdiff_at I I' n f x) :
   cont_mdiff_within_at I I' n f s x :=
@@ -743,9 +752,8 @@ begin
   rw [cont_mdiff_within_at_iff_source_of_mem_maximal_atlas he (hs hx)],
   apply cont_mdiff_within_at_congr_nhds,
   simp_rw [nhds_within_eq_iff_eventually_eq,
-    e.extend_symm_preimage_inter_range_eventually_eq I hs hx]
+    e.extend_symm_preimage_inter_range_eventually_eq I hs (hs hx)]
 end
-
 
 include I's
 

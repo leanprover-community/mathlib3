@@ -193,6 +193,21 @@ begin
     adj₂.counit_naturality, adj₂.left_triangle_components_assoc, assoc],
 end
 
+lemma transfer_nat_trans_self_adjunction_id {L R : C ⥤ C} (adj : L ⊣ R) (f : 𝟭 C ⟶ L) (X : C) :
+  (transfer_nat_trans_self adj adjunction.id f).app X = f.app (R.obj X) ≫ adj.counit.app X :=
+begin
+  dsimp [transfer_nat_trans_self, transfer_nat_trans, adjunction.id],
+  simp only [comp_id, id_comp],
+end
+
+lemma transfer_nat_trans_self_adjunction_id_symm {L R : C ⥤ C} (adj : L ⊣ R) (g : R ⟶ 𝟭 C)
+  (X : C) : ((transfer_nat_trans_self adj adjunction.id).symm g).app X =
+  adj.unit.app X ≫ (g.app (L.obj X)) :=
+begin
+  dsimp [transfer_nat_trans_self, transfer_nat_trans, adjunction.id],
+  simp only [comp_id, id_comp],
+end
+
 lemma transfer_nat_trans_self_symm_comp (f g) :
   (transfer_nat_trans_self adj₂ adj₁).symm f ≫ (transfer_nat_trans_self adj₃ adj₂).symm g =
     (transfer_nat_trans_self adj₃ adj₁).symm (g ≫ f) :=

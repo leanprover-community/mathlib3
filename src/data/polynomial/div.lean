@@ -150,12 +150,12 @@ begin
 end
 
 @[simp] lemma mod_by_monic_zero (p : R[X]) : p %ₘ 0 = p :=
-if h : monic (0 : R[X]) then (subsingleton_of_monic_zero h).1 _ _ else
-by unfold mod_by_monic div_mod_by_monic_aux; rw dif_neg h
+if h : monic (0 : R[X]) then by { haveI := monic_zero_iff_subsingleton.mp h, simp }
+else by unfold mod_by_monic div_mod_by_monic_aux; rw dif_neg h
 
 @[simp] lemma div_by_monic_zero (p : R[X]) : p /ₘ 0 = 0 :=
-if h : monic (0 : R[X]) then (subsingleton_of_monic_zero h).1 _ _ else
-by unfold div_by_monic div_mod_by_monic_aux; rw dif_neg h
+if h : monic (0 : R[X]) then by { haveI := monic_zero_iff_subsingleton.mp h, simp }
+else by unfold div_by_monic div_mod_by_monic_aux; rw dif_neg h
 
 lemma div_by_monic_eq_of_not_monic (p : R[X]) (hq : ¬monic q) : p /ₘ q = 0 := dif_neg hq
 
@@ -424,9 +424,9 @@ variable {R}
 
 section multiplicity
 /-- An algorithm for deciding polynomial divisibility.
-The algorithm is "compute `p %ₘ q` and compare to `0`". `
+The algorithm is "compute `p %ₘ q` and compare to `0`".
 See `polynomial.mod_by_monic` for the algorithm that computes `%ₘ`.
- -/
+-/
 def decidable_dvd_monic (p : R[X]) (hq : monic q) : decidable (q ∣ p) :=
 decidable_of_iff (p %ₘ q = 0) (dvd_iff_mod_by_monic_eq_zero hq)
 
@@ -442,7 +442,7 @@ begin
 end
 
 /-- The largest power of `X - C a` which divides `p`.
-This is computable via the divisibility algorithm `decidable_dvd_monic`. -/
+This is computable via the divisibility algorithm `polynomial.decidable_dvd_monic`. -/
 def root_multiplicity (a : R) (p : R[X]) : ℕ :=
 if h0 : p = 0 then 0
 else let I : decidable_pred (λ n : ℕ, ¬(X - C a) ^ (n + 1) ∣ p) :=
@@ -462,7 +462,8 @@ lemma root_multiplicity_eq_zero {p : R[X]} {x : R} (h : ¬ is_root p x) :
 begin
   rw root_multiplicity_eq_multiplicity,
   split_ifs, { refl },
-  rw [← enat.coe_inj, enat.coe_get, multiplicity.multiplicity_eq_zero_of_not_dvd, nat.cast_zero],
+  rw [← part_enat.coe_inj, part_enat.coe_get, multiplicity.multiplicity_eq_zero_of_not_dvd,
+    nat.cast_zero],
   intro hdvd,
   exact h (dvd_iff_is_root.mp hdvd)
 end
@@ -471,7 +472,7 @@ lemma root_multiplicity_pos {p : R[X]} (hp : p ≠ 0) {x : R} :
   0 < root_multiplicity x p ↔ is_root p x :=
 begin
   rw [← dvd_iff_is_root, root_multiplicity_eq_multiplicity, dif_neg hp,
-      ← enat.coe_lt_coe, enat.coe_get],
+      ← part_enat.coe_lt_coe, part_enat.coe_get],
   exact multiplicity.dvd_iff_multiplicity_pos
 end
 

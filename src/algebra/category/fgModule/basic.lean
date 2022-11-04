@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2021 Jakob von Raumer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jakob von Raumer, Scott Morrison
+Authors: Jakob von Raumer
 -/
 import category_theory.monoidal.rigid.basic
+import category_theory.monoidal.subcategory
 import linear_algebra.tensor_product_basis
 import linear_algebra.coevaluation
 import algebra.category.Module.monoidal
@@ -36,38 +37,59 @@ open_locale classical big_operators
 
 universes u
 
-section
+
+section ring
 variables (R : Type u) [ring R]
 
-/-- Define `fgModule` as the subtype of `Module.{u} K` of finitely generated modules. -/
-@[derive [large_category, λ α, has_coe_to_sort α (Sort*), concrete_category, preadditive]]
-def fgModule := { V : Module.{u} R // module.finite R V }
+/-- Define `fgModule` as the subtype of `Module.{u} R` of finitely generated modules. -/
+@[derive [large_category, concrete_category, preadditive]]
+def fgModule := full_subcategory (λ (V : Module.{u} R), module.finite R V)
 
-end
+end ring
 
 namespace fgModule
 
 section ring
 variables (R : Type u) [ring R]
 
-instance finite (V : fgModule R) : module.finite R V := V.prop
+instance finite (V : fgModule R) : module.finite R V.obj := V.property
 
 instance : inhabited (fgModule R) := ⟨⟨Module.of R R, module.finite.self R⟩⟩
-
-instance : has_coe (fgModule.{u} R) (Module.{u} R) := { coe := λ V, V.1, }
-
-protected lemma coe_comp {U V W : fgModule R} (f : U ⟶ V) (g : V ⟶ W) :
-  ((f ≫ g) : U → W) = (g : V → W) ∘ (f : U → V) := rfl
 
 /-- Lift an unbundled finitely generated module to `fgModule R`. -/
 def of (V : Type u) [add_comm_group V] [module R V] [module.finite R V] : fgModule R :=
 ⟨Module.of R V, by { change module.finite R V, apply_instance }⟩
 
+instance (V W : fgModule R) : module.finite R (V ⟶ W) :=
+(by apply_instance : module.finite R (V.obj →ₗ[K] W.obj))
+
 instance : has_forget₂ (fgModule.{u} R) (Module.{u} R) :=
 by { dsimp [fgModule], apply_instance, }
 
-instance : full (forget₂ (fgModule R) (Module.{u} R)) :=
+instance : full (forget₂ (fgModule R) (Module.{u} K)) :=
 { preimage := λ X Y f, f, }
+
+variables {R V}
+
+/-- Converts and isomorphism in the category `fgModule R` to a `linear_equiv` between the underlying
+modules. -/
+def iso_to_linear_equiv {V W : fgModule R} (i : V ≅ W) : V.obj ≃ₗ[R] W.obj :=
+  ((forget₂ (fgModule.{u} R) (Module.{u} R)).map_iso i).to_linear_equiv
+
+lemma iso.conj_eq_conj {V W : fgModule R} (i : V ≅ W) (f : End V) :
+  iso.conj i f = linear_equiv.conj (iso_to_linear_equiv i) f := rfl
+
+/-- Converts a `linear_equiv` to an isomorphism in the category `fgModule R`. -/
+@[simps] def linear_equiv.to_fgModule_iso
+  {V W : Type u} [add_comm_group V] [module R V] [module.finite R V]
+  [add_comm_group W] [module R W] [module.finite R W]
+  (e : V ≃ₗ[R] W) :
+  fgModule.of R V ≅ fgModule.of R W :=
+{ hom := e.to_linear_map,
+  inv := e.symm.to_linear_map,
+  hom_inv_id' := by {ext, exact e.left_inv x},
+  inv_hom_id' := by {ext, exact e.right_inv x} }
+
 
 end ring
 
@@ -81,77 +103,74 @@ end comm_ring
 section field
 variables (K : Type u) [field K]
 
-instance (V W : fgModule K) : finite_dimensional K (V ⟶ W) :=
-(by apply_instance : finite_dimensional K (V →ₗ[K] W))
+-- In fact this works over an arbitrary commutative ring:
+instance monoidal_predicate_module_finite :
+  monoidal_category.monoidal_predicate (λ V : Module.{u} K, module.finite K V) :=
+{ prop_id' := module.finite.self R,
+  prop_tensor' := λ X Y hX hY, by exactI module.finite.tensor_product K X Y }
 
--- TODO this instance works for any commutative ring, but we don't have `finite_tensor_product` yet.
-instance monoidal_category : monoidal_category (fgModule K) :=
-monoidal_category.full_monoidal_subcategory
-  (λ V, module.finite K V)
-  (module.finite.self K)
-  (λ X Y hX hY, by exactI finite_dimensional_tensor_product X Y)
+instance closed_predicate_module_finite :
+  monoidal_category.closed_predicate (λ V : Module.{u} K, module.finite K V) :=
+{ prop_ihom' := λ X Y hX hY, by exactI @linear_map.finite_dimensional K _ X _ _ hX Y _ _ hY }
 
-/-- The forgetful functor `fgModule K ⥤ Module K` as a monoidal functor. -/
-def forget₂_monoidal : monoidal_functor (fgModule K) (Module.{u} K) :=
-{ to_functor := forget₂ (fgModule K) (Module.{u} K),
-  ε := 𝟙 _,
-  μ := λ X Y, 𝟙 _, }
+instance : monoidal_category (fgModule K) := by { dsimp [fgModule], apply_instance, }
+instance : symmetric_category (fgModule K) := by { dsimp [fgModule], apply_instance, }
+instance : monoidal_preadditive (fgModule K) := by { dsimp [fgModule], apply_instance, }
+instance : monoidal_linear K (fgModule K) := by { dsimp [fgModule], apply_instance, }
+instance : monoidal_closed (fgModule K) := by { dsimp [fgModule], apply_instance, }
 
-instance forget₂_monoidal_faithful : faithful (forget₂_monoidal K).to_functor :=
+/-- The forgetful functor `fgModule R ⥤ Module R` as a monoidal functor. -/
+def forget₂_monoidal : monoidal_functor (fgModule R) (Module.{u} R) :=
+monoidal_category.full_monoidal_subcategory_inclusion _
+
+instance forget₂_monoidal_faithful : faithful (forget₂_monoidal R).to_functor :=
 by { dsimp [forget₂_monoidal], apply_instance, }
 
-instance forget₂_monoidal_additive : (forget₂_monoidal K).to_functor.additive :=
-functor.full_subcategory_inclusion_additive _
+instance forget₂_monoidal_additive : (forget₂_monoidal R).to_functor.additive :=
+by { dsimp [forget₂_monoidal], apply_instance, }
 
-instance : monoidal_preadditive (fgModule K) :=
-monoidal_preadditive_of_faithful (forget₂_monoidal K)
+instance forget₂_monoidal_linear : (forget₂_monoidal R).to_functor.linear R :=
+by { dsimp [forget₂_monoidal], apply_instance, }
 
-instance forget₂_monoidal_linear : (forget₂_monoidal K).to_functor.linear K :=
-functor.full_subcategory_inclusion_linear K _
+variables (V W : fgModule K)
 
-instance : monoidal_linear K (fgModule K) :=
-monoidal_linear_of_faithful K (forget₂_monoidal K)
-
-variables (V : fgModule K)
+@[simp] lemma ihom_obj : (ihom V).obj W = fgModule.of K (V.obj →ₗ[K] W.obj) := rfl
 
 /-- The dual module is the dual in the rigid monoidal category `fgModule K`. -/
 def fgModule_dual : fgModule K :=
-⟨Module.of K (module.dual K V), subspace.module.dual.finite_dimensional⟩
-
-instance : has_coe_to_fun (fgModule_dual K V) (λ _, V → K) :=
-{ coe := λ v, by { change V →ₗ[K] K at v, exact v, } }
+⟨Module.of K (module.dual K V.obj), subspace.module.dual.finite_dimensional⟩
 
 open category_theory.monoidal_category
 
 /-- The coevaluation map is defined in `linear_algebra.coevaluation`. -/
 def fgModule_coevaluation : 𝟙_ (fgModule K) ⟶ V ⊗ (fgModule_dual K V) :=
-by apply coevaluation K V
+by apply coevaluation K V.obj
 
 lemma fgModule_coevaluation_apply_one : fgModule_coevaluation K V (1 : K) =
-   ∑ (i : basis.of_vector_space_index K V),
-    (basis.of_vector_space K V) i ⊗ₜ[K] (basis.of_vector_space K V).coord i :=
-by apply coevaluation_apply_one K V
+   ∑ (i : basis.of_vector_space_index K V.obj),
+    (basis.of_vector_space K V.obj) i ⊗ₜ[K] (basis.of_vector_space K V.obj).coord i :=
+by apply coevaluation_apply_one K V.obj
 
 /-- The evaluation morphism is given by the contraction map. -/
-def fgModule_evaluation : (fgModule_dual K V) ⊗ V ⟶ 𝟙_ (fgModule K) :=
-by apply contract_left K V
+def fgModule_evaluation : (fgModule_dual K V) ⊗ V ⟶ 𝟙_ (FinVect K) :=
+by apply contract_left K V.obj
 
 @[simp]
-lemma fgModule_evaluation_apply (f : (fgModule_dual K V)) (x : V) :
-  (fgModule_evaluation K V) (f ⊗ₜ x) = f x :=
+lemma fgModule_evaluation_apply (f : (fgModule_dual K V).obj) (x : V.obj) :
+  (fgModule_evaluation K V) (f ⊗ₜ x) = f.to_fun x :=
 by apply contract_left_apply f x
 
 private theorem coevaluation_evaluation :
   let V' : fgModule K := fgModule_dual K V in
   (𝟙 V' ⊗ (fgModule_coevaluation K V)) ≫ (α_ V' V V').inv ≫ (fgModule_evaluation K V ⊗ 𝟙 V')
   = (ρ_ V').hom ≫ (λ_ V').inv :=
-by apply contract_left_assoc_coevaluation K V
+by apply contract_left_assoc_coevaluation K V.obj
 
 private theorem evaluation_coevaluation :
   (fgModule_coevaluation K V ⊗ 𝟙 V)
-  ≫ (α_ V (fgModule_dual K V) V).hom ≫ (𝟙 V ⊗ fgModule_evaluation K V)
+  ≫ (α_ V (FinVect_dual K V) V).hom ≫ (𝟙 V ⊗ fgModule_evaluation K V)
   = (λ_ V).hom ≫ (ρ_ V).inv :=
-by apply contract_left_assoc_coevaluation' K V
+by apply contract_left_assoc_coevaluation' K V.obj
 
 instance exact_pairing : exact_pairing V (fgModule_dual K V) :=
 { coevaluation := fgModule_coevaluation K V,

@@ -151,6 +151,100 @@ lemma ae_cover_Iio [no_max_order α] :
 
 end linear_order_α
 
+section finite_intervals
+
+variables [linear_order α] [topological_space α] [order_closed_topology α]
+  [opens_measurable_space α] {a b : ι → α} {A B : α}
+  (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B))
+
+lemma ae_cover_Ioo_of_Icc :
+  ae_cover (μ.restrict $ Ioo A B) l (λ i, Icc (a i) (b i)) :=
+{ ae_eventually_mem := (ae_restrict_iff' measurable_set_Ioo).mpr (
+    ae_of_all μ (λ x hx,
+    (ha.eventually $ eventually_le_nhds hx.left).mp $
+    (hb.eventually $ eventually_ge_nhds hx.right).mono $
+    λ i hbi hai, ⟨hai, hbi⟩)),
+  measurable := λ i, measurable_set_Icc, }
+
+lemma ae_cover_Ioo_of_Ico :
+  ae_cover (μ.restrict $ Ioo A B) l (λ i, Ico (a i) (b i)) :=
+{ ae_eventually_mem := (ae_restrict_iff' measurable_set_Ioo).mpr (
+    ae_of_all μ (λ x hx,
+    (ha.eventually $ eventually_le_nhds hx.left).mp $
+    (hb.eventually $ eventually_gt_nhds hx.right).mono $
+    λ i hbi hai, ⟨hai, hbi⟩)),
+  measurable := λ i, measurable_set_Ico, }
+
+lemma ae_cover_Ioo_of_Ioc :
+  ae_cover (μ.restrict $ Ioo A B) l (λ i, Ioc (a i) (b i)) :=
+{ ae_eventually_mem := (ae_restrict_iff' measurable_set_Ioo).mpr (
+    ae_of_all μ (λ x hx,
+    (ha.eventually $ eventually_lt_nhds hx.left).mp $
+    (hb.eventually $ eventually_ge_nhds hx.right).mono $
+    λ i hbi hai, ⟨hai, hbi⟩)),
+  measurable := λ i, measurable_set_Ioc, }
+
+lemma ae_cover_Ioo_of_Ioo :
+  ae_cover (μ.restrict $ Ioo A B) l (λ i, Ioo (a i) (b i)) :=
+{ ae_eventually_mem := (ae_restrict_iff' measurable_set_Ioo).mpr (
+    ae_of_all μ (λ x hx,
+    (ha.eventually $ eventually_lt_nhds hx.left).mp $
+    (hb.eventually $ eventually_gt_nhds hx.right).mono $
+    λ i hbi hai, ⟨hai, hbi⟩)),
+  measurable := λ i, measurable_set_Ioo, }
+
+variables [has_no_atoms μ]
+
+lemma ae_cover_Ioc_of_Icc (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
+  ae_cover (μ.restrict $ Ioc A B) l (λ i, Icc (a i) (b i)) :=
+by simp [measure.restrict_congr_set Ioo_ae_eq_Ioc.symm, ae_cover_Ioo_of_Icc ha hb]
+
+lemma ae_cover_Ioc_of_Ico (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
+  ae_cover (μ.restrict $ Ioc A B) l (λ i, Ico (a i) (b i)) :=
+by simp [measure.restrict_congr_set Ioo_ae_eq_Ioc.symm, ae_cover_Ioo_of_Ico ha hb]
+
+lemma ae_cover_Ioc_of_Ioc (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
+  ae_cover (μ.restrict $ Ioc A B) l (λ i, Ioc (a i) (b i)) :=
+by simp [measure.restrict_congr_set Ioo_ae_eq_Ioc.symm, ae_cover_Ioo_of_Ioc ha hb]
+
+lemma ae_cover_Ioc_of_Ioo (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
+  ae_cover (μ.restrict $ Ioc A B) l (λ i, Ioo (a i) (b i)) :=
+by simp [measure.restrict_congr_set Ioo_ae_eq_Ioc.symm, ae_cover_Ioo_of_Ioo ha hb]
+
+lemma ae_cover_Ico_of_Icc (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
+  ae_cover (μ.restrict $ Ico A B) l (λ i, Icc (a i) (b i)) :=
+by simp [measure.restrict_congr_set Ioo_ae_eq_Ico.symm, ae_cover_Ioo_of_Icc ha hb]
+
+lemma ae_cover_Ico_of_Ico (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
+  ae_cover (μ.restrict $ Ico A B) l (λ i, Ico (a i) (b i)) :=
+by simp [measure.restrict_congr_set Ioo_ae_eq_Ico.symm, ae_cover_Ioo_of_Ico ha hb]
+
+lemma ae_cover_Ico_of_Ioc (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
+  ae_cover (μ.restrict $ Ico A B) l (λ i, Ioc (a i) (b i)) :=
+by simp [measure.restrict_congr_set Ioo_ae_eq_Ico.symm, ae_cover_Ioo_of_Ioc ha hb]
+
+lemma ae_cover_Ico_of_Ioo (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
+  ae_cover (μ.restrict $ Ico A B) l (λ i, Ioo (a i) (b i)) :=
+by simp [measure.restrict_congr_set Ioo_ae_eq_Ico.symm, ae_cover_Ioo_of_Ioo ha hb]
+
+lemma ae_cover_Icc_of_Icc (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
+  ae_cover (μ.restrict $ Icc A B) l (λ i, Icc (a i) (b i)) :=
+by simp [measure.restrict_congr_set Ioo_ae_eq_Icc.symm, ae_cover_Ioo_of_Icc ha hb]
+
+lemma ae_cover_Icc_of_Ico (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
+  ae_cover (μ.restrict $ Icc A B) l (λ i, Ico (a i) (b i)) :=
+by simp [measure.restrict_congr_set Ioo_ae_eq_Icc.symm, ae_cover_Ioo_of_Ico ha hb]
+
+lemma ae_cover_Icc_of_Ioc (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
+  ae_cover (μ.restrict $ Icc A B) l (λ i, Ioc (a i) (b i)) :=
+by simp [measure.restrict_congr_set Ioo_ae_eq_Icc.symm, ae_cover_Ioo_of_Ioc ha hb]
+
+lemma ae_cover_Icc_of_Ioo (ha : tendsto a l (𝓝 A)) (hb : tendsto b l (𝓝 B)) :
+  ae_cover (μ.restrict $ Icc A B) l (λ i, Ioo (a i) (b i)) :=
+by simp [measure.restrict_congr_set Ioo_ae_eq_Icc.symm, ae_cover_Ioo_of_Ioo ha hb]
+
+end finite_intervals
+
 lemma ae_cover.restrict {φ : ι → set α} (hφ : ae_cover μ l φ) {s : set α} :
   ae_cover (μ.restrict s) l φ :=
 { ae_eventually_mem := ae_restrict_of_ae hφ.ae_eventually_mem,
@@ -187,7 +281,7 @@ begin
     let ⟨i, hi⟩ := (hu.eventually hx).exists in mem_Union.mpr ⟨i, hi⟩
 end
 
-lemma ae_cover.ae_strongly_measurable {β : Type*} [topological_space β] [metrizable_space β]
+lemma ae_cover.ae_strongly_measurable {β : Type*} [topological_space β] [pseudo_metrizable_space β]
   [l.is_countably_generated] [l.ne_bot]
   {f : α → β} {φ : ι → set α} (hφ : ae_cover μ l φ)
   (hfm : ∀ i, ae_strongly_measurable f (μ.restrict $ φ i)) : ae_strongly_measurable f μ :=
@@ -209,16 +303,16 @@ lemma ae_cover.comp_tendsto {α ι ι' : Type*} [measurable_space α] {μ : meas
 { ae_eventually_mem := hφ.ae_eventually_mem.mono (λ x hx, hu.eventually hx),
   measurable := λ i, hφ.measurable (u i) }
 
-section ae_cover_Union_Inter_encodable
+section ae_cover_Union_Inter_countable
 
-variables {α ι : Type*} [encodable ι]
+variables {α ι : Type*} [countable ι]
   [measurable_space α] {μ : measure α}
 
 lemma ae_cover.bUnion_Iic_ae_cover [preorder ι] {φ : ι → set α} (hφ : ae_cover μ at_top φ) :
   ae_cover μ at_top (λ (n : ι), ⋃ k (h : k ∈ Iic n), φ k) :=
 { ae_eventually_mem := hφ.ae_eventually_mem.mono
     (λ x h, h.mono (λ i hi, mem_bUnion right_mem_Iic hi)),
-  measurable := λ i, measurable_set.bUnion (countable_encodable _) (λ n _, hφ.measurable n) }
+  measurable := λ i, measurable_set.bUnion (to_countable _) (λ n _, hφ.measurable n) }
 
 lemma ae_cover.bInter_Ici_ae_cover [semilattice_sup ι] [nonempty ι] {φ : ι → set α}
   (hφ : ae_cover μ at_top φ) : ae_cover μ at_top (λ (n : ι), ⋂ k (h : k ∈ Ici n), φ k) :=
@@ -231,9 +325,9 @@ lemma ae_cover.bInter_Ici_ae_cover [semilattice_sup ι] [nonempty ι] {φ : ι �
       intros j hj,
       exact mem_bInter (λ k hk, hi k (le_trans hj hk)),
     end,
-  measurable := λ i, measurable_set.bInter (countable_encodable _) (λ n _, hφ.measurable n) }
+  measurable := λ i, measurable_set.bInter (to_countable _) (λ n _, hφ.measurable n) }
 
-end ae_cover_Union_Inter_encodable
+end ae_cover_Union_Inter_countable
 
 section lintegral
 
@@ -291,7 +385,7 @@ end lintegral
 section integrable
 
 variables {α ι E : Type*} [measurable_space α] {μ : measure α} {l : filter ι}
-  [normed_group E]
+  [normed_add_comm_group E]
 
 lemma ae_cover.integrable_of_lintegral_nnnorm_bounded [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (I : ℝ) (hfm : ae_strongly_measurable f μ)
@@ -375,7 +469,7 @@ end integrable
 section integral
 
 variables {α ι E : Type*} [measurable_space α] {μ : measure α} {l : filter ι}
-  [normed_group E] [normed_space ℝ E] [complete_space E]
+  [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
 lemma ae_cover.integral_tendsto_of_countably_generated [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (hfi : integrable f μ) :
@@ -411,7 +505,7 @@ section integrable_of_interval_integral
 
 variables {ι E : Type*} {μ : measure ℝ}
           {l : filter ι} [filter.ne_bot l] [is_countably_generated l]
-          [normed_group E]
+          [normed_add_comm_group E]
           {a b : ι → ℝ} {f : ℝ → E}
 
 lemma integrable_of_interval_integral_norm_bounded
@@ -427,6 +521,10 @@ begin
   rwa ←interval_integral.integral_of_le (hai.trans hbi)
 end
 
+/-- If `f` is integrable on intervals `Ioc (a i) (b i)`,
+where `a i` tends to -∞ and `b i` tends to ∞, and
+`∫ x in a i .. b i, ∥f x∥ ∂μ` converges to `I : ℝ` along a filter `l`,
+then `f` is integrable on the interval (-∞, ∞) -/
 lemma integrable_of_interval_integral_norm_tendsto
   (I : ℝ) (hfi : ∀ i, integrable_on f (Ioc (a i) (b i)) μ)
   (ha : tendsto a l at_bot) (hb : tendsto b l at_top)
@@ -451,6 +549,10 @@ begin
   exact id
 end
 
+/-- If `f` is integrable on intervals `Ioc (a i) b`,
+where `a i` tends to -∞, and
+`∫ x in a i .. b, ∥f x∥ ∂μ` converges to `I : ℝ` along a filter `l`,
+then `f` is integrable on the interval (-∞, b) -/
 lemma integrable_on_Iic_of_interval_integral_norm_tendsto (I b : ℝ)
   (hfi : ∀ i, integrable_on f (Ioc (a i) b) μ) (ha : tendsto a l at_bot)
   (h : tendsto (λ i, ∫ x in a i .. b, ∥f x∥ ∂μ) l (𝓝 I)) :
@@ -475,6 +577,10 @@ begin
   exact id
 end
 
+/-- If `f` is integrable on intervals `Ioc a (b i)`,
+where `b i` tends to ∞, and
+`∫ x in a .. b i, ∥f x∥ ∂μ` converges to `I : ℝ` along a filter `l`,
+then `f` is integrable on the interval (a, ∞) -/
 lemma integrable_on_Ioi_of_interval_integral_norm_tendsto (I a : ℝ)
   (hfi : ∀ i, integrable_on f (Ioc a (b i)) μ) (hb : tendsto b l at_top)
   (h : tendsto (λ i, ∫ x in a .. b i, ∥f x∥ ∂μ) l (𝓝 $ I)) :
@@ -482,13 +588,36 @@ lemma integrable_on_Ioi_of_interval_integral_norm_tendsto (I a : ℝ)
 let ⟨I', hI'⟩ := h.is_bounded_under_le in
   integrable_on_Ioi_of_interval_integral_norm_bounded I' a hfi hb hI'
 
+lemma integrable_on_Ioc_of_interval_integral_norm_bounded {I a₀ b₀ : ℝ}
+  (hfi : ∀ i, integrable_on f $ Ioc (a i) (b i))
+  (ha : tendsto a l $ 𝓝 a₀) (hb : tendsto b l $ 𝓝 b₀)
+  (h : ∀ᶠ i in l, (∫ x in Ioc (a i) (b i), ∥f x∥) ≤ I) : integrable_on f (Ioc a₀ b₀) :=
+begin
+  refine (ae_cover_Ioc_of_Ioc ha hb).integrable_of_integral_norm_bounded I
+    (λ i, (hfi i).restrict measurable_set_Ioc) (eventually.mono h _),
+  intros i hi, simp only [measure.restrict_restrict measurable_set_Ioc],
+  refine le_trans (set_integral_mono_set (hfi i).norm _ _) hi,
+  { apply ae_of_all, simp only [pi.zero_apply, norm_nonneg, forall_const] },
+  { apply ae_of_all, intros c hc, exact hc.1 },
+end
+
+lemma integrable_on_Ioc_of_interval_integral_norm_bounded_left {I a₀ b : ℝ}
+  (hfi : ∀ i, integrable_on f $ Ioc (a i) b) (ha : tendsto a l $ 𝓝 a₀)
+  (h : ∀ᶠ i in l, (∫ x in Ioc (a i) b, ∥f x∥ ) ≤ I) : integrable_on f (Ioc a₀ b) :=
+integrable_on_Ioc_of_interval_integral_norm_bounded hfi ha tendsto_const_nhds h
+
+lemma integrable_on_Ioc_of_interval_integral_norm_bounded_right {I a b₀ : ℝ}
+  (hfi : ∀ i, integrable_on f $ Ioc a (b i)) (hb : tendsto b l $ 𝓝 b₀)
+  (h : ∀ᶠ i in l, (∫ x in Ioc a (b i), ∥f x∥ ) ≤ I) : integrable_on f (Ioc a b₀) :=
+integrable_on_Ioc_of_interval_integral_norm_bounded hfi tendsto_const_nhds hb h
+
 end integrable_of_interval_integral
 
 section integral_of_interval_integral
 
 variables {ι E : Type*} {μ : measure ℝ}
           {l : filter ι} [is_countably_generated l]
-          [normed_group E] [normed_space ℝ E] [complete_space E]
+          [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
           {a b : ι → ℝ} {f : ℝ → E}
 
 lemma interval_integral_tendsto_integral

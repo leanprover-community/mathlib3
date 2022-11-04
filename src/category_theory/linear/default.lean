@@ -71,11 +71,12 @@ instance preadditive_int_linear : linear ℤ C :=
 
 section End
 
-variables {R : Type w} [comm_ring R] [linear R C]
+variables {R : Type w}
 
-instance (X : C) : module R (End X) := by { dsimp [End], apply_instance, }
+instance [semiring R] [linear R C] (X : C) : module R (End X) :=
+by { dsimp [End], apply_instance, }
 
-instance (X : C) : algebra R (End X) :=
+instance [comm_semiring R] [linear R C] (X : C) : algebra R (End X) :=
 algebra.of_module (λ r f g, comp_smul _ _ _ _ _ _) (λ r f g, smul_comp _ _ _ _ _ _)
 
 end End
@@ -94,8 +95,10 @@ instance induced_category : linear.{w v} R (induced_category C F) :=
 
 end induced_category
 
-instance full_subcategory (Z : C → Prop) : linear.{w v} R { X : C // Z X } :=
-linear.induced_category _
+instance full_subcategory (Z : C → Prop) : linear.{w v} R (full_subcategory Z) :=
+{ hom_module := λ X Y, @linear.hom_module R _ C _ _ _ X.obj Y.obj,
+  smul_comp' := λ P Q R f f' g, smul_comp' _ _ _ _ _ _,
+  comp_smul' := λ P Q R f g g', comp_smul' _ _ _ _ _ _, }
 
 variables (R)
 

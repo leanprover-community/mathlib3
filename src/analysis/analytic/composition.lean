@@ -9,7 +9,7 @@ import combinatorics.composition
 /-!
 # Composition of analytic functions
 
-in this file we prove that the composition of analytic functions is analytic.
+In this file we prove that the composition of analytic functions is analytic.
 
 The argument is the following. Assume `g z = ∑' qₙ (z, ..., z)` and `f y = ∑' pₖ (y, ..., y)`. Then
 
@@ -217,7 +217,7 @@ def comp_along_composition {n : ℕ}
 /-- Formal composition of two formal multilinear series. The `n`-th coefficient in the composition
 is defined to be the sum of `q.comp_along_composition p c` over all compositions of
 `n`. In other words, this term (as a multilinear function applied to `v_0, ..., v_{n-1}`) is
-`∑'_{k} ∑'_{i₁ + ... + iₖ = n} pₖ (q_{i_1} (...), ..., q_{i_k} (...))`, where one puts all variables
+`∑'_{k} ∑'_{i₁ + ... + iₖ = n} qₖ (p_{i_1} (...), ..., p_{i_k} (...))`, where one puts all variables
 `v_0, ..., v_{n-1}` in increasing order in the dots.
 
 In general, the composition `q ∘ p` only makes sense when the constant coefficient of `p` vanishes.
@@ -268,6 +268,7 @@ begin
   exact p.congr rfl (λ j hj1 hj2, by congr)
 end
 
+/-- Only `0`-th coefficient of `q.comp p` depends on `q 0`. -/
 lemma remove_zero_comp_of_pos (q : formal_multilinear_series 𝕜 F G)
   (p : formal_multilinear_series 𝕜 E F) {n : ℕ} (hn : 0 < n) :
   q.remove_zero.comp p n = q.comp p n :=
@@ -288,11 +289,11 @@ end formal_multilinear_series
 
 end topological
 
-variables [nondiscrete_normed_field 𝕜]
-  [normed_group E] [normed_space 𝕜 E]
-  [normed_group F] [normed_space 𝕜 F]
-  [normed_group G] [normed_space 𝕜 G]
-  [normed_group H] [normed_space 𝕜 H]
+variables [nontrivially_normed_field 𝕜]
+  [normed_add_comm_group E] [normed_space 𝕜 E]
+  [normed_add_comm_group F] [normed_space 𝕜 F]
+  [normed_add_comm_group G] [normed_space 𝕜 G]
+  [normed_add_comm_group H] [normed_space 𝕜 H]
 
 namespace formal_multilinear_series
 

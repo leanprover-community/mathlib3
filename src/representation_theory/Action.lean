@@ -33,7 +33,7 @@ and construct the restriction functors `res {G H : Mon} (f : G ⟶ H) : Action V
 * When `V` is preadditive, linear, or abelian so is `Action V G`.
 -/
 
-universes u
+universes u v
 
 open category_theory
 open category_theory.limits
@@ -73,6 +73,8 @@ def ρ_Aut {G : Group.{u}} (A : Action V (Mon.of G)) : G ⟶ Group.of (Aut A.V) 
 variable (G : Mon.{u})
 
 section
+
+instance inhabited' : inhabited (Action (Type u) G) := ⟨⟨punit, 1⟩⟩
 
 /-- The trivial representation of a group. -/
 def trivial : Action AddCommGroup G :=
@@ -140,6 +142,14 @@ def mk_iso {M N : Action V G} (f : M.V ≅ N.V) (comm : ∀ g : G, M.ρ g ≫ f.
   { hom := f.inv,
     comm' := λ g, by { have w := comm g =≫ f.inv, simp at w, simp [w], }, }}
 
+@[priority 100]
+instance is_iso_of_hom_is_iso {M N : Action V G} (f : M ⟶ N) [is_iso f.hom] : is_iso f :=
+by { convert is_iso.of_iso (mk_iso (as_iso f.hom) f.comm), ext, refl, }
+
+instance is_iso_hom_mk {M N : Action V G} (f : M.V ⟶ N.V) [is_iso f] (w) :
+  @is_iso _ _ M N ⟨f, w⟩ :=
+is_iso.of_iso (mk_iso (as_iso f) w)
+
 namespace functor_category_equivalence
 
 /-- Auxilliary definition for `functor_category_equivalence`. -/
@@ -197,6 +207,10 @@ def functor_category_equivalence : Action V G ≌ (single_obj G ⥤ V) :=
 attribute [simps] functor_category_equivalence
 
 instance [has_finite_products V] : has_finite_products (Action V G) :=
+{ out := λ J _, by exactI
+  adjunction.has_limits_of_shape_of_equivalence (Action.functor_category_equivalence _ _).functor }
+
+instance [has_finite_limits V] : has_finite_limits (Action V G) :=
 { out := λ J _ _, by exactI
   adjunction.has_limits_of_shape_of_equivalence (Action.functor_category_equivalence _ _).functor }
 
@@ -261,7 +275,9 @@ section has_zero_morphisms
 variables [has_zero_morphisms V]
 
 instance : has_zero_morphisms (Action V G) :=
-{ has_zero := λ X Y, ⟨⟨0, by simp⟩⟩, }
+{ has_zero := λ X Y, ⟨⟨0, by { intro g, simp }⟩⟩,
+  comp_zero' := λ P Q f R, by { ext1, simp },
+  zero_comp' := λ P Q R f, by { ext1, simp }, }
 
 instance forget_preserves_zero_morphisms : functor.preserves_zero_morphisms (forget V G) := {}
 instance forget₂_preserves_zero_morphisms [concrete_category V] :
@@ -297,6 +313,8 @@ instance functor_category_equivalence_additive :
 @[simp] lemma zero_hom {X Y : Action V G} : (0 : X ⟶ Y).hom = 0 := rfl
 @[simp] lemma neg_hom {X Y : Action V G} (f : X ⟶ Y) : (-f).hom = -f.hom := rfl
 @[simp] lemma add_hom {X Y : Action V G} (f g : X ⟶ Y) : (f + g).hom = f.hom + g.hom := rfl
+@[simp] lemma sum_hom {X Y : Action V G} {ι : Type*} (f : ι → (X ⟶ Y)) (s : finset ι) :
+  (s.sum f).hom = s.sum (λ i, (f i).hom) := (forget V G).map_sum f s
 
 end preadditive
 
@@ -342,6 +360,8 @@ variables [monoidal_category V]
 instance : monoidal_category (Action V G) :=
 monoidal.transport (Action.functor_category_equivalence _ _).symm
 
+@[simp] lemma tensor_unit_V : (𝟙_ (Action V G)).V = 𝟙_ V := rfl
+@[simp] lemma tensor_unit_rho {g : G} : (𝟙_ (Action V G)).ρ g = 𝟙 (𝟙_ V) := rfl
 @[simp] lemma tensor_V {X Y : Action V G} : (X ⊗ Y).V = X.V ⊗ Y.V := rfl
 @[simp] lemma tensor_rho {X Y : Action V G} {g : G} : (X ⊗ Y).ρ g = X.ρ g ⊗ Y.ρ g := rfl
 @[simp] lemma tensor_hom {W X Y Z : Action V G} (f : W ⟶ X) (g : Y ⟶ Z) :
@@ -446,12 +466,31 @@ by { change right_rigid_category (single_obj H ⥤ V), apply_instance }
 instance [right_rigid_category V] : right_rigid_category (Action V H) :=
 right_rigid_category_of_equivalence (functor_category_monoidal_equivalence V _)
 
+instance [left_rigid_category V] : left_rigid_category (single_obj (H : Mon.{u}) ⥤ V) :=
+by { change left_rigid_category (single_obj H ⥤ V), apply_instance }
+
+/-- If `V` is left rigid, so is `Action V G`. -/
+instance [left_rigid_category V] : left_rigid_category (Action V H) :=
+left_rigid_category_of_equivalence (functor_category_monoidal_equivalence V _)
+
 instance [rigid_category V] : rigid_category (single_obj (H : Mon.{u}) ⥤ V) :=
 by { change rigid_category (single_obj H ⥤ V), apply_instance }
 
 /-- If `V` is rigid, so is `Action V G`. -/
 instance [rigid_category V] : rigid_category (Action V H) :=
 rigid_category_of_equivalence (functor_category_monoidal_equivalence V _)
+
+variables {V H} (X : Action V H)
+
+@[simp] lemma right_dual_V [right_rigid_category V] : (Xᘁ).V = (X.V)ᘁ := rfl
+
+@[simp] lemma left_dual_V [left_rigid_category V] : (ᘁX).V = ᘁ(X.V) := rfl
+
+@[simp] lemma right_dual_ρ [right_rigid_category V] (h : H) : (Xᘁ).ρ h = (X.ρ (h⁻¹ : H))ᘁ :=
+by { rw ←single_obj.inv_as_inv, refl }
+
+@[simp] lemma left_dual_ρ [left_rigid_category V] (h : H) : (ᘁX).ρ h = ᘁ(X.ρ (h⁻¹ : H)) :=
+by { rw ←single_obj.inv_as_inv, refl }
 
 end monoidal
 
@@ -510,6 +549,55 @@ variables {R : Type*} [semiring R]
 
 instance res_linear [preadditive V] [linear R V] : (res V f).linear R := {}
 
+/-- Bundles a type `H` with a multiplicative action of `G` as an `Action`. -/
+def of_mul_action (G H : Type u) [monoid G] [mul_action G H] : Action (Type u) (Mon.of G) :=
+{ V := H,
+  ρ := @mul_action.to_End_hom _ _ _ (by assumption) }
+
+@[simp] lemma of_mul_action_apply {G H : Type u} [monoid G] [mul_action G H] (g : G) (x : H) :
+  (of_mul_action G H).ρ g x = (g • x : H) :=
+rfl
+
+/-- Given a family `F` of types with `G`-actions, this is the limit cone demonstrating that the
+product of `F` as types is a product in the category of `G`-sets. -/
+def of_mul_action_limit_cone {ι : Type v} (G : Type (max v u)) [monoid G]
+  (F : ι → Type (max v u)) [Π i : ι, mul_action G (F i)] :
+  limit_cone (discrete.functor (λ i : ι, Action.of_mul_action G (F i))) :=
+{ cone :=
+  { X := Action.of_mul_action G (Π i : ι, F i),
+    π :=
+    { app := λ i, ⟨λ x, x i.as, λ g, by ext; refl⟩,
+      naturality' := λ i j x,
+      begin
+        ext,
+        discrete_cases,
+        cases x,
+        congr
+      end } },
+  is_limit :=
+  { lift := λ s,
+    { hom := λ x i, (s.π.app ⟨i⟩).hom x,
+      comm' := λ g,
+      begin
+        ext x j,
+        dsimp,
+        exact congr_fun ((s.π.app ⟨j⟩).comm g) x,
+      end },
+    fac' := λ s j,
+    begin
+      ext,
+      dsimp,
+      congr,
+      rw discrete.mk_as,
+    end,
+    uniq' := λ s f h,
+    begin
+      ext x j,
+      dsimp at *,
+      rw ←h ⟨j⟩,
+      congr,
+    end } }
+
 end Action
 
 namespace category_theory.functor
@@ -541,3 +629,29 @@ variables {R : Type*} [semiring R] [category_theory.linear R V] [category_theory
 instance map_Action_linear [F.additive] [F.linear R] : (F.map_Action G).linear R := {}
 
 end category_theory.functor
+
+namespace category_theory.monoidal_functor
+
+open Action
+variables {V} {W : Type (u+1)} [large_category W] [monoidal_category V] [monoidal_category W]
+
+/-- A monoidal functor induces a monoidal functor between
+the categories of `G`-actions within those categories. -/
+@[simps] def map_Action (F : monoidal_functor V W) (G : Mon.{u}) :
+  monoidal_functor (Action V G) (Action W G) :=
+{ ε :=
+  { hom := F.ε,
+    comm' := λ g,
+    by { dsimp, erw [category.id_comp, category_theory.functor.map_id, category.comp_id], }, },
+  μ := λ X Y,
+  { hom := F.μ X.V Y.V,
+    comm' := λ g, F.to_lax_monoidal_functor.μ_natural (X.ρ g) (Y.ρ g), },
+  ε_is_iso := by apply_instance,
+  μ_is_iso := by apply_instance,
+  μ_natural' := by { intros, ext, dsimp, simp, },
+  associativity' := by { intros, ext, dsimp, simp, dsimp, simp, }, -- See note [dsimp, simp].
+  left_unitality' := by { intros, ext, dsimp, simp, dsimp, simp, },
+  right_unitality' := by { intros, ext, dsimp, simp, dsimp, simp, },
+  ..F.to_functor.map_Action G, }
+
+end category_theory.monoidal_functor

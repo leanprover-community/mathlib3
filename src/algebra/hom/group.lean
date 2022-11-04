@@ -58,7 +58,7 @@ monoid_hom, add_monoid_hom
 
 -/
 
-variables {M : Type*} {N : Type*} {P : Type*} -- monoids
+variables {α β M N P : Type*} -- monoids
 variables {G : Type*} {H : Type*} -- groups
 variables {F : Type*} -- homs
 
@@ -202,6 +202,9 @@ ne_of_apply_ne f $ ne_of_ne_of_eq hx (map_one f).symm
 instance [one_hom_class F M N] : has_coe_t F (one_hom M N) :=
 ⟨λ f, { to_fun := f, map_one' := map_one f }⟩
 
+@[simp, to_additive] lemma one_hom.coe_coe [one_hom_class F M N] (f : F) :
+  ((f : one_hom M N) : M → N) = f := rfl
+
 end one
 
 section mul
@@ -246,6 +249,9 @@ mul_hom_class.map_mul f x y
 instance [mul_hom_class F M N] : has_coe_t F (M →ₙ* N) :=
 ⟨λ f, { to_fun := f, map_mul' := map_mul f }⟩
 
+@[simp, to_additive] lemma mul_hom.coe_coe [mul_hom_class F M N] (f : F) :
+  ((f : mul_hom M N) : M → N) = f := rfl
+
 end mul
 
 section mul_one
@@ -289,33 +295,36 @@ instance monoid_hom.monoid_hom_class : monoid_hom_class (M →* N) M N :=
 instance [monoid_hom_class F M N] : has_coe_t F (M →* N) :=
 ⟨λ f, { to_fun := f, map_one' := map_one f, map_mul' := map_mul f }⟩
 
+@[simp, to_additive] lemma monoid_hom.coe_coe [monoid_hom_class F M N] (f : F) :
+  ((f : M →* N) : M → N) = f := rfl
+
 @[to_additive]
 lemma map_mul_eq_one [monoid_hom_class F M N] (f : F) {a b : M} (h : a * b = 1) :
   f a * f b = 1 :=
 by rw [← map_mul, h, map_one]
 
+@[to_additive]
+lemma map_div' [div_inv_monoid G] [div_inv_monoid H] [monoid_hom_class F G H] (f : F)
+  (hf : ∀ a, f a⁻¹ = (f a)⁻¹) (a b : G) : f (a / b) = f a / f b :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, map_mul, hf]
+
 /-- Group homomorphisms preserve inverse. -/
 @[simp, to_additive "Additive group homomorphisms preserve negation."]
-theorem map_inv [group G] [group H] [monoid_hom_class F G H]
-  (f : F) (g : G) : f g⁻¹ = (f g)⁻¹ :=
-eq_inv_of_mul_eq_one $ map_mul_eq_one f $ inv_mul_self g
+lemma map_inv [group G] [division_monoid H] [monoid_hom_class F G H] (f : F) (a : G) :
+  f a⁻¹ = (f a)⁻¹ :=
+eq_inv_of_mul_eq_one_left $ map_mul_eq_one f $ inv_mul_self _
 
 /-- Group homomorphisms preserve division. -/
 @[simp, to_additive "Additive group homomorphisms preserve subtraction."]
-theorem map_mul_inv [group G] [group H] [monoid_hom_class F G H]
-  (f : F) (g h : G) : f (g * h⁻¹) = f g * (f h)⁻¹ :=
+lemma map_mul_inv [group G] [division_monoid H] [monoid_hom_class F G H] (f : F) (a b : G) :
+  f (a * b⁻¹) = f a * (f b)⁻¹ :=
 by rw [map_mul, map_inv]
 
 /-- Group homomorphisms preserve division. -/
 @[simp, to_additive "Additive group homomorphisms preserve subtraction."]
-lemma map_div [group G] [group H] [monoid_hom_class F G H]
-  (f : F) (x y : G) : f (x / y) = f x / f y :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, map_mul_inv]
-
-@[to_additive]
-theorem map_div' [div_inv_monoid G] [div_inv_monoid H] [monoid_hom_class F G H] (f : F)
-  (hf : ∀ x, f (x⁻¹) = (f x)⁻¹) (a b : G) : f (a / b) = f a / f b :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, map_mul, hf]
+lemma map_div [group G] [division_monoid H] [monoid_hom_class F G H] (f : F) :
+  ∀ a b, f (a / b) = f a / f b :=
+map_div' _ $ map_inv f
 
 -- to_additive puts the arguments in the wrong order, so generate an auxiliary lemma, then
 -- swap its arguments.
@@ -342,18 +351,22 @@ theorem map_zpow' [div_inv_monoid G] [div_inv_monoid H] [monoid_hom_class F G H]
 -- swap its arguments.
 /-- Group homomorphisms preserve integer power. -/
 @[to_additive map_zsmul.aux, simp]
-theorem map_zpow [group G] [group H] [monoid_hom_class F G H] (f : F) (g : G) (n : ℤ) :
+theorem map_zpow [group G] [division_monoid H] [monoid_hom_class F G H] (f : F) (g : G) (n : ℤ) :
   f (g ^ n) = (f g) ^ n :=
 map_zpow' f (map_inv f) g n
 
 /-- Additive group homomorphisms preserve integer scaling. -/
-theorem map_zsmul [add_group G] [add_group H] [add_monoid_hom_class F G H] (f : F) (n : ℤ) (g : G) :
+theorem map_zsmul [add_group G] [subtraction_monoid H] [add_monoid_hom_class F G H] (f : F)
+  (n : ℤ) (g : G) :
   f (n • g) = n • f g :=
 map_zsmul.aux f g n
 
 attribute [to_additive_reorder 8, to_additive] map_zpow
 
 end mul_one
+
+@[to_additive] lemma group.is_unit [group G] (g : G) : is_unit g :=
+⟨⟨g, g⁻¹, mul_inv_self g, inv_mul_self g⟩, rfl⟩
 
 section mul_zero_one
 
@@ -397,6 +410,9 @@ instance monoid_with_zero_hom.monoid_with_zero_hom_class :
 
 instance [monoid_with_zero_hom_class F M N] : has_coe_t F (M →*₀ N) :=
 ⟨λ f, { to_fun := f, map_one' := map_one f, map_zero' := map_zero f, map_mul' := map_mul f }⟩
+
+@[simp] lemma monoid_with_zero_hom.coe_coe [monoid_with_zero_hom_class F M N] (f : F) :
+  ((f : M →*₀ N) : M → N) = f := rfl
 
 end mul_zero_one
 
@@ -578,11 +594,11 @@ fun_like.coe_injective h
 lemma one_hom.ext_iff [has_one M] [has_one N] {f g : one_hom M N} : f = g ↔ ∀ x, f x = g x :=
 fun_like.ext_iff
 /-- Deprecated: use `fun_like.ext_iff` instead. -/
-@[to_additive]
+@[to_additive "Deprecated: use `fun_like.ext_iff` instead."]
 lemma mul_hom.ext_iff [has_mul M] [has_mul N] {f g : M →ₙ* N} : f = g ↔ ∀ x, f x = g x :=
 fun_like.ext_iff
 /-- Deprecated: use `fun_like.ext_iff` instead. -/
-@[to_additive]
+@[to_additive "Deprecated: use `fun_like.ext_iff` instead."]
 lemma monoid_hom.ext_iff [mul_one_class M] [mul_one_class N]
   {f g : M →* N} : f = g ↔ ∀ x, f x = g x :=
 fun_like.ext_iff
@@ -671,8 +687,7 @@ protected lemma monoid_with_zero_hom.map_mul [mul_zero_one_class M] [mul_zero_on
 add_decl_doc add_monoid_hom.map_add
 
 namespace monoid_hom
-variables {mM : mul_one_class M} {mN : mul_one_class N} {mP : mul_one_class P}
-variables [group G] [comm_group H] [monoid_hom_class F M N]
+variables {mM : mul_one_class M} {mN : mul_one_class N} [monoid_hom_class F M N]
 
 include mM mN
 
@@ -695,13 +710,21 @@ let ⟨y, hy⟩ := hx in ⟨f y, map_mul_eq_one f hy⟩
 
 end monoid_hom
 
+section division_comm_monoid
+variables [division_comm_monoid α]
+
 /-- Inversion on a commutative group, considered as a monoid homomorphism. -/
-@[to_additive "Inversion on a commutative additive group, considered as an additive
-monoid homomorphism."]
-def comm_group.inv_monoid_hom {G : Type*} [comm_group G] : G →* G :=
+@[to_additive "Negation on a commutative additive group, considered as an additive monoid
+homomorphism."]
+def inv_monoid_hom : α →* α :=
 { to_fun := has_inv.inv,
-  map_one' := one_inv,
+  map_one' := inv_one,
   map_mul' := mul_inv }
+
+@[simp] lemma coe_inv_monoid_hom : (inv_monoid_hom : α → α) = has_inv.inv := rfl
+@[simp] lemma inv_monoid_hom_apply (a : α) : inv_monoid_hom a = a⁻¹ := rfl
+
+end division_comm_monoid
 
 /-- The identity map from a type with 1 to itself. -/
 @[to_additive, simps]
@@ -783,7 +806,8 @@ lemma monoid_with_zero_hom.comp_apply [mul_zero_one_class M] [mul_zero_one_class
   g.comp f x = g (f x) := rfl
 
 /-- Composition of monoid homomorphisms is associative. -/
-@[to_additive] lemma one_hom.comp_assoc {Q : Type*} [has_one M] [has_one N] [has_one P] [has_one Q]
+@[to_additive "Composition of additive monoid homomorphisms is associative."]
+lemma one_hom.comp_assoc {Q : Type*} [has_one M] [has_one N] [has_one P] [has_one Q]
   (f : one_hom M N) (g : one_hom N P) (h : one_hom P Q) :
   (h.comp g).comp f = h.comp (g.comp f) := rfl
 @[to_additive] lemma mul_hom.comp_assoc {Q : Type*} [has_mul M] [has_mul N] [has_mul P] [has_mul Q]
@@ -911,7 +935,7 @@ instance : monoid (monoid.End M) :=
 
 instance : inhabited (monoid.End M) := ⟨1⟩
 
-instance : has_coe_to_fun (monoid.End M) (λ _, M → M) := ⟨monoid_hom.to_fun⟩
+instance : monoid_hom_class (monoid.End M) M M := monoid_hom.monoid_hom_class
 
 end End
 
@@ -938,7 +962,7 @@ instance : monoid (add_monoid.End A) :=
 
 instance : inhabited (add_monoid.End A) := ⟨1⟩
 
-instance : has_coe_to_fun (add_monoid.End A) (λ _, A → A) := ⟨add_monoid_hom.to_fun⟩
+instance : add_monoid_hom_class (add_monoid.End A) A A := add_monoid_hom.add_monoid_hom_class
 
 end End
 
@@ -1053,34 +1077,42 @@ by { ext, simp only [map_one, coe_comp, function.comp_app, one_apply] }
   g.comp (f₁ * f₂) = g.comp f₁ * g.comp f₂ :=
 by { ext, simp only [mul_apply, function.comp_app, map_mul, coe_comp] }
 
+/-- If two homomorphisms from a division monoid to a monoid are equal at a unit `x`, then they are
+equal at `x⁻¹`. -/
+@[to_additive "If two homomorphisms from a subtraction monoid to an additive monoid are equal at an
+additive unit `x`, then they are equal at `-x`."]
+lemma _root_.is_unit.eq_on_inv {G N} [division_monoid G] [monoid N] [monoid_hom_class F G N] {x : G}
+  (hx : is_unit x) (f g : F) (h : f x = g x) : f x⁻¹ = g x⁻¹ :=
+left_inv_eq_right_inv (map_mul_eq_one f hx.inv_mul_cancel) $
+  h.symm ▸ map_mul_eq_one g $ hx.mul_inv_cancel
+
 /-- If two homomorphism from a group to a monoid are equal at `x`, then they are equal at `x⁻¹`. -/
 @[to_additive "If two homomorphism from an additive group to an additive monoid are equal at `x`,
 then they are equal at `-x`." ]
-lemma eq_on_inv {G} [group G] [monoid M] [monoid_hom_class F G M] {f g : F} {x : G}
+lemma _root_.eq_on_inv {G} [group G] [monoid M] [monoid_hom_class F G M] (f g : F) {x : G}
   (h : f x = g x) : f x⁻¹ = g x⁻¹ :=
-left_inv_eq_right_inv (map_mul_eq_one f $ inv_mul_self x) $
-  h.symm ▸ map_mul_eq_one g $ mul_inv_self x
+(group.is_unit x).eq_on_inv f g h
 
 /-- Group homomorphisms preserve inverse. -/
-@[to_additive]
-protected theorem map_inv {G H} [group G] [group H] (f : G →* H) (g : G) : f g⁻¹ = (f g)⁻¹ :=
-map_inv f g
+@[to_additive "Additive group homomorphisms preserve negation."]
+protected lemma map_inv [group α] [division_monoid β] (f : α →* β) (a : α) : f a⁻¹ = (f a)⁻¹ :=
+map_inv f _
 
 /-- Group homomorphisms preserve integer power. -/
 @[to_additive "Additive group homomorphisms preserve integer scaling."]
-protected theorem map_zpow {G H} [group G] [group H] (f : G →* H) (g : G) (n : ℤ) :
+protected theorem map_zpow [group α] [division_monoid β] (f : α →* β) (g : α) (n : ℤ) :
   f (g ^ n) = (f g) ^ n :=
 map_zpow f g n
 
 /-- Group homomorphisms preserve division. -/
 @[to_additive "Additive group homomorphisms preserve subtraction."]
-protected theorem map_div {G H} [group G] [group H] (f : G →* H) (g h : G) :
+protected theorem map_div [group α] [division_monoid β] (f : α →* β) (g h : α) :
   f (g / h) = f g / f h :=
 map_div f g h
 
 /-- Group homomorphisms preserve division. -/
-@[to_additive]
-protected theorem map_mul_inv {G H} [group G] [group H] (f : G →* H) (g h : G) :
+@[to_additive "Additive group homomorphisms preserve subtraction."]
+protected theorem map_mul_inv [group α] [division_monoid β] (f : α →* β) (g h : α) :
   f (g * h⁻¹) = (f g) * (f h)⁻¹ :=
 map_mul_inv f g h
 
@@ -1125,7 +1157,7 @@ def of_map_mul_inv {H : Type*} [group H] (f : G → H)
   (map_div : ∀ a b : G, f (a * b⁻¹) = f a * (f b)⁻¹) :
   G →* H :=
 mk' f $ λ x y,
-calc f (x * y) = f x * (f $ 1 * 1⁻¹ * y⁻¹)⁻¹ : by simp only [one_mul, one_inv, ← map_div, inv_inv]
+calc f (x * y) = f x * (f $ 1 * 1⁻¹ * y⁻¹)⁻¹ : by simp only [one_mul, inv_one, ← map_div, inv_inv]
 ... = f x * f y : by { simp only [map_div], simp only [mul_right_inv, one_mul, inv_inv] }
 
 @[simp, to_additive] lemma coe_of_map_mul_inv {H : Type*} [group H] (f : G → H)

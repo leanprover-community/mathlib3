@@ -37,7 +37,7 @@ def of {X : Type*} (point : X) : Pointed := ⟨X, point⟩
 
 @[simp] lemma coe_of {X : Type*} (point : X) : ↥(of point) = X := rfl
 
-alias of ← prod.Pointed
+alias of ← _root_.prod.Pointed
 
 instance : inhabited Pointed := ⟨of ((), ())⟩
 

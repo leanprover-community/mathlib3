@@ -49,7 +49,7 @@ begin
   obtain ⟨y, yf, rfl⟩ : ∃ (a : G), a ∈ f.support ∧ x * a = y,
   { simpa only [finset.mem_image, exists_prop] using hy },
   simp only [mul_apply, mem_support_iff.mp yf, hr, mem_support_iff, sum_single_index,
-    finsupp.sum_ite_eq', ne.def, not_false_iff, if_true, zero_mul, if_t_t, sum_zero, lx.eq_iff]
+    finsupp.sum_ite_eq, ne.def, not_false_iff, if_true, zero_mul, if_t_t, sum_zero, lx.eq_iff]
 end
 
 lemma support_mul_single_eq_image [decidable_eq G] [has_mul G]
@@ -60,7 +60,7 @@ begin
   obtain ⟨y, yf, rfl⟩ : ∃ (a : G), a ∈ f.support ∧ a * x = y,
   { simpa only [finset.mem_image, exists_prop] using hy },
   simp only [mul_apply, mem_support_iff.mp yf, hr, mem_support_iff, sum_single_index,
-    finsupp.sum_ite_eq', ne.def, not_false_iff, if_true, mul_zero, if_t_t, sum_zero, rx.eq_iff]
+    finsupp.sum_ite_eq, ne.def, not_false_iff, if_true, mul_zero, if_t_t, sum_zero, rx.eq_iff]
 end
 
 lemma support_mul [has_mul G] [decidable_eq G] (a b : monoid_algebra k G) :

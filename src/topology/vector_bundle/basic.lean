@@ -44,9 +44,6 @@ Vector bundle
 
 noncomputable theory
 
--- move to bundle
-localized "notation `π` := @bundle.total_space.proj _" in bundle
-
 open bundle set
 open_locale classical
 

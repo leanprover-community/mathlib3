@@ -47,6 +47,8 @@ variables {E}
 total space to the base space. -/
 @[simp, reducible] def total_space.proj : total_space E → B := sigma.fst
 
+localized "notation `π` := @bundle.total_space.proj _" in bundle
+
 /-- Constructor for the total space of a bundle. -/
 @[simp, reducible] def total_space_mk (b : B) (a : E b) :
   bundle.total_space E := ⟨b, a⟩

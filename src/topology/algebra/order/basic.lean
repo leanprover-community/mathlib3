@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 import algebra.group_with_zero.power
 import data.set.intervals.pi
 import order.filter.interval
+import order.cover.ord_connected
 import topology.algebra.field
 import topology.algebra.order.left_right
 import tactic.linarith

@@ -1852,7 +1852,9 @@ begin
   { assume n a h,
     convert h.mul (has_strict_deriv_at_id x),
     { ext y, simp [pow_add, mul_assoc] },
-    { simp [pow_add], ring } }
+    { simp only [pow_add, pow_one, derivative_mul, derivative_C, zero_mul, derivative_X_pow,
+      derivative_X, mul_one, zero_add, eval_mul, eval_C, eval_add, eval_nat_cast, eval_pow, eval_X,
+      id.def], ring } }
 end
 
 /-- The derivative (in the analysis sense) of a polynomial `p` is given by `p.derivative`. -/

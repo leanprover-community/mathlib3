@@ -7,7 +7,7 @@ import category_theory.concrete_category.bundled
 import data.fin.tuple.basic
 import data.fin.vec_notation
 import logic.encodable.basic
-import logic.small
+import logic.small.list
 import set_theory.cardinal.basic
 
 

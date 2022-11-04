@@ -9,6 +9,7 @@ import data.finset.order
 import data.set.accumulate
 import tactic.tfae
 import topology.bornology.basic
+import order.minimal
 
 /-!
 # Properties of subsets of topological spaces
@@ -204,6 +205,27 @@ let ⟨t, ht⟩ := hs.elim_nhds_subcover' (λ x _, U x) hU
 in ⟨t.image coe, λ x hx, let ⟨y, hyt, hyx⟩ := finset.mem_image.1 hx in hyx ▸ y.2,
   by rwa finset.set_bUnion_finset_image⟩
 
+/-- The neighborhood filter of a compact set is disjoint with a filter `l` if and only if the
+neighborhood filter of each point of this set is disjoint with `l`. -/
+lemma is_compact.disjoint_nhds_set_left {l : filter α} (hs : is_compact s) :
+  disjoint (𝓝ˢ s) l ↔ ∀ x ∈ s, disjoint (𝓝 x) l :=
+begin
+  refine ⟨λ h x hx, h.mono_left $ nhds_le_nhds_set hx, λ H, _⟩,
+  choose! U hxU hUl using λ x hx, (nhds_basis_opens x).disjoint_iff_left.1 (H x hx),
+  choose hxU hUo using hxU,
+  rcases hs.elim_nhds_subcover U (λ x hx, (hUo x hx).mem_nhds (hxU x hx)) with ⟨t, hts, hst⟩,
+  refine (has_basis_nhds_set _).disjoint_iff_left.2
+    ⟨⋃ x ∈ t, U x, ⟨is_open_bUnion $ λ x hx, hUo x (hts x hx), hst⟩, _⟩,
+  rw [compl_Union₂, bInter_finset_mem],
+  exact λ x hx, hUl x (hts x hx)
+end
+
+/-- A filter `l` is disjoint with the neighborhood filter of a compact set if and only if it is
+disjoint with the neighborhood filter of each point of this set. -/
+lemma is_compact.disjoint_nhds_set_right {l : filter α} (hs : is_compact s) :
+  disjoint l (𝓝ˢ s) ↔ ∀ x ∈ s, disjoint l (𝓝 x) :=
+by simpa only [disjoint.comm] using hs.disjoint_nhds_set_left
+
 /-- For every family of closed sets whose intersection avoids a compact set,
 there exists a finite subfamily whose intersection avoids this compact set. -/
 lemma is_compact.elim_finite_subfamily_closed {s : set α} {ι : Type v} (hs : is_compact s)
@@ -211,10 +233,10 @@ lemma is_compact.elim_finite_subfamily_closed {s : set α} {ι : Type v} (hs : i
   ∃ t : finset ι, s ∩ (⋂ i ∈ t, Z i) = ∅ :=
 let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, (Z i)ᶜ) (λ i, (hZc i).is_open_compl)
   (by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, mem_Union,
-    exists_prop, mem_inter_eq, not_and, iff_self, mem_Inter, mem_compl_eq] using hsZ)
+    exists_prop, mem_inter_iff, not_and, iff_self, mem_Inter, mem_compl_iff] using hsZ)
     in
 ⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, mem_Union,
-    exists_prop, mem_inter_eq, not_and, iff_self, mem_Inter, mem_compl_eq] using ht⟩
+    exists_prop, mem_inter_iff, not_and, iff_self, mem_Inter, mem_compl_iff] using ht⟩
 
 /-- If `s` is a compact set in a topological space `α` and `f : ι → set α` is a locally finite
 family of sets, then `f i ∩ s` is nonempty only for a finitely many `i`. -/
@@ -333,10 +355,10 @@ is_compact_of_finite_subfamily_closed $
   assume ι Z hZc hsZ,
   let ⟨t, ht⟩ := h (λ i, (Z i)ᶜ) (assume i, is_open_compl_iff.mpr $ hZc i)
     (by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, mem_Union,
-      exists_prop, mem_inter_eq, not_and, iff_self, mem_Inter, mem_compl_eq] using hsZ)
+      exists_prop, mem_inter_iff, not_and, iff_self, mem_Inter, mem_compl_iff] using hsZ)
       in
   ⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, mem_Union,
-      exists_prop, mem_inter_eq, not_and, iff_self, mem_Inter, mem_compl_eq] using ht⟩
+      exists_prop, mem_inter_iff, not_and, iff_self, mem_Inter, mem_compl_iff] using ht⟩
 
 /-- A set `s` is compact if and only if
 for every open cover of `s`, there exists a finite subcover. -/
@@ -413,8 +435,8 @@ lemma compact_accumulate {K : ℕ → set α} (hK : ∀ n, is_compact (K n)) (n 
   is_compact (accumulate K n) :=
 (finite_le_nat n).compact_bUnion $ λ k _, hK k
 
-lemma compact_Union {f : ι → set α} [fintype ι]
-  (h : ∀ i, is_compact (f i)) : is_compact (⋃ i, f i) :=
+lemma compact_Union {f : ι → set α} [finite ι] (h : ∀ i, is_compact (f i)) :
+  is_compact (⋃ i, f i) :=
 by rw ← bUnion_univ; exact finite_univ.compact_bUnion (λ i _, h i)
 
 lemma set.finite.is_compact (hs : s.finite) : is_compact s :=
@@ -446,9 +468,8 @@ lemma exists_subset_nhd_of_compact' {ι : Type*} [nonempty ι] {V : ι → set �
   {U : set α} (hU : ∀ x ∈ ⋂ i, V i, U ∈ 𝓝 x) : ∃ i, V i ⊆ U :=
 begin
   obtain ⟨W, hsubW, W_op, hWU⟩ := exists_open_set_nhds hU,
-  suffices : ∃ i, V i ⊆ W,
-  { rcases this with ⟨i, hi⟩,
-    refine ⟨i, set.subset.trans hi hWU⟩ },
+  rsuffices ⟨i, hi⟩ : ∃ i, V i ⊆ W,
+  { exact ⟨i, hi.trans hWU⟩ },
   by_contra' H,
   replace H : ∀ i, (V i ∩ Wᶜ).nonempty := λ i, set.inter_compl_nonempty_iff.mpr (H i),
   have : (⋂ i, V i ∩ Wᶜ).nonempty,
@@ -456,7 +477,7 @@ begin
       (λ i, (hV_cpct i).inter_right W_op.is_closed_compl)
       (λ i, (hV_closed i).inter W_op.is_closed_compl),
     rcases hV i j with ⟨k, hki, hkj⟩,
-    refine ⟨k, ⟨λ x, _, λ x, _⟩⟩ ; simp only [and_imp, mem_inter_eq, mem_compl_eq] ; tauto },
+    refine ⟨k, ⟨λ x, _, λ x, _⟩⟩ ; simp only [and_imp, mem_inter_iff, mem_compl_iff] ; tauto },
   have : ¬ (⋂ (i : ι), V i) ⊆ W, by simpa [← Inter_inter, inter_compl_nonempty_iff],
   contradiction
 end
@@ -751,11 +772,19 @@ lemma not_compact_space_iff : ¬compact_space α ↔ noncompact_space α :=
 instance : noncompact_space ℤ :=
 noncompact_space_of_ne_bot $ by simp only [filter.cocompact_eq_cofinite, filter.cofinite_ne_bot]
 
+-- Note: We can't make this into an instance because it loops with `finite.compact_space`.
 /-- A compact discrete space is finite. -/
-noncomputable
-def fintype_of_compact_of_discrete [compact_space α] [discrete_topology α] :
-  fintype α :=
-fintype_of_finite_univ $ compact_univ.finite_of_discrete
+lemma finite_of_compact_of_discrete [compact_space α] [discrete_topology α] : finite α :=
+finite.of_finite_univ $ compact_univ.finite_of_discrete
+
+lemma exists_nhds_ne_ne_bot (α : Type*) [topological_space α] [compact_space α] [infinite α] :
+  ∃ z : α, (𝓝[≠] z).ne_bot :=
+begin
+  by_contra' H,
+  simp_rw not_ne_bot at H,
+  haveI := discrete_topology_iff_nhds_ne.mpr H,
+  exact infinite.not_finite (finite_of_compact_of_discrete : finite α),
+end
 
 lemma finite_cover_nhds_interior [compact_space α] {U : α → set α} (hU : ∀ x, U x ∈ 𝓝 x) :
   ∃ t : finset α, (⋃ x ∈ t, interior (U x)) = univ :=
@@ -805,6 +834,9 @@ lemma is_compact_range [compact_space α] {f : α → β} (hf : continuous f) :
   is_compact (range f) :=
 by rw ← image_univ; exact compact_univ.image hf
 
+lemma is_compact_diagonal [compact_space α] : is_compact (diagonal α) :=
+@range_diag α ▸ is_compact_range (continuous_id.prod_mk continuous_id)
+
 /-- If X is is_compact then pr₂ : X × Y → Y is a closed map -/
 theorem is_closed_proj_of_is_compact
   {X : Type*} [topological_space X] [compact_space X]
@@ -816,14 +848,13 @@ begin
   assume C (hC : is_closed C),
   rw is_closed_iff_cluster_pt at hC ⊢,
   assume y (y_closure : cluster_pt y $ 𝓟 (πY '' C)),
-  have : ne_bot (map πX (comap πY (𝓝 y) ⊓ 𝓟 C)),
+  haveI : ne_bot (map πX (comap πY (𝓝 y) ⊓ 𝓟 C)),
   { suffices : ne_bot (map πY (comap πY (𝓝 y) ⊓ 𝓟 C)),
       by simpa only [map_ne_bot_iff],
     convert y_closure,
     calc map πY (comap πY (𝓝 y) ⊓ 𝓟 C) =
        𝓝 y ⊓ map πY (𝓟 C) : filter.push_pull' _ _ _
       ... = 𝓝 y ⊓ 𝓟 (πY '' C) : by rw map_principal },
-  resetI,
   obtain ⟨x, hx⟩ : ∃ x, cluster_pt x (map πX (comap πY (𝓝 y) ⊓ 𝓟 C)),
     from cluster_point_of_compact _,
   refine ⟨⟨x, y⟩, _, by simp [πY]⟩,
@@ -890,6 +921,17 @@ by rw [compact_iff_compact_in_subtype, image_univ, subtype.range_coe]; refl
 lemma is_compact_iff_compact_space {s : set α} : is_compact s ↔ compact_space s :=
 is_compact_iff_is_compact_univ.trans ⟨λ h, ⟨h⟩, @compact_space.compact_univ _ _⟩
 
+lemma is_compact.finite {s : set α} (hs : is_compact s) (hs' : discrete_topology s) : s.finite :=
+finite_coe_iff.mp (@finite_of_compact_of_discrete _ _ (is_compact_iff_compact_space.mp hs) hs')
+
+lemma exists_nhds_ne_inf_principal_ne_bot {s : set α} (hs : is_compact s) (hs' : s.infinite) :
+  ∃ z ∈ s, (𝓝[≠] z ⊓ 𝓟 s).ne_bot :=
+begin
+  by_contra' H,
+  simp_rw not_ne_bot at H,
+  exact hs' (hs.finite $ discrete_topology_subtype_iff.mpr H),
+end
+
 protected lemma closed_embedding.noncompact_space [noncompact_space α] {f : α → β}
   (hf : closed_embedding f) : noncompact_space β :=
 noncompact_space_of_ne_bot hf.tendsto_cocompact.ne_bot
@@ -915,7 +957,7 @@ begin
 end
 
 /-- Finite topological spaces are compact. -/
-@[priority 100] instance fintype.compact_space [fintype α] : compact_space α :=
+@[priority 100] instance finite.compact_space [finite α] : compact_space α :=
 { compact_univ := finite_univ.is_compact }
 
 /-- The product of two compact spaces is compact. -/
@@ -929,7 +971,7 @@ instance [compact_space α] [compact_space β] : compact_space (α ⊕ β) :=
   exact (is_compact_range continuous_inl).union (is_compact_range continuous_inr)
 end⟩
 
-instance [fintype ι] [Π i, topological_space (π i)] [∀ i, compact_space (π i)] :
+instance [finite ι] [Π i, topological_space (π i)] [∀ i, compact_space (π i)] :
   compact_space (Σ i, π i) :=
 begin
   refine ⟨_⟩,
@@ -951,7 +993,7 @@ begin
     rw compl_subset_comm at ⊢ hAt hBt',
     refine subset.trans _ (set.prod_mono hAt hBt'),
     intros x,
-    simp only [compl_union, mem_inter_eq, mem_prod, mem_preimage, mem_compl_eq],
+    simp only [compl_union, mem_inter_iff, mem_prod, mem_preimage, mem_compl_iff],
     tauto },
   { rintros ⟨t, ht, htS⟩,
     refine ⟨⟨(prod.fst '' t)ᶜ, _, _⟩, ⟨(prod.snd '' t)ᶜ, _, _⟩⟩,
@@ -1100,19 +1142,24 @@ lemma exists_compact_mem_nhds [locally_compact_space α] (x : α) :
 let ⟨K, hKc, hx, H⟩ := exists_compact_subset is_open_univ (mem_univ x)
 in ⟨K, hKc, mem_interior_iff_mem_nhds.1 hx⟩
 
+/-- In a locally compact space, for every containement `K ⊆ U` of a compact set `K` in an open
+  set `U`, there is a compact neighborhood `L` such that `K ⊆ L ⊆ U`: equivalently, there is a
+  compact `L` such that `K ⊆ interior L` and `L ⊆ U`. -/
+lemma exists_compact_between [hα : locally_compact_space α] {K U : set α} (hK : is_compact K)
+  (hU : is_open U) (h_KU : K ⊆ U) : ∃ L, is_compact L ∧ K ⊆ interior L ∧ L ⊆ U :=
+begin
+  choose V hVc hxV hKV using λ x : K, exists_compact_subset hU (h_KU x.2),
+  have : K ⊆ ⋃ x, interior (V x), from λ x hx, mem_Union.2 ⟨⟨x, hx⟩, hxV _⟩,
+  rcases hK.elim_finite_subcover _ (λ x, @is_open_interior α _ (V x)) this with ⟨t, ht⟩,
+  refine ⟨_, t.compact_bUnion (λ x _, hVc x), λ x hx, _, set.Union₂_subset (λ i _, hKV i)⟩,
+  rcases mem_Union₂.1 (ht hx) with ⟨y, hyt, hy⟩,
+  exact interior_mono (subset_bUnion_of_mem hyt) hy,
+end
+
 /-- In a locally compact space, every compact set is contained in the interior of a compact set. -/
 lemma exists_compact_superset [locally_compact_space α] {K : set α} (hK : is_compact K) :
   ∃ K', is_compact K' ∧ K ⊆ interior K' :=
-begin
-  choose U hUc hxU using λ x : K, exists_compact_mem_nhds (x : α),
-  have : K ⊆ ⋃ x, interior (U x),
-    from λ x hx, mem_Union.2 ⟨⟨x, hx⟩, mem_interior_iff_mem_nhds.2 (hxU _)⟩,
-  rcases hK.elim_finite_subcover _ _ this with ⟨t, ht⟩,
-  { refine ⟨_, t.compact_bUnion (λ x _, hUc x), λ x hx, _⟩,
-    rcases mem_Union₂.1 (ht hx) with ⟨y, hyt, hy⟩,
-    exact interior_mono (subset_bUnion_of_mem hyt) hy },
-  { exact λ _, is_open_interior }
-end
+let ⟨L, hLc, hKL, _⟩ := exists_compact_between hK is_open_univ K.subset_univ in ⟨L, hLc, hKL⟩
 
 protected lemma closed_embedding.locally_compact_space [locally_compact_space β] {f : α → β}
   (hf : closed_embedding f) : locally_compact_space α :=
@@ -1171,7 +1218,7 @@ begin
       { convert_to (⋂(U : {U // U ∈ c}), U.1ᶜ).nonempty,
         { ext,
           simp only [not_exists, exists_prop, not_and, set.mem_Inter, subtype.forall, mem_set_of_eq,
-            mem_compl_eq, mem_sUnion] },
+            mem_compl_iff, mem_sUnion] },
         apply is_compact.nonempty_Inter_of_directed_nonempty_compact_closed,
         { rintros ⟨U, hU⟩ ⟨U', hU'⟩,
           obtain ⟨V, hVc, hVU, hVU'⟩ := hz.directed_on U hU U' hU',
@@ -1385,7 +1432,7 @@ protected lemma is_clopen.is_closed (hs : is_clopen s) : is_closed s := hs.2
 
 lemma is_clopen_iff_frontier_eq_empty {s : set α} : is_clopen s ↔ frontier s = ∅ :=
 begin
-  rw [is_clopen, ← closure_eq_iff_is_closed, ← interior_eq_iff_open, frontier, diff_eq_empty],
+  rw [is_clopen, ← closure_eq_iff_is_closed, ← interior_eq_iff_is_open, frontier, diff_eq_empty],
   refine ⟨λ h, (h.2.trans h.1.symm).subset, λ h, _⟩,
   exact ⟨interior_subset.antisymm (subset_closure.trans h),
     (h.trans interior_subset).antisymm subset_closure⟩
@@ -1418,8 +1465,8 @@ lemma is_clopen.prod {s : set α} {t : set β} (hs : is_clopen s) (ht : is_clope
   is_clopen (s ×ˢ t) :=
 ⟨hs.1.prod ht.1, hs.2.prod ht.2⟩
 
-lemma is_clopen_Union {β : Type*} [fintype β] {s : β → set α}
-  (h : ∀ i, is_clopen (s i)) : is_clopen (⋃ i, s i) :=
+lemma is_clopen_Union {β : Type*} [finite β] {s : β → set α} (h : ∀ i, is_clopen (s i)) :
+  is_clopen (⋃ i, s i) :=
 ⟨is_open_Union (forall_and_distrib.1 h).1, is_closed_Union (forall_and_distrib.1 h).2⟩
 
 lemma is_clopen_bUnion {β : Type*} {s : set β} {f : β → set α} (hs : s.finite)
@@ -1432,8 +1479,8 @@ lemma is_clopen_bUnion_finset {β : Type*} {s : finset β} {f : β → set α}
   is_clopen (⋃ i ∈ s, f i) :=
 is_clopen_bUnion s.finite_to_set h
 
-lemma is_clopen_Inter {β : Type*} [fintype β] {s : β → set α}
-  (h : ∀ i, is_clopen (s i)) : is_clopen (⋂ i, s i) :=
+lemma is_clopen_Inter {β : Type*} [finite β] {s : β → set α} (h : ∀ i, is_clopen (s i)) :
+  is_clopen (⋂ i, s i) :=
 ⟨(is_open_Inter (forall_and_distrib.1 h).1), (is_closed_Inter (forall_and_distrib.1 h).2)⟩
 
 lemma is_clopen_bInter {β : Type*} {s : set β} (hs : s.finite) {f : β → set α}
@@ -1475,6 +1522,28 @@ protected lemma quotient_map.is_clopen_preimage {f : α → β}
   (hf : quotient_map f) {s : set β} : is_clopen (f ⁻¹' s) ↔ is_clopen s :=
 and_congr hf.is_open_preimage hf.is_closed_preimage
 
+variables {X : Type*} [topological_space X]
+
+lemma continuous_bool_indicator_iff_clopen (U : set X) :
+  continuous U.bool_indicator ↔ is_clopen U :=
+begin
+  split,
+  { intros hc,
+    rw ← U.preimage_bool_indicator_tt,
+    exact
+      ⟨hc.is_open_preimage _ trivial, continuous_iff_is_closed.mp hc _ (is_closed_discrete _)⟩ },
+  { refine λ hU, ⟨λ s hs, _⟩,
+    rcases U.preimage_bool_indicator s with (h|h|h|h) ; rw h,
+    exacts [is_open_univ, hU.1, hU.2.is_open_compl, is_open_empty] },
+end
+
+lemma continuous_on_indicator_iff_clopen (s U : set X) :
+  continuous_on U.bool_indicator s ↔ is_clopen ((coe : s → X) ⁻¹' U) :=
+begin
+  rw [continuous_on_iff_continuous_restrict, ← continuous_bool_indicator_iff_clopen],
+  refl
+end
+
 end clopen
 
 section preirreducible
@@ -1505,17 +1574,17 @@ lemma set.subsingleton.is_preirreducible {s : set α} (hs : s.subsingleton) :
 theorem is_irreducible_singleton {x} : is_irreducible ({x} : set α) :=
 ⟨singleton_nonempty x, subsingleton_singleton.is_preirreducible⟩
 
-theorem is_preirreducible.closure {s : set α} (H : is_preirreducible s) :
-  is_preirreducible (closure s) :=
-λ u v hu hv ⟨y, hycs, hyu⟩ ⟨z, hzcs, hzv⟩,
-let ⟨p, hpu, hps⟩ := mem_closure_iff.1 hycs u hu hyu in
-let ⟨q, hqv, hqs⟩ := mem_closure_iff.1 hzcs v hv hzv in
-let ⟨r, hrs, hruv⟩ := H u v hu hv ⟨p, hps, hpu⟩ ⟨q, hqs, hqv⟩ in
-⟨r, subset_closure hrs, hruv⟩
+theorem is_preirreducible_iff_closure {s : set α} :
+  is_preirreducible (closure s) ↔ is_preirreducible s :=
+forall₄_congr $ λ u v hu hv,
+  by { iterate 3 { rw closure_inter_open_nonempty_iff }, exacts [hu.inter hv, hv, hu] }
 
-lemma is_irreducible.closure {s : set α} (h : is_irreducible s) :
-  is_irreducible (closure s) :=
-⟨h.nonempty.closure, h.is_preirreducible.closure⟩
+theorem is_irreducible_iff_closure {s : set α} :
+  is_irreducible (closure s) ↔ is_irreducible s :=
+and_congr closure_nonempty_iff is_preirreducible_iff_closure
+
+alias is_preirreducible_iff_closure ↔ _ is_preirreducible.closure
+alias is_irreducible_iff_closure ↔ _ is_irreducible.closure
 
 theorem exists_preirreducible (s : set α) (H : is_preirreducible s) :
   ∃ t : set α, is_preirreducible t ∧ s ⊆ t ∧ ∀ u, is_preirreducible u → t ⊆ u → u = t :=
@@ -1533,6 +1602,29 @@ let ⟨m, hm, hsm, hmm⟩ := zorn_subset_nonempty {t : set α | is_preirreducibl
           ⟨x, mem_sUnion_of_mem hxp hpc, hxuv⟩),
     λ x hxc, subset_sUnion_of_mem hxc⟩) s H in
 ⟨m, hm, hsm, λ u hu hmu, hmm _ hu hmu⟩
+
+/-- The set of irreducible components of a topological space. -/
+def irreducible_components (α : Type*) [topological_space α] : set (set α) :=
+maximals (≤) { s : set α | is_irreducible s }
+
+lemma is_closed_of_mem_irreducible_components (s ∈ irreducible_components α) :
+  is_closed s :=
+begin
+  rw [← closure_eq_iff_is_closed, eq_comm],
+  exact subset_closure.antisymm (H.2 H.1.closure subset_closure),
+end
+
+lemma irreducible_components_eq_maximals_closed (α : Type*) [topological_space α] :
+  irreducible_components α = maximals (≤) { s : set α | is_closed s ∧ is_irreducible s } :=
+begin
+  ext s,
+  split,
+  { intro H, exact ⟨⟨is_closed_of_mem_irreducible_components _ H, H.1⟩, λ x h e, H.2 h.2 e⟩ },
+  { intro H, refine ⟨H.1.2, λ x h e, _⟩,
+    have : closure x ≤ s,
+    { exact H.2 ⟨is_closed_closure, h.closure⟩ (e.trans subset_closure) },
+    exact le_trans subset_closure this }
+end
 
 /-- A maximal irreducible set that contains a given point. -/
 def irreducible_component (x : α) : set α :=
@@ -1553,11 +1645,13 @@ theorem eq_irreducible_component {x : α} :
   ∀ {s : set α}, is_preirreducible s → irreducible_component x ⊆ s → s = irreducible_component x :=
 (irreducible_component_property x).2.2
 
+lemma irreducible_component_mem_irreducible_components (x : α) :
+  irreducible_component x ∈ irreducible_components α :=
+⟨is_irreducible_irreducible_component, λ s h₁ h₂,(eq_irreducible_component h₁.2 h₂).le⟩
+
 theorem is_closed_irreducible_component {x : α} :
   is_closed (irreducible_component x) :=
-closure_eq_iff_is_closed.1 $ eq_irreducible_component
-  is_irreducible_irreducible_component.is_preirreducible.closure
-  subset_closure
+is_closed_of_mem_irreducible_components _ (irreducible_component_mem_irreducible_components x)
 
 /-- A preirreducible space is one where there is no non-trivial pair of disjoint opens. -/
 class preirreducible_space (α : Type u) [topological_space α] : Prop :=
@@ -1585,6 +1679,11 @@ theorem nonempty_preirreducible_inter [preirreducible_space α] {s t : set α} :
 by simpa only [univ_inter, univ_subset_iff] using
   @preirreducible_space.is_preirreducible_univ α _ _ s t
 
+/-- In a (pre)irreducible space, a nonempty open set is dense. -/
+protected theorem is_open.dense [preirreducible_space α] {s : set α} (ho : is_open s)
+  (hne : s.nonempty) : dense s :=
+dense_iff_inter_open.2 $ λ t hto htne, nonempty_preirreducible_inter hto ho htne hne
+
 theorem is_preirreducible.image {s : set α} (H : is_preirreducible s)
   (f : α → β) (hf : continuous_on f s) : is_preirreducible (f '' s) :=
 begin
@@ -1606,7 +1705,7 @@ end
 
 theorem is_irreducible.image {s : set α} (H : is_irreducible s)
   (f : α → β) (hf : continuous_on f s) : is_irreducible (f '' s) :=
-⟨nonempty_image_iff.mpr H.nonempty, H.is_preirreducible.image f hf⟩
+⟨H.nonempty.image _, H.is_preirreducible.image f hf⟩
 
 lemma subtype.preirreducible_space {s : set α} (h : is_preirreducible s) :
   preirreducible_space s :=
@@ -1627,6 +1726,17 @@ lemma subtype.irreducible_space {s : set α} (h : is_irreducible s) :
 { is_preirreducible_univ :=
   (subtype.preirreducible_space h.is_preirreducible).is_preirreducible_univ,
   to_nonempty := h.nonempty.to_subtype }
+
+/-- An infinite type with cofinite topology is an irreducible topological space. -/
+@[priority 100] instance {α} [infinite α] : irreducible_space (cofinite_topology α) :=
+{ is_preirreducible_univ := λ u v,
+    begin
+      haveI : infinite (cofinite_topology α) := ‹_›,
+      simp only [cofinite_topology.is_open_iff, univ_inter],
+      intros hu hv hu' hv',
+      simpa only [compl_union, compl_compl] using ((hu hu').union (hv hv')).infinite_compl.nonempty
+    end,
+  to_nonempty := (infer_instance : nonempty α) }
 
 /-- A set `s` is irreducible if and only if
 for every finite collection of open sets all of whose members intersect `s`,

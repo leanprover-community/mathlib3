@@ -3,7 +3,6 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
-import algebra.hom.ring
 import data.rat.defs
 
 /-!
@@ -43,7 +42,7 @@ a `group_with_zero` lemma instead.
 field, division ring, skew field, skew-field, skewfield
 -/
 
-open function set
+open function order_dual set
 
 set_option old_structure_cmd true
 
@@ -80,7 +79,7 @@ class division_semiring (α : Type*) extends semiring α, group_with_zero α
 An instance of `division_ring K` includes maps `of_rat : ℚ → K` and `qsmul : ℚ → K → K`.
 If the division ring has positive characteristic p, we define `of_rat (1 / p) = 1 / 0 = 0`
 for consistency with our division by zero convention.
-The fields `of_rat` and `qsmul are needed to implement the
+The fields `of_rat` and `qsmul` are needed to implement the
 `algebra_rat [division_ring K] : algebra ℚ K` instance, since we need to control the specific
 definitions for some special cases of `K` (in particular `K = ℚ` itself).
 See also Note [forgetful inheritance].
@@ -93,6 +92,10 @@ class division_ring (K : Type u) extends ring K, div_inv_monoid K, nontrivial K,
 (rat_cast_mk : ∀ (a : ℤ) (b : ℕ) h1 h2, rat_cast ⟨a, b, h1, h2⟩ = a * b⁻¹ . try_refl_tac)
 (qsmul : ℚ → K → K := qsmul_rec rat_cast)
 (qsmul_eq_mul' : ∀ (a : ℚ) (x : K), qsmul a x = rat_cast a * x . try_refl_tac)
+
+@[priority 100] -- see Note [lower instance priority]
+instance division_ring.to_division_semiring [division_ring α] : division_semiring α :=
+{ ..‹division_ring α›, ..(infer_instance : semiring α) }
 
 /-- A `semifield` is a `comm_semiring` with multiplicative inverses for nonzero elements. -/
 @[protect_proj, ancestor comm_semiring division_semiring comm_group_with_zero]
@@ -110,10 +113,6 @@ See also Note [forgetful inheritance].
 -/
 @[protect_proj, ancestor comm_ring div_inv_monoid nontrivial]
 class field (K : Type u) extends comm_ring K, division_ring K
-
-@[priority 100] -- see Note [lower instance priority]
-instance division_ring.to_division_semiring [division_ring α] : division_semiring α :=
-{ ..‹division_ring α›, ..(infer_instance : semiring α) }
 
 section division_semiring
 variables [division_semiring α] {a b c : α}
@@ -144,36 +143,8 @@ by rwa [add_comm, add_div', add_comm]
 
 end division_semiring
 
-section division_ring
-variables [division_ring K] {a b : K}
-
-namespace rat
-
-/-- Construct the canonical injection from `ℚ` into an arbitrary
-  division ring. If the field has positive characteristic `p`,
-  we define `1 / p = 1 / 0 = 0` for consistency with our
-  division by zero convention. -/
--- see Note [coercion into rings]
-@[priority 900] instance cast_coe {K : Type*} [has_rat_cast K] : has_coe_t ℚ K :=
-⟨has_rat_cast.rat_cast⟩
-
-theorem cast_mk' (a b h1 h2) : ((⟨a, b, h1, h2⟩ : ℚ) : K) = a * b⁻¹ :=
-division_ring.rat_cast_mk _ _ _ _
-
-theorem cast_def : ∀ (r : ℚ), (r : K) = r.num / r.denom
-| ⟨a, b, h1, h2⟩ := (cast_mk' _ _ _ _).trans (div_eq_mul_inv _ _).symm
-
-@[priority 100]
-instance smul_division_ring : has_smul ℚ K :=
-⟨division_ring.qsmul⟩
-
-lemma smul_def (a : ℚ) (x : K) : a • x = ↑a * x := division_ring.qsmul_eq_mul' a x
-
-end rat
-
-local attribute [simp]
-  division_def mul_comm mul_assoc
-  mul_left_comm mul_inv_cancel inv_mul_cancel
+section division_monoid
+variables [division_monoid K] [has_distrib_neg K] {a b : K}
 
 lemma one_div_neg_one_eq_neg_one : (1:K) / (-1) = -1 :=
 have (-1) * (-1) = (1:K), by rw [neg_mul_neg, one_mul],
@@ -202,6 +173,44 @@ by simp [neg_div]
 lemma neg_div_neg_eq (a b : K) : (-a) / (-b) = a / b :=
 by rw [div_neg_eq_neg_div, neg_div, neg_neg]
 
+lemma neg_inv : - a⁻¹ = (- a)⁻¹ :=
+by rw [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]
+
+lemma div_neg (a : K) : a / -b = -(a / b) :=
+by rw [← div_neg_eq_neg_div]
+
+lemma inv_neg : (-a)⁻¹ = -(a⁻¹) :=
+by rw neg_inv
+
+end division_monoid
+
+section division_ring
+variables [division_ring K] {a b : K}
+
+namespace rat
+
+/-- Construct the canonical injection from `ℚ` into an arbitrary
+  division ring. If the field has positive characteristic `p`,
+  we define `1 / p = 1 / 0 = 0` for consistency with our
+  division by zero convention. -/
+-- see Note [coercion into rings]
+@[priority 900] instance cast_coe {K : Type*} [has_rat_cast K] : has_coe_t ℚ K :=
+⟨has_rat_cast.rat_cast⟩
+
+theorem cast_mk' (a b h1 h2) : ((⟨a, b, h1, h2⟩ : ℚ) : K) = a * b⁻¹ :=
+division_ring.rat_cast_mk _ _ _ _
+
+theorem cast_def : ∀ (r : ℚ), (r : K) = r.num / r.denom
+| ⟨a, b, h1, h2⟩ := (cast_mk' _ _ _ _).trans (div_eq_mul_inv _ _).symm
+
+@[priority 100]
+instance smul_division_ring : has_smul ℚ K :=
+⟨division_ring.qsmul⟩
+
+lemma smul_def (a : ℚ) (x : K) : a • x = ↑a * x := division_ring.qsmul_eq_mul' a x
+
+end rat
+
 @[simp] lemma div_neg_self {a : K} (h : a ≠ 0) : a / -a = -1 :=
 by rw [div_neg_eq_neg_div, div_self h]
 
@@ -221,17 +230,8 @@ by simpa only [← @div_self _ _ b h] using (div_sub_div_same a b b).symm
 
 lemma div_sub_one {a b : K} (h : b ≠ 0) : a / b - 1 = (a - b) / b := (div_sub_same h).symm
 
-lemma neg_inv : - a⁻¹ = (- a)⁻¹ :=
-by rw [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]
-
 lemma sub_div (a b c : K) : (a - b) / c = a / c - b / c :=
 (div_sub_div_same _ _ _).symm
-
-lemma div_neg (a : K) : a / -b = -(a / b) :=
-by rw [← div_neg_eq_neg_div]
-
-lemma inv_neg : (-a)⁻¹ = -(a⁻¹) :=
-by rw neg_inv
 
 lemma one_div_mul_sub_mul_one_div_eq_one_div_add_one_div (ha : a ≠ 0) (hb : b ≠ 0) :
           (1 / a) * (b - a) * (1 / b) = 1 / a - 1 / b :=
@@ -357,30 +357,10 @@ end
 end is_field
 
 namespace ring_hom
-section semiring
-variables [semiring α] [division_semiring β]
-
-@[simp] lemma map_units_inv (f : α →+* β) (u : αˣ) : f ↑u⁻¹ = (f ↑u)⁻¹ :=
-(f : α →* β).map_units_inv u
-
-variables [nontrivial α] (f : β →+* α) {a : β}
-
-@[simp] lemma map_eq_zero : f a = 0 ↔ a = 0 := f.to_monoid_with_zero_hom.map_eq_zero
-lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 := f.to_monoid_with_zero_hom.map_ne_zero
-
-end semiring
-
-section division_semiring
-variables [division_semiring α] [division_semiring β] (f : α →+* β) (a b : α)
-
-lemma map_inv : f a⁻¹ = (f a)⁻¹ := f.to_monoid_with_zero_hom.map_inv _
-lemma map_div : f (a / b) = f a / f b := f.to_monoid_with_zero_hom.map_div _ _
-
-end division_semiring
 
 protected lemma injective [division_ring α] [semiring β] [nontrivial β] (f : α →+* β) :
   injective f :=
-(injective_iff_map_eq_zero f).2 $ λ x, f.map_eq_zero.1
+(injective_iff_map_eq_zero f).2 $ λ x, (map_eq_zero f).1
 
 end ring_hom
 
@@ -479,3 +459,25 @@ protected def function.injective.field [field K] {K'}
   qsmul_eq_mul' := λ a x, hf (by erw [qsmul, mul, rat.smul_def, rat_cast]),
   .. hf.comm_group_with_zero f zero one mul inv div npow zpow,
   .. hf.comm_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
+
+/-! ### Order dual -/
+
+instance [h : has_rat_cast α] : has_rat_cast αᵒᵈ := h
+instance [h : division_semiring α] : division_semiring αᵒᵈ := h
+instance [h : division_ring α] : division_ring αᵒᵈ := h
+instance [h : semifield α] : semifield αᵒᵈ := h
+instance [h : field α] : field αᵒᵈ := h
+
+@[simp] lemma to_dual_rat_cast [has_rat_cast α] (n : ℚ) : to_dual (n : α) = n := rfl
+@[simp] lemma of_dual_rat_cast [has_rat_cast α] (n : ℚ) : (of_dual n : α) = n := rfl
+
+/-! ### Lexicographic order -/
+
+instance [h : has_rat_cast α] : has_rat_cast (lex α) := h
+instance [h : division_semiring α] : division_semiring (lex α) := h
+instance [h : division_ring α] : division_ring (lex α) := h
+instance [h : semifield α] : semifield (lex α) := h
+instance [h : field α] : field (lex α) := h
+
+@[simp] lemma to_lex_rat_cast [has_rat_cast α] (n : ℚ) : to_lex (n : α) = n := rfl
+@[simp] lemma of_lex_rat_cast [has_rat_cast α] (n : ℚ) : (of_lex n : α) = n := rfl

@@ -18,7 +18,7 @@ universes u v
 
 open nat function
 
-variables {α : Type u} {β : Type v} {l l₁ l₂ : list α} {a b : α}
+variables {α : Type u} {β : Type v} {l l₁ l₂ : list α} {r : α → α → Prop} {a b : α}
 
 namespace list
 
@@ -134,6 +134,14 @@ theorem nodup_repeat (a : α) : ∀ {n : ℕ}, nodup (repeat a n) ↔ n ≤ 1
 @[simp] theorem count_eq_one_of_mem [decidable_eq α] {a : α} {l : list α}
   (d : nodup l) (h : a ∈ l) : count a l = 1 :=
 le_antisymm (nodup_iff_count_le_one.1 d a) (count_pos.2 h)
+
+lemma count_eq_of_nodup [decidable_eq α] {a : α} {l : list α}
+  (d : nodup l) : count a l = if a ∈ l then 1 else 0 :=
+begin
+  split_ifs with h,
+  { exact count_eq_one_of_mem d h },
+  { exact count_eq_zero_of_not_mem h },
+end
 
 lemma nodup.of_append_left : nodup (l₁ ++ l₂) → nodup l₁ :=
 nodup.sublist (sublist_append_left l₁ l₂)
@@ -343,6 +351,18 @@ end
 lemma nodup.pairwise_of_set_pairwise {l : list α} {r : α → α → Prop}
   (hl : l.nodup) (h : {x | x ∈ l}.pairwise r) : l.pairwise r :=
 hl.pairwise_of_forall_ne h
+
+@[simp] lemma nodup.pairwise_coe [is_symm α r] (hl : l.nodup) :
+  {a | a ∈ l}.pairwise r ↔ l.pairwise r :=
+begin
+  induction l with a l ih,
+  { simp },
+  rw list.nodup_cons at hl,
+  have : ∀ b ∈ l, ¬a = b → r a b ↔ r a b :=
+    λ b hb, imp_iff_right (ne_of_mem_of_not_mem hb hl.1).symm,
+  simp [set.set_of_or, set.pairwise_insert_of_symmetric (@symm_of _ r _), ih hl.2, and_comm,
+    forall₂_congr this],
+end
 
 end list
 

@@ -6,7 +6,7 @@ Amelia Livingston, Yury Kudryashov
 -/
 import group_theory.submonoid.operations
 import algebra.big_operators.basic
-import algebra.free_monoid
+import algebra.free_monoid.basic
 import data.finset.noncomm_prod
 
 /-!
@@ -109,8 +109,7 @@ lemma multiset_prod_mem {M} [comm_monoid M] (S : submonoid M) (m : multiset M)
 by { lift m to multiset S using hm, rw ← coe_multiset_prod, exact m.prod.coe_prop }
 
 @[to_additive]
-lemma multiset_noncomm_prod_mem (S : submonoid M) (m : multiset M)
-  (comm : ∀ (x ∈ m) (y ∈ m), commute x y) (h : ∀ (x ∈ m), x ∈ S) :
+lemma multiset_noncomm_prod_mem (S : submonoid M) (m : multiset M) (comm) (h : ∀ (x ∈ m), x ∈ S) :
   m.noncomm_prod comm ∈ S :=
 begin
   induction m using quotient.induction_on with l,
@@ -128,8 +127,8 @@ lemma prod_mem {M : Type*} [comm_monoid M] (S : submonoid M)
 S.multiset_prod_mem (t.1.map f) $ λ x hx, let ⟨i, hi, hix⟩ := multiset.mem_map.1 hx in hix ▸ h i hi
 
 @[to_additive]
-lemma noncomm_prod_mem (S : submonoid M) {ι : Type*} (t : finset ι) (f : ι → M)
-  (comm : ∀ (x ∈ t) (y ∈ t), commute (f x) (f y)) (h : ∀ c ∈ t, f c ∈ S) :
+lemma noncomm_prod_mem (S : submonoid M) {ι : Type*} (t : finset ι) (f : ι → M) (comm)
+  (h : ∀ c ∈ t, f c ∈ S) :
   t.noncomm_prod f comm ∈ S :=
 begin
   apply multiset_noncomm_prod_mem,
@@ -280,10 +279,14 @@ mem_closure_singleton.2 ⟨1, pow_one y⟩
 lemma closure_singleton_one : closure ({1} : set M) = ⊥ :=
 by simp [eq_bot_iff_forall, mem_closure_singleton]
 
+@[to_additive] lemma _root_.free_monoid.mrange_lift {α} (f : α → M) :
+  (free_monoid.lift f).mrange = closure (set.range f) :=
+by rw [mrange_eq_map, ← free_monoid.closure_range_of, map_mclosure, ← set.range_comp,
+  free_monoid.lift_comp_of]
+
 @[to_additive]
 lemma closure_eq_mrange (s : set M) : closure s = (free_monoid.lift (coe : s → M)).mrange :=
-by rw [mrange_eq_map, ← free_monoid.closure_range_of, map_mclosure, ← set.range_comp,
-  free_monoid.lift_comp_of, subtype.range_coe]
+by rw [free_monoid.mrange_lift, subtype.range_coe]
 
 @[to_additive] lemma closure_eq_image_prod (s : set M) :
   (closure s : set M) = list.prod '' {l : list M | ∀ x ∈ l, x ∈ s} :=
@@ -383,21 +386,40 @@ by simp only [powers_eq_closure, map_mclosure f, set.image_singleton]
 /-- If all the elements of a set `s` commute, then `closure s` is a commutative monoid. -/
 @[to_additive "If all the elements of a set `s` commute, then `closure s` forms an additive
 commutative monoid."]
-def closure_comm_monoid_of_comm {s : set M} (hcomm : ∀ (a ∈ s) (b ∈ s), a * b = b * a) :
+def closure_comm_monoid_of_comm {s : set M} (hcomm : ∀ a b ∈ s, a * b = b * a) :
   comm_monoid (closure s) :=
 { mul_comm := λ x y,
   begin
     ext,
     simp only [submonoid.coe_mul],
-    exact closure_induction₂ x.prop y.prop hcomm
-      (λ x, by simp only [mul_one, one_mul])
-      (λ x, by simp only [mul_one, one_mul])
-      (λ x y z h₁ h₂, by rw [mul_assoc, h₂, ←mul_assoc, h₁, mul_assoc])
-      (λ x y z h₁ h₂, by rw [←mul_assoc, h₁, mul_assoc, h₂, ←mul_assoc]),
+    exact closure_induction₂ x.prop y.prop hcomm commute.one_left commute.one_right
+      (λ x y z, commute.mul_left) (λ x y z, commute.mul_right),
   end,
-  ..(closure s).to_monoid }
+  .. (closure s).to_monoid }
 
 end submonoid
+
+@[to_additive] lemma is_scalar_tower.of_mclosure_eq_top {N α} [monoid M] [mul_action M N]
+  [has_smul N α] [mul_action M α] {s : set M} (htop : submonoid.closure s = ⊤)
+  (hs : ∀ (x ∈ s) (y : N) (z : α), (x • y) • z = x • (y • z)) :
+  is_scalar_tower M N α :=
+begin
+  refine ⟨λ x, submonoid.closure_induction_left
+    (show x ∈ submonoid.closure s, by { rw [htop], apply submonoid.mem_top }) _ _⟩,
+  { intros y z, rw [one_smul, one_smul] },
+  { clear x, intros x hx x' hx' y z, rw [mul_smul, mul_smul, hs x hx, hx'] }
+end
+
+@[to_additive] lemma smul_comm_class.of_mclosure_eq_top {N α} [monoid M]
+  [has_smul N α] [mul_action M α] {s : set M} (htop : submonoid.closure s = ⊤)
+  (hs : ∀ (x ∈ s) (y : N) (z : α), x • y • z = y • x • z) :
+  smul_comm_class M N α :=
+begin
+  refine ⟨λ x, submonoid.closure_induction_left
+    (show x ∈ submonoid.closure s, by { rw [htop], apply submonoid.mem_top }) _ _⟩,
+  { intros y z, rw [one_smul, one_smul] },
+  { clear x, intros x hx x' hx' y z, rw [mul_smul, mul_smul, hx', hs x hx] }
+end
 
 namespace submonoid
 

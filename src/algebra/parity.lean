@@ -3,12 +3,8 @@ Copyright (c) 2022 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-
-import algebra.ring.basic
-import algebra.algebra.basic
-import algebra.group_power.basic
-import algebra.field_power
-import algebra.opposites
+import algebra.associated
+import algebra.field.power
 
 /-!  # Squares, even and odd elements
 
@@ -67,7 +63,7 @@ lemma is_square.map [mul_one_class α] [mul_one_class β] [monoid_hom_class F α
 by { rintro ⟨m, rfl⟩, exact ⟨f m, by simp⟩ }
 
 section monoid
-variables [monoid α]
+variables [monoid α] {n : ℕ} {a : α}
 
 @[to_additive even_iff_exists_two_nsmul]
 lemma is_square_iff_exists_sq (m : α) : is_square m ↔ ∃ c, m = c ^ 2 :=
@@ -81,10 +77,17 @@ attribute [to_additive even.exists_two_nsmul "Alias of the forwards direction of
 attribute [to_additive even_of_exists_two_nsmul "Alias of the backwards direction of
 `even_iff_exists_two_nsmul`."] is_square_of_exists_sq
 
+@[to_additive even.nsmul] lemma is_square.pow (n : ℕ) : is_square a → is_square (a ^ n) :=
+by { rintro ⟨a, rfl⟩, exact ⟨a ^ n, (commute.refl _).mul_pow _⟩ }
+
+@[simp, to_additive even.nsmul']
+lemma even.is_square_pow : even n → ∀ a : α, is_square (a ^ n) :=
+by { rintro ⟨n, rfl⟩ a, exact ⟨a ^ n, pow_add _ _ _⟩ }
+
 @[simp, to_additive even_two_nsmul]
 lemma is_square_sq (a : α) : is_square (a ^ 2) := ⟨a, pow_two _⟩
 
-variables [has_distrib_neg α] {n : ℕ}
+variables [has_distrib_neg α]
 
 lemma even.neg_pow : even n → ∀ a : α, (-a) ^ n = a ^ n :=
 by { rintro ⟨c, rfl⟩ a, simp_rw [←two_mul, pow_mul, neg_sq] }
@@ -93,13 +96,33 @@ lemma even.neg_one_pow (h : even n) : (-1 : α) ^ n = 1 := by rw [h.neg_pow, one
 
 end monoid
 
-/-- `0` is always a square (in a monoid with zero). -/
-lemma is_square_zero (M : Type*) [monoid_with_zero M] : is_square (0 : M) :=
-by { use 0, simp only [mul_zero] }
-
 @[to_additive] lemma is_square.mul [comm_semigroup α] {a b : α} :
   is_square a → is_square b → is_square (a * b) :=
 by { rintro ⟨a, rfl⟩ ⟨b, rfl⟩, exact ⟨a * b, mul_mul_mul_comm _ _ _ _⟩ }
+
+section comm_monoid
+variables [comm_monoid α] {a : α}
+
+lemma irreducible.not_square (ha : irreducible a) : ¬ is_square a :=
+by { rintro ⟨b, rfl⟩, simp only [irreducible_mul_iff, or_self] at ha, exact ha.1.not_unit ha.2 }
+
+lemma is_square.not_irreducible (ha : is_square a) : ¬ irreducible a := λ h, h.not_square ha
+
+end comm_monoid
+
+variables (α)
+
+@[simp] lemma is_square_zero [mul_zero_class α] : is_square (0 : α) := ⟨0, (mul_zero _).symm⟩
+
+variables {α}
+
+section cancel_comm_monoid_with_zero
+variables [cancel_comm_monoid_with_zero α] {a : α}
+
+lemma prime.not_square (ha : prime a) : ¬ is_square a := ha.irreducible.not_square
+lemma is_square.not_prime (ha : is_square a) : ¬ prime a := λ h, h.not_square ha
+
+end cancel_comm_monoid_with_zero
 
 section division_monoid
 variables [division_monoid α] {a : α}
@@ -115,6 +138,9 @@ end
 alias is_square_inv ↔ _ is_square.inv
 
 attribute [to_additive] is_square.inv
+
+@[to_additive even.zsmul] lemma is_square.zpow (n : ℤ) : is_square a → is_square (a ^ n) :=
+by { rintro ⟨a, rfl⟩, exact ⟨a ^ n, (commute.refl _).mul_zpow _⟩ }
 
 variables [has_distrib_neg α] {n : ℤ}
 
@@ -132,6 +158,10 @@ by cases abs_choice a; simp only [h, even_neg]
 lemma is_square.div [division_comm_monoid α] {a b : α} (ha : is_square a) (hb : is_square b) :
   is_square (a / b) :=
 by { rw div_eq_mul_inv, exact ha.mul hb.inv }
+
+@[simp, to_additive even.zsmul']
+lemma even.is_square_zpow [group α] {n : ℤ} : even n → ∀ a : α, is_square (a ^ n) :=
+by { rintro ⟨n, rfl⟩ a, exact ⟨a ^ n, zpow_add _ _ _⟩ }
 
 -- `odd.tsub` requires `canonically_linear_ordered_semiring`, which we don't have
 lemma even.tsub [canonically_linear_ordered_add_monoid α] [has_sub α] [has_ordered_sub α]

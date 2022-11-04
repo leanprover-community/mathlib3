@@ -45,7 +45,7 @@ begin
     { have : f.coeff i = 0,
       { rw ← not_mem_support_iff,
         exact λ hi', hi (finset.mem_singleton.1 (hn hi')) },
-      simp [this, ne.symm hi, coeff_monomial] } },
+      simp [this, hi, coeff_monomial] } },
   { rintros ⟨n, a, rfl⟩,
     rw ← finset.card_singleton n,
     apply finset.card_le_of_subset,

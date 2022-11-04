@@ -32,7 +32,7 @@ def div_X (p : R[X]) : R[X] :=
 @[simp] lemma coeff_div_X : (div_X p).coeff n = p.coeff (n+1) :=
 begin
   simp only [div_X, coeff_monomial, true_and, finset_sum_coeff, not_lt,
-    mem_Ico, zero_le, finset.sum_ite_eq', ite_eq_left_iff],
+    mem_Ico, zero_le, finset.sum_ite_eq, ite_eq_left_iff],
   intro h,
   rw coeff_eq_zero_of_nat_degree_lt (nat.lt_succ_of_le h)
 end

@@ -96,9 +96,6 @@ variables {𝕜 : Type u𝕜} {G : Type uG} {E : Type uE} {E' : Type uE'} {E'' :
 {F : Type uF} {F' : Type uF'} {F'' : Type uF''} {P : Type uP}
 
 
-/- Renommer "compact_of_is_closed_subset" en "is_compact..."-/
-
-
 @[to_additive]
 lemma has_compact_mul_support.eq_one_or_finite_dimensional
   (𝕜 : Type*) {E F : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜]
@@ -120,26 +117,6 @@ begin
 end
 
 
-/-- If a function is continuous on a neighborhood of a compact set `k`, then it is bounded on
-a neighborhood of `k`. -/
-lemma exists_bounded_of_is_compact_of_continuous_on
-  {α β : Type*} [topological_space α] [metric_space β] {k s : set α} {f : α → β}
-  (hk : is_compact k) (hs : is_open s) (hks : k ⊆ s) (hf : continuous_on f s) :
-  ∃ t, k ⊆ t ∧ is_open t ∧ bounded (f '' t) :=
-begin
-  refine ⟨s ∩ f ⁻¹' (thickening 1 (f '' k)), _, _, _⟩,
-  { assume x hx,
-    refine ⟨hks hx, _⟩,
-    exact self_subset_thickening zero_lt_one (f '' k) (mem_image_of_mem f hx) },
-  { apply is_open_iff_mem_nhds.2 (λ x hx, _),
-    apply filter.inter_mem (hs.mem_nhds hx.1),
-    apply hf.continuous_at (hs.mem_nhds hx.1),
-    exact is_open_thickening.mem_nhds hx.2 },
-  { have : bounded (thickening 1 (f '' k)), from
-      (hk.image_of_continuous_on (hf.mono hks)).bounded.thickening,
-    apply this.mono _,
-    simp only [image_subset_iff, inter_subset_right] },
-end
 
 lemma has_fderiv_at_zero_of_eventually_const
   {E F 𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_add_comm_group E] [normed_add_comm_group F]
@@ -1502,34 +1479,15 @@ L.to_continuous_linear_map.integral_comp_comm' L.antilipschitz _
 
 end continuous_linear_equiv
 
-instance ulift.uniform_space {α : Type*} [uniform_space α] : uniform_space (ulift α) :=
-uniform_space.comap ulift.down ‹_›
 
-universes u1 u2
-
-def uniform_equiv.ulift {α : Type*} [uniform_space α] : ulift.{u1 u2} α ≃ᵤ α :=
-{ uniform_continuous_to_fun := uniform_continuous_comap,
-  uniform_continuous_inv_fun := begin
-    have hf : uniform_inducing (@equiv.ulift.{u1 u2} α).to_fun, from ⟨rfl⟩,
-    simp_rw [hf.uniform_continuous_iff],
-    exact uniform_continuous_id,
-  end,
-  .. equiv.ulift }
-
-instance ulift.complete_space {α : Type*} [uniform_space α] [h : complete_space α] :
-  complete_space (ulift.{u1 u2} α) :=
-begin
-  have A : uniform_embedding (@equiv.ulift α), from ⟨⟨rfl⟩, ulift.down_injective⟩,
-  exact (complete_space_congr A).2 h,
-end
-
-def continuous_linear_map.ulift : ulift E ≃L[𝕜] E :=
+/-- The continuous linear equivalence between `ulift α` and `α`. -/
+def continuous_linear_equiv.ulift : ulift E ≃L[𝕜] E :=
 { map_add' := λ x y, rfl,
   map_smul' := λ c x, rfl,
   continuous_to_fun := continuous_ulift_down,
   continuous_inv_fun := continuous_ulift_up,
   .. equiv.ulift }
-→*
+
 lemma cont_diff_convolution_right_with_param
   {f : G → E} {n : ℕ∞} (L : E →L[𝕜] E' →L[𝕜] F)
   {g : P × G → E'}
@@ -1543,17 +1501,18 @@ begin
   let eE' : Type (max uE' uG uF uP) := ulift E',
   let eF : Type (max uF uG uE' uP) := ulift F,
   let eP : Type (max uP uG uE' uF) := ulift P,
-  have isoG : eG ≃L[𝕜] G := continuous_linear_map.ulift,
-  have isoE' : eE' ≃L[𝕜] E' := continuous_linear_map.ulift,
-  have isoF : eF ≃L[𝕜] F := continuous_linear_map.ulift,
-  have isoP : eP ≃L[𝕜] P := continuous_linear_map.ulift,
+  have isoG : eG ≃L[𝕜] G := continuous_linear_equiv.ulift,
+  have isoE' : eE' ≃L[𝕜] E' := continuous_linear_equiv.ulift,
+  have isoF : eF ≃L[𝕜] F := continuous_linear_equiv.ulift,
+  have isoP : eP ≃L[𝕜] P := continuous_linear_equiv.ulift,
   let ef := f ∘ isoG,
   let eμ : measure eG := measure.map isoG.symm μ,
   haveI : sigma_finite eμ,
   { apply isoG.symm.to_homeomorph.to_measurable_equiv.sigma_finite_map,
     apply_instance },
   haveI : is_add_left_invariant eμ,
-  { apply is_add_left_invariant_map, },
+    from is_add_left_invariant_map isoG.symm.to_linear_map.to_add_hom
+      isoG.symm.continuous.measurable isoG.symm.surjective,
   let eg := isoE'.symm ∘ g ∘ (isoP.prod isoG),
   let eL := continuous_linear_map.comp
     ((continuous_linear_equiv.arrow_congr isoE' isoF).symm : (E' →L[𝕜] F) →L[𝕜] eE' →L[𝕜] eF) L,
@@ -1567,7 +1526,11 @@ begin
       simp only [comp_app, continuous_linear_equiv.prod_apply, linear_isometry_equiv.coe_coe,
         continuous_linear_equiv.map_eq_zero_iff],
       exact hgs _ _ hp hx },
-    { sorry },
+    { apply (locally_integrable_map_homeomorph isoG.symm.to_homeomorph).2,
+      convert hf,
+      ext1 x,
+      simp only [ef, continuous_linear_equiv.coe_to_homeomorph, comp_app,
+        continuous_linear_equiv.apply_symm_apply], },
     { apply isoE'.symm.cont_diff.comp_cont_diff_on,
       apply hg.comp (continuous_linear_equiv.cont_diff _).cont_diff_on,
       rintros ⟨p, x⟩ ⟨hp, hx⟩,

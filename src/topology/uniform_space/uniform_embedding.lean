@@ -19,7 +19,7 @@ open_locale classical uniformity topological_space filter
 section
 variables {α : Type*} {β : Type*} {γ : Type*}
           [uniform_space α] [uniform_space β] [uniform_space γ]
-universe u
+universes u v
 
 /-- A map `f : α → β` between uniform spaces is called *uniform inducing* if the uniformity filter
 on `α` is the pullback of the uniformity filter on `β` under `prod.map f f`. If `α` is a separated
@@ -334,6 +334,13 @@ lemma complete_space_coe_iff_is_complete {s : set α} :
 lemma is_closed.complete_space_coe [complete_space α] {s : set α} (hs : is_closed s) :
   complete_space s :=
 hs.is_complete.complete_space_coe
+
+/-- The lift of a complete space to another universe is still complete. -/
+instance ulift.complete_space [h : complete_space α] : complete_space (ulift α) :=
+begin
+  have : uniform_embedding (@equiv.ulift α), from ⟨⟨rfl⟩, ulift.down_injective⟩,
+  exact (complete_space_congr this).2 h,
+end
 
 lemma complete_space_extension {m : β → α} (hm : uniform_inducing m) (dense : dense_range m)
   (h : ∀f:filter β, cauchy f → ∃x:α, map m f ≤ 𝓝 x) : complete_space α :=

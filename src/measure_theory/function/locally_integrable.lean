@@ -64,6 +64,20 @@ lemma locally_integrable.indicator (hf : locally_integrable f μ)
   {s : set X} (hs : measurable_set s) : locally_integrable (s.indicator f) μ :=
 λ K hK, (hf hK).indicator' hs
 
+theorem locally_integrable_map_homeomorph [borel_space X] [borel_space Y]
+  (e : X ≃ₜ Y) {f : Y → E} {μ : measure X} :
+  locally_integrable f (measure.map e μ) ↔ locally_integrable (f ∘ e) μ :=
+begin
+  refine ⟨λ h k hk, _, λ h k hk, _⟩,
+  { have : is_compact (e.symm ⁻¹' k), from (homeomorph.is_compact_preimage _).2 hk,
+    convert (integrable_on_map_equiv e.to_measurable_equiv).1 (h this) using 1,
+    simp only [←preimage_comp, homeomorph.to_measurable_equiv_coe, homeomorph.symm_comp_self,
+      preimage_id_eq, id.def] },
+  { apply (integrable_on_map_equiv e.to_measurable_equiv).2,
+    have : is_compact (e ⁻¹' k), from (homeomorph.is_compact_preimage _).2 hk,
+    exact h this }
+end
+
 section real
 variables [opens_measurable_space X] {A K : set X} {g g' : X → ℝ}
 

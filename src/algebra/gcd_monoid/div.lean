@@ -14,11 +14,11 @@ This file proves some basic results about `finset.gcd` on `ℤ`.
 
 ## Main results
 
-* `finset.nat.gcd_is_unit_of_div_gcd`: given a nonempty finset `s` and a function `f` from `s` to
+* `finset.nat.coprime_of_div_gcd`: given a nonempty finset `s` and a function `f` from `s` to
   `ℕ`, if `d = s.gcd`, then the `gcd` of `(f i) / d` equals `1`.
-* `finset.int.gcd_is_unit_of_div_gcd`: given a nonempty finset `s` and a function `f` from `s` to
+* `finset.int.coprime_of_div_gcd`: given a nonempty finset `s` and a function `f` from `s` to
   `ℤ`, if `d = s.gcd`, then the `gcd` of `(f i) / d` equals `1`.
-* `finset.polynomial.gcd_is_unit_of_div_gcd`: given a nonempty finset `s` and a function `f` from
+* `finset.polynomial.coprime_of_div_gcd`: given a nonempty finset `s` and a function `f` from
   `s` to `K[X]`, if `d = s.gcd`, then the `gcd` of `(f i) / d` equals `1`.
 
 ## TODO
@@ -51,7 +51,7 @@ namespace int
 
 /-- Given a nonempty finset `s` and a function `f` from `s` to `ℤ`, if `d = s.gcd`,
 then the `gcd` of `(f i) / d` is equal to `1`. -/
-theorem coprime_div_gcd {β : Type*} {f : β → ℤ} (s : finset β) {x : β} (hx : x ∈ s)
+theorem coprime_of_div_gcd {β : Type*} {f : β → ℤ} (s : finset β) {x : β} (hx : x ∈ s)
   (hfz : f x ≠ 0) : s.gcd (λ b, f b / s.gcd f) = 1 :=
 begin
   obtain ⟨g, he, hg⟩ := finset.extract_gcd f ⟨x, hx⟩,
@@ -62,7 +62,7 @@ end
 
 theorem gcd_div_gcd_id_eq_one (s : finset ℤ) {x : ℤ} (hx : x ∈ s) (hnz : x ≠ 0) :
   s.gcd (λ b, b / (s.gcd id)) = 1 :=
-coprime_div_gcd s hx hnz
+coprime_of_div_gcd s hx hnz
 
 end int
 
@@ -72,25 +72,11 @@ open_locale polynomial classical
 
 noncomputable theory
 
-variables {K R : Type*} [field K] [comm_ring R] [is_domain R] [normalized_gcd_monoid R]
-
-example (p q : R[X]) (hmonic : q.monic) : p * q /ₘ q = q :=
-begin
-  library_search!
-end
-
-theorem div_gcd_coprime' {β : Type*} {f : β → R[X]} (s : finset β) {x : β} (hx : x ∈ s)
-  (hfz : f x ≠ 0) : s.gcd (λ b, f b /ₘ s.gcd f) = 1 :=
-begin
-  obtain ⟨g, he, hg⟩ := finset.extract_gcd f ⟨x, hx⟩,
-  refine (finset.gcd_congr rfl $ λ a ha, _).trans hg,
-  rw [he a ha, polynomial.mul_div_mod_by_monic_cancel_left],
-  sorry
-end
+variables {K : Type*} [field K]
 
 /-- Given a nonempty finset `s` and a function `f` from `s` to `K[X]`, if `d = s.gcd f`,
 then the `gcd` of `(f i) / d` is equal to `1`. -/
-theorem div_gcd_coprime {β : Type*} {f : β → K[X]} (s : finset β) {x : β} (hx : x ∈ s)
+theorem coprime_of_div_gcd {β : Type*} {f : β → K[X]} (s : finset β) {x : β} (hx : x ∈ s)
   (hfz : f x ≠ 0) : s.gcd (λ b, f b / s.gcd f) = 1 :=
 begin
   obtain ⟨g, he, hg⟩ := finset.extract_gcd f ⟨x, hx⟩,
@@ -101,7 +87,7 @@ end
 
 theorem gcd_div_gcd_id_eq_one (s : finset K[X]) {x : K[X]} (hx : x ∈ s) (hnz : x ≠ 0) :
   s.gcd (λ b, b / (s.gcd id)) = 1 :=
-div_gcd_coprime s hx hnz
+coprime_of_div_gcd s hx hnz
 
 end polynomial
 

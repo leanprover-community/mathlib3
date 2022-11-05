@@ -563,8 +563,7 @@ begin
 end
 
 /-- `set α` is a division monoid under pointwise operations if `α` is. -/
-@[to_additive "`set α` is a subtraction monoid under pointwise operations if `α`
-is."]
+@[to_additive "`set α` is a subtraction monoid under pointwise operations if `α` is."]
 protected def division_monoid : division_monoid (set α) :=
 { mul_inv_rev := λ s t, by { simp_rw ←image_inv, exact image_image2_antidistrib mul_inv_rev },
   inv_eq_of_mul := λ s t h, begin

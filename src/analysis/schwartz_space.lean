@@ -427,29 +427,21 @@ section fderiv
 variables {E F}
 /-- The derivative of a Schwartz function as a Schwartz function with values in the
 continuous linear maps `E→L[ℝ] F`. -/
-@[protected] def fderiv (f : 𝓢(E, F)) : 𝓢(E, E→L[ℝ] F) :=
+@[protected] def fderiv (f : 𝓢(E, F)) : 𝓢(E, E →L[ℝ] F) :=
 { to_fun := fderiv ℝ f,
-  smooth' :=
-  begin
-    have hf := f.2,
-    rw cont_diff_top_iff_fderiv at hf,
-    exact hf.2,
-  end,
+  smooth' := (cont_diff_top_iff_fderiv.mp f.smooth').2,
   decay' :=
   begin
     intros k n,
-    cases f.3 k (n+1) with C hC,
+    cases f.decay' k (n+1) with C hC,
     use C,
     intros x,
     rw norm_iterated_fderiv_fderiv,
     exact hC x,
   end }
 
-@[simp] lemma fderiv_apply (f : 𝓢(E, F)) (x : E) :
-  f.fderiv x = fderiv ℝ f x := rfl
-
-lemma coe_fderiv (f : 𝓢(E, F)) :
-  (f.fderiv : E → (E →L[ℝ] F)) = fderiv ℝ f := rfl
+@[simp, norm_cast] lemma coe_fderiv (f : 𝓢(E, F)) : ⇑f.fderiv = fderiv ℝ f := rfl
+@[simp] lemma fderiv_apply (f : 𝓢(E, F)) (x : E) : f.fderiv x = fderiv ℝ f x := rfl
 
 variables (𝕜)
 variables [is_R_or_C 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
@@ -462,11 +454,7 @@ def fderiv_lm : 𝓢(E, F) →ₗ[𝕜] 𝓢(E, E →L[ℝ] F) :=
     g.differentiable.differentiable_at,
   map_smul' := λ a f, ext $ λ _, fderiv_const_smul f.differentiable.differentiable_at a }
 
-@[simp] lemma fderiv_lm_apply (f : 𝓢(E, F)) (x : E) :
-  fderiv_lm 𝕜 f x = fderiv ℝ f x := rfl
-
-lemma coe_fderiv_lm (f : 𝓢(E, F)) :
-  (fderiv_lm 𝕜 f : E → (E →L[ℝ] F)) = fderiv ℝ f := rfl
+@[simp, norm_cast] lemma fderiv_lm_apply (f : 𝓢(E, F)) : fderiv_lm 𝕜 f = schwartz_map.fderiv f := rfl
 
 /-- The derivative on Schwartz space as a continuous linear map. -/
 def fderiv_clm : 𝓢(E, F) →L[𝕜] 𝓢(E, E →L[ℝ] F) :=
@@ -484,13 +472,9 @@ def fderiv_clm : 𝓢(E, F) →L[𝕜] 𝓢(E, E →L[ℝ] F) :=
     rw [coe_fderiv_lm, norm_iterated_fderiv_fderiv],
     exact f.le_seminorm 𝕜 k (n+1) x,
   end,
-  ..fderiv_lm 𝕜 }
+  to_linear_map := fderiv_lm 𝕜 }
 
-@[simp] lemma fderiv_clm_apply (f : 𝓢(E, F)) (x : E) :
-  fderiv_clm 𝕜 f x = fderiv ℝ f x := rfl
-
-lemma coe_fderiv_clm (f : 𝓢(E, F)) :
-  (fderiv_clm 𝕜 f : E → (E →L[ℝ] F)) = fderiv ℝ f := rfl
+@[simp, norm_cast] lemma fderiv_clm_apply (f : 𝓢(E, F)) : fderiv_clm 𝕜 f = schwartz_map.fderiv f := rfl```
 
 end fderiv
 

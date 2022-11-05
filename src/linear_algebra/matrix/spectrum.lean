@@ -71,6 +71,8 @@ lemma eigenvector_matrix_mul_inv :
   hA.eigenvector_matrix ⬝ hA.eigenvector_matrix_inv = 1 :=
 by apply basis.to_matrix_mul_to_matrix_flip
 
+#check basis.to_matrix_mul_to_matrix_flip
+
 noncomputable instance : invertible hA.eigenvector_matrix_inv :=
 invertible_of_left_inverse _ _ hA.eigenvector_matrix_mul_inv
 
@@ -78,16 +80,15 @@ noncomputable instance : invertible hA.eigenvector_matrix :=
 invertible_of_right_inverse _ _ hA.eigenvector_matrix_mul_inv
 
 lemma eigenvector_matrix_apply (i j : n) : hA.eigenvector_matrix i j = hA.eigenvector_basis j i :=
-by simp only [eigenvector_matrix, basis.to_matrix_apply, orthonormal_basis.coe_to_basis,
-  pi.basis_fun_repr, pi_Lp.equiv_apply]
+by simp_rw [eigenvector_matrix, basis.to_matrix_apply, orthonormal_basis.coe_to_basis,
+    basis.map_repr, linear_equiv.symm_symm, linear_equiv.trans_apply, pi_Lp.linear_equiv_apply,
+    pi.basis_fun_repr, pi_Lp.equiv_apply]
 
 lemma eigenvector_matrix_inv_apply (i j : n) :
   hA.eigenvector_matrix_inv i j = star (hA.eigenvector_basis i j) :=
 begin
   rw [eigenvector_matrix_inv, basis.to_matrix_apply, orthonormal_basis.coe_to_basis_repr_apply,
-    pi.basis_fun_apply, linear_map.coe_std_basis, orthonormal_basis.repr_apply_apply],
-  change inner (hA.eigenvector_basis i) (euclidean_space.single j 1) = _,
-  rw [euclidean_space.inner_single_right],
+    orthonormal_basis.repr_apply_apply, euclidean_space.inner_single_right],
   simp only [one_mul, conj_transpose_apply, is_R_or_C.star_def],
 end
 

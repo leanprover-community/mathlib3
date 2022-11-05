@@ -1809,14 +1809,6 @@ by { simp [subset.antisymm_iff],
        ... ⊇ s₁ \ ∅         : by mono using [(⊇)]
        ... ⊇ s₁             : by simp [(⊇)] } }
 
-theorem filter_union_filter_neg_eq [decidable_pred (λ a, ¬ p a)]
-  (s : finset α) : s.filter p ∪ s.filter (λa, ¬ p a) = s :=
-by simp only [filter_not, union_sdiff_of_subset (filter_subset p s)]
-
-theorem filter_inter_filter_neg_eq [decidable_pred (λ a, ¬ p a)]
-  (s : finset α) : s.filter p ∩ s.filter (λa, ¬ p a) = ∅ :=
-by simp only [filter_not, inter_sdiff_self]
-
 lemma subset_union_elim {s : finset α} {t₁ t₂ : set α} (h : ↑s ⊆ t₁ ∪ t₂) :
   ∃ s₁ s₂ : finset α, s₁ ∪ s₂ = s ∧ ↑s₁ ⊆ t₁ ∧ ↑s₂ ⊆ t₂ \ t₁ :=
 begin
@@ -1882,14 +1874,17 @@ by { ext, simp only [mem_filter, mem_erase, ne.def], tauto }
 lemma filter_ne' [decidable_eq β] (s : finset β) (b : β) : s.filter (λ a, a ≠ b) = s.erase b :=
 trans (filter_congr (λ _ _, ⟨ne.symm, ne.symm⟩)) (filter_ne s b)
 
-
 theorem filter_inter_filter_neg_eq [decidable_pred (λ a, ¬ p a)] (s t : finset α) :
-  s.filter p ∩ t.filter (λ a, ¬ p a) = ∅ :=
+  s.filter p ∩ t.filter (λa, ¬ p a) = ∅ :=
 (disjoint_filter_filter_neg s t p).eq_bot
 
-lemma disjoint_filter_filter_neg (s : finset α) (p : α → Prop) [decidable_pred p] :
-  disjoint (s.filter p) (s.filter $ λ a, ¬ p a) :=
-(disjoint_filter.2 $ λ a _, id).symm
+theorem filter_union_filter_of_codisjoint (s : finset α) (h : codisjoint p q) :
+  s.filter p ∪ s.filter q = s :=
+(filter_or _ _ _).symm.trans $ filter_true_of_mem $ λ x hx, h.top_le x trivial
+
+theorem filter_union_filter_neg_eq [decidable_pred (λ a, ¬ p a)] (s : finset α) :
+  s.filter p ∪ s.filter (λa, ¬ p a) = s :=
+filter_union_filter_of_codisjoint _ _ _ codisjoint_hnot_right
 
 end filter
 

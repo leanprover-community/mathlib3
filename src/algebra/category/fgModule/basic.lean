@@ -60,16 +60,20 @@ instance : inhabited (fgModule R) := ⟨⟨Module.of R R, module.finite.self R�
 def of (V : Type u) [add_comm_group V] [module R V] [module.finite R V] : fgModule R :=
 ⟨Module.of R V, by { change module.finite R V, apply_instance }⟩
 
+instance (V : fgModule R) : module.finite R V.obj := V.property
+
+example (V W : fgModule R) : module R (V ⟶ W) := by apply_instance
+
 instance (V W : fgModule R) : module.finite R (V ⟶ W) :=
-(by apply_instance : module.finite R (V.obj →ₗ[K] W.obj))
+(by apply_instance : module.finite R (V.obj →ₗ[R] W.obj))
 
 instance : has_forget₂ (fgModule.{u} R) (Module.{u} R) :=
 by { dsimp [fgModule], apply_instance, }
 
-instance : full (forget₂ (fgModule R) (Module.{u} K)) :=
+instance : full (forget₂ (fgModule R) (Module.{u} R)) :=
 { preimage := λ X Y f, f, }
 
-variables {R V}
+variables {R}
 
 /-- Converts and isomorphism in the category `fgModule R` to a `linear_equiv` between the underlying
 modules. -/

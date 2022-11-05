@@ -5,31 +5,15 @@ Authors: Yaël Dillies
 -/
 import algebra.order.group.basic
 import data.option.n_ary
-import data.set.pointwise
+import data.set.pointwise.basic
 import order.interval
 
 /-!
 # Interval arithmetic
+
+This file defines arithmetic operations on intervals and prove their correctness. Note that this is
+full precision operations. We do not yet have float operations.
 -/
-
-section
-variables {α : Type*} [has_mul α] [partial_order α]
-
-open function
-
-@[to_additive] lemma mul_le_mul_iff_of_ge [covariant_class α α (*) (≤)]
-  [covariant_class α α (swap (*)) (≤)] [covariant_class α α (*) (<)]
-  [covariant_class α α (swap (*)) (<)] {a₁ a₂ b₁ b₂ : α} (ha : a₁ ≤ a₂) (hb : b₁ ≤ b₂) :
-  a₂ * b₂ ≤ a₁ * b₁ ↔ a₁ = a₂ ∧ b₁ = b₂ :=
-begin
-  refine ⟨λ h, _, by { rintro ⟨rfl, rfl⟩, refl }⟩,
-  simp only [eq_iff_le_not_lt, ha, hb, true_and],
-  refine ⟨λ ha, h.not_lt _, λ hb, h.not_lt _⟩,
-  { exact mul_lt_mul_of_lt_of_le ha hb },
-  { exact mul_lt_mul_of_le_of_lt ha hb }
-end
-
-end
 
 open function set
 open_locale pointwise
@@ -47,10 +31,10 @@ variables [preorder α] [has_one α]
 
 namespace nonempty_interval
 
-@[simp, to_additive] lemma fst_one : (1 : nonempty_interval α).fst = 1 := rfl
-@[simp, to_additive] lemma snd_one : (1 : nonempty_interval α).snd = 1 := rfl
+@[simp, to_additive to_prod_zero] lemma to_prod_one : (1 : nonempty_interval α).to_prod = 1 := rfl
+@[to_additive] lemma fst_one : (1 : nonempty_interval α).fst = 1 := rfl
+@[to_additive] lemma snd_one : (1 : nonempty_interval α).snd = 1 := rfl
 @[simp, norm_cast, to_additive] lemma coe_one : ((1 : nonempty_interval α) : interval α) = 1 := rfl
-@[simp, to_additive] lemma to_prod_one : (1 : nonempty_interval α).to_prod = 1 := rfl
 @[simp, to_additive] lemma pure_one : pure (1 : α) = 1 := rfl
 
 end nonempty_interval
@@ -92,10 +76,10 @@ variables [preorder α] [has_mul α] [covariant_class α α (*) (≤)]
 namespace nonempty_interval
 variables (s t : nonempty_interval α) (a b : α)
 
-@[simp, to_additive] lemma fst_mul : (s * t).fst = s.fst * t.fst := rfl
-@[simp, to_additive] lemma snd_mul : (s * t).snd = s.snd * t.snd := rfl
+@[simp, to_additive to_prod_add] lemma to_prod_mul : (s * t).to_prod = s.to_prod * t.to_prod := rfl
+@[to_additive] lemma fst_mul : (s * t).fst = s.fst * t.fst := rfl
+@[to_additive] lemma snd_mul : (s * t).snd = s.snd * t.snd := rfl
 @[simp, to_additive] lemma coe_mul : (↑(s * t) : interval α) = s * t := rfl
-@[simp, to_additive] lemma to_prod_mul : (s * t).to_prod = s.to_prod * t.to_prod := rfl
 @[simp, to_additive] lemma pure_mul_pure : pure a * pure b = pure (a * b) := rfl
 
 end nonempty_interval
@@ -126,9 +110,9 @@ instance nonempty_interval.has_pow : has_pow (nonempty_interval α) ℕ :=
 namespace nonempty_interval
 variables (s : nonempty_interval α) (a : α) (n : ℕ)
 
-@[simp, to_additive] lemma fst_pow : (s ^ n).fst = s.fst ^ n := rfl
-@[simp, to_additive] lemma snd_pow : (s ^ n).snd = s.snd ^ n := rfl
-@[simp, to_additive] lemma to_prod_pow : (s ^ n).to_prod = s.to_prod ^ n := rfl
+@[simp, to_additive to_prod_nsmul] lemma to_prod_pow : (s ^ n).to_prod = s.to_prod ^ n := rfl
+@[to_additive] lemma fst_pow : (s ^ n).fst = s.fst ^ n := rfl
+@[to_additive] lemma snd_pow : (s ^ n).snd = s.snd ^ n := rfl
 @[simp, to_additive] lemma pure_pow : pure a ^ n = pure (a ^ n) := rfl
 
 end nonempty_interval
@@ -168,7 +152,7 @@ end nonempty_interval
 namespace interval
 variables [ordered_comm_monoid α] (s : interval α) {n : ℕ}
 
-@[to_additive] lemma bot_pow (s : interval α) : ∀ {n : ℕ} (hn : n ≠ 0), (⊥ : interval α) ^ n = ⊥
+@[to_additive] lemma bot_pow : ∀ {n : ℕ} (hn : n ≠ 0), (⊥ : interval α) ^ n = ⊥
 | 0 h := (h rfl).elim
 | (nat.succ n) _ := bot_mul (⊥ ^ n)
 

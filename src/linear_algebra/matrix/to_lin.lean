@@ -656,8 +656,8 @@ noncomputable def left_mul_matrix : S →ₐ[R] matrix m m R :=
   map_one' := by rw [alg_hom.map_one, linear_map.to_matrix_one],
   map_add' := λ x y, by rw [alg_hom.map_add, linear_equiv.map_add],
   map_mul' := λ x y, by rw [alg_hom.map_mul, linear_map.to_matrix_mul, matrix.mul_eq_mul],
-  commutes' := λ r, by { ext, rw [lmul_algebra_map, to_matrix_lsmul,
-                                  algebra_map_eq_diagonal, pi.algebra_map_def] } }
+  commutes' := λ r, by { ext, rw [lmul_algebra_map, to_matrix_lsmul, algebra_map_eq_diagonal,
+                                  pi.algebra_map_def, algebra.id.map_eq_self] } }
 
 lemma left_mul_matrix_apply (x : S) :
   left_mul_matrix b x = linear_map.to_matrix b b (lmul R S x) := rfl

@@ -9,8 +9,7 @@ import ring_theory.int.basic
 import ring_theory.polynomial.content
 
 /-!
-# Basic results about setwise gcds on normalized gcd monoid with a division
-This file proves some basic results about `finset.gcd` on `ℤ`.
+# Basic results about setwise gcds on normalized gcd monoid with a division.
 
 ## Main results
 

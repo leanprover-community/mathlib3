@@ -71,23 +71,6 @@ instance : add_semigroup ℕ                := infer_instance
 instance : distrib ℕ                      := infer_instance
 instance : semiring ℕ                     := infer_instance
 
-instance nat.order_bot : order_bot ℕ :=
-{ bot := 0, bot_le := nat.zero_le }
-
-
-instance nat.subtype.order_bot (s : set ℕ) [decidable_pred (∈ s)] [h : nonempty s] :
-  order_bot s :=
-{ bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,
-  bot_le := λ x, nat.find_min' _ x.2 }
-
-instance nat.subtype.semilattice_sup (s : set ℕ) :
-  semilattice_sup s :=
-{ ..subtype.linear_order s,
-  ..linear_order.to_lattice }
-
-lemma nat.subtype.coe_bot {s : set ℕ} [decidable_pred (∈ s)]
-  [h : nonempty s] : ((⊥ : s) : ℕ) = nat.find (nonempty_subtype.1 h) := rfl
-
 protected lemma nat.nsmul_eq_mul (m n : ℕ) : m • n = m * n := rfl
 
 theorem nat.eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m) : n = k :=
@@ -106,7 +89,6 @@ attribute [simp] nat.not_lt_zero nat.succ_ne_zero nat.succ_ne_self
   nat.bit0_ne_one nat.one_ne_bit0
   nat.bit0_ne_bit1 nat.bit1_ne_bit0
 
-
 variables {m n k : ℕ}
 namespace nat
 
@@ -120,42 +102,6 @@ namespace nat
 @[simp] lemma or_exists_succ {p : ℕ → Prop} : (p 0 ∨ ∃ n, p (n + 1)) ↔ ∃ n, p n :=
 ⟨λ h, h.elim (λ h0, ⟨0, h0⟩) (λ ⟨n, hn⟩, ⟨n + 1, hn⟩),
   by { rintro ⟨(_|n), hn⟩, exacts [or.inl hn, or.inr ⟨n, hn⟩]}⟩
-
-/-!
-### Recursion and `set.range`
--/
-
-section set
-
-open set
-
-theorem zero_union_range_succ : {0} ∪ range succ = univ :=
-by { ext n, cases n; simp }
-
-@[simp] protected lemma range_succ : range succ = {i | 0 < i} := by ext (_ | i); simp [succ_pos]
-
-variables {α : Type*}
-
-theorem range_of_succ (f : ℕ → α) : {f 0} ∪ range (f ∘ succ) = range f :=
-by rw [← image_singleton, range_comp, ← image_union, zero_union_range_succ, image_univ]
-
-theorem range_rec {α : Type*} (x : α) (f : ℕ → α → α) :
-  (set.range (λ n, nat.rec x f n) : set α) =
-    {x} ∪ set.range (λ n, nat.rec (f 0 x) (f ∘ succ) n) :=
-begin
-  convert (range_of_succ _).symm,
-  ext n,
-  induction n with n ihn,
-  { refl },
-  { dsimp at ihn ⊢,
-    rw ihn }
-end
-
-theorem range_cases_on {α : Type*} (x : α) (f : ℕ → α) :
-  (set.range (λ n, nat.cases_on n x f) : set α) = {x} ∪ set.range f :=
-(range_of_succ _).symm
-
-end set
 
 /-! ### The units of the natural numbers as a `monoid` and `add_monoid` -/
 

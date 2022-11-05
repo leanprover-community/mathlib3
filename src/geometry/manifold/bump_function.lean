@@ -230,16 +230,16 @@ classical.inhabited_of_nonempty nhds_within_range_basis.nonempty
 
 variables [t2_space M]
 
-lemma closed_symm_image_closed_ball :
+lemma is_closed_symm_image_closed_ball :
   is_closed ((ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I)) :=
-f.compact_symm_image_closed_ball.is_closed
+f.is_compact_symm_image_closed_ball.is_closed
 
 lemma tsupport_subset_symm_image_closed_ball :
   tsupport f ⊆ (ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I) :=
 begin
   rw [tsupport, support_eq_symm_image],
   exact closure_minimal (image_subset _ $ inter_subset_inter_left _ ball_subset_closed_ball)
-    f.closed_symm_image_closed_ball
+    f.is_closed_symm_image_closed_ball
 end
 
 lemma tsupport_subset_ext_chart_at_source :
@@ -257,7 +257,7 @@ lemma tsupport_subset_chart_at_source :
 by simpa only [ext_chart_at_source] using f.tsupport_subset_ext_chart_at_source
 
 protected lemma has_compact_support : has_compact_support f :=
-is_compact_of_is_closed_subset f.compact_symm_image_closed_ball is_closed_closure
+is_compact_of_is_closed_subset f.is_compact_symm_image_closed_ball is_closed_closure
  f.tsupport_subset_symm_image_closed_ball
 
 variables (I c)

@@ -95,40 +95,6 @@ universes u𝕜 uG uE uE' uE'' uF uF' uF'' uP
 variables {𝕜 : Type u𝕜} {G : Type uG} {E : Type uE} {E' : Type uE'} {E'' : Type uE''}
 {F : Type uF} {F' : Type uF'} {F'' : Type uF''} {P : Type uP}
 
-
-@[to_additive]
-lemma has_compact_mul_support.eq_one_or_finite_dimensional
-  (𝕜 : Type*) {E F : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜]
-  [normed_add_comm_group E] [normed_space 𝕜 E]
-  [topological_space F] [has_one F] [t2_space F]
-  {f : E → F} (hf : has_compact_mul_support f) (h'f : continuous f) :
-  f = 1 ∨ finite_dimensional 𝕜 E :=
-begin
-  by_cases h : ∀ x, f x = 1, { apply or.inl, ext x, exact h x },
-  apply or.inr,
-  push_neg at h,
-  obtain ⟨x, hx⟩ : ∃ x, f x ≠ 1, from h,
-  have : mul_support f ∈ 𝓝 x, from h'f.is_open_mul_support.mem_nhds hx,
-  obtain ⟨r, rpos, hr⟩ : ∃ (r : ℝ) (hi : 0 < r), closed_ball x r ⊆ mul_support f,
-    from nhds_basis_closed_ball.mem_iff.1 this,
-  have : is_compact (closed_ball x r),
-    from is_compact_of_is_closed_subset hf is_closed_ball (hr.trans (subset_mul_tsupport _)),
-  exact finite_dimensional_of_is_compact_closed_ball 𝕜 rpos this,
-end
-
-
-
-lemma has_fderiv_at_zero_of_eventually_const
-  {E F 𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_add_comm_group E] [normed_add_comm_group F]
-  [normed_space 𝕜 E] [normed_space 𝕜 F]
-  {f : E → F} {x : E} (c : F) (hf : f =ᶠ[𝓝 x] (λ y, c)) :
-  has_fderiv_at f (0 : E →L[𝕜] F) x :=
-begin
-  apply has_fderiv_at.congr_of_eventually_eq _ hf,
-  exact has_fderiv_at_const _ _
-end
-
-
 variables [normed_add_comm_group E] [normed_add_comm_group E'] [normed_add_comm_group E'']
   [normed_add_comm_group F] [normed_add_comm_group P]
   {f f' : G → E} {g g' : G → E'} {x x' : G} {y y' : E}

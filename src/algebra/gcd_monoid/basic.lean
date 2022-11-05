@@ -414,6 +414,9 @@ by { rw mul_comm at H ⊢, exact dvd_gcd_mul_of_dvd_mul H }
 
 /-- Represent a divisor of `m * n` as a product of a divisor of `m` and a divisor of `n`.
 
+In other words, the nonzero elements of a `gcd_monoid` form a decomposition monoid
+(more widely known as a pre-Schreier domain in the context of rings).
+
 Note: In general, this representation is highly non-unique.
 
 See `nat.prod_dvd_and_dvd_of_dvd_prod` for a constructive version on `ℕ`.  -/

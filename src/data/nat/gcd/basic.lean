@@ -8,8 +8,8 @@ import algebra.group_power.order
 /-!
 # Definitions and properties of `nat.gcd`, `nat.lcm`, and `nat.coprime`
 
-Generalizations of these are provided in a later file as `gcd_monoid.gcd`, `gcd_monoid.lcm`, and
-`is_coprime`.
+The more general equivalents of these are provided in a later file as `gcd_monoid.gcd`,
+`gcd_monoid.lcm`, and `is_coprime`.
 
 -/
 

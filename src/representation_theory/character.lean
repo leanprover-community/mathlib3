@@ -100,8 +100,7 @@ begin
   -- The average over the group of the character of a representation equals the dimension of the
   -- space of invariants.
   rw average_char_eq_finrank_invariants,
-  have : (of (lin_hom W.ρ V.ρ)).ρ = lin_hom W.ρ V.ρ,
-  { exact fdRep.of_ρ (lin_hom W.ρ V.ρ) }, rw this,
+  rw [show (of (lin_hom W.ρ V.ρ)).ρ = lin_hom W.ρ V.ρ, from fdRep.of_ρ (lin_hom W.ρ V.ρ)],
 
   -- The space of invariants of `Hom(W, V)` is the subspace of `G`-equivariant linear maps,
   -- `Hom_G(W, V)`.

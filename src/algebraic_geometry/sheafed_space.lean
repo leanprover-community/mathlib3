@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import algebraic_geometry.presheafed_space.has_colimits
 import topology.sheaves.functors
+import topology.sheaves.sheaf_condition.opens_le_cover
 
 /-!
 # Sheafed spaces
@@ -117,18 +118,15 @@ open Top.presheaf
 /--
 The restriction of a sheafed space along an open embedding into the space.
 -/
-def restrict [has_products.{v} C] {U : Top} (X : SheafedSpace C)
+def restrict {U : Top} (X : SheafedSpace C)
   {f : U ⟶ (X : Top.{v})} (h : open_embedding f) : SheafedSpace C :=
-{ is_sheaf := (is_sheaf_iff_is_sheaf_equalizer_products _).mpr $ λ ι 𝒰, ⟨is_limit.of_iso_limit
-    ((is_limit.postcompose_inv_equiv _ _).inv_fun
-    ((is_sheaf_iff_is_sheaf_equalizer_products _).mp X.is_sheaf _).some)
-    (sheaf_condition_equalizer_products.fork.iso_of_open_embedding h 𝒰).symm⟩,
+{ is_sheaf := h.is_sheaf _ X.is_sheaf,
   ..X.to_PresheafedSpace.restrict h }
 
 /--
 The restriction of a sheafed space `X` to the top subspace is isomorphic to `X` itself.
 -/
-def restrict_top_iso [has_products.{v} C] (X : SheafedSpace C) :
+def restrict_top_iso (X : SheafedSpace C) :
   X.restrict (opens.open_embedding ⊤) ≅ X :=
 forget_to_PresheafedSpace.preimage_iso X.to_PresheafedSpace.restrict_top_iso
 

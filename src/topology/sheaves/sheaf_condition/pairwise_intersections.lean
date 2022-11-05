@@ -75,8 +75,8 @@ def is_sheaf_preserves_limit_pairwise_intersections (F : presheaf C X) : Prop :=
 end
 
 /-!
-The remainder of this file shows that these conditions are equivalent
-to the usual sheaf condition.
+The next part of this file shows that these conditions are equivalent
+to the "equalizer products" sheaf condition.
 -/
 
 variables {X : Top.{v}} [has_products.{v} C]

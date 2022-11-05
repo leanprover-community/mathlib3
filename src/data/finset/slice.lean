@@ -128,8 +128,11 @@ subset.antisymm (bUnion_subset.2 $ λ r _, slice_subset) $ λ s hs,
   mem_bUnion.2 ⟨s.card, mem_Iic.2 $ s.card_le_univ, mem_slice.2 $ ⟨hs, rfl⟩⟩
 
 @[simp] lemma sum_card_slice : ∑ r in Iic (fintype.card α), (𝒜 # r).card = 𝒜.card :=
-by { rw [←card_bUnion (finset.pairwise_disjoint_slice.subset (set.subset_univ _)), bUnion_slice],
-  exact classical.dec_eq _ }
+begin
+  letI := classical.dec_eq α,
+  rw [←card_bUnion, bUnion_slice],
+  exact finset.pairwise_disjoint_slice.subset (set.subset_univ _),
+end
 
 end slice
 end finset

@@ -8,6 +8,7 @@ import measure_theory.measure.regular
 import measure_theory.group.measurable_equiv
 import measure_theory.measure.open_pos
 import measure_theory.constructions.prod
+import topology.continuous_function.cocompact_map
 
 /-!
 # Measures on Groups
@@ -86,9 +87,21 @@ lemma measure_preserving_mul_left (μ : measure G) [is_mul_left_invariant μ] (g
 ⟨measurable_const_mul g, map_mul_left_eq_self μ g⟩
 
 @[to_additive]
+lemma measure_preserving.mul_left (μ : measure G) [is_mul_left_invariant μ] (g : G)
+  {X : Type*} [measurable_space X] {μ' : measure X} {f : X → G} (hf : measure_preserving f μ' μ) :
+  measure_preserving (λ x, g * f x) μ' μ :=
+(measure_preserving_mul_left μ g).comp hf
+
+@[to_additive]
 lemma measure_preserving_mul_right (μ : measure G) [is_mul_right_invariant μ] (g : G) :
   measure_preserving (* g) μ μ :=
 ⟨measurable_mul_const g, map_mul_right_eq_self μ g⟩
+
+@[to_additive]
+lemma measure_preserving.mul_right (μ : measure G) [is_mul_right_invariant μ] (g : G)
+  {X : Type*} [measurable_space X] {μ' : measure X} {f : X → G} (hf : measure_preserving f μ' μ) :
+  measure_preserving (λ x, f x * g) μ' μ :=
+(measure_preserving_mul_right μ g).comp hf
 
 /-- An alternative way to prove that `μ` is left invariant under multiplication. -/
 @[to_additive /-" An alternative way to prove that `μ` is left invariant under addition. "-/]
@@ -498,32 +511,45 @@ lemma is_haar_measure_of_is_compact_nonempty_interior [topological_group G] [bor
     λ L hL, measure_lt_top_of_is_compact_of_is_mul_left_invariant' h'K h' hL,
   to_is_open_pos_measure := is_open_pos_measure_of_mul_left_invariant_of_compact K hK h }
 
-/-- The image of a Haar measure under a group homomorphism which is also a homeomorphism is again
-a Haar measure. -/
-@[to_additive "The image of an additive Haar measure under an additive group homomorphism which is
-also a homeomorphism is again an additive Haar measure."]
+open filter
+
+/-- The image of a Haar measure under a continuous surjective proper group homomorphism is again
+a Haar measure. See also `mul_equiv.is_haar_measure_map`. -/
+@[to_additive "The image of an additive Haar measure under a continuous surjective proper additive
+group homomorphism is again an additive Haar measure. See also
+`add_equiv.is_add_haar_measure_map`."]
 lemma is_haar_measure_map [borel_space G] [topological_group G] {H : Type*} [group H]
   [topological_space H] [measurable_space H] [borel_space H] [t2_space H] [topological_group H]
-  (f : G ≃* H) (hf : continuous f) (hfsymm : continuous f.symm) :
+  (f : G →* H) (hf : continuous f) (h_surj : surjective f)
+  (h_prop : tendsto f (cocompact G) (cocompact H)) :
   is_haar_measure (measure.map f μ) :=
 { to_is_mul_left_invariant := begin
     constructor,
     assume h,
     rw map_map (continuous_mul_left h).measurable hf.measurable,
-    conv_rhs { rw ← map_mul_left_eq_self μ (f.symm h) },
+    obtain ⟨g, rfl⟩ := h_surj h,
+    conv_rhs { rw ← map_mul_left_eq_self μ g },
     rw map_map hf.measurable (continuous_mul_left _).measurable,
     congr' 2,
     ext y,
-    simp only [mul_equiv.apply_symm_apply, comp_app, mul_equiv.map_mul],
+    simp only [comp_app, map_mul],
   end,
   lt_top_of_is_compact := begin
     assume K hK,
     rw map_apply hf.measurable hK.measurable_set,
-    have : f.symm '' K = f ⁻¹' K := equiv.image_eq_preimage _ _,
-    rw ← this,
-    exact is_compact.measure_lt_top (hK.image hfsymm)
+    exact is_compact.measure_lt_top ((⟨⟨f, hf⟩, h_prop⟩ : cocompact_map G H).compact_preimage hK),
   end,
-  to_is_open_pos_measure := hf.is_open_pos_measure_map f.surjective }
+  to_is_open_pos_measure := hf.is_open_pos_measure_map h_surj }
+
+/-- A convenience wrapper for `measure_theory.measure.is_haar_measure_map`. -/
+@[to_additive "A convenience wrapper for `measure_theory.measure.is_add_haar_measure_map`."]
+lemma _root_.mul_equiv.is_haar_measure_map
+  [borel_space G] [topological_group G] {H : Type*} [group H]
+  [topological_space H] [measurable_space H] [borel_space H] [t2_space H] [topological_group H]
+  (e : G ≃* H) (he : continuous e) (hesymm : continuous e.symm) :
+  is_haar_measure (measure.map e μ) :=
+is_haar_measure_map μ (e : G →* H) he e.surjective
+  ({ .. e } : G ≃ₜ H).to_cocompact_map.cocompact_tendsto'
 
 /-- A Haar measure on a σ-compact space is σ-finite.
 
@@ -546,7 +572,6 @@ instance {G : Type*} [group G] [topological_space G] {mG : measurable_space G}
   is_haar_measure (μ.prod ν) := {}
 
 open_locale topological_space
-open filter
 
 /-- If the neutral element of a group is not isolated, then a Haar measure on this group has
 no atoms.

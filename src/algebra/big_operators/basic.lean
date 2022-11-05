@@ -349,38 +349,17 @@ lemma prod_sdiff [decidable_eq α] (h : s₁ ⊆ s₂) :
 by rw [←prod_union sdiff_disjoint, sdiff_union_of_subset h]
 
 @[simp, to_additive]
-lemma prod_sum_elim [decidable_eq (α ⊕ γ)]
-  (s : finset α) (t : finset γ) (f : α → β) (g : γ → β) :
-  ∏ x in s.map function.embedding.inl ∪ t.map function.embedding.inr, sum.elim f g x =
-    (∏ x in s, f x) * (∏ x in t, g x) :=
+lemma prod_disj_sum (s : finset α) (t : finset γ) (f : α ⊕ γ → β) :
+  ∏ x in s.disj_sum t, f x = (∏ x in s, f (sum.inl x)) * (∏ x in t, f (sum.inr x)) :=
 begin
-  rw [prod_union, prod_map, prod_map],
-  { simp only [sum.elim_inl, function.embedding.inl_apply, function.embedding.inr_apply,
-      sum.elim_inr] },
-  { simp only [disjoint_left, finset.mem_map, finset.mem_map],
-    rintros _ ⟨i, hi, rfl⟩ ⟨j, hj, H⟩,
-    cases H }
+  rw [←map_inl_disj_union_map_inr, prod_disj_union, prod_map, prod_map],
+  refl,
 end
 
-@[simp, to_additive]
-lemma prod_on_sum [fintype α] [fintype γ] (f : α ⊕ γ → β) :
-  ∏ (x : α ⊕ γ), f x  =
-    (∏ (x : α), f (sum.inl x)) * (∏ (x : γ), f (sum.inr x)) :=
-begin
-  haveI := classical.dec_eq (α ⊕ γ),
-  convert prod_sum_elim univ univ (λ x, f (sum.inl x)) (λ x, f (sum.inr x)),
-  { ext a,
-    split,
-    { intro x,
-      cases a,
-      { simp only [mem_union, mem_map, mem_univ, function.embedding.inl_apply, or_false,
-          exists_true_left, exists_apply_eq_apply, function.embedding.inr_apply, exists_false], },
-      { simp only [mem_union, mem_map, mem_univ, function.embedding.inl_apply, false_or,
-          exists_true_left, exists_false, function.embedding.inr_apply,
-          exists_apply_eq_apply], }, },
-    { simp only [mem_univ, implies_true_iff], }, },
-  { simp only [sum.elim_comp_inl_inr], },
-end
+@[to_additive]
+lemma prod_sum_elim (s : finset α) (t : finset γ) (f : α → β) (g : γ → β) :
+  ∏ x in s.disj_sum t, sum.elim f g x = (∏ x in s, f x) * (∏ x in t, g x) :=
+by simp
 
 @[to_additive]
 lemma prod_bUnion [decidable_eq α] {s : finset γ} {t : γ → finset α}
@@ -459,6 +438,23 @@ begin
   refine prod_bij i hi h _ _,
   {intros a1 a2 h1 h2 eq, rw [←left_inv a1 h1, ←left_inv a2 h2], cc,},
   {intros b hb, use j b hb, use hj b hb, exact (right_inv b hb).symm,},
+end
+
+/-- Reindexing a product over a finset along an equivalence.
+See `equiv.prod_comp` for the version where `s` and `s'` are `univ`. -/
+@[to_additive /-" Reindexing a sum over a finset along an equivalence.
+See `equiv.sum_comp` for the version where `s` and `s'` are `univ`. "-/]
+lemma equiv.prod_comp_finset {ι'} [decidable_eq ι] (e : ι ≃ ι') (f : ι' → β) {s' : finset ι'}
+  {s : finset ι}
+  (h : s = s'.image e.symm) :
+  ∏ i' in s', f i' = ∏ i in s, f (e i) :=
+begin
+  rw [h],
+  refine finset.prod_bij' (λ i' hi', e.symm i') (λ a ha, finset.mem_image_of_mem _ ha)
+    (λ a ha, by simp_rw [e.apply_symm_apply]) (λ i hi, e i) (λ a ha, _)
+    (λ a ha, e.apply_symm_apply a) (λ a ha, e.symm_apply_apply a),
+  rcases finset.mem_image.mp ha with ⟨i', hi', rfl⟩,
+  rwa [e.apply_symm_apply]
 end
 
 @[to_additive] lemma prod_finset_product
@@ -1729,25 +1725,10 @@ end
 
 @[simp] lemma to_finset_sum_count_eq (s : multiset α) :
   (∑ a in s.to_finset, s.count a) = s.card :=
-multiset.induction_on s rfl
-  (assume a s ih,
-    calc (∑ x in to_finset (a ::ₘ s), count x (a ::ₘ s)) =
-      ∑ x in to_finset (a ::ₘ s), ((if x = a then 1 else 0) + count x s) :
-        finset.sum_congr rfl $ λ _ _, by split_ifs;
-        [simp only [h, count_cons_self, nat.one_add], simp only [count_cons_of_ne h, zero_add]]
-      ... = card (a ::ₘ s) :
-      begin
-        by_cases a ∈ s.to_finset,
-        { have : ∑ x in s.to_finset, ite (x = a) 1 0 = ∑ x in {a}, ite (x = a) 1 0,
-          { rw [finset.sum_ite_eq', if_pos h, finset.sum_singleton, if_pos rfl], },
-          rw [to_finset_cons, finset.insert_eq_of_mem h, finset.sum_add_distrib, ih, this,
-            finset.sum_singleton, if_pos rfl, add_comm, card_cons] },
-        { have ha : a ∉ s, by rwa mem_to_finset at h,
-          have : ∑ x in to_finset s, ite (x = a) 1 0 = ∑ x in to_finset s, 0, from
-            finset.sum_congr rfl (λ x hx, if_neg $ by rintro rfl; cc),
-          rw [to_finset_cons, finset.sum_insert h, if_pos rfl, finset.sum_add_distrib, this,
-            finset.sum_const_zero, ih, count_eq_zero_of_not_mem ha, zero_add, add_comm, card_cons] }
-      end)
+calc (∑ a in s.to_finset, s.count a) = (∑ a in s.to_finset, s.count a • 1) :
+  by simp only [smul_eq_mul, mul_one]
+... = (s.map (λ _, 1)).sum : (finset.sum_multiset_map_count _ _).symm
+... = s.card : by simp
 
 lemma count_sum' {s : finset β} {a : α} {f : β → multiset α} :
   count a (∑ x in s, f x) = ∑ x in s, count a (f x) :=
@@ -1755,17 +1736,7 @@ by { dunfold finset.sum, rw count_sum }
 
 @[simp] lemma to_finset_sum_count_nsmul_eq (s : multiset α) :
   (∑ a in s.to_finset, s.count a • {a}) = s :=
-begin
-  apply ext', intro b,
-  rw count_sum',
-  have h : count b s = count b (count b s • {b}),
-  { rw [count_nsmul, count_singleton_self, mul_one] },
-  rw h, clear h,
-  apply finset.sum_eq_single b,
-  { intros c h hcb, rw count_nsmul, convert mul_zero (count c s),
-    apply count_eq_zero.mpr, exact finset.not_mem_singleton.mpr (ne.symm hcb) },
-  { intro hb, rw [count_eq_zero_of_not_mem (mt mem_to_finset.2 hb), count_nsmul, zero_mul]}
-end
+by rw [← finset.sum_multiset_map_count, multiset.sum_map_singleton]
 
 theorem exists_smul_of_dvd_count (s : multiset α) {k : ℕ}
   (h : ∀ (a : α), a ∈ s → k ∣ multiset.count a s) :

@@ -632,13 +632,11 @@ le_div_iff_mul_le.trans inv_mul_le_iff_le_mul'
 lemma inv_le_div_iff_le_mul' : a⁻¹ ≤ b / c ↔ c ≤ a * b :=
 by rw [inv_le_div_iff_le_mul, mul_comm]
 
-@[to_additive sub_le]
-lemma div_le'' : a / b ≤ c ↔ a / c ≤ b :=
-div_le_iff_le_mul'.trans div_le_iff_le_mul.symm
+@[to_additive]
+lemma div_le_comm : a / b ≤ c ↔ a / c ≤ b := div_le_iff_le_mul'.trans div_le_iff_le_mul.symm
 
-@[to_additive le_sub]
-lemma le_div'' : a ≤ b / c ↔ c ≤ b / a :=
-le_div_iff_mul_le'.trans le_div_iff_mul_le.symm
+@[to_additive]
+lemma le_div_comm : a ≤ b / c ↔ c ≤ b / a := le_div_iff_mul_le'.trans le_div_iff_mul_le.symm
 
 end has_le
 
@@ -747,13 +745,11 @@ alias sub_lt_iff_lt_add' ↔ lt_add_of_sub_left_lt sub_left_lt_of_lt_add
 lemma inv_lt_div_iff_lt_mul' : b⁻¹ < a / c ↔ c < a * b :=
 lt_div_iff_mul_lt.trans inv_mul_lt_iff_lt_mul'
 
-@[to_additive sub_lt]
-lemma div_lt'' : a / b < c ↔ a / c < b :=
-div_lt_iff_lt_mul'.trans div_lt_iff_lt_mul.symm
+@[to_additive]
+lemma div_lt_comm : a / b < c ↔ a / c < b := div_lt_iff_lt_mul'.trans div_lt_iff_lt_mul.symm
 
-@[to_additive lt_sub]
-lemma lt_div'' : a < b / c ↔ c < b / a :=
-lt_div_iff_mul_lt'.trans lt_div_iff_mul_lt.symm
+@[to_additive]
+lemma lt_div_comm : a < b / c ↔ c < b / a := lt_div_iff_mul_lt'.trans lt_div_iff_mul_lt.symm
 
 end has_lt
 
@@ -1038,6 +1034,9 @@ max_eq_right $ h.trans (neg_nonneg.2 h)
 lemma abs_of_neg (h : a < 0) : |a| = -a :=
 abs_of_nonpos h.le
 
+lemma abs_le_abs_of_nonneg (ha : 0 ≤ a) (hab : a ≤ b) : |a| ≤ |b| :=
+by rwa [abs_of_nonneg ha, abs_of_nonneg (ha.trans hab)]
+
 @[simp] lemma abs_zero : |0| = (0:α) :=
 abs_of_nonneg le_rfl
 
@@ -1086,6 +1085,9 @@ decidable.not_iff_not.1 $ ne_comm.trans $ (abs_nonneg a).lt_iff_ne.symm.trans ab
 (abs_nonneg a).le_iff_eq.trans abs_eq_zero
 
 variable [covariant_class α α (swap (+)) (≤)]
+
+lemma abs_le_abs_of_nonpos (ha : a ≤ 0) (hab : b ≤ a) : |a| ≤ |b| :=
+by { rw [abs_of_nonpos ha, abs_of_nonpos (hab.trans ha)], exact neg_le_neg_iff.mpr hab }
 
 lemma abs_lt : |a| < b ↔ - b < a ∧ a < b :=
 max_lt_iff.trans $ and.comm.trans $ by rw [neg_lt]
@@ -1155,13 +1157,13 @@ lemma abs_sub_lt_iff : |a - b| < c ↔ a - b < c ∧ b - a < c :=
 by rw [abs_lt, neg_lt_sub_iff_lt_add', sub_lt_iff_lt_add', and_comm, sub_lt_iff_lt_add']
 
 lemma sub_le_of_abs_sub_le_left (h : |a - b| ≤ c) : b - c ≤ a :=
-sub_le.1 $ (abs_sub_le_iff.1 h).2
+sub_le_comm.1 $ (abs_sub_le_iff.1 h).2
 
 lemma sub_le_of_abs_sub_le_right (h : |a - b| ≤ c) : a - c ≤ b :=
 sub_le_of_abs_sub_le_left (abs_sub_comm a b ▸ h)
 
 lemma sub_lt_of_abs_sub_lt_left (h : |a - b| < c) : b - c < a :=
-sub_lt.1 $ (abs_sub_lt_iff.1 h).2
+sub_lt_comm.1 $ (abs_sub_lt_iff.1 h).2
 
 lemma sub_lt_of_abs_sub_lt_right (h : |a - b| < c) : a - c < b :=
 sub_lt_of_abs_sub_lt_left (abs_sub_comm a b ▸ h)

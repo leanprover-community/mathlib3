@@ -734,6 +734,10 @@ end
 lemma finprod_comp {g : β → M} (e : α → β) (he₀ : function.bijective e) :
   ∏ᶠ i, g (e i) = ∏ᶠ j, g j := finprod_eq_of_bijective e he₀ (λ x, rfl)
 
+@[to_additive]
+lemma finprod_comp_equiv (e : α ≃ β) {f : β → M} : ∏ᶠ i, f (e i) = ∏ᶠ i', f i' :=
+finprod_comp e e.bijective
+
 @[to_additive] lemma finprod_set_coe_eq_finprod_mem (s : set α) : ∏ᶠ j : s, f j = ∏ᶠ i ∈ s, f i :=
 begin
   rw [← finprod_mem_range, subtype.range_coe],

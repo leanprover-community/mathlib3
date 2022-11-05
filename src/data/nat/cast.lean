@@ -3,9 +3,10 @@ Copyright (c) 2014 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.nat.basic
+import data.nat.order
 import data.nat.cast.defs
 import algebra.group.pi
+import algebra.order.ring
 import tactic.pi_instances
 import data.sum.basic
 
@@ -92,7 +93,7 @@ by rw [← cast_one, cast_lt]
 by rw [← cast_one, cast_le]
 
 @[simp, norm_cast] theorem cast_lt_one {n : ℕ} : (n : α) < 1 ↔ n = 0 :=
-by rw [← cast_one, cast_lt, lt_succ_iff, le_zero_iff]
+by rw [← cast_one, cast_lt, lt_succ_iff]; exact le_bot_iff
 
 @[simp, norm_cast] theorem cast_le_one {n : ℕ} : (n : α) ≤ 1 ↔ n ≤ 1 :=
 by rw [← cast_one, cast_le]
@@ -195,6 +196,14 @@ map_nat_cast' f $ map_one f
 
 lemma ext_nat [ring_hom_class F ℕ R] (f g : F) : f = g :=
 ext_nat' f g $ by simp only [map_one]
+
+lemma ne_zero.nat_of_injective {n : ℕ} [h : ne_zero (n : R)]
+  [ring_hom_class F R S] {f : F} (hf : function.injective f) : ne_zero (n : S) :=
+⟨λ h, (ne_zero.ne' n R) $ hf $ by simpa only [map_nat_cast, map_zero]⟩
+
+lemma ne_zero.nat_of_ne_zero {R S} [semiring R] [semiring S] {F} [ring_hom_class F R S] (f : F)
+  {n : ℕ} [hn : ne_zero (n : S)] : ne_zero (n : R) :=
+by { apply ne_zero.of_map f, simp only [map_nat_cast, hn] }
 
 end ring_hom_class
 

@@ -855,7 +855,7 @@ begin
   cases hq ε' hε'.1 with N hN, existsi N,
   intros i hi, let h := hN i hi,
   unfold norm,
-  rw_mod_cast [cau_seq.sub_apply, padic_norm_e.map_sub],
+  rw_mod_cast [padic_norm_e.map_sub],
   refine lt_trans _ hε'.2,
   exact_mod_cast hN i hi
 end
@@ -1020,6 +1020,15 @@ end
 
 lemma norm_lt_pow_iff_norm_le_pow_sub_one (x : ℚ_[p]) (n : ℤ) : ∥x∥ < p ^ n ↔ ∥x∥ ≤ p ^ (n - 1) :=
 by rw [norm_le_pow_iff_norm_lt_pow_add_one, sub_add_cancel]
+
+lemma norm_le_one_iff_val_nonneg (x : ℚ_[p]) : ∥ x ∥ ≤ 1 ↔ 0 ≤ x.valuation :=
+begin
+  by_cases hx : x = 0,
+  { simp only [hx, norm_zero, valuation_zero, zero_le_one, le_refl], },
+  { rw [norm_eq_pow_val hx, ← zpow_zero (p : ℝ), zpow_le_iff_le
+      (nat.one_lt_cast.mpr (nat.prime.one_lt' p).1), right.neg_nonpos_iff],
+    apply_instance, }
+end
 
 end norm_le_iff
 end padic

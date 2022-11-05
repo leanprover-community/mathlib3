@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Kevin Buzzard, Scott Morrison, Johan Commelin, Chris Hughes,
   Johannes Hölzl, Yury Kudryashov
 -/
+import algebra.ne_zero
 import algebra.group.commute
 import algebra.group_with_zero.defs
 import data.fun_like.basic
@@ -89,6 +90,17 @@ class zero_hom_class (F : Type*) (M N : out_param $ Type*)
 -- Instances and lemmas are defined below through `@[to_additive]`.
 
 end zero
+
+namespace ne_zero
+
+lemma of_map {R M} [has_zero R] [has_zero M] [zero_hom_class F R M] (f : F) {r : R}
+  [ne_zero (f r)] : ne_zero r := ⟨λ h, ne (f r) $ by convert zero_hom_class.map_zero f⟩
+
+lemma of_injective {R M} [has_zero R] {r : R} [ne_zero r] [has_zero M] [zero_hom_class F R M]
+  {f : F} (hf : function.injective f) : ne_zero (f r) :=
+⟨by { rw ← zero_hom_class.map_zero f, exact hf.ne (ne r) }⟩
+
+end ne_zero
 
 section add
 
@@ -594,11 +606,11 @@ fun_like.coe_injective h
 lemma one_hom.ext_iff [has_one M] [has_one N] {f g : one_hom M N} : f = g ↔ ∀ x, f x = g x :=
 fun_like.ext_iff
 /-- Deprecated: use `fun_like.ext_iff` instead. -/
-@[to_additive]
+@[to_additive "Deprecated: use `fun_like.ext_iff` instead."]
 lemma mul_hom.ext_iff [has_mul M] [has_mul N] {f g : M →ₙ* N} : f = g ↔ ∀ x, f x = g x :=
 fun_like.ext_iff
 /-- Deprecated: use `fun_like.ext_iff` instead. -/
-@[to_additive]
+@[to_additive "Deprecated: use `fun_like.ext_iff` instead."]
 lemma monoid_hom.ext_iff [mul_one_class M] [mul_one_class N]
   {f g : M →* N} : f = g ↔ ∀ x, f x = g x :=
 fun_like.ext_iff
@@ -806,7 +818,8 @@ lemma monoid_with_zero_hom.comp_apply [mul_zero_one_class M] [mul_zero_one_class
   g.comp f x = g (f x) := rfl
 
 /-- Composition of monoid homomorphisms is associative. -/
-@[to_additive] lemma one_hom.comp_assoc {Q : Type*} [has_one M] [has_one N] [has_one P] [has_one Q]
+@[to_additive "Composition of additive monoid homomorphisms is associative."]
+lemma one_hom.comp_assoc {Q : Type*} [has_one M] [has_one N] [has_one P] [has_one Q]
   (f : one_hom M N) (g : one_hom N P) (h : one_hom P Q) :
   (h.comp g).comp f = h.comp (g.comp f) := rfl
 @[to_additive] lemma mul_hom.comp_assoc {Q : Type*} [has_mul M] [has_mul N] [has_mul P] [has_mul Q]

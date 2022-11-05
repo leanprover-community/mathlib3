@@ -661,6 +661,9 @@ quotient.surjective_quotient_mk'
 
 @[simp, to_additive] lemma coe_mk' : (c.mk' : M → c.quotient) = coe := rfl
 
+@[simp, to_additive] lemma mrange_mk' : c.mk'.mrange = ⊤ :=
+monoid_hom.mrange_top_iff_surjective.2 mk'_surjective
+
 /-- The elements related to `x ∈ M`, `M` a monoid, by the kernel of a monoid homomorphism are
     those in the preimage of `f(x)` under `f`. -/
 @[to_additive "The elements related to `x ∈ M`, `M` an `add_monoid`, by the kernel of

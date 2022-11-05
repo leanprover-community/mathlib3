@@ -361,6 +361,14 @@ in higher generality -/
 @[simp] lemma coe_ring_hom_trans [non_assoc_semiring S'] (e₁ : R ≃+* S) (e₂ : S ≃+* S') :
   (e₁.trans e₂ : R →+* S') = (e₂ : S →+* S').comp ↑e₁ := rfl
 
+@[simp] lemma comp_symm (e : R ≃+* S) :
+  (e : R →+* S).comp (e.symm : S →+* R) = ring_hom.id S :=
+ring_hom.ext e.apply_symm_apply
+
+@[simp] lemma symm_comp (e : R ≃+* S) :
+  (e.symm : S →+* R).comp (e : R →+* S) = ring_hom.id R :=
+ring_hom.ext e.symm_apply_apply
+
 end semiring
 
 section non_unital_ring

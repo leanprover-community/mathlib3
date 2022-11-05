@@ -380,7 +380,7 @@ begin
 end
 
 /-- `filter α` is a division monoid under pointwise operations if `α` is. -/
-@[to_additive subtraction_monoid "`filter α` is a subtraction monoid under pointwise
+@[to_additive "`filter α` is a subtraction monoid under pointwise
 operations if `α` is."]
 protected def division_monoid : division_monoid (filter α) :=
 { mul_inv_rev := λ s t, map_map₂_antidistrib mul_inv_rev,

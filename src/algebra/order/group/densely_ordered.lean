@@ -6,7 +6,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 import algebra.order.group.basic
 import algebra.order.monoid.canonical
 
-/--
+/-!
 # Lemmas about densely linearly ordered groups.
 -/
 

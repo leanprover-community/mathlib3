@@ -6,7 +6,7 @@ Authors: Frédéric Dupuis
 import algebra.module.pi
 import algebra.module.prod
 import algebra.order.monoid.prod
-import algebra.order.field
+import algebra.order.field.basic
 import algebra.order.pi
 import data.set.pointwise.basic
 import tactic.positivity

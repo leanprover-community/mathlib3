@@ -1134,7 +1134,7 @@ namespace walk
 
 variables {G}
 
-/-- The walk `p` transferred to lie in `H` -/
+/-- The walk `p` transferred to lie in `H`, given that `H` contains its edges. -/
 @[protected, simp] def transfer : Π {u v : V} (p : G.walk u v) (H : simple_graph V)
   (h : ∀ e, e ∈ p.edges → e ∈ H.edge_set), H.walk u v
 | _ _ (walk.nil) H h := walk.nil

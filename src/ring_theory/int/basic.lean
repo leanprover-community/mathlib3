@@ -329,7 +329,7 @@ begin
     rw nat.is_unit_iff.1 h,
     exact h₁, },
   { intros a p _ hp ha,
-    exact h p a (nat.prime_iff.2 hp) ha, },
+    exact h p a hp.nat_prime ha, },
 end
 
 lemma int.associated_nat_abs (k : ℤ) : associated k k.nat_abs :=

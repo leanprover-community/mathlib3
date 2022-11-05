@@ -326,7 +326,7 @@ begin
   { contrapose! hne with h,
     rw ← associated_iff_eq at this ⊢,
     exact associated.of_pow_associated_of_prime
-      (nat.prime_iff.mp hp₁.elim) (nat.prime_iff.mp hp₂.elim) (ne.bot_lt h) this },
+      hp₁.out.prime hp₂.out.prime (ne.bot_lt h) this },
   simpa [this] using hn₁,
 end
 

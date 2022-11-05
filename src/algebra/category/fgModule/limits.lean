@@ -20,6 +20,8 @@ And hence `fgModule K` has all finite limits.
 After generalising `fgModule` to allow the ring and the module to live in different universes,
 generalize this construction so we can take limits over smaller diagrams,
 as is done for the other algebraic categories.
+
+Analogous constructions for Noetherian modules.
 -/
 
 noncomputable theory

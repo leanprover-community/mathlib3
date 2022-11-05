@@ -18,16 +18,13 @@ It is implemented as a full subcategory on a subtype of `Module R`.
 When `K` is a field, `fgModule K` is the category of finite dimensional vector spaces over `K`.
 
 We first create the instance as a preadditive category.
-When `R` is commutative we then give the structure as an `R`-linear category.
-When `R` is a field we give it the structure of a monoidal category
+When `R` is commutative we then give the structure as an `R`-linear monoidal category.
+When `R` is a field we give it the structure of a closed monoidal category
 and then as a right-rigid monoidal category.
 
 ## Future work
 
 * Show that `fgModule R` is abelian when `R` is (left)-noetherian.
-* Generalize the `monoidal_category` instance to any commutative ring.
-* Show that `fgModule R` is a symmetric monoidal category when `R` is commutative.
-* Show that `fgModule R` is rigid (it is already right rigid) when `R` is a field.
 
 -/
 noncomputable theory
@@ -62,11 +59,6 @@ def of (V : Type u) [add_comm_group V] [module R V] [module.finite R V] : fgModu
 
 instance (V : fgModule R) : module.finite R V.obj := V.property
 
-example (V W : fgModule R) : module R (V ⟶ W) := by apply_instance
-
-instance (V W : fgModule R) : module.finite R (V ⟶ W) :=
-(by apply_instance : module.finite R (V.obj →ₗ[R] W.obj))
-
 instance : has_forget₂ (fgModule.{u} R) (Module.{u} R) :=
 by { dsimp [fgModule], apply_instance, }
 
@@ -79,9 +71,6 @@ variables {R}
 modules. -/
 def iso_to_linear_equiv {V W : fgModule R} (i : V ≅ W) : V.obj ≃ₗ[R] W.obj :=
   ((forget₂ (fgModule.{u} R) (Module.{u} R)).map_iso i).to_linear_equiv
-
-lemma iso.conj_eq_conj {V W : fgModule R} (i : V ≅ W) (f : End V) :
-  iso.conj i f = linear_equiv.conj (iso_to_linear_equiv i) f := rfl
 
 /-- Converts a `linear_equiv` to an isomorphism in the category `fgModule R`. -/
 @[simps] def linear_equiv.to_fgModule_iso
@@ -100,28 +89,17 @@ end ring
 section comm_ring
 variables (R : Type u) [comm_ring R]
 
-instance : linear R (fgModule R) := by { dsimp [fgModule], apply_instance, }
+instance : linear R (fgModule R) := by dsimp_result { dsimp [fgModule], apply_instance, }
 
-end comm_ring
-
-section field
-variables (K : Type u) [field K]
-
--- In fact this works over an arbitrary commutative ring:
 instance monoidal_predicate_module_finite :
-  monoidal_category.monoidal_predicate (λ V : Module.{u} K, module.finite K V) :=
+  monoidal_category.monoidal_predicate (λ V : Module.{u} R, module.finite R V) :=
 { prop_id' := module.finite.self R,
-  prop_tensor' := λ X Y hX hY, by exactI module.finite.tensor_product K X Y }
+  prop_tensor' := λ X Y hX hY, by exactI module.finite.tensor_product R X Y }
 
-instance closed_predicate_module_finite :
-  monoidal_category.closed_predicate (λ V : Module.{u} K, module.finite K V) :=
-{ prop_ihom' := λ X Y hX hY, by exactI @linear_map.finite_dimensional K _ X _ _ hX Y _ _ hY }
-
-instance : monoidal_category (fgModule K) := by { dsimp [fgModule], apply_instance, }
-instance : symmetric_category (fgModule K) := by { dsimp [fgModule], apply_instance, }
-instance : monoidal_preadditive (fgModule K) := by { dsimp [fgModule], apply_instance, }
-instance : monoidal_linear K (fgModule K) := by { dsimp [fgModule], apply_instance, }
-instance : monoidal_closed (fgModule K) := by { dsimp [fgModule], apply_instance, }
+instance : monoidal_category (fgModule R) := by dsimp_result { dsimp [fgModule], apply_instance, }
+instance : symmetric_category (fgModule R) := by dsimp_result { dsimp [fgModule], apply_instance, }
+instance : monoidal_preadditive (fgModule R) := by dsimp_result { dsimp [fgModule], apply_instance, }
+instance : monoidal_linear R (fgModule R) := by dsimp_result { dsimp [fgModule], apply_instance, }
 
 /-- The forgetful functor `fgModule R ⥤ Module R` as a monoidal functor. -/
 def forget₂_monoidal : monoidal_functor (fgModule R) (Module.{u} R) :=
@@ -135,6 +113,24 @@ by { dsimp [forget₂_monoidal], apply_instance, }
 
 instance forget₂_monoidal_linear : (forget₂_monoidal R).to_functor.linear R :=
 by { dsimp [forget₂_monoidal], apply_instance, }
+
+
+lemma iso.conj_eq_conj {V W : fgModule R} (i : V ≅ W) (f : End V) :
+  iso.conj i f = linear_equiv.conj (iso_to_linear_equiv i) f := rfl
+
+end comm_ring
+
+section field
+variables (K : Type u) [field K]
+
+instance (V W : fgModule K) : module.finite K (V ⟶ W) :=
+(by apply_instance : module.finite K (V.obj →ₗ[K] W.obj))
+
+instance closed_predicate_module_finite :
+  monoidal_category.closed_predicate (λ V : Module.{u} K, module.finite K V) :=
+{ prop_ihom' := λ X Y hX hY, by exactI @linear_map.finite_dimensional K _ X _ _ hX Y _ _ hY }
+
+instance : monoidal_closed (fgModule K) := by dsimp_result { dsimp [fgModule], apply_instance, }
 
 variables (V W : fgModule K)
 
@@ -156,7 +152,7 @@ lemma fgModule_coevaluation_apply_one : fgModule_coevaluation K V (1 : K) =
 by apply coevaluation_apply_one K V.obj
 
 /-- The evaluation morphism is given by the contraction map. -/
-def fgModule_evaluation : (fgModule_dual K V) ⊗ V ⟶ 𝟙_ (FinVect K) :=
+def fgModule_evaluation : (fgModule_dual K V) ⊗ V ⟶ 𝟙_ (fgModule K) :=
 by apply contract_left K V.obj
 
 @[simp]
@@ -172,7 +168,7 @@ by apply contract_left_assoc_coevaluation K V.obj
 
 private theorem evaluation_coevaluation :
   (fgModule_coevaluation K V ⊗ 𝟙 V)
-  ≫ (α_ V (FinVect_dual K V) V).hom ≫ (𝟙 V ⊗ fgModule_evaluation K V)
+  ≫ (α_ V (fgModule_dual K V) V).hom ≫ (𝟙 V ⊗ fgModule_evaluation K V)
   = (λ_ V).hom ≫ (ρ_ V).inv :=
 by apply contract_left_assoc_coevaluation' K V.obj
 

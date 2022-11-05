@@ -62,11 +62,7 @@ begin
     (lower_closure s).lower.interior'.ord_connected,
 end
 
-end has_continuous_const_smul
-
-section has_continuous_mul
-variables [has_continuous_mul α] {s : set α}
-
+--TODO: Additivize `is_central_scalar`
 @[to_additive is_open.upper_closure]
 protected lemma is_open.upper_closure' (hs : is_open s) : is_open (upper_closure s : set α) :=
 by { rw [←mul_one s, ←mul_upper_closure], exact hs.mul_right }
@@ -75,4 +71,4 @@ by { rw [←mul_one s, ←mul_upper_closure], exact hs.mul_right }
 protected lemma is_open.lower_closure' (hs : is_open s) : is_open (lower_closure s : set α) :=
 by { rw [←mul_one s, ←mul_lower_closure], exact hs.mul_right }
 
-end has_continuous_mul
+end has_continuous_const_smul

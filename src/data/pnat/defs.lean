@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Neil Strickland
 -/
 import order.basic
+import algebra.ne_zero
 
 /-!
 # The positive natural numbers
@@ -89,6 +90,8 @@ theorem eq {m n : ℕ+} : (m : ℕ) = n → m = n := subtype.eq
 lemma coe_injective : function.injective (coe : ℕ+ → ℕ) := subtype.coe_injective
 
 @[simp] theorem ne_zero (n : ℕ+) : (n : ℕ) ≠ 0 := n.2.ne'
+
+instance _root_.ne_zero.pnat {a : ℕ+} : _root_.ne_zero (a : ℕ) := ⟨a.ne_zero⟩
 
 theorem to_pnat'_coe {n : ℕ} : 0 < n → (n.to_pnat' : ℕ) = n := succ_pred_eq_of_pos
 

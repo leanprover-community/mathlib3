@@ -108,9 +108,7 @@ begin
   rw (lin_hom.invariants_equiv_fdRep_hom W V).finrank_eq,
 
   -- By Schur's Lemma, the dimension of `Hom_G(W, V)` is `1` is `V ≅ W` and `0` otherwise.
-  rw finrank_hom_simple_simple W V,
-  rw iso.nonempty_iso_symm,
-  norm_num,
+  rw_mod_cast [finrank_hom_simple_simple W V, iso.nonempty_iso_symm],
 end
 
 end orthogonality

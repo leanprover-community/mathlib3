@@ -7,7 +7,7 @@ import algebra.module.pi
 import algebra.module.prod
 import algebra.order.field
 import algebra.order.pi
-import data.set.pointwise
+import data.set.pointwise.basic
 import tactic.positivity
 
 /-!

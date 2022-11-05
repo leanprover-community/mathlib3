@@ -5,6 +5,7 @@ Authors: Adam Topaz, Bryan Gin-ge Chen, Yaël Dillies
 -/
 
 import order.boolean_algebra
+import logic.equiv.basic
 
 /-!
 # Symmetric difference and bi-implication
@@ -472,6 +473,25 @@ calc a ∆ (b ∆ c) = (a ⊓ ((b ⊓ c) ⊔ (bᶜ ⊓ cᶜ))) ⊔
                                                          rw [inf_comm, inf_assoc], },
                                                        { apply inf_left_right_swap }
                                                      end
+
+variables {a b c}
+
+lemma disjoint.le_symm_diff_sup_symm_diff_left (h : disjoint a b) : c ≤ a ∆ c ⊔ b ∆ c :=
+begin
+  transitivity c \ (a ⊓ b),
+  { rw [h.eq_bot, sdiff_bot] },
+  { rw sdiff_inf,
+    exact sup_le_sup le_sup_right le_sup_right }
+end
+
+lemma disjoint.le_symm_diff_sup_symm_diff_right (h : disjoint b c) : a ≤ a ∆ b ⊔ a ∆ c :=
+by { simp_rw symm_diff_comm a, exact h.le_symm_diff_sup_symm_diff_left }
+
+lemma codisjoint.bihimp_inf_bihimp_le_left (h : codisjoint a b) : a ⇔ c ⊓ b ⇔ c ≤ c :=
+h.dual.le_symm_diff_sup_symm_diff_left
+
+lemma codisjoint.bihimp_inf_bihimp_le_right (h : codisjoint b c) : a ⇔ b ⊓ a ⇔ c ≤ a :=
+h.dual.le_symm_diff_sup_symm_diff_right
 
 end boolean_algebra
 

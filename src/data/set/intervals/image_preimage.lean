@@ -3,7 +3,8 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Patrick Massot
 -/
-import data.set.pointwise
+import data.set.pointwise.basic
+import algebra.order.field
 
 /-!
 # (Pre)images of intervals
@@ -203,16 +204,16 @@ by simp [sub_eq_add_neg]
 -/
 
 @[simp] lemma preimage_const_sub_Ici : (λ x, a - x) ⁻¹' (Ici b) = Iic (a - b) :=
-ext $ λ x, le_sub
+ext $ λ x, le_sub_comm
 
 @[simp] lemma preimage_const_sub_Iic : (λ x, a - x) ⁻¹' (Iic b) = Ici (a - b) :=
-ext $ λ x, sub_le
+ext $ λ x, sub_le_comm
 
 @[simp] lemma preimage_const_sub_Ioi : (λ x, a - x) ⁻¹' (Ioi b) = Iio (a - b) :=
-ext $ λ x, lt_sub
+ext $ λ x, lt_sub_comm
 
 @[simp] lemma preimage_const_sub_Iio : (λ x, a - x) ⁻¹' (Iio b) = Ioi (a - b) :=
-ext $ λ x, sub_lt
+ext $ λ x, sub_lt_comm
 
 @[simp] lemma preimage_const_sub_Icc : (λ x, a - x) ⁻¹' (Icc b c) = Icc (a - c) (a - b) :=
 by simp [← Ici_inter_Iic, inter_comm]

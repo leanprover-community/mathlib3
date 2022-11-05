@@ -206,6 +206,9 @@ is_closed_map_smul c s hs
 @[to_additive] lemma closure_smul (c : G) (s : set α) : closure (c • s) = c • closure s :=
 ((homeomorph.smul c).image_closure s).symm
 
+@[to_additive] lemma dense.smul (c : G) {s : set α} (hs : dense s) : dense (c • s) :=
+by rw [dense_iff_closure_eq] at ⊢ hs; rw [closure_smul, hs, smul_set_univ]
+
 @[to_additive] lemma interior_smul (c : G) (s : set α) : interior (c • s) = c • interior s :=
 ((homeomorph.smul c).image_interior s).symm
 

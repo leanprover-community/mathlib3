@@ -270,14 +270,89 @@ end
     erw [←category.assoc, ←F.val.map_comp, F.val.map_id, category.id_comp],
   end }
 
+example : true := ⟨⟩
+
+@[simps] def unit'_app (G : sheaf AddCommGroup.{u} X) :
+  G.hom $ (tensor_left' F ⋙ ihom' F).obj G := Sheaf.hom.mk $ adj .unit.app G.val
+
+lemma unit'_naturality (G₁ G₂ : sheaf AddCommGroup X)
+  (α : G₁ ⟶ G₂) :
+  α ≫ unit'_app F G₂ = unit'_app F G₁ ≫ (tensor_left' F ⋙ ihom' F).map α :=
+begin
+  ext1,
+  simp only [Sheaf.category_theory.category_comp_val, unit'_app_val],
+  erw ←nat_trans.naturality,
+  congr,
+end
+
+@[simps] def unit' : 𝟭 (sheaf AddCommGroup.{u} X) ⟶ tensor_left' F ⋙ ihom' F :=
+{ app := unit'_app F,
+  naturality' := unit'_naturality F }
+
+@[simps] def counit' : ihom' F ⋙ tensor_left' F ⟶ 𝟭 (sheaf AddCommGroup.{u} X) :=
+adj .counit
+
+lemma hom_equiv_unit' (G₁ G₂ : sheaf AddCommGroup X)
+  (α : (tensor_left' F).obj G₁ ⟶ G₂) :
+  hom_equiv' F G₁ G₂ α = (unit' F).app G₁ ≫ (ihom' F).map α :=
+begin
+  ext1,
+  simp only [hom_equiv'_apply, unit'_app_2, Sheaf.category_theory.category_comp_val, unit'_app_val,
+    hom_equiv'.from_tensor_val, adjunction.hom_equiv_unit, functor.comp_map, Sheaf_to_presheaf_map,
+    monoidal.ihom_map_2, ihom'_map_val],
+  congr' 1,
+end
+
+lemma hom_equiv_counit'_aux (G₁ G₂ : sheaf AddCommGroup.{u} X)
+  (α : G₁ ⟶ (ihom' F).obj G₂) (U : (opens ↥X)ᵒᵖ)
+  (x : (F.val ⊗ G₁.val).obj U) :
+  ((opens.grothendieck_topology X).to_sheafify (F.val ⊗ G₁.val) ≫
+    (opens.grothendieck_topology X).sheafify_map (𝟙 F.val ⊗ α.val) ≫
+    ((tensor_left'_ihom'_adj.counit' F).app G₂).val).app U x =
+  (monoidal.tensor_ihom_adj.hom_equiv'.to_tensor F.val G₁.val G₂.val α.val).app U x :=
+begin
+  induction x using tensor_product.induction_on with a b a b ha hb,
+  { simp only [map_zero] },
+  { rw [nat_trans.comp_app, nat_trans.comp_app, comp_apply, comp_apply, counit'_app_val_app_apply,
+      ←comp_apply, ←nat_trans.comp_app, sheafify_map_sheafify_lift, category.comp_id,
+      ←comp_apply, ←nat_trans.comp_app, sheafify_map_sheafify_lift, ←comp_apply,
+      ←nat_trans.comp_app, to_sheafify_sheafify_lift, nat_trans.comp_app, comp_apply,
+      presheaf.monoidal.tensor_ihom_adj.counit'_app_app,
+      presheaf.monoidal.tensor_ihom_adj.counit'_app_sections_apply],
+    erw tensor_product.lift.tmul,
+    rw [AddCommGroup.to_int_linear_map_apply, nat_trans.id_app, id_apply,
+      AddCommGroup.to_int_linear_map₂_apply_apply, add_monoid_hom.to_fun_eq_coe,
+      add_monoid_hom.coe_mk, add_monoid_hom.coe_mk, AddCommGroup.to_int_linear_map_apply,
+      presheaf.monoidal.tensor_ihom_adj.hom_equiv'.to_tensor_app,
+      presheaf.monoidal.tensor_ihom_adj.hom_equiv'.to_tensor_app_apply_apply,
+      tensor_product.lift.tmul, AddCommGroup.to_int_linear_map₂_apply_apply,
+      add_monoid_hom.to_fun_eq_coe, AddCommGroup.monoidal.curry_apply_apply,
+      AddCommGroup.monoidal.uncurry'_apply, tensor_product.lift.tmul,
+      linear_map.coe_mk, linear_map.coe_mk, comp_apply, restrict_top_add_monoid_hom_apply,
+      restrict_top_apply],
+    },
+  { rw [map_add, ha, hb, map_add] },
+end
+
 end tensor_left'_ihom'_adj
 
 @[simps] def tensor_left'_ihom'_adj (F : sheaf AddCommGroup.{u} X) : tensor_left' F ⊣ ihom' F :=
 { hom_equiv := tensor_left'_ihom'_adj.hom_equiv' F,
-  unit := sorry,
-  counit := sorry,
-  hom_equiv_unit' := sorry,
-  hom_equiv_counit' := sorry }
+  unit := tensor_left'_ihom'_adj.unit' F,
+  counit := tensor_left'_ihom'_adj.counit' F,
+  hom_equiv_unit' := tensor_left'_ihom'_adj.hom_equiv_unit' F,
+  hom_equiv_counit' := λ G₁ G₂ α,
+  begin
+    ext1,
+    simp only [tensor_left'_ihom'_adj.hom_equiv'_symm_apply,
+      tensor_left'_ihom'_adj.hom_equiv'.to_tensor_val,
+      monoidal.tensor_ihom_adj_hom_equiv, monoidal.tensor_ihom_adj.hom_equiv'_symm_apply,
+      tensor_left'_map, Sheaf.category_theory.category_comp_val, tensor_hom'_val,
+      Sheaf.category_theory.category_id_val],
+    refine (sheafify_lift_unique _ _ _ _ _).symm,
+    ext U x : 3,
+    apply tensor_left'_ihom'_adj.hom_equiv_counit'_aux,
+  end }
 
 end constructions
 

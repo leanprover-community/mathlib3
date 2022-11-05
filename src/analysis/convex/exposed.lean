@@ -5,7 +5,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.convex.extreme
 import analysis.convex.function
-import analysis.normed_space.ordered
+import analysis.normed.order.basic
 
 /-!
 # Exposed sets
@@ -14,7 +14,7 @@ This file defines exposed sets and exposed points for sets in a real vector spac
 
 An exposed subset of `A` is a subset of `A` that is the set of all maximal points of a functional
 (a continuous linear map `E → 𝕜`) over `A`. By convention, `∅` is an exposed subset of all sets.
-This allows for better functioriality of the definition (the intersection of two exposed subsets is
+This allows for better functoriality of the definition (the intersection of two exposed subsets is
 exposed, faces of a polytope form a bounded lattice).
 This is an analytic notion of "being on the side of". It is stronger than being extreme (see
 `is_exposed.is_extreme`), but weaker (for exposed points) than being a vertex.
@@ -45,8 +45,8 @@ More not-yet-PRed stuff is available on the branch `sperner_again`.
 open_locale classical affine big_operators
 open set
 
-variables (𝕜 : Type*) {E : Type*} [normed_linear_ordered_field 𝕜] [normed_group E]
-  [normed_space 𝕜 E] {l : E →L[𝕜] 𝕜} {A B C : set E} {X : finset E} {x : E}
+variables (𝕜 : Type*) {E : Type*} [normed_linear_ordered_field 𝕜] [add_comm_monoid E] [module 𝕜 E]
+  [topological_space E] {l : E →L[𝕜] 𝕜} {A B C : set E} {X : finset E} {x : E}
 
 /-- A set `B` is exposed with respect to `A` iff it maximizes some functional over `A` (and contains
 all points maximizing it). Written `is_exposed 𝕜 A B`. -/
@@ -185,7 +185,7 @@ begin
   obtain rfl | hB := B.eq_empty_or_nonempty,
   { exact convex_empty },
   obtain ⟨l, rfl⟩ := hAB hB,
-  exact λ x₁ x₂ hx₁ hx₂ a b ha hb hab, ⟨hA hx₁.1 hx₂.1 ha hb hab, λ y hy,
+  exact λ x₁ hx₁ x₂ hx₂ a b ha hb hab, ⟨hA hx₁.1 hx₂.1 ha hb hab, λ y hy,
     ((l.to_linear_map.concave_on convex_univ).convex_ge _
     ⟨mem_univ _, hx₁.2 y hy⟩ ⟨mem_univ _, hx₂.2 y hy⟩ ha hb hab).2⟩,
 end
@@ -197,8 +197,8 @@ begin
   exact hA.is_closed_le continuous_on_const l.continuous.continuous_on,
 end
 
-protected lemma is_compact [order_closed_topology 𝕜] (hAB : is_exposed 𝕜 A B) (hA : is_compact A) :
-  is_compact B :=
+protected lemma is_compact [order_closed_topology 𝕜] [t2_space E] (hAB : is_exposed 𝕜 A B)
+  (hA : is_compact A) : is_compact B :=
 compact_of_is_closed_subset hA (hAB.is_closed hA.is_closed) hAB.subset
 
 end is_exposed

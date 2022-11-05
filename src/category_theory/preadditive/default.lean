@@ -83,12 +83,17 @@ section induced_category
 universes u'
 variables {C} {D : Type u'} (F : D → C)
 
-instance induced_category.category : preadditive.{v} (induced_category C F) :=
+instance induced_category : preadditive.{v} (induced_category C F) :=
 { hom_group := λ P Q, @preadditive.hom_group C _ _ (F P) (F Q),
   add_comp' := λ P Q R f f' g, add_comp' _ _ _ _ _ _,
   comp_add' := λ P Q R f g g', comp_add' _ _ _ _ _ _, }
 
 end induced_category
+
+instance full_subcategory (Z : C → Prop) : preadditive.{v} (full_subcategory Z) :=
+{ hom_group := λ P Q, @preadditive.hom_group C _ _ P.obj Q.obj,
+  add_comp' := λ P Q R f f' g, add_comp' _ _ _ _ _ _,
+  comp_add' := λ P Q R f g g', comp_add' _ _ _ _ _ _, }
 
 instance (X : C) : add_comm_group (End X) := by { dsimp [End], apply_instance, }
 
@@ -226,8 +231,12 @@ section
 variables {X Y : C} {f : X ⟶ Y} {g : X ⟶ Y}
 
 /-- Map a kernel cone on the difference of two morphisms to the equalizer fork. -/
+@[simps X]
 def fork_of_kernel_fork (c : kernel_fork (f - g)) : fork f g :=
 fork.of_ι c.ι $ by rw [← sub_eq_zero, ← comp_sub, c.condition]
+
+@[simp] lemma fork_of_kernel_fork_ι (c : kernel_fork (f - g)) :
+  (fork_of_kernel_fork c).ι = c.ι := rfl
 
 /-- Map any equalizer fork to a cone on the difference of the two morphisms. -/
 def kernel_fork_of_fork (c : fork f g) : kernel_fork (f - g) :=
@@ -271,8 +280,12 @@ has_limit.mk { cone := kernel_fork_of_fork (equalizer.fork f g),
 variables {f g}
 
 /-- Map a cokernel cocone on the difference of two morphisms to the coequalizer cofork. -/
+@[simps X]
 def cofork_of_cokernel_cofork (c : cokernel_cofork (f - g)) : cofork f g :=
 cofork.of_π c.π $ by rw [← sub_eq_zero, ← sub_comp, c.condition]
+
+@[simp] lemma cofork_of_cokernel_cofork_π (c : cokernel_cofork (f - g)) :
+  (cofork_of_cokernel_cofork c).π = c.π := rfl
 
 /-- Map any coequalizer cofork to a cocone on the difference of the two morphisms. -/
 def cokernel_cofork_of_cofork (c : cofork f g) : cokernel_cofork (f - g) :=

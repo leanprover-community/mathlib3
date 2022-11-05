@@ -47,14 +47,14 @@ begin
       norm_num },
     rw ← le_div_iff,
     refine le_trans ((div_le_div_right _).mpr pi_le_four) _, apply pow_pos, norm_num,
-    rw [pow_succ, pow_succ, ←mul_assoc, ←div_div_eq_div_mul],
+    rw [pow_succ, pow_succ, ←mul_assoc, ←div_div],
     convert le_rfl,
     all_goals { repeat {apply pow_pos}, norm_num }},
   apply lt_of_lt_of_le this (le_of_eq _), rw [add_mul], congr' 1,
   { rw [pow_succ _ (n+1), ←mul_assoc, div_mul_cancel, mul_comm], norm_num },
   rw [pow_succ, ←pow_mul, mul_comm n 2, pow_mul, show (2 : ℝ) ^ 2 = 4, by norm_num, pow_succ,
       pow_succ, ←mul_assoc (2 : ℝ), show (2 : ℝ) * 2 = 4, by norm_num, ←mul_assoc, div_mul_cancel,
-      mul_comm ((2 : ℝ) ^ n), ←div_div_eq_div_mul, div_mul_cancel],
+      mul_comm ((2 : ℝ) ^ n), ←div_div, div_mul_cancel],
   apply pow_ne_zero, norm_num, norm_num
 end
 
@@ -66,7 +66,7 @@ theorem pi_lower_bound_start (n : ℕ) {a}
 begin
   refine lt_of_le_of_lt _ (pi_gt_sqrt_two_add_series n), rw [mul_comm],
   refine (div_le_iff (pow_pos (by norm_num) _ : (0 : ℝ) < _)).mp (le_sqrt_of_sq_le _),
-  rwa [le_sub, show (0:ℝ) = (0:ℕ)/(1:ℕ), by rw [nat.cast_zero, zero_div]],
+  rwa [le_sub_comm, show (0:ℝ) = (0:ℕ)/(1:ℕ), by rw [nat.cast_zero, zero_div]],
 end
 
 lemma sqrt_two_add_series_step_up (c d : ℕ) {a b n : ℕ} {z : ℝ}
@@ -102,7 +102,7 @@ theorem pi_upper_bound_start (n : ℕ) {a}
   (h₂ : 1 / 4 ^ n ≤ a) : π < a :=
 begin
   refine lt_of_lt_of_le (pi_lt_sqrt_two_add_series n) _,
-  rw [← le_sub_iff_add_le, ← le_div_iff', sqrt_le_left, sub_le],
+  rw [← le_sub_iff_add_le, ← le_div_iff', sqrt_le_left, sub_le_comm],
   { rwa [nat.cast_zero, zero_div] at h },
   { exact div_nonneg (sub_nonneg.2 h₂) (pow_nonneg (le_of_lt zero_lt_two) _) },
   { exact pow_pos zero_lt_two _ }

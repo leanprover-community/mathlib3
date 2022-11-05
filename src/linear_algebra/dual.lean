@@ -18,7 +18,7 @@ The dual space of an R-module M is the R-module of linear maps `M → R`.
 
 * `dual R M` defines the dual space of M over R.
 * Given a basis for an `R`-module `M`, `basis.to_dual` produces a map from `M` to `dual R M`.
-* Given families of vectors `e` and `ε`, `dual_pair e ε` states that these families have the
+* Given families of vectors `e` and `ε`, `module.dual_bases e ε` states that these families have the
   characteristic properties of a basis and a dual.
 * `dual_annihilator W` is the submodule of `dual R M` where every element annihilates `W`.
 
@@ -26,8 +26,8 @@ The dual space of an R-module M is the R-module of linear maps `M → R`.
 
 * `to_dual_equiv` : the linear equivalence between the dual module and primal module,
   given a finite basis.
-* `dual_pair.basis` and `dual_pair.eq_dual`: if `e` and `ε` form a dual pair, `e` is a basis and
-  `ε` is its dual basis.
+* `module.dual_bases.basis` and `module.dual_bases.eq_dual`: if `e` and `ε` form a dual pair, `e`
+  is a basis and `ε` is its dual basis.
 * `quot_equiv_annihilator`: the quotient by a subspace is isomorphic to its dual annihilator.
 
 ## Notation
@@ -52,8 +52,8 @@ variables [comm_semiring R] [add_comm_monoid M] [module R M]
 instance {S : Type*} [comm_ring S] {N : Type*} [add_comm_group N] [module S N] :
   add_comm_group (dual S N) := linear_map.add_comm_group
 
-instance : add_monoid_hom_class (dual R M) M R :=
-linear_map.add_monoid_hom_class
+instance : linear_map_class (dual R M) R M R :=
+linear_map.semilinear_map_class
 
 /-- The canonical pairing of a vector space and its algebraic dual. -/
 def dual_pairing (R M) [comm_semiring R] [add_comm_monoid M] [module R M] :
@@ -171,19 +171,15 @@ end
 theorem to_dual_ker : b.to_dual.ker = ⊥ :=
 ker_eq_bot'.mpr b.to_dual_inj
 
-theorem to_dual_range [fin : fintype ι] : b.to_dual.range = ⊤ :=
+theorem to_dual_range [_root_.finite ι] : b.to_dual.range = ⊤ :=
 begin
-  rw eq_top_iff',
-  intro f,
+  casesI nonempty_fintype ι,
+  refine eq_top_iff'.2 (λ f, _),
   rw linear_map.mem_range,
-  let lin_comb : ι →₀ R := finsupp.on_finset fin.elems (λ i, f.to_fun (b i)) _,
-  { use finsupp.total ι M R b lin_comb,
-    apply b.ext,
-    { intros i,
-      rw [b.to_dual_eq_repr _ i, repr_total b],
-      { refl } } },
-  { intros a _,
-    apply fin.complete }
+  let lin_comb : ι →₀ R := finsupp.equiv_fun_on_fintype.2 (λ i, f.to_fun (b i)),
+  refine ⟨finsupp.total ι M R b lin_comb, b.ext $ λ i, _⟩,
+  rw [b.to_dual_eq_repr _ i, repr_total b],
+  refl,
 end
 
 end comm_semiring
@@ -207,52 +203,51 @@ section comm_ring
 variables [comm_ring R] [add_comm_group M] [module R M] [decidable_eq ι]
 variables (b : basis ι R M)
 
+section finite
+variables [_root_.finite ι]
+
 /-- A vector space is linearly equivalent to its dual space. -/
 @[simps]
-def to_dual_equiv [fintype ι] : M ≃ₗ[R] (dual R M) :=
+def to_dual_equiv : M ≃ₗ[R] dual R M :=
 linear_equiv.of_bijective b.to_dual
   (ker_eq_bot.mp b.to_dual_ker) (range_eq_top.mp b.to_dual_range)
 
 /-- Maps a basis for `V` to a basis for the dual space. -/
-def dual_basis [fintype ι] : basis ι R (dual R M) :=
-b.map b.to_dual_equiv
+def dual_basis : basis ι R (dual R M) := b.map b.to_dual_equiv
 
 -- We use `j = i` to match `basis.repr_self`
-lemma dual_basis_apply_self [fintype ι] (i j : ι) :
-  b.dual_basis i (b j) = if j = i then 1 else 0 :=
+lemma dual_basis_apply_self (i j : ι) : b.dual_basis i (b j) = if j = i then 1 else 0 :=
 by { convert b.to_dual_apply i j using 2, rw @eq_comm _ j i }
 
-lemma total_dual_basis [fintype ι] (f : ι →₀ R) (i : ι) :
+lemma total_dual_basis (f : ι →₀ R) (i : ι) :
   finsupp.total ι (dual R M) R b.dual_basis f (b i) = f i :=
 begin
+  casesI nonempty_fintype ι,
   rw [finsupp.total_apply, finsupp.sum_fintype, linear_map.sum_apply],
   { simp_rw [linear_map.smul_apply, smul_eq_mul, dual_basis_apply_self, mul_boole,
       finset.sum_ite_eq, if_pos (finset.mem_univ i)] },
   { intro, rw zero_smul },
 end
 
-lemma dual_basis_repr [fintype ι] (l : dual R M) (i : ι) :
-  b.dual_basis.repr l i = l (b i) :=
+lemma dual_basis_repr (l : dual R M) (i : ι) : b.dual_basis.repr l i = l (b i) :=
 by rw [← total_dual_basis b, basis.total_repr b.dual_basis l]
 
-lemma dual_basis_equiv_fun [fintype ι] (l : dual R M) (i : ι) :
-  b.dual_basis.equiv_fun l i = l (b i) :=
-by rw [basis.equiv_fun_apply, dual_basis_repr]
+lemma dual_basis_apply (i : ι) (m : M) : b.dual_basis i m = b.repr m i := b.to_dual_apply_right i m
 
-lemma dual_basis_apply [fintype ι] (i : ι) (m : M) : b.dual_basis i m = b.repr m i :=
-b.to_dual_apply_right i m
+@[simp] lemma coe_dual_basis : ⇑b.dual_basis = b.coord := by { ext i x, apply dual_basis_apply }
 
-@[simp] lemma coe_dual_basis [fintype ι] :
-  ⇑b.dual_basis = b.coord :=
-by { ext i x, apply dual_basis_apply }
-
-@[simp] lemma to_dual_to_dual [fintype ι] :
-  b.dual_basis.to_dual.comp b.to_dual = dual.eval R M :=
+@[simp] lemma to_dual_to_dual : b.dual_basis.to_dual.comp b.to_dual = dual.eval R M :=
 begin
   refine b.ext (λ i, b.dual_basis.ext (λ j, _)),
   rw [linear_map.comp_apply, to_dual_apply_left, coe_to_dual_self, ← coe_dual_basis,
       dual.eval_apply, basis.repr_self, finsupp.single_apply, dual_basis_apply_self]
 end
+
+end finite
+
+lemma dual_basis_equiv_fun [fintype ι] (l : dual R M) (i : ι) :
+  b.dual_basis.equiv_fun l i = l (b i) :=
+by rw [basis.equiv_fun_apply, dual_basis_repr]
 
 theorem eval_ker {ι : Type*} (b : basis ι R M) :
   (dual.eval R M).ker = ⊥ :=
@@ -263,20 +258,20 @@ begin
   exact (basis.forall_coord_eq_zero_iff _).mp (λ i, hm (b.coord i))
 end
 
-lemma eval_range {ι : Type*} [fintype ι] (b : basis ι R M) :
-  (eval R M).range = ⊤ :=
+lemma eval_range {ι : Type*} [_root_.finite ι] (b : basis ι R M) : (eval R M).range = ⊤ :=
 begin
   classical,
+  casesI nonempty_fintype ι,
   rw [← b.to_dual_to_dual, range_comp, b.to_dual_range, map_top, to_dual_range _],
   apply_instance
 end
 
 /-- A module with a basis is linearly equivalent to the dual of its dual space. -/
-def eval_equiv  {ι : Type*} [fintype ι] (b : basis ι R M) : M ≃ₗ[R] dual R (dual R M) :=
+def eval_equiv  {ι : Type*} [_root_.finite ι] (b : basis ι R M) : M ≃ₗ[R] dual R (dual R M) :=
 linear_equiv.of_bijective (eval R M)
   (ker_eq_bot.mp b.eval_ker) (range_eq_top.mp b.eval_range)
 
-@[simp] lemma eval_equiv_to_linear_map {ι : Type*} [fintype ι] (b : basis ι R M) :
+@[simp] lemma eval_equiv_to_linear_map {ι : Type*} [_root_.finite ι] (b : basis ι R M) :
   (b.eval_equiv).to_linear_map = dual.eval R M := rfl
 
 section
@@ -294,16 +289,17 @@ end
 end comm_ring
 
 /-- `simp` normal form version of `total_dual_basis` -/
-@[simp] lemma total_coord [comm_ring R] [add_comm_group M] [module R M] [fintype ι]
+@[simp] lemma total_coord [comm_ring R] [add_comm_group M] [module R M] [_root_.finite ι]
   (b : basis ι R M) (f : ι →₀ R) (i : ι) :
   finsupp.total ι (dual R M) R b.coord f (b i) = f i :=
 by { haveI := classical.dec_eq ι, rw [← coe_dual_basis, total_dual_basis] }
 
--- TODO(jmc): generalize to rings, once `module.rank` is generalized
-theorem dual_dim_eq [field K] [add_comm_group V] [module K V] [fintype ι] (b : basis ι K V) :
+lemma dual_dim_eq [comm_ring K] [add_comm_group V] [module K V] [_root_.finite ι]
+  (b : basis ι K V) :
   cardinal.lift (module.rank K V) = module.rank K (dual K V) :=
 begin
   classical,
+  casesI nonempty_fintype ι,
   have := linear_equiv.lift_dim_eq b.to_dual_equiv,
   simp only [cardinal.lift_umax] at this,
   rw [this, ← cardinal.lift_umax],
@@ -346,23 +342,23 @@ variables {K V}
 
 end module
 
-section dual_pair
+section dual_bases
 
 open module
 
 variables {R M ι : Type*}
-variables [comm_ring R] [add_comm_group M] [module R M] [decidable_eq ι]
+variables [comm_semiring R] [add_comm_monoid M] [module R M] [decidable_eq ι]
 
 /-- `e` and `ε` have characteristic properties of a basis and its dual -/
-@[nolint has_inhabited_instance]
-structure dual_pair (e : ι → M) (ε : ι → (dual R M)) :=
+@[nolint has_nonempty_instance]
+structure module.dual_bases (e : ι → M) (ε : ι → (dual R M)) :=
 (eval : ∀ i j : ι, ε i (e j) = if i = j then 1 else 0)
 (total : ∀ {m : M}, (∀ i, ε i m = 0) → m = 0)
 [finite : ∀ m : M, fintype {i | ε i m ≠ 0}]
 
-end dual_pair
+end dual_bases
 
-namespace dual_pair
+namespace module.dual_bases
 
 open module module.dual linear_map function
 
@@ -371,12 +367,12 @@ variables [comm_ring R] [add_comm_group M] [module R M]
 variables {e : ι → M} {ε : ι → dual R M}
 
 /-- The coefficients of `v` on the basis `e` -/
-def coeffs [decidable_eq ι] (h : dual_pair e ε) (m : M) : ι →₀ R :=
+def coeffs [decidable_eq ι] (h : dual_bases e ε) (m : M) : ι →₀ R :=
 { to_fun := λ i, ε i m,
   support := by { haveI := h.finite m, exact {i : ι | ε i m ≠ 0}.to_finset },
   mem_support_to_fun := by {intro i, rw set.mem_to_finset, exact iff.rfl } }
 
-@[simp] lemma coeffs_apply [decidable_eq ι] (h : dual_pair e ε) (m : M) (i : ι) :
+@[simp] lemma coeffs_apply [decidable_eq ι] (h : dual_bases e ε) (m : M) (i : ι) :
   h.coeffs m i = ε i m := rfl
 
 /-- linear combinations of elements of `e`.
@@ -385,10 +381,12 @@ def lc {ι} (e : ι → M) (l : ι →₀ R) : M := l.sum (λ (i : ι) (a : R), 
 
 lemma lc_def (e : ι → M) (l : ι →₀ R) : lc e l = finsupp.total _ _ _ e l := rfl
 
-variables [decidable_eq ι] (h : dual_pair e ε)
+open module
+
+variables [decidable_eq ι] (h : dual_bases e ε)
 include h
 
-lemma dual_lc (l : ι →₀ R) (i : ι) : ε i (dual_pair.lc e l) = l i :=
+lemma dual_lc (l : ι →₀ R) (i : ι) : ε i (dual_bases.lc e l) = l i :=
 begin
   erw linear_map.map_sum,
   simp only [h.eval, map_smul, smul_eq_mul],
@@ -401,19 +399,19 @@ begin
 end
 
 @[simp]
-lemma coeffs_lc (l : ι →₀ R) : h.coeffs (dual_pair.lc e l) = l :=
+lemma coeffs_lc (l : ι →₀ R) : h.coeffs (dual_bases.lc e l) = l :=
 by { ext i, rw [h.coeffs_apply, h.dual_lc] }
 
 /-- For any m : M n, \sum_{p ∈ Q n} (ε p m) • e p = m -/
 @[simp]
-lemma lc_coeffs (m : M) : dual_pair.lc e (h.coeffs m) = m :=
+lemma lc_coeffs (m : M) : dual_bases.lc e (h.coeffs m) = m :=
 begin
   refine eq_of_sub_eq_zero (h.total _),
   intros i,
   simp [-sub_eq_add_neg, linear_map.map_sub, h.dual_lc, sub_eq_zero]
 end
 
-/-- `(h : dual_pair e ε).basis` shows the family of vectors `e` forms a basis. -/
+/-- `(h : dual_bases e ε).basis` shows the family of vectors `e` forms a basis. -/
 @[simps]
 def basis : basis ι R M :=
 basis.of_repr
@@ -442,13 +440,13 @@ lemma coe_dual_basis [fintype ι] : ⇑h.basis.dual_basis = ε :=
 funext (λ i, h.basis.ext (λ j, by rw [h.basis.dual_basis_apply_self, h.coe_basis, h.eval,
                                       if_congr eq_comm rfl rfl]))
 
-end dual_pair
+end module.dual_bases
 
 namespace submodule
 
 universes u v w
 
-variables {R : Type u} {M : Type v} [comm_ring R] [add_comm_group M] [module R M]
+variables {R : Type u} {M : Type v} [comm_semiring R] [add_comm_monoid M] [module R M]
 variable {W : submodule R M}
 
 /-- The `dual_restrict` of a submodule `W` of `M` is the linear map from the
@@ -464,7 +462,7 @@ linear_map.dom_restrict' W
 
 /-- The `dual_annihilator` of a submodule `W` is the set of linear maps `φ` such
   that `φ w = 0` for all `w ∈ W`. -/
-def dual_annihilator {R : Type u} {M : Type v} [comm_ring R] [add_comm_group M]
+def dual_annihilator {R : Type u} {M : Type v} [comm_semiring R] [add_comm_monoid M]
   [module R M] (W : submodule R M) : submodule R $ module.dual R M :=
 W.dual_restrict.ker
 
@@ -530,7 +528,7 @@ by { erw of_is_compl_left_apply _ w, refl }
 
 lemma dual_lift_of_mem {φ : module.dual K W} {w : V} (hw : w ∈ W) :
   W.dual_lift φ w = φ ⟨w, hw⟩ :=
-dual_lift_of_subtype ⟨w, hw⟩
+by convert dual_lift_of_subtype ⟨w, hw⟩
 
 @[simp] lemma dual_restrict_comp_dual_lift (W : subspace K V) :
   W.dual_restrict.comp W.dual_lift = 1 :=
@@ -624,10 +622,11 @@ end
 
 end subspace
 
-variables {R : Type*} [comm_ring R] {M₁ : Type*} {M₂ : Type*}
-variables [add_comm_group M₁] [module R M₁] [add_comm_group M₂] [module R M₂]
-
 open module
+
+section dual_map
+variables {R : Type*} [comm_semiring R] {M₁ : Type*} {M₂ : Type*}
+variables [add_comm_monoid M₁] [module R M₁] [add_comm_monoid M₂] [module R M₂]
 
 /-- Given a linear map `f : M₁ →ₗ[R] M₂`, `f.dual_map` is the linear map between the dual of
 `M₂` and `M₁` such that it maps the functional `φ` to `φ ∘ f`. -/
@@ -680,7 +679,11 @@ lemma linear_equiv.dual_map_trans {M₃ : Type*} [add_comm_group M₃] [module R
   g.dual_map.trans f.dual_map = (f.trans g).dual_map :=
 rfl
 
+end dual_map
+
 namespace linear_map
+variables {R : Type*} [comm_semiring R] {M₁ : Type*} {M₂ : Type*}
+variables [add_comm_monoid M₁] [module R M₁] [add_comm_monoid M₂] [module R M₂]
 
 variable (f : M₁ →ₗ[R] M₂)
 
@@ -758,11 +761,107 @@ begin
   refine ne_zero_of_eq_one _,
   have h : f.comp (K ∙ x).subtype = (linear_pmap.mk_span_singleton x 1 hx).to_fun :=
     classical.some_spec (linear_pmap.mk_span_singleton x (1 : K) hx).to_fun.exists_extend,
-  rw linear_map.ext_iff at h,
-  convert h ⟨x, submodule.mem_span_singleton_self x⟩,
-  exact (linear_pmap.mk_span_singleton_apply' K hx 1).symm,
+  exact (fun_like.congr_fun h _).trans (linear_pmap.mk_span_singleton_apply _ hx _),
 end
 
 end field
 
 end linear_map
+
+namespace tensor_product
+
+variables (R : Type*) (M : Type*) (N : Type*)
+
+variables {ι κ : Type*}
+variables [decidable_eq ι] [decidable_eq κ]
+variables [fintype ι] [fintype κ]
+
+open_locale big_operators
+open_locale tensor_product
+
+local attribute [ext] tensor_product.ext
+
+open tensor_product
+open linear_map
+
+section
+variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid N]
+variables [module R M] [module R N]
+
+/--
+The canonical linear map from `dual M ⊗ dual N` to `dual (M ⊗ N)`,
+sending `f ⊗ g` to the composition of `tensor_product.map f g` with
+the natural isomorphism `R ⊗ R ≃ R`.
+-/
+def dual_distrib : (dual R M) ⊗[R] (dual R N) →ₗ[R] dual R (M ⊗[R] N) :=
+(comp_right ↑(tensor_product.lid R R)) ∘ₗ hom_tensor_hom_map R M N R R
+
+variables {R M N}
+
+@[simp]
+lemma dual_distrib_apply (f : dual R M) (g : dual R N) (m : M) (n : N) :
+  dual_distrib R M N (f ⊗ₜ g) (m ⊗ₜ n) = f m * g n :=
+by simp only [dual_distrib, coe_comp, function.comp_app, hom_tensor_hom_map_apply,
+  comp_right_apply, linear_equiv.coe_coe, map_tmul, lid_tmul, algebra.id.smul_eq_mul]
+
+end
+
+variables {R M N}
+variables [comm_ring R] [add_comm_group M] [add_comm_group N]
+variables [module R M] [module R N]
+
+/--
+An inverse to `dual_tensor_dual_map` given bases.
+-/
+noncomputable
+def dual_distrib_inv_of_basis (b : basis ι R M) (c : basis κ R N) :
+  dual R (M ⊗[R] N) →ₗ[R] (dual R M) ⊗[R] (dual R N) :=
+∑ i j, (ring_lmap_equiv_self R ℕ _).symm (b.dual_basis i ⊗ₜ c.dual_basis j)
+    ∘ₗ applyₗ (c j) ∘ₗ applyₗ (b i) ∘ₗ (lcurry R M N R)
+
+@[simp]
+lemma dual_distrib_inv_of_basis_apply (b : basis ι R M) (c : basis κ R N)
+  (f : dual R (M ⊗[R] N)) : dual_distrib_inv_of_basis b c f =
+  ∑ i j, (f (b i ⊗ₜ c j)) • (b.dual_basis i ⊗ₜ c.dual_basis j) :=
+by simp [dual_distrib_inv_of_basis]
+
+/--
+A linear equivalence between `dual M ⊗ dual N` and `dual (M ⊗ N)` given bases for `M` and `N`.
+It sends `f ⊗ g` to the composition of `tensor_product.map f g` with the natural
+isomorphism `R ⊗ R ≃ R`.
+-/
+@[simps]
+noncomputable def dual_distrib_equiv_of_basis (b : basis ι R M) (c : basis κ R N) :
+  (dual R M) ⊗[R] (dual R N) ≃ₗ[R] dual R (M ⊗[R] N) :=
+begin
+  refine linear_equiv.of_linear
+    (dual_distrib R M N) (dual_distrib_inv_of_basis b c) _ _,
+  { ext f m n,
+    have h : ∀ (r s : R), r • s = s • r := is_commutative.comm,
+    simp only [compr₂_apply, mk_apply, comp_apply, id_apply, dual_distrib_inv_of_basis_apply,
+      linear_map.map_sum, map_smul, sum_apply, smul_apply, dual_distrib_apply, h (f _) _,
+      ← f.map_smul, ←f.map_sum, ←smul_tmul_smul, ←tmul_sum, ←sum_tmul, basis.coe_dual_basis,
+      basis.coord_apply, basis.sum_repr] },
+  { ext f g,
+    simp only [compr₂_apply, mk_apply, comp_apply, id_apply, dual_distrib_inv_of_basis_apply,
+      dual_distrib_apply, ←smul_tmul_smul, ←tmul_sum, ←sum_tmul, basis.coe_dual_basis,
+      basis.sum_dual_apply_smul_coord] }
+end
+
+variables (R M N)
+variables [module.finite R M] [module.finite R N] [module.free R M] [module.free R N]
+variables [nontrivial R]
+
+open_locale classical
+
+/--
+A linear equivalence between `dual M ⊗ dual N` and `dual (M ⊗ N)` when `M` and `N` are finite free
+modules. It sends `f ⊗ g` to the composition of `tensor_product.map f g` with the natural
+isomorphism `R ⊗ R ≃ R`.
+-/
+@[simp]
+noncomputable
+def dual_distrib_equiv : (dual R M) ⊗[R] (dual R N) ≃ₗ[R] dual R (M ⊗[R] N) :=
+dual_distrib_equiv_of_basis (module.free.choose_basis R M) (module.free.choose_basis R N)
+
+end tensor_product

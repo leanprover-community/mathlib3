@@ -7,6 +7,7 @@ import order.lattice
 import data.list.sort
 import logic.equiv.fin
 import logic.equiv.functor
+import data.fintype.basic
 /-!
 # Jordan-Hölder Theorem
 
@@ -147,7 +148,7 @@ instance : has_coe_to_fun (composition_series X) (λ x, fin (x.length + 1) → X
 
 instance [inhabited X] : inhabited (composition_series X) :=
 ⟨{ length := 0,
-   series := λ _, default,
+   series := default,
    step' := λ x, x.elim0 }⟩
 
 variables {X}
@@ -163,7 +164,7 @@ theorem lt_succ (s : composition_series X) (i : fin s.length) :
 lt_of_is_maximal (s.step _)
 
 protected theorem strict_mono (s : composition_series X) : strict_mono s :=
-fin.strict_mono_iff_lt_succ.2 (λ i h, s.lt_succ ⟨i, nat.lt_of_succ_lt_succ h⟩)
+fin.strict_mono_iff_lt_succ.2 s.lt_succ
 
 protected theorem injective (s : composition_series X) : function.injective s :=
 s.strict_mono.injective
@@ -248,14 +249,7 @@ list.pairwise_iff_nth_le.2 (λ i j hi hij,
   end)
 
 lemma to_list_nodup (s : composition_series X) : s.to_list.nodup :=
-list.nodup_iff_nth_le_inj.2
-  (λ i j hi hj,
-    begin
-      delta to_list,
-      rw [list.nth_le_of_fn', list.nth_le_of_fn', s.injective.eq_iff, fin.ext_iff,
-        fin.coe_mk, fin.coe_mk],
-      exact id
-    end)
+s.to_list_sorted.nodup
 
 @[simp] lemma mem_to_list {s : composition_series X} {x : X} : x ∈ s.to_list ↔ x ∈ s :=
 by rw [to_list, list.mem_of_fn, mem_def]

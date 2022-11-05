@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ivan Sadofschi Costa
 -/
 import data.fin.tuple
-import data.finsupp.basic
+import data.finsupp.defs
+
 /-!
 # `cons` and `tail` for maps `fin n →₀ M`
 
@@ -23,7 +24,6 @@ namespace finsupp
 
 variables {n : ℕ} (i : fin n) {M : Type*} [has_zero M] (y : M)
   (t : fin (n + 1) →₀ M) (s : fin n →₀ M)
-
 
 /-- `tail` for maps `fin (n + 1) →₀ M`. See `fin.tail` for more details. -/
 def tail (s : fin (n + 1) →₀ M) : fin n →₀ M :=

@@ -106,6 +106,9 @@ tan_order_iso.apply_symm_apply x
 lemma arctan_mem_Ioo (x : ℝ) : arctan x ∈ Ioo (-(π / 2)) (π / 2) :=
 subtype.coe_prop _
 
+@[simp] lemma range_arctan : range arctan = Ioo (-(π / 2)) (π / 2) :=
+((equiv_like.surjective _).range_comp _).trans subtype.range_coe
+
 lemma arctan_tan {x : ℝ} (hx₁ : -(π / 2) < x) (hx₂ : x < π / 2) : arctan (tan x) = x :=
 subtype.ext_iff.1 $ tan_order_iso.symm_apply_apply ⟨x, hx₁, hx₂⟩
 
@@ -133,7 +136,7 @@ eq.symm $ arcsin_eq_of_sin_eq (sin_arctan x) (mem_Icc_of_Ioo $ arctan_mem_Ioo x)
 lemma arcsin_eq_arctan {x : ℝ} (h : x ∈ Ioo (-(1:ℝ)) 1) :
   arcsin x = arctan (x / sqrt (1 - x ^ 2)) :=
 begin
-  rw [arctan_eq_arcsin, div_pow, sq_sqrt, one_add_div, div_div_eq_div_mul,
+  rw [arctan_eq_arcsin, div_pow, sq_sqrt, one_add_div, div_div,
       ← sqrt_mul, mul_div_cancel', sub_add_cancel, sqrt_one, div_one];
   nlinarith [h.1, h.2],
 end

@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import data.list.prime
 import data.list.sort
-import data.nat.gcd
+import data.nat.gcd.basic
 import data.nat.sqrt_norm_num
 import data.set.finite
 import tactic.wlog
@@ -25,8 +25,8 @@ This file deals with prime numbers: natural numbers `p ≥ 2` whose only divisor
   This also appears as `nat.not_bdd_above_set_of_prime` and `nat.infinite_set_of_prime`.
 - `nat.factors n`: the prime factorization of `n`
 - `nat.factors_unique`: uniqueness of the prime factorisation
-* `nat.prime_iff`: `nat.prime` coincides with the general definition of `prime`
-* `nat.irreducible_iff_prime`: a non-unit natural number is only divisible by `1` iff it is prime
+- `nat.prime_iff`: `nat.prime` coincides with the general definition of `prime`
+- `nat.irreducible_iff_prime`: a non-unit natural number is only divisible by `1` iff it is prime
 
 -/
 
@@ -423,6 +423,9 @@ p.mod_two_eq_zero_or_one.imp_left
 lemma prime.eq_two_or_odd' {p : ℕ} (hp : prime p) : p = 2 ∨ odd p :=
 or.imp_right (λ h, ⟨p / 2, (div_add_mod p 2).symm.trans (congr_arg _ h)⟩) hp.eq_two_or_odd
 
+lemma prime.even_iff {p : ℕ} (hp : prime p) : even p ↔ p = 2 :=
+by rw [even_iff_two_dvd, prime_dvd_prime_iff_eq prime_two hp, eq_comm]
+
 /-- A prime `p` satisfies `p % 2 = 1` if and only if `p ≠ 2`. -/
 lemma prime.mod_two_eq_one_iff_ne_two {p : ℕ} [fact p.prime] : p % 2 = 1 ↔ p ≠ 2 :=
 begin
@@ -510,7 +513,7 @@ lemma factors_chain' (n) : list.chain' (≤) (factors n) :=
 @list.chain'.tail _ _ (_::_) (factors_chain_2 _)
 
 lemma factors_sorted (n : ℕ) : list.sorted (≤) (factors n) :=
-(list.chain'_iff_pairwise (@le_trans _ _)).1 (factors_chain' _)
+list.chain'_iff_pairwise.1 (factors_chain' _)
 
 /-- `factors` can be constructed inductively by extracting `min_fac`, for sufficiently large `n`. -/
 lemma factors_add_two (n : ℕ) :
@@ -844,18 +847,19 @@ instance inhabited_primes : inhabited primes := ⟨⟨2, prime_two⟩⟩
 
 instance coe_nat : has_coe nat.primes ℕ := ⟨subtype.val⟩
 
-theorem coe_nat_inj (p q : nat.primes) : (p : ℕ) = (q : ℕ) → p = q :=
-λ h, subtype.eq h
+theorem coe_nat_injective : function.injective (coe : nat.primes → ℕ) :=
+subtype.coe_injective
+
+theorem coe_nat_inj (p q : nat.primes) : (p : ℕ) = (q : ℕ) ↔ p = q :=
+subtype.ext_iff.symm
 
 end primes
 
-instance monoid.prime_pow {α : Type*} [monoid α] : has_pow α primes := ⟨λ x p, x^p.val⟩
+instance monoid.prime_pow {α : Type*} [monoid α] : has_pow α primes := ⟨λ x p, x^(p : ℕ)⟩
 
 end nat
 
 /-! ### Primality prover -/
-
-open norm_num
 
 namespace tactic
 namespace norm_num
@@ -937,6 +941,8 @@ begin
   rw nat.le_sqrt at this,
   exact not_le_of_lt hd this
 end
+
+open _root_.norm_num
 
 /-- Given `e` a natural numeral and `d : nat` a factor of it, return `⊢ ¬ prime e`. -/
 meta def prove_non_prime (e : expr) (n d₁ : ℕ) : tactic expr :=
@@ -1027,7 +1033,7 @@ factors_helper_same _ _ _ _ (mul_one _) (factors_helper_nil _)
 
 lemma factors_helper_end (n : ℕ) (l : list ℕ) (H : factors_helper n 2 l) : nat.factors n = l :=
 let ⟨h₁, h₂, h₃⟩ := H nat.prime_two in
-have _, from (list.chain'_iff_pairwise (@le_trans _ _)).1 (@list.chain'.tail _ _ (_::_) h₁),
+have _, from list.chain'_iff_pairwise.1 (@list.chain'.tail _ _ (_::_) h₁),
 (list.eq_of_perm_of_sorted (nat.factors_unique h₃ h₂) this (nat.factors_sorted _)).symm
 
 /-- Given `n` and `a` natural numerals, returns `(l, ⊢ factors_helper n a l)`. -/
@@ -1192,15 +1198,3 @@ namespace int
 lemma prime_two : prime (2 : ℤ) := nat.prime_iff_prime_int.mp nat.prime_two
 lemma prime_three : prime (3 : ℤ) := nat.prime_iff_prime_int.mp nat.prime_three
 end int
-
-section
-open finset
-/-- Exactly `n / p` naturals in `[1, n]` are multiples of `p`. -/
-lemma card_multiples (n p : ℕ) : card ((range n).filter (λ e, p ∣ e + 1)) = n / p :=
-begin
-  induction n with n hn,
-  { rw [nat.zero_div, range_zero, filter_empty, card_empty] },
-  { rw [nat.succ_div, add_ite, add_zero, range_succ, filter_insert, apply_ite card,
-      card_insert_of_not_mem (mem_filter.not.mpr (not_and_of_not_left _ not_mem_range_self)), hn] }
-end
-end

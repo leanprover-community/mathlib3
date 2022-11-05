@@ -120,7 +120,7 @@ def equiv (F : S ⥤ D) [∀ x, has_limit (diagram ι F x)] (G : L ⥤ D) :
     simp only [nat_trans.naturality_assoc, loc_map],
     erw limit.pre_π,
     congr,
-    cases j,
+    rcases j with ⟨⟨⟩, _, _⟩,
     tidy,
   end,
   right_inv := by tidy }
@@ -253,7 +253,7 @@ def equiv (F : S ⥤ D) [I : ∀ x, has_colimit (diagram ι F x)] (G : L ⥤ D) 
     change colimit.ι _ _ ≫ colimit.pre (diagram ι F k) (costructured_arrow.map _) = _,
     rw colimit.ι_pre,
     congr,
-    cases j,
+    rcases j with ⟨_, ⟨⟩, _⟩,
     tidy,
   end,
   right_inv := by tidy }

@@ -32,7 +32,7 @@ namespace measure_theory
 local infixr ` →ₛ `:25 := simple_func
 
 variables {α G : Type*} {p : ℝ≥0∞} {m m0 : measurable_space α} {μ : measure α}
-  [normed_group G]
+  [normed_add_comm_group G]
   {f : α → G}
 
 lemma mem_ℒp.fin_strongly_measurable_of_strongly_measurable

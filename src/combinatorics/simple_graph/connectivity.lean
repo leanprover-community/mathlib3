@@ -60,10 +60,13 @@ walks, trails, paths, circuits, cycles
 
 -/
 
-universes u v
+open function
+
+universes u v w
 
 namespace simple_graph
-variables {V : Type u} {V' : Type v} (G : simple_graph V) (G' : simple_graph V')
+variables {V : Type u} {V' : Type v} {V'' : Type w}
+variables (G : simple_graph V) (G' : simple_graph V') (G'' : simple_graph V'')
 
 /-- A walk is a sequence of adjacent vertices.  For vertices `u v : V`,
 the type `walk u v` consists of all walks starting at `u` and ending at `v`.
@@ -80,7 +83,11 @@ inductive walk : V → V → Type u
 
 attribute [refl] walk.nil
 
-instance walk.inhabited (v : V) : inhabited (G.walk v v) := ⟨by refl⟩
+@[simps] instance walk.inhabited (v : V) : inhabited (G.walk v v) := ⟨walk.nil⟩
+
+/-- The one-edge walk associated to a pair of adjacent vertices. -/
+@[pattern, reducible] def adj.to_walk {G : simple_graph V} {u v : V} (h : G.adj u v) :
+  G.walk u v := walk.cons h walk.nil
 
 namespace walk
 variables {G}
@@ -91,6 +98,35 @@ variables {G}
 /-- Pattern to get `walk.cons` with the vertices as explicit arguments. -/
 @[pattern] abbreviation cons' (u v w : V) (h : G.adj u v) (p : G.walk v w) : G.walk u w :=
 walk.cons h p
+
+/-- Change the endpoints of a walk using equalities. This is helpful for relaxing
+definitional equality constraints and to be able to state otherwise difficult-to-state
+lemmas. While this is a simple wrapper around `eq.rec`, it gives a canonical way to write it.
+
+The simp-normal form is for the `copy` to be pushed outward. That way calculations can
+occur within the "copy context." -/
+protected def copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') : G.walk u' v' :=
+eq.rec (eq.rec p hv) hu
+
+@[simp] lemma copy_rfl_rfl {u v} (p : G.walk u v) :
+  p.copy rfl rfl = p := rfl
+
+@[simp] lemma copy_copy {u v u' v' u'' v''} (p : G.walk u v)
+  (hu : u = u') (hv : v = v') (hu' : u' = u'') (hv' : v' = v'') :
+  (p.copy hu hv).copy hu' hv' = p.copy (hu.trans hu') (hv.trans hv') :=
+by { subst_vars, refl }
+
+@[simp] lemma copy_nil {u u'} (hu : u = u') : (walk.nil : G.walk u u).copy hu hu = walk.nil :=
+by { subst_vars, refl }
+
+lemma copy_cons {u v w u' w'} (h : G.adj u v) (p : G.walk v w) (hu : u = u') (hw : w = w') :
+  (walk.cons h p).copy hu hw = walk.cons (by rwa ← hu) (p.copy rfl hw) :=
+by { subst_vars, refl }
+
+@[simp]
+lemma cons_copy {u v w v' w'} (h : G.adj u v) (p : G.walk v' w') (hv : v' = v) (hw : w' = w) :
+  walk.cons h (p.copy hv hw) = (walk.cons (by rwa hv) p).copy rfl hw :=
+by { subst_vars, refl }
 
 lemma exists_eq_cons_of_ne : Π {u v : V} (hne : u ≠ v) (p : G.walk u v),
   ∃ (w : V) (h : G.adj u w) (p' : G.walk w v), p = cons h p'
@@ -168,6 +204,10 @@ lemma append_assoc : Π {u v w x : V} (p : G.walk u v) (q : G.walk v w) (r : G.w
 | _ _ _ _ nil _ _ := rfl
 | _ _ _ _ (cons h p') q r := by { dunfold append, rw append_assoc, }
 
+@[simp] lemma append_copy_copy {u v w u' v' w'} (p : G.walk u v) (q : G.walk v w)
+  (hu : u = u') (hv : v = v') (hw : w = w') :
+  (p.copy hu hv).append (q.copy hv hw) = (p.append q).copy hu hw := by { subst_vars, refl }
+
 @[simp] lemma reverse_nil {u : V} : (nil : G.walk u u).reverse = nil := rfl
 
 lemma reverse_singleton {u v : V} (h : G.adj u v) :
@@ -196,6 +236,9 @@ by simp [reverse]
   (cons h p).reverse = p.reverse.append (cons (G.symm h) nil) :=
 by simp [reverse]
 
+@[simp] lemma reverse_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
+  (p.copy hu hv).reverse = p.reverse.copy hv hu := by { subst_vars, refl }
+
 @[simp] lemma reverse_append {u v w : V} (p : G.walk u v) (q : G.walk v w) :
   (p.append q).reverse = q.reverse.append p.reverse :=
 by simp [reverse]
@@ -208,6 +251,10 @@ by simp [reverse]
 
 @[simp] lemma length_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).length = p.length + 1 := rfl
+
+@[simp] lemma length_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
+  (p.copy hu hv).length = p.length :=
+by { subst_vars, refl }
 
 @[simp] lemma length_append : Π {u v w : V} (p : G.walk u v) (q : G.walk v w),
   (p.append q).length = p.length + q.length
@@ -255,6 +302,9 @@ def edges {u v : V} (p : G.walk u v) : list (sym2 V) := p.darts.map dart.edge
 
 @[simp] lemma support_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).support = u :: p.support := rfl
+
+@[simp] lemma support_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
+  (p.copy hu hv).support = p.support := by { subst_vars, refl }
 
 lemma support_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
   (p.append p').support = p.support ++ p'.support.tail :=
@@ -306,6 +356,18 @@ begin
   simp [*],
 end
 
+@[simp]
+lemma subset_support_append_left {V : Type u} {G : simple_graph V} {u v w : V}
+  (p : G.walk u v) (q : G.walk v w) :
+  p.support ⊆ (p.append q).support :=
+by simp only [walk.support_append, list.subset_append_left]
+
+@[simp]
+lemma subset_support_append_right {V : Type u} {G : simple_graph V} {u v w : V}
+  (p : G.walk u v) (q : G.walk v w) :
+  q.support ⊆ (p.append q).support :=
+by { intro h, simp only [mem_support_append_iff, or_true, implies_true_iff] { contextual := tt }}
+
 lemma coe_support {u v : V} (p : G.walk u v) :
   (p.support : multiset V) = {u} + p.support.tail :=
 by cases p; refl
@@ -352,6 +414,9 @@ lemma edges_subset_edge_set : Π {u v : V} (p : G.walk u v) ⦃e : sym2 V⦄
 @[simp] lemma darts_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).darts = ⟨(u, v), h⟩ :: p.darts := rfl
 
+@[simp] lemma darts_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
+  (p.copy hu hv).darts = p.darts := by { subst_vars, refl }
+
 @[simp] lemma darts_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
   (p.append p').darts = p.darts ++ p'.darts :=
 by induction p; simp [*]
@@ -359,6 +424,10 @@ by induction p; simp [*]
 @[simp] lemma darts_reverse {u v : V} (p : G.walk u v) :
   p.reverse.darts = (p.darts.map dart.symm).reverse :=
 by induction p; simp [*, sym2.eq_swap]
+
+lemma mem_darts_reverse {u v : V} {d : G.dart} {p : G.walk u v} :
+  d ∈ p.reverse.darts ↔ d.symm ∈ p.darts :=
+by simp
 
 lemma cons_map_snd_darts {u v : V} (p : G.walk u v) :
   u :: p.darts.map dart.snd = p.support :=
@@ -380,6 +449,9 @@ by simpa! using congr_arg list.init (map_fst_darts_append p)
 
 @[simp] lemma edges_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).edges = ⟦(u, v)⟧ :: p.edges := rfl
+
+@[simp] lemma edges_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
+  (p.copy hu hv).edges = p.edges := by { subst_vars, refl }
 
 @[simp] lemma edges_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
   (p.append p').edges = p.edges ++ p'.edges :=
@@ -406,16 +478,11 @@ lemma dart_fst_mem_support_of_mem_darts :
   { exact or.inr (dart_fst_mem_support_of_mem_darts _ hd), },
 end
 
-lemma dart_snd_mem_support_of_mem_darts :
-  Π {u v : V} (p : G.walk u v) {d : G.dart}, d ∈ p.darts → d.snd ∈ p.support
-| u v (cons h p') d hd := begin
-  simp only [support_cons, darts_cons, list.mem_cons_iff] at hd ⊢,
-  rcases hd with (rfl|hd),
-  { simp },
-  { exact or.inr (dart_snd_mem_support_of_mem_darts _ hd), },
-end
+lemma dart_snd_mem_support_of_mem_darts {u v : V} (p : G.walk u v) {d : G.dart} (h : d ∈ p.darts) :
+  d.snd ∈ p.support :=
+by simpa using p.reverse.dart_fst_mem_support_of_mem_darts (by simp [h] : d.symm ∈ p.reverse.darts)
 
-lemma mem_support_of_mem_edges {t u v w : V} (p : G.walk v w) (he : ⟦(t, u)⟧ ∈ p.edges) :
+lemma fst_mem_support_of_mem_edges {t u v w : V} (p : G.walk v w) (he : ⟦(t, u)⟧ ∈ p.edges) :
   t ∈ p.support :=
 begin
   obtain ⟨d, hd, he⟩ := list.mem_map.mp he,
@@ -424,6 +491,10 @@ begin
   { exact dart_fst_mem_support_of_mem_darts _ hd, },
   { exact dart_snd_mem_support_of_mem_darts _ hd, },
 end
+
+lemma snd_mem_support_of_mem_edges {t u v w : V} (p : G.walk v w) (he : ⟦(t, u)⟧ ∈ p.edges) :
+  u ∈ p.support :=
+by { rw sym2.eq_swap at he, exact p.fst_mem_support_of_mem_edges he }
 
 lemma darts_nodup_of_support_nodup {u v : V} {p : G.walk u v} (h : p.support.nodup) :
   p.darts.nodup :=
@@ -440,7 +511,7 @@ begin
   induction p,
   { simp, },
   { simp only [edges_cons, support_cons, list.nodup_cons] at h ⊢,
-    exact ⟨λ h', h.1 (mem_support_of_mem_edges p_p h'), p_ih h.2⟩, }
+    exact ⟨λ h', h.1 (fst_mem_support_of_mem_edges p_p h'), p_ih h.2⟩, }
 end
 
 /-! ### Trails, paths, circuits, cycles -/
@@ -467,15 +538,31 @@ structure is_cycle {u : V} (p : G.walk u u)
 lemma is_trail_def {u v : V} (p : G.walk u v) : p.is_trail ↔ p.edges.nodup :=
 ⟨is_trail.edges_nodup, λ h, ⟨h⟩⟩
 
+@[simp] lemma is_trail_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
+  (p.copy hu hv).is_trail ↔ p.is_trail := by { subst_vars, refl }
+
 lemma is_path.mk' {u v : V} {p : G.walk u v} (h : p.support.nodup) : is_path p :=
 ⟨⟨edges_nodup_of_support_nodup h⟩, h⟩
 
 lemma is_path_def {u v : V} (p : G.walk u v) : p.is_path ↔ p.support.nodup :=
 ⟨is_path.support_nodup, is_path.mk'⟩
 
+@[simp] lemma is_path_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
+  (p.copy hu hv).is_path ↔ p.is_path := by { subst_vars, refl }
+
+lemma is_circuit_def {u : V} (p : G.walk u u) :
+  p.is_circuit ↔ is_trail p ∧ p ≠ nil :=
+iff.intro (λ h, ⟨h.1, h.2⟩) (λ h, ⟨h.1, h.2⟩)
+
+@[simp] lemma is_circuit_copy {u u'} (p : G.walk u u) (hu : u = u') :
+  (p.copy hu hu).is_circuit ↔ p.is_circuit := by { subst_vars, refl }
+
 lemma is_cycle_def {u : V} (p : G.walk u u) :
   p.is_cycle ↔ is_trail p ∧ p ≠ nil ∧ p.support.tail.nodup :=
 iff.intro (λ h, ⟨h.1.1, h.1.2, h.2⟩) (λ h, ⟨⟨h.1, h.2.1⟩, h.2.2⟩)
+
+@[simp] lemma is_cycle_copy {u u'} (p : G.walk u u) (hu : u = u') :
+  (p.copy hu hu).is_cycle ↔ p.is_cycle := by { subst_vars, refl }
 
 @[simp] lemma is_trail.nil {u : V} : (nil : G.walk u u).is_trail :=
 ⟨by simp [edges]⟩
@@ -540,6 +627,9 @@ begin
   apply h.of_append_left,
 end
 
+@[simp] lemma is_cycle.not_of_nil {u : V} : ¬ (nil : G.walk u u).is_cycle :=
+λ h, h.ne_nil rfl
+
 /-! ### Walk decompositions -/
 
 section walk_decomp
@@ -579,6 +669,17 @@ begin
       split_ifs with h'; subst_vars; simp [*], } },
 end
 
+lemma mem_support_iff_exists_append {V : Type u} {G : simple_graph V} {u v w : V}
+  {p : G.walk u v} :
+  w ∈ p.support ↔ ∃ (q : G.walk u w) (r : G.walk w v), p = q.append r :=
+begin
+  classical,
+  split,
+  { exact λ h, ⟨_, _, (p.take_spec h).symm⟩ },
+  { rintro ⟨q, r, rfl⟩,
+    simp only [mem_support_append_iff, end_mem_support, start_mem_support, or_self], },
+end
+
 @[simp]
 lemma count_support_take_until_eq_one {u v w : V} (p : G.walk v w) (h : u ∈ p.support) :
   (p.take_until u h).support.count u = 1 :=
@@ -614,6 +715,16 @@ begin
           { cases p'; simp! } },
         { apply ih, } } } },
 end
+
+@[simp] lemma take_until_copy {u v w v' w'} (p : G.walk v w)
+  (hv : v = v') (hw : w = w') (h : u ∈ (p.copy hv hw).support) :
+  (p.copy hv hw).take_until u h = (p.take_until u (by { subst_vars, exact h })).copy hv rfl :=
+by { subst_vars, refl }
+
+@[simp] lemma drop_until_copy {u v w v' w'} (p : G.walk v w)
+  (hv : v = v') (hw : w = w') (h : u ∈ (p.copy hv hw).support) :
+  (p.copy hv hw).drop_until u h = (p.drop_until u (by { subst_vars, exact h })).copy rfl hw :=
+by { subst_vars, refl }
 
 lemma support_take_until_subset {u v w : V} (p : G.walk v w) (h : u ∈ p.support) :
   (p.take_until u h).support ⊆ p.support :=
@@ -734,10 +845,64 @@ end walk_decomp
 
 end walk
 
-/-! ### Walks to paths -/
+/-! ### Type of paths -/
 
 /-- The type for paths between two vertices. -/
 abbreviation path (u v : V) := {p : G.walk u v // p.is_path}
+
+namespace path
+variables {G G'}
+
+@[simp] protected lemma is_path {u v : V} (p : G.path u v) : (p : G.walk u v).is_path :=
+p.property
+
+@[simp] protected lemma is_trail {u v : V} (p : G.path u v) : (p : G.walk u v).is_trail :=
+p.property.to_trail
+
+/-- The length-0 path at a vertex. -/
+@[refl, simps] protected def nil {u : V} : G.path u u := ⟨walk.nil, walk.is_path.nil⟩
+
+/-- The length-1 path between a pair of adjacent vertices. -/
+@[simps] def singleton {u v : V} (h : G.adj u v) : G.path u v :=
+⟨walk.cons h walk.nil, by simp [h.ne]⟩
+
+lemma mk_mem_edges_singleton {u v : V} (h : G.adj u v) :
+  ⟦(u, v)⟧ ∈ (singleton h : G.walk u v).edges := by simp [singleton]
+
+/-- The reverse of a path is another path.  See also `simple_graph.walk.reverse`. -/
+@[symm, simps] def reverse {u v : V} (p : G.path u v) : G.path v u :=
+⟨walk.reverse p, p.property.reverse⟩
+
+lemma count_support_eq_one [decidable_eq V] {u v w : V} {p : G.path u v}
+  (hw : w ∈ (p : G.walk u v).support) : (p : G.walk u v).support.count w = 1 :=
+list.count_eq_one_of_mem p.property.support_nodup hw
+
+lemma count_edges_eq_one [decidable_eq V] {u v : V} {p : G.path u v} (e : sym2 V)
+  (hw : e ∈ (p : G.walk u v).edges) : (p : G.walk u v).edges.count e = 1 :=
+list.count_eq_one_of_mem p.property.to_trail.edges_nodup hw
+
+@[simp] lemma nodup_support {u v : V} (p : G.path u v) : (p : G.walk u v).support.nodup :=
+(walk.is_path_def _).mp p.property
+
+lemma loop_eq {v : V} (p : G.path v v) : p = path.nil :=
+begin
+  obtain ⟨_|_, this⟩ := p,
+  { refl },
+  { simpa },
+end
+
+lemma not_mem_edges_of_loop {v : V} {e : sym2 V} {p : G.path v v} :
+  ¬ e ∈ (p : G.walk v v).edges :=
+by simp [p.loop_eq]
+
+
+lemma cons_is_cycle {u v : V} (p : G.path v u) (h : G.adj u v)
+  (he : ¬ ⟦(u, v)⟧ ∈ (p : G.walk v u).edges) : (walk.cons h ↑p).is_cycle :=
+by simp [walk.is_cycle_def, walk.cons_is_trail_iff, he]
+
+end path
+
+/-! ### Walks to paths -/
 
 namespace walk
 variables {G} [decidable_eq V]
@@ -752,6 +917,9 @@ def bypass : Π {u v : V}, G.walk u v → G.walk u v
   in if hs : u ∈ p'.support
      then p'.drop_until u hs
      else cons ha p'
+
+@[simp] lemma bypass_copy {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') :
+  (p.copy hu hv).bypass = p.bypass.copy hu hv := by { subst_vars, refl }
 
 lemma bypass_is_path {u v : V} (p : G.walk u v) : p.bypass.is_path :=
 begin
@@ -824,22 +992,34 @@ edges_bypass_subset _
 
 end walk
 
-/-! ## Mapping paths -/
+/-! ### Mapping paths -/
 
 namespace walk
-variables {G G'}
+variables {G G' G''}
 
 /-- Given a graph homomorphism, map walks to walks. -/
 protected def map (f : G →g G') : Π {u v : V}, G.walk u v → G'.walk (f u) (f v)
 | _ _ nil := nil
 | _ _ (cons h p) := cons (f.map_adj h) (map p)
 
-variables (f : G →g G') {u v : V} (p : G.walk u v)
+variables (f : G →g G') (f' : G' →g G'') {u v u' v' : V} (p : G.walk u v)
 
 @[simp] lemma map_nil : (nil : G.walk u u).map f = nil := rfl
 
 @[simp] lemma map_cons {w : V} (h : G.adj w u) :
   (cons h p).map f = cons (f.map_adj h) (p.map f) := rfl
+
+@[simp] lemma map_copy (hu : u = u') (hv : v = v') :
+  (p.copy hu hv).map f = (p.map f).copy (by rw hu) (by rw hv) := by { subst_vars, refl }
+
+@[simp] lemma map_id (p : G.walk u v) : p.map hom.id = p := by { induction p; simp [*] }
+
+@[simp] lemma map_map : (p.map f).map f' = p.map (f'.comp f) := by { induction p; simp [*] }
+
+/-- Unlike categories, for graphs vertex equality is an important notion, so needing to be able to
+to work with equality of graph homomorphisms is a necessary evil. -/
+lemma map_eq_of_eq {f : G →g G'} (f' : G →g G') (h : f = f') :
+  p.map f = (p.map f').copy (by rw h) (by rw h) := by { subst_vars, refl }
 
 @[simp] lemma length_map : (p.map f).length = p.length :=
 by induction p; simp [*]
@@ -860,6 +1040,8 @@ by induction p; simp [*]
 @[simp] lemma edges_map : (p.map f).edges = p.edges.map (sym2.map f) :=
 by induction p; simp [*]
 
+variables {p f}
+
 lemma map_is_path_of_injective (hinj : function.injective f) (hp : p.is_path) :
   (p.map f).is_path :=
 begin
@@ -871,6 +1053,24 @@ begin
     cases hinj hf,
     exact hp.2 hx, },
 end
+
+protected lemma is_path.of_map {f : G →g G'} (hp : (p.map f).is_path) : p.is_path :=
+begin
+  induction p with w u v w huv hvw ih,
+  { simp },
+  { rw [map_cons, walk.cons_is_path_iff, support_map] at hp,
+    rw walk.cons_is_path_iff,
+    cases hp with hp1 hp2,
+    refine ⟨ih hp1, _⟩,
+    contrapose! hp2,
+    exact list.mem_map_of_mem f hp2, }
+end
+
+lemma map_is_path_iff_of_injective (hinj : function.injective f) :
+  (p.map f).is_path ↔ p.is_path :=
+⟨is_path.of_map, map_is_path_of_injective hinj⟩
+
+variables (p f)
 
 lemma map_injective_of_injective {f : G →g G'} (hinj : function.injective f) (u v : V) :
   function.injective (walk.map f : G.walk u v → G'.walk (f u) (f v)) :=
@@ -897,7 +1097,7 @@ variables {G G'}
 /-- Given an injective graph homomorphism, map paths to paths. -/
 @[simps] protected def map (f : G →g G') (hinj : function.injective f) {u v : V} (p : G.path u v) :
   G'.path (f u) (f v) :=
-⟨walk.map f p, walk.map_is_path_of_injective f p hinj p.2⟩
+⟨walk.map f p, walk.map_is_path_of_injective hinj p.2⟩
 
 lemma map_injective {f : G →g G'} (hinj : function.injective f) (u v : V) :
   function.injective (path.map f hinj : G.path u v → G'.path (f u) (f v)) :=
@@ -917,6 +1117,44 @@ lemma map_embedding_injective (f : G ↪g G') (u v : V) :
 map_injective f.injective u v
 
 end path
+
+/-! ## Deleting edges -/
+
+namespace walk
+variables {G}
+
+/-- Given a walk that avoids a set of edges, produce a walk in the graph
+with those edges deleted. -/
+@[simp]
+def to_delete_edges (s : set (sym2 V)) :
+  Π {v w : V} (p : G.walk v w) (hp : ∀ e, e ∈ p.edges → ¬ e ∈ s), (G.delete_edges s).walk v w
+| _ _ nil _ := nil
+| _ _ (cons' u v w huv p) hp := cons ((G.delete_edges_adj _ _ _).mpr ⟨huv, hp ⟦(u, v)⟧ (by simp)⟩)
+                                (p.to_delete_edges (λ e he, hp e (by simp [he])))
+
+/-- Given a walk that avoids an edge, create a walk in the subgraph with that edge deleted.
+This is an abbreviation for `simple_graph.walk.to_delete_edges`. -/
+abbreviation to_delete_edge {v w : V} (e : sym2 V) (p : G.walk v w) (hp : e ∉ p.edges) :
+  (G.delete_edges {e}).walk v w :=
+p.to_delete_edges {e} (λ e', by { contrapose!, simp [hp] { contextual := tt } })
+
+@[simp]
+lemma map_to_delete_edges_eq (s : set (sym2 V)) {v w : V} {p : G.walk v w} (hp) :
+  walk.map (hom.map_spanning_subgraphs (G.delete_edges_le s)) (p.to_delete_edges s hp) = p :=
+by induction p; simp [*]
+
+lemma is_path.to_delete_edges (s : set (sym2 V))
+  {v w : V} {p : G.walk v w} (h : p.is_path) (hp) :
+  (p.to_delete_edges s hp).is_path :=
+by { rw ← map_to_delete_edges_eq s hp at h, exact h.of_map }
+
+@[simp] lemma to_delete_edges_copy (s : set (sym2 V))
+  {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') (h) :
+  (p.copy hu hv).to_delete_edges s h
+    = (p.to_delete_edges s (by { subst_vars, exact h })).copy hu hv :=
+by { subst_vars, refl }
+
+end walk
 
 /-! ## `reachable` and `connected` -/
 
@@ -941,6 +1179,12 @@ begin
   classical,
   exact h.elim (λ q, hp q.to_path),
 end
+
+protected lemma walk.reachable {G : simple_graph V} {u v : V} (p : G.walk u v) :
+  G.reachable u v := ⟨p⟩
+
+protected lemma adj.reachable {u v : V} (h : G.adj u v) :
+  G.reachable u v := h.to_walk.reachable
 
 @[refl] protected lemma reachable.refl (u : V) : G.reachable u u := by { fsplit, refl }
 protected lemma reachable.rfl {u : V} : G.reachable u u := reachable.refl _
@@ -967,6 +1211,10 @@ begin
     { exact reachable.trans hr ⟨walk.cons ha walk.nil⟩, }, },
 end
 
+protected lemma reachable.map {G : simple_graph V} {G' : simple_graph V'}
+  (f : G →g G') {u v : V} (h : G.reachable u v) : G'.reachable (f u) (f v) :=
+h.elim (λ p, ⟨p.map f⟩)
+
 variables (G)
 
 lemma reachable_is_equivalence : equivalence G.reachable :=
@@ -978,19 +1226,37 @@ def reachable_setoid : setoid V := setoid.mk _ G.reachable_is_equivalence
 /-- A graph is preconnected if every pair of vertices is reachable from one another. -/
 def preconnected : Prop := ∀ (u v : V), G.reachable u v
 
+lemma preconnected.map {G : simple_graph V} {H : simple_graph V'} (f : G →g H) (hf : surjective f)
+  (hG : G.preconnected) : H.preconnected :=
+hf.forall₂.2 $ λ a b, nonempty.map (walk.map _) $ hG _ _
+
+lemma iso.preconnected_iff {G : simple_graph V} {H : simple_graph V'} (e : G ≃g H) :
+  G.preconnected ↔ H.preconnected :=
+⟨preconnected.map e.to_hom e.to_equiv.surjective,
+  preconnected.map e.symm.to_hom e.symm.to_equiv.surjective⟩
+
 /-- A graph is connected if it's preconnected and contains at least one vertex.
 This follows the convention observed by mathlib that something is connected iff it has
 exactly one connected component.
 
 There is a `has_coe_to_fun` instance so that `h u v` can be used instead
 of `h.preconnected u v`. -/
-@[protect_proj]
+@[protect_proj, mk_iff]
 structure connected : Prop :=
 (preconnected : G.preconnected)
 [nonempty : nonempty V]
 
 instance : has_coe_to_fun G.connected (λ _, Π (u v : V), G.reachable u v) :=
 ⟨λ h, h.preconnected⟩
+
+lemma connected.map {G : simple_graph V} {H : simple_graph V'} (f : G →g H) (hf : surjective f)
+  (hG : G.connected) : H.connected :=
+by { haveI := hG.nonempty.map f, exact ⟨hG.preconnected.map f hf⟩ }
+
+lemma iso.connected_iff {G : simple_graph V} {H : simple_graph V'} (e : G ≃g H) :
+  G.connected ↔ H.connected :=
+⟨connected.map e.to_hom e.to_equiv.surjective,
+  connected.map e.symm.to_hom e.symm.to_equiv.surjective⟩
 
 /-- The quotient of `V` by the `simple_graph.reachable` relation gives the connected
 components of a graph. -/
@@ -999,7 +1265,7 @@ def connected_component := quot G.reachable
 /-- Gives the connected component containing a particular vertex. -/
 def connected_component_mk (v : V) : G.connected_component := quot.mk G.reachable v
 
-instance connected_component.inhabited [inhabited V] : inhabited G.connected_component :=
+@[simps] instance connected_component.inhabited [inhabited V] : inhabited G.connected_component :=
 ⟨G.connected_component_mk default⟩
 
 section connected_component
@@ -1056,6 +1322,24 @@ variables {G}
 /-- A subgraph is connected if it is connected as a simple graph. -/
 abbreviation subgraph.connected (H : G.subgraph) : Prop := H.coe.connected
 
+lemma singleton_subgraph_connected {v : V} : (G.singleton_subgraph v).connected :=
+begin
+  split,
+  rintros ⟨a, ha⟩ ⟨b, hb⟩,
+  simp only [singleton_subgraph_verts, set.mem_singleton_iff] at ha hb,
+  subst_vars
+end
+
+@[simp] lemma subgraph_of_adj_connected {v w : V} (hvw : G.adj v w) :
+  (G.subgraph_of_adj hvw).connected :=
+begin
+  split,
+  rintro ⟨a, ha⟩ ⟨b, hb⟩,
+  simp only [subgraph_of_adj_verts, set.mem_insert_iff, set.mem_singleton_iff] at ha hb,
+  obtain (rfl|rfl) := ha; obtain (rfl|rfl) := hb;
+    refl <|> { apply adj.reachable, simp },
+end
+
 lemma preconnected.set_univ_walk_nonempty (hconn : G.preconnected) (u v : V) :
   (set.univ : set (G.walk u v)).nonempty :=
 by { rw ← set.nonempty_iff_univ_nonempty, exact hconn u v }
@@ -1075,7 +1359,7 @@ lemma set_walk_length_zero_eq_of_ne {u v : V} (h : u ≠ v) :
   {p : G.walk u v | p.length = 0} = ∅ :=
 begin
   ext p,
-  simp only [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
+  simp only [set.mem_set_of_eq, set.mem_empty_iff_false, iff_false],
   exact λ h', absurd (walk.eq_of_length_eq_zero h') h,
 end
 

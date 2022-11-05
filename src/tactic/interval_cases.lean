@@ -206,7 +206,7 @@ setup_tactic_parser
 
 namespace interactive
 
-local postfix `?`:9001 := optional
+local postfix (name := parser.optional) `?`:9001 := optional
 
 /--
 `interval_cases n` searches for upper and lower bounds on a variable `n`,

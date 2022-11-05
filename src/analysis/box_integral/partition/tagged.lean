@@ -336,7 +336,7 @@ lemma distortion_le_of_mem (h : J ∈ π) : J.distortion ≤ π.distortion :=
 le_sup h
 
 lemma distortion_le_iff {c : ℝ≥0} : π.distortion ≤ c ↔ ∀ J ∈ π, box.distortion J ≤ c :=
-sup_le_iff
+finset.sup_le_iff
 
 @[simp] lemma _root_.box_integral.prepartition.distortion_bUnion_tagged (π : prepartition I)
   (πi : Π J, tagged_prepartition J) :

@@ -66,6 +66,12 @@ instance : inhabited (affine_basis punit k punit) :=
    ind    := affine_independent_of_subsingleton k id,
    tot    := by simp }⟩
 
+include b
+
+protected lemma nonempty : nonempty ι :=
+not_is_empty_iff.mp $ λ hι,
+  by simpa only [@range_eq_empty _ _ hι, affine_subspace.span_empty, bot_ne_top] using b.tot
+
 /-- Given an affine basis for an affine space `P`, if we single out one member of the family, we
 obtain a linear basis for the model space `V`.
 
@@ -76,7 +82,7 @@ basis.mk ((affine_independent_iff_linear_independent_vsub k b.points i).mp b.ind
 begin
   suffices : submodule.span k (range (λ (j : {x // x ≠ i}), b.points ↑j -ᵥ b.points i)) =
              vector_span k (range b.points),
-  { rw [this, ← direction_affine_span, b.tot, affine_subspace.direction_top], },
+  { rw [this, ← direction_affine_span, b.tot, affine_subspace.direction_top], exact le_rfl },
   conv_rhs { rw ← image_univ, },
   rw vector_span_image_eq_span_vsub_set_right_ne k b.points (mem_univ i),
   congr,
@@ -361,6 +367,9 @@ section division_ring
 
 variables [division_ring k] [module k V]
 include V
+
+protected lemma finite_dimensional [finite ι] (b : affine_basis ι k P) : finite_dimensional k V :=
+let ⟨i⟩ := b.nonempty in finite_dimensional.of_fintype_basis (b.basis_of i)
 
 variables (k V P)
 

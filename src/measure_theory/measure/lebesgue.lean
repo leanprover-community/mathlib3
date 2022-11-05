@@ -25,7 +25,7 @@ are proved more generally for any additive Haar measure on a finite-dimensional 
 -/
 
 noncomputable theory
-open classical set filter measure_theory measure_theory.measure
+open classical set filter measure_theory measure_theory.measure topological_space
 open ennreal (of_real)
 open_locale big_operators ennreal nnreal topological_space
 
@@ -276,7 +276,7 @@ lemma smul_map_diagonal_volume_pi [decidable_eq ι] {D : ι → ℝ} (h : det (d
 begin
   refine (measure.pi_eq (λ s hs, _)).symm,
   simp only [det_diagonal, measure.coe_smul, algebra.id.smul_eq_mul, pi.smul_apply],
-  rw [measure.map_apply _ (measurable_set.univ_pi_fintype hs)],
+  rw [measure.map_apply _ (measurable_set.univ_pi hs)],
   swap, { exact continuous.measurable (linear_map.continuous_on_pi _) },
   have : (matrix.to_lin' (diagonal D)) ⁻¹' (set.pi set.univ (λ (i : ι), s i))
     = set.pi set.univ (λ (i : ι), ((*) (D i)) ⁻¹' (s i)),
@@ -352,7 +352,7 @@ begin
   { simp only [matrix.transvection_struct.det, ennreal.of_real_one,
       (volume_preserving_transvection_struct _).map_eq, one_smul, _root_.inv_one, abs_one] },
   { rw [to_lin'_mul, det_mul, linear_map.coe_comp, ← measure.map_map, IHB, measure.map_smul,
-      IHA, smul_smul, ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, mul_comm, mul_inv₀],
+      IHA, smul_smul, ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, mul_comm, mul_inv],
     { apply continuous.measurable,
       apply linear_map.continuous_on_pi },
     { apply continuous.measurable,
@@ -396,8 +396,7 @@ variable {α : Type*}
 def region_between (f g : α → ℝ) (s : set α) : set (α × ℝ) :=
 {p : α × ℝ | p.1 ∈ s ∧ p.2 ∈ Ioo (f p.1) (g p.1)}
 
-lemma region_between_subset (f g : α → ℝ) (s : set α) :
-  region_between f g s ⊆ s ×ˢ (univ : set ℝ) :=
+lemma region_between_subset (f g : α → ℝ) (s : set α) : region_between f g s ⊆ s ×ˢ univ :=
 by simpa only [prod_univ, region_between, set.preimage, set_of_subset_set_of] using λ a, and.left
 
 variables [measurable_space α] {μ : measure α} {f g : α → ℝ} {s : set α}
@@ -412,6 +411,47 @@ begin
     (measurable_set_lt measurable_snd (hg.comp measurable_fst))),
   exact measurable_fst hs
 end
+
+/-- The region between two measurable functions on a measurable set is measurable;
+a version for the region together with the graph of the upper function. -/
+lemma measurable_set_region_between_oc
+  (hf : measurable f) (hg : measurable g) (hs : measurable_set s) :
+  measurable_set {p : α × ℝ | p.fst ∈ s ∧ p.snd ∈ Ioc (f p.fst) (g p.fst)} :=
+begin
+  dsimp only [region_between, Ioc, mem_set_of_eq, set_of_and],
+  refine measurable_set.inter _ ((measurable_set_lt (hf.comp measurable_fst) measurable_snd).inter
+    (measurable_set_le measurable_snd (hg.comp measurable_fst))),
+  exact measurable_fst hs,
+end
+
+/-- The region between two measurable functions on a measurable set is measurable;
+a version for the region together with the graph of the lower function. -/
+lemma measurable_set_region_between_co
+  (hf : measurable f) (hg : measurable g) (hs : measurable_set s) :
+  measurable_set {p : α × ℝ | p.fst ∈ s ∧ p.snd ∈ Ico (f p.fst) (g p.fst)} :=
+begin
+  dsimp only [region_between, Ico, mem_set_of_eq, set_of_and],
+  refine measurable_set.inter _ ((measurable_set_le (hf.comp measurable_fst) measurable_snd).inter
+    (measurable_set_lt measurable_snd (hg.comp measurable_fst))),
+  exact measurable_fst hs,
+end
+
+/-- The region between two measurable functions on a measurable set is measurable;
+a version for the region together with the graphs of both functions. -/
+lemma measurable_set_region_between_cc
+  (hf : measurable f) (hg : measurable g) (hs : measurable_set s) :
+  measurable_set {p : α × ℝ | p.fst ∈ s ∧ p.snd ∈ Icc (f p.fst) (g p.fst)} :=
+begin
+  dsimp only [region_between, Icc, mem_set_of_eq, set_of_and],
+  refine measurable_set.inter _ ((measurable_set_le (hf.comp measurable_fst) measurable_snd).inter
+    (measurable_set_le measurable_snd (hg.comp measurable_fst))),
+  exact measurable_fst hs,
+end
+
+/-- The graph of a measurable function is a measurable set. -/
+lemma measurable_set_graph (hf : measurable f) :
+  measurable_set {p : α × ℝ | p.snd = f p.fst} :=
+by simpa using measurable_set_region_between_cc hf hf measurable_set.univ
 
 theorem volume_region_between_eq_lintegral'
   (hf : measurable f) (hg : measurable g) (hs : measurable_set s) :
@@ -448,11 +488,8 @@ begin
     (μ.restrict s).prod volume (region_between (ae_measurable.mk f hf) (ae_measurable.mk g hg) s),
   { apply measure_congr,
     apply eventually_eq.rfl.inter,
-    exact
-      ((ae_eq_comp' measurable_fst.ae_measurable
-        hf.ae_eq_mk measure.prod_fst_absolutely_continuous).comp₂ _ eventually_eq.rfl).inter
-      (eventually_eq.rfl.comp₂ _ (ae_eq_comp' measurable_fst.ae_measurable
-        hg.ae_eq_mk measure.prod_fst_absolutely_continuous)) },
+    exact ((quasi_measure_preserving_fst.ae_eq_comp hf.ae_eq_mk).comp₂ _ eventually_eq.rfl).inter
+      (eventually_eq.rfl.comp₂ _ $ quasi_measure_preserving_fst.ae_eq_comp hg.ae_eq_mk) },
   rw [lintegral_congr_ae h₁,
       ← volume_region_between_eq_lintegral' hf.measurable_mk hg.measurable_mk hs],
   convert h₂ using 1,
@@ -487,3 +524,85 @@ volume_region_between_eq_integral' f_int g_int hs
   ((ae_restrict_iff' hs).mpr (eventually_of_forall hfg))
 
 end region_between
+
+/-- Consider a real set `s`. If a property is true almost everywhere in `s ∩ (a, b)` for
+all `a, b ∈ s`, then it is true almost everywhere in `s`. Formulated with `μ.restrict`.
+See also `ae_of_mem_of_ae_of_mem_inter_Ioo`. -/
+lemma ae_restrict_of_ae_restrict_inter_Ioo
+  {μ : measure ℝ} [has_no_atoms μ] {s : set ℝ} {p : ℝ → Prop}
+  (h : ∀ a b, a ∈ s → b ∈ s → a < b → ∀ᵐ x ∂(μ.restrict (s ∩ Ioo a b)), p x) :
+  ∀ᵐ x ∂(μ.restrict s), p x :=
+begin
+  /- By second-countability, we cover `s` by countably many intervals `(a, b)` (except maybe for
+  two endpoints, which don't matter since `μ` does not have any atom). -/
+  let T : s × s → set ℝ := λ p, Ioo p.1 p.2,
+  let u := ⋃ (i : ↥s × ↥s), T i,
+  have hfinite : (s \ u).finite,
+  { refine set.finite_of_forall_between_eq_endpoints (s \ u) (λ x hx y hy z hz hxy hyz, _),
+    by_contra' h,
+    apply hy.2,
+    exact mem_Union_of_mem (⟨x, hx.1⟩, ⟨z, hz.1⟩)
+      ⟨lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩ },
+  obtain ⟨A, A_count, hA⟩ :
+    ∃ (A : set (↥s × ↥s)), A.countable ∧ (⋃ (i ∈ A), T i) = ⋃ (i : ↥s × ↥s), T i :=
+    is_open_Union_countable _ (λ p, is_open_Ioo),
+  have : s ⊆ (s \ u) ∪ (⋃ p ∈ A, s ∩ T p),
+  { assume x hx,
+    by_cases h'x : x ∈ ⋃ (i : ↥s × ↥s), T i,
+    { rw ← hA at h'x,
+      obtain ⟨p, pA, xp⟩ : ∃ (p : ↥s × ↥s), p ∈ A ∧ x ∈ T p,
+        by simpa only [mem_Union, exists_prop, set_coe.exists, exists_and_distrib_right] using h'x,
+      right,
+      exact mem_bUnion pA ⟨hx, xp⟩ },
+    { exact or.inl ⟨hx, h'x⟩ } },
+  apply ae_restrict_of_ae_restrict_of_subset this,
+  rw [ae_restrict_union_iff, ae_restrict_bUnion_iff _ A_count],
+  split,
+  { have : μ.restrict (s \ u) = 0, by simp only [restrict_eq_zero, hfinite.measure_zero],
+    simp only [this, ae_zero] },
+  { rintros ⟨⟨a, as⟩, ⟨b, bs⟩⟩ -,
+    dsimp [T],
+    rcases le_or_lt b a with hba|hab,
+    { simp only [Ioo_eq_empty_of_le hba, inter_empty, restrict_empty, ae_zero] },
+    { exact h a b as bs hab } }
+end
+
+/-- Consider a real set `s`. If a property is true almost everywhere in `s ∩ (a, b)` for
+all `a, b ∈ s`, then it is true almost everywhere in `s`. Formulated with bare membership.
+See also `ae_restrict_of_ae_restrict_inter_Ioo`. -/
+lemma ae_of_mem_of_ae_of_mem_inter_Ioo
+  {μ : measure ℝ} [has_no_atoms μ] {s : set ℝ} {p : ℝ → Prop}
+  (h : ∀ a b, a ∈ s → b ∈ s → a < b → ∀ᵐ x ∂μ, x ∈ s ∩ Ioo a b → p x) :
+  ∀ᵐ x ∂μ, x ∈ s → p x :=
+begin
+  /- By second-countability, we cover `s` by countably many intervals `(a, b)` (except maybe for
+  two endpoints, which don't matter since `μ` does not have any atom). -/
+  let T : s × s → set ℝ := λ p, Ioo p.1 p.2,
+  let u := ⋃ (i : ↥s × ↥s), T i,
+  have hfinite : (s \ u).finite,
+  { refine set.finite_of_forall_between_eq_endpoints (s \ u) (λ x hx y hy z hz hxy hyz, _),
+    by_contra' h,
+    apply hy.2,
+    exact mem_Union_of_mem (⟨x, hx.1⟩, ⟨z, hz.1⟩)
+      ⟨lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩ },
+  obtain ⟨A, A_count, hA⟩ :
+    ∃ (A : set (↥s × ↥s)), A.countable ∧ (⋃ (i ∈ A), T i) = ⋃ (i : ↥s × ↥s), T i :=
+    is_open_Union_countable _ (λ p, is_open_Ioo),
+  have M : ∀ᵐ x ∂μ, x ∉ s \ u, from hfinite.countable.ae_not_mem _,
+  have M' : ∀ᵐ x ∂μ, ∀ (i : ↥s × ↥s) (H : i ∈ A), x ∈ s ∩ T i → p x,
+  { rw ae_ball_iff A_count,
+    rintros ⟨⟨a, as⟩, ⟨b, bs⟩⟩ -,
+    change ∀ᵐ (x : ℝ) ∂μ, x ∈ s ∩ Ioo a b → p x,
+    rcases le_or_lt b a with hba|hab,
+    { simp only [Ioo_eq_empty_of_le hba, inter_empty, is_empty.forall_iff, eventually_true,
+        mem_empty_iff_false], },
+    { exact h a b as bs hab } },
+  filter_upwards [M, M'] with x hx h'x,
+  assume xs,
+  by_cases Hx : x ∈ ⋃ (i : ↥s × ↥s), T i,
+  { rw ← hA at Hx,
+    obtain ⟨p, pA, xp⟩ : ∃ (p : ↥s × ↥s), p ∈ A ∧ x ∈ T p,
+      by simpa only [mem_Union, exists_prop, set_coe.exists, exists_and_distrib_right] using Hx,
+    apply h'x p pA ⟨xs, xp⟩ },
+  { exact false.elim (hx ⟨xs, Hx⟩) }
+end

@@ -3,7 +3,7 @@ Copyright (c) 2021 David Wärn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn, Joachim Breitner
 -/
-import algebra.free_monoid
+import algebra.free_monoid.basic
 import group_theory.congruence
 import group_theory.is_free_group
 import group_theory.subgroup.pointwise
@@ -63,6 +63,8 @@ another answer, which is constructively more satisfying, could be obtained by sh
 
 -/
 
+open set
+
 variables {ι : Type*} (M : Π i : ι, Type*) [Π i, monoid (M i)]
 
 /-- A relation on the free monoid on alphabet `Σ i, M i`, relating `⟨i, 1⟩` with `1` and
@@ -111,7 +113,7 @@ def lift : (Π i, M i →* N) ≃ (free_product M →* N) :=
 { to_fun := λ fi, con.lift _ (free_monoid.lift $ λ p : Σ i, M i, fi p.fst p.snd) $ con.con_gen_le
     begin
       simp_rw [con.rel_eq_coe, con.ker_rel],
-      rintros _ _ (i | ⟨i, x, y⟩),
+      rintro _ _ (i | ⟨x, y⟩),
       { change free_monoid.lift _ (free_monoid.of _) = free_monoid.lift _ 1,
         simp only [monoid_hom.map_one, free_monoid.lift_eval_of], },
       { change free_monoid.lift _ (free_monoid.of _ * free_monoid.of _) =
@@ -137,11 +139,11 @@ lemma induction_on {C : free_product M → Prop}
   C m :=
 begin
   let S : submonoid (free_product M) := submonoid.mk (set_of C) h_mul h_one,
-  convert subtype.prop (lift (λ i, of.cod_mrestrict S (h_of i)) m),
+  convert subtype.prop (lift (λ i, of.cod_restrict S (h_of i)) m),
   change monoid_hom.id _ m = S.subtype.comp _ m,
   congr,
   ext,
-  simp [monoid_hom.cod_mrestrict],
+  simp [monoid_hom.cod_restrict],
 end
 
 lemma of_left_inverse [decidable_eq ι] (i : ι) :
@@ -378,7 +380,7 @@ variable (M)
 /-- A `neword M i j` is a representation of a non-empty reduced words where the first letter comes
 from `M i` and the last letter comes from `M j`. It can be constructed from singletons and via
 concatentation, and thus provides a useful induction principle. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 inductive neword : ι → ι → Type (max u_1 u_2)
 | singleton : ∀ {i} (x : M i) (hne1 : x ≠ 1), neword i i
 | append : ∀ {i j k l} (w₁ : neword i j) (hne : j ≠ k) (w₂ : neword k l), neword i l
@@ -459,8 +461,8 @@ def to_word {i j} (w : neword M i j) : word M :=
 lemma of_word (w : word M) (h : w ≠ empty) :
   ∃ i j (w' : neword M i j), w'.to_word = w :=
 begin
-  suffices : ∃ i j (w' : neword M i j), w'.to_word.to_list = w.to_list,
-  { obtain ⟨i, j, w, h⟩ := this, refine ⟨i, j, w, _⟩, ext, rw h, },
+  rsuffices ⟨i, j, w, h⟩ : ∃ i j (w' : neword M i j), w'.to_word.to_list = w.to_list,
+  { refine ⟨i, j, w, _⟩, ext, rw h, },
   cases w with l hnot1 hchain,
   induction l with x l hi,
   { contradiction, },
@@ -674,7 +676,7 @@ The Ping-Pong-Lemma.
 
 Given a group action of `G` on `X` so that the `H i` acts in a specific way on disjoint subsets
 `X i` we can prove that `lift f` is injective, and thus the image of `lift f` is isomorphic to the
-direct product of the `H i`.
+free product of the `H i`.
 
 Often the Ping-Pong-Lemma is stated with regard to subgroups `H i` that generate the whole group;
 we generalize to arbitrary group homomorphisms `f i : H i →* G` and do not require the group to be
@@ -688,13 +690,11 @@ theorem lift_injective_of_ping_pong:
 begin
   classical,
   apply (injective_iff_map_eq_one (lift f)).mpr,
-  rw free_product.word.equiv.forall_congr_left',
+  rw (free_product.word.equiv : _ ≃ word H).forall_congr_left',
   { intros w Heq,
     dsimp [word.equiv] at *,
     { rw empty_of_word_prod_eq_one f hcard X hXnonempty hXdisj hpp Heq,
       reflexivity, }, },
-  apply_instance,
-  apply_instance,
 end
 
 end ping_pong_lemma
@@ -744,8 +744,8 @@ variables (hXnonempty : ∀ i, (X i).nonempty)
 variables (hXdisj : pairwise (λ i j, disjoint (X i) (X j)))
 variables (hYdisj : pairwise (λ i j, disjoint (Y i) (Y j)))
 variables (hXYdisj : ∀ i j, disjoint (X i) (Y j))
-variables (hX : ∀ i, a i • set.compl (Y i) ⊆ X i)
-variables (hY : ∀ i, a⁻¹ i • set.compl (X i) ⊆ Y i)
+variables (hX : ∀ i, a i • (Y i)ᶜ ⊆ X i)
+variables (hY : ∀ i, a⁻¹ i • (X i)ᶜ ⊆ Y i)
 
 include hXnonempty hXdisj hYdisj hXYdisj hX hY
 
@@ -815,38 +815,34 @@ begin
     -- Positive and negative powers separately
     cases (lt_or_gt_of_ne hnne0).swap with hlt hgt,
     { have h1n : 1 ≤ n := hlt,
-      calc a i ^ n • X' j ⊆ a i ^ n • (Y i).compl : set_smul_subset_set_smul_iff.mpr $
-        set.disjoint_iff_subset_compl_right.mp $
-          disjoint.union_left (hXYdisj j i) (hYdisj j i hij.symm)
+      calc a i ^ n • X' j ⊆ a i ^ n • (Y i)ᶜ : smul_set_mono
+            ((hXYdisj j i).union_left $ hYdisj j i hij.symm).subset_compl_right
       ... ⊆ X i :
       begin
         refine int.le_induction _ _ _ h1n,
         { rw zpow_one, exact hX i, },
         { intros n hle hi,
-          calc (a i ^ (n + 1)) • (Y i).compl
-                = (a i ^ n * a i) • (Y i).compl : by rw [zpow_add, zpow_one]
-            ... = a i ^ n • (a i • (Y i).compl) : mul_action.mul_smul _ _ _
-            ... ⊆ a i ^ n • X i : set_smul_subset_set_smul_iff.mpr $ hX i
-            ... ⊆ a i ^ n • (Y i).compl : set_smul_subset_set_smul_iff.mpr $
-              set.disjoint_iff_subset_compl_right.mp (hXYdisj i i)
+          calc (a i ^ (n + 1)) • (Y i)ᶜ
+                = (a i ^ n * a i) • (Y i)ᶜ : by rw [zpow_add, zpow_one]
+            ... = a i ^ n • (a i • (Y i)ᶜ) : mul_action.mul_smul _ _ _
+            ... ⊆ a i ^ n • X i : smul_set_mono $ hX i
+            ... ⊆ a i ^ n • (Y i)ᶜ : smul_set_mono (hXYdisj i i).subset_compl_right
             ... ⊆ X i : hi, },
       end
       ... ⊆ X' i : set.subset_union_left _ _, },
     { have h1n : n ≤ -1, { apply int.le_of_lt_add_one, simpa using hgt, },
-      calc a i ^ n • X' j ⊆ a i ^ n • (X i).compl : set_smul_subset_set_smul_iff.mpr $
-        set.disjoint_iff_subset_compl_right.mp $
-          disjoint.union_left (hXdisj j i hij.symm) (hXYdisj i j).symm
+      calc a i ^ n • X' j ⊆ a i ^ n • (X i)ᶜ : smul_set_mono
+            ((hXdisj j i hij.symm).union_left (hXYdisj i j).symm).subset_compl_right
       ... ⊆ Y i :
       begin
         refine int.le_induction_down _ _ _ h1n,
         { rw [zpow_neg, zpow_one], exact hY i, },
         { intros n hle hi,
-          calc (a i ^ (n - 1)) • (X i).compl
-                = (a i ^ n * (a i)⁻¹) • (X i).compl : by rw [zpow_sub, zpow_one]
-            ... = a i ^ n • ((a i)⁻¹ • (X i).compl) : mul_action.mul_smul _ _ _
-            ... ⊆ a i ^ n • Y i : set_smul_subset_set_smul_iff.mpr $ hY i
-            ... ⊆ a i ^ n • (X i).compl : set_smul_subset_set_smul_iff.mpr $
-              set.disjoint_iff_subset_compl_right.mp (hXYdisj i i).symm
+          calc (a i ^ (n - 1)) • (X i)ᶜ
+                = (a i ^ n * (a i)⁻¹) • (X i)ᶜ : by rw [zpow_sub, zpow_one]
+            ... = a i ^ n • ((a i)⁻¹ • (X i)ᶜ) : mul_action.mul_smul _ _ _
+            ... ⊆ a i ^ n • Y i : smul_set_mono $ hY i
+            ... ⊆ a i ^ n • (X i)ᶜ : smul_set_mono (hXYdisj i i).symm.subset_compl_right
             ... ⊆ Y i : hi, },
       end
       ... ⊆ X' i : set.subset_union_right _ _, }, },

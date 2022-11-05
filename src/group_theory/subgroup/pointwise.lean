@@ -5,6 +5,7 @@ Authors: Eric Wieser
 -/
 import group_theory.subgroup.basic
 import group_theory.submonoid.pointwise
+import group_theory.group_action.conj_act
 
 /-! # Pointwise instances on `subgroup` and `add_subgroup`s
 
@@ -22,6 +23,8 @@ These actions are available in the `pointwise` locale.
 This file is almost identical to `group_theory/submonoid/pointwise.lean`. Where possible, try to
 keep them in sync.
 -/
+
+open set
 
 variables {α : Type*} {G : Type*} {A : Type*} [group G] [add_group A]
 
@@ -57,9 +60,29 @@ lemma mem_smul_pointwise_iff_exists (m : G) (a : α) (S : subgroup G) :
   m ∈ a • S ↔ ∃ (s : G), s ∈ S ∧ a • s = m :=
 (set.mem_smul_set : m ∈ a • (S : set G) ↔ _)
 
+@[simp] lemma smul_bot (a : α) : a • (⊥ : subgroup G) = ⊥ :=
+by simp [set_like.ext_iff, mem_smul_pointwise_iff_exists, eq_comm]
+
 instance pointwise_central_scalar [mul_distrib_mul_action αᵐᵒᵖ G] [is_central_scalar α G] :
   is_central_scalar α (subgroup G) :=
 ⟨λ a S, congr_arg (λ f, S.map f) $ monoid_hom.ext $ by exact op_smul_eq_smul _⟩
+
+lemma conj_smul_le_of_le {P H : subgroup G} (hP : P ≤ H) (h : H) :
+  mul_aut.conj (h : G) • P ≤ H :=
+begin
+  rintro - ⟨g, hg, rfl⟩,
+  exact H.mul_mem (H.mul_mem h.2 (hP hg)) (H.inv_mem h.2),
+end
+
+lemma conj_smul_subgroup_of {P H : subgroup G} (hP : P ≤ H) (h : H) :
+  mul_aut.conj h • P.subgroup_of H = (mul_aut.conj (h : G) • P).subgroup_of H :=
+begin
+  refine le_antisymm _ _,
+  { rintro - ⟨g, hg, rfl⟩,
+    exact ⟨g, hg, rfl⟩ },
+  { rintro p ⟨g, hg, hp⟩,
+    exact ⟨⟨g, hP hg⟩, hg, subtype.ext hp⟩ },
+end
 
 end monoid
 
@@ -89,6 +112,9 @@ set_smul_subset_iff
 lemma subset_pointwise_smul_iff {a : α} {S T : subgroup G} : S ≤ a • T ↔ a⁻¹ • S ≤ T :=
 subset_set_smul_iff
 
+@[simp] lemma smul_inf (a : α) (S T : subgroup G) : a • (S ⊓ T) = a • S ⊓ a • T :=
+by simp [set_like.ext_iff, mem_pointwise_smul_iff_inv_smul_mem]
+
 /-- Applying a `mul_distrib_mul_action` results in an isomorphic subgroup -/
 @[simps] def equiv_smul (a : α) (H : subgroup G) : H ≃* (a • H : subgroup G) :=
 (mul_distrib_mul_action.to_mul_equiv G a).subgroup_map H
@@ -110,6 +136,30 @@ begin
   rintros _ ⟨h, h', rfl : _ = _, hh', rfl⟩,
   exact H.mul_mem hh hh',
 end
+
+lemma normal.conj_act {G : Type*} [group G] {H : subgroup G} (hH : H.normal ) (g : conj_act G) :
+  g • H = H :=
+begin
+  ext,
+  split,
+  { intro h,
+    have := hH.conj_mem (g⁻¹ • x) _ (conj_act.of_conj_act g),
+    rw subgroup.mem_pointwise_smul_iff_inv_smul_mem at h,
+    dsimp at *,
+    rw conj_act.smul_def at *,
+    simp only [conj_act.of_conj_act_inv, conj_act.of_conj_act_to_conj_act, inv_inv] at *,
+    convert this,
+    simp only [←mul_assoc, mul_right_inv, one_mul, mul_inv_cancel_right],
+    rw subgroup.mem_pointwise_smul_iff_inv_smul_mem at h,
+    exact h},
+  { intro h,
+    rw [subgroup.mem_pointwise_smul_iff_inv_smul_mem, conj_act.smul_def],
+    apply hH.conj_mem,
+    exact h}
+end
+
+@[simp] lemma smul_normal (g : G) (H : subgroup G) [h : normal H] : mul_aut.conj g • H = H :=
+h.conj_act g
 
 end group
 

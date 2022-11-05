@@ -154,6 +154,12 @@ by rw [←eq_inv_comp, comp_id]
 lemma comp_hom_eq_id (α : X ≅ Y) {f : Y ⟶ X} : f ≫ α.hom = 𝟙 Y ↔ f = α.inv :=
 by rw [←eq_comp_inv, id_comp]
 
+lemma inv_comp_eq_id (α : X ≅ Y) {f : X ⟶ Y} : α.inv ≫ f = 𝟙 Y ↔ f = α.hom :=
+hom_comp_eq_id α.symm
+
+lemma comp_inv_eq_id (α : X ≅ Y) {f : X ⟶ Y} : f ≫ α.inv = 𝟙 X ↔ f = α.hom :=
+comp_hom_eq_id α.symm
+
 lemma hom_eq_inv (α : X ≅ Y) (β : Y ≅ X) : α.hom = β.inv ↔ β.hom = α.inv :=
 by { erw [inv_eq_inv α.symm β, eq_comm], refl }
 
@@ -301,18 +307,27 @@ lemma hom_comp_eq_id (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : g ≫ f = 𝟙 X �
 lemma comp_hom_eq_id (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : f ≫ g = 𝟙 Y ↔ f = inv g :=
 (as_iso g).comp_hom_eq_id
 
+lemma inv_comp_eq_id (g : X ⟶ Y) [is_iso g] {f : X ⟶ Y} : inv g ≫ f = 𝟙 Y ↔ f = g :=
+(as_iso g).inv_comp_eq_id
+
+lemma comp_inv_eq_id (g : X ⟶ Y) [is_iso g] {f : X ⟶ Y} : f ≫ inv g = 𝟙 X ↔ f = g :=
+(as_iso g).comp_inv_eq_id
+
+lemma is_iso_of_hom_comp_eq_id (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} (h : g ≫ f = 𝟙 X) : is_iso f :=
+by { rw [(hom_comp_eq_id _).mp h], apply_instance }
+
+lemma is_iso_of_comp_hom_eq_id (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} (h : f ≫ g = 𝟙 Y) : is_iso f :=
+by { rw [(comp_hom_eq_id _).mp h], apply_instance }
+
 namespace iso
 
 @[ext] lemma inv_ext {f : X ≅ Y} {g : Y ⟶ X}
   (hom_inv_id : f.hom ≫ g = 𝟙 X) : f.inv = g :=
-begin
-  apply (cancel_epi f.hom).mp,
-  simp [hom_inv_id],
-end
+((hom_comp_eq_id f).1 hom_inv_id).symm
 
 @[ext] lemma inv_ext' {f : X ≅ Y} {g : Y ⟶ X}
   (hom_inv_id : f.hom ≫ g = 𝟙 X) : g = f.inv :=
-by { symmetry, ext, assumption, }
+(hom_comp_eq_id f).1 hom_inv_id
 
 /-!
 All these cancellation lemmas can be solved by `simp [cancel_mono]` (or `simp [cancel_epi]`),

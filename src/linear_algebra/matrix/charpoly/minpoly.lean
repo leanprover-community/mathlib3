@@ -5,6 +5,7 @@ Authors: Aaron Anderson, Jalex Stark
 -/
 
 import linear_algebra.matrix.charpoly.coeff
+import linear_algebra.matrix.to_lin
 import ring_theory.power_basis
 
 /-!

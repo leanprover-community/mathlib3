@@ -45,7 +45,7 @@ a.e. disjoint and cover the whole space. -/
 space `α` with respect to a measure `α` if the sets `g • s`, `g : G`, are pairwise a.e. disjoint and
 cover the whole space. -/
 @[protect_proj, to_additive is_add_fundamental_domain]
-structure is_fundamental_domain (G : Type*) {α : Type*} [has_one G] [has_scalar G α]
+structure is_fundamental_domain (G : Type*) {α : Type*} [has_one G] [has_smul G α]
   [measurable_space α] (s : set α) (μ : measure α . volume_tac) : Prop :=
 (null_measurable_set : null_measurable_set s μ)
 (ae_covers : ∀ᵐ x ∂μ, ∃ g : G, g • x ∈ s)
@@ -54,7 +54,7 @@ structure is_fundamental_domain (G : Type*) {α : Type*} [has_one G] [has_scalar
 namespace is_fundamental_domain
 
 variables {G α E : Type*} [group G] [mul_action G α] [measurable_space α]
-  [normed_group E] {s t : set α} {μ : measure α}
+  [normed_add_comm_group E] {s t : set α} {μ : measure α}
 
 /-- If for each `x : α`, exactly one of `g • x`, `g : G`, belongs to a measurable set `s`, then `s`
 is a fundamental domain for the action of `G` on `α`. -/
@@ -142,7 +142,7 @@ h.image_of_equiv (measurable_equiv.smul g) (measure_preserving_smul _ _)
 h.image_of_equiv (measurable_equiv.smul g) (measure_preserving_smul _ _) (equiv.refl _) $
   smul_comm g
 
-variables [encodable G] {ν : measure α}
+variables [countable G] {ν : measure α}
 
 @[to_additive] lemma sum_restrict_of_ac (h : is_fundamental_domain G s μ) (hν : ν ≪ μ) :
   sum (λ g : G, ν.restrict (g • s)) = ν :=
@@ -230,7 +230,7 @@ protected lemma measure_eq (hs : is_fundamental_domain G s μ)
 by simpa only [set_lintegral_one] using hs.set_lintegral_eq ht (λ _, 1) (λ _ _, rfl)
 
 @[to_additive] protected lemma ae_strongly_measurable_on_iff
-  {β : Type*} [topological_space β] [metrizable_space β]
+  {β : Type*} [topological_space β] [pseudo_metrizable_space β]
   (hs : is_fundamental_domain G s μ) (ht : is_fundamental_domain G t μ) {f : α → β}
   (hf : ∀ (g : G) x, f (g • x) = f x) :
   ae_strongly_measurable f (μ.restrict s) ↔ ae_strongly_measurable f (μ.restrict t) :=
@@ -299,6 +299,36 @@ begin
       by rw [restrict_congr_set (hac hs.Union_smul_ae_eq), restrict_univ] },
   { rw [integral_undef hfs, integral_undef],
     rwa [hs.integrable_on_iff ht hf] at hfs }
+end
+
+/-- If the action of a countable group `G` admits an invariant measure `μ` with a fundamental domain
+`s`, then every null-measurable set `t` such that the sets `g • t ∩ s` are pairwise a.e.-disjoint
+has measure at most `μ s`. -/
+@[to_additive "If the additive action of a countable group `G` admits an invariant measure `μ` with
+a fundamental domain `s`, then every null-measurable set `t` such that the sets `g +ᵥ t ∩ s` are
+pairwise a.e.-disjoint has measure at most `μ s`."]
+ lemma measure_le_of_pairwise_disjoint (hs : is_fundamental_domain G s μ)
+  (ht : null_measurable_set t μ) (hd : pairwise (ae_disjoint μ on (λ g : G, g • t ∩ s))) :
+  μ t ≤ μ s :=
+calc μ t = ∑' g : G, μ (g • t ∩ s) : hs.measure_eq_tsum t
+... = μ (⋃ g : G, g • t ∩ s) : eq.symm $ measure_Union₀ hd $
+  λ g, (ht.smul _).inter hs.null_measurable_set
+... ≤ μ s : measure_mono (Union_subset $ λ g, inter_subset_right _ _)
+
+/-- If the action of a countable group `G` admits an invariant measure `μ` with a fundamental domain
+`s`, then every null-measurable set `t` of measure strictly greater than `μ s` contains two
+points `x y` such that `g • x = y` for some `g ≠ 1`. -/
+@[to_additive "If the additive action of a countable group `G` admits an invariant measure `μ` with
+a fundamental domain `s`, then every null-measurable set `t` of measure strictly greater than `μ s`
+contains two points `x y` such that `g +ᵥ x = y` for some `g ≠ 0`."]
+lemma exists_ne_one_smul_eq (hs : is_fundamental_domain G s μ) (htm : null_measurable_set t μ)
+  (ht : μ s < μ t) : ∃ (x y ∈ t) (g ≠ (1 : G)), g • x = y :=
+begin
+  contrapose! ht,
+  refine hs.measure_le_of_pairwise_disjoint htm (pairwise.ae_disjoint $ λ g₁ g₂ hne, _),
+  rintro _ ⟨⟨⟨x, hx, rfl⟩, -⟩, ⟨y, hy, hxy⟩, -⟩,
+  refine ht x hx y hy (g₂⁻¹ * g₁) (mt inv_mul_eq_one.1 hne.symm) _,
+  rw [mul_smul, ← hxy, inv_smul_smul]
 end
 
 /-- If `f` is invariant under the action of a countable group `G`, and `μ` is a `G`-invariant

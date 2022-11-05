@@ -2,8 +2,7 @@ import data.nat.cast
 import tactic.norm_cast
 
 constant ℝ : Type
-@[instance] constant real.add_monoid : add_monoid ℝ
-@[instance] constant real.has_one : has_one ℝ
+@[instance] constant real.add_monoid_with_one : add_monoid_with_one ℝ
 
 -- set_option trace.simplify.rewrite true
 set_option pp.notation false

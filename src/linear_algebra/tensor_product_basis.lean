@@ -38,15 +38,3 @@ lemma basis.tensor_product_apply' (b : basis ι R M) (c : basis κ R N) (i : ι 
 by simp [basis.tensor_product]
 
 end comm_ring
-
-section field
-variables {K : Type*} (V W : Type*)
-variables [field K] [add_comm_group V] [module K V] [add_comm_group W] [module K W]
-
-/-- If `V` and `W` are finite dimensional `K` vector spaces, so is `V ⊗ W`. -/
-instance finite_dimensional_tensor_product [finite_dimensional K V] [finite_dimensional K W] :
-  finite_dimensional K (tensor_product K V W) :=
-finite_dimensional.of_fintype_basis
-  (basis.tensor_product (basis.of_vector_space K V) (basis.of_vector_space K W))
-
-end field

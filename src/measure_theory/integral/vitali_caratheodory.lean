@@ -136,9 +136,10 @@ begin
     rcases h₂ (ennreal.half_pos ε0).ne' with ⟨g₂, f₂_le_g₂, g₂cont, g₂int⟩,
     refine ⟨λ x, g₁ x + g₂ x, λ x, add_le_add (f₁_le_g₁ x) (f₂_le_g₂ x), g₁cont.add g₂cont, _⟩,
     simp only [simple_func.coe_add, ennreal.coe_add, pi.add_apply],
-    rw [lintegral_add f₁.measurable.coe_nnreal_ennreal f₂.measurable.coe_nnreal_ennreal,
-        lintegral_add g₁cont.measurable.coe_nnreal_ennreal g₂cont.measurable.coe_nnreal_ennreal],
+    rw [lintegral_add_left f₁.measurable.coe_nnreal_ennreal,
+        lintegral_add_left g₁cont.measurable.coe_nnreal_ennreal],
     convert add_le_add g₁int g₂int using 1,
+    simp only [],
     conv_lhs { rw ← ennreal.add_halves ε },
     abel }
 end
@@ -153,7 +154,7 @@ lemma exists_le_lower_semicontinuous_lintegral_ge
   (f : α → ℝ≥0∞) (hf : measurable f) {ε : ℝ≥0∞} (εpos : ε ≠ 0) :
   ∃ g : α → ℝ≥0∞, (∀ x, f x ≤ g x) ∧ lower_semicontinuous g ∧ (∫⁻ x, g x ∂μ ≤ ∫⁻ x, f x ∂μ + ε) :=
 begin
-  rcases ennreal.exists_pos_sum_of_encodable' εpos ℕ with ⟨δ, δpos, hδ⟩,
+  rcases ennreal.exists_pos_sum_of_countable' εpos ℕ with ⟨δ, δpos, hδ⟩,
   have : ∀ n, ∃ g : α → ℝ≥0, (∀ x, simple_func.eapprox_diff f n x ≤ g x) ∧ lower_semicontinuous g ∧
     (∫⁻ x, g x ∂μ ≤ ∫⁻ x, simple_func.eapprox_diff f n x ∂μ + δ n) :=
   λ n, simple_func.exists_le_lower_semicontinuous_lintegral_ge μ
@@ -199,7 +200,7 @@ begin
   { calc ∫⁻ (x : α), g x ∂μ
         ≤ ∫⁻ (x : α), f x + w x ∂μ + ε / 2 : gint
     ... = ∫⁻ (x : α), f x ∂ μ + ∫⁻ (x : α), w x ∂ μ + (ε / 2) :
-      by rw lintegral_add fmeas.coe_nnreal_ennreal wmeas.coe_nnreal_ennreal
+      by rw lintegral_add_right _ wmeas.coe_nnreal_ennreal
     ... ≤ ∫⁻ (x : α), f x ∂ μ + ε / 2 + ε / 2 :
       add_le_add_right (add_le_add_left wint.le _) _
     ... = ∫⁻ (x : α), f x ∂μ + ε : by rw [add_assoc, ennreal.add_halves] },
@@ -231,7 +232,7 @@ begin
       rw this,
       exact (f_lt_g0 x).trans_le le_self_add } },
   { calc ∫⁻ x, g0 x + g1 x ∂μ =  ∫⁻ x, g0 x ∂μ + ∫⁻ x, g1 x ∂μ :
-      lintegral_add g0_cont.measurable g1_cont.measurable
+      lintegral_add_left g0_cont.measurable _
     ... ≤ (∫⁻ x, f x ∂μ + ε / 2) + (0 + ε / 2) :
       begin
         refine add_le_add _ _,
@@ -345,16 +346,17 @@ begin
           simpa using hc,
         end } },
   { have A : ∫⁻ (x : α), f₁ x ∂μ + ∫⁻ (x : α), f₂ x ∂μ ≠ ⊤,
-      by rwa ← lintegral_add f₁.measurable.coe_nnreal_ennreal f₂.measurable.coe_nnreal_ennreal ,
+      by rwa ← lintegral_add_left f₁.measurable.coe_nnreal_ennreal,
     rcases h₁ (ennreal.add_ne_top.1 A).1 (ennreal.half_pos ε0).ne'
       with ⟨g₁, f₁_le_g₁, g₁cont, g₁int⟩,
     rcases h₂ (ennreal.add_ne_top.1 A).2 (ennreal.half_pos ε0).ne'
       with ⟨g₂, f₂_le_g₂, g₂cont, g₂int⟩,
     refine ⟨λ x, g₁ x + g₂ x, λ x, add_le_add (f₁_le_g₁ x) (f₂_le_g₂ x), g₁cont.add g₂cont, _⟩,
     simp only [simple_func.coe_add, ennreal.coe_add, pi.add_apply],
-    rw [lintegral_add f₁.measurable.coe_nnreal_ennreal f₂.measurable.coe_nnreal_ennreal,
-        lintegral_add g₁cont.measurable.coe_nnreal_ennreal g₂cont.measurable.coe_nnreal_ennreal],
+    rw [lintegral_add_left f₁.measurable.coe_nnreal_ennreal,
+        lintegral_add_left g₁cont.measurable.coe_nnreal_ennreal],
     convert add_le_add g₁int g₂int using 1,
+    simp only [],
     conv_lhs { rw ← ennreal.add_halves ε },
     abel }
 end
@@ -478,7 +480,7 @@ begin
       by { congr' 1, field_simp [δ, mul_comm] },
   show ∀ᵐ (x : α) ∂μ, g x < ⊤,
   { filter_upwards [gp_lt_top] with _ hx,
-    simp [g, ereal.sub_eq_add_neg, lt_top_iff_ne_top, lt_top_iff_ne_top.1 hx], },
+    simp [g, sub_eq_add_neg, lt_top_iff_ne_top, lt_top_iff_ne_top.1 hx], },
   show ∀ x, (f x : ereal) < g x,
   { assume x,
     rw ereal.coe_real_ereal_eq_coe_to_nnreal_sub_coe_to_nnreal (f x),

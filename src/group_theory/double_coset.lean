@@ -85,7 +85,7 @@ lemma bot_rel_eq_left_rel (H : subgroup G) :
   (setoid ↑(⊥ : subgroup G) ↑H).rel = (quotient_group.left_rel H).rel :=
 begin
   ext a b,
-  rw rel_iff,
+  rw [rel_iff, setoid.rel, quotient_group.left_rel_apply],
   split,
   { rintros ⟨a, (rfl : a = 1), b, hb, rfl⟩,
     change a⁻¹ * (1 * a * b) ∈ H,
@@ -98,7 +98,7 @@ lemma rel_bot_eq_right_group_rel (H : subgroup G) :
   (setoid ↑H ↑(⊥ : subgroup G)).rel = (quotient_group.right_rel H).rel :=
 begin
   ext a b,
-  rw rel_iff,
+  rw [rel_iff, setoid.rel, quotient_group.right_rel_apply],
   split,
   { rintros ⟨b, hb, a, (rfl : a = 1), rfl⟩,
     change b * a * 1 * a⁻¹ ∈ H,

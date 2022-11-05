@@ -32,6 +32,16 @@ def centralizer : submonoid M :=
 
 @[simp, norm_cast, to_additive] lemma coe_centralizer : ↑(centralizer S) = S.centralizer := rfl
 
+lemma centralizer_to_subsemigroup : (centralizer S).to_subsemigroup = subsemigroup.centralizer S :=
+rfl
+
+lemma _root_.add_submonoid.centralizer_to_add_subsemigroup {M} [add_monoid M] (S : set M) :
+  (add_submonoid.centralizer S).to_add_subsemigroup = add_subsemigroup.centralizer S :=
+rfl
+
+attribute [to_additive add_submonoid.centralizer_to_add_subsemigroup]
+  submonoid.centralizer_to_subsemigroup
+
 variables {S}
 
 @[to_additive] lemma mem_centralizer_iff {z : M} : z ∈ centralizer S ↔ ∀ g ∈ S, g * z = z * g :=

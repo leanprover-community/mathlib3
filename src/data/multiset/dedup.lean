@@ -58,9 +58,7 @@ theorem dedup_eq_self {s : multiset α} : dedup s = s ↔ nodup s :=
 ⟨λ e, e ▸ nodup_dedup s,
  quot.induction_on s $ λ l h, congr_arg coe h.dedup⟩
 
-alias dedup_eq_self ↔ _ multiset.nodup.dedup
-
-alias dedup_eq_self ↔ _ multiset.nodup.dedup
+alias dedup_eq_self ↔ _ nodup.dedup
 
 theorem dedup_eq_zero {s : multiset α} : dedup s = 0 ↔ s = 0 :=
 ⟨λ h, eq_zero_of_subset_zero $ h ▸ subset_dedup _,
@@ -72,6 +70,9 @@ theorem dedup_eq_zero {s : multiset α} : dedup s = 0 ↔ s = 0 :=
 theorem le_dedup {s t : multiset α} : s ≤ dedup t ↔ s ≤ t ∧ nodup s :=
 ⟨λ h, ⟨le_trans h (dedup_le _), nodup_of_le h (nodup_dedup _)⟩,
  λ ⟨l, d⟩, (le_iff_subset d).2 $ subset.trans (subset_of_le l) (subset_dedup _)⟩
+
+theorem le_dedup_self {s : multiset α} : s ≤ dedup s ↔ nodup s :=
+by rw [le_dedup, and_iff_right le_rfl]
 
 theorem dedup_ext {s t : multiset α} : dedup s = dedup t ↔ ∀ a, a ∈ s ↔ a ∈ t :=
 by simp [nodup.ext]

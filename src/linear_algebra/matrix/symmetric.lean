@@ -90,13 +90,13 @@ h.transpose.map _
   (A - B).is_symm :=
 (transpose_sub _ _).trans (hA.symm ▸ hB.symm ▸ rfl)
 
-@[simp] lemma is_symm.smul [has_scalar R α] {A : matrix n n α} (h : A.is_symm) (k : R) :
+@[simp] lemma is_symm.smul [has_smul R α] {A : matrix n n α} (h : A.is_symm) (k : R) :
   (k • A).is_symm :=
 (transpose_smul _ _).trans (congr_arg _ h)
 
-@[simp] lemma is_symm.minor {A : matrix n n α} (h : A.is_symm) (f : m → n) :
-  (A.minor f f).is_symm :=
-(transpose_minor _ _ _).trans (h.symm ▸ rfl)
+@[simp] lemma is_symm.submatrix {A : matrix n n α} (h : A.is_symm) (f : m → n) :
+  (A.submatrix f f).is_symm :=
+(transpose_submatrix _ _ _).trans (h.symm ▸ rfl)
 
 /-- The diagonal matrix `diagonal v` is symmetric. -/
 @[simp] lemma is_symm_diagonal [decidable_eq n] [has_zero α] (v : n → α) :

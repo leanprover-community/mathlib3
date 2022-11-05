@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import algebra.group.type_tags
-import algebra.group_with_zero.basic
+import algebra.group_with_zero.units
 import data.pi.algebra
 
 /-!
@@ -297,6 +297,22 @@ e.to_equiv.eq_symm_apply
 @[to_additive] lemma symm_comp_eq {α : Type*} (e : M ≃* N) (f : α → M) (g : α → N) :
   e.symm ∘ g = f ↔ g = e ∘ f := e.to_equiv.symm_comp_eq f g
 
+@[simp, to_additive]
+theorem symm_trans_self (e : M ≃* N) : e.symm.trans e = refl N :=
+fun_like.ext _ _ e.apply_symm_apply
+
+@[simp, to_additive]
+theorem self_trans_symm (e : M ≃* N) : e.trans e.symm = refl M :=
+fun_like.ext _ _ e.symm_apply_apply
+
+@[to_additive, simp] lemma coe_monoid_hom_refl {M} [mul_one_class M] :
+  (refl M : M →* M) = monoid_hom.id M := rfl
+
+@[to_additive, simp] lemma coe_monoid_hom_trans {M N P}
+  [mul_one_class M] [mul_one_class N] [mul_one_class P] (e₁ : M ≃* N) (e₂ : N ≃* P) :
+  (e₁.trans e₂ : M →* P) = (e₂ : N →* P).comp ↑e₁ :=
+rfl
+
 /-- Two multiplicative isomorphisms agree if they are defined by the
     same underlying function. -/
 @[ext, to_additive
@@ -320,17 +336,17 @@ fun_like.congr_fun h x
 
 /-- The `mul_equiv` between two monoids with a unique element. -/
 @[to_additive "The `add_equiv` between two add_monoids with a unique element."]
-def mul_equiv_of_unique_of_unique {M N}
+def mul_equiv_of_unique {M N}
   [unique M] [unique N] [has_mul M] [has_mul N] : M ≃* N :=
 { map_mul' := λ _ _, subsingleton.elim _ _,
-  ..equiv_of_unique_of_unique }
+  ..equiv.equiv_of_unique M N }
 
 /-- There is a unique monoid homomorphism between two monoids with a unique element. -/
 @[to_additive
   "There is a unique additive monoid homomorphism between two additive monoids with
 a unique element."]
 instance {M N} [unique M] [unique N] [has_mul M] [has_mul N] : unique (M ≃* N) :=
-{ default := mul_equiv_of_unique_of_unique ,
+{ default := mul_equiv_of_unique ,
   uniq := λ _, ext $ λ x, subsingleton.elim _ _}
 
 /-!
@@ -354,11 +370,16 @@ lemma map_ne_one_iff {M N} [mul_one_class M] [mul_one_class N] (h : M ≃* N) {x
 mul_equiv_class.map_ne_one_iff h
 
 /-- A bijective `semigroup` homomorphism is an isomorphism -/
-@[to_additive "A bijective `add_semigroup` homomorphism is an isomorphism"]
+@[to_additive "A bijective `add_semigroup` homomorphism is an isomorphism", simps apply]
 noncomputable def of_bijective {M N F} [has_mul M] [has_mul N] [mul_hom_class F M N] (f : F)
   (hf : function.bijective f) : M ≃* N :=
 { map_mul' := map_mul f,
   ..equiv.of_bijective f hf }
+
+@[simp]
+lemma of_bijective_apply_symm_apply {M N} [mul_one_class M] [mul_one_class N] {n : N} (f : M →* N)
+  (hf : function.bijective f) : f ((equiv.of_bijective f hf).symm n) = n :=
+(mul_equiv.of_bijective f hf).apply_symm_apply n
 
 /--
 Extract the forward direction of a multiplicative equivalence
@@ -459,12 +480,13 @@ def Pi_subsingleton
 
 /-- A multiplicative equivalence of groups preserves inversion. -/
 @[to_additive "An additive equivalence of additive groups preserves negation."]
-protected lemma map_inv [group G] [group H] (h : G ≃* H) (x : G) : h x⁻¹ = (h x)⁻¹ :=
+protected lemma map_inv [group G] [division_monoid H] (h : G ≃* H) (x : G) : h x⁻¹ = (h x)⁻¹ :=
 map_inv h x
 
 /-- A multiplicative equivalence of groups preserves division. -/
 @[to_additive "An additive equivalence of additive groups preserves subtractions."]
-protected lemma map_div [group G] [group H] (h : G ≃* H) (x y : G) : h (x / y) = h x / h y :=
+protected lemma map_div [group G] [division_monoid H] (h : G ≃* H) (x y : G) :
+  h (x / y) = h x / h y :=
 map_div h x y
 
 end mul_equiv
@@ -497,14 +519,7 @@ def to_units [group G] : G ≃* Gˣ :=
 @[simp, to_additive] lemma coe_to_units [group G] (g : G) :
   (to_units g : G) = g := rfl
 
-@[to_additive]
-protected lemma group.is_unit {G} [group G] (x : G) : is_unit x := (to_units x).is_unit
-
 namespace units
-
-@[simp, to_additive] lemma coe_inv [group G] (u : Gˣ) :
-  ↑u⁻¹ = (u⁻¹ : G) :=
-to_units.symm.map_inv u
 
 variables [monoid M] [monoid N] [monoid P]
 
@@ -515,6 +530,14 @@ def map_equiv (h : M ≃* N) : Mˣ ≃* Nˣ :=
   left_inv := λ u, ext $ h.left_inv u,
   right_inv := λ u, ext $ h.right_inv u,
   .. map h.to_monoid_hom }
+
+@[simp]
+lemma map_equiv_symm (h : M ≃* N) : (map_equiv h).symm = map_equiv h.symm :=
+rfl
+
+@[simp]
+lemma coe_map_equiv (h : M ≃* N) (x : Mˣ) : (map_equiv h x : N) = h x :=
+rfl
 
 /-- Left multiplication by a unit of a monoid is a permutation of the underlying type. -/
 @[to_additive "Left addition of an additive unit is a permutation of the underlying type.",
@@ -667,24 +690,17 @@ end group_with_zero
 
 end equiv
 
-/-- When the group is commutative, `equiv.inv` is a `mul_equiv`. There is a variant of this
+/-- In a `division_comm_monoid`, `equiv.inv` is a `mul_equiv`. There is a variant of this
 `mul_equiv.inv' G : G ≃* Gᵐᵒᵖ` for the non-commutative case. -/
-@[to_additive "When the `add_group` is commutative, `equiv.neg` is an `add_equiv`."]
-def mul_equiv.inv (G : Type*) [comm_group G] : G ≃* G :=
+@[to_additive "When the `add_group` is commutative, `equiv.neg` is an `add_equiv`.", simps apply]
+def mul_equiv.inv (G : Type*) [division_comm_monoid G] : G ≃* G :=
 { to_fun   := has_inv.inv,
   inv_fun  := has_inv.inv,
   map_mul' := mul_inv,
   ..equiv.inv G }
 
-/-- When the group with zero is commutative, `equiv.inv₀` is a `mul_equiv`. -/
-@[simps apply] def mul_equiv.inv₀ (G : Type*) [comm_group_with_zero G] : G ≃* G :=
-{ to_fun   := has_inv.inv,
-  inv_fun  := has_inv.inv,
-  map_mul' := λ x y, mul_inv₀,
-  ..equiv.inv G }
-
-@[simp] lemma mul_equiv.inv₀_symm (G : Type*) [comm_group_with_zero G] :
-  (mul_equiv.inv₀ G).symm = mul_equiv.inv₀ G := rfl
+@[simp] lemma mul_equiv.inv_symm (G : Type*) [division_comm_monoid G] :
+  (mul_equiv.inv G).symm = mul_equiv.inv G := rfl
 
 section type_tags
 
@@ -734,3 +750,16 @@ def mul_equiv.to_additive'' [add_zero_class G] [mul_one_class H] :
 add_equiv.to_multiplicative''.symm
 
 end type_tags
+
+section
+variables (G) (H)
+
+/-- `additive (multiplicative G)` is just `G`. -/
+def add_equiv.additive_multiplicative [add_zero_class G] : additive (multiplicative G) ≃+ G :=
+mul_equiv.to_additive'' (mul_equiv.refl (multiplicative G))
+
+/-- `multiplicative (additive H)` is just `H`. -/
+def mul_equiv.multiplicative_additive [mul_one_class H] : multiplicative (additive H) ≃* H :=
+add_equiv.to_multiplicative'' (add_equiv.refl (additive H))
+
+end

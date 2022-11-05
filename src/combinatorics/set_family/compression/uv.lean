@@ -74,6 +74,8 @@ section generalized_boolean_algebra
 variables [generalized_boolean_algebra α] [decidable_rel (@disjoint α _ _)]
   [decidable_rel ((≤) : α → α → Prop)] {s : finset α} {u v a b : α}
 
+local attribute [instance] decidable_eq_of_decidable_le
+
 /-- To UV-compress `a`, if it doesn't touch `U` and does contain `V`, we remove `V` and
 put `U` in. We'll only really use this when `|U| = |V|` and `U ∩ V = ∅`. -/
 def compress (u v a : α) : α := if disjoint u a ∧ v ≤ a then (a ⊔ u) \ v else a
@@ -83,7 +85,7 @@ reduce the cardinality, so we keep all elements whose compression is already pre
 def compression (u v : α) (s : finset α) :=
 s.filter (λ a, compress u v a ∈ s) ∪ (s.image $ compress u v).filter (λ a, a ∉ s)
 
-localized "notation `𝓒 ` := uv.compression" in finset_family
+localized "notation (name := uv.compression) `𝓒 ` := uv.compression" in finset_family
 
 /-- `is_compressed u v s` expresses that `s` is UV-compressed. -/
 def is_compressed (u v : α) (s : finset α) := 𝓒 u v s = s

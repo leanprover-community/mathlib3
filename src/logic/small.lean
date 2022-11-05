@@ -34,7 +34,7 @@ lemma small.mk' {α : Type v} {S : Type w} (e : α ≃ S) : small.{w} α :=
 /--
 An arbitrarily chosen model in `Type w` for a `w`-small type.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def shrink (α : Type v) [small.{w} α] : Type w :=
 classical.some (@small.equiv_small α _)
 
@@ -47,22 +47,25 @@ nonempty.some (classical.some_spec (@small.equiv_small α _))
 
 @[priority 100]
 instance small_self (α : Type v) : small.{v} α :=
-small.mk' (equiv.refl _)
+small.mk' $ equiv.refl α
+
+theorem small_map {α : Type*} {β : Type*} [hβ : small.{w} β] (e : α ≃ β) : small.{w} α :=
+let ⟨γ, ⟨f⟩⟩ := hβ.equiv_small in small.mk' (e.trans f)
+
+theorem small_lift (α : Type u) [hα : small.{v} α] : small.{max v w} α :=
+let ⟨⟨γ, ⟨f⟩⟩⟩ := hα in small.mk' $ f.trans equiv.ulift.symm
 
 @[priority 100]
 instance small_max (α : Type v) : small.{max w v} α :=
-small.mk' equiv.ulift.{w}.symm
+small_lift.{v w} α
 
-instance small_ulift (α : Type v) : small.{v} (ulift.{w} α) :=
-small.mk' equiv.ulift
+instance small_ulift (α : Type u) [small.{v} α] : small.{v} (ulift.{w} α) :=
+small_map equiv.ulift
 
 theorem small_type : small.{max (u+1) v} (Type u) := small_max.{max (u+1) v} _
 
 section
 open_locale classical
-
-theorem small_map {α : Type*} {β : Type*} [hβ : small.{w} β] (e : α ≃ β) : small.{w} α :=
-let ⟨γ, ⟨f⟩⟩ := hβ.equiv_small in small.mk' (e.trans f)
 
 theorem small_congr {α : Type*} {β : Type*} (e : α ≃ β) : small.{w} α ↔ small.{w} β :=
 ⟨λ h, @small_map _ _ h e.symm, λ h, @small_map _ _ h e⟩
@@ -91,7 +94,7 @@ begin
 end
 
 /-!
-We don't define `small_of_fintype` or `small_of_encodable` in this file,
+We don't define `small_of_fintype` or `small_of_countable` in this file,
 to keep imports to `logic` to a minimum.
 -/
 

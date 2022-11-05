@@ -41,7 +41,7 @@ instance [non_unital_semiring R] [non_unital_semiring S] [star_ring R] [star_rin
   star_ring (R × S) :=
 { ..prod.star_add_monoid, ..(prod.star_semigroup : star_semigroup (R × S)) }
 
-instance {α : Type w} [has_scalar α R] [has_scalar α S] [has_star α] [has_star R] [has_star S]
+instance {α : Type w} [has_smul α R] [has_smul α S] [has_star α] [has_star R] [has_star S]
   [star_module α R] [star_module α S] :
   star_module α (R × S) :=
 { star_smul := λ r x, prod.ext (star_smul _ _) (star_smul _ _) }

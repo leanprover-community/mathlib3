@@ -113,7 +113,7 @@ section group_with_zero
 variables [group_with_zero R] [star_semigroup R]
 
 @[norm_cast] lemma coe_inv (U : unitary R) : ↑(U⁻¹) = (U⁻¹ : R) :=
-eq_inv_of_mul_right_eq_one (coe_mul_star_self _)
+eq_inv_of_mul_eq_one_right $ coe_mul_star_self _
 
 @[norm_cast] lemma coe_div (U₁ U₂ : unitary R) : ↑(U₁ / U₂) = (U₁ / U₂ : R) :=
 by simp only [div_eq_mul_inv, coe_inv, submonoid.coe_mul]
@@ -136,10 +136,7 @@ instance : has_neg (unitary R) :=
 @[norm_cast] lemma coe_neg (U : unitary R) : ↑(-U) = (-U : R) := rfl
 
 instance : has_distrib_neg (unitary R) :=
-{ neg := has_neg.neg,
-  neg_neg := λ U, subtype.ext $ neg_neg _,
-  neg_mul := λ U₁ U₂, subtype.ext $ neg_mul _ _,
-  mul_neg := λ U₁ U₂, subtype.ext $ mul_neg _ _ }
+subtype.coe_injective.has_distrib_neg _ coe_neg (unitary R).coe_mul
 
 end ring
 

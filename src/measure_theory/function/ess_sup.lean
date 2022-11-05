@@ -219,7 +219,7 @@ begin
   rw eventually_map at h_restrict_le ⊢,
   rw ae_restrict_iff' hs at h_restrict_le,
   have hc : 0 ≤ c,
-  { suffices : ∃ x, 0 ≤ f x ∧ f x ≤ c, by { obtain ⟨x, hx⟩ := this, exact hx.1.trans hx.2, },
+  { rsuffices ⟨x, hx⟩ : ∃ x, 0 ≤ f x ∧ f x ≤ c, from hx.1.trans hx.2,
     refine frequently.exists _,
     { exact μ.ae, },
     rw [eventually_le, ae_restrict_iff' hs] at hf,
@@ -252,10 +252,13 @@ limsup_eq_zero_iff
 lemma ess_sup_const_mul {a : ℝ≥0∞} : ess_sup (λ (x : α), a * (f x)) μ = a * ess_sup f μ :=
 limsup_const_mul
 
+lemma ess_sup_mul_le (f g : α → ℝ≥0∞) : ess_sup (f * g) μ ≤ ess_sup f μ * ess_sup g μ :=
+limsup_mul_le f g
+
 lemma ess_sup_add_le (f g : α → ℝ≥0∞) : ess_sup (f + g) μ ≤ ess_sup f μ + ess_sup g μ :=
 limsup_add_le f g
 
-lemma ess_sup_liminf_le {ι} [encodable ι] [linear_order ι] (f : ι → α → ℝ≥0∞) :
+lemma ess_sup_liminf_le {ι} [countable ι] [linear_order ι] (f : ι → α → ℝ≥0∞) :
   ess_sup (λ x, at_top.liminf (λ n, f n x)) μ ≤ at_top.liminf (λ n, ess_sup (λ x, f n x) μ) :=
 by { simp_rw ess_sup, exact ennreal.limsup_liminf_le_liminf_limsup (λ a b, f b a), }
 

@@ -38,12 +38,30 @@ begin
   { ac_mono },
 end
 
+example (x y z k : ℕ)
+  (h : 3 ≤ (4 : ℕ))
+  (h' : z ≤ y)
+: (k + 3 + x) - y ≤ (k + 4 + x) - z :=
+begin
+  mono, norm_num
+end
+
 example (x y z k : ℤ)
   (h : 3 ≤ (4 : ℤ))
   (h' : z ≤ y)
 : (k + 3 + x) - y ≤ (k + 4 + x) - z :=
 begin
   mono, norm_num
+end
+
+example (x y z a b : ℕ)
+  (h : a ≤ (b : ℕ))
+  (h' : z ≤ y)
+: (1 + a + x) - y ≤ (1 + b + x) - z :=
+begin
+  transitivity (1 + a + x - z),
+  { mono, },
+  { mono, mono, mono },
 end
 
 example (x y z a b : ℤ)

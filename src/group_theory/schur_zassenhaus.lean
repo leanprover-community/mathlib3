@@ -36,7 +36,7 @@ variables {G : Type*} [group G] (H : subgroup G) [is_commutative H] [fintype (G 
 /-- The quotient of the transversals of an abelian normal `N` by the `diff` relation. -/
 def quotient_diff :=
 quotient (setoid.mk (λ α β, diff (monoid_hom.id H) α β = 1) ⟨λ α, diff_self (monoid_hom.id H) α,
-  λ α β h, by rw [←diff_inv, h, one_inv], λ α β γ h h', by rw [←diff_mul_diff, h, h', one_mul]⟩)
+  λ α β h, by rw [←diff_inv, h, inv_one], λ α β γ h h', by rw [←diff_mul_diff, h, h', one_mul]⟩)
 
 instance : inhabited H.quotient_diff := quotient.inhabited _
 
@@ -65,7 +65,7 @@ instance : mul_action G H.quotient_diff :=
   mul_smul := λ g₁ g₂ q, quotient.induction_on' q (λ T, congr_arg quotient.mk'
     (by rw mul_inv_rev; exact mul_smul (op g₁⁻¹) (op g₂⁻¹) T)),
   one_smul := λ q, quotient.induction_on' q (λ T, congr_arg quotient.mk'
-    (by rw one_inv; apply one_smul Gᵐᵒᵖ T)) }
+    (by rw inv_one; apply one_smul Gᵐᵒᵖ T)) }
 
 lemma smul_diff' (h : H) :
   diff (monoid_hom.id H) α ((op (h : G)) • β) = diff (monoid_hom.id H) α β * h ^ H.index :=
@@ -78,16 +78,14 @@ begin
   exact self_eq_mul_right.mpr ((quotient_group.eq_one_iff _).mpr h.2),
 end
 
-variables [fintype H]
-
-lemma eq_one_of_smul_eq_one (hH : nat.coprime (fintype.card H) H.index)
+lemma eq_one_of_smul_eq_one (hH : nat.coprime (nat.card H) H.index)
   (α : H.quotient_diff) (h : H) : h • α = α → h = 1 :=
 quotient.induction_on' α $ λ α hα, (pow_coprime hH).injective $
   calc h ^ H.index = diff (monoid_hom.id H) ((op ((h⁻¹ : H) : G)) • α) α :
     by rw [←diff_inv, smul_diff', diff_self, one_mul, inv_pow, inv_inv]
   ... = 1 ^ H.index : (quotient.exact' hα).trans (one_pow H.index).symm
 
-lemma exists_smul_eq (hH : nat.coprime (fintype.card H) H.index)
+lemma exists_smul_eq (hH : nat.coprime (nat.card H) H.index)
   (α β : H.quotient_diff) : ∃ h : H, h • α = β :=
 quotient.induction_on' α (quotient.induction_on' β (λ β α, exists_imp_exists (λ n, quotient.sound')
   ⟨(pow_coprime hH).symm (diff (monoid_hom.id H) β α), (diff_inv _ _ _).symm.trans
@@ -95,12 +93,12 @@ quotient.induction_on' α (quotient.induction_on' β (λ β α, exists_imp_exist
   (by rw [inv_pow, ←pow_coprime_apply hH, equiv.apply_symm_apply, mul_inv_self])))⟩))
 
 lemma is_complement'_stabilizer_of_coprime {α : H.quotient_diff}
-  (hH : nat.coprime (fintype.card H) H.index) : is_complement' H (stabilizer G α) :=
+  (hH : nat.coprime (nat.card H) H.index) : is_complement' H (stabilizer G α) :=
 is_complement'_stabilizer α (eq_one_of_smul_eq_one hH α) (λ g, exists_smul_eq hH (g • α) α)
 
 /-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
 private lemma exists_right_complement'_of_coprime_aux
-  (hH : nat.coprime (fintype.card H) H.index) : ∃ K : subgroup G, is_complement' H K :=
+  (hH : nat.coprime (nat.card H) H.index) : ∃ K : subgroup G, is_complement' H K :=
 nonempty_of_inhabited.elim (λ α, ⟨stabilizer G α, is_complement'_stabilizer_of_coprime hH⟩)
 
 end schur_zassenhaus_abelian
@@ -177,12 +175,12 @@ begin
   contrapose! h4,
   have h5 : fintype.card (G ⧸ K) < fintype.card G,
   { rw [←index_eq_card, ←K.index_mul_card],
-    refine lt_mul_of_one_lt_right (nat.pos_of_ne_zero index_ne_zero_of_fintype)
+    refine lt_mul_of_one_lt_right (nat.pos_of_ne_zero index_ne_zero_of_finite)
       (K.one_lt_card_iff_ne_bot.mpr h4.1) },
   have h6 : nat.coprime (fintype.card (N.map (quotient_group.mk' K)))
     (N.map (quotient_group.mk' K)).index,
   { have index_map := N.index_map_eq this (by rwa quotient_group.ker_mk),
-    have index_pos : 0 < N.index := nat.pos_of_ne_zero index_ne_zero_of_fintype,
+    have index_pos : 0 < N.index := nat.pos_of_ne_zero index_ne_zero_of_finite,
     rw index_map,
     refine h1.coprime_dvd_left _,
     rw [←nat.mul_dvd_mul_iff_left index_pos, index_mul_card, ←index_map, index_mul_card],
@@ -206,7 +204,7 @@ begin
   have key := step2 h1 h2 h3 (K.map N.subtype) K.map_subtype_le,
   rw ← map_bot N.subtype at key,
   conv at key { congr, skip, to_rhs, rw [←N.subtype_range, N.subtype.range_eq_map] },
-  have inj := map_injective (show function.injective N.subtype, from subtype.coe_injective),
+  have inj := map_injective N.subtype_injective,
   rwa [inj.eq_iff, inj.eq_iff] at key,
 end
 
@@ -256,6 +254,7 @@ begin
   refine not_forall_not.mp (λ h3, _),
   haveI := by exactI
     schur_zassenhaus_induction.step7 hN (λ G' _ _ hG', by { apply ih _ hG', refl }) h3,
+  rw ← nat.card_eq_fintype_card at hN,
   exact not_exists_of_forall_not h3 (exists_right_complement'_of_coprime_aux hN),
 end
 
@@ -286,8 +285,8 @@ begin
   have hN3 : nat.card G ≠ 0,
   { rw ← N.card_mul_index,
     exact mul_ne_zero hN1 hN2 },
-  haveI := (cardinal.lt_omega_iff_fintype.mp
-    (lt_of_not_ge (mt cardinal.to_nat_apply_of_omega_le hN3))).some,
+  haveI := (cardinal.lt_aleph_0_iff_fintype.mp
+    (lt_of_not_ge (mt cardinal.to_nat_apply_of_aleph_0_le hN3))).some,
   rw nat.card_eq_fintype_card at hN,
   exact exists_right_complement'_of_coprime_of_fintype hN,
 end

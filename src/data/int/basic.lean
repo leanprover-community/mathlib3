@@ -3,16 +3,8 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
-<<<<<<< HEAD
 import algebra.ring.basic
 import data.nat.basic
-=======
-import data.nat.pow
-import data.nat.cast
-import algebra.ring.regular
-import algebra.char_zero.defs
-import algebra.order.ring.nontrivial
->>>>>>> split_order_ring
 
 /-!
 # Basic instances on the integers

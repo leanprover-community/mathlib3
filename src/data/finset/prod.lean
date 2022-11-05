@@ -213,7 +213,8 @@ end
 @[simp] lemma diag_union_off_diag : s.diag ∪ s.off_diag = s ×ˢ s :=
 filter_union_filter_neg_eq _ _
 
-@[simp] lemma disjoint_diag_off_diag : disjoint s.diag s.off_diag := disjoint_filter_filter_neg _ _
+@[simp] lemma disjoint_diag_off_diag : disjoint s.diag s.off_diag :=
+disjoint_filter_filter_neg _ _ _
 
 lemma product_sdiff_diag : s ×ˢ s \ s.diag = s.off_diag :=
 by rw [←diag_union_off_diag, union_comm, union_sdiff_self,

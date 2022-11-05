@@ -384,7 +384,7 @@ lemma pow_gcd_eq_one {M : Type*} [monoid M] (x : M) {m n : ℕ} (hm : x ^ m = 1)
   x ^ m.gcd n = 1 :=
 begin
   cases m, { simp only [hn, nat.gcd_zero_left] },
-  lift x to Mˣ using is_unit_of_pow_eq_one _ _ hm m.succ_ne_zero,
+  lift x to Mˣ using is_unit_of_pow_eq_one hm m.succ_ne_zero,
   simp only [← units.coe_pow] at *,
   rw [← units.coe_one, ← zpow_coe_nat, ← units.ext_iff] at *,
   simp only [nat.gcd_eq_gcd_ab, zpow_add, zpow_mul, hm, hn, one_zpow, one_mul]
@@ -437,7 +437,7 @@ lemma nat_gcd_helper_1 (d x y a b u v tx ty : ℕ) (hu : d * u = x) (hv : d * v 
 
 lemma nat_lcm_helper (x y d m n : ℕ) (hd : nat.gcd x y = d) (d0 : 0 < d)
   (xy : x * y = n) (dm : d * m = n) : nat.lcm x y = m :=
-(nat.mul_right_inj d0).1 $ by rw [dm, ← xy, ← hd, nat.gcd_mul_lcm]
+(nat.mul_right_inj d0.ne_bot).1 $ by rw [dm, ← xy, ← hd, nat.gcd_mul_lcm]
 
 lemma nat_coprime_helper_zero_left (x : ℕ) (h : 1 < x) : ¬ nat.coprime 0 x :=
 mt (nat.coprime_zero_left _).1 $ ne_of_gt h
@@ -524,7 +524,7 @@ meta def prove_lcm_nat (c : instance_cache) (ex ey : expr) :
   | _, 1 := pure (c, ex, `(nat.lcm_one_right).mk_app [ex])
   | _, _ := do
     (c, ed, pd) ← prove_gcd_nat c ex ey,
-    (c, p0) ← prove_pos c ed,
+    (c, p0) ← prove_pos_nat c ed,
     (c, en, xy) ← prove_mul_nat c ex ey,
     d ← ed.to_nat,
     (c, em) ← c.of_nat ((x * y) / d),

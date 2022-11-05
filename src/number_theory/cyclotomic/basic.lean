@@ -393,7 +393,7 @@ begin
     rw is_root_of_unity_iff n.pos,
     exact ⟨n, nat.mem_divisors_self n n.ne_zero, hx⟩ },
   { simp only [mem_singleton_iff, exists_eq_left, mem_set_of_eq] at hx,
-    obtain ⟨i, hin, rfl⟩ := hζ.eq_pow_of_pow_eq_one hx n.pos,
+    obtain ⟨i, hin, rfl⟩ := hζ.eq_pow_of_pow_eq_one hx n.ne_zero,
     refine set_like.mem_coe.2 (subalgebra.pow_mem _ (subset_adjoin _) _),
     rwa [finset.mem_coe, multiset.mem_to_finset, mem_roots $ cyclotomic_ne_zero n B],
     exact hζ.is_root_cyclotomic n.pos }
@@ -405,7 +405,7 @@ lemma adjoin_roots_cyclotomic_eq_adjoin_root_cyclotomic {n : ℕ+} [decidable_eq
 begin
   refine le_antisymm (adjoin_le (λ x hx, _)) (adjoin_mono (λ x hx, _)),
   { suffices hx : x ^ ↑n = 1,
-    obtain ⟨i, hin, rfl⟩ := hζ.eq_pow_of_pow_eq_one hx n.pos,
+    obtain ⟨i, hin, rfl⟩ := hζ.eq_pow_of_pow_eq_one hx n.ne_zero,
     exact set_like.mem_coe.2 (subalgebra.pow_mem _ (subset_adjoin $ mem_singleton ζ) _),
     rw is_root_of_unity_iff n.pos,
     refine ⟨n, nat.mem_divisors_self n n.ne_zero, _⟩,
@@ -490,7 +490,7 @@ lemma splitting_field_X_pow_sub_one : is_splitting_field K L (X ^ (n : ℕ) - 1)
     refine set.ext (λ x, _),
     simp only [polynomial.map_pow, mem_singleton_iff, multiset.mem_to_finset, exists_eq_left,
       mem_set_of_eq, polynomial.map_X, polynomial.map_one, finset.mem_coe, polynomial.map_sub],
-    rwa [← ring_hom.map_one C, mem_roots (@X_pow_sub_C_ne_zero L _ _ _ n.pos _), is_root.def,
+    rwa [← ring_hom.map_one C, mem_roots (@X_pow_sub_C_ne_zero L _ _ _ n.ne_zero _), is_root.def,
       eval_sub, eval_pow, eval_C, eval_X, sub_eq_zero]
   end }
 

@@ -82,7 +82,7 @@ begin
   simp only [nat.is_unit_iff],
   apply or.imp_right _ (h.2 a _),
   { rintro rfl,
-    rw [←nat.mul_right_inj (pos_of_gt h1), ←hab, mul_one] },
+    exact (nat.mul_right_eq_self_iff h1.ne_bot).1 hab.symm },
   { rw hab,
     exact dvd_mul_right _ _ }
 end
@@ -620,12 +620,12 @@ begin
   wlog := hp.dvd_mul.1 pdvdxy using x y,
   cases case with a ha,
   have hap : a ∣ p, from ⟨y, by rwa [ha, sq,
-        mul_assoc, nat.mul_right_inj hp.pos, eq_comm] at h⟩,
+        mul_assoc, nat.mul_right_inj hp.ne_zero, eq_comm] at h⟩,
   exact ((nat.dvd_prime hp).1 hap).elim
-    (λ _, by clear_aux_decl; simp [*, sq, nat.mul_right_inj hp.pos] at *
+    (λ _, by clear_aux_decl; simp [*, sq, nat.mul_right_inj hp.ne_zero] at *
       {contextual := tt})
     (λ _, by clear_aux_decl; simp [*, sq, mul_comm, mul_assoc,
-      nat.mul_right_inj hp.pos, nat.mul_right_eq_self_iff hp.pos] at *
+      nat.mul_right_inj hp.ne_zero, nat.mul_right_eq_self_iff hp.ne_zero] at *
       {contextual := tt})
 end,
 λ ⟨h₁, h₂⟩, h₁.symm ▸ h₂.symm ▸ (sq _).symm⟩

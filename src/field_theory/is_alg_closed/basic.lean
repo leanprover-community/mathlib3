@@ -72,11 +72,11 @@ variables {k}
 theorem exists_root [is_alg_closed k] (p : k[X]) (hp : p.degree ≠ 0) : ∃ x, is_root p x :=
 exists_root_of_splits _ (is_alg_closed.splits p) hp
 
-lemma exists_pow_nat_eq [is_alg_closed k] (x : k) {n : ℕ} (hn : 0 < n) : ∃ z, z ^ n = x :=
+lemma exists_pow_nat_eq [is_alg_closed k] (x : k) {n : ℕ} (hn : n ≠ 0) : ∃ z, z ^ n = x :=
 begin
   rcases exists_root (X ^ n - C x) _ with ⟨z, hz⟩, swap,
   { rw [degree_X_pow_sub_C hn x],
-    exact ne_of_gt (with_bot.coe_lt_coe.2 hn) },
+    exact with_bot.coe_eq_zero.not.mpr hn },
   use z,
   simp only [eval_C, eval_X, eval_pow, eval_sub, is_root.def] at hz,
   exact sub_eq_zero.1 hz
@@ -84,7 +84,7 @@ end
 
 lemma exists_eq_mul_self [is_alg_closed k] (x : k) : ∃ z, x = z * z :=
 begin
-  rcases exists_pow_nat_eq x zero_lt_two with ⟨z, rfl⟩,
+  rcases exists_pow_nat_eq x two_ne_zero with ⟨z, rfl⟩,
   exact ⟨z, sq z⟩
 end
 
@@ -342,7 +342,7 @@ omit hS
 @[priority 100]
 noncomputable instance perfect_ring (p : ℕ) [fact p.prime] [char_p k p]
   [is_alg_closed k] : perfect_ring k p :=
-perfect_ring.of_surjective k p $ λ x, is_alg_closed.exists_pow_nat_eq _ $ ne_zero.pos p
+perfect_ring.of_surjective k p $ λ x, is_alg_closed.exists_pow_nat_eq _ $ ne_zero.ne p
 
 /-- Algebraically closed fields are infinite since `Xⁿ⁺¹ - 1` is separable when `#K = n` -/
 @[priority 500]

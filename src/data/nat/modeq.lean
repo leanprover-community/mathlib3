@@ -326,7 +326,7 @@ end
 lemma div_mod_eq_mod_mul_div (a b c : ℕ) : a / b % c = a % (b * c) / b :=
 if hb0 : b = 0 then by simp [hb0]
 else by rw [← @add_right_cancel_iff _ _ (c * (a / b / c)), mod_add_div, nat.div_div_eq_div_mul,
-  ← nat.mul_right_inj (nat.pos_of_ne_zero hb0),← @add_left_cancel_iff _ _ (a % b), mod_add_div,
+  ← nat.mul_right_inj hb0, ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
   mul_add, ← @add_left_cancel_iff _ _ (a % (b * c) % b), add_left_comm,
   ← add_assoc (a % (b * c) % b), mod_add_div, ← mul_assoc, mod_add_div, mod_mul_right_mod]
 
@@ -357,7 +357,7 @@ lemma add_mod_add_of_le_add_mod {a b c : ℕ} (hc : c ≤ a % c + b % c) :
   (a + b) % c + c = a % c + b % c :=
 by rw [← add_mod_add_ite, if_pos hc]
 
-lemma add_div {a b c : ℕ} (hc0 : 0 < c) : (a + b) / c = a / c + b / c +
+lemma add_div {a b c : ℕ} (hc0 : c ≠ 0) : (a + b) / c = a / c + b / c +
   if c ≤ a % c + b % c then 1 else 0 :=
 begin
   rw [← nat.mul_right_inj hc0, ← @add_left_cancel_iff _ _ ((a + b) % c + a % c + b % c)],
@@ -373,7 +373,7 @@ end
 lemma add_div_eq_of_add_mod_lt {a b c : ℕ} (hc : a % c + b % c < c) :
   (a + b) / c = a / c + b / c :=
 if hc0 : c = 0 then by simp [hc0]
-else by rw [add_div (nat.pos_of_ne_zero hc0), if_neg (not_le_of_lt hc), add_zero]
+else by rw [add_div hc0, if_neg (not_le_of_lt hc), add_zero]
 
 protected lemma add_div_of_dvd_right {a b c : ℕ} (hca : c ∣ a) :
   (a + b) / c = a / c + b / c :=
@@ -386,13 +386,13 @@ protected lemma add_div_of_dvd_left {a b c : ℕ} (hca : c ∣ b) :
   (a + b) / c = a / c + b / c :=
 by rwa [add_comm, nat.add_div_of_dvd_right, add_comm]
 
-lemma add_div_eq_of_le_mod_add_mod {a b c : ℕ} (hc : c ≤ a % c + b % c) (hc0 : 0 < c) :
+lemma add_div_eq_of_le_mod_add_mod {a b c : ℕ} (hc : c ≤ a % c + b % c) (hc0 : c ≠ 0) :
   (a + b) / c = a / c + b / c + 1 :=
 by rw [add_div hc0, if_pos hc]
 
 lemma add_div_le_add_div (a b c : ℕ) : a / c + b / c ≤ (a + b) / c :=
 if hc0 : c = 0 then by simp [hc0]
-else by rw [nat.add_div (nat.pos_of_ne_zero hc0)]; exact nat.le_add_right _ _
+else by rw [nat.add_div hc0]; exact nat.le_add_right _ _
 
 lemma le_mod_add_mod_of_dvd_add_of_not_dvd {a b c : ℕ} (h : c ∣ a + b) (ha : ¬ c ∣ a) :
   c ≤ a % c + b % c :=
@@ -407,7 +407,7 @@ lemma odd_mul_odd_div_two {m n : ℕ} (hm1 : m % 2 = 1) (hn1 : n % 2 = 1) :
   (m * n) / 2 = m * (n / 2) + m / 2 :=
 have hm0 : 0 < m := nat.pos_of_ne_zero (λ h, by simp * at *),
 have hn0 : 0 < n := nat.pos_of_ne_zero (λ h, by simp * at *),
-(nat.mul_right_inj zero_lt_two).1 $
+(nat.mul_right_inj two_ne_zero).1 $
 by rw [mul_add, two_mul_odd_div_two hm1, mul_left_comm, two_mul_odd_div_two hn1,
   two_mul_odd_div_two (nat.odd_mul_odd hm1 hn1), mul_tsub, mul_one,
   ← add_tsub_assoc_of_le (succ_le_of_lt hm0),

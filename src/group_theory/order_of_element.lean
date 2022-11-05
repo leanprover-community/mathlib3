@@ -213,7 +213,7 @@ begin
   -- Use the minimum prime factor of `a` as `p`.
   refine hd a.min_fac (nat.min_fac_prime h) a_min_fac_dvd_p_sub_one _,
   rw [←order_of_dvd_iff_pow_eq_one, nat.dvd_div_iff (a_min_fac_dvd_p_sub_one),
-      ha, mul_comm, nat.mul_dvd_mul_iff_left (order_of_pos' _)],
+      ha, mul_comm, nat.mul_dvd_mul_iff_left (order_of_pos' _).ne'],
   { exact nat.min_fac_dvd a, },
   { rw is_of_fin_order_iff_pow_eq_one,
     exact Exists.intro n (id ⟨hn, hx⟩) },

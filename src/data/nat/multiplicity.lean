@@ -164,7 +164,7 @@ calc ∑ i in finset.Ico 1 b, n / p ^ i
     by simp only [add_tsub_cancel_of_le hkn]
 ... = ∑ i in finset.Ico 1 b, (k / p ^ i + (n - k) / p ^ i +
       if p ^ i ≤ k % p ^ i + (n - k) % p ^ i then 1 else 0) :
-    by simp only [nat.add_div (pow_pos hp.pos _)]
+    by simp only [nat.add_div (pow_ne_zero _ hp.ne_zero)]
 ... = _ : by simp [sum_add_distrib, sum_boole]
 
 /-- The multiplicity of `p` in `choose n k` is the number of carries when `k` and `n - k`

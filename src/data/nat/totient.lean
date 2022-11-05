@@ -142,7 +142,7 @@ begin
     have : d ∣ b, { rw ←hb2, apply gcd_dvd_right },
     rcases this with ⟨q, rfl⟩,
     refine ⟨q, ⟨⟨(mul_lt_mul_left hd0).1 hb1, _⟩, rfl⟩⟩,
-    rwa [gcd_mul_left, mul_right_eq_self_iff hd0] at hb2 },
+    rwa [gcd_mul_left, mul_right_eq_self_iff hd0.ne'] at hb2 },
 end
 
 lemma sum_totient (n : ℕ) : n.divisors.sum φ = n :=
@@ -186,7 +186,7 @@ calc φ (p ^ (n + 1))
   end
 ... = _ :
 have h1 : set.inj_on (* p) (range (p ^ n)),
-  from λ x _ y _, (nat.mul_left_inj hp.pos).1,
+  from λ x _ y _, (nat.mul_left_inj hp.ne_zero).1,
 have h2 : (range (p ^ n)).image (* p) ⊆ range (p ^ (n + 1)),
   from λ a, begin
     simp only [mem_image, mem_range, exists_imp_distrib],

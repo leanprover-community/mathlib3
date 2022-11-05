@@ -357,10 +357,10 @@ begin
   rw [card_eq_card_quotient_mul_card_subgroup (center G), mul_comm, hk] at hG,
   have hk2 := (nat.pow_dvd_pow_iff_le_right (fact.out p.prime).one_lt).1 ⟨_, hG.symm⟩,
   interval_cases k,
-  { rw [sq, pow_one, nat.mul_right_inj (fact.out p.prime).pos] at hG,
+  { rw [sq, pow_one, nat.mul_right_inj (ne_zero.ne p)] at hG,
     exact is_cyclic_of_prime_card hG },
   { exact @is_cyclic_of_subsingleton _ _ ⟨fintype.card_le_one_iff.1 ((nat.mul_right_inj
-      (pow_pos (fact.out p.prime).pos 2)).1 (hG.trans (mul_one (p ^ 2)).symm)).le⟩ },
+      (pow_ne_zero 2 (ne_zero.ne p))).1 (hG.trans (mul_one (p ^ 2)).symm)).le⟩ },
 end
 
 /-- A group of order `p ^ 2` is commutative. See also `is_p_group.commutative_of_card_eq_prime_sq`

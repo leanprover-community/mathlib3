@@ -79,8 +79,8 @@ by rcases b with _|⟨_|⟨_⟩⟩; simp [digits, digits_aux_0, digits_aux_1]
 
 @[simp] lemma digits_zero_succ (n : ℕ) : digits 0 (n.succ) = [n+1] := rfl
 
-theorem digits_zero_succ' : ∀ {n : ℕ} (w : 0 < n), digits 0 n = [n]
-| 0 h := absurd h dec_trivial
+theorem digits_zero_succ' : ∀ {n : ℕ}, n ≠ 0 → digits 0 n = [n]
+| 0 h := (h rfl).elim
 | (n+1) _ := rfl
 
 @[simp] lemma digits_one (n : ℕ) : digits 1 n = list.repeat 1 n := rfl
@@ -201,7 +201,7 @@ begin
   { dsimp [of_digits], push_cast }
 end
 
-lemma digits_zero_of_eq_zero {b : ℕ} (h : 1 ≤ b) {L : list ℕ} (w : of_digits b L = 0) :
+lemma digits_zero_of_eq_zero {b : ℕ} (h : b ≠ 0) {L : list ℕ} (w : of_digits b L = 0) :
   ∀ l ∈ L, l = 0 :=
 begin
   induction L with d L ih,
@@ -242,7 +242,7 @@ begin
         apply digits_zero_of_eq_zero _ w₂,
         { rw list.last_cons h',
           exact list.last_mem h', },
-        { exact le_of_lt h, }, }, }, },
+        { exact (succ_le_iff.1 h).ne_bot }, }, }, },
 end
 
 lemma of_digits_digits (b n : ℕ) : of_digits b (digits b n) = n :=
@@ -294,7 +294,7 @@ end
 lemma digits_ne_nil_iff_ne_zero {b n : ℕ} : digits b n ≠ [] ↔ n ≠ 0 :=
 not_congr digits_eq_nil_iff_eq_zero
 
-lemma digits_eq_cons_digits_div {b n : ℕ} (h : 2 ≤ b) (w : 0 < n) :
+lemma digits_eq_cons_digits_div {b n : ℕ} (h : 2 ≤ b) (w : n ≠ 0) :
   digits b n = ((n % b) :: digits b (n / b)) :=
 begin
   rcases b with _|_|b,
@@ -310,7 +310,7 @@ lemma digits_last {b : ℕ} (m : ℕ) (h : 2 ≤ b) (p q) :
 begin
   by_cases hm : m = 0,
   { simp [hm], },
-  simp only [digits_eq_cons_digits_div h (nat.pos_of_ne_zero hm)],
+  simp only [digits_eq_cons_digits_div h hm],
   rw list.last_cons,
 end
 
@@ -321,21 +321,20 @@ function.left_inverse.injective (of_digits_digits b)
   b.digits n = b.digits m ↔ n = m :=
 (digits.injective b).eq_iff
 
-lemma digits_len (b n : ℕ) (hb : 2 ≤ b) (hn : 0 < n) :
+lemma digits_len (b n : ℕ) (hb : 2 ≤ b) (hn : n ≠ 0) :
   (b.digits n).length = b.log n + 1 :=
 begin
   induction n using nat.strong_induction_on with n IH,
   rw [digits_eq_cons_digits_div hb hn, list.length],
-  cases (n / b).eq_zero_or_pos with h h,
-  { have posb : 0 < b := zero_lt_two.trans_le hb,
+  by_cases h : n / b = 0,
+  { have posb : b ≠ 0 := (nat.succ_le_iff.1 hb).ne_bot,
     simp [h, log_eq_zero_iff, ←nat.div_eq_zero_iff posb] },
   { have hb' : 1 < b := one_lt_two.trans_le hb,
-    have : n / b < n := div_lt_self hn hb',
+    have : n / b < n := div_lt_self (nat.pos_of_ne_zero hn) hb',
     rw [IH _ this h, log_div_base, tsub_add_cancel_of_le],
-    rw [succ_le_iff],
-    refine log_pos hb' _,
+    refine nat.succ_le_of_lt (log_pos hb' _),
     contrapose! h,
-    rw div_eq_of_lt h }
+    exact div_eq_of_lt h }
 end
 
 lemma last_digit_ne_zero (b : ℕ) {m : ℕ} (hm : m ≠ 0) :
@@ -425,13 +424,10 @@ by rw [of_digits_append, of_digits_digits, of_digits_digits]
 
 lemma digits_len_le_digits_len_succ (b n : ℕ) : (digits b n).length ≤ (digits b (n + 1)).length :=
 begin
-  rcases n.eq_zero_or_pos with rfl|hn,
+  rcases decidable.eq_or_ne n 0 with rfl|hn,
   { simp },
   cases lt_or_le b 2 with hb hb,
-  { rcases b with _|_|b,
-    { simp [digits_zero_succ', hn] },
-    { simp, },
-    { simpa [succ_lt_succ_iff] using hb } },
+  { interval_cases b; simp [digits_zero_succ', hn] },
   simpa [digits_len, hb, hn] using log_mono_right (le_succ _)
 end
 
@@ -647,7 +643,7 @@ begin
   have b2 : 2 ≤ b := by linarith,
   refine ⟨_, b2, n0⟩,
   rw [nat.digits_def' b2 n0, nat.mod_eq_of_lt nb,
-    (nat.div_eq_zero_iff (by linarith : 0 < b)).2 nb, nat.digits_zero],
+    (nat.div_eq_zero_iff (by linarith : b ≠ 0)).2 nb, nat.digits_zero],
 end
 
 open tactic

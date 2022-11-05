@@ -543,7 +543,7 @@ begin
   { intros f hf, obtain ⟨a, ha, rfl⟩ := multiset.mem_map.1 hf, exact monic_X_sub_C a },
 end
 
-lemma card_roots_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : R) :
+lemma card_roots_X_pow_sub_C {n : ℕ} (hn : n ≠ 0) (a : R) :
   (roots ((X : R[X]) ^ n - C a)).card ≤ n :=
 with_bot.coe_le_coe.1 $
 calc ((roots ((X : R[X]) ^ n - C a)).card : with_bot ℕ)
@@ -556,7 +556,7 @@ section nth_roots
 def nth_roots (n : ℕ) (a : R) : multiset R :=
 roots ((X : R[X]) ^ n - C a)
 
-@[simp] lemma mem_nth_roots {n : ℕ} (hn : 0 < n) {a x : R} :
+@[simp] lemma mem_nth_roots {n : ℕ} (hn : n ≠ 0) {a x : R} :
   x ∈ nth_roots n a ↔ x ^ n = a :=
 by rw [nth_roots, mem_roots (X_pow_sub_C_ne_zero hn a),
   is_root.def, eval_sub, eval_C, eval_pow, eval_X, sub_eq_zero]
@@ -572,19 +572,19 @@ then if h : (X : R[X]) ^ n - C a = 0
   else with_bot.coe_le_coe.1 (le_trans (card_roots h)
    (by { rw [hn, pow_zero, ← C_1, ← ring_hom.map_sub ],
          exact degree_C_le }))
-else by rw [← with_bot.coe_le_coe, ← degree_X_pow_sub_C (nat.pos_of_ne_zero hn) a];
-  exact card_roots (X_pow_sub_C_ne_zero (nat.pos_of_ne_zero hn) a)
+else by rw [← with_bot.coe_le_coe, ← degree_X_pow_sub_C hn a];
+  exact card_roots (X_pow_sub_C_ne_zero hn a)
 
 @[simp]
 lemma nth_roots_two_eq_zero_iff {r : R} : nth_roots 2 r = 0 ↔ ¬ is_square r :=
 by simp_rw [is_square_iff_exists_sq, eq_zero_iff_forall_not_mem,
-            mem_nth_roots (by norm_num : 0 < 2), ← not_exists, eq_comm]
+            mem_nth_roots two_ne_zero, ← not_exists, eq_comm]
 
 /-- The multiset `nth_roots ↑n (1 : R)` as a finset. -/
 def nth_roots_finset (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] : finset R :=
 multiset.to_finset (nth_roots n (1 : R))
 
-@[simp] lemma mem_nth_roots_finset {n : ℕ} (h : 0 < n) {x : R} :
+@[simp] lemma mem_nth_roots_finset {n : ℕ} (h : n ≠ 0) {x : R} :
   x ∈ nth_roots_finset n R ↔ x ^ (n : ℕ) = 1 :=
 by rw [nth_roots_finset, mem_to_finset, mem_nth_roots h]
 

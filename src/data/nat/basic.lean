@@ -272,40 +272,36 @@ by rw [add_comm, add_one, pred_succ]
 
 /-! ### `mul` -/
 
-
 theorem two_mul_ne_two_mul_add_one {n m} : 2 * n ≠ 2 * m + 1 :=
 mt (congr_arg (%2)) (by { rw [add_comm, add_mul_mod_self_left, mul_mod_right, mod_eq_of_lt]; simp })
 
+lemma mul_left_injective {a : ℕ} (ha : a ≠ 0) : function.injective (λ x, x * a) :=
+mul_left_injective₀ ha
 
+lemma mul_right_injective {a : ℕ} (ha : a ≠ 0) : function.injective (λ x, a * x) :=
+mul_right_injective₀ ha
 
-protected theorem mul_left_inj {a b c : ℕ} (ha : 0 < a) : b * a = c * a ↔ b = c :=
-⟨nat.eq_of_mul_eq_mul_right ha, λ e, e ▸ rfl⟩
+protected theorem mul_left_inj {a b c : ℕ} (ha : a ≠ 0) : b * a = c * a ↔ b = c :=
+(mul_left_injective ha).eq_iff
 
-protected theorem mul_right_inj {a b c : ℕ} (ha : 0 < a) : a * b = a * c ↔ b = c :=
-⟨nat.eq_of_mul_eq_mul_left ha, λ e, e ▸ rfl⟩
+protected theorem mul_right_inj {a b c : ℕ} (ha : a ≠ 0) : a * b = a * c ↔ b = c :=
+(mul_right_injective ha).eq_iff
 
-lemma mul_left_injective {a : ℕ} (ha : 0 < a) : function.injective (λ x, x * a) :=
-λ _ _, eq_of_mul_eq_mul_right ha
-
-lemma mul_right_injective {a : ℕ} (ha : 0 < a) : function.injective (λ x, a * x) :=
-λ _ _, nat.eq_of_mul_eq_mul_left ha
-
-lemma mul_ne_mul_left {a b c : ℕ} (ha : 0 < a) : b * a ≠ c * a ↔ b ≠ c :=
+lemma mul_ne_mul_left {a b c : ℕ} (ha : a ≠ 0) : b * a ≠ c * a ↔ b ≠ c :=
 (mul_left_injective ha).ne_iff
 
-lemma mul_ne_mul_right {a b c : ℕ} (ha : 0 < a) : a * b ≠ a * c ↔ b ≠ c :=
+lemma mul_ne_mul_right {a b c : ℕ} (ha : a ≠ 0) : a * b ≠ a * c ↔ b ≠ c :=
 (mul_right_injective ha).ne_iff
 
-lemma mul_right_eq_self_iff {a b : ℕ} (ha : 0 < a) : a * b = a ↔ b = 1 :=
+lemma mul_right_eq_self_iff {a b : ℕ} (ha : a ≠ 0) : a * b = a ↔ b = 1 :=
 suffices a * b = a * 1 ↔ b = 1, by rwa mul_one at this,
 nat.mul_right_inj ha
 
-lemma mul_left_eq_self_iff {a b : ℕ} (hb : 0 < b) : a * b = b ↔ a = 1 :=
+lemma mul_left_eq_self_iff {a b : ℕ} (hb : b ≠ 0) : a * b = b ↔ a = 1 :=
 by rw [mul_comm, nat.mul_right_eq_self_iff hb]
 
 lemma lt_succ_iff_lt_or_eq {n i : ℕ} : n < i.succ ↔ (n < i ∨ n = i) :=
 lt_succ_iff.trans decidable.le_iff_lt_or_eq
-
 
 /-!
 ### Recursion and induction principles
@@ -631,13 +627,13 @@ protected theorem dvd_add_left {k m n : ℕ} (h : k ∣ n) : k ∣ m + n ↔ k �
 protected theorem dvd_add_right {k m n : ℕ} (h : k ∣ m) : k ∣ m + n ↔ k ∣ n :=
 (nat.dvd_add_iff_right h).symm
 
-protected theorem mul_dvd_mul_iff_left {a b c : ℕ} (ha : 0 < a) : a * b ∣ a * c ↔ b ∣ c :=
+protected theorem mul_dvd_mul_iff_left {a b c : ℕ} (ha : a ≠ 0) : a * b ∣ a * c ↔ b ∣ c :=
 exists_congr $ λ d, by rw [mul_assoc, nat.mul_right_inj ha]
 
-protected theorem mul_dvd_mul_iff_right {a b c : ℕ} (hc : 0 < c) : a * c ∣ b * c ↔ a ∣ b :=
+protected theorem mul_dvd_mul_iff_right {a b c : ℕ} (hc : c ≠ 0) : a * c ∣ b * c ↔ a ∣ b :=
 exists_congr $ λ d, by rw [mul_right_comm, nat.mul_left_inj hc]
 
-@[simp] theorem mod_mod_of_dvd (n : nat) {m k : nat} (h : m ∣ k) : n % k % m = n % m :=
+@[simp] theorem mod_mod_of_dvd (n : ℕ) {m k : ℕ} (h : m ∣ k) : n % k % m = n % m :=
 begin
   conv { to_rhs, rw ←mod_add_div n k },
   rcases h with ⟨t, rfl⟩, rw [mul_assoc, add_mul_mod_self_left]

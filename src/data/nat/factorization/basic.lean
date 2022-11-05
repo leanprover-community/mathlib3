@@ -495,7 +495,7 @@ lemma dvd_iff_div_factorization_eq_tsub {d n : ℕ} (hd : d ≠ 0) (hdn : d ≤ 
 begin
   refine ⟨factorization_div, _⟩,
   rcases eq_or_lt_of_le hdn with rfl | hd_lt_n, { simp },
-  have h1 : n / d ≠ 0 := λ H, nat.lt_asymm hd_lt_n ((nat.div_eq_zero_iff hd.bot_lt).mp H),
+  have h1 : n / d ≠ 0 := λ H, nat.lt_asymm hd_lt_n ((nat.div_eq_zero_iff hd).mp H),
   intros h,
   rw dvd_iff_le_div_mul n d,
   by_contra h2,
@@ -548,7 +548,7 @@ begin
   rw prime_dvd_prime_iff_eq pa pb,
   by_contradiction hab,
   apply pa.ne_one,
-  rw [←nat.dvd_one, ←nat.mul_dvd_mul_iff_left hb0.bot_lt, mul_one],
+  rw [←nat.dvd_one, ←nat.mul_dvd_mul_iff_left hb0, mul_one],
   simpa [prime.factorization_self pb, prime.factorization pa, hab] using h b,
 end
 

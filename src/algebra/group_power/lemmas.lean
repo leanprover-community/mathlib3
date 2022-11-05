@@ -61,26 +61,25 @@ lemma is_unit_pow_iff {m : M} :
 | 0 h := (h rfl).elim
 | (n + 1) _ := is_unit_pow_succ_iff
 
-/-- If `x ^ n.succ = 1` then `x` has an inverse, `x^n`. -/
-def invertible_of_pow_succ_eq_one (x : M) (n : ℕ) (hx : x ^ n.succ = 1) :
-  invertible x :=
-⟨x ^ n, (pow_succ' x n).symm.trans hx, (pow_succ x n).symm.trans hx⟩
+/-- If `x ^ n = 1`, `n ≠ 0`, then `x` is a unit. -/
+@[to_additive, simps] def unit_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : n ≠ 0) : Mˣ :=
+{ val := x,
+  inv := x ^ (n - 1),
+  val_inv := by rwa [← pow_succ, tsub_add_cancel_of_le (nat.one_le_iff_ne_zero.2 hn)],
+  inv_val := by rwa [← pow_succ', tsub_add_cancel_of_le (nat.one_le_iff_ne_zero.2 hn)] }
+
+@[simp, to_additive] lemma pow_unit_of_pow_eq_one {x : M} {n : ℕ} (hx : x ^ n = 1) (hn : n ≠ 0) :
+  unit_of_pow_eq_one x n hx hn ^ n = 1 :=
+units.ext $ by rwa [units.coe_pow, coe_unit_of_pow_eq_one, units.coe_one]
+
+@[to_additive] lemma is_unit_of_pow_eq_one {x : M} {n : ℕ} (hx : x ^ n = 1) (hn : n ≠ 0) :
+  is_unit x :=
+(unit_of_pow_eq_one x n hx hn).is_unit
 
 /-- If `x ^ n = 1` then `x` has an inverse, `x^(n - 1)`. -/
 def invertible_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : n ≠ 0) :
   invertible x :=
-begin
-  apply invertible_of_pow_succ_eq_one x (n - 1),
-  convert hx,
-  exact nat.succ_pred_eq_of_pos (pos_iff_ne_zero.2 hn),
-end
-
-lemma is_unit_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : n ≠ 0) :
-  is_unit x :=
-begin
-  haveI := invertible_of_pow_eq_one x n hx hn,
-  exact is_unit_of_invertible x
-end
+(unit_of_pow_eq_one x n hx hn).invertible
 
 lemma smul_pow [mul_action M N] [is_scalar_tower M N N] [smul_comm_class M N N]
   (k : M) (x : N) (p : ℕ) :

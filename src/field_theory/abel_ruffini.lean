@@ -94,8 +94,8 @@ section gal_X_pow_sub_C
 
 lemma gal_X_pow_sub_one_is_solvable (n : ℕ) : is_solvable (X ^ n - 1 : F[X]).gal :=
 begin
-  by_cases hn : n = 0,
-  { rw [hn, pow_zero, sub_self],
+  rcases eq_or_ne n 0 with rfl|hn,
+  { rw [pow_zero, sub_self],
     exact gal_zero_is_solvable },
   have hn' : (X ^ n - 1 : F[X]) ≠ 0 :=
     λ h, one_ne_zero ((leading_coeff_X_pow_sub_one hn).symm.trans (congr_arg leading_coeff h)),
@@ -105,11 +105,9 @@ begin
   rw [mem_root_set hn', alg_hom.map_sub, aeval_X_pow, aeval_one, sub_eq_zero] at ha,
   have key : ∀ σ : (X ^ n - 1 : F[X]).gal, ∃ m : ℕ, σ a = a ^ m,
   { intro σ,
-    obtain ⟨m, hm⟩ := map_root_of_unity_eq_pow_self σ.to_alg_hom
-      ⟨is_unit.unit (is_unit_of_pow_eq_one a n ha hn),
-      by { ext, rwa [units.coe_pow, is_unit.unit_spec, subtype.coe_mk n hn'] }⟩,
-    use m,
-    convert hm },
+    lift n to ℕ+ using hn.bot_lt,
+    exact map_root_of_unity_eq_pow_self σ.to_alg_hom
+      ⟨unit_of_pow_eq_one a n ha hn, by { rw [mem_roots_of_unity, pow_unit_of_pow_eq_one] }⟩ },
   obtain ⟨c, hc⟩ := key σ,
   obtain ⟨d, hd⟩ := key τ,
   rw [σ.mul_apply, τ.mul_apply, hc, τ.map_pow, hd, σ.map_pow, hc, ←pow_mul, pow_mul'],
@@ -162,21 +160,20 @@ begin
   by_cases hn : n = 0,
   { rw [hn, pow_zero, sub_self],
     exact splits_zero i },
-  have hn' : 0 < n := pos_iff_ne_zero.mpr hn,
-  have hn'' : (X ^ n - C a).degree ≠ 0 :=
-    ne_of_eq_of_ne (degree_X_pow_sub_C hn' a) (mt with_bot.coe_eq_coe.mp hn),
-  obtain ⟨b, hb⟩ := exists_root_of_splits i h hn'',
+  have hn' : (X ^ n - C a).degree ≠ 0 :=
+    ne_of_eq_of_ne (degree_X_pow_sub_C hn a) (mt with_bot.coe_eq_coe.mp hn),
+  obtain ⟨b, hb⟩ := exists_root_of_splits i h hn',
   rw [eval₂_sub, eval₂_X_pow, eval₂_C, sub_eq_zero] at hb,
   have hb' : b ≠ 0,
   { intro hb',
-    rw [hb', zero_pow hn'] at hb,
+    rw [hb', zero_pow' _ hn] at hb,
     exact ha' hb.symm },
   let s := ((X ^ n - C a).map i).roots,
   have hs : _ = _ * (s.map _).prod := eq_prod_roots_of_splits h,
-  rw [leading_coeff_X_pow_sub_C hn', ring_hom.map_one, C_1, one_mul] at hs,
+  rw [leading_coeff_X_pow_sub_C hn, ring_hom.map_one, C_1, one_mul] at hs,
   have hs' : s.card = n := (nat_degree_eq_card_roots h).symm.trans nat_degree_X_pow_sub_C,
   apply @splits_of_exists_multiset F E _ _ i (X ^ n - 1) (s.map (λ c : E, c / b)),
-  rw [leading_coeff_X_pow_sub_one hn', ring_hom.map_one, C_1, one_mul, multiset.map_map],
+  rw [leading_coeff_X_pow_sub_one hn, ring_hom.map_one, C_1, one_mul, multiset.map_map],
   have C_mul_C : (C (i a⁻¹)) * (C (i a)) = 1,
   { rw [←C_mul, ←i.map_mul, inv_mul_cancel ha, i.map_one, C_1] },
   have key1 : (X ^ n - 1).map i = C (i a⁻¹) * ((X ^ n - C a).map i).comp (C b * X),

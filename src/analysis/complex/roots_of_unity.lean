@@ -55,8 +55,8 @@ begin
   { rintro ⟨i, -, hi, rfl⟩, exact is_primitive_root_exp_of_coprime i n hn hi },
   intro h,
   obtain ⟨i, hi, rfl⟩ :=
-    (is_primitive_root_exp n hn).eq_pow_of_pow_eq_one h.pow_eq_one (nat.pos_of_ne_zero hn),
-  refine ⟨i, hi, ((is_primitive_root_exp n hn).pow_iff_coprime (nat.pos_of_ne_zero hn) i).mp h, _⟩,
+    (is_primitive_root_exp n hn).eq_pow_of_pow_eq_one h.pow_eq_one hn,
+  refine ⟨i, hi, ((is_primitive_root_exp n hn).pow_iff_coprime hn i).mp h, _⟩,
   rw [← exp_nat_mul],
   congr' 1,
   field_simp [hn0, mul_comm (i : ℂ)]
@@ -64,7 +64,7 @@ end
 
 /-- The complex `n`-th roots of unity are exactly the
 complex numbers of the form `e ^ (2 * real.pi * complex.I * (i / n))` for some `i < n`. -/
-lemma mem_roots_of_unity (n : ℕ+) (x : units ℂ) :
+lemma mem_roots_of_unity (n : ℕ+) (x : ℂˣ) :
   x ∈ roots_of_unity n ℂ ↔ (∃ i < (n : ℕ), exp (2 * π * I * (i / n)) = x) :=
 begin
   rw [mem_roots_of_unity, units.ext_iff, units.coe_pow, units.coe_one],
@@ -72,7 +72,7 @@ begin
   split,
   { intro h,
     obtain ⟨i, hi, H⟩ : ∃ i < (n : ℕ), exp (2 * π * I / n) ^ i = x,
-    { simpa only using (is_primitive_root_exp n n.ne_zero).eq_pow_of_pow_eq_one h n.pos },
+    { simpa only using (is_primitive_root_exp n n.ne_zero).eq_pow_of_pow_eq_one h n.ne_zero },
     refine ⟨i, hi, _⟩,
     rw [← H, ← exp_nat_mul],
     congr' 1,

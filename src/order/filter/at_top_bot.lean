@@ -1572,7 +1572,7 @@ lemma tendsto_of_seq_tendsto {f : α → β} {k : filter α} {l : filter β} [k.
 tendsto_iff_seq_tendsto.2
 
 lemma tendsto_inf_principal_iff_seq_tendsto {f : α → β} {k : filter α} {l : filter β}
-  [k.is_countably_generated] (s : set α) :
+  (s : set α) [(k ⊓ 𝓟 s).is_countably_generated] :
   tendsto f (k ⊓ 𝓟 s) l
     ↔ (∀ x : ℕ → α, (∀ n, x n ∈ s) → tendsto x at_top k → tendsto (f ∘ x) at_top l) :=
 begin

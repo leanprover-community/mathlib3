@@ -428,29 +428,13 @@ lemma eventually_nhds_within_of_eventually_nhds {α : Type*} [topological_space 
   ∀ᶠ x in 𝓝[s] a, p x :=
 mem_nhds_within_of_mem_nhds h
 
-lemma tendsto_nhds_within_iff_seq_tendsto {x : α} {l : filter β} {s : set α}
-  [(𝓝[s] x).is_countably_generated] (f : α → β) (hx : x ∈ s) :
+lemma tendsto_nhds_within_iff_seq_tendsto (f : α → β) (x : α) {l : filter β} (s : set α)
+  [h : (𝓝[s] x).is_countably_generated] :
   tendsto f (𝓝[s] x) l
     ↔ (∀ xs : ℕ → α, (∀ n, xs n ∈ s) → tendsto xs at_top (𝓝 x) → tendsto (f ∘ xs) at_top l) :=
 begin
-  rw tendsto_iff_seq_tendsto,
-  simp_rw tendsto_nhds_within_iff,
-  refine ⟨λ h xs hxs_ge h_tendsto, h xs ⟨h_tendsto, eventually_of_forall hxs_ge⟩,
-    λ h xs h_tendsto, _⟩,
-  classical,
-  let ys : ℕ → α := λ n, if xs n ∈ s then xs n else x,
-  have hys_eq_xs : ys =ᶠ[at_top] xs,
-  { filter_upwards [h_tendsto.2] with n hxsn_mem,
-    simp_rw [ys, if_pos hxsn_mem], },
-  refine (tendsto_congr' _).mp (h ys _ _),
-  { filter_upwards [hys_eq_xs] with n hn,
-    rw [function.comp_apply, hn], },
-  { intros n,
-    simp_rw ys,
-    split_ifs with h' h',
-    exacts [h', hx], },
-  { rw tendsto_congr' hys_eq_xs,
-    exact h_tendsto.1, },
+  haveI : (𝓝 x ⊓ 𝓟 s).is_countably_generated := h,
+  exact tendsto_inf_principal_iff_seq_tendsto s,
 end
 
 /-!

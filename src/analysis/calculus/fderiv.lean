@@ -559,7 +559,7 @@ h x
 lemma differentiable_at.fderiv_within
   (h : differentiable_at 𝕜 f x) (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
-has_fderiv_within_at.fderiv_within h.has_fderiv_at.has_fderiv_within_at hxs
+h.has_fderiv_at.has_fderiv_within_at.fderiv_within hxs
 
 lemma differentiable_on.mono (h : differentiable_on 𝕜 f t) (st : s ⊆ t) :
   differentiable_on 𝕜 f s :=

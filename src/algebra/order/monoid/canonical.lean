@@ -180,6 +180,27 @@ lt_of_le_of_lt (zero_le _) h
   [canonically_ordered_add_monoid M] [has_one M] : zero_le_one_class M :=
 ⟨zero_le 1⟩
 
+namespace ne_zero
+
+lemma pos {M} (a : M) [canonically_ordered_add_monoid M] [ne_zero a] : 0 < a :=
+(zero_le a).lt_of_ne $ ne_zero.out.symm
+
+lemma of_gt {M} [canonically_ordered_add_monoid M] {x y : M} (h : x < y) : ne_zero y :=
+of_pos $ pos_of_gt h
+
+-- 1 < p is still an often-used `fact`, due to `nat.prime` implying it, and it implying `nontrivial`
+-- on `zmod`'s ring structure. We cannot just set this to be any `x < y`, else that becomes a
+-- metavariable and it will hugely slow down typeclass inference.
+@[priority 10]
+instance of_gt' {M} [canonically_ordered_add_monoid M] [has_one M] {y : M}
+  [fact (1 < y)] : ne_zero y :=
+of_gt $ fact.out $ 1 < y
+
+instance bit0 {M} [canonically_ordered_add_monoid M] {x : M} [ne_zero x] : ne_zero (bit0 x) :=
+of_pos $ bit0_pos $ ne_zero.pos x
+
+end ne_zero
+
 /-- A canonically linear-ordered additive monoid is a canonically ordered additive monoid
     whose ordering is a linear order. -/
 @[protect_proj, ancestor canonically_ordered_add_monoid linear_order]

@@ -731,7 +731,7 @@ end prod
 
 /-! ### Additional order classes -/
 
-/-- An order is dense if there is an element between any pair of distinct elements. -/
+/-- An order is dense if there is an element between any pair of distinct comparable elements. -/
 class densely_ordered (α : Type u) [has_lt α] : Prop :=
 (dense : ∀ a₁ a₂ : α, a₁ < a₂ → ∃ a, a₁ < a ∧ a < a₂)
 

@@ -482,6 +482,41 @@ lemma cover_dense_induced_functor {B : ι → opens X} (h : opens.is_basis (set.
 
 end Top.opens
 
+section open_embedding
+
+open category_theory topological_space Top.presheaf opposite
+
+variables {C : Type u} [category.{v} C]
+variables {X Y : Top.{w}} {f : X ⟶ Y} {F : Y.presheaf C}
+
+lemma open_embedding.compatible_preserving (hf : open_embedding f) :
+  compatible_preserving (opens.grothendieck_topology Y) hf.is_open_map.functor :=
+begin
+  haveI : mono f := (Top.mono_iff_injective f).mpr hf.inj,
+  apply compatible_preserving_of_downwards_closed,
+  intros U V i,
+  refine ⟨(opens.map f).obj V, eq_to_iso $ opens.ext $ set.image_preimage_eq_of_subset $ λ x h, _⟩,
+  obtain ⟨_,_,⟨⟩⟩ := i.le h,
+  exact ⟨_, rfl⟩
+end
+
+lemma is_open_map.cover_preserving (hf : is_open_map f) :
+  cover_preserving (opens.grothendieck_topology X) (opens.grothendieck_topology Y)
+    hf.functor :=
+begin
+  constructor,
+  rintros U S hU _ ⟨x, hx, rfl⟩,
+  obtain ⟨V, i, hV, hxV⟩ := hU x hx,
+  exact ⟨_, hf.functor.map i, ⟨_, i, 𝟙 _, hV, subsingleton.elim _ _⟩,
+    set.mem_image_of_mem f hxV⟩
+end
+
+lemma Top.presheaf.is_sheaf_of_open_embedding (h : open_embedding f)
+  (hF : F.is_sheaf) : is_sheaf (h.is_open_map.functor.op ⋙ F) :=
+pullback_is_sheaf_of_cover_preserving h.compatible_preserving h.is_open_map.cover_preserving ⟨_, hF⟩
+
+end open_embedding
+
 namespace Top.sheaf
 
 open category_theory topological_space Top opposite

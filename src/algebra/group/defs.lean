@@ -708,7 +708,7 @@ involutivity of negation. -/
 `(a * b)⁻¹ = b⁻¹ * a⁻¹` and `a * b = 1 → a⁻¹ = b`.
 
 This is the immediate common ancestor of `group` and `group_with_zero`. -/
-@[protect_proj, ancestor div_inv_monoid has_involutive_inv, to_additive subtraction_monoid]
+@[protect_proj, ancestor div_inv_monoid has_involutive_inv, to_additive]
 class division_monoid (G : Type u) extends div_inv_monoid G, has_involutive_inv G :=
 (mul_inv_rev (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹)
 /- Despite the asymmetry of `inv_eq_of_mul`, the symmetric version is true thanks to the

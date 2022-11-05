@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.invertible
 import algebra.group_power.ring
+import data.nat.pow
 import data.int.cast
 
 /-!
@@ -521,11 +522,6 @@ by simpa only [add_sub_cancel'_right] using one_add_mul_le_pow this n
 end linear_ordered_ring
 
 namespace int
-
-alias units_sq ← units_pow_two
-
-lemma units_pow_eq_pow_mod_two (u : ℤˣ) (n : ℕ) : u ^ n = u ^ (n % 2) :=
-by conv {to_lhs, rw ← nat.mod_add_div n 2}; rw [pow_add, pow_mul, units_sq, one_pow, mul_one]
 
 @[simp] lemma nat_abs_sq (x : ℤ) : (x.nat_abs ^ 2 : ℤ) = x ^ 2 :=
 by rw [sq, int.nat_abs_mul_self', sq]

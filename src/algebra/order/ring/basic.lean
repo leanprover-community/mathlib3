@@ -3,8 +3,6 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
-import algebra.char_zero.defs
-import algebra.ring.divisibility
 import algebra.hom.ring
 import algebra.order.group.basic
 import algebra.order.sub.canonical
@@ -556,10 +554,6 @@ strict_mono_nat_of_lt_succ $ λ n, by rw [nat.cast_succ]; apply lt_add_one
 instance strict_ordered_semiring.to_no_max_order : no_max_order α :=
 ⟨λ a, ⟨a + 1, lt_add_of_pos_right _ one_pos⟩⟩
 
-/-- Note this is not an instance as `char_zero` implies `nontrivial`, and this would risk forming a
-loop. -/
-lemma strict_ordered_semiring.to_char_zero : char_zero α := ⟨nat.strict_mono_cast.injective⟩
-
 end nontrivial
 
 section has_exists_add_of_le
@@ -818,10 +812,6 @@ have ∀ {u : αˣ}, (0 : α) < u → (0 : α) < ↑u⁻¹ := λ u h,
 have ∀ {u : αˣ}, ↑u < (0 : α) → ↑u⁻¹ < (0 : α) := λ u h,
   neg_of_mul_pos_right (by exact (u.mul_inv.symm ▸ zero_lt_one)) h.le,
 ⟨this, this⟩
-
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_semiring.to_char_zero : char_zero α :=
-strict_ordered_semiring.to_char_zero
 
 lemma cmp_mul_pos_left (ha : 0 < a) (b c : α) : cmp (a * b) (a * c) = cmp b c :=
 (strict_mono_mul_left_of_pos ha).cmp_map_eq b c

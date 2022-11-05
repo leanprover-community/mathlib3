@@ -5,6 +5,7 @@ Authors: Yakov Pechersky
 -/
 import algebra.group_power.order
 import algebra.order.group.min_max
+import algebra.order.monoid.with_top
 import algebra.smul_with_zero
 
 /-!

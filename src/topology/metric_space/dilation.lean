@@ -20,14 +20,17 @@ We define dilations, i.e., maps between emetric spaces that satisfy
 
 ## Implementation notes
 
-The type of dilations defined in this file are also referred to as "similiarties" or "similitudes"
+The type of dilations defined in this file are also referred to as "similarities" or "similitudes"
 by other authors. The name `dilation` was choosen to match the Wikipedia name.
 
 Since a lot of elementary properties don't require `eq_of_dist_eq_zero` we start setting up the
 theory for `pseudo_emetric_space` and we specialize to `pseudo_metric_space` and `metric_space` when
 needed.
 
-TODO: Introduce dilation equivs. Refactor the `isometry` API to match the `*_hom_class` API below.
+## TODO
+
+- Introduce dilation equivs.
+- Refactor the `isometry` API to match the `*_hom_class` API below.
 
 ## References
 
@@ -96,7 +99,7 @@ protected def copy (f : dilation α β) (f' : α → β) (h : f' = ⇑f) : dilat
 { to_fun := f',
   edist_eq' := h.symm ▸ f.edist_eq' }
 
-lemma coe_eq_self (f : dilation α β) {f' : α → β} (h : f' = f) : f.copy f' h = f :=
+lemma copy_eq_self (f : dilation α β) {f' : α → β} (h : f' = f) : f.copy f' h = f :=
 fun_like.ext' h
 
 /-- The ratio of a dilation `f`. If the ratio is undefined (i.e., the distance between any two
@@ -126,14 +129,12 @@ begin
   exact (dilation_class.edist_eq' f).some_spec.2 x y,
 end
 
-@[simp] lemma nndist_eq {α β} {F : Type*}
-  [pseudo_metric_space α] [pseudo_metric_space β] [dilation_class F α β]
-  (f : F) (x y : α) : nndist (f x) (f y) = ratio f * nndist x y :=
+@[simp] lemma nndist_eq {α β F : Type*}  [pseudo_metric_space α] [pseudo_metric_space β]
+  [dilation_class F α β] (f : F) (x y : α) : nndist (f x) (f y) = ratio f * nndist x y :=
 by simp only [← ennreal.coe_eq_coe, ← edist_nndist, ennreal.coe_mul, edist_eq]
 
-@[simp] lemma dist_eq {α β} {F : Type*}
-  [pseudo_metric_space α] [pseudo_metric_space β] [dilation_class F α β]
-  (f : F) (x y : α) : dist (f x) (f y) = ratio f * dist x y :=
+@[simp] lemma dist_eq {α β F : Type*} [pseudo_metric_space α] [pseudo_metric_space β]
+  [dilation_class F α β] (f : F) (x y : α) : dist (f x) (f y) = ratio f * dist x y :=
 by simp only [dist_nndist, nndist_eq, nnreal.coe_mul]
 
 /-- The `ratio` is equal to the distance ratio for any two points with nonzero finite distance.
@@ -141,23 +142,18 @@ by simp only [dist_nndist, nndist_eq, nnreal.coe_mul]
 lemma ratio_unique [dilation_class F α β] {f : F} {x y : α} {r : ℝ≥0}
   (h₀ : edist x y ≠ 0) (htop : edist x y ≠ ⊤) (hr : edist (f x) (f y) = r * edist x y) :
   r = ratio f :=
-begin
-  have h := edist_eq f x y,
-  rwa [hr, ennreal.mul_eq_mul_right h₀ htop, ennreal.coe_eq_coe] at h,
-end
+by simpa only [hr, ennreal.mul_eq_mul_right h₀ htop, ennreal.coe_eq_coe] using edist_eq f x y
 
 /-- The `ratio` is equal to the distance ratio for any two points
-with nonzero finite distance; `nndist version` -/
-lemma ratio_unique_of_nndist_ne_zero
-  {α β} {F : Type*} [pseudo_metric_space α] [pseudo_metric_space β]
-  [dilation_class F α β] {f : F} {x y : α} {r : ℝ≥0}
-  (hxy : nndist x y ≠ 0) (hr : nndist (f x) (f y) = r * nndist x y) :
-  r = ratio f :=
+with nonzero finite distance; `nndist` version -/
+lemma ratio_unique_of_nndist_ne_zero {α β F : Type*} [pseudo_metric_space α] [pseudo_metric_space β]
+  [dilation_class F α β] {f : F} {x y : α} {r : ℝ≥0} (hxy : nndist x y ≠ 0)
+  (hr : nndist (f x) (f y) = r * nndist x y) : r = ratio f :=
 ratio_unique (by rwa [edist_nndist, ennreal.coe_ne_zero]) (edist_ne_top x y)
   (by rw [edist_nndist, edist_nndist, hr, ennreal.coe_mul])
 
 /-- The `ratio` is equal to the distance ratio for any two points
-with nonzero finite distance; `dist version` -/
+with nonzero finite distance; `dist` version -/
 lemma ratio_unique_of_dist_ne_zero {α β} {F : Type*} [pseudo_metric_space α] [pseudo_metric_space β]
   [dilation_class F α β] {f : F} {x y : α} {r : ℝ≥0}
   (hxy : dist x y ≠ 0) (hr : dist (f x) (f y) = r * dist x y) :
@@ -214,26 +210,21 @@ variables (f : F) (g : G) {x y z : α}  {s : set α}
 lemma lipschitz : lipschitz_with (ratio f) (f : α → β) := λ x y, (edist_eq f x y).le
 
 lemma antilipschitz : antilipschitz_with (ratio f)⁻¹ (f : α → β) :=
-λ x y, begin
-  have hr : ratio f ≠ 0 := ratio_ne_zero f,
-  -- `div_eq_mul_inv` should be `div_eq_inv_mul`
-  rw [mul_comm, ennreal.coe_inv hr, ← div_eq_mul_inv, ennreal.le_div_iff_mul_le, edist_eq],
-  { exact (mul_comm _ _).le },
-  all_goals { simp [hr] },
-end
+λ x y, have hr : ratio f ≠ 0 := ratio_ne_zero f, by exact_mod_cast
+  (mul_le_iff_le_inv (coe_ne_zero.2 hr) coe_ne_top).1 (edist_eq f x y).ge
 
 /-- A dilation from an emetric space is injective -/
-lemma injective {α : Type*} [emetric_space α]  [dilation_class F α β] (f : F) :
+protected lemma injective {α : Type*} [emetric_space α]  [dilation_class F α β] (f : F) :
   injective f := (dilation.antilipschitz f).injective
 
 /-- The identity is a dilation -/
-def id (α) [pseudo_emetric_space α] : dilation α α :=
+protected def id (α) [pseudo_emetric_space α] : dilation α α :=
 { to_fun := _root_.id,
   edist_eq' := ⟨1, one_ne_zero, λ x y, by simp only [id.def, ennreal.coe_one, one_mul]⟩ }
 
 instance : inhabited (dilation α α) := ⟨id α⟩
 
-@[simp] lemma id_apply (x : α) : id α x = x := rfl
+@[simp, protected] lemma coe_id : ⇑(dilation.id α) = id := rfl
 
 lemma id_ratio : ratio (id α) = 1 :=
 begin
@@ -267,10 +258,10 @@ that the domain `α` of `f` is nontrivial, otherwise `ratio f = ratio (g.comp f)
 may have any value. -/
 @[simp] lemma comp_ratio
   {g : dilation β γ} {f : dilation α β} (hne : ∃ x y : α, edist x y ≠ 0 ∧ edist x y ≠ ⊤) :
-  ratio g * ratio f = ratio (g.comp f) :=
+  ratio (g.comp f) = ratio g * ratio f :=
 begin
   rcases hne with ⟨x, y, hα⟩,
-  have hgf := edist_eq (g.comp f) x y,
+  have hgf := (edist_eq (g.comp f) x y).symm,
   simp only [dist_eq, coe_comp, ← mul_assoc, mul_eq_mul_right_iff] at hgf,
   rw [edist_eq, edist_eq, ← mul_assoc, ennreal.mul_eq_mul_right hα.1 hα.2] at hgf,
   rwa [← ennreal.coe_eq_coe, ennreal.coe_mul],
@@ -297,12 +288,12 @@ lemma cancel_right {g₁ g₂ : dilation β γ} {f : dilation α β} (hf : surje
   g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
 ⟨λ h, dilation.ext $ hf.forall.2 (ext_iff.1 h), λ h, h ▸ rfl⟩
 
-lemma cancel_left {g : dilation β γ} {f₁ f₂ : dilation α β} (hg : function.injective g) :
+lemma cancel_left {g : dilation β γ} {f₁ f₂ : dilation α β} (hg : injective g) :
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
 ⟨λ h, dilation.ext $ λ x, hg $ by rw [← comp_apply, h, comp_apply], λ h, h ▸ rfl⟩
 
 /-- A dilation from a metric space is a uniform inducing map -/
-theorem uniform_inducing : uniform_inducing (f : α → β) :=
+protected theorem uniform_inducing : uniform_inducing (f : α → β) :=
 (antilipschitz f).uniform_inducing (lipschitz f).uniform_continuous
 
 lemma tendsto_nhds_iff {ι : Type*} {g : ι → α} {a : filter ι} {b : α} :
@@ -323,7 +314,7 @@ begin
   exacts [(antilipschitz f).le_mul_ediam_image s, ratio_ne_zero f],
 end
 
-/-- A dilation scales scale the diameter of the range by `ratio f`. -/
+/-- A dilation scales the diameter of the range by `ratio f`. -/
 lemma ediam_range :
   emetric.diam (range (f : α → β)) = ratio f * emetric.diam (univ : set α) :=
 by { rw ← image_univ, exact ediam_image f univ }
@@ -331,28 +322,19 @@ by { rw ← image_univ, exact ediam_image f univ }
 /-- A dilation maps balls to balls and scales the radius by `ratio f`. -/
 lemma maps_to_emetric_ball (x : α) (r : ℝ≥0∞) :
   maps_to (f : α → β) (emetric.ball x r) (emetric.ball (f x) (ratio f * r)) :=
-begin
-  intros y hy,
-  simp only [emetric.mem_ball, edist_eq] at *,
-  rwa ennreal.mul_lt_mul_left _ _; simp [ratio_ne_zero]
-end
+λ y hy, (edist_eq f y x).trans_lt $
+  (mul_lt_mul_left (coe_ne_zero.2 $ ratio_ne_zero f) coe_ne_top).2 hy
 
 /-- A dilation maps closed balls to closed balls and scales the radius by `ratio f`. -/
 lemma maps_to_emetric_closed_ball (x : α) (r' : ℝ≥0∞) :
   maps_to (f : α → β) (emetric.closed_ball x r') (emetric.closed_ball (f x) (ratio f * r')) :=
-begin
-  intros y hy,
-  simp only [emetric.mem_closed_ball, edist_eq] at *,
-  exact mul_le_mul_left' hy _,
-end
+λ y hy, (edist_eq f y x).trans_le $ mul_le_mul_left' hy _
 
-lemma comp_continuous_on_iff
-  {γ} [topological_space γ] {g : γ → α} {s : set γ} :
+lemma comp_continuous_on_iff {γ} [topological_space γ] {g : γ → α} {s : set γ} :
   continuous_on ((f : α → β) ∘ g) s ↔ continuous_on g s :=
 (uniform_inducing f).inducing.continuous_on_iff.symm
 
-lemma comp_continuous_iff
-  {γ} [topological_space γ] {g : γ → α} :
+lemma comp_continuous_iff {γ} [topological_space γ] {g : γ → α} :
   continuous ((f : α → β) ∘ g) ↔ continuous g :=
 (uniform_inducing f).inducing.continuous_iff.symm
 
@@ -362,18 +344,17 @@ section emetric_dilation
 variables [emetric_space α]
 
 /-- A dilation from a metric space is a uniform embedding -/
-theorem uniform_embedding [pseudo_emetric_space β] [dilation_class F α β]
+protected theorem uniform_embedding [pseudo_emetric_space β] [dilation_class F α β]
   (f : F) : uniform_embedding f :=
 (antilipschitz f).uniform_embedding (lipschitz f).uniform_continuous
 
 /-- A dilation from a metric space is an embedding -/
-theorem embedding [pseudo_emetric_space β] [dilation_class F α β]
+protected theorem embedding [pseudo_emetric_space β] [dilation_class F α β]
   (f : F) : embedding (f : α → β) :=
 (uniform_embedding f).embedding
 
 /-- A dilation from a complete emetric space is a closed embedding -/
-theorem closed_embedding
-  [complete_space α] [emetric_space β] [dilation_class F α β]
+protected theorem closed_embedding [complete_space α] [emetric_space β] [dilation_class F α β]
   (f : F) : closed_embedding (f : α → β) :=
 (antilipschitz f).closed_embedding (lipschitz f).uniform_continuous
 
@@ -392,30 +373,17 @@ by rw [← image_univ, diam_image]
 /-- A dilation maps balls to balls and scales the radius by `ratio f`. -/
 lemma maps_to_ball (x : α) (r' : ℝ) :
   maps_to (f : α → β) (metric.ball x r') (metric.ball (f x) (ratio f * r')) :=
-begin
-  intros y hy,
-  rw [metric.mem_ball, dist_eq],
-  exact (mul_lt_mul_left $ nnreal.coe_pos.2 $ ratio_pos f).2 hy,
-end
+λ y hy, (dist_eq f y x).trans_lt $ (mul_lt_mul_left $ nnreal.coe_pos.2 $ ratio_pos f).2 hy
 
 /-- A dilation maps spheres to spheres and scales the radius by `ratio f`. -/
 lemma maps_to_sphere (x : α) (r' : ℝ) :
   maps_to (f : α → β) (metric.sphere x r') (metric.sphere (f x) (ratio f * r')) :=
-begin
-  intros y hy,
-  rw metric.mem_sphere at hy,
-  rw [metric.mem_sphere, dist_eq, hy],
-end
+λ y hy, metric.mem_sphere.mp hy ▸ dist_eq f y x
 
 /-- A dilation maps closed balls to closed balls and scales the radius by `ratio f`. -/
 lemma maps_to_closed_ball (x : α) (r' : ℝ) :
   maps_to (f : α → β) (metric.closed_ball x r') (metric.closed_ball (f x) (ratio f * r')) :=
-begin
-  intros y hy,
-  rw [metric.mem_closed_ball] at hy,
-  rw [metric.mem_closed_ball, dist_eq],
-  exact mul_le_mul_of_nonneg_left hy (nnreal.coe_nonneg _)
-end
+λ y hy, (dist_eq f y x).trans_le $ mul_le_mul_of_nonneg_left hy (nnreal.coe_nonneg _)
 
 end pseudo_metric_dilation -- section
 

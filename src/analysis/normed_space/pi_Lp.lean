@@ -63,21 +63,19 @@ open_locale big_operators uniformity topological_space nnreal ennreal
 
 noncomputable theory
 
-variables {ι : Type*}
-
 /-- A copy of a Pi type, on which we will put the `L^p` distance. Since the Pi type itself is
 already endowed with the `L^∞` distance, we need the type synonym to avoid confusing typeclass
 resolution. Also, we let it depend on `p`, to get a whole family of type on which we can put
 different distances. -/
 @[nolint unused_arguments]
-def pi_Lp {ι : Type*} (p : ℝ≥0∞) (α : ι → Type*) : Type* := Π (i : ι), α i
+def pi_Lp (p : ℝ≥0∞) {ι : Type*} (α : ι → Type*) : Type* := Π (i : ι), α i
 
-instance {ι : Type*} (p : ℝ≥0∞) (α : ι → Type*) [Π i, inhabited (α i)] : inhabited (pi_Lp p α) :=
+instance (p : ℝ≥0∞) {ι : Type*} (α : ι → Type*) [Π i, inhabited (α i)] : inhabited (pi_Lp p α) :=
 ⟨λ i, default⟩
 
 namespace pi_Lp
 
-variables (p : ℝ≥0∞) (𝕜 : Type*) (α : ι → Type*) (β : ι → Type*)
+variables (p : ℝ≥0∞) (𝕜 : Type*) {ι : Type*} (α : ι → Type*) (β : ι → Type*)
 
 /-- Canonical bijection between `pi_Lp p α` and the original Pi type. We introduce it to be able
 to compare the `L^p` and `L^∞` distances through it. -/
@@ -689,5 +687,32 @@ protected def linear_equiv : pi_Lp p β ≃ₗ[𝕜] Π i, β i :=
 { to_fun := pi_Lp.equiv _ _,
   inv_fun := (pi_Lp.equiv _ _).symm,
   ..linear_equiv.refl _ _}
+
+section basis
+
+variables (ι)
+
+/-- A version of `pi.basis_fun` for `pi_Lp`. -/
+def basis_fun : basis ι 𝕜 (pi_Lp p (λ _, 𝕜)) :=
+basis.of_equiv_fun (pi_Lp.linear_equiv p 𝕜 (λ _ : ι, 𝕜))
+
+@[simp] lemma basis_fun_apply [decidable_eq ι] (i) :
+  basis_fun p 𝕜 ι i = (pi_Lp.equiv p _).symm (pi.single i 1) :=
+by { simp_rw [basis_fun, basis.coe_of_equiv_fun, pi_Lp.linear_equiv_symm_apply, pi.single],
+     congr /- Get rid of a `decidable_eq` mismatch. -/ }
+
+@[simp] lemma basis_fun_repr (x : pi_Lp p (λ i : ι, 𝕜)) (i : ι) :
+  (basis_fun p 𝕜 ι).repr x i = x i :=
+rfl
+
+lemma basis_fun_eq_pi_basis_fun :
+  basis_fun p 𝕜 ι = (pi.basis_fun 𝕜 ι).map (pi_Lp.linear_equiv p 𝕜 (λ _ : ι, 𝕜)).symm :=
+rfl
+
+@[simp] lemma basis_fun_map :
+  (basis_fun p 𝕜 ι).map (pi_Lp.linear_equiv p 𝕜 (λ _ : ι, 𝕜)) = pi.basis_fun 𝕜 ι :=
+rfl
+
+end basis
 
 end pi_Lp

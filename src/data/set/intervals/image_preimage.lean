@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Patrick Massot
 -/
 import data.set.pointwise.basic
-import algebra.order.field
+import algebra.order.field.basic
 
 /-!
 # (Pre)images of intervals

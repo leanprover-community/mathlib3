@@ -4,7 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Neil Strickland
 -/
 import order.basic
+import algebra.ne_zero
 
+/-!
+# The positive natural numbers
+
+This file contains the definitions, and basic results.
+Most algebraic facts are deferred to `data.pnat.basic`, as they need more imports.
+-/
+
+/-- `ℕ+` is the type of positive natural numbers. It is defined as a subtype,
+  and the VM representation of `ℕ+` is the same as `ℕ` because the proof
+  is not stored. -/
 @[derive [decidable_eq, linear_order]]
 def pnat := {n : ℕ // 0 < n}
 notation `ℕ+` := pnat
@@ -80,6 +91,8 @@ lemma coe_injective : function.injective (coe : ℕ+ → ℕ) := subtype.coe_inj
 
 @[simp] theorem ne_zero (n : ℕ+) : (n : ℕ) ≠ 0 := n.2.ne'
 
+instance _root_.ne_zero.pnat {a : ℕ+} : _root_.ne_zero (a : ℕ) := ⟨a.ne_zero⟩
+
 theorem to_pnat'_coe {n : ℕ} : 0 < n → (n.to_pnat' : ℕ) = n := succ_pred_eq_of_pos
 
 @[simp] theorem coe_to_pnat' (n : ℕ+) : (n : ℕ).to_pnat' = n := eq (to_pnat'_coe n.pos)
@@ -93,7 +106,7 @@ instance : inhabited ℕ+ := ⟨1⟩
 -- Some lemmas that rewrite `pnat.mk n h`, for `n` an explicit numeral, into explicit numerals.
 @[simp] lemma mk_one {h} : (⟨1, h⟩ : ℕ+) = (1 : ℕ+) := rfl
 
-@[simp, norm_cast] theorem one_coe : ((1 : ℕ+) : ℕ) = 1 := rfl
+@[norm_cast] theorem one_coe : ((1 : ℕ+) : ℕ) = 1 := rfl
 
 @[simp, norm_cast] lemma coe_eq_one_iff {m : ℕ+} : (m : ℕ) = 1 ↔ m = 1 :=
 subtype.coe_injective.eq_iff' one_coe

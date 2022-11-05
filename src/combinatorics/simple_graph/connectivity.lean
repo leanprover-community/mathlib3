@@ -1172,7 +1172,7 @@ begin
   cases p;
   simp only [transfer, is_cycle.not_of_nil, cons_is_cycle_iff, transfer, edges_transfer] at pc ⊢,
   { exact pc, },
-  { refine ⟨transfer_is_path _ _ pc.left, pc.right⟩, },
+  { exact ⟨transfer_is_path _ _ pc.left, pc.right⟩, },
 end
 
 @[simp] lemma transfer_transfer {K : simple_graph V} (hp' : ∀ e, e ∈ p.edges → e ∈ K.edge_set) :

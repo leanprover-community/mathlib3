@@ -1149,10 +1149,6 @@ variables {u v w : V} (p : G.walk u v) (q : G.walk v w)
 lemma transfer_self : p.transfer G p.edges_subset_edge_set = p :=
 by { induction p; simp only [*, transfer, eq_self_iff_true, heq_iff_eq, and_self], }
 
-/-- The walk `p` transfered to the larger graph `H` -/
-abbreviation transfer_le (GH : G ≤ H) : H.walk u v :=
-p.transfer H (λ e ep, edge_set_mono GH (edges_subset_edge_set p ep))
-
 lemma transfer_eq_map_of_le (GH : G ≤ H) :
   p.transfer H hp = p.map (simple_graph.hom.map_spanning_subgraphs GH) :=
 by { induction p; simp only [*, transfer, map_cons, hom.map_spanning_subgraphs_apply,
@@ -1178,10 +1174,6 @@ begin
   { exact pc, },
   { refine ⟨transfer_is_path _ _ pc.left, pc.right⟩, },
 end
-
-lemma is_cycle_transfer_le (p : G.walk u u) (hp) (pc : p.is_cycle)
-  (GH : G ≤ H) : (p.transfer H hp).is_cycle :=
-p.transfer_is_cycle (λ e ep, edge_set_mono GH (edges_subset_edge_set p ep)) pc
 
 @[simp] lemma transfer_transfer {K : simple_graph V} (hp' : ∀ e, e ∈ p.edges → e ∈ K.edge_set) :
   (p.transfer H hp).transfer K (by { rw p.edges_transfer hp, exact hp', }) = p.transfer K hp' :=

@@ -1594,6 +1594,11 @@ def prod [module R₁ M₂] [module R₁ M₃] [module R₁ M₄] (e : M₁ ≃L
   (e.prod e' : (M₁ × M₃) →L[R₁] (M₂ × M₄)) = (e : M₁ →L[R₁] M₂).prod_map (e' : M₃ →L[R₁] M₄) :=
 rfl
 
+lemma prod_symm [module R₁ M₂] [module R₁ M₃] [module R₁ M₄]
+  (e : M₁ ≃L[R₁] M₂) (e' : M₃ ≃L[R₁] M₄) :
+  (e.prod e').symm = e.symm.prod e'.symm :=
+rfl
+
 include σ₂₁
 protected theorem bijective (e : M₁ ≃SL[σ₁₂] M₂) : function.bijective e :=
 e.to_linear_equiv.to_equiv.bijective

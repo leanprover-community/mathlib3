@@ -1170,7 +1170,8 @@ begin
     ∃ ε C, 0 < ε ∧ 0 ≤ C ∧ ball q₀.1 ε ⊆ s ∧ ∀ p x, ∥p - q₀.1∥ < ε → ∥g (p, x)∥ ≤ C,
   { have A : is_compact ({q₀.1} ×ˢ k), from is_compact_singleton.prod hk,
     obtain ⟨t, kt, t_open, ht⟩ : ∃ t, {q₀.1} ×ˢ k ⊆ t ∧ is_open t ∧ bounded (g '' t),
-    { apply exists_bounded_of_is_compact_of_continuous_on A (hs.prod is_open_univ) _ hg,
+    { apply exists_is_open_bounded_image_of_is_compact_of_continuous_on A
+        (hs.prod is_open_univ) _ hg,
       simp only [prod_subset_prod_iff, hq₀, singleton_subset_iff, subset_univ, and_self, true_or] },
     obtain ⟨ε, εpos, hε, h'ε⟩ :
       ∃ (ε : ℝ), 0 < ε ∧ thickening ε ({q₀.fst} ×ˢ k) ⊆ t ∧ ball q₀.1 ε ⊆ s,
@@ -1312,7 +1313,8 @@ begin
     obtain ⟨t, kt, t_open, ht⟩ : ∃ t, {q₀.1} ×ˢ k ⊆ t ∧ is_open t ∧ bounded (g' '' t),
     { have B : continuous_on g' (s ×ˢ univ),
         from hg.continuous_on_fderiv_of_open (hs.prod is_open_univ) le_rfl,
-      apply exists_bounded_of_is_compact_of_continuous_on A (hs.prod is_open_univ) _ B,
+      apply exists_is_open_bounded_image_of_is_compact_of_continuous_on A
+        (hs.prod is_open_univ) _ B,
       simp only [prod_subset_prod_iff, hq₀, singleton_subset_iff, subset_univ, and_self, true_or] },
     obtain ⟨ε, εpos, hε, h'ε⟩ :
       ∃ (ε : ℝ), 0 < ε ∧ thickening ε ({q₀.fst} ×ˢ k) ⊆ t ∧ ball q₀.1 ε ⊆ s,
@@ -1458,14 +1460,6 @@ begin
     exact ih n L hgs (hg n) }
 end
 
-lemma continuous_linear_equiv.prod_symm {R₁ : Type*} [semiring R₁] {M₁ : Type*}
-  [topological_space M₁] [add_comm_monoid M₁] {M₂ : Type uG} [topological_space M₂]
-  [add_comm_monoid M₂]
-  {M₃ : Type*} [topological_space M₃] [add_comm_monoid M₃] {M₄ : Type*} [topological_space M₄]
-  [add_comm_monoid M₄] [module R₁ M₁] [module R₁ M₂] [module R₁ M₃] [module R₁ M₄]
-  (e : M₁ ≃L[R₁] M₂) (e' : M₃ ≃L[R₁] M₄) :
-  (e.prod e').symm = e.symm.prod e'.symm :=
-rfl
 
 namespace continuous_linear_equiv
 

@@ -639,7 +639,6 @@ begin
   tauto,
 end
 
-
 /-! ### Walk decompositions -/
 
 section walk_decomp
@@ -905,7 +904,6 @@ lemma not_mem_edges_of_loop {v : V} {e : sym2 V} {p : G.path v v} :
   ¬ e ∈ (p : G.walk v v).edges :=
 by simp [p.loop_eq]
 
-
 lemma cons_is_cycle {u v : V} (p : G.path v u) (h : G.adj u v)
   (he : ¬ ⟦(u, v)⟧ ∈ (p : G.walk v u).edges) : (walk.cons h ↑p).is_cycle :=
 by simp [walk.is_cycle_def, walk.cons_is_trail_iff, he]
@@ -1080,6 +1078,22 @@ lemma map_is_path_iff_of_injective (hinj : function.injective f) :
   (p.map f).is_path ↔ p.is_path :=
 ⟨is_path.of_map, map_is_path_of_injective hinj⟩
 
+lemma map_is_cycle_of_injective {u : V} {p : G.walk u u}
+  (hinj : function.injective f) (hp : p.is_cycle) : (p.map f).is_cycle :=
+begin
+  cases p,
+  { simp only [is_cycle.not_of_nil] at hp,
+    exact hp.elim, },
+  { simp only [cons_is_cycle_iff, map_cons, edges_map, list.mem_map, not_exists, not_and] at hp ⊢,
+    refine ⟨map_is_path_of_injective hinj hp.left, _⟩,
+    rintro ⟨a,b⟩ mem edge_eq,
+    change sym2.map f.to_fun ⟦⟨a,b⟩⟧ = ⟦(f.to_fun u, f.to_fun p_v)⟧ at edge_eq,
+    simp only [sym2.map_pair_eq, rel_hom.coe_fn_to_fun, quotient.eq, sym2.rel_iff] at edge_eq,
+    rcases edge_eq with (⟨au,bv⟩|⟨av,bu⟩),
+    { cases hinj au, cases hinj bv, exact hp.right mem, },
+    { cases hinj av, cases hinj bu, apply hp.right, rw sym2.eq_swap, exact mem, }, },
+end
+
 variables (p f)
 
 lemma map_injective_of_injective {f : G →g G'} (hinj : function.injective f) (u v : V) :
@@ -1097,6 +1111,25 @@ begin
       simp only [eq_self_iff_true, heq_iff_eq, true_and],
       apply ih,
       simpa using h.2, } },
+end
+
+/-- The specialization of `simple_graph.walk.map` for mapping walks to supergraphs. -/
+@[reducible] def map_le {G G' : simple_graph V} (h : G ≤ G')
+  {u v : V} (p : G.walk u v) : G'.walk u v :=
+p.map (hom.map_spanning_subgraphs h)
+
+lemma is_path.map_le {G G' : simple_graph V} (h : G ≤ G')
+  {u v : V} {p : G.walk u v} (pp : p.is_path) : (p.map_le h).is_path :=
+begin
+  apply map_is_path_of_injective _ pp,
+  apply function.injective_id,
+end
+
+lemma is_cycle.map_le {G G' : simple_graph V} (h : G ≤ G')
+  {u : V} {p : G.walk u u} (pc : p.is_cycle) : (p.map_le h).is_cycle :=
+begin
+  apply map_is_cycle_of_injective _ pc,
+  apply function.injective_id,
 end
 
 end walk

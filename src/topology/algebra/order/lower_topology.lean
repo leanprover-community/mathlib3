@@ -36,7 +36,6 @@ Type synonym for a preorder equipped with the lower topology
 -/
 def with_lower_topology := α
 
---instance [p : has_le α] : has_le (with_lower_topology α) := p
 instance [p : preorder α] : preorder (with_lower_topology α) := p
 instance [p : nonempty α] : nonempty (with_lower_topology α) := p
 instance [p : inhabited α] : inhabited (with_lower_topology α) := p
@@ -202,6 +201,47 @@ set (set (α × β)):=
 
 variable (β : Type v)
 
+lemma of_lower_prod : (@with_lower_topology.of_lower (α × β)) =
+  equiv.prod_congr (@with_lower_topology.of_lower α) (@with_lower_topology.of_lower β) :=
+begin
+  ext,
+  { simp only [equiv.prod_congr_apply, prod_map], exact rfl, },
+  { simp only [equiv.prod_congr_apply, prod_map], exact rfl, },
+end
+
+/-
+lemma test3 : (@with_lower_topology.to_lower (α × β)) =
+  equiv.prod_congr (@with_lower_topology.to_lower α) (@with_lower_topology.to_lower β) :=
+begin
+  ext,
+  { simp only [equiv.prod_congr_apply, prod_map],
+    exact rfl, },
+  { simp only [equiv.prod_congr_apply, prod_map],
+    exact rfl, }
+end
+-/
+
+@[simp] lemma to_lower_prod_to_lower_of_lower :
+  (with_lower_topology.to_lower.prod_congr with_lower_topology.to_lower)
+  ∘ with_lower_topology.of_lower = @id (α × β) :=
+begin
+  ext,
+  { simp only [function.comp_app, equiv.prod_congr_apply, prod_map, id.def], exact rfl, },
+  { simp only [function.comp_app, equiv.prod_congr_apply, prod_map, id.def], exact rfl, },
+end
+
+@[simp] lemma of_lower_to_lower_prod_to_lower' : (with_lower_topology.of_lower.trans
+  (with_lower_topology.to_lower.prod_congr with_lower_topology.to_lower)) = @equiv.refl (α × β) :=
+begin
+  ext,
+  { simp only [equiv.coe_trans, to_lower_prod_to_lower_of_lower, equiv.coe_refl], },
+  { simp only [equiv.coe_trans, to_lower_prod_to_lower_of_lower, equiv.coe_refl], }
+end
+
+
+-- Why doesn't equiv.refl_symm work?
+@[simp] lemma refl_symm : (equiv.refl (α × β)).symm = @equiv.refl (α × β) := rfl
+
 variables [partial_order α]
 variables  [partial_order β]
 
@@ -210,25 +250,6 @@ lemma prod_basis_is_topological_basis : is_topological_basis
        (with_lower_topology.lower_basis (with_lower_topology β))) :=
 is_topological_basis.prod with_lower_topology.is_topological_basis
   with_lower_topology.is_topological_basis
-
-/-
-
-
-variables [p : lower_topology (α×β)]
-
-#check is_topological_basis (upper_closure_prod_basis α β)
-
-include p
-
-lemma upper_closure_prod_basis_is_basis : is_topological_basis (upper_closure_prod_basis α β)  :=
-⟨ sorry, sorry, sorry ⟩
--/
-
-/-
-lemma prod_basis
-   :
-  is_topological_basis (image2 (×ˢ) S T) := sorry
--/
 
 lemma upper_closure_prod_upper_closure (F₁ : set α) (F₂ : set β) :
   (upper_closure F₁).prod (upper_closure F₂)  =
@@ -334,22 +355,76 @@ begin
     { apply is_closed.prod, apply with_lower_topology.is_closed_Ici, apply is_closed_univ, } },
 end
 
+lemma lower_topology_prod'  [order_bot α] [order_bot β] :
+  with_lower_topology.topological_space (α × β) =
+  @prod.topological_space α β (lower_topology α) (lower_topology β) :=
+begin
+  rw le_antisymm_iff,
+  split,
+    { rw (prod_basis_is_topological_basis α β).eq_generate_from,
+      apply le_generate_from,
+      intros U hU,
+      simp only [mem_image2, exists_and_distrib_left] at hU,
+      cases hU with V,
+      cases hU_h with hV,
+      cases hU_h_right with W,
+      cases hU_h_right_h with hW hUVW,
+      rw ← hUVW,
+      rw with_lower_topology.lower_basis at hV,
+      rw mem_set_of_eq at hV,
+      cases hV with F₁,
+      rw with_lower_topology.lower_basis at hW,
+      rw mem_set_of_eq at hW,
+      cases hW with F₂,
+      rw ← hV_h.2,
+      rw ← hW_h.2,
+      rw ← lower_set.coe_prod,
+      rw upper_closure_compl_prod_upper_closure_compl',
+      rw lower_set.coe_inf,
+      apply is_open.inter,
+      { rw  upper_set.coe_compl, rw is_open_compl_iff, rw upper_closure_prod,
+        rw upper_closure_univ,
+        rw ← upper_set.Ici_bot,
+        rw ← upper_closure_singleton,
+        rw ← upper_closure_prod,
+        apply with_lower_topology.is_closed_upper_closure,
+        apply set.finite.prod (finite_singleton ⊥) hW_h.1, },
+      { rw  upper_set.coe_compl, rw is_open_compl_iff, rw upper_closure_prod,
+        rw upper_closure_univ,
+        rw ← upper_set.Ici_bot,
+        rw ← upper_closure_singleton,
+        rw ← upper_closure_prod,
+       apply with_lower_topology.is_closed_upper_closure,
+       apply set.finite.prod hV_h.1 (finite_singleton ⊥), }, },
+    { apply le_generate_from,
+    intros,
+    rw mem_set_of_eq at H,
+    rcases H,
+    cases H_w with a b,
+    rw [← H_h, ← upper_set.coe_Ici, is_open_compl_iff, prod_Ici],
+    apply is_closed.inter,
+    { apply is_closed.prod is_closed_univ, apply with_lower_topology.is_closed_Ici, },
+    { apply is_closed.prod, apply with_lower_topology.is_closed_Ici, apply is_closed_univ, } },
+end
+
 /--
 The lower topology of the partially ordered space α × β is homeomorphic to the product topology of
 the lower topology of the partially ordered space α with the lower topology of the partially ordered
 space β
 -/
-def lower_topology_prod_hom :
+def lower_topology_prod_hom [order_bot α] [order_bot β] :
   with_lower_topology (α × β) ≃ₜ ((with_lower_topology α) × (with_lower_topology β)) :=
 { continuous_to_fun :=
   begin
-    simp only [equiv.to_fun_as_coe, equiv.coe_trans],
-    sorry,
+    simp only [equiv.to_fun_as_coe, equiv.coe_trans, to_lower_prod_to_lower_of_lower],
+    convert continuous_id,
+    rw lower_topology_prod',
   end,
   continuous_inv_fun :=
   begin
-    simp only [equiv.inv_fun_as_coe],
-    sorry,
+    simp only [of_lower_to_lower_prod_to_lower', equiv.inv_fun_as_coe, refl_symm, equiv.coe_refl],
+    convert continuous_id,
+    rw lower_topology_prod',
   end,
   ..with_lower_topology.of_lower.trans (with_lower_topology.to_lower.prod_congr
     with_lower_topology.to_lower) }

@@ -57,7 +57,7 @@ begin
     { intros g₁ g₂ hg₁ hg₂, simp [tmul_add, hg₁, hg₂], },
     { intros k' n,
       simp only [finsupp_tensor_finsupp_single],
-      simp only [finsupp.single_apply, finsupp.coe_mk],
+      simp only [finsupp.single_apply],
       -- split_ifs; finish can close the goal from here
       by_cases h1 : (i', k') = (i, k),
       { simp only [prod.mk.inj_iff] at h1, simp [h1] },

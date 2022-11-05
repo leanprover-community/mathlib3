@@ -738,7 +738,7 @@ begin
   { intros f g hf hg, simp [map_add, hf, hg], },
   { intros k m,
     simp only [finsupp.lcongr_symm_single],
-    simp only [finsupp.single_apply, equiv.symm_apply_eq, finsupp.coe_mk],
+    simp only [finsupp.single_apply, equiv.symm_apply_eq],
     split_ifs; simp, },
 end
 

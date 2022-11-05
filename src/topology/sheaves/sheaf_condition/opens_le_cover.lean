@@ -105,6 +105,7 @@ def opens_le_cover_cocone : cocone (full_subcategory_inclusion _ : opens_le_cove
 { X := supr U,
   ι := { app := λ V : opens_le_cover U, V.hom_to_index ≫ opens.le_supr U _, } }
 
+/-- `is_open_map.functor` induces an isomorphism between `opens_le_cover_cocone`s. -/
 def _root_.open_embedding.opens_le_cover_cocone_iso {f : Z ⟶ X} (hf : open_embedding f) :
   hf.is_open_map.functor.map_cocone (opens_le_cover_cocone W) ≅ (opens_le_cover_cocone $
     hf.is_open_map.functor.obj ∘ W).whisker (hf.opens_le_cover_equivalence W).functor :=
@@ -355,7 +356,7 @@ lemma is_sheaf_iff_is_sheaf_pairwise_intersections :
 by rw [is_sheaf_iff_is_sheaf_opens_le_cover,
   is_sheaf_opens_le_cover_iff_is_sheaf_pairwise_intersections]
 
-def _root_.open_embedding.is_sheaf {f : Z ⟶ X} (hf : open_embedding f)
+lemma _root_.open_embedding.is_sheaf {f : Z ⟶ X} (hf : open_embedding f)
   (h : F.is_sheaf) : is_sheaf (hf.is_open_map.functor.op ⋙ F) :=
 begin
   rw is_sheaf_iff_is_sheaf_opens_le_cover at h ⊢,

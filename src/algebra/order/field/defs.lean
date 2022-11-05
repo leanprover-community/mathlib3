@@ -21,7 +21,7 @@ A linear ordered (semi)field is a (semi)field equipped with a linear order such 
 
 ## Implementation details
 
-For olean caching reasons, this file is separate to the main file, algebra.order.field.
+For olean caching reasons, this file is separate to the main file, `algebra.order.field.basic`.
 The lemmata are instead located there.
 
 -/

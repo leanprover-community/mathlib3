@@ -112,6 +112,14 @@ mt eq_zero_or_eq_zero_of_mul_eq_zero $ not_or_distrib.mpr ⟨ha, hb⟩
 
 end has_mul
 
+namespace ne_zero
+
+instance mul [has_zero M₀] [has_mul M₀] [no_zero_divisors M₀] {x y : M₀}
+  [ne_zero x] [ne_zero y] : ne_zero (x * y) :=
+⟨mul_ne_zero out out⟩
+
+end ne_zero
+
 section
 
 variables [mul_zero_class M₀] [no_zero_divisors M₀] {a b : M₀}
@@ -215,8 +223,10 @@ begin
   ... = y : by rw [one_mul]
 end
 
-@[simp] lemma one_ne_zero : (1:M₀) ≠ 0 :=
-zero_ne_one.symm
+@[simp] lemma one_ne_zero : (1:M₀) ≠ 0 := zero_ne_one.symm
+
+instance ne_zero.one (R) [mul_zero_one_class R] [nontrivial R] : ne_zero (1 : R) := ⟨one_ne_zero⟩
+
 
 lemma ne_zero_of_eq_one {a : M₀} (h : a = 1) : a ≠ 0 :=
 calc a = 1 : h

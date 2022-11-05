@@ -3,14 +3,14 @@ Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
+import algebra.char_zero
+import algebra.order.sub.with_top
 import data.nat.lattice
 import data.nat.succ_pred
+-- which of these are actually needed?
 import algebra.order.sub.with_top
-<<<<<<< HEAD
 import algebra.char_zero
-=======
 import algebra.order.ring.with_top
->>>>>>> split_order_ring
 
 /-!
 # Definition and basic properties of extended natural numbers

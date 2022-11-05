@@ -3,12 +3,8 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-
-import order.complete_boolean_algebra
-import order.cover
-import order.modular_lattice
-import data.fintype.basic
 import data.set.finite
+import order.modular_lattice
 
 /-!
 # Atoms, Coatoms, and Simple Lattices

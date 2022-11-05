@@ -3,14 +3,11 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
-import algebra.group_with_zero.power
 import data.set.intervals.pi
+import data.set.pointwise.interval
 import order.filter.interval
 import topology.algebra.field
 import topology.algebra.order.left_right
-import tactic.linarith
-import tactic.tfae
-import tactic.positivity
 
 /-!
 # Theory of topology on ordered spaces

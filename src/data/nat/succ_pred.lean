@@ -3,8 +3,8 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import order.succ_pred.basic
 import data.fin.basic
+import order.succ_pred.basic
 
 /-!
 # Successors and predecessors of naturals

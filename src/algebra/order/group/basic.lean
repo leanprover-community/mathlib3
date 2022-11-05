@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.order.sub.basic
-import algebra.order.monoid.canonical
 import algebra.order.monoid.order_dual
 
 /-!
@@ -52,11 +51,6 @@ instance ordered_comm_group.to_ordered_cancel_comm_monoid (α : Type u)
   ordered_cancel_comm_monoid α :=
 { le_of_mul_le_mul_left := λ a b c, (mul_le_mul_iff_left a).mp,
   ..s }
-
-@[priority 100, to_additive] -- See note [lower instance priority]
-instance group.has_exists_mul_of_le (α : Type u) [group α] [has_le α] : has_exists_mul_of_le α :=
-⟨λ a b hab, ⟨a⁻¹ * b, (mul_inv_cancel_left _ _).symm⟩⟩
-
 
 @[to_additive] instance [ordered_comm_group α] : ordered_comm_group αᵒᵈ :=
 { .. order_dual.ordered_comm_monoid, .. order_dual.group }
@@ -797,35 +791,7 @@ begin
   exact div_le_inv_mul_iff,
 end
 
-@[simp, to_additive] lemma max_one_div_max_inv_one_eq_self (a : α) :
-  max a 1 / max a⁻¹ 1 = a :=
-by { rcases le_total a 1 with h|h; simp [h] }
-
-alias max_zero_sub_max_neg_zero_eq_self ← max_zero_sub_eq_self
-
 end variable_names
-
-section densely_ordered
-variables [densely_ordered α] {a b c : α}
-
-@[to_additive]
-lemma le_of_forall_lt_one_mul_le (h : ∀ ε < 1, a * ε ≤ b) : a ≤ b :=
-@le_of_forall_one_lt_le_mul αᵒᵈ _ _ _ _ _ _ _ _ h
-
-@[to_additive]
-lemma le_of_forall_one_lt_div_le (h : ∀ ε : α, 1 < ε → a / ε ≤ b) : a ≤ b :=
-le_of_forall_lt_one_mul_le $ λ ε ε1,
-  by simpa only [div_eq_mul_inv, inv_inv]  using h ε⁻¹ (left.one_lt_inv_iff.2 ε1)
-
-@[to_additive]
-lemma le_iff_forall_one_lt_le_mul : a ≤ b ↔ ∀ ε, 1 < ε → a ≤ b * ε :=
-⟨λ h ε ε_pos, le_mul_of_le_of_one_le h ε_pos.le, le_of_forall_one_lt_le_mul⟩
-
-@[to_additive]
-lemma le_iff_forall_lt_one_mul_le : a ≤ b ↔ ∀ ε < 1, a * ε ≤ b :=
-@le_iff_forall_one_lt_le_mul αᵒᵈ _ _ _ _ _ _
-
-end densely_ordered
 
 end linear_order
 

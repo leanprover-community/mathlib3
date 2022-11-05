@@ -7,7 +7,10 @@ import data.nat.order
 import data.nat.cast.defs
 import algebra.group.pi
 import algebra.group.prod
-import algebra.order.ring
+import algebra.hom.ring
+import algebra.order.ring.basic
+import algebra.order.monoid.with_top
+
 
 /-!
 # Cast of natural numbers (additional theorems)

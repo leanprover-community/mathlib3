@@ -7,8 +7,19 @@ import algebra.order.group.abs
 import algebra.order.monoid.min_max
 
 /-!
-# `min` and `max` in linearly ordered commutative groups.
+# `min` and `max` in linearly ordered groups.
 -/
+
+section
+variables {α : Type*} [group α] [linear_order α] [covariant_class α α (*) (≤)]
+
+@[simp, to_additive] lemma max_one_div_max_inv_one_eq_self (a : α) :
+  max a 1 / max a⁻¹ 1 = a :=
+by { rcases le_total a 1 with h|h; simp [h] }
+
+alias max_zero_sub_max_neg_zero_eq_self ← max_zero_sub_eq_self
+
+end
 
 section linear_ordered_comm_group
 variables {α : Type*} [linear_ordered_comm_group α] {a b c : α}

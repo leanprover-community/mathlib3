@@ -6,7 +6,11 @@ Authors: Yury Kudryashov
 import data.nat.lattice
 import data.nat.succ_pred
 import algebra.order.sub.with_top
+<<<<<<< HEAD
 import algebra.char_zero
+=======
+import algebra.order.ring.with_top
+>>>>>>> split_order_ring
 
 /-!
 # Definition and basic properties of extended natural numbers

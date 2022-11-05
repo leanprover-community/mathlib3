@@ -106,10 +106,6 @@ end fdRep
 namespace fdRep
 variables {k G : Type u} [field k] [group G]
 
--- Verify that the left rigid structure is available when the monoid is a group.
-noncomputable instance : left_rigid_category (fdRep k G) :=
-by { change left_rigid_category (Action (fgModule k) (Group.of G)), apply_instance, }
-
 -- Verify that the right rigid structure is available when the monoid is a group.
 noncomputable instance : right_rigid_category (fdRep k G) :=
 by { change right_rigid_category (Action (fgModule k) (Group.of G)), apply_instance, }

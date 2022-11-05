@@ -96,10 +96,14 @@ instance monoidal_predicate_module_finite :
 { prop_id' := module.finite.self R,
   prop_tensor' := λ X Y hX hY, by exactI module.finite.tensor_product R X Y }
 
-instance : monoidal_category (fgModule R) := by dsimp_result { dsimp [fgModule], apply_instance, }
-instance : symmetric_category (fgModule R) := by dsimp_result { dsimp [fgModule], apply_instance, }
-instance : monoidal_preadditive (fgModule R) := by dsimp_result { dsimp [fgModule], apply_instance, }
-instance : monoidal_linear R (fgModule R) := by dsimp_result { dsimp [fgModule], apply_instance, }
+instance : monoidal_category (fgModule R) :=
+by dsimp_result { dsimp [fgModule], apply_instance, }
+instance : symmetric_category (fgModule R) :=
+by dsimp_result { dsimp [fgModule], apply_instance, }
+instance : monoidal_preadditive (fgModule R) :=
+by dsimp_result { dsimp [fgModule], apply_instance, }
+instance : monoidal_linear R (fgModule R) :=
+by dsimp_result { dsimp [fgModule], apply_instance, }
 
 /-- The forgetful functor `fgModule R ⥤ Module R` as a monoidal functor. -/
 def forget₂_monoidal : monoidal_functor (fgModule R) (Module.{u} R) :=

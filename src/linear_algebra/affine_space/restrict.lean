@@ -23,7 +23,7 @@ This file defines restrictions of affine maps.
 * The restriction in surjective if the codomain is the image of the domain.
 -/
 
-variables {k V₁ P₁ V₂ P₂ : Type} [ring k]
+variables {k V₁ P₁ V₂ P₂ : Type*} [ring k]
   [add_comm_group V₁] [add_comm_group V₂]
   [module k V₁] [module k V₂]
   [add_torsor V₁ P₁] [add_torsor V₂ P₂]

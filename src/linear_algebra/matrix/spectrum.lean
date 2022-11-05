@@ -19,26 +19,11 @@ spectral theorem, diagonalization theorem
 
 namespace matrix
 
-open_locale matrix
-
-
 variables {𝕜 : Type*} [is_R_or_C 𝕜] [decidable_eq 𝕜] {n : Type*} [fintype n] [decidable_eq n]
 variables {A : matrix n n 𝕜}
 
 open_locale matrix
 open_locale big_operators
-
-lemma _root_.pi_Lp.basis_to_matrix_basis_fun_mul (p : ennreal) [fact (1 ≤ p)]
-  (b : basis n 𝕜 (pi_Lp p (λ i : n, 𝕜))) (A : matrix n n 𝕜) :
-  b.to_matrix (pi_Lp.basis_fun _ _ _) ⬝ A =
-    of (λ i j, b.repr ((pi_Lp.equiv _ _).symm (Aᵀ j)) i) :=
-begin
-  have := basis_to_matrix_basis_fun_mul (b.map (pi_Lp.linear_equiv _ 𝕜 _)) A,
-  simp_rw [←pi_Lp.basis_fun_map p, basis.map_repr, linear_equiv.trans_apply,
-    pi_Lp.linear_equiv_symm_apply, basis.to_matrix_map, function.comp, basis.map_apply,
-    linear_equiv.symm_apply_apply] at this,
-  exact this,
-end
 
 namespace is_hermitian
 

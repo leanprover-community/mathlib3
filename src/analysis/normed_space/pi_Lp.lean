@@ -713,6 +713,19 @@ rfl
   (basis_fun p 𝕜 ι).map (pi_Lp.linear_equiv p 𝕜 (λ _ : ι, 𝕜)) = pi.basis_fun 𝕜 ι :=
 rfl
 
+open_locale matrix
+
+lemma basis_to_matrix_basis_fun_mul (b : basis ι 𝕜 (pi_Lp p (λ i : ι, 𝕜))) (A : matrix ι ι 𝕜) :
+  b.to_matrix (pi_Lp.basis_fun _ _ _) ⬝ A =
+    matrix.of (λ i j, b.repr ((pi_Lp.equiv _ _).symm (Aᵀ j)) i) :=
+begin
+  have := basis_to_matrix_basis_fun_mul (b.map (pi_Lp.linear_equiv _ 𝕜 _)) A,
+  simp_rw [←pi_Lp.basis_fun_map p, basis.map_repr, linear_equiv.trans_apply,
+    pi_Lp.linear_equiv_symm_apply, basis.to_matrix_map, function.comp, basis.map_apply,
+    linear_equiv.symm_apply_apply] at this,
+  exact this,
+end
+
 end basis
 
 end pi_Lp

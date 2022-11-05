@@ -215,7 +215,6 @@ lemma primary_component.exists_order_of_eq_prime_pow (g : comm_monoid.primary_co
   ∃ n : ℕ, order_of g = p ^ n :=
 by simpa [primary_component] using g.property
 
-#check nat.prime_iff
 /-- The `p`- and `q`-primary components are disjoint for `p ≠ q`. -/
 @[to_additive "The `p`- and `q`-primary components are disjoint for `p ≠ q`."]
 lemma primary_component.disjoint {p' : ℕ} [hp' : fact p'.prime] (hne : p ≠ p') :

@@ -952,7 +952,6 @@ end
 
 end assoc
 
-
 variables [normed_add_comm_group G] [borel_space G] [normed_space 𝕜 G]  [normed_space 𝕜 P]
 
 lemma convolution_precompR_apply {g : G → E'' →L[𝕜] E'}
@@ -1093,6 +1092,9 @@ variables [is_R_or_C 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 E'] [normed_
 [normed_add_comm_group G] [borel_space G] [normed_space 𝕜 G]
 {μ : measure G} (L : E →L[𝕜] E' →L[𝕜] F)
 
+/-- The convolution `f * g` is continuous if `f` is locally integrable and `g` is continuous and
+compactly supported. Version where `g` depends on an additional parameter in an open subset `s` of
+a parameter space `P` (and the compact support `k` is independent of the parameter in `s`). -/
 lemma continuous_on_convolution_right_with_param
   {g : P × G → E'}
   {s : set P} {k : set G} (hs : is_open s) (hk : is_compact k)
@@ -1217,6 +1219,10 @@ end
 
 variables [normed_space 𝕜 P] [sigma_finite μ] [is_add_left_invariant μ]
 
+/-- The derivative of the convolution `f * g` is given by `f * Dg`, when `f` is locally integrable
+and `g` is `C^1` and compactly supported. Version where `g` depends on an additional parameter in an
+open subset `s` of a parameter space `P` (and the compact support `k` is independent of the
+parameter in `s`). -/
 lemma has_fderiv_at_convolution_right_with_param
   {g : P × G → E'} {s : set P} {k : set G} (hs : is_open s) (hk : is_compact k)
   (hgs : ∀ p, ∀ x, p ∈ s → x ∉ k → g (p, x) = 0)
@@ -1382,7 +1388,12 @@ begin
   exact has_fderiv_at_integral_of_dominated_of_fderiv_le εpos I1 I2 I3 I4 I5 I6,
 end
 
-lemma cont_diff_convolution_right_with_param_aux
+/-- The convolution `f * g` is `C^n` when `f` is locally integrable and `g` is `C^n` and compactly
+supported. Version where `g` depends on an additional parameter in an open subset `s` of a
+parameter space `P` (and the compact support `k` is independent of the parameter in `s`), and
+moreover all the types belong to the same universe (to get an induction working in the proof).
+Use instead `cont_diff_on_convolution_right_with_param`, which removes this restriction. -/
+lemma cont_diff_on_convolution_right_with_param_aux
   {G : Type uP} {E' : Type uP} {F : Type uP} {P : Type uP}
   [normed_add_comm_group E'] [normed_add_comm_group F]
   [normed_space 𝕜 E'] [normed_space ℝ F] [normed_space 𝕜 F] [complete_space F]
@@ -1426,20 +1437,10 @@ begin
     exact ih n L hgs (hg n) }
 end
 
-
-namespace continuous_linear_equiv
-
-variables {U V : Type*} [normed_add_comm_group U] [normed_add_comm_group V]
-[complete_space U] [normed_space ℝ U] [complete_space V] [normed_space ℝ V]
-[normed_space 𝕜 U] [normed_space 𝕜 V]
-
-lemma integral_comp_comm {α : Type*} {m : measurable_space α} {μ : measure α}
-  (L : U ≃L[𝕜] V) (φ : α → U) : ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
-L.to_continuous_linear_map.integral_comp_comm' L.antilipschitz _
-
-end continuous_linear_equiv
-
-lemma cont_diff_convolution_right_with_param
+/-- The convolution `f * g` is `C^n` when `f` is locally integrable and `g` is `C^n` and compactly
+supported. Version where `g` depends on an additional parameter in an open subset `s` of a
+parameter space `P` (and the compact support `k` is independent of the parameter in `s`). -/
+lemma cont_diff_on_convolution_right_with_param
   {f : G → E} {n : ℕ∞} (L : E →L[𝕜] E' →L[𝕜] F)
   {g : P × G → E'}
   {s : set P} {k : set G} (hs : is_open s) (hk : is_compact k)
@@ -1472,7 +1473,7 @@ begin
   { have hek : is_compact (isoG ⁻¹' k),
       from isoG.to_homeomorph.closed_embedding.is_compact_preimage hk,
     have hes : is_open (isoP ⁻¹' s), from isoP.continuous.is_open_preimage _ hs,
-    refine cont_diff_convolution_right_with_param_aux eL hes hek _ _ _,
+    refine cont_diff_on_convolution_right_with_param_aux eL hes hek _ _ _,
     { assume p x hp hx,
       simp only [comp_app, continuous_linear_equiv.prod_apply, linear_isometry_equiv.coe_coe,
         continuous_linear_equiv.map_eq_zero_iff],

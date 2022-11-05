@@ -124,7 +124,7 @@ variables (ρV : representation k G V) (ρW : representation k G W)
 /-- Auxiliary definition for `fdRep.dual_tensor_iso_lin_hom`. -/
 noncomputable def dual_tensor_iso_lin_hom_aux :
   ((fdRep.of ρV.dual) ⊗ (fdRep.of ρW)).V ≅ (fdRep.of (lin_hom ρV ρW)).V :=
-(dual_tensor_hom_equiv k V W).to_FinVect_iso
+(dual_tensor_hom_equiv k V W).to_fgModule_iso
 
 /-- When `V` and `W` are finite dimensional representations of a group `G`, the isomorphism
 `dual_tensor_hom_equiv k V W` of vector spaces induces an isomorphism of representations. -/

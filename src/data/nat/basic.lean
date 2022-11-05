@@ -71,23 +71,6 @@ instance : add_semigroup ℕ                := infer_instance
 instance : distrib ℕ                      := infer_instance
 instance : semiring ℕ                     := infer_instance
 
-instance nat.order_bot : order_bot ℕ :=
-{ bot := 0, bot_le := nat.zero_le }
-
-
-instance nat.subtype.order_bot (s : set ℕ) [decidable_pred (∈ s)] [h : nonempty s] :
-  order_bot s :=
-{ bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,
-  bot_le := λ x, nat.find_min' _ x.2 }
-
-instance nat.subtype.semilattice_sup (s : set ℕ) :
-  semilattice_sup s :=
-{ ..subtype.linear_order s,
-  ..linear_order.to_lattice }
-
-lemma nat.subtype.coe_bot {s : set ℕ} [decidable_pred (∈ s)]
-  [h : nonempty s] : ((⊥ : s) : ℕ) = nat.find (nonempty_subtype.1 h) := rfl
-
 protected lemma nat.nsmul_eq_mul (m n : ℕ) : m • n = m * n := rfl
 
 theorem nat.eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m) : n = k :=
@@ -106,45 +89,8 @@ attribute [simp] nat.not_lt_zero nat.succ_ne_zero nat.succ_ne_self
   nat.bit0_ne_one nat.one_ne_bit0
   nat.bit0_ne_bit1 nat.bit1_ne_bit0
 
-
 variables {m n k : ℕ}
 namespace nat
-
-/-!
-### Recursion and `set.range`
--/
-
-section set
-
-open set
-
-theorem zero_union_range_succ : {0} ∪ range succ = univ :=
-by { ext n, cases n; simp }
-
-@[simp] protected lemma range_succ : range succ = {i | 0 < i} := by ext (_ | i); simp [succ_pos]
-
-variables {α : Type*}
-
-theorem range_of_succ (f : ℕ → α) : {f 0} ∪ range (f ∘ succ) = range f :=
-by rw [← image_singleton, range_comp, ← image_union, zero_union_range_succ, image_univ]
-
-theorem range_rec {α : Type*} (x : α) (f : ℕ → α → α) :
-  (set.range (λ n, nat.rec x f n) : set α) =
-    {x} ∪ set.range (λ n, nat.rec (f 0 x) (f ∘ succ) n) :=
-begin
-  convert (range_of_succ _).symm,
-  ext n,
-  induction n with n ihn,
-  { refl },
-  { dsimp at ihn ⊢,
-    rw ihn }
-end
-
-theorem range_cases_on {α : Type*} (x : α) (f : ℕ → α) :
-  (set.range (λ n, nat.cases_on n x f) : set α) = {x} ∪ set.range f :=
-(range_of_succ _).symm
-
-end set
 
 /-! ### The units of the natural numbers as a `monoid` and `add_monoid` -/
 
@@ -487,9 +433,9 @@ extend from `P i` to both `P (2 * i)` and `P (2 * i + 1)`, then we have `P n` fo
 This is nothing more than a wrapper around `nat.binary_rec`, to avoid having to switch to
 dealing with `bit0` and `bit1`. -/
 @[elab_as_eliminator]
-def even_odd_rec (n : ℕ) (P : ℕ → Sort*) (h0 : P 0)
-  (h_even : ∀ i, P i → P (2 * i))
-  (h_odd : ∀ i, P i → P (2 * i + 1)) : P n :=
+def even_odd_rec {P : ℕ → Sort*} (h0 : P 0)
+  (h_even : ∀ n (ih : P n), P (2 * n))
+  (h_odd : ∀ n (ih : P n), P (2 * n + 1)) (n : ℕ) : P n :=
 begin
   refine @binary_rec P h0 (λ b i hi, _) n,
   cases b,
@@ -499,12 +445,12 @@ end
 
 @[simp] lemma even_odd_rec_zero (P : ℕ → Sort*) (h0 : P 0)
   (h_even : ∀ i, P i → P (2 * i)) (h_odd : ∀ i, P i → P (2 * i + 1)) :
-  @even_odd_rec 0 P h0 h_even h_odd = h0 := binary_rec_zero _ _
+  @even_odd_rec _ h0 h_even h_odd 0 = h0 := binary_rec_zero _ _
 
 @[simp] lemma even_odd_rec_even (n : ℕ) (P : ℕ → Sort*) (h0 : P 0)
   (h_even : ∀ i, P i → P (2 * i)) (h_odd : ∀ i, P i → P (2 * i + 1))
   (H : h_even 0 h0 = h0) :
-  @even_odd_rec (2 * n) P h0 h_even h_odd = h_even n (even_odd_rec n P h0 h_even h_odd) :=
+  @even_odd_rec _ h0 h_even h_odd (2 * n) = h_even n (even_odd_rec h0 h_even h_odd n) :=
 begin
   convert binary_rec_eq _ ff n,
   { exact (bit0_eq_two_mul _).symm },
@@ -516,7 +462,7 @@ end
 @[simp] lemma even_odd_rec_odd (n : ℕ) (P : ℕ → Sort*) (h0 : P 0)
   (h_even : ∀ i, P i → P (2 * i)) (h_odd : ∀ i, P i → P (2 * i + 1))
   (H : h_even 0 h0 = h0) :
-  @even_odd_rec (2 * n + 1) P h0 h_even h_odd = h_odd n (even_odd_rec n P h0 h_even h_odd) :=
+  @even_odd_rec _ h0 h_even h_odd (2 * n + 1) = h_odd n (even_odd_rec h0 h_even h_odd n) :=
 begin
   convert binary_rec_eq _ tt n,
   { exact (bit0_eq_two_mul _).symm },

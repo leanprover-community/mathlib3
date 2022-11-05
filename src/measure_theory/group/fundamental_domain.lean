@@ -301,6 +301,36 @@ begin
     rwa [hs.integrable_on_iff ht hf] at hfs }
 end
 
+/-- If the action of a countable group `G` admits an invariant measure `μ` with a fundamental domain
+`s`, then every null-measurable set `t` such that the sets `g • t ∩ s` are pairwise a.e.-disjoint
+has measure at most `μ s`. -/
+@[to_additive "If the additive action of a countable group `G` admits an invariant measure `μ` with
+a fundamental domain `s`, then every null-measurable set `t` such that the sets `g +ᵥ t ∩ s` are
+pairwise a.e.-disjoint has measure at most `μ s`."]
+ lemma measure_le_of_pairwise_disjoint (hs : is_fundamental_domain G s μ)
+  (ht : null_measurable_set t μ) (hd : pairwise (ae_disjoint μ on (λ g : G, g • t ∩ s))) :
+  μ t ≤ μ s :=
+calc μ t = ∑' g : G, μ (g • t ∩ s) : hs.measure_eq_tsum t
+... = μ (⋃ g : G, g • t ∩ s) : eq.symm $ measure_Union₀ hd $
+  λ g, (ht.smul _).inter hs.null_measurable_set
+... ≤ μ s : measure_mono (Union_subset $ λ g, inter_subset_right _ _)
+
+/-- If the action of a countable group `G` admits an invariant measure `μ` with a fundamental domain
+`s`, then every null-measurable set `t` of measure strictly greater than `μ s` contains two
+points `x y` such that `g • x = y` for some `g ≠ 1`. -/
+@[to_additive "If the additive action of a countable group `G` admits an invariant measure `μ` with
+a fundamental domain `s`, then every null-measurable set `t` of measure strictly greater than `μ s`
+contains two points `x y` such that `g +ᵥ x = y` for some `g ≠ 0`."]
+lemma exists_ne_one_smul_eq (hs : is_fundamental_domain G s μ) (htm : null_measurable_set t μ)
+  (ht : μ s < μ t) : ∃ (x y ∈ t) (g ≠ (1 : G)), g • x = y :=
+begin
+  contrapose! ht,
+  refine hs.measure_le_of_pairwise_disjoint htm (pairwise.ae_disjoint $ λ g₁ g₂ hne, _),
+  rintro _ ⟨⟨⟨x, hx, rfl⟩, -⟩, ⟨y, hy, hxy⟩, -⟩,
+  refine ht x hx y hy (g₂⁻¹ * g₁) (mt inv_mul_eq_one.1 hne.symm) _,
+  rw [mul_smul, ← hxy, inv_smul_smul]
+end
+
 /-- If `f` is invariant under the action of a countable group `G`, and `μ` is a `G`-invariant
   measure with a fundamental domain `s`, then the `ess_sup` of `f` restricted to `s` is the same as
   that of `f` on all of its domain. -/

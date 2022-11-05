@@ -1473,15 +1473,6 @@ L.to_continuous_linear_map.integral_comp_comm' L.antilipschitz _
 
 end continuous_linear_equiv
 
-
-/-- The continuous linear equivalence between `ulift α` and `α`. -/
-def continuous_linear_equiv.ulift : ulift E ≃L[𝕜] E :=
-{ map_add' := λ x y, rfl,
-  map_smul' := λ c x, rfl,
-  continuous_to_fun := continuous_ulift_down,
-  continuous_inv_fun := continuous_ulift_up,
-  .. equiv.ulift }
-
 lemma cont_diff_convolution_right_with_param
   {f : G → E} {n : ℕ∞} (L : E →L[𝕜] E' →L[𝕜] F)
   {g : P × G → E'}

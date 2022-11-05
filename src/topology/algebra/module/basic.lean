@@ -1744,6 +1744,14 @@ variables {M₁} {R₄ : Type*} [semiring R₄] [module R₄ M₄]
   [ring_hom_comp_triple σ₂₁ σ₁₄ σ₂₄] [ring_hom_comp_triple σ₂₄ σ₄₃ σ₂₃]
   [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄]
 
+/-- The continuous linear equivalence between `ulift M₁` and `M₁`. -/
+def ulift : ulift M₁ ≃L[R₁] M₁ :=
+{ map_add' := λ x y, rfl,
+  map_smul' := λ c x, rfl,
+  continuous_to_fun := continuous_ulift_down,
+  continuous_inv_fun := continuous_ulift_up,
+  .. equiv.ulift }
+
 include σ₂₁ σ₃₄ σ₂₃ σ₂₄ σ₁₃
 
 /-- A pair of continuous (semi)linear equivalences generates an equivalence between the spaces of
@@ -1756,6 +1764,7 @@ continuous linear maps. See also `continuous_linear_equiv.arrow_congr`. -/
     by simp only [continuous_linear_map.comp_apply, symm_apply_apply, coe_coe],
   right_inv := λ f, continuous_linear_map.ext $ λ x,
     by simp only [continuous_linear_map.comp_apply, apply_symm_apply, coe_coe] }
+
 
 end add_comm_monoid
 

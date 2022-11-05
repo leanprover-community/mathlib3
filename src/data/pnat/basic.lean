@@ -12,7 +12,7 @@ import algebra.order.positive.ring
 
 This file develops the type `ℕ+` or `pnat`, the subtype of natural numbers that are positive.
 It is defined in `data.pnat.defs`, but most of the development is deferred to here so
-that file can have very few imports.
+that `data.pnat.defs` can have very few imports.
 -/
 
 attribute [derive [add_left_cancel_semigroup, add_right_cancel_semigroup, add_comm_semigroup,

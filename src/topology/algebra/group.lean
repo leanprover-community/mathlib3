@@ -923,25 +923,68 @@ with continuous addition/multiplication. See also `submonoid.top_closure_mul_sel
 `topology.algebra.monoid`.
 -/
 
-section has_continuous_mul
-variables [topological_space α] [group α] [has_continuous_mul α] {s t : set α}
+@[to_additive]
+instance has_continuous_mul.to_has_continuous_smul_op [topological_space α] [group α]
+  [has_continuous_mul α] : has_continuous_smul αᵐᵒᵖ α :=
+⟨begin
+  convert continuous.comp  (@continuous_mul α _ _ _) continuous_swap using 0,
+  simp [function.comp],
+  sorry,
+end⟩
 
-@[to_additive] lemma is_open.mul_left (ht : is_open t) : is_open (s * t) :=
-by { rw ←Union_mul_left_image, exact is_open_bUnion (λ a ha, is_open_map_mul_left a t ht) }
+section has_continuous_const_smul
+variables [topological_space α] [topological_space β] [group α] [mul_action α β]
+  [has_continuous_const_smul α β] {s : set α} {t : set β}
 
-@[to_additive] lemma is_open.mul_right (hs : is_open s) : is_open (s * t) :=
-by { rw ←Union_mul_right_image, exact is_open_bUnion (λ a ha, is_open_map_mul_right a s hs) }
+@[to_additive] lemma is_open.smul_left (ht : is_open t) : is_open (s • t) :=
+by { rw ←bUnion_smul_set, exact is_open_bUnion (λ a _, ht.smul _) }
 
-@[to_additive] lemma subset_interior_mul_left : interior s * t ⊆ interior (s * t) :=
-interior_maximal (set.mul_subset_mul_right interior_subset) is_open_interior.mul_right
+@[to_additive] lemma subset_interior_smul_right : s • interior t ⊆ interior (s • t) :=
+interior_maximal (set.smul_subset_smul_left interior_subset) is_open_interior.smul_left
+
+@[to_additive] lemma subset_interior_smul : interior s • interior t ⊆ interior (s • t) :=
+(set.smul_subset_smul_right interior_subset).trans subset_interior_smul_right
+
+end has_continuous_const_smul
+
+section has_continuous_const_smul_op
+variables [topological_space α] [group α] [has_continuous_const_smul αᵐᵒᵖ α] {s t : set α}
+
+@[to_additive] lemma is_open.smul_right (hs : is_open s) : is_open (s • t) := sorry
+
+@[to_additive] lemma subset_interior_smul_left : interior s • t ⊆ interior (s • t) :=
+interior_maximal (set.smul_subset_smul_right interior_subset) is_open_interior.smul_right
+
+@[to_additive] lemma subset_interior_smul' : interior s • interior t ⊆ interior (s • t) :=
+(set.smul_subset_smul_left interior_subset).trans subset_interior_smul_left
+
+end has_continuous_const_smul_op
+
+section has_continuous_const_smul
+variables [topological_space α] [group α] [has_continuous_const_smul α α] {s t : set α}
+
+@[to_additive] lemma is_open.mul_left : is_open t → is_open (s * t) := is_open.smul_left
 
 @[to_additive] lemma subset_interior_mul_right : s * interior t ⊆ interior (s * t) :=
-interior_maximal (set.mul_subset_mul_left interior_subset) is_open_interior.mul_left
+subset_interior_smul_right
 
 @[to_additive] lemma subset_interior_mul : interior s * interior t ⊆ interior (s * t) :=
-(set.mul_subset_mul_left interior_subset).trans subset_interior_mul_left
+subset_interior_smul
 
-end has_continuous_mul
+end has_continuous_const_smul
+
+section has_continuous_const_smul_op
+variables [topological_space α] [group α] [has_continuous_const_smul αᵐᵒᵖ α] {s t : set α}
+
+@[to_additive] lemma is_open.mul_right : is_open s → is_open (s * t) := is_open.smul_right
+
+@[to_additive] lemma subset_interior_mul_left : interior s • t ⊆ interior (s • t) :=
+subset_interior_smul_left
+
+@[to_additive] lemma subset_interior_mul' : interior s • interior t ⊆ interior (s • t) :=
+subset_interior_smul'
+
+end has_continuous_const_smul_op
 
 section topological_group
 variables [topological_space α] [group α] [topological_group α] {s t : set α}

@@ -752,6 +752,7 @@ finprod_set_coe_eq_finprod_mem {i | p i}
   (∏ᶠ i ∈ s ∩ t, f i) * ∏ᶠ i ∈ s \ t, f i = ∏ᶠ i ∈ s, f i :=
 begin
   rw [← finprod_mem_union', inter_union_diff],
+  rw disjoint_iff_inf_le,
   exacts [λ x hx, hx.2.2 hx.1.2, h.subset (λ x hx, ⟨hx.1.1, hx.2⟩),
     h.subset (λ x hx, ⟨hx.1.1, hx.2⟩)],
 end

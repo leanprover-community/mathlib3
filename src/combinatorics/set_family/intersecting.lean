@@ -136,16 +136,22 @@ lemma intersecting.not_mem {s : set α} (hs : s.intersecting) {a : α} (ha : a�
 
 variables [fintype α] {s : finset α}
 
+lemma intersecting.disjoint_map_compl (hs : (s : set α).intersecting) :
+  disjoint s (s.map ⟨compl, compl_injective⟩) :=
+finset.disjoint_left.mpr $ λ a ha ha', begin
+  rw mem_map at ha',
+  obtain ⟨a', ha', rfl : a'ᶜ = a⟩ := ha',
+  exact hs.not_mem ha ha',
+end
+
 lemma intersecting.card_le (hs : (s : set α).intersecting) : 2 * s.card ≤ fintype.card α :=
 begin
   classical,
-  refine (s ∪ s.map ⟨compl, compl_injective⟩).card_le_univ.trans_eq' _,
-  rw [two_mul, card_union_eq, card_map],
-  rintro x hx,
-  rw [finset.inf_eq_inter, finset.mem_inter, mem_map] at hx,
-  obtain ⟨x, hx', rfl⟩ := hx.2,
-  exact hs.not_compl_mem hx' hx.1,
+  refine (finset.disj_union _ _ hs.disjoint_map_compl).card_le_univ.trans_eq' _,
+  rw [two_mul, card_disj_union, card_map],
 end
+
+#check @finset.order_top
 
 variables [nontrivial α]
 

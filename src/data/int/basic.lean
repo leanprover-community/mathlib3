@@ -6,6 +6,8 @@ Authors: Jeremy Avigad
 import data.nat.pow
 import data.nat.cast
 import algebra.ring.regular
+import algebra.char_zero.defs
+import algebra.order.ring.nontrivial
 
 /-!
 # Basic operations on the integers

@@ -7,7 +7,9 @@ import data.nat.order
 import data.nat.cast.defs
 import algebra.group.pi
 import algebra.group.prod
+import algebra.hom.ring
 import algebra.order.ring.basic
+import algebra.order.monoid.with_top
 import tactic.pi_instances
 import data.sum.basic
 

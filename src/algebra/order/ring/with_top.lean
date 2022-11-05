@@ -3,8 +3,9 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
+import algebra.hom.ring
 import algebra.order.monoid.with_top
-import algebra.order.ring.basic
+import algebra.order.ring.canonical
 
 /-! # Structures involving `*` and `0` on `with_top` and `with_bot`
 

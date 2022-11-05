@@ -496,7 +496,7 @@ begin
   apply compatible_preserving_of_downwards_closed,
   intros U V i,
   refine ⟨(opens.map f).obj V, eq_to_iso $ opens.ext $ set.image_preimage_eq_of_subset $ λ x h, _⟩,
-  obtain ⟨_,_,⟨⟩⟩ := i.le h,
+  obtain ⟨_, _, rfl⟩ := i.le h,
   exact ⟨_, rfl⟩
 end
 

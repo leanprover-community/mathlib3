@@ -28,16 +28,16 @@ variables {A : matrix n n 𝕜}
 open_locale matrix
 open_locale big_operators
 
-lemma _root_.euclidean_space.basis_to_matrix_single_mul
-  (b : basis n 𝕜 (euclidean_space 𝕜 n)) (A : matrix n n 𝕜) :
-  b.to_matrix (λ i, euclidean_space.single i 1) ⬝ A =
+lemma _root_.pi_Lp.basis_to_matrix_basis_fun_mul (p : ennreal) [fact (1 ≤ p)]
+  (b : basis n 𝕜 (pi_Lp p (λ i : n, 𝕜))) (A : matrix n n 𝕜) :
+  b.to_matrix (pi_Lp.basis_fun _ _ _) ⬝ A =
     of (λ i j, b.repr ((pi_Lp.equiv _ _).symm (Aᵀ j)) i) :=
 begin
   have := basis_to_matrix_basis_fun_mul (b.map (pi_Lp.linear_equiv _ 𝕜 _)) A,
-  simp_rw [basis.to_matrix_map, basis.map_repr, function.comp, pi.basis_fun_apply,
-    linear_map.std_basis, linear_map.coe_single, linear_equiv.trans_apply,
-    pi_Lp.linear_equiv_symm_apply, pi_Lp.equiv_symm_single] at this,
-  rw this,
+  simp_rw [←pi_Lp.basis_fun_map p, basis.map_repr, linear_equiv.trans_apply,
+    pi_Lp.linear_equiv_symm_apply, basis.to_matrix_map, function.comp, basis.map_apply,
+    linear_equiv.symm_apply_apply] at this,
+  exact this,
 end
 
 namespace is_hermitian
@@ -60,18 +60,15 @@ noncomputable def eigenvector_basis : orthonormal_basis n 𝕜 (euclidean_space 
 
 /-- A matrix whose columns are an orthonormal basis of eigenvectors of a hermitian matrix. -/
 noncomputable def eigenvector_matrix : matrix n n 𝕜 :=
-((pi.basis_fun 𝕜 n).map
-  (pi_Lp.linear_equiv _ 𝕜 (λ _ : n, 𝕜)).symm).to_matrix (eigenvector_basis hA).to_basis
+(pi_Lp.basis_fun _ 𝕜 n).to_matrix (eigenvector_basis hA).to_basis
 
 /-- The inverse of `eigenvector_matrix` -/
 noncomputable def eigenvector_matrix_inv : matrix n n 𝕜 :=
-(eigenvector_basis hA).to_basis.to_matrix (λ i, euclidean_space.single i 1)
+(eigenvector_basis hA).to_basis.to_matrix (pi_Lp.basis_fun _ 𝕜 n)
 
 lemma eigenvector_matrix_mul_inv :
   hA.eigenvector_matrix ⬝ hA.eigenvector_matrix_inv = 1 :=
 by apply basis.to_matrix_mul_to_matrix_flip
-
-#check basis.to_matrix_mul_to_matrix_flip
 
 noncomputable instance : invertible hA.eigenvector_matrix_inv :=
 invertible_of_left_inverse _ _ hA.eigenvector_matrix_mul_inv
@@ -81,15 +78,14 @@ invertible_of_right_inverse _ _ hA.eigenvector_matrix_mul_inv
 
 lemma eigenvector_matrix_apply (i j : n) : hA.eigenvector_matrix i j = hA.eigenvector_basis j i :=
 by simp_rw [eigenvector_matrix, basis.to_matrix_apply, orthonormal_basis.coe_to_basis,
-    basis.map_repr, linear_equiv.symm_symm, linear_equiv.trans_apply, pi_Lp.linear_equiv_apply,
-    pi.basis_fun_repr, pi_Lp.equiv_apply]
+    pi_Lp.basis_fun_repr]
 
 lemma eigenvector_matrix_inv_apply (i j : n) :
   hA.eigenvector_matrix_inv i j = star (hA.eigenvector_basis i j) :=
 begin
   rw [eigenvector_matrix_inv, basis.to_matrix_apply, orthonormal_basis.coe_to_basis_repr_apply,
-    orthonormal_basis.repr_apply_apply, euclidean_space.inner_single_right],
-  simp only [one_mul, conj_transpose_apply, is_R_or_C.star_def],
+    orthonormal_basis.repr_apply_apply, pi_Lp.basis_fun_apply, pi_Lp.equiv_symm_single,
+    euclidean_space.inner_single_right, one_mul, is_R_or_C.star_def],
 end
 
 lemma conj_transpose_eigenvector_matrix_inv : hA.eigenvector_matrix_invᴴ = hA.eigenvector_matrix :=
@@ -99,7 +95,6 @@ by { ext i j,
 lemma conj_transpose_eigenvector_matrix : hA.eigenvector_matrixᴴ = hA.eigenvector_matrix_inv :=
 by rw [← conj_transpose_eigenvector_matrix_inv, conj_transpose_conj_transpose]
 
-
 /-- *Diagonalization theorem*, *spectral theorem* for matrices; A hermitian matrix can be
 diagonalized by a change of basis.
 
@@ -108,10 +103,7 @@ theorem spectral_theorem :
   hA.eigenvector_matrix_inv ⬝ A =
     diagonal (coe ∘ hA.eigenvalues) ⬝ hA.eigenvector_matrix_inv :=
 begin
-  simp_rw [eigenvector_matrix_inv, pi.basis_fun_apply],
-  dsimp [linear_map.std_basis, linear_map.coe_single, pi_Lp.equiv_symm_single],
-  rw euclidean_space.basis_to_matrix_single_mul,
-   -- equiv.apply_symm_apply, basis_to_matrix_basis_fun_mul],
+  rw [eigenvector_matrix_inv, pi_Lp.basis_to_matrix_basis_fun_mul],
   ext i j,
   have : linear_map.is_symmetric _ := is_hermitian_iff_is_symmetric.1 hA,
   convert this.diagonalization_basis_apply_self_apply finrank_euclidean_space
@@ -129,7 +121,7 @@ begin
   { simp only [diagonal_mul, (∘), eigenvalues, eigenvector_basis],
     rw [basis.to_matrix_apply,
       orthonormal_basis.coe_to_basis_repr_apply, orthonormal_basis.reindex_repr,
-      eigenvalues₀] }
+      eigenvalues₀, pi_Lp.basis_fun_apply, pi_Lp.equiv_symm_single] }
 end
 
 lemma eigenvalues_eq (i : n) :

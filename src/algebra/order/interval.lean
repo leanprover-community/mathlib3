@@ -3,8 +3,8 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import algebra.order.group
-import algebra.order.option
+import algebra.order.group.basic
+import data.option.n_ary
 import data.set.pointwise
 import order.interval
 
@@ -49,12 +49,19 @@ namespace nonempty_interval
 
 @[simp, to_additive] lemma fst_one : (1 : nonempty_interval α).fst = 1 := rfl
 @[simp, to_additive] lemma snd_one : (1 : nonempty_interval α).snd = 1 := rfl
-@[simp, to_additive] lemma coe_one : ((1 : nonempty_interval α) : interval α) = 1 := rfl
+@[simp, norm_cast, to_additive] lemma coe_one : ((1 : nonempty_interval α) : interval α) = 1 := rfl
 @[simp, to_additive] lemma to_prod_one : (1 : nonempty_interval α).to_prod = 1 := rfl
 @[simp, to_additive] lemma pure_one : pure (1 : α) = 1 := rfl
 
 end nonempty_interval
 
+namespace interval
+
+@[simp, to_additive] lemma pure_one : pure (1 : α) = 1 := rfl
+@[simp, to_additive] lemma one_ne_bot : (1 : interval α) ≠ ⊥ := pure_ne_bot
+@[simp, to_additive] lemma bot_ne_one : (⊥ : interval α) ≠ 1 := bot_ne_pure
+
+end interval
 end preorder
 
 section partial_order
@@ -140,9 +147,9 @@ instance [ordered_comm_monoid α] : mul_one_class (interval α) :=
 { mul := (*),
   one := 1,
   one_mul := λ s, (option.map₂_coe_left _ _ _).trans $
-    by simp_rw [nonempty_interval.pure, one_mul, ←id_def, option.map_id, id],
+    by simp only [nonempty_interval.pure_one, one_mul, ←id_def, option.map_id, id],
   mul_one := λ s, (option.map₂_coe_right _ _ _).trans $
-    by simp_rw [mul_one, ←id_def, option.map_id, id] }
+    by simp only [nonempty_interval.pure_one, mul_one, ←id_def, option.map_id, id] }
 
 @[to_additive]
 instance [ordered_comm_monoid α] : comm_monoid (interval α) :=
@@ -152,8 +159,8 @@ instance [ordered_comm_monoid α] : comm_monoid (interval α) :=
 
 namespace nonempty_interval
 
-@[simp, to_additive] lemma nonempty_interval.coe_pow [ordered_comm_monoid α]
-  (s : nonempty_interval α) (n : ℕ) : (↑(s ^ n) : interval α) = s ^ n :=
+@[simp, to_additive] lemma coe_pow [ordered_comm_monoid α] (s : nonempty_interval α) (n : ℕ) :
+  (↑(s ^ n) : interval α) = s ^ n :=
 map_pow (⟨coe, coe_one, coe_mul⟩ : nonempty_interval α →* interval α) _ _
 
 end nonempty_interval
@@ -296,10 +303,10 @@ variables [ordered_comm_group α] {s t : interval α}
   s * t = 1 ↔ ∃ a b, s = pure a ∧ t = pure b ∧ a * b = 1 :=
 begin
   cases s,
-  { simp },
+  { simp [with_bot.none_eq_bot] },
   cases t,
-  { simp },
-  { sorry }
+  { simp [with_bot.none_eq_bot] },
+  { simp [with_bot.some_eq_coe, ←nonempty_interval.coe_mul, nonempty_interval.mul_eq_one_iff] }
 end
 
 -- @[to_additive]
@@ -311,7 +318,7 @@ instance : division_comm_monoid (nonempty_interval α) :=
   mul_inv_rev := λ s t, by ext; exact mul_inv_rev _ _,
   inv_eq_of_mul := λ s t h, begin
     obtain ⟨a, b, rfl, rfl, hab⟩ := nonempty_interval.mul_eq_one_iff.1 h,
-    rw [inv_pure, inv_eq_of_mul_eq_one_right hab],
+    rw [nonempty_interval.inv_pure, inv_eq_of_mul_eq_one_right hab],
   end,
   ..nonempty_interval.comm_monoid }
 

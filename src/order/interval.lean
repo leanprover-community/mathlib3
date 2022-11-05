@@ -108,8 +108,6 @@ def map₂ (f : α → β → γ) (h₀ : ∀ b, monotone (λ a, f a b)) (h₁ :
 
 @[simp] lemma map₂_pure (f : α → β → γ) (h₀ h₁) (a : α) (b : β) :
   map₂ f h₀ h₁ (pure a) (pure b) = pure (f a b) := rfl
-@[simp] lemma map₂_map₂ (g : γ →o δ) (f : α → β → γ) (h₀ h₁ s t) :
-  (map₂ f h₀ h₁).map g = a.map (g.comp f) := rfl
 
 @[simp] lemma dual_map₂ (f : α → β → γ) (h₀ h₁ s t) :
   (map₂ f h₀ h₁ s t).dual = map₂ (λ a b, to_dual $ f (of_dual a) $ of_dual b)
@@ -222,6 +220,8 @@ coe_injective.comp nonempty_interval.pure_injective
 
 @[simp] lemma dual_pure (a : α) : (pure a).dual = pure (to_dual a) := rfl
 @[simp] lemma dual_bot : (⊥ : interval α).dual = ⊥ := rfl
+@[simp] lemma pure_ne_bot {a : α} : pure a ≠ ⊥ := with_bot.coe_ne_bot
+@[simp] lemma bot_ne_pure {a : α} : ⊥ ≠ pure a := with_bot.bot_ne_coe
 
 instance [nonempty α] : nontrivial (interval α) := option.nontrivial
 
@@ -351,9 +351,11 @@ end interval
 
 namespace nonempty_interval
 section preorder
-variables [preorder α]
+variables [preorder α] {s : nonempty_interval α} {a : α}
 
-@[simp, norm_cast] lemma coe_pure_interval (s : α) : (pure s : interval α) = interval.pure s := rfl
+@[simp, norm_cast] lemma coe_pure_interval (a : α) : (pure a : interval α) = interval.pure a := rfl
+@[simp, norm_cast] lemma coe_eq_pure : (s : interval α) = interval.pure a ↔ s = pure a :=
+by rw [←interval.coe_inj, coe_pure_interval]
 
 @[simp, norm_cast]
 lemma coe_top_interval [bounded_order α] : ((⊤ : nonempty_interval α) : interval α) = ⊤ := rfl

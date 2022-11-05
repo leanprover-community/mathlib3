@@ -215,19 +215,17 @@ lemma primary_component.exists_order_of_eq_prime_pow (g : comm_monoid.primary_co
   ∃ n : ℕ, order_of g = p ^ n :=
 by simpa [primary_component] using g.property
 
+#check nat.prime_iff
 /-- The `p`- and `q`-primary components are disjoint for `p ≠ q`. -/
 @[to_additive "The `p`- and `q`-primary components are disjoint for `p ≠ q`."]
 lemma primary_component.disjoint {p' : ℕ} [hp' : fact p'.prime] (hne : p ≠ p') :
   disjoint (comm_monoid.primary_component G p) (comm_monoid.primary_component G p') :=
-submonoid.disjoint_def.mpr $ λ g hgp hgp',
+submonoid.disjoint_def.mpr $
 begin
-  obtain ⟨n, hn⟩ := primary_component.exists_order_of_eq_prime_pow ⟨g, set_like.mem_coe.mp hgp⟩,
-  obtain ⟨n', hn'⟩ := primary_component.exists_order_of_eq_prime_pow ⟨g, set_like.mem_coe.mp hgp'⟩,
-  have := mt (eq_of_prime_pow_eq (nat.prime_iff.mp hp.out) (nat.prime_iff.mp hp'.out)),
-  simp only [not_forall, exists_prop, not_lt, le_zero_iff, and_imp] at this,
-  rw [←order_of_submonoid, set_like.coe_mk] at hn hn',
-  have hnzero := this (hn.symm.trans hn') hne,
-  rwa [hnzero, pow_zero, order_of_eq_one_iff] at hn,
+  rintro g ⟨(_|n), hn⟩ ⟨n', hn'⟩,
+  { rwa [pow_zero, order_of_eq_one_iff] at hn },
+  { exact absurd (eq_of_prime_pow_eq hp.out.prime hp'.out.prime n.succ_ne_zero
+      (hn.symm.trans hn')) hne }
 end
 
 end comm_monoid

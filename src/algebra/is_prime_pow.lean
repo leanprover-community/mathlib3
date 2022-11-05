@@ -39,12 +39,13 @@ begin
   simp,
 end
 
-lemma not_is_prime_pow_one : ¬ is_prime_pow (1 : R) :=
-begin
-  simp only [is_prime_pow_def, not_exists, not_and', and_imp],
-  intros x n hn hx ht,
-  exact ht.not_unit (is_unit_of_pow_eq_one x n hx hn.ne'),
-end
+lemma is_prime_pow.not_unit {n : R} (h : is_prime_pow n) : ¬is_unit n :=
+let ⟨p, k, hp, hk, hn⟩ := h in hn ▸ (is_unit_pow_iff hk.ne').not.mpr hp.not_unit
+
+lemma is_unit.not_is_prime_pow {n : R} (h : is_unit n) : ¬is_prime_pow n :=
+λ h', h'.not_unit h
+
+lemma not_is_prime_pow_one : ¬ is_prime_pow (1 : R) := is_unit_one.not_is_prime_pow
 
 lemma prime.is_prime_pow {p : R} (hp : prime p) : is_prime_pow p :=
 ⟨p, 1, hp, zero_lt_one, by simp⟩
@@ -62,14 +63,14 @@ lemma is_prime_pow.ne_one {n : R} (h : is_prime_pow n) : n ≠ 1 :=
 section unique_units
 
 lemma eq_of_prime_pow_eq {R : Type*} [cancel_comm_monoid_with_zero R] [unique Rˣ] {p₁ p₂ : R}
-  {k₁ k₂ : ℕ} (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : 0 < k₁) (h : p₁ ^ k₁ = p₂ ^ k₂) :
+  {k₁ k₂ : ℕ} (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : k₁ ≠ 0) (h : p₁ ^ k₁ = p₂ ^ k₂) :
   p₁ = p₂ :=
 by { rw [←associated_iff_eq] at h ⊢, apply h.of_pow_associated_of_prime hp₁ hp₂ hk₁ }
 
 lemma eq_of_prime_pow_eq' {R : Type*} [cancel_comm_monoid_with_zero R] [unique Rˣ] {p₁ p₂ : R}
-  {k₁ k₂ : ℕ} (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : 0 < k₂) (h : p₁ ^ k₁ = p₂ ^ k₂) :
+  {k₁ k₂ : ℕ} (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : k₂ ≠ 0) (h : p₁ ^ k₁ = p₂ ^ k₂) :
   p₁ = p₂ :=
-by { rw [←associated_iff_eq] at h ⊢, apply h.of_pow_associated_of_prime' hp₁ hp₂ hk₁ }
+(eq_of_prime_pow_eq hp₂ hp₁ hk₁ h.symm).symm
 
 end unique_units
 

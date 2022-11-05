@@ -101,19 +101,19 @@ begin
   /- Use compactness to obtain a section. -/
   obtain ⟨u, hu⟩ := nonempty_sections_of_fintype_inverse_system (fin_subgraph_hom_functor G F),
   refine ⟨⟨λ v, _, _⟩⟩,
-  /- Map each vertex using the homomorphism provided for its singleton subgraph. -/
-  exact (u (opposite.op (vertex_singleton v))).to_fun
-    ⟨v, by {unfold vertex_singleton, simp}⟩,
-  /- Prove that the above mapping preserves adjacency. -/
-  intros v v' e,
-  /- The homomorphism for each edge's singleton subgraph agrees with those for its source and target
-  vertices. -/
-  have hv : opposite.op (edge_singleton e) ⟶ opposite.op (vertex_singleton v) :=
-    quiver.hom.op (category_theory.hom_of_le vertex_left_le_edge),
-  have hv' : opposite.op (edge_singleton e) ⟶ opposite.op (vertex_singleton v') :=
-    quiver.hom.op (category_theory.hom_of_le vertex_right_le_edge),
-  rw [← (hu hv), ← (hu hv')],
-  apply simple_graph.hom.map_adj,
-  /- `v` and `v'` are definitionally adjacent in `edge_singleton e` -/
-  simp [edge_singleton],
+  { /- Map each vertex using the homomorphism provided for its singleton subgraph. -/
+    exact (u (opposite.op (vertex_singleton v))).to_fun
+      ⟨v, by {unfold vertex_singleton, simp}⟩, },
+  { /- Prove that the above mapping preserves adjacency. -/
+    intros v v' e,
+    /- The homomorphism for each edge's singleton subgraph agrees with those for its source and
+    target vertices. -/
+    have hv : opposite.op (edge_singleton e) ⟶ opposite.op (vertex_singleton v) :=
+      quiver.hom.op (category_theory.hom_of_le vertex_left_le_edge),
+    have hv' : opposite.op (edge_singleton e) ⟶ opposite.op (vertex_singleton v') :=
+      quiver.hom.op (category_theory.hom_of_le vertex_right_le_edge),
+    rw [← (hu hv), ← (hu hv')],
+    apply simple_graph.hom.map_adj,
+    /- `v` and `v'` are definitionally adjacent in `edge_singleton e` -/
+    simp [edge_singleton], }
 end

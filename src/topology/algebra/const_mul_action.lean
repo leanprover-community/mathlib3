@@ -47,8 +47,7 @@ is continuous in the second argument. We use the same class for all kinds of mul
 actions, including (semi)modules and algebras.
 
 Note that both `has_continuous_const_smul α α` and `has_continuous_const_smul αᵐᵒᵖ α` are
-generalisations of `has_continuous_mul α`.
--/
+weaker versions of `has_continuous_mul α`. -/
 class has_continuous_const_smul (Γ : Type*) (T : Type*) [topological_space T] [has_smul Γ T]
  : Prop :=
 (continuous_const_smul : ∀ γ : Γ, continuous (λ x : T, γ • x))
@@ -58,8 +57,7 @@ is continuous in the second argument. We use the same class for all kinds of add
 including (semi)modules and algebras.
 
 Note that both `has_continuous_const_vadd α α` and `has_continuous_const_vadd αᵐᵒᵖ α` are
-generalisations of `has_continuous_add α`.
--/
+weaker versions of `has_continuous_add α`. -/
 class has_continuous_const_vadd (Γ : Type*) (T : Type*) [topological_space T]
   [has_vadd Γ T] : Prop :=
 (continuous_const_vadd : ∀ γ : Γ, continuous (λ x : T, γ +ᵥ x))

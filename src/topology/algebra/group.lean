@@ -938,20 +938,6 @@ interior_maximal (set.smul_subset_smul_left interior_subset) is_open_interior.sm
 
 end has_continuous_const_smul
 
-section has_continuous_const_smul_op
-variables [topological_space α] [group α] [has_continuous_const_smul αᵐᵒᵖ α] {s t : set α}
-
-@[to_additive] lemma is_open.smul_right (hs : is_open s) : is_open (s • t) :=
-by { rw [smul_eq_mul, ←bUnion_op_smul_set], exact is_open_bUnion (λ a _, hs.smul _) }
-
-@[to_additive] lemma subset_interior_smul_left : interior s • t ⊆ interior (s • t) :=
-interior_maximal (set.smul_subset_smul_right interior_subset) is_open_interior.smul_right
-
-@[to_additive] lemma subset_interior_smul' : interior s • interior t ⊆ interior (s • t) :=
-(set.smul_subset_smul_left interior_subset).trans subset_interior_smul_left
-
-end has_continuous_const_smul_op
-
 section has_continuous_const_smul
 variables [topological_space α] [group α] [has_continuous_const_smul α α] {s t : set α}
 
@@ -968,13 +954,14 @@ end has_continuous_const_smul
 section has_continuous_const_smul_op
 variables [topological_space α] [group α] [has_continuous_const_smul αᵐᵒᵖ α] {s t : set α}
 
-@[to_additive] lemma is_open.mul_right : is_open s → is_open (s * t) := is_open.smul_right
+@[to_additive] lemma is_open.mul_right : is_open s → is_open (s * t) :=
+by { rw ←bUnion_op_smul_set, exact is_open_bUnion (λ a _, hs.smul _) }
 
-@[to_additive] lemma subset_interior_mul_left : interior s • t ⊆ interior (s • t) :=
-subset_interior_smul_left
+@[to_additive] lemma subset_interior_mul_left : interior s * t ⊆ interior (s * t) :=
+interior_maximal (set.mul_subset_mul_right interior_subset) is_open_interior.mul_right
 
-@[to_additive] lemma subset_interior_mul' : interior s • interior t ⊆ interior (s • t) :=
-subset_interior_smul'
+@[to_additive] lemma subset_interior_mul' : interior s * interior t ⊆ interior (s * t) :=
+(set.mul_subset_mul_left interior_subset).trans subset_interior_mul_left
 
 end has_continuous_const_smul_op
 

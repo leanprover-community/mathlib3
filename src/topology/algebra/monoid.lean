@@ -28,13 +28,19 @@ lemma continuous_one [topological_space M] [has_one M] : continuous (1 : X → M
 
 /-- Basic hypothesis to talk about a topological additive monoid or a topological additive
 semigroup. A topological additive monoid over `M`, for example, is obtained by requiring both the
-instances `add_monoid M` and `has_continuous_add M`. -/
+instances `add_monoid M` and `has_continuous_add M`.
+
+Continuity in only the left/right argument can be stated using
+`has_continuous_const_vadd α α`/`has_continuous_const_vadd αᵐᵒᵖ α`. -/
 class has_continuous_add (M : Type u) [topological_space M] [has_add M] : Prop :=
 (continuous_add : continuous (λ p : M × M, p.1 + p.2))
 
 /-- Basic hypothesis to talk about a topological monoid or a topological semigroup.
 A topological monoid over `M`, for example, is obtained by requiring both the instances `monoid M`
-and `has_continuous_mul M`. -/
+and `has_continuous_mul M`.
+
+Continuity in only the left/right argument can be stated using
+`has_continuous_const_smul α α`/`has_continuous_const_smul αᵐᵒᵖ α`. -/
 @[to_additive]
 class has_continuous_mul (M : Type u) [topological_space M] [has_mul M] : Prop :=
 (continuous_mul : continuous (λ p : M × M, p.1 * p.2))

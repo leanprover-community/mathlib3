@@ -4,14 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.nat.order
-import data.nat.cast.defs
-import algebra.group.pi
+import algebra.order.group.abs
 import algebra.group.prod
 import algebra.hom.ring
-import algebra.order.ring.basic
 import algebra.order.monoid.with_top
-import tactic.pi_instances
-import data.sum.basic
 
 /-!
 # Cast of natural numbers (additional theorems)

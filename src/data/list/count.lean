@@ -112,7 +112,7 @@ lemma count_cons' (a b : α) (l : list α) :
   count a (b :: l) = count a l + (if a = b then 1 else 0) :=
 begin rw count_cons, split_ifs; refl end
 
-@[simp] lemma count_cons_self (a : α) (l : list α) : count a (a::l) = succ (count a l) := if_pos rfl
+@[simp] lemma count_cons_self (a : α) (l : list α) : count a (a::l) = count a l + 1 := if_pos rfl
 
 @[simp, priority 990]
 lemma count_cons_of_ne {a b : α} (h : a ≠ b) (l : list α) : count a (b::l) = count a l := if_neg h
@@ -197,28 +197,26 @@ begin
   exact countp_mono_left (λ y hyl, congr_arg f),
 end
 
-@[simp] lemma count_erase_self (a : α) :
-  ∀ (s : list α), count a (list.erase s a) = pred (count a s)
+lemma count_erase (a b : α) : ∀ l : list α, count a (l.erase b) = count a l - ite (a = b) 1 0
 | [] := by simp
-| (h :: t) :=
+| (c :: l) :=
 begin
-  rw erase_cons,
-  by_cases p : h = a,
-  { rw [if_pos p, count_cons', if_pos p.symm], simp },
-  { rw [if_neg p, count_cons', count_cons', if_neg (λ x : a = h, p x.symm), count_erase_self],
-    simp }
+  rw [erase_cons],
+  by_cases hc : c = b,
+  { rw [if_pos hc, hc, count_cons', nat.add_sub_cancel] },
+  { rw [if_neg hc, count_cons', count_cons', count_erase],
+    by_cases ha : a = b,
+    { rw [← ha, eq_comm] at hc,
+      rw [if_pos ha, if_neg hc, add_zero, add_zero] },
+    { rw [if_neg ha, tsub_zero, tsub_zero] } }
 end
 
-@[simp] lemma count_erase_of_ne {a b : α} (ab : a ≠ b) :
-  ∀ (s : list α), count a (list.erase s b) = count a s
-| [] := by simp
-| (x :: xs) :=
-begin
-  rw erase_cons,
-  split_ifs with h,
-  { rw [count_cons', h, if_neg ab], simp },
-  { rw [count_cons', count_cons', count_erase_of_ne] }
-end
+@[simp] lemma count_erase_self (a : α) (l : list α) : count a (list.erase l a) = count a l - 1 :=
+by rw [count_erase, if_pos rfl]
+
+@[simp] lemma count_erase_of_ne {a b : α} (ab : a ≠ b) (l : list α) :
+  count a (l.erase b) = count a l :=
+by rw [count_erase, if_neg ab, tsub_zero]
 
 @[to_additive]
 lemma prod_map_eq_pow_single [monoid β] {l : list α} (a : α) (f : α → β)

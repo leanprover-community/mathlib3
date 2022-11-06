@@ -315,7 +315,7 @@ the two submodules are complementary. Over a `ring R`, this is true as an iff, a
 `direct_sum.is_internal_iff_is_compl`. --/
 lemma is_internal.is_compl {A : ι → submodule R M} {i j : ι} (hij : i ≠ j)
   (h : (set.univ : set ι) = {i, j}) (hi : is_internal A) : is_compl (A i) (A j) :=
-⟨hi.submodule_independent.pairwise_disjoint _ _ hij, eq.le $ hi.submodule_supr_eq_top.symm.trans $
+⟨hi.submodule_independent.pairwise_disjoint hij, eq.le $ hi.submodule_supr_eq_top.symm.trans $
   by rw [←Sup_pair, supr, ←set.image_univ, h, set.image_insert_eq, set.image_singleton]⟩
 
 end semiring

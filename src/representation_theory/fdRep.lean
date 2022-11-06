@@ -127,7 +127,13 @@ end fdRep
 
 namespace fdRep
 
-open representation
+-- The variables in this section are slightly weird, living half in `representation` and half in
+-- `fdRep`. When we have a better API for general monoidal closed and rigid categories and these
+-- structures on `fdRep`, we should remove the dependancy of statements about `fdRep` on
+-- `representation.lin_hom` and `representation.dual`. The isomorphism `dual_tensor_iso_lin_hom`
+-- below should then just be obtained from general results about rigid categories.
+
+ open representation
 
 variables {k G V : Type u} [field k] [group G]
 variables [add_comm_group V] [module k V]

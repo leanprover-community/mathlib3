@@ -67,7 +67,7 @@ begin
   { -- ψ₁ is the continuous ring hom `ℂ →+* ℂ` constructed from `clos (K) ≃+* ℂ`
     -- and `extψ : clos (K) →+* ℂ`
     let ψ₁ := ring_hom.comp extψ (ring_hom.comp (ring_equiv.subfield_congr h).symm.to_ring_hom
-      (subfield.top_equiv ℂ).symm.to_ring_hom),
+      (@subfield.top_equiv ℂ _).symm.to_ring_hom),
     cases complex.ring_hom_eq_id_or_conj_of_continuous (by continuity! : continuous ψ₁) with h h,
     { left, ext1 z,
       convert (ring_hom.congr_fun h z) using 1,

@@ -137,15 +137,12 @@ open_locale complex_conjugate
 
 variables {K : Type*} [field K]
 
-/-- An embedding is real if its fixed by complex conjugation. -/
-def is_real (φ : K →+* ℂ): Prop := conj ∘ φ =  φ
-
-/-- An embedding is real if its not fixed by complex conjugation. -/
-def is_complex (φ : K →+* ℂ): Prop := conj ∘ φ ≠ φ
+/-- The conjugate of a complex embedding as a complex embedding. -/
+def conjugate (φ : K →+* ℂ) : K →+* ℂ := ring_hom.comp complex.conj_ae.to_ring_equiv.to_ring_hom φ
 
 /-- Two complex embeddings define the same place iff they are equal or complex conjugate. -/
 lemma complex_place_eq_iff {φ ψ : K →+* ℂ} :
-  place K φ = place K ψ ↔ φ = ψ ∨ conj ∘ φ = ψ :=
+  place K φ = place K ψ ↔ φ = ψ ∨ conjugate φ = ψ :=
 begin
   split,
   { intro h₀,
@@ -176,7 +173,7 @@ begin
     { ext x,
       rw [place, place, function.comp_app, function.comp_app, complex.norm_eq_abs,
         complex.norm_eq_abs, ← complex.abs_conj],
-      convert congr_arg complex.abs (congr_fun h x), }},
+      convert congr_arg complex.abs (ring_hom.congr_fun h x), }},
 end
 
 end infinite_place

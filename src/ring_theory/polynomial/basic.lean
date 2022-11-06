@@ -745,7 +745,7 @@ begin
 end
 
 lemma prime_C_iff : prime (C r : mv_polynomial σ R) ↔ prime r :=
-⟨ comap_prime C constant_coeff constant_coeff_C,
+⟨ comap_prime C constant_coeff (constant_coeff_C _),
   λ hr, ⟨ λ h, hr.1 $ by { rw [← C_inj, h], simp },
     λ h, hr.2.1 $ by { rw ← constant_coeff_C _ r, exact h.map _ },
     λ a b hd, begin

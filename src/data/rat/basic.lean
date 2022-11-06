@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import algebra.euclidean_domain
-import data.rat.lemmas
 
 /-!
 # Field Structure on the Rational Numbers

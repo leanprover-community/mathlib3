@@ -387,7 +387,7 @@ begin
     intros v hv v2 hv2,
     rw finset.mem_bUnion at hv2,
     rcases hv2 with ⟨i, his, hi⟩,
-    refine h a i _ _ hv _ hi,
+    refine h _ _ hv _ hi,
     rintro rfl,
     contradiction }
 end

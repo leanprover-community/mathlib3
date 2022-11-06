@@ -20,6 +20,22 @@ universes u v
 
 /-! ### instances -/
 
+instance nat.order_bot : order_bot ℕ :=
+{ bot := 0, bot_le := nat.zero_le }
+
+instance nat.subtype.order_bot (s : set ℕ) [decidable_pred (∈ s)] [h : nonempty s] :
+  order_bot s :=
+{ bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,
+  bot_le := λ x, nat.find_min' _ x.2 }
+
+instance nat.subtype.semilattice_sup (s : set ℕ) :
+  semilattice_sup s :=
+{ ..subtype.linear_order s,
+  ..linear_order.to_lattice }
+
+lemma nat.subtype.coe_bot {s : set ℕ} [decidable_pred (∈ s)]
+  [h : nonempty s] : ((⊥ : s) : ℕ) = nat.find (nonempty_subtype.1 h) := rfl
+
 instance : linear_ordered_comm_semiring ℕ :=
 { lt                         := nat.lt,
   add_le_add_left            := @nat.add_le_add_left,

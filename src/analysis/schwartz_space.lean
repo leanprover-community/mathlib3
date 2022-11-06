@@ -425,6 +425,7 @@ section fderiv
 /-! ### Derivatives of Schwartz functions -/
 
 variables {E F}
+
 /-- The derivative of a Schwartz function as a Schwartz function with values in the
 continuous linear maps `E→L[ℝ] F`. -/
 @[protected] def fderiv (f : 𝓢(E, F)) : 𝓢(E, E →L[ℝ] F) :=
@@ -454,7 +455,8 @@ def fderiv_lm : 𝓢(E, F) →ₗ[𝕜] 𝓢(E, E →L[ℝ] F) :=
     g.differentiable.differentiable_at,
   map_smul' := λ a f, ext $ λ _, fderiv_const_smul f.differentiable.differentiable_at a }
 
-@[simp, norm_cast] lemma fderiv_lm_apply (f : 𝓢(E, F)) : fderiv_lm 𝕜 f = schwartz_map.fderiv f := rfl
+@[simp, norm_cast] lemma fderiv_lm_apply (f : 𝓢(E, F)) : fderiv_lm 𝕜 f = schwartz_map.fderiv f :=
+rfl
 
 /-- The derivative on Schwartz space as a continuous linear map. -/
 def fderiv_clm : 𝓢(E, F) →L[𝕜] 𝓢(E, E →L[ℝ] F) :=
@@ -469,12 +471,13 @@ def fderiv_clm : 𝓢(E, F) →L[𝕜] 𝓢(E, E →L[ℝ] F) :=
     simp only [schwartz_seminorm_family_apply, seminorm.comp_apply, finset.sup_singleton, one_smul],
     refine (fderiv_lm 𝕜 f).seminorm_le_bound 𝕜 k n (by positivity) _,
     intros x,
-    rw [coe_fderiv_lm, norm_iterated_fderiv_fderiv],
+    rw [fderiv_lm_apply, coe_fderiv, norm_iterated_fderiv_fderiv],
     exact f.le_seminorm 𝕜 k (n+1) x,
   end,
   to_linear_map := fderiv_lm 𝕜 }
 
-@[simp, norm_cast] lemma fderiv_clm_apply (f : 𝓢(E, F)) : fderiv_clm 𝕜 f = schwartz_map.fderiv f := rfl
+@[simp, norm_cast] lemma fderiv_clm_apply (f : 𝓢(E, F)) : fderiv_clm 𝕜 f = schwartz_map.fderiv f :=
+rfl
 
 end fderiv
 

@@ -48,9 +48,12 @@ lemma continuous_mul : continuous (λp:M×M, p.1 * p.2) :=
 has_continuous_mul.continuous_mul
 
 @[to_additive]
-instance has_continuous_mul.has_continuous_smul :
-  has_continuous_smul M M :=
-⟨continuous_mul⟩
+instance has_continuous_mul.to_has_continuous_smul : has_continuous_smul M M := ⟨continuous_mul⟩
+
+@[to_additive]
+instance has_continuous_mul.to_has_continuous_smul_op : has_continuous_smul Mᵐᵒᵖ M :=
+⟨show continuous ((λ p : M × M, p.1 * p.2) ∘ prod.swap ∘ prod.map mul_opposite.unop id), from
+  continuous_mul.comp $ continuous_swap.comp $ continuous.prod_map mul_opposite.continuous_unop continuous_id⟩
 
 @[continuity, to_additive]
 lemma continuous.mul {f g : X → M} (hf : continuous f) (hg : continuous g) :

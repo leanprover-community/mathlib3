@@ -889,6 +889,10 @@ end has_smul_set
 
 variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {a : α} {b : β}
 
+@[simp, to_additive] lemma bUnion_op_smul_set [has_mul α] (s t : set α) :
+  (⋃ a ∈ t, mul_opposite.op a • s) = s • t :=
+Union_image_right _
+
 @[to_additive]
 lemma smul_set_inter [group α] [mul_action α β] {s t : set β} :
   a • (s ∩ t) = a • s ∩ a • t :=

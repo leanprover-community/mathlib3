@@ -6,6 +6,10 @@ Authors: Floris van Doorn
 import logic.function.basic
 import tactic.protected
 /-!
+THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+https://github.com/leanprover-community/mathlib4/pull/486
+Any changes to this file require a corresponding PR to mathlib4.
+
 # Types that are empty
 
 In this file we define a typeclass `is_empty`, which expresses that a type has no elements.

@@ -712,7 +712,7 @@ lemma eq_pow_of_pow_eq_one {k : ℕ} {ζ ξ : R}
   ∃ i < k, ζ ^ i = ξ :=
 begin
   lift ζ to Rˣ using h.is_unit h0,
-  lift ξ to Rˣ using is_unit_of_pow_eq_one ξ k hξ h0,
+  lift ξ to Rˣ using is_unit_of_pow_eq_one hξ h0,
   lift k to ℕ+ using h0.bot_lt,
   simp only [← units.coe_pow, ← units.ext_iff],
   rw coe_units_iff at h,

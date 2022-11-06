@@ -8,7 +8,7 @@ import set_theory.cardinal.ordinal
 /-!
 # Cardinality of Polynomial Ring
 
-The reuslt in this file is that the cardinality of `polynomial R` is at most the maximum
+The reuslt in this file is that the cardinality of `R[X]` is at most the maximum
 of `#R` and `ℵ₀`.
 -/
 universe u

@@ -63,7 +63,7 @@ begin
   induction ha with a ha iha generalizing b,
   induction hb with b hb ihb,
   refine acc.intro _ (λ h, _),
-  rintro (⟨_,_,_,ra⟩|⟨_,_,_,rb⟩),
+  rintro (⟨ra⟩ | ⟨rb⟩),
   exacts [iha _ ra (acc.intro b hb), ihb _ rb],
 end
 

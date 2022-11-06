@@ -691,6 +691,10 @@ lemma prod_coe_symm (e : local_equiv α β) (e' : local_equiv γ δ) :
   (e.prod e').symm = (e.symm.prod e'.symm) :=
 by ext x; simp [prod_coe_symm]
 
+@[simp, mfld_simps] lemma refl_prod_refl :
+  (local_equiv.refl α).prod (local_equiv.refl β) = local_equiv.refl (α × β) :=
+by { ext1 ⟨x, y⟩, { refl }, { rintro ⟨x, y⟩, refl }, exact univ_prod_univ }
+
 @[simp, mfld_simps] lemma prod_trans {η : Type*} {ε : Type*}
   (e : local_equiv α β) (f : local_equiv β γ) (e' : local_equiv δ η) (f' : local_equiv η ε) :
   (e.prod e').trans (f.prod f') = (e.trans f).prod (e'.trans f') :=

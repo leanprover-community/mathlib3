@@ -47,19 +47,15 @@ matrices, permutation matrices being the extreme points.
 
 See chapter 8 of [Barry Simon, *Convexity*][simon2011]
 
-## TODO
-
-* Both theorems are currently stated for normed `ℝ`-spaces due to our version of geometric
-  Hahn-Banach. They are more generally true in a LCTVS without changes to the proofs.
 -/
 
 open set
 open_locale classical
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {s : set E}
+variables {E : Type*} [add_comm_group E] [module ℝ E] [topological_space E] [t2_space E]
+  [topological_add_group E] [has_continuous_smul ℝ E] [locally_convex_space ℝ E] {s : set E}
 
-/-- **Krein-Milman lemma**: In a LCTVS (currently only in normed `ℝ`-spaces), any nonempty compact
-set has an extreme point. -/
+/-- **Krein-Milman lemma**: In a LCTVS, any nonempty compact set has an extreme point. -/
 lemma is_compact.has_extreme_point (hscomp : is_compact s) (hsnemp : s.nonempty) :
   (s.extreme_points ℝ).nonempty :=
 begin
@@ -89,8 +85,8 @@ begin
   exacts [⟨t, subset.rfl, htu⟩, ⟨u, hut, subset.rfl⟩],
 end
 
-/-- **Krein-Milman theorem**: In a LCTVS (currently only in normed `ℝ`-spaces), any compact convex
-set is the closure of the convex hull of its extreme points. -/
+/-- **Krein-Milman theorem**: In a LCTVS, any compact convex set is the closure of the convex hull
+    of its extreme points. -/
 lemma closure_convex_hull_extreme_points (hscomp : is_compact s) (hAconv : convex ℝ s) :
   closure (convex_hull ℝ $ s.extreme_points ℝ) = s :=
 begin

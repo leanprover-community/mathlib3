@@ -339,15 +339,6 @@ begin
     exact hs.closure }
 end
 
-/-- If `s`, `t` are disjoint convex sets, `s` is compact and `t` is closed then we can find open
-disjoint convex sets containing them. -/
-lemma disjoint.exists_open_convexes (disj : disjoint s t) (hs₁ : convex ℝ s) (hs₂ : is_compact s)
-  (ht₁ : convex ℝ t) (ht₂ : is_closed t) :
-  ∃ u v, is_open u ∧ is_open v ∧ convex ℝ u ∧ convex ℝ v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v :=
-let ⟨δ, hδ, hst⟩ := disj.exists_thickenings hs₂ ht₂ in
-  ⟨_, _, is_open_thickening, is_open_thickening, hs₁.thickening _, ht₁.thickening _,
-    self_subset_thickening hδ _, self_subset_thickening hδ _, hst⟩
-
 /-- Given a point `x` in the convex hull of `s` and a point `y`, there exists a point
 of `s` at distance at least `dist x y` from `y`. -/
 lemma convex_hull_exists_dist_ge {s : set E} {x : E} (hx : x ∈ convex_hull ℝ s) (y : E) :

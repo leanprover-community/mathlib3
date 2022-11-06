@@ -6,6 +6,10 @@ Authors: Johannes Hölzl
 import logic.basic
 
 /-!
+THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+https://github.com/leanprover-community/mathlib4/pull/487
+Any changes to this file require a corresponding PR to mathlib4.
+
 # Nonempty types
 
 This file proves a few extra facts about `nonempty`, which is defined in core Lean.

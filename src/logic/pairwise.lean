@@ -65,6 +65,6 @@ lemma pairwise.on_injective (hs : s.pairwise r) (hf : function.injective f)
 
 end set
 
-lemma pairwise.set_pairwise (h : pairwise r) (s : set α) : s.pairwise r := λ x hx y hy, h x y
+lemma pairwise.set_pairwise (h : pairwise r) (s : set α) : s.pairwise r := λ x hx y hy w, h w
 
 end pairwise

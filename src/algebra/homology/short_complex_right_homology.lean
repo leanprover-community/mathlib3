@@ -277,12 +277,51 @@ def right_homology_data.op (h : right_homology_data S) :
 @[simp] lemma right_homology_data.op_π (h : right_homology_data S) : h.op.π = h.ι.op := rfl
 @[simp] lemma right_homology_data.op_f' (h : right_homology_data S) : h.op.f' = h.g'.op := rfl
 
+instance [has_left_homology S] : has_right_homology S.op :=
+has_right_homology.mk' S.some_left_homology_data.op
+
+instance [has_right_homology S] : has_left_homology S.op :=
+has_left_homology.mk' S.some_right_homology_data.op
+
+@[simp]
+def left_homology_data.unop (h : left_homology_data S.op) :
+  right_homology_data S :=
+{ Q := opposite.unop h.K,
+  H := opposite.unop h.H,
+  p := h.i.unop,
+  ι := h.π.unop,
+  hp₀ := quiver.hom.op_inj h.hi₀,
+  hp := kernel_fork.is_limit.of_ι_unop _ _ h.hi,
+  hι₀ := quiver.hom.op_inj h.hπ₀,
+  hι := cokernel_cofork.is_colimit.of_π_unop _ _ h.hπ, }
+
+@[simp] lemma left_homology_data.unop_p (h : left_homology_data S.op) : h.unop.p = h.i.unop := rfl
+@[simp] lemma left_homology_data.unop_ι (h : left_homology_data S.op) : h.unop.ι = h.π.unop := rfl
+@[simp] lemma left_homology_data.unop_g' (h : left_homology_data S.op) : h.unop.g' = h.f'.unop := rfl
+
+@[simp]
+def right_homology_data.unop (h : right_homology_data S.op) :
+  left_homology_data S :=
+{ K := opposite.unop h.Q,
+  H := opposite.unop h.H,
+  i := h.p.unop,
+  π := h.ι.unop,
+  hi₀ := quiver.hom.op_inj h.hp₀,
+  hi := cokernel_cofork.is_colimit.of_π_unop _ _ h.hp,
+  hπ₀ := quiver.hom.op_inj h.hι₀,
+  hπ := kernel_fork.is_limit.of_ι_unop _ _ h.hι, }
+
+@[simp] lemma right_homology_data.unop_i (h : right_homology_data S.op) : h.unop.i = h.p.unop := rfl
+@[simp] lemma right_homology_data.unop_π (h : right_homology_data S.op) : h.unop.π = h.ι.unop := rfl
+@[simp] lemma right_homology_data.unop_f' (h : right_homology_data S.op) :
+  h.unop.f' = h.g'.unop := rfl
+
 section
 
 variable {S' : short_complex Cᵒᵖ}
 
 @[simp]
-def left_homology_data.unop (h : left_homology_data S') :
+def left_homology_data.unop' (h : left_homology_data S') :
   right_homology_data S'.unop :=
 { Q := opposite.unop h.K,
   H := opposite.unop h.H,
@@ -293,12 +332,12 @@ def left_homology_data.unop (h : left_homology_data S') :
   hι₀ := quiver.hom.op_inj h.hπ₀,
   hι := cokernel_cofork.is_colimit.of_π_unop _ _ h.hπ, }
 
-@[simp] lemma left_homology_data.unop_p (h : left_homology_data S') : h.unop.p = h.i.unop := rfl
-@[simp] lemma left_homology_data.unop_ι (h : left_homology_data S') : h.unop.ι = h.π.unop := rfl
-@[simp] lemma left_homology_data.unop_g' (h : left_homology_data S') : h.unop.g' = h.f'.unop := rfl
+@[simp] lemma left_homology_data.unop'_p (h : left_homology_data S') : h.unop'.p = h.i.unop := rfl
+@[simp] lemma left_homology_data.unop'_ι (h : left_homology_data S') : h.unop'.ι = h.π.unop := rfl
+@[simp] lemma left_homology_data.unop'_g' (h : left_homology_data S') : h.unop'.g' = h.f'.unop := rfl
 
 @[simp]
-def right_homology_data.unop (h : right_homology_data S') :
+def right_homology_data.unop' (h : right_homology_data S') :
   left_homology_data S'.unop :=
 { K := opposite.unop h.Q,
   H := opposite.unop h.H,
@@ -309,14 +348,95 @@ def right_homology_data.unop (h : right_homology_data S') :
   hπ₀ := quiver.hom.op_inj h.hι₀,
   hπ := kernel_fork.is_limit.of_ι_unop _ _ h.hι, }
 
-@[simp] lemma right_homology_data.unop_i (h : right_homology_data S') : h.unop.i = h.p.unop := rfl
-@[simp] lemma right_homology_data.unop_π (h : right_homology_data S') : h.unop.π = h.ι.unop := rfl
-@[simp] lemma right_homology_data.unop_f' (h : right_homology_data S') :
-  h.unop.f' = h.g'.unop := rfl
+@[simp] lemma right_homology_data.unop'_i (h : right_homology_data S') : h.unop'.i = h.p.unop := rfl
+@[simp] lemma right_homology_data.unop'_π (h : right_homology_data S') : h.unop'.π = h.ι.unop := rfl
+@[simp] lemma right_homology_data.unop'_f' (h : right_homology_data S') :
+  h.unop'.f' = h.g'.unop := rfl
 
 end
 
-variables {S₁ S₂ S₃ : short_complex C} (φ : S₁ ⟶ S₂)
+variables {S₁ S₂ S₃ : short_complex C}
+
+namespace right_homology_data
+
+@[simp]
+def of_epi_of_is_iso_of_mono (φ : S₁ ⟶ S₂) (h : right_homology_data S₁)
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] : right_homology_data S₂ :=
+begin
+  haveI : epi (op_map φ).τ₁ := by { dsimp, apply_instance, },
+  haveI : is_iso (op_map φ).τ₂ := by { dsimp, apply_instance, },
+  haveI : mono (op_map φ).τ₃ := by { dsimp, apply_instance, },
+  exact (left_homology_data.of_epi_of_is_iso_of_mono' (op_map φ) h.op).unop,
+end
+
+@[simp]
+lemma of_epi_of_is_iso_of_mono_p (φ : S₁ ⟶ S₂) (h : right_homology_data S₁)
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] :
+    (right_homology_data.of_epi_of_is_iso_of_mono φ h).p = inv φ.τ₂ ≫ h.p :=
+begin
+  change (h.p.op ≫ inv φ.τ₂.op).unop = _,
+  simp only [quiver.hom.unop_op, unop_comp, unop_inv],
+end
+
+@[simp]
+lemma of_epi_of_is_iso_of_mono_g' (φ : S₁ ⟶ S₂) (h : right_homology_data S₁)
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] :
+    (of_epi_of_is_iso_of_mono φ h).g' = h.g' ≫ φ.τ₃ :=
+begin
+  rw [← cancel_epi (of_epi_of_is_iso_of_mono φ h).p, p_g'],
+  simp only [of_epi_of_is_iso_of_mono_p, assoc, p_g'_assoc, is_iso.eq_inv_comp, φ.comm₂₃],
+end
+
+@[simp]
+lemma of_epi_of_is_iso_of_mono_ι (φ : S₁ ⟶ S₂) (h : right_homology_data S₁)
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] :
+    (of_epi_of_is_iso_of_mono φ h).ι = h.ι := rfl
+
+@[simp]
+def of_epi_of_is_iso_of_mono' (φ : S₁ ⟶ S₂) (h : right_homology_data S₂)
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] : right_homology_data S₁ :=
+begin
+  haveI : epi (op_map φ).τ₁ := by { dsimp, apply_instance, },
+  haveI : is_iso (op_map φ).τ₂ := by { dsimp, apply_instance, },
+  haveI : mono (op_map φ).τ₃ := by { dsimp, apply_instance, },
+  exact (left_homology_data.of_epi_of_is_iso_of_mono (op_map φ) h.op).unop,
+end
+
+@[simp]
+lemma of_epi_of_is_iso_of_mono'_p (φ : S₁ ⟶ S₂) (h : right_homology_data S₂)
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] :
+    (of_epi_of_is_iso_of_mono' φ h).p = φ.τ₂ ≫ h.p := rfl
+
+@[simp]
+lemma of_epi_of_is_iso_of_mono'_g'_τ₃ (φ : S₁ ⟶ S₂) (h : right_homology_data S₂)
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] :
+  (of_epi_of_is_iso_of_mono' φ h).g' ≫ φ.τ₃ = h.g' :=
+by rw [← cancel_epi (of_epi_of_is_iso_of_mono' φ h).p, p_g'_assoc,
+    of_epi_of_is_iso_of_mono'_p, assoc, p_g', φ.comm₂₃]
+
+@[simp]
+lemma of_epi_of_is_iso_of_mono'_ι (φ : S₁ ⟶ S₂) (h : right_homology_data S₂)
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] :
+    (of_epi_of_is_iso_of_mono' φ h).ι = h.ι := rfl
+
+def of_iso (e : S₁ ≅ S₂) (h₁ : right_homology_data S₁) : right_homology_data S₂ :=
+h₁.of_epi_of_is_iso_of_mono e.hom
+
+end right_homology_data
+
+lemma has_right_homology_of_epi_of_is_iso_of_mono (φ : S₁ ⟶ S₂) [has_right_homology S₁]
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] : has_right_homology S₂ :=
+has_right_homology.mk' (right_homology_data.of_epi_of_is_iso_of_mono φ S₁.some_right_homology_data)
+
+lemma has_right_homology_of_epi_of_is_iso_of_mono' (φ : S₁ ⟶ S₂) [has_right_homology S₂]
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] : has_right_homology S₁ :=
+has_right_homology.mk' (right_homology_data.of_epi_of_is_iso_of_mono' φ S₂.some_right_homology_data)
+
+lemma has_right_homology_of_iso {S₁ S₂ : short_complex C}
+  (e : S₁ ≅ S₂) [has_right_homology S₁] : has_right_homology S₂ :=
+has_right_homology_of_epi_of_is_iso_of_mono e.hom
+
+variables (φ : S₁ ⟶ S₂)
   (h₁ : S₁.right_homology_data) (h₂ : S₂.right_homology_data)
 
 structure right_homology_map_data :=
@@ -374,7 +494,172 @@ end⟩
 
 instance : unique (right_homology_map_data φ h₁ h₂) := unique.mk' _
 
+def some : right_homology_map_data φ h₁ h₂ := default
+
+variables {φ h₁ h₂}
+
+lemma congr_φH {γ₁ γ₂ : right_homology_map_data φ h₁ h₂} (eq : γ₁ = γ₂) :
+  γ₁.φH = γ₂.φH := by rw eq
+lemma congr_φQ {γ₁ γ₂ : right_homology_map_data φ h₁ h₂} (eq : γ₁ = γ₂) :
+  γ₁.φQ = γ₂.φQ := by rw eq
+
 end right_homology_map_data
+
+variable (S)
+
+def right_homology [has_right_homology S] : C := S.some_right_homology_data.H
+def cycles_co [has_right_homology S] : C := S.some_right_homology_data.Q
+def right_homology_ι [has_right_homology S] : S.right_homology ⟶ S.cycles_co :=
+  S.some_right_homology_data.ι
+def p_cycles_co [has_right_homology S] : S.X₂ ⟶ S.cycles_co := S.some_right_homology_data.p
+
+variables {S S₁ S₂ S₃}
+
+def right_homology_map' (φ : S₁ ⟶ S₂) (h₁ : S₁.right_homology_data) (h₂ : S₂.right_homology_data) :
+  h₁.H ⟶ h₂.H := (right_homology_map_data.some φ _ _).φH
+
+def cycles_co_map' (φ : S₁ ⟶ S₂) (h₁ : S₁.right_homology_data) (h₂ : S₂.right_homology_data) :
+  h₁.Q ⟶ h₂.Q := (right_homology_map_data.some φ _ _).φQ
+
+@[simp, reassoc]
+lemma p_cycles_co_map' (φ : S₁ ⟶ S₂) (h₁ : S₁.right_homology_data) (h₂ : S₂.right_homology_data) :
+  h₁.p ≫ cycles_co_map' φ h₁ h₂ = φ.τ₂ ≫ h₂.p :=
+right_homology_map_data.commp _
+
+@[reassoc]
+lemma right_homology_ι_naturality' (φ : S₁ ⟶ S₂)
+  (h₁ : S₁.right_homology_data) (h₂ : S₂.right_homology_data) :
+  right_homology_map' φ h₁ h₂ ≫ h₂.ι = h₁.ι ≫ cycles_co_map' φ h₁ h₂ :=
+by { symmetry, apply right_homology_map_data.commι }
+
+def right_homology_map [has_right_homology S₁] [has_right_homology S₂]
+  (φ : S₁ ⟶ S₂) : S₁.right_homology ⟶ S₂.right_homology :=
+right_homology_map' φ _ _
+
+def cycles_co_map [has_right_homology S₁] [has_right_homology S₂]
+  (φ : S₁ ⟶ S₂) : S₁.cycles_co ⟶ S₂.cycles_co :=
+cycles_co_map' φ _ _
+
+@[simp, reassoc]
+lemma p_cycles_co_map (φ : S₁ ⟶ S₂) [S₁.has_right_homology] [S₂.has_right_homology] :
+  S₁.p_cycles_co ≫ cycles_co_map φ = φ.τ₂ ≫ S₂.p_cycles_co :=
+p_cycles_co_map' _ _ _
+
+@[reassoc]
+lemma right_homology_ι_naturality [has_right_homology S₁] [has_right_homology S₂]
+  (φ : S₁ ⟶ S₂) :
+  right_homology_map φ ≫ S₂.right_homology_ι = S₁.right_homology_ι ≫ cycles_co_map φ :=
+right_homology_ι_naturality' _ _ _
+
+@[simp]
+lemma right_homology_map'_id (h : S.right_homology_data) :
+  right_homology_map' (𝟙 S) h h = 𝟙 _ :=
+right_homology_map_data.congr_φH (subsingleton.elim  _ (right_homology_map_data.id _))
+
+@[simp]
+lemma cycles_co_map'_id (h : S.right_homology_data) :
+  cycles_co_map' (𝟙 S) h h = 𝟙 _ :=
+right_homology_map_data.congr_φQ (subsingleton.elim  _ (right_homology_map_data.id _))
+
+variable (S)
+
+@[simp]
+lemma right_homology_map_id [has_right_homology S] :
+  right_homology_map (𝟙 S) = 𝟙 _ :=
+right_homology_map'_id _
+
+@[simp]
+lemma cycles_co_map_id [has_right_homology S] :
+  cycles_co_map (𝟙 S) = 𝟙 _ :=
+cycles_co_map'_id _
+
+lemma right_homology_map'_comp (φ₁ : S₁ ⟶ S₂) (φ₂ : S₂ ⟶ S₃)
+  (h₁ : S₁.right_homology_data) (h₂ : S₂.right_homology_data) (h₃ : S₃.right_homology_data) :
+  right_homology_map' (φ₁ ≫ φ₂) h₁ h₃ = right_homology_map' φ₁ h₁ h₂ ≫
+    right_homology_map' φ₂ h₂ h₃ :=
+right_homology_map_data.congr_φH
+  (subsingleton.elim _ ((right_homology_map_data.some φ₁ _ _).comp
+    (right_homology_map_data.some φ₂ _ _)))
+
+lemma cycles_co_map'_comp (φ₁ : S₁ ⟶ S₂) (φ₂ : S₂ ⟶ S₃)
+  (h₁ : S₁.right_homology_data) (h₂ : S₂.right_homology_data) (h₃ : S₃.right_homology_data) :
+  cycles_co_map' (φ₁ ≫ φ₂) h₁ h₃ = cycles_co_map' φ₁ h₁ h₂ ≫
+    cycles_co_map' φ₂ h₂ h₃ :=
+right_homology_map_data.congr_φQ
+  (subsingleton.elim _ ((right_homology_map_data.some φ₁ _ _).comp
+    (right_homology_map_data.some φ₂ _ _)))
+
+@[simp]
+lemma right_homology_map_comp [has_right_homology S₁] [has_right_homology S₂]
+  [has_right_homology S₃] (φ₁ : S₁ ⟶ S₂) (φ₂ : S₂ ⟶ S₃) :
+  right_homology_map (φ₁ ≫ φ₂) = right_homology_map φ₁ ≫ right_homology_map φ₂ :=
+right_homology_map'_comp _ _ _ _ _
+
+@[simp]
+lemma cycles_co_map_comp [has_right_homology S₁] [has_right_homology S₂]
+  [has_right_homology S₃] (φ₁ : S₁ ⟶ S₂) (φ₂ : S₂ ⟶ S₃) :
+  cycles_co_map (φ₁ ≫ φ₂) = cycles_co_map φ₁ ≫ cycles_co_map φ₂ :=
+cycles_co_map'_comp _ _ _ _ _
+
+@[simps]
+def right_homology_map_iso' (e : S₁ ≅ S₂) (h₁ : S₁.right_homology_data)
+  (h₂ : S₂.right_homology_data) : h₁.H ≅ h₂.H :=
+{ hom := right_homology_map' e.hom h₁ h₂,
+  inv := right_homology_map' e.inv h₂ h₁,
+  hom_inv_id' := by rw [← right_homology_map'_comp, e.hom_inv_id, right_homology_map'_id],
+  inv_hom_id' := by rw [← right_homology_map'_comp, e.inv_hom_id, right_homology_map'_id], }
+
+instance is_iso_right_homology_map'_of_iso (φ : S₁ ⟶ S₂) [is_iso φ]
+  (h₁ : S₁.right_homology_data) (h₂ : S₂.right_homology_data) :
+  is_iso (right_homology_map' φ h₁ h₂) :=
+by { change is_iso (right_homology_map_iso' (as_iso φ) h₁ h₂).hom, apply_instance, }
+
+@[simps]
+def cycles_co_map_iso' (e : S₁ ≅ S₂) (h₁ : S₁.right_homology_data)
+  (h₂ : S₂.right_homology_data) : h₁.Q ≅ h₂.Q :=
+{ hom := cycles_co_map' e.hom h₁ h₂,
+  inv := cycles_co_map' e.inv h₂ h₁,
+  hom_inv_id' := by rw [← cycles_co_map'_comp, e.hom_inv_id, cycles_co_map'_id],
+  inv_hom_id' := by rw [← cycles_co_map'_comp, e.inv_hom_id, cycles_co_map'_id], }
+
+instance is_iso_cycles_co_map'_of_iso (φ : S₁ ⟶ S₂) [is_iso φ]
+  (h₁ : S₁.right_homology_data) (h₂ : S₂.right_homology_data) :
+  is_iso (cycles_co_map' φ h₁ h₂) :=
+by { change is_iso (cycles_co_map_iso' (as_iso φ) h₁ h₂).hom, apply_instance, }
+
+@[simps]
+def right_homology_map_iso (e : S₁ ≅ S₂) [S₁.has_right_homology]
+  [S₂.has_right_homology] : S₁.right_homology ≅ S₂.right_homology :=
+{ hom := right_homology_map e.hom,
+  inv := right_homology_map e.inv,
+  hom_inv_id' := by rw [← right_homology_map_comp, e.hom_inv_id, right_homology_map_id],
+  inv_hom_id' := by rw [← right_homology_map_comp, e.inv_hom_id, right_homology_map_id], }
+
+instance is_iso_right_homology_map_of_iso (φ : S₁ ⟶ S₂) [is_iso φ] [S₁.has_right_homology]
+  [S₂.has_right_homology] :
+  is_iso (right_homology_map φ) :=
+by { change is_iso (right_homology_map_iso (as_iso φ)).hom, apply_instance, }
+
+@[simps]
+def cycles_co_map_iso (e : S₁ ≅ S₂) [S₁.has_right_homology]
+  [S₂.has_right_homology] : S₁.cycles_co ≅ S₂.cycles_co :=
+{ hom := cycles_co_map e.hom,
+  inv := cycles_co_map e.inv,
+  hom_inv_id' := by rw [← cycles_co_map_comp, e.hom_inv_id, cycles_co_map_id],
+  inv_hom_id' := by rw [← cycles_co_map_comp, e.inv_hom_id, cycles_co_map_id], }
+
+instance is_iso_cycles_co_map_of_iso (φ : S₁ ⟶ S₂) [is_iso φ] [S₁.has_right_homology]
+  [S₂.has_right_homology] :
+  is_iso (cycles_co_map φ) :=
+by { change is_iso (cycles_co_map_iso (as_iso φ)).hom, apply_instance, }
+
+variable {S}
+
+def right_homology_data.right_homology_iso (h₁ : S.right_homology_data) [S.has_right_homology] :
+  S.right_homology ≅ h₁.H := right_homology_map_iso' (iso.refl _) _ _
+
+def right_homology_data.cycles_co_iso (h₁ : S.right_homology_data) [S.has_right_homology] :
+  S.cycles_co ≅ h₁.Q := cycles_co_map_iso' (iso.refl _) _ _
 
 @[simps]
 def left_homology_map_data.op {S₁ S₂ : short_complex C} {φ : S₁ ⟶ S₂}
@@ -388,8 +673,19 @@ def left_homology_map_data.op {S₁ S₂ : short_complex C} {φ : S₁ ⟶ S₂}
   commι := by simp only [left_homology_data.op_ι, ← op_comp, ψ.commπ], }
 
 @[simps]
-def left_homology_map_data.unop {S₁ S₂ : short_complex Cᵒᵖ} {φ : S₁ ⟶ S₂}
+def left_homology_map_data.unop' {S₁ S₂ : short_complex Cᵒᵖ} {φ : S₁ ⟶ S₂}
   {h₁ : S₁.left_homology_data} {h₂ : S₂.left_homology_data}
+  (ψ : left_homology_map_data φ h₁ h₂) :
+  right_homology_map_data (unop'_map φ) h₂.unop' h₁.unop' :=
+{ φQ := ψ.φK.unop,
+  φH := ψ.φH.unop,
+  commp := by simp only [unop'_map_τ₂, ← unop_comp, left_homology_data.unop'_p, ψ.commi],
+  commg' := by simp only [left_homology_data.unop'_g', unop'_map_τ₃, ← unop_comp, ψ.commf'],
+  commι := by simp only [left_homology_data.unop'_ι, ← unop_comp, ψ.commπ], }
+
+@[simps]
+def left_homology_map_data.unop {S₁ S₂ : short_complex C} {φ : S₁.op ⟶ S₂.op}
+  {h₁ : S₁.op.left_homology_data} {h₂ : S₂.op.left_homology_data}
   (ψ : left_homology_map_data φ h₁ h₂) :
   right_homology_map_data (unop_map φ) h₂.unop h₁.unop :=
 { φQ := ψ.φK.unop,
@@ -407,17 +703,212 @@ def right_homology_map_data.op {S₁ S₂ : short_complex C} {φ : S₁ ⟶ S₂
   φH := ψ.φH.op,
   commi := by simp only [right_homology_data.op_i, op_map_τ₂, ← op_comp, ψ.commp],
   commf' := by simp only [right_homology_data.op_f', op_map_τ₁, ← op_comp, ψ.commg'],
-  commπ := by { simp only [right_homology_data.op_π, ← op_comp, ψ.commι], }, }
+  commπ := by simp only [right_homology_data.op_π, ← op_comp, ψ.commι], }
 
 @[simps]
-def right_homology_map_data.unop {S₁ S₂ : short_complex Cᵒᵖ} {φ : S₁ ⟶ S₂}
+def right_homology_map_data.unop' {S₁ S₂ : short_complex Cᵒᵖ} {φ : S₁ ⟶ S₂}
   {h₁ : S₁.right_homology_data} {h₂ : S₂.right_homology_data}
+  (ψ : right_homology_map_data φ h₁ h₂) :
+  left_homology_map_data (unop'_map φ) h₂.unop' h₁.unop' :=
+{ φK := ψ.φQ.unop,
+  φH := ψ.φH.unop,
+  commi := by simp only [right_homology_data.unop'_i, unop'_map_τ₂, ← unop_comp, ψ.commp],
+  commf' := by simp only [right_homology_data.unop'_f', unop'_map_τ₁, ← unop_comp, ψ.commg'],
+  commπ := by simp only [right_homology_data.unop'_π, ← unop_comp, ψ.commι], }
+
+@[simps]
+def right_homology_map_data.unop {S₁ S₂ : short_complex C} {φ : S₁.op ⟶ S₂.op}
+  {h₁ : S₁.op.right_homology_data} {h₂ : S₂.op.right_homology_data}
   (ψ : right_homology_map_data φ h₁ h₂) :
   left_homology_map_data (unop_map φ) h₂.unop h₁.unop :=
 { φK := ψ.φQ.unop,
   φH := ψ.φH.unop,
   commi := by simp only [right_homology_data.unop_i, unop_map_τ₂, ← unop_comp, ψ.commp],
   commf' := by simp only [right_homology_data.unop_f', unop_map_τ₁, ← unop_comp, ψ.commg'],
-  commπ := by { simp only [right_homology_data.unop_π, ← unop_comp, ψ.commι], }, }
+  commπ := by simp only [right_homology_data.unop_π, ← unop_comp, ψ.commι], }
+
+namespace right_homology_map_data
+
+variables (γ : right_homology_map_data φ h₁ h₂) {φ h₁ h₂}
+
+lemma right_homology_map'_eq : right_homology_map' φ h₁ h₂ = γ.φH :=
+right_homology_map_data.congr_φH (subsingleton.elim _ _)
+
+lemma cycles_co_map'_eq : cycles_co_map' φ h₁ h₂ = γ.φQ :=
+right_homology_map_data.congr_φQ (subsingleton.elim _ _)
+
+lemma right_homology_map_eq [S₁.has_right_homology] [S₂.has_right_homology] :
+  right_homology_map φ = h₁.right_homology_iso.hom ≫ γ.φH ≫ h₂.right_homology_iso.inv :=
+begin
+  dsimp [right_homology_data.right_homology_iso, right_homology_map_iso'],
+  rw [← γ.right_homology_map'_eq, ← right_homology_map'_comp, ← right_homology_map'_comp, id_comp, comp_id],
+  refl,
+end
+
+lemma cycles_co_map_eq [S₁.has_right_homology] [S₂.has_right_homology] :
+  cycles_co_map φ = h₁.cycles_co_iso.hom ≫ γ.φQ ≫ h₂.cycles_co_iso.inv :=
+begin
+  dsimp [right_homology_data.cycles_co_iso, cycles_co_map_iso'],
+  rw [← γ.cycles_co_map'_eq, ← cycles_co_map'_comp, ← cycles_co_map'_comp, id_comp, comp_id],
+  refl,
+end
+
+lemma right_homology_map_comm [S₁.has_right_homology] [S₂.has_right_homology] :
+  right_homology_map φ ≫ h₂.right_homology_iso.hom = h₁.right_homology_iso.hom ≫ γ.φH :=
+by simp only [γ.right_homology_map_eq, assoc, iso.inv_hom_id, comp_id]
+
+lemma cycles_co_map_comm [S₁.has_right_homology] [S₂.has_right_homology] :
+  cycles_co_map φ ≫ h₂.cycles_co_iso.hom = h₁.cycles_co_iso.hom ≫ γ.φQ :=
+by simp only [γ.cycles_co_map_eq, assoc, iso.inv_hom_id, comp_id]
+
+end right_homology_map_data
+
+variable (C)
+
+abbreviation _root_.category_with_right_homology := ∀ (S : short_complex C), S.has_right_homology
+
+@[simps]
+def right_homology_functor [category_with_right_homology C] :
+  short_complex C ⥤ C :=
+{ obj := λ S, S.right_homology,
+  map := λ S₁ S₂, right_homology_map, }
+
+@[simps]
+def cycles_co_functor [category_with_right_homology C] :
+  short_complex C ⥤ C :=
+{ obj := λ S, S.cycles_co,
+  map := λ S₁ S₂, cycles_co_map, }
+
+@[simps]
+def right_homology_ι_nat_trans [category_with_right_homology C] :
+  right_homology_functor C ⟶ cycles_co_functor C :=
+{ app := λ S, right_homology_ι S,
+  naturality' := λ S₁ S₂, right_homology_ι_naturality, }
+
+@[simps]
+def p_cycles_co_nat_trans [category_with_right_homology C] :
+  short_complex.π₂ ⟶ cycles_co_functor C :=
+{ app := λ S, p_cycles_co S, }
+
+variables {C} (S)
+
+def op_right_homology_iso [S.has_left_homology] :
+  S.op.right_homology ≅ opposite.op S.left_homology :=
+S.some_left_homology_data.op.right_homology_iso
+
+def op_left_homology_iso [S.has_right_homology] :
+  S.op.left_homology ≅ opposite.op S.right_homology :=
+S.some_right_homology_data.op.left_homology_iso
+
+def op_cycles_co_iso [S.has_left_homology] :
+  S.op.cycles_co ≅ opposite.op S.cycles :=
+S.some_left_homology_data.op.cycles_co_iso
+
+def op_cycles_iso [S.has_right_homology] :
+  S.op.cycles ≅ opposite.op S.cycles_co :=
+S.some_right_homology_data.op.cycles_iso
+
+variables {S}
+
+@[simp]
+lemma left_homology_map'_op
+  (φ : S₁ ⟶ S₂) (h₁ : S₁.left_homology_data) (h₂ : S₂.left_homology_data) :
+  (left_homology_map' φ h₁ h₂).op = right_homology_map' (op_map φ) h₂.op h₁.op :=
+begin
+  let γ : left_homology_map_data φ h₁ h₂ := default,
+  simp only [γ.left_homology_map'_eq, γ.op.right_homology_map'_eq,
+    left_homology_map_data.op_φH],
+end
+
+@[simp]
+lemma right_homology_map'_op
+  (φ : S₁ ⟶ S₂) (h₁ : S₁.right_homology_data) (h₂ : S₂.right_homology_data) :
+  (right_homology_map' φ h₁ h₂).op = left_homology_map' (op_map φ) h₂.op h₁.op :=
+begin
+  let γ : right_homology_map_data φ h₁ h₂ := default,
+  simp only [γ.right_homology_map'_eq, γ.op.left_homology_map'_eq,
+    right_homology_map_data.op_φH],
+end
+
+@[simp]
+lemma left_homology_map_op (φ : S₁ ⟶ S₂) [has_left_homology S₁] [has_left_homology S₂] :
+  (left_homology_map φ).op =
+    S₂.op_right_homology_iso.inv ≫ right_homology_map (op_map φ) ≫ S₁.op_right_homology_iso.hom :=
+begin
+  dsimp only [left_homology_map, right_homology_map,
+    op_right_homology_iso, right_homology_data.right_homology_iso,
+    right_homology_map_iso', iso.refl],
+  rw [left_homology_map'_op, ← right_homology_map'_comp, ← right_homology_map'_comp,
+    comp_id, id_comp],
+end
+
+@[simp]
+lemma right_homology_map_op (φ : S₁ ⟶ S₂) [has_right_homology S₁] [has_right_homology S₂] :
+  (right_homology_map φ).op =
+    S₂.op_left_homology_iso.inv ≫ left_homology_map (op_map φ) ≫ S₁.op_left_homology_iso.hom :=
+begin
+  dsimp only [right_homology_map, left_homology_map,
+    op_left_homology_iso, left_homology_data.left_homology_iso,
+    left_homology_map_iso', iso.refl],
+  rw [right_homology_map'_op, ← left_homology_map'_comp, ← left_homology_map'_comp,
+    comp_id, id_comp],
+end
+
+instance category_with_left_homology_op_of_category_with_right_homology
+  [category_with_right_homology C] : category_with_left_homology Cᵒᵖ :=
+λ S, has_left_homology_of_iso S.unop_op
+
+instance category_with_right_homology_op_of_category_with_left_homology
+  [category_with_left_homology C] : category_with_right_homology Cᵒᵖ :=
+λ S, has_right_homology_of_iso S.unop_op
+
+instance category_with_right_homology_of_category_with_left_homology
+  [category_with_right_homology C] : category_with_left_homology Cᵒᵖ :=
+λ S, has_left_homology_of_iso S.unop_op
+
+@[simps]
+def right_homology_functor_op_nat_iso [category_with_right_homology C] :
+  (right_homology_functor C).op ≅ op_functor C ⋙ left_homology_functor Cᵒᵖ :=
+nat_iso.of_components (λ S, (op_left_homology_iso S.unop).symm) (by simp)
+
+@[simps]
+def left_homology_functor_op_nat_iso [category_with_left_homology C] :
+  (left_homology_functor C).op ≅ op_functor C ⋙ right_homology_functor Cᵒᵖ :=
+nat_iso.of_components (λ S, (op_right_homology_iso S.unop).symm) (by simp)
+
+namespace right_homology_map_data
+
+@[simps]
+def of_epi_of_is_iso_of_mono (φ : S₁ ⟶ S₂) (h : right_homology_data S₁)
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] :
+    right_homology_map_data φ h (right_homology_data.of_epi_of_is_iso_of_mono φ h) :=
+{ φQ := 𝟙 _,
+  φH := 𝟙 _,
+  commp := by simp only [comp_id, right_homology_data.of_epi_of_is_iso_of_mono_p, is_iso.hom_inv_id_assoc],
+  commg' := by simp only [right_homology_data.of_epi_of_is_iso_of_mono_g', id_comp],
+  commι := by simp only [comp_id, right_homology_data.of_epi_of_is_iso_of_mono_ι, id_comp], }
+
+end right_homology_map_data
+
+instance (φ : S₁ ⟶ S₂) (h₁ : S₁.right_homology_data) (h₂ : S₂.right_homology_data)
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] :
+  is_iso (right_homology_map' φ h₁ h₂) :=
+begin
+  let h₂' := right_homology_data.of_epi_of_is_iso_of_mono φ h₁,
+  haveI : is_iso (right_homology_map' φ h₁ h₂'),
+  { let γ := right_homology_map_data.of_epi_of_is_iso_of_mono φ h₁,
+    rw γ.right_homology_map'_eq,
+    dsimp,
+    apply_instance, },
+  have eq := right_homology_map'_comp φ (𝟙 S₂) h₁ h₂' h₂,
+  rw comp_id at eq,
+  rw eq,
+  apply_instance,
+end
+
+instance (φ : S₁ ⟶ S₂) [S₁.has_right_homology] [S₂.has_right_homology]
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] :
+  is_iso (right_homology_map φ) :=
+by { dsimp only [right_homology_map], apply_instance, }
 
 end short_complex

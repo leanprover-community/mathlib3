@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.invertible
 import algebra.group_power.ring
+import data.nat.pow
 import data.int.cast
 
 /-!
@@ -56,8 +57,9 @@ begin
   exact and.left
 end
 
-lemma is_unit_pos_pow_iff {m : M} :
-  ∀ {n : ℕ} (h : 0 < n), is_unit (m ^ n) ↔ is_unit m
+lemma is_unit_pow_iff {m : M} :
+  ∀ {n : ℕ} (h : n ≠ 0), is_unit (m ^ n) ↔ is_unit m
+| 0 h := (h rfl).elim
 | (n + 1) _ := is_unit_pow_succ_iff
 
 /-- If `x ^ n.succ = 1` then `x` has an inverse, `x^n`. -/
@@ -66,15 +68,15 @@ def invertible_of_pow_succ_eq_one (x : M) (n : ℕ) (hx : x ^ n.succ = 1) :
 ⟨x ^ n, (pow_succ' x n).symm.trans hx, (pow_succ x n).symm.trans hx⟩
 
 /-- If `x ^ n = 1` then `x` has an inverse, `x^(n - 1)`. -/
-def invertible_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :
+def invertible_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : n ≠ 0) :
   invertible x :=
 begin
   apply invertible_of_pow_succ_eq_one x (n - 1),
   convert hx,
-  exact tsub_add_cancel_of_le (nat.succ_le_of_lt hn),
+  exact nat.succ_pred_eq_of_pos (pos_iff_ne_zero.2 hn),
 end
 
-lemma is_unit_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :
+lemma is_unit_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : n ≠ 0) :
   is_unit x :=
 begin
   haveI := invertible_of_pow_eq_one x n hx hn,
@@ -520,11 +522,6 @@ by simpa only [add_sub_cancel'_right] using one_add_mul_le_pow this n
 end linear_ordered_ring
 
 namespace int
-
-alias units_sq ← units_pow_two
-
-lemma units_pow_eq_pow_mod_two (u : ℤˣ) (n : ℕ) : u ^ n = u ^ (n % 2) :=
-by conv {to_lhs, rw ← nat.mod_add_div n 2}; rw [pow_add, pow_mul, units_sq, one_pow, mul_one]
 
 @[simp] lemma nat_abs_sq (x : ℤ) : (x.nat_abs ^ 2 : ℤ) = x ^ 2 :=
 by rw [sq, int.nat_abs_mul_self', sq]

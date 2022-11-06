@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 import algebra.algebra.basic
 import algebra.order.nonneg.field
+import data.real.pointwise
 import tactic.positivity
 
 /-!

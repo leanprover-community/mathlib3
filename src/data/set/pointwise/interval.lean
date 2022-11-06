@@ -420,7 +420,6 @@ end linear_ordered_add_comm_group
 section linear_ordered_field
 variables [linear_ordered_field α] {a : α}
 
-<<<<<<<< HEAD:src/data/set/intervals/pointwise.lean
 @[simp] lemma preimage_const_mul_interval (ha : a ≠ 0) (b c : α) :
   (λ x, a * x) ⁻¹' [b, c] = [b / a, c / a] :=
 by simp only [← preimage_mul_const_interval ha, mul_comm]
@@ -444,8 +443,6 @@ by simp only [div_eq_mul_inv, image_mul_const_interval]
 
 end linear_ordered_field
 
-========
->>>>>>>> origin/pointwise_interval:src/data/set/pointwise/interval.lean
 @[simp] lemma preimage_mul_const_Iio (a : α) {c : α} (h : 0 < c) :
   (λ x, x * c) ⁻¹' (Iio a) = Iio (a / c) :=
 ext $ λ x, (lt_div_iff h).symm
@@ -478,15 +475,12 @@ by simp [← Ici_inter_Iio, h]
   (λ x, x * c) ⁻¹' (Icc a b) = Icc (a / c) (b / c) :=
 by simp [← Ici_inter_Iic, h]
 
-<<<<<<<< HEAD:src/data/set/intervals/pointwise.lean
 @[simp] lemma preimage_mul_const_interval (ha : a ≠ 0) (b c : α) :
   (λ x, x * a) ⁻¹' [b, c] = [b / a, c / a] :=
 (lt_or_gt_of_ne ha).elim
   (λ ha, by simp [interval, ha, ha.le, min_div_div_right_of_nonpos, max_div_div_right_of_nonpos])
   (λ (ha : 0 < a), by simp [interval, ha, ha.le, min_div_div_right, max_div_div_right])
 
-========
->>>>>>>> origin/pointwise_interval:src/data/set/pointwise/interval.lean
 @[simp] lemma preimage_mul_const_Iio_of_neg (a : α) {c : α} (h : c < 0) :
   (λ x, x * c) ⁻¹' (Iio a) = Ioi (a / c) :=
 ext $ λ x, (div_lt_iff_of_neg h).symm
@@ -583,8 +577,6 @@ by simpa only [mul_comm] using preimage_mul_const_Ico_of_neg a b h
   ((*) c) ⁻¹' (Icc a b) = Icc (b / c) (a / c) :=
 by simpa only [mul_comm] using preimage_mul_const_Icc_of_neg a b h
 
-<<<<<<<< HEAD:src/data/set/intervals/pointwise.lean
-========
 @[simp] lemma preimage_mul_const_interval (ha : a ≠ 0) (b c : α) :
   (λ x, x * a) ⁻¹' [b, c] = [b / a, c / a] :=
 (lt_or_gt_of_ne ha).elim
@@ -612,7 +604,6 @@ by simpa only [mul_comm] using image_mul_const_interval a b c
 @[simp] lemma image_div_const_interval (a b c : α) : (λ x, x / a) '' [b, c] = [b / a, c / a] :=
 by simp only [div_eq_mul_inv, image_mul_const_interval]
 
->>>>>>>> origin/pointwise_interval:src/data/set/pointwise/interval.lean
 lemma image_mul_right_Icc' (a b : α) {c : α} (h : 0 < c) :
   (λ x, x * c) '' Icc a b = Icc (a * c) (b * c) :=
 ((units.mk0 c h.ne').mul_right.image_eq_preimage _).trans (by simp [h, division_def])

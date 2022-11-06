@@ -175,21 +175,21 @@ instance add_monoid_with_one [ordered_semiring α] : add_monoid_with_one {x : α
   nat_cast_succ := λ _, by simp [nat.cast]; refl,
   .. nonneg.has_one, .. nonneg.ordered_add_comm_monoid }
 
+@[simp, norm_cast]
+protected lemma coe_nat_cast [ordered_semiring α] (n : ℕ) : ((↑n : {x : α // 0 ≤ x}) : α) = n := rfl
+
+@[simp] lemma mk_nat_cast [ordered_semiring α] (n : ℕ) :
+  (⟨n, n.cast_nonneg⟩ : {x : α // 0 ≤ x}) = n := rfl
+
 instance has_pow [ordered_semiring α] : has_pow {x : α // 0 ≤ x} ℕ :=
 { pow := λ x n, ⟨x ^ n, pow_nonneg x.2 n⟩ }
 
 @[simp, norm_cast]
 protected lemma coe_pow [ordered_semiring α] (a : {x : α // 0 ≤ x}) (n : ℕ) :
-  ((a ^ n : {x : α // 0 ≤ x}) : α) = a ^ n := rfl
-
-@[simp, norm_cast]
-protected lemma coe_nat_cast [ordered_semiring α] (n : ℕ) : ((↑n : {x : α // 0 ≤ x}) : α) = n := rfl
+  (↑(a ^ n) : α) = a ^ n := rfl
 
 @[simp] lemma mk_pow [ordered_semiring α] {x : α} (hx : 0 ≤ x) (n : ℕ) :
   (⟨x, hx⟩ : {x : α // 0 ≤ x}) ^ n = ⟨x ^ n, pow_nonneg hx n⟩ := rfl
-
-@[simp] lemma mk_nat_cast [ordered_semiring α] (n : ℕ) :
-  (⟨n, n.cast_nonneg⟩ : {x : α // 0 ≤ x}) = n := rfl
 
 instance ordered_semiring [ordered_semiring α] : ordered_semiring {x : α // 0 ≤ x} :=
 subtype.coe_injective.ordered_semiring _

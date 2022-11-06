@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.int.cast
+import data.int.div
 import data.nat.gcd.basic
 import data.pnat.basic
 import tactic.nth_rewrite

@@ -89,12 +89,8 @@ end
 begin
   rw [cyclotomic'],
   have prim_root_two : primitive_roots 2 R = {(-1 : R)},
-  { apply finset.eq_singleton_iff_unique_mem.2,
-    split,
-    { simp only [is_primitive_root.neg_one p hp, nat.succ_pos', mem_primitive_roots] },
-    { intros x hx,
-      rw [mem_primitive_roots zero_lt_two] at hx,
-      exact is_primitive_root.eq_neg_one_of_two_right hx } },
+  { simp only [finset.eq_singleton_iff_unique_mem, mem_primitive_roots two_ne_zero],
+    exact ⟨is_primitive_root.neg_one p hp, λ x, is_primitive_root.eq_neg_one_of_two_right⟩ },
   simp only [prim_root_two, finset.prod_singleton, ring_hom.map_neg, ring_hom.map_one,
   sub_neg_eq_add]
 end

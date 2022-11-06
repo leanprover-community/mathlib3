@@ -65,10 +65,7 @@ begin
     rw ← image_univ,
     exact subsingleton.image subsingleton_of_subsingleton b.points, },
   { -- The positive-dimensional case.
-    haveI : finite_dimensional ℝ E,
-    { classical,
-      obtain ⟨i⟩ := (infer_instance : nonempty ι),
-      exact finite_dimensional.of_fintype_basis (b.basis_of i), },
+    haveI : finite_dimensional ℝ E := b.finite_dimensional,
     have : convex_hull ℝ (range b.points) = ⋂ i, (b.coord i)⁻¹' Ici 0,
     { rw convex_hull_affine_basis_eq_nonneg_barycentric b, ext, simp, },
     ext,

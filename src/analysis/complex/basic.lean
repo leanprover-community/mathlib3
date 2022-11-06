@@ -242,9 +242,7 @@ conjugation. -/
 lemma ring_hom_eq_id_or_conj_of_continuous {f : ℂ →+* ℂ} (hf : continuous f) :
   f = ring_hom.id ℂ ∨ f = conj :=
 begin
-  refine (real_alg_hom_eq_id_or_conj $ alg_hom.mk' f $ λ x z, congr_fun _ x).imp (λ h, _) (λ h, _),
-  { refine rat.dense_embedding_coe_real.dense.equalizer (by continuity) (by continuity) _,
-    ext1, simp only [real_smul, function.comp_app, map_rat_cast, of_real_rat_cast, map_mul], },
+  refine (real_alg_hom_eq_id_or_conj $ alg_hom.mk' f $ map_real_smul f hf).imp (λ h, _) (λ h, _),
   all_goals { convert congr_arg alg_hom.to_ring_hom h, ext1, refl, },
 end
 
@@ -266,6 +264,15 @@ def of_real_li : ℝ →ₗᵢ[ℝ] ℂ := ⟨of_real_am.to_linear_map, norm_rea
 lemma isometry_of_real : isometry (coe : ℝ → ℂ) := of_real_li.isometry
 
 @[continuity] lemma continuous_of_real : continuous (coe : ℝ → ℂ) := of_real_li.continuous
+
+/-- The only continuous ring homomorphism from `ℝ` to `ℂ` is the identity. -/
+lemma ring_hom_eq_of_real_of_continuous {f : ℝ →+* ℂ} (h : continuous f) :
+  f = complex.of_real :=
+begin
+  convert congr_arg alg_hom.to_ring_hom
+    (subsingleton.elim (alg_hom.mk' f $ map_real_smul f h) $ algebra.of_id ℝ ℂ),
+  ext1, refl,
+end 
 
 /-- Continuous linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
 def of_real_clm : ℝ →L[ℝ] ℂ := of_real_li.to_continuous_linear_map
@@ -304,6 +311,14 @@ noncomputable instance : is_R_or_C ℂ :=
 
 lemma _root_.is_R_or_C.re_eq_complex_re : ⇑(is_R_or_C.re : ℂ →+ ℝ) = complex.re := rfl
 lemma _root_.is_R_or_C.im_eq_complex_im : ⇑(is_R_or_C.im : ℂ →+ ℝ) = complex.im := rfl
+
+section complex_order
+open_locale complex_order
+
+lemma eq_coe_norm_of_nonneg {z : ℂ} (hz : 0 ≤ z) : z = ↑∥z∥ :=
+by rw [eq_re_of_real_le hz, is_R_or_C.norm_of_real, real.norm_of_nonneg (complex.le_def.2 hz).1]
+
+end complex_order
 
 section
 

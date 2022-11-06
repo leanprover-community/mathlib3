@@ -98,6 +98,10 @@ example : monoidal_linear k (fdRep k G) := by apply_instance
 open finite_dimensional
 open_locale classical
 
+-- We need to provide this instance explicitely as otherwise `finrank_hom_simple_simple` gives a
+-- deterministic timeout.
+instance : has_kernels (fdRep k G) := by apply_instance
+
 -- Verify that Schur's lemma applies out of the box.
 lemma finrank_hom_simple_simple [is_alg_closed k] (V W : fdRep k G) [simple V] [simple W] :
   finrank k (V ⟶ W) = if nonempty (V ≅ W) then 1 else 0 :=

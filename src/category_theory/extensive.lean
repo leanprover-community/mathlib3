@@ -125,7 +125,7 @@ class finitary_extensive (C : Type u) [category.{v} C] : Prop :=
 [has_finite_coproducts : has_finite_coproducts C]
 (van_kampen' : ∀ {X Y : C} (c : binary_cofan X Y), is_colimit c → is_van_kampen_colimit c)
 
-attribute [instance] finitary_extensive.has_finite_coproducts
+attribute [priority 100, instance] finitary_extensive.has_finite_coproducts
 
 lemma finitary_extensive.van_kampen [finitary_extensive C] {F : discrete walking_pair ⥤ C}
   (c : cocone F) (hc : is_colimit c) : is_van_kampen_colimit c :=

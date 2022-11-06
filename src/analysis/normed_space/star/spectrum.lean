@@ -25,11 +25,12 @@ section unitary_spectrum
 variables
 {𝕜 : Type*} [normed_field 𝕜]
 {E : Type*} [normed_ring E] [star_ring E] [cstar_ring E]
-[normed_algebra 𝕜 E] [complete_space E] [nontrivial E]
+[normed_algebra 𝕜 E] [complete_space E]
 
 lemma unitary.spectrum_subset_circle (u : unitary E) :
   spectrum 𝕜 (u : E) ⊆ metric.sphere 0 1 :=
 begin
+  nontriviality E,
   refine λ k hk, mem_sphere_zero_iff_norm.mpr (le_antisymm _ _),
   { simpa only [cstar_ring.norm_coe_unitary u] using norm_le_norm_of_mem hk },
   { rw ←unitary.coe_to_units_apply u at hk,
@@ -54,7 +55,7 @@ variables {A : Type*}
 
 local notation `↑ₐ` := algebra_map ℂ A
 
-lemma is_self_adjoint.spectral_radius_eq_nnnorm [norm_one_class A] {a : A}
+lemma is_self_adjoint.spectral_radius_eq_nnnorm {a : A}
   (ha : is_self_adjoint a) :
   spectral_radius ℂ a = ∥a∥₊ :=
 begin
@@ -68,7 +69,7 @@ begin
   simp,
 end
 
-lemma is_star_normal.spectral_radius_eq_nnnorm [norm_one_class A] (a : A) [is_star_normal a] :
+lemma is_star_normal.spectral_radius_eq_nnnorm (a : A) [is_star_normal a] :
   spectral_radius ℂ a = ∥a∥₊ :=
 begin
   refine (ennreal.pow_strict_mono two_ne_zero).injective _,
@@ -86,7 +87,7 @@ begin
 end
 
 /-- Any element of the spectrum of a selfadjoint is real. -/
-theorem is_self_adjoint.mem_spectrum_eq_re [star_module ℂ A] [nontrivial A] {a : A}
+theorem is_self_adjoint.mem_spectrum_eq_re [star_module ℂ A] {a : A}
   (ha : is_self_adjoint a) {z : ℂ} (hz : z ∈ spectrum ℂ a) : z = z.re :=
 begin
   let Iu := units.mk0 I I_ne_zero,
@@ -100,19 +101,19 @@ begin
 end
 
 /-- Any element of the spectrum of a selfadjoint is real. -/
-theorem self_adjoint.mem_spectrum_eq_re [star_module ℂ A] [nontrivial A]
+theorem self_adjoint.mem_spectrum_eq_re [star_module ℂ A]
   (a : self_adjoint A) {z : ℂ} (hz : z ∈ spectrum ℂ (a : A)) : z = z.re :=
 a.prop.mem_spectrum_eq_re hz
 
 /-- The spectrum of a selfadjoint is real -/
-theorem is_self_adjoint.coe_re_map_spectrum [star_module ℂ A] [nontrivial A] {a : A}
+theorem is_self_adjoint.coe_re_map_spectrum [star_module ℂ A] {a : A}
   (ha : is_self_adjoint a) : spectrum ℂ a = (coe ∘ re '' (spectrum ℂ a) : set ℂ) :=
 le_antisymm (λ z hz, ⟨z, hz, (ha.mem_spectrum_eq_re hz).symm⟩) (λ z, by
   { rintros ⟨z, hz, rfl⟩,
     simpa only [(ha.mem_spectrum_eq_re hz).symm, function.comp_app] using hz })
 
 /-- The spectrum of a selfadjoint is real -/
-theorem self_adjoint.coe_re_map_spectrum [star_module ℂ A] [nontrivial A] (a : self_adjoint A) :
+theorem self_adjoint.coe_re_map_spectrum [star_module ℂ A] (a : self_adjoint A) :
   spectrum ℂ (a : A) = (coe ∘ re '' (spectrum ℂ (a : A)) : set ℂ) :=
 a.property.coe_re_map_spectrum
 
@@ -121,10 +122,8 @@ end complex_scalars
 namespace star_alg_hom
 
 variables {F A B : Type*}
-[normed_ring A] [normed_algebra ℂ A] [norm_one_class A]
-[complete_space A] [star_ring A] [cstar_ring A]
-[normed_ring B] [normed_algebra ℂ B] [norm_one_class B]
-[complete_space B] [star_ring B] [cstar_ring B]
+[normed_ring A] [normed_algebra ℂ A] [complete_space A] [star_ring A] [cstar_ring A]
+[normed_ring B] [normed_algebra ℂ B] [complete_space B] [star_ring B] [cstar_ring B]
 [hF : star_alg_hom_class F ℂ A B] (φ : F)
 include hF
 
@@ -161,7 +160,7 @@ namespace weak_dual
 open continuous_map complex
 open_locale complex_star_module
 
-variables {F A : Type*} [normed_ring A] [normed_algebra ℂ A] [nontrivial A] [complete_space A]
+variables {F A : Type*} [normed_ring A] [normed_algebra ℂ A] [complete_space A]
   [star_ring A] [cstar_ring A] [star_module ℂ A] [hF : alg_hom_class F ℂ A ℂ]
 
 include hF

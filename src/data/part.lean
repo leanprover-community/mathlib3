@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Jeremy Avigad, Simon Hudon
 -/
 import data.set.basic
-import logic.equiv.basic
+import logic.equiv.defs
 
 /-!
 # Partial values of a type

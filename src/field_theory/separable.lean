@@ -486,7 +486,7 @@ variables (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F
   [algebra K E] [is_scalar_tower F K E]
 
 lemma is_separable_tower_top_of_is_separable [is_separable F E] : is_separable K E :=
-⟨λ x, is_integral_of_is_scalar_tower x (is_separable.is_integral F x),
+⟨λ x, is_integral_of_is_scalar_tower (is_separable.is_integral F x),
  λ x, (is_separable.separable F x).map.of_dvd (minpoly.dvd_map_of_is_scalar_tower _ _ _)⟩
 
 lemma is_separable_tower_bot_of_is_separable [h : is_separable F E] : is_separable F K :=

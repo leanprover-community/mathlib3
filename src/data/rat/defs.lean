@@ -3,9 +3,11 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import data.int.basic
-import data.nat.gcd
-import logic.encodable.basic
+import data.int.cast
+import data.int.div
+import data.nat.gcd.basic
+import data.pnat.basic
+import tactic.nth_rewrite
 
 /-!
 # Basics for the Rational Numbers
@@ -59,10 +61,6 @@ protected def repr : ℚ → string
 instance : has_repr ℚ := ⟨rat.repr⟩
 instance : has_to_string ℚ := ⟨rat.repr⟩
 meta instance : has_to_format ℚ := ⟨coe ∘ rat.repr⟩
-
-instance : encodable ℚ := encodable.of_equiv (Σ n : ℤ, {d : ℕ // 0 < d ∧ n.nat_abs.coprime d})
-  ⟨λ ⟨a, b, c, d⟩, ⟨a, b, c, d⟩, λ⟨a, b, c, d⟩, ⟨a, b, c, d⟩,
-   λ ⟨a, b, c, d⟩, rfl, λ⟨a, b, c, d⟩, rfl⟩
 
 /-- Embed an integer as a rational number -/
 def of_int (n : ℤ) : ℚ :=

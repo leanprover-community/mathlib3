@@ -99,6 +99,13 @@ by simpa [h] using m.Union s
   m (⋃ i, s i) = 0 ↔ ∀ i, m (s i) = 0 :=
 ⟨λ h i, m.mono_null (subset_Union _ _) h, m.Union_null⟩
 
+/-- A version of `Union_null_iff` for unions indexed by Props.
+TODO: in the long run it would be better to combine this with `Union_null_iff` by
+generalising to `Sort`. -/
+@[simp] lemma Union_null_iff' (m : outer_measure α) {ι : Prop} {s : ι → set α} :
+  m (⋃ i, s i) = 0 ↔ ∀ i, m (s i) = 0 :=
+by by_cases i : ι; simp [i]
+
 lemma bUnion_null_iff (m : outer_measure α) {s : set β} (hs : s.countable) {t : β → set α} :
   m (⋃ i ∈ s, t i) = 0 ↔ ∀ i ∈ s, m (t i) = 0 :=
 by { haveI := hs.to_encodable, rw [bUnion_eq_Union, Union_null_iff, set_coe.forall'] }

@@ -3,12 +3,8 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Manuel Candales
 -/
-import analysis.convex.between
 import analysis.inner_product_space.projection
-import analysis.special_functions.trigonometric.inverse
 import algebra.quadratic_discriminant
-import linear_algebra.affine_space.finite_dimensional
-import analysis.calculus.conformal.normed_space
 
 /-!
 # Euclidean spaces
@@ -21,12 +17,6 @@ inner product but not angles generally go in
 proofs or more geometrical content generally go in separate files.
 
 ## Main definitions
-
-* `inner_product_geometry.angle` is the undirected angle between two
-  vectors.
-
-* `euclidean_geometry.angle`, with notation `∠`, is the undirected
-  angle determined by three points.
 
 * `euclidean_geometry.orthogonal_projection` is the orthogonal
   projection of a point onto an affine subspace.
@@ -55,329 +45,7 @@ theorems that need it.
 noncomputable theory
 open_locale big_operators
 open_locale classical
-open_locale real
 open_locale real_inner_product_space
-
-namespace inner_product_geometry
-/-!
-### Geometrical results on real inner product spaces
-
-This section develops some geometrical definitions and results on real
-inner product spaces, where those definitions and results can most
-conveniently be developed in terms of vectors and then used to deduce
-corresponding results for Euclidean affine spaces.
--/
-
-variables {V : Type*} [inner_product_space ℝ V]
-
-/-- The undirected angle between two vectors. If either vector is 0,
-this is π/2. See `orientation.oangle` for the corresponding oriented angle
-definition. -/
-def angle (x y : V) : ℝ := real.arccos (inner x y / (∥x∥ * ∥y∥))
-
-lemma continuous_at_angle {x : V × V} (hx1 : x.1 ≠ 0) (hx2 : x.2 ≠ 0) :
-  continuous_at (λ y : V × V, angle y.1 y.2) x :=
-real.continuous_arccos.continuous_at.comp $ continuous_inner.continuous_at.div
-  ((continuous_norm.comp continuous_fst).mul (continuous_norm.comp continuous_snd)).continuous_at
-  (by simp [hx1, hx2])
-
-lemma angle_smul_smul {c : ℝ} (hc : c ≠ 0) (x y : V) :
-  angle (c • x) (c • y) = angle x y :=
-have c * c ≠ 0, from mul_ne_zero hc hc,
-by rw [angle, angle, real_inner_smul_left, inner_smul_right, norm_smul, norm_smul, real.norm_eq_abs,
-  mul_mul_mul_comm _ (∥x∥), abs_mul_abs_self, ← mul_assoc c c, mul_div_mul_left _ _ this]
-
-@[simp] lemma _root_.linear_isometry.angle_map {E F : Type*}
-  [inner_product_space ℝ E] [inner_product_space ℝ F] (f : E →ₗᵢ[ℝ] F) (u v : E) :
-  angle (f u) (f v) = angle u v :=
-by rw [angle, angle, f.inner_map_map, f.norm_map, f.norm_map]
-
-@[simp, norm_cast] lemma _root_.submodule.angle_coe {s : submodule ℝ V} (x y : s) :
-  angle (x : V) (y : V) = angle x y :=
-s.subtypeₗᵢ.angle_map x y
-
-lemma is_conformal_map.preserves_angle {E F : Type*}
-  [inner_product_space ℝ E] [inner_product_space ℝ F]
-  {f' : E →L[ℝ] F} (h : is_conformal_map f') (u v : E) :
-  angle (f' u) (f' v) = angle u v :=
-begin
-  obtain ⟨c, hc, li, rfl⟩ := h,
-  exact (angle_smul_smul hc _ _).trans (li.angle_map _ _)
-end
-
-/-- If a real differentiable map `f` is conformal at a point `x`,
-    then it preserves the angles at that point. -/
-lemma conformal_at.preserves_angle {E F : Type*}
-  [inner_product_space ℝ E] [inner_product_space ℝ F]
-  {f : E → F} {x : E} {f' : E →L[ℝ] F}
-  (h : has_fderiv_at f f' x) (H : conformal_at f x) (u v : E) :
-  angle (f' u) (f' v) = angle u v :=
-let ⟨f₁, h₁, c⟩ := H in h₁.unique h ▸ is_conformal_map.preserves_angle c u v
-
-/-- The cosine of the angle between two vectors. -/
-lemma cos_angle (x y : V) : real.cos (angle x y) = inner x y / (∥x∥ * ∥y∥) :=
-real.cos_arccos (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).1
-                (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).2
-
-/-- The angle between two vectors does not depend on their order. -/
-lemma angle_comm (x y : V) : angle x y = angle y x :=
-begin
-  unfold angle,
-  rw [real_inner_comm, mul_comm]
-end
-
-/-- The angle between the negation of two vectors. -/
-@[simp] lemma angle_neg_neg (x y : V) : angle (-x) (-y) = angle x y :=
-begin
-  unfold angle,
-  rw [inner_neg_neg, norm_neg, norm_neg]
-end
-
-/-- The angle between two vectors is nonnegative. -/
-lemma angle_nonneg (x y : V) : 0 ≤ angle x y :=
-real.arccos_nonneg _
-
-/-- The angle between two vectors is at most π. -/
-lemma angle_le_pi (x y : V) : angle x y ≤ π :=
-real.arccos_le_pi _
-
-/-- The angle between a vector and the negation of another vector. -/
-lemma angle_neg_right (x y : V) : angle x (-y) = π - angle x y :=
-begin
-  unfold angle,
-  rw [←real.arccos_neg, norm_neg, inner_neg_right, neg_div]
-end
-
-/-- The angle between the negation of a vector and another vector. -/
-lemma angle_neg_left (x y : V) : angle (-x) y = π - angle x y :=
-by rw [←angle_neg_neg, neg_neg, angle_neg_right]
-
-/-- The angle between the zero vector and a vector. -/
-@[simp] lemma angle_zero_left (x : V) : angle 0 x = π / 2 :=
-begin
-  unfold angle,
-  rw [inner_zero_left, zero_div, real.arccos_zero]
-end
-
-/-- The angle between a vector and the zero vector. -/
-@[simp] lemma angle_zero_right (x : V) : angle x 0 = π / 2 :=
-begin
-  unfold angle,
-  rw [inner_zero_right, zero_div, real.arccos_zero]
-end
-
-/-- The angle between a nonzero vector and itself. -/
-@[simp] lemma angle_self {x : V} (hx : x ≠ 0) : angle x x = 0 :=
-begin
-  unfold angle,
-  rw [←real_inner_self_eq_norm_mul_norm, div_self (λ h, hx (inner_self_eq_zero.1 h)),
-      real.arccos_one]
-end
-
-/-- The angle between a nonzero vector and its negation. -/
-@[simp] lemma angle_self_neg_of_nonzero {x : V} (hx : x ≠ 0) : angle x (-x) = π :=
-by rw [angle_neg_right, angle_self hx, sub_zero]
-
-/-- The angle between the negation of a nonzero vector and that
-vector. -/
-@[simp] lemma angle_neg_self_of_nonzero {x : V} (hx : x ≠ 0) : angle (-x) x = π :=
-by rw [angle_comm, angle_self_neg_of_nonzero hx]
-
-/-- The angle between a vector and a positive multiple of a vector. -/
-@[simp] lemma angle_smul_right_of_pos (x y : V) {r : ℝ} (hr : 0 < r) :
-  angle x (r • y) = angle x y :=
-begin
-  unfold angle,
-  rw [inner_smul_right, norm_smul, real.norm_eq_abs, abs_of_nonneg (le_of_lt hr), ←mul_assoc,
-      mul_comm _ r, mul_assoc, mul_div_mul_left _ _ (ne_of_gt hr)]
-end
-
-/-- The angle between a positive multiple of a vector and a vector. -/
-@[simp] lemma angle_smul_left_of_pos (x y : V) {r : ℝ} (hr : 0 < r) :
-  angle (r • x) y = angle x y :=
-by rw [angle_comm, angle_smul_right_of_pos y x hr, angle_comm]
-
-/-- The angle between a vector and a negative multiple of a vector. -/
-@[simp] lemma angle_smul_right_of_neg (x y : V) {r : ℝ} (hr : r < 0) :
-  angle x (r • y) = angle x (-y) :=
-by rw [←neg_neg r, neg_smul, angle_neg_right, angle_smul_right_of_pos x y (neg_pos_of_neg hr),
-       angle_neg_right]
-
-/-- The angle between a negative multiple of a vector and a vector. -/
-@[simp] lemma angle_smul_left_of_neg (x y : V) {r : ℝ} (hr : r < 0) :
-  angle (r • x) y = angle (-x) y :=
-by rw [angle_comm, angle_smul_right_of_neg y x hr, angle_comm]
-
-/-- The cosine of the angle between two vectors, multiplied by the
-product of their norms. -/
-lemma cos_angle_mul_norm_mul_norm (x y : V) : real.cos (angle x y) * (∥x∥ * ∥y∥) = inner x y :=
-begin
-  rw [cos_angle, div_mul_cancel_of_imp],
-  simp [or_imp_distrib] { contextual := tt },
-end
-
-/-- The sine of the angle between two vectors, multiplied by the
-product of their norms. -/
-lemma sin_angle_mul_norm_mul_norm (x y : V) : real.sin (angle x y) * (∥x∥ * ∥y∥) =
-    real.sqrt (inner x x * inner y y - inner x y * inner x y) :=
-begin
-  unfold angle,
-  rw [real.sin_arccos (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).1
-                      (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).2,
-      ←real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)),
-      ←real.sqrt_mul' _ (mul_self_nonneg _), sq,
-      real.sqrt_mul_self (mul_nonneg (norm_nonneg x) (norm_nonneg y)),
-      real_inner_self_eq_norm_mul_norm,
-      real_inner_self_eq_norm_mul_norm],
-  by_cases h : (∥x∥ * ∥y∥) = 0,
-  { rw [(show ∥x∥ * ∥x∥ * (∥y∥ * ∥y∥) = (∥x∥ * ∥y∥) * (∥x∥ * ∥y∥), by ring), h, mul_zero, mul_zero,
-        zero_sub],
-    cases eq_zero_or_eq_zero_of_mul_eq_zero h with hx hy,
-    { rw norm_eq_zero at hx,
-      rw [hx, inner_zero_left, zero_mul, neg_zero] },
-    { rw norm_eq_zero at hy,
-      rw [hy, inner_zero_right, zero_mul, neg_zero] } },
-  { field_simp [h], ring_nf }
-end
-
-/-- The angle between two vectors is zero if and only if they are
-nonzero and one is a positive multiple of the other. -/
-lemma angle_eq_zero_iff {x y : V} : angle x y = 0 ↔ (x ≠ 0 ∧ ∃ (r : ℝ), 0 < r ∧ y = r • x) :=
-begin
-  rw [angle, ← real_inner_div_norm_mul_norm_eq_one_iff, real.arccos_eq_zero, has_le.le.le_iff_eq,
-    eq_comm],
-  exact (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).2
-end
-
-/-- The angle between two vectors is π if and only if they are nonzero
-and one is a negative multiple of the other. -/
-lemma angle_eq_pi_iff {x y : V} : angle x y = π ↔ (x ≠ 0 ∧ ∃ (r : ℝ), r < 0 ∧ y = r • x) :=
-begin
-  rw [angle, ← real_inner_div_norm_mul_norm_eq_neg_one_iff, real.arccos_eq_pi, has_le.le.le_iff_eq],
-  exact (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x y)).1
-end
-
-/-- If the angle between two vectors is π, the angles between those
-vectors and a third vector add to π. -/
-lemma angle_add_angle_eq_pi_of_angle_eq_pi {x y : V} (z : V) (h : angle x y = π) :
-  angle x z + angle y z = π :=
-begin
-  rcases angle_eq_pi_iff.1 h with ⟨hx, ⟨r, ⟨hr, rfl⟩⟩⟩,
-  rw [angle_smul_left_of_neg x z hr, angle_neg_left, add_sub_cancel'_right]
-end
-
-/-- Two vectors have inner product 0 if and only if the angle between
-them is π/2. -/
-lemma inner_eq_zero_iff_angle_eq_pi_div_two (x y : V) : ⟪x, y⟫ = 0 ↔ angle x y = π / 2 :=
-iff.symm $ by simp [angle, or_imp_distrib] { contextual := tt }
-
-/-- If the angle between two vectors is π, the inner product equals the negative product
-of the norms. -/
-lemma inner_eq_neg_mul_norm_of_angle_eq_pi {x y : V} (h : angle x y = π) : ⟪x, y⟫ = - (∥x∥ * ∥y∥) :=
-by simp [← cos_angle_mul_norm_mul_norm, h]
-
-/-- If the angle between two vectors is 0, the inner product equals the product of the norms. -/
-lemma inner_eq_mul_norm_of_angle_eq_zero {x y : V} (h : angle x y = 0) : ⟪x, y⟫ = ∥x∥ * ∥y∥ :=
-by simp [← cos_angle_mul_norm_mul_norm, h]
-
-/-- The inner product of two non-zero vectors equals the negative product of their norms
-if and only if the angle between the two vectors is π. -/
-lemma inner_eq_neg_mul_norm_iff_angle_eq_pi {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
-  ⟪x, y⟫ = - (∥x∥ * ∥y∥) ↔ angle x y = π :=
-begin
-  refine ⟨λ h, _, inner_eq_neg_mul_norm_of_angle_eq_pi⟩,
-  have h₁ : (∥x∥ * ∥y∥) ≠ 0 := (mul_pos (norm_pos_iff.mpr hx) (norm_pos_iff.mpr hy)).ne',
-  rw [angle, h, neg_div, div_self h₁, real.arccos_neg_one],
-end
-
-/-- The inner product of two non-zero vectors equals the product of their norms
-if and only if the angle between the two vectors is 0. -/
-lemma inner_eq_mul_norm_iff_angle_eq_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
-  ⟪x, y⟫ = ∥x∥ * ∥y∥ ↔ angle x y = 0 :=
-begin
-  refine ⟨λ h, _, inner_eq_mul_norm_of_angle_eq_zero⟩,
-  have h₁ : (∥x∥ * ∥y∥) ≠ 0 := (mul_pos (norm_pos_iff.mpr hx) (norm_pos_iff.mpr hy)).ne',
-  rw [angle, h, div_self h₁, real.arccos_one],
-end
-
-/-- If the angle between two vectors is π, the norm of their difference equals
-the sum of their norms. -/
-lemma norm_sub_eq_add_norm_of_angle_eq_pi {x y : V} (h : angle x y = π) : ∥x - y∥ = ∥x∥ + ∥y∥ :=
-begin
-  rw ← sq_eq_sq (norm_nonneg (x - y)) (add_nonneg (norm_nonneg x) (norm_nonneg y)),
-  rw [norm_sub_pow_two_real, inner_eq_neg_mul_norm_of_angle_eq_pi h],
-  ring,
-end
-
-/-- If the angle between two vectors is 0, the norm of their sum equals
-the sum of their norms. -/
-lemma norm_add_eq_add_norm_of_angle_eq_zero {x y : V} (h : angle x y = 0) : ∥x + y∥ = ∥x∥ + ∥y∥ :=
-begin
-  rw ← sq_eq_sq (norm_nonneg (x + y)) (add_nonneg (norm_nonneg x) (norm_nonneg y)),
-  rw [norm_add_pow_two_real, inner_eq_mul_norm_of_angle_eq_zero h],
-  ring,
-end
-
-/-- If the angle between two vectors is 0, the norm of their difference equals
-the absolute value of the difference of their norms. -/
-lemma norm_sub_eq_abs_sub_norm_of_angle_eq_zero {x y : V} (h : angle x y = 0) :
-  ∥x - y∥ = |∥x∥ - ∥y∥| :=
-begin
-  rw [← sq_eq_sq (norm_nonneg (x - y)) (abs_nonneg (∥x∥ - ∥y∥)),
-      norm_sub_pow_two_real, inner_eq_mul_norm_of_angle_eq_zero h, sq_abs (∥x∥ - ∥y∥)],
-  ring,
-end
-
-/-- The norm of the difference of two non-zero vectors equals the sum of their norms
-if and only the angle between the two vectors is π. -/
-lemma norm_sub_eq_add_norm_iff_angle_eq_pi {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
-  ∥x - y∥ = ∥x∥ + ∥y∥ ↔ angle x y = π :=
-begin
-  refine ⟨λ h, _, norm_sub_eq_add_norm_of_angle_eq_pi⟩,
-  rw ← inner_eq_neg_mul_norm_iff_angle_eq_pi hx hy,
-  obtain ⟨hxy₁, hxy₂⟩ := ⟨norm_nonneg (x - y), add_nonneg (norm_nonneg x) (norm_nonneg y)⟩,
-  rw [← sq_eq_sq hxy₁ hxy₂, norm_sub_pow_two_real] at h,
-  calc inner x y = (∥x∥ ^ 2 + ∥y∥ ^ 2 - (∥x∥ + ∥y∥) ^ 2) / 2 : by linarith
-  ...            = -(∥x∥ * ∥y∥) : by ring,
-end
-
-/-- The norm of the sum of two non-zero vectors equals the sum of their norms
-if and only the angle between the two vectors is 0. -/
-lemma norm_add_eq_add_norm_iff_angle_eq_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
-  ∥x + y∥ = ∥x∥ + ∥y∥ ↔ angle x y = 0 :=
-begin
-  refine ⟨λ h, _, norm_add_eq_add_norm_of_angle_eq_zero⟩,
-  rw ← inner_eq_mul_norm_iff_angle_eq_zero hx hy,
-  obtain ⟨hxy₁, hxy₂⟩ := ⟨norm_nonneg (x + y), add_nonneg (norm_nonneg x) (norm_nonneg y)⟩,
-  rw [← sq_eq_sq hxy₁ hxy₂, norm_add_pow_two_real] at h,
-  calc inner x y = ((∥x∥ + ∥y∥) ^ 2 - ∥x∥ ^ 2 - ∥y∥ ^ 2)/ 2 : by linarith
-  ...            = ∥x∥ * ∥y∥ : by ring,
-end
-
-/-- The norm of the difference of two non-zero vectors equals the absolute value
-of the difference of their norms if and only the angle between the two vectors is 0. -/
-lemma norm_sub_eq_abs_sub_norm_iff_angle_eq_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
-  ∥x - y∥ = |∥x∥ - ∥y∥| ↔ angle x y = 0 :=
-begin
-  refine ⟨λ h, _, norm_sub_eq_abs_sub_norm_of_angle_eq_zero⟩,
-  rw ← inner_eq_mul_norm_iff_angle_eq_zero hx hy,
-  have h1 : ∥x - y∥ ^ 2 = (∥x∥ - ∥y∥) ^ 2, { rw h, exact sq_abs (∥x∥ - ∥y∥) },
-  rw norm_sub_pow_two_real at h1,
-  calc inner x y = ((∥x∥ + ∥y∥) ^ 2 - ∥x∥ ^ 2 - ∥y∥ ^ 2)/ 2 : by linarith
-  ...            = ∥x∥ * ∥y∥ : by ring,
-end
-
-/-- The norm of the sum of two vectors equals the norm of their difference if and only if
-the angle between them is π/2. -/
-lemma norm_add_eq_norm_sub_iff_angle_eq_pi_div_two (x y : V) :
-  ∥x + y∥ = ∥x - y∥ ↔ angle x y = π / 2 :=
-begin
-  rw [← sq_eq_sq (norm_nonneg (x + y)) (norm_nonneg (x - y)),
-      ← inner_eq_zero_iff_angle_eq_pi_div_two x y, norm_add_pow_two_real, norm_sub_pow_two_real],
-  split; intro h; linarith,
-end
-
-end inner_product_geometry
 
 namespace euclidean_geometry
 /-!
@@ -386,339 +54,22 @@ namespace euclidean_geometry
 This section develops some geometrical definitions and results on
 Euclidean affine spaces.
 -/
-open inner_product_geometry
 
 variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
-local notation `⟪`x`, `y`⟫` := @inner ℝ V _ x y
 include V
-
-/-- The undirected angle at `p2` between the line segments to `p1` and
-`p3`. If either of those points equals `p2`, this is π/2. Use
-`open_locale euclidean_geometry` to access the `∠ p1 p2 p3`
-notation. -/
-def angle (p1 p2 p3 : P) : ℝ := angle (p1 -ᵥ p2 : V) (p3 -ᵥ p2)
-
-localized "notation (name := angle) `∠` := euclidean_geometry.angle" in euclidean_geometry
-
-lemma continuous_at_angle {x : P × P × P} (hx12 : x.1 ≠ x.2.1) (hx32 : x.2.2 ≠ x.2.1) :
-  continuous_at (λ y : P × P × P, ∠ y.1 y.2.1 y.2.2) x :=
-begin
-  let f : P × P × P → V × V := λ y, (y.1 -ᵥ y.2.1, y.2.2 -ᵥ y.2.1),
-  have hf1 : (f x).1 ≠ 0, by simp [hx12],
-  have hf2 : (f x).2 ≠ 0, by simp [hx32],
-  exact (inner_product_geometry.continuous_at_angle hf1 hf2).comp
-    ((continuous_fst.vsub continuous_snd.fst).prod_mk
-      (continuous_snd.snd.vsub continuous_snd.fst)).continuous_at
-end
-
-@[simp] lemma _root_.affine_isometry.angle_map {V₂ P₂ : Type*} [inner_product_space ℝ V₂]
-  [metric_space P₂] [normed_add_torsor V₂ P₂] (f : P →ᵃⁱ[ℝ] P₂) (p₁ p₂ p₃ : P) :
-  ∠ (f p₁) (f p₂) (f p₃) = ∠ p₁ p₂ p₃ :=
-by simp_rw [angle, ←affine_isometry.map_vsub, linear_isometry.angle_map]
-
-@[simp, norm_cast] lemma _root_.affine_subspace.angle_coe {s : affine_subspace ℝ P}
-  (p₁ p₂ p₃ : s) :
-  by haveI : nonempty s := ⟨p₁⟩; exact ∠ (p₁ : P) (p₂ : P) (p₃ : P) = ∠ p₁ p₂ p₃ :=
-by haveI : nonempty s := ⟨p₁⟩; exact s.subtypeₐᵢ.angle_map p₁ p₂ p₃
-
-/-- The angle at a point does not depend on the order of the other two
-points. -/
-lemma angle_comm (p1 p2 p3 : P) : ∠ p1 p2 p3 = ∠ p3 p2 p1 :=
-angle_comm _ _
-
-/-- The angle at a point is nonnegative. -/
-lemma angle_nonneg (p1 p2 p3 : P) : 0 ≤ ∠ p1 p2 p3 :=
-angle_nonneg _ _
-
-/-- The angle at a point is at most π. -/
-lemma angle_le_pi (p1 p2 p3 : P) : ∠ p1 p2 p3 ≤ π :=
-angle_le_pi _ _
-
-/-- The angle ∠AAB at a point. -/
-lemma angle_eq_left (p1 p2 : P) : ∠ p1 p1 p2 = π / 2 :=
-begin
-  unfold angle,
-  rw vsub_self,
-  exact angle_zero_left _
-end
-
-/-- The angle ∠ABB at a point. -/
-lemma angle_eq_right (p1 p2 : P) : ∠ p1 p2 p2 = π / 2 :=
-by rw [angle_comm, angle_eq_left]
-
-/-- The angle ∠ABA at a point. -/
-lemma angle_eq_of_ne {p1 p2 : P} (h : p1 ≠ p2) : ∠ p1 p2 p1 = 0 :=
-angle_self (λ he, h (vsub_eq_zero_iff_eq.1 he))
-
-/-- If the angle ∠ABC at a point is π, the angle ∠BAC is 0. -/
-lemma angle_eq_zero_of_angle_eq_pi_left {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = π) :
-  ∠ p2 p1 p3 = 0 :=
-begin
-  unfold angle at h,
-  rw angle_eq_pi_iff at h,
-  rcases h with ⟨hp1p2, ⟨r, ⟨hr, hpr⟩⟩⟩,
-  unfold angle,
-  rw angle_eq_zero_iff,
-  rw [←neg_vsub_eq_vsub_rev, neg_ne_zero] at hp1p2,
-  use [hp1p2, -r + 1, add_pos (neg_pos_of_neg hr) zero_lt_one],
-  rw [add_smul, ←neg_vsub_eq_vsub_rev p1 p2, smul_neg],
-  simp [←hpr]
-end
-
-/-- If the angle ∠ABC at a point is π, the angle ∠BCA is 0. -/
-lemma angle_eq_zero_of_angle_eq_pi_right {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = π) :
-  ∠ p2 p3 p1 = 0 :=
-begin
-  rw angle_comm at h,
-  exact angle_eq_zero_of_angle_eq_pi_left h
-end
-
-/-- If ∠BCD = π, then ∠ABC = ∠ABD. -/
-lemma angle_eq_angle_of_angle_eq_pi (p1 : P) {p2 p3 p4 : P} (h : ∠ p2 p3 p4 = π) :
-  ∠ p1 p2 p3 = ∠ p1 p2 p4 :=
-begin
-  unfold angle at *,
-  rcases angle_eq_pi_iff.1 h with ⟨hp2p3, ⟨r, ⟨hr, hpr⟩⟩⟩,
-  rw [eq_comm],
-  convert angle_smul_right_of_pos (p1 -ᵥ p2) (p3 -ᵥ p2) (add_pos (neg_pos_of_neg hr) zero_lt_one),
-  rw [add_smul, ← neg_vsub_eq_vsub_rev p2 p3, smul_neg, neg_smul, ← hpr],
-  simp
-end
-
-/-- If ∠BCD = π, then ∠ACB + ∠ACD = π. -/
-lemma angle_add_angle_eq_pi_of_angle_eq_pi (p1 : P) {p2 p3 p4 : P} (h : ∠ p2 p3 p4 = π) :
-  ∠ p1 p3 p2 + ∠ p1 p3 p4 = π :=
-begin
-  unfold angle at h,
-  rw [angle_comm p1 p3 p2, angle_comm p1 p3 p4],
-  unfold angle,
-  exact angle_add_angle_eq_pi_of_angle_eq_pi _ h
-end
-
-/-- Vertical Angles Theorem: angles opposite each other, formed by two intersecting straight
-lines, are equal. -/
-lemma angle_eq_angle_of_angle_eq_pi_of_angle_eq_pi {p1 p2 p3 p4 p5 : P}
-  (hapc : ∠ p1 p5 p3 = π) (hbpd : ∠ p2 p5 p4 = π) : ∠ p1 p5 p2 = ∠ p3 p5 p4 :=
-by linarith [angle_add_angle_eq_pi_of_angle_eq_pi p1 hbpd, angle_comm p4 p5 p1,
-             angle_add_angle_eq_pi_of_angle_eq_pi p4 hapc, angle_comm p4 p5 p3]
-
-/-- If ∠ABC = π then dist A B ≠ 0. -/
-lemma left_dist_ne_zero_of_angle_eq_pi {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = π) : dist p1 p2 ≠ 0 :=
-begin
-  by_contra heq,
-  rw [dist_eq_zero] at heq,
-  rw [heq, angle_eq_left] at h,
-  exact real.pi_ne_zero (by linarith),
-end
-
-/-- If ∠ABC = π then dist C B ≠ 0. -/
-lemma right_dist_ne_zero_of_angle_eq_pi {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = π) : dist p3 p2 ≠ 0 :=
-left_dist_ne_zero_of_angle_eq_pi $ (angle_comm _ _ _).trans h
-
-/-- If ∠ABC = π, then (dist A C) = (dist A B) + (dist B C). -/
-lemma dist_eq_add_dist_of_angle_eq_pi {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = π) :
-  dist p1 p3 = dist p1 p2 + dist p3 p2 :=
-begin
-  rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, dist_eq_norm_vsub V, ← vsub_sub_vsub_cancel_right],
-  exact norm_sub_eq_add_norm_of_angle_eq_pi h,
-end
-
-/-- If A ≠ B and C ≠ B then ∠ABC = π if and only if (dist A C) = (dist A B) + (dist B C). -/
-lemma dist_eq_add_dist_iff_angle_eq_pi {p1 p2 p3 : P} (hp1p2 : p1 ≠ p2) (hp3p2 : p3 ≠ p2) :
-  dist p1 p3 = dist p1 p2 + dist p3 p2 ↔ ∠ p1 p2 p3 = π :=
-begin
-  rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, dist_eq_norm_vsub V, ← vsub_sub_vsub_cancel_right],
-  exact norm_sub_eq_add_norm_iff_angle_eq_pi
-    ((λ he, hp1p2 (vsub_eq_zero_iff_eq.1 he))) (λ he, hp3p2 (vsub_eq_zero_iff_eq.1 he)),
-end
-
-/-- If ∠ABC = 0, then (dist A C) = abs ((dist A B) - (dist B C)). -/
-lemma dist_eq_abs_sub_dist_of_angle_eq_zero {p1 p2 p3 : P} (h : ∠ p1 p2 p3 = 0) :
-  (dist p1 p3) = |(dist p1 p2) - (dist p3 p2)| :=
-begin
-  rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, dist_eq_norm_vsub V, ← vsub_sub_vsub_cancel_right],
-  exact norm_sub_eq_abs_sub_norm_of_angle_eq_zero h,
-end
-
-/-- If A ≠ B and C ≠ B then ∠ABC = 0 if and only if (dist A C) = abs ((dist A B) - (dist B C)). -/
-lemma dist_eq_abs_sub_dist_iff_angle_eq_zero {p1 p2 p3 : P} (hp1p2 : p1 ≠ p2) (hp3p2 : p3 ≠ p2) :
-  (dist p1 p3) = |(dist p1 p2) - (dist p3 p2)| ↔ ∠ p1 p2 p3 = 0 :=
-begin
-  rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, dist_eq_norm_vsub V, ← vsub_sub_vsub_cancel_right],
-  exact norm_sub_eq_abs_sub_norm_iff_angle_eq_zero
-    ((λ he, hp1p2 (vsub_eq_zero_iff_eq.1 he))) (λ he, hp3p2 (vsub_eq_zero_iff_eq.1 he)),
-end
 
 /-- The midpoint of the segment AB is the same distance from A as it is from B. -/
 lemma dist_left_midpoint_eq_dist_right_midpoint (p1 p2 : P) :
   dist p1 (midpoint ℝ p1 p2) = dist p2 (midpoint ℝ p1 p2) :=
 by rw [dist_left_midpoint p1 p2, dist_right_midpoint p1 p2]
 
-/-- If M is the midpoint of the segment AB, then ∠AMB = π. -/
-lemma angle_midpoint_eq_pi (p1 p2 : P) (hp1p2 : p1 ≠ p2) : ∠ p1 (midpoint ℝ p1 p2) p2 = π :=
-have p2 -ᵥ midpoint ℝ p1 p2 = -(p1 -ᵥ midpoint ℝ p1 p2), by { rw neg_vsub_eq_vsub_rev, simp },
-by simp [angle, this, hp1p2, -zero_lt_one]
-
-/-- If M is the midpoint of the segment AB and C is the same distance from A as it is from B
-then ∠CMA = π / 2. -/
-lemma angle_left_midpoint_eq_pi_div_two_of_dist_eq {p1 p2 p3 : P} (h : dist p3 p1 = dist p3 p2) :
-  ∠ p3 (midpoint ℝ p1 p2) p1 = π / 2 :=
-begin
-  let m : P := midpoint ℝ p1 p2,
-  have h1 : p3 -ᵥ p1 = (p3 -ᵥ m) - (p1 -ᵥ m) := (vsub_sub_vsub_cancel_right p3 p1 m).symm,
-  have h2 : p3 -ᵥ p2 = (p3 -ᵥ m) + (p1 -ᵥ m),
-  { rw [left_vsub_midpoint, ← midpoint_vsub_right, vsub_add_vsub_cancel] },
-  rw [dist_eq_norm_vsub V p3 p1, dist_eq_norm_vsub V p3 p2, h1, h2] at h,
-  exact (norm_add_eq_norm_sub_iff_angle_eq_pi_div_two (p3 -ᵥ m) (p1 -ᵥ m)).mp h.symm,
-end
-
-/-- If M is the midpoint of the segment AB and C is the same distance from A as it is from B
-then ∠CMB = π / 2. -/
-lemma angle_right_midpoint_eq_pi_div_two_of_dist_eq {p1 p2 p3 : P} (h : dist p3 p1 = dist p3 p2) :
-  ∠ p3 (midpoint ℝ p1 p2) p2 = π / 2 :=
-by rw [midpoint_comm p1 p2, angle_left_midpoint_eq_pi_div_two_of_dist_eq h.symm]
-
-/-- If the second of three points is strictly between the other two, the angle at that point
-is π. -/
-lemma _root_.sbtw.angle₁₂₃_eq_pi {p₁ p₂ p₃ : P} (h : sbtw ℝ p₁ p₂ p₃) : ∠ p₁ p₂ p₃ = π :=
-begin
-  rw [angle, angle_eq_pi_iff],
-  rcases h with ⟨⟨r, ⟨hr0, hr1⟩, hp₂⟩, hp₂p₁, hp₂p₃⟩,
-  refine ⟨vsub_ne_zero.2 hp₂p₁.symm, -(1 - r) / r, _⟩,
-  have hr0' : r ≠ 0,
-  { rintro rfl,
-    rw ←hp₂ at hp₂p₁,
-    simpa using hp₂p₁ },
-  have hr1' : r ≠ 1,
-  { rintro rfl,
-    rw ←hp₂ at hp₂p₃,
-    simpa using hp₂p₃ },
-  replace hr0 := hr0.lt_of_ne hr0'.symm,
-  replace hr1 := hr1.lt_of_ne hr1',
-  refine ⟨div_neg_of_neg_of_pos (left.neg_neg_iff.2 (sub_pos.2 hr1)) hr0, _⟩,
-  rw [←hp₂, affine_map.line_map_apply, vsub_vadd_eq_vsub_sub, vsub_vadd_eq_vsub_sub, vsub_self,
-      zero_sub, smul_neg, smul_smul, div_mul_cancel _ hr0', neg_smul, neg_neg, sub_eq_iff_eq_add,
-      ←add_smul, sub_add_cancel, one_smul]
-end
-
-/-- If the second of three points is strictly between the other two, the angle at that point
-(reversed) is π. -/
-lemma _root_.sbtw.angle₃₂₁_eq_pi {p₁ p₂ p₃ : P} (h : sbtw ℝ p₁ p₂ p₃) : ∠ p₃ p₂ p₁ = π :=
-by rw [←h.angle₁₂₃_eq_pi, angle_comm]
-
-/-- The angle between three points is π if and only if the second point is strictly between the
-other two. -/
-lemma angle_eq_pi_iff_sbtw {p₁ p₂ p₃ : P} : ∠ p₁ p₂ p₃ = π ↔ sbtw ℝ p₁ p₂ p₃ :=
-begin
-  refine ⟨_, λ h, h.angle₁₂₃_eq_pi⟩,
-  rw [angle, angle_eq_pi_iff],
-  rintro ⟨hp₁p₂, r, hr, hp₃p₂⟩,
-  refine ⟨⟨1 / (1 - r),
-           ⟨div_nonneg zero_le_one (sub_nonneg.2 (hr.le.trans zero_le_one)),
-            (div_le_one (sub_pos.2 (hr.trans zero_lt_one))).2 ((le_sub_self_iff 1).2 hr.le)⟩, _⟩,
-          (vsub_ne_zero.1 hp₁p₂).symm, _⟩,
-  { rw ←eq_vadd_iff_vsub_eq at hp₃p₂,
-    rw [affine_map.line_map_apply, hp₃p₂, vadd_vsub_assoc, ←neg_vsub_eq_vsub_rev p₂ p₁,
-        smul_neg, ←neg_smul, smul_add, smul_smul, ←add_smul, eq_comm, eq_vadd_iff_vsub_eq],
-    convert (one_smul ℝ (p₂ -ᵥ p₁)).symm,
-    field_simp [(sub_pos.2 (hr.trans zero_lt_one)).ne.symm],
-    abel },
-  { rw [ne_comm, ←@vsub_ne_zero V, hp₃p₂, smul_ne_zero_iff],
-    exact ⟨hr.ne, hp₁p₂⟩ }
-end
-
-/-- If the second of three points is weakly between the other two, and not equal to the first,
-the angle at the first point is zero. -/
-lemma _root_.wbtw.angle₂₁₃_eq_zero_of_ne {p₁ p₂ p₃ : P} (h : wbtw ℝ p₁ p₂ p₃) (hp₂p₁ : p₂ ≠ p₁) :
-  ∠ p₂ p₁ p₃ = 0 :=
-begin
-  rw [angle, angle_eq_zero_iff],
-  rcases h with ⟨r, ⟨hr0, hr1⟩, rfl⟩,
-  have hr0' : r ≠ 0, { rintro rfl, simpa using hp₂p₁ },
-  replace hr0 := hr0.lt_of_ne hr0'.symm,
-  refine ⟨vsub_ne_zero.2 hp₂p₁, r⁻¹, inv_pos.2 hr0, _⟩,
-  rw [affine_map.line_map_apply, vadd_vsub_assoc, vsub_self, add_zero, smul_smul,
-      inv_mul_cancel hr0', one_smul]
-end
-
-/-- If the second of three points is strictly between the other two, the angle at the first point
-is zero. -/
-lemma _root_.sbtw.angle₂₁₃_eq_zero {p₁ p₂ p₃ : P} (h : sbtw ℝ p₁ p₂ p₃) : ∠ p₂ p₁ p₃ = 0 :=
-h.wbtw.angle₂₁₃_eq_zero_of_ne h.ne_left
-
-/-- If the second of three points is weakly between the other two, and not equal to the first,
-the angle at the first point (reversed) is zero. -/
-lemma _root_.wbtw.angle₃₁₂_eq_zero_of_ne {p₁ p₂ p₃ : P} (h : wbtw ℝ p₁ p₂ p₃) (hp₂p₁ : p₂ ≠ p₁) :
-  ∠ p₃ p₁ p₂ = 0 :=
-by rw [←h.angle₂₁₃_eq_zero_of_ne hp₂p₁, angle_comm]
-
-/-- If the second of three points is strictly between the other two, the angle at the first point
-(reversed) is zero. -/
-lemma _root_.sbtw.angle₃₁₂_eq_zero {p₁ p₂ p₃ : P} (h : sbtw ℝ p₁ p₂ p₃) : ∠ p₃ p₁ p₂ = 0 :=
-h.wbtw.angle₃₁₂_eq_zero_of_ne h.ne_left
-
-/-- If the second of three points is weakly between the other two, and not equal to the third,
-the angle at the third point is zero. -/
-lemma _root_.wbtw.angle₂₃₁_eq_zero_of_ne {p₁ p₂ p₃ : P} (h : wbtw ℝ p₁ p₂ p₃) (hp₂p₃ : p₂ ≠ p₃) :
-  ∠ p₂ p₃ p₁ = 0 :=
-h.symm.angle₂₁₃_eq_zero_of_ne hp₂p₃
-
-/-- If the second of three points is strictly between the other two, the angle at the third point
-is zero. -/
-lemma _root_.sbtw.angle₂₃₁_eq_zero {p₁ p₂ p₃ : P} (h : sbtw ℝ p₁ p₂ p₃) : ∠ p₂ p₃ p₁ = 0 :=
-h.wbtw.angle₂₃₁_eq_zero_of_ne h.ne_right
-
-/-- If the second of three points is weakly between the other two, and not equal to the third,
-the angle at the third point (reversed) is zero. -/
-lemma _root_.wbtw.angle₁₃₂_eq_zero_of_ne {p₁ p₂ p₃ : P} (h : wbtw ℝ p₁ p₂ p₃) (hp₂p₃ : p₂ ≠ p₃) :
-  ∠ p₁ p₃ p₂ = 0 :=
-h.symm.angle₃₁₂_eq_zero_of_ne hp₂p₃
-
-/-- If the second of three points is strictly between the other two, the angle at the third point
-(reversed) is zero. -/
-lemma _root_.sbtw.angle₁₃₂_eq_zero {p₁ p₂ p₃ : P} (h : sbtw ℝ p₁ p₂ p₃) : ∠ p₁ p₃ p₂ = 0 :=
-h.wbtw.angle₁₃₂_eq_zero_of_ne h.ne_right
-
-/-- The angle between three points is zero if and only if one of the first and third points is
-weakly between the other two, and not equal to the second. -/
-lemma angle_eq_zero_iff_ne_and_wbtw {p₁ p₂ p₃ : P} :
-  ∠ p₁ p₂ p₃ = 0 ↔ (p₁ ≠ p₂ ∧ wbtw ℝ p₂ p₁ p₃) ∨ (p₃ ≠ p₂ ∧ wbtw ℝ p₂ p₃ p₁) :=
-begin
-  split,
-  { rw [angle, angle_eq_zero_iff],
-    rintro ⟨hp₁p₂, r, hr0, hp₃p₂⟩,
-    rcases le_or_lt 1 r with hr1 | hr1,
-    { refine or.inl ⟨vsub_ne_zero.1 hp₁p₂, r⁻¹, ⟨(inv_pos.2 hr0).le, inv_le_one hr1⟩, _⟩,
-      rw [affine_map.line_map_apply, hp₃p₂, smul_smul, inv_mul_cancel hr0.ne.symm, one_smul,
-          vsub_vadd] },
-    { refine or.inr ⟨_, r, ⟨hr0.le, hr1.le⟩, _⟩,
-      { rw [←@vsub_ne_zero V, hp₃p₂, smul_ne_zero_iff],
-        exact ⟨hr0.ne.symm, hp₁p₂⟩ },
-      { rw [affine_map.line_map_apply, ←hp₃p₂, vsub_vadd] } } },
-  { rintro (⟨hp₁p₂, h⟩ | ⟨hp₃p₂, h⟩),
-    { exact h.angle₂₁₃_eq_zero_of_ne hp₁p₂ },
-    { exact h.angle₃₁₂_eq_zero_of_ne hp₃p₂ } }
-end
-
-/-- The angle between three points is zero if and only if one of the first and third points is
-strictly between the other two, or those two points are equal but not equal to the second. -/
-lemma angle_eq_zero_iff_eq_and_ne_or_sbtw {p₁ p₂ p₃ : P} :
-  ∠ p₁ p₂ p₃ = 0 ↔ (p₁ = p₃ ∧ p₁ ≠ p₂) ∨ sbtw ℝ p₂ p₁ p₃ ∨ sbtw ℝ p₂ p₃ p₁ :=
-begin
-  rw angle_eq_zero_iff_ne_and_wbtw,
-  by_cases hp₁p₂ : p₁ = p₂, { simp [hp₁p₂] },
-  by_cases hp₁p₃ : p₁ = p₃, { simp [hp₁p₃] },
-  by_cases hp₃p₂ : p₃ = p₂, { simp [hp₃p₂] },
-  simp [hp₁p₂, hp₁p₃, ne.symm hp₁p₃, sbtw, hp₃p₂]
-end
-
 /-- The inner product of two vectors given with `weighted_vsub`, in
 terms of the pairwise distances. -/
 lemma inner_weighted_vsub {ι₁ : Type*} {s₁ : finset ι₁} {w₁ : ι₁ → ℝ} (p₁ : ι₁ → P)
     (h₁ : ∑ i in s₁, w₁ i = 0) {ι₂ : Type*} {s₂ : finset ι₂} {w₂ : ι₂ → ℝ} (p₂ : ι₂ → P)
     (h₂ : ∑ i in s₂, w₂ i = 0) :
-  inner (s₁.weighted_vsub p₁ w₁) (s₂.weighted_vsub p₂ w₂) =
+  ⟪s₁.weighted_vsub p₁ w₁, s₂.weighted_vsub p₂ w₂⟫ =
     (-∑ i₁ in s₁, ∑ i₂ in s₂,
       w₁ i₁ * w₂ i₂ * (dist (p₁ i₁) (p₂ i₂) * dist (p₁ i₁) (p₂ i₂))) / 2 :=
 begin
@@ -786,7 +137,7 @@ begin
                  ←real_inner_self_eq_norm_mul_norm, sub_self] },
   have hvi : ⟪v, v⟫ ≠ 0, by simpa using hv,
   have hd : discrim ⟪v, v⟫ (2 * ⟪v, p₁ -ᵥ p₂⟫) 0 =
-    (2 * inner v (p₁ -ᵥ p₂)) * (2 * inner v (p₁ -ᵥ p₂)),
+    (2 * ⟪v, p₁ -ᵥ p₂⟫) * (2 * ⟪v, p₁ -ᵥ p₂⟫),
   { rw discrim, ring },
   rw [quadratic_eq_zero_iff hvi hd, add_left_neg, zero_div, neg_mul_eq_neg_mul,
       ←mul_sub_right_distrib, sub_eq_add_neg, ←mul_two, mul_assoc, mul_div_assoc,
@@ -1405,7 +756,7 @@ lemma sphere.cospherical (s : sphere P) : cospherical (s : set P) :=
 cospherical_iff_exists_sphere.2 ⟨s, set.subset.rfl⟩
 
 /-- A subset of a cospherical set is cospherical. -/
-lemma cospherical_subset {ps₁ ps₂ : set P} (hs : ps₁ ⊆ ps₂) (hc : cospherical ps₂) :
+lemma cospherical.subset {ps₁ ps₂ : set P} (hs : ps₁ ⊆ ps₂) (hc : cospherical ps₂) :
   cospherical ps₁ :=
 begin
   rcases hc with ⟨c, r, hcr⟩,
@@ -1517,5 +868,27 @@ lemma eq_of_mem_sphere_of_mem_sphere_of_finrank_eq_two [finite_dimensional ℝ V
   (hps₂ : p ∈ s₂) : p = p₁ ∨ p = p₂ :=
 eq_of_dist_eq_of_dist_eq_of_finrank_eq_two hd ((sphere.center_ne_iff_ne_of_mem hps₁ hps₂).2 hs)
   hp hp₁s₁ hp₂s₁ hps₁ hp₁s₂ hp₂s₂ hps₂
+
+/-- A set of points is concyclic if it is cospherical and coplanar. (Most results are stated
+directly in terms of `cospherical` instead of using `concyclic`.) -/
+structure concyclic (ps : set P) : Prop :=
+(cospherical : cospherical ps)
+(coplanar : coplanar ℝ ps)
+
+/-- A subset of a concyclic set is concyclic. -/
+lemma concyclic.subset {ps₁ ps₂ : set P} (hs : ps₁ ⊆ ps₂) (h : concyclic ps₂) : concyclic ps₁ :=
+⟨h.1.subset hs, h.2.subset hs⟩
+
+/-- The empty set is concyclic. -/
+lemma concyclic_empty : concyclic (∅ : set P) :=
+⟨cospherical_empty, coplanar_empty ℝ P⟩
+
+/-- A single point is concyclic. -/
+lemma concyclic_singleton (p : P) : concyclic ({p} : set P) :=
+⟨cospherical_singleton p, coplanar_singleton ℝ p⟩
+
+/-- Two points are concyclic. -/
+lemma concyclic_pair (p₁ p₂ : P) : concyclic ({p₁, p₂} : set P) :=
+⟨cospherical_pair p₁ p₂, coplanar_pair ℝ p₁ p₂⟩
 
 end euclidean_geometry

@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import data.rat.order
 import data.int.char_zero
 import algebra.field.opposite
+import algebra.big_operators.basic
 
 /-!
 # Casts for Rational Numbers

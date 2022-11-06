@@ -3,7 +3,6 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
-import algebra.hom.ring
 import data.rat.defs
 
 /-!
@@ -97,14 +96,6 @@ class division_ring (K : Type u) extends ring K, div_inv_monoid K, nontrivial K,
 @[priority 100] -- see Note [lower instance priority]
 instance division_ring.to_division_semiring [division_ring α] : division_semiring α :=
 { ..‹division_ring α›, ..(infer_instance : semiring α) }
-
-section division_ring
-variables [division_ring α]
-
-@[simp] lemma zpow_bit1_neg (x : α) (n : ℤ) : (-x) ^ bit1 n = - x ^ bit1 n :=
-by rw [zpow_bit1', zpow_bit1', neg_mul_neg, neg_mul_eq_mul_neg]
-
-end division_ring
 
 /-- A `semifield` is a `comm_semiring` with multiplicative inverses for nonzero elements. -/
 @[protect_proj, ancestor comm_semiring division_semiring comm_group_with_zero]

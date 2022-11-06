@@ -1582,7 +1582,7 @@ variables {l : filter β} {f g : β → α}
 lemma nhds_eq_infi_abs_sub (a : α) : 𝓝 a = (⨅r>0, 𝓟 {b | |a - b| < r}) :=
 begin
   simp only [le_antisymm_iff, nhds_eq_order, le_inf_iff, le_infi_iff, le_principal_iff, mem_Ioi,
-    mem_Iio, abs_sub_lt_iff, @sub_lt_iff_lt_add _ _ _ _ _ _ a, @sub_lt _ _ _ _ a, set_of_and],
+    mem_Iio, abs_sub_lt_iff, @sub_lt_iff_lt_add _ _ _ _ _ _ a, @sub_lt_comm _ _ _ _ a, set_of_and],
   refine ⟨_, _, _⟩,
   { intros ε ε0,
     exact inter_mem_inf
@@ -1663,7 +1663,7 @@ lemma nhds_basis_Ioo_pos [no_min_order α] [no_max_order α] (a : α) :
     refine ⟨min (a-l) (u-a), by apply lt_min; rwa sub_pos, _⟩,
     rintros x ⟨hx, hx'⟩,
     apply h',
-    rw [sub_lt, lt_min_iff, sub_lt_sub_iff_left] at hx,
+    rw [sub_lt_comm, lt_min_iff, sub_lt_sub_iff_left] at hx,
     rw [← sub_lt_iff_lt_add', lt_min_iff, sub_lt_sub_iff_right] at hx',
     exact ⟨hx.1, hx'.2⟩ },
   { rintros ⟨ε, ε_pos, h⟩,
@@ -2033,11 +2033,11 @@ instance linear_ordered_field.to_topological_division_ring : topological_divisio
     rintros ε ⟨hε : ε > 0, hεt : ε ≤ t⁻¹⟩,
     refine ⟨min (t ^ 2 * ε / 2) (t / 2), by positivity, λ x h, _⟩,
     have hx : t / 2 < x,
-    { rw [set.mem_Ioo, sub_lt, lt_min_iff] at h,
+    { rw [set.mem_Ioo, sub_lt_comm, lt_min_iff] at h,
       nlinarith },
     have hx' : 0 < x := (half_pos ht).trans hx,
     have aux : 0 < 2 / t ^ 2 := by positivity,
-    rw [set.mem_Ioo, ←sub_lt_iff_lt_add', sub_lt, ←abs_sub_lt_iff] at h ⊢,
+    rw [set.mem_Ioo, ←sub_lt_iff_lt_add', sub_lt_comm, ←abs_sub_lt_iff] at h ⊢,
     rw [inv_sub_inv ht.ne' hx'.ne', abs_div, div_eq_mul_inv],
     suffices : |t * x|⁻¹ < 2 / t ^ 2,
     { rw [←abs_neg, neg_sub],
@@ -2278,6 +2278,12 @@ begin
   exact ⟨u, hu_mono, λ n, (hu_mem n).2, hux⟩
 end
 
+lemma exists_seq_strict_mono_tendsto_nhds_within [densely_ordered α] [no_min_order α]
+  [first_countable_topology α] (x : α) :
+  ∃ u : ℕ → α, strict_mono u ∧ (∀ n, u n < x) ∧ tendsto u at_top (𝓝[<] x) :=
+let ⟨u, hu, hx, h⟩ := exists_seq_strict_mono_tendsto x in ⟨u, hu, hx,
+  tendsto_nhds_within_mono_right (range_subset_iff.2 hx) $ tendsto_nhds_within_range.2 h⟩
+
 lemma exists_seq_tendsto_Sup {α : Type*} [conditionally_complete_linear_order α]
   [topological_space α] [order_topology α] [first_countable_topology α]
   {S : set α} (hS : S.nonempty) (hS' : bdd_above S) :
@@ -2308,6 +2314,11 @@ lemma exists_seq_strict_anti_tendsto [densely_ordered α] [no_max_order α]
   [first_countable_topology α] (x : α) :
   ∃ u : ℕ → α, strict_anti u ∧ (∀ n, x < u n) ∧ tendsto u at_top (𝓝 x) :=
 @exists_seq_strict_mono_tendsto αᵒᵈ _ _ _ _ _ _ x
+
+lemma exists_seq_strict_anti_tendsto_nhds_within [densely_ordered α] [no_max_order α]
+  [first_countable_topology α] (x : α) :
+  ∃ u : ℕ → α, strict_anti u ∧ (∀ n, x < u n) ∧ tendsto u at_top (𝓝[>] x) :=
+@exists_seq_strict_mono_tendsto_nhds_within αᵒᵈ _ _ _ _ _ _ _
 
 lemma exists_seq_strict_anti_strict_mono_tendsto [densely_ordered α] [first_countable_topology α]
   {x y : α} (h : x < y) :

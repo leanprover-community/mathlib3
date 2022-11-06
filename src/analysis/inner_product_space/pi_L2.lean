@@ -70,7 +70,8 @@ we use instead `pi_Lp 2 f` for the product space, which is endowed with the `L^2
 -/
 instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   [Π i, inner_product_space 𝕜 (f i)] : inner_product_space 𝕜 (pi_Lp 2 f) :=
-{ inner := λ x y, ∑ i, inner (x i) (y i),
+{ to_normed_add_comm_group := infer_instance,
+  inner := λ x y, ∑ i, inner (x i) (y i),
   norm_sq_eq_inner := λ x,
     by simp only [pi_Lp.norm_sq_eq_of_L2, add_monoid_hom.map_sum, ← norm_sq_eq_inner, one_div],
   conj_sym :=

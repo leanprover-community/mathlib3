@@ -22,7 +22,7 @@ This file defines notions of a point in an affine space being between two given 
 
 variables (R : Type*) {V V' P P' : Type*}
 
-open affine_map
+open affine_equiv affine_map
 
 section ordered_ring
 
@@ -379,9 +379,8 @@ h₁.wbtw.trans_sbtw_right h₂
 
 end ordered_ring
 
-section ordered_comm_ring
-
-variables [ordered_comm_ring R] [add_comm_group V] [module R V] [add_torsor V P]
+section strict_ordered_comm_ring
+variables [strict_ordered_comm_ring R] [add_comm_group V] [module R V] [add_torsor V P]
 
 include V
 
@@ -411,7 +410,7 @@ begin
     same_ray_nonneg_smul_right (z -ᵥ x) (sub_nonneg.2 ht1)
 end
 
-end ordered_comm_ring
+end strict_ordered_comm_ring
 
 section linear_ordered_field
 
@@ -558,6 +557,22 @@ begin
     convert (one_smul _ _).symm,
     field_simp [(add_pos hr₁ hr₂).ne', hr₂.ne'],
     ring }
+end
+
+variables (R)
+
+lemma wbtw_point_reflection (x y : P) : wbtw R y x (point_reflection R x y) :=
+begin
+  refine ⟨2⁻¹, ⟨by norm_num, by norm_num⟩, _⟩,
+  rw [line_map_apply, point_reflection_apply, vadd_vsub_assoc, ←two_smul R (x -ᵥ y)],
+  simp
+end
+
+lemma sbtw_point_reflection_of_ne {x y : P} (h : x ≠ y) : sbtw R y x (point_reflection R x y) :=
+begin
+  refine ⟨wbtw_point_reflection _ _ _, h, _⟩,
+  nth_rewrite 0 [←point_reflection_self R x],
+  exact (point_reflection_involutive R x).injective.ne h
 end
 
 end linear_ordered_field

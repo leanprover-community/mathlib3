@@ -163,7 +163,7 @@ begin
 end
 
 /-- This lemma is useful for working with the `int_degree` of a rational function. -/
-lemma nat_degree_sub_eq_of_prod_eq {p₁ p₂ q₁ q₂ : polynomial R} (hp₁ : p₁ ≠ 0) (hq₁ : q₁ ≠ 0)
+lemma nat_degree_sub_eq_of_prod_eq {p₁ p₂ q₁ q₂ : R[X]} (hp₁ : p₁ ≠ 0) (hq₁ : q₁ ≠ 0)
   (hp₂ : p₂ ≠ 0) (hq₂ : q₂ ≠ 0) (h_eq : p₁ * q₂ = p₂ * q₁) :
   (p₁.nat_degree : ℤ) - q₁.nat_degree = (p₂.nat_degree : ℤ) - q₂.nat_degree :=
 begin
@@ -175,7 +175,7 @@ end
 variables [char_zero R]
 
 @[simp] lemma degree_bit0_eq (p : R[X]) : degree (bit0 p) = degree p :=
-by rw [bit0_eq_two_mul, degree_mul, (by simp : (2 : polynomial R) = C 2),
+by rw [bit0_eq_two_mul, degree_mul, (by simp : (2 : R[X]) = C 2),
   @polynomial.degree_C R _ _ two_ne_zero', zero_add]
 
 @[simp] lemma nat_degree_bit0_eq (p : R[X]) : nat_degree (bit0 p) = nat_degree p :=
@@ -575,6 +575,11 @@ then if h : (X : R[X]) ^ n - C a = 0
 else by rw [← with_bot.coe_le_coe, ← degree_X_pow_sub_C (nat.pos_of_ne_zero hn) a];
   exact card_roots (X_pow_sub_C_ne_zero (nat.pos_of_ne_zero hn) a)
 
+@[simp]
+lemma nth_roots_two_eq_zero_iff {r : R} : nth_roots 2 r = 0 ↔ ¬ is_square r :=
+by simp_rw [is_square_iff_exists_sq, eq_zero_iff_forall_not_mem,
+            mem_nth_roots (by norm_num : 0 < 2), ← not_exists, eq_comm]
+
 /-- The multiset `nth_roots ↑n (1 : R)` as a finset. -/
 def nth_roots_finset (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] : finset R :=
 multiset.to_finset (nth_roots n (1 : R))
@@ -671,25 +676,15 @@ lemma bUnion_roots_finite {R S : Type*} [semiring R] [comm_ring S] [is_domain S]
   (m : R →+* S) (d : ℕ) {U : set R} (h : U.finite) :
   (⋃ (f : R[X]) (hf : f.nat_degree ≤ d ∧ ∀ i, (f.coeff i) ∈ U),
     ((f.map m).roots.to_finset : set S)).finite :=
-begin
-  refine set.finite.bUnion _ _,
-  { -- We prove that the set of polynomials under consideration is finite because its
-    -- image by the injective map `π` is finite
-    let π : R[X] → finset.range (d+1) → R := λ f i, f.coeff i,
-    have h_inj : set.inj_on π {f : R[X] | f.nat_degree ≤ d ∧ ∀ (i : ℕ), f.coeff i ∈ U},
-    { intros x hx y hy hxy,
-      rw ext_iff_nat_degree_le hx.1 hy.1,
-      exact_mod_cast λ i hi, congr_fun hxy ⟨i, finset.mem_range_succ_iff.mpr hi⟩, },
-    have h_fin : (set.pi set.univ (λ e : finset.range (d+1), U)).finite := set.finite.pi (λ e, h),
-    refine set.finite.of_finite_image (set.finite.subset h_fin _) h_inj,
-    rw set.image_subset_iff,
-    intros f hf,
-    rw [set.mem_preimage, set.mem_univ_pi],
-    exact λ i, hf.2 i, },
-  { intros i hi,
-    convert root_set_finite (i.map m) S,
-    simp only [algebra.id.map_eq_id, map_id], },
-end
+set.finite.bUnion begin
+  -- We prove that the set of polynomials under consideration is finite because its
+  -- image by the injective map `π` is finite
+  let π : R[X] → fin (d+1) → R := λ f i, f.coeff i,
+  refine ((set.finite.pi $ λ e, h).subset $ _).of_finite_image (_ : set.inj_on π _),
+  { exact set.image_subset_iff.2 (λ f hf i _, hf.2 i) },
+  { refine λ x hx y hy hxy, (ext_iff_nat_degree_le hx.1 hy.1).2 (λ i hi, _),
+    exact id congr_fun hxy ⟨i, nat.lt_succ_of_le hi⟩ },
+end $ λ i hi, finset.finite_to_set _
 
 theorem mem_root_set_iff' {p : T[X]} {S : Type*} [comm_ring S] [is_domain S]
   [algebra T S] (hp : p.map (algebra_map T S) ≠ 0) (a : S) :
@@ -927,6 +922,13 @@ end
 lemma card_roots_le_map [is_domain A] [is_domain B] {p : A[X]} {f : A →+* B} (h : p.map f ≠ 0) :
   p.roots.card ≤ (p.map f).roots.card :=
 by { rw ← p.roots.card_map f, exact multiset.card_le_of_le (map_roots_le h) }
+
+lemma card_roots_le_map_of_injective [is_domain A] [is_domain B] {p : A[X]} {f : A →+* B}
+  (hf : function.injective f) : p.roots.card ≤ (p.map f).roots.card :=
+begin
+  by_cases hp0 : p = 0, { simp only [hp0, roots_zero, polynomial.map_zero, multiset.card_zero], },
+  exact card_roots_le_map ((polynomial.map_ne_zero_iff hf).mpr hp0),
+end
 
 lemma roots_map_of_injective_of_card_eq_nat_degree [is_domain A] [is_domain B] {p : A[X]}
   {f : A →+* B} (hf : function.injective f) (hroots : p.roots.card = p.nat_degree) :

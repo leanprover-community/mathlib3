@@ -3,11 +3,8 @@ Copyright (c) 2014 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.nat.basic
-import data.nat.cast.defs
-import algebra.group.pi
-import tactic.pi_instances
-import data.sum.basic
+import data.nat.order
+import algebra.order.ring
 
 /-!
 # Cast of natural numbers (additional theorems)
@@ -57,8 +54,7 @@ lemma cast_comm [non_assoc_semiring α] (n : ℕ) (x : α) : (n : α) * x = x * 
 lemma commute_cast [non_assoc_semiring α] (x : α) (n : ℕ) : commute x n :=
 (n.cast_commute x).symm
 
-section
-
+section ordered_semiring
 variables [ordered_semiring α]
 
 @[mono] theorem mono_cast : monotone (coe : ℕ → α) :=
@@ -69,18 +65,22 @@ monotone_nat_of_le_succ $ λ n, by rw [nat.cast_succ]; exact le_add_of_nonneg_ri
 
 variable [nontrivial α]
 
+lemma cast_add_one_pos (n : ℕ) : 0 < (n : α) + 1 :=
+zero_lt_one.trans_le $ le_add_of_nonneg_left n.cast_nonneg
+
+@[simp] lemma cast_pos {n : ℕ} : (0 : α) < n ↔ 0 < n := by cases n; simp [cast_add_one_pos]
+
+end ordered_semiring
+
+section strict_ordered_semiring
+variables [strict_ordered_semiring α] [nontrivial α]
+
 @[simp, norm_cast] theorem cast_le {m n : ℕ} :
   (m : α) ≤ n ↔ m ≤ n :=
 strict_mono_cast.le_iff_le
 
 @[simp, norm_cast, mono] theorem cast_lt {m n : ℕ} : (m : α) < n ↔ m < n :=
 strict_mono_cast.lt_iff_lt
-
-@[simp] theorem cast_pos {n : ℕ} : (0 : α) < n ↔ 0 < n :=
-by rw [← cast_zero, cast_lt]
-
-lemma cast_add_one_pos (n : ℕ) : 0 < (n : α) + 1 :=
-  add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
 
 @[simp, norm_cast] theorem one_lt_cast {n : ℕ} : 1 < (n : α) ↔ 1 < n :=
 by rw [← cast_one, cast_lt]
@@ -89,12 +89,12 @@ by rw [← cast_one, cast_lt]
 by rw [← cast_one, cast_le]
 
 @[simp, norm_cast] theorem cast_lt_one {n : ℕ} : (n : α) < 1 ↔ n = 0 :=
-by rw [← cast_one, cast_lt, lt_succ_iff, le_zero_iff]
+by rw [← cast_one, cast_lt, lt_succ_iff]; exact le_bot_iff
 
 @[simp, norm_cast] theorem cast_le_one {n : ℕ} : (n : α) ≤ 1 ↔ n ≤ 1 :=
 by rw [← cast_one, cast_le]
 
-end
+end strict_ordered_semiring
 
 @[simp, norm_cast] theorem cast_min [linear_ordered_semiring α] {a b : ℕ} :
   (↑(min a b) : α) = min a b :=
@@ -192,6 +192,14 @@ map_nat_cast' f $ map_one f
 
 lemma ext_nat [ring_hom_class F ℕ R] (f g : F) : f = g :=
 ext_nat' f g $ by simp only [map_one]
+
+lemma ne_zero.nat_of_injective {n : ℕ} [h : ne_zero (n : R)]
+  [ring_hom_class F R S] {f : F} (hf : function.injective f) : ne_zero (n : S) :=
+⟨λ h, (ne_zero.ne' n R) $ hf $ by simpa only [map_nat_cast, map_zero]⟩
+
+lemma ne_zero.nat_of_ne_zero {R S} [semiring R] [semiring S] {F} [ring_hom_class F R S] (f : F)
+  {n : ℕ} [hn : ne_zero (n : S)] : ne_zero (n : R) :=
+by { apply ne_zero.of_map f, simp only [map_nat_cast, hn] }
 
 end ring_hom_class
 

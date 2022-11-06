@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import algebra.group.type_tags
-import algebra.group_with_zero.basic
+import algebra.group_with_zero.units
 import data.pi.algebra
 
 /-!
@@ -296,6 +296,22 @@ e.to_equiv.eq_symm_apply
 
 @[to_additive] lemma symm_comp_eq {α : Type*} (e : M ≃* N) (f : α → M) (g : α → N) :
   e.symm ∘ g = f ↔ g = e ∘ f := e.to_equiv.symm_comp_eq f g
+
+@[simp, to_additive]
+theorem symm_trans_self (e : M ≃* N) : e.symm.trans e = refl N :=
+fun_like.ext _ _ e.apply_symm_apply
+
+@[simp, to_additive]
+theorem self_trans_symm (e : M ≃* N) : e.trans e.symm = refl M :=
+fun_like.ext _ _ e.symm_apply_apply
+
+@[to_additive, simp] lemma coe_monoid_hom_refl {M} [mul_one_class M] :
+  (refl M : M →* M) = monoid_hom.id M := rfl
+
+@[to_additive, simp] lemma coe_monoid_hom_trans {M N P}
+  [mul_one_class M] [mul_one_class N] [mul_one_class P] (e₁ : M ≃* N) (e₂ : N ≃* P) :
+  (e₁.trans e₂ : M →* P) = (e₂ : N →* P).comp ↑e₁ :=
+rfl
 
 /-- Two multiplicative isomorphisms agree if they are defined by the
     same underlying function. -/

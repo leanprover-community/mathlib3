@@ -316,6 +316,10 @@ lemma mul_le_mul [pos_mul_mono α] [mul_pos_mono α]
   (h₁ : a ≤ b) (h₂ : c ≤ d) (c0 : 0 ≤ c) (b0 : 0 ≤ b) : a * c ≤ b * d :=
 (mul_le_mul_of_nonneg_right h₁ c0).trans $ mul_le_mul_of_nonneg_left h₂ b0
 
+lemma mul_self_le_mul_self [pos_mul_mono α] [mul_pos_mono α] (ha : 0 ≤ a) (hab : a ≤ b) :
+  a * a ≤ b * b :=
+mul_le_mul hab hab ha $ ha.trans hab
+
 lemma mul_le_of_mul_le_of_nonneg_left [pos_mul_mono α] (h : a * b ≤ c) (hle : d ≤ b) (a0 : 0 ≤ a) :
   a * d ≤ c :=
 (mul_le_mul_of_nonneg_left hle a0).trans h

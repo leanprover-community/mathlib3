@@ -560,4 +560,42 @@ begin
     ((hP.diagonal.affine_open_cover_tfae f).out 1 0),
 end
 
+lemma universally_is_local_at_target (P : morphism_property Scheme)
+  (hP : ∀ {X Y : Scheme.{u}} (f : X ⟶ Y) (𝒰 : Scheme.open_cover.{u} Y),
+    (∀ (i : 𝒰.J), P (pullback.snd : (𝒰.pullback_cover f).obj i ⟶ 𝒰.obj i)) → P f) :
+  property_is_local_at_target P.universally :=
+begin
+  refine ⟨P.universally_respects_iso, λ X Y f U, P.universally_stable_under_base_change
+    (is_pullback_morphism_restrict f U).flip, _⟩,
+  intros X Y f 𝒰 h X' Y' i₁ i₂ f' H,
+  apply hP _ (𝒰.pullback_cover i₂),
+  intro i,
+  dsimp,
+  apply h i (pullback.lift (pullback.fst ≫ i₁) (pullback.snd ≫ pullback.snd) _) pullback.snd,
+  swap,
+  { rw [category.assoc, category.assoc, ← pullback.condition, ← pullback.condition_assoc, H.w] },
+  refine (is_pullback.of_right _ (pullback.lift_snd _ _ _) (is_pullback.of_has_pullback _ _)).flip,
+  rw [pullback.lift_fst, ← pullback.condition],
+  exact (is_pullback.of_has_pullback _ _).paste_horiz H.flip
+end
+
+lemma universally_is_local_at_target_of_morphism_restrict (P : morphism_property Scheme)
+  (hP₁ : P.respects_iso)
+  (hP₂ : ∀ {X Y : Scheme.{u}} (f : X ⟶ Y) {ι : Type u} (U : ι → opens Y.carrier) (hU : supr U = ⊤),
+    (∀ i, P (f ∣_ (U i))) → P f) :
+  property_is_local_at_target P.universally :=
+universally_is_local_at_target P
+begin
+  intros X Y f 𝒰 h𝒰,
+  apply hP₂ f (λ (i : 𝒰.J), (𝒰.map i).opens_range) 𝒰.supr_opens_range,
+  simp_rw hP₁.arrow_mk_iso_iff (morphism_restrict_opens_range f _),
+  exact h𝒰
+end
+
+/-- `topologically P` holds for a morphism if the underlying topological map satisfies `P`. -/
+def morphism_property.topologically
+  (P : ∀ {α β : Type u} [topological_space α] [topological_space β] (f : α → β), Prop) :
+  morphism_property Scheme.{u} :=
+λ X Y f, P f.1.base
+
 end algebraic_geometry

@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston, 
 Neil Strickland, Aaron Anderson
 -/
 
+import algebra.hom.group
 import algebra.group_with_zero.basic
 
 /-!
@@ -143,6 +144,10 @@ mul_dvd_mul (dvd_refl a) h
 
 theorem mul_dvd_mul_right (h : a ∣ b) (c : α) : a * c ∣ b * c :=
 mul_dvd_mul h (dvd_refl c)
+
+theorem pow_dvd_pow_of_dvd {a b : α} (h : a ∣ b) : ∀ n : ℕ, a ^ n ∣ b ^ n
+| 0     := by rw [pow_zero, pow_zero]
+| (n+1) := by { rw [pow_succ, pow_succ], exact mul_dvd_mul h (pow_dvd_pow_of_dvd n) }
 
 end comm_monoid
 

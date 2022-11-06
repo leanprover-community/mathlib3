@@ -383,7 +383,7 @@ theorem ne_empty_iff_nonempty : s ≠ ∅ ↔ s.nonempty := not_iff_comm.1 not_n
 
 alias ne_empty_iff_nonempty ↔ _ nonempty.ne_empty
 
-@[simp] lemma not_nonempty_empty : ¬(∅ : set α).nonempty := not_nonempty_iff_eq_empty.2 rfl
+@[simp] lemma not_nonempty_empty : ¬(∅ : set α).nonempty := λ ⟨x, hx⟩, hx
 
 @[simp] lemma is_empty_coe_sort {s : set α} : is_empty ↥s ↔ s = ∅ :=
 not_iff_not.1 $ by simpa using ne_empty_iff_nonempty.symm

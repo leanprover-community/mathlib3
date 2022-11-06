@@ -501,14 +501,12 @@ begin
 end
 
 lemma is_open_map.cover_preserving (hf : is_open_map f) :
-  cover_preserving (opens.grothendieck_topology X) (opens.grothendieck_topology Y)
-    hf.functor :=
+  cover_preserving (opens.grothendieck_topology X) (opens.grothendieck_topology Y) hf.functor :=
 begin
   constructor,
   rintros U S hU _ ⟨x, hx, rfl⟩,
   obtain ⟨V, i, hV, hxV⟩ := hU x hx,
-  exact ⟨_, hf.functor.map i, ⟨_, i, 𝟙 _, hV, subsingleton.elim _ _⟩,
-    set.mem_image_of_mem f hxV⟩
+  exact ⟨_, hf.functor.map i, ⟨_, i, 𝟙 _, hV, rfl⟩, set.mem_image_of_mem f hxV⟩
 end
 
 lemma Top.presheaf.is_sheaf_of_open_embedding (h : open_embedding f)

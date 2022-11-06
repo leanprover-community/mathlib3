@@ -242,7 +242,7 @@ argument of `f`.
 variables {R : Type*}
 variables {𝕜₂ 𝕜' : Type*} [nontrivially_normed_field 𝕜'] [nontrivially_normed_field 𝕜₂]
 variables {M : Type*} [topological_space M]
-variables {σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂]
+variables {σ₁₂ : 𝕜 →+* 𝕜₂}
 variables {G' : Type*} [normed_add_comm_group G'] [normed_space 𝕜₂ G'] [normed_space 𝕜' G']
 variables [smul_comm_class 𝕜₂ 𝕜' G']
 
@@ -544,7 +544,7 @@ begin
   refine λ e, is_open.mem_nhds _ (mem_range_self _),
   let O : (E →L[𝕜] F) → (E →L[𝕜] E) := λ f, (e.symm : F →L[𝕜] E).comp f,
   have h_O : continuous O := is_bounded_bilinear_map_comp.continuous_right,
-  convert units.is_open.preimage h_O using 1,
+  convert show is_open (O ⁻¹' {x | is_unit x}), from units.is_open.preimage h_O using 1,
   ext f',
   split,
   { rintros ⟨e', rfl⟩,

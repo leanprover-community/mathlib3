@@ -1167,7 +1167,7 @@ end
 @supr_infi_ge_nat_add αᵒᵈ _
 
 lemma sup_supr_nat_succ (u : ℕ → α) : u 0 ⊔ (⨆ i, u (i + 1)) = ⨆ i, u i :=
-calc u 0 ⊔ (⨆ i, u (i + 1)) = (⨆ (x : ℕ) (H : x ∈ {0} ∪ range nat.succ), u x)
+calc u 0 ⊔ (⨆ i, u (i + 1)) = (⨆ (x ∈ {0} ∪ range nat.succ), u x)
       : by rw [supr_union, supr_singleton, supr_range]
 ... = ⨆ i, u i
       : by rw [nat.zero_union_range_succ, supr_univ]

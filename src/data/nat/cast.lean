@@ -10,6 +10,7 @@ import algebra.group.prod
 import algebra.hom.ring
 import algebra.order.ring.basic
 import algebra.order.monoid.with_top
+import algebra.order.group.abs
 -- FIXME CHECK IMPORTS
 
 

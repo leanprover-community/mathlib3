@@ -324,7 +324,7 @@ begin
   have : p₁ ^ n₁ = p₂ ^ n₂, by rw [← hn₁, ← hn₂],
   rcases n₁.eq_zero_or_pos with rfl|hn₁,
   { simpa using hn₁ },
-  { exact absurd (eq_of_prime_pow_eq hp₁.out.prime hp₂.out.prime hn₁) this },
+  { exact absurd (eq_of_prime_pow_eq hp₁.out.prime hp₂.out.prime hn₁ this) hne }
 end
 
 section p2comm

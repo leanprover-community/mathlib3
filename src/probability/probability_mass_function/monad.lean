@@ -176,7 +176,7 @@ begin
   have : ∀ a, ite (p a = 0) 0 (p a * f a b) = p a * f a b,
   from λ a, ite_eq_right_iff.2 (λ h, h.symm ▸ symm (zero_mul $ f a b)),
   simp only [bind_on_support_apply (λ a _, f a), p.bind_apply f,
-    dite_eq_ite, nnreal.coe_eq, mul_ite, mul_zero, this],
+    dite_eq_ite, mul_ite, mul_zero, this],
 end
 
 lemma bind_on_support_eq_zero_iff (b : β) :
@@ -190,7 +190,7 @@ end
   (pure a).bind_on_support f = f a ((mem_support_pure_iff a a).mpr rfl) :=
 begin
   refine pmf.ext (λ b, _),
-  simp only [nnreal.coe_eq, bind_on_support_apply, pure_apply],
+  simp only [bind_on_support_apply, pure_apply],
   refine trans (tsum_congr (λ a', _)) (tsum_ite_eq a _),
   by_cases h : (a' = a); simp [h],
 end

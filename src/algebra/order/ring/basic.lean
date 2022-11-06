@@ -530,7 +530,11 @@ lemma one_lt_two : (1 : α) < 2 := lt_add_one _
 lemma lt_two_mul_self (ha : 0 < a) : a < 2 * a := lt_mul_of_one_lt_left ha one_lt_two
 
 lemma nat.strict_mono_cast : strict_mono (coe : ℕ → α) :=
-strict_mono_nat_of_lt_succ $ λ n, by rw [nat.cast_succ]; apply lt_add_one
+strict_mono_nat_of_lt_succ $ λ n, by { rw [nat.cast_succ], apply lt_add_one }
+
+/-- `coe : ℕ → α` as an `order_embedding` -/
+@[simps { fully_applied := ff }] def nat.cast_order_embedding : ℕ ↪o α :=
+order_embedding.of_strict_mono coe nat.strict_mono_cast
 
 @[priority 100] -- see Note [lower instance priority]
 instance strict_ordered_semiring.to_no_max_order : no_max_order α :=

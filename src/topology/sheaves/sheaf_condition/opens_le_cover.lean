@@ -3,9 +3,8 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.category.galois_connection
-import category_theory.limits.final
 import topology.sheaves.presheaf
+import category_theory.limits.final
 import topology.sheaves.sheaf_condition.pairwise_intersections
 
 /-!
@@ -39,7 +38,7 @@ open topological_space.opens
 namespace Top
 
 variables {C : Type u} [category.{v} C]
-variables {X Z : Top.{w}} (F : presheaf C X) {ι : Type w} (U : ι → opens X) (W : ι → opens Z)
+variables {X : Top.{w}} (F : presheaf C X) {ι : Type w} (U : ι → opens X)
 
 namespace presheaf
 
@@ -69,31 +68,6 @@ The morphism from `V` to `U i` for some `i`.
 def hom_to_index (V : opens_le_cover U) : V.obj ⟶ U (index V) :=
 (V.property.some_spec).hom
 
-variable U
-
-/-- `topological_space.opens.map` restricts to a functor between `opens_le_cover` categories. -/
-def comap (f : Z ⟶ X) : opens_le_cover U ⥤ opens_le_cover ((opens.map f).obj ∘ U) :=
-full_subcategory.lift _ (full_subcategory_inclusion _ ⋙ opens.map f) $
-  λ V, ⟨V.index, ((opens.map f).map V.hom_to_index).le⟩
-
-/-- `is_open_map.functor` restricts to a functor between `opens_le_cover` categories. -/
-def map {f : Z ⟶ X} (hf : is_open_map f) : opens_le_cover W ⥤ opens_le_cover (hf.functor.obj ∘ W) :=
-full_subcategory.lift _ (full_subcategory_inclusion _ ⋙ hf.functor) $
-  λ V, ⟨V.index, (hf.functor.map V.hom_to_index).le⟩
-
-/-- `is_open_map.functor` restricts to an equivalence between `opens_le_cover` categories
-  for an open embedding. -/
-def _root_.open_embedding.opens_le_cover_equivalence {f : Z ⟶ X} (hf : open_embedding f) :
-  opens_le_cover W ≌ opens_le_cover (hf.is_open_map.functor.obj ∘ W) :=
-{ functor := map W hf.is_open_map,
-  inverse := full_subcategory.lift _ (full_subcategory_inclusion _ ⋙ opens.map f) $
-    λ V, ⟨V.index, ((opens.map f).map V.hom_to_index).le.trans (set.preimage_image_eq _ hf.1.2).le⟩,
-  unit_iso   := { hom := { app := λ V, ⟨⟨set.subset_preimage_image f _⟩⟩ },
-                  inv := { app := λ V, ⟨⟨(set.preimage_image_eq _ hf.1.2).le⟩⟩ } },
-  counit_iso := { hom := { app := λ V, ⟨⟨set.image_preimage_subset f _⟩⟩ },
-                  inv := { app := λ V, ⟨⟨λ x hx,
-                    let ⟨y, hy, he⟩ := V.hom_to_index.le hx in ⟨y, he.substr hx, he⟩⟩⟩ } } }
-
 end opens_le_cover
 
 /--
@@ -104,13 +78,6 @@ end opens_le_cover
 def opens_le_cover_cocone : cocone (full_subcategory_inclusion _ : opens_le_cover U ⥤ opens X) :=
 { X := supr U,
   ι := { app := λ V : opens_le_cover U, V.hom_to_index ≫ opens.le_supr U _, } }
-
-/-- `is_open_map.functor` induces an isomorphism between `opens_le_cover_cocone`s. -/
-def _root_.open_embedding.opens_le_cover_cocone_iso {f : Z ⟶ X} (hf : open_embedding f) :
-  hf.is_open_map.functor.map_cocone (opens_le_cover_cocone W) ≅ (opens_le_cover_cocone $
-    hf.is_open_map.functor.obj ∘ W).whisker (hf.opens_le_cover_equivalence W).functor :=
-{ hom := { hom := ⟨⟨hf.is_open_map.adjunction.gc.l_supr.le⟩⟩ },
-  inv := { hom := ⟨⟨hf.is_open_map.adjunction.gc.l_supr.ge⟩⟩ } }
 
 end sheaf_condition
 
@@ -355,17 +322,6 @@ lemma is_sheaf_iff_is_sheaf_pairwise_intersections :
   F.is_sheaf ↔ F.is_sheaf_pairwise_intersections :=
 by rw [is_sheaf_iff_is_sheaf_opens_le_cover,
   is_sheaf_opens_le_cover_iff_is_sheaf_pairwise_intersections]
-
-lemma _root_.open_embedding.is_sheaf {f : Z ⟶ X} (hf : open_embedding f)
-  (h : F.is_sheaf) : is_sheaf (hf.is_open_map.functor.op ⋙ F) :=
-begin
-  rw is_sheaf_iff_is_sheaf_opens_le_cover at h ⊢,
-  intros ι W,
-  obtain ⟨hs⟩ := h (hf.is_open_map.functor.obj ∘ W),
-  refine ⟨is_limit.equiv_iso_limit _ $ hs.whisker_equivalence (hf.opens_le_cover_equivalence W).op⟩,
-  exact (cones.functoriality _ F).map_iso
-    ((cocone_equivalence_op_cone_op _).functor.map_iso $ hf.opens_le_cover_cocone_iso W).unop,
-end
 
 end
 

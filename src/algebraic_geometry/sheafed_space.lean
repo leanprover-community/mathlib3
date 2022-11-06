@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import algebraic_geometry.presheafed_space.has_colimits
 import topology.sheaves.functors
-import topology.sheaves.sheaf_condition.opens_le_cover
 
 /-!
 # Sheafed spaces

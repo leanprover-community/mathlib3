@@ -13,6 +13,7 @@ This file defines pairwise relations.
 ## Main declarations
 
 * `pairwise`: `pairwise r` states that `r i j` for all `i ≠ j`.
+* `set.pairwise`: `s.pairwise r` states that `r i j` for all `i ≠ j` with `i, j ∈ s`.
 -/
 
 open set function
@@ -23,12 +24,12 @@ section pairwise
 variables {f g : ι → α} {s t u : set α} {a b : α}
 
 /-- A relation `r` holds pairwise if `r i j` for all `i ≠ j`. -/
-def pairwise (r : α → α → Prop) := ∀ i j, i ≠ j → r i j
+def pairwise (r : α → α → Prop) := ∀ ⦃i j⦄, i ≠ j → r i j
 
 lemma pairwise.mono (hr : pairwise r) (h : ∀ ⦃i j⦄, r i j → p i j) : pairwise p :=
-λ i j hij, h $ hr i j hij
+λ i j hij, h $ hr hij
 
-protected lemma pairwise.eq (h : pairwise r) : ¬ r a b → a = b := not_imp_comm.1 $ h _ _
+protected lemma pairwise.eq (h : pairwise r) : ¬ r a b → a = b := not_imp_comm.1 $ @h _ _
 
 lemma function.injective_iff_pairwise_ne : injective f ↔ pairwise ((≠) on f) :=
 forall₂_congr $ λ i j, not_imp_not.symm

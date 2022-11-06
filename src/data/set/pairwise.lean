@@ -18,7 +18,6 @@ to hold many of these basic facts.
 
 ## Main declarations
 
-* `set.pairwise`: `s.pairwise r` states that `r i j` for all `i ≠ j` with `i, j ∈ s`.
 * `set.pairwise_disjoint`: `s.pairwise_disjoint f` states that images under `f` of distinct elements
   of `s` are either equal or `disjoint`.
 
@@ -43,15 +42,11 @@ lemma pairwise_disjoint_on_bool [semilattice_inf α] [order_bot α] {a b : α} :
 pairwise_on_bool disjoint.symm
 
 lemma symmetric.pairwise_on [linear_order ι] (hr : symmetric r) (f : ι → α) :
-  pairwise (r on f) ↔ ∀ m n, m < n → r (f m) (f n) :=
-⟨λ h m n hmn, h m n hmn.ne, λ h m n hmn, begin
-  obtain hmn' | hmn' := hmn.lt_or_lt,
-  { exact h _ _ hmn' },
-  { exact hr (h _ _ hmn') }
-end⟩
+  pairwise (r on f) ↔ ∀ ⦃m n⦄, m < n → r (f m) (f n) :=
+⟨λ h m n hmn, h hmn.ne, λ h m n hmn, hmn.lt_or_lt.elim (@h _ _) (λ h', hr (h h'))⟩
 
 lemma pairwise_disjoint_on [semilattice_inf α] [order_bot α] [linear_order ι] (f : ι → α) :
-  pairwise (disjoint on f) ↔ ∀ m n, m < n → disjoint (f m) (f n) :=
+  pairwise (disjoint on f) ↔ ∀ ⦃m n⦄, m < n → disjoint (f m) (f n) :=
 symmetric.pairwise_on disjoint.symm f
 
 lemma pairwise_disjoint.mono [semilattice_inf α] [order_bot α]
@@ -191,18 +186,16 @@ by { rw [sUnion_eq_Union, pairwise_Union (h.directed_coe), set_coe.forall], refl
 
 end set
 
+<<<<<<< HEAD
+=======
+lemma pairwise.set_pairwise (h : pairwise r) (s : set α) : s.pairwise r := λ x hx y hy hxy, h hxy
+
+>>>>>>> origin/YK-pairwise-implicit
 end pairwise
 
-lemma pairwise_subtype_iff_pairwise_set {α : Type*} (s : set α) (r : α → α → Prop) :
+lemma pairwise_subtype_iff_pairwise_set (s : set α) (r : α → α → Prop) :
   pairwise (λ (x : s) (y : s), r x y) ↔ s.pairwise r :=
-begin
-  split,
-  { assume h x hx y hy hxy,
-    exact h ⟨x, hx⟩ ⟨y, hy⟩ (by simpa only [subtype.mk_eq_mk, ne.def]) },
-  { rintros h ⟨x, hx⟩ ⟨y, hy⟩ hxy,
-    simp only [subtype.mk_eq_mk, ne.def] at hxy,
-    exact h hx hy hxy }
-end
+by simp only [pairwise, set.pairwise, set_coe.forall, ne.def, subtype.ext_iff, subtype.coe_mk]
 
 alias pairwise_subtype_iff_pairwise_set ↔ pairwise.set_of_subtype set.pairwise.subtype
 

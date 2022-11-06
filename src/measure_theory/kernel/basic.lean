@@ -85,15 +85,31 @@ def kernel (mα : measurable_space α) (mβ : measurable_space β) :
 
 instance : has_coe_to_fun (kernel mα mβ) (λ _, α → measure β) := ⟨λ κ, κ.val⟩
 
-@[simp] lemma kernel.coe_fn_zero : ⇑(0 : kernel mα mβ) = 0 := rfl
-@[simp] lemma kernel.coe_fn_add (κ η : kernel mα mβ) : ⇑(κ + η) = κ + η := rfl
+namespace kernel
+
+@[simp] lemma coe_fn_zero : ⇑(0 : kernel mα mβ) = 0 := rfl
+@[simp] lemma coe_fn_add (κ η : kernel mα mβ) : ⇑(κ + η) = κ + η := rfl
 
 /-- Coercion to function as an additive monoid homomorphism. -/
-def kernel.coe_add_hom (mα : measurable_space α) (mβ : measurable_space β) :
+def coe_add_hom (mα : measurable_space α) (mβ : measurable_space β) :
   kernel mα mβ →+ (α → measure β) :=
-⟨coe_fn, kernel.coe_fn_zero, kernel.coe_fn_add⟩
+⟨coe_fn, coe_fn_zero, coe_fn_add⟩
 
-@[simp] lemma kernel.zero_apply (a : α) : (0 : kernel mα mβ) a = 0 := rfl
+@[simp] lemma zero_apply (a : α) : (0 : kernel mα mβ) a = 0 := rfl
+
+@[simp] lemma coe_finset_sum (I : finset ι) (κ : ι → kernel mα mβ) :
+  ⇑(∑ i in I, κ i) = ∑ i in I, κ i :=
+(coe_add_hom mα mβ).map_sum _ _
+
+lemma finset_sum_apply (I : finset ι) (κ : ι → kernel mα mβ) (a : α) :
+  (∑ i in I, κ i) a = ∑ i in I, κ i a :=
+by rw [coe_finset_sum, finset.sum_apply]
+
+lemma finset_sum_apply' (I : finset ι) (κ : ι → kernel mα mβ) (a : α) (s : set β) :
+  (∑ i in I, κ i) a s = ∑ i in I, κ i a s :=
+by rw [finset_sum_apply, measure.finset_sum_apply]
+
+end kernel
 
 /-- A kernel is a Markov kernel if every measure in its image is a probability measure. -/
 class is_markov_kernel (κ : kernel mα mβ) : Prop :=
@@ -121,10 +137,22 @@ lemma measure_le_bound (κ : kernel mα mβ) [h : is_finite_kernel κ] (a : α) 
   κ a s ≤ is_finite_kernel.bound κ :=
 (measure_mono (set.subset_univ s)).trans (h.exists_univ_le.some_spec.2 a)
 
-lemma is_finite_kernel_zero (mα : measurable_space α) (mβ : measurable_space β) :
+instance is_finite_kernel_zero (mα : measurable_space α) (mβ : measurable_space β) :
   is_finite_kernel (0 : kernel mα mβ) :=
 ⟨⟨0, ennreal.coe_lt_top,
   λ a, by simp only [kernel.zero_apply, measure.coe_zero, pi.zero_apply, le_zero_iff]⟩⟩
+
+instance is_finite_kernel.add (κ η : kernel mα mβ) [is_finite_kernel κ] [is_finite_kernel η] :
+  is_finite_kernel (κ + η) :=
+begin
+  let Cκ := is_finite_kernel.bound κ,
+  let Cη := is_finite_kernel.bound η,
+  refine ⟨⟨Cκ + Cη,
+    ennreal.add_lt_top.mpr ⟨is_finite_kernel.bound_lt_top κ, is_finite_kernel.bound_lt_top η⟩,
+    λ a, _⟩⟩,
+  simp_rw [kernel.coe_fn_add, pi.add_apply, measure.coe_add, pi.add_apply],
+  exact add_le_add (measure_le_bound _ _ _) (measure_le_bound _ _ _),
+end
 
 variables {κ : kernel mα mβ}
 
@@ -142,18 +170,53 @@ instance is_markov_kernel.is_finite_kernel [h : is_markov_kernel κ] : is_finite
 
 namespace kernel
 
+@[ext] lemma ext {κ : kernel mα mβ} {η : kernel mα mβ} (h : ∀ a, κ a = η a) : κ = η :=
+by { ext1, ext1 a, exact h a, }
+
+-- TODO move
+lemma lintegral_indicator' {mα : measurable_space α} {μ : measure α} {mβ : measurable_space β}
+  {f : α → β} {s : set β} (hf : measurable f) (hs : measurable_set s) (c : ℝ≥0∞) :
+  ∫⁻ a, s.indicator (λ _, c) (f a) ∂μ = c * μ (f ⁻¹' s) :=
+begin
+  rw [← lintegral_add_compl _ (hf hs), ← add_zero (c * μ (f ⁻¹' s))],
+  classical,
+  simp_rw [set.indicator_apply],
+  congr,
+  { have h_eq_1 : ∀ x ∈ f ⁻¹' s, ite (f x ∈ s) c 0 = c := λ _ hx, if_pos hx,
+    rw set_lintegral_congr_fun (hf hs) (filter.eventually_of_forall h_eq_1),
+    simp only,
+    rw [lintegral_const, measure.restrict_apply measurable_set.univ, set.univ_inter], },
+  { have h_eq_zero : ∀ x ∈ (f ⁻¹' s)ᶜ, ite (f x ∈ s) c 0 = 0 := λ _ hx, if_neg hx,
+    rw set_lintegral_congr_fun (hf hs).compl (filter.eventually_of_forall h_eq_zero),
+    simp only [lintegral_const, zero_mul], },
+end
+
+lemma ext_fun {κ η : kernel mα mβ} (h : ∀ a f, measurable f → ∫⁻ b, f b ∂(κ a) = ∫⁻ b, f b ∂(η a)) :
+  κ = η :=
+begin
+  ext a s hs,
+  specialize h a (s.indicator (λ _, 1)) (measurable.indicator measurable_const hs),
+  simp_rw [lintegral_indicator' measurable_id' hs, set.preimage_id', one_mul] at h,
+  rw h,
+end
+
 protected lemma measurable (κ : kernel mα mβ) : measurable κ := κ.prop
 
-protected lemma measurable_coe (κ : kernel mα mβ)
-  {s : set β} (hs : measurable_set[mβ] s) :
-  measurable[mα] (λ a, κ a s) :=
+protected lemma measurable_coe (κ : kernel mα mβ) {s : set β} (hs : measurable_set s) :
+  measurable (λ a, κ a s) :=
 (measure.measurable_coe hs).comp (kernel.measurable κ)
 
 /-- Constant kernel, which always returns the same measure. -/
-def const (mα : measurable_space α) (mβ : measurable_space β) (μβ : measure β) :
-  kernel mα mβ :=
+def const (mα : measurable_space α) (mβ : measurable_space β) (μβ : measure β) : kernel mα mβ :=
 { val := λ _, μβ,
   property := measure.measurable_of_measurable_coe _ (λ s hs, measurable_const), }
+
+lemma is_finite_kernel_const [hμβ : is_finite_measure μβ] : is_finite_kernel (const mα mβ μβ) :=
+⟨⟨μβ set.univ, measure_lt_top _ _, λ a, le_rfl⟩⟩
+
+lemma is_markov_kernel_const [hμβ : is_probability_measure μβ] :
+  is_markov_kernel (const mα mβ μβ) :=
+⟨λ a, hμβ⟩
 
 /-- Kernel which to `a` associates the dirac measure at `f a`. -/
 noncomputable
@@ -182,11 +245,6 @@ begin
   simp_rw measure.dirac_apply' _ hs,
 end
 
-lemma is_finite_measure_deterministic {mα : measurable_space α} {mβ : measurable_space β}
-  {f : α → β} (hf : measurable f) (a : α) :
-  is_finite_measure (deterministic hf a) :=
-by { simp_rw [deterministic], apply_instance, }
-
 instance is_finite_kernel.deterministic {mα : measurable_space α} {mβ : measurable_space β}
   {f : α → β} (hf : measurable f) :
   is_finite_kernel (deterministic hf) :=
@@ -195,13 +253,6 @@ begin
   rw [deterministic_apply hf a measurable_set.univ, set.indicator_univ],
 end
 
-lemma is_finite_kernel_const [hμβ : is_finite_measure μβ] : is_finite_kernel (const mα mβ μβ) :=
-⟨⟨μβ set.univ, measure_lt_top _ _, λ a, le_rfl⟩⟩
-
-lemma is_markov_kernel_const [hμβ : is_probability_measure μβ] :
-  is_markov_kernel (const mα mβ μβ) :=
-⟨λ a, hμβ⟩
-
 /-- In a countable space with measurable singletons, every function `α → measure β` defines a
 kernel. -/
 def of_fun_of_countable (mα : measurable_space α) (mβ : measurable_space β)
@@ -209,39 +260,6 @@ def of_fun_of_countable (mα : measurable_space α) (mβ : measurable_space β)
   kernel mα mβ :=
 { val := f,
   property := measurable_of_countable f }
-
-lemma lintegral_indicator' {mα : measurable_space α} {μ : measure α} {mβ : measurable_space β}
-  {f : α → β} {s : set β} (hf : measurable f) (hs : measurable_set s) (c : ℝ≥0∞) :
-  ∫⁻ a, s.indicator (λ _, c) (f a) ∂μ = c * μ (f ⁻¹' s) :=
-begin
-  rw ← lintegral_add_compl _ (hf hs),
-  rw ← add_zero (c * μ (f ⁻¹' s)),
-  classical,
-  simp_rw [set.indicator_apply],
-  congr,
-  { have h_eq_1 : ∀ x ∈ f ⁻¹' s, ite (f x ∈ s) c 0 = c := λ _ hx, if_pos hx,
-    rw set_lintegral_congr_fun (hf hs) (filter.eventually_of_forall h_eq_1),
-    simp only,
-    rw [lintegral_const, measure.restrict_apply measurable_set.univ, set.univ_inter], },
-  { have h_eq_zero : ∀ x ∈ (f ⁻¹' s)ᶜ, ite (f x ∈ s) c 0 = 0,
-      from λ _ hx, if_neg hx,
-    rw set_lintegral_congr_fun (hf hs).compl (filter.eventually_of_forall h_eq_zero),
-    simp only [lintegral_const, zero_mul], },
-end
-
-@[ext] lemma ext {κ : kernel mα mβ} {η : kernel mα mβ} (h : ∀ a, κ a = η a) :
-  κ = η :=
-by { ext1, ext1 a, exact h a, }
-
-lemma ext_fun {κ : kernel mα mβ} {η : kernel mα mβ}
-  (h : ∀ a f, measurable f → ∫⁻ b, f b ∂(κ a) = ∫⁻ b, f b ∂(η a)) :
-  κ = η :=
-begin
-  ext a s hs,
-  specialize h a (s.indicator (λ _, 1)) (measurable.indicator measurable_const hs),
-  simp_rw [lintegral_indicator' measurable_id' hs, set.preimage_id', one_mul] at h,
-  rw h,
-end
 
 section sum
 
@@ -271,18 +289,6 @@ begin
   rw ennreal.tsum_comm,
 end
 
-@[simp] lemma coe_finset_sum (I : finset ι) (κ : ι → kernel mα mβ) :
-  ⇑(∑ i in I, κ i) = ∑ i in I, κ i :=
-(coe_add_hom mα mβ).map_sum _ _
-
-lemma finset_sum_apply (I : finset ι) (κ : ι → kernel mα mβ) (a : α) :
-  (∑ i in I, κ i) a = ∑ i in I, κ i a :=
-by rw [coe_finset_sum, finset.sum_apply]
-
-lemma finset_sum_apply' (I : finset ι) (κ : ι → kernel mα mβ) (a : α) (s : set β) :
-  (∑ i in I, κ i) a s = ∑ i in I, κ i a s :=
-by rw [finset_sum_apply, measure.finset_sum_apply]
-
 @[simp] lemma sum_fintype [fintype ι] (κ : ι → kernel mα mβ) : kernel.sum κ = ∑ i, κ i :=
 by { ext a s hs, simp only [sum_apply' κ a hs, finset_sum_apply' _ κ a s, tsum_fintype], }
 
@@ -303,7 +309,7 @@ class is_s_finite_kernel (κ : kernel mα mβ) : Prop :=
 @[priority 100]
 instance is_finite_kernel.is_s_finite_kernel [h : is_finite_kernel κ] : is_s_finite_kernel κ :=
 ⟨⟨λ n, if n = 0 then κ else 0,
-  λ n, by { split_ifs, exact h, exact is_finite_kernel_zero _ _, },
+  λ n, by { split_ifs, exact h, apply_instance, },
   begin
     ext a s hs,
     rw kernel.sum_apply' _ _ hs,
@@ -330,22 +336,6 @@ by rw [← kernel.sum_apply, kernel_sum_seq κ]
 instance is_finite_kernel_seq (κ : kernel mα mβ) [h : is_s_finite_kernel κ] (n : ℕ) :
   is_finite_kernel (kernel.seq κ n) :=
 h.tsum_finite.some_spec.1 n
-
-instance is_finite_kernel_zero : is_finite_kernel (0 : kernel mα mβ) :=
-⟨⟨0, ennreal.coe_lt_top,
-  λ a, by simp only [zero_apply, measure.coe_zero, pi.zero_apply, le_zero_iff]⟩⟩
-
-instance is_fintie_kernel.add (κ η : kernel mα mβ) [is_finite_kernel κ] [is_finite_kernel η] :
-  is_finite_kernel (κ + η) :=
-begin
-  let Cκ := is_finite_kernel.bound κ,
-  let Cη := is_finite_kernel.bound η,
-  refine ⟨⟨Cκ + Cη,
-    ennreal.add_lt_top.mpr ⟨is_finite_kernel.bound_lt_top κ, is_finite_kernel.bound_lt_top η⟩,
-    λ a, _⟩⟩,
-  simp_rw [coe_fn_add, pi.add_apply, measure.coe_add, pi.add_apply],
-  exact add_le_add (measure_le_bound _ _ _) (measure_le_bound _ _ _),
-end
 
 instance is_s_finite_kernel.add (κ η : kernel mα mβ) [is_s_finite_kernel κ] [is_s_finite_kernel η] :
   is_s_finite_kernel (κ + η) :=
@@ -402,7 +392,7 @@ end
 
 section restrict
 
-/-- Restriction of a kernel to a set. -/
+/-- Restriction of the measures in the image of a kernel to a set. -/
 protected noncomputable
 def restrict (κ : kernel mα mβ) {s : set β} (hs : measurable_set s) : kernel mα mβ :=
 { val := λ a, (κ a).restrict s,
@@ -502,12 +492,9 @@ lemma measurable_prod_mk_mem (κ : kernel mα mβ) {t : set (α × β)}
   measurable (λ a, κ a {b | (a, b) ∈ t}) :=
 begin
   rw ← kernel_sum_seq κ,
-  have : (λ a, kernel.sum (seq κ) a {b : β | (a, b) ∈ t})
-    = λ a, ∑' n, seq κ n a {b : β | (a, b) ∈ t},
-  { ext1 a,
-    rw kernel.sum_apply',
-    exact measurable_prod_mk_left ht, },
-  rw this,
+  have : ∀ a, kernel.sum (seq κ) a {b : β | (a, b) ∈ t} = ∑' n, seq κ n a {b : β | (a, b) ∈ t},
+    from λ a, kernel.sum_apply' _ _ (measurable_prod_mk_left ht),
+  simp_rw this,
   refine measurable.ennreal_tsum (λ n, _),
   exact measurable_prod_mk_mem_of_finite (seq κ n) ht infer_instance,
 end
@@ -516,12 +503,7 @@ lemma measurable_lintegral_indicator_const (κ : kernel mα mβ) [is_s_finite_ke
   {t : set (α × β)} (ht : measurable_set t) (c : ℝ≥0∞) :
   measurable (λ a, ∫⁻ b, t.indicator (function.const (α × β) c) (a, b) ∂κ a) :=
 begin
-  have : (λ a, ∫⁻ b, t.indicator (function.const (α × β) c) (a, b) ∂κ a)
-    = (λ a, c * κ a {b | (a, b) ∈ t}),
-  { ext1 a,
-    rw lintegral_indicator' measurable_prod_mk_left ht,
-    refl, },
-  rw this,
+  simp_rw lintegral_indicator' measurable_prod_mk_left ht _,
   exact measurable.const_mul (measurable_prod_mk_mem _ ht) c,
 end
 
@@ -538,10 +520,7 @@ begin
     rw lintegral_supr,
     { exact λ n, (simple_func.eapprox (function.uncurry f) n).measurable.comp
         measurable_prod_mk_left, },
-    { intros i j hij b,
-      have h_mono := simple_func.monotone_eapprox (function.uncurry f) hij,
-      rw ← simple_func.coe_le at h_mono,
-      exact h_mono _, }, },
+    { exact λ i j hij b, simple_func.monotone_eapprox (function.uncurry f) hij _, }, },
   simp_rw this,
   refine measurable_supr (λ n, _),
   refine simple_func.induction _ _ (simple_func.eapprox (function.uncurry f) n),
@@ -829,21 +808,23 @@ lemma comp_eq_sum_kernel_comp_left (κ : kernel mα mβ) [is_s_finite_kernel κ]
   comp κ η = kernel.sum (λ n, comp (seq κ n) η) :=
 begin
   rw comp_eq_sum_kernel_comp,
-  congr,
-  ext n a s hs,
-  simp_rw [kernel.sum_apply' _ _ hs],
-  simp_rw comp_apply_eq_comp_fun _ _ _ hs,
-  rw comp_fun_tsum_right _ η a hs,
+  congr' with n a s hs,
+  simp_rw [kernel.sum_apply' _ _ hs, comp_apply_eq_comp_fun _ _ _ hs, comp_fun_tsum_right _ η a hs],
 end
 
 lemma comp_eq_sum_kernel_comp_right (κ : kernel mα mβ) [is_s_finite_kernel κ]
   (η : kernel (mα.prod mβ) mγ) [is_s_finite_kernel η] :
   comp κ η = kernel.sum (λ n, comp κ (seq η n)) :=
+by { rw comp_eq_sum_kernel_comp, simp_rw comp_eq_sum_kernel_comp_left κ _, rw kernel.sum_comm, }
+
+instance is_markov_kernel.comp (κ : kernel mα mβ) [is_markov_kernel κ]
+  (η : kernel (mα.prod mβ) mγ) [is_markov_kernel η] :
+  is_markov_kernel (comp κ η) :=
+⟨λ a, ⟨
 begin
-  rw comp_eq_sum_kernel_comp,
-  simp_rw comp_eq_sum_kernel_comp_left κ _,
-  rw kernel.sum_comm,
-end
+  rw comp_apply κ η a measurable_set.univ,
+  simp only [set.mem_univ, set.set_of_true, measure_univ, lintegral_one],
+end⟩⟩
 
 lemma comp_apply_univ_le (κ : kernel mα mβ) [is_s_finite_kernel κ]
   (η : kernel (mα.prod mβ) mγ) [is_finite_kernel η] (a : α) :
@@ -857,15 +838,6 @@ begin
   ... = Cη * κ a set.univ : lintegral_const Cη
   ... = κ a set.univ * Cη : mul_comm _ _,
 end
-
-instance is_markov_kernel.comp (κ : kernel mα mβ) [is_markov_kernel κ]
-  (η : kernel (mα.prod mβ) mγ) [is_markov_kernel η] :
-  is_markov_kernel (comp κ η) :=
-⟨λ a, ⟨
-begin
-  rw comp_apply κ η a measurable_set.univ,
-  simp only [set.mem_univ, set.set_of_true, measure_univ, lintegral_one],
-end⟩⟩
 
 instance is_finite_kernel.comp (κ : kernel mα mβ) [is_finite_kernel κ]
   (η : kernel (mα.prod mβ) mγ) [is_finite_kernel η] :
@@ -890,10 +862,9 @@ end composition
 section map_comap
 /-! ### map, comap and another composition -/
 
-/-- The pushforward of a kernel. -/
+/-- The pushforward of a kernel along a measurable function. -/
 noncomputable
-def map (κ : kernel mα mβ) (f : β → γ) (hf : measurable f) :
-  kernel mα mγ :=
+def map (κ : kernel mα mβ) (f : β → γ) (hf : measurable f) : kernel mα mγ :=
 { val := λ a, (κ a).map f,
   property := (measure.measurable_map _ hf).comp (kernel.measurable κ) }
 
@@ -904,11 +875,7 @@ lemma map_apply {mγ : measurable_space γ} (κ : kernel mα mβ) {f : β → γ
 lemma map_apply' {mγ : measurable_space γ} (κ : kernel mα mβ) {f : β → γ}
   (hf : measurable f) (a : α) {s : set γ} (hs : measurable_set s) :
   map κ f hf a s = κ a (f ⁻¹' s) :=
-begin
-  rw [map],
-  change (κ a).map f s = κ a (f ⁻¹' s),
-  exact measure.map_apply hf hs,
-end
+by rw [map_apply, measure.map_apply hf hs]
 
 lemma lintegral_map {mγ : measurable_space γ} (κ : kernel mα mβ) {f : β → γ}
   (hf : measurable f) (a : α) {g : γ → ℝ≥0∞} (hg : measurable g) :
@@ -918,10 +885,7 @@ by rw [map_apply _ hf, lintegral_map hg hf]
 instance is_markov_kernel.map {mγ : measurable_space γ} (κ : kernel mα mβ)
   [is_markov_kernel κ] {f : β → γ} (hf : measurable f) :
   is_markov_kernel (map κ f hf) :=
-begin
-  refine ⟨λ a, ⟨_⟩⟩,
-  rw [map_apply' κ hf a measurable_set.univ, set.preimage_univ, measure_univ],
-end
+ ⟨λ a, ⟨by rw [map_apply' κ hf a measurable_set.univ, set.preimage_univ, measure_univ]⟩⟩
 
 instance is_finite_kernel.map {mγ : measurable_space γ} (κ : kernel mα mβ)
   [is_finite_kernel κ] {f : β → γ} (hf : measurable f) :
@@ -943,8 +907,7 @@ begin
   simp_rw map_apply' _ hf _ hs,
 end
 
-def comap (κ : kernel mα mβ) (f : γ → α) (hf : measurable f) :
-  kernel mγ mβ :=
+def comap (κ : kernel mα mβ) (f : γ → α) (hf : measurable f) : kernel mγ mβ :=
 { val := λ a, κ (f a),
   property := (kernel.measurable κ).comp hf }
 
@@ -961,7 +924,7 @@ rfl
 instance is_markov_kernel.comap {mγ : measurable_space γ} (κ : kernel mα mβ)
   [is_markov_kernel κ] {f : γ → α} (hf : measurable f) :
   is_markov_kernel (comap κ f hf) :=
-⟨λ a, ⟨by rw [comap_apply κ hf a set.univ, measure_univ],⟩⟩
+⟨λ a, ⟨by rw [comap_apply κ hf a set.univ, measure_univ]⟩⟩
 
 instance is_finite_kernel.comap {mγ : measurable_space γ} (κ : kernel mα mβ)
   [is_finite_kernel κ] {f : γ → α} (hf : measurable f) :
@@ -983,12 +946,10 @@ begin
   simp_rw comap_apply _ hf _ s,
 end
 
-def prod_mk_left (κ : kernel mα mβ) (mγ : measurable_space γ) :
-  kernel (mγ.prod mα) mβ :=
+def prod_mk_left (κ : kernel mα mβ) (mγ : measurable_space γ) : kernel (mγ.prod mα) mβ :=
 comap κ (λ a, a.2) measurable_snd
 
-lemma prod_mk_left_apply (κ : kernel mα mβ) (mγ : measurable_space γ) (ca : γ × α)
-  (s : set β) :
+lemma prod_mk_left_apply (κ : kernel mα mβ) (mγ : measurable_space γ) (ca : γ × α) (s : set β) :
   prod_mk_left κ mγ ca s = (κ ca.snd) s :=
 by rw [prod_mk_left, comap_apply _ _ _ s]
 
@@ -1013,8 +974,7 @@ noncomputable
 def snd_right (κ : kernel mα (mβ.prod mγ)) : kernel mα mγ :=
 map κ (λ p, p.2) measurable_snd
 
-lemma snd_right_apply (κ : kernel mα (mβ.prod mγ)) (a : α) {s : set γ}
-  (hs : measurable_set s) :
+lemma snd_right_apply (κ : kernel mα (mβ.prod mγ)) (a : α) {s : set γ} (hs : measurable_set s) :
   snd_right κ a s = κ a {p | p.2 ∈ s} :=
 by { rw [snd_right, map_apply' _ _ _ hs], refl, }
 
@@ -1039,14 +999,12 @@ instance is_s_finite_kernel.snd_right (κ : kernel mα (mβ.prod mγ)) [is_s_fin
 by { rw snd_right, apply_instance, }
 
 noncomputable
-def comp2 (κ : kernel mα mβ) [is_s_finite_kernel κ]
-  (η : kernel mβ mγ) [is_s_finite_kernel η] :
+def comp2 (κ : kernel mα mβ) [is_s_finite_kernel κ] (η : kernel mβ mγ) [is_s_finite_kernel η] :
   kernel mα mγ :=
 snd_right (comp κ (prod_mk_left η mα))
 
 lemma comp2_apply (κ : kernel mα mβ) [is_s_finite_kernel κ]
-  (η : kernel mβ mγ) [is_s_finite_kernel η] (a : α) {s : set γ}
-  (hs : measurable_set s) :
+  (η : kernel mβ mγ) [is_s_finite_kernel η] (a : α) {s : set γ} (hs : measurable_set s) :
   comp2 κ η a s = ∫⁻ b, η b s ∂κ a :=
 begin
   rw [comp2, snd_right_apply _ _ hs, comp_apply],
@@ -1062,9 +1020,7 @@ begin
   rw [comp2, lintegral_snd_right _ _ hg],
   change ∫⁻ (bc : β × γ), (λ a b, g b) bc.fst bc.snd ∂(comp κ (prod_mk_left η mα)) a
     = ∫⁻ b, ∫⁻ c, g c ∂(η b) ∂κ a,
-  rw lintegral_comp,
-  swap, { exact hg.comp measurable_snd, },
-  refl,
+  exact lintegral_comp _ _ _ (hg.comp measurable_snd),
 end
 
 instance is_markov_kernel.comp2 (κ : kernel mα mβ) [is_markov_kernel κ]

@@ -2419,7 +2419,7 @@ begin
   ext1 s hs,
   simp_rw [sum_apply _ hs, with_density_apply _ hs],
   change ∫⁻ x in s, (∑' n, f n) x ∂μ = ∑' (i : ℕ), ∫⁻ x, f i x ∂(μ.restrict s),
-  rw ← lintegral_tsum h,
+  rw ← lintegral_tsum (λ i, (h i).ae_measurable),
   refine lintegral_congr (λ x, tsum_apply (pi.summable.2 (λ _, ennreal.summable))),
 end
 

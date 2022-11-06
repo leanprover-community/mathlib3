@@ -56,7 +56,8 @@ def slash : ℤ → GL(2, ℝ)⁺ → (ℍ → ℂ) → (ℍ → ℂ) := λ k γ
 
 variables {Γ : subgroup SL(2,ℤ)} {k: ℤ} (f : (ℍ → ℂ))
 
-localized "notation f ` ∣[`:100 k `]`:0 γ :100 := slash k γ f" in modular_forms
+localized "notation (name := modular_forms.slash) f ` ∣[`:100 k `]`:0 γ :100 :=
+  modular_forms.slash k γ f" in modular_forms
 
 lemma slash_right_action (k : ℤ) (A B : GL(2, ℝ)⁺) (f : ℍ → ℂ) :
   (f ∣[k] A) ∣[k] B = f ∣[k] (A * B) :=

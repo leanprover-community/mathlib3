@@ -8,6 +8,7 @@ import algebra.module.linear_map
 import algebra.big_operators.basic
 import data.set.finite
 import group_theory.submonoid.membership
+import group_theory.group_action.big_operators
 import data.finset.preimage
 
 /-!
@@ -146,6 +147,21 @@ end⟩
   (f : Π i, β₁ i → β₂ i → β i) (hf : ∀ i, f i 0 0 = 0) (g₁ : Π₀ i, β₁ i) (g₂ : Π₀ i, β₂ i) (i : ι) :
   zip_with f hf g₁ g₂ i = f i (g₁ i) (g₂ i) :=
 rfl
+
+section piecewise
+variables (x y : Π₀ i, β i) (s : set ι) [Π i, decidable (i ∈ s)]
+
+/-- `x.piecewise y s` is the finitely supported function equal to `x` on the set `s`,
+  and to `y` on its complement. -/
+def piecewise : Π₀ i, β i := zip_with (λ i x y, if i ∈ s then x else y) (λ _, if_t_t _ 0) x y
+
+lemma piecewise_apply (i : ι) : x.piecewise y s i = if i ∈ s then x i else y i :=
+zip_with_apply _ _ x y i
+
+@[simp, norm_cast] lemma coe_piecewise : ⇑(x.piecewise y s) = s.piecewise x y :=
+by { ext, apply piecewise_apply }
+
+end piecewise
 
 end basic
 
@@ -461,8 +477,10 @@ begin
 end
 
 omit dec
-instance [is_empty ι] : unique (Π₀ i, β i) :=
-⟨⟨0⟩, λ a, by { ext, exact is_empty_elim i }⟩
+
+instance unique [∀ i, subsingleton (β i)] : unique (Π₀ i, β i) := fun_like.coe_injective.unique
+
+instance unique_of_is_empty [is_empty ι] : unique (Π₀ i, β i) := fun_like.coe_injective.unique
 
 /-- Given `fintype ι`, `equiv_fun_on_fintype` is the `equiv` between `Π₀ i, β i` and `Π i, β i`.
   (All dependent functions on a finite type are finitely supported.) -/
@@ -580,6 +598,14 @@ by simp
 
 lemma erase_ne {i i' : ι} {f : Π₀ i, β i} (h : i' ≠ i) : (f.erase i) i' = f i' :=
 by simp [h]
+
+lemma piecewise_single_erase (x : Π₀ i, β i) (i : ι) :
+  (single i (x i)).piecewise (x.erase i) {i} = x :=
+begin
+  ext j, rw piecewise_apply, split_ifs,
+  { rw [(id h : j = i), single_eq_same] },
+  { exact erase_ne h },
+end
 
 lemma erase_eq_sub_single {β : ι → Type*} [Π i, add_group (β i)] (f : Π₀ i, β i) (i : ι) :
   f.erase i = f - single i (f i) :=

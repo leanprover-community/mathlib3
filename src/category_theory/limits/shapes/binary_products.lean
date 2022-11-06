@@ -219,6 +219,36 @@ cones.ext (iso.refl _) (λ j, by discrete_cases; cases j; tidy)
 def iso_binary_cofan_mk {X Y : C} (c : binary_cofan X Y) : c ≅ binary_cofan.mk c.inl c.inr :=
 cocones.ext (iso.refl _) (λ j, by discrete_cases; cases j; tidy)
 
+/--
+This is a more convenient formulation to show that a `binary_fan` constructed using
+`binary_fan.mk` is a limit cone.
+-/
+def binary_fan.is_limit_mk {W : C} {fst : W ⟶ X} {snd : W ⟶ Y}
+  (lift : Π (s : binary_fan X Y), s.X ⟶ W)
+  (fac_left : ∀ (s : binary_fan X Y), lift s ≫ fst = s.fst)
+  (fac_right : ∀ (s : binary_fan X Y), lift s ≫ snd = s.snd)
+  (uniq : ∀ (s : binary_fan X Y) (m : s.X ⟶ W)
+    (w_fst : m ≫ fst = s.fst) (w_snd : m ≫ snd = s.snd), m = lift s) :
+  is_limit (binary_fan.mk fst snd) :=
+{ lift := lift,
+  fac' := λ s j, by { rcases j with ⟨⟨⟩⟩, exacts [fac_left s, fac_right s], },
+  uniq' := λ s m w, uniq s m (w ⟨walking_pair.left⟩) (w ⟨walking_pair.right⟩) }
+
+/--
+This is a more convenient formulation to show that a `binary_cofan` constructed using
+`binary_cofan.mk` is a colimit cocone.
+-/
+def binary_cofan.is_colimit_mk {W : C} {inl : X ⟶ W} {inr : Y ⟶ W}
+  (desc : Π (s : binary_cofan X Y), W ⟶ s.X)
+  (fac_left : ∀ (s : binary_cofan X Y), inl ≫ desc s = s.inl)
+  (fac_right : ∀ (s : binary_cofan X Y), inr ≫ desc s = s.inr)
+  (uniq : ∀ (s : binary_cofan X Y) (m : W ⟶ s.X)
+    (w_inl : inl ≫ m = s.inl) (w_inr : inr ≫ m = s.inr), m = desc s) :
+  is_colimit (binary_cofan.mk inl inr) :=
+{ desc := desc,
+  fac' := λ s j, by { rcases j with ⟨⟨⟩⟩, exacts [fac_left s, fac_right s], },
+  uniq' := λ s m w, uniq s m (w ⟨walking_pair.left⟩) (w ⟨walking_pair.right⟩) }
+
 /-- If `s` is a limit binary fan over `X` and `Y`, then every pair of morphisms `f : W ⟶ X` and
     `g : W ⟶ Y` induces a morphism `l : W ⟶ s.X` satisfying `l ≫ s.fst = f` and `l ≫ s.snd = g`.
     -/
@@ -471,8 +501,8 @@ lemma prod.diag_map_fst_snd_comp  [has_limits_of_shape (discrete walking_pair) C
   diag (X ⨯ X') ≫ prod.map (prod.fst ≫ g) (prod.snd ≫ g') = prod.map g g' :=
 by simp
 
-instance {X : C} [has_binary_product X X] : split_mono (diag X) :=
-{ retraction := prod.fst }
+instance {X : C} [has_binary_product X X] : is_split_mono (diag X) :=
+is_split_mono.mk' { retraction := prod.fst }
 
 end prod_lemmas
 

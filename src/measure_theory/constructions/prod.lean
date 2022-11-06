@@ -89,7 +89,7 @@ end
 
 variables [measurable_space α] [measurable_space α'] [measurable_space β] [measurable_space β']
 variables [measurable_space γ]
-variables {μ : measure α} {ν : measure β} {τ : measure γ}
+variables {μ μ' : measure α} {ν ν' : measure β} {τ : measure γ}
 variables [normed_add_comm_group E]
 
 /-! ### Measurability
@@ -325,7 +325,7 @@ bind μ $ λ x : α, map (prod.mk x) ν
 instance prod.measure_space {α β} [measure_space α] [measure_space β] : measure_space (α × β) :=
 { volume := volume.prod volume }
 
-variables {μ ν} [sigma_finite ν]
+variables [sigma_finite ν]
 
 lemma volume_eq_prod (α β) [measure_space α] [measure_space β] :
   (volume : measure (α × β)) = (volume : measure α).prod (volume : measure β) :=
@@ -449,6 +449,14 @@ begin
     eventually_of_forall $ λ x, zero_le _⟩
 end
 
+lemma absolutely_continuous.prod [sigma_finite ν'] (h1 : μ ≪ μ') (h2 : ν ≪ ν') :
+  μ.prod ν ≪ μ'.prod ν' :=
+begin
+  refine absolutely_continuous.mk (λ s hs h2s, _),
+  simp_rw [measure_prod_null hs] at h2s ⊢,
+  exact (h2s.filter_mono h1.ae_le).mono (λ _ h, h2 h)
+end
+
 /-- Note: the converse is not true. For a counterexample, see
   Walter Rudin *Real and Complex Analysis*, example (c) in section 8.9. -/
 lemma ae_ae_of_ae_prod {p : α × β → Prop} (h : ∀ᵐ z ∂μ.prod ν, p z) :
@@ -468,15 +476,15 @@ begin
   { simp_rw [Union_unpair_prod, hμ.spanning, hν.spanning, univ_prod_univ] }
 end
 
-lemma prod_fst_absolutely_continuous : map prod.fst (μ.prod ν) ≪ μ :=
+lemma quasi_measure_preserving_fst : quasi_measure_preserving prod.fst (μ.prod ν) μ :=
 begin
-  refine absolutely_continuous.mk (λ s hs h2s, _),
+  refine ⟨measurable_fst, absolutely_continuous.mk (λ s hs h2s, _)⟩,
   rw [map_apply measurable_fst hs, ← prod_univ, prod_prod, h2s, zero_mul],
 end
 
-lemma prod_snd_absolutely_continuous : map prod.snd (μ.prod ν) ≪ ν :=
+lemma quasi_measure_preserving_snd : quasi_measure_preserving prod.snd (μ.prod ν) ν :=
 begin
-  refine absolutely_continuous.mk (λ s hs h2s, _),
+  refine ⟨measurable_snd, absolutely_continuous.mk (λ s hs h2s, _)⟩,
   rw [map_apply measurable_snd hs, ← univ_prod, prod_prod, h2s, mul_zero]
 end
 
@@ -514,6 +522,9 @@ begin
   intros s t hs ht,
   simp_rw [map_apply measurable_swap (hs.prod ht), preimage_swap_prod, prod_prod, mul_comm]
 end
+
+lemma measure_preserving_swap : measure_preserving prod.swap (μ.prod ν) (ν.prod μ) :=
+⟨measurable_swap, prod_swap⟩
 
 lemma prod_apply_symm {s : set (α × β)} (hs : measurable_set s) :
   μ.prod ν s = ∫⁻ y, μ ((λ x, (x, y)) ⁻¹' s) ∂ν :=
@@ -566,14 +577,14 @@ end
 lemma dirac_prod_dirac {x : α} {y : β} : (dirac x).prod (dirac y) = dirac (x, y) :=
 by rw [prod_dirac, map_dirac measurable_prod_mk_right]
 
-lemma prod_sum {ι : Type*} [fintype ι] (ν : ι → measure β) [∀ i, sigma_finite (ν i)] :
+lemma prod_sum {ι : Type*} [finite ι] (ν : ι → measure β) [∀ i, sigma_finite (ν i)] :
   μ.prod (sum ν) = sum (λ i, μ.prod (ν i)) :=
 begin
   refine prod_eq (λ s t hs ht, _),
   simp_rw [sum_apply _ (hs.prod ht), sum_apply _ ht, prod_prod, ennreal.tsum_mul_left]
 end
 
-lemma sum_prod {ι : Type*} [fintype ι] (μ : ι → measure α) [∀ i, sigma_finite (μ i)] :
+lemma sum_prod {ι : Type*} [finite ι] (μ : ι → measure α) [∀ i, sigma_finite (μ i)] :
   (sum μ).prod ν = sum (λ i, (μ i).prod ν) :=
 begin
   refine prod_eq (λ s t hs ht, _),
@@ -697,21 +708,21 @@ by { rw ← prod_swap at hf, exact hf.comp_measurable measurable_swap }
 
 lemma ae_measurable.fst [sigma_finite ν] {f : α → γ}
   (hf : ae_measurable f μ) : ae_measurable (λ (z : α × β), f z.1) (μ.prod ν) :=
-hf.comp_measurable' measurable_fst prod_fst_absolutely_continuous
+hf.comp_quasi_measure_preserving quasi_measure_preserving_fst
 
 lemma ae_measurable.snd [sigma_finite ν] {f : β → γ}
   (hf : ae_measurable f ν) : ae_measurable (λ (z : α × β), f z.2) (μ.prod ν) :=
-hf.comp_measurable' measurable_snd prod_snd_absolutely_continuous
+hf.comp_quasi_measure_preserving quasi_measure_preserving_snd
 
 lemma measure_theory.ae_strongly_measurable.fst {γ} [topological_space γ] [sigma_finite ν]
   {f : α → γ} (hf : ae_strongly_measurable f μ) :
   ae_strongly_measurable (λ (z : α × β), f z.1) (μ.prod ν) :=
-hf.comp_measurable' measurable_fst prod_fst_absolutely_continuous
+hf.comp_quasi_measure_preserving quasi_measure_preserving_fst
 
 lemma measure_theory.ae_strongly_measurable.snd {γ} [topological_space γ] [sigma_finite ν]
   {f : β → γ} (hf : ae_strongly_measurable f ν) :
   ae_strongly_measurable (λ (z : α × β), f z.2) (μ.prod ν) :=
-hf.comp_measurable' measurable_snd prod_snd_absolutely_continuous
+hf.comp_quasi_measure_preserving quasi_measure_preserving_snd
 
 /-- The Bochner integral is a.e.-measurable.
   This shows that the integrand of (the right-hand-side of) Fubini's theorem is a.e.-measurable. -/
@@ -897,9 +908,7 @@ lemma integrable_prod_mul {f : α → ℝ} {g : β → ℝ} (hf : integrable f �
   integrable (λ (z : α × β), f z.1 * g z.2) (μ.prod ν) :=
 begin
   refine (integrable_prod_iff _).2 ⟨_, _⟩,
-  { apply ae_strongly_measurable.mul,
-    { exact (hf.1.mono' prod_fst_absolutely_continuous).comp_measurable measurable_fst },
-    { exact (hg.1.mono' prod_snd_absolutely_continuous).comp_measurable measurable_snd } },
+  { exact hf.1.fst.mul hg.1.snd },
   { exact eventually_of_forall (λ x, hg.const_mul (f x)) },
   { simpa only [norm_mul, integral_mul_left] using hf.norm.mul_const _ }
 end

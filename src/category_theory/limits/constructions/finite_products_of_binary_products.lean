@@ -303,7 +303,7 @@ begin
 end }
 
 /-- If `C` has an initial object and binary coproducts, then it has finite coproducts. -/
-lemma has_finite_coproducts_of_has_binary_and_terminal : has_finite_coproducts C :=
+lemma has_finite_coproducts_of_has_binary_and_initial : has_finite_coproducts C :=
 ⟨λ J 𝒥, begin
   resetI,
   apply has_colimits_of_shape_of_equivalence (discrete.equivalence (fintype.equiv_fin J)).symm,

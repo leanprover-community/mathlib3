@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 import control.traversable.lemmas
-import logic.equiv.basic
+import logic.equiv.defs
 
 /-!
 # Transferring `traversable` instances along isomorphisms

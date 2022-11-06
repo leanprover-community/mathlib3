@@ -165,16 +165,15 @@ protected lemma uniform_embedding (h : α ≃ᵤ β) : uniform_embedding h :=
 /-- Uniform equiv given a uniform embedding. -/
 noncomputable def of_uniform_embedding (f : α → β) (hf : uniform_embedding f) :
   α ≃ᵤ (set.range f) :=
-{ uniform_continuous_to_fun := uniform_continuous_subtype_mk
-    hf.to_uniform_inducing.uniform_continuous _,
+{ uniform_continuous_to_fun := hf.to_uniform_inducing.uniform_continuous.subtype_mk _,
   uniform_continuous_inv_fun :=
     by simp [hf.to_uniform_inducing.uniform_continuous_iff, uniform_continuous_subtype_coe],
   to_equiv := equiv.of_injective f hf.inj }
 
 /-- If two sets are equal, then they are uniformly equivalent. -/
 def set_congr {s t : set α} (h : s = t) : s ≃ᵤ t :=
-{ uniform_continuous_to_fun := uniform_continuous_subtype_mk uniform_continuous_subtype_val _,
-  uniform_continuous_inv_fun := uniform_continuous_subtype_mk uniform_continuous_subtype_val _,
+{ uniform_continuous_to_fun := uniform_continuous_subtype_val.subtype_mk _,
+  uniform_continuous_inv_fun := uniform_continuous_subtype_val.subtype_mk _,
   to_equiv := equiv.set_congr h }
 
 /-- Product of two uniform isomorphisms. -/
@@ -251,11 +250,10 @@ def {u} pi_fin_two (α : fin 2 → Type u) [Π i, uniform_space (α i)] : (Π i,
 A subset of a uniform space is uniformly isomorphic to its image under a uniform isomorphism.
 -/
 def image (e : α ≃ᵤ β) (s : set α) : s ≃ᵤ e '' s :=
-{ uniform_continuous_to_fun := uniform_continuous_subtype_mk
-    (e.uniform_continuous.comp uniform_continuous_subtype_val) (λ x, mem_image_of_mem _ x.2),
-  uniform_continuous_inv_fun := uniform_continuous_subtype_mk
-    (e.symm.uniform_continuous.comp uniform_continuous_subtype_val)
-    (λ x, by simpa using mem_image_of_mem e.symm x.2),
+{ uniform_continuous_to_fun :=
+    (e.uniform_continuous.comp uniform_continuous_subtype_val).subtype_mk _,
+  uniform_continuous_inv_fun :=
+    (e.symm.uniform_continuous.comp uniform_continuous_subtype_val).subtype_mk _,
   to_equiv := e.to_equiv.image s }
 
 end uniform_equiv

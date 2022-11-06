@@ -256,6 +256,9 @@ include σ₄₃
   f.compl₂ g m q = f m (g q) := rfl
 omit σ₄₃
 
+@[simp] theorem compl₂_id : f.compl₂ linear_map.id = f :=
+by { ext, rw [compl₂_apply, id_coe, id.def] }
+
 /-- Composing linear maps `Q → M` and `Q' → N` with a bilinear map `M → N → P` to
 form a bilinear map `Q → Q' → P`. -/
 def compl₁₂ (f : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ) (g : Qₗ →ₗ[R] Mₗ) (g' : Qₗ' →ₗ[R] Nₗ) :
@@ -264,6 +267,10 @@ def compl₁₂ (f : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ) (g : Qₗ →ₗ[R] M�
 
 @[simp] theorem compl₁₂_apply (f : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ) (g : Qₗ →ₗ[R] Mₗ) (g' : Qₗ' →ₗ[R] Nₗ)
   (x : Qₗ) (y : Qₗ') : f.compl₁₂ g g' x y = f (g x) (g' y) := rfl
+
+@[simp] theorem compl₁₂_id_id (f : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ) :
+  f.compl₁₂ (linear_map.id) (linear_map.id) = f :=
+by { ext, simp_rw [compl₁₂_apply, id_coe, id.def] }
 
 lemma compl₁₂_inj {f₁ f₂ : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ} {g : Qₗ →ₗ[R] Mₗ} {g' : Qₗ' →ₗ[R] Nₗ}
   (hₗ : function.surjective g) (hᵣ : function.surjective g') :
@@ -301,12 +308,55 @@ end comm_semiring
 section comm_ring
 
 variables {R R₂ S S₂ M N P : Type*}
+variables {Mₗ Nₗ Pₗ : Type*}
 variables [comm_ring R] [comm_ring S] [comm_ring R₂] [comm_ring S₂]
-variables [add_comm_group M] [add_comm_group N] [add_comm_group P]
+
+section add_comm_monoid
+
+variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
+variables [add_comm_monoid Mₗ] [add_comm_monoid Nₗ] [add_comm_monoid Pₗ]
 variables [module R M] [module S N] [module R₂ P] [module S₂ P]
+variables [module R Mₗ] [module R Nₗ] [module R Pₗ]
 variables [smul_comm_class S₂ R₂ P]
 variables {ρ₁₂ : R →+* R₂} {σ₁₂ : S →+* S₂}
-variables (b₁ : basis ι₁ R M) (b₂ : basis ι₂ S N)
+variables (b₁ : basis ι₁ R M) (b₂ : basis ι₂ S N) (b₁' : basis ι₁ R Mₗ) (b₂' : basis ι₂ R Nₗ)
+
+
+/-- Two bilinear maps are equal when they are equal on all basis vectors. -/
+lemma ext_basis {B B' : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P}
+  (h : ∀ i j, B (b₁ i) (b₂ j) = B' (b₁ i) (b₂ j)) : B = B' :=
+b₁.ext $ λ i, b₂.ext $ λ j, h i j
+
+/-- Write out `B x y` as a sum over `B (b i) (b j)` if `b` is a basis.
+
+Version for semi-bilinear maps, see `sum_repr_mul_repr_mul` for the bilinear version. -/
+lemma sum_repr_mul_repr_mulₛₗ {B : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P} (x y) :
+  (b₁.repr x).sum (λ i xi, (b₂.repr y).sum (λ j yj, (ρ₁₂ xi) • (σ₁₂ yj) • B (b₁ i) (b₂ j))) =
+  B x y :=
+begin
+  conv_rhs { rw [← b₁.total_repr x, ← b₂.total_repr y] },
+  simp_rw [finsupp.total_apply, finsupp.sum, map_sum₂, map_sum,
+    linear_map.map_smulₛₗ₂, linear_map.map_smulₛₗ],
+end
+
+/-- Write out `B x y` as a sum over `B (b i) (b j)` if `b` is a basis.
+
+Version for bilinear maps, see `sum_repr_mul_repr_mulₛₗ` for the semi-bilinear version. -/
+lemma sum_repr_mul_repr_mul {B : Mₗ →ₗ[R] Nₗ →ₗ[R] Pₗ} (x y) :
+  (b₁'.repr x).sum (λ i xi, (b₂'.repr y).sum (λ j yj, xi • yj • B (b₁' i) (b₂' j))) =
+  B x y :=
+begin
+  conv_rhs { rw [← b₁'.total_repr x, ← b₂'.total_repr y] },
+  simp_rw [finsupp.total_apply, finsupp.sum, map_sum₂, map_sum,
+    linear_map.map_smul₂, linear_map.map_smul],
+end
+
+end add_comm_monoid
+
+section add_comm_group
+
+variables [add_comm_group M] [add_comm_group N] [add_comm_group P]
+variables [module R M] [module S N] [module R₂ P] [module S₂ P]
 
 lemma lsmul_injective [no_zero_smul_divisors R M] {x : R} (hx : x ≠ 0) :
   function.injective (lsmul R M x) :=
@@ -316,22 +366,7 @@ lemma ker_lsmul [no_zero_smul_divisors R M] {a : R} (ha : a ≠ 0) :
   (linear_map.lsmul R M a).ker = ⊥ :=
 linear_map.ker_eq_bot_of_injective (linear_map.lsmul_injective ha)
 
-
-/-- Two bilinear maps are equal when they are equal on all basis vectors. -/
-lemma ext_basis {B B' : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P}
-  (h : ∀ i j, B (b₁ i) (b₂ j) = B' (b₁ i) (b₂ j)) : B = B' :=
-b₁.ext $ λ i, b₂.ext $ λ j, h i j
-
-/-- Write out `B x y` as a sum over `B (b i) (b j)` if `b` is a basis. -/
-lemma sum_repr_mul_repr_mul {B : M →ₛₗ[ρ₁₂] N →ₛₗ[σ₁₂] P} (x y) :
-  (b₁.repr x).sum (λ i xi, (b₂.repr y).sum (λ j yj, (ρ₁₂ xi) • (σ₁₂ yj) • B (b₁ i) (b₂ j))) =
-  B x y :=
-begin
-  conv_rhs { rw [← b₁.total_repr x, ← b₂.total_repr y] },
-  simp_rw [finsupp.total_apply, finsupp.sum, map_sum₂, map_sum,
-    linear_map.map_smulₛₗ₂, linear_map.map_smulₛₗ],
-end
-
+end add_comm_group
 
 end comm_ring
 

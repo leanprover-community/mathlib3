@@ -10,6 +10,7 @@ import topology.uniform_space.compact_convergence
 import topology.algebra.star
 import algebra.algebra.subalgebra.basic
 import tactic.field_simp
+import algebra.star.star_alg_hom
 
 /-!
 # Algebraic structures over continuous functions
@@ -287,7 +288,7 @@ coe_injective.comm_group _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
   [topological_space β] [comm_group β] [topological_group β] : topological_group C(α, β) :=
 { continuous_mul := by
   { letI : uniform_space β := topological_group.to_uniform_space β,
-    have : uniform_group β := topological_group_is_uniform,
+    have : uniform_group β := topological_comm_group_is_uniform,
     rw continuous_iff_continuous_at,
     rintros ⟨f, g⟩,
     rw [continuous_at, tendsto_iff_forall_compact_tendsto_uniformly_on, nhds_prod_eq],
@@ -296,7 +297,7 @@ coe_injective.comm_group _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
       (tendsto_iff_forall_compact_tendsto_uniformly_on.mp filter.tendsto_id K hK)), },
   continuous_inv := by
   { letI : uniform_space β := topological_group.to_uniform_space β,
-    have : uniform_group β := topological_group_is_uniform,
+    have : uniform_group β := topological_comm_group_is_uniform,
     rw continuous_iff_continuous_at,
     intro f,
     rw [continuous_at, tendsto_iff_forall_compact_tendsto_uniformly_on],
@@ -406,7 +407,7 @@ coe_injective.comm_ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub coe_n
 /-- Coercion to a function as a `ring_hom`. -/
 @[simps]
 def coe_fn_ring_hom {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [ring β] [topological_ring β] : C(α, β) →+* (α → β) :=
+  [semiring β] [topological_semiring β] : C(α, β) →+* (α → β) :=
 { to_fun := coe_fn,
   ..(coe_fn_monoid_hom : C(α, β) →* _),
   ..(coe_fn_add_monoid_hom : C(α, β) →+ _) }
@@ -466,7 +467,7 @@ instance [locally_compact_space α] [topological_space R] [has_smul R M]
   exact (continuous_fst.comp continuous_fst).smul h,
 end⟩
 
-@[simp, to_additive, norm_cast]
+@[simp, norm_cast, to_additive]
 lemma coe_smul [has_smul R M] [has_continuous_const_smul R M]
   (c : R) (f : C(α, M)) : ⇑(c • f) = c • f := rfl
 
@@ -575,8 +576,6 @@ def continuous_map.C : R →+* C(α, A) :=
 @[simp] lemma continuous_map.C_apply (r : R) (a : α) : continuous_map.C r a = algebra_map R A r :=
 rfl
 
-variables [has_continuous_const_smul R A] [has_continuous_const_smul R A₂]
-
 instance continuous_map.algebra : algebra R C(α, A) :=
 { to_ring_hom := continuous_map.C,
   commutes' := λ c f, by ext x; exact algebra.commutes' _ _,
@@ -592,16 +591,28 @@ variables (R)
 { commutes' := λ c, continuous_map.ext $ λ _, g.commutes' _,
   .. g.to_ring_hom.comp_left_continuous α hg }
 
+variables (A)
+
+/--
+Precomposition of functions into a normed ring by a continuous map is an algebra homomorphism.
+-/
+@[simps] def continuous_map.comp_right_alg_hom {α β : Type*} [topological_space α]
+  [topological_space β] (f : C(α, β)) : C(β, A) →ₐ[R] C(α, A) :=
+{ to_fun := λ g, g.comp f,
+  map_zero' := by { ext, refl, },
+  map_add' := λ g₁ g₂, by { ext, refl, },
+  map_one' := by { ext, refl, },
+  map_mul' := λ g₁ g₂, by { ext, refl, },
+  commutes' := λ r, by { ext, refl, }, }
+
+variables {A}
+
 /-- Coercion to a function as an `alg_hom`. -/
 @[simps]
 def continuous_map.coe_fn_alg_hom : C(α, A) →ₐ[R] (α → A) :=
 { to_fun := coe_fn,
   commutes' := λ r, rfl,
-  -- `..(continuous_map.coe_fn_ring_hom : C(α, A) →+* _)` times out for some reason
-  map_zero' := continuous_map.coe_zero,
-  map_one' := continuous_map.coe_one,
-  map_add' := continuous_map.coe_add,
-  map_mul' := continuous_map.coe_mul }
+  ..(continuous_map.coe_fn_ring_hom : C(α, A) →+* _) }
 
 variables {R}
 
@@ -681,8 +692,7 @@ end
 
 end continuous_map
 
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma continuous_map.subsingleton_subalgebra (α : Type*) [topological_space α]
+instance continuous_map.subsingleton_subalgebra (α : Type*) [topological_space α]
   (R : Type*) [comm_semiring R] [topological_space R] [topological_semiring R]
   [subsingleton α] : subsingleton (subalgebra R C(α, R)) :=
 begin
@@ -826,4 +836,55 @@ instance [has_star R] [has_star β] [has_smul R β] [star_module R β]
 
 end star_structure
 
+variables {X Y Z : Type*} [topological_space X] [topological_space Y] [topological_space Z]
+variables (𝕜 : Type*) [comm_semiring 𝕜]
+variables (A : Type*) [topological_space A] [semiring A] [topological_semiring A] [star_ring A]
+variables [has_continuous_star A] [algebra 𝕜 A]
+
+/-- The functorial map taking `f : C(X, Y)` to `C(Y, A) →⋆ₐ[𝕜] C(X, A)` given by pre-composition
+with the continuous function `f`. See `continuous_map.comp_monoid_hom'` and
+`continuous_map.comp_add_monoid_hom'`, `continuous_map.comp_right_alg_hom` for bundlings of
+pre-composition into a `monoid_hom`, an `add_monoid_hom` and an `alg_hom`, respectively, under
+suitable assumptions on `A`. -/
+@[simps] def comp_star_alg_hom' (f : C(X, Y)) : C(Y, A) →⋆ₐ[𝕜] C(X, A) :=
+{ to_fun := λ g, g.comp f,
+  map_one' := one_comp _,
+  map_mul' := λ _ _, rfl,
+  map_zero' := zero_comp _,
+  map_add' := λ _ _, rfl,
+  commutes' := λ _, rfl,
+  map_star' := λ _, rfl }
+
+/-- `continuous_map.comp_star_alg_hom'` sends the identity continuous map to the identity
+`star_alg_hom` -/
+lemma comp_star_alg_hom'_id :
+  comp_star_alg_hom' 𝕜 A (continuous_map.id X) = star_alg_hom.id 𝕜 C(X, A) :=
+star_alg_hom.ext $ λ _, continuous_map.ext $ λ _, rfl
+
+/-- `continuous_map.comp_star_alg_hom` is functorial. -/
+lemma comp_star_alg_hom'_comp (g : C(Y, Z)) (f : C(X, Y)) :
+  comp_star_alg_hom' 𝕜 A (g.comp f) = (comp_star_alg_hom' 𝕜 A f).comp (comp_star_alg_hom' 𝕜 A g) :=
+star_alg_hom.ext $ λ _, continuous_map.ext $ λ _, rfl
+
 end continuous_map
+
+namespace homeomorph
+
+variables {X Y : Type*} [topological_space X] [topological_space Y]
+variables (𝕜 : Type*) [comm_semiring 𝕜]
+variables (A : Type*) [topological_space A] [semiring A] [topological_semiring A] [star_ring A]
+variables [has_continuous_star A] [algebra 𝕜 A]
+
+/-- `continuous_map.comp_star_alg_hom'` as a `star_alg_equiv` when the continuous map `f` is
+actually a homeomorphism. -/
+@[simps] def comp_star_alg_equiv' (f : X ≃ₜ Y) : C(Y, A) ≃⋆ₐ[𝕜] C(X, A) :=
+{ to_fun := (f : C(X, Y)).comp_star_alg_hom' 𝕜 A,
+  inv_fun := (f.symm : C(Y, X)).comp_star_alg_hom' 𝕜 A,
+  left_inv := λ g, by simp only [continuous_map.comp_star_alg_hom'_apply, continuous_map.comp_assoc,
+    to_continuous_map_comp_symm, continuous_map.comp_id],
+  right_inv := λ g, by simp only [continuous_map.comp_star_alg_hom'_apply,
+    continuous_map.comp_assoc, symm_comp_to_continuous_map, continuous_map.comp_id],
+  map_smul' := λ k a, map_smul (f.to_continuous_map.comp_star_alg_hom' 𝕜 A) k a,
+  .. (f.to_continuous_map.comp_star_alg_hom' 𝕜 A) }
+
+end homeomorph

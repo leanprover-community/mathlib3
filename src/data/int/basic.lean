@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
 import data.nat.pow
-import order.min_max
 import data.nat.cast
+import algebra.ring.regular
 
 /-!
 # Basic operations on the integers
@@ -65,6 +65,12 @@ instance : comm_ring int :=
                                   int.one_mul],
   zsmul_neg'     := λ n x, int.neg_mul_eq_neg_mul_symm (n.succ : ℤ) x }
 
+instance : linear_ordered_comm_ring int :=
+{ add_le_add_left := @int.add_le_add_left,
+  mul_pos         := @int.mul_pos,
+  zero_le_one     := le_of_lt int.zero_lt_one,
+  .. int.comm_ring, .. int.linear_order, .. int.nontrivial }
+
 /-! ### Extra instances to short-circuit type class resolution
 
 These also prevent non-computable instances like `int.normed_comm_ring` being used to construct
@@ -85,15 +91,9 @@ instance : comm_semiring int      := by apply_instance
 instance : semiring int           := by apply_instance
 instance : ring int               := by apply_instance
 instance : distrib int            := by apply_instance
-
-instance : linear_ordered_comm_ring int :=
-{ add_le_add_left := @int.add_le_add_left,
-  mul_pos         := @int.mul_pos,
-  zero_le_one     := le_of_lt int.zero_lt_one,
-  .. int.comm_ring, .. int.linear_order, .. int.nontrivial }
-
-instance : linear_ordered_add_comm_group int :=
-by apply_instance
+instance : ordered_comm_ring ℤ    := strict_ordered_comm_ring.to_ordered_comm_ring'
+instance : ordered_ring ℤ         := strict_ordered_ring.to_ordered_ring'
+instance : linear_ordered_add_comm_group ℤ := by apply_instance
 
 @[simp] lemma add_neg_one (i : ℤ) : i + -1 = i - 1 := rfl
 
@@ -1079,7 +1079,7 @@ protected theorem mul_lt_of_lt_div {a b c : ℤ} (H : 0 < c) (H3 : a < b / c) : 
 lt_of_not_ge $ mt (int.div_le_of_le_mul H) (not_le_of_gt H3)
 
 protected theorem mul_le_of_le_div {a b c : ℤ} (H1 : 0 < c) (H2 : a ≤ b / c) : a * c ≤ b :=
-le_trans (decidable.mul_le_mul_of_nonneg_right H2 (le_of_lt H1)) (int.div_mul_le _ (ne_of_gt H1))
+le_trans (mul_le_mul_of_nonneg_right H2 (le_of_lt H1)) (int.div_mul_le _ (ne_of_gt H1))
 
 protected theorem le_div_of_mul_le {a b c : ℤ} (H1 : 0 < c) (H2 : a * c ≤ b) : a ≤ b / c :=
 le_of_lt_add_one $ lt_of_mul_lt_mul_right
@@ -1102,7 +1102,7 @@ protected theorem div_lt_iff_lt_mul {a b c : ℤ} (H : 0 < c) : a / c < b ↔ a 
 
 protected theorem le_mul_of_div_le {a b c : ℤ} (H1 : 0 ≤ b) (H2 : b ∣ a) (H3 : a / b ≤ c) :
   a ≤ c * b :=
-by rw [← int.div_mul_cancel H2]; exact decidable.mul_le_mul_of_nonneg_right H3 H1
+by rw [← int.div_mul_cancel H2]; exact mul_le_mul_of_nonneg_right H3 H1
 
 protected theorem lt_div_of_mul_lt {a b c : ℤ} (H1 : 0 ≤ b) (H2 : b ∣ c) (H3 : a * b < c) :
   a < c / b :=

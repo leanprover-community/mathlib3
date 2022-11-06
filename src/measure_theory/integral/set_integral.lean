@@ -171,7 +171,7 @@ by rw [← set.indicator_add_compl_eq_piecewise,
   integral_add' (hf.indicator hs) (hg.indicator hs.compl),
   integral_indicator hs, integral_indicator hs.compl]
 
-lemma tendsto_set_integral_of_monotone {ι : Type*} [encodable ι] [semilattice_sup ι]
+lemma tendsto_set_integral_of_monotone {ι : Type*} [countable ι] [semilattice_sup ι]
   {s : ι → set α} {f : α → E} (hsm : ∀ i, measurable_set (s i))
   (h_mono : monotone s) (hfi : integrable_on f (⋃ n, s n) μ) :
   tendsto (λ i, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋃ n, s n), f a ∂μ)) :=
@@ -195,7 +195,7 @@ begin
     (hi.2.trans_lt $ ennreal.add_lt_top.2 ⟨hfi', ennreal.coe_lt_top⟩).ne]
 end
 
-lemma has_sum_integral_Union_ae {ι : Type*} [encodable ι] {s : ι → set α} {f : α → E}
+lemma has_sum_integral_Union_ae {ι : Type*} [countable ι] {s : ι → set α} {f : α → E}
   (hm : ∀ i, null_measurable_set (s i) μ) (hd : pairwise (ae_disjoint μ on s))
   (hfi : integrable_on f (⋃ i, s i) μ) :
   has_sum (λ n, ∫ a in s n, f a ∂ μ) (∫ a in ⋃ n, s n, f a ∂μ) :=
@@ -204,19 +204,19 @@ begin
   exact has_sum_integral_measure hfi
 end
 
-lemma has_sum_integral_Union {ι : Type*} [encodable ι] {s : ι → set α} {f : α → E}
+lemma has_sum_integral_Union {ι : Type*} [countable ι] {s : ι → set α} {f : α → E}
   (hm : ∀ i, measurable_set (s i)) (hd : pairwise (disjoint on s))
   (hfi : integrable_on f (⋃ i, s i) μ) :
   has_sum (λ n, ∫ a in s n, f a ∂ μ) (∫ a in ⋃ n, s n, f a ∂μ) :=
 has_sum_integral_Union_ae (λ i, (hm i).null_measurable_set) (hd.mono (λ i j h, h.ae_disjoint)) hfi
 
-lemma integral_Union {ι : Type*} [encodable ι] {s : ι → set α} {f : α → E}
+lemma integral_Union {ι : Type*} [countable ι] {s : ι → set α} {f : α → E}
   (hm : ∀ i, measurable_set (s i)) (hd : pairwise (disjoint on s))
   (hfi : integrable_on f (⋃ i, s i) μ) :
   (∫ a in (⋃ n, s n), f a ∂μ) = ∑' n, ∫ a in s n, f a ∂ μ :=
 (has_sum.tsum_eq (has_sum_integral_Union hm hd hfi)).symm
 
-lemma integral_Union_ae {ι : Type*} [encodable ι] {s : ι → set α} {f : α → E}
+lemma integral_Union_ae {ι : Type*} [countable ι] {s : ι → set α} {f : α → E}
   (hm : ∀ i, null_measurable_set (s i) μ) (hd : pairwise (ae_disjoint μ on s))
   (hfi : integrable_on f (⋃ i, s i) μ) :
   (∫ a in (⋃ n, s n), f a ∂μ) = ∑' n, ∫ a in s n, f a ∂ μ :=
@@ -247,7 +247,7 @@ lemma set_integral_neg_eq_set_integral_nonpos [linear_order E] [order_closed_top
   ∫ x in {x | f x < 0}, f x ∂μ = ∫ x in {x | f x ≤ 0}, f x ∂μ :=
 begin
   have h_union : {x | f x ≤ 0} = {x | f x < 0} ∪ {x | f x = 0},
-    by { ext, simp_rw [set.mem_union_eq, set.mem_set_of_eq], exact le_iff_lt_or_eq, },
+    by { ext, simp_rw [set.mem_union, set.mem_set_of_eq], exact le_iff_lt_or_eq, },
   rw h_union,
   exact (set_integral_union_eq_left hf hfi (hf.measurable_set_lt strongly_measurable_const)
     (λ x hx, hx)).symm,
@@ -274,7 +274,7 @@ begin
   refine set_integral_congr h_meas.compl (λ x hx, _),
   dsimp only,
   rw [real.norm_eq_abs, abs_eq_neg_self.mpr _],
-  rw [set.mem_compl_iff, set.nmem_set_of_eq] at hx,
+  rw [set.mem_compl_iff, set.nmem_set_of_iff] at hx,
   linarith,
 end
 ... = ∫ x in {x | 0 ≤ f x}, f x ∂μ - ∫ x in {x | f x ≤ 0}, f x ∂μ :
@@ -394,6 +394,30 @@ begin
   rw [integral_pos_iff_support_of_nonneg_ae hf hfi, measure.restrict_apply₀],
   rw support_eq_preimage,
   exact hfi.ae_strongly_measurable.ae_measurable.null_measurable (measurable_set_singleton 0).compl
+end
+
+lemma set_integral_gt_gt {R : ℝ} {f : α → ℝ} (hR : 0 ≤ R) (hfm : measurable f)
+  (hfint : integrable_on f {x | ↑R < f x} μ) (hμ : μ {x | ↑R < f x} ≠ 0):
+  (μ {x | ↑R < f x}).to_real * R < ∫ x in {x | ↑R < f x}, f x ∂μ :=
+begin
+  have : integrable_on (λ x, R) {x | ↑R < f x} μ,
+  { refine ⟨ae_strongly_measurable_const, lt_of_le_of_lt _ hfint.2⟩,
+    refine set_lintegral_mono (measurable.nnnorm _).coe_nnreal_ennreal
+      hfm.nnnorm.coe_nnreal_ennreal (λ x hx, _),
+    { exact measurable_const },
+    { simp only [ennreal.coe_le_coe, real.nnnorm_of_nonneg hR,
+        real.nnnorm_of_nonneg (hR.trans $ le_of_lt hx), subtype.mk_le_mk],
+      exact le_of_lt hx } },
+  rw [← sub_pos, ← smul_eq_mul, ← set_integral_const, ← integral_sub hfint this,
+    set_integral_pos_iff_support_of_nonneg_ae],
+  { rw ← zero_lt_iff at hμ,
+    rwa set.inter_eq_self_of_subset_right,
+    exact λ x hx, ne.symm (ne_of_lt $ sub_pos.2 hx) },
+  { change ∀ᵐ x ∂(μ.restrict _), _,
+    rw ae_restrict_iff,
+    { exact eventually_of_forall (λ x hx, sub_nonneg.2 $ le_of_lt hx) },
+    { exact measurable_set_le measurable_zero (hfm.sub measurable_const) } },
+  { exact integrable.sub hfint this },
 end
 
 lemma set_integral_trim {α} {m m0 : measurable_space α} {μ : measure α} (hm : m ≤ m0) {f : α → E}

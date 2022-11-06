@@ -3,7 +3,7 @@ Copyright (c) 2021 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Aaron Anderson
 -/
-import data.finsupp.basic
+import data.finsupp.defs
 
 /-!
 # Pointwise order on finitely supported functions
@@ -96,7 +96,6 @@ instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (ι →₀ α) :
 
 instance [ordered_cancel_add_comm_monoid α] : ordered_cancel_add_comm_monoid (ι →₀ α) :=
 { le_of_add_le_add_left := λ f g i h s, le_of_add_le_add_left (h s),
-  add_left_cancel := λ f g i h, ext $ λ s, add_left_cancel (ext_iff.1 h s),
   .. finsupp.ordered_add_comm_monoid }
 
 instance [ordered_add_comm_monoid α] [contravariant_class α α (+) (≤)] :

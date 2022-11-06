@@ -120,12 +120,6 @@ meta def head : name → string
 meta def is_private (n : name) : bool :=
 n.head = "_private"
 
-/-- Get the last component of a name, and convert it to a string. -/
-meta def last : name → string
-| (mk_string s _)  := s
-| (mk_numeral n _) := repr n
-| anonymous        := "[anonymous]"
-
 /-- Returns the number of characters used to print all the string components of a name,
   including periods between name segments. Ignores numerical parts of a name. -/
 meta def length : name → ℕ

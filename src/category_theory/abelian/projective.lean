@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Markus Himmel, Scott Morrison
+Authors: Markus Himmel, Scott Morrison, Jakob von Raumer
 -/
 import category_theory.abelian.exact
 import category_theory.preadditive.projective_resolution
@@ -18,6 +18,7 @@ noncomputable theory
 
 open category_theory
 open category_theory.limits
+open opposite
 
 universes v u
 
@@ -25,18 +26,29 @@ namespace category_theory
 
 open category_theory.projective
 
-variables {C : Type u} [category.{v} C]
-
-section
-variables [enough_projectives C] [abelian C]
+variables {C : Type u} [category.{v} C] [abelian C]
 
 /--
 When `C` is abelian, `projective.d f` and `f` are exact.
 -/
-lemma exact_d_f {X Y : C} (f : X ⟶ Y) : exact (d f) f :=
+lemma exact_d_f [enough_projectives C] {X Y : C} (f : X ⟶ Y) : exact (d f) f :=
 (abelian.exact_iff _ _).2 $
   ⟨by simp, zero_of_epi_comp (π _) $ by rw [←category.assoc, cokernel.condition]⟩
 
+/-- The preadditive Co-Yoneda functor on `P` preserves colimits if `P` is projective. -/
+def preserves_finite_colimits_preadditive_coyoneda_obj_of_projective (P : C)
+  [hP : projective P] : preserves_finite_colimits (preadditive_coyoneda_obj (op P)) :=
+begin
+  letI := (projective_iff_preserves_epimorphisms_preadditive_coyoneda_obj' P).mp hP,
+  apply functor.preserves_finite_colimits_of_preserves_epis_and_kernels,
+end
+
+/-- An object is projective if its preadditive Co-Yoneda functor preserves finite colimits. -/
+lemma projective_of_preserves_finite_colimits_preadditive_coyoneda_obj (P : C)
+  [hP : preserves_finite_colimits (preadditive_coyoneda_obj (op P))] : projective P :=
+begin
+  rw projective_iff_preserves_epimorphisms_preadditive_coyoneda_obj',
+  apply_instance
 end
 
 namespace ProjectiveResolution
@@ -49,8 +61,7 @@ After that, we build the `n+1`-st object as `projective.syzygies`
 applied to the previously constructed morphism,
 and the map to the `n`-th object as `projective.d`.
 -/
-
-variables [abelian C] [enough_projectives C]
+variables [enough_projectives C]
 
 /-- Auxiliary definition for `ProjectiveResolution.of`. -/
 @[simps]

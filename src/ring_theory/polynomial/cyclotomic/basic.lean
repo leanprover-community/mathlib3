@@ -34,7 +34,7 @@ comes from a polynomial with integer coefficients.
 * `deg_of_cyclotomic` : The degree of `cyclotomic n` is `totient n`.
 * `prod_cyclotomic_eq_X_pow_sub_one` : `X ^ n - 1 = ∏ (cyclotomic i)`, where `i` divides `n`.
 * `cyclotomic_eq_prod_X_pow_sub_one_pow_moebius` : The Möbius inversion formula for
-  `cyclotomic n R` over an abstract fraction field for `polynomial R`.
+  `cyclotomic n R` over an abstract fraction field for `R[X]`.
 * `cyclotomic.irreducible` : `cyclotomic n ℤ` is irreducible.
 
 ## Implementation details
@@ -45,7 +45,7 @@ not the standard one unless there is a primitive `n`th root of unity in `R`. For
 `cyclotomic' 3 ℤ = 1`, since there are no primitive cube roots of unity in `ℤ`. The main example is
 `R = ℂ`, we decided to work in general since the difficulties are essentially the same.
 To get the standard cyclotomic polynomials, we use `int_coeff_of_cycl`, with `R = ℂ`, to get a
-polynomial with integer coefficients and then we map it to `polynomial R`, for any ring `R`.
+polynomial with integer coefficients and then we map it to `R[X]`, for any ring `R`.
 To prove `cyclotomic.irreducible`, the irreducibility of `cyclotomic n ℤ`, we show in
 `cyclotomic_eq_minpoly` that `cyclotomic n ℤ` is the minimal polynomial of any `n`-th primitive root
 of unity `μ : K`, where `K` is a field of characteristic `0`.
@@ -278,7 +278,7 @@ lemma int_cyclotomic_rw {n : ℕ} (h : n ≠ 0) :
 begin
   simp only [cyclotomic, h, dif_neg, not_false_iff],
   ext i,
-  simp only [coeff_map, int.cast_id, ring_hom.eq_int_cast]
+  simp only [coeff_map, int.cast_id, eq_int_cast]
 end
 
 /-- `cyclotomic n R` comes from `cyclotomic n ℤ`. -/
@@ -313,7 +313,7 @@ end
 begin
   rw [←map_cyclotomic_int n R, ←map_cyclotomic_int n S],
   ext i,
-  simp only [coeff_map, ring_hom.eq_int_cast, ring_hom.map_int_cast]
+  simp only [coeff_map, eq_int_cast, _root_.map_int_cast]
 end
 
 lemma cyclotomic.eval_apply {R S : Type*} (q : R) (n : ℕ) [ring R] [ring S] (f : R →+* S) :
@@ -370,7 +370,7 @@ begin
     { simp only [cyclotomic, degree_one, dif_pos, nat.totient_zero, with_top.coe_zero]},
       rw [←degree_cyclotomic' (complex.is_primitive_root_exp k.succ (nat.succ_ne_zero k))],
       exact (int_cyclotomic_spec k.succ).2.1 },
-  simp only [(int_cyclotomic_spec n).right.right, ring_hom.eq_int_cast, monic.leading_coeff,
+  simp only [(int_cyclotomic_spec n).right.right, eq_int_cast, monic.leading_coeff,
   int.cast_one, ne.def, not_false_iff, one_ne_zero]
 end
 
@@ -496,7 +496,7 @@ section arithmetic_function
 open nat.arithmetic_function
 open_locale arithmetic_function
 
-/-- `cyclotomic n R` can be expressed as a product in a fraction field of `polynomial R`
+/-- `cyclotomic n R` can be expressed as a product in a fraction field of `R[X]`
   using Möbius inversion. -/
 lemma cyclotomic_eq_prod_X_pow_sub_one_pow_moebius {n : ℕ} (R : Type*) [comm_ring R] [is_domain R] :
   algebra_map _ (ratfunc R) (cyclotomic n R) =

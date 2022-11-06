@@ -47,13 +47,14 @@ open_locale big_operators
 
 section semiring
 
-variables {ι 𝕜 F : Type*} [fintype ι] [semiring 𝕜] [topological_space 𝕜]
+variables {ι 𝕜 F : Type*} [finite ι] [semiring 𝕜] [topological_space 𝕜]
   [add_comm_monoid F] [module 𝕜 F] [topological_space F]
   [has_continuous_add F] [has_continuous_smul 𝕜 F]
 
-/-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/
+/-- A linear map on `ι → 𝕜` (where `ι` is finite) is continuous -/
 lemma linear_map.continuous_on_pi (f : (ι → 𝕜) →ₗ[𝕜] F) : continuous f :=
 begin
+  casesI nonempty_fintype ι,
   classical,
   -- for the proof, write `f` in the standard basis, and use that each coordinate is a continuous
   -- function.
@@ -69,9 +70,8 @@ end semiring
 
 section field
 
-variables {ι 𝕜 E F : Type*} [fintype ι] [field 𝕜] [topological_space 𝕜]
-  [add_comm_group E] [module 𝕜 E] [topological_space E]
-  [add_comm_group F] [module 𝕜 F] [topological_space F]
+variables {𝕜 E F : Type*} [field 𝕜] [topological_space 𝕜] [add_comm_group E] [module 𝕜 E]
+  [topological_space E] [add_comm_group F] [module 𝕜 F] [topological_space F]
   [topological_add_group F] [has_continuous_smul 𝕜 F]
 
 /-- The space of continuous linear maps between finite-dimensional spaces is finite-dimensional. -/
@@ -197,6 +197,19 @@ lemma linear_map.continuous_iff_is_closed_ker (l : E →ₗ[𝕜] 𝕜) :
   continuous l ↔ is_closed (l.ker : set E) :=
 ⟨λ h, is_closed_singleton.preimage h, l.continuous_of_is_closed_ker⟩
 
+/-- Over a nontrivially normed field, any linear form which is nonzero on a nonempty open set is
+    automatically continuous. -/
+lemma linear_map.continuous_of_nonzero_on_open (l : E →ₗ[𝕜] 𝕜) (s : set E) (hs₁ : is_open s)
+  (hs₂ : s.nonempty) (hs₃ : ∀ x ∈ s, l x ≠ 0) : continuous l :=
+begin
+  refine l.continuous_of_is_closed_ker (l.is_closed_or_dense_ker.resolve_right $ λ hl, _),
+  rcases hs₂ with ⟨x, hx⟩,
+  have : x ∈ interior (l.ker : set E)ᶜ,
+  { rw mem_interior_iff_mem_nhds,
+    exact mem_of_superset (hs₁.mem_nhds hx) hs₃ },
+  rwa hl.interior_compl at this
+end
+
 variables [complete_space 𝕜]
 
 /-- This version imposes `ι` and `E` to live in the same universe, so you should instead use
@@ -205,7 +218,7 @@ private lemma continuous_equiv_fun_basis_aux [ht2 : t2_space E] {ι : Type v} [f
   (ξ : basis ι 𝕜 E) : continuous ξ.equiv_fun :=
 begin
   letI : uniform_space E := topological_add_group.to_uniform_space E,
-  letI : uniform_add_group E := topological_add_group_is_uniform,
+  letI : uniform_add_group E := topological_add_comm_group_is_uniform,
   letI : separated_space E := separated_iff_t2.mpr ht2,
   unfreezingI { induction hn : fintype.card ι with n IH generalizing ι E },
   { rw fintype.card_eq_zero_iff at hn,
@@ -314,11 +327,11 @@ def to_continuous_linear_map : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F' 
 rfl
 
 @[simp] lemma ker_to_continuous_linear_map (f : E →ₗ[𝕜] F') :
-  f.to_continuous_linear_map.ker = f.ker :=
+  ker f.to_continuous_linear_map = ker f :=
 rfl
 
 @[simp] lemma range_to_continuous_linear_map (f : E →ₗ[𝕜] F') :
-  f.to_continuous_linear_map.range = f.range :=
+  range f.to_continuous_linear_map = range f :=
 rfl
 
 end linear_map

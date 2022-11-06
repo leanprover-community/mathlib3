@@ -60,14 +60,14 @@ noncomputable theory
 open complex set measure_theory function filter topological_space
 open_locale real big_operators
 
-local notation `ℝ⁰`:= fin 0 → ℝ
-local notation `ℂ⁰`:= fin 0 → ℂ
-local notation `ℝ¹`:= fin 1 → ℝ
-local notation `ℂ¹`:= fin 1 → ℂ
-local notation `ℝⁿ`:= fin n → ℝ
-local notation `ℂⁿ`:= fin n → ℂ
-local notation `ℝⁿ⁺¹`:= fin (n + 1) → ℝ
-local notation `ℂⁿ⁺¹`:= fin (n + 1) → ℂ
+local notation `ℝ⁰` := fin 0 → ℝ
+local notation `ℂ⁰` := fin 0 → ℂ
+local notation `ℝ¹` := fin 1 → ℝ
+local notation `ℂ¹` := fin 1 → ℂ
+local notation `ℝⁿ` := fin n → ℝ
+local notation `ℂⁿ` := fin n → ℂ
+local notation `ℝⁿ⁺¹` := fin (n + 1) → ℝ
+local notation `ℂⁿ⁺¹` := fin (n + 1) → ℂ
 
 /-!
 ### `torus_map`, a generalization of a torus

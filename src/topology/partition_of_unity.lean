@@ -361,7 +361,7 @@ begin
     exact λ i hi, f.support_to_pou_fun_subset i hi },
   have B : mul_support (λ i, 1 - f i x) ⊆ s,
   { rw [hs, mul_support_one_sub], exact λ i, id },
-  letI : linear_order ι := linear_order_of_STO' well_ordering_rel,
+  letI : linear_order ι := linear_order_of_STO well_ordering_rel,
   rw [finsum_eq_sum_of_support_subset _ A, finprod_eq_prod_of_mul_support_subset _ B,
     finset.prod_one_sub_ordered, sub_sub_cancel],
   refine finset.sum_congr rfl (λ i hi, _),

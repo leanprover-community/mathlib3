@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import topology.order
+import topology.nhds_set
 
 /-!
 # Specific classes of maps between topological spaces
@@ -77,6 +78,10 @@ lemma inducing.nhds_eq_comap {f : α → β} (hf : inducing f) :
   ∀ (a : α), 𝓝 a = comap f (𝓝 $ f a) :=
 inducing_iff_nhds.1 hf
 
+lemma inducing.nhds_set_eq_comap {f : α → β} (hf : inducing f) (s : set α) :
+  𝓝ˢ s = comap f (𝓝ˢ (f '' s)) :=
+by simp only [nhds_set, Sup_image, comap_supr, hf.nhds_eq_comap, supr_image]
+
 lemma inducing.map_nhds_eq {f : α → β} (hf : inducing f) (a : α) :
   (𝓝 a).map f = 𝓝[range f] (f a) :=
 hf.induced.symm ▸ map_nhds_induced_eq a
@@ -128,6 +133,10 @@ by rw [hf.induced, is_closed_induced_iff]
 lemma inducing.is_closed_iff' {f : α → β} (hf : inducing f) {s : set α} :
   is_closed s ↔ ∀ x, f x ∈ closure (f '' s) → x ∈ s :=
 by rw [hf.induced, is_closed_induced_iff']
+
+lemma inducing.is_closed_preimage {f : α → β} (h : inducing f) (s : set β) (hs : is_closed s) :
+  is_closed (f ⁻¹' s) :=
+(inducing.is_closed_iff h).mpr ⟨s, hs, rfl⟩
 
 lemma inducing.is_open_iff {f : α → β} (hf : inducing f) {s : set α} :
   is_open s ↔ ∃ t, is_open t ∧ f ⁻¹' t = s :=
@@ -356,7 +365,7 @@ lemma is_open_map_iff_nhds_le [topological_space α] [topological_space β] {f :
 
 lemma is_open_map_iff_interior [topological_space α] [topological_space β] {f : α → β} :
   is_open_map f ↔ ∀ s, f '' (interior s) ⊆ interior (f '' s) :=
-⟨is_open_map.image_interior_subset, λ hs u hu, subset_interior_iff_open.mp $
+⟨is_open_map.image_interior_subset, λ hs u hu, subset_interior_iff_is_open.mp $
   calc f '' u = f '' (interior u) : by rw hu.interior_eq
           ... ⊆ interior (f '' u) : hs u⟩
 
@@ -429,6 +438,7 @@ section open_embedding
 variables [topological_space α] [topological_space β] [topological_space γ]
 
 /-- An open embedding is an embedding with open image. -/
+@[mk_iff]
 structure open_embedding (f : α → β) extends _root_.embedding f : Prop :=
 (open_range : is_open $ range f)
 
@@ -510,6 +520,7 @@ section closed_embedding
 variables [topological_space α] [topological_space β] [topological_space γ]
 
 /-- A closed embedding is an embedding with closed image. -/
+@[mk_iff]
 structure closed_embedding (f : α → β) extends _root_.embedding f : Prop :=
 (closed_range : is_closed $ range f)
 
@@ -569,7 +580,7 @@ lemma closed_embedding.comp {g : β → γ} {f : α → β}
 
 lemma closed_embedding.closure_image_eq {f : α → β} (hf : closed_embedding f) (s : set α) :
   closure (f '' s) = f '' closure s :=
-le_antisymm (is_closed_map_iff_closure_image.mp hf.is_closed_map _)
+(hf.is_closed_map.closure_image_subset _).antisymm
   (image_closure_subset_closure_image hf.continuous)
 
 end closed_embedding

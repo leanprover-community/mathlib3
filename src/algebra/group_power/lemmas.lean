@@ -56,8 +56,9 @@ begin
   exact and.left
 end
 
-lemma is_unit_pos_pow_iff {m : M} :
-  ∀ {n : ℕ} (h : 0 < n), is_unit (m ^ n) ↔ is_unit m
+lemma is_unit_pow_iff {m : M} :
+  ∀ {n : ℕ} (h : n ≠ 0), is_unit (m ^ n) ↔ is_unit m
+| 0 h := (h rfl).elim
 | (n + 1) _ := is_unit_pow_succ_iff
 
 /-- If `x ^ n.succ = 1` then `x` has an inverse, `x^n`. -/
@@ -66,15 +67,15 @@ def invertible_of_pow_succ_eq_one (x : M) (n : ℕ) (hx : x ^ n.succ = 1) :
 ⟨x ^ n, (pow_succ' x n).symm.trans hx, (pow_succ x n).symm.trans hx⟩
 
 /-- If `x ^ n = 1` then `x` has an inverse, `x^(n - 1)`. -/
-def invertible_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :
+def invertible_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : n ≠ 0) :
   invertible x :=
 begin
   apply invertible_of_pow_succ_eq_one x (n - 1),
   convert hx,
-  exact tsub_add_cancel_of_le (nat.succ_le_of_lt hn),
+  exact nat.succ_pred_eq_of_pos (pos_iff_ne_zero.2 hn),
 end
 
-lemma is_unit_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :
+lemma is_unit_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : n ≠ 0) :
   is_unit x :=
 begin
   haveI := invertible_of_pow_eq_one x n hx hn,
@@ -423,8 +424,8 @@ end
 lemma neg_one_pow_eq_pow_mod_two [ring R] {n : ℕ} : (-1 : R) ^ n = (-1) ^ (n % 2) :=
 by rw [← nat.mod_add_div n 2, pow_add, pow_mul]; simp [sq]
 
-section ordered_semiring
-variables [ordered_semiring R] {a : R}
+section strict_ordered_semiring
+variables [strict_ordered_semiring R] {a : R}
 
 /-- Bernoulli's inequality. This version works for semirings but requires
 additional hypotheses `0 ≤ a * a` and `0 ≤ (1 + a) * (1 + a)`. -/
@@ -461,7 +462,7 @@ lemma pow_le_of_le_one (h₀ : 0 ≤ a) (h₁ : a ≤ 1) {n : ℕ} (hn : n ≠ 0
 
 lemma sq_le (h₀ : 0 ≤ a) (h₁ : a ≤ 1) : a ^ 2 ≤ a := pow_le_of_le_one h₀ h₁ two_ne_zero
 
-end ordered_semiring
+end strict_ordered_semiring
 
 section linear_ordered_semiring
 

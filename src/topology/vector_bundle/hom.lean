@@ -85,7 +85,6 @@ variables (F₂ : Type*) [normed_add_comm_group F₂][normed_space 𝕜₂ F₂]
 namespace topological_vector_bundle
 
 variables {F₁ E₁ F₂ E₂} (e₁ e₁' : trivialization 𝕜₁ F₁ E₁) (e₂ e₂' : trivialization 𝕜₂ F₂ E₂)
-variables [ring_hom_isometric σ]
 
 namespace pretrivialization
 
@@ -94,7 +93,8 @@ namespace pretrivialization
 function between the two induced (pre)trivializations
 `pretrivialization.continuous_linear_map σ e₁ e₂` and
 `pretrivialization.continuous_linear_map σ e₁' e₂'` of `bundle.continuous_linear_map`. -/
-def continuous_linear_map_coord_change (b : B) : (F₁ →SL[σ] F₂) →L[𝕜₂] F₁ →SL[σ] F₂ :=
+def continuous_linear_map_coord_change [ring_hom_isometric σ] (b : B) :
+  (F₁ →SL[σ] F₂) →L[𝕜₂] F₁ →SL[σ] F₂ :=
 ((e₁'.coord_change e₁ b).symm.arrow_congrSL (e₂.coord_change e₂' b) :
   (F₁ →SL[σ] F₂) ≃L[𝕜₂] F₁ →SL[σ] F₂)
 
@@ -102,7 +102,7 @@ variables {σ e₁ e₁' e₂ e₂'}
 variables [Π x : B, topological_space (E₁ x)] [topological_vector_bundle 𝕜₁ F₁ E₁]
 variables [Π x : B, topological_space (E₂ x)] [topological_vector_bundle 𝕜₂ F₂ E₂]
 
-lemma continuous_on_continuous_linear_map_coord_change
+lemma continuous_on_continuous_linear_map_coord_change [ring_hom_isometric σ]
   (he₁ : e₁ ∈ trivialization_atlas 𝕜₁ F₁ E₁) (he₁' : e₁' ∈ trivialization_atlas 𝕜₁ F₁ E₁)
   (he₂ : e₂ ∈ trivialization_atlas 𝕜₂ F₂ E₂) (he₂' : e₂' ∈ trivialization_atlas 𝕜₂ F₂ E₂) :
   continuous_on (continuous_linear_map_coord_change σ e₁ e₁' e₂ e₂')
@@ -134,7 +134,7 @@ def continuous_linear_map :
 { to_fun := λ p, ⟨p.1, (e₂.continuous_linear_map_at p.1).comp $ p.2.comp $ e₁.symmL p.1⟩,
   inv_fun := λ p, ⟨p.1, (e₂.symmL p.1).comp $ p.2.comp $ e₁.continuous_linear_map_at p.1⟩,
   source := (bundle.total_space.proj) ⁻¹' (e₁.base_set ∩ e₂.base_set),
-  target := (e₁.base_set ∩ e₂.base_set) ×ˢ (set.univ : set (F₁ →SL[σ] F₂)),
+  target := (e₁.base_set ∩ e₂.base_set) ×ˢ set.univ,
   map_source' := λ ⟨x, L⟩ h, ⟨h, set.mem_univ _⟩,
   map_target' := λ ⟨x, f⟩ h, h.1,
   left_inv' := λ ⟨x, L⟩ ⟨h₁, h₂⟩,
@@ -178,7 +178,7 @@ begin
   rw [symm_apply], refl, exact hb
 end
 
-lemma continuous_linear_map_coord_change_apply (b : B)
+lemma continuous_linear_map_coord_change_apply [ring_hom_isometric σ] (b : B)
   (hb : b ∈ (e₁.base_set ∩ e₂.base_set) ∩ (e₁'.base_set ∩ e₂'.base_set)) (L : F₁ →SL[σ] F₂) :
   continuous_linear_map_coord_change σ e₁ e₁' e₂ e₂' b L =
   (continuous_linear_map σ e₁' e₂'
@@ -199,7 +199,7 @@ end
 end pretrivialization
 
 open pretrivialization
-variables (F₁ E₁ F₂ E₂)
+variables (F₁ E₁ F₂ E₂) [ring_hom_isometric σ]
 variables [Π x : B, topological_space (E₁ x)] [topological_vector_bundle 𝕜₁ F₁ E₁]
 variables [Π x : B, topological_space (E₂ x)] [topological_vector_bundle 𝕜₂ F₂ E₂]
 variables [Π x, has_continuous_add (E₂ x)] [Π x, has_continuous_smul 𝕜₂ (E₂ x)]

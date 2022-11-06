@@ -33,6 +33,8 @@ theorem nat.is_coprime_iff_coprime {m n : ℕ} : is_coprime (m : ℤ) n ↔ nat.
 λ H, ⟨nat.gcd_a m n, nat.gcd_b m n, by rw [mul_comm _ (m : ℤ), mul_comm _ (n : ℤ),
     ← nat.gcd_eq_gcd_ab, show _ = _, from H, int.coe_nat_one]⟩⟩
 
+alias nat.is_coprime_iff_coprime ↔ is_coprime.nat_coprime nat.coprime.is_coprime
+
 theorem is_coprime.prod_left : (∀ i ∈ t, is_coprime (s i) x) → is_coprime (∏ i in t, s i) x :=
 finset.induction_on t (λ _, is_coprime_one_left) $ λ b t hbt ih H,
 by { rw finset.prod_insert hbt, rw finset.forall_mem_insert at H, exact H.1.mul_left (ih H.2) }

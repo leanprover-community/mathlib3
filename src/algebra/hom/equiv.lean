@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import algebra.group.type_tags
-import algebra.group_with_zero.basic
+import algebra.group_with_zero.units
 import data.pi.algebra
 
 /-!
@@ -297,6 +297,22 @@ e.to_equiv.eq_symm_apply
 @[to_additive] lemma symm_comp_eq {α : Type*} (e : M ≃* N) (f : α → M) (g : α → N) :
   e.symm ∘ g = f ↔ g = e ∘ f := e.to_equiv.symm_comp_eq f g
 
+@[simp, to_additive]
+theorem symm_trans_self (e : M ≃* N) : e.symm.trans e = refl N :=
+fun_like.ext _ _ e.apply_symm_apply
+
+@[simp, to_additive]
+theorem self_trans_symm (e : M ≃* N) : e.trans e.symm = refl M :=
+fun_like.ext _ _ e.symm_apply_apply
+
+@[to_additive, simp] lemma coe_monoid_hom_refl {M} [mul_one_class M] :
+  (refl M : M →* M) = monoid_hom.id M := rfl
+
+@[to_additive, simp] lemma coe_monoid_hom_trans {M N P}
+  [mul_one_class M] [mul_one_class N] [mul_one_class P] (e₁ : M ≃* N) (e₂ : N ≃* P) :
+  (e₁.trans e₂ : M →* P) = (e₂ : N →* P).comp ↑e₁ :=
+rfl
+
 /-- Two multiplicative isomorphisms agree if they are defined by the
     same underlying function. -/
 @[ext, to_additive
@@ -503,9 +519,6 @@ def to_units [group G] : G ≃* Gˣ :=
 @[simp, to_additive] lemma coe_to_units [group G] (g : G) :
   (to_units g : G) = g := rfl
 
-@[to_additive]
-protected lemma group.is_unit {G} [group G] (x : G) : is_unit x := (to_units x).is_unit
-
 namespace units
 
 variables [monoid M] [monoid N] [monoid P]
@@ -517,6 +530,14 @@ def map_equiv (h : M ≃* N) : Mˣ ≃* Nˣ :=
   left_inv := λ u, ext $ h.left_inv u,
   right_inv := λ u, ext $ h.right_inv u,
   .. map h.to_monoid_hom }
+
+@[simp]
+lemma map_equiv_symm (h : M ≃* N) : (map_equiv h).symm = map_equiv h.symm :=
+rfl
+
+@[simp]
+lemma coe_map_equiv (h : M ≃* N) (x : Mˣ) : (map_equiv h x : N) = h x :=
+rfl
 
 /-- Left multiplication by a unit of a monoid is a permutation of the underlying type. -/
 @[to_additive "Left addition of an additive unit is a permutation of the underlying type.",
@@ -729,3 +750,16 @@ def mul_equiv.to_additive'' [add_zero_class G] [mul_one_class H] :
 add_equiv.to_multiplicative''.symm
 
 end type_tags
+
+section
+variables (G) (H)
+
+/-- `additive (multiplicative G)` is just `G`. -/
+def add_equiv.additive_multiplicative [add_zero_class G] : additive (multiplicative G) ≃+ G :=
+mul_equiv.to_additive'' (mul_equiv.refl (multiplicative G))
+
+/-- `multiplicative (additive H)` is just `H`. -/
+def mul_equiv.multiplicative_additive [mul_one_class H] : multiplicative (additive H) ≃* H :=
+add_equiv.to_multiplicative'' (add_equiv.refl (additive H))
+
+end

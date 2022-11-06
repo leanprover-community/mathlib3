@@ -55,7 +55,7 @@ namespace alexandroff
 
 /-- The point at infinity -/
 def infty : alexandroff X := none
-localized "notation `∞` := alexandroff.infty" in alexandroff
+localized "notation (name := alexandroff.infty) `∞` := alexandroff.infty" in alexandroff
 
 instance : has_coe_t X (alexandroff X) := ⟨option.some⟩
 
@@ -102,10 +102,8 @@ lemma ne_infty_iff_exists {x : alexandroff X} :
   x ≠ ∞ ↔ ∃ (y : X), (y : alexandroff X) = x :=
 by induction x using alexandroff.rec; simp
 
-instance : can_lift (alexandroff X) X :=
-{ coe := coe,
-  cond := λ x, x ≠ ∞,
-  prf := λ x, ne_infty_iff_exists.1 }
+instance can_lift : can_lift (alexandroff X) X coe (λ x, x ≠ ∞) :=
+with_top.can_lift
 
 lemma not_mem_range_coe_iff {x : alexandroff X} :
   x ∉ range (coe : X → alexandroff X) ↔ x = ∞ :=

@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import algebra.order.archimedean
-import algebra.order.floor
-import algebra.order.sub
-import algebra.order.with_zero
 import order.lattice_intervals
 import order.complete_lattice_intervals
 
@@ -53,8 +50,14 @@ lemma bot_eq [preorder α] {a : α} : (⊥ : {x : α // a ≤ x}) = ⟨a, le_rfl
 instance no_max_order [partial_order α] [no_max_order α] {a : α} : no_max_order {x : α // a ≤ x} :=
 set.Ici.no_max_order
 
+instance semilattice_sup [semilattice_sup α] {a : α} : semilattice_sup {x : α // a ≤ x} :=
+set.Ici.semilattice_sup
+
 instance semilattice_inf [semilattice_inf α] {a : α} : semilattice_inf {x : α // a ≤ x} :=
 set.Ici.semilattice_inf
+
+instance distrib_lattice [distrib_lattice α] {a : α} : distrib_lattice {x : α // a ≤ x} :=
+set.Ici.distrib_lattice
 
 instance densely_ordered [preorder α] [densely_ordered α] {a : α} :
   densely_ordered {x : α // a ≤ x} :=
@@ -176,7 +179,7 @@ instance add_monoid_with_one [ordered_semiring α] : add_monoid_with_one {x : α
 { nat_cast := λ n, ⟨n, nat.cast_nonneg n⟩,
   nat_cast_zero := by simp [nat.cast],
   nat_cast_succ := λ _, by simp [nat.cast]; refl,
-  .. nonneg.has_one, .. nonneg.ordered_cancel_add_comm_monoid }
+  .. nonneg.has_one, .. nonneg.ordered_add_comm_monoid }
 
 instance has_pow [ordered_semiring α] : has_pow {x : α // 0 ≤ x} ℕ :=
 { pow := λ x n, ⟨x ^ n, pow_nonneg x.2 n⟩ }
@@ -193,8 +196,18 @@ instance ordered_semiring [ordered_semiring α] : ordered_semiring {x : α // 0 
 subtype.coe_injective.ordered_semiring _
   rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
 
+instance strict_ordered_semiring [strict_ordered_semiring α] :
+  strict_ordered_semiring {x : α // 0 ≤ x} :=
+subtype.coe_injective.strict_ordered_semiring _
+  rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+
 instance ordered_comm_semiring [ordered_comm_semiring α] : ordered_comm_semiring {x : α // 0 ≤ x} :=
 subtype.coe_injective.ordered_comm_semiring _
+  rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+
+instance strict_ordered_comm_semiring [strict_ordered_comm_semiring α] :
+  strict_ordered_comm_semiring {x : α // 0 ≤ x} :=
+subtype.coe_injective.strict_ordered_comm_semiring _
   rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
 
 -- These prevent noncomputable instances being found, as it does not require `linear_order` which
@@ -204,6 +217,9 @@ by apply_instance
 
 instance comm_monoid_with_zero [ordered_comm_semiring α] : comm_monoid_with_zero {x : α // 0 ≤ x} :=
 by apply_instance
+
+instance semiring [ordered_semiring α] : semiring {x : α // 0 ≤ x} := infer_instance
+instance comm_semiring [ordered_comm_semiring α] : comm_semiring {x : α // 0 ≤ x} := infer_instance
 
 instance nontrivial [linear_ordered_semiring α] : nontrivial {x : α // 0 ≤ x} :=
 ⟨ ⟨0, 1, λ h, zero_ne_one (congr_arg subtype.val h)⟩ ⟩
@@ -227,36 +243,6 @@ def coe_ring_hom [ordered_semiring α] : {x : α // 0 ≤ x} →+* α :=
 protected lemma coe_nat_cast [ordered_semiring α] (n : ℕ) : ((↑n : {x : α // 0 ≤ x}) : α) = n :=
 map_nat_cast (coe_ring_hom : {x : α // 0 ≤ x} →+* α) n
 
-instance has_inv [linear_ordered_field α] : has_inv {x : α // 0 ≤ x} :=
-{ inv := λ x, ⟨x⁻¹, inv_nonneg.mpr x.2⟩ }
-
-@[simp, norm_cast]
-protected lemma coe_inv [linear_ordered_field α] (a : {x : α // 0 ≤ x}) :
-  ((a⁻¹ : {x : α // 0 ≤ x}) : α) = a⁻¹ := rfl
-
-@[simp] lemma inv_mk [linear_ordered_field α] {x : α} (hx : 0 ≤ x) :
-  (⟨x, hx⟩ : {x : α // 0 ≤ x})⁻¹ = ⟨x⁻¹, inv_nonneg.mpr hx⟩ :=
-rfl
-
-instance linear_ordered_comm_group_with_zero [linear_ordered_field α] :
-  linear_ordered_comm_group_with_zero {x : α // 0 ≤ x} :=
-{ inv_zero := by { ext, exact inv_zero },
-  mul_inv_cancel := by { intros a ha, ext, refine mul_inv_cancel (mt (λ h, _) ha), ext, exact h },
-  ..nonneg.nontrivial,
-  ..nonneg.has_inv,
-  ..nonneg.linear_ordered_comm_monoid_with_zero }
-
-instance has_div [linear_ordered_field α] : has_div {x : α // 0 ≤ x} :=
-{ div := λ x y, ⟨x / y, div_nonneg x.2 y.2⟩ }
-
-@[simp, norm_cast]
-protected lemma coe_div [linear_ordered_field α] (a b : {x : α // 0 ≤ x}) :
-  ((a / b : {x : α // 0 ≤ x}) : α) = a / b := rfl
-
-@[simp] lemma mk_div_mk [linear_ordered_field α] {x y : α} (hx : 0 ≤ x) (hy : 0 ≤ y) :
-  (⟨x, hx⟩ : {x : α // 0 ≤ x}) / ⟨y, hy⟩ = ⟨x / y, div_nonneg hx hy⟩ :=
-rfl
-
 instance canonically_ordered_add_monoid [ordered_ring α] :
   canonically_ordered_add_monoid {x : α // 0 ≤ x} :=
 { le_self_add := λ a b, le_add_of_nonneg_right b.2,
@@ -274,6 +260,51 @@ instance canonically_ordered_comm_semiring [ordered_comm_ring α] [no_zero_divis
 instance canonically_linear_ordered_add_monoid [linear_ordered_ring α] :
   canonically_linear_ordered_add_monoid {x : α // 0 ≤ x} :=
 { ..subtype.linear_order _, ..nonneg.canonically_ordered_add_monoid }
+
+section linear_ordered_semifield
+variables [linear_ordered_semifield α] {x y : α}
+
+instance has_inv : has_inv {x : α // 0 ≤ x} := ⟨λ x, ⟨x⁻¹, inv_nonneg.mpr x.2⟩⟩
+
+@[simp, norm_cast]
+protected lemma coe_inv (a : {x : α // 0 ≤ x}) : ((a⁻¹ : {x : α // 0 ≤ x}) : α) = a⁻¹ := rfl
+
+@[simp] lemma inv_mk (hx : 0 ≤ x) : (⟨x, hx⟩ : {x : α // 0 ≤ x})⁻¹ = ⟨x⁻¹, inv_nonneg.mpr hx⟩ := rfl
+
+instance has_div : has_div {x : α // 0 ≤ x} := ⟨λ x y, ⟨x / y, div_nonneg x.2 y.2⟩⟩
+
+@[simp, norm_cast] protected lemma coe_div (a b : {x : α // 0 ≤ x}) :
+  ((a / b : {x : α // 0 ≤ x}) : α) = a / b := rfl
+
+@[simp] lemma mk_div_mk (hx : 0 ≤ x) (hy : 0 ≤ y) :
+  (⟨x, hx⟩ : {x : α // 0 ≤ x}) / ⟨y, hy⟩ = ⟨x / y, div_nonneg hx hy⟩ := rfl
+
+instance has_zpow : has_pow {x : α // 0 ≤ x} ℤ := ⟨λ a n, ⟨a ^ n, zpow_nonneg a.2 _⟩⟩
+
+@[simp, norm_cast] protected lemma coe_zpow (a : {x : α // 0 ≤ x}) (n : ℤ) :
+  ((a ^ n : {x : α // 0 ≤ x}) : α) = a ^ n := rfl
+
+@[simp] lemma mk_zpow (hx : 0 ≤ x) (n : ℤ) :
+  (⟨x, hx⟩ : {x : α // 0 ≤ x}) ^ n = ⟨x ^ n, zpow_nonneg hx n⟩ := rfl
+
+instance linear_ordered_semifield : linear_ordered_semifield {x : α // 0 ≤ x} :=
+subtype.coe_injective.linear_ordered_semifield _ nonneg.coe_zero nonneg.coe_one nonneg.coe_add
+    nonneg.coe_mul nonneg.coe_inv nonneg.coe_div (λ _ _, rfl) nonneg.coe_pow nonneg.coe_zpow
+    nonneg.coe_nat_cast (λ _ _, rfl) (λ _ _, rfl)
+
+end linear_ordered_semifield
+
+instance linear_ordered_comm_group_with_zero [linear_ordered_field α] :
+  linear_ordered_comm_group_with_zero {x : α // 0 ≤ x} :=
+{ inv_zero := by { ext, exact inv_zero },
+  mul_inv_cancel := by { intros a ha, ext, refine mul_inv_cancel (mt (λ h, _) ha), ext, exact h },
+  ..nonneg.nontrivial,
+  ..nonneg.has_inv,
+  ..nonneg.linear_ordered_comm_monoid_with_zero }
+
+instance canonically_linear_ordered_semifield [linear_ordered_field α] :
+  canonically_linear_ordered_semifield {x : α // 0 ≤ x} :=
+{ ..nonneg.linear_ordered_semifield, ..nonneg.canonically_ordered_comm_semiring }
 
 instance floor_semiring [ordered_semiring α] [floor_semiring α] : floor_semiring {r : α // 0 ≤ r} :=
 { floor := λ a, ⌊(a : α)⌋₊,

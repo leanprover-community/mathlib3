@@ -20,9 +20,6 @@ properties about separable polynomials here.
 ## Main definitions
 
 * `polynomial.separable f`: a polynomial `f` is separable iff it is coprime with its derivative.
-* `polynomial.expand R p f`: expand the polynomial `f` with coefficients in a
-  commutative semiring `R` by a factor of p, so `expand R p (∑ aₙ xⁿ)` is `∑ aₙ xⁿᵖ`.
-* `polynomial.contract p f`: the opposite of `expand`, so it sends `∑ aₙ xⁿᵖ` to `∑ aₙ xⁿ`.
 
 -/
 
@@ -489,7 +486,7 @@ variables (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F
   [algebra K E] [is_scalar_tower F K E]
 
 lemma is_separable_tower_top_of_is_separable [is_separable F E] : is_separable K E :=
-⟨λ x, is_integral_of_is_scalar_tower x (is_separable.is_integral F x),
+⟨λ x, is_integral_of_is_scalar_tower (is_separable.is_integral F x),
  λ x, (is_separable.separable F x).map.of_dvd (minpoly.dvd_map_of_is_scalar_tower _ _ _)⟩
 
 lemma is_separable_tower_bot_of_is_separable [h : is_separable F E] : is_separable F K :=
@@ -497,8 +494,7 @@ is_separable_iff.2 $ λ x, begin
   refine (is_separable_iff.1 h (algebra_map K E x)).imp
     is_integral_tower_bot_of_is_integral_field (λ hs, _),
   obtain ⟨q, hq⟩ := minpoly.dvd F x
-    (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero_field
-      (minpoly.aeval F ((algebra_map K E) x))),
+    ((aeval_algebra_map_eq_zero_iff _ _ _).mp (minpoly.aeval F ((algebra_map K E) x))),
   rw hq at hs,
   exact hs.of_mul_left
 end

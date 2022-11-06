@@ -6,6 +6,7 @@ Authors: Johan Commelin
 
 import group_theory.finiteness
 import ring_theory.algebra_tower
+import ring_theory.mv_polynomial.tower
 import ring_theory.ideal.quotient
 import ring_theory.noetherian
 
@@ -112,7 +113,7 @@ instance prod [hM : finite R M] [hN : finite R N] : finite R (M × N) :=
   exact hM.1.prod hN.1
 end⟩
 
-instance pi {ι : Type*} {M : ι → Type*} [fintype ι] [Π i, add_comm_monoid (M i)]
+instance pi {ι : Type*} {M : ι → Type*} [_root_.finite ι] [Π i, add_comm_monoid (M i)]
   [Π i, module R (M i)] [h : ∀ i, finite R (M i)] : finite R (Π i, M i) :=
 ⟨begin
   rw ← submodule.pi_top,
@@ -177,20 +178,12 @@ namespace finite_type
 
 lemma self : finite_type R R := ⟨⟨{1}, subsingleton.elim _ _⟩⟩
 
-section
-open_locale classical
+protected lemma polynomial : finite_type R R[X] :=
+⟨⟨{polynomial.X}, by { rw finset.coe_singleton, exact polynomial.adjoin_X }⟩⟩
 
-protected lemma mv_polynomial (ι : Type*) [fintype ι] : finite_type R (mv_polynomial ι R) :=
-⟨⟨finset.univ.image mv_polynomial.X, begin
-  rw eq_top_iff, refine λ p, mv_polynomial.induction_on' p
-    (λ u x, finsupp.induction u (subalgebra.algebra_map_mem _ x)
-      (λ i n f hif hn ih, _))
-    (λ p q ihp ihq, subalgebra.add_mem _ ihp ihq),
-  rw [add_comm, mv_polynomial.monomial_add_single],
-  exact subalgebra.mul_mem _ ih
-    (subalgebra.pow_mem _ (subset_adjoin $ finset.mem_image_of_mem _ $ finset.mem_univ _) _)
-end⟩⟩
-end
+protected lemma mv_polynomial (ι : Type*) [finite ι] : finite_type R (mv_polynomial ι R) :=
+by casesI nonempty_fintype ι; exact ⟨⟨finset.univ.image mv_polynomial.X,
+  by {rw [finset.coe_image, finset.coe_univ, set.image_univ], exact mv_polynomial.adjoin_range_X}⟩⟩
 
 lemma of_restrict_scalars_finite_type [algebra A B] [is_scalar_tower R A B] [hB : finite_type R B] :
   finite_type A B :=
@@ -333,22 +326,20 @@ end
 variable (R)
 
 /-- The ring of polynomials in finitely many variables is finitely presented. -/
-protected lemma mv_polynomial (ι : Type u_2) [fintype ι] :
+protected lemma mv_polynomial (ι : Type u_2) [finite ι] :
   finite_presentation R (mv_polynomial ι R) :=
-begin
-  have equiv := mv_polynomial.rename_equiv R (fintype.equiv_fin ι),
-  refine ⟨_, alg_equiv.to_alg_hom equiv.symm, _⟩,
-  split,
-  { exact (alg_equiv.symm equiv).surjective },
-  suffices hinj : function.injective equiv.symm.to_alg_hom.to_ring_hom,
-  { rw [(ring_hom.injective_iff_ker_eq_bot _).1 hinj],
-    exact submodule.fg_bot },
-  exact (alg_equiv.symm equiv).injective
-end
+by casesI nonempty_fintype ι; exact
+let eqv := (mv_polynomial.rename_equiv R $ fintype.equiv_fin ι).symm in
+⟨fintype.card ι, eqv, eqv.surjective,
+  ((ring_hom.injective_iff_ker_eq_bot _).1 eqv.injective).symm ▸ submodule.fg_bot⟩
 
 /-- `R` is finitely presented as `R`-algebra. -/
 lemma self : finite_presentation R R :=
 equiv (finite_presentation.mv_polynomial R pempty) (mv_polynomial.is_empty_alg_equiv R pempty)
+
+/-- `R[X]` is finitely presented as `R`-algebra. -/
+lemma polynomial : finite_presentation R R[X] :=
+equiv (finite_presentation.mv_polynomial R punit) (mv_polynomial.punit_alg_equiv R)
 
 variable {R}
 
@@ -406,13 +397,14 @@ end
 /-- If `A` is a finitely presented `R`-algebra, then `mv_polynomial (fin n) A` is finitely presented
 as `R`-algebra. -/
 lemma mv_polynomial_of_finite_presentation (hfp : finite_presentation R A) (ι : Type*)
-  [fintype ι] : finite_presentation R (mv_polynomial ι A) :=
+  [finite ι] : finite_presentation R (mv_polynomial ι A) :=
 begin
   rw iff_quotient_mv_polynomial' at hfp ⊢,
   classical,
   obtain ⟨ι', _, f, hf_surj, hf_ker⟩ := hfp,
   resetI,
   let g := (mv_polynomial.map_alg_hom f).comp (mv_polynomial.sum_alg_equiv R ι ι').to_alg_hom,
+  casesI nonempty_fintype (ι ⊕ ι'),
   refine ⟨ι ⊕ ι', by apply_instance, g,
     (mv_polynomial.map_surjective f.to_ring_hom hf_surj).comp (alg_equiv.surjective _),
     ideal.fg_ker_comp _ _ _ _ (alg_equiv.surjective _)⟩,
@@ -429,6 +421,159 @@ lemma trans [algebra A B] [is_scalar_tower R A B] (hfpA : finite_presentation R 
 begin
   obtain ⟨n, I, e, hfg⟩ := iff.1 hfpB,
   exact equiv ((mv_polynomial_of_finite_presentation hfpA _).quotient hfg) (e.restrict_scalars R)
+end
+
+open mv_polynomial
+
+-- We follow the proof of https://stacks.math.columbia.edu/tag/0561
+-- TODO: extract out helper lemmas and tidy proof.
+lemma of_restrict_scalars_finite_presentation [algebra A B] [is_scalar_tower R A B]
+  (hRB : finite_presentation R B) [hRA : finite_type R A] : finite_presentation A B :=
+begin
+  obtain ⟨n, f, hf, s, hs⟩ := hRB,
+  let RX := mv_polynomial (fin n) R, let AX := mv_polynomial (fin n) A,
+  refine ⟨n, mv_polynomial.aeval (f ∘ X), _, _⟩,
+  { rw [← algebra.range_top_iff_surjective, ← algebra.adjoin_range_eq_range_aeval, set.range_comp,
+      _root_.eq_top_iff, ← @adjoin_adjoin_of_tower R A B, adjoin_image,
+      adjoin_range_X, algebra.map_top, (algebra.range_top_iff_surjective _).mpr hf],
+    exact subset_adjoin },
+  { obtain ⟨t, ht⟩ := hRA.out,
+    have := λ i : t, hf (algebra_map A B i),
+    choose t' ht',
+    have ht'' : algebra.adjoin R ((algebra_map A AX) '' t ∪ set.range (X : _ → AX)) = ⊤,
+    { rw [adjoin_union_eq_adjoin_adjoin, ← subalgebra.restrict_scalars_top R],
+      congr' 1,
+      swap, { exact subalgebra.is_scalar_tower_mid _ },
+      rw [adjoin_algebra_map, ht],
+      apply subalgebra.restrict_scalars_injective R,
+      rw [← adjoin_restrict_scalars, adjoin_range_X, subalgebra.restrict_scalars_top,
+        subalgebra.restrict_scalars_top] },
+    let g : t → AX := λ x, C (x : A) - map (algebra_map R A) (t' x),
+    refine ⟨s.image (map (algebra_map R A)) ∪ t.attach.image g, _⟩,
+    rw [finset.coe_union, finset.coe_image, finset.coe_image, finset.attach_eq_univ,
+      finset.coe_univ, set.image_univ],
+    let s₀ := _, let I := _, change ideal.span s₀ = I,
+    have leI : ideal.span s₀ ≤ I,
+    { rw [ideal.span_le],
+      rintros _ (⟨x, hx, rfl⟩|⟨⟨x, hx⟩, rfl⟩),
+      all_goals
+        { dsimp [g], rw [ring_hom.mem_ker, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom] },
+      { rw [mv_polynomial.aeval_map_algebra_map, ← aeval_unique],
+        have := ideal.subset_span hx,
+        rwa hs at this },
+      { rw [map_sub, mv_polynomial.aeval_map_algebra_map, ← aeval_unique,
+          aeval_C, ht', subtype.coe_mk, sub_self] } },
+    apply leI.antisymm,
+    intros x hx,
+    rw [ring_hom.mem_ker, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom] at hx,
+    let s₀ := _, change x ∈ ideal.span s₀,
+    have : x ∈ (map (algebra_map R A) : _ →+* AX).srange.to_add_submonoid ⊔
+      (ideal.span s₀).to_add_submonoid,
+    { have : x ∈ (⊤ : subalgebra R AX) := trivial,
+      rw ← ht'' at this,
+      apply adjoin_induction this,
+      { rintros _ (⟨x, hx, rfl⟩|⟨i, rfl⟩),
+        { rw [algebra_map_eq, ← sub_add_cancel (C x) (map (algebra_map R A) (t' ⟨x, hx⟩)),
+          add_comm],
+          apply add_submonoid.add_mem_sup,
+          { exact set.mem_range_self _ },
+          { apply ideal.subset_span,
+            apply set.mem_union_right,
+            exact set.mem_range_self ⟨x, hx⟩ } },
+        { apply add_submonoid.mem_sup_left,
+          exact ⟨X i, map_X _ _⟩ } },
+      { intro r, apply add_submonoid.mem_sup_left, exact ⟨C r, map_C _ _⟩ },
+      { intros _ _ h₁ h₂, exact add_mem h₁ h₂ },
+      { intros x₁ x₂ h₁ h₂,
+        obtain ⟨_, ⟨p₁, rfl⟩, q₁, hq₁, rfl⟩ := add_submonoid.mem_sup.mp h₁,
+        obtain ⟨_, ⟨p₂, rfl⟩, q₂, hq₂, rfl⟩ := add_submonoid.mem_sup.mp h₂,
+        rw [add_mul, mul_add, add_assoc, ← map_mul],
+        apply add_submonoid.add_mem_sup,
+        { exact set.mem_range_self _ },
+        { refine add_mem (ideal.mul_mem_left _ _ hq₂) (ideal.mul_mem_right _ _ hq₁) } } },
+    obtain ⟨_, ⟨p, rfl⟩, q, hq, rfl⟩ := add_submonoid.mem_sup.mp this,
+    rw [map_add, aeval_map_algebra_map, ← aeval_unique, (show aeval (f ∘ X) q = 0, from leI hq),
+      add_zero] at hx,
+    suffices : ideal.span (s : set RX) ≤ (ideal.span s₀).comap (map $ algebra_map R A),
+    { refine add_mem _ hq, rw hs at this, exact this hx },
+    rw ideal.span_le,
+    intros x hx,
+    apply ideal.subset_span,
+    apply set.mem_union_left,
+    exact set.mem_image_of_mem _ hx }
+end
+
+/-- This is used to prove the strictly stronger `ker_fg_of_surjective`. Use it instead. -/
+-- TODO: extract out helper lemmas and tidy proof.
+lemma ker_fg_of_mv_polynomial {n : ℕ} (f : mv_polynomial (fin n) R →ₐ[R] A)
+  (hf : function.surjective f) (hfp : finite_presentation R A) : f.to_ring_hom.ker.fg :=
+begin
+  obtain ⟨m, f', hf', s, hs⟩ := hfp,
+  let RXn := mv_polynomial (fin n) R, let RXm := mv_polynomial (fin m) R,
+  have := λ (i : fin n), hf' (f $ X i),
+  choose g hg,
+  have := λ (i : fin m), hf (f' $ X i),
+  choose h hh,
+  let aeval_h : RXm →ₐ[R] RXn := aeval h,
+  let g' : fin n → RXn := λ i, X i - aeval_h (g i),
+  refine ⟨finset.univ.image g' ∪ s.image aeval_h, _⟩,
+  simp only [finset.coe_image, finset.coe_union, finset.coe_univ, set.image_univ],
+  have hh' : ∀ x, f (aeval_h x) = f' x,
+  { intro x, rw [← f.coe_to_ring_hom, map_aeval], simp_rw [alg_hom.coe_to_ring_hom, hh],
+    rw [alg_hom.comp_algebra_map, ← aeval_eq_eval₂_hom, ← aeval_unique] },
+  let s' := set.range g' ∪ aeval_h '' s,
+  have leI : ideal.span s' ≤ f.to_ring_hom.ker,
+  { rw ideal.span_le,
+    rintros _ (⟨i, rfl⟩|⟨x, hx, rfl⟩),
+    { change f (g' i) = 0, rw [map_sub, ← hg, hh', sub_self], },
+    { change f (aeval_h x) = 0,
+      rw hh',
+      change x ∈ f'.to_ring_hom.ker,
+      rw ← hs,
+      exact ideal.subset_span hx } },
+  apply leI.antisymm,
+  intros x hx,
+  have : x ∈ aeval_h.range.to_add_submonoid ⊔ (ideal.span s').to_add_submonoid,
+  { have : x ∈ adjoin R (set.range X : set RXn) := by { rw [adjoin_range_X], trivial },
+    apply adjoin_induction this,
+    { rintros _ ⟨i, rfl⟩,
+      rw [← sub_add_cancel (X i) (aeval h (g i)), add_comm],
+      apply add_submonoid.add_mem_sup,
+    { exact set.mem_range_self _ },
+    { apply submodule.subset_span,
+      apply set.mem_union_left,
+      exact set.mem_range_self _ } },
+    { intros r, apply add_submonoid.mem_sup_left, exact ⟨C r, aeval_C _ _⟩ },
+    { intros _ _ h₁ h₂, exact add_mem h₁ h₂ },
+    { intros p₁ p₂ h₁ h₂,
+      obtain ⟨_, ⟨x₁, rfl⟩, y₁, hy₁, rfl⟩ := add_submonoid.mem_sup.mp h₁,
+      obtain ⟨_, ⟨x₂, rfl⟩, y₂, hy₂, rfl⟩ := add_submonoid.mem_sup.mp h₂,
+      rw [mul_add, add_mul, add_assoc, ← map_mul],
+      apply add_submonoid.add_mem_sup,
+    { exact set.mem_range_self _ },
+    { exact add_mem (ideal.mul_mem_right _ _ hy₁) (ideal.mul_mem_left _ _ hy₂) } } },
+  obtain ⟨_, ⟨x, rfl⟩, y, hy, rfl⟩ := add_submonoid.mem_sup.mp this,
+  refine add_mem _ hy,
+  simp only [ring_hom.mem_ker, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom, map_add,
+    (show f y = 0, from leI hy), add_zero, hh'] at hx,
+  suffices : ideal.span (s : set RXm) ≤ (ideal.span s').comap aeval_h,
+  { apply this, rwa hs },
+  rw ideal.span_le,
+  intros x hx,
+  apply submodule.subset_span,
+  apply set.mem_union_right,
+  exact set.mem_image_of_mem _ hx
+end
+
+/-- If `f : A →ₐ[R] B` is a sujection between finitely-presented `R`-algebras, then the kernel of
+`f` is finitely generated. -/
+lemma ker_fg_of_surjective (f : A →ₐ[R] B) (hf : function.surjective f)
+  (hRA : finite_presentation R A) (hRB : finite_presentation R B) : f.to_ring_hom.ker.fg :=
+begin
+  obtain ⟨n, g, hg, hg'⟩ := hRA,
+  convert (ker_fg_of_mv_polynomial (f.comp g) (hf.comp hg) hRB).map g.to_ring_hom,
+  simp_rw [ring_hom.ker_eq_comap_bot, alg_hom.to_ring_hom_eq_coe, alg_hom.comp_to_ring_hom],
+  rw [← ideal.comap_comap, ideal.map_comap_of_surjective (g : mv_polynomial (fin n) R →+* A) hg],
 end
 
 end finite_presentation
@@ -517,6 +662,11 @@ begin
 end
 hf hg
 
+lemma of_finite {f : A →+* B} (hf : f.finite) : f.finite_type :=
+@module.finite.finite_type _ _ _ _ f.to_algebra hf
+
+alias of_finite ← _root_.ring_hom.finite.to_finite_type
+
 lemma of_finite_presentation {f : A →+* B} (hf : f.finite_presentation) : f.finite_type :=
 @algebra.finite_type.of_finite_presentation A B _ _ f.to_algebra hf
 
@@ -560,6 +710,13 @@ lemma comp {g : B →+* C} {f : A →+* B} (hg : g.finite_presentation) (hf : f.
     refl
   end }
 hf hg
+
+lemma of_comp_finite_type (f : A →+* B) {g : B →+* C} (hg : (g.comp f).finite_presentation)
+  (hf : f.finite_type) : g.finite_presentation :=
+@@algebra.finite_presentation.of_restrict_scalars_finite_presentation _ _ f.to_algebra _
+  (g.comp f).to_algebra g.to_algebra
+  (@@is_scalar_tower.of_algebra_map_eq' _ _ _ f.to_algebra g.to_algebra (g.comp f).to_algebra rfl)
+  hg hf
 
 end finite_presentation
 
@@ -656,6 +813,10 @@ ring_hom.finite_presentation.of_surjective f hf hker
 lemma of_finite_type [is_noetherian_ring A] {f : A →ₐ[R] B} :
   f.finite_type ↔ f.finite_presentation :=
 ring_hom.finite_presentation.of_finite_type
+
+lemma of_comp_finite_type (f : A →ₐ[R] B) {g : B →ₐ[R] C} (h : (g.comp f).finite_presentation)
+  (h' : f.finite_type) : g.finite_presentation :=
+h.of_comp_finite_type _ h'
 
 end finite_presentation
 
@@ -834,7 +995,7 @@ section semiring
 variables [comm_semiring R] [monoid M]
 
 /-- An element of `monoid_algebra R M` is in the subalgebra generated by its support. -/
-lemma mem_adjoint_support (f : monoid_algebra R M) : f ∈ adjoin R (of R M '' f.support) :=
+lemma mem_adjoin_support (f : monoid_algebra R M) : f ∈ adjoin R (of R M '' f.support) :=
 begin
   suffices : span R (of R M '' f.support) ≤ (adjoin R (of R M '' f.support)).to_submodule,
   { exact this (mem_span_support f) },
@@ -854,7 +1015,7 @@ begin
     ⋃ (g : monoid_algebra R M) (H : g ∈ S), of R M '' g.support,
   { intros s hs,
     exact set.mem_Union₂.2 ⟨f, ⟨hf, hs⟩⟩ },
-  exact adjoin_mono hincl (mem_adjoint_support f)
+  exact adjoin_mono hincl (mem_adjoin_support f)
 end
 
 /-- If a set `S` generates, as algebra, `monoid_algebra R M`, then the image of the union of the
@@ -964,11 +1125,15 @@ variables {R : Type*} [comm_ring R] {M : Type*} [add_comm_group M] [module R M] 
 
 noncomputable theory
 
-/-- The structure of a module `M` over a ring `R` as a module over `polynomial R` when given a
+/-- The structure of a module `M` over a ring `R` as a module over `R[X]` when given a
 choice of how `X` acts by choosing a linear map `f : M →ₗ[R] M` -/
-@[simps]
 def module_polynomial_of_endo : module R[X] M :=
 module.comp_hom M (polynomial.aeval f).to_ring_hom
+
+lemma module_polynomial_of_endo_smul_def (n : R[X]) (a : M) :
+  @@has_smul.smul (module_polynomial_of_endo f).to_has_smul n a = polynomial.aeval f n a := rfl
+
+local attribute [simp] module_polynomial_of_endo_smul_def
 
 include f
 lemma module_polynomial_of_endo.is_scalar_tower : @is_scalar_tower R R[X] M _

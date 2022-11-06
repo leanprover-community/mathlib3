@@ -23,7 +23,7 @@ Define filters for other cardinalities of the complement.
 open set function
 open_locale classical
 
-variables {ι α β : Type*}
+variables {ι α β : Type*} {l : filter α}
 
 namespace filter
 
@@ -69,16 +69,14 @@ frequently_cofinite_iff_infinite.symm
 lemma eventually_cofinite_ne (x : α) : ∀ᶠ a in cofinite, a ≠ x :=
 (set.finite_singleton x).eventually_cofinite_nmem
 
-lemma le_cofinite_iff_compl_singleton_mem {l : filter α} :
-  l ≤ cofinite ↔ ∀ x, {x}ᶜ ∈ l :=
+lemma le_cofinite_iff_compl_singleton_mem : l ≤ cofinite ↔ ∀ x, {x}ᶜ ∈ l :=
 begin
   refine ⟨λ h x, h (finite_singleton x).compl_mem_cofinite, λ h s (hs : sᶜ.finite), _⟩,
   rw [← compl_compl s, ← bUnion_of_singleton sᶜ, compl_Union₂,filter.bInter_mem hs],
   exact λ x _, h x
 end
 
-lemma le_cofinite_iff_eventually_ne {l : filter α} :
-  l ≤ cofinite ↔ ∀ x, ∀ᶠ y in l, y ≠ x :=
+lemma le_cofinite_iff_eventually_ne : l ≤ cofinite ↔ ∀ x, ∀ᶠ y in l, y ≠ x :=
 le_cofinite_iff_compl_singleton_mem
 
 /-- If `α` is a preorder with no maximal element, then `at_top ≤ cofinite`. -/
@@ -95,10 +93,19 @@ filter.coext $ λ s, by simp only [compl_mem_coprod, mem_cofinite, compl_compl,
   finite_image_fst_and_snd_iff]
 
 /-- Finite product of finite sets is finite -/
-lemma Coprod_cofinite {α : ι → Type*} [fintype ι] :
+lemma Coprod_cofinite {α : ι → Type*} [finite ι] :
   filter.Coprod (λ i, (cofinite : filter (α i))) = cofinite :=
 filter.coext $ λ s, by simp only [compl_mem_Coprod, mem_cofinite, compl_compl,
   forall_finite_image_eval_iff]
+
+@[simp] lemma disjoint_cofinite_left : disjoint cofinite l ↔ ∃ s ∈ l, set.finite s :=
+begin
+  simp only [has_basis_cofinite.disjoint_iff l.basis_sets, id, disjoint_compl_left_iff_subset],
+  exact ⟨λ ⟨s, hs, t, ht, hts⟩, ⟨t, ht, hs.subset hts⟩, λ ⟨s, hs, hsf⟩, ⟨s, hsf, s, hs, subset.rfl⟩⟩
+end
+
+@[simp] lemma disjoint_cofinite_right : disjoint l cofinite ↔ ∃ s ∈ l, set.finite s :=
+disjoint.comm.trans disjoint_cofinite_left
 
 end filter
 

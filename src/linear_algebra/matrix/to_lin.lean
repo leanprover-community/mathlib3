@@ -268,6 +268,11 @@ lemma matrix.ker_to_lin'_eq_bot_iff {M : matrix n n R} :
   M.to_lin'.ker = ⊥ ↔ ∀ v, M.mul_vec v = 0 → v = 0 :=
 by simp only [submodule.eq_bot_iff, linear_map.mem_ker, matrix.to_lin'_apply]
 
+lemma matrix.range_to_lin' (M : matrix m n R) : M.to_lin'.range = span R (range Mᵀ) :=
+by simp_rw [range_eq_map, ←supr_range_std_basis, map_supr, range_eq_map, ←ideal.span_singleton_one,
+  ideal.span, submodule.map_span, image_image, image_singleton, matrix.to_lin'_apply,
+  M.mul_vec_std_basis_apply, supr_span, range_eq_Union]
+
 /-- If `M` and `M'` are each other's inverse matrices, they provide an equivalence between `m → A`
 and `n → A` corresponding to `M.mul_vec` and `M'.mul_vec`. -/
 @[simps]

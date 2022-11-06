@@ -73,9 +73,7 @@ lemma finset.center_mass_segment'
   (s : finset ι) (t : finset ι') (ws : ι → R) (zs : ι → E) (wt : ι' → R) (zt : ι' → E)
   (hws : ∑ i in s, ws i = 1) (hwt : ∑ i in t, wt i = 1) (a b : R) (hab : a + b = 1) :
   a • s.center_mass ws zs + b • t.center_mass wt zt =
-    (s.map embedding.inl ∪ t.map embedding.inr).center_mass
-      (sum.elim (λ i, a * ws i) (λ j, b * wt j))
-      (sum.elim zs zt) :=
+    (s.disj_sum t).center_mass (sum.elim (λ i, a * ws i) (λ j, b * wt j)) (sum.elim zs zt) :=
 begin
   rw [s.center_mass_eq_of_sum_1 _ hws, t.center_mass_eq_of_sum_1 _ hwt,
     smul_sum, smul_sum, ← finset.sum_sum_elim, finset.center_mass_eq_of_sum_1],
@@ -179,7 +177,7 @@ lemma convex_iff_sum_mem :
       (∀ i ∈ t, 0 ≤ w i) → ∑ i in t, w i = 1 → (∀ x ∈ t, x ∈ s) → ∑ x in t, w x • x ∈ s ) :=
 begin
   refine ⟨λ hs t w hw₀ hw₁ hts, hs.sum_mem hw₀ hw₁ hts, _⟩,
-  intros h x y hx hy a b ha hb hab,
+  intros h x hx y hy a b ha hb hab,
   by_cases h_cases: x = y,
   { rw [h_cases, ←add_smul, hab, one_smul], exact hy },
   { convert h {x, y} (λ z, if z = y then b else a) _ _ _,
@@ -246,8 +244,7 @@ begin
   { intros x hx,
     obtain ⟨i, hi⟩ := set.mem_range.mp hx,
     refine ⟨{i}, function.const ι (1 : R), by simp, by simp, by simp [hi]⟩, },
-  { rw convex,
-    rintros x y ⟨s, w, hw₀, hw₁, rfl⟩ ⟨s', w', hw₀', hw₁', rfl⟩ a b ha hb hab,
+  { rintro x ⟨s, w, hw₀, hw₁, rfl⟩ y ⟨s', w', hw₀', hw₁', rfl⟩ a b ha hb hab,
     let W : ι → R := λ i, (if i ∈ s then a * w i else 0) + (if i ∈ s' then b * w' i else 0),
     have hW₁ : (s ∪ s').sum W = 1,
     { rw [sum_add_distrib, ← sum_subset (subset_union_left s s'),
@@ -283,18 +280,18 @@ begin
     use [punit, {punit.star}, λ _, 1, λ _, x, λ _ _, zero_le_one,
       finset.sum_singleton, λ _ _, hx],
     simp only [finset.center_mass, finset.sum_singleton, inv_one, one_smul] },
-  { rintros x y ⟨ι, sx, wx, zx, hwx₀, hwx₁, hzx, rfl⟩ ⟨ι', sy, wy, zy, hwy₀, hwy₁, hzy, rfl⟩
+  { rintros x ⟨ι, sx, wx, zx, hwx₀, hwx₁, hzx, rfl⟩ y ⟨ι', sy, wy, zy, hwy₀, hwy₁, hzy, rfl⟩
       a b ha hb hab,
     rw [finset.center_mass_segment' _ _ _ _ _ _ hwx₁ hwy₁ _ _ hab],
     refine ⟨_, _, _, _, _, _, _, rfl⟩,
     { rintros i hi,
-      rw [finset.mem_union, finset.mem_map, finset.mem_map] at hi,
+      rw [finset.mem_disj_sum] at hi,
       rcases hi with ⟨j, hj, rfl⟩|⟨j, hj, rfl⟩;
         simp only [sum.elim_inl, sum.elim_inr];
         apply_rules [mul_nonneg, hwx₀, hwy₀] },
-    { simp [finset.sum_sum_elim, finset.mul_sum.symm, *] },
+    { simp [finset.sum_sum_elim, finset.mul_sum.symm, *], },
     { intros i hi,
-      rw [finset.mem_union, finset.mem_map, finset.mem_map] at hi,
+      rw [finset.mem_disj_sum] at hi,
       rcases hi with ⟨j, hj, rfl⟩|⟨j, hj, rfl⟩; apply_rules [hzx, hzy] } },
   { rintros _ ⟨ι, t, w, z, hw₀, hw₁, hz, rfl⟩,
     exact t.center_mass_mem_convex_hull hw₀ (hw₁.symm ▸ zero_lt_one) hz }
@@ -310,8 +307,7 @@ begin
     refine ⟨_, _, _, finset.center_mass_ite_eq _ _ _ hx⟩,
     { intros, split_ifs, exacts [zero_le_one, le_refl 0] },
     { rw [finset.sum_ite_eq, if_pos hx] } },
-  { rintros x y ⟨wx, hwx₀, hwx₁, rfl⟩ ⟨wy, hwy₀, hwy₁, rfl⟩
-      a b ha hb hab,
+  { rintro x ⟨wx, hwx₀, hwx₁, rfl⟩ y ⟨wy, hwy₀, hwy₁, rfl⟩ a b ha hb hab,
     rw [finset.center_mass_segment _ _ _ _ hwx₁ hwy₁ _ _ hab],
     refine ⟨_, _, _, rfl⟩,
     { rintros i hi,
@@ -352,7 +348,7 @@ begin
   rw convex_hull_eq at ⊢ hx hy,
   obtain ⟨ι, a, w, S, hw, hw', hS, hSp⟩ := hx,
   obtain ⟨κ, b, v, T, hv, hv', hT, hTp⟩ := hy,
-  have h_sum : ∑ (i : ι × κ) in a.product b, w i.fst * v i.snd = 1,
+  have h_sum : ∑ (i : ι × κ) in a ×ˢ b, w i.fst * v i.snd = 1,
   { rw [finset.sum_product, ← hw'],
     congr,
     ext i,
@@ -360,7 +356,7 @@ begin
     { congr, ext, simp [mul_comm] },
     rw [this, ← finset.sum_mul, hv'],
     simp },
-  refine ⟨ι × κ, a.product b, λ p, (w p.1) * (v p.2), λ p, (S p.1, T p.2),
+  refine ⟨ι × κ, a ×ˢ b, λ p, (w p.1) * (v p.2), λ p, (S p.1, T p.2),
     λ p hp, _, h_sum, λ p hp, _, _⟩,
   { rw mem_product at hp,
     exact mul_nonneg (hw p.1 hp.1) (hv p.2 hp.2) },

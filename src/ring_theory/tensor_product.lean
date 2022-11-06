@@ -445,6 +445,12 @@ def include_right : B →ₐ[R] A ⊗[R] B :=
 @[simp]
 lemma include_right_apply (b : B) : (include_right : B →ₐ[R] A ⊗[R] B) b = 1 ⊗ₜ b := rfl
 
+lemma include_left_comp_algebra_map {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
+  [algebra R S] [algebra R T] :
+    (include_left.to_ring_hom.comp (algebra_map R S) : R →+* S ⊗[R] T) =
+      include_right.to_ring_hom.comp (algebra_map R T) :=
+by { ext, simp }
+
 end semiring
 
 section ring
@@ -793,7 +799,6 @@ by rw [product_map, alg_hom.range_comp, map_range, map_sup, ←alg_hom.range_com
     lmul'_comp_include_right, alg_hom.id_comp, alg_hom.id_comp]
 
 end
-
 section
 
 variables {R A A' B S : Type*}
@@ -808,7 +813,50 @@ and `g : B →ₐ[R] S` is an `A`-algebra homomorphism. -/
   ..(product_map (f.restrict_scalars R) g).to_ring_hom }
 
 end
+section basis
 
+variables {k : Type*} [comm_ring k] (R : Type*) [ring R] [algebra k R] {M : Type*}
+  [add_comm_monoid M] [module k M] {ι : Type*} (b : basis ι k M)
+
+/-- Given a `k`-algebra `R` and a `k`-basis of `M,` this is a `k`-linear isomorphism
+`R ⊗[k] M ≃ (ι →₀ R)` (which is in fact `R`-linear). -/
+noncomputable def basis_aux : R ⊗[k] M ≃ₗ[k] (ι →₀ R) :=
+(_root_.tensor_product.congr (finsupp.linear_equiv.finsupp_unique k R punit).symm b.repr) ≪≫ₗ
+  (finsupp_tensor_finsupp k R k punit ι).trans (finsupp.lcongr (equiv.unique_prod ι punit)
+  (_root_.tensor_product.rid k R))
+
+variables {R}
+
+lemma basis_aux_tmul (r : R) (m : M) :
+  basis_aux R b (r ⊗ₜ m) = r • (finsupp.map_range (algebra_map k R)
+    (map_zero _) (b.repr m)) :=
+begin
+  ext,
+  simp [basis_aux, ←algebra.commutes, algebra.smul_def],
+end
+
+lemma basis_aux_map_smul (r : R) (x : R ⊗[k] M) :
+  basis_aux R b (r • x) = r • basis_aux R b x :=
+tensor_product.induction_on x (by simp) (λ x y, by simp only [tensor_product.smul_tmul',
+  basis_aux_tmul, smul_assoc]) (λ x y hx hy, by simp [hx, hy])
+
+variables (R)
+
+/-- Given a `k`-algebra `R`, this is the `R`-basis of `R ⊗[k] M` induced by a `k`-basis of `M`. -/
+noncomputable def basis : basis ι R (R ⊗[k] M) :=
+{ repr := { map_smul' := basis_aux_map_smul b, .. basis_aux R b } }
+
+variables {R}
+
+@[simp] lemma basis_repr_tmul (r : R) (m : M) :
+  (basis R b).repr (r ⊗ₜ m) = r • (finsupp.map_range (algebra_map k R) (map_zero _) (b.repr m)) :=
+basis_aux_tmul _ _ _
+
+@[simp] lemma basis_repr_symm_apply (r : R) (i : ι) :
+  (basis R b).repr.symm (finsupp.single i r) = r ⊗ₜ b.repr.symm (finsupp.single i 1) :=
+by simp [basis, equiv.unique_prod_symm_apply, basis_aux]
+
+end basis
 end tensor_product
 end algebra
 
@@ -845,3 +893,75 @@ begin
   rw [←E1.range_val, ←E2.range_val, ←algebra.tensor_product.product_map_range],
   exact (algebra.tensor_product.product_map E1.val E2.val).to_linear_map.finite_dimensional_range,
 end
+
+namespace tensor_product.algebra
+
+variables {R A B M : Type*}
+variables [comm_semiring R] [add_comm_monoid M] [module R M]
+variables [semiring A] [semiring B] [module A M] [module B M]
+variables [algebra R A] [algebra R B]
+variables [is_scalar_tower R A M] [is_scalar_tower R B M]
+
+/-- An auxiliary definition, used for constructing the `module (A ⊗[R] B) M` in
+`tensor_product.algebra.module` below. -/
+def module_aux : A ⊗[R] B →ₗ[R] M →ₗ[R] M :=
+tensor_product.lift
+{ to_fun := λ a, a • (algebra.lsmul R M : B →ₐ[R] module.End R M).to_linear_map,
+  map_add' := λ r t, by { ext, simp only [add_smul, linear_map.add_apply] },
+  map_smul' := λ n r, by { ext, simp only [ring_hom.id_apply, linear_map.smul_apply, smul_assoc] } }
+
+lemma module_aux_apply (a : A) (b : B) (m : M) :
+  module_aux (a ⊗ₜ[R] b) m = a • b • m :=
+by simp [module_aux]
+
+variables [smul_comm_class A B M]
+
+/-- If `M` is a representation of two different `R`-algebras `A` and `B` whose actions commute,
+then it is a representation the `R`-algebra `A ⊗[R] B`.
+
+An important example arises from a semiring `S`; allowing `S` to act on itself via left and right
+multiplication, the roles of `R`, `A`, `B`, `M` are played by `ℕ`, `S`, `Sᵐᵒᵖ`, `S`. This example
+is important because a submodule of `S` as a `module` over `S ⊗[ℕ] Sᵐᵒᵖ` is a two-sided ideal.
+
+NB: This is not an instance because in the case `B = A` and `M = A ⊗[R] A` we would have a diamond
+of `smul` actions. Furthermore, this would not be a mere definitional diamond but a true
+mathematical diamond in which `A ⊗[R] A` had two distinct scalar actions on itself: one from its
+multiplication, and one from this would-be instance. Arguably we could live with this but in any
+case the real fix is to address the ambiguity in notation, probably along the lines outlined here:
+https://leanprover.zulipchat.com/#narrow/stream/144837-PR-reviews/topic/.234773.20base.20change/near/240929258
+-/
+protected def module : module (A ⊗[R] B) M :=
+{ smul := λ x m, module_aux x m,
+  zero_smul := λ m, by simp only [map_zero, linear_map.zero_apply],
+  smul_zero := λ x, by simp only [map_zero],
+  smul_add := λ x m₁ m₂, by simp only [map_add],
+  add_smul := λ x y m, by simp only [map_add, linear_map.add_apply],
+  one_smul := λ m, by simp only [module_aux_apply, algebra.tensor_product.one_def, one_smul],
+  mul_smul := λ x y m,
+  begin
+    apply tensor_product.induction_on x;
+    apply tensor_product.induction_on y,
+    { simp only [mul_zero, map_zero, linear_map.zero_apply], },
+    { intros a b, simp only [zero_mul, map_zero, linear_map.zero_apply], },
+    { intros z w hz hw, simp only [zero_mul, map_zero, linear_map.zero_apply], },
+    { intros a b, simp only [mul_zero, map_zero, linear_map.zero_apply], },
+    { intros a₁ b₁ a₂ b₂,
+      simp only [module_aux_apply, mul_smul, smul_comm a₁ b₂, algebra.tensor_product.tmul_mul_tmul,
+        linear_map.mul_apply], },
+    { intros z w hz hw a b,
+      simp only at hz hw,
+      simp only [mul_add, hz, hw, map_add, linear_map.add_apply], },
+    { intros z w hz hw, simp only [mul_zero, map_zero, linear_map.zero_apply], },
+    { intros a b z w hz hw,
+      simp only at hz hw,
+      simp only [map_add, add_mul, linear_map.add_apply, hz, hw], },
+    { intros u v hu hv z w hz hw,
+      simp only at hz hw,
+      simp only [add_mul, hz, hw, map_add, linear_map.add_apply], },
+  end }
+
+local attribute [instance] tensor_product.algebra.module
+
+lemma smul_def (a : A) (b : B) (m : M) : (a ⊗ₜ[R] b) • m = a • b • m := module_aux_apply a b m
+
+end tensor_product.algebra

@@ -99,7 +99,7 @@ begin
 end
 
 /-- A finite group of prime order is cyclic. -/
-@[to_additive is_add_cyclic_of_prime_card]
+@[to_additive is_add_cyclic_of_prime_card "A finite group of prime order is cyclic."]
 lemma is_cyclic_of_prime_card {α : Type u} [group α] [fintype α] {p : ℕ} [hp : fact p.prime]
   (h : fintype.card α = p) : is_cyclic α :=
 ⟨begin
@@ -246,8 +246,8 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card
 end classical
 
 @[to_additive]
-lemma is_cyclic.exists_monoid_generator [fintype α]
-[is_cyclic α] : ∃ x : α, ∀ y : α, y ∈ submonoid.powers x :=
+lemma is_cyclic.exists_monoid_generator [finite α] [is_cyclic α] :
+  ∃ x : α, ∀ y : α, y ∈ submonoid.powers x :=
 by { simp_rw [mem_powers_iff_mem_zpowers], exact is_cyclic.exists_generator α }
 
 section
@@ -382,7 +382,7 @@ end
 attribute [to_additive is_cyclic.card_order_of_eq_totient] is_add_cyclic.card_order_of_eq_totient
 
 /-- A finite group of prime order is simple. -/
-@[to_additive]
+@[to_additive "A finite group of prime order is simple."]
 lemma is_simple_group_of_prime_card {α : Type u} [group α] [fintype α] {p : ℕ} [hp : fact p.prime]
   (h : fintype.card α = p) : is_simple_group α :=
 ⟨begin

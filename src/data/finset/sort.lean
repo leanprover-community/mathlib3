@@ -148,7 +148,7 @@ by simp [order_emb_of_fin, set.range_comp coe (s.order_iso_of_fin h)]
 /-- The bijection `order_emb_of_fin s h` sends `0` to the minimum of `s`. -/
 lemma order_emb_of_fin_zero {s : finset α} {k : ℕ} (h : s.card = k) (hz : 0 < k) :
   order_emb_of_fin s h ⟨0, hz⟩ = s.min' (card_pos.mp (h.symm ▸ hz)) :=
-by simp only [order_emb_of_fin_apply, subtype.coe_mk, sorted_zero_eq_min']
+by simp only [order_emb_of_fin_apply, fin.coe_mk, sorted_zero_eq_min']
 
 /-- The bijection `order_emb_of_fin s h` sends `k-1` to the maximum of `s`. -/
 lemma order_emb_of_fin_last {s : finset α} {k : ℕ} (h : s.card = k) (hz : 0 < k) :
@@ -166,10 +166,10 @@ lemma order_emb_of_fin_unique {s : finset α} {k : ℕ} (h : s.card = k) {f : fi
   (hfs : ∀ x, f x ∈ s) (hmono : strict_mono f) : f = s.order_emb_of_fin h :=
 begin
   apply fin.strict_mono_unique hmono (s.order_emb_of_fin h).strict_mono,
-  rw [range_order_emb_of_fin, ← set.image_univ, ← coe_fin_range, ← coe_image, coe_inj],
+  rw [range_order_emb_of_fin, ← set.image_univ, ← coe_univ, ← coe_image, coe_inj],
   refine eq_of_subset_of_card_le (λ x hx, _) _,
   { rcases mem_image.1 hx with ⟨x, hx, rfl⟩, exact hfs x },
-  { rw [h, card_image_of_injective _ hmono.injective, fin_range_card] }
+  { rw [h, card_image_of_injective _ hmono.injective, card_univ, fintype.card_fin] }
 end
 
 /-- An order embedding `f` from `fin k` to a finset of cardinality `k` has to coincide with
@@ -186,7 +186,7 @@ and only if `i = j`. Since they can be defined on a priori not defeq types `fin 
   s.order_emb_of_fin h i = s.order_emb_of_fin h' j ↔ (i : ℕ) = (j : ℕ) :=
 begin
   substs k l,
-  exact (s.order_emb_of_fin rfl).eq_iff_eq.trans (fin.ext_iff _ _)
+  exact (s.order_emb_of_fin rfl).eq_iff_eq.trans fin.ext_iff
 end
 
 /-- Given a finset `s` of size at least `k` in a linear order `α`, the map `order_emb_of_card_le`

@@ -57,7 +57,8 @@ In the `arithmetic_function` locale, we have the notation `Λ` for this function
 noncomputable def von_mangoldt : arithmetic_function ℝ :=
 ⟨λ n, if is_prime_pow n then real.log (min_fac n) else 0, if_neg not_is_prime_pow_zero⟩
 
-localized "notation `Λ` := nat.arithmetic_function.von_mangoldt" in arithmetic_function
+localized "notation (name := von_mangoldt)
+  `Λ` := nat.arithmetic_function.von_mangoldt" in arithmetic_function
 
 lemma von_mangoldt_apply {n : ℕ} :
   Λ n = if is_prime_pow n then real.log (min_fac n) else 0 := rfl

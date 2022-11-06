@@ -89,8 +89,8 @@ open sheaf_condition_equalizer_products
 /-- Implementation of `sheaf_condition_pairwise_intersections.cone_equiv`. -/
 @[simps]
 def cone_equiv_functor_obj (F : presheaf C X)
-  ⦃ι : Type v⦄ (U : ι → opens ↥X) (c : limits.cone ((diagram U).op ⋙ F)) :
-  limits.cone (sheaf_condition_equalizer_products.diagram F U) :=
+  ⦃ι : Type v⦄ (U : ι → opens ↥X) (c : cone ((diagram U).op ⋙ F)) :
+  cone (sheaf_condition_equalizer_products.diagram F U) :=
 { X := c.X,
   π :=
   { app := λ Z,

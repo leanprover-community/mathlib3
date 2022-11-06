@@ -869,9 +869,9 @@ variables [set_like σR R] [set_like σS S] [subsemiring_class σR R] [subsemiri
 open subsemiring
 
 /-- Restriction of a ring homomorphism to a subsemiring of the domain. -/
-def restrict (f : R →+* S) (s : σR) : s →+* S := f.comp $ subsemiring_class.subtype s
+def dom_restrict (f : R →+* S) (s : σR) : s →+* S := f.comp $ subsemiring_class.subtype s
 
-@[simp] lemma restrict_apply (f : R →+* S) {s : σR} (x : s) : f.restrict s x = f x := rfl
+@[simp] lemma restrict_apply (f : R →+* S) {s : σR} (x : s) : f.dom_restrict s x = f x := rfl
 
 /-- Restriction of a ring homomorphism to a subsemiring of the codomain. -/
 def cod_restrict (f : R →+* S) (s : σS) (h : ∀ x, f x ∈ s) : R →+* s :=
@@ -879,9 +879,9 @@ def cod_restrict (f : R →+* S) (s : σS) (h : ∀ x, f x ∈ s) : R →+* s :=
   .. (f : R →* S).cod_restrict s h,
   .. (f : R →+ S).cod_restrict s h }
 
-/--The ring homomorphism from the pullback of `s` to `s`. -/
-def restrict₂ (f : R →+* S) (s : subsemiring S) (h : ∀ (x : (subsemiring.comap f s)), f x ∈ s):
-  (subsemiring.comap f s) →+* s := (f.restrict (subsemiring.comap f s)).cod_restrict s h
+/-- The ring homomorphism from the pullback of `s` to `s`. -/
+def restrict (f : R →+* S) (s : subsemiring S) (h : subsemiring.comap f s ≤ s) :
+  (subsemiring.comap f s) →+* s := (f.dom_restrict (subsemiring.comap f s)).cod_restrict s h
 
 /-- Restriction of a ring homomorphism to its range interpreted as a subsemiring.
 

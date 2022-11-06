@@ -53,7 +53,8 @@ instance has_continuous_mul.to_has_continuous_smul : has_continuous_smul M M := 
 @[to_additive]
 instance has_continuous_mul.to_has_continuous_smul_op : has_continuous_smul Mᵐᵒᵖ M :=
 ⟨show continuous ((λ p : M × M, p.1 * p.2) ∘ prod.swap ∘ prod.map mul_opposite.unop id), from
-  continuous_mul.comp $ continuous_swap.comp $ continuous.prod_map mul_opposite.continuous_unop continuous_id⟩
+  continuous_mul.comp $ continuous_swap.comp $ continuous.prod_map mul_opposite.continuous_unop
+    continuous_id⟩
 
 @[continuity, to_additive]
 lemma continuous.mul {f g : X → M} (hf : continuous f) (hg : continuous g) :

@@ -289,6 +289,8 @@ protected def nonempty (s : set α) : Prop := ∃ x, x ∈ s
 
 @[simp] lemma nonempty_coe_sort {s : set α} : nonempty ↥s ↔ s.nonempty := nonempty_subtype
 
+alias nonempty_coe_sort ↔ _ nonempty.coe_sort
+
 lemma nonempty_def : s.nonempty ↔ ∃ x, x ∈ s := iff.rfl
 
 lemma nonempty_of_mem {x} (h : x ∈ s) : s.nonempty := ⟨x, h⟩
@@ -296,6 +298,7 @@ lemma nonempty_of_mem {x} (h : x ∈ s) : s.nonempty := ⟨x, h⟩
 theorem nonempty.not_subset_empty : s.nonempty → ¬(s ⊆ ∅)
 | ⟨x, hx⟩ hs := hs hx
 
+/-- See also `set.ne_empty_iff_nonempty` and `set.not_nonempty_iff_eq_empty`. -/
 theorem nonempty.ne_empty : ∀ {s : set α}, s.nonempty → s ≠ ∅
 | _ ⟨x, hx⟩ rfl := hx
 
@@ -432,6 +435,9 @@ theorem eq_univ_iff_forall {s : set α} : s = univ ↔ ∀ x, x ∈ s :=
 univ_subset_iff.symm.trans $ forall_congr $ λ x, imp_iff_right trivial
 
 theorem eq_univ_of_forall {s : set α} : (∀ x, x ∈ s) → s = univ := eq_univ_iff_forall.2
+
+lemma nonempty.eq_univ [subsingleton α] : s.nonempty → s = univ :=
+by { rintro ⟨x, hx⟩, refine eq_univ_of_forall (λ y, by rwa subsingleton.elim y x) }
 
 lemma eq_univ_of_subset {s t : set α} (h : s ⊆ t) (hs : s = univ) : t = univ :=
 eq_univ_of_univ_subset $ hs ▸ h
@@ -773,10 +779,6 @@ theorem mem_singleton_of_eq {x y : α} (H : x = y) : x ∈ ({y} : set α) := H
 
 theorem insert_eq (x : α) (s : set α) : insert x s = ({x} : set α) ∪ s := rfl
 
-@[simp] theorem pair_eq_singleton (a : α) : ({a, a} : set α) = {a} := union_self _
-
-theorem pair_comm (a b : α) : ({a, b} : set α) = {b, a} := union_comm _ _
-
 @[simp] theorem singleton_nonempty (a : α) : ({a} : set α).nonempty :=
 ⟨a, rfl⟩
 
@@ -814,6 +816,22 @@ eq_singleton_iff_unique_mem.trans $ and_congr_left $ λ H, ⟨λ h', ⟨_, h'⟩
 
 -- while `simp` is capable of proving this, it is not capable of turning the LHS into the RHS.
 @[simp] lemma default_coe_singleton (x : α) : (default : ({x} : set α)) = ⟨x, rfl⟩ := rfl
+
+/-! ### Lemmas about pairs -/
+
+@[simp] theorem pair_eq_singleton (a : α) : ({a, a} : set α) = {a} := union_self _
+
+theorem pair_comm (a b : α) : ({a, b} : set α) = {b, a} := union_comm _ _
+
+lemma pair_eq_pair_iff {x y z w : α} :
+  ({x, y} : set α) = {z, w} ↔ x = z ∧ y = w ∨ x = w ∧ y = z :=
+begin
+  simp only [set.subset.antisymm_iff, set.insert_subset, set.mem_insert_iff, set.mem_singleton_iff,
+    set.singleton_subset_iff],
+  split,
+  { tauto! },
+  { rintro (⟨rfl,rfl⟩|⟨rfl,rfl⟩); simp }
+end
 
 /-! ### Lemmas about sets defined as `{x ∈ s | p x}`. -/
 
@@ -1193,13 +1211,26 @@ sup_eq_sdiff_sup_sdiff_sup_inf
 
 lemma mem_symm_diff : a ∈ s ∆ t ↔ a ∈ s ∧ a ∉ t ∨ a ∈ t ∧ a ∉ s := iff.rfl
 
+protected lemma symm_diff_def (s t : set α) : s ∆ t = s \ t ∪ t \ s := rfl
+
 lemma symm_diff_subset_union : s ∆ t ⊆ s ∪ t := @symm_diff_le_sup (set α) _ _ _
+
+@[simp] lemma symm_diff_eq_empty : s ∆ t = ∅ ↔ s = t := symm_diff_eq_bot
+
+@[simp] lemma symm_diff_nonempty : (s ∆ t).nonempty ↔ s ≠ t :=
+ne_empty_iff_nonempty.symm.trans symm_diff_eq_empty.not
 
 lemma inter_symm_diff_distrib_left (s t u : set α) : s ∩ t ∆ u = (s ∩ t) ∆ (s ∩ u) :=
 inf_symm_diff_distrib_left _ _ _
 
 lemma inter_symm_diff_distrib_right (s t u : set α) : s ∆ t ∩ u = (s ∩ u) ∆ (t ∩ u) :=
 inf_symm_diff_distrib_right _ _ _
+
+lemma subset_symm_diff_union_symm_diff_left (h : disjoint s t) : u ⊆ s ∆ u ∪ t ∆ u :=
+h.le_symm_diff_sup_symm_diff_left
+
+lemma subset_symm_diff_union_symm_diff_right (h : disjoint t u) : s ⊆ s ∆ t ∪ s ∆ u :=
+h.le_symm_diff_sup_symm_diff_right
 
 /-! ### Powerset -/
 
@@ -1414,6 +1445,7 @@ end preimage
 /-! ### Image of a set under a function -/
 
 section image
+variables {f : α → β}
 
 /-- The image of `s : set α` by `f : α → β`, written `f '' s`,
   is the set of `y : β` such that `f x = y` for some `x ∈ s`. -/
@@ -1591,11 +1623,18 @@ begin
   exact image_subset f (subset_union_right t s)
 end
 
+lemma subset_image_symm_diff : (f '' s) ∆ (f '' t) ⊆ f '' s ∆ t :=
+(union_subset_union (subset_image_diff _ _ _) $ subset_image_diff _ _ _).trans
+  (image_union _ _ _).superset
+
 theorem image_diff {f : α → β} (hf : injective f) (s t : set α) :
   f '' (s \ t) = f '' s \ f '' t :=
 subset.antisymm
   (subset.trans (image_inter_subset _ _ _) $ inter_subset_inter_right _ $ image_compl_subset hf)
   (subset_image_diff f s t)
+
+lemma image_symm_diff (hf : injective f) (s t : set α) : f '' (s ∆ t) = (f '' s) ∆ (f '' t) :=
+by simp_rw [set.symm_diff_def, image_union, image_diff hf]
 
 lemma nonempty.image (f : α → β) {s : set α} : s.nonempty → (f '' s).nonempty
 | ⟨x, hx⟩ := ⟨f x, mem_image_of_mem f hx⟩
@@ -1930,17 +1969,19 @@ lemma nontrivial_of_nontrivial (hs : s.nontrivial) : nontrivial α :=
 let ⟨x, _, y, _, hxy⟩ := hs in ⟨⟨x, y, hxy⟩⟩
 
 /-- `s`, coerced to a type, is a nontrivial type if and only if `s` is a nontrivial set. -/
-@[simp, norm_cast] lemma nontrivial_coe (s : set α) : nontrivial s ↔ s.nontrivial :=
+@[simp, norm_cast] lemma nontrivial_coe_sort {s : set α} : nontrivial s ↔ s.nontrivial :=
 by simp_rw [← nontrivial_univ_iff, set.nontrivial, mem_univ,
             exists_true_left, set_coe.exists, subtype.mk_eq_mk]
+
+alias nontrivial_coe_sort ↔ _ nontrivial.coe_sort
 
 /-- A type with a set `s` whose `coe_sort` is a nontrivial type is nontrivial.
 For the corresponding result for `subtype`, see `subtype.nontrivial_iff_exists_ne`. -/
 lemma nontrivial_of_nontrivial_coe (hs : nontrivial s) : nontrivial α :=
-by { rw [s.nontrivial_coe] at hs, exact nontrivial_of_nontrivial hs }
+nontrivial_of_nontrivial $ nontrivial_coe_sort.1 hs
 
 theorem nontrivial_mono {α : Type*} {s t : set α} (hst : s ⊆ t) (hs : nontrivial s) :
-  nontrivial t := (nontrivial_coe _).2 $ (s.nontrivial_coe.1 hs).mono hst
+  nontrivial t := nontrivial.coe_sort $ (nontrivial_coe_sort.1 hs).mono hst
 
 /-- The preimage of a nontrivial set under a surjective map is nontrivial. -/
 theorem nontrivial.preimage {s : set β} (hs : s.nontrivial) {f : α → β}
@@ -2035,6 +2076,9 @@ theorem forall_subtype_range_iff {p : range f → Prop} :
   (∀ a : range f, p a) ↔ ∀ i, p ⟨f i, mem_range_self _⟩ :=
 ⟨λ H i, H _, λ H ⟨y, i, hi⟩, by { subst hi, apply H }⟩
 
+lemma subsingleton_range {α : Sort*} [subsingleton α] (f : α → β) : (range f).subsingleton :=
+forall_range_iff.2 $ λ x, forall_range_iff.2 $ λ y, congr_arg f (subsingleton.elim x y)
+
 theorem exists_range_iff {p : α → Prop} : (∃ a ∈ range f, p a) ↔ (∃ i, p (f i)) :=
 by simp
 
@@ -2126,6 +2170,15 @@ lemma image_preimage_eq_iff {f : α → β} {s : set β} : f '' (f ⁻¹' s) = s
 lemma subset_range_iff_exists_image_eq {f : α → β} {s : set β} :
   s ⊆ range f ↔ ∃ t, f '' t = s :=
 ⟨λ h, ⟨_, image_preimage_eq_iff.2 h⟩, λ ⟨t, ht⟩, ht ▸ image_subset_range _ _⟩
+
+@[simp] lemma exists_subset_range_and_iff {f : α → β} {p : set β → Prop} :
+  (∃ s, s ⊆ range f ∧ p s) ↔ ∃ s, p (f '' s) :=
+⟨λ ⟨s, hsf, hps⟩, ⟨f ⁻¹' s, (image_preimage_eq_of_subset hsf).symm ▸ hps⟩,
+  λ ⟨s, hs⟩, ⟨f '' s, image_subset_range _ _, hs⟩⟩
+
+lemma exists_subset_range_iff {f : α → β} {p : set β → Prop} :
+  (∃ s ⊆ range f, p s) ↔ ∃ s, p (f '' s) :=
+by simp only [exists_prop, exists_subset_range_and_iff]
 
 lemma range_image (f : α → β) : range (image f) = 𝒫 (range f) :=
 ext $ λ s, subset_range_iff_exists_image_eq.symm
@@ -2271,9 +2324,11 @@ lemma surjective_onto_range : surjective (range_factorization f) :=
 lemma image_eq_range (f : α → β) (s : set α) : f '' s = range (λ(x : s), f x) :=
 by { ext, split, rintro ⟨x, h1, h2⟩, exact ⟨⟨x, h1⟩, h2⟩, rintro ⟨⟨x, h1⟩, h2⟩, exact ⟨x, h1, h2⟩ }
 
-@[simp] lemma sum.elim_range {α β γ : Type*} (f : α → γ) (g : β → γ) :
-  range (sum.elim f g) = range f ∪ range g :=
-by simp [set.ext_iff, mem_range]
+lemma _root_.sum.range_eq (f : α ⊕ β → γ) : range f = range (f ∘ sum.inl) ∪ range (f ∘ sum.inr) :=
+ext $ λ x, sum.exists
+
+@[simp] lemma sum.elim_range (f : α → γ) (g : β → γ) : range (sum.elim f g) = range f ∪ range g :=
+sum.range_eq _
 
 lemma range_ite_subset' {p : Prop} [decidable p] {f g : α → β} :
   range (if p then f else g) ⊆ range f ∪ range g :=
@@ -2636,7 +2691,8 @@ end image_preimage
 /-!
 ### Images of binary and ternary functions
 
-This section is very similar to `order.filter.n_ary`. Please keep them in sync.
+This section is very similar to `order.filter.n_ary`, `data.finset.n_ary`, `data.option.n_ary`.
+Please keep them in sync.
 -/
 
 section n_ary_image
@@ -2834,25 +2890,25 @@ lemma image_image2_distrib {g : γ → δ} {f' : α' → β' → δ} {g₁ : α 
   (image2 f s t).image g = image2 f' (s.image g₁) (t.image g₂) :=
 by simp_rw [image_image2, image2_image_left, image2_image_right, h_distrib]
 
-/-- Symmetric of `set.image2_image_left_comm`. -/
+/-- Symmetric statement to `set.image2_image_left_comm`. -/
 lemma image_image2_distrib_left {g : γ → δ} {f' : α' → β → δ} {g' : α → α'}
   (h_distrib : ∀ a b, g (f a b) = f' (g' a) b) :
   (image2 f s t).image g = image2 f' (s.image g') t :=
 (image_image2_distrib h_distrib).trans $ by rw image_id'
 
-/-- Symmetric of `set.image_image2_right_comm`. -/
+/-- Symmetric statement to `set.image_image2_right_comm`. -/
 lemma image_image2_distrib_right {g : γ → δ} {f' : α → β' → δ} {g' : β → β'}
   (h_distrib : ∀ a b, g (f a b) = f' a (g' b)) :
   (image2 f s t).image g = image2 f' s (t.image g') :=
 (image_image2_distrib h_distrib).trans $ by rw image_id'
 
-/-- Symmetric of `set.image_image2_distrib_left`. -/
+/-- Symmetric statement to `set.image_image2_distrib_left`. -/
 lemma image2_image_left_comm {f : α' → β → γ} {g : α → α'} {f' : α → β → δ} {g' : δ → γ}
   (h_left_comm : ∀ a b, f (g a) b = g' (f' a b)) :
   image2 f (s.image g) t = (image2 f' s t).image g' :=
 (image_image2_distrib_left $ λ a b, (h_left_comm a b).symm).symm
 
-/-- Symmetric of `set.image_image2_distrib_right`. -/
+/-- Symmetric statement to `set.image_image2_distrib_right`. -/
 lemma image_image2_right_comm {f : α → β' → γ} {g : β → β'} {f' : α → β → δ} {g' : δ → γ}
   (h_right_comm : ∀ a b, f a (g b) = g' (f' a b)) :
   image2 f s (t.image g) = (image2 f' s t).image g' :=
@@ -2883,25 +2939,25 @@ lemma image_image2_antidistrib {g : γ → δ} {f' : β' → α' → δ} {g₁ :
   (image2 f s t).image g = image2 f' (t.image g₁) (s.image g₂) :=
 by { rw image2_swap f, exact image_image2_distrib (λ _ _, h_antidistrib _ _) }
 
-/-- Symmetric of `set.image2_image_left_anticomm`. -/
+/-- Symmetric statement to `set.image2_image_left_anticomm`. -/
 lemma image_image2_antidistrib_left {g : γ → δ} {f' : β' → α → δ} {g' : β → β'}
   (h_antidistrib : ∀ a b, g (f a b) = f' (g' b) a) :
   (image2 f s t).image g = image2 f' (t.image g') s :=
 (image_image2_antidistrib h_antidistrib).trans $ by rw image_id'
 
-/-- Symmetric of `set.image_image2_right_anticomm`. -/
+/-- Symmetric statement to `set.image_image2_right_anticomm`. -/
 lemma image_image2_antidistrib_right {g : γ → δ} {f' : β → α' → δ} {g' : α → α'}
   (h_antidistrib : ∀ a b, g (f a b) = f' b (g' a)) :
   (image2 f s t).image g = image2 f' t (s.image g') :=
 (image_image2_antidistrib h_antidistrib).trans $ by rw image_id'
 
-/-- Symmetric of `set.image_image2_antidistrib_left`. -/
+/-- Symmetric statement to `set.image_image2_antidistrib_left`. -/
 lemma image2_image_left_anticomm {f : α' → β → γ} {g : α → α'} {f' : β → α → δ} {g' : δ → γ}
   (h_left_anticomm : ∀ a b, f (g a) b = g' (f' b a)) :
   image2 f (s.image g) t = (image2 f' t s).image g' :=
 (image_image2_antidistrib_left $ λ a b, (h_left_anticomm b a).symm).symm
 
-/-- Symmetric of `set.image_image2_antidistrib_right`. -/
+/-- Symmetric statement to `set.image_image2_antidistrib_right`. -/
 lemma image_image2_right_anticomm {f : α → β' → γ} {g : β → β'} {f' : β → α → δ} {g' : δ → γ}
   (h_right_anticomm : ∀ a b, f a (g b) = g' (f' b a)) :
   image2 f s (t.image g) = (image2 f' t s).image g' :=

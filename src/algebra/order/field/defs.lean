@@ -4,11 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
 import algebra.field.basic
-import algebra.group_power.lemmas
-import algebra.group_power.order
 import algebra.order.ring
-import order.bounds
-import tactic.monotonicity.basic
 
 /-!
 # Linear ordered (semi)fields
@@ -25,7 +21,7 @@ A linear ordered (semi)field is a (semi)field equipped with a linear order such 
 
 ## Implementation details
 
-For olean caching reasons, this file is separate to the main file, algebra.order.field.
+For olean caching reasons, this file is separate to the main file, `algebra.order.field.basic`.
 The lemmata are instead located there.
 
 -/

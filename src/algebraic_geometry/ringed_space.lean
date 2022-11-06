@@ -127,12 +127,12 @@ lemma mem_top_basic_open (f : X.presheaf.obj (op ⊤)) (x : X) :
   x ∈ X.basic_open f ↔ is_unit (X.presheaf.germ ⟨x, show x ∈ (⊤ : opens X), by trivial⟩ f) :=
 mem_basic_open X f ⟨x, _⟩
 
-lemma basic_open_subset {U : opens X} (f : X.presheaf.obj (op U)) : X.basic_open f ⊆ U :=
+lemma basic_open_le {U : opens X} (f : X.presheaf.obj (op U)) : X.basic_open f ≤ U :=
 by { rintros _ ⟨x, hx, rfl⟩, exact x.2 }
 
 /-- The restriction of a section `f` to the basic open of `f` is a unit. -/
 lemma is_unit_res_basic_open {U : opens X} (f : X.presheaf.obj (op U)) :
-  is_unit (X.presheaf.map (@hom_of_le (opens X) _ _ _ (X.basic_open_subset f)).op f) :=
+  is_unit (X.presheaf.map (@hom_of_le (opens X) _ _ _ (X.basic_open_le f)).op f) :=
 begin
   apply is_unit_of_is_unit_germ,
   rintro ⟨_, ⟨x, hx, rfl⟩⟩,
@@ -142,7 +142,7 @@ begin
 end
 
 @[simp] lemma basic_open_res {U V : (opens X)ᵒᵖ} (i : U ⟶ V) (f : X.presheaf.obj U) :
-  @basic_open X (unop V) (X.presheaf.map i f) = (unop V) ∩ @basic_open X (unop U) f :=
+  @basic_open X (unop V) (X.presheaf.map i f) = (unop V) ⊓ @basic_open X (unop U) f :=
 begin
   induction U using opposite.rec,
   induction V using opposite.rec,
@@ -185,7 +185,7 @@ lemma basic_open_of_is_unit {U : opens X} {f : X.presheaf.obj (op U)} (hf : is_u
   X.basic_open f = U :=
 begin
   apply le_antisymm,
-  { exact X.basic_open_subset f },
+  { exact X.basic_open_le f },
   intros x hx,
   erw X.mem_basic_open f (⟨x, hx⟩ : U),
   exact ring_hom.is_unit_map _ hf

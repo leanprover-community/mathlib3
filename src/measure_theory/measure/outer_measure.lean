@@ -797,7 +797,7 @@ lemma is_caratheodory_sum {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))
   rw [bUnion_lt_succ, finset.sum_range_succ, set.union_comm, is_caratheodory_sum,
     m.measure_inter_union _ (h n), add_comm],
   intro a,
-  simpa using λ (h₁ : a ∈ s n) i (hi : i < n) h₂, hd _ _ (ne_of_gt hi) ⟨h₁, h₂⟩
+  simpa using λ (h₁ : a ∈ s n) i (hi : i < n) h₂, hd (ne_of_gt hi) ⟨h₁, h₂⟩
 end
 
 lemma is_caratheodory_Union_nat {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))

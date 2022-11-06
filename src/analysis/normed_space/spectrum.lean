@@ -368,7 +368,7 @@ begin
   By Liouville's theorem `λ z, resolvent a z` is constant -/
   have H₂ := norm_resolvent_le_forall a,
   have H₃ : ∀ z : ℂ, resolvent a z = resolvent a (0 : ℂ),
-  { refine λ z, H₁.apply_eq_apply_of_bounded (bounded_iff_exists_norm_le.mpr _) z 0,
+  { refine λ z, H₁.apply_eq_apply_of_bounded (bounded_iff_forall_norm_le.mpr _) z 0,
     rcases H₂ 1 zero_lt_one with ⟨R, R_pos, hR⟩,
     rcases (proper_space.is_compact_closed_ball (0 : ℂ) R).exists_bound_of_continuous_on
       H₁.continuous.continuous_on with ⟨C, hC⟩,

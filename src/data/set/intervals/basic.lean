@@ -25,13 +25,11 @@ for some statements it should be `linear_order` or `densely_ordered`).
 TODO: This is just the beginning; a lot of rules are missing
 -/
 
+open function order_dual (to_dual of_dual)
+
 variables {α β : Type*}
 
 namespace set
-
-open set
-open order_dual (to_dual of_dual)
-
 section preorder
 variables [preorder α] {a a₁ a₂ b b₁ b₂ c x : α}
 
@@ -549,6 +547,12 @@ eq_singleton_iff_unique_mem.2 ⟨left_mem_Ici, λ b, h.eq_of_ge⟩
 
 lemma _root_.is_min.Iic_eq (h : is_min a) : Iic a = {a} := h.to_dual.Ici_eq
 
+lemma Ici_injective : injective (Ici : α → set α) := λ a b, eq_of_forall_ge_iff ∘ set.ext_iff.1
+lemma Iic_injective : injective (Iic : α → set α) := λ a b, eq_of_forall_le_iff ∘ set.ext_iff.1
+
+lemma Ici_inj : Ici a = Ici b ↔ a = b := Ici_injective.eq_iff
+lemma Iic_inj : Iic a = Iic b ↔ a = b := Iic_injective.eq_iff
+
 end partial_order
 
 section order_top
@@ -603,6 +607,10 @@ lemma not_mem_Ioi : c ∉ Ioi a ↔ c ≤ a := not_lt
 
 lemma not_mem_Iio : c ∉ Iio b ↔ b ≤ c := not_lt
 
+@[simp] lemma not_mem_Ioi_self : a ∉ Ioi a := lt_irrefl _
+
+@[simp] lemma not_mem_Iio_self : b ∉ Iio b := lt_irrefl _
+
 lemma not_mem_Ioc_of_le (ha : c ≤ a) : c ∉ Ioc a b :=
 not_mem_subset Ioc_subset_Ioi_self $ not_mem_Ioi.mpr ha
 
@@ -643,6 +651,12 @@ by rw [diff_eq, compl_Iio, inter_comm, Ici_inter_Iic]
 
 @[simp] lemma Iio_diff_Iio : Iio b \ Iio a = Ico a b :=
 by rw [diff_eq, compl_Iio, inter_comm, Ici_inter_Iio]
+
+lemma Ioi_injective : injective (Ioi : α → set α) := λ a b, eq_of_forall_gt_iff ∘ set.ext_iff.1
+lemma Iio_injective : injective (Iio : α → set α) := λ a b, eq_of_forall_lt_iff ∘ set.ext_iff.1
+
+lemma Ioi_inj : Ioi a = Ioi b ↔ a = b := Ioi_injective.eq_iff
+lemma Iio_inj : Iio a = Iio b ↔ a = b := Iio_injective.eq_iff
 
 lemma Ico_subset_Ico_iff (h₁ : a₁ < b₁) :
   Ico a₁ b₁ ⊆ Ico a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ ≤ b₂ :=
@@ -1349,19 +1363,19 @@ and_congr lt_sub_iff_add_lt sub_lt_iff_lt_add
 
 /-! `sub_mem_Ixx_iff_right` -/
 lemma sub_mem_Icc_iff_right : a - b ∈ set.Icc c d ↔ b ∈ set.Icc (a - d) (a - c) :=
-(and_comm _ _).trans $ and_congr sub_le le_sub
+(and_comm _ _).trans $ and_congr sub_le_comm le_sub_comm
 lemma sub_mem_Ico_iff_right : a - b ∈ set.Ico c d ↔ b ∈ set.Ioc (a - d) (a - c) :=
-(and_comm _ _).trans $ and_congr sub_lt le_sub
+(and_comm _ _).trans $ and_congr sub_lt_comm le_sub_comm
 lemma sub_mem_Ioc_iff_right : a - b ∈ set.Ioc c d ↔ b ∈ set.Ico (a - d) (a - c) :=
-(and_comm _ _).trans $ and_congr sub_le lt_sub
+(and_comm _ _).trans $ and_congr sub_le_comm lt_sub_comm
 lemma sub_mem_Ioo_iff_right : a - b ∈ set.Ioo c d ↔ b ∈ set.Ioo (a - d) (a - c) :=
-(and_comm _ _).trans $ and_congr sub_lt lt_sub
+(and_comm _ _).trans $ and_congr sub_lt_comm lt_sub_comm
 
 -- I think that symmetric intervals deserve attention and API: they arise all the time,
 -- for instance when considering metric balls in `ℝ`.
 lemma mem_Icc_iff_abs_le {R : Type*} [linear_ordered_add_comm_group R] {x y z : R} :
   |x - y| ≤ z ↔ y ∈ Icc (x - z) (x + z) :=
-abs_le.trans $ (and_comm _ _).trans $ and_congr sub_le neg_le_sub_iff_le_add
+abs_le.trans $ (and_comm _ _).trans $ and_congr sub_le_comm neg_le_sub_iff_le_add
 
 end ordered_add_comm_group
 

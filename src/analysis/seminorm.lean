@@ -417,7 +417,7 @@ noncomputable instance : has_Sup (seminorm 𝕜 E) :=
       rcases h with ⟨q, hq⟩,
       obtain rfl | h := s.eq_empty_or_nonempty,
       { simp [real.csupr_empty] },
-      haveI : nonempty ↥s := nonempty_coe_sort.mpr h,
+      haveI : nonempty ↥s := h.coe_sort,
       simp only [supr_apply],
       refine csupr_le (λ i, ((i : seminorm 𝕜 E).add_le' x y).trans $
         add_le_add (le_csupr ⟨q x, _⟩ i) (le_csupr ⟨q y, _⟩ i));
@@ -465,7 +465,7 @@ private lemma seminorm.is_lub_Sup (s : set (seminorm 𝕜 E)) (hs₁ : bdd_above
   is_lub s (Sup s) :=
 begin
   refine ⟨λ p hp x, _, λ p hp x, _⟩;
-  haveI : nonempty ↥s := nonempty_coe_sort.mpr hs₂;
+  haveI : nonempty ↥s := hs₂.coe_sort;
   rw [seminorm.coe_Sup_eq hs₁, supr_apply],
   { rcases hs₁ with ⟨q, hq⟩,
     exact le_csupr ⟨q x, forall_range_iff.mpr $ λ i : s, hq i.2 x⟩ ⟨p, hp⟩ },

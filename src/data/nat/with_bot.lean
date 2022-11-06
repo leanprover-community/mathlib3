@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.nat.basic
+import data.nat.order
 import algebra.order.group.basic
 /-!
 # `with_bot ℕ`

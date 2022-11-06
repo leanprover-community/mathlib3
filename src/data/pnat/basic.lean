@@ -3,7 +3,7 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Neil Strickland
 -/
-import data.nat.basic
+import data.nat.order
 import algebra.order.positive.ring
 
 /-!
@@ -116,13 +116,13 @@ open nat
 
 theorem eq {m n : ℕ+} : (m : ℕ) = n → m = n := subtype.eq
 
-@[simp] lemma coe_inj {m n : ℕ+} : (m : ℕ) = n ↔ m = n := set_coe.ext_iff
+@[simp, norm_cast] lemma coe_inj {m n : ℕ+} : (m : ℕ) = n ↔ m = n := set_coe.ext_iff
 
 lemma coe_injective : function.injective (coe : ℕ+ → ℕ) := subtype.coe_injective
 
 @[simp] theorem mk_coe (n h) : ((⟨n, h⟩ : ℕ+) : ℕ) = n := rfl
 
-@[simp] theorem add_coe (m n : ℕ+) : ((m + n : ℕ+) : ℕ) = m + n := rfl
+@[simp, norm_cast] theorem add_coe (m n : ℕ+) : ((m + n : ℕ+) : ℕ) = m + n := rfl
 
 /-- `pnat.coe` promoted to an `add_hom`, that is, a morphism which preserves addition. -/
 def coe_add_hom : add_hom ℕ+ ℕ :=
@@ -150,6 +150,8 @@ instance : contravariant_class ℕ+ ℕ+ (+) (<) := positive.contravariant_class
   ⇑order_iso.pnat_iso_nat.symm = nat.succ_pnat := rfl
 
 @[simp] theorem ne_zero (n : ℕ+) : (n : ℕ) ≠ 0 := n.2.ne'
+
+instance _root_.ne_zero.pnat {a : ℕ+} : _root_.ne_zero (a : ℕ) := ⟨a.ne_zero⟩
 
 theorem to_pnat'_coe {n : ℕ} : 0 < n → (n.to_pnat' : ℕ) = n := succ_pred_eq_of_pos
 
@@ -194,8 +196,8 @@ iff.rfl
 @[simp] lemma bit1_le_bit1 (n m : ℕ+) : (bit1 n) ≤ (bit1 m) ↔ (bit1 (n : ℕ)) ≤ (bit1 (m : ℕ)) :=
 iff.rfl
 
-@[simp] theorem one_coe : ((1 : ℕ+) : ℕ) = 1 := rfl
-@[simp] theorem mul_coe (m n : ℕ+) : ((m * n : ℕ+) : ℕ) = m * n := rfl
+@[simp, norm_cast] theorem one_coe : ((1 : ℕ+) : ℕ) = 1 := rfl
+@[simp, norm_cast] theorem mul_coe (m n : ℕ+) : ((m * n : ℕ+) : ℕ) = m * n := rfl
 
 /-- `pnat.coe` promoted to a `monoid_hom`. -/
 def coe_monoid_hom : ℕ+ →* ℕ :=
@@ -205,7 +207,8 @@ def coe_monoid_hom : ℕ+ →* ℕ :=
 
 @[simp] lemma coe_coe_monoid_hom : (coe_monoid_hom : ℕ+ → ℕ) = coe := rfl
 
-@[simp] lemma coe_eq_one_iff {m : ℕ+} : (m : ℕ) = 1 ↔ m = 1 := subtype.coe_injective.eq_iff' one_coe
+@[simp, norm_cast] lemma coe_eq_one_iff {m : ℕ+} : (m : ℕ) = 1 ↔ m = 1 :=
+subtype.coe_injective.eq_iff' one_coe
 
 @[simp] lemma le_one_iff {n : ℕ+} : n ≤ 1 ↔ n = 1 := le_bot_iff
 
@@ -213,10 +216,10 @@ lemma lt_add_left (n m : ℕ+) : n < m + n := lt_add_of_pos_left _ m.2
 
 lemma lt_add_right (n m : ℕ+) : n < n + m := (lt_add_left n m).trans_eq (add_comm _ _)
 
-@[simp] lemma coe_bit0 (a : ℕ+) : ((bit0 a : ℕ+) : ℕ) = bit0 (a : ℕ) := rfl
-@[simp] lemma coe_bit1 (a : ℕ+) : ((bit1 a : ℕ+) : ℕ) = bit1 (a : ℕ) := rfl
+@[simp, norm_cast] lemma coe_bit0 (a : ℕ+) : ((bit0 a : ℕ+) : ℕ) = bit0 (a : ℕ) := rfl
+@[simp, norm_cast] lemma coe_bit1 (a : ℕ+) : ((bit1 a : ℕ+) : ℕ) = bit1 (a : ℕ) := rfl
 
-@[simp] theorem pow_coe (m : ℕ+) (n : ℕ) : ((m ^ n : ℕ+) : ℕ) = (m : ℕ) ^ n :=
+@[simp, norm_cast] theorem pow_coe (m : ℕ+) (n : ℕ) : ((m ^ n : ℕ+) : ℕ) = (m : ℕ) ^ n :=
 rfl
 
 /-- Subtraction a - b is defined in the obvious way when

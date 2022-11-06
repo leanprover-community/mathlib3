@@ -141,7 +141,7 @@ variables {K : Type*} [field K]
 def conjugate (φ : K →+* ℂ) : K →+* ℂ := ring_hom.comp complex.conj_ae.to_ring_equiv.to_ring_hom φ
 
 /-- Two complex embeddings define the same place iff they are equal or complex conjugate. -/
-lemma complex_place_eq_iff {φ ψ : K →+* ℂ} :
+lemma infinite_place_eq_iff {φ ψ : K →+* ℂ} :
   place K φ = place K ψ ↔ φ = ψ ∨ conjugate φ = ψ :=
 begin
   split,

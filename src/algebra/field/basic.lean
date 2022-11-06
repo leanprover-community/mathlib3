@@ -3,7 +3,6 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
-import algebra.parity
 import data.rat.defs
 
 /-!
@@ -186,7 +185,7 @@ by rw neg_inv
 end division_monoid
 
 section division_ring
-variables [division_ring K] {a b : K} {n : ℤ}
+variables [division_ring K] {a b : K}
 
 namespace rat
 

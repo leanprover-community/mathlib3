@@ -5,6 +5,7 @@ Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.field.basic
 import algebra.group_with_zero.power
+import algebra.parity
 
 /-!
 # Results about powers in fields or division rings.

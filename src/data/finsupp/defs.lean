@@ -214,6 +214,11 @@ end⟩
 lemma single_apply [decidable (a = a')] : single a b a' = if a = a' then b else 0 :=
 by convert rfl
 
+lemma single_apply_left {f : α → β} (hf : function.injective f)
+  (x z : α) (y : M) :
+  single (f x) y (f z) = single x y z :=
+by simp only [single_apply, hf.eq_iff]
+
 lemma single_eq_indicator : ⇑(single a b) = set.indicator {a} (λ _, b) :=
 by { ext, simp [single_apply, set.indicator, @eq_comm _ a] }
 

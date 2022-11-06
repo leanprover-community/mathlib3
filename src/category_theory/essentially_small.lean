@@ -204,14 +204,14 @@ end
 Any thin category is locally small.
 -/
 @[priority 100]
-instance locally_small_of_thin {C : Type u} [category.{v} C] [∀ X Y : C, subsingleton (X ⟶ Y)] :
+instance locally_small_of_thin {C : Type u} [category.{v} C] [quiver.is_thin C] :
   locally_small.{w} C := {}
 
 /--
 A thin category is essentially small if and only if the underlying type of its skeleton is small.
 -/
 theorem essentially_small_iff_of_thin
-  {C : Type u} [category.{v} C] [∀ X Y : C, subsingleton (X ⟶ Y)] :
+  {C : Type u} [category.{v} C] [quiver.is_thin C] :
   essentially_small.{w} C ↔ small.{w} (skeleton C) :=
 by simp [essentially_small_iff, category_theory.locally_small_of_thin]
 

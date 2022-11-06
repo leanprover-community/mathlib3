@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 import data.bool.set
 import data.ulift
 import data.nat.order
-import order.bounds
+import order.bounds.basic
 
 /-!
 # Theory of complete lattices

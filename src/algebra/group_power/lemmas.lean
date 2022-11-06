@@ -57,8 +57,9 @@ begin
   exact and.left
 end
 
-lemma is_unit_pos_pow_iff {m : M} :
-  ∀ {n : ℕ} (h : 0 < n), is_unit (m ^ n) ↔ is_unit m
+lemma is_unit_pow_iff {m : M} :
+  ∀ {n : ℕ} (h : n ≠ 0), is_unit (m ^ n) ↔ is_unit m
+| 0 h := (h rfl).elim
 | (n + 1) _ := is_unit_pow_succ_iff
 
 /-- If `x ^ n.succ = 1` then `x` has an inverse, `x^n`. -/
@@ -67,15 +68,15 @@ def invertible_of_pow_succ_eq_one (x : M) (n : ℕ) (hx : x ^ n.succ = 1) :
 ⟨x ^ n, (pow_succ' x n).symm.trans hx, (pow_succ x n).symm.trans hx⟩
 
 /-- If `x ^ n = 1` then `x` has an inverse, `x^(n - 1)`. -/
-def invertible_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :
+def invertible_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : n ≠ 0) :
   invertible x :=
 begin
   apply invertible_of_pow_succ_eq_one x (n - 1),
   convert hx,
-  exact tsub_add_cancel_of_le (nat.succ_le_of_lt hn),
+  exact nat.succ_pred_eq_of_pos (pos_iff_ne_zero.2 hn),
 end
 
-lemma is_unit_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :
+lemma is_unit_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : n ≠ 0) :
   is_unit x :=
 begin
   haveI := invertible_of_pow_eq_one x n hx hn,

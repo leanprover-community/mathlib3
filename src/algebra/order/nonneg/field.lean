@@ -3,8 +3,8 @@ Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
--- import algebra.order.archimedean
-import algebra.order.field
+import algebra.order.archimedean
+import algebra.order.field.basic
 import algebra.order.nonneg.ring
 
 /-!

@@ -108,12 +108,12 @@ lemma nat_abs_norm_eq (x : ℤ[i]) : x.norm.nat_abs =
 int.coe_nat_inj $ begin simp, simp [zsqrtd.norm] end
 
 instance : has_div ℤ[i] :=
-⟨λ x y, let n := (rat.of_int (norm y))⁻¹, c := y.conj in
-  ⟨round (rat.of_int (x * c).re * n : ℚ), round (rat.of_int (x * c).im * n : ℚ)⟩⟩
+⟨λ x y, let n := (norm y)⁻¹, c := y.conj in
+  ⟨round ((x * c).re * n : ℚ), round ((x * c).im * n : ℚ)⟩⟩
 
 lemma div_def (x y : ℤ[i]) : x / y = ⟨round ((x * conj y).re / norm y : ℚ),
   round ((x * conj y).im / norm y : ℚ)⟩ :=
-show zsqrtd.mk _ _ = _, by simp [rat.of_int_eq_mk, rat.mk_eq_div, div_eq_mul_inv]
+show zsqrtd.mk _ _ = _, by simp [rat.coe_int_eq_mk, rat.mk_eq_div, div_eq_mul_inv]
 
 lemma to_complex_div_re (x y : ℤ[i]) : ((x / y : ℤ[i]) : ℂ).re = round ((x / y : ℂ).re) :=
 by rw [div_def, ← @rat.round_cast ℝ _ _];

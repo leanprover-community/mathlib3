@@ -62,12 +62,13 @@ instance : has_repr ℚ := ⟨rat.repr⟩
 instance : has_to_string ℚ := ⟨rat.repr⟩
 meta instance : has_to_format ℚ := ⟨coe ∘ rat.repr⟩
 
-/-- Embed an integer as a rational number -/
-def of_int (n : ℤ) : ℚ :=
-⟨n, 1, nat.one_pos, nat.coprime_one_right _⟩
+instance : has_int_cast ℚ := ⟨λ n, ⟨n, 1, nat.one_pos, nat.coprime_one_right _⟩⟩
 
-instance : has_zero ℚ := ⟨of_int 0⟩
-instance : has_one ℚ := ⟨of_int 1⟩
+@[simp, norm_cast] lemma coe_int_num (n : ℤ) : (n : ℚ).num = n := rfl
+@[simp, norm_cast] lemma coe_int_denom (n : ℤ) : (n : ℚ).denom = 1 := rfl
+
+instance : has_zero ℚ := ⟨(0 : ℤ)⟩
+instance : has_one ℚ := ⟨(1 : ℤ)⟩
 instance : inhabited ℚ := ⟨0⟩
 
 lemma ext_iff {p q : ℚ} : p = q ↔ p.num = q.num ∧ p.denom = q.denom :=
@@ -230,7 +231,7 @@ end
 
 theorem num_denom' {n d h c} : (⟨n, d, h, c⟩ : ℚ) = n /. d := num_denom.symm
 
-theorem of_int_eq_mk (z : ℤ) : of_int z = z /. 1 := num_denom'
+lemma coe_int_eq_mk (z : ℤ) : (z : ℚ) = z /. 1 := num_denom'
 
 /-- Define a (dependent) function or prove `∀ r : ℚ, p r` by dealing with rational
 numbers of the form `n /. d` with `0 < d` and coprime `n`, `d`. -/
@@ -465,10 +466,13 @@ instance : comm_ring ℚ :=
   mul_assoc        := rat.mul_assoc,
   left_distrib     := rat.mul_add,
   right_distrib    := rat.add_mul,
-  nat_cast         := λ n, rat.of_int n,
+  int_cast         := coe,
+  /- Important: We do not set `nat_cast := λ n, ((n : ℤ) : ℚ)` (even though it's defeq) as that
+  makes `int.cast_coe_nat` and `coe_coe` loop in `simp`. -/
+  nat_cast         := λ n, ⟨n, 1, nat.one_pos, nat.coprime_one_right _⟩,
   nat_cast_zero    := rfl,
-  nat_cast_succ    := λ n, show of_int _ = of_int _ + 1,
-    by simp only [of_int_eq_mk, add_def one_ne_zero one_ne_zero, ← mk_one_one]; simp }
+  nat_cast_succ    := λ n, by change ((_ : ℤ) : ℚ) = ((_ : ℤ) : ℚ) + 1;
+    by simp only [coe_int_eq_mk, add_def one_ne_zero one_ne_zero, ← mk_one_one]; simp }
 
 instance : comm_group_with_zero ℚ :=
 { zero := 0,
@@ -655,10 +659,6 @@ protected lemma add_mk (a b c : ℤ) : (a + b) /. c = a /. c + b /. c :=
 if h : c = 0 then by simp [h] else
 by { rw [add_def h h, mk_eq h (mul_ne_zero h h)], simp [add_mul, mul_assoc] }
 
-theorem coe_int_eq_mk : ∀ z : ℤ, ↑z = z /. 1
-| (n : ℕ) := of_int_eq_mk _
-| -[1+ n] := show -(of_int _) = _, by simp [of_int_eq_mk, neg_def, int.neg_succ_of_nat_coe]
-
 theorem mk_eq_div (n d : ℤ) : n /. d = ((n : ℚ) / d) :=
 begin
   by_cases d0 : d = 0, {simp [d0, div_zero]},
@@ -747,15 +747,6 @@ lemma substr_num_denom' (q r : ℚ) :
 by rw [sub_eq_add_neg, sub_eq_add_neg, ←neg_mul, ←num_neg_eq_neg_num, ←denom_neg_eq_denom r,
   add_num_denom' q (-r)]
 
-theorem coe_int_eq_of_int (z : ℤ) : ↑z = of_int z :=
-(coe_int_eq_mk z).trans (of_int_eq_mk z).symm
-
-@[simp, norm_cast] theorem coe_int_num (n : ℤ) : (n : ℚ).num = n :=
-by rw coe_int_eq_of_int; refl
-
-@[simp, norm_cast] theorem coe_int_denom (n : ℤ) : (n : ℚ).denom = 1 :=
-by rw coe_int_eq_of_int; refl
-
 lemma coe_int_num_of_denom_eq_one {q : ℚ} (hq : q.denom = 1) : ↑(q.num) = q :=
 by { conv_rhs { rw [←(@num_denom q), hq] }, rw [coe_int_eq_mk], refl }
 
@@ -776,20 +767,14 @@ by rw [← int.cast_coe_nat, coe_int_denom]
 
 -- Will be subsumed by `int.coe_inj` after we have defined
 -- `linear_ordered_field ℚ` (which implies characteristic zero).
-lemma coe_int_inj (m n : ℤ) : (m : ℚ) = n ↔ m = n :=
-⟨λ h, by simpa using congr_arg num h, congr_arg _⟩
+lemma coe_int_inj (m n : ℤ) : (m : ℚ) = n ↔ m = n := ⟨congr_arg num, congr_arg _⟩
 
 end casts
 
 lemma inv_def' {q : ℚ} : q⁻¹ = (q.denom : ℚ) / q.num :=
-by { conv_lhs { rw ←(@num_denom q) }, cases q, simp [div_num_denom] }
+by { conv_lhs { rw ←@num_denom q }, rw [inv_def, mk_eq_div, int.cast_coe_nat] }
 
-protected lemma inv_neg (q : ℚ) : (-q)⁻¹ = -(q⁻¹) :=
-begin
-  simp only [inv_def'],
-  cases eq_or_ne (q.num : ℚ) 0 with hq hq;
-  simp [div_eq_iff, hq]
-end
+protected lemma inv_neg (q : ℚ) : (-q)⁻¹ = -q⁻¹ := by { rw ←@num_denom q, simp [-num_denom] }
 
 @[simp] lemma mul_denom_eq_num {q : ℚ} : q * q.denom = q.num :=
 begin

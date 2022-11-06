@@ -35,20 +35,14 @@ open_locale rat
 section with_div_ring
 variable [division_ring α]
 
-@[simp] theorem cast_of_int (n : ℤ) : (of_int n : α) = n :=
-(cast_def _).trans $ show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
-
 @[simp, norm_cast] theorem cast_coe_int (n : ℤ) : ((n : ℚ) : α) = n :=
-by rw [coe_int_eq_of_int, cast_of_int]
+(cast_def _).trans $ show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
 
 @[simp, norm_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℚ) : α) = n :=
 by rw [← int.cast_coe_nat, cast_coe_int, int.cast_coe_nat]
 
-@[simp, norm_cast] theorem cast_zero : ((0 : ℚ) : α) = 0 :=
-(cast_of_int _).trans int.cast_zero
-
-@[simp, norm_cast] theorem cast_one : ((1 : ℚ) : α) = 1 :=
-(cast_of_int _).trans int.cast_one
+@[simp, norm_cast] lemma cast_zero : ((0 : ℚ) : α) = 0 := (cast_coe_int _).trans int.cast_zero
+@[simp, norm_cast] lemma cast_one : ((1 : ℚ) : α) = 1 := (cast_coe_int _).trans int.cast_one
 
 theorem cast_commute (r : ℚ) (a : α) : commute ↑r a :=
 by simpa only [cast_def] using (r.1.cast_commute a).div_left (r.2.cast_commute a)

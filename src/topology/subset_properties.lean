@@ -1574,17 +1574,17 @@ lemma set.subsingleton.is_preirreducible {s : set α} (hs : s.subsingleton) :
 theorem is_irreducible_singleton {x} : is_irreducible ({x} : set α) :=
 ⟨singleton_nonempty x, subsingleton_singleton.is_preirreducible⟩
 
-theorem is_preirreducible.closure {s : set α} (H : is_preirreducible s) :
-  is_preirreducible (closure s) :=
-λ u v hu hv ⟨y, hycs, hyu⟩ ⟨z, hzcs, hzv⟩,
-let ⟨p, hpu, hps⟩ := mem_closure_iff.1 hycs u hu hyu in
-let ⟨q, hqv, hqs⟩ := mem_closure_iff.1 hzcs v hv hzv in
-let ⟨r, hrs, hruv⟩ := H u v hu hv ⟨p, hps, hpu⟩ ⟨q, hqs, hqv⟩ in
-⟨r, subset_closure hrs, hruv⟩
+theorem is_preirreducible_iff_closure {s : set α} :
+  is_preirreducible (closure s) ↔ is_preirreducible s :=
+forall₄_congr $ λ u v hu hv,
+  by { iterate 3 { rw closure_inter_open_nonempty_iff }, exacts [hu.inter hv, hv, hu] }
 
-lemma is_irreducible.closure {s : set α} (h : is_irreducible s) :
-  is_irreducible (closure s) :=
-⟨h.nonempty.closure, h.is_preirreducible.closure⟩
+theorem is_irreducible_iff_closure {s : set α} :
+  is_irreducible (closure s) ↔ is_irreducible s :=
+and_congr closure_nonempty_iff is_preirreducible_iff_closure
+
+alias is_preirreducible_iff_closure ↔ _ is_preirreducible.closure
+alias is_irreducible_iff_closure ↔ _ is_irreducible.closure
 
 theorem exists_preirreducible (s : set α) (H : is_preirreducible s) :
   ∃ t : set α, is_preirreducible t ∧ s ⊆ t ∧ ∀ u, is_preirreducible u → t ⊆ u → u = t :=

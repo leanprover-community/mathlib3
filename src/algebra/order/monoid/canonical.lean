@@ -33,6 +33,15 @@ export has_exists_mul_of_le (exists_mul_of_le)
 
 export has_exists_add_of_le (exists_add_of_le)
 
+section mul_one_class
+variables [mul_one_class α] [preorder α] [contravariant_class α α (*) (<)] [has_exists_mul_of_le α]
+  {a b : α}
+
+@[to_additive] lemma exists_one_lt_mul_of_lt' (h : a < b) : ∃ c, 1 < c ∧ a * c = b :=
+by { obtain ⟨c, rfl⟩ := exists_mul_of_le h.le, exact ⟨c, one_lt_of_lt_mul_right h, rfl⟩ }
+
+end mul_one_class
+
 section has_exists_mul_of_le
 variables [linear_order α] [densely_ordered α] [monoid α] [has_exists_mul_of_le α]
   [covariant_class α α (*) (<)] [contravariant_class α α (*) (<)] {a b : α}
@@ -170,6 +179,27 @@ lt_of_le_of_lt (zero_le _) h
 @[priority 100] instance canonically_ordered_add_monoid.zero_le_one_class {M : Type*}
   [canonically_ordered_add_monoid M] [has_one M] : zero_le_one_class M :=
 ⟨zero_le 1⟩
+
+namespace ne_zero
+
+lemma pos {M} (a : M) [canonically_ordered_add_monoid M] [ne_zero a] : 0 < a :=
+(zero_le a).lt_of_ne $ ne_zero.out.symm
+
+lemma of_gt {M} [canonically_ordered_add_monoid M] {x y : M} (h : x < y) : ne_zero y :=
+of_pos $ pos_of_gt h
+
+-- 1 < p is still an often-used `fact`, due to `nat.prime` implying it, and it implying `nontrivial`
+-- on `zmod`'s ring structure. We cannot just set this to be any `x < y`, else that becomes a
+-- metavariable and it will hugely slow down typeclass inference.
+@[priority 10]
+instance of_gt' {M} [canonically_ordered_add_monoid M] [has_one M] {y : M}
+  [fact (1 < y)] : ne_zero y :=
+of_gt $ fact.out $ 1 < y
+
+instance bit0 {M} [canonically_ordered_add_monoid M] {x : M} [ne_zero x] : ne_zero (bit0 x) :=
+of_pos $ bit0_pos $ ne_zero.pos x
+
+end ne_zero
 
 /-- A canonically linear-ordered additive monoid is a canonically ordered additive monoid
     whose ordering is a linear order. -/

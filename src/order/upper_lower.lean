@@ -136,7 +136,7 @@ alias is_upper_set_preimage_to_dual_iff ↔ _ is_lower_set.to_dual
 end has_le
 
 section preorder
-variables [preorder α] [preorder β] {s : set α} (a : α)
+variables [preorder α] [preorder β] {s : set α} {p : α → Prop} (a : α)
 
 lemma is_upper_set_Ici : is_upper_set (Ici a) := λ _ _, ge_trans
 lemma is_lower_set_Iic : is_lower_set (Iic a) := λ _ _, le_trans
@@ -173,6 +173,12 @@ by { change is_upper_set ((f : α ≃ β) '' s), rw set.image_equiv_eq_preimage_
 lemma is_lower_set.image (hs : is_lower_set s) (f : α ≃o β) : is_lower_set (f '' s : set β) :=
 by { change is_lower_set ((f : α ≃ β) '' s), rw set.image_equiv_eq_preimage_symm,
   exact hs.preimage f.symm.monotone }
+
+@[simp] lemma set.monotone_mem : monotone (∈ s) ↔ is_upper_set s := iff.rfl
+@[simp] lemma set.antitone_mem : antitone (∈ s) ↔ is_lower_set s := forall_swap
+
+@[simp] lemma is_upper_set_set_of : is_upper_set {a | p a} ↔ monotone p := iff.rfl
+@[simp] lemma is_lower_set_set_of : is_lower_set {a | p a} ↔ antitone p := forall_swap
 
 section order_top
 variables [order_top α]

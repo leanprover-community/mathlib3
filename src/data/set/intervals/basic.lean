@@ -607,6 +607,10 @@ lemma not_mem_Ioi : c ∉ Ioi a ↔ c ≤ a := not_lt
 
 lemma not_mem_Iio : c ∉ Iio b ↔ b ≤ c := not_lt
 
+@[simp] lemma not_mem_Ioi_self : a ∉ Ioi a := lt_irrefl _
+
+@[simp] lemma not_mem_Iio_self : b ∉ Iio b := lt_irrefl _
+
 lemma not_mem_Ioc_of_le (ha : c ≤ a) : c ∉ Ioc a b :=
 not_mem_subset Ioc_subset_Ioi_self $ not_mem_Ioi.mpr ha
 
@@ -1359,19 +1363,19 @@ and_congr lt_sub_iff_add_lt sub_lt_iff_lt_add
 
 /-! `sub_mem_Ixx_iff_right` -/
 lemma sub_mem_Icc_iff_right : a - b ∈ set.Icc c d ↔ b ∈ set.Icc (a - d) (a - c) :=
-(and_comm _ _).trans $ and_congr sub_le le_sub
+(and_comm _ _).trans $ and_congr sub_le_comm le_sub_comm
 lemma sub_mem_Ico_iff_right : a - b ∈ set.Ico c d ↔ b ∈ set.Ioc (a - d) (a - c) :=
-(and_comm _ _).trans $ and_congr sub_lt le_sub
+(and_comm _ _).trans $ and_congr sub_lt_comm le_sub_comm
 lemma sub_mem_Ioc_iff_right : a - b ∈ set.Ioc c d ↔ b ∈ set.Ico (a - d) (a - c) :=
-(and_comm _ _).trans $ and_congr sub_le lt_sub
+(and_comm _ _).trans $ and_congr sub_le_comm lt_sub_comm
 lemma sub_mem_Ioo_iff_right : a - b ∈ set.Ioo c d ↔ b ∈ set.Ioo (a - d) (a - c) :=
-(and_comm _ _).trans $ and_congr sub_lt lt_sub
+(and_comm _ _).trans $ and_congr sub_lt_comm lt_sub_comm
 
 -- I think that symmetric intervals deserve attention and API: they arise all the time,
 -- for instance when considering metric balls in `ℝ`.
 lemma mem_Icc_iff_abs_le {R : Type*} [linear_ordered_add_comm_group R] {x y z : R} :
   |x - y| ≤ z ↔ y ∈ Icc (x - z) (x + z) :=
-abs_le.trans $ (and_comm _ _).trans $ and_congr sub_le neg_le_sub_iff_le_add
+abs_le.trans $ (and_comm _ _).trans $ and_congr sub_le_comm neg_le_sub_iff_le_add
 
 end ordered_add_comm_group
 

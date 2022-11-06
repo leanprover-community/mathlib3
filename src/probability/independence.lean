@@ -467,6 +467,30 @@ begin
   exact (generate_from_Union_measurable_set _).symm,
 end
 
+lemma Indep_set.indep_generate_from_lt [preorder ι] [is_probability_measure μ]
+  {s : ι → set Ω} (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (i : ι) :
+  indep (generate_from {s i}) (generate_from {t | ∃ j < i, s j = t}) μ :=
+begin
+  convert hs.indep_generate_from_of_disjoint hsm {i} {j | j < i}
+    (λ x ⟨hx₁, hx₂⟩, (set.mem_set_of.1 hx₂).ne $ set.mem_singleton_iff.1 hx₁),
+  simp only [set.mem_singleton_iff, exists_prop, exists_eq_left, set.set_of_eq_eq_singleton'],
+end
+
+lemma Indep_set.indep_generate_from_le [linear_order ι] [is_probability_measure μ]
+  {s : ι → set Ω} (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ)
+  (i : ι) {k : ι} (hk : i < k) :
+  indep (generate_from {s k}) (generate_from {t | ∃ j ≤ i, s j = t}) μ :=
+begin
+  convert hs.indep_generate_from_of_disjoint hsm {k} {j | j ≤ i}
+    (λ x ⟨hx₁, hx₂⟩, not_lt.2 (set.mem_set_of.2 hx₂) $ (set.mem_singleton_iff.1 hx₁).symm ▸ hk),
+  simp only [set.mem_singleton_iff, exists_prop, exists_eq_left, set.set_of_eq_eq_singleton'],
+end
+
+lemma Indep_set.indep_generate_from_le_nat [is_probability_measure μ]
+  {s : ℕ → set Ω} (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (n : ℕ):
+  indep (generate_from {s (n + 1)}) (generate_from {t | ∃ k ≤ n, s k = t}) μ :=
+hs.indep_generate_from_le hsm _ n.lt_succ_self
+
 lemma indep_supr_of_monotone [semilattice_sup ι] {Ω} {m : ι → measurable_space Ω}
   {m' m0 : measurable_space Ω} {μ : measure Ω} [is_probability_measure μ]
   (h_indep : ∀ i, indep (m i) m' μ) (h_le : ∀ i, m i ≤ m0) (h_le' : m' ≤ m0) (hm : monotone m) :
@@ -856,6 +880,23 @@ lemma Indep_fun.indep_fun_prod_range_succ [is_probability_measure μ]
   (n : ℕ) :
   indep_fun (∏ j in finset.range n, f j) (f n) μ :=
 hf_Indep.indep_fun_finset_prod_of_not_mem hf_meas finset.not_mem_range_self
+
+lemma Indep_set.Indep_fun_indicator [has_zero β] [has_one β] {m : measurable_space β}
+  {s : ι → set Ω} (hs : Indep_set s μ) :
+  Indep_fun (λ n, m) (λ n, (s n).indicator (λ ω, 1)) μ :=
+begin
+  classical,
+  rw Indep_fun_iff_measure_inter_preimage_eq_mul,
+  rintro S π hπ,
+  simp_rw set.indicator_const_preimage_eq_union,
+  refine @hs S (λ i, ite (1 ∈ π i) (s i) ∅ ∪ ite ((0 : β) ∈ π i) (s i)ᶜ ∅) (λ i hi, _),
+  have hsi : measurable_set[generate_from {s i}] (s i),
+    from measurable_set_generate_from (set.mem_singleton _),
+  refine measurable_set.union (measurable_set.ite' (λ _, hsi) (λ _, _))
+    (measurable_set.ite' (λ _, hsi.compl) (λ _, _)),
+  { exact @measurable_set.empty _ (generate_from {s i}), },
+  { exact @measurable_set.empty _ (generate_from {s i}), },
+end
 
 end indep_fun
 

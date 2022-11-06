@@ -3,7 +3,6 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 -/
-import data.int.basic
 import data.multiset.finset_ops
 import algebra.hom.embedding
 import tactic.apply
@@ -2915,11 +2914,7 @@ variables {s : finset α}
 
 lemma pairwise_subtype_iff_pairwise_finset' (r : β → β → Prop) (f : α → β) :
   pairwise (r on λ x : s, f x) ↔ (s : set α).pairwise (r on f) :=
-begin
-  refine ⟨λ h x hx y hy hxy, h ⟨x, hx⟩ ⟨y, hy⟩ (by simpa only [subtype.mk_eq_mk, ne.def]), _⟩,
-  rintros h ⟨x, hx⟩ ⟨y, hy⟩ hxy,
-  exact h hx hy (subtype.mk_eq_mk.not.mp hxy)
-end
+pairwise_subtype_iff_pairwise_set (s : set α) (r on f)
 
 lemma pairwise_subtype_iff_pairwise_finset (r : α → α → Prop) :
   pairwise (r on λ x : s, x) ↔ (s : set α).pairwise r :=

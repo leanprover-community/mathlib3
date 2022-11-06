@@ -530,7 +530,7 @@ if hf : measurable f then
   m_Union' :=
   begin
     intros g hg₁ hg₂,
-    convert v.m_Union (λ i, hf (hg₁ i)) (λ i j hij x hx, hg₂ i j hij hx),
+    convert v.m_Union (λ i, hf (hg₁ i)) (λ i j hij x hx, hg₂ hij hx),
     { ext i, rw if_pos (hg₁ i) },
     { rw [preimage_Union, if_pos (measurable_set.Union hg₁)] }
   end } else 0
@@ -1269,7 +1269,7 @@ measure.of_measurable (s.to_measure_of_zero_le' i hi₂)
     have h₁ : ∀ n, measurable_set (i ∩ f n) := λ n, hi₁.inter (hf₁ n),
     have h₂ : pairwise (disjoint on λ (n : ℕ), i ∩ f n),
     { rintro n m hnm x ⟨⟨_, hx₁⟩, _, hx₂⟩,
-      exact hf₂ n m hnm ⟨hx₁, hx₂⟩ },
+      exact hf₂ hnm ⟨hx₁, hx₂⟩ },
     simp only [to_measure_of_zero_le', s.restrict_apply hi₁ (measurable_set.Union hf₁),
                set.inter_comm, set.inter_Union, s.of_disjoint_Union_nat h₁ h₂,
                ennreal.some_eq_coe, id.def],

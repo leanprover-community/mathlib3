@@ -134,26 +134,26 @@ lemma intersecting.not_compl_mem {s : set α} (hs : s.intersecting) {a : α} (ha
 lemma intersecting.not_mem {s : set α} (hs : s.intersecting) {a : α} (ha : aᶜ ∈ s) : a ∉ s :=
 λ h, hs ha h disjoint_compl_left
 
-variables [fintype α] {s : finset α}
-
-lemma intersecting.disjoint_map_compl (hs : (s : set α).intersecting) :
+lemma intersecting.disjoint_map_compl {s : finset α}
+  (hs : (s : set α).intersecting) :
   disjoint s (s.map ⟨compl, compl_injective⟩) :=
-finset.disjoint_left.mpr $ λ a ha ha', begin
-  rw mem_map at ha',
-  obtain ⟨a', ha', rfl : a'ᶜ = a⟩ := ha',
-  exact hs.not_mem ha ha',
+begin
+  rw finset.disjoint_left,
+  rintro x hx hxc,
+  obtain ⟨x, hx', rfl⟩ := mem_map.mp hxc,
+  exact hs.not_compl_mem hx' hx,
 end
 
-lemma intersecting.card_le (hs : (s : set α).intersecting) : 2 * s.card ≤ fintype.card α :=
+lemma intersecting.card_le [fintype α] {s : finset α}
+  (hs : (s : set α).intersecting) : 2 * s.card ≤ fintype.card α :=
 begin
   classical,
-  refine (finset.disj_union _ _ hs.disjoint_map_compl).card_le_univ.trans_eq' _,
+  refine (s.disj_union (s.map ⟨compl, compl_injective⟩)
+    (finset.disjoint_left.mp hs.disjoint_map_compl)).card_le_univ.trans_eq' _,
   rw [two_mul, card_disj_union, card_map],
 end
 
-#check @finset.order_top
-
-variables [nontrivial α]
+variables [nontrivial α] [fintype α] {s : finset α}
 
 -- Note, this lemma is false when `α` has exactly one element and boring when `α` is empty.
 lemma intersecting.is_max_iff_card_eq (hs : (s : set α).intersecting) :
@@ -162,13 +162,10 @@ begin
   classical,
   refine ⟨λ h, _, λ h t ht hst, finset.eq_of_subset_of_card_le hst $
     le_of_mul_le_mul_left (ht.card_le.trans_eq h.symm) two_pos⟩,
-  suffices : s ∪ s.map ⟨compl, compl_injective⟩ = finset.univ,
-  { rw [fintype.card, ←this, two_mul, card_union_eq, card_map],
-    rintro x hx,
-    rw [finset.inf_eq_inter, finset.mem_inter, mem_map] at hx,
-    obtain ⟨x, hx', rfl⟩ := hx.2,
-    exact hs.not_compl_mem hx' hx.1 },
-  rw [←coe_eq_univ, coe_union, coe_map, function.embedding.coe_fn_mk,
+  suffices : s.disj_union (s.map ⟨compl, compl_injective⟩)
+    (finset.disjoint_left.mp hs.disjoint_map_compl) = finset.univ,
+  { rw [fintype.card, ←this, two_mul, card_disj_union, card_map] },
+  rw [←coe_eq_univ, disj_union_eq_union, coe_union, coe_map, function.embedding.coe_fn_mk,
     image_eq_preimage_of_inverse compl_compl compl_compl],
   refine eq_univ_of_forall (λ a, _),
   simp_rw [mem_union, mem_preimage],

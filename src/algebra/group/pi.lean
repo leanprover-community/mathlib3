@@ -320,7 +320,7 @@ lemma pi.mul_single_apply_commute [Π i, mul_one_class $ f i] (x : Π i, f i) (i
 begin
   obtain rfl | hij := decidable.eq_or_ne i j,
   { refl },
-  { exact pi.mul_single_commute _ _ hij _ _, },
+  { exact pi.mul_single_commute hij _ _, },
 end
 
 @[to_additive update_eq_sub_add_single]

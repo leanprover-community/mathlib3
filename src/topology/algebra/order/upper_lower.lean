@@ -32,7 +32,7 @@ protected lemma is_lower_set.closure' (h : is_lower_set s) : is_lower_set (closu
 h.of_dual.closure'
 
 /-
-Note: ` s.ord_connected` does not imply `(closure s).ord_connected`, as we can see by taking
+Note: `s.ord_connected` does not imply `(closure s).ord_connected`, as we can see by taking
 `s := Ioo 0 1 × Ioo 1 2 ∪ Ioo 2 3 × Ioo 0 1` because then
 `closure s = Icc 0 1 × Icc 1 2 ∪ Icc 2 3 × Icc 0 1` is not order-connected as
 `(1, 1) ∈ closure s`, `(2, 1) ∈ closure s` but `Icc (1, 1) (2, 1) ⊈ closure s`.

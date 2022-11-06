@@ -282,14 +282,13 @@ structure cont_diff_bump (c : E) :=
 
 /-- The base function from which one will construct a family of bump functions. One could
 add more properties if they are useful and satisfied in the examples of inner product spaces
-and finite dimensional vector spaces, notably smooth dependence in `R` or derivative norm
-control in terms of `R`. -/
+and finite dimensional vector spaces, notably derivative norm control in terms of `R - 1`. -/
 @[nolint has_nonempty_instance]
 structure cont_diff_bump_base (E : Type*) [normed_add_comm_group E] [normed_space ℝ E] :=
 (to_fun : ℝ → E → ℝ)
 (mem_Icc   : ∀ (R : ℝ) (x : E), to_fun R x ∈ Icc (0 : ℝ) 1)
 (symmetric : ∀ (R : ℝ) (x : E), to_fun R (-x) = to_fun R x)
-(smooth    : ∀ (R : ℝ) (hR : 1 < R), cont_diff ℝ ⊤ (to_fun R))
+(smooth    : cont_diff_on ℝ ⊤ (uncurry to_fun) ((Ioi (1 : ℝ)) ×ˢ (univ : set E)))
 (eq_one    : ∀ (R : ℝ) (hR : 1 < R) (x : E) (hx : ∥x∥ ≤ 1), to_fun R x = 1)
 (support   : ∀ (R : ℝ) (hR : 1 < R), support (to_fun R) = metric.ball (0 : E) R)
 
@@ -313,18 +312,27 @@ let e : cont_diff_bump_base E :=
   mem_Icc := λ R x, ⟨real.smooth_transition.nonneg _, real.smooth_transition.le_one _⟩,
   symmetric := λ R x, by simp only [norm_neg],
   smooth := begin
-    assume R hR,
-    rw cont_diff_iff_cont_diff_at,
-    assume x,
+    rintros ⟨R, x⟩ ⟨(hR : 1 < R), hx⟩,
+    apply cont_diff_at.cont_diff_within_at,
     rcases eq_or_ne x 0 with rfl|hx,
-    { have : (λ (y : E), real.smooth_transition ((R - ∥y∥) / (R - 1))) =ᶠ[𝓝 0] (λ x, 1),
-      { filter_upwards [metric.ball_mem_nhds (0 : E) zero_lt_one] with x hx,
-        rw mem_ball_zero_iff at hx,
-        exact real.smooth_transition.one_of_one_le
-          ((one_le_div (sub_pos.2 hR)).2 (sub_le_sub_left hx.le _)) },
+    { have : (λ (p : ℝ × E), real.smooth_transition ((p.1 - ∥p.2∥) / (p.1 - 1)))
+        =ᶠ[𝓝 (R, 0)] (λ p, 1),
+      { have A : tendsto (λ (p : ℝ × E), (p.1 - ∥p.2∥) / (p.1 - 1))
+          (𝓝 (R, 0)) (𝓝 ((R - ∥(0 : E)∥) / (R - 1))),
+        { rw nhds_prod_eq,
+          apply (tendsto_fst.sub tendsto_snd.norm).div (tendsto_fst.sub tendsto_const_nhds),
+          exact (sub_pos.2 hR).ne' },
+        have : ∀ᶠ (p : ℝ × E) in 𝓝 (R, 0), 1 < (p.1 - ∥p.2∥) / (p.1 - 1),
+        { apply (tendsto_order.1 A).1,
+          apply (one_lt_div (sub_pos.2 hR)).2,
+          simp only [norm_zero, tsub_zero, sub_lt_self_iff, zero_lt_one] },
+        filter_upwards [this] with q hq,
+        exact real.smooth_transition.one_of_one_le hq.le },
       exact cont_diff_at_const.congr_of_eventually_eq this },
-    { refine real.smooth_transition.cont_diff_at.comp x _,
-      exact (cont_diff_at_const.sub (cont_diff_at_norm hx)).div_const }
+    { refine real.smooth_transition.cont_diff_at.comp _ _,
+      refine cont_diff_at.div _ _ (sub_pos.2 hR).ne',
+      { exact cont_diff_at_fst.sub (cont_diff_at_snd.norm hx) },
+      { exact cont_diff_at_fst.sub cont_diff_at_const } }
   end,
   eq_one := λ R hR x hx, real.smooth_transition.one_of_one_le $
     (one_le_div (sub_pos.2 hR)).2 (sub_le_sub_left hx _),
@@ -357,10 +365,10 @@ end
 
 instance (c : E) : inhabited (cont_diff_bump c) := ⟨⟨1, 2, zero_lt_one, one_lt_two⟩⟩
 
-variables [normed_add_comm_group E] [normed_space ℝ E]
+variables [normed_add_comm_group E] [normed_space ℝ E] [normed_add_comm_group X] [normed_space ℝ X]
 [has_cont_diff_bump E] {c : E} (f : cont_diff_bump c) {x : E} {n : ℕ∞}
 
-/-- The function defined by `f : cont_diff_bump_of_inner c`. Use automatic coercion to
+/-- The function defined by `f : cont_diff_bump c`. Use automatic coercion to
 function instead. -/
 def to_fun {c : E} (f : cont_diff_bump c) : E → ℝ :=
 λ x, (some_cont_diff_bump_base E).to_fun (f.R / f.r) (f.r⁻¹ • (x - c))
@@ -441,9 +449,8 @@ lemma eventually_eq_one : f =ᶠ[𝓝 c] 1 :=
 f.eventually_eq_one_of_mem_ball (mem_ball_self f.r_pos)
 
 /-- `cont_diff_bump` is `𝒞ⁿ` in all its arguments. -/
-/-
 protected lemma _root_.cont_diff_at.cont_diff_bump {c g : X → E}
-  {f : ∀ x, cont_diff_bump_of_inner (c x)} {x : X}
+  {f : ∀ x, cont_diff_bump (c x)} {x : X}
   (hc : cont_diff_at ℝ n c x) (hr : cont_diff_at ℝ n (λ x, (f x).r) x)
   (hR : cont_diff_at ℝ n (λ x, (f x).R) x)
   (hg : cont_diff_at ℝ n g x) : cont_diff_at ℝ n (λ x, f x (g x)) x :=
@@ -456,23 +463,24 @@ begin
       exact eventually_of_mem this
         (λ x hx, (f x).one_of_mem_closed_ball (mem_set_of_eq.mp hx).le) },
     exact cont_diff_at_const.congr_of_eventually_eq this },
-  { refine real.smooth_transition.cont_diff_at.comp x _,
-    refine ((hR.sub $ hg.dist hc hx).div (hR.sub hr) (sub_pos.mpr (f x).r_lt_R).ne') }
+  { change cont_diff_at ℝ n ((uncurry (some_cont_diff_bump_base E).to_fun) ∘
+      (λ (x : X),  ((f x).R / (f x).r, ((f x).r)⁻¹ • (g x - c x)))) x,
+    have A : ((f x).R / (f x).r, ((f x).r)⁻¹ • (g x - c x)) ∈ Ioi (1 : ℝ) ×ˢ (univ : set E),
+      by simpa only [prod_mk_mem_set_prod_eq, mem_univ, and_true] using (f x).one_lt_R_div_r,
+    have B : Ioi (1 : ℝ) ×ˢ (univ : set E) ∈ 𝓝 ((f x).R / (f x).r, (f x).r⁻¹ • (g x - c x)),
+      from (is_open_Ioi.prod is_open_univ).mem_nhds A,
+    apply ((((some_cont_diff_bump_base E).smooth.cont_diff_within_at A).cont_diff_at B)
+      .of_le le_top).comp x _,
+    exact (hR.div hr (f x).r_pos.ne').prod ((hr.inv (f x).r_pos.ne').smul (hg.sub hc)) }
 end
 
-lemma _root_.cont_diff.cont_diff_bump {c g : X → E} {f : ∀ x, cont_diff_bump_of_inner (c x)}
+lemma _root_.cont_diff.cont_diff_bump {c g : X → E} {f : ∀ x, cont_diff_bump (c x)}
   (hc : cont_diff ℝ n c) (hr : cont_diff ℝ n (λ x, (f x).r)) (hR : cont_diff ℝ n (λ x, (f x).R))
   (hg : cont_diff ℝ n g) : cont_diff ℝ n (λ x, f x (g x)) :=
 by { rw [cont_diff_iff_cont_diff_at] at *, exact λ x, (hc x).cont_diff_bump (hr x) (hR x) (hg x) }
 
--/
-
 protected lemma cont_diff : cont_diff ℝ n f :=
-begin
-  apply cont_diff.of_le _ le_top,
-  apply (cont_diff_bump_base.smooth _ _ f.one_lt_R_div_r).comp,
-  exact (cont_diff.const_smul _ (cont_diff_id.sub cont_diff_const)),
-end
+cont_diff_const.cont_diff_bump cont_diff_const cont_diff_const cont_diff_id
 
 protected lemma cont_diff_at : cont_diff_at ℝ n f x :=
 f.cont_diff.cont_diff_at

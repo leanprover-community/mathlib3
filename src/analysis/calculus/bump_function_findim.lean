@@ -14,8 +14,7 @@ Let `E` be a finite-dimensional real normed vector space. We show that any open 
 the support of a smooth function taking values in `[0, 1]`, in `is_open.exists_smooth_support_eq`.
 
 Then we use this construction to construct bump functions with nice behavior, by convolving
-the indicator function of `closed_ball 0 1` with a function as above with `s = ball 0 1`, rescaled
-so that its support becomes the ball `ball 0 D` for some `0 < D < 1`.
+the indicator function of `closed_ball 0 1` with a function as above with `s = ball 0 D`.
 -/
 
 noncomputable theory
@@ -431,16 +430,46 @@ begin
     exact div_pos (mul_pos Dpos (by linarith only [hx])) B }
 end
 
-lemma Y_smooth {D : ℝ} (Dpos : 0 < D) : cont_diff ℝ ⊤ (Y D : E → ℝ) :=
-begin
-  apply has_compact_support.cont_diff_convolution_left,
-  { apply W_compact_support E Dpos },
-  { exact (cont_diff.comp (u_smooth E) (cont_diff_id.const_smul _)).const_smul _ },
-  { exact (locally_integrable_const _).indicator measurable_set_closed_ball }
-end
-
-
 variable (E)
+
+lemma Y_smooth  : cont_diff_on ℝ ⊤ (uncurry Y) ((Ioo (0 : ℝ) 1) ×ˢ (univ : set E)) :=
+begin
+  have hs : is_open (Ioo (0 : ℝ) (1 : ℝ)), from is_open_Ioo,
+  have hk : is_compact (closed_ball (0 : E) 1), from proper_space.is_compact_closed_ball _ _,
+  refine cont_diff_on_convolution_left_with_param (lsmul ℝ ℝ) hs hk _ _ _,
+  { rintros p x hp hx,
+    simp only [W, mul_inv_rev, algebra.id.smul_eq_mul, mul_eq_zero, inv_eq_zero],
+    right,
+    contrapose! hx,
+    have : (p⁻¹ • x) ∈ support u, from mem_support.2 hx,
+    simp only [u_support, norm_smul, mem_ball_zero_iff, real.norm_eq_abs, abs_inv,
+      abs_of_nonneg hp.1.le, ← div_eq_inv_mul, div_lt_one hp.1] at this,
+    rw mem_closed_ball_zero_iff,
+    exact this.le.trans hp.2.le },
+  { exact (locally_integrable_const _).indicator measurable_set_closed_ball },
+  { apply cont_diff_on.mul,
+    { refine (cont_diff_on_const.mul _).inv _,
+      { apply cont_diff_on.pow,
+        simp_rw [← real.norm_eq_abs],
+        apply @cont_diff_on.norm ℝ,
+        apply cont_diff_on_fst,
+        assume x hx,
+        apply ne_of_gt hx.1.1 },
+      { assume x hx,
+        apply ne_of_gt,
+        apply mul_pos,
+        apply u_int_pos,
+        apply pow_pos,
+        apply abs_pos_of_pos,
+        exact hx.1.1 } },
+    apply (u_smooth E).comp_cont_diff_on,
+    apply cont_diff_on.smul,
+    apply cont_diff_on_fst.inv,
+    assume x hx,
+    apply ne_of_gt hx.1.1,
+    apply_instance,
+    exact cont_diff_on_snd },
+end
 
 lemma Y_support {D : ℝ} (Dpos : 0 < D) (D_lt_one : D < 1) :
   support (Y D : E → ℝ) = ball (0 : E) (1 + D) :=

@@ -91,6 +91,9 @@ instance [fintype G] [decidable_pred (∈ commutator G)] :
   fintype (abelianization G) :=
 quotient_group.fintype (commutator G)
 
+instance [finite G] : finite (abelianization G) :=
+quotient.finite _
+
 variable {G}
 
 /-- `of` is the canonical projection from G to its abelianization. -/

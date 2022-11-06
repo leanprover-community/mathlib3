@@ -3,8 +3,9 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import algebra.order.field.basic
+import algebra.order.field.defs
 import data.rat.basic
+import tactic.find_unused
 
 /-!
 # Order for Rational Numbers
@@ -158,6 +159,7 @@ by unfold has_le.le rat.le; rw add_sub_add_left_eq_sub
 protected theorem mul_nonneg {a b : ℚ} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a * b :=
 by rw ← nonneg_iff_zero_le at ha hb ⊢; exact rat.nonneg_mul ha hb
 
+@[main_declaration]
 instance : linear_ordered_field ℚ :=
 { zero_le_one     := dec_trivial,
   add_le_add_left := assume a b ab c, rat.add_le_add_left.2 ab,
@@ -167,6 +169,121 @@ instance : linear_ordered_field ℚ :=
   ..rat.field,
   ..rat.linear_order,
   ..rat.semiring }
+
+#print rat.mk_neg_one_one
+#print rat.num_nonneg_iff_zero_le
+#print rat.repr
+#print rat.div_int_inj
+#print rat.semigroup
+#print rat.coe_nat_eq_mk
+#print rat.has_inf
+#print rat.forall
+#print rat.exists
+#print rat.add_mk
+#print rat.mul_num
+#print rat.add_num_denom'
+#print rat.add_left_cancel_semigroup
+#print rat.mul_num_denom
+#print rat.eq_iff_mul_eq_mul
+#print rat.denom_div_cast_eq_one_iff
+#print rat.num_neg_eq_neg_num
+#print rat.mk_div_mk_cancel_right
+#print rat.num_one
+#print rat.nontrivial
+#print rat.coe_int_denom
+#print rat.pnat_denom_eq_iff_denom_eq
+#print rat.num_dvd
+#print rat.coe_int_div_eq_mk
+#print rat.can_lift
+#print rat.coe_pnat_denom
+#print rat.denom_zero
+#print rat.inv_coe_nat_denom
+#print rat.coe_int_div_self
+#print rat.mk_num_ne_zero_of_ne_zero
+#print rat.ext
+#print rat.distrib_lattice
+#print rat.mk_pnat_pnat_denom_eq
+#print rat.has_to_string
+#print rat.le_def
+#print rat.le_def'
+#print rat.add_semigroup
+#print rat.add_denom_dvd
+#print rat.mk_div_mk_cancel_left
+#print rat.coe_int_eq_mk
+#print rat.lt_def
+#print rat.coe_int_num
+#print rat.mk_zero_one
+#print rat.denom_ne_zero
+#print rat.num_div_denom
+#print rat.has_sup
+#print rat.num_ne_zero_of_ne_zero
+#print rat.inv_coe_int_denom_of_pos
+#print rat.mul_denom_eq_num
+#print rat.inhabited
+#print rat.denom_eq_one_iff
+#print rat.has_repr
+#print rat.mk_ne_zero_of_ne_zero
+#print rat.num_denom_mk
+#print rat.substr_num_denom'
+#print rat.coe_nat_div
+#print rat.div_num_denom
+#print rat.inv_coe_int_denom
+#print rat.inv_coe_nat_num
+#print rat.mk_pnat_num
+#print rat.inv_def'
+#print rat.mul_self_num
+#print rat.mul_num_denom'
+#print rat.mul_self_denom
+#print rat.mk_nat_eq
+#print rat.add_monoid
+#print rat.mk_denom_ne_zero_of_ne_zero
+#print rat.inv_coe_nat_num_of_pos
+#print rat.comm_semiring
+#print rat.coe_int_inj
+#print rat.sub_def
+#print rat.inv_coe_nat_denom_of_pos
+#print rat.ext_iff
+#print rat.exists_eq_mul_div_num_and_eq_mul_div_denom
+#print rat.zero_iff_num_zero
+#print rat.num_div_eq_of_coprime
+#print rat.mul_denom_dvd
+#print rat.pnat_denom_one
+#print rat.monoid
+#print rat.mk_pnat_denom_dvd
+#print rat.has_lt
+#print rat.has_to_format
+#print rat.inv_coe_int_num_of_pos
+#print rat.inv_coe_int_num
+#print rat.comm_semigroup
+#print rat.mk_mul_mk_cancel
+#print rat.coe_nat_denom
+#print rat.denom_neg_eq_denom
+#print rat.pnat_denom_zero
+#print rat.zero_of_num_zero
+#print rat.denom_div_eq_of_coprime
+#print rat.mk_neg_denom
+#print rat.coe_nat_num
+#print rat.coe_int_div
+#print rat.inv_mul_cancel
+#print rat.mk_eq_div
+#print rat.mk_pnat_denom
+#print rat.coe_int_num_of_denom_eq_one
+#print rat.denom_one
+#print rat.denom_mk
+#print rat.coe_int_eq_of_int
+#print rat.semiring
+#print rat.semilattice_sup
+#print rat.mul_denom
+#print rat.num_mk
+#print rat.add_right_cancel_semigroup
+#print rat.inv_neg
+#print rat.num_zero
+#print rat.add_num_denom
+#print rat.denom_dvd
+#print rat.comm_monoid
+#print rat.coe_nat_div_self
+
+#list_unused_decls ["src/data/rat/defs.lean"]
 
 /- Extra instances to short-circuit type class resolution -/
 instance : linear_ordered_comm_ring ℚ       := by apply_instance

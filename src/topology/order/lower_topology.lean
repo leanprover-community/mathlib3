@@ -62,8 +62,6 @@ variable {α}
 /-- `of_lower` is the identity function from the `with_lower_topology` of a type.  -/
 @[pattern] def of_lower : with_lower_topology α ≃ α := equiv.refl _
 
-@[pattern] def of_lower_set (s : set(with_lower_topology α)) : (s : set(with_lower_topology α)) = (s : set α) := rfl
-
 @[simp] lemma to_with_lower_topology_symm_eq : (@to_lower α).symm = @of_lower α := rfl
 @[simp] lemma of_with_lower_topology_symm_eq : (@of_lower α).symm = @to_lower α := rfl
 @[simp] lemma to_lower_of_lower (a : with_lower_topology α) : to_lower (of_lower a) = a := rfl
@@ -449,12 +447,18 @@ variable (β : Type v)
 
 -- instance inf_hom_class.to_order_hom_class [semilattice_inf α] [semilattice_inf β]
 
-lemma inf_hom_monotone [semilattice_inf α] [semilattice_inf β] [f : inf_hom (with_lower_topology α) (with_lower_topology β)] : monotone f :=
-order_hom_class.mono f
+variables {α} {β}
 
-@[simp] lemma mem_set_of_eq' {x : set (with_lower_topology α)} {p : set α → Prop} : x ∈ {y | p y} = p x := rfl
+variables [complete_lattice α] [complete_lattice β]
 
-lemma inf_hom_continuous [complete_lattice α] [complete_lattice β] [f : inf_hom (with_lower_topology α) (with_lower_topology β)] : continuous f :=
+lemma inf_hom_monotone  (f : Inf_hom (with_lower_topology α) (with_lower_topology β)) :
+monotone f := order_hom_class.mono f
+
+@[simp] lemma mem_set_of_eq' {x : set (with_lower_topology α)} {p : set α → Prop} :
+  x ∈ {y | p y} = p x := rfl
+
+lemma inf_hom_continuous (f : Inf_hom (with_lower_topology α) (with_lower_topology β)) :
+  continuous f :=
 begin
   apply continuous_generated_from,
   intros s hs,
@@ -472,8 +476,15 @@ begin
       rw mem_Ici,
       exact Inf_le hx, },
     { intros x hx,
+      simp only [mem_preimage, mem_Ici],
       rw mem_Ici at hx,
-     },
+      have p_def: p = Inf (f ⁻¹' Ici a) := rfl,
+      have e1: a ≤ f(p) := begin
+        rw p_def,
+        simp only [map_Inf, ge_iff_le, le_Inf_iff, mem_image, mem_preimage, mem_Ici,
+          forall_exists_index, and_imp, forall_apply_eq_imp_iff₂, imp_self, forall_const],
+      end,
+      apply le_trans e1 (inf_hom_monotone f hx), },
   end,
   rw e1,
   exact with_lower_topology.is_closed_Ici p
@@ -487,35 +498,43 @@ section complete_lattice
 variable [complete_lattice α]
 
 
+def inf_Inf_hom : Inf_hom (with_lower_topology (α × α)) (with_lower_topology α) :=
+{ to_fun := λ (p : with_lower_topology (α × α)), (p.fst ⊓ p.snd : with_lower_topology α),
+  map_Inf' := λ s, begin
+    rw le_antisymm_iff,
+    split,
+    { simp only [le_Inf_iff, mem_image, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂,
+        le_inf_iff],
+      intros a ha,
+      split,
+      { apply inf_le_of_left_le,
+        apply monotone_fst,
+        exact Inf_le ha, },
+      { apply inf_le_of_right_le,
+        apply monotone_snd,
+        exact Inf_le ha, }, },
+    { rw Inf_le_iff,
+      intros b hb,
+      rw mem_lower_bounds at hb,
+      simp only
+        [mem_image, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂, le_inf_iff] at hb,
+      have h₂ : (b,b) ≤ Inf s :=
+      begin
+        rw le_Inf_iff,
+        exact hb,
+      end,
+      rw le_inf_iff,
+      apply h₂, }
+  end, }
 
-
-
-lemma with_lower_topology.continuous_inf: continuous (λ (p : with_lower_topology (α × α)), (p.fst ⊓ p.snd : with_lower_topology α) : with_lower_topology (α × α) → with_lower_topology α ) :=
-begin
-  apply continuous_generated_from,
-  intros s hs,
-  rw mem_set_of_eq' at hs,
-  cases hs with a,
-  rw ← hs_h,
-  rw ← is_closed_compl_iff,
-  simp only [preimage_compl, compl_compl],
-  let p :=  Inf ((λ (p : with_lower_topology (α × α)), p.fst ⊓ p.snd) ⁻¹' Ici a),
-  have e1: (λ (p : with_lower_topology (α × α)), p.fst ⊓ p.snd) ⁻¹' Ici a = Ici p :=
-  begin
-    sorry,
-  end,
-  rw e1,
-  exact with_lower_topology.is_closed_Ici p
-end
-
+lemma with_lower_topology.continuous_inf: continuous (inf_Inf_hom α) :=
+inf_hom_continuous (inf_Inf_hom α)
 
 instance : has_continuous_inf (with_lower_topology α) :=
-{
-  continuous_inf := begin
+{ continuous_inf := begin
     rw ← lower_topology_prod',
     apply with_lower_topology.continuous_inf,
-  end
-}
+  end }
 
 end complete_lattice
 

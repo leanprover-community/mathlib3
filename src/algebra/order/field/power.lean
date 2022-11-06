@@ -99,6 +99,9 @@ lemma zpow_bit0_pos (h : a ≠ 0) (n : ℤ) : 0 < a ^ bit0 n :=
 
 lemma zpow_two_pos_of_ne_zero (h : a ≠ 0) : 0 < a ^ (2 : ℤ) := zpow_bit0_pos h _
 
+@[simp] lemma zpow_bit0_pos_iff : 0 < a ^ bit0 n ↔ a ≠ 0 :=
+⟨by { rintro h rfl, rw zero_pow at h, exact h.false }, zpow_bit0_pos⟩
+
 @[simp] lemma zpow_bit1_neg_iff : a ^ bit1 n < 0 ↔ a < 0 :=
 ⟨λ h, not_le.1 $ λ h', not_le.2 h $ zpow_nonneg h' _,
  λ h, by rw [bit1, zpow_add_one₀ h.ne]; exact mul_neg_of_pos_of_neg (zpow_bit0_pos h.ne _) h⟩
@@ -111,6 +114,33 @@ by rw [le_iff_lt_or_eq, le_iff_lt_or_eq, zpow_bit1_neg_iff, zpow_eq_zero_iff (in
 
 @[simp] lemma zpow_bit1_pos_iff : 0 < a ^ bit1 n ↔ 0 < a :=
 lt_iff_lt_of_le_iff_le zpow_bit1_nonpos_iff
+
+protected lemma even.zpow_nonneg (hn : even n) (a : K) : 0 ≤ a ^ n :=
+by cases hn with k hk; exact zpow_bit0_nonneg _ _
+
+lemma even.zpow_pos_iff (hn : even n) : 0 < a ^ n ↔ a ≠ 0 :=
+by cases hn with k hk; exact zpow_bit0_pos_iff
+
+lemma odd.zpow_neg_iff (hn : odd n) : a ^ n < 0 ↔ a < 0 :=
+by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_neg_iff
+
+protected lemma odd.zpow_nonneg_iff (hn : odd n) : 0 ≤ a ^ n ↔ 0 ≤ a :=
+by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_nonneg_iff
+
+lemma odd.zpow_nonpos_iff (hn : odd n) : a ^ n ≤ 0 ↔ a ≤ 0 :=
+by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_nonpos_iff
+
+lemma odd.zpow_pos_iff (hn : odd n) : 0 < a ^ n ↔ 0 < a :=
+by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_pos_iff
+
+alias even.zpow_pos_iff ↔ _ even.zpow_pos
+alias odd.zpow_neg_iff ↔ _ odd.zpow_neg
+alias odd.zpow_nonpos_iff ↔ _ odd.zpow_nonpos
+
+lemma even.zpow_abs {p : ℤ} (hp : even p) (a : α) : |a| ^ p = a ^ p :=
+by cases abs_choice a with h h; simp only [h, hp.neg_zpow _]
+
+@[simp] lemma zpow_bit0_abs (a : α) (p : ℤ) : |a| ^ bit0 p = a ^ bit0 p := (even_bit0 _).zpow_abs _
 
 /-! ### Miscellaneous lemmmas -/
 

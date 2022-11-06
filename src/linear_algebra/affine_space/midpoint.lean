@@ -110,8 +110,14 @@ variable (R)
 @[simp] lemma midpoint_eq_left_iff {x y : P} : midpoint R x y = x ↔ x = y :=
 by rw [midpoint_eq_iff, point_reflection_self]
 
+@[simp] lemma left_eq_midpoint_iff {x y : P} : x = midpoint R x y ↔ x = y :=
+by rw [eq_comm, midpoint_eq_left_iff]
+
 @[simp] lemma midpoint_eq_right_iff {x y : P} : midpoint R x y = y ↔ x = y :=
 by rw [midpoint_comm, midpoint_eq_left_iff, eq_comm]
+
+@[simp] lemma right_eq_midpoint_iff {x y : P} : y = midpoint R x y ↔ x = y :=
+by rw [eq_comm, midpoint_eq_right_iff]
 
 lemma midpoint_eq_midpoint_iff_vsub_eq_vsub {x x' y y' : P} :
   midpoint R x y = midpoint R x' y' ↔ x -ᵥ x' = y' -ᵥ y :=

@@ -5,6 +5,7 @@ Authors: Damiano Testa
 -/
 import algebra.associated
 import algebra.field.power
+import algebra.order.field.power
 
 /-!  # Squares, even and odd elements
 

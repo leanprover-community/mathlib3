@@ -72,6 +72,19 @@ zero_lt_one.trans_le $ le_add_of_nonneg_left n.cast_nonneg
 
 end ordered_semiring
 
+/-- A version of `nat.cast_sub` that works for `ℝ≥0` and `ℚ≥0`. Note that this proof doesn't work
+for `ℕ∞` and `ℝ≥0∞`, so we use type-specific lemmas for these types. -/
+@[simp, norm_cast] lemma cast_tsub [canonically_ordered_comm_semiring α] [has_sub α]
+  [has_ordered_sub α] [contravariant_class α α (+) (≤)] (m n : ℕ) :
+  ↑(m - n) = (m - n : α) :=
+begin
+  cases le_total m n with h h,
+  { rw [tsub_eq_zero_of_le h, cast_zero, tsub_eq_zero_of_le],
+    exact mono_cast h },
+  { rcases le_iff_exists_add'.mp h with ⟨m, rfl⟩,
+    rw [add_tsub_cancel_right, cast_add, add_tsub_cancel_right] }
+end
+
 section strict_ordered_semiring
 variables [strict_ordered_semiring α] [nontrivial α]
 

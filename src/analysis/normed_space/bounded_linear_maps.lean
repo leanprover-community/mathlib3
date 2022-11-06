@@ -504,8 +504,10 @@ lemma is_bounded_bilinear_map.is_bounded_linear_map_deriv (h : is_bounded_biline
 begin
   rcases h.bound with ⟨C, Cpos : 0 < C, hC⟩,
   refine is_linear_map.with_bound ⟨λ p₁ p₂, _, λ c p, _⟩ (C + C) (λ p, _),
-  { ext; simp [h.add_left, h.add_right]; abel },
-  { ext; simp [h.smul_left, h.smul_right, smul_add] },
+  { ext; simp only [h.add_left, h.add_right, coe_comp', function.comp_app, inl_apply,
+    is_bounded_bilinear_map_deriv_coe, prod.fst_add, prod.snd_add, add_apply]; abel },
+  { ext; simp only [h.smul_left, h.smul_right, smul_add, coe_comp', function.comp_app,
+    is_bounded_bilinear_map_deriv_coe, prod.smul_fst, prod.smul_snd, coe_smul', pi.smul_apply] },
   { refine continuous_linear_map.op_norm_le_bound _
       (mul_nonneg (add_nonneg Cpos.le Cpos.le) (norm_nonneg _)) (λ q, _),
     calc ∥f (p.1, q.2) + f (q.1, p.2)∥

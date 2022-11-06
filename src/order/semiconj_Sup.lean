@@ -5,6 +5,7 @@ Authors: Yury G. Kudryashov
 -/
 import algebra.hom.equiv
 import logic.function.conjugate
+import order.bounds.order_iso
 import order.conditionally_complete_lattice
 import order.ord_continuous
 

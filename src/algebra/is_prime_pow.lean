@@ -43,7 +43,7 @@ lemma not_is_prime_pow_one : ¬ is_prime_pow (1 : R) :=
 begin
   simp only [is_prime_pow_def, not_exists, not_and', and_imp],
   intros x n hn hx ht,
-  exact ht.not_unit (is_unit_of_pow_eq_one x n hx hn),
+  exact ht.not_unit (is_unit_of_pow_eq_one x n hx hn.ne'),
 end
 
 lemma prime.is_prime_pow {p : R} (hp : prime p) : is_prime_pow p :=

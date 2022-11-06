@@ -887,6 +887,10 @@ image_Inter₂_subset _ _
 
 end has_smul_set
 
+@[simp, to_additive] lemma bUnion_op_smul_set [has_mul α] (s t : set α) :
+  (⋃ a ∈ t, mul_opposite.op a • s) = s • t :=
+Union_image_right _
+
 variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {a : α} {b : β}
 
 @[to_additive]

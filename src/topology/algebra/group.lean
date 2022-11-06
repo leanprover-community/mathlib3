@@ -923,15 +923,6 @@ with continuous addition/multiplication. See also `submonoid.top_closure_mul_sel
 `topology.algebra.monoid`.
 -/
 
-@[to_additive]
-instance has_continuous_mul.to_has_continuous_smul_op [topological_space α] [group α]
-  [has_continuous_mul α] : has_continuous_smul αᵐᵒᵖ α :=
-⟨begin
-  convert continuous.comp  (@continuous_mul α _ _ _) continuous_swap using 0,
-  simp [function.comp],
-  sorry,
-end⟩
-
 section has_continuous_const_smul
 variables [topological_space α] [topological_space β] [group α] [mul_action α β]
   [has_continuous_const_smul α β] {s : set α} {t : set β}
@@ -950,7 +941,8 @@ end has_continuous_const_smul
 section has_continuous_const_smul_op
 variables [topological_space α] [group α] [has_continuous_const_smul αᵐᵒᵖ α] {s t : set α}
 
-@[to_additive] lemma is_open.smul_right (hs : is_open s) : is_open (s • t) := sorry
+@[to_additive] lemma is_open.smul_right (hs : is_open s) : is_open (s • t) :=
+by { rw ←bUnion_op_smul_set,exact is_open_bUnion (λ a _, hs.smul _) }
 
 @[to_additive] lemma subset_interior_smul_left : interior s • t ⊆ interior (s • t) :=
 interior_maximal (set.smul_subset_smul_right interior_subset) is_open_interior.smul_right

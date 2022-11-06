@@ -1868,6 +1868,9 @@ def conj (e : M ≃ₗ[R] M₂) : (module.End R M) ≃ₗ[R] (module.End R M₂)
 lemma conj_apply (e : M ≃ₗ[R] M₂) (f : module.End R M) :
   e.conj f = ((↑e : M →ₗ[R] M₂).comp f).comp (e.symm : M₂ →ₗ[R] M) := rfl
 
+lemma conj_apply_apply (e : M ≃ₗ[R] M₂) (f : module.End R M) (x : M₂) :
+  e.conj f x = e (f (e.symm x)) := rfl
+
 lemma symm_conj_apply (e : M ≃ₗ[R] M₂) (f : module.End R M₂) :
   e.symm.conj f = ((↑e.symm : M₂ →ₗ[R] M).comp f).comp (e : M →ₗ[R] M₂) := rfl
 

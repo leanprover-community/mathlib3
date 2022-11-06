@@ -5,11 +5,7 @@ Authors: Damiano Testa
 -/
 import algebra.associated
 import algebra.field.power
-<<<<<<< HEAD
 import algebra.order.field.power
-=======
-import algebra.order.field.basic
->>>>>>> pointwise_interval
 
 /-!  # Squares, even and odd elements
 

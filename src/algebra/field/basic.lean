@@ -188,14 +188,6 @@ end division_monoid
 section division_ring
 variables [division_ring K] {a b : K} {n : ℤ}
 
-@[simp] lemma zpow_bit1_neg (a : K) (n : ℤ) : (-a) ^ bit1 n = - a ^ bit1 n :=
-by rw [zpow_bit1', zpow_bit1', neg_mul_neg, neg_mul_eq_mul_neg]
-
-lemma odd.neg_zpow (h : odd n) (a : K) : (-a) ^ n = - a ^ n :=
-by { obtain ⟨k, rfl⟩ := h.exists_bit1, exact zpow_bit1_neg _ _ }
-
-lemma odd.neg_one_zpow (h : odd n) : (-1 : K) ^ n = -1 := by rw [h.neg_zpow, one_zpow]
-
 namespace rat
 
 /-- Construct the canonical injection from `ℚ` into an arbitrary

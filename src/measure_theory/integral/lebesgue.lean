@@ -2020,7 +2020,8 @@ begin
         apply_rules [hz₁, hz₂], },
       { simp only [ae_seq, hx, if_false],
         exact le_rfl, }, }, },
-  convert (lintegral_supr_directed_of_measurable (ae_seq.measurable hf p) h_ae_seq_directed) using 1,
+  convert (lintegral_supr_directed_of_measurable (ae_seq.measurable hf p) 
+    h_ae_seq_directed) using 1,
   { simp_rw ←supr_apply,
     rw lintegral_congr_ae (ae_seq.supr hf hp).symm, },
   { congr' 1,

@@ -19,16 +19,6 @@ This file introduces the commuting probability of finite groups.
 * Neumann's theorem.
 -/
 
-instance conj_classes.finite {G : Type*} [group G] [finite G] : finite (conj_classes G) :=
-quotient.finite _
-
-instance abelianization.finite {G : Type*} [group G] [finite G] : finite (abelianization G) :=
-quotient.finite _
-
-instance subgroup.finite {G : Type*} [group G] [finite G] {H : subgroup G} : finite H :=
-subtype.finite
-
-
 noncomputable theory
 open_locale classical
 open_locale big_operators

@@ -1216,31 +1216,29 @@ lemma eq_top_of_finrank_eq [finite_dimensional K V] {S : submodule K V}
   (h : finrank K S = finrank K V) :
   S = ⊤ := finite_dimensional.eq_of_le_of_finrank_eq le_top (by simp [h, finrank_top])
 
+lemma finrank_le_finrank_of_le {s t : submodule K V} [finite_dimensional K t]
+  (hst : s ≤ t) : finrank K s ≤ finrank K t :=
+calc  finrank K s = finrank K (comap t.subtype s) : (comap_subtype_equiv_of_le hst).finrank_eq.symm
+... ≤ finrank K t : finrank_le _
+
 lemma finrank_mono [finite_dimensional K V] :
   monotone (λ (s : submodule K V), finrank K s) :=
-λ s t hst,
-calc finrank K s = finrank K (comap t.subtype s)
-  : linear_equiv.finrank_eq (comap_subtype_equiv_of_le hst).symm
-... ≤ finrank K t : submodule.finrank_le _
+λ s t, finrank_le_finrank_of_le
 
-/- call this strict_mono, reserve the name finrank_lt_finrank_of_lt for `finite_dimensional K t`. -/
-/- add finrank_lt_finrank_of_lt -/
-lemma finrank_lt_finrank_of_lt [finite_dimensional K V] {s t : submodule K V} (hst : s < t) :
-  finrank K s < finrank K t :=
-begin
-  rw linear_equiv.finrank_eq (comap_subtype_equiv_of_le (le_of_lt hst)).symm,
-  refine finrank_lt (lt_of_le_of_ne le_top _),
-  intro h_eq_top,
-  rw comap_subtype_eq_top at h_eq_top,
-  apply not_le_of_lt hst h_eq_top,
-end
+lemma finrank_lt_finrank_of_lt {s t : submodule K V} [finite_dimensional K t]
+  (hst : s < t) : finrank K s < finrank K t :=
+(comap_subtype_equiv_of_le hst.le).finrank_eq.symm.trans_lt $
+  finrank_lt (le_top.lt_of_ne $ hst.not_le ∘ comap_subtype_eq_top.1)
+
+lemma finrank_strict_mono [finite_dimensional K V] :
+  strict_mono (λ s : submodule K V, finrank K s) :=
+λ s t, finrank_lt_finrank_of_lt
 
 lemma finrank_add_eq_of_is_compl
   [finite_dimensional K V] {U W : submodule K V} (h : is_compl U W) :
   finrank K U + finrank K W = finrank K V :=
 begin
-  rw [← submodule.dim_sup_add_dim_inf_eq, top_le_iff.1 h.2, le_bot_iff.1 h.1,
-      finrank_bot, add_zero],
+  rw [← dim_sup_add_dim_inf_eq, top_le_iff.1 h.2, le_bot_iff.1 h.1, finrank_bot, add_zero],
   exact finrank_top
 end
 

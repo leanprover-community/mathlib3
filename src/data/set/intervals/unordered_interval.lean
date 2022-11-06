@@ -3,7 +3,7 @@ Copyright (c) 2020 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-import order.bounds
+import order.bounds.basic
 import data.set.intervals.image_preimage
 
 /-!

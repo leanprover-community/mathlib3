@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.nat.order
+
 import algebra.group.prod
 import algebra.hom.ring
 import algebra.order.monoid.with_top
@@ -11,6 +12,10 @@ import algebra.order.group.abs
 import data.nat.cast.defs
 import algebra.group.prod
 -- FIXME CHECK IMPORTS
+import algebra.order.group.abs
+import algebra.group.prod
+import algebra.hom.ring
+import algebra.order.monoid.with_top
 
 /-!
 # Cast of natural numbers (additional theorems)

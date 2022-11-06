@@ -1975,7 +1975,7 @@ section
 open encodable
 
 /-- Monotone convergence for a supremum over a directed family and indexed by a countable type -/
-theorem lintegral_supr_directed [countable β] {f : β → α → ℝ≥0∞}
+theorem lintegral_supr_directed_of_measurable [countable β] {f : β → α → ℝ≥0∞}
   (hf : ∀ b, measurable (f b)) (h_directed : directed (≤) f) :
   ∫⁻ a, ⨆ b, f b a ∂μ = ⨆ b, ∫⁻ a, f b a ∂μ :=
 begin
@@ -2000,7 +2000,7 @@ begin
 end
 
 /-- Monotone convergence for a supremum over a directed family and indexed by a countable type. -/
-theorem lintegral_supr_directed' [countable β] {f : β → α → ℝ≥0∞}
+theorem lintegral_supr_directed [countable β] {f : β → α → ℝ≥0∞}
   (hf : ∀ b, ae_measurable (f b) μ) (h_directed : directed (≤) f) :
   ∫⁻ a, ⨆ b, f b a ∂μ = ⨆ b, ∫⁻ a, f b a ∂μ :=
 begin
@@ -2020,7 +2020,7 @@ begin
         apply_rules [hz₁, hz₂], },
       { simp only [ae_seq, hx, if_false],
         exact le_rfl, }, }, },
-  convert (lintegral_supr_directed (ae_seq.measurable hf p) h_ae_seq_directed) using 1,
+  convert (lintegral_supr_directed_of_measurable (ae_seq.measurable hf p) h_ae_seq_directed) using 1,
   { simp_rw ←supr_apply,
     rw lintegral_congr_ae (ae_seq.supr hf hp).symm, },
   { congr' 1,
@@ -2032,25 +2032,11 @@ end
 
 end
 
-lemma lintegral_tsum [countable β] {f : β → α → ℝ≥0∞} (hf : ∀i, measurable (f i)) :
+lemma lintegral_tsum [countable β] {f : β → α → ℝ≥0∞} (hf : ∀i, ae_measurable (f i) μ) :
   ∫⁻ a, ∑' i, f i a ∂μ = ∑' i, ∫⁻ a, f i a ∂μ :=
 begin
   simp only [ennreal.tsum_eq_supr_sum],
   rw [lintegral_supr_directed],
-  { simp [lintegral_finset_sum _ (λ i _, hf i)] },
-  { assume b, exact finset.measurable_sum _ (λ i _, hf i) },
-  { assume s t,
-    use [s ∪ t],
-    split,
-    { exact assume a, finset.sum_le_sum_of_subset (finset.subset_union_left _ _), },
-    { exact assume a, finset.sum_le_sum_of_subset (finset.subset_union_right _ _) } }
-end
-
-lemma lintegral_tsum' [countable β] {f : β → α → ℝ≥0∞} (hf : ∀i, ae_measurable (f i) μ) :
-  ∫⁻ a, ∑' i, f i a ∂μ = ∑' i, ∫⁻ a, f i a ∂μ :=
-begin
-  simp only [ennreal.tsum_eq_supr_sum],
-  rw [lintegral_supr_directed'],
   { simp [lintegral_finset_sum' _ (λ i _, hf i)] },
   { assume b, exact finset.ae_measurable_sum _ (λ i _, hf i) },
   { assume s t,

@@ -226,7 +226,7 @@ def punit_prod : punit × α ≃ᵤ α :=
 @[simp] lemma coe_punit_prod : ⇑(punit_prod α) = prod.snd := rfl
 
 /-- Uniform equivalence between `ulift α` and `α`. -/
-def uniform_equiv.ulift : ulift.{v u} α ≃ᵤ α :=
+def ulift : ulift.{v u} α ≃ᵤ α :=
 { uniform_continuous_to_fun := uniform_continuous_comap,
   uniform_continuous_inv_fun := begin
     have hf : uniform_inducing (@equiv.ulift.{v u} α).to_fun, from ⟨rfl⟩,

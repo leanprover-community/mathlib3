@@ -1177,7 +1177,7 @@ namespace walk
 
 variables {G}
 
-/-- The walk `p` transferred to lie in `H` -/
+/-- The walk `p` transferred to lie in `H`, given that `H` contains its edges. -/
 @[protected, simp] def transfer : Π {u v : V} (p : G.walk u v) (H : simple_graph V)
   (h : ∀ e, e ∈ p.edges → e ∈ H.edge_set), H.walk u v
 | _ _ (walk.nil) H h := walk.nil
@@ -1215,7 +1215,7 @@ begin
   cases p;
   simp only [transfer, is_cycle.not_of_nil, cons_is_cycle_iff, transfer, edges_transfer] at pc ⊢,
   { exact pc, },
-  { refine ⟨transfer_is_path _ _ pc.left, pc.right⟩, },
+  { exact ⟨transfer_is_path _ _ pc.left, pc.right⟩, },
 end
 
 @[simp] lemma transfer_transfer {K : simple_graph V} (hp' : ∀ e, e ∈ p.edges → e ∈ K.edge_set) :

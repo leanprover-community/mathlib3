@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import algebra.big_operators.finprod
-import data.set.pointwise
+import data.set.pointwise.basic
 import topology.algebra.mul_action
 import algebra.big_operators.pi
 

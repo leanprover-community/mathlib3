@@ -6,6 +6,7 @@ Authors: Robert Y. Lewis, Keeley Hoek
 import algebra.ne_zero
 import data.nat.cast
 import order.rel_iso
+import data.nat.order
 import tactic.apply_fun
 import tactic.localized
 
@@ -975,6 +976,10 @@ by { cases j, refl }
 
 @[simp] lemma pred_succ (i : fin n) {h : i.succ ≠ 0} : i.succ.pred h = i :=
 by { cases i, refl }
+
+lemma pred_eq_iff_eq_succ {n : ℕ} (i : fin (n+1)) (hi : i ≠ 0) (j : fin n) :
+  i.pred hi = j ↔ i = j.succ :=
+⟨λ h, by simp only [← h, fin.succ_pred], λ h, by simp only [h, fin.pred_succ]⟩
 
 @[simp] lemma pred_mk_succ (i : ℕ) (h : i < n + 1) :
   fin.pred ⟨i + 1, add_lt_add_right h 1⟩ (ne_of_vne (ne_of_gt (mk_succ_pos i h))) = ⟨i, h⟩ :=

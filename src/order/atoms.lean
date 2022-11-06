@@ -70,6 +70,10 @@ lemma is_atom.Iic (ha : is_atom a) (hax : a ≤ x) : is_atom (⟨a, hax⟩ : set
 lemma is_atom.of_is_atom_coe_Iic {a : set.Iic x} (ha : is_atom a) : is_atom (a : α) :=
 ⟨λ con, ha.1 (subtype.ext con), λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, hba.le.trans a.prop⟩ hba)⟩
 
+lemma is_atom_iff {a : α} : is_atom a ↔ a ≠ ⊥ ∧ ∀ b ≠ ⊥, b ≤ a → a ≤ b :=
+and_congr iff.rfl $ forall_congr $
+  λ b, by simp only [ne.def, @not_imp_comm (b = ⊥), not_imp, lt_iff_le_not_le]
+
 end preorder
 
 variables [partial_order α] [order_bot α] {a b x : α}
@@ -117,6 +121,8 @@ ha.dual.Iic hax
 lemma is_coatom.of_is_coatom_coe_Ici {a : set.Ici x} (ha : is_coatom a) :
   is_coatom (a : α) :=
 @is_atom.of_is_atom_coe_Iic αᵒᵈ _ _ x a ha
+
+lemma is_coatom_iff {a : α} : is_coatom a ↔ a ≠ ⊤ ∧ ∀ b ≠ ⊤, a ≤ b → b ≤ a := @is_atom_iff αᵒᵈ _ _ _
 
 end preorder
 

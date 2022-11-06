@@ -3,8 +3,9 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
-import algebra.order.field_defs
-import algebra.order.with_zero
+import order.bounds
+import algebra.order.field.defs
+import algebra.group_with_zero.power
 
 /-!
 # Linear ordered (semi)fields
@@ -24,7 +25,7 @@ set_option old_structure_cmd true
 
 open function order_dual
 
-variables {α β : Type*}
+variables {ι α β : Type*}
 
 namespace function
 

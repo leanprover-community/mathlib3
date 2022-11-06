@@ -78,16 +78,14 @@ begin
   exact self_eq_mul_right.mpr ((quotient_group.eq_one_iff _).mpr h.2),
 end
 
-variables [fintype H]
-
-lemma eq_one_of_smul_eq_one (hH : nat.coprime (fintype.card H) H.index)
+lemma eq_one_of_smul_eq_one (hH : nat.coprime (nat.card H) H.index)
   (α : H.quotient_diff) (h : H) : h • α = α → h = 1 :=
 quotient.induction_on' α $ λ α hα, (pow_coprime hH).injective $
   calc h ^ H.index = diff (monoid_hom.id H) ((op ((h⁻¹ : H) : G)) • α) α :
     by rw [←diff_inv, smul_diff', diff_self, one_mul, inv_pow, inv_inv]
   ... = 1 ^ H.index : (quotient.exact' hα).trans (one_pow H.index).symm
 
-lemma exists_smul_eq (hH : nat.coprime (fintype.card H) H.index)
+lemma exists_smul_eq (hH : nat.coprime (nat.card H) H.index)
   (α β : H.quotient_diff) : ∃ h : H, h • α = β :=
 quotient.induction_on' α (quotient.induction_on' β (λ β α, exists_imp_exists (λ n, quotient.sound')
   ⟨(pow_coprime hH).symm (diff (monoid_hom.id H) β α), (diff_inv _ _ _).symm.trans
@@ -95,12 +93,12 @@ quotient.induction_on' α (quotient.induction_on' β (λ β α, exists_imp_exist
   (by rw [inv_pow, ←pow_coprime_apply hH, equiv.apply_symm_apply, mul_inv_self])))⟩))
 
 lemma is_complement'_stabilizer_of_coprime {α : H.quotient_diff}
-  (hH : nat.coprime (fintype.card H) H.index) : is_complement' H (stabilizer G α) :=
+  (hH : nat.coprime (nat.card H) H.index) : is_complement' H (stabilizer G α) :=
 is_complement'_stabilizer α (eq_one_of_smul_eq_one hH α) (λ g, exists_smul_eq hH (g • α) α)
 
 /-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
 private lemma exists_right_complement'_of_coprime_aux
-  (hH : nat.coprime (fintype.card H) H.index) : ∃ K : subgroup G, is_complement' H K :=
+  (hH : nat.coprime (nat.card H) H.index) : ∃ K : subgroup G, is_complement' H K :=
 nonempty_of_inhabited.elim (λ α, ⟨stabilizer G α, is_complement'_stabilizer_of_coprime hH⟩)
 
 end schur_zassenhaus_abelian
@@ -256,6 +254,7 @@ begin
   refine not_forall_not.mp (λ h3, _),
   haveI := by exactI
     schur_zassenhaus_induction.step7 hN (λ G' _ _ hG', by { apply ih _ hG', refl }) h3,
+  rw ← nat.card_eq_fintype_card at hN,
   exact not_exists_of_forall_not h3 (exists_right_complement'_of_coprime_aux hN),
 end
 

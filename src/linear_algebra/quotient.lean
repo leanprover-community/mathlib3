@@ -180,6 +180,45 @@ end
 
 end quotient
 
+instance quotient_bot.infinite [infinite M] : infinite (M ⧸ (⊥ : submodule R M)) :=
+infinite.of_injective submodule.quotient.mk $ λ x y h, sub_eq_zero.mp $
+  (submodule.quotient.eq ⊥).mp h
+
+instance quotient_top.unique : unique (M ⧸ (⊤ : submodule R M)) :=
+{ default := 0,
+  uniq := λ x, quotient.induction_on' x $ λ x, (submodule.quotient.eq ⊤).mpr submodule.mem_top }
+
+instance quotient_top.fintype : fintype (M ⧸ (⊤ : submodule R M)) :=
+fintype.of_subsingleton 0
+
+variables {p}
+
+lemma subsingleton_quotient_iff_eq_top : subsingleton (M ⧸ p) ↔ p = ⊤ :=
+begin
+  split,
+  { rintro h,
+    refine eq_top_iff.mpr (λ x _, _),
+    have this : x - 0 ∈ p := (submodule.quotient.eq p).mp (by exactI subsingleton.elim _ _),
+    rwa sub_zero at this },
+  { rintro rfl,
+    apply_instance }
+end
+
+lemma unique_quotient_iff_eq_top : nonempty (unique (M ⧸ p)) ↔ p = ⊤ :=
+⟨λ ⟨h⟩, subsingleton_quotient_iff_eq_top.mp (@@unique.subsingleton h),
+ by { rintro rfl, exact ⟨quotient_top.unique⟩ }⟩
+
+variables (p)
+
+noncomputable instance quotient.fintype [fintype M] (S : submodule R M) :
+  fintype (M ⧸ S) :=
+@@quotient.fintype _ _ (λ _ _, classical.dec _)
+
+lemma card_eq_card_quotient_mul_card [fintype M] (S : submodule R M) [decidable_pred (∈ S)]  :
+  fintype.card M = fintype.card S * fintype.card (M ⧸ S) :=
+by { rw [mul_comm, ← fintype.card_prod],
+     exact fintype.card_congr add_subgroup.add_group_equiv_quotient_times_add_subgroup }
+
 section
 
 variables {M₂ : Type*} [add_comm_group M₂] [module R M₂]

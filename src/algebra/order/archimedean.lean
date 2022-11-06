@@ -83,8 +83,7 @@ lemma exists_unique_add_zsmul_mem_Ioc {a : α} (ha : 0 < a) (b c : α) :
 
 end linear_ordered_add_comm_group
 
-theorem exists_nat_gt [strict_ordered_semiring α] [nontrivial α] [archimedean α]
-  (x : α) : ∃ n : ℕ, x < n :=
+theorem exists_nat_gt [strict_ordered_semiring α] [archimedean α] (x : α) : ∃ n : ℕ, x < n :=
 let ⟨n, h⟩ := archimedean.arch x zero_lt_one in
 ⟨n+1, lt_of_le_of_lt (by rwa ← nsmul_one)
   (nat.cast_lt.2 (nat.lt_succ_self _))⟩
@@ -96,8 +95,8 @@ begin
   exact (exists_nat_gt x).imp (λ n, le_of_lt)
 end
 
-lemma add_one_pow_unbounded_of_pos [strict_ordered_semiring α] [nontrivial α] [archimedean α]
-  (x : α) {y : α} (hy : 0 < y) :
+lemma add_one_pow_unbounded_of_pos [strict_ordered_semiring α] [archimedean α] (x : α) {y : α}
+  (hy : 0 < y) :
   ∃ n : ℕ, x < (y + 1) ^ n :=
 have 0 ≤ 1 + y, from add_nonneg zero_le_one hy.le,
 let ⟨n, h⟩ := archimedean.arch x hy in

@@ -63,12 +63,31 @@ monotone_nat_of_le_succ $ λ n, by rw [nat.cast_succ]; exact le_add_of_nonneg_ri
 @[simp] theorem cast_nonneg (n : ℕ) : 0 ≤ (n : α) :=
 @nat.cast_zero α _ ▸ mono_cast (nat.zero_le n)
 
+section nontrivial
 variable [nontrivial α]
 
 lemma cast_add_one_pos (n : ℕ) : 0 < (n : α) + 1 :=
 zero_lt_one.trans_le $ le_add_of_nonneg_left n.cast_nonneg
 
 @[simp] lemma cast_pos {n : ℕ} : (0 : α) < n ↔ 0 < n := by cases n; simp [cast_add_one_pos]
+
+end nontrivial
+
+variables [char_zero α] {m n : ℕ}
+
+lemma strict_mono_cast : strict_mono (coe : ℕ → α) :=
+mono_cast.strict_mono_of_injective cast_injective
+
+@[simp, norm_cast] lemma cast_le : (m : α) ≤ n ↔ m ≤ n := strict_mono_cast.le_iff_le
+@[simp, norm_cast, mono] lemma cast_lt : (m : α) < n ↔ m < n := strict_mono_cast.lt_iff_lt
+
+@[simp, norm_cast] lemma one_lt_cast : 1 < (n : α) ↔ 1 < n := by rw [←cast_one, cast_lt']
+@[simp, norm_cast] lemma one_le_cast : 1 ≤ (n : α) ↔ 1 ≤ n := by rw [←cast_one, cast_le']
+
+@[simp, norm_cast] lemma cast_lt_one : (n : α) < 1 ↔ n = 0 :=
+by rw [←cast_one, cast_lt', lt_succ_iff, le_zero_iff]
+
+@[simp, norm_cast] lemma cast_le_one : (n : α) ≤ 1 ↔ n ≤ 1 := by rw [←cast_one, cast_le']
 
 end ordered_semiring
 
@@ -84,30 +103,6 @@ begin
   { rcases le_iff_exists_add'.mp h with ⟨m, rfl⟩,
     rw [add_tsub_cancel_right, cast_add, add_tsub_cancel_right] }
 end
-
-section strict_ordered_semiring
-variables [strict_ordered_semiring α] [nontrivial α]
-
-@[simp, norm_cast] theorem cast_le {m n : ℕ} :
-  (m : α) ≤ n ↔ m ≤ n :=
-strict_mono_cast.le_iff_le
-
-@[simp, norm_cast, mono] theorem cast_lt {m n : ℕ} : (m : α) < n ↔ m < n :=
-strict_mono_cast.lt_iff_lt
-
-@[simp, norm_cast] theorem one_lt_cast {n : ℕ} : 1 < (n : α) ↔ 1 < n :=
-by rw [← cast_one, cast_lt]
-
-@[simp, norm_cast] theorem one_le_cast {n : ℕ} : 1 ≤ (n : α) ↔ 1 ≤ n :=
-by rw [← cast_one, cast_le]
-
-@[simp, norm_cast] theorem cast_lt_one {n : ℕ} : (n : α) < 1 ↔ n = 0 :=
-by rw [← cast_one, cast_lt, lt_succ_iff]; exact le_bot_iff
-
-@[simp, norm_cast] theorem cast_le_one {n : ℕ} : (n : α) ≤ 1 ↔ n ≤ 1 :=
-by rw [← cast_one, cast_le]
-
-end strict_ordered_semiring
 
 @[simp, norm_cast] theorem cast_min [linear_ordered_semiring α] {a b : ℕ} :
   (↑(min a b) : α) = min a b :=

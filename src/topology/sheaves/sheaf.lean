@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import topology.sheaves.sheaf_condition.equalizer_products
+import topology.sheaves.presheaf
 import category_theory.full_subcategory
 import category_theory.limits.unit
 import category_theory.sites.sheaf
@@ -43,8 +43,6 @@ variables {C : Type u} [category.{v} C]
 variables {X : Top.{w}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
 
 namespace presheaf
-
-open sheaf_condition_equalizer_products
 
 /--
 The sheaf condition has several different equivalent formulations.

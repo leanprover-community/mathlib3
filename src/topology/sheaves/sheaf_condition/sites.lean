@@ -10,24 +10,15 @@ import category_theory.sites.dense_subsite
 
 /-!
 
-# The sheaf condition in terms of sites.
+# Coverings and sieves; from sheaves on sites and sheaves on spaces
 
-The theory of sheaves on sites was developed independently from sheaves on spaces in
-`category_theory/sites`. In this file, we connect the two theories: We show that for a topological
-space `X`, a presheaf `F : (opens X)ᵒᵖ ⥤ C` is a sheaf on the site `opens X` if and only if it is
-a sheaf on `X` in terms of `is_sheaf_equalizer_products`.
+In this file, we connect coverings in a topological space to sieves in the induced Grothendieck
+topology, in preparation of connecting the sheaf condition on sites to the various sheaf conditions
+on spaces.
 
-Recall that a presheaf `F : (opens X)ᵒᵖ ⥤ C` is called a *sheaf* on the space `X`, if for every
-family of opens `U : ι → opens X`, the object `F.obj (op (supr U))` is the limit of some fork
-diagram. On the other hand, `F` is called a *sheaf* on the site `opens X`, if for every open set
-`U : opens X` and every presieve `R : presieve U`, the object `F.obj (op U)` is the limit of a
-very similar fork diagram. In this file, we will construct the two functions `covering_of_presieve`
-and `presieve_of_covering`, which translate between the two concepts. We then prove a bunch of
-naturality lemmas relating the two fork diagrams to each other.
-
-## Main statements
-* `is_sheaf_iff_is_sheaf_equalizer_products`. A presheaf `F : (opens X)ᵒᵖ ⥤ C` is a sheaf on the
-  site `opens X` if and only if it is a sheaf on the space `X`.
+We also specialize results about sheaves on sites to sheaves on spaces; we show that the inclusion
+functor from a topological basis to `topological_space.opens` is cover dense, that open maps
+induce cover preserving functors, and that open embeddings induce compatible preserving functors.
 
 -/
 
@@ -35,10 +26,9 @@ noncomputable theory
 
 universes w v u
 
-namespace Top.presheaf
+open category_theory topological_space
 
-open category_theory topological_space Top category_theory.limits opposite
-open Top.presheaf.sheaf_condition_equalizer_products
+namespace Top.presheaf
 
 variables {X : Top.{w}}
 
@@ -98,21 +88,6 @@ by { ext Z f, exact ⟨λ ⟨⟨_,_,h⟩,rfl⟩, by convert h, λ h, ⟨⟨Z,f,h
 
 namespace presieve_of_covering
 
-/-!
-In this section, we will relate two different fork diagrams to each other.
-
-The first one is the defining fork diagram for the sheaf condition in terms of spaces, applied to
-the family of opens `U`. It will henceforth be called the _spaces diagram_. Its objects are called
-`pi_opens` and `pi_inters` and its morphisms are `left_res` and `right_res`. The fork map into this
-diagram is called `res`.
-
-The second one is the defining fork diagram for the sheaf condition in terms of sites, applied to
-the presieve `presieve_of_covering U`. It will henceforth be called the _sites diagram_. Its objects
-are called `presheaf.first_obj` and `presheaf.second_obj` and its morphisms are `presheaf.first_map`
-and `presheaf.second_obj`. The fork map into this diagram is called `presheaf.fork_map`.
-
--/
-
 variables {ι : Type v} (U : ι → opens X)
 
 /--
@@ -148,8 +123,6 @@ end Top.presheaf
 
 namespace Top.opens
 
-open category_theory topological_space
-
 variables {X : Top} {ι : Type*}
 
 lemma cover_dense_iff_is_basis [category ι] (B : ι ⥤ opens X) :
@@ -170,7 +143,7 @@ end Top.opens
 
 section open_embedding
 
-open category_theory topological_space Top.presheaf opposite
+open Top.presheaf opposite
 
 variables {C : Type u} [category.{v} C]
 variables {X Y : Top.{w}} {f : X ⟶ Y} {F : Y.presheaf C}
@@ -203,7 +176,7 @@ end open_embedding
 
 namespace Top.sheaf
 
-open category_theory topological_space Top opposite
+open Top opposite
 
 variables {C : Type u} [category.{v} C]
 variables {X : Top.{w}} {ι : Type*} {B : ι → opens X}

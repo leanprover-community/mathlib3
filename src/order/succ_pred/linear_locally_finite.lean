@@ -46,7 +46,7 @@ About `to_Z`:
 * `order_iso_int_of_linear_succ_pred_arch`: if the order has neither bot nor top, `to_Z` defines an
   `order_iso` between `ι` and `ℤ`.
 * `order_iso_range_of_linear_succ_pred_arch`: if the order has both a bot and a top, `to_Z` gives an
-  `order_iso` between `ι` and `finset.range (to_Z ⊥ ⊤).to_nat`.
+  `order_iso` between `ι` and `finset.range ((to_Z ⊥ ⊤).to_nat + 1)`.
 
 -/
 

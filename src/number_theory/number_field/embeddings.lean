@@ -148,9 +148,6 @@ begin
   { intro h₀,
     obtain ⟨_, hiφ⟩ := function.injective.has_left_inverse φ.injective,
     let ι := ring_equiv.of_left_inverse hiφ,
-    let ψ₀ : φ.field_range →+* ℂ := ring_hom.comp ψ ι.symm.to_ring_hom,
-
-    -- improve this
     have hlip : lipschitz_with 1 (ring_hom.comp ψ ι.symm.to_ring_hom),
     { change lipschitz_with 1 (ψ ∘ ι.symm),
       apply lipschitz_with.of_dist_le_mul,
@@ -160,7 +157,6 @@ begin
       rw [place, function.comp_app, ← ring_equiv.of_left_inverse_apply hiφ _,
         ring_equiv.apply_symm_apply ι _],
       refl, },
-
     cases (subfield.eq_id_or_conj_uniform_continuous φ.field_range hlip.uniform_continuous),
     { left, ext1 x,
       convert (congr_fun h (ι x)).symm,

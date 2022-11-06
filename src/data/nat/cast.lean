@@ -8,6 +8,9 @@ import algebra.group.prod
 import algebra.hom.ring
 import algebra.order.monoid.with_top
 import algebra.order.group.abs
+import data.nat.cast.defs
+import algebra.group.prod
+-- FIXME CHECK IMPORTS
 
 /-!
 # Cast of natural numbers (additional theorems)

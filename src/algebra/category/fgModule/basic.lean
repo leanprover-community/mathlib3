@@ -73,7 +73,7 @@ def iso_to_linear_equiv {V W : fgModule R} (i : V ≅ W) : V.obj ≃ₗ[R] W.obj
   ((forget₂ (fgModule.{u} R) (Module.{u} R)).map_iso i).to_linear_equiv
 
 /-- Converts a `linear_equiv` to an isomorphism in the category `fgModule R`. -/
-@[simps] def linear_equiv.to_fgModule_iso
+@[simps] def _root_.linear_equiv.to_fgModule_iso
   {V W : Type u} [add_comm_group V] [module R V] [module.finite R V]
   [add_comm_group W] [module R W] [module.finite R W]
   (e : V ≃ₗ[R] W) :

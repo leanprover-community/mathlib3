@@ -216,7 +216,7 @@ begin
     simp only [pi.basis, linear_equiv.trans_apply, basis.repr_self, std_basis_same,
         linear_equiv.Pi_congr_right_apply, finsupp.sigma_finsupp_lequiv_pi_finsupp_symm_apply],
     symmetry,
-    exact basis.finsupp.single_apply_left
+    exact finsupp.single_apply_left
       (λ i i' (h : (⟨j, i⟩ : Σ j, ιs j) = ⟨j, i'⟩), eq_of_heq (sigma.mk.inj h).2) _ _ _ },
   simp only [pi.basis, linear_equiv.trans_apply, finsupp.sigma_finsupp_lequiv_pi_finsupp_symm_apply,
       linear_equiv.Pi_congr_right_apply],

@@ -1714,12 +1714,12 @@ begin
       -- the `cont_diff_groupoid`.
       obtain ⟨e, he, he', hex⟩ : ∃ e : local_homeomorph H H, e ∈ cont_diff_groupoid ⊤ I ∧
         eq_on (c' ∘ f ∘ c.symm) e (c.symm ⁻¹' f.source ∩ e.source) ∧ c x ∈ e.source,
-      { have : c' = chart_at H (f x) := by simp [c', x, f.right_inv hX],
+      { have : c' = chart_at H (f x) := by simp only [f.right_inv hX],
         rw this,
         exact hxf (by simp only [hx] with mfld_simps) },
       have hX' : c' X = e (c (f.symm X)),
       { rw ← he',
-        { dsimp,
+        { dsimp only [function.comp],
           have hfX : f.symm X ∈ c.source := by simp only [hX] with mfld_simps,
           rw [c.left_inv hfX, f.right_inv hX] },
         simp only [hX, hex] with mfld_simps },

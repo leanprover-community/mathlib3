@@ -954,7 +954,7 @@ end has_continuous_const_smul
 section has_continuous_const_smul_op
 variables [topological_space α] [group α] [has_continuous_const_smul αᵐᵒᵖ α] {s t : set α}
 
-@[to_additive] lemma is_open.mul_right : is_open s → is_open (s * t) :=
+@[to_additive] lemma is_open.mul_right (hs : is_open s) : is_open (s * t) :=
 by { rw ←bUnion_op_smul_set, exact is_open_bUnion (λ a _, hs.smul _) }
 
 @[to_additive] lemma subset_interior_mul_left : interior s * t ⊆ interior (s * t) :=

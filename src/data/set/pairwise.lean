@@ -186,11 +186,6 @@ by { rw [sUnion_eq_Union, pairwise_Union (h.directed_coe), set_coe.forall], refl
 
 end set
 
-<<<<<<< HEAD
-=======
-lemma pairwise.set_pairwise (h : pairwise r) (s : set α) : s.pairwise r := λ x hx y hy hxy, h hxy
-
->>>>>>> origin/YK-pairwise-implicit
 end pairwise
 
 lemma pairwise_subtype_iff_pairwise_set (s : set α) (r : α → α → Prop) :

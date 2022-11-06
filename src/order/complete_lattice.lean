@@ -6,11 +6,8 @@ Authors: Johannes Hölzl
 import data.bool.set
 import data.nat.set
 import data.ulift
-import order.bounds.order_iso
 import order.bounds.basic
 import order.hom.basic
-import algebra.char_zero.defs
--- FIXME CHECK IMPORTS
 
 /-!
 # Theory of complete lattices
@@ -1179,17 +1176,9 @@ calc u 0 ⊔ (⨆ i, u (i + 1)) = (⨆ (x ∈ {0} ∪ range nat.succ), u x)
 lemma inf_infi_nat_succ (u : ℕ → α) : u 0 ⊓ (⨅ i, u (i + 1)) = ⨅ i, u i :=
 @sup_supr_nat_succ αᵒᵈ _ u
 
-lemma nat.mem_range_succ (i : ℕ) : i ∈ range nat.succ ↔ 0 < i :=
-⟨by { rintros ⟨n, rfl⟩, exact nat.succ_pos n, }, λ h, ⟨_, nat.succ_pred_eq_of_pos h⟩⟩
-
 lemma infi_nat_gt_zero_eq (f : ℕ → α) :
-<<<<<<< HEAD
-  (⨅ {i : ℕ} (h : 0 < i), f i) = ⨅ i, f (i + 1) :=
-by simpa only [←nat.mem_range_succ] using infi_range
-=======
   (⨅ (i > 0), f i) = ⨅ i, f (i + 1) :=
 by { rw [←infi_range, nat.range_succ], simp only [mem_set_of] }
->>>>>>> order_bounds
 
 lemma supr_nat_gt_zero_eq (f : ℕ → α) :
   (⨆ (i > 0), f i) = ⨆ i, f (i + 1) :=

@@ -49,6 +49,7 @@ noncomputable theory
 open_locale classical topological_space
 
 open polynomial real filter set function
+open_locale polynomial
 
 /-- `exp_neg_inv_glue` is the real function given by `x ↦ exp (-1/x)` for `x > 0` and `0`
 for `x ≤ 0`. It is a basic building block to construct smooth partitions of unity. Its main property
@@ -62,7 +63,7 @@ namespace exp_neg_inv_glue
 /-- Our goal is to prove that `exp_neg_inv_glue` is `C^∞`. For this, we compute its successive
 derivatives for `x > 0`. The `n`-th derivative is of the form `P_aux n (x) exp(-1/x) / x^(2 n)`,
 where `P_aux n` is computed inductively. -/
-noncomputable def P_aux : ℕ → polynomial ℝ
+noncomputable def P_aux : ℕ → ℝ[X]
 | 0 := 1
 | (n+1) := X^2 * (P_aux n).derivative + (1 - C ↑(2 * n) * X) * (P_aux n)
 

@@ -3,7 +3,7 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Neil Strickland
 -/
-import data.nat.basic
+import data.nat.order
 import algebra.order.positive.ring
 
 /-!
@@ -150,6 +150,8 @@ instance : contravariant_class ℕ+ ℕ+ (+) (<) := positive.contravariant_class
   ⇑order_iso.pnat_iso_nat.symm = nat.succ_pnat := rfl
 
 @[simp] theorem ne_zero (n : ℕ+) : (n : ℕ) ≠ 0 := n.2.ne'
+
+instance _root_.ne_zero.pnat {a : ℕ+} : _root_.ne_zero (a : ℕ) := ⟨a.ne_zero⟩
 
 theorem to_pnat'_coe {n : ℕ} : 0 < n → (n.to_pnat' : ℕ) = n := succ_pred_eq_of_pos
 

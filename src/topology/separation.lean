@@ -919,6 +919,17 @@ instance t2_5_space.t2_space [t2_5_space α] : t2_space α :=
 t2_space_iff_disjoint_nhds.2 $
   λ x y hne, (disjoint_lift'_closure_nhds.2 hne).mono (le_lift'_closure _) (le_lift'_closure _)
 
+lemma exists_nhds_disjoint_closure [t2_5_space α] {x y : α} (h : x ≠ y) :
+  ∃ (s ∈ 𝓝 x) (t ∈ 𝓝 y), disjoint (closure s) (closure t) :=
+((𝓝 x).basis_sets.lift'_closure.disjoint_iff (𝓝 y).basis_sets.lift'_closure).1 $
+  disjoint_lift'_closure_nhds.2 h
+
+lemma exists_open_nhds_disjoint_closure [t2_5_space α] {x y : α} (h : x ≠ y) :
+  ∃ u : set α, x ∈ u ∧ is_open u ∧ ∃ v : set α, y ∈ v ∧ is_open v ∧
+    disjoint (closure u) (closure v) :=
+by simpa only [exists_prop, and.assoc] using ((nhds_basis_opens x).lift'_closure.disjoint_iff
+  (nhds_basis_opens y).lift'_closure).1 (disjoint_lift'_closure_nhds.2 h)
+
 section lim
 variables [t2_space α] {f : filter α}
 

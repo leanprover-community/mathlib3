@@ -567,6 +567,9 @@ end
 show (∀ {t}, s ⊆ t → t ∈ f) ↔ s ∈ f,
   from ⟨λ h, h (subset.refl s), λ hs t ht, mem_of_superset hs ht⟩
 
+lemma Iic_principal (s : set α) : Iic (𝓟 s) = {l | s ∈ l} :=
+set.ext $ λ x, le_principal_iff
+
 lemma principal_mono {s t : set α} : 𝓟 s ≤ 𝓟 t ↔ s ⊆ t :=
 by simp only [le_principal_iff, iff_self, mem_principal]
 
@@ -2159,8 +2162,7 @@ instance pure_ne_bot {α : Type u} {a : α} : ne_bot (pure a) :=
 ⟨mt empty_mem_iff_bot.2 $ not_mem_empty a⟩
 
 @[simp] lemma le_pure_iff {f : filter α} {a : α} : f ≤ pure a ↔ {a} ∈ f :=
-⟨λ h, h singleton_mem_pure,
-  λ h s hs, mem_of_superset h $ singleton_subset_iff.2 hs⟩
+by rw [← principal_singleton, le_principal_iff]
 
 lemma mem_seq_def {f : filter (α → β)} {g : filter α} {s : set β} :
   s ∈ f.seq g ↔ (∃ u ∈ f, ∃ t ∈ g, ∀ x ∈ u, ∀ y ∈ t, (x : α → β) y ∈ s) :=

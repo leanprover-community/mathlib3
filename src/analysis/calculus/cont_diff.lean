@@ -771,6 +771,10 @@ variable {𝕜}
 lemma iterated_fderiv_within_zero_eq_comp :
   iterated_fderiv_within 𝕜 0 f s = (continuous_multilinear_curry_fin0 𝕜 E F).symm ∘ f := rfl
 
+lemma norm_iterated_fderiv_within_zero :
+  ∥iterated_fderiv_within 𝕜 0 f s x∥ = ∥f x∥ :=
+by rw [iterated_fderiv_within_zero_eq_comp, linear_isometry_equiv.norm_map]
+
 lemma iterated_fderiv_within_succ_apply_left {n : ℕ} (m : fin (n + 1) → E):
   (iterated_fderiv_within 𝕜 (n + 1) f s x : (fin (n + 1) → E) → F) m
   = (fderiv_within 𝕜 (iterated_fderiv_within 𝕜 n f s) s x : E → (E [×n]→L[𝕜] F))
@@ -782,6 +786,11 @@ lemma iterated_fderiv_within_succ_eq_comp_left {n : ℕ} :
   iterated_fderiv_within 𝕜 (n + 1) f s =
   (continuous_multilinear_curry_left_equiv 𝕜 (λ(i : fin (n + 1)), E) F)
     ∘ (fderiv_within 𝕜 (iterated_fderiv_within 𝕜 n f s) s) := rfl
+
+lemma norm_fderiv_within_iterated_fderiv_within {n : ℕ} :
+  ∥fderiv_within 𝕜 (iterated_fderiv_within 𝕜 n f s) s x∥ =
+  ∥iterated_fderiv_within 𝕜 (n + 1) f s x∥ :=
+by rw [iterated_fderiv_within_succ_eq_comp_left, linear_isometry_equiv.norm_map]
 
 theorem iterated_fderiv_within_succ_apply_right {n : ℕ}
   (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) (m : fin (n + 1) → E) :
@@ -821,6 +830,11 @@ lemma iterated_fderiv_within_succ_eq_comp_right {n : ℕ} (hs : unique_diff_on �
   ((continuous_multilinear_curry_right_equiv' 𝕜 n E F)
     ∘ (iterated_fderiv_within 𝕜 n (λy, fderiv_within 𝕜 f s y) s)) x :=
 by { ext m, rw iterated_fderiv_within_succ_apply_right hs hx, refl }
+
+lemma norm_iterated_fderiv_within_fderiv_within {n : ℕ} (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) :
+  ∥iterated_fderiv_within 𝕜 n (fderiv_within 𝕜 f s) s x∥ =
+  ∥iterated_fderiv_within 𝕜 (n + 1) f s x∥ :=
+by rw [iterated_fderiv_within_succ_eq_comp_right hs hx, linear_isometry_equiv.norm_map]
 
 @[simp] lemma iterated_fderiv_within_one_apply
   (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) (m : (fin 1) → E) :
@@ -1450,10 +1464,11 @@ lemma iterated_fderiv_zero_eq_comp :
 
 lemma norm_iterated_fderiv_zero :
   ∥iterated_fderiv 𝕜 0 f x∥ = ∥f x∥ :=
-begin
-  rw [←continuous_multilinear_map.fin0_apply_norm, iterated_fderiv_zero_apply],
-  exact fin.elim0',
-end
+by rw [iterated_fderiv_zero_eq_comp, linear_isometry_equiv.norm_map]
+
+lemma iterated_fderiv_with_zero_eq :
+  iterated_fderiv_within 𝕜 0 f s = iterated_fderiv 𝕜 0 f :=
+by { ext, refl }
 
 lemma iterated_fderiv_succ_apply_left {n : ℕ} (m : fin (n + 1) → E):
   (iterated_fderiv 𝕜 (n + 1) f x : (fin (n + 1) → E) → F) m
@@ -1489,6 +1504,9 @@ begin
     apply (IH.fderiv 𝕜).comp_left,
     exact linear_isometry_equiv.map_zero _ }
 end
+lemma norm_fderiv_iterated_fderiv {n : ℕ} :
+  ∥fderiv 𝕜 (iterated_fderiv 𝕜 n f) x∥ = ∥iterated_fderiv 𝕜 (n + 1) f x∥ :=
+by rw [iterated_fderiv_succ_eq_comp_left, linear_isometry_equiv.norm_map]
 
 lemma iterated_fderiv_within_univ {n : ℕ} :
   iterated_fderiv_within 𝕜 n f univ = iterated_fderiv 𝕜 n f :=
@@ -1542,6 +1560,10 @@ lemma iterated_fderiv_succ_eq_comp_right {n : ℕ} :
   ((continuous_multilinear_curry_right_equiv' 𝕜 n E F)
     ∘ (iterated_fderiv 𝕜 n (λy, fderiv 𝕜 f y))) x :=
 by { ext m, rw iterated_fderiv_succ_apply_right, refl }
+
+lemma norm_iterated_fderiv_fderiv {n : ℕ} :
+  ∥iterated_fderiv 𝕜 n (fderiv 𝕜 f) x∥ = ∥iterated_fderiv 𝕜 (n + 1) f x∥ :=
+by rw [iterated_fderiv_succ_eq_comp_right, linear_isometry_equiv.norm_map]
 
 @[simp] lemma iterated_fderiv_one_apply (m : (fin 1) → E) :
   (iterated_fderiv 𝕜 1 f x : ((fin 1) → E) → F) m
@@ -1602,8 +1624,7 @@ theorem cont_diff_top_iff_fderiv :
   cont_diff 𝕜 ∞ f ↔
   differentiable 𝕜 f ∧ cont_diff 𝕜 ∞ (λ y, fderiv 𝕜 f y) :=
 begin
-  simp [cont_diff_on_univ.symm, differentiable_on_univ.symm, fderiv_within_univ.symm,
-        - fderiv_within_univ],
+  simp only [← cont_diff_on_univ, ← differentiable_on_univ, ← fderiv_within_univ],
   rw cont_diff_on_top_iff_fderiv_within unique_diff_on_univ,
 end
 
@@ -1617,13 +1638,10 @@ continuous. -/
 lemma cont_diff.continuous_fderiv_apply
   (h : cont_diff 𝕜 n f) (hn : 1 ≤ n) :
   continuous (λp : E × E, (fderiv 𝕜 f p.1 : E → F) p.2) :=
-begin
-  have A : continuous (λq : (E →L[𝕜] F) × E, q.1 q.2) := is_bounded_bilinear_map_apply.continuous,
-  have B : continuous (λp : E × E, (fderiv 𝕜 f p.1, p.2)),
-  { apply continuous.prod_mk _ continuous_snd,
-    exact continuous.comp (h.continuous_fderiv hn) continuous_fst },
-  exact A.comp B
-end
+have A : continuous (λq : (E →L[𝕜] F) × E, q.1 q.2) := is_bounded_bilinear_map_apply.continuous,
+have B : continuous (λp : E × E, (fderiv 𝕜 f p.1, p.2)) :=
+  ((h.continuous_fderiv hn).comp continuous_fst).prod_mk continuous_snd,
+A.comp B
 
 /-! ### Constants -/
 
@@ -1644,7 +1662,7 @@ lemma cont_diff_zero_fun :
 begin
   apply cont_diff_of_differentiable_iterated_fderiv (λm hm, _),
   rw iterated_fderiv_zero_fun,
-  apply differentiable_const (0 : (E [×m]→L[𝕜] F))
+  exact differentiable_const (0 : (E [×m]→L[𝕜] F))
 end
 
 /--
@@ -2322,22 +2340,12 @@ lemma cont_diff_prod_assoc_symm : cont_diff 𝕜 ⊤ $ (equiv.prod_assoc E F G).
 lemma cont_diff_on_fderiv_within_apply {m n : with_top  ℕ} {s : set E}
   {f : E → F} (hf : cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hmn : m + 1 ≤ n) :
   cont_diff_on 𝕜 m (λp : E × E, (fderiv_within 𝕜 f s p.1 : E →L[𝕜] F) p.2) (s ×ˢ univ) :=
-begin
-  have A : cont_diff 𝕜 m (λp : (E →L[𝕜] F) × E, p.1 p.2),
-  { apply is_bounded_bilinear_map.cont_diff,
-    exact is_bounded_bilinear_map_apply },
-  have B : cont_diff_on 𝕜 m
-    (λ (p : E × E), ((fderiv_within 𝕜 f s p.fst), p.snd)) (s ×ˢ univ),
-  { apply cont_diff_on.prod _ _,
-    { have I : cont_diff_on 𝕜 m (λ (x : E), fderiv_within 𝕜 f s x) s :=
-        hf.fderiv_within hs hmn,
-      have J : cont_diff_on 𝕜 m (λ (x : E × E), x.1) (s ×ˢ univ) :=
-        cont_diff_fst.cont_diff_on,
-      exact cont_diff_on.comp I J (prod_subset_preimage_fst _ _) },
-    { apply cont_diff.cont_diff_on _ ,
-      apply is_bounded_linear_map.snd.cont_diff } },
-  exact A.comp_cont_diff_on B
-end
+have I : cont_diff_on 𝕜 m (λ (x : E), fderiv_within 𝕜 f s x) s := hf.fderiv_within hs hmn,
+have J : cont_diff_on 𝕜 m (λ (x : E × E), x.1) (s ×ˢ univ) := cont_diff_fst.cont_diff_on,
+have A : cont_diff 𝕜 m (λp : (E →L[𝕜] F) × E, p.1 p.2) := is_bounded_bilinear_map_apply.cont_diff,
+have B : cont_diff_on 𝕜 m (λ (p : E × E), ((fderiv_within 𝕜 f s p.fst), p.snd)) (s ×ˢ univ) :=
+(I.comp J (prod_subset_preimage_fst _ _)).prod is_bounded_linear_map.snd.cont_diff.cont_diff_on,
+A.comp_cont_diff_on B
 
 /-- The bundled derivative of a `C^{n+1}` function is `C^n`. -/
 lemma cont_diff.cont_diff_fderiv_apply {f : E → F}
@@ -2615,7 +2623,7 @@ lemma cont_diff.sum
   {ι : Type*} {f : ι → E → F} {s : finset ι}
   (h : ∀ i ∈ s, cont_diff 𝕜 n (λ x, f i x)) :
   cont_diff 𝕜 n (λ x, (∑ i in s, f i x)) :=
-by simp [← cont_diff_on_univ] at *; exact cont_diff_on.sum h
+by simp only [← cont_diff_on_univ] at *; exact cont_diff_on.sum h
 
 /-! ### Product of two functions -/
 
@@ -3350,9 +3358,7 @@ theorem cont_diff_on_succ_iff_deriv_of_open {n : ℕ} (hs : is_open s₂) :
 begin
   rw cont_diff_on_succ_iff_deriv_within hs.unique_diff_on,
   congrm _ ∧ _,
-  apply cont_diff_on_congr,
-  assume x hx,
-  exact deriv_within_of_open hs hx
+  exact cont_diff_on_congr (λ _, deriv_within_of_open hs)
 end
 
 /-- A function is `C^∞` on a domain with unique derivatives if and only if it is differentiable
@@ -3381,9 +3387,7 @@ theorem cont_diff_on_top_iff_deriv_of_open (hs : is_open s₂) :
 begin
   rw cont_diff_on_top_iff_deriv_within hs.unique_diff_on,
   congrm _ ∧ _,
-  apply cont_diff_on_congr,
-  assume x hx,
-  exact deriv_within_of_open hs hx
+  exact cont_diff_on_congr (λ _, deriv_within_of_open hs)
 end
 
 lemma cont_diff_on.deriv_within
@@ -3432,8 +3436,7 @@ theorem cont_diff_top_iff_deriv :
   cont_diff 𝕜 ∞ f₂ ↔
   differentiable 𝕜 f₂ ∧ cont_diff 𝕜 ∞ (deriv f₂) :=
 begin
-  simp [cont_diff_on_univ.symm, differentiable_on_univ.symm, deriv_within_univ.symm,
-        - deriv_within_univ],
+  simp only [← cont_diff_on_univ, ← differentiable_on_univ, ← deriv_within_univ],
   rw cont_diff_on_top_iff_deriv_within unique_diff_on_univ,
 end
 

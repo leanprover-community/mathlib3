@@ -436,7 +436,8 @@ begin
       (is_closed_singleton_iff_is_maximal _).1 (t1_space.t1 ⟨⊥, hbot⟩)) (not_not.2 rfl)) },
   { refine ⟨λ x, (is_closed_singleton_iff_is_maximal x).2 _⟩,
     by_cases hx : x.as_ideal = ⊥,
-    { exact hx.symm ▸ @ideal.bot_is_maximal R (@field.to_division_ring _ h.to_field) },
+    { exact hx.symm ▸ @ideal.bot_is_maximal R
+        (@division_ring.to_division_semiring _ $ @field.to_division_ring _ h.to_field) },
     { exact absurd h (ring.not_is_field_iff_exists_prime.2 ⟨x.as_ideal, ⟨hx, x.2⟩⟩) } }
 end
 

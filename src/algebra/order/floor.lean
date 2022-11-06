@@ -3,6 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Kappelmann
 -/
+import data.int.lemmas
 import tactic.abel
 import tactic.linarith
 import tactic.positivity
@@ -185,16 +186,29 @@ lemma gc_ceil_coe : galois_connection (ceil : α → ℕ) coe := floor_semiring.
 
 lemma lt_ceil : n < ⌈a⌉₊ ↔ (n : α) < a := lt_iff_lt_of_le_iff_le ceil_le
 
+@[simp] lemma add_one_le_ceil_iff : n + 1 ≤ ⌈a⌉₊ ↔ (n : α) < a :=
+by rw [← nat.lt_ceil, nat.add_one_le_iff]
+
+@[simp] lemma one_le_ceil_iff : 1 ≤ ⌈a⌉₊ ↔ 0 < a :=
+by rw [← zero_add 1, nat.add_one_le_ceil_iff, nat.cast_zero]
+
+lemma ceil_le_floor_add_one (a : α) : ⌈a⌉₊ ≤ ⌊a⌋₊ + 1 :=
+by { rw [ceil_le, nat.cast_add, nat.cast_one], exact (lt_floor_add_one a).le }
+
 lemma le_ceil (a : α) : a ≤ ⌈a⌉₊ := ceil_le.1 le_rfl
+
+@[simp] lemma ceil_int_cast {α : Type*} [linear_ordered_ring α]
+  [floor_semiring α] (z : ℤ) : ⌈(z : α)⌉₊ = z.to_nat :=
+eq_of_forall_ge_iff $ λ a, by { simp, norm_cast }
+
+@[simp] lemma ceil_nat_cast (n : ℕ) : ⌈(n : α)⌉₊ = n :=
+eq_of_forall_ge_iff $ λ a, by rw [ceil_le, cast_le]
 
 lemma ceil_mono : monotone (ceil : α → ℕ) := gc_ceil_coe.monotone_l
 
-@[simp] lemma ceil_coe (n : ℕ) : ⌈(n : α)⌉₊ = n :=
-eq_of_forall_ge_iff $ λ a, ceil_le.trans nat.cast_le
+@[simp] lemma ceil_zero : ⌈(0 : α)⌉₊ = 0 := by rw [← nat.cast_zero, ceil_nat_cast]
 
-@[simp] lemma ceil_zero : ⌈(0 : α)⌉₊ = 0 := by rw [← nat.cast_zero, ceil_coe]
-
-@[simp] lemma ceil_one : ⌈(1 : α)⌉₊ = 1 := by rw [←nat.cast_one, ceil_coe]
+@[simp] lemma ceil_one : ⌈(1 : α)⌉₊ = 1 := by rw [←nat.cast_one, ceil_nat_cast]
 
 @[simp] lemma ceil_eq_zero : ⌈a⌉₊ = 0 ↔ a ≤ 0 := by rw [← le_zero_iff, ceil_le, nat.cast_zero]
 
@@ -499,6 +513,8 @@ lemma floor_eq_iff : ⌊a⌋ = z ↔ ↑z ≤ a ∧ a < z + 1 :=
 by rw [le_antisymm_iff, le_floor, ←int.lt_add_one_iff, floor_lt, int.cast_add, int.cast_one,
   and.comm]
 
+@[simp] lemma floor_eq_zero_iff : ⌊a⌋ = 0 ↔ a ∈ Ico (0 : α) 1 := by simp [floor_eq_iff]
+
 lemma floor_eq_on_Ico (n : ℤ) : ∀ a ∈ set.Ico (n : α) (n + 1), ⌊a⌋ = n :=
 λ a ⟨h₀, h₁⟩, floor_eq_iff.mpr ⟨h₀, h₁⟩
 
@@ -519,11 +535,20 @@ ext $ λ x, floor_eq_iff
 @[simp] lemma fract_add_int (a : α) (m : ℤ) : fract (a + m) = fract a :=
 by { rw fract, simp }
 
+@[simp] lemma fract_add_nat (a : α) (m : ℕ) : fract (a + m) = fract a :=
+by { rw fract, simp }
+
 @[simp] lemma fract_sub_int (a : α) (m : ℤ) : fract (a - m) = fract a :=
 by { rw fract, simp }
 
 @[simp] lemma fract_int_add (m : ℤ) (a : α) : fract (↑m + a) = fract a :=
 by rw [add_comm, fract_add_int]
+
+@[simp] lemma fract_sub_nat (a : α) (n : ℕ) : fract (a - n) = fract a :=
+by { rw fract, simp }
+
+@[simp] lemma fract_int_nat (n : ℕ) (a : α) : fract (↑n + a) = fract a :=
+by rw [add_comm, fract_add_nat]
 
 @[simp] lemma self_sub_fract (a : α) : a - fract a = ⌊a⌋ := sub_sub_cancel _ _
 
@@ -531,7 +556,7 @@ by rw [add_comm, fract_add_int]
 
 @[simp] lemma fract_nonneg (a : α) : 0 ≤ fract a := sub_nonneg.2 $ floor_le _
 
-lemma fract_lt_one (a : α) : fract a < 1 := sub_lt.1 $ sub_one_lt_floor _
+lemma fract_lt_one (a : α) : fract a < 1 := sub_lt_comm.1 $ sub_one_lt_floor _
 
 @[simp] lemma fract_zero : fract (0 : α) = 0 := by rw [fract, floor_zero, cast_zero, sub_self]
 
@@ -581,6 +606,26 @@ fract_eq_self.2 ⟨fract_nonneg _, fract_lt_one _⟩
 
 lemma fract_add (a b : α) : ∃ z : ℤ, fract (a + b) - fract a - fract b = z :=
 ⟨⌊a⌋ + ⌊b⌋ - ⌊a + b⌋, by { unfold fract, simp [sub_eq_add_neg], abel }⟩
+
+lemma fract_neg {x : α} (hx : fract x ≠ 0) :
+  fract (-x) = 1 - fract x :=
+begin
+  rw fract_eq_iff,
+  split,
+  { rw [le_sub_iff_add_le, zero_add],
+    exact (fract_lt_one x).le, },
+  refine ⟨sub_lt_self _ (lt_of_le_of_ne' (fract_nonneg x) hx), -⌊x⌋ - 1, _⟩,
+  simp only [sub_sub_eq_add_sub, cast_sub, cast_neg, cast_one, sub_left_inj],
+  conv in (-x) {rw ← floor_add_fract x},
+  simp [-floor_add_fract],
+end
+
+@[simp]
+lemma fract_neg_eq_zero {x : α} : fract (-x) = 0 ↔ fract x = 0 :=
+begin
+  simp only [fract_eq_iff, le_refl, zero_lt_one, tsub_zero, true_and],
+  split; rintros ⟨z, hz⟩; use [-z]; simp [← hz],
+end
 
 lemma fract_mul_nat (a : α) (b : ℕ) : ∃ z : ℤ, fract a * b - fract (a * b) = z :=
 begin
@@ -669,11 +714,17 @@ lemma ceil_mono : monotone (ceil : α → ℤ) := gc_ceil_coe.monotone_l
 @[simp] lemma ceil_add_int (a : α) (z : ℤ) : ⌈a + z⌉ = ⌈a⌉ + z :=
 by rw [←neg_inj, neg_add', ←floor_neg, ←floor_neg, neg_add', floor_sub_int]
 
+@[simp] lemma ceil_add_nat (a : α) (n : ℕ) : ⌈a + n⌉ = ⌈a⌉ + n :=
+by rw [← int.cast_coe_nat, ceil_add_int]
+
 @[simp] lemma ceil_add_one (a : α) : ⌈a + 1⌉ = ⌈a⌉ + 1 :=
 by { convert ceil_add_int a (1 : ℤ), exact cast_one.symm }
 
 @[simp] lemma ceil_sub_int (a : α) (z : ℤ) : ⌈a - z⌉ = ⌈a⌉ - z :=
 eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (ceil_add_int _ _)
+
+@[simp] lemma ceil_sub_nat (a : α) (n : ℕ) : ⌈a - n⌉ = ⌈a⌉ - n :=
+by convert ceil_sub_int a n using 1; simp
 
 @[simp] lemma ceil_sub_one (a : α) : ⌈a - 1⌉ = ⌈a⌉ - 1 :=
 by rw [eq_sub_iff_add_eq, ← ceil_add_one, sub_add_cancel]
@@ -693,6 +744,8 @@ by exact_mod_cast ha.trans (le_ceil a)
 lemma ceil_eq_iff : ⌈a⌉ = z ↔ ↑z - 1 < a ∧ a ≤ z :=
 by rw [←ceil_le, ←int.cast_one, ←int.cast_sub, ←lt_ceil, int.sub_one_lt_iff, le_antisymm_iff,
   and.comm]
+
+@[simp] lemma ceil_eq_zero_iff : ⌈a⌉ = 0 ↔ a ∈ Ioc (-1 : α) 0 := by simp [ceil_eq_iff]
 
 lemma ceil_eq_on_Ioc (z : ℤ) : ∀ a ∈ set.Ioc (z - 1 : α) z, ⌈a⌉ = z :=
 λ a ⟨h₀, h₁⟩, ceil_eq_iff.mpr ⟨h₀, h₁⟩
@@ -774,6 +827,38 @@ def round (x : α) : ℤ := if 2 * fract x < 1 then ⌊x⌋ else ⌈x⌉
 
 @[simp] lemma round_int_cast (n : ℤ) : round (n : α) = n := by simp [round]
 
+@[simp]
+lemma round_add_int (x : α) (y : ℤ) : round (x + y) = round x + y :=
+by rw [round, round, int.fract_add_int, int.floor_add_int, int.ceil_add_int, ← apply_ite2, if_t_t]
+
+@[simp]
+lemma round_add_one (a : α) : round (a + 1) = round a + 1 :=
+by { convert round_add_int a 1, exact int.cast_one.symm }
+
+@[simp]
+lemma round_sub_int (x : α) (y : ℤ) : round (x - y) = round x - y :=
+by { rw [sub_eq_add_neg], norm_cast, rw [round_add_int, sub_eq_add_neg] }
+
+@[simp]
+lemma round_sub_one (a : α) : round (a - 1) = round a - 1 :=
+by { convert round_sub_int a 1, exact int.cast_one.symm }
+
+@[simp]
+lemma round_add_nat (x : α) (y : ℕ) : round (x + y) = round x + y :=
+by rw [round, round, fract_add_nat, int.floor_add_nat, int.ceil_add_nat, ← apply_ite2, if_t_t]
+
+@[simp]
+lemma round_sub_nat (x : α) (y : ℕ) : round (x - y) = round x - y :=
+by { rw [sub_eq_add_neg, ← int.cast_coe_nat], norm_cast, rw [round_add_int, sub_eq_add_neg] }
+
+@[simp]
+lemma round_int_add (x : α) (y : ℤ) : round ((y : α) + x) = y + round x :=
+by { rw [add_comm, round_add_int, add_comm] }
+
+@[simp]
+lemma round_nat_add (x : α) (y : ℕ) : round ((y : α) + x) = y + round x :=
+by { rw [add_comm, round_add_nat, add_comm] }
+
 lemma abs_sub_round_eq_min (x : α) : |x - round x| = min (fract x) (1 - fract x) :=
 begin
   simp_rw [round, min_def', two_mul, ← lt_tsub_iff_left],
@@ -786,17 +871,18 @@ begin
       abs_one_sub_fract], },
 end
 
-lemma abs_sub_round_le_abs_self (x : α) : |x - round x| ≤ |x| :=
+lemma round_le (x : α) (z : ℤ) : |x - round x| ≤ |x - z| :=
 begin
   rw [abs_sub_round_eq_min, min_le_iff],
-  rcases le_or_gt 0 x with hx | (hx : x < 0); [left, right],
-  { conv_rhs { rw [abs_eq_self.mpr hx, ← fract_add_floor x], },
-    simpa only [le_add_iff_nonneg_right, cast_nonneg] using floor_nonneg.mpr hx, },
-  { rw abs_eq_neg_self.mpr hx.le,
+  rcases le_or_lt (z : α) x with hx | hx; [left, right],
+  { conv_rhs { rw [abs_eq_self.mpr (sub_nonneg.mpr hx), ← fract_add_floor x, add_sub_assoc], },
+    simpa only [le_add_iff_nonneg_right, sub_nonneg, cast_le] using le_floor.mpr hx, },
+  { rw abs_eq_neg_self.mpr (sub_neg.mpr hx).le,
     conv_rhs { rw ← fract_add_floor x, },
-    simp only [neg_add_rev, le_add_neg_iff_add_le, sub_add_cancel],
+    rw [add_sub_assoc, add_comm, neg_add, neg_sub, le_add_neg_iff_add_le, sub_add_cancel,
+      le_sub_comm],
     norm_cast,
-    exact (le_neg.mp $ floor_le_neg_one_iff.mpr hx), },
+    exact floor_le_sub_one_iff.mpr hx, },
 end
 
 end linear_ordered_ring
@@ -816,6 +902,18 @@ begin
     rw [if_neg (not_lt.mpr hx), ← fract_add_floor x, add_assoc, add_left_comm, floor_int_add,
       ceil_add_int, add_comm _ ⌊x⌋, add_right_inj, ceil_eq_iff, this, cast_one, sub_self],
     split; linarith [fract_lt_one x], },
+end
+
+@[simp] lemma round_two_inv : round (2⁻¹ : α) = 1 :=
+by simp only [round_eq, ← one_div, add_halves', floor_one]
+
+@[simp] lemma round_neg_two_inv : round (-2⁻¹ : α) = 0 :=
+by simp only [round_eq, ← one_div, add_left_neg, floor_zero]
+
+@[simp] lemma round_eq_zero_iff {x : α} : round x = 0 ↔ x ∈ Ico (-(1 / 2)) ((1 : α)/2) :=
+begin
+  rw [round_eq, floor_eq_zero_iff, add_mem_Ico_iff_left],
+  norm_num,
 end
 
 lemma abs_sub_round (x : α) : |x - round x| ≤ 1 / 2 :=

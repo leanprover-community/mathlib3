@@ -3,10 +3,8 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.int.basic
+import data.int.order
 import data.nat.cast
-import tactic.pi_instances
-import data.sum.basic
 
 /-!
 # Cast of integers (additional theorems)
@@ -28,6 +26,10 @@ namespace int
 
 /-- Coercion `ℕ → ℤ` as a `ring_hom`. -/
 def of_nat_hom : ℕ →+* ℤ := ⟨coe, rfl, int.of_nat_mul, rfl, int.of_nat_add⟩
+
+@[simp] theorem coe_nat_pos {n : ℕ} : (0 : ℤ) < n ↔ 0 < n := nat.cast_pos
+
+lemma coe_nat_succ_pos (n : ℕ) : 0 < (n.succ : ℤ) := int.coe_nat_pos.2 (succ_pos n)
 
 section cast
 
@@ -116,6 +118,18 @@ begin
   rw [← int.cast_one, ← int.cast_neg, cast_le],
   exact int.le_sub_one_of_lt h,
 end
+
+variables (α) {n}
+
+lemma cast_le_neg_one_or_one_le_cast_of_ne_zero (hn : n ≠ 0) : (n : α) ≤ -1 ∨ 1 ≤ (n : α) :=
+begin
+  rcases lt_trichotomy n 0 with h | rfl | h,
+  { exact or.inl (cast_le_neg_one_of_neg h), },
+  { contradiction, },
+  { exact or.inr (cast_one_le_of_pos h), },
+end
+
+variables {α} (n)
 
 lemma nneg_mul_add_sq_of_abs_le_one {x : α} (hx : |x| ≤ 1) :
   (0 : α) ≤ n * x + n * n :=

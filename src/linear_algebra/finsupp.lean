@@ -730,17 +730,7 @@ end
 
 @[simp] lemma lcongr_symm {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) :
   (lcongr e₁ e₂).symm = lcongr e₁.symm e₂.symm :=
-begin
-  ext f i,
-  simp only [equiv.symm_symm, finsupp.lcongr_apply_apply],
-  apply finsupp.induction_linear f,
-  { simp, },
-  { intros f g hf hg, simp [map_add, hf, hg], },
-  { intros k m,
-    simp only [finsupp.lcongr_symm_single],
-    simp only [finsupp.single, equiv.symm_apply_eq, finsupp.coe_mk],
-    split_ifs; simp, },
-end
+by { ext, refl }
 
 section sum
 

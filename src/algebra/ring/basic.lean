@@ -784,7 +784,9 @@ protected def function.surjective.ring
 end ring
 
 namespace units
-variables [ring α] {a b : α}
+
+section has_distrib_neg
+variables [monoid α] [has_distrib_neg α] {a b : α}
 
 /-- Each element of the group of units of a ring has an additive inverse. -/
 instance : has_neg αˣ := ⟨λu, ⟨-↑u, -↑u⁻¹, by simp, by simp⟩ ⟩
@@ -799,6 +801,12 @@ instance : has_distrib_neg αˣ := units.ext.has_distrib_neg _ units.coe_neg uni
 
 @[field_simps] lemma neg_divp (a : α) (u : αˣ) : -(a /ₚ u) = (-a) /ₚ u :=
 by simp only [divp, neg_mul]
+
+end has_distrib_neg
+
+section ring
+
+variables [ring α] {a b : α}
 
 @[field_simps] lemma divp_add_divp_same (a b : α) (u : αˣ) :
   a /ₚ u + b /ₚ u = (a + b) /ₚ u :=
@@ -823,12 +831,15 @@ begin
   assoc_rw [units.mul_inv, mul_one],
 end
 
+end ring
+
 end units
 
-lemma is_unit.neg [ring α] {a : α} : is_unit a → is_unit (-a)
+lemma is_unit.neg [monoid α] [has_distrib_neg α] {a : α} : is_unit a → is_unit (-a)
 | ⟨x, hx⟩ := hx ▸ (-x).is_unit
 
-lemma is_unit.neg_iff [ring α] (a : α) : is_unit (-a) ↔ is_unit a :=
+@[simp]
+lemma is_unit.neg_iff [monoid α] [has_distrib_neg α] (a : α) : is_unit (-a) ↔ is_unit a :=
 ⟨λ h, neg_neg a ▸ h.neg, is_unit.neg⟩
 
 lemma is_unit.sub_iff [ring α] {x y : α} :

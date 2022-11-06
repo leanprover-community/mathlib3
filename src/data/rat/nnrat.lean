@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.algebra.basic
-import algebra.order.nonneg
+import algebra.order.nonneg.field
 
 /-!
 # Nonnegative rationals
@@ -76,7 +76,7 @@ open _root_.rat (to_nnrat)
 @[simp, norm_cast] lemma coe_bit0 (q : ℚ≥0) : ((bit0 q : ℚ≥0) : ℚ) = bit0 q := rfl
 @[simp, norm_cast] lemma coe_bit1 (q : ℚ≥0) : ((bit1 q : ℚ≥0) : ℚ) = bit1 q := rfl
 @[simp, norm_cast] lemma coe_sub (h : q ≤ p) : ((p - q : ℚ≥0) : ℚ) = p - q :=
-max_eq_left $ le_sub.2 $ by simp [show (q : ℚ) ≤ p, from h]
+max_eq_left $ le_sub_comm.2 $ by simp [show (q : ℚ) ≤ p, from h]
 
 @[simp] lemma coe_eq_zero : (q : ℚ) = 0 ↔ q = 0 := by norm_cast
 lemma coe_ne_zero : (q : ℚ) ≠ 0 ↔ q ≠ 0 := coe_eq_zero.not

@@ -5,6 +5,7 @@ Authors: Jeremy Avigad
 -/
 import data.int.basic
 import algebra.order.ring.abs
+import algebra.order.ring.nontrivial
 import algebra.char_zero.defs
 
 /-!

@@ -405,6 +405,14 @@ begin
   simp [dvd_iff_is_root]
 end
 
+lemma mul_div_mod_by_monic_cancel_left (p : R[X]) {q : R[X]} (hmo : q.monic) : q * p /ₘ q = p :=
+begin
+  nontriviality R,
+  refine (div_mod_by_monic_unique _ 0 hmo ⟨by rw [zero_add], _⟩).1,
+  rw [degree_zero],
+  exact ne.bot_lt (λ h, hmo.ne_zero (degree_eq_bot.1 h))
+end
+
 variable (R)
 
 lemma not_is_field : ¬ is_field R[X] :=

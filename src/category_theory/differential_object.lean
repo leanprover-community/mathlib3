@@ -3,7 +3,6 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.int.basic
 import category_theory.shift
 import category_theory.concrete_category.basic
 
@@ -27,7 +26,7 @@ namespace category_theory
 
 variables (C : Type u) [category.{v} C]
 
--- TODO: generaize to `has_shift C A` for an arbitrary `[add_monoid A]` `[has_one A]`.
+-- TODO: generalize to `has_shift C A` for an arbitrary `[add_monoid A]` `[has_one A]`.
 variables [has_zero_morphisms C] [has_shift C ℤ]
 
 /--

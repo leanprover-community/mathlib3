@@ -1090,7 +1090,7 @@ lemma finite.exists_maximal_wrt [partial_order β] (f : α → β) (s : set α) 
   s.nonempty → ∃ a ∈ s, ∀ a' ∈ s, f a ≤ f a' → f a = f a' :=
 begin
   refine h.induction_on _ _,
-  { exact λ h, absurd h empty_not_nonempty },
+  { exact λ h, absurd h not_nonempty_empty },
   intros a s his _ ih _,
   cases s.eq_empty_or_nonempty with h h,
   { use a, simp [h] },

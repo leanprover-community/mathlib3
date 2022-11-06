@@ -8,6 +8,7 @@ import algebra.group.pi
 import algebra.order.group.basic
 import order.min_max
 
+
 /-!
 # Lexicographic order on Pi types
 

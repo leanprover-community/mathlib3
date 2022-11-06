@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov, Rémy Degenne
 -/
 import data.set.intervals.basic
-import algebra.order.group.basic
+import algebra.order.group.abs
 
 /-! ### Lemmas about arithmetic operations and intervals. -/
 

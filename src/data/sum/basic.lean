@@ -6,6 +6,10 @@ Authors: Mario Carneiro, Yury G. Kudryashov
 import data.option.basic
 
 /-!
+THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+https://github.com/leanprover-community/mathlib4/pull/497
+Any changes to this file require a corresponding PR to mathlib4.
+
 # Disjoint union of types
 
 This file proves basic results about the sum type `α ⊕ β`.

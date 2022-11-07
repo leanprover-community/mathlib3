@@ -127,11 +127,12 @@ def cast : Π {n : ℕ}, zmod n → R
 -- see Note [coercion into rings]
 @[priority 900] instance (n : ℕ) : has_coe_t (zmod n) R := ⟨cast⟩
 
+/-- The cast from `zmod n` to `R` is a morphism if the characteristic of `R` divides `n`,
+so in the case `n = 0` it is always a homomorphism -/
+instance : coe_is_add_monoid_hom (zmod 0) R := int.coe_is_add_monoid_hom _
+
 @[simp] lemma cast_zero : ((0 : zmod n) : R) = 0 :=
--- `zmod 0` unifies with `ℤ` but doesn't inherit the `coe_is_add_monoid_hom` instance
--- so we add `int.cast_zero` to the `simp` set despite being an instance of the
--- existing `@[simp] lemma coe_zero`
-by cases n; simp [int.cast_zero]
+by cases n; simp
 
 lemma cast_eq_val [ne_zero n] (a : zmod n) : (a : R) = a.val :=
 begin

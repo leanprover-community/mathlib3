@@ -564,14 +564,14 @@ by rw [coplanar, coplanar, vector_span_insert_eq_vector_span h]
 
 end affine_space'
 
-section field
+section division_ring
 
 variables {k : Type*} {V : Type*} {P : Type*}
 include V
 
 open affine_subspace finite_dimensional module
 
-variables [field k] [add_comm_group V] [module k V] [affine_space V P]
+variables [division_ring k] [add_comm_group V] [module k V] [affine_space V P]
 
 /-- Adding a point to a finite-dimensional subspace increases the dimension by at most one. -/
 lemma finrank_vector_span_insert_le (s : affine_subspace k P) (p : P) :
@@ -636,4 +636,4 @@ variables (k)
 lemma coplanar_triple (p₁ p₂ p₃ : P) : coplanar k ({p₁, p₂, p₃} : set P) :=
 (collinear_pair k p₂ p₃).coplanar_insert p₁
 
-end field
+end division_ring

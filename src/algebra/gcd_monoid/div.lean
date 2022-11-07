@@ -13,11 +13,11 @@ import ring_theory.polynomial.content
 
 ## Main results
 
-* `finset.nat.coprime_div_gcd`: given a nonempty finset `s` and a function `f` from `s` to
+* `finset.nat.gcd_div_eq_one`: given a nonempty finset `s` and a function `f` from `s` to
   `ℕ`, if `d = s.gcd`, then the `gcd` of `(f i) / d` equals `1`.
-* `finset.int.coprime_div_gcd`: given a nonempty finset `s` and a function `f` from `s` to
+* `finset.int.gcd_div_eq_one`: given a nonempty finset `s` and a function `f` from `s` to
   `ℤ`, if `d = s.gcd`, then the `gcd` of `(f i) / d` equals `1`.
-* `finset.polynomial.coprime_div_gcd`: given a nonempty finset `s` and a function `f` from
+* `finset.polynomial.gcd_div_eq_one`: given a nonempty finset `s` and a function `f` from
   `s` to `K[X]`, if `d = s.gcd`, then the `gcd` of `(f i) / d` equals `1`.
 
 ## TODO
@@ -31,7 +31,7 @@ namespace nat
 
 /-- Given a nonempty finset `s` and a function `f` from `s` to `ℕ`, if `d = s.gcd`,
 then the `gcd` of `(f i) / d` is equal to `1`. -/
-theorem coprime_div_gcd {β : Type*} {f : β → ℕ} (s : finset β) {x : β} (hx : x ∈ s)
+theorem gcd_div_eq_one {β : Type*} {f : β → ℕ} (s : finset β) {x : β} (hx : x ∈ s)
   (hfz : f x ≠ 0) : s.gcd (λ b, f b / s.gcd f) = 1 :=
 begin
   obtain ⟨g, he, hg⟩ := finset.extract_gcd f ⟨x, hx⟩,
@@ -40,9 +40,9 @@ begin
   exact nat.pos_of_ne_zero (mt finset.gcd_eq_zero_iff.1 (λ h, hfz $ h x hx)),
 end
 
-theorem coprime_div_gcd_id (s : finset ℕ) {x : ℕ} (hx : x ∈ s) (hnz : x ≠ 0) :
+theorem gcd_div_id_eq_one {s : finset ℕ} {x : ℕ} (hx : x ∈ s) (hnz : x ≠ 0) :
   s.gcd (λ b, b / s.gcd id) = 1 :=
-coprime_div_gcd s hx hnz
+gcd_div_eq_one s hx hnz
 
 end nat
 
@@ -50,7 +50,7 @@ namespace int
 
 /-- Given a nonempty finset `s` and a function `f` from `s` to `ℤ`, if `d = s.gcd`,
 then the `gcd` of `(f i) / d` is equal to `1`. -/
-theorem coprime_div_gcd {β : Type*} {f : β → ℤ} (s : finset β) {x : β} (hx : x ∈ s)
+theorem gcd_div_eq_one {β : Type*} {f : β → ℤ} (s : finset β) {x : β} (hx : x ∈ s)
   (hfz : f x ≠ 0) : s.gcd (λ b, f b / s.gcd f) = 1 :=
 begin
   obtain ⟨g, he, hg⟩ := finset.extract_gcd f ⟨x, hx⟩,
@@ -59,9 +59,9 @@ begin
   exact mt finset.gcd_eq_zero_iff.1 (λ h, hfz $ h x hx),
 end
 
-theorem coprime_div_gcd_id (s : finset ℤ) {x : ℤ} (hx : x ∈ s) (hnz : x ≠ 0) :
+theorem gcd_div_id_eq_one {s : finset ℤ} {x : ℤ} (hx : x ∈ s) (hnz : x ≠ 0) :
   s.gcd (λ b, b / s.gcd id) = 1 :=
-coprime_div_gcd s hx hnz
+gcd_div_eq_one s hx hnz
 
 end int
 
@@ -75,7 +75,7 @@ variables {K : Type*} [field K]
 
 /-- Given a nonempty finset `s` and a function `f` from `s` to `K[X]`, if `d = s.gcd f`,
 then the `gcd` of `(f i) / d` is equal to `1`. -/
-theorem coprime_div_gcd {β : Type*} {f : β → K[X]} (s : finset β) {x : β} (hx : x ∈ s)
+theorem gcd_div_eq_one {β : Type*} {f : β → K[X]} (s : finset β) {x : β} (hx : x ∈ s)
   (hfz : f x ≠ 0) : s.gcd (λ b, f b / s.gcd f) = 1 :=
 begin
   obtain ⟨g, he, hg⟩ := finset.extract_gcd f ⟨x, hx⟩,
@@ -84,9 +84,9 @@ begin
   exact mt finset.gcd_eq_zero_iff.1 (λ h, hfz $ h x hx),
 end
 
-theorem coprime_div_gcd_id (s : finset K[X]) {x : K[X]} (hx : x ∈ s) (hnz : x ≠ 0) :
+theorem gcd_div_id_eq_one {s : finset K[X]} {x : K[X]} (hx : x ∈ s) (hnz : x ≠ 0) :
   s.gcd (λ b, b / s.gcd id) = 1 :=
-coprime_div_gcd s hx hnz
+gcd_div_eq_one s hx hnz
 
 end polynomial
 

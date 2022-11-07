@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.rat.init
-import data.int.cast
+import data.int.cast.defs
 import data.int.div
 import data.nat.gcd.basic
 import data.pnat.defs

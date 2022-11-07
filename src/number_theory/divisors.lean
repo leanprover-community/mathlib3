@@ -228,7 +228,7 @@ end
 
 @[simp] lemma image_fst_divisors_antidiagonal :
   (divisors_antidiagonal n).image prod.fst = divisors n :=
-by { ext, simp [has_dvd.dvd, eq_comm] }
+by { ext, simp [has_dvd.dvd, @eq_comm _ n (_ * _)] }
 
 @[simp] lemma image_snd_divisors_antidiagonal :
   (divisors_antidiagonal n).image prod.snd = divisors n :=

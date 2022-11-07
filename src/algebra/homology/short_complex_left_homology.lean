@@ -493,6 +493,12 @@ S.some_left_homology_data.hi₀
 @[simp, reassoc] lemma to_cycles_i [has_left_homology S] : S.to_cycles ≫ S.cycles_i = S.f :=
 S.some_left_homology_data.f'_i
 
+instance [has_left_homology S] : mono S.cycles_i :=
+by { dsimp only [cycles_i], apply_instance, }
+
+instance [has_left_homology S] : epi S.left_homology_π :=
+by { dsimp only [left_homology_π], apply_instance, }
+
 variables {S S₁ S₂ S₃}
 
 def left_homology_map' (φ : S₁ ⟶ S₂) (h₁ : S₁.left_homology_data) (h₂ : S₂.left_homology_data) :
@@ -524,6 +530,12 @@ cycles_map' φ _ _
 lemma cycles_map_i (φ : S₁ ⟶ S₂) [S₁.has_left_homology] [S₂.has_left_homology] :
   cycles_map φ ≫ S₂.cycles_i = S₁.cycles_i ≫ φ.τ₂ :=
 cycles_map'_i _ _ _
+
+@[reassoc]
+lemma to_cycles_naturality (φ : S₁ ⟶ S₂) [S₁.has_left_homology] [S₂.has_left_homology] :
+  φ.τ₁ ≫ S₂.to_cycles = S₁.to_cycles ≫ cycles_map φ :=
+by simp only [← cancel_mono S₂.cycles_i, φ.comm₁₂, assoc, to_cycles_i,
+  cycles_map_i, to_cycles_i_assoc]
 
 @[reassoc]
 lemma left_homology_π_naturality [has_left_homology S₁] [has_left_homology S₂]
@@ -645,6 +657,11 @@ def cycles_map_iso' (e : S₁ ≅ S₂) (h₁ : S₁.left_homology_data)
   hom_inv_id' := by rw [← cycles_map'_comp, e.hom_inv_id, cycles_map'_id],
   inv_hom_id' := by rw [← cycles_map'_comp, e.inv_hom_id, cycles_map'_id], }
 
+instance is_iso_cycles_map'_of_iso (φ : S₁ ⟶ S₂) [is_iso φ]
+  (h₁ : S₁.left_homology_data) (h₂ : S₂.left_homology_data) :
+  is_iso (cycles_map' φ h₁ h₂) :=
+by { change is_iso (cycles_map_iso' (as_iso φ) h₁ h₂).hom, apply_instance, }
+
 @[simps]
 def left_homology_map_iso (e : S₁ ≅ S₂) [S₁.has_left_homology]
   [S₂.has_left_homology] : S₁.left_homology ≅ S₂.left_homology :=
@@ -665,6 +682,11 @@ def cycles_map_iso (e : S₁ ≅ S₂) [S₁.has_left_homology]
   inv := cycles_map e.inv,
   hom_inv_id' := by rw [← cycles_map_comp, e.hom_inv_id, cycles_map_id],
   inv_hom_id' := by rw [← cycles_map_comp, e.inv_hom_id, cycles_map_id], }
+
+instance is_iso_cycles_map_of_iso (φ : S₁ ⟶ S₂) [is_iso φ] [S₁.has_left_homology]
+  [S₂.has_left_homology] :
+  is_iso (cycles_map φ) :=
+by { change is_iso (cycles_map_iso (as_iso φ)).hom, apply_instance, }
 
 variable {S}
 
@@ -704,7 +726,6 @@ by simp only [γ.cycles_map_eq, assoc, iso.inv_hom_id, comp_id]
 
 end left_homology_map_data
 
-
 variable (C)
 /-- We shall say that a category with left homology is a category for which
 all short complexes have left homology. -/
@@ -731,7 +752,13 @@ def left_homology_π_nat_trans [category_with_left_homology C] :
 @[simps]
 def cycles_i_nat_trans [category_with_left_homology C] :
   cycles_functor C ⟶ short_complex.π₂ :=
-{ app := λ S, cycles_i S, }
+{ app := λ S, S.cycles_i, }
+
+@[simps]
+def to_cycles_nat_trans [category_with_left_homology C] :
+  π₁ ⟶ cycles_functor C :=
+{ app := λ S, S.to_cycles,
+  naturality' := λ S₁ S₂ φ, to_cycles_naturality φ, }
 
 namespace left_homology_data
 
@@ -881,6 +908,9 @@ S.some_left_homology_data.lift_K k hk
 @[simp, reassoc]
 lemma lift_cycles_i : S.lift_cycles k hk ≫ S.cycles_i = k :=
 left_homology_data.lift_K_i _ k hk
+
+def cycles_is_kernel : is_limit (kernel_fork.of_ι S.cycles_i S.cycles_i_g) :=
+S.some_left_homology_data.hi
 
 @[simp]
 def lift_left_homology : A ⟶ S.left_homology :=

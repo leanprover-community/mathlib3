@@ -317,6 +317,12 @@ def left_right_homology_comparison [S.has_left_homology] [S.has_right_homology] 
   S.left_homology ⟶ S.right_homology :=
 left_right_homology_comparison' _ _
 
+@[simp, reassoc]
+lemma comp_left_right_homology_comparison_comp [S.has_left_homology] [S.has_right_homology] :
+  S.left_homology_π ≫ S.left_right_homology_comparison ≫ S.right_homology_ι =
+    S.cycles_i ≫ S.p_cycles_co :=
+by apply comp_left_right_homology_comparison'_comp
+
 @[reassoc]
 lemma left_right_homology_comparison'_naturality (φ : S₁ ⟶ S₂) (h₁ : S₁.left_homology_data)
   (h₂ : S₁.right_homology_data) (h₁' : S₂.left_homology_data) (h₂' : S₂.right_homology_data) :
@@ -489,6 +495,50 @@ def homology_π_desc (k : S.cycles ⟶ A) (hk : S.to_cycles ≫ k = 0) :
 cokernel_cofork.is_colimit.π_desc S.homology_is_cokernel (cokernel_cofork.of_π k hk)
 
 /- dualise the above -/
+
+def homology_ι : S.homology ⟶ S.cycles_co :=
+S.homology_iso_right_homology.hom ≫ S.right_homology_ι
+
+@[simp, reassoc]
+lemma right_homology_iso_homology_inv_comp_homology_ι :
+  S.homology_iso_right_homology.inv ≫ S.homology_ι = S.right_homology_ι :=
+begin
+  dsimp only [homology_ι],
+  simp only [iso.inv_hom_id_assoc],
+end
+
+@[simp, reassoc]
+lemma homology_ι_comp_from_cycles_co :
+  S.homology_ι ≫ S.from_cycles_co = 0 :=
+begin
+  dsimp only [homology_ι],
+  simp only [assoc, right_homology_ι_comp_from_cycles_co, comp_zero],
+end
+
+def homology_is_kernel :
+  is_limit (kernel_fork.of_ι S.homology_ι S.homology_ι_comp_from_cycles_co) :=
+is_limit.of_iso_limit S.right_homology_is_kernel
+(fork.ext S.homology_iso_right_homology.symm (by simp))
+
+def homology_lift (k : A ⟶ S.cycles_co) (hk : k ≫ S.from_cycles_co = 0) :
+  A ⟶ S.homology :=
+S.homology_is_kernel.lift (kernel_fork.of_ι k hk)
+
+@[simp, reassoc]
+def homology_lift_ι (k : A ⟶ S.cycles_co) (hk : k ≫ S.from_cycles_co = 0) :
+  S.homology_lift k hk ≫ S.homology_ι = k :=
+kernel_fork.is_limit.lift_ι S.homology_is_kernel _
+
+@[simp, reassoc]
+lemma homology_π_ι :
+  S.homology_π ≫ S.homology_ι = S.cycles_i ≫ S.p_cycles_co :=
+begin
+  dsimp [homology_π, homology_ι],
+  rw assoc,
+  nth_rewrite 1 ← assoc,
+  simpa only [S.left_right_homology_comparison_fac]
+    using S.comp_left_right_homology_comparison_comp,
+end
 
 end
 

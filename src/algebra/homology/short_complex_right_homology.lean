@@ -529,8 +529,20 @@ def cycles_co [has_right_homology S] : C := S.some_right_homology_data.Q
 def right_homology_ι [has_right_homology S] : S.right_homology ⟶ S.cycles_co :=
   S.some_right_homology_data.ι
 def p_cycles_co [has_right_homology S] : S.X₂ ⟶ S.cycles_co := S.some_right_homology_data.p
-@[simp] lemma f_cycles_p [has_right_homology S] : S.f ≫ S.p_cycles_co = 0 :=
+def from_cycles_co [has_right_homology S] : S.cycles_co ⟶ S.X₃ := S.some_right_homology_data.g'
+
+@[simp] lemma f_cycles_co_p [has_right_homology S] : S.f ≫ S.p_cycles_co = 0 :=
 S.some_right_homology_data.hp₀
+
+@[simp, reassoc] lemma p_from_cycles_co [has_right_homology S] :
+  S.p_cycles_co ≫ S.from_cycles_co = S.g :=
+S.some_right_homology_data.p_g'
+
+instance [has_right_homology S] : epi S.p_cycles_co :=
+by { dsimp only [p_cycles_co], apply_instance, }
+
+instance [has_right_homology S] : mono S.right_homology_ι :=
+by { dsimp only [right_homology_ι], apply_instance, }
 
 variables {S S₁ S₂ S₃}
 
@@ -563,6 +575,12 @@ cycles_co_map' φ _ _
 lemma p_cycles_co_map (φ : S₁ ⟶ S₂) [S₁.has_right_homology] [S₂.has_right_homology] :
   S₁.p_cycles_co ≫ cycles_co_map φ = φ.τ₂ ≫ S₂.p_cycles_co :=
 p_cycles_co_map' _ _ _
+
+@[reassoc]
+lemma from_cycles_co_naturality (φ : S₁ ⟶ S₂) [S₁.has_right_homology] [S₂.has_right_homology] :
+  cycles_co_map φ ≫ S₂.from_cycles_co = S₁.from_cycles_co ≫ φ.τ₃ :=
+by simp only [←cancel_epi S₁.p_cycles_co, φ.comm₂₃, p_cycles_co_map_assoc,
+  p_from_cycles_co, p_from_cycles_co_assoc]
 
 @[reassoc]
 lemma right_homology_ι_naturality [has_right_homology S₁] [has_right_homology S₂]
@@ -845,6 +863,12 @@ def p_cycles_co_nat_trans [category_with_right_homology C] :
   short_complex.π₂ ⟶ cycles_co_functor C :=
 { app := λ S, p_cycles_co S, }
 
+@[simps]
+def from_cycles_co_nat_trans [category_with_right_homology C] :
+  cycles_co_functor C ⟶ π₃ :=
+{ app := λ S, S.from_cycles_co,
+  naturality' := λ S₁ S₂ φ, from_cycles_co_naturality φ, }
+
 variables {C} (S)
 
 def op_right_homology_iso [S.has_left_homology] :
@@ -977,6 +1001,9 @@ S.some_right_homology_data.desc_Q k hk
 def p_desc_cycles_co : S.p_cycles_co ≫ S.desc_cycles_co k hk = k :=
 right_homology_data.p_desc_Q _ k hk
 
+def cycles_co_is_cokernel : is_colimit (cokernel_cofork.of_π S.p_cycles_co S.f_cycles_co_p) :=
+S.some_right_homology_data.hp
+
 @[simp]
 def desc_right_homology : S.right_homology ⟶ A :=
 S.right_homology_ι ≫ S.desc_cycles_co k hk
@@ -984,6 +1011,15 @@ S.right_homology_ι ≫ S.desc_cycles_co k hk
 lemma ι_desc_cycles_co_eq_zero_of_boundary (x : S.X₃ ⟶ A) (hx : k = S.g ≫ x) :
 S.right_homology_ι ≫ S.desc_cycles_co k (by rw [hx, S.zero_assoc, zero_comp]) = 0 :=
 right_homology_data.ι_desc_Q_eq_zero_of_boundary _ k x hx
+
+@[simp, reassoc]
+lemma right_homology_ι_comp_from_cycles_co :
+  S.right_homology_ι ≫ S.from_cycles_co = 0 :=
+S.ι_desc_cycles_co_eq_zero_of_boundary S.g (𝟙 _) (by rw comp_id)
+
+def right_homology_is_kernel :
+  is_limit (kernel_fork.of_ι S.right_homology_ι S.right_homology_ι_comp_from_cycles_co) :=
+S.some_right_homology_data.hι
 
 end
 

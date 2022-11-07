@@ -6,6 +6,16 @@ Authors: Chris Birkbeck, David Loeffler
 import analysis.complex.upper_half_plane.basic
 import number_theory.modular_forms.slash_actions
 
+
+/-!
+# Slash invariant forms
+
+This file defines funtions that are invariant under a `slash_action` which forms the basis for
+defining `modular_form` and `cusp_form`. We prove several instances for such spaces, in particular
+that they form a module.
+-/
+
+
 open complex upper_half_plane
 
 open_locale upper_half_plane

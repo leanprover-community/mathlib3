@@ -14,9 +14,9 @@ import number_theory.modular_forms.slash_invariant_forms
 
 This file defines modular forms and proves some basic properties about them.
 
-We begin by defining the notion of weakly modular form from which we then we construct the vector
-space of modular forms, cusp forms and prove that the product of two modular forms is a modular
-form (of higher weight).
+We begin by defining modular forms and cusp forms as extension of `slash_invariant_forms` then we
+define the space of modular forms, cusp forms and prove that the product of two modular forms is a
+modular form.
 -/
 
 open complex upper_half_plane

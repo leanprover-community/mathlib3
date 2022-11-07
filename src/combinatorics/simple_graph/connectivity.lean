@@ -656,10 +656,7 @@ by { rw is_path_def, apply_instance }
 
 lemma is_path.length_lt [fintype V] {u v : V} {p : G.walk u v} (hp : p.is_path) :
   p.length < fintype.card V :=
-begin
-  rw [nat.lt_iff_add_one_le, ← length_support],
-  exact hp.support_nodup.length_le_card,
-end
+by { rw [nat.lt_iff_add_one_le, ← length_support], exact hp.support_nodup.length_le_card }
 
 /-! ### Walk decompositions -/
 
@@ -1485,7 +1482,10 @@ begin
       refl, } },
 end
 
-variables (G) [fintype V] [decidable_rel G.adj] [decidable_eq V]
+variables (G) [decidable_rel G.adj] [decidable_eq V]
+
+section locally_finite
+variables [locally_finite G]
 
 /-- The `finset` of length-`n` walks from `u` to `v`.
 This is used to give `{p : G.walk u v | p.length = n}` a `fintype` instance, and it
@@ -1497,10 +1497,8 @@ def finset_walk_length : Π (n : ℕ) (u v : V), finset (G.walk u v)
 | 0 u v := if h : u = v
            then by { subst u, exact {walk.nil} }
            else ∅
-| (n+1) u v := finset.univ.bUnion (λ (w : V),
-                 if h : G.adj u w
-                 then (finset_walk_length n w v).map ⟨λ p, walk.cons h p, λ p q, by simp⟩
-                 else ∅)
+| (n+1) u v := finset.univ.bUnion (λ (w : G.neighbor_set u),
+                 (finset_walk_length n w v).map ⟨λ p, walk.cons w.property p, λ p q, by simp⟩)
 
 lemma coe_finset_walk_length_eq (n : ℕ) (u v : V) :
   (G.finset_walk_length n u v : set (G.walk u v)) = {p : G.walk u v | p.length = n} :=
@@ -1511,11 +1509,15 @@ begin
   { simp only [finset_walk_length, set_walk_length_succ_eq,
       finset.coe_bUnion, finset.mem_coe, finset.mem_univ, set.Union_true],
     ext p,
-    simp only [set.mem_Union, finset.mem_coe, set.mem_image, set.mem_set_of_eq],
-    congr' 2,
-    ext w,
-    simp only [set.ext_iff, finset.mem_coe, set.mem_set_of_eq] at ih,
-    split_ifs with huw; simp [huw, ih], },
+    simp only [mem_neighbor_set, finset.coe_map, embedding.coe_fn_mk, set.Union_coe_set,
+      set.mem_Union, set.mem_image, finset.mem_coe, set.mem_set_of_eq],
+    congr' with w,
+    congr' with h,
+    congr' with q,
+    have := set.ext_iff.mp (ih w v) q,
+    simp only [finset.mem_coe, set.mem_set_of_eq] at this,
+    rw ← this,
+    refl, },
 end
 
 variables {G}
@@ -1539,12 +1541,17 @@ power of the adjacency matrix. -/
 lemma card_set_walk_length_eq (u v : V) (n : ℕ) :
   fintype.card {p : G.walk u v | p.length = n} = (G.finset_walk_length n u v).card :=
 fintype.card_of_finset (G.finset_walk_length n u v) $ λ p,
-by rw [←finset.mem_coe, coe_finset_walk_length_eq]
+  by rw [←finset.mem_coe, coe_finset_walk_length_eq]
 
 instance fintype_set_path_length (u v : V) (n : ℕ) :
   fintype {p : G.walk u v | p.is_path ∧ p.length = n} :=
-fintype.of_finset ((G.finset_walk_length n u v).filter walk.is_path)
-(by simp [walk.mem_finset_walk_length_iff_length_eq, and_comm])
+fintype.of_finset ((G.finset_walk_length n u v).filter walk.is_path) $
+  by simp [walk.mem_finset_walk_length_iff_length_eq, and_comm]
+
+end locally_finite
+
+section finite
+variables [fintype V]
 
 lemma reachable_iff_exists_finset_walk_length_nonempty (u v : V) :
   G.reachable u v ↔ ∃ (n : fin (fintype.card V)), (G.finset_walk_length n u v).nonempty :=
@@ -1568,6 +1575,8 @@ by { unfold preconnected, apply_instance }
 
 instance : decidable G.connected :=
 by { rw [connected_iff, ← finset.univ_nonempty_iff], exact and.decidable }
+
+end finite
 
 end walk_counting
 

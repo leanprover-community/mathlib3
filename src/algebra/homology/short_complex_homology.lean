@@ -451,7 +451,6 @@ instance (φ : S₁ ⟶ S₂) [S₁.has_homology] [S₂.has_homology]
   is_iso (homology_map φ) :=
 by { dsimp only [homology_map, homology_map'], apply_instance, }
 
-#lint
 end short_complex
 
 

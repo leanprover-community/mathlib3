@@ -451,6 +451,15 @@ namespace right_homology_map_data
 attribute [reassoc] commp commg' commι
 
 @[simps]
+def zero (h₁ : S₁.right_homology_data) (h₂ : S₂.right_homology_data) :
+  right_homology_map_data 0 h₁ h₂ :=
+{ φQ := 0,
+  φH := 0,
+  commp := by simp,
+  commg' := by simp,
+  commι := by simp, }
+
+@[simps]
 def id (h : S.right_homology_data) : right_homology_map_data (𝟙 S) h h :=
 { φQ := 𝟙 _,
   φH := 𝟙 _,
@@ -551,15 +560,27 @@ lemma right_homology_ι_naturality [has_right_homology S₁] [has_right_homology
   right_homology_map φ ≫ S₂.right_homology_ι = S₁.right_homology_ι ≫ cycles_co_map φ :=
 right_homology_ι_naturality' _ _ _
 
+namespace right_homology_map_data
+
+variables (γ : right_homology_map_data φ h₁ h₂) {φ h₁ h₂}
+
+lemma right_homology_map'_eq : right_homology_map' φ h₁ h₂ = γ.φH :=
+right_homology_map_data.congr_φH (subsingleton.elim _ _)
+
+lemma cycles_co_map'_eq : cycles_co_map' φ h₁ h₂ = γ.φQ :=
+right_homology_map_data.congr_φQ (subsingleton.elim _ _)
+
+end right_homology_map_data
+
 @[simp]
 lemma right_homology_map'_id (h : S.right_homology_data) :
   right_homology_map' (𝟙 S) h h = 𝟙 _ :=
-right_homology_map_data.congr_φH (subsingleton.elim  _ (right_homology_map_data.id _))
+(right_homology_map_data.id h).right_homology_map'_eq
 
 @[simp]
 lemma cycles_co_map'_id (h : S.right_homology_data) :
   cycles_co_map' (𝟙 S) h h = 𝟙 _ :=
-right_homology_map_data.congr_φQ (subsingleton.elim  _ (right_homology_map_data.id _))
+(right_homology_map_data.id h).cycles_co_map'_eq
 
 variable (S)
 
@@ -573,21 +594,51 @@ lemma cycles_co_map_id [has_right_homology S] :
   cycles_co_map (𝟙 S) = 𝟙 _ :=
 cycles_co_map'_id _
 
+@[simp]
+lemma right_homology_map'_zero (h₁ : S₁.right_homology_data) (h₂ : S₂.right_homology_data):
+  right_homology_map' 0 h₁ h₂ = 0 :=
+(right_homology_map_data.zero h₁ h₂).right_homology_map'_eq
+
+@[simp]
+lemma cycles_co_map'_zero (h₁ : S₁.right_homology_data) (h₂ : S₂.right_homology_data):
+  cycles_co_map' 0 h₁ h₂ = 0 :=
+(right_homology_map_data.zero h₁ h₂).cycles_co_map'_eq
+
+variables (S₁ S₂)
+
+@[simp]
+lemma right_homology_map_zero [has_right_homology S₁] [has_right_homology S₂]:
+  right_homology_map (0 : S₁ ⟶ S₂) = 0 :=
+right_homology_map'_zero _ _
+
+@[simp]
+lemma cycles_co_map_zero [has_right_homology S₁] [has_right_homology S₂] :
+  cycles_co_map (0 : S₁ ⟶ S₂) = 0 :=
+cycles_co_map'_zero _ _
+
+variables {S₁ S₂}
+
 lemma right_homology_map'_comp (φ₁ : S₁ ⟶ S₂) (φ₂ : S₂ ⟶ S₃)
   (h₁ : S₁.right_homology_data) (h₂ : S₂.right_homology_data) (h₃ : S₃.right_homology_data) :
   right_homology_map' (φ₁ ≫ φ₂) h₁ h₃ = right_homology_map' φ₁ h₁ h₂ ≫
     right_homology_map' φ₂ h₂ h₃ :=
-right_homology_map_data.congr_φH
-  (subsingleton.elim _ ((right_homology_map_data.some φ₁ _ _).comp
-    (right_homology_map_data.some φ₂ _ _)))
+begin
+  let γ₁ := right_homology_map_data.some φ₁ _ _,
+  let γ₂ := right_homology_map_data.some φ₂ _ _,
+  rw [γ₁.right_homology_map'_eq, γ₂.right_homology_map'_eq, (γ₁.comp γ₂).right_homology_map'_eq,
+    right_homology_map_data.comp_φH],
+end
 
 lemma cycles_co_map'_comp (φ₁ : S₁ ⟶ S₂) (φ₂ : S₂ ⟶ S₃)
   (h₁ : S₁.right_homology_data) (h₂ : S₂.right_homology_data) (h₃ : S₃.right_homology_data) :
   cycles_co_map' (φ₁ ≫ φ₂) h₁ h₃ = cycles_co_map' φ₁ h₁ h₂ ≫
     cycles_co_map' φ₂ h₂ h₃ :=
-right_homology_map_data.congr_φQ
-  (subsingleton.elim _ ((right_homology_map_data.some φ₁ _ _).comp
-    (right_homology_map_data.some φ₂ _ _)))
+begin
+  let γ₁ := right_homology_map_data.some φ₁ _ _,
+  let γ₂ := right_homology_map_data.some φ₂ _ _,
+  rw [γ₁.cycles_co_map'_eq, γ₂.cycles_co_map'_eq, (γ₁.comp γ₂).cycles_co_map'_eq,
+    right_homology_map_data.comp_φQ],
+end
 
 @[simp]
 lemma right_homology_map_comp [has_right_homology S₁] [has_right_homology S₂]
@@ -730,12 +781,6 @@ def right_homology_map_data.unop {S₁ S₂ : short_complex C} {φ : S₁.op ⟶
 namespace right_homology_map_data
 
 variables (γ : right_homology_map_data φ h₁ h₂) {φ h₁ h₂}
-
-lemma right_homology_map'_eq : right_homology_map' φ h₁ h₂ = γ.φH :=
-right_homology_map_data.congr_φH (subsingleton.elim _ _)
-
-lemma cycles_co_map'_eq : cycles_co_map' φ h₁ h₂ = γ.φQ :=
-right_homology_map_data.congr_φQ (subsingleton.elim _ _)
 
 lemma right_homology_map_eq [S₁.has_right_homology] [S₂.has_right_homology] :
   right_homology_map φ = h₁.right_homology_iso.hom ≫ γ.φH ≫ h₂.right_homology_iso.inv :=

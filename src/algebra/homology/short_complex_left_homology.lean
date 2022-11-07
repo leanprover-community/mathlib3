@@ -227,13 +227,11 @@ def op_equiv : (short_complex C)ᵒᵖ ≌ short_complex Cᵒᵖ :=
 
 variables (S₁ S₂) {C}
 
-/-- The zero morphism between two short complexes. -/
-@[simps]
-def hom.zero : S₁ ⟶ S₂ :=
-⟨0, 0, 0, by simp, by simp⟩
+instance : has_zero (S₁ ⟶ S₂) := ⟨⟨0, 0, 0, by simp, by simp⟩⟩
 
-@[simps]
-instance : has_zero (S₁ ⟶ S₂) := ⟨hom.zero _ _⟩
+@[simp] lemma hom.zero_τ₁ : hom.τ₁ (0 : S₁ ⟶ S₂) = 0 := rfl
+@[simp] lemma hom.zero_τ₂ : hom.τ₂ (0 : S₁ ⟶ S₂) = 0 := rfl
+@[simp] lemma hom.zero_τ₃ : hom.τ₃ (0 : S₁ ⟶ S₂) = 0 := rfl
 
 instance : has_zero_morphisms (short_complex C) := { }
 
@@ -292,6 +290,14 @@ lift_K_i _ _ _
 
 @[simp, reassoc]
 lemma f'_π : h.f' ≫ h.π = 0 := h.hπ₀
+
+lemma lift_K_π_eq_zero_of_boundary (k : A ⟶ S.X₂) (x : A ⟶ S.X₁) (hx : k = x ≫ S.f) :
+  h.lift_K k (by rw [hx, assoc, S.zero, comp_zero]) ≫ h.π = 0 :=
+begin
+  rw [show 0 = (x ≫ h.f') ≫ h.π, by simp],
+  congr' 1,
+  simp only [← cancel_mono h.i, hx, assoc, lift_K_i, f'_i],
+end
 
 /-- For `h : homology_ful_data S`, this is a restatement of `h.hπ`, saying that
 `π : h.K ⟶ h.H` is a cokernel of `h.f' : S.X₁ ⟶ h.K`. -/
@@ -407,6 +413,15 @@ namespace left_homology_map_data
 attribute [reassoc] commi commf' commπ
 
 @[simps]
+def zero (h₁ : S₁.left_homology_data) (h₂ : S₂.left_homology_data) :
+  left_homology_map_data 0 h₁ h₂ :=
+{ φK := 0,
+  φH := 0,
+  commi := by simp,
+  commf' := by simp,
+  commπ := by simp, }
+
+@[simps]
 def id (h : S.left_homology_data) : left_homology_map_data (𝟙 S) h h :=
 { φK := 𝟙 _,
   φH := 𝟙 _,
@@ -508,15 +523,28 @@ lemma left_homology_π_naturality [has_left_homology S₁] [has_left_homology S�
   (φ : S₁ ⟶ S₂) : cycles_map φ ≫ S₂.left_homology_π = S₁.left_homology_π ≫ left_homology_map φ :=
 left_homology_π_naturality' _ _ _
 
+namespace left_homology_map_data
+
+variables {φ : S₁ ⟶ S₂} {h₁ : S₁.left_homology_data} {h₂ : S₂.left_homology_data}
+  (γ : left_homology_map_data φ h₁ h₂)
+
+lemma left_homology_map'_eq : left_homology_map' φ h₁ h₂ = γ.φH :=
+left_homology_map_data.congr_φH (subsingleton.elim _ _)
+
+lemma cycles_map'_eq : cycles_map' φ h₁ h₂ = γ.φK :=
+left_homology_map_data.congr_φK (subsingleton.elim _ _)
+
+end left_homology_map_data
+
 @[simp]
 lemma left_homology_map'_id (h : S.left_homology_data) :
   left_homology_map' (𝟙 S) h h = 𝟙 _ :=
-left_homology_map_data.congr_φH (subsingleton.elim  _ (left_homology_map_data.id _))
+(left_homology_map_data.id h).left_homology_map'_eq
 
 @[simp]
 lemma cycles_map'_id (h : S.left_homology_data) :
   cycles_map' (𝟙 S) h h = 𝟙 _ :=
-left_homology_map_data.congr_φK (subsingleton.elim  _ (left_homology_map_data.id _))
+(left_homology_map_data.id h).cycles_map'_eq
 
 variable (S)
 
@@ -530,21 +558,52 @@ lemma cycles_map_id [has_left_homology S] :
   cycles_map (𝟙 S) = 𝟙 _ :=
 cycles_map'_id _
 
+variables {S₁ S₂}
+
+@[simp]
+lemma left_homology_map'_zero (h₁ : S₁.left_homology_data) (h₂ : S₂.left_homology_data) :
+  left_homology_map' 0 h₁ h₂ = 0 :=
+(left_homology_map_data.zero h₁ h₂).left_homology_map'_eq
+
+@[simp]
+lemma cycles_map'_zero (h₁ : S₁.left_homology_data) (h₂ : S₂.left_homology_data) :
+  cycles_map' 0 h₁ h₂ = 0 :=
+(left_homology_map_data.zero h₁ h₂).cycles_map'_eq
+
+variables (S₁ S₂)
+@[simp]
+lemma left_homology_map_zero [has_left_homology S₁] [has_left_homology S₂] :
+  left_homology_map (0 : S₁ ⟶ S₂) = 0 :=
+left_homology_map'_zero _ _
+
+@[simp]
+lemma cycles_map_zero [has_left_homology S₁] [has_left_homology S₂] :
+  cycles_map (0 : S₁ ⟶ S₂) = 0 :=
+cycles_map'_zero _ _
+
+variables {S₁ S₂}
+
 lemma left_homology_map'_comp (φ₁ : S₁ ⟶ S₂) (φ₂ : S₂ ⟶ S₃)
   (h₁ : S₁.left_homology_data) (h₂ : S₂.left_homology_data) (h₃ : S₃.left_homology_data) :
   left_homology_map' (φ₁ ≫ φ₂) h₁ h₃ = left_homology_map' φ₁ h₁ h₂ ≫
     left_homology_map' φ₂ h₂ h₃ :=
-left_homology_map_data.congr_φH
-  (subsingleton.elim _ (((left_homology_map_data.some φ₁ _ _).comp
-    (left_homology_map_data.some φ₂ _ _))))
+begin
+  let γ₁ := left_homology_map_data.some φ₁ _ _,
+  let γ₂ := left_homology_map_data.some φ₂ _ _,
+  rw [γ₁.left_homology_map'_eq, γ₂.left_homology_map'_eq, (γ₁.comp γ₂).left_homology_map'_eq,
+    left_homology_map_data.comp_φH],
+end
 
 lemma cycles_map'_comp (φ₁ : S₁ ⟶ S₂) (φ₂ : S₂ ⟶ S₃)
   (h₁ : S₁.left_homology_data) (h₂ : S₂.left_homology_data) (h₃ : S₃.left_homology_data) :
   cycles_map' (φ₁ ≫ φ₂) h₁ h₃ = cycles_map' φ₁ h₁ h₂ ≫
     cycles_map' φ₂ h₂ h₃ :=
-left_homology_map_data.congr_φK
-  (subsingleton.elim _ (((left_homology_map_data.some φ₁ _ _).comp
-    (left_homology_map_data.some φ₂ _ _))))
+begin
+  let γ₁ := left_homology_map_data.some φ₁ _ _,
+  let γ₂ := left_homology_map_data.some φ₂ _ _,
+  rw [γ₁.cycles_map'_eq, γ₂.cycles_map'_eq, (γ₁.comp γ₂).cycles_map'_eq,
+    left_homology_map_data.comp_φK],
+end
 
 @[simp]
 lemma left_homology_map_comp [has_left_homology S₁] [has_left_homology S₂] [has_left_homology S₃]
@@ -612,13 +671,6 @@ namespace left_homology_map_data
 
 variables {φ : S₁ ⟶ S₂} {h₁ : S₁.left_homology_data} {h₂ : S₂.left_homology_data}
   (γ : left_homology_map_data φ h₁ h₂)
-
-lemma left_homology_map'_eq : left_homology_map' φ h₁ h₂ = γ.φH :=
-left_homology_map_data.congr_φH (subsingleton.elim _ _)
-
-lemma cycles_map'_eq : cycles_map' φ h₁ h₂ = γ.φK :=
-left_homology_map_data.congr_φK (subsingleton.elim _ _)
-
 lemma left_homology_map_eq [S₁.has_left_homology] [S₂.has_left_homology] :
   left_homology_map φ = h₁.left_homology_iso.hom ≫ γ.φH ≫ h₂.left_homology_iso.inv :=
 begin
@@ -644,6 +696,7 @@ lemma cycles_map_comm [S₁.has_left_homology] [S₂.has_left_homology] :
 by simp only [γ.cycles_map_eq, assoc, iso.inv_hom_id, comp_id]
 
 end left_homology_map_data
+
 
 variable (C)
 /-- We shall say that a category with left homology is a category for which

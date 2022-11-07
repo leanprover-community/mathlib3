@@ -27,6 +27,23 @@ namespace probability_theory
 universe u
 variables {Ω : Type u} {m : measurable_space Ω} (ℙ : probability_measure Ω)
 
+theorem bells_inequality 
+  -- ℕ should be replaced with {1,2,3}
+  (Za : ℕ → Ω → ℤˣ)
+  (Zb : ℕ → Ω → ℤˣ)
+  (Za_measurable : ∀ i:ℕ , measurable (Za i))
+  (Zb_measurable : ∀ i:ℕ , measurable (Zb i))
+  (anticorrelation : ∀ i:ℕ , ∫ ω , (Za i ω : ℝ)*(Zb i ω) ∂(ℙ:measure Ω) = -1)
+  :
+  | (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) ) - (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) ) | ≤ 1 + (∫ ω, (Za 2 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) )
+  :=
+
+begin
+  sorry,
+end
+
+#exit
+
 def pm_one_space := ℤˣ
 
 instance int.units.measurable_space : measurable_space ℤˣ := ⊤

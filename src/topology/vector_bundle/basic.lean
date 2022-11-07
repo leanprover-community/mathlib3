@@ -423,22 +423,9 @@ end topological_vector_space
 
 section
 
-variables (B)
 variables [nontrivially_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
   [normed_add_comm_group F] [normed_space R F] [topological_space B]
   [topological_space (total_space E)] [∀ x, topological_space (E x)]
-
-/-- The valid transition functions for a topological vector bundle over `B` modelled on
-a normed space `F`: a transition function must be a local homeomorphism of `B × F` with source and
-target both `s ×ˢ univ`, which on this set is of the form `λ (b, v), (b, ε b v)` for some continuous
-map `ε` from `s` to `F ≃L[R] F`. Here continuity is with respect to the operator norm on
-`F →L[R] F`. -/
-def continuous_transitions (e : local_equiv (B × F) (B × F)) : Prop :=
-∃ s : set B, e.source = s ×ˢ univ ∧ e.target = s ×ˢ univ
-    ∧ ∃ ε : B → (F ≃L[R] F), continuous_on (λ b, (ε b : F →L[R] F)) s
-      ∧ ∀ b ∈ s, ∀ v : F, e (b, v) = (b, ε b v)
-
-variables {B}
 
 /-- The space `total_space E` (for `E : B → Type*` such that each `E x` is a topological vector
 space) has a topological vector space structure with fiber `F` (denoted with

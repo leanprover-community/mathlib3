@@ -6,6 +6,7 @@ Authors: Sam van Gool, Jake Levinson
 
 import topology.sheaves.presheaf
 import topology.sheaves.stalks
+import category_theory.sites.surjective
 
 /-!
 
@@ -40,6 +41,8 @@ section locally_surjective
 local attribute [instance] concrete_category.has_coe_to_fun
 local attribute [instance] concrete_category.has_coe_to_sort
 
+open_locale algebraic_geometry
+
 /-- Let `C` be a concrete category, `X` a topological space. -/
 variables {C : Type u} [category.{v} C] [concrete_category.{v} C] {X : Top.{v}}
 
@@ -48,11 +51,14 @@ variables {ℱ 𝒢 : X.presheaf C}
 
 /-- A map of presheaves `T : ℱ ⟶ 𝒢` is **locally surjective** if for
 any open set `U`, section `t` over `U`, and `x ∈ U`, there exists an open set
-`x ∈ V ⊆ U` such that `$T_*(s_V) = t|_V$`. -/
+`x ∈ V ⊆ U` such that `$T_*(s_V) = t|_V$`. See `is_locally_surjective_iff` below. -/
 def is_locally_surjective (T : ℱ ⟶ 𝒢) :=
-  ∀ (U : opens X) (t : 𝒢.obj (op U)) (x : X) (hx : x ∈ U),
-  ∃ (V : opens X) (ι : V ⟶ U) (hxV : x ∈ V) (s : ℱ.obj (op V)),
-  T.app _ s = 𝒢.map ι.op t
+  category_theory.is_locally_surjective (opens.grothendieck_topology X) T
+
+lemma is_locally_surjective_iff (T : ℱ ⟶ 𝒢) :
+  is_locally_surjective T ↔
+    ∀ U t (x ∈ U), ∃ V (ι : V ⟶ U), (∃ s, T.app _ s = t |_ₕ ι) ∧ x ∈ V :=
+iff.rfl
 
 section surjective_on_stalks
 
@@ -77,7 +83,7 @@ begin
     obtain ⟨U, hxU, t, rfl⟩ :=  𝒢.germ_exist x g,
     -- By local surjectivity, pass to a smaller open set V
     -- on which there exists s ∈ Γ_ ℱ V mapping to t |_ V.
-    rcases hT U t x hxU with ⟨V, ι, hxV, s, h_eq⟩,
+    rcases hT U t x hxU with ⟨V, ι, ⟨s, h_eq⟩, hxV⟩,
 
     -- Then the germ of s maps to g.
     use ℱ.germ ⟨x, hxV⟩ s,
@@ -102,7 +108,7 @@ begin
             convert stalk_functor_map_germ_apply _ _ _ s, }),
     obtain ⟨W, hxW, hWV, hWU, h_eq⟩ := key_W,
 
-    refine ⟨W, hWU, hxW, ⟨ℱ.map hWV.op s, _⟩⟩,
+    refine ⟨W, hWU, ⟨ℱ.map hWV.op s, _⟩, hxW⟩,
     convert h_eq,
     simp only [← comp_apply, T.naturality], },
 end

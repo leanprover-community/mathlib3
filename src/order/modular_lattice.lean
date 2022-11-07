@@ -391,26 +391,16 @@ strict_mono_restrict _ (thing a b).strict_mono
 lemma sup_strict_mono_on_Icc_inf (a b : α) : strict_mono_on (λ c, a ⊔ c) (Icc (a ⊓ b) b) :=
 strict_mono_restrict _ (thing a b).symm.strict_mono
 
-lemma inf_super_strict_mono_on_Icc_sup (a b : α) {c d: α} (hc : c ∈ Icc a (a ⊔ b))
-  (hd : d ∈ Icc a (a ⊔ b)) : c < d ↔ (c ⊓ b) < (d ⊓ b) :=
-(@order_iso.lt_iff_lt _ _ _ _ (thing a b) ⟨c,hc⟩ ⟨d,hd⟩).symm
-
-lemma sup_super_strict_mono_on_Icc_inf (a b : α) {c d: α} (hc : c ∈ Icc (a ⊓ b) b)
-  (hd : d ∈ Icc (a ⊓ b) b) : c < d ↔ (a ⊔ c) < (a ⊔ d) :=
-(@order_iso.lt_iff_lt _ _ _ _ (thing a b).symm ⟨c,hc⟩ ⟨d,hd⟩).symm
-
 @[simps]
 def thing2 (a b : α) : Ioo a (a ⊔ b) ≃o Ioo (a ⊓ b) b :=
 { to_fun       := λ c, ⟨c ⊓ b,
-    ⟨ (inf_super_strict_mono_on_Icc_sup a b
-        ⟨le_refl _, le_sup_left⟩ ⟨c.2.1.le, c.2.2.le⟩).mp c.2.1,
-      lt_of_lt_of_le ((inf_super_strict_mono_on_Icc_sup a b ⟨c.2.1.le, c.2.2.le⟩
-        ⟨le_sup_left, le_refl _⟩).mp c.2.2) inf_le_right ⟩⟩,
+    ⟨ inf_strict_mono_on_Icc_sup a b ⟨le_refl _, le_sup_left⟩ ⟨c.2.1.le, c.2.2.le⟩ c.2.1,
+      lt_of_lt_of_le (inf_strict_mono_on_Icc_sup a b ⟨c.2.1.le, c.2.2.le⟩
+        ⟨le_sup_left, le_refl _⟩ c.2.2) inf_le_right⟩⟩,
   inv_fun      := λ c, ⟨a ⊔ c,
-    ⟨ lt_of_le_of_lt le_sup_left ((sup_super_strict_mono_on_Icc_inf a b ⟨le_refl _, inf_le_right⟩
-        ⟨c.2.1.le, c.2.2.le⟩).mp c.2.1),
-      (sup_super_strict_mono_on_Icc_inf a b ⟨c.2.1.le, c.2.2.le⟩
-        ⟨inf_le_right, le_refl _⟩).mp c.2.2 ⟩⟩,
+    ⟨ lt_of_le_of_lt le_sup_left (sup_strict_mono_on_Icc_inf a b ⟨le_refl _, inf_le_right⟩
+        ⟨c.2.1.le, c.2.2.le⟩ c.2.1),
+      sup_strict_mono_on_Icc_inf a b ⟨c.2.1.le, c.2.2.le⟩ ⟨inf_le_right, le_refl _⟩ c.2.2 ⟩⟩,
   left_inv     := λ ⟨c, h⟩, subtype.ext begin
     change a ⊔ (c ⊓ b) = c,
     rw [inf_comm, ←sup_inf_assoc_of_le b h.1.le, inf_eq_right.mpr h.2.le ],

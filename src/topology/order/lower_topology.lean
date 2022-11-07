@@ -213,18 +213,6 @@ begin
   { simp only [equiv.prod_congr_apply, prod_map], exact rfl, },
 end
 
-/-
-lemma test3 : (@with_lower_topology.to_lower (α × β)) =
-  equiv.prod_congr (@with_lower_topology.to_lower α) (@with_lower_topology.to_lower β) :=
-begin
-  ext,
-  { simp only [equiv.prod_congr_apply, prod_map],
-    exact rfl, },
-  { simp only [equiv.prod_congr_apply, prod_map],
-    exact rfl, }
-end
--/
-
 @[simp] lemma to_lower_prod_to_lower_of_lower :
   (with_lower_topology.to_lower.prod_congr with_lower_topology.to_lower)
   ∘ with_lower_topology.of_lower = @id (α × β) :=
@@ -308,58 +296,7 @@ lemma upper_closure_compl_prod_upper_closure_compl'' {α : Type u} {β : Type v}
 by rw [upper_closure_compl_prod_upper_closure_compl, upper_closure_prod, upper_closure_prod,
     upper_closure_singleton, upper_closure_singleton, upper_set.Ici_bot, upper_set.Ici_bot]
 
-lemma lower_topology_prod [order_bot α] [order_bot β]: lower_topology (α × β) =
-  @prod.topological_space α β (lower_topology α) (lower_topology β) :=
-begin
-  rw le_antisymm_iff,
-  split,
-    { rw (prod_basis_is_topological_basis α β).eq_generate_from,
-      apply le_generate_from,
-      intros U hU,
-      simp only [mem_image2, exists_and_distrib_left] at hU,
-      cases hU with V,
-      cases hU_h with hV,
-      cases hU_h_right with W,
-      cases hU_h_right_h with hW hUVW,
-      rw ← hUVW,
-      rw with_lower_topology.lower_basis at hV,
-      rw mem_set_of_eq at hV,
-      cases hV with F₁,
-      rw with_lower_topology.lower_basis at hW,
-      rw mem_set_of_eq at hW,
-      cases hW with F₂,
-      rw ← hV_h.2,
-      rw ← hW_h.2,
-      rw ← lower_set.coe_prod,
-      rw upper_closure_compl_prod_upper_closure_compl',
-      rw lower_set.coe_inf,
-      apply is_open.inter,
-      { rw  upper_set.coe_compl, rw is_open_compl_iff, rw upper_closure_prod,
-        rw upper_closure_univ,
-        rw ← upper_set.Ici_bot,
-        rw ← upper_closure_singleton,
-        rw ← upper_closure_prod,
-        apply with_lower_topology.is_closed_upper_closure,
-        apply set.finite.prod (finite_singleton ⊥) hW_h.1, },
-      { rw  upper_set.coe_compl, rw is_open_compl_iff, rw upper_closure_prod,
-        rw upper_closure_univ,
-        rw ← upper_set.Ici_bot,
-        rw ← upper_closure_singleton,
-        rw ← upper_closure_prod,
-       apply with_lower_topology.is_closed_upper_closure,
-       apply set.finite.prod hV_h.1 (finite_singleton ⊥), }, },
-    { apply le_generate_from,
-    intros,
-    rw mem_set_of_eq at H,
-    rcases H,
-    cases H_w with a b,
-    rw [← H_h, ← upper_set.coe_Ici, is_open_compl_iff, prod_Ici],
-    apply is_closed.inter,
-    { apply is_closed.prod is_closed_univ, apply with_lower_topology.is_closed_Ici, },
-    { apply is_closed.prod, apply with_lower_topology.is_closed_Ici, apply is_closed_univ, } },
-end
-
-lemma lower_topology_prod'  [order_bot α] [order_bot β] :
+lemma lower_topology_prod  [order_bot α] [order_bot β] :
   with_lower_topology.topological_space (α × β) =
   @prod.topological_space α β (lower_topology α) (lower_topology β) :=
 begin
@@ -374,30 +311,19 @@ begin
       cases hU_h_right with W,
       cases hU_h_right_h with hW hUVW,
       rw ← hUVW,
-      rw with_lower_topology.lower_basis at hV,
-      rw mem_set_of_eq at hV,
+      rw [with_lower_topology.lower_basis, mem_set_of_eq] at hV,
       cases hV with F₁,
-      rw with_lower_topology.lower_basis at hW,
-      rw mem_set_of_eq at hW,
+      rw [with_lower_topology.lower_basis, mem_set_of_eq]  at hW,
       cases hW with F₂,
-      rw ← hV_h.2,
-      rw ← hW_h.2,
-      rw ← lower_set.coe_prod,
-      rw upper_closure_compl_prod_upper_closure_compl',
-      rw lower_set.coe_inf,
+      rw [← hV_h.2, ← hW_h.2, ← lower_set.coe_prod, upper_closure_compl_prod_upper_closure_compl',
+        lower_set.coe_inf],
       apply is_open.inter,
-      { rw  upper_set.coe_compl, rw is_open_compl_iff, rw upper_closure_prod,
-        rw upper_closure_univ,
-        rw ← upper_set.Ici_bot,
-        rw ← upper_closure_singleton,
-        rw ← upper_closure_prod,
+      { rw  [upper_set.coe_compl, is_open_compl_iff, upper_closure_prod, upper_closure_univ,
+          ← upper_set.Ici_bot, ← upper_closure_singleton, ← upper_closure_prod],
         apply with_lower_topology.is_closed_upper_closure,
         apply set.finite.prod (finite_singleton ⊥) hW_h.1, },
-      { rw  upper_set.coe_compl, rw is_open_compl_iff, rw upper_closure_prod,
-        rw upper_closure_univ,
-        rw ← upper_set.Ici_bot,
-        rw ← upper_closure_singleton,
-        rw ← upper_closure_prod,
+      { rw  [upper_set.coe_compl, is_open_compl_iff, upper_closure_prod, upper_closure_univ,
+          ← upper_set.Ici_bot, ← upper_closure_singleton, ← upper_closure_prod],
        apply with_lower_topology.is_closed_upper_closure,
        apply set.finite.prod hV_h.1 (finite_singleton ⊥), }, },
     { apply le_generate_from,
@@ -422,20 +348,16 @@ def lower_topology_prod_hom [order_bot α] [order_bot β] :
   begin
     simp only [equiv.to_fun_as_coe, equiv.coe_trans, to_lower_prod_to_lower_of_lower],
     convert continuous_id,
-    rw lower_topology_prod',
+    rw lower_topology_prod,
   end,
   continuous_inv_fun :=
   begin
     simp only [of_lower_to_lower_prod_to_lower', equiv.inv_fun_as_coe, refl_symm, equiv.coe_refl],
     convert continuous_id,
-    rw lower_topology_prod',
+    rw lower_topology_prod,
   end,
   ..with_lower_topology.of_lower.trans (with_lower_topology.to_lower.prod_congr
     with_lower_topology.to_lower) }
-
-/-
-
--/
 
 end prod
 
@@ -528,7 +450,7 @@ inf_hom_continuous (inf_Inf_hom α)
 
 instance : has_continuous_inf (with_lower_topology α) :=
 { continuous_inf := begin
-    rw ← lower_topology_prod',
+    rw ← lower_topology_prod,
     apply with_lower_topology.continuous_inf,
   end }
 

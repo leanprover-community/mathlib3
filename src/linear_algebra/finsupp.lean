@@ -518,7 +518,7 @@ theorem mem_span_iff_total (s : set M) (x : M) :
   x ∈ span R s ↔ ∃ l : s →₀ R, finsupp.total s M R coe l = x :=
 (set_like.ext_iff.1 $ span_eq_range_total _ _) x
 
-theorem span_image_eq_map_total (s : set α):
+theorem span_image_eq_map_total (s : set α) :
   span R (v '' s) = submodule.map (finsupp.total α M R v) (supported R R s) :=
 begin
   apply span_eq_of_le,
@@ -536,6 +536,11 @@ begin
       { simp [(finsupp.mem_supported' R _).1 hz _ h] } },
     refine sum_mem _, simp [this] }
 end
+
+/-- Special case of `span_image_eq_map_total`. -/
+lemma span_range_eq_map_total :
+  span R (set.range v) = submodule.map (finsupp.total α M R v) (supported R R set.univ) :=
+by rw [←set.image_univ, span_image_eq_map_total]
 
 theorem mem_span_image_iff_total {s : set α} {x : M} :
   x ∈ span R (v '' s) ↔ ∃ l ∈ supported R R s, finsupp.total α M R v l = x :=

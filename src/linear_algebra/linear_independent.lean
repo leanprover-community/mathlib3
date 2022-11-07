@@ -186,7 +186,7 @@ family of vectors. See also `linear_independent.map'` for a special case assumin
 lemma linear_independent.map (hv : linear_independent R v) {f : M →ₗ[R] M'}
   (hf_inj : disjoint (span R (range v)) f.ker) : linear_independent R (f ∘ v) :=
 begin
-  rw [disjoint, ← set.image_univ, finsupp.span_image_eq_map_total, map_inf_eq_map_inf_comap,
+  rw [disjoint, finsupp.span_range_eq_map_total, map_inf_eq_map_inf_comap,
     map_le_iff_le_comap, comap_bot, finsupp.supported_univ, top_inf_eq] at hf_inj,
   unfold linear_independent at hv ⊢,
   rw [hv, le_bot_iff] at hf_inj,

@@ -1542,6 +1542,20 @@ lemma associates.mk_ne_zero' {R : Type*} [comm_semiring R] {r : R} :
   (associates.mk (ideal.span {r} : ideal R)) ≠ 0 ↔ (r ≠ 0):=
 by rw [associates.mk_ne_zero, ideal.zero_eq_bot, ne.def, ideal.span_singleton_eq_bot]
 
+/-- If `I : ideal S` has a basis over `R`,
+`x ∈ I` iff it is a linear combination of basis vectors. -/
+lemma basis.mem_ideal_iff {ι R S : Type*} [comm_ring R] [comm_ring S] [algebra R S]
+  {I : ideal S} (b : basis ι R I) {x : S} :
+  x ∈ I ↔ ∃ (c : ι →₀ R), x = finsupp.sum c (λ i x, x • b i) :=
+(b.map ((I.restrict_scalars_equiv R _ _).restrict_scalars R).symm).mem_submodule_iff
+
+/-- If `I : ideal S` has a finite basis over `R`,
+`x ∈ I` iff it is a linear combination of basis vectors. -/
+lemma basis.mem_ideal_iff' {ι R S : Type*} [fintype ι] [comm_ring R] [comm_ring S] [algebra R S]
+  {I : ideal S} (b : basis ι R I) {x : S} :
+  x ∈ I ↔ ∃ (c : ι → R), x = ∑ i, c i • b i :=
+(b.map ((I.restrict_scalars_equiv R _ _).restrict_scalars R).symm).mem_submodule_iff'
+
 namespace ring_hom
 
 variables {R : Type u} {S : Type v} {T : Type v}

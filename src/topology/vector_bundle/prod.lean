@@ -238,10 +238,10 @@ instance _root_.bundle.prod.topological_vector_bundle :
     { rintro b hb,
       rw [continuous_linear_map.ext_iff],
       rintro ⟨v₁, v₂⟩,
-      show (e₁.prod R e₂).coord_changeₗ R (e₁'.prod R e₂') b (v₁, v₂) =
-        (e₁.coord_changeₗ R e₁' b v₁, e₂.coord_changeₗ R e₂' b v₂),
-      rw [e₁.coord_changeₗ_apply e₁', e₂.coord_changeₗ_apply e₂',
-        (e₁.prod R e₂).coord_changeₗ_apply'],
+      show (e₁.prod R e₂).coord_changeL R (e₁'.prod R e₂') b (v₁, v₂) =
+        (e₁.coord_changeL R e₁' b v₁, e₂.coord_changeL R e₂' b v₂),
+      rw [e₁.coord_changeL_apply e₁', e₂.coord_changeL_apply e₂',
+        (e₁.prod R e₂).coord_changeL_apply'],
       exacts [rfl, hb, ⟨hb.1.2, hb.2.2⟩, ⟨hb.1.1, hb.2.1⟩] }
   end }
 

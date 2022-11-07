@@ -357,7 +357,7 @@ variables (R)
 
 /-- A coordinate change function between two trivializations, as a continuous linear equivalence.
   Defined to be the identity when `b` does not lie in the base set of both trivializations. -/
-def coord_changeₗ (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_linear R] (b : B) :
+def coord_changeL (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_linear R] (b : B) :
   F ≃L[R] F :=
 { continuous_to_fun := begin
     by_cases hb : b ∈ e.base_set ∩ e'.base_set,
@@ -383,37 +383,37 @@ def coord_changeₗ (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_line
 
 variables {R}
 
-lemma coe_coord_changeₗ (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_linear R] {b : B}
+lemma coe_coord_changeL (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_linear R] {b : B}
   (hb : b ∈ e.base_set ∩ e'.base_set) :
-  ⇑(coord_changeₗ R e e' b)
+  ⇑(coord_changeL R e e' b)
   = (e.linear_equiv_at R b hb.1).symm.trans (e'.linear_equiv_at R b hb.2) :=
 congr_arg linear_equiv.to_fun (dif_pos hb)
 
-lemma coord_changeₗ_apply (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_linear R] {b : B}
+lemma coord_changeL_apply (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_linear R] {b : B}
   (hb : b ∈ e.base_set ∩ e'.base_set) (y : F) :
-  coord_changeₗ R e e' b y = (e' (total_space_mk b (e.symm b y))).2 :=
+  coord_changeL R e e' b y = (e' (total_space_mk b (e.symm b y))).2 :=
 congr_arg (λ f, linear_equiv.to_fun f y) (dif_pos hb)
 
-lemma mk_coord_changeₗ (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_linear R] {b : B}
+lemma mk_coord_changeL (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_linear R] {b : B}
   (hb : b ∈ e.base_set ∩ e'.base_set) (y : F) :
-  (b, coord_changeₗ R e e' b y) = e' (total_space_mk b (e.symm b y)) :=
+  (b, coord_changeL R e e' b y) = e' (total_space_mk b (e.symm b y)) :=
 begin
   ext,
   { rw [e.mk_symm hb.1 y, e'.coe_fst', e.proj_symm_apply' hb.1],
     rw [e.proj_symm_apply' hb.1], exact hb.2 },
-  { exact e.coord_changeₗ_apply e' hb y }
+  { exact e.coord_changeL_apply e' hb y }
 end
 
 /-- A version of `coord_change_apply` that fully unfolds `coord_change`. The right-hand side is
 ugly, but has good definitional properties for specifically defined trivializations. -/
-lemma coord_changeₗ_apply' (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_linear R] {b : B}
+lemma coord_changeL_apply' (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_linear R] {b : B}
   (hb : b ∈ e.base_set ∩ e'.base_set) (y : F) :
-  coord_changeₗ R e e' b y = (e' (e.to_local_homeomorph.symm (b, y))).2 :=
-by rw [e.coord_changeₗ_apply e' hb, e.mk_symm hb.1]
+  coord_changeL R e e' b y = (e' (e.to_local_homeomorph.symm (b, y))).2 :=
+by rw [e.coord_changeL_apply e' hb, e.mk_symm hb.1]
 
-lemma coord_changeₗ_symm_apply (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_linear R]
+lemma coord_changeL_symm_apply (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_linear R]
   {b : B} (hb : b ∈ e.base_set ∩ e'.base_set) :
-  ⇑(coord_changeₗ R e e' b).symm
+  ⇑(coord_changeL R e e' b).symm
   = (e'.linear_equiv_at R b hb.2).symm.trans (e.linear_equiv_at R b hb.1) :=
 congr_arg linear_equiv.inv_fun (dif_pos hb)
 
@@ -457,7 +457,7 @@ class topological_vector_bundle :=
   have _ := trivialization_linear' e he,
   have _ := trivialization_linear' e' he',
   continuous_on
-  (λ b, by exactI trivialization.coord_changeₗ R e e' b : B → F →L[R] F) (e.base_set ∩ e'.base_set))
+  (λ b, by exactI trivialization.coord_changeL R e e' b : B → F →L[R] F) (e.base_set ∩ e'.base_set))
 
 export topological_vector_bundle (trivialization_atlas trivialization_at
   mem_base_set_trivialization_at trivialization_mem_atlas)
@@ -485,7 +485,7 @@ lemma continuous_on_coord_change (e e' : trivialization F (π E))
   [he : mem_trivialization_atlas R e]
   [he' : mem_trivialization_atlas R e'] :
   continuous_on
-  (λ b, trivialization.coord_changeₗ R e e' b : B → F →L[R] F) (e.base_set ∩ e'.base_set) :=
+  (λ b, trivialization.coord_changeL R e e' b : B → F →L[R] F) (e.base_set ∩ e'.base_set) :=
 topological_vector_bundle.continuous_on_coord_change' e e' he.out he'.out
 
 namespace trivialization
@@ -594,8 +594,8 @@ end
 lemma comp_continuous_linear_equiv_at_eq_coord_change (e e' : trivialization F (π E))
   [e.is_linear R] [e'.is_linear R] {b : B} (hb : b ∈ e.base_set ∩ e'.base_set) :
   (e.continuous_linear_equiv_at R b hb.1).symm.trans (e'.continuous_linear_equiv_at R b hb.2)
-  = coord_changeₗ R e e' b :=
-by { ext v, rw [coord_changeₗ_apply e e' hb], refl }
+  = coord_changeL R e e' b :=
+by { ext v, rw [coord_changeL_apply e e' hb], refl }
 
 end trivialization
 
@@ -630,12 +630,12 @@ instance trivialization.is_linear : (trivialization B F).is_linear R :=
 
 variables {R}
 
-lemma trivialization.coord_changeₗ (b : B) :
-  (trivialization B F).coord_changeₗ R
+lemma trivialization.coord_changeL (b : B) :
+  (trivialization B F).coord_changeL R
     (trivialization B F) b = continuous_linear_equiv.refl R F :=
 begin
   ext v,
-  rw [trivialization.coord_changeₗ_apply'],
+  rw [trivialization.coord_changeL_apply'],
   exacts [rfl, ⟨mem_univ _, mem_univ _⟩]
 end
 
@@ -668,7 +668,7 @@ instance topological_vector_bundle :
     rw mem_singleton_iff at he he',
     subst he,
     subst he',
-    simp_rw trivialization.coord_changeₗ,
+    simp_rw trivialization.coord_changeL,
     exact continuous_const.continuous_on
   end }
 
@@ -838,9 +838,9 @@ by apply (Z.local_triv i).symm_apply hb v
 
 @[simp, mfld_simps] lemma local_triv_coord_change_eq {b : B} (hb : b ∈ Z.base_set i ∩ Z.base_set j)
   (v : F) :
-  (Z.local_triv i).coord_changeₗ R (Z.local_triv j) b v = Z.coord_change i j b v :=
+  (Z.local_triv i).coord_changeL R (Z.local_triv j) b v = Z.coord_change i j b v :=
 begin
-  rw [trivialization.coord_changeₗ_apply', local_triv_symm_fst, local_triv_apply,
+  rw [trivialization.coord_changeL_apply', local_triv_symm_fst, local_triv_apply,
     coord_change_comp],
   exacts [⟨⟨hb.1, Z.mem_base_set_at b⟩, hb.2⟩, hb]
 end
@@ -1078,7 +1078,7 @@ def to_topological_vector_bundle :
     intros b hb,
     ext v,
     rw [a.coord_change_apply he he' hb v, continuous_linear_equiv.coe_coe,
-      trivialization.coord_changeₗ_apply],
+      trivialization.coord_changeL_apply],
     exacts [rfl, hb]
   end }
 

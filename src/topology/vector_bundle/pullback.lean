@@ -139,7 +139,7 @@ instance topological_vector_bundle.pullback [∀ x, topological_space (E x)]
     refine ((continuous_on_coord_change 𝕜 e e').comp (map_continuous f).continuous_on
       (λ b hb, hb)).congr _,
     rintro b (hb : f b ∈ e.base_set ∩ e'.base_set), ext v,
-    show ((e.pullback f).coord_changeₗ 𝕜 (e'.pullback f) b) v = (e.coord_changeₗ 𝕜 e' (f b)) v,
-    rw [e.coord_changeₗ_apply e' hb, (e.pullback f).coord_changeₗ_apply' _],
+    show ((e.pullback f).coord_changeL 𝕜 (e'.pullback f) b) v = (e.coord_changeL 𝕜 e' (f b)) v,
+    rw [e.coord_changeL_apply e' hb, (e.pullback f).coord_changeL_apply' _],
     exacts [rfl, hb]
   end }

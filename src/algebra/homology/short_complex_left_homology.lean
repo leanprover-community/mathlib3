@@ -485,6 +485,13 @@ def cycles [has_left_homology S] : C := S.some_left_homology_data.K
 def left_homology_π [has_left_homology S] : S.cycles ⟶ S.left_homology :=
   S.some_left_homology_data.π
 def cycles_i [has_left_homology S] : S.cycles ⟶ S.X₂ := S.some_left_homology_data.i
+def to_cycles [has_left_homology S] : S.X₁ ⟶ S.cycles := S.some_left_homology_data.f'
+
+@[simp] lemma cycles_i_g [has_left_homology S] : S.cycles_i ≫ S.g = 0 :=
+S.some_left_homology_data.hi₀
+
+@[simp, reassoc] lemma to_cycles_i [has_left_homology S] : S.to_cycles ≫ S.cycles_i = S.f :=
+S.some_left_homology_data.f'_i
 
 variables {S S₁ S₂ S₃}
 
@@ -882,8 +889,6 @@ S.lift_cycles k hk ≫ S.left_homology_π
 lemma lift_cycles_π_eq_zero_of_boundary (x : A ⟶ S.X₁) (hx : k = x ≫ S.f) :
 S.lift_cycles k (by rw [hx, assoc, S.zero, comp_zero])≫ S.left_homology_π = 0 :=
 left_homology_data.lift_K_π_eq_zero_of_boundary _ k x hx
-
-def to_cycles : S.X₁ ⟶ S.cycles := S.lift_cycles S.f S.zero
 
 @[simp, reassoc]
 lemma to_cycles_comp_left_homology_π :

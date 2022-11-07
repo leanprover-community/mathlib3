@@ -529,6 +529,8 @@ def cycles_co [has_right_homology S] : C := S.some_right_homology_data.Q
 def right_homology_ι [has_right_homology S] : S.right_homology ⟶ S.cycles_co :=
   S.some_right_homology_data.ι
 def p_cycles_co [has_right_homology S] : S.X₂ ⟶ S.cycles_co := S.some_right_homology_data.p
+@[simp] lemma f_cycles_p [has_right_homology S] : S.f ≫ S.p_cycles_co = 0 :=
+S.some_right_homology_data.hp₀
 
 variables {S S₁ S₂ S₃}
 

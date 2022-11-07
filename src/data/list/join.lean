@@ -18,7 +18,7 @@ namespace list
 
 attribute [simp] join
 
-@[simp] lemma join_nil : [([] : list α)].join = [] := rfl
+lemma join_nil : [([] : list α)].join = [] := rfl
 
 @[simp] lemma join_eq_nil : ∀ {L : list (list α)}, join L = [] ↔ ∀ l ∈ L, l = []
 | []       := iff_of_true rfl (forall_mem_nil _)

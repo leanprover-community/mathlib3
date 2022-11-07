@@ -1445,14 +1445,14 @@ lemma connected.set_univ_walk_nonempty (hconn : G.connected) (u v : V) :
 /-! ### Walks as subgraphs -/
 
 namespace walk
-variables {G}
+variables {G} {u v w : V}
 
 /-- The subgraph consisting of the vertices and edges of the walk. -/
 @[simp] protected def to_subgraph : Π {u v : V}, G.walk u v → G.subgraph
 | u _ nil := G.singleton_subgraph u
 | _ _ (cons h p) := G.subgraph_of_adj h ⊔ p.to_subgraph
 
-@[simp] lemma mem_verts_to_subgraph {u v : V} (p : G.walk u v) (w : V) :
+@[simp] lemma mem_verts_to_subgraph (p : G.walk u v) :
   w ∈ p.to_subgraph.verts ↔ w ∈ p.support :=
 begin
   induction p,
@@ -1462,26 +1462,24 @@ begin
     simp [p_ih, or_assoc, this], },
 end
 
-lemma verts_to_subgraph {u v : V} (p : G.walk u v) :
-  p.to_subgraph.verts = {w | w ∈ p.support} :=
-set.ext (mem_verts_to_subgraph p)
+lemma verts_to_subgraph (p : G.walk u v) : p.to_subgraph.verts = {w | w ∈ p.support} :=
+set.ext (λ w, p.mem_verts_to_subgraph)
 
-instance {u v : V} (p : G.walk u v) : nonempty p.to_subgraph.verts :=
+instance (p : G.walk u v) : nonempty p.to_subgraph.verts :=
 ⟨⟨u, by simp only [mem_verts_to_subgraph, start_mem_support]⟩⟩
 
-@[simp] lemma mem_edges_to_subgraph {u v : V} (p : G.walk u v) (e : sym2 V) :
+@[simp] lemma mem_edges_to_subgraph (p : G.walk u v) {e : sym2 V} :
   e ∈ p.to_subgraph.edge_set ↔ e ∈ p.edges :=
 by induction p; simp [*]
 
-lemma edges_to_subgraph {u v : V} (p : G.walk u v) :
-  p.to_subgraph.edge_set = {e | e ∈ p.edges} :=
-set.ext (mem_edges_to_subgraph p)
+lemma edges_to_subgraph (p : G.walk u v) : p.to_subgraph.edge_set = {e | e ∈ p.edges} :=
+set.ext (λ e, p.mem_edges_to_subgraph)
 
-@[simp] lemma to_subgraph_append {u v w : V} (p : G.walk u v) (q : G.walk v w) :
+@[simp] lemma to_subgraph_append (p : G.walk u v) (q : G.walk v w) :
   (p.append q).to_subgraph = p.to_subgraph ⊔ q.to_subgraph :=
 by induction p; simp [*, sup_assoc]
 
-@[simp] lemma to_subgraph_reverse {u v : V} (p : G.walk u v) :
+@[simp] lemma to_subgraph_reverse (p : G.walk u v) :
   p.reverse.to_subgraph = p.to_subgraph :=
 begin
   induction p,
@@ -1492,7 +1490,7 @@ begin
     ext; simp [-set.bot_eq_empty], }
 end
 
-@[simp] lemma to_subgraph_rotate [decidable_eq V] {u v : V} (c : G.walk v v) (h : u ∈ c.support) :
+@[simp] lemma to_subgraph_rotate [decidable_eq V] (c : G.walk v v) (h : u ∈ c.support) :
   (c.rotate h).to_subgraph = c.to_subgraph :=
 by rw [rotate, to_subgraph_append, sup_comm, ← to_subgraph_append, take_spec]
 
@@ -1501,11 +1499,10 @@ lemma to_subgraph_map {G : simple_graph V} {G' : simple_graph V'} (f : G →g G'
   (p.map f).to_subgraph = subgraph.map f p.to_subgraph :=
 by induction p; simp [*, subgraph.map_sup]
 
-lemma finite_verts_to_subgraph {u v : V} (p : G.walk u v) :
-  p.to_subgraph.verts.finite :=
+lemma finite_verts_to_subgraph (p : G.walk u v) : p.to_subgraph.verts.finite :=
 by { rw [verts_to_subgraph], exact p.support.finite_to_set }
 
-instance fintype_neighbor_set_to_subgraph [decidable_eq V] {u v w : V} (p : G.walk u v) :
+instance fintype_neighbor_set_to_subgraph [decidable_eq V] (p : G.walk u v) :
   fintype (p.to_subgraph.neighbor_set w) :=
 begin
   induction p,

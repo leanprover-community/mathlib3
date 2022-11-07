@@ -851,6 +851,68 @@ end topological_fiber_bundle.trivialization
 
 end topological_fiber_bundle
 
+/-! ### Sections of topological fiber bundles -/
+
+namespace right_inv
+
+open bundle topological_fiber_bundle
+
+variable {E : B → Type*}
+
+variables [topological_space B] [topological_space (total_space E)] [topological_space F]
+
+@[nolint unused_arguments]
+instance bundle_section_to_right_inv : has_coe (bundle_section E) (right_inv (proj E)) :=
+⟨bundle_section_equiv_right_inv⟩
+
+lemma mem_base_set_right_inv_fst (g : right_inv (proj E)) {b : B}
+  {e : trivialization F (proj E)} (hb : b ∈ e.base_set) : (g b).fst ∈ e.base_set :=
+by { rw right_inv.fst_eq_id, exact hb }
+
+@[simp] lemma preimage_source_eq_base_set (f : right_inv (proj E))
+  {e : trivialization F (proj E)} : f ⁻¹' e.source = e.base_set :=
+by rw [trivialization.source_eq, ←preimage_comp, f.right_inv_def]; refl
+
+lemma mem_base_set_image_mem_source (f : right_inv (proj E)) {e : trivialization F (proj E)}
+  {x : B} (h : x ∈ e.base_set) : f x ∈ e.source :=
+by { rw [mem_preimage.symm, right_inv.preimage_source_eq_base_set], exact h }
+
+lemma trivialization_at_fst {e : trivialization F (proj E)} (f : right_inv (proj E))
+  (x : B) (h : x ∈ e.base_set) : (e (f x)).fst = x :=
+by {rw [e.coe_fst (f.mem_base_set_image_mem_source h)], exact congr_fun f.right_inv_def x }
+
+/-- Continuity of sections within a set at a point can be checked locally through trivialization.
+  This lemma is the main tool to prove continuity of sections when it is not straightforward. -/
+lemma continuous_within_at_iff_continuous_within_at (f : right_inv (proj E)) {b : B} {U : set B}
+  (e : trivialization F (proj E)) (hb : b ∈ e.base_set) :
+  continuous_within_at f U b ↔ continuous_within_at (λ x, (e (f x)).snd) (U ∩ e.base_set) b :=
+⟨λ h, begin
+  have h2 : continuous_within_at _ e.source _ :=
+    (e.to_local_homeomorph.continuous_at (f.mem_base_set_image_mem_source hb)).continuous_within_at,
+  convert (h2.comp' h).snd,
+  rw preimage_source_eq_base_set,
+end,
+λ h, begin
+  rw e.to_local_homeomorph.continuous_within_at_iff_continuous_within_at_comp_left
+    (f.mem_base_set_image_mem_source hb) _,
+  { rw ←continuous_within_at_inter (e.open_base_set.mem_nhds hb),
+    exact continuous_within_at_prod_iff.mpr ⟨continuous_within_at_id.congr
+      (λ y hy, f.trivialization_at_fst y hy.2) (f.trivialization_at_fst b hb), h⟩, },
+  { rw right_inv.preimage_source_eq_base_set,
+    exact mem_nhds_within_of_mem_nhds (e.open_base_set.mem_nhds hb), }
+end ⟩
+
+lemma continuous_at_iff_continuous_within_at (f : right_inv (proj E)) {b : B}
+  (e : trivialization F (proj E)) (hb : b ∈ e.base_set) :
+  continuous_at f b ↔ continuous_within_at (λ x, (e (f x)).snd) e.base_set b :=
+begin
+  rw ←continuous_within_at_univ,
+  convert continuous_within_at_iff_continuous_within_at f e hb,
+  rw univ_inter,
+end
+
+end right_inv
+
 /-! ### Constructing topological fiber bundles -/
 
 namespace bundle

@@ -9,6 +9,7 @@ import algebra.module.basic
 
 /-!
 # Bundle
+
 Basic data structure to implement fiber bundles, vector bundles (maybe fibrations?), etc. This file
 should contain all possible results that do not involve any topology.
 
@@ -25,7 +26,9 @@ constructions of fiber bundles we will make will be of this form.
 * `bundle.total_space_mk` the constructor for the total space.
 
 ## References
+
 - https://en.wikipedia.org/wiki/Bundle_(mathematics)
+
 -/
 
 namespace bundle
@@ -141,3 +144,38 @@ instance [add_comm_monoid F] [module R F] : module R (bundle.trivial B F b) := �
 end trivial_instances
 
 end bundle
+
+section bundle_sections
+
+/-! ## Section of bundles -/
+
+open bundle
+
+variables {B : Type*} {E : B → Type*}
+
+/-- Type synonym for name clarity. -/
+@[reducible] def bundle_section (E : B → Type*) := Π x, E x
+
+@[simp] lemma right_inv.fst_eq_id (f : right_inv (proj E)) (b : B) : (f b).fst = b :=
+congr_fun f.right_inv_def b
+
+/-- Equivalence between Pi functions and right inverses. -/
+def bundle_section_equiv_right_inv : bundle_section E ≃ right_inv (proj E) :=
+{ to_fun := λ g, ⟨λ x, ⟨x, g x⟩, λ x, rfl⟩,
+  inv_fun := λ g, (λ x, cast (congr_arg E (g.right_inverse x)) (g x).2),
+  left_inv := λ g, rfl,
+  right_inv := λ g, by { ext a, exacts [(g.right_inv' a).symm, cast_heq _ _] }, }
+
+variables (x : B) (g : bundle_section E)
+
+@[simp] lemma right_inv.bundle_section_equiv_right_inv_symm_apply (g : right_inv (proj E)) :
+  bundle_section_equiv_right_inv.symm g x == (g x).2 := cast_heq _ (g x).snd
+
+@[simp] lemma bundle_section.bundle_section_equiv_right_inv_apply (g : bundle_section E) :
+(bundle_section_equiv_right_inv g) x = ⟨x, g x⟩ := rfl
+
+@[simp] lemma right_inv.snd_eq_to_bundle_section_fst (g : right_inv (proj E)) :
+  bundle_section_equiv_right_inv.symm g (g x).fst = (g x).snd :=
+eq_of_heq ((cast_heq _ _).trans (congr_arg_heq sigma.snd (congr_arg g (g.fst_eq_id x))))
+
+end bundle_sections

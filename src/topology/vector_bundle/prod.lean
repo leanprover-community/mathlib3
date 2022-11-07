@@ -111,6 +111,16 @@ def prod.inv_fun' (p : B × (F₁ × F₂)) : total_space (E₁ ×ᵇ E₂) :=
 
 variables {e₁ e₂}
 
+lemma prod.inv_fun'_apply {x : B} (hx₁ : x ∈ e₁.base_set) (hx₂ : x ∈ e₂.base_set)
+  (w₁ : F₁) (w₂ : F₂) :
+  prod.inv_fun' e₁ e₂ ⟨x, w₁, w₂⟩
+  = ⟨x, ((e₁.continuous_linear_equiv_at x hx₁).symm w₁,
+    (e₂.continuous_linear_equiv_at x hx₂).symm w₂)⟩ :=
+begin
+  dsimp [prod.inv_fun'],
+  rw [dif_pos, dif_pos],
+end
+
 lemma prod.left_inv {x : total_space (E₁ ×ᵇ E₂)}
   (h : x ∈ @total_space.proj B (E₁ ×ᵇ E₂) ⁻¹' (e₁.base_set ∩ e₂.base_set)) :
   prod.inv_fun' e₁ e₂ (prod.to_fun' e₁ e₂ x) = x :=
@@ -241,3 +251,203 @@ begin
 end
 
 end topological_vector_bundle
+
+section sections
+
+/-! ### Sections of topological vector bundles
+
+## Sections
+
+In this file we also prove that sections of vector bundles inherit the algebraic structures of the
+fibers. The proofs of this are the standard mathematical proofs: continuity is read through
+trivializations on the fibers, where checking the continuity of algebraic operations is
+straightforward.
+
+-/
+
+open topological_vector_bundle
+
+variables {R B E F} [nondiscrete_normed_field R] [topological_space (total_space E)]
+  [∀ x, topological_space (E x)] [Π (x : B), add_comm_monoid (E x)]
+  [Π (x : B), module R (E x)] [normed_group F] [normed_space R F]
+  [topological_space B] [topological_vector_bundle R F E]
+
+lemma right_inv.image_mem_trivialization_at_source (f : right_inv (proj E)) (b : B) :
+  f b ∈ (trivialization_at R F E b).source :=
+f.mem_base_set_image_mem_source (mem_base_set_trivialization_at R F E b)
+
+variables (R F E)
+
+lemma bundle_section.continuous_at_iff_continuous_within_at_triv_at (f : bundle_section E) (b : B) :
+  continuous_at f b ↔ continuous_within_at (λ x, ((trivialization_at R F E b) (f x)).snd)
+  (trivialization_at R F E b).base_set b :=
+(f : right_inv (proj E)).continuous_at_iff_continuous_within_at (trivialization_at R F E b)
+  (mem_base_set_trivialization_at R F E b)
+
+lemma bundle_section.continuous_within_at_iff_continuous_within_at_triv_at
+  (f : bundle_section E) (U : set B) (b : B) :
+  continuous_within_at f U b ↔ continuous_within_at (λ x, ((trivialization_at R F E b) (f x)).snd)
+  (U ∩ (trivialization_at R F E b).base_set) b :=
+(f : right_inv (proj E)).continuous_within_at_iff_continuous_within_at (trivialization_at R F E b)
+  (mem_base_set_trivialization_at R F E b)
+
+variables {E}
+
+section
+
+include R F
+
+lemma continuous_within_at.add_section [has_continuous_add F] {g h : bundle_section E} {U : set B}
+  {b : B} (hg : continuous_within_at g U b) (hh : continuous_within_at h U b) :
+  continuous_within_at ⇑(g + h) U b :=
+((g + h).continuous_within_at_iff_continuous_within_at_triv_at R F E U b).mpr
+  ((continuous_add.continuous_at.comp_continuous_within_at
+  (((g.continuous_within_at_iff_continuous_within_at_triv_at R F E U b).mp hg).prod
+  ((h.continuous_within_at_iff_continuous_within_at_triv_at R F E U b).mp hh))).congr
+  (λ y hy, trivialization.snd_map_add hy.2)
+  (trivialization.snd_map_add (mem_base_set_trivialization_at R F E b)))
+
+lemma continuous_at.add_section [has_continuous_add F] {g h : bundle_section E} {b : B}
+  (hg : continuous_at g b) (hh : continuous_at h b) :
+  continuous_at (↑(g + h) : B → total_space E) b :=
+by { rw ←continuous_within_at_univ at hg hh ⊢, exact hg.add_section R F hh }
+
+lemma continuous_on.add_section [has_continuous_add F] {g h : bundle_section E} {U : set B}
+  (hg : continuous_on g U) (hh : continuous_on h U) :
+  continuous_on (↑(g + h) : B → total_space E) U :=
+λ b hb, (hg.continuous_within_at hb).add_section R F (hh.continuous_within_at hb)
+
+lemma continuous.add_section [has_continuous_add F] {g h : bundle_section E} (hg : continuous g)
+  (hh : continuous h) : continuous ⇑(g + h) :=
+continuous_iff_continuous_at.mpr (λ b, hg.continuous_at.add_section R F hh.continuous_at)
+
+lemma continuous_within_at.zero_section (U : set B) (b : B) :
+  continuous_within_at ⇑(0 : bundle_section E) U b :=
+((0 : bundle_section E).continuous_within_at_iff_continuous_within_at_triv_at R F E U b).mpr
+  (continuous_within_at_const.congr (λ y hy, trivialization.snd_map_zero hy.2)
+  (trivialization.snd_map_zero (mem_base_set_trivialization_at R F E b)))
+
+lemma continuous_at.zero_section (b : B) : continuous_at ⇑(0 : bundle_section E) b :=
+(continuous_within_at_univ _ b).mp (continuous_within_at.zero_section R F univ b)
+
+lemma continuous_on.zero_section (U : set B) : continuous_on ⇑(0 : bundle_section E) U :=
+λ b hb, continuous_within_at.zero_section R F U b
+
+lemma continuous.zero_section : continuous ⇑(0 : bundle_section E) :=
+continuous_iff_continuous_at.mpr (λ b, continuous_at.zero_section R F b)
+
+variables {R} [topological_space R] [has_continuous_smul R F]
+
+lemma continuous_within_at.smul_section {g : bundle_section E} {U : set B} {b : B}
+  (hg : continuous_within_at g U b) (r : R) :
+  continuous_within_at ⇑(r • g : bundle_section E) U b :=
+((r • g).continuous_within_at_iff_continuous_within_at_triv_at R F E U b).mpr
+  ((((g.continuous_within_at_iff_continuous_within_at_triv_at R F E U b).mp hg).const_smul r).congr
+  (λ y hy, trivialization.snd_map_smul hy.2) (trivialization.snd_map_smul
+  (mem_base_set_trivialization_at R F E b)))
+
+lemma continuous_at.smul_section {g : bundle_section E} {b : B}
+  (hg : continuous_at g b) (r : R) : continuous_at ⇑(r • g : bundle_section E) b :=
+by { rw ←continuous_within_at_univ at hg ⊢, exact hg.smul_section F r }
+
+lemma continuous_on.smul_section {g : bundle_section E} {U : set B}
+  (hg : continuous_on g U) (r : R) : continuous_on ⇑(r • g : bundle_section E) U :=
+λ b hb, (hg.continuous_within_at hb).smul_section F r
+
+lemma continuous.smul_section {g : bundle_section E} (hg : continuous g) (r : R) :
+  continuous ⇑(r • g : bundle_section E) :=
+continuous_iff_continuous_at.mpr (λ b, hg.continuous_at.smul_section F r)
+
+end
+
+end sections
+
+section group
+
+open topological_vector_bundle
+
+variables {E R F}
+variables [nondiscrete_normed_field R] [∀ x, add_comm_group (E x)] [∀ x, module R (E x)]
+  [normed_group F] [normed_space R F] [topological_space B]
+  [topological_space (total_space E)] [∀ x, topological_space (E x)]
+  [topological_vector_bundle R F E]
+
+namespace trivialization
+
+lemma map_neg {g : bundle_section E}
+  {e : trivialization R F E} {b : B} (hb : b ∈ e.base_set) :
+  (e ((- (g : bundle_section E)) b)).snd = - (e ((g : right_inv (proj E)) b)).snd :=
+begin
+
+  rw [(trivialization.continuous_linear_equiv_apply hb).symm, pi.neg_apply,
+    continuous_linear_equiv.map_neg],
+  refl,
+end
+
+lemma snd_map_sub {g h : bundle_section E} {e : trivialization R F E} {b : B}
+  (hb : b ∈ e.base_set) : (e ((g - h) b)).snd = (e (g b)).snd - (e (h b)).snd :=
+begin
+  rw [(trivialization.continuous_linear_equiv_apply hb).symm, pi.sub_apply,
+    continuous_linear_equiv.map_sub],
+  refl,
+end
+
+end trivialization
+
+include R F
+
+section neg
+
+variables (R F) [has_continuous_neg F]
+
+lemma continuous_within_at.neg_section {g : bundle_section E} {U : set B} {b : B}
+  (hg : continuous_within_at g U b) : continuous_within_at ⇑(- g) U b :=
+((- g).continuous_within_at_iff_continuous_within_at_triv_at R F E U b).mpr
+  ((((g.continuous_within_at_iff_continuous_within_at_triv_at R F E U b).mp hg).neg).congr (λ y hy,
+  trivialization.map_neg hy.2) (trivialization.map_neg (mem_base_set_trivialization_at R F E b)))
+
+lemma continuous_at.neg_section {g : bundle_section E} {b : B}
+  (hg : continuous_at g b) : continuous_at ⇑(- g) b :=
+by { rw ←continuous_within_at_univ at hg ⊢, exact hg.neg_section R F }
+
+lemma continuous_on.neg_section {g : bundle_section E} {U : set B}
+  (hg : continuous_on g U) : continuous_on ⇑(- g) U :=
+λ b hb, (hg.continuous_within_at hb).neg_section R F
+
+lemma continuous.neg_section {g : bundle_section E}
+  (hg : continuous g) : continuous ⇑(- g) :=
+continuous_iff_continuous_at.mpr (λ b, hg.continuous_at.neg_section R F)
+
+end neg
+
+section sub
+
+variables (R F) [has_continuous_sub F]
+
+lemma continuous_within_at.sub_section {g h : bundle_section E} {U : set B} {b : B}
+  (hg : continuous_within_at g U b) (hh : continuous_within_at h U b) :
+  continuous_within_at ⇑(g - h) U b :=
+((g - h).continuous_within_at_iff_continuous_within_at_triv_at R F E U b).mpr
+  ((continuous_sub.continuous_at.comp_continuous_within_at
+  (((g.continuous_within_at_iff_continuous_within_at_triv_at R F E U b).mp hg).prod
+  ((h.continuous_within_at_iff_continuous_within_at_triv_at R F E U b).mp hh))).congr
+  (λ y hy, trivialization.snd_map_sub hy.2) (trivialization.snd_map_sub
+  (mem_base_set_trivialization_at R F E b)))
+
+lemma continuous_at.sub_section {g h : bundle_section E} {b : B}
+  (hg : continuous_at g b) (hh : continuous_at h b) :
+  continuous_at (↑(g - h) : B → total_space E) b :=
+by { rw ←continuous_within_at_univ at hg hh ⊢, exact hg.sub_section R F hh }
+
+lemma continuous_on.sub_section {g h : bundle_section E} {U : set B}
+  (hg : continuous_on g U) (hh : continuous_on h U) :
+  continuous_on (↑(g - h) : B → total_space E) U :=
+λ b hb, (hg.continuous_within_at hb).sub_section R F (hh.continuous_within_at hb)
+
+lemma continuous.sub_section {g h : bundle_section E} (hg : continuous g)
+  (hh : continuous h) : continuous ⇑(g - h) :=
+continuous_iff_continuous_at.mpr (λ b, hg.continuous_at.sub_section R F hh.continuous_at)
+
+end sub
+
+end group

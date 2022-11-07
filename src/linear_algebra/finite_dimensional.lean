@@ -1676,7 +1676,7 @@ begin
   nontriviality E,
   obtain ⟨m, hm, he⟩ := cardinal.exists_nat_eq_of_le_nat (h.trans_eq nat.cast_one.symm),
   haveI := finite_dimensional_of_dim_eq_nat he,
-  rw [← not_bot_lt_iff, ← subalgebra.to_submodule_order_embedding.lt_iff_lt],
+  rw [← not_bot_lt_iff, ← subalgebra.to_submodule.lt_iff_lt],
   haveI := (S.to_submodule_equiv).symm.finite_dimensional,
   refine λ hl, (submodule.finrank_lt_finrank_of_lt hl).not_le (nat_cast_le.1 _),
   iterate 2 { erw [subalgebra.finrank_to_submodule, finrank_eq_dim] },

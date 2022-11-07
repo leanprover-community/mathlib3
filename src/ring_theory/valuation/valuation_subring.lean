@@ -719,7 +719,7 @@ section
 
 variables {L : Type*} [field L]
 
-/--The pullback of `A` along the ring homomorphism `K →+* L`. -/
+/-- The pullback of a valuation subring `A` along a ring homomorphism `K →+* L`. -/
 def comap (A : valuation_subring L) (f : K →+* L) :
   valuation_subring K :=
 { mem_or_inv_mem' := λ k, by simp [valuation_subring.mem_or_inv_mem],

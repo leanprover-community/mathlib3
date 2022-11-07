@@ -864,4 +864,36 @@ instance (φ : S₁ ⟶ S₂) [S₁.has_left_homology] [S₂.has_left_homology]
   is_iso (left_homology_map φ) :=
 by { dsimp only [left_homology_map], apply_instance, }
 
+section
+
+variables (S) {A : C} (k : A ⟶ S.X₂) (hk : k ≫ S.g = 0) [has_left_homology S]
+
+def lift_cycles : A ⟶ S.cycles :=
+S.some_left_homology_data.lift_K k hk
+
+@[simp, reassoc]
+lemma lift_cycles_i : S.lift_cycles k hk ≫ S.cycles_i = k :=
+left_homology_data.lift_K_i _ k hk
+
+@[simp]
+def lift_left_homology : A ⟶ S.left_homology :=
+S.lift_cycles k hk ≫ S.left_homology_π
+
+lemma lift_cycles_π_eq_zero_of_boundary (x : A ⟶ S.X₁) (hx : k = x ≫ S.f) :
+S.lift_cycles k (by rw [hx, assoc, S.zero, comp_zero])≫ S.left_homology_π = 0 :=
+left_homology_data.lift_K_π_eq_zero_of_boundary _ k x hx
+
+def to_cycles : S.X₁ ⟶ S.cycles := S.lift_cycles S.f S.zero
+
+@[simp, reassoc]
+lemma to_cycles_comp_left_homology_π :
+  S.to_cycles ≫ S.left_homology_π = 0 :=
+S.lift_cycles_π_eq_zero_of_boundary S.f (𝟙 _) (by rw id_comp)
+
+def left_homology_is_cokernel :
+  is_colimit (cokernel_cofork.of_π S.left_homology_π S.to_cycles_comp_left_homology_π) :=
+S.some_left_homology_data.hπ
+
+end
+
 end short_complex

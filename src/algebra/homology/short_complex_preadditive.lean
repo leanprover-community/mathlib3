@@ -470,11 +470,26 @@ def left_homology_map_data.of_null_homotopic
 { φK := H₂.lift_K (H₁.i ≫ h₁ ≫ S₂.f) (by simp),
   φH := 0,
   commi := by simp,
-  commf' := by simp only [←cancel_mono H₂.i, h₀_f, assoc, null_homotopic_τ₁,
+  commf' := by simp only [← cancel_mono H₂.i, h₀_f, assoc, null_homotopic_τ₁,
     add_comp, left_homology_data.lift_K_i, left_homology_data.f'_i_assoc,
     left_homology_data.f'_i, zero_add],
   commπ := by rw [H₂.lift_K_π_eq_zero_of_boundary (H₁.i ≫ h₁ ≫ S₂.f)
     (H₁.i ≫ h₁) (by rw assoc), comp_zero], }
+
+@[simps]
+def right_homology_map_data.of_null_homotopic
+  (H₁ : S₁.right_homology_data) (H₂ : S₂.right_homology_data)
+  (h₀ : S₁.X₁ ⟶ S₂.X₁) (h₀_f : h₀ ≫ S₂.f = 0)
+  (h₁ : S₁.X₂ ⟶ S₂.X₁) (h₂ : S₁.X₃ ⟶ S₂.X₂) (h₃ : S₁.X₃ ⟶ S₂.X₃) (g_h₃ : S₁.g ≫ h₃ = 0) :
+  right_homology_map_data (null_homotopic h₀ h₀_f h₁ h₂ h₃ g_h₃) H₁ H₂ :=
+{ φQ := H₁.desc_Q (S₁.g ≫ h₂ ≫ H₂.p) (by simp),
+  φH := 0,
+  commp := by simp,
+  commg' := by simp only [←cancel_epi H₁.p, g_h₃, null_homotopic_τ₃, comp_add, assoc,
+    add_right_eq_self, right_homology_data.p_g'_assoc, right_homology_data.p_desc_Q_assoc,
+    right_homology_data.p_g'],
+  commι := by rw [H₁.ι_desc_Q_eq_zero_of_boundary (S₁.g ≫ h₂ ≫ H₂.p) (h₂ ≫ H₂.p) rfl,
+    zero_comp], }
 
 namespace homotopy
 
@@ -488,6 +503,22 @@ lemma left_homology_map'_null_homotopic
   left_homology_map' (null_homotopic h₀ h₀_f h₁ h₂ h₃ g_h₃) H₁ H₂ = 0 :=
 (left_homology_map_data.of_null_homotopic H₁ H₂ h₀ h₀_f h₁ h₂ h₃ g_h₃).left_homology_map'_eq
 
+@[simp]
+lemma right_homology_map'_null_homotopic
+  (H₁ : S₁.right_homology_data) (H₂ : S₂.right_homology_data)
+  (h₀ : S₁.X₁ ⟶ S₂.X₁) (h₀_f : h₀ ≫ S₂.f = 0)
+  (h₁ : S₁.X₂ ⟶ S₂.X₁) (h₂ : S₁.X₃ ⟶ S₂.X₂) (h₃ : S₁.X₃ ⟶ S₂.X₃) (g_h₃ : S₁.g ≫ h₃ = 0) :
+  right_homology_map' (null_homotopic h₀ h₀_f h₁ h₂ h₃ g_h₃) H₁ H₂ = 0 :=
+(right_homology_map_data.of_null_homotopic H₁ H₂ h₀ h₀_f h₁ h₂ h₃ g_h₃).right_homology_map'_eq
+
+@[simp]
+lemma homology_map'_null_homotopic
+  (H₁ : S₁.homology_data) (H₂ : S₂.homology_data)
+  (h₀ : S₁.X₁ ⟶ S₂.X₁) (h₀_f : h₀ ≫ S₂.f = 0)
+  (h₁ : S₁.X₂ ⟶ S₂.X₁) (h₂ : S₁.X₃ ⟶ S₂.X₂) (h₃ : S₁.X₃ ⟶ S₂.X₃) (g_h₃ : S₁.g ≫ h₃ = 0) :
+  homology_map' (null_homotopic h₀ h₀_f h₁ h₂ h₃ g_h₃) H₁ H₂ = 0 :=
+by apply left_homology_map'_null_homotopic
+
 variables (S₁ S₂)
 
 @[simp]
@@ -496,6 +527,20 @@ lemma left_homology_map_null_homotopic [S₁.has_left_homology] [S₂.has_left_h
   (h₁ : S₁.X₂ ⟶ S₂.X₁) (h₂ : S₁.X₃ ⟶ S₂.X₂) (h₃ : S₁.X₃ ⟶ S₂.X₃) (g_h₃ : S₁.g ≫ h₃ = 0) :
   left_homology_map (null_homotopic h₀ h₀_f h₁ h₂ h₃ g_h₃) = 0 :=
 by apply left_homology_map'_null_homotopic
+
+@[simp]
+lemma right_homology_map_null_homotopic [S₁.has_right_homology] [S₂.has_right_homology]
+  (h₀ : S₁.X₁ ⟶ S₂.X₁) (h₀_f : h₀ ≫ S₂.f = 0)
+  (h₁ : S₁.X₂ ⟶ S₂.X₁) (h₂ : S₁.X₃ ⟶ S₂.X₂) (h₃ : S₁.X₃ ⟶ S₂.X₃) (g_h₃ : S₁.g ≫ h₃ = 0) :
+  right_homology_map (null_homotopic h₀ h₀_f h₁ h₂ h₃ g_h₃) = 0 :=
+by apply right_homology_map'_null_homotopic
+
+@[simp]
+lemma homology_map_null_homotopic [S₁.has_homology] [S₂.has_homology]
+  (h₀ : S₁.X₁ ⟶ S₂.X₁) (h₀_f : h₀ ≫ S₂.f = 0)
+  (h₁ : S₁.X₂ ⟶ S₂.X₁) (h₂ : S₁.X₃ ⟶ S₂.X₂) (h₃ : S₁.X₃ ⟶ S₂.X₃) (g_h₃ : S₁.g ≫ h₃ = 0) :
+  homology_map (null_homotopic h₀ h₀_f h₁ h₂ h₃ g_h₃) = 0 :=
+by apply homology_map'_null_homotopic
 
 variables {S₁ S₂}
 
@@ -508,6 +553,26 @@ by rw [h.eq_add_null_homotopic, left_homology_map'_add,
 lemma congr_left_homology_map (h : homotopy φ₁ φ₂) [S₁.has_left_homology] [S₂.has_left_homology] :
   left_homology_map φ₁ = left_homology_map φ₂ :=
 congr_left_homology_map' h _ _
+
+lemma congr_right_homology_map'
+  (h : homotopy φ₁ φ₂) (h₁ : S₁.right_homology_data) (h₂ : S₂.right_homology_data) :
+  right_homology_map' φ₁ h₁ h₂ = right_homology_map' φ₂ h₁ h₂ :=
+by rw [h.eq_add_null_homotopic, right_homology_map'_add,
+  right_homology_map'_null_homotopic, add_zero]
+
+lemma congr_right_homology_map (h : homotopy φ₁ φ₂) [S₁.has_right_homology] [S₂.has_right_homology] :
+  right_homology_map φ₁ = right_homology_map φ₂ :=
+congr_right_homology_map' h _ _
+
+lemma congr_homology_map'
+  (h : homotopy φ₁ φ₂) (h₁ : S₁.homology_data) (h₂ : S₂.homology_data) :
+  homology_map' φ₁ h₁ h₂ = homology_map' φ₂ h₁ h₂ :=
+by rw [h.eq_add_null_homotopic, homology_map'_add,
+  homology_map'_null_homotopic, add_zero]
+
+lemma congr_homology_map (h : homotopy φ₁ φ₂) [S₁.has_homology] [S₂.has_homology] :
+  homology_map φ₁ = homology_map φ₂ :=
+congr_homology_map' h _ _
 
 end homotopy
 

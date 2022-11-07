@@ -146,6 +146,14 @@ p_desc_Q _ _ _
 @[simp, reassoc]
 lemma ι_g' : h.ι ≫ h.g' = 0 := h.hι₀
 
+lemma ι_desc_Q_eq_zero_of_boundary (k : S.X₂ ⟶ A) (x : S.X₃ ⟶ A) (hx : k = S.g ≫ x) :
+  h.ι ≫ h.desc_Q k (by rw [hx, S.zero_assoc, zero_comp]) = 0 :=
+begin
+  rw [show 0 = h.ι ≫ h.g' ≫ x, by simp],
+  congr' 1,
+  simp only [← cancel_epi h.p, hx, p_desc_Q, p_g'_assoc],
+end
+
 /-- For `h : homology_ful_data S`, this is a restatement of `h.hι`, saying that
 `ι : h.H ⟶ h.Q` is a kernel of `h.g' : h.Q ⟶ S.X₃`. -/
 @[simp]
@@ -955,5 +963,26 @@ instance (φ : S₁ ⟶ S₂) [S₁.has_right_homology] [S₂.has_right_homology
   [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] :
   is_iso (right_homology_map φ) :=
 by { dsimp only [right_homology_map], apply_instance, }
+
+section
+
+variables (S) {A : C} (k : S.X₂ ⟶ A) (hk : S.f ≫ k = 0) [has_right_homology S]
+
+def desc_cycles_co : S.cycles_co ⟶ A :=
+S.some_right_homology_data.desc_Q k hk
+
+@[simp, reassoc]
+def p_desc_cycles_co : S.p_cycles_co ≫ S.desc_cycles_co k hk = k :=
+right_homology_data.p_desc_Q _ k hk
+
+@[simp]
+def desc_right_homology : S.right_homology ⟶ A :=
+S.right_homology_ι ≫ S.desc_cycles_co k hk
+
+lemma ι_desc_cycles_co_eq_zero_of_boundary (x : S.X₃ ⟶ A) (hx : k = S.g ≫ x) :
+S.right_homology_ι ≫ S.desc_cycles_co k (by rw [hx, S.zero_assoc, zero_comp]) = 0 :=
+right_homology_data.ι_desc_Q_eq_zero_of_boundary _ k x hx
+
+end
 
 end short_complex

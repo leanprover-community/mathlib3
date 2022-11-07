@@ -451,6 +451,47 @@ instance (φ : S₁ ⟶ S₂) [S₁.has_homology] [S₂.has_homology]
   is_iso (homology_map φ) :=
 by { dsimp only [homology_map, homology_map'], apply_instance, }
 
+section
+
+variables [has_homology S] {A : C} {C}
+
+def homology_π : S.cycles ⟶ S.homology :=
+S.left_homology_π ≫ S.left_homology_iso_homology.hom
+
+@[simp, reassoc]
+lemma homology_π_comp_left_homology_iso_homology_inv :
+  S.homology_π ≫ S.left_homology_iso_homology.inv = S.left_homology_π :=
+begin
+  dsimp only [homology_π],
+  simp only [assoc, iso.hom_inv_id, comp_id],
+end
+
+@[simp, reassoc]
+lemma to_cycles_comp_homology_π :
+  S.to_cycles ≫ S.homology_π = 0 :=
+begin
+  dsimp only [homology_π],
+  simp only [to_cycles_comp_left_homology_π_assoc, zero_comp],
+end
+
+def homology_is_cokernel :
+  is_colimit (cokernel_cofork.of_π S.homology_π S.to_cycles_comp_homology_π) :=
+is_colimit.of_iso_colimit S.left_homology_is_cokernel
+  (cofork.ext S.left_homology_iso_homology rfl)
+
+def homology_desc (k : S.cycles ⟶ A) (hk : S.to_cycles ≫ k = 0) :
+  S.homology ⟶ A :=
+S.homology_is_cokernel.desc (cokernel_cofork.of_π k hk)
+
+@[simp, reassoc]
+def homology_π_desc (k : S.cycles ⟶ A) (hk : S.to_cycles ≫ k = 0) :
+  S.homology_π ≫ S.homology_desc k hk = k :=
+cokernel_cofork.is_colimit.π_desc S.homology_is_cokernel (cokernel_cofork.of_π k hk)
+
+/- dualise the above -/
+
+end
+
 end short_complex
 
 

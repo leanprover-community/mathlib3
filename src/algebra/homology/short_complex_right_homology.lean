@@ -998,7 +998,7 @@ def desc_cycles_co : S.cycles_co ⟶ A :=
 S.some_right_homology_data.desc_Q k hk
 
 @[simp, reassoc]
-def p_desc_cycles_co : S.p_cycles_co ≫ S.desc_cycles_co k hk = k :=
+lemma p_desc_cycles_co : S.p_cycles_co ≫ S.desc_cycles_co k hk = k :=
 right_homology_data.p_desc_Q _ k hk
 
 def cycles_co_is_cokernel : is_colimit (cokernel_cofork.of_π S.p_cycles_co S.f_cycles_co_p) :=

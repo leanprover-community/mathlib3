@@ -1,6 +1,8 @@
 import algebra.homology.short_complex_homology
 import category_theory.preadditive.additive_functor
 
+noncomputable theory
+
 open category_theory category_theory.preadditive category_theory.category category_theory.limits
 
 variables {C : Type*} [category C] [preadditive C]
@@ -194,9 +196,9 @@ lemma right_homology_map_neg [has_right_homology S₁] [has_right_homology S₂]
 right_homology_map'_neg _ _ _
 
 @[simp]
-lemma cycles_co_map_neg [has_left_homology S₁] [has_left_homology S₂] :
-  cycles_map (-φ) = -cycles_map φ :=
-cycles_map'_neg _ _ _
+lemma cycles_co_map_neg [has_right_homology S₁] [has_right_homology S₂] :
+  cycles_co_map (-φ) = -cycles_co_map φ :=
+cycles_co_map'_neg _ _ _
 
 @[simp]
 lemma right_homology_map'_add :
@@ -575,6 +577,83 @@ lemma congr_homology_map (h : homotopy φ₁ φ₂) [S₁.has_homology] [S₂.ha
 congr_homology_map' h _ _
 
 end homotopy
+
+variables (S₁ S₂)
+
+@[ext]
+structure homotopy_equiv :=
+(hom : S₁ ⟶ S₂)
+(inv : S₂ ⟶ S₁)
+(homotopy_hom_inv_id : homotopy (hom ≫ inv) (𝟙 S₁))
+(homotopy_inv_hom_id : homotopy (inv ≫ hom) (𝟙 S₂))
+
+namespace homotopy_equiv
+
+variables {S₁ S₂}
+
+@[simps]
+def left_homology_iso' (e : homotopy_equiv S₁ S₂) (h₁ : S₁.left_homology_data)
+  (h₂ : S₂.left_homology_data) :
+  h₁.H ≅ h₂.H :=
+{ hom := left_homology_map' e.hom h₁ h₂,
+  inv := left_homology_map' e.inv h₂ h₁,
+  hom_inv_id' := by rw [← left_homology_map'_comp,
+    e.homotopy_hom_inv_id.congr_left_homology_map' h₁ h₁, left_homology_map'_id],
+  inv_hom_id' := by rw [← left_homology_map'_comp,
+    e.homotopy_inv_hom_id.congr_left_homology_map' h₂ h₂, left_homology_map'_id], }
+
+@[simps]
+def left_homology_iso (e : homotopy_equiv S₁ S₂) [S₁.has_left_homology] [S₂.has_left_homology] :
+  S₁.left_homology ≅ S₂.left_homology :=
+{ hom := left_homology_map e.hom,
+  inv := left_homology_map e.inv,
+  hom_inv_id' := by rw [← left_homology_map_comp,
+    e.homotopy_hom_inv_id.congr_left_homology_map, left_homology_map_id],
+  inv_hom_id' := by rw [← left_homology_map_comp,
+    e.homotopy_inv_hom_id.congr_left_homology_map, left_homology_map_id], }
+
+@[simps]
+def right_homology_iso' (e : homotopy_equiv S₁ S₂) (h₁ : S₁.right_homology_data)
+  (h₂ : S₂.right_homology_data) :
+  h₁.H ≅ h₂.H :=
+{ hom := right_homology_map' e.hom h₁ h₂,
+  inv := right_homology_map' e.inv h₂ h₁,
+  hom_inv_id' := by rw [← right_homology_map'_comp,
+    e.homotopy_hom_inv_id.congr_right_homology_map' h₁ h₁, right_homology_map'_id],
+  inv_hom_id' := by rw [← right_homology_map'_comp,
+    e.homotopy_inv_hom_id.congr_right_homology_map' h₂ h₂, right_homology_map'_id], }
+
+@[simps]
+def right_homology_iso (e : homotopy_equiv S₁ S₂) [S₁.has_right_homology] [S₂.has_right_homology] :
+  S₁.right_homology ≅ S₂.right_homology :=
+{ hom := right_homology_map e.hom,
+  inv := right_homology_map e.inv,
+  hom_inv_id' := by rw [← right_homology_map_comp,
+    e.homotopy_hom_inv_id.congr_right_homology_map, right_homology_map_id],
+  inv_hom_id' := by rw [← right_homology_map_comp,
+    e.homotopy_inv_hom_id.congr_right_homology_map, right_homology_map_id], }
+
+@[simps]
+def homology_iso' (e : homotopy_equiv S₁ S₂) (h₁ : S₁.homology_data) (h₂ : S₂.homology_data) :
+  h₁.left.H ≅ h₂.left.H :=
+{ hom := homology_map' e.hom h₁ h₂,
+  inv := homology_map' e.inv h₂ h₁,
+  hom_inv_id' := by rw [← homology_map'_comp,
+    e.homotopy_hom_inv_id.congr_homology_map' h₁ h₁, homology_map'_id],
+  inv_hom_id' := by rw [← homology_map'_comp,
+    e.homotopy_inv_hom_id.congr_homology_map' h₂ h₂, homology_map'_id], }
+
+@[simps]
+def homology_iso (e : homotopy_equiv S₁ S₂) [S₁.has_homology] [S₂.has_homology] :
+  S₁.homology ≅ S₂.homology :=
+{ hom := homology_map e.hom,
+  inv := homology_map e.inv,
+  hom_inv_id' := by rw [← homology_map_comp,
+    e.homotopy_hom_inv_id.congr_homology_map, homology_map_id],
+  inv_hom_id' := by rw [← homology_map_comp,
+    e.homotopy_inv_hom_id.congr_homology_map, homology_map_id], }
+
+end homotopy_equiv
 
 end homotopy
 

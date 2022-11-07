@@ -123,9 +123,10 @@ finset.ext $ λ x, iff_of_true (mem_univ _) $ mem_singleton.2 $ subsingleton.eli
 
 @[simp] theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
-instance : order_top (finset α) :=
+instance : bounded_order (finset α) :=
 { top := univ,
-  le_top := subset_univ }
+  le_top := subset_univ,
+  .. finset.order_bot }
 
 @[simp] lemma top_eq_univ : (⊤ : finset α) = univ := rfl
 

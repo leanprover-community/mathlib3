@@ -298,12 +298,6 @@ lemma nonempty_of_mem {x} (h : x ∈ s) : s.nonempty := ⟨x, h⟩
 theorem nonempty.not_subset_empty : s.nonempty → ¬(s ⊆ ∅)
 | ⟨x, hx⟩ hs := hs hx
 
-theorem nonempty.ne_empty : ∀ {s : set α}, s.nonempty → s ≠ ∅
-| _ ⟨x, hx⟩ rfl := hx
-
-@[simp] theorem not_nonempty_empty : ¬(∅ : set α).nonempty :=
-λ h, h.ne_empty rfl
-
 /-- Extract a witness from `s.nonempty`. This function might be used instead of case analysis
 on the argument. Note that it makes a proof depend on the `classical.choice` axiom. -/
 protected noncomputable def nonempty.some (h : s.nonempty) : α := classical.some h
@@ -380,12 +374,16 @@ eq_empty_of_subset_empty $ λ x hx, is_empty_elim x
 instance unique_empty [is_empty α] : unique (set α) :=
 { default := ∅, uniq := eq_empty_of_is_empty }
 
+/-- See also `set.ne_empty_iff_nonempty`. -/
 lemma not_nonempty_iff_eq_empty {s : set α} : ¬s.nonempty ↔ s = ∅ :=
 by simp only [set.nonempty, eq_empty_iff_forall_not_mem, not_exists]
 
-lemma empty_not_nonempty : ¬(∅ : set α).nonempty := λ h, h.ne_empty rfl
-
+/-- See also `set.not_nonempty_iff_eq_empty`. -/
 theorem ne_empty_iff_nonempty : s ≠ ∅ ↔ s.nonempty := not_iff_comm.1 not_nonempty_iff_eq_empty
+
+alias ne_empty_iff_nonempty ↔ _ nonempty.ne_empty
+
+@[simp] lemma not_nonempty_empty : ¬(∅ : set α).nonempty := λ ⟨x, hx⟩, hx
 
 @[simp] lemma is_empty_coe_sort {s : set α} : is_empty ↥s ↔ s = ∅ :=
 not_iff_not.1 $ by simpa using ne_empty_iff_nonempty.symm
@@ -1210,13 +1208,26 @@ sup_eq_sdiff_sup_sdiff_sup_inf
 
 lemma mem_symm_diff : a ∈ s ∆ t ↔ a ∈ s ∧ a ∉ t ∨ a ∈ t ∧ a ∉ s := iff.rfl
 
+protected lemma symm_diff_def (s t : set α) : s ∆ t = s \ t ∪ t \ s := rfl
+
 lemma symm_diff_subset_union : s ∆ t ⊆ s ∪ t := @symm_diff_le_sup (set α) _ _ _
+
+@[simp] lemma symm_diff_eq_empty : s ∆ t = ∅ ↔ s = t := symm_diff_eq_bot
+
+@[simp] lemma symm_diff_nonempty : (s ∆ t).nonempty ↔ s ≠ t :=
+ne_empty_iff_nonempty.symm.trans symm_diff_eq_empty.not
 
 lemma inter_symm_diff_distrib_left (s t u : set α) : s ∩ t ∆ u = (s ∩ t) ∆ (s ∩ u) :=
 inf_symm_diff_distrib_left _ _ _
 
 lemma inter_symm_diff_distrib_right (s t u : set α) : s ∆ t ∩ u = (s ∩ u) ∆ (t ∩ u) :=
 inf_symm_diff_distrib_right _ _ _
+
+lemma subset_symm_diff_union_symm_diff_left (h : disjoint s t) : u ⊆ s ∆ u ∪ t ∆ u :=
+h.le_symm_diff_sup_symm_diff_left
+
+lemma subset_symm_diff_union_symm_diff_right (h : disjoint t u) : s ⊆ s ∆ t ∪ s ∆ u :=
+h.le_symm_diff_sup_symm_diff_right
 
 /-! ### Powerset -/
 
@@ -1431,6 +1442,7 @@ end preimage
 /-! ### Image of a set under a function -/
 
 section image
+variables {f : α → β}
 
 /-- The image of `s : set α` by `f : α → β`, written `f '' s`,
   is the set of `y : β` such that `f x = y` for some `x ∈ s`. -/
@@ -1608,11 +1620,18 @@ begin
   exact image_subset f (subset_union_right t s)
 end
 
+lemma subset_image_symm_diff : (f '' s) ∆ (f '' t) ⊆ f '' s ∆ t :=
+(union_subset_union (subset_image_diff _ _ _) $ subset_image_diff _ _ _).trans
+  (image_union _ _ _).superset
+
 theorem image_diff {f : α → β} (hf : injective f) (s t : set α) :
   f '' (s \ t) = f '' s \ f '' t :=
 subset.antisymm
   (subset.trans (image_inter_subset _ _ _) $ inter_subset_inter_right _ $ image_compl_subset hf)
   (subset_image_diff f s t)
+
+lemma image_symm_diff (hf : injective f) (s t : set α) : f '' (s ∆ t) = (f '' s) ∆ (f '' t) :=
+by simp_rw [set.symm_diff_def, image_union, image_diff hf]
 
 lemma nonempty.image (f : α → β) {s : set α} : s.nonempty → (f '' s).nonempty
 | ⟨x, hx⟩ := ⟨f x, mem_image_of_mem f hx⟩
@@ -2054,6 +2073,9 @@ theorem forall_subtype_range_iff {p : range f → Prop} :
   (∀ a : range f, p a) ↔ ∀ i, p ⟨f i, mem_range_self _⟩ :=
 ⟨λ H i, H _, λ H ⟨y, i, hi⟩, by { subst hi, apply H }⟩
 
+lemma subsingleton_range {α : Sort*} [subsingleton α] (f : α → β) : (range f).subsingleton :=
+forall_range_iff.2 $ λ x, forall_range_iff.2 $ λ y, congr_arg f (subsingleton.elim x y)
+
 theorem exists_range_iff {p : α → Prop} : (∃ a ∈ range f, p a) ↔ (∃ i, p (f i)) :=
 by simp
 
@@ -2078,6 +2100,9 @@ by rw ← image_univ; exact image_subset _ (subset_univ _)
 
 theorem mem_range_of_mem_image (f : α → β) (s) {x : β} (h : x ∈ f '' s) : x ∈ range f :=
 image_subset_range f s h
+
+lemma nat.mem_range_succ (i : ℕ) : i ∈ range nat.succ ↔ 0 < i :=
+⟨by { rintros ⟨n, rfl⟩, exact nat.succ_pos n, }, λ h, ⟨_, nat.succ_pred_eq_of_pos h⟩⟩
 
 lemma nonempty.preimage' {s : set β} (hs : s.nonempty) {f : α → β} (hf : s ⊆ set.range f) :
   (f ⁻¹' s).nonempty :=
@@ -2145,6 +2170,15 @@ lemma image_preimage_eq_iff {f : α → β} {s : set β} : f '' (f ⁻¹' s) = s
 lemma subset_range_iff_exists_image_eq {f : α → β} {s : set β} :
   s ⊆ range f ↔ ∃ t, f '' t = s :=
 ⟨λ h, ⟨_, image_preimage_eq_iff.2 h⟩, λ ⟨t, ht⟩, ht ▸ image_subset_range _ _⟩
+
+@[simp] lemma exists_subset_range_and_iff {f : α → β} {p : set β → Prop} :
+  (∃ s, s ⊆ range f ∧ p s) ↔ ∃ s, p (f '' s) :=
+⟨λ ⟨s, hsf, hps⟩, ⟨f ⁻¹' s, (image_preimage_eq_of_subset hsf).symm ▸ hps⟩,
+  λ ⟨s, hs⟩, ⟨f '' s, image_subset_range _ _, hs⟩⟩
+
+lemma exists_subset_range_iff {f : α → β} {p : set β → Prop} :
+  (∃ s ⊆ range f, p s) ↔ ∃ s, p (f '' s) :=
+by simp only [exists_prop, exists_subset_range_and_iff]
 
 lemma range_image (f : α → β) : range (image f) = 𝒫 (range f) :=
 ext $ λ s, subset_range_iff_exists_image_eq.symm
@@ -2290,9 +2324,11 @@ lemma surjective_onto_range : surjective (range_factorization f) :=
 lemma image_eq_range (f : α → β) (s : set α) : f '' s = range (λ(x : s), f x) :=
 by { ext, split, rintro ⟨x, h1, h2⟩, exact ⟨⟨x, h1⟩, h2⟩, rintro ⟨⟨x, h1⟩, h2⟩, exact ⟨x, h1, h2⟩ }
 
-@[simp] lemma sum.elim_range {α β γ : Type*} (f : α → γ) (g : β → γ) :
-  range (sum.elim f g) = range f ∪ range g :=
-by simp [set.ext_iff, mem_range]
+lemma _root_.sum.range_eq (f : α ⊕ β → γ) : range f = range (f ∘ sum.inl) ∪ range (f ∘ sum.inr) :=
+ext $ λ x, sum.exists
+
+@[simp] lemma sum.elim_range (f : α → γ) (g : β → γ) : range (sum.elim f g) = range f ∪ range g :=
+sum.range_eq _
 
 lemma range_ite_subset' {p : Prop} [decidable p] {f g : α → β} :
   range (if p then f else g) ⊆ range f ∪ range g :=

@@ -5,7 +5,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.convex.extreme
 import analysis.convex.function
-import analysis.normed_space.ordered
+import analysis.normed.order.basic
 
 /-!
 # Exposed sets
@@ -138,7 +138,7 @@ begin
   refine finset.induction _ _,
   { rintro h,
     exfalso,
-    exact empty_not_nonempty h },
+    exact not_nonempty_empty h },
   rintro C F _ hF _ hCF,
   rw [finset.coe_insert, sInter_insert],
   obtain rfl | hFnemp := F.eq_empty_or_nonempty,

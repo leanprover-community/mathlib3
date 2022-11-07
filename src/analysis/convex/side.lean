@@ -5,6 +5,7 @@ Authors: Joseph Myers
 -/
 import analysis.convex.between
 import analysis.convex.topology
+import analysis.normed.group.add_torsor
 
 /-!
 # Sides of affine subspaces

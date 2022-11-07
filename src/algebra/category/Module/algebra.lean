@@ -43,12 +43,12 @@ Type synonym for considering a module over a `k`-algebra as a `k`-module.
 def module_of_algebra_Module (M : Module.{v} A) : module k M :=
 restrict_scalars.module k A M
 
-local attribute [instance] module_of_algebra_Module
+localized "attribute [instance] Module.module_of_algebra_Module" in Module
 
 lemma is_scalar_tower_of_algebra_Module (M : Module.{v} A) : is_scalar_tower k A M :=
 restrict_scalars.is_scalar_tower k A M
 
-local attribute [instance] is_scalar_tower_of_algebra_Module
+localized "attribute [instance] Module.is_scalar_tower_of_algebra_Module" in Module
 
 -- We verify that the morphism spaces become `k`-modules.
 example (M N : Module.{v} A) : module k (M ⟶ N) := by apply_instance

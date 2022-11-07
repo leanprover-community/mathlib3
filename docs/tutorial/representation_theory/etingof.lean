@@ -95,6 +95,10 @@ example : Module Aᵐᵒᵖ := Module.of Aᵐᵒᵖ A
 -- Right modules are not extensively developed in mathlib at this point,
 -- and you may run into difficulty using them.
 
+-- It is helpful when working with `Module` to run
+open_locale Module
+-- which adds some instances.
+
 -- Example 2.3.3
 -- (1) The zero module
 example : Module A := Module.of A punit
@@ -148,6 +152,7 @@ example (N₁ N₂ : Module.{u} A) [simple N₁] [simple N₂] (f : N₁ ⟶ N�
 is_iso_of_hom_simple w
 
 -- Corollary 2.3.10 (Schur's lemma over an algebraically closed field)
+-- Unfortunately these can't be global instances
 example [is_alg_closed k] (V : Module.{u} A) [simple V] [finite_dimensional k V] (f : V ⟶ V) :
   ∃ φ : k, φ • 𝟙 V = f :=
 endomorphism_simple_eq_smul_id k f

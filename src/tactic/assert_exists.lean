@@ -9,6 +9,11 @@ import tactic.core
 # User commands for assert the (non-)existence of declaration or instances.
 
 These commands are used to enforce the independence of different parts of mathlib.
+
+## Future work
+We should have a linter that collects all `assert_not_exists` and `assert_no_instance` commands,
+and checks that they are eventually satisfied when importing all of mathlib.
+This will protect against typos.
 -/
 
 section

@@ -215,8 +215,7 @@ lemma const_one_form_is_bound : is_bounded_at_im_infty (1 : ℍ → ℂ):=
 @asymptotics.is_O_const_const _ _ ℂ _ _ 1 _ one_ne_zero _
 
 instance : has_one (modular_form Γ 0) :=
-{one := {
-  to_fun := (1 : slash_invariant_form Γ 0),
+{ one := { to_fun := (1 : slash_invariant_form Γ 0),
   slash_action_eq' := (1 : slash_invariant_form Γ 0).2,
   hol' := (λ (x : ℍ), mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
   bdd_at_infty' := by {intro A,

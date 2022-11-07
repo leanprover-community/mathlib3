@@ -1135,14 +1135,20 @@ end
 @[reducible] def map_le {G G' : simple_graph V} (h : G ≤ G') {u v : V} (p : G.walk u v) :
   G'.walk u v := p.map (hom.map_spanning_subgraphs h)
 
-lemma is_trail.map_le {G G' : simple_graph V} (h : G ≤ G') {u v : V} {p : G.walk u v}
-  (pt : p.is_trail) : (p.map_le h).is_trail := map_is_trail_of_injective (function.injective_id) pt
+@[simp] lemma map_le_is_trail {G G' : simple_graph V} (h : G ≤ G') {u v : V} {p : G.walk u v} :
+  (p.map_le h).is_trail ↔ p.is_trail := map_is_trail_iff_of_injective (function.injective_id)
 
-lemma is_path.map_le {G G' : simple_graph V} (h : G ≤ G') {u v : V} {p : G.walk u v}
-  (pp : p.is_path) : (p.map_le h).is_path := map_is_path_of_injective (function.injective_id) pp
+alias map_le_is_trail ↔ is_trail.of_map_le is_trail.map_le
 
-lemma is_cycle.map_le {G G' : simple_graph V} (h : G ≤ G') {u : V} {p : G.walk u u}
-  (pc : p.is_cycle) : (p.map_le h).is_cycle := map_is_cycle_of_injective (function.injective_id) pc
+@[simp] lemma map_le_is_path {G G' : simple_graph V} (h : G ≤ G') {u v : V} {p : G.walk u v} :
+  (p.map_le h).is_path ↔ p.is_path := map_is_path_iff_of_injective (function.injective_id)
+
+alias map_le_is_path ↔ is_path.of_map_le is_path.map_le
+
+@[simp] lemma map_le_is_cycle {G G' : simple_graph V} (h : G ≤ G') {u : V} {p : G.walk u u} :
+  (p.map_le h).is_cycle ↔ p.is_cycle := map_is_cycle_iff_of_injective (function.injective_id)
+
+alias map_le_is_cycle ↔ is_cycle.of_map_le is_cycle.map_le
 
 end walk
 

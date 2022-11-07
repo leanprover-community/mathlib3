@@ -1331,6 +1331,8 @@ protected def monoid_hom.coe [mul_one_class M] [mul_one_class N] [coe_is_monoid_
   .. one_hom.coe M N,
   .. mul_hom.coe M N }
 
+variables {M N}
+
 @[simp, norm_cast, to_additive]
 lemma coe_pow [monoid M] [monoid N] [coe_is_monoid_hom M N]
   (a : M) (n : ℕ) : ↑(a ^ n) = (↑a : N) ^ n :=
@@ -1350,6 +1352,8 @@ map_inv (monoid_hom.coe G H) a
 lemma coe_div [group G] [division_monoid H] [has_lift_t G H] [coe_is_monoid_hom G H]
   (a b : G) : ↑(a / b) = (↑a : H) / ↑b :=
 map_div (monoid_hom.coe G H) a b
+
+variables (M N)
 
 /-- `coe_monoid_with-zero_hom M N` is a class stating that the coercion map `↑ : M → N`
 (a.k.a. `coe`) is a monoid with zero homomorphism.

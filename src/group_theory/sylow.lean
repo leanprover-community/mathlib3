@@ -165,7 +165,7 @@ sylow.fintype_of_ker_is_p_group (is_p_group.ker_is_p_group_of_injective hf)
 
 /-- If `H` is a subgroup of `G`, then `fintype (sylow p G)` implies `fintype (sylow p H)`. -/
 noncomputable instance (H : subgroup G) [fintype (sylow p G)] : fintype (sylow p H) :=
-sylow.fintype_of_injective (show function.injective H.subtype, from subtype.coe_injective)
+sylow.fintype_of_injective H.subtype_injective
 
 /-- If `H` is a subgroup of `G`, then `finite (sylow p G)` implies `finite (sylow p H)`. -/
 instance (H : subgroup G) [finite (sylow p G)] : finite (sylow p H) :=

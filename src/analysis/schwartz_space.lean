@@ -8,6 +8,7 @@ import analysis.calculus.cont_diff
 import analysis.complex.basic
 import analysis.locally_convex.with_seminorms
 import topology.algebra.uniform_filter_basis
+import topology.continuous_function.bounded
 import tactic.positivity
 
 /-!
@@ -90,6 +91,9 @@ end
 
 /-- Every Schwartz function is smooth. -/
 lemma smooth (f : 𝓢(E, F)) (n : ℕ∞) : cont_diff ℝ n f := f.smooth'.of_le le_top
+
+/-- Every Schwartz function is continuous. -/
+@[continuity, protected] lemma continuous (f : 𝓢(E, F)) : continuous f := (f.smooth 0).continuous
 
 @[ext] lemma ext {f g : 𝓢(E, F)} (h : ∀ x, (f : E → F) x = g x) : f = g := fun_like.ext f g h
 
@@ -333,18 +337,25 @@ lemma le_seminorm (k n : ℕ) (f : 𝓢(E, F)) (x : E) :
   ∥x∥ ^ k * ∥iterated_fderiv ℝ n f x∥ ≤ seminorm 𝕜 k n f :=
 f.le_seminorm_aux k n x
 
-lemma norm_iterated_fderiv_le_seminorm (f : 𝓢(E, F)) (n : ℕ) (x₀ : E):
+lemma norm_iterated_fderiv_le_seminorm (f : 𝓢(E, F)) (n : ℕ) (x₀ : E) :
   ∥iterated_fderiv ℝ n f x₀∥ ≤ (schwartz_map.seminorm 𝕜 0 n) f :=
 begin
   have := schwartz_map.le_seminorm 𝕜 0 n f x₀,
   rwa [pow_zero, one_mul] at this,
 end
 
-lemma norm_pow_mul_le_seminorm (f : 𝓢(E, F)) (k : ℕ) (x₀ : E):
+lemma norm_pow_mul_le_seminorm (f : 𝓢(E, F)) (k : ℕ) (x₀ : E) :
   ∥x₀∥^k * ∥f x₀∥ ≤ (schwartz_map.seminorm 𝕜 k 0) f :=
 begin
   have := schwartz_map.le_seminorm 𝕜 k 0 f x₀,
   rwa norm_iterated_fderiv_zero at this,
+end
+
+lemma norm_le_seminorm (f : 𝓢(E, F)) (x₀ : E) :
+  ∥f x₀∥ ≤ (schwartz_map.seminorm 𝕜 0 0) f :=
+begin
+  have := norm_pow_mul_le_seminorm 𝕜 f 0 x₀,
+  rwa [pow_zero, one_mul] at this,
 end
 
 end seminorms
@@ -359,6 +370,12 @@ variables (𝕜 E F)
 /-- The family of Schwartz seminorms. -/
 def _root_.schwartz_seminorm_family : seminorm_family 𝕜 𝓢(E, F) (ℕ × ℕ) :=
 λ n, seminorm 𝕜 n.1 n.2
+
+@[simp] lemma schwartz_seminorm_family_apply (n k : ℕ) :
+  schwartz_seminorm_family 𝕜 E F (n,k) = schwartz_map.seminorm 𝕜 n k := rfl
+
+@[simp] lemma schwartz_seminorm_family_apply_zero :
+  schwartz_seminorm_family 𝕜 E F 0 = schwartz_map.seminorm 𝕜 0 0 := rfl
 
 instance : topological_space 𝓢(E, F) :=
 (schwartz_seminorm_family ℝ E F).module_filter_basis.topology'
@@ -391,6 +408,63 @@ instance : uniform_add_group 𝓢(E, F) :=
 instance : locally_convex_space ℝ 𝓢(E, F) :=
 (schwartz_with_seminorms ℝ E F).to_locally_convex_space
 
+instance : topological_space.first_countable_topology (𝓢(E, F)) :=
+(schwartz_with_seminorms ℝ E F).first_countable
+
 end topology
+
+section bounded_continuous_function
+
+/-! ### Inclusion into the space of bounded continuous functions -/
+
+open_locale bounded_continuous_function
+
+/-- Schwartz functions as bounded continuous functions-/
+def to_bounded_continuous_function (f : 𝓢(E, F)) : E →ᵇ F :=
+bounded_continuous_function.of_normed_add_comm_group f (schwartz_map.continuous f)
+  (schwartz_map.seminorm ℝ 0 0 f) (norm_le_seminorm ℝ f)
+
+@[simp] lemma to_bounded_continuous_function_apply (f : 𝓢(E, F)) (x : E) :
+  f.to_bounded_continuous_function x = f x := rfl
+
+variables (𝕜 E F)
+variables [is_R_or_C 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
+
+/-- The inclusion map from Schwartz functions to bounded continuous functions as a linear map. -/
+def to_bounded_continuous_function_lm : 𝓢(E, F) →ₗ[𝕜] E →ᵇ F :=
+{ to_fun := λ f, f.to_bounded_continuous_function,
+  map_add' := λ f g, by { ext, exact add_apply },
+  map_smul' := λ a f, by { ext, exact smul_apply } }
+
+@[simp] lemma to_bounded_continuous_function_lm_apply (f : 𝓢(E, F)) (x : E) :
+  to_bounded_continuous_function_lm 𝕜 E F f x = f x := rfl
+
+/-- The inclusion map from Schwartz functions to bounded continuous functions as a continuous linear
+map. -/
+def to_bounded_continuous_function_clm : 𝓢(E, F) →L[𝕜] E →ᵇ F :=
+{ cont :=
+  begin
+    change continuous (to_bounded_continuous_function_lm 𝕜 E F),
+    refine seminorm.continuous_from_bounded (schwartz_with_seminorms 𝕜 E F)
+      (norm_with_seminorms 𝕜 (E →ᵇ F)) _ (λ i, ⟨{0}, 1, one_ne_zero, λ f, _⟩),
+    rw [finset.sup_singleton, one_smul , seminorm.comp_apply, coe_norm_seminorm,
+        schwartz_seminorm_family_apply_zero, bounded_continuous_function.norm_le (map_nonneg _ _)],
+    intros x,
+    exact norm_le_seminorm 𝕜 _ _,
+  end,
+  .. to_bounded_continuous_function_lm 𝕜 E F}
+
+@[simp] lemma to_bounded_continuous_function_clm_apply (f : 𝓢(E, F)) (x : E) :
+  to_bounded_continuous_function_clm 𝕜 E F f x = f x := rfl
+
+variables {E}
+
+/-- The Dirac delta distribution -/
+def delta (x : E) : 𝓢(E, F) →L[𝕜] F :=
+(bounded_continuous_function.eval_clm 𝕜 x).comp (to_bounded_continuous_function_clm 𝕜 E F)
+
+@[simp] lemma delta_apply (x₀ : E) (f : 𝓢(E, F)) : delta 𝕜 F x₀ f = f x₀ := rfl
+
+end bounded_continuous_function
 
 end schwartz_map

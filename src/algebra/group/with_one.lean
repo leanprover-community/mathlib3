@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Johan Commelin
 -/
 import algebra.hom.equiv
 import algebra.ring.basic
-import logic.equiv.basic
+import logic.equiv.defs
 import logic.equiv.option
 
 /-!

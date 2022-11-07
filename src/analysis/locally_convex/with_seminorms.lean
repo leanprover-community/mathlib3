@@ -19,8 +19,10 @@ bounded by a finite number of seminorms in `E`.
 
 ## Main statements
 
-* `seminorm_family.to_locally_convex_space`: A space equipped with a family of seminorms is locally
+* `with_seminorms.to_locally_convex_space`: A space equipped with a family of seminorms is locally
 convex.
+* `with_seminorms.first_countable`: A space is first countable if it's topology is induced by a
+countable family of seminorms.
 
 ## Continuity of semilinear maps
 
@@ -288,14 +290,16 @@ end topology
 section topological_add_group
 
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
-variables [topological_space E] [topological_add_group E]
+variables [t : topological_space E] [topological_add_group E]
 variables [nonempty ι]
+
+include t
 
 lemma seminorm_family.with_seminorms_of_nhds (p : seminorm_family 𝕜 E ι)
   (h : 𝓝 (0 : E) = p.module_filter_basis.to_filter_basis.filter) :
   with_seminorms p :=
 begin
-  refine ⟨topological_add_group.ext (by apply_instance)
+  refine ⟨topological_add_group.ext infer_instance
     (p.add_group_filter_basis.is_topological_add_group) _⟩,
   rw add_group_filter_basis.nhds_zero_eq,
   exact h,
@@ -323,6 +327,36 @@ begin
   refine seminorm.continuous _,
   rw [p.with_seminorms_iff_nhds_eq_infi.mp hp, ball_zero_eq_preimage_ball],
   exact filter.mem_infi_of_mem i (filter.preimage_mem_comap $ metric.ball_mem_nhds _ one_pos)
+end
+
+/-- The topology induced by a family of seminorms is exactly the infimum of the ones induced by
+each seminorm individually. We express this as a characterization of `with_seminorms p`. -/
+lemma seminorm_family.with_seminorms_iff_topological_space_eq_infi (p : seminorm_family 𝕜 E ι) :
+  with_seminorms p ↔ t = ⨅ i, (p i).to_add_group_seminorm.to_seminormed_add_comm_group
+    .to_uniform_space.to_topological_space :=
+begin
+  rw [p.with_seminorms_iff_nhds_eq_infi, topological_add_group.ext_iff infer_instance
+        (topological_add_group_infi $ λ i, infer_instance), nhds_infi],
+  congrm (_ = ⨅ i, _),
+  exact @comap_norm_nhds_zero _ (p i).to_add_group_seminorm.to_seminormed_add_group,
+  all_goals {apply_instance}
+end
+
+omit t
+
+/-- The uniform structure induced by a family of seminorms is exactly the infimum of the ones
+induced by each seminorm individually. We express this as a characterization of
+`with_seminorms p`. -/
+lemma seminorm_family.with_seminorms_iff_uniform_space_eq_infi [u : uniform_space E]
+  [uniform_add_group E] (p : seminorm_family 𝕜 E ι) :
+  with_seminorms p ↔ u = ⨅ i, (p i).to_add_group_seminorm.to_seminormed_add_comm_group
+    .to_uniform_space :=
+begin
+  rw [p.with_seminorms_iff_nhds_eq_infi, uniform_add_group.ext_iff infer_instance
+        (uniform_add_group_infi $ λ i, infer_instance), to_topological_space_infi, nhds_infi],
+  congrm (_ = ⨅ i, _),
+  exact @comap_norm_nhds_zero _ (p i).to_add_group_seminorm.to_seminormed_add_group,
+  all_goals {apply_instance}
 end
 
 end topological_add_group

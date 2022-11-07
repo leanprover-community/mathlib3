@@ -362,7 +362,6 @@ is_limit.of_iso_limit ((is_limit.of_cone_equiv (cone_equiv F U)).symm Q)
   hom_inv_id' := by { ext, dsimp, simp only [category.comp_id], },
   inv_hom_id' := by { ext, dsimp, simp only [category.comp_id], }, }
 
-
 end sheaf_condition_pairwise_intersections
 
 open sheaf_condition_pairwise_intersections
@@ -370,8 +369,10 @@ open sheaf_condition_pairwise_intersections
 /--
 The sheaf condition in terms of an equalizer diagram is equivalent
 to the reformulation in terms of a limit diagram over `U i` and `U i ⊓ U j`.
+A more general version `is_sheaf_iff_is_sheaf_pairwise_intersections` without
+the `has_products` assumption is available in a later file.
 -/
-lemma is_sheaf_iff_is_sheaf_pairwise_intersections (F : presheaf C X) :
+lemma is_sheaf_iff_is_sheaf_pairwise_intersections' (F : presheaf C X) :
   F.is_sheaf ↔ F.is_sheaf_pairwise_intersections :=
 (is_sheaf_iff_is_sheaf_equalizer_products F).trans $
 iff.intro (λ h ι U, ⟨is_limit_map_cone_of_is_limit_sheaf_condition_fork F U (h U).some⟩)
@@ -385,7 +386,7 @@ consisting of the `U i` and `U i ⊓ U j`.
 lemma is_sheaf_iff_is_sheaf_preserves_limit_pairwise_intersections (F : presheaf C X) :
   F.is_sheaf ↔ F.is_sheaf_preserves_limit_pairwise_intersections :=
 begin
-  rw is_sheaf_iff_is_sheaf_pairwise_intersections,
+  rw is_sheaf_iff_is_sheaf_pairwise_intersections',
   split,
   { intros h ι U,
     exact ⟨preserves_limit_of_preserves_limit_cone (pairwise.cocone_is_colimit U).op (h U).some⟩ },
@@ -436,7 +437,7 @@ begin
       exacts [⟨⟨walking_pair.left⟩, h⟩, ⟨⟨walking_pair.right⟩, h⟩] },
     { rintro ⟨⟨_ | _⟩, h⟩,
       exacts [or.inl h, or.inr h] } },
-  refine (F.presheaf.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 ι).some.lift
+  refine (F.presheaf.is_sheaf_iff_is_sheaf_pairwise_intersections'.mp F.2 ι).some.lift
     ⟨s.X, { app := _, naturality' := _ }⟩ ≫ F.1.map (eq_to_hom hι).op,
   { apply opposite.rec,
     rintro ((_|_)|(_|_)),
@@ -459,7 +460,7 @@ lemma inter_union_pullback_cone_lift_left :
 begin
   dsimp,
   erw [category.assoc, ←F.1.map_comp],
-  exact (F.presheaf.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 _).some.fac _
+  exact (F.presheaf.is_sheaf_iff_is_sheaf_pairwise_intersections'.mp F.2 _).some.fac _
     (op $ pairwise.single (ulift.up walking_pair.left))
 end
 
@@ -467,7 +468,7 @@ lemma inter_union_pullback_cone_lift_right :
   inter_union_pullback_cone_lift F U V s ≫ F.1.map (hom_of_le le_sup_right).op = s.snd :=
 begin
   erw [category.assoc, ←F.1.map_comp],
-  exact (F.presheaf.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 _).some.fac _
+  exact (F.presheaf.is_sheaf_iff_is_sheaf_pairwise_intersections'.mp F.2 _).some.fac _
     (op $ pairwise.single (ulift.up walking_pair.right))
 end
 
@@ -491,7 +492,7 @@ begin
   { apply inter_union_pullback_cone_lift_right },
   { intros m h₁ h₂,
     rw ← cancel_mono (F.1.map (eq_to_hom hι.symm).op),
-    apply (F.presheaf.is_sheaf_iff_is_sheaf_pairwise_intersections.mp F.2 ι).some.hom_ext,
+    apply (F.presheaf.is_sheaf_iff_is_sheaf_pairwise_intersections'.mp F.2 ι).some.hom_ext,
     apply opposite.rec,
     rintro ((_|_)|(_|_)); rw [category.assoc, category.assoc],
     { erw ← F.1.map_comp,

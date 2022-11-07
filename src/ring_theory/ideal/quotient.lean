@@ -210,6 +210,15 @@ def lift (I : ideal R) (f : R →+* S) (H : ∀ (a : R), a ∈ I → f a = 0) :
 @[simp] lemma lift_mk (I : ideal R) (f : R →+* S) (H : ∀ (a : R), a ∈ I → f a = 0) :
   lift I f H (mk I a) = f a := rfl
 
+lemma lift_surjective_of_surjective (I : ideal R) {f : R →+* S} (H : ∀ (a : R), a ∈ I → f a = 0)
+  (hf : function.surjective f) : function.surjective (ideal.quotient.lift I f H) :=
+begin
+  intro y,
+  obtain ⟨x, rfl⟩ := hf y,
+  use ideal.quotient.mk I x,
+  simp only [ideal.quotient.lift_mk],
+end
+
 /-- The ring homomorphism from the quotient by a smaller ideal to the quotient by a larger ideal.
 
 This is the `ideal.quotient` version of `quot.factor` -/

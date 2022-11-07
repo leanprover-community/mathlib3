@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import algebra.group.pi
 import algebra.category.Group.preadditive
-import category_theory.limits.shapes.biproducts
+import category_theory.preadditive.biproducts
 import algebra.category.Group.limits
 
 /-!

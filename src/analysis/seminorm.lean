@@ -192,8 +192,6 @@ instance [semiring R] [module R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ
   module R (seminorm 𝕜 E) :=
 (coe_fn_add_monoid_hom_injective 𝕜 E).module R _ coe_smul
 
--- TODO: define `has_Sup` too, from the skeleton at
--- https://github.com/leanprover-community/mathlib/pull/11329#issuecomment-1008915345
 instance : has_sup (seminorm 𝕜 E) :=
 { sup := λ p q,
   { to_fun  := p ⊔ q,
@@ -384,6 +382,107 @@ begin
   simp_rw [smul_apply, inf_apply, smul_apply, ←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def,
     smul_eq_mul, real.mul_infi_of_nonneg (subtype.prop _), mul_add],
 end
+
+section classical
+
+open_locale classical
+
+/-- We define the supremum of an arbitrary subset of `seminorm 𝕜 E` as follows:
+* if `s` is `bdd_above` *as a set of functions `E → ℝ`* (that is, if `s` is pointwise bounded
+above), we take the pointwise supremum of all elements of `s`, and we prove that it is indeed a
+seminorm.
+* otherwise, we take the zero seminorm `⊥`.
+
+There are two things worth mentionning here:
+* First, it is not trivial at first that `s` being bounded above *by a function* implies
+being bounded above *as a seminorm*. We show this in `seminorm.bdd_above_iff` by using
+that the `Sup s` as defined here is then a bounding seminorm for `s`. So it is important to make
+the case disjunction on `bdd_above (coe_fn '' s : set (E → ℝ))` and not `bdd_above s`.
+* Since the pointwise `Sup` already gives `0` at points where a family of functions is
+not bounded above, one could hope that just using the pointwise `Sup` would work here, without the
+need for an additional case disjunction. As discussed on Zulip, this doesn't work because this can
+give a function which does *not* satisfy the seminorm axioms (typically sub-additivity).
+-/
+noncomputable instance : has_Sup (seminorm 𝕜 E) :=
+{ Sup := λ s, if h : bdd_above (coe_fn '' s : set (E → ℝ)) then
+  { to_fun := ⨆ p : s, ((p : seminorm 𝕜 E) : E → ℝ),
+    map_zero' :=
+    begin
+      rw [supr_apply, ← @real.csupr_const_zero s],
+      congrm ⨆ i, _,
+      exact map_zero i.1
+    end,
+    add_le' := λ x y,
+    begin
+      rcases h with ⟨q, hq⟩,
+      obtain rfl | h := s.eq_empty_or_nonempty,
+      { simp [real.csupr_empty] },
+      haveI : nonempty ↥s := h.coe_sort,
+      simp only [supr_apply],
+      refine csupr_le (λ i, ((i : seminorm 𝕜 E).add_le' x y).trans $
+        add_le_add (le_csupr ⟨q x, _⟩ i) (le_csupr ⟨q y, _⟩ i));
+      rw [mem_upper_bounds, forall_range_iff];
+      exact λ j, hq (mem_image_of_mem _ j.2) _,
+    end,
+    neg' := λ x,
+    begin
+      simp only [supr_apply],
+      congrm ⨆ i, _,
+      exact i.1.neg' _
+    end,
+    smul' := λ a x,
+    begin
+      simp only [supr_apply],
+      rw [← smul_eq_mul, real.smul_supr_of_nonneg (norm_nonneg a) (λ i : s, (i : seminorm 𝕜 E) x)],
+      congrm ⨆ i, _,
+      exact i.1.smul' a x
+    end }
+  else ⊥ }
+
+protected lemma coe_Sup_eq' {s : set $ seminorm 𝕜 E} (hs : bdd_above (coe_fn '' s : set (E → ℝ))) :
+  coe_fn (Sup s) = ⨆ p : s, p :=
+congr_arg _ (dif_pos hs)
+
+protected lemma bdd_above_iff {s : set $ seminorm 𝕜 E} :
+  bdd_above s ↔ bdd_above (coe_fn '' s : set (E → ℝ)) :=
+⟨λ ⟨q, hq⟩, ⟨q, ball_image_of_ball $ λ p hp, hq hp⟩,
+  λ H, ⟨Sup s, λ p hp x,
+  begin
+    rw [seminorm.coe_Sup_eq' H, supr_apply],
+    rcases H with ⟨q, hq⟩,
+    exact le_csupr ⟨q x, forall_range_iff.mpr $ λ i : s, hq (mem_image_of_mem _ i.2) x⟩ ⟨p, hp⟩
+  end ⟩⟩
+
+protected lemma coe_Sup_eq {s : set $ seminorm 𝕜 E} (hs : bdd_above s) :
+  coe_fn (Sup s) = ⨆ p : s, p :=
+seminorm.coe_Sup_eq' (seminorm.bdd_above_iff.mp hs)
+
+protected lemma coe_supr_eq {ι : Type*} {p : ι → seminorm 𝕜 E} (hp : bdd_above (range p)) :
+  coe_fn (⨆ i, p i) = ⨆ i, p i :=
+by rw [← Sup_range, seminorm.coe_Sup_eq hp]; exact supr_range' (coe_fn : seminorm 𝕜 E → E → ℝ) p
+
+private lemma seminorm.is_lub_Sup (s : set (seminorm 𝕜 E)) (hs₁ : bdd_above s) (hs₂ : s.nonempty) :
+  is_lub s (Sup s) :=
+begin
+  refine ⟨λ p hp x, _, λ p hp x, _⟩;
+  haveI : nonempty ↥s := hs₂.coe_sort;
+  rw [seminorm.coe_Sup_eq hs₁, supr_apply],
+  { rcases hs₁ with ⟨q, hq⟩,
+    exact le_csupr ⟨q x, forall_range_iff.mpr $ λ i : s, hq i.2 x⟩ ⟨p, hp⟩ },
+  { exact csupr_le (λ q, hp q.2 x) }
+end
+
+/-- `seminorm 𝕜 E` is a conditionally complete lattice.
+
+Note that, while `inf`, `sup` and `Sup` have good definitional properties (corresponding to
+`seminorm.has_inf`, `seminorm.has_sup` and `seminorm.has_Sup` respectively), `Inf s` is just
+defined as the supremum of the lower bounds of `s`, which is not really useful in practice. If you
+need to use `Inf` on seminorms, then you should probably provide a more workable definition first,
+but this is unlikely to happen so we keep the "bad" definition for now. -/
+noncomputable instance : conditionally_complete_lattice (seminorm 𝕜 E) :=
+conditionally_complete_lattice_of_lattice_of_Sup (seminorm 𝕜 E) seminorm.is_lub_Sup
+
+end classical
 
 end normed_field
 

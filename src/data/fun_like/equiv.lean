@@ -151,7 +151,7 @@ lemma inv_injective : function.injective (equiv_like.inv : E → (β → α)) :=
 
 @[priority 100]
 instance to_embedding_like : embedding_like E α β :=
-{ coe := coe,
+{ coe := (coe : E → α → β),
   coe_injective' := λ e g h, coe_injective' e g h
     ((left_inv e).eq_right_inverse (h.symm ▸ right_inv g)),
   injective' := λ e, (left_inv e).injective }
@@ -205,5 +205,9 @@ function.surjective.of_comp_iff' (equiv_like.bijective e) f
 @[simp] lemma comp_bijective (f : α → β) (e : F) :
   function.bijective (e ∘ f) ↔ function.bijective f :=
 (equiv_like.bijective e).of_comp_iff' f
+
+/-- This is not an instance to avoid slowing down every single `subsingleton` typeclass search.-/
+lemma subsingleton_dom [subsingleton β] : subsingleton F :=
+⟨λ f g, fun_like.ext f g $ λ x, (right_inv f).injective $ subsingleton.elim _ _⟩
 
 end equiv_like

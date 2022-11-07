@@ -60,7 +60,7 @@ We have the expression
 -/
 lemma log_stirling_seq_formula (n : ℕ) : log (stirling_seq n.succ) =
   log n.succ!- 1 / 2 * log (2 * n.succ) - n.succ * log (n.succ / exp 1) :=
-by rw [stirling_seq, log_div, log_mul, sqrt_eq_rpow, log_rpow, log_pow, tsub_tsub];
+by rw [stirling_seq, log_div, log_mul, sqrt_eq_rpow, log_rpow, real.log_pow, tsub_tsub];
   try { apply ne_of_gt }; positivity -- TODO: Make `positivity` handle `≠ 0` goals
 
 /--
@@ -90,7 +90,7 @@ begin
 end
 
 /-- The sequence `log ∘ stirling_seq ∘ succ` is monotone decreasing -/
-lemma log_stirling_seq'_antitone : antitone (log ∘ stirling_seq ∘ succ) :=
+lemma log_stirling_seq'_antitone : antitone (real.log ∘ stirling_seq ∘ succ) :=
 antitone_nat_of_succ_le $ λ n, sub_nonneg.mp $ (log_stirling_seq_diff_has_sum n).nonneg $ λ m,
   by positivity
 
@@ -163,7 +163,7 @@ end
 lemma log_stirling_seq_bounded_by_constant : ∃ c, ∀ (n : ℕ), c ≤ log (stirling_seq n.succ) :=
 begin
   obtain ⟨d, h⟩ := log_stirling_seq_bounded_aux,
-  exact ⟨log (stirling_seq 1) - d, λ n, sub_le.mp (h n)⟩,
+  exact ⟨log (stirling_seq 1) - d, λ n, sub_le_comm.mp (h n)⟩,
 end
 
 /-- The sequence `stirling_seq` is positive for `n > 0`  -/

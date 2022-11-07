@@ -206,28 +206,25 @@ begin
 end
 
 lemma noetherian_space.finite_irreducible_components [noetherian_space α] :
-  (set.range irreducible_component : set (set α)).finite :=
+  (irreducible_components α).finite :=
 begin
   classical,
   obtain ⟨S, hS₁, hS₂⟩ := noetherian_space.exists_finset_irreducible (⊤ : closeds α),
-  suffices : ∀ x : α, ∃ s : S, irreducible_component x = s,
-  { choose f hf,
-    rw [show irreducible_component = coe ∘ f, from funext hf, set.range_comp],
-    exact (set.finite.intro infer_instance).image _ },
-  intro x,
-  obtain ⟨z, hz, hz'⟩ : ∃ (z : set α) (H : z ∈ finset.image coe S), irreducible_component x ⊆ z,
+  suffices : irreducible_components α ⊆ coe '' (S : set $ closeds α),
+  { exact set.finite.subset ((set.finite.intro infer_instance).image _) this },
+  intros K hK,
+  obtain ⟨z, hz, hz'⟩ : ∃ (z : set α) (H : z ∈ finset.image coe S), K ⊆ z,
   { convert is_irreducible_iff_sUnion_closed.mp
-      is_irreducible_irreducible_component (S.image coe) _ _,
-    { apply_instance },
+      hK.1 (S.image coe) _ _,
     { simp only [finset.mem_image, exists_prop, forall_exists_index, and_imp],
       rintro _ z hz rfl,
       exact z.2 },
     { exact (set.subset_univ _).trans ((congr_arg coe hS₂).trans $ by simp).subset } },
   obtain ⟨s, hs, e⟩ := finset.mem_image.mp hz,
   rw ← e at hz',
-  use ⟨s, hs⟩,
+  refine ⟨s, hs, _⟩,
   symmetry,
-  apply eq_irreducible_component (hS₁ _).2,
+  suffices : K ≤ s, { exact this.antisymm (hK.2 (hS₁ ⟨s, hs⟩) this) },
   simpa,
 end
 

@@ -242,8 +242,8 @@ instance has_add : has_add (cusp_form Γ k) :=
 instance has_zero : has_zero (cusp_form Γ k) :=
 { zero := ⟨0, slash_action.mul_zero _, (λ _, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
   by {intro a,
-    convert (zero_at_im_infty_submodule ℂ).zero_mem',
-    apply slash_action.mul_zero _ }⟩}
+      convert (zero_at_im_infty_submodule ℂ).zero_mem',
+      apply slash_action.mul_zero _ }⟩}
 
 instance has_nsmul : has_smul ℕ (cusp_form Γ k) :=
 ⟨ λ c f, {to_fun := (c : ℂ) • f,

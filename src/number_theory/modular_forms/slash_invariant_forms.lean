@@ -125,8 +125,7 @@ instance has_neg : has_neg (slash_invariant_form Γ k) :=
   end⟩ ⟩
 
 instance has_sub : has_sub (slash_invariant_form Γ k) :=
-⟨λ f g, ⟨f - g, by {
-  intro γ, have : (f : ℍ → ℂ) - g = f + (-g), by {funext, simp, ring,},
+⟨λ f g, ⟨f - g, by { intro γ, have : (f : ℍ → ℂ) - g = f + (-g), by {funext, simp, ring,},
   rw [this, slash_action.add_action k γ],
   have h1 := (f.slash_action_eq') γ,
   have h2 := (g.slash_action_eq') γ,

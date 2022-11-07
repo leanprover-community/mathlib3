@@ -168,7 +168,7 @@ lemma ne' (n : ℕ) (R) [add_monoid_with_one R] [h : ne_zero (n : R)] :
   (n : R) ≠ 0 := h.out
 
 lemma of_ne_zero_coe (R) [add_monoid_with_one R] {n : ℕ} [h : ne_zero (n : R)] : ne_zero n :=
-⟨by {casesI h, rintro rfl, by simpa using h}⟩
+⟨by { casesI h, rintro rfl, by simpa [nat.cast_zero] using h }⟩
 
 lemma pos_of_ne_zero_coe (R) [add_monoid_with_one R] {n : ℕ} [ne_zero (n : R)] : 0 < n :=
 nat.pos_of_ne_zero (of_ne_zero_coe R).out

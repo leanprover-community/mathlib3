@@ -71,7 +71,7 @@ begin
   lift n to ℕ using hn,
   induction m using with_top.rec_top_coe,
   { rw [with_top.top_sub_coe, to_nat_top, zero_tsub] },
-  { rw [← coe_sub, to_nat_coe, to_nat_coe, to_nat_coe] }
+  { rw [← enat.coe_sub, to_nat_coe, to_nat_coe, to_nat_coe] }
 end
 
 lemma to_nat_eq_iff {m : ℕ∞} {n : ℕ} (hn : n ≠ 0) : m.to_nat = n ↔ m = n :=

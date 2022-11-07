@@ -307,7 +307,7 @@ by rw [←coe_ennreal_zero, coe_ennreal_lt_coe_ennreal_iff]
 @[simp, norm_cast] lemma coe_ennreal_mul : ∀ (x y : ℝ≥0∞), ((x * y : ℝ≥0∞) : ereal) = x * y
 | ⊤ y := by { rw ennreal.top_mul, split_ifs; simp [h] }
 | x ⊤ := by { rw ennreal.mul_top, split_ifs; simp [h] }
-| (some x) (some y) := by simp [←ennreal.coe_mul, coe_nnreal_eq_coe_real]
+| (some x) (some y) := by simp [←ennreal.coe_mul, -coe_mul_hom.coe_mul, coe_nnreal_eq_coe_real]
 
 @[norm_cast] lemma coe_ennreal_nsmul (n : ℕ) (x : ℝ≥0∞) : (↑(n • x) : ereal) = n • x :=
 map_nsmul (⟨coe, coe_ennreal_zero, coe_ennreal_add⟩ : ℝ≥0∞ →+ ereal) _ _

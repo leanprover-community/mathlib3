@@ -873,7 +873,7 @@ lemma specializes_closed_point (x : prime_spectrum R) :
   x ⤳ closed_point R :=
 (prime_spectrum.le_iff_specializes _ _).mp (local_ring.le_maximal_ideal x.2.1)
 
-lemma local_ring.closed_point_mem_iff (U : topological_space.opens $ prime_spectrum R) :
+lemma closed_point_mem_iff (U : topological_space.opens $ prime_spectrum R) :
   closed_point R ∈ U ↔ U = ⊤ :=
 begin
   split,

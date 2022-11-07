@@ -958,13 +958,18 @@ variables {R S} [semiring R] [semiring S] (σ : R →+* S)
 
 /-- `coe_is_semilinear_map σ M N` is a class stating that the coercion map `↑ : M → N`
 (a.k.a. `coe`) is a `σ`-semilinear map.
+
+Note that there isn't one class directly corresponding to semilinear maps: we pass instances of
+`coe_is_semilinear_map` and `coe_is_add_monoid_hom` in separate parameters.
+This is because `coe_is_semilinear_map` has a different set of parameters from
+`coe_is_add_monoid_hom`, so extending both classes at once wouldn't work.
+Compare the situation for `coe_is_smul_hom` where there is no single class corresponding to
+distributive multiplicative homomorphisms.
 -/
 class coe_is_semilinear_map (M N : Type*) [has_lift_t M N] [has_smul R M] [has_smul S N] :=
 (coe_smulₛₗ' : ∀ (c : R) (x : M), ↑(c • x) = σ c • (↑ x : N))
 
--- `simp` can't infer `σ` so this can't be a `@[simp]` lemma
--- @[simp, norm_num]
-/-- -/
+/-- `simp` can't infer `σ` so this can't be a `@[simp]` lemma -/
 lemma coe_smulₛₗ {M N : Type*} [has_lift_t M N] [has_smul R M] [has_smul S N]
   [coe_is_semilinear_map σ M N] (c : R) (x : M) : ↑(c • x) = σ c • (↑ x : N) :=
 coe_is_semilinear_map.coe_smulₛₗ' c x

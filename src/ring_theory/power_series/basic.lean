@@ -2008,7 +2008,7 @@ ring_hom.coe _ _
 
 @[norm_cast] protected lemma coe_pow (n : ℕ):
   ((φ ^ n : R[X]) : power_series R) = (φ : power_series R) ^ n :=
-coe_pow _ _ _ _
+coe_pow _ _
 
 variables (A : Type*) [semiring A] [algebra R A]
 

@@ -971,8 +971,7 @@ lower_set.ext begin
     upper_set.coe_prod, upper_set.coe_bot, mem_inter_iff, mem_compl_iff, mem_prod, mem_univ,
     set_like.mem_coe, mem_upper_closure, exists_prop, true_and, not_exists, not_and, and_true] at h,
     rw and_comm,
-    exact h,
-   },
+    exact h, },
 end
 
 end preorder

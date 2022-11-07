@@ -436,8 +436,7 @@ begin
       (is_closed_singleton_iff_is_maximal _).1 (t1_space.t1 ⟨⊥, hbot⟩)) (not_not.2 rfl)) },
   { refine ⟨λ x, (is_closed_singleton_iff_is_maximal x).2 _⟩,
     by_cases hx : x.as_ideal = ⊥,
-    { exact hx.symm ▸ @ideal.bot_is_maximal R
-        (@division_ring.to_division_semiring _ $ @field.to_division_ring _ h.to_field) },
+    { letI := h.to_field, exact hx.symm ▸ ideal.bot_is_maximal },
     { exact absurd h (ring.not_is_field_iff_exists_prime.2 ⟨x.as_ideal, ⟨hx, x.2⟩⟩) } }
 end
 
@@ -824,6 +823,14 @@ order_embedding.of_map_le_iff nhds $ λ a b, (le_iff_specializes a b).symm
 
 instance : t0_space (prime_spectrum R) := ⟨nhds_order_embedding.injective⟩
 
+instance [is_domain R] : order_bot (prime_spectrum R) :=
+{ bot := ⟨⊥, ideal.bot_prime⟩,
+  bot_le := λ I, @bot_le _ _ _ I.as_ideal }
+
+instance {R : Type*} [field R] : unique (prime_spectrum R) :=
+{ default := ⊥,
+  uniq := λ x, subtype.ext ((is_simple_order.eq_bot_or_eq_top _).resolve_right x.2.ne_top) }
+
 end order
 
 /-- If `x` specializes to `y`, then there is a natural map from the localization of `y` to
@@ -861,5 +868,26 @@ by { rw [(local_hom_tfae f).out 0 4, subtype.ext_iff], refl }
 @[simp] lemma comap_closed_point {S : Type v} [comm_ring S] [local_ring S] (f : R →+* S)
   [is_local_ring_hom f] : prime_spectrum.comap f (closed_point S) = closed_point R :=
 (is_local_ring_hom_iff_comap_closed_point f).mp infer_instance
+
+lemma specializes_closed_point (x : prime_spectrum R) :
+  x ⤳ closed_point R :=
+(prime_spectrum.le_iff_specializes _ _).mp (local_ring.le_maximal_ideal x.2.1)
+
+lemma local_ring.closed_point_mem_iff (U : topological_space.opens $ prime_spectrum R) :
+  closed_point R ∈ U ↔ U = ⊤ :=
+begin
+  split,
+  { rw eq_top_iff, exact λ h x _, (specializes_closed_point x).mem_open U.2 h },
+  { rintro rfl, trivial }
+end
+
+@[simp] lemma _root_.prime_spectrum.comap_residue (x : prime_spectrum (residue_field R)) :
+  prime_spectrum.comap (residue R) x = closed_point R :=
+begin
+  have : x = ⊥ := subsingleton.elim _ _,
+  subst this,
+  ext1,
+  exact ideal.mk_ker,
+end
 
 end local_ring

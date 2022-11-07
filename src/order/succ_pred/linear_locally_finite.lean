@@ -7,6 +7,7 @@ Authors: Rémy Degenne
 import order.locally_finite
 import order.succ_pred.basic
 import order.hom.basic
+import data.set.countable
 
 /-!
 # Linear locally finite orders

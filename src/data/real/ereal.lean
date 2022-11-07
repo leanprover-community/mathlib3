@@ -154,9 +154,12 @@ by { apply with_top.coe_lt_coe.2, exact with_bot.bot_lt_coe _ }
 
 @[simp] lemma top_ne_zero : (⊤ : ereal) ≠ 0 := (coe_ne_top 0).symm
 
-@[norm_cast] protected lemma coe_zero : ((0 : ℝ) : ereal) = 0 := rfl
-@[norm_cast] protected lemma coe_one : ((1 : ℝ) : ereal) = 1 := rfl
-@[norm_cast] protected lemma coe_add (x y : ℝ) : (↑(x + y) : ereal) = x + y := rfl
+-- The following lemmas follow from the `simp` lemmas for `coe_is_monoid_with_zero_hom` and
+-- `coe_is_add_monoid_hom` but we keep them because they're eligible for `dsimp`.
+@[simp, norm_cast] protected lemma coe_zero : ((0 : ℝ) : ereal) = 0 := rfl
+@[simp, norm_cast] protected lemma coe_one : ((1 : ℝ) : ereal) = 1 := rfl
+@[simp, norm_cast] protected lemma coe_add (x y : ℝ) : (↑(x + y) : ereal) = x + y := rfl
+
 @[norm_cast] protected lemma coe_mul (x y : ℝ) : (↑(x * y) : ereal) = x * y :=
 (with_top.coe_eq_coe.2 with_bot.coe_mul).trans with_top.coe_mul
 

@@ -148,8 +148,10 @@ by { rw [coe_nnreal_eq], refl }
 
 @[simp] lemma of_real_coe_nnreal : ennreal.of_real p = p := (coe_nnreal_eq p).symm
 
-@[norm_cast] protected lemma coe_zero : ↑(0 : ℝ≥0) = (0 : ℝ≥0∞) := rfl
-@[norm_cast] protected lemma coe_one : ↑(1 : ℝ≥0) = (1 : ℝ≥0∞) := rfl
+-- These lemmas can be proved using `simp` lemmas for `coe_is_zero_hom`/`coe_is_one_hom` instances,
+-- but we keep them around because they are eligible for `dsimp`.
+@[simp, norm_cast] protected lemma coe_zero : ↑(0 : ℝ≥0) = (0 : ℝ≥0∞) := rfl
+@[simp, norm_cast] protected lemma coe_one : ↑(1 : ℝ≥0) = (1 : ℝ≥0∞) := rfl
 
 @[simp] lemma to_real_nonneg {a : ℝ≥0∞} : 0 ≤ a.to_real := by simp [ennreal.to_real]
 

@@ -19,8 +19,10 @@ bounded by a finite number of seminorms in `E`.
 
 ## Main statements
 
-* `seminorm_family.to_locally_convex_space`: A space equipped with a family of seminorms is locally
+* `with_seminorms.to_locally_convex_space`: A space equipped with a family of seminorms is locally
 convex.
+* `with_seminorms.first_countable`: A space is first countable if it's topology is induced by a
+countable family of seminorms.
 
 ## Continuity of semilinear maps
 

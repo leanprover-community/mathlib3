@@ -3,12 +3,9 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
-import algebra.char_zero.defs
-import algebra.ring.divisibility
-import algebra.hom.ring
+import order.min_max
 import algebra.order.group.basic
-import algebra.order.sub.canonical
-import algebra.order.ring_lemmas
+import algebra.order.ring.lemmas
 
 /-!
 # Ordered rings and semirings
@@ -93,22 +90,12 @@ immediate predecessors and what conditions are added to each of them.
   - `linear_ordered_ring` & commutativity of multiplication
   - `linear_ordered_comm_semiring` & additive inverses
   - `is_domain` & linear order structure
-* `canonically_ordered_comm_semiring`
-  - `canonically_ordered_add_monoid` & multiplication & `*` respects `≤` & no zero divisors
-  - `comm_semiring` & `a ≤ b ↔ ∃ c, b = a + c` & no zero divisors
 
-## TODO
-
-We're still missing some typeclasses, like
-* `canonically_ordered_semiring`
-They have yet to come up in practice.
 -/
 
 open function
 
 set_option old_structure_cmd true
-
-open function
 
 universe u
 variables {α : Type u} {β : Type*}
@@ -197,13 +184,6 @@ monotone and multiplication by a positive number is strictly monotone. -/
 @[protect_proj]
 class linear_ordered_comm_ring (α : Type u) extends linear_ordered_ring α, comm_monoid α
 
-/-- A canonically ordered commutative semiring is an ordered, commutative semiring in which `a ≤ b`
-iff there exists `c` with `b = a + c`. This is satisfied by the natural numbers, for example, but
-not the integers or other ordered groups. -/
-@[protect_proj]
-class canonically_ordered_comm_semiring (α : Type*) extends
-  canonically_ordered_add_monoid α, comm_semiring α :=
-(eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
 
 section ordered_semiring
 variables [ordered_semiring α] {a b c d : α}
@@ -550,48 +530,18 @@ lemma one_lt_two : (1 : α) < 2 := lt_add_one _
 lemma lt_two_mul_self (ha : 0 < a) : a < 2 * a := lt_mul_of_one_lt_left ha one_lt_two
 
 lemma nat.strict_mono_cast : strict_mono (coe : ℕ → α) :=
-strict_mono_nat_of_lt_succ $ λ n, by rw [nat.cast_succ]; apply lt_add_one
+strict_mono_nat_of_lt_succ $ λ n, by { rw [nat.cast_succ], apply lt_add_one }
+
+/-- `coe : ℕ → α` as an `order_embedding` -/
+@[simps { fully_applied := ff }] def nat.cast_order_embedding : ℕ ↪o α :=
+order_embedding.of_strict_mono coe nat.strict_mono_cast
 
 @[priority 100] -- see Note [lower instance priority]
 instance strict_ordered_semiring.to_no_max_order : no_max_order α :=
 ⟨λ a, ⟨a + 1, lt_add_of_pos_right _ one_pos⟩⟩
 
-/-- Note this is not an instance as `char_zero` implies `nontrivial`, and this would risk forming a
-loop. -/
-lemma strict_ordered_semiring.to_char_zero : char_zero α := ⟨nat.strict_mono_cast.injective⟩
-
 end nontrivial
 
-section has_exists_add_of_le
-variables [has_exists_add_of_le α]
-
-/-- Binary **rearrangement inequality**. -/
-lemma mul_add_mul_le_mul_add_mul (hab : a ≤ b) (hcd : c ≤ d) : a * d + b * c ≤ a * c + b * d :=
-begin
-  obtain ⟨b, rfl⟩ := exists_add_of_le hab,
-  obtain ⟨d, rfl⟩ := exists_add_of_le hcd,
-  rw [mul_add, add_right_comm, mul_add, ←add_assoc],
-  exact add_le_add_left (mul_le_mul_of_nonneg_right hab $ (le_add_iff_nonneg_right _).1 hcd) _,
-end
-
-/-- Binary **rearrangement inequality**. -/
-lemma mul_add_mul_le_mul_add_mul' (hba : b ≤ a) (hdc : d ≤ c) : a • d + b • c ≤ a • c + b • d :=
-by { rw [add_comm (a • d), add_comm (a • c)], exact mul_add_mul_le_mul_add_mul hba hdc }
-
-/-- Binary strict **rearrangement inequality**. -/
-lemma mul_add_mul_lt_mul_add_mul (hab : a < b) (hcd : c < d) : a * d + b * c < a * c + b * d :=
-begin
-  obtain ⟨b, rfl⟩ := exists_add_of_le hab.le,
-  obtain ⟨d, rfl⟩ := exists_add_of_le hcd.le,
-  rw [mul_add, add_right_comm, mul_add, ←add_assoc],
-  exact add_lt_add_left (mul_lt_mul_of_pos_right hab $ (lt_add_iff_pos_right _).1 hcd) _,
-end
-
-/-- Binary **rearrangement inequality**. -/
-lemma mul_add_mul_lt_mul_add_mul' (hba : b < a) (hdc : d < c) : a • d + b • c < a • c + b • d :=
-by { rw [add_comm (a • d), add_comm (a • c)], exact mul_add_mul_lt_mul_add_mul hba hdc }
-
-end has_exists_add_of_le
 end strict_ordered_semiring
 
 section strict_ordered_comm_semiring
@@ -819,10 +769,6 @@ have ∀ {u : αˣ}, ↑u < (0 : α) → ↑u⁻¹ < (0 : α) := λ u h,
   neg_of_mul_pos_right (by exact (u.mul_inv.symm ▸ zero_lt_one)) h.le,
 ⟨this, this⟩
 
-@[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_semiring.to_char_zero : char_zero α :=
-strict_ordered_semiring.to_char_zero
-
 lemma cmp_mul_pos_left (ha : 0 < a) (b c : α) : cmp (a * b) (a * c) = cmp b c :=
 (strict_mono_mul_left_of_pos ha).cmp_map_eq b c
 
@@ -888,26 +834,6 @@ instance linear_ordered_ring.is_domain : is_domain α :=
     end,
   .. ‹linear_ordered_ring α› }
 
-@[simp] lemma abs_one : |(1 : α)| = 1 := abs_of_pos zero_lt_one
-@[simp] lemma abs_two : |(2 : α)| = 2 := abs_of_pos zero_lt_two
-
-lemma abs_mul (a b : α) : |a * b| = |a| * |b| :=
-begin
-  rw [abs_eq (mul_nonneg (abs_nonneg a) (abs_nonneg b))],
-  cases le_total a 0 with ha ha; cases le_total b 0 with hb hb;
-    simp only [abs_of_nonpos, abs_of_nonneg, true_or, or_true, eq_self_iff_true,
-      neg_mul, mul_neg, neg_neg, *]
-end
-
-/-- `abs` as a `monoid_with_zero_hom`. -/
-def abs_hom : α →*₀ α := ⟨abs, abs_zero, abs_one, abs_mul⟩
-
-@[simp] lemma abs_mul_abs_self (a : α) : |a| * |a| = a * a :=
-abs_by_cases (λ x, x * x = a * a) rfl (neg_mul_neg a a)
-
-@[simp] lemma abs_mul_self (a : α) : |a * a| = a * a :=
-by rw [abs_mul, abs_mul_abs_self]
-
 lemma mul_pos_iff : 0 < a * b ↔ 0 < a ∧ 0 < b ∨ a < 0 ∧ b < 0 :=
 ⟨pos_and_pos_or_neg_and_neg_of_mul_pos,
   λ h, h.elim (and_imp.2 mul_pos) (and_imp.2 mul_pos_of_neg_of_neg)⟩
@@ -929,7 +855,7 @@ lemma mul_nonpos_iff : a * b ≤ 0 ↔ 0 ≤ a ∧ b ≤ 0 ∨ a ≤ 0 ∧ 0 ≤
 by rw [← neg_nonneg, neg_mul_eq_mul_neg, mul_nonneg_iff, neg_nonneg, neg_nonpos]
 
 lemma mul_self_nonneg (a : α) : 0 ≤ a * a :=
-abs_mul_self a ▸ abs_nonneg _
+(le_total 0 a).elim (λ h, mul_nonneg h h) (λ h, mul_nonneg_of_nonpos_of_nonpos h h)
 
 @[simp] lemma neg_le_self_iff : -a ≤ a ↔ 0 ≤ a :=
 by simp [neg_le_iff_add_nonneg, ← two_mul, mul_nonneg_iff, zero_le_one, (@zero_lt_two α _ _).not_le]
@@ -946,31 +872,6 @@ calc a ≤ -a ↔ -(-a) ≤ -a : by rw neg_neg
 calc a < -a ↔ -(-a) < -a : by rw neg_neg
 ... ↔ 0 < -a : neg_lt_self_iff
 ... ↔ a < 0 : neg_pos
-
-@[simp] lemma abs_eq_self : |a| = a ↔ 0 ≤ a := by simp [abs_eq_max_neg]
-
-@[simp] lemma abs_eq_neg_self : |a| = -a ↔ a ≤ 0 := by simp [abs_eq_max_neg]
-
-/-- For an element `a` of a linear ordered ring, either `abs a = a` and `0 ≤ a`,
-    or `abs a = -a` and `a < 0`.
-    Use cases on this lemma to automate linarith in inequalities -/
-lemma abs_cases (a : α) : (|a| = a ∧ 0 ≤ a) ∨ (|a| = -a ∧ a < 0) :=
-begin
-  by_cases 0 ≤ a,
-  { left,
-    exact ⟨abs_eq_self.mpr h, h⟩ },
-  { right,
-    push_neg at h,
-    exact ⟨abs_eq_neg_self.mpr (le_of_lt h), h⟩ }
-end
-
-@[simp] lemma max_zero_add_max_neg_zero_eq_abs_self (a : α) :
-  max a 0 + max (-a) 0 = |a| :=
-begin
-  symmetry,
-  rcases le_total 0 a with ha|ha;
-  simp [ha],
-end
 
 lemma neg_one_lt_zero : -1 < (0:α) := neg_lt_zero.2 zero_lt_one
 
@@ -1011,10 +912,9 @@ begin
 end
 
 lemma mul_self_le_mul_self_of_le_of_neg_le {x y : α} (h₁ : x ≤ y) (h₂ : -x ≤ y) : x * x ≤ y * y :=
-begin
-  rw [← abs_mul_abs_self x],
-  exact mul_self_le_mul_self (abs_nonneg x) (abs_le.2 ⟨neg_le.2 h₂, h₁⟩)
-end
+(le_total 0 x).elim (λ h, mul_le_mul h₁ h₁ h (h.trans h₁))
+  (λ h, le_of_eq_of_le (neg_mul_neg x x).symm
+    (mul_le_mul h₂ h₂ (neg_nonneg.mpr h) ((neg_nonneg.mpr h).trans h₂)))
 
 lemma nonneg_of_mul_nonpos_left {a b : α} (h : a * b ≤ 0) (hb : b < 0) : 0 ≤ a :=
 le_of_not_gt (λ ha, absurd h (mul_pos_of_neg_of_neg ha hb).not_le)
@@ -1040,27 +940,6 @@ by rw [add_eq_zero_iff', mul_self_eq_zero, mul_self_eq_zero]; apply mul_self_non
 
 lemma eq_zero_of_mul_self_add_mul_self_eq_zero (h : a * a + b * b = 0) : a = 0 :=
 (mul_self_add_mul_self_eq_zero.mp h).left
-
-lemma abs_eq_iff_mul_self_eq : |a| = |b| ↔ a * a = b * b :=
-begin
-  rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
-  exact (mul_self_inj (abs_nonneg a) (abs_nonneg b)).symm,
-end
-
-lemma abs_lt_iff_mul_self_lt : |a| < |b| ↔ a * a < b * b :=
-begin
-  rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
-  exact mul_self_lt_mul_self_iff (abs_nonneg a) (abs_nonneg b)
-end
-
-lemma abs_le_iff_mul_self_le : |a| ≤ |b| ↔ a * a ≤ b * b :=
-begin
-  rw [← abs_mul_abs_self, ← abs_mul_abs_self b],
-  exact mul_self_le_mul_self_iff (abs_nonneg a) (abs_nonneg b)
-end
-
-lemma abs_le_one_iff_mul_self_le_one : |a| ≤ 1 ↔ a * a ≤ 1 :=
-by simpa only [abs_one, one_mul] using @abs_le_iff_mul_self_le α _ a 1
 
 end linear_ordered_ring
 
@@ -1088,33 +967,7 @@ max_le
   (by simpa [mul_comm, max_comm] using ba)
   (by simpa [mul_comm, max_comm] using cd)
 
-lemma abs_sub_sq (a b : α) : |a - b| * |a - b| = a * a + b * b - (1 + 1) * a * b :=
-begin
-  rw abs_mul_abs_self,
-  simp only [mul_add, add_comm, add_left_comm, mul_comm, sub_eq_add_neg,
-    mul_one, mul_neg, neg_add_rev, neg_neg],
-end
-
 end linear_ordered_comm_ring
-section
-variables [ring α] [linear_order α] {a b : α}
-
-@[simp] lemma abs_dvd (a b : α) : |a| ∣ b ↔ a ∣ b :=
-by { cases abs_choice a with h h; simp only [h, neg_dvd] }
-
-lemma abs_dvd_self (a : α) : |a| ∣ a :=
-(abs_dvd a a).mpr (dvd_refl a)
-
-@[simp] lemma dvd_abs (a b : α) : a ∣ |b| ↔ a ∣ b :=
-by { cases abs_choice b with h h; simp only [h, dvd_neg] }
-
-lemma self_dvd_abs (a : α) : a ∣ |a| :=
-(dvd_abs a a).mpr (dvd_refl a)
-
-lemma abs_dvd_abs (a b : α) : |a| ∣ |b| ↔ a ∣ b :=
-(abs_dvd _ _).trans (dvd_abs _ _)
-
-end
 
 namespace function.injective
 
@@ -1354,325 +1207,3 @@ def mk_of_positive_cone {α : Type*} [ring α] (C : total_positive_cone α) :
   ..linear_ordered_add_comm_group.mk_of_positive_cone C.to_total_positive_cone, }
 
 end linear_ordered_ring
-
-namespace canonically_ordered_comm_semiring
-variables [canonically_ordered_comm_semiring α] {a b : α}
-
-@[priority 100] -- see Note [lower instance priority]
-instance to_no_zero_divisors : no_zero_divisors α :=
-⟨canonically_ordered_comm_semiring.eq_zero_or_eq_zero_of_mul_eq_zero⟩
-
-@[priority 100] -- see Note [lower instance priority]
-instance to_covariant_mul_le : covariant_class α α (*) (≤) :=
-begin
-  refine ⟨λ a b c h, _⟩,
-  rcases exists_add_of_le h with ⟨c, rfl⟩,
-  rw mul_add,
-  apply self_le_add_right
-end
-
-@[priority 100] -- see Note [lower instance priority]
-instance to_ordered_comm_semiring : ordered_comm_semiring α :=
-{ zero_le_one := zero_le _,
-  mul_le_mul_of_nonneg_left := λ a b c h _, mul_le_mul_left' h _,
-  mul_le_mul_of_nonneg_right := λ a b c h _, mul_le_mul_right' h _,
-  ..‹canonically_ordered_comm_semiring α› }
-
-@[simp] lemma mul_pos : 0 < a * b ↔ (0 < a) ∧ (0 < b) :=
-by simp only [pos_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
-
-
-end canonically_ordered_comm_semiring
-
-section sub
-
-variables [canonically_ordered_comm_semiring α] {a b c : α}
-variables [has_sub α] [has_ordered_sub α]
-
-variables [is_total α (≤)]
-
-namespace add_le_cancellable
-protected lemma mul_tsub (h : add_le_cancellable (a * c)) :
-  a * (b - c) = a * b - a * c :=
-begin
-  cases total_of (≤) b c with hbc hcb,
-  { rw [tsub_eq_zero_iff_le.2 hbc, mul_zero, tsub_eq_zero_iff_le.2 (mul_le_mul_left' hbc a)] },
-  { apply h.eq_tsub_of_add_eq, rw [← mul_add, tsub_add_cancel_of_le hcb] }
-end
-
-protected lemma tsub_mul (h : add_le_cancellable (b * c)) : (a - b) * c = a * c - b * c :=
-by { simp only [mul_comm _ c] at *, exact h.mul_tsub }
-
-end add_le_cancellable
-
-variables [contravariant_class α α (+) (≤)]
-
-lemma mul_tsub (a b c : α) : a * (b - c) = a * b - a * c :=
-contravariant.add_le_cancellable.mul_tsub
-
-lemma tsub_mul (a b c : α) : (a - b) * c = a * c - b * c :=
-contravariant.add_le_cancellable.tsub_mul
-
-end sub
-
-/-! ### Structures involving `*` and `0` on `with_top` and `with_bot`
-
-The main results of this section are `with_top.canonically_ordered_comm_semiring` and
-`with_bot.comm_monoid_with_zero`.
--/
-
-namespace with_top
-
-instance [nonempty α] : nontrivial (with_top α) := option.nontrivial
-
-variable [decidable_eq α]
-
-section has_mul
-
-variables [has_zero α] [has_mul α]
-
-instance : mul_zero_class (with_top α) :=
-{ zero := 0,
-  mul := λ m n, if m = 0 ∨ n = 0 then 0 else m.bind (λa, n.bind $ λb, ↑(a * b)),
-  zero_mul := assume a, if_pos $ or.inl rfl,
-  mul_zero := assume a, if_pos $ or.inr rfl }
-
-lemma mul_def {a b : with_top α} :
-  a * b = if a = 0 ∨ b = 0 then 0 else a.bind (λa, b.bind $ λb, ↑(a * b)) := rfl
-
-@[simp] lemma mul_top {a : with_top α} (h : a ≠ 0) : a * ⊤ = ⊤ :=
-by cases a; simp [mul_def, h]; refl
-
-@[simp] lemma top_mul {a : with_top α} (h : a ≠ 0) : ⊤ * a = ⊤ :=
-by cases a; simp [mul_def, h]; refl
-
-@[simp] lemma top_mul_top : (⊤ * ⊤ : with_top α) = ⊤ :=
-top_mul top_ne_zero
-
-end has_mul
-
-section mul_zero_class
-
-variables [mul_zero_class α]
-
-@[norm_cast] lemma coe_mul {a b : α} : (↑(a * b) : with_top α) = a * b :=
-decidable.by_cases (assume : a = 0, by simp [this]) $ assume ha,
-decidable.by_cases (assume : b = 0, by simp [this]) $ assume hb,
-by { simp [*, mul_def], refl }
-
-lemma mul_coe {b : α} (hb : b ≠ 0) : ∀{a : with_top α}, a * b = a.bind (λa:α, ↑(a * b))
-| none     := show (if (⊤:with_top α) = 0 ∨ (b:with_top α) = 0 then 0 else ⊤ : with_top α) = ⊤,
-    by simp [hb]
-| (some a) := show ↑a * ↑b = ↑(a * b), from coe_mul.symm
-
-@[simp] lemma mul_eq_top_iff {a b : with_top α} : a * b = ⊤ ↔ (a ≠ 0 ∧ b = ⊤) ∨ (a = ⊤ ∧ b ≠ 0) :=
-begin
-  cases a; cases b; simp only [none_eq_top, some_eq_coe],
-  { simp [← coe_mul] },
-  { by_cases hb : b = 0; simp [hb] },
-  { by_cases ha : a = 0; simp [ha] },
-  { simp [← coe_mul] }
-end
-
-lemma mul_lt_top [preorder α] {a b : with_top α} (ha : a ≠ ⊤) (hb : b ≠ ⊤) : a * b < ⊤ :=
-begin
-  lift a to α using ha,
-  lift b to α using hb,
-  simp only [← coe_mul, coe_lt_top]
-end
-
-@[simp] lemma untop'_zero_mul (a b : with_top α) : (a * b).untop' 0 = a.untop' 0 * b.untop' 0 :=
-begin
-  by_cases ha : a = 0, { rw [ha, zero_mul, ← coe_zero, untop'_coe, zero_mul] },
-  by_cases hb : b = 0, { rw [hb, mul_zero, ← coe_zero, untop'_coe, mul_zero] },
-  induction a using with_top.rec_top_coe, { rw [top_mul hb, untop'_top, zero_mul] },
-  induction b using with_top.rec_top_coe, { rw [mul_top ha, untop'_top, mul_zero] },
-  rw [← coe_mul, untop'_coe, untop'_coe, untop'_coe]
-end
-
-end mul_zero_class
-
-/-- `nontrivial α` is needed here as otherwise we have `1 * ⊤ = ⊤` but also `0 * ⊤ = 0`. -/
-instance [mul_zero_one_class α] [nontrivial α] : mul_zero_one_class (with_top α) :=
-{ mul := (*),
-  one := 1,
-  zero := 0,
-  one_mul := λ a, match a with
-  | ⊤       := mul_top (mt coe_eq_coe.1 one_ne_zero)
-  | (a : α) := by rw [← coe_one, ← coe_mul, one_mul]
-  end,
-  mul_one := λ a, match a with
-  | ⊤       := top_mul (mt coe_eq_coe.1 one_ne_zero)
-  | (a : α) := by rw [← coe_one, ← coe_mul, mul_one]
-  end,
-  .. with_top.mul_zero_class }
-
-/-- A version of `with_top.map` for `monoid_with_zero_hom`s. -/
-@[simps { fully_applied := ff }] protected def _root_.monoid_with_zero_hom.with_top_map
-  {R S : Type*} [mul_zero_one_class R] [decidable_eq R] [nontrivial R]
-  [mul_zero_one_class S] [decidable_eq S] [nontrivial S] (f : R →*₀ S) (hf : function.injective f) :
-  with_top R →*₀ with_top S :=
-{ to_fun := with_top.map f,
-  map_mul' := λ x y,
-    begin
-      have : ∀ z, map f z = 0 ↔ z = 0,
-        from λ z, (option.map_injective hf).eq_iff' f.to_zero_hom.with_top_map.map_zero,
-      rcases eq_or_ne x 0 with rfl|hx, { simp },
-      rcases eq_or_ne y 0 with rfl|hy, { simp },
-      induction x using with_top.rec_top_coe, { simp [hy, this] },
-      induction y using with_top.rec_top_coe,
-      { have : (f x : with_top S) ≠ 0, by simpa [hf.eq_iff' (map_zero f)] using hx,
-        simp [hx, this] },
-      simp [← coe_mul]
-    end,
-  .. f.to_zero_hom.with_top_map, .. f.to_monoid_hom.to_one_hom.with_top_map }
-
-instance [mul_zero_class α] [no_zero_divisors α] : no_zero_divisors (with_top α) :=
-⟨λ a b, by cases a; cases b; dsimp [mul_def]; split_ifs;
-  simp [*, none_eq_top, some_eq_coe, mul_eq_zero] at *⟩
-
-instance [semigroup_with_zero α] [no_zero_divisors α] : semigroup_with_zero (with_top α) :=
-{ mul := (*),
-  zero := 0,
-  mul_assoc := λ a b c, begin
-    rcases eq_or_ne a 0 with rfl|ha, { simp only [zero_mul] },
-    rcases eq_or_ne b 0 with rfl|hb, { simp only [zero_mul, mul_zero] },
-    rcases eq_or_ne c 0 with rfl|hc, { simp only [mul_zero] },
-    induction a using with_top.rec_top_coe, { simp [hb, hc] },
-    induction b using with_top.rec_top_coe, { simp [ha, hc] },
-    induction c using with_top.rec_top_coe, { simp [ha, hb] },
-    simp only [← coe_mul, mul_assoc]
-  end,
-  .. with_top.mul_zero_class }
-
-instance [monoid_with_zero α] [no_zero_divisors α] [nontrivial α] : monoid_with_zero (with_top α) :=
-{ .. with_top.mul_zero_one_class, .. with_top.semigroup_with_zero }
-
-instance [comm_monoid_with_zero α] [no_zero_divisors α] [nontrivial α] :
-  comm_monoid_with_zero (with_top α) :=
-{ mul := (*),
-  zero := 0,
-  mul_comm := λ a b,
-    by simp only [or_comm, mul_def, option.bind_comm a b, mul_comm],
-  .. with_top.monoid_with_zero }
-
-variables [canonically_ordered_comm_semiring α]
-
-private lemma distrib' (a b c : with_top α) : (a + b) * c = a * c + b * c :=
-begin
-  induction c using with_top.rec_top_coe,
-  { by_cases ha : a = 0; simp [ha] },
-  { by_cases hc : c = 0, { simp [hc] },
-    simp [mul_coe hc], cases a; cases b,
-    repeat { refl <|> exact congr_arg some (add_mul _ _ _) } }
-end
-
-/-- This instance requires `canonically_ordered_comm_semiring` as it is the smallest class
-that derives from both `non_assoc_non_unital_semiring` and `canonically_ordered_add_monoid`, both
-of which are required for distributivity. -/
-instance [nontrivial α] : comm_semiring (with_top α) :=
-{ right_distrib   := distrib',
-  left_distrib    := λ a b c, by { rw [mul_comm, distrib', mul_comm b, mul_comm c], refl },
-  .. with_top.add_comm_monoid_with_one, .. with_top.comm_monoid_with_zero }
-
-instance [nontrivial α] : canonically_ordered_comm_semiring (with_top α) :=
-{ .. with_top.comm_semiring,
-  .. with_top.canonically_ordered_add_monoid,
-  .. with_top.no_zero_divisors, }
-
-/-- A version of `with_top.map` for `ring_hom`s. -/
-@[simps { fully_applied := ff }] protected def _root_.ring_hom.with_top_map
-  {R S : Type*} [canonically_ordered_comm_semiring R] [decidable_eq R] [nontrivial R]
-  [canonically_ordered_comm_semiring S] [decidable_eq S] [nontrivial S]
-  (f : R →+* S) (hf : function.injective f) :
-  with_top R →+* with_top S :=
-{ to_fun := with_top.map f,
-  .. f.to_monoid_with_zero_hom.with_top_map hf, .. f.to_add_monoid_hom.with_top_map }
-
-end with_top
-
-namespace with_bot
-
-instance [nonempty α] : nontrivial (with_bot α) := option.nontrivial
-
-variable [decidable_eq α]
-
-section has_mul
-
-variables [has_zero α] [has_mul α]
-
-instance : mul_zero_class (with_bot α) :=
-with_top.mul_zero_class
-
-lemma mul_def {a b : with_bot α} :
-  a * b = if a = 0 ∨ b = 0 then 0 else a.bind (λa, b.bind $ λb, ↑(a * b)) := rfl
-
-@[simp] lemma mul_bot {a : with_bot α} (h : a ≠ 0) : a * ⊥ = ⊥ :=
-with_top.mul_top h
-
-@[simp] lemma bot_mul {a : with_bot α} (h : a ≠ 0) : ⊥ * a = ⊥ :=
-with_top.top_mul h
-
-@[simp] lemma bot_mul_bot : (⊥ * ⊥ : with_bot α) = ⊥ :=
-with_top.top_mul_top
-
-end has_mul
-
-section mul_zero_class
-
-variables [mul_zero_class α]
-
-@[norm_cast] lemma coe_mul {a b : α} : (↑(a * b) : with_bot α) = a * b :=
-decidable.by_cases (assume : a = 0, by simp [this]) $ assume ha,
-decidable.by_cases (assume : b = 0, by simp [this]) $ assume hb,
-by { simp [*, mul_def], refl }
-
-lemma mul_coe {b : α} (hb : b ≠ 0) {a : with_bot α} : a * b = a.bind (λa:α, ↑(a * b)) :=
-with_top.mul_coe hb
-
-@[simp] lemma mul_eq_bot_iff {a b : with_bot α} : a * b = ⊥ ↔ (a ≠ 0 ∧ b = ⊥) ∨ (a = ⊥ ∧ b ≠ 0) :=
-with_top.mul_eq_top_iff
-
-lemma bot_lt_mul [preorder α] {a b : with_bot α} (ha : ⊥ < a) (hb : ⊥ < b) : ⊥ < a * b :=
-begin
-  lift a to α using ne_bot_of_gt ha,
-  lift b to α using ne_bot_of_gt hb,
-  simp only [← coe_mul, bot_lt_coe],
-end
-
-end mul_zero_class
-
-/-- `nontrivial α` is needed here as otherwise we have `1 * ⊥ = ⊥` but also `= 0 * ⊥ = 0`. -/
-instance [mul_zero_one_class α] [nontrivial α] : mul_zero_one_class (with_bot α) :=
-with_top.mul_zero_one_class
-
-instance [mul_zero_class α] [no_zero_divisors α] : no_zero_divisors (with_bot α) :=
-with_top.no_zero_divisors
-
-instance [semigroup_with_zero α] [no_zero_divisors α] : semigroup_with_zero (with_bot α) :=
-with_top.semigroup_with_zero
-
-instance [monoid_with_zero α] [no_zero_divisors α] [nontrivial α] : monoid_with_zero (with_bot α) :=
-with_top.monoid_with_zero
-
-instance [comm_monoid_with_zero α] [no_zero_divisors α] [nontrivial α] :
-  comm_monoid_with_zero (with_bot α) :=
-with_top.comm_monoid_with_zero
-
-instance [canonically_ordered_comm_semiring α] [nontrivial α] : comm_semiring (with_bot α) :=
-with_top.comm_semiring
-
-instance [canonically_ordered_comm_semiring α] [nontrivial α] : pos_mul_mono (with_bot α) :=
-pos_mul_mono_iff_covariant_pos.2 ⟨begin
-    rintros ⟨x, x0⟩ a b h, simp only [subtype.coe_mk],
-    lift x to α using x0.ne_bot,
-    induction a using with_bot.rec_bot_coe, { simp_rw [mul_bot x0.ne.symm, bot_le] },
-    induction b using with_bot.rec_bot_coe, { exact absurd h (bot_lt_coe a).not_le },
-    simp only [← coe_mul, coe_le_coe] at *,
-    exact mul_le_mul_left' h x,
-  end ⟩
-
-instance [canonically_ordered_comm_semiring α] [nontrivial α] : mul_pos_mono (with_bot α) :=
-pos_mul_mono_iff_mul_pos_mono.mp infer_instance
-
-end with_bot

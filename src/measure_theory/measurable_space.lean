@@ -157,6 +157,10 @@ comap_le_iff_le_map.symm
 
 alias measurable_iff_comap_le ↔ measurable.comap_le measurable.of_comap_le
 
+lemma comap_measurable {m : measurable_space β} (f : α → β) :
+  measurable[m.comap f] f :=
+λ s hs, ⟨s, hs, rfl⟩
+
 lemma measurable.mono {ma ma' : measurable_space α} {mb mb' : measurable_space β} {f : α → β}
   (hf : @measurable α β ma mb f) (ha : ma ≤ ma') (hb : mb' ≤ mb) :
   @measurable α β ma' mb' f :=
@@ -204,6 +208,10 @@ end
 
 lemma measurable_of_finite [finite α] [measurable_singleton_class α] (f : α → β) : measurable f :=
 λ s hs, (f ⁻¹' s).to_finite.measurable_set
+
+lemma measurable_of_countable [countable α] [measurable_singleton_class α] (f : α → β) :
+  measurable f :=
+λ s hs, (f ⁻¹' s).to_countable.measurable_set
 
 end typeclass_measurable_space
 
@@ -627,7 +635,7 @@ begin
     simpa only [B', mem_union, mem_Inter, or_false, compl_Union, mem_compl_iff] using B },
   congr,
   by_contra h,
-  exact t_disj n (nat.find (P x)) (ne.symm h) ⟨hx, this⟩
+  exact t_disj (ne.symm h) ⟨hx, this⟩
 end
 
 end prod

@@ -125,15 +125,13 @@ instance has_neg : has_neg (slash_invariant_form Γ k) :=
   end⟩ ⟩
 
 instance has_sub : has_sub (slash_invariant_form Γ k) :=
-⟨λ f g, ⟨f - g, by { intro γ, have : (f : ℍ → ℂ) - g = f + (-g), by {funext, simp, ring,},
+⟨λ f g, ⟨f - g, by { intro γ,
+  have : (f : ℍ → ℂ) - g = f + (-g), by {funext, simp, ring,},
   rw [this, slash_action.add_action k γ],
-  have h1 := (f.slash_action_eq') γ,
-  have h2 := (g.slash_action_eq') γ,
-  simp [h1],
-  rw modular_forms.subgroup_slash at *,
+  simp [(f.slash_action_eq') γ],
   rw modular_forms.neg_slash,
   simp only [neg_inj],
-  convert h2,} ⟩⟩
+  convert ((g.slash_action_eq') γ),} ⟩⟩
 
 instance : add_comm_group (slash_invariant_form Γ k) :=
 fun_like.coe_injective.add_comm_group _ rfl (λ _ _, by {refl}) (λ _, by{refl}) (λ _ _, by {refl})
@@ -145,7 +143,7 @@ def coe_hom : (slash_invariant_form Γ k) →+ (ℍ → ℂ) :=
 { to_fun := λ f, f, map_zero' := slash_invariant_forms.coe_zero, map_add' := λ _ _, rfl }
 
 lemma coe_hom_injective : function.injective (@coe_hom Γ k) :=
-by { exact fun_like.coe_injective }
+fun_like.coe_injective
 
 instance : module ℂ (slash_invariant_form Γ k) :=
 coe_hom_injective.module ℂ (coe_hom) (λ _ _, rfl)

@@ -194,7 +194,7 @@ def coe_hom : (modular_form Γ k) →+ (ℍ → ℂ) :=
 { to_fun := λ f, f, map_zero' := coe_zero, map_add' := λ _ _, rfl }
 
 lemma coe_hom_injective : function.injective (@coe_hom Γ k) :=
-by { exact fun_like.coe_injective }
+fun_like.coe_injective
 
 instance modular_forms.module : module ℂ (modular_form Γ k) :=
 coe_hom_injective.module ℂ (coe_hom) (λ _ _, rfl)
@@ -309,7 +309,7 @@ def coe_hom : (cusp_form Γ k) →+ (ℍ → ℂ) :=
 { to_fun := λ f, f, map_zero' := cusp_forms.coe_zero, map_add' := λ _ _, rfl }
 
 lemma coe_hom_injective : function.injective (@coe_hom Γ k) :=
-by { exact fun_like.coe_injective }
+fun_like.coe_injective
 
 instance : module ℂ (cusp_form Γ k) :=
 coe_hom_injective.module ℂ (coe_hom) (λ _ _, rfl)

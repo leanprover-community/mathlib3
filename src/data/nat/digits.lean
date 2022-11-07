@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Shing Tak Lam, Mario Carneiro
 -/
 import data.int.modeq
+import data.nat.bits
 import data.nat.log
 import data.nat.parity
 import data.list.indexes
@@ -470,6 +471,22 @@ begin
   rcases b with _ | _ | b; try { linarith },
   exact base_pow_length_digits_le' b m,
 end
+
+/-! ### Binary -/
+lemma digits_two_eq_bits (n : ℕ) : digits 2 n = n.bits.map (λ b, cond b 1 0) :=
+begin
+  induction n using nat.binary_rec_from_one with b n h ih,
+  { simp, },
+  { simp, },
+  rw bits_append_bit _ _ (λ hn, absurd hn h),
+  cases b,
+  { rw digits_def' (le_refl 2),
+     { simpa [nat.bit, nat.bit0_val n], },
+     { simpa [pos_iff_ne_zero, bit_eq_zero_iff], }, },
+  { simpa [nat.bit, nat.bit1_val n, add_comm, digits_add 2 le_rfl 1 n (by norm_num)
+    (by norm_num)] },
+end
+
 
 /-! ### Modular Arithmetic -/
 

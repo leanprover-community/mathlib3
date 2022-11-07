@@ -764,8 +764,10 @@ begin
         mv_power_series.inv_mul_cancel _ h.right] }
 end
 
-@[simp] lemma inv_one : (1 : mv_power_series σ k)⁻¹ = 1 :=
-by { rw [mv_power_series.inv_eq_iff_mul_eq_one, mul_one], simp }
+instance : inv_one_class (mv_power_series σ k) :=
+{ inv_one := by { rw [mv_power_series.inv_eq_iff_mul_eq_one, mul_one], simp },
+  ..mv_power_series.has_one,
+  ..mv_power_series.has_inv }
 
 @[simp] lemma C_inv (r : k) : (C σ k r)⁻¹ = C σ k r⁻¹ :=
 begin
@@ -1421,11 +1423,16 @@ end ring
 section comm_ring
 variables {A : Type*} [comm_ring A]
 
-@[simp] lemma rescale_neg_one_X : rescale (-1 : A) X = -X :=
+@[simp] lemma rescale_X (a : A) : rescale a X = C A a * X :=
 begin
-  ext, simp only [linear_map.map_neg, coeff_rescale, coeff_X],
-  split_ifs with h; simp [h]
+  ext,
+  simp only [coeff_rescale, coeff_C_mul, coeff_X],
+  split_ifs with h;
+  simp [h],
 end
+
+lemma rescale_neg_one_X : rescale (-1 : A) X = -X :=
+by rw [rescale_X, map_neg, map_one, neg_one_mul]
 
 /-- The ring homomorphism taking a power series `f(X)` to `f(-X)`. -/
 noncomputable def eval_neg_hom : power_series A →+* power_series A :=
@@ -1598,8 +1605,7 @@ mv_power_series.inv_eq_iff_mul_eq_one h
   (φ * ψ)⁻¹ = ψ⁻¹ * φ⁻¹ :=
 mv_power_series.mul_inv_rev _ _
 
-@[simp] lemma inv_one : (1 : power_series k)⁻¹ = 1 :=
-mv_power_series.inv_one
+instance : inv_one_class (power_series k) := mv_power_series.inv_one_class
 
 @[simp] lemma C_inv (r : k) : (C k r)⁻¹ = C k r⁻¹ :=
 mv_power_series.C_inv _
@@ -2027,9 +2033,9 @@ instance algebra_power_series : algebra (power_series R) (power_series A) :=
 (map (algebra_map R A)).to_algebra
 
 @[priority 100] -- see Note [lower instance priority]
-instance algebra_polynomial' {A : Type*} [comm_semiring A] [algebra R (polynomial A)] :
+instance algebra_polynomial' {A : Type*} [comm_semiring A] [algebra R A[X]] :
   algebra R (power_series A) :=
-ring_hom.to_algebra $ polynomial.coe_to_power_series.ring_hom.comp (algebra_map R (polynomial A))
+ring_hom.to_algebra $ polynomial.coe_to_power_series.ring_hom.comp (algebra_map R A[X])
 
 variables (A)
 

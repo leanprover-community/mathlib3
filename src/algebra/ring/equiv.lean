@@ -207,8 +207,18 @@ symm_bijective.injective $ ext $ λ x, rfl
 @[trans] protected def trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') : R ≃+* S' :=
 { .. (e₁.to_mul_equiv.trans e₂.to_mul_equiv), .. (e₁.to_add_equiv.trans e₂.to_add_equiv) }
 
-@[simp] lemma trans_apply (e₁ : R ≃+* S) (e₂ : S ≃+* S') (a : R) :
+lemma trans_apply (e₁ : R ≃+* S) (e₂ : S ≃+* S') (a : R) :
   e₁.trans e₂ a = e₂ (e₁ a) := rfl
+
+@[simp] lemma coe_trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') :
+  (e₁.trans e₂ : R → S') = e₂ ∘ e₁ := rfl
+
+@[simp]
+lemma symm_trans_apply (e₁ : R ≃+* S) (e₂ : S ≃+* S') (a : S') :
+  (e₁.trans e₂).symm a = e₁.symm (e₂.symm a) := rfl
+
+lemma symm_trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') :
+  (e₁.trans e₂).symm = e₂.symm.trans (e₁.symm) := rfl
 
 protected lemma bijective (e : R ≃+* S) : function.bijective e := equiv_like.bijective e
 protected lemma injective (e : R ≃+* S) : function.injective e := equiv_like.injective e
@@ -219,6 +229,11 @@ protected lemma surjective (e : R ≃+* S) : function.surjective e := equiv_like
 
 lemma image_eq_preimage (e : R ≃+* S) (s : set R) : e '' s = e.symm ⁻¹' s :=
 e.to_equiv.image_eq_preimage s
+
+@[simp] lemma coe_mul_equiv_trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') :
+  (e₁.trans e₂ : R ≃* S') = (e₁ : R ≃* S).trans ↑e₂:= rfl
+@[simp] lemma coe_add_equiv_trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') :
+  (e₁.trans e₂ : R ≃+ S') = (e₁ : R ≃+ S).trans ↑e₂:= rfl
 
 end basic
 
@@ -330,6 +345,29 @@ variable {x}
 protected lemma map_eq_one_iff : f x = 1 ↔ x = 1 := mul_equiv_class.map_eq_one_iff f
 
 lemma map_ne_one_iff : f x ≠ 1 ↔ x ≠ 1 := mul_equiv_class.map_ne_one_iff f
+
+lemma coe_monoid_hom_refl : (ring_equiv.refl R : R →* R) = monoid_hom.id R := rfl
+@[simp] lemma coe_add_monoid_hom_refl : (ring_equiv.refl R : R →+ R) = add_monoid_hom.id R := rfl
+/-! `ring_equiv.coe_mul_equiv_refl` and `ring_equiv.coe_add_equiv_refl` are proved above
+in higher generality -/
+@[simp] lemma coe_ring_hom_refl : (ring_equiv.refl R : R →* R) = ring_hom.id R := rfl
+
+@[simp] lemma coe_monoid_hom_trans [non_assoc_semiring S'] (e₁ : R ≃+* S) (e₂ : S ≃+* S') :
+  (e₁.trans e₂ : R →* S') = (e₂ : S →* S').comp ↑e₁ := rfl
+@[simp] lemma coe_add_monoid_hom_trans [non_assoc_semiring S'] (e₁ : R ≃+* S) (e₂ : S ≃+* S') :
+  (e₁.trans e₂ : R →+ S') = (e₂ : S →+ S').comp ↑e₁ := rfl
+/-! `ring_equiv.coe_mul_equiv_trans` and `ring_equiv.coe_add_equiv_trans` are proved above
+in higher generality -/
+@[simp] lemma coe_ring_hom_trans [non_assoc_semiring S'] (e₁ : R ≃+* S) (e₂ : S ≃+* S') :
+  (e₁.trans e₂ : R →+* S') = (e₂ : S →+* S').comp ↑e₁ := rfl
+
+@[simp] lemma comp_symm (e : R ≃+* S) :
+  (e : R →+* S).comp (e.symm : S →+* R) = ring_hom.id S :=
+ring_hom.ext e.apply_symm_apply
+
+@[simp] lemma symm_comp (e : R ≃+* S) :
+  (e.symm : S →+* R).comp (e : R →+* S) = ring_hom.id R :=
+ring_hom.ext e.symm_apply_apply
 
 end semiring
 
@@ -554,17 +592,6 @@ protected lemma map_sum {α : Type*} [non_assoc_semiring R] [non_assoc_semiring 
 map_sum g f s
 
 end big_operators
-
-section division_ring
-
-variables {K K' : Type*} [division_ring K] [division_ring K']
-  (g : K ≃+* K') (x y : K)
-
-lemma map_inv : g x⁻¹ = (g x)⁻¹ := g.to_ring_hom.map_inv x
-
-lemma map_div : g (x / y) = g x / g y := g.to_ring_hom.map_div x y
-
-end division_ring
 
 section group_power
 

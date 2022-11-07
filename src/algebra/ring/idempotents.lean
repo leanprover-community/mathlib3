@@ -27,7 +27,7 @@ projection, idempotent
 
 variables {M N S M₀ M₁ R G G₀ : Type*}
 variables [has_mul M] [monoid N] [semigroup S] [mul_zero_class M₀] [mul_one_class M₁]
-  [non_assoc_ring R] [group G] [group_with_zero G₀]
+  [non_assoc_ring R] [group G] [cancel_monoid_with_zero G₀]
 
 /--
 An element `p` is said to be idempotent if `p * p = p`
@@ -70,8 +70,7 @@ begin
   refine iff.intro
     (λ h, or_iff_not_imp_left.mpr (λ hp, _))
     (λ h, h.elim (λ hp, hp.symm ▸ zero) (λ hp, hp.symm ▸ one)),
-  lift p to G₀ˣ using is_unit.mk0 _ hp,
-  exact_mod_cast iff_eq_one.mp (by exact_mod_cast h.eq),
+  exact mul_left_cancel₀ hp (h.trans (mul_one p).symm)
 end
 
 /-! ### Instances on `subtype is_idempotent_elem` -/

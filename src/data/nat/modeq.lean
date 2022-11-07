@@ -39,6 +39,8 @@ namespace modeq
 
 protected theorem rfl : a ≡ a [MOD n] := modeq.refl _
 
+instance : is_refl _ (modeq n) := ⟨modeq.refl⟩
+
 @[symm] protected theorem symm : a ≡ b [MOD n] → b ≡ a [MOD n] := eq.symm
 
 @[trans] protected theorem trans : a ≡ b [MOD n] → b ≡ c [MOD n] → a ≡ c [MOD n] := eq.trans
@@ -307,13 +309,13 @@ lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℕ} (hmn : coprime m n) :
 λ h, ⟨h.of_modeq_mul_right _, h.of_modeq_mul_left _⟩⟩
 
 lemma coprime_of_mul_modeq_one (b : ℕ) {a n : ℕ} (h : a * b ≡ 1 [MOD n]) : coprime a n :=
-nat.coprime_of_dvd' (λ k kp ⟨ka, hka⟩ ⟨kb, hkb⟩, int.coe_nat_dvd.1 begin
-  rw [hka, hkb, modeq_iff_dvd] at h,
-  cases h with z hz,
-  rw [sub_eq_iff_eq_add] at hz,
-  rw [hz, int.coe_nat_mul, mul_assoc, mul_assoc, int.coe_nat_mul, ← mul_add],
-  exact dvd_mul_right _ _,
-end)
+begin
+  obtain ⟨g, hh⟩ := nat.gcd_dvd_right a n,
+  rw [nat.coprime_iff_gcd_eq_one, ← nat.dvd_one, ← nat.modeq_zero_iff_dvd],
+  calc 1 ≡ a * b [MOD a.gcd n] : nat.modeq.of_modeq_mul_right g (hh.subst h).symm
+  ... ≡ 0 * b [MOD a.gcd n] : (nat.modeq_zero_iff_dvd.mpr (nat.gcd_dvd_left _ _)).mul_right b
+  ... = 0 : by rw zero_mul,
+end
 
 @[simp] lemma mod_mul_right_mod (a b c : ℕ) : a % (b * c) % b = a % b :=
 (mod_modeq _ _).of_modeq_mul_right _

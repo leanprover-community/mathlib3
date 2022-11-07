@@ -65,7 +65,7 @@ by rw [←neg_inj, ←floor_neg, ←floor_neg, ← rat.cast_neg, rat.floor_cast]
 
 @[simp, norm_cast] lemma round_cast (x : ℚ) : round (x : α) = round x :=
 have ((x + 1 / 2 : ℚ) : α) = x + 1 / 2, by simp,
-by rw [round, round, ← this, floor_cast]
+by rw [round_eq, round_eq, ← this, floor_cast]
 
 @[simp, norm_cast] lemma cast_fract (x : ℚ) : (↑(fract x) : α) = fract x :=
 by simp only [fract, cast_sub, cast_coe_int, floor_cast]

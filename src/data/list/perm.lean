@@ -7,6 +7,7 @@ import data.list.dedup
 import data.list.lattice
 import data.list.permutation
 import data.list.zip
+import data.list.range
 import logic.relation
 
 /-!
@@ -37,7 +38,7 @@ inductive perm : list α → list α → Prop
 
 open perm (swap)
 
-infix ` ~ `:50 := perm
+infix (name := list.perm) ` ~ `:50 := perm
 
 @[refl] protected theorem perm.refl : ∀ (l : list α), l ~ l
 | []      := perm.nil
@@ -351,12 +352,10 @@ theorem perm.subperm {l₁ l₂ : list α} (p : l₁ ~ l₂) : l₁ <+~ l₂ :=
   let ⟨l₁', p₁, s₁⟩ := p₂.subperm_left.2 s in ⟨l₁', p₁, s₁.trans s₂⟩
 
 theorem subperm.length_le {l₁ l₂ : list α} : l₁ <+~ l₂ → length l₁ ≤ length l₂
-| ⟨l, p, s⟩ := p.length_eq ▸ length_le_of_sublist s
+| ⟨l, p, s⟩ := p.length_eq ▸ s.length_le
 
 theorem subperm.perm_of_length_le {l₁ l₂ : list α} : l₁ <+~ l₂ → length l₂ ≤ length l₁ → l₁ ~ l₂
-| ⟨l, p, s⟩ h :=
-  suffices l = l₂, from this ▸ p.symm,
-  eq_of_sublist_of_length_le s $ p.symm.length_eq ▸ h
+| ⟨l, p, s⟩ h := (s.eq_of_length_le $ p.symm.length_eq ▸ h) ▸ p.symm
 
 theorem subperm.antisymm {l₁ l₂ : list α} (h₁ : l₁ <+~ l₂) (h₂ : l₂ <+~ l₁) : l₁ ~ l₂ :=
 h₁.perm_of_length_le h₂.length_le
@@ -456,8 +455,8 @@ end
 
 section
 variables {op : α → α → α} [is_associative α op] [is_commutative α op]
-local notation a * b := op a b
-local notation l <*> a := foldl op a l
+local notation (name := op) a ` * ` b := op a b
+local notation (name := foldl) l ` <*> ` a := foldl op a l
 
 lemma perm.fold_op_eq {l₁ l₂ : list α} {a : α} (h : l₁ ~ l₂) : l₁ <*> a = l₂ <*> a :=
 h.foldl_eq (right_comm _ is_commutative.comm is_associative.assoc) _
@@ -590,7 +589,7 @@ theorem subperm.exists_of_length_lt {l₁ l₂ : list α} :
     { cases h },
     { cases lt_or_eq_of_le (nat.le_of_lt_succ h : length l₁ ≤ length l₂) with h h,
       { exact (IH h).imp (λ a s, s.trans (sublist_cons _ _).subperm) },
-      { exact ⟨a, eq_of_sublist_of_length_eq s h ▸ subperm.refl _⟩ } },
+      { exact ⟨a, s.eq_of_length h ▸ subperm.refl _⟩ } },
     { exact (IH $ nat.lt_of_succ_lt_succ h).imp
         (λ a s, (swap _ _ _).subperm_right.1 $ (subperm_cons _).2 s) }
   end
@@ -768,6 +767,9 @@ begin
   convert (subperm_append_right _).mpr nil_subperm using 1
 end
 
+instance decidable_subperm : decidable_rel ((<+~) : list α → list α → Prop) :=
+λ l₁ l₂, decidable_of_iff _ list.subperm_ext_iff.symm
+
 @[simp] lemma subperm_singleton_iff {α} {l : list α} {a : α} : [a] <+~ l ↔ a ∈ l :=
 ⟨λ ⟨s, hla, h⟩, by rwa [perm_singleton.mp hla, singleton_sublist] at h,
  λ h, ⟨[a], perm.refl _, singleton_sublist.mpr h⟩⟩
@@ -891,6 +893,14 @@ suffices ∀ {l₁ l₂}, l₁ ~ l₂ → pairwise R l₁ → pairwise R l₂, f
     exact h _ (p'.symm.subset m) }
 end
 
+lemma pairwise.perm {R : α → α → Prop} {l l' : list α} (hR : l.pairwise R)
+  (hl : l ~ l') (hsymm : symmetric R) : l'.pairwise R :=
+(hl.pairwise_iff hsymm).mp hR
+
+lemma perm.pairwise {R : α → α → Prop} {l l' : list α}
+  (hl : l ~ l') (hR : l.pairwise R) (hsymm : symmetric R) : l'.pairwise R :=
+hR.perm hl hsymm
+
 theorem perm.nodup_iff {l₁ l₂ : list α} : l₁ ~ l₂ → (nodup l₁ ↔ nodup l₂) :=
 perm.pairwise_iff $ @ne.symm α
 
@@ -915,6 +925,10 @@ begin
   rw [← append_assoc, ← append_assoc],
   exact perm_append_comm.append_right _
 end
+
+theorem map_append_bind_perm (l : list α) (f : α → β) (g : α → list β) :
+  l.map f ++ l.bind g ~ l.bind (λ x, f x :: g x) :=
+by simpa [←map_eq_bind] using bind_append_perm l (λ x, [f x]) g
 
 theorem perm.product_right {l₁ l₂ : list α} (t₁ : list β) (p : l₁ ~ l₂) :
   product l₁ t₁ ~ product l₂ t₁ :=
@@ -973,6 +987,24 @@ begin
     rcases h with ⟨l₁, l₂', h, rfl, rfl⟩ | ⟨l₁', h, rfl⟩,
     { exact perm_middle.trans ((IH _ _ h).cons _) },
     { exact (IH _ _ h).cons _ } }
+end
+
+lemma range_bind_sublists_len_perm {α : Type*} (l : list α) :
+  (list.range (l.length + 1)).bind (λ n, sublists_len n l) ~ sublists' l :=
+begin
+  induction l with h tl,
+  { simp [range_succ] },
+  { simp_rw [range_succ_eq_map, length, cons_bind, map_bind, sublists_len_succ_cons,
+      sublists'_cons, list.sublists_len_zero, list.singleton_append],
+    refine ((bind_append_perm (range (tl.length + 1)) _ _).symm.cons _).trans _,
+    simp_rw [←list.bind_map, ←cons_append],
+    rw [←list.singleton_append, ←list.sublists_len_zero tl],
+    refine perm.append _ (l_ih.map _),
+    rw [list.range_succ, append_bind, bind_singleton,
+      sublists_len_of_length_lt (nat.lt_succ_self _), append_nil,
+      ←list.map_bind (λ n, sublists_len n tl) nat.succ, ←cons_bind 0 _ (λ n, sublists_len n tl),
+      ←range_succ_eq_map],
+    exact l_ih }
 end
 
 theorem perm_lookmap (f : α → option α) {l₁ l₂ : list α}
@@ -1364,3 +1396,21 @@ end
 end permutations
 
 end list
+
+open list
+
+lemma equiv.perm.map_fin_range_perm {n : ℕ} (σ : equiv.perm (fin n)) :
+  map σ (fin_range n) ~ fin_range n :=
+begin
+  rw [perm_ext ((nodup_fin_range n).map σ.injective) $ nodup_fin_range n],
+  simpa only [mem_map, mem_fin_range, true_and, iff_true] using σ.surjective
+end
+
+/-- The list obtained from a permutation of a tuple `f` is permutation equivalent to
+the list obtained from `f`. -/
+lemma equiv.perm.of_fn_comp_perm {n : ℕ} {α : Type uu} (σ : equiv.perm (fin n)) (f : fin n → α) :
+  of_fn (f ∘ σ) ~ of_fn f :=
+begin
+  rw [of_fn_eq_map, of_fn_eq_map, ←map_map],
+  exact σ.map_fin_range_perm.map f,
+end

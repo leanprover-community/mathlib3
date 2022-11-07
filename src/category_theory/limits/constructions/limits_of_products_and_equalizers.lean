@@ -8,6 +8,9 @@ import category_theory.limits.shapes.finite_products
 import category_theory.limits.preserves.shapes.products
 import category_theory.limits.preserves.shapes.equalizers
 import category_theory.limits.preserves.finite
+import category_theory.limits.constructions.finite_products_of_binary_products
+import category_theory.limits.constructions.equalizers
+import category_theory.limits.constructions.binary_products
 
 /-!
 # Constructing limits from products and equalizers.
@@ -130,7 +133,7 @@ Any category with products and equalizers has all limits.
 
 See <https://stacks.math.columbia.edu/tag/002N>.
 -/
-lemma limits_from_equalizers_and_products
+lemma has_limits_of_has_equalizers_and_products
   [has_products.{w} C] [has_equalizers C] : has_limits_of_size.{w w} C :=
 { has_limits_of_shape := λ J 𝒥,
   { has_limit := λ F, by exactI has_limit_of_equalizer_and_product F } }
@@ -140,7 +143,7 @@ Any category with finite products and equalizers has all finite limits.
 
 See <https://stacks.math.columbia.edu/tag/002O>.
 -/
-lemma finite_limits_from_equalizers_and_finite_products
+lemma has_finite_limits_of_has_equalizers_and_finite_products
   [has_finite_products C] [has_equalizers C] : has_finite_limits C :=
 ⟨λ J _ _, { has_limit := λ F, by exactI has_limit_of_equalizer_and_product F }⟩
 
@@ -213,6 +216,29 @@ def preserves_limits_of_preserves_equalizers_and_products
 preserves_limits_of_size.{w w} G :=
 { preserves_limits_of_shape := λ J 𝒥,
   by exactI preserves_limit_of_preserves_equalizers_and_product G }
+
+lemma has_finite_limits_of_has_terminal_and_pullbacks [has_terminal C] [has_pullbacks C] :
+  has_finite_limits C :=
+@@has_finite_limits_of_has_equalizers_and_finite_products _
+  (@@has_finite_products_of_has_binary_and_terminal _
+    (has_binary_products_of_has_terminal_and_pullbacks C) infer_instance)
+  (@@has_equalizers_of_has_pullbacks_and_binary_products _
+    (has_binary_products_of_has_terminal_and_pullbacks C) infer_instance)
+
+/-- If G preserves terminal objects and pullbacks, it preserves all finite limits. -/
+def preserves_finite_limits_of_preserves_terminal_and_pullbacks
+  [has_terminal C] [has_pullbacks C] (G : C ⥤ D)
+  [preserves_limits_of_shape (discrete.{0} pempty) G]
+  [preserves_limits_of_shape walking_cospan G] :
+preserves_finite_limits G :=
+begin
+  haveI : has_finite_limits C := has_finite_limits_of_has_terminal_and_pullbacks,
+  haveI : preserves_limits_of_shape (discrete walking_pair) G :=
+    preserves_binary_products_of_preserves_terminal_and_pullbacks G,
+  exact @@preserves_finite_limits_of_preserves_equalizers_and_finite_products _ _ _ _ G
+    (preserves_equalizers_of_preserves_pullbacks_and_binary_products G)
+    (preserves_finite_products_of_preserves_binary_and_terminal G),
+end
 
 /-!
 We now dualize the above constructions, resorting to copy-paste.
@@ -315,7 +341,7 @@ Any category with coproducts and coequalizers has all colimits.
 
 See <https://stacks.math.columbia.edu/tag/002P>.
 -/
-lemma colimits_from_coequalizers_and_coproducts
+lemma has_colimits_of_has_coequalizers_and_coproducts
   [has_coproducts.{w} C] [has_coequalizers C] : has_colimits_of_size.{w w} C :=
 { has_colimits_of_shape := λ J 𝒥,
   { has_colimit := λ F, by exactI has_colimit_of_coequalizer_and_coproduct F } }
@@ -325,7 +351,7 @@ Any category with finite coproducts and coequalizers has all finite colimits.
 
 See <https://stacks.math.columbia.edu/tag/002Q>.
 -/
-lemma finite_colimits_from_coequalizers_and_finite_coproducts
+lemma has_finite_colimits_of_has_coequalizers_and_finite_coproducts
   [has_finite_coproducts C] [has_coequalizers C] : has_finite_colimits C :=
 ⟨λ J _ _, { has_colimit := λ F, by exactI has_colimit_of_coequalizer_and_coproduct F }⟩
 
@@ -397,5 +423,28 @@ def preserves_colimits_of_preserves_coequalizers_and_coproducts
 preserves_colimits_of_size.{w} G :=
 { preserves_colimits_of_shape := λ J 𝒥,
   by exactI preserves_colimit_of_preserves_coequalizers_and_coproduct G }
+
+lemma has_finite_colimits_of_has_initial_and_pushouts [has_initial C] [has_pushouts C] :
+  has_finite_colimits C :=
+@@has_finite_colimits_of_has_coequalizers_and_finite_coproducts _
+  (@@has_finite_coproducts_of_has_binary_and_initial _
+    (has_binary_coproducts_of_has_initial_and_pushouts C) infer_instance)
+  (@@has_coequalizers_of_has_pushouts_and_binary_coproducts _
+    (has_binary_coproducts_of_has_initial_and_pushouts C) infer_instance)
+
+/-- If G preserves initial objects and pushouts, it preserves all finite colimits. -/
+def preserves_finite_colimits_of_preserves_initial_and_pushouts
+  [has_initial C] [has_pushouts C] (G : C ⥤ D)
+  [preserves_colimits_of_shape (discrete.{0} pempty) G]
+  [preserves_colimits_of_shape walking_span G] :
+preserves_finite_colimits G :=
+begin
+  haveI : has_finite_colimits C := has_finite_colimits_of_has_initial_and_pushouts,
+  haveI : preserves_colimits_of_shape (discrete walking_pair) G :=
+    preserves_binary_coproducts_of_preserves_initial_and_pushouts G,
+  exact @@preserves_finite_colimits_of_preserves_coequalizers_and_finite_coproducts _ _ _ _ G
+    (preserves_coequalizers_of_preserves_pushouts_and_binary_coproducts G)
+    (preserves_finite_coproducts_of_preserves_binary_and_initial G),
+end
 
 end category_theory.limits

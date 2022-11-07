@@ -58,7 +58,7 @@ lemma ae_inf_principal_eq_mk {s} (h : ae_measurable f (μ.restrict s)) :
 le_ae_restrict h.ae_eq_mk
 
 @[measurability]
-lemma sum_measure [encodable ι] {μ : ι → measure α} (h : ∀ i, ae_measurable f (μ i)) :
+lemma sum_measure [countable ι] {μ : ι → measure α} (h : ∀ i, ae_measurable f (μ i)) :
   ae_measurable f (sum μ) :=
 begin
   nontriviality β, inhabit β,
@@ -77,7 +77,7 @@ begin
     refine ⟨⋃ i, ((h i).mk f ⁻¹' t) ∩ (s i)ᶜ, measurable_set.Union $
       λ i, (measurable_mk _ ht).inter (measurable_set_to_measurable _ _).compl, _⟩,
     ext ⟨x, hx⟩,
-    simp only [mem_preimage, mem_Union, subtype.coe_mk, set.restrict, mem_inter_eq,
+    simp only [mem_preimage, mem_Union, subtype.coe_mk, set.restrict, mem_inter_iff,
       mem_compl_iff] at hx ⊢,
     split,
     { rintro ⟨i, hxt, hxs⟩, rwa hs _ _ hxs },
@@ -87,7 +87,7 @@ begin
     exact λ h, hx (mem_Inter.1 h i) }
 end
 
-@[simp] lemma _root_.ae_measurable_sum_measure_iff [encodable ι] {μ : ι → measure α} :
+@[simp] lemma _root_.ae_measurable_sum_measure_iff [countable ι] {μ : ι → measure α} :
   ae_measurable f (sum μ) ↔ ∀ i, ae_measurable f (μ i) :=
 ⟨λ h i, h.mono_measure (le_sum _ _), sum_measure⟩
 
@@ -101,11 +101,11 @@ lemma add_measure {f : α → β} (hμ : ae_measurable f μ) (hν : ae_measurabl
 ae_measurable_add_measure_iff.2 ⟨hμ, hν⟩
 
 @[measurability]
-protected lemma Union [encodable ι] {s : ι → set α} (h : ∀ i, ae_measurable f (μ.restrict (s i))) :
+protected lemma Union [countable ι] {s : ι → set α} (h : ∀ i, ae_measurable f (μ.restrict (s i))) :
   ae_measurable f (μ.restrict (⋃ i, s i)) :=
 (sum_measure h).mono_measure $ restrict_Union_le
 
-@[simp] lemma _root_.ae_measurable_Union_iff [encodable ι] {s : ι → set α} :
+@[simp] lemma _root_.ae_measurable_Union_iff [countable ι] {s : ι → set α} :
   ae_measurable f (μ.restrict (⋃ i, s i)) ↔ ∀ i, ae_measurable f (μ.restrict (s i)) :=
 ⟨λ h i, h.mono_measure $ restrict_mono (subset_Union _ _) le_rfl, ae_measurable.Union⟩
 
@@ -129,9 +129,9 @@ lemma comp_measurable {f : α → δ} {g : δ → β}
   (hg : ae_measurable g (μ.map f)) (hf : measurable f) : ae_measurable (g ∘ f) μ :=
 hg.comp_ae_measurable hf.ae_measurable
 
-lemma comp_measurable' {ν : measure δ} {f : α → δ} {g : δ → β} (hg : ae_measurable g ν)
-  (hf : measurable f) (h : μ.map f ≪ ν) : ae_measurable (g ∘ f) μ :=
-(hg.mono' h).comp_measurable hf
+lemma comp_quasi_measure_preserving {ν : measure δ} {f : α → δ} {g : δ → β} (hg : ae_measurable g ν)
+  (hf : quasi_measure_preserving f μ ν) : ae_measurable (g ∘ f) μ :=
+(hg.mono' hf.absolutely_continuous).comp_measurable hf.measurable
 
 lemma map_map_of_ae_measurable {g : β → γ} {f : α → β}
   (hg : ae_measurable g (measure.map f μ)) (hf : ae_measurable f μ) :
@@ -171,7 +171,7 @@ begin
     { simp only [g, hx, piecewise_eq_of_not_mem, not_false_iff],
       contrapose! hx,
       apply subset_to_measurable,
-      simp only [hx, mem_compl_eq, mem_set_of_eq, not_and, not_false_iff, implies_true_iff]
+      simp only [hx, mem_compl_iff, mem_set_of_eq, not_and, not_false_iff, implies_true_iff]
         {contextual := tt} } },
   { have A : μ (to_measurable μ {x | f x = H.mk f x ∧ f x ∈ t}ᶜ) = 0,
     { rw [measure_to_measurable, ← compl_mem_ae_iff, compl_compl],
@@ -181,7 +181,7 @@ begin
     simp only [g, hx, piecewise_eq_of_not_mem, not_false_iff],
     contrapose! hx,
     apply subset_to_measurable,
-    simp only [hx, mem_compl_eq, mem_set_of_eq, false_and, not_false_iff] }
+    simp only [hx, mem_compl_iff, mem_set_of_eq, false_and, not_false_iff] }
 end
 
 lemma exists_measurable_nonneg {β} [preorder β] [has_zero β] {mβ : measurable_space β} {f : α → β}

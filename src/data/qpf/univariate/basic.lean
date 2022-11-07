@@ -213,7 +213,7 @@ def W_setoid : setoid q.P.W :=
 local attribute [instance] W_setoid
 
 /-- inductive type defined as initial algebra of a Quotient of Polynomial Functor -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def fix (F : Type u → Type u) [functor F] [q : qpf F] := quotient (W_setoid : setoid q.P.W)
 
 /-- recursor of a type defined by a qpf -/

@@ -16,9 +16,15 @@ This file defines instances for group, monoid, semigroup and related structures 
 -/
 
 universes u v w
+variables {ι α : Type*}
 variable {I : Type u}     -- The indexing type
 variable {f : I → Type v} -- The family of types already equipped with instances
 variables (x y : Π i, f i) (i : I)
+
+@[to_additive]
+lemma set.preimage_one {α β : Type*} [has_one β] (s : set β) [decidable ((1 : β) ∈ s)] :
+  (1 : α → β) ⁻¹' s = if (1 : β) ∈ s then set.univ else ∅ :=
+set.preimage_const 1 s
 
 namespace pi
 
@@ -42,10 +48,6 @@ by refine_struct { one := (1 : Π i, f i), mul := (*), .. }; tactic.pi_instance_
 instance monoid [∀ i, monoid $ f i] : monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, (x i) ^ n };
 tactic.pi_instance_derive_field
-
--- the attributes are intentionally out of order. `smul_apply` proves `nsmul_apply`.
-@[to_additive, simp]
-lemma pow_apply [∀ i, monoid $ f i] (n : ℕ) : (x^n) i = (x i)^n := rfl
 
 @[to_additive]
 instance comm_monoid [∀ i, comm_monoid $ f i] : comm_monoid (Π i : I, f i) :=
@@ -318,7 +320,7 @@ lemma pi.mul_single_apply_commute [Π i, mul_one_class $ f i] (x : Π i, f i) (i
 begin
   obtain rfl | hij := decidable.eq_or_ne i j,
   { refl },
-  { exact pi.mul_single_commute _ _ hij _ _, },
+  { exact pi.mul_single_commute hij _ _, },
 end
 
 @[to_additive update_eq_sub_add_single]
@@ -391,6 +393,11 @@ lemma update_div [Π i, has_div (f i)] [decidable_eq I]
   update (f₁ / f₂) i (x₁ / x₂) = update f₁ i x₁ / update f₂ i x₂ :=
 funext $ λ j, (apply_update₂ (λ i, (/)) f₁ f₂ i x₁ x₂ j).symm
 
+variables [has_one α] [nonempty ι] {a : α}
+
+@[simp, to_additive] lemma const_eq_one : const ι a = 1 ↔ a = 1 := @const_inj _ _ _ _ 1
+@[to_additive] lemma const_ne_one : const ι a ≠ 1 ↔ a ≠ 1 := const_eq_one.not
+
 end function
 
 section piecewise
@@ -417,7 +424,7 @@ end piecewise
 
 section extend
 
-variables {ι : Type u} {η : Type v} (R : Type w) (s : ι → η)
+variables {η : Type v} (R : Type w) (s : ι → η)
 
 /-- `function.extend s f 1` as a bundled hom. -/
 @[to_additive function.extend_by_zero.hom "`function.extend s f 0` as a bundled hom.", simps]

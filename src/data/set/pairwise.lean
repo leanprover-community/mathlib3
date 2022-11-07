@@ -32,10 +32,12 @@ section pairwise
 variables {f g : ι → α} {s t u : set α} {a b : α}
 
 /-- A relation `r` holds pairwise if `r i j` for all `i ≠ j`. -/
-def pairwise (r : α → α → Prop) := ∀ i j, i ≠ j → r i j
+def pairwise (r : α → α → Prop) := ∀ ⦃i j⦄, i ≠ j → r i j
 
 lemma pairwise.mono (hr : pairwise r) (h : ∀ ⦃i j⦄, r i j → p i j) : pairwise p :=
-λ i j hij, h $ hr i j hij
+λ i j hij, h $ hr hij
+
+protected lemma pairwise.eq (h : pairwise r) : ¬ r a b → a = b := not_imp_comm.1 $ @h _ _
 
 lemma pairwise_on_bool (hr : symmetric r) {a b : α} : pairwise (r on (λ c, cond c a b)) ↔ r a b :=
 by simpa [pairwise, function.on_fun] using @hr a b
@@ -45,15 +47,11 @@ lemma pairwise_disjoint_on_bool [semilattice_inf α] [order_bot α] {a b : α} :
 pairwise_on_bool disjoint.symm
 
 lemma symmetric.pairwise_on [linear_order ι] (hr : symmetric r) (f : ι → α) :
-  pairwise (r on f) ↔ ∀ m n, m < n → r (f m) (f n) :=
-⟨λ h m n hmn, h m n hmn.ne, λ h m n hmn, begin
-  obtain hmn' | hmn' := hmn.lt_or_lt,
-  { exact h _ _ hmn' },
-  { exact hr (h _ _ hmn') }
-end⟩
+  pairwise (r on f) ↔ ∀ ⦃m n⦄, m < n → r (f m) (f n) :=
+⟨λ h m n hmn, h hmn.ne, λ h m n hmn, hmn.lt_or_lt.elim (@h _ _) (λ h', hr (h h'))⟩
 
 lemma pairwise_disjoint_on [semilattice_inf α] [order_bot α] [linear_order ι] (f : ι → α) :
-  pairwise (disjoint on f) ↔ ∀ m n, m < n → disjoint (f m) (f n) :=
+  pairwise (disjoint on f) ↔ ∀ ⦃m n⦄, m < n → disjoint (f m) (f n) :=
 symmetric.pairwise_on disjoint.symm f
 
 lemma pairwise_disjoint.mono [semilattice_inf α] [order_bot α]
@@ -151,7 +149,7 @@ lemma pairwise_union :
   (s ∪ t).pairwise r ↔
     s.pairwise r ∧ t.pairwise r ∧ ∀ (a ∈ s) (b ∈ t), a ≠ b → r a b ∧ r b a :=
 begin
-  simp only [set.pairwise, mem_union_eq, or_imp_distrib, forall_and_distrib],
+  simp only [set.pairwise, mem_union, or_imp_distrib, forall_and_distrib],
   exact ⟨λ H, ⟨H.1.1, H.2.2, H.2.1, λ x hx y hy hne, H.1.2 y hy x hx hne.symm⟩,
     λ H, ⟨⟨H.1, λ x hx y hy hne, H.2.2.2 y hy x hx hne.symm⟩, H.2.2.1, H.2.1⟩⟩
 end
@@ -221,20 +219,13 @@ by { rw [sUnion_eq_Union, pairwise_Union (h.directed_coe), set_coe.forall], refl
 
 end set
 
-lemma pairwise.set_pairwise (h : pairwise r) (s : set α) : s.pairwise r := λ x hx y hy, h x y
+lemma pairwise.set_pairwise (h : pairwise r) (s : set α) : s.pairwise r := λ x hx y hy hxy, h hxy
 
 end pairwise
 
-lemma pairwise_subtype_iff_pairwise_set {α : Type*} (s : set α) (r : α → α → Prop) :
+lemma pairwise_subtype_iff_pairwise_set (s : set α) (r : α → α → Prop) :
   pairwise (λ (x : s) (y : s), r x y) ↔ s.pairwise r :=
-begin
-  split,
-  { assume h x hx y hy hxy,
-    exact h ⟨x, hx⟩ ⟨y, hy⟩ (by simpa only [subtype.mk_eq_mk, ne.def]) },
-  { rintros h ⟨x, hx⟩ ⟨y, hy⟩ hxy,
-    simp only [subtype.mk_eq_mk, ne.def] at hxy,
-    exact h hx hy hxy }
-end
+by simp only [pairwise, set.pairwise, set_coe.forall, ne.def, subtype.ext_iff, subtype.coe_mk]
 
 alias pairwise_subtype_iff_pairwise_set ↔ pairwise.set_of_subtype set.pairwise.subtype
 
@@ -389,7 +380,7 @@ noncomputable def bUnion_eq_sigma_of_disjoint {s : set ι} {f : ι → set α}
 disjoint iff `f` is injective . -/
 lemma pairwise_disjoint_image_right_iff {f : α → β → γ} {s : set α} {t : set β}
   (hf : ∀ a ∈ s, injective (f a)) :
-  s.pairwise_disjoint (λ a, f a '' t) ↔ (s ×ˢ t : set (α × β)).inj_on (λ p, f p.1 p.2) :=
+  s.pairwise_disjoint (λ a, f a '' t) ↔ (s ×ˢ t).inj_on (λ p, f p.1 p.2) :=
 begin
   refine ⟨λ hs x hx y hy (h : f _ _ = _), _, λ hs x hx y hy h, _⟩,
   { suffices : x.1 = y.1,
@@ -405,7 +396,7 @@ end
 disjoint iff `f` is injective . -/
 lemma pairwise_disjoint_image_left_iff {f : α → β → γ} {s : set α} {t : set β}
   (hf : ∀ b ∈ t, injective (λ a, f a b)) :
-  t.pairwise_disjoint (λ b, (λ a, f a b) '' s) ↔ (s ×ˢ t : set (α × β)).inj_on (λ p, f p.1 p.2) :=
+  t.pairwise_disjoint (λ b, (λ a, f a b) '' s) ↔ (s ×ˢ t).inj_on (λ p, f p.1 p.2) :=
 begin
   refine ⟨λ ht x hx y hy (h : f _ _ = _), _, λ ht x hx y hy h, _⟩,
   { suffices : x.2 = y.2,
@@ -421,3 +412,30 @@ end set
 
 lemma pairwise_disjoint_fiber (f : ι → α) : pairwise (disjoint on (λ a : α, f ⁻¹' {a})) :=
 set.pairwise_univ.1 $ set.pairwise_disjoint_fiber f univ
+
+
+section
+variables {f : ι → set α} {s t : set ι}
+
+lemma set.pairwise_disjoint.subset_of_bUnion_subset_bUnion (h₀ : (s ∪ t).pairwise_disjoint f)
+  (h₁ : ∀ i ∈ s, (f i).nonempty) (h : (⋃ i ∈ s, f i) ⊆ ⋃ i ∈ t, f i) :
+  s ⊆ t :=
+begin
+  rintro i hi,
+  obtain ⟨a, hai⟩ := h₁ i hi,
+  obtain ⟨j, hj, haj⟩ := mem_Union₂.1 (h $ mem_Union₂_of_mem hi hai),
+  rwa h₀.eq (subset_union_left _ _ hi) (subset_union_right _ _ hj)
+    (not_disjoint_iff.2 ⟨a, hai, haj⟩),
+end
+
+lemma pairwise.subset_of_bUnion_subset_bUnion (h₀ : pairwise (disjoint on f))
+  (h₁ : ∀ i ∈ s, (f i).nonempty) (h : (⋃ i ∈ s, f i) ⊆ ⋃ i ∈ t, f i) :
+  s ⊆ t :=
+set.pairwise_disjoint.subset_of_bUnion_subset_bUnion (h₀.set_pairwise _) h₁ h
+
+lemma pairwise.bUnion_injective (h₀ : pairwise (disjoint on f)) (h₁ : ∀ i, (f i).nonempty) :
+  injective (λ s : set ι, ⋃ i ∈ s, f i) :=
+λ s t h, (h₀.subset_of_bUnion_subset_bUnion (λ _ _, h₁ _) $ h.subset).antisymm $
+  h₀.subset_of_bUnion_subset_bUnion (λ _ _, h₁ _) $ h.superset
+
+end

@@ -42,6 +42,9 @@ theorem char_p.cast_eq_zero [add_monoid_with_one R] (p : ℕ) [char_p R p] :
   (fintype.card R : R) = 0 :=
 by rw [← nsmul_one, card_nsmul_eq_zero]
 
+lemma char_p.add_order_of_one (R) [semiring R] : char_p R (add_order_of (1 : R)) :=
+⟨λ n, by rw [← nat.smul_one_eq_coe, add_order_of_dvd_iff_nsmul_eq_zero]⟩
+
 lemma char_p.int_cast_eq_zero_iff [add_group_with_one R] (p : ℕ) [char_p R p]
   (a : ℤ) :
   (a : R) = 0 ↔ (p:ℤ) ∣ a :=
@@ -329,10 +332,10 @@ theorem frobenius_inj [comm_ring R] [is_reduced R]
 
 /-- If `ring_char R = 2`, where `R` is a finite reduced commutative ring,
 then every `a : R` is a square. -/
-lemma is_square_of_char_two' {R : Type*} [fintype R] [comm_ring R] [is_reduced R] [char_p R 2]
+lemma is_square_of_char_two' {R : Type*} [finite R] [comm_ring R] [is_reduced R] [char_p R 2]
  (a : R) : is_square a :=
-exists_imp_exists (λ b h, pow_two b ▸ eq.symm h) $
-  ((fintype.bijective_iff_injective_and_card _).mpr ⟨frobenius_inj R 2, rfl⟩).surjective a
+by { casesI nonempty_fintype R, exact exists_imp_exists (λ b h, pow_two b ▸ eq.symm h)
+  (((fintype.bijective_iff_injective_and_card _).mpr ⟨frobenius_inj R 2, rfl⟩).surjective a) }
 
 namespace char_p
 
@@ -349,13 +352,16 @@ calc (k : R) = ↑(k % p + p * (k / p)) : by rw [nat.mod_add_div]
          ... = ↑(k % p)               : by simp [cast_eq_zero]
 
 /-- The characteristic of a finite ring cannot be zero. -/
-theorem char_ne_zero_of_fintype (p : ℕ) [hc : char_p R p] [fintype R] : p ≠ 0 :=
-assume h : p = 0,
-have char_zero R := @char_p_to_char_zero R _ (h ▸ hc),
-absurd (@nat.cast_injective R _ this) (not_injective_infinite_fintype coe)
+theorem char_ne_zero_of_finite (p : ℕ) [char_p R p] [finite R] : p ≠ 0 :=
+begin
+  unfreezingI { rintro rfl },
+  haveI : char_zero R := char_p_to_char_zero R,
+  casesI nonempty_fintype R,
+  exact absurd nat.cast_injective (not_injective_infinite_finite (coe : ℕ → R))
+end
 
-lemma ring_char_ne_zero_of_fintype [fintype R] : ring_char R ≠ 0 :=
-char_ne_zero_of_fintype R (ring_char R)
+lemma ring_char_ne_zero_of_finite [finite R] : ring_char R ≠ 0 :=
+char_ne_zero_of_finite R (ring_char R)
 
 end
 
@@ -421,8 +427,8 @@ match p, hc with
 | (m+2), hc := or.inl (@char_is_prime_of_two_le R _ _ (m+2) hc (nat.le_add_left 2 m))
 end
 
-lemma char_is_prime_of_pos (p : ℕ) [h : fact (0 < p)] [char_p R p] : fact p.prime :=
-⟨(char_p.char_is_prime_or_zero R _).resolve_right (pos_iff_ne_zero.1 h.1)⟩
+lemma char_is_prime_of_pos (p : ℕ) [ne_zero p] [char_p R p] : fact p.prime :=
+⟨(char_p.char_is_prime_or_zero R _).resolve_right $ ne_zero.ne p⟩
 
 end nontrivial
 
@@ -432,11 +438,11 @@ end semiring
 
 section ring
 
-variables (R) [ring R] [no_zero_divisors R] [nontrivial R] [fintype R]
+variables (R) [ring R] [no_zero_divisors R] [nontrivial R] [finite R]
 
 theorem char_is_prime (p : ℕ) [char_p R p] :
   p.prime :=
-or.resolve_right (char_is_prime_or_zero R p) (char_ne_zero_of_fintype R p)
+or.resolve_right (char_is_prime_or_zero R p) (char_ne_zero_of_finite R p)
 
 end ring
 
@@ -585,3 +591,15 @@ begin
 end
 
 end
+
+namespace ne_zero
+
+variables (R) [add_monoid_with_one R] {r : R} {n p : ℕ} {a : ℕ+}
+
+lemma of_not_dvd [char_p R p] (h : ¬ p ∣ n) : ne_zero (n : R) :=
+⟨(char_p.cast_eq_zero_iff R p n).not.mpr h⟩
+
+lemma not_char_dvd  (p : ℕ) [char_p R p] (k : ℕ) [h : ne_zero (k : R)] : ¬ p ∣ k :=
+by rwa [←char_p.cast_eq_zero_iff R p k, ←ne.def, ←ne_zero_iff]
+
+end ne_zero

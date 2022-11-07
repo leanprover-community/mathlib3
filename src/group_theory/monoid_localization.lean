@@ -68,7 +68,7 @@ variables {M : Type*} [add_comm_monoid M] (S : add_submonoid M) (N : Type*) [add
 
 /-- The type of add_monoid homomorphisms satisfying the characteristic predicate: if `f : M →+ N`
 satisfies this predicate, then `N` is isomorphic to the localization of `M` at `S`. -/
-@[nolint has_inhabited_instance] structure localization_map
+@[nolint has_nonempty_instance] structure localization_map
   extends add_monoid_hom M N :=
 (map_add_units' : ∀ y : S, is_add_unit (to_fun y))
 (surj' : ∀ z : N, ∃ x : M × S, z + to_fun x.2 = to_fun x.1)
@@ -88,7 +88,7 @@ namespace submonoid
 
 /-- The type of monoid homomorphisms satisfying the characteristic predicate: if `f : M →* N`
 satisfies this predicate, then `N` is isomorphic to the localization of `M` at `S`. -/
-@[nolint has_inhabited_instance] structure localization_map
+@[nolint has_nonempty_instance] structure localization_map
 extends monoid_hom M N :=
 (map_units' : ∀ y : S, is_unit (to_fun y))
 (surj' : ∀ z : N, ∃ x : M × S, z * to_fun x.2 = to_fun x.1)
@@ -1334,7 +1334,7 @@ namespace submonoid
 /-- The type of homomorphisms between monoids with zero satisfying the characteristic predicate:
 if `f : M →*₀ N` satisfies this predicate, then `N` is isomorphic to the localization of `M` at
 `S`. -/
-@[nolint has_inhabited_instance] structure localization_with_zero_map
+@[nolint has_nonempty_instance] structure localization_with_zero_map
   extends localization_map S N :=
 (map_zero' : to_fun 0 = 0)
 

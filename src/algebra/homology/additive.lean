@@ -67,8 +67,6 @@ namespace homological_complex
 
 instance eval_additive (i : ι) : (eval V c i).additive := {}
 
-variables [has_zero_object V]
-
 instance cycles_additive [has_equalizers V] : (cycles_functor V c i).additive := {}
 
 variables [has_images V] [has_image_maps V]

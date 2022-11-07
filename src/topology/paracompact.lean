@@ -34,7 +34,7 @@ We also prove the following facts.
   the instance graph.
 
 * Every `emetric_space` is a paracompact space, see instance `emetric_space.paracompact_space` in
-  `topology/metric_space/emetric_space`.
+  `topology/metric_space/emetric_paracompact`.
 
 ## TODO
 
@@ -81,7 +81,7 @@ begin
   { simp only [eq_univ_iff_forall, mem_Union],
     exact λ x, ⟨ind (t_inv x), _, rfl, ht_inv _⟩ },
   { refine λ x, ⟨U x, hxU x, ((hU x).image ind).subset _⟩,
-    simp only [subset_def, mem_Union, mem_set_of_eq, set.nonempty, mem_inter_eq],
+    simp only [subset_def, mem_Union, mem_set_of_eq, set.nonempty, mem_inter_iff],
     rintro i ⟨y, ⟨a, rfl, hya⟩, hyU⟩,
     exact mem_image_of_mem _ ⟨y, hya, hyU⟩ },
   { simp only [subset_def, mem_Union],
@@ -178,7 +178,7 @@ begin
     have : (⋃ k ≤ K'.find x + 2, (range $ sigma.mk k) : set (Σ n, T' n)).finite,
       from (finite_le_nat _).bUnion (λ k hk, finite_range _),
     apply this.subset, rintro ⟨k, c, hc⟩,
-    simp only [mem_Union, mem_set_of_eq, mem_image_eq, subtype.coe_mk],
+    simp only [mem_Union, mem_set_of_eq, mem_image, subtype.coe_mk],
     rintro ⟨x, hxB : x ∈ B c (r k c), hxK⟩,
     refine ⟨k, _, ⟨c, hc⟩, rfl⟩,
     have := (mem_compl_iff _ _).1 (hr k c hxB),

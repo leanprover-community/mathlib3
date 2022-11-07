@@ -161,6 +161,24 @@ begin
       refl, }, }
 end
 
+variables {J C} (P Q : karoubi (J ⥤ C)) (f : P ⟶ Q) (X : J)
+
+
+@[simp, reassoc]
+lemma app_idem (X : J) :
+  P.p.app X ≫ P.p.app X = P.p.app X := congr_app P.idem X
+
+variables {P Q}
+
+@[simp, reassoc]
+lemma app_p_comp : P.p.app X ≫ f.f.app X = f.f.app X := congr_app (p_comp f) X
+
+@[simp, reassoc]
+lemma app_comp_p : f.f.app X ≫ Q.p.app X = f.f.app X := congr_app (comp_p f) X
+
+@[reassoc]
+lemma app_p_comm : P.p.app X ≫ f.f.app X = f.f.app X ≫ Q.p.app X := congr_app (p_comm f) X
+
 end idempotents
 
 end category_theory

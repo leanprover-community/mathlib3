@@ -65,7 +65,7 @@ some lemmas use, e.g., `(z - c)⁻¹ • f z` instead of `f z / (z - c)`.
 integral, circle, Cauchy integral
 -/
 
-variables {E : Type*} [normed_group E]
+variables {E : Type*} [normed_add_comm_group E]
 
 noncomputable theory
 
@@ -268,12 +268,17 @@ begin
           (deriv_circle_map_ne_zero hR)).eventually this,
       filter_upwards [self_mem_nhds_within,
         mem_nhds_within_of_mem_nhds (ball_mem_nhds _ zero_lt_one)],
-      simp [dist_eq, sub_eq_zero] { contextual := tt } },
+      simp only [dist_eq, sub_eq_zero, mem_compl_iff, mem_singleton_iff, mem_ball, mem_diff,
+                 mem_ball_zero_iff, norm_eq_abs, not_false_iff, and_self, implies_true_iff]
+                {contextual := tt} },
     refine ((((has_deriv_at_circle_map c R θ).is_O_sub).mono inf_le_left).inv_rev
       (this.mono (λ θ' h₁ h₂, absurd h₂ h₁.2))).trans _,
     refine is_O.of_bound (|R|)⁻¹ (this.mono $ λ θ' hθ', _),
     set x := abs (f θ'),
-    suffices : x⁻¹ ≤ x ^ n, by simpa [inv_mul_cancel_left₀, mt _root_.abs_eq_zero.1 hR],
+    suffices : x⁻¹ ≤ x ^ n,
+    by simpa only [inv_mul_cancel_left₀, abs_eq_zero.not.2 hR, norm_eq_abs, map_inv₀,
+                   algebra.id.smul_eq_mul, map_mul, abs_circle_map_zero, abs_I, mul_one,
+                   abs_zpow, ne.def, not_false_iff] using this,
     have : x ∈ Ioo (0 : ℝ) 1, by simpa [and.comm, x] using hθ',
     rw ← zpow_neg_one,
     refine (zpow_strict_anti this.1 this.2).le_iff_le.2 (int.lt_add_one_iff.1 _), exact hn },
@@ -371,7 +376,7 @@ begin
     interval_integral.norm_integral_le_integral_norm real.two_pi_pos.le
   ... < ∫ θ in 0..2 * π, R * C :
     begin
-      simp only [norm_smul, deriv_circle_map, norm_eq_abs, complex.abs_mul, abs_I, mul_one,
+      simp only [norm_smul, deriv_circle_map, norm_eq_abs, map_mul, abs_I, mul_one,
         abs_circle_map_zero, abs_of_pos hR],
       refine interval_integral.integral_lt_integral_of_continuous_on_of_le_of_exists_lt
         real.two_pi_pos _ continuous_on_const (λ θ hθ, _) ⟨θ₀, Ioc_subset_Icc_self hmem, _⟩,
@@ -513,9 +518,9 @@ lemma has_sum_two_pi_I_cauchy_power_series_integral {f : ℂ → E} {c : ℂ} {R
   has_sum (λ n : ℕ, ∮ z in C(c, R), (w / (z - c)) ^ n • (z - c)⁻¹ • f z)
     (∮ z in C(c, R), (z - (c + w))⁻¹ • f z) :=
 begin
-  have hR : 0 < R := (abs_nonneg w).trans_lt hw,
+  have hR : 0 < R := (complex.abs.nonneg w).trans_lt hw,
   have hwR : abs w / R ∈ Ico (0 : ℝ) 1,
-    from ⟨div_nonneg (abs_nonneg w) hR.le, (div_lt_one hR).2 hw⟩,
+    from ⟨div_nonneg (complex.abs.nonneg w) hR.le, (div_lt_one hR).2 hw⟩,
   refine interval_integral.has_sum_integral_of_dominated_convergence
     (λ n θ, ∥f (circle_map c R θ)∥ * (abs w / R) ^ n) (λ n, _) (λ n, _) _ _ _,
   { simp only [deriv_circle_map],

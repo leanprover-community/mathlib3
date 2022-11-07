@@ -26,7 +26,7 @@ namespace nat
 | 0        := 1
 | (succ n) := succ n * factorial n
 
-localized "notation n `!`:10000 := nat.factorial n" in nat
+localized "notation (name := nat.factorial) n `!`:10000 := nat.factorial n" in nat
 
 section factorial
 
@@ -90,7 +90,7 @@ factorial_lt one_pos
 
 lemma factorial_eq_one : n! = 1 ↔ n ≤ 1 :=
 begin
-  refine ⟨λ h, _, by rintro (_ | ⟨_, _ | _⟩); refl⟩,
+  refine ⟨λ h, _, by rintro (_ | _ | _); refl⟩,
   rw [← not_lt, ← one_lt_factorial, h],
   apply lt_irrefl
 end
@@ -141,11 +141,11 @@ end
 lemma add_factorial_succ_le_factorial_add_succ (i : ℕ) (n : ℕ) :
   i + (n + 1)! ≤ (i + (n + 1))! :=
 begin
-  obtain i2 | (_ | ⟨_, i0⟩) := le_or_lt 2 i,
+  obtain i2 | _ | i0 := le_or_lt 2 i,
   { exact (n.add_factorial_succ_lt_factorial_add_succ i2).le },
   { rw [←add_assoc, factorial_succ (1 + n), add_mul, one_mul, add_comm 1 n],
     exact (add_le_add_iff_right _).mpr (one_le_mul (nat.le_add_left 1 n) (n + 1).factorial_pos) },
-  rw [nat.le_zero_iff.mp (nat.succ_le_succ_iff.mp i0), zero_add, zero_add]
+  rw [le_zero_iff.mp (nat.succ_le_succ_iff.mp i0), zero_add, zero_add]
 end
 
 lemma add_factorial_le_factorial_add (i : ℕ) {n : ℕ} (n1 : 1 ≤ n) :
@@ -237,7 +237,7 @@ end
 
 lemma pow_lt_asc_factorial (n : ℕ) : ∀ {k : ℕ}, 2 ≤ k → (n + 1)^k < n.asc_factorial k
 | 0 := by rintro ⟨⟩
-| 1 := by rintro (_ | ⟨_, ⟨⟩⟩)
+| 1 := by rintro (_ | ⟨⟨⟩⟩)
 | (k + 2) := λ _, pow_lt_asc_factorial' n k
 
 lemma asc_factorial_le_pow_add (n : ℕ) : ∀ (k : ℕ), n.asc_factorial k ≤ (n + k)^k
@@ -250,7 +250,7 @@ end
 
 lemma asc_factorial_lt_pow_add (n : ℕ) : ∀ {k : ℕ}, 2 ≤ k → n.asc_factorial k < (n + k)^k
 | 0 := by rintro ⟨⟩
-| 1 := by rintro (_ | ⟨_, ⟨⟩⟩)
+| 1 := by rintro (_ | ⟨⟨⟩⟩)
 | (k + 2) := λ _, begin
   rw [asc_factorial_succ, pow_succ],
   refine nat.mul_lt_mul' le_rfl ((asc_factorial_le_pow_add n _).trans_lt
@@ -359,7 +359,7 @@ end
 lemma pow_sub_lt_desc_factorial {n : ℕ} :
   ∀ {k : ℕ}, 2 ≤ k → k ≤ n → (n + 1 - k)^k < n.desc_factorial k
 | 0 := by rintro ⟨⟩
-| 1 := by rintro (_ | ⟨_, ⟨⟩⟩)
+| 1 := by rintro (_ | ⟨⟨⟩⟩)
 | (k + 2) := λ _ h, by { rw succ_sub_succ, exact pow_sub_lt_desc_factorial' h }
 
 lemma desc_factorial_le_pow (n : ℕ) : ∀ (k : ℕ), n.desc_factorial k ≤ n^k
@@ -371,7 +371,7 @@ end
 
 lemma desc_factorial_lt_pow {n : ℕ} (hn : 1 ≤ n) : ∀ {k : ℕ}, 2 ≤ k → n.desc_factorial k < n^k
 | 0 := by rintro ⟨⟩
-| 1 := by rintro (_ | ⟨_, ⟨⟩⟩)
+| 1 := by rintro (_ | ⟨⟨⟩⟩)
 | (k + 2) := λ _, begin
   rw [desc_factorial_succ, pow_succ', mul_comm],
   exact nat.mul_lt_mul' (desc_factorial_le_pow _ _) (tsub_lt_self hn k.zero_lt_succ)

@@ -3,9 +3,8 @@ Copyright (c) 2022 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import data.nat.log
 import algebra.order.floor
-import algebra.field_power
+import data.nat.log
 
 /-!
 # Integer logarithms in a field with respect to a natural base
@@ -137,7 +136,7 @@ begin
       zpow_coe_nat, ←nat.cast_pow, nat.floor_coe, nat.log_pow hb],
     exact_mod_cast hb.le, },
   { rw [log_of_right_le_one _ (zpow_le_one_of_nonpos _ $ neg_nonpos.mpr (int.coe_nat_nonneg _)),
-      zpow_neg, inv_inv, zpow_coe_nat, ←nat.cast_pow, nat.ceil_coe, nat.clog_pow _ _ hb],
+      zpow_neg, inv_inv, zpow_coe_nat, ←nat.cast_pow, nat.ceil_nat_cast, nat.clog_pow _ _ hb],
     exact_mod_cast hb.le, },
 end
 

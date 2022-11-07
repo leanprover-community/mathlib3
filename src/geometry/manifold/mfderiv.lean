@@ -1293,6 +1293,38 @@ lemma mdifferentiable.const_smul {f : M → E'} (s : 𝕜) (hf : mdifferentiable
   mdifferentiable I 𝓘(𝕜, E') (s • f) :=
 λ x, mdifferentiable_at.const_smul I (hf x) s
 
+lemma has_mfderiv_at.neg (hf : has_mfderiv_at I 𝓘(𝕜, E') f z f') :
+   has_mfderiv_at I 𝓘(𝕜, E') (-f) z (-f') :=
+begin
+  split,
+  apply continuous_at.neg (hf).1,
+  apply has_fderiv_within_at.neg hf.2,
+end
+
+lemma mdifferentiable_at.neg (hf : mdifferentiable_at I 𝓘(𝕜, E') f z) :
+  mdifferentiable_at I 𝓘(𝕜, E') (-f) z :=
+(has_mfderiv_at.neg I hf.has_mfderiv_at).mdifferentiable_at
+
+lemma mdifferentiable.neg {f : M → E'} (hf : mdifferentiable I 𝓘(𝕜, E') f) :
+  mdifferentiable I 𝓘(𝕜, E') (-f) :=
+λ x, mdifferentiable_at.neg I (hf x)
+
+lemma has_mfderiv_at.sub (hf : has_mfderiv_at I 𝓘(𝕜, E') f z f')
+  (hg : has_mfderiv_at I 𝓘(𝕜, E') g z g') : has_mfderiv_at I 𝓘(𝕜, E') (f-g) z (f'-g') :=
+begin
+  split,
+  apply continuous_at.sub (hf).1 hg.1,
+  apply has_fderiv_within_at.sub hf.2 hg.2,
+end
+
+lemma mdifferentiable_at.sub (hf : mdifferentiable_at I 𝓘(𝕜, E') f z)
+  (hg : mdifferentiable_at I 𝓘(𝕜, E') g z) : mdifferentiable_at I 𝓘(𝕜, E') (f-g) z :=
+(has_mfderiv_at.sub I hf.has_mfderiv_at hg.has_mfderiv_at).mdifferentiable_at
+
+lemma mdifferentiable.sub {f : M → E'} (hf : mdifferentiable I 𝓘(𝕜, E') f)
+  (hg : mdifferentiable I 𝓘(𝕜, E') g)  : mdifferentiable I 𝓘(𝕜, E') (f-g) :=
+λ x, mdifferentiable_at.sub I (hf x) (hg x)
+
 end arithmetic
 
 namespace model_with_corners

@@ -86,7 +86,7 @@ begin
   ring,
 end
 
-lemma slash_mul_one (k : ℤ) (f : ℍ → ℂ) : (f ∣[k] 1) = f :=
+lemma slash_one (k : ℤ) (f : ℍ → ℂ) : (f ∣[k] 1) = f :=
 begin
  ext1,
  simp [slash],
@@ -110,7 +110,7 @@ end
 instance : slash_action ℤ GL(2, ℝ)⁺ ℍ ℂ ℂ :=
 { map := slash,
   mul_zero := by {intros k g, funext, simp only [slash, pi.zero_apply, zero_mul], },
-  one_mul := by {apply slash_mul_one,},
+  one_mul := by {apply slash_one,},
   right_action := by {apply slash_right_action},
   smul_action := by {apply smul_slash},
   add_action := by {apply slash_add},}
@@ -158,7 +158,7 @@ begin
   { exact zpow_ne_zero _ (denom_ne_zero _ _) },
 end
 
-lemma slash_mul (k1 k2 : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :
+lemma mul_slash (k1 k2 : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :
   (f * g) ∣[k1 + k2, A] = (((↑ₘ A).det) : ℝ) • (f ∣[k1, A]) * (g ∣[k2, A]) :=
 begin
   ext1,
@@ -179,14 +179,14 @@ begin
   ring,
 end
 
-lemma slash_mul_SL2 (k1 k2 : ℤ) (A : SL(2, ℤ)) (f g : ℍ → ℂ) :
+lemma mul_slash_SL2 (k1 k2 : ℤ) (A : SL(2, ℤ)) (f g : ℍ → ℂ) :
   (f * g) ∣[k1 + k2, A] = (f ∣[k1, A]) * (g ∣[k2, A]) :=
-calc (f * g) ∣[k1 + k2, (A : GL(2, ℝ)⁺)] = _ • (f ∣[k1, A]) * (g ∣[k2, A]) : slash_mul _ _ _ _ _
+calc (f * g) ∣[k1 + k2, (A : GL(2, ℝ)⁺)] = _ • (f ∣[k1, A]) * (g ∣[k2, A]) : mul_slash _ _ _ _ _
 ... = (1:ℝ) • (f ∣[k1, A]) * (g ∣[k2, A]) : by simp [-matrix.special_linear_group.coe_matrix_coe]
 ... = (f ∣[k1, A]) * (g ∣[k2, A]) : by simp
 
-lemma slash_mul_subgroup (k1 k2 : ℤ) (Γ : subgroup SL(2, ℤ)) (A : Γ) (f g : ℍ → ℂ) :
+lemma mul_slash_subgroup (k1 k2 : ℤ) (Γ : subgroup SL(2, ℤ)) (A : Γ) (f g : ℍ → ℂ) :
   (f * g) ∣[k1 + k2, A] = (f ∣[k1, A]) * (g ∣[k2, A]) :=
-slash_mul_SL2 k1 k2 A f g
+mul_slash_SL2 k1 k2 A f g
 
 end modular_forms

@@ -202,11 +202,11 @@ coe_hom_injective.module ℂ (coe_hom) (λ _ _, rfl)
 def modular_forms.mul (k_1 k_2 : ℤ) (Γ : subgroup SL(2, ℤ)) (f : (modular_form Γ k_1))
   (g : (modular_form Γ k_2)) : (modular_form Γ (k_1 + k_2)) :=
 { to_fun := f * g,
-  slash_action_eq' := by {intro A, rw slash_mul_subgroup, congr,
+  slash_action_eq' := by {intro A, rw mul_slash_subgroup, congr,
   apply f.slash_action_eq' A, apply g.slash_action_eq' A,},
   hol' := mdifferentiable.mul _ f.hol' g.hol',
   bdd_at_infty' := λ A, begin
-  rw [slash_mul_SL2 k_1 k_2 A f g],
+  rw [mul_slash_SL2],
   exact (f.bdd_at_infty' A).mul (g.bdd_at_infty' A),
   end}
 

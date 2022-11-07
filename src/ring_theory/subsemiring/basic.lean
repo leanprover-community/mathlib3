@@ -883,6 +883,13 @@ def cod_restrict (f : R →+* S) (s : σS) (h : ∀ x, f x ∈ s) : R →+* s :=
 def restrict (f : R →+* S) (s' : subsemiring R) (s : subsemiring S) (h : s' ≤ s.comap f) :
   s' →+* s := (f.dom_restrict s').cod_restrict s (λ x, h x.2)
 
+@[simp] lemma restrict_etc (f : R →+* S) (s' : subsemiring R) (s : subsemiring S) (x : s')
+  (h : s' ≤ s.comap f) : (f.restrict s' s h x : S) = f x := rfl
+
+@[simp] lemma restrict_comp (f : R →+* S) (s' : subsemiring R) (s : subsemiring S)
+  (h : s' ≤ s.comap f):
+  (f.restrict s' s h).comp (subsemiring_class.subtype s') = subsemiring_class.subtype s := sorry
+
 /-- Restriction of a ring homomorphism to its range interpreted as a subsemiring.
 
 This is the bundled version of `set.range_factorization`. -/

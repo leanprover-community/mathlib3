@@ -111,6 +111,7 @@ theorem subalgebra.is_simple_order_of_finrank_prime (A) [ring A] [is_domain A] [
     { exact subalgebra.eq_bot_of_finrank_one },
     { exact algebra.to_submodule_eq_top.1 (eq_top_of_finrank_eq $ K.finrank_to_submodule.trans h) },
   end }
+/- TODO: `intermediate_field` version -/
 
 instance linear_map (F : Type u) (V : Type v) (W : Type w)
   [field F] [add_comm_group V] [module F V] [add_comm_group W] [module F W]

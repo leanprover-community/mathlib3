@@ -1637,7 +1637,8 @@ lemma subalgebra.dim_bot [nontrivial E] : module.rank F (⊥ : subalgebra F E) =
 @[simp] lemma subalgebra.finrank_to_submodule (S : subalgebra F E) :
   finrank F S.to_submodule = finrank F S := rfl
 
-lemma subalgebra.finite_dimensional_to_submodule (S : subalgebra F E) :
+/-- A `subalgebra` is `finite_dimensional` iff it is finite_dimensional as a submodule. -/
+lemma subalgebra.finite_dimensional_to_submodule {S : subalgebra F E} :
   finite_dimensional F S.to_submodule ↔ finite_dimensional F S := iff.rfl
 
 alias subalgebra.finite_dimensional_to_submodule ↔
@@ -1645,7 +1646,7 @@ alias subalgebra.finite_dimensional_to_submodule ↔
 
 instance finite_dimensional.finite_dimensional_subalgebra [finite_dimensional F E]
   (S : subalgebra F E) : finite_dimensional F S :=
-finite_dimensional.of_subalgebra_to_submodule S infer_instance
+finite_dimensional.of_subalgebra_to_submodule infer_instance
 
 lemma subalgebra_top_dim_eq_submodule_top_dim :
   module.rank F (⊤ : subalgebra F E) = module.rank F (⊤ : submodule F E) :=

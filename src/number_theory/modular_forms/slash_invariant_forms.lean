@@ -128,10 +128,11 @@ instance has_sub : has_sub (slash_invariant_form Γ k) :=
 ⟨λ f g, ⟨f - g, by { intro γ,
   have : (f : ℍ → ℂ) - g = f + (-g), by {funext, simp, ring,},
   rw [this, slash_action.add_action k γ],
-  simp [(f.slash_action_eq') γ],
+  simp only [modular_forms.subgroup_slash, add_right_inj, slash_invariant_forms.slash_action_eqn,
+    coe_coe],
   rw modular_forms.neg_slash,
   simp only [neg_inj],
-  convert ((g.slash_action_eq') γ),} ⟩⟩
+  convert ((g.slash_action_eq') γ)} ⟩⟩
 
 instance : add_comm_group (slash_invariant_form Γ k) :=
 fun_like.coe_injective.add_comm_group _ rfl (λ _ _, by {refl}) (λ _, by{refl}) (λ _ _, by {refl})

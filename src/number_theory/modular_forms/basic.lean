@@ -206,8 +206,8 @@ def modular_forms.mul (k_1 k_2 : ℤ) (Γ : subgroup SL(2, ℤ)) (f : (modular_f
   apply f.slash_action_eq' A, apply g.slash_action_eq' A,},
   hol' := mdifferentiable.mul _ f.hol' g.hol',
   bdd_at_infty' := λ A, begin
-  rw [mul_slash_SL2],
-  exact (f.bdd_at_infty' A).mul (g.bdd_at_infty' A),
+    rw [mul_slash_SL2],
+    exact (f.bdd_at_infty' A).mul (g.bdd_at_infty' A),
   end}
 
   /-- The constant function is bounded at infinity. -/
@@ -219,8 +219,8 @@ instance : has_one (modular_form Γ 0) :=
   slash_action_eq' := (1 : slash_invariant_form Γ 0).2,
   hol' := (λ (x : ℍ), mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
   bdd_at_infty' := by {intro A,
-  convert const_one_form_is_bound,
-  apply const_one_form_is_invar A}}}
+    convert const_one_form_is_bound,
+    apply const_one_form_is_invar A}}}
 
 end modular_forms
 

@@ -35,14 +35,6 @@ class slash_action (β G α δ γ : Type*) [group G] [has_zero (α → δ)]
 (smul_action : ∀ (k : β) (g : G) (a : α → δ) (z : γ), map k g (z • a) = z • (map k g a))
 (add_action : ∀ (k : β) (g : G) (a b : α → δ), map k g (a + b) = map k g a + map k g b)
 
-/-
-instance scaler_tower_slash_action {β G H α δ γ γ' : Type*} [group G] [has_zero (α → δ)]
-  [has_one (α → δ)] [has_smul γ δ] [has_add (α → δ)] [group H] [has_smul γ' γ]
-  [has_smul γ' δ] [is_scalar_tower γ' γ δ]
-  [slash_action β G α δ γ] : slash_action β G α δ γ' := sorry
--/
-
-
 /--Slash_action induced by a monoid homomorphism.-/
 def monoid_hom_slash_action {β G H α δ γ : Type*} [group G] [has_zero (α → δ)]
   [has_one (α → δ)] [has_smul γ δ] [has_add (α → δ)] [group H] [slash_action β G α δ γ]

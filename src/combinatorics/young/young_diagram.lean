@@ -283,13 +283,6 @@ This section defines `μ.row_lens : list ℕ`, the list of row lengths of a Youn
 
 -/
 
--- This belongs somewhere in the list namespace. Is it already in mathlib?
-lemma range_sorted_lt (n : ℕ) : (list.range n).sorted (<) :=
-list.pairwise_iff_nth_le.mpr (λ i j _ h, by simpa only [list.nth_le_range])
--- Ditto.
-lemma range_sorted_le (n : ℕ) : (list.range n).sorted (≤) :=
-list.pairwise.imp (@le_of_lt ℕ _) (range_sorted_lt _)
-
 /-- List of row lengths of a Young diagram -/
 def row_lens (μ : young_diagram) : list ℕ := (list.range $ μ.col_len 0).map μ.row_len
 
@@ -301,7 +294,7 @@ by simp only [row_lens, list.nth_le_range, list.nth_le_map']
 by simp only [row_lens, list.length_map, list.length_range]
 
 lemma row_lens_sorted (μ : young_diagram) : μ.row_lens.sorted (≥) :=
-(range_sorted_le _).map _ μ.row_len_anti
+(list.pairwise_le_range _).map _ μ.row_len_anti
 
 lemma pos_of_mem_row_lens (μ : young_diagram) (x : ℕ) (hx : x ∈ μ.row_lens) : 0 < x :=
 begin

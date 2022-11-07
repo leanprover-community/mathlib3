@@ -244,13 +244,13 @@ begin
   have h4R : 0 < (4⁻¹*R), by {apply left.mul_pos, rw inv_pos, linarith, apply hR,},
   set F : ℂ → ℝ → ℂ := λ w, (λ θ, (circle_transform R z w f θ)),
   set F' : ℂ → ℝ → ℂ := λ w, circle_transform_deriv R z w f,
-  have hF_meas : ∀ᶠ y in 𝓝 x, ae_strongly_measurable (F y) (volume.restrict (Ι 0 (2 * π))) ,
+  have hF_meas : ∀ᶠ y in 𝓝 x, ae_strongly_measurable (F y) (volume.restrict (Ι 0 (2 * π))),
   by {simp_rw [F, _root_.ae_strongly_measurable_iff_ae_measurable],
     exact circle_transform_ae_measurable hR z x hx hf},
   have hF_int : interval_integrable (F x) volume 0 (2 * π),
   by {simp_rw F,
     apply circle_interval_integrable hR z x hx hf},
-  have hF'_meas : ae_strongly_measurable (F' x) (volume.restrict (Ι 0 (2 * π))) ,
+  have hF'_meas : ae_strongly_measurable (F' x) (volume.restrict (Ι 0 (2 * π))),
   by {simp_rw [F', _root_.ae_strongly_measurable_iff_ae_measurable],
     exact circle_transform_deriv_ae_measurable hR z x hx f hf},
   have BOU := circle_transform_deriv_bound hR hx hf,
@@ -258,7 +258,7 @@ begin
   have h_bound : ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x ε , ∥F' y t∥ ≤ bound,
   by {apply eventually_of_forall,
     exact (λ _,(λ _, by {apply h_boun})) },
-  have bound_integrable : interval_integrable (λ _, bound) volume 0 (2 * π) ,
+  have bound_integrable : interval_integrable (λ _, bound) volume 0 (2 * π),
   by {exact _root_.interval_integrable_const, },
   have h_diff : ∀ᵐ t ∂volume, t ∈ Ι 0 (2 * π) → ∀ y ∈ ball x ε,
   has_deriv_at (λ y, F y t) (F' y t) y,
@@ -270,7 +270,7 @@ begin
     rw (interval_oc_of_le real.two_pi_pos.le) at hy,
     have hy2 : y ∈ [0, 2*π], by {convert (Ioc_subset_Icc_self hy),
       simp [interval_of_le real.two_pi_pos.le]},
-    exact this y x (h_ball hx),},
+    exact this y x (h_ball hx)},
   have := interval_integral.has_deriv_at_integral_of_dominated_loc_of_deriv_le hε hF_meas hF_int
     hF'_meas h_bound bound_integrable h_diff,
   simp only [F, has_deriv_at, has_deriv_at_filter, has_fderiv_within_at, mem_ball, zero_lt_mul_left,
@@ -281,7 +281,7 @@ begin
 end
 
 lemma circle_transform_sub (R : ℝ) (f g : ℂ → ℂ) (z w : ℂ) (θ : ℝ) :
-   ((circle_transform R z w f ) θ)-((circle_transform R z w g) θ) =
+  ((circle_transform R z w f ) θ) - ((circle_transform R z w g) θ) =
   (circle_transform R z w (f - g) θ) :=
 begin
   simp only [circle_transform, mul_inv_rev, inv_I, neg_mul, deriv_circle_map,
@@ -331,8 +331,10 @@ begin
   exact le_trans (abs.add_le (x - b) b) hb,
 end
 
-lemma circle_transform_of_unifom_limit {R : ℝ} {F : ℕ → ℂ → ℂ} (hR : 0 < R) (f : ℂ → ℂ)
-  (z : ℂ) (hlim : tendsto_uniformly_on F f filter.at_top (sphere z R)) (w : ball z R) (y : ℝ) :
+/--The `circle_transform` of a unifom limit of functions `F n` tends to the `circle_transform` of
+  the limit function `f`. -/
+lemma circle_transform_of_unifom_limit {R : ℝ} {F : ℕ → ℂ → ℂ} (hR : 0 < R) (f : ℂ → ℂ) (z : ℂ)
+  (hlim : tendsto_uniformly_on F f filter.at_top (sphere z R)) (w : ball z R) (y : ℝ) :
   tendsto (λ n, ((circle_transform R z w (F n))) y)
   at_top (𝓝 (((circle_transform R z w f )) y)) :=
 begin
@@ -374,6 +376,8 @@ begin
   linarith,
 end
 
+/--A uniform limit of functions on a `sphere` can be eventually bounded by a integrable
+function.  -/
 lemma circle_transform_of_uniform_exists_bounding_function {R : ℝ} {F : ℕ → ℂ → ℂ} (hR : 0 < R)
   (f : ℂ → ℂ) (z : ℂ) (w : ball z R) (F_cts : ∀ n, continuous_on (F n) (sphere z R))
   (hlim : tendsto_uniformly_on F f filter.at_top (sphere z R) ):
@@ -433,6 +437,8 @@ begin
    apply circle_transform_integrable_abs hR z f_cont},
 end
 
+/--The integral of a uniform limit of functions `F n` tends to the integral of the limit function
+`f`. -/
 lemma circle_int_uniform_lim_eq_lim_of_int {R : ℝ} {F : ℕ → ℂ → ℂ} (hR : 0 < R) (f : ℂ → ℂ)
   (z : ℂ) (w : ball z R) (F_cts : ∀ n, continuous_on (F n) (sphere z R))
   (hlim : tendsto_uniformly_on F f filter.at_top (sphere z R)) :
@@ -442,8 +448,7 @@ begin
   have F_measurable : ∀ n,
   ae_strongly_measurable (circle_transform R z w (F n)) (volume.restrict (Ioc 0 (2*π))),
   by {intro n, simp_rw _root_.ae_strongly_measurable_iff_ae_measurable,
-    have := circle_transform_integrable hR z (F_cts n) w,
-    apply this.ae_measurable},
+    apply (circle_transform_integrable hR z (F_cts n) w).ae_measurable},
   have h_lim'' : ∀ (a : ℝ), tendsto (λ n, ((circle_transform R z w (F n))) a)
   at_top (𝓝 (((circle_transform R z w f)) a)),
   by {apply circle_transform_of_unifom_limit hR f z hlim},
@@ -455,7 +460,7 @@ begin
   obtain ⟨bound, h_bound, bound_integrable⟩ := hboundlem,
   simp_rw integral_of_le (real.two_pi_pos.le),
   exact tendsto_integral_of_dominated_convergence bound F_measurable bound_integrable h_bound
-  h_lim',
+    h_lim',
 end
 
 end complex

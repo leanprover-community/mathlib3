@@ -1959,7 +1959,7 @@ begin
   rwa power_series.monomial_zero_eq_C_apply at this,
 end
 
-instance : coe_is_ring_hom (R[X]) (power_series R) :=
+instance _root_.power_series.coe_is_ring_hom : coe_is_ring_hom (R[X]) (power_series R) :=
 { coe_zero := polynomial.coe_zero,
   coe_add := polynomial.coe_add,
   coe_one := polynomial.coe_one,

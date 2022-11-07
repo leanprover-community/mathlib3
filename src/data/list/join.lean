@@ -18,14 +18,12 @@ namespace list
 
 attribute [simp] join
 
-lemma join_nil : [([] : list α)].join = [] := rfl
+@[simp] lemma join_singleton {l : list α} : [l].join = l :=
+by rw [join, join, append_nil]
 
 @[simp] lemma join_eq_nil : ∀ {L : list (list α)}, join L = [] ↔ ∀ l ∈ L, l = []
 | []       := iff_of_true rfl (forall_mem_nil _)
 | (l :: L) := by simp only [join, append_eq_nil, join_eq_nil, forall_mem_cons]
-
-@[simp] lemma join_singleton {l : list α} : [l].join = l :=
-by simp
 
 @[simp] lemma join_append (L₁ L₂ : list (list α)) : join (L₁ ++ L₂) = join L₁ ++ join L₂ :=
 by induction L₁; [refl, simp only [*, join, cons_append, append_assoc]]

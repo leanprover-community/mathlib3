@@ -10,9 +10,9 @@ import data.finset.lattice
 -/
 
 namespace finset
-open multiset
+open function multiset
 
-variables {α : Type*}
+variables {α : Type*} {s t : finset α}
 
 /-! ### powerset -/
 section powerset
@@ -26,17 +26,30 @@ def powerset (s : finset α) : finset (finset α) :=
 by cases s; simp only [powerset, mem_mk, mem_pmap, mem_powerset, exists_prop, exists_eq_right];
   rw ← val_le_iff
 
+@[simp, norm_cast] lemma coe_powerset (s : finset α) :
+  (s.powerset : set (finset α)) = coe ⁻¹' (s : set α).powerset :=
+by { ext, simp }
+
 @[simp] theorem empty_mem_powerset (s : finset α) : ∅ ∈ powerset s :=
 mem_powerset.2 (empty_subset _)
 
-@[simp] theorem mem_powerset_self (s : finset α) : s ∈ powerset s :=
-mem_powerset.2 (subset.refl _)
+@[simp] lemma mem_powerset_self (s : finset α) : s ∈ powerset s := mem_powerset.2 subset.rfl
 
-@[simp] lemma powerset_empty : finset.powerset (∅ : finset α) = {∅} := rfl
+lemma powerset_nonempty (s : finset α) : s.powerset.nonempty := ⟨∅, empty_mem_powerset _⟩
 
 @[simp] theorem powerset_mono {s t : finset α} : powerset s ⊆ powerset t ↔ s ⊆ t :=
 ⟨λ h, (mem_powerset.1 $ h $ mem_powerset_self _),
  λ st u h, mem_powerset.2 $ subset.trans (mem_powerset.1 h) st⟩
+
+lemma powerset_injective : injective (powerset : finset α → finset (finset α)) :=
+injective_of_le_imp_le _ $ λ s t, powerset_mono.1
+
+@[simp] lemma powerset_inj : powerset s = powerset t ↔ s = t := powerset_injective.eq_iff
+
+@[simp] lemma powerset_empty : (∅ : finset α).powerset = {∅} := rfl
+
+@[simp] lemma powerset_eq_singleton_empty : s.powerset = {∅} ↔ s = ∅ :=
+by rw [←powerset_empty, powerset_inj]
 
 /-- **Number of Subsets of a Set** -/
 @[simp] theorem card_powerset (s : finset α) :
@@ -182,15 +195,17 @@ begin
   simp [card_insert_of_not_mem this, nat.succ_inj']
 end
 
-lemma powerset_len_nonempty {n : ℕ} {s : finset α} (h : n < s.card) :
+lemma powerset_len_nonempty {n : ℕ} {s : finset α} (h : n ≤ s.card) :
   (powerset_len n s).nonempty :=
 begin
   classical,
   induction s using finset.induction_on with x s hx IH generalizing n,
-  { simpa using h },
+  { rw [card_empty, le_zero_iff] at h,
+    rw [h, powerset_len_zero],
+    exact finset.singleton_nonempty _,  },
   { cases n,
     { simp },
-    { rw [card_insert_of_not_mem hx, nat.succ_lt_succ_iff] at h,
+    { rw [card_insert_of_not_mem hx, nat.succ_le_succ_iff] at h,
       rw powerset_len_succ_insert hx,
       refine nonempty.mono _ ((IH h).image (insert x)),
       convert (subset_union_right _ _) } }
@@ -234,7 +249,8 @@ begin
       { refine ⟨insert x t, _, mem_insert_self _ _⟩,
         rw [←insert_erase hx, powerset_len_succ_insert (not_mem_erase _ _)],
         exact mem_union_right _ (mem_image_of_mem _ ht) },
-      { rwa [card_erase_of_mem hx, lt_tsub_iff_right] } } }
+      { rw [card_erase_of_mem hx],
+        exact nat.le_pred_of_lt hn, } } }
 end
 
 @[simp]

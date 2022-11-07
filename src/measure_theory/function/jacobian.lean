@@ -89,8 +89,8 @@ open measure_theory measure_theory.measure metric filter set finite_dimensional 
 topological_space
 open_locale nnreal ennreal topological_space pointwise
 
-variables {E F : Type*} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
-[normed_group F] [normed_space ℝ F] {s : set E} {f : E → E} {f' : E → E →L[ℝ] E}
+variables {E F : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+[normed_add_comm_group F] [normed_space ℝ F] {s : set E} {f : E → E} {f' : E → E →L[ℝ] E}
 
 /-!
 ### Decomposition lemmas
@@ -220,7 +220,7 @@ begin
       { rcases hs with ⟨x, xs⟩,
         rcases s_subset x xs with ⟨n, z, hnz⟩,
         exact false.elim z.2 },
-      { exact nonempty_coe_sort.2 hT } },
+      { exact hT.coe_sort } },
     inhabit (ℕ × T × ℕ),
     exact ⟨_, encodable.surjective_decode_iget _⟩ },
   -- these sets `t q = K n z p` will do
@@ -239,7 +239,7 @@ begin
   obtain ⟨q, hq⟩ : ∃ q, F q = (n, z, p) := hF _,
   -- then `x` belongs to `t q`.
   apply mem_Union.2 ⟨q, _⟩,
-  simp only [hq, subset_closure hnz, hp, mem_inter_eq, and_self],
+  simp only [hq, subset_closure hnz, hp, mem_inter_iff, and_self],
 end
 
 variables [measurable_space E] [borel_space E] (μ : measure E) [is_add_haar_measure μ]
@@ -1043,7 +1043,7 @@ begin
       rw [image_Union, measure_Union], rotate,
       { assume i j hij,
         apply (disjoint.image _ hf (inter_subset_left _ _) (inter_subset_left _ _)),
-        exact disjoint.mono (inter_subset_right _ _) (inter_subset_right _ _) (t_disj i j hij) },
+        exact disjoint.mono (inter_subset_right _ _) (inter_subset_right _ _) (t_disj hij) },
       { assume i,
         exact measurable_image_of_fderiv_within (hs.inter (t_meas i)) (λ x hx,
           (hf' x hx.1).mono (inter_subset_left _ _)) (hf.mono (inter_subset_left _ _)) },
@@ -1113,7 +1113,7 @@ begin
       { assume i j hij,
         apply disjoint.image _ hf (inter_subset_left _ _) (inter_subset_left _ _),
         exact disjoint.mono (inter_subset_right _ _) (inter_subset_right _ _)
-          (disjoint_disjointed _ i j hij) },
+          (disjoint_disjointed _ hij) },
       { assume i,
         exact measurable_image_of_fderiv_within (hs.inter (u_meas i)) (λ x hx,
           (hf' x hx.1).mono (inter_subset_left _ _)) (hf.mono (inter_subset_left _ _)) },

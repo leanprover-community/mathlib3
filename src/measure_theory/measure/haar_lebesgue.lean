@@ -8,6 +8,7 @@ import measure_theory.measure.haar
 import linear_algebra.finite_dimensional
 import analysis.normed_space.pointwise
 import measure_theory.group.pointwise
+import measure_theory.measure.doubling
 
 /-!
 # Relationship between the Haar and Lebesgue measures
@@ -21,7 +22,7 @@ We deduce basic properties of any Haar measure on a finite dimensional real vect
 * `add_haar_preimage_linear_map` : when `f` is a linear map with nonzero determinant, the measure
   of `f ⁻¹' s` is the measure of `s` multiplied by the absolute value of the inverse of the
   determinant of `f`.
-* `add_haar_image_linear_map` :  when `f` is a linear map, the measure of `f '' s` is the
+* `add_haar_image_linear_map` : when `f` is a linear map, the measure of `f '' s` is the
   measure of `s` multiplied by the absolute value of the determinant of `f`.
 * `add_haar_submodule` : a strict submodule has measure `0`.
 * `add_haar_smul` : the measure of `r • s` is `|r| ^ dim * μ s`.
@@ -36,12 +37,12 @@ small `r`, see `eventually_nonempty_inter_smul_of_density_one`.
 -/
 
 open topological_space set filter metric
-open_locale ennreal pointwise topological_space
+open_locale ennreal pointwise topological_space nnreal
 
 /-- The interval `[0,1]` as a compact set with non-empty interior. -/
 def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
 { carrier := Icc 0 1,
-  compact' := is_compact_Icc,
+  is_compact' := is_compact_Icc,
   interior_nonempty' := by simp_rw [interior_Icc, nonempty_Ioo, zero_lt_one] }
 
 universe u
@@ -50,7 +51,7 @@ universe u
 def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
   positive_compacts (ι → ℝ) :=
 { carrier := pi univ (λ i, Icc 0 1),
-  compact' := is_compact_univ_pi (λ i, is_compact_Icc),
+  is_compact' := is_compact_univ_pi (λ i, is_compact_Icc),
   interior_nonempty' := by simp only [interior_pi_set, set.to_finite, interior_Icc,
     univ_pi_nonempty_iff, nonempty_Ioo, implies_true_iff, zero_lt_one] }
 
@@ -92,7 +93,7 @@ namespace measure
 /-- If a set is disjoint of its translates by infinitely many bounded vectors, then it has measure
 zero. This auxiliary lemma proves this assuming additionally that the set is bounded. -/
 lemma add_haar_eq_zero_of_disjoint_translates_aux
-  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   {s : set E} (u : ℕ → E) (sb : bounded s) (hu : bounded (range u))
   (hs : pairwise (disjoint on (λ n, {u n} + s))) (h's : measurable_set s) :
@@ -114,7 +115,7 @@ end
 /-- If a set is disjoint of its translates by infinitely many bounded vectors, then it has measure
 zero. -/
 lemma add_haar_eq_zero_of_disjoint_translates
-  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   {s : set E} (u : ℕ → E) (hu : bounded (range u))
   (hs : pairwise (disjoint on (λ n, {u n} + s))) (h's : measurable_set s) :
@@ -135,7 +136,7 @@ end
 
 /-- A strict vector subspace has measure zero. -/
 lemma add_haar_submodule
-  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   (s : submodule ℝ E) (hs : s ≠ ⊤) : μ s = 0 :=
 begin
@@ -165,7 +166,7 @@ end
 
 /-- A strict affine subspace has measure zero. -/
 lemma add_haar_affine_subspace
-  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   (s : affine_subspace ℝ E) (hs : s ≠ ⊤) : μ s = 0 :=
 begin
@@ -188,10 +189,11 @@ linear equiv maps Haar measure to Haar measure.
 -/
 
 lemma map_linear_map_add_haar_pi_eq_smul_add_haar
-  {ι : Type*} [fintype ι] {f : (ι → ℝ) →ₗ[ℝ] (ι → ℝ)} (hf : f.det ≠ 0)
+  {ι : Type*} [finite ι] {f : (ι → ℝ) →ₗ[ℝ] (ι → ℝ)} (hf : f.det ≠ 0)
   (μ : measure (ι → ℝ)) [is_add_haar_measure μ] :
   measure.map f μ = ennreal.of_real (abs (f.det)⁻¹) • μ :=
 begin
+  casesI nonempty_fintype ι,
   /- We have already proved the result for the Lebesgue product measure, using matrices.
   We deduce it for any Haar measure by uniqueness (up to scalar multiplication). -/
   have := add_haar_measure_unique μ (pi_Icc01 ι),
@@ -200,7 +202,7 @@ begin
 end
 
 lemma map_linear_map_add_haar_eq_smul_add_haar
-  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   {f : E →ₗ[ℝ] E} (hf : f.det ≠ 0) :
   measure.map f μ = ennreal.of_real (abs (f.det)⁻¹) • μ :=
@@ -225,7 +227,7 @@ begin
   have Cg : continuous g := linear_map.continuous_of_finite_dimensional g,
   have Cesymm : continuous e.symm := (e.symm : (ι → ℝ) →ₗ[ℝ] E).continuous_of_finite_dimensional,
   rw [← map_map Cesymm.measurable (Cg.comp Ce).measurable, ← map_map Cg.measurable Ce.measurable],
-  haveI : is_add_haar_measure (map e μ) := is_add_haar_measure_map μ e.to_add_equiv Ce Cesymm,
+  haveI : is_add_haar_measure (map e μ) := (e : E ≃+ (ι → ℝ)).is_add_haar_measure_map μ Ce Cesymm,
   have ecomp : (e.symm) ∘ e = id,
     by { ext x, simp only [id.def, function.comp_app, linear_equiv.symm_apply_apply] },
   rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), measure.map_smul,
@@ -235,7 +237,7 @@ end
 /-- The preimage of a set `s` under a linear map `f` with nonzero determinant has measure
 equal to `μ s` times the absolute value of the inverse of the determinant of `f`. -/
 @[simp] lemma add_haar_preimage_linear_map
-  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   {f : E →ₗ[ℝ] E} (hf : f.det ≠ 0) (s : set E) :
   μ (f ⁻¹' s) = ennreal.of_real (abs (f.det)⁻¹) * μ s :=
@@ -248,7 +250,7 @@ calc μ (f ⁻¹' s) = measure.map f μ s :
 /-- The preimage of a set `s` under a continuous linear map `f` with nonzero determinant has measure
 equal to `μ s` times the absolute value of the inverse of the determinant of `f`. -/
 @[simp] lemma add_haar_preimage_continuous_linear_map
-  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   {f : E →L[ℝ] E} (hf : linear_map.det (f : E →ₗ[ℝ] E) ≠ 0) (s : set E) :
   μ (f ⁻¹' s) = ennreal.of_real (abs (linear_map.det (f : E →ₗ[ℝ] E))⁻¹) * μ s :=
@@ -257,7 +259,7 @@ add_haar_preimage_linear_map μ hf s
 /-- The preimage of a set `s` under a linear equiv `f` has measure
 equal to `μ s` times the absolute value of the inverse of the determinant of `f`. -/
 @[simp] lemma add_haar_preimage_linear_equiv
-  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   (f : E ≃ₗ[ℝ] E) (s : set E) :
   μ (f ⁻¹' s) = ennreal.of_real (abs (f.symm : E →ₗ[ℝ] E).det) * μ s :=
@@ -270,7 +272,7 @@ end
 /-- The preimage of a set `s` under a continuous linear equiv `f` has measure
 equal to `μ s` times the absolute value of the inverse of the determinant of `f`. -/
 @[simp] lemma add_haar_preimage_continuous_linear_equiv
-  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   (f : E ≃L[ℝ] E) (s : set E) :
   μ (f ⁻¹' s) = ennreal.of_real (abs (f.symm : E →ₗ[ℝ] E).det) * μ s :=
@@ -279,7 +281,7 @@ add_haar_preimage_linear_equiv μ _ s
 /-- The image of a set `s` under a linear map `f` has measure
 equal to `μ s` times the absolute value of the determinant of `f`. -/
 @[simp] lemma add_haar_image_linear_map
-  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   (f : E →ₗ[ℝ] E) (s : set E) :
   μ (f '' s) = ennreal.of_real (abs f.det) * μ s :=
@@ -301,7 +303,7 @@ end
 /-- The image of a set `s` under a continuous linear map `f` has measure
 equal to `μ s` times the absolute value of the determinant of `f`. -/
 @[simp] lemma add_haar_image_continuous_linear_map
-  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   (f : E →L[ℝ] E) (s : set E) :
   μ (f '' s) = ennreal.of_real (abs (f : E →ₗ[ℝ] E).det) * μ s :=
@@ -310,7 +312,7 @@ add_haar_image_linear_map μ _ s
 /-- The image of a set `s` under a continuous linear equiv `f` has measure
 equal to `μ s` times the absolute value of the determinant of `f`. -/
 @[simp] lemma add_haar_image_continuous_linear_equiv
-  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
   (f : E ≃L[ℝ] E) (s : set E) :
   μ (f '' s) = ennreal.of_real (abs (f : E →ₗ[ℝ] E).det) * μ s :=
@@ -320,7 +322,7 @@ equal to `μ s` times the absolute value of the determinant of `f`. -/
 ### Basic properties of Haar measures on real vector spaces
 -/
 
-variables {E : Type*} [normed_group E] [measurable_space E] [normed_space ℝ E]
+variables {E : Type*} [normed_add_comm_group E] [measurable_space E] [normed_space ℝ E]
   [finite_dimensional ℝ E] [borel_space E] (μ : measure E) [is_add_haar_measure μ]
 
 lemma map_add_haar_smul {r : ℝ} (hr : r ≠ 0) :
@@ -373,7 +375,7 @@ general Haar measures on general commutative groups. -/
 /-! ### Measure of balls -/
 
 lemma add_haar_ball_center
-  {E : Type*} [normed_group E] [measurable_space E]
+  {E : Type*} [normed_add_comm_group E] [measurable_space E]
   [borel_space E] (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
   μ (ball x r) = μ (ball (0 : E) r) :=
 begin
@@ -382,7 +384,7 @@ begin
 end
 
 lemma add_haar_closed_ball_center
-  {E : Type*} [normed_group E] [measurable_space E]
+  {E : Type*} [normed_add_comm_group E] [measurable_space E]
   [borel_space E] (μ : measure E) [is_add_haar_measure μ] (x : E) (r : ℝ) :
   μ (closed_ball x r) = μ (closed_ball (0 : E) r) :=
 begin
@@ -458,6 +460,15 @@ lemma add_haar_closed_ball (x : E) {r : ℝ} (hr : 0 ≤ r) :
   μ (closed_ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
 by rw [add_haar_closed_ball' μ x hr, add_haar_closed_unit_ball_eq_add_haar_unit_ball]
 
+lemma add_haar_closed_ball_eq_add_haar_ball [nontrivial E] (x : E) (r : ℝ) :
+  μ (closed_ball x r) = μ (ball x r) :=
+begin
+  by_cases h : r < 0,
+  { rw [metric.closed_ball_eq_empty.mpr h, metric.ball_eq_empty.mpr h.le] },
+  push_neg at h,
+  rw [add_haar_closed_ball μ x h, add_haar_ball μ x h],
+end
+
 lemma add_haar_sphere_of_ne_zero (x : E) {r : ℝ} (hr : r ≠ 0) :
   μ (sphere x r) = 0 :=
 begin
@@ -499,6 +510,15 @@ calc
     { simp only [pow_pos (abs_pos.mpr hr), ennreal.of_real_eq_zero, not_le, ne.def], },
     { simp only [ennreal.of_real_ne_top, ne.def, not_false_iff] }
   end
+
+@[priority 100] instance is_doubling_measure_of_is_add_haar_measure : is_doubling_measure μ :=
+begin
+  refine ⟨⟨(2 : ℝ≥0) ^ (finrank ℝ E), _⟩⟩,
+  filter_upwards [self_mem_nhds_within] with r hr x,
+  rw [add_haar_closed_ball_mul μ x zero_le_two (le_of_lt hr), add_haar_closed_ball_center μ x,
+    ennreal.of_real, real.to_nnreal_pow zero_le_two],
+  simp only [real.to_nnreal_bit0, real.to_nnreal_one, le_refl],
+end
 
 /-!
 ### Density points

@@ -3,7 +3,10 @@ Copyright (c) 2019 Jean Lo. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jean Lo, Bhavik Mehta, Yaël Dillies
 -/
-import analysis.normed_space.basic
+import analysis.convex.basic
+import analysis.convex.hull
+import analysis.normed.order.lattice
+import analysis.normed.order.basic
 
 /-!
 # Local convexity
@@ -174,10 +177,10 @@ variables [add_comm_group E] [module 𝕜 E] {s s₁ s₂ t t₁ t₂ : set E}
 
 lemma absorbs.neg : absorbs 𝕜 s t → absorbs 𝕜 (-s) (-t) :=
 Exists.imp $ λ r, and.imp_right $ forall₂_imp $ λ _ _ h,
-  (neg_subset_neg.2 h).trans set.smul_set_neg.superset
+  (neg_subset_neg.2 h).trans (smul_set_neg _ _).superset
 
 lemma balanced.neg : balanced 𝕜 s → balanced 𝕜 (-s) :=
-forall₂_imp $ λ _ _ h, smul_set_neg.subset.trans $ neg_subset_neg.2 h
+forall₂_imp $ λ _ _ h, (smul_set_neg _ _).subset.trans $ neg_subset_neg.2 h
 
 lemma absorbs.add : absorbs 𝕜 s₁ t₁ → absorbs 𝕜 s₂ t₂ → absorbs 𝕜 (s₁ + s₂) (t₁ + t₂) :=
 λ ⟨r₁, hr₁, h₁⟩ ⟨r₂, hr₂, h₂⟩, ⟨max r₁ r₂, lt_max_of_lt_left hr₁, λ a ha, (add_subset_add
@@ -324,8 +327,8 @@ lemma balanced.closure (hA : balanced 𝕜 A) : balanced 𝕜 (closure A) :=
 
 end normed_field
 
-section nondiscrete_normed_field
-variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] {s : set E}
+section nontrivially_normed_field
+variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] {s : set E}
 
 lemma absorbs_zero_iff : absorbs 𝕜 s 0 ↔ (0 : E) ∈ s :=
 begin
@@ -340,4 +343,31 @@ end
 lemma absorbent.zero_mem (hs : absorbent 𝕜 s) : (0 : E) ∈ s :=
 absorbs_zero_iff.1 $ absorbent_iff_forall_absorbs_singleton.1 hs _
 
-end nondiscrete_normed_field
+variables [module ℝ E] [smul_comm_class ℝ 𝕜 E]
+
+lemma balanced_convex_hull_of_balanced (hs : balanced 𝕜 s) : balanced 𝕜 (convex_hull ℝ s) :=
+begin
+  suffices : convex ℝ {x | ∀ a : 𝕜, ∥a∥ ≤ 1 → a • x ∈ convex_hull ℝ s},
+  { rw balanced_iff_smul_mem at hs ⊢,
+    refine λ a ha x hx, convex_hull_min _ this hx a ha,
+    exact λ y hy a ha, subset_convex_hull ℝ s (hs ha hy) },
+  intros x hx y hy u v hu hv huv a ha,
+  simp only [smul_add, ← smul_comm],
+  exact convex_convex_hull ℝ s (hx a ha) (hy a ha) hu hv huv
+end
+
+end nontrivially_normed_field
+
+section real
+variables [add_comm_group E] [module ℝ E] {s : set E}
+
+lemma balanced_iff_neg_mem (hs : convex ℝ s) : balanced ℝ s ↔ ∀ ⦃x⦄, x ∈ s → -x ∈ s :=
+begin
+  refine ⟨λ h x, h.neg_mem_iff.2, λ h a ha, smul_set_subset_iff.2 $ λ x hx, _⟩,
+  rw [real.norm_eq_abs, abs_le] at ha,
+  rw [show a = -((1 - a) / 2) + (a - -1)/2, by ring, add_smul, neg_smul, ←smul_neg],
+  exact hs (h hx) hx (div_nonneg (sub_nonneg_of_le ha.2) zero_le_two)
+    (div_nonneg (sub_nonneg_of_le ha.1) zero_le_two) (by ring),
+end
+
+end real

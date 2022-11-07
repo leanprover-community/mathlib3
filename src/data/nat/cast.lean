@@ -3,10 +3,11 @@ Copyright (c) 2014 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.nat.basic
-import data.nat.cast.defs
-import algebra.group.pi
-import tactic.pi_instances
+import data.nat.order
+import algebra.order.group.abs
+import algebra.group.prod
+import algebra.hom.ring
+import algebra.order.monoid.with_top
 
 /-!
 # Cast of natural numbers (additional theorems)
@@ -20,8 +21,9 @@ the natural numbers into an additive monoid with a one (`nat.cast`).
 * `cast_ring_hom`: `cast` bundled as a `ring_hom`.
 -/
 
+variables {α β : Type*}
+
 namespace nat
-variables {α : Type*}
 
 /-- `coe : ℕ → α` as an `add_monoid_hom`. -/
 def cast_add_monoid_hom (α : Type*) [add_monoid_with_one α] : ℕ →+ α :=
@@ -55,8 +57,7 @@ lemma cast_comm [non_assoc_semiring α] (n : ℕ) (x : α) : (n : α) * x = x * 
 lemma commute_cast [non_assoc_semiring α] (x : α) (n : ℕ) : commute x n :=
 (n.cast_commute x).symm
 
-section
-
+section ordered_semiring
 variables [ordered_semiring α]
 
 @[mono] theorem mono_cast : monotone (coe : ℕ → α) :=
@@ -67,18 +68,35 @@ monotone_nat_of_le_succ $ λ n, by rw [nat.cast_succ]; exact le_add_of_nonneg_ri
 
 variable [nontrivial α]
 
+lemma cast_add_one_pos (n : ℕ) : 0 < (n : α) + 1 :=
+zero_lt_one.trans_le $ le_add_of_nonneg_left n.cast_nonneg
+
+@[simp] lemma cast_pos {n : ℕ} : (0 : α) < n ↔ 0 < n := by cases n; simp [cast_add_one_pos]
+
+end ordered_semiring
+
+/-- A version of `nat.cast_sub` that works for `ℝ≥0` and `ℚ≥0`. Note that this proof doesn't work
+for `ℕ∞` and `ℝ≥0∞`, so we use type-specific lemmas for these types. -/
+@[simp, norm_cast] lemma cast_tsub [canonically_ordered_comm_semiring α] [has_sub α]
+  [has_ordered_sub α] [contravariant_class α α (+) (≤)] (m n : ℕ) :
+  ↑(m - n) = (m - n : α) :=
+begin
+  cases le_total m n with h h,
+  { rw [tsub_eq_zero_of_le h, cast_zero, tsub_eq_zero_of_le],
+    exact mono_cast h },
+  { rcases le_iff_exists_add'.mp h with ⟨m, rfl⟩,
+    rw [add_tsub_cancel_right, cast_add, add_tsub_cancel_right] }
+end
+
+section strict_ordered_semiring
+variables [strict_ordered_semiring α] [nontrivial α]
+
 @[simp, norm_cast] theorem cast_le {m n : ℕ} :
   (m : α) ≤ n ↔ m ≤ n :=
 strict_mono_cast.le_iff_le
 
 @[simp, norm_cast, mono] theorem cast_lt {m n : ℕ} : (m : α) < n ↔ m < n :=
 strict_mono_cast.lt_iff_lt
-
-@[simp] theorem cast_pos {n : ℕ} : (0 : α) < n ↔ 0 < n :=
-by rw [← cast_zero, cast_lt]
-
-lemma cast_add_one_pos (n : ℕ) : 0 < (n : α) + 1 :=
-  add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
 
 @[simp, norm_cast] theorem one_lt_cast {n : ℕ} : 1 < (n : α) ↔ 1 < n :=
 by rw [← cast_one, cast_lt]
@@ -87,12 +105,12 @@ by rw [← cast_one, cast_lt]
 by rw [← cast_one, cast_le]
 
 @[simp, norm_cast] theorem cast_lt_one {n : ℕ} : (n : α) < 1 ↔ n = 0 :=
-by rw [← cast_one, cast_lt, lt_succ_iff, le_zero_iff]
+by rw [← cast_one, cast_lt, lt_succ_iff]; exact le_bot_iff
 
 @[simp, norm_cast] theorem cast_le_one {n : ℕ} : (n : α) ≤ 1 ↔ n ≤ 1 :=
 by rw [← cast_one, cast_le]
 
-end
+end strict_ordered_semiring
 
 @[simp, norm_cast] theorem cast_min [linear_ordered_semiring α] {a b : ℕ} :
   (↑(min a b) : α) = min a b :=
@@ -114,8 +132,7 @@ alias coe_nat_dvd ← _root_.has_dvd.dvd.nat_cast
 end nat
 
 namespace prod
-
-variables {α : Type*} {β : Type*} [add_monoid_with_one α] [add_monoid_with_one β]
+variables [add_monoid_with_one α] [add_monoid_with_one β]
 
 instance : add_monoid_with_one (α × β) :=
 { nat_cast := λ n, (n, n),
@@ -192,11 +209,19 @@ map_nat_cast' f $ map_one f
 lemma ext_nat [ring_hom_class F ℕ R] (f g : F) : f = g :=
 ext_nat' f g $ by simp only [map_one]
 
+lemma ne_zero.nat_of_injective {n : ℕ} [h : ne_zero (n : R)]
+  [ring_hom_class F R S] {f : F} (hf : function.injective f) : ne_zero (n : S) :=
+⟨λ h, (ne_zero.ne' n R) $ hf $ by simpa only [map_nat_cast, map_zero]⟩
+
+lemma ne_zero.nat_of_ne_zero {R S} [semiring R] [semiring S] {F} [ring_hom_class F R S] (f : F)
+  {n : ℕ} [hn : ne_zero (n : S)] : ne_zero (n : R) :=
+by { apply ne_zero.of_map f, simp only [map_nat_cast, hn] }
+
 end ring_hom_class
 
 namespace ring_hom
 
-/-- This is primed to match `ring_hom.eq_int_cast'`. -/
+/-- This is primed to match `eq_int_cast'`. -/
 lemma eq_nat_cast' {R} [non_assoc_semiring R] (f : ℕ →+* R) : f = nat.cast_ring_hom R :=
 ring_hom.ext $ eq_nat_cast f
 
@@ -215,8 +240,7 @@ instance nat.unique_ring_hom {R : Type*} [non_assoc_semiring R] : unique (ℕ �
 { default := nat.cast_ring_hom R, uniq := ring_hom.eq_nat_cast' }
 
 namespace mul_opposite
-
-variables {α : Type*} [add_monoid_with_one α]
+variables [add_monoid_with_one α]
 
 @[simp, norm_cast] lemma op_nat_cast (n : ℕ) : op (n : α) = n := rfl
 
@@ -224,60 +248,46 @@ variables {α : Type*} [add_monoid_with_one α]
 
 end mul_opposite
 
-namespace with_top
-variables {α : Type*}
-
-variables [add_monoid_with_one α]
-
-@[simp, norm_cast] lemma coe_nat : ∀ (n : ℕ), ((n : α) : with_top α) = n
-| 0     := rfl
-| (n+1) := by { push_cast, rw [coe_nat n] }
-
-@[simp] lemma nat_ne_top (n : nat) : (n : with_top α) ≠ ⊤ :=
-by { rw [←coe_nat n], apply coe_ne_top }
-
-@[simp] lemma top_ne_nat (n : nat) : (⊤ : with_top α) ≠ n :=
-by { rw [←coe_nat n], apply top_ne_coe }
-
-lemma add_one_le_of_lt {i n : with_top ℕ} (h : i < n) : i + 1 ≤ n :=
-begin
-  cases n, { exact le_top },
-  cases i, { exact (not_le_of_lt h le_top).elim },
-  exact with_top.coe_le_coe.2 (with_top.coe_lt_coe.1 h)
-end
-
-lemma one_le_iff_pos {n : with_top ℕ} : 1 ≤ n ↔ 0 < n :=
-⟨lt_of_lt_of_le (coe_lt_coe.mpr zero_lt_one),
-  λ h, by simpa only [zero_add] using add_one_le_of_lt h⟩
-
-@[elab_as_eliminator]
-lemma nat_induction {P : with_top ℕ → Prop} (a : with_top ℕ)
-  (h0 : P 0) (hsuc : ∀n:ℕ, P n → P n.succ) (htop : (∀n : ℕ, P n) → P ⊤) : P a :=
-begin
-  have A : ∀n:ℕ, P n := λ n, nat.rec_on n h0 hsuc,
-  cases a,
-  { exact htop A },
-  { exact A a }
-end
-
-end with_top
-
 namespace pi
-variables {α : Type*} {β : α → Type*} [∀ a, has_nat_cast (β a)]
+variables {π : α → Type*} [Π a, has_nat_cast (π a)]
 
-instance : has_nat_cast (∀ a, β a) :=
+instance : has_nat_cast (Π a, π a) :=
 by refine_struct { .. }; tactic.pi_instance_derive_field
 
-lemma nat_apply (n : ℕ) (a : α) : (n : ∀ a, β a) a = n := rfl
+lemma nat_apply (n : ℕ) (a : α) : (n : Π a, π a) a = n := rfl
 
-@[simp] lemma coe_nat (n : ℕ) : (n : ∀ a, β a) = λ _, n := rfl
+@[simp] lemma coe_nat (n : ℕ) : (n : Π a, π a) = λ _, n := rfl
 
 end pi
 
-namespace pi
-variables {α : Type*} {β : α → Type*} [∀ a, add_monoid_with_one (β a)]
+lemma sum.elim_nat_cast_nat_cast {α β γ : Type*} [has_nat_cast γ] (n : ℕ) :
+  sum.elim (n : α → γ) (n : β → γ) = n :=
+@sum.elim_lam_const_lam_const α β γ n
 
-instance : add_monoid_with_one (∀ a, β a) :=
+namespace pi
+variables {π : α → Type*} [Π a, add_monoid_with_one (π a)]
+
+instance : add_monoid_with_one (Π a, π a) :=
 by refine_struct { .. }; tactic.pi_instance_derive_field
 
 end pi
+
+/-! ### Order dual -/
+
+open order_dual
+
+instance [h : has_nat_cast α] : has_nat_cast αᵒᵈ := h
+instance [h : add_monoid_with_one α] : add_monoid_with_one αᵒᵈ := h
+instance [h : add_comm_monoid_with_one α] : add_comm_monoid_with_one αᵒᵈ := h
+
+@[simp] lemma to_dual_nat_cast [has_nat_cast α] (n : ℕ) : to_dual (n : α) = n := rfl
+@[simp] lemma of_dual_nat_cast [has_nat_cast α] (n : ℕ) : (of_dual n : α) = n := rfl
+
+/-! ### Lexicographic order -/
+
+instance [h : has_nat_cast α] : has_nat_cast (lex α) := h
+instance [h : add_monoid_with_one α] : add_monoid_with_one (lex α) := h
+instance [h : add_comm_monoid_with_one α] : add_comm_monoid_with_one (lex α) := h
+
+@[simp] lemma to_lex_nat_cast [has_nat_cast α] (n : ℕ) : to_lex (n : α) = n := rfl
+@[simp] lemma of_lex_nat_cast [has_nat_cast α] (n : ℕ) : (of_lex n : α) = n := rfl

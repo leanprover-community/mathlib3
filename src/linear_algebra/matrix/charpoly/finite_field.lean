@@ -37,9 +37,7 @@ begin
     rw [alg_equiv.map_pow, mat_poly_equiv_charmatrix, hk, sub_pow_char_pow_of_commute, ← C_pow],
     { exact (id (mat_poly_equiv_eq_X_pow_sub_C (p ^ k) M) : _) },
     { exact (C M).commute_X } },
-  { -- TODO[gh-6025]: remove this `haveI` once `subsingleton_of_empty_right` is a global instance
-    haveI : subsingleton (matrix n n K) := subsingleton_of_empty_right,
-    exact congr_arg _ (subsingleton.elim _ _), },
+  { exact congr_arg _ (subsingleton.elim _ _), },
 end
 
 @[simp] lemma zmod.charpoly_pow_card {p : ℕ} [fact p.prime] (M : matrix n n (zmod p)) :

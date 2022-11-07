@@ -10,8 +10,8 @@ import ring_theory.dedekind_domain.ideal
 /-!
 # The ideal class group
 
-This file defines the ideal class group `class_group R K` of fractional ideals of `R`
-inside `A`'s field of fractions `K`.
+This file defines the ideal class group `class_group R` of fractional ideals of `R`
+inside its field of fractions.
 
 ## Main definitions
  - `to_principal_ideal` sends an invertible `x : K` to an invertible fractional ideal
@@ -21,6 +21,11 @@ inside `A`'s field of fractions `K`.
 ## Main results
  - `class_group.mk0_eq_mk0_iff` shows the equivalence with the "classical" definition,
    where `I ~ J` iff `x I = y J` for `x y ≠ (0 : R)`
+
+## Implementation details
+
+The definition of `class_group R` involves `fraction_ring R`. However, the API should be completely
+identical no matter the choice of field of fractions for `R`.
 -/
 
 variables {R K L : Type*} [comm_ring R]
@@ -61,26 +66,97 @@ rfl
   to_principal_ideal R K x = I ↔ span_singleton R⁰ (x : K) = I :=
 units.ext_iff
 
+lemma mem_principal_ideals_iff {I : (fractional_ideal R⁰ K)ˣ} :
+  I ∈ (to_principal_ideal R K).range ↔ ∃ x : K, span_singleton R⁰ x = I :=
+begin
+  simp only [monoid_hom.mem_range, to_principal_ideal_eq_iff],
+  split; rintros ⟨x, hx⟩,
+  { exact ⟨x, hx⟩ },
+  { refine ⟨units.mk0 x _, hx⟩,
+    rintro rfl,
+    simpa [I.ne_zero.symm] using hx },
+
 end
 
 instance principal_ideals.normal : (to_principal_ideal R K).range.normal :=
 subgroup.normal_of_comm _
+end
 
-section
+variables (R) [is_domain R]
 
-variables (R K)
-
-/-- The ideal class group of `R` in a field of fractions `K`
-is the group of invertible fractional ideals modulo the principal ideals. -/
+/-- The ideal class group of `R` is the group of invertible fractional ideals
+modulo the principal ideals. -/
 @[derive(comm_group)]
-def class_group := (fractional_ideal R⁰ K)ˣ ⧸ (to_principal_ideal R K).range
+def class_group :=
+(fractional_ideal R⁰ (fraction_ring R))ˣ ⧸ (to_principal_ideal R (fraction_ring R)).range
 
-instance : inhabited (class_group R K) := ⟨1⟩
+noncomputable instance : inhabited (class_group R) := ⟨1⟩
 
-variables {R} [is_domain R]
+variables {R K}
+
+/-- Send a nonzero fractional ideal to the corresponding class in the class group. -/
+noncomputable def class_group.mk : (fractional_ideal R⁰ K)ˣ →* class_group R :=
+(quotient_group.mk' (to_principal_ideal R (fraction_ring R)).range).comp
+  (units.map (fractional_ideal.canonical_equiv R⁰ K (fraction_ring R)))
+
+variables (K)
+
+/-- Induction principle for the class group: to show something holds for all `x : class_group R`,
+we can choose a fraction field `K` and show it holds for the equivalence class of each
+`I : fractional_ideal R⁰ K`. -/
+@[elab_as_eliminator] lemma class_group.induction {P : class_group R → Prop}
+  (h : ∀ (I : (fractional_ideal R⁰ K)ˣ), P (class_group.mk I)) (x : class_group R) : P x :=
+quotient_group.induction_on x (λ I, begin
+  convert h (units.map_equiv ↑(canonical_equiv R⁰ (fraction_ring R) K) I),
+  ext : 1,
+  rw [units.coe_map, units.coe_map_equiv],
+  exact (canonical_equiv_flip R⁰ K (fraction_ring R) I).symm
+end)
+
+/-- The definition of the class group does not depend on the choice of field of fractions. -/
+noncomputable def class_group.equiv :
+  class_group R ≃* (fractional_ideal R⁰ K)ˣ ⧸ (to_principal_ideal R K).range :=
+quotient_group.congr _ _
+  (units.map_equiv (fractional_ideal.canonical_equiv R⁰ (fraction_ring R) K :
+    fractional_ideal R⁰ (fraction_ring R) ≃* fractional_ideal R⁰ K)) $
+begin
+  ext I,
+  simp only [subgroup.mem_map, mem_principal_ideals_iff, monoid_hom.coe_coe],
+  split,
+  { rintro ⟨I, ⟨x, hx⟩, rfl⟩,
+    refine ⟨fraction_ring.alg_equiv R K x, _⟩,
+    rw [units.coe_map_equiv, ← hx, ring_equiv.coe_to_mul_equiv, canonical_equiv_span_singleton],
+    refl },
+  { rintro ⟨x, hx⟩,
+    refine ⟨units.map_equiv ↑(canonical_equiv R⁰ K (fraction_ring R)) I,
+      ⟨(fraction_ring.alg_equiv R K).symm x, _⟩,
+      units.ext _⟩,
+    { rw [units.coe_map_equiv, ← hx, ring_equiv.coe_to_mul_equiv, canonical_equiv_span_singleton],
+      refl },
+    simp only [ring_equiv.coe_to_mul_equiv, canonical_equiv_flip, units.coe_map_equiv] },
+end
+
+@[simp] lemma class_group.equiv_mk (K' : Type*) [field K'] [algebra R K'] [is_fraction_ring R K']
+  (I : (fractional_ideal R⁰ K)ˣ) :
+  class_group.equiv K' (class_group.mk I) =
+    quotient_group.mk' _ (units.map_equiv ↑(fractional_ideal.canonical_equiv R⁰ K K') I) :=
+begin
+  rw [class_group.equiv, class_group.mk, monoid_hom.comp_apply, quotient_group.congr_mk'],
+  congr,
+  ext : 1,
+  rw [units.coe_map_equiv, units.coe_map_equiv, units.coe_map],
+  exact fractional_ideal.canonical_equiv_canonical_equiv _ _ _ _ _
+end
+
+@[simp] lemma class_group.mk_canonical_equiv (K' : Type*) [field K'] [algebra R K']
+  [is_fraction_ring R K'] (I : (fractional_ideal R⁰ K)ˣ) :
+  class_group.mk (units.map ↑(canonical_equiv R⁰ K K') I : (fractional_ideal R⁰ K')ˣ) =
+    class_group.mk I :=
+by rw [class_group.mk, monoid_hom.comp_apply, ← monoid_hom.comp_apply (units.map _),
+  ← units.map_comp, ← ring_equiv.coe_monoid_hom_trans,
+  fractional_ideal.canonical_equiv_trans_canonical_equiv]; refl
 
 /-- Send a nonzero integral ideal to an invertible fractional ideal. -/
-@[simps]
 noncomputable def fractional_ideal.mk0 [is_dedekind_domain R] :
   (ideal R)⁰ →* (fractional_ideal R⁰ K)ˣ :=
 { to_fun := λ I, units.mk0 I ((fractional_ideal.coe_to_fractional_ideal_ne_zero (le_refl R⁰)).mpr
@@ -88,108 +164,138 @@ noncomputable def fractional_ideal.mk0 [is_dedekind_domain R] :
   map_one' := by simp,
   map_mul' := λ x y, by simp }
 
+@[simp] lemma fractional_ideal.coe_mk0 [is_dedekind_domain R] (I : (ideal R)⁰) :
+  (fractional_ideal.mk0 K I : fractional_ideal R⁰ K) = I :=
+rfl
+
+lemma fractional_ideal.canonical_equiv_mk0 [is_dedekind_domain R]
+  (K' : Type*) [field K'] [algebra R K'] [is_fraction_ring R K'] (I : (ideal R)⁰) :
+  fractional_ideal.canonical_equiv R⁰ K K' (fractional_ideal.mk0 K I) =
+    fractional_ideal.mk0 K' I :=
+by simp only [fractional_ideal.coe_mk0, coe_coe, fractional_ideal.canonical_equiv_coe_ideal]
+
+@[simp] lemma fractional_ideal.map_canonical_equiv_mk0 [is_dedekind_domain R]
+  (K' : Type*) [field K'] [algebra R K'] [is_fraction_ring R K'] (I : (ideal R)⁰) :
+  units.map ↑(fractional_ideal.canonical_equiv R⁰ K K') (fractional_ideal.mk0 K I) =
+    fractional_ideal.mk0 K' I :=
+units.ext (fractional_ideal.canonical_equiv_mk0 K K' I)
+
 /-- Send a nonzero ideal to the corresponding class in the class group. -/
-@[simps]
 noncomputable def class_group.mk0 [is_dedekind_domain R] :
-  (ideal R)⁰ →* class_group R K :=
-(quotient_group.mk' _).comp (fractional_ideal.mk0 K)
+  (ideal R)⁰ →* class_group R :=
+class_group.mk.comp (fractional_ideal.mk0 (fraction_ring R))
+
+@[simp] lemma class_group.mk_mk0 [is_dedekind_domain R] (I : (ideal R)⁰):
+  class_group.mk (fractional_ideal.mk0 K I) = class_group.mk0 I :=
+by rw [class_group.mk0, monoid_hom.comp_apply,
+      ← class_group.mk_canonical_equiv K (fraction_ring R),
+      fractional_ideal.map_canonical_equiv_mk0]
+
+@[simp] lemma class_group.equiv_mk0 [is_dedekind_domain R] (I : (ideal R)⁰):
+  class_group.equiv K (class_group.mk0 I) =
+    quotient_group.mk' (to_principal_ideal R K).range (fractional_ideal.mk0 K I) :=
+begin
+  rw [class_group.mk0, monoid_hom.comp_apply, class_group.equiv_mk],
+  congr,
+  ext,
+  simp
+end
+
+lemma class_group.mk0_eq_mk0_iff_exists_fraction_ring [is_dedekind_domain R] {I J : (ideal R)⁰} :
+  class_group.mk0 I = class_group.mk0 J ↔
+    ∃ (x ≠ (0 : K)), span_singleton R⁰ x * I = J :=
+begin
+  refine (class_group.equiv K).injective.eq_iff.symm.trans _,
+  simp only [class_group.equiv_mk0, quotient_group.mk'_eq_mk', mem_principal_ideals_iff,
+    coe_coe, units.ext_iff, units.coe_mul, fractional_ideal.coe_mk0, exists_prop],
+  split,
+  { rintros ⟨X, ⟨x, hX⟩, hx⟩,
+    refine ⟨x, _, _⟩,
+    { rintro rfl, simpa [X.ne_zero.symm] using hX },
+    simpa only [hX, mul_comm] using hx },
+  { rintros ⟨x, hx, eq_J⟩,
+    refine ⟨units.mk0 _ (span_singleton_ne_zero_iff.mpr hx), ⟨x, rfl⟩, _⟩,
+    simpa only [mul_comm] using eq_J }
+end
 
 variables {K}
 
-lemma class_group.mk0_eq_mk0_iff_exists_fraction_ring [is_dedekind_domain R] {I J : (ideal R)⁰} :
-  class_group.mk0 K I = class_group.mk0 K J ↔
-    ∃ (x ≠ (0 : K)), span_singleton R⁰ x * I = J :=
-begin
-  simp only [class_group.mk0, monoid_hom.comp_apply, quotient_group.mk'_eq_mk'],
-  split,
-  { rintros ⟨_, ⟨x, rfl⟩, hx⟩,
-    refine ⟨x, x.ne_zero, _⟩,
-    simpa only [mul_comm, coe_mk0, monoid_hom.to_fun_eq_coe, coe_to_principal_ideal, units.coe_mul]
-      using congr_arg (coe : _ → fractional_ideal R⁰ K) hx },
-  { rintros ⟨x, hx, eq_J⟩,
-    refine ⟨_, ⟨units.mk0 x hx, rfl⟩, units.ext _⟩,
-    simpa only [fractional_ideal.mk0_apply, units.coe_mk0, mul_comm, coe_to_principal_ideal,
-        coe_coe, units.coe_mul] using eq_J }
-end
-
 lemma class_group.mk0_eq_mk0_iff [is_dedekind_domain R] {I J : (ideal R)⁰} :
-  class_group.mk0 K I = class_group.mk0 K J ↔
+  class_group.mk0 I = class_group.mk0 J ↔
     ∃ (x y : R) (hx : x ≠ 0) (hy : y ≠ 0), ideal.span {x} * (I : ideal R) = ideal.span {y} * J :=
 begin
-  refine class_group.mk0_eq_mk0_iff_exists_fraction_ring.trans ⟨_, _⟩,
+  refine (class_group.mk0_eq_mk0_iff_exists_fraction_ring (fraction_ring R)).trans ⟨_, _⟩,
   { rintros ⟨z, hz, h⟩,
     obtain ⟨x, ⟨y, hy⟩, rfl⟩ := is_localization.mk'_surjective R⁰ z,
     refine ⟨x, y, _, mem_non_zero_divisors_iff_ne_zero.mp hy, _⟩,
     { rintro hx, apply hz,
-      rw [hx, is_fraction_ring.mk'_eq_div, (algebra_map R K).map_zero, zero_div] },
-    { exact (fractional_ideal.mk'_mul_coe_ideal_eq_coe_ideal K hy).mp h } },
+      rw [hx, is_fraction_ring.mk'_eq_div, _root_.map_zero, zero_div] },
+    { exact (fractional_ideal.mk'_mul_coe_ideal_eq_coe_ideal _ hy).mp h } },
   { rintros ⟨x, y, hx, hy, h⟩,
     have hy' : y ∈ R⁰ := mem_non_zero_divisors_iff_ne_zero.mpr hy,
-    refine ⟨is_localization.mk' K x ⟨y, hy'⟩, _, _⟩,
+    refine ⟨is_localization.mk' _ x ⟨y, hy'⟩, _, _⟩,
     { contrapose! hx,
-      rwa [is_localization.mk'_eq_iff_eq_mul, zero_mul, ← (algebra_map R K).map_zero,
-           (is_fraction_ring.injective R K).eq_iff] at hx },
-    { exact (fractional_ideal.mk'_mul_coe_ideal_eq_coe_ideal K hy').mpr h } },
+      rwa [mk'_eq_iff_eq_mul, zero_mul, ← (algebra_map R (fraction_ring R)).map_zero,
+           (is_fraction_ring.injective R (fraction_ring R)).eq_iff]
+        at hx },
+    { exact (fractional_ideal.mk'_mul_coe_ideal_eq_coe_ideal _ hy').mpr h } },
 end
 
 lemma class_group.mk0_surjective [is_dedekind_domain R] :
-  function.surjective (class_group.mk0 K : (ideal R)⁰ → class_group R K) :=
+  function.surjective (class_group.mk0 : (ideal R)⁰ → class_group R) :=
 begin
   rintros ⟨I⟩,
   obtain ⟨a, a_ne_zero', ha⟩ := I.1.2,
   have a_ne_zero := mem_non_zero_divisors_iff_ne_zero.mp a_ne_zero',
-  have fa_ne_zero : (algebra_map R K) a ≠ 0 :=
+  have fa_ne_zero : (algebra_map R (fraction_ring R)) a ≠ 0 :=
     is_fraction_ring.to_map_ne_zero_of_mem_non_zero_divisors a_ne_zero',
-  refine ⟨⟨{ carrier := { x | (algebra_map R K a)⁻¹ * algebra_map R K x ∈ I.1 }, .. }, _⟩, _⟩,
+  refine ⟨⟨{ carrier := { x | (algebra_map R _ a)⁻¹ * algebra_map R _ x ∈ I.1 }, .. }, _⟩, _⟩,
   { simp only [ring_hom.map_add, set.mem_set_of_eq, mul_zero, ring_hom.map_mul, mul_add],
     exact λ _ _ ha hb, submodule.add_mem I ha hb },
   { simp only [ring_hom.map_zero, set.mem_set_of_eq, mul_zero, ring_hom.map_mul],
     exact submodule.zero_mem I },
   { intros c _ hb,
     simp only [smul_eq_mul, set.mem_set_of_eq, mul_zero, ring_hom.map_mul, mul_add,
-               mul_left_comm ((algebra_map R K) a)⁻¹],
+               mul_left_comm ((algebra_map R (fraction_ring R)) a)⁻¹],
     rw ← algebra.smul_def c,
     exact submodule.smul_mem I c hb },
   { rw [mem_non_zero_divisors_iff_ne_zero, submodule.zero_eq_bot, submodule.ne_bot_iff],
     obtain ⟨x, x_ne, x_mem⟩ := exists_ne_zero_mem_is_integer I.ne_zero,
     refine ⟨a * x, _, mul_ne_zero a_ne_zero x_ne⟩,
-    change ((algebra_map R K) a)⁻¹ * (algebra_map R K) (a * x) ∈ I.1,
+    change ((algebra_map R _) a)⁻¹ * (algebra_map R _) (a * x) ∈ I.1,
     rwa [ring_hom.map_mul, ← mul_assoc, inv_mul_cancel fa_ne_zero, one_mul] },
   { symmetry,
     apply quotient.sound,
     change setoid.r _ _,
     rw quotient_group.left_rel_apply,
-    refine ⟨units.mk0 (algebra_map R K a) fa_ne_zero, _⟩,
+    refine ⟨units.mk0 (algebra_map R _ a) fa_ne_zero, _⟩,
     apply @mul_left_cancel _ _ I,
     rw [← mul_assoc, mul_right_inv, one_mul, eq_comm, mul_comm I],
     apply units.ext,
-    simp only [monoid_hom.coe_mk, subtype.coe_mk, ring_hom.map_mul, coe_coe,
-               units.coe_mul, coe_to_principal_ideal, coe_mk0,
-               fractional_ideal.eq_span_singleton_mul],
+    simp only [fractional_ideal.coe_mk0, fractional_ideal.map_canonical_equiv_mk0, set_like.coe_mk,
+        units.coe_mk0, coe_to_principal_ideal, coe_coe, units.coe_mul,
+        fractional_ideal.eq_span_singleton_mul],
     split,
     { intros zJ' hzJ',
-      obtain ⟨zJ, hzJ : (algebra_map R K a)⁻¹ * algebra_map R K zJ ∈ ↑I, rfl⟩ :=
+      obtain ⟨zJ, hzJ : (algebra_map R _ a)⁻¹ * algebra_map R _ zJ ∈ ↑I, rfl⟩ :=
         (mem_coe_ideal R⁰).mp hzJ',
       refine ⟨_, hzJ, _⟩,
       rw [← mul_assoc, mul_inv_cancel fa_ne_zero, one_mul] },
     { intros zI' hzI',
       obtain ⟨y, hy⟩ := ha zI' hzI',
-      rw [← algebra.smul_def, fractional_ideal.mk0_apply, coe_mk0, coe_coe, mem_coe_ideal],
+      rw [← algebra.smul_def, mem_coe_ideal],
       refine ⟨y, _, hy⟩,
-      show (algebra_map R K a)⁻¹ * algebra_map R K y ∈ (I : fractional_ideal R⁰ K),
+      show (algebra_map R _ a)⁻¹ * algebra_map R _ y ∈ (I : fractional_ideal R⁰ (fraction_ring R)),
       rwa [hy, algebra.smul_def, ← mul_assoc, inv_mul_cancel fa_ne_zero, one_mul] } }
 end
 
-end
-
-lemma class_group.mk_eq_one_iff
-  {I : (fractional_ideal R⁰ K)ˣ} :
-  quotient_group.mk' (to_principal_ideal R K).range I = 1 ↔
-    (I : submodule R K).is_principal :=
+lemma class_group.mk_eq_one_iff {I : (fractional_ideal R⁰ K)ˣ} :
+  class_group.mk I = 1 ↔ (I : submodule R K).is_principal :=
 begin
-  rw [← (quotient_group.mk' _).map_one, eq_comm, quotient_group.mk'_eq_mk'],
-  simp only [exists_prop, one_mul, exists_eq_right, to_principal_ideal_eq_iff,
-             monoid_hom.mem_range, coe_coe],
+  simp only [← (class_group.equiv K).injective.eq_iff, _root_.map_one, class_group.equiv_mk,
+      quotient_group.mk'_apply, quotient_group.eq_one_iff, monoid_hom.mem_range, units.ext_iff,
+      coe_to_principal_ideal, units.coe_map_equiv, fractional_ideal.canonical_equiv_self, coe_coe,
+      ring_equiv.coe_mul_equiv_refl, mul_equiv.refl_apply],
   refine ⟨λ ⟨x, hx⟩, ⟨⟨x, by rw [← hx, coe_span_singleton]⟩⟩, _⟩,
   unfreezingI { intros hI },
   obtain ⟨x, hx⟩ := @submodule.is_principal.principal _ _ _ _ _ _ hI,
@@ -200,43 +306,44 @@ begin
   simp [hx']
 end
 
-variables [is_domain R]
-
 lemma class_group.mk0_eq_one_iff [is_dedekind_domain R]
   {I : ideal R} (hI : I ∈ (ideal R)⁰) :
-  class_group.mk0 K ⟨I, hI⟩ = 1 ↔ I.is_principal :=
-class_group.mk_eq_one_iff.trans (coe_submodule_is_principal R K)
+  class_group.mk0 ⟨I, hI⟩ = 1 ↔ I.is_principal :=
+class_group.mk_eq_one_iff.trans (coe_submodule_is_principal R _)
 
 /-- The class group of principal ideal domain is finite (in fact a singleton).
-TODO: generalize to Dedekind domains -/
-instance [is_principal_ideal_ring R] :
-  fintype (class_group R K) :=
+
+See `class_group.fintype_of_admissible` for a finiteness proof that works for rings of integers
+of global fields.
+-/
+noncomputable instance [is_principal_ideal_ring R] :
+  fintype (class_group R) :=
 { elems := {1},
   complete :=
   begin
-    rintros ⟨I⟩,
-    rw [finset.mem_singleton],
-    exact class_group.mk_eq_one_iff.mpr (I : fractional_ideal R⁰ K).is_principal
+    refine class_group.induction (fraction_ring R) (λ I, _),
+    rw finset.mem_singleton,
+    exact class_group.mk_eq_one_iff.mpr (I : fractional_ideal R⁰ (fraction_ring R)).is_principal
   end }
 
 /-- The class number of a principal ideal domain is `1`. -/
 lemma card_class_group_eq_one [is_principal_ideal_ring R] :
-  fintype.card (class_group R K) = 1 :=
+  fintype.card (class_group R) = 1 :=
 begin
   rw fintype.card_eq_one_iff,
   use 1,
-  rintros ⟨I⟩,
-  exact class_group.mk_eq_one_iff.mpr (I : fractional_ideal R⁰ K).is_principal
+  refine class_group.induction (fraction_ring R) (λ I, _),
+  exact class_group.mk_eq_one_iff.mpr (I : fractional_ideal R⁰ (fraction_ring R)).is_principal
 end
 
 /-- The class number is `1` iff the ring of integers is a principal ideal domain. -/
-lemma card_class_group_eq_one_iff [is_dedekind_domain R] [fintype (class_group R K)] :
-  fintype.card (class_group R K) = 1 ↔ is_principal_ideal_ring R :=
+lemma card_class_group_eq_one_iff [is_dedekind_domain R] [fintype (class_group R)] :
+  fintype.card (class_group R) = 1 ↔ is_principal_ideal_ring R :=
 begin
-  split, swap, { introsI, convert card_class_group_eq_one, assumption, assumption, },
+  split, swap, { introsI, convert card_class_group_eq_one, assumption, },
   rw fintype.card_eq_one_iff,
   rintros ⟨I, hI⟩,
-  have eq_one : ∀ J : class_group R K, J = 1 := λ J, trans (hI J) (hI 1).symm,
+  have eq_one : ∀ J : class_group R, J = 1 := λ J, trans (hI J) (hI 1).symm,
   refine ⟨λ I, _⟩,
   by_cases hI : I = ⊥,
   { rw hI, exact bot_is_principal },

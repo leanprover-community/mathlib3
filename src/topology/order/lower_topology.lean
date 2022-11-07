@@ -210,17 +210,12 @@ upper_set.ext begin
     finish, },
 end
 
-lemma upper_closure_set_prod (F₁ : set α) (F₂ : set β) :
-  upper_closure (F₁ ×ˢ F₂)  =
-  (⊥ : upper_set α).prod (upper_closure F₂) ⊔ (upper_closure F₁).prod (⊥ : upper_set β) :=
-by rw [upper_closure_prod, upper_closure_prod_upper_closure]
-
 lemma prod_Ici (a : α) (b : β) : upper_set.Ici (a,b) =
     (⊥ : upper_set α).prod (upper_set.Ici b) ⊔ (upper_set.Ici a).prod (⊥ : upper_set β) :=
 by rw [← upper_set.Ici_prod_Ici, ← upper_closure_singleton, ← upper_closure_singleton,
     upper_closure_prod_upper_closure]
 
-lemma upper_closure_compl_prod_upper_closure_compl' (F₁ : set α) (F₂ : set β)
+lemma upper_closure_compl_prod_upper_closure_compl (F₁ : set α) (F₂ : set β)
   : ((upper_closure F₁).compl.prod (upper_closure F₂).compl)  =
   (upper_closure (univ ×ˢ F₂)).compl ⊓ (upper_closure (F₁ ×ˢ univ)).compl :=
 lower_set.ext begin
@@ -257,7 +252,7 @@ begin
       cases hV with F₁,
       rw [with_lower_topology.lower_basis, mem_set_of_eq] at hW,
       cases hW with F₂,
-      rw [← hV_h.2, ← hW_h.2, ← lower_set.coe_prod, upper_closure_compl_prod_upper_closure_compl',
+      rw [← hV_h.2, ← hW_h.2, ← lower_set.coe_prod, upper_closure_compl_prod_upper_closure_compl,
         lower_set.coe_inf],
       apply is_open.inter,
       { rw [upper_set.coe_compl, is_open_compl_iff, upper_closure_prod, upper_closure_univ,

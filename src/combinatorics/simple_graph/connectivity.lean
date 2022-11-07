@@ -1040,6 +1040,9 @@ to work with equality of graph homomorphisms is a necessary evil. -/
 lemma map_eq_of_eq {f : G →g G'} (f' : G →g G') (h : f = f') :
   p.map f = (p.map f').copy (by rw h) (by rw h) := by { subst_vars, refl }
 
+@[simp] lemma map_eq_nil_iff {p : G.walk u u} : p.map f = nil ↔ p = nil :=
+by cases p; simp
+
 @[simp] lemma length_map : (p.map f).length = p.length :=
 by induction p; simp [*]
 
@@ -1089,21 +1092,25 @@ lemma map_is_path_iff_of_injective (hinj : function.injective f) :
   (p.map f).is_path ↔ p.is_path :=
 ⟨is_path.of_map, map_is_path_of_injective hinj⟩
 
-lemma map_is_cycle_of_injective {u : V} {p : G.walk u u}
-  (hinj : function.injective f) (hp : p.is_cycle) : (p.map f).is_cycle :=
+lemma map_is_trail_iff_of_injective (hinj : function.injective f) :
+  (p.map f).is_trail ↔ p.is_trail :=
 begin
-  cases p,
-  { simp only [is_cycle.not_of_nil] at hp,
-    exact hp.elim, },
-  { simp only [cons_is_cycle_iff, map_cons, edges_map, list.mem_map, not_exists, not_and] at hp ⊢,
-    refine ⟨map_is_path_of_injective hinj hp.left, _⟩,
-    rintro ⟨a, b⟩ mem edge_eq,
-    change sym2.map f.to_fun ⟦⟨a, b⟩⟧ = ⟦(f.to_fun u, f.to_fun p_v)⟧ at edge_eq,
-    simp only [sym2.map_pair_eq, rel_hom.coe_fn_to_fun, quotient.eq, sym2.rel_iff] at edge_eq,
-    rcases edge_eq with (⟨au, bv⟩|⟨av, bu⟩),
-    { cases hinj au, cases hinj bv, exact hp.right mem, },
-    { cases hinj av, cases hinj bu, rw sym2.eq_swap at hp, apply hp.right mem, }, },
+  induction p with w u v w huv hvw ih,
+  { simp },
+  { rw [map_cons, cons_is_trail_iff, cons_is_trail_iff, edges_map],
+    change _ ∧ sym2.map f ⟦(u, v)⟧ ∉ _ ↔ _,
+    rw list.mem_map_of_injective (sym2.map.injective hinj),
+    exact and_congr_left' ih, },
 end
+
+alias map_is_trail_iff_of_injective ↔ _ map_is_trail_of_injective
+
+lemma map_is_cycle_iff_of_injective {p : G.walk u u} (hinj : function.injective f) :
+  (p.map f).is_cycle ↔ p.is_cycle :=
+by rw [is_cycle_def, is_cycle_def, map_is_trail_iff_of_injective hinj, ne.def, map_eq_nil_iff,
+       support_map, ← list.map_tail, list.nodup_map_iff hinj]
+
+alias map_is_cycle_iff_of_injective ↔ _ map_is_cycle_of_injective
 
 variables (p f)
 
@@ -1127,6 +1134,9 @@ end
 /-- The specialization of `simple_graph.walk.map` for mapping walks to supergraphs. -/
 @[reducible] def map_le {G G' : simple_graph V} (h : G ≤ G') {u v : V} (p : G.walk u v) :
   G'.walk u v := p.map (hom.map_spanning_subgraphs h)
+
+lemma is_trail.map_le {G G' : simple_graph V} (h : G ≤ G') {u v : V} {p : G.walk u v}
+  (pt : p.is_trail) : (p.map_le h).is_trail := map_is_trail_of_injective (function.injective_id) pt
 
 lemma is_path.map_le {G G' : simple_graph V} (h : G ≤ G') {u v : V} {p : G.walk u v}
   (pp : p.is_path) : (p.map_le h).is_path := map_is_path_of_injective (function.injective_id) pp

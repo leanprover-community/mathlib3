@@ -15,7 +15,6 @@ defining `modular_form` and `cusp_form`. We prove several instances for such spa
 that they form a module.
 -/
 
-
 open complex upper_half_plane
 
 open_locale upper_half_plane
@@ -36,7 +35,7 @@ open modular_forms
 
 variables (F : Type*) (Γ : subgroup SL(2, ℤ)) (k : ℤ)
 
-localized  "notation f `∣[`:73 k:0, A `]`  :72 := slash_action.map ℂ k A f" in slash_invariant_forms
+localized "notation f `∣[`:73 k:0, A `]` :72 := slash_action.map ℂ k A f" in slash_invariant_forms
 
 structure slash_invariant_form :=
 (to_fun : ℍ → ℂ)
@@ -90,8 +89,8 @@ end
 instance [slash_invariant_form_class F Γ k] : has_coe_t F (slash_invariant_form Γ k) :=
 ⟨λ f, { to_fun := f, slash_action_eq' := slash_action_eqn f }⟩
 
-@[simp] lemma slash_invariant_form_class.coe_coe  [slash_invariant_form_class F Γ k] (f : F) :
-  ((f :  (slash_invariant_form Γ k)) : ℍ → ℂ) = f := rfl
+@[simp] lemma slash_invariant_form_class.coe_coe [slash_invariant_form_class F Γ k] (f : F) :
+  ((f : (slash_invariant_form Γ k)) : ℍ → ℂ) = f := rfl
 
 instance has_add : has_add (slash_invariant_form Γ k) :=
 ⟨λ f g , ⟨ f + g, by {intro γ, convert slash_action.add_action k γ f g,
@@ -105,17 +104,17 @@ instance has_nsmul : has_smul ℕ (slash_invariant_form Γ k) :=
     slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f (c : ℂ),
     exact ((f.slash_action_eq') γ).symm}}⟩
 
-instance has_zsmul  : has_smul ℤ (slash_invariant_form Γ k)  :=
+instance has_zsmul : has_smul ℤ (slash_invariant_form Γ k) :=
 ⟨ λ c f, {to_fun := (c : ℂ) • f,
     slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f (c : ℂ),
     exact ((f.slash_action_eq') γ).symm}}⟩
 
-instance has_csmul  : has_smul ℂ (slash_invariant_form Γ k)  :=
+instance has_csmul : has_smul ℂ (slash_invariant_form Γ k) :=
 ⟨ λ c f, {to_fun := c • f,
     slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f c,
     exact ((f.slash_action_eq') γ).symm}}⟩
 
-instance has_neg : has_neg (slash_invariant_form Γ k)  :=
+instance has_neg : has_neg (slash_invariant_form Γ k) :=
 ⟨λ f, ⟨ -f,
   begin intro g,
   have := ((f.slash_action_eq') g),
@@ -125,9 +124,9 @@ instance has_neg : has_neg (slash_invariant_form Γ k)  :=
   convert this
   end⟩ ⟩
 
-instance has_sub  : has_sub (slash_invariant_form Γ k)  :=
+instance has_sub : has_sub (slash_invariant_form Γ k) :=
 ⟨λ f g, ⟨f - g, by {
-  intro γ, have :  (f : ℍ → ℂ) - g = f + (-g), by {funext, simp, ring,},
+  intro γ, have : (f : ℍ → ℂ) - g = f + (-g), by {funext, simp, ring,},
   rw [this, slash_action.add_action k γ],
   have h1 := (f.slash_action_eq') γ,
   have h2 := (g.slash_action_eq') γ,
@@ -153,7 +152,7 @@ instance : module ℂ (slash_invariant_form Γ k) :=
 coe_hom_injective.module ℂ (coe_hom) (λ _ _, rfl)
 
 instance : has_one (slash_invariant_form Γ 0) :=
-{one :=  {to_fun := 1, slash_action_eq' := by {intro A,
+{one := {to_fun := 1, slash_action_eq' := by {intro A,
   convert modular_forms.const_one_form_is_invar A}}}
 
 end slash_invariant_forms

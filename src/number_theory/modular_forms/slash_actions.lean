@@ -33,7 +33,7 @@ class slash_action (β G α δ γ : Type*) [group G] [has_zero (α → δ)]
 (one_mul : ∀ (k : β) (a : (α → δ)) , map k 1 a = a)
 (right_action : ∀ (k : β) (g h : G) (a : α → δ), map k h (map k g a) = map k (g * h) a )
 (smul_action : ∀ (k : β) (g : G) (a : α → δ) (z : γ), map k g (z • a) = z • (map k g a))
-(add_action : ∀ (k : β) (g : G) (a b :  α → δ), map k g (a + b) = map k g a + map k g b)
+(add_action : ∀ (k : β) (g : G) (a b : α → δ), map k g (a + b) = map k g a + map k g b)
 
 /-
 instance scaler_tower_slash_action {β G H α δ γ γ' : Type*} [group G] [has_zero (α → δ)]
@@ -127,17 +127,17 @@ instance subgroup_action (Γ : subgroup SL(2, ℤ)) : slash_action ℤ Γ ℍ �
 monoid_hom_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
   (monoid_hom.comp (matrix.special_linear_group.map (int.cast_ring_hom ℝ)) (subgroup.subtype Γ)))
 
-@[simp] lemma subgroup_slash (Γ : subgroup SL(2, ℤ)) (γ  : Γ):
+@[simp] lemma subgroup_slash (Γ : subgroup SL(2, ℤ)) (γ : Γ):
   (slash_action.map ℂ k γ f) = slash k (γ : GL(2,ℝ)⁺) f := rfl
 
 instance SL_action : slash_action ℤ SL(2, ℤ) ℍ ℂ ℂ :=
 monoid_hom_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
   (matrix.special_linear_group.map (int.cast_ring_hom ℝ)))
 
-@[simp] lemma SL_slash (γ  : SL(2, ℤ)):
+@[simp] lemma SL_slash (γ : SL(2, ℤ)):
   (slash_action.map ℂ k γ f) = slash k (γ : GL(2,ℝ)⁺) f := rfl
 
-local notation f `∣[`:73 k:0, A `]`  :72 := slash_action.map ℂ k A f
+local notation f `∣[`:73 k:0, A `]` :72 := slash_action.map ℂ k A f
 
 /-- The constant function 1 is invariant under any subgroup of `SL(2, ℤ)`. -/
 lemma const_one_form_is_invar (A : SL(2, ℤ)) : (1 : ℍ → ℂ) ∣[(0 : ℤ), A] = (1 : ℍ → ℂ) :=
@@ -156,7 +156,7 @@ end
  `γ ∈ Γ` we have `f(γ • z)= (c*z+d)^k f(z)` where `γ= ![![a, b], ![c, d]]`, and it acts on `ℍ`
   via Möbius transformations. -/
 lemma slash_action_eq'_iff (k : ℤ) (Γ : subgroup SL(2, ℤ)) (f : ℍ → ℂ) (γ : Γ) :
-  ∀ z : ℍ, f ∣[k, γ] z = f z ↔  f (γ • z) = ((↑ₘγ 1 0 : ℝ) * z +(↑ₘγ 1 1 : ℝ))^k * f z :=
+  ∀ z : ℍ, f ∣[k, γ] z = f z ↔ f (γ • z) = ((↑ₘγ 1 0 : ℝ) * z +(↑ₘγ 1 1 : ℝ))^k * f z :=
 begin
   intro z,
   simp only [subgroup_slash, modular_forms.slash],

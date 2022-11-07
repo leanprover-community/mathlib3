@@ -1465,14 +1465,14 @@ end
 lemma verts_to_subgraph (p : G.walk u v) : p.to_subgraph.verts = {w | w ∈ p.support} :=
 set.ext (λ w, p.mem_verts_to_subgraph)
 
-instance (p : G.walk u v) : nonempty p.to_subgraph.verts :=
-⟨⟨u, by simp only [mem_verts_to_subgraph, start_mem_support]⟩⟩
+lemma nonempty_verts (p : G.walk u v) : p.to_subgraph.verts.nonempty :=
+⟨u, by simp only [mem_verts_to_subgraph, start_mem_support]⟩
 
 @[simp] lemma mem_edges_to_subgraph (p : G.walk u v) {e : sym2 V} :
   e ∈ p.to_subgraph.edge_set ↔ e ∈ p.edges :=
 by induction p; simp [*]
 
-lemma edges_to_subgraph (p : G.walk u v) : p.to_subgraph.edge_set = {e | e ∈ p.edges} :=
+lemma edge_set_to_subgraph (p : G.walk u v) : p.to_subgraph.edge_set = {e | e ∈ p.edges} :=
 set.ext (λ e, p.mem_edges_to_subgraph)
 
 @[simp] lemma to_subgraph_append (p : G.walk u v) (q : G.walk v w) :
@@ -1502,18 +1502,16 @@ by induction p; simp [*, subgraph.map_sup]
 lemma finite_verts_to_subgraph (p : G.walk u v) : p.to_subgraph.verts.finite :=
 by { rw [verts_to_subgraph], exact p.support.finite_to_set }
 
-instance fintype_neighbor_set_to_subgraph [decidable_eq V] (p : G.walk u v) :
-  fintype (p.to_subgraph.neighbor_set w) :=
+lemma finite_neighbor_set_to_subgraph (p : G.walk u v) :
+  (p.to_subgraph.neighbor_set w).finite :=
 begin
   induction p,
   { rw [walk.to_subgraph, neighbor_set_singleton_subgraph],
-    apply_instance, },
+    apply set.to_finite, },
   { rw [walk.to_subgraph, subgraph.neighbor_set_sup],
-    apply' set.fintype_union,
-    { apply' set.fintype_subset _ (neighbor_set_subgraph_of_adj_subset p_h),
-      simp only [subgraph.mem_neighbor_set, subgraph_of_adj_adj, quotient.eq, sym2.rel_iff],
-      apply_instance, },
-    assumption, },
+    refine set.finite.union _ p_ih,
+    refine set.finite.subset _ (neighbor_set_subgraph_of_adj_subset p_h),
+    apply set.to_finite, },
 end
 
 end walk

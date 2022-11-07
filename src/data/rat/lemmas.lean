@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.rat.defs
-import data.int.cast
+import data.int.cast.lemmas
 import data.int.div
 import tactic.nth_rewrite
 

@@ -41,6 +41,7 @@ open nat finset list finsupp
 open_locale big_operators
 
 namespace nat
+variables {a b m n p : ℕ}
 
 /-- `n.factorization` is the finitely supported function `ℕ →₀ ℕ`
  mapping each prime factor of `n` to its multiplicity in `n`. -/
@@ -183,6 +184,10 @@ end
   (a * b).factorization = a.factorization + b.factorization :=
 by { ext p, simp only [add_apply, ←factors_count_eq,
                        perm_iff_count.mp (perm_factors_mul ha hb) p, count_append] }
+
+@[simp] lemma factorization_mul_self (a : ℕ) :
+  (a * a).factorization = a.factorization + a.factorization :=
+by cases eq_or_ne a 0; simp [h]
 
 lemma factorization_mul_support {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
   (a * b).factorization.support = a.factorization.support ∪ b.factorization.support :=
@@ -682,6 +687,63 @@ lemma factorization_mul_support_of_coprime {a b : ℕ} (hab : coprime a b) :
 begin
   rw factorization_mul_of_coprime hab,
   exact support_add_eq (factorization_disjoint_of_coprime hab),
+end
+
+/-! ### Factorization and `is_square` -/
+
+lemma is_square_iff_factorization_even {n : ℕ} : is_square n ↔ ∀ p, even (n.factorization p) :=
+begin
+  obtain rfl | hn := eq_or_ne n 0,
+  { simp },
+  refine ⟨_, λ hp, ⟨n.factorization.prod (λ p i, p ^ (i / 2)), _⟩⟩,
+  { rintro ⟨c, rfl⟩ p,
+    rw [mul_ne_zero_iff, and_self] at hn,
+    rw [nat.factorization_mul hn hn, finsupp.coe_add],
+    exact even_add_self _ },
+  { rw ←finsupp.prod_mul,
+    conv { to_lhs, rw ← nat.factorization_prod_pow_eq_self hn },
+    apply finsupp.prod_congr,
+    intros x hx,
+    rcases hp x with ⟨c, hc⟩,
+    rw [hc, ←two_mul],
+    simp only [mul_div_right, succ_pos'],
+    rw [←pow_add, ←two_mul] }
+end
+
+lemma _root_.is_square.of_coprime_of_mul_left (hmn : m.coprime n) :
+  is_square (m * n) → is_square m :=
+begin
+  rw [is_square_iff_factorization_even, is_square_iff_factorization_even],
+  intros hmn' p,
+  by_cases hp : p ∈ m.factors,
+  { rw ← factorization_eq_of_coprime_left hmn hp, exact hmn' p },
+  { rw [←nat.factors_count_eq, list.count_eq_zero_of_not_mem hp], simp },
+end
+
+lemma _root_.is_square.of_coprime_of_mul_right (hmn : m.coprime n) :
+  is_square (m * n) → is_square n :=
+by { rw mul_comm, exact is_square.of_coprime_of_mul_left hmn.symm }
+
+/-- The property of being a square is multiplicative. The ← direction holds in commutative monoids.
+See `is_square.mul`. Similarly, this lemma could be generalized to unique factorization domains, but
+we make use of `nat.factorization` in this proof. -/
+lemma is_square_mul (hmn : m.coprime n) : is_square (m * n) ↔ is_square m ∧ is_square n :=
+⟨λ h, ⟨h.of_coprime_of_mul_left hmn, h.of_coprime_of_mul_right hmn⟩, λ ⟨hm, hn⟩, hm.mul hn⟩
+
+lemma square_pow_iff : is_square (a ^ n) ↔ is_square a ∨ even n :=
+begin
+  split,
+  { rintro ⟨b, hb⟩,
+    rw [or_iff_not_imp_right, is_square_iff_factorization_even],
+    rintro hn p,
+    suffices : even ((n • a.factorization) p),
+    { simpa only [even_mul, finsupp.coe_smul, nsmul_eq_mul, pi.mul_apply, hn, nat.cast_apply,
+        cast_id, false_or] using this},
+    simp only [←nat.factorization_pow, hb, finsupp.coe_add, pi.add_apply, even_add_self,
+      factorization_mul_self] },
+  { rintro (ha | ha),
+    { exact ha.pow _ },
+    { exact ha.is_square_pow _ } }
 end
 
 /-! ### Induction principles involving factorizations -/

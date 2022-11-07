@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Benjamin Davidson
 -/
 import data.nat.parity
+import data.int.sqrt
 
 /-!
 # Parity of integers
@@ -202,6 +203,9 @@ by { rintro ⟨c, rfl⟩, rw add_comm, convert int.div_add_mod' _ _, simpa [int.
 
 lemma two_mul_div_two_of_odd (h : odd n) : 2 * (n / 2) = n - 1 :=
 eq_sub_of_add_eq (two_mul_div_two_add_one_of_odd h)
+
+instance : decidable_pred (is_square : ℤ → Prop) :=
+λ n, decidable_of_iff _ $ n.exists_mul_self.symm.trans $ exists_congr $ λ _, eq_comm
 
 -- Here are examples of how `parity_simps` can be used with `int`.
 

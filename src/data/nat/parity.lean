@@ -224,6 +224,9 @@ begin
   exact add_left_cancel (h₂.trans h₁.symm),
 end
 
+instance : decidable_pred (is_square : ℕ → Prop) :=
+λ n, decidable_of_iff _ $ n.exists_mul_self.symm.trans $ exists_congr $ λ _, eq_comm
+
 -- Here are examples of how `parity_simps` can be used with `nat`.
 
 example (m n : ℕ) (h : even m) : ¬ even (n + 3) ↔ even (m^2 + m + n) :=

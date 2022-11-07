@@ -256,6 +256,10 @@ by refine_struct { .. }; tactic.pi_instance_derive_field
 
 lemma nat_apply (n : ℕ) (a : α) : (n : Π a, π a) a = n := rfl
 
+alias nat_apply ← _root.nat.cast_apply
+
+attribute [simp] nat.cast_apply
+
 @[simp] lemma coe_nat (n : ℕ) : (n : Π a, π a) = λ _, n := rfl
 
 end pi

@@ -8,7 +8,7 @@ import analysis.calculus.series
 import analysis.convolution
 
 /-!
-# Smooth functions with arbitrary supports
+# Bump functions in finite-dimensional vector spaces
 
 Let `E` be a finite-dimensional real normed vector space. We show that any open set `s` in `E` is
 the support of a smooth function taking values in `[0, 1]`, in `is_open.exists_smooth_support_eq`.
@@ -448,27 +448,15 @@ begin
     exact this.le.trans hp.2.le },
   { exact (locally_integrable_const _).indicator measurable_set_closed_ball },
   { apply cont_diff_on.mul,
-    { refine (cont_diff_on_const.mul _).inv _,
-      { apply cont_diff_on.pow,
-        simp_rw [← real.norm_eq_abs],
-        apply @cont_diff_on.norm ℝ,
-        apply cont_diff_on_fst,
-        assume x hx,
-        apply ne_of_gt hx.1.1 },
-      { assume x hx,
-        apply ne_of_gt,
-        apply mul_pos,
-        apply u_int_pos,
-        apply pow_pos,
-        apply abs_pos_of_pos,
-        exact hx.1.1 } },
-    apply (u_smooth E).comp_cont_diff_on,
-    apply cont_diff_on.smul,
-    apply cont_diff_on_fst.inv,
-    assume x hx,
-    apply ne_of_gt hx.1.1,
-    apply_instance,
-    exact cont_diff_on_snd },
+    { refine (cont_diff_on_const.mul _).inv
+        (λ x hx, ne_of_gt (mul_pos (u_int_pos E) (pow_pos (abs_pos_of_pos hx.1.1) _))),
+      apply cont_diff_on.pow,
+      simp_rw [← real.norm_eq_abs],
+      apply @cont_diff_on.norm ℝ,
+      { exact cont_diff_on_fst },
+      { assume x hx, exact ne_of_gt hx.1.1 } },
+    { apply (u_smooth E).comp_cont_diff_on,
+      exact cont_diff_on.smul (cont_diff_on_fst.inv (λ x hx, ne_of_gt hx.1.1)) cont_diff_on_snd } },
 end
 
 lemma Y_support {D : ℝ} (Dpos : 0 < D) (D_lt_one : D < 1) :
@@ -500,9 +488,31 @@ begin
       { simp only [Y_neg, smul_neg] },
       { refl },
     end,
-    smooth := λ R hR, begin
-      simp only [hR, if_true],
-      exact (Y_smooth (IR _ hR)).comp (cont_diff_id.const_smul _),
+    smooth := begin
+      suffices : cont_diff_on ℝ ⊤
+        ((uncurry Y) ∘ (λ (p : ℝ × E), ((p.1 - 1) / (p.1 + 1), ((p.1 + 1)/2)⁻¹ • p.2)))
+        (Ioi 1 ×ˢ univ),
+      { apply this.congr,
+        rintros ⟨R, x⟩ ⟨(hR : 1 < R), hx⟩,
+        simp only [hR, uncurry_apply_pair, if_true, comp_app], },
+      apply (Y_smooth E).comp,
+      { apply cont_diff_on.prod,
+        { refine (cont_diff_on_fst.sub cont_diff_on_const).div
+            (cont_diff_on_fst.add cont_diff_on_const) _,
+          rintros ⟨R, x⟩ ⟨(hR : 1 < R), hx⟩,
+          apply ne_of_gt,
+          dsimp only,
+          linarith, },
+        { apply cont_diff_on.smul _ cont_diff_on_snd,
+          refine (cont_diff_on_fst.add cont_diff_on_const).div_const.inv _,
+          rintros ⟨R, x⟩ ⟨(hR : 1 < R), hx⟩,
+          apply ne_of_gt,
+          dsimp only,
+          linarith } },
+      { rintros ⟨R, x⟩ ⟨(hR : 1 < R), hx⟩,
+        have A : 0 < (R - 1) / (R + 1), by { apply div_pos; linarith },
+        have B :  (R - 1) / (R + 1) < 1, by { apply (div_lt_one _ ).2; linarith },
+        simp only [mem_preimage, prod_mk_mem_set_prod_eq, mem_Ioo, mem_univ, and_true, A, B] }
     end,
     eq_one := λ R hR x hx, begin
       have A : 0 < R + 1, by linarith,

@@ -3,8 +3,9 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Patrick Massot
 -/
+import data.set.intervals.unordered_interval
 import data.set.pointwise.basic
-import algebra.order.field
+import algebra.order.field.basic
 
 /-!
 # (Pre)images of intervals
@@ -15,8 +16,9 @@ lemmas about preimages and images of all intervals. We also prove a few lemmas a
 `x ↦ a * x`, `x ↦ x * a` and `x ↦ x⁻¹`.
 -/
 
-universe u
-open_locale pointwise
+open_locale interval pointwise
+
+variables {α : Type*}
 
 namespace set
 
@@ -30,7 +32,7 @@ The lemmas in this section state that addition maps intervals bijectively. The t
 TODO : move as much as possible in this file to the setting of this weaker typeclass.
 -/
 
-variables {α : Type u} [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] (a b d : α)
+variables [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] (a b d : α)
 
 lemma Icc_add_bij : bij_on (+d) (Icc a b) (Icc (a + d) (b + d)) :=
 begin
@@ -91,8 +93,7 @@ end
 end has_exists_add_of_le
 
 section ordered_add_comm_group
-
-variables {G : Type u} [ordered_add_comm_group G] (a b c : G)
+variables [ordered_add_comm_group α] (a b c : α)
 
 /-!
 ### Preimages under `x ↦ a + x`
@@ -356,147 +357,229 @@ end
 
 end ordered_add_comm_group
 
+section linear_ordered_add_comm_group
+variables [linear_ordered_add_comm_group α] (a b c d : α)
+
+@[simp] lemma preimage_const_add_interval : (λ x, a + x) ⁻¹' [b, c] = [b - a, c - a] :=
+by simp only [interval, preimage_const_add_Icc, min_sub_sub_right, max_sub_sub_right]
+
+@[simp] lemma preimage_add_const_interval : (λ x, x + a) ⁻¹' [b, c] = [b - a, c - a] :=
+by simpa only [add_comm] using preimage_const_add_interval a b c
+
+@[simp] lemma preimage_neg_interval : - [a, b] = [-a, -b] :=
+by simp only [interval, preimage_neg_Icc, min_neg_neg, max_neg_neg]
+
+@[simp] lemma preimage_sub_const_interval : (λ x, x - a) ⁻¹' [b, c] = [b + a, c + a] :=
+by simp [sub_eq_add_neg]
+
+@[simp] lemma preimage_const_sub_interval : (λ x, a - x) ⁻¹' [b, c] = [a - b, a - c] :=
+by { rw [interval, interval, preimage_const_sub_Icc],
+  simp only [sub_eq_add_neg, min_add_add_left, max_add_add_left, min_neg_neg, max_neg_neg], }
+
+@[simp] lemma image_const_add_interval : (λ x, a + x) '' [b, c] = [a + b, a + c] :=
+by simp [add_comm]
+
+@[simp] lemma image_add_const_interval : (λ x, x + a) '' [b, c] = [b + a, c + a] :=
+by simp
+
+@[simp] lemma image_const_sub_interval : (λ x, a - x) '' [b, c] = [a - b, a - c] :=
+by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x)]
+
+@[simp] lemma image_sub_const_interval : (λ x, x - a) '' [b, c] = [b - a, c - a] :=
+by simp [sub_eq_add_neg, add_comm]
+
+lemma image_neg_interval : has_neg.neg '' [a, b] = [-a, -b] := by simp
+
+variables {a b c d}
+
+/-- If `[c, d]` is a subinterval of `[a, b]`, then the distance between `c` and `d` is less than or
+equal to that of `a` and `b` -/
+lemma abs_sub_le_of_subinterval (h : [c, d] ⊆ [a, b]) : |d - c| ≤ |b - a| :=
+begin
+  rw [← max_sub_min_eq_abs, ← max_sub_min_eq_abs],
+  rw [interval_subset_interval_iff_le] at h,
+  exact sub_le_sub h.2 h.1,
+end
+
+/-- If `c ∈ [a, b]`, then the distance between `a` and `c` is less than or equal to
+that of `a` and `b`  -/
+lemma abs_sub_left_of_mem_interval (h : c ∈ [a, b]) : |c - a| ≤ |b - a| :=
+abs_sub_le_of_subinterval (interval_subset_interval_left h)
+
+/-- If `x ∈ [a, b]`, then the distance between `c` and `b` is less than or equal to
+that of `a` and `b`  -/
+lemma abs_sub_right_of_mem_interval (h : c ∈ [a, b]) : |b - c| ≤ |b - a| :=
+abs_sub_le_of_subinterval (interval_subset_interval_right h)
+
+end linear_ordered_add_comm_group
+
 /-!
 ### Multiplication and inverse in a field
 -/
 
 section linear_ordered_field
+variables [linear_ordered_field α] {a : α}
 
-variables {k : Type u} [linear_ordered_field k]
-
-@[simp] lemma preimage_mul_const_Iio (a : k) {c : k} (h : 0 < c) :
+@[simp] lemma preimage_mul_const_Iio (a : α) {c : α} (h : 0 < c) :
   (λ x, x * c) ⁻¹' (Iio a) = Iio (a / c) :=
 ext $ λ x, (lt_div_iff h).symm
 
-@[simp] lemma preimage_mul_const_Ioi (a : k) {c : k} (h : 0 < c) :
+@[simp] lemma preimage_mul_const_Ioi (a : α) {c : α} (h : 0 < c) :
   (λ x, x * c) ⁻¹' (Ioi a) = Ioi (a / c) :=
 ext $ λ x, (div_lt_iff h).symm
 
-@[simp] lemma preimage_mul_const_Iic (a : k) {c : k} (h : 0 < c) :
+@[simp] lemma preimage_mul_const_Iic (a : α) {c : α} (h : 0 < c) :
   (λ x, x * c) ⁻¹' (Iic a) = Iic (a / c) :=
 ext $ λ x, (le_div_iff h).symm
 
-@[simp] lemma preimage_mul_const_Ici (a : k) {c : k} (h : 0 < c) :
+@[simp] lemma preimage_mul_const_Ici (a : α) {c : α} (h : 0 < c) :
   (λ x, x * c) ⁻¹' (Ici a) = Ici (a / c) :=
 ext $ λ x, (div_le_iff h).symm
 
-@[simp] lemma preimage_mul_const_Ioo (a b : k) {c : k} (h : 0 < c) :
+@[simp] lemma preimage_mul_const_Ioo (a b : α) {c : α} (h : 0 < c) :
   (λ x, x * c) ⁻¹' (Ioo a b) = Ioo (a / c) (b / c) :=
 by simp [← Ioi_inter_Iio, h]
 
-@[simp] lemma preimage_mul_const_Ioc (a b : k) {c : k} (h : 0 < c) :
+@[simp] lemma preimage_mul_const_Ioc (a b : α) {c : α} (h : 0 < c) :
   (λ x, x * c) ⁻¹' (Ioc a b) = Ioc (a / c) (b / c) :=
 by simp [← Ioi_inter_Iic, h]
 
-@[simp] lemma preimage_mul_const_Ico (a b : k) {c : k} (h : 0 < c) :
+@[simp] lemma preimage_mul_const_Ico (a b : α) {c : α} (h : 0 < c) :
   (λ x, x * c) ⁻¹' (Ico a b) = Ico (a / c) (b / c) :=
 by simp [← Ici_inter_Iio, h]
 
-@[simp] lemma preimage_mul_const_Icc (a b : k) {c : k} (h : 0 < c) :
+@[simp] lemma preimage_mul_const_Icc (a b : α) {c : α} (h : 0 < c) :
   (λ x, x * c) ⁻¹' (Icc a b) = Icc (a / c) (b / c) :=
 by simp [← Ici_inter_Iic, h]
 
-@[simp] lemma preimage_mul_const_Iio_of_neg (a : k) {c : k} (h : c < 0) :
+@[simp] lemma preimage_mul_const_Iio_of_neg (a : α) {c : α} (h : c < 0) :
   (λ x, x * c) ⁻¹' (Iio a) = Ioi (a / c) :=
 ext $ λ x, (div_lt_iff_of_neg h).symm
 
-@[simp] lemma preimage_mul_const_Ioi_of_neg (a : k) {c : k} (h : c < 0) :
+@[simp] lemma preimage_mul_const_Ioi_of_neg (a : α) {c : α} (h : c < 0) :
   (λ x, x * c) ⁻¹' (Ioi a) = Iio (a / c) :=
 ext $ λ x, (lt_div_iff_of_neg h).symm
 
-@[simp] lemma preimage_mul_const_Iic_of_neg (a : k) {c : k} (h : c < 0) :
+@[simp] lemma preimage_mul_const_Iic_of_neg (a : α) {c : α} (h : c < 0) :
   (λ x, x * c) ⁻¹' (Iic a) = Ici (a / c) :=
 ext $ λ x, (div_le_iff_of_neg h).symm
 
-@[simp] lemma preimage_mul_const_Ici_of_neg (a : k) {c : k} (h : c < 0) :
+@[simp] lemma preimage_mul_const_Ici_of_neg (a : α) {c : α} (h : c < 0) :
   (λ x, x * c) ⁻¹' (Ici a) = Iic (a / c) :=
 ext $ λ x, (le_div_iff_of_neg h).symm
 
-@[simp] lemma preimage_mul_const_Ioo_of_neg (a b : k) {c : k} (h : c < 0) :
+@[simp] lemma preimage_mul_const_Ioo_of_neg (a b : α) {c : α} (h : c < 0) :
   (λ x, x * c) ⁻¹' (Ioo a b) = Ioo (b / c) (a / c) :=
 by simp [← Ioi_inter_Iio, h, inter_comm]
 
-@[simp] lemma preimage_mul_const_Ioc_of_neg (a b : k) {c : k} (h : c < 0) :
+@[simp] lemma preimage_mul_const_Ioc_of_neg (a b : α) {c : α} (h : c < 0) :
   (λ x, x * c) ⁻¹' (Ioc a b) = Ico (b / c) (a / c) :=
 by simp [← Ioi_inter_Iic, ← Ici_inter_Iio, h, inter_comm]
 
-@[simp] lemma preimage_mul_const_Ico_of_neg (a b : k) {c : k} (h : c < 0) :
+@[simp] lemma preimage_mul_const_Ico_of_neg (a b : α) {c : α} (h : c < 0) :
   (λ x, x * c) ⁻¹' (Ico a b) = Ioc (b / c) (a / c) :=
 by simp [← Ici_inter_Iio, ← Ioi_inter_Iic, h, inter_comm]
 
-@[simp] lemma preimage_mul_const_Icc_of_neg (a b : k) {c : k} (h : c < 0) :
+@[simp] lemma preimage_mul_const_Icc_of_neg (a b : α) {c : α} (h : c < 0) :
   (λ x, x * c) ⁻¹' (Icc a b) = Icc (b / c) (a / c) :=
 by simp [← Ici_inter_Iic, h, inter_comm]
 
-@[simp] lemma preimage_const_mul_Iio (a : k) {c : k} (h : 0 < c) :
+@[simp] lemma preimage_const_mul_Iio (a : α) {c : α} (h : 0 < c) :
   ((*) c) ⁻¹' (Iio a) = Iio (a / c) :=
 ext $ λ x, (lt_div_iff' h).symm
 
-@[simp] lemma preimage_const_mul_Ioi (a : k) {c : k} (h : 0 < c) :
+@[simp] lemma preimage_const_mul_Ioi (a : α) {c : α} (h : 0 < c) :
   ((*) c) ⁻¹' (Ioi a) = Ioi (a / c) :=
 ext $ λ x, (div_lt_iff' h).symm
 
-@[simp] lemma preimage_const_mul_Iic (a : k) {c : k} (h : 0 < c) :
+@[simp] lemma preimage_const_mul_Iic (a : α) {c : α} (h : 0 < c) :
   ((*) c) ⁻¹' (Iic a) = Iic (a / c) :=
 ext $ λ x, (le_div_iff' h).symm
 
-@[simp] lemma preimage_const_mul_Ici (a : k) {c : k} (h : 0 < c) :
+@[simp] lemma preimage_const_mul_Ici (a : α) {c : α} (h : 0 < c) :
   ((*) c) ⁻¹' (Ici a) = Ici (a / c) :=
 ext $ λ x, (div_le_iff' h).symm
 
-@[simp] lemma preimage_const_mul_Ioo (a b : k) {c : k} (h : 0 < c) :
+@[simp] lemma preimage_const_mul_Ioo (a b : α) {c : α} (h : 0 < c) :
   ((*) c) ⁻¹' (Ioo a b) = Ioo (a / c) (b / c) :=
 by simp [← Ioi_inter_Iio, h]
 
-@[simp] lemma preimage_const_mul_Ioc (a b : k) {c : k} (h : 0 < c) :
+@[simp] lemma preimage_const_mul_Ioc (a b : α) {c : α} (h : 0 < c) :
   ((*) c) ⁻¹' (Ioc a b) = Ioc (a / c) (b / c) :=
 by simp [← Ioi_inter_Iic, h]
 
-@[simp] lemma preimage_const_mul_Ico (a b : k) {c : k} (h : 0 < c) :
+@[simp] lemma preimage_const_mul_Ico (a b : α) {c : α} (h : 0 < c) :
   ((*) c) ⁻¹' (Ico a b) = Ico (a / c) (b / c) :=
 by simp [← Ici_inter_Iio, h]
 
-@[simp] lemma preimage_const_mul_Icc (a b : k) {c : k} (h : 0 < c) :
+@[simp] lemma preimage_const_mul_Icc (a b : α) {c : α} (h : 0 < c) :
   ((*) c) ⁻¹' (Icc a b) = Icc (a / c) (b / c) :=
 by simp [← Ici_inter_Iic, h]
 
-@[simp] lemma preimage_const_mul_Iio_of_neg (a : k) {c : k} (h : c < 0) :
+@[simp] lemma preimage_const_mul_Iio_of_neg (a : α) {c : α} (h : c < 0) :
   ((*) c) ⁻¹' (Iio a) = Ioi (a / c) :=
 by simpa only [mul_comm] using preimage_mul_const_Iio_of_neg a h
 
-@[simp] lemma preimage_const_mul_Ioi_of_neg (a : k) {c : k} (h : c < 0) :
+@[simp] lemma preimage_const_mul_Ioi_of_neg (a : α) {c : α} (h : c < 0) :
   ((*) c) ⁻¹' (Ioi a) = Iio (a / c) :=
 by simpa only [mul_comm] using preimage_mul_const_Ioi_of_neg a h
 
-@[simp] lemma preimage_const_mul_Iic_of_neg (a : k) {c : k} (h : c < 0) :
+@[simp] lemma preimage_const_mul_Iic_of_neg (a : α) {c : α} (h : c < 0) :
   ((*) c) ⁻¹' (Iic a) = Ici (a / c) :=
 by simpa only [mul_comm] using preimage_mul_const_Iic_of_neg a h
 
-@[simp] lemma preimage_const_mul_Ici_of_neg (a : k) {c : k} (h : c < 0) :
+@[simp] lemma preimage_const_mul_Ici_of_neg (a : α) {c : α} (h : c < 0) :
   ((*) c) ⁻¹' (Ici a) = Iic (a / c) :=
 by simpa only [mul_comm] using preimage_mul_const_Ici_of_neg a h
 
-@[simp] lemma preimage_const_mul_Ioo_of_neg (a b : k) {c : k} (h : c < 0) :
+@[simp] lemma preimage_const_mul_Ioo_of_neg (a b : α) {c : α} (h : c < 0) :
   ((*) c) ⁻¹' (Ioo a b) = Ioo (b / c) (a / c) :=
 by simpa only [mul_comm] using preimage_mul_const_Ioo_of_neg a b h
 
-@[simp] lemma preimage_const_mul_Ioc_of_neg (a b : k) {c : k} (h : c < 0) :
+@[simp] lemma preimage_const_mul_Ioc_of_neg (a b : α) {c : α} (h : c < 0) :
   ((*) c) ⁻¹' (Ioc a b) = Ico (b / c) (a / c) :=
 by simpa only [mul_comm] using preimage_mul_const_Ioc_of_neg a b h
 
-@[simp] lemma preimage_const_mul_Ico_of_neg (a b : k) {c : k} (h : c < 0) :
+@[simp] lemma preimage_const_mul_Ico_of_neg (a b : α) {c : α} (h : c < 0) :
   ((*) c) ⁻¹' (Ico a b) = Ioc (b / c) (a / c) :=
 by simpa only [mul_comm] using preimage_mul_const_Ico_of_neg a b h
 
-@[simp] lemma preimage_const_mul_Icc_of_neg (a b : k) {c : k} (h : c < 0) :
+@[simp] lemma preimage_const_mul_Icc_of_neg (a b : α) {c : α} (h : c < 0) :
   ((*) c) ⁻¹' (Icc a b) = Icc (b / c) (a / c) :=
 by simpa only [mul_comm] using preimage_mul_const_Icc_of_neg a b h
 
-lemma image_mul_right_Icc' (a b : k) {c : k} (h : 0 < c) :
+@[simp] lemma preimage_mul_const_interval (ha : a ≠ 0) (b c : α) :
+  (λ x, x * a) ⁻¹' [b, c] = [b / a, c / a] :=
+(lt_or_gt_of_ne ha).elim
+  (λ ha, by simp [interval, ha, ha.le, min_div_div_right_of_nonpos, max_div_div_right_of_nonpos])
+  (λ (ha : 0 < a), by simp [interval, ha, ha.le, min_div_div_right, max_div_div_right])
+
+@[simp] lemma preimage_const_mul_interval (ha : a ≠ 0) (b c : α) :
+  (λ x, a * x) ⁻¹' [b, c] = [b / a, c / a] :=
+by simp only [← preimage_mul_const_interval ha, mul_comm]
+
+@[simp] lemma preimage_div_const_interval (ha : a ≠ 0) (b c : α) :
+  (λ x, x / a) ⁻¹' [b, c] = [b * a, c * a] :=
+by simp only [div_eq_mul_inv, preimage_mul_const_interval (inv_ne_zero ha), inv_inv]
+
+@[simp] lemma image_mul_const_interval (a b c : α) : (λ x, x * a) '' [b, c] = [b * a, c * a] :=
+if ha : a = 0 then by simp [ha] else
+calc (λ x, x * a) '' [b, c] = (λ x, x * a⁻¹) ⁻¹' [b, c] :
+  (units.mk0 a ha).mul_right.image_eq_preimage _
+... = (λ x, x / a) ⁻¹' [b, c] : by simp only [div_eq_mul_inv]
+... = [b * a, c * a] : preimage_div_const_interval ha _ _
+
+@[simp] lemma image_const_mul_interval (a b c : α) : (λ x, a * x) '' [b, c] = [a * b, a * c] :=
+by simpa only [mul_comm] using image_mul_const_interval a b c
+
+@[simp] lemma image_div_const_interval (a b c : α) : (λ x, x / a) '' [b, c] = [b / a, c / a] :=
+by simp only [div_eq_mul_inv, image_mul_const_interval]
+
+lemma image_mul_right_Icc' (a b : α) {c : α} (h : 0 < c) :
   (λ x, x * c) '' Icc a b = Icc (a * c) (b * c) :=
 ((units.mk0 c h.ne').mul_right.image_eq_preimage _).trans (by simp [h, division_def])
 
-lemma image_mul_right_Icc {a b c : k} (hab : a ≤ b) (hc : 0 ≤ c) :
+lemma image_mul_right_Icc {a b c : α} (hab : a ≤ b) (hc : 0 ≤ c) :
   (λ x, x * c) '' Icc a b = Icc (a * c) (b * c) :=
 begin
   cases eq_or_lt_of_le hc,
@@ -505,31 +588,31 @@ begin
   exact image_mul_right_Icc' a b ‹0 < c›
 end
 
-lemma image_mul_left_Icc' {a : k} (h : 0 < a) (b c : k) :
+lemma image_mul_left_Icc' {a : α} (h : 0 < a) (b c : α) :
   ((*) a) '' Icc b c = Icc (a * b) (a * c) :=
 by { convert image_mul_right_Icc' b c h using 1; simp only [mul_comm _ a] }
 
-lemma image_mul_left_Icc {a b c : k} (ha : 0 ≤ a) (hbc : b ≤ c) :
+lemma image_mul_left_Icc {a b c : α} (ha : 0 ≤ a) (hbc : b ≤ c) :
   ((*) a) '' Icc b c = Icc (a * b) (a * c) :=
 by { convert image_mul_right_Icc hbc ha using 1; simp only [mul_comm _ a] }
 
-lemma image_mul_right_Ioo (a b : k) {c : k} (h : 0 < c) :
+lemma image_mul_right_Ioo (a b : α) {c : α} (h : 0 < c) :
   (λ x, x * c) '' Ioo a b = Ioo (a * c) (b * c) :=
 ((units.mk0 c h.ne').mul_right.image_eq_preimage _).trans (by simp [h, division_def])
 
-lemma image_mul_left_Ioo {a : k} (h : 0 < a) (b c : k) :
+lemma image_mul_left_Ioo {a : α} (h : 0 < a) (b c : α) :
   ((*) a) '' Ioo b c = Ioo (a * b) (a * c) :=
 by { convert image_mul_right_Ioo b c h using 1; simp only [mul_comm _ a] }
 
 /-- The (pre)image under `inv` of `Ioo 0 a` is `Ioi a⁻¹`. -/
-lemma inv_Ioo_0_left {a : k} (ha : 0 < a) : (Ioo 0 a)⁻¹ = Ioi a⁻¹ :=
+lemma inv_Ioo_0_left {a : α} (ha : 0 < a) : (Ioo 0 a)⁻¹ = Ioi a⁻¹ :=
 begin
   ext x,
   exact ⟨λ h, inv_inv x ▸ (inv_lt_inv ha h.1).2 h.2, λ h, ⟨inv_pos.2 $ (inv_pos.2 ha).trans h,
     inv_inv a ▸ (inv_lt_inv ((inv_pos.2 ha).trans h) (inv_pos.2 ha)).2 h⟩⟩,
 end
 
-lemma inv_Ioi {a : k} (ha : 0 < a) : (Ioi a)⁻¹ = Ioo 0 a⁻¹ :=
+lemma inv_Ioi {a : α} (ha : 0 < a) : (Ioi a)⁻¹ = Ioo 0 a⁻¹ :=
 by rw [inv_eq_iff_inv_eq, inv_Ioo_0_left (inv_pos.2 ha), inv_inv]
 
 lemma image_const_mul_Ioi_zero {k : Type*} [linear_ordered_field k]
@@ -542,7 +625,7 @@ by erw [(units.mk0 x hx.ne').mul_left.image_eq_preimage, preimage_const_mul_Ioi 
 ### Images under `x ↦ a * x + b`
 -/
 
-@[simp] lemma image_affine_Icc' {a : k} (h : 0 < a) (b c d : k) :
+@[simp] lemma image_affine_Icc' {a : α} (h : 0 < a) (b c d : α) :
   (λ x, a * x + b) '' Icc c d = Icc (a * c + b) (a * d + b) :=
 begin
   suffices : (λ x, x + b) '' ((λ x, a * x) '' Icc c d) = Icc (a * c + b) (a * d + b),

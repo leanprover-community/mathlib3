@@ -321,7 +321,7 @@ lemma tsum_measure_le_measure_univ {s : ι → set α} (hs : ∀ i, measurable_s
   ∑' i, μ (s i) ≤ μ (univ : set α) :=
 begin
   rw [ennreal.tsum_eq_supr_sum],
-  exact supr_le (λ s, sum_measure_le_measure_univ (λ i hi, hs i) (λ i hi j hj hij, H i j hij))
+  exact supr_le (λ s, sum_measure_le_measure_univ (λ i hi, hs i) (λ i hi j hj hij, H hij))
 end
 
 /-- Pigeonhole principle for measure spaces: if `∑' i, μ (s i) > μ univ`, then

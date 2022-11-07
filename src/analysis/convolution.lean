@@ -963,7 +963,7 @@ begin
       _root_.map_zero] },
   resetI,
   haveI : proper_space G, from finite_dimensional.proper_is_R_or_C 𝕜 G,
-  have := hcg.convolution_exists_right (L.precompR E'') hf hg x₀,
+  have := hcg.convolution_exists_right (L.precompR E'' : _) hf hg x₀,
   simp_rw [convolution_def, continuous_linear_map.integral_apply this],
   refl,
 end

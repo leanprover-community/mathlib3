@@ -10,6 +10,7 @@ import topology.algebra.ring
 import topology.algebra.star
 import ring_theory.subring.basic
 import group_theory.archimedean
+import algebra.order.group.bounds
 import algebra.periodic
 import order.filter.archimedean
 import topology.instances.int

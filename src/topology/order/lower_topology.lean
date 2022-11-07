@@ -175,29 +175,14 @@ universes v
 
 variable (β : Type v)
 
-lemma of_lower_prod : (@with_lower_topology.of_lower (α × β)) =
-  equiv.prod_congr (@with_lower_topology.of_lower α) (@with_lower_topology.of_lower β) :=
-begin
-  ext,
-  { simp only [equiv.prod_congr_apply, prod_map], exact rfl, },
-  { simp only [equiv.prod_congr_apply, prod_map], exact rfl, },
-end
-
-@[simp] lemma to_lower_prod_to_lower_of_lower :
-  (with_lower_topology.to_lower.prod_congr with_lower_topology.to_lower)
-  ∘ with_lower_topology.of_lower = @id (α × β) :=
-begin
-  ext,
-  { simp only [function.comp_app, equiv.prod_congr_apply, prod_map, id.def], exact rfl, },
-  { simp only [function.comp_app, equiv.prod_congr_apply, prod_map, id.def], exact rfl, },
-end
-
-@[simp] lemma of_lower_to_lower_prod_to_lower' : (with_lower_topology.of_lower.trans
+@[simp] lemma of_lower_to_lower_prod_to_lower : (with_lower_topology.of_lower.trans
   (with_lower_topology.to_lower.prod_congr with_lower_topology.to_lower)) = @equiv.refl (α × β) :=
 begin
   ext,
-  { simp only [equiv.coe_trans, to_lower_prod_to_lower_of_lower, equiv.coe_refl], },
-  { simp only [equiv.coe_trans, to_lower_prod_to_lower_of_lower, equiv.coe_refl], }
+  { rw [equiv.coe_trans, function.comp_app, equiv.prod_congr_apply, prod_map, equiv.coe_refl,
+      id.def], exact rfl, },
+  { rw [equiv.coe_trans, function.comp_app, equiv.prod_congr_apply, prod_map, equiv.coe_refl,
+      id.def], exact rfl, }
 end
 
 -- Why doesn't equiv.refl_symm work?
@@ -316,13 +301,13 @@ def lower_topology_prod_hom [order_bot α] [order_bot β] :
   with_lower_topology (α × β) ≃ₜ ((with_lower_topology α) × (with_lower_topology β)) :=
 { continuous_to_fun :=
   begin
-    simp only [equiv.to_fun_as_coe, equiv.coe_trans, to_lower_prod_to_lower_of_lower],
+    simp only [of_lower_to_lower_prod_to_lower, equiv.to_fun_as_coe, equiv.coe_refl],
     convert continuous_id,
     rw lower_topology_prod,
   end,
   continuous_inv_fun :=
   begin
-    simp only [of_lower_to_lower_prod_to_lower', equiv.inv_fun_as_coe, refl_symm, equiv.coe_refl],
+    simp only [of_lower_to_lower_prod_to_lower, equiv.inv_fun_as_coe, refl_symm, equiv.coe_refl],
     convert continuous_id,
     rw lower_topology_prod,
   end,
@@ -433,19 +418,3 @@ begin
 end
 
 end complete_lattice
-
-section prime
-
-variables [has_inf α] [has_le α]
-
-/--
-An element `a` is said to be prime if whenever `a ≤ b ⊓ c` at least one of `a ≤ b`, `a ≤ c` holds.
--/
-def is_prime (a : α) : Prop := ∀ b c, a ≤ b ⊓ c → a ≤ b ∨ a ≤ c
-
-/-
-The subtype of prime elements of a partial order with inf
--/
--- def prime (β : Type u) [has_inf β] [has_le β] := {a : β // is_prime a}
-
-end prime

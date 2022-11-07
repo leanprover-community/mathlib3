@@ -32,11 +32,13 @@ instance : is_well_order ℕ∞ (<) := { }
 
 variables {m n : ℕ∞}
 
-protected lemma coe_zero : ((0 : ℕ) : ℕ∞) = 0 := rfl
-protected lemma coe_one : ((1 : ℕ) : ℕ∞) = 1 := rfl
-protected lemma coe_add (m n : ℕ) : ↑(m + n) = (m + n : ℕ∞) := rfl
-protected lemma coe_sub (m n : ℕ) : ↑(m - n) = (m - n : ℕ∞) := rfl
-protected lemma coe_mul (m n : ℕ) : ↑(m * n) = (m * n : ℕ∞) := with_top.coe_mul
+-- The following lemmas can be proven by `simp` lemmas for `coe_is_ring_hom`
+-- but are worth keeping since they are eligible for `dsimp`.
+@[simp, norm_cast] protected lemma coe_zero : ((0 : ℕ) : ℕ∞) = 0 := rfl
+@[simp, norm_cast] protected lemma coe_one : ((1 : ℕ) : ℕ∞) = 1 := rfl
+@[simp, norm_cast] protected lemma coe_add (m n : ℕ) : ↑(m + n) = (m + n : ℕ∞) := rfl
+@[simp, norm_cast] protected lemma coe_sub (m n : ℕ) : ↑(m - n) = (m - n : ℕ∞) := rfl
+@[simp, norm_cast] protected lemma coe_mul (m n : ℕ) : ↑(m * n) = (m * n : ℕ∞) := with_top.coe_mul
 
 instance : coe_is_ring_hom ℕ ℕ∞ :=
 { coe_one := rfl,

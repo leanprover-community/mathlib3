@@ -214,9 +214,13 @@ instance : coe_is_linear_map R p M :=
 variables {p}
 @[simp, norm_cast] lemma coe_eq_zero {x : p} : (x : M) = 0 ↔ x = 0 :=
 (set_like.coe_eq_coe : (x : M) = (0 : p) ↔ x = 0)
-@[norm_cast] protected lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl
-@[norm_cast] protected lemma coe_zero : ((0 : p) : M) = 0 := rfl
-@[norm_cast] protected lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
+
+-- The following lemmas can be proven by `simp` lemmas for `coe_is_add_monoid_hom` or
+-- `coe_is_linear_map` but are worthwile to keep since they are eligible for `dsimp`.
+@[simp, norm_cast] protected lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl
+@[simp, norm_cast] protected lemma coe_zero : ((0 : p) : M) = 0 := rfl
+@[simp, norm_cast] protected lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
+
 @[simp, norm_cast] lemma coe_smul_of_tower [has_smul S R] [has_smul S M] [is_scalar_tower S R M]
   (r : S) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
 @[simp, norm_cast] lemma coe_mk (x : M) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : M) = x := rfl

@@ -220,36 +220,23 @@ lemma prod_Ici (a : α) (b : β) : upper_set.Ici (a,b) =
 by rw [← upper_set.Ici_prod_Ici, ← upper_closure_singleton, ← upper_closure_singleton,
     upper_closure_prod_upper_closure]
 
-lemma upper_closure_compl_prod_upper_closure_compl (F₁ : set α) (F₂ : set β) :
-  ((upper_closure F₁).compl.prod (upper_closure F₂).compl) =
-  (((⊥ : upper_set α).prod (upper_closure F₂)).compl ⊓
-  ((upper_closure F₁).prod (⊥ : upper_set β)).compl) :=
-lower_set.ext begin
-  rw subset_antisymm_iff,
-  split,
-  { rintros x h,
-    finish, },
-  { rintros x h,
-    simp,
-    simp at h,
-    rw and_comm,
-    exact h, }
-end
-
 lemma upper_closure_compl_prod_upper_closure_compl' (F₁ : set α) (F₂ : set β)
   : ((upper_closure F₁).compl.prod (upper_closure F₂).compl)  =
   (upper_closure (univ ×ˢ F₂)).compl ⊓ (upper_closure (F₁ ×ˢ univ)).compl :=
-begin
-  rw upper_closure_compl_prod_upper_closure_compl,
-  simp only [upper_closure_prod, upper_closure_univ],
+lower_set.ext begin
+  rw subset_antisymm_iff,
+  split,
+  { rintros x h, finish, },
+  { rintros x h,
+    simp only [lower_set.coe_prod, upper_set.coe_compl, mem_prod, mem_compl_iff, set_like.mem_coe,
+      mem_upper_closure, exists_prop, not_exists, not_and],
+    simp only [upper_closure_prod, upper_closure_univ, lower_set.coe_inf, upper_set.coe_compl,
+    upper_set.coe_prod, upper_set.coe_bot, mem_inter_iff, mem_compl_iff, mem_prod, mem_univ,
+    set_like.mem_coe, mem_upper_closure, exists_prop, true_and, not_exists, not_and, and_true] at h,
+    rw and_comm,
+    exact h,
+   },
 end
-
-lemma upper_closure_compl_prod_upper_closure_compl'' {α : Type u} {β : Type v}
-  [complete_lattice α] [complete_lattice β] (F₁ : set α) (F₂ : set β) :
-  ((upper_closure F₁).compl.prod (upper_closure F₂).compl)  =
-  (upper_closure ({(⊥ : α)} ×ˢ F₂)).compl ⊓ (upper_closure (F₁ ×ˢ {(⊥ : β)})).compl :=
-by rw [upper_closure_compl_prod_upper_closure_compl, upper_closure_prod, upper_closure_prod,
-    upper_closure_singleton, upper_closure_singleton, upper_set.Ici_bot, upper_set.Ici_bot]
 
 lemma lower_topology_prod  [order_bot α] [order_bot β] :
   with_lower_topology.topological_space (α × β) =
@@ -268,12 +255,12 @@ begin
       rw ← hUVW,
       rw [with_lower_topology.lower_basis, mem_set_of_eq] at hV,
       cases hV with F₁,
-      rw [with_lower_topology.lower_basis, mem_set_of_eq]  at hW,
+      rw [with_lower_topology.lower_basis, mem_set_of_eq] at hW,
       cases hW with F₂,
       rw [← hV_h.2, ← hW_h.2, ← lower_set.coe_prod, upper_closure_compl_prod_upper_closure_compl',
         lower_set.coe_inf],
       apply is_open.inter,
-      { rw  [upper_set.coe_compl, is_open_compl_iff, upper_closure_prod, upper_closure_univ,
+      { rw [upper_set.coe_compl, is_open_compl_iff, upper_closure_prod, upper_closure_univ,
           ← upper_set.Ici_bot, ← upper_closure_singleton, ← upper_closure_prod],
         apply with_lower_topology.is_closed_upper_closure,
         apply set.finite.prod (finite_singleton ⊥) hW_h.1, },

@@ -14,8 +14,8 @@ of linear maps on such spaces.
 
 ## Main definitions
 
-Assume `V` is a vector space over a field `K`. There are (at least) three equivalent definitions of
-finite-dimensionality of `V`:
+Assume `V` is a vector space over a division ring `K`. There are (at least) three equivalent
+definitions of finite-dimensionality of `V`:
 
 - it admits a finite basis.
 - it is finitely generated.
@@ -1671,20 +1671,15 @@ begin
   simp *,
 end
 
-lemma cardinal.exists_nat_eq_of_le_nat {c : cardinal} {n : ℕ}
-  (h : c ≤ n) : ∃ m, m ≤ n ∧ c = m :=
-let he := cast_to_nat_of_lt_aleph_0 (h.trans_lt $ nat_lt_aleph_0 n) in
-⟨c.to_nat, nat_cast_le.1 (he.trans_le h), he.symm⟩
-
 lemma subalgebra.eq_bot_of_dim_le_one {S : subalgebra F E} (h : module.rank F S ≤ 1) : S = ⊥ :=
 begin
   nontriviality E,
   obtain ⟨m, hm, he⟩ := cardinal.exists_nat_eq_of_le_nat (h.trans_eq nat.cast_one.symm),
   haveI := finite_dimensional_of_dim_eq_nat he,
-  rw [← not_bot_lt_iff, ← subalgebra.to_submodule_lt_to_submodule_iff],
+  rw [← not_bot_lt_iff, ← subalgebra.to_submodule_order_embedding.lt_iff_lt],
   haveI := (S.to_submodule_equiv).symm.finite_dimensional,
   refine λ hl, (submodule.finrank_lt_finrank_of_lt hl).not_le (nat_cast_le.1 _),
-  iterate 2 { rw [subalgebra.finrank_to_submodule, finrank_eq_dim] },
+  iterate 2 { erw [subalgebra.finrank_to_submodule, finrank_eq_dim] },
   exact h.trans_eq subalgebra.dim_bot.symm,
 end
 

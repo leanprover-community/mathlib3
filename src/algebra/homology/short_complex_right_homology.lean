@@ -967,6 +967,16 @@ def of_epi_of_is_iso_of_mono (φ : S₁ ⟶ S₂) (h : right_homology_data S₁)
   commg' := by simp only [right_homology_data.of_epi_of_is_iso_of_mono_g', id_comp],
   commι := by simp only [comp_id, right_homology_data.of_epi_of_is_iso_of_mono_ι, id_comp], }
 
+@[simps]
+def of_epi_of_is_iso_of_mono' (φ : S₁ ⟶ S₂) (h : right_homology_data S₂)
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] :
+    right_homology_map_data φ (right_homology_data.of_epi_of_is_iso_of_mono' φ h) h :=
+{ φQ := 𝟙 _,
+  φH := 𝟙 _,
+  commp := by { dsimp, simp only [comp_id], },
+  commg' := by { simp only [right_homology_data.of_epi_of_is_iso_of_mono'_g'_τ₃, id_comp], },
+  commι := by { dsimp, simp only [comp_id, id_comp], }, }
+
 end right_homology_map_data
 
 instance (φ : S₁ ⟶ S₂) (h₁ : S₁.right_homology_data) (h₂ : S₂.right_homology_data)

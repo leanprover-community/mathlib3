@@ -1,0 +1,121 @@
+import algebra.homology.short_complex_homology
+
+open category_theory
+
+variables {C : Type*} [category C]
+
+namespace category_theory.limits
+
+lemma is_zero.op {X : C} (h : is_zero X) : is_zero (opposite.op X) :=
+⟨λ Y, ⟨⟨⟨(h.from (opposite.unop Y)).op⟩, λ f, quiver.hom.unop_inj (h.eq_of_tgt _ _)⟩⟩,
+  λ Y, ⟨⟨⟨(h.to (opposite.unop Y)).op⟩, λ f, quiver.hom.unop_inj (h.eq_of_src _ _)⟩⟩⟩
+
+lemma is_zero.unop {X : Cᵒᵖ} (h : is_zero X) : is_zero (opposite.unop X) :=
+⟨λ Y, ⟨⟨⟨(h.from (opposite.op Y)).unop⟩, λ f, quiver.hom.op_inj (h.eq_of_tgt _ _)⟩⟩,
+  λ Y, ⟨⟨⟨(h.to (opposite.op Y)).unop⟩, λ f, quiver.hom.op_inj (h.eq_of_src _ _)⟩⟩⟩
+
+end category_theory.limits
+
+open category_theory category_theory.category category_theory.limits
+
+variable [has_zero_morphisms C]
+
+namespace short_complex
+
+variables (S : short_complex C) {S₁ S₂ : short_complex C}
+
+def exact :=
+(∃ (h : S.homology_data), is_zero h.left.H)
+
+variable {S}
+
+lemma homology_data.exact_iff (h : S.homology_data) :
+  S.exact ↔ is_zero h.left.H :=
+begin
+  split,
+  { rintro ⟨h₁, z⟩,
+    exact is_zero.of_iso z (homology_map_iso' (iso.refl S) h h₁), },
+  { intro z,
+    exact ⟨h, z⟩, },
+end
+
+lemma homology_data.exact_iff' (h : S.homology_data) :
+  S.exact ↔ is_zero h.right.H :=
+begin
+  suffices : is_zero h.left.H ↔ is_zero h.right.H,
+  { exact h.exact_iff.trans this, },
+  exact ⟨λ z, is_zero.of_iso z h.iso.symm,
+    λ z, is_zero.of_iso z h.iso⟩,
+end
+
+variable (S)
+
+lemma exact_iff_is_zero_homology [S.has_homology] :
+  S.exact ↔ is_zero S.homology :=
+by apply homology_data.exact_iff
+
+variable {S}
+
+lemma left_homology_data.exact_iff (h : S.left_homology_data) [S.has_homology] :
+  S.exact ↔ is_zero h.H :=
+S.exact_iff_is_zero_homology.trans
+  ⟨λ z, is_zero.of_iso z h.homology_iso.symm, λ z, is_zero.of_iso z h.homology_iso⟩
+
+lemma right_homology_data.exact_iff (h : S.right_homology_data) [S.has_homology] :
+  S.exact ↔ is_zero h.H :=
+S.exact_iff_is_zero_homology.trans
+  ⟨λ z, is_zero.of_iso z h.homology_iso.symm, λ z, is_zero.of_iso z h.homology_iso⟩
+
+variable (S)
+
+lemma exact_iff_is_zero_left_homology [S.has_homology] :
+  S.exact ↔ is_zero S.left_homology :=
+by apply left_homology_data.exact_iff
+
+lemma exact_iff_is_zero_right_homology [S.has_homology] :
+  S.exact ↔ is_zero S.right_homology :=
+by apply right_homology_data.exact_iff
+
+lemma exact_of_is_zero_X₂ (h : is_zero S.X₂) : S.exact :=
+begin
+  rw (homology_data.of_zeros S (is_zero.eq_of_tgt h _ _) (is_zero.eq_of_src h _ _)).exact_iff,
+  exact h,
+end
+
+lemma exact_iff_of_iso (e : S₁ ≅ S₂) : S₁.exact ↔ S₂.exact :=
+begin
+  suffices : ∀ ⦃S₁ S₂ : short_complex C⦄ (e : S₁ ≅ S₂), S₁.exact → S₂.exact,
+  { exact ⟨this e, this e.symm⟩, },
+  rintros S₁ S₂ e h,
+  haveI := has_homology.mk' h.some,
+  haveI := has_homology_of_iso e,
+  rw exact_iff_is_zero_homology at ⊢ h,
+  exact is_zero.of_iso h (homology_map_iso e.symm),
+end
+
+lemma exact_iff_of_epi_of_is_iso_of_mono (φ : S₁ ⟶ S₂) [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] :
+  S₁.exact ↔ S₂.exact :=
+begin
+  split,
+  { rintro ⟨h₁, z₁⟩,
+    exact ⟨homology_data.of_epi_of_is_iso_of_mono φ h₁, z₁⟩, },
+  { rintro ⟨h₁, z₁⟩,
+    exact ⟨homology_data.of_epi_of_is_iso_of_mono' φ h₁, z₁⟩, },
+end
+
+lemma exact_iff_op : S.exact ↔ S.op.exact :=
+begin
+  split,
+  { rintro ⟨h, z⟩,
+    exact ⟨h.op, (is_zero.of_iso z h.iso.symm).op⟩, },
+  { rintro ⟨h, z⟩,
+    refine ⟨h.unop, (is_zero.of_iso z h.iso.symm).unop⟩, },
+end
+
+lemma exact_iff_unop (S : short_complex Cᵒᵖ) : S.exact ↔ S.unop.exact :=
+begin
+  rw S.unop.exact_iff_op,
+  exact exact_iff_of_iso S.unop_op.symm,
+end
+
+end short_complex

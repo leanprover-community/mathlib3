@@ -93,6 +93,26 @@ def of_zeros (hf : S.f = 0) (hg : S.g = 0) : S.homology_data :=
   iso := iso.refl _,
   comm := by tidy, }
 
+@[simps]
+def of_epi_of_is_iso_of_mono (φ : S₁ ⟶ S₂) (h : homology_data S₁)
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] : homology_data S₂ :=
+{ left := left_homology_data.of_epi_of_is_iso_of_mono φ h.left,
+  right := right_homology_data.of_epi_of_is_iso_of_mono φ h.right,
+  iso := h.iso,
+  comm := by simp, }
+
+@[simps]
+def of_epi_of_is_iso_of_mono' (φ : S₁ ⟶ S₂) (h : homology_data S₂)
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] : homology_data S₁ :=
+{ left := left_homology_data.of_epi_of_is_iso_of_mono' φ h.left,
+  right := right_homology_data.of_epi_of_is_iso_of_mono' φ h.right,
+  iso := h.iso,
+  comm := by simp, }
+
+@[simp]
+def of_iso (e : S₁ ≅ S₂) (h₁ : homology_data S₁) : homology_data S₂ :=
+h₁.of_epi_of_is_iso_of_mono e.hom
+
 variable {S}
 
 @[simps]
@@ -153,6 +173,18 @@ has_homology.mk' (homology_data.of_has_kernel _ rfl)
 instance has_homology_of_zeros (X Y Z : C) :
   (short_complex.mk (0 : X ⟶ Y) (0 : Y ⟶ Z) zero_comp).has_homology :=
 has_homology.mk' (homology_data.of_zeros _ rfl rfl)
+
+lemma has_homology_of_epi_of_is_iso_of_mono (φ : S₁ ⟶ S₂) [has_homology S₁]
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] : has_homology S₂ :=
+has_homology.mk' (homology_data.of_epi_of_is_iso_of_mono φ S₁.some_homology_data)
+
+lemma has_homology_of_epi_of_is_iso_of_mono' (φ : S₁ ⟶ S₂) [has_homology S₂]
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] : has_homology S₁ :=
+has_homology.mk' (homology_data.of_epi_of_is_iso_of_mono' φ S₂.some_homology_data)
+
+lemma has_homology_of_iso (e : S₁ ≅ S₂) [has_homology S₁] :
+  has_homology S₂ :=
+has_homology.mk' (homology_data.of_iso e S₁.some_homology_data)
 
 namespace homology_map_data
 
@@ -409,6 +441,22 @@ end
 
 end homology_data
 
+@[simps]
+def homology_map_data.of_epi_of_is_iso_of_mono (φ : S₁ ⟶ S₂) (h : homology_data S₁)
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] :
+    homology_map_data φ h (homology_data.of_epi_of_is_iso_of_mono φ h) :=
+{ left := left_homology_map_data.of_epi_of_is_iso_of_mono φ h.left,
+  right := right_homology_map_data.of_epi_of_is_iso_of_mono φ h.right,
+  comm := by simp, }
+
+@[simps]
+def homology_map_data.of_epi_of_is_iso_of_mono' (φ : S₁ ⟶ S₂) (h : homology_data S₂)
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] :
+    homology_map_data φ (homology_data.of_epi_of_is_iso_of_mono' φ h) h :=
+{ left := left_homology_map_data.of_epi_of_is_iso_of_mono' φ h.left,
+  right := right_homology_map_data.of_epi_of_is_iso_of_mono' φ h.right,
+  comm := by tidy, }
+
 variable (S)
 
 def left_homology_iso_homology [S.has_homology] :
@@ -538,6 +586,18 @@ begin
   nth_rewrite 1 ← assoc,
   simpa only [S.left_right_homology_comparison_fac]
     using S.comp_left_right_homology_comparison_comp,
+end
+
+lemma is_iso_homology_map'_of_epi_of_is_iso_of_mono (φ : S₁ ⟶ S₂)
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] (h₁ : S₁.homology_data) (h₂ : S₂.homology_data) :
+  is_iso (homology_map' φ h₁ h₂) :=
+begin
+  have eq := homology_map'_comp φ (𝟙 S₂) h₁ (homology_data.of_epi_of_is_iso_of_mono φ h₁) h₂,
+  simp only [comp_id, (homology_map_data.of_epi_of_is_iso_of_mono φ h₁).homology_map'_eq,
+    homology_map_data.of_epi_of_is_iso_of_mono_left,
+    left_homology_map_data.of_epi_of_is_iso_of_mono_φH, id_comp] at eq,
+  rw eq,
+  apply_instance,
 end
 
 end

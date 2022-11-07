@@ -1679,7 +1679,7 @@ begin
   rw [← not_bot_lt_iff, ← subalgebra.to_submodule.lt_iff_lt],
   haveI := (S.to_submodule_equiv).symm.finite_dimensional,
   refine λ hl, (submodule.finrank_lt_finrank_of_lt hl).not_le (nat_cast_le.1 _),
-  iterate 2 { erw [subalgebra.finrank_to_submodule, finrank_eq_dim] },
+  iterate 2 { rw [subalgebra.finrank_to_submodule, finrank_eq_dim] },
   exact h.trans_eq subalgebra.dim_bot.symm,
 end
 

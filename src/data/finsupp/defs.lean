@@ -219,7 +219,7 @@ lemma single_apply_left {f : α → β} (hf : function.injective f)
   single (f x) y (f z) = single x y z :=
 by simp only [single_apply, hf.eq_iff]
 
-lemma single_eq_indicator : ⇑(single a b) = set.indicator {a} (λ _, b) :=
+lemma single_eq_set_indicator : ⇑(single a b) = set.indicator {a} (λ _, b) :=
 by { ext, simp [single_apply, set.indicator, @eq_comm _ a] }
 
 @[simp] lemma single_eq_same : (single a b : α →₀ M) a = b :=
@@ -229,7 +229,7 @@ if_pos rfl
 if_neg h
 
 lemma single_eq_update [decidable_eq α] (a : α) (b : M) : ⇑(single a b) = function.update 0 a b :=
-by rw [single_eq_indicator, ← set.piecewise_eq_indicator, set.piecewise_singleton]
+by rw [single_eq_set_indicator, ← set.piecewise_eq_indicator, set.piecewise_singleton]
 
 lemma single_eq_pi_single [decidable_eq α] (a : α) (b : M) : ⇑(single a b) = pi.single a b :=
 single_eq_update a b
@@ -268,7 +268,7 @@ have (single a b₁ : α →₀ M) a = (single a b₂ : α →₀ M) a, by rw eq
 by rwa [single_eq_same, single_eq_same] at this
 
 lemma single_apply_eq_zero {a x : α} {b : M} : single a b x = 0 ↔ (x = a → b = 0) :=
-by simp [single_eq_indicator]
+by simp [single_eq_set_indicator]
 
 lemma single_apply_ne_zero {a x : α} {b : M} : single a b x ≠ 0 ↔ (x = a ∧ b ≠ 0) :=
 by simp [single_apply_eq_zero]
@@ -321,7 +321,7 @@ lemma support_single_disjoint [decidable_eq α] {b' : M} (hb : b ≠ 0) (hb' : b
 by rw [support_single_ne_zero _ hb, support_single_ne_zero _ hb', disjoint_singleton]
 
 @[simp] lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
-by simp [ext_iff, single_eq_indicator]
+by simp [ext_iff, single_eq_set_indicator]
 
 lemma single_swap (a₁ a₂ : α) (b : M) : single a₁ b a₂ = single a₂ b a₁ :=
 by simp only [single_apply]; ac_refl

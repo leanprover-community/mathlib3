@@ -123,9 +123,10 @@ finset.ext $ λ x, iff_of_true (mem_univ _) $ mem_singleton.2 $ subsingleton.eli
 
 @[simp] theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
-instance : order_top (finset α) :=
+instance : bounded_order (finset α) :=
 { top := univ,
-  le_top := subset_univ }
+  le_top := subset_univ,
+  .. finset.order_bot }
 
 @[simp] lemma top_eq_univ : (⊤ : finset α) = univ := rfl
 
@@ -2056,6 +2057,23 @@ lemma finset.exists_maximal {α : Type*} [preorder α] (s : finset α) (h : s.no
 namespace infinite
 
 lemma of_not_fintype (h : fintype α → false) : infinite α := is_empty_fintype.mp ⟨h⟩
+
+/-- If `s : set α` is a proper subset of `α` and `f : α → s` is injective, then `α` is infinite. -/
+lemma of_injective_to_set {s : set α} (hs : s ≠ set.univ) {f : α → s} (hf : injective f) :
+  infinite α :=
+of_not_fintype $ λ h, begin
+  resetI, classical,
+  refine lt_irrefl (fintype.card α) _,
+  calc fintype.card α ≤ fintype.card s : fintype.card_le_of_injective f hf
+  ... = s.to_finset.card : s.to_finset_card.symm
+  ... < fintype.card α : finset.card_lt_card $
+    by rwa [set.to_finset_ssubset_univ, set.ssubset_univ_iff]
+end
+
+/-- If `s : set α` is a proper subset of `α` and `f : s → α` is surjective, then `α` is infinite. -/
+lemma of_surjective_from_set {s : set α} (hs : s ≠ set.univ) {f : s → α} (hf : surjective f) :
+  infinite α :=
+of_injective_to_set hs (injective_surj_inv hf)
 
 lemma exists_not_mem_finset [infinite α] (s : finset α) : ∃ x, x ∉ s :=
 not_forall.1 $ λ h, fintype.false ⟨s, h⟩

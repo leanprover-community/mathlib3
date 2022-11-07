@@ -649,6 +649,7 @@ begin
   tauto,
 end
 
+
 /-! ### Walk decompositions -/
 
 section walk_decomp

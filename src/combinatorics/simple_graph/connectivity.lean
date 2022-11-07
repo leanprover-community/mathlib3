@@ -1452,6 +1452,10 @@ variables {G} {u v w : V}
 | u _ nil := G.singleton_subgraph u
 | _ _ (cons h p) := G.subgraph_of_adj h ⊔ p.to_subgraph
 
+lemma to_subgraph_cons_nil_eq_subgraph_of_adj (h : G.adj u v) :
+  (cons h nil).to_subgraph = G.subgraph_of_adj h :=
+by simp
+
 @[simp] lemma mem_verts_to_subgraph (p : G.walk u v) :
   w ∈ p.to_subgraph.verts ↔ w ∈ p.support :=
 begin

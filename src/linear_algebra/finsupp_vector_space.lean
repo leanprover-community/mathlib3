@@ -108,7 +108,7 @@ begin
   by_cases h : i = j,
   { cases h,
     simp only [basis_repr, single_eq_same, basis.repr_self,
-               basis.finsupp.single_apply_left sigma_mk_injective] },
+               finsupp.single_apply_left sigma_mk_injective] },
   simp only [basis_repr, single_apply, h, false_and, if_false, linear_equiv.map_zero, zero_apply]
 end
 

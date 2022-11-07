@@ -5,10 +5,10 @@ Authors: Johannes Hölzl, Yury Kudryashov
 -/
 
 import algebra.order.group.basic
-import order.bounds
+import order.bounds.basic
 
 /-!
-### Least upper bound and the greatest lower bound in linear ordered additive commutative groups
+# Least upper bound and the greatest lower bound in linear ordered additive commutative groups
 -/
 
 section linear_ordered_add_comm_group

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kenny Lau
 -/
 import data.list.big_operators
+import algebra.order.group.min_max
 
 /-!
 # zip & unzip

@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import data.nat.order
-import algebra.order.group.basic
+import algebra.order.monoid.with_top
+
 /-!
 # `with_bot ℕ`
 

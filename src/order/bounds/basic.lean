@@ -805,6 +805,8 @@ in ⟨c, hcs, hac.lt_of_ne $ λ hac, h' $ hac.symm ▸ hcs, hcb⟩
 
 end linear_order
 
+
+
 /-!
 ### Images of upper/lower bounds under monotone functions
 -/
@@ -1185,51 +1187,3 @@ end
 lemma is_glb_prod [preorder α] [preorder β] {s : set (α × β)} (p : α × β) :
   is_glb s p ↔ is_glb (prod.fst '' s) p.1 ∧ is_glb (prod.snd '' s) p.2 :=
 @is_lub_prod αᵒᵈ βᵒᵈ _ _ _ _
-
-namespace order_iso
-
-variables [preorder α] [preorder β] (f : α ≃o β)
-
-lemma upper_bounds_image {s : set α} :
-  upper_bounds (f '' s) = f '' upper_bounds s :=
-subset.antisymm
-  (λ x hx, ⟨f.symm x, λ y hy, f.le_symm_apply.2 (hx $ mem_image_of_mem _ hy), f.apply_symm_apply x⟩)
-  f.monotone.image_upper_bounds_subset_upper_bounds_image
-
-lemma lower_bounds_image {s : set α} : lower_bounds (f '' s) = f '' lower_bounds s :=
-@upper_bounds_image αᵒᵈ βᵒᵈ _ _ f.dual _
-
-@[simp] lemma is_lub_image {s : set α} {x : β} :
-  is_lub (f '' s) x ↔ is_lub s (f.symm x) :=
-⟨λ h, is_lub.of_image (λ _ _, f.le_iff_le) ((f.apply_symm_apply x).symm ▸ h),
-  λ h, is_lub.of_image (λ _ _, f.symm.le_iff_le) $ (f.symm_image_image s).symm ▸ h⟩
-
-lemma is_lub_image' {s : set α} {x : α} :
-  is_lub (f '' s) (f x) ↔ is_lub s x :=
-by rw [is_lub_image, f.symm_apply_apply]
-
-@[simp] lemma is_glb_image {s : set α} {x : β} :
-  is_glb (f '' s) x ↔ is_glb s (f.symm x) :=
-f.dual.is_lub_image
-
-lemma is_glb_image' {s : set α} {x : α} :
-  is_glb (f '' s) (f x) ↔ is_glb s x :=
-f.dual.is_lub_image'
-
-@[simp] lemma is_lub_preimage {s : set β} {x : α} :
-  is_lub (f ⁻¹' s) x ↔ is_lub s (f x) :=
-by rw [← f.symm_symm, ← image_eq_preimage, is_lub_image]
-
-lemma is_lub_preimage' {s : set β} {x : β} :
-  is_lub (f ⁻¹' s) (f.symm x) ↔ is_lub s x :=
-by rw [is_lub_preimage, f.apply_symm_apply]
-
-@[simp] lemma is_glb_preimage {s : set β} {x : α} :
-  is_glb (f ⁻¹' s) x ↔ is_glb s (f x) :=
-f.dual.is_lub_preimage
-
-lemma is_glb_preimage' {s : set β} {x : β} :
-  is_glb (f ⁻¹' s) (f.symm x) ↔ is_glb s x :=
-f.dual.is_lub_preimage'
-
-end order_iso

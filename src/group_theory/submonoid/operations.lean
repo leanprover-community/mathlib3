@@ -6,6 +6,7 @@ Amelia Livingston, Yury Kudryashov
 -/
 
 import algebra.order.monoid.cancel
+import algebra.order.group.basic
 import group_theory.group_action.defs
 import group_theory.submonoid.basic
 import group_theory.subsemigroup.operations

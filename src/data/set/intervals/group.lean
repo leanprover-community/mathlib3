@@ -3,14 +3,15 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov, Rémy Degenne
 -/
-
 import algebra.order.group.basic
 import data.set.intervals.basic
+import data.set.intervals.basic
+import algebra.order.group.abs
 
-/-! ### Lemmas about membership of arithmetic operations -/
 
-variables {α β : Type*}
+/-! ### Lemmas about arithmetic operations and intervals. -/
 
+variables {α : Type*}
 namespace set
 
 section ordered_comm_group

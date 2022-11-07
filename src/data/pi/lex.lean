@@ -9,6 +9,7 @@ import algebra.order.group.basic
 import order.min_max
 import order.well_founded
 
+
 /-!
 # Lexicographic order on Pi types
 

@@ -9,6 +9,7 @@ import algebra.group.prod
 import algebra.group.type_tags
 import algebra.hom.equiv
 import group_theory.subsemigroup.basic
+import algebra.group.prod
 
 /-!
 # Operations on `subsemigroup`s

@@ -3,7 +3,7 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
-import analysis.normed_space.lattice_ordered_group
+import analysis.normed.order.lattice
 import analysis.normed_space.operator_norm
 import analysis.normed_space.star.basic
 import data.real.sqrt
@@ -40,12 +40,17 @@ structure bounded_continuous_function (α : Type u) (β : Type v)
 localized "infixr (name := bounded_continuous_function)
   ` →ᵇ `:25 := bounded_continuous_function" in bounded_continuous_function
 
+section
+set_option old_structure_cmd true
+
 /-- `bounded_continuous_map_class F α β` states that `F` is a type of bounded continuous maps.
 
 You should also extend this typeclass when you extend `bounded_continuous_function`. -/
 class bounded_continuous_map_class (F α β : Type*) [topological_space α] [pseudo_metric_space β]
   extends continuous_map_class F α β :=
 (map_bounded (f : F) : ∃ C, ∀ x y, dist (f x) (f y) ≤ C)
+
+end
 
 export bounded_continuous_map_class (map_bounded)
 

@@ -9,6 +9,7 @@ import data.finset.order
 import data.set.accumulate
 import tactic.tfae
 import topology.bornology.basic
+import order.minimal
 
 /-!
 # Properties of subsets of topological spaces
@@ -1521,6 +1522,28 @@ protected lemma quotient_map.is_clopen_preimage {f : α → β}
   (hf : quotient_map f) {s : set β} : is_clopen (f ⁻¹' s) ↔ is_clopen s :=
 and_congr hf.is_open_preimage hf.is_closed_preimage
 
+variables {X : Type*} [topological_space X]
+
+lemma continuous_bool_indicator_iff_clopen (U : set X) :
+  continuous U.bool_indicator ↔ is_clopen U :=
+begin
+  split,
+  { intros hc,
+    rw ← U.preimage_bool_indicator_tt,
+    exact
+      ⟨hc.is_open_preimage _ trivial, continuous_iff_is_closed.mp hc _ (is_closed_discrete _)⟩ },
+  { refine λ hU, ⟨λ s hs, _⟩,
+    rcases U.preimage_bool_indicator s with (h|h|h|h) ; rw h,
+    exacts [is_open_univ, hU.1, hU.2.is_open_compl, is_open_empty] },
+end
+
+lemma continuous_on_indicator_iff_clopen (s U : set X) :
+  continuous_on U.bool_indicator s ↔ is_clopen ((coe : s → X) ⁻¹' U) :=
+begin
+  rw [continuous_on_iff_continuous_restrict, ← continuous_bool_indicator_iff_clopen],
+  refl
+end
+
 end clopen
 
 section preirreducible
@@ -1551,17 +1574,17 @@ lemma set.subsingleton.is_preirreducible {s : set α} (hs : s.subsingleton) :
 theorem is_irreducible_singleton {x} : is_irreducible ({x} : set α) :=
 ⟨singleton_nonempty x, subsingleton_singleton.is_preirreducible⟩
 
-theorem is_preirreducible.closure {s : set α} (H : is_preirreducible s) :
-  is_preirreducible (closure s) :=
-λ u v hu hv ⟨y, hycs, hyu⟩ ⟨z, hzcs, hzv⟩,
-let ⟨p, hpu, hps⟩ := mem_closure_iff.1 hycs u hu hyu in
-let ⟨q, hqv, hqs⟩ := mem_closure_iff.1 hzcs v hv hzv in
-let ⟨r, hrs, hruv⟩ := H u v hu hv ⟨p, hps, hpu⟩ ⟨q, hqs, hqv⟩ in
-⟨r, subset_closure hrs, hruv⟩
+theorem is_preirreducible_iff_closure {s : set α} :
+  is_preirreducible (closure s) ↔ is_preirreducible s :=
+forall₄_congr $ λ u v hu hv,
+  by { iterate 3 { rw closure_inter_open_nonempty_iff }, exacts [hu.inter hv, hv, hu] }
 
-lemma is_irreducible.closure {s : set α} (h : is_irreducible s) :
-  is_irreducible (closure s) :=
-⟨h.nonempty.closure, h.is_preirreducible.closure⟩
+theorem is_irreducible_iff_closure {s : set α} :
+  is_irreducible (closure s) ↔ is_irreducible s :=
+and_congr closure_nonempty_iff is_preirreducible_iff_closure
+
+alias is_preirreducible_iff_closure ↔ _ is_preirreducible.closure
+alias is_irreducible_iff_closure ↔ _ is_irreducible.closure
 
 theorem exists_preirreducible (s : set α) (H : is_preirreducible s) :
   ∃ t : set α, is_preirreducible t ∧ s ⊆ t ∧ ∀ u, is_preirreducible u → t ⊆ u → u = t :=
@@ -1579,6 +1602,29 @@ let ⟨m, hm, hsm, hmm⟩ := zorn_subset_nonempty {t : set α | is_preirreducibl
           ⟨x, mem_sUnion_of_mem hxp hpc, hxuv⟩),
     λ x hxc, subset_sUnion_of_mem hxc⟩) s H in
 ⟨m, hm, hsm, λ u hu hmu, hmm _ hu hmu⟩
+
+/-- The set of irreducible components of a topological space. -/
+def irreducible_components (α : Type*) [topological_space α] : set (set α) :=
+maximals (≤) { s : set α | is_irreducible s }
+
+lemma is_closed_of_mem_irreducible_components (s ∈ irreducible_components α) :
+  is_closed s :=
+begin
+  rw [← closure_eq_iff_is_closed, eq_comm],
+  exact subset_closure.antisymm (H.2 H.1.closure subset_closure),
+end
+
+lemma irreducible_components_eq_maximals_closed (α : Type*) [topological_space α] :
+  irreducible_components α = maximals (≤) { s : set α | is_closed s ∧ is_irreducible s } :=
+begin
+  ext s,
+  split,
+  { intro H, exact ⟨⟨is_closed_of_mem_irreducible_components _ H, H.1⟩, λ x h e, H.2 h.2 e⟩ },
+  { intro H, refine ⟨H.1.2, λ x h e, _⟩,
+    have : closure x ≤ s,
+    { exact H.2 ⟨is_closed_closure, h.closure⟩ (e.trans subset_closure) },
+    exact le_trans subset_closure this }
+end
 
 /-- A maximal irreducible set that contains a given point. -/
 def irreducible_component (x : α) : set α :=
@@ -1599,11 +1645,13 @@ theorem eq_irreducible_component {x : α} :
   ∀ {s : set α}, is_preirreducible s → irreducible_component x ⊆ s → s = irreducible_component x :=
 (irreducible_component_property x).2.2
 
+lemma irreducible_component_mem_irreducible_components (x : α) :
+  irreducible_component x ∈ irreducible_components α :=
+⟨is_irreducible_irreducible_component, λ s h₁ h₂,(eq_irreducible_component h₁.2 h₂).le⟩
+
 theorem is_closed_irreducible_component {x : α} :
   is_closed (irreducible_component x) :=
-closure_eq_iff_is_closed.1 $ eq_irreducible_component
-  is_irreducible_irreducible_component.is_preirreducible.closure
-  subset_closure
+is_closed_of_mem_irreducible_components _ (irreducible_component_mem_irreducible_components x)
 
 /-- A preirreducible space is one where there is no non-trivial pair of disjoint opens. -/
 class preirreducible_space (α : Type u) [topological_space α] : Prop :=

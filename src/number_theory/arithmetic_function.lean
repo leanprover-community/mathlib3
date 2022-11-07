@@ -797,7 +797,7 @@ lemma card_distinct_factors_eq_card_factors_iff_squarefree {n : ℕ} (h0 : n ≠
 begin
   rw [squarefree_iff_nodup_factors h0, card_distinct_factors_apply],
   split; intro h,
-  { rw ← list.eq_of_sublist_of_length_eq n.factors.dedup_sublist h,
+  { rw ←n.factors.dedup_sublist.eq_of_length h,
     apply list.nodup_dedup },
   { rw h.dedup,
     refl }

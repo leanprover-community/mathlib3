@@ -27,7 +27,7 @@ namespace category_theory
 
 variables (C : Type u) [category.{v} C]
 
--- TODO: generaize to `has_shift C A` for an arbitrary `[add_monoid A]` `[has_one A]`.
+-- TODO: generalize to `has_shift C A` for an arbitrary `[add_monoid A]` `[has_one A]`.
 variables [has_zero_morphisms C] [has_shift C ℤ]
 
 /--

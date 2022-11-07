@@ -144,8 +144,7 @@ begin
     dsimp [c, f],
     rw hat_inv_extends z_ne,
     norm_cast,
-    rw mul_inv_cancel z_ne,
-    norm_cast },
+    rw mul_inv_cancel z_ne, },
   replace fxclo := closure_mono this fxclo,
   rwa [closure_singleton, mem_singleton_iff] at fxclo
 end

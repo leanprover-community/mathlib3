@@ -602,7 +602,7 @@ submodule.ext $ λ a, by simp
 lemma map_comp [ring_hom_surjective σ₂₃] [ring_hom_surjective σ₁₃]
   (f : M →ₛₗ[σ₁₂] M₂) (g : M₂ →ₛₗ[σ₂₃] M₃)
   (p : submodule R M) : map (g.comp f : M →ₛₗ[σ₁₃] M₃) p = map g (map f p) :=
-set_like.coe_injective $ by simp [map_coe]; rw ← image_comp
+set_like.coe_injective $ by simp only [← image_comp, map_coe, linear_map.coe_comp, comp_app]
 
 include sc
 lemma map_mono {f : F} {p p' : submodule R M} :
@@ -633,8 +633,10 @@ linearly equivalent to the original submodule. See also `linear_equiv.submodule_
 computable version when `f` has an explicit inverse. -/
 noncomputable def equiv_map_of_injective (f : F) (i : injective f)
   (p : submodule R M) : p ≃ₛₗ[σ₁₂] p.map f :=
-{ map_add' := by { intros, simp, refl },
-  map_smul' := by { intros, simp, refl },
+{ map_add' := by { intros, simp only [coe_add, map_add, equiv.to_fun_as_coe, equiv.set.image_apply],
+                   refl },
+  map_smul' := by { intros, simp only [coe_smul_of_tower, map_smulₛₗ, equiv.to_fun_as_coe,
+                    equiv.set.image_apply], refl },
   ..(equiv.set.image f p i) }
 
 @[simp] lemma coe_equiv_map_of_injective_apply (f : F) (i : injective f)
@@ -1270,7 +1272,6 @@ end field
 
 end linear_map
 
-
 namespace is_linear_map
 
 lemma is_linear_map_add [semiring R] [add_comm_monoid M] [module R M] :
@@ -1278,7 +1279,7 @@ lemma is_linear_map_add [semiring R] [add_comm_monoid M] [module R M] :
 begin
   apply is_linear_map.mk,
   { intros x y,
-    simp, cc },
+    simp only [prod.fst_add, prod.snd_add], cc },
   { intros x y,
     simp [smul_add] }
 end
@@ -1867,6 +1868,9 @@ def conj (e : M ≃ₗ[R] M₂) : (module.End R M) ≃ₗ[R] (module.End R M₂)
 
 lemma conj_apply (e : M ≃ₗ[R] M₂) (f : module.End R M) :
   e.conj f = ((↑e : M →ₗ[R] M₂).comp f).comp (e.symm : M₂ →ₗ[R] M) := rfl
+
+lemma conj_apply_apply (e : M ≃ₗ[R] M₂) (f : module.End R M) (x : M₂) :
+  e.conj f x = e (f (e.symm x)) := rfl
 
 lemma symm_conj_apply (e : M ≃ₗ[R] M₂) (f : module.End R M₂) :
   e.symm.conj f = ((↑e.symm : M₂ →ₗ[R] M).comp f).comp (e : M →ₗ[R] M₂) := rfl

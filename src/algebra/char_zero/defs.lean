@@ -71,3 +71,11 @@ by rw [←cast_one, cast_inj]
 cast_eq_one.not
 
 end nat
+
+namespace ne_zero
+
+instance char_zero {M} {n : ℕ}
+  [ne_zero n] [add_monoid_with_one M] [char_zero M] : ne_zero (n : M) :=
+⟨nat.cast_ne_zero.mpr out⟩
+
+end ne_zero

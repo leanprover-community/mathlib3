@@ -1097,12 +1097,12 @@ begin
     exact hp.elim, },
   { simp only [cons_is_cycle_iff, map_cons, edges_map, list.mem_map, not_exists, not_and] at hp ⊢,
     refine ⟨map_is_path_of_injective hinj hp.left, _⟩,
-    rintro ⟨a,b⟩ mem edge_eq,
-    change sym2.map f.to_fun ⟦⟨a,b⟩⟧ = ⟦(f.to_fun u, f.to_fun p_v)⟧ at edge_eq,
+    rintro ⟨a, b⟩ mem edge_eq,
+    change sym2.map f.to_fun ⟦⟨a, b⟩⟧ = ⟦(f.to_fun u, f.to_fun p_v)⟧ at edge_eq,
     simp only [sym2.map_pair_eq, rel_hom.coe_fn_to_fun, quotient.eq, sym2.rel_iff] at edge_eq,
-    rcases edge_eq with (⟨au,bv⟩|⟨av,bu⟩),
+    rcases edge_eq with (⟨au, bv⟩|⟨av, bu⟩),
     { cases hinj au, cases hinj bv, exact hp.right mem, },
-    { cases hinj av, cases hinj bu, apply hp.right, rw sym2.eq_swap, exact mem, }, },
+    { cases hinj av, cases hinj bu, rw sym2.eq_swap at hp, apply hp.right mem, }, },
 end
 
 variables (p f)
@@ -1125,23 +1125,14 @@ begin
 end
 
 /-- The specialization of `simple_graph.walk.map` for mapping walks to supergraphs. -/
-@[reducible] def map_le {G G' : simple_graph V} (h : G ≤ G')
-  {u v : V} (p : G.walk u v) : G'.walk u v :=
-p.map (hom.map_spanning_subgraphs h)
+@[reducible] def map_le {G G' : simple_graph V} (h : G ≤ G') {u v : V} (p : G.walk u v) :
+  G'.walk u v := p.map (hom.map_spanning_subgraphs h)
 
-lemma is_path.map_le {G G' : simple_graph V} (h : G ≤ G')
-  {u v : V} {p : G.walk u v} (pp : p.is_path) : (p.map_le h).is_path :=
-begin
-  apply map_is_path_of_injective _ pp,
-  apply function.injective_id,
-end
+lemma is_path.map_le {G G' : simple_graph V} (h : G ≤ G') {u v : V} {p : G.walk u v}
+  (pp : p.is_path) : (p.map_le h).is_path := map_is_path_of_injective (function.injective_id) pp
 
-lemma is_cycle.map_le {G G' : simple_graph V} (h : G ≤ G')
-  {u : V} {p : G.walk u u} (pc : p.is_cycle) : (p.map_le h).is_cycle :=
-begin
-  apply map_is_cycle_of_injective _ pc,
-  apply function.injective_id,
-end
+lemma is_cycle.map_le {G G' : simple_graph V} (h : G ≤ G') {u : V} {p : G.walk u u}
+  (pc : p.is_cycle) : (p.map_le h).is_cycle := map_is_cycle_of_injective (function.injective_id) pc
 
 end walk
 

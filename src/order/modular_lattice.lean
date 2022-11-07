@@ -362,13 +362,13 @@ variables [lattice α] [is_modular_lattice α]
 
 @[simps]
 def thing (a b : α) : Icc a (a ⊔ b) ≃o Icc (a ⊓ b) b :=
-{ to_fun := λ c, ⟨c ⊓ b, inf_le_inf_right _ c.2.1, inf_le_right⟩,
-  inv_fun := λ c, ⟨a ⊔ c, le_sup_left, sup_le_sup_left c.2.2 _⟩,
-  left_inv := λ ⟨c, h⟩, subtype.ext begin
+{ to_fun       := λ c, ⟨c ⊓ b, inf_le_inf_right _ c.2.1, inf_le_right⟩,
+  inv_fun      := λ c, ⟨a ⊔ c, le_sup_left, sup_le_sup_left c.2.2 _⟩,
+  left_inv     := λ ⟨c, h⟩, subtype.ext begin
     change a ⊔ (c ⊓ b) = c,
     rw [inf_comm, ←sup_inf_assoc_of_le b h.1, inf_eq_right.mpr h.2 ],
   end,
-  right_inv := λ ⟨c, h⟩, subtype.ext begin
+  right_inv    := λ ⟨c, h⟩, subtype.ext begin
     change (a ⊔ c) ⊓ b = c,
     rw [sup_comm, sup_inf_assoc_of_le a h.2, sup_eq_left.mpr h.1],
   end,
@@ -401,21 +401,21 @@ lemma sup_super_strict_mono_on_Icc_inf (a b : α) {c d: α} (hc : c ∈ Icc (a �
 
 @[simps]
 def thing2 (a b : α) : Ioo a (a ⊔ b) ≃o Ioo (a ⊓ b) b :=
-{ to_fun := λ c, ⟨c ⊓ b,
+{ to_fun       := λ c, ⟨c ⊓ b,
     ⟨ (inf_super_strict_mono_on_Icc_sup a b
-        ⟨le_refl _, le_sup_left⟩ ⟨c.property.1.le, c.property.2.le⟩).mp c.property.1,
-      lt_of_lt_of_le ((inf_super_strict_mono_on_Icc_sup a b ⟨c.property.1.le, c.property.2.le⟩
-        ⟨le_sup_left, le_refl _⟩).mp c.property.2) inf_le_right ⟩⟩,
-  inv_fun := λ c, ⟨a ⊔ c,
+        ⟨le_refl _, le_sup_left⟩ ⟨c.2.1.le, c.2.2.le⟩).mp c.2.1,
+      lt_of_lt_of_le ((inf_super_strict_mono_on_Icc_sup a b ⟨c.2.1.le, c.2.2.le⟩
+        ⟨le_sup_left, le_refl _⟩).mp c.2.2) inf_le_right ⟩⟩,
+  inv_fun      := λ c, ⟨a ⊔ c,
     ⟨ lt_of_le_of_lt le_sup_left ((sup_super_strict_mono_on_Icc_inf a b ⟨le_refl _, inf_le_right⟩
-        ⟨c.property.1.le, c.property.2.le⟩).mp c.property.1),
-      (sup_super_strict_mono_on_Icc_inf a b ⟨c.property.1.le, c.property.2.le⟩
-        ⟨inf_le_right, le_refl _⟩).mp c.property.2 ⟩⟩,
-  left_inv := λ ⟨c, h⟩, subtype.ext begin
+        ⟨c.2.1.le, c.2.2.le⟩).mp c.2.1),
+      (sup_super_strict_mono_on_Icc_inf a b ⟨c.2.1.le, c.2.2.le⟩
+        ⟨inf_le_right, le_refl _⟩).mp c.2.2 ⟩⟩,
+  left_inv     := λ ⟨c, h⟩, subtype.ext begin
     change a ⊔ (c ⊓ b) = c,
     rw [inf_comm, ←sup_inf_assoc_of_le b h.1.le, inf_eq_right.mpr h.2.le ],
   end,
-  right_inv := λ ⟨c, h⟩, subtype.ext begin
+  right_inv    := λ ⟨c, h⟩, subtype.ext begin
     change (a ⊔ c) ⊓ b = c,
     rw [sup_comm, sup_inf_assoc_of_le a h.2.le, sup_eq_left.mpr h.1.le],
   end,

@@ -347,21 +347,8 @@ instance : has_continuous_inf (with_lower_topology α) :=
     apply with_lower_topology.continuous_inf,
   end }
 
-lemma sUnion_Ici_compl  (s : set α):
-  ⋃₀ { (Ici a)ᶜ | a ∈ s } = (Ici (Sup s))ᶜ :=
-begin
-  rw subset_antisymm_iff,
-  split,
-  { rw sUnion_subset_iff,
-    simp only [mem_set_of_eq, forall_exists_index, forall_apply_eq_imp_iff₂, compl_subset_compl],
-    rintro a h,
-    rw Ici_subset_Ici,
-    apply le_Sup h, },
-  { rintro a h,
-    simp only [exists_prop, mem_sUnion, mem_set_of_eq, exists_exists_and_eq_and, mem_compl_iff,
-      mem_Ici],
-    simp only [mem_compl_iff, mem_Ici, Sup_le_iff, not_forall, exists_prop] at h,
-    exact h, }
-end
+lemma sUnion_Ici_compl  (s : set α): ⋃₀ { (Ici a)ᶜ | a ∈ s } = (Ici (Sup s))ᶜ :=
+by simp only [Ici_Sup, sUnion_eq_bUnion, exists_prop, mem_set_of_eq', Union_exists, bUnion_and',
+  Union_Union_eq_right, compl_Inter]
 
 end complete_lattice

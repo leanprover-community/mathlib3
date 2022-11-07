@@ -198,41 +198,6 @@ lemma prod_basis_is_topological_basis : is_topological_basis
 is_topological_basis.prod with_lower_topology.is_topological_basis
   with_lower_topology.is_topological_basis
 
-lemma upper_closure_prod_upper_closure (F₁ : set α) (F₂ : set β) :
-  (upper_closure F₁).prod (upper_closure F₂)  =
-  (⊥ : upper_set α).prod (upper_closure F₂) ⊔ (upper_closure F₁).prod (⊥ : upper_set β) :=
-upper_set.ext begin
-  rw subset_antisymm_iff,
-  split,
-  { rintros x h,
-    finish, },
-  { rintros x h,
-    finish, },
-end
-
-lemma prod_Ici (a : α) (b : β) : upper_set.Ici (a,b) =
-    (⊥ : upper_set α).prod (upper_set.Ici b) ⊔ (upper_set.Ici a).prod (⊥ : upper_set β) :=
-by rw [← upper_set.Ici_prod_Ici, ← upper_closure_singleton, ← upper_closure_singleton,
-    upper_closure_prod_upper_closure]
-
-lemma upper_closure_compl_prod_upper_closure_compl (F₁ : set α) (F₂ : set β)
-  : ((upper_closure F₁).compl.prod (upper_closure F₂).compl)  =
-  (upper_closure (univ ×ˢ F₂)).compl ⊓ (upper_closure (F₁ ×ˢ univ)).compl :=
-lower_set.ext begin
-  rw subset_antisymm_iff,
-  split,
-  { rintros x h, finish, },
-  { rintros x h,
-    simp only [lower_set.coe_prod, upper_set.coe_compl, mem_prod, mem_compl_iff, set_like.mem_coe,
-      mem_upper_closure, exists_prop, not_exists, not_and],
-    simp only [upper_closure_prod, upper_closure_univ, lower_set.coe_inf, upper_set.coe_compl,
-    upper_set.coe_prod, upper_set.coe_bot, mem_inter_iff, mem_compl_iff, mem_prod, mem_univ,
-    set_like.mem_coe, mem_upper_closure, exists_prop, true_and, not_exists, not_and, and_true] at h,
-    rw and_comm,
-    exact h,
-   },
-end
-
 lemma lower_topology_prod  [order_bot α] [order_bot β] :
   with_lower_topology.topological_space (α × β) =
   @prod.topological_space α β (lower_topology α) (lower_topology β) :=
@@ -268,7 +233,7 @@ begin
     rw mem_set_of_eq at H,
     rcases H,
     cases H_w with a b,
-    rw [← H_h, ← upper_set.coe_Ici, is_open_compl_iff, prod_Ici],
+    rw [← H_h, ← upper_set.coe_Ici, is_open_compl_iff, upper_set.prod_Ici],
     apply is_closed.inter,
     { apply is_closed.prod is_closed_univ, apply with_lower_topology.is_closed_Ici, },
     { apply is_closed.prod, apply with_lower_topology.is_closed_Ici, apply is_closed_univ, } },

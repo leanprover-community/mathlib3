@@ -702,6 +702,10 @@ H.eq_bot_of_card_le (le_of_eq h)
   nontrivial H ↔ ∃ x ∈ H, x ≠ (1:G) :=
 subtype.nontrivial_iff_exists_ne (λ x, x ∈ H) (1 : H)
 
+@[to_additive] lemma top_eq_bot_of_trivial [fintype G] (h : fintype.card G = 1) :
+  ⊥ = (⊤ : subgroup G) := by
+{ apply eq_top_of_card_eq, rw h, exact card_bot }
+
 /-- A subgroup is either the trivial subgroup or nontrivial. -/
 @[to_additive "A subgroup is either the trivial subgroup or nontrivial."]
 lemma bot_or_nontrivial (H : subgroup G) : H = ⊥ ∨ nontrivial H :=

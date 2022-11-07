@@ -7,6 +7,7 @@ Authors: Jordan Brown, Thomas Browning, Patrick Lutz
 import data.fin.vec_notation
 import group_theory.abelianization
 import set_theory.cardinal.basic
+import group_theory.subgroup.basic
 
 /-!
 # Solvable Groups
@@ -150,6 +151,13 @@ instance solvable_prod {G' : Type*} [group G'] [h : is_solvable G] [h' : is_solv
   is_solvable (G × G') :=
 solvable_of_ker_le_range (monoid_hom.inl G G') (monoid_hom.snd G G')
   (λ x hx, ⟨x.1, prod.ext rfl hx.symm⟩)
+
+theorem solvable_of_solvable_quotient_center (h : is_solvable (G ⧸ center G)) : is_solvable G :=
+solvable_of_ker_le_range (subgroup.subtype $ center G) (quotient_group.mk' $ center G)
+  (by simp only [le_refl, quotient_group.ker_mk, subtype_range])
+
+instance solvable_of_trivial [fintype G] (h : fintype.card G = 1) : is_solvable G :=
+is_solvable_of_top_eq_bot _ (eq.symm $ subgroup.top_eq_bot_of_trivial h)
 
 end solvable
 

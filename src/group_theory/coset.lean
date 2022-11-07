@@ -560,6 +560,12 @@ rfl
 by rw ← fintype.card_prod;
   exact fintype.card_congr (subgroup.group_equiv_quotient_times_subgroup)
 
+@[to_additive] lemma card_lt_card_quotient_of_nontrivial [fintype α] (s : subgroup α)
+  [nt: nontrivial s] [fintype s] [decidable_eq α] [d: decidable_pred (λ x, x ∈ s)] :
+  fintype.card (α ⧸ s) < fintype.card α := by
+{ rw card_eq_card_quotient_mul_card_subgroup s,
+  exact lt_mul_right fintype.card_pos fintype.one_lt_card }
+
 /-- **Lagrange's Theorem**: The order of a subgroup divides the order of its ambient group. -/
 @[to_additive] lemma card_subgroup_dvd_card [fintype α] (s : subgroup α) [fintype s] :
   fintype.card s ∣ fintype.card α :=

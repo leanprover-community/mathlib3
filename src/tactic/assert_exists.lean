@@ -1,4 +1,15 @@
+/-
+Copyright (c) 2022 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Patrick Massot, Scott Morrison
+-/
 import tactic.core
+
+/-!
+# User commands for assert the (non-)existence of declaration or instances.
+
+These commands are used to enforce the independence of different parts of mathlib.
+-/
 
 section
 setup_tactic_parser

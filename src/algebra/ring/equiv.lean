@@ -7,7 +7,6 @@ import algebra.big_operators.basic
 import algebra.field.basic
 import algebra.hom.equiv.basic
 import algebra.ring.opposite
--- FIXME CHECK IMPORTS
 
 /-!
 # (Semi)ring equivs

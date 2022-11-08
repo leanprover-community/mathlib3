@@ -924,7 +924,7 @@ with continuous addition/multiplication. See also `submonoid.top_closure_mul_sel
 -/
 
 section has_continuous_const_smul
-variables [topological_space α] [topological_space β] [group α] [mul_action α β]
+variables [topological_space β] [group α] [mul_action α β]
   [has_continuous_const_smul α β] {s : set α} {t : set β}
 
 @[to_additive] lemma is_open.smul_left (ht : is_open t) : is_open (s • t) :=
@@ -932,6 +932,32 @@ by { rw ←bUnion_smul_set, exact is_open_bUnion (λ a _, ht.smul _) }
 
 @[to_additive] lemma subset_interior_smul_right : s • interior t ⊆ interior (s • t) :=
 interior_maximal (set.smul_subset_smul_left interior_subset) is_open_interior.smul_left
+
+variables [topological_space α]
+
+@[to_additive] lemma subset_interior_smul : interior s • interior t ⊆ interior (s • t) :=
+(set.smul_subset_smul_right interior_subset).trans subset_interior_smul_right
+
+end has_continuous_const_smul
+
+section has_continuous_const_smul
+variables [topological_space α] [group α] [has_continuous_const_smul α α] {s t : set α}
+
+@[to_additive] lemma is_open.mul_left : is_open t → is_open (s * t) := is_open.smul_left
+
+@[to_additive] lemma subset_interior_mul_right : s * interior t ⊆ interior (s * t) :=
+subset_interior_smul_right
+
+@[to_additive] lemma subset_interior_mul : interior s * interior t ⊆ interior (s * t) :=
+subset_interior_smul
+
+end has_continuous_const_smul
+
+section has_continuous_const_smul_op
+variables [topological_space α] [group α] [has_continuous_const_smul αᵐᵒᵖ α] {s t : set α}
+
+@[to_additive] lemma is_open.mul_right (hs : is_open s) : is_open (s * t) :=
+by { rw ←bUnion_op_smul_set, exact is_open_bUnion (λ a _, hs.smul _) }
 
 @[to_additive] lemma subset_interior_smul : interior s • interior t ⊆ interior (s • t) :=
 (set.smul_subset_smul_right interior_subset).trans subset_interior_smul_right
@@ -957,24 +983,8 @@ variables [topological_space α] [group α] [has_continuous_const_smul α α] {s
 
 @[to_additive] lemma is_open.mul_left : is_open t → is_open (s * t) := is_open.smul_left
 
-@[to_additive] lemma subset_interior_mul_right : s * interior t ⊆ interior (s * t) :=
-subset_interior_smul_right
-
-@[to_additive] lemma subset_interior_mul : interior s * interior t ⊆ interior (s * t) :=
-subset_interior_smul
-
-end has_continuous_const_smul
-
-section has_continuous_const_smul_op
-variables [topological_space α] [group α] [has_continuous_const_smul αᵐᵒᵖ α] {s t : set α}
-
-@[to_additive] lemma is_open.mul_right : is_open s → is_open (s * t) := is_open.smul_right
-
-@[to_additive] lemma subset_interior_mul_left : interior s • t ⊆ interior (s • t) :=
-subset_interior_smul_left
-
-@[to_additive] lemma subset_interior_mul' : interior s • interior t ⊆ interior (s • t) :=
-subset_interior_smul'
+@[to_additive] lemma subset_interior_mul' : interior s * interior t ⊆ interior (s * t) :=
+(set.mul_subset_mul_left interior_subset).trans subset_interior_mul_left
 
 end has_continuous_const_smul_op
 
@@ -1202,7 +1212,9 @@ end
 
 /-- Every separated topological group in which there exists a compact set with nonempty interior
 is locally compact. -/
-@[to_additive] lemma topological_space.positive_compacts.locally_compact_space_of_group
+@[to_additive "Every separated topological group in which there exists a compact set with nonempty
+interior is locally compact."]
+lemma topological_space.positive_compacts.locally_compact_space_of_group
   [t2_space G] (K : positive_compacts G) :
   locally_compact_space G :=
 begin

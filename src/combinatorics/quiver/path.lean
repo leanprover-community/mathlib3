@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn, Scott Morrison
 -/
 import combinatorics.quiver.basic
-import data.list.basic
+import algebra.group.defs
 import logic.lemmas
 
 /-!
@@ -81,14 +81,14 @@ begin
   { cases hq },
   simp only [comp_cons] at h,
   obtain rfl := h.1,
-  obtain ⟨rfl, rfl⟩ := ih (nat.succ_injective hq) h.2.1.eq,
+  obtain ⟨rfl, rfl⟩ := ih (nat.succ.inj hq) h.2.1.eq,
   rw h.2.2.eq,
   exact ⟨rfl, rfl⟩,
 end
 
 lemma comp_inj' {p₁ p₂ : path a b} {q₁ q₂ : path b c} (h : p₁.length = p₂.length) :
   p₁.comp q₁ = p₂.comp q₂ ↔ p₁ = p₂ ∧ q₁ = q₂ :=
-⟨λ h_eq, (comp_inj $ add_left_injective p₁.length $
+⟨λ h_eq, (comp_inj $ nat.add_left_cancel $
   by simpa [h] using congr_arg length h_eq).1 h_eq, by { rintro ⟨rfl, rfl⟩, refl }⟩
 
 lemma comp_injective_left (q : path b c) : injective (λ p : path a b, p.comp q) :=
@@ -124,8 +124,8 @@ variables [∀ a b : V, subsingleton (a ⟶ b)]
 
 lemma to_list_injective (a : V) : ∀ b, injective (to_list : path a b → list V)
 | b nil nil h := rfl
-| b nil (@cons _ _ _ c _ p f) h := (list.cons_ne_nil _ _ h.symm).elim
-| b (@cons _ _ _ c _ p f) nil h := (list.cons_ne_nil _ _ h).elim
+| b nil (@cons _ _ _ c _ p f) h := by cases h
+| b (@cons _ _ _ c _ p f) nil h := by cases h
 | b (@cons _ _ _ c _ p f) (@cons _ _ s t u C D) h := begin
   simp only [to_list] at h,
   obtain ⟨rfl, hAC⟩ := h,

@@ -138,6 +138,23 @@ by rw [← Icc_diff_left, h.Icc_eq, diff_singleton_subset_iff]
 
 end partial_order
 
+section semilattice_sup
+variables [semilattice_sup α] {a b c : α}
+
+lemma wcovby.sup_eq (hac : a ⩿ c) (hbc : b ⩿ c) (hab : a ≠ b) : a ⊔ b = c :=
+(sup_le hac.le hbc.le).eq_of_not_lt $ λ h,
+  hab.lt_sup_or_lt_sup.elim (λ h', hac.2 h' h) (λ h', hbc.2 h' h)
+
+end semilattice_sup
+
+section semilattice_inf
+variables [semilattice_inf α] {a b c : α}
+
+lemma wcovby.inf_eq (hca : c ⩿ a) (hcb : c ⩿ b) (hab : a ≠ b) : a ⊓ b = c :=
+(le_inf hca.le hcb.le).eq_of_not_gt $ λ h, hab.inf_lt_or_inf_lt.elim (hca.2 h) (hcb.2 h)
+
+end semilattice_inf
+
 end weakly_covers
 
 section has_lt

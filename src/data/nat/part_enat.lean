@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import order.well_founded
-import algebra.hom.equiv
+import algebra.hom.equiv.basic
 import data.part
 import data.enat.basic
 import tactic.norm_num

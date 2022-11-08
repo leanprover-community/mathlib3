@@ -6,6 +6,7 @@ Neil Strickland, Aaron Anderson
 -/
 
 import algebra.hom.group
+import algebra.hom.units
 import algebra.group_with_zero.basic
 
 /-!

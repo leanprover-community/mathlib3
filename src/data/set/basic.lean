@@ -1278,6 +1278,22 @@ by split_ifs; simp [h]
   x ∈ ite p set.univ t ↔ (¬ p → x ∈ t) :=
 mem_dite_univ_left p (λ _, t) x
 
+lemma mem_dite_empty_right (p : Prop) [decidable p] (t : p → set α) (x : α) :
+  (x ∈ if h : p then t h else ∅) ↔ (∃ h : p, x ∈ t h) :=
+by split_ifs; simp [h]
+
+@[simp] lemma mem_ite_empty_right (p : Prop) [decidable p] (t : set α) (x : α) :
+  x ∈ ite p t ∅ ↔ p ∧ x ∈ t :=
+by split_ifs; simp [h]
+
+lemma mem_dite_empty_left (p : Prop) [decidable p] (t : ¬ p → set α) (x : α) :
+  (x ∈ if h : p then ∅ else t h) ↔ (∃ h : ¬ p, x ∈ t h) :=
+by split_ifs; simp [h]
+
+@[simp] lemma mem_ite_empty_left (p : Prop) [decidable p] (t : set α) (x : α) :
+  x ∈ ite p ∅ t ↔ ¬ p ∧ x ∈ t :=
+by split_ifs; simp [h]
+
 /-! ### If-then-else for sets -/
 
 /-- `ite` for sets: `set.ite t s s' ∩ t = s ∩ t`, `set.ite t s s' ∩ tᶜ = s' ∩ tᶜ`.

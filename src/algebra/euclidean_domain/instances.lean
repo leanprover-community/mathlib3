@@ -5,7 +5,7 @@ Authors: Louis Carlin, Mario Carneiro
 -/
 import algebra.euclidean_domain.defs
 import data.nat.order
-import data.int.order
+import data.int.order.basic
 
 /-!
 # Instances for Euclidean domains

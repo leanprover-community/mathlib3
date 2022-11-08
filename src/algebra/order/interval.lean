@@ -18,6 +18,7 @@ full precision operations. We do not yet have float operations.
 open function set
 open_locale pointwise
 
+universe u
 variables {α : Type*}
 
 /-! ### One/zero -/
@@ -265,7 +266,19 @@ begin
     rw [pure_mul_pure, h, pure_one] }
 end
 
--- @[to_additive]
+instance {α : Type u} [ordered_add_comm_group α] : subtraction_comm_monoid (nonempty_interval α) :=
+{ neg := has_neg.neg,
+  sub := has_sub.sub,
+  sub_eq_add_neg := λ s t, by ext; exact sub_eq_add_neg _ _,
+  neg_neg := λ s, by ext; exact neg_neg _,
+  neg_add_rev := λ s t, by ext; exact neg_add_rev _ _,
+  neg_eq_of_add := λ s t h, begin
+    obtain ⟨a, b, rfl, rfl, hab⟩ := nonempty_interval.add_eq_zero_iff.1 h,
+    rw [neg_pure, neg_eq_of_add_eq_zero_right hab],
+  end,
+  ..nonempty_interval.add_comm_monoid }
+
+@[to_additive nonempty_interval.subtraction_comm_monoid]
 instance : division_comm_monoid (nonempty_interval α) :=
 { inv := has_inv.inv,
   div := (/),
@@ -293,23 +306,18 @@ begin
   { simp [with_bot.some_eq_coe, ←nonempty_interval.coe_mul, nonempty_interval.mul_eq_one_iff] }
 end
 
--- @[to_additive]
-instance : division_comm_monoid (nonempty_interval α) :=
-{ inv := has_inv.inv,
-  div := (/),
-  div_eq_mul_inv := λ s t, by ext; exact div_eq_mul_inv _ _,
-  inv_inv := λ s, by ext; exact inv_inv _,
-  mul_inv_rev := λ s t, by ext; exact mul_inv_rev _ _,
-  inv_eq_of_mul := λ s t h, begin
-    obtain ⟨a, b, rfl, rfl, hab⟩ := nonempty_interval.mul_eq_one_iff.1 h,
-    rw [nonempty_interval.inv_pure, inv_eq_of_mul_eq_one_right hab],
-  end,
-  ..nonempty_interval.comm_monoid }
+instance {α : Type u} [ordered_add_comm_group α] : subtraction_comm_monoid (interval α) :=
+{ neg := has_neg.neg,
+  sub := has_sub.sub,
+  sub_eq_add_neg := by rintro (_ | s) (_ | t); refl <|> exact congr_arg some (sub_eq_add_neg _ _),
+  neg_neg := by rintro (_ | s); refl <|> exact congr_arg some (neg_neg _),
+  neg_add_rev := by rintro (_ | s) (_ | t); refl <|> exact congr_arg some (neg_add_rev _ _),
+  neg_eq_of_add := by rintro (_ | s) (_ | t) h;
+    cases h <|> exact congr_arg some (neg_eq_of_add_eq_zero_right $ option.some_injective _ h),
+  ..interval.add_comm_monoid }
 
-end interval
-
--- @[to_additive]
-instance [ordered_comm_group α] : division_comm_monoid (interval α) :=
+@[to_additive interval.subtraction_comm_monoid]
+instance : division_comm_monoid (interval α) :=
 { inv := has_inv.inv,
   div := (/),
   div_eq_mul_inv := by rintro (_ | s) (_ | t); refl <|> exact congr_arg some (div_eq_mul_inv _ _),
@@ -318,6 +326,8 @@ instance [ordered_comm_group α] : division_comm_monoid (interval α) :=
   inv_eq_of_mul := by rintro (_ | s) (_ | t) h;
     cases h <|> exact congr_arg some (inv_eq_of_mul_eq_one_right $ option.some_injective _ h),
   ..interval.comm_monoid }
+
+end interval
 
 section length
 variables [ordered_add_comm_group α]

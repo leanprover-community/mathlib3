@@ -26,8 +26,67 @@ namespace probability_theory
 
 universe u
 
+variables [has_add ℤˣ] [has_sub ℤˣ]
+
+section preliminaries
+
+lemma pm_one_space_vals (r : ℤˣ) :
+  (r:ℝ) = 1 ∨ (r:ℝ) = -1 :=
+begin
+  cases int.units_eq_one_or r with hh hh;
+  rw hh; simp,
+end
+
+lemma pm_one_space_le (r : ℤˣ) :
+  (r:ℝ) ≤ 1 :=
+begin
+  cases int.units_eq_one_or r with hh hh;
+  rw hh; simp,
+end
+
+lemma CHSH_inequality_of_int_units
+  (A₀ A₁ B₀ B₁ : ℤˣ)
+  :
+  (A₀:ℝ) * B₀ + A₀ * B₁ + A₁ * B₀ - A₁ * B₁ ≤ 2
+  :=
+  begin
+    cases pm_one_space_vals A₀ with hp0 hm0,
+    { cases pm_one_space_vals A₁ with hp1 hm1,
+      { rw hp0,
+        rw hp1,
+        simp only [one_mul],
+        ring_nf,
+        simp only [mul_le_iff_le_one_right, zero_lt_bit0, zero_lt_one],
+        exact pm_one_space_le B₀,
+      },
+      { rw hp0,
+        rw hm1,
+        simp only [one_mul],
+        ring_nf,
+        simp only [mul_le_iff_le_one_right, zero_lt_bit0, zero_lt_one],
+        exact pm_one_space_le B₁,
+      },
+    },
+    { cases pm_one_space_vals A₁ with hp1 hm1,
+      { rw hm0,
+        rw hp1,
+        simp only [one_mul],
+        ring_nf,
+        apply neg_le_of_neg_le,
+        -- divide by 2!
+        sorry,
+      },
+      sorry,
+    }
+  end
+
+
+end preliminaries
+
 -- Bell's inequality: 1964 version
-theorem bells_inequality_1964 {Ω : Type u} {m : measurable_space Ω} (ℙ : probability_measure Ω)
+theorem bells_inequality_1964 
+  {Ω : Type u} [measurable_space Ω]
+  (ℙ : probability_measure Ω)
   -- ℕ should be replaced with {1,2,3}
   (Za : ℕ → Ω → ℤˣ)
   (Zb : ℕ → Ω → ℤˣ)
@@ -41,6 +100,13 @@ theorem bells_inequality_1964 {Ω : Type u} {m : measurable_space Ω} (ℙ : pro
   :=
 
 begin
+  have ineq : ∀ ω: Ω, -(Za 2 ω :ℝ)*(Zb 2 ω) - (Za 2 ω)*(Zb 3 ω) 
+                      + (Za 1 ω)*(Zb 2 ω) - (Za 1 ω)*(Zb 3 ω) ≤ 2 ,
+  { intro ω,
+    -- need - x = +(-x)
+    --exact CHSH_inequality_of_int_units (- Za 2 ω) (Za 1 ω) (Zb 2 ω) (Zb 3 ω),
+    sorry,
+  },
   sorry,
 end
 
@@ -94,18 +160,18 @@ end
 
 def pm_one_space := ℤˣ
 
-instance int.units.measurable_space : measurable_space ℤˣ := ⊤
--- units.measurable_space
-
-
-section preliminaries
-
 lemma pm_one_space_vals (r : ℤˣ) :
   (r : ℝ) = 1 ∨ (r : ℝ) = -1 :=
 begin
   cases int.units_eq_one_or r with hh hh;
   rw hh; simp,
 end
+
+instance int.units.measurable_space : measurable_space ℤˣ := ⊤
+-- units.measurable_space
+
+
+section preliminaries
 
 lemma pm_one_func_vals_ℝ (Za : Ω → ℤˣ) (ω : Ω) :
   ((Za ω) : ℝ) = 1 ∨ ((Za ω) : ℝ)  = -1 :=

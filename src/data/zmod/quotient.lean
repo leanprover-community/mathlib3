@@ -160,12 +160,27 @@ by rw [←fintype.of_equiv_card (orbit_zpowers_equiv a b), zmod.card]
   exact fintype.card_ne_zero,
 end⟩
 
+end mul_action
+
+section group
+
+open subgroup
+
+variables {α : Type*} [group α] {a : α}
+
 /-- See also `order_eq_card_zpowers`. -/
 @[to_additive add_order_eq_card_zmultiples' "See also `add_order_eq_card_zmultiples`."]
-lemma _root_.order_eq_card_zpowers' : order_of a = nat.card (zpowers a) :=
+lemma order_eq_card_zpowers' : order_of a = nat.card (zpowers a) :=
 begin
   have := nat.card_congr (mul_action.orbit_zpowers_equiv a (1 : α)),
   rwa [nat.card_zmod, orbit_subgroup_one_eq_self, eq_comm] at this,
 end
 
-end mul_action
+@[to_additive is_of_fin_add_order.finite_zmultiples]
+lemma is_of_fin_order.finite_zpowers (h : is_of_fin_order a) : finite $ zpowers a :=
+begin
+  rw [← order_of_pos_iff, order_eq_card_zpowers'] at h,
+  exact nat.finite_of_card_ne_zero h.ne.symm,
+end
+
+end group

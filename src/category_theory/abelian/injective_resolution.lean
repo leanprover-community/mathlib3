@@ -3,8 +3,10 @@ Copyright (c) 2022 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang, Scott Morrison
 -/
+import algebra.homology.quasi_iso
 import category_theory.preadditive.injective_resolution
 import category_theory.abelian.exact
+import category_theory.abelian.homology
 import algebra.homology.homotopy_category
 
 /-!
@@ -277,4 +279,37 @@ instance : has_injective_resolutions C :=
 
 end InjectiveResolution
 
+section
+variables [abelian C]
+
+/-- An equivalence of abelian categories sends injective resolutions to injective resolutions. -/
+def equivalence.map_InjectiveResolution {D : Type*} [category D]
+  [abelian D] (F : C ≌ D) [F.functor.additive]
+  (X : C) (I : InjectiveResolution X) : InjectiveResolution (F.functor.obj X) :=
+{ cocomplex := (F.functor.map_homological_complex _).obj I.cocomplex,
+  ι := ((cochain_complex.single₀_map_homological_complex F.functor).app X).inv
+    ≫ (F.functor.map_homological_complex _).map I.ι,
+  injective := λ n, (F.map_injective_iff (I.1.X n)).2 (I.3 n),
+  exact₀ :=
+  begin
+    show exact (𝟙 _ ≫ F.functor.map _) (F.functor.map _),
+    rw category.id_comp,
+    haveI := @preserves_colimits.preserves_finite_colimits
+      _ _ _ _ F.functor (adjunction.is_equivalence_preserves_colimits _),
+    exact F.functor.map_exact _ _ I.4,
+  end,
+  exact := λ n,
+  begin
+    haveI := @preserves_colimits.preserves_finite_colimits
+      _ _ _ _ F.functor (adjunction.is_equivalence_preserves_colimits _),
+    exact F.functor.map_exact _ _ (I.5 n),
+  end,
+  mono :=
+  begin
+    show mono (𝟙 _ ≫ F.functor.map _),
+    rw category.id_comp,
+    apply_instance,
+  end }
+
+end
 end category_theory

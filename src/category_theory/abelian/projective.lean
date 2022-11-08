@@ -3,8 +3,10 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison, Jakob von Raumer
 -/
+import algebra.homology.quasi_iso
 import category_theory.abelian.exact
 import category_theory.abelian.homology
+import category_theory.preadditive.projective
 import category_theory.preadditive.projective_resolution
 
 /-!
@@ -94,104 +96,34 @@ instance : has_projective_resolutions C :=
 { out := λ Z, by apply_instance }
 
 end ProjectiveResolution
-end category_theory
 
-namespace homotopy_equiv
-
-variables {C : Type u} [category C]
-section
-
-variables [has_zero_object C] [preadditive C] [has_equalizers C] [has_images C]
-
-open category_theory category_theory.limits
-
-/-- If a chain complex `C` is homotopy equivalent to a complex concentrated at 0 (for some
-object `X`), the cokernel of the differential `d : C₁ → C₀` is isomorphic to `X.` -/
-def cokernel_at_zero_single₀
-  [has_cokernels C] [has_image_maps C] {X : chain_complex C ℕ} {Y : C}
-  (H : homotopy_equiv X ((chain_complex.single₀ _).obj Y)) : cokernel (X.d 1 0) ≅ Y :=
-(X.homology_zero_iso.symm.trans ((@as_iso _ _ _ _ _ (H.to_quasi_iso.1 0)).trans
-  ((chain_complex.homology_functor_0_single₀ C).app Y)))
-
-lemma cokernel_at_zero_single₀_hom_eq
-  [has_cokernels C] [has_image_maps C] {X : chain_complex C ℕ} {Y : C}
-  (H : homotopy_equiv X ((chain_complex.single₀ _).obj Y)) :
-  H.cokernel_at_zero_single₀.hom = cokernel.desc (X.d 1 0) (H.1.f 0)
-    (by rw ←H.1.2 1 0 rfl; exact comp_zero) :=
-begin
-  ext,
-  dunfold cokernel_at_zero_single₀ chain_complex.homology_zero_iso homology_of_zero_right
-    homology.map_iso chain_complex.homology_functor_0_single₀ cokernel.map,
-  dsimp,
-  simp only [cokernel.π_desc, category.assoc, homology.map_desc],
-  simp only [←category.assoc, cokernel.π_desc],
-  simp only [category.assoc, homology.desc, cokernel.π_desc],
-  suffices : (iso.refl (X.X 0)).inv ≫ H.1.f 0 = H.1.f 0,
-  begin
-    by simpa,
-  end,
-  rw [iso.refl_inv, category.id_comp],
-end
-
-end
-section
-variables [abelian C]
-
-def of_homotopy_equiv_single₀ [has_cokernels C] {X : chain_complex C ℕ}
-  (HX : ∀ n, category_theory.projective (X.X n)) (Y : C)
-  (H : _root_.homotopy_equiv X ((chain_complex.single₀ _).obj Y)) :
-  ProjectiveResolution Y :=
-{ complex := X,
-  π := H.hom,
-  projective := HX,
+/-- An equivalence of abelian categories maps projective resolutions to projective resolutions. -/
+def equivalence.map_ProjectiveResolution {D : Type*} [category D] [abelian D] (F : C ≌ D)
+  [F.functor.additive] (X : C) (P : ProjectiveResolution X) :
+  ProjectiveResolution (F.functor.obj X) :=
+{ complex := (F.functor.map_homological_complex _).obj P.complex,
+  π := (F.functor.map_homological_complex _).map P.π ≫
+    ((chain_complex.single₀_map_homological_complex F.functor).app X).hom,
+  projective := λ n, (F.map_projective_iff (P.1.X n)).2 (P.3 n),
   exact₀ :=
   begin
-    rw preadditive.exact_iff_homology_zero,
-  have h : X.d 1 0 ≫ H.hom.f 0 = 0,
-  { simp only [← H.1.2 1 0 rfl, chain_complex.single₀_obj_X_d, comp_zero], },
-  refine ⟨h, nonempty.intro (homology_iso_kernel_desc _ _ _ ≪≫ _)⟩,
-  { suffices : is_iso (cokernel.desc _ _ h),
-    { haveI := this, apply kernel.of_mono, },
-      rw ←cokernel_at_zero_single₀_hom_eq,
-      apply_instance }
+    show exact (F.functor.map _) (F.functor.map _ ≫ 𝟙 _),
+    rw category.comp_id,
+    haveI := @preserves_colimits.preserves_finite_colimits
+      _ _ _ _ F.functor (adjunction.is_equivalence_preserves_colimits _),
+    exact F.functor.map_exact _ _ P.4,
   end,
-  exact := λ n, (preadditive.exact_iff_homology_zero _ _).2
-    ⟨X.d_comp_d _ _ _, ⟨(chain_complex.homology_succ_iso _ _).symm.trans
-    ((homology_obj_iso_of_homotopy_equiv H _).trans homology_zero_zero)⟩⟩,
-  epi := ⟨λ Z g h Hgh,
-    begin
-    have : H.inv.f 0 ≫ H.hom.f 0 = 𝟙 _ := by rw [←homological_complex.comp_f, H.4.3 0]; simp,
-    rw [←category.id_comp g, ←category.id_comp h, ←this,
-      category.assoc, category.assoc, Hgh]
-    end⟩ }
-#check (chain_complex.single₀_map_homological_complex _).app
-#check is_equivalence
-#check functor.preserves_epimorphisms
+  exact := λ n,
+  begin
+    haveI := @preserves_colimits.preserves_finite_colimits
+      _ _ _ _ F.functor (adjunction.is_equivalence_preserves_colimits _),
+    exact F.functor.map_exact _ _ (P.5 n),
+  end,
+  epi :=
+  begin
+    show epi (F.functor.map _ ≫ 𝟙 _),
+    rw category.comp_id,
+    apply_instance,
+  end }
 
-lemma hmm {D : Type u'} [category.{v} D] [abelian D] (F : C ⥤ D)
-  [hF : is_equivalence F] (Y : C) (hY : projective Y) : projective (F.obj Y) :=
-begin
-  constructor,
-  intros E X f e he,
-  have := (hF.2.app Y).hom ≫ F.inv.map f,
-  haveI : epi (F.inv.map e) :=
-  by unfreezingI { exact (functor.preserves_epimorphsisms_of_adjunction
-      F.inv.as_equivalence.to_adjunction).1 e },
-  rcases @hY.1 ((hF.2.app Y).hom ≫ F.inv.map f) (F.inv.map e),
-  use F.map w ≫ (hF.3.app E).hom,
-  have := hF.4 Y,
-end
---should be generalised I suppose!
-def hmmm {D : Type u'} [category.{v} D] [abelian D] (F : C ⥤ D)
-  [is_equivalence F] [F.additive]
-  (X : C) (P : ProjectiveResolution X) : ProjectiveResolution (F.obj X) :=
-{ complex := (F.map_homological_complex _).obj P.complex,
-  π := (F.map_homological_complex _).map P.π ≫
-    ((chain_complex.single₀_map_homological_complex F).app X).hom,
-  projective := _,
-  exact₀ := _,
-  exact := _,
-  epi := _ }
-
-end
-end homotopy_equiv
+end category_theory

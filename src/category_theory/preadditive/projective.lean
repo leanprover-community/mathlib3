@@ -212,6 +212,56 @@ end enough_projectives
 
 end projective
 
+lemma equivalence.map_projective_iff {D : Type*} [category D] (F : C ≌  D)
+  (Y : C) : projective (F.functor.obj Y) ↔ projective Y :=
+begin
+  split,
+  all_goals { intro hY, constructor, intros E X f e he },
+  { haveI : epi (F.functor.map e) := by unfreezingI { apply_instance },
+    rcases @hY.1 (F.functor.map f) (F.functor.map e),
+    use F.unit.app Y ≫ F.inverse.map w ≫ F.unit_inv.app E,
+    refine faithful.map_injective F.functor _,
+    simp only [functor.map_comp, equivalence.fun_inv_map],
+    simp only [category.assoc, equivalence.counit_inv_functor_comp, category.comp_id],
+    simp [←category.assoc, h] },
+  { haveI : epi (F.inverse.map e) :=
+    by unfreezingI { apply_instance },
+    rcases @hY.1 (F.unit.app Y ≫ F.inverse.map f) (F.inverse.map e),
+    use F.functor.map w ≫ F.counit.app E,
+    have : F.functor.map w ≫ F.counit.app E ≫ e = f :=
+    by simpa [←category.assoc _ (F.counit.app (F.functor.obj Y)) f] using F.functor.congr_map h,
+    rw [category.assoc, this] }
+end
+
+/-- An equivalence of categories `F` maps a projective presentation of `X` to a projective
+presentation of `F(X)`. -/
+def equivalence.map_projective_presentation {D : Type*} [category D] (F : C ≌ D)
+  (X : C) (Y : projective_presentation X) : projective_presentation (F.functor.obj X) :=
+{ P := F.functor.obj Y.P,
+  projective := (F.map_projective_iff _).2 Y.projective,
+  f := F.functor.map Y.f,
+  epi := by haveI := Y.epi; apply_instance }
+
+/-- Given an equivalence of categories `F`, a projective presentation of `F(X)` induces a
+projective presentation of `X.` -/
+def equivalence.inv_map_projective_presentation {D : Type*} [category D] (F : C ≌ D)
+  (X : C) (Y : projective_presentation (F.functor.obj X)) : projective_presentation X :=
+{ P := F.inverse.obj Y.P,
+  projective := (F.symm.map_projective_iff _).2 Y.projective,
+  f := F.inverse.map Y.f ≫ F.unit_inv.app _,
+  epi := by haveI : epi Y.f := Y.epi; refine epi_comp _ _ }
+
+lemma equivalence.enough_projectives_iff {D : Type*} [category D] (F : C ≌ D) :
+  enough_projectives C ↔ enough_projectives D :=
+begin
+  split,
+  all_goals { intro H, constructor, intro X, constructor },
+  { exact F.symm.inv_map_projective_presentation _
+      (nonempty.some (H.presentation (F.inverse.obj X))) },
+  { exact F.inv_map_projective_presentation X
+      (nonempty.some (H.presentation (F.functor.obj X))) },
+end
+
 open projective
 
 section

@@ -302,4 +302,53 @@ end
 
 end injective
 
+lemma equivalence.map_injective_iff {D : Type*} [category D] (F : C ≌ D)
+  (Y : C) : injective (F.functor.obj Y) ↔ injective Y :=
+begin
+  split,
+  all_goals { intro hY, constructor, intros E X f e he },
+  { haveI : mono (F.functor.map e) := by unfreezingI { apply_instance },
+    rcases @hY.1 (F.functor.map f) (F.functor.map e),
+    use F.unit.app X ≫ F.inverse.map w ≫ F.unit_inv.app _,
+    refine faithful.map_injective F.functor _,
+    simpa [←category.assoc _ _ w] },
+  { haveI : mono (F.inverse.map e) := by unfreezingI { apply_instance },
+    rcases @hY.1 (F.inverse.map f ≫ F.unit_inv.app Y) (F.inverse.map e),
+    use F.counit_inv.app X ≫ F.functor.map w,
+    have H : e ≫ F.counit_inv.app X ≫ F.functor.map w = f
+      ≫ F.counit_inv.app (F.functor.obj Y) ≫ F.functor.map (F.unit_inv.app Y) :=
+    by simpa using F.functor.congr_map h,
+    erw [F.counit_inv_functor_comp, category.comp_id] at H,
+    exact H },
+end
+
+/-- An equivalence of categories `F` maps an injective presentation of `X` to an injective
+presentation of `F(X)`. -/
+def equivalence.map_injective_presentation {D : Type*} [category D] (F : C ≌ D)
+  (X : C) (Y : injective_presentation X) : injective_presentation (F.functor.obj X) :=
+{ J := F.functor.obj Y.J,
+  injective := (F.map_injective_iff _).2 Y.injective,
+  f := F.functor.map Y.f,
+  mono := by haveI := Y.mono; apply_instance }
+
+/-- Given an equivalence of categories `F`, a injective presentation of `F(X)` induces a
+injective presentation of `X.` -/
+def equivalence.inv_map_injective_presentation {D : Type*} [category D] (F : C ≌ D)
+  (X : C) (Y : injective_presentation (F.functor.obj X)) : injective_presentation X :=
+{ J := F.inverse.obj Y.J,
+  injective := (F.symm.map_injective_iff _).2 Y.injective,
+  f := F.unit.app X ≫ F.inverse.map Y.f,
+  mono := by haveI : mono Y.f := Y.mono; refine mono_comp _ _ }
+
+lemma equivalence.enough_injectives_iff {D : Type*} [category D] (F : C ≌ D) :
+  enough_injectives C ↔ enough_injectives D :=
+begin
+  split,
+  all_goals { intro H, constructor, intro X, constructor },
+  { exact F.symm.inv_map_injective_presentation _
+      (nonempty.some (H.presentation (F.inverse.obj X))) },
+  { exact F.inv_map_injective_presentation X
+      (nonempty.some (H.presentation (F.functor.obj X))) },
+end
+
 end category_theory

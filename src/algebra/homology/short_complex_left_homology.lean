@@ -690,11 +690,19 @@ by { change is_iso (cycles_map_iso (as_iso φ)).hom, apply_instance, }
 
 variable {S}
 
-def left_homology_data.left_homology_iso (h₁ : S.left_homology_data) [S.has_left_homology] :
-  S.left_homology ≅ h₁.H := left_homology_map_iso' (iso.refl _) _ _
+def left_homology_data.left_homology_iso (h : S.left_homology_data) [S.has_left_homology] :
+  S.left_homology ≅ h.H := left_homology_map_iso' (iso.refl _) _ _
 
-def left_homology_data.cycles_iso (h₁ : S.left_homology_data) [S.has_left_homology] :
-  S.cycles ≅ h₁.K := cycles_map_iso' (iso.refl _) _ _
+def left_homology_data.cycles_iso (h : S.left_homology_data) [S.has_left_homology] :
+  S.cycles ≅ h.K := cycles_map_iso' (iso.refl _) _ _
+
+@[simp, reassoc]
+lemma left_homology_data.cycles_iso_hom_comp_i (h : S.left_homology_data) [S.has_left_homology] :
+  h.cycles_iso.hom ≫ h.i = S.cycles_i :=
+begin
+  dsimp [cycles_i, left_homology_data.cycles_iso],
+  simp only [cycles_map'_i, id_τ₂, comp_id],
+end
 
 namespace left_homology_map_data
 
@@ -910,7 +918,8 @@ by { dsimp only [left_homology_map], apply_instance, }
 
 section
 
-variables (S) {A : C} (k : A ⟶ S.X₂) (hk : k ≫ S.g = 0) [has_left_homology S]
+variables (S) (h : left_homology_data S)
+  {A : C} (k : A ⟶ S.X₂) (hk : k ≫ S.g = 0) [has_left_homology S]
 
 def lift_cycles : A ⟶ S.cycles :=
 S.some_left_homology_data.lift_K k hk
@@ -938,6 +947,29 @@ S.lift_cycles_π_eq_zero_of_boundary S.f (𝟙 _) (by rw id_comp)
 def left_homology_is_cokernel :
   is_colimit (cokernel_cofork.of_π S.left_homology_π S.to_cycles_comp_left_homology_π) :=
 S.some_left_homology_data.hπ
+
+variable {S}
+
+@[reassoc]
+lemma left_homology_data.left_homology_π_comp_left_homology_iso_hom :
+  S.left_homology_π ≫ h.left_homology_iso.hom = h.cycles_iso.hom ≫ h.π :=
+begin
+  dsimp only [left_homology_π, left_homology_data.left_homology_iso, left_homology_map_iso',
+    iso.refl, left_homology_data.cycles_iso, cycles_map_iso'],
+  rw ← left_homology_π_naturality',
+end
+
+@[simp, reassoc]
+lemma left_homology_data.lift_cycles_comp_cycles_iso_hom :
+  S.lift_cycles k hk ≫ h.cycles_iso.hom = h.lift_K k hk :=
+by simp only [← cancel_mono h.i, assoc, h.lift_K_i, h.cycles_iso_hom_comp_i, lift_cycles_i]
+
+@[simp, reassoc]
+lemma left_homology_data.lift_left_homology_comp_left_homology_iso_hom :
+  S.lift_left_homology k hk ≫ h.left_homology_iso.hom = h.lift_H k hk :=
+by simp only [lift_left_homology, left_homology_data.lift_H, assoc,
+    ← h.lift_cycles_comp_cycles_iso_hom k hk,
+    h.left_homology_π_comp_left_homology_iso_hom]
 
 end
 

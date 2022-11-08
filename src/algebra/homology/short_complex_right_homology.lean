@@ -734,11 +734,20 @@ by { change is_iso (cycles_co_map_iso (as_iso φ)).hom, apply_instance, }
 
 variable {S}
 
-def right_homology_data.right_homology_iso (h₁ : S.right_homology_data) [S.has_right_homology] :
-  S.right_homology ≅ h₁.H := right_homology_map_iso' (iso.refl _) _ _
+def right_homology_data.right_homology_iso (h : S.right_homology_data) [S.has_right_homology] :
+  S.right_homology ≅ h.H := right_homology_map_iso' (iso.refl _) _ _
 
-def right_homology_data.cycles_co_iso (h₁ : S.right_homology_data) [S.has_right_homology] :
-  S.cycles_co ≅ h₁.Q := cycles_co_map_iso' (iso.refl _) _ _
+def right_homology_data.cycles_co_iso (h : S.right_homology_data) [S.has_right_homology] :
+  S.cycles_co ≅ h.Q := cycles_co_map_iso' (iso.refl _) _ _
+
+@[simp, reassoc]
+lemma right_homology_data.p_comp_cycles_co_iso_inv (h : S.right_homology_data)
+  [S.has_right_homology] :
+  h.p ≫ h.cycles_co_iso.inv = S.p_cycles_co :=
+begin
+  dsimp [p_cycles_co, right_homology_data.cycles_co_iso],
+  simp only [p_cycles_co_map', id_τ₂, id_comp],
+end
 
 @[simps]
 def left_homology_map_data.op {S₁ S₂ : short_complex C} {φ : S₁ ⟶ S₂}
@@ -1002,7 +1011,8 @@ by { dsimp only [right_homology_map], apply_instance, }
 
 section
 
-variables (S) {A : C} (k : S.X₂ ⟶ A) (hk : S.f ≫ k = 0) [has_right_homology S]
+variables (S) (h : S.right_homology_data) {A : C} (k : S.X₂ ⟶ A) (hk : S.f ≫ k = 0)
+  [has_right_homology S]
 
 def desc_cycles_co : S.cycles_co ⟶ A :=
 S.some_right_homology_data.desc_Q k hk
@@ -1030,6 +1040,32 @@ S.ι_desc_cycles_co_eq_zero_of_boundary S.g (𝟙 _) (by rw comp_id)
 def right_homology_is_kernel :
   is_limit (kernel_fork.of_ι S.right_homology_ι S.right_homology_ι_comp_from_cycles_co) :=
 S.some_right_homology_data.hι
+
+variable {S}
+
+@[reassoc]
+lemma right_homology_data.right_homology_iso_inv_comp_right_homology_ι :
+  h.right_homology_iso.inv ≫ S.right_homology_ι = h.ι ≫ h.cycles_co_iso.inv :=
+begin
+  dsimp only [right_homology_ι, right_homology_data.right_homology_iso,
+    right_homology_map_iso', iso.refl, right_homology_data.cycles_co_iso, cycles_co_map_iso'],
+  rw ← right_homology_ι_naturality',
+end
+
+@[simp, reassoc]
+lemma right_homology_data.cycles_co_iso_inv_comp_desc_cycles_co :
+  h.cycles_co_iso.inv ≫ S.desc_cycles_co k hk = h.desc_Q k hk :=
+by simp only [← cancel_epi h.p, h.p_comp_cycles_co_iso_inv_assoc, p_desc_cycles_co,
+  h.p_desc_Q]
+
+@[simp, reassoc]
+lemma right_homology_data.lift_left_homology_comp_left_homology_iso_hom :
+  h.right_homology_iso.inv ≫ S.desc_right_homology k hk = h.desc_H k hk :=
+begin
+  simp only [desc_right_homology, right_homology_data.desc_H,
+    ← h.cycles_co_iso_inv_comp_desc_cycles_co k hk,
+    right_homology_data.right_homology_iso_inv_comp_right_homology_ι_assoc],
+end
 
 end
 

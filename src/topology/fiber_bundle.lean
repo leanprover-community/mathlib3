@@ -89,9 +89,9 @@ Let `Z : topological_fiber_bundle_core ι B F`. Then we define
 ### Trivializations
 
 Previously, in mathlib, there was a structure `topological_vector_bundle.trivialization` which
-extended another structure `topological_fibre_bundle.trivialization` by a linearity hypothesis. As of
-PR #17359, we have changed this to a single structure `trivialization` (no namespace), together with
-a mixin class `trivialization.is_linear`.
+extended another structure `topological_fibre_bundle.trivialization` by a linearity hypothesis. As
+of PR #17359, we have changed this to a single structure `trivialization` (no namespace), together
+with a mixin class `trivialization.is_linear`.
 
 This permits all the *data* of a vector bundle to be held at the level of fibre bundles, so that the
 same trivializations can underlie an object's structure as (say) a vector bundle over `ℂ` and as a

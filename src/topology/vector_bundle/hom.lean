@@ -72,7 +72,7 @@ by delta_instance bundle.continuous_linear_map
 end defs
 
 variables {𝕜₁ : Type*} [nontrivially_normed_field 𝕜₁] {𝕜₂ : Type*} [nontrivially_normed_field 𝕜₂]
-  (σ : 𝕜₁ →+* 𝕜₂)
+  (σ : 𝕜₁ →+* 𝕜₂) [iσ : ring_hom_isometric σ]
 
 variables {B : Type*} [topological_space B]
 
@@ -86,9 +86,10 @@ variables (F₂ : Type*) [normed_add_comm_group F₂][normed_space 𝕜₂ F₂]
 open topological_vector_bundle
 
 variables {F₁ E₁ F₂ E₂} (e₁ e₁' : trivialization F₁ (π E₁)) (e₂ e₂' : trivialization F₂ (π E₂))
-variables [ring_hom_isometric σ]
 
 namespace pretrivialization
+
+include iσ
 
 /-- Assume `eᵢ` and `eᵢ'` are trivializations of the bundles `Eᵢ` over base `B` with fiber `Fᵢ`
 (`i ∈ {1,2}`), then `continuous_linear_map_coord_change σ e₁ e₁' e₂ e₂'` is the coordinate change
@@ -123,6 +124,8 @@ begin
       continuous_linear_equiv.arrow_congrSL_apply, comp_apply, function.comp, compSL_apply,
       flip_apply, continuous_linear_equiv.symm_symm] },
 end
+
+omit iσ
 
 variables (σ e₁ e₁' e₂ e₂')
   [e₁.is_linear 𝕜₁] [e₁'.is_linear 𝕜₁] [e₂.is_linear 𝕜₂] [e₂'.is_linear 𝕜₂]

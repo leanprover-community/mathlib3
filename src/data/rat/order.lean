@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 import algebra.order.field.defs
 import data.rat.basic
 import data.int.cast.lemmas
-import tactic.find_unused
 
 /-!
 # Order for Rational Numbers
@@ -160,7 +159,6 @@ by unfold has_le.le rat.le; rw add_sub_add_left_eq_sub
 protected theorem mul_nonneg {a b : ℚ} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a * b :=
 by rw ← nonneg_iff_zero_le at ha hb ⊢; exact rat.nonneg_mul ha hb
 
-@[main_declaration]
 instance : linear_ordered_field ℚ :=
 { zero_le_one     := dec_trivial,
   add_le_add_left := assume a b ab c, rat.add_le_add_left.2 ab,
@@ -170,8 +168,6 @@ instance : linear_ordered_field ℚ :=
   ..rat.field,
   ..rat.linear_order,
   ..rat.semiring }
-
-#list_unused_decls ["src/data/nat/order/basic.lean"]
 
 /- Extra instances to short-circuit type class resolution -/
 instance : linear_ordered_comm_ring ℚ       := by apply_instance

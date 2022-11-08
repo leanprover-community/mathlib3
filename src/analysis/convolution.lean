@@ -6,9 +6,8 @@ Authors: Floris van Doorn
 import measure_theory.group.integration
 import measure_theory.group.prod
 import measure_theory.function.locally_integrable
-import analysis.calculus.bump_function_inner
+import analysis.calculus.specific_functions
 import analysis.calculus.parametric_integral
-import measure_theory.measure.haar_lebesgue
 
 /-!
 # Convolution of functions
@@ -63,7 +62,7 @@ This generality has several advantages
   is `𝒞ⁿ` with compact support and the other function in locally integrable.
 * `convolution_tendsto_right`: Given a sequence of nonnegative normalized functions whose support
   tends to a small neighborhood around `0`, the convolution tends to the right argument.
-  This is specialized to bump functions in `cont_diff_bump.convolution_tendsto_right`.
+  This is specialized to bump functions in `cont_diff_bump_of_inner.convolution_tendsto_right`.
 
 # Notation
 The following notations are localized in the locale `convolution`:
@@ -88,16 +87,10 @@ open set function filter measure_theory measure_theory.measure topological_space
 open continuous_linear_map metric
 open_locale pointwise topological_space nnreal filter
 
-noncomputable theory
-
-universes u𝕜 uG uE uE' uE'' uF uF' uF'' uP
-
-variables {𝕜 : Type u𝕜} {G : Type uG} {E : Type uE} {E' : Type uE'} {E'' : Type uE''}
-{F : Type uF} {F' : Type uF'} {F'' : Type uF''} {P : Type uP}
-
+variables {𝕜 G E E' E'' F F' F'' : Type*}
 variables [normed_add_comm_group E] [normed_add_comm_group E'] [normed_add_comm_group E'']
-  [normed_add_comm_group F] [normed_add_comm_group P]
-  {f f' : G → E} {g g' : G → E'} {x x' : G} {y y' : E}
+  [normed_add_comm_group F] {f f' : G → E} {g g' : G → E'} {x x' : G} {y y' : E}
+
 section nontrivially_normed_field
 
 variables [nontrivially_normed_field 𝕜]
@@ -290,12 +283,12 @@ lemma measure_theory.integrable.ae_convolution_exists (hf : integrable f ν) (hg
 end right
 
 variables [topological_space G] [topological_add_group G] [borel_space G]
-[second_countable_topology G] [sigma_compact_space G]
+  [second_countable_topology G] [sigma_compact_space G]
 
 lemma has_compact_support.convolution_exists_at {x₀ : G}
   (h : has_compact_support (λ t, L (f t) (g (x₀ - t)))) (hf : locally_integrable f μ)
   (hg : continuous g) : convolution_exists_at f g x₀ L μ :=
-((((homeomorph.neg G).trans $ homeomorph.add_right x₀).is_compact_preimage.mpr h).bdd_above_image
+((((homeomorph.neg G).trans $ homeomorph.add_right x₀).compact_preimage.mpr h).bdd_above_image
   hg.norm.continuous_on).convolution_exists_at' L is_closed_closure.measurable_set subset_closure
   (hf h) hf.ae_strongly_measurable hg.ae_strongly_measurable
 
@@ -427,10 +420,10 @@ lemma convolution_smul [smul_comm_class ℝ 𝕜 F]
   {y : 𝕜} : f ⋆[L, μ] (y • g) = y • (f ⋆[L, μ] g) :=
 by { ext, simp only [pi.smul_apply, convolution_def, ← integral_smul, (L _).map_smul] }
 
-@[simp] lemma zero_convolution : 0 ⋆[L, μ] g = 0 :=
+lemma zero_convolution : 0 ⋆[L, μ] g = 0 :=
 by { ext, simp_rw [convolution_def, pi.zero_apply, L.map_zero₂, integral_zero] }
 
-@[simp] lemma convolution_zero : f ⋆[L, μ] 0 = 0 :=
+lemma convolution_zero : f ⋆[L, μ] 0 = 0 :=
 by { ext, simp_rw [convolution_def, pi.zero_apply, (L _).map_zero, integral_zero] }
 
 lemma convolution_exists_at.distrib_add {x : G} (hfg : convolution_exists_at f g x L μ)
@@ -492,7 +485,7 @@ variables [topological_add_group G]
 
 lemma has_compact_support.convolution [t2_space G] (hcf : has_compact_support f)
   (hcg : has_compact_support g) : has_compact_support (f ⋆[L, μ] g) :=
-is_compact_of_is_closed_subset (hcg.is_compact.add hcf) is_closed_closure $ closure_minimal
+compact_of_is_closed_subset (hcg.is_compact.add hcf) is_closed_closure $ closure_minimal
   ((support_convolution_subset_swap L).trans $ add_subset_add subset_closure subset_closure)
   (hcg.is_compact.add hcf).is_closed
 
@@ -588,18 +581,6 @@ convolution_eq_swap _
 lemma convolution_mul_swap [normed_space ℝ 𝕜] [complete_space 𝕜] {f : G → 𝕜} {g : G → 𝕜} :
   (f ⋆[mul 𝕜 𝕜, μ] g) x = ∫ t, f (x - t) * g t ∂μ :=
 convolution_eq_swap _
-
-lemma convolution_neg_of_neg_eq (h1 : ∀ᵐ x ∂μ, f (-x) = f x) (h2 : ∀ᵐ x ∂μ, g (-x) = g x) :
-  (f ⋆[L, μ] g) (-x) = (f ⋆[L, μ] g) x :=
-calc ∫ (t : G), (L (f t)) (g (-x - t)) ∂μ
-    = ∫ (t : G), (L (f (-t))) (g (x + t)) ∂μ :
-  begin
-    apply integral_congr_ae,
-    filter_upwards [h1, (eventually_add_left_iff μ x).2 h2] with t ht h't,
-    simp_rw [ht, ← h't, neg_add'],
-  end
-... = ∫ (t : G), (L (f t)) (g (x - t)) ∂μ :
-  by { rw ← integral_neg_eq_self, simp only [neg_neg, ← sub_eq_add_neg] }
 
 end measurable
 
@@ -767,15 +748,15 @@ end
 
 end normed_add_comm_group
 
-namespace cont_diff_bump
+namespace cont_diff_bump_of_inner
 
 variables {n : ℕ∞}
 variables [normed_space ℝ E']
-variables [normed_add_comm_group G] [normed_space ℝ G] [has_cont_diff_bump G]
+variables [inner_product_space ℝ G]
 variables [complete_space E']
-variables {a : G} {φ : cont_diff_bump (0 : G)}
+variables {a : G} {φ : cont_diff_bump_of_inner (0 : G)}
 
-/-- If `φ` is a bump function, compute `(φ ⋆ g) x₀` if `g` is constant on `metric.ball x₀ φ.D`. -/
+/-- If `φ` is a bump function, compute `(φ ⋆ g) x₀` if `g` is constant on `metric.ball x₀ φ.R`. -/
 lemma convolution_eq_right {x₀ : G}
   (hg : ∀ x ∈ ball x₀ φ.R, g x = g x₀) : (φ ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀ = integral μ φ • g x₀ :=
 by simp_rw [convolution_eq_right' _ φ.support_eq.subset hg, lsmul_apply, integral_smul_const]
@@ -784,7 +765,7 @@ variables [borel_space G]
 variables [is_locally_finite_measure μ] [is_open_pos_measure μ]
 variables [finite_dimensional ℝ G]
 
-/-- If `φ` is a normed bump function, compute `φ ⋆ g` if `g` is constant on `metric.ball x₀ φ.D`. -/
+/-- If `φ` is a normed bump function, compute `φ ⋆ g` if `g` is constant on `metric.ball x₀ φ.R`. -/
 lemma normed_convolution_eq_right {x₀ : G}
   (hg : ∀ x ∈ ball x₀ φ.R, g x = g x₀) : (φ.normed μ ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀ = g x₀ :=
 by { simp_rw [convolution_eq_right' _ φ.support_normed_eq.subset hg, lsmul_apply],
@@ -793,7 +774,7 @@ by { simp_rw [convolution_eq_right' _ φ.support_normed_eq.subset hg, lsmul_appl
 variables [is_add_left_invariant μ]
 
 /-- If `φ` is a normed bump function, approximate `(φ ⋆ g) x₀` if `g` is near `g x₀` on a ball with
-radius `φ.D` around `x₀`. -/
+radius `φ.R` around `x₀`. -/
 lemma dist_normed_convolution_le {x₀ : G} {ε : ℝ}
   (hmg : ae_strongly_measurable g μ)
   (hg : ∀ x ∈ ball x₀ φ.R, dist (g x) (g x₀) ≤ ε) :
@@ -802,11 +783,11 @@ dist_convolution_le (by simp_rw [← dist_self (g x₀), hg x₀ (mem_ball_self 
   φ.support_normed_eq.subset φ.nonneg_normed φ.integral_normed hmg hg
 
 /-- `(φ i ⋆ g i) (k i)` tends to `z₀` as `i` tends to some filter `l` if
-* `φ` is a sequence of normed bump functions such that `(φ i).D` tends to `0` as `i` tends to `l`;
+* `φ` is a sequence of normed bump functions such that `(φ i).R` tends to `0` as `i` tends to `l`;
 * `g i` is `mu`-a.e. strongly measurable as `i` tends to `l`;
 * `g i x` tends to `z₀` as `(i, x)` tends to `l ×ᶠ 𝓝 x₀`;
 * `k i` tends to `x₀`. -/
-lemma convolution_tendsto_right {ι} {φ : ι → cont_diff_bump (0 : G)}
+lemma convolution_tendsto_right {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
   {g : ι → G → E'} {k : ι → G} {x₀ : G} {z₀ : E'} {l : filter ι}
   (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))
   (hig : ∀ᶠ i in l, ae_strongly_measurable (g i) μ)
@@ -817,16 +798,16 @@ convolution_tendsto_right (eventually_of_forall $ λ i, (φ i).nonneg_normed)
   (eventually_of_forall $ λ i, (φ i).integral_normed)
   (tendsto_support_normed_small_sets hφ) hig hcg hk
 
-/-- Special case of `cont_diff_bump.convolution_tendsto_right` where `g` is continuous,
+/-- Special case of `cont_diff_bump_of_inner.convolution_tendsto_right` where `g` is continuous,
   and the limit is taken only in the first function. -/
-lemma convolution_tendsto_right_of_continuous {ι} {φ : ι → cont_diff_bump (0 : G)}
+lemma convolution_tendsto_right_of_continuous {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
   {l : filter ι} (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))
   (hg : continuous g) (x₀ : G) :
   tendsto (λ i, ((λ x, (φ i).normed μ x) ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀) l (𝓝 (g x₀)) :=
 convolution_tendsto_right hφ (eventually_of_forall $ λ _, hg.ae_strongly_measurable)
   ((hg.tendsto x₀).comp tendsto_snd) tendsto_const_nhds
 
-end cont_diff_bump
+end cont_diff_bump_of_inner
 
 end measurability
 
@@ -952,23 +933,20 @@ end
 
 end assoc
 
-variables [normed_add_comm_group G] [borel_space G] [normed_space 𝕜 G]  [normed_space 𝕜 P]
+variables [normed_add_comm_group G] [borel_space G]
+variables [second_countable_topology G] [sigma_compact_space G]
 
 lemma convolution_precompR_apply {g : G → E'' →L[𝕜] E'}
   (hf : locally_integrable f μ) (hcg : has_compact_support g) (hg : continuous g)
   (x₀ : G) (x : E'') : (f ⋆[L.precompR E'', μ] g) x₀ x = (f ⋆[L, μ] (λ a, g a x)) x₀  :=
 begin
-  rcases hcg.eq_zero_or_finite_dimensional 𝕜 hg with rfl|fin_dim,
-  { simp only [convolution, pi.zero_apply, integral_const, smul_zero, zero_apply,
-      _root_.map_zero] },
-  resetI,
-  haveI : proper_space G, from finite_dimensional.proper_is_R_or_C 𝕜 G,
   have := hcg.convolution_exists_right (L.precompR E'' : _) hf hg x₀,
   simp_rw [convolution_def, continuous_linear_map.integral_apply this],
   refl,
 end
 
 variables [sigma_finite μ] [is_add_left_invariant μ]
+variables [normed_space 𝕜 G] [proper_space G]
 
 /-- Compute the total derivative of `f ⋆ g` if `g` is `C^1` with compact support and `f` is locally
 integrable. To write down the total derivative as a convolution, we use
@@ -977,12 +955,6 @@ lemma has_compact_support.has_fderiv_at_convolution_right
   (hcg : has_compact_support g) (hf : locally_integrable f μ) (hg : cont_diff 𝕜 1 g) (x₀ : G) :
   has_fderiv_at (f ⋆[L, μ] g) ((f ⋆[L.precompR G, μ] fderiv 𝕜 g) x₀) x₀ :=
 begin
-  rcases hcg.eq_zero_or_finite_dimensional 𝕜 hg.continuous with rfl|fin_dim,
-  { have : fderiv 𝕜 (0 : G → E') = 0, from fderiv_const (0 : E'),
-    simp only [this, convolution_zero, pi.zero_apply],
-    exact has_fderiv_at_const (0 : F) x₀ },
-  resetI,
-  haveI : proper_space G, from finite_dimensional.proper_is_R_or_C 𝕜 G,
   set L' := L.precompR G,
   have h1 : ∀ᶠ x in 𝓝 x₀, ae_strongly_measurable (λ t, L (f t) (g (x - t))) μ :=
   eventually_of_forall
@@ -1016,14 +988,10 @@ begin
   exact hcf.has_fderiv_at_convolution_right L.flip hg hf x₀,
 end
 
-lemma has_compact_support.cont_diff_convolution_right
+lemma has_compact_support.cont_diff_convolution_right [finite_dimensional 𝕜 G]
   (hcg : has_compact_support g) (hf : locally_integrable f μ) (hg : cont_diff 𝕜 n g) :
   cont_diff 𝕜 n (f ⋆[L, μ] g) :=
 begin
-  rcases hcg.eq_zero_or_finite_dimensional 𝕜 hg.continuous with rfl|fin_dim,
-  { simp only [convolution_zero], exact cont_diff_zero_fun, },
-  resetI,
-  haveI : proper_space G, from finite_dimensional.proper_is_R_or_C 𝕜 G,
   induction n using enat.nat_induction with n ih ih generalizing g,
   { rw [cont_diff_zero] at hg ⊢,
     exact hcg.continuous_convolution_right L hf hg },
@@ -1043,7 +1011,7 @@ begin
   { rw [cont_diff_top] at hg ⊢, exact λ n, ih n hcg (hg n) }
 end
 
-lemma has_compact_support.cont_diff_convolution_left [is_neg_invariant μ]
+lemma has_compact_support.cont_diff_convolution_left [finite_dimensional 𝕜 G] [is_neg_invariant μ]
   (hcf : has_compact_support f) (hf : cont_diff 𝕜 n f) (hg : locally_integrable g μ) :
   cont_diff 𝕜 n (f ⋆[L, μ] g) :=
 by { rw [← convolution_flip], exact hcf.cont_diff_convolution_right L.flip hg hf }
@@ -1084,452 +1052,3 @@ begin
 end
 
 end real
-
-section with_param
-
-variables [is_R_or_C 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 E'] [normed_space 𝕜 E'']
-[normed_space ℝ F] [normed_space 𝕜 F] [complete_space F] [measurable_space G]
-[normed_add_comm_group G] [borel_space G] [normed_space 𝕜 G]
-{μ : measure G} (L : E →L[𝕜] E' →L[𝕜] F)
-
-/-- The convolution `f * g` is continuous if `f` is locally integrable and `g` is continuous and
-compactly supported. Version where `g` depends on an additional parameter in an open subset `s` of
-a parameter space `P` (and the compact support `k` is independent of the parameter in `s`). -/
-lemma continuous_on_convolution_right_with_param
-  {g : P → G → E'}
-  {s : set P} {k : set G} (hs : is_open s) (hk : is_compact k)
-  (hgs : ∀ p, ∀ x, p ∈ s → x ∉ k → g p x = 0)
-  (hf : locally_integrable f μ) (hg : continuous_on (↿g) (s ×ˢ univ)) :
-  continuous_on (λ (q : P × G), (f ⋆[L, μ] g q.1) q.2) (s ×ˢ univ) :=
-begin
-  assume q₀ hq₀,
-  apply continuous_at.continuous_within_at,
-  replace hq₀ : q₀.1 ∈ s, by simpa only [mem_prod, mem_univ, and_true] using hq₀,
-  have A : ∀ p ∈ s, continuous (g p),
-  { assume p hp,
-    apply hg.comp_continuous (continuous_const.prod_mk continuous_id') (λ x, _),
-    simpa only [prod_mk_mem_set_prod_eq, mem_univ, and_true] using hp },
-  have A' : ∀ (q : P × G), q.1 ∈ s → s ×ˢ univ ∈ 𝓝 q,
-  { assume q hq,
-    apply (hs.prod is_open_univ).mem_nhds,
-    simpa only [mem_prod, mem_univ, and_true] using hq },
-  /- Exclude the trivial case where the space is not finite-dimensional: then `g` has to be zero
-  along `s`, so the conclusion is trivial. -/
-  by_cases fin_dim : finite_dimensional 𝕜 G, swap,
-  { have B : ∀ p ∈ s, ∀ x, g p x = 0,
-    { assume p hp,
-      have : has_compact_support (g p),
-        from has_compact_support.intro hk (λ x hx, hgs p x hp hx),
-      cases this.eq_zero_or_finite_dimensional 𝕜 (A p hp),
-      { exact funext_iff.1 h },
-      { exact (fin_dim h).elim } },
-    have C : (λ (q : P × G), (f ⋆[L, μ] g q.1) q.2) =ᶠ[𝓝 q₀] (λ y, 0),
-    { filter_upwards [A' q₀ hq₀],
-      rintros ⟨p, x⟩ ⟨hp, hx⟩,
-      have : g p = 0,
-      { ext1 x, apply B p hp x },
-      simp only [this, convolution_zero, pi.zero_apply] },
-    exact continuous_at.congr continuous_at_const C.symm },
-  resetI,
-  haveI : proper_space G, from finite_dimensional.proper_is_R_or_C 𝕜 G,
-    /- We find a small neighborhood of `{q₀.1} × k` on which the function is uniformly bounded.
-    This follows from the continuity at all points of the compact set `k`. -/
-  obtain ⟨ε, C, εpos, Cnonneg, h₀ε, hε⟩ :
-    ∃ ε C, 0 < ε ∧ 0 ≤ C ∧ ball q₀.1 ε ⊆ s ∧ ∀ p x, ∥p - q₀.1∥ < ε → ∥g p x∥ ≤ C,
-  { have A : is_compact ({q₀.1} ×ˢ k), from is_compact_singleton.prod hk,
-    obtain ⟨t, kt, t_open, ht⟩ : ∃ t, {q₀.1} ×ˢ k ⊆ t ∧ is_open t ∧ bounded (↿g '' t),
-    { apply exists_is_open_bounded_image_of_is_compact_of_continuous_on A
-        (hs.prod is_open_univ) _ hg,
-      simp only [prod_subset_prod_iff, hq₀, singleton_subset_iff, subset_univ, and_self, true_or] },
-    obtain ⟨ε, εpos, hε, h'ε⟩ :
-      ∃ (ε : ℝ), 0 < ε ∧ thickening ε ({q₀.fst} ×ˢ k) ⊆ t ∧ ball q₀.1 ε ⊆ s,
-    { obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ), 0 < ε ∧ thickening ε ({q₀.fst} ×ˢ k) ⊆ t,
-        from A.exists_thickening_subset_open t_open kt,
-      obtain ⟨δ, δpos, hδ⟩ : ∃ (δ : ℝ) (H : 0 < δ), ball q₀.1 δ ⊆ s,
-        from metric.is_open_iff.1 hs _ hq₀,
-      refine ⟨min ε δ, lt_min εpos δpos, _, _⟩,
-      { exact subset.trans (thickening_mono (min_le_left _ _) _) hε },
-      { exact subset.trans (ball_subset_ball (min_le_right _ _)) hδ } },
-    obtain ⟨C, Cpos, hC⟩ : ∃ C, 0 < C ∧ (↿g) '' t ⊆ closed_ball (0 : E') C,
-      from ht.subset_ball_lt 0 0,
-    refine ⟨ε, C, εpos, Cpos.le, h'ε, λ p x hp, _⟩,
-    have hps : p ∈ s, from h'ε (mem_ball_iff_norm.2 hp),
-    by_cases hx : x ∈ k,
-    { have H : (p, x) ∈ t,
-      { apply hε,
-        refine mem_thickening_iff.2 ⟨(q₀.1, x), _, _⟩,
-        { simp only [hx, singleton_prod, mem_image, prod.mk.inj_iff, eq_self_iff_true, true_and,
-            exists_eq_right] },
-        { rw ← dist_eq_norm at hp,
-          simpa only [prod.dist_eq, εpos, dist_self, max_lt_iff, and_true] using hp } },
-      have : g p x ∈ closed_ball (0 : E') C, from hC (mem_image_of_mem _ H),
-      rwa mem_closed_ball_zero_iff at this },
-    { have : g p x = 0, from hgs _ _ hps hx,
-      rw this,
-      simpa only [norm_zero] using Cpos.le } },
-  have I1 : ∀ᶠ (q : P × G) in 𝓝 q₀,
-    ae_strongly_measurable (λ (a : G), L (f a) (g q.1 (q.2 - a))) μ,
-  { filter_upwards [A' q₀ hq₀],
-    rintros ⟨p, x⟩ ⟨hp, hx⟩,
-    exact hf.ae_strongly_measurable.convolution_integrand_snd' L
-      ((A p hp).ae_strongly_measurable) },
-  let K' := - k + closed_ball q₀.2 ε,
-  have hK' : is_compact K' := hk.neg.add (is_compact_closed_ball _ _),
-  let bound : G → ℝ := indicator K' (λ a, ∥L∥ * ∥f a∥ * C),
-  have I2 : ∀ᶠ (q : P × G) in 𝓝 q₀, ∀ᵐ (a : G) ∂μ, ∥L (f a) (g q.1 (q.2 - a))∥ ≤ bound a,
-  { filter_upwards [ball_mem_nhds q₀ εpos],
-    rintros ⟨p, x⟩ hpx,
-    apply eventually_of_forall (λ a, _),
-    suffices : ∥L∥ * ∥f a∥ * ∥g p (x - a)∥ ≤ bound a,
-    { refine le_trans (le_op_norm _ _) _,
-      exact (mul_le_mul_of_nonneg_right (le_op_norm _ _) (norm_nonneg _)).trans this },
-    by_cases H : x - a ∈ k,
-    { have : a ∈ -k + closed_ball q₀.2 ε,
-      { refine ⟨a - x, x, by simpa only [set.mem_neg, neg_sub] using H, _,
-          by simp only [sub_add_cancel]⟩,
-        rw [metric.mem_ball, prod.dist_eq] at hpx,
-        exact mem_closed_ball.2 (le_trans (le_max_right _ _) hpx.le) },
-      simp only [bound, indicator, this, if_true],
-      refine mul_le_mul_of_nonneg_left _ (by positivity),
-      apply hε,
-      rw [metric.mem_ball, prod.dist_eq, dist_eq_norm] at hpx,
-      exact (le_max_left _ _).trans_lt hpx },
-    { have : g p (x - a) = 0,
-      { apply hgs _ _ _ H,
-        apply h₀ε,
-        rw [metric.mem_ball, prod.dist_eq] at hpx,
-        exact lt_of_le_of_lt (le_max_left _ _) hpx, },
-      simp only [this, bound, norm_zero, mul_zero],
-      apply indicator_nonneg,
-      assume a ha,
-      positivity } },
-  have I3 : integrable bound μ,
-  { rw [integrable_indicator_iff hK'.measurable_set],
-    exact ((hf hK').norm.const_mul _).mul_const _ },
-  have I4 : ∀ᵐ (a : G) ∂μ, continuous_at (λ (q : P × G), L (f a) (g q.1 (q.2 - a))) q₀,
-  { apply eventually_of_forall (λ a, _),
-    suffices H : continuous_at (λ (q : P × G), (f a, g q.1 (q.2 - a))) q₀,
-      from L.continuous₂.continuous_at.comp H,
-    apply continuous_at_const.prod,
-    change continuous_at (λ (q : P × G), ↿g (q.1, q.2 - a)) q₀,
-    have : continuous_at (λ (q : P × G), (q.1, q.2 - a)) q₀,
-      from (continuous_fst.prod_mk (continuous_snd.sub continuous_const)).continuous_at,
-    apply continuous_at.comp _ this,
-    exact (hg.continuous_at (A' (q₀.fst, q₀.snd - a) hq₀)) },
-  exact continuous_at_of_dominated I1 I2 I3 I4,
-end
-
-variables [normed_space 𝕜 P] [sigma_finite μ] [is_add_left_invariant μ]
-
-/-- The derivative of the convolution `f * g` is given by `f * Dg`, when `f` is locally integrable
-and `g` is `C^1` and compactly supported. Version where `g` depends on an additional parameter in an
-open subset `s` of a parameter space `P` (and the compact support `k` is independent of the
-parameter in `s`). -/
-lemma has_fderiv_at_convolution_right_with_param
-  {g : P → G → E'} {s : set P} {k : set G} (hs : is_open s) (hk : is_compact k)
-  (hgs : ∀ p, ∀ x, p ∈ s → x ∉ k → g p x = 0)
-  (hf : locally_integrable f μ) (hg : cont_diff_on 𝕜 1 ↿g (s ×ˢ univ))
-  (q₀ : P × G) (hq₀ : q₀.1 ∈ s) :
-  has_fderiv_at (λ (q : P × G), (f ⋆[L, μ] g q.1) q.2)
-    ((f ⋆[L.precompR (P × G), μ] (λ (x : G), fderiv 𝕜 ↿g (q₀.1, x))) q₀.2) q₀ :=
-begin
-  let g' := fderiv 𝕜 ↿g,
-  have A : ∀ p ∈ s, continuous (g p),
-  { assume p hp,
-    apply hg.continuous_on.comp_continuous (continuous_const.prod_mk continuous_id') (λ x, _),
-    simpa only [prod_mk_mem_set_prod_eq, mem_univ, and_true] using hp },
-  have A' : ∀ (q : P × G), q.1 ∈ s → s ×ˢ univ ∈ 𝓝 q,
-  { assume q hq,
-    apply (hs.prod is_open_univ).mem_nhds,
-    simpa only [mem_prod, mem_univ, and_true] using hq },
-  /- Exclude the trivial case where the space is not finite-dimensional: then `g` has to be zero
-  along `s`, therefore its derivative is also zero and the conclusion is trivial. -/
-  by_cases fin_dim : finite_dimensional 𝕜 G, swap,
-  { have B : ∀ p ∈ s, ∀ x, g p x = 0,
-    { assume p hp,
-      have : has_compact_support (g p),
-        from has_compact_support.intro hk (λ x hx, hgs p x hp hx),
-      cases this.eq_zero_or_finite_dimensional 𝕜 (A p hp),
-      { exact funext_iff.1 h },
-      { exact (fin_dim h).elim } },
-    have C : (λ (q : P × G), (f ⋆[L, μ] g q.1) q.2) =ᶠ[𝓝 q₀] (λ y, 0),
-    { filter_upwards [A' q₀ hq₀],
-      rintros ⟨p, x⟩ ⟨hp, hx⟩,
-      have : g p = 0,
-      { ext1 x, apply B p hp x },
-      simp only [this, convolution_zero, pi.zero_apply] },
-    have D : (λ (x : G), g' (q₀.1, x)) = 0,
-    { ext1 x,
-      suffices H : has_fderiv_at ↿g (0 : P × G →L[𝕜] E') (q₀.fst, x), from H.fderiv,
-      refine has_fderiv_at_zero_of_eventually_const 0 _,
-      filter_upwards [A' (q₀.1, x) hq₀],
-      rintros ⟨p, x⟩ ⟨hp, hx⟩,
-      exact B p hp x },
-    simpa only [D, convolution_zero, pi.zero_apply]
-      using has_fderiv_at_zero_of_eventually_const _ C },
-  resetI,
-  haveI : proper_space G, from finite_dimensional.proper_is_R_or_C 𝕜 G,
-  /- The derivative of `g` vanishes away from `s`. -/
-  have g'_zero : ∀ p x, p ∈ s → x ∉ k → g' (p, x) = 0,
-  { assume p x hp hx,
-    refine (has_fderiv_at_zero_of_eventually_const 0 _).fderiv,
-    have M2 : kᶜ ∈ 𝓝 x, from is_open.mem_nhds hk.is_closed.is_open_compl hx,
-    have M1 : s ∈ 𝓝 p, from hs.mem_nhds hp,
-    rw nhds_prod_eq,
-    filter_upwards [prod_mem_prod M1 M2],
-    rintros ⟨p, y⟩ ⟨hp, hy⟩,
-    exact hgs p y hp hy },
-  /- We find a small neighborhood of `{q₀.1} × k` on which the derivative is uniformly bounded. This
-  follows from the continuity at all points of the compact set `k`. -/
-  obtain ⟨ε, C, εpos, Cnonneg, h₀ε, hε⟩ :
-    ∃ ε C, 0 < ε ∧ 0 ≤ C ∧ ball q₀.1 ε ⊆ s ∧ ∀ p x, ∥p - q₀.1∥ < ε → ∥g' (p, x)∥ ≤ C,
-  { have A : is_compact ({q₀.1} ×ˢ k), from is_compact_singleton.prod hk,
-    obtain ⟨t, kt, t_open, ht⟩ : ∃ t, {q₀.1} ×ˢ k ⊆ t ∧ is_open t ∧ bounded (g' '' t),
-    { have B : continuous_on g' (s ×ˢ univ),
-        from hg.continuous_on_fderiv_of_open (hs.prod is_open_univ) le_rfl,
-      apply exists_is_open_bounded_image_of_is_compact_of_continuous_on A
-        (hs.prod is_open_univ) _ B,
-      simp only [prod_subset_prod_iff, hq₀, singleton_subset_iff, subset_univ, and_self, true_or] },
-    obtain ⟨ε, εpos, hε, h'ε⟩ :
-      ∃ (ε : ℝ), 0 < ε ∧ thickening ε ({q₀.fst} ×ˢ k) ⊆ t ∧ ball q₀.1 ε ⊆ s,
-    { obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ), 0 < ε ∧ thickening ε ({q₀.fst} ×ˢ k) ⊆ t,
-        from A.exists_thickening_subset_open t_open kt,
-      obtain ⟨δ, δpos, hδ⟩ : ∃ (δ : ℝ) (H : 0 < δ), ball q₀.1 δ ⊆ s,
-        from metric.is_open_iff.1 hs _ hq₀,
-      refine ⟨min ε δ, lt_min εpos δpos, _, _⟩,
-      { exact subset.trans (thickening_mono (min_le_left _ _) _) hε },
-      { exact subset.trans (ball_subset_ball (min_le_right _ _)) hδ } },
-    obtain ⟨C, Cpos, hC⟩ : ∃ C, 0 < C ∧ g' '' t ⊆ closed_ball 0 C, from ht.subset_ball_lt 0 0,
-    refine ⟨ε, C, εpos, Cpos.le, h'ε, λ p x hp, _⟩,
-    have hps : p ∈ s, from h'ε (mem_ball_iff_norm.2 hp),
-    by_cases hx : x ∈ k,
-    { have H : (p, x) ∈ t,
-      { apply hε,
-        refine mem_thickening_iff.2 ⟨(q₀.1, x), _, _⟩,
-        { simp only [hx, singleton_prod, mem_image, prod.mk.inj_iff, eq_self_iff_true, true_and,
-            exists_eq_right] },
-        { rw ← dist_eq_norm at hp,
-          simpa only [prod.dist_eq, εpos, dist_self, max_lt_iff, and_true] using hp } },
-      have : g' (p, x) ∈ closed_ball (0 : P × G →L[𝕜] E') C, from hC (mem_image_of_mem _ H),
-      rwa mem_closed_ball_zero_iff at this },
-    { have : g' (p, x) = 0, from g'_zero _ _ hps hx,
-      rw this,
-      simpa only [norm_zero] using Cpos.le } },
-  /- Now, we wish to apply a theorem on differentiation of integrals. For this, we need to check
-  trivial measurability or integrability assumptions (in `I1`, `I2`, `I3`), as well as a uniform
-  integrability assumption over the derivative (in `I4` and `I5`) and pointwise differentiability
-  in `I6`. -/
-  have I1 : ∀ᶠ (x : P × G) in 𝓝 q₀,
-    ae_strongly_measurable (λ (a : G), L (f a) (g x.1 (x.2 - a))) μ,
-  { filter_upwards [A' q₀ hq₀],
-    rintros ⟨p, x⟩ ⟨hp, hx⟩,
-    exact hf.ae_strongly_measurable.convolution_integrand_snd L (A p hp).ae_strongly_measurable x },
-  have I2 : integrable (λ (a : G), L (f a) (g q₀.1 (q₀.2 - a))) μ,
-  { have M : has_compact_support (g q₀.1),
-      from has_compact_support.intro hk (λ x hx, hgs q₀.1 x hq₀ hx),
-    apply M.convolution_exists_right L hf (A q₀.1 hq₀) q₀.2 },
-  have I3 : ae_strongly_measurable (λ (a : G), (L (f a)).comp (g' (q₀.fst, q₀.snd - a))) μ,
-  { have M : ae_strongly_measurable (λ x, g' (q₀.1, x)) μ,
-    { have : continuous_on g' (s ×ˢ univ),
-        from hg.continuous_on_fderiv_of_open (hs.prod is_open_univ) le_rfl,
-      apply continuous.ae_strongly_measurable,
-      apply this.comp_continuous (continuous_const.prod_mk continuous_id'),
-      assume x,
-      simpa only [prod_mk_mem_set_prod_eq, mem_univ, and_true] using hq₀ },
-    exact hf.ae_strongly_measurable.convolution_integrand_snd (L.precompR (P × G) : _) M q₀.2 },
-  let K' := - k + closed_ball q₀.2 ε,
-  have hK' : is_compact K' := hk.neg.add (is_compact_closed_ball _ _),
-  let bound : G → ℝ := indicator K' (λ a, ∥L∥ * ∥f a∥ * C),
-  have I4 : ∀ᵐ (a : G) ∂μ, ∀ (x : P × G), dist x q₀ < ε →
-    ∥(L (f a)).comp (g' (x.fst, x.snd - a))∥ ≤ bound a,
-  { apply eventually_of_forall,
-    assume a x hx,
-    refine (op_norm_comp_le _ _).trans _,
-    refine le_trans (mul_le_mul (le_op_norm _ _) le_rfl (norm_nonneg _) (by positivity)) _,
-    by_cases H : x.2 - a ∈ k,
-    { have : a ∈ -k + closed_ball q₀.2 ε,
-      { refine ⟨a - x.2, x.2, by simpa only [set.mem_neg, neg_sub] using H, _,
-          by simp only [sub_add_cancel]⟩,
-        rw prod.dist_eq at hx,
-        exact mem_closed_ball.2 (le_trans (le_max_right _ _) hx.le) },
-      simp only [bound, indicator, this, if_true],
-      refine mul_le_mul_of_nonneg_left _ (by positivity),
-      apply hε,
-      rw [prod.dist_eq, dist_eq_norm] at hx,
-      exact (le_max_left _ _).trans_lt hx },
-    { have : g' (x.1, x.2 - a) = 0,
-      { apply g'_zero _ _ _ H,
-        apply h₀ε,
-        rw prod.dist_eq at hx,
-        exact lt_of_le_of_lt (le_max_left _ _) hx },
-      simp only [this, bound, norm_zero, mul_zero],
-      apply indicator_nonneg,
-      assume a ha,
-      positivity } },
-  have I5 : integrable bound μ,
-  { rw [integrable_indicator_iff hK'.measurable_set],
-    exact ((hf hK').norm.const_mul _).mul_const _ },
-  have I6 : ∀ᵐ (a : G) ∂μ, ∀ (x : P × G), dist x q₀ < ε →
-    has_fderiv_at (λ (x : P × G), L (f a) (g x.1 (x.2 - a)))
-      ((L (f a)).comp (fderiv 𝕜 ↿g (x.fst, x.snd - a))) x,
-  { apply eventually_of_forall,
-    assume a x hx,
-    apply (L _).has_fderiv_at.comp x,
-    have N : s ×ˢ univ ∈ 𝓝 (x.1, x.2 - a),
-    { apply A',
-      apply h₀ε,
-      rw prod.dist_eq at hx,
-      exact lt_of_le_of_lt (le_max_left _ _) hx },
-    have Z := ((hg.differentiable_on le_rfl).differentiable_at N).has_fderiv_at,
-    have Z' : has_fderiv_at (λ (x : P × G), (x.1, x.2 - a)) (continuous_linear_map.id 𝕜 (P × G)) x,
-    { have : (λ (x : P × G), (x.1, x.2 - a)) = id - (λ x, (0, a)),
-      { ext x; simp only [pi.sub_apply, id.def, prod.fst_sub, sub_zero, prod.snd_sub] },
-      simp_rw [this],
-      exact (has_fderiv_at_id x).sub_const (0, a) },
-    exact Z.comp x Z' },
-  exact has_fderiv_at_integral_of_dominated_of_fderiv_le εpos I1 I2 I3 I4 I5 I6,
-end
-
-/-- The convolution `f * g` is `C^n` when `f` is locally integrable and `g` is `C^n` and compactly
-supported. Version where `g` depends on an additional parameter in an open subset `s` of a
-parameter space `P` (and the compact support `k` is independent of the parameter in `s`).
-In this version, all the types belong to the same universe (to get an induction working in the
-proof). Use instead `cont_diff_on_convolution_right_with_param`, which removes this restriction. -/
-lemma cont_diff_on_convolution_right_with_param_aux
-  {G : Type uP} {E' : Type uP} {F : Type uP} {P : Type uP}
-  [normed_add_comm_group E'] [normed_add_comm_group F]
-  [normed_space 𝕜 E'] [normed_space ℝ F] [normed_space 𝕜 F] [complete_space F]
-  [measurable_space G] {μ : measure G} [normed_add_comm_group G] [borel_space G] [normed_space 𝕜 G]
-  [sigma_finite μ] [μ.is_add_left_invariant]
-  [normed_add_comm_group P] [normed_space 𝕜 P]
-  {f : G → E} {n : ℕ∞} (L : E →L[𝕜] E' →L[𝕜] F)
-  {g : P → G → E'}
-  {s : set P} {k : set G} (hs : is_open s) (hk : is_compact k)
-  (hgs : ∀ p, ∀ x, p ∈ s → x ∉ k → g p x = 0)
-  (hf : locally_integrable f μ) (hg : cont_diff_on 𝕜 n ↿g (s ×ˢ univ)) :
-  cont_diff_on 𝕜 n (λ (q : P × G), (f ⋆[L, μ] g q.1) q.2) (s ×ˢ univ) :=
-begin
-  unfreezingI { induction n using enat.nat_induction with n ih ih generalizing g E' F },
-  { rw [cont_diff_on_zero] at hg ⊢,
-    refine continuous_on_convolution_right_with_param L hs hk hgs hf hg },
-  { let f' : P → G → (P × G →L[𝕜] F) := λ p a,
-      (f ⋆[L.precompR (P × G), μ] (λ (x : G), fderiv 𝕜 (uncurry g) (p, x))) a,
-    have A : ∀ (q₀ : P × G), q₀.1 ∈ s →
-      has_fderiv_at (λ (q : P × G), (f ⋆[L, μ] g q.1) q.2) (f' q₀.1 q₀.2) q₀,
-        from has_fderiv_at_convolution_right_with_param L hs hk hgs hf hg.one_of_succ,
-    rw cont_diff_on_succ_iff_fderiv_of_open (hs.prod (@is_open_univ G _)) at ⊢ hg,
-    split,
-    { rintros ⟨p, x⟩ ⟨hp, hx⟩,
-      exact (A (p, x) hp).differentiable_at.differentiable_within_at, },
-    { suffices H : cont_diff_on 𝕜 n ↿f' (s ×ˢ univ),
-      { apply H.congr,
-        rintros ⟨p, x⟩ ⟨hp, hx⟩,
-        exact (A (p, x) hp).fderiv },
-      have B : ∀ (p : P) (x : G), p ∈ s → x ∉ k → fderiv 𝕜 (uncurry g) (p, x) = 0,
-      { assume p x hp hx,
-        apply (has_fderiv_at_zero_of_eventually_const (0 : E') _).fderiv,
-        have M2 : kᶜ ∈ 𝓝 x, from is_open.mem_nhds hk.is_closed.is_open_compl hx,
-        have M1 : s ∈ 𝓝 p, from hs.mem_nhds hp,
-        rw nhds_prod_eq,
-        filter_upwards [prod_mem_prod M1 M2],
-        rintros ⟨p, y⟩ ⟨hp, hy⟩,
-        exact hgs p y hp hy },
-      apply ih (L.precompR (P × G) : _) B,
-      convert hg.2,
-      apply funext,
-      rintros ⟨p, x⟩,
-      refl } },
-  { rw [cont_diff_on_top] at hg ⊢,
-    assume n,
-    exact ih n L hgs (hg n) }
-end
-
-/-- The convolution `f * g` is `C^n` when `f` is locally integrable and `g` is `C^n` and compactly
-supported. Version where `g` depends on an additional parameter in an open subset `s` of a
-parameter space `P` (and the compact support `k` is independent of the parameter in `s`). -/
-lemma cont_diff_on_convolution_right_with_param
-  {f : G → E} {n : ℕ∞} (L : E →L[𝕜] E' →L[𝕜] F)
-  {g : P → G → E'}
-  {s : set P} {k : set G} (hs : is_open s) (hk : is_compact k)
-  (hgs : ∀ p, ∀ x, p ∈ s → x ∉ k → g p x = 0)
-  (hf : locally_integrable f μ) (hg : cont_diff_on 𝕜 n ↿g (s ×ˢ univ)) :
-  cont_diff_on 𝕜 n (λ (q : P × G), (f ⋆[L, μ] g q.1) q.2) (s ×ˢ univ) :=
-begin
-  let eG : Type (max uG uE' uF uP) := ulift G,
-  borelize eG,
-  let eE' : Type (max uE' uG uF uP) := ulift E',
-  let eF : Type (max uF uG uE' uP) := ulift F,
-  let eP : Type (max uP uG uE' uF) := ulift P,
-  have isoG : eG ≃L[𝕜] G := continuous_linear_equiv.ulift,
-  have isoE' : eE' ≃L[𝕜] E' := continuous_linear_equiv.ulift,
-  have isoF : eF ≃L[𝕜] F := continuous_linear_equiv.ulift,
-  have isoP : eP ≃L[𝕜] P := continuous_linear_equiv.ulift,
-  let ef := f ∘ isoG,
-  let eμ : measure eG := measure.map isoG.symm μ,
-  haveI : sigma_finite eμ,
-  { apply isoG.symm.to_homeomorph.to_measurable_equiv.sigma_finite_map,
-    apply_instance },
-  haveI : is_add_left_invariant eμ,
-    from is_add_left_invariant_map isoG.symm.to_linear_map.to_add_hom
-      isoG.symm.continuous.measurable isoG.symm.surjective,
-  let eg : eP → eG → eE' := λ ep ex, isoE'.symm (g (isoP ep) (isoG ex)),
-  let eL := continuous_linear_map.comp
-    ((continuous_linear_equiv.arrow_congr isoE' isoF).symm : (E' →L[𝕜] F) →L[𝕜] eE' →L[𝕜] eF) L,
-  let R := (λ (q : eP × eG), (ef ⋆[eL, eμ] eg q.1) q.2),
-  have R_contdiff : cont_diff_on 𝕜 n R ((isoP ⁻¹' s) ×ˢ univ),
-  { have hek : is_compact (isoG ⁻¹' k),
-      from isoG.to_homeomorph.closed_embedding.is_compact_preimage hk,
-    have hes : is_open (isoP ⁻¹' s), from isoP.continuous.is_open_preimage _ hs,
-    refine cont_diff_on_convolution_right_with_param_aux eL hes hek _ _ _,
-    { assume p x hp hx,
-      simp only [comp_app, continuous_linear_equiv.prod_apply, linear_isometry_equiv.coe_coe,
-        continuous_linear_equiv.map_eq_zero_iff],
-      exact hgs _ _ hp hx },
-    { apply (locally_integrable_map_homeomorph isoG.symm.to_homeomorph).2,
-      convert hf,
-      ext1 x,
-      simp only [ef, continuous_linear_equiv.coe_to_homeomorph, comp_app,
-        continuous_linear_equiv.apply_symm_apply], },
-    { apply isoE'.symm.cont_diff.comp_cont_diff_on,
-      apply hg.comp ((isoP.prod isoG).cont_diff).cont_diff_on,
-      rintros ⟨p, x⟩ ⟨hp, hx⟩,
-      simpa only [mem_preimage, continuous_linear_equiv.prod_apply, prod_mk_mem_set_prod_eq,
-        mem_univ, and_true] using hp } },
-  have A : cont_diff_on 𝕜 n (isoF ∘ R ∘ (isoP.prod isoG).symm) (s ×ˢ univ),
-  { apply isoF.cont_diff.comp_cont_diff_on,
-    apply R_contdiff.comp (continuous_linear_equiv.cont_diff _).cont_diff_on,
-    rintros ⟨p, x⟩ ⟨hp, hx⟩,
-    simpa only [mem_preimage, mem_prod, mem_univ, and_true, continuous_linear_equiv.prod_symm,
-      continuous_linear_equiv.prod_apply, continuous_linear_equiv.apply_symm_apply] using hp },
-  have : isoF ∘ R ∘ (isoP.prod isoG).symm = (λ (q : P × G), (f ⋆[L, μ] g q.1) q.2),
-  { apply funext,
-    rintros ⟨p, x⟩,
-    simp only [R, linear_isometry_equiv.coe_coe, comp_app, continuous_linear_equiv.prod_symm,
-      continuous_linear_equiv.prod_apply],
-    simp only [convolution, eL, coe_comp', continuous_linear_equiv.coe_coe, comp_app, eμ],
-    rw [closed_embedding.integral_map, ← isoF.integral_comp_comm],
-    swap, { exact isoG.symm.to_homeomorph.closed_embedding },
-    congr' 1,
-    ext1 a,
-    simp only [ef, eg, comp_app, continuous_linear_equiv.apply_symm_apply, coe_comp',
-      continuous_linear_equiv.prod_apply, continuous_linear_equiv.map_sub,
-      continuous_linear_equiv.arrow_congr, continuous_linear_equiv.arrow_congrSL_symm_apply,
-      continuous_linear_equiv.coe_coe, comp_app, continuous_linear_equiv.apply_symm_apply] },
-  simp_rw [this] at A,
-  exact A,
-end
-
-/-- The convolution `g * f` is `C^n` when `f` is locally integrable and `g` is `C^n` and compactly
-supported. Version where `g` depends on an additional parameter in an open subset `s` of a
-parameter space `P` (and the compact support `k` is independent of the parameter in `s`). -/
-lemma cont_diff_on_convolution_left_with_param [μ.is_neg_invariant]
-  {f : G → E} {n : ℕ∞} (L : E' →L[𝕜] E →L[𝕜] F)
-  {g : P → G → E'}
-  {s : set P} {k : set G} (hs : is_open s) (hk : is_compact k)
-  (hgs : ∀ p, ∀ x, p ∈ s → x ∉ k → g p x = 0)
-  (hf : locally_integrable f μ) (hg : cont_diff_on 𝕜 n ↿g (s ×ˢ univ)) :
-  cont_diff_on 𝕜 n (λ (q : P × G), (g q.1 ⋆[L, μ] f) q.2) (s ×ˢ univ) :=
-by simpa only [convolution_flip]
-  using cont_diff_on_convolution_right_with_param L.flip hs hk hgs hf hg
-
-end with_param

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import order.conditionally_complete_lattice
+import algebra.big_operators.basic
 import algebra.group.prod
 import algebra.group.pi
 import algebra.module.pi
@@ -52,20 +53,6 @@ iff.rfl
 @[to_additive] lemma mul_support_subset_iff' {f : α → M} {s : set α} :
   mul_support f ⊆ s ↔ ∀ x ∉ s, f x = 1 :=
 forall_congr $ λ x, not_imp_comm
-
-@[to_additive] lemma mul_support_eq_iff {f : α → M} {s : set α} :
-  mul_support f = s ↔ ((∀ x, x ∈ s → f x ≠ 1) ∧ (∀ x, x ∉ s → f x = 1)) :=
-begin
-  split,
-  { rintros rfl,
-    simp },
-  { rintros ⟨hs, hsc⟩,
-    refine subset.antisymm _ hs,
-    simp only [mul_support_subset_iff, ne.def],
-    assume x hx,
-    contrapose! hx,
-    exact hsc x hx }
-end
 
 @[to_additive] lemma mul_support_disjoint_iff {f : α → M} {s : set α} :
   disjoint (mul_support f) s ↔ eq_on f 1 s :=

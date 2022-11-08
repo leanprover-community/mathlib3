@@ -324,7 +324,6 @@ equal to `μ s` times the absolute value of the determinant of `f`. -/
 
 variables {E : Type*} [normed_add_comm_group E] [measurable_space E] [normed_space ℝ E]
   [finite_dimensional ℝ E] [borel_space E] (μ : measure E) [is_add_haar_measure μ]
-  {F : Type*} [normed_add_comm_group F] [normed_space ℝ F] [complete_space F]
 
 lemma map_add_haar_smul {r : ℝ} (hr : r ≠ 0) :
   measure.map ((•) r) μ = ennreal.of_real (abs (r ^ (finrank ℝ E))⁻¹) • μ :=
@@ -369,24 +368,6 @@ calc μ (affine_map.homothety x r '' s) = μ ((λ y, y + x) '' (r • ((λ y, y 
   by { simp only [← image_smul, image_image, ← sub_eq_add_neg], refl }
 ... = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :
   by simp only [image_add_right, measure_preimage_add_right, add_haar_smul]
-
-lemma integral_comp_smul (f : E → F) {R : ℝ} (hR : R ≠ 0) :
-  ∫ x, f (R • x) ∂μ = |(R ^ finrank ℝ E)⁻¹| • ∫ x, f x ∂μ :=
-calc ∫ x, f (R • x) ∂μ = ∫ y, f y ∂(measure.map (λ x, R • x) μ) :
-  (integral_map_equiv (homeomorph.smul (is_unit_iff_ne_zero.2 hR).unit).to_measurable_equiv f).symm
-... = |(R ^ finrank ℝ E)⁻¹| • ∫ x, f x ∂μ : by simp [map_add_haar_smul μ hR]
-
-lemma integral_comp_smul_of_pos (f : E → F) (R : ℝ) {hR : 0 < R} :
-  ∫ x, f (R • x) ∂μ = (R ^ finrank ℝ E)⁻¹ • ∫ x, f x ∂μ :=
-by rw [integral_comp_smul μ f hR.ne', abs_of_nonneg (inv_nonneg.2 (pow_nonneg hR.le _))]
-
-lemma integral_comp_inv_smul (f : E → F) {R : ℝ} (hR : R ≠ 0) :
-  ∫ x, f (R⁻¹ • x) ∂μ = |(R ^ finrank ℝ E)| • ∫ x, f x ∂μ :=
-by rw [integral_comp_smul μ f (inv_ne_zero hR), inv_pow, inv_inv]
-
-lemma integral_comp_inv_smul_of_pos (f : E → F) {R : ℝ} (hR : 0 < R) :
-  ∫ x, f (R⁻¹ • x) ∂μ = R ^ finrank ℝ E • ∫ x, f x ∂μ :=
-by rw [integral_comp_inv_smul μ f hR.ne', abs_of_nonneg ((pow_nonneg hR.le _))]
 
 /-! We don't need to state `map_add_haar_neg` here, because it has already been proved for
 general Haar measures on general commutative groups. -/

@@ -1360,18 +1360,6 @@ begin
   abel,
 end
 
-lemma tsum_subtype_add_tsum_subtype_compl [t2_space α] {f : β → α} (hf : summable f) (s : set β) :
-  ∑' x : s, f x + ∑' x : sᶜ, f x = ∑' x, f x :=
-((hf.subtype s).has_sum.add_compl (hf.subtype {x | x ∉ s}).has_sum).unique hf.has_sum
-
-lemma sum_add_tsum_subtype_compl [t2_space α] {f : β → α} (hf : summable f) (s : finset β) :
-  ∑ x in s, f x + ∑' x : {x // x ∉ s}, f x = ∑' x, f x :=
-begin
-  rw ← tsum_subtype_add_tsum_subtype_compl hf s,
-  simp only [finset.tsum_subtype', add_right_inj],
-  refl,
-end
-
 end uniform_group
 
 section topological_group

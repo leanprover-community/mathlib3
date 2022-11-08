@@ -1244,10 +1244,6 @@ lemma to_topological_space_inf {u v : uniform_space α} :
   (u ⊓ v).to_topological_space = u.to_topological_space ⊓ v.to_topological_space :=
 rfl
 
-/-- Uniform space structure on `ulift α`. -/
-instance ulift.uniform_space [uniform_space α] : uniform_space (ulift α) :=
-uniform_space.comap ulift.down ‹_›
-
 section uniform_continuous_infi
 
 lemma uniform_continuous_inf_rng {f : α → β} {u₁ : uniform_space α} {u₂ u₃ : uniform_space β}

@@ -516,7 +516,7 @@ Measures and integral calculus:
     change of variables to polar co-ordinates: 'integral_comp_polar_coord_symm '
     change of variables to spherical co-ordinates: ''
     convolution: 'convolution'
-    approximation by convolution: 'cont_diff_bump.convolution_tendsto_right'
+    approximation by convolution: 'cont_diff_bump_of_inner.convolution_tendsto_right'
     regularization by convolution: 'has_compact_support.cont_diff_convolution_left'
   Fourier analysis:
     Fourier series of locally integrable periodic real-valued functions: ''

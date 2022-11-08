@@ -839,15 +839,6 @@ L.to_continuous_linear_map.integral_comp_comm' L.antilipschitz _
 
 end linear_isometry
 
-namespace continuous_linear_equiv
-
-variables [complete_space F] [normed_space ℝ F] [complete_space E] [normed_space ℝ E]
-
-lemma integral_comp_comm (L : E ≃L[𝕜] F) (φ : α → E) : ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
-L.to_continuous_linear_map.integral_comp_comm' L.antilipschitz _
-
-end continuous_linear_equiv
-
 variables [complete_space E] [normed_space ℝ E] [complete_space F] [normed_space ℝ F]
 
 @[norm_cast] lemma integral_of_real {f : α → ℝ} : ∫ a, (f a : 𝕜) ∂μ = ↑∫ a, f a ∂μ :=

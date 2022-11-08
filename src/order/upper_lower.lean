@@ -5,6 +5,7 @@ Authors: Yaël Dillies, Sara Rousta
 -/
 import data.set_like.basic
 import data.set.intervals.ord_connected
+import data.set.intervals.order_iso
 import order.hom.complete_lattice
 
 /-!

@@ -113,9 +113,8 @@ begin
     split; intros h; use h.1,
     simp only [function.comp_app, and_self, h.2, em (q b)],
     cases h.2; { try { simp at h_1 }, simp [h_1] } },
-  { rw disjoint_iff, change _ ∩ _ = ∅, ext ⟨a, b⟩, rw mem_inter,
-    simp only [and_imp, mem_filter, not_and, not_not, function.comp_app, iff_false, mem_product,
-     not_mem_empty], intros, assumption }
+  { apply finset.disjoint_filter_filter',
+    exact (disjoint_compl_right.inf_left _).inf_right _ }
 end
 
 lemma empty_product (t : finset β) : (∅ : finset α) ×ˢ t = ∅ := rfl

@@ -25,9 +25,9 @@ open measure_theory measurable_space probability_theory
 namespace probability_theory
 
 universe u
-variables {Ω : Type u} {m : measurable_space Ω} (ℙ : probability_measure Ω)
 
-theorem bells_inequality 
+-- Bell's inequality: 1964 version
+theorem bells_inequality_1964 {Ω : Type u} {m : measurable_space Ω} (ℙ : probability_measure Ω)
   -- ℕ should be replaced with {1,2,3}
   (Za : ℕ → Ω → ℤˣ)
   (Zb : ℕ → Ω → ℤˣ)
@@ -35,7 +35,55 @@ theorem bells_inequality
   (Zb_measurable : ∀ i:ℕ , measurable (Zb i))
   (anticorrelation : ∀ i:ℕ , ∫ ω , (Za i ω : ℝ)*(Zb i ω) ∂(ℙ:measure Ω) = -1)
   :
-  | (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) ) - (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) ) | ≤ 1 + (∫ ω, (Za 2 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) )
+  | (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) ) 
+    - (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) ) |
+    ≤ 1 + (∫ ω, (Za 2 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) )
+  :=
+
+begin
+  sorry,
+end
+
+
+-- Bell's inequality: 1971 version
+theorem bells_inequality_1971 {Ω : Type u} {m : measurable_space Ω}
+  -- parameter space for experiments
+  {Aa Ab : Type u}
+  -- shared variable space
+  {Λ : Type u}
+  {mm : measurable_space Λ}
+
+  -- random variables
+  (Xa : Ω → ℤˣ)
+  (Xb : Ω → ℤˣ)
+  (Xa_measurable : measurable Xa)
+  (Xb_measurable : measurable Xb)
+
+  -- probability distribution on outcomes of experiments that depends on two parameters α∈Aa and β∈Ab
+  (ℙ : Aa → Ab → (probability_measure Ω))
+  -- factorized probabilities
+  (ℙa : Aa → (probability_measure Ω))
+  (ℙb : Ab → (probability_measure Ω))
+  -- probability distribution on shared variable
+  (P_lam : probability_measure Ω)
+
+  -- shared variable
+  (lam : Ω → Λ)
+  (lam_measurable : measurable lam)
+
+  -- locality assumption
+  (locality : ∀ lam_val:Λ, ∀ α:Aa, ∀ β:Ab , ∀ ω : set Ω ,
+    ((probability_theory.cond ((ℙ α β):measure Ω) (lam ⁻¹' {lam_val})) ω) = 
+      ((probability_theory.cond ((ℙa α):measure Ω) (lam ⁻¹' {lam_val})) ω)*
+      ((probability_theory.cond ((ℙb β):measure Ω) (lam ⁻¹' {lam_val})) ω )
+  )
+  :
+  ∀ α : Aa , ∀ α' : Aa, ∀ β : Ab , ∀ β' : Ab ,
+  | (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙ α β):measure Ω) ) 
+    - (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙ α β'):measure Ω) ) |
+  + | (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙ α' β):measure Ω) ) 
+    - (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙ α' β'):measure Ω) ) |
+    ≤ 2
   :=
 
 begin

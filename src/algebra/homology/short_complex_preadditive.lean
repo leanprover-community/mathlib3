@@ -7,6 +7,24 @@ open category_theory category_theory.preadditive category_theory.category catego
 
 variables {C : Type*} [category C] [preadditive C]
 
+lemma category_theory.mono_of_is_zero_ker {X Y : C} {f : X ⟶ Y}
+  (c : kernel_fork f) (hc₁ : is_limit c) (hc₂ : is_zero c.X) : mono f :=
+⟨λ Z g₁ g₂ hg, begin
+  rw ← sub_eq_zero at ⊢ hg,
+  rw ← sub_comp at hg,
+  simpa only [hc₂.eq_of_src (fork.ι c) 0, comp_zero]
+    using (kernel_fork.is_limit.lift_ι hc₁ (kernel_fork.of_ι _ hg)).symm,
+end⟩
+
+lemma category_theory.epi_of_is_zero_coker {X Y : C} {f : X ⟶ Y}
+  (c : cokernel_cofork f) (hc₁ : is_colimit c) (hc₂ : is_zero c.X) : epi f :=
+⟨λ Z g₁ g₂ hg, begin
+  rw ← sub_eq_zero at ⊢ hg,
+  rw ← comp_sub at hg,
+  simpa only [hc₂.eq_of_tgt (cofork.π c) 0, zero_comp]
+    using (cokernel_cofork.is_colimit.π_desc hc₁ (cokernel_cofork.of_π _ hg)).symm,
+end⟩
+
 namespace short_complex
 
 variables {S₁ S₂ S₃ : short_complex C} {φ φ' : S₁ ⟶ S₂}

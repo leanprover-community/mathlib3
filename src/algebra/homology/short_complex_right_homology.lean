@@ -4,85 +4,6 @@ noncomputable theory
 
 open category_theory category_theory.category
 
-namespace category_theory
-
-namespace limits
-
-variables {C : Type*} [category C] [has_zero_morphisms C]
-
-namespace kernel_fork
-
-@[simp]
-lemma is_limit.lift_ι {X Y : C} {f : X ⟶ Y} {c : kernel_fork f} (hc : is_limit c)
-  (c' : kernel_fork f) : hc.lift c' ≫ c.ι = c'.ι :=
-by apply fork.is_limit.lift_ι
-
-@[simps]
-def is_limit.of_ι_op {K X Y : C} (i : K ⟶ X) {f : X ⟶ Y}
-  (w : i ≫ f = 0) (h : is_limit (kernel_fork.of_ι i w)) :
-  is_colimit (cokernel_cofork.of_π i.op
-    (show f.op ≫ i.op = 0, by simpa only [← op_comp, w])) :=
-cokernel_cofork.is_colimit.of_π _ _
-  (λ A x hx, (h.lift (kernel_fork.of_ι x.unop (quiver.hom.op_inj hx))).op)
-  (λ A x hx, quiver.hom.unop_inj (is_limit.lift_ι h _))
-  (λ A x hx b hb, quiver.hom.unop_inj (fork.is_limit.hom_ext h begin
-    simp only [quiver.hom.unop_op, is_limit.lift_ι],
-    exact quiver.hom.op_inj hb,
-  end))
-
-@[simps]
-def is_limit.of_ι_unop {K X Y : Cᵒᵖ} (i : K ⟶ X) {f : X ⟶ Y}
-  (w : i ≫ f = 0) (h : is_limit (kernel_fork.of_ι i w)) :
-  is_colimit (cokernel_cofork.of_π i.unop
-    (show f.unop ≫ i.unop = 0, by simpa only [← unop_comp, w])) :=
-cokernel_cofork.is_colimit.of_π _ _
-  (λ A x hx, (h.lift (kernel_fork.of_ι x.op (quiver.hom.unop_inj hx))).unop)
-  (λ A x hx, quiver.hom.op_inj (is_limit.lift_ι h _))
-  (λ A x hx b hb, quiver.hom.op_inj (fork.is_limit.hom_ext h begin
-    simp only [quiver.hom.op_unop, is_limit.lift_ι],
-    exact quiver.hom.unop_inj hb,
-  end))
-
-end kernel_fork
-
-namespace cokernel_cofork
-
-@[simp]
-lemma is_colimit.π_desc {X Y : C} {f : X ⟶ Y} {c : cokernel_cofork f} (hc : is_colimit c)
-  (c' : cokernel_cofork f) : c.π ≫ hc.desc c' = c'.π :=
-by apply cofork.is_colimit.π_desc
-
-@[simps]
-def is_colimit.of_π_op {X Y Q : C} (p : Y ⟶ Q) {f : X ⟶ Y}
-  (w : f ≫ p = 0) (h : is_colimit (cokernel_cofork.of_π p w)) :
-  is_limit (kernel_fork.of_ι p.op
-    (show p.op ≫ f.op = 0, by simpa only [← op_comp, w])) :=
-kernel_fork.is_limit.of_ι _ _
-  (λ A x hx, (h.desc (cokernel_cofork.of_π x.unop (quiver.hom.op_inj hx))).op)
-  (λ A x hx, quiver.hom.unop_inj (is_colimit.π_desc h _))
-  (λ A x hx b hb, quiver.hom.unop_inj (cofork.is_colimit.hom_ext h begin
-    simp only [quiver.hom.unop_op, is_colimit.π_desc],
-    exact quiver.hom.op_inj hb,
-  end))
-
-@[simps]
-def is_colimit.of_π_unop {X Y Q : Cᵒᵖ} (p : Y ⟶ Q) {f : X ⟶ Y}
-  (w : f ≫ p = 0) (h : is_colimit (cokernel_cofork.of_π p w)) :
-  is_limit (kernel_fork.of_ι p.unop
-    (show p.unop ≫ f.unop = 0, by simpa only [← unop_comp, w])) :=
-kernel_fork.is_limit.of_ι _ _
-  (λ A x hx, (h.desc (cokernel_cofork.of_π x.op (quiver.hom.unop_inj hx))).unop)
-  (λ A x hx, quiver.hom.op_inj (is_colimit.π_desc h _))
-  (λ A x hx b hb, quiver.hom.op_inj (cofork.is_colimit.hom_ext h begin
-    simp only [quiver.hom.op_unop, is_colimit.π_desc],
-    exact quiver.hom.unop_inj hb,
-  end))
-
-end cokernel_cofork
-
-end limits
-
-end category_theory
 
 open category_theory.limits
 variables {C : Type*} [category C] [has_zero_morphisms C]
@@ -1023,6 +944,9 @@ right_homology_data.p_desc_Q _ k hk
 
 def cycles_co_is_cokernel : is_colimit (cokernel_cofork.of_π S.p_cycles_co S.f_cycles_co_p) :=
 S.some_right_homology_data.hp
+
+lemma is_iso_p_cycles_co_of (hf : S.f = 0) : is_iso (S.p_cycles_co) :=
+cokernel_cofork.is_colimit.is_iso_π_of_zero _ S.cycles_co_is_cokernel hf
 
 @[simp]
 def desc_right_homology : S.right_homology ⟶ A :=

@@ -47,6 +47,98 @@ def cokernel_zero {X Y : C} (f : X ⟶ Y) (hf : f = 0) :
 cokernel_cofork.is_colimit.of_π _ _ (λ A x hx, x) (λ A x hx, id_comp _)
   (λ A x hx b hb, by rw [← hb, id_comp])
 
+namespace kernel_fork
+
+@[simp]
+lemma is_limit.lift_ι {X Y : C} {f : X ⟶ Y} {c : kernel_fork f} (hc : is_limit c)
+  (c' : kernel_fork f) : hc.lift c' ≫ c.ι = c'.ι :=
+by apply fork.is_limit.lift_ι
+
+@[simps]
+def is_limit.of_ι_op {K X Y : C} (i : K ⟶ X) {f : X ⟶ Y}
+  (w : i ≫ f = 0) (h : is_limit (kernel_fork.of_ι i w)) :
+  is_colimit (cokernel_cofork.of_π i.op
+    (show f.op ≫ i.op = 0, by simpa only [← op_comp, w])) :=
+cokernel_cofork.is_colimit.of_π _ _
+  (λ A x hx, (h.lift (kernel_fork.of_ι x.unop (quiver.hom.op_inj hx))).op)
+  (λ A x hx, quiver.hom.unop_inj (is_limit.lift_ι h _))
+  (λ A x hx b hb, quiver.hom.unop_inj (fork.is_limit.hom_ext h begin
+    simp only [quiver.hom.unop_op, is_limit.lift_ι],
+    exact quiver.hom.op_inj hb,
+  end))
+
+@[simps]
+def is_limit.of_ι_unop {K X Y : Cᵒᵖ} (i : K ⟶ X) {f : X ⟶ Y}
+  (w : i ≫ f = 0) (h : is_limit (kernel_fork.of_ι i w)) :
+  is_colimit (cokernel_cofork.of_π i.unop
+    (show f.unop ≫ i.unop = 0, by simpa only [← unop_comp, w])) :=
+cokernel_cofork.is_colimit.of_π _ _
+  (λ A x hx, (h.lift (kernel_fork.of_ι x.op (quiver.hom.unop_inj hx))).unop)
+  (λ A x hx, quiver.hom.op_inj (is_limit.lift_ι h _))
+  (λ A x hx b hb, quiver.hom.op_inj (fork.is_limit.hom_ext h begin
+    simp only [quiver.hom.op_unop, is_limit.lift_ι],
+    exact quiver.hom.unop_inj hb,
+  end))
+
+lemma is_limit.is_iso_ι_of_zero {X Y : C} {f : X ⟶ Y} (c : kernel_fork f)
+  (hc : is_limit c) (hf : f = 0) : is_iso c.ι :=
+begin
+  subst hf,
+  let e : c.X ≅ X := is_limit.cone_point_unique_up_to_iso hc (kernel_zero (0 : X ⟶ Y) rfl),
+  have eq : e.inv ≫ fork.ι c  = 𝟙 X := is_limit.lift_ι hc _,
+  haveI : is_iso (e.inv ≫ fork.ι c),
+  { rw eq, dsimp, apply_instance, },
+  exact is_iso.of_is_iso_comp_left e.inv (fork.ι c),
+end
+
+end kernel_fork
+
+namespace cokernel_cofork
+
+@[simp]
+lemma is_colimit.π_desc {X Y : C} {f : X ⟶ Y} {c : cokernel_cofork f} (hc : is_colimit c)
+  (c' : cokernel_cofork f) : c.π ≫ hc.desc c' = c'.π :=
+by apply cofork.is_colimit.π_desc
+
+@[simps]
+def is_colimit.of_π_op {X Y Q : C} (p : Y ⟶ Q) {f : X ⟶ Y}
+  (w : f ≫ p = 0) (h : is_colimit (cokernel_cofork.of_π p w)) :
+  is_limit (kernel_fork.of_ι p.op
+    (show p.op ≫ f.op = 0, by simpa only [← op_comp, w])) :=
+kernel_fork.is_limit.of_ι _ _
+  (λ A x hx, (h.desc (cokernel_cofork.of_π x.unop (quiver.hom.op_inj hx))).op)
+  (λ A x hx, quiver.hom.unop_inj (is_colimit.π_desc h _))
+  (λ A x hx b hb, quiver.hom.unop_inj (cofork.is_colimit.hom_ext h begin
+    simp only [quiver.hom.unop_op, is_colimit.π_desc],
+    exact quiver.hom.op_inj hb,
+  end))
+
+@[simps]
+def is_colimit.of_π_unop {X Y Q : Cᵒᵖ} (p : Y ⟶ Q) {f : X ⟶ Y}
+  (w : f ≫ p = 0) (h : is_colimit (cokernel_cofork.of_π p w)) :
+  is_limit (kernel_fork.of_ι p.unop
+    (show p.unop ≫ f.unop = 0, by simpa only [← unop_comp, w])) :=
+kernel_fork.is_limit.of_ι _ _
+  (λ A x hx, (h.desc (cokernel_cofork.of_π x.op (quiver.hom.unop_inj hx))).unop)
+  (λ A x hx, quiver.hom.op_inj (is_colimit.π_desc h _))
+  (λ A x hx b hb, quiver.hom.op_inj (cofork.is_colimit.hom_ext h begin
+    simp only [quiver.hom.op_unop, is_colimit.π_desc],
+    exact quiver.hom.unop_inj hb,
+  end))
+
+lemma is_colimit.is_iso_π_of_zero {X Y : C} {f : X ⟶ Y} (c : cokernel_cofork f)
+  (hc : is_colimit c) (hf : f = 0) : is_iso c.π :=
+begin
+  subst hf,
+  let e : c.X ≅ Y := is_colimit.cocone_point_unique_up_to_iso hc (cokernel_zero (0 : X ⟶ Y) rfl),
+  have eq : cofork.π c ≫ e.hom = 𝟙 Y := is_colimit.π_desc hc _,
+  haveI : is_iso (cofork.π c ≫ e.hom),
+  { rw eq, dsimp, apply_instance, },
+  exact is_iso.of_is_iso_comp_right (cofork.π c) e.hom,
+end
+
+end cokernel_cofork
+
 end category_theory.limits
 
 open category_theory.limits
@@ -930,6 +1022,9 @@ left_homology_data.lift_K_i _ k hk
 
 def cycles_is_kernel : is_limit (kernel_fork.of_ι S.cycles_i S.cycles_i_g) :=
 S.some_left_homology_data.hi
+
+lemma is_iso_cycles_i_of (hg : S.g = 0) : is_iso (S.cycles_i) :=
+kernel_fork.is_limit.is_iso_ι_of_zero _ S.cycles_is_kernel hg
 
 @[simp]
 def lift_left_homology : A ⟶ S.left_homology :=

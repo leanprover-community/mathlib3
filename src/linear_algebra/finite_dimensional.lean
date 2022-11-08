@@ -1594,13 +1594,12 @@ begin
 end
 
 lemma submodule.finrank_le_one_iff_is_principal (W : submodule K V) [finite_dimensional K W] :
-  finite_dimensional.finrank K W ≤ 1 ↔ W.is_principal :=
-by rw [← W.rank_le_one_iff_is_principal, ← finite_dimensional.finrank_eq_dim,
-  ← cardinal.nat_cast_le, nat.cast_one]
+  finrank K W ≤ 1 ↔ W.is_principal :=
+by rw [← W.rank_le_one_iff_is_principal, ← finrank_eq_dim, ← cardinal.nat_cast_le, nat.cast_one]
 
 lemma module.finrank_le_one_iff_top_is_principal [finite_dimensional K V] :
-  finite_dimensional.finrank K V ≤ 1 ↔ (⊤ : submodule K V).is_principal :=
-by rw [← module.rank_le_one_iff_top_is_principal, ← finite_dimensional.finrank_eq_dim,
+  finrank K V ≤ 1 ↔ (⊤ : submodule K V).is_principal :=
+by rw [← module.rank_le_one_iff_top_is_principal, ← finrank_eq_dim,
   ← cardinal.nat_cast_le, nat.cast_one]
 
 -- We use the `linear_map.compatible_smul` typeclass here, to encompass two situations:
@@ -1615,6 +1614,18 @@ begin
   intro z,
   obtain ⟨c, rfl⟩ := (finrank_eq_one_iff_of_nonzero' (f v) n).mp h z,
   exact ⟨c • v, by simp⟩,
+end
+
+/-- Any `K`-algebra module that is 1-dimensional over `K` is simple. -/
+lemma is_simple_module_of_finrank_eq_one {A} [semiring A] [module A V] [has_smul K A]
+  [is_scalar_tower K A V] (h : finrank K V = 1) : is_simple_order (submodule A V) :=
+begin
+  haveI := nontrivial_of_finrank_eq_succ h,
+  refine ⟨λ S, or_iff_not_imp_left.2 (λ hn, _)⟩,
+  rw ← restrict_scalars_inj K at hn ⊢,
+  haveI := finite_dimensional_of_finrank_eq_succ h,
+  refine eq_top_of_finrank_eq ((submodule.finrank_le _).antisymm _),
+  simpa only [h, finrank_bot] using submodule.finrank_strict_mono (ne.bot_lt hn),
 end
 
 end finrank_eq_one

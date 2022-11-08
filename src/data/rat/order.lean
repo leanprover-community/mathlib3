@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import algebra.order.field.defs
 import data.rat.basic
+import data.int.cast.lemmas
 
 /-!
 # Order for Rational Numbers

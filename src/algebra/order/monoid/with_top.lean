@@ -27,7 +27,7 @@ variables [has_one α]
 coe_eq_coe
 
 @[simp, norm_cast, to_additive coe_pos]
-lemma one_lt_coe [has_one α] [has_lt α] {a : α} : 1 < (a : with_top α) ↔ 1 < a := coe_lt_coe
+lemma one_lt_coe [has_lt α] {a : α} : 1 < (a : with_top α) ↔ 1 < a := coe_lt_coe
 
 @[simp, to_additive] protected lemma map_one {β} (f : α → β) :
   (1 : with_top α).map f = (f 1 : with_top β) := rfl

@@ -63,7 +63,8 @@ lemma is_unit_pow_iff {m : M} :
 | (n + 1) _ := is_unit_pow_succ_iff
 
 /-- If `x ^ n = 1`, `n ≠ 0`, then `x` is a unit. -/
-@[to_additive, simps] def unit_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : n ≠ 0) : Mˣ :=
+@[to_additive "If `n • x = 0`, `n ≠ 0`, then `x` is an additive unit.", simps]
+def unit_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : n ≠ 0) : Mˣ :=
 { val := x,
   inv := x ^ (n - 1),
   val_inv := by rwa [← pow_succ, tsub_add_cancel_of_le (nat.one_le_iff_ne_zero.2 hn)],

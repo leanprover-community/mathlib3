@@ -1228,14 +1228,17 @@ lemma mfderiv_within_const (hxs : unique_mdiff_within_at I s x) :
 end const
 
 section arithmetic
-/-! #### Arithmetic -/
+/-! #### Arithmetic
+
+Note that in the in `has_mfderiv_at` lemmas there is an abuse of the defeq between `E'` and
+`tangent_space 𝓘(𝕜, E') (f z)` (similarly for `g',F',p',q'`). In general this defeq is not
+canonical, but in this case (the tangent space of a vector space) it is canonical.
+ -/
 
 variables { z : M} {F' : Type*} [normed_field F'] [normed_algebra 𝕜 F']
 {f g : M → E'} {p q : M → F'}
-{f' : tangent_space I z →L[𝕜] tangent_space 𝓘(𝕜, E') (f z)}
-{g' : tangent_space I z →L[𝕜] tangent_space 𝓘(𝕜, E') (g z)}
-{p' : tangent_space I z →L[𝕜] tangent_space 𝓘(𝕜, F') (p z)}
-{q' : tangent_space I z →L[𝕜] tangent_space 𝓘(𝕜, F') (q z)}
+{f' g' : tangent_space I z →L[𝕜] E'}
+{p' q' : tangent_space I z →L[𝕜] F'}
 
 lemma has_mfderiv_at.add (hf : has_mfderiv_at I 𝓘(𝕜, E') f z f')
   (hg : has_mfderiv_at I 𝓘(𝕜, E') g z g') : has_mfderiv_at I 𝓘(𝕜, E') (f + g) z (f' + g') :=
@@ -1288,15 +1291,15 @@ lemma mdifferentiable.neg {f : M → E'} (hf : mdifferentiable I 𝓘(𝕜, E') 
 λ x, (hf x).neg I
 
 lemma has_mfderiv_at.sub (hf : has_mfderiv_at I 𝓘(𝕜, E') f z f')
-  (hg : has_mfderiv_at I 𝓘(𝕜, E') g z g') : has_mfderiv_at I 𝓘(𝕜, E') (f-g) z (f'-g') :=
+  (hg : has_mfderiv_at I 𝓘(𝕜, E') g z g') : has_mfderiv_at I 𝓘(𝕜, E') (f - g) z (f'- g') :=
 ⟨hf.1.sub hg.1, hf.2.sub hg.2⟩
 
 lemma mdifferentiable_at.sub (hf : mdifferentiable_at I 𝓘(𝕜, E') f z)
-  (hg : mdifferentiable_at I 𝓘(𝕜, E') g z) : mdifferentiable_at I 𝓘(𝕜, E') (f-g) z :=
+  (hg : mdifferentiable_at I 𝓘(𝕜, E') g z) : mdifferentiable_at I 𝓘(𝕜, E') (f - g) z :=
 (hf.has_mfderiv_at.sub I hg.has_mfderiv_at).mdifferentiable_at
 
 lemma mdifferentiable.sub {f : M → E'} (hf : mdifferentiable I 𝓘(𝕜, E') f)
-  (hg : mdifferentiable I 𝓘(𝕜, E') g)  : mdifferentiable I 𝓘(𝕜, E') (f-g) :=
+  (hg : mdifferentiable I 𝓘(𝕜, E') g)  : mdifferentiable I 𝓘(𝕜, E') (f - g) :=
 λ x, (hf x).sub I (hg x)
 
 end arithmetic

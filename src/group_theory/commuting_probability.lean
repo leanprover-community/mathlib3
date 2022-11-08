@@ -180,16 +180,39 @@ begin
   sorry,
 end
 
+open_locale pointwise
+
+lemma smul_centralizer {G : Type*} [group G] {α : Type*} [group α] [mul_distrib_mul_action α G]
+  (a : α) (H : subgroup G) :
+  a • H.centralizer = (a • H).centralizer :=
+begin
+  ext g,
+  refine ⟨_, λ hg, ⟨a⁻¹ • g, λ h hh, _, smul_inv_smul a g⟩⟩,
+  { rintros ⟨g, hg, rfl⟩ - ⟨h, hh, rfl⟩,
+    rw [←map_mul, ←map_mul, hg h hh] },
+  { rw [←smul_left_cancel_iff a, smul_mul', smul_mul', smul_inv_smul],
+    exact hg (a • h) ⟨h, hh, rfl⟩ },
+end
+
+lemma smul_zpowers {G : Type*} [group G] {α : Type*} [group α] [mul_distrib_mul_action α G]
+  (a : α) (g : G) : a • (zpowers g) = zpowers (a • g) :=
+begin
+  simp_rw [set_like.ext_iff, mem_pointwise_smul_iff_inv_smul_mem, mem_zpowers_iff,
+    eq_inv_smul_iff],
+  refine λ x, exists_congr (λ n, eq_iff_eq_cancel_right.mpr _),
+  exact map_zpow (mul_distrib_mul_action.to_monoid_End α G a) g n,
+end
+
 instance characteristic : (weak_neumann_subgroup G ε).characteristic :=
 begin
-  rw weak_neumann_subgroup,
-  rw characteristic_iff_map_le,
+  rw [weak_neumann_subgroup, characteristic_iff_map_le],
   intro ϕ,
   rw monoid_hom.map_closure,
   apply closure_mono,
   rintros - ⟨g, hg : _ ≤ _, rfl⟩,
   refine le_of_le_of_eq hg (congr_arg coe (nat.card_congr _)),
-  sorry
+  rw [mul_equiv.coe_to_monoid_hom, ←mul_aut.smul_def, ←smul_zpowers, ←smul_centralizer],
+  exact equiv_smul ϕ (zpowers g).centralizer,
 end
 
 end weak_neumann_subgroup

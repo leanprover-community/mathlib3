@@ -3,7 +3,7 @@ Copyright (c) 2018 Louis Carlin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Louis Carlin, Mario Carneiro
 -/
-import algebra.euclidean_domain.basic
+import algebra.euclidean_domain.defs
 import data.nat.order
 import data.int.order
 
@@ -37,7 +37,7 @@ instance int.euclidean_domain : euclidean_domain ℤ :=
   .. int.nontrivial }
 
 @[priority 100] -- see Note [lower instance priority]
-instance field.to_euclidean_domain {K : Type u} [field K] : euclidean_domain K :=
+instance field.to_euclidean_domain {K : Type*} [field K] : euclidean_domain K :=
 { add := (+),
   mul := (*),
   one := 1,

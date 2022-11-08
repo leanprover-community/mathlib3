@@ -1230,8 +1230,7 @@ end const
 section arithmetic
 /-! #### Arithmetic -/
 
-variables {S: topological_space.opens 𝕜} { z : M}
-{F' : Type*} [normed_field F'] [normed_algebra 𝕜 F']
+variables { z : M} {F' : Type*} [normed_field F'] [normed_algebra 𝕜 F']
 {f g : M → E'} {p q : M → F'}
 {f' : tangent_space I z →L[𝕜] tangent_space 𝓘(𝕜, E') (f z)}
 {g' : tangent_space I z →L[𝕜] tangent_space 𝓘(𝕜, E') (g z)}
@@ -1266,7 +1265,7 @@ lemma mdifferentiable.mul {f g : M → F'} (hf : mdifferentiable I 𝓘(𝕜, F'
 
 lemma has_mfderiv_at.const_smul (hf : has_mfderiv_at I 𝓘(𝕜, E') f z f') (s : 𝕜) :
    has_mfderiv_at I 𝓘(𝕜, E') (s • f) z (s • f') :=
-⟨(hf).1.const_smul s, hf.2.const_smul s⟩
+⟨hf.1.const_smul s, hf.2.const_smul s⟩
 
 lemma mdifferentiable_at.const_smul (hf : mdifferentiable_at I 𝓘(𝕜, E') f z) (s : 𝕜) :
   mdifferentiable_at I 𝓘(𝕜, E') (s • f) z :=

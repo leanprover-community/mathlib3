@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import data.bool.set
-import data.ulift
 import data.nat.set
-import order.bounds
+import data.ulift
+import order.bounds.basic
+import order.hom.basic
 
 /-!
 # Theory of complete lattices

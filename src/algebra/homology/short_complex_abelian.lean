@@ -7,10 +7,6 @@ open category_theory category_theory.limits category_theory.category
 
 namespace category_theory.limits
 
-lemma cokernel_cofork.is_colimit.epi_π {C : Type*} [category C] [has_zero_morphisms C]
-  {X Y : C} {f : X ⟶ Y} {c : cokernel_cofork f} (hc : is_colimit c) : epi c.π :=
-⟨λ Z g₁ g₂ hg, hc.hom_ext (by { rintro (_|_), tidy, })⟩
-
 def cokernel_cofork.cocone_point_iso_of_epi_of_is_iso {C : Type*} [category C] [has_zero_morphisms C]
   {X Y X' Y' : C} (f : X ⟶ Y) (f' : X' ⟶ Y') (p : X ⟶ X') (q : Y ⟶ Y') [epi p] [is_iso q]
   (comm : f ≫ q = p ≫ f') {c : cokernel_cofork f} {c' : cokernel_cofork f'}

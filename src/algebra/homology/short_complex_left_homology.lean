@@ -40,7 +40,6 @@ def kernel_zero {X Y : C} (f : X ⟶ Y) (hf : f = 0) :
 kernel_fork.is_limit.of_ι _ _ (λ A x hx, x) (λ A x hx, comp_id _)
   (λ A x hx b hb, by rw [← hb, comp_id])
 
-/-- to be moved -/
 @[simps]
 def cokernel_zero {X Y : C} (f : X ⟶ Y) (hf : f = 0) :
   is_colimit (cokernel_cofork.of_π (𝟙 Y) (show f ≫ 𝟙 Y = 0, by rw [hf, zero_comp])) :=
@@ -48,6 +47,17 @@ cokernel_cofork.is_colimit.of_π _ _ (λ A x hx, x) (λ A x hx, id_comp _)
   (λ A x hx b hb, by rw [← hb, id_comp])
 
 namespace kernel_fork
+
+lemma is_limit.mono_π {C : Type*} [category C] [has_zero_morphisms C]
+  {X Y : C} {f : X ⟶ Y} {c : kernel_fork f} (hc : is_limit c) : mono c.ι :=
+⟨λ Z g₁ g₂ hg, hc.hom_ext (by { rintro (_|_), tidy, })⟩
+
+lemma is_limit.hom_ext {X Y Z : C} {f : X ⟶ Y} {c : kernel_fork f} (hc : is_limit c)
+  (g₁ g₂ : Z ⟶ c.X) (hg : g₁ ≫ c.ι = g₂ ≫ c.ι) : g₁ = g₂ :=
+begin
+  haveI := is_limit.mono_π hc,
+  simpa only [← cancel_mono c.ι] using hg,
+end
 
 @[simp, reassoc]
 lemma is_limit.lift_ι {X Y : C} {f : X ⟶ Y} {c : kernel_fork f} (hc : is_limit c)
@@ -94,6 +104,17 @@ end
 end kernel_fork
 
 namespace cokernel_cofork
+
+lemma is_colimit.epi_π {C : Type*} [category C] [has_zero_morphisms C]
+  {X Y : C} {f : X ⟶ Y} {c : cokernel_cofork f} (hc : is_colimit c) : epi c.π :=
+⟨λ Z g₁ g₂ hg, hc.hom_ext (by { rintro (_|_), tidy, })⟩
+
+lemma is_colimit.hom_ext {X Y Z : C} {f : X ⟶ Y} {c : cokernel_cofork f} (hc : is_colimit c)
+  (g₁ g₂ : c.X ⟶ Z) (hg : c.π ≫ g₁ = c.π ≫ g₂) : g₁ = g₂ :=
+begin
+  haveI := is_colimit.epi_π hc,
+  simpa only [← cancel_epi c.π] using hg,
+end
 
 @[simp, reassoc]
 lemma is_colimit.π_desc {X Y : C} {f : X ⟶ Y} {c : cokernel_cofork f} (hc : is_colimit c)
@@ -231,17 +252,18 @@ by { change is_iso (π₃.map_iso (as_iso f)).hom, apply_instance, }
 variables {C D}
 
 @[simps]
+def map [has_zero_morphisms D] (F : C ⥤ D) [F.preserves_zero_morphisms] : short_complex D :=
+short_complex.mk (F.map S.f) (F.map S.g)
+    (by rw [← F.map_comp, S.zero, F.map_zero])
+
+@[simps]
 def _root_.category_theory.functor.map_short_complex
   [has_zero_morphisms D] (F : C ⥤ D) [F.preserves_zero_morphisms] : short_complex C ⥤ short_complex D :=
-{ obj := λ S, short_complex.mk (F.map S.f) (F.map S.g)
-    (by rw [← F.map_comp, S.zero, F.map_zero]),
+{ obj := λ S, S.map F,
   map := λ S₁ S₂ φ, short_complex.hom.mk (F.map φ.τ₁) (F.map φ.τ₂) (F.map φ.τ₃)
     (by { dsimp, simp only [← F.map_comp, φ.comm₁₂], })
     (by { dsimp, simp only [← F.map_comp, φ.comm₂₃], }), }
 
-@[simps]
-def map [has_zero_morphisms D] (F : C ⥤ D) [F.preserves_zero_morphisms] : short_complex D :=
-F.map_short_complex.obj S
 
 /-- A constructor for isomorphisms in the category `short_complex C`-/
 @[simps]

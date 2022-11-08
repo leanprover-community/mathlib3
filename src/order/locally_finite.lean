@@ -211,7 +211,7 @@ variables {α β : Type*}
 
 /-- An empty type is locally finite.
 
-This is not an instance as it would be not be defeq to more specific instances. -/
+This is not an instance as it would not be defeq to more specific instances. -/
 @[reducible] -- See note [reducible non-instances]
 protected def _root_.is_empty.to_locally_finite_order [preorder α] [is_empty α] :
   locally_finite_order α :=
@@ -226,7 +226,7 @@ protected def _root_.is_empty.to_locally_finite_order [preorder α] [is_empty α
 
 /-- An empty type is locally finite.
 
-This is not an instance as it would be not be defeq to more specific instances. -/
+This is not an instance as it would not be defeq to more specific instances. -/
 @[reducible] -- See note [reducible non-instances]
 protected def _root_.is_empty.to_locally_finite_order_top [preorder α] [is_empty α] :
   locally_finite_order_top α :=
@@ -237,7 +237,7 @@ protected def _root_.is_empty.to_locally_finite_order_top [preorder α] [is_empt
 
 /-- An empty type is locally finite.
 
-This is not an instance as it would be not be defeq to more specific instances. -/
+This is not an instance as it would not be defeq to more specific instances. -/
 @[reducible] -- See note [reducible non-instances]
 protected def _root_.is_empty.to_locally_finite_order_bot [preorder α] [is_empty α] :
   locally_finite_order_bot α :=

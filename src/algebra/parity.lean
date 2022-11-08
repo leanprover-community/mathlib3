@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import algebra.associated
+import algebra.field.power
+import algebra.order.field.power
 
 /-!  # Squares, even and odd elements
 

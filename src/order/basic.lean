@@ -330,6 +330,12 @@ lemma eq_of_forall_ge_iff [partial_order α] {a b : α}
   (H : ∀ c, a ≤ c ↔ b ≤ c) : a = b :=
 ((H _).2 le_rfl).antisymm ((H _).1 le_rfl)
 
+lemma eq_of_forall_lt_iff [linear_order α] {a b : α} (h : ∀ c, c < a ↔ c < b) : a = b :=
+(le_of_forall_lt $ λ _, (h _).1).antisymm $ le_of_forall_lt $ λ _, (h _).2
+
+lemma eq_of_forall_gt_iff [linear_order α] {a b : α} (h : ∀ c, a < c ↔ b < c) : a = b :=
+(le_of_forall_lt' $ λ _, (h _).2).antisymm $ le_of_forall_lt' $ λ _, (h _).1
+
 /-- A symmetric relation implies two values are equal, when it implies they're less-equal.  -/
 lemma rel_imp_eq_of_rel_imp_le [partial_order β] (r : α → α → Prop) [is_symm α r] {f : α → β}
   (h : ∀ a b, r a b → f a ≤ f b) {a b : α} : r a b → f a = f b :=
@@ -493,6 +499,33 @@ instance pi.partial_order [Π i, partial_order (π i)] : partial_order (Π i, π
 { le_antisymm := λ f g h1 h2, funext $ λ b, (h1 b).antisymm (h2 b),
   ..pi.preorder }
 
+section pi
+
+/-- A function `a` is strongly less than a function `b`  if `a i < b i` for all `i`. -/
+def strong_lt [Π i, has_lt (π i)] (a b : Π i, π i) : Prop := ∀ i, a i < b i
+
+local infix ` ≺ `:50 := strong_lt
+
+variables [Π i, preorder (π i)] {a b c : Π i, π i}
+
+lemma le_of_strong_lt (h : a ≺ b) : a ≤ b := λ i, (h _).le
+
+lemma lt_of_strong_lt [nonempty ι] (h : a ≺ b) : a < b :=
+by { inhabit ι, exact pi.lt_def.2 ⟨le_of_strong_lt h, default, h _⟩ }
+
+lemma strong_lt_of_strong_lt_of_le (hab : a ≺ b) (hbc : b ≤ c) : a ≺ c :=
+λ i, (hab _).trans_le $ hbc _
+
+lemma strong_lt_of_le_of_strong_lt (hab : a ≤ b) (hbc : b ≺ c) : a ≺ c :=
+λ i, (hab _).trans_lt $ hbc _
+
+alias le_of_strong_lt ← strong_lt.le
+alias lt_of_strong_lt ← strong_lt.lt
+alias strong_lt_of_strong_lt_of_le ← strong_lt.trans_le
+alias strong_lt_of_le_of_strong_lt ← has_le.le.trans_strong_lt
+
+end pi
+
 section function
 variables [decidable_eq ι] [Π i, preorder (π i)] {x y : Π i, π i} {i : ι} {a b : π i}
 
@@ -523,6 +556,14 @@ lemma pi.sdiff_def {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] 
 @[simp]
 lemma pi.sdiff_apply {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) (i : ι) :
   (x \ y) i = x i \ y i := rfl
+
+namespace function
+variables [preorder α] [nonempty β] {a b : α}
+
+@[simp] lemma const_le_const : const β a ≤ const β b ↔ a ≤ b := by simp [pi.le_def]
+@[simp] lemma const_lt_const : const β a < const β b ↔ a < b := by simpa [pi.lt_def] using le_of_lt
+
+end function
 
 /-! ### `min`/`max` recursors -/
 
@@ -721,7 +762,7 @@ end prod
 
 /-! ### Additional order classes -/
 
-/-- An order is dense if there is an element between any pair of distinct elements. -/
+/-- An order is dense if there is an element between any pair of distinct comparable elements. -/
 class densely_ordered (α : Type u) [has_lt α] : Prop :=
 (dense : ∀ a₁ a₂ : α, a₁ < a₂ → ∃ a, a₁ < a ∧ a < a₂)
 

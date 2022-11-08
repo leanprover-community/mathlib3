@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.order.group.basic
-import algebra.order.monoid.canonical
+import algebra.order.monoid.canonical.defs
 
 /-!
 # Lemmas about densely linearly ordered groups.

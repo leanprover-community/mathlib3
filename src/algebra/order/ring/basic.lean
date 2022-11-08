@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import order.min_max
+import algebra.order.monoid.cancel.basic
 import algebra.order.group.basic
 import algebra.order.ring.lemmas
 

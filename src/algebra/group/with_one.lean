@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Johan Commelin
 -/
 import algebra.hom.equiv.basic
 import algebra.group_with_zero.units
-import algebra.ring.basic
+import algebra.ring.defs
 import logic.equiv.defs
 import logic.equiv.option
 

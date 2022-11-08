@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Louis Carlin, Mario Carneiro
 -/
 import algebra.euclidean_domain.defs
-import data.nat.order
+import data.nat.order.basic
 import data.int.order.basic
 
 /-!

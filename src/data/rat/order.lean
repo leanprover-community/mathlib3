@@ -171,7 +171,7 @@ instance : linear_ordered_field ℚ :=
   ..rat.linear_order,
   ..rat.semiring }
 
-#list_unused_decls ["src/data/nat/order.lean"]
+#list_unused_decls ["src/data/nat/order/basic.lean"]
 
 /- Extra instances to short-circuit type class resolution -/
 instance : linear_ordered_comm_ring ℚ       := by apply_instance

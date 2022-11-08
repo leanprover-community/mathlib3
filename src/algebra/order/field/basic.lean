@@ -7,6 +7,8 @@ import order.bounds.order_iso
 import algebra.field.basic
 import algebra.order.field.defs
 import algebra.order.ring.inj_surj
+import algebra.group_power.order
+-- FIXME CHECK IMPORTS
 
 /-!
 # Linear ordered (semi)fields

@@ -5,7 +5,7 @@ Authors: Robert Y. Lewis, Keeley Hoek
 -/
 import algebra.ne_zero
 import order.rel_iso
-import data.nat.order
+import data.nat.order.lemmas
 import tactic.apply_fun
 import tactic.localized
 

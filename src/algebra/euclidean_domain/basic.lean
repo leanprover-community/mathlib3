@@ -7,8 +7,6 @@ import algebra.ring.divisibility
 import algebra.ring.regular
 import algebra.field.defs
 
-
-
 /-!
 # Euclidean domains
 
@@ -31,8 +29,9 @@ don't satisfy the classical notion were provided independently by Hiblot and Nag
 ## Main statements
 
 * `gcd_eq_gcd_ab`: states Bézout's lemma for Euclidean domains.
-* `int.euclidean_domain`: shows that `ℤ` is a Euclidean domain.
-* `field.to_euclidean_domain`: shows that any field is a Euclidean domain.
+
+See `algebra.euclidean_domain.instances` for that facts that `ℤ` is a Euclidean domain,
+as is any field.
 
 ## Notation
 

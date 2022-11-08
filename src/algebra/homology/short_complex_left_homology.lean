@@ -49,7 +49,7 @@ cokernel_cofork.is_colimit.of_π _ _ (λ A x hx, x) (λ A x hx, id_comp _)
 
 namespace kernel_fork
 
-@[simp]
+@[simp, reassoc]
 lemma is_limit.lift_ι {X Y : C} {f : X ⟶ Y} {c : kernel_fork f} (hc : is_limit c)
   (c' : kernel_fork f) : hc.lift c' ≫ c.ι = c'.ι :=
 by apply fork.is_limit.lift_ι
@@ -95,7 +95,7 @@ end kernel_fork
 
 namespace cokernel_cofork
 
-@[simp]
+@[simp, reassoc]
 lemma is_colimit.π_desc {X Y : C} {f : X ⟶ Y} {c : cokernel_cofork f} (hc : is_colimit c)
   (c' : cokernel_cofork f) : c.π ≫ hc.desc c' = c'.π :=
 by apply cofork.is_colimit.π_desc
@@ -393,7 +393,6 @@ end
 
 /-- For `h : homology_ful_data S`, this is a restatement of `h.hπ`, saying that
 `π : h.K ⟶ h.H` is a cokernel of `h.f' : S.X₁ ⟶ h.K`. -/
-@[simp]
 def hπ' : is_colimit (cokernel_cofork.of_π h.π h.f'_π) := h.hπ
 
 def desc_H (k : h.K ⟶ A) (hk : h.f' ≫ k = 0) :

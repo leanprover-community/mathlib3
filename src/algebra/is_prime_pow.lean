@@ -60,28 +60,13 @@ theorem is_prime_pow.ne_zero [no_zero_divisors R] {n : R} (h : is_prime_pow n) :
 lemma is_prime_pow.ne_one {n : R} (h : is_prime_pow n) : n ≠ 1 :=
 λ t, eq.rec not_is_prime_pow_one t.symm h
 
-section unique_units
-
-lemma eq_of_prime_pow_eq {R : Type*} [cancel_comm_monoid_with_zero R] [unique Rˣ] {p₁ p₂ : R}
-  {k₁ k₂ : ℕ} (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : k₁ ≠ 0) (h : p₁ ^ k₁ = p₂ ^ k₂) :
-  p₁ = p₂ :=
-by { rw [←associated_iff_eq] at h ⊢, apply h.of_pow_associated_of_prime hp₁ hp₂ hk₁ }
-
-lemma eq_of_prime_pow_eq' {R : Type*} [cancel_comm_monoid_with_zero R] [unique Rˣ] {p₁ p₂ : R}
-  {k₁ k₂ : ℕ} (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : k₂ ≠ 0) (h : p₁ ^ k₁ = p₂ ^ k₂) :
-  p₁ = p₂ :=
-(eq_of_prime_pow_eq hp₂ hp₁ hk₁ h.symm).symm
-
-end unique_units
-
 section nat
 
 lemma is_prime_pow_nat_iff (n : ℕ) :
   is_prime_pow n ↔ ∃ (p k : ℕ), nat.prime p ∧ 0 < k ∧ p ^ k = n :=
 by simp only [is_prime_pow_def, nat.prime_iff]
 
-lemma nat.prime.is_prime_pow {p : ℕ} (hp : p.prime) : is_prime_pow p :=
-(nat.prime_iff.mp hp).is_prime_pow
+lemma nat.prime.is_prime_pow {p : ℕ} (hp : p.prime) : is_prime_pow p := hp.prime.is_prime_pow
 
 lemma is_prime_pow_nat_iff_bounded (n : ℕ) :
   is_prime_pow n ↔ ∃ (p : ℕ), p ≤ n ∧ ∃ (k : ℕ), k ≤ n ∧ p.prime ∧ 0 < k ∧ p ^ k = n :=

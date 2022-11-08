@@ -543,6 +543,20 @@ by rw [pp.dvd_prime_iff_associated qp, ←associated_eq_eq]
 
 end unique_units
 
+section unique_units₀
+
+variables {R : Type*} [cancel_comm_monoid_with_zero R] [unique Rˣ] {p₁ p₂ : R} {k₁ k₂ : ℕ}
+
+lemma eq_of_prime_pow_eq (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : k₁ ≠ 0) (h : p₁ ^ k₁ = p₂ ^ k₂) :
+  p₁ = p₂ :=
+by { rw [←associated_iff_eq] at h ⊢, apply h.of_pow_associated_of_prime hp₁ hp₂ hk₁ }
+
+lemma eq_of_prime_pow_eq' (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : k₂ ≠ 0) (h : p₁ ^ k₁ = p₂ ^ k₂) :
+  p₁ = p₂ :=
+by { rw [←associated_iff_eq] at h ⊢, apply h.of_pow_associated_of_prime' hp₁ hp₂ hk₁ }
+
+end unique_units₀
+
 /-- The quotient of a monoid by the `associated` relation. Two elements `x` and `y`
   are associated iff there is a unit `u` such that `x * u = y`. There is a natural
   monoid structure on `associates α`. -/

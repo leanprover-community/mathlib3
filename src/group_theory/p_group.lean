@@ -322,12 +322,9 @@ begin
   obtain ⟨n₂, hn₂⟩ := iff_order_of.mp hH₂ ⟨x, hx₂⟩,
   rw [← order_of_subgroup, subgroup.coe_mk] at hn₁ hn₂,
   have : p₁ ^ n₁ = p₂ ^ n₂, by rw [← hn₁, ← hn₂],
-  have : n₁ = 0,
-  { contrapose! hne with h,
-    rw ← associated_iff_eq at this ⊢,
-    exact associated.of_pow_associated_of_prime
-      (nat.prime_iff.mp hp₁.elim) (nat.prime_iff.mp hp₂.elim) h this },
-  simpa [this] using hn₁,
+  rcases eq_or_ne n₁ 0 with rfl|hn₁,
+  { simpa using hn₁ },
+  { exact absurd (eq_of_prime_pow_eq hp₁.out.prime hp₂.out.prime hn₁ this) hne }
 end
 
 section p2comm

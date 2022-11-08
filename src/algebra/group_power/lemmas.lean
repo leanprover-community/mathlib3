@@ -6,7 +6,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis
 import algebra.invertible
 import algebra.group_power.ring
 import data.nat.pow
-import data.int.cast
+import data.int.cast.lemmas
 
 /-!
 # Lemmas about power operations on monoids and groups

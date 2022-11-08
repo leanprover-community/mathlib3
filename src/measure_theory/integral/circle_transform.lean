@@ -233,7 +233,8 @@ lemma circle_transform_deriv_ae_measurable {R : ℝ} (hR : 0 < R)
 continuous_on.ae_measurable ((continuous_circle_transform_deriv hR hf (hx))).continuous_on
     (measurable_set_interval_oc)
 
-
+/--The `circle_integral_form` of a function, which is continuous on `sphere z R` is differentiable
+on `ball z R`. -/
 lemma circle_integral_form_differentiable_on {R : ℝ} {f : ℂ → ℂ} (hR : 0 < R) (z : ℂ)
   (hf : continuous_on f (sphere z R)) :
   differentiable_on ℂ (circle_integral_form R z f) (ball z R) :=
@@ -280,6 +281,8 @@ begin
     (interval_integral (F' x) 0 (2 * π) volume), (has_fderiv_at_filter.mono this.2 inf_le_left)⟩,
 end
 
+/--The differece of the `circle_transform` of two functions `f,g` is the `circle_transform` of the
+difference `f - g`. -/
 lemma circle_transform_sub (R : ℝ) (f g : ℂ → ℂ) (z w : ℂ) (θ : ℝ) :
   ((circle_transform R z w f ) θ) - ((circle_transform R z w g) θ) =
   (circle_transform R z w (f - g) θ) :=
@@ -289,7 +292,7 @@ begin
   ring,
 end
 
-lemma circle_transform_sub_bound {R : ℝ} (hR : 0 < R) (f : ℂ → ℂ) (z w : ℂ) (r : ℝ)
+lemma circle_transform_of_bound_is_bound {R : ℝ} (hR : 0 < R) (f : ℂ → ℂ) (z w : ℂ) (r : ℝ)
   (h : ∀ (x : sphere z R), (complex.abs (f x) ≤ abs r)) (θ : ℝ) :
   complex.abs (circle_transform R z w f θ) ≤ complex.abs (circle_transform R z w (λ x, r) θ) :=
 begin
@@ -306,9 +309,10 @@ begin
     exact h _ (circle_map_mem_sphere z hR.le θ)},
 end
 
+/--The `circle_transform` of a function is integrable. -/
 lemma circle_transform_integrable {R : ℝ} {F : ℂ → ℂ} (hR : 0 < R) (z : ℂ)
-  (F_cts : continuous_on F (sphere z R))
-  (w : ball z R) : integrable (circle_transform R z w F) (volume.restrict (Ioc 0 (2*π))) :=
+  (F_cts : continuous_on F (sphere z R)) (w : ball z R) :
+  integrable (circle_transform R z w F) (volume.restrict (Ioc 0 (2*π))) :=
 begin
   apply integrable_on.integrable,
   rw ←(interval_integrable_iff_integrable_Ioc_of_le real.two_pi_pos.le),
@@ -317,6 +321,7 @@ begin
   exact real.locally_finite_volume,
 end
 
+/--The (complex) absolute value of the `circle_transform` of a function is integrable. -/
 lemma circle_transform_integrable_abs {R : ℝ} {F : ℂ → ℂ} (hR : 0 < R) (z : ℂ)
   (F_cts : continuous_on F (sphere z R)) (w : ball z R) :
   integrable (complex.abs ∘ (circle_transform R z w F)) (volume.restrict (Ioc 0 (2*π))) :=
@@ -376,7 +381,7 @@ begin
   linarith,
 end
 
-/--A uniform limit of functions on a `sphere` can be eventually bounded by a integrable
+/--A uniform limit of functions on a `sphere` can be eventually bounded by an integrable
 function.  -/
 lemma circle_transform_of_uniform_exists_bounding_function {R : ℝ} {F : ℕ → ℂ → ℂ} (hR : 0 < R)
   (f : ℂ → ℂ) (z : ℂ) (w : ball z R) (F_cts : ∀ n, continuous_on (F n) (sphere z R))
@@ -416,7 +421,7 @@ begin
     refine ⟨circle_transform R z ↑w f y,_⟩,
     simp_rw [circle_transform_sub, bound],
     simp only [add_le_add_iff_right, finset.univ_eq_attach],
-    have := circle_transform_sub_bound hR ((F n) - f) z w 1,
+    have := circle_transform_of_bound_is_bound hR ((F n) - f) z w 1,
     have haan := ha n (not_le.1 h).le,
     simp only [of_real_one, abs_one, pi.sub_apply] at this,
     simp_rw dist_eq_norm at *,

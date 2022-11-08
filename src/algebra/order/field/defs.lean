@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
 import algebra.field.basic
-import algebra.order.ring.basic
+import algebra.order.ring.defs
 
 /-!
 # Linear ordered (semi)fields

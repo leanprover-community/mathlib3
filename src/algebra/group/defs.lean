@@ -590,10 +590,6 @@ class right_cancel_monoid (M : Type u) extends right_cancel_semigroup M, monoid 
 
 end right_cancel_monoid
 
-section comm_monoid
-
-end comm_monoid
-
 section cancel_monoid
 
 /-- An additive monoid in which addition is cancellative on both sides.
@@ -620,6 +616,10 @@ instance cancel_comm_monoid.to_cancel_monoid (M : Type u) [cancel_comm_monoid M]
   cancel_monoid M :=
 { mul_right_cancel := λ a b c h, mul_left_cancel $ by rw [mul_comm, h, mul_comm],
   .. ‹cancel_comm_monoid M› }
+
+instance cancel_monoid.to_is_cancel_mul (M : Type u) [cancel_monoid M] : is_cancel_mul M :=
+{ mul_left_cancel := cancel_monoid.mul_left_cancel,
+  mul_right_cancel := cancel_monoid.mul_right_cancel }
 
 end cancel_monoid
 

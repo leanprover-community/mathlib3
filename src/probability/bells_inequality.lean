@@ -129,13 +129,34 @@ theorem bells_inequality_1964
   :=
 
 begin
-  have ineq : ∀ ω: Ω, -(Za 2 ω :ℝ)*(Zb 2 ω) - (Za 2 ω)*(Zb 3 ω) 
-                      + (Za 1 ω)*(Zb 2 ω) - (Za 1 ω)*(Zb 3 ω) ≤ 2 ,
-  { intro ω,
-    -- need - x = +(-x)
-    --exact CHSH_inequality_of_int_units (- Za 2 ω) (Za 1 ω) (Zb 2 ω) (Zb 3 ω),
+  -- first do upper bound
+  have : 
+    (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) ) 
+    - (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) )  
+    ≤ 1 + (∫ ω, (Za 2 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) ),
+  { have ineq : ∀ ω: Ω, -(Za 2 ω :ℝ)*(Zb 2 ω) - (Za 2 ω)*(Zb 3 ω) 
+                        + (Za 1 ω)*(Zb 2 ω) - (Za 1 ω)*(Zb 3 ω) ≤ 2 ,
+    { intro ω,
+      -- will be sent to CHSH_inquality_of_int_units
+      set a:=- (Za 2 ω),
+      -- lift opposites
+      have : (Za 2 ω : ℝ) = -(a:ℝ) ,
+      { simp only [coe_coe, units.coe_neg, int.cast_neg, neg_neg],
+      },
+      rw this,
+      -- get rid of first - -
+      simp only [neg_neg],
+      -- get rid of second - -
+      have : (-a:ℝ)*(Zb 3 ω) = -(a*(Zb 3 ω):ℝ) := neg_mul _ _,
+      rw this,
+      simp only [sub_neg_eq_add],
+
+      exact CHSH_inequality_of_int_units a (Za 1 ω) (Zb 2 ω) (Zb 3 ω),
+    },
+
     sorry,
   },
+
   sorry,
 end
 

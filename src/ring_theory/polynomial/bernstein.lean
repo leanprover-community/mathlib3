@@ -132,12 +132,10 @@ begin
   { rw nat.cast_succ, apply derivative_succ_aux, }
 end
 
+set_option profiler true
 lemma derivative_zero (n : ℕ) :
   (bernstein_polynomial R n 0).derivative = -n * bernstein_polynomial R (n-1) 0 :=
-begin
-  rw [bernstein_polynomial],
-  simp [polynomial.derivative_pow],
-end
+by simp [bernstein_polynomial, polynomial.derivative_pow]
 
 lemma iterate_derivative_at_0_eq_zero_of_lt (n : ℕ) {ν k : ℕ} :
   k < ν → (polynomial.derivative^[k] (bernstein_polynomial R n ν)).eval 0 = 0 :=

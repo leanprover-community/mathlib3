@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import algebra.group_power.basic
-import data.nat.order
+import data.nat.order.minimal
 
 /-!
 # Definitions and properties of `gcd`, `lcm`, and `coprime`
@@ -547,28 +547,29 @@ begin
     rw [h, gcd_mul_right_right d c],
     apply gcd_mul_dvd_mul_gcd }
 end
+-- FIXME RESTORE
 
-/-- If `k:ℕ` divides coprime `a` and `b` then `k = 1` -/
-lemma eq_one_of_dvd_coprimes {a b k : ℕ} (h_ab_coprime : coprime a b)
-  (hka : k ∣ a) (hkb : k ∣ b) : k = 1  :=
-begin
-  rw coprime_iff_gcd_eq_one at h_ab_coprime,
-  have h1 := dvd_gcd hka hkb,
-  rw h_ab_coprime at h1,
-  exact nat.dvd_one.mp h1,
-end
+-- /-- If `k:ℕ` divides coprime `a` and `b` then `k = 1` -/
+-- lemma eq_one_of_dvd_coprimes {a b k : ℕ} (h_ab_coprime : coprime a b)
+--   (hka : k ∣ a) (hkb : k ∣ b) : k = 1  :=
+-- begin
+--   rw coprime_iff_gcd_eq_one at h_ab_coprime,
+--   have h1 := dvd_gcd hka hkb,
+--   rw h_ab_coprime at h1,
+--   exact nat.dvd_one.mp h1,
+-- end
 
-lemma coprime.mul_add_mul_ne_mul {m n a b : ℕ} (cop : coprime m n) (ha : a ≠ 0) (hb : b ≠ 0) :
-  a * m + b * n ≠ m * n :=
-begin
-  intro h,
-  obtain ⟨x, rfl⟩ : n ∣ a := cop.symm.dvd_of_dvd_mul_right
-    ((nat.dvd_add_iff_left (dvd_mul_left n b)).mpr ((congr_arg _ h).mpr (dvd_mul_left n m))),
-  obtain ⟨y, rfl⟩ : m ∣ b := cop.dvd_of_dvd_mul_right
-    ((nat.dvd_add_iff_right (dvd_mul_left m (n*x))).mpr ((congr_arg _ h).mpr (dvd_mul_right m n))),
-  rw [mul_comm, mul_ne_zero_iff, ←one_le_iff_ne_zero] at ha hb,
-  refine mul_ne_zero hb.2 ha.2 (eq_zero_of_mul_eq_self_left (ne_of_gt (add_le_add ha.1 hb.1)) _),
-  rw [← mul_assoc, ← h, add_mul, add_mul, mul_comm _ n, ←mul_assoc, mul_comm y]
-end
+-- lemma coprime.mul_add_mul_ne_mul {m n a b : ℕ} (cop : coprime m n) (ha : a ≠ 0) (hb : b ≠ 0) :
+--   a * m + b * n ≠ m * n :=
+-- begin
+--   intro h,
+--   obtain ⟨x, rfl⟩ : n ∣ a := cop.symm.dvd_of_dvd_mul_right
+--     ((nat.dvd_add_iff_left (dvd_mul_left n b)).mpr ((congr_arg _ h).mpr (dvd_mul_left n m))),
+--   obtain ⟨y, rfl⟩ : m ∣ b := cop.dvd_of_dvd_mul_right
+--     ((nat.dvd_add_iff_right (dvd_mul_left m (n*x))).mpr ((congr_arg _ h).mpr (dvd_mul_right m n))),
+--   rw [mul_comm, mul_ne_zero_iff, ←one_le_iff_ne_zero] at ha hb,
+--   refine mul_ne_zero hb.2 ha.2 (eq_zero_of_mul_eq_self_left (ne_of_gt (add_le_add ha.1 hb.1)) _),
+--   rw [← mul_assoc, ← h, add_mul, add_mul, mul_comm _ n, ←mul_assoc, mul_comm y]
+-- end
 
 end nat

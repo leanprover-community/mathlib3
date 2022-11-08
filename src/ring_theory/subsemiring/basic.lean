@@ -7,6 +7,7 @@ Authors: Yury Kudryashov
 import algebra.module.basic
 import algebra.ring.equiv
 import algebra.ring.prod
+import algebra.order.ring.inj_surj
 import data.set.finite
 import group_theory.submonoid.centralizer
 import group_theory.submonoid.membership

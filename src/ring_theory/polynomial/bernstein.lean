@@ -132,7 +132,6 @@ begin
   { rw nat.cast_succ, apply derivative_succ_aux, }
 end
 
-set_option profiler true
 lemma derivative_zero (n : ℕ) :
   (bernstein_polynomial R n 0).derivative = -n * bernstein_polynomial R (n-1) 0 :=
 by simp [bernstein_polynomial, polynomial.derivative_pow]

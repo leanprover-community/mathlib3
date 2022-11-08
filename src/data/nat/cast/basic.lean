@@ -3,11 +3,12 @@ Copyright (c) 2014 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.nat.order
-import algebra.order.group.abs
 import algebra.group.prod
 import algebra.hom.ring
+import algebra.order.group.abs
 import algebra.order.monoid.with_top
+import algebra.order.ring.nontrivial
+import data.nat.order
 
 /-!
 # Cast of natural numbers (additional theorems)
@@ -81,16 +82,20 @@ variables [char_zero α] {m n : ℕ}
 lemma strict_mono_cast : strict_mono (coe : ℕ → α) :=
 mono_cast.strict_mono_of_injective cast_injective
 
+/-- `coe : ℕ → α` as an `order_embedding` -/
+@[simps { fully_applied := ff }] def nat.cast_order_embedding : ℕ ↪o α :=
+order_embedding.of_strict_mono coe nat.strict_mono_cast
+
 @[simp, norm_cast] lemma cast_le : (m : α) ≤ n ↔ m ≤ n := strict_mono_cast.le_iff_le
 @[simp, norm_cast, mono] lemma cast_lt : (m : α) < n ↔ m < n := strict_mono_cast.lt_iff_lt
 
-@[simp, norm_cast] lemma one_lt_cast : 1 < (n : α) ↔ 1 < n := by rw [←cast_one, cast_lt']
-@[simp, norm_cast] lemma one_le_cast : 1 ≤ (n : α) ↔ 1 ≤ n := by rw [←cast_one, cast_le']
+@[simp, norm_cast] lemma one_lt_cast : 1 < (n : α) ↔ 1 < n := by rw [←cast_one, cast_lt]
+@[simp, norm_cast] lemma one_le_cast : 1 ≤ (n : α) ↔ 1 ≤ n := by rw [←cast_one, cast_le]
 
 @[simp, norm_cast] lemma cast_lt_one : (n : α) < 1 ↔ n = 0 :=
-by rw [←cast_one, cast_lt', lt_succ_iff, le_zero_iff]
+by rw [←cast_one, cast_lt, lt_succ_iff, le_zero_iff]
 
-@[simp, norm_cast] lemma cast_le_one : (n : α) ≤ 1 ↔ n ≤ 1 := by rw [←cast_one, cast_le']
+@[simp, norm_cast] lemma cast_le_one : (n : α) ≤ 1 ↔ n ≤ 1 := by rw [←cast_one, cast_le]
 
 end ordered_semiring
 

@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison, Jakob von Raumer
 -/
 import algebra.homology.quasi_iso
-import category_theory.abelian.exact
 import category_theory.abelian.homology
-import category_theory.preadditive.projective
 import category_theory.preadditive.projective_resolution
 
 /-!

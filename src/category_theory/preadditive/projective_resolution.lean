@@ -6,7 +6,6 @@ Authors: Scott Morrison
 import category_theory.preadditive.projective
 import algebra.homology.single
 import algebra.homology.homotopy_category
-import algebra.homology.quasi_iso
 
 /-!
 # Projective resolutions

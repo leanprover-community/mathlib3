@@ -51,12 +51,14 @@ begin
   rw hh; simp,
 end
 
+-- the CHSH inequality proved for intgers that are +/-1
 lemma CHSH_inequality_of_int_units
   (A₀ A₁ B₀ B₁ : ℤˣ)
   :
   (A₀:ℝ) * B₀ + A₀ * B₁ + A₁ * B₀ - A₁ * B₁ ≤ 2
   :=
   begin
+    -- split into cases for A₀ and A₁
     cases pm_one_space_vals A₀ with hp0 hm0,
     { cases pm_one_space_vals A₁ with hp1 hm1,
       { rw hp0,
@@ -78,14 +80,17 @@ lemma CHSH_inequality_of_int_units
       { rw hm0,
         rw hp1,
         simp only [neg_mul, one_mul, neg_add_cancel_comm, tsub_le_iff_right],
+        -- group B₁'s together
         apply le_of_sub_nonneg,
         ring_nf,
         apply le_add_of_sub_left_le,
         ring_nf,
+        -- put minus sign on other side
         apply neg_le_of_neg_le,
         have tpos: ((2:ℝ) >0),
         { simp only [gt_iff_lt, zero_lt_bit0, zero_lt_one],
         },
+        -- divide by 2
         have almost : (-2)/2 ≤ (B₁:ℝ) ,
         { simp only [neg_div_self, ne.def, bit0_eq_zero, one_ne_zero, not_false_iff],
           exact pm_one_space_ge B₁,
@@ -96,10 +101,12 @@ lemma CHSH_inequality_of_int_units
         rw hm1,
         simp only [neg_mul, one_mul, sub_neg_eq_add],
         ring_nf,
+        -- put minus sign on other side
         apply neg_le_of_neg_le,
         have tpos: ((2:ℝ) >0),
         { simp only [gt_iff_lt, zero_lt_bit0, zero_lt_one],
         },
+        -- divide by 2
         have almost : (-2)/2 ≤ (B₀:ℝ) ,
         { simp only [neg_div_self, ne.def, bit0_eq_zero, one_ne_zero, not_false_iff],
           exact pm_one_space_ge B₀,

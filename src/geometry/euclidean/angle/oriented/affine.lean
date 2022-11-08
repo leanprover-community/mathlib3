@@ -328,6 +328,32 @@ lemma _root_.sbtw.oangle_eq_right {p₁ p₂ p₃ p₃' : P} (h : sbtw ℝ p₂ 
   ∡ p₁ p₂ p₃ = ∡ p₁ p₂ p₃' :=
 h.wbtw.oangle_eq_right h.ne_left
 
+/-- An oriented angle is unchanged by replacing the first point with the midpoint of the segment
+between it and the second point. -/
+@[simp] lemma oangle_midpoint_left (p₁ p₂ p₃ : P) : ∡ (midpoint ℝ p₁ p₂) p₂ p₃ = ∡ p₁ p₂ p₃ :=
+begin
+  by_cases h : p₁ = p₂, { simp [h] },
+  exact (sbtw_midpoint_of_ne ℝ h).symm.oangle_eq_left
+end
+
+/-- An oriented angle is unchanged by replacing the first point with the midpoint of the segment
+between the second point and that point. -/
+@[simp] lemma oangle_midpoint_rev_left (p₁ p₂ p₃ : P) : ∡ (midpoint ℝ p₂ p₁) p₂ p₃ = ∡ p₁ p₂ p₃ :=
+by rw [midpoint_comm, oangle_midpoint_left]
+
+/-- An oriented angle is unchanged by replacing the third point with the midpoint of the segment
+between it and the second point. -/
+@[simp] lemma oangle_midpoint_right (p₁ p₂ p₃ : P) : ∡ p₁ p₂ (midpoint ℝ p₃ p₂) = ∡ p₁ p₂ p₃ :=
+begin
+  by_cases h : p₃ = p₂, { simp [h] },
+  exact (sbtw_midpoint_of_ne ℝ h).symm.oangle_eq_right
+end
+
+/-- An oriented angle is unchanged by replacing the third point with the midpoint of the segment
+between the second point and that point. -/
+@[simp] lemma oangle_midpoint_rev_right (p₁ p₂ p₃ : P) : ∡ p₁ p₂ (midpoint ℝ p₂ p₃) = ∡ p₁ p₂ p₃ :=
+by rw [midpoint_comm, oangle_midpoint_right]
+
 /-- Replacing the first point by one on the same line but the opposite ray adds π to the oriented
 angle. -/
 lemma _root_.sbtw.oangle_eq_add_pi_left {p₁ p₁' p₂ p₃ : P} (h : sbtw ℝ p₁ p₂ p₁')

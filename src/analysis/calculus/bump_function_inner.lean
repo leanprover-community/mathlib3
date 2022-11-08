@@ -565,7 +565,7 @@ begin
 end
 
 variable (μ)
-lemma integral_normed_smul (z : X) [normed_add_comm_group X] [normed_space ℝ X] [complete_space X] :
+lemma integral_normed_smul [complete_space X] (z : X) :
   ∫ x, f.normed μ x • z ∂μ = z :=
 by simp_rw [integral_smul_const, f.integral_normed, one_smul]
 

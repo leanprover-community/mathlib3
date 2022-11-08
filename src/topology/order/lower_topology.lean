@@ -3,11 +3,12 @@ Copyright (c) 2022 Christopher Hoskin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
-import order.upper_lower
-import topology.separation
+
 import logic.equiv.defs
+import order.upper_lower
 import topology.algebra.constructions
 import topology.order.lattice
+import topology.separation
 
 /-!
 # Lower topology
@@ -313,6 +314,9 @@ section complete_lattice
 
 variable [complete_lattice α]
 
+/--
+The inf map `(a,b) → a ⊓ b` as an Inf_hom.
+-/
 def inf_Inf_hom : Inf_hom (with_lower_topology (α × α)) (with_lower_topology α) :=
 { to_fun := λ (p : with_lower_topology (α × α)), (p.fst ⊓ p.snd : with_lower_topology α),
   map_Inf' := λ s, begin

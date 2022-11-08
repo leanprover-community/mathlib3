@@ -19,6 +19,7 @@ This file defines hom classes for common properties at the intersection of order
 * `subadditive_hom_class`: Homs are subadditive: `∀ f a b, f (a + b) ≤ f a + f b`
 * `submultiplicative_hom_class`: Homs are submultiplicative: `∀ f a b, f (a * b) ≤ f a * f b`
 * `mul_le_add_hom_class`: `∀ f a b, f (a * b) ≤ f a + f b`
+* `nonarchimedean_hom_class`: `∀ a b, f (a + b) ≤ max (f a) (f b)`
 
 ## TODO
 

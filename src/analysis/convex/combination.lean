@@ -124,17 +124,19 @@ finset.center_mass_subset z (filter_subset _ _) $ λ i hit hit',
 
 namespace finset
 
-lemma center_mass_le_sup {s : finset ι} (hs : s.nonempty) {w : ι → R} (hw₀ : ∀ i ∈ s, 0 ≤ w i)
-  (hw₁ : 0 < ∑ i in s, w i) {f : ι → α} : s.center_mass w f ≤ s.sup' hs f :=
+lemma center_mass_le_sup {s : finset ι} {f : ι → α} {w : ι → R}
+  (hw₀ : ∀ i ∈ s, 0 ≤ w i) (hw₁ : 0 < ∑ i in s, w i) :
+  s.center_mass w f ≤ s.sup' (nonempty_of_ne_empty $ by { rintro rfl, simpa using hw₁ }) f :=
 begin
   rw [center_mass, inv_smul_le_iff hw₁, sum_smul],
   exact sum_le_sum (λ i hi, smul_le_smul_of_nonneg (le_sup' _ hi) $ hw₀ i hi),
   apply_instance,
 end
 
-lemma inf_le_center_mass {s : finset ι} (hs : s.nonempty) {w : ι → R} (hw₀ : ∀ i ∈ s, 0 ≤ w i)
-  (hw₁ : 0 < ∑ i in s, w i) {f : ι → α} : s.inf' hs f ≤ s.center_mass w f :=
-@center_mass_le_sup R _ αᵒᵈ _ _ _ _ _ hs _ hw₀ hw₁ _
+lemma inf_le_center_mass {s : finset ι} {f : ι → α} {w : ι → R}
+  (hw₀ : ∀ i ∈ s, 0 ≤ w i) (hw₁ : 0 < ∑ i in s, w i) :
+  s.inf' (nonempty_of_ne_empty $ by { rintro rfl, simpa using hw₁ }) f ≤ s.center_mass w f :=
+@center_mass_le_sup R _ αᵒᵈ _ _ _ _ _ _ _ hw₀ hw₁
 
 end finset
 

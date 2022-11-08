@@ -1096,9 +1096,9 @@ protected def strict_ordered_comm_ring [strict_ordered_comm_ring α] [has_zero �
 
 /-- Pullback a `linear_ordered_semiring` under an injective map. -/
 @[reducible] -- See note [reducible non-instances]
-protected def linear_ordered_semiring [linear_ordered_semiring α] [has_zero β]
-  [has_one β] [has_add β] [has_mul β] [has_pow β ℕ] [has_smul ℕ β] [has_nat_cast β] [has_sup β]
-  [has_inf β] (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
+protected def linear_ordered_semiring [linear_ordered_semiring α] [has_zero β] [has_one β]
+  [has_add β] [has_mul β] [has_pow β ℕ] [has_smul ℕ β] [has_nat_cast β] [has_sup β] [has_inf β]
+  (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
   (nat_cast : ∀ n : ℕ, f n = n) (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y))
@@ -1147,7 +1147,6 @@ protected def linear_ordered_comm_ring [linear_ordered_comm_ring α] [has_zero �
   (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n)
   (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
   linear_ordered_comm_ring β :=
-by haveI := pullback_nonzero f zero one; exact
 { .. linear_order.lift f hf hsup hinf,
   .. hf.strict_ordered_comm_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
 

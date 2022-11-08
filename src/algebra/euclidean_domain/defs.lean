@@ -3,9 +3,15 @@ Copyright (c) 2018 Louis Carlin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Louis Carlin, Mario Carneiro
 -/
-import algebra.ring.divisibility
-import algebra.ring.regular
+import algebra.opposites
 import algebra.field.defs
+
+import algebra.group.basic
+import logic.nontrivial
+import algebra.order.monoid.lemmas
+
+import algebra.hom.group
+import algebra.divisibility
 
 /-!
 # Euclidean domains

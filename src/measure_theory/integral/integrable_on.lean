@@ -157,7 +157,7 @@ begin
   simp,
 end
 
-@[simp] lemma integrable_on_finite_Union {s : set β} (hs : s.finite)
+@[simp] lemma integrable_on_finite_bUnion {s : set β} (hs : s.finite)
   {t : β → set α} : integrable_on f (⋃ i ∈ s, t i) μ ↔ ∀ i ∈ s, integrable_on f (t i) μ :=
 begin
   apply hs.induction_on,
@@ -167,11 +167,12 @@ end
 
 @[simp] lemma integrable_on_finset_Union {s : finset β} {t : β → set α} :
   integrable_on f (⋃ i ∈ s, t i) μ ↔ ∀ i ∈ s, integrable_on f (t i) μ :=
-integrable_on_finite_Union s.finite_to_set
+integrable_on_finite_bUnion s.finite_to_set
 
-@[simp] lemma integrable_on_fintype_Union [fintype β] {t : β → set α} :
+@[simp] lemma integrable_on_finite_Union [finite β] {t : β → set α} :
   integrable_on f (⋃ i, t i) μ ↔ ∀ i, integrable_on f (t i) μ :=
-by simpa using @integrable_on_finset_Union _ _ _ _ _ f μ finset.univ t
+by { casesI nonempty_fintype β,
+  simpa using @integrable_on_finset_Union _ _ _ _ _ f μ finset.univ t }
 
 lemma integrable_on.add_measure (hμ : integrable_on f s μ) (hν : integrable_on f s ν) :
   integrable_on f s (μ + ν) :=
@@ -244,6 +245,16 @@ begin
   haveI hμ_finite : is_finite_measure (μ.restrict s) := ⟨hμ_restrict_univ⟩,
   exact ((Lp.mem_ℒp _).restrict s).mem_ℒp_of_exponent_le hp,
 end
+
+lemma integrable.lintegral_lt_top {f : α → ℝ} (hf : integrable f μ) :
+  ∫⁻ x, ennreal.of_real (f x) ∂μ < ∞ :=
+calc ∫⁻ x, ennreal.of_real (f x) ∂μ
+    ≤ ∫⁻ x, ↑∥f x∥₊ ∂μ : lintegral_of_real_le_lintegral_nnnorm f
+... < ∞ : hf.2
+
+lemma integrable_on.set_lintegral_lt_top {f : α → ℝ} {s : set α} (hf : integrable_on f s μ) :
+  ∫⁻ x in s, ennreal.of_real (f x) ∂μ < ∞ :=
+integrable.lintegral_lt_top hf
 
 /-- We say that a function `f` is *integrable at filter* `l` if it is integrable on some
 set `s ∈ l`. Equivalently, it is eventually integrable on `s` in `l.small_sets`. -/

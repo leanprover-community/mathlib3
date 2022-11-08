@@ -441,6 +441,22 @@ lemma is_preconnected.subset_right_of_subset_union (hu : is_open u) (hv : is_ope
   s ⊆ v :=
 hs.subset_left_of_subset_union hv hu huv.symm (union_comm u v ▸ hsuv) hsv
 
+/-- If a preconnected set `s` intersects an open set `u`, and limit points of `u` inside `s` are
+contained in `u`, then the whole set `s` is contained in `u`. -/
+lemma is_preconnected.subset_of_closure_inter_subset (hs : is_preconnected s)
+  (hu : is_open u) (h'u : (s ∩ u).nonempty) (h : closure u ∩ s ⊆ u) : s ⊆ u :=
+begin
+  have A : s ⊆ u ∪ (closure u)ᶜ,
+  { assume x hx,
+    by_cases xu : x ∈ u,
+    { exact or.inl xu },
+    { right,
+      assume h'x,
+      exact xu (h (mem_inter h'x hx)) } },
+  apply hs.subset_left_of_subset_union hu is_closed_closure.is_open_compl _ A h'u,
+  exact disjoint_compl_right.mono_right (compl_subset_compl.2 subset_closure),
+end
+
 theorem is_preconnected.prod [topological_space β] {s : set α} {t : set β}
   (hs : is_preconnected s) (ht : is_preconnected t) :
   is_preconnected (s ×ˢ t) :=
@@ -531,19 +547,19 @@ lemma sum.is_connected_iff [topological_space β] {s : set (α ⊕ β)} :
     (∃ t, is_connected t ∧ s = sum.inl '' t) ∨ ∃ t, is_connected t ∧ s = sum.inr '' t :=
 begin
   refine ⟨λ hs, _, _⟩,
-  { let u : set (α ⊕ β):= range sum.inl,
+  { let u : set (α ⊕ β) := range sum.inl,
     let v : set (α ⊕ β) := range sum.inr,
     have hu : is_open u, exact is_open_range_inl,
     obtain ⟨x | x, hx⟩ := hs.nonempty,
-    { have h := is_preconnected.subset_left_of_subset_union
+    { have h : s ⊆ range sum.inl := is_preconnected.subset_left_of_subset_union
         is_open_range_inl is_open_range_inr is_compl_range_inl_range_inr.disjoint
-        (show s ⊆ range sum.inl ∪ range sum.inr, by simp) ⟨sum.inl x, hx, x, rfl⟩ hs.2,
+        (by simp) ⟨sum.inl x, hx, x, rfl⟩ hs.2,
       refine or.inl ⟨sum.inl ⁻¹' s, _, _⟩,
       { exact hs.preimage_of_open_map sum.inl_injective open_embedding_inl.is_open_map h },
       { exact (set.image_preimage_eq_of_subset h).symm } },
-    { have h := is_preconnected.subset_right_of_subset_union
+    { have h : s ⊆ range sum.inr := is_preconnected.subset_right_of_subset_union
         is_open_range_inl is_open_range_inr is_compl_range_inl_range_inr.disjoint
-        (show s ⊆ range sum.inl ∪ range sum.inr, by simp) ⟨sum.inr x, hx, x, rfl⟩ hs.2,
+        (by simp) ⟨sum.inr x, hx, x, rfl⟩ hs.2,
       refine or.inr ⟨sum.inr ⁻¹' s, _, _⟩,
       { exact hs.preimage_of_open_map sum.inr_injective open_embedding_inr.is_open_map h },
       { exact (set.image_preimage_eq_of_subset h).symm } } },
@@ -683,10 +699,9 @@ set.disjoint_left.2 (λ a h1 h2, h
 
 theorem is_closed_connected_component {x : α} :
   is_closed (connected_component x) :=
-closure_eq_iff_is_closed.1 $ subset.antisymm
-  (is_connected_connected_component.closure.subset_connected_component
-    (subset_closure mem_connected_component))
-  subset_closure
+closure_subset_iff_is_closed.1 $
+  is_connected_connected_component.closure.subset_connected_component $
+    subset_closure mem_connected_component
 
 lemma continuous.image_connected_component_subset [topological_space β] {f : α → β}
   (h : continuous f) (a : α) : f '' connected_component a ⊆ connected_component (f a) :=
@@ -746,7 +761,7 @@ lemma connected_space_iff_connected_component :
   connected_space α ↔ ∃ x : α, connected_component x = univ :=
 begin
   split,
-  { rintros ⟨h, ⟨x⟩⟩,
+  { rintro ⟨⟨x⟩⟩,
     exactI ⟨x, eq_univ_of_univ_subset $
       is_preconnected_univ.subset_connected_component (mem_univ x)⟩ },
   { rintros ⟨x, h⟩,
@@ -810,9 +825,9 @@ theorem is_clopen_iff [preconnected_space α] {s : set α} : is_clopen s ↔ s =
   h3 h2,
 by rintro (rfl | rfl); [exact is_clopen_empty, exact is_clopen_univ]⟩
 
-lemma eq_univ_of_nonempty_clopen [preconnected_space α] {s : set α}
-  (h : s.nonempty) (h' : is_clopen s) : s = univ :=
-by { rw is_clopen_iff at h', exact h'.resolve_left h.ne_empty }
+lemma is_clopen.eq_univ [preconnected_space α] {s : set α} (h' : is_clopen s) (h : s.nonempty) :
+  s = univ :=
+(is_clopen_iff.mp h').resolve_left h.ne_empty
 
 lemma frontier_eq_empty_iff [preconnected_space α] {s : set α} :
   frontier s = ∅ ↔ s = ∅ ∨ s = univ :=
@@ -1532,3 +1547,41 @@ lemma continuous.connected_components_map_continuous {β : Type*} [topological_s
 continuous.connected_components_lift_continuous (continuous_quotient_mk.comp h)
 
 end connected_component_setoid
+
+/-- A preconnected set `s` has the property that every map to a
+discrete space that is continuous on `s` is constant on `s` -/
+lemma is_preconnected.constant {Y : Type*} [topological_space Y] [discrete_topology Y]
+  {s : set α} (hs : is_preconnected s) {f : α → Y} (hf : continuous_on f s)
+  {x y : α} (hx : x ∈ s) (hy : y ∈ s) : f x = f y :=
+(hs.image f hf).subsingleton (mem_image_of_mem f hx) (mem_image_of_mem f hy)
+
+/-- If every map to `bool` (a discrete two-element space), that is
+continuous on a set `s`, is constant on s, then s is preconnected -/
+lemma is_preconnected_of_forall_constant {s : set α}
+  (hs : ∀ f : α → bool, continuous_on f s → ∀ x ∈ s, ∀ y ∈ s, f x = f y) : is_preconnected s :=
+begin
+  unfold is_preconnected,
+  by_contra',
+  rcases this with ⟨u, v, u_op, v_op, hsuv, ⟨x, x_in_s, x_in_u⟩, ⟨y, y_in_s, y_in_v⟩, H⟩,
+  rw [not_nonempty_iff_eq_empty] at H,
+  have hy : y ∉ u,
+    from λ y_in_u, eq_empty_iff_forall_not_mem.mp H y ⟨y_in_s, ⟨y_in_u, y_in_v⟩⟩,
+  have : continuous_on u.bool_indicator s,
+  { apply (continuous_on_indicator_iff_clopen _ _).mpr ⟨_, _⟩,
+    { exact continuous_subtype_coe.is_open_preimage u u_op },
+    { rw preimage_subtype_coe_eq_compl hsuv H,
+      exact (continuous_subtype_coe.is_open_preimage v v_op).is_closed_compl } },
+  simpa [(u.mem_iff_bool_indicator _).mp x_in_u, (u.not_mem_iff_bool_indicator _).mp hy] using
+    hs _ this x x_in_s y y_in_s
+end
+
+/-- A `preconnected_space` version of `is_preconnected.constant` -/
+lemma preconnected_space.constant {Y : Type*} [topological_space Y] [discrete_topology Y]
+  (hp : preconnected_space α) {f : α → Y} (hf : continuous f) {x y : α} : f x = f y :=
+is_preconnected.constant hp.is_preconnected_univ (continuous.continuous_on hf) trivial trivial
+
+/-- A `preconnected_space` version of `is_preconnected_of_forall_constant` -/
+lemma preconnected_space_of_forall_constant (hs : ∀ f : α → bool, continuous f → ∀ x y, f x = f y) :
+  preconnected_space α :=
+⟨is_preconnected_of_forall_constant
+  (λ f hf x hx y hy, hs f (continuous_iff_continuous_on_univ.mpr hf) x y)⟩

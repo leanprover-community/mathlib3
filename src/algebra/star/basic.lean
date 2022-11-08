@@ -3,13 +3,11 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import tactic.apply_fun
-import algebra.field.opposite
-import algebra.field_power
 import algebra.ring.aut
-import group_theory.group_action.units
-import group_theory.group_action.opposite
 import algebra.ring.comp_typeclasses
+import data.rat.cast
+import group_theory.group_action.opposite
+import data.set_like.basic
 
 /-!
 # Star monoids, rings, and modules
@@ -59,6 +57,22 @@ export has_star (star)
 A star operation (e.g. complex conjugate).
 -/
 add_decl_doc star
+
+/-- `star_mem_class S G` states `S` is a type of subsets `s ⊆ G` closed under star. -/
+class star_mem_class (S R : Type*) [has_star R] [set_like S R] :=
+(star_mem : ∀ {s : S} {r : R}, r ∈ s → star r ∈ s)
+
+export star_mem_class (star_mem)
+
+namespace star_mem_class
+
+variables {S : Type u} [has_star R] [set_like S R] [hS : star_mem_class S R] (s : S)
+include hS
+
+instance : has_star s :=
+{ star := λ r, ⟨star (r : R), star_mem r.prop⟩ }
+
+end star_mem_class
 
 
 /--
@@ -284,7 +298,7 @@ case for `(↑star_ring_aut : R →* R)`. -/
 def star_ring_end [comm_semiring R] [star_ring R] : R →+* R := @star_ring_aut R _ _
 variables {R}
 
-localized "notation `conj` := star_ring_end _" in complex_conjugate
+localized "notation (name := star_ring_end) `conj` := star_ring_end hole!" in complex_conjugate
 
 /-- This is not a simp lemma, since we usually want simp to keep `star_ring_end` bundled.
  For example, for complex conjugation, we don't want simp to turn `conj x`
@@ -339,23 +353,50 @@ class star_ordered_ring (R : Type u) [non_unital_semiring R] [partial_order R]
 
 namespace star_ordered_ring
 
-variables [ring R] [partial_order R] [star_ordered_ring R]
-
 @[priority 100] -- see note [lower instance priority]
-instance : ordered_add_comm_group R :=
-{ ..show ring R, by apply_instance,
+instance [non_unital_ring R] [partial_order R] [star_ordered_ring R] : ordered_add_comm_group R :=
+{ ..show non_unital_ring R, by apply_instance,
   ..show partial_order R, by apply_instance,
   ..show star_ordered_ring R, by apply_instance }
 
 end star_ordered_ring
 
-lemma star_mul_self_nonneg
-  [non_unital_semiring R] [partial_order R] [star_ordered_ring R] {r : R} : 0 ≤ star r * r :=
+section non_unital_semiring
+
+variables [non_unital_semiring R] [partial_order R] [star_ordered_ring R]
+
+lemma star_mul_self_nonneg {r : R} : 0 ≤ star r * r :=
 (star_ordered_ring.nonneg_iff _).mpr ⟨r, rfl⟩
 
-lemma star_mul_self_nonneg'
-  [non_unital_semiring R] [partial_order R] [star_ordered_ring R] {r : R} : 0 ≤ r * star r :=
+lemma star_mul_self_nonneg' {r : R} : 0 ≤ r * star r :=
 by { nth_rewrite_rhs 0 [←star_star r], exact star_mul_self_nonneg }
+
+lemma conjugate_nonneg {a : R} (ha : 0 ≤ a) (c : R) : 0 ≤ star c * a * c :=
+begin
+  obtain ⟨x, rfl⟩ := (star_ordered_ring.nonneg_iff _).1 ha,
+  exact (star_ordered_ring.nonneg_iff _).2 ⟨x * c, by rw [star_mul, ←mul_assoc, mul_assoc _ _ c]⟩,
+end
+
+lemma conjugate_nonneg' {a : R} (ha : 0 ≤ a) (c : R) : 0 ≤ c * a * star c :=
+by simpa only [star_star] using conjugate_nonneg ha (star c)
+
+end non_unital_semiring
+
+section non_unital_ring
+
+variables [non_unital_ring R] [partial_order R] [star_ordered_ring R]
+
+lemma conjugate_le_conjugate {a b : R} (hab : a ≤ b) (c : R) : star c * a * c ≤ star c * b * c :=
+begin
+  rw ←sub_nonneg at hab ⊢,
+  convert conjugate_nonneg hab c,
+  simp only [mul_sub, sub_mul],
+end
+
+lemma conjugate_le_conjugate' {a b : R} (hab : a ≤ b) (c : R) : c * a * star c ≤ c * b * star c :=
+by simpa only [star_star] using conjugate_le_conjugate hab (star c)
+
+end non_unital_ring
 
 /--
 A star module `A` over a star ring `R` is a module which is a star add monoid,

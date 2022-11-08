@@ -330,6 +330,12 @@ lemma eq_of_forall_ge_iff [partial_order α] {a b : α}
   (H : ∀ c, a ≤ c ↔ b ≤ c) : a = b :=
 ((H _).2 le_rfl).antisymm ((H _).1 le_rfl)
 
+lemma eq_of_forall_lt_iff [linear_order α] {a b : α} (h : ∀ c, c < a ↔ c < b) : a = b :=
+(le_of_forall_lt $ λ _, (h _).1).antisymm $ le_of_forall_lt $ λ _, (h _).2
+
+lemma eq_of_forall_gt_iff [linear_order α] {a b : α} (h : ∀ c, a < c ↔ b < c) : a = b :=
+(le_of_forall_lt' $ λ _, (h _).2).antisymm $ le_of_forall_lt' $ λ _, (h _).1
+
 /-- A symmetric relation implies two values are equal, when it implies they're less-equal.  -/
 lemma rel_imp_eq_of_rel_imp_le [partial_order β] (r : α → α → Prop) [is_symm α r] {f : α → β}
   (h : ∀ a b, r a b → f a ≤ f b) {a b : α} : r a b → f a = f b :=
@@ -489,6 +495,34 @@ lemma pi.lt_def {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] {x y
   x < y ↔ x ≤ y ∧ ∃ i, x i < y i :=
 by simp [lt_iff_le_not_le, pi.le_def] {contextual := tt}
 
+section pi
+variables {ι : Type*} {π : ι → Type*}
+
+/-- A function `a` is strongly less than a function `b`  if `a i < b i` for all `i`. -/
+def strong_lt [Π i, has_lt (π i)] (a b : Π i, π i) : Prop := ∀ i, a i < b i
+
+local infix ` ≺ `:50 := strong_lt
+
+variables [Π i, preorder (π i)] {a b c : Π i, π i}
+
+lemma le_of_strong_lt (h : a ≺ b) : a ≤ b := λ i, (h _).le
+
+lemma lt_of_strong_lt [nonempty ι] (h : a ≺ b) : a < b :=
+by { inhabit ι, exact pi.lt_def.2 ⟨le_of_strong_lt h, default, h _⟩ }
+
+lemma strong_lt_of_strong_lt_of_le (hab : a ≺ b) (hbc : b ≤ c) : a ≺ c :=
+λ i, (hab _).trans_le $ hbc _
+
+lemma strong_lt_of_le_of_strong_lt (hab : a ≤ b) (hbc : b ≺ c) : a ≺ c :=
+λ i, (hab _).trans_lt $ hbc _
+
+alias le_of_strong_lt ← strong_lt.le
+alias lt_of_strong_lt ← strong_lt.lt
+alias strong_lt_of_strong_lt_of_le ← strong_lt.trans_le
+alias strong_lt_of_le_of_strong_lt ← has_le.le.trans_strong_lt
+
+end pi
+
 lemma le_update_iff {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] [decidable_eq ι]
   {x y : Π i, α i} {i : ι} {a : α i} :
   x ≤ function.update y i a ↔ x i ≤ a ∧ ∀ j ≠ i, x j ≤ y j :=
@@ -520,6 +554,14 @@ lemma pi.sdiff_def {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] 
 lemma pi.sdiff_apply {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) (i : ι) :
   (x \ y) i = x i \ y i := rfl
 
+namespace function
+variables [preorder α] [nonempty β] {a b : α}
+
+@[simp] lemma const_le_const : const β a ≤ const β b ↔ a ≤ b := by simp [pi.le_def]
+@[simp] lemma const_lt_const : const β a < const β b ↔ a < b := by simpa [pi.lt_def] using le_of_lt
+
+end function
+
 /-! ### `min`/`max` recursors -/
 
 section min_max_rec
@@ -534,6 +576,18 @@ lemma max_rec (hx : y ≤ x → p x) (hy : x ≤ y → p y) : p (max x y) := @mi
 lemma min_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (min x y) := min_rec (λ _, hx) (λ _, hy)
 lemma max_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (max x y) := max_rec (λ _, hx) (λ _, hy)
 
+lemma min_def' (x y : α) : min x y = if x < y then x else y :=
+begin
+  rw [min_comm, min_def, ← ite_not],
+  simp only [not_le],
+end
+
+lemma max_def' (x y : α) : max x y = if y < x then x else y :=
+begin
+  rw [max_comm, max_def, ← ite_not],
+  simp only [not_le],
+end
+
 end min_max_rec
 
 /-! ### `has_sup` and `has_inf` -/
@@ -543,8 +597,8 @@ end min_max_rec
 /-- Typeclass for the `⊓` (`\glb`) notation -/
 @[notation_class] class has_inf (α : Type u) := (inf : α → α → α)
 
-infix ⊔ := has_sup.sup
-infix ⊓ := has_inf.inf
+infix ` ⊔ ` := has_sup.sup
+infix ` ⊓ ` := has_inf.inf
 
 /-! ### Lifts of order instances -/
 
@@ -705,7 +759,7 @@ end prod
 
 /-! ### Additional order classes -/
 
-/-- An order is dense if there is an element between any pair of distinct elements. -/
+/-- An order is dense if there is an element between any pair of distinct comparable elements. -/
 class densely_ordered (α : Type u) [has_lt α] : Prop :=
 (dense : ∀ a₁ a₂ : α, a₁ < a₂ → ∃ a, a₁ < a ∧ a < a₂)
 

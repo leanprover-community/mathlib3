@@ -557,9 +557,8 @@ lemma subgroup.is_normal_topological_closure {G : Type*} [topological_space G] [
   (subgroup.topological_closure N).normal :=
 { conj_mem := λ n hn g,
   begin
-    apply mem_closure_of_continuous (topological_group.continuous_conj g) hn,
-    intros m hm,
-    exact subset_closure (subgroup.normal.conj_mem infer_instance m hm g),
+    apply map_mem_closure (topological_group.continuous_conj g) hn,
+    exact λ m hm, subgroup.normal.conj_mem infer_instance m hm g
   end }
 
 @[to_additive] lemma mul_mem_connected_component_one {G : Type*} [topological_space G]
@@ -637,6 +636,12 @@ lemma topological_group.ext {G : Type*} [group G] {t t' : topological_space G}
   (h : @nhds G t 1 = @nhds G t' 1) : t = t' :=
 eq_of_nhds_eq_nhds $ λ x, by
   rw [← @nhds_translation_mul_inv G t _ _ x , ← @nhds_translation_mul_inv G t' _ _ x , ← h]
+
+@[to_additive]
+lemma topological_group.ext_iff {G : Type*} [group G] {t t' : topological_space G}
+  (tg : @topological_group G t _) (tg' : @topological_group G t' _) :
+  t = t' ↔ @nhds G t 1 = @nhds G t' 1 :=
+⟨λ h, h ▸ rfl, tg.ext tg'⟩
 
 @[to_additive]
 lemma topological_group.of_nhds_aux {G : Type*} [group G] [topological_space G]
@@ -748,6 +753,47 @@ instance topological_group_quotient [N.normal] : topological_group (G ⧸ N) :=
     exact (quotient_map.continuous_iff quot).2 cont,
   end,
   continuous_inv := by convert (@continuous_inv G _ _ _).quotient_map' _ }
+
+/-- Neighborhoods in the quotient are precisely the map of neighborhoods in the prequotient. -/
+@[to_additive "Neighborhoods in the quotient are precisely the map of neighborhoods in
+the prequotient."]
+lemma quotient_group.nhds_eq (x : G) : 𝓝 (x : G ⧸ N) = map coe (𝓝 x) :=
+le_antisymm ((quotient_group.is_open_map_coe N).nhds_le x) continuous_quot_mk.continuous_at
+
+variables (G) [first_countable_topology G]
+
+/-- Any first countable topological group has an antitone neighborhood basis `u : ℕ → set G` for
+which `(u (n + 1)) ^ 2 ⊆ u n`. The existence of such a neighborhood basis is a key tool for
+`quotient_group.complete_space` -/
+@[to_additive "Any first countable topological additive group has an antitone neighborhood basis
+`u : ℕ → set G` for which `u (n + 1) + u (n + 1) ⊆ u n`. The existence of such a neighborhood basis
+is a key tool for `quotient_add_group.complete_space`"]
+lemma topological_group.exists_antitone_basis_nhds_one :
+  ∃ (u : ℕ → set G), (𝓝 1).has_antitone_basis u ∧ (∀ n, u (n + 1) * u (n + 1) ⊆ u n) :=
+begin
+  rcases (𝓝 (1 : G)).exists_antitone_basis with ⟨u, hu, u_anti⟩,
+  have := ((hu.prod_nhds hu).tendsto_iff hu).mp
+    (by simpa only [mul_one] using continuous_mul.tendsto ((1, 1) : G × G)),
+  simp only [and_self, mem_prod, and_imp, prod.forall, exists_true_left, prod.exists,
+    forall_true_left] at this,
+  have event_mul : ∀ n : ℕ, ∀ᶠ m in at_top, u m * u m ⊆ u n,
+  { intros n,
+    rcases this n with ⟨j, k, h⟩,
+    refine at_top_basis.eventually_iff.mpr ⟨max j k, true.intro, λ m hm, _⟩,
+    rintro - ⟨a, b, ha, hb, rfl⟩,
+    exact h a b (u_anti ((le_max_left _ _).trans hm) ha) (u_anti ((le_max_right _ _).trans hm) hb)},
+  obtain ⟨φ, -, hφ, φ_anti_basis⟩ := has_antitone_basis.subbasis_with_rel ⟨hu, u_anti⟩ event_mul,
+  exact ⟨u ∘ φ, φ_anti_basis, λ n, hφ n.lt_succ_self⟩,
+end
+
+include n
+
+/-- In a first countable topological group `G` with normal subgroup `N`, `1 : G ⧸ N` has a
+countable neighborhood basis. -/
+@[to_additive "In a first countable topological additive group `G` with normal additive subgroup
+`N`, `0 : G ⧸ N` has a countable neighborhood basis."]
+instance quotient_group.nhds_one_is_countably_generated : (𝓝 (1 : G ⧸ N)).is_countably_generated :=
+(quotient_group.nhds_eq N 1).symm ▸ map.is_countably_generated _ _
 
 end quotient_topological_group
 
@@ -877,25 +923,49 @@ with continuous addition/multiplication. See also `submonoid.top_closure_mul_sel
 `topology.algebra.monoid`.
 -/
 
-section has_continuous_mul
-variables [topological_space α] [group α] [has_continuous_mul α] {s t : set α}
+section has_continuous_const_smul
+variables [topological_space β] [group α] [mul_action α β]
+  [has_continuous_const_smul α β] {s : set α} {t : set β}
 
-@[to_additive] lemma is_open.mul_left (ht : is_open t) : is_open (s * t) :=
-by { rw ←Union_mul_left_image, exact is_open_bUnion (λ a ha, is_open_map_mul_left a t ht) }
+@[to_additive] lemma is_open.smul_left (ht : is_open t) : is_open (s • t) :=
+by { rw ←bUnion_smul_set, exact is_open_bUnion (λ a _, ht.smul _) }
+
+@[to_additive] lemma subset_interior_smul_right : s • interior t ⊆ interior (s • t) :=
+interior_maximal (set.smul_subset_smul_left interior_subset) is_open_interior.smul_left
+
+variables [topological_space α]
+
+@[to_additive] lemma subset_interior_smul : interior s • interior t ⊆ interior (s • t) :=
+(set.smul_subset_smul_right interior_subset).trans subset_interior_smul_right
+
+end has_continuous_const_smul
+
+section has_continuous_const_smul
+variables [topological_space α] [group α] [has_continuous_const_smul α α] {s t : set α}
+
+@[to_additive] lemma is_open.mul_left : is_open t → is_open (s * t) := is_open.smul_left
+
+@[to_additive] lemma subset_interior_mul_right : s * interior t ⊆ interior (s * t) :=
+subset_interior_smul_right
+
+@[to_additive] lemma subset_interior_mul : interior s * interior t ⊆ interior (s * t) :=
+subset_interior_smul
+
+end has_continuous_const_smul
+
+section has_continuous_const_smul_op
+variables [topological_space α] [group α] [has_continuous_const_smul αᵐᵒᵖ α] {s t : set α}
 
 @[to_additive] lemma is_open.mul_right (hs : is_open s) : is_open (s * t) :=
-by { rw ←Union_mul_right_image, exact is_open_bUnion (λ a ha, is_open_map_mul_right a s hs) }
+by { rw ←bUnion_op_smul_set, exact is_open_bUnion (λ a _, hs.smul _) }
 
 @[to_additive] lemma subset_interior_mul_left : interior s * t ⊆ interior (s * t) :=
 interior_maximal (set.mul_subset_mul_right interior_subset) is_open_interior.mul_right
 
-@[to_additive] lemma subset_interior_mul_right : s * interior t ⊆ interior (s * t) :=
-interior_maximal (set.mul_subset_mul_left interior_subset) is_open_interior.mul_left
-
-@[to_additive] lemma subset_interior_mul : interior s * interior t ⊆ interior (s * t) :=
+@[to_additive] lemma subset_interior_mul' : interior s * interior t ⊆ interior (s * t) :=
 (set.mul_subset_mul_left interior_subset).trans subset_interior_mul_left
 
-end has_continuous_mul
+end has_continuous_const_smul_op
 
 section topological_group
 variables [topological_space α] [group α] [topological_group α] {s t : set α}
@@ -956,28 +1026,27 @@ variables (G) [topological_space G] [group G] [topological_group G]
 lemma topological_group.t1_space (h : @is_closed G _ {1}) : t1_space G :=
 ⟨assume x, by { convert is_closed_map_mul_right x _ h, simp }⟩
 
+@[priority 100, to_additive]
+instance topological_group.regular_space : regular_space G :=
+begin
+  refine regular_space.of_exists_mem_nhds_is_closed_subset (λ a s hs, _),
+  have : tendsto (λ p : G × G, p.1 * p.2) (𝓝 (a, 1)) (𝓝 a),
+    from continuous_mul.tendsto' _ _ (mul_one a),
+  rcases mem_nhds_prod_iff.mp (this hs) with ⟨U, hU, V, hV, hUV⟩,
+  rw [← image_subset_iff, image_prod] at hUV,
+  refine ⟨closure U, mem_of_superset hU subset_closure, is_closed_closure, _⟩,
+  calc closure U ⊆ closure U * interior V : subset_mul_left _ (mem_interior_iff_mem_nhds.2 hV)
+             ... = U * interior V         : is_open_interior.closure_mul U
+             ... ⊆ U * V                  : mul_subset_mul_left interior_subset
+             ... ⊆ s                      : hUV
+end
+
 @[to_additive]
-lemma topological_group.t3_space [t1_space G] : t3_space G :=
-⟨assume s a hs ha,
- let f := λ p : G × G, p.1 * (p.2)⁻¹ in
- have hf : continuous f := continuous_fst.mul continuous_snd.inv,
- -- a ∈ -s implies f (a, 1) ∈ -s, and so (a, 1) ∈ f⁻¹' (-s);
- -- and so can find t₁ t₂ open such that a ∈ t₁ × t₂ ⊆ f⁻¹' (-s)
- let ⟨t₁, t₂, ht₁, ht₂, a_mem_t₁, one_mem_t₂, t_subset⟩ :=
-   is_open_prod_iff.1 ((is_open_compl_iff.2 hs).preimage hf) a (1:G) (by simpa [f]) in
- begin
-   use [s * t₂, ht₂.mul_left, λ x hx, ⟨x, 1, hx, one_mem_t₂, mul_one _⟩],
-   rw [nhds_within, inf_principal_eq_bot, mem_nhds_iff],
-   refine ⟨t₁, _, ht₁, a_mem_t₁⟩,
-   rintros x hx ⟨y, z, hy, hz, yz⟩,
-   have : x * z⁻¹ ∈ sᶜ := (prod_subset_iff.1 t_subset) x hx z hz,
-   have : x * z⁻¹ ∈ s, rw ← yz, simpa,
-   contradiction
- end⟩
+lemma topological_group.t3_space [t1_space G] : t3_space G := ⟨⟩
 
 @[to_additive]
 lemma topological_group.t2_space [t1_space G] : t2_space G :=
-@t3_space.t2_space G _ (topological_group.t3_space G)
+by { haveI := topological_group.t3_space G, apply_instance }
 
 variables {G} (S : subgroup G) [subgroup.normal S] [is_closed (S : set G)]
 
@@ -990,6 +1059,52 @@ begin
   rw ← quotient_group.ker_mk S at hS,
   exact topological_group.t1_space (G ⧸ S) ((quotient_map_quotient_mk.is_closed_preimage).mp hS),
 end
+
+/-- A subgroup `S` of a topological group `G` acts on `G` properly discontinuously on the left, if
+it is discrete in the sense that `S ∩ K` is finite for all compact `K`. (See also
+`discrete_topology`.) -/
+@[to_additive "A subgroup `S` of an additive topological group `G` acts on `G` properly
+discontinuously on the left, if it is discrete in the sense that `S ∩ K` is finite for all compact
+`K`. (See also `discrete_topology`."]
+lemma subgroup.properly_discontinuous_smul_of_tendsto_cofinite
+  (S : subgroup G) (hS : tendsto S.subtype cofinite (cocompact G)) :
+  properly_discontinuous_smul S G :=
+{ finite_disjoint_inter_image := begin
+    intros K L hK hL,
+    have H : set.finite _ := hS ((hL.prod hK).image continuous_div').compl_mem_cocompact,
+    rw [preimage_compl, compl_compl] at H,
+    convert H,
+    ext x,
+    simpa only [image_smul, mem_image, prod.exists] using set.smul_inter_ne_empty_iff',
+  end }
+
+local attribute [semireducible] mul_opposite
+
+/-- A subgroup `S` of a topological group `G` acts on `G` properly discontinuously on the right, if
+it is discrete in the sense that `S ∩ K` is finite for all compact `K`. (See also
+`discrete_topology`.)
+
+If `G` is Hausdorff, this can be combined with `t2_space_of_properly_discontinuous_smul_of_t2_space`
+to show that the quotient group `G ⧸ S` is Hausdorff. -/
+@[to_additive "A subgroup `S` of an additive topological group `G` acts on `G` properly
+discontinuously on the right, if it is discrete in the sense that `S ∩ K` is finite for all compact
+`K`. (See also `discrete_topology`.)
+
+If `G` is Hausdorff, this can be combined with `t2_space_of_properly_discontinuous_vadd_of_t2_space`
+to show that the quotient group `G ⧸ S` is Hausdorff."]
+lemma subgroup.properly_discontinuous_smul_opposite_of_tendsto_cofinite
+  (S : subgroup G) (hS : tendsto S.subtype cofinite (cocompact G)) :
+  properly_discontinuous_smul S.opposite G :=
+{ finite_disjoint_inter_image := begin
+    intros K L hK hL,
+    have : continuous (λ p : G × G, (p.1⁻¹, p.2)) := continuous_inv.prod_map continuous_id,
+    have H : set.finite _ :=
+      hS ((hK.prod hL).image (continuous_mul.comp this)).compl_mem_cocompact,
+    rw [preimage_compl, compl_compl] at H,
+    convert H,
+    ext x,
+    simpa only [image_smul, mem_image, prod.exists] using set.op_smul_inter_ne_empty_iff,
+  end }
 
 end
 
@@ -1076,14 +1191,16 @@ end
 
 /-- Every separated topological group in which there exists a compact set with nonempty interior
 is locally compact. -/
-@[to_additive] lemma topological_space.positive_compacts.locally_compact_space_of_group
+@[to_additive "Every separated topological group in which there exists a compact set with nonempty
+interior is locally compact."]
+lemma topological_space.positive_compacts.locally_compact_space_of_group
   [t2_space G] (K : positive_compacts G) :
   locally_compact_space G :=
 begin
   refine locally_compact_of_compact_nhds (λ x, _),
   obtain ⟨y, hy⟩ := K.interior_nonempty,
   let F := homeomorph.mul_left (x * y⁻¹),
-  refine ⟨F '' K, _, K.compact.image F.continuous⟩,
+  refine ⟨F '' K, _, K.is_compact.image F.continuous⟩,
   suffices : F.symm ⁻¹' K ∈ 𝓝 x, by { convert this, apply equiv.image_eq_preimage },
   apply continuous_at.preimage_mem_nhds F.symm.continuous.continuous_at,
   have : F.symm x = y, by simp [F, homeomorph.mul_left_symm],
@@ -1164,6 +1281,13 @@ instance quotient_group.has_continuous_smul [locally_compact_space G] :
       refine continuous_coinduced_rng.comp continuous_mul },
     exact quotient_map.continuous_lift_prod_right quotient_map_quotient_mk H,
   end }
+
+/-- The quotient of a second countable topological group by a subgroup is second countable. -/
+@[to_additive "The quotient of a second countable additive topological group by a subgroup is second
+countable."]
+instance quotient_group.second_countable_topology [second_countable_topology G] :
+  second_countable_topology (G ⧸ Γ) :=
+has_continuous_const_smul.second_countable_topology
 
 end quotient
 
@@ -1388,10 +1512,9 @@ Inf {b : group_topology β | (topological_space.coinduced f t) ≤ b.to_topologi
 lemma coinduced_continuous {α β : Type*} [t : topological_space α] [group β]
   (f : α → β) : cont t (coinduced f).to_topological_space f :=
 begin
-  rw continuous_iff_coinduced_le,
-  refine le_Inf _,
+  rw [continuous_Inf_rng],
   rintros _ ⟨t', ht', rfl⟩,
-  exact ht',
+  exact continuous_iff_coinduced_le.2 ht'
 end
 
 end group_topology

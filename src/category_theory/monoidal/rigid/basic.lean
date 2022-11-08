@@ -108,8 +108,8 @@ attribute [instance] has_left_dual.exact
 
 open exact_pairing has_right_dual has_left_dual monoidal_category
 
-prefix `ᘁ`:1025 := left_dual
-postfix `ᘁ`:1025 := right_dual
+prefix (name := left_dual) `ᘁ`:1025 := left_dual
+postfix (name := right_dual) `ᘁ`:1025 := right_dual
 
 instance has_right_dual_unit : has_right_dual (𝟙_ C) :=
 { right_dual := 𝟙_ C }
@@ -139,8 +139,8 @@ def left_adjoint_mate {X Y : C} [has_left_dual X] [has_left_dual Y] (f : X ⟶ Y
 (λ_ _).inv ≫ (η_ (ᘁX) X ⊗ 𝟙 _) ≫ ((𝟙 _ ⊗ f) ⊗ 𝟙 _)
  ≫ (α_ _ _ _).hom ≫ (𝟙 _ ⊗ ε_ _ _) ≫ (ρ_ _).hom
 
-notation f `ᘁ` := right_adjoint_mate f
-notation `ᘁ` f := left_adjoint_mate f
+notation (name := right_adjoint_mate) f `ᘁ` := right_adjoint_mate f
+notation (name := left_adjoint_mate) `ᘁ` f := left_adjoint_mate f
 
 @[simp]
 lemma right_adjoint_mate_id {X : C} [has_right_dual X] : (𝟙 X)ᘁ = 𝟙 (Xᘁ) :=

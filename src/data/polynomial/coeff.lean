@@ -36,6 +36,8 @@ coeff_monomial
 lemma coeff_add (p q : R[X]) (n : ℕ) : coeff (p + q) n = coeff p n + coeff q n :=
 by { rcases p, rcases q, simp_rw [←of_finsupp_add, coeff], exact finsupp.add_apply _ _ _ }
 
+@[simp] lemma coeff_bit0 (p : R[X]) (n : ℕ) : coeff (bit0 p) n = bit0 (coeff p n) := by simp [bit0]
+
 @[simp] lemma coeff_smul [monoid S] [distrib_mul_action S R] (r : S) (p : R[X]) (n : ℕ) :
   coeff (r • p) n = r • coeff p n :=
 by { rcases p, simp_rw [←of_finsupp_smul, coeff], exact finsupp.smul_apply _ _ _ }
@@ -52,7 +54,7 @@ end
 /-- `polynomial.sum` as a linear map. -/
 @[simps] def lsum {R A M : Type*} [semiring R] [semiring A] [add_comm_monoid M]
   [module R A] [module R M] (f : ℕ → A →ₗ[R] M) :
-  polynomial A →ₗ[R] M :=
+  A[X] →ₗ[R] M :=
 { to_fun := λ p, p.sum (λ n r, f n r),
   map_add' := λ p q, sum_add_index p q _ (λ n, (f n).map_zero) (λ n _ _, (f n).map_add _ _),
   map_smul' := λ c p,

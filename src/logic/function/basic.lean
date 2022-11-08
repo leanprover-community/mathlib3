@@ -9,6 +9,10 @@ import tactic.cache
 
 /-!
 # Miscellaneous function constructions and lemmas
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/511
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes u v w
@@ -622,7 +626,7 @@ def bicompr (f : γ → δ) (g : α → β → γ) (a b) :=
 f (g a b)
 
 -- Suggested local notation:
-local notation f `∘₂` g := bicompr f g
+local notation f ` ∘₂ ` g := bicompr f g
 
 lemma uncurry_bicompr (f : α → β → γ) (g : γ → δ) :
   uncurry (g ∘₂ f) = (g ∘ uncurry f) := rfl
@@ -647,7 +651,7 @@ class has_uncurry (α : Type*) (β : out_param Type*) (γ : out_param Type*) := 
 for bundled maps.-/
 add_decl_doc has_uncurry.uncurry
 
-notation `↿`:max x:max := has_uncurry.uncurry x
+notation (name := uncurry) `↿`:max x:max := has_uncurry.uncurry x
 
 instance has_uncurry_base : has_uncurry (α → β) α β := ⟨id⟩
 
@@ -661,6 +665,8 @@ def involutive {α} (f : α → α) : Prop := ∀ x, f (f x) = x
 
 lemma involutive_iff_iter_2_eq_id {α} {f : α → α} : involutive f ↔ (f^[2] = id) :=
 funext_iff.symm
+
+lemma _root_.bool.involutive_bnot : involutive bnot := bnot_bnot
 
 namespace involutive
 variables {α : Sort u} {f : α → α} (h : involutive f)

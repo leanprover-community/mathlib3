@@ -187,7 +187,7 @@ begin
       cases list.foldr parallel.aux2._match_1 (sum.inr list.nil) l; simp [parallel.aux2],
       cases destruct c; simp },
     simp [parallel.aux1], rw this, cases parallel.aux2 l with a l'; simp,
-    apply S.cases_on _ (λ c S, _) (λ S, _); simp; simp [parallel.aux1];
+    apply S.rec_on _ (λ c S, _) (λ S, _); simp; simp [parallel.aux1];
     exact ⟨_, _, rfl, rfl⟩
   end end
 end

@@ -69,7 +69,7 @@ It is a homeomorphism between `ℝ^2 - (-∞, 0]` and `(0, +∞) × (-π, π)`. 
   begin
     rintros ⟨x, y⟩ hxy,
     have A : sqrt (x ^ 2 + y ^ 2) = complex.abs (x + y * complex.I),
-      by simp only [complex.abs, complex.norm_sq, pow_two, monoid_with_zero_hom.coe_mk,
+      by simp only [complex.abs_def, complex.norm_sq, pow_two, monoid_with_zero_hom.coe_mk,
         complex.add_re, complex.of_real_re, complex.mul_re, complex.I_re, mul_zero,
         complex.of_real_im, complex.I_im, sub_self, add_zero, complex.add_im,
         complex.mul_im, mul_one, zero_add],
@@ -111,7 +111,7 @@ lemma polar_coord_source_ae_eq_univ :
 begin
   have A : polar_coord.sourceᶜ ⊆ (linear_map.snd ℝ ℝ ℝ).ker,
   { assume x hx,
-    simp only [polar_coord_source, compl_union, mem_inter_eq, mem_compl_eq, mem_set_of_eq, not_lt,
+    simp only [polar_coord_source, compl_union, mem_inter_iff, mem_compl_iff, mem_set_of_eq, not_lt,
       not_not] at hx,
     exact hx.2 },
   have B : volume ((linear_map.snd ℝ ℝ ℝ).ker : set (ℝ × ℝ)) = 0,

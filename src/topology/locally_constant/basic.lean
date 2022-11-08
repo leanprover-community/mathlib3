@@ -317,7 +317,7 @@ begin
   ext,
   simp only [of_clopen, nat.one_ne_zero, mem_singleton_iff, coe_mk,
     fin.zero_eq_one_iff, mem_preimage, ite_eq_right_iff,
-    mem_compl_eq],
+    mem_compl_iff],
   tauto,
 end
 

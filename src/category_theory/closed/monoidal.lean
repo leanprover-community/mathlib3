@@ -107,7 +107,7 @@ lemma coev_naturality {X Y : C} (f : X ⟶ Y) :
   f ≫ (coev A).app Y = (coev A).app X ≫ (ihom A).map ((𝟙 A) ⊗ f) :=
 (coev A).naturality f
 
-notation A ` ⟶[`C`] ` B:10 := (@ihom C _ _ A _).obj B
+notation (name := ihom) A ` ⟶[`C`] ` B:10 := (@ihom C _ _ A _).obj B
 
 @[simp, reassoc] lemma ev_coev :
   ((𝟙 A) ⊗ ((coev A).app B)) ≫ (ev A).app (A ⊗ B) = 𝟙 (A ⊗ B) :=
@@ -206,15 +206,18 @@ variables {A B} [closed B]
 def pre (f : B ⟶ A) : ihom A ⟶ ihom B :=
 transfer_nat_trans_self (ihom.adjunction _) (ihom.adjunction _) ((tensoring_left C).map f)
 
+@[simp, reassoc]
 lemma id_tensor_pre_app_comp_ev (f : B ⟶ A) (X : C) :
   (𝟙 B ⊗ ((pre f).app X)) ≫ (ihom.ev B).app X =
     (f ⊗ (𝟙 (A ⟶[C] X))) ≫ (ihom.ev A).app X :=
 transfer_nat_trans_self_counit _ _ ((tensoring_left C).map f) X
 
+@[simp]
 lemma uncurry_pre (f : B ⟶ A) (X : C) :
   monoidal_closed.uncurry ((pre f).app X) = (f ⊗ 𝟙 _) ≫ (ihom.ev A).app X :=
 by rw [uncurry_eq, id_tensor_pre_app_comp_ev]
 
+@[simp, reassoc]
 lemma coev_app_comp_pre_app (f : B ⟶ A) :
   (ihom.coev A).app X ≫ (pre f).app (A ⊗ X) =
     (ihom.coev B).app X ≫ (ihom B).map (f ⊗ (𝟙 _)) :=
@@ -230,9 +233,14 @@ lemma pre_map {A₁ A₂ A₃ : C} [closed A₁] [closed A₂] [closed A₃]
   pre (f ≫ g) = pre g ≫ pre f :=
 by rw [pre, pre, pre, transfer_nat_trans_self_comp, (tensoring_left C).map_comp]
 
+lemma pre_comm_ihom_map {W X Y Z : C} [closed W] [closed X]
+  (f : W ⟶ X) (g : Y ⟶ Z) :
+  (pre f).app Y ≫ (ihom W).map g = (ihom X).map g ≫ (pre f).app Z := by simp
+
 end pre
 
 /-- The internal hom functor given by the monoidal closed structure. -/
+@[simps]
 def internal_hom [monoidal_closed C] : Cᵒᵖ ⥤ C ⥤ C :=
 { obj := λ X, ihom X.unop,
   map := λ X Y f, pre f.unop }

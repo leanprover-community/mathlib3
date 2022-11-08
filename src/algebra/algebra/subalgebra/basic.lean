@@ -68,8 +68,8 @@ to_subsemiring_injective.eq_iff
 equalities. -/
 protected def copy (S : subalgebra R A) (s : set A) (hs : s = ↑S) : subalgebra R A :=
 { carrier := s,
-  add_mem' := hs.symm ▸ S.add_mem',
-  mul_mem' := hs.symm ▸ S.mul_mem',
+  add_mem' := λ _ _, hs.symm ▸ S.add_mem',
+  mul_mem' := λ _ _, hs.symm ▸ S.mul_mem',
   algebra_map_mem' := hs.symm ▸ S.algebra_map_mem' }
 
 @[simp] lemma coe_copy (S : subalgebra R A) (s : set A) (hs : s = ↑S) :
@@ -188,9 +188,15 @@ instance to_comm_ring {R A}
 instance to_ordered_semiring {R A}
   [comm_semiring R] [ordered_semiring A] [algebra R A] (S : subalgebra R A) :
   ordered_semiring S := S.to_subsemiring.to_ordered_semiring
+instance to_strict_ordered_semiring {R A}
+  [comm_semiring R] [strict_ordered_semiring A] [algebra R A] (S : subalgebra R A) :
+  strict_ordered_semiring S := S.to_subsemiring.to_strict_ordered_semiring
 instance to_ordered_comm_semiring {R A}
   [comm_semiring R] [ordered_comm_semiring A] [algebra R A] (S : subalgebra R A) :
   ordered_comm_semiring S := S.to_subsemiring.to_ordered_comm_semiring
+instance to_strict_ordered_comm_semiring {R A}
+  [comm_semiring R] [strict_ordered_comm_semiring A] [algebra R A] (S : subalgebra R A) :
+  strict_ordered_comm_semiring S := S.to_subsemiring.to_strict_ordered_comm_semiring
 instance to_ordered_ring {R A}
   [comm_ring R] [ordered_ring A] [algebra R A] (S : subalgebra R A) :
   ordered_ring S := S.to_subring.to_ordered_ring
@@ -201,7 +207,9 @@ instance to_ordered_comm_ring {R A}
 instance to_linear_ordered_semiring {R A}
   [comm_semiring R] [linear_ordered_semiring A] [algebra R A] (S : subalgebra R A) :
   linear_ordered_semiring S := S.to_subsemiring.to_linear_ordered_semiring
-/-! There is no `linear_ordered_comm_semiring`. -/
+instance to_linear_ordered_comm_semiring {R A}
+ [comm_semiring R] [linear_ordered_comm_semiring A] [algebra R A] (S : subalgebra R A) :
+  linear_ordered_comm_semiring S := S.to_subsemiring.to_linear_ordered_comm_semiring
 instance to_linear_ordered_ring {R A}
   [comm_ring R] [linear_ordered_ring A] [algebra R A] (S : subalgebra R A) :
   linear_ordered_ring S := S.to_subring.to_linear_ordered_ring

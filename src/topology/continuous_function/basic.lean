@@ -31,6 +31,8 @@ structure continuous_map (α β : Type*) [topological_space α] [topological_spa
 
 notation `C(` α `, ` β `)` := continuous_map α β
 
+section
+set_option old_structure_cmd true
 /-- `continuous_map_class F α β` states that `F` is a type of continuous maps.
 
 You should extend this class when you extend `continuous_map`. -/
@@ -38,6 +40,8 @@ class continuous_map_class (F : Type*) (α β : out_param $ Type*) [topological_
   [topological_space β]
   extends fun_like F α (λ _, β) :=
 (map_continuous (f : F) : continuous f)
+
+end
 
 export continuous_map_class (map_continuous)
 
@@ -75,6 +79,9 @@ instance : has_coe_to_fun (C(α, β)) (λ _, α → β) := fun_like.has_coe_to_f
 
 -- this must come after the coe_to_fun definition
 initialize_simps_projections continuous_map (to_fun → apply)
+
+@[protected, simp, norm_cast]
+lemma coe_coe {F : Type*} [continuous_map_class F α β] (f : F) : ⇑(f : C(α, β)) = f := rfl
 
 @[ext] lemma ext {f g : C(α, β)} (h : ∀ a, f a = g a) : f = g := fun_like.ext _ _ h
 

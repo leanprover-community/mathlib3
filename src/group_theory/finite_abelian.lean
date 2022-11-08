@@ -29,8 +29,8 @@ lemma finite_of_fg_torsion [add_comm_group M] [module ℤ M] [module.finite ℤ 
   (hM : module.is_torsion ℤ M) : _root_.finite M :=
 begin
   rcases module.equiv_direct_sum_of_is_torsion hM with ⟨ι, _, p, h, e, ⟨l⟩⟩,
-  haveI : ∀ i : ι, fact $ 0 < (p i ^ e i).nat_abs :=
-  λ i, fact.mk $ int.nat_abs_pos_of_ne_zero $ pow_ne_zero (e i) (h i).ne_zero,
+  haveI : ∀ i : ι, ne_zero (p i ^ e i).nat_abs :=
+  λ i, ⟨int.nat_abs_ne_zero_of_ne_zero $ pow_ne_zero (e i) (h i).ne_zero⟩,
   haveI : ∀ i : ι, _root_.finite $ ℤ ⧸ submodule.span ℤ {p i ^ e i} :=
   λ i, finite.of_equiv _ (p i ^ e i).quotient_span_equiv_zmod.symm.to_equiv,
   haveI : _root_.finite ⨁ i, ℤ ⧸ (submodule.span ℤ {p i ^ e i} : submodule ℤ ℤ) :=

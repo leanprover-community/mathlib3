@@ -36,7 +36,8 @@ def direct_sum [Π i, add_comm_monoid (β i)] : Type* := Π₀ i, β i
 instance [Π i, add_comm_monoid (β i)] : has_coe_to_fun (direct_sum ι β) (λ _, Π i : ι, β i) :=
 dfinsupp.has_coe_to_fun
 
-localized "notation `⨁` binders `, ` r:(scoped f, direct_sum _ f) := r" in direct_sum
+localized "notation (name := direct_sum)
+  `⨁` binders `, ` r:(scoped f, direct_sum _ f) := r" in direct_sum
 
 namespace direct_sum
 

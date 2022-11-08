@@ -45,7 +45,7 @@ variables {R S T : Type*} [comm_ring R] [comm_ring S]
 variables [algebra R S]
 variables {K L F : Type*} [field K] [field L] [field F]
 variables [algebra K L] [algebra K F]
-variables {ι : Type w} [fintype ι]
+variables {ι : Type w}
 
 open finite_dimensional
 open linear_map
@@ -71,12 +71,12 @@ by { rw [norm_apply, linear_map.det], split_ifs with h, refl }
 variables {R}
 
 -- Can't be a `simp` lemma because it depends on a choice of basis
-lemma norm_eq_matrix_det [decidable_eq ι] (b : basis ι R S) (s : S) :
+lemma norm_eq_matrix_det [fintype ι] [decidable_eq ι] (b : basis ι R S) (s : S) :
   norm R s = matrix.det (algebra.left_mul_matrix b s) :=
 by { rwa [norm_apply, ← linear_map.det_to_matrix b, ← to_matrix_lmul_eq], refl }
 
 /-- If `x` is in the base field `K`, then the norm is `x ^ [L : K]`. -/
-lemma norm_algebra_map_of_basis (b : basis ι R S) (x : R) :
+lemma norm_algebra_map_of_basis [fintype ι] (b : basis ι R S) (x : R) :
   norm R (algebra_map R S x) = x ^ fintype.card ι :=
 begin
   haveI := classical.dec_eq ι,
@@ -129,10 +129,12 @@ end
 end eq_prod_roots
 
 section eq_zero_iff
+variables [finite ι]
 
 lemma norm_eq_zero_iff_of_basis [is_domain R] [is_domain S] (b : basis ι R S) {x : S} :
   algebra.norm R x = 0 ↔ x = 0 :=
 begin
+  casesI nonempty_fintype ι,
   have hι : nonempty ι := b.index_nonempty,
   letI := classical.dec_eq ι,
   rw algebra.norm_eq_matrix_det b,
@@ -196,7 +198,7 @@ begin
   contrapose! hx,
   obtain ⟨s, ⟨b⟩⟩ := hx,
   refine is_integral_of_mem_of_fg (K⟮x⟯).to_subalgebra _ x _,
-  { exact (submodule.fg_iff_finite_dimensional _).mpr (of_finset_basis b) },
+  { exact (submodule.fg_iff_finite_dimensional _).mpr (of_fintype_basis b) },
   { exact intermediate_field.subset_adjoin K _ (set.mem_singleton x) }
 end
 
@@ -303,7 +305,7 @@ lemma is_integral_norm [algebra S L] [algebra S K] [is_scalar_tower S K L]
   [is_separable K L] [finite_dimensional K L] {x : L} (hx : _root_.is_integral S x) :
   _root_.is_integral S (norm K x) :=
 begin
-  have hx' : _root_.is_integral K x := is_integral_of_is_scalar_tower _ hx,
+  have hx' : _root_.is_integral K x := is_integral_of_is_scalar_tower hx,
   rw [← is_integral_algebra_map_iff (algebra_map K (algebraic_closure L)).injective,
       norm_eq_prod_roots],
   { refine (is_integral.multiset_prod (λ y hy, _)).pow _,

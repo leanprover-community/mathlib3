@@ -85,7 +85,7 @@ end
 lemma _root_.multiset.periodic_prod [has_add α] [comm_monoid β]
   (s : multiset (α → β)) (hs : ∀ f ∈ s, periodic f c) :
   periodic s.prod c :=
-s.prod_to_list ▸ s.to_list.periodic_prod $ λ f hf, hs f $ (multiset.mem_to_list f s).mp hf
+s.prod_to_list ▸ s.to_list.periodic_prod $ λ f hf, hs f $ multiset.mem_to_list.mp hf
 
 @[to_additive]
 lemma _root_.finset.periodic_prod [has_add α] [comm_monoid β]
@@ -408,14 +408,13 @@ lemma antiperiodic.int_odd_mul_antiperiodic [ring α] [has_involutive_neg β]
   antiperiodic f (n * (2 * c) + c) :=
 λ x, by rw [← add_assoc, h, h.periodic.int_mul]
 
-lemma antiperiodic.nat_mul_eq_of_eq_zero [comm_semiring α] [subtraction_monoid β]
+lemma antiperiodic.nat_mul_eq_of_eq_zero [comm_semiring α] [neg_zero_class β]
   (h : antiperiodic f c) (hi : f 0 = 0) (n : ℕ) :
   f (n * c) = 0 :=
 begin
-  rcases nat.even_or_odd n with ⟨k, rfl⟩ | ⟨k, rfl⟩;
-  have hk : (k : α) * (2 * c) = 2 * k * c := by rw [mul_left_comm, ← mul_assoc],
-  { simpa [← two_mul, hk, hi] using (h.nat_even_mul_periodic k).eq },
-  { simpa [add_mul, hk, hi] using (h.nat_odd_mul_antiperiodic k).eq },
+  induction n with k hk,
+  { simp [hi] },
+  { simp [hk, add_mul, h (k * c)] }
 end
 
 lemma antiperiodic.int_mul_eq_of_eq_zero [comm_ring α] [subtraction_monoid β]

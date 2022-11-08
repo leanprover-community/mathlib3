@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
 Amelia Livingston, Yury Kudryashov
 -/
+import algebra.order.group.basic
 import group_theory.group_action.defs
 import group_theory.submonoid.basic
 import group_theory.subsemigroup.operations
@@ -75,11 +76,11 @@ def submonoid.to_add_submonoid : submonoid M ≃o add_submonoid (additive M) :=
 { to_fun := λ S,
   { carrier := additive.to_mul ⁻¹' S,
     zero_mem' := S.one_mem',
-    add_mem' := S.mul_mem' },
+    add_mem' := λ _ _, S.mul_mem' },
   inv_fun := λ S,
   { carrier := additive.of_mul ⁻¹' S,
     one_mem' := S.zero_mem',
-    mul_mem' := S.add_mem' },
+    mul_mem' := λ _ _, S.add_mem' },
   left_inv := λ x, by cases x; refl,
   right_inv := λ x, by cases x; refl,
   map_rel_iff' := λ a b, iff.rfl, }
@@ -115,11 +116,11 @@ def add_submonoid.to_submonoid : add_submonoid A ≃o submonoid (multiplicative 
 { to_fun := λ S,
   { carrier := multiplicative.to_add ⁻¹' S,
     one_mem' := S.zero_mem',
-    mul_mem' := S.add_mem' },
+    mul_mem' := λ _ _, S.add_mem' },
   inv_fun := λ S,
   { carrier := multiplicative.of_add ⁻¹' S,
     zero_mem' := S.one_mem',
-    add_mem' := S.mul_mem' },
+    add_mem' := λ _ _, S.mul_mem' },
   left_inv := λ x, by cases x; refl,
   right_inv := λ x, by cases x; refl,
   map_rel_iff' := λ a b, iff.rfl, }
@@ -831,6 +832,10 @@ lemma restrict_apply {N S : Type*} [mul_one_class N] [set_like S M] [submonoid_c
   (f : M →* N) (s : S) (x : s) : f.restrict s x = f x :=
 rfl
 
+@[simp, to_additive] lemma restrict_mrange (f : M →* N) : (f.restrict S).mrange = S.map f :=
+by simp_rw [set_like.ext_iff, mem_mrange, mem_map, restrict_apply, set_like.exists, subtype.coe_mk,
+  iff_self, forall_const]
+
 /-- Restriction of a monoid hom to a submonoid of the codomain. -/
 @[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain.",
   simps apply]
@@ -880,6 +885,10 @@ include mc
 @[simp, to_additive] lemma comap_bot' (f : F) :
   (⊥ : submonoid N).comap f = mker f := rfl
 omit mc
+
+@[simp, to_additive]
+lemma restrict_mker (f : M →* N) : (f.restrict S).mker = f.mker.comap S.subtype :=
+rfl
 
 @[to_additive] lemma range_restrict_mker (f : M →* N) : mker (mrange_restrict f) = mker f :=
 begin

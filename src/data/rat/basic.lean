@@ -4,10 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import algebra.euclidean_domain
-import data.int.cast
-import data.nat.gcd
-import data.rat.defs
-import logic.encodable.basic
 
 /-!
 # Field Structure on the Rational Numbers

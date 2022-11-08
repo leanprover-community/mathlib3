@@ -7,7 +7,7 @@ import group_theory.finiteness
 import data.multiset.finset_ops
 import algebra.algebra.tower
 import order.order_iso_nat
-import ring_theory.ideal.operations
+import ring_theory.nilpotent
 import order.compactly_generated
 import linear_algebra.linear_independent
 import algebra.ring.idempotents
@@ -172,9 +172,9 @@ lemma fg_bsupr {ι : Type*} (s : finset ι) (N : ι → submodule R M) (h : ∀ 
   (⨆ i ∈ s, N i).fg :=
 by simpa only [finset.sup_eq_supr] using fg_finset_sup s N h
 
-lemma fg_supr {ι : Type*} [fintype ι] (N : ι → submodule R M) (h : ∀ i, (N i).fg) :
+lemma fg_supr {ι : Type*} [finite ι] (N : ι → submodule R M) (h : ∀ i, (N i).fg) :
   (supr N).fg :=
-by simpa using fg_bsupr finset.univ N (λ i hi, h i)
+by { casesI nonempty_fintype ι, simpa using fg_bsupr finset.univ N (λ i hi, h i) }
 
 variables {P : Type*} [add_comm_monoid P] [module R P]
 variables (f : M →ₗ[R] P)
@@ -211,7 +211,7 @@ fg_def.2 ⟨linear_map.inl R M P '' tb ∪ linear_map.inr R M P '' tc,
   (htb.1.image _).union (htc.1.image _),
   by rw [linear_map.span_inl_union_inr, htb.2, htc.2]⟩
 
-theorem fg_pi {ι : Type*} {M : ι → Type*} [fintype ι] [Π i, add_comm_monoid (M i)]
+theorem fg_pi {ι : Type*} {M : ι → Type*} [finite ι] [Π i, add_comm_monoid (M i)]
   [Π i, module R (M i)] {p : Π i, submodule R (M i)} (hsb : ∀ i, (p i).fg) :
   (submodule.pi set.univ p).fg :=
 begin
@@ -314,6 +314,23 @@ begin
   exact submodule.span_eq_restrict_scalars R S M X h
 end
 
+lemma fg.stablizes_of_supr_eq {M' : submodule R M} (hM' : M'.fg)
+  (N : ℕ →o submodule R M) (H : supr N = M') : ∃ n, M' = N n :=
+begin
+  obtain ⟨S, hS⟩ := hM',
+  have : ∀ s : S, ∃ n, (s : M) ∈ N n :=
+    λ s, (submodule.mem_supr_of_chain N s).mp
+      (by { rw [H, ← hS], exact submodule.subset_span s.2 }),
+  choose f hf,
+  use S.attach.sup f,
+  apply le_antisymm,
+  { conv_lhs { rw ← hS },
+    rw submodule.span_le,
+    intros s hs,
+    exact N.2 (finset.le_sup $ S.mem_attach ⟨s, hs⟩) (hf _) },
+  { rw ← H, exact le_supr _ _ }
+end
+
 /-- Finitely generated submodules are precisely compact elements in the submodule lattice. -/
 theorem fg_iff_compact (s : submodule R M) : s.fg ↔ complete_lattice.is_compact_element s :=
 begin
@@ -408,6 +425,25 @@ begin
     rintro rfl,
     simp },
   { rintro (rfl|rfl); simp [is_idempotent_elem] }
+end
+
+lemma exists_radical_pow_le_of_fg {R : Type*} [comm_semiring R] (I : ideal R) (h : I.radical.fg) :
+  ∃ n : ℕ, I.radical ^ n ≤ I :=
+begin
+  have := le_refl I.radical, revert this,
+  refine submodule.fg_induction _ _ (λ J, J ≤ I.radical → ∃ n : ℕ, J ^ n ≤ I) _ _ _ h,
+  { intros x hx, obtain ⟨n, hn⟩ := hx (subset_span (set.mem_singleton x)),
+    exact ⟨n, by rwa [← ideal.span, span_singleton_pow, span_le, set.singleton_subset_iff]⟩ },
+  { intros J K hJ hK hJK,
+    obtain ⟨n, hn⟩ := hJ (λ x hx, hJK $ ideal.mem_sup_left hx),
+    obtain ⟨m, hm⟩ := hK (λ x hx, hJK $ ideal.mem_sup_right hx),
+    use n + m,
+    rw [← ideal.add_eq_sup, add_pow, ideal.sum_eq_sup, finset.sup_le_iff],
+    refine λ i hi, ideal.mul_le_right.trans _,
+    obtain h | h := le_or_lt n i,
+    { exact ideal.mul_le_right.trans ((ideal.pow_le_pow h).trans hn) },
+    { refine ideal.mul_le_left.trans ((ideal.pow_le_pow _).trans hm),
+      rw [add_comm, nat.add_sub_assoc h.le], apply nat.le_add_right } },
 end
 
 end ideal
@@ -511,9 +547,10 @@ from λ x ⟨hx1, hx2⟩, ⟨x.1, prod.ext rfl $ eq.symm $ linear_map.mem_ker.1 
 submodule.map_comap_eq_self this ▸ (noetherian _).map _⟩
 
 instance is_noetherian_pi {R ι : Type*} {M : ι → Type*} [ring R]
-  [Π i, add_comm_group (M i)] [Π i, module R (M i)] [fintype ι]
+  [Π i, add_comm_group (M i)] [Π i, module R (M i)] [finite ι]
   [∀ i, is_noetherian R (M i)] : is_noetherian R (Π i, M i) :=
 begin
+  casesI nonempty_fintype ι,
   haveI := classical.dec_eq ι,
   suffices on_finset : ∀ s : finset ι, is_noetherian R (Π i : s, M i),
   { let coe_e := equiv.subtype_univ_equiv finset.mem_univ,
@@ -521,8 +558,7 @@ begin
     exact is_noetherian_of_linear_equiv (linear_equiv.Pi_congr_left R M coe_e), },
   intro s,
   induction s using finset.induction with a s has ih,
-  { split, intro s, convert submodule.fg_bot, apply eq_bot_iff.2,
-    intros x hx, refine (submodule.mem_bot R).2 _, ext i, cases i.2 },
+  { exact ⟨λ s, by convert submodule.fg_bot⟩ },
   refine @is_noetherian_of_linear_equiv _ _ _ _ _ _ _ _
     _ (@is_noetherian_prod _ (M a) _ _ _ _ _ _ _ ih),
   fconstructor,
@@ -544,8 +580,7 @@ begin
     { simp only [or.by_cases, dif_pos] },
     { ext ⟨i, his⟩,
       have : ¬i = a, { rintro rfl, exact has his },
-      dsimp only [or.by_cases], change i ∈ s at his,
-      rw [dif_neg this, dif_pos his] } },
+      simp only [or.by_cases, this, not_false_iff, dif_neg] } },
   { intro f, ext ⟨i, hi⟩,
     rcases finset.mem_insert.1 hi with rfl | h,
     { simp only [or.by_cases, dif_pos], },
@@ -556,7 +591,7 @@ end
 /-- A version of `is_noetherian_pi` for non-dependent functions. We need this instance because
 sometimes Lean fails to apply the dependent version in non-dependent settings (e.g., it fails to
 prove that `ι → ℝ` is finite dimensional over `ℝ`). -/
-instance is_noetherian_pi' {R ι M : Type*} [ring R] [add_comm_group M] [module R M] [fintype ι]
+instance is_noetherian_pi' {R ι M : Type*} [ring R] [add_comm_group M] [module R M] [finite ι]
   [is_noetherian R M] : is_noetherian R (ι → M) :=
 is_noetherian_pi
 
@@ -870,6 +905,13 @@ is_noetherian_ring_of_surjective R f.range f.range_restrict
 theorem is_noetherian_ring_of_ring_equiv (R) [ring R] {S} [ring S]
   (f : R ≃+* S) [is_noetherian_ring R] : is_noetherian_ring S :=
 is_noetherian_ring_of_surjective R S f.to_ring_hom f.to_equiv.surjective
+
+lemma is_noetherian_ring.is_nilpotent_nilradical (R : Type*) [comm_ring R] [is_noetherian_ring R] :
+  is_nilpotent (nilradical R) :=
+begin
+  obtain ⟨n, hn⟩ := ideal.exists_radical_pow_le_of_fg (⊥ : ideal R) (is_noetherian.noetherian _),
+  exact ⟨n, eq_bot_iff.mpr hn⟩
+end
 
 namespace submodule
 

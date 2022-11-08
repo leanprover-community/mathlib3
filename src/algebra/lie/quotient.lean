@@ -64,7 +64,7 @@ lemma is_quotient_mk (m : M) : quotient.mk' m = (mk m : M ⧸ N) := rfl
 /-- Given a Lie module `M` over a Lie algebra `L`, together with a Lie submodule `N ⊆ M`, there
 is a natural linear map from `L` to the endomorphisms of `M` leaving `N` invariant. -/
 def lie_submodule_invariant : L →ₗ[R] submodule.compatible_maps N.to_submodule N.to_submodule :=
-linear_map.cod_restrict _ (lie_module.to_endomorphism R L M) N.lie_mem
+linear_map.cod_restrict _ (lie_module.to_endomorphism R L M) $ λ _ _, N.lie_mem
 
 variables (N)
 

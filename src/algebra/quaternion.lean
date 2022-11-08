@@ -52,7 +52,8 @@ Implemented as a structure with four fields: `re`, `im_i`, `im_j`, and `im_k`. -
 structure quaternion_algebra (R : Type*) (a b : R) :=
 mk {} :: (re : R) (im_i : R) (im_j : R) (im_k : R)
 
-localized "notation `ℍ[` R`,` a`,` b `]` := quaternion_algebra R a b" in quaternion
+localized "notation (name := quaternion_algebra) `ℍ[` R`,` a`,` b `]` :=
+  quaternion_algebra R a b" in quaternion
 
 namespace quaternion_algebra
 
@@ -341,7 +342,7 @@ end quaternion_algebra
 `re`, `im_i`, `im_j`, and `im_k`. -/
 def quaternion (R : Type*) [has_one R] [has_neg R] := quaternion_algebra R (-1) (-1)
 
-localized "notation `ℍ[` R `]` := quaternion R" in quaternion
+localized "notation (name := quaternion) `ℍ[` R `]` := quaternion R" in quaternion
 
 /-- The equivalence between the quaternions over R and R × R × R × R. -/
 def quaternion.equiv_prod (R : Type*) [has_one R] [has_neg R] : ℍ[R] ≃ R × R × R × R :=

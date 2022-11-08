@@ -209,7 +209,7 @@ ext neg_zero.symm rfl
 
 @[simp] lemma inr_smul [has_zero R] [has_zero S] [smul_with_zero S R] [has_smul S M]
   (r : S) (m : M) : (inr (r • m) : tsze R M) = r • inr m :=
-ext (smul_zero' _ _).symm rfl
+ext (smul_zero _).symm rfl
 
 end
 

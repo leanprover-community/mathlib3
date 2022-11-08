@@ -52,7 +52,7 @@ instance lex.preorder [preorder ι] [Π i, preorder (α i)] : preorder (Σₗ' i
 { le_refl := λ ⟨i, a⟩, lex.right _ le_rfl,
   le_trans :=
   begin
-    rintro ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ ⟨a₃, b₃⟩ ⟨h₁l, h₁r⟩ ⟨h₂l, h₂r⟩,
+    rintro ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ ⟨a₃, b₃⟩ ⟨h₁r⟩ ⟨h₂r⟩,
     { left, apply lt_trans, repeat { assumption } },
     { left, assumption },
     { left, assumption },
@@ -61,13 +61,13 @@ instance lex.preorder [preorder ι] [Π i, preorder (α i)] : preorder (Σₗ' i
   lt_iff_le_not_le :=
   begin
     refine λ a b, ⟨λ hab, ⟨hab.mono_right (λ i a b, le_of_lt), _⟩, _⟩,
-    { rintro (⟨j, i, b, a, hji⟩ | ⟨i, b, a, hba⟩);
-        obtain (⟨_, _, _, _, hij⟩ | ⟨_, _, _, hab⟩) := hab,
+    { rintro (⟨i, a, hji⟩ | ⟨i, hba⟩);
+        obtain (⟨_, _, hij⟩ | ⟨_, hab⟩) := hab,
       { exact hij.not_lt hji },
       { exact lt_irrefl _ hji },
       { exact lt_irrefl _ hij },
       { exact hab.not_le hba } },
-    { rintro ⟨⟨i, j, a, b, hij⟩ |⟨i, a, b, hab⟩, hba⟩,
+    { rintro ⟨⟨j, b, hij⟩ | ⟨i, hab⟩, hba⟩,
       { exact lex.left _ _ hij },
       { exact lex.right _ (hab.lt_of_not_le $ λ h, hba $ lex.right _ h) } }
   end,
@@ -79,8 +79,7 @@ instance lex.partial_order [partial_order ι] [Π i, partial_order (α i)] :
   partial_order (Σₗ' i, α i) :=
 { le_antisymm :=
   begin
-    rintro ⟨a₁, b₁⟩ ⟨a₂, b₂⟩
-      (⟨_, _, _, _, hlt₁⟩ | ⟨_, _, _, hlt₁⟩) (⟨_, _, _, _, hlt₂⟩ | ⟨_, _, _, hlt₂⟩),
+    rintro ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ (⟨_, _, hlt₁⟩ | ⟨_, hlt₁⟩) (⟨_, _, hlt₂⟩ | ⟨_, hlt₂⟩),
     { exact (lt_irrefl a₁ $ hlt₁.trans hlt₂).elim },
     { exact (lt_irrefl a₁ hlt₁).elim },
     { exact (lt_irrefl a₁ hlt₂).elim },

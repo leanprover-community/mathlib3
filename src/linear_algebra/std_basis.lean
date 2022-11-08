@@ -47,6 +47,13 @@ def std_basis : Π (i : ι), φ i →ₗ[R] (Πi, φ i) := single
 lemma std_basis_apply (i : ι) (b : φ i) : std_basis R φ i b = update 0 i b :=
 rfl
 
+@[simp] lemma std_basis_apply' (i i' : ι) : (std_basis R (λ (_x : ι), R) i) 1 i' =
+  ite (i = i') 1 0  :=
+begin
+  rw [linear_map.std_basis_apply, function.update_apply, pi.zero_apply],
+  congr' 1, rw [eq_iff_iff, eq_comm],
+end
+
 lemma coe_std_basis (i : ι) : ⇑(std_basis R φ i) = pi.single i :=
 rfl
 
@@ -113,13 +120,12 @@ begin
   exact le_rfl
 end
 
-lemma supr_range_std_basis [fintype ι] : (⨆i:ι, range (std_basis R φ i)) = ⊤ :=
-have (set.univ : set ι) ⊆ ↑(finset.univ : finset ι) ∪ ∅ := by rw [finset.coe_univ, set.union_empty],
+lemma supr_range_std_basis [finite ι] : (⨆ i, range (std_basis R φ i)) = ⊤ :=
 begin
-  apply top_unique,
-  convert (infi_ker_proj_le_supr_range_std_basis R φ this),
-  exact infi_emptyset.symm,
-  exact (funext $ λi, (@supr_pos _ _ _ (λh, range (std_basis R φ i)) $ finset.mem_univ i).symm)
+  casesI nonempty_fintype ι,
+  convert top_unique (infi_emptyset.ge.trans $ infi_ker_proj_le_supr_range_std_basis R φ _),
+  { exact funext (λ i, (@supr_pos _ _ _ (λ h, range $ std_basis R φ i) $ finset.mem_univ i).symm) },
+  { rw [finset.coe_univ, set.union_empty] }
 end
 
 lemma disjoint_std_basis_std_basis (I J : set ι) (h : disjoint I J) :
@@ -210,7 +216,7 @@ begin
     simp only [pi.basis, linear_equiv.trans_apply, basis.repr_self, std_basis_same,
         linear_equiv.Pi_congr_right_apply, finsupp.sigma_finsupp_lequiv_pi_finsupp_symm_apply],
     symmetry,
-    exact basis.finsupp.single_apply_left
+    exact finsupp.single_apply_left
       (λ i i' (h : (⟨j, i⟩ : Σ j, ιs j) = ⟨j, i'⟩), eq_of_heq (sigma.mk.inj h).2) _ _ _ },
   simp only [pi.basis, linear_equiv.trans_apply, finsupp.sigma_finsupp_lequiv_pi_finsupp_symm_apply,
       linear_equiv.Pi_congr_right_apply],

@@ -7,7 +7,7 @@ import data.fun_like.embedding
 import data.prod.pprod
 import data.set.basic
 import data.sigma.basic
-import logic.equiv.basic
+import logic.equiv.defs
 
 /-!
 # Injective functions
@@ -34,10 +34,8 @@ instance {α : Sort u} {β : Sort v} : embedding_like (α ↪ β) α β :=
   injective' := embedding.inj',
   coe_injective' := λ f g h, by { cases f, cases g, congr' } }
 
-instance {α β : Sort*} : can_lift (α → β) (α ↪ β) :=
-{ coe := coe_fn,
-  cond := injective,
-  prf := λ f hf, ⟨⟨f, hf⟩, rfl⟩ }
+instance {α β : Sort*} : can_lift (α → β) (α ↪ β) coe_fn injective :=
+{ prf := λ f hf, ⟨⟨f, hf⟩, rfl⟩ }
 
 end function
 

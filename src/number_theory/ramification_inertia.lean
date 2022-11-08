@@ -457,7 +457,7 @@ quotient.algebra_quotient_of_le_comap (ideal.map_le_iff_le_comap.mp le_pow_ramif
   algebra_map (R ⧸ p) (S ⧸ P ^ e) (ideal.quotient.mk p x) = ideal.quotient.mk _ (f x) :=
 rfl
 
-variables [hfp : fact (ramification_idx f p P ≠ 0)]
+variables [hfp : ne_zero (ramification_idx f p P)]
 include hfp
 
 /-- If `P` lies over `p`, then `R / p` has a canonical map to `S / P`.
@@ -645,7 +645,7 @@ lemma dim_prime_pow_ramification_idx [is_domain S] [is_dedekind_domain S] [p.is_
   e • @module.rank (R ⧸ p) (S ⧸ P) _ _ (@algebra.to_module _ _ _ _ $
     @@quotient.algebra_quotient_of_ramification_idx_ne_zero _ _ _ _ _ ⟨he⟩) :=
 begin
-  letI : fact (e ≠ 0) := ⟨he⟩,
+  letI : ne_zero e := ⟨he⟩,
   have := dim_pow_quot f p P hP0 0 (nat.zero_le e),
   rw [pow_zero, nat.sub_zero, ideal.one_eq_top, ideal.map_top] at this,
   exact (dim_top (R ⧸ p) _).symm.trans this
@@ -659,7 +659,7 @@ lemma finrank_prime_pow_ramification_idx [is_domain S] [is_dedekind_domain S]
   e * @finrank (R ⧸ p) (S ⧸ P) _ _ (@algebra.to_module _ _ _ _ $
     @@quotient.algebra_quotient_of_ramification_idx_ne_zero _ _ _ _ _ ⟨he⟩) :=
 begin
-  letI : fact (e ≠ 0) := ⟨he⟩,
+  letI : ne_zero e := ⟨he⟩,
   letI : algebra (R ⧸ p) (S ⧸ P) := quotient.algebra_quotient_of_ramification_idx_ne_zero f p P,
   letI := ideal.quotient.field p,
   have hdim := dim_prime_pow_ramification_idx _ _ _ hP0 he,
@@ -698,7 +698,7 @@ is_dedekind_domain.ramification_idx_ne_zero
   (ideal.le_of_dvd (dvd_of_mem_factors (multiset.mem_to_finset.mp P.2)))
 
 instance factors.fact_ramification_idx_ne_zero (P : (factors (map (algebra_map R S) p)).to_finset) :
-  fact (ramification_idx (algebra_map R S) p P ≠ 0) :=
+  ne_zero (ramification_idx (algebra_map R S) p P) :=
 ⟨factors.ramification_idx_ne_zero p P⟩
 
 local attribute [instance] quotient.algebra_quotient_of_ramification_idx_ne_zero

@@ -122,7 +122,7 @@ variables {ι I M}
 
 namespace smooth_partition_of_unity
 
-variables {s : set M} (f : smooth_partition_of_unity ι I M s) {n : with_top ℕ}
+variables {s : set M} (f : smooth_partition_of_unity ι I M s) {n : ℕ∞}
 
 instance {s : set M} : has_coe_to_fun (smooth_partition_of_unity ι I M s)
   (λ _, ι → C^∞⟮I, M; 𝓘(ℝ), ℝ⟯) :=
@@ -458,7 +458,7 @@ end
 
 end smooth_partition_of_unity
 
-variables [sigma_compact_space M] [t2_space M] {t : M → set F} {n : with_top ℕ}
+variables [sigma_compact_space M] [t2_space M] {t : M → set F} {n : ℕ∞}
 
 /-- Let `M` be a σ-compact Hausdorff finite dimensional topological manifold. Let `t : M → set F`
 be a family of convex sets. Suppose that for each point `x : M` there exists a neighborhood
@@ -512,7 +512,7 @@ lemma emetric.exists_smooth_forall_closed_ball_subset {M} [emetric_space M] [cha
   (hfin : locally_finite K) :
   ∃ δ : C^∞⟮I, M; 𝓘(ℝ, ℝ), ℝ⟯, (∀ x, 0 < δ x) ∧
     ∀ i (x ∈ K i), emetric.closed_ball x (ennreal.of_real (δ x)) ⊆ U i :=
-by simpa only [mem_inter_eq, forall_and_distrib, mem_preimage, mem_Inter, @forall_swap ι M]
+by simpa only [mem_inter_iff, forall_and_distrib, mem_preimage, mem_Inter, @forall_swap ι M]
   using exists_smooth_forall_mem_convex_of_local_const I
     emetric.exists_forall_closed_ball_subset_aux₂
     (emetric.exists_forall_closed_ball_subset_aux₁ hK hU hKU hfin)

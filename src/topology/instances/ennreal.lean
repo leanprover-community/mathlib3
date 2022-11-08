@@ -127,7 +127,7 @@ nnreal.tendsto_coe.2 $ tendsto_to_nnreal ha
 /-- The set of finite `ℝ≥0∞` numbers is homeomorphic to `ℝ≥0`. -/
 def ne_top_homeomorph_nnreal : {a | a ≠ ∞} ≃ₜ ℝ≥0 :=
 { continuous_to_fun := continuous_on_iff_continuous_restrict.1 continuous_on_to_nnreal,
-  continuous_inv_fun := continuous_subtype_mk _ continuous_coe,
+  continuous_inv_fun := continuous_coe.subtype_mk _,
   .. ne_top_equiv_nnreal }
 
 /-- The set of finite `ℝ≥0∞` numbers is homeomorphic to `ℝ≥0`. -/
@@ -488,11 +488,11 @@ lemma inv_map_supr {ι : Sort*} {x : ι → ℝ≥0∞} :
 order_iso.inv_ennreal.map_supr x
 
 lemma inv_limsup {ι : Sort*} {x : ι → ℝ≥0∞} {l : filter ι} :
-  (l.limsup x)⁻¹ = l.liminf (λ i, (x i)⁻¹) :=
+  (limsup x l)⁻¹ = liminf (λ i, (x i)⁻¹) l :=
 by simp only [limsup_eq_infi_supr, inv_map_infi, inv_map_supr, liminf_eq_supr_infi]
 
 lemma inv_liminf {ι : Sort*} {x : ι → ℝ≥0∞} {l : filter ι} :
-  (l.liminf x)⁻¹ = l.limsup (λ i, (x i)⁻¹) :=
+  (liminf x l)⁻¹ = limsup (λ i, (x i)⁻¹) l :=
 by simp only [limsup_eq_infi_supr, inv_map_infi, inv_map_supr, liminf_eq_supr_infi]
 
 instance : has_continuous_inv ℝ≥0∞ := ⟨order_iso.inv_ennreal.continuous⟩
@@ -654,7 +654,7 @@ end topological_space
 section liminf
 
 lemma exists_frequently_lt_of_liminf_ne_top
-  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf l (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
+  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf (λ n, (∥x n∥₊ : ℝ≥0∞)) l ≠ ∞) :
   ∃ R, ∃ᶠ n in l, x n < R :=
 begin
   by_contra h,
@@ -665,7 +665,7 @@ begin
 end
 
 lemma exists_frequently_lt_of_liminf_ne_top'
-  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf l (λ n, (∥x n∥₊ : ℝ≥0∞)) ≠ ∞) :
+  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf (λ n, (∥x n∥₊ : ℝ≥0∞)) l ≠ ∞) :
   ∃ R, ∃ᶠ n in l, R < x n :=
 begin
   by_contra h,
@@ -677,7 +677,7 @@ end
 
 lemma exists_upcrossings_of_not_bounded_under
   {ι : Type*} {l : filter ι} {x : ι → ℝ}
-  (hf : liminf l (λ i, (∥x i∥₊ : ℝ≥0∞)) ≠ ∞)
+  (hf : liminf (λ i, (∥x i∥₊ : ℝ≥0∞)) l ≠ ∞)
   (hbdd : ¬ is_bounded_under (≤) l (λ i, |x i|)) :
   ∃ a b : ℚ, a < b ∧ (∃ᶠ i in l, x i < a) ∧ (∃ᶠ i in l, ↑b < x i) :=
 begin
@@ -783,7 +783,7 @@ protected lemma tsum_eq_supr_nat {f : ℕ → ℝ≥0∞} :
 ennreal.tsum_eq_supr_sum' _ finset.exists_nat_subset_range
 
 protected lemma tsum_eq_liminf_sum_nat {f : ℕ → ℝ≥0∞} :
-  ∑' i, f i = filter.at_top.liminf (λ n, ∑ i in finset.range n, f i) :=
+  ∑' i, f i = liminf (λ n, ∑ i in finset.range n, f i) at_top :=
 begin
   rw [ennreal.tsum_eq_supr_nat, filter.liminf_eq_supr_infi_of_nat],
   congr,
@@ -950,6 +950,22 @@ begin
   exact tsum_bUnion_le _ _ _
 end
 
+lemma tsum_add_one_eq_top {f : ℕ → ℝ≥0∞} (hf : ∑' n, f n = ∞) (hf0 : f 0 ≠ ∞) :
+  ∑' n, f (n + 1) = ∞ :=
+begin
+  rw ← tsum_eq_tsum_of_has_sum_iff_has_sum (λ _, (not_mem_range_equiv 1).has_sum_iff),
+  swap, { apply_instance },
+  have h₁ : (∑' b : {n // n ∈ finset.range 1}, f b) + (∑' b : {n // n ∉ finset.range 1}, f b) =
+    ∑' b, f b,
+  { exact tsum_add_tsum_compl ennreal.summable ennreal.summable },
+  rw [finset.tsum_subtype, finset.sum_range_one, hf, ennreal.add_eq_top] at h₁,
+  rw ← h₁.resolve_left hf0,
+  apply tsum_congr,
+  rintro ⟨i, hi⟩,
+  simp only [multiset.mem_range, not_lt] at hi,
+  simp only [tsub_add_cancel_of_le hi, coe_not_mem_range_equiv, function.comp_app, subtype.coe_mk],
+end
+
 end tsum
 
 lemma tendsto_to_real_iff {ι} {fi : filter ι} {f : ι → ℝ≥0∞} (hf : ∀ i, f i ≠ ∞) {x : ℝ≥0∞}
@@ -1055,7 +1071,7 @@ end
 
 lemma tsum_le_of_sum_range_le {f : ℕ → ℝ≥0} {c : ℝ≥0}
   (h : ∀ n, ∑ i in finset.range n, f i ≤ c) : ∑' n, f n ≤ c :=
-le_of_tendsto' (has_sum_iff_tendsto_nat.1 (summable_of_sum_range_le h).has_sum) h
+tsum_le_of_sum_range_le (summable_of_sum_range_le h) h
 
 lemma tsum_comp_le_tsum_of_inj {β : Type*} {f : α → ℝ≥0} (hf : summable f)
   {i : β → α} (hi : function.injective i) : ∑' x, f (i x) ≤ ∑' x, f x :=
@@ -1127,17 +1143,14 @@ end nnreal
 
 namespace ennreal
 
-lemma tsum_to_real_eq
-  {f : α → ℝ≥0∞} (hf : ∀ a, f a ≠ ∞) :
+lemma tsum_to_nnreal_eq {f : α → ℝ≥0∞} (hf : ∀ a, f a ≠ ∞) :
+  (∑' a, f a).to_nnreal = ∑' a, (f a).to_nnreal :=
+(congr_arg ennreal.to_nnreal (tsum_congr $ λ x, (coe_to_nnreal (hf x)).symm)).trans
+  nnreal.tsum_eq_to_nnreal_tsum.symm
+
+lemma tsum_to_real_eq {f : α → ℝ≥0∞} (hf : ∀ a, f a ≠ ∞) :
   (∑' a, f a).to_real = ∑' a, (f a).to_real :=
-begin
-  lift f to α → ℝ≥0 using hf,
-  have : (∑' (a : α), (f a : ℝ≥0∞)).to_real =
-    ((∑' (a : α), (f a : ℝ≥0∞)).to_nnreal : ℝ≥0∞).to_real,
-  { rw [ennreal.coe_to_real], refl },
-  rw [this, ← nnreal.tsum_eq_to_nnreal_tsum, ennreal.coe_to_real],
-  exact nnreal.coe_tsum
-end
+by simp only [ennreal.to_real, tsum_to_nnreal_eq hf, nnreal.coe_tsum]
 
 lemma tendsto_sum_nat_add (f : ℕ → ℝ≥0∞) (hf : ∑' i, f i ≠ ∞) :
   tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
@@ -1147,6 +1160,10 @@ begin
   simp only [← ennreal.coe_tsum, nnreal.summable_nat_add _ hf, ← ennreal.coe_zero],
   exact_mod_cast nnreal.tendsto_sum_nat_add f
 end
+
+lemma tsum_le_of_sum_range_le {f : ℕ → ℝ≥0∞} {c : ℝ≥0∞}
+  (h : ∀ n, ∑ i in finset.range n, f i ≤ c) : ∑' n, f n ≤ c :=
+tsum_le_of_sum_range_le ennreal.summable h
 
 end ennreal
 
@@ -1212,10 +1229,9 @@ begin
   exact lt_irrefl _ (hn.trans_le (h n)),
 end
 
-lemma tsum_le_of_sum_range_le {f : ℕ → ℝ} {c : ℝ} (hf : ∀ n, 0 ≤ f n)
+lemma real.tsum_le_of_sum_range_le {f : ℕ → ℝ} {c : ℝ} (hf : ∀ n, 0 ≤ f n)
   (h : ∀ n, ∑ i in finset.range n, f i ≤ c) : ∑' n, f n ≤ c :=
-le_of_tendsto' ((has_sum_iff_tendsto_nat_of_nonneg hf _).1
-  (summable_of_sum_range_le hf h).has_sum) h
+tsum_le_of_sum_range_le (summable_of_sum_range_le hf h) h
 
 /-- If a sequence `f` with non-negative terms is dominated by a sequence `g` with summable
 series and at least one term of `f` is strictly smaller than the corresponding term in `g`,
@@ -1364,7 +1380,7 @@ is_closed_le (continuous_id.edist continuous_const) continuous_const
 begin
   refine le_antisymm (diam_le $ λ x hx y hy, _) (diam_mono subset_closure),
   have : edist x y ∈ closure (Iic (diam s)),
-    from  map_mem_closure2 (@continuous_edist α _) hx hy (λ _ _, edist_le_diam_of_mem),
+    from map_mem_closure₂ continuous_edist hx hy (λ x hx y hy, edist_le_diam_of_mem hx hy),
   rwa closure_Iic at this
 end
 
@@ -1438,6 +1454,18 @@ le_antisymm (ediam_Icc a b ▸ diam_mono Ico_subset_Icc_self)
   emetric.diam (Ioc a b) = ennreal.of_real (b - a) :=
 le_antisymm (ediam_Icc a b ▸ diam_mono Ioc_subset_Icc_self)
   (ediam_Ioo a b ▸ diam_mono Ioo_subset_Ioc_self)
+
+lemma diam_Icc {a b : ℝ} (h : a ≤ b) : metric.diam (Icc a b) = b - a :=
+by simp [metric.diam, ennreal.to_real_of_real, sub_nonneg.2 h]
+
+lemma diam_Ico {a b : ℝ} (h : a ≤ b) : metric.diam (Ico a b) = b - a :=
+by simp [metric.diam, ennreal.to_real_of_real, sub_nonneg.2 h]
+
+lemma diam_Ioc {a b : ℝ} (h : a ≤ b) : metric.diam (Ioc a b) = b - a :=
+by simp [metric.diam, ennreal.to_real_of_real, sub_nonneg.2 h]
+
+lemma diam_Ioo {a b : ℝ} (h : a ≤ b) : metric.diam (Ioo a b) = b - a :=
+by simp [metric.diam, ennreal.to_real_of_real, sub_nonneg.2 h]
 
 end real
 

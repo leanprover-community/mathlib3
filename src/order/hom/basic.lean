@@ -90,6 +90,9 @@ abbreviation order_iso (α β : Type*) [has_le α] [has_le β] := @rel_iso α β
 
 infix ` ≃o `:25 := order_iso
 
+section
+set_option old_structure_cmd true
+
 /-- `order_hom_class F α b` asserts that `F` is a type of `≤`-preserving morphisms. -/
 abbreviation order_hom_class (F : Type*) (α β : out_param Type*) [has_le α] [has_le β] :=
 rel_hom_class F ((≤) : α → α → Prop) ((≤) : β → β → Prop)
@@ -100,6 +103,8 @@ You should extend this class when you extend `order_iso`. -/
 class order_iso_class (F : Type*) (α β : out_param Type*) [has_le α] [has_le β]
   extends equiv_like F α β :=
 (map_le_map_iff (f : F) {a b : α} : f a ≤ f b ↔ a ≤ b)
+
+end
 
 export order_iso_class (map_le_map_iff)
 
@@ -175,10 +180,8 @@ lemma ext (f g : α →o β) (h : (f : α → β) = g) : f = g := fun_like.coe_i
 lemma coe_eq (f : α →o β) : coe f = f := by ext ; refl
 
 /-- One can lift an unbundled monotone function to a bundled one. -/
-instance : can_lift (α → β) (α →o β) :=
-{ coe := coe_fn,
-  cond := monotone,
-  prf := λ f h, ⟨⟨f, h⟩, rfl⟩ }
+instance : can_lift (α → β) (α →o β) coe_fn monotone :=
+{ prf := λ f h, ⟨⟨f, h⟩, rfl⟩ }
 
 /-- Copy of an `order_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
 equalities. -/
@@ -499,7 +502,7 @@ instance : order_iso_class (α ≃o β) α β :=
   left_inv := λ f, f.left_inv,
   right_inv := λ f, f.right_inv,
   coe_injective' := λ f g h₁ h₂, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' },
-  map_le_map_iff := λ f, f.map_rel_iff' }
+  map_le_map_iff := λ f _ _, f.map_rel_iff' }
 
 @[simp] lemma to_fun_eq_coe {f : α ≃o β} : f.to_fun = f := rfl
 
@@ -586,6 +589,11 @@ e.to_equiv.preimage_image s
 @[simp] lemma refl_trans (e : α ≃o β) : (refl α).trans e = e := by { ext x, refl }
 
 @[simp] lemma trans_refl (e : α ≃o β) : e.trans (refl β) = e := by { ext x, refl }
+
+@[simp] lemma symm_trans_apply (e₁ : α ≃o β) (e₂ : β ≃o γ) (c : γ) :
+  (e₁.trans e₂).symm c = e₁.symm (e₂.symm c) := rfl
+
+lemma symm_trans (e₁ : α ≃o β) (e₂ : β ≃o γ) : (e₁.trans e₂).symm = e₂.symm.trans e₁.symm := rfl
 
 /-- `prod.swap` as an `order_iso`. -/
 def prod_comm : (α × β) ≃o (β × α) :=
@@ -807,7 +815,8 @@ lemma order_iso.map_inf [semilattice_inf α] [semilattice_inf β] (f : α ≃o �
   f (x ⊓ y) = f x ⊓ f y :=
 begin
   refine (f.to_order_embedding.map_inf_le x y).antisymm _,
-  simpa [← f.symm.le_iff_le] using f.symm.to_order_embedding.map_inf_le (f x) (f y)
+  apply f.symm.le_iff_le.1,
+  simpa using f.symm.to_order_embedding.map_inf_le (f x) (f y),
 end
 
 lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β] (f : α ≃o β) (x y : α) :
@@ -925,17 +934,17 @@ theorem order_iso.is_compl_iff {x y : α} :
   is_compl x y ↔ is_compl (f x) (f y) :=
 ⟨f.is_compl, λ h, f.symm_apply_apply x ▸ f.symm_apply_apply y ▸ f.symm.is_compl h⟩
 
-lemma order_iso.is_complemented
-  [is_complemented α] : is_complemented β :=
+lemma order_iso.complemented_lattice
+  [complemented_lattice α] : complemented_lattice β :=
 ⟨λ x, begin
   obtain ⟨y, hy⟩ := exists_is_compl (f.symm x),
   rw ← f.symm_apply_apply y at hy,
   refine ⟨f y, f.symm.is_compl_iff.2 hy⟩,
 end⟩
 
-theorem order_iso.is_complemented_iff :
-  is_complemented α ↔ is_complemented β :=
-⟨by { introI, exact f.is_complemented }, by { introI, exact f.symm.is_complemented }⟩
+theorem order_iso.complemented_lattice_iff :
+  complemented_lattice α ↔ complemented_lattice β :=
+⟨by { introI, exact f.complemented_lattice }, by { introI, exact f.symm.complemented_lattice }⟩
 
 end bounded_order
 end lattice_isos

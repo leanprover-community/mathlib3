@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2020 Filippo A. E. Nuccio. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Filippo A. E. Nuccio
+Authors: Filippo A. E. Nuccio, Andrew Yang
 -/
 import algebraic_geometry.prime_spectrum.basic
+import topology.noetherian_space
 /-!
 This file proves additional properties of the prime spectrum a ring is Noetherian.
 -/
@@ -88,6 +89,16 @@ begin
     apply sup_le (show span A {x} * M ≤ M, from ideal.mul_le_left),
     rwa [span_mul_span, set.singleton_mul_singleton, span_singleton_le_iff_mem] },
   { rintro (hx | hy); contradiction },
+end
+
+open topological_space
+
+instance : noetherian_space (prime_spectrum R) :=
+begin
+  rw (noetherian_space_tfae $ prime_spectrum R).out 0 1,
+  have H := ‹is_noetherian_ring R›,
+  rw [is_noetherian_ring_iff, is_noetherian_iff_well_founded] at H,
+  exact (closeds_embedding R).dual.well_founded H
 end
 
 end prime_spectrum

@@ -118,8 +118,10 @@ variables {H : Type u} {H' : Type*} {M : Type*} {M' : Type*} {M'' : Type*}
 `local_homeomorph.trans` and `local_equiv.trans`.
 Note that, as is usual for equivs, the composition is from left to right, hence the direction of
 the arrow. -/
-localized "infixr  ` ≫ₕ `:100 := local_homeomorph.trans" in manifold
-localized "infixr  ` ≫ `:100 := local_equiv.trans" in manifold
+localized "infixr (name := local_homeomorph.trans)
+  ` ≫ₕ `:100 := local_homeomorph.trans" in manifold
+localized "infixr (name := local_equiv.trans)
+  ` ≫ `:100 := local_equiv.trans" in manifold
 
 open set local_homeomorph
 
@@ -260,7 +262,7 @@ instance : order_bot (structure_groupoid H) :=
       apply u.id_mem },
     { apply u.locality,
       assume x hx,
-      rw [hf, mem_empty_eq] at hx,
+      rw [hf, mem_empty_iff_false] at hx,
       exact hx.elim }
   end }
 
@@ -454,6 +456,7 @@ The model space is written as an explicit parameter as there can be several mode
 given topological space. For instance, a complex manifold (modelled over `ℂ^n`) will also be seen
 sometimes as a real manifold over `ℝ^(2n)`.
 -/
+@[ext]
 class charted_space (H : Type*) [topological_space H] (M : Type*) [topological_space M] :=
 (atlas []            : set (local_homeomorph M H))
 (chart_at []         : M → local_homeomorph M H)
@@ -506,6 +509,9 @@ lemma achart_def (x : M) : achart H x = ⟨chart_at H x, chart_mem_atlas H x⟩ 
 lemma coe_achart (x : M) : (achart H x : local_homeomorph M H) = chart_at H x := rfl
 @[simp, mfld_simps]
 lemma achart_val (x : M) : (achart H x).1 = chart_at H x := rfl
+
+lemma mem_achart_source (x : M) : x ∈ (achart H x).1.source :=
+mem_chart_source H x
 
 open topological_space
 
@@ -564,6 +570,17 @@ begin
   { rintros x s ⟨⟨-, -, hsconn⟩, hssubset⟩,
     exact hsconn.is_preconnected.image _ ((E x).continuous_on_symm.mono hssubset) },
 end
+
+/-- If `M` is modelled on `H'` and `H'` is itself modelled on `H`, then we can consider `M` as being
+modelled on `H`. -/
+def charted_space.comp (H : Type*) [topological_space H] (H' : Type*) [topological_space H']
+  (M : Type*) [topological_space M] [charted_space H H'] [charted_space H' M] :
+  charted_space H M :=
+{ atlas := image2 local_homeomorph.trans (atlas H' M) (atlas H H'),
+  chart_at := λ p : M, (chart_at H' p).trans (chart_at H (chart_at H' p p)),
+  mem_chart_source := λ p, by simp only with mfld_simps,
+  chart_mem_atlas :=
+    λ p, ⟨chart_at H' p, chart_at H _, chart_mem_atlas H' p, chart_mem_atlas H _, rfl⟩ }
 
 end
 
@@ -643,6 +660,9 @@ variables [topological_space H] [topological_space M] [charted_space H M]
 
 @[simp, mfld_simps] lemma prod_charted_space_chart_at :
   (chart_at (model_prod H H') x) = (chart_at H x.fst).prod (chart_at H' x.snd) := rfl
+
+lemma charted_space_self_prod : prod_charted_space H H H' H' = charted_space_self (H × H') :=
+by { ext1, { simp [prod_charted_space, atlas] }, { ext1, simp [chart_at_self_eq], refl } }
 
 end prod_charted_space
 
@@ -774,7 +794,7 @@ has_groupoid.compatible G he he'
 
 lemma has_groupoid_of_le {G₁ G₂ : structure_groupoid H} (h : has_groupoid M G₁) (hle : G₁ ≤ G₂) :
   has_groupoid M G₂ :=
-⟨ λ e e' he he', hle ((h.compatible : _) he he') ⟩
+⟨λ e e' he he', hle (h.compatible he he')⟩
 
 lemma has_groupoid_of_pregroupoid (PG : pregroupoid H)
   (h : ∀{e e' : local_homeomorph M H}, e ∈ atlas H M → e' ∈ atlas H M
@@ -857,6 +877,14 @@ variable (G)
 /-- In the model space, the identity is in any maximal atlas. -/
 lemma structure_groupoid.id_mem_maximal_atlas : local_homeomorph.refl H ∈ G.maximal_atlas H :=
 G.subset_maximal_atlas $ by simp
+
+/-- In the model space, any element of the groupoid is in the maximal atlas. -/
+lemma structure_groupoid.mem_maximal_atlas_of_mem_groupoid {f : local_homeomorph H H} (hf : f ∈ G) :
+  f ∈ G.maximal_atlas H :=
+begin
+  rintros e (rfl : e = local_homeomorph.refl H),
+  exact ⟨G.trans (G.symm hf) G.id_mem, G.trans (G.symm G.id_mem) hf⟩,
+end
 
 end maximal_atlas
 

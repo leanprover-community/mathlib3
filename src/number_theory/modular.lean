@@ -62,7 +62,7 @@ we state lemmas in this file without spurious `coe_fn` terms. -/
 local attribute [-instance] matrix.special_linear_group.has_coe_to_fun
 local attribute [-instance] matrix.general_linear_group.has_coe_to_fun
 
-open complex (hiding abs_one abs_two abs_mul abs_add)
+open complex (hiding abs_two)
 open matrix (hiding mul_smul) matrix.special_linear_group upper_half_plane
 noncomputable theory
 
@@ -117,6 +117,9 @@ lemma tendsto_norm_sq_coprime_pair :
   filter.tendsto (λ p : fin 2 → ℤ, ((p 0 : ℂ) * z + p 1).norm_sq)
   cofinite at_top :=
 begin
+  -- using this instance rather than the automatic `function.module` makes unification issues in
+  -- `linear_equiv.closed_embedding_of_injective` less bad later in the proof.
+  letI : module ℝ (fin 2 → ℝ) := normed_space.to_module,
   let π₀ : (fin 2 → ℝ) →ₗ[ℝ] ℝ := linear_map.proj 0,
   let π₁ : (fin 2 → ℝ) →ₗ[ℝ] ℝ := linear_map.proj 1,
   let f : (fin 2 → ℝ) →ₗ[ℝ] ℂ := π₀.smul_right (z:ℂ) + π₁.smul_right 1,
@@ -152,14 +155,18 @@ begin
         conj_of_real, conj_of_real, ← of_real_mul, add_im, of_real_im, zero_add,
         inv_mul_eq_iff_eq_mul₀ hz],
       simp only [of_real_im, of_real_re, mul_im, zero_add, mul_zero] } },
-  have h₁ := (linear_equiv.closed_embedding_of_injective hf).tendsto_cocompact,
+  have hf' : closed_embedding f,
+  { -- for some reason we get a timeout if we try and apply this lemma in a more sensible way
+    have := @linear_equiv.closed_embedding_of_injective ℝ _ (fin 2 → ℝ) _ (id _) ℂ _ _ _ _,
+    rotate 2,
+    exact f,
+    exact this hf },
   have h₂ : tendsto (λ p : fin 2 → ℤ, (coe : ℤ → ℝ) ∘ p) cofinite (cocompact _),
   { convert tendsto.pi_map_Coprod (λ i, int.tendsto_coe_cofinite),
     { rw Coprod_cofinite },
     { rw Coprod_cocompact } },
-  exact tendsto_norm_sq_cocompact_at_top.comp (h₁.comp h₂)
+  exact tendsto_norm_sq_cocompact_at_top.comp (hf'.tendsto_cocompact.comp h₂),
 end
-
 
 /-- Given `coprime_pair` `p=(c,d)`, the matrix `[[a,b],[*,*]]` is sent to `a*c+b*d`.
   This is the linear map version of this operation.
@@ -409,9 +416,9 @@ def fd : set ℍ :=
 def fdo : set ℍ :=
 {z | 1 < (z : ℂ).norm_sq ∧ |z.re| < (1 : ℝ) / 2}
 
-localized "notation `𝒟` := modular_group.fd" in modular
+localized "notation (name := modular_group.fd) `𝒟` := modular_group.fd" in modular
 
-localized "notation `𝒟ᵒ` := modular_group.fdo" in modular
+localized "notation (name := modular_group.fdo) `𝒟ᵒ` := modular_group.fdo" in modular
 
 lemma abs_two_mul_re_lt_one_of_mem_fdo (h : z ∈ 𝒟ᵒ) : |2 * z.re| < 1 :=
 begin

@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jean Lo, Bhavik Mehta, Yaël Dillies
 -/
 import analysis.convex.basic
-import analysis.normed_space.lattice_ordered_group
-import analysis.normed_space.ordered
+import analysis.convex.hull
+import analysis.normed.order.lattice
+import analysis.normed.order.basic
 
 /-!
 # Local convexity
@@ -341,6 +342,19 @@ end
 
 lemma absorbent.zero_mem (hs : absorbent 𝕜 s) : (0 : E) ∈ s :=
 absorbs_zero_iff.1 $ absorbent_iff_forall_absorbs_singleton.1 hs _
+
+variables [module ℝ E] [smul_comm_class ℝ 𝕜 E]
+
+lemma balanced_convex_hull_of_balanced (hs : balanced 𝕜 s) : balanced 𝕜 (convex_hull ℝ s) :=
+begin
+  suffices : convex ℝ {x | ∀ a : 𝕜, ∥a∥ ≤ 1 → a • x ∈ convex_hull ℝ s},
+  { rw balanced_iff_smul_mem at hs ⊢,
+    refine λ a ha x hx, convex_hull_min _ this hx a ha,
+    exact λ y hy a ha, subset_convex_hull ℝ s (hs ha hy) },
+  intros x hx y hy u v hu hv huv a ha,
+  simp only [smul_add, ← smul_comm],
+  exact convex_convex_hull ℝ s (hx a ha) (hy a ha) hu hv huv
+end
 
 end nontrivially_normed_field
 

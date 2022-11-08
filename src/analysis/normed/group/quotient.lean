@@ -20,6 +20,13 @@ to a normed group hom defined on `M ⧸ S`.
 This file also introduces a predicate `is_quotient` characterizing normed group homs that
 are isomorphic to the canonical projection onto a normed group quotient.
 
+In addition, this file also provides normed structures for quotients of modules by submodules, and
+of (commutative) rings by ideals. The `seminormed_add_comm_group` and `normed_add_comm_group`
+instances described above are transferred directly, but we also define instances of `normed_space`,
+`semi_normed_comm_ring`, `normed_comm_ring` and `normed_algebra` under appropriate type class
+assumptions on the original space. Moreover, while `quotient_add_group.complete_space` works
+out-of-the-box for quotients of `normed_add_comm_group`s by `add_subgroup`s, we need to transfer
+this instance in `submodule.quotient.complete_space` so that it applies to these other quotients.
 
 ## Main definitions
 
@@ -92,6 +99,10 @@ variables {M N : Type*} [seminormed_add_comm_group M] [seminormed_add_comm_group
 noncomputable
 instance norm_on_quotient (S : add_subgroup M) : has_norm (M ⧸ S) :=
 { norm := λ x, Inf (norm '' {m | mk' S m = x}) }
+
+lemma add_subgroup.quotient_norm_eq {S : add_subgroup M} (x : M ⧸ S) :
+  ∥x∥ = Inf (norm '' {m : M | (m : M ⧸ S) = x}) :=
+rfl
 
 lemma image_norm_nonempty {S : add_subgroup M} :
   ∀ x : M ⧸ S, (norm '' {m | mk' S m = x}).nonempty :=
@@ -528,3 +539,103 @@ begin
 end
 
 end normed_add_group_hom
+
+/-!
+### Submodules and ideals
+
+In what follows, the norm structures created above for quotients of (semi)`normed_add_comm_group`s
+by `add_subgroup`s are transferred via definitional equality to quotients of modules by submodules,
+and of rings by ideals, thereby preserving the definitional equality for the topological group and
+uniform structures worked for above. Completeness is also transferred via this definitional
+equality.
+
+In addition, instances are constructed for `normed_space`, `semi_normed_comm_ring`,
+`normed_comm_ring` and `normed_algebra` under the appropriate hypotheses. Currently, we do not
+have quotients of rings by two-sided ideals, hence the commutativity hypotheses are required.
+ -/
+
+section submodule
+
+variables {R : Type*} [ring R] [module R M] (S : submodule R M)
+
+instance submodule.quotient.seminormed_add_comm_group :
+  seminormed_add_comm_group (M ⧸ S) :=
+add_subgroup.seminormed_add_comm_group_quotient S.to_add_subgroup
+
+instance submodule.quotient.normed_add_comm_group [hS : is_closed (S : set M)] :
+  normed_add_comm_group (M ⧸ S) :=
+@add_subgroup.normed_add_comm_group_quotient _ _ S.to_add_subgroup hS
+
+instance submodule.quotient.complete_space [complete_space M] : complete_space (M ⧸ S) :=
+quotient_add_group.complete_space M S.to_add_subgroup
+
+/-- For any `x : M ⧸ S` and any `0 < ε`, there is `m : M` such that `submodule.quotient.mk m = x`
+and `∥m∥ < ∥x∥ + ε`. -/
+lemma submodule.quotient.norm_mk_lt {S : submodule R M} (x : M ⧸ S) {ε : ℝ} (hε : 0 < ε) :
+  ∃ m : M, submodule.quotient.mk m = x ∧ ∥m∥ < ∥x∥ + ε :=
+norm_mk_lt x hε
+
+lemma submodule.quotient.norm_mk_le (m : M) :
+  ∥(submodule.quotient.mk m : M ⧸ S)∥ ≤ ∥m∥ :=
+quotient_norm_mk_le S.to_add_subgroup m
+
+instance submodule.quotient.normed_space (𝕜 : Type*) [normed_field 𝕜] [normed_space 𝕜 M]
+  [has_smul 𝕜 R] [is_scalar_tower 𝕜 R M] : normed_space 𝕜 (M ⧸ S) :=
+{ norm_smul_le := λ k x, le_of_forall_pos_le_add $ λ ε hε,
+  begin
+    have := (nhds_basis_ball.tendsto_iff nhds_basis_ball).mp
+      ((@real.uniform_continuous_const_mul (∥k∥)).continuous.tendsto (∥x∥)) ε hε,
+    simp only [mem_ball, exists_prop, dist, abs_sub_lt_iff] at this,
+    rcases this with ⟨δ, hδ, h⟩,
+    obtain ⟨a, rfl, ha⟩ := submodule.quotient.norm_mk_lt x hδ,
+    specialize h (∥a∥) (⟨by linarith, by linarith [submodule.quotient.norm_mk_le S a]⟩),
+    calc _ ≤ ∥k∥ * ∥a∥ : (quotient_norm_mk_le S.to_add_subgroup (k • a)).trans_eq (norm_smul k a)
+    ...    ≤ _ : (sub_lt_iff_lt_add'.mp h.1).le
+  end,
+  .. submodule.quotient.module' S, }
+
+end submodule
+
+section ideal
+
+variables {R : Type*} [semi_normed_comm_ring R] (I : ideal R)
+
+lemma ideal.quotient.norm_mk_lt {I : ideal R} (x : R ⧸ I) {ε : ℝ} (hε : 0 < ε) :
+  ∃ r : R, ideal.quotient.mk I r = x ∧ ∥r∥ < ∥x∥ + ε :=
+norm_mk_lt x hε
+
+lemma ideal.quotient.norm_mk_le (r : R) :
+  ∥ideal.quotient.mk I r∥ ≤ ∥r∥ :=
+quotient_norm_mk_le I.to_add_subgroup r
+
+instance ideal.quotient.semi_normed_comm_ring : semi_normed_comm_ring (R ⧸ I) :=
+{ mul_comm := mul_comm,
+  norm_mul := λ x y, le_of_forall_pos_le_add $ λ ε hε,
+  begin
+    have := ((nhds_basis_ball.prod_nhds nhds_basis_ball).tendsto_iff nhds_basis_ball).mp
+      (real.continuous_mul.tendsto (∥x∥, ∥y∥)) ε hε,
+    simp only [set.mem_prod, mem_ball, and_imp, prod.forall, exists_prop, prod.exists] at this,
+    rcases this with ⟨ε₁, ε₂, ⟨h₁, h₂⟩, h⟩,
+    obtain ⟨⟨a, rfl, ha⟩, ⟨b, rfl, hb⟩⟩ :=
+      ⟨ideal.quotient.norm_mk_lt x h₁, ideal.quotient.norm_mk_lt y h₂⟩,
+    simp only [dist, abs_sub_lt_iff] at h,
+    specialize h (∥a∥) (∥b∥) (⟨by linarith, by linarith [ideal.quotient.norm_mk_le I a]⟩)
+      (⟨by linarith, by linarith [ideal.quotient.norm_mk_le I b]⟩),
+    calc _ ≤ ∥a∥ * ∥b∥ : (ideal.quotient.norm_mk_le I (a * b)).trans (norm_mul_le a b)
+    ...    ≤ _        : (sub_lt_iff_lt_add'.mp h.1).le
+  end,
+  .. submodule.quotient.seminormed_add_comm_group I }
+
+instance ideal.quotient.normed_comm_ring [is_closed (I : set R)] :
+  normed_comm_ring (R ⧸ I) :=
+{ .. ideal.quotient.semi_normed_comm_ring I,
+  .. submodule.quotient.normed_add_comm_group I }
+
+variables (𝕜 : Type*) [normed_field 𝕜]
+
+instance ideal.quotient.normed_algebra [normed_algebra 𝕜 R] :
+  normed_algebra 𝕜 (R ⧸ I) :=
+{ .. submodule.quotient.normed_space I 𝕜,
+  .. ideal.quotient.algebra 𝕜 }
+
+end ideal

@@ -146,7 +146,7 @@ begin
   rw fintype.prod_equiv fin_sum_fin_equiv.symm f (λ i, f (fin_sum_fin_equiv.to_fun i)), swap,
   { intro x,
     simp only [equiv.to_fun_as_coe, equiv.apply_symm_apply], },
-  apply prod_on_sum,
+  apply fintype.prod_sum_type,
 end
 
 @[to_additive]
@@ -222,7 +222,7 @@ begin
     rw prod_take_succ _ _ this,
     have A : ((finset.univ : finset (fin n)).filter (λ j, j.val < i + 1))
       = ((finset.univ : finset (fin n)).filter (λ j, j.val < i)) ∪ {(⟨i, h⟩ : fin n)},
-        by { ext j, simp [nat.lt_succ_iff_lt_or_eq, fin.ext_iff, - add_comm] },
+        by { ext ⟨_, _⟩, simp [nat.lt_succ_iff_lt_or_eq] },
     have B : _root_.disjoint (finset.filter (λ (j : fin n), j.val < i) finset.univ)
       (singleton (⟨i, h⟩ : fin n)), by simp,
     rw [A, finset.prod_union B, IH],

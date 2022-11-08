@@ -3,9 +3,11 @@ Copyright (c) 2021 Alex Kontorovich, Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth
 -/
+import data.real.nnreal
 import topology.algebra.constructions
 import topology.homeomorph
 import group_theory.group_action.basic
+import topology.bases
 /-!
 # Monoid actions continuous in the second variable
 
@@ -36,14 +38,16 @@ Hausdorff, discrete group, properly discontinuous, quotient space
 
 open_locale topological_space pointwise
 
-open filter set
+open filter set topological_space
 
 local attribute [instance] mul_action.orbit_rel
 
 /-- Class `has_continuous_const_smul Γ T` says that the scalar multiplication `(•) : Γ → T → T`
 is continuous in the second argument. We use the same class for all kinds of multiplicative
 actions, including (semi)modules and algebras.
--/
+
+Note that both `has_continuous_const_smul α α` and `has_continuous_const_smul αᵐᵒᵖ α` are
+weaker versions of `has_continuous_mul α`. -/
 class has_continuous_const_smul (Γ : Type*) (T : Type*) [topological_space T] [has_smul Γ T]
  : Prop :=
 (continuous_const_smul : ∀ γ : Γ, continuous (λ x : T, γ • x))
@@ -51,7 +55,9 @@ class has_continuous_const_smul (Γ : Type*) (T : Type*) [topological_space T] [
 /-- Class `has_continuous_const_vadd Γ T` says that the additive action `(+ᵥ) : Γ → T → T`
 is continuous in the second argument. We use the same class for all kinds of additive actions,
 including (semi)modules and algebras.
--/
+
+Note that both `has_continuous_const_vadd α α` and `has_continuous_const_vadd αᵐᵒᵖ α` are
+weaker versions of `has_continuous_add α`. -/
 class has_continuous_const_vadd (Γ : Type*) (T : Type*) [topological_space T]
   [has_vadd Γ T] : Prop :=
 (continuous_const_vadd : ∀ γ : Γ, continuous (λ x : T, γ +ᵥ x))
@@ -104,6 +110,11 @@ instance has_continuous_const_smul.op [has_smul Mᵐᵒᵖ α] [is_central_scala
   has_continuous_const_smul M αᵐᵒᵖ :=
 ⟨λ c, mul_opposite.continuous_op.comp $ mul_opposite.continuous_unop.const_smul c⟩
 
+@[to_additive] instance : has_continuous_const_smul M αᵒᵈ := ‹has_continuous_const_smul M α›
+
+@[to_additive] instance order_dual.has_continuous_const_smul' : has_continuous_const_smul Mᵒᵈ α :=
+‹has_continuous_const_smul M α›
+
 @[to_additive]
 instance [has_smul M β] [has_continuous_const_smul M β] :
   has_continuous_const_smul M (α × β) :=
@@ -113,6 +124,10 @@ instance [has_smul M β] [has_continuous_const_smul M β] :
 instance {ι : Type*} {γ : ι → Type*} [∀ i, topological_space (γ i)] [Π i, has_smul M (γ i)]
   [∀ i, has_continuous_const_smul M (γ i)] : has_continuous_const_smul M (Π i, γ i) :=
 ⟨λ _, continuous_pi $ λ i, (continuous_apply i).const_smul _⟩
+
+lemma is_compact.smul {α β} [has_smul α β] [topological_space β]
+  [has_continuous_const_smul α β] (a : α) {s : set β}
+  (hs : is_compact s) : is_compact (a • s) := hs.image (continuous_id'.const_smul a)
 
 end has_smul
 
@@ -194,6 +209,9 @@ is_closed_map_smul c s hs
 
 @[to_additive] lemma closure_smul (c : G) (s : set α) : closure (c • s) = c • closure s :=
 ((homeomorph.smul c).image_closure s).symm
+
+@[to_additive] lemma dense.smul (c : G) {s : set α} (hs : dense s) : dense (c • s) :=
+by rw [dense_iff_closure_eq] at ⊢ hs; rw [closure_smul, hs, smul_set_univ]
 
 @[to_additive] lemma interior_smul (c : G) (s : set α) : interior (c • s) = c • interior s :=
 ((homeomorph.smul c).image_interior s).symm
@@ -348,8 +366,10 @@ export properly_discontinuous_smul (finite_disjoint_inter_image)
 
 export properly_discontinuous_vadd (finite_disjoint_inter_image)
 
-/-- The quotient map by a group action is open. -/
-@[to_additive "The quotient map by a group action is open."]
+/-- The quotient map by a group action is open, i.e. the quotient by a group action is an open
+  quotient. -/
+@[to_additive "The quotient map by a group action is open, i.e. the quotient by a group
+action is an open quotient. "]
 lemma is_open_map_quotient_mk_mul [has_continuous_const_smul Γ T] :
   is_open_map (quotient.mk : T → quotient (mul_action.orbit_rel Γ T)) :=
 begin
@@ -394,6 +414,14 @@ begin
     simp only [image_smul, not_not, mem_set_of_eq, ne.def] at H,
     exact eq_empty_iff_forall_not_mem.mp H (γ • x) ⟨mem_image_of_mem _ x_in_K₀, h'⟩ },
 end
+
+/-- The quotient of a second countable space by a group action is second countable. -/
+@[to_additive "The quotient of a second countable space by an additive group action is second
+countable."]
+theorem has_continuous_const_smul.second_countable_topology [second_countable_topology T]
+  [has_continuous_const_smul Γ T] :
+  second_countable_topology (quotient (mul_action.orbit_rel Γ T)) :=
+topological_space.quotient.second_countable_topology is_open_map_quotient_mk_mul
 
 section nhds
 

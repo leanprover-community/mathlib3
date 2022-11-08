@@ -73,8 +73,10 @@ def cond (s : set Ω) : measure Ω :=
 
 end definitions
 
-localized "notation  μ `[` s `|` t `]` := probability_theory.cond μ t s" in probability_theory
-localized "notation  μ `[|`:60 t`]` := probability_theory.cond μ t" in probability_theory
+localized "notation (name := probability_theory.cond)
+  μ `[` s `|` t `]` := probability_theory.cond μ t s" in probability_theory
+localized "notation (name := probability_theory.cond_fn)
+  μ `[|`:60 t`]` := probability_theory.cond μ t" in probability_theory
 
 /-- The conditional probability measure of any finite measure on any set of positive measure
 is a probability measure. -/

@@ -5,6 +5,7 @@ Authors: Eric Rodriguez
 -/
 
 import data.int.modeq
+import algebra.ne_zero
 
 /-!
 # Definition of `zmod n` + basic results.
@@ -81,8 +82,8 @@ instance zmod.has_repr : Π (n : ℕ), has_repr (zmod n)
 
 namespace zmod
 
-instance fintype : Π (n : ℕ) [fact (0 < n)], fintype (zmod n)
-| 0     h := (lt_irrefl _ h.1).elim
+instance fintype : Π (n : ℕ) [ne_zero n], fintype (zmod n)
+| 0    h  := by exactI (ne_zero.ne 0 rfl).elim
 | (n+1) _ := fin.fintype (n+1)
 
 instance infinite : infinite (zmod 0) :=

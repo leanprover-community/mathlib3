@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzza
 Amelia Livingston, Yury Kudryashov, Yakov Pechersky, Jireh Loreaux
 -/
 import group_theory.subsemigroup.basic
+import algebra.group.prod
 
 /-!
 # Operations on `subsemigroup`s
@@ -75,10 +76,10 @@ variables [has_mul M]
 def subsemigroup.to_add_subsemigroup : subsemigroup M ≃o add_subsemigroup (additive M) :=
 { to_fun := λ S,
   { carrier := additive.to_mul ⁻¹' S,
-    add_mem' := S.mul_mem' },
+    add_mem' := λ _ _, S.mul_mem' },
   inv_fun := λ S,
   { carrier := additive.of_mul ⁻¹' S,
-    mul_mem' := S.add_mem' },
+    mul_mem' := λ _ _, S.add_mem' },
   left_inv := λ x, by cases x; refl,
   right_inv := λ x, by cases x; refl,
   map_rel_iff' := λ a b, iff.rfl, }
@@ -115,10 +116,10 @@ multiplicative subsemigroups of `multiplicative A`. -/
 def add_subsemigroup.to_subsemigroup : add_subsemigroup A ≃o subsemigroup (multiplicative A) :=
 { to_fun := λ S,
   { carrier := multiplicative.to_add ⁻¹' S,
-    mul_mem' := S.add_mem' },
+    mul_mem' := λ _ _, S.add_mem' },
   inv_fun := λ S,
   { carrier := multiplicative.of_add ⁻¹' S,
-    add_mem' := S.mul_mem' },
+    add_mem' := λ _ _, S.mul_mem' },
   left_inv := λ x, by cases x; refl,
   right_inv := λ x, by cases x; refl,
   map_rel_iff' := λ a b, iff.rfl, }

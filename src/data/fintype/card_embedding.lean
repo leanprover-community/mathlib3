@@ -13,8 +13,8 @@ import logic.equiv.embedding
 This file establishes the cardinality of `α ↪ β` in full generality.
 -/
 
-local notation `|` x `|` := finset.card x
-local notation `‖` x `‖` := fintype.card x
+local notation (name := finset.card) `|` x `|` := finset.card x
+local notation (name := fintype.card) `‖` x `‖` := fintype.card x
 
 open function
 open_locale nat big_operators
@@ -43,8 +43,9 @@ end
 
 /- The cardinality of embeddings from an infinite type to a finite type is zero.
 This is a re-statement of the pigeonhole principle. -/
-@[simp] lemma card_embedding_eq_of_infinite {α β} [infinite α] [fintype β] [fintype (α ↪ β)] :
+@[simp] lemma card_embedding_eq_of_infinite {α β : Type*} [infinite α] [fintype β]
+  [fintype (α ↪ β)] :
   ‖α ↪ β‖ = 0 :=
-card_eq_zero_iff.mpr function.embedding.is_empty
+card_eq_zero
 
 end fintype

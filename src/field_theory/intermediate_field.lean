@@ -61,10 +61,10 @@ instance : set_like (intermediate_field K L) L :=
 ⟨λ S, S.to_subalgebra.carrier, by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨h⟩, congr, }⟩
 
 instance : subfield_class (intermediate_field K L) L :=
-{ add_mem := λ s, s.add_mem',
+{ add_mem := λ s _ _, s.add_mem',
   zero_mem := λ s, s.zero_mem',
   neg_mem := neg_mem',
-  mul_mem := λ s, s.mul_mem',
+  mul_mem := λ s _ _, s.mul_mem',
   one_mem := λ s, s.one_mem',
   inv_mem := inv_mem' }
 

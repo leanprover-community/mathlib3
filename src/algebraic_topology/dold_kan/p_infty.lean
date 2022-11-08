@@ -61,6 +61,9 @@ def P_infty : K[X] ⟶ K[X] := chain_complex.of_hom _ _ _ _ _ _
   (λ n, by simpa only [← P_is_eventually_constant (show n ≤ n, by refl),
     alternating_face_map_complex.obj_d_eq] using (P (n+1)).comm (n+1) n)
 
+@[simp]
+lemma P_infty_f_0 : (P_infty.f 0 : X _[0] ⟶ X _[0]) = 𝟙 _ := rfl
+
 lemma P_infty_f (n : ℕ) : (P_infty.f n : X _[n] ⟶  X _[n] ) = (P n).f n := rfl
 
 @[simp, reassoc]

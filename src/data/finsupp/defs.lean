@@ -214,6 +214,11 @@ end⟩
 lemma single_apply [decidable (a = a')] : single a b a' = if a = a' then b else 0 :=
 by convert rfl
 
+lemma single_apply_left {f : α → β} (hf : function.injective f)
+  (x z : α) (y : M) :
+  single (f x) y (f z) = single x y z :=
+by simp only [single_apply, hf.eq_iff]
+
 lemma single_eq_indicator : ⇑(single a b) = set.indicator {a} (λ _, b) :=
 by { ext, simp [single_apply, set.indicator, @eq_comm _ a] }
 
@@ -524,10 +529,8 @@ noncomputable def of_support_finite
 lemma of_support_finite_coe {f : α → M} {hf : (function.support f).finite} :
   (of_support_finite f hf : α → M) = f := rfl
 
-instance : can_lift (α → M) (α →₀ M) :=
-{ coe := coe_fn,
-  cond := λ f, (function.support f).finite,
-  prf := λ f hf, ⟨of_support_finite f hf, rfl⟩ }
+instance can_lift : can_lift (α → M) (α →₀ M) coe_fn (λ f, (function.support f).finite) :=
+{ prf := λ f hf, ⟨of_support_finite f hf, rfl⟩ }
 
 end of_support_finite
 

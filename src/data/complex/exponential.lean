@@ -313,16 +313,16 @@ namespace complex
 lemma is_cau_abs_exp (z : ℂ) : is_cau_seq has_abs.abs
   (λ n, ∑ m in range n, abs (z ^ m / m!)) :=
 let ⟨n, hn⟩ := exists_nat_gt (abs z) in
-have hn0 : (0 : ℝ) < n, from lt_of_le_of_lt (abs_nonneg _) hn,
-series_ratio_test n (complex.abs z / n) (div_nonneg (complex.abs_nonneg _) (le_of_lt hn0))
+have hn0 : (0 : ℝ) < n, from lt_of_le_of_lt (abs.nonneg _) hn,
+series_ratio_test n (complex.abs z / n) (div_nonneg (abs.nonneg _) (le_of_lt hn0))
   (by rwa [div_lt_iff hn0, one_mul])
   (λ m hm,
     by rw [abs_abs, abs_abs, nat.factorial_succ, pow_succ,
       mul_comm m.succ, nat.cast_mul, ← div_div, mul_div_assoc,
-      mul_div_right_comm, abs_mul, abs_div, abs_cast_nat];
+      mul_div_right_comm, abs.map_mul, map_div₀, abs_cast_nat];
     exact mul_le_mul_of_nonneg_right
-      (div_le_div_of_le_left (abs_nonneg _) hn0
-        (nat.cast_le.2 (le_trans hm (nat.le_succ _)))) (abs_nonneg _))
+      (div_le_div_of_le_left (abs.nonneg _) hn0
+        (nat.cast_le.2 (le_trans hm (nat.le_succ _)))) (abs.nonneg _))
 
 noncomputable theory
 
@@ -1296,17 +1296,17 @@ begin
   ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs x ^ n * (1 / m!) :
     begin
       refine sum_le_sum (λ m hm, _),
-      rw [abs_mul, abv_pow abs, abs_div, abs_cast_nat],
+      rw [map_mul, map_pow, map_div₀, abs_cast_nat],
       refine mul_le_mul_of_nonneg_left ((div_le_div_right _).2 _) _,
       { exact nat.cast_pos.2 (nat.factorial_pos _), },
       { rw abv_pow abs,
-        exact (pow_le_one _ (abs_nonneg _) hx), },
-      { exact pow_nonneg (abs_nonneg _) _ },
+        exact (pow_le_one _ (abs.nonneg _) hx), },
+      { exact pow_nonneg (abs.nonneg _) _ },
     end
   ... = abs x ^ n * (∑ m in (range j).filter (λ k, n ≤ k), (1 / m! : ℝ)) :
     by simp [abs_mul, abv_pow abs, abs_div, mul_sum.symm]
   ... ≤ abs x ^ n * (n.succ * (n! * n)⁻¹) :
-    mul_le_mul_of_nonneg_left (sum_div_factorial_le _ _ hn) (pow_nonneg (abs_nonneg _) _)
+    mul_le_mul_of_nonneg_left (sum_div_factorial_le _ _ hn) (pow_nonneg (abs.nonneg _) _)
 end
 
 lemma exp_bound' {x : ℂ} {n : ℕ} (hx : abs x / (n.succ) ≤ 1 / 2) :
@@ -1322,11 +1322,11 @@ begin
   calc abs (∑ (i : ℕ) in range k, x ^ (n + i) / ((n + i)! : ℂ))
       ≤ ∑ (i : ℕ) in range k, abs (x ^ (n + i) / ((n + i)! : ℂ)) : abv_sum_le_sum_abv _ _
   ... ≤ ∑ (i : ℕ) in range k, (abs x) ^ (n + i) / (n + i)! :
-        by simp only [complex.abs_cast_nat, complex.abs_div, abv_pow abs]
+        by simp only [complex.abs_cast_nat, map_div₀, abv_pow abs]
   ... ≤ ∑ (i : ℕ) in range k, (abs x) ^ (n + i) / (n! * n.succ ^ i) : _
   ... = ∑ (i : ℕ) in range k, (abs x) ^ (n) / (n!) * ((abs x)^i / n.succ ^ i) : _
   ... ≤ abs x ^ n / (↑n!) * 2 : _,
-  { refine sum_le_sum (λ m hm, div_le_div (pow_nonneg (abs_nonneg x) (n + m)) le_rfl _ _),
+  { refine sum_le_sum (λ m hm, div_le_div (pow_nonneg (abs.nonneg x) (n + m)) le_rfl _ _),
     { exact_mod_cast mul_pos n.factorial_pos (pow_pos n.succ_pos _), },
     { exact_mod_cast (nat.factorial_mul_pow_le_factorial), }, },
   { refine finset.sum_congr rfl (λ _ _, _),
@@ -1338,11 +1338,11 @@ begin
       { transitivity (-1 : ℝ),
         { linarith },
         { simp only [neg_le_sub_iff_le_add, div_pow, nat.cast_succ, le_add_iff_nonneg_left],
-          exact div_nonneg (pow_nonneg (abs_nonneg x) k)
+          exact div_nonneg (pow_nonneg (abs.nonneg x) k)
             (pow_nonneg (add_nonneg n.cast_nonneg zero_le_one) k) } },
       { linarith },
       { linarith }, },
-    { exact div_nonneg (pow_nonneg (abs_nonneg x) n) (nat.cast_nonneg (n!)), }, },
+    { exact div_nonneg (pow_nonneg (abs.nonneg x) n) (nat.cast_nonneg (n!)), }, },
 end
 
 lemma abs_exp_sub_one_le {x : ℂ} (hx : abs x ≤ 1) :
@@ -1473,10 +1473,10 @@ calc |cos x - (1 - x ^ 2 / 2)| = abs (complex.cos x - (1 - x ^ 2 / 2)) :
   end)
 ... ≤ abs ((complex.exp (x * I) - ∑ m in range 4, (x * I) ^ m / m!) / 2) +
     abs ((complex.exp (-x * I) - ∑ m in range 4, (-x * I) ^ m / m!) / 2) :
-  by rw add_div; exact abs_add _ _
+  by rw add_div; exact complex.abs.add_le _ _
 ... = (abs ((complex.exp (x * I) - ∑ m in range 4, (x * I) ^ m / m!)) / 2 +
     abs ((complex.exp (-x * I) - ∑ m in range 4, (-x * I) ^ m / m!)) / 2) :
-  by simp [complex.abs_div]
+  by simp [map_div₀]
 ... ≤ ((complex.abs (x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2 +
     (complex.abs (-x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2)  :
   add_le_add ((div_le_div_right (by norm_num)).2 (complex.exp_bound (by simpa) dec_trivial))
@@ -1499,10 +1499,10 @@ calc |sin x - (x - x ^ 3 / 6)| = abs (complex.sin x - (x - x ^ 3 / 6)) :
   end)
 ... ≤ abs ((complex.exp (-x * I) - ∑ m in range 4, (-x * I) ^ m / m!) * I / 2) +
     abs (-((complex.exp (x * I) - ∑ m in range 4, (x * I) ^ m / m!) * I) / 2) :
-  by rw [sub_mul, sub_eq_add_neg, add_div]; exact abs_add _ _
+  by rw [sub_mul, sub_eq_add_neg, add_div]; exact complex.abs.add_le _ _
 ... = (abs ((complex.exp (x * I) - ∑ m in range 4, (x * I) ^ m / m!)) / 2 +
     abs ((complex.exp (-x * I) - ∑ m in range 4, (-x * I) ^ m / m!)) / 2) :
-  by simp [add_comm, complex.abs_div, complex.abs_mul]
+  by simp [add_comm, map_div₀]
 ... ≤ ((complex.abs (x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2 +
     (complex.abs (-x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2) :
   add_le_add ((div_le_div_right (by norm_num)).2 (complex.exp_bound (by simpa) dec_trivial))
@@ -1519,7 +1519,7 @@ calc 0 < (1 - x ^ 2 / 2) - |x| ^ 4 * (5 / 96) :
           ((div_le_div_right (by norm_num)).2 (by rw [sq, ← abs_mul_self, _root_.abs_mul];
             exact mul_le_one hx (abs_nonneg _) hx))
       ... < 1 : by norm_num)
-... ≤ cos x : sub_le.1 (abs_sub_le_iff.1 (cos_bound hx)).2
+... ≤ cos x : sub_le_comm.1 (abs_sub_le_iff.1 (cos_bound hx)).2
 
 lemma sin_pos_of_pos_of_le_one {x : ℝ} (hx0 : 0 < x) (hx : x ≤ 1) : 0 < sin x :=
 calc 0 < x - x ^ 3 / 6 - |x| ^ 4 * (5 / 96) :
@@ -1536,7 +1536,7 @@ calc 0 < x - x ^ 3 / 6 - |x| ^ 4 * (5 / 96) :
           (calc x ^ 3 ≤ x ^ 1 : pow_le_pow_of_le_one (le_of_lt hx0) hx dec_trivial
             ... = x : pow_one _))
     ... < x : by linarith)
-... ≤ sin x : sub_le.1 (abs_sub_le_iff.1 (sin_bound
+... ≤ sin x : sub_le_comm.1 (abs_sub_le_iff.1 (sin_bound
     (by rwa [_root_.abs_of_nonneg (le_of_lt hx0)]))).2
 
 lemma sin_pos_of_pos_of_le_two {x : ℝ} (hx0 : 0 < x) (hx : x ≤ 2) : 0 < sin x :=
@@ -1630,6 +1630,17 @@ end
 
 end real
 
+namespace tactic
+open positivity real
+
+/-- Extension for the `positivity` tactic: `real.exp` is always positive. -/
+@[positivity]
+meta def positivity_exp : expr → tactic strictness
+| `(real.exp %%a) := positive <$> mk_app `real.exp_pos [a]
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `real.exp r`"
+
+end tactic
+
 namespace complex
 
 @[simp] lemma abs_cos_add_sin_mul_I (x : ℝ) : abs (cos x + sin x * I) = 1 :=
@@ -1643,7 +1654,7 @@ by rw [← of_real_exp]; exact abs_of_nonneg (le_of_lt (real.exp_pos _))
 by rw [exp_mul_I, abs_cos_add_sin_mul_I]
 
 lemma abs_exp (z : ℂ) : abs (exp z) = real.exp z.re :=
-by rw [exp_eq_exp_re_mul_sin_add_cos, abs_mul, abs_exp_of_real, abs_cos_add_sin_mul_I, mul_one]
+by rw [exp_eq_exp_re_mul_sin_add_cos, map_mul, abs_exp_of_real, abs_cos_add_sin_mul_I, mul_one]
 
 lemma abs_exp_eq_iff_re_eq {x y : ℂ} : abs (exp x) = abs (exp y) ↔ x.re = y.re :=
 by rw [abs_exp, abs_exp, real.exp_eq_exp]

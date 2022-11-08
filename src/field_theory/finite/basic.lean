@@ -337,7 +337,7 @@ end zmod
 namespace char_p
 
 lemma sq_add_sq (R : Type*) [comm_ring R] [is_domain R]
-  (p : ℕ) [fact (0 < p)] [char_p R p] (x : ℤ) :
+  (p : ℕ) [ne_zero p] [char_p R p] (x : ℤ) :
   ∃ a b : ℕ, (a^2 + b^2 : R) = x :=
 begin
   haveI := char_is_prime_of_pos R p,

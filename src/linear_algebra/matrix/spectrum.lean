@@ -23,6 +23,7 @@ variables {𝕜 : Type*} [is_R_or_C 𝕜] [decidable_eq 𝕜] {n : Type*} [finty
 variables {A : matrix n n 𝕜}
 
 open_locale matrix
+open_locale big_operators
 
 namespace is_hermitian
 
@@ -54,6 +55,33 @@ lemma eigenvector_matrix_mul_inv :
   hA.eigenvector_matrix ⬝ hA.eigenvector_matrix_inv = 1 :=
 by apply basis.to_matrix_mul_to_matrix_flip
 
+noncomputable instance : invertible hA.eigenvector_matrix_inv :=
+invertible_of_left_inverse _ _ hA.eigenvector_matrix_mul_inv
+
+noncomputable instance : invertible hA.eigenvector_matrix :=
+invertible_of_right_inverse _ _ hA.eigenvector_matrix_mul_inv
+
+lemma eigenvector_matrix_apply (i j : n) : hA.eigenvector_matrix i j = hA.eigenvector_basis j i :=
+by simp only [eigenvector_matrix, basis.to_matrix_apply, orthonormal_basis.coe_to_basis,
+  pi.basis_fun_repr]
+
+lemma eigenvector_matrix_inv_apply (i j : n) :
+  hA.eigenvector_matrix_inv i j = star (hA.eigenvector_basis i j) :=
+begin
+  rw [eigenvector_matrix_inv, basis.to_matrix_apply, orthonormal_basis.coe_to_basis_repr_apply,
+    pi.basis_fun_apply, linear_map.coe_std_basis, orthonormal_basis.repr_apply_apply],
+  change inner (hA.eigenvector_basis i) (euclidean_space.single j 1) = _,
+  rw [euclidean_space.inner_single_right],
+  simp only [one_mul, conj_transpose_apply, is_R_or_C.star_def],
+end
+
+lemma conj_transpose_eigenvector_matrix_inv : hA.eigenvector_matrix_invᴴ = hA.eigenvector_matrix :=
+by { ext i j,
+  rw [conj_transpose_apply, eigenvector_matrix_inv_apply, eigenvector_matrix_apply, star_star] }
+
+lemma conj_transpose_eigenvector_matrix : hA.eigenvector_matrixᴴ = hA.eigenvector_matrix_inv :=
+by rw [← conj_transpose_eigenvector_matrix_inv, conj_transpose_conj_transpose]
+
 /-- *Diagonalization theorem*, *spectral theorem* for matrices; A hermitian matrix can be
 diagonalized by a change of basis.
 
@@ -78,6 +106,25 @@ begin
       orthonormal_basis.coe_to_basis_repr_apply, orthonormal_basis.reindex_repr,
       pi.basis_fun_apply, eigenvalues₀, linear_map.coe_std_basis,
       euclidean_space.single, pi_Lp.equiv_symm_apply'] }
+end
+
+lemma eigenvalues_eq (i : n) :
+  hA.eigenvalues i =
+    is_R_or_C.re ((star (hA.eigenvector_matrixᵀ i) ⬝ᵥ (A.mul_vec (hA.eigenvector_matrixᵀ i)))) :=
+begin
+  have := hA.spectral_theorem,
+  rw [←matrix.mul_inv_eq_iff_eq_mul_of_invertible] at this,
+  have := congr_arg is_R_or_C.re (congr_fun (congr_fun this i) i),
+  rw [diagonal_apply_eq, is_R_or_C.of_real_re, inv_eq_left_inv hA.eigenvector_matrix_mul_inv,
+    ← conj_transpose_eigenvector_matrix, mul_mul_apply] at this,
+  exact this.symm,
+end
+
+/-- The determinant of a hermitian matrix is the product of its eigenvalues. -/
+lemma det_eq_prod_eigenvalues : det A = ∏ i, hA.eigenvalues i :=
+begin
+  apply mul_left_cancel₀ (det_ne_zero_of_left_inverse (eigenvector_matrix_mul_inv hA)),
+  rw [←det_mul, spectral_theorem, det_mul, mul_comm, det_diagonal]
 end
 
 end is_hermitian

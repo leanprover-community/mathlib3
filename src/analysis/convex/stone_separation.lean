@@ -74,7 +74,7 @@ begin
   congr' 3,
   rw [←mul_smul, ←mul_rotate, mul_right_comm, mul_smul, ←mul_smul _ av, mul_rotate, mul_smul _ bz,
     ←smul_add],
-  simp only [list.map, list.pmap, nat.add_def, add_zero, fin.mk_eq_subtype_mk, fin.mk_bit0,
+  simp only [list.map, list.pmap, nat.add_def, add_zero, fin.mk_bit0,
     fin.mk_one, list.foldr_cons, list.foldr_nil],
   refl,
 end

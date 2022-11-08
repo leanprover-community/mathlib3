@@ -363,6 +363,20 @@ lemma from_rel_proj_prop {sym : symmetric r} {z : α × α} : ⟦z⟧ ∈ from_r
 @[simp]
 lemma from_rel_prop {sym : symmetric r} {a b : α} : ⟦(a, b)⟧ ∈ from_rel sym ↔ r a b := iff.rfl
 
+lemma from_rel_bot : from_rel (λ (x y : α) z, z : symmetric ⊥) = ∅ :=
+begin
+  apply set.eq_empty_of_forall_not_mem (λ e, _),
+  refine e.ind _,
+  simp [-set.bot_eq_empty, Prop.bot_eq_false],
+end
+
+lemma from_rel_top : from_rel (λ (x y : α) z, z : symmetric ⊤) = set.univ :=
+begin
+  apply set.eq_univ_of_forall (λ e, _),
+  refine e.ind _,
+  simp [-set.top_eq_univ, Prop.top_eq_true],
+end
+
 lemma from_rel_irreflexive {sym : symmetric r} :
   irreflexive r ↔ ∀ {z}, z ∈ from_rel sym → ¬is_diag z :=
 { mp  := λ h, sym2.ind $ by { rintros a b hr (rfl : a = b), exact h _ hr },

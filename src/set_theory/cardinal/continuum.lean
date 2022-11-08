@@ -25,7 +25,7 @@ open_locale cardinal
 /-- Cardinality of continuum. -/
 def continuum : cardinal.{u} := 2 ^ aleph_0.{u}
 
-localized "notation `𝔠` := cardinal.continuum" in cardinal
+localized "notation (name := cardinal.continuum) `𝔠` := cardinal.continuum" in cardinal
 
 @[simp] lemma two_power_aleph_0 : 2 ^ aleph_0.{u} = continuum.{u} := rfl
 

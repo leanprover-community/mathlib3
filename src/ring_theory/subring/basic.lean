@@ -211,7 +211,7 @@ iff.rfl
 equalities. -/
 protected def copy (S : subring R) (s : set R) (hs : s = ↑S) : subring R :=
 { carrier := s,
-  neg_mem' := hs.symm ▸ S.neg_mem',
+  neg_mem' := λ _, hs.symm ▸ S.neg_mem',
   ..S.to_subsemiring.copy s hs }
 
 @[simp] lemma coe_copy (S : subring R) (s : set R) (hs : s = ↑S) :
@@ -434,6 +434,10 @@ instance : has_top (subring R) :=
 
 @[simp] lemma coe_top : ((⊤ : subring R) : set R) = set.univ := rfl
 
+/-- The ring equiv between the top element of `subring R` and `R`. -/
+@[simps]
+def top_equiv : (⊤ : subring R) ≃+* R := subsemiring.top_equiv
+
 /-! ## comap -/
 
 /-- The preimage of a subring along a ring homomorphism is a subring. -/
@@ -559,6 +563,13 @@ instance : has_Inf (subring R) :=
   ((Inf S : subring R) : set R) = ⋂ s ∈ S, ↑s := rfl
 
 lemma mem_Inf {S : set (subring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
+
+@[simp, norm_cast] lemma coe_infi {ι : Sort*} {S : ι → subring R} :
+  (↑(⨅ i, S i) : set R) = ⋂ i, S i :=
+by simp only [infi, coe_Inf, set.bInter_range]
+
+lemma mem_infi {ι : Sort*} {S : ι → subring R} {x : R} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
+by simp only [infi, mem_Inf, set.forall_range_iff]
 
 @[simp] lemma Inf_to_submonoid (s : set (subring R)) :
   (Inf s).to_submonoid = ⨅ t ∈ s, subring.to_submonoid t := mk'_to_submonoid _ _

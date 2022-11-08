@@ -188,7 +188,7 @@ The induced map of a ring homomorphism on the prime spectra, as a morphism of lo
 -/
 @[simps] def Spec.LocallyRingedSpace_map {R S : CommRing} (f : R ⟶ S) :
   Spec.LocallyRingedSpace_obj S ⟶ Spec.LocallyRingedSpace_obj R :=
-subtype.mk (Spec.SheafedSpace_map f) $ λ p, is_local_ring_hom.mk $ λ a ha,
+LocallyRingedSpace.hom.mk (Spec.SheafedSpace_map f) $ λ p, is_local_ring_hom.mk $ λ a ha,
 begin
   -- Here, we are showing that the map on prime spectra induced by `f` is really a morphism of
   -- *locally* ringed spaces, i.e. that the induced map on the stalks is a local ring homomorphism.
@@ -197,17 +197,19 @@ begin
   rw iso.inv_hom_id_apply at ha,
   replace ha := is_local_ring_hom.map_nonunit _ ha,
   convert ring_hom.is_unit_map (stalk_iso R (prime_spectrum.comap f p)).inv ha,
-  rw iso.hom_inv_id_apply,
+  rw iso.hom_inv_id_apply
 end
 
 @[simp] lemma Spec.LocallyRingedSpace_map_id (R : CommRing) :
   Spec.LocallyRingedSpace_map (𝟙 R) = 𝟙 (Spec.LocallyRingedSpace_obj R) :=
-subtype.ext $ by { rw [Spec.LocallyRingedSpace_map_coe, Spec.SheafedSpace_map_id], refl }
+LocallyRingedSpace.hom.ext _ _ $
+  by { rw [Spec.LocallyRingedSpace_map_val, Spec.SheafedSpace_map_id], refl }
 
 lemma Spec.LocallyRingedSpace_map_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T) :
   Spec.LocallyRingedSpace_map (f ≫ g) =
   Spec.LocallyRingedSpace_map g ≫ Spec.LocallyRingedSpace_map f :=
-subtype.ext $ by { rw [Spec.LocallyRingedSpace_map_coe, Spec.SheafedSpace_map_comp], refl }
+LocallyRingedSpace.hom.ext _ _ $
+  by { rw [Spec.LocallyRingedSpace_map_val, Spec.SheafedSpace_map_comp], refl }
 
 /--
 Spec, as a contravariant functor from commutative rings to locally ringed spaces.

@@ -100,7 +100,7 @@ instance : is_fraction_ring A K :=
   eq_iff_exists := λ a b, ⟨ λ h, ⟨1, by { ext, simpa using h }⟩, λ ⟨c, h⟩,
     congr_arg coe ((mul_eq_mul_right_iff.1 h).resolve_right (non_zero_divisors.ne_zero c.2)) ⟩ }
 
-/-- The value group of the valuation associated to `A`. -/
+/-- The value group of the valuation associated to `A`. Note: it is actually a group with zero. -/
 @[derive linear_ordered_comm_group_with_zero]
 def value_group := valuation_ring.value_group A K
 
@@ -211,8 +211,7 @@ instance prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
 /-- The coarsening of a valuation ring associated to a prime ideal. -/
 def of_prime (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   valuation_subring K :=
-of_le A (localization.subalgebra.of_field K P.prime_compl $
-  le_non_zero_divisors_of_no_zero_divisors $ not_not_intro P.zero_mem).to_subring $
+of_le A (localization.subalgebra.of_field K _ P.prime_compl_le_non_zero_divisors).to_subring $
   λ a ha, subalgebra.algebra_map_mem _ (⟨a, ha⟩ : A)
 
 instance of_prime_algebra (A : valuation_subring K) (P : ideal A) [P.is_prime] :
@@ -371,7 +370,7 @@ section unit_group
 def unit_group : subgroup Kˣ :=
 (A.valuation.to_monoid_with_zero_hom.to_monoid_hom.comp (units.coe_hom K)).ker
 
-lemma mem_unit_group_iff (x : Kˣ) : x ∈ A.unit_group ↔ A.valuation x = 1 := iff.rfl
+@[simp] lemma mem_unit_group_iff (x : Kˣ) : x ∈ A.unit_group ↔ A.valuation x = 1 := iff.rfl
 
 /-- For a valuation subring `A`, `A.unit_group` agrees with the units of `A`. -/
 def unit_group_mul_equiv : A.unit_group ≃* Aˣ :=
@@ -392,7 +391,6 @@ lemma coe_unit_group_mul_equiv_apply (a : A.unit_group) :
 @[simp]
 lemma coe_unit_group_mul_equiv_symm_apply (a : Aˣ) :
   (A.unit_group_mul_equiv.symm a : K) = a := rfl
-
 
 lemma unit_group_le_unit_group {A B : valuation_subring K} :
   A.unit_group ≤ B.unit_group ↔ A ≤ B :=
@@ -620,7 +618,7 @@ the units of the residue field of `A`. -/
 def units_mod_principal_units_equiv_residue_field_units :
   (A.unit_group ⧸ (A.principal_unit_group.comap A.unit_group.subtype)) ≃*
   (local_ring.residue_field A)ˣ :=
-mul_equiv.trans (quotient_group.equiv_quotient_of_eq A.ker_unit_group_to_residue_field_units.symm)
+(quotient_group.quotient_mul_equiv_of_eq A.ker_unit_group_to_residue_field_units.symm).trans
   (quotient_group.quotient_ker_equiv_of_surjective _ A.surjective_unit_group_to_residue_field_units)
 
 @[simp]
@@ -718,3 +716,12 @@ set.subset_set_smul_iff
 end pointwise_actions
 
 end valuation_subring
+
+namespace valuation
+
+variables {Γ : Type*} [linear_ordered_comm_group_with_zero Γ] (v : valuation K Γ) (x : Kˣ)
+
+@[simp] lemma mem_unit_group_iff : x ∈ v.valuation_subring.unit_group ↔ v x = 1 :=
+(valuation.is_equiv_iff_val_eq_one _ _).mp (valuation.is_equiv_valuation_valuation_subring _).symm
+
+end valuation

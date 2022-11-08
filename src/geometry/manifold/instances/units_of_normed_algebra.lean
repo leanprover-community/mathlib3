@@ -78,7 +78,7 @@ instance : lie_group 𝓘(𝕜, R) Rˣ :=
         (cont_mdiff.comp cont_mdiff_coe cont_mdiff_snd),
     refine cont_mdiff.comp _ this,
     rw cont_mdiff_iff_cont_diff,
-    apply cont_diff_mul
+    exact cont_diff_mul
   end,
   smooth_inv :=
   begin
@@ -89,7 +89,7 @@ instance : lie_group 𝓘(𝕜, R) Rˣ :=
     intro x,
     refine cont_mdiff_at.comp x _ (cont_mdiff_coe x),
     rw cont_mdiff_at_iff_cont_diff_at,
-    apply cont_diff_at_ring_inverse
+    exact cont_diff_at_ring_inverse _ _
   end }
 
 end units

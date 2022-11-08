@@ -2143,7 +2143,7 @@ begin
     open_embedding.to_local_homeomorph_right_inv e],
   { rw [id.def, model_with_corners.right_inv],
     apply set.mem_of_subset_of_mem _ hz.1,
-    apply ext_chart_at_target_subset_range },
+    exact @ext_chart_at_target_subset_range _ _ _ _ _ _ _ I _ _ h.singleton_charted_space x },
   rw model_with_corners.symm, -- show hz implies z is in range of I ∘ e
   have := hz.1,
   rw [ext_chart_at, local_equiv.trans_target] at this,
@@ -2169,13 +2169,13 @@ begin
   apply cont_diff_on.congr cont_diff_on_id,
   intros z hz, -- factorise into the chart (=e) and the model (=id)
   rw [ext_chart_at_coe, ext_chart_at_coe_symm, chart_at_self_eq],
-  repeat {rw function.comp_app},
+  simp_rw function.comp_app,
   rw [local_homeomorph.refl_symm, local_homeomorph.refl_apply, id.def,
     local_homeomorph.singleton_charted_space_chart_at_eq, local_homeomorph.right_inv],
   { rw model_with_corners.right_inv,
     { refl },
     apply set.mem_of_subset_of_mem _ hz.1,
-    apply ext_chart_at_target_subset_range }, -- show hz implies z is in range of I ∘ e
+    exact ext_chart_at_target_subset_range _ _ }, -- show hz implies z is in range of I ∘ e
   rw [open_embedding.to_local_homeomorph_target, model_with_corners.symm, ←set.mem_preimage],
   have := hz.2,
   rw [set.preimage_inter] at this,
@@ -2195,7 +2195,7 @@ lemma cont_mdiff.of_comp_open_embedding
 begin
   have : f = (open_embedding.to_local_homeomorph e' h).symm ∘ e' ∘ f,
   { ext,
-    rw [function.comp_app, function.comp_app, open_embedding.to_local_homeomorph_left_inv] },
+    rw [function.comp_app, open_embedding.to_local_homeomorph_left_inv] },
   rw this,
   apply cont_mdiff_on.comp_cont_mdiff _ hf,
   show set H',

@@ -7,9 +7,6 @@ import order.bounded_order
 import algebra.hom.equiv.basic
 import algebra.group_with_zero.units
 import algebra.ring.defs
-import logic.equiv.defs
-import logic.equiv.option
--- FIXME CHECK IMPORTS
 
 /-!
 # Adjoining a zero/one to semigroups and related algebraic structures

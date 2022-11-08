@@ -423,6 +423,47 @@ begin
   exact ⟨pow_injective_of_lt_order_of _ (nat.mod_lt _ hx) (nat.mod_lt _ hx), λ h, congr_arg _ h⟩
 end
 
+@[simp, to_additive zsmul_smul_order_of]
+lemma zpow_pow_order_of : (x^i)^order_of x = 1 :=
+begin
+  by_cases h : is_of_fin_order x,
+  { rw [← zpow_coe_nat, ← zpow_mul, mul_comm, zpow_mul, zpow_coe_nat, pow_order_of_eq_one,
+      one_zpow], },
+  { rw [order_of_eq_zero h, pow_zero], },
+end
+
+@[to_additive is_of_fin_add_order.zsmul]
+lemma is_of_fin_order.zpow (h : is_of_fin_order x) {i : ℤ} : is_of_fin_order (x^i) :=
+(is_of_fin_order_iff_pow_eq_one _).mpr ⟨order_of x, order_of_pos' h, zpow_pow_order_of⟩
+
+@[to_additive is_of_fin_add_order.of_mem_zmultiples]
+lemma is_of_fin_order.of_mem_zpowers (h : is_of_fin_order x) (h' : y ∈ subgroup.zpowers x) :
+  is_of_fin_order y :=
+by { obtain ⟨k, rfl⟩ := subgroup.mem_zpowers_iff.mp h', exact h.zpow, }
+
+@[to_additive add_order_of_dvd_of_mem_zmultiples]
+lemma order_of_dvd_of_mem_zpowers (h : y ∈ subgroup.zpowers x) : order_of y ∣ order_of x :=
+begin
+  obtain ⟨k, rfl⟩ := subgroup.mem_zpowers_iff.mp h,
+  rw order_of_dvd_iff_pow_eq_one,
+  exact zpow_pow_order_of,
+end
+
+@[to_additive vadd_eq_self_of_mem_zmultiples]
+lemma smul_eq_self_of_mem_zpowers {α : Type*} [mul_action G α]
+  (hx : x ∈ subgroup.zpowers y) {a : α} (hs : y • a = a) : x • a = a :=
+begin
+  suffices : ∀ {g : G} {a' : α} (hs₀ : g • a' = a') (k : ℤ) (hk : 0 ≤ k), g^k • a' = a',
+  { obtain ⟨k, rfl⟩ := subgroup.mem_zpowers_iff.mp hx,
+    cases le_or_lt 0 k with hk hk, { exact this hs k hk, },
+    rw [← neg_neg k, ← inv_zpow'],
+    exact this (inv_smul_eq_iff.mpr hs.symm) (-k) (neg_nonneg.mpr hk.le), },
+  clear hx hs a y x,
+  intros g s hs k hk,
+  replace hs : (((•) g)^[k.nat_abs]) s = s := is_fixed_pt.iterate hs k.nat_abs,
+  rwa [smul_iterate, ← zpow_coe_nat, ← int.eq_nat_abs_of_zero_le hk] at hs,
+end
+
 end group
 
 section comm_monoid

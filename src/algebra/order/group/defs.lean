@@ -3,10 +3,10 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
-import algebra.hom.equiv.units
-import algebra.order.sub.basic
+import order.hom.basic
+import algebra.hom.equiv.units -- I would prefer not to be importing this here. (@semorrison)
+import algebra.order.sub.defs
 import algebra.order.monoid.order_dual
-import algebra.order.monoid.basic
 
 /-!
 # Ordered groups
@@ -485,23 +485,6 @@ alias lt_of_mul_lt_mul_left' ← ordered_comm_group.lt_of_mul_lt_mul_left
 attribute [to_additive ordered_add_comm_group.lt_of_add_lt_add_left]
   ordered_comm_group.lt_of_mul_lt_mul_left
 
-/-- Pullback an `ordered_comm_group` under an injective map.
-See note [reducible non-instances]. -/
-@[reducible, to_additive function.injective.ordered_add_comm_group
-"Pullback an `ordered_add_comm_group` under an injective map."]
-def function.injective.ordered_comm_group [ordered_comm_group α] {β : Type*}
-  [has_one β] [has_mul β] [has_inv β] [has_div β] [has_pow β ℕ] [has_pow β ℤ]
-  (f : β → α) (hf : function.injective f) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y)
-  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
-  (div : ∀ x y, f (x / y) = f x / f y)
-  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
-  (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
-  ordered_comm_group β :=
-{ ..partial_order.lift f hf,
-  ..hf.ordered_comm_monoid f one mul npow,
-  ..hf.comm_group f one mul inv div npow zpow }
-
 /-  Most of the lemmas that are primed in this section appear in ordered_field. -/
 /-  I (DT) did not try to minimise the assumptions. -/
 section group
@@ -833,23 +816,6 @@ instance linear_ordered_comm_group.to_linear_ordered_cancel_comm_monoid :
   linear_ordered_cancel_comm_monoid α :=
 { le_of_mul_le_mul_left := λ x y z, le_of_mul_le_mul_left',
   ..‹linear_ordered_comm_group α› }
-
-/-- Pullback a `linear_ordered_comm_group` under an injective map.
-See note [reducible non-instances]. -/
-@[reducible, to_additive function.injective.linear_ordered_add_comm_group
-"Pullback a `linear_ordered_add_comm_group` under an injective map."]
-def function.injective.linear_ordered_comm_group {β : Type*}
-  [has_one β] [has_mul β] [has_inv β] [has_div β] [has_pow β ℕ] [has_pow β ℤ]
-  [has_sup β] [has_inf β] (f : β → α) (hf : function.injective f) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y)
-  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹)
-  (div : ∀ x y, f (x / y) = f x / f y)
-  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
-  (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n)
-  (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
-  linear_ordered_comm_group β :=
-{ ..linear_order.lift f hf hsup hinf,
-  ..hf.ordered_comm_group f one mul inv div npow zpow }
 
 @[to_additive linear_ordered_add_comm_group.add_lt_add_left]
 lemma linear_ordered_comm_group.mul_lt_mul_left'

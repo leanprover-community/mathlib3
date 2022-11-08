@@ -8,6 +8,9 @@ import algebra.field.basic
 import algebra.order.field.defs
 import algebra.group_power.order
 
+import algebra.order.ring.inj_surj
+import algebra.group_power.order
+-- FIXME CHECK IMPORTS
 
 /-!
 # Lemmas about linear ordered (semi)fields

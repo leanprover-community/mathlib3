@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
 import data.int.basic
-import algebra.group_with_zero.divisibility
-import algebra.order.ring.abs
+import algebra.ring.divisibility
+import algebra.order.group.abs
 import algebra.order.ring.nontrivial
-import algebra.char_zero.defs
 
 /-!
 # Order instances on the integers
@@ -152,27 +151,6 @@ end
 variables {a b : ℤ} {n : ℕ}
 
 attribute [simp] nat_abs nat_abs_of_nat nat_abs_zero nat_abs_one
-
-lemma nat_abs_eq_iff_mul_self_eq {a b : ℤ} : a.nat_abs = b.nat_abs ↔ a * a = b * b :=
-begin
-  rw [← abs_eq_iff_mul_self_eq, abs_eq_nat_abs, abs_eq_nat_abs],
-  exact int.coe_nat_inj'.symm
-end
-
-lemma eq_nat_abs_iff_mul_eq_zero : a.nat_abs = n ↔ (a - n) * (a + n) = 0 :=
-by rw [nat_abs_eq_iff, mul_eq_zero, sub_eq_zero, add_eq_zero_iff_eq_neg]
-
-lemma nat_abs_lt_iff_mul_self_lt {a b : ℤ} : a.nat_abs < b.nat_abs ↔ a * a < b * b :=
-begin
-  rw [← abs_lt_iff_mul_self_lt, abs_eq_nat_abs, abs_eq_nat_abs],
-  exact int.coe_nat_lt.symm
-end
-
-lemma nat_abs_le_iff_mul_self_le {a b : ℤ} : a.nat_abs ≤ b.nat_abs ↔ a * a ≤ b * b :=
-begin
-  rw [← abs_le_iff_mul_self_le, abs_eq_nat_abs, abs_eq_nat_abs],
-  exact int.coe_nat_le.symm
-end
 
 @[simp] lemma nat_abs_dvd_iff_dvd {a b : ℤ} : a.nat_abs ∣ b.nat_abs ↔ a ∣ b :=
 begin
@@ -591,15 +569,6 @@ int.lt_div_of_mul_lt H2 H3 (by rwa zero_mul)
 lemma nat_abs_eq_of_dvd_dvd {s t : ℤ} (hst : s ∣ t) (hts : t ∣ s) : nat_abs s = nat_abs t :=
 nat.dvd_antisymm (nat_abs_dvd_iff_dvd.mpr hst) (nat_abs_dvd_iff_dvd.mpr hts)
 
-lemma dvd_div_of_mul_dvd {a b c : ℤ} (h : a * b ∣ c) : b ∣ c / a :=
-begin
-  rcases eq_or_ne a 0 with rfl | ha,
-  { simp only [int.div_zero, dvd_zero] },
-  rcases h with ⟨d, rfl⟩,
-  refine ⟨d, _⟩,
-  rw [mul_assoc, int.mul_div_cancel_left _ ha],
-end
-
 theorem div_eq_div_of_mul_eq_mul {a b c d : ℤ} (H2 : d ∣ c) (H3 : b ≠ 0)
     (H4 : d ≠ 0) (H5 : a * d = b * c) :
   a / b = c / d :=
@@ -658,14 +627,5 @@ int.to_nat_of_nonneg (sub_nonneg_of_le h)
 
 lemma is_unit_iff_abs_eq {x : ℤ} : is_unit x ↔ abs x = 1 :=
 by rw [is_unit_iff_nat_abs_eq, abs_eq_nat_abs, ←int.coe_nat_one, coe_nat_inj']
-
-lemma eq_zero_of_abs_lt_dvd {m x : ℤ} (h1 : m ∣ x) (h2 : | x | < m) : x = 0 :=
-begin
-  by_cases hm : m = 0, { subst m, exact zero_dvd_iff.mp h1, },
-  rcases h1 with ⟨d, rfl⟩,
-  apply mul_eq_zero_of_right,
-  rw [←abs_lt_one_iff, ←mul_lt_iff_lt_one_right (abs_pos.mpr hm), ←abs_mul],
-  exact lt_of_lt_of_le h2 (le_abs_self m),
-end
 
 end int

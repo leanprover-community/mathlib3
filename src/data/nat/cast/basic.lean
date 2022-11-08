@@ -3,7 +3,7 @@ Copyright (c) 2014 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.nat.order
+import data.nat.order.basic
 import algebra.order.group.abs
 import algebra.group.prod
 import algebra.hom.ring

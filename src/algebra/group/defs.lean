@@ -544,7 +544,7 @@ end right_cancel_monoid
 
 section comm_monoid
 
-instance comm_monoid.is_right_cancel_monoid.to_is_left_cancel_monoid (M : Type u) [comm_monoid M]
+def comm_monoid.is_right_cancel_monoid.to_is_left_cancel_monoid (M : Type u) [comm_monoid M]
   [is_right_cancel_monoid M] : is_left_cancel_monoid M :=
 { mul_left_cancel := λ a b c h,
   begin
@@ -552,7 +552,7 @@ instance comm_monoid.is_right_cancel_monoid.to_is_left_cancel_monoid (M : Type u
     exact is_right_cancel_monoid.mul_right_cancel _ _ _ h
   end }
 
-instance add_comm_monoid.is_add_right_cancel_monoid.to_is_add_left_cancel_monoid (M : Type u)
+def add_comm_monoid.is_add_right_cancel_monoid.to_is_add_left_cancel_monoid (M : Type u)
   [add_comm_monoid M] [is_add_right_cancel_monoid M] : is_add_left_cancel_monoid M :=
 { add_left_cancel := λ a b c h,
   begin
@@ -560,7 +560,7 @@ instance add_comm_monoid.is_add_right_cancel_monoid.to_is_add_left_cancel_monoid
     exact is_add_right_cancel_monoid.add_right_cancel _ _ _ h
   end }
 
-instance comm_monoid.is_left_cancel_monoid.to_is_right_cancel_monoid (M : Type u) [comm_monoid M]
+def comm_monoid.is_left_cancel_monoid.to_is_right_cancel_monoid (M : Type u) [comm_monoid M]
   [is_left_cancel_monoid M] : is_right_cancel_monoid M :=
 { mul_right_cancel := λ a b c h,
   begin
@@ -568,7 +568,7 @@ instance comm_monoid.is_left_cancel_monoid.to_is_right_cancel_monoid (M : Type u
     exact is_left_cancel_monoid.mul_left_cancel _ _ _ h
   end }
 
-instance add_comm_monoid.is_add_left_cancel_monoid.to_is_add_right_cancel_monoid (M : Type u)
+def add_comm_monoid.is_add_left_cancel_monoid.to_is_add_right_cancel_monoid (M : Type u)
   [add_comm_monoid M] [is_add_left_cancel_monoid M] : is_add_right_cancel_monoid M :=
 { add_right_cancel := λ a b c h,
   begin
@@ -599,24 +599,40 @@ class cancel_monoid (M : Type u) extends left_cancel_monoid M, right_cancel_mono
 @[protect_proj] class is_add_cancel_monoid (M : Type u) [add_monoid M]
   extends is_add_left_cancel_monoid M, is_add_right_cancel_monoid M
 
-instance comm_monoid.is_left_cancel_monoid.to_is_cancel_monoid (M : Type u) [comm_monoid M]
+def comm_monoid.is_left_cancel_monoid.to_is_cancel_monoid (M : Type u) [comm_monoid M]
   [is_left_cancel_monoid M] : is_cancel_monoid M :=
 { mul_left_cancel := is_left_cancel_monoid.mul_left_cancel,
-  mul_right_cancel := is_right_cancel_monoid.mul_right_cancel }
+  mul_right_cancel := λ a b c h,
+  begin
+    rw [mul_comm a b, mul_comm c b] at h,
+    exact is_left_cancel_monoid.mul_left_cancel _ _ _ h
+  end }
 
-instance comm_monoid.is_right_cancel_monoid.to_is_cancel_monoid (M : Type u) [comm_monoid M]
+def comm_monoid.is_right_cancel_monoid.to_is_cancel_monoid (M : Type u) [comm_monoid M]
   [is_right_cancel_monoid M] : is_cancel_monoid M :=
-{ mul_left_cancel := is_left_cancel_monoid.mul_left_cancel,
+{ mul_left_cancel := λ a b c h,
+  begin
+    rw [mul_comm a b, mul_comm a c] at h,
+    exact is_right_cancel_monoid.mul_right_cancel _ _ _ h
+  end,
   mul_right_cancel := is_right_cancel_monoid.mul_right_cancel }
 
-instance add_comm_monoid.is_add_left_cancel_monoid.to_is_add_cancel_monoid (M : Type u)
+def add_comm_monoid.is_add_left_cancel_monoid.to_is_add_cancel_monoid (M : Type u)
   [add_comm_monoid M] [is_add_left_cancel_monoid M] : is_add_cancel_monoid M :=
 { add_left_cancel := is_add_left_cancel_monoid.add_left_cancel,
-  add_right_cancel := is_add_right_cancel_monoid.add_right_cancel }
+  add_right_cancel := λ a b c h,
+  begin
+    rw [add_comm a b, add_comm c b] at h,
+    exact is_add_left_cancel_monoid.add_left_cancel _ _ _ h
+  end }
 
-instance add_comm_monoid.is_add_right_cancel_monoid.to_is_add_cancel_monoid (M : Type u)
+def add_comm_monoid.is_add_right_cancel_monoid.to_is_add_cancel_monoid (M : Type u)
   [add_comm_monoid M] [is_add_right_cancel_monoid M] : is_add_cancel_monoid M :=
-{ add_left_cancel := is_add_left_cancel_monoid.add_left_cancel,
+{ add_left_cancel := λ a b c h,
+  begin
+    rw [add_comm a b, add_comm a c] at h,
+    exact is_add_right_cancel_monoid.add_right_cancel _ _ _ h
+  end,
   add_right_cancel := is_add_right_cancel_monoid.add_right_cancel }
 
 /-- Commutative version of `add_cancel_monoid`. -/
@@ -993,3 +1009,5 @@ instance comm_group.to_division_comm_monoid : division_comm_monoid G :=
   ..group.to_division_monoid }
 
 end comm_group
+
+#lint

@@ -353,42 +353,6 @@ protected def function.surjective.non_unital_non_assoc_ring
 { .. hf.add_comm_group f zero add neg sub nsmul zsmul, .. hf.mul_zero_class f zero mul,
   .. hf.distrib f add mul }
 
-@[priority 100]
-instance non_unital_non_assoc_ring.to_has_distrib_neg : has_distrib_neg α :=
-{ neg := has_neg.neg,
-  neg_neg := neg_neg,
-  neg_mul := λ a b, eq_neg_of_add_eq_zero_left $ by rw [←right_distrib, add_left_neg, zero_mul],
-  mul_neg := λ a b, eq_neg_of_add_eq_zero_left $ by rw [←left_distrib, add_left_neg, mul_zero] }
-
-lemma mul_sub_left_distrib (a b c : α) : a * (b - c) = a * b - a * c :=
-by simpa only [sub_eq_add_neg, neg_mul_eq_mul_neg] using mul_add a b (-c)
-
-alias mul_sub_left_distrib ← mul_sub
-
-lemma mul_sub_right_distrib (a b c : α) : (a - b) * c = a * c - b * c :=
-by simpa only [sub_eq_add_neg, neg_mul_eq_neg_mul] using add_mul a (-b) c
-
-alias mul_sub_right_distrib ← sub_mul
-
-variables {a b c d e : α}
-
-/-- An iff statement following from right distributivity in rings and the definition
-  of subtraction. -/
-theorem mul_add_eq_mul_add_iff_sub_mul_add_eq : a * e + c = b * e + d ↔ (a - b) * e + c = d :=
-calc
-  a * e + c = b * e + d ↔ a * e + c = d + b * e : by simp [add_comm]
-    ... ↔ a * e + c - b * e = d : iff.intro (λ h, begin rw h, simp end) (λ h,
-                                                  begin rw ← h, simp end)
-    ... ↔ (a - b) * e + c = d   : begin simp [sub_mul, sub_add_eq_add_sub] end
-
-/-- A simplification of one side of an equation exploiting right distributivity in rings
-  and the definition of subtraction. -/
-theorem sub_mul_add_eq_of_mul_add_eq_mul_add : a * e + c = b * e + d → (a - b) * e + c = d :=
-assume h,
-calc
-  (a - b) * e + c = (a * e + c) - b * e : begin simp [sub_mul, sub_add_eq_add_sub] end
-              ... = d                   : begin rw h, simp [@add_sub_cancel α] end
-
 end non_unital_non_assoc_ring
 
 section non_unital_ring
@@ -457,15 +421,6 @@ protected def function.surjective.non_assoc_ring
 { .. hf.add_comm_group f zero add neg sub nsmul gsmul, .. hf.mul_zero_class f zero mul,
   .. hf.add_group_with_one f zero one add neg sub nsmul gsmul nat_cast int_cast,
   .. hf.distrib f add mul, .. hf.mul_one_class f one mul }
-
-lemma sub_one_mul (a b : α) : (a - 1) * b = a * b - b :=
-by rw [sub_mul, one_mul]
-lemma mul_sub_one (a b : α) : a * (b - 1) = a * b - a :=
-by rw [mul_sub, mul_one]
-lemma one_sub_mul (a b : α) : (1 - a) * b = b - a * b :=
-by rw [sub_mul, one_mul]
-lemma mul_one_sub (a b : α) : a * (1 - b) = a - a * b :=
-by rw [mul_sub, mul_one]
 
 end non_assoc_ring
 

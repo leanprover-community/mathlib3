@@ -360,6 +360,9 @@ eventually_eq_empty.trans $ by simp only [ae_iff, not_not, set_of_mem_eq]
 
 @[simp] lemma ae_eq_univ : s =ᵐ[μ] (univ : set α) ↔ μ sᶜ = 0 := eventually_eq_univ
 
+lemma ae_iff' {p : α → Prop} : (∀ᵐ a ∂μ, p a) ↔ {a | p a} =ᵐ[μ] univ :=
+by rw [ae_eq_univ, compl_set_of, ae_iff]
+
 lemma ae_le_set : s ≤ᵐ[μ] t ↔ μ (s \ t) = 0 :=
 calc s ≤ᵐ[μ] t ↔ ∀ᵐ x ∂μ, x ∈ s → x ∈ t : iff.rfl
            ... ↔ μ (s \ t) = 0          : by simp [ae_iff]; refl

@@ -826,6 +826,8 @@ ennreal.sub_eq_of_eq_add hb hc.symm
 @[simp] protected lemma add_sub_cancel_right (hb : b ≠ ∞) : a + b - b = a :=
 (cancel_of_ne hb).add_tsub_cancel_right
 
+lemma sub_self {a : ℝ≥0∞} (h : a ≠ ∞) : a - a = 0 := sub_eq_of_add_eq h $ zero_add a
+
 protected lemma lt_add_of_sub_lt_left (h : a ≠ ∞ ∨ b ≠ ∞) : a - b < c → a < b + c :=
 begin
   obtain rfl | hb := eq_or_ne b ∞,
@@ -1698,6 +1700,10 @@ by rw [mul_comm, of_real_mul hq, mul_comm]
 lemma of_real_pow {p : ℝ} (hp : 0 ≤ p) (n : ℕ) :
   ennreal.of_real (p ^ n) = ennreal.of_real p ^ n :=
 by rw [of_real_eq_coe_nnreal hp, ← coe_pow, ← of_real_coe_nnreal, nnreal.coe_pow, nnreal.coe_mk]
+
+@[simp] lemma nsmul_of_real {x : ℝ} {n : ℕ} :
+  n • ennreal.of_real x = ennreal.of_real (n • x) :=
+by simp only [nsmul_eq_mul, ← of_real_coe_nat n, ← of_real_mul n.cast_nonneg]
 
 lemma of_real_inv_of_pos {x : ℝ} (hx : 0 < x) :
   (ennreal.of_real x)⁻¹ = ennreal.of_real x⁻¹ :=

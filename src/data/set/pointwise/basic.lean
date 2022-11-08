@@ -1222,6 +1222,19 @@ begin
     exact ⟨b, mem_inter (mem_smul_set.mpr ⟨a, ha, by simp [← this]⟩) hb⟩, },
 end
 
+@[to_additive]
+lemma Union_smul_eq_set_of_exists {s : set β} :
+  (⋃ (g : α), g • s) = {a | ∃ (g : α), g • a ∈ s} :=
+begin
+  ext a,
+  simp only [mem_set_of_eq, mem_Union, mem_smul_set],
+  split,
+  { rintros ⟨g, b, hb, hb'⟩,
+    exact ⟨g⁻¹, ((smul_eq_iff_eq_inv_smul g).mp hb') ▸ hb⟩, },
+  { rintros ⟨g, hg⟩,
+    exact ⟨g⁻¹, g • a, hg, inv_smul_smul g a⟩, },
+end
+
 end group
 
 section group_with_zero

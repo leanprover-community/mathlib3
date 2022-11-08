@@ -71,6 +71,36 @@ lemma mk' (h_meas : null_measurable_set s μ) (h_exists : ∀ x : α, ∃! g : G
       exact hne ((h_exists x).unique hgx hx)
     end }
 
+@[to_additive measure_theory.is_add_fundamental_domain.mk_of_measure_univ_le]
+lemma mk_of_measure_univ_le [is_finite_measure μ] [countable G]
+  (h_meas : null_measurable_set s μ)
+  (h_ae_disjoint : ∀ g ≠ (1 : G), ae_disjoint μ (g • s) s)
+  (h_qmp : ∀ (g : G), quasi_measure_preserving ((•) g : α → α) μ μ)
+  (h_measure_univ_le : μ (univ : set α) ≤ ∑' (g : G), μ (g • s)) :
+  is_fundamental_domain G s μ :=
+{ null_measurable_set := h_meas,
+  ae_disjoint := h_ae_disjoint,
+  ae_covers :=
+  begin
+    replace ae_disjoint : pairwise (ae_disjoint μ on (λ (g : G), g • s)),
+    { intros g₁ g₂ hg,
+      let g := g₂⁻¹ * g₁,
+      replace hg : g ≠ 1, { rw [ne.def, inv_mul_eq_one], exact hg.symm, },
+      have : ((•) g₂⁻¹)⁻¹' (g • s ∩ s) = (g₁ • s) ∩ (g₂ • s),
+      { rw [preimage_eq_iff_eq_image (mul_action.bijective g₂⁻¹), image_smul, smul_set_inter,
+          smul_smul, smul_smul, inv_mul_self, one_smul], },
+      change μ ((g₁ • s) ∩ (g₂ • s)) = 0,
+      exact this ▸ (h_qmp g₂⁻¹).preimage_null (h_ae_disjoint g hg), },
+    replace h_meas : ∀ (g : G), null_measurable_set (g • s) μ :=
+      λ g, by { rw [← inv_inv g, ← preimage_smul], exact h_meas.preimage (h_qmp g⁻¹), },
+    have h_meas' : null_measurable_set {a | ∃ (g : G), g • a ∈ s} μ,
+    { rw ← Union_smul_eq_set_of_exists, exact null_measurable_set.Union h_meas, },
+    rw [ae_iff_measure_eq h_meas', ← Union_smul_eq_set_of_exists],
+    refine le_antisymm (measure_mono $ subset_univ _) _,
+    rw measure_Union₀ ae_disjoint h_meas,
+    exact h_measure_univ_le,
+  end }
+
 @[to_additive] lemma Union_smul_ae_eq (h : is_fundamental_domain G s μ) :
   (⋃ g : G, g • s) =ᵐ[μ] univ :=
 eventually_eq_univ.2 $ h.ae_covers.mono $ λ x ⟨g, hg⟩, mem_Union.2 ⟨g⁻¹, _, hg, inv_smul_smul _ _⟩
@@ -201,6 +231,16 @@ by simpa only [set_lintegral_one] using h.set_lintegral_eq_tsum (λ _, 1) t
   (ht : ∀ g : G, g • t = t) (hts : μ (t ∩ s) = 0) :
   μ t = 0 :=
 by simp [measure_eq_tsum h, ht, hts]
+
+@[to_additive measure_eq_card_smul_of_vadd_eq_self]
+lemma measure_eq_card_smul_of_smul_eq_self [finite G]
+  (h : is_fundamental_domain G s μ) (t : set α) (ht : ∀ g : G, g • t = t) :
+  μ t = nat.card G • μ (t ∩ s) :=
+begin
+  haveI : fintype G := fintype.of_finite G,
+  rw h.measure_eq_tsum,
+  simp_rw [ht, tsum_fintype, finset.sum_const, nat.card_eq_fintype_card, finset.card_univ],
+end
 
 @[to_additive] protected lemma set_lintegral_eq (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) (f : α → ℝ≥0∞) (hf : ∀ (g : G) x, f (g • x) = f x) :

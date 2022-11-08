@@ -2603,6 +2603,22 @@ begin
   exact ne_of_lt (measure_lt_top _ _)
 end
 
+lemma ae_eq_univ_iff_measure_eq [is_finite_measure μ] (hs : null_measurable_set s μ) :
+  s =ᵐ[μ] univ ↔ μ s = μ univ :=
+begin
+  refine ⟨measure_congr, λ h, _⟩,
+  have : μ s + μ sᶜ = μ univ := measure_add_measure_compl₀ hs,
+  replace this : (μ sᶜ).to_nnreal = 0,
+  { rwa [h, ← coe_measure_univ_nnreal μ, ← ennreal.coe_to_nnreal (measure_ne_top μ sᶜ),
+      ← ennreal.coe_add, ennreal.coe_eq_coe, add_right_eq_self] at this, },
+  rwa [ae_eq_univ, ← ennreal.coe_to_nnreal (measure_ne_top μ sᶜ), ennreal.coe_eq_zero],
+end
+
+lemma ae_iff_measure_eq [is_finite_measure μ] {p : α → Prop}
+  (hp : null_measurable_set {a | p a} μ) :
+  (∀ᵐ a ∂μ, p a) ↔ μ {a | p a} = μ univ :=
+by rw [ae_iff', ae_eq_univ_iff_measure_eq hp]
+
 instance [finite α] [measurable_space α] : is_finite_measure (measure.count : measure α) :=
 ⟨by { casesI nonempty_fintype α,
       simpa [measure.count_apply, tsum_fintype] using (ennreal.nat_ne_top _).lt_top }⟩

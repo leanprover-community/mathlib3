@@ -82,7 +82,7 @@ lemma le_sup_of_mem_convex_hull {s : finset E} (hf : convex_on 𝕜 (convex_hull
 begin
   obtain ⟨w, hw₀, hw₁, rfl⟩ := mem_convex_hull.1 hx,
   exact (hf.map_center_mass_le hw₀ (by positivity) $ subset_convex_hull _ _).trans
-    (center_mass_le_sup _ hw₀ $ by positivity),
+    (center_mass_le_sup hw₀ $ by positivity),
 end
 
 lemma inf_le_of_mem_convex_hull {s : finset E} (hf : concave_on 𝕜 (convex_hull 𝕜 (s : set E)) f)

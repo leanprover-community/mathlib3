@@ -10,6 +10,7 @@ import algebra.module.pi
 import ring_theory.power_series.basic
 import data.finsupp.pwo
 import data.finset.mul_antidiagonal
+import algebra.order.group.with_top
 
 /-!
 # Hahn Series

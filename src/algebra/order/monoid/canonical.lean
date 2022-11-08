@@ -33,6 +33,10 @@ export has_exists_mul_of_le (exists_mul_of_le)
 
 export has_exists_add_of_le (exists_add_of_le)
 
+@[priority 100, to_additive] -- See note [lower instance priority]
+instance group.has_exists_mul_of_le (α : Type u) [group α] [has_le α] : has_exists_mul_of_le α :=
+⟨λ a b hab, ⟨a⁻¹ * b, (mul_inv_cancel_left _ _).symm⟩⟩
+
 section mul_one_class
 variables [mul_one_class α] [preorder α] [contravariant_class α α (*) (<)] [has_exists_mul_of_le α]
   {a b : α}

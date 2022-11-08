@@ -321,7 +321,7 @@ lemma tsum_measure_le_measure_univ {s : ι → set α} (hs : ∀ i, measurable_s
   ∑' i, μ (s i) ≤ μ (univ : set α) :=
 begin
   rw [ennreal.tsum_eq_supr_sum],
-  exact supr_le (λ s, sum_measure_le_measure_univ (λ i hi, hs i) (λ i hi j hj hij, H i j hij))
+  exact supr_le (λ s, sum_measure_le_measure_univ (λ i hi, hs i) (λ i hi j hj hij, H hij))
 end
 
 /-- Pigeonhole principle for measure spaces: if `∑' i, μ (s i) > μ univ`, then
@@ -1841,11 +1841,20 @@ by simp only [count, sum_apply, hs, dirac_apply', ← tsum_subtype s 1, pi.one_a
 @[simp] lemma count_empty : count (∅ : set α) = 0 :=
 by rw [count_apply measurable_set.empty, tsum_empty]
 
-@[simp] lemma count_apply_finset [measurable_singleton_class α] (s : finset α) :
+@[simp] lemma count_apply_finset' {s : finset α} (s_mble : measurable_set (s : set α)) :
   count (↑s : set α) = s.card :=
-calc count (↑s : set α) = ∑' i : (↑s : set α), 1 : count_apply s.measurable_set
+calc count (↑s : set α) = ∑' i : (↑s : set α), 1 : count_apply s_mble
                     ... = ∑ i in s, 1 : s.tsum_subtype 1
                     ... = s.card : by simp
+
+@[simp] lemma count_apply_finset [measurable_singleton_class α] (s : finset α) :
+  count (↑s : set α) = s.card :=
+count_apply_finset' s.measurable_set
+
+lemma count_apply_finite' {s : set α} (s_fin : s.finite) (s_mble : measurable_set s) :
+  count s = s_fin.to_finset.card :=
+by simp [← @count_apply_finset' _ _ s_fin.to_finset
+             (by simpa only [finite.coe_to_finset] using s_mble)]
 
 lemma count_apply_finite [measurable_singleton_class α] (s : set α) (hs : s.finite) :
   count s = hs.to_finset.card :=
@@ -1862,52 +1871,97 @@ begin
   ... ≤ count s : measure_mono ht
 end
 
-variable [measurable_singleton_class α]
 
-@[simp] lemma count_apply_eq_top : count s = ∞ ↔ s.infinite :=
+@[simp] lemma count_apply_eq_top' (s_mble : measurable_set s) : count s = ∞ ↔ s.infinite :=
 begin
   by_cases hs : s.finite,
-  { simp [set.infinite, hs, count_apply_finite] },
+  { simp [set.infinite, hs, count_apply_finite' hs s_mble], },
   { change s.infinite at hs,
-    simp [hs, count_apply_infinite] }
+    simp [hs, count_apply_infinite], }
 end
 
-@[simp] lemma count_apply_lt_top : count s < ∞ ↔ s.finite :=
+@[simp] lemma count_apply_eq_top [measurable_singleton_class α] : count s = ∞ ↔ s.infinite :=
+begin
+  by_cases hs : s.finite,
+  { exact count_apply_eq_top' hs.measurable_set, },
+  { change s.infinite at hs,
+    simp [hs, count_apply_infinite], },
+end
+
+@[simp] lemma count_apply_lt_top' (s_mble : measurable_set s) : count s < ∞ ↔ s.finite :=
+calc count s < ∞ ↔ count s ≠ ∞ : lt_top_iff_ne_top
+             ... ↔ ¬s.infinite : not_congr (count_apply_eq_top' s_mble)
+             ... ↔ s.finite    : not_not
+
+@[simp] lemma count_apply_lt_top [measurable_singleton_class α] : count s < ∞ ↔ s.finite :=
 calc count s < ∞ ↔ count s ≠ ∞ : lt_top_iff_ne_top
              ... ↔ ¬s.infinite : not_congr count_apply_eq_top
              ... ↔ s.finite    : not_not
 
-lemma empty_of_count_eq_zero (hsc : count s = 0) : s = ∅ :=
+lemma empty_of_count_eq_zero' (s_mble : measurable_set s) (hsc : count s = 0) : s = ∅ :=
+begin
+  have hs : s.finite,
+  { rw [← count_apply_lt_top' s_mble, hsc],
+    exact with_top.zero_lt_top },
+  simpa [count_apply_finite' hs s_mble] using hsc,
+end
+
+lemma empty_of_count_eq_zero [measurable_singleton_class α] (hsc : count s = 0) : s = ∅ :=
 begin
   have hs : s.finite,
   { rw [← count_apply_lt_top, hsc],
     exact with_top.zero_lt_top },
-  rw count_apply_finite _ hs at hsc,
-  simpa using hsc,
+  simpa [count_apply_finite _ hs] using hsc,
 end
 
-@[simp] lemma count_eq_zero_iff : count s = 0 ↔ s = ∅ :=
+@[simp] lemma count_eq_zero_iff' (s_mble : measurable_set s) : count s = 0 ↔ s = ∅ :=
+⟨empty_of_count_eq_zero' s_mble, λ h, h.symm ▸ count_empty⟩
+
+@[simp] lemma count_eq_zero_iff [measurable_singleton_class α] : count s = 0 ↔ s = ∅ :=
 ⟨empty_of_count_eq_zero, λ h, h.symm ▸ count_empty⟩
 
-lemma count_ne_zero (hs' : s.nonempty) : count s ≠ 0 :=
+lemma count_ne_zero' (hs' : s.nonempty) (s_mble : measurable_set s) : count s ≠ 0 :=
+begin
+  rw [ne.def, count_eq_zero_iff' s_mble],
+  exact hs'.ne_empty,
+end
+
+lemma count_ne_zero [measurable_singleton_class α] (hs' : s.nonempty) : count s ≠ 0 :=
 begin
   rw [ne.def, count_eq_zero_iff],
   exact hs'.ne_empty,
 end
 
-@[simp] lemma count_singleton (a : α) : count ({a} : set α) = 1 :=
+@[simp] lemma count_singleton' {a : α} (ha : measurable_set ({a} : set α)) :
+  count ({a} : set α) = 1 :=
 begin
-  rw [count_apply_finite ({a} : set α) (set.finite_singleton _), set.finite.to_finset],
+  rw [count_apply_finite' (set.finite_singleton a) ha, set.finite.to_finset],
   simp,
 end
 
-lemma count_injective_image [measurable_singleton_class β]
-  {f : β → α} (hf : function.injective f) (s : set β) :
+@[simp] lemma count_singleton [measurable_singleton_class α] (a : α) : count ({a} : set α) = 1 :=
+count_singleton' (measurable_set_singleton a)
+
+lemma count_injective_image' {f : β → α} (hf : function.injective f) {s : set β}
+  (s_mble : measurable_set s) (fs_mble : measurable_set (f '' s)):
   count (f '' s) = count s :=
 begin
   by_cases hs : s.finite,
   { lift s to finset β using hs,
-    rw [← finset.coe_image, count_apply_finset, count_apply_finset, s.card_image_of_injective hf] },
+    rw [← finset.coe_image, count_apply_finset' _, count_apply_finset' s_mble,
+        s.card_image_of_injective hf],
+    simpa only [finset.coe_image] using fs_mble, },
+  rw count_apply_infinite hs,
+  rw ← (finite_image_iff $ hf.inj_on _) at hs,
+  rw count_apply_infinite hs,
+end
+
+lemma count_injective_image [measurable_singleton_class α] [measurable_singleton_class β]
+  {f : β → α} (hf : function.injective f) (s : set β) :
+  count (f '' s) = count s :=
+begin
+  by_cases hs : s.finite,
+  { exact count_injective_image' hf hs.measurable_set (finite.image f hs).measurable_set, },
   rw count_apply_infinite hs,
   rw ← (finite_image_iff $ hf.inj_on _) at hs,
   rw count_apply_infinite hs,

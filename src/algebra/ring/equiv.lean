@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import algebra.big_operators.basic
-import algebra.field.basic
 import algebra.hom.equiv
 import algebra.ring.opposite
 

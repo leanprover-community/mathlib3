@@ -91,8 +91,7 @@ variables {M}
 lemma comm_prob_eq_one_iff [h : nonempty M] : comm_prob M = 1 ↔ commutative ((*) : M → M → M) :=
 begin
   haveI := fintype.of_finite M,
-  simp only [comm_prob, nat.card_eq_fintype_card],
-  change (card {p : M × M | p.1 * p.2 = p.2 * p.1} : ℚ) / _ = 1 ↔ _,
+  rw [comm_prob, ←set.coe_set_of, nat.card_eq_fintype_card, nat.card_eq_fintype_card],
   rw [div_eq_one_iff_eq, ←nat.cast_pow, nat.cast_inj, sq, ←card_prod,
       set_fintype_card_eq_univ_iff, set.eq_univ_iff_forall],
   { exact ⟨λ h x y, h (x, y), λ h x, h x.1 x.2⟩ },

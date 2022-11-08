@@ -5,6 +5,7 @@ Authors: Simon Hudon, Mario Carneiro
 -/
 import data.rat.cast
 import data.rat.meta_defs
+import data.int.lemmas
 
 /-!
 # `norm_num`
@@ -1601,7 +1602,8 @@ meta def prove_div_mod (ic : instance_cache) :
     (ic, q) ← ic.of_int nq,
     (ic, r) ← ic.of_int nr,
     (ic, m, pm) ← prove_mul_rat ic q b (rat.of_int nq) (rat.of_int nb),
-    (ic, p) ← prove_add_rat ic r m a (rat.of_int nr) (rat.of_int nm) (rat.of_int na),
+    (ic, a') ← ic.of_rat na, -- ensure `a` is in normal form
+    (ic, p) ← prove_add_rat ic r m a' (rat.of_int nr) (rat.of_int nm) (rat.of_int na),
     (ic, p') ← prove_lt_nat ic r b,
     if ic.α = `(nat) then
       if mod then return (ic, r, `(nat_mod).mk_app [a, b, q, r, m, pm, p, p'])

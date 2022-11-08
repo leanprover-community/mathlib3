@@ -197,7 +197,7 @@ begin
   rw [symm_apply], refl, exact hb
 end
 
-lemma continuous_linear_map_coord_change_apply (b : B)
+lemma continuous_linear_map_coord_change_apply [ring_hom_isometric σ] (b : B)
   (hb : b ∈ (e₁.base_set ∩ e₂.base_set) ∩ (e₁'.base_set ∩ e₂'.base_set)) (L : F₁ →SL[σ] F₂) :
   continuous_linear_map_coord_change σ e₁ e₁' e₂ e₂' b L =
   (continuous_linear_map σ e₁' e₂'
@@ -218,7 +218,7 @@ end
 end pretrivialization
 
 open pretrivialization
-variables (F₁ E₁ F₂ E₂)
+variables (F₁ E₁ F₂ E₂) [ring_hom_isometric σ]
 variables [Π x : B, topological_space (E₁ x)] [topological_vector_bundle 𝕜₁ F₁ E₁]
 variables [Π x : B, topological_space (E₂ x)] [topological_vector_bundle 𝕜₂ F₂ E₂]
 variables [Π x, has_continuous_add (E₂ x)] [Π x, has_continuous_smul 𝕜₂ (E₂ x)]

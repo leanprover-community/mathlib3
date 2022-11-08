@@ -385,13 +385,14 @@ end
 
 /-- A version of Bolzano-Weistrass: in a uniform space with countably generated uniformity filter
 (e.g., in a metric space), a set is compact if and only if it is sequentially compact. -/
-protected lemma uniform_space.compact_iff_seq_compact [is_countably_generated $ 𝓤 X] :
+protected lemma uniform_space.is_compact_iff_is_seq_compact [is_countably_generated $ 𝓤 X] :
  is_compact s ↔ is_seq_compact s :=
 ⟨λ H, H.is_seq_compact, λ H, H.is_compact⟩
 
 lemma uniform_space.compact_space_iff_seq_compact_space [is_countably_generated $ 𝓤 X] :
   compact_space X ↔ seq_compact_space X :=
-have key : is_compact (univ : set X) ↔ is_seq_compact univ := uniform_space.compact_iff_seq_compact,
+have key : is_compact (univ : set X) ↔ is_seq_compact univ :=
+  uniform_space.is_compact_iff_is_seq_compact,
 ⟨λ ⟨h⟩, ⟨key.mp h⟩, λ ⟨h⟩, ⟨key.mpr h⟩⟩
 
 end uniform_space_seq_compact

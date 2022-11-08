@@ -93,7 +93,11 @@ assert_no_instance linear_ordered_field ℚ
 meta def assert_no_instance (_ : parse $ tk "assert_no_instance")  : lean.parser unit :=
 do q ← texpr,
    e ← i_to_expr q,
-   success_if_fail (mk_instance e) <|>
-   fail ("Instance for `" ++ (to_string q) ++ "` is not allowed to be found in this file.")
+   i ← try_core (mk_instance e),
+   match i with
+   | none := skip -- TODO: record for the linter
+   | some i := 
+    (fail!"Instance `{i} : {e}` is not allowed to be found in this file." : tactic unit)
+   end
 
 end

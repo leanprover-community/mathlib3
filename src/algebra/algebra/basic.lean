@@ -7,7 +7,6 @@ import algebra.module.basic
 import algebra.module.ulift
 import algebra.ne_zero
 import algebra.ring.aut
-import algebra.ring.ulift
 import linear_algebra.span
 import tactic.abel
 

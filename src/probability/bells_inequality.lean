@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ian Jauslin, Alex Kontorovich
 -/
 import probability.conditional_probability
-import measure_theory.measure.finite_measure_weak_convergence
+import measure_theory.measure.probability_measure
 
 /-!
 # Bell's Inequality

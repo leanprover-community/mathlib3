@@ -220,8 +220,7 @@ lemma is_max_iterate_succ_of_eq_of_lt {n m : ℕ}
   (h_eq : (succ^[n] a) = (succ^[m] a)) (h_lt : n < m) :
   is_max (succ^[n] a) :=
 begin
-  refine max_of_succ_le _,
-  nth_rewrite 1 h_eq,
+  refine max_of_succ_le (le_trans _ h_eq.symm.le),
   have : succ (succ^[n] a) = (succ^[n + 1] a), by rw function.iterate_succ',
   rw this,
   have h_le : n + 1 ≤ m := nat.succ_le_of_lt h_lt,
@@ -675,11 +674,11 @@ lemma pred_succ_iterate_of_not_is_max (i : α) (n : ℕ) (hin : ¬ is_max (succ^
 begin
   induction n with n hn,
   { simp only [function.iterate_zero, id.def], },
-  rw [nat.succ_sub_succ_eq_sub, tsub_zero] at hin,
+  rw [nat.succ_sub_succ_eq_sub, nat.sub_zero] at hin,
   have h_not_max : ¬ is_max (succ^[n - 1] i),
   { cases n,
     { simpa using hin, },
-    rw [nat.succ_sub_succ_eq_sub, tsub_zero] at hn ⊢,
+    rw [nat.succ_sub_succ_eq_sub, nat.sub_zero] at hn ⊢,
     have h_sub_le : (succ^[n] i) ≤ (succ^[n.succ] i),
     { rw function.iterate_succ',
       exact le_succ _, },

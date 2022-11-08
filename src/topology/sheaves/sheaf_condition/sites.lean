@@ -12,13 +12,13 @@ import category_theory.sites.dense_subsite
 
 # Coverings and sieves; from sheaves on sites and sheaves on spaces
 
-In this file, we connect coverings in a topological space to sieves in the induced Grothendieck
+In this file, we connect coverings in a topological space to sieves in the associated Grothendieck
 topology, in preparation of connecting the sheaf condition on sites to the various sheaf conditions
 on spaces.
 
 We also specialize results about sheaves on sites to sheaves on spaces; we show that the inclusion
-functor from a topological basis to `topological_space.opens` is cover dense, that open maps
-induce cover preserving functors, and that open embeddings induce compatible preserving functors.
+functor from a topological basis to `topological_space.opens` is cover_dense, that open maps
+induce cover_preserving functors, and that open embeddings induce compatible_preserving functors.
 
 -/
 

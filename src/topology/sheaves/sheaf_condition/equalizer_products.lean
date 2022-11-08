@@ -15,8 +15,8 @@ e.g. as in https://stacks.math.columbia.edu/tag/0072
 in terms of an equalizer diagram where the two objects are
 `∏ F.obj (U i)` and `∏ F.obj (U i) ⊓ (U j)`.
 
-We show that this sheaf condition is equivalent to the `opens_le_cover` sheaf condition when the
-presheaf is valued in a category with products, and thereby equivalent to the default sheaf
+We show that this sheaf condition is equivalent to the `pairwise_intersections` sheaf condition when
+the presheaf is valued in a category with products, and thereby equivalent to the default sheaf
 condition.
 -/
 
@@ -160,8 +160,8 @@ def is_sheaf_equalizer_products (F : presheaf.{v' v u} C X) : Prop :=
 ∀ ⦃ι : Type v'⦄ (U : ι → opens X), nonempty (is_limit (sheaf_condition_equalizer_products.fork F U))
 
 /-!
-The next part of this file shows that these conditions are equivalent
-to the "equalizer products" sheaf condition.
+The remainder of this file shows that the equalizer_products sheaf condition is equivalent
+to the pariwise_intersections sheaf condition.
 -/
 
 namespace sheaf_condition_pairwise_intersections

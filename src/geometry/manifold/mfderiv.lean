@@ -1235,7 +1235,7 @@ Note that in the in `has_mfderiv_at` lemmas there is an abuse of the defeq betwe
 canonical, but in this case (the tangent space of a vector space) it is canonical.
  -/
 
-variables { z : M} {F' : Type*} [normed_field F'] [normed_algebra 𝕜 F']
+variables { z : M} {F' : Type*} [normed_comm_ring F'] [normed_algebra 𝕜 F']
 {f g : M → E'} {p q : M → F'}
 {f' g' : tangent_space I z →L[𝕜] E'}
 {p' q' : tangent_space I z →L[𝕜] F'}

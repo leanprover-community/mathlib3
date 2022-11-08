@@ -3,8 +3,14 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
+<<<<<<< HEAD
 import algebra.field.basic
 import algebra.order.ring.defs
+=======
+import algebra.field.defs
+import algebra.order.ring.canonical
+import algebra.order.with_zero
+>>>>>>> algebra_euclidean_domain
 
 /-!
 # Linear ordered (semi)fields

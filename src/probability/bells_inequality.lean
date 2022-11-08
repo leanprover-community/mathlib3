@@ -44,6 +44,13 @@ begin
   rw hh; simp,
 end
 
+lemma pm_one_space_ge (r : ℤˣ) :
+  (r:ℝ) ≥ -1 :=
+begin
+  cases int.units_eq_one_or r with hh hh;
+  rw hh; simp,
+end
+
 lemma CHSH_inequality_of_int_units
   (A₀ A₁ B₀ B₁ : ℤˣ)
   :
@@ -70,13 +77,35 @@ lemma CHSH_inequality_of_int_units
     { cases pm_one_space_vals A₁ with hp1 hm1,
       { rw hm0,
         rw hp1,
-        simp only [one_mul],
+        simp only [neg_mul, one_mul, neg_add_cancel_comm, tsub_le_iff_right],
+        apply le_of_sub_nonneg,
+        ring_nf,
+        apply le_add_of_sub_left_le,
         ring_nf,
         apply neg_le_of_neg_le,
-        -- divide by 2!
-        sorry,
+        have tpos: ((2:ℝ) >0),
+        { simp only [gt_iff_lt, zero_lt_bit0, zero_lt_one],
+        },
+        have almost : (-2)/2 ≤ (B₁:ℝ) ,
+        { simp only [neg_div_self, ne.def, bit0_eq_zero, one_ne_zero, not_false_iff],
+          exact pm_one_space_ge B₁,
+        },
+        exact (div_le_iff' tpos).mp almost,
       },
-      sorry,
+      { rw hm0,
+        rw hm1,
+        simp only [neg_mul, one_mul, sub_neg_eq_add],
+        ring_nf,
+        apply neg_le_of_neg_le,
+        have tpos: ((2:ℝ) >0),
+        { simp only [gt_iff_lt, zero_lt_bit0, zero_lt_one],
+        },
+        have almost : (-2)/2 ≤ (B₀:ℝ) ,
+        { simp only [neg_div_self, ne.def, bit0_eq_zero, one_ne_zero, not_false_iff],
+          exact pm_one_space_ge B₀,
+        },
+        exact (div_le_iff' tpos).mp almost,
+      },
     }
   end
 

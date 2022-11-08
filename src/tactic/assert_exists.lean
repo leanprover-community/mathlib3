@@ -52,7 +52,7 @@ You should *not* delete the `assert_not_exists` statement without careful discus
 meta def assert_not_exists (_ : parse $ tk "assert_not_exists")  : lean.parser unit :=
 do decl ← ident,
    success_if_fail (get_decl decl) <|>
-   fail ("Declaration " ++ (to_string decl) ++ " is not allowed to exist in this file.")
+   fail format!"Declaration {decl} is not allowed to exist in this file."
 
 /--
 `assert_instance e` is a user command that asserts that an instance `e` is available

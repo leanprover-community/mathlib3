@@ -5,7 +5,6 @@ Authors: Jeremy Avigad
 -/
 import data.int.order
 import data.nat.cast
-import data.nat.pow
 
 /-!
 # Basic lemmas about the divisibility relation in `ℤ`.
@@ -29,12 +28,6 @@ by rcases nat_abs_eq z with eq | eq; rw eq; simp [coe_nat_dvd]
 
 theorem coe_nat_dvd_right {n : ℕ} {z : ℤ} : z ∣ (↑n : ℤ) ↔ z.nat_abs ∣ n :=
 by rcases nat_abs_eq z with eq | eq; rw eq; simp [coe_nat_dvd]
-
-@[simp]
-theorem sign_pow_bit1 (k : ℕ) : ∀ n : ℤ, n.sign ^ (bit1 k) = n.sign
-| (n+1:ℕ) := one_pow (bit1 k)
-| 0       := zero_pow (nat.zero_lt_bit1 k)
-| -[1+ n] := (neg_pow_bit1 1 k).trans (congr_arg (λ x, -x) (one_pow (bit1 k)))
 
 theorem le_of_dvd {a b : ℤ} (bpos : 0 < b) (H : a ∣ b) : a ≤ b :=
 match a, b, eq_succ_of_zero_lt bpos, H with
@@ -71,25 +64,6 @@ lemma dvd_nat_abs_of_of_nat_dvd {a : ℕ} : ∀ {z : ℤ} (haz : ↑a ∣ z), a 
 | -[1+k] haz :=
   have haz' : (↑a:ℤ) ∣ (↑(k+1):ℤ), from dvd_of_dvd_neg haz,
   int.coe_nat_dvd.1 haz'
-
-lemma pow_dvd_of_le_of_pow_dvd {p m n : ℕ} {k : ℤ} (hmn : m ≤ n) (hdiv : ↑(p ^ n) ∣ k) :
-  ↑(p ^ m) ∣ k :=
-begin
-  induction k,
-  { apply int.coe_nat_dvd.2,
-    apply pow_dvd_of_le_of_pow_dvd hmn,
-    apply int.coe_nat_dvd.1 hdiv },
-  change -[1+k] with -(↑(k+1) : ℤ),
-  apply dvd_neg_of_dvd,
-  apply int.coe_nat_dvd.2,
-  apply pow_dvd_of_le_of_pow_dvd hmn,
-  apply int.coe_nat_dvd.1,
-  apply dvd_of_dvd_neg,
-  exact hdiv,
-end
-
-lemma dvd_of_pow_dvd {p k : ℕ} {m : ℤ} (hk : 1 ≤ k) (hpk : ↑(p^k) ∣ m) : ↑p ∣ m :=
-by rw ←pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 
 theorem dvd_antisymm {a b : ℤ} (H1 : 0 ≤ a) (H2 : 0 ≤ b) : a ∣ b → b ∣ a → a = b :=
 begin

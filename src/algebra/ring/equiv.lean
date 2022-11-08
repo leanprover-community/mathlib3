@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import algebra.big_operators.basic
 import algebra.field.basic
-import algebra.hom.equiv
+import algebra.hom.equiv.basic
 import algebra.ring.opposite
 
 /-!

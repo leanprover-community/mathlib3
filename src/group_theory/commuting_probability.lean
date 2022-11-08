@@ -22,15 +22,6 @@ open_locale pointwise
 
 universe u
 
-instance conj_classes.finite {G : Type*} [group G] [finite G] : finite (conj_classes G) :=
-quotient.finite _
-
-instance abelianization.finite {G : Type*} [group G] [finite G] : finite (abelianization G) :=
-quotient.finite _
-
-instance subgroup.finite {G : Type*} [group G] [finite G] {H : subgroup G} : finite H :=
-subtype.finite
-
 def mul_equiv.restrict_of_comap {G : Type u} [group G] (ϕ : G ≃* G) (H : subgroup G)
   (hH : H.comap ϕ.to_monoid_hom = H) : H ≃* H :=
 monoid_hom.to_mul_equiv

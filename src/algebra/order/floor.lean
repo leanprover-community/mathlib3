@@ -678,6 +678,19 @@ sub_nonneg_of_le $ (le_div_iff hb).1 $ floor_le _
 lemma sub_floor_div_mul_lt (a : k) (hb : 0 < b) : a - ⌊a / b⌋ * b < b :=
 sub_lt_iff_lt_add.2 $ by { rw [←one_add_mul, ←div_lt_iff hb, add_comm], exact lt_floor_add_one _ }
 
+lemma fract_div_coe_eq_div_coe_mod {m n : ℕ} :
+  fract ((m : k) / n) = ↑(m % n) / n :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn, { simp, },
+  have hn' : 0 < (n : k), { norm_cast, assumption, },
+  refine fract_eq_iff.mpr ⟨by positivity, _, m / n, _⟩,
+  { simpa only [div_lt_one hn', nat.cast_lt] using m.mod_lt hn, },
+  { rw [sub_eq_iff_eq_add', ← mul_right_inj' hn'.ne.symm, mul_div_cancel' _ hn'.ne.symm, mul_add,
+      mul_div_cancel' _ hn'.ne.symm],
+    norm_cast,
+    rw [← nat.cast_add, nat.mod_add_div m n], },
+end
+
 end linear_ordered_field
 
 /-! #### Ceil -/
@@ -923,6 +936,15 @@ begin
   have := floor_le (x + 1 / 2),
   have := lt_floor_add_one (x + 1 / 2),
   split; linarith
+end
+
+lemma abs_sub_round_div_coe_eq {m n : ℕ} :
+  |(m : α) / n - round ((m : α) / n)| = ↑(min (m % n) (n - m % n)) / n :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn, { simp, },
+  have hn' : 0 < (n : α), { norm_cast, assumption, },
+  rw [abs_sub_round_eq_min, nat.cast_min, ← min_div_div_right hn'.le, fract_div_coe_eq_div_coe_mod,
+    nat.cast_sub (m.mod_lt hn).le, sub_div, div_self hn'.ne.symm],
 end
 
 end linear_ordered_field

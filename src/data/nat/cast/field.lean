@@ -28,6 +28,14 @@ begin
   rw [nat.mul_div_cancel_left _ this.bot_lt, cast_mul, mul_div_cancel_left _ n_nonzero],
 end
 
+lemma cast_div_div_div_cancel_right [field α] [char_zero α] {m n d : ℕ} (hn : d ∣ n) (hm : d ∣ m) :
+  (↑(m / d) : α) / (↑(n / d) : α) = (m : α) / n :=
+begin
+  rcases eq_or_ne d 0 with rfl | hd, { simp [zero_dvd_iff.mp hm], },
+  replace hd : (d : α) ≠ 0, { norm_cast, assumption, },
+  simp [hd, hm, hn, div_div_div_cancel_right _ hd],
+end
+
 section linear_ordered_semifield
 variables [linear_ordered_semifield α]
 

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import group_theory.divisible
+import group_theory.order_of_element
+import ring_theory.int.basic
 import algebra.order.floor
 import algebra.order.to_interval_mod
 import topology.instances.real
@@ -22,6 +24,8 @@ See also `circle` and `real.angle`.  For the normed group structure on `add_circ
  * `unit_add_circle`: the special case `ℝ ⧸ ℤ`
  * `add_circle.equiv_add_circle`: the rescaling equivalence `add_circle p ≃+ add_circle q`
  * `add_circle.equiv_Ico`: the natural equivalence `add_circle p ≃ Ico 0 p`
+ * `add_circle.add_order_of_div_of_gcd_eq_one`: rational points have finite order
+ * `add_circle.exists_gcd_eq_one_of_is_of_fin_add_order`: finite-order points are rational
 
 ## Implementation notes:
 
@@ -38,7 +42,7 @@ the rational circle `add_circle (1 : ℚ)`, and so we set things up more general
 
 noncomputable theory
 
-open set int (hiding mem_zmultiples_iff) add_subgroup topological_space
+open set add_subgroup topological_space
 
 variables {𝕜 : Type*}
 
@@ -53,6 +57,26 @@ namespace add_circle
 section linear_ordered_field
 
 variables [linear_ordered_field 𝕜] [topological_space 𝕜] [order_topology 𝕜] (p q : 𝕜)
+
+lemma coe_nsmul {n : ℕ} {x : 𝕜} : (↑(n • x) : add_circle p) = n • (x : add_circle p) := rfl
+
+lemma coe_zsmul {n : ℤ} {x : 𝕜} : (↑(n • x) : add_circle p) = n • (x : add_circle p) := rfl
+
+lemma coe_eq_zero_iff {x : 𝕜} : (x : add_circle p) = 0 ↔ ∃ (n : ℤ), n • p = x :=
+by simp [add_subgroup.mem_zmultiples_iff]
+
+lemma coe_eq_zero_of_pos_iff (hp : 0 < p) {x : 𝕜} (hx : 0 < x) :
+  (x : add_circle p) = 0 ↔ ∃ (n : ℕ), n • p = x :=
+begin
+  rw coe_eq_zero_iff,
+  split;
+  rintros ⟨n, rfl⟩,
+  { replace hx : 0 < n,
+    { contrapose! hx,
+      simpa only [←neg_nonneg, ←zsmul_neg, zsmul_neg'] using zsmul_nonneg hp.le (neg_nonneg.2 hx) },
+    exact ⟨n.to_nat, by rw [← coe_nat_zsmul, int.to_nat_of_nonneg hx.le]⟩, },
+  { exact ⟨(n : ℤ), by simp⟩, },
+end
 
 @[continuity, nolint unused_arguments] protected lemma continuous_mk' :
   continuous (quotient_add_group.mk' (zmultiples p) : 𝕜 → add_circle p) :=
@@ -80,8 +104,12 @@ rfl
   (equiv_add_circle p q hp hq).symm (x : 𝕜) = (x * (q⁻¹ * p) : 𝕜) :=
 rfl
 
-variables [floor_ring 𝕜] [hp : fact (0 < p)]
+variables [hp : fact (0 < p)]
 include hp
+
+section floor_ring
+
+variables [floor_ring 𝕜]
 
 /-- The natural equivalence between `add_circle p` and the half-open interval `[0, p)`. -/
 def equiv_Ico : add_circle p ≃ Ico 0 p :=
@@ -98,7 +126,7 @@ def equiv_Ico : add_circle p ≃ Ico 0 p :=
   end }
 
 @[simp] lemma coe_equiv_Ico_mk_apply (x : 𝕜) :
-  (equiv_Ico p $ quotient_add_group.mk x : 𝕜) = fract (x / p) * p :=
+  (equiv_Ico p $ quotient_add_group.mk x : 𝕜) = int.fract (x / p) * p :=
 to_Ico_mod_eq_fract_mul _ x
 
 @[continuity] lemma continuous_equiv_Ico_symm : continuous (equiv_Ico p).symm :=
@@ -125,6 +153,86 @@ instance : divisible_by (add_circle p) ℤ :=
     rw [← map_zsmul, ← smul_mul_assoc, zsmul_eq_mul, mul_inv_cancel hn, one_mul],
     exact (equiv_Ico p).symm_apply_apply x,
   end, }
+
+end floor_ring
+
+section finite_order_points
+
+variables {p}
+
+/-- See also `add_circle.gcd_mul_add_order_of_div_eq`. -/
+lemma add_order_of_div_of_gcd_eq_one {m n : ℕ} (hn : 0 < n) (h : gcd n m = 1) :
+  add_order_of (↑(↑m / ↑n * p) : add_circle p) = n :=
+begin
+  rcases m.eq_zero_or_pos with rfl | hm, { rw [gcd_zero_right, normalize_eq] at h, simp [h], },
+  let x : add_circle p := ↑(↑m / ↑n * p),
+  have hn₀ : (n : 𝕜) ≠ 0, { norm_cast, exact ne_of_gt hn, },
+  have hnx : n • x = 0,
+  { rw [← coe_nsmul, nsmul_eq_mul, ← mul_assoc, mul_div, mul_div_cancel_left _ hn₀,
+      ← nsmul_eq_mul, quotient_add_group.eq_zero_iff],
+    exact nsmul_mem_zmultiples p m, },
+  apply nat.dvd_antisymm (add_order_of_dvd_of_nsmul_eq_zero hnx),
+  suffices : ∃ (z : ℕ), z * n = (add_order_of x) * m,
+  { obtain ⟨z, hz⟩ := this,
+    simpa only [h, mul_one] using dvd_mul_gcd_of_dvd_mul (dvd.intro_left z hz), },
+  replace hp := hp.out,
+  have : 0 < add_order_of x • (↑m / ↑n * p) := smul_pos
+    (add_order_of_pos' $ (is_of_fin_add_order_iff_nsmul_eq_zero _).2 ⟨n, hn, hnx⟩) (by positivity),
+  obtain ⟨z, hz⟩ := (coe_eq_zero_of_pos_iff p hp this).mp (add_order_of_nsmul_eq_zero x),
+  rw [← smul_mul_assoc, nsmul_eq_mul, nsmul_eq_mul, mul_left_inj' hp.ne.symm, mul_div,
+    eq_div_iff hn₀] at hz,
+  norm_cast at hz,
+  exact ⟨z, hz⟩,
+end
+
+variables (p)
+
+lemma gcd_mul_add_order_of_div_eq {n : ℕ} (m : ℕ) (hn : 0 < n) :
+  gcd n m * add_order_of (↑(↑m / ↑n * p) : add_circle p) = n :=
+begin
+  let n' := n / gcd n m,
+  let m' := m / gcd n m,
+  have h₀ : 0 < gcd n m,
+  { rw zero_lt_iff at hn ⊢, contrapose! hn, exact ((gcd_eq_zero_iff n m).mp hn).1, },
+  have hk' : 0 < n' := nat.div_pos (nat.le_of_dvd hn $ gcd_dvd_left n m) h₀,
+  have hgcd : gcd n' m' = 1 := nat.coprime_div_gcd_div_gcd h₀,
+  simp only [mul_left_inj' hp.out.ne.symm,
+    ← nat.cast_div_div_div_cancel_right (gcd_dvd_left n m) (gcd_dvd_right n m),
+    add_order_of_div_of_gcd_eq_one hk' hgcd, mul_comm _ n', nat.div_mul_cancel (gcd_dvd_left n m)],
+end
+
+variables {p} [floor_ring 𝕜]
+
+lemma exists_gcd_eq_one_of_is_of_fin_add_order {u : add_circle p} (h : is_of_fin_add_order u) :
+  ∃ m, gcd (add_order_of u) m = 1 ∧
+       m < (add_order_of u) ∧
+       ↑(((m : 𝕜) / add_order_of u) * p) = u :=
+begin
+  rcases eq_or_ne u 0 with rfl | hu, { exact ⟨0, by simp⟩, },
+  let n := add_order_of u,
+  change ∃ m, gcd n m = 1 ∧ m < n ∧ ↑((↑m / ↑n) * p) = u,
+  have hn : 0 < n := add_order_of_pos' h,
+  have hn₀ : (n : 𝕜) ≠ 0, { norm_cast, exact ne_of_gt hn, },
+  let x := (equiv_Ico p u : 𝕜),
+  have hxu : (x : add_circle p) = u := (equiv_Ico p).symm_apply_apply u,
+  have hx₀ : 0 < (add_order_of (x : add_circle p)), { rw ← hxu at h, exact add_order_of_pos' h, },
+  have hx₁ : 0 < x,
+  { refine lt_of_le_of_ne (equiv_Ico p u).2.1 _,
+    contrapose! hu,
+    rw [← hxu, ← hu, quotient_add_group.coe_zero], },
+  obtain ⟨m, hm : m • p = add_order_of ↑x • x⟩ := (coe_eq_zero_of_pos_iff p hp.out
+    (by positivity)).mp (add_order_of_nsmul_eq_zero (x : add_circle p)),
+  replace hm : ↑m * p = ↑n * x, { simpa only [hxu, nsmul_eq_mul] using hm, },
+  have hux : ↑(↑m / ↑n * p) = u,
+  { rw [← hxu, ← mul_div_right_comm, hm, mul_comm _ x, mul_div_cancel x hn₀], },
+  refine ⟨m, (_ : gcd n m = 1), (_ : m < n), hux⟩,
+  { have := gcd_mul_add_order_of_div_eq p m hn,
+    rwa [hux, nat.mul_left_eq_self_iff hn] at this, },
+  { have : n • x < n • p := smul_lt_smul_of_pos (equiv_Ico p u).2.2 hn,
+    rwa [nsmul_eq_mul, nsmul_eq_mul, ← hm, mul_lt_mul_right hp.out, nat.cast_lt] at this, },
+end
+
+end finite_order_points
 
 end linear_ordered_field
 

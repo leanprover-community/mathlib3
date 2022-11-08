@@ -173,9 +173,9 @@ instance : coe_is_add_monoid_hom ℝ ereal :=
   coe_add := ereal.coe_add }
 
 @[norm_cast] protected lemma coe_nsmul (n : ℕ) (x : ℝ) : (↑(n • x) : ereal) = n • x :=
-coe_nsmul _ _ _ _
+coe_nsmul _ _
 @[norm_cast] protected lemma coe_pow (x : ℝ) (n : ℕ) : (↑(x ^ n) : ereal) = x ^ n :=
-coe_pow _ _ _ _
+coe_pow _ _
 
 @[norm_cast] protected lemma coe_bit0 (x : ℝ) : (↑(bit0 x) : ereal) = bit0 x := rfl
 @[norm_cast] protected lemma coe_bit1 (x : ℝ) : (↑(bit1 x) : ereal) = bit1 x := rfl

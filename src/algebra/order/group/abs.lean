@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.abs
 import algebra.order.group.basic
-import algebra.order.monoid.canonical
+import algebra.order.monoid.canonical.defs
 
 /-!
 # Absolute values in ordered groups.

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
 Amelia Livingston, Yury Kudryashov
 -/
+import algebra.order.monoid.cancel.basic
 import algebra.order.group.basic
 import group_theory.group_action.defs
 import group_theory.submonoid.basic

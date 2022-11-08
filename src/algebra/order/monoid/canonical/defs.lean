@@ -3,8 +3,10 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
-import algebra.order.monoid.basic
+import order.bounded_order
 import order.min_max
+import algebra.ne_zero
+import algebra.order.monoid.defs
 
 /-!
 # Canonically ordered monoids

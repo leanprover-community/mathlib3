@@ -2117,7 +2117,7 @@ by rw ← image_univ; exact image_subset _ (subset_univ _)
 theorem mem_range_of_mem_image (f : α → β) (s) {x : β} (h : x ∈ f '' s) : x ∈ range f :=
 image_subset_range f s h
 
-lemma nat.mem_range_succ (i : ℕ) : i ∈ range nat.succ ↔ 0 < i :=
+lemma _root_.nat.mem_range_succ (i : ℕ) : i ∈ range nat.succ ↔ 0 < i :=
 ⟨by { rintros ⟨n, rfl⟩, exact nat.succ_pos n, }, λ h, ⟨_, nat.succ_pred_eq_of_pos h⟩⟩
 
 lemma nonempty.preimage' {s : set β} (hs : s.nonempty) {f : α → β} (hf : s ⊆ set.range f) :

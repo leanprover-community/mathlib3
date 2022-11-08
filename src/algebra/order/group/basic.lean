@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.order.sub.basic
 import algebra.order.monoid.order_dual
+import algebra.order.monoid.basic
 
 /-!
 # Ordered groups

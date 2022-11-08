@@ -3,8 +3,9 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
-import algebra.order.field.basic
+import algebra.char_zero
 import algebra.group_with_zero.power
+import algebra.order.field.basic
 
 /-!
 # Lemmas about powers in ordered fields.
@@ -99,8 +100,8 @@ lemma zpow_bit0_pos (h : a ≠ 0) (n : ℤ) : 0 < a ^ bit0 n :=
 
 lemma zpow_two_pos_of_ne_zero (h : a ≠ 0) : 0 < a ^ (2 : ℤ) := zpow_bit0_pos h _
 
-@[simp] lemma zpow_bit0_pos_iff : 0 < a ^ bit0 n ↔ a ≠ 0 :=
-⟨by { rintro h rfl, rw zero_pow at h, exact h.false }, zpow_bit0_pos⟩
+@[simp] lemma zpow_bit0_pos_iff (hn : n ≠ 0) : 0 < a ^ bit0 n ↔ a ≠ 0 :=
+⟨by { rintro h rfl, refine (zero_zpow _ _).not_gt h, rwa bit0_ne_zero }, λ h, zpow_bit0_pos h _⟩
 
 @[simp] lemma zpow_bit1_neg_iff : a ^ bit1 n < 0 ↔ a < 0 :=
 ⟨λ h, not_le.1 $ λ h', not_le.2 h $ zpow_nonneg h' _,
@@ -115,11 +116,11 @@ by rw [le_iff_lt_or_eq, le_iff_lt_or_eq, zpow_bit1_neg_iff, zpow_eq_zero_iff (in
 @[simp] lemma zpow_bit1_pos_iff : 0 < a ^ bit1 n ↔ 0 < a :=
 lt_iff_lt_of_le_iff_le zpow_bit1_nonpos_iff
 
-protected lemma even.zpow_nonneg (hn : even n) (a : K) : 0 ≤ a ^ n :=
-by cases hn with k hk; exact zpow_bit0_nonneg _ _
+protected lemma even.zpow_nonneg (hn : even n) (a : α) : 0 ≤ a ^ n :=
+by obtain ⟨k, rfl⟩ := hn; exact zpow_bit0_nonneg _ _
 
-lemma even.zpow_pos_iff (hn : even n) : 0 < a ^ n ↔ a ≠ 0 :=
-by cases hn with k hk; exact zpow_bit0_pos_iff
+lemma even.zpow_pos_iff (hn : even n) (h : n ≠ 0) : 0 < a ^ n ↔ a ≠ 0 :=
+by obtain ⟨k, rfl⟩ := hn; exact zpow_bit0_pos_iff (by rintro rfl; simpa using h)
 
 lemma odd.zpow_neg_iff (hn : odd n) : a ^ n < 0 ↔ a < 0 :=
 by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_neg_iff

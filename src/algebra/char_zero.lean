@@ -59,7 +59,7 @@ by rwa [nat.cast_two] at this
 end
 
 section
-variables {R : Type*} [non_assoc_semiring R] [no_zero_divisors R] [char_zero R]
+variables {R : Type*} [non_assoc_semiring R] [no_zero_divisors R] [char_zero R] {a : R}
 
 @[simp]
 lemma add_self_eq_zero {a : R} : a + a = 0 ↔ a = 0 :=
@@ -70,6 +70,10 @@ lemma bit0_eq_zero {a : R} : bit0 a = 0 ↔ a = 0 := add_self_eq_zero
 @[simp]
 lemma zero_eq_bit0 {a : R} : 0 = bit0 a ↔ a = 0 :=
 by { rw [eq_comm], exact bit0_eq_zero }
+
+lemma bit0_ne_zero : bit0 a ≠ 0 ↔ a ≠ 0 := bit0_eq_zero.not
+lemma zero_ne_bit0 : 0 ≠ bit0 a ↔ a ≠ 0 := zero_eq_bit0.not
+
 end
 
 section

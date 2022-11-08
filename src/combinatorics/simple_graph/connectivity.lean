@@ -1482,7 +1482,7 @@ begin
       refl, } },
 end
 
-variables (G) [decidable_rel G.adj] [decidable_eq V]
+variables (G) [decidable_eq V]
 
 section locally_finite
 variables [locally_finite G]
@@ -1551,7 +1551,7 @@ fintype.of_finset ((G.finset_walk_length n u v).filter walk.is_path) $
 end locally_finite
 
 section finite
-variables [fintype V]
+variables [fintype V] [decidable_rel G.adj]
 
 lemma reachable_iff_exists_finset_walk_length_nonempty (u v : V) :
   G.reachable u v ↔ ∃ (n : fin (fintype.card V)), (G.finset_walk_length n u v).nonempty :=

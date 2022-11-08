@@ -63,7 +63,7 @@ The equivalent formulations of the sheaf condition on `presheaf C X` are as foll
 
 3. `Top.presheaf.is_sheaf_opens_le_cover`:
   For each open cover `{ Uᵢ }` of `U`, `F(U)` is the limit of the diagram consisting of arrows
-  `F(V₁) ⟶ F(V₂)` for every pair of open sets `V₁ ⊇ V₂` that is contained in some `Uᵢ`.
+  `F(V₁) ⟶ F(V₂)` for every pair of open sets `V₁ ⊇ V₂` that are contained in some `Uᵢ`.
   See `Top.presheaf.is_sheaf_iff_is_sheaf_opens_le_cover`.
 
 4. `Top.presheaf.is_sheaf_pairwise_intersections`:

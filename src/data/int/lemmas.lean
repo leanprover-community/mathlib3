@@ -5,7 +5,7 @@ Authors: Jeremy Avigad
 -/
 import data.int.order
 import data.int.bitwise
-import data.nat.cast
+import data.nat.cast.basic
 
 /-!
 # Miscellaneous lemmas about the integers

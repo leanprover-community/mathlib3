@@ -4,13 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.int.order
-import data.nat.cast
+import data.nat.cast.basic
 
 /-!
 # Cast of integers (additional theorems)
 
 This file proves additional properties about the *canonical* homomorphism from
-the integers into an additive group with a one (`int.cast`).
+the integers into an additive group with a one (`int.cast`),
+particularly results involving algebraic homomorphisms or the order structure on `ℤ`
+which were not available in the import dependencies of `data.int.cast.basic`.
 
 ## Main declarations
 

@@ -6,6 +6,7 @@ Scott Morrison
 -/
 import data.list.count
 import data.list.infix
+import algebra.order.monoid.min_max
 
 /-!
 # Lattice structure of lists

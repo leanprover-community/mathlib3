@@ -592,6 +592,13 @@ namespace homotopy_equiv
 variables {S₁ S₂}
 
 @[simps]
+def symm (e : homotopy_equiv S₁ S₂) : homotopy_equiv S₂ S₁ :=
+{ hom := e.inv,
+  inv := e.hom,
+  homotopy_hom_inv_id := e.homotopy_inv_hom_id,
+  homotopy_inv_hom_id := e.homotopy_hom_inv_id, }
+
+@[simps]
 def left_homology_iso' (e : homotopy_equiv S₁ S₂) (h₁ : S₁.left_homology_data)
   (h₂ : S₂.left_homology_data) :
   h₁.H ≅ h₂.H :=

@@ -1,4 +1,5 @@
 import algebra.homology.short_complex_homology
+import algebra.homology.short_complex_preadditive
 
 open category_theory
 
@@ -18,9 +19,11 @@ end category_theory.limits
 
 open category_theory category_theory.category category_theory.limits
 
-variable [has_zero_morphisms C]
-
 namespace short_complex
+
+section
+
+variable [has_zero_morphisms C]
 
 variables (S : short_complex C) {S₁ S₂ : short_complex C}
 
@@ -117,5 +120,20 @@ begin
   rw S.unop.exact_iff_op,
   exact exact_iff_of_iso S.unop_op.symm,
 end
+
+end
+
+section preadditive
+
+variables [preadditive C] {S₁ S₂ : short_complex C}
+
+lemma homotopy_equiv.exact_iff (e : homotopy_equiv S₁ S₂) [S₁.has_homology] [S₂.has_homology] :
+  S₁.exact ↔ S₂.exact :=
+begin
+  simp only [exact_iff_is_zero_homology],
+  exact ⟨λ h, is_zero.of_iso h e.homology_iso.symm, λ h, is_zero.of_iso h e.homology_iso⟩,
+end
+
+end preadditive
 
 end short_complex

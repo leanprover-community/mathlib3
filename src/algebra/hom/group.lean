@@ -33,7 +33,7 @@ Finally, we define classes that state the coercion operator `↑` (a.k.a. `coe`)
  * `coe_is_mul_hom`/`coe_is_add_monoid_hom`
  * `coe_is_monoid_hom`/`coe_is_add_monoid_hom`
  * `coe_is_monoid_with_zero_hom`
-These come with a selection of `simp` lemmas stating that `↑` preseves the corresponding operation:
+These come with a selection of `simp` lemmas stating that `↑` preserves the corresponding operation:
 `coe_add`, `coe_mul`, `coe_zero`, `coe_one`, `coe_pow`, `coe_nsmul`, `coe_zpow`, `coe_zsmul`,
 `coe_bit0`, `coe_bit1`, `coe_sub`, `coe_neg`, ..., etc.
 

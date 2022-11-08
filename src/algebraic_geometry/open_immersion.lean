@@ -77,8 +77,7 @@ class PresheafedSpace.is_open_immersion {X Y : PresheafedSpace.{v} C} (f : X ⟶
 A morphism of SheafedSpaces is an open immersion if it is an open immersion as a morphism
 of PresheafedSpaces
 -/
-abbreviation SheafedSpace.is_open_immersion
-  [has_products.{v} C] {X Y : SheafedSpace.{v} C} (f : X ⟶ Y) : Prop :=
+abbreviation SheafedSpace.is_open_immersion {X Y : SheafedSpace.{v} C} (f : X ⟶ Y) : Prop :=
 PresheafedSpace.is_open_immersion f
 
 /--
@@ -539,7 +538,7 @@ open category_theory.limits.walking_cospan
 
 section to_SheafedSpace
 
-variables [has_products.{v} C] {X : PresheafedSpace.{v} C} (Y : SheafedSpace C)
+variables {X : PresheafedSpace.{v} C} (Y : SheafedSpace C)
 variables (f : X ⟶ Y.to_PresheafedSpace) [H : is_open_immersion f]
 
 include H
@@ -629,8 +628,6 @@ end
 end PresheafedSpace.is_open_immersion
 
 namespace SheafedSpace.is_open_immersion
-
-variables [has_products.{v} C]
 
 @[priority 100]
 instance of_is_iso {X Y : SheafedSpace.{v} C} (f : X ⟶ Y) [is_iso f] :

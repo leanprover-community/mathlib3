@@ -4,12 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 -/
 import algebra.field.defs
-<<<<<<< HEAD
 import algebra.order.ring.defs
-=======
-import algebra.order.ring.canonical
-import algebra.order.with_zero
->>>>>>> sup5
 
 /-!
 # Linear ordered (semi)fields

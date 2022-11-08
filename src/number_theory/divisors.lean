@@ -149,23 +149,14 @@ lemma divisors_zero : divisors 0 = ∅ := by { ext, simp }
 lemma proper_divisors_zero : proper_divisors 0 = ∅ := by { ext, simp }
 
 lemma proper_divisors_subset_divisors : proper_divisors n ⊆ divisors n :=
-begin
-  cases n,
-  { simp },
-  rw [divisors_eq_proper_divisors_insert_self_of_pos (nat.succ_pos _)],
-  apply subset_insert,
-end
+filter_subset_filter _ $ Ico_subset_Ico_right n.le_succ
 
 @[simp]
 lemma divisors_one : divisors 1 = {1} := by { ext, simp }
 
 @[simp]
 lemma proper_divisors_one : proper_divisors 1 = ∅ :=
-begin
-  ext,
-  simp only [finset.not_mem_empty, nat.dvd_one, not_and, not_lt, mem_proper_divisors, iff_false],
-  apply ge_of_eq,
-end
+by rw [proper_divisors, Ico_self, filter_empty]
 
 lemma pos_of_mem_divisors {m : ℕ} (h : m ∈ n.divisors) : 0 < m :=
 begin
@@ -227,7 +218,7 @@ begin
 end
 
 lemma sum_divisors_eq_sum_proper_divisors_add_self :
-∑ i in divisors n, i = ∑ i in proper_divisors n, i + n :=
+  ∑ i in divisors n, i = ∑ i in proper_divisors n, i + n :=
 begin
   cases n,
   { simp },

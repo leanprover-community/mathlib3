@@ -861,32 +861,32 @@ lemma mk'_add_mk' (m₁ m₂ : M) (s₁ s₂ : S) :
   mk' f m₁ s₁ + mk' f m₂ s₂ = mk' f (s₂ • m₁ + s₁ • m₂) (s₁ * s₂)  :=
 by { delta mk', rw [← map_add, localized_module.mk_add_mk] }
 
-lemma mk'_zero (s : S) :
+@[simp] lemma mk'_zero (s : S) :
   mk' f 0 s = 0 :=
 by rw [← zero_smul R (0 : M), mk'_smul, zero_smul]
 
 variable (S)
 
-lemma mk'_one (m : M) :
+@[simp] lemma mk'_one (m : M) :
   mk' f m (1 : S) = f m :=
 by { delta mk', rw [from_localized_module_mk, module.End_algebra_map_is_unit_inv_apply_eq_iff,
   submonoid.coe_one, one_smul] }
 
 variable {S}
 
-lemma mk'_cancel (m : M) (s : S) :
+@[simp] lemma mk'_cancel (m : M) (s : S) :
   mk' f (s • m) s = f m :=
 by { delta mk', rw [localized_module.mk_cancel, ← mk'_one S f], refl }
 
-lemma mk'_cancel' (m : M) (s : S) :
+@[simp] lemma mk'_cancel' (m : M) (s : S) :
   s • mk' f m s = f m :=
 by rw [submonoid.smul_def, ← mk'_smul, ← submonoid.smul_def, mk'_cancel]
 
-lemma mk'_cancel_left (m : M) (s₁ s₂ : S) :
+@[simp] lemma mk'_cancel_left (m : M) (s₁ s₂ : S) :
   mk' f (s₁ • m) (s₁ * s₂) = mk' f m s₂ :=
 by { delta mk', rw localized_module.mk_cancel_common_left }
 
-lemma mk'_cancel_right (m : M) (s₁ s₂ : S) :
+@[simp] lemma mk'_cancel_right (m : M) (s₁ s₂ : S) :
   mk' f (s₂ • m) (s₁ * s₂) = mk' f m s₁ :=
 by { delta mk', rw localized_module.mk_cancel_common_right }
 
@@ -933,11 +933,11 @@ mk'_mul_mk'_of_map_mul f.to_linear_map f.map_mul m₁ m₂ s₁ s₂
 
 variables {f}
 
-lemma mk'_eq_iff {m : M} {s : S} {m' : M'} :
+@[simp] lemma mk'_eq_iff {m : M} {s : S} {m' : M'} :
   mk' f m s = m' ↔ f m = s • m' :=
 by rw [← smul_inj f s, submonoid.smul_def, ← mk'_smul, ← submonoid.smul_def, mk'_cancel]
 
-lemma mk'_eq_zero {m : M} (s : S) :
+@[simp] lemma mk'_eq_zero {m : M} (s : S) :
   mk' f m s = 0 ↔ f m = 0 :=
 by rw [mk'_eq_iff, smul_zero]
 

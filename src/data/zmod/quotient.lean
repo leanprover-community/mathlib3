@@ -166,7 +166,7 @@ section group
 
 open subgroup
 
-variables {α : Type*} [group α] {a : α}
+variables {α : Type*} [group α] (a : α)
 
 /-- See also `order_eq_card_zpowers`. -/
 @[to_additive add_order_eq_card_zmultiples' "See also `add_order_eq_card_zmultiples`."]
@@ -175,6 +175,8 @@ begin
   have := nat.card_congr (mul_action.orbit_zpowers_equiv a (1 : α)),
   rwa [nat.card_zmod, orbit_subgroup_one_eq_self, eq_comm] at this,
 end
+
+variables {a}
 
 @[to_additive is_of_fin_add_order.finite_zmultiples]
 lemma is_of_fin_order.finite_zpowers (h : is_of_fin_order a) : finite $ zpowers a :=

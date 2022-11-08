@@ -86,6 +86,25 @@ Let `Z : topological_fiber_bundle_core ι B F`. Then we define
 
 ## Implementation notes
 
+### Trivializations
+
+Previously, in mathlib, there was a structure `topological_vector_bundle.trivialization` which
+extended another structure `topological_fibre_bundle.trivialization` by a linearity hypothesis. As of
+PR #17359, we have changed this to a single structure `trivialization` (no namespace), together with
+a mixin class `trivialization.is_linear`.
+
+This permits all the *data* of a vector bundle to be held at the level of fibre bundles, so that the
+same trivializations can underlie an object's structure as (say) a vector bundle over `ℂ` and as a
+vector bundle over `ℝ`, as well as its structure simply as a fibre bundle.
+
+This might be a little surprising, given the general trend of the library to ever-increased
+bundling.  But in this case the typical motivation for more bundling does not apply: there is no
+algebraic or order structure on the whole type of linear (say) trivializations of a bundle.
+Indeed, since trivializations only have meaning on their base sets (taking junk values outside), the
+type of linear trivializations is not even particularly well-behaved.
+
+### Core construction
+
 A topological fiber bundle with fiber `F` over a base `B` is a family of spaces isomorphic to `F`,
 indexed by `B`, which is locally trivial in the following sense: there is a covering of `B` by open
 sets such that, on each such open set `s`, the bundle is isomorphic to `s × F`.

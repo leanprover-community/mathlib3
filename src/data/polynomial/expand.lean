@@ -92,12 +92,16 @@ by rw [coeff_expand hp, if_pos (dvd_mul_left _ _), nat.mul_div_cancel _ hp]
   (expand R p f).coeff (p * n) = f.coeff n :=
 by rw [mul_comm, coeff_expand_mul hp]
 
+/-- Expansion is injective. -/
+lemma expand_injective {n : ℕ} (hn : 0 < n) : function.injective (expand R n) :=
+λ g g' H, ext $ λ k, by rw [← coeff_expand_mul hn, H, coeff_expand_mul hn]
+
 theorem expand_inj {p : ℕ} (hp : 0 < p) {f g : R[X]} :
   expand R p f = expand R p g ↔ f = g :=
-⟨λ H, ext $ λ n, by rw [← coeff_expand_mul hp, H, coeff_expand_mul hp], congr_arg _⟩
+(expand_injective hp).eq_iff
 
 theorem expand_eq_zero {p : ℕ} (hp : 0 < p) {f : R[X]} : expand R p f = 0 ↔ f = 0 :=
-by rw [← (expand R p).map_zero, expand_inj hp, alg_hom.map_zero]
+(expand_injective hp).eq_iff' (map_zero _)
 
 theorem expand_ne_zero {p : ℕ} (hp : 0 < p) {f : R[X]} : expand R p f ≠ 0 ↔ f ≠ 0 :=
 (expand_eq_zero hp).not
@@ -138,23 +142,6 @@ begin
   ext,
   rw [coeff_map, coeff_expand (nat.pos_of_ne_zero hp), coeff_expand (nat.pos_of_ne_zero hp)],
   split_ifs; simp,
-end
-
-/-- Expansion is injective. -/
-lemma expand_injective {n : ℕ} (hn : 0 < n) :
-  function.injective (expand R n) :=
-λ g g' h, begin
-  ext,
-  have h' : (expand R n g).coeff (n * n_1) = (expand R n g').coeff (n * n_1) :=
-  begin
-    apply polynomial.ext_iff.1,
-    exact h,
-  end,
-
-  rw [polynomial.coeff_expand hn g (n * n_1), polynomial.coeff_expand hn g' (n * n_1)] at h',
-  simp only [if_true, dvd_mul_right] at h',
-  rw (nat.mul_div_right n_1 hn) at h',
-  exact h',
 end
 
 @[simp]

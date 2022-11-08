@@ -74,7 +74,8 @@ begin
   nontriviality ι, inhabit ι,
   rw affine_independent_iff_linear_independent_vsub k p default at hi,
   letI : is_noetherian k V := is_noetherian.iff_fg.2 infer_instance,
-  exact (set.finite_singleton default).union_compl (set.finite_coe_iff.1 hi.finite_of_is_noetherian)
+  exact (set.finite_singleton default).finite_of_compl
+    (set.finite_coe_iff.1 hi.finite_of_is_noetherian)
 end
 
 /-- An affine-independent subset of a finite-dimensional affine space is finite. -/

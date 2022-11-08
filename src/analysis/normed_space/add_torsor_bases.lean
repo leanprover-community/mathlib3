@@ -86,7 +86,7 @@ lemma is_open.exists_between_affine_independent_span_eq_top {s u : set P} (hu : 
   ∃ t : set P, s ⊆ t ∧ t ⊆ u ∧ affine_independent ℝ (coe : t → P) ∧ affine_span ℝ t = ⊤ :=
 begin
   obtain ⟨q, hq⟩ := hne,
-  rcases metric.nhds_basis_closed_ball.mem_iff.1 (hu.mem_nhds $ hsu hq) with ⟨ε, ε0, hεu⟩,
+  obtain ⟨ε, ε0, hεu⟩ := metric.nhds_basis_closed_ball.mem_iff.1 (hu.mem_nhds $ hsu hq),
   obtain ⟨t, ht₁, ht₂, ht₃⟩ := exists_subset_affine_independent_affine_span_eq_top h,
   let f : P → P := λ y, line_map q y (ε / dist y q),
   have hf : ∀ y, f y ∈ u,

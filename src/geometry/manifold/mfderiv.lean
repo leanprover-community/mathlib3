@@ -1253,10 +1253,9 @@ lemma mdifferentiable.add (hf : mdifferentiable I 𝓘(𝕜, E') f) (hg : mdiffe
 λ x, (hf x).add I (hg x)
 
 lemma has_mfderiv_at.mul (hp : has_mfderiv_at I 𝓘(𝕜, F') p z p')
-  (hq : has_mfderiv_at I 𝓘(𝕜, F') q z q') : has_mfderiv_at I 𝓘(𝕜, F') (p * q) z
-  (((((written_in_ext_chart_at I 𝓘(𝕜, F') z) p ((ext_chart_at I z) z)) • q') : E →L[𝕜] F') +
-  (written_in_ext_chart_at I 𝓘(𝕜, F') z q ((ext_chart_at I z) z) • p' :  E →L[𝕜] F' )) :=
-⟨hp.1.mul hq.1, hp.2.mul hq.2⟩
+  (hq : has_mfderiv_at I 𝓘(𝕜, F') q z q') :
+  has_mfderiv_at I 𝓘(𝕜, F') (p * q) z (p z • q' + q z • p' : E →L[𝕜] F') :=
+⟨hp.1.mul hq.1, by simpa only with mfld_simps using hp.2.mul hq.2⟩
 
 lemma mdifferentiable_at.mul (hp : mdifferentiable_at I 𝓘(𝕜, F') p z)
   (hq : mdifferentiable_at I 𝓘(𝕜, F') q z) : mdifferentiable_at I 𝓘(𝕜, F') (p * q) z :=

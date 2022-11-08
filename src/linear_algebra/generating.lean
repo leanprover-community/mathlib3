@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Jon Eugster. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jon Eugster
+Authors: Jon Eugster, Yury Kudryashov
 -/
 import linear_algebra.finsupp
 
@@ -26,7 +26,7 @@ vector spaces, like `![![1, 0], ![1, 1]]`.
 -/
 
 open_locale big_operators
-open submodule set
+open submodule set finsupp
 
 /-!
 ### Finite Type
@@ -38,53 +38,35 @@ families of the form `b : (fin n) → V`, i.e. see [data.fin.vec_notation].
 variables {R M ι : Type*} [ring R] [add_comm_monoid M] [module R M] [fintype ι]
 variables {x : M} {b : ι → M}
 
-lemma exists_sum_coef_smul (h : x ∈ span R (range b)) :
-  ∃ (coef : ι →₀ R), ∑ i, (coef i) • (b i) = x :=
-begin
-  rw [←finsupp.range_total, linear_map.mem_range] at h,
-  cases h with coef h,
-  use coef,
-  rw [←h, finsupp.total_apply, finsupp.sum_fintype],
-  simp,
-end
-
-lemma mem_span_range (h : ∃ (coef : ι → R), ∑ i, (coef i) • (b i) = x) :
-  x ∈ span R (range b) :=
-begin
-  cases h with coef h,
-  rw [←finsupp.range_total, linear_map.mem_range],
-  lift coef to ι →₀ R using ⟨fintype.of_finite ↥(function.support coef)⟩,
-  use coef,
-  rw [←h, finsupp.total_apply, finsupp.sum_fintype],
-  simp,
-end
+lemma mem_span_range_iff_exists_finsupp :
+  x ∈ span R (range b) ↔ ∃ (c : ι →₀ R), c.sum (λ i a, a • b i) = x :=
+by simp only [←finsupp.range_total, linear_map.mem_range, finsupp.total_apply]
 
 /--
 An element `x` lies in the span of `b` iff it can be written as linear combination
 of elements in `b`.
 -/
-theorem mem_span_range_iff :
-  x ∈ span R (range b) ↔ ∃ (coef : ι → R), ∑ i, (coef i) • (b i) = x :=
+theorem mem_span_range_iff_exists_fun [fintype ι] :
+  x ∈ span R (range b) ↔ ∃ (c : ι → R), ∑ i, c i • b i = x :=
 begin
-  constructor,
-  { intro h,
-    cases exists_sum_coef_smul h with coef h,
-    exact ⟨coef, h⟩ },
-  { exact mem_span_range }
+  simp only [mem_span_range_iff_exists_finsupp, equiv_fun_on_fintype.surjective.exists,
+    equiv_fun_on_fintype_apply],
+  exact exists_congr (λ c, eq.congr_left $ sum_fintype _ _ $ λ i, zero_smul _ _)
 end
 
 /--
 A family `b: ι → V` is generating `V` iff every element of `V`
 can be written as linear combination.
 -/
-theorem top_le_span_range_iff :
+theorem top_le_span_range_iff_forall_exists_fun :
   ⊤ ≤ span R (range b) ↔ ∀ x, ∃ (coef : ι → R), ∑ i, (coef i) • (b i) = x :=
 begin
+  simp_rw ←mem_span_range_iff_exists_fun,
+  rw set_like.le_def,
   constructor,
   { intros h x,
-    replace h : x ∈ _ := h mem_top,
-    cases exists_sum_coef_smul h with coef hc,
-    exact ⟨coef, hc⟩ },
+    apply h,
+    simp only [mem_top] },
   { intros h x _,
-    exact mem_span_range (h x) }
+    exact h x },
 end

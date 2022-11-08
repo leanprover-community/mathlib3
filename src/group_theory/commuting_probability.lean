@@ -91,7 +91,7 @@ lemma subgroup.comm_prob_subgroup_le : comm_prob H ≤ comm_prob G * H.index ^ 2
 begin
   /- After rewriting with `comm_prob_def`, we reduce to showing that `G` has at least as many
     commuting pairs as `H`. -/
-rw [comm_prob_def, comm_prob_def,  div_le_iff, mul_assoc, ←mul_pow, ←nat.cast_mul,
+  rw [comm_prob_def, comm_prob_def,  div_le_iff, mul_assoc, ←mul_pow, ←nat.cast_mul,
       mul_comm H.index, H.card_mul_index, div_mul_cancel, nat.cast_le],
   { refine finite.card_le_of_injective (λ p, ⟨⟨p.1.1, p.1.2⟩, subtype.ext_iff.mp p.2⟩) _,
     exact λ p q h, by simpa only [subtype.ext_iff, prod.ext_iff] using h },

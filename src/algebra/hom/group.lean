@@ -5,7 +5,7 @@ Authors: Patrick Massot, Kevin Buzzard, Scott Morrison, Johan Commelin, Chris Hu
   Johannes Hölzl, Yury Kudryashov
 -/
 import algebra.ne_zero
-import algebra.group.commute
+import algebra.group.basic
 import algebra.group_with_zero.defs
 import data.fun_like.basic
 
@@ -376,9 +376,6 @@ map_zsmul.aux f g n
 attribute [to_additive_reorder 8, to_additive] map_zpow
 
 end mul_one
-
-@[to_additive] lemma group.is_unit [group G] (g : G) : is_unit g :=
-⟨⟨g, g⁻¹, mul_inv_self g, inv_mul_self g⟩, rfl⟩
 
 section mul_zero_one
 
@@ -1089,22 +1086,6 @@ by { ext, simp only [map_one, coe_comp, function.comp_app, one_apply] }
   g.comp (f₁ * f₂) = g.comp f₁ * g.comp f₂ :=
 by { ext, simp only [mul_apply, function.comp_app, map_mul, coe_comp] }
 
-/-- If two homomorphisms from a division monoid to a monoid are equal at a unit `x`, then they are
-equal at `x⁻¹`. -/
-@[to_additive "If two homomorphisms from a subtraction monoid to an additive monoid are equal at an
-additive unit `x`, then they are equal at `-x`."]
-lemma _root_.is_unit.eq_on_inv {G N} [division_monoid G] [monoid N] [monoid_hom_class F G N] {x : G}
-  (hx : is_unit x) (f g : F) (h : f x = g x) : f x⁻¹ = g x⁻¹ :=
-left_inv_eq_right_inv (map_mul_eq_one f hx.inv_mul_cancel) $
-  h.symm ▸ map_mul_eq_one g $ hx.mul_inv_cancel
-
-/-- If two homomorphism from a group to a monoid are equal at `x`, then they are equal at `x⁻¹`. -/
-@[to_additive "If two homomorphism from an additive group to an additive monoid are equal at `x`,
-then they are equal at `-x`." ]
-lemma _root_.eq_on_inv {G} [group G] [monoid M] [monoid_hom_class F G M] (f g : F) {x : G}
-  (h : f x = g x) : f x⁻¹ = g x⁻¹ :=
-(group.is_unit x).eq_on_inv f g h
-
 /-- Group homomorphisms preserve inverse. -/
 @[to_additive "Additive group homomorphisms preserve negation."]
 protected lemma map_inv [group α] [division_monoid β] (f : α →* β) (a : α) : f a⁻¹ = (f a)⁻¹ :=
@@ -1233,19 +1214,3 @@ instance {M N} {hM : mul_zero_one_class M} [comm_monoid_with_zero N] : has_mul (
   { to_fun := λ a, f a * g a,
     map_zero' := by rw [map_zero, zero_mul],
     ..(f * g : M →* N) }⟩
-
-section commute
-
-variables [has_mul M] [has_mul N] {a x y : M}
-
-@[simp, to_additive]
-protected lemma semiconj_by.map [mul_hom_class F M N] (h : semiconj_by a x y) (f : F) :
-  semiconj_by (f a) (f x) (f y) :=
-by simpa only [semiconj_by, map_mul] using congr_arg f h
-
-@[simp, to_additive]
-protected lemma commute.map [mul_hom_class F M N] (h : commute x y) (f : F) :
-  commute (f x) (f y) :=
-h.map f
-
-end commute

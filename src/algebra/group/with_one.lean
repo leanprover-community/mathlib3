@@ -3,10 +3,13 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johan Commelin
 -/
-import algebra.hom.equiv
+import order.bounded_order
+import algebra.hom.equiv.basic
+import algebra.group_with_zero.units
 import algebra.ring.defs
 import logic.equiv.defs
 import logic.equiv.option
+-- FIXME CHECK IMPORTS
 
 /-!
 # Adjoining a zero/one to semigroups and related algebraic structures

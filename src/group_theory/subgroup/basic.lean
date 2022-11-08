@@ -339,6 +339,10 @@ instance (K : subgroup G) [d : decidable_pred (∈ K)] [fintype G] : fintype K :
 show fintype {g : G // g ∈ K}, from infer_instance
 
 @[to_additive]
+instance (K : subgroup G) [finite G] : finite K :=
+subtype.finite
+
+@[to_additive]
 theorem to_submonoid_injective :
   function.injective (to_submonoid : subgroup G → submonoid G) :=
 λ p q h, set_like.ext'_iff.2 (show _, from set_like.ext'_iff.1 h)

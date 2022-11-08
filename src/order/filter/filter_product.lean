@@ -47,8 +47,9 @@ by simp only [lt_iff_le_not_le, eventually_and, coe_le, eventually_not, eventual
 
 lemma coe_pos [preorder β] [has_zero β] {f : α → β} : 0 < (f : β*) ↔ ∀* x, 0 < f x := coe_lt
 
-lemma const_lt [preorder β] {x y : β} : x ≤ y → (↑x : β*) ≤ ↑y := lift_rel_const
+lemma const_lt [preorder β] {x y : β} : x < y → (↑x : β*) < ↑y := coe_lt.mpr ∘ lift_rel_const
 
+@[simp, norm_cast]
 lemma const_lt_iff [preorder β] {x y : β} : (↑x : β*) < ↑y ↔ x < y :=
 coe_lt.trans lift_rel_const_iff
 

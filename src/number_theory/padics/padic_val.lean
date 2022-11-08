@@ -426,15 +426,15 @@ begin
   rw [multiplicity.pow_dvd_iff_le_multiplicity, padic_val_nat_def']; assumption
 end
 
-lemma pow_succ_padic_val_nat_not_dvd {n : ℕ} [hp : fact p.prime] (hn : 0 < n) :
+lemma pow_succ_padic_val_nat_not_dvd {n : ℕ} [hp : fact p.prime] (hn : n ≠ 0) :
   ¬ p ^ (padic_val_nat p n + 1) ∣ n :=
 begin
   rw multiplicity.pow_dvd_iff_le_multiplicity,
-  rw padic_val_nat_def hn,
+  rw padic_val_nat_def hn.bot_lt,
   { rw [nat.cast_add, part_enat.coe_get],
     simp only [nat.cast_one, not_le],
     exact part_enat.lt_add_one (ne_top_iff_finite.mpr
-      (finite_nat_iff.mpr ⟨(fact.elim hp).ne_one, hn⟩)), },
+      (finite_nat_iff.mpr ⟨(fact.elim hp).ne_one, hn.bot_lt⟩)), },
   { apply_instance }
 end
 

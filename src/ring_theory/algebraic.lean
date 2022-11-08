@@ -133,7 +133,7 @@ lemma is_algebraic_algebra_map_iff {a : S} (h : function.injective (algebra_map 
 ⟨λ ⟨p, hp0, hp⟩, ⟨p, hp0, h (by rwa [map_zero, ← aeval_algebra_map_apply])⟩,
   is_algebraic_algebra_map_of_is_algebraic⟩
 
-lemma is_algebraic_of_pow {r : A} {n : ℕ} (hn : 0 < n) (ht : is_algebraic R (r ^ n)) :
+lemma is_algebraic_of_pow {r : A} {n : ℕ} (hn : n ≠ 0) (ht : is_algebraic R (r ^ n)) :
   is_algebraic R r :=
 begin
   obtain ⟨p, p_nonzero, hp⟩ := ht,
@@ -142,7 +142,7 @@ begin
   { rwa polynomial.expand_aeval n p r },
 end
 
-lemma transcendental.pow {r : A} (ht : transcendental R r) {n : ℕ} (hn : 0 < n) :
+lemma transcendental.pow {r : A} (ht : transcendental R r) {n : ℕ} (hn : n ≠ 0) :
   transcendental R (r ^ n) :=
 λ ht', ht $ is_algebraic_of_pow hn ht'
 

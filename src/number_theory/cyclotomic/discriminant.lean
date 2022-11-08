@@ -37,17 +37,18 @@ lemma discr_zeta_eq_discr_zeta_sub_one (hζ : is_primitive_root ζ n) :
 begin
   haveI : number_field K := number_field.mk,
   have H₁ : (aeval (hζ.power_basis ℚ).gen) (X - 1 : ℤ[X]) = (hζ.sub_one_power_basis ℚ).gen :=
-    by simp,
+    by simp only [power_basis_gen, map_sub, aeval_X, aeval_one, sub_one_power_basis_gen],
   have H₂ : (aeval (hζ.sub_one_power_basis ℚ).gen) (X + 1 : ℤ[X]) = (hζ.power_basis ℚ).gen :=
-    by simp,
+    by simp only [sub_one_power_basis_gen, aeval_add, aeval_X, aeval_one, sub_add_cancel,
+      power_basis_gen],
+  have H₃ := hζ.is_integral n.ne_zero,
   refine discr_eq_discr_of_to_matrix_coeff_is_integral _
     (λ i j, to_matrix_is_integral H₁ _ _ _ _)
     (λ i j, to_matrix_is_integral H₂ _ _ _ _),
-  { exact hζ.is_integral n.pos },
-  { refine minpoly.gcd_domain_eq_field_fractions' _ (hζ.is_integral n.pos) },
-  { exact is_integral_sub (hζ.is_integral n.pos) is_integral_one },
-  { refine minpoly.gcd_domain_eq_field_fractions' _ _,
-    exact is_integral_sub (hζ.is_integral n.pos) is_integral_one }
+  { exact H₃ },
+  { exact minpoly.gcd_domain_eq_field_fractions' _ H₃ },
+  { exact is_integral_sub H₃ is_integral_one },
+  { exact minpoly.gcd_domain_eq_field_fractions' _ (is_integral_sub H₃ is_integral_one) }
 end
 
 end is_primitive_root
@@ -164,8 +165,7 @@ begin
   { by_cases hk : p ^ (k + 1) = 2,
     { have hp : p = 2,
       { rw [← pnat.coe_inj, pnat.coe_bit0, pnat.one_coe, pnat.pow_coe, ← pow_one 2] at hk,
-      replace hk := eq_of_prime_pow_eq (prime_iff.1 hp.out) (prime_iff.1 nat.prime_two)
-        (succ_pos _) hk,
+      replace hk := eq_of_prime_pow_eq' hp.out.prime nat.prime_two.prime one_ne_zero hk,
       rwa [show 2 = ((2 : ℕ+) : ℕ), by simp, pnat.coe_inj] at hk },
       rw [hp, ← pnat.coe_inj, pnat.pow_coe, pnat.coe_bit0, pnat.one_coe] at hk,
       nth_rewrite 1 [← pow_one 2] at hk,

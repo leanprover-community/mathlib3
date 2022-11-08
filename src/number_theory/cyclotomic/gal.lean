@@ -135,9 +135,9 @@ variables {L}
 
 /-- Maps `μ` to the `alg_equiv` that sends `is_cyclotomic_extension.zeta` to `μ`. -/
 noncomputable def from_zeta_aut : L ≃ₐ[K] L :=
-let hζ := (zeta_spec n K L).eq_pow_of_pow_eq_one hμ.pow_eq_one n.pos in
+let hζ := (zeta_spec n K L).eq_pow_of_pow_eq_one hμ.pow_eq_one n.ne_zero in
 (aut_equiv_pow L h).symm $ zmod.unit_of_coprime hζ.some $
-((zeta_spec n K L).pow_iff_coprime n.pos hζ.some).mp $ hζ.some_spec.some_spec.symm ▸ hμ
+((zeta_spec n K L).pow_iff_coprime n.ne_zero hζ.some).mp $ hζ.some_spec.some_spec.symm ▸ hμ
 
 lemma from_zeta_aut_spec : from_zeta_aut hμ h (zeta n K L) = μ :=
 begin

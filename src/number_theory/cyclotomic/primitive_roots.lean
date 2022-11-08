@@ -142,7 +142,7 @@ noncomputable def embeddings_equiv_primitive_roots (C : Type*) [comm_ring C] [is
     haveI hn := ne_zero.of_no_zero_smul_divisors K C n,
     refine ⟨x.1, _⟩,
     cases x,
-    rwa [mem_primitive_roots n.pos, ←is_root_cyclotomic_iff, is_root.def,
+    rwa [mem_primitive_roots n.ne_zero, ←is_root_cyclotomic_iff, is_root.def,
          ←map_cyclotomic _ (algebra_map K C), hζ.minpoly_eq_cyclotomic_of_irreducible hirr,
          ←eval₂_eq_eval_map, ←aeval_def]
   end,
@@ -154,7 +154,7 @@ noncomputable def embeddings_equiv_primitive_roots (C : Type*) [comm_ring C] [is
     cases x,
     rwa [aeval_def, eval₂_eq_eval_map, hζ.power_basis_gen K,
          ←hζ.minpoly_eq_cyclotomic_of_irreducible hirr, map_cyclotomic, ←is_root.def,
-         is_root_cyclotomic_iff, ← mem_primitive_roots n.pos]
+         is_root_cyclotomic_iff, ← mem_primitive_roots n.ne_zero]
   end,
   left_inv  := λ x, subtype.ext rfl,
   right_inv := λ x, subtype.ext rfl }
@@ -326,7 +326,7 @@ begin
   let η₁ : K⟮η⟯ := intermediate_field.adjoin_simple.gen K η,
   have hη : is_primitive_root (η + 1) (p ^ (k + 1 - s)),
   { rw [sub_add_cancel],
-    refine is_primitive_root.pow (p ^ (k + 1)).pos hζ _,
+    refine is_primitive_root.pow (p ^ (k + 1)).ne_zero hζ _,
     rw [pnat.pow_coe, ← pow_add, add_comm s, nat.sub_add_cancel (le_trans hs (nat.le_succ k))] },
   haveI : is_cyclotomic_extension {p ^ (k - s + 1)} K K⟮η⟯,
   { suffices : is_cyclotomic_extension {p ^ (k - s + 1)} K K⟮η + 1⟯.to_subalgebra,
@@ -378,12 +378,11 @@ lemma pow_sub_one_norm_prime_ne_two {k : ℕ} (hζ : is_primitive_root ζ ↑(p 
   (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K)) {s : ℕ} (hs : s ≤ k)
   (hodd : p ≠ 2) : norm K (ζ ^ ((p : ℕ) ^ s) - 1) = p ^ ((p : ℕ) ^ s) :=
 begin
-  refine hζ.pow_sub_one_norm_prime_pow_ne_two hirr hs (λ h, _),
+  refine hζ.pow_sub_one_norm_prime_pow_ne_two hirr hs (λ h, hodd _),
   rw [← pnat.coe_inj, pnat.coe_bit0, pnat.one_coe, pnat.pow_coe, ← pow_one 2] at h,
   replace h := eq_of_prime_pow_eq (prime_iff.1 hpri.out) (prime_iff.1 nat.prime_two)
-    ((k - s).succ_pos) h,
-  rw [← pnat.one_coe, ← pnat.coe_bit0, pnat.coe_inj] at h,
-  exact hodd h
+    (k - s).succ_ne_zero h,
+  rwa [← pnat.one_coe, ← pnat.coe_bit0, pnat.coe_inj] at h
 end
 
 /-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` (in particular for `K = ℚ`) and `p` is an odd
@@ -452,7 +451,7 @@ begin
   { have hp : p = 2,
     { rw [← pnat.coe_inj, pnat.coe_bit0, pnat.one_coe, pnat.pow_coe, ← pow_one 2] at htwo,
       replace htwo := eq_of_prime_pow_eq (prime_iff.1 hpri.out) (prime_iff.1 nat.prime_two)
-        (succ_pos _) htwo,
+        (succ_ne_zero _) htwo,
       rwa [show 2 = ((2 : ℕ+) : ℕ), by simp, pnat.coe_inj] at htwo },
     replace hs : s = k,
     { rw [hp, ← pnat.coe_inj, pnat.pow_coe, pnat.coe_bit0, pnat.one_coe] at htwo,

@@ -69,9 +69,9 @@ begin
   have hn'  : 0 < n := pos_of_gt hn,
   have hn'' : 1 < n := one_lt_two.trans hn,
   dsimp at ih,
-  have := prod_cyclotomic_eq_geom_sum hn' R,
+  have := prod_cyclotomic_eq_geom_sum hn'.ne' R,
   apply_fun eval x at this,
-  rw [divisors_eq_proper_divisors_insert_self_of_pos hn', finset.insert_sdiff_of_not_mem,
+  rw [divisors_eq_proper_divisors_insert_self hn'.ne', finset.insert_sdiff_of_not_mem,
       finset.prod_insert, eval_mul, eval_geom_sum] at this,
   rotate,
   { simp only [lt_self_iff_false, finset.mem_sdiff, not_false_iff, mem_proper_divisors, and_false,
@@ -140,9 +140,9 @@ lemma cyclotomic_nonneg (n : ℕ) {R} [linear_ordered_comm_ring R] {x : R} (hx :
 lemma eval_one_cyclotomic_not_prime_pow {R : Type*} [ring R] {n : ℕ}
   (h : ∀ {p : ℕ}, p.prime → ∀ k : ℕ, p ^ k ≠ n) : eval 1 (cyclotomic n R) = 1 :=
 begin
-  rcases n.eq_zero_or_pos with rfl | hn',
+  rcases eq_or_ne n 0 with rfl | hn',
   { simp },
-  have hn : 1 < n := one_lt_iff_ne_zero_and_ne_one.mpr ⟨hn'.ne', (h nat.prime_two 0).symm⟩,
+  have hn : 1 < n := one_lt_iff_ne_zero_and_ne_one.mpr ⟨hn', (h nat.prime_two 0).symm⟩,
   rsuffices (h | h) : eval 1 (cyclotomic n ℤ) = 1 ∨ eval 1 (cyclotomic n ℤ) = -1,
   { have := eval_int_cast_map (int.cast_ring_hom R) (cyclotomic n ℤ) 1,
     simpa only [map_cyclotomic, int.cast_one, h, eq_int_cast] using this },
@@ -158,7 +158,7 @@ begin
     rw [int.nat_abs_dvd_iff_dvd, ←one_geom_sum, ←eval_geom_sum, ←prod_cyclotomic_eq_geom_sum hn'],
     apply eval_dvd,
     apply finset.dvd_prod_of_mem,
-    simpa using and.intro hn'.ne' hn.ne' },
+    simpa using and.intro hn' hn.ne' },
 
   have := prod_cyclotomic_eq_geom_sum hn' ℤ,
   apply_fun eval 1 at this,
@@ -170,7 +170,7 @@ begin
   swap,
   { simp only [not_exists, true_and, exists_prop, dvd_rfl, finset.mem_image, finset.mem_range,
     finset.mem_singleton, finset.singleton_subset_iff, finset.mem_sdiff, nat.mem_divisors, not_and],
-    exact ⟨⟨hn'.ne', hn.ne'⟩, λ t _, h hp _⟩ },
+    exact ⟨⟨hn', hn.ne'⟩, λ t _, h hp _⟩ },
   rw [←int.nat_abs_of_nat p, int.nat_abs_dvd_iff_dvd] at hpe,
   obtain ⟨t, ht⟩ := hpe,
   rw [finset.prod_singleton, ht, mul_left_comm, mul_comm, ←mul_assoc, mul_assoc] at this,
@@ -307,7 +307,7 @@ begin
   iterate 2
   { rw [pos_iff_ne_zero, ne.def, int.nat_abs_eq_zero],
     intro h,
-    have := degree_eq_one_of_irreducible_of_root (cyclotomic.irreducible (pos_of_gt hn')) h,
+    have := degree_eq_one_of_irreducible_of_root (cyclotomic.irreducible hn'.ne_bot) h,
     rw [degree_cyclotomic, with_top.coe_eq_one, totient_eq_one_iff] at this,
     rcases this with rfl|rfl; simpa using h },
   suffices : (q.succ : ℝ) < (eval (↑q + 1 + 1) (cyclotomic n ℤ)).nat_abs,

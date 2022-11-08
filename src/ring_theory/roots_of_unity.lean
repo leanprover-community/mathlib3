@@ -287,7 +287,7 @@ lemma iff_def (ζ : M) (k : ℕ) :
   is_primitive_root ζ k ↔ (ζ ^ k = 1) ∧ (∀ l : ℕ, ζ ^ l = 1 → k ∣ l) :=
 ⟨λ ⟨h1, h2⟩, ⟨h1, h2⟩, λ ⟨h1, h2⟩, ⟨h1, h2⟩⟩
 
-lemma mk_of_lt (ζ : M) (hk : 0 < k) (h1 : ζ ^ k = 1) (h : ∀ l : ℕ, 0 < l →  l < k → ζ ^ l ≠ 1) :
+lemma mk_of_lt (ζ : M) (hk : k ≠ 0) (h1 : ζ ^ k = 1) (h : ∀ l : ℕ, 0 < l →  l < k → ζ ^ l ≠ 1) :
   is_primitive_root ζ k :=
 begin
   refine ⟨h1, _⟩,
@@ -295,8 +295,8 @@ begin
   apply dvd_trans _ (k.gcd_dvd_right l),
   suffices : k.gcd l = k, { rw this },
   rw eq_iff_le_not_lt,
-  refine ⟨nat.le_of_dvd hk (k.gcd_dvd_left l), _⟩,
-  intro h', apply h _ (nat.gcd_pos_of_pos_left _ hk) h',
+  refine ⟨nat.le_of_dvd hk.bot_lt (k.gcd_dvd_left l), _⟩,
+  intro h', apply h _ (nat.gcd_pos_of_pos_left _ hk.bot_lt) h',
   exact pow_gcd_eq_one _ h1 hl
 end
 
@@ -395,18 +395,11 @@ protected lemma order_of (ζ : M) : is_primitive_root ζ (order_of ζ) :=
 ⟨pow_order_of_eq_one ζ, λ l, order_of_dvd_of_pow_eq_one⟩
 
 lemma unique {ζ : M} (hk : is_primitive_root ζ k) (hl : is_primitive_root ζ l) : k = l :=
-begin
-  wlog hkl : k ≤ l,
-  rcases hkl.eq_or_lt with rfl | hkl,
-  { refl },
-  rcases k.eq_zero_or_pos with rfl | hk',
-  { exact (zero_dvd_iff.mp $ hk.dvd_of_pow_eq_one l hl.pow_eq_one).symm },
-  exact absurd hk.pow_eq_one (hl.pow_ne_one_of_pos_of_lt hk' hkl)
-end
+nat.dvd_antisymm (hk.2 _ hl.1) (hl.2 _ hk.1)
 
 lemma eq_order_of : k = order_of ζ := h.unique (is_primitive_root.order_of ζ)
 
-protected lemma iff (hk : 0 < k) :
+protected lemma iff (hk : k ≠ 0) :
   is_primitive_root ζ k ↔ ζ ^ k = 1 ∧ ∀ l : ℕ, 0 < l → l < k → ζ ^ l ≠ 1 :=
 begin
   refine ⟨λ h, ⟨h.pow_eq_one, λ l hl' hl, _⟩, λ ⟨hζ, hl⟩, is_primitive_root.mk_of_lt ζ hk hζ hl⟩,
@@ -432,14 +425,13 @@ h.pow_eq_one
 
 /-- If there is a `n`-th primitive root of unity in `R` and `b` divides `n`,
 then there is a `b`-th primitive root of unity in `R`. -/
-lemma pow {n : ℕ} {a b : ℕ} (hn : 0 < n) (h : is_primitive_root ζ n) (hprod : n = a * b) :
+lemma pow {n : ℕ} {a b : ℕ} (hn : n ≠ 0) (h : is_primitive_root ζ n) (hprod : n = a * b) :
   is_primitive_root (ζ ^ a) b :=
 begin
   subst n,
   simp only [iff_def, ← pow_mul, h.pow_eq_one, eq_self_iff_true, true_and],
   intros l hl,
-  have ha0 : a ≠ 0, { rintro rfl, simpa only [nat.not_lt_zero, zero_mul] using hn },
-  rwa ← mul_dvd_mul_iff_left ha0,
+  rw ← mul_dvd_mul_iff_left (left_ne_zero_of_mul hn),
   exact h.dvd_of_pow_eq_one _ hl
 end
 
@@ -871,7 +863,7 @@ begin
       simp only [nat.mem_divisors],
       rintro k ⟨⟨d, hd⟩, -⟩,
       rw mul_comm at hd,
-      rw (h.pow n.pos hd).card_primitive_roots },
+      rw (h.pow n.ne_zero hd).card_primitive_roots },
     { intros i hi j hj hdiff,
       exact disjoint hdiff } }
 end
@@ -937,7 +929,7 @@ lemma squarefree_minpoly_mod {p : ℕ} [fact p.prime] (hdiv : ¬ p ∣ n) :
 
 /- Let `P` be the minimal polynomial of a root of unity `μ` and `Q` be the minimal polynomial of
 `μ ^ p`, where `p` is a prime that does not divide `n`. Then `P` divides `expand ℤ p Q`. -/
-lemma minpoly_dvd_expand {p : ℕ} (hprime : nat.prime p) (hdiv : ¬ p ∣ n) :
+lemma minpoly_dvd_expand {p : ℕ} (hprime : p.prime) (hdiv : ¬ p ∣ n) :
   minpoly ℤ μ ∣ expand ℤ p (minpoly ℤ (μ ^ p)) :=
 begin
   rcases eq_or_ne n 0 with rfl | h0,
@@ -945,7 +937,7 @@ begin
   refine minpoly.gcd_domain_dvd (h.is_integral h0) _ _,
   { apply monic.ne_zero,
     rw [polynomial.monic, leading_coeff, nat_degree_expand, mul_comm, coeff_expand_mul'
-        (nat.prime.pos hprime), ← leading_coeff, ← polynomial.monic],
+        hprime.ne_zero, ← leading_coeff, ← polynomial.monic],
     exact minpoly.monic (is_integral (pow_of_prime h hprime hdiv) h0) },
   { rw [aeval_def, coe_expand, ← comp, eval₂_eq_eval_map, map_comp, polynomial.map_pow, map_X,
         eval_comp, eval_pow, eval_X, ← eval₂_eq_eval_map, ← aeval_def],

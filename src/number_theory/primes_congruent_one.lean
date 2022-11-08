@@ -18,7 +18,7 @@ namespace nat
 open polynomial nat filter
 
 /-- For any positive `k : ℕ` there are infinitely many primes `p` such that `p ≡ 1 [MOD k]`. -/
-lemma exists_prime_ge_modeq_one {k : ℕ} (n : ℕ) (hpos : 0 < k) :
+lemma exists_prime_ge_modeq_one {k : ℕ} (n : ℕ) (hk : k ≠ 0) :
   ∃ (p : ℕ), nat.prime p ∧ n ≤ p ∧ p ≡ 1 [MOD k] :=
 begin
   let b := 3 * (k * n.factorial),
@@ -26,7 +26,7 @@ begin
   { have hkey : ∀ l : ℕ, 2 < 3 * (l.succ * n.factorial) := λ l, lt_mul_of_lt_of_one_le
           (2 : ℕ).lt_succ_self (le_mul_of_le_of_one_le (nat.succ_pos _) n.factorial_pos),
     rcases k with _ | _ | k,
-    { simpa using hpos, },
+    { exact absurd rfl hk },
     { simp only [one_mul, int.coe_nat_mul, int.coe_nat_succ, int.coe_nat_zero, zero_add,
         cyclotomic_one, eval_sub, eval_X, eval_one],
       convert int.nat_abs_lt_nat_abs_of_nonneg_of_lt int.one_nonneg _,
@@ -49,27 +49,27 @@ begin
   { by_contra habs,
     exact (prime.dvd_iff_not_coprime hprime.1).1
       (dvd_factorial (min_fac_pos _) (le_of_not_ge habs))
-      (coprime_of_root_cyclotomic hpos hroot).symm.coprime_mul_left_right.coprime_mul_left_right },
+      (coprime_of_root_cyclotomic hk hroot).symm.coprime_mul_left_right.coprime_mul_left_right },
   { have hdiv := order_of_dvd_of_pow_eq_one (zmod.units_pow_card_sub_one_eq_one p
-      (zmod.unit_of_coprime b (coprime_of_root_cyclotomic hpos hroot))),
+      (zmod.unit_of_coprime b (coprime_of_root_cyclotomic hk hroot))),
     have : ¬p ∣ k := hprime.1.coprime_iff_not_dvd.1
-      (coprime_of_root_cyclotomic hpos hroot).symm.coprime_mul_left_right.coprime_mul_right_right,
+      (coprime_of_root_cyclotomic hk hroot).symm.coprime_mul_left_right.coprime_mul_right_right,
     haveI := ne_zero.of_not_dvd (zmod p) this,
     have : k = order_of (b : zmod p) := (is_root_cyclotomic_iff.mp hroot).eq_order_of,
     rw [←order_of_units, zmod.coe_unit_of_coprime, ←this] at hdiv,
     exact ((modeq_iff_dvd' hprime.1.pos).2 hdiv).symm }
 end
 
-lemma frequently_at_top_modeq_one {k : ℕ} (hpos : 0 < k) :
+lemma frequently_at_top_modeq_one {k : ℕ} (hk : k ≠ 0) :
   ∃ᶠ p in at_top, nat.prime p ∧ p ≡ 1 [MOD k] :=
 begin
   refine frequently_at_top.2 (λ n, _),
-  obtain ⟨p, hp⟩ := exists_prime_ge_modeq_one n hpos,
+  obtain ⟨p, hp⟩ := exists_prime_ge_modeq_one n hk,
   exact ⟨p, ⟨hp.2.1, hp.1, hp.2.2⟩⟩
 end
 
-lemma infinite_set_of_prime_modeq_one {k : ℕ} (hpos : 0 < k) :
+lemma infinite_set_of_prime_modeq_one {k : ℕ} (hk : k ≠ 0) :
   set.infinite {p : ℕ | nat.prime p ∧ p ≡ 1 [MOD k]} :=
-frequently_at_top_iff_infinite.1 (frequently_at_top_modeq_one hpos)
+frequently_at_top_iff_infinite.1 (frequently_at_top_modeq_one hk)
 
 end nat

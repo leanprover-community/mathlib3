@@ -110,9 +110,9 @@ lemma contraction_degree_eq_aux [hq : fact q.prime] [hF : char_p F q]
 begin
   obtain ⟨s, rfl⟩ := nat.exists_eq_add_of_lt h,
   rw [add_assoc, pow_add, expand_mul] at h_expand,
-  let aux := expand_injective (pow_pos hq.1.pos m) h_expand,
+  let aux := expand_injective (pow_ne_zero m hq.1.ne_zero) h_expand,
   rw aux at hg,
-  have := (is_unit_or_eq_zero_of_separable_expand q (s + 1) hq.out.pos hg).resolve_right
+  have := (is_unit_or_eq_zero_of_separable_expand q (s + 1) hq.out.ne_zero hg).resolve_right
     s.succ_ne_zero,
   rw [aux, nat_degree_expand,
     nat_degree_eq_of_degree_eq_some (degree_eq_zero_of_is_unit this),

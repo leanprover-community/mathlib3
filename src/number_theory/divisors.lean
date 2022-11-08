@@ -77,10 +77,14 @@ begin
   simp only [and_comm, ←filter_dvd_eq_proper_divisors hm, mem_filter, mem_range],
 end
 
-lemma divisors_eq_proper_divisors_insert_self_of_pos (h : 0 < n):
-  divisors n = has_insert.insert n (proper_divisors n) :=
-by rw [divisors, proper_divisors, Ico_succ_right_eq_insert_Ico h, finset.filter_insert,
-  if_pos (dvd_refl n)]
+lemma divisors_eq_proper_divisors_insert_self (h : n ≠ 0):
+  divisors n = insert n (proper_divisors n) :=
+by rw [divisors, proper_divisors, Ico_succ_right_eq_insert_Ico (one_le_iff_ne_zero.2 h),
+  finset.filter_insert, if_pos (dvd_refl n)]
+
+lemma cons_self_proper_divisors (h : n ≠ 0) :
+  cons n (proper_divisors n) proper_divisors.not_self_mem = divisors n :=
+by rw [cons_eq_insert, divisors_eq_proper_divisors_insert_self h]
 
 @[simp]
 lemma mem_divisors {m : ℕ} : n ∈ divisors m ↔ (n ∣ m ∧ m ≠ 0) :=
@@ -149,23 +153,14 @@ lemma divisors_zero : divisors 0 = ∅ := by { ext, simp }
 lemma proper_divisors_zero : proper_divisors 0 = ∅ := by { ext, simp }
 
 lemma proper_divisors_subset_divisors : proper_divisors n ⊆ divisors n :=
-begin
-  cases n,
-  { simp },
-  rw [divisors_eq_proper_divisors_insert_self_of_pos (nat.succ_pos _)],
-  apply subset_insert,
-end
+filter_subset_filter _ $ Ico_subset_Ico_right n.le_succ
 
 @[simp]
 lemma divisors_one : divisors 1 = {1} := by { ext, simp }
 
 @[simp]
 lemma proper_divisors_one : proper_divisors 1 = ∅ :=
-begin
-  ext,
-  simp only [finset.not_mem_empty, nat.dvd_one, not_and, not_lt, mem_proper_divisors, iff_false],
-  apply ge_of_eq,
-end
+by rw [proper_divisors, Ico_self, filter_empty]
 
 lemma pos_of_mem_divisors {m : ℕ} (h : m ∈ n.divisors) : 0 < m :=
 begin
@@ -227,12 +222,11 @@ begin
 end
 
 lemma sum_divisors_eq_sum_proper_divisors_add_self :
-∑ i in divisors n, i = ∑ i in proper_divisors n, i + n :=
+  ∑ i in divisors n, i = ∑ i in proper_divisors n, i + n :=
 begin
-  cases n,
+  rcases eq_or_ne n 0 with rfl|hn,
   { simp },
-  { rw [divisors_eq_proper_divisors_insert_self_of_pos (nat.succ_pos _),
-        finset.sum_insert (proper_divisors.not_self_mem), add_comm] }
+  { rw [← cons_self_proper_divisors hn, finset.sum_cons, add_comm] }
 end
 
 /-- `n : ℕ` is perfect if and only the sum of the proper divisors of `n` is `n` and `n`
@@ -265,7 +259,7 @@ end
 lemma prime.proper_divisors {p : ℕ} (pp : p.prime) :
   proper_divisors p = {1} :=
 by rw [← erase_insert (proper_divisors.not_self_mem),
-    ← divisors_eq_proper_divisors_insert_self_of_pos pp.pos,
+    ← divisors_eq_proper_divisors_insert_self pp.ne_zero,
     pp.divisors, pair_comm, erase_insert (λ con, pp.ne_one (mem_singleton.1 con))]
 
 lemma divisors_prime_pow {p : ℕ} (pp : p.prime) (k : ℕ) :
@@ -319,8 +313,7 @@ by simp [h.proper_divisors]
 @[simp, to_additive]
 lemma prime.prod_divisors {α : Type*} [comm_monoid α] {p : ℕ} {f : ℕ → α} (h : p.prime) :
   ∏ x in p.divisors, f x = f p * f 1 :=
-by rw [divisors_eq_proper_divisors_insert_self_of_pos h.pos,
-       prod_insert proper_divisors.not_self_mem, h.prod_proper_divisors]
+by rw [← cons_self_proper_divisors h.ne_zero, prod_cons, h.prod_proper_divisors]
 
 lemma proper_divisors_eq_singleton_one_iff_prime :
   n.proper_divisors = {1} ↔ n.prime :=

@@ -314,7 +314,7 @@ begin
     ∑ m in d.divisors, φ m,
     { rw [←filter_dvd_eq_divisors hd_pos.ne', sum_card_order_of_eq_card_pow_eq_one hd_pos,
       filter_dvd_eq_divisors hd_pos.ne', sum_totient, ←ha, card_pow_eq_one_eq_order_of_aux hn a] },
-  simpa [divisors_eq_proper_divisors_insert_self_of_pos hd_pos, ←h1] using h2,
+  simpa [← cons_self_proper_divisors hd_pos.ne', ←h1] using h2,
 end
 
 lemma card_order_of_eq_totient_aux₂ {d : ℕ} (hd : d ∣ fintype.card α) :

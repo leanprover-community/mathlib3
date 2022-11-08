@@ -390,13 +390,13 @@ begin
   { simp only [multiset.mem_to_finset, finset.mem_coe,
                map_cyclotomic, mem_roots (cyclotomic_ne_zero n B)] at hx,
     simp only [mem_singleton_iff, exists_eq_left, mem_set_of_eq],
-    rw is_root_of_unity_iff n.pos,
+    rw is_root_of_unity_iff n.ne_zero,
     exact ⟨n, nat.mem_divisors_self n n.ne_zero, hx⟩ },
   { simp only [mem_singleton_iff, exists_eq_left, mem_set_of_eq] at hx,
     obtain ⟨i, hin, rfl⟩ := hζ.eq_pow_of_pow_eq_one hx n.ne_zero,
     refine set_like.mem_coe.2 (subalgebra.pow_mem _ (subset_adjoin _) _),
     rwa [finset.mem_coe, multiset.mem_to_finset, mem_roots $ cyclotomic_ne_zero n B],
-    exact hζ.is_root_cyclotomic n.pos }
+    exact hζ.is_root_cyclotomic n.ne_zero }
 end
 
 lemma adjoin_roots_cyclotomic_eq_adjoin_root_cyclotomic {n : ℕ+} [decidable_eq B] [is_domain B]
@@ -407,13 +407,13 @@ begin
   { suffices hx : x ^ ↑n = 1,
     obtain ⟨i, hin, rfl⟩ := hζ.eq_pow_of_pow_eq_one hx n.ne_zero,
     exact set_like.mem_coe.2 (subalgebra.pow_mem _ (subset_adjoin $ mem_singleton ζ) _),
-    rw is_root_of_unity_iff n.pos,
+    rw is_root_of_unity_iff n.ne_zero,
     refine ⟨n, nat.mem_divisors_self n n.ne_zero, _⟩,
     rwa [finset.mem_coe, multiset.mem_to_finset,
          map_cyclotomic, mem_roots $ cyclotomic_ne_zero n B] at hx },
   { simp only [mem_singleton_iff, exists_eq_left, mem_set_of_eq] at hx,
     simpa only [hx, multiset.mem_to_finset, finset.mem_coe, map_cyclotomic,
-                mem_roots (cyclotomic_ne_zero n B)] using hζ.is_root_cyclotomic n.pos }
+                mem_roots (cyclotomic_ne_zero n B)] using hζ.is_root_cyclotomic n.ne_zero }
 end
 
 lemma adjoin_primitive_root_eq_top {n : ℕ+} [is_domain B] [h : is_cyclotomic_extension {n} A B]
@@ -468,10 +468,10 @@ end
 lemma splits_cyclotomic [is_cyclotomic_extension S K L] (hS : n ∈ S) :
   splits (algebra_map K L) (cyclotomic n K) :=
 begin
-  refine splits_of_splits_of_dvd _ (X_pow_sub_C_ne_zero n.pos _)
+  refine splits_of_splits_of_dvd _ (X_pow_sub_C_ne_zero n.ne_zero _)
     (splits_X_pow_sub_one K L hS) _,
   use (∏ (i : ℕ) in (n : ℕ).proper_divisors, polynomial.cyclotomic i K),
-  rw [(eq_cyclotomic_iff n.pos _).1 rfl, ring_hom.map_one],
+  rw [(eq_cyclotomic_iff n.ne_zero _).1 rfl, ring_hom.map_one],
 end
 
 variables (n S)
@@ -634,7 +634,7 @@ instance is_cyclotomic_extension [ne_zero ((n : ℕ) : A)] :
     obtain ⟨μ, hμ⟩ :=
       (cyclotomic_field.is_cyclotomic_extension n K).exists_prim_root (mem_singleton n),
     refine ⟨⟨μ, subset_adjoin _⟩, _⟩,
-    { apply (is_root_of_unity_iff n.pos (cyclotomic_field n K)).mpr,
+    { apply (is_root_of_unity_iff n.ne_zero (cyclotomic_field n K)).mpr,
       refine ⟨n, nat.mem_divisors_self _ n.ne_zero, _⟩,
       rwa [← is_root_cyclotomic_iff] at hμ },
     { rwa [← is_primitive_root.coe_submonoid_class_iff, subtype.coe_mk] }

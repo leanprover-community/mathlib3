@@ -72,47 +72,53 @@ theorem derivative_expand (f : R[X]) :
   (expand R p f).derivative = expand R p f.derivative * (p * X ^ (p - 1)) :=
 by rw [coe_expand, derivative_eval₂_C, derivative_pow, derivative_X, mul_one]
 
-theorem coeff_expand {p : ℕ} (hp : 0 < p) (f : R[X]) (n : ℕ) :
+theorem coeff_expand {p : ℕ} (hp : p ≠ 0) (f : R[X]) (n : ℕ) :
   (expand R p f).coeff n = if p ∣ n then f.coeff (n / p) else 0 :=
 begin
   simp only [expand_eq_sum],
   simp_rw [coeff_sum, ← pow_mul, C_mul_X_pow_eq_monomial, coeff_monomial, sum],
   split_ifs with h,
   { rw [finset.sum_eq_single (n/p), nat.mul_div_cancel' h, if_pos rfl],
-    { intros b hb1 hb2, rw if_neg, intro hb3, apply hb2, rw [← hb3, nat.mul_div_cancel_left b hp] },
+    { refine λ b hb1 hb2, if_neg (λ hb3, hb2 _),
+      rw [← hb3, nat.mul_div_cancel_left b hp.bot_lt] },
     { intro hn, rw not_mem_support_iff.1 hn, split_ifs; refl } },
   { rw finset.sum_eq_zero, intros k hk, rw if_neg, exact λ hkn, h ⟨k, hkn.symm⟩, },
 end
 
-@[simp] theorem coeff_expand_mul {p : ℕ} (hp : 0 < p) (f : R[X]) (n : ℕ) :
+@[simp] theorem coeff_expand_mul {p : ℕ} (hp : p ≠ 0) (f : R[X]) (n : ℕ) :
   (expand R p f).coeff (n * p) = f.coeff n :=
-by rw [coeff_expand hp, if_pos (dvd_mul_left _ _), nat.mul_div_cancel _ hp]
+by rw [coeff_expand hp, if_pos (dvd_mul_left _ _), nat.mul_div_cancel _ hp.bot_lt]
 
-@[simp] theorem coeff_expand_mul' {p : ℕ} (hp : 0 < p) (f : R[X]) (n : ℕ) :
+@[simp] theorem coeff_expand_mul' {p : ℕ} (hp : p ≠ 0) (f : R[X]) (n : ℕ) :
   (expand R p f).coeff (p * n) = f.coeff n :=
 by rw [mul_comm, coeff_expand_mul hp]
 
-theorem expand_inj {p : ℕ} (hp : 0 < p) {f g : R[X]} :
+/-- Expansion is injective. -/
+lemma expand_injective {n : ℕ} (hn : n ≠ 0) :
+  function.injective (expand R n) :=
+λ g g' H, ext $ λ k, by rw [← coeff_expand_mul hn, H, coeff_expand_mul hn]
+
+theorem expand_inj {p : ℕ} (hp : p ≠ 0) {f g : R[X]} :
   expand R p f = expand R p g ↔ f = g :=
-⟨λ H, ext $ λ n, by rw [← coeff_expand_mul hp, H, coeff_expand_mul hp], congr_arg _⟩
+(expand_injective hp).eq_iff
 
-theorem expand_eq_zero {p : ℕ} (hp : 0 < p) {f : R[X]} : expand R p f = 0 ↔ f = 0 :=
-by rw [← (expand R p).map_zero, expand_inj hp, alg_hom.map_zero]
+theorem expand_eq_zero {p : ℕ} (hp : p ≠ 0) {f : R[X]} : expand R p f = 0 ↔ f = 0 :=
+(expand_injective hp).eq_iff' (map_zero _)
 
-theorem expand_ne_zero {p : ℕ} (hp : 0 < p) {f : R[X]} : expand R p f ≠ 0 ↔ f ≠ 0 :=
+theorem expand_ne_zero {p : ℕ} (hp : p ≠ 0) {f : R[X]} : expand R p f ≠ 0 ↔ f ≠ 0 :=
 (expand_eq_zero hp).not
 
-theorem expand_eq_C {p : ℕ} (hp : 0 < p) {f : R[X]} {r : R} :
+theorem expand_eq_C {p : ℕ} (hp : p ≠ 0) {f : R[X]} {r : R} :
   expand R p f = C r ↔ f = C r :=
 by rw [← expand_C, expand_inj hp, expand_C]
 
 theorem nat_degree_expand (p : ℕ) (f : R[X]) :
   (expand R p f).nat_degree = f.nat_degree * p :=
 begin
-  cases p.eq_zero_or_pos with hp hp,
-  { rw [hp, coe_expand, pow_zero, mul_zero, ← C_1, eval₂_hom, nat_degree_C] },
-  by_cases hf : f = 0,
-  { rw [hf, alg_hom.map_zero, nat_degree_zero, zero_mul] },
+  rcases eq_or_ne p 0 with rfl | hp,
+  { rw [coe_expand, pow_zero, mul_zero, ← C_1, eval₂_hom, nat_degree_C] },
+  rcases eq_or_ne f 0 with rfl | hf,
+  { rw [map_zero, nat_degree_zero, zero_mul] },
   have hf1 : expand R p f ≠ 0 := mt (expand_eq_zero hp).1 hf,
   rw [← with_bot.coe_eq_coe, ← degree_eq_nat_degree hf1],
   refine le_antisymm ((degree_le_iff_coeff_zero _ _).2 $ λ n hn, _) _,
@@ -124,10 +130,10 @@ begin
     rw [coeff_expand_mul hp, ← leading_coeff], exact mt leading_coeff_eq_zero.1 hf }
 end
 
-lemma monic.expand {p : ℕ} {f : R[X]} (hp : 0 < p) (h : f.monic) : (expand R p f).monic :=
+lemma monic.expand {p : ℕ} {f : R[X]} (hp : p ≠ 0) (h : f.monic) : (expand R p f).monic :=
 begin
   rw [monic.def, leading_coeff, nat_degree_expand, coeff_expand hp],
-  simp [hp, h],
+  simp [hp, pos_iff_ne_zero.2 hp, h],
 end
 
 theorem map_expand {p : ℕ} {f : R →+* S} {q : R[X]} :
@@ -136,25 +142,8 @@ begin
   by_cases hp : p = 0,
   { simp [hp] },
   ext,
-  rw [coeff_map, coeff_expand (nat.pos_of_ne_zero hp), coeff_expand (nat.pos_of_ne_zero hp)],
+  rw [coeff_map, coeff_expand hp, coeff_expand hp],
   split_ifs; simp,
-end
-
-/-- Expansion is injective. -/
-lemma expand_injective {n : ℕ} (hn : 0 < n) :
-  function.injective (expand R n) :=
-λ g g' h, begin
-  ext,
-  have h' : (expand R n g).coeff (n * n_1) = (expand R n g').coeff (n * n_1) :=
-  begin
-    apply polynomial.ext_iff.1,
-    exact h,
-  end,
-
-  rw [polynomial.coeff_expand hn g (n * n_1), polynomial.coeff_expand hn g' (n * n_1)] at h',
-  simp only [if_true, dvd_mul_right] at h',
-  rw (nat.mul_div_right n_1 hn) at h',
-  exact h',
 end
 
 @[simp]
@@ -191,7 +180,7 @@ end
 theorem contract_expand {f : R[X]} (hp : p ≠ 0) : contract p (expand R p f) = f :=
 begin
   ext,
-  simp [coeff_contract hp, coeff_expand hp.bot_lt, nat.mul_div_cancel _ hp.bot_lt]
+  simp [coeff_contract hp, coeff_expand hp, nat.mul_div_cancel _ hp.bot_lt]
 end
 
 section char_p
@@ -202,7 +191,7 @@ theorem expand_contract [no_zero_divisors R] {f : R[X]} (hf : f.derivative = 0)
   (hp : p ≠ 0) : expand R p (contract p f) = f :=
 begin
   ext n,
-  rw [coeff_expand hp.bot_lt, coeff_contract hp],
+  rw [coeff_expand hp, coeff_contract hp],
   split_ifs with h,
   { rw nat.div_mul_cancel h },
   { cases n,
@@ -245,7 +234,7 @@ section is_domain
 
 variables (R : Type u) [comm_ring R] [is_domain R]
 
-theorem is_local_ring_hom_expand {p : ℕ} (hp : 0 < p) :
+theorem is_local_ring_hom_expand {p : ℕ} (hp : p ≠ 0) :
   is_local_ring_hom (↑(expand R p) : R[X] →+* R[X]) :=
 begin
   refine ⟨λ f hf1, _⟩, rw ← coe_fn_coe_base at hf1,
@@ -258,7 +247,7 @@ variable {R}
 
 theorem of_irreducible_expand {p : ℕ} (hp : p ≠ 0) {f : R[X]}
   (hf : irreducible (expand R p f)) : irreducible f :=
-let _ := is_local_ring_hom_expand R hp.bot_lt in by exactI of_irreducible_map ↑(expand R p) hf
+let _ := is_local_ring_hom_expand R hp in by exactI of_irreducible_map ↑(expand R p) hf
 
 theorem of_irreducible_expand_pow {p : ℕ} (hp : p ≠ 0) {f : R[X]} {n : ℕ} :
   irreducible (expand R (p ^ n) f) → irreducible f :=

@@ -462,7 +462,7 @@ begin
   exact is_integral_mul is_integral_algebra_map hx,
 end
 
-lemma is_integral_of_pow {x : A} {n : ℕ} (hn : 0 < n) (hx : is_integral R $ x ^ n) :
+lemma is_integral_of_pow {x : A} {n : ℕ} (hn : n ≠ 0) (hx : is_integral R $ x ^ n) :
   is_integral R x :=
 begin
   rcases hx with ⟨p, ⟨hmonic, heval⟩⟩,
@@ -579,7 +579,7 @@ begin
   exact is_integral.sum _ (λ σ hσ, is_integral.zsmul (is_integral.prod _ (λ i hi, h _ _)) _)
 end
 
-@[simp] lemma is_integral.pow_iff {x : A} {n : ℕ} (hn : 0 < n) :
+@[simp] lemma is_integral.pow_iff {x : A} {n : ℕ} (hn : n ≠ 0) :
   is_integral R (x ^ n) ↔ is_integral R x :=
 ⟨is_integral_of_pow hn, λ hx, is_integral.pow hx n⟩
 

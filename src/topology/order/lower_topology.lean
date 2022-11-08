@@ -280,9 +280,7 @@ begin
   intros s hs,
   rw mem_set_of_eq' at hs,
   cases hs with a,
-  rw ← hs_h,
-  rw ← is_closed_compl_iff,
-  simp only [preimage_compl, compl_compl],
+  rw [← hs_h, ← is_closed_compl_iff, preimage_compl, compl_compl],
   let p :=  Inf (f ⁻¹' Ici a),
   have e1: f ⁻¹' Ici a = Ici p :=
   begin

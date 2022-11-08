@@ -136,4 +136,11 @@ def quotient_quotient_equiv_quotient :
   right_inv := λ x, quotient.induction_on' x $ λ x, by simp,
   .. quotient_quotient_equiv_quotient_aux S T h }
 
+/-- Corollary of the third isomorphism theorem: `[S : T] [M : S] = [M : T]` -/
+lemma card_quotient_mul_card_quotient (S T : submodule R M) (hST : T ≤ S)
+  [decidable_pred (λ x, x ∈ S.map T.mkq)] [fintype (M ⧸ S)] [fintype (M ⧸ T)] :
+  fintype.card (S.map T.mkq) * fintype.card (M ⧸ S) = fintype.card (M ⧸ T) :=
+by rw [submodule.card_eq_card_quotient_mul_card (map T.mkq S),
+       fintype.card_eq.mpr ⟨(quotient_quotient_equiv_quotient T S hST).to_equiv⟩]
+
 end submodule

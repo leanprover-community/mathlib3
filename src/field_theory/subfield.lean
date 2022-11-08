@@ -313,6 +313,10 @@ instance : inhabited (subfield K) := ⟨⊤⟩
 
 @[simp] lemma coe_top : ((⊤ : subfield K) : set K) = set.univ := rfl
 
+/-- The ring equiv between the top element of `subfield K` and `K`. -/
+@[simps]
+def top_equiv : (⊤ : subfield K) ≃+* K := subsemiring.top_equiv
+
 /-! # comap -/
 
 variables (f : K →+* L)

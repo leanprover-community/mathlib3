@@ -418,8 +418,8 @@ instance : comm_ring ℚ :=
   makes `int.cast_coe_nat` and `coe_coe` loop in `simp`. -/
   nat_cast         := λ n, of_int n,
   nat_cast_zero    := rfl,
-  nat_cast_succ    := λ n, by change ((_ : ℤ) : ℚ) = ((_ : ℤ) : ℚ) + 1;
-    by simp only [coe_int_eq_mk, add_def one_ne_zero one_ne_zero, ← mk_one_one]; simp }
+  nat_cast_succ    := λ n, by simp only [of_int_eq_cast, coe_int_eq_mk,
+    add_def one_ne_zero one_ne_zero, ← mk_one_one, nat.cast_add, nat.cast_one, mul_one] }
 
 instance : comm_group_with_zero ℚ :=
 { zero := 0,

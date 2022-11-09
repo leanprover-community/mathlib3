@@ -515,8 +515,9 @@ def from_edge_finset : simple_graph V := from_edge_set s
 
 @[simp] lemma from_edge_finset_adj : (from_edge_finset s).adj v w ↔ v ≠ w ∧ ⟦(v, w)⟧ ∈ s := iff.rfl
 
-@[simp] lemma from_edge_finset_edge_finset [fintype G.edge_set] : from_edge_finset (G.edge_finset) = G :=
-  by simp only [from_edge_finset, coe_edge_finset, from_edge_set_edge_set]
+@[simp] lemma from_edge_finset_edge_finset [fintype G.edge_set] :
+  from_edge_finset (G.edge_finset) = G :=
+by simp only [from_edge_finset, coe_edge_finset, from_edge_set_edge_set]
 
 @[simp] lemma from_edge_finset_empty : from_edge_finset (∅ : finset (sym2 V)) = ⊥ :=
   by simp only [from_edge_finset, coe_empty, from_edge_set_empty]

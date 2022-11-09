@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
 import data.int.dvd.basic
+import data.nat.order.lemmas
 import algebra.ring.regular
 
 /-!

@@ -191,16 +191,16 @@ is_scalar_tower.smul_assoc x y z
 @[to_additive]
 instance semigroup.is_scalar_tower [semigroup α] : is_scalar_tower α α α := ⟨mul_assoc⟩
 
-/-- A typeclass indicating that the right (aka `mul_opposite`) and left actions by `M` on `α` are
+/-- A typeclass indicating that the right (aka `add_opposite`) and left actions by `M` on `α` are
 equal, that is that `M` acts centrally on `α`. This can be thought of as a version of commutativity
-for `•`. -/
+for `+ᵥ`. -/
 class is_central_vadd (M α : Type*) [has_vadd M α] [has_vadd Mᵃᵒᵖ α] : Prop :=
 (op_vadd_eq_vadd : ∀ (m : M) (a : α), add_opposite.op m +ᵥ a = m +ᵥ a)
 
 /-- A typeclass indicating that the right (aka `mul_opposite`) and left actions by `M` on `α` are
 equal, that is that `M` acts centrally on `α`. This can be thought of as a version of commutativity
 for `•`. -/
-@[to_additive is_central_vadd]
+@[to_additive]
 class is_central_scalar (M α : Type*) [has_smul M α] [has_smul Mᵐᵒᵖ α] : Prop :=
 (op_smul_eq_smul : ∀ (m : M) (a : α), mul_opposite.op m • a = m • a)
 

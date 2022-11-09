@@ -147,7 +147,7 @@ lemma subfield.subfield_topological_closure (s : subfield α) :
   s ≤ s.topological_closure := subset_closure
 
 lemma subfield.is_closed_topological_closure (s : subfield α) :
-  is_closed (s.topological_closure : set α) := by convert is_closed_closure
+  is_closed (s.topological_closure : set α) := is_closed_closure
 
 lemma subfield.topological_closure_minimal
   (s : subfield α) {t : subfield α} (h : s ≤ t) (ht : is_closed (t : set α)) :

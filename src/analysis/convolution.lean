@@ -955,6 +955,7 @@ begin
   { simp only [convolution, pi.zero_apply, integral_const, smul_zero, zero_apply,
       _root_.map_zero] },
   resetI,
+  haveI : proper_space G, from finite_dimensional.proper_is_R_or_C 𝕜 G,
   have := hcg.convolution_exists_right (L.precompR E'' : _) hf hg x₀,
   simp_rw [convolution_def, continuous_linear_map.integral_apply this],
   refl,
@@ -1012,6 +1013,10 @@ lemma has_compact_support.cont_diff_convolution_right
   (hcg : has_compact_support g) (hf : locally_integrable f μ) (hg : cont_diff 𝕜 n g) :
   cont_diff 𝕜 n (f ⋆[L, μ] g) :=
 begin
+  rcases hcg.eq_zero_or_finite_dimensional 𝕜 hg.continuous with rfl|fin_dim,
+  { simp only [convolution_zero], exact cont_diff_zero_fun, },
+  resetI,
+  haveI : proper_space G, from finite_dimensional.proper_is_R_or_C 𝕜 G,
   induction n using enat.nat_induction with n ih ih generalizing g,
   { rw [cont_diff_zero] at hg ⊢,
     exact hcg.continuous_convolution_right L hf hg },
@@ -1031,7 +1036,7 @@ begin
   { rw [cont_diff_top] at hg ⊢, exact λ n, ih n hcg (hg n) }
 end
 
-lemma has_compact_support.cont_diff_convolution_left [finite_dimensional 𝕜 G] [is_neg_invariant μ]
+lemma has_compact_support.cont_diff_convolution_left [is_neg_invariant μ]
   (hcf : has_compact_support f) (hf : cont_diff 𝕜 n f) (hg : locally_integrable g μ) :
   cont_diff 𝕜 n (f ⋆[L, μ] g) :=
 by { rw [← convolution_flip], exact hcf.cont_diff_convolution_right L.flip hg hf }

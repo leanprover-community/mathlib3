@@ -269,7 +269,7 @@ section linear_ordered_field
 variables [linear_ordered_field α]
 
 lemma archimedean_iff_nat_lt : archimedean α ↔ ∀ x : α, ∃ n : ℕ, x < n :=
-⟨@exists_nat_gt α _ _, λ H, ⟨λ x y y0,
+⟨@exists_nat_gt α _, λ H, ⟨λ x y y0,
   (H (x / y)).imp $ λ n h, le_of_lt $
   by rwa [div_lt_iff y0, ← nsmul_eq_mul] at h⟩⟩
 

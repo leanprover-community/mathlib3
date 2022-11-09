@@ -236,7 +236,7 @@ variables [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
 /-- Composition of a seminorm with a linear map is a seminorm. -/
 def comp (p : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) : seminorm 𝕜 E :=
 { to_fun    := λ x, p (f x),
-  smul'     := λ k x, by rw [map_smulₛₗ, map_smul_eq_mul, ring_hom_isometric.is_iso],
+  smul'     := λ _ _, by rw [map_smulₛₗ, map_smul_eq_mul, ring_hom_isometric.is_iso],
   ..(p.to_add_group_seminorm.comp f.to_add_monoid_hom) }
 
 lemma coe_comp (p : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) : ⇑(p.comp f) = p ∘ f := rfl

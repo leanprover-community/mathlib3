@@ -121,8 +121,6 @@ begin
   simpa only using fun_like.congr_fun h x,
 end
 
-/- need to make this depend on #17000 in order for this to work.
-/--  -/
 lemma ext_star_alg_hom_class_topological_closure [t2_space B] {F : Type*} {S : star_subalgebra R A}
   [star_alg_hom_class F R S.topological_closure B] {φ ψ : F} (hφ : continuous φ) (hψ : continuous ψ)
   (h : ∀ x : S, φ ((inclusion (le_topological_closure S) x))
@@ -134,7 +132,7 @@ begin
     simpa only [star_alg_hom.coe_comp, star_alg_hom.coe_coe] using h },
   simpa only [fun_like.ext'_iff, star_alg_hom.coe_coe],
 end
--/
+
 end topological_star_algebra
 
 end star_subalgebra

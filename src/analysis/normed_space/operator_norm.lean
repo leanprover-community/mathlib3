@@ -1637,7 +1637,7 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
   end,
   cont := cont }
 
-lemma extend_eq (x : E) : extend f e h_dense h_e (e x) = f x :=
+@[simp] lemma extend_eq (x : E) : extend f e h_dense h_e (e x) = f x :=
 dense_inducing.extend_eq _ f.cont _
 
 lemma extend_unique (g : Fₗ →SL[σ₁₂] F) (H : g.comp e = f) : extend f e h_dense h_e = g :=

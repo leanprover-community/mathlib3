@@ -485,7 +485,7 @@ variables [topological_add_group G]
 
 lemma has_compact_support.convolution [t2_space G] (hcf : has_compact_support f)
   (hcg : has_compact_support g) : has_compact_support (f ⋆[L, μ] g) :=
-compact_of_is_closed_subset (hcg.is_compact.add hcf) is_closed_closure $ closure_minimal
+is_compact_of_is_closed_subset (hcg.is_compact.add hcf) is_closed_closure $ closure_minimal
   ((support_convolution_subset_swap L).trans $ add_subset_add subset_closure subset_closure)
   (hcg.is_compact.add hcf).is_closed
 

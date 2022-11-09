@@ -626,7 +626,7 @@ variables {s t : set α}
 
 /-- Construct a finset enumerating a set `s`, given a `fintype` instance.  -/
 def to_finset (s : set α) [fintype s] : finset α :=
-⟨(@finset.univ s _).1.map subtype.val, finset.univ.nodup.map $ λ a b, subtype.eq⟩
+(@finset.univ s _).map $ function.embedding.subtype _
 
 @[congr]
 lemma to_finset_congr {s t : set α} [fintype s] [fintype t] (h : s = t) :

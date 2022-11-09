@@ -1214,3 +1214,110 @@ instance {M N} {hM : mul_zero_one_class M} [comm_monoid_with_zero N] : has_mul (
   { to_fun := λ a, f a * g a,
     map_zero' := by rw [map_zero, zero_mul],
     ..(f * g : M →* N) }⟩
+
+section coe
+
+/-! ### Coercions as bundled morphisms
+
+The classes `coe_mul_hom`, `coe_monoid_hom`, etc. state that the coercion map `↑` (a.k.a. `coe`)
+is a homomorphism.
+-/
+
+variables (M N) [has_lift_t M N]
+
+/-- `coe_zero_hom M N` is a class stating that the coercion map `↑ : M → N` (a.k.a. `coe`)
+is an zero-preserving homomorphism.
+-/
+class coe_zero_hom [has_zero M] [has_zero N] : Prop :=
+(coe_zero : (↑(0 : M) : N) = 0)
+export coe_zero_hom (coe_zero)
+
+attribute [simp] coe_zero
+
+/-- `coe_one_hom M N` is a class stating that the coercion map `↑ : M → N` (a.k.a. `coe`)
+is a one-preserving homomorphism.
+-/
+@[to_additive]
+class coe_one_hom [has_one M] [has_one N] : Prop :=
+(coe_one : (↑(1 : M) : N) = 1)
+export coe_one_hom (coe_one)
+
+attribute [simp] coe_one
+
+/-- `one_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
+bundled as a one-preserving homomorphism. -/
+@[to_additive "`zero_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
+bundled as a zero-preserving homomorphism.", simps { fully_applied := ff }]
+def one_hom.coe [has_one M] [has_one N] [coe_one_hom M N] : one_hom M N :=
+{ to_fun := coe,
+  map_one' := coe_one }
+
+/-- `coe_add_hom M N` is a class stating that the coercion map `↑ : M → N` (a.k.a. `coe`)
+is an additive homomorphism.
+-/
+class coe_add_hom [has_add M] [has_add N] : Prop :=
+(coe_add : ∀ (x y : M), (↑(x + y) : N) = ↑x + ↑y)
+export coe_add_hom (coe_add)
+
+attribute [simp] coe_add
+
+/-- `coe_mul_hom M N` is a class stating that the coercion map `↑ : M → N` (a.k.a. `coe`)
+is a multiplicative homomorphism.
+-/
+@[to_additive]
+class coe_mul_hom [has_mul M] [has_mul N] : Prop :=
+(coe_mul : ∀ (x y : M), (↑(x * y) : N) = ↑x * ↑y)
+export coe_mul_hom (coe_mul)
+
+attribute [simp] coe_mul
+
+/-- `mul_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
+bundled as a multiplicative homomorphism. -/
+@[to_additive "`add_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
+bundled as an additive homomorphism.", simps { fully_applied := ff }]
+def mul_hom.coe [has_mul M] [has_mul N] [coe_mul_hom M N] : mul_hom M N :=
+{ to_fun := coe,
+  map_mul' := coe_mul }
+
+/-- `coe_add_monoid_hom M N` is a class stating that the coercion map `↑ : M → N` (a.k.a. `coe`)
+is an additive monoid homomorphism.
+-/
+class coe_add_monoid_hom [add_zero_class M] [add_zero_class N]
+  extends coe_zero_hom M N, coe_add_hom M N
+
+/-- `coe_monoid_hom M N` is a class stating that the coercion map `↑ : M → N` (a.k.a. `coe`)
+is a monoid homomorphism.
+-/
+@[to_additive]
+class coe_monoid_hom [mul_one_class M] [mul_one_class N]
+  extends coe_one_hom M N, coe_mul_hom M N
+
+-- `to_additive` doesn't seem to map these correctly...
+attribute [to_additive coe_add_monoid_hom.to_coe_zero_hom] coe_monoid_hom.to_coe_one_hom
+attribute [to_additive coe_add_monoid_hom.to_coe_add_hom] coe_monoid_hom.to_coe_mul_hom
+
+/-- `monoid_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
+bundled as a monoid homomorphism. -/
+@[to_additive "`add_monoid_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
+bundled as an additive monoid homomorphism.", simps { fully_applied := ff }]
+def monoid_hom.coe [mul_one_class M] [mul_one_class N] [coe_monoid_hom M N] : M →* N :=
+{ to_fun := coe,
+  .. one_hom.coe M N,
+  .. mul_hom.coe M N }
+
+/-- `coe_monoid_with-zero_hom M N` is a class stating that the coercion map `↑ : M → N`
+(a.k.a. `coe`) is a monoid with zero homomorphism.
+-/
+class coe_monoid_with_zero_hom [monoid_with_zero M] [monoid_with_zero N]
+  extends coe_monoid_hom M N, coe_zero_hom M N
+
+/-- `monoid_with_zero_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
+bundled as a monoid with zero homomorphism. -/
+@[simps { fully_applied := ff }]
+def monoid_with_zero_hom.coe [monoid_with_zero M] [monoid_with_zero N]
+  [coe_monoid_with_zero_hom M N] : M →*₀ N :=
+{ to_fun := coe,
+  .. monoid_hom.coe M N,
+  .. zero_hom.coe M N }
+
+end coe

@@ -49,9 +49,13 @@ variables {C : Type u} [category.{v} C] [concrete_category.{v} C] {X : Top.{v}}
 /-- Let `ℱ, 𝒢 : (opens X)ᵒᵖ ⥤ C` be `C`-valued presheaves on `X`. -/
 variables {ℱ 𝒢 : X.presheaf C}
 
-/-- A map of presheaves `T : ℱ ⟶ 𝒢` is **locally surjective** if for
-any open set `U`, section `t` over `U`, and `x ∈ U`, there exists an open set
-`x ∈ V ⊆ U` such that `$T_*(s_V) = t|_V$`. See `is_locally_surjective_iff` below. -/
+/--
+A map of presheaves `T : ℱ ⟶ 𝒢` is **locally surjective** if for any open set `U`,
+section `t` over `U`, and `x ∈ U`, there exists an open set `x ∈ V ⊆ U` and a section `s` over `V`
+such that `$T_*(s_V) = t|_V$`.
+
+See `is_locally_surjective_iff` below.
+-/
 def is_locally_surjective (T : ℱ ⟶ 𝒢) :=
   category_theory.is_locally_surjective (opens.grothendieck_topology X) T
 

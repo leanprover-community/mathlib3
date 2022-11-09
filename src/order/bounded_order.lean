@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import order.lattice
-import logic.equiv.basic
+import data.option.basic
 
 /-!
 # ⊤ and ⊥, bounded lattices and variants
@@ -361,6 +361,10 @@ instance Prop.bounded_order : bounded_order Prop :=
   le_top       := λ a Ha, true.intro,
   bot          := false,
   bot_le       := @false.elim }
+
+lemma Prop.bot_eq_false : (⊥ : Prop) = false := rfl
+
+lemma Prop.top_eq_true : (⊤ : Prop) = true := rfl
 
 instance Prop.le_is_total : is_total Prop (≤) :=
 ⟨λ p q, by { change (p → q) ∨ (q → p), tauto! }⟩

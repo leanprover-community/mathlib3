@@ -73,6 +73,10 @@ end
 eq.trans (congr_arg index (by refl))
   ((H.subgroup_of f.range).index_comap_of_surjective f.range_restrict_surjective)
 
+@[to_additive] lemma relindex_comap {G' : Type*} [group G'] (f : G' →* G) (K : subgroup G') :
+  relindex (comap f H) K = relindex H (map f K) :=
+by rw [relindex, subgroup_of, comap_comap, index_comap, ← f.map_range, K.subtype_range]
+
 variables {H K L}
 
 @[to_additive relindex_mul_index] lemma relindex_mul_index (h : H ≤ K) :
@@ -196,6 +200,14 @@ by rw [relindex, subgroup_of_bot_eq_top, index_top]
 @[simp, to_additive] lemma relindex_self : H.relindex H = 1 :=
 by rw [relindex, subgroup_of_self, index_top]
 
+@[to_additive] lemma index_ker {H} [group H] (f : G →* H) :
+  f.ker.index = nat.card (set.range f) :=
+by { rw [← monoid_hom.comap_bot, index_comap, relindex_bot_left], refl }
+
+@[to_additive] lemma relindex_ker {H} [group H] (f : G →* H) (K : subgroup G) :
+  f.ker.relindex K = nat.card (f '' K) :=
+by { rw [← monoid_hom.comap_bot, relindex_comap, relindex_bot_left], refl }
+
 @[simp, to_additive card_mul_index]
 lemma card_mul_index : nat.card H * H.index = nat.card G :=
 by { rw [←relindex_bot_left, ←index_bot], exact relindex_mul_index bot_le }
@@ -264,6 +276,9 @@ eq_zero_of_zero_dvd (hKL ▸ (relindex_dvd_of_le_left L hHK))
 lemma relindex_eq_zero_of_le_right (hKL : K ≤ L) (hHK : H.relindex K = 0) : H.relindex L = 0 :=
 finite.card_eq_zero_of_embedding (quotient_subgroup_of_embedding_of_le H hKL) hHK
 
+@[to_additive] lemma index_eq_zero_of_relindex_eq_zero (h : H.relindex K = 0) : H.index = 0 :=
+H.relindex_top_right.symm.trans (relindex_eq_zero_of_le_right le_top h)
+
 @[to_additive] lemma relindex_le_of_le_left (hHK : H ≤ K) (hHL : H.relindex L ≠ 0) :
   K.relindex L ≤ H.relindex L :=
 nat.le_of_dvd (nat.pos_of_ne_zero hHL) (relindex_dvd_of_le_left L hHK)
@@ -309,12 +324,12 @@ by simp_rw [←relindex_top_right, relindex_inf_le]
 begin
   haveI := fintype.of_finite ι,
   exact finset.prod_ne_zero_iff.mpr (λ i hi, hf i) ∘ nat.card_pi.symm.trans ∘
-    finite.card_eq_zero_of_embedding (quotient_infi_embedding f L),
+    finite.card_eq_zero_of_embedding (quotient_infi_subgroup_of_embedding f L),
 end
 
 @[to_additive] lemma relindex_infi_le {ι : Type*} [fintype ι] (f : ι → subgroup G) :
   (⨅ i, f i).relindex L ≤ ∏ i, (f i).relindex L :=
-le_of_le_of_eq (finite.card_le_of_embedding' (quotient_infi_embedding f L)
+le_of_le_of_eq (finite.card_le_of_embedding' (quotient_infi_subgroup_of_embedding f L)
   (λ h, let ⟨i, hi, h⟩ := finset.prod_eq_zero_iff.mp (nat.card_pi.symm.trans h) in
     relindex_eq_zero_of_le_left (infi_le f i) h)) nat.card_pi
 

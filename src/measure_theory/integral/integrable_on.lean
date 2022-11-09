@@ -217,6 +217,10 @@ lemma integrable.indicator (h : integrable f μ) (hs : measurable_set s) :
   integrable (indicator s f) μ :=
 h.integrable_on.indicator hs
 
+lemma integrable_on.indicator' (h : integrable_on f s μ) (ht : measurable_set t) :
+  integrable_on (indicator t f) s μ :=
+integrable.indicator h ht
+
 lemma integrable_indicator_const_Lp {E} [normed_add_comm_group E]
   {p : ℝ≥0∞} {s : set α} (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : E) :
   integrable (indicator_const_Lp p hs hμs c) μ :=

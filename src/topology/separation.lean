@@ -1070,7 +1070,8 @@ begin
   rcases em (i = j) with (rfl|h),
   { replace neq : x ≠ y := λ c, (c.subst neq) rfl,
     exact separated_by_open_embedding open_embedding_sigma_mk neq },
-  { exact ⟨_, _, is_open_range_sigma_mk, is_open_range_sigma_mk, ⟨x, rfl⟩, ⟨y, rfl⟩, by tidy⟩ }
+  { exact ⟨_, _, is_open_range_sigma_mk, is_open_range_sigma_mk, ⟨x, rfl⟩, ⟨y, rfl⟩,
+      set.disjoint_left.mpr $ by tidy⟩ }
 end
 
 variables {γ : Type*} [topological_space β] [topological_space γ]
@@ -1543,12 +1544,12 @@ theorem normal_exists_closure_subset [normal_space α] {s t : set α} (hs : is_c
   (ht : is_open t) (hst : s ⊆ t) :
   ∃ u, is_open u ∧ s ⊆ u ∧ closure u ⊆ t :=
 begin
-  have : disjoint s tᶜ, from λ x ⟨hxs, hxt⟩, hxt (hst hxs),
+  have : disjoint s tᶜ, from set.disjoint_left.mpr (λ x hxs hxt, hxt (hst hxs)),
   rcases normal_separation hs (is_closed_compl_iff.2 ht) this
     with ⟨s', t', hs', ht', hss', htt', hs't'⟩,
   refine ⟨s', hs', hss',
     subset.trans (closure_minimal _ (is_closed_compl_iff.2 ht')) (compl_subset_comm.1 htt')⟩,
-  exact λ x hxs hxt, hs't' ⟨hxs, hxt⟩
+  exact λ x hxs hxt, hs't'.le_bot ⟨hxs, hxt⟩
 end
 
 @[priority 100] -- see Note [lower instance priority]
@@ -1629,12 +1630,12 @@ begin
     refine mem_bUnion huU ⟨hxu, _⟩,
     simp only [mem_Union],
     rintro ⟨v, hvV, -, hxv⟩,
-    exact hVd v hvV ⟨hxv, hx⟩ },
+    exact (hVd v hvV).le_bot ⟨hxv, hx⟩ },
   { rcases mem_Union₂.1 (htV hx) with ⟨v, hvV, hxv⟩,
     refine mem_bUnion hvV ⟨hxv, _⟩,
     simp only [mem_Union],
     rintro ⟨u, huU, -, hxu⟩,
-    exact hUd u huU ⟨hxu, hx⟩ },
+    exact (hUd u huU).le_bot ⟨hxu, hx⟩ },
   { simp only [disjoint_left, mem_Union, mem_diff, not_exists, not_and, not_forall, not_not],
     rintro a ⟨u, huU, hau, haV⟩ v hvV hav,
     cases le_total (encodable.encode u) (encodable.encode v) with hle hle,
@@ -1790,7 +1791,7 @@ begin
     rw [connected_component_eq_Inter_clopen, mem_Inter],
     rintro ⟨w : set α, hw : is_clopen w, hy : y ∈ w⟩,
     by_contra hx,
-    exact hyp wᶜ w hw.2.is_open_compl hw.1 hx hy (@is_compl_compl _ w _).symm.2
+    exact hyp wᶜ w hw.2.is_open_compl hw.1 hx hy (@is_compl_compl _ w _).symm.codisjoint.top_le
       disjoint_compl_left },
   apply totally_separated_space.totally_disconnected_space,
 end

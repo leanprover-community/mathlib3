@@ -69,17 +69,19 @@ variables [decidable_eq α] [decidable_eq β]
 lemma interedges_disjoint_left {s s' : finset α} (hs : disjoint s s') (t : finset β) :
   disjoint (interedges r s t) (interedges r s' t) :=
 begin
-  rintro x hx,
-  rw [inf_eq_inter, mem_inter, mem_interedges_iff, mem_interedges_iff] at hx,
-  exact hs (mem_inter.2 ⟨hx.1.1, hx.2.1⟩),
+  rw finset.disjoint_left,
+  rintro x hx hy,
+  rw [mem_interedges_iff] at hx hy,
+  exact hs.le_bot (mem_inter.2 ⟨hx.1, hy.1⟩),
 end
 
 lemma interedges_disjoint_right (s : finset α) {t t' : finset β} (ht : disjoint t t') :
   disjoint (interedges r s t) (interedges r s t') :=
 begin
-  rintro x hx,
-  rw [inf_eq_inter, mem_inter, mem_interedges_iff, mem_interedges_iff] at hx,
-  exact ht (mem_inter.2 ⟨hx.1.2.1, hx.2.2.1⟩),
+  rw finset.disjoint_left,
+  rintro x hx hy,
+  rw [mem_interedges_iff] at hx hy,
+  exact ht.le_bot (mem_inter.2 ⟨hx.2.1, hy.2.1⟩),
 end
 
 lemma interedges_bUnion_left (s : finset ι) (t : finset β) (f : ι → finset α) :

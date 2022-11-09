@@ -148,8 +148,7 @@ lemma intersecting.card_le [fintype α] {s : finset α}
   (hs : (s : set α).intersecting) : 2 * s.card ≤ fintype.card α :=
 begin
   classical,
-  refine (s.disj_union (s.map ⟨compl, compl_injective⟩)
-    (finset.disjoint_left.mp hs.disjoint_map_compl)).card_le_univ.trans_eq' _,
+  refine (s.disj_union _ hs.disjoint_map_compl).card_le_univ.trans_eq' _,
   rw [two_mul, card_disj_union, card_map],
 end
 
@@ -162,8 +161,7 @@ begin
   classical,
   refine ⟨λ h, _, λ h t ht hst, finset.eq_of_subset_of_card_le hst $
     le_of_mul_le_mul_left (ht.card_le.trans_eq h.symm) two_pos⟩,
-  suffices : s.disj_union (s.map ⟨compl, compl_injective⟩)
-    (finset.disjoint_left.mp hs.disjoint_map_compl) = finset.univ,
+  suffices : s.disj_union (s.map ⟨compl, compl_injective⟩) (hs.disjoint_map_compl) = finset.univ,
   { rw [fintype.card, ←this, two_mul, card_disj_union, card_map] },
   rw [←coe_eq_univ, disj_union_eq_union, coe_union, coe_map, function.embedding.coe_fn_mk,
     image_eq_preimage_of_inverse compl_compl compl_compl],

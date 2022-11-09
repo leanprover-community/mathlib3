@@ -312,6 +312,15 @@ lemma mul_right_surjective₀ {a : G₀} (h : a ≠ 0) : surjective (λ g, g * a
 
 end group_with_zero
 
+section comm_group_with_zero
+variables [comm_group_with_zero G₀] {a b c d : G₀}
+
+lemma div_mul_eq_mul_div₀ (a b c : G₀) : (a / c) * b = a * b / c :=
+by simp_rw [div_eq_mul_inv, mul_assoc, mul_comm c⁻¹]
+
+end comm_group_with_zero
+
+
 /-! ### Order dual -/
 
 open order_dual

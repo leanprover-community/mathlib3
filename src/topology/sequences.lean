@@ -345,7 +345,7 @@ end
 
 /-- If `𝓤 β` is countably generated, then any sequentially compact set is compact. -/
 protected lemma is_seq_compact.is_compact (hs : is_seq_compact s) : is_compact s :=
-compact_iff_totally_bounded_complete.2 ⟨hs.totally_bounded, hs.is_complete⟩
+is_compact_iff_totally_bounded_is_complete.2 ⟨hs.totally_bounded, hs.is_complete⟩
 
 /-- A version of Bolzano-Weistrass: in a uniform space with countably generated uniformity filter
 (e.g., in a metric space), a set is compact if and only if it is sequentially compact. -/

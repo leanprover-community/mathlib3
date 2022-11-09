@@ -664,3 +664,11 @@ Numerical Analysis:
   Fourier transform:
     discrete Fourier transform on a finite abelian group: ''
     fast Fourier transform: ''
+    
+
+# 14.
+Representation theory:
+  representation : 'representation'
+  category of finite dimensional representations : 'fdRep'
+  character : 'fdRep.character'
+  orthogonality of characters : 'fdRep.char_orthonormal'

@@ -108,8 +108,7 @@ by { nth_rewrite 0 [←star_star x], simp only [norm_star_mul_self, norm_star] }
 lemma norm_star_mul_self' {x : E} : ∥x⋆ * x∥ = ∥x⋆∥ * ∥x∥ :=
 by rw [norm_star_mul_self, norm_star]
 
-lemma nnnorm_self_mul_star {E : Type*} [non_unital_normed_ring E] [star_ring E]
-  [cstar_ring E] {x : E} : ∥x * star x∥₊ = ∥x∥₊ * ∥x∥₊ :=
+lemma nnnorm_self_mul_star {x : E} : ∥x * star x∥₊ = ∥x∥₊ * ∥x∥₊ :=
 subtype.ext norm_self_mul_star
 
 lemma nnnorm_star_mul_self {x : E} : ∥x⋆ * x∥₊ = ∥x∥₊ * ∥x∥₊ :=
@@ -265,8 +264,8 @@ variables (𝕜) [densely_normed_field 𝕜] [non_unital_normed_ring E] [star_ri
 variables [normed_space 𝕜 E] [is_scalar_tower 𝕜 E E] [smul_comm_class 𝕜 E E] (a : E)
 
 /-- In a C⋆-algebra `E`, either unital or non-unital, multiplication on the left by `a : E` has
-norm eqaul to the norm of `a`. -/
-lemma op_nnnorm_mul : ∥mul 𝕜 E a∥₊ = ∥a∥₊ :=
+norm equal to the norm of `a`. -/
+@[simp] lemma op_nnnorm_mul : ∥mul 𝕜 E a∥₊ = ∥a∥₊ :=
 begin
   rw ←Sup_closed_unit_ball_eq_nnnorm,
   refine cSup_eq_of_forall_le_of_forall_lt_exists_gt _ _ (λ r hr, _),
@@ -287,7 +286,7 @@ end
 
 /-- In a C⋆-algebra `E`, either unital or non-unital, multiplication on the right by `a : E` has
 norm eqaul to the norm of `a`. -/
-lemma op_nnnorm_mul_flip : ∥(mul 𝕜 E).flip a∥₊ = ∥a∥₊ :=
+@[simp] lemma op_nnnorm_mul_flip : ∥(mul 𝕜 E).flip a∥₊ = ∥a∥₊ :=
 begin
   rw [←Sup_unit_ball_eq_nnnorm, ←nnnorm_star, ←@op_nnnorm_mul 𝕜 E, ←Sup_unit_ball_eq_nnnorm],
   congr' 1,

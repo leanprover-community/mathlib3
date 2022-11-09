@@ -1355,10 +1355,15 @@ begin
     simp [hv] }
 end
 
+end division_ring
+
+section field
+variables [field K] [add_comm_group V] [module K V]
+
 lemma set.finrank_mono [finite_dimensional K V] {s t : set V} (h : s ⊆ t) :
   s.finrank K ≤ t.finrank K := finrank_mono (span_mono h)
 
-end division_ring
+end field
 
 end span
 

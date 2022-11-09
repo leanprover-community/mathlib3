@@ -28,6 +28,13 @@ vector spaces, like `![![1, 0], ![1, 1]]`.
 open_locale big_operators
 open submodule set finsupp
 
+variables {R M ι : Type*} [ring R] [add_comm_monoid M] [module R M]
+variables {x : M} {b : ι → M}
+
+lemma mem_span_range_iff_exists_finsupp :
+  x ∈ span R (range b) ↔ ∃ (c : ι →₀ R), c.sum (λ i a, a • b i) = x :=
+by simp only [←finsupp.range_total, linear_map.mem_range, finsupp.total_apply]
+
 /-!
 ### Finite Type
 
@@ -35,18 +42,13 @@ These results assume that the family `b : ι → V` is finite. The typical appli
 families of the form `b : (fin n) → V`, i.e. see [data.fin.vec_notation].
 -/
 
-variables {R M ι : Type*} [ring R] [add_comm_monoid M] [module R M] [fintype ι]
-variables {x : M} {b : ι → M}
-
-lemma mem_span_range_iff_exists_finsupp :
-  x ∈ span R (range b) ↔ ∃ (c : ι →₀ R), c.sum (λ i a, a • b i) = x :=
-by simp only [←finsupp.range_total, linear_map.mem_range, finsupp.total_apply]
+variable [fintype ι]
 
 /--
 An element `x` lies in the span of `b` iff it can be written as linear combination
 of elements in `b`.
 -/
-theorem mem_span_range_iff_exists_fun [fintype ι] :
+theorem mem_span_range_iff_exists_fun :
   x ∈ span R (range b) ↔ ∃ (c : ι → R), ∑ i, c i • b i = x :=
 begin
   simp only [mem_span_range_iff_exists_finsupp, equiv_fun_on_fintype.surjective.exists,

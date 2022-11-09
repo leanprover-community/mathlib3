@@ -15,7 +15,7 @@ import topology.category.Top.limits
 ## Main definitions
 - `category_theory.is_van_kampen_colimit`: A (colimit) cocone over a diagram `F : J ⥤ C` is van
   Kampen if for every cocone `c'` over the pullback of the diagram `F' : J ⥤ C'`,
-  `c'` is colimiting iff `c'` is the pullback of `c'`.
+  `c'` is colimiting iff `c'` is the pullback of `c`.
 - `category_theory.finitary_extensive`: A category is (finitary) extensive if it has finite
   coproducts, and binary coproducts are van Kampen.
 
@@ -76,7 +76,7 @@ def is_universal_colimit {F : J ⥤ C} (c : cocone F) : Prop :=
   (∀ j : J, is_pullback (c'.ι.app j) (α.app j) f (c.ι.app j)) → nonempty (is_colimit c')
 
 /-- A (colimit) cocone over a diagram `F : J ⥤ C` is van Kampen if for every cocone `c'` over the
-pullback of the diagram `F' : J ⥤ C'`, `c'` is colimiting iff `c'` is the pullback of `c'`.
+pullback of the diagram `F' : J ⥤ C'`, `c'` is colimiting iff `c'` is the pullback of `c`.
 
 TODO: Show that this is iff the functor `C ⥤ Catᵒᵖ` sending `x` to `C/x` preserves it.
 TODO: Show that this is iff the inclusion functor `C ⥤ Span(C)` preserves it.

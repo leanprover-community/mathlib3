@@ -518,6 +518,10 @@ theorem mem_span_iff_total (s : set M) (x : M) :
   x ∈ span R s ↔ ∃ l : s →₀ R, finsupp.total s M R coe l = x :=
 (set_like.ext_iff.1 $ span_eq_range_total _ _) x
 
+lemma mem_span_range_iff_exists_finsupp {x : M} {b : α → M} :
+  x ∈ span R (range b) ↔ ∃ (c : α →₀ R), c.sum (λ i a, a • b i) = x :=
+by simp only [←finsupp.range_total, linear_map.mem_range, finsupp.total_apply]
+
 theorem span_image_eq_map_total (s : set α):
   span R (v '' s) = submodule.map (finsupp.total α M R v) (supported R R s) :=
 begin
@@ -879,6 +883,40 @@ variables {S}
 lemma fintype.range_total : (fintype.total R S v).range = submodule.span R (set.range v) :=
 by rw [← finsupp.total_eq_fintype_total, linear_map.range_comp,
   linear_equiv.to_linear_map_eq_coe, linear_equiv.range, submodule.map_top, finsupp.range_total]
+
+section span_range
+
+variables {x : M} {b : α → M}
+
+/--
+An element `x` lies in the span of `b` iff it can be written as sum `∑ cᵢ • bᵢ = x`.
+-/
+lemma mem_span_range_iff_exists_fun :
+  x ∈ span R (range b) ↔ ∃ (c : α → R), ∑ i, c i • b i = x :=
+begin
+  simp only [finsupp.mem_span_range_iff_exists_finsupp,
+    finsupp.equiv_fun_on_fintype.surjective.exists, finsupp.equiv_fun_on_fintype_apply],
+  exact exists_congr (λ c, eq.congr_left $ finsupp.sum_fintype _ _ $ λ i, zero_smul _ _)
+end
+
+/--
+A family `b: α → V` is generating `V` iff every element `(x : V)`
+can be written as sum `∑ cᵢ • bᵢ = x`.
+-/
+theorem top_le_span_range_iff_forall_exists_fun :
+  ⊤ ≤ span R (range b) ↔ ∀ x, ∃ (c : α → R), ∑ i, (c i) • (b i) = x :=
+begin
+  simp_rw ←mem_span_range_iff_exists_fun,
+  rw set_like.le_def,
+  constructor,
+  { intros h x,
+    apply h,
+    simp only [mem_top] },
+  { intros h x _,
+    exact h x },
+end
+
+end span_range
 
 end fintype
 

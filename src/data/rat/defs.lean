@@ -62,7 +62,11 @@ instance : has_repr ℚ := ⟨rat.repr⟩
 instance : has_to_string ℚ := ⟨rat.repr⟩
 meta instance : has_to_format ℚ := ⟨coe ∘ rat.repr⟩
 
-instance : has_int_cast ℚ := ⟨λ n, ⟨n, 1, nat.one_pos, nat.coprime_one_right _⟩⟩
+/-- Embed an integer as a rational number. You should use the coercion `coe : ℤ → ℚ` instead. -/
+def of_int (n : ℤ) : ℚ :=
+⟨n, 1, nat.one_pos, nat.coprime_one_right _⟩
+
+instance : has_int_cast ℚ := ⟨of_int⟩
 
 @[simp, norm_cast] lemma coe_int_num (n : ℤ) : (n : ℚ).num = n := rfl
 @[simp, norm_cast] lemma coe_int_denom (n : ℤ) : (n : ℚ).denom = 1 := rfl
@@ -469,7 +473,7 @@ instance : comm_ring ℚ :=
   int_cast         := coe,
   /- Important: We do not set `nat_cast := λ n, ((n : ℤ) : ℚ)` (even though it's defeq) as that
   makes `int.cast_coe_nat` and `coe_coe` loop in `simp`. -/
-  nat_cast         := λ n, ⟨n, 1, nat.one_pos, nat.coprime_one_right _⟩,
+  nat_cast         := λ n, of_int n,
   nat_cast_zero    := rfl,
   nat_cast_succ    := λ n, by change ((_ : ℤ) : ℚ) = ((_ : ℤ) : ℚ) + 1;
     by simp only [coe_int_eq_mk, add_def one_ne_zero one_ne_zero, ← mk_one_one]; simp }

@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston, Jireh Loreaux
 -/
 import algebra.ring.basic
-import algebra.divisibility
+import algebra.divisibility.basic
 import data.pi.algebra
 import algebra.hom.units
+import data.set.basic
 
 /-!
 # Homomorphisms of semirings and rings

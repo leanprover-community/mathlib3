@@ -254,10 +254,30 @@ to isomorphisms in `D`. -/
 def is_inverted_by (P : morphism_property C) (F : C ⥤ D) : Prop :=
 ∀ ⦃X Y : C⦄ (f : X ⟶ Y) (hf : P f), is_iso (F.map f)
 
-lemma is_inverted_by.of_comp {C₁ C₂ C₃ : Type*} [category C₁] [category C₂] [category C₃]
+namespace is_inverted_by
+
+lemma of_comp {C₁ C₂ C₃ : Type*} [category C₁] [category C₂] [category C₃]
   (W : morphism_property C₁) (F : C₁ ⥤ C₂) (hF : W.is_inverted_by F) (G : C₂ ⥤ C₃) :
   W.is_inverted_by (F ⋙ G) :=
 λ X Y f hf, by { haveI := hF f hf, dsimp, apply_instance, }
+
+lemma op {W : morphism_property C} {L : C ⥤ D} (h : W.is_inverted_by L) :
+  W.op.is_inverted_by L.op :=
+λ X Y f hf, by { haveI := h f.unop hf, dsimp, apply_instance, }
+
+lemma right_op {W : morphism_property C} {L : Cᵒᵖ ⥤ D} (h : W.op.is_inverted_by L) :
+  W.is_inverted_by L.right_op :=
+λ X Y f hf, by { haveI := h f.op hf, dsimp, apply_instance, }
+
+lemma left_op {W : morphism_property C} {L : C ⥤ Dᵒᵖ} (h : W.is_inverted_by L) :
+  W.op.is_inverted_by L.left_op :=
+λ X Y f hf, by { haveI := h f.unop hf, dsimp, apply_instance, }
+
+lemma unop {W : morphism_property C} {L : Cᵒᵖ ⥤ Dᵒᵖ} (h : W.op.is_inverted_by L) :
+  W.is_inverted_by L.unop :=
+λ X Y f hf, by { haveI := h f.op hf, dsimp, apply_instance, }
+
+end is_inverted_by
 
 /-- Given `app : Π X, F₁.obj X ⟶ F₂.obj X` where `F₁` and `F₂` are two functors,
 this is the `morphism_property C` satisfied by the morphisms in `C` with respect
@@ -372,6 +392,18 @@ full_subcategory (λ (F : C ⥤ D), W.is_inverted_by F)
 /-- A constructor for `W.functors_inverting D` -/
 def functors_inverting.mk {W : morphism_property C} {D : Type*} [category D]
 (F : C ⥤ D) (hF : W.is_inverted_by F) : W.functors_inverting D := ⟨F, hF⟩
+
+lemma is_inverted_by.iff_of_iso (W : morphism_property C) {F₁ F₂ : C ⥤ D} (e : F₁ ≅ F₂) :
+  W.is_inverted_by F₁ ↔ W.is_inverted_by F₂ :=
+begin
+  suffices : ∀ (X Y : C) (f : X ⟶ Y), is_iso (F₁.map f) ↔ is_iso (F₂.map f),
+  { split,
+    exact λ h X Y f hf, by { rw ← this, exact h f hf, },
+    exact λ h X Y f hf, by { rw this, exact h f hf, }, },
+  intros X Y f,
+  exact (respects_iso.isomorphisms D).arrow_mk_iso_iff
+    (arrow.iso_mk (e.app X) (e.app Y) (by simp)),
+end
 
 section diagonal
 

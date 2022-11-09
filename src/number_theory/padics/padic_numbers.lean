@@ -855,7 +855,7 @@ begin
   cases hq ε' hε'.1 with N hN, existsi N,
   intros i hi, let h := hN i hi,
   unfold norm,
-  rw_mod_cast [cau_seq.sub_apply, padic_norm_e.map_sub],
+  rw_mod_cast [padic_norm_e.map_sub],
   refine lt_trans _ hε'.2,
   exact_mod_cast hN i hi
 end

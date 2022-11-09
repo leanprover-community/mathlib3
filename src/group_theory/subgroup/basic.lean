@@ -8,6 +8,7 @@ import group_theory.submonoid.membership
 import group_theory.submonoid.centralizer
 import algebra.group.conj
 import algebra.module.basic
+import algebra.order.group.inj_surj
 import order.atoms
 import order.sup_indep
 
@@ -337,6 +338,10 @@ lemma mem_to_submonoid (K : subgroup G) (x : G) : x ∈ K.to_submonoid ↔ x ∈
 @[to_additive]
 instance (K : subgroup G) [d : decidable_pred (∈ K)] [fintype G] : fintype K :=
 show fintype {g : G // g ∈ K}, from infer_instance
+
+@[to_additive]
+instance (K : subgroup G) [finite G] : finite K :=
+subtype.finite
 
 @[to_additive]
 theorem to_submonoid_injective :

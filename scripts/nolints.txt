@@ -4,11 +4,6 @@ run_cmd tactic.skip
 -- algebra/free_algebra.lean
 apply_nolint free_algebra.semiring check_reducibility
 
--- algebra/hom/group.lean
-apply_nolint monoid_hom.ext_iff to_additive_doc
-apply_nolint mul_hom.ext_iff to_additive_doc
-apply_nolint one_hom.comp_assoc to_additive_doc
-
 -- category_theory/limits/filtered_colimit_commutes_finite_limit.lean
 apply_nolint category_theory.limits.colimit_limit_to_limit_colimit_is_iso fails_quickly
 
@@ -213,7 +208,7 @@ apply_nolint matrix.induction_on' fintype_finite
 -- data/multiset/functor.lean
 apply_nolint multiset.traverse doc_blame
 
--- data/nat/basic.lean
+-- data/nat/order.lean
 apply_nolint nat.subtype.order_bot fails_quickly
 
 -- data/num/bitwise.lean
@@ -430,12 +425,6 @@ apply_nolint first_order.language.direct_limit.exists_unify_eq fintype_finite
 
 -- number_theory/class_number/admissible_absolute_value.lean
 apply_nolint absolute_value.is_admissible.exists_partition fintype_finite
-
--- number_theory/cyclotomic/basic.lean
-apply_nolint is_cyclotomic_extension.finite fintype_finite
-apply_nolint is_cyclotomic_extension.finite_dimensional fintype_finite
-apply_nolint is_cyclotomic_extension.integral fintype_finite
-apply_nolint is_cyclotomic_extension.number_field fintype_finite
 
 -- order/prime_ideal.lean
 apply_nolint order.ideal.is_prime.is_maximal fails_quickly
@@ -921,6 +910,3 @@ apply_nolint transfer.compute_transfer doc_blame
 
 -- tactic/wlog.lean
 apply_nolint tactic.wlog doc_blame
-
--- topology/algebra/group.lean
-apply_nolint topological_space.positive_compacts.locally_compact_space_of_group to_additive_doc

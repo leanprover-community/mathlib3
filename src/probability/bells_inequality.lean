@@ -192,108 +192,98 @@ theorem bells_inequality_1964
   (Zb_measurable : ∀ i:ℕ , strongly_measurable (λ ω , (Zb i ω : ℝ)))
   (anticorrelation : ∀ i:ℕ , ∫ ω , (Za i ω : ℝ)*(Zb i ω) ∂(ℙ:measure Ω) = -1)
   :
-  | (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) ) 
-    - (∫ ω, (Za 1 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) ) |
+  (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) ) 
+    - (∫ ω, (Za 1 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) )
     ≤ 1 + (∫ ω, (Za 2 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) )
   :=
 
 begin
-  -- first do upper bound
-  have : 
-    (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) ) 
-    - (∫ ω, (Za 1 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) )  
-    ≤ 1 + (∫ ω, (Za 2 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) ),
-  { 
+  let f := λ ω:Ω , -(Za 2 ω :ℝ)*(Zb 2 ω) - (Za 2 ω)*(Zb 3 ω) 
+                      + (Za 1 ω)*(Zb 2 ω) - (Za 1 ω)*(Zb 3 ω) - 2,
 
-    let f := λ ω:Ω , -(Za 2 ω :ℝ)*(Zb 2 ω) - (Za 2 ω)*(Zb 3 ω) 
-                        + (Za 1 ω)*(Zb 2 ω) - (Za 1 ω)*(Zb 3 ω) - 2,
-
-    have ineq : ∀ ω: Ω, f ω ≤ 0 ,
-    { intro ω,
-      dsimp only [f],
-      -- will be sent to CHSH_inquality_of_int_units
-      set a:=- (Za 2 ω),
-      -- lift opposites
-      have : (Za 2 ω : ℝ) = -(a:ℝ) ,
-      { simp only [coe_coe, units.coe_neg, int.cast_neg, neg_neg],
-      },
-      rw this,
-      -- get rid of first - -
-      simp only [neg_neg],
-      -- get rid of second - -
-      have : (-a:ℝ)*(Zb 3 ω) = -(a*(Zb 3 ω):ℝ) := neg_mul _ _,
-      rw this,
-      simp only [sub_neg_eq_add],
-
-      -- need to turn x<=2 to x-2<=0
-      exact sub_nonpos_of_le (CHSH_inequality_of_int_units a (Za 1 ω) (Zb 2 ω) (Zb 3 ω)),
+  have ineq : ∀ ω: Ω, f ω ≤ 0 ,
+  { intro ω,
+    dsimp only [f],
+    -- will be sent to CHSH_inquality_of_int_units
+    set a:=- (Za 2 ω),
+    -- lift opposites
+    have : (Za 2 ω : ℝ) = -(a:ℝ) ,
+    { simp only [coe_coe, units.coe_neg, int.cast_neg, neg_neg],
     },
+    rw this,
+    -- get rid of first - -
+    simp only [neg_neg],
+    -- get rid of second - -
+    have : (-a:ℝ)*(Zb 3 ω) = -(a*(Zb 3 ω):ℝ) := neg_mul _ _,
+    rw this,
+    simp only [sub_neg_eq_add],
 
-    -- integrate chsh
-    have int_chsh : ∫ ω , f ω ∂(ℙ:measure Ω) ≤ 0 := integral_nonpos ineq,
-    -- expand definition of f
-    dsimp [f] at int_chsh,
-
-    have split_int : 
-    (∫ ω, -(Za 2 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) ) 
-    - (∫ ω, (Za 2 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) ) 
-    + (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) )  
-    - (∫ ω, (Za 1 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) )  
-    - (∫ ω, 2 ∂(ℙ:measure Ω) )  
-    ≤ 0,
-    {
-      -- prove all the required integrabilities
-      let f1 := (λ ω , -(Za 2 ω : ℝ) * (Zb 2 ω)),
-      let f2 := (λ ω , (Za 2 ω : ℝ) * (Zb 3 ω)),
-      let f3 := (λ ω , (Za 1 ω : ℝ) * (Zb 2 ω)),
-      let f4 := (λ ω , (Za 1 ω : ℝ) * (Zb 3 ω)),
-      have i_1: integrable f1 (ℙ:measure Ω) := integrable_mul_of_units_int_neg ℙ (Za 2) (Zb 2) (Za_measurable 2) (Zb_measurable 2),
-      have i_2: integrable f2 (ℙ:measure Ω) := integrable_mul_of_units_int ℙ (Za 2) (Zb 3) (Za_measurable 2) (Zb_measurable 3),
-      have i_3: integrable f3 (ℙ:measure Ω) := integrable_mul_of_units_int ℙ (Za 1) (Zb 2) (Za_measurable 1) (Zb_measurable 2),
-      have i_4: integrable f4 (ℙ:measure Ω) := integrable_mul_of_units_int ℙ (Za 1) (Zb 3) (Za_measurable 1) (Zb_measurable 3),
-      dsimp [f1] at i_1,
-      dsimp [f2] at i_2,
-      dsimp [f3] at i_3,
-      dsimp [f4] at i_4,
-
-      have i_12: integrable (λ ω , f1 ω - f2 ω) (ℙ:measure Ω) := integrable.sub i_1 i_2,
-      have i_123: integrable (λ ω , f1 ω - f2 ω + f3 ω) (ℙ:measure Ω) := integrable.add i_12 i_3,
-      have i_1234: integrable (λ ω , f1 ω - f2 ω + f3 ω - f4 ω) (ℙ:measure Ω) := integrable.sub i_123 i_4,
-      dsimp [f1,f2,f3,f4] at i_1234,
-      dsimp [f1,f2,f3] at i_123,
-      dsimp [f1,f2] at i_12,
-
-      have i_c: integrable (λ ω:Ω, (2:ℝ)) (ℙ:measure Ω) := integrable_const _,
-
-      rw [integral_sub i_1234 i_c] at int_chsh,
-      rw [integral_sub i_123 i_4] at int_chsh,
-      rw [integral_add i_12 i_3] at int_chsh,
-      rw [integral_sub i_1 i_2] at int_chsh,
-
-      exact int_chsh,
-    },
-    
-    have anticor : ∫ ω, -(Za 2 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) = 1,
-    {
-      have : ∫ ω, -(Za 2 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) = ∫ ω, -((Za 2 ω : ℝ) * (Zb 2 ω)) ∂(ℙ:measure Ω) ,
-      { simp only [neg_mul], },
-      rw this,
-      rw integral_neg _,
-      rw anticorrelation,
-      ring_nf,
-    },
-
-    have int_2 : ∫ ω, (2:ℝ) ∂(ℙ:measure Ω) = 2 ,
-    { simp only [integral_const, measure_univ, ennreal.one_to_real, algebra.id.smul_eq_mul, one_mul], },
-    rw [anticor,int_2] at split_int,
-    ring_nf at split_int,
-    apply sub_nonpos.mp,
-    ring_nf,
-    linarith,
-    -- almost done!
-    sorry,
+    -- need to turn x<=2 to x-2<=0
+    exact sub_nonpos_of_le (CHSH_inequality_of_int_units a (Za 1 ω) (Zb 2 ω) (Zb 3 ω)),
   },
 
+  -- integrate chsh
+  have int_chsh : ∫ ω , f ω ∂(ℙ:measure Ω) ≤ 0 := integral_nonpos ineq,
+  -- expand definition of f
+  dsimp [f] at int_chsh,
+
+  have split_int : 
+  (∫ ω, -(Za 2 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) ) 
+  - (∫ ω, (Za 2 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) ) 
+  + (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) )  
+  - (∫ ω, (Za 1 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) )  
+  - (∫ ω, 2 ∂(ℙ:measure Ω) )  
+  ≤ 0,
+  {
+    -- prove all the required integrabilities
+    let f1 := (λ ω , -(Za 2 ω : ℝ) * (Zb 2 ω)),
+    let f2 := (λ ω , (Za 2 ω : ℝ) * (Zb 3 ω)),
+    let f3 := (λ ω , (Za 1 ω : ℝ) * (Zb 2 ω)),
+    let f4 := (λ ω , (Za 1 ω : ℝ) * (Zb 3 ω)),
+    have i_1: integrable f1 (ℙ:measure Ω) := integrable_mul_of_units_int_neg ℙ (Za 2) (Zb 2) (Za_measurable 2) (Zb_measurable 2),
+    have i_2: integrable f2 (ℙ:measure Ω) := integrable_mul_of_units_int ℙ (Za 2) (Zb 3) (Za_measurable 2) (Zb_measurable 3),
+    have i_3: integrable f3 (ℙ:measure Ω) := integrable_mul_of_units_int ℙ (Za 1) (Zb 2) (Za_measurable 1) (Zb_measurable 2),
+    have i_4: integrable f4 (ℙ:measure Ω) := integrable_mul_of_units_int ℙ (Za 1) (Zb 3) (Za_measurable 1) (Zb_measurable 3),
+    dsimp [f1] at i_1,
+    dsimp [f2] at i_2,
+    dsimp [f3] at i_3,
+    dsimp [f4] at i_4,
+
+    have i_12: integrable (λ ω , f1 ω - f2 ω) (ℙ:measure Ω) := integrable.sub i_1 i_2,
+    have i_123: integrable (λ ω , f1 ω - f2 ω + f3 ω) (ℙ:measure Ω) := integrable.add i_12 i_3,
+    have i_1234: integrable (λ ω , f1 ω - f2 ω + f3 ω - f4 ω) (ℙ:measure Ω) := integrable.sub i_123 i_4,
+    dsimp [f1,f2,f3,f4] at i_1234,
+    dsimp [f1,f2,f3] at i_123,
+    dsimp [f1,f2] at i_12,
+
+    have i_c: integrable (λ ω:Ω, (2:ℝ)) (ℙ:measure Ω) := integrable_const _,
+
+    rw [integral_sub i_1234 i_c] at int_chsh,
+    rw [integral_sub i_123 i_4] at int_chsh,
+    rw [integral_add i_12 i_3] at int_chsh,
+    rw [integral_sub i_1 i_2] at int_chsh,
+
+    exact int_chsh,
+  },
+  
+  have anticor : ∫ ω, -(Za 2 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) = 1,
+  {
+    have : ∫ ω, -(Za 2 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) = ∫ ω, -((Za 2 ω : ℝ) * (Zb 2 ω)) ∂(ℙ:measure Ω) ,
+    { simp only [neg_mul], },
+    rw this,
+    rw integral_neg _,
+    rw anticorrelation,
+    ring_nf,
+  },
+
+  have int_2 : ∫ ω, (2:ℝ) ∂(ℙ:measure Ω) = 2 ,
+  { simp only [integral_const, measure_univ, ennreal.one_to_real, algebra.id.smul_eq_mul, one_mul], },
+  rw [anticor,int_2] at split_int,
+  ring_nf at split_int,
+  apply sub_nonpos.mp,
+  ring_nf,
+  linarith,
+  -- almost done!
   sorry,
 end
 

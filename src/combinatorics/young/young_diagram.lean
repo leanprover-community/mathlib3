@@ -317,6 +317,7 @@ The two directions are `young_diagram.row_lens` (defined above) and `young_diagr
 
 -/
 
+/-- The cells making up a `young_diagram` from a list of row lengths -/
 protected def cells_of_row_lens : list ℕ → finset (ℕ × ℕ)
 | [] := finset.empty
 | (w :: ws) := (({0} : finset ℕ) ×ˢ finset.range w) ∪
@@ -364,7 +365,7 @@ begin
 end
 
 /-- The length of the `i`th row in `of_row_lens w hw` is the `i`th entry of `w` -/
-lemma row_len_of_row_lens {w : list ℕ} {hw : w.sorted (≥)} (hpos : ∀ x ∈ w, 0 < x)
+lemma row_len_of_row_lens {w : list ℕ} {hw : w.sorted (≥)}
   (i : ℕ) (hi : i < w.length) : (of_row_lens w hw).row_len i = w.nth_le i hi :=
 by simp [row_len, nat.find_eq_iff, mem_of_row_lens, hi]
 
@@ -385,7 +386,7 @@ begin
   cases lt_or_ge i w.length,
   { simp only [option.mem_def, ← list.nth_le_eq_iff, h, row_lens_length_of_row_lens hpos],
     revert r,
-    simpa only [eq_iff_eq_cancel_right, nth_le_row_lens] using row_len_of_row_lens hpos _ h },
+    simpa only [eq_iff_eq_cancel_right, nth_le_row_lens] using row_len_of_row_lens _ h },
   { rw [list.nth_eq_none_iff.mpr h, list.nth_eq_none_iff.mpr],
     rwa row_lens_length_of_row_lens hpos }
 end

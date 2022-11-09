@@ -58,7 +58,7 @@ begin
   replace hg' : g ≠ 0, by simpa only [ne.def, add_subgroup.mk_eq_zero_iff] using hg',
   change ae_disjoint volume (g +ᵥ I) I,
   refine ae_disjoint.congr (disjoint.ae_disjoint _)
-    (vadd_ae_eq_of_ae_eq (quasi_measure_preserving_add_left volume) hI g) hI,
+    ((quasi_measure_preserving_add_left volume (-g)).vadd_ae_eq_of_ae_eq g hI) hI,
   let B := ball x (T / (2 * add_order_of u)),
   have hBg : g +ᵥ B = ball (g + x) (T / (2 * add_order_of u)),
   { rw [add_comm g x, ← singleton_add_ball _ x g, add_ball, thickening_singleton], },

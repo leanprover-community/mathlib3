@@ -6,7 +6,6 @@ Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 import data.nat.order.basic
 import algebra.ring.divisibility
 import algebra.group_with_zero.divisibility
-import algebra.order.with_zero
 
 /-!
 # Further lemmas about the natural numbers
@@ -24,7 +23,7 @@ namespace nat
 /-! ### `succ` -/
 
 @[simp] lemma lt_one_iff {n : ℕ} : n < 1 ↔ n = 0 :=
-lt_succ_iff.trans le_zero_iff
+lt_succ_iff.trans nonpos_iff_eq_zero
 
 /-! ### `div` -/
 

@@ -1765,7 +1765,6 @@ continuous linear maps. See also `continuous_linear_equiv.arrow_congr`. -/
   right_inv := λ f, continuous_linear_map.ext $ λ x,
     by simp only [continuous_linear_map.comp_apply, apply_symm_apply, coe_coe] }
 
-
 end add_comm_monoid
 
 section add_comm_group

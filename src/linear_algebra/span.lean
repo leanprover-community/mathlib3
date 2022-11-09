@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Fréd�
 -/
 import linear_algebra.basic
 import order.omega_complete_partial_order
+import order.compactly_generated
 
 /-!
 # The span of a set of vectors, as a submodule

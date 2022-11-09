@@ -7,6 +7,7 @@ import data.finset.locally_finite
 import data.finset.pointwise
 import data.fintype.card
 import data.dfinsupp.order
+import algebra.big_operators.dfinsupp
 
 /-!
 # Finite intervals of finitely supported functions

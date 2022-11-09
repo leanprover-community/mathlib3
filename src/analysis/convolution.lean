@@ -288,7 +288,7 @@ variables [topological_space G] [topological_add_group G] [borel_space G]
 lemma has_compact_support.convolution_exists_at {x₀ : G}
   (h : has_compact_support (λ t, L (f t) (g (x₀ - t)))) (hf : locally_integrable f μ)
   (hg : continuous g) : convolution_exists_at f g x₀ L μ :=
-((((homeomorph.neg G).trans $ homeomorph.add_right x₀).compact_preimage.mpr h).bdd_above_image
+((((homeomorph.neg G).trans $ homeomorph.add_right x₀).is_compact_preimage.mpr h).bdd_above_image
   hg.norm.continuous_on).convolution_exists_at' L is_closed_closure.measurable_set subset_closure
   (hf h) hf.ae_strongly_measurable hg.ae_strongly_measurable
 
@@ -485,7 +485,7 @@ variables [topological_add_group G]
 
 lemma has_compact_support.convolution [t2_space G] (hcf : has_compact_support f)
   (hcg : has_compact_support g) : has_compact_support (f ⋆[L, μ] g) :=
-compact_of_is_closed_subset (hcg.is_compact.add hcf) is_closed_closure $ closure_minimal
+is_compact_of_is_closed_subset (hcg.is_compact.add hcf) is_closed_closure $ closure_minimal
   ((support_convolution_subset_swap L).trans $ add_subset_add subset_closure subset_closure)
   (hcg.is_compact.add hcf).is_closed
 
@@ -940,7 +940,7 @@ lemma convolution_precompR_apply {g : G → E'' →L[𝕜] E'}
   (hf : locally_integrable f μ) (hcg : has_compact_support g) (hg : continuous g)
   (x₀ : G) (x : E'') : (f ⋆[L.precompR E'', μ] g) x₀ x = (f ⋆[L, μ] (λ a, g a x)) x₀  :=
 begin
-  have := hcg.convolution_exists_right (L.precompR E'') hf hg x₀,
+  have := hcg.convolution_exists_right (L.precompR E'' : _) hf hg x₀,
   simp_rw [convolution_def, continuous_linear_map.integral_apply this],
   refl,
 end

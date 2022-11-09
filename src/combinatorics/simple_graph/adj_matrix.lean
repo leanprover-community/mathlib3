@@ -255,19 +255,14 @@ begin
     simp only [pow_add, pow_one, finset_walk_length, ih, mul_eq_mul, adj_matrix_mul_apply],
     rw finset.card_bUnion,
     { norm_cast,
-      rw set.sum_indicator_subset _ (subset_univ (G.neighbor_finset u)),
-      congr' 2,
-      ext x,
-      split_ifs with hux; simp [hux], },
+      simp only [nat.cast_sum, card_map, neighbor_finset_def],
+      apply finset.sum_to_finset_eq_subtype, },
     /- Disjointness for card_bUnion -/
-    { intros x hx y hy hxy p hp,
-      split_ifs at hp with hx hy;
-      simp only [inf_eq_inter, empty_inter, inter_empty, not_mem_empty, mem_inter, mem_map,
-        function.embedding.coe_fn_mk, exists_prop] at hp;
-      try { simpa using hp },
-      obtain ⟨⟨qx, hql, hqp⟩, ⟨rx, hrl, hrp⟩⟩ := hp,
-      unify_equations hqp hrp,
-      exact absurd rfl hxy, } },
+    { rintros ⟨x, hx⟩ - ⟨y, hy⟩ - hxy p hp,
+      simp only [inf_eq_inter, mem_inter, mem_map, function.embedding.coe_fn_mk, exists_prop] at hp,
+      obtain ⟨⟨px, hpx, rfl⟩, ⟨py, hpy, hp⟩⟩ := hp,
+      cases hp,
+      simpa using hxy, } },
 end
 
 end simple_graph

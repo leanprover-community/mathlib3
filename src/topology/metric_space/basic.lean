@@ -2309,7 +2309,7 @@ begin
       exact bounded_ball.mono (image_preimage_subset _ _) } }
 end
 
-/-- If a function is continuous at every point of a compact set `k`, then it is bounded on
+/-- If a function is continuous on a neighborhood of a compact set `k`, then it is bounded on
 some open neighborhood of `k`. -/
 lemma exists_is_open_bounded_image_of_is_compact_of_continuous_on
   [topological_space β] {k s : set β} {f : β → α}

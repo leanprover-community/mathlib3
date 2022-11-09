@@ -28,6 +28,9 @@ universe u
 
 variables [has_add ℤˣ] [has_sub ℤˣ]
 
+-- for some reason, this breaks everything
+--variables [add_group ℝ]
+
 section preliminaries
 
 lemma pm_one_space_vals (r : ℤˣ) :
@@ -49,6 +52,15 @@ lemma pm_one_space_ge (r : ℤˣ) :
 begin
   cases int.units_eq_one_or r with hh hh;
   rw hh; simp,
+end
+
+lemma pm_one_space_ge_le (r : ℤˣ) :
+  |(r:ℝ)| ≤ 1 :=
+begin
+  apply abs_le.mpr,
+  split,
+  apply pm_one_space_ge r,
+  apply pm_one_space_le r,
 end
 
 -- the CHSH inequality proved for intgers that are +/-1
@@ -117,6 +129,56 @@ lemma CHSH_inequality_of_int_units
   end
 
 
+lemma integrable_mul_of_units_int
+  {Ω : Type u} [measurable_space Ω]
+  (ℙ : probability_measure Ω)
+  (Za Zb : Ω → ℤˣ)
+  (sm_a : strongly_measurable (λ ω , (Za ω : ℝ)))
+  (sm_b : strongly_measurable (λ ω , (Zb ω : ℝ)))
+  :
+  integrable (λ ω:Ω , (Za ω :ℝ) * Zb ω) (ℙ:measure Ω)
+  :=
+  begin
+    dsimp [integrable],
+    split,
+    exact strongly_measurable.ae_strongly_measurable (strongly_measurable.mul sm_a sm_b),
+    { apply has_finite_integral_of_bounded _,
+      apply is_probability_measure.to_is_finite_measure (ℙ:measure Ω),
+      use (1:ℝ),
+      apply ae_of_all,
+      intro a,
+      simp,
+      apply mul_le_one (pm_one_space_ge_le (Za a)) _ (pm_one_space_ge_le (Zb a)),
+      exact abs_nonneg (Zb a:ℝ),
+    },
+  end
+lemma integrable_mul_of_units_int_neg
+  {Ω : Type u} [measurable_space Ω]
+  (ℙ : probability_measure Ω)
+  (Za Zb : Ω → ℤˣ)
+  (sm_a : strongly_measurable (λ ω , (Za ω : ℝ)))
+  (sm_b : strongly_measurable (λ ω , (Zb ω : ℝ)))
+  :
+  integrable (λ ω:Ω , -(Za ω :ℝ) * Zb ω) (ℙ:measure Ω)
+  :=
+  begin
+    dsimp [integrable],
+    split,
+    have : strongly_measurable (λ ω , (-Za ω:ℝ)):= strongly_measurable.neg (sm_a),
+    exact strongly_measurable.ae_strongly_measurable (strongly_measurable.mul this sm_b),
+    { apply has_finite_integral_of_bounded _,
+      apply is_probability_measure.to_is_finite_measure (ℙ:measure Ω),
+      use (1:ℝ),
+      apply ae_of_all,
+      intro a,
+      simp,
+      rw abs_mul,
+      apply mul_le_one (pm_one_space_ge_le (Za a)) _ (pm_one_space_ge_le (Zb a)),
+      exact abs_nonneg (Zb a:ℝ),
+    },
+  end
+
+
 end preliminaries
 
 -- Bell's inequality: 1964 version
@@ -126,12 +188,12 @@ theorem bells_inequality_1964
   -- ℕ should be replaced with {1,2,3}
   (Za : ℕ → Ω → ℤˣ)
   (Zb : ℕ → Ω → ℤˣ)
-  (Za_measurable : ∀ i:ℕ , measurable (Za i))
-  (Zb_measurable : ∀ i:ℕ , measurable (Zb i))
+  (Za_measurable : ∀ i:ℕ , strongly_measurable (λ ω , (Za i ω : ℝ)))
+  (Zb_measurable : ∀ i:ℕ , strongly_measurable (λ ω , (Zb i ω : ℝ)))
   (anticorrelation : ∀ i:ℕ , ∫ ω , (Za i ω : ℝ)*(Zb i ω) ∂(ℙ:measure Ω) = -1)
   :
   | (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) ) 
-    - (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) ) |
+    - (∫ ω, (Za 1 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) ) |
     ≤ 1 + (∫ ω, (Za 2 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) )
   :=
 
@@ -139,11 +201,16 @@ begin
   -- first do upper bound
   have : 
     (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) ) 
-    - (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) )  
+    - (∫ ω, (Za 1 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) )  
     ≤ 1 + (∫ ω, (Za 2 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) ),
-  { have ineq : ∀ ω: Ω, -(Za 2 ω :ℝ)*(Zb 2 ω) - (Za 2 ω)*(Zb 3 ω) 
-                        + (Za 1 ω)*(Zb 2 ω) - (Za 1 ω)*(Zb 3 ω) ≤ 2 ,
+  { 
+
+    let f := λ ω:Ω , -(Za 2 ω :ℝ)*(Zb 2 ω) - (Za 2 ω)*(Zb 3 ω) 
+                        + (Za 1 ω)*(Zb 2 ω) - (Za 1 ω)*(Zb 3 ω) - 2,
+
+    have ineq : ∀ ω: Ω, f ω ≤ 0 ,
     { intro ω,
+      dsimp only [f],
       -- will be sent to CHSH_inquality_of_int_units
       set a:=- (Za 2 ω),
       -- lift opposites
@@ -158,9 +225,72 @@ begin
       rw this,
       simp only [sub_neg_eq_add],
 
-      exact CHSH_inequality_of_int_units a (Za 1 ω) (Zb 2 ω) (Zb 3 ω),
+      -- need to turn x<=2 to x-2<=0
+      exact sub_nonpos_of_le (CHSH_inequality_of_int_units a (Za 1 ω) (Zb 2 ω) (Zb 3 ω)),
     },
 
+    -- integrate chsh
+    have int_chsh : ∫ ω , f ω ∂(ℙ:measure Ω) ≤ 0 := integral_nonpos ineq,
+    -- expand definition of f
+    dsimp [f] at int_chsh,
+
+    have split_int : 
+    (∫ ω, -(Za 2 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) ) 
+    - (∫ ω, (Za 2 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) ) 
+    + (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) )  
+    - (∫ ω, (Za 1 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) )  
+    - (∫ ω, 2 ∂(ℙ:measure Ω) )  
+    ≤ 0,
+    {
+      -- prove all the required integrabilities
+      let f1 := (λ ω , -(Za 2 ω : ℝ) * (Zb 2 ω)),
+      let f2 := (λ ω , (Za 2 ω : ℝ) * (Zb 3 ω)),
+      let f3 := (λ ω , (Za 1 ω : ℝ) * (Zb 2 ω)),
+      let f4 := (λ ω , (Za 1 ω : ℝ) * (Zb 3 ω)),
+      have i_1: integrable f1 (ℙ:measure Ω) := integrable_mul_of_units_int_neg ℙ (Za 2) (Zb 2) (Za_measurable 2) (Zb_measurable 2),
+      have i_2: integrable f2 (ℙ:measure Ω) := integrable_mul_of_units_int ℙ (Za 2) (Zb 3) (Za_measurable 2) (Zb_measurable 3),
+      have i_3: integrable f3 (ℙ:measure Ω) := integrable_mul_of_units_int ℙ (Za 1) (Zb 2) (Za_measurable 1) (Zb_measurable 2),
+      have i_4: integrable f4 (ℙ:measure Ω) := integrable_mul_of_units_int ℙ (Za 1) (Zb 3) (Za_measurable 1) (Zb_measurable 3),
+      dsimp [f1] at i_1,
+      dsimp [f2] at i_2,
+      dsimp [f3] at i_3,
+      dsimp [f4] at i_4,
+
+      have i_12: integrable (λ ω , f1 ω - f2 ω) (ℙ:measure Ω) := integrable.sub i_1 i_2,
+      have i_123: integrable (λ ω , f1 ω - f2 ω + f3 ω) (ℙ:measure Ω) := integrable.add i_12 i_3,
+      have i_1234: integrable (λ ω , f1 ω - f2 ω + f3 ω - f4 ω) (ℙ:measure Ω) := integrable.sub i_123 i_4,
+      dsimp [f1,f2,f3,f4] at i_1234,
+      dsimp [f1,f2,f3] at i_123,
+      dsimp [f1,f2] at i_12,
+
+      have i_c: integrable (λ ω:Ω, (2:ℝ)) (ℙ:measure Ω) := integrable_const _,
+
+      rw [integral_sub i_1234 i_c] at int_chsh,
+      rw [integral_sub i_123 i_4] at int_chsh,
+      rw [integral_add i_12 i_3] at int_chsh,
+      rw [integral_sub i_1 i_2] at int_chsh,
+
+      exact int_chsh,
+    },
+    
+    have anticor : ∫ ω, -(Za 2 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) = 1,
+    {
+      have : ∫ ω, -(Za 2 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) = ∫ ω, -((Za 2 ω : ℝ) * (Zb 2 ω)) ∂(ℙ:measure Ω) ,
+      { simp only [neg_mul], },
+      rw this,
+      rw integral_neg _,
+      rw anticorrelation,
+      ring_nf,
+    },
+
+    have int_2 : ∫ ω, (2:ℝ) ∂(ℙ:measure Ω) = 2 ,
+    { simp only [integral_const, measure_univ, ennreal.one_to_real, algebra.id.smul_eq_mul, one_mul], },
+    rw [anticor,int_2] at split_int,
+    ring_nf at split_int,
+    apply sub_nonpos.mp,
+    ring_nf,
+    linarith,
+    -- almost done!
     sorry,
   },
 

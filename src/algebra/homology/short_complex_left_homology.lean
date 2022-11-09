@@ -482,6 +482,13 @@ def of_zeros (hf : S.f = 0) (hg : S.g = 0) :
   hπ₀ := by { dsimp, rw [comp_id, hf], },
   hπ := cokernel_zero _ hf, }
 
+@[simp] lemma of_zeros_i (hf : S.f = 0) (hg : S.g = 0) : (of_zeros S hf hg).i = 𝟙 _ := rfl
+
+@[simp]
+lemma of_zeros_f' (hf : S.f = 0) (hg : S.g = 0) :
+  (of_zeros S hf hg).f' = S.f :=
+by rw [← cancel_mono (of_zeros S hf hg).i, f'_i, of_zeros_i, comp_id]
+
 @[simp]
 def kernel_sequence' {X Y : C} (f : X ⟶ Y) (c : kernel_fork f) (hc : is_limit c)
   [has_zero_object C] :
@@ -624,6 +631,16 @@ lemma congr_φH {γ₁ γ₂ : left_homology_map_data φ h₁ h₂} (eq : γ₁ 
   γ₁.φH = γ₂.φH := by rw eq
 lemma congr_φK {γ₁ γ₂ : left_homology_map_data φ h₁ h₂} (eq : γ₁ = γ₂) :
   γ₁.φK = γ₂.φK := by rw eq
+
+@[simp]
+def of_zeros {φ : S₁ ⟶ S₂} (hf₁ : S₁.f = 0) (hg₁ : S₁.g = 0) (hf₂ : S₂.f = 0) (hg₂ : S₂.g = 0) :
+  left_homology_map_data φ (left_homology_data.of_zeros S₁ hf₁ hg₁)
+    (left_homology_data.of_zeros S₂ hf₂ hg₂) :=
+{ φK := φ.τ₂,
+  φH := φ.τ₂,
+  commi := by { dsimp, simp only [id_comp, comp_id], },
+  commf' := by simp only [left_homology_data.of_zeros_f', φ.comm₁₂],
+  commπ := by { dsimp, simp only [id_comp, comp_id], }, }
 
 end left_homology_map_data
 

@@ -230,6 +230,14 @@ def unop' {S₁ S₂ : short_complex Cᵒᵖ} {φ : S₁ ⟶ S₂} {h₁ : S₁.
   right := ψ.left.unop',
   comm := quiver.hom.op_inj (ψ.comm.symm), }
 
+@[simps]
+def of_zeros {S₁ S₂ : short_complex C} (φ : S₁ ⟶ S₂) (hf₁ : S₁.f = 0) (hg₁ : S₁.g = 0)
+  (hf₂ : S₂.f = 0) (hg₂ : S₂.g = 0) :
+  homology_map_data φ (homology_data.of_zeros S₁ hf₁ hg₁) (homology_data.of_zeros S₂ hf₂ hg₂) :=
+{ left := left_homology_map_data.of_zeros _ _ _ _,
+  right := right_homology_map_data.of_zeros _ _ _ _,
+  comm := by tidy, }
+
 end homology_map_data
 
 variable (S)

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.homology.homology
+import algebra.homology.short_complex_exact
 
 /-!
 # Chain complexes supported in a single degree
@@ -25,6 +26,7 @@ noncomputable theory
 
 open category_theory
 open category_theory.limits
+open_locale zero_object
 
 universes v u
 
@@ -32,8 +34,6 @@ variables (V : Type u) [category.{v} V] [has_zero_morphisms V] [has_zero_object 
 
 namespace homological_complex
 variables {ι : Type*} [decidable_eq ι] (c : complex_shape ι)
-
-local attribute [instance] has_zero_object.has_zero
 
 /--
 The functor `V ⥤ homological_complex V c` creating a chain complex supported in a single degree.
@@ -104,13 +104,38 @@ instance (j : ι) : full (single V c j) :=
       rw [if_neg h], },
   end }
 
+instance has_homology_single_obj (A : V) (j k : ι) :
+  ((single V c j).obj A).has_homology k :=
+begin
+  rw has_homology.iff,
+  dsimp [single],
+  apply_instance,
+end
+
+def homology_single_self (A : V) (j : ι) :
+  ((single V c j).obj A).homology j ≅ A :=
+(short_complex.homology_data.of_zeros
+  (((single V c j).obj A).sc' j) rfl rfl).homology_iso ≪≫
+  single_obj_X_self V c j A
+
+def homology_single_other (A : V) (j k : ι) (hk : k ≠ j):
+  ((single V c j).obj A).homology k ≅ 0 :=
+is_zero.iso_zero
+begin
+  rw ← short_complex.exact_iff_is_zero_homology,
+  apply short_complex.exact_of_is_zero_X₂,
+  dsimp,
+  split_ifs,
+  { exfalso,
+    exact hk h, },
+  { apply limits.is_zero_zero, },
+end
+
 end homological_complex
 
 open homological_complex
 
 namespace chain_complex
-
-local attribute [instance] has_zero_object.has_zero
 
 /--
 `chain_complex.single₀ V` is the embedding of `V` into `chain_complex V ℕ`
@@ -148,27 +173,65 @@ end
 @[simp] lemma single₀_map_f_succ {X Y : V} (f : X ⟶ Y) (n : ℕ) :
   ((single₀ V).map f).f (n+1) = 0 := rfl
 
+instance has_homology_single₀_obj (A : V) (j : ℕ) :
+  ((single₀ V).obj A).has_homology j :=
+begin
+  rw has_homology.iff,
+  dsimp [single₀],
+  apply_instance,
+end
+
+variable {V}
+
+def homology_data_single₀_zero (A : V) :
+  ((single₀ V).obj A).homology_data 0 :=
+short_complex.homology_data.of_zeros _ rfl rfl
+
+@[simp]
+def homology_map_data_single₀_map_zero {A A' : V} (f : A ⟶ A') :
+  homology_map_data ((single₀ V).map f) 0 (homology_data_single₀_zero A)
+    (homology_data_single₀_zero A') :=
+  short_complex.homology_map_data.of_zeros _ rfl rfl rfl rfl
+
+def homology_single₀_zero (A : V) :
+  ((single₀ V).obj A).homology 0 ≅ A :=
+(homology_data_single₀_zero A).homology_iso
+
+def homology_single₀_succ (A : V) (j : ℕ):
+  ((single₀ V).obj A).homology (j+1) ≅ 0 :=
+is_zero.iso_zero
+begin
+  rw ← short_complex.exact_iff_is_zero_homology,
+  apply short_complex.exact_of_is_zero_X₂,
+  apply limits.is_zero_zero,
+end
+
+
+variable (V)
+
 section
-variables [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V]
 
 /--
 Sending objects to chain complexes supported at `0` then taking `0`-th homology
 is the same as doing nothing.
 -/
 noncomputable
-def homology_functor_0_single₀ : single₀ V ⋙ homology_functor V _ 0 ≅ (𝟭 V) :=
-nat_iso.of_components (λ X, homology.congr _ _ (by simp) (by simp) ≪≫ homology_zero_zero)
-  (λ X Y f, by { ext, dsimp [homology_functor], simp, })
+def homology_functor_0_single₀ [category_with_homology V] :
+  single₀ V ⋙ homology_functor V _ 0 ≅ (𝟭 V) :=
+nat_iso.of_components homology_single₀_zero
+  (λ X Y f, begin
+    dsimp [homology_single₀_zero],
+    simp [(homology_map_data_single₀_map_zero f).homology_map_eq],
+end)
 
 /--
 Sending objects to chain complexes supported at `0` then taking `(n+1)`-st homology
 is the same as the zero functor.
 -/
 noncomputable
-def homology_functor_succ_single₀ (n : ℕ) : single₀ V ⋙ homology_functor V _ (n+1) ≅ 0 :=
-nat_iso.of_components (λ X, homology.congr _ _ (by simp) (by simp) ≪≫
-    homology_zero_zero ≪≫ (functor.zero_obj _).iso_zero.symm)
-  (λ X Y f, by { exact (functor.zero_obj _).eq_of_tgt _ _ })
+def homology_functor_succ_single₀ [category_with_homology V] (n : ℕ) :
+  single₀ V ⋙ homology_functor V _ (n+1) ≅ (category_theory.functor.const _).obj 0 :=
+nat_iso.of_components (λ X, homology_single₀_succ X n) (by tidy)
 
 end
 
@@ -294,8 +357,7 @@ end
 @[simp] lemma single₀_map_f_succ {X Y : V} (f : X ⟶ Y) (n : ℕ) :
   ((single₀ V).map f).f (n+1) = 0 := rfl
 
-section
-variables [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V]
+/-section
 
 /--
 Sending objects to cochain complexes supported at `0` then taking `0`-th homology
@@ -316,7 +378,7 @@ nat_iso.of_components (λ X, homology.congr _ _ (by simp) (by simp) ≪≫
     homology_zero_zero ≪≫ (functor.zero_obj _).iso_zero.symm)
   (λ X Y f, by { exact (functor.zero_obj _).eq_of_tgt _ _ })
 
-end
+end-/
 
 variables {V}
 

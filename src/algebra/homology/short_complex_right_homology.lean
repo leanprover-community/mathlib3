@@ -142,6 +142,11 @@ def of_zeros (hf : S.f = 0) (hg : S.g = 0) :
   hι₀ := by { dsimp, rw [id_comp, hg], },
   hι := kernel_zero _ hg, }
 
+@[simp] lemma of_zeros_p (hf : S.f = 0) (hg : S.g = 0) : (of_zeros S hf hg).p = 𝟙 _ := rfl
+@[simp] lemma of_zeros_g' (hf : S.f = 0) (hg : S.g = 0) :
+  (of_zeros S hf hg).g' = S.g :=
+by rw [← cancel_epi (of_zeros S hf hg).p, p_g', of_zeros_p, id_comp]
+
 end right_homology_data
 
 class has_right_homology : Prop :=
@@ -440,6 +445,16 @@ lemma congr_φH {γ₁ γ₂ : right_homology_map_data φ h₁ h₂} (eq : γ₁
   γ₁.φH = γ₂.φH := by rw eq
 lemma congr_φQ {γ₁ γ₂ : right_homology_map_data φ h₁ h₂} (eq : γ₁ = γ₂) :
   γ₁.φQ = γ₂.φQ := by rw eq
+
+@[simp]
+def of_zeros {φ : S₁ ⟶ S₂} (hf₁ : S₁.f = 0) (hg₁ : S₁.g = 0) (hf₂ : S₂.f = 0) (hg₂ : S₂.g = 0) :
+  right_homology_map_data φ (right_homology_data.of_zeros S₁ hf₁ hg₁)
+    (right_homology_data.of_zeros S₂ hf₂ hg₂) :=
+{ φQ := φ.τ₂,
+  φH := φ.τ₂,
+  commp := by { dsimp, simp only [id_comp, comp_id], },
+  commg' := by simp only [φ.comm₂₃, right_homology_data.of_zeros_g'],
+  commι := by { dsimp, simp only [id_comp, comp_id], }, }
 
 end right_homology_map_data
 

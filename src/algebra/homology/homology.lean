@@ -154,9 +154,27 @@ def short_complex_functor' (i j k : ι)  :
 variables {V c}
 
 abbreviation sc (C : homological_complex V c) (i j k : ι) := (short_complex_functor' V c i j k).obj C
+abbreviation sc' (C : homological_complex V c) (i : ι) :=
+(short_complex_functor' V c (c.prev i) i (c.next i)).obj C
 
 abbreviation has_homology (C : homological_complex V c) (i : ι) :=
 ((short_complex_functor V c i).obj C).has_homology
+
+abbreviation homology_data (C : homological_complex V c) (i : ι) :=
+((short_complex_functor V c i).obj C).homology_data
+
+abbreviation homology_map_data {C₁ C₂ : homological_complex V c} (φ : C₁ ⟶ C₂) (i : ι)
+  (h₁ : C₁.homology_data i) (h₂ : C₂.homology_data i) :=
+short_complex.homology_map_data ((short_complex_functor V c i).map φ) h₁ h₂
+
+instance has_homology_sc'_of_has_homology
+  (C : homological_complex V c) (i : ι) [h : C.has_homology i] :
+  (C.sc' i).has_homology := h
+
+lemma has_homology.iff (C : homological_complex V c) (i : ι) :
+  C.has_homology i ↔
+    (short_complex.mk (C.d_to i) (C.d_from i) (C.d_to_comp_d_from i)).has_homology :=
+by refl
 
 abbreviation homology (C : homological_complex V c) (i : ι) [C.has_homology i] : V :=
 ((short_complex_functor V c i).obj C).homology

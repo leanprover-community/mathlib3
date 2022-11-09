@@ -166,7 +166,6 @@ lemma eq_zero_of_dvd_of_lt {a b : ℕ} (w : a ∣ b) (h : b < a) : b = 0 :=
 nat.eq_zero_of_dvd_of_div_eq_zero w
   ((nat.div_eq_zero_iff (lt_of_le_of_lt (zero_le b) h)).elim_right h)
 
-
 @[simp] lemma mod_div_self (m n : ℕ) : m % n / n = 0 :=
 begin
   cases n,

@@ -1067,6 +1067,10 @@ lemma finite.exists_univ_list (α) [finite α] : ∃ l : list α, l.nodup ∧ �
 by { casesI nonempty_fintype α, obtain ⟨l, e⟩ := quotient.exists_rep (@univ α _).1,
   have := and.intro univ.2 mem_univ_val, exact ⟨_, by rwa ←e at this⟩ }
 
+lemma list.nodup.length_le_card {α : Type*} [fintype α] {l : list α} (h : l.nodup) :
+  l.length ≤ fintype.card α :=
+by { classical, exact list.to_finset_card_of_nodup h ▸ l.to_finset.card_le_univ }
+
 namespace fintype
 variables [fintype α] [fintype β]
 

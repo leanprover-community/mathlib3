@@ -41,10 +41,10 @@ end
 
 lemma ext_inner_left (hS : dense (S : set E)) (h : ∀ (v : S), ⟪x, v⟫ = ⟪y, v⟫) :
   x = y :=
-hS.ext_of_sub_mem_orthogonal (submodule.sub_mem_compl_of_inner_left h)
+hS.ext_of_sub_mem_orthogonal (submodule.sub_mem_orthogonal_of_inner_left h)
 
 lemma ext_inner_right (hS : dense (S : set E))
   (h : ∀ (v : S), ⟪(v : E), x⟫ = ⟪(v : E), y⟫) : x = y :=
-hS.ext_of_sub_mem_orthogonal (submodule.sub_mem_compl_of_inner_right h)
+hS.ext_of_sub_mem_orthogonal (submodule.sub_mem_orthogonal_of_inner_right h)
 
 end dense

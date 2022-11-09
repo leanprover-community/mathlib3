@@ -167,13 +167,13 @@ end ne_zero
 
 section mul_zero_class
 
-variables [mul_zero_class M₀] {a b : M₀}
+variables [mul_zero_class M₀]
 
-lemma mul_eq_zero_of_left (h : a = 0) (b : M₀) : a * b = 0 := h.symm ▸ zero_mul b
+lemma mul_eq_zero_of_left {a : M₀} (h : a = 0) (b : M₀) : a * b = 0 := h.symm ▸ zero_mul b
 
-lemma mul_eq_zero_of_right (a : M₀) (h : b = 0) : a * b = 0 := h.symm ▸ mul_zero a
+lemma mul_eq_zero_of_right (a : M₀) {b : M₀} (h : b = 0) : a * b = 0 := h.symm ▸ mul_zero a
 
-variables [no_zero_divisors M₀]
+variables [no_zero_divisors M₀] {a b : M₀}
 
 /-- If `α` has no zero divisors, then the product of two elements equals zero iff one of them
 equals zero. -/

@@ -10,31 +10,31 @@ import analysis.inner_product_space.projection
 import analysis.inner_product_space.dual
 
 /-!
-# Linear Pmap
+# Partially defined linear operators on Hilbert spaces
+
+We will develop the basics of the theory of unbounded operators on Hilbert spaces.
 
 ## Main definitions
 
-* `foo_bar`
+* `linear_pmap.is_formal_adjoint`: An operator `T` is a formal adjoint of `S` if for all `x` in the
+domain of `T` and `y` in the domain of `S`, we have that `⟪T x, y⟫ = ⟪x, S y⟫`.
+* `linear_pmap.adjoint`: The adjoint of a map `E →ₗ.[𝕜] F` as a map `F →ₗ.[𝕜] E`.
 
 ## Main statements
 
-* `foo_bar_unique`
+* `linear_pmap.adjoint_is_formal_adjoint`: The adjoint is a formal adjoint
 
 ## Notation
 
 
 
-## Implementation details
-
-
-
 ## References
 
-* [F. Bar, *Quuxes*][bibkey]
+* [J. Weidmann, *Linear Operators in Hilbert Spaces*][weidmann_linear]
 
 ## Tags
 
-Foobars, barfoos
+Unbounded operators, closed operators
 -/
 
 
@@ -42,18 +42,12 @@ noncomputable theory
 open is_R_or_C
 open_locale complex_conjugate
 
-
-
 variables {𝕜 E F G : Type*} [is_R_or_C 𝕜]
 variables [inner_product_space 𝕜 E] [inner_product_space 𝕜 F] [inner_product_space 𝕜 G]
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
--- Todolist:
--- PR inner_* lemmas
--- PR compl lemmas
--- PR operator norm lemma
-
-
+/-- An operator `T` is a formal adjoint of `S` if for all `x` in the domain of `T` and `y` in the
+domain of `S`, we have that `⟪T x, y⟫ = ⟪x, S y⟫`. -/
 def is_formal_adjoint (T : linear_pmap 𝕜 E F) (S : linear_pmap 𝕜 F E) : Prop :=
   ∀ (x : T.domain) (y : S.domain), ⟪T x, y⟫ = ⟪(x : E), S y⟫
 
@@ -201,6 +195,5 @@ begin
   convert this,
   exact funext (λ x, (hw x).symm),
 end
-
 
 end linear_pmap

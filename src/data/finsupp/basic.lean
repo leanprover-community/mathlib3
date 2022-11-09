@@ -1623,4 +1623,16 @@ sigma_finsupp_add_equiv_pi_finsupp f j i = f ⟨j, i⟩ := rfl
 
 end sigma
 
+/-! ### Meta declarations -/
+
+/-- Stringify a `finsupp` as a sequence of `finsupp.single` terms.
+
+Note this is `meta` as it has to choose some order for the terms. -/
+meta instance (ι α : Type*) [has_zero α] [has_repr ι] [has_repr α] :
+  has_repr (ι →₀ α) :=
+{ repr := λ f,
+  if f.support.card = 0 then "0"
+  else " + ".intercalate $
+    f.support.val.unquot.map (λ i, "finsupp.single " ++ repr i ++ " " ++ repr (f i)) }
+
 end finsupp

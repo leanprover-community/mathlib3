@@ -630,6 +630,18 @@ begin
   exact (finrank_vector_span_insert_le_set k s p).trans (add_le_add_right h.finrank_le_one _)
 end
 
+/-- A set of points in a two-dimensional space is coplanar. -/
+lemma coplanar_of_finrank_eq_two (s : set P) (h : finrank k V = 2) : coplanar k s :=
+begin
+  haveI := finite_dimensional_of_finrank_eq_succ h,
+  rw [coplanar_iff_finrank_le_two, ←h],
+  exact submodule.finrank_le _
+end
+
+/-- A set of points in a two-dimensional space is coplanar. -/
+lemma coplanar_of_fact_finrank_eq_two (s : set P) [h : fact (finrank k V = 2)] : coplanar k s :=
+coplanar_of_finrank_eq_two s h.out
+
 variables (k)
 
 /-- Three points are coplanar. -/

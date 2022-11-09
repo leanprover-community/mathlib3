@@ -3217,7 +3217,7 @@ protected lemma is_finite_measure_on_compacts.smul [topological_space α] (μ : 
 lemma compact_space.is_finite_measure
   [topological_space α] [compact_space α] [is_finite_measure_on_compacts μ] :
   is_finite_measure μ :=
-⟨is_finite_measure_on_compacts.lt_top_of_is_compact compact_univ⟩
+⟨is_finite_measure_on_compacts.lt_top_of_is_compact is_compact_univ⟩
 
 omit m0
 

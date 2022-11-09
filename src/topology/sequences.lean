@@ -312,9 +312,7 @@ end
 variables [is_countably_generated (𝓤 X)]
 
 /-- A sequentially compact set in a uniform set with countably generated uniformity filter
-is complete.
-
-TODO: golf the proof once we can import `metrizable_uniformity` here. -/
+is complete. -/
 protected lemma is_seq_compact.is_complete (hs : is_seq_compact s) : is_complete s :=
 begin
   intros l hl hls,

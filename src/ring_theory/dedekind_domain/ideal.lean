@@ -486,7 +486,7 @@ begin
     simp only [mul_assoc, mul_comm b] at ⊢ hx,
     intros y hy,
     exact hx _ (fractional_ideal.mul_mem_mul hy hb) },
-  -- It turns out the subalgebra consisting of all `p(x)` for `p : polynomial A` works.
+  -- It turns out the subalgebra consisting of all `p(x)` for `p : A[X]` works.
   refine ⟨alg_hom.range (polynomial.aeval x : A[X] →ₐ[A] K),
           is_noetherian_submodule.mp (fractional_ideal.is_noetherian I⁻¹) _ (λ y hy, _),
           ⟨polynomial.X, polynomial.aeval_X x⟩⟩,
@@ -756,6 +756,66 @@ begin
     exact strict_mono_of_le_iff_le (λ _ _, (coe_ideal_le_coe_ideal K).symm)
       (lt_top_iff_ne_top.mpr hJ) },
 end
+
+section gcd
+
+namespace ideal
+
+/-! ### GCD and LCM of ideals in a Dedekind domain
+
+We show that the gcd of two ideals in a Dedekind domain is just their supremum,
+and the lcm is their infimum, and use this to instantiate `normalized_gcd_monoid (ideal A)`.
+-/
+
+@[simp] lemma sup_mul_inf (I J : ideal A) : (I ⊔ J) * (I ⊓ J) = I * J :=
+begin
+  letI := classical.dec_eq (ideal A),
+  letI := classical.dec_eq (associates (ideal A)),
+  letI := unique_factorization_monoid.to_normalized_gcd_monoid (ideal A),
+  have hgcd : gcd I J = I ⊔ J,
+  { rw [gcd_eq_normalize _ _, normalize_eq],
+    { rw [dvd_iff_le, sup_le_iff, ← dvd_iff_le, ← dvd_iff_le],
+      exact ⟨gcd_dvd_left _ _, gcd_dvd_right _ _⟩ },
+    { rw [dvd_gcd_iff, dvd_iff_le, dvd_iff_le],
+      simp } },
+  have hlcm : lcm I J = I ⊓ J,
+  { rw [lcm_eq_normalize _ _, normalize_eq],
+    { rw [lcm_dvd_iff, dvd_iff_le, dvd_iff_le],
+      simp },
+    { rw [dvd_iff_le, le_inf_iff, ← dvd_iff_le, ← dvd_iff_le],
+      exact ⟨dvd_lcm_left _ _, dvd_lcm_right _ _⟩ } },
+  rw [← hgcd, ← hlcm, associated_iff_eq.mp (gcd_mul_lcm _ _)],
+  apply_instance
+end
+
+/-- Ideals in a Dedekind domain have gcd and lcm operators that (trivially) are compatible with
+the normalization operator. -/
+instance : normalized_gcd_monoid (ideal A) :=
+{ gcd := (⊔),
+  gcd_dvd_left := λ _ _, by simpa only [dvd_iff_le] using le_sup_left,
+  gcd_dvd_right := λ _ _, by simpa only [dvd_iff_le] using le_sup_right,
+  dvd_gcd := λ _ _ _, by simpa only [dvd_iff_le] using sup_le,
+  lcm := (⊓),
+  lcm_zero_left := λ _, by simp only [zero_eq_bot, bot_inf_eq],
+  lcm_zero_right := λ _, by simp only [zero_eq_bot, inf_bot_eq],
+  gcd_mul_lcm := λ _ _, by rw [associated_iff_eq, sup_mul_inf],
+  normalize_gcd := λ _ _, normalize_eq _,
+  normalize_lcm := λ _ _, normalize_eq _,
+  .. ideal.normalization_monoid }
+
+-- In fact, any lawful gcd and lcm would equal sup and inf respectively.
+@[simp] lemma gcd_eq_sup (I J : ideal A) : gcd I J = I ⊔ J := rfl
+
+@[simp]
+lemma lcm_eq_inf (I J : ideal A) : lcm I J = I ⊓ J := rfl
+
+lemma inf_eq_mul_of_coprime {I J : ideal A} (coprime : I ⊔ J = ⊤) :
+  I ⊓ J = I * J :=
+by rw [← associated_iff_eq.mp (gcd_mul_lcm I J), lcm_eq_inf I J, gcd_eq_sup, coprime, top_mul]
+
+end ideal
+
+end gcd
 
 end is_dedekind_domain
 
@@ -1203,6 +1263,14 @@ is_dedekind_domain.quotient_equiv_pi_of_prod_eq _ _ _
   (x : R) : is_dedekind_domain.quotient_equiv_pi_factors hI (ideal.quotient.mk I x) =
     λ P, ideal.quotient.mk _ x :=
 rfl
+
+/-- **Chinese remainder theorem**, specialized to two ideals. -/
+noncomputable def ideal.quotient_mul_equiv_quotient_prod (I J : ideal R)
+  (coprime : I ⊔ J = ⊤) :
+  (R ⧸ (I * J)) ≃+* (R ⧸ I) × R ⧸ J :=
+ring_equiv.trans
+  (ideal.quot_equiv_of_eq (inf_eq_mul_of_coprime coprime).symm)
+  (ideal.quotient_inf_equiv_quotient_prod I J coprime)
 
 end dedekind_domain
 

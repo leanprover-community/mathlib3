@@ -644,7 +644,7 @@ begin
     rcases hx' with ⟨r, hr₀, hrK⟩,
     haveI : finite_dimensional ℝ E,
       from finite_dimensional_of_is_compact_closed_ball ℝ hr₀
-        (compact_of_is_closed_subset hK metric.is_closed_ball hrK),
+        (is_compact_of_is_closed_subset hK metric.is_closed_ball hrK),
     exact exists_mem_frontier_inf_dist_compl_eq_dist hx hK.ne_univ },
   { refine ⟨x, hx', _⟩,
     rw frontier_eq_closure_inter_closure at hx',
@@ -671,7 +671,7 @@ begin
   intros N g hg,
   have : ∀ i, summable (λ x, ∥g x i∥) := λ i, (pi.summable.1 hg i).abs,
   refine summable_of_norm_bounded _ (summable_sum (λ i (hi : i ∈ finset.univ), this i)) (λ x, _),
-  rw [norm_norm, pi_norm_le_iff],
+  rw [norm_norm, pi_norm_le_iff_of_nonneg],
   { refine λ i, finset.single_le_sum (λ i hi, _) (finset.mem_univ i),
     exact norm_nonneg (g x i) },
   { exact finset.sum_nonneg (λ _ _, norm_nonneg _) }

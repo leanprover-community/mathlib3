@@ -805,6 +805,9 @@ by { cases a; cases b; simp [← with_top.coe_sub] }
 lemma sub_ne_top (ha : a ≠ ∞) : a - b ≠ ∞ :=
 mt sub_eq_top_iff.mp $ mt and.left ha
 
+@[simp, norm_cast] lemma nat_cast_sub (m n : ℕ) : ↑(m - n) = (m - n : ℝ≥0∞) :=
+by rw [← coe_nat, nat.cast_tsub, coe_sub, coe_nat, coe_nat]
+
 protected lemma sub_eq_of_eq_add (hb : b ≠ ∞) : a = c + b → a - b = c :=
 (cancel_of_ne hb).tsub_eq_of_eq_add
 
@@ -1087,6 +1090,9 @@ begin
   simp [h'a, h'b],
 end
 
+protected lemma sub_div (h : 0 < b → b < a → c ≠ 0) : (a - b) / c = a / c - b / c :=
+by { simp_rw div_eq_mul_inv, exact ennreal.sub_mul (by simpa using h) }
+
 @[simp] lemma inv_pos : 0 < a⁻¹ ↔ a ≠ ∞ :=
 pos_iff_ne_zero.trans inv_ne_zero
 
@@ -1224,6 +1230,12 @@ by rw [← one_div, le_div_iff_mul_le]; { right, simp }
 
 lemma div_le_div {a b c d : ℝ≥0∞} (hab : a ≤ b) (hdc : d ≤ c) : a / c ≤ b / d :=
 div_eq_mul_inv b d ▸ div_eq_mul_inv a c ▸ ennreal.mul_le_mul hab (ennreal.inv_le_inv.mpr hdc)
+
+protected lemma div_le_div_left (h : a ≤ b) (c : ℝ≥0∞) : c / b ≤ c / a :=
+ennreal.div_le_div le_rfl h
+
+protected lemma div_le_div_right (h : a ≤ b) (c : ℝ≥0∞) : a / c ≤ b / c :=
+ennreal.div_le_div h le_rfl
 
 lemma eq_inv_of_mul_eq_one_left (h : a * b = 1) : a = b⁻¹ :=
 begin
@@ -1976,5 +1988,16 @@ meta def positivity_coe_nnreal_ennreal : expr → tactic strictness
   positive <$> mk_app ``nnreal_coe_pos [p]
 | e := pp e >>= fail ∘ format.bracket "The expression "
          " is not of the form `(r : ℝ≥0∞)` for `r : ℝ≥0`"
+
+private lemma ennreal_of_real_pos {r : ℝ} : 0 < r → 0 < ennreal.of_real r := ennreal.of_real_pos.2
+
+/-- Extension for the `positivity` tactic: `ennreal.of_real` is positive if its input is. -/
+@[positivity]
+meta def positivity_ennreal_of_real : expr → tactic strictness
+| `(ennreal.of_real %%r) := do
+    positive p ← core r,
+    positive <$> mk_app ``ennreal_of_real_pos [p]
+-- This case is handled by `tactic.positivity_canon`
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `ennreal.of_real r`"
 
 end tactic

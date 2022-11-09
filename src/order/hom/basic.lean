@@ -590,6 +590,11 @@ e.to_equiv.preimage_image s
 
 @[simp] lemma trans_refl (e : α ≃o β) : e.trans (refl β) = e := by { ext x, refl }
 
+@[simp] lemma symm_trans_apply (e₁ : α ≃o β) (e₂ : β ≃o γ) (c : γ) :
+  (e₁.trans e₂).symm c = e₁.symm (e₂.symm c) := rfl
+
+lemma symm_trans (e₁ : α ≃o β) (e₂ : β ≃o γ) : (e₁.trans e₂).symm = e₂.symm.trans e₁.symm := rfl
+
 /-- `prod.swap` as an `order_iso`. -/
 def prod_comm : (α × β) ≃o (β × α) :=
 { to_equiv := equiv.prod_comm α β,

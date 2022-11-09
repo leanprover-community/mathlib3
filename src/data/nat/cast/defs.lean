@@ -3,7 +3,8 @@ Copyright (c) 2014 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Gabriel Ebner
 -/
-import algebra.group.basic
+import algebra.group.defs
+import algebra.ne_zero
 
 /-!
 # Cast of natural numbers
@@ -160,3 +161,16 @@ end nat
     refl,
   end,
   .. ‹has_one R›, .. ‹add_monoid R› }
+
+namespace ne_zero
+
+lemma ne' (n : ℕ) (R) [add_monoid_with_one R] [h : ne_zero (n : R)] :
+  (n : R) ≠ 0 := h.out
+
+lemma of_ne_zero_coe (R) [add_monoid_with_one R] {n : ℕ} [h : ne_zero (n : R)] : ne_zero n :=
+⟨by {casesI h, rintro rfl, by simpa using h}⟩
+
+lemma pos_of_ne_zero_coe (R) [add_monoid_with_one R] {n : ℕ} [ne_zero (n : R)] : 0 < n :=
+nat.pos_of_ne_zero (of_ne_zero_coe R).out
+
+end ne_zero

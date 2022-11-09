@@ -291,6 +291,9 @@ lemma maps_to_iff_exists_map_subtype : maps_to f s t ↔ ∃ g : s → t, ∀ x 
 theorem maps_to' : maps_to f s t ↔ f '' s ⊆ t :=
 image_subset_iff.symm
 
+lemma maps_to.subset_preimage {f : α → β} {s : set α} {t : set β} (hf : maps_to f s t) :
+  s ⊆ f ⁻¹' t := hf
+
 @[simp] theorem maps_to_singleton {x : α} : maps_to f {x} t ↔ f x ∈ t := singleton_subset_iff
 
 theorem maps_to_empty (f : α → β) (t : set β) : maps_to f ∅ t := empty_subset _
@@ -472,6 +475,9 @@ alias inj_on_of_injective ← _root_.function.injective.inj_on
 theorem inj_on.comp (hg : inj_on g t) (hf: inj_on f s) (h : maps_to f s t) :
   inj_on (g ∘ f) s :=
 λ x hx y hy heq, hf hx hy $ hg (h hx) (h hy) heq
+
+lemma _root_.function.injective.inj_on_range (h : injective (g ∘ f)) : inj_on g (range f) :=
+by { rintros _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ H, exact congr_arg f (h H) }
 
 lemma inj_on_iff_injective : inj_on f s ↔ injective (s.restrict f) :=
 ⟨λ H a b h, subtype.eq $ H a.2 b.2 h,
@@ -828,10 +834,9 @@ theorem inv_fun_on_neg (h : ¬ ∃a∈s, f a = b) : inv_fun_on f s b = classical
 by rw [bex_def] at h; rw [inv_fun_on, dif_neg h]
 
 end function
-
-namespace set
 open function
 
+namespace set
 variables {s s₁ s₂ : set α} {t : set β} {f : α → β}
 
 theorem inj_on.left_inv_on_inv_fun_on [nonempty α] (h : inj_on f s) :

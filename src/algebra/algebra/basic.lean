@@ -264,7 +264,7 @@ lemma algebra_ext {R : Type*} [comm_semiring R] {A : Type*} [semiring A] (P Q : 
     by { haveI := Q, exact algebra_map R A r }) :
   P = Q :=
 begin
-  unfreezingI { rcases P with ⟨⟨P⟩⟩, rcases Q with ⟨⟨Q⟩⟩ },
+  unfreezingI { rcases P with @⟨⟨P⟩⟩, rcases Q with @⟨⟨Q⟩⟩ },
   congr,
   { funext r a,
     replace w := congr_arg (λ s, s * a) (w r),
@@ -1656,6 +1656,10 @@ instance algebra {r : comm_semiring R}
 { commutes' := λ a f, begin ext, simp [algebra.commutes], end,
   smul_def' := λ a f, begin ext, simp [algebra.smul_def], end,
   ..(pi.ring_hom (λ i, algebra_map R (f i)) : R →+* Π i : I, f i) }
+
+lemma algebra_map_def {r : comm_semiring R}
+  [s : ∀ i, semiring (f i)] [∀ i, algebra R (f i)] (a : R) :
+  algebra_map R (Π i, f i) a = (λ i, algebra_map R (f i) a) := rfl
 
 @[simp] lemma algebra_map_apply {r : comm_semiring R}
   [s : ∀ i, semiring (f i)] [∀ i, algebra R (f i)] (a : R) (i : I) :

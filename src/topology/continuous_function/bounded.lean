@@ -3,7 +3,7 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
-import analysis.normed_space.lattice_ordered_group
+import analysis.normed.order.lattice
 import analysis.normed_space.operator_norm
 import analysis.normed_space.star.basic
 import data.real.sqrt
@@ -152,7 +152,7 @@ lemma dist_lt_of_nonempty_compact [nonempty α] [compact_space α]
 begin
   have c : continuous (λ x, dist (f x) (g x)), { continuity, },
   obtain ⟨x, -, le⟩ :=
-    is_compact.exists_forall_ge compact_univ set.univ_nonempty (continuous.continuous_on c),
+    is_compact.exists_forall_ge is_compact_univ set.univ_nonempty (continuous.continuous_on c),
   exact lt_of_le_of_lt (dist_le_iff_of_nonempty.mpr (λ y, le y trivial)) (w x),
 end
 
@@ -421,7 +421,7 @@ theorem arzela_ascoli₁ [compact_space β]
     f ∈ A → dist (f y) (f z) < ε) :
   is_compact A :=
 begin
-  refine compact_of_totally_bounded_is_closed _ closed,
+  refine is_compact_of_totally_bounded_is_closed _ closed,
   refine totally_bounded_of_finite_discretization (λ ε ε0, _),
   rcases exists_between ε0 with ⟨ε₁, ε₁0, εε₁⟩,
   let ε₂ := ε₁/2/2,
@@ -442,11 +442,11 @@ begin
   /- For all x, the set hU x is an open set containing x on which the elements of A
   fluctuate by at most ε₂.
   We extract finitely many of these sets that cover the whole space, by compactness -/
-  rcases compact_univ.elim_finite_subcover_image
+  rcases is_compact_univ.elim_finite_subcover_image
     (λx _, (hU x).2.1) (λx hx, mem_bUnion (mem_univ _) (hU x).1)
     with ⟨tα, _, ⟨_⟩, htα⟩,
   /- tα : set α, htα : univ ⊆ ⋃x ∈ tα, U x -/
-  rcases @finite_cover_balls_of_compact β _ _ compact_univ _ ε₂0
+  rcases @finite_cover_balls_of_compact β _ _ is_compact_univ _ ε₂0
     with ⟨tβ, _, ⟨_⟩, htβ⟩, resetI,
   /- tβ : set β, htβ : univ ⊆ ⋃y ∈ tβ, ball y ε₂ -/
   /- Associate to every point `y` in the space a nearby point `F y` in tβ -/
@@ -489,7 +489,7 @@ using compactness there and then lifting everything to the original space. -/
 begin
   have M : lipschitz_with 1 coe := lipschitz_with.subtype_coe s,
   let F : (α →ᵇ s) → α →ᵇ β := comp coe M,
-  refine compact_of_is_closed_subset
+  refine is_compact_of_is_closed_subset
     ((_ : is_compact (F ⁻¹' A)).image (continuous_comp M)) closed (λ f hf, _),
   { haveI : compact_space s := is_compact_iff_compact_space.1 hs,
     refine arzela_ascoli₁ _ (continuous_iff_is_closed.1 (continuous_comp M) _ closed)

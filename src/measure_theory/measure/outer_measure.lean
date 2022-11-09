@@ -53,7 +53,7 @@ outer measure, Carathéodory-measurable, Carathéodory's criterion
 
 noncomputable theory
 
-open set finset function filter topological_space (second_countable_topology)
+open set function filter topological_space (second_countable_topology)
 open_locale classical big_operators nnreal topological_space ennreal measure_theory
 
 namespace measure_theory
@@ -98,6 +98,13 @@ by simpa [h] using m.Union s
 @[simp] lemma Union_null_iff [countable β] (m : outer_measure α) {s : β → set α} :
   m (⋃ i, s i) = 0 ↔ ∀ i, m (s i) = 0 :=
 ⟨λ h i, m.mono_null (subset_Union _ _) h, m.Union_null⟩
+
+/-- A version of `Union_null_iff` for unions indexed by Props.
+TODO: in the long run it would be better to combine this with `Union_null_iff` by
+generalising to `Sort`. -/
+@[simp] lemma Union_null_iff' (m : outer_measure α) {ι : Prop} {s : ι → set α} :
+  m (⋃ i, s i) = 0 ↔ ∀ i, m (s i) = 0 :=
+by by_cases i : ι; simp [i]
 
 lemma bUnion_null_iff (m : outer_measure α) {s : set β} (hs : s.countable) {t : β → set α} :
   m (⋃ i ∈ s, t i) = 0 ↔ ∀ i ∈ s, m (t i) = 0 :=
@@ -662,7 +669,7 @@ variables {α : Type*} (m : set α → ℝ≥0∞)
   satisfying `μ s ≤ m s` for all `s : set α`. This is the same as `outer_measure.of_function`,
   except that it doesn't require `m ∅ = 0`. -/
 def bounded_by : outer_measure α :=
-outer_measure.of_function (λ s, ⨆ (h : s.nonempty), m s) (by simp [empty_not_nonempty])
+outer_measure.of_function (λ s, ⨆ (h : s.nonempty), m s) (by simp [not_nonempty_empty])
 
 variables {m}
 theorem bounded_by_le (s : set α) : bounded_by m s ≤ m s :=
@@ -672,7 +679,7 @@ theorem bounded_by_eq_of_function (m_empty : m ∅ = 0) (s : set α) :
   bounded_by m s = outer_measure.of_function m m_empty s :=
 begin
   have : (λ s : set α, ⨆ (h : s.nonempty), m s) = m,
-  { ext1 t, cases t.eq_empty_or_nonempty with h h; simp [h, empty_not_nonempty, m_empty] },
+  { ext1 t, cases t.eq_empty_or_nonempty with h h; simp [h, not_nonempty_empty, m_empty] },
   simp [bounded_by, this]
 end
 theorem bounded_by_apply (s : set α) :
@@ -689,7 +696,7 @@ ext $ λ s, bounded_by_eq _ m.empty' (λ t ht, m.mono' ht) m.Union
 theorem le_bounded_by {μ : outer_measure α} : μ ≤ bounded_by m ↔ ∀ s, μ s ≤ m s :=
 begin
   rw [bounded_by, le_of_function, forall_congr], intro s,
-  cases s.eq_empty_or_nonempty with h h; simp [h, empty_not_nonempty]
+  cases s.eq_empty_or_nonempty with h h; simp [h, not_nonempty_empty]
 end
 
 theorem le_bounded_by' {μ : outer_measure α} :
@@ -790,7 +797,7 @@ lemma is_caratheodory_sum {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))
   rw [bUnion_lt_succ, finset.sum_range_succ, set.union_comm, is_caratheodory_sum,
     m.measure_inter_union _ (h n), add_comm],
   intro a,
-  simpa using λ (h₁ : a ∈ s n) i (hi : i < n) h₂, hd _ _ (ne_of_gt hi) ⟨h₁, h₂⟩
+  simpa using λ (h₁ : a ∈ s n) i (hi : i < n) h₂, hd (ne_of_gt hi) ⟨h₁, h₂⟩
 end
 
 lemma is_caratheodory_Union_nat {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))
@@ -867,7 +874,7 @@ lemma bounded_by_caratheodory {m : set α → ℝ≥0∞} {s : set α}
 begin
   apply of_function_caratheodory, intro t,
   cases t.eq_empty_or_nonempty with h h,
-  { simp [h, empty_not_nonempty] },
+  { simp [h, not_nonempty_empty] },
   { convert le_trans _ (hs t), { simp [h] }, exact add_le_add supr_const_le supr_const_le }
 end
 
@@ -925,7 +932,7 @@ lemma supr_Inf_gen_nonempty {m : set (outer_measure α)} (h : m.nonempty) (t : s
 begin
   rcases t.eq_empty_or_nonempty with rfl|ht,
   { rcases h with ⟨μ, hμ⟩,
-    rw [eq_false_intro empty_not_nonempty, supr_false, eq_comm],
+    rw [eq_false_intro not_nonempty_empty, supr_false, eq_comm],
     simp_rw [empty'],
     apply bot_unique,
     refine infi_le_of_le μ (infi_le _ hμ) },

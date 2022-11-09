@@ -5,6 +5,7 @@ Authors: Yaël Dillies, Sara Rousta
 -/
 import data.set_like.basic
 import data.set.intervals.ord_connected
+import data.set.intervals.order_iso
 import order.hom.complete_lattice
 
 /-!
@@ -39,12 +40,12 @@ Lattice structure on antichains. Order equivalence between upper/lower sets and 
 
 open order_dual set
 
-variables {α β : Type*} {ι : Sort*} {κ : ι → Sort*}
+variables {α β γ : Type*} {ι : Sort*} {κ : ι → Sort*}
 
 /-! ### Unbundled upper/lower sets -/
 
 section has_le
-variables [has_le α] {s t : set α}
+variables [has_le α] [has_le β] {s t : set α}
 
 /-- An upper set in an order `α` is a set such that any element greater than one of its members is
 also a member. Also called up-set, upward-closed set. -/
@@ -136,7 +137,7 @@ alias is_upper_set_preimage_to_dual_iff ↔ _ is_lower_set.to_dual
 end has_le
 
 section preorder
-variables [preorder α] {s : set α} (a : α)
+variables [preorder α] [preorder β] {s : set α} {p : α → Prop} (a : α)
 
 lemma is_upper_set_Ici : is_upper_set (Ici a) := λ _ _, ge_trans
 lemma is_lower_set_Iic : is_lower_set (Iic a) := λ _ _, le_trans
@@ -157,6 +158,28 @@ lemma is_upper_set.ord_connected (h : is_upper_set s) : s.ord_connected :=
 
 lemma is_lower_set.ord_connected (h : is_lower_set s) : s.ord_connected :=
 ⟨λ a _ b hb, Icc_subset_Iic_self.trans $ h.Iic_subset hb⟩
+
+lemma is_upper_set.preimage (hs : is_upper_set s) {f : β → α} (hf : monotone f) :
+  is_upper_set (f ⁻¹' s : set β) :=
+λ x y hxy, hs $ hf hxy
+
+lemma is_lower_set.preimage (hs : is_lower_set s) {f : β → α} (hf : monotone f) :
+  is_lower_set (f ⁻¹' s : set β) :=
+λ x y hxy, hs $ hf hxy
+
+lemma is_upper_set.image (hs : is_upper_set s) (f : α ≃o β) : is_upper_set (f '' s : set β) :=
+by { change is_upper_set ((f : α ≃ β) '' s), rw set.image_equiv_eq_preimage_symm,
+  exact hs.preimage f.symm.monotone }
+
+lemma is_lower_set.image (hs : is_lower_set s) (f : α ≃o β) : is_lower_set (f '' s : set β) :=
+by { change is_lower_set ((f : α ≃ β) '' s), rw set.image_equiv_eq_preimage_symm,
+  exact hs.preimage f.symm.monotone }
+
+@[simp] lemma set.monotone_mem : monotone (∈ s) ↔ is_upper_set s := iff.rfl
+@[simp] lemma set.antitone_mem : antitone (∈ s) ↔ is_lower_set s := forall_swap
+
+@[simp] lemma is_upper_set_set_of : is_upper_set {a | p a} ↔ monotone p := iff.rfl
+@[simp] lemma is_lower_set_set_of : is_lower_set {a | p a} ↔ antitone p := forall_swap
 
 section order_top
 variables [order_top α]
@@ -217,6 +240,26 @@ lemma not_bdd_below_Iio : ¬ bdd_below (Iio a) := (is_lower_set_Iio _).not_bdd_b
 end no_min_order
 end preorder
 
+section partial_order
+variables [partial_order α] {s : set α}
+
+lemma is_upper_set_iff_forall_lt : is_upper_set s ↔ ∀ ⦃a b : α⦄, a < b → a ∈ s → b ∈ s :=
+forall_congr $ λ a, by simp [le_iff_eq_or_lt, or_imp_distrib, forall_and_distrib]
+
+lemma is_lower_set_iff_forall_lt : is_lower_set s ↔ ∀ ⦃a b : α⦄, b < a → a ∈ s → b ∈ s :=
+forall_congr $ λ a, by simp [le_iff_eq_or_lt, or_imp_distrib, forall_and_distrib]
+
+lemma is_upper_set_iff_Ioi_subset : is_upper_set s ↔ ∀ ⦃a⦄, a ∈ s → Ioi a ⊆ s :=
+by simp [is_upper_set_iff_forall_lt, subset_def, @forall_swap (_ ∈ s)]
+
+lemma is_lower_set_iff_Iio_subset : is_lower_set s ↔ ∀ ⦃a⦄, a ∈ s → Iio a ⊆ s :=
+by simp [is_lower_set_iff_forall_lt, subset_def, @forall_swap (_ ∈ s)]
+
+alias is_upper_set_iff_Ioi_subset ↔ is_upper_set.Ioi_subset _
+alias is_lower_set_iff_Iio_subset ↔ is_lower_set.Iio_subset _
+
+end partial_order
+
 /-! ### Bundled upper/lower sets -/
 
 section has_le
@@ -244,6 +287,9 @@ instance : set_like (upper_set α) α :=
 
 protected lemma upper (s : upper_set α) : is_upper_set (s : set α) := s.upper'
 
+@[simp] lemma mem_mk (carrier : set α) (upper') {a : α} : a ∈ mk carrier upper' ↔ a ∈ carrier :=
+iff.rfl
+
 end upper_set
 
 namespace lower_set
@@ -257,6 +303,9 @@ instance : set_like (lower_set α) α :=
 @[simp] lemma carrier_eq_coe (s : lower_set α) : s.carrier = s := rfl
 
 protected lemma lower (s : lower_set α) : is_lower_set (s : set α) := s.lower'
+
+@[simp] lemma mem_mk (carrier : set α) (lower') {a : α} : a ∈ mk carrier lower' ↔ a ∈ carrier :=
+iff.rfl
 
 end lower_set
 
@@ -454,11 +503,124 @@ end lower_set
 
 end has_le
 
+/-! #### Map -/
+
+section
+variables [preorder α] [preorder β] [preorder γ]
+
+namespace upper_set
+variables {f : α ≃o β} {s t : upper_set α} {a : α} {b : β}
+
+/-- An order isomorphism of preorders induces an order isomorphism of their upper sets. -/
+def map (f : α ≃o β) : upper_set α ≃o upper_set β :=
+{ to_fun := λ s, ⟨f '' s, s.upper.image f⟩,
+  inv_fun := λ t, ⟨f ⁻¹' t, t.upper.preimage f.monotone⟩,
+  left_inv := λ _, ext $ f.preimage_image _,
+  right_inv := λ _, ext $ f.image_preimage _,
+  map_rel_iff' := λ s t, image_subset_image_iff f.injective }
+
+@[simp] lemma symm_map (f : α ≃o β) : (map f).symm = map f.symm :=
+fun_like.ext _ _ $ λ s, ext $ set.preimage_equiv_eq_image_symm _ _
+
+@[simp] lemma mem_map : b ∈ map f s ↔ f.symm b ∈ s :=
+by { rw [←f.symm_symm, ←symm_map, f.symm_symm], refl }
+
+@[simp] lemma map_refl : map (order_iso.refl α) = order_iso.refl _ := by { ext, simp }
+
+@[simp] lemma map_map (g : β ≃o γ) (f : α ≃o β) : map g (map f s) = map (f.trans g) s :=
+by { ext, simp }
+
+variables (f s t)
+
+@[simp, norm_cast] lemma coe_map : (map f s : set β) = f '' s := rfl
+
+@[simp] protected lemma map_sup : map f (s ⊔ t) = map f s ⊔ map f t :=
+ext $ (image_inter f.injective).symm
+@[simp] protected lemma map_inf : map f (s ⊓ t) = map f s ⊓ map f t := ext $ image_union _ _ _
+@[simp] protected lemma map_top : map f ⊤ = ⊤ := ext $ image_empty _
+@[simp] protected lemma map_bot : map f ⊥ = ⊥ := ext $ image_univ_of_surjective f.surjective
+@[simp] protected lemma map_Sup (S : set (upper_set α)) : map f (Sup S) = ⨆ s ∈ S, map f s :=
+ext $ by { push_cast, exact image_Inter₂ f.bijective _ }
+
+@[simp] protected lemma map_Inf (S : set (upper_set α)) : map f (Inf S) = ⨅ s ∈ S, map f s :=
+ext $ by { push_cast, exact image_Union₂ _ _ }
+
+@[simp] protected lemma map_supr (g : ι → upper_set α) : map f (⨆ i, g i) = ⨆ i, map f (g i) :=
+ext $ by { push_cast, exact image_Inter f.bijective _ }
+
+@[simp] protected lemma map_infi (g : ι → upper_set α) : map f (⨅ i, g i) = ⨅ i, map f (g i) :=
+ext $ by { push_cast, exact image_Union }
+
+end upper_set
+
+namespace lower_set
+variables {f : α ≃o β} {s t : lower_set α} {a : α} {b : β}
+
+/-- An order isomorphism of preorders induces an order isomorphism of their lower sets. -/
+def map (f : α ≃o β) : lower_set α ≃o lower_set β :=
+{ to_fun := λ s, ⟨f '' s, s.lower.image f⟩,
+  inv_fun := λ t, ⟨f ⁻¹' t, t.lower.preimage f.monotone⟩,
+  left_inv := λ _, set_like.coe_injective $ f.preimage_image _,
+  right_inv := λ _, set_like.coe_injective $ f.image_preimage _,
+  map_rel_iff' := λ s t, image_subset_image_iff f.injective }
+
+@[simp] lemma symm_map (f : α ≃o β) : (map f).symm = map f.symm :=
+fun_like.ext _ _ $ λ s, set_like.coe_injective $ set.preimage_equiv_eq_image_symm _ _
+
+@[simp] lemma mem_map {f : α ≃o β} {b : β} : b ∈ map f s ↔ f.symm b ∈ s :=
+by { rw [←f.symm_symm, ←symm_map, f.symm_symm], refl }
+
+@[simp] lemma map_refl : map (order_iso.refl α) = order_iso.refl _ := by { ext, simp }
+
+@[simp] lemma map_map (g : β ≃o γ) (f : α ≃o β) : map g (map f s) = map (f.trans g) s :=
+by { ext, simp }
+
+variables (f s t)
+
+@[simp, norm_cast] lemma coe_map : (map f s : set β) = f '' s := rfl
+
+@[simp] protected lemma map_sup : map f (s ⊔ t) = map f s ⊔ map f t := ext $ image_union _ _ _
+@[simp] protected lemma map_inf : map f (s ⊓ t) = map f s ⊓ map f t :=
+ext $ (image_inter f.injective).symm
+@[simp] protected lemma map_top : map f ⊤ = ⊤ := ext $ image_univ_of_surjective f.surjective
+@[simp] protected lemma map_bot : map f ⊥ = ⊥ := ext $ image_empty _
+@[simp] protected lemma map_Sup (S : set (lower_set α)) : map f (Sup S) = ⨆ s ∈ S, map f s :=
+ext $ by { push_cast, exact image_Union₂ _ _ }
+
+protected lemma map_Inf (S : set (lower_set α)) : map f (Inf S) = ⨅ s ∈ S, map f s :=
+ext $ by { push_cast, exact image_Inter₂ f.bijective _ }
+
+protected lemma map_supr (g : ι → lower_set α) : map f (⨆ i, g i) = ⨆ i, map f (g i) :=
+ext $ by { push_cast, exact image_Union }
+
+protected lemma map_infi (g : ι → lower_set α) : map f (⨅ i, g i) = ⨅ i, map f (g i) :=
+ext $ by { push_cast, exact image_Inter f.bijective _ }
+
+end lower_set
+
+namespace upper_set
+
+@[simp] lemma compl_map (f : α ≃o β) (s : upper_set α) :
+  (map f s).compl = lower_set.map f s.compl :=
+set_like.coe_injective (set.image_compl_eq f.bijective).symm
+
+end upper_set
+
+namespace lower_set
+
+@[simp] lemma compl_map (f : α ≃o β) (s : lower_set α) :
+  (map f s).compl = upper_set.map f s.compl :=
+set_like.coe_injective (set.image_compl_eq f.bijective).symm
+
+end lower_set
+
+end
+
 /-! #### Principal sets -/
 
 namespace upper_set
 section preorder
-variables [preorder α] {a b : α}
+variables [preorder α] [preorder β] {s : upper_set α} {a b : α}
 
 /-- The smallest upper set containing a given element. -/
 def Ici (a : α) : upper_set α := ⟨Ici a, is_upper_set_Ici a⟩
@@ -470,6 +632,8 @@ def Ioi (a : α) : upper_set α := ⟨Ioi a, is_upper_set_Ioi a⟩
 @[simp] lemma coe_Ioi (a : α) : ↑(Ioi a) = set.Ioi a := rfl
 @[simp] lemma mem_Ici_iff : b ∈ Ici a ↔ a ≤ b := iff.rfl
 @[simp] lemma mem_Ioi_iff : b ∈ Ioi a ↔ a < b := iff.rfl
+@[simp] lemma map_Ici (f : α ≃o β) (a : α) : map f (Ici a) = Ici (f a) := by { ext, simp }
+@[simp] lemma map_Ioi (f : α ≃o β) (a : α) : map f (Ioi a) = Ioi (f a) := by { ext, simp }
 
 lemma Ici_le_Ioi (a : α) : Ici a ≤ Ioi a := Ioi_subset_Ici_self
 
@@ -512,7 +676,7 @@ end upper_set
 
 namespace lower_set
 section preorder
-variables [preorder α] {a b : α}
+variables [preorder α] [preorder β] {s : lower_set α} {a b : α}
 
 /-- Principal lower set. `set.Iic` as a lower set. The smallest lower set containing a given
 element. -/
@@ -525,6 +689,8 @@ def Iio (a : α) : lower_set α := ⟨Iio a, is_lower_set_Iio a⟩
 @[simp] lemma coe_Iio (a : α) : ↑(Iio a) = set.Iio a := rfl
 @[simp] lemma mem_Iic_iff : b ∈ Iic a ↔ b ≤ a := iff.rfl
 @[simp] lemma mem_Iio_iff : b ∈ Iio a ↔ b < a := iff.rfl
+@[simp] lemma map_Iic (f : α ≃o β) (a : α) : map f (Iic a) = Iic (f a) := by { ext, simp }
+@[simp] lemma map_Iio (f : α ≃o β) (a : α) : map f (Iio a) = Iio (f a) := by { ext, simp }
 
 lemma Ioi_le_Ici (a : α) : Ioi a ≤ Ici a := Ioi_subset_Ici_self
 
@@ -569,7 +735,7 @@ end complete_lattice
 end lower_set
 
 section closure
-variables [preorder α] {s t : set α} {x : α}
+variables [preorder α] [preorder β] {s t : set α} {x : α}
 
 /-- The greatest upper set containing a given set. -/
 def upper_closure (s : set α) : upper_set α :=
@@ -579,11 +745,9 @@ def upper_closure (s : set α) : upper_set α :=
 def lower_closure (s : set α) : lower_set α :=
 ⟨{x | ∃ a ∈ s, x ≤ a}, λ x y h, Exists₂.imp $ λ a _, h.trans⟩
 
-@[simp, norm_cast] lemma coe_upper_closure (s : set α) :
-  ↑(upper_closure s) = {x | ∃ a ∈ s, a ≤ x} := rfl
-
-@[simp, norm_cast] lemma coe_lower_closure (s : set α) :
-  ↑(lower_closure s) = {x | ∃ a ∈ s, x ≤ a} := rfl
+-- We do not tag those two as `simp` to respect the abstraction.
+@[norm_cast] lemma coe_upper_closure (s : set α) : ↑(upper_closure s) = {x | ∃ a ∈ s, a ≤ x} := rfl
+@[norm_cast] lemma coe_lower_closure (s : set α) : ↑(lower_closure s) = {x | ∃ a ∈ s, x ≤ a} := rfl
 
 @[simp] lemma mem_upper_closure : x ∈ upper_closure s ↔ ∃ a ∈ s, a ≤ x := iff.rfl
 @[simp] lemma mem_lower_closure : x ∈ lower_closure s ↔ ∃ a ∈ s, x ≤ a := iff.rfl
@@ -596,6 +760,34 @@ lemma upper_closure_min (h : s ⊆ t) (ht : is_upper_set t) : ↑(upper_closure 
 
 lemma lower_closure_min (h : s ⊆ t) (ht : is_lower_set t) : ↑(lower_closure s) ⊆ t :=
 λ a ⟨b, hb, hab⟩, ht hab $ h hb
+
+protected lemma is_upper_set.upper_closure (hs : is_upper_set s) : ↑(upper_closure s) = s :=
+(upper_closure_min subset.rfl hs).antisymm subset_upper_closure
+
+protected lemma is_lower_set.lower_closure (hs : is_lower_set s) : ↑(lower_closure s) = s :=
+(lower_closure_min subset.rfl hs).antisymm subset_lower_closure
+
+@[simp] protected lemma upper_set.upper_closure (s : upper_set α) : upper_closure (s : set α) = s :=
+set_like.coe_injective s.2.upper_closure
+
+@[simp] protected lemma lower_set.lower_closure (s : lower_set α) : lower_closure (s : set α) = s :=
+set_like.coe_injective s.2.lower_closure
+
+@[simp] lemma upper_closure_image (f : α ≃o β) :
+  upper_closure (f '' s) = upper_set.map f (upper_closure s) :=
+begin
+  rw [←f.symm_symm, ←upper_set.symm_map, f.symm_symm],
+  ext,
+  simp [-upper_set.symm_map, upper_set.map, order_iso.symm, ←f.le_symm_apply],
+end
+
+@[simp] lemma lower_closure_image (f : α ≃o β) :
+  lower_closure (f '' s) = lower_set.map f (lower_closure s) :=
+begin
+  rw [←f.symm_symm, ←lower_set.symm_map, f.symm_symm],
+  ext,
+  simp [-lower_set.symm_map, lower_set.map, order_iso.symm, ←f.symm_apply_le],
+end
 
 @[simp] lemma upper_set.infi_Ici (s : set α) : (⨅ a ∈ s, upper_set.Ici a) = upper_closure s :=
 by { ext, simp }
@@ -636,6 +828,12 @@ gc_lower_closure_coe.monotone_l
 
 @[simp] lemma upper_closure_empty : upper_closure (∅ : set α) = ⊤ := by { ext, simp }
 @[simp] lemma lower_closure_empty : lower_closure (∅ : set α) = ⊥ := by { ext, simp }
+
+@[simp] lemma upper_closure_singleton (a : α) : upper_closure ({a} : set α) = upper_set.Ici a :=
+by { ext, simp }
+
+@[simp] lemma lower_closure_singleton (a : α) : lower_closure ({a} : set α) = lower_set.Iic a :=
+by { ext, simp }
 
 @[simp] lemma upper_closure_univ : upper_closure (univ : set α) = ⊥ :=
 le_bot_iff.1 subset_upper_closure

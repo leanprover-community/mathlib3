@@ -3,9 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import algebra.hom.equiv
+import order.well_founded
+import algebra.hom.equiv.basic
 import data.part
-import data.nat.enat
+import data.enat.basic
 import tactic.norm_num
 
 /-!

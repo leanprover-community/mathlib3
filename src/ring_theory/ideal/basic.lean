@@ -591,7 +591,7 @@ not_is_field_iff_exists_ideal_bot_lt_and_lt_top.trans
 division (semi)ring. 
 
 This result actually holds for all division semirings, but we lack the predicate to state it. -/
-lemma is_field_iff_forall_ideal_eq :
+lemma is_field_iff_is_simple_order_ideal :
   is_field R ↔ is_simple_order (ideal R) :=
 begin
   casesI subsingleton_or_nontrivial R,

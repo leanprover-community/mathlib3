@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.group.pi
-import algebra.hom.equiv
+import algebra.hom.equiv.basic
 import algebra.ring.opposite
 import data.finset.fold
 import data.fintype.basic
@@ -287,7 +287,7 @@ lemma prod_filter_mul_prod_filter_not (s : finset α) (p : α → Prop) [decidab
   (∏ x in s.filter p, f x) * (∏ x in s.filter (λ x, ¬p x), f x) = ∏ x in s, f x :=
 begin
   haveI := classical.dec_eq α,
-  rw [← prod_union (filter_inter_filter_neg_eq p s).le, filter_union_filter_neg_eq]
+  rw [← prod_union (disjoint_filter_filter_neg _ _ p), filter_union_filter_neg_eq]
 end
 
 section to_list

@@ -110,7 +110,7 @@ print()
 print('# The following files are marked as ported, but do not have a SYNCHRONIZED WITH MATHLIB4 label.')
 for node in graph.nodes:
     if data[node].startswith('Yes') and not node in synchronized:
-        print(node)
+        print(node + "     -- " + data[node][4:])
 
 print()
 print('# The following files are marked as ported, but have not been verified against a commit hash from mathlib.')

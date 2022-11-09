@@ -106,7 +106,7 @@ begin
     obtain ⟨n, hπ_le_n⟩ := hπ_bdd,
     exact h.expected_stopped_value_mono (hσ.min hτ) (hπ.min hτ)
       (λ ω, min_le_min (hσ_le_π ω) le_rfl) (λ ω, (min_le_left _ _).trans (hπ_le_n ω)), },
-  { exact adapted.stopped_process_of_nat h.adapted hτ, },
+  { exact adapted.stopped_process_of_discrete h.adapted hτ, },
   { exact λ i, h.integrable_stopped_value ((is_stopping_time_const _ i).min hτ)
     (λ ω, min_le_left _ _), },
 end

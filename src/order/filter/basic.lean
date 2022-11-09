@@ -639,9 +639,9 @@ lemma _root_.pairwise.exists_mem_filter_of_disjoint {ι : Type*} [finite ι]
 begin
   simp only [pairwise, function.on_fun, filter.disjoint_iff, subtype.exists'] at hd,
   choose! s t hst using hd,
-  refine ⟨λ i, ⋂ j, s i j ∩ t j i, λ i, _, λ i j hij, _⟩,
-  exacts [Inter_mem.2 (λ j, inter_mem (s i j).2 (t j i).2),
-    (hst i j hij).mono ((Inter_subset _ j).trans (inter_subset_left _ _))
+  refine ⟨λ i, ⋂ j, @s i j ∩ @t j i, λ i, _, λ i j hij, _⟩,
+  exacts [Inter_mem.2 (λ j, inter_mem (@s i j).2 (@t j i).2),
+    (hst hij).mono ((Inter_subset _ j).trans (inter_subset_left _ _))
       ((Inter_subset _ i).trans (inter_subset_right _ _))]
 end
 
@@ -673,7 +673,7 @@ end
 
 lemma forall_mem_nonempty_iff_ne_bot {f : filter α} :
   (∀ (s : set α), s ∈ f → s.nonempty) ↔ ne_bot f :=
-⟨λ h, ⟨λ hf, empty_not_nonempty (h ∅ $ hf.symm ▸ mem_bot)⟩, @nonempty_of_mem _ _⟩
+⟨λ h, ⟨λ hf, not_nonempty_empty (h ∅ $ hf.symm ▸ mem_bot)⟩, @nonempty_of_mem _ _⟩
 
 instance [nonempty α] : nontrivial (filter α) :=
 ⟨⟨⊤, ⊥, ne_bot.ne $ forall_mem_nonempty_iff_ne_bot.1 $ λ s hs,

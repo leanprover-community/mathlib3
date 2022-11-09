@@ -3,7 +3,9 @@ Copyright (c) 2014 Floris van Doorn (c) 2016 Microsoft Corporation. All rights r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import algebra.order.ring
+import algebra.ring.divisibility
+import algebra.group_with_zero.divisibility
+import algebra.order.ring.canonical
 import algebra.order.with_zero
 import data.nat.basic
 
@@ -351,42 +353,6 @@ set_induction_bounded hb h_ind (zero_le n)
 lemma set_eq_univ {S : set ℕ} : S = set.univ ↔ 0 ∈ S ∧ ∀ k : ℕ, k ∈ S → k + 1 ∈ S :=
 ⟨by rintro rfl; simp, λ ⟨h0, hs⟩, set.eq_univ_of_forall (set_induction h0 hs)⟩
 
-/-!
-### Recursion and `set.range`
--/
-
-section set
-
-open set
-
-theorem zero_union_range_succ : {0} ∪ range succ = univ :=
-by { ext n, cases n; simp }
-
-@[simp] protected lemma range_succ : range succ = {i | 0 < i} := by ext (_ | i); simp [succ_pos]
-
-variables {α : Type*}
-
-theorem range_of_succ (f : ℕ → α) : {f 0} ∪ range (f ∘ succ) = range f :=
-by rw [← image_singleton, range_comp, ← image_union, zero_union_range_succ, image_univ]
-
-theorem range_rec {α : Type*} (x : α) (f : ℕ → α → α) :
-  (set.range (λ n, nat.rec x f n) : set α) =
-    {x} ∪ set.range (λ n, nat.rec (f 0 x) (f ∘ succ) n) :=
-begin
-  convert (range_of_succ _).symm,
-  ext n,
-  induction n with n ihn,
-  { refl },
-  { dsimp at ihn ⊢,
-    rw ihn }
-end
-
-theorem range_cases_on {α : Type*} (x : α) (f : ℕ → α) :
-  (set.range (λ n, nat.cases_on n x f) : set α) = {x} ∪ set.range f :=
-(range_of_succ _).symm
-
-end set
-
 /-! ### `div` -/
 
 
@@ -416,7 +382,7 @@ lt_of_mul_lt_mul_left
 
 protected lemma div_eq_zero_iff {a b : ℕ} (hb : 0 < b) : a / b = 0 ↔ a < b :=
 ⟨λ h, by rw [← mod_add_div a b, h, mul_zero, add_zero]; exact mod_lt _ hb,
-  λ h, by rw [← nat.mul_right_inj hb, ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
+  λ h, by rw [← mul_right_inj' hb.ne', ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
     mod_eq_of_lt h, mul_zero, add_zero]⟩
 
 protected lemma div_eq_zero {a b : ℕ} (hb : a < b) : a / b = 0 :=
@@ -476,12 +442,12 @@ by conv {to_rhs, rw [← nat.mod_add_div n 2, hn, add_tsub_cancel_left]}
 lemma div_dvd_of_dvd {a b : ℕ} (h : b ∣ a) : (a / b) ∣ a :=
 ⟨b, (nat.div_mul_cancel h).symm⟩
 
-protected lemma div_div_self : ∀ {a b : ℕ}, b ∣ a → 0 < a → a / (a / b) = b
-| a     0     h₁ h₂ := by rw [eq_zero_of_zero_dvd h₁, nat.div_zero, nat.div_zero]
-| 0     b     h₁ h₂ := absurd h₂ dec_trivial
-| (a+1) (b+1) h₁ h₂ :=
-(nat.mul_left_inj (nat.div_pos (le_of_dvd (succ_pos a) h₁) (succ_pos b))).1 $
-  by rw [nat.div_mul_cancel (div_dvd_of_dvd h₁), nat.mul_div_cancel' h₁]
+protected lemma div_div_self {a b : ℕ} (h : b ∣ a) (ha : a ≠ 0) : a / (a / b) = b :=
+begin
+  rcases h with ⟨a, rfl⟩,
+  rw mul_ne_zero_iff at ha,
+  rw [nat.mul_div_right _ (nat.pos_of_ne_zero ha.1), nat.mul_div_left _ (nat.pos_of_ne_zero ha.2)]
+end
 
 lemma mod_mul_right_div_self (a b c : ℕ) : a % (b * c) / b = (a / b) % c :=
 begin

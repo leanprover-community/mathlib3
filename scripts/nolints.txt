@@ -910,6 +910,3 @@ apply_nolint transfer.compute_transfer doc_blame
 
 -- tactic/wlog.lean
 apply_nolint tactic.wlog doc_blame
-
--- topology/algebra/group.lean
-apply_nolint topological_space.positive_compacts.locally_compact_space_of_group to_additive_doc

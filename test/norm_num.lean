@@ -59,6 +59,8 @@ example : 10 = (-1 : ℤ) % 11 := by norm_num
 example : (12321 - 2 : ℤ) = 12319 := by norm_num
 example : (63:ℚ) ≥ 5 := by norm_num
 
+example : nat.zero.succ.succ.succ.succ.succ.succ % 4 = 2 := by norm_num1
+
 example (x : ℤ) (h : 1000 + 2000 < x) : 100 * 30 < x :=
 by norm_num at *; try_for 100 {exact h}
 

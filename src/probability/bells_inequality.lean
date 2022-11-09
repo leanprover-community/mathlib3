@@ -234,8 +234,7 @@ begin
   - (∫ ω, (Za 1 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) )  
   - (∫ ω, 2 ∂(ℙ:measure Ω) )  
   ≤ 0,
-  {
-    -- prove all the required integrabilities
+  { -- prove all the required integrabilities
     let f1 := (λ ω , -(Za 2 ω : ℝ) * (Zb 2 ω)),
     let f2 := (λ ω , (Za 2 ω : ℝ) * (Zb 3 ω)),
     let f3 := (λ ω , (Za 1 ω : ℝ) * (Zb 2 ω)),
@@ -280,11 +279,9 @@ begin
   { simp only [integral_const, measure_univ, ennreal.one_to_real, algebra.id.smul_eq_mul, one_mul], },
   rw [anticor,int_2] at split_int,
   ring_nf at split_int,
-  apply sub_nonpos.mp,
+  apply le_of_sub_nonpos,
   ring_nf,
   linarith,
-  -- almost done!
-  sorry,
 end
 
 

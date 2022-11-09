@@ -5,6 +5,7 @@ Authors: Andrew Yang
 -/
 import algebraic_geometry.morphisms.basic
 import topology.spectral.hom
+import algebraic_geometry.limits
 
 /-!
 # Quasi-compact morphisms
@@ -123,7 +124,7 @@ begin
   obtain ⟨s, hs, e⟩ := (is_compact_open_iff_eq_finset_affine_union _).mp ⟨hU, U.prop⟩,
   let g : s → X.affine_opens,
   { intro V,
-    use V.1 ∩ X.basic_open f,
+    use V.1 ⊓ X.basic_open f,
     have : V.1.1 ⟶ U,
     { apply hom_of_le, change _ ⊆ (U : set X.carrier), rw e,
       convert @set.subset_Union₂ _ _ _ (λ (U : X.affine_opens) (h : U ∈ s), ↑U) V V.prop using 1,
@@ -132,7 +133,7 @@ begin
     exact is_affine_open.basic_open_is_affine V.1.prop _ },
   haveI : finite s := hs.to_subtype,
   refine ⟨set.range g, set.finite_range g, _⟩,
-  refine (set.inter_eq_right_iff_subset.mpr (RingedSpace.basic_open_subset _ _)).symm.trans _,
+  refine (set.inter_eq_right_iff_subset.mpr (RingedSpace.basic_open_le _ _)).symm.trans _,
   rw [e, set.Union₂_inter],
   apply le_antisymm; apply set.Union₂_subset,
   { intros i hi,
@@ -182,6 +183,11 @@ lemma quasi_compact.affine_open_cover_tfae {X Y : Scheme.{u}} (f : X ⟶ Y) :
 quasi_compact_eq_affine_property.symm ▸
   quasi_compact.affine_property_is_local.affine_open_cover_tfae f
 
+lemma quasi_compact.is_local_at_target :
+  property_is_local_at_target @quasi_compact :=
+quasi_compact_eq_affine_property.symm ▸
+  quasi_compact.affine_property_is_local.target_affine_locally_is_local
+
 lemma quasi_compact.open_cover_tfae {X Y : Scheme.{u}} (f : X ⟶ Y) :
   tfae [quasi_compact f,
     ∃ (𝒰 : Scheme.open_cover.{u} Y), ∀ (i : 𝒰.J),
@@ -199,6 +205,10 @@ lemma quasi_compact_over_affine_iff {X Y : Scheme} (f : X ⟶ Y) [is_affine Y] :
   quasi_compact f ↔ compact_space X.carrier :=
 quasi_compact_eq_affine_property.symm ▸
   quasi_compact.affine_property_is_local.affine_target_iff f
+
+lemma compact_space_iff_quasi_compact (X : Scheme) :
+  compact_space X.carrier ↔ quasi_compact (terminal.from X) :=
+(quasi_compact_over_affine_iff _).symm
 
 lemma quasi_compact.affine_open_cover_iff {X Y : Scheme.{u}} (𝒰 : Scheme.open_cover.{u} Y)
   [∀ i, is_affine (𝒰.obj i)] (f : X ⟶ Y) :
@@ -218,6 +228,38 @@ quasi_compact_eq_affine_property.symm ▸
 lemma quasi_compact_stable_under_composition :
   morphism_property.stable_under_composition @quasi_compact :=
 λ _ _ _ _ _ _ _, by exactI infer_instance
+
+local attribute [-simp] PresheafedSpace.as_coe SheafedSpace.as_coe
+
+lemma quasi_compact.affine_property_stable_under_base_change :
+  quasi_compact.affine_property.stable_under_base_change :=
+begin
+  intros X Y S _ _ f g h,
+  rw quasi_compact.affine_property at h ⊢,
+  resetI,
+  let 𝒰 := Scheme.pullback.open_cover_of_right Y.affine_cover.finite_subcover f g,
+  haveI : finite 𝒰.J,
+  { dsimp [𝒰], apply_instance },
+  haveI : ∀ i, compact_space (𝒰.obj i).carrier,
+  { intro i, dsimp, apply_instance },
+  exact 𝒰.compact_space,
+end
+
+lemma quasi_compact_stable_under_base_change :
+  morphism_property.stable_under_base_change @quasi_compact :=
+quasi_compact_eq_affine_property.symm ▸
+  quasi_compact.affine_property_is_local.stable_under_base_change
+    quasi_compact.affine_property_stable_under_base_change
+
+variables {Z : Scheme.{u}}
+
+instance (f : X ⟶ Z) (g : Y ⟶ Z) [quasi_compact g] :
+  quasi_compact (pullback.fst : pullback f g ⟶ X) :=
+quasi_compact_stable_under_base_change.fst f g infer_instance
+
+instance (f : X ⟶ Z) (g : Y ⟶ Z) [quasi_compact f] :
+  quasi_compact (pullback.snd : pullback f g ⟶ Y) :=
+quasi_compact_stable_under_base_change.snd f g infer_instance
 
 @[elab_as_eliminator]
 lemma compact_open_induction_on {P : opens X.carrier → Prop} (S : opens X.carrier)

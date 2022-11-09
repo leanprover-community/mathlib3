@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.rat.order
+import data.rat.lemmas
 import data.int.char_zero
 import algebra.field.opposite
 import algebra.big_operators.basic

@@ -21,16 +21,17 @@ product space `E`.
   construction of oriented area should pass through `ω`.)
 
 * `orientation.right_angle_rotation`: an isometric automorphism `E ≃ₗᵢ[ℝ] E` (usual notation `J`).
-  This automorphism squares to -1.  TODO: this agrees with the rotation by 90 degrees defined in
-  `orientation.rotation`.
+  This automorphism squares to -1.  In a later file, rotations (`orientation.rotation`) are defined,
+  in such a way that this automorphism is equal to rotation by 90 degrees.
 
 * `orientation.basis_right_angle_rotation`: for a nonzero vector `x` in `E`, the basis `![x, J x]`
   for `E`.
 
 * `orientation.kahler`: a complex-valued real-bilinear map `E →ₗ[ℝ] E →ₗ[ℝ] ℂ`. Its real part is the
   inner product and its imaginary part is `orientation.area_form`.  For vectors `x` and `y` in `E`,
-  the complex number `o.kahler x y` has modulus `∥x∥ * ∥y∥`. TODO: the argument of `o.kahler x y` is
-  the oriented angle (`orientation.oangle`) from `x` to `y`.
+  the complex number `o.kahler x y` has modulus `∥x∥ * ∥y∥`. In a later file, oriented angles
+  (`orientation.oangle`) are defined, in such a way that the argument of `o.kahler x y` is the
+  oriented angle from `x` to `y`.
 
 ## Main results
 

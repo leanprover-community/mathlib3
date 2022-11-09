@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johan Commelin
 -/
 import algebra.hom.equiv
-import algebra.ring.basic
+import algebra.ring.defs
 import logic.equiv.defs
 import logic.equiv.option
 

@@ -47,7 +47,7 @@ begin
   rintro i j ij x,
   suffices : ∀ a, encode a = i → x ∈ f a → ∀ b, encode b = j → x ∉ f b, by simpa [decode₂_eq_some],
   rintro a rfl ha b rfl hb,
-  exact hd a b (mt (congr_arg encode) ij) ⟨ha, hb⟩
+  exact hd (mt (congr_arg encode) ij) ⟨ha, hb⟩
 end
 
 end encodable

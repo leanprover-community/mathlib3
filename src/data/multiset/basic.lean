@@ -2275,6 +2275,13 @@ iff.intro
   (assume ⟨l', eq, h⟩, ((quotient.exact eq).pairwise_iff hr).2 h)
   (assume h, ⟨l, rfl, h⟩)
 
+lemma map_set_pairwise {f : α → β} {r : β → β → Prop} {m : multiset α}
+  (h : {a | a ∈ m}.pairwise $ λ a₁ a₂, r (f a₁) (f a₂)) : {b | b ∈ m.map f}.pairwise r :=
+λ b₁ h₁ b₂ h₂ hn, begin
+  obtain ⟨⟨a₁, H₁, rfl⟩, a₂, H₂, rfl⟩ := ⟨multiset.mem_map.1 h₁, multiset.mem_map.1 h₂⟩,
+  exact h H₁ H₂ (mt (congr_arg f) hn),
+end
+
 end multiset
 
 namespace multiset

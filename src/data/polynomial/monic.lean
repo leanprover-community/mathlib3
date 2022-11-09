@@ -290,7 +290,7 @@ section semiring
 variables [semiring R]
 
 @[simp]
-lemma monic.nat_degree_map [semiring S] [nontrivial S] {P : polynomial R} (hmo : P.monic)
+lemma monic.nat_degree_map [semiring S] [nontrivial S] {P : R[X]} (hmo : P.monic)
   (f : R →+* S) : (P.map f).nat_degree = P.nat_degree :=
 begin
   refine le_antisymm (nat_degree_map_le _ _) (le_nat_degree_of_ne_zero _),
@@ -299,7 +299,7 @@ begin
 end
 
 @[simp]
-lemma monic.degree_map [semiring S] [nontrivial S] {P : polynomial R} (hmo : P.monic)
+lemma monic.degree_map [semiring S] [nontrivial S] {P : R[X]} (hmo : P.monic)
   (f : R →+* S) : (P.map f).degree = P.degree :=
 begin
   by_cases hP : P = 0,

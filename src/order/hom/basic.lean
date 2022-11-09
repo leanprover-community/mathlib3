@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import logic.equiv.option
--- import logic.equiv.set
 import order.rel_iso.basic
--- import data.set.basic
 import tactic.monotonicity.basic
 import tactic.assert_exists
 

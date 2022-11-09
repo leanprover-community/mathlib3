@@ -2251,7 +2251,7 @@ mem_orthogonal_singleton_of_inner_right u $ inner_eq_zero_sym.2 hv
 
 lemma sub_mem_compl_of_inner_left {x y : E} (h : ∀ (v : K), ⟪x, v⟫ = ⟪y, v⟫) : x - y ∈ Kᗮ :=
 begin
-  rw mem_orthogonal',
+  rw submodule.mem_orthogonal',
   intros u hu,
   rw [inner_sub_left, sub_eq_zero],
   exact h ⟨u, hu⟩,

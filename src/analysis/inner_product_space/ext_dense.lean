@@ -17,7 +17,6 @@ We provide a few lemmas that might be helpful to prove equalities in Hilbert spa
 * `dense.ext_inner_left`
 * `dense.ext_inner_right`
 
-
 -/
 
 noncomputable theory
@@ -33,7 +32,7 @@ namespace dense
 variables  [complete_space E]
 
 /-- If `S` is dense and `x - y ∈ Sᗮ`, then `x = y`. -/
-lemma dense.ext_of_sub_mem_orthogonal (hS : dense (S : set E)) (h : x - y ∈ Sᗮ) : x = y :=
+lemma ext_of_sub_mem_orthogonal (hS : dense (S : set E)) (h : x - y ∈ Sᗮ) : x = y :=
 begin
   rw [dense_iff_topological_closure_eq_top, topological_closure_eq_top_iff] at hS,
   rwa [hS, mem_bot, sub_eq_zero] at h,

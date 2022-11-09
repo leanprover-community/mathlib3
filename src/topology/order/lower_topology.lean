@@ -50,6 +50,9 @@ instance [p: semilattice_inf α] : semilattice_inf (with_lower_topology α) := p
 @[simp] lemma mem_set_of_eq' {x : set (with_lower_topology α)} {p : set α → Prop} :
   x ∈ {y | p y} = p x := rfl
 
+@[simp] lemma mem_set_of_eq'' {x : set α} {p : set (with_lower_topology α) → Prop} :
+  x ∈ {y | p y} = p x := rfl
+
 instance [preorder α] : topological_space (with_lower_topology α) :=
   generate_from {s | ∃ a, (Ici a)ᶜ = s}
 
@@ -86,11 +89,23 @@ variable [preorder α]
 lemma is_open_iff_generate_Ici_comp {s : set (with_lower_topology α)} :
   is_open s ↔ generate_open {s | ∃ a, (Ici a)ᶜ = s} s := iff.rfl
 
+lemma is_open_iff_generate_Ici_comp' [topological_space α] [h: lower_topology α] {s : set α} :
+  is_open s ↔ generate_open {s | ∃a, (Ici a)ᶜ = s} s :=
+by rw [h.topology_eq_lower_topology]; refl
+
 /--
 Left-closed right-infinite intervals [a,∞) are closed in the lower topology.
 -/
 lemma is_closed_Ici (a : with_lower_topology α) : is_closed (Ici a) :=
 is_open_compl_iff.1 $ generate_open.basic _ ⟨a, rfl⟩
+
+lemma is_closed_Ici' [topological_space α] [lower_topology α] (a : α) : is_closed (Ici a) :=
+is_open_compl_iff.1 begin
+  rw is_open_iff_generate_Ici_comp',
+  fconstructor,
+  rw mem_set_of_eq,
+  use a,
+end
 
 /--
 The upper closure of a finite subset is closed in the lower topology.
@@ -137,6 +152,25 @@ protected lemma is_topological_basis :
   is_topological_basis (lower_basis (with_lower_topology α)) :=
 begin
   convert is_topological_basis_of_subbasis rfl,
+  simp_rw [lower_basis, upper_set.coe_compl, coe_upper_closure, compl_set_of],
+  push_neg, simp_rw set_of_forall,
+  ext s, split,
+  { rintro ⟨F, hF, rfl⟩,
+    refine ⟨(λ a, (Ici a)ᶜ) '' F, ⟨hF.image _, image_subset_iff.2 $ λ _ _, ⟨_, rfl⟩⟩, _⟩,
+    rw sInter_image, refl },
+  { rintro ⟨F, ⟨hF, hs⟩, rfl⟩,
+    haveI := hF.to_subtype,
+    rw [subset_def, subtype.forall'] at hs,
+    choose f he using hs,
+    refine ⟨_, finite_range f, set.ext $ λ a, _⟩,
+    simp_rw [bInter_range, Inter_subtype, ←compl_set_of, Ici_def, he, mem_Inter₂],
+    refl },
+end
+
+protected lemma is_topological_basis' [topological_space α] [h: lower_topology α] :
+  is_topological_basis (lower_basis α) :=
+begin
+  convert is_topological_basis_of_subbasis h.topology_eq_lower_topology,
   simp_rw [lower_basis, upper_set.coe_compl, coe_upper_closure, compl_set_of],
   push_neg, simp_rw set_of_forall,
   ext s, split,
@@ -201,9 +235,62 @@ lemma prod_basis_is_topological_basis : is_topological_basis
 is_topological_basis.prod with_lower_topology.is_topological_basis
   with_lower_topology.is_topological_basis
 
+lemma prod_basis_is_topological_basis' [topological_space α] [lower_topology α]
+  [topological_space β] [lower_topology β] :
+  is_topological_basis (image2 prod (with_lower_topology.lower_basis α)
+    (with_lower_topology.lower_basis β)) :=
+is_topological_basis.prod with_lower_topology.is_topological_basis'
+  with_lower_topology.is_topological_basis'
+
+instance [order_bot α] [order_bot β] [topological_space α] [lower_topology α]
+  [topological_space β] [lower_topology β] : lower_topology (α × β) :=
+{ topology_eq_lower_topology :=
+  begin
+    rw le_antisymm_iff,
+    split,
+    { apply le_generate_from,
+    intros,
+    simp only [prod.exists, mem_set_of_eq'] at H,
+    cases H with a,
+    cases H_h with b,
+    rw [← H_h_h, ← upper_set.coe_Ici, is_open_compl_iff, upper_set.prod_Ici],
+    apply is_closed.inter,
+    { apply is_closed.prod is_closed_univ,
+      rw upper_set.coe_Ici,
+      apply with_lower_topology.is_closed_Ici', },
+    { apply is_closed.prod, rw upper_set.coe_Ici,
+      apply with_lower_topology.is_closed_Ici',
+      apply is_closed_univ, } },
+    { rw (prod_basis_is_topological_basis' α β).eq_generate_from,
+      apply le_generate_from,
+      intros U hU,
+      simp only [mem_image2, exists_and_distrib_left] at hU,
+      cases hU with V,
+      cases hU_h with hV,
+      cases hU_h_right with W,
+      cases hU_h_right_h with hW hUVW,
+      rw ← hUVW,
+      rw [with_lower_topology.lower_basis, mem_set_of_eq] at hV,
+      cases hV with F₁,
+      rw [with_lower_topology.lower_basis, mem_set_of_eq] at hW,
+      cases hW with F₂,
+      rw [← hV_h.2, ← hW_h.2, ← lower_set.coe_prod, upper_closure_compl_prod_upper_closure_compl,
+        lower_set.coe_inf],
+      apply is_open.inter,
+      { rw [upper_set.coe_compl, is_open_compl_iff, upper_closure_prod, upper_closure_univ,
+          ← upper_set.Ici_bot, ← upper_closure_singleton, ← upper_closure_prod],
+        apply with_lower_topology.is_closed_upper_closure,
+        apply set.finite.prod (finite_singleton ⊥) hW_h.1, },
+      { rw  [upper_set.coe_compl, is_open_compl_iff, upper_closure_prod, upper_closure_univ,
+          ← upper_set.Ici_bot, ← upper_closure_singleton, ← upper_closure_prod],
+       apply with_lower_topology.is_closed_upper_closure,
+       apply set.finite.prod hV_h.1 (finite_singleton ⊥), }, },
+  end }
+
 lemma lower_topology_prod  [order_bot α] [order_bot β] :
   with_lower_topology.topological_space (α × β) =
-  @prod.topological_space α β (lower_topology α) (lower_topology β) :=
+  @prod.topological_space α β (generate_from {s | ∃ a, (Ici a)ᶜ = s})
+  (generate_from {s | ∃ a, (Ici a)ᶜ = s}) :=
 begin
   rw le_antisymm_iff,
   split,
@@ -233,7 +320,7 @@ begin
        apply set.finite.prod hV_h.1 (finite_singleton ⊥), }, },
     { apply le_generate_from,
     intros,
-    rw mem_set_of_eq at H,
+    rw mem_set_of_eq'' at H,
     rcases H,
     cases H_w with a b,
     rw [← H_h, ← upper_set.coe_Ici, is_open_compl_iff, upper_set.prod_Ici],
@@ -280,7 +367,7 @@ lemma inf_hom_continuous (f : Inf_hom (with_lower_topology α) (with_lower_topol
 begin
   apply continuous_generated_from,
   intros s hs,
-  rw mem_set_of_eq' at hs,
+  rw mem_set_of_eq at hs,
   cases hs with a,
   rw [← hs_h, ← is_closed_compl_iff, preimage_compl, compl_compl],
   let p :=  Inf (f ⁻¹' Ici a),

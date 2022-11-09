@@ -426,8 +426,7 @@ begin
     exact div_dvd_of_dvd hx1.1 },
   { rw [mem_divisors, mem_image],
     rintros ⟨h1, -⟩,
-    exact ⟨n/a, mem_divisors.mpr ⟨div_dvd_of_dvd h1, hn⟩,
-           nat.div_div_self h1 (pos_iff_ne_zero.mpr hn)⟩ },
+    exact ⟨n/a, mem_divisors.mpr ⟨div_dvd_of_dvd h1, hn⟩, nat.div_div_self h1 hn⟩ },
 end
 
 @[simp, to_additive sum_div_divisors]

@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.group.pi
-import algebra.hom.equiv
+import algebra.hom.equiv.basic
 import algebra.ring.opposite
 import data.finset.fold
 import data.fintype.basic

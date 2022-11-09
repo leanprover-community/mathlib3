@@ -383,7 +383,7 @@ begin
   obtain ⟨a, ha⟩ := i.gcd_dvd_left k,
   obtain ⟨b, hb⟩ := i.gcd_dvd_right k,
   suffices : b = k,
-  { rwa [this, ← one_mul k, nat.mul_left_inj h0, eq_comm] at hb { occs := occurrences.pos [1] } },
+  { rwa [this, ← one_mul k, mul_left_inj' h0.ne', eq_comm] at hb { occs := occurrences.pos [1] } },
   rw [ha] at hi,
   rw [mul_comm] at hb,
   apply nat.dvd_antisymm ⟨i.gcd k, hb⟩ (hi.dvd_of_pow_eq_one b _),

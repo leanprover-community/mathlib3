@@ -23,8 +23,6 @@ This file defines covering maps.
 
 variables {E X : Type*} [topological_space E] [topological_space X] (f : E → X) (s : set X)
 
-open topological_fiber_bundle
-
 /-- A point `x : X` is evenly covered by `f : E → X` if `x` has an evenly covered neighborhood. -/
 def is_evenly_covered (x : X) (I : Type*) [topological_space I] :=
 discrete_topology I ∧ ∃ t : trivialization I f, x ∈ t.base_set

@@ -5,6 +5,7 @@ Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import order.basic
 import algebra.ring.basic
+import algebra.group_with_zero.basic
 
 /-!
 # Basic operations on the natural numbers

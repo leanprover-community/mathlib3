@@ -45,14 +45,15 @@ begin
   { intros h, rw h },
 end
 
-/-! ### `mod`, `dvd` -/
+protected lemma div_eq_zero_iff {a b : ℕ} (hb : 0 < b) : a / b = 0 ↔ a < b :=
+⟨λ h, by rw [← mod_add_div a b, h, mul_zero, add_zero]; exact mod_lt _ hb,
+  λ h, by rw [← mul_right_inj' hb.ne', ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
+    mod_eq_of_lt h, mul_zero, add_zero]⟩
 
-protected lemma div_div_self : ∀ {a b : ℕ}, b ∣ a → 0 < a → a / (a / b) = b
-| a     0     h₁ h₂ := by rw [eq_zero_of_zero_dvd h₁, nat.div_zero, nat.div_zero]
-| 0     b     h₁ h₂ := absurd h₂ dec_trivial
-| (a+1) (b+1) h₁ h₂ :=
-(nat.mul_left_inj (nat.div_pos (le_of_dvd (succ_pos a) h₁) (succ_pos b))).1 $
-  by rw [nat.div_mul_cancel (div_dvd_of_dvd h₁), nat.mul_div_cancel' h₁]
+protected lemma div_eq_zero {a b : ℕ} (hb : a < b) : a / b = 0 :=
+(nat.div_eq_zero_iff $ (zero_le a).trans_lt hb).mpr hb
+
+/-! ### `mod`, `dvd` -/
 
 @[simp] protected theorem dvd_one {n : ℕ} : n ∣ 1 ↔ n = 1 :=
 ⟨eq_one_of_dvd_one, λ e, e.symm ▸ dvd_rfl⟩
@@ -157,6 +158,20 @@ begin
     nat.mul_div_cancel_left k2 (nat.pos_of_ne_zero c_split), nat.mul_comm ((c + 1) * k2) k,
     ←nat.mul_assoc k (c + 1) k2, nat.mul_div_cancel _ (nat.pos_of_ne_zero k2_nonzero),
     nat.mul_div_cancel _ (nat.pos_of_ne_zero c_split)],
+end
+
+/-- If a small natural number is divisible by a larger natural number,
+the small number is zero. -/
+lemma eq_zero_of_dvd_of_lt {a b : ℕ} (w : a ∣ b) (h : b < a) : b = 0 :=
+nat.eq_zero_of_dvd_of_div_eq_zero w
+  ((nat.div_eq_zero_iff (lt_of_le_of_lt (zero_le b) h)).elim_right h)
+
+
+@[simp] lemma mod_div_self (m n : ℕ) : m % n / n = 0 :=
+begin
+  cases n,
+  { exact (m % 0).div_zero },
+  { exact nat.div_eq_zero (m.mod_lt n.succ_pos) }
 end
 
 /-- `n` is not divisible by `a` iff it is between `a * k` and `a * (k + 1)` for some `k`. -/

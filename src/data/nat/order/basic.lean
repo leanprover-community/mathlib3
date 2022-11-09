@@ -476,13 +476,6 @@ begin
   cc
 end
 
-/-- If a small natural number is divisible by a larger natural number,
-the small number is zero. -/
-lemma eq_zero_of_dvd_of_lt {a b : ℕ} (w : a ∣ b) (h : b < a) : b = 0 :=
-nat.eq_zero_of_dvd_of_div_eq_zero w
-  ((nat.div_eq_zero_iff (lt_of_le_of_lt (zero_le b) h)).elim_right h)
-
-
 lemma div_eq_self {a b : ℕ} : a / b = a ↔ a = 0 ∨ b = 1 :=
 begin
   split,
@@ -504,13 +497,6 @@ begin
   { rw [n0, nat.div_zero, nat.div_zero] },
   { rw [← mod_add_div m n] { occs := occurrences.pos [2] },
     rw [add_tsub_cancel_left, mul_div_right _ (nat.pos_of_ne_zero n0)] }
-end
-
-@[simp] lemma mod_div_self (m n : ℕ) : m % n / n = 0 :=
-begin
-  cases n,
-  { exact (m % 0).div_zero },
-  { exact nat.div_eq_zero (m.mod_lt n.succ_pos) }
 end
 
 /-- `n` is not divisible by `a` if it is between `a * k` and `a * (k + 1)` for some `k`. -/

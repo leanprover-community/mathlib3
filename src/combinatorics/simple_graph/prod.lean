@@ -194,7 +194,7 @@ lemma box_prod_neighbor_finset (x : α × β)
   (G □ H).neighbor_finset x =
     (G.neighbor_finset x.1 ×ˢ {x.2}).disj_union ({x.1} ×ˢ H.neighbor_finset x.2)
       (box_prod_fintype_neighbor_set._proof_1 x) :=
-(finset.map_map _ (function.embedding.subtype _) finset.univ).trans finset.attach_map_val
+(finset.univ.map_map _ $ function.embedding.subtype _).trans finset.attach_map_val
 
 lemma box_prod_degree (x : α × β)
   [fintype (G.neighbor_set x.1)] [fintype (H.neighbor_set x.2)] :

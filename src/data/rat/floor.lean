@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Kappelmann
 -/
 import algebra.order.floor
+import algebra.euclidean_domain.instances
 import tactic.field_simp
 
 /-!

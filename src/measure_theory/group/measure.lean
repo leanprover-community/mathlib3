@@ -537,7 +537,8 @@ lemma is_haar_measure_map [borel_space G] [topological_group G] {H : Type*} [gro
   lt_top_of_is_compact := begin
     assume K hK,
     rw map_apply hf.measurable hK.measurable_set,
-    exact is_compact.measure_lt_top ((⟨⟨f, hf⟩, h_prop⟩ : cocompact_map G H).compact_preimage hK),
+    exact is_compact.measure_lt_top
+      ((⟨⟨f, hf⟩, h_prop⟩ : cocompact_map G H).is_compact_preimage hK),
   end,
   to_is_open_pos_measure := hf.is_open_pos_measure_map h_surj }
 

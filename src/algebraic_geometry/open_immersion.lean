@@ -1776,7 +1776,7 @@ lemma Scheme.open_cover.compact_space {X : Scheme} (𝒰 : X.open_cover) [finite
 begin
   casesI nonempty_fintype 𝒰.J,
   rw [← is_compact_univ_iff, ← 𝒰.Union_range],
-  apply compact_Union,
+  apply is_compact_Union,
   intro i,
   rw is_compact_iff_compact_space,
   exact @@homeomorph.compact_space _ _ (H i)

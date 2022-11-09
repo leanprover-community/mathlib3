@@ -915,7 +915,6 @@ lemma not_mem_edges_of_loop {v : V} {e : sym2 V} {p : G.path v v} :
   ¬ e ∈ (p : G.walk v v).edges :=
 by simp [p.loop_eq]
 
-
 lemma cons_is_cycle {u v : V} (p : G.path v u) (h : G.adj u v)
   (he : ¬ ⟦(u, v)⟧ ∈ (p : G.walk v u).edges) : (walk.cons h ↑p).is_cycle :=
 by simp [walk.is_cycle_def, walk.cons_is_trail_iff, he]
@@ -1041,6 +1040,9 @@ to work with equality of graph homomorphisms is a necessary evil. -/
 lemma map_eq_of_eq {f : G →g G'} (f' : G →g G') (h : f = f') :
   p.map f = (p.map f').copy (by rw h) (by rw h) := by { subst_vars, refl }
 
+@[simp] lemma map_eq_nil_iff {p : G.walk u u} : p.map f = nil ↔ p = nil :=
+by cases p; simp
+
 @[simp] lemma length_map : (p.map f).length = p.length :=
 by induction p; simp [*]
 
@@ -1090,6 +1092,26 @@ lemma map_is_path_iff_of_injective (hinj : function.injective f) :
   (p.map f).is_path ↔ p.is_path :=
 ⟨is_path.of_map, map_is_path_of_injective hinj⟩
 
+lemma map_is_trail_iff_of_injective (hinj : function.injective f) :
+  (p.map f).is_trail ↔ p.is_trail :=
+begin
+  induction p with w u v w huv hvw ih,
+  { simp },
+  { rw [map_cons, cons_is_trail_iff, cons_is_trail_iff, edges_map],
+    change _ ∧ sym2.map f ⟦(u, v)⟧ ∉ _ ↔ _,
+    rw list.mem_map_of_injective (sym2.map.injective hinj),
+    exact and_congr_left' ih, },
+end
+
+alias map_is_trail_iff_of_injective ↔ _ map_is_trail_of_injective
+
+lemma map_is_cycle_iff_of_injective {p : G.walk u u} (hinj : function.injective f) :
+  (p.map f).is_cycle ↔ p.is_cycle :=
+by rw [is_cycle_def, is_cycle_def, map_is_trail_iff_of_injective hinj, ne.def, map_eq_nil_iff,
+       support_map, ← list.map_tail, list.nodup_map_iff hinj]
+
+alias map_is_cycle_iff_of_injective ↔ _ map_is_cycle_of_injective
+
 variables (p f)
 
 lemma map_injective_of_injective {f : G →g G'} (hinj : function.injective f) (u v : V) :
@@ -1108,6 +1130,25 @@ begin
       apply ih,
       simpa using h.2, } },
 end
+
+/-- The specialization of `simple_graph.walk.map` for mapping walks to supergraphs. -/
+@[reducible] def map_le {G G' : simple_graph V} (h : G ≤ G') {u v : V} (p : G.walk u v) :
+  G'.walk u v := p.map (hom.map_spanning_subgraphs h)
+
+@[simp] lemma map_le_is_trail {G G' : simple_graph V} (h : G ≤ G') {u v : V} {p : G.walk u v} :
+  (p.map_le h).is_trail ↔ p.is_trail := map_is_trail_iff_of_injective (function.injective_id)
+
+alias map_le_is_trail ↔ is_trail.of_map_le is_trail.map_le
+
+@[simp] lemma map_le_is_path {G G' : simple_graph V} (h : G ≤ G') {u v : V} {p : G.walk u v} :
+  (p.map_le h).is_path ↔ p.is_path := map_is_path_iff_of_injective (function.injective_id)
+
+alias map_le_is_path ↔ is_path.of_map_le is_path.map_le
+
+@[simp] lemma map_le_is_cycle {G G' : simple_graph V} (h : G ≤ G') {u : V} {p : G.walk u u} :
+  (p.map_le h).is_cycle ↔ p.is_cycle := map_is_cycle_iff_of_injective (function.injective_id)
+
+alias map_le_is_cycle ↔ is_cycle.of_map_le is_cycle.map_le
 
 end walk
 

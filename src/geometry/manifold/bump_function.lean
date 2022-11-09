@@ -101,7 +101,7 @@ by rw [coe_def, support_indicator, (∘), support_comp_eq_preimage, ← ext_char
   ← (ext_chart_at I c).symm_image_target_inter_eq',
   ← (ext_chart_at I c).symm_image_target_inter_eq', f.to_cont_diff_bump.support_eq]
 
-lemma open_support : is_open (support f) :=
+lemma is_open_support : is_open (support f) :=
 by { rw support_eq_inter_preimage, exact ext_chart_preimage_open_of_open I c is_open_ball }
 
 lemma support_eq_symm_image :
@@ -190,7 +190,7 @@ begin
       self_mem_nhds_within }
 end
 
-lemma closed_image_of_closed {s : set M} (hsc : is_closed s) (hs : s ⊆ support f) :
+lemma is_closed_image_of_is_closed {s : set M} (hsc : is_closed s) (hs : s ⊆ support f) :
   is_closed (ext_chart_at I c '' s) :=
 begin
   rw f.image_eq_inter_preimage_of_subset_support hs,
@@ -207,7 +207,7 @@ lemma exists_r_pos_lt_subset_ball {s : set M} (hsc : is_closed s) (hs : s ⊆ su
     (chart_at H c).source ∩ ext_chart_at I c ⁻¹' (ball (ext_chart_at I c c) r) :=
 begin
   set e := ext_chart_at I c,
-  have : is_closed (e '' s) := f.closed_image_of_closed hsc hs,
+  have : is_closed (e '' s) := f.is_closed_image_of_is_closed hsc hs,
   rw [support_eq_inter_preimage, subset_inter_iff, ← image_subset_iff] at hs,
   rcases exists_pos_lt_subset_ball f.R_pos this hs.2 with ⟨r, hrR, hr⟩,
   exact ⟨r, hrR, subset_inter hs.1 (image_subset_iff.1 hr)⟩

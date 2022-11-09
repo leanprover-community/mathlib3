@@ -2016,6 +2016,14 @@ finset.val_inj.symm.trans multiset.dedup_eq_zero
 @[simp] lemma to_finset_subset (s t : multiset α) : s.to_finset ⊆ t.to_finset ↔ s ⊆ t :=
 by simp only [finset.subset_iff, multiset.subset_iff, multiset.mem_to_finset]
 
+@[simp] lemma to_finset_dedup (m : multiset α) :
+  m.dedup.to_finset = m.to_finset :=
+by simp_rw [to_finset, dedup_idempotent]
+
+@[simp] lemma to_finset_bind_dedup [decidable_eq β] (m : multiset α) (f : α → multiset β) :
+  (m.dedup.bind f).to_finset = (m.bind f).to_finset :=
+by simp_rw [to_finset, dedup_bind_dedup]
+
 end multiset
 
 namespace finset

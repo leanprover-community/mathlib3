@@ -593,7 +593,7 @@ Distribution calculus:
     support of a distribution: ''
   Spaces $\mathcal{S}(\R^d)$:
     Schwartz space of rapidly decreasing functions: 'schwartz_map'
-    stability by derivation: ''
+    stability by derivation: 'schwartz_map.fderiv_clm'
     stability by multiplication by a slowly growing smooth function: ''
     gaussian functions: ''
     Fourier transforms on $\mathcal{S}(\R^d)$: ''

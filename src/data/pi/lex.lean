@@ -5,7 +5,7 @@ Authors: Chris Hughes
 -/
 import order.well_founded
 import algebra.group.pi
-import algebra.order.group.basic
+import algebra.order.group.defs
 import order.min_max
 
 

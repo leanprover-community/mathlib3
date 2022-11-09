@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
 import data.int.basic
+import algebra.group_with_zero.divisibility
 import algebra.order.ring.abs
 import algebra.order.ring.nontrivial
 import algebra.char_zero.defs

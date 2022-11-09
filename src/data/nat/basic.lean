@@ -71,23 +71,6 @@ instance : add_semigroup ℕ                := infer_instance
 instance : distrib ℕ                      := infer_instance
 instance : semiring ℕ                     := infer_instance
 
-instance nat.order_bot : order_bot ℕ :=
-{ bot := 0, bot_le := nat.zero_le }
-
-
-instance nat.subtype.order_bot (s : set ℕ) [decidable_pred (∈ s)] [h : nonempty s] :
-  order_bot s :=
-{ bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,
-  bot_le := λ x, nat.find_min' _ x.2 }
-
-instance nat.subtype.semilattice_sup (s : set ℕ) :
-  semilattice_sup s :=
-{ ..subtype.linear_order s,
-  ..linear_order.to_lattice }
-
-lemma nat.subtype.coe_bot {s : set ℕ} [decidable_pred (∈ s)]
-  [h : nonempty s] : ((⊥ : s) : ℕ) = nat.find (nonempty_subtype.1 h) := rfl
-
 protected lemma nat.nsmul_eq_mul (m n : ℕ) : m • n = m * n := rfl
 
 theorem nat.eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m) : n = k :=
@@ -106,45 +89,19 @@ attribute [simp] nat.not_lt_zero nat.succ_ne_zero nat.succ_ne_self
   nat.bit0_ne_one nat.one_ne_bit0
   nat.bit0_ne_bit1 nat.bit1_ne_bit0
 
-
 variables {m n k : ℕ}
 namespace nat
 
 /-!
-### Recursion and `set.range`
+### Recursion and `forall`/`exists`
 -/
 
-section set
+@[simp] lemma and_forall_succ {p : ℕ → Prop} : (p 0 ∧ ∀ n, p (n + 1)) ↔ ∀ n, p n :=
+⟨λ h n, nat.cases_on n h.1 h.2, λ h, ⟨h _, λ n, h _⟩⟩
 
-open set
-
-theorem zero_union_range_succ : {0} ∪ range succ = univ :=
-by { ext n, cases n; simp }
-
-@[simp] protected lemma range_succ : range succ = {i | 0 < i} := by ext (_ | i); simp [succ_pos]
-
-variables {α : Type*}
-
-theorem range_of_succ (f : ℕ → α) : {f 0} ∪ range (f ∘ succ) = range f :=
-by rw [← image_singleton, range_comp, ← image_union, zero_union_range_succ, image_univ]
-
-theorem range_rec {α : Type*} (x : α) (f : ℕ → α → α) :
-  (set.range (λ n, nat.rec x f n) : set α) =
-    {x} ∪ set.range (λ n, nat.rec (f 0 x) (f ∘ succ) n) :=
-begin
-  convert (range_of_succ _).symm,
-  ext n,
-  induction n with n ihn,
-  { refl },
-  { dsimp at ihn ⊢,
-    rw ihn }
-end
-
-theorem range_cases_on {α : Type*} (x : α) (f : ℕ → α) :
-  (set.range (λ n, nat.cases_on n x f) : set α) = {x} ∪ set.range f :=
-(range_of_succ _).symm
-
-end set
+@[simp] lemma or_exists_succ {p : ℕ → Prop} : (p 0 ∨ ∃ n, p (n + 1)) ↔ ∃ n, p n :=
+⟨λ h, h.elim (λ h0, ⟨0, h0⟩) (λ ⟨n, hn⟩, ⟨n + 1, hn⟩),
+  by { rintro ⟨(_|n), hn⟩, exacts [or.inl hn, or.inr ⟨n, hn⟩]}⟩
 
 /-! ### The units of the natural numbers as a `monoid` and `add_monoid` -/
 
@@ -245,7 +202,6 @@ H.lt_or_eq_dec.imp le_of_lt_succ id
 lemma succ_lt_succ_iff {m n : ℕ} : succ m < succ n ↔ m < n :=
 ⟨lt_of_succ_lt_succ, succ_lt_succ⟩
 
-
 lemma div_le_iff_le_mul_add_pred {m n k : ℕ} (n0 : 0 < n) : m / n ≤ k ↔ m ≤ n * k + (n - 1) :=
 begin
   rw [← lt_succ_iff, div_lt_iff_lt_mul n0, succ_mul, mul_comm],
@@ -259,15 +215,10 @@ lemma two_lt_of_ne : ∀ {n}, n ≠ 0 → n ≠ 1 → n ≠ 2 → 2 < n
 | 2 _ _ h := (h rfl).elim
 | (n+3) _ _ _ := dec_trivial
 
-theorem forall_lt_succ {P : ℕ → Prop} {n : ℕ} : (∀ m < n.succ, P m) ↔ (∀ m < n, P m) ∧ P n :=
-⟨λ H, ⟨λ m hm, H m (lt_succ_iff.2 hm.le), H n (lt_succ_self n)⟩, begin
-  rintro ⟨H, hn⟩ m hm,
-  rcases eq_or_lt_of_le (lt_succ_iff.1 hm) with rfl | hmn,
-  { exact hn },
-  { exact H m hmn }
-end⟩
+theorem forall_lt_succ {P : ℕ → Prop} {n : ℕ} : (∀ m < n + 1, P m) ↔ (∀ m < n, P m) ∧ P n :=
+by simp only [lt_succ_iff, decidable.le_iff_eq_or_lt, forall_eq_or_imp, and.comm]
 
-theorem exists_lt_succ {P : ℕ → Prop} {n : ℕ} : (∃ m < n.succ, P m) ↔ (∃ m < n, P m) ∨ P n :=
+theorem exists_lt_succ {P : ℕ → Prop} {n : ℕ} : (∃ m < n + 1, P m) ↔ (∃ m < n, P m) ∨ P n :=
 by { rw ←not_iff_not, push_neg, exact forall_lt_succ }
 
 /-! ### `add` -/
@@ -330,29 +281,15 @@ by rw [add_comm, add_one, pred_succ]
 theorem two_mul_ne_two_mul_add_one {n m} : 2 * n ≠ 2 * m + 1 :=
 mt (congr_arg (%2)) (by { rw [add_comm, add_mul_mod_self_left, mul_mod_right, mod_eq_of_lt]; simp })
 
-
-
-protected theorem mul_left_inj {a b c : ℕ} (ha : 0 < a) : b * a = c * a ↔ b = c :=
-⟨nat.eq_of_mul_eq_mul_right ha, λ e, e ▸ rfl⟩
-
-protected theorem mul_right_inj {a b c : ℕ} (ha : 0 < a) : a * b = a * c ↔ b = c :=
-⟨nat.eq_of_mul_eq_mul_left ha, λ e, e ▸ rfl⟩
-
-lemma mul_left_injective {a : ℕ} (ha : 0 < a) : function.injective (λ x, x * a) :=
-λ _ _, eq_of_mul_eq_mul_right ha
-
-lemma mul_right_injective {a : ℕ} (ha : 0 < a) : function.injective (λ x, a * x) :=
-λ _ _, nat.eq_of_mul_eq_mul_left ha
-
 lemma mul_ne_mul_left {a b c : ℕ} (ha : 0 < a) : b * a ≠ c * a ↔ b ≠ c :=
-(mul_left_injective ha).ne_iff
+(mul_left_injective₀ ha.ne').ne_iff
 
 lemma mul_ne_mul_right {a b c : ℕ} (ha : 0 < a) : a * b ≠ a * c ↔ b ≠ c :=
-(mul_right_injective ha).ne_iff
+(mul_right_injective₀ ha.ne').ne_iff
 
 lemma mul_right_eq_self_iff {a b : ℕ} (ha : 0 < a) : a * b = a ↔ b = 1 :=
 suffices a * b = a * 1 ↔ b = 1, by rwa mul_one at this,
-nat.mul_right_inj ha
+mul_right_inj' ha.ne'
 
 lemma mul_left_eq_self_iff {a b : ℕ} (hb : 0 < b) : a * b = b ↔ a = 1 :=
 by rw [mul_comm, nat.mul_right_eq_self_iff hb]
@@ -686,10 +623,10 @@ protected theorem dvd_add_right {k m n : ℕ} (h : k ∣ m) : k ∣ m + n ↔ k 
 (nat.dvd_add_iff_right h).symm
 
 protected theorem mul_dvd_mul_iff_left {a b c : ℕ} (ha : 0 < a) : a * b ∣ a * c ↔ b ∣ c :=
-exists_congr $ λ d, by rw [mul_assoc, nat.mul_right_inj ha]
+exists_congr $ λ d, by rw [mul_assoc, mul_right_inj' ha.ne']
 
 protected theorem mul_dvd_mul_iff_right {a b c : ℕ} (hc : 0 < c) : a * c ∣ b * c ↔ a ∣ b :=
-exists_congr $ λ d, by rw [mul_right_comm, nat.mul_left_inj hc]
+exists_congr $ λ d, by rw [mul_right_comm, mul_left_inj' hc.ne']
 
 @[simp] theorem mod_mod_of_dvd (n : nat) {m k : nat} (h : m ∣ k) : n % k % m = n % m :=
 begin

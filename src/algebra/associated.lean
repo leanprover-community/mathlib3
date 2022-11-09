@@ -3,7 +3,8 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker
 -/
-import algebra.divisibility
+import algebra.divisibility.basic
+import algebra.group_power.lemmas
 import algebra.invertible
 import algebra.parity
 import order.atoms

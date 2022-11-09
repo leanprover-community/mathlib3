@@ -1,0 +1,22 @@
+1) k[G] = \oplus_{V \in irred} V^{d_V}
+2) d_v = dim V > 0
+3) k[G] = prod_V Mat_{dim V}(k)
+4) Z(k[G]) = prod_V k
+5) Z(k[g]) = <conj. classes>
+6) |irreds| = |conj. classes|
+7) Some matrix is square, so other orthogonality for free
+
+Notes
+0) We know that every k[G] module is semisimple, in the sense that we have a complemented lattice
+1) Show that for Artin complemented lattices, every element is a sum of primes
+2) This follows from the inproduct relations <chi_V, chi_W> = dim Hom_G(V,W) (in lean already), plus the fact chi_{k[G]} = (|G|,0,0,....) and chi_V(1) = dim(V)
+3) Take k[G]-endomorphism rings of the equality in 1). Need Schur's Lemma Hom_G(V,V) = 1 (this is in lean in some form), and a bit of linear algebra. Already have category_theory.hom_orthogonal.matrix_decomposition
+4) Should be doable, linear algebra. Hopefully centers of rings are in there enough (centers of products, centers of matrix rings).
+5) Easy according to Daan; a purely group theoretic statement (maybe in lean already?)
+6) Easy
+7) Easy
+
+Difficulty: how to represent irreps?
+Idea:
+ic = (simple quotientmodule k[G] k[G])/isom as k[G]-module
+Jordan-Holder plus axiom of choice gives fintype ic

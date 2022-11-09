@@ -145,12 +145,6 @@ instance [linear_map_class F R M M₂] : distrib_mul_action_hom_class F R M M₂
   map_smul := λ f c x, by rw [map_smulₛₗ, ring_hom.id_apply],
   .. semilinear_map_class.add_monoid_hom_class F }
 
-instance [semilinear_map_class F σ M M₃] : has_coe_t F (M →ₛₗ[σ] M₃) :=
-{ coe := λ f,
-  { to_fun := f,
-    map_add' := map_add f,
-    map_smul' := map_smulₛₗ f } }
-
 variables {F} (f : F) [i : semilinear_map_class F σ M M₃]
 include i
 
@@ -182,9 +176,6 @@ instance : semilinear_map_class (M →ₛₗ[σ] M₃) σ M M₃ :=
 directly.
 -/
 instance : has_coe_to_fun (M →ₛₗ[σ] M₃) (λ _, M → M₃) := ⟨λ f, f⟩
-
-@[simp, protected] lemma coe_coe {F : Type*} [semilinear_map_class F σ M M₃] (f : F) :
-  ⇑(f : M →ₛₗ[σ] M₃) = f := rfl
 
 /-- The `distrib_mul_action_hom` underlying a `linear_map`. -/
 def to_distrib_mul_action_hom (f : M →ₗ[R] M₂) : distrib_mul_action_hom R M M₂ :=

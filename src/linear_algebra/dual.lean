@@ -338,7 +338,7 @@ linear_equiv.of_bijective (eval K V)
 variables {K V}
 
 @[simp] lemma eval_equiv_to_linear_map [finite_dimensional K V] :
-  (eval_equiv K V : V →ₗ[K] dual K (dual K V)) = dual.eval K V := rfl
+  (eval_equiv K V).to_linear_map = dual.eval K V := rfl
 
 end module
 

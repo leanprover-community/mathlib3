@@ -435,18 +435,27 @@ variables
 {M₄ : Type*} [topological_space M₄] [add_comm_monoid M₄]
 [module R₁ M₁] [module R₁ M'₁] [module R₂ M₂] [module R₃ M₃]
 
+/-- Coerce continuous linear maps to linear maps. -/
+instance : has_coe (M₁ →SL[σ₁₂] M₂) (M₁ →ₛₗ[σ₁₂] M₂) := ⟨to_linear_map⟩
+
+-- make the coercion the preferred form
+@[simp] lemma to_linear_map_eq_coe (f : M₁ →SL[σ₁₂] M₂) : f.to_linear_map = f := rfl
+
+theorem coe_injective : function.injective (coe : (M₁ →SL[σ₁₂] M₂) → (M₁ →ₛₗ[σ₁₂] M₂)) :=
+by { intros f g H, cases f, cases g, congr' }
+
 instance : continuous_semilinear_map_class (M₁ →SL[σ₁₂] M₂) σ₁₂ M₁ M₂ :=
 { coe := λ f, f.to_fun,
-  coe_injective' := λ f g h, by {cases f, cases g, simpa using h },
+  coe_injective' := λ f g h, coe_injective (fun_like.coe_injective h),
   map_add := λ f, map_add f.to_linear_map,
   map_continuous := λ f, f.2,
   map_smulₛₗ := λ f, f.to_linear_map.map_smul' }
 
--- make the coercion the preferred form
-@[simp] lemma to_linear_map_eq_coe (f : M₁ →SL[σ₁₂] M₂) : f.to_linear_map = (f : M₁ →ₛₗ[σ₁₂] M₂) :=
-by { ext, refl }
+/-- Coerce continuous linear maps to functions. -/
+-- see Note [function coercion]
+instance to_fun : has_coe_to_fun (M₁ →SL[σ₁₂] M₂) (λ _, M₁ → M₂) := ⟨λ f, f.to_fun⟩
 
-@[simp] lemma coe_mk (f : M₁ →ₛₗ[σ₁₂] M₂) (h) : (mk f h : M₁ →ₛₗ[σ₁₂] M₂) = f := by {cases f, refl}
+@[simp] lemma coe_mk (f : M₁ →ₛₗ[σ₁₂] M₂) (h) : (mk f h : M₁ →ₛₗ[σ₁₂] M₂) = f := rfl
 @[simp] lemma coe_mk' (f : M₁ →ₛₗ[σ₁₂] M₂) (h) : (mk f h : M₁ → M₂) = f := rfl
 
 @[continuity]
@@ -458,6 +467,13 @@ protected lemma uniform_continuous {E₁ E₂ : Type*} [uniform_space E₁] [uni
   uniform_continuous f :=
 uniform_continuous_add_monoid_hom_of_continuous f.continuous
 
+@[simp, norm_cast] lemma coe_inj {f g : M₁ →SL[σ₁₂] M₂} :
+  (f : M₁ →ₛₗ[σ₁₂] M₂) = g ↔ f = g :=
+coe_injective.eq_iff
+
+theorem coe_fn_injective : @function.injective (M₁ →SL[σ₁₂] M₂) (M₁ → M₂) coe_fn :=
+fun_like.coe_injective
+
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
   because it is a composition of multiple projections. -/
 def simps.apply (h : M₁ →SL[σ₁₂] M₂) : M₁ → M₂ := h
@@ -466,7 +482,7 @@ def simps.apply (h : M₁ →SL[σ₁₂] M₂) : M₁ → M₂ := h
 def simps.coe (h : M₁ →SL[σ₁₂] M₂) : M₁ →ₛₗ[σ₁₂] M₂ := h
 
 initialize_simps_projections continuous_linear_map
-  (to_linear_map_to_fun → apply)
+  (to_linear_map_to_fun → apply, to_linear_map → coe)
 
 @[ext] theorem ext {f g : M₁ →SL[σ₁₂] M₂} (h : ∀ x, f x = g x) : f = g :=
 fun_like.ext f g h
@@ -474,16 +490,9 @@ fun_like.ext f g h
 theorem ext_iff {f g : M₁ →SL[σ₁₂] M₂} : f = g ↔ ∀ x, f x = g x :=
 fun_like.ext_iff
 
-theorem coe_injective : function.injective (coe : (M₁ →SL[σ₁₂] M₂) → (M₁ →ₛₗ[σ₁₂] M₂)) :=
-by { intros f g H, ext, simpa only [linear_map.coe_coe] using fun_like.congr_fun H x,  }
-
-@[simp, norm_cast] lemma coe_inj {f g : M₁ →SL[σ₁₂] M₂} :
-  (f : M₁ →ₛₗ[σ₁₂] M₂) = g ↔ f = g :=
-coe_injective.eq_iff
-
 /-- Copy of a `continuous_linear_map` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
-protected def copy (f : M₁ →SL[σ₁₂] M₂) (f' : M₁ → M₂) (h : f' = f) : M₁ →SL[σ₁₂] M₂ :=
+protected def copy (f : M₁ →SL[σ₁₂] M₂) (f' : M₁ → M₂) (h : f' = ⇑f) : M₁ →SL[σ₁₂] M₂ :=
 { to_linear_map := f.to_linear_map.copy f' h,
   cont := show continuous f', from h.symm ▸ f.continuous }
 
@@ -503,7 +512,7 @@ lemma map_smul_of_tower {R S : Type*} [semiring S] [has_smul R M₁]
   [module S M₁] [has_smul R M₂] [module S M₂]
   [linear_map.compatible_smul M₁ M₂ R S] (f : M₁ →L[S] M₂) (c : R) (x : M₁) :
   f (c • x) = c • f x :=
-linear_map.compatible_smul.map_smul f.to_linear_map c x
+linear_map.compatible_smul.map_smul f c x
 
 protected lemma map_sum {ι : Type*} (f : M₁ →SL[σ₁₂] M₂) (s : finset ι) (g : ι → M₁) :
   f (∑ i in s, g i) = ∑ i in s, f (g i) := f.to_linear_map.map_sum
@@ -659,7 +668,7 @@ variables [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
 
 /-- Composition of bounded linear maps. -/
 def comp (g : M₂ →SL[σ₂₃] M₃) (f : M₁ →SL[σ₁₂] M₂) : M₁ →SL[σ₁₃] M₃ :=
-⟨(g : M₂ →ₛₗ[σ₂₃] M₃).comp (f : M₁ →ₛₗ[σ₁₂] M₂), g.2.comp f.2⟩
+⟨(g : M₂ →ₛₗ[σ₂₃] M₃).comp ↑f, g.2.comp f.2⟩
 
 infixr ` ∘L `:80 := @continuous_linear_map.comp _ _ _ _ _ _
   (ring_hom.id _) (ring_hom.id _) (ring_hom.id _) _ _ _ _ _ _ _ _ _ _ _ _ ring_hom_comp_triple.ids
@@ -1066,7 +1075,7 @@ linear_map.ker_prod_ker_le_ker_coprod f.to_linear_map g.to_linear_map
 lemma ker_coprod_of_disjoint_range [has_continuous_add M₃]
   (f : M →L[R] M₃) (g : M₂ →L[R] M₃) (hd : disjoint (range f) (range g)) :
   linear_map.ker (f.coprod g) = (linear_map.ker f).prod (linear_map.ker g) :=
-linear_map.ker_coprod_of_disjoint_range f g hd
+linear_map.ker_coprod_of_disjoint_range f.to_linear_map g.to_linear_map hd
 end
 
 section

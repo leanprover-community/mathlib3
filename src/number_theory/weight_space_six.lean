@@ -345,7 +345,7 @@ end
 
 example {α : Type*} {s : set α} {x : α} (hx : x ∈ s) : s := ⟨x, hx⟩
 
-@[to_additive] lemma prod_apply {B C : Type*} [topological_space B] [comm_monoid C] (n : ℕ)
+@[to_additive] lemma locally_constant.prod_apply {B C : Type*} [topological_space B] [comm_monoid C] (n : ℕ)
   (f : ℕ → (locally_constant B C)) {x : B} :
   (∏ i in finset.range n, (f i)) x =
   ∏ i in finset.range n, ((f i) x) :=
@@ -365,7 +365,7 @@ begin
   have := classical.some_spec (factor_F _ _ _ hd f),
   ext x,
   set x' := coe_padic_to_zmod p d n x hd with hx',
-  rw sum_apply,
+  rw locally_constant.sum_apply,
   /-convert_to _ = ∑ (a : ℕ) in finset.range (d * p ^ n), ((f a) • @char_fn _ _ _ _
     R _ _ _ (clopen_from p d n ↑a)) x,
   {

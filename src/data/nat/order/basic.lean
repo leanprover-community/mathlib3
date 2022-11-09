@@ -5,6 +5,7 @@ Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import algebra.order.ring.canonical
 import data.nat.basic
+import data.set.basic
 
 /-!
 # The natural numbers as a linearly ordered commutative semiring

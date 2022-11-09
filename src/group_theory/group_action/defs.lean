@@ -281,7 +281,8 @@ by exact {smul_assoc := λ n, @smul_assoc _ _ _ _ _ _ _ (g n) }
 This cannot be an instance because it can cause infinite loops whenever the `has_smul` arguments
 are still metavariables.
 -/
-@[priority 100, to_additive]
+@[priority 100, to_additive "This cannot be an instance because it can cause infinite loops whenever
+the `has_vadd` arguments are still metavariables."]
 lemma comp.smul_comm_class [has_smul β α] [smul_comm_class M β α] (g : N → M) :
   (by haveI := comp α g; exact smul_comm_class N β α) :=
 by exact {smul_comm := λ n, @smul_comm _ _ _ _ _ _ (g n) }
@@ -290,7 +291,8 @@ by exact {smul_comm := λ n, @smul_comm _ _ _ _ _ _ (g n) }
 This cannot be an instance because it can cause infinite loops whenever the `has_smul` arguments
 are still metavariables.
 -/
-@[priority 100, to_additive]
+@[priority 100, to_additive "This cannot be an instance because it can cause infinite loops whenever
+the `has_vadd` arguments are still metavariables."]
 lemma comp.smul_comm_class' [has_smul β α] [smul_comm_class β M α] (g : N → M) :
   (by haveI := comp α g; exact smul_comm_class β N α) :=
 by exact {smul_comm := λ _ n, @smul_comm _ _ _ _ _ _ _ (g n) }

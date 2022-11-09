@@ -8,6 +8,7 @@ import group_theory.submonoid.membership
 import group_theory.submonoid.centralizer
 import algebra.group.conj
 import algebra.module.basic
+import algebra.order.group.inj_surj
 import order.atoms
 import order.sup_indep
 

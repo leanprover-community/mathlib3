@@ -775,7 +775,7 @@ variables [normed_add_comm_group G] [normed_space ℝ G] [has_cont_diff_bump G]
 variables [complete_space E']
 variables {a : G} {φ : cont_diff_bump (0 : G)}
 
-/-- If `φ` is a bump function, compute `(φ ⋆ g) x₀` if `g` is constant on `metric.ball x₀ φ.D`. -/
+/-- If `φ` is a bump function, compute `(φ ⋆ g) x₀` if `g` is constant on `metric.ball x₀ φ.R`. -/
 lemma convolution_eq_right {x₀ : G}
   (hg : ∀ x ∈ ball x₀ φ.R, g x = g x₀) : (φ ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀ = integral μ φ • g x₀ :=
 by simp_rw [convolution_eq_right' _ φ.support_eq.subset hg, lsmul_apply, integral_smul_const]
@@ -784,7 +784,7 @@ variables [borel_space G]
 variables [is_locally_finite_measure μ] [is_open_pos_measure μ]
 variables [finite_dimensional ℝ G]
 
-/-- If `φ` is a normed bump function, compute `φ ⋆ g` if `g` is constant on `metric.ball x₀ φ.D`. -/
+/-- If `φ` is a normed bump function, compute `φ ⋆ g` if `g` is constant on `metric.ball x₀ φ.R`. -/
 lemma normed_convolution_eq_right {x₀ : G}
   (hg : ∀ x ∈ ball x₀ φ.R, g x = g x₀) : (φ.normed μ ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀ = g x₀ :=
 by { simp_rw [convolution_eq_right' _ φ.support_normed_eq.subset hg, lsmul_apply],
@@ -793,7 +793,7 @@ by { simp_rw [convolution_eq_right' _ φ.support_normed_eq.subset hg, lsmul_appl
 variables [is_add_left_invariant μ]
 
 /-- If `φ` is a normed bump function, approximate `(φ ⋆ g) x₀` if `g` is near `g x₀` on a ball with
-radius `φ.D` around `x₀`. -/
+radius `φ.R` around `x₀`. -/
 lemma dist_normed_convolution_le {x₀ : G} {ε : ℝ}
   (hmg : ae_strongly_measurable g μ)
   (hg : ∀ x ∈ ball x₀ φ.R, dist (g x) (g x₀) ≤ ε) :
@@ -802,7 +802,7 @@ dist_convolution_le (by simp_rw [← dist_self (g x₀), hg x₀ (mem_ball_self 
   φ.support_normed_eq.subset φ.nonneg_normed φ.integral_normed hmg hg
 
 /-- `(φ i ⋆ g i) (k i)` tends to `z₀` as `i` tends to some filter `l` if
-* `φ` is a sequence of normed bump functions such that `(φ i).D` tends to `0` as `i` tends to `l`;
+* `φ` is a sequence of normed bump functions such that `(φ i).R` tends to `0` as `i` tends to `l`;
 * `g i` is `mu`-a.e. strongly measurable as `i` tends to `l`;
 * `g i x` tends to `z₀` as `(i, x)` tends to `l ×ᶠ 𝓝 x₀`;
 * `k i` tends to `x₀`. -/

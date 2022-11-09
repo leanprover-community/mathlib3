@@ -5,7 +5,9 @@ Authors: Yury Kudryashov
 -/
 import data.nat.lattice
 import data.nat.succ_pred
+import algebra.char_zero
 import algebra.order.sub.with_top
+import algebra.order.ring.with_top
 
 /-!
 # Definition and basic properties of extended natural numbers
@@ -18,7 +20,7 @@ about this type.
 @[derive [has_zero, add_comm_monoid_with_one, canonically_ordered_comm_semiring, nontrivial,
   linear_order, order_bot, order_top, has_bot, has_top, canonically_linear_ordered_add_monoid,
   has_sub, has_ordered_sub, complete_linear_order, linear_ordered_add_comm_monoid_with_top,
-  succ_order, well_founded_lt, has_well_founded]]
+  succ_order, well_founded_lt, has_well_founded, char_zero, has_coe_t ℕ]]
 def enat : Type := with_top ℕ
 
 notation `ℕ∞` := enat
@@ -51,8 +53,23 @@ def to_nat : monoid_with_zero_hom ℕ∞ ℕ :=
 @[simp] lemma coe_to_nat_eq_self : ↑n.to_nat = n ↔ n ≠ ⊤ :=
 with_top.rec_top_coe (by simp) (by simp) n
 
-lemma coe_to_nat_le_self (n : ℕ∞) : ↑n.to_nat ≤ n :=
-with_top.rec_top_coe le_top (λ k, le_rfl) n
+alias coe_to_nat_eq_self ↔ _ coe_to_nat
+
+lemma coe_to_nat_le_self (n : ℕ∞) : ↑(to_nat n) ≤ n := with_top.rec_top_coe le_top (λ k, le_rfl) n
+
+lemma to_nat_add {m n : ℕ∞} (hm : m ≠ ⊤) (hn : n ≠ ⊤) : to_nat (m + n) = to_nat m + to_nat n :=
+by { lift m to ℕ using hm, lift n to ℕ using hn, refl }
+
+lemma to_nat_sub {n : ℕ∞} (hn : n ≠ ⊤) (m : ℕ∞) : to_nat (m - n) = to_nat m - to_nat n :=
+begin
+  lift n to ℕ using hn,
+  induction m using with_top.rec_top_coe,
+  { rw [with_top.top_sub_coe, to_nat_top, zero_tsub] },
+  { rw [← coe_sub, to_nat_coe, to_nat_coe, to_nat_coe] }
+end
+
+lemma to_nat_eq_iff {m : ℕ∞} {n : ℕ} (hn : n ≠ 0) : m.to_nat = n ↔ m = n :=
+by induction m using with_top.rec_top_coe; simp [hn.symm]
 
 @[simp] lemma succ_def (m : ℕ∞) : order.succ m = m + 1 := by cases m; refl
 

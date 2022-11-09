@@ -65,7 +65,7 @@ by compute_degree_le; assumption
 example : nat_degree (7 * X : R[X]) ≤ 1 :=
 by compute_degree_le
 
-example : (1 : polynomial R).nat_degree ≤ 0 :=
+example : (1 : R[X]).nat_degree ≤ 0 :=
 by compute_degree_le
 
 example : nat_degree (monomial 5 c * monomial 1 c + monomial 7 d +

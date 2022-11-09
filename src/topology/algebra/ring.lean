@@ -296,6 +296,10 @@ def ideal.closure (S : ideal α) : ideal α :=
 
 @[simp] lemma ideal.coe_closure (S : ideal α) : (S.closure : set α) = closure S := rfl
 
+@[simp] lemma ideal.closure_eq_of_is_closed (S : ideal α) [hS : is_closed (S : set α)] :
+  S.closure = S :=
+ideal.ext $ set.ext_iff.mp hS.closure_eq
+
 end topological_ring
 
 section topological_ring

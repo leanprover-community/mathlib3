@@ -169,7 +169,7 @@ begin
   calc comap (prod.map f f) (𝓤 β) ≤ comap (prod.map f f) (𝓟 s) : comap_mono (le_principal_iff.2 hs)
   ... = 𝓟 (prod.map f f ⁻¹' s) : comap_principal
   ... ≤ 𝓟 id_rel : principal_mono.2 _,
-  rintro ⟨x, y⟩, simpa [not_imp_not] using hf x y
+  rintro ⟨x, y⟩, simpa [not_imp_not] using @hf x y
 end
 
 /-- If a map `f : α → β` sends any two distinct points to point that are **not** related by a fixed

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.subobject.limits
+import algebra.homology.short_complex_homology
 
 /-!
 # Image-to-kernel comparison maps
@@ -26,6 +27,11 @@ variables {V : Type u} [category.{v} V] [has_zero_morphisms V]
 
 open_locale classical
 noncomputable theory
+
+noncomputable
+abbreviation homology {A B C : V} (f : A ⟶ B) (g : B ⟶ C)
+  (w : f ≫ g = 0) [(short_complex.mk f g w).has_homology] : V :=
+(short_complex.mk f g w).homology
 
 section
 variables {A B C : V} (f : A ⟶ B) [has_image f] (g : B ⟶ C) [has_kernel g]
@@ -134,6 +140,7 @@ end
 
 end
 
+/-
 section
 variables {A B C : V} (f : A ⟶ B) [has_image f] (g : B ⟶ C) [has_kernel g]
 
@@ -378,3 +385,4 @@ begin
 end
 
 end image_to_kernel'
+-/

@@ -4,10 +4,32 @@ import category_theory.preadditive.additive_functor
 noncomputable theory
 
 open category_theory category_theory.preadditive category_theory.category category_theory.limits
+open_locale zero_object
 
-variables {C : Type*} [category C] [preadditive C]
+variables {C : Type*} [category C]
 
-lemma category_theory.mono_of_is_zero_ker {X Y : C} {f : X ⟶ Y}
+namespace category_theory
+
+section
+
+variables [has_zero_morphisms C] [has_zero_object C]
+def is_colimit_cokernel_cofork_of_epi {X Y : C} (f : X ⟶ Y) [epi f]  :
+  is_colimit (cokernel_cofork.of_π (0 : Y ⟶ 0) (comp_zero : f ≫ (0 : Y ⟶ 0) = 0)) :=
+cokernel_cofork.is_colimit.of_π _ _
+  (λ A x hx, 0)
+  (λ A x hx, by simp only [comp_zero, ← cancel_epi f, hx])
+  (λ A x hx b hb, subsingleton.elim _ _)
+
+@[priority 100]
+instance has_cokernel_of_epi {X Y : C} (f : X ⟶ Y) [epi f] :
+  has_cokernel f :=
+⟨⟨⟨_, is_colimit_cokernel_cofork_of_epi f⟩⟩⟩
+
+end
+
+variable [preadditive C]
+
+lemma mono_of_is_zero_ker {X Y : C} {f : X ⟶ Y}
   (c : kernel_fork f) (hc₁ : is_limit c) (hc₂ : is_zero c.X) : mono f :=
 ⟨λ Z g₁ g₂ hg, begin
   rw ← sub_eq_zero at ⊢ hg,
@@ -16,7 +38,7 @@ lemma category_theory.mono_of_is_zero_ker {X Y : C} {f : X ⟶ Y}
     using (kernel_fork.is_limit.lift_ι hc₁ (kernel_fork.of_ι _ hg)).symm,
 end⟩
 
-lemma category_theory.epi_of_is_zero_coker {X Y : C} {f : X ⟶ Y}
+lemma epi_of_is_zero_cokernel' {X Y : C} {f : X ⟶ Y}
   (c : cokernel_cofork f) (hc₁ : is_colimit c) (hc₂ : is_zero c.X) : epi f :=
 ⟨λ Z g₁ g₂ hg, begin
   rw ← sub_eq_zero at ⊢ hg,
@@ -24,6 +46,29 @@ lemma category_theory.epi_of_is_zero_coker {X Y : C} {f : X ⟶ Y}
   simpa only [hc₂.eq_of_tgt (cofork.π c) 0, zero_comp]
     using (cokernel_cofork.is_colimit.π_desc hc₁ (cokernel_cofork.of_π _ hg)).symm,
 end⟩
+
+lemma epi_of_is_zero_cokernel {X Y : C} {f : X ⟶ Y} [has_cokernel f]
+  (h : is_zero (cokernel f)) : epi f :=
+category_theory.epi_of_is_zero_cokernel' _ (cokernel_is_cokernel f) h
+
+lemma is_zero_cokernel_of_epi {X Y : C} (f : X ⟶ Y) [epi f] [has_zero_object C] :
+  is_zero (cokernel f) :=
+is_zero.of_iso (is_zero_zero C)
+  (limits.is_colimit.cocone_point_unique_up_to_iso (cokernel_is_cokernel f)
+  (is_colimit_cokernel_cofork_of_epi f))
+
+lemma epi_iff_is_zero_cokernel {X Y : C} (f : X ⟶ Y) [has_cokernel f] [has_zero_object C]:
+  epi f ↔ is_zero (cokernel f) :=
+begin
+  split,
+  { introI,
+    exact is_zero_cokernel_of_epi f, },
+  { exact epi_of_is_zero_cokernel, },
+end
+
+end category_theory
+
+variable [preadditive C]
 
 namespace short_complex
 

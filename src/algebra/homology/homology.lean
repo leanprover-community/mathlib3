@@ -22,7 +22,7 @@ computing the `i`-th homology.
 
 universes v u
 
-open category_theory category_theory.limits
+open category_theory category_theory.limits category_theory.category
 
 variables {ι : Type*}
 variables {V : Type u} [category.{v} V] [has_zero_morphisms V]
@@ -31,9 +31,30 @@ variables {c : complex_shape ι} (C : homological_complex V c)
 open_locale classical zero_object
 noncomputable theory
 
+
+namespace complex_shape
+
+variable (c)
+
+lemma not_rel_of_not_rel_next {i : ι} (hi : ¬c.rel i (c.next i)) : ¬c.rel i i :=
+begin
+  intro hi',
+  rw c.next_eq' hi' at hi,
+  exact hi hi',
+end
+
+lemma not_rel_of_not_prev_rel {i : ι} (hi : ¬c.rel (c.prev i) i) : ¬c.rel i i :=
+begin
+  intro hi',
+  rw c.prev_eq' hi' at hi,
+  exact hi hi',
+end
+
+end complex_shape
+
 namespace homological_complex
 
-section cycles
+/-section cycles
 variables [has_kernels V]
 
 /-- The cycles at index `i`, as a subobject. -/
@@ -109,68 +130,207 @@ image_to_kernel _ _ (C.d_to_comp_d_from i)
 /-- Prefer `boundaries_to_cycles`. -/
 @[simp] lemma image_to_kernel_as_boundaries_to_cycles (C : homological_complex V c) (i : ι) (h) :
   (C.boundaries i).of_le (C.cycles i) h = C.boundaries_to_cycles i :=
-rfl
+rfl-/
 
-variables [has_cokernels V]
+--variables [has_cokernels V]
 
 /--
 The homology of a complex at index `i`.
 -/
-abbreviation homology (C : homological_complex V c) (i : ι) : V :=
-homology (C.d_to i) (C.d_from i) (C.d_to_comp_d_from i)
 
-/-- The `j`th homology of a homological complex (as kernel of 'the differential from `Cⱼ`' modulo
-the image of 'the differential to `Cⱼ`') is isomorphic to the kernel of `d : Cⱼ → Cₖ` modulo
-the image of `d : Cᵢ → Cⱼ` when `rel i j` and `rel j k`. -/
-def homology_iso (C : homological_complex V c) {i j k : ι} (hij : c.rel i j) (hjk : c.rel j k) :
-  C.homology j ≅ _root_.homology (C.d i j) (C.d j k) (C.d_comp_d i j k) :=
-homology.map_iso _ _ (arrow.iso_mk (C.X_prev_iso hij) (iso.refl _) $ by dsimp;
-  rw [C.d_to_eq hij, category.comp_id])
-(arrow.iso_mk (iso.refl _) (C.X_next_iso hjk) $ by dsimp; rw [C.d_from_comp_X_next_iso hjk,
-   category.id_comp]) rfl
+variables (V c)
+
+@[simps]
+def short_complex_functor (i : ι) : homological_complex V c ⥤ short_complex V :=
+{ obj := λ C, short_complex.mk (C.d_to i) (C.d_from i) (C.d_to_comp_d_from i),
+  map := λ C₁ C₂ φ, ⟨φ.f _, φ.f _, φ.f _, by simp, by simp⟩, }
+
+@[simps]
+def short_complex_functor' (i j k : ι)  :
+  homological_complex V c ⥤ short_complex V :=
+{ obj := λ C, short_complex.mk (C.d i j) (C.d j k) (C.d_comp_d i j k),
+  map := λ C₁ C₂ φ, ⟨φ.f _, φ.f _, φ.f _, by simp, by simp⟩, }
+
+variables {V c}
+
+abbreviation sc (C : homological_complex V c) (i j k : ι) := (short_complex_functor' V c i j k).obj C
+
+abbreviation has_homology (C : homological_complex V c) (i : ι) :=
+((short_complex_functor V c i).obj C).has_homology
+
+abbreviation homology (C : homological_complex V c) (i : ι) [C.has_homology i] : V :=
+((short_complex_functor V c i).obj C).homology
+
+variables (V c)
+
+@[simps]
+def homology_functor [category_with_homology V] (i : ι) : homological_complex V c ⥤ V :=
+  short_complex_functor V c i ⋙ short_complex.homology_functor V
+
+variable (c)
+
+def short_complex_functor_nat_iso {i j k : ι} (hij : c.rel i j) (hjk : c.rel j k) :
+  short_complex_functor V c j ≅ short_complex_functor' V c i j k :=
+nat_iso.of_components (λ C, short_complex.mk_iso (C.X_prev_iso hij) (iso.refl _)
+  (C.X_next_iso hjk) (by { dsimp, rw [comp_id, C.d_to_eq hij], })
+  (by { dsimp, rw [id_comp, d_from_comp_X_next_iso], }))
+  (λ C₁ C₂ φ, begin
+    ext,
+    { obtain rfl := c.prev_eq' hij,
+      dsimp [X_prev_iso],
+      rw [comp_id, id_comp], },
+    { dsimp, simp only [comp_id, id_comp], },
+    { obtain rfl := c.next_eq' hjk,
+      dsimp [X_next_iso],
+      rw [comp_id, id_comp], },
+  end)
+
+variables {V c}
+
+lemma X_next_iso_self_naturality {C₁ C₂ : homological_complex V c} (φ : C₁ ⟶ C₂)
+  (j : ι) (hj : ¬c.rel j (c.next j)) :
+  φ.f (c.next j) ≫ (C₂.X_next_iso_self hj).hom = (C₁.X_next_iso_self hj).hom ≫ φ.f j :=
+begin
+  suffices : ∀ (j k : ι) (eq : j = k),
+    φ.f k ≫ (eq_to_iso (show C₂.X k = C₂.X j, by rw eq)).hom = (eq_to_iso (by rw eq)).hom ≫ φ.f j,
+  { apply this,
+    dsimp [complex_shape.next],
+    rw dif_neg,
+    rintro ⟨k, hk⟩,
+    apply hj,
+    simpa only [c.next_eq' hk] using hk, },
+  rintros j k rfl,
+  simp only [eq_to_iso_refl, iso.refl_hom, comp_id, id_comp],
+end
+
+lemma X_prev_iso_self_naturality {C₁ C₂ : homological_complex V c} (φ : C₁ ⟶ C₂)
+  (i : ι) (hi : ¬c.rel (c.prev i) i) :
+  φ.f (c.prev i) ≫ (C₂.X_prev_iso_self hi).hom = (C₁.X_prev_iso_self hi).hom ≫ φ.f i :=
+begin
+  suffices : ∀ (j k : ι) (eq : j = k),
+    φ.f k ≫ (eq_to_iso (show C₂.X k = C₂.X j, by rw eq)).hom = (eq_to_iso (by rw eq)).hom ≫ φ.f j,
+  { apply this,
+    dsimp [complex_shape.prev],
+    rw dif_neg,
+    rintro ⟨k, hk⟩,
+    apply hi,
+    simpa only [c.prev_eq' hk] using hk, },
+  rintros j k rfl,
+  simp only [eq_to_iso_refl, iso.refl_hom, comp_id, id_comp],
+end
+
+variables (V c)
+
+def short_complex_functor_nat_iso₁₂ {i j : ι} (hij : c.rel i j) (hj : ¬c.rel j (c.next j)) :
+  short_complex_functor V c j ≅ short_complex_functor' V c i j j :=
+nat_iso.of_components (λ C, short_complex.mk_iso (C.X_prev_iso hij) (iso.refl _) (C.X_next_iso_self hj)
+  (by { dsimp, simp only [comp_id, C.d_to_eq hij], })
+  (by { dsimp, simp only [comp_zero, d_from_comp_X_next_iso_self, id_comp,
+    C.shape j j (c.not_rel_of_not_rel_next hj)], }))
+  (λ C₁ C₂ φ, begin
+    ext,
+    { obtain rfl := c.prev_eq' hij,
+      dsimp [X_prev_iso],
+      rw [comp_id, id_comp], },
+    { dsimp, simp only [comp_id, id_comp], },
+    { apply X_next_iso_self_naturality, },
+  end)
+
+def short_complex_functor_nat_iso₂₃ {i j : ι} (hij : c.rel i j) (hi : ¬c.rel (c.prev i) i) :
+  short_complex_functor V c i ≅ short_complex_functor' V c i i j :=
+nat_iso.of_components (λ C, short_complex.mk_iso (C.X_prev_iso_self hi) (iso.refl _) (C.X_next_iso hij)
+  (by { dsimp, simp only [comp_zero, comp_id, C.d_to_eq_zero hi,
+      C.shape i i (c.not_rel_of_not_prev_rel hi)], })
+  (by { dsimp, simp only [id_comp, d_from_comp_X_next_iso]}))
+  (λ C₁ C₂ φ, begin
+    ext,
+    { apply X_prev_iso_self_naturality, },
+    { dsimp, simp only [comp_id, id_comp], },
+    { obtain rfl := c.next_eq' hij,
+      dsimp [X_next_iso],
+      rw [comp_id, id_comp], },
+  end)
+
+variables {V c}
+
+def homology_iso_cokernel' (C : homological_complex V c) {i j : ι} (hij : c.rel i j)
+  (hj : ¬c.rel j (c.next j)) [C.has_homology j] (cc : cokernel_cofork (C.d i j)) (hcc : is_colimit cc) :
+  C.homology j ≅ cc.X :=
+begin
+  let e := (short_complex_functor_nat_iso₁₂ V c hij hj).app C,
+  haveI := short_complex.has_homology_of_iso e,
+  exact short_complex.homology_map_iso e ≪≫
+    (short_complex.homology_data.of_colimit_cokernel_cofork (C.sc i j j)
+      (shape _ j j (c.not_rel_of_not_rel_next hj)) cc hcc).homology_iso,
+end
+
+def homology_iso_cokernel (C : homological_complex V c) {i j : ι} (hij : c.rel i j)
+  (hj : ¬c.rel j (c.next j)) [C.has_homology j] [has_cokernel (C.d i j)] :
+  C.homology j ≅ cokernel (C.d i j) :=
+begin
+  let e := C.homology_iso_cokernel' hij hj _ (cokernel_is_cokernel (C.d i j)),
+  exact e,
+end
+
+def homology_iso_kernel' (C : homological_complex V c) {i j : ι} (hij : c.rel i j)
+  (hi : ¬c.rel (c.prev i) i) [C.has_homology i] (kc : kernel_fork (C.d i j)) (hkc : is_limit kc) :
+  C.homology i ≅ kc.X :=
+begin
+  let e := (short_complex_functor_nat_iso₂₃ V c hij hi).app C,
+  haveI := short_complex.has_homology_of_iso e,
+  exact short_complex.homology_map_iso e ≪≫
+    (short_complex.homology_data.of_limit_kernel_fork (C.sc i i j)
+      (shape _ i i (c.not_rel_of_not_prev_rel hi)) kc hkc).homology_iso,
+end
+
+def homology_iso_kernel (C : homological_complex V c) {i j : ι} (hij : c.rel i j)
+  (hi : ¬c.rel (c.prev i) i) [C.has_homology i] [has_kernel (C.d i j)] :
+  C.homology i ≅ kernel (C.d i j) :=
+begin
+  let e := C.homology_iso_kernel' hij hi _ (kernel_is_kernel (C.d i j)),
+  exact e,
 end
 
 end homological_complex
 
-/-- The 0th homology of a chain complex is isomorphic to the cokernel of `d : C₁ ⟶ C₀`. -/
-def chain_complex.homology_zero_iso [has_kernels V] [has_images V] [has_cokernels V]
-  (C : chain_complex V ℕ) [epi (factor_thru_image (C.d 1 0))] :
-  C.homology 0 ≅ cokernel (C.d 1 0) :=
-(homology.map_iso _ _ (arrow.iso_mk (C.X_prev_iso rfl) (iso.refl _) $
-by rw C.d_to_eq rfl; exact (category.comp_id _).symm : arrow.mk (C.d_to 0) ≅ arrow.mk (C.d 1 0))
-  (arrow.iso_mk (iso.refl _) (iso.refl _) $
-by simp [C.d_from_eq_zero (λ (h : _ = _), one_ne_zero $ by
-  rwa chain_complex.next_nat_zero at h)] : arrow.mk (C.d_from 0) ≅ arrow.mk 0) rfl).trans $
-homology_of_zero_right _
+def chain_complex.homology_zero_iso' (C : chain_complex V ℕ) [C.has_homology 0]
+  (c : cokernel_cofork (C.d 1 0)) (hc : is_colimit c) :
+  C.homology 0 ≅ c.X :=
+C.homology_iso_cokernel' rfl (by simp) c hc
 
-/-- The 0th cohomology of a cochain complex is isomorphic to the kernel of `d : C₀ → C₁`. -/
-def cochain_complex.homology_zero_iso [has_zero_object V]
-  [has_kernels V] [has_images V] [has_cokernels V] (C : cochain_complex V ℕ) :
+def chain_complex.homology_zero_iso (C : chain_complex V ℕ) [C.has_homology 0]
+  [has_cokernel (C.d 1 0)] :
+  C.homology 0 ≅ cokernel (C.d 1 0) :=
+C.homology_iso_cokernel rfl (by simp)
+
+def cochain_complex.homology_zero_iso' (C : cochain_complex V ℕ) [C.has_homology 0]
+  (c : kernel_fork (C.d 0 1)) (hc : is_limit c) :
+  C.homology 0 ≅ c.X :=
+C.homology_iso_kernel' rfl (by simp) c hc
+
+def cochain_complex.homology_zero_iso (C : cochain_complex V ℕ) [C.has_homology 0]
+  [has_kernel (C.d 0 1)] :
   C.homology 0 ≅ kernel (C.d 0 1) :=
-(homology.map_iso _ _ (arrow.iso_mk (C.X_prev_iso_self (by rw cochain_complex.prev_nat_zero;
-  exact one_ne_zero)) (iso.refl _) (by simp) : arrow.mk (C.d_to 0) ≅ arrow.mk 0)
-  (arrow.iso_mk (iso.refl _) (C.X_next_iso rfl)
-  (by simp) : arrow.mk (C.d_from 0) ≅ arrow.mk (C.d 0 1)) $ by simpa).trans $
-homology_of_zero_left _
+C.homology_iso_kernel rfl (by simp)
 
 /-- The `n + 1`th homology of a chain complex (as kernel of 'the differential from `Cₙ₊₁`' modulo
 the image of 'the differential to `Cₙ₊₁`') is isomorphic to the kernel of `d : Cₙ₊₁ → Cₙ` modulo
 the image of `d : Cₙ₊₂ → Cₙ₊₁`. -/
-def chain_complex.homology_succ_iso [has_kernels V] [has_images V] [has_cokernels V]
-  (C : chain_complex V ℕ) (n : ℕ) :
-  C.homology (n + 1) ≅ homology (C.d (n + 2) (n + 1)) (C.d (n + 1) n) (C.d_comp_d _ _ _) :=
-C.homology_iso rfl rfl
+def chain_complex.homology_succ_iso
+  (C : chain_complex V ℕ) (n : ℕ) [C.has_homology (n+1)] [(C.sc (n+2) (n+1) n).has_homology] :
+  C.homology (n + 1) ≅ (C.sc (n+2) (n+1) n).homology :=
+short_complex.homology_map_iso
+  (((homological_complex.short_complex_functor_nat_iso V (complex_shape.down ℕ) rfl rfl).app C))
 
-/-- The `n + 1`th cohomology of a cochain complex (as kernel of 'the differential from `Cₙ₊₁`'
-modulo the image of 'the differential to `Cₙ₊₁`') is isomorphic to the kernel of `d : Cₙ₊₁ → Cₙ₊₂`
-modulo the image of `d : Cₙ → Cₙ₊₁`. -/
-def cochain_complex.homology_succ_iso [has_kernels V] [has_images V] [has_cokernels V]
-  (C : cochain_complex V ℕ) (n : ℕ) :
-  C.homology (n + 1) ≅ homology (C.d n (n + 1)) (C.d (n + 1) (n + 2)) (C.d_comp_d _ _ _) :=
-C.homology_iso rfl rfl
+def cochain_complex.homology_succ_iso
+  (C : cochain_complex V ℕ) (n : ℕ) [C.has_homology (n+1)] [(C.sc n (n+1) (n+2)).has_homology]:
+  C.homology (n + 1) ≅ (C.sc n (n+1) (n+2)).homology :=
+short_complex.homology_map_iso
+  (((homological_complex.short_complex_functor_nat_iso V (complex_shape.up ℕ) rfl rfl).app C))
 
 open homological_complex
 
+/-
 /-! Computing the cycles is functorial. -/
 section
 variables [has_kernels V]
@@ -264,24 +424,10 @@ def homology_functor [has_cokernels V] (i : ι) :
     intros, ext1,
     simp only [hom.sq_from_comp, kernel_subobject_map_comp, homology.π_map_assoc,
       homology.π_map, category.assoc]
-  end }
+  end }-/
 
 /-- The homology functor from `ι`-indexed complexes to `ι`-graded objects in `V`. -/
-@[simps] def graded_homology_functor [has_cokernels V] :
+@[simps] def graded_homology_functor [category_with_homology V] :
   homological_complex V c ⥤ graded_object ι V :=
 { obj := λ C i, C.homology i,
-  map := λ C C' f i, (homology_functor V c i).map f,
-  map_id' :=
-  begin
-    intros, ext,
-    simp only [pi.id_apply, homology.π_map, homology_functor_map, kernel_subobject_map_id,
-      hom.sq_from_id, category.id_comp, category.comp_id]
-  end,
-  map_comp' :=
-  begin
-    intros, ext,
-    simp only [hom.sq_from_comp, kernel_subobject_map_comp, homology.π_map_assoc,
-      pi.comp_apply, homology.π_map, homology_functor_map, category.assoc]
-  end }
-
-end
+  map := λ C C' f i, (homology_functor V c i).map f, }

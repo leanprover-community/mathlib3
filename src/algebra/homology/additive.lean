@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import algebra.homology.homology
 import algebra.homology.single
-import category_theory.preadditive.additive_functor
+import algebra.homology.short_complex_preadditive
 
 /-!
 # Homology is an additive functor
@@ -67,23 +67,18 @@ namespace homological_complex
 
 instance eval_additive (i : ι) : (eval V c i).additive := {}
 
-instance cycles_additive [has_equalizers V] : (cycles_functor V c i).additive := {}
+--instance cycles_additive [has_equalizers V] : (cycles_functor V c i).additive := {}
 
 variables [has_images V] [has_image_maps V]
 
-instance boundaries_additive : (boundaries_functor V c i).additive := {}
+--instance boundaries_additive : (boundaries_functor V c i).additive := {}
 
 variables [has_equalizers V] [has_cokernels V]
 
-instance homology_additive : (homology_functor V c i).additive :=
-{ map_add' := λ C D f g, begin
-    dsimp [homology_functor],
-    ext,
-    simp only [homology.π_map, preadditive.comp_add, ←preadditive.add_comp],
-    congr,
-    ext, simp,
-  end }
+instance short_complex_functor_additive [category_with_homology V] :
+  (short_complex_functor V c i).additive := { }
 
+instance homology_additive [category_with_homology V] : (homology_functor V c i).additive := { }
 
 end homological_complex
 

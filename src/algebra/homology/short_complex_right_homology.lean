@@ -670,6 +670,12 @@ begin
   simp only [p_cycles_co_map', id_τ₂, id_comp],
 end
 
+@[simp, reassoc]
+lemma right_homology_data.cycles_co_iso_hom_comp_p (h : S.right_homology_data)
+  [S.has_right_homology] :
+  S.p_cycles_co ≫ h.cycles_co_iso.hom = h.p :=
+by simp only [← h.p_comp_cycles_co_iso_inv, assoc, iso.inv_hom_id, comp_id]
+
 @[simps]
 def left_homology_map_data.op {S₁ S₂ : short_complex C} {φ : S₁ ⟶ S₂}
   {h₁ : S₁.left_homology_data} {h₂ : S₂.left_homology_data}
@@ -982,15 +988,43 @@ lemma right_homology_data.cycles_co_iso_inv_comp_desc_cycles_co :
 by simp only [← cancel_epi h.p, h.p_comp_cycles_co_iso_inv_assoc, p_desc_cycles_co,
   h.p_desc_Q]
 
-@[simp, reassoc]
-lemma right_homology_data.lift_left_homology_comp_left_homology_iso_hom :
-  h.right_homology_iso.inv ≫ S.desc_right_homology k hk = h.desc_H k hk :=
-begin
-  simp only [desc_right_homology, right_homology_data.desc_H,
-    ← h.cycles_co_iso_inv_comp_desc_cycles_co k hk,
-    right_homology_data.right_homology_iso_inv_comp_right_homology_ι_assoc],
-end
+--@[simp, reassoc]
+--lemma right_homology_data.lift_left_homology_comp_left_homology_iso_hom :
+--  h.right_homology_iso.inv ≫ S.desc_right_homology k hk = h.desc_H k hk :=
+--begin
+--  simp only [desc_right_homology, right_homology_data.desc_H,
+--    ← h.cycles_co_iso_inv_comp_desc_cycles_co k hk,
+--    right_homology_data.right_homology_iso_inv_comp_right_homology_ι_assoc],
+--end
 
 end
+
+namespace has_right_homology
+
+variable (S)
+
+@[protected]
+lemma has_cokernel [S.has_right_homology] : has_cokernel S.f :=
+⟨⟨⟨_, S.some_right_homology_data.hp⟩⟩⟩
+
+lemma has_kernel [S.has_right_homology] [has_cokernel S.f] :
+  has_kernel (cokernel.desc₀ S.f S.g S.zero) :=
+begin
+  let h := S.some_right_homology_data,
+  haveI : has_limit (parallel_pair h.g' 0) := ⟨⟨⟨_, h.hι'⟩⟩⟩,
+  let e : parallel_pair h.g' 0 ≅ parallel_pair (cokernel.desc₀ S.f S.g S.zero) 0 :=
+    parallel_pair.ext (is_colimit.cocone_point_unique_up_to_iso h.hp (cokernel_is_cokernel S.f))
+      (iso.refl _) (by tidy) (by tidy),
+  exact has_limit_of_iso e,
+end
+
+end has_right_homology
+
+variable (S)
+
+def right_homology_iso_kernel_desc [S.has_right_homology] [has_cokernel S.f]
+  [has_kernel (cokernel.desc₀ S.f S.g S.zero)] :
+  S.right_homology ≅ kernel (cokernel.desc₀ S.f S.g S.zero) :=
+(right_homology_data.of_coker_of_ker S).right_homology_iso
 
 end short_complex

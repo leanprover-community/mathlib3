@@ -3,8 +3,7 @@ Copyright (c) 2022 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
-import category_theory.abelian.exact
-import category_theory.abelian.pseudoelements
+import algebra.homology.short_complex
 
 /-!
 

@@ -1,5 +1,5 @@
 import algebra.homology.short_complex_homology
-import algebra.homology.short_complex_preadditive
+import algebra.homology.short_complex_abelian
 import category_theory.preadditive.opposite
 
 open category_theory
@@ -16,6 +16,14 @@ lemma is_zero.op {X : C} (h : is_zero X) : is_zero (opposite.op X) :=
 lemma is_zero.unop {X : Cᵒᵖ} (h : is_zero X) : is_zero (opposite.unop X) :=
 ⟨λ Y, ⟨⟨⟨(h.from (opposite.op Y)).unop⟩, λ f, quiver.hom.op_inj (h.eq_of_tgt _ _)⟩⟩,
   λ Y, ⟨⟨⟨(h.to (opposite.op Y)).unop⟩, λ f, quiver.hom.op_inj (h.eq_of_src _ _)⟩⟩⟩
+
+lemma is_zero.iff_of_iso {X Y : C} (e : X ≅ Y) :
+  is_zero X ↔ is_zero Y :=
+begin
+  split,
+  { exact λ h, is_zero.of_iso h e.symm, },
+  { exact λ h, is_zero.of_iso h e, },
+end
 
 instance [has_zero_object C] : has_zero_object Cᵒᵖ :=
 ⟨⟨opposite.op 0, is_zero.op (is_zero_zero C)⟩⟩
@@ -36,6 +44,9 @@ def exact :=
 (∃ (h : S.homology_data), is_zero h.left.H)
 
 variable {S}
+
+lemma exact.has_homology (h : S.exact) : has_homology S :=
+has_homology.mk' h.some
 
 lemma homology_data.exact_iff (h : S.homology_data) :
   S.exact ↔ is_zero h.left.H :=
@@ -62,6 +73,15 @@ lemma exact_iff_is_zero_homology [S.has_homology] :
   S.exact ↔ is_zero S.homology :=
 by apply homology_data.exact_iff
 
+lemma exact_iff_homology_zero [S.has_homology] [has_zero_object C] :
+  S.exact ↔ nonempty (S.homology ≅ 0) :=
+begin
+  rw exact_iff_is_zero_homology,
+  split,
+  { exact λ h, ⟨h.iso_zero⟩, },
+  { exact λ e, is_zero.of_iso (is_zero_zero C) e.some, },
+end
+
 variable {S}
 
 lemma left_homology_data.exact_iff (h : S.left_homology_data) [S.has_homology] :
@@ -74,6 +94,19 @@ lemma right_homology_data.exact_iff (h : S.right_homology_data) [S.has_homology]
 S.exact_iff_is_zero_homology.trans
   ⟨λ z, is_zero.of_iso z h.homology_iso.symm, λ z, is_zero.of_iso z h.homology_iso⟩
 
+lemma homology_data.exact_iff_i_p_zero (h : S.homology_data) :
+  S.exact ↔ h.left.i ≫ h.right.p = 0 :=
+begin
+  haveI : S.has_homology := has_homology.mk' h,
+  rw [h.left.exact_iff, ← h.comm],
+  split,
+  { intro h',
+    simp only [h'.eq_of_src h.iso.hom 0, zero_comp, comp_zero], },
+  { intro eq,
+    rw [is_zero.iff_id_eq_zero, ← cancel_mono h.iso.hom, id_comp,
+      ← cancel_mono h.right.ι, ← cancel_epi h.left.π, zero_comp, zero_comp, comp_zero, eq], },
+end
+
 variable (S)
 
 lemma exact_iff_is_zero_left_homology [S.has_homology] :
@@ -83,6 +116,25 @@ by apply left_homology_data.exact_iff
 lemma exact_iff_is_zero_right_homology [S.has_homology] :
   S.exact ↔ is_zero S.right_homology :=
 by apply right_homology_data.exact_iff
+
+lemma exact_iff_i_p_zero [S.has_homology] (h₁ : S.left_homology_data)
+  (h₂ : S.right_homology_data) :
+  S.exact ↔ h₁.i ≫ h₂.p = 0 :=
+(homology_data.of_is_iso_left_right_homology_comparison' h₁ h₂).exact_iff_i_p_zero
+
+lemma exact_iff_cycles_i_p_cycles_co_zero [S.has_homology] :
+  S.exact ↔ S.cycles_i ≫ S.p_cycles_co = 0 :=
+S.exact_iff_i_p_zero _ _
+
+lemma exact_iff_kernel_ι_comp_cokernel_π_zero [S.has_homology]
+  [has_kernel S.g] [has_cokernel S.f] :
+  S.exact ↔ kernel.ι S.g ≫ cokernel.π S.f = 0 :=
+begin
+  haveI := has_left_homology.has_cokernel S,
+  haveI := has_right_homology.has_kernel S,
+  exact S.exact_iff_i_p_zero (left_homology_data.of_ker_of_coker S)
+    (right_homology_data.of_coker_of_ker S),
+end
 
 lemma exact_of_is_zero_X₂ (h : is_zero S.X₂) : S.exact :=
 begin
@@ -95,7 +147,7 @@ begin
   suffices : ∀ ⦃S₁ S₂ : short_complex C⦄ (e : S₁ ≅ S₂), S₁.exact → S₂.exact,
   { exact ⟨this e, this e.symm⟩, },
   rintros S₁ S₂ e h,
-  haveI := has_homology.mk' h.some,
+  haveI := h.has_homology,
   haveI := has_homology_of_iso e,
   rw exact_iff_is_zero_homology at ⊢ h,
   exact is_zero.of_iso h (homology_map_iso e.symm),
@@ -124,6 +176,17 @@ lemma exact_iff_unop (S : short_complex Cᵒᵖ) : S.exact ↔ S.unop.exact :=
 begin
   rw S.unop.exact_iff_op,
   exact exact_iff_of_iso S.unop_op.symm,
+end
+
+variable {S}
+
+lemma exact.comp_eq_zero (h : S.exact) {X Y : C} {ι : X ⟶ S.X₂} (hι : ι ≫ S.g = 0)
+  {π : S.X₂ ⟶ Y} (hπ : S.f ≫ π = 0) : ι ≫ π = 0 :=
+begin
+  haveI : S.has_homology := h.has_homology,
+  rw exact_iff_cycles_i_p_cycles_co_zero at h,
+  rw [← S.lift_cycles_i ι hι, ← S.p_desc_cycles_co π hπ, assoc,
+    reassoc_of h, zero_comp, comp_zero],
 end
 
 end
@@ -172,5 +235,19 @@ begin
 end
 
 end preadditive
+
+section abelian
+
+variables [abelian C] (S : short_complex C)
+
+lemma exact_iff_epi_image_to_kernel :
+  S.exact ↔ epi S.image_to_kernel :=
+begin
+  rw S.exact_iff_is_zero_homology,
+  rw ← is_zero.iff_of_iso (S.cokernel_image_to_kernel_iso_homology),
+  rw ← epi_iff_is_zero_cokernel,
+end
+
+end abelian
 
 end short_complex

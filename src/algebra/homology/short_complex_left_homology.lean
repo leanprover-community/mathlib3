@@ -9,9 +9,13 @@ noncomputable theory
 open category_theory category_theory.category category_theory.limits
 open_locale zero_object
 
+
+
 namespace category_theory.limits
 
+
 variables {C : Type*} [category C] [has_zero_morphisms C]
+
 /-- change kernel.lift to get better definitional properties -/
 abbreviation kernel.lift₀
   {W X Y : C} (f : X ⟶ Y) [has_kernel f] (k : W ⟶ X) (h : k ≫ f = 0) : W ⟶ kernel f :=
@@ -478,6 +482,40 @@ def of_zeros (hf : S.f = 0) (hg : S.g = 0) :
   hπ₀ := by { dsimp, rw [comp_id, hf], },
   hπ := cokernel_zero _ hf, }
 
+@[simp]
+def kernel_sequence' {X Y : C} (f : X ⟶ Y) (c : kernel_fork f) (hc : is_limit c)
+  [has_zero_object C] :
+  left_homology_data (short_complex.mk c.ι f (kernel_fork.condition c)) :=
+{ K := c.X,
+  H := 0,
+  i := c.ι,
+  π := 0,
+  hi₀ := kernel_fork.condition _,
+  hi := is_limit.of_iso_limit hc (fork.ext (iso.refl _) (by simp)),
+  hπ₀ := subsingleton.elim _ _,
+  hπ := begin
+    let l := hc.lift (kernel_fork.of_ι (fork.ι c) (kernel_fork.condition c)),
+    have hl : l = 𝟙 c.X,
+    { apply kernel_fork.is_limit.hom_ext hc,
+      dsimp,
+      simp only [kernel_fork.is_limit.lift_ι, kernel_fork.ι_of_ι, id_comp], },
+    exact cokernel_cofork.is_colimit.of_π _ _ (λ A x hx, 0)
+      (λ A x hx, begin
+        change (l ≫ 𝟙 _) ≫ x = 0 at hx,
+        dsimp at hx,
+        simpa only [hl, comp_id, id_comp, zero_comp] using hx.symm,
+      end)
+      (λ A x hx b hb, subsingleton.elim _ _),
+  end, }
+
+@[simp]
+def kernel_sequence {X Y : C} (f : X ⟶ Y) [has_kernel f] [has_zero_object C] :
+  left_homology_data (short_complex.mk (kernel.ι f) f (kernel.condition f)) :=
+begin
+  let h := kernel_sequence' f _ (kernel_is_kernel f),
+  exact h,
+end
+
 end left_homology_data
 
 class has_left_homology : Prop :=
@@ -817,6 +855,12 @@ begin
   simp only [cycles_map'_i, id_τ₂, comp_id],
 end
 
+@[simp, reassoc]
+lemma left_homology_data.cycles_iso_inv_comp_cycles_i (h : S.left_homology_data)
+  [S.has_left_homology] :
+  h.cycles_iso.inv ≫ S.cycles_i = h.i :=
+by simp only [← h.cycles_iso_hom_comp_i, iso.inv_hom_id_assoc]
+
 namespace left_homology_map_data
 
 variables {φ : S₁ ⟶ S₂} {h₁ : S₁.left_homology_data} {h₂ : S₂.left_homology_data}
@@ -1080,13 +1124,39 @@ lemma left_homology_data.lift_cycles_comp_cycles_iso_hom :
   S.lift_cycles k hk ≫ h.cycles_iso.hom = h.lift_K k hk :=
 by simp only [← cancel_mono h.i, assoc, h.lift_K_i, h.cycles_iso_hom_comp_i, lift_cycles_i]
 
-@[simp, reassoc]
-lemma left_homology_data.lift_left_homology_comp_left_homology_iso_hom :
-  S.lift_left_homology k hk ≫ h.left_homology_iso.hom = h.lift_H k hk :=
-by simp only [lift_left_homology, left_homology_data.lift_H, assoc,
-    ← h.lift_cycles_comp_cycles_iso_hom k hk,
-    h.left_homology_π_comp_left_homology_iso_hom]
+--@[simp]
+--lemma left_homology_data.lift_left_homology_comp_left_homology_iso_hom :
+--  S.lift_left_homology k hk ≫ h.left_homology_iso.hom = h.lift_H k hk :=
+--by simp only [lift_left_homology, left_homology_data.lift_H, assoc,
+--    ← h.lift_cycles_comp_cycles_iso_hom k hk,
+--    h.left_homology_π_comp_left_homology_iso_hom]
 
 end
+
+namespace has_left_homology
+
+variable (S)
+
+@[protected]
+lemma has_kernel [S.has_left_homology] : has_kernel S.g :=
+⟨⟨⟨_, S.some_left_homology_data.hi⟩⟩⟩
+
+lemma has_cokernel [S.has_left_homology] [has_kernel S.g] :
+  has_cokernel (kernel.lift₀ S.g S.f S.zero) :=
+begin
+  let h := S.some_left_homology_data,
+  haveI : has_colimit (parallel_pair h.f' 0) := ⟨⟨⟨_, h.hπ'⟩⟩⟩,
+  let e : parallel_pair (kernel.lift₀ S.g S.f S.zero) 0 ≅ parallel_pair h.f' 0 :=
+    parallel_pair.ext (iso.refl _)
+      (is_limit.cone_point_unique_up_to_iso (kernel_is_kernel S.g) h.hi) (by tidy) (by tidy),
+  exact has_colimit_of_iso e,
+end
+
+end has_left_homology
+
+def left_homology_iso_cokernel_lift [S.has_left_homology] [has_kernel S.g]
+  [has_cokernel (kernel.lift₀ S.g S.f S.zero)] :
+  S.left_homology ≅ cokernel (kernel.lift₀ S.g S.f S.zero) :=
+(left_homology_data.of_ker_of_coker S).left_homology_iso
 
 end short_complex

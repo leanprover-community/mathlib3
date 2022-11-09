@@ -234,8 +234,8 @@ variables {β : Type*} [uniform_space β] [semiring β] [topological_semiring β
 variables {γ : Type*} [uniform_space γ] [semiring γ] [topological_semiring γ]
 variables [t2_space γ] [complete_space γ]
 
-/-- The dense_inducing extension as a ring morphism. -/
-noncomputable def dense_inducing.extend_hom {i : α →+* β} {f : α →+* γ}
+/-- The dense_inducing extension as a ring homomorphism. -/
+noncomputable def dense_inducing.extend_ring_hom {i : α →+* β} {f : α →+* γ}
   (ue : uniform_inducing i) (dr : dense_range i) (hf : uniform_continuous f):
   β →+* γ :=
   { to_fun := (ue.dense_inducing dr).extend f,

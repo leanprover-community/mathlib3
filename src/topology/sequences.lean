@@ -268,7 +268,7 @@ hs.is_seq_compact hx
 
 @[priority 100] -- see Note [lower instance priority]
 instance first_countable_topology.seq_compact_of_compact [compact_space X] : seq_compact_space X :=
-⟨compact_univ.is_seq_compact⟩
+⟨is_compact_univ.is_seq_compact⟩
 
 lemma compact_space.tendsto_subseq [compact_space X] (x : ℕ → X) :
   ∃ a (φ : ℕ → ℕ), strict_mono φ ∧ tendsto (x ∘ φ) at_top (𝓝 a) :=
@@ -351,11 +351,12 @@ compact_iff_totally_bounded_complete.2 ⟨hs.totally_bounded, hs.is_complete⟩
 
 /-- A version of Bolzano-Weistrass: in a uniform space with countably generated uniformity filter
 (e.g., in a metric space), a set is compact if and only if it is sequentially compact. -/
-protected lemma uniform_space.compact_iff_seq_compact : is_compact s ↔ is_seq_compact s :=
+protected lemma uniform_space.is_compact_iff_is_seq_compact : is_compact s ↔ is_seq_compact s :=
 ⟨λ H, H.is_seq_compact, λ H, H.is_compact⟩
 
 lemma uniform_space.compact_space_iff_seq_compact_space : compact_space X ↔ seq_compact_space X :=
-by simp only [← is_compact_univ_iff, seq_compact_space_iff, uniform_space.compact_iff_seq_compact]
+by simp only [← is_compact_univ_iff, seq_compact_space_iff,
+  uniform_space.is_compact_iff_is_seq_compact]
 
 end uniform_space_seq_compact
 

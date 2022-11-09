@@ -1538,7 +1538,7 @@ lemma is_compact_closure_image_coe_of_bounded [proper_space F] {s : set (E' →S
   is_compact (closure ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s)) :=
 have ∀ x, is_compact (closure (apply' F σ₁₂ x '' s)),
   from λ x, ((apply' F σ₁₂ x).lipschitz.bounded_image hb).is_compact_closure,
-compact_closure_of_subset_compact (is_compact_pi_infinite this)
+is_compact_closure_of_subset_compact (is_compact_pi_infinite this)
   (image_subset_iff.2 $ λ g hg x, subset_closure $ mem_image_of_mem _ hg)
 
 /-- Let `s` be a bounded set in the space of continuous (semi)linear maps `E →SL[σ] F` taking values

@@ -1657,6 +1657,7 @@ begin
   exact (set.preimage_image_eq _ h.base_open.inj).symm
 end
 
+/-- The `fg` argument is to avoid nasty stuff about dependent types. -/
 lemma app_eq_inv_app_app_of_comp_eq {X Y U : Scheme} (f : Y ⟶ U) (g : U ⟶ X)
   (fg : Y ⟶ X) (H : fg = f ≫ g) [h : is_open_immersion g] (V : opens U.carrier) :
   f.1.c.app (op V) = g.inv_app _ ≫ fg.1.c.app _ ≫ Y.presheaf.map (eq_to_hom $

@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.invertible
 import algebra.group_power.ring
+import algebra.order.monoid.with_top
 import data.nat.pow
 import data.int.cast.lemmas
 

@@ -407,6 +407,9 @@ inner_product_space.add_left _ _ _
 lemma inner_add_right {x y z : E} : ⟪x, y + z⟫ = ⟪x, y⟫ + ⟪x, z⟫ :=
 by { rw [←inner_conj_sym, inner_add_left, ring_hom.map_add], simp only [inner_conj_sym] }
 
+lemma inner_add {x y : E} : @inner 𝕜 E _ (x + y) = @inner 𝕜 E _ x + @inner 𝕜 E _ y :=
+funext (λ _, inner_add_left)
+
 lemma inner_re_symm {x y : E} : re ⟪x, y⟫ = re ⟪y, x⟫ :=
 by rw [←inner_conj_sym, conj_re]
 
@@ -415,6 +418,7 @@ by rw [←inner_conj_sym, conj_im]
 
 lemma inner_smul_left {x y : E} {r : 𝕜} : ⟪r • x, y⟫ = r† * ⟪x, y⟫ :=
 inner_product_space.smul_left _ _ _
+
 lemma real_inner_smul_left {x y : F} {r : ℝ} : ⟪r • x, y⟫_ℝ = r * ⟪x, y⟫_ℝ := inner_smul_left
 
 lemma inner_smul_real_left {x y : E} {r : ℝ} : ⟪(r : 𝕜) • x, y⟫ = r • ⟪x, y⟫ :=
@@ -426,6 +430,15 @@ lemma real_inner_smul_right {x y : F} {r : ℝ} : ⟪x, r • y⟫_ℝ = r * ⟪
 
 lemma inner_smul_real_right {x y : E} {r : ℝ} : ⟪x, (r : 𝕜) • y⟫ = r • ⟪x, y⟫ :=
 by { rw [inner_smul_right, algebra.smul_def], refl }
+
+lemma inner_smul {x : E} {r : 𝕜} : @inner 𝕜 E _ (r • x) = r† • @inner 𝕜 E _ x :=
+funext (λ _, inner_smul_left)
+
+lemma real_inner_smul {x : F} {r : ℝ} : @inner ℝ F _ (r • x) = r • @inner ℝ F _ x :=
+funext (λ _, inner_smul_left)
+
+lemma inner_smul_real {x : E} {r : ℝ} : @inner 𝕜 E _ ((r : 𝕜) • x) = r • @inner 𝕜 E _ x :=
+funext (λ y, inner_smul_real_left)
 
 /-- The inner product as a sesquilinear form.
 
@@ -470,8 +483,11 @@ lemma dfinsupp.inner_sum {ι : Type*} [dec : decidable_eq ι] {α : ι → Type*
   ⟪x, l.sum f⟫ = l.sum (λ i a, ⟪x, f i a⟫) :=
 by simp [dfinsupp.sum, inner_sum] {contextual := tt}
 
-@[simp] lemma inner_zero_left {x : E} : ⟪0, x⟫ = 0 :=
+lemma inner_zero_left {x : E} : ⟪0, x⟫ = 0 :=
 by rw [← zero_smul 𝕜 (0:E), inner_smul_left, ring_hom.map_zero, zero_mul]
+
+@[simp] lemma inner_zero : @inner 𝕜 E _ 0 = 0 :=
+funext (λ _, inner_zero_left)
 
 lemma inner_re_zero_left {x : E} : re ⟪0, x⟫ = 0 :=
 by simp only [inner_zero_left, add_monoid_hom.map_zero]
@@ -541,11 +557,14 @@ by { have h := @inner_self_abs_to_K ℝ F _ _ x, simpa using h }
 lemma inner_abs_conj_sym {x y : E} : abs ⟪x, y⟫ = abs ⟪y, x⟫ :=
 by rw [←inner_conj_sym, abs_conj]
 
-@[simp] lemma inner_neg_left {x y : E} : ⟪-x, y⟫ = -⟪x, y⟫ :=
+lemma inner_neg_left {x y : E} : ⟪-x, y⟫ = -⟪x, y⟫ :=
 by { rw [← neg_one_smul 𝕜 x, inner_smul_left], simp }
 
 @[simp] lemma inner_neg_right {x y : E} : ⟪x, -y⟫ = -⟪x, y⟫ :=
 by rw [←inner_conj_sym, inner_neg_left]; simp only [ring_hom.map_neg, inner_conj_sym]
+
+@[simp] lemma inner_neg {x : E} : @inner 𝕜 _ _ (-x) = - @inner 𝕜 _ _ x :=
+funext (λ _, inner_neg_left)
 
 lemma inner_neg_neg {x y : E} : ⟪-x, -y⟫ = ⟪x, y⟫ := by simp
 
@@ -557,6 +576,9 @@ by { simp [sub_eq_add_neg, inner_add_left] }
 
 lemma inner_sub_right {x y z : E} : ⟪x, y - z⟫ = ⟪x, y⟫ - ⟪x, z⟫ :=
 by { simp [sub_eq_add_neg, inner_add_right] }
+
+lemma inner_sub {x y : E} : @inner 𝕜 E _ (x - y) = @inner 𝕜 E _ x - @inner 𝕜 E _ y :=
+funext (λ _, inner_sub_left)
 
 lemma inner_mul_conj_re_abs {x y : E} : re (⟪x, y⟫ * ⟪y, x⟫) = abs (⟪x, y⟫ * ⟪y, x⟫) :=
 by { rw [←inner_conj_sym, mul_comm], exact re_eq_abs_of_mul_conj (inner y x), }

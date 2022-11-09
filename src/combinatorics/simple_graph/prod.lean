@@ -173,30 +173,35 @@ by { haveI := (nonempty_prod.1 h.nonempty).1, haveI := (nonempty_prod.1 h.nonemp
 @[simp] lemma box_prod_connected : (G □ H).connected ↔ G.connected ∧ H.connected :=
 ⟨λ h, ⟨h.of_box_prod_left, h.of_box_prod_right⟩, λ h, h.1.box_prod h.2⟩
 
-instance [decidable_eq α] [decidable_eq β] (x : α × β)
+instance box_prod_fintype_neighbor_set (x : α × β)
   [fintype (G.neighbor_set x.1)] [fintype (H.neighbor_set x.2)] :
   fintype ((G □ H).neighbor_set x) :=
-begin
-  rw box_prod_neighbor_set,
-  apply_instance,
-end
+fintype.of_equiv
+  ((G.neighbor_finset x.1 ×ˢ {x.2}).disj_union ({x.1} ×ˢ H.neighbor_finset x.2)
+      $ λ y hG hH, begin
+        simp_rw [finset.mem_product, finset.mem_singleton,
+          mem_neighbor_finset] at hG hH,
+        exact hG.1.ne hH.1.symm,
+      end)
+  ((equiv.refl _).subtype_equiv $ λ y, begin
+    simp_rw [finset.mem_disj_union, finset.mem_product, finset.mem_singleton,
+          mem_neighbor_finset, mem_neighbor_set, equiv.refl_apply, box_prod_adj],
+    simp only [eq_comm, and_comm],
+  end)
+
+lemma box_prod_neighbor_finset (x : α × β)
+  [fintype (G.neighbor_set x.1)] [fintype (H.neighbor_set x.2)] :
+  (G □ H).neighbor_finset x =
+    (G.neighbor_finset x.1 ×ˢ {x.2}).disj_union ({x.1} ×ˢ H.neighbor_finset x.2)
+      (box_prod_fintype_neighbor_set._proof_1 x) :=
+(finset.map_map _ (function.embedding.subtype _) finset.univ).trans finset.attach_map_val
 
 lemma box_prod_degree (x : α × β)
-  [fintype (G.neighbor_set x.1)] [fintype (H.neighbor_set x.2)]
-  [fintype ((G □ H).neighbor_set x)] :
+  [fintype (G.neighbor_set x.1)] [fintype (H.neighbor_set x.2)] :
   (G □ H).degree x = G.degree x.1 + H.degree x.2 :=
 begin
-  classical,
-  simp_rw [← card_neighbor_set_eq_degree, box_prod_neighbor_set,
-    ← set.to_finset_card, set.to_finset_union],
-  convert finset.card_disjoint_union _;
-    simp only [set.to_finset_prod, finset.card_product, set.to_finset_card,
-      set.card_singleton, mul_one, one_mul],
-  { rintro ⟨_,_⟩ q,
-    simp only [finset.inf_eq_inter, finset.mem_inter, finset.mem_product, set.mem_to_finset,
-      mem_neighbor_set, set.mem_singleton_iff] at q,
-    obtain ⟨⟨q, rfl⟩, ⟨rfl, _⟩⟩ := q,
-    exact (q.ne rfl).elim, },
+  rw [degree, degree, degree, box_prod_neighbor_finset, finset.card_disj_union],
+  simp_rw [finset.card_product, finset.card_singleton, mul_one, one_mul],
 end
 
 end simple_graph

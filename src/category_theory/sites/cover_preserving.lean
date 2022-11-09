@@ -163,7 +163,7 @@ begin
 end
 
 lemma compatible_preserving_of_downwards_closed (F : C ⥤ D) [full F] [faithful F]
-  (hF : ∀ {c : C} {d : D} (f : d ⟶ F.obj c), Σ c', F.obj c' ≅ d) : compatible_preserving K F :=
+  (hF : Π {c : C} {d : D} (f : d ⟶ F.obj c), Σ c', F.obj c' ≅ d) : compatible_preserving K F :=
 begin
   constructor,
   introv hx he,

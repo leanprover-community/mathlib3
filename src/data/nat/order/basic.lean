@@ -374,19 +374,9 @@ lt_of_mul_lt_mul_left
     ... < n * k : h)
   (nat.zero_le n)
 
-
-protected lemma div_eq_zero_iff {a b : ℕ} (hb : 0 < b) : a / b = 0 ↔ a < b :=
-⟨λ h, by rw [← mod_add_div a b, h, mul_zero, add_zero]; exact mod_lt _ hb,
-  λ h, by rw [← nat.mul_right_inj hb, ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
-    mod_eq_of_lt h, mul_zero, add_zero]⟩
-
-protected lemma div_eq_zero {a b : ℕ} (hb : a < b) : a / b = 0 :=
-(nat.div_eq_zero_iff $ (zero_le a).trans_lt hb).mpr hb
-
 lemma eq_zero_of_le_div {a b : ℕ} (hb : 2 ≤ b) (h : a ≤ a / b) : a = 0 :=
 eq_zero_of_mul_le hb $
   by rw mul_comm; exact (nat.le_div_iff_mul_le' (lt_of_lt_of_le dec_trivial hb)).1 h
-
 
 lemma div_mul_div_le_div (a b c : ℕ) : ((a / c) * b) / a ≤ b / c :=
 if ha0 : a = 0 then by simp [ha0]
@@ -418,6 +408,13 @@ by conv {to_rhs, rw [← nat.mod_add_div n 2, hn, add_tsub_cancel_left]}
 
 lemma div_dvd_of_dvd {a b : ℕ} (h : b ∣ a) : (a / b) ∣ a :=
 ⟨b, (nat.div_mul_cancel h).symm⟩
+
+protected lemma div_div_self {a b : ℕ} (h : b ∣ a) (ha : a ≠ 0) : a / (a / b) = b :=
+begin
+  rcases h with ⟨a, rfl⟩,
+  rw mul_ne_zero_iff at ha,
+  rw [nat.mul_div_right _ (nat.pos_of_ne_zero ha.1), nat.mul_div_left _ (nat.pos_of_ne_zero ha.2)]
+end
 
 lemma mod_mul_right_div_self (a b c : ℕ) : a % (b * c) / b = (a / b) % c :=
 begin

@@ -6,8 +6,8 @@ Authors: Robert Y. Lewis
 import analysis.normed_space.basic
 import data.polynomial.algebra_map
 import data.polynomial.inductions
+import data.polynomial.splits
 import ring_theory.polynomial.vieta
-import field_theory.splitting_field
 
 /-!
 # Polynomials and limits

@@ -1631,21 +1631,61 @@ LocallyRingedSpace.is_open_immersion.lift_uniq f g H' l hl
   hom_inv_id' := by { rw ← cancel_mono f, simp },
   inv_hom_id' := by { rw ← cancel_mono g, simp } }
 
+/-- The functor `opens X ⥤ opens Y` associated with an open immersion `f : X ⟶ Y`. -/
+abbreviation _root_.algebraic_geometry.Scheme.hom.opens_functor {X Y : Scheme} (f : X ⟶ Y)
+  [H : is_open_immersion f] :
+  opens X.carrier ⥤ opens Y.carrier :=
+H.open_functor
+
+/-- The isomorphism `Γ(X, U) ⟶ Γ(Y, f(U))` induced by an open immersion `f : X ⟶ Y`. -/
+def _root_.algebraic_geometry.Scheme.hom.inv_app {X Y : Scheme} (f : X ⟶ Y)
+  [H : is_open_immersion f] (U) :
+  X.presheaf.obj (op U) ⟶ Y.presheaf.obj (op (f.opens_functor.obj U)) :=
+H.inv_app U
+
+lemma app_eq_inv_app_app_of_comp_eq_aux {X Y U : Scheme} (f : Y ⟶ U) (g : U ⟶ X)
+  (fg : Y ⟶ X) (H : fg = f ≫ g) [h : is_open_immersion g] (V : opens U.carrier) :
+  (opens.map f.1.base).obj V = (opens.map fg.1.base).obj (g.opens_functor.obj V) :=
+begin
+  subst H,
+  rw [Scheme.comp_val_base, opens.map_comp_obj],
+  congr' 1,
+  ext1,
+  exact (set.preimage_image_eq _ h.base_open.inj).symm
+end
+
+/-- The `fg` argument is to avoid nasty stuff about dependent types. -/
+lemma app_eq_inv_app_app_of_comp_eq {X Y U : Scheme} (f : Y ⟶ U) (g : U ⟶ X)
+  (fg : Y ⟶ X) (H : fg = f ≫ g) [h : is_open_immersion g] (V : opens U.carrier) :
+  f.1.c.app (op V) = g.inv_app _ ≫ fg.1.c.app _ ≫ Y.presheaf.map (eq_to_hom $
+    is_open_immersion.app_eq_inv_app_app_of_comp_eq_aux f g fg H V).op :=
+begin
+  subst H,
+  rw [Scheme.comp_val_c_app, category.assoc, Scheme.hom.inv_app,
+    PresheafedSpace.is_open_immersion.inv_app_app_assoc,
+    f.val.c.naturality_assoc, Top.presheaf.pushforward_obj_map, ← functor.map_comp],
+  convert (category.comp_id _).symm,
+  convert Y.presheaf.map_id _,
+end
+
+lemma lift_app {X Y U : Scheme} (f : U ⟶ Y) (g : X ⟶ Y)
+  [h : is_open_immersion f] (H) (V : opens U.carrier) :
+  (is_open_immersion.lift f g H).1.c.app (op V) = f.inv_app _ ≫ g.1.c.app _ ≫
+    X.presheaf.map (eq_to_hom $ is_open_immersion.app_eq_inv_app_app_of_comp_eq_aux _ _ _
+      (is_open_immersion.lift_fac f g H).symm V).op :=
+is_open_immersion.app_eq_inv_app_app_of_comp_eq _ _ _ _ _
+
 end is_open_immersion
 
 namespace Scheme
 
-/-- The functor `opens X ⥤ opens Y` associated with an open immersion `f : X ⟶ Y`. -/
-abbreviation hom.opens_functor {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f] :
-  opens X.carrier ⥤ opens Y.carrier := H.open_functor
-
 lemma image_basic_open {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f]
   {U : opens X.carrier} (r : X.presheaf.obj (op U)) :
-  H.base_open.is_open_map.functor.obj (X.basic_open r) = Y.basic_open (H.inv_app U r) :=
+  f.opens_functor.obj (X.basic_open r) = Y.basic_open (f.inv_app U r) :=
 begin
-  have e := Scheme.preimage_basic_open f (H.inv_app U r),
-  rw [PresheafedSpace.is_open_immersion.inv_app_app_apply, Scheme.basic_open_res,
-    inf_eq_right.mpr _] at e,
+  have e := Scheme.preimage_basic_open f (f.inv_app U r),
+  rw [Scheme.hom.inv_app, PresheafedSpace.is_open_immersion.inv_app_app_apply,
+    Scheme.basic_open_res, inf_eq_right.mpr _] at e,
   rw ← e,
   ext1,
   refine set.image_preimage_eq_inter_range.trans _,
@@ -1659,7 +1699,7 @@ end
 /-- The image of an open immersion as an open set. -/
 @[simps]
 def hom.opens_range {X Y : Scheme} (f : X ⟶ Y) [H : is_open_immersion f] : opens Y.carrier :=
-  ⟨_, H.base_open.open_range⟩
+⟨_, H.base_open.open_range⟩
 
 end Scheme
 

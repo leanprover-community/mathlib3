@@ -50,6 +50,17 @@ lemma neg_mem (x : K) : x ∈ A → (-x) ∈ A := A.to_subring.neg_mem
 
 lemma mem_or_inv_mem (x : K) : x ∈ A ∨ x⁻¹ ∈ A := A.mem_or_inv_mem' _
 
+instance : subsemiring_class (valuation_subring K) K :=
+{ zero_mem := zero_mem,
+  add_mem := add_mem,
+  one_mem := one_mem,
+  mul_mem := mul_mem }
+
+instance : subring_class (valuation_subring K) K :=
+{
+  neg_mem:= neg_mem,
+}
+
 lemma to_subring_injective : function.injective (to_subring : valuation_subring K → subring K) :=
 λ x y h, by { cases x, cases y, congr' }
 

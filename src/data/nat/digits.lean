@@ -681,11 +681,10 @@ example : nat.digits 10 123 = [3,2,1] := by norm_num
   if n = 0 then return (`([] : list ℕ), `(nat.digits_zero %%eb))
   else if b = 0 then do
     ic ← mk_instance_cache `(ℕ),
-    (_, pn0) ← norm_num.prove_pos ic en,
+    (_, pn0) ← norm_num.prove_ne_zero' ic en,
     return (`([%%en] : list ℕ), `(@nat.digits_zero_succ' %%en %%pn0))
   else if b = 1 then do
     ic ← mk_instance_cache `(ℕ),
-    (_, pn0) ← norm_num.prove_pos ic en,
     s ← simp_lemmas.add_simp simp_lemmas.mk `list.repeat,
     (rhs, p2, _) ← simplify s [] `(list.repeat 1 %%en),
     p ← mk_eq_trans `(nat.digits_one %%en) p2,

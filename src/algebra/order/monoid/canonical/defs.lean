@@ -3,8 +3,10 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
-import algebra.order.monoid.basic
+import order.bounded_order
 import order.min_max
+import algebra.ne_zero
+import algebra.order.monoid.defs
 
 /-!
 # Canonically ordered monoids
@@ -32,6 +34,10 @@ attribute [to_additive] has_exists_mul_of_le
 export has_exists_mul_of_le (exists_mul_of_le)
 
 export has_exists_add_of_le (exists_add_of_le)
+
+@[priority 100, to_additive] -- See note [lower instance priority]
+instance group.has_exists_mul_of_le (α : Type u) [group α] [has_le α] : has_exists_mul_of_le α :=
+⟨λ a b hab, ⟨a⁻¹ * b, (mul_inv_cancel_left _ _).symm⟩⟩
 
 section mul_one_class
 variables [mul_one_class α] [preorder α] [contravariant_class α α (*) (<)] [has_exists_mul_of_le α]

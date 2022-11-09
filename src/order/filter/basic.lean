@@ -673,7 +673,7 @@ end
 
 lemma forall_mem_nonempty_iff_ne_bot {f : filter α} :
   (∀ (s : set α), s ∈ f → s.nonempty) ↔ ne_bot f :=
-⟨λ h, ⟨λ hf, empty_not_nonempty (h ∅ $ hf.symm ▸ mem_bot)⟩, @nonempty_of_mem _ _⟩
+⟨λ h, ⟨λ hf, not_nonempty_empty (h ∅ $ hf.symm ▸ mem_bot)⟩, @nonempty_of_mem _ _⟩
 
 instance [nonempty α] : nontrivial (filter α) :=
 ⟨⟨⊤, ⊥, ne_bot.ne $ forall_mem_nonempty_iff_ne_bot.1 $ λ s hs,

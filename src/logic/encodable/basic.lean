@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import logic.equiv.nat
+import data.pnat.basic
 import order.directed
 import data.countable.defs
 import order.rel_iso

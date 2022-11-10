@@ -219,11 +219,9 @@ noncomputable
 def homology_functor_0_single₀ [category_with_homology V] :
   single₀ V ⋙ homology_functor V _ 0 ≅ (𝟭 V) :=
 nat_iso.of_components homology_single₀_zero
-  (λ X Y f, begin
-    dsimp [homology_single₀_zero],
-    simp [(homology_map_data_single₀_map_zero f).homology_map_eq],
-end)
+  (λ X Y f, (homology_map_data_single₀_map_zero f).map_comm)
 
+#exit
 /--
 Sending objects to chain complexes supported at `0` then taking `(n+1)`-st homology
 is the same as the zero functor.

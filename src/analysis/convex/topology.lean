@@ -73,8 +73,8 @@ lemma is_closed_std_simplex : is_closed (std_simplex ℝ ι) :=
   (is_closed_eq (continuous_finset_sum _ $ λ x _, continuous_apply x) continuous_const)
 
 /-- `std_simplex ℝ ι` is compact. -/
-lemma compact_std_simplex : is_compact (std_simplex ℝ ι) :=
-metric.compact_iff_closed_bounded.2 ⟨is_closed_std_simplex ι, bounded_std_simplex ι⟩
+lemma is_compact_std_simplex : is_compact (std_simplex ℝ ι) :=
+metric.is_compact_iff_is_closed_bounded.2 ⟨is_closed_std_simplex ι, bounded_std_simplex ι⟩
 
 end std_simplex
 
@@ -250,7 +250,7 @@ lemma set.finite.compact_convex_hull {s : set E} (hs : s.finite) :
   is_compact (convex_hull ℝ s) :=
 begin
   rw [hs.convex_hull_eq_image],
-  apply (compact_std_simplex _).image,
+  apply (is_compact_std_simplex _).image,
   haveI := hs.fintype,
   apply linear_map.continuous_on_pi
 end

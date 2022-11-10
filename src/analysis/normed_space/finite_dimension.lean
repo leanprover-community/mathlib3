@@ -209,7 +209,7 @@ end
 lemma linear_map.exists_antilipschitz_with [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F)
   (hf : f.ker = ⊥) : ∃ K > 0, antilipschitz_with K f :=
 begin
-  cases subsingleton_or_nontrivial E; resetI,
+  casesI subsingleton_or_nontrivial E,
   { exact ⟨1, zero_lt_one, antilipschitz_with.of_subsingleton⟩ },
   { rw linear_map.ker_eq_bot at hf,
     let e : E ≃L[𝕜] f.range := (linear_equiv.of_injective f hf).to_continuous_linear_equiv,
@@ -644,7 +644,7 @@ begin
     rcases hx' with ⟨r, hr₀, hrK⟩,
     haveI : finite_dimensional ℝ E,
       from finite_dimensional_of_is_compact_closed_ball ℝ hr₀
-        (compact_of_is_closed_subset hK metric.is_closed_ball hrK),
+        (is_compact_of_is_closed_subset hK metric.is_closed_ball hrK),
     exact exists_mem_frontier_inf_dist_compl_eq_dist hx hK.ne_univ },
   { refine ⟨x, hx', _⟩,
     rw frontier_eq_closure_inter_closure at hx',

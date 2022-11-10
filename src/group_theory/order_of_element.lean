@@ -5,7 +5,8 @@ Authors: Johannes Hölzl, Julian Kuelshammer
 -/
 import algebra.hom.iterate
 import data.nat.modeq
-import data.set.pointwise
+import data.int.units
+import data.set.pointwise.basic
 import dynamics.periodic_pts
 import group_theory.index
 
@@ -255,6 +256,14 @@ lemma order_of_pow'' (h : is_of_fin_order x) :
 begin
   convert minimal_period_iterate_eq_div_gcd' h,
   simp only [order_of, mul_left_iterate],
+end
+
+@[to_additive add_order_of_nsmul_coprime]
+lemma order_of_pow_coprime (h : (order_of y).coprime m) : order_of (y ^ m) = order_of y :=
+begin
+  by_cases hg : order_of y = 0,
+  { rw [m.coprime_zero_left.mp (hg ▸ h), pow_one] },
+  { rw [order_of_pow'' y m (hg.imp_symm order_of_eq_zero), h.gcd_eq_one, nat.div_one] },
 end
 
 @[to_additive]

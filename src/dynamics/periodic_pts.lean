@@ -6,7 +6,9 @@ Authors: Yury G. Kudryashov
 
 import algebra.hom.iterate
 import data.list.cycle
+import data.pnat.basic
 import data.nat.prime
+import data.set.pointwise.basic
 import dynamics.fixed_points.basic
 
 /-!

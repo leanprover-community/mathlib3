@@ -177,8 +177,8 @@ end
 
 #exit
 
--- Bell's inequality: 1971 version
-theorem bells_inequality_1971 {Ω : Type u} {m : measurable_space Ω}
+-- Bell's inequality: 1970 version
+theorem bells_inequality_1970 {Ω : Type u} {m : measurable_space Ω}
   -- parameter space for experiments
   {Aa Ab : Type u}
   -- shared variable space

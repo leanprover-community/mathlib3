@@ -359,6 +359,10 @@ begin
   exact map_nonunit f a ha
 end
 
+lemma map_residue (f : R →+* S) [is_local_ring_hom f] (r : R) :
+  map f (residue R r) = residue S (f r) :=
+rfl
+
 /-- Applying `residue_field.map` to the identity ring homomorphism gives the identity
 ring homomorphism. -/
 @[simp] lemma map_id :
@@ -405,6 +409,17 @@ is the residue field of `R`. -/
 { to_fun := map_equiv,
   map_mul' := λ e₁ e₂, map_equiv_trans e₂ e₁,
   map_one' := map_equiv_refl }
+
+section mul_semiring_action
+variables (G : Type*) [group G] [mul_semiring_action G R]
+
+/-- If `G` acts on `R` as a `mul_semiring_action`, then it also acts on `residue_field R`. -/
+noncomputable instance : mul_semiring_action G (local_ring.residue_field R) :=
+mul_semiring_action.comp_hom _ $ map_aut.comp (mul_semiring_action.to_ring_aut G R)
+
+lemma residue_smul (g : G) (r : R) : residue R (g • r) = g • residue R r := rfl
+
+end mul_semiring_action
 
 end residue_field
 

@@ -149,14 +149,87 @@ lemma clopen_set_intersect_connected_components_whole_set (Y: Type*) [topologica
     exact t mem_connected_component,
   end
 
-theorem uniqueness_of_homotopy_lifting (Y: Type*) [topological_space Y]
-  (H₁ H₂:(continuous_map Y E)) (h: f∘ H₁ = f∘ H₂)( hC: ∀ x : Y, ∃ y∈ connected_component x , H₁ y = H₂ y):
+#check nhds
+
+open_locale topological_space
+
+lemma is_open_inter_of_coe_preim {X : Type*} [topological_space X] (s t : set X) (hs : is_open s)
+  (h : is_open ((coe : s → X) ⁻¹' t)) : is_open (t ∩ s) :=
+let ⟨a, b, c⟩ := inducing_coe.is_open_iff.mp h in
+  subtype.preimage_coe_eq_preimage_coe_iff.mp c ▸ b.inter hs
+
+
+lemma is_open_of_is_open_coe (Y:Type*) [topological_space Y] (A: set Y)
+(hA: ∀ x:Y, ∃ (U : set Y) (hU : U ∈ 𝓝 x), is_open ((coe : U → Y)⁻¹' A)):is_open A :=
+is_open_iff_forall_mem_open.mpr (λ x hx, let ⟨U, hU1, hU2⟩ := hA x,
+  ⟨V, hV1, hV2, hV3⟩ := mem_nhds_iff.mp hU1 in ⟨A ∩ V, set.inter_subset_left A V,
+    is_open_inter_of_coe_preim V A hV2 ((continuous_inclusion hV1).is_open_preimage _ hU2), hx, hV3⟩)
+
+lemma is_closed_of_is_closed_coe (Y:Type*) [topological_space Y] (A: set Y)
+(hA: ∀ x:Y, ∃ (U : set Y) (hU : U ∈ 𝓝 x), is_closed ((coe : U → Y)⁻¹' A)):is_closed A :=
+ ⟨ is_open_of_is_open_coe Y Aᶜ (λ x, let ⟨U, hU,hN⟩ := hA x in ⟨ U,  hU , hN.1 ⟩) ⟩
+
+lemma is_clopen_of_is_clopen_coe (Y:Type*) [topological_space Y] (A: set Y)
+(hA: ∀ x:Y, ∃ (U : set Y) (hU : U ∈ 𝓝 x), is_clopen ((coe : U → Y)⁻¹' A)):is_clopen A :=
+⟨is_open_of_is_open_coe  Y A (λ x, let  ⟨ z,hz,hhz⟩:= hA x in ⟨ z,hz,hhz.1⟩  ) ,
+ is_closed_of_is_closed_coe  Y A (λ x, let  ⟨ z,hz,hhz⟩:= hA x in ⟨ z,hz,hhz.2⟩  )⟩
+
+lemma test_false :true:=
+begin
+  refine ⟨ ⟩,
+end
+
+
+
+theorem uniqueness_of_homotopy_lifting (Y: Type*)
+[topological_space Y](hf: is_covering_map f)
+  (H₁ H₂:(continuous_map Y E)) (h: f∘ H₁ = f∘ H₂)
+  ( hC: (∀ x : Y, ∃ y∈ connected_component x , H₁ y = H₂ y)):
   H₁ = H₂:=
+
   begin
-    sorry,
+
+    let composition := f∘ H₁,
+    have k:continuous composition:=continuous.comp hf.continuous H₁.continuous ,
+    have london:=clopen_set_intersect_connected_components_whole_set Y _ _ hC,
+    {apply fun_like.ext H₁ H₂ ,
+    rw set.eq_univ_iff_forall at london,
+    exact london},
+
+      apply is_clopen_of_is_clopen_coe,
+      intro x,
+      let c:= (hf  $ composition x).to_trivialization,
+
+      have c1 := c.1,
+      have c2:=c.2,
+      let cbase:= c.base_set,
+      let d:= composition⁻¹' c.base_set,
+      use d,
+
+      have l:= mem_nhds_iff.2 ⟨ d,subset_rfl ,k.is_open_preimage c.base_set c.open_base_set,
+        set.mem_preimage.2 (is_evenly_covered.mem_to_trivialization_base_set _)⟩,
+      split,
+      exact l,
+      apply is_clopen_of_is_clopen_coe,
+      intro x,
+      let t:= λ j:d,(c1( H₁ j)).2,
+      use set.univ,
+      refine ⟨↑l,_⟩,
+
+
+
+      {sorry,}
+
   end
 
+  -- is_open.preimage k (connected_component_in r x)
+  -- hf.mem_to_trivialization_base_set
 
+#check set.eq_univ_iff_forall
+#check fun_like.ext
+#check is_open_iff_forall_mem_open
+#check connected_component
+# is_open_iff_forall_mem_open
 
 #check is_locally_constant
 #check is_locally_constant.apply_eq_of_is_preconnected

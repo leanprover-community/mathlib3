@@ -1097,9 +1097,9 @@ lemma to_lin_restrict_range_dual_annihilator_comap_eq_orthogonal
 begin
   ext x, split; rw [mem_orthogonal_iff]; intro hx,
   { intros y hy,
-    rw submodule.mem_dual_annihilator_comap_iff at hx,
+    rw submodule.mem_dual_annihilator_comap at hx,
     refine hx (B.to_lin.dom_restrict W ⟨y, hy⟩) ⟨⟨y, hy⟩, rfl⟩ },
-  { rw submodule.mem_dual_annihilator_comap_iff,
+  { rw submodule.mem_dual_annihilator_comap,
     rintro _ ⟨⟨w, hw⟩, rfl⟩,
     exact hx w hw }
 end

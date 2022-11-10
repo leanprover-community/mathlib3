@@ -316,6 +316,9 @@ noncomputable instance : normed_ring 𝓜(𝕜, A) :=
   .. double_centralizer.ring,
   .. double_centralizer.normed_add_comm_group }
 
+noncomputable instance : normed_algebra 𝕜 𝓜(𝕜, A) :=
+{ ..double_centralizer.algebra, ..double_centralizer.normed_space }
+
 variables [star_ring A] [cstar_ring A]
 
 /-- For `a : 𝓜(𝕜, A)`, the norms of `a.left` and `a.right` coincide, and hence these
@@ -360,9 +363,6 @@ by simp only [norm_eq, norm_left_eq_right, max_eq_right, eq_self_iff_true]
 lemma norm_right (a : 𝓜(𝕜, A)) : ∥a∥ = ∥a.right∥ := by rw [norm_left, norm_left_eq_right]
 lemma nnnorm_left (a : 𝓜(𝕜, A)) : ∥a∥₊ = ∥a.left∥₊ := subtype.ext (norm_left a)
 lemma nnnorm_right (a : 𝓜(𝕜, A)) : ∥a∥₊ = ∥a.right∥₊ := subtype.ext (norm_right a)
-
-noncomputable instance : normed_algebra 𝕜 𝓜(𝕜, A) :=
-{ ..double_centralizer.algebra, ..double_centralizer.normed_space }
 
 end nontrivially_normed
 

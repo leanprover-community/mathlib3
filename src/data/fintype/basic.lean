@@ -3,6 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import algebra.parity
 import data.array.lemmas
 import data.finset.fin
 import data.finset.option
@@ -329,6 +330,10 @@ show decidable (∀ x, g (f x) = x), by apply_instance
 instance decidable_left_inverse_fintype [decidable_eq β] [fintype β] (f : α → β) (g : β → α) :
   decidable (function.left_inverse f g) :=
 show decidable (∀ x, f (g x) = x), by apply_instance
+
+instance is_square.decidable_pred [has_mul α] [fintype α] [decidable_eq α] :
+  decidable_pred (is_square : α → Prop) :=
+λ a, fintype.decidable_exists_fintype
 
 /-- Construct a proof of `fintype α` from a universal multiset -/
 def of_multiset [decidable_eq α] (s : multiset α) (H : ∀ x : α, x ∈ s) :
@@ -799,6 +804,11 @@ list.length_fin_range n
 
 @[simp] lemma finset.card_fin (n : ℕ) : finset.card (finset.univ : finset (fin n)) = n :=
 by rw [finset.card_univ, fintype.card_fin]
+
+/-- The cardinality of `fin (bit0 n)` is even, `fact` version.
+This `fact` is needed as an instance by `matrix.special_linear_group.has_neg`. -/
+lemma fintype.card_fin_even {n : ℕ} : fact (even (fintype.card (fin (bit0 n)))) :=
+⟨by { rw fintype.card_fin, exact even_bit0 _ }⟩
 
 /-- `fin` as a map from `ℕ` to `Type` is injective. Note that since this is a statement about
 equality of types, using it should be avoided if possible. -/

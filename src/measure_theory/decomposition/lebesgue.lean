@@ -736,7 +736,7 @@ instance have_lebesgue_decomposition_of_sigma_finite
           rintro x ⟨hx₁, hx₂⟩, rw mem_Union at hx₁ hx₂,
           obtain ⟨⟨i, hi₁, hi₂⟩, ⟨j, hj₁, hj₂⟩⟩ := ⟨hx₁, hx₂⟩,
           have : i = j,
-          { by_contra hij, exact h₂ hij ⟨hi₁, hj₁⟩ },
+          { by_contra hij, exact (h₂ hij).le_bot ⟨hi₁, hj₁⟩ },
           exact hj₂ (this ▸ hi₂) },
         { rw codisjoint_iff_le_sup,
           intros x hx,

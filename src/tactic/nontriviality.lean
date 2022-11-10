@@ -8,7 +8,7 @@ import logic.nontrivial
 namespace tactic
 
 /-!
-# The `nontrivial` tactic.
+# The `nontriviality` tactic.
 
 -/
 

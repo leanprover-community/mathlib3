@@ -6,6 +6,7 @@ Authors: Sébastien Gouëzel
 import analysis.calculus.bump_function_inner
 import analysis.calculus.series
 import analysis.convolution
+import data.set.pointwise.support
 
 /-!
 # Bump functions in finite-dimensional vector spaces

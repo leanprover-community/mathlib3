@@ -449,20 +449,20 @@ begin
   exact zpow_pow_order_of,
 end
 
-@[to_additive vadd_eq_self_of_mem_zmultiples]
 lemma smul_eq_self_of_mem_zpowers {α : Type*} [mul_action G α]
   (hx : x ∈ subgroup.zpowers y) {a : α} (hs : y • a = a) : x • a = a :=
 begin
-  suffices : ∀ {g : G} {a' : α} (hs₀ : g • a' = a') (k : ℤ) (hk : 0 ≤ k), g^k • a' = a',
-  { obtain ⟨k, rfl⟩ := subgroup.mem_zpowers_iff.mp hx,
-    cases le_or_lt 0 k with hk hk, { exact this hs k hk, },
-    rw [← neg_neg k, ← inv_zpow'],
-    exact this (inv_smul_eq_iff.mpr hs.symm) (-k) (neg_nonneg.mpr hk.le), },
-  clear hx hs a y x,
-  intros g s hs k hk,
-  replace hs : (((•) g)^[k.nat_abs]) s = s := is_fixed_pt.iterate hs k.nat_abs,
-  rwa [smul_iterate, ← zpow_coe_nat, ← int.eq_nat_abs_of_zero_le hk] at hs,
+  obtain ⟨k, rfl⟩ := subgroup.mem_zpowers_iff.mp hx,
+  rw [← mul_action.to_perm_apply, ← mul_action.to_perm_hom_apply,
+    monoid_hom.map_zpow _ y k, mul_action.to_perm_hom_apply],
+  exact equiv.is_fixed_pt.zpow hs k,
 end
+
+lemma vadd_eq_self_of_mem_zmultiples {α G : Type*} [add_group G] [add_action G α] {x y : G}
+  (hx : x ∈ add_subgroup.zmultiples y) {a : α} (hs : y +ᵥ a = a) : x +ᵥ a = a :=
+@smul_eq_self_of_mem_zpowers (multiplicative G) _ _ _ α _ hx a hs
+
+attribute [to_additive vadd_eq_self_of_mem_zmultiples] smul_eq_self_of_mem_zpowers
 
 end group
 

@@ -5,7 +5,7 @@ Authors: Kenny Lau
 -/
 import algebra.group.inj_surj
 import algebra.group.commute
-import algebra.hom.equiv
+import algebra.hom.equiv.basic
 import algebra.opposites
 import data.int.cast.defs
 

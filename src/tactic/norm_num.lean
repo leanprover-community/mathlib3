@@ -311,7 +311,7 @@ if na.denom = 1 then
 else do
   [_, _, a, b] ← return a.get_app_args,
   (c, b') ← c.of_nat (nd / na.denom),
-  (c, p₀) ← prove_ne_zero c b (na.denom),
+  (c, p₀) ← prove_ne_zero c b na.denom,
   (c, _, p₁) ← prove_mul_nat c b b',
   (c, r, p₂) ← prove_mul_nat c a b',
   (c, p) ← c.mk_app ``clear_denom_div [a, b, b', r, d, p₀, p₁, p₂],
@@ -1602,7 +1602,8 @@ meta def prove_div_mod (ic : instance_cache) :
     (ic, q) ← ic.of_int nq,
     (ic, r) ← ic.of_int nr,
     (ic, m, pm) ← prove_mul_rat ic q b nq nb,
-    (ic, p) ← prove_add_rat ic r m a nr nm na,
+    (ic, a') ← ic.of_rat na, -- ensure `a` is in normal form
+    (ic, p) ← prove_add_rat ic r m a' nr nm na,
     (ic, p') ← prove_lt_nat ic r b,
     if ic.α = `(nat) then
       if mod then return (ic, r, `(nat_mod).mk_app [a, b, q, r, m, pm, p, p'])

@@ -3,7 +3,6 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Patrick Massot
 -/
-import algebra.order.field
 import data.set.intervals.unordered_interval
 import data.set.pointwise.basic
 
@@ -420,29 +419,6 @@ end linear_ordered_add_comm_group
 section linear_ordered_field
 variables [linear_ordered_field α] {a : α}
 
-@[simp] lemma preimage_const_mul_interval (ha : a ≠ 0) (b c : α) :
-  (λ x, a * x) ⁻¹' [b, c] = [b / a, c / a] :=
-by simp only [← preimage_mul_const_interval ha, mul_comm]
-
-@[simp] lemma preimage_div_const_interval (ha : a ≠ 0) (b c : α) :
-  (λ x, x / a) ⁻¹' [b, c] = [b * a, c * a] :=
-by simp only [div_eq_mul_inv, preimage_mul_const_interval (inv_ne_zero ha), inv_inv]
-
-@[simp] lemma image_mul_const_interval (a b c : α) : (λ x, x * a) '' [b, c] = [b * a, c * a] :=
-if ha : a = 0 then by simp [ha] else
-calc (λ x, x * a) '' [b, c] = (λ x, x * a⁻¹) ⁻¹' [b, c] :
-  (units.mk0 a ha).mul_right.image_eq_preimage _
-... = (λ x, x / a) ⁻¹' [b, c] : by simp only [div_eq_mul_inv]
-... = [b * a, c * a] : preimage_div_const_interval ha _ _
-
-@[simp] lemma image_const_mul_interval (a b c : α) : (λ x, a * x) '' [b, c] = [a * b, a * c] :=
-by simpa only [mul_comm] using image_mul_const_interval a b c
-
-@[simp] lemma image_div_const_interval (a b c : α) : (λ x, x / a) '' [b, c] = [b / a, c / a] :=
-by simp only [div_eq_mul_inv, image_mul_const_interval]
-
-end linear_ordered_field
-
 @[simp] lemma preimage_mul_const_Iio (a : α) {c : α} (h : 0 < c) :
   (λ x, x * c) ⁻¹' (Iio a) = Iio (a / c) :=
 ext $ λ x, (lt_div_iff h).symm
@@ -474,12 +450,6 @@ by simp [← Ici_inter_Iio, h]
 @[simp] lemma preimage_mul_const_Icc (a b : α) {c : α} (h : 0 < c) :
   (λ x, x * c) ⁻¹' (Icc a b) = Icc (a / c) (b / c) :=
 by simp [← Ici_inter_Iic, h]
-
-@[simp] lemma preimage_mul_const_interval (ha : a ≠ 0) (b c : α) :
-  (λ x, x * a) ⁻¹' [b, c] = [b / a, c / a] :=
-(lt_or_gt_of_ne ha).elim
-  (λ ha, by simp [interval, ha, ha.le, min_div_div_right_of_nonpos, max_div_div_right_of_nonpos])
-  (λ (ha : 0 < a), by simp [interval, ha, ha.le, min_div_div_right, max_div_div_right])
 
 @[simp] lemma preimage_mul_const_Iio_of_neg (a : α) {c : α} (h : c < 0) :
   (λ x, x * c) ⁻¹' (Iio a) = Ioi (a / c) :=

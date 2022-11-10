@@ -31,11 +31,19 @@ instance : is_well_order ℕ∞ (<) := { }
 
 variables {m n : ℕ∞}
 
-@[simp, norm_cast] lemma coe_zero : ((0 : ℕ) : ℕ∞) = 0 := rfl
-@[simp, norm_cast] lemma coe_one : ((1 : ℕ) : ℕ∞) = 1 := rfl
-@[simp, norm_cast] lemma coe_add (m n : ℕ) : ↑(m + n) = (m + n : ℕ∞) := rfl
-@[simp, norm_cast] lemma coe_sub (m n : ℕ) : ↑(m - n) = (m - n : ℕ∞) := rfl
-@[simp, norm_cast] lemma coe_mul (m n : ℕ) : ↑(m * n) = (m * n : ℕ∞) := with_top.coe_mul
+-- The following lemmas can be proven by `simp` lemmas for `coe_is_ring_hom`
+-- but are worth keeping since they are eligible for `dsimp`.
+@[simp, norm_cast] protected lemma coe_zero : ((0 : ℕ) : ℕ∞) = 0 := rfl
+@[simp, norm_cast] protected lemma coe_one : ((1 : ℕ) : ℕ∞) = 1 := rfl
+@[simp, norm_cast] protected lemma coe_add (m n : ℕ) : ↑(m + n) = (m + n : ℕ∞) := rfl
+@[simp, norm_cast] protected lemma coe_sub (m n : ℕ) : ↑(m - n) = (m - n : ℕ∞) := rfl
+@[simp, norm_cast] protected lemma coe_mul (m n : ℕ) : ↑(m * n) = (m * n : ℕ∞) := with_top.coe_mul
+
+instance : coe_is_ring_hom ℕ ℕ∞ :=
+{ coe_one := rfl,
+  coe_zero := rfl,
+  coe_add := λ _ _, rfl,
+  coe_mul := λ _ _, with_top.coe_mul }
 
 instance can_lift : can_lift ℕ∞ ℕ coe (λ n, n ≠ ⊤) := with_top.can_lift
 
@@ -64,7 +72,7 @@ begin
   lift n to ℕ using hn,
   induction m using with_top.rec_top_coe,
   { rw [with_top.top_sub_coe, to_nat_top, zero_tsub] },
-  { rw [← coe_sub, to_nat_coe, to_nat_coe, to_nat_coe] }
+  { rw [← enat.coe_sub, to_nat_coe, to_nat_coe, to_nat_coe] }
 end
 
 lemma to_nat_eq_iff {m : ℕ∞} {n : ℕ} (hn : n ≠ 0) : m.to_nat = n ↔ m = n :=

@@ -6,7 +6,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis
 import algebra.invertible
 import algebra.group_power.ring
 import data.nat.pow
-import data.int.cast
+import data.int.cast.lemmas
 
 /-!
 # Lemmas about power operations on monoids and groups
@@ -360,14 +360,14 @@ instance non_unital_non_assoc_semiring.nat_is_scalar_tower [non_unital_non_assoc
   | (n + 1) := by simp_rw [succ_nsmul, ←_match n, smul_eq_mul, add_mul]
   end⟩
 
-@[simp, norm_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
+@[norm_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 begin
   induction m with m ih,
   { rw [pow_zero, pow_zero], exact nat.cast_one },
   { rw [pow_succ', pow_succ', nat.cast_mul, ih] }
 end
 
-@[simp, norm_cast] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ) = n ^ m :=
+@[norm_cast] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ) = n ^ m :=
 by induction m with m ih; [exact int.coe_nat_one, rw [pow_succ', pow_succ', int.coe_nat_mul, ih]]
 
 theorem int.nat_abs_pow (n : ℤ) (k : ℕ) : int.nat_abs (n ^ k) = (int.nat_abs n) ^ k :=
@@ -415,7 +415,7 @@ lemma zsmul_int_int (a b : ℤ) : a • b = a * b := by simp
 
 lemma zsmul_int_one (n : ℤ) : n • 1 = n := by simp
 
-@[simp, norm_cast] theorem int.cast_pow [ring R] (n : ℤ) (m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
+@[norm_cast] theorem int.cast_pow [ring R] (n : ℤ) (m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 begin
   induction m with m ih,
   { rw [pow_zero, pow_zero, int.cast_one] },

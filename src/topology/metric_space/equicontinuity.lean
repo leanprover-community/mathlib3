@@ -96,12 +96,12 @@ lemma equicontinuous_at_of_continuity_modulus {ι : Type*} [topological_space β
   (b : β → ℝ)
   (b_lim : tendsto b (𝓝 x₀) (𝓝 0))
   (F : ι → β → α)
-  (H : ∀(x:β) i, dist (F i x₀) (F i x) ≤ b x) :
+  (H : ∀ᶠ x in 𝓝 x₀, ∀ i, dist (F i x₀) (F i x) ≤ b x) :
   equicontinuous_at F x₀ :=
 begin
   rw metric.equicontinuous_at_iff_right,
   intros ε ε0,
-  filter_upwards [b_lim (Iio_mem_nhds ε0)] using λ x hx i, (H x i).trans_lt hx,
+  filter_upwards [b_lim (Iio_mem_nhds ε0), H] using λ x hx₁ hx₂ i, (hx₂ i).trans_lt hx₁
 end
 
 /-- For a family of functions between (pseudo) metric spaces, a convenient way to prove
@@ -110,7 +110,7 @@ modulus. -/
 lemma uniform_equicontinuous_of_continuity_modulus {ι : Type*} [pseudo_metric_space β] (b : ℝ → ℝ)
   (b_lim : tendsto b (𝓝 0) (𝓝 0))
   (F : ι → β → α)
-  (H : ∀(x y:β) i, dist (F i x) (F i y) ≤ b (dist x y)) :
+  (H : ∀ (x y : β) i, dist (F i x) (F i y) ≤ b (dist x y)) :
   uniform_equicontinuous F :=
 begin
   rw metric.uniform_equicontinuous_iff,
@@ -129,7 +129,7 @@ equicontinuity is to show that all of the functions share a common *global* cont
 lemma equicontinuous_of_continuity_modulus {ι : Type*} [pseudo_metric_space β] (b : ℝ → ℝ)
   (b_lim : tendsto b (𝓝 0) (𝓝 0))
   (F : ι → β → α)
-  (H : ∀(x y:β) i, dist (F i x) (F i y) ≤ b (dist x y)) :
+  (H : ∀ (x y : β) i, dist (F i x) (F i y) ≤ b (dist x y)) :
   equicontinuous F :=
 (uniform_equicontinuous_of_continuity_modulus b b_lim F H).equicontinuous
 

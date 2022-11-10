@@ -357,28 +357,66 @@ end
 @[simp] lemma single₀_map_f_succ {X Y : V} (f : X ⟶ Y) (n : ℕ) :
   ((single₀ V).map f).f (n+1) = 0 := rfl
 
-/-section
+section
+
+variable {V}
+
+instance has_homology_single₀_obj (A : V) (j : ℕ) :
+  ((single₀ V).obj A).has_homology j :=
+begin
+  rw has_homology.iff,
+  dsimp [single₀],
+  apply_instance,
+end
+
+def homology_data_single₀_zero (A : V) :
+  ((single₀ V).obj A).homology_data 0 :=
+short_complex.homology_data.of_zeros _ rfl rfl
+
+@[simp]
+def homology_map_data_single₀_map_zero {A A' : V} (f : A ⟶ A') :
+  homology_map_data ((single₀ V).map f) 0 (homology_data_single₀_zero A)
+    (homology_data_single₀_zero A') :=
+  short_complex.homology_map_data.of_zeros _ rfl rfl rfl rfl
+
+def homology_single₀_zero (A : V) :
+  ((single₀ V).obj A).homology 0 ≅ A :=
+(homology_data_single₀_zero A).homology_iso
+
+def homology_single₀_succ (A : V) (j : ℕ):
+  ((single₀ V).obj A).homology (j+1) ≅ 0 :=
+is_zero.iso_zero
+begin
+  rw ← short_complex.exact_iff_is_zero_homology,
+  apply short_complex.exact_of_is_zero_X₂,
+  apply limits.is_zero_zero,
+end
+
+variable (V)
 
 /--
 Sending objects to cochain complexes supported at `0` then taking `0`-th homology
 is the same as doing nothing.
 -/
 noncomputable
-def homology_functor_0_single₀ : single₀ V ⋙ homology_functor V _ 0 ≅ (𝟭 V) :=
-nat_iso.of_components (λ X, homology.congr _ _ (by simp) (by simp) ≪≫ homology_zero_zero)
-  (λ X Y f, by { ext, dsimp [homology_functor], simp, })
+def homology_functor_0_single₀ [category_with_homology V] :
+  single₀ V ⋙ homology_functor V _ 0 ≅ (𝟭 V) :=
+nat_iso.of_components homology_single₀_zero
+  (λ X Y f, begin
+    dsimp [homology_single₀_zero],
+    simp [(homology_map_data_single₀_map_zero f).homology_map_eq],
+end)
 
 /--
 Sending objects to cochain complexes supported at `0` then taking `(n+1)`-st homology
 is the same as the zero functor.
 -/
 noncomputable
-def homology_functor_succ_single₀ (n : ℕ) : single₀ V ⋙ homology_functor V _ (n+1) ≅ 0 :=
-nat_iso.of_components (λ X, homology.congr _ _ (by simp) (by simp) ≪≫
-    homology_zero_zero ≪≫ (functor.zero_obj _).iso_zero.symm)
-  (λ X Y f, by { exact (functor.zero_obj _).eq_of_tgt _ _ })
+def homology_functor_succ_single₀ [category_with_homology V] (n : ℕ) :
+  single₀ V ⋙ homology_functor V _ (n+1) ≅ (category_theory.functor.const _).obj 0 :=
+nat_iso.of_components (λ X, homology_single₀_succ X n) (by tidy)
 
-end-/
+end
 
 variables {V}
 

@@ -124,10 +124,11 @@ begin
         iso.symm_hom, iso.inv_hom_id_assoc, iso.inv_hom_id, category.comp_id], }, },
 end
 
-/-section
-variables [has_zero_morphisms V] [has_kernels V]
+section
+variables [has_zero_morphisms V]
 
 lemma comp_eq_zero_of_image_eq_kernel {A B C : V} (f : A ⟶ B) (g : B ⟶ C)
+  [has_image f] [has_kernel g]
   (p : image_subobject f = kernel_subobject g) : f ≫ g = 0 :=
 begin
   rw [←image_subobject_arrow_comp f, category.assoc],
@@ -137,6 +138,7 @@ begin
 end
 
 lemma image_to_kernel_is_iso_of_image_eq_kernel {A B C : V} (f : A ⟶ B) (g : B ⟶ C)
+  [has_image f] [has_kernel g]
   (p : image_subobject f = kernel_subobject g) :
   is_iso (image_to_kernel f g (comp_eq_zero_of_image_eq_kernel f g p)) :=
 begin
@@ -146,6 +148,7 @@ begin
   simp,
 end
 
+/-
 -- We'll prove the converse later, when `V` is abelian.
 lemma exact_of_image_eq_kernel {A B C : V} (f : A ⟶ B) (g : B ⟶ C)
   (p : image_subobject f = kernel_subobject g) : exact f g :=

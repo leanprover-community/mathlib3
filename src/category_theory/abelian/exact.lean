@@ -43,6 +43,27 @@ open category_theory.preadditive
 
 variables {C : Type u₁} [category.{v₁} C] [abelian C]
 
+namespace short_complex
+
+variable (S : short_complex C)
+
+lemma exact_iff_epi_image_to_kernel :
+  S.exact ↔ epi S.image_to_kernel :=
+begin
+  rw S.exact_iff_is_zero_homology,
+  rw ← is_zero.iff_of_iso (S.cokernel_image_to_kernel_iso_homology),
+  rw ← epi_iff_is_zero_cokernel,
+end
+
+lemma exact_iff_image_eq_kernel :
+  S.exact ↔ image_subobject S.f = kernel_subobject S.g :=
+begin
+  rw S.exact_iff_epi_image_to_kernel,
+  sorry,
+end
+
+end short_complex
+
 namespace category_theory
 
 namespace abelian
@@ -59,35 +80,22 @@ theorem exact_iff_image_eq_kernel : exact f g ↔ image_subobject f = kernel_sub
 begin
   split,
   { intro h,
-    fapply subobject.eq_of_comm,
-    { suffices : is_iso (image_to_kernel _ _ h.w),
-      { exactI as_iso (image_to_kernel _ _ h.w), },
-      exact is_iso_of_mono_of_epi _, },
-    { simp, }, },
-  { apply exact_of_image_eq_kernel, },
+    simpa only [exact_iff_exact_short_complex _ _ h.w, short_complex.exact_iff_image_eq_kernel]
+      using h, },
+  { intro h,
+    simpa only [exact_iff_exact_short_complex _ _ (comp_eq_zero_of_image_eq_kernel f g h),
+      short_complex.exact_iff_image_eq_kernel] using h, },
 end
 
 theorem exact_iff : exact f g ↔ f ≫ g = 0 ∧ kernel.ι g ≫ cokernel.π f = 0 :=
 begin
   split,
   { intro h,
-    exact ⟨h.1, kernel_comp_cokernel f g h⟩ },
-  { refine λ h, ⟨h.1, _⟩,
-    suffices hl : is_limit
-      (kernel_fork.of_ι (image_subobject f).arrow (image_subobject_arrow_comp_eq_zero h.1)),
-    { have : image_to_kernel f g h.1 =
-        (is_limit.cone_point_unique_up_to_iso hl (limit.is_limit _)).hom ≫
-          (kernel_subobject_iso _).inv,
-      { ext, simp },
-      rw this,
-      apply_instance, },
-    refine kernel_fork.is_limit.of_ι _ _ _ _ _,
-    { refine λ W u hu,
-        kernel.lift (cokernel.π f) u _ ≫ (image_iso_image f).hom ≫ (image_subobject_iso _).inv,
-      rw [←kernel.lift_ι g u hu, category.assoc, h.2, has_zero_morphisms.comp_zero] },
-    { tidy },
-    { intros, rw [←cancel_mono (image_subobject f).arrow, w],
-      simp, } }
+    exact ⟨h.w, by simpa only [exact_iff_exact_short_complex _ _ h.w,
+      short_complex.exact_iff_kernel_ι_comp_cokernel_π_zero] using h⟩, },
+  { rintro ⟨h₁, h₂⟩,
+    simpa only [exact_iff_exact_short_complex _ _ h₁,
+      short_complex.exact_iff_kernel_ι_comp_cokernel_π_zero] using h₂, },
 end
 
 theorem exact_iff' {cg : kernel_fork g} (hg : is_limit cg)
@@ -95,7 +103,7 @@ theorem exact_iff' {cg : kernel_fork g} (hg : is_limit cg)
 begin
   split,
   { intro h,
-    exact ⟨h.1, fork_ι_comp_cofork_π f g h cg cf⟩ },
+    exact ⟨h.1, fork_ι_comp_cofork_π h cg cf⟩ },
   { rw exact_iff,
     refine λ h, ⟨h.1, _⟩,
     apply zero_of_epi_comp (is_limit.cone_point_unique_up_to_iso hg (limit.is_limit _)).hom,
@@ -128,7 +136,7 @@ end
     `category_theory.exact_comp_mono_iff`. -/
 lemma exact_epi_comp_iff {W : C} (h : W ⟶ X) [epi h] : exact (h ≫ f) g ↔ exact f g :=
 begin
-  refine ⟨λ hfg, _, λ h, exact_epi_comp h⟩,
+  refine ⟨λ hfg, _, λ h, exact_epi_comp _ _ _ h⟩,
   let hc := is_cokernel_of_comp _ _ (colimit.is_colimit (parallel_pair (h ≫ f) 0))
     (by rw [← cancel_epi h, ← category.assoc, cokernel_cofork.condition, comp_zero]) rfl,
   refine (exact_iff' _ _ (limit.is_limit _) hc).2 ⟨_, ((exact_iff _ _).1 hfg).2⟩,
@@ -188,7 +196,8 @@ lemma cokernel.desc.inv [epi g] (ex : exact f g) :
 by simp
 
 instance (ex : exact f g) [mono f] : is_iso (kernel.lift g f ex.w) :=
-  is_iso_of_mono_of_epi (limits.kernel.lift g f ex.w)
+  sorry
+--  is_iso_of_mono_of_epi (limits.kernel.lift g f ex.w)
 
 @[simp, reassoc]
 lemma kernel.lift.inv [mono f] (ex : exact f g) :
@@ -239,9 +248,10 @@ variables (Z)
 lemma tfae_mono : tfae [mono f, kernel.ι f = 0, exact (0 : Z ⟶ X) f] :=
 begin
   tfae_have : 3 → 2,
-  { exact kernel_ι_eq_zero_of_exact_zero_left Z },
+  { sorry, },--{ exact kernel_ι_eq_zero_of_exact_zero_left Z },
   tfae_have : 1 → 3,
-  { introsI, exact exact_zero_left_of_mono Z },
+  { sorry, },
+  --{ introsI, exact exact_zero_left_of_mono Z },
   tfae_have : 2 → 1,
   { exact mono_of_kernel_ι_eq_zero _ },
   tfae_finish

@@ -236,18 +236,4 @@ end
 
 end preadditive
 
-section abelian
-
-variables [abelian C] (S : short_complex C)
-
-lemma exact_iff_epi_image_to_kernel :
-  S.exact ↔ epi S.image_to_kernel :=
-begin
-  rw S.exact_iff_is_zero_homology,
-  rw ← is_zero.iff_of_iso (S.cokernel_image_to_kernel_iso_homology),
-  rw ← epi_iff_is_zero_cokernel,
-end
-
-end abelian
-
 end short_complex

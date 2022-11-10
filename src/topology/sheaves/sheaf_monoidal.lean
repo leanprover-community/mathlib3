@@ -657,12 +657,28 @@ def from_sheafify_once :
 end associator_left
 
 def associator' (F G H : sheaf AddCommGroup.{u} X) :
-  (tensor_obj' F (tensor_obj' G H)) ≅ (tensor_obj' (tensor_obj' F G) H) :=
-(associator_left.iso_sheafify_once F G H).trans $
-  (presheaf_to_Sheaf_iso (α_ _ _ _).symm : (presheaf_to_Sheaf _ _).obj (F.val ⊗ G.val ⊗ H.val) ≅
-      (presheaf_to_Sheaf _ _).obj ((F.val ⊗ G.val) ⊗ H.val)).trans $
-  (associator_right.iso_sheafify_once F G H).symm
+  (tensor_obj' (tensor_obj' F G) H) ≅ (tensor_obj' F (tensor_obj' G H)) :=
+(associator_right.iso_sheafify_once F G H).trans $
+  (presheaf_to_Sheaf_iso (α_ _ _ _)).trans $
+    (associator_left.iso_sheafify_once F G H).symm
 
 end constructions
+
+instance : monoidal_category (sheaf AddCommGroup.{u} X) :=
+{ tensor_obj := constructions.tensor_obj',
+  tensor_hom := λ _ _ _ _, constructions.tensor_hom',
+  tensor_unit := constructions.tensor_unit',
+  associator := constructions.associator',
+  left_unitor := _,
+  right_unitor := _,
+
+  tensor_id' := constructions.tensor_id',
+  tensor_comp' := λ _ _ _ _ _ _, constructions.tensor_comp',
+
+  associator_naturality' := sorry,
+  left_unitor_naturality' := sorry,
+  right_unitor_naturality' := sorry,
+  pentagon' := sorry,
+  triangle' := sorry }
 
 end Top.sheaf

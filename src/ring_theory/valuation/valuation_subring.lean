@@ -50,16 +50,12 @@ lemma neg_mem (x : K) : x ∈ A → (-x) ∈ A := A.to_subring.neg_mem
 
 lemma mem_or_inv_mem (x : K) : x ∈ A ∨ x⁻¹ ∈ A := A.mem_or_inv_mem' _
 
-instance : subsemiring_class (valuation_subring K) K :=
+instance : subring_class (valuation_subring K) K :=
 { zero_mem := zero_mem,
   add_mem := add_mem,
   one_mem := one_mem,
-  mul_mem := mul_mem }
-
-instance : subring_class (valuation_subring K) K :=
-{
-  neg_mem:= neg_mem,
-}
+  mul_mem := mul_mem,
+  neg_mem := neg_mem }
 
 lemma to_subring_injective : function.injective (to_subring : valuation_subring K → subring K) :=
 λ x y h, by { cases x, cases y, congr' }
@@ -233,7 +229,8 @@ instance of_prime_scalar_tower (A : valuation_subring K) (P : ideal A) [P.is_pri
 
 instance of_prime_localization (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   is_localization.at_prime (A.of_prime P) P :=
-by apply localization.subalgebra.is_localization_of_field K
+by apply localization.subalgebra.is_localization_of_field K P.prime_compl
+  P.prime_compl_le_non_zero_divisors
 
 lemma le_of_prime (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   A ≤ of_prime A P :=
@@ -576,8 +573,7 @@ lemma coe_mem_principal_unit_group_iff {x : A.unit_group} :
   A.unit_group_mul_equiv x ∈ (units.map (local_ring.residue A).to_monoid_hom).ker :=
 begin
   rw [monoid_hom.mem_ker, units.ext_iff],
-  dsimp,
-  let π := ideal.quotient.mk (local_ring.maximal_ideal A), change _ ↔ π _ = _,
+  let π := ideal.quotient.mk (local_ring.maximal_ideal A), convert_to _ ↔ π _ = 1,
   rw [← π.map_one, ← sub_eq_zero, ← π.map_sub, ideal.quotient.eq_zero_iff_mem,
     valuation_lt_one_iff],
   simpa,

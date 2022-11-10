@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Kurniadi Angdinata
 -/
 
-import field_theory.splitting_field
+import data.polynomial.splits
 
 /-!
 # Cubics and discriminants

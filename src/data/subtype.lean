@@ -9,6 +9,10 @@ import tactic.lint
 import tactic.simps
 
 /-!
+THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+https://github.com/leanprover-community/mathlib4/pull/546
+Any changes to this file require a corresponding PR to mathlib4.
+
 # Subtypes
 
 This file provides basic API for subtypes, which are defined in core.

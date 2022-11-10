@@ -4,13 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux, Jon Bannon
 -/
 
+import algebra.star.star_alg_hom
 import analysis.normed_space.star.basic
 import analysis.normed_space.operator_norm
-import data.real.sqrt
-import data.real.nnreal
 import analysis.special_functions.pow
-import algebra.star.star_alg_hom
-import analysis.normed_space.star.prerequisites
 
 /-!
 # Multiplier Algebra of a C⋆-algebra
@@ -31,9 +28,8 @@ compact Hausdorff space `X`, and in that case `𝓜(𝕜, A)` can be identified 
 
 ## TODO
 
-+ show that `𝓜(𝕜, A)` is a C⋆-ring
-+ define a type synonym for `𝓜(𝕜, A)` which is equipped with the strict topology
-+ after ⋆-algebra morphisms are implemented in mathlib, bundle the coercion `A → 𝓜(𝕜, A)`
++ define a type synonym for `𝓜(𝕜, A)` which is equipped with the strict uniform space structure
+  and show it is complete
 + show that the image of `A` in `𝓜(𝕜, A)` is an essential ideal
 + prove the universal property of `𝓜(𝕜, A)`
 * Construct a double centralizer from a pair of maps `L : A → A`, `R : A → A` satisfying the
@@ -161,7 +157,8 @@ function.injective.module 𝕜 add_group_hom_prod_mk injective_prod_mk (λ x y, 
 /-- The normed group structure is inherited as the pullback under the additive group monomoprhism
 `double_centralizer.prod_mk : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜] A)` -/
 instance : normed_add_comm_group 𝓜(𝕜, A) :=
-normed_add_comm_group.induced add_group_hom_prod_mk injective_prod_mk
+normed_add_comm_group.induced _ _ (add_group_hom_prod_mk : 𝓜(𝕜, A) →+ (A →L[𝕜] A) × (A →L[𝕜] A))
+  injective_prod_mk
 
 @[simp] lemma norm_eq (a : 𝓜(𝕜, A)) : ∥a∥ = max (∥a.left∥) (∥a.right∥) := rfl
 
@@ -226,8 +223,13 @@ instance : ring 𝓜(𝕜, A) :=
 @[simp] lemma pow_left (n : ℕ) (a : 𝓜(𝕜, A)) : (a ^ n).left = a.left ^ n := rfl
 @[simp] lemma pow_right (n : ℕ) (a : 𝓜(𝕜, A)) : (a ^ n).right = a.right ^ n := rfl
 
+
 noncomputable instance : algebra 𝕜 𝓜(𝕜, A) :=
-algebra.of_module (λ k a b, by ext; simp) (λ k a b, by ext; simp)
+algebra.of_module
+  (λ k a b, by {ext; simp only [mul_left, smul_left, mul_right, smul_right, coe_smul',pi.smul_apply,
+    continuous_linear_map.coe_mul, function.comp_app, continuous_linear_map.map_smul]})
+  (λ k a b, by {ext; simp only [mul_left, smul_left, mul_right, smul_right, algebra.mul_smul_comm,
+    coe_smul', continuous_linear_map.coe_mul, pi.smul_apply, function.comp_app]})
 
 /-!
 ### Star structure
@@ -272,29 +274,30 @@ end star
 
 noncomputable instance : has_coe_t A 𝓜(𝕜, A) :=
 { coe := λ a,
-  { left := continuous_linear_map.lmul 𝕜 A a,
-    right := continuous_linear_map.lmul_right 𝕜 A a,
+  { left := continuous_linear_map.mul 𝕜 A a,
+    right := (continuous_linear_map.mul 𝕜 A).flip a,
     central := λ x y, mul_assoc _ _ _ } }
 
 @[simp, norm_cast]
-lemma coe_left (a : A) : (a : 𝓜(𝕜, A)).left = continuous_linear_map.lmul 𝕜 A a := rfl
+lemma coe_left (a : A) : (a : 𝓜(𝕜, A)).left = continuous_linear_map.mul 𝕜 A a := rfl
 @[simp, norm_cast]
-lemma coe_right (a : A) : (a : 𝓜(𝕜, A)).right = continuous_linear_map.lmul_right 𝕜 A a := rfl
+lemma coe_right (a : A) : (a : 𝓜(𝕜, A)).right = (continuous_linear_map.mul 𝕜 A).flip a := rfl
 
 section
 variables [star_ring 𝕜] [star_ring A] [star_module 𝕜 A] [normed_star_group A]
-/-- The coercion of an algebra into its multiplier algebra as a non-unital algebra homomorphism. -/
+/-- The coercion of an algebra into its multiplier algebra as a non-unital star algebra
+homomorphism. -/
 def non_unital_star_algebra_hom_coe : A →⋆ₙₐ[𝕜] 𝓜(𝕜, A) :=
 { to_fun := λ a, a,
   map_smul' := λ k a, by {ext1; simp only [coe_left, coe_right, continuous_linear_map.map_smul,
     smul_left, smul_right]},
   map_zero' := by {ext1; simp only [coe_left, coe_right, map_zero, zero_left, zero_right]},
   map_add' := λ a b, by {ext1; simp only [coe_left, coe_right, map_add, add_left, add_right]},
-  map_mul' := λ a b, by {ext; simp only [coe_left, coe_right, continuous_linear_map.lmul_apply,
-    continuous_linear_map.lmul_right_apply, mul_left, mul_right, coe_mul, function.comp_app,
-    mul_assoc]},
-  map_star' := λ a, by {ext; simp only [coe_left, lmul_apply, star_left, star_right, coe_right,
-    lmul_right_apply, star_mul, star_star]} }
+  map_mul' := λ a b, by {ext; simp only [coe_left, coe_right, mul_apply',
+    flip_apply, mul_left, mul_right, continuous_linear_map.coe_mul,
+    function.comp_app, mul_assoc]},
+  map_star' := λ a, by {ext; simp only [coe_left, mul_apply', star_left, star_right, coe_right,
+    flip_apply, star_mul, star_star]} }
 end
 
 /-!
@@ -372,7 +375,8 @@ variables [normed_space 𝕜 A] [smul_comm_class 𝕜 A A] [is_scalar_tower 𝕜
 instance : cstar_ring 𝓜(𝕜, A) :=
 { norm_star_mul_self := λ a, congr_arg (coe : ℝ≥0 → ℝ) $ show ∥star a * a∥₊ = ∥a∥₊ * ∥a∥₊, from
   begin
-    have hball : {x : A | ∥x∥₊ ≤ 1}.nonempty := ⟨0, nnnorm_zero.trans_le zero_le_one⟩,
+    have hball : (metric.closed_ball (0 : A) 1).nonempty :=
+      metric.nonempty_closed_ball.2 (zero_le_one),
     have key : ∀ x y, ∥x∥₊ ≤ 1 → ∥y∥₊ ≤ 1 → ∥a.right (star (a.left (star x))) * y∥₊ ≤ ∥a∥₊ * ∥a∥₊,
     { intros x y hx hy,
       rw [a.central],
@@ -383,23 +387,24 @@ instance : cstar_ring 𝓜(𝕜, A) :=
               (a.left.le_op_norm_of_le hy)
       ... ≤ ∥a∥₊ * ∥a∥₊ : by simp only [mul_one, nnnorm_left] },
     rw nnnorm_right,
-    simp only [mul_right, ←op_nnnorm_eq_Sup_unit_ball, star_right, continuous_linear_map.mul_apply],
-      simp only [←@cstar_ring.op_nnnorm_lmul 𝕜 A],
-      simp only [←op_nnnorm_eq_Sup_unit_ball, lmul_apply],
+    simp only [mul_right, ←Sup_closed_unit_ball_eq_nnnorm, star_right, mul_apply],
+      simp only [←@op_nnnorm_mul 𝕜 A],
+      simp only [←Sup_closed_unit_ball_eq_nnnorm, mul_apply'],
     refine cSup_eq_of_forall_le_of_forall_lt_exists_gt (hball.image _) _ (λ r hr, _),
     { rintro - ⟨x, hx, rfl⟩,
       refine cSup_le (hball.image _) _,
       rintro - ⟨y, hy, rfl⟩,
-      exact key x y hx hy },
+      exact key x y (mem_closed_ball_zero_iff.1 hx) (mem_closed_ball_zero_iff.1 hy) },
     { simp only [set.mem_image, set.mem_set_of_eq, exists_prop, exists_exists_and_eq_and],
       have hr' : r.sqrt < ∥a∥₊ := (∥a∥₊).sqrt_mul_self ▸ nnreal.sqrt_lt_sqrt_iff.2 hr,
-      rw [nnnorm_left, ←op_nnnorm_eq_Sup_unit_ball] at hr',
+      simp_rw [nnnorm_left, ←Sup_closed_unit_ball_eq_nnnorm] at hr',
       obtain ⟨_, ⟨x, hx, rfl⟩, hxr⟩ := exists_lt_of_lt_cSup (hball.image _) hr',
-      refine ⟨star x, (nnnorm_star x).trans_le hx, _⟩,
+      have hx' : ∥x∥₊ ≤ 1 := mem_closed_ball_zero_iff.1 hx,
+      refine ⟨star x, mem_closed_ball_zero_iff.2 ((nnnorm_star x).trans_le hx'), _⟩,
       refine lt_cSup_of_lt _ ⟨x, hx, rfl⟩ _,
       { refine ⟨∥a∥₊ * ∥a∥₊, _⟩,
         rintros - ⟨y, hy, rfl⟩,
-        exact key (star x) y ((nnnorm_star x).trans_le hx) hy },
+        exact key (star x) y ((nnnorm_star x).trans_le hx') (mem_closed_ball_zero_iff.1 hy) },
       { simpa only [a.central, star_star, cstar_ring.nnnorm_star_mul_self, nnreal.sq_sqrt, ←sq]
           using pow_lt_pow_of_lt_left hxr zero_le' two_pos } }
   end }

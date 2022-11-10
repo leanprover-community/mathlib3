@@ -309,27 +309,25 @@ section
 variables (R) [comm_ring R] [local_ring R] [comm_ring S] [local_ring S] [comm_ring T] [local_ring T]
 
 /-- The residue field of a local ring is the quotient of the ring by its maximal ideal. -/
+@[derive [ring, comm_ring, inhabited]]
 def residue_field := R ⧸ maximal_ideal R
 
 noncomputable instance residue_field.field : field (residue_field R) :=
 ideal.quotient.field (maximal_ideal R)
 
-noncomputable instance : inhabited (residue_field R) := ⟨37⟩
-
 /-- The quotient map from a local ring to its residue field. -/
 def residue : R →+* (residue_field R) :=
 ideal.quotient.mk _
 
-noncomputable
-instance residue_field.algebra : algebra R (residue_field R) := (residue R).to_algebra
+instance residue_field.algebra : algebra R (residue_field R) :=
+ideal.quotient.algebra _
 
 variables {R}
 
 namespace residue_field
 
 /-- The map on residue fields induced by a local homomorphism between local rings -/
-noncomputable def map (f : R →+* S) [is_local_ring_hom f] :
-  residue_field R →+* residue_field S :=
+def map (f : R →+* S) [is_local_ring_hom f] : residue_field R →+* residue_field S :=
 ideal.quotient.lift (maximal_ideal R) ((ideal.quotient.mk _).comp f) $
 λ a ha,
 begin
@@ -359,8 +357,7 @@ fun_like.congr_fun (map_comp f g).symm x
 
 /-- A ring isomorphism defines an isomorphism of residue fields. -/
 @[simps apply]
-noncomputable def map_equiv (f : R ≃+* S) :
-  local_ring.residue_field R ≃+* local_ring.residue_field S :=
+def map_equiv (f : R ≃+* S) : local_ring.residue_field R ≃+* local_ring.residue_field S :=
 { to_fun := map (f : R →+* S),
   inv_fun := map (f.symm : S →+* R),
   left_inv := λ x, by simp only [map_map, ring_equiv.symm_comp, map_id, ring_hom.id_apply],
@@ -379,7 +376,7 @@ ring_equiv.to_ring_hom_injective map_id
 
 /-- The group homomorphism from `ring_aut R` to `ring_aut k` where `k`
 is the residue field of `R`. -/
-@[simps] noncomputable def map_aut : ring_aut R →* ring_aut (local_ring.residue_field R) :=
+@[simps] def map_aut : ring_aut R →* ring_aut (local_ring.residue_field R) :=
 { to_fun := map_equiv,
   map_mul' := λ e₁ e₂, map_equiv_trans e₂ e₁,
   map_one' := map_equiv_refl }

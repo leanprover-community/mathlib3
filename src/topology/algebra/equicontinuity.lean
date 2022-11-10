@@ -13,6 +13,7 @@ open function
 
 section
 
+--Note: these attributes don't affect the *statements* of the following lemmas.
 local attribute [-instance] Pi.topological_space
 local attribute [-instance] Pi.uniform_space
 local attribute [instance] uniform_convergence.topological_space

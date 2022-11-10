@@ -8,6 +8,7 @@ import analysis.normed_space.operator_norm
 import analysis.normed_space.star.basic
 import data.real.sqrt
 import topology.continuous_function.algebra
+import topology.metric_space.equicontinuity
 
 /-!
 # Bounded continuous functions

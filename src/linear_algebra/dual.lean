@@ -323,6 +323,9 @@ variable (K)
 theorem eval_apply_eq_zero_iff (v : V) : (eval K V) v = 0 ↔ v = 0 :=
 by simpa only using set_like.ext_iff.mp (eval_ker : (eval K V).ker = _) v
 
+theorem eval_apply_injective : function.injective (eval K V) :=
+(injective_iff_map_eq_zero' (eval K V)).mpr (eval_apply_eq_zero_iff K)
+
 theorem forall_dual_apply_eq_zero_iff (v : V) : (∀ (φ : module.dual K V), φ v = 0) ↔ v = 0 :=
 by { rw [← eval_apply_eq_zero_iff K v, linear_map.ext_iff], refl }
 

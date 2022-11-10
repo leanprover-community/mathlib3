@@ -993,6 +993,7 @@ begin
       { rwa [finset.mem_coe] }},
     convert h_add _ Pg (h_ind x mx),
     { ext1 y, by_cases hy : y ∈ f ⁻¹' {x}; [simpa [hy], simp [hy]] },
+    rw disjoint_iff_inf_le,
     rintro y, by_cases hy : y ∈ f ⁻¹' {x}; simp [hy] }
 end
 

@@ -154,7 +154,7 @@ begin
       (finite_le_nat _).bUnion' (λ i hi, (Hle i hi).finite.bUnion' (λ _ _, finite_singleton _)),
     refine this.subset (λ I hI, _), simp only [mem_Union],
     refine ⟨I.1, _, I.2, hI, prod.mk.eta.symm⟩,
-    exact not_lt.1 (λ hlt, Hgt I.1 hlt I.2 hI.some_spec) }
+    exact not_lt.1 (λ hlt, (Hgt I.1 hlt I.2).le_bot hI.some_spec) }
 end
 
 @[priority 100] -- see Note [lower instance priority]

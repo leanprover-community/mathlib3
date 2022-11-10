@@ -748,7 +748,10 @@ locale `pointwise`."]
 protected def has_smul_set [has_smul α β] : has_smul α (set β) :=
 ⟨λ a, image (has_smul.smul a)⟩
 
-@[to_additive]
+/-- A variant of `set.has_smul_set`, useful in parts of the library which abuse the defeq
+`set β = (β → Prop)`. -/
+@[to_additive "A variant of `set.has_vadd_set`, useful in parts of the library which abuse the defeq
+`set β = (β → Prop)`. "]
 protected def has_smul_pi_Prop [has_smul α β] : has_smul α (β → Prop) :=
 set.has_smul_set
 

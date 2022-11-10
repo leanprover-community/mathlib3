@@ -29,11 +29,9 @@ Vector bundle
 noncomputable theory
 
 open bundle set
-open_locale classical
+open_locale classical bundle
 
 variables (R 𝕜 : Type*) {B : Type*} (F : Type*) (E : B → Type*)
-
-namespace topological_vector_bundle
 
 section defs
 variables (E₁ : B → Type*) (E₂ : B → Type*)
@@ -41,7 +39,7 @@ variables [topological_space (total_space E₁)] [topological_space (total_space
 
 /-- Equip the total space of the fibrewise product of two topological vector bundles `E₁`, `E₂` with
 the induced topology from the diagonal embedding into `total_space E₁ × total_space E₂`. -/
-instance prod.topological_space :
+instance topological_vector_bundle.prod.topological_space :
   topological_space (total_space (E₁ ×ᵇ E₂)) :=
 topological_space.induced
   (λ p, ((⟨p.1, p.2.1⟩ : total_space E₁), (⟨p.1, p.2.2⟩ : total_space E₂)))
@@ -49,25 +47,25 @@ topological_space.induced
 
 /-- The diagonal map from the total space of the fibrewise product of two topological vector bundles
 `E₁`, `E₂` into `total_space E₁ × total_space E₂` is `inducing`. -/
-lemma prod.inducing_diag : inducing
+lemma topological_vector_bundle.prod.inducing_diag : inducing
   (λ p, (⟨p.1, p.2.1⟩, ⟨p.1, p.2.2⟩) :
     total_space (E₁ ×ᵇ E₂) → total_space E₁ × total_space E₂) :=
 ⟨rfl⟩
 
 end defs
 
-variables [nondiscrete_normed_field R] [topological_space B]
+open topological_vector_bundle
 
-variables (F₁ : Type*) [normed_group F₁] [normed_space R F₁]
+variables [nontrivially_normed_field R] [topological_space B]
+
+variables (F₁ : Type*) [normed_add_comm_group F₁] [normed_space R F₁]
   (E₁ : B → Type*) [topological_space (total_space E₁)]
-  [Π x, add_comm_monoid (E₁ x)] [Π x, module R (E₁ x)]
 
-variables (F₂ : Type*) [normed_group F₂] [normed_space R F₂]
+variables (F₂ : Type*) [normed_add_comm_group F₂] [normed_space R F₂]
   (E₂ : B → Type*) [topological_space (total_space E₂)]
-  [Π x, add_comm_monoid (E₂ x)] [Π x, module R (E₂ x)]
 
 namespace trivialization
-variables (e₁ : trivialization R F₁ E₁) (e₂ : trivialization R F₂ E₂)
+variables (e₁ : trivialization F₁ (π E₁)) (e₂ : trivialization F₂ (π E₂))
 include e₁ e₂
 variables {R F₁ E₁ F₂ E₂}
 
@@ -102,6 +100,9 @@ begin
 end
 
 variables (e₁ e₂)
+  [Π x, add_comm_monoid (E₁ x)] [Π x, module R (E₁ x)]
+  [Π x, add_comm_monoid (E₂ x)] [Π x, module R (E₂ x)]
+
 
 /-- Given trivializations `e₁`, `e₂` for vector bundles `E₁`, `E₂` over a base `B`, the inverse
 function for the construction `topological_vector_bundle.trivialization.prod`, the induced
@@ -130,7 +131,7 @@ begin
 end
 
 lemma prod.continuous_inv_fun :
-  continuous_on (prod.inv_fun' e₁ e₂) ((e₁.base_set ∩ e₂.base_set) ×ˢ (univ : set (F₁ × F₂))) :=
+  continuous_on (prod.inv_fun' e₁ e₂) ((e₁.base_set ∩ e₂.base_set) ×ˢ univ) :=
 begin
   rw (prod.inducing_diag E₁ E₂).continuous_on_iff,
   have H₁ : continuous (λ p : B × F₁ × F₂, ((p.1, p.2.1), (p.1, p.2.2))) :=
@@ -139,19 +140,21 @@ begin
   exact λ x h, ⟨⟨h.1.1, mem_univ _⟩, ⟨h.1.2, mem_univ _⟩⟩
 end
 
-variables (e₁ e₂)
+variables (e₁ e₂ R)
 variables [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E₂ x)]
   [topological_vector_bundle R F₁ E₁] [topological_vector_bundle R F₂ E₂]
+
+include R
 
 /-- Given trivializations `e₁`, `e₂` for vector bundles `E₁`, `E₂` over a base `B`, the induced
 trivialization for the direct sum of `E₁` and `E₂`, whose base set is `e₁.base_set ∩ e₂.base_set`.
 -/
 @[nolint unused_arguments]
-def prod : trivialization R (F₁ × F₂) (E₁ ×ᵇ E₂) :=
+def prod : trivialization (F₁ × F₂) (π (E₁ ×ᵇ E₂)) :=
 { to_fun := prod.to_fun' e₁ e₂,
   inv_fun := prod.inv_fun' e₁ e₂,
   source := (@total_space.proj B (E₁ ×ᵇ E₂)) ⁻¹' (e₁.base_set ∩ e₂.base_set),
-  target := (e₁.base_set ∩ e₂.base_set) ×ˢ (set.univ : set (F₁ × F₂)),
+  target := (e₁.base_set ∩ e₂.base_set) ×ˢ set.univ,
   map_source' := λ x h, ⟨h, set.mem_univ _⟩,
   map_target' := λ x h, h.1,
   left_inv' := λ x, prod.left_inv,
@@ -168,27 +171,38 @@ def prod : trivialization R (F₁ × F₂) (E₁ ×ᵇ E₂) :=
   open_base_set := e₁.open_base_set.inter e₂.open_base_set,
   source_eq := rfl,
   target_eq := rfl,
-  proj_to_fun := λ x h, rfl,
-  linear' := λ x ⟨h₁, h₂⟩, (((e₁.linear h₁).mk' _).prod_map ((e₂.linear h₂).mk' _)).is_linear }
+  proj_to_fun := λ x h, rfl }
 
-@[simp] lemma base_set_prod : (prod e₁ e₂).base_set = e₁.base_set ∩ e₂.base_set :=
+omit R
+
+instance prod.is_linear [e₁.is_linear R] [e₂.is_linear R] : (e₁.prod R e₂).is_linear R :=
+{ linear := λ x ⟨h₁, h₂⟩, (((e₁.linear R h₁).mk' _).prod_map ((e₂.linear R h₂).mk' _)).is_linear }
+
+@[simp] lemma base_set_prod : (prod R e₁ e₂).base_set = e₁.base_set ∩ e₂.base_set :=
 rfl
 
 variables {e₁ e₂}
 
-lemma prod_apply {x : B} (hx₁ : x ∈ e₁.base_set) (hx₂ : x ∈ e₂.base_set) (v₁ : E₁ x)
-  (v₂ : E₂ x) :
-  prod e₁ e₂ ⟨x, (v₁, v₂)⟩
-  = ⟨x, e₁.continuous_linear_equiv_at x hx₁ v₁, e₂.continuous_linear_equiv_at x hx₂ v₂⟩ :=
+variables (R)
+
+lemma prod_apply [e₁.is_linear R] [e₂.is_linear R] {x : B} (hx₁ : x ∈ e₁.base_set)
+  (hx₂ : x ∈ e₂.base_set) (v₁ : E₁ x) (v₂ : E₂ x) :
+  prod R e₁ e₂ ⟨x, (v₁, v₂)⟩
+  = ⟨x, e₁.continuous_linear_equiv_at R x hx₁ v₁, e₂.continuous_linear_equiv_at R x hx₂ v₂⟩ :=
 rfl
 
-lemma prod_symm_apply (x : B) (w₁ : F₁) (w₂ : F₂) : (prod e₁ e₂).to_local_equiv.symm (x, w₁, w₂)
+variables {R}
+
+lemma prod_symm_apply (x : B) (w₁ : F₁) (w₂ : F₂) : (prod R e₁ e₂).to_local_equiv.symm (x, w₁, w₂)
   = ⟨x, e₁.symm x w₁, e₂.symm x w₂⟩ :=
 rfl
 
 end trivialization
 
 open trivialization
+
+variables [Π x, add_comm_monoid (E₁ x)] [Π x, module R (E₁ x)]
+  [Π x, add_comm_monoid (E₂ x)] [Π x, module R (E₂ x)]
 
 variables [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E₂ x)]
   [topological_vector_bundle R F₁ E₁] [topological_vector_bundle R F₂ E₂]
@@ -201,43 +215,52 @@ instance _root_.bundle.prod.topological_vector_bundle :
     rw (prod.inducing_diag E₁ E₂).inducing_iff,
     exact (total_space_mk_inducing R F₁ E₁ b).prod_mk (total_space_mk_inducing R F₂ E₂ b),
   end,
-  trivialization_atlas := (λ (p : trivialization R F₁ E₁ × trivialization R F₂ E₂), p.1.prod p.2) ''
-    (trivialization_atlas R F₁ E₁ ×ˢ trivialization_atlas R F₂ E₂),
-  trivialization_at := λ b, (trivialization_at R F₁ E₁ b).prod (trivialization_at R F₂ E₂ b),
+  trivialization_atlas :=
+    {e |  ∃ (e₁ : trivialization F₁ (π E₁)) (e₂ : trivialization F₂ (π E₂))
+    [mem_trivialization_atlas R e₁] [mem_trivialization_atlas R e₂], by exactI
+    e = trivialization.prod R e₁ e₂},
+  trivialization_linear' := begin
+    rintros _ ⟨e₁, e₂, he₁, he₂, rfl⟩, resetI,
+    apply_instance
+  end,
+  trivialization_at := λ b, (trivialization_at R F₁ E₁ b).prod R (trivialization_at R F₂ E₂ b),
   mem_base_set_trivialization_at :=
     λ b, ⟨mem_base_set_trivialization_at R F₁ E₁ b, mem_base_set_trivialization_at R F₂ E₂ b⟩,
-  trivialization_mem_atlas := λ b,
-    ⟨(_, _), ⟨trivialization_mem_atlas R F₁ E₁ b, trivialization_mem_atlas R F₂ E₂ b⟩, rfl⟩,
-  continuous_on_coord_change := begin
-    rintros _ ⟨⟨e₁, e₂⟩, ⟨he₁, he₂⟩, rfl⟩ _ ⟨⟨e₁', e₂'⟩, ⟨he₁', he₂'⟩, rfl⟩,
-    have := continuous_on_coord_change e₁ he₁ e₁' he₁',
-    have := continuous_on_coord_change e₂ he₂ e₂' he₂',
-    refine (((continuous_on_coord_change e₁ he₁ e₁' he₁').mono _).prod_mapL R
-      ((continuous_on_coord_change e₂ he₂ e₂' he₂').mono _)).congr _;
+  trivialization_mem_atlas := λ b, ⟨trivialization_at R F₁ E₁ b, trivialization_at R F₂ E₂ b,
+    by apply_instance, by apply_instance, rfl⟩,
+  continuous_on_coord_change' := begin
+    rintros _ _ ⟨e₁, e₂, he₁, he₂, rfl⟩ ⟨e₁', e₂', he₁', he₂', rfl⟩, resetI,
+    refine (((continuous_on_coord_change R e₁ e₁').mono _).prod_mapL R
+      ((continuous_on_coord_change R e₂ e₂').mono _)).congr _;
     dsimp only [base_set_prod] with mfld_simps,
     { mfld_set_tac },
     { mfld_set_tac },
     { rintro b hb,
       rw [continuous_linear_map.ext_iff],
       rintro ⟨v₁, v₂⟩,
-      show (e₁.prod e₂).coord_change (e₁'.prod e₂') b (v₁, v₂) =
-        (e₁.coord_change e₁' b v₁, e₂.coord_change e₂' b v₂),
-      rw [e₁.coord_change_apply e₁', e₂.coord_change_apply e₂', (e₁.prod e₂).coord_change_apply'],
+      show (e₁.prod R e₂).coord_changeL R (e₁'.prod R e₂') b (v₁, v₂) =
+        (e₁.coord_changeL R e₁' b v₁, e₂.coord_changeL R e₂' b v₂),
+      rw [e₁.coord_changeL_apply e₁', e₂.coord_changeL_apply e₂',
+        (e₁.prod R e₂).coord_changeL_apply'],
       exacts [rfl, hb, ⟨hb.1.2, hb.2.2⟩, ⟨hb.1.1, hb.2.1⟩] }
   end }
 
+instance _root_.bundle.prod.mem_trivialization_atlas {e₁ : trivialization F₁ (π E₁)}
+  {e₂ : trivialization F₂ (π E₂)} [mem_trivialization_atlas R e₁] [mem_trivialization_atlas R e₂] :
+  mem_trivialization_atlas R (e₁.prod R e₂ : trivialization (F₁ × F₂) (π (E₁ ×ᵇ E₂))) :=
+{ out := ⟨e₁, e₂, by apply_instance, by apply_instance, rfl⟩ }
+
 variables {R F₁ E₁ F₂ E₂}
 
-@[simp] lemma trivialization.continuous_linear_equiv_at_prod {e₁ : trivialization R F₁ E₁}
-  {e₂ : trivialization R F₂ E₂} {x : B} (hx₁ : x ∈ e₁.base_set) (hx₂ : x ∈ e₂.base_set) :
-  (e₁.prod e₂).continuous_linear_equiv_at x ⟨hx₁, hx₂⟩
-  = (e₁.continuous_linear_equiv_at x hx₁).prod (e₂.continuous_linear_equiv_at x hx₂) :=
+@[simp] lemma trivialization.continuous_linear_equiv_at_prod {e₁ : trivialization F₁ (π E₁)}
+  {e₂ : trivialization F₂ (π E₂)} [e₁.is_linear R] [e₂.is_linear R] {x : B} (hx₁ : x ∈ e₁.base_set)
+  (hx₂ : x ∈ e₂.base_set) :
+  (e₁.prod R e₂).continuous_linear_equiv_at R x ⟨hx₁, hx₂⟩
+  = (e₁.continuous_linear_equiv_at R x hx₁).prod (e₂.continuous_linear_equiv_at R x hx₂) :=
 begin
   ext1,
   funext v,
   obtain ⟨v₁, v₂⟩ := v,
-  rw [(e₁.prod e₂).continuous_linear_equiv_at_apply, trivialization.prod],
-  exact (congr_arg prod.snd (prod_apply hx₁ hx₂ v₁ v₂) : _)
+  rw [(e₁.prod R e₂).continuous_linear_equiv_at_apply R, trivialization.prod],
+  exact (congr_arg prod.snd (prod_apply R hx₁ hx₂ v₁ v₂) : _)
 end
-
-end topological_vector_bundle

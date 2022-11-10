@@ -3,6 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import data.option.basic
 import data.nat.basic
 /-!
 # Partial predecessor and partial subtraction on the natural numbers
@@ -69,7 +70,7 @@ theorem ppred_eq_pred {n} (h : 0 < n) : ppred n = some (pred n) :=
 ppred_eq_some.2 $ succ_pred_eq_of_pos h
 
 theorem psub_eq_sub {m n} (h : n ≤ m) : psub m n = some (m - n) :=
-psub_eq_some.2 $ tsub_add_cancel_of_le h
+psub_eq_some.2 $ nat.sub_add_cancel h
 
 theorem psub_add (m n k) : psub m (n + k) = do x ← psub m n, psub x k :=
 by induction k; simp [*, add_succ, bind_assoc]

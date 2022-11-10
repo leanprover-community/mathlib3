@@ -28,12 +28,11 @@ to `emetric_space` at the end.
 -/
 
 open set filter classical
-noncomputable theory
 
 open_locale uniformity topological_space big_operators filter nnreal ennreal
 
 universes u v w
-variables {α : Type u} {β : Type v}
+variables {α : Type u} {β : Type v} {X : Type*}
 
 /-- Characterizing uniformities associated to a (generalized) distance function `D`
 in terms of the elements of the uniformity. -/
@@ -232,6 +231,12 @@ emetric.mk_uniformity_basis (λ _, ennreal.coe_pos.2)
   (λ ε ε₀, let ⟨δ, hδ⟩ := ennreal.lt_iff_exists_nnreal_btwn.1 ε₀ in
   ⟨δ, ennreal.coe_pos.1 hδ.1, le_of_lt hδ.2⟩)
 
+theorem uniformity_basis_edist_nnreal_le :
+  (𝓤 α).has_basis (λ ε : ℝ≥0, 0 < ε) (λ ε, {p:α×α | edist p.1 p.2 ≤ ε}) :=
+emetric.mk_uniformity_basis_le (λ _, ennreal.coe_pos.2)
+  (λ ε ε₀, let ⟨δ, hδ⟩ := ennreal.lt_iff_exists_nnreal_btwn.1 ε₀ in
+  ⟨δ, ennreal.coe_pos.1 hδ.1, le_of_lt hδ.2⟩)
+
 theorem uniformity_basis_edist_inv_nat :
   (𝓤 α).has_basis (λ _, true) (λ n:ℕ, {p:α×α | edist p.1 p.2 < (↑n)⁻¹}) :=
 emetric.mk_uniformity_basis
@@ -421,7 +426,7 @@ end ulift
 pseudometric spaces. We make sure that the uniform structure thus constructed is the one
 corresponding to the product of uniform spaces, to avoid diamond problems. -/
 instance prod.pseudo_emetric_space_max [pseudo_emetric_space β] : pseudo_emetric_space (α × β) :=
-{ edist := λ x y, max (edist x.1 y.1) (edist x.2 y.2),
+{ edist := λ x y, edist x.1 y.1 ⊔ edist x.2 y.2,
   edist_self := λ x, by simp,
   edist_comm := λ x y, by simp [edist_comm],
   edist_triangle := λ x y z, max_le
@@ -473,10 +478,6 @@ instance pseudo_emetric_space_pi [∀b, pseudo_emetric_space (π b)] :
 lemma edist_pi_def [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) :
   edist f g = finset.sup univ (λb, edist (f b) (g b)) := rfl
 
-@[simp]
-lemma edist_pi_const [nonempty β] (a b : α) :
-  edist (λ x : β, a) (λ _, b) = edist a b := finset.sup_const univ_nonempty (edist a b)
-
 lemma edist_le_pi_edist [Π b, pseudo_emetric_space (π b)] (f g : Π b, π b) (b : β) :
   edist (f b) (g b) ≤ edist f g :=
 finset.le_sup (finset.mem_univ b)
@@ -485,10 +486,16 @@ lemma edist_pi_le_iff [Π b, pseudo_emetric_space (π b)] {f g : Π b, π b} {d 
   edist f g ≤ d ↔ ∀ b, edist (f b) (g b) ≤ d :=
 finset.sup_le_iff.trans $ by simp only [finset.mem_univ, forall_const]
 
+lemma edist_pi_const_le (a b : α) : edist (λ _ : β, a) (λ _, b) ≤ edist a b :=
+edist_pi_le_iff.2 $ λ _, le_rfl
+
+@[simp] lemma edist_pi_const [nonempty β] (a b : α) : edist (λ x : β, a) (λ _, b) = edist a b :=
+finset.sup_const univ_nonempty (edist a b)
+
 end pi
 
 namespace emetric
-variables {x y z : α} {ε ε₁ ε₂ : ℝ≥0∞} {s : set α}
+variables {x y z : α} {ε ε₁ ε₂ : ℝ≥0∞} {s t : set α}
 
 /-- `emetric.ball x ε` is the set of all points `y` with `edist y x < ε` -/
 def ball (x : α) (ε : ℝ≥0∞) : set α := {y | edist y x < ε}
@@ -556,6 +563,14 @@ eq_empty_iff_forall_not_mem.trans
 ⟨λh, le_bot_iff.1 (le_of_not_gt (λ ε0, h _ (mem_ball_self ε0))),
 λε0 y h, not_lt_of_le (le_of_eq ε0) (pos_of_mem_ball h)⟩
 
+lemma ord_connected_set_of_closed_ball_subset (x : α) (s : set α) :
+  ord_connected {r | closed_ball x r ⊆ s} :=
+⟨λ r₁ hr₁ r₂ hr₂ r hr, (closed_ball_subset_closed_ball hr.2).trans hr₂⟩
+
+lemma ord_connected_set_of_ball_subset (x : α) (s : set α) :
+  ord_connected {r | ball x r ⊆ s} :=
+⟨λ r₁ hr₁ r₂ hr₂ r hr, (ball_subset_ball hr.2).trans hr₂⟩
+
 /-- Relation “two points are at a finite edistance” is an equivalence relation. -/
 def edist_lt_top_setoid : setoid α :=
 { r := λ x y, edist x y < ⊤,
@@ -569,13 +584,44 @@ by rw [emetric.ball_eq_empty_iff]
 theorem nhds_basis_eball : (𝓝 x).has_basis (λ ε:ℝ≥0∞, 0 < ε) (ball x) :=
 nhds_basis_uniformity uniformity_basis_edist
 
+lemma nhds_within_basis_eball : (𝓝[s] x).has_basis (λ ε : ℝ≥0∞, 0 < ε) (λ ε, ball x ε ∩ s) :=
+nhds_within_has_basis nhds_basis_eball s
+
 theorem nhds_basis_closed_eball : (𝓝 x).has_basis (λ ε:ℝ≥0∞, 0 < ε) (closed_ball x) :=
 nhds_basis_uniformity uniformity_basis_edist_le
+
+lemma nhds_within_basis_closed_eball :
+  (𝓝[s] x).has_basis (λ ε : ℝ≥0∞, 0 < ε) (λ ε, closed_ball x ε ∩ s) :=
+nhds_within_has_basis nhds_basis_closed_eball s
 
 theorem nhds_eq : 𝓝 x = (⨅ε>0, 𝓟 (ball x ε)) :=
 nhds_basis_eball.eq_binfi
 
 theorem mem_nhds_iff : s ∈ 𝓝 x ↔ ∃ε>0, ball x ε ⊆ s := nhds_basis_eball.mem_iff
+
+lemma mem_nhds_within_iff : s ∈ 𝓝[t] x ↔ ∃ ε > 0, ball x ε ∩ t ⊆ s :=
+nhds_within_basis_eball.mem_iff
+
+section
+variables [pseudo_emetric_space β] {f : α → β}
+
+lemma tendsto_nhds_within_nhds_within {t : set β} {a b} :
+  tendsto f (𝓝[s] a) (𝓝[t] b) ↔
+    ∀ ε > 0, ∃ δ > 0, ∀ ⦃x⦄, x ∈ s → edist x a < δ → f x ∈ t ∧ edist (f x) b < ε :=
+(nhds_within_basis_eball.tendsto_iff nhds_within_basis_eball).trans $
+  forall₂_congr $ λ ε hε, exists₂_congr $ λ δ hδ,
+  forall_congr $ λ x, by simp; itauto
+
+lemma tendsto_nhds_within_nhds {a b} :
+  tendsto f (𝓝[s] a) (𝓝 b) ↔
+    ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → edist x a < δ → edist (f x) b < ε :=
+by { rw [← nhds_within_univ b, tendsto_nhds_within_nhds_within], simp only [mem_univ, true_and] }
+
+lemma tendsto_nhds_nhds {a b} :
+  tendsto f (𝓝 a) (𝓝 b) ↔ ∀ ε > 0, ∃ δ > 0, ∀ ⦃x⦄, edist x a < δ → edist (f x) b < ε :=
+nhds_basis_eball.tendsto_iff nhds_basis_eball
+
+end
 
 theorem is_open_iff : is_open s ↔ ∀x∈s, ∃ε>0, ball x ε ⊆ s :=
 by simp [is_open_iff_nhds, mem_nhds_iff]
@@ -732,7 +778,7 @@ end second_countable
 section diam
 
 /-- The diameter of a set in a pseudoemetric space, named `emetric.diam` -/
-def diam (s : set α) := ⨆ (x ∈ s) (y ∈ s), edist x y
+noncomputable def diam (s : set α) := ⨆ (x ∈ s) (y ∈ s), edist x y
 
 lemma diam_le_iff {d : ℝ≥0∞} :
   diam s ≤ d ↔ ∀ (x ∈ s) (y ∈ s), edist x y ≤ d :=
@@ -1001,3 +1047,51 @@ by simp only [pos_iff_ne_zero, ne.def, diam_eq_zero_iff, set.subsingleton, not_f
 end diam
 
 end emetric
+
+/-!
+### `additive`, `multiplicative`
+
+The distance on those type synonyms is inherited without change.
+-/
+
+open additive multiplicative
+
+section
+variables [has_edist X]
+
+instance : has_edist (additive X) := ‹has_edist X›
+instance : has_edist (multiplicative X) := ‹has_edist X›
+
+@[simp] lemma edist_of_mul (a b : X) : edist (of_mul a) (of_mul b) = edist a b := rfl
+@[simp] lemma edist_of_add (a b : X) : edist (of_add a) (of_add b) = edist a b := rfl
+@[simp] lemma edist_to_mul (a b : additive X) : edist (to_mul a) (to_mul b) = edist a b := rfl
+@[simp] lemma edist_to_add (a b : multiplicative X) : edist (to_add a) (to_add b) = edist a b := rfl
+
+end
+
+instance [pseudo_emetric_space X] : pseudo_emetric_space (additive X) := ‹pseudo_emetric_space X›
+instance [pseudo_emetric_space X] : pseudo_emetric_space (multiplicative X) :=
+‹pseudo_emetric_space X›
+instance [emetric_space X] : emetric_space (additive X) := ‹emetric_space X›
+instance [emetric_space X] : emetric_space (multiplicative X) := ‹emetric_space X›
+
+/-!
+### Order dual
+
+The distance on this type synonym is inherited without change.
+-/
+
+open order_dual
+
+section
+variables [has_edist X]
+
+instance : has_edist Xᵒᵈ := ‹has_edist X›
+
+@[simp] lemma edist_to_dual (a b : X) : edist (to_dual a) (to_dual b) = edist a b := rfl
+@[simp] lemma edist_of_dual (a b : Xᵒᵈ) : edist (of_dual a) (of_dual b) = edist a b := rfl
+
+end
+
+instance [pseudo_emetric_space X] : pseudo_emetric_space Xᵒᵈ := ‹pseudo_emetric_space X›
+instance [emetric_space X] : emetric_space Xᵒᵈ := ‹emetric_space X›

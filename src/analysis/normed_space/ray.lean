@@ -16,8 +16,8 @@ norms and `∥y∥ • x = ∥x∥ • y`.
 
 open real
 
-variables {E : Type*} [semi_normed_group E] [normed_space ℝ E]
-  {F : Type*} [normed_group F] [normed_space ℝ F]
+variables {E : Type*} [seminormed_add_comm_group E] [normed_space ℝ E]
+  {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
 
 namespace same_ray
 

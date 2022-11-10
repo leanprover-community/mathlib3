@@ -29,6 +29,7 @@ classes and allows to transfer order instances.
 
 * `has_sup`: type class for the `⊔` notation
 * `has_inf`: type class for the `⊓` notation
+* `has_compl`: type class for the `ᶜ` notation
 * `densely_ordered`: An order with no gap, i.e. for any two elements `a < b` there exists `c` such
   that `a < c < b`.
 
@@ -329,6 +330,12 @@ lemma eq_of_forall_ge_iff [partial_order α] {a b : α}
   (H : ∀ c, a ≤ c ↔ b ≤ c) : a = b :=
 ((H _).2 le_rfl).antisymm ((H _).1 le_rfl)
 
+lemma eq_of_forall_lt_iff [linear_order α] {a b : α} (h : ∀ c, c < a ↔ c < b) : a = b :=
+(le_of_forall_lt $ λ _, (h _).1).antisymm $ le_of_forall_lt $ λ _, (h _).2
+
+lemma eq_of_forall_gt_iff [linear_order α] {a b : α} (h : ∀ c, a < c ↔ b < c) : a = b :=
+(le_of_forall_lt' $ λ _, (h _).2).antisymm $ le_of_forall_lt' $ λ _, (h _).1
+
 /-- A symmetric relation implies two values are equal, when it implies they're less-equal.  -/
 lemma rel_imp_eq_of_rel_imp_le [partial_order β] (r : α → α → Prop) [is_symm α r] {f : α → β}
   (h : ∀ a b, r a b → f a ≤ f b) {a b : α} : r a b → f a = f b :=
@@ -408,7 +415,6 @@ instance (α : Type*) [h : nonempty α] : nonempty αᵒᵈ := h
 instance (α : Type*) [h : subsingleton α] : subsingleton αᵒᵈ := h
 instance (α : Type*) [has_le α] : has_le αᵒᵈ := ⟨λ x y : α, y ≤ x⟩
 instance (α : Type*) [has_lt α] : has_lt αᵒᵈ := ⟨λ x y : α, y < x⟩
-instance (α : Type*) [has_zero α] : has_zero αᵒᵈ := ⟨(0 : α)⟩
 
 instance (α : Type*) [preorder α] : preorder αᵒᵈ :=
 { le_refl          := le_refl,
@@ -446,6 +452,31 @@ linear_order.ext $ λ _ _, iff.rfl
 
 end order_dual
 
+/-! ### `has_compl` -/
+
+/-- Set / lattice complement -/
+@[notation_class] class has_compl (α : Type*) := (compl : α → α)
+
+export has_compl (compl)
+
+postfix `ᶜ`:(max+1) := compl
+
+instance Prop.has_compl : has_compl Prop := ⟨not⟩
+
+instance pi.has_compl {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] :
+  has_compl (Π i, α i) :=
+⟨λ x i, (x i)ᶜ⟩
+
+lemma pi.compl_def {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) :
+  xᶜ = λ i, (x i)ᶜ := rfl
+
+@[simp]
+lemma pi.compl_apply {ι : Type u} {α : ι → Type v} [∀ i, has_compl (α i)] (x : Π i, α i) (i : ι)  :
+  xᶜ i = (x i)ᶜ := rfl
+
+instance is_irrefl.compl (r) [is_irrefl α r] : is_refl α rᶜ := ⟨@irrefl α r _⟩
+instance is_refl.compl (r) [is_refl α r] : is_irrefl α rᶜ := ⟨λ a, not_not_intro (refl a)⟩
+
 /-! ### Order instances on the function space -/
 
 instance pi.has_le {ι : Type u} {α : ι → Type v} [∀ i, has_le (α i)] : has_le (Π i, α i) :=
@@ -463,6 +494,34 @@ instance pi.preorder {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)]
 lemma pi.lt_def {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] {x y : Π i, α i} :
   x < y ↔ x ≤ y ∧ ∃ i, x i < y i :=
 by simp [lt_iff_le_not_le, pi.le_def] {contextual := tt}
+
+section pi
+variables {ι : Type*} {π : ι → Type*}
+
+/-- A function `a` is strongly less than a function `b`  if `a i < b i` for all `i`. -/
+def strong_lt [Π i, has_lt (π i)] (a b : Π i, π i) : Prop := ∀ i, a i < b i
+
+local infix ` ≺ `:50 := strong_lt
+
+variables [Π i, preorder (π i)] {a b c : Π i, π i}
+
+lemma le_of_strong_lt (h : a ≺ b) : a ≤ b := λ i, (h _).le
+
+lemma lt_of_strong_lt [nonempty ι] (h : a ≺ b) : a < b :=
+by { inhabit ι, exact pi.lt_def.2 ⟨le_of_strong_lt h, default, h _⟩ }
+
+lemma strong_lt_of_strong_lt_of_le (hab : a ≺ b) (hbc : b ≤ c) : a ≺ c :=
+λ i, (hab _).trans_le $ hbc _
+
+lemma strong_lt_of_le_of_strong_lt (hab : a ≤ b) (hbc : b ≺ c) : a ≺ c :=
+λ i, (hab _).trans_lt $ hbc _
+
+alias le_of_strong_lt ← strong_lt.le
+alias lt_of_strong_lt ← strong_lt.lt
+alias strong_lt_of_strong_lt_of_le ← strong_lt.trans_le
+alias strong_lt_of_le_of_strong_lt ← has_le.le.trans_strong_lt
+
+end pi
 
 lemma le_update_iff {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] [decidable_eq ι]
   {x y : Π i, α i} {i : ι} {a : α i} :
@@ -484,6 +543,25 @@ instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀ i, partial_ord
 { le_antisymm := λ f g h1 h2, funext (λ b, (h1 b).antisymm (h2 b)),
   ..pi.preorder }
 
+instance pi.has_sdiff {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] :
+  has_sdiff (Π i, α i) :=
+⟨λ x y i, x i \ y i⟩
+
+lemma pi.sdiff_def {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) :
+  (x \ y) = λ i, x i \ y i := rfl
+
+@[simp]
+lemma pi.sdiff_apply {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] (x y : Π i, α i) (i : ι) :
+  (x \ y) i = x i \ y i := rfl
+
+namespace function
+variables [preorder α] [nonempty β] {a b : α}
+
+@[simp] lemma const_le_const : const β a ≤ const β b ↔ a ≤ b := by simp [pi.le_def]
+@[simp] lemma const_lt_const : const β a < const β b ↔ a < b := by simpa [pi.lt_def] using le_of_lt
+
+end function
+
 /-! ### `min`/`max` recursors -/
 
 section min_max_rec
@@ -498,6 +576,18 @@ lemma max_rec (hx : y ≤ x → p x) (hy : x ≤ y → p y) : p (max x y) := @mi
 lemma min_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (min x y) := min_rec (λ _, hx) (λ _, hy)
 lemma max_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (max x y) := max_rec (λ _, hx) (λ _, hy)
 
+lemma min_def' (x y : α) : min x y = if x < y then x else y :=
+begin
+  rw [min_comm, min_def, ← ite_not],
+  simp only [not_le],
+end
+
+lemma max_def' (x y : α) : max x y = if y < x then x else y :=
+begin
+  rw [max_comm, max_def, ← ite_not],
+  simp only [not_le],
+end
+
 end min_max_rec
 
 /-! ### `has_sup` and `has_inf` -/
@@ -507,8 +597,8 @@ end min_max_rec
 /-- Typeclass for the `⊓` (`\glb`) notation -/
 @[notation_class] class has_inf (α : Type u) := (inf : α → α → α)
 
-infix ⊔ := has_sup.sup
-infix ⊓ := has_inf.inf
+infix ` ⊔ ` := has_sup.sup
+infix ` ⊓ ` := has_inf.inf
 
 /-! ### Lifts of order instances -/
 
@@ -669,7 +759,7 @@ end prod
 
 /-! ### Additional order classes -/
 
-/-- An order is dense if there is an element between any pair of distinct elements. -/
+/-- An order is dense if there is an element between any pair of distinct comparable elements. -/
 class densely_ordered (α : Type u) [has_lt α] : Prop :=
 (dense : ∀ a₁ a₂ : α, a₁ < a₂ → ∃ a, a₁ < a ∧ a < a₂)
 
@@ -732,6 +822,23 @@ lemma min_eq : min a b = star := rfl
 instance : densely_ordered punit := ⟨λ _ _, false.elim⟩
 
 end punit
+
+section prop
+
+/-- Propositions form a complete boolean algebra, where the `≤` relation is given by implication. -/
+instance Prop.has_le : has_le Prop := ⟨(→)⟩
+
+@[simp] lemma le_Prop_eq : ((≤) : Prop → Prop → Prop) = (→) := rfl
+
+lemma subrelation_iff_le {r s : α → α → Prop} : subrelation r s ↔ r ≤ s := iff.rfl
+
+instance Prop.partial_order : partial_order Prop :=
+{ le_refl      := λ _, id,
+  le_trans     := λ a b c f g, g ∘ f,
+  le_antisymm  := λ a b Hab Hba, propext ⟨Hab, Hba⟩,
+  ..Prop.has_le }
+
+end prop
 
 variables {s : β → β → Prop} {t : γ → γ → Prop}
 

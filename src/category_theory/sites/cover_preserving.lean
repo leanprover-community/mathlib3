@@ -62,7 +62,7 @@ variables {L : grothendieck_topology A}
 A functor `G : (C, J) ⥤ (D, K)` between sites is *cover-preserving*
 if for all covering sieves `R` in `C`, `R.pushforward_functor G` is a covering sieve in `D`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure cover_preserving (G : C ⥤ D) : Prop :=
 (cover_preserve : ∀ {U : C} {S : sieve U} (hS : S ∈ J U), S.functor_pushforward G ∈ K (G.obj U))
 
@@ -86,7 +86,7 @@ compatible family of elements at `C` and valued in `G.op ⋙ ℱ`, and each comm
 This is actually stronger than merely preserving compatible families because of the definition of
 `functor_pushforward` used.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure compatible_preserving (K : grothendieck_topology D) (G : C ⥤ D) : Prop :=
 (compatible :
   ∀ (ℱ : SheafOfTypes.{w} K) {Z} {T : presieve Z}
@@ -160,6 +160,18 @@ begin
   injection c'.π.naturality walking_cospan.hom.inl with _ e₁,
   injection c'.π.naturality walking_cospan.hom.inr with _ e₂,
   exact hx (c'.π.app left).right (c'.π.app right).right hg₁ hg₂ (e₁.symm.trans e₂)
+end
+
+lemma compatible_preserving_of_downwards_closed (F : C ⥤ D) [full F] [faithful F]
+  (hF : Π {c : C} {d : D} (f : d ⟶ F.obj c), Σ c', F.obj c' ≅ d) : compatible_preserving K F :=
+begin
+  constructor,
+  introv hx he,
+  obtain ⟨X', e⟩ := hF f₁,
+  apply (ℱ.1.map_iso e.op).to_equiv.injective,
+  simp only [iso.op_hom, iso.to_equiv_fun, ℱ.1.map_iso_hom, ← functor_to_types.map_comp_apply],
+  simpa using hx (F.preimage $ e.hom ≫ f₁) (F.preimage $ e.hom ≫ f₂) hg₁ hg₂
+    (F.map_injective $ by simpa using he),
 end
 
 /--

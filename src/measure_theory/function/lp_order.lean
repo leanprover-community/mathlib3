@@ -3,8 +3,8 @@ Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
+import analysis.normed.order.lattice
 import measure_theory.function.lp_space
-import analysis.normed_space.lattice_ordered_group
 
 /-!
 # Order related properties of Lp spaces
@@ -96,7 +96,7 @@ instance [fact (1 ≤ p)] : normed_lattice_add_comm_group (Lp E p μ) :=
     rw [hxf, hxg] at hx,
     exact solid hx,
   end,
-  ..Lp.lattice, ..Lp.normed_group, }
+  ..Lp.lattice, ..Lp.normed_add_comm_group, }
 
 end order
 

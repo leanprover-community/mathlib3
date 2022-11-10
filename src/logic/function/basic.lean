@@ -9,6 +9,10 @@ import tactic.cache
 
 /-!
 # Miscellaneous function constructions and lemmas
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/511
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes u v w
@@ -86,7 +90,7 @@ h ▸ hf.ne_iff
 
 /-- If the co-domain `β` of an injective function `f : α → β` has decidable equality, then
 the domain `α` also has decidable equality. -/
-def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α :=
+protected def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α :=
 λ a b, decidable_of_iff _ I.eq_iff
 
 lemma injective.of_comp {g : γ → α} (I : injective (f ∘ g)) : injective g :=
@@ -622,7 +626,7 @@ def bicompr (f : γ → δ) (g : α → β → γ) (a b) :=
 f (g a b)
 
 -- Suggested local notation:
-local notation f `∘₂` g := bicompr f g
+local notation f ` ∘₂ ` g := bicompr f g
 
 lemma uncurry_bicompr (f : α → β → γ) (g : γ → δ) :
   uncurry (g ∘₂ f) = (g ∘ uncurry f) := rfl
@@ -647,7 +651,7 @@ class has_uncurry (α : Type*) (β : out_param Type*) (γ : out_param Type*) := 
 for bundled maps.-/
 add_decl_doc has_uncurry.uncurry
 
-notation `↿`:max x:max := has_uncurry.uncurry x
+notation (name := uncurry) `↿`:max x:max := has_uncurry.uncurry x
 
 instance has_uncurry_base : has_uncurry (α → β) α β := ⟨id⟩
 
@@ -661,6 +665,8 @@ def involutive {α} (f : α → α) : Prop := ∀ x, f (f x) = x
 
 lemma involutive_iff_iter_2_eq_id {α} {f : α → α} : involutive f ↔ (f^[2] = id) :=
 funext_iff.symm
+
+lemma _root_.bool.involutive_bnot : involutive bnot := bnot_bnot
 
 namespace involutive
 variables {α : Sort u} {f : α → α} (h : involutive f)
@@ -773,6 +779,21 @@ lemma eq_rec_inj {α : Sort*} {a a' : α} (h : a = a') {C : α → Type*} (x y :
 @[simp]
 lemma cast_inj {α β : Type*} (h : α = β) {x y : α} : cast h x = cast h y ↔ x = y :=
 (cast_bijective h).injective.eq_iff
+
+lemma function.left_inverse.eq_rec_eq {α β : Sort*} {γ : β → Sort v} {f : α → β} {g : β → α}
+  (h : function.left_inverse g f) (C : Π a : α, γ (f a)) (a : α) :
+  (congr_arg f (h a)).rec (C (g (f a))) = C a :=
+eq_of_heq $ (eq_rec_heq _ _).trans $ by rw h
+
+lemma function.left_inverse.eq_rec_on_eq {α β : Sort*} {γ : β → Sort v} {f : α → β} {g : β → α}
+  (h : function.left_inverse g f) (C : Π a : α, γ (f a)) (a : α) :
+  (congr_arg f (h a)).rec_on (C (g (f a))) = C a :=
+h.eq_rec_eq _ _
+
+lemma function.left_inverse.cast_eq {α β : Sort*} {γ : β → Sort v} {f : α → β} {g : β → α}
+  (h : function.left_inverse g f) (C : Π a : α, γ (f a)) (a : α) :
+  cast (congr_arg (λ a, γ (f a)) (h a)) (C (g (f a))) = C a :=
+eq_of_heq $ (eq_rec_heq _ _).trans $ by rw h
 
 /-- A set of functions "separates points"
 if for each pair of distinct points there is a function taking different values on them. -/

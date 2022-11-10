@@ -150,15 +150,16 @@ lemma continuous.matrix_vec_mul [non_unital_non_assoc_semiring R] [has_continuou
 continuous_pi $ λ i, hA.matrix_dot_product $ continuous_pi $ λ j, hB.matrix_elem _ _
 
 @[continuity]
-lemma continuous.matrix_minor {A : X → matrix l n R} (hA : continuous A) (e₁ : m → l) (e₂ : p → n) :
-  continuous (λ x, (A x).minor e₁ e₂) :=
+lemma continuous.matrix_submatrix
+  {A : X → matrix l n R} (hA : continuous A) (e₁ : m → l) (e₂ : p → n) :
+  continuous (λ x, (A x).submatrix e₁ e₂) :=
 continuous_matrix $ λ i j, hA.matrix_elem _ _
 
 @[continuity]
 lemma continuous.matrix_reindex {A : X → matrix l n R}
   (hA : continuous A) (e₁ : l ≃ m) (e₂ : n ≃ p) :
   continuous (λ x, reindex e₁ e₂ (A x)) :=
-hA.matrix_minor _ _
+hA.matrix_submatrix _ _
 
 @[continuity]
 lemma continuous.matrix_diag {A : X → matrix n n R} (hA : continuous A) :
@@ -267,7 +268,7 @@ variables [semiring α] [add_comm_monoid R] [topological_space R] [module α R]
 
 lemma has_sum.matrix_transpose {f : X → matrix m n R} {a : matrix m n R} (hf : has_sum f a) :
   has_sum (λ x, (f x)ᵀ) aᵀ :=
-(hf.map (@matrix.transpose_add_equiv m n R _) continuous_id.matrix_transpose : _)
+(hf.map (matrix.transpose_add_equiv m n R) continuous_id.matrix_transpose : _)
 
 lemma summable.matrix_transpose {f : X → matrix m n R} (hf : summable f) :
   summable (λ x, (f x)ᵀ) :=
@@ -275,7 +276,7 @@ hf.has_sum.matrix_transpose.summable
 
 @[simp] lemma summable_matrix_transpose {f : X → matrix m n R} :
   summable (λ x, (f x)ᵀ) ↔ summable f :=
-(summable.map_iff_of_equiv (@matrix.transpose_add_equiv m n R _)
+(summable.map_iff_of_equiv (matrix.transpose_add_equiv m n R)
     (@continuous_id (matrix m n R) _).matrix_transpose (continuous_id.matrix_transpose) : _)
 
 lemma matrix.transpose_tsum [t2_space R] {f : X → matrix m n R} : (∑' x, f x)ᵀ = ∑' x, (f x)ᵀ :=
@@ -289,7 +290,7 @@ end
 lemma has_sum.matrix_conj_transpose [star_add_monoid R] [has_continuous_star R]
   {f : X → matrix m n R} {a : matrix m n R} (hf : has_sum f a) :
   has_sum (λ x, (f x)ᴴ) aᴴ :=
-(hf.map (@matrix.conj_transpose_add_equiv m n R _ _) continuous_id.matrix_conj_transpose : _)
+(hf.map (matrix.conj_transpose_add_equiv m n R) continuous_id.matrix_conj_transpose : _)
 
 lemma summable.matrix_conj_transpose [star_add_monoid R] [has_continuous_star R]
   {f : X → matrix m n R} (hf : summable f) :
@@ -299,7 +300,7 @@ hf.has_sum.matrix_conj_transpose.summable
 @[simp] lemma summable_matrix_conj_transpose [star_add_monoid R] [has_continuous_star R]
   {f : X → matrix m n R} :
   summable (λ x, (f x)ᴴ) ↔ summable f :=
-(summable.map_iff_of_equiv (@matrix.conj_transpose_add_equiv m n R _ _)
+(summable.map_iff_of_equiv (matrix.conj_transpose_add_equiv m n R)
   (@continuous_id (matrix m n R) _).matrix_conj_transpose (continuous_id.matrix_conj_transpose) : _)
 
 lemma matrix.conj_transpose_tsum [star_add_monoid R] [has_continuous_star R] [t2_space R]

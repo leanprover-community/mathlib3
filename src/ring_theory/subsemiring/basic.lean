@@ -86,9 +86,12 @@ instance no_zero_divisors [no_zero_divisors R] : no_zero_divisors s :=
   or.cases_on (eq_zero_or_eq_zero_of_mul_eq_zero $ subtype.ext_iff.mp h)
     (λ h, or.inl $ subtype.eq h) (λ h, or.inr $ subtype.eq h) }
 
+instance : coe_is_ring_hom s R :=
+{ .. submonoid_class.coe_is_monoid_hom s,
+  .. add_submonoid_class.coe_is_add_monoid_hom s }
+
 /-- The natural ring hom from a subsemiring of semiring `R` to `R`. -/
-def subtype : s →+* R :=
-{ to_fun := coe, .. submonoid_class.subtype s, .. add_submonoid_class.subtype s }
+def subtype : s →+* R := ring_hom.coe s R
 
 @[simp] theorem coe_subtype : (subtype s : s → R) = coe := rfl
 
@@ -100,14 +103,9 @@ instance to_semiring {R} [semiring R] [set_like S R] [subsemiring_class S R] : s
 subtype.coe_injective.semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
   (λ _, rfl)
 
-@[simp, norm_cast] lemma coe_pow {R} [semiring R] [set_like S R] [subsemiring_class S R]
-  (x : s) (n : ℕ) :
-  ((x^n : s) : R) = (x^n : R) :=
-begin
-  induction n with n ih,
-  { simp, },
-  { simp [pow_succ, ih], },
-end
+@[norm_cast] lemma coe_pow {R} [semiring R] [set_like S R] [subsemiring_class S R]
+  (x : s) (n : ℕ) : ((x^n : s) : R) = (x^n : R) :=
+coe_pow _ _
 
 /-- A subsemiring of a `comm_semiring` is a `comm_semiring`. -/
 instance to_comm_semiring {R} [comm_semiring R] [set_like S R] [subsemiring_class S R] :
@@ -121,10 +119,24 @@ instance to_ordered_semiring {R} [ordered_semiring R] [set_like S R] [subsemirin
 subtype.coe_injective.ordered_semiring coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
 
+/-- A subsemiring of an `strict_ordered_semiring` is an `strict_ordered_semiring`. -/
+instance to_strict_ordered_semiring {R} [strict_ordered_semiring R] [set_like S R]
+  [subsemiring_class S R] :
+  strict_ordered_semiring s :=
+subtype.coe_injective.strict_ordered_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+
 /-- A subsemiring of an `ordered_comm_semiring` is an `ordered_comm_semiring`. -/
 instance to_ordered_comm_semiring {R} [ordered_comm_semiring R] [set_like S R]
   [subsemiring_class S R] : ordered_comm_semiring s :=
 subtype.coe_injective.ordered_comm_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+
+/-- A subsemiring of an `strict_ordered_comm_semiring` is an `strict_ordered_comm_semiring`. -/
+instance to_strict_ordered_comm_semiring {R} [strict_ordered_comm_semiring R] [set_like S R]
+  [subsemiring_class S R] :
+  strict_ordered_comm_semiring s :=
+subtype.coe_injective.strict_ordered_comm_semiring coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
 
 /-- A subsemiring of a `linear_ordered_semiring` is a `linear_ordered_semiring`. -/
@@ -133,7 +145,11 @@ instance to_linear_ordered_semiring {R} [linear_ordered_semiring R] [set_like S 
 subtype.coe_injective.linear_ordered_semiring coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
-/-! Note: currently, there is no `linear_ordered_comm_semiring`. -/
+/-- A subsemiring of a `linear_ordered_comm_semiring` is a `linear_ordered_comm_semiring`. -/
+instance to_linear_ordered_comm_semiring {R} [linear_ordered_comm_semiring R] [set_like S R]
+  [subsemiring_class S R] : linear_ordered_comm_semiring s :=
+subtype.coe_injective.linear_ordered_comm_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 end subsemiring_class
 
@@ -316,13 +332,9 @@ instance no_zero_divisors [no_zero_divisors R] : no_zero_divisors s :=
 instance to_semiring {R} [semiring R] (s : subsemiring R) : semiring s :=
 { ..s.to_non_assoc_semiring, ..s.to_submonoid.to_monoid }
 
-@[simp, norm_cast] lemma coe_pow {R} [semiring R] (s : subsemiring R) (x : s) (n : ℕ) :
+@[norm_cast] lemma coe_pow {R} [semiring R] (s : subsemiring R) (x : s) (n : ℕ) :
   ((x^n : s) : R) = (x^n : R) :=
-begin
-  induction n with n ih,
-  { simp, },
-  { simp [pow_succ, ih], },
-end
+coe_pow x n
 
 /-- A subsemiring of a `comm_semiring` is a `comm_semiring`. -/
 instance to_comm_semiring {R} [comm_semiring R] (s : subsemiring R) : comm_semiring s :=
@@ -339,10 +351,22 @@ instance to_ordered_semiring {R} [ordered_semiring R] (s : subsemiring R) : orde
 subtype.coe_injective.ordered_semiring coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
 
+/-- A subsemiring of a `strict_ordered_semiring` is a `strict_ordered_semiring`. -/
+instance to_strict_ordered_semiring {R} [strict_ordered_semiring R] (s : subsemiring R) :
+  strict_ordered_semiring s :=
+subtype.coe_injective.strict_ordered_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+
 /-- A subsemiring of an `ordered_comm_semiring` is an `ordered_comm_semiring`. -/
 instance to_ordered_comm_semiring {R} [ordered_comm_semiring R] (s : subsemiring R) :
   ordered_comm_semiring s :=
 subtype.coe_injective.ordered_comm_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
+
+/-- A subsemiring of a `strict_ordered_comm_semiring` is a `strict_ordered_comm_semiring`. -/
+instance to_strict_ordered_comm_semiring {R} [strict_ordered_comm_semiring R] (s : subsemiring R) :
+  strict_ordered_comm_semiring s :=
+subtype.coe_injective.strict_ordered_comm_semiring coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl)
 
 /-- A subsemiring of a `linear_ordered_semiring` is a `linear_ordered_semiring`. -/
@@ -351,7 +375,11 @@ instance to_linear_ordered_semiring {R} [linear_ordered_semiring R] (s : subsemi
 subtype.coe_injective.linear_ordered_semiring coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
-/-! Note: currently, there is no `linear_ordered_comm_semiring`. -/
+/-- A subsemiring of a `linear_ordered_comm_semiring` is a `linear_ordered_comm_semiring`. -/
+instance to_linear_ordered_comm_semiring {R} [linear_ordered_comm_semiring R] (s : subsemiring R) :
+  linear_ordered_comm_semiring s :=
+subtype.coe_injective.linear_ordered_comm_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 protected lemma nsmul_mem {x : R} (hx : x ∈ s) (n : ℕ) :
   n • x ∈ s := nsmul_mem hx n
@@ -369,6 +397,16 @@ instance : has_top (subsemiring R) :=
 @[simp] lemma mem_top (x : R) : x ∈ (⊤ : subsemiring R) := set.mem_univ x
 
 @[simp] lemma coe_top : ((⊤ : subsemiring R) : set R) = set.univ := rfl
+
+/-- The ring equiv between the top element of `subsemiring R` and `R`. -/
+@[simps]
+def top_equiv : (⊤ : subsemiring R) ≃+* R :=
+{ to_fun := λ r, r,
+  inv_fun := λ r, ⟨r, subsemiring.mem_top r⟩,
+  left_inv := λ r, set_like.eta r _,
+  right_inv := λ r, set_like.coe_mk r _,
+  map_mul' := (⊤ : subsemiring R).coe_mul,
+  map_add' := (⊤ : subsemiring R).coe_add, }
 
 /-- The preimage of a subsemiring along a ring homomorphism is a subsemiring. -/
 def comap (f : R →+* S) (s : subsemiring S) : subsemiring R :=
@@ -760,12 +798,11 @@ lemma comap_infi {ι : Sort*} (f : R →+* S) (s : ι → subsemiring S) :
 /-- Given `subsemiring`s `s`, `t` of semirings `R`, `S` respectively, `s.prod t` is `s × t`
 as a subsemiring of `R × S`. -/
 def prod (s : subsemiring R) (t : subsemiring S) : subsemiring (R × S) :=
-{ carrier := (s : set R) ×ˢ (t : set S),
+{ carrier := s ×ˢ t,
   .. s.to_submonoid.prod t.to_submonoid, .. s.to_add_submonoid.prod t.to_add_submonoid}
 
 @[norm_cast]
-lemma coe_prod (s : subsemiring R) (t : subsemiring S) :
-  (s.prod t : set (R × S)) = (s : set R) ×ˢ (t : set S) :=
+lemma coe_prod (s : subsemiring R) (t : subsemiring S) : (s.prod t : set (R × S)) = s ×ˢ t :=
 rfl
 
 lemma mem_prod {s : subsemiring R} {t : subsemiring S} {p : R × S} :
@@ -1070,14 +1107,14 @@ end subsemiring
 end actions
 
 -- While this definition is not about `subsemiring`s, this is the earliest we have
--- both `ordered_semiring` and `submonoid` available.
+-- both `strict_ordered_semiring` and `submonoid` available.
 
 
 /-- Submonoid of positive elements of an ordered semiring. -/
-def pos_submonoid (R : Type*) [ordered_semiring R] [nontrivial R] : submonoid R :=
+def pos_submonoid (R : Type*) [strict_ordered_semiring R] [nontrivial R] : submonoid R :=
 { carrier := {x | 0 < x},
   one_mem' := show (0 : R) < 1, from zero_lt_one,
   mul_mem' := λ x y (hx : 0 < x) (hy : 0 < y), mul_pos hx hy }
 
-@[simp] lemma mem_pos_monoid {R : Type*} [ordered_semiring R] [nontrivial R] (u : Rˣ) :
+@[simp] lemma mem_pos_monoid {R : Type*} [strict_ordered_semiring R] [nontrivial R] (u : Rˣ) :
   ↑u ∈ pos_submonoid R ↔ (0 : R) < u := iff.rfl

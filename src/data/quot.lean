@@ -29,7 +29,7 @@ end setoid
 
 namespace quot
 variables {ra : α → α → Prop} {rb : β → β → Prop} {φ : quot ra → quot rb → Sort*}
-local notation `⟦`:max a `⟧` := quot.mk _ a
+local notation (name := mk) `⟦`:max a `⟧` := quot.mk _ a
 
 instance (r : α → α → Prop) [inhabited α] : inhabited (quot r) := ⟨⟦default⟧⟩
 

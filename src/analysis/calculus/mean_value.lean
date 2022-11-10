@@ -64,8 +64,8 @@ In this file we prove the following facts:
 -/
 
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E]
-          {F : Type*} [normed_group F] [normed_space ℝ F]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+          {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
 
 open metric set asymptotics continuous_linear_map filter
 open_locale classical topological_space nnreal
@@ -251,8 +251,8 @@ Let `f` and `B` be continuous functions on `[a, b]` such that
 * we have `f' x < B' x` whenever `∥f x∥ = B x`.
 
 Then `∥f x∥ ≤ B x` everywhere on `[a, b]`. -/
-lemma image_norm_le_of_liminf_right_slope_norm_lt_deriv_boundary {E : Type*} [normed_group E]
-  {f : ℝ → E} {f' : ℝ → ℝ} (hf : continuous_on f (Icc a b))
+lemma image_norm_le_of_liminf_right_slope_norm_lt_deriv_boundary {E : Type*}
+  [normed_add_comm_group E] {f : ℝ → E} {f' : ℝ → ℝ} (hf : continuous_on f (Icc a b))
   -- `hf'` actually says `liminf (∥f z∥ - ∥f x∥) / (z - x) ≤ f' x`
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
     ∃ᶠ z in 𝓝[>] x, slope (norm ∘ f) x z < r)
@@ -471,7 +471,8 @@ also assume `[normed_space ℝ E]` to have a notion of a `convex` set. -/
 
 section
 
-variables {𝕜 G : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] [normed_group G] [normed_space 𝕜 G]
+variables {𝕜 G : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E] [normed_add_comm_group G]
+  [normed_space 𝕜 G]
 
 namespace convex
 
@@ -1367,8 +1368,8 @@ make sense and are enough. Many formulations of the mean value inequality could 
 balls over `ℝ` or `ℂ`. For now, we only include the ones that we need.
 -/
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {G : Type*} [normed_group G] [normed_space 𝕜 G]
-  {H : Type*} [normed_group H] [normed_space 𝕜 H] {f : G → H} {f' : G → G →L[𝕜] H} {x : G}
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
+  {H : Type*} [normed_add_comm_group H] [normed_space 𝕜 H] {f : G → H} {f' : G → G →L[𝕜] H} {x : G}
 
 /-- Over the reals or the complexes, a continuously differentiable function is strictly
 differentiable. -/

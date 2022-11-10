@@ -5,7 +5,7 @@ Authors: Kenny Lau
 -/
 import algebra.group.inj_surj
 import algebra.group.commute
-import algebra.hom.equiv
+import algebra.hom.equiv.basic
 import algebra.opposites
 import data.int.cast.defs
 
@@ -41,7 +41,7 @@ unop_injective.add_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 instance [add_monoid_with_one α] : add_monoid_with_one αᵐᵒᵖ :=
 { nat_cast := λ n, op n,
-  nat_cast_zero := show op ((0 : ℕ) : α) = 0, by simp,
+  nat_cast_zero := show op ((0 : ℕ) : α) = 0, by simp [nat.cast_zero],
   nat_cast_succ := show ∀ n, op ((n + 1 : ℕ) : α) = op (n : ℕ) + 1, by simp,
   .. mul_opposite.add_monoid α, .. mul_opposite.has_one α }
 

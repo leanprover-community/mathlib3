@@ -21,7 +21,7 @@ Then we specialize it to the case `y = f c` and to different special cases of `i
 local maximum, normed space
 -/
 
-variables {α X E : Type*} [semi_normed_group E] [normed_space ℝ E] [topological_space X]
+variables {α X E : Type*} [seminormed_add_comm_group E] [normed_space ℝ E] [topological_space X]
 
 section
 

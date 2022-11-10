@@ -1284,8 +1284,7 @@ end
 variables [fintype σ]
 /-- Given a finite set of accessible `Λ` machine states, there is a finite set of accessible
 machine states in the target (even though the type `Λ'` is infinite). -/
-noncomputable def tr_stmts (S : finset Λ) : finset Λ' :=
-(TM1.stmts M S).product finset.univ
+noncomputable def tr_stmts (S : finset Λ) : finset Λ' := TM1.stmts M S ×ˢ finset.univ
 
 open_locale classical
 local attribute [simp] TM1.stmts₁_self
@@ -2335,8 +2334,8 @@ theorem tr_respects : respects (TM2.step M) (TM1.step tr) tr_cfg :=
   cases h with l v S L hT, clear h,
   cases l, {constructor},
   simp only [TM2.step, respects, option.map_some'],
-  suffices : ∃ b, _ ∧ reaches (TM1.step (tr M)) _ _,
-  from let ⟨b, c, r⟩ := this in ⟨b, c, trans_gen.head' rfl r⟩,
+  rsuffices ⟨b, c, r⟩ : ∃ b, _ ∧ reaches (TM1.step (tr M)) _ _,
+  { exact ⟨b, c, trans_gen.head' rfl r⟩ },
   rw [tr],
   revert v S L hT, refine stmt_st_rec _ _ _ _ _ (M l); intros,
   { exact tr_respects_aux M hT s @IH },
@@ -2379,9 +2378,9 @@ theorem tr_eval (k) (L : list (Γ k)) {L₁ L₂}
 begin
   obtain ⟨c₁, h₁, rfl⟩ := (part.mem_map_iff _).1 H₁,
   obtain ⟨c₂, h₂, rfl⟩ := (part.mem_map_iff _).1 H₂,
-  obtain ⟨_, ⟨q, v, S, L', hT⟩, h₃⟩ := tr_eval (tr_respects M) (tr_cfg_init M k L) h₂,
+  obtain ⟨_, ⟨L', hT⟩, h₃⟩ := tr_eval (tr_respects M) (tr_cfg_init M k L) h₂,
   cases part.mem_unique h₁ h₃,
-  exact ⟨S, L', by simp only [tape.mk'_right₀], hT, rfl⟩
+  exact ⟨_, L', by simp only [tape.mk'_right₀], hT, rfl⟩
 end
 
 /-- The support of a set of TM2 states in the TM2 emulator. -/

@@ -20,9 +20,10 @@ local attribute [instance] uniform_convergence.topological_space
 local attribute [instance] uniform_convergence.uniform_space
 local attribute [instance] uniform_convergence.uniform_group
 
-lemma equicontinuous_of_equicontinuous_at_one {ι G M hom : Type*} [topological_space G]
-  [uniform_space M] [group G] [group M] [topological_group G] [uniform_group M]
-  [monoid_hom_class hom G M] (F : ι → hom) (hf : equicontinuous_at (coe_fn ∘ F) (1 : G)) :
+@[to_additive] lemma equicontinuous_of_equicontinuous_at_one {ι G M hom : Type*}
+  [topological_space G] [uniform_space M] [group G] [group M] [topological_group G]
+  [uniform_group M] [monoid_hom_class hom G M] (F : ι → hom)
+  (hf : equicontinuous_at (coe_fn ∘ F) (1 : G)) :
   equicontinuous (coe_fn ∘ F) :=
 begin
   letI : has_coe_to_fun hom (λ _, G → M) := fun_like.has_coe_to_fun,
@@ -35,8 +36,8 @@ begin
   exact continuous_of_continuous_at_one φ hf
 end
 
-lemma uniform_equicontinuous_of_equicontinuous_at_one {ι G M hom : Type*} [uniform_space G]
-  [uniform_space M] [group G] [group M] [uniform_group G] [uniform_group M]
+@[to_additive] lemma uniform_equicontinuous_of_equicontinuous_at_one {ι G M hom : Type*}
+  [uniform_space G] [uniform_space M] [group G] [group M] [uniform_group G] [uniform_group M]
   [monoid_hom_class hom G M] (F : ι → hom) (hf : equicontinuous_at (coe_fn ∘ F) (1 : G)) :
   uniform_equicontinuous (coe_fn ∘ F) :=
 begin

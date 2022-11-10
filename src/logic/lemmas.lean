@@ -9,6 +9,10 @@ import tactic.split_ifs
 /-!
 # More basic logic properties
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/537
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A few more logic lemmas. These are in their own file, rather than `logic.basic`, because it is
 convenient to be able to use the `split_ifs` tactic.
 

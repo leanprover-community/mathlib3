@@ -234,8 +234,8 @@ variables {β : Type*} [uniform_space β] [semiring β] [topological_semiring β
 variables {γ : Type*} [uniform_space γ] [semiring γ] [topological_semiring γ]
 variables [t2_space γ] [complete_space γ]
 
-/-- The dense_inducing extension as a ring morphism. -/
-noncomputable def dense_inducing.extend_hom {i : α →+* β} {f : α →+* γ}
+/-- The dense_inducing extension as a ring homomorphism. -/
+noncomputable def dense_inducing.extend_ring_hom {i : α →+* β} {f : α →+* γ}
   (ue : uniform_inducing i) (dr : dense_range i) (hf : uniform_continuous f):
   β →+* γ :=
   { to_fun := (ue.dense_inducing dr).extend f,
@@ -246,24 +246,20 @@ noncomputable def dense_inducing.extend_hom {i : α →+* β} {f : α →+* γ}
     map_add' :=
     begin
       have h := (uniform_continuous_uniformly_extend ue dr hf).continuous,
-      intros x y,
-      refine dense_range.induction_on₂ dr _ _ x y,
-      exact is_closed_eq (continuous.comp h continuous_add)
-        ((h.comp continuous_fst).add (h.comp continuous_snd)),
-      intros a b,
-      simp_rw [← i.map_add, dense_inducing.extend_eq (ue.dense_inducing dr) hf.continuous _,
-        ← f.map_add],
+      refine λ x y, dense_range.induction_on₂ dr _ (λ a b, _) x y,
+      { exact is_closed_eq (continuous.comp h continuous_add)
+        ((h.comp continuous_fst).add (h.comp continuous_snd)), },
+      { simp_rw [← i.map_add, dense_inducing.extend_eq (ue.dense_inducing dr) hf.continuous _,
+          ← f.map_add], },
     end,
     map_mul' :=
     begin
       have h := (uniform_continuous_uniformly_extend ue dr hf).continuous,
-      intros x y,
-      refine dense_range.induction_on₂ dr _ _ x y,
-      exact is_closed_eq (continuous.comp h continuous_mul)
-        ((h.comp continuous_fst).mul (h.comp continuous_snd)),
-      intros a b,
-      simp_rw [← i.map_mul, dense_inducing.extend_eq (ue.dense_inducing dr) hf.continuous _,
-        ← f.map_mul],
+      refine λ x y, dense_range.induction_on₂ dr _ (λ a b, _) x y,
+      { exact is_closed_eq (continuous.comp h continuous_mul)
+        ((h.comp continuous_fst).mul (h.comp continuous_snd)), },
+      { simp_rw [← i.map_mul, dense_inducing.extend_eq (ue.dense_inducing dr) hf.continuous _,
+          ← f.map_mul], },
     end, }
 
 end uniform_extension

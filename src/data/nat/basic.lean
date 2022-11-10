@@ -92,6 +92,17 @@ attribute [simp] nat.not_lt_zero nat.succ_ne_zero nat.succ_ne_self
 variables {m n k : ℕ}
 namespace nat
 
+/-!
+### Recursion and `forall`/`exists`
+-/
+
+@[simp] lemma and_forall_succ {p : ℕ → Prop} : (p 0 ∧ ∀ n, p (n + 1)) ↔ ∀ n, p n :=
+⟨λ h n, nat.cases_on n h.1 h.2, λ h, ⟨h _, λ n, h _⟩⟩
+
+@[simp] lemma or_exists_succ {p : ℕ → Prop} : (p 0 ∨ ∃ n, p (n + 1)) ↔ ∃ n, p n :=
+⟨λ h, h.elim (λ h0, ⟨0, h0⟩) (λ ⟨n, hn⟩, ⟨n + 1, hn⟩),
+  by { rintro ⟨(_|n), hn⟩, exacts [or.inl hn, or.inr ⟨n, hn⟩]}⟩
+
 /-! ### The units of the natural numbers as a `monoid` and `add_monoid` -/
 
 theorem units_eq_one (u : ℕˣ) : u = 1 :=
@@ -191,7 +202,6 @@ H.lt_or_eq_dec.imp le_of_lt_succ id
 lemma succ_lt_succ_iff {m n : ℕ} : succ m < succ n ↔ m < n :=
 ⟨lt_of_succ_lt_succ, succ_lt_succ⟩
 
-
 lemma div_le_iff_le_mul_add_pred {m n k : ℕ} (n0 : 0 < n) : m / n ≤ k ↔ m ≤ n * k + (n - 1) :=
 begin
   rw [← lt_succ_iff, div_lt_iff_lt_mul n0, succ_mul, mul_comm],
@@ -205,15 +215,10 @@ lemma two_lt_of_ne : ∀ {n}, n ≠ 0 → n ≠ 1 → n ≠ 2 → 2 < n
 | 2 _ _ h := (h rfl).elim
 | (n+3) _ _ _ := dec_trivial
 
-theorem forall_lt_succ {P : ℕ → Prop} {n : ℕ} : (∀ m < n.succ, P m) ↔ (∀ m < n, P m) ∧ P n :=
-⟨λ H, ⟨λ m hm, H m (lt_succ_iff.2 hm.le), H n (lt_succ_self n)⟩, begin
-  rintro ⟨H, hn⟩ m hm,
-  rcases eq_or_lt_of_le (lt_succ_iff.1 hm) with rfl | hmn,
-  { exact hn },
-  { exact H m hmn }
-end⟩
+theorem forall_lt_succ {P : ℕ → Prop} {n : ℕ} : (∀ m < n + 1, P m) ↔ (∀ m < n, P m) ∧ P n :=
+by simp only [lt_succ_iff, decidable.le_iff_eq_or_lt, forall_eq_or_imp, and.comm]
 
-theorem exists_lt_succ {P : ℕ → Prop} {n : ℕ} : (∃ m < n.succ, P m) ↔ (∃ m < n, P m) ∨ P n :=
+theorem exists_lt_succ {P : ℕ → Prop} {n : ℕ} : (∃ m < n + 1, P m) ↔ (∃ m < n, P m) ∨ P n :=
 by { rw ←not_iff_not, push_neg, exact forall_lt_succ }
 
 /-! ### `add` -/

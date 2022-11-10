@@ -308,6 +308,9 @@ end
 
 open affine_map
 
+/-- If `z = line_map x y c` is a point on the line passing through `x` and `y`, then the open
+segment `open_segment 𝕜 x y` is included in the union of the open segments `open_segment 𝕜 x z`,
+`open_segment 𝕜 z y`, and the point `z`. Informally, `(x, y) ⊆ {z} ∪ (x, z) ∪ (z, y)`. -/
 lemma open_segment_subset_union (c : 𝕜) (x y : E) :
   open_segment 𝕜 x y ⊆ insert (line_map x y c) (open_segment 𝕜 x (line_map x y c) ∪
     open_segment 𝕜 (line_map x y c) y) :=

@@ -210,7 +210,7 @@ open affine_map
 /-- A convex set `s` is strictly convex provided that for any two distinct points of
 `s \ interior s`, the line passing through these points has nonempty intersection with
 `interior s`. -/
-lemma convex.to_strict_convex' {s : set E} (hs : convex 𝕜 s)
+protected lemma convex.strict_convex' {s : set E} (hs : convex 𝕜 s)
   (h : (s \ interior s).pairwise $ λ x y, ∃ c : 𝕜, line_map x y c ∈ interior s) :
   strict_convex 𝕜 s :=
 begin
@@ -227,11 +227,11 @@ end
 /-- A convex set `s` is strictly convex provided that for any two distinct points `x`, `y` of
 `s \ interior s`, the segment with endpoints `x`, `y` has nonempty intersection with
 `interior s`. -/
-lemma convex.to_strict_convex {s : set E} (hs : convex 𝕜 s)
+protected lemma convex.strict_convex {s : set E} (hs : convex 𝕜 s)
   (h : (s \ interior s).pairwise $ λ x y, ([x -[𝕜] y] \ frontier s).nonempty) :
   strict_convex 𝕜 s :=
 begin
-  refine (hs.to_strict_convex' $ h.imp_on $ λ x hx y hy hne, _),
+  refine (hs.strict_convex' $ h.imp_on $ λ x hx y hy hne, _),
   simp only [segment_eq_image_line_map, ← self_diff_frontier],
   rintro ⟨_, ⟨⟨c, hc, rfl⟩, hcs⟩⟩,
   refine ⟨c, hs.segment_subset hx.1 hy.1 _, hcs⟩,

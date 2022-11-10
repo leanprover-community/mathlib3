@@ -95,7 +95,7 @@ lemma strict_convex_space.of_norm_combo_lt_one
   strict_convex_space ℝ E :=
 begin
   refine strict_convex_space.of_strict_convex_closed_unit_ball ℝ
-    ((convex_closed_ball _ _).to_strict_convex' $ λ x hx y hy hne, _),
+    ((convex_closed_ball _ _).strict_convex' $ λ x hx y hy hne, _),
   rw [interior_closed_ball (0 : E) one_ne_zero, closed_ball_diff_ball, mem_sphere_zero_iff_norm]
     at hx hy,
   rcases h x y hx hy hne with ⟨a, b, hab, hlt⟩,
@@ -110,7 +110,7 @@ lemma strict_convex_space.of_norm_combo_ne_one
   strict_convex_space ℝ E :=
 begin
   refine strict_convex_space.of_strict_convex_closed_unit_ball ℝ
-    ((convex_closed_ball _ _).to_strict_convex _),
+    ((convex_closed_ball _ _).strict_convex _),
   simp only [interior_closed_ball _ one_ne_zero, closed_ball_diff_ball, set.pairwise,
     frontier_closed_ball _ one_ne_zero, mem_sphere_zero_iff_norm],
   intros x hx y hy hne,

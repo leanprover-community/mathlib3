@@ -322,7 +322,7 @@ begin
   exact add_group_filter_basis.nhds_zero_eq _,
 end
 
-lemma with_seminorms.continuous_seminorm {𝕝 : Type*} [nontrivially_normed_field 𝕝]
+lemma with_seminorms.continuous_seminorm [nontrivially_normed_field 𝕝]
   [module 𝕝 E] [has_continuous_const_smul 𝕝 E] {p : seminorm_family 𝕝 E ι} (hp : with_seminorms p)
   (i : ι) : continuous (p i) :=
 begin

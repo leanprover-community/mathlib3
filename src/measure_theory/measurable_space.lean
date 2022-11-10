@@ -209,6 +209,10 @@ end
 lemma measurable_of_finite [finite α] [measurable_singleton_class α] (f : α → β) : measurable f :=
 λ s hs, (f ⁻¹' s).to_finite.measurable_set
 
+lemma measurable_of_countable [countable α] [measurable_singleton_class α] (f : α → β) :
+  measurable f :=
+λ s hs, (f ⁻¹' s).to_countable.measurable_set
+
 end typeclass_measurable_space
 
 variables {m : measurable_space α}
@@ -631,7 +635,7 @@ begin
     simpa only [B', mem_union, mem_Inter, or_false, compl_Union, mem_compl_iff] using B },
   congr,
   by_contra h,
-  exact t_disj n (nat.find (P x)) (ne.symm h) ⟨hx, this⟩
+  exact t_disj (ne.symm h) ⟨hx, this⟩
 end
 
 end prod

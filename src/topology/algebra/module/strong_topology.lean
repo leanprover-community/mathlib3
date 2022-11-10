@@ -175,7 +175,7 @@ lemma strong_topology.has_basis_nhds_zero [topological_space F] [topological_add
     (λ SV, {f : E →SL[σ] F | ∀ x ∈ SV.1, f x ∈ SV.2}) :=
 strong_topology.has_basis_nhds_zero_of_basis σ F 𝔖 h𝔖₁ h𝔖₂ (𝓝 0).basis_sets
 
-lemma strong_topology.locally_convex_space [topological_space E'] [topological_space F']
+lemma strong_topology.locally_convex_space [topological_space F']
   [topological_add_group F'] [has_continuous_const_smul ℝ F'] [locally_convex_space ℝ F']
   (𝔖 : set $ set E') (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) :
   @locally_convex_space ℝ (E' →L[ℝ] F') _ _ _ (strong_topology (ring_hom.id ℝ) F' 𝔖) :=

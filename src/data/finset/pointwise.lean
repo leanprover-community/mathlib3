@@ -5,7 +5,7 @@ Authors: Floris van Doorn, Yaël Dillies
 -/
 import data.finset.n_ary
 import data.finset.preimage
-import data.set.pointwise
+import data.set.pointwise.basic
 
 /-!
 # Pointwise operations of finsets
@@ -68,7 +68,8 @@ protected def has_one : has_one (finset α) := ⟨{1}⟩
 localized "attribute [instance] finset.has_one finset.has_zero" in pointwise
 
 @[simp, to_additive] lemma mem_one : a ∈ (1 : finset α) ↔ a = 1 := mem_singleton
-@[simp, norm_cast, to_additive] lemma coe_one : ↑(1 : finset α) = (1 : set α) := coe_singleton 1
+@[to_additive] instance : coe_is_one_hom (finset α) (set α) := { coe_one := coe_singleton 1 }
+@[norm_cast, to_additive] protected lemma coe_one : ↑(1 : finset α) = (1 : set α) := coe_one
 @[simp, to_additive] lemma one_subset : (1 : finset α) ⊆ s ↔ (1 : α) ∈ s := singleton_subset_iff
 @[to_additive] lemma singleton_one : ({1} : finset α) = 1 := rfl
 @[to_additive] lemma one_mem_one : (1 : α) ∈ (1 : finset α) := mem_singleton_self _
@@ -87,6 +88,13 @@ def singleton_one_hom : one_hom α (finset α) := ⟨singleton, singleton_one⟩
 @[simp, to_additive] lemma coe_singleton_one_hom : (singleton_one_hom : α → finset α) = singleton :=
 rfl
 @[simp, to_additive] lemma singleton_one_hom_apply (a : α) : singleton_one_hom a = {a} := rfl
+
+/-- Lift a `one_hom` to `finset` via `image`. -/
+@[to_additive "Lift a `zero_hom` to `finset` via `image`", simps]
+def image_one_hom [decidable_eq β] [has_one β] [one_hom_class F α β] (f : F) :
+  one_hom (finset α) (finset β) :=
+{ to_fun := finset.image f,
+  map_one' := by rw [image_one, map_one, singleton_one] }
 
 end has_one
 
@@ -142,7 +150,7 @@ end has_involutive_inv
 /-! ### Finset addition/multiplication -/
 
 section has_mul
-variables [decidable_eq α] [decidable_eq β] [has_mul α] [has_mul β] [mul_hom_class F α β] (m : F)
+variables [decidable_eq α] [decidable_eq β] [has_mul α] [has_mul β] [mul_hom_class F α β] (f : F)
   {s s₁ s₂ t t₁ t₂ u : finset α} {a b : α}
 
 /-- The pointwise multiplication of finsets `s * t` and `t` is defined as `{x * y | x ∈ s, y ∈ t}`
@@ -207,8 +215,8 @@ image₂_inter_subset_right
 lemma subset_mul {s t : set α} : ↑u ⊆ s * t → ∃ s' t' : finset α, ↑s' ⊆ s ∧ ↑t' ⊆ t ∧ u ⊆ s' * t' :=
 subset_image₂
 
-@[to_additive] lemma image_mul : (s * t).image (m : α → β) = s.image m * t.image m :=
-image_image₂_distrib $ map_mul m
+@[to_additive] lemma image_mul : (s * t).image (f : α → β) = s.image f * t.image f :=
+image_image₂_distrib $ map_mul f
 
 /-- The singleton operation as a `mul_hom`. -/
 @[to_additive "The singleton operation as an `add_hom`."]
@@ -217,6 +225,12 @@ def singleton_mul_hom : α →ₙ* finset α := ⟨singleton, λ a b, (singleton
 @[simp, to_additive] lemma coe_singleton_mul_hom : (singleton_mul_hom : α → finset α) = singleton :=
 rfl
 @[simp, to_additive] lemma singleton_mul_hom_apply (a : α) : singleton_mul_hom a = {a} := rfl
+
+/-- Lift a `mul_hom` to `finset` via `image`. -/
+@[to_additive "Lift an `add_hom` to `finset` via `image`", simps]
+def image_mul_hom : finset α →ₙ* finset β :=
+{ to_fun := finset.image f,
+  map_mul' := λ s t, image_mul _ }
 
 end has_mul
 
@@ -359,6 +373,11 @@ def coe_monoid_hom : finset α →* set α :=
 
 @[simp, to_additive] lemma coe_coe_monoid_hom : (coe_monoid_hom : finset α → set α) = coe := rfl
 @[simp, to_additive] lemma coe_monoid_hom_apply (s : finset α) : coe_monoid_hom s = s := rfl
+
+/-- Lift a `monoid_hom` to `finset` via `image`. -/
+@[to_additive "Lift an `add_monoid_hom` to `finset` via `image`", simps]
+def image_monoid_hom [mul_one_class β] [monoid_hom_class F α β] (f : F) : finset α →* finset β :=
+{ ..image_mul_hom f, ..image_one_hom f }
 
 end mul_one_class
 
@@ -532,7 +551,7 @@ s.zero_mul_subset.antisymm $ by simpa [mem_mul] using hs
 end mul_zero_class
 
 section group
-variables [group α] [division_monoid β] [monoid_hom_class F α β] (m : F) {s t : finset α} {a b : α}
+variables [group α] [division_monoid β] [monoid_hom_class F α β] (f : F) {s t : finset α} {a b : α}
 
 /-! Note that `finset` is not a `group` because `s / s ≠ 1` in general. -/
 
@@ -569,8 +588,8 @@ by simp
 lemma image_mul_right' : image (* b⁻¹) t = preimage t (* b) ((mul_left_injective _).inj_on _) :=
 by simp
 
-lemma image_div : (s / t).image (m : α → β) = s.image m / t.image m :=
-image_image₂_distrib $ map_div m
+lemma image_div : (s / t).image (f : α → β) = s.image f / t.image f :=
+image_image₂_distrib $ map_div f
 
 end group
 

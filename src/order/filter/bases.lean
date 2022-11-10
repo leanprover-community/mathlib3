@@ -600,7 +600,7 @@ lemma mem_iff_inf_principal_compl {f : filter α} {s : set α} :
   s ∈ f ↔ f ⊓ 𝓟 sᶜ = ⊥ :=
 begin
   refine not_iff_not.1 ((inf_principal_ne_bot_iff.trans _).symm.trans ne_bot_iff),
-  exact ⟨λ h hs, by simpa [empty_not_nonempty] using h s hs,
+  exact ⟨λ h hs, by simpa [not_nonempty_empty] using h s hs,
     λ hs t ht, inter_compl_nonempty_iff.2 $ λ hts, hs $ mem_of_superset ht hts⟩,
 end
 

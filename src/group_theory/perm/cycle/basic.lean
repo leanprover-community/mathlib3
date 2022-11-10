@@ -916,7 +916,7 @@ begin
     have hn' : l'.nodup := nodup_of_pairwise_disjoint_cycles hc' hd',
     have hperm : l ~ l' := list.perm_of_nodup_nodup_to_finset_eq hn hn' h.symm,
     refine ⟨_, _, _⟩,
-    { exact λ _ h, hc' _ (hperm.subset h)},
+    { exact λ _ h, hc' _ (hperm.subset h) },
     { rwa list.perm.pairwise_iff disjoint.symmetric hperm },
     { rw [←hp', hperm.symm.prod_eq'],
       refine hd'.imp _,

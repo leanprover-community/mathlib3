@@ -3,7 +3,6 @@ Copyright (c) 2014 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-
 import data.int.cast.defs
 
 /-!
@@ -71,3 +70,11 @@ by rw [←cast_one, cast_inj]
 cast_eq_one.not
 
 end nat
+
+namespace ne_zero
+
+instance char_zero {M} {n : ℕ}
+  [ne_zero n] [add_monoid_with_one M] [char_zero M] : ne_zero (n : M) :=
+⟨nat.cast_ne_zero.mpr out⟩
+
+end ne_zero

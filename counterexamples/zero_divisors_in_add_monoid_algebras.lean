@@ -3,12 +3,11 @@ Copyright (c) 2022 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import algebra.char_p.basic
 import algebra.geom_sum
+import algebra.group.unique_prods
 import algebra.monoid_algebra.basic
 import data.finsupp.lex
 import data.zmod.basic
-import group_theory.order_of_element
 
 /-!
 # Examples of zero-divisors in `add_monoid_algebra`s
@@ -197,7 +196,7 @@ begin
   rintro ⟨h⟩,
   refine not_lt.mpr (h (single (0 : F) (1 : F)) (_ : single 1 1 ≤ single 0 1)) ⟨1, _⟩,
   { exact or.inr ⟨0, by simp [(by boom : ∀ j : F, j < 0 ↔ false)]⟩ },
-  { simp only [(by boom : ∀ j : F, j < 1 ↔ j = 0), of_lex_add, coe_add, pi.to_lex_apply,
+  { simp only [(by boom : ∀ j : F, j < 1 ↔ j = 0), of_lex_add, finsupp.coe_add, pi.to_lex_apply,
       pi.add_apply, forall_eq, f010, f1, eq_self_iff_true, f011, f111, zero_add, and_self] },
 end
 
@@ -209,3 +208,25 @@ example {α} [has_zero α] : 2 • (single 0 1 : α →₀ F) = single 0 1 ∧ (
 ⟨smul_single _ _ _, by simpa only [ne.def, single_eq_zero] using z01.ne⟩
 
 end F
+
+/-- A Type that does not have `unique_prods`. -/
+example : ¬ unique_prods ℕ :=
+begin
+  rintros ⟨h⟩,
+  refine not_not.mpr (h (finset.singleton_nonempty 0) (finset.insert_nonempty 0 {1})) _,
+  suffices : (∃ (x : ℕ), (x = 0 ∨ x = 1) ∧ ¬x = 0) ∧ ∃ (x : ℕ), (x = 0 ∨ x = 1) ∧ ¬x = 1,
+  { simpa [unique_mul] },
+  exact ⟨⟨1, by simp⟩, ⟨0, by simp⟩⟩,
+end
+
+/-- Some Types that do not have `unique_sums`. -/
+example (n : ℕ) (n2 : 2 ≤ n): ¬ unique_sums (zmod n) :=
+begin
+  haveI : fintype (zmod n) := @zmod.fintype n ⟨(zero_lt_two.trans_le n2).ne'⟩,
+  haveI : nontrivial (zmod n) := char_p.nontrivial_of_char_ne_one (one_lt_two.trans_le n2).ne',
+  rintros ⟨h⟩,
+  refine not_not.mpr (h finset.univ_nonempty finset.univ_nonempty) _,
+  suffices : ∀ (x y : zmod n), ∃ (x' y' : zmod n), x' + y' = x + y ∧ (x' = x → ¬y' = y),
+  { simpa [unique_add] },
+  exact λ x y, ⟨x - 1, y + 1, sub_add_add_cancel _ _ _, by simp⟩,
+end

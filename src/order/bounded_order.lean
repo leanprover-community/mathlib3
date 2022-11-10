@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import order.lattice
-import logic.equiv.basic
+import data.option.basic
 
 /-!
 # ⊤ and ⊥, bounded lattices and variants
@@ -362,6 +362,10 @@ instance Prop.bounded_order : bounded_order Prop :=
   bot          := false,
   bot_le       := @false.elim }
 
+lemma Prop.bot_eq_false : (⊥ : Prop) = false := rfl
+
+lemma Prop.top_eq_true : (⊤ : Prop) = true := rfl
+
 instance Prop.le_is_total : is_total Prop (≤) :=
 ⟨λ p q, by { change (p → q) ∨ (q → p), tauto! }⟩
 
@@ -547,6 +551,9 @@ instance : inhabited (with_bot α) := ⟨⊥⟩
 lemma coe_injective : injective (coe : α → with_bot α) := option.some_injective _
 @[norm_cast] lemma coe_inj : (a : with_bot α) = b ↔ a = b := option.some_inj
 
+protected lemma «forall» {p : with_bot α → Prop} : (∀ x, p x) ↔ p ⊥ ∧ ∀ x : α, p x := option.forall
+protected lemma «exists» {p : with_bot α → Prop} : (∃ x, p x) ↔ p ⊥ ∨ ∃ x : α, p x := option.exists
+
 lemma none_eq_bot : (none : with_bot α) = (⊥ : with_bot α) := rfl
 lemma some_eq_coe (a : α) : (some a : with_bot α) = (↑a : with_bot α) := rfl
 
@@ -686,32 +693,51 @@ instance [partial_order α] : partial_order (with_bot α) :=
   .. with_bot.preorder }
 
 lemma coe_strict_mono [preorder α] : strict_mono (coe : α → with_bot α) := λ a b, some_lt_some.2
+lemma coe_mono [preorder α] : monotone (coe : α → with_bot α) := λ a b, coe_le_coe.2
+
+lemma monotone_iff [preorder α] [preorder β] {f : with_bot α → β} :
+  monotone f ↔ monotone (f ∘ coe : α → β) ∧ ∀ x : α, f ⊥ ≤ f x :=
+⟨λ h, ⟨h.comp with_bot.coe_mono, λ x, h bot_le⟩,
+  λ h, with_bot.forall.2 ⟨with_bot.forall.2 ⟨λ _, le_rfl, λ x _, h.2 x⟩,
+  λ x, with_bot.forall.2 ⟨λ h, (not_coe_le_bot _ h).elim, λ y hle, h.1 (coe_le_coe.1 hle)⟩⟩⟩
+
+@[simp] lemma monotone_map_iff [preorder α] [preorder β] {f : α → β} :
+  monotone (with_bot.map f) ↔ monotone f :=
+monotone_iff.trans $ by simp [monotone]
+
+alias monotone_map_iff ↔ _ _root_.monotone.with_bot_map
+
+lemma strict_mono_iff [preorder α] [preorder β] {f : with_bot α → β} :
+  strict_mono f ↔ strict_mono (f ∘ coe : α → β) ∧ ∀ x : α, f ⊥ < f x :=
+⟨λ h, ⟨h.comp with_bot.coe_strict_mono, λ x, h (bot_lt_coe _)⟩,
+  λ h, with_bot.forall.2 ⟨with_bot.forall.2 ⟨flip absurd (lt_irrefl _), λ x _, h.2 x⟩,
+  λ x, with_bot.forall.2 ⟨λ h, (not_lt_bot h).elim, λ y hle, h.1 (coe_lt_coe.1 hle)⟩⟩⟩
+
+@[simp] lemma strict_mono_map_iff [preorder α] [preorder β] {f : α → β} :
+  strict_mono (with_bot.map f) ↔ strict_mono f :=
+strict_mono_iff.trans $ by simp [strict_mono, bot_lt_coe]
+
+alias strict_mono_map_iff ↔ _ _root_.strict_mono.with_bot_map
 
 lemma map_le_iff [preorder α] [preorder β] (f : α → β) (mono_iff : ∀ {a b}, f a ≤ f b ↔ a ≤ b) :
   ∀ (a b : with_bot α), a.map f ≤ b.map f ↔ a ≤ b
 | ⊥       _       := by simp only [map_bot, bot_le]
 | (a : α) ⊥       := by simp only [map_coe, map_bot, coe_ne_bot, not_coe_le_bot _]
-| (a : α) (b : α) := by simpa using mono_iff
+| (a : α) (b : α) := by simpa only [map_coe, coe_le_coe] using mono_iff
 
-lemma le_coe_get_or_else [preorder α] : ∀ (a : with_bot α) (b : α), a ≤ a.get_or_else b
-| (some a) b := le_refl a
-| none     b := λ _ h, option.no_confusion h
+lemma le_coe_unbot' [preorder α] : ∀ (a : with_bot α) (b : α), a ≤ a.unbot' b
+| (a : α) b := le_rfl
+| ⊥       b := bot_le
 
-@[simp] lemma get_or_else_bot (a : α) : option.get_or_else (⊥ : with_bot α) a = a := rfl
-
-lemma get_or_else_bot_le_iff [has_le α] [order_bot α] {a : with_bot α} {b : α} :
-  a.get_or_else ⊥ ≤ b ↔ a ≤ b :=
+lemma unbot'_bot_le_iff [has_le α] [order_bot α] {a : with_bot α} {b : α} :
+  a.unbot' ⊥ ≤ b ↔ a ≤ b :=
 by cases a; simp [none_eq_bot, some_eq_coe]
 
-lemma get_or_else_bot_lt_iff [partial_order α] [order_bot α] {a : with_bot α} {b : α}
-  (ha : a ≠ ⊥) :
-  a.get_or_else ⊥ < b ↔ a < b :=
+lemma unbot'_lt_iff [has_lt α] {a : with_bot α} {b c : α} (ha : a ≠ ⊥) :
+  a.unbot' b < c ↔ a < c :=
 begin
-  obtain ⟨a, rfl⟩ := ne_bot_iff_exists.mp ha,
-  simp only [lt_iff_le_and_ne, get_or_else_bot_le_iff, and.congr_right_iff],
-  intro h,
-  apply iff.not,
-  simp only [with_bot.coe_eq_coe, option.get_or_else_coe, iff_self],
+  lift a to α using ha,
+  rw [unbot'_coe, coe_lt_coe]
 end
 
 instance [semilattice_sup α] : semilattice_sup (with_bot α) :=
@@ -873,6 +899,9 @@ meta instance {α : Type} [reflected _ α] [has_reflect α] : has_reflect (with_
 | (a : α) := `(coe : α → with_top α).subst `(a)
 
 instance : inhabited (with_top α) := ⟨⊤⟩
+
+protected lemma «forall» {p : with_top α → Prop} : (∀ x, p x) ↔ p ⊤ ∧ ∀ x : α, p x := option.forall
+protected lemma «exists» {p : with_top α → Prop} : (∃ x, p x) ↔ p ⊤ ∨ ∃ x : α, p x := option.exists
 
 lemma none_eq_top : (none : with_top α) = (⊤ : with_top α) := rfl
 lemma some_eq_coe (a : α) : (some a : with_top α) = (↑a : with_top α) := rfl
@@ -1155,6 +1184,31 @@ instance [partial_order α] : partial_order (with_top α) :=
   .. with_top.preorder }
 
 lemma coe_strict_mono [preorder α] : strict_mono (coe : α → with_top α) := λ a b, some_lt_some.2
+lemma coe_mono [preorder α] : monotone (coe : α → with_top α) := λ a b, coe_le_coe.2
+
+lemma monotone_iff [preorder α] [preorder β] {f : with_top α → β} :
+  monotone f ↔ monotone (f ∘ coe : α → β) ∧ ∀ x : α, f x ≤ f ⊤ :=
+⟨λ h, ⟨h.comp with_top.coe_mono, λ x, h le_top⟩,
+  λ h, with_top.forall.2 ⟨with_top.forall.2 ⟨λ _, le_rfl, λ x h, (not_top_le_coe _ h).elim⟩,
+  λ x, with_top.forall.2 ⟨λ _, h.2 x, λ y hle, h.1 (coe_le_coe.1 hle)⟩⟩⟩
+
+@[simp] lemma monotone_map_iff [preorder α] [preorder β] {f : α → β} :
+  monotone (with_top.map f) ↔ monotone f :=
+monotone_iff.trans $ by simp [monotone]
+
+alias monotone_map_iff ↔ _ _root_.monotone.with_top_map
+
+lemma strict_mono_iff [preorder α] [preorder β] {f : with_top α → β} :
+  strict_mono f ↔ strict_mono (f ∘ coe : α → β) ∧ ∀ x : α, f x < f ⊤ :=
+⟨λ h, ⟨h.comp with_top.coe_strict_mono, λ x, h (coe_lt_top _)⟩,
+  λ h, with_top.forall.2 ⟨with_top.forall.2 ⟨flip absurd (lt_irrefl _), λ x h, (not_top_lt h).elim⟩,
+  λ x, with_top.forall.2 ⟨λ _, h.2 x, λ y hle, h.1 (coe_lt_coe.1 hle)⟩⟩⟩
+
+@[simp] lemma strict_mono_map_iff [preorder α] [preorder β] {f : α → β} :
+  strict_mono (with_top.map f) ↔ strict_mono f :=
+strict_mono_iff.trans $ by simp [strict_mono, coe_lt_top]
+
+alias strict_mono_map_iff ↔ _ _root_.strict_mono.with_top_map
 
 lemma map_le_iff [preorder α] [preorder β] (f : α → β)
   (a b : with_top α) (mono_iff : ∀ {a b}, f a ≤ f b ↔ a ≤ b) :
@@ -1316,27 +1370,6 @@ instance [has_lt α] [no_min_order α] [nonempty α] : no_min_order (with_top α
 order_dual.no_min_order (with_bot αᵒᵈ)
 
 end with_top
-
-section mono
-
-variables [preorder α] [preorder β] {f : α → β}
-
-protected lemma monotone.with_bot_map (hf : monotone f) : monotone (with_bot.map f)
-| ⊥       _       h := bot_le
-| (a : α) ⊥       h := (with_bot.not_coe_le_bot _ h).elim
-| (a : α) (b : α) h := with_bot.coe_le_coe.2 (hf (with_bot.coe_le_coe.1 h))
-
-protected lemma monotone.with_top_map (hf : monotone f) : monotone (with_top.map f) :=
-hf.dual.with_bot_map.dual
-
-protected lemma strict_mono.with_bot_map (hf : strict_mono f) : strict_mono (with_bot.map f)
-| ⊥       (a : α) h := with_bot.bot_lt_coe _
-| (a : α) (b : α) h := with_bot.coe_lt_coe.mpr (hf $ with_bot.coe_lt_coe.mp h)
-
-protected lemma strict_mono.with_top_map (hf : strict_mono f) : strict_mono (with_top.map f) :=
-hf.dual.with_bot_map.dual
-
-end mono
 
 /-! ### Subtype, order dual, product lattices -/
 

@@ -692,7 +692,7 @@ begin
   convert mul_zero _ using 2,
   obtain rfl | hij := eq_or_ne i j,
   { exact ho },
-  { exact h i j hij },
+  { exact h hij },
 end
 
 /-- An orthogonal basis with respect to a right-separating bilinear form has no self-orthogonal
@@ -722,7 +722,7 @@ begin
     smul_eq_mul] at hB,
   rw finset.sum_eq_single i at hB,
   { exact eq_zero_of_ne_zero_of_mul_right_eq_zero (h i) hB, },
-  { intros j hj hij, convert mul_zero _ using 2, exact hO j i hij, },
+  { intros j hj hij, convert mul_zero _ using 2, exact hO hij, },
   { intros hi, convert zero_mul _ using 2, exact finsupp.not_mem_support_iff.mp hi }
 end
 

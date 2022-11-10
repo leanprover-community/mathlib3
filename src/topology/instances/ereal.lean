@@ -296,7 +296,8 @@ begin
   assume r,
   rw eventually_prod_iff,
   refine ⟨λ z, z < ((r - (a + 1): ℝ) : ereal), Iio_mem_nhds (bot_lt_coe _),
-          λ z, z < ((a + 1 : ℝ) : ereal), Iio_mem_nhds (by simp [-coe_add, zero_lt_one]),
+          λ z, z < ((a + 1 : ℝ) : ereal), Iio_mem_nhds
+            (by simp [-coe_add, -ereal.coe_add, zero_lt_one]),
           λ x hx y hy, _⟩,
   convert add_lt_add hx hy,
   rw sub_add_cancel,

@@ -321,7 +321,7 @@ lemma tsum_measure_le_measure_univ {s : ι → set α} (hs : ∀ i, measurable_s
   ∑' i, μ (s i) ≤ μ (univ : set α) :=
 begin
   rw [ennreal.tsum_eq_supr_sum],
-  exact supr_le (λ s, sum_measure_le_measure_univ (λ i hi, hs i) (λ i hi j hj hij, H i j hij))
+  exact supr_le (λ s, sum_measure_le_measure_univ (λ i hi, hs i) (λ i hi j hj hij, H hij))
 end
 
 /-- Pigeonhole principle for measure spaces: if `∑' i, μ (s i) > μ univ`, then
@@ -3217,7 +3217,7 @@ protected lemma is_finite_measure_on_compacts.smul [topological_space α] (μ : 
 lemma compact_space.is_finite_measure
   [topological_space α] [compact_space α] [is_finite_measure_on_compacts μ] :
   is_finite_measure μ :=
-⟨is_finite_measure_on_compacts.lt_top_of_is_compact compact_univ⟩
+⟨is_finite_measure_on_compacts.lt_top_of_is_compact is_compact_univ⟩
 
 omit m0
 

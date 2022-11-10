@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Junyan Xu
 -/
 
-import topology.sheaves.sheaf_condition.opens_le_cover
+import topology.sheaves.sheaf_condition.pairwise_intersections
 
 /-!
 # functors between categories of sheaves

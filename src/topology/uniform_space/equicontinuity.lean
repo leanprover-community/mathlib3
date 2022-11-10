@@ -8,6 +8,23 @@ import topology.uniform_space.uniform_convergence_topology
 /-!
 # Equicontinuity of a family of functions
 
+Let `X` be a topological space and `α` a `uniform_space`. A family of functions `F : ι → X → α`
+is said to be *equicontinuous at a point `x₀ : X`* when, for any entourage `U` in `α`, there is a
+neighborhood `V` of `x₀` such that, for all `x ∈ V`, and *for all `i`*, `F i x` is `U`-close to
+`F i x₀`. In other words, one has `∀ U ∈ 𝓤 α, ∀ᶠ x in 𝓝 x₀, ∀ i, (F i x₀, F i x) ∈ U`.
+For maps between metric spaces, this corresponds to
+`∀ ε > 0, ∃ δ > 0, ∀ x, ∀ i, dist x₀ x < δ → dist (F i x₀) (F i x) < ε`.
+
+`F` is said to be *equicontinuous* if it is equicontinuous at each point.
+
+A closely related concept is that of ***uniform*** *equicontinuity* of a family of functions
+`F : ι → β → α` between uniform spaces, which means that, for any entourage `U` in `α`, there is an
+entourage `V` in `β` such that, if `x` and `y` are `V`-close, then *for all `i`*, `F i x` and
+`F i y` are `U`-close. In other words, one has
+`∀ U ∈ 𝓤 α, ∀ᶠ xy in 𝓤 β, ∀ i, (F i xy.1, F i xy.2) ∈ U`.
+For maps between metric spaces, this corresponds to
+`∀ ε > 0, ∃ δ > 0, ∀ x y, ∀ i, dist x y < δ → dist (F i x₀) (F i x) < ε`.
+
 ## Main definitions
 
 * `equicontinuous_at`: equicontinuity of a family of functions at a point
@@ -64,7 +81,9 @@ open_locale uniformity topological_space
 variables {ι κ X Y Z α β γ 𝓕 : Type*} [topological_space X] [topological_space Y]
   [topological_space Z] [uniform_space α] [uniform_space β] [uniform_space γ]
 
-/-- Equicontinuity of a family of functions at a point. -/
+/-- A family `F : ι → X → α` of functions from a topological space to a uniform space is
+*equicontinuous at `x₀ : X`* if, for all entourage `U ∈ 𝓤 α`, there is a neighborhood `V` of `x₀`
+such that, for all `x ∈ V` and for all `i : ι`, `F i x` is `U`-close to `F i x₉`. -/
 def equicontinuous_at (F : ι → X → α) (x₀ : X) : Prop :=
 ∀ U ∈ 𝓤 α, ∀ᶠ x in 𝓝 x₀, ∀ i, (F i x₀, F i x) ∈ U
 
@@ -73,7 +92,8 @@ def equicontinuous_at (F : ι → X → α) (x₀ : X) : Prop :=
 protected abbreviation set.equicontinuous_at (H : set $ X → α) (x₀ : X) : Prop :=
 equicontinuous_at (coe : H → X → α) x₀
 
-/-- Equicontinuity of a family of functions on the whole domain. -/
+/-- A family `F : ι → X → α` of functions from a topological space to a uniform space is
+*equicontinuous* on all of `X` if it is equicontinuous at each point of `X`. -/
 def equicontinuous (F : ι → X → α) : Prop :=
 ∀ x₀, equicontinuous_at F x₀
 
@@ -82,7 +102,9 @@ def equicontinuous (F : ι → X → α) : Prop :=
 protected abbreviation set.equicontinuous (H : set $ X → α) : Prop :=
 equicontinuous (coe : H → X → α)
 
-/-- Uniform equicontinuity of a family of functions. -/
+/-- A family `F : ι → β → α` of functions between uniform spaces is *uniformly equicontinuous* if,
+for all entourage `U ∈ 𝓤 α`, there is an entourage `V ∈ 𝓤 β` such that, whenever `x` and `y` are
+`V`-close, we have that, *for all `i : ι`*, `F i x` is `U`-close to `F i x₉`. -/
 def uniform_equicontinuous (F : ι → β → α) : Prop :=
 ∀ U ∈ 𝓤 α, ∀ᶠ (xy : β × β) in 𝓤 β, ∀ i, (F i xy.1, F i xy.2) ∈ U
 

@@ -161,7 +161,7 @@ lemma divisors_one : divisors 1 = {1} := by { ext, simp }
 lemma proper_divisors_one : proper_divisors 1 = ∅ :=
 by rw [proper_divisors, Ico_self, filter_empty]
 
-lemma divisors_mul {m n : ℕ} : (m * n).divisors = m.divisors * n.divisors :=
+lemma divisors_mul (m n : ℕ) : (m * n).divisors = m.divisors * n.divisors :=
 begin
   rcases m.eq_zero_or_pos with rfl | hm,
   { simp },

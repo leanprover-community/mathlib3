@@ -598,7 +598,8 @@ lemma localization_comap_range [algebra R S] (M : submonoid R)
 begin
   ext x,
   split,
-  { rintro ⟨p, rfl⟩ x ⟨hx₁, hx₂⟩,
+  { simp_rw disjoint_iff_inf_le,
+    rintro ⟨p, rfl⟩ x ⟨hx₁, hx₂⟩,
     exact (p.2.1 : ¬ _)
       (p.as_ideal.eq_top_of_is_unit_mem hx₂ (is_localization.map_units S ⟨x, hx₁⟩)) },
   { intro h,
@@ -770,7 +771,7 @@ begin
   rw localization_comap_range S (submonoid.powers r),
   ext,
   simp only [mem_zero_locus, basic_open_eq_zero_locus_compl, set_like.mem_coe, set.mem_set_of_eq,
-    set.singleton_subset_iff, set.mem_compl_iff],
+    set.singleton_subset_iff, set.mem_compl_iff, disjoint_iff_inf_le],
   split,
   { intros h₁ h₂,
     exact h₁ ⟨submonoid.mem_powers r, h₂⟩ },

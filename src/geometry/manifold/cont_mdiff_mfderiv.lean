@@ -451,7 +451,7 @@ begin
   let Z' := Z.to_topological_vector_bundle_core,
   rw [cont_mdiff_at_iff_target, and.congr_left_iff],
   refine λ hf, ⟨λ h, Z'.continuous_proj.continuous_at.comp h, λ h, _⟩,
-  exact (Z'.local_triv ⟨chart_at _ (f x).1, chart_mem_atlas _ _⟩).to_fiber_bundle_trivialization
+  exact (Z'.local_triv ⟨chart_at _ (f x).1, chart_mem_atlas _ _⟩)
     .continuous_at_of_comp_left h (mem_chart_source _ _) (h.prod hf.continuous_at.snd)
 end
 
@@ -534,13 +534,11 @@ begin
       simp only [chart, hy, chart_at, prod.mk.inj_iff, to_topological_vector_bundle_core]
         with mfld_simps,
       apply h,
-      simp only [hy, subtype.val_eq_coe] with mfld_simps,
-      exact mem_chart_source H (((chart_at H x).symm) ((model_with_corners.symm I) y)) },
+      simp only [hy, subtype.val_eq_coe] with mfld_simps },
     { simp only [chart, chart_at, prod.mk.inj_iff, to_topological_vector_bundle_core]
         with mfld_simps,
       apply h,
-      simp only [subtype.val_eq_coe] with mfld_simps,
-      exact mem_chart_source H x, } }
+      simp only [subtype.val_eq_coe] with mfld_simps } }
 end
 
 end basic_smooth_vector_bundle_core
@@ -642,18 +640,11 @@ begin
   rw [← fderiv_within_inter N (I.unique_diff (I ((chart_at H x) x)) (set.mem_range_self _)), ← B],
   congr' 2,
   apply fderiv_within_congr _ (λ y hy, _),
-  { simp only [prod.mk.inj_iff] with mfld_simps,
-    exact ((tangent_bundle_core I M).to_topological_vector_bundle_core.coord_change
-      ((tangent_bundle_core I M).to_topological_vector_bundle_core.index_at (((chart_at H x).symm)
-      (I.symm (I ((chart_at H x) x))))) ⟨chart_at H x, _⟩ (((chart_at H x).symm)
-      (I.symm (I ((chart_at H x) x))))).map_zero, },
+  { simp only [prod.mk.inj_iff] with mfld_simps },
   { apply unique_diff_within_at.inter (I.unique_diff _ _) N,
     simp only with mfld_simps },
   { simp only with mfld_simps at hy,
-    simp only [hy, prod.mk.inj_iff] with mfld_simps,
-    exact ((tangent_bundle_core I M).to_topological_vector_bundle_core.coord_change
-      ((tangent_bundle_core I M).to_topological_vector_bundle_core.index_at (((chart_at H x).symm)
-      (I.symm y))) ⟨chart_at H x, _⟩ (((chart_at H x).symm) (I.symm y))).map_zero, },
+    simp only [hy, prod.mk.inj_iff] with mfld_simps },
 end
 
 end tangent_bundle

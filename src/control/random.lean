@@ -7,7 +7,6 @@ Authors: Simon Hudon
 import control.monad.basic
 import control.uliftable
 import data.bitvec.basic
-import data.int.basic
 import data.stream.defs
 import tactic.norm_num
 

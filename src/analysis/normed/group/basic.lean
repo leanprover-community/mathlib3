@@ -316,6 +316,12 @@ lemma norm_inv' (a : E) : ∥a⁻¹∥ = ∥a∥ := by simpa using norm_div_rev 
 @[simp, to_additive] lemma dist_mul_right (a₁ a₂ b : E) : dist (a₁ * b) (a₂ * b) = dist a₁ a₂ :=
 by simp [dist_eq_norm_div]
 
+@[simp, to_additive] lemma dist_mul_self_right (a b : E) : dist b (a * b) = ∥a∥ :=
+by rw [←dist_one_left, ←dist_mul_right 1 a b, one_mul]
+
+@[simp, to_additive] lemma dist_mul_self_left (a b : E) : dist (a * b) b = ∥a∥ :=
+by rw [dist_comm, dist_mul_self_right]
+
 @[to_additive] lemma dist_div_right (a₁ a₂ b : E) : dist (a₁ / b) (a₂ / b) = dist a₁ a₂ :=
 by simpa only [div_eq_mul_inv] using dist_mul_right _ _ _
 
@@ -370,6 +376,9 @@ lemma norm_of_subsingleton' [subsingleton E] (a : E) : ∥a∥ = 0 :=
 by rw [subsingleton.elim a 1, norm_one']
 
 attribute [nontriviality] norm_of_subsingleton
+
+@[to_additive zero_lt_one_add_norm_sq]
+lemma zero_lt_one_add_norm_sq' (x : E) : 0 < 1 + ∥x∥^2 := by positivity
 
 @[to_additive] lemma norm_div_le (a b : E) : ∥a / b∥ ≤ ∥a∥ + ∥b∥ :=
 by simpa [dist_eq_norm_div] using dist_triangle a 1 b
@@ -448,6 +457,16 @@ by simpa only [div_div_div_cancel_right'] using norm_sub_norm_le' (u / w) (v / w
 @[to_additive bounded_iff_forall_norm_le]
 lemma bounded_iff_forall_norm_le' : bounded s ↔ ∃ C, ∀ x ∈ s, ∥x∥ ≤ C :=
 by simpa only [set.subset_def, mem_closed_ball_one_iff] using bounded_iff_subset_ball (1 : E)
+
+alias bounded_iff_forall_norm_le' ↔ metric.bounded.exists_norm_le' _
+alias bounded_iff_forall_norm_le ↔ metric.bounded.exists_norm_le _
+
+attribute [to_additive metric.bounded.exists_norm_le] metric.bounded.exists_norm_le'
+
+@[to_additive metric.bounded.exists_pos_norm_le]
+lemma metric.bounded.exists_pos_norm_le' (hs : metric.bounded s) : ∃ R > 0, ∀ x ∈ s, ∥x∥ ≤ R :=
+let ⟨R₀, hR₀⟩ := hs.exists_norm_le' in
+  ⟨max R₀ 1, by positivity, λ x hx, (hR₀ x hx).trans $ le_max_left _ _⟩
 
 @[simp, to_additive mem_sphere_iff_norm]
 lemma mem_sphere_iff_norm' : b ∈ sphere a r ↔ ∥b / a∥ = r := by simp [dist_eq_norm_div]
@@ -737,6 +756,12 @@ lipschitz_with_one_norm'.uniform_continuous
 @[to_additive uniform_continuous_nnnorm]
 lemma uniform_continuous_nnnorm' : uniform_continuous (λ (a : E), ∥a∥₊) :=
 uniform_continuous_norm'.subtype_mk _
+
+@[to_additive] lemma mem_closure_one_iff_norm {x : E} : x ∈ closure ({1} : set E) ↔ ∥x∥ = 0 :=
+by rw [←closed_ball_zero', mem_closed_ball_one_iff, (norm_nonneg' x).le_iff_eq]
+
+@[to_additive] lemma closure_one_eq : closure ({1} : set E) = {x | ∥x∥ = 0} :=
+set.ext (λ x, mem_closure_one_iff_norm)
 
 /-- A helper lemma used to prove that the (scalar or usual) product of a function that tends to one
 and a bounded function tends to one. This lemma is formulated for any binary operation

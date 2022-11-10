@@ -7,7 +7,7 @@ import data.fintype.card
 import data.finsupp.defs
 import data.nat.part_enat
 import data.set.countable
-import logic.small
+import logic.small.basic
 import order.conditionally_complete_lattice
 import order.succ_pred.basic
 import set_theory.cardinal.schroeder_bernstein
@@ -899,8 +899,8 @@ begin
   rw [cardinal.mk_fintype, fintype.card_coe]
 end
 
-@[simp, norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
-by induction n; simp [pow_succ', power_add, *]
+@[norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
+by simp only [cardinal.pow_cast_right, coe_pow]
 
 @[simp, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
 begin
@@ -979,7 +979,7 @@ theorem aleph_0_le {c : cardinal} : ℵ₀ ≤ c ↔ ∀ n : ℕ, ↑n ≤ c :=
 end⟩
 
 @[simp] lemma range_nat_cast : range (coe : ℕ → cardinal) = Iio ℵ₀ :=
-ext $ λ x, lt_aleph_0'.symm
+ext $ λ x, by simp only [mem_Iio, mem_range, eq_comm, lt_aleph_0]
 
 theorem mk_eq_nat_iff {α : Type u} {n : ℕ} : #α = n ↔ nonempty (α ≃ fin n) :=
 by rw [← lift_mk_fin, ← lift_uzero (#α), lift_mk_eq']

@@ -129,6 +129,18 @@ variables {G} [smul_invariant_measure G α μ]
 @[simp, to_additive] lemma measure_smul_set (s : set α) : μ (c • s) = μ s :=
 ((smul_invariant_measure_tfae G μ).out 0 4).mp ‹_› c s
 
+@[simp, to_additive] lemma measure_preserving_const_smul
+  {M α : Type*} [has_smul M α] {m : measurable_space α} [measurable_space M]
+  [has_measurable_smul M α] (μ : measure α) [smul_invariant_measure M α μ] (g : M) :
+  measure_preserving ((•) g : α → α) μ μ :=
+{ measurable := measurable_const_smul g,
+  map_eq :=
+  begin
+    ext1 s hs,
+    rw map_apply (measurable_const_smul g) hs,
+    exact smul_invariant_measure.measure_preimage_smul μ g hs,
+  end }
+
 variable {μ}
 
 @[to_additive] lemma null_measurable_set.smul {s} (hs : null_measurable_set s μ) (c : G) :

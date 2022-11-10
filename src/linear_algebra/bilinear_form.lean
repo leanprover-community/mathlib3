@@ -945,8 +945,8 @@ end
   is complement to its orthogonal complement. -/
 lemma is_compl_span_singleton_orthogonal {B : bilin_form K V}
   {x : V} (hx : ¬ B.is_ortho x x) : is_compl (K ∙ x) (B.orthogonal $ K ∙ x) :=
-{ disjoint := eq_bot_iff.1 $ span_singleton_inf_orthogonal_eq_bot hx,
-  codisjoint := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hx }
+{ disjoint := disjoint_iff.2 $ span_singleton_inf_orthogonal_eq_bot hx,
+  codisjoint := codisjoint_iff.2 $ span_singleton_sup_orthogonal_eq_top hx }
 
 end orthogonal
 
@@ -1024,7 +1024,7 @@ lemma nondegenerate_restrict_of_disjoint_orthogonal
 begin
   rintro ⟨x, hx⟩ b₁,
   rw [submodule.mk_eq_zero, ← submodule.mem_bot R₁],
-  refine hW ⟨hx, λ y hy, _⟩,
+  refine hW.le_bot ⟨hx, λ y hy, _⟩,
   specialize b₁ ⟨y, hy⟩,
   rw [restrict_apply, submodule.coe_mk, submodule.coe_mk] at b₁,
   exact is_ortho_def.mpr (b x y b₁),

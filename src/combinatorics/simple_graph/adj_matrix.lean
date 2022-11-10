@@ -260,7 +260,9 @@ begin
       ext x,
       split_ifs with hux; simp [hux], },
     /- Disjointness for card_bUnion -/
-    { intros x hx y hy hxy p hp,
+    { intros x hx y hy hxy,
+      rw disjoint_iff_inf_le,
+      intros p hp,
       split_ifs at hp with hx hy;
       simp only [inf_eq_inter, empty_inter, inter_empty, not_mem_empty, mem_inter, mem_map,
         function.embedding.coe_fn_mk, exists_prop] at hp;

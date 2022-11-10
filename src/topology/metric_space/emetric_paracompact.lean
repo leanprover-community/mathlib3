@@ -122,7 +122,9 @@ begin
     refine ⟨B, ball_mem_nhds _ (pow_pos _), _⟩,
     -- The sets `D m i`, `m > n + k`, are disjoint with `B`
     have Hgt : ∀ (m ≥ n + k + 1) (i : ι), disjoint (D m i) B,
-    { rintros m hm i y ⟨hym, hyx⟩,
+    { rintros m hm i,
+      rw disjoint_iff_inf_le,
+      rintros y ⟨hym, hyx⟩,
       rcases memD.1 hym with ⟨z, rfl, hzi, H, hz⟩,
       have : z ∉ ball x (2⁻¹ ^ k), from λ hz, H n (by linarith) i (hsub hz), apply this,
       calc edist z x ≤ edist y z + edist y x : edist_triangle_left _ _ _

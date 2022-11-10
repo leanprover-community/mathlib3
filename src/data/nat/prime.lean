@@ -627,7 +627,7 @@ begin
     (λ _, by clear_aux_decl; simp [*, sq, mul_right_inj' hp.ne_zero] at *
       {contextual := tt})
     (λ _, by clear_aux_decl; simp [*, sq, mul_comm, mul_assoc,
-      mul_right_inj' hp.ne_zero, nat.mul_right_eq_self_iff hp.pos] at *
+      mul_right_inj' hp.ne_zero, nat.mul_right_eq_self_iff hp.ne_zero] at *
       {contextual := tt})
 end,
 λ ⟨h₁, h₂⟩, h₁.symm ▸ h₂.symm ▸ (sq _).symm⟩

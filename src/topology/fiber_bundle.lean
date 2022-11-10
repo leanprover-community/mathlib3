@@ -764,8 +764,12 @@ noncomputable def disjoint_union (e e' : trivialization F proj)
   (H : disjoint e.base_set e'.base_set) :
   trivialization F proj :=
 { to_local_homeomorph := e.to_local_homeomorph.disjoint_union e'.to_local_homeomorph
-    (λ x hx, by { rw [e.source_eq, e'.source_eq] at hx, exact H hx })
-    (λ x hx, by { rw [e.target_eq, e'.target_eq] at hx, exact H ⟨hx.1.1, hx.2.1⟩ }),
+    (by {
+      rw [e.source_eq, e'.source_eq],
+      refine (disjoint_preimage_iff _).mpr H,
+
+      sorry {exact H.mono _ _ }, })
+    (λ x hx, by  sorry { rw [e.target_eq, e'.target_eq] at hx, exact H ⟨hx.1.1, hx.2.1⟩ }),
   base_set := e.base_set ∪ e'.base_set,
   open_base_set := is_open.union e.open_base_set e'.open_base_set,
   source_eq := congr_arg2 (∪) e.source_eq e'.source_eq,

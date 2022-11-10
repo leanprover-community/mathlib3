@@ -509,10 +509,11 @@ lemma ball_disjoint_ball (h : δ + ε ≤ dist x y) : disjoint (ball x δ) (ball
 
 lemma closed_ball_disjoint_closed_ball (h : δ + ε < dist x y) :
   disjoint (closed_ball x δ) (closed_ball y ε) :=
-λ a ha, h.not_le $ (dist_triangle_left _ _ _).trans $ add_le_add ha.1 ha.2
+set.disjoint_left.mpr $
+  λ a ha1 ha2, h.not_le $ (dist_triangle_left _ _ _).trans $ add_le_add ha1 ha2
 
 theorem sphere_disjoint_ball : disjoint (sphere x ε) (ball x ε) :=
-λ y ⟨hy₁, hy₂⟩, absurd hy₁ $ ne_of_lt hy₂
+set.disjoint_left.mpr $ λ y hy₁ hy₂, absurd hy₁ $ ne_of_lt hy₂
 
 @[simp] theorem ball_union_sphere : ball x ε ∪ sphere x ε = closed_ball x ε :=
 set.ext $ λ y, (@le_iff_lt_or_eq ℝ _ _ _).symm

@@ -540,7 +540,6 @@ begin
   exact h w (hUV hw),
 end
 
--- TODO: when `M` is finite-dimensional this is an equality
 lemma le_dual_annihilator_dual_annihilator_comap {U : submodule R M} :
   U ≤ U.dual_annihilator.dual_annihilator_comap :=
 begin

@@ -387,7 +387,8 @@ variables [comm_semiring R]
 variables [add_comm_monoid M] [module R M]
 variables [add_comm_monoid M₁] [module R M₁]
 variables [add_comm_monoid M₂] [module R M₂]
-variables {B F : M →ₗ[R] M →ₗ[R] R} {B' : M₁ →ₗ[R] M₁ →ₗ[R] R} {B'' : M₂ →ₗ[R] M₂ →ₗ[R] R}
+variables {I : R →+* R}
+variables {B F : M →ₗ[R] M →ₛₗ[I] R} {B' : M₁ →ₗ[R] M₁ →ₛₗ[I] R} {B'' : M₂ →ₗ[R] M₂ →ₛₗ[I] R}
 variables {f f' : M →ₗ[R] M₁} {g g' : M₁ →ₗ[R] M}
 
 variables (B B' f g)
@@ -455,7 +456,8 @@ section add_comm_monoid
 
 variables [comm_semiring R]
 variables [add_comm_monoid M] [module R M]
-variables (B F : M →ₗ[R] M →ₗ[R] R)
+variables {I : R →+* R}
+variables (B F : M →ₗ[R] M →ₛₗ[I] R)
 
 /-- The condition for an endomorphism to be "self-adjoint" with respect to a pair of bilinear forms
 on the underlying module. In the case that these two forms are identical, this is the usual concept
@@ -690,7 +692,7 @@ begin
   convert mul_zero _ using 2,
   obtain rfl | hij := eq_or_ne i j,
   { exact ho },
-  { exact h i j hij },
+  { exact h hij },
 end
 
 /-- An orthogonal basis with respect to a right-separating bilinear form has no self-orthogonal
@@ -720,7 +722,7 @@ begin
     smul_eq_mul] at hB,
   rw finset.sum_eq_single i at hB,
   { exact eq_zero_of_ne_zero_of_mul_right_eq_zero (h i) hB, },
-  { intros j hj hij, convert mul_zero _ using 2, exact hO j i hij, },
+  { intros j hj hij, convert mul_zero _ using 2, exact hO hij, },
   { intros hi, convert zero_mul _ using 2, exact finsupp.not_mem_support_iff.mp hi }
 end
 

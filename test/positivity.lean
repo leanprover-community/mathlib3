@@ -14,10 +14,11 @@ import tactic.positivity
 This tactic proves goals of the form `0 ≤ a` and `0 < a`.
 -/
 
+open function
 open_locale ennreal nat nnrat nnreal
 
 universe u
-variables {α β : Type*}
+variables {ι α β : Type*}
 
 /- ## Numeric goals -/
 
@@ -72,6 +73,11 @@ example {a b : ℤ} (h : 0 ≤ a + b) : 0 ≤ a + b := by positivity
 example {a : ℤ} (hlt : 0 ≤ a) (hne : a ≠ 0) : 0 < a := by positivity
 
 /- ## Tests of the @[positivity] plugin tactics (addition, multiplication, division) -/
+
+example [nonempty ι] [has_zero α] {a : α} (ha : a ≠ 0) : const ι a ≠ 0 := by positivity
+example [has_zero α] [preorder α] {a : α} (ha : 0 < a) : 0 ≤ const ι a := by positivity
+example [has_zero α] [preorder α] {a : α} (ha : 0 ≤ a) : 0 ≤ const ι a := by positivity
+example [nonempty ι] [has_zero α] [preorder α] {a : α} (ha : 0 < a) : 0 < const ι a := by positivity
 
 example {a b : ℚ} (ha : 0 < a) (hb : 0 < b) : 0 < min a b := by positivity
 example {a b : ℚ} (ha : 0 < a) (hb : 0 ≤ b) : 0 ≤ min a b := by positivity

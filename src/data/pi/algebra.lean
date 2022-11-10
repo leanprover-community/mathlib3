@@ -3,7 +3,7 @@ Copyright (c) 2020 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Eric Wieser
 -/
-import algebra.group.to_additive
+import tactic.to_additive
 import algebra.group.defs
 import data.prod.basic
 import logic.unique

@@ -104,12 +104,12 @@ end
 section dickson
 /-!
 
-### A Lambda structure on `polynomial ℤ`
+### A Lambda structure on `ℤ[X]`
 
 Mathlib doesn't currently know what a Lambda ring is.
-But once it does, we can endow `polynomial ℤ` with a Lambda structure
+But once it does, we can endow `ℤ[X]` with a Lambda structure
 in terms of the `dickson 1 1` polynomials defined below.
-There is exactly one other Lambda structure on `polynomial ℤ` in terms of binomial polynomials.
+There is exactly one other Lambda structure on `ℤ[X]` in terms of binomial polynomials.
 
 -/
 

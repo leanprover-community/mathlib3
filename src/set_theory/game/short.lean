@@ -98,7 +98,7 @@ theorem short_birthday : ∀ (x : pgame.{u}) [short x], x.birthday < ordinal.ome
 | ⟨xl, xr, xL, xR⟩ hs :=
 begin
   haveI := hs,
-  unfreezingI { rcases hs with ⟨_, _, _, _, sL, sR, hl, hr⟩ },
+  unfreezingI { rcases hs with ⟨sL, sR⟩ },
   rw [birthday, max_lt_iff],
   split, all_goals
   { rw ←cardinal.ord_aleph_0,
@@ -215,7 +215,7 @@ instance lf_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x ⧏ y
 (le_lf_decidable x y).2
 
 instance lt_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x < y) :=
-and.decidable 
+and.decidable
 
 instance equiv_decidable (x y : pgame.{u}) [short x] [short y] : decidable (x ≈ y) :=
 and.decidable

@@ -1,4 +1,4 @@
-import algebra.group.to_additive
+import tactic.to_additive
 import algebra.group.units
 import tactic
 

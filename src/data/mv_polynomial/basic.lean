@@ -657,15 +657,15 @@ def constant_coeff : mv_polynomial σ R →+* R :=
 
 lemma constant_coeff_eq : (constant_coeff : mv_polynomial σ R → R) = coeff 0 := rfl
 
-@[simp]
-lemma constant_coeff_C (r : R) :
-  constant_coeff (C r : mv_polynomial σ R) = r :=
+variables (σ)
+@[simp] lemma constant_coeff_C (r : R) : constant_coeff (C r : mv_polynomial σ R) = r :=
 by simp [constant_coeff_eq]
+variables {σ}
 
-@[simp]
-lemma constant_coeff_X (i : σ) :
-  constant_coeff (X i : mv_polynomial σ R) = 0 :=
+variables (R)
+@[simp] lemma constant_coeff_X (i : σ) : constant_coeff (X i : mv_polynomial σ R) = 0 :=
 by simp [constant_coeff_eq]
+variables {R}
 
 lemma constant_coeff_monomial [decidable_eq σ] (d : σ →₀ ℕ) (r : R) :
   constant_coeff (monomial d r) = if d = 0 then r else 0 :=
@@ -675,7 +675,7 @@ variables (σ R)
 
 @[simp] lemma constant_coeff_comp_C :
   constant_coeff.comp (C : R →+* mv_polynomial σ R) = ring_hom.id R :=
-by { ext, apply constant_coeff_C }
+by { ext x, exact constant_coeff_C σ x }
 
 @[simp] lemma constant_coeff_comp_algebra_map :
   constant_coeff.comp (algebra_map R (mv_polynomial σ R)) = ring_hom.id R :=
@@ -1109,6 +1109,12 @@ lemma aeval_eq_eval₂_hom (p : mv_polynomial σ R) :
 theorem aeval_unique (φ : mv_polynomial σ R →ₐ[R] S₁) :
   φ = aeval (φ ∘ X) :=
 by { ext i, simp }
+
+lemma aeval_X_left : aeval X = alg_hom.id R (mv_polynomial σ R) :=
+(aeval_unique (alg_hom.id R _)).symm
+
+lemma aeval_X_left_apply (p : mv_polynomial σ R) : aeval X p = p :=
+alg_hom.congr_fun aeval_X_left p
 
 lemma comp_aeval {B : Type*} [comm_semiring B] [algebra R B]
   (φ : S₁ →ₐ[R] B) :

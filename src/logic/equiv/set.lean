@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.set.function
-import logic.equiv.basic
+import logic.equiv.defs
 
 /-!
 # Equivalences and sets

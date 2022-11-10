@@ -17,7 +17,6 @@ definitions.
 
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
-noncomputable theory
 open filter metric
 open_locale topological_space big_operators nnreal ennreal uniformity pointwise
 
@@ -322,7 +321,8 @@ instance prod.semi_normed_ring [semi_normed_ring β] :
 
 /-- Seminormed ring structure on the product of finitely many seminormed rings,
   using the sup norm. -/
-instance pi.semi_normed_ring {π : ι → Type*} [fintype ι] [Π i, semi_normed_ring (π i)] :
+instance pi.semi_normed_ring {π : ι → Type*} [fintype ι]
+  [Π i, semi_normed_ring (π i)] :
   semi_normed_ring (Π i, π i) :=
 { ..pi.non_unital_semi_normed_ring,
   ..pi.seminormed_add_comm_group, }
@@ -338,7 +338,8 @@ instance : non_unital_normed_ring (ulift α) :=
 
 /-- Non-unital normed ring structure on the product of two non-unital normed rings,
 using the sup norm. -/
-instance prod.non_unital_normed_ring [non_unital_normed_ring β] : non_unital_normed_ring (α × β) :=
+instance prod.non_unital_normed_ring [non_unital_normed_ring β] :
+  non_unital_normed_ring (α × β) :=
 { norm_mul := norm_mul_le,
   ..prod.seminormed_add_comm_group }
 
@@ -481,6 +482,23 @@ begin
   simp,
 end
 
+lemma norm_one_of_pow_eq_one {x : α} {k : ℕ+} (h : x ^ (k : ℕ) = 1) :
+  ∥x∥ = 1 :=
+begin
+  rw ( _ :  ∥x∥ = 1 ↔ ∥x∥₊ = 1),
+  apply (@pow_left_inj nnreal _ _ _ ↑k zero_le' zero_le' (pnat.pos k)).mp,
+  { rw [← nnnorm_pow, one_pow, h, nnnorm_one], },
+  { exact subtype.mk_eq_mk.symm, },
+end
+
+lemma norm_map_one_of_pow_eq_one [comm_monoid β] (φ : β →* α) {x : β} {k : ℕ+}
+  (h : x ^ (k : ℕ) = 1) :
+  ∥φ x∥ = 1 :=
+begin
+  have : (φ x) ^ (k : ℕ) = 1 := by rw [← monoid_hom.map_pow, h, monoid_hom.map_one],
+  exact norm_one_of_pow_eq_one this,
+end
+
 end normed_division_ring
 
 /-- A normed field is a field with a norm satisfying ∥x y∥ = ∥x∥ ∥y∥. -/
@@ -599,43 +617,26 @@ end densely
 
 end normed_field
 
-instance : normed_field ℝ :=
+instance : normed_comm_ring ℝ :=
+{ norm_mul := λ x y, (abs_mul x y).le,
+  .. real.normed_add_comm_group,
+  .. real.comm_ring }
+
+noncomputable instance : normed_field ℝ :=
 { norm_mul' := abs_mul,
   .. real.normed_add_comm_group }
 
-instance : densely_normed_field ℝ :=
+noncomputable instance : densely_normed_field ℝ :=
 { lt_norm_lt := λ _ _ h₀ hr, let ⟨x, h⟩ := exists_between hr in
     ⟨x, by rwa [real.norm_eq_abs, abs_of_nonneg (h₀.trans h.1.le)]⟩ }
 
 namespace real
 
-lemma norm_of_nonneg {x : ℝ} (hx : 0 ≤ x) : ∥x∥ = x :=
-abs_of_nonneg hx
+lemma to_nnreal_mul_nnnorm {x : ℝ} (y : ℝ) (hx : 0 ≤ x) : x.to_nnreal * ∥y∥₊ = ∥x * y∥₊ :=
+by simp [real.to_nnreal_of_nonneg, nnnorm, norm_of_nonneg, hx]
 
-lemma norm_of_nonpos {x : ℝ} (hx : x ≤ 0) : ∥x∥ = -x :=
-abs_of_nonpos hx
-
-@[simp] lemma norm_coe_nat (n : ℕ) : ∥(n : ℝ)∥ = n := abs_of_nonneg n.cast_nonneg
-
-@[simp] lemma nnnorm_coe_nat (n : ℕ) : ∥(n : ℝ)∥₊ = n := nnreal.eq $ by simp
-
-@[simp] lemma norm_two : ∥(2 : ℝ)∥ = 2 := abs_of_pos (@zero_lt_two ℝ _ _)
-
-@[simp] lemma nnnorm_two : ∥(2 : ℝ)∥₊ = 2 := nnreal.eq $ by simp
-
-lemma nnnorm_of_nonneg {x : ℝ} (hx : 0 ≤ x) : ∥x∥₊ = ⟨x, hx⟩ :=
-nnreal.eq $ norm_of_nonneg hx
-
-lemma ennnorm_eq_of_real {x : ℝ} (hx : 0 ≤ x) : (∥x∥₊ : ℝ≥0∞) = ennreal.of_real x :=
-by { rw [← of_real_norm_eq_coe_nnnorm, norm_of_nonneg hx] }
-
-lemma of_real_le_ennnorm (x : ℝ) : ennreal.of_real x ≤ ∥x∥₊ :=
-begin
-  by_cases hx : 0 ≤ x,
-  { rw real.ennnorm_eq_of_real hx, refl' },
-  { rw [ennreal.of_real_eq_zero.2 (le_of_lt (not_le.1 hx))],
-    exact bot_le }
-end
+lemma nnnorm_mul_to_nnreal (x : ℝ) {y : ℝ} (hy : 0 ≤ y) : ∥x∥₊ * y.to_nnreal = ∥x * y∥₊ :=
+by simp [real.to_nnreal_of_nonneg, nnnorm, norm_of_nonneg, hy]
 
 /-- If `E` is a nontrivial topological module over `ℝ`, then `E` has no isolated points.
 This is a particular case of `module.punctured_nhds_ne_bot`. -/
@@ -894,3 +895,97 @@ instance ring_hom_isometric.ids : ring_hom_isometric (ring_hom.id R₁) :=
 ⟨λ x, rfl⟩
 
 end ring_hom_isometric
+
+section induced
+
+variables {F : Type*} (R S : Type*)
+
+/-- A non-unital ring homomorphism from an `non_unital_ring` to a `non_unital_semi_normed_ring`
+induces a `non_unital_semi_normed_ring` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def non_unital_semi_normed_ring.induced [non_unital_ring R] [non_unital_semi_normed_ring S]
+  [non_unital_ring_hom_class F R S] (f : F) : non_unital_semi_normed_ring R :=
+{ norm_mul := λ x y, by { unfold norm, exact (map_mul f x y).symm ▸ norm_mul_le (f x) (f y) },
+  .. seminormed_add_comm_group.induced R S f }
+
+/-- An injective non-unital ring homomorphism from an `non_unital_ring` to a
+`non_unital_normed_ring` induces a `non_unital_normed_ring` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def non_unital_normed_ring.induced [non_unital_ring R] [non_unital_normed_ring S]
+  [non_unital_ring_hom_class F R S] (f : F) (hf : function.injective f) :
+  non_unital_normed_ring R :=
+{ .. non_unital_semi_normed_ring.induced R S f,
+  .. normed_add_comm_group.induced R S f hf }
+
+/-- A non-unital ring homomorphism from an `ring` to a `semi_normed_ring` induces a
+`semi_normed_ring` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def semi_normed_ring.induced [ring R] [semi_normed_ring S] [non_unital_ring_hom_class F R S]
+  (f : F) : semi_normed_ring R :=
+{ .. non_unital_semi_normed_ring.induced R S f,
+  .. seminormed_add_comm_group.induced R S f }
+
+/-- An injective non-unital ring homomorphism from an `ring` to a `normed_ring` induces a
+`normed_ring` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def normed_ring.induced [ring R] [normed_ring S] [non_unital_ring_hom_class F R S] (f : F)
+  (hf : function.injective f) : normed_ring R :=
+{ .. non_unital_semi_normed_ring.induced R S f,
+  .. normed_add_comm_group.induced R S f hf }
+
+/-- A non-unital ring homomorphism from a `comm_ring` to a `semi_normed_ring` induces a
+`semi_normed_comm_ring` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def semi_normed_comm_ring.induced [comm_ring R] [semi_normed_ring S]
+  [non_unital_ring_hom_class F R S] (f : F) : semi_normed_comm_ring R :=
+{ mul_comm := mul_comm,
+  .. non_unital_semi_normed_ring.induced R S f,
+  .. seminormed_add_comm_group.induced R S f }
+
+/-- An injective non-unital ring homomorphism from an `comm_ring` to a `normed_ring` induces a
+`normed_comm_ring` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def normed_comm_ring.induced [comm_ring R] [normed_ring S] [non_unital_ring_hom_class F R S] (f : F)
+  (hf : function.injective f) : normed_comm_ring R :=
+{ .. semi_normed_comm_ring.induced R S f,
+  .. normed_add_comm_group.induced R S f hf }
+
+/-- An injective non-unital ring homomorphism from an `division_ring` to a `normed_ring` induces a
+`normed_division_ring` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def normed_division_ring.induced [division_ring R] [normed_division_ring S]
+  [non_unital_ring_hom_class F R S] (f : F) (hf : function.injective f) : normed_division_ring R :=
+{ norm_mul' := λ x y, by { unfold norm, exact (map_mul f x y).symm ▸ norm_mul (f x) (f y) },
+  .. normed_add_comm_group.induced R S f hf }
+
+/-- An injective non-unital ring homomorphism from an `field` to a `normed_ring` induces a
+`normed_field` structure on the domain.
+
+See note [reducible non-instances] -/
+@[reducible]
+def normed_field.induced [field R] [normed_field S]
+  [non_unital_ring_hom_class F R S] (f : F) (hf : function.injective f) : normed_field R :=
+{ .. normed_division_ring.induced R S f hf }
+
+/-- A ring homomorphism from a `ring R` to a `semi_normed_ring S` which induces the norm structure
+`semi_normed_ring.induced` makes `R` satisfy `∥(1 : R)∥ = 1` whenever `∥(1 : S)∥ = 1`. -/
+lemma norm_one_class.induced {F : Type*} (R S : Type*) [ring R] [semi_normed_ring S]
+  [norm_one_class S] [ring_hom_class F R S] (f : F) :
+  @norm_one_class R (semi_normed_ring.induced R S f).to_has_norm _ :=
+{ norm_one := (congr_arg norm (map_one f)).trans norm_one }
+
+end induced

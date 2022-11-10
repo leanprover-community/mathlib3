@@ -99,11 +99,11 @@ def to_dual : E ≃ₗᵢ⋆[𝕜] normed_space.dual 𝕜 E :=
 linear_isometry_equiv.of_surjective (to_dual_map 𝕜 E)
 begin
   intros ℓ,
-  set Y := ker ℓ with hY,
+  set Y := linear_map.ker ℓ with hY,
   by_cases htriv : Y = ⊤,
   { have hℓ : ℓ = 0,
     { have h' := linear_map.ker_eq_top.mp htriv,
-      rw [←coe_zero] at h',
+      rw [←continuous_linear_map.coe_zero] at h',
       apply coe_injective,
       exact h' },
     exact ⟨0, by simp [hℓ]⟩ },
@@ -114,8 +114,8 @@ begin
     refine ⟨((ℓ z)† / ⟪z, z⟫) • z, _⟩,
     ext x,
     have h₁ : (ℓ z) • x - (ℓ x) • z ∈ Y,
-    { rw [mem_ker, map_sub, continuous_linear_map.map_smul, continuous_linear_map.map_smul,
-          algebra.id.smul_eq_mul, algebra.id.smul_eq_mul, mul_comm],
+    { rw [linear_map.mem_ker, map_sub, continuous_linear_map.map_smul,
+          continuous_linear_map.map_smul, algebra.id.smul_eq_mul, algebra.id.smul_eq_mul, mul_comm],
       exact sub_self (ℓ x * ℓ z) },
     have h₂ : (ℓ z) * ⟪z, x⟫ = (ℓ x) * ⟪z, z⟫,
     { have h₃ := calc

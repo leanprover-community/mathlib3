@@ -13,13 +13,13 @@ import topology.instances.real
 
 The structure of a metric space on `ℚ` is introduced in this file, induced from `ℝ`.
 -/
-noncomputable theory
 open metric set filter
 
 namespace rat
 
+-- without the `by exact` this is noncomputable
 instance : metric_space ℚ :=
-metric_space.induced coe rat.cast_injective real.metric_space
+metric_space.induced coe (by exact rat.cast_injective) real.metric_space
 
 theorem dist_eq (x y : ℚ) : dist x y = |x - y| := rfl
 

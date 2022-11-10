@@ -173,7 +173,7 @@ begin
     obtain ⟨k, rfl⟩ := add_subgroup.mem_zmultiples_iff.mp hx,
     rw [mem_preimage, mem_ball_zero_iff, add_subgroup.coe_mk, mem_singleton_iff,
       subtype.ext_iff, add_subgroup.coe_mk, add_subgroup.coe_zero, norm_zsmul ℚ k e,
-      int.norm_cast_rat, int.norm_eq_abs, ← int.cast_abs, zero_lt.mul_lt_iff_lt_one_left
+      int.norm_cast_rat, int.norm_eq_abs, ← int.cast_abs, mul_lt_iff_lt_one_left
       (norm_pos_iff.mpr he), ← @int.cast_one ℝ _, int.cast_lt, int.abs_lt_one_iff, smul_eq_zero,
       or_iff_left he], },
 end
@@ -198,10 +198,8 @@ def homeomorph_unit_ball [normed_space ℝ E] :
   end⟩,
   inv_fun := λ y, (1 - ∥(y : E)∥^2).sqrt⁻¹ • (y : E),
   left_inv := λ x,
-  begin
-    have : 0 < 1 + ∥x∥ ^ 2, by positivity,
-    field_simp [norm_smul, smul_smul, this.ne', real.sq_sqrt this.le, ← real.sqrt_div this.le],
-  end,
+  by field_simp [norm_smul, smul_smul, (zero_lt_one_add_norm_sq x).ne',
+    real.sq_sqrt (zero_lt_one_add_norm_sq x).le, ← real.sqrt_div (zero_lt_one_add_norm_sq x).le],
   right_inv := λ y,
   begin
     have : 0 < 1 - ∥(y : E)∥ ^ 2 :=
@@ -282,6 +280,16 @@ begin
 end
 
 end seminormed_add_comm_group
+
+/-- A linear map from a `module` to a `normed_space` induces a `normed_space` structure on the
+domain, using the `seminormed_add_comm_group.induced` norm.
+
+See note [reducible non-instances] -/
+@[reducible]
+def normed_space.induced {F : Type*} (α β γ : Type*) [normed_field α] [add_comm_group β]
+  [module α β] [seminormed_add_comm_group γ] [normed_space α γ] [linear_map_class F α β γ]
+  (f : F) : @normed_space α β _ (seminormed_add_comm_group.induced β γ f) :=
+{ norm_smul_le := λ a b, by {unfold norm, exact (map_smul f a b).symm ▸ (norm_smul a (f b)).le } }
 
 section normed_add_comm_group
 
@@ -446,6 +454,18 @@ by rw [norm_algebra_map, norm_one, mul_one]
 @[simp] lemma nnnorm_algebra_map' [norm_one_class 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥₊ = ∥x∥₊ :=
 subtype.ext $ norm_algebra_map' _ _
 
+section nnreal
+
+variables [norm_one_class 𝕜'] [normed_algebra ℝ 𝕜']
+
+@[simp] lemma norm_algebra_map_nnreal (x : ℝ≥0) : ∥algebra_map ℝ≥0 𝕜' x∥ = x :=
+(norm_algebra_map' 𝕜' (x : ℝ)).symm ▸ real.norm_of_nonneg x.prop
+
+@[simp] lemma nnnorm_algebra_map_nnreal (x : ℝ≥0) : ∥algebra_map ℝ≥0 𝕜' x∥₊ = x :=
+subtype.ext $ norm_algebra_map_nnreal 𝕜' x
+
+end nnreal
+
 variables (𝕜 𝕜')
 
 /-- In a normed algebra, the inclusion of the base field in the extended field is an isometry. -/
@@ -454,25 +474,6 @@ begin
   refine isometry.of_dist_eq (λx y, _),
   rw [dist_eq_norm, dist_eq_norm, ← ring_hom.map_sub, norm_algebra_map'],
 end
-
-/-- The inclusion of the base field in a normed algebra as a continuous linear map. -/
-@[simps]
-def algebra_map_clm : 𝕜 →L[𝕜] 𝕜' :=
-{ to_fun := algebra_map 𝕜 𝕜',
-  map_add' := (algebra_map 𝕜 𝕜').map_add,
-  map_smul' := λ r x, by rw [algebra.id.smul_eq_mul, map_mul, ring_hom.id_apply, algebra.smul_def],
-  cont :=
-    have lipschitz_with ∥(1 : 𝕜')∥₊ (algebra_map 𝕜 𝕜') := λ x y, begin
-      rw [edist_eq_coe_nnnorm_sub, edist_eq_coe_nnnorm_sub, ←map_sub, ←ennreal.coe_mul,
-        ennreal.coe_le_coe, mul_comm],
-      exact (nnnorm_algebra_map _ _).le,
-    end, this.continuous }
-
-lemma algebra_map_clm_coe :
-  (algebra_map_clm 𝕜 𝕜' : 𝕜 → 𝕜') = (algebra_map 𝕜 𝕜' : 𝕜 → 𝕜') := rfl
-
-lemma algebra_map_clm_to_linear_map :
-  (algebra_map_clm 𝕜 𝕜').to_linear_map = algebra.linear_map 𝕜 𝕜' := rfl
 
 instance normed_algebra.id : normed_algebra 𝕜 𝕜 :=
 { .. normed_field.to_normed_space,
@@ -508,6 +509,16 @@ instance pi.normed_algebra {E : ι → Type*} [fintype ι]
   .. pi.algebra _ E }
 
 end normed_algebra
+
+/-- A non-unital algebra homomorphism from an `algebra` to a `normed_algebra` induces a
+`normed_algebra` structure on the domain, using the `semi_normed_ring.induced` norm.
+
+See note [reducible non-instances] -/
+@[reducible]
+def normed_algebra.induced {F : Type*} (α β γ : Type*) [normed_field α] [ring β]
+  [algebra α β] [semi_normed_ring γ] [normed_algebra α γ] [non_unital_alg_hom_class F α β γ]
+  (f : F) : @normed_algebra α β _ (semi_normed_ring.induced β γ f) :=
+{ norm_smul_le := λ a b, by {unfold norm, exact (map_smul f a b).symm ▸ (norm_smul a (f b)).le } }
 
 section restrict_scalars
 

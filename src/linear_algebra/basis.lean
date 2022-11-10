@@ -68,7 +68,7 @@ universe u
 open function set submodule
 open_locale classical big_operators
 
-variables {ι : Type*} {ι' : Type*} {R : Type*} {K : Type*}
+variables {ι : Type*} {ι' : Type*} {R : Type*} {R₂ : Type*} {K : Type*}
 variables {M : Type*} {M' M'' : Type*} {V : Type u} {V' : Type*}
 
 section module
@@ -361,12 +361,6 @@ else
   by letI : subsingleton R := not_nontrivial_iff_subsingleton.mp h; exact
     basis.of_repr (module.subsingleton_equiv R M (range b))
 
-lemma finsupp.single_apply_left {α β γ : Type*} [has_zero γ]
-  {f : α → β} (hf : function.injective f)
-  (x z : α) (y : γ) :
-  finsupp.single (f x) y (f z) = finsupp.single x y z :=
-by simp [finsupp.single_apply, hf.eq_iff]
-
 lemma reindex_range_self (i : ι) (h := set.mem_range_self i) :
   b.reindex_range ⟨b i, h⟩ = b i :=
 begin
@@ -468,6 +462,15 @@ begin
   obtain ⟨x, y, ne⟩ : ∃ (x y : M), x ≠ y := nontrivial.exists_pair_ne,
   obtain ⟨i, _⟩ := not_forall.mp (mt b.ext_elem ne),
   exact ⟨i⟩
+end
+
+/-- If the submodule `P` has a basis, `x ∈ P` iff it is a linear combination of basis vectors. -/
+lemma mem_submodule_iff {P : submodule R M} (b : basis ι R P) {x : M} :
+  x ∈ P ↔ ∃ (c : ι →₀ R), x = finsupp.sum c (λ i x, x • b i) :=
+begin
+  conv_lhs { rw [← P.range_subtype, ← submodule.map_top, ← b.span_eq, submodule.map_span,
+    ← set.range_comp, ← finsupp.range_total] },
+  simpa only [@eq_comm _ x],
 end
 
 section constr
@@ -769,6 +772,16 @@ b.sum_equiv_fun u
 lemma basis.equiv_fun_self (i j : ι) : b.equiv_fun (b i) j = if i = j then 1 else 0 :=
 by { rw [b.equiv_fun_apply, b.repr_self_apply] }
 
+lemma basis.repr_sum_self (c : ι → R) : ⇑(b.repr (∑ i, c i • b i)) = c :=
+begin
+  ext j,
+  simp only [map_sum, linear_equiv.map_smul, repr_self, finsupp.smul_single, smul_eq_mul,
+             mul_one, finset.sum_apply'],
+  rw [finset.sum_eq_single j, finsupp.single_eq_same],
+  { rintros i - hi, exact finsupp.single_eq_of_ne hi },
+  { intros, have := finset.mem_univ j, contradiction }
+end
+
 /-- Define a basis by mapping each vector `x : M` to its coordinates `e x : ι → R`,
 as long as `ι` is finite. -/
 def basis.of_equiv_fun (e : M ≃ₗ[R] (ι → R)) : basis ι R M :=
@@ -797,6 +810,13 @@ variables [smul_comm_class R S M']
 @[simp] theorem basis.constr_apply_fintype (f : ι → M') (x : M) :
   (b.constr S f : M → M') x = ∑ i, (b.equiv_fun x i) • f i :=
 by simp [b.constr_apply, b.equiv_fun_apply, finsupp.sum_fintype]
+
+/-- If the submodule `P` has a finite basis,
+`x ∈ P` iff it is a linear combination of basis vectors. -/
+lemma basis.mem_submodule_iff' {P : submodule R M} (b : basis ι R P) {x : M} :
+  x ∈ P ↔ ∃ (c : ι → R), x = ∑ i, c i • b i :=
+b.mem_submodule_iff.trans $ finsupp.equiv_fun_on_fintype.exists_congr_left.trans $ exists_congr $
+λ c, by simp [finsupp.sum_fintype]
 
 end fintype
 
@@ -859,8 +879,8 @@ section module
 open linear_map
 
 variables {v : ι → M}
-variables [ring R] [add_comm_group M] [add_comm_group M'] [add_comm_group M'']
-variables [module R M] [module R M'] [module R M'']
+variables [ring R] [comm_ring R₂] [add_comm_group M] [add_comm_group M'] [add_comm_group M'']
+variables [module R M] [module R₂ M] [module R M'] [module R M'']
 variables {c d : R} {x y : M}
 variables (b : basis ι R M)
 
@@ -1019,6 +1039,25 @@ lemma units_smul_apply {v : basis ι R M} {w : ι → Rˣ} (i : ι) :
   v.units_smul w i = w i • v i :=
 mk_apply
   (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq).ge i
+
+@[simp] lemma coord_units_smul (e : basis ι R₂ M) (w : ι → R₂ˣ) (i : ι) :
+  (e.units_smul w).coord i = (w i)⁻¹ • e.coord i :=
+begin
+  apply e.ext,
+  intros j,
+  transitivity ((e.units_smul w).coord i) ((w j)⁻¹ • (e.units_smul w) j),
+  { congr,
+    simp [basis.units_smul, ← mul_smul], },
+  simp only [basis.coord_apply, linear_map.smul_apply, basis.repr_self, units.smul_def,
+    smul_hom_class.map_smul, finsupp.single_apply],
+  split_ifs with h h,
+  { simp [h] },
+  { simp }
+end
+
+@[simp] lemma repr_units_smul (e : basis ι R₂ M) (w : ι → R₂ˣ) (v : M) (i : ι) :
+  (e.units_smul w).repr v i = (w i)⁻¹ • e.repr v i :=
+congr_arg (λ f : M →ₗ[R₂] R₂, f v) (e.coord_units_smul w i)
 
 /-- A version of `smul_of_units` that uses `is_unit`. -/
 def is_unit_smul (v : basis ι R M) {w : ι → R} (hw : ∀ i, is_unit (w i)):

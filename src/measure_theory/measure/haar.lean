@@ -5,6 +5,7 @@ Authors: Floris van Doorn
 -/
 import measure_theory.measure.content
 import measure_theory.group.prod
+import group_theory.divisible
 
 /-!
 # Haar measure
@@ -62,10 +63,11 @@ noncomputable theory
 open set has_inv function topological_space measurable_space
 open_locale nnreal classical ennreal pointwise topological_space
 
-variables {G : Type*} [group G]
-
 namespace measure_theory
 namespace measure
+
+section group
+variables {G : Type*} [group G]
 
 /-! We put the internal functions in the construction of the Haar measure in a namespace,
   so that the chosen names don't clash with other declarations.
@@ -150,8 +152,8 @@ lemma le_index_mul (K₀ : positive_compacts G) (K : compacts G) {V : set G}
   (hV : (interior V).nonempty) :
   index (K : set G) V ≤ index (K : set G) K₀ * index (K₀ : set G) V :=
 begin
-  obtain ⟨s, h1s, h2s⟩ := index_elim K.compact K₀.interior_nonempty,
-  obtain ⟨t, h1t, h2t⟩ := index_elim K₀.compact hV,
+  obtain ⟨s, h1s, h2s⟩ := index_elim K.is_compact K₀.interior_nonempty,
+  obtain ⟨t, h1t, h2t⟩ := index_elim K₀.is_compact hV,
   rw [← h2s, ← h2t, mul_comm],
   refine le_trans _ finset.card_mul_le,
   apply nat.Inf_le, refine ⟨_, _, rfl⟩, rw [mem_set_of_eq], refine subset.trans h1s _,
@@ -169,7 +171,7 @@ begin
   { rintro ⟨t, h1t, h2t⟩, rw [finset.card_eq_zero] at h2t, subst h2t,
     obtain ⟨g, hg⟩ := K.interior_nonempty,
     show g ∈ (∅ : set G), convert h1t (interior_subset hg), symmetry, apply bUnion_empty },
-  { exact index_defined K.compact hV }
+  { exact index_defined K.is_compact hV }
 end
 
 @[to_additive add_index_mono]
@@ -208,7 +210,7 @@ begin
     simp only [mem_preimage] at h2g₀,
     simp only [mem_Union], use g₀, split,
     { simp only [finset.mem_filter, h1g₀, true_and], use g,
-      simp only [hg, h2g₀, mem_inter_eq, mem_preimage, and_self] },
+      simp only [hg, h2g₀, mem_inter_iff, mem_preimage, and_self] },
     exact h2g₀ },
   refine le_trans (add_le_add (this K₁.1 $ subset.trans (subset_union_left _ _) h1s)
     (this K₂.1 $ subset.trans (subset_union_right _ _) h1s)) _,
@@ -300,7 +302,7 @@ by { simp only [prehaar], rw [div_add_div_same], congr', exact_mod_cast index_un
 lemma is_left_invariant_prehaar {K₀ : positive_compacts G} {U : set G} (hU : (interior U).nonempty)
   (g : G) (K : compacts G) :
   prehaar (K₀ : set G) U (K.map _ $ continuous_mul_left g) = prehaar (K₀ : set G) U K :=
-by simp only [prehaar, compacts.coe_map, is_left_invariant_index K.compact _ hU]
+by simp only [prehaar, compacts.coe_map, is_left_invariant_index K.is_compact _ hU]
 
 /-!
 ### Lemmas about `haar_product`
@@ -417,7 +419,7 @@ end
 lemma chaar_sup_eq [t2_space G] {K₀ : positive_compacts G} {K₁ K₂ : compacts G}
   (h : disjoint K₁.1 K₂.1) : chaar K₀ (K₁ ⊔ K₂) = chaar K₀ K₁ + chaar K₀ K₂ :=
 begin
-  rcases compact_compact_separated K₁.2 K₂.2 h with ⟨U₁, U₂, h1U₁, h1U₂, h2U₁, h2U₂, hU⟩,
+  rcases is_compact_is_compact_separated K₁.2 K₂.2 h with ⟨U₁, U₂, h1U₁, h1U₂, h2U₁, h2U₂, hU⟩,
   rcases compact_open_separated_mul_right K₁.2 h1U₁ h2U₁ with ⟨L₁, h1L₁, h2L₁⟩,
   rcases mem_nhds_iff.mp h1L₁ with ⟨V₁, h1V₁, h2V₁, h3V₁⟩,
   replace h2L₁ := subset.trans (mul_subset_mul_left h1V₁) h2L₁,
@@ -432,7 +434,7 @@ begin
   let V := V₁ ∩ V₂,
   apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀
     ⟨V⁻¹, (is_open.inter h2V₁ h2V₂).preimage continuous_inv,
-    by simp only [mem_inv, inv_one, h3V₁, h3V₂, V, mem_inter_eq, true_and]⟩),
+    by simp only [mem_inv, inv_one, h3V₁, h3V₂, V, mem_inter_iff, true_and]⟩),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
   { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩,
     simp only [mem_preimage, eval, sub_eq_zero, mem_singleton_iff], rw [eq_comm],
@@ -540,9 +542,9 @@ end
 lemma haar_measure_self {K₀ : positive_compacts G} : haar_measure K₀ K₀ = 1 :=
 begin
   haveI : locally_compact_space G := K₀.locally_compact_space_of_group,
-  rw [haar_measure_apply K₀.compact.measurable_set, ennreal.div_self],
+  rw [haar_measure_apply K₀.is_compact.measurable_set, ennreal.div_self],
   { rw [← pos_iff_ne_zero], exact haar_content_outer_measure_self_pos },
-  { exact (content.outer_measure_lt_top_of_is_compact _ K₀.compact).ne }
+  { exact (content.outer_measure_lt_top_of_is_compact _ K₀.is_compact).ne }
 end
 
 /-- The Haar measure is regular. -/
@@ -569,7 +571,7 @@ gives  finite mass to compact sets and positive mass to nonempty open sets."]
 instance is_haar_measure_haar_measure (K₀ : positive_compacts G) :
   is_haar_measure (haar_measure K₀) :=
 begin
-  apply is_haar_measure_of_is_compact_nonempty_interior (haar_measure K₀) K₀ K₀.compact
+  apply is_haar_measure_of_is_compact_nonempty_interior (haar_measure K₀) K₀ K₀.is_compact
     K₀.interior_nonempty,
   { simp only [haar_measure_self], exact one_ne_zero },
   { simp only [haar_measure_self], exact ennreal.coe_ne_top },
@@ -593,9 +595,9 @@ left invariant measure is a scalar multiple of the additive Haar measure. This i
 than assuming that `μ` is an additive Haar measure (in particular we don't require `μ ≠ 0`)."]
 theorem haar_measure_unique (μ : measure G) [sigma_finite μ] [is_mul_left_invariant μ]
   (K₀ : positive_compacts G) : μ = μ K₀ • haar_measure K₀ :=
-(measure_eq_div_smul μ (haar_measure K₀) K₀.compact.measurable_set
+(measure_eq_div_smul μ (haar_measure K₀) K₀.is_compact.measurable_set
   (measure_pos_of_nonempty_interior _ K₀.interior_nonempty).ne'
-  K₀.compact.measure_lt_top.ne).trans (by rw [haar_measure_self, ennreal.div_one])
+  K₀.is_compact.measure_lt_top.ne).trans (by rw [haar_measure_self, div_one])
 
 example [locally_compact_space G] (μ : measure G) [is_haar_measure μ] (K₀ : positive_compacts G) :
   μ = μ K₀.1 • haar_measure K₀ :=
@@ -617,11 +619,11 @@ theorem is_haar_measure_eq_smul_is_haar_measure
 begin
   have K : positive_compacts G := classical.arbitrary _,
   have νpos : 0 < ν K := measure_pos_of_nonempty_interior _ K.interior_nonempty,
-  have νne : ν K ≠ ∞ := K.compact.measure_lt_top.ne,
+  have νne : ν K ≠ ∞ := K.is_compact.measure_lt_top.ne,
   refine ⟨μ K / ν K, _, _, _⟩,
   { simp only [νne, (μ.measure_pos_of_nonempty_interior K.interior_nonempty).ne', ne.def,
       ennreal.div_zero_iff, not_false_iff, or_self] },
-  { simp only [div_eq_mul_inv, νpos.ne', (K.compact.measure_lt_top).ne, or_self,
+  { simp only [div_eq_mul_inv, νpos.ne', (K.is_compact.measure_lt_top).ne, or_self,
       ennreal.inv_eq_top, with_top.mul_eq_top_iff, ne.def, not_false_iff, and_false, false_and] },
   { calc
     μ = μ K • haar_measure K : haar_measure_unique μ K
@@ -694,19 +696,26 @@ end
 
 end second_countable
 
-/-- Any Haar measure is invariant under inversion in a commutative group. -/
-@[to_additive "Any additive Haar measure is invariant under negation in a commutative group."]
-lemma map_haar_inv
-  {G : Type*} [comm_group G] [topological_space G] [topological_group G] [t2_space G]
-  [measurable_space G] [borel_space G] [locally_compact_space G] [second_countable_topology G]
-  (μ : measure G) [is_haar_measure μ] :
-  measure.map has_inv.inv μ = μ :=
+end group
+
+section comm_group
+
+variables {G : Type*} [comm_group G] [topological_space G] [topological_group G] [t2_space G]
+  [measurable_space G] [borel_space G] [second_countable_topology G]
+  (μ : measure G) [is_haar_measure μ]
+
+/-- Any Haar measure is invariant under inversion in an abelian group. -/
+@[priority 100, to_additive
+  "Any additive Haar measure is invariant under negation in an abelian group."]
+instance is_haar_measure.is_inv_invariant [locally_compact_space G] :
+  is_inv_invariant μ :=
 begin
   -- the image measure is a Haar measure. By uniqueness up to multiplication, it is of the form
   -- `c μ`. Applying again inversion, one gets the measure `c^2 μ`. But since inversion is an
   -- involution, this is also `μ`. Hence, `c^2 = 1`, which implies `c = 1`.
+  constructor,
   haveI : is_haar_measure (measure.map has_inv.inv μ) :=
-    is_haar_measure_map μ (mul_equiv.inv G) continuous_inv continuous_inv,
+    (mul_equiv.inv G).is_haar_measure_map μ continuous_inv continuous_inv,
   obtain ⟨c, cpos, clt, hc⟩ : ∃ (c : ℝ≥0∞), (c ≠ 0) ∧ (c ≠ ∞) ∧ (measure.map has_inv.inv μ = c • μ)
     := is_haar_measure_eq_smul_is_haar_measure _ _,
   have : map has_inv.inv (map has_inv.inv μ) = c^2 • μ,
@@ -721,27 +730,39 @@ begin
          simp, },
   have : c^2 = 1^2 :=
     (ennreal.mul_eq_mul_right (measure_pos_of_nonempty_interior _ K.interior_nonempty).ne'
-      K.compact.measure_lt_top.ne).1 this,
+      K.is_compact.measure_lt_top.ne).1 this,
   have : c = 1 := (ennreal.pow_strict_mono two_ne_zero).injective this,
-  rw [hc, this, one_smul]
+  rw [measure.inv, hc, this, one_smul]
 end
 
-@[simp, to_additive] lemma haar_preimage_inv
-  {G : Type*} [comm_group G] [topological_space G] [topological_group G] [t2_space G]
-  [measurable_space G] [borel_space G] [locally_compact_space G] [second_countable_topology G]
-  (μ : measure G) [is_haar_measure μ] (s : set G) :
-  μ (s⁻¹) = μ s :=
-calc μ (s⁻¹) = measure.map (has_inv.inv) μ s :
-  ((homeomorph.inv G).to_measurable_equiv.map_apply s).symm
-... = μ s : by rw map_haar_inv
+@[to_additive]
+lemma measure_preserving_zpow [compact_space G] [rootable_by G ℤ] {n : ℤ} (hn : n ≠ 0) :
+  measure_preserving (λ (g : G), g^n) μ μ :=
+{ measurable := (continuous_zpow n).measurable,
+  map_eq :=
+  begin
+    let f := @zpow_group_hom G _ n,
+    have hf : continuous f := continuous_zpow n,
+    haveI : (μ.map f).is_haar_measure :=
+      is_haar_measure_map μ f hf (rootable_by.surjective_pow G ℤ hn) (by simp),
+    obtain ⟨C, -, -, hC⟩ := is_haar_measure_eq_smul_is_haar_measure (μ.map f) μ,
+    suffices : C = 1, { rwa [this, one_smul] at hC, },
+    have h_univ : (μ.map f) univ = μ univ,
+    { rw [map_apply_of_ae_measurable hf.measurable.ae_measurable measurable_set.univ,
+        preimage_univ], },
+    have hμ₀ : μ univ ≠ 0 := is_open_pos_measure.open_pos univ is_open_univ univ_nonempty,
+    have hμ₁ : μ univ ≠ ∞ := compact_space.is_finite_measure.measure_univ_lt_top.ne,
+    rwa [hC, smul_apply, algebra.id.smul_eq_mul, mul_comm, ← ennreal.eq_div_iff hμ₀ hμ₁,
+      ennreal.div_self hμ₀ hμ₁] at h_univ,
+  end, }
 
 @[to_additive]
-lemma measure_preserving_inv
-  {G : Type*} [comm_group G] [topological_space G] [topological_group G] [t2_space G]
-  [measurable_space G] [borel_space G] [locally_compact_space G] [second_countable_topology G]
-  (μ : measure G) [is_haar_measure μ] :
-  measure_preserving has_inv.inv μ μ :=
-⟨measurable_inv, map_haar_inv μ⟩
+lemma measure_preserving.zpow [compact_space G] [rootable_by G ℤ] {n : ℤ} (hn : n ≠ 0)
+  {X : Type*} [measurable_space X] {μ' : measure X} {f : X → G} (hf : measure_preserving f μ' μ) :
+  measure_preserving (λ x, (f x)^n) μ' μ :=
+(measure_preserving_zpow μ hn).comp hf
+
+end comm_group
 
 end measure
 end measure_theory

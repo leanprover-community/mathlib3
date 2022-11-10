@@ -546,7 +546,7 @@ begin
   apply ae_restrict_of_ae,
   refine measure_mono_null _ ((countable_ne Hcont φ).measure_zero _),
   assume x,
-  simp only [imp_self, mem_set_of_eq, mem_compl_eq],
+  simp only [imp_self, mem_set_of_eq, mem_compl_iff],
 end
 
 lemma integrable_comp (Hcont : #ℝ = aleph 1) (φ : (discrete_copy ℝ →ᵇ ℝ) →L[ℝ] ℝ) :

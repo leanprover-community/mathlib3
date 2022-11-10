@@ -59,7 +59,7 @@ variables {E : Type*} [inner_product_space ℝ E]
 
 noncomputable theory
 
-open metric finite_dimensional
+open metric finite_dimensional function
 open_locale manifold
 
 local attribute [instance] fact_finite_dimensional_of_finrank_eq_succ
@@ -127,6 +127,36 @@ begin
   simp [norm_add_sq_real, norm_smul, inner_smul_left, inner_smul_right,
     inner_left_of_mem_orthogonal_singleton _ hw, mul_pow, real.norm_eq_abs, hv],
   ring
+end
+
+lemma has_fderiv_at_stereo_inv_fun_aux (v : E) :
+  has_fderiv_at (stereo_inv_fun_aux v) (continuous_linear_map.id ℝ E) 0 :=
+begin
+  have h₀ : has_fderiv_at (λ w : E, ∥w∥ ^ 2) (0 : E →L[ℝ] ℝ) 0,
+  { convert (has_strict_fderiv_at_norm_sq _).has_fderiv_at,
+    simp },
+  have h₁ : has_fderiv_at (λ w : E, (∥w∥ ^ 2 + 4)⁻¹) (0 : E →L[ℝ] ℝ) 0,
+  { convert (has_fderiv_at_inv _).comp _ (h₀.add (has_fderiv_at_const 4 0)); simp },
+  have h₂ : has_fderiv_at (λ w, (4:ℝ) • w + (∥w∥ ^ 2 - 4) • v)
+    ((4:ℝ) • continuous_linear_map.id ℝ E) 0,
+  { convert ((has_fderiv_at_const (4:ℝ) 0).smul (has_fderiv_at_id 0)).add
+      ((h₀.sub (has_fderiv_at_const (4:ℝ) 0)).smul (has_fderiv_at_const v 0)),
+    ext w,
+    simp, },
+  convert h₁.smul h₂,
+  ext w,
+  simp,
+end
+
+lemma has_fderiv_at_stereo_inv_fun_aux_comp_coe (v : E) :
+  has_fderiv_at (stereo_inv_fun_aux v ∘ (coe : (ℝ ∙ v)ᗮ → E)) (ℝ ∙ v)ᗮ.subtypeL 0 :=
+begin
+  have : has_fderiv_at
+    (stereo_inv_fun_aux v)
+    (continuous_linear_map.id ℝ E)
+    ((ℝ ∙ v)ᗮ.subtypeL 0) :=
+    has_fderiv_at_stereo_inv_fun_aux v,
+  convert this.comp (0 : (ℝ ∙ v)ᗮ) (by apply continuous_linear_map.has_fderiv_at),
 end
 
 lemma cont_diff_stereo_inv_fun_aux : cont_diff ℝ ⊤ (stereo_inv_fun_aux v) :=
@@ -264,6 +294,18 @@ rfl
 rfl
 
 @[simp] lemma stereographic_target (hv : ∥v∥ = 1) : (stereographic hv).target = set.univ := rfl
+
+@[simp] lemma stereographic_apply_neg (v : sphere (0:E) 1) :
+  stereographic (norm_eq_of_mem_sphere v) (-v) = 0 :=
+by simp [stereographic_apply, orthogonal_projection_orthogonal_complement_singleton_eq_zero]
+
+@[simp] lemma stereographic_neg_apply (v : sphere (0:E) 1) :
+  stereographic (norm_eq_of_mem_sphere (-v)) v = 0 :=
+begin
+  convert stereographic_apply_neg (-v),
+  ext1,
+  simp,
+end
 
 end stereographic_projection
 
@@ -412,6 +454,67 @@ begin
   apply cont_mdiff.cod_restrict_sphere,
   apply cont_diff_neg.cont_mdiff.comp _,
   exact cont_mdiff_coe_sphere,
+end
+
+/-- Consider the differential of the inclusion of the sphere in `E` at the point `v` as a continuous
+linear map from `tangent_space (𝓡 n) v` to `E`.  The range of this map is the orthogonal complement
+of `v` in `E`.
+
+Note that there is an abuse here of the defeq between `E` and the tangent space to `E` at `(v:E`).
+In general this defeq is not canonical, but in this case (the tangent space of a vector space) it is
+canonical. -/
+lemma range_mfderiv_coe_sphere {n : ℕ} [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1) :
+  (mfderiv (𝓡 n) 𝓘(ℝ, E) (coe : sphere (0:E) 1 → E) v : tangent_space (𝓡 n) v →L[ℝ] E).range
+  = (ℝ ∙ (v:E))ᗮ :=
+begin
+  rw ((cont_mdiff_coe_sphere v).mdifferentiable_at le_top).mfderiv,
+  simp only [chart_at, stereographic', stereographic_neg_apply, fderiv_within_univ,
+    linear_isometry_equiv.to_homeomorph_symm, linear_isometry_equiv.coe_to_homeomorph,
+    linear_isometry_equiv.map_zero] with mfld_simps,
+  let U :=
+    (orthonormal_basis.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v))).repr,
+  change (fderiv ℝ ((stereo_inv_fun_aux (-v : E) ∘ coe) ∘ U.symm) 0).range = (ℝ ∙ (v:E))ᗮ,
+  have : has_fderiv_at
+      (stereo_inv_fun_aux (-v : E) ∘ (coe : (ℝ ∙ (↑(-v):E))ᗮ → E))
+      (ℝ ∙ (↑(-v):E))ᗮ.subtypeL
+      (U.symm 0),
+  { convert has_fderiv_at_stereo_inv_fun_aux_comp_coe (-v:E),
+    simp },
+  rw (this.comp 0 U.symm.to_continuous_linear_equiv.has_fderiv_at).fderiv,
+  convert (U.symm : euclidean_space ℝ (fin n) ≃ₗᵢ[ℝ] (ℝ ∙ (↑(-v):E))ᗮ).range_comp
+      (ℝ ∙ (↑(-v):E))ᗮ.subtype using 1,
+  simp only [submodule.range_subtype, coe_neg_sphere],
+  congr' 1,
+  -- we must show `submodule.span ℝ {v} = submodule.span ℝ {-v}`
+  apply submodule.span_eq_span,
+  { simp only [set.singleton_subset_iff, set_like.mem_coe],
+    rw ← submodule.neg_mem_iff,
+    exact submodule.mem_span_singleton_self (-v) },
+  { simp only [set.singleton_subset_iff, set_like.mem_coe],
+    rw submodule.neg_mem_iff,
+    exact submodule.mem_span_singleton_self v },
+end
+
+/-- Consider the differential of the inclusion of the sphere in `E` at the point `v` as a continuous
+linear map from `tangent_space (𝓡 n) v` to `E`.  This map is injective. -/
+lemma mfderiv_coe_sphere_injective {n : ℕ} [fact (finrank ℝ E = n + 1)] (v : sphere (0:E) 1) :
+  injective (mfderiv (𝓡 n) 𝓘(ℝ, E) (coe : sphere (0:E) 1 → E) v) :=
+begin
+  rw ((cont_mdiff_coe_sphere v).mdifferentiable_at le_top).mfderiv,
+  simp only [chart_at, stereographic', stereographic_neg_apply, fderiv_within_univ,
+    linear_isometry_equiv.to_homeomorph_symm, linear_isometry_equiv.coe_to_homeomorph,
+    linear_isometry_equiv.map_zero] with mfld_simps,
+  let U :=
+    (orthonormal_basis.from_orthogonal_span_singleton n (ne_zero_of_mem_unit_sphere (-v))).repr,
+  change injective (fderiv ℝ ((stereo_inv_fun_aux (-v : E) ∘ coe) ∘ U.symm) 0),
+  have : has_fderiv_at
+      (stereo_inv_fun_aux (-v : E) ∘ (coe : (ℝ ∙ (↑(-v):E))ᗮ → E))
+      (ℝ ∙ (↑(-v):E))ᗮ.subtypeL
+      (U.symm 0),
+  { convert has_fderiv_at_stereo_inv_fun_aux_comp_coe (-v:E),
+    simp },
+  rw (this.comp 0 U.symm.to_continuous_linear_equiv.has_fderiv_at).fderiv,
+  simpa using subtype.coe_injective,
 end
 
 end smooth_manifold

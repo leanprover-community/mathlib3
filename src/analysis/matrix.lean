@@ -66,7 +66,7 @@ local attribute [instance] matrix.seminormed_add_comm_group
 
 lemma norm_le_iff {r : ℝ} (hr : 0 ≤ r) {A : matrix m n α} :
   ∥A∥ ≤ r ↔ ∀ i j, ∥A i j∥ ≤ r :=
-by simp [pi_norm_le_iff hr]
+by simp [pi_norm_le_iff_of_nonneg hr]
 
 lemma nnnorm_le_iff {r : ℝ≥0} {A : matrix m n α} :
   ∥A∥₊ ≤ r ↔ ∀ i j, ∥A i j∥₊ ≤ r :=
@@ -132,6 +132,7 @@ end
 congr_arg coe $ nnnorm_diagonal v
 
 /-- Note this is safe as an instance as it carries no data. -/
+@[nolint fails_quickly]
 instance [nonempty n] [decidable_eq n] [has_one α] [norm_one_class α] :
   norm_one_class (matrix n n α) :=
 ⟨(norm_diagonal _).trans $ norm_one⟩
@@ -398,7 +399,7 @@ instance frobenius_normed_star_group [star_add_monoid α] [normed_star_group α]
 @[simp] lemma frobenius_norm_row (v : m → α) : ∥row v∥ = ∥(pi_Lp.equiv 2 _).symm v∥ :=
 begin
   rw [frobenius_norm_def, fintype.sum_unique, pi_Lp.norm_eq_of_L2, real.sqrt_eq_rpow],
-  simp only [row_apply, real.rpow_two, pi_Lp.equiv_symm_apply'],
+  simp only [row_apply, real.rpow_two, pi_Lp.equiv_symm_apply],
 end
 @[simp] lemma frobenius_nnnorm_row (v : m → α) : ∥row v∥₊ = ∥(pi_Lp.equiv 2 _).symm v∥₊ :=
 subtype.ext $ frobenius_norm_row v
@@ -406,7 +407,7 @@ subtype.ext $ frobenius_norm_row v
 @[simp] lemma frobenius_norm_col (v : n → α) : ∥col v∥ = ∥(pi_Lp.equiv 2 _).symm v∥ :=
 begin
   simp_rw [frobenius_norm_def, fintype.sum_unique, pi_Lp.norm_eq_of_L2, real.sqrt_eq_rpow],
-  simp only [col_apply, real.rpow_two, pi_Lp.equiv_symm_apply']
+  simp only [col_apply, real.rpow_two, pi_Lp.equiv_symm_apply]
 end
 @[simp] lemma frobenius_nnnorm_col (v : n → α) : ∥col v∥₊ = ∥(pi_Lp.equiv 2 _).symm v∥₊ :=
 subtype.ext $ frobenius_norm_col v

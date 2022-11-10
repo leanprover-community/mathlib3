@@ -47,10 +47,8 @@ lemma cycle_type_def (σ : perm α) :
   σ.cycle_type = σ.cycle_factors_finset.1.map (finset.card ∘ support) := rfl
 
 lemma cycle_type_eq' {σ : perm α} (s : finset (perm α))
-  (h1 : ∀ f : perm α, f ∈ s → f.is_cycle) (h2 : ∀ (a ∈ s) (b ∈ s), a ≠ b → disjoint a b)
-  (h0 : s.noncomm_prod id
-    (λ a ha b hb, (em (a = b)).by_cases (λ h, h ▸ commute.refl a)
-      (set.pairwise.mono' (λ _ _, disjoint.commute) h2 ha hb)) = σ) :
+  (h1 : ∀ f : perm α, f ∈ s → f.is_cycle) (h2 : (s : set (perm α)).pairwise disjoint)
+  (h0 : s.noncomm_prod id (h2.imp $ λ _ _, disjoint.commute) = σ) :
   σ.cycle_type = s.1.map (finset.card ∘ support) :=
 begin
   rw cycle_type_def,
@@ -302,6 +300,9 @@ begin
   { intros σ τ hd hc hσ hτ,
     rw [hd.cycle_type, ← extend_domain_mul, (hd.extend_domain f).cycle_type, hσ, hτ] }
 end
+
+lemma cycle_type_of_subtype {p : α → Prop} [decidable_pred p] {g : perm (subtype p)}:
+  cycle_type (g.of_subtype) = cycle_type g := cycle_type_extend_domain (equiv.refl (subtype p))
 
 lemma mem_cycle_type_iff {n : ℕ} {σ : perm α} :
   n ∈ cycle_type σ ↔ ∃ c τ : perm α, σ = c * τ ∧ disjoint c τ ∧ is_cycle c ∧ c.support.card = n :=

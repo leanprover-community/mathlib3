@@ -10,6 +10,7 @@ import order.sup_indep
 import order.zorn
 import data.finset.order
 import data.finite.default
+import data.set.intervals.order_iso
 
 /-!
 # Compactness properties for complete lattices
@@ -425,7 +426,7 @@ theorem Iic_coatomic_of_compact_element {k : α} (h : is_compact_element k) :
     by_cases hS : S.nonempty,
     { exact ⟨Sup S, h.directed_Sup_lt_of_lt hS cC.directed_on SC, λ _, le_Sup⟩, },
     exact ⟨b, lt_of_le_of_ne hbk htriv, by simp only [set.not_nonempty_iff_eq_empty.mp hS,
-      set.mem_empty_eq, forall_const, forall_prop_of_false, not_false_iff]⟩, },
+      set.mem_empty_iff_false, forall_const, forall_prop_of_false, not_false_iff]⟩, },
 end⟩
 
 lemma coatomic_of_top_compact (h : is_compact_element (⊤ : α)) : is_coatomic α :=

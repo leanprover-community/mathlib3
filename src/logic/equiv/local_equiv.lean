@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.set.function
-import logic.equiv.basic
+import logic.equiv.defs
 
 /-!
 # Local equivalences
@@ -81,7 +81,7 @@ enough.
 -- with manifolds
 attribute [mfld_simps] id.def function.comp.left_id set.mem_set_of_eq set.image_eq_empty
 set.univ_inter set.preimage_univ set.prod_mk_mem_set_prod_eq and_true set.mem_univ
-set.mem_image_of_mem true_and set.mem_inter_eq set.mem_preimage function.comp_app
+set.mem_image_of_mem true_and set.mem_inter_iff set.mem_preimage function.comp_app
 set.inter_subset_left set.mem_prod set.range_id set.range_prod_map and_self set.mem_range_self
 eq_self_iff_true forall_const forall_true_iff set.inter_univ set.preimage_id function.comp.right_id
 not_false_iff and_imp set.prod_inter_prod set.univ_prod_univ true_or or_true prod.map_mk
@@ -290,7 +290,7 @@ lemma symm_image_eq (h : e.is_image s t) : e.symm '' (e.target ∩ t) = e.source
 h.symm.image_eq
 
 lemma iff_preimage_eq : e.is_image s t ↔ e.source ∩ e ⁻¹' t = e.source ∩ s :=
-by simp only [is_image, set.ext_iff, mem_inter_eq, and.congr_right_iff, mem_preimage]
+by simp only [is_image, set.ext_iff, mem_inter_iff, and.congr_right_iff, mem_preimage]
 
 alias iff_preimage_eq ↔ preimage_eq of_preimage_eq
 
@@ -623,7 +623,7 @@ begin
   split,
   { simp [he.1] },
   { assume x hx,
-    simp only [mem_inter_eq, restr_source] at hx,
+    simp only [mem_inter_iff, restr_source] at hx,
     exact he.2 hx.1 }
 end
 
@@ -690,6 +690,10 @@ lemma prod_coe_symm (e : local_equiv α β) (e' : local_equiv γ δ) :
 @[simp, mfld_simps] lemma prod_symm (e : local_equiv α β) (e' : local_equiv γ δ) :
   (e.prod e').symm = (e.symm.prod e'.symm) :=
 by ext x; simp [prod_coe_symm]
+
+@[simp, mfld_simps] lemma refl_prod_refl :
+  (local_equiv.refl α).prod (local_equiv.refl β) = local_equiv.refl (α × β) :=
+by { ext1 ⟨x, y⟩, { refl }, { rintro ⟨x, y⟩, refl }, exact univ_prod_univ }
 
 @[simp, mfld_simps] lemma prod_trans {η : Type*} {ε : Type*}
   (e : local_equiv α β) (f : local_equiv β γ) (e' : local_equiv δ η) (f' : local_equiv η ε) :

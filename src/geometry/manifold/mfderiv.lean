@@ -186,11 +186,6 @@ unique_diff_within_at 𝕜 ((ext_chart_at I x).symm ⁻¹' s ∩ range I) ((ext_
 def unique_mdiff_on (s : set M) :=
 ∀x∈s, unique_mdiff_within_at I s x
 
-/-- Conjugating a function to write it in the preferred charts around `x`. The manifold derivative
-of `f` will just be the derivative of this conjugated function. -/
-@[simp, mfld_simps] def written_in_ext_chart_at (x : M) (f : M → M') : E → E' :=
-(ext_chart_at I' (f x)) ∘ f ∘ (ext_chart_at I x).symm
-
 /-- `mdifferentiable_within_at I I' f s x` indicates that the function `f` between manifolds
 has a derivative at the point `x` within the set `s`.
 This is a generalization of `differentiable_within_at` to manifolds.
@@ -1447,11 +1442,11 @@ lemma mfderiv_surjective {x : M} (hx : x ∈ e.source) :
 (he.mfderiv hx).surjective
 
 lemma ker_mfderiv_eq_bot {x : M} (hx : x ∈ e.source) :
-  (mfderiv I I' e x).ker = ⊥ :=
+  linear_map.ker (mfderiv I I' e x) = ⊥ :=
 (he.mfderiv hx).to_linear_equiv.ker
 
 lemma range_mfderiv_eq_top {x : M} (hx : x ∈ e.source) :
-  (mfderiv I I' e x).range = ⊤ :=
+  linear_map.range (mfderiv I I' e x) = ⊤ :=
 (he.mfderiv hx).to_linear_equiv.range
 
 lemma range_mfderiv_eq_univ {x : M} (hx : x ∈ e.source) :

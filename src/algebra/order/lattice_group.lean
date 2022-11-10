@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
 import algebra.group_power.basic -- Needed for squares
-import algebra.order.group
+import algebra.order.group.abs
 import tactic.nth_rewrite
 
 /-!

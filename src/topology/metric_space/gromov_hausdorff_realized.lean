@@ -244,7 +244,7 @@ begin
                ∩ (⋂x y z, {f : Cb X Y | f (x, z) ≤ f (x, y) + f (y, z)})
                ∩ (⋂x, {f : Cb X Y | f (x, x) = 0})
                ∩ (⋂x y, {f : Cb X Y | f (x, y) ≤ max_var X Y}),
-  { ext, simp only [candidates_b, candidates, mem_inter_eq, mem_Inter, mem_set_of_eq] },
+  { ext, simp only [candidates_b, candidates, mem_inter_iff, mem_Inter, mem_set_of_eq] },
   rw this,
   repeat { apply is_closed.inter _ _
        <|> apply is_closed_Inter _
@@ -258,7 +258,7 @@ begin
 end
 
 /-- Compactness of candidates (in bounded_continuous_functions) follows. -/
-private lemma compact_candidates_b : is_compact (candidates_b X Y) :=
+private lemma is_compact_candidates_b : is_compact (candidates_b X Y) :=
 begin
   refine arzela_ascoli₂ (Icc 0 (max_var X Y)) is_compact_Icc (candidates_b X Y)
   closed_candidates_b _ _,
@@ -428,7 +428,7 @@ variables (X : Type u) (Y : Type v) [metric_space X] [compact_space X] [nonempty
 we can finally select a candidate minimizing HD. This will be the candidate realizing the
 optimal coupling. -/
 private lemma exists_minimizer : ∃ f ∈ candidates_b X Y, ∀ g ∈ candidates_b X Y, HD f ≤ HD g :=
-compact_candidates_b.exists_forall_le candidates_b_nonempty HD_continuous.continuous_on
+is_compact_candidates_b.exists_forall_le candidates_b_nonempty HD_continuous.continuous_on
 
 private definition optimal_GH_dist : Cb X Y := classical.some (exists_minimizer X Y)
 
@@ -492,8 +492,8 @@ instance compact_space_optimal_GH_coupling : compact_space (optimal_GH_coupling 
       rw this,
       exact mem_union_right _ (mem_image_of_mem _ (mem_univ _)) } },
   rw this,
-  exact (compact_univ.image (isometry_optimal_GH_injl X Y).continuous).union
-    (compact_univ.image (isometry_optimal_GH_injr X Y).continuous)
+  exact (is_compact_univ.image (isometry_optimal_GH_injl X Y).continuous).union
+    (is_compact_univ.image (isometry_optimal_GH_injr X Y).continuous)
 end⟩
 
 /-- For any candidate `f`, `HD(f)` is larger than or equal to the Hausdorff distance in the

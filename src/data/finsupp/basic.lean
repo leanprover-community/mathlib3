@@ -370,7 +370,7 @@ lemma equiv_map_domain_trans' (f : α ≃ β) (g : β ≃ γ) :
 by ext x; simp only [single_apply, equiv.apply_eq_iff_eq_symm_apply, equiv_map_domain_apply]; congr
 
 @[simp] lemma equiv_map_domain_zero {f : α ≃ β} : equiv_map_domain f (0 : α →₀ M) = (0 : β →₀ M) :=
-by ext x; simp only [equiv_map_domain_apply, coe_zero, pi.zero_apply]
+by ext x; simp only [equiv_map_domain_apply, finsupp.coe_zero, pi.zero_apply]
 
 /-- Given `f : α ≃ β`, the finitely supported function spaces are also in bijection:
 `(α →₀ M) ≃ (β →₀ M)`.
@@ -536,24 +536,14 @@ lemma map_domain_apply' (S : set α) {f : α → β} (x : α →₀ M)
 begin
   rw [map_domain, sum_apply, sum],
   simp_rw single_apply,
-  have : ∀ (b : α) (ha1 : b ∈ x.support),
-    (if f b = f a then x b else 0) = if f b = f a then x a else 0,
-  { intros b hb,
-    refine if_ctx_congr iff.rfl (λ hh, _) (λ _, rfl),
-    rw hf (hS hb) ha hh, },
-  conv in (ite _ _ _)
-  { rw [this _ H], },
-  by_cases ha : a ∈ x.support,
-  { rw [← finset.add_sum_erase _ _ ha, if_pos rfl],
+  by_cases hax : a ∈ x.support,
+  { rw [← finset.add_sum_erase _ _ hax, if_pos rfl],
     convert add_zero _,
-    have : ∀ i ∈ x.support.erase a, f i ≠ f a,
-    { intros i hi,
-      exact (finset.ne_of_mem_erase hi) ∘ (hf (hS $ finset.mem_of_mem_erase hi) (hS ha)), },
-    conv in (ite _ _ _)
-    { rw if_neg (this x H), },
-    exact finset.sum_const_zero, },
-  { rw [mem_support_iff, not_not] at ha,
-    simp [ha], }
+    refine finset.sum_eq_zero (λ i hi, if_neg _),
+    exact (hf.mono hS).ne (finset.mem_of_mem_erase hi) hax (finset.ne_of_mem_erase hi), },
+  { rw not_mem_support_iff.1 hax,
+    refine finset.sum_eq_zero (λ i hi, if_neg _),
+    exact hf.ne (hS hi) ha (ne_of_mem_of_not_mem hi hax) }
 end
 
 lemma map_domain_support_of_inj_on [decidable_eq β] {f : α → β} (s : α →₀ M)
@@ -744,7 +734,7 @@ lemma comap_domain_add (v₁ v₂ : β →₀ M)
   (hv₁ : set.inj_on f (f ⁻¹' ↑(v₁.support))) (hv₂ : set.inj_on f (f ⁻¹' ↑(v₂.support)))
   (hv₁₂ : set.inj_on f (f ⁻¹' ↑((v₁ + v₂).support))) :
   comap_domain f (v₁ + v₂) hv₁₂ = comap_domain f v₁ hv₁ + comap_domain f v₂ hv₂ :=
-by { ext, simp only [comap_domain_apply, coe_add, pi.add_apply] }
+by { ext, simp only [comap_domain_apply, finsupp.coe_add, pi.add_apply] }
 
 /-- A version of `finsupp.comap_domain_add` that's easier to use. -/
 lemma comap_domain_add_of_injective (hf : function.injective f) (v₁ v₂ : β →₀ M) :
@@ -1296,36 +1286,42 @@ end
 end
 
 section
-instance [monoid R] [add_monoid M] [distrib_mul_action R M] : has_smul R (α →₀ M) :=
-⟨λa v, v.map_range ((•) a) (smul_zero _)⟩
+
+instance [has_zero M] [smul_zero_class R M] : smul_zero_class R (α →₀ M) :=
+{ smul := λ a v, v.map_range ((•) a) (smul_zero _),
+  smul_zero := λ a, by { ext, apply smul_zero } }
 
 /-!
 Throughout this section, some `monoid` and `semiring` arguments are specified with `{}` instead of
 `[]`. See note [implicit instance arguments].
 -/
 
-@[simp] lemma coe_smul {_ : monoid R} [add_monoid M] [distrib_mul_action R M]
+@[simp] protected lemma coe_smul [add_monoid M] [distrib_smul R M]
   (b : R) (v : α →₀ M) : ⇑(b • v) = b • v := rfl
-lemma smul_apply {_ : monoid R} [add_monoid M] [distrib_mul_action R M]
+lemma smul_apply [add_monoid M] [distrib_smul R M]
   (b : R) (v : α →₀ M) (a : α) : (b • v) a = b • (v a) := rfl
 
-lemma _root_.is_smul_regular.finsupp {_ : monoid R} [add_monoid M] [distrib_mul_action R M] {k : R}
+lemma _root_.is_smul_regular.finsupp [add_monoid M] [distrib_smul R M] {k : R}
   (hk : is_smul_regular M k) : is_smul_regular (α →₀ M) k :=
 λ _ _ h, ext $ λ i, hk (congr_fun h i)
 
-instance [monoid R] [nonempty α] [add_monoid M] [distrib_mul_action R M] [has_faithful_smul R M] :
+instance [nonempty α] [add_monoid M] [distrib_smul R M] [has_faithful_smul R M] :
   has_faithful_smul R (α →₀ M) :=
 { eq_of_smul_eq_smul := λ r₁ r₂ h, let ⟨a⟩ := ‹nonempty α› in eq_of_smul_eq_smul $ λ m : M,
     by simpa using congr_fun (h (single a m)) a }
 
 variables (α M)
 
-instance [monoid R] [add_monoid M] [distrib_mul_action R M] : distrib_mul_action R (α →₀ M) :=
+instance [add_zero_class M] [distrib_smul R M] : distrib_smul R (α →₀ M) :=
 { smul      := (•),
   smul_add  := λ a x y, ext $ λ _, smul_add _ _ _,
+  smul_zero := λ x, ext $ λ _, smul_zero _ }
+
+instance [monoid R] [add_monoid M] [distrib_mul_action R M] : distrib_mul_action R (α →₀ M) :=
+{ smul      := (•),
   one_smul  := λ x, ext $ λ _, one_smul _ _,
   mul_smul  := λ r s x, ext $ λ _, mul_smul _ _ _,
-  smul_zero := λ x, ext $ λ _, smul_zero _ }
+  ..finsupp.distrib_smul _ _ }
 
 instance [monoid R] [monoid S] [add_monoid M] [distrib_mul_action R M] [distrib_mul_action S M]
   [has_smul R S] [is_scalar_tower R S M] :
@@ -1416,14 +1412,14 @@ lemma sum_smul_index [semiring R] [add_comm_monoid M] {g : α →₀ R} {b : R} 
   (h0 : ∀i, h i 0 = 0) : (b • g).sum h = g.sum (λi a, h i (b * a)) :=
 finsupp.sum_map_range_index h0
 
-lemma sum_smul_index' [monoid R] [add_monoid M] [distrib_mul_action R M] [add_comm_monoid N]
+lemma sum_smul_index' [add_monoid M] [distrib_smul R M] [add_comm_monoid N]
   {g : α →₀ M} {b : R} {h : α → M → N} (h0 : ∀i, h i 0 = 0) :
   (b • g).sum h = g.sum (λi c, h i (b • c)) :=
 finsupp.sum_map_range_index h0
 
 /-- A version of `finsupp.sum_smul_index'` for bundled additive maps. -/
 lemma sum_smul_index_add_monoid_hom
-  [monoid R] [add_monoid M] [add_comm_monoid N] [distrib_mul_action R M]
+  [add_monoid M] [add_comm_monoid N] [distrib_smul R M]
   {g : α →₀ M} {b : R} {h : α → M →+ N} :
   (b • g).sum (λ a, h a) = g.sum (λ i c, h i (b • c)) :=
 sum_map_range_index (λ i, (h i).map_zero)
@@ -1626,5 +1622,17 @@ noncomputable def sigma_finsupp_add_equiv_pi_finsupp
 sigma_finsupp_add_equiv_pi_finsupp f j i = f ⟨j, i⟩ := rfl
 
 end sigma
+
+/-! ### Meta declarations -/
+
+/-- Stringify a `finsupp` as a sequence of `finsupp.single` terms.
+
+Note this is `meta` as it has to choose some order for the terms. -/
+meta instance (ι α : Type*) [has_zero α] [has_repr ι] [has_repr α] :
+  has_repr (ι →₀ α) :=
+{ repr := λ f,
+  if f.support.card = 0 then "0"
+  else " + ".intercalate $
+    f.support.val.unquot.map (λ i, "finsupp.single " ++ repr i ++ " " ++ repr (f i)) }
 
 end finsupp

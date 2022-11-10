@@ -3,8 +3,8 @@ Copyright (c) 2020 Hanting Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hanting Zhang
 -/
-import field_theory.splitting_field
-import ring_theory.polynomial.symmetric
+import data.polynomial.splits
+import ring_theory.mv_polynomial.symmetric
 
 /-!
 # Vieta's Formula
@@ -67,6 +67,14 @@ begin
   { rw finset.mem_range,
     exact nat.sub_lt_succ s.card k }
 end
+
+lemma prod_X_add_C_coeff' {σ} (s : multiset σ) (r : σ → R) {k : ℕ} (h : k ≤ s.card) :
+  (s.map (λ i, X + C (r i))).prod.coeff k = (s.map r).esymm (s.card - k) :=
+by rw [← map_map (λ r, X + C r) r, prod_X_add_C_coeff]; rwa s.card_map r
+
+lemma _root_.finset.prod_X_add_C_coeff {σ} (s : finset σ) (r : σ → R) {k : ℕ} (h : k ≤ s.card) :
+  (∏ i in s, (X + C (r i))).coeff k = ∑ t in s.powerset_len (s.card - k), ∏ i in t, r i :=
+by { rw [finset.prod, prod_X_add_C_coeff' _ r h, finset.esymm_map_val], refl }
 
 end semiring
 
@@ -142,10 +150,10 @@ lemma mv_polynomial.prod_C_add_X_eq_sum_esymm :
 begin
   let s := finset.univ.val.map (λ i : σ, mv_polynomial.X i),
   rw (_ : card σ = s.card),
-  { simp_rw [mv_polynomial.esymm_eq_multiset.esymm σ R _, finset.prod_eq_multiset_prod],
+  { simp_rw [mv_polynomial.esymm_eq_multiset_esymm σ R, finset.prod_eq_multiset_prod],
     convert multiset.prod_X_add_C_eq_sum_esymm s,
     rwa multiset.map_map, },
-  { rw multiset.card_map, exact rfl, }
+  { rw multiset.card_map, refl, }
 end
 
 lemma mv_polynomial.prod_X_add_C_coeff (k : ℕ) (h : k ≤ card σ) :
@@ -153,10 +161,10 @@ lemma mv_polynomial.prod_X_add_C_coeff (k : ℕ) (h : k ≤ card σ) :
 begin
   let s := finset.univ.val.map (λ i, (mv_polynomial.X i : mv_polynomial σ R)),
   rw (_ : card σ = s.card) at ⊢ h,
-  { rw [mv_polynomial.esymm_eq_multiset.esymm σ R (s.card - k), finset.prod_eq_multiset_prod],
+  { rw [mv_polynomial.esymm_eq_multiset_esymm σ R, finset.prod_eq_multiset_prod],
     convert multiset.prod_X_add_C_coeff s h,
     rwa multiset.map_map },
-  repeat { rw multiset.card_map, exact rfl, },
+  repeat { rw multiset.card_map, refl, },
 end
 
 end mv_polynomial

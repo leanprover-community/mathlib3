@@ -4,6 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston, Jireh Loreaux
 -/
 import algebra.ring.basic
+import algebra.divisibility.basic
+import data.pi.algebra
+import algebra.hom.units
+import data.set.basic
 
 /-!
 # Homomorphisms of semirings and rings
@@ -391,6 +395,14 @@ protected lemma map_bit0 (f : α →+* β) : ∀ a, f (bit0 a) = bit0 (f a) := m
 /-- Ring homomorphisms preserve `bit1`. -/
 protected lemma map_bit1 (f : α →+* β) : ∀ a, f (bit1 a) = bit1 (f a) := map_bit1 f
 
+@[simp] lemma map_ite_zero_one {F : Type*} [ring_hom_class F α β] (f : F) (p : Prop) [decidable p] :
+  f (ite p 0 1) = ite p 0 1 :=
+by { split_ifs; simp [h] }
+
+@[simp] lemma map_ite_one_zero {F : Type*} [ring_hom_class F α β] (f : F) (p : Prop) [decidable p] :
+  f (ite p 1 0) = ite p 1 0 :=
+by { split_ifs; simp [h] }
+
 /-- `f : α →+* β` has a trivial codomain iff `f 1 = 0`. -/
 lemma codomain_trivial_iff_map_one_eq_zero : (0 : β) = 1 ↔ f 1 = 0 := by rw [map_one, eq_comm]
 
@@ -540,3 +552,49 @@ def mk_ring_hom_of_mul_self_of_two_ne_zero (h : ∀ x, f (x * x) = f x * f x) (h
 by { ext, refl }
 
 end add_monoid_hom
+
+section coe
+
+variables (R S : Type*) [has_lift_t R S]
+
+/-- `coe_is_non_unital_ring_hom R S` is a class stating that the coercion map `↑ : R → S`
+(a.k.a. `coe`) is a non-unital ring homomorphism.
+-/
+class coe_is_non_unital_ring_hom [non_unital_non_assoc_semiring R] [non_unital_non_assoc_semiring S]
+  extends coe_is_mul_hom R S, coe_is_add_monoid_hom R S
+
+/-- `non_unital_ring_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
+bundled as a non-unital ring homomorphism. -/
+@[simps { fully_applied := ff }]
+protected def non_unital_ring_hom.coe [non_unital_non_assoc_semiring R]
+  [non_unital_non_assoc_semiring S] [coe_is_non_unital_ring_hom R S] : R →ₙ+* S :=
+{ to_fun := coe,
+  .. mul_hom.coe R S,
+  .. add_monoid_hom.coe R S }
+
+/-- `coe_is_ring_hom R S` is a class stating that the coercion map `↑ : R → S` (a.k.a. `coe`)
+is a ring homomorphism.
+-/
+class coe_is_ring_hom [non_assoc_semiring R] [non_assoc_semiring S]
+  extends coe_is_monoid_hom R S, coe_is_add_monoid_hom R S
+
+@[priority 100] -- See note [lower instance priority]
+instance coe_is_ring_hom.to_coe_is_non_unital_ring_hom [non_assoc_semiring R] [non_assoc_semiring S]
+  [inst : coe_is_ring_hom R S] : coe_is_non_unital_ring_hom R S :=
+{ .. inst }
+
+@[priority 100] -- See note [lower instance priority]
+instance coe_is_ring_hom.to_coe_is_monoid_with_zero_hom [semiring R] [semiring S]
+  [inst : coe_is_ring_hom R S] : coe_is_monoid_with_zero_hom R S :=
+{ .. inst }
+
+/-- `ring_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
+bundled as a ring homomorphism. -/
+@[simps { fully_applied := ff }]
+protected def ring_hom.coe [non_assoc_semiring R] [non_assoc_semiring S] [coe_is_ring_hom R S] :
+  R →+* S :=
+{ to_fun := coe,
+  .. monoid_hom.coe R S,
+  .. add_monoid_hom.coe R S }
+
+end coe

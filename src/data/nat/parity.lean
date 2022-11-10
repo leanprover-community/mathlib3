@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Benjamin Davidson
 -/
 import data.nat.modeq
+import data.nat.prime
 import algebra.parity
 
 /-!
@@ -234,6 +235,32 @@ by simp
 end nat
 
 open nat
+
+namespace function
+namespace involutive
+
+variables {α : Type*} {f : α → α} {n : ℕ}
+
+theorem iterate_bit0 (hf : involutive f) (n : ℕ) : f^[bit0 n] = id :=
+by rw [bit0, ← two_mul, iterate_mul, involutive_iff_iter_2_eq_id.1 hf, iterate_id]
+
+theorem iterate_bit1 (hf : involutive f) (n : ℕ) : f^[bit1 n] = f :=
+by rw [bit1, iterate_succ, hf.iterate_bit0, comp.left_id]
+
+theorem iterate_even (hf : involutive f) (hn : even n) : f^[n] = id :=
+let ⟨m, hm⟩ := hn in hm.symm ▸ hf.iterate_bit0 m
+
+theorem iterate_odd (hf : involutive f) (hn : odd n) : f^[n] = f :=
+let ⟨m, hm⟩ := odd_iff_exists_bit1.mp hn in hm.symm ▸ hf.iterate_bit1 m
+
+theorem iterate_eq_self (hf : involutive f) (hne : f ≠ id) : f^[n] = f ↔ odd n :=
+⟨λ H, odd_iff_not_even.2 $ λ hn, hne $ by rwa [hf.iterate_even hn, eq_comm] at H, hf.iterate_odd⟩
+
+theorem iterate_eq_id (hf : involutive f) (hne : f ≠ id) : f^[n] = id ↔ even n :=
+⟨λ H, even_iff_not_odd.2 $ λ hn, hne $ by rwa [hf.iterate_odd hn] at H, hf.iterate_even⟩
+
+end involutive
+end function
 
 variables {R : Type*} [monoid R] [has_distrib_neg R] {n : ℕ}
 

@@ -261,7 +261,6 @@ instance add_contravariant_class_le :
 instance : ordered_cancel_add_comm_monoid nat_ordinal :=
 { add := (+),
   add_assoc := nadd_assoc,
-  add_left_cancel := λ a b c, add_left_cancel'',
   add_le_add_left := λ a b, add_le_add_left,
   le_of_add_le_add_left := λ a b c, le_of_add_le_add_left,
   zero := 0,

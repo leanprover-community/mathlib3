@@ -27,7 +27,7 @@ include R
 
 /--
 The `R[X]`-module `M[X]` for an `R`-module `M`.
-This is isomorphic (as an `R`-module) to `polynomial M` when `M` is a ring.
+This is isomorphic (as an `R`-module) to `M[X]` when `M` is a ring.
 
 We require all the module instances `module S (polynomial_module R M)` to factor through `R` except
 `module R[X] (polynomial_module R M)`.
@@ -169,7 +169,7 @@ begin
     simp [nat.lt_succ_iff] }
 end
 
-/-- `polynomial R R` is isomorphic to `R[X]` as an `R[X]` module. -/
+/-- `polynomial_module R R` is isomorphic to `R[X]` as an `R[X]` module. -/
 noncomputable
 def equiv_polynomial_self : polynomial_module R R ≃ₗ[R[X]] R[X] :=
 { map_smul' := λ r x, begin
@@ -183,7 +183,7 @@ def equiv_polynomial_self : polynomial_module R R ≃ₗ[R[X]] R[X] :=
   end,
   ..(polynomial.to_finsupp_iso R).symm  }
 
-/-- `polynomial R S` is isomorphic to `S[X]` as an `R` module. -/
+/-- `polynomial_module R S` is isomorphic to `S[X]` as an `R` module. -/
 noncomputable
 def equiv_polynomial {S : Type*} [comm_ring S] [algebra R S] :
   polynomial_module R S ≃ₗ[R] S[X] :=
@@ -230,6 +230,10 @@ def eval (r : R) : polynomial_module R M →ₗ[R] M :=
 @[simp]
 lemma eval_single (r : R) (i : ℕ) (m : M) : eval r (single R i m) = r ^ i • m :=
 finsupp.sum_single_index (smul_zero _)
+
+@[simp]
+lemma eval_lsingle (r : R) (i : ℕ) (m : M) : eval r (lsingle R i m) = r ^ i • m :=
+eval_single r i m
 
 lemma eval_smul (p : R[X]) (q : polynomial_module R M) (r : R) :
   eval r (p • q) = p.eval r • eval r q :=

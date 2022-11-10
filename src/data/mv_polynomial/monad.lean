@@ -133,12 +133,6 @@ eval₂_hom_X' f X i
 lemma bind₁_X_left : bind₁ (X : σ → mv_polynomial σ R) = alg_hom.id R _ :=
 by { ext1 i, simp }
 
-lemma aeval_X_left : aeval (X : σ → mv_polynomial σ R) = alg_hom.id R _ :=
-by rw [aeval_eq_bind₁, bind₁_X_left]
-
-lemma aeval_X_left_apply (φ : mv_polynomial σ R) : aeval X φ = φ :=
-by rw [aeval_eq_bind₁, bind₁_X_left, alg_hom.id_apply]
-
 variable (f : σ → mv_polynomial τ R)
 
 @[simp]

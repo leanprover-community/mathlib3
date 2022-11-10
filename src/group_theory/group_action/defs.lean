@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Yury Kudryashov
 -/
 import algebra.group.type_tags
+import algebra.group.commute
 import algebra.hom.group
 import algebra.opposites
 import logic.embedding
@@ -488,22 +489,164 @@ lemma is_scalar_tower.of_smul_one_mul {M N} [monoid N] [has_smul M N]
   (H : ∀ (x : M) (y : N), y * (x • (1 : N)) = x • y) : smul_comm_class M N N :=
 ⟨λ x y z, by rw [← H x z, smul_eq_mul, ← H, smul_eq_mul, mul_assoc]⟩
 
+/-- If the multiplicative action of `M` on `N` is compatible with multiplication on `N`, then
+`λ x, x • 1` is a monoid homomorphism from `M` to `N`. -/
+@[to_additive "If the additive action of `M` on `N` is compatible with addition on `N`, then
+`λ x, x +ᵥ 0` is an additive monoid homomorphism from `M` to `N`.", simps]
+def smul_one_hom {M N} [monoid M] [monoid N] [mul_action M N] [is_scalar_tower M N N] :
+  M →* N :=
+{ to_fun := λ x, x • 1,
+  map_one' := one_smul _ _,
+  map_mul' := λ x y, by rw [smul_one_mul, smul_smul] }
+
 end compatible_scalar
 
-/-- Typeclass for multiplicative actions on additive structures. This generalizes group modules. -/
-@[ext] class distrib_mul_action (M : Type*) (A : Type*) [monoid M] [add_monoid A]
-  extends mul_action M A :=
-(smul_add : ∀(r : M) (x y : A), r • (x + y) = r • x + r • y)
-(smul_zero : ∀(r : M), r • (0 : A) = 0)
+/-- Typeclass for scalar multiplication that preserves `0` on the right. -/
+class smul_zero_class (M A : Type*) [has_zero A] extends has_smul M A :=
+(smul_zero : ∀ (a : M), a • (0 : A) = 0)
 
-section
-variables [monoid M] [add_monoid A] [distrib_mul_action M A]
+section smul_zero
 
-theorem smul_add (a : M) (b₁ b₂ : A) : a • (b₁ + b₂) = a • b₁ + a • b₂ :=
-distrib_mul_action.smul_add _ _ _
+variables [has_zero A] [smul_zero_class M A]
 
 @[simp] theorem smul_zero (a : M) : a • (0 : A) = 0 :=
-distrib_mul_action.smul_zero _
+smul_zero_class.smul_zero _
+
+/-- Pullback a zero-preserving scalar multiplication along an injective zero-preserving map.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.injective.smul_zero_class [has_zero B] [has_smul M B] (f : zero_hom B A)
+  (hf : injective f) (smul : ∀ (c : M) x, f (c • x) = c • f x) :
+  smul_zero_class M B :=
+{ smul := (•),
+  smul_zero := λ c, hf $ by simp only [smul, map_zero, smul_zero] }
+
+/-- Pushforward a zero-preserving scalar multiplication along a zero-preserving map.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def zero_hom.smul_zero_class [has_zero B] [has_smul M B] (f : zero_hom A B)
+  (smul : ∀ (c : M) x, f (c • x) = c • f x) :
+  smul_zero_class M B :=
+{ smul := (•),
+  smul_zero := λ c, by simp only [← map_zero f, ← smul, smul_zero] }
+
+/-- Push forward the multiplication of `R` on `M` along a compatible surjective map `f : R → S`.
+
+See also `function.surjective.distrib_mul_action_left`.
+-/
+@[reducible]
+def function.surjective.smul_zero_class_left {R S M : Type*} [has_zero M] [smul_zero_class R M]
+  [has_smul S M] (f : R → S) (hf : function.surjective f) (hsmul : ∀ c (x : M), f c • x = c • x) :
+  smul_zero_class S M :=
+{ smul := (•),
+  smul_zero := hf.forall.mpr $ λ c, by rw [hsmul, smul_zero] }
+
+variable (A)
+
+/-- Compose a `smul_zero_class` with a function, with scalar multiplication `f r' • m`.
+See note [reducible non-instances]. -/
+@[reducible] def smul_zero_class.comp_fun (f : N → M) :
+  smul_zero_class N A :=
+{ smul := has_smul.comp.smul f,
+  smul_zero := λ x, smul_zero (f x) }
+
+/-- Each element of the scalars defines a zero-preserving map. -/
+@[simps]
+def smul_zero_class.to_zero_hom (x : M) : zero_hom A A :=
+{ to_fun := (•) x,
+  map_zero' := smul_zero x }
+
+end smul_zero
+
+/-- Typeclass for scalar multiplication that preserves `0` and `+` on the right.
+
+This is exactly `distrib_mul_action` without the `mul_action` part.
+-/
+@[ext] class distrib_smul (M A : Type*) [add_zero_class A]
+  extends smul_zero_class M A :=
+(smul_add : ∀ (a : M) (x y : A), a • (x + y) = a • x + a • y)
+
+section distrib_smul
+
+variables [add_zero_class A] [distrib_smul M A]
+
+theorem smul_add (a : M) (b₁ b₂ : A) :
+  a • (b₁ + b₂) = a • b₁ + a • b₂ :=
+distrib_smul.smul_add _ _ _
+
+/-- Pullback a distributive scalar multiplication along an injective additive monoid
+homomorphism.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.injective.distrib_smul [add_zero_class B] [has_smul M B] (f : B →+ A)
+  (hf : injective f) (smul : ∀ (c : M) x, f (c • x) = c • f x) :
+  distrib_smul M B :=
+{ smul := (•),
+  smul_add := λ c x y, hf $ by simp only [smul, map_add, smul_add],
+  .. hf.smul_zero_class f.to_zero_hom smul }
+
+/-- Pushforward a distributive scalar multiplication along a surjective additive monoid
+homomorphism.
+See note [reducible non-instances]. -/
+@[reducible]
+protected def function.surjective.distrib_smul [add_zero_class B] [has_smul M B] (f : A →+ B)
+  (hf : surjective f) (smul : ∀ (c : M) x, f (c • x) = c • f x) :
+  distrib_smul M B :=
+{ smul := (•),
+  smul_add := λ c x y, by { rcases hf x with ⟨x, rfl⟩, rcases hf y with ⟨y, rfl⟩,
+    simp only [smul_add, ← smul, ← map_add] },
+  .. f.to_zero_hom.smul_zero_class smul }
+
+/-- Push forward the multiplication of `R` on `M` along a compatible surjective map `f : R → S`.
+
+See also `function.surjective.distrib_mul_action_left`.
+-/
+@[reducible]
+def function.surjective.distrib_smul_left {R S M : Type*} [add_zero_class M] [distrib_smul R M]
+  [has_smul S M] (f : R → S) (hf : function.surjective f) (hsmul : ∀ c (x : M), f c • x = c • x) :
+  distrib_smul S M :=
+{ smul := (•),
+  smul_add := hf.forall.mpr $ λ c x y, by simp only [hsmul, smul_add],
+  .. hf.smul_zero_class_left f hsmul }
+
+variable (A)
+
+/-- Compose a `distrib_smul` with a function, with scalar multiplication `f r' • m`.
+See note [reducible non-instances]. -/
+@[reducible] def distrib_smul.comp_fun (f : N → M) :
+  distrib_smul N A :=
+{ smul := has_smul.comp.smul f,
+  smul_add := λ x, smul_add (f x),
+  .. smul_zero_class.comp_fun A f }
+
+/-- Each element of the scalars defines a additive monoid homomorphism. -/
+@[simps]
+def distrib_smul.to_add_monoid_hom (x : M) : A →+ A :=
+{ to_fun := (•) x,
+  map_add' := smul_add x,
+  .. smul_zero_class.to_zero_hom A x }
+
+end distrib_smul
+
+/-- Typeclass for multiplicative actions on additive structures. This generalizes group modules. -/
+@[ext] class distrib_mul_action (M A : Type*) [monoid M] [add_monoid A]
+  extends mul_action M A :=
+(smul_zero : ∀ (a : M), a • (0 : A) = 0)
+(smul_add : ∀ (a : M) (x y : A), a • (x + y) = a • x + a • y)
+
+section
+
+variables [monoid M] [add_monoid A] [distrib_mul_action M A]
+
+@[priority 100] -- See note [lower instance priority]
+instance distrib_mul_action.to_distrib_smul : distrib_smul M A :=
+{ ..‹distrib_mul_action M A› }
+
+/-! Since Lean 3 does not have definitional eta for structures, we have to make sure
+that the definition of `distrib_mul_action.to_distrib_smul` was done correctly,
+and the two paths from `distrib_mul_action` to `has_smul` are indeed definitionally equal. -/
+example : (distrib_mul_action.to_mul_action.to_has_smul : has_smul M A) =
+  distrib_mul_action.to_distrib_smul.to_has_smul := rfl
 
 /-- Pullback a distributive multiplicative action along an injective additive monoid
 homomorphism.
@@ -513,8 +656,7 @@ protected def function.injective.distrib_mul_action [add_monoid B] [has_smul M B
   (hf : injective f) (smul : ∀ (c : M) x, f (c • x) = c • f x) :
   distrib_mul_action M B :=
 { smul := (•),
-  smul_add := λ c x y, hf $ by simp only [smul, f.map_add, smul_add],
-  smul_zero := λ c, hf $ by simp only [smul, f.map_zero, smul_zero],
+  .. hf.distrib_smul f smul,
   .. hf.mul_action f smul }
 
 /-- Pushforward a distributive multiplicative action along a surjective additive monoid
@@ -525,9 +667,7 @@ protected def function.surjective.distrib_mul_action [add_monoid B] [has_smul M 
   (hf : surjective f) (smul : ∀ (c : M) x, f (c • x) = c • f x) :
   distrib_mul_action M B :=
 { smul := (•),
-  smul_add := λ c x y, by { rcases hf x with ⟨x, rfl⟩, rcases hf y with ⟨y, rfl⟩,
-    simp only [smul_add, ← smul, ← f.map_add] },
-  smul_zero := λ c, by simp only [← f.map_zero, ← smul, smul_zero],
+  .. hf.distrib_smul f smul,
   .. hf.mul_action f smul }
 
 /-- Push forward the action of `R` on `M` along a compatible surjective map `f : R →* S`.
@@ -540,8 +680,7 @@ def function.surjective.distrib_mul_action_left {R S M : Type*} [monoid R] [add_
   (f : R →* S) (hf : function.surjective f) (hsmul : ∀ c (x : M), f c • x = c • x) :
   distrib_mul_action S M :=
 { smul := (•),
-  smul_zero := hf.forall.mpr $ λ c, by rw [hsmul, smul_zero],
-  smul_add := hf.forall.mpr $ λ c x y, by simp only [hsmul, smul_add],
+  .. hf.distrib_smul_left f hsmul,
   .. hf.mul_action_left f hsmul }
 
 variable (A)
@@ -551,16 +690,13 @@ See note [reducible non-instances]. -/
 @[reducible] def distrib_mul_action.comp_hom [monoid N] (f : N →* M) :
   distrib_mul_action N A :=
 { smul := has_smul.comp.smul f,
-  smul_zero := λ x, smul_zero (f x),
-  smul_add := λ x, smul_add (f x),
+  .. distrib_smul.comp_fun A f,
   .. mul_action.comp_hom A f }
 
 /-- Each element of the monoid defines a additive monoid homomorphism. -/
 @[simps]
 def distrib_mul_action.to_add_monoid_hom (x : M) : A →+ A :=
-{ to_fun := (•) x,
-  map_zero' := smul_zero x,
-  map_add' := smul_add x }
+distrib_smul.to_add_monoid_hom A x
 
 variables (M)
 

@@ -96,7 +96,7 @@ mul_indicator_eq_one
 
 @[to_additive] lemma mul_indicator_apply_ne_one {a : α} :
   s.mul_indicator f a ≠ 1 ↔ a ∈ s ∩ mul_support f :=
-by simp only [ne.def, mul_indicator_apply_eq_one, not_imp, mem_inter_eq, mem_mul_support]
+by simp only [ne.def, mul_indicator_apply_eq_one, not_imp, mem_inter_iff, mem_mul_support]
 
 @[simp, to_additive] lemma mul_support_mul_indicator :
   function.mul_support (s.mul_indicator f) = s ∩ function.mul_support f :=
@@ -182,6 +182,34 @@ end
 @[to_additive] lemma mul_indicator_preimage (s : set α) (f : α → M) (B : set M) :
   (mul_indicator s f)⁻¹' B = s.ite (f ⁻¹' B) (1 ⁻¹' B) :=
 by letI := classical.dec_pred (∈ s); exact piecewise_preimage s f 1 B
+
+@[to_additive] lemma mul_indicator_one_preimage (s : set M) :
+  t.mul_indicator 1 ⁻¹' s ∈ ({set.univ, ∅} : set (set α)) :=
+begin
+  classical,
+  rw [mul_indicator_one', preimage_one],
+  split_ifs; simp
+end
+
+@[to_additive] lemma mul_indicator_const_preimage_eq_union (U : set α) (s : set M) (a : M)
+  [decidable (a ∈ s)] [decidable ((1 : M) ∈ s)] :
+  U.mul_indicator (λ x, a) ⁻¹' s = (if a ∈ s then U else ∅) ∪ (if (1 : M) ∈ s then Uᶜ else ∅) :=
+begin
+  rw [mul_indicator_preimage, preimage_one, preimage_const],
+  split_ifs; simp [← compl_eq_univ_diff]
+end
+
+@[to_additive] lemma mul_indicator_const_preimage (U : set α) (s : set M) (a : M) :
+  U.mul_indicator (λ x, a) ⁻¹' s ∈ ({set.univ, U, Uᶜ, ∅} : set (set α)) :=
+begin
+  classical,
+  rw [mul_indicator_const_preimage_eq_union],
+  split_ifs; simp
+end
+
+lemma indicator_one_preimage [has_zero M] (U : set α) (s : set M) :
+  U.indicator 1 ⁻¹' s ∈ ({set.univ, U, Uᶜ, ∅} : set (set α)) :=
+indicator_const_preimage _ _ 1
 
 @[to_additive] lemma mul_indicator_preimage_of_not_mem (s : set α) (f : α → M)
   {t : set M} (ht : (1:M) ∉ t) :
@@ -413,7 +441,7 @@ begin
   rw [finset.prod_insert haI, finset.set_bUnion_insert, mul_indicator_union_of_not_mem_inter, ih _],
   { assume i hi j hj hij,
     exact hI i (finset.mem_insert_of_mem hi) j (finset.mem_insert_of_mem hj) hij },
-  simp only [not_exists, exists_prop, mem_Union, mem_inter_eq, not_and],
+  simp only [not_exists, exists_prop, mem_Union, mem_inter_iff, not_and],
   assume hx a' ha',
   refine disjoint_left.1 (hI a (finset.mem_insert_self _ _) a' (finset.mem_insert_of_mem ha') _) hx,
   exact (ne_of_mem_of_not_mem ha' haI).symm

@@ -58,19 +58,34 @@ instance mul_action' [monoid R] [mul_action R M] :
   mul_action R (ulift M) :=
 { smul := (•),
   mul_smul := λ r s ⟨f⟩, ext _ _ $ mul_smul _ _ _,
-  one_smul := λ ⟨f⟩, ext _ _ $ one_smul _ _,
-  ..ulift.has_smul_left }
+  one_smul := λ ⟨f⟩, ext _ _ $ one_smul _ _ }
+
+instance smul_zero_class [has_zero M] [smul_zero_class R M] :
+  smul_zero_class (ulift R) M :=
+{ smul_zero := λ _, smul_zero _,
+  .. ulift.has_smul_left }
+
+instance smul_zero_class' [has_zero M] [smul_zero_class R M] :
+  smul_zero_class R (ulift M) :=
+{ smul_zero := λ c, by { ext, simp [smul_zero], } }
+
+instance distrib_smul [add_zero_class M] [distrib_smul R M] :
+  distrib_smul (ulift R) M :=
+{ smul_add := λ _, smul_add _ }
+
+instance distrib_smul' [add_zero_class M] [distrib_smul R M] :
+  distrib_smul R (ulift M) :=
+{ smul_add := λ c f g, by { ext, simp [smul_add], } }
 
 instance distrib_mul_action [monoid R] [add_monoid M] [distrib_mul_action R M] :
   distrib_mul_action (ulift R) M :=
-{ smul_zero := λ _, smul_zero _,
-  smul_add := λ _, smul_add _ }
+{ ..ulift.mul_action,
+  ..ulift.distrib_smul }
 
 instance distrib_mul_action' [monoid R] [add_monoid M] [distrib_mul_action R M] :
   distrib_mul_action R (ulift M) :=
-{ smul_zero := λ c, by { ext, simp [smul_zero], },
-  smul_add := λ c f g, by { ext, simp [smul_add], },
-  ..ulift.mul_action' }
+{ ..ulift.mul_action',
+  ..ulift.distrib_smul' }
 
 instance mul_distrib_mul_action [monoid R] [monoid M] [mul_distrib_mul_action R M] :
   mul_distrib_mul_action (ulift R) M :=
@@ -85,13 +100,13 @@ instance mul_distrib_mul_action' [monoid R] [monoid M] [mul_distrib_mul_action R
 
 instance smul_with_zero [has_zero R] [has_zero M] [smul_with_zero R M] :
   smul_with_zero (ulift R) M :=
-{ smul_zero := λ _, smul_zero' _ _,
+{ smul_zero := λ _, smul_zero _,
   zero_smul := zero_smul _,
   ..ulift.has_smul_left }
 
 instance smul_with_zero' [has_zero R] [has_zero M] [smul_with_zero R M] :
   smul_with_zero R (ulift M) :=
-{ smul_zero := λ _, ulift.ext _ _ $ smul_zero' _ _,
+{ smul_zero := λ _, ulift.ext _ _ $ smul_zero _,
   zero_smul := λ _, ulift.ext _ _ $ zero_smul _ _ }
 
 instance mul_action_with_zero [monoid_with_zero R] [has_zero M] [mul_action_with_zero R M] :

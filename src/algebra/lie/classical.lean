@@ -9,6 +9,7 @@ import data.matrix.dmatrix
 import algebra.lie.abelian
 import linear_algebra.matrix.trace
 import algebra.lie.skew_adjoint
+import linear_algebra.symplectic_group
 
 /-!
 # Classical Lie algebras
@@ -119,13 +120,10 @@ end special_linear
 
 namespace symplectic
 
-/-- The matrix defining the canonical skew-symmetric bilinear form. -/
-def J : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 0 (-1) 1 0
-
 /-- The symplectic Lie algebra: skew-adjoint matrices with respect to the canonical skew-symmetric
 bilinear form. -/
 def sp [fintype l] : lie_subalgebra R (matrix (l ⊕ l) (l ⊕ l) R) :=
-  skew_adjoint_matrices_lie_subalgebra (J l R)
+  skew_adjoint_matrices_lie_subalgebra (matrix.J l R)
 
 end symplectic
 

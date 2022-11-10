@@ -6,6 +6,7 @@ Authors: Aaron Anderson
 import order.antichain
 import order.order_iso_nat
 import order.well_founded
+import tactic.tfae
 
 /-!
 # Well-founded sets
@@ -95,6 +96,28 @@ begin
 end
 
 lemma subset (h : t.well_founded_on r) (hst : s ⊆ t) : s.well_founded_on r := h.mono le_rfl hst
+
+open relation
+
+/-- `a` is accessible under the relation `r` iff `r` is well-founded on the downward transitive
+  closure of `a` under `r` (including `a` or not). -/
+lemma acc_iff_well_founded_on {α} {r : α → α → Prop} {a : α} :
+  [ acc r a,
+    {b | refl_trans_gen r b a}.well_founded_on r,
+    {b | trans_gen r b a}.well_founded_on r ].tfae :=
+begin
+  tfae_have : 1 → 2,
+  { refine λ h, ⟨λ b, _⟩, apply inv_image.accessible,
+    rw ← acc_trans_gen_iff at h ⊢,
+    obtain h'|h' := refl_trans_gen_iff_eq_or_trans_gen.1 b.2,
+    { rwa h' at h }, { exact h.inv h' } },
+  tfae_have : 2 → 3,
+  { exact λ h, h.subset (λ _, trans_gen.to_refl) },
+  tfae_have : 3 → 1,
+  { refine λ h, acc.intro _ (λ b hb, (h.apply ⟨b, trans_gen.single hb⟩).of_fibration subtype.val _),
+    exact λ ⟨c, hc⟩ d h, ⟨⟨d, trans_gen.head h hc⟩, h, rfl⟩ },
+  tfae_finish,
+end
 
 end well_founded_on
 end any_rel

@@ -30,6 +30,10 @@ variables {G : Type u''} {S : Type u'} {R : Type u} {M : Type v} {ι : Type w}
 
 set_option old_structure_cmd true
 
+/-- `submodule_class S R M` says `S` is a type of submodules `s ≤ M`. -/
+class submodule_class (S : Type*) (R M : out_param $ Type*) [add_zero_class M]
+  [has_smul R M] [set_like S M] [add_submonoid_class S M] extends smul_mem_class S R M
+
 /-- A submodule of a module is one which is closed under vector operations.
   This is a sufficient condition for the subset of vectors in the submodule
   to themselves form a module. -/
@@ -53,6 +57,9 @@ instance : set_like (submodule R M) M :=
 instance : add_submonoid_class (submodule R M) M :=
 { zero_mem := zero_mem',
   add_mem := add_mem' }
+
+instance : submodule_class (submodule R M) R M :=
+{ smul_mem := smul_mem' }
 
 @[simp] theorem mem_to_add_submonoid (p : submodule R M) (x : M) : x ∈ p.to_add_submonoid ↔ x ∈ p :=
 iff.rfl
@@ -124,6 +131,24 @@ to_sub_mul_action_strict_mono.monotone
 
 end submodule
 
+namespace submodule_class
+
+variables [semiring R] [add_comm_monoid M] [module R M] {A : Type*} [set_like A M]
+  [add_submonoid_class A M] [hA : submodule_class A R M] (S' : A)
+
+include hA
+/-- A submodule of a `module` is a `module`.  -/
+@[priority 75] -- Prefer subclasses of `module` over `submodule_class`.
+instance to_module : module R S' :=
+subtype.coe_injective.module R (add_submonoid_class.subtype S') (set_like.coe_smul S')
+
+/-- The natural `R`-linear map from a submodule of an `R`-module `M` to `M`. -/
+protected def subtype : S' →ₗ[R] M := ⟨coe, λ _ _, rfl, λ _ _, rfl⟩
+
+@[simp] protected theorem coe_subtype : (submodule_class.subtype S' : S' → M) = coe := rfl
+
+end submodule_class
+
 namespace submodule
 
 section add_comm_monoid
@@ -167,6 +192,12 @@ instance [has_smul S R] [has_smul S M] [is_scalar_tower S R M] :
 instance [has_smul S R] [has_smul S M] [is_scalar_tower S R M] : is_scalar_tower S R p :=
 p.to_sub_mul_action.is_scalar_tower
 
+instance is_scalar_tower' {S' : Type*}
+  [has_smul S R] [has_smul S M] [has_smul S' R] [has_smul S' M] [has_smul S S']
+  [is_scalar_tower S' R M] [is_scalar_tower S S' M] [is_scalar_tower S R M] :
+  is_scalar_tower S S' p :=
+p.to_sub_mul_action.is_scalar_tower'
+
 instance
   [has_smul S R] [has_smul S M] [is_scalar_tower S R M]
   [has_smul Sᵐᵒᵖ R] [has_smul Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
@@ -177,12 +208,20 @@ protected lemma nonempty : (p : set M).nonempty := ⟨0, p.zero_mem⟩
 
 @[simp] lemma mk_eq_zero {x} (h : x ∈ p) : (⟨x, h⟩ : p) = 0 ↔ x = 0 := subtype.ext_iff_val
 
+instance : coe_is_linear_map R p M :=
+{ coe_smulₛₗ' := λ _ _, rfl }
+
 variables {p}
 @[simp, norm_cast] lemma coe_eq_zero {x : p} : (x : M) = 0 ↔ x = 0 :=
 (set_like.coe_eq_coe : (x : M) = (0 : p) ↔ x = 0)
-@[simp, norm_cast] lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl
-@[simp, norm_cast] lemma coe_zero : ((0 : p) : M) = 0 := rfl
-@[norm_cast] lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
+
+-- The following lemmas can be proven by `simp` lemmas for `coe_is_add_monoid_hom` or
+-- `coe_is_linear_map` but are worthwile to keep since they are eligible for `dsimp`.
+@[simp, norm_cast] protected lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl
+@[simp, norm_cast] protected lemma coe_zero : ((0 : p) : M) = 0 := rfl
+-- Not `simp` since it is subsumed by `coe_smul_of_tower`
+@[norm_cast] protected lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
+
 @[simp, norm_cast] lemma coe_smul_of_tower [has_smul S R] [has_smul S M] [is_scalar_tower S R M]
   (r : S) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
 @[simp, norm_cast] lemma coe_mk (x : M) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : M) = x := rfl
@@ -206,7 +245,7 @@ instance no_zero_smul_divisors [no_zero_smul_divisors R M] : no_zero_smul_diviso
 
 /-- Embedding of a submodule `p` to the ambient space `M`. -/
 protected def subtype : p →ₗ[R] M :=
-by refine {to_fun := coe, ..}; simp [coe_smul]
+linear_map.coe _ _ _
 
 theorem subtype_apply (x : p) : p.subtype x = x := rfl
 

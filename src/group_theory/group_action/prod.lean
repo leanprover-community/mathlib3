@@ -41,6 +41,13 @@ variables [has_smul M α] [has_smul M β] [has_smul N α] [has_smul N β] (a : M
 @[to_additive] theorem smul_def (a : M) (x : α × β) : a • x = (a • x.1, a • x.2) := rfl
 @[simp, to_additive] theorem smul_swap : (a • x).swap = a • x.swap := rfl
 
+lemma smul_zero_mk {α : Type*} [monoid M] [add_monoid α] [distrib_mul_action M α] (a : M) (c : β) :
+  a • ((0 : α), c) = (0, a • c) :=
+by rw [prod.smul_mk, smul_zero]
+
+lemma smul_mk_zero {β : Type*} [monoid M] [add_monoid β] [distrib_mul_action M β] (a : M) (b : α) :
+  a • (b, (0 : β)) = (a • b, 0) :=
+by rw [prod.smul_mk, smul_zero]
 
 variables [has_pow α E] [has_pow β E]
 @[to_additive has_smul] instance has_pow : has_pow (α × β) E :=
@@ -98,10 +105,17 @@ instance is_scalar_tower_both [has_mul N] [has_mul P] [has_smul M N] [has_smul M
 { mul_smul  := λ a₁ a₂ p, mk.inj_iff.mpr ⟨mul_smul _ _ _, mul_smul _ _ _⟩,
   one_smul  := λ ⟨b, c⟩, mk.inj_iff.mpr ⟨one_smul _ _, one_smul _ _⟩ }
 
+instance {R M N : Type*} [has_zero M] [has_zero N]
+  [smul_zero_class R M] [smul_zero_class R N] : smul_zero_class R (M × N) :=
+{ smul_zero := λ a, mk.inj_iff.mpr ⟨smul_zero _, smul_zero _⟩ }
+
+instance {R M N : Type*} [add_zero_class M] [add_zero_class N]
+  [distrib_smul R M] [distrib_smul R N] : distrib_smul R (M × N) :=
+{ smul_add  := λ a p₁ p₂, mk.inj_iff.mpr ⟨smul_add _ _ _, smul_add _ _ _⟩ }
+
 instance {R M N : Type*} {r : monoid R} [add_monoid M] [add_monoid N]
   [distrib_mul_action R M] [distrib_mul_action R N] : distrib_mul_action R (M × N) :=
-{ smul_add  := λ a p₁ p₂, mk.inj_iff.mpr ⟨smul_add _ _ _, smul_add _ _ _⟩,
-  smul_zero := λ a, mk.inj_iff.mpr ⟨smul_zero _, smul_zero _⟩ }
+{ ..prod.distrib_smul }
 
 instance {R M N : Type*} {r : monoid R} [monoid M] [monoid N]
   [mul_distrib_mul_action R M] [mul_distrib_mul_action R N] : mul_distrib_mul_action R (M × N) :=

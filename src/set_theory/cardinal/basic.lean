@@ -7,10 +7,11 @@ import data.fintype.card
 import data.finsupp.defs
 import data.nat.part_enat
 import data.set.countable
-import logic.small
+import logic.small.basic
 import order.conditionally_complete_lattice
 import order.succ_pred.basic
 import set_theory.cardinal.schroeder_bernstein
+import tactic.positivity
 
 /-!
 # Cardinal Numbers
@@ -105,8 +106,8 @@ def mk : Type u → cardinal := quotient.mk
 
 localized "prefix (name := cardinal.mk) `#` := cardinal.mk" in cardinal
 
-instance can_lift_cardinal_Type : can_lift cardinal.{u} (Type u) :=
-⟨mk, λ c, true, λ c _, quot.induction_on c $ λ α, ⟨α, rfl⟩⟩
+instance can_lift_cardinal_Type : can_lift cardinal.{u} (Type u) mk (λ _, true) :=
+⟨λ c _, quot.induction_on c $ λ α, ⟨α, rfl⟩⟩
 
 @[elab_as_eliminator]
 lemma induction_on {p : cardinal → Prop} (c : cardinal) (h : ∀ α, p (#α)) : p c :=
@@ -296,6 +297,11 @@ lemma mk_eq_one (α : Type u) [unique α] : #α = 1 :=
 theorem le_one_iff_subsingleton {α : Type u} : #α ≤ 1 ↔ subsingleton α :=
 ⟨λ ⟨f⟩, ⟨λ a b, f.injective (subsingleton.elim _ _)⟩,
  λ ⟨h⟩, ⟨⟨λ a, punit.star, λ a b _, h _ _⟩⟩⟩
+
+@[simp] lemma mk_le_one_iff_set_subsingleton {s : set α} : #s ≤ 1 ↔ s.subsingleton :=
+le_one_iff_subsingleton.trans s.subsingleton_coe
+
+alias mk_le_one_iff_set_subsingleton ↔ _ _root_.set.subsingleton.cardinal_mk_le_one
 
 instance : has_add cardinal.{u} := ⟨map₂ sum $ λ α β γ δ, equiv.sum_congr⟩
 
@@ -517,6 +523,8 @@ end
 
 theorem power_le_power_right {a b c : cardinal} : a ≤ b → a ^ c ≤ b ^ c :=
 induction_on₃ a b c $ λ α β γ ⟨e⟩, ⟨embedding.arrow_congr_right e⟩
+
+theorem power_pos {a : cardinal} (b) (ha : 0 < a) : 0 < a ^ b := (power_ne_zero _ ha.ne').bot_lt
 
 end order_properties
 
@@ -891,8 +899,8 @@ begin
   rw [cardinal.mk_fintype, fintype.card_coe]
 end
 
-@[simp, norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
-by induction n; simp [pow_succ', power_add, *]
+@[norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
+by simp only [cardinal.pow_cast_right, coe_pow]
 
 @[simp, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
 begin
@@ -967,6 +975,9 @@ theorem aleph_0_le {c : cardinal} : ℵ₀ ≤ c ↔ ∀ n : ℕ, ↑n ≤ c :=
   exact (nat.lt_succ_self _).not_le (nat_cast_le.1 (h (n+1)))
 end⟩
 
+@[simp] lemma range_nat_cast : range (coe : ℕ → cardinal) = Iio ℵ₀ :=
+ext $ λ x, by simp only [mem_Iio, mem_range, eq_comm, lt_aleph_0]
+
 theorem mk_eq_nat_iff {α : Type u} {n : ℕ} : #α = n ↔ nonempty (α ≃ fin n) :=
 by rw [← lift_mk_fin, ← lift_uzero (#α), lift_mk_eq']
 
@@ -979,13 +990,31 @@ lt_aleph_0_iff_finite.trans (finite_iff_nonempty_fintype _)
 theorem lt_aleph_0_of_finite (α : Type u) [finite α] : #α < ℵ₀ :=
 lt_aleph_0_iff_finite.2 ‹_›
 
-theorem lt_aleph_0_iff_set_finite {α} {S : set α} : #S < ℵ₀ ↔ S.finite :=
+@[simp] theorem lt_aleph_0_iff_set_finite {S : set α} : #S < ℵ₀ ↔ S.finite :=
 lt_aleph_0_iff_finite.trans finite_coe_iff
 
 alias lt_aleph_0_iff_set_finite ↔ _ _root_.set.finite.lt_aleph_0
 
-instance can_lift_cardinal_nat : can_lift cardinal ℕ :=
-⟨ coe, λ x, x < ℵ₀, λ x hx, let ⟨n, hn⟩ := lt_aleph_0.mp hx in ⟨n, hn.symm⟩⟩
+@[simp] theorem lt_aleph_0_iff_subtype_finite {p : α → Prop} :
+  #{x // p x} < ℵ₀ ↔ {x | p x}.finite :=
+lt_aleph_0_iff_set_finite
+
+lemma mk_le_aleph_0_iff : #α ≤ ℵ₀ ↔ countable α :=
+by rw [countable_iff_nonempty_embedding, aleph_0, ← lift_uzero (#α), lift_mk_le']
+
+@[simp] lemma mk_le_aleph_0 [countable α] : #α ≤ ℵ₀ := mk_le_aleph_0_iff.mpr ‹_›
+
+@[simp] lemma le_aleph_0_iff_set_countable {s : set α} : #s ≤ ℵ₀ ↔ s.countable :=
+by rw [mk_le_aleph_0_iff, countable_coe_iff]
+
+alias le_aleph_0_iff_set_countable ↔ _ _root_.set.countable.le_aleph_0
+
+@[simp] lemma le_aleph_0_iff_subtype_countable {p : α → Prop} :
+  #{x // p x} ≤ ℵ₀ ↔ {x | p x}.countable :=
+le_aleph_0_iff_set_countable
+
+instance can_lift_cardinal_nat : can_lift cardinal ℕ coe (λ x, x < ℵ₀) :=
+⟨λ x hx, let ⟨n, hn⟩ := lt_aleph_0.mp hx in ⟨n, hn.symm⟩⟩
 
 theorem add_lt_aleph_0 {a b : cardinal} (ha : a < ℵ₀) (hb : b < ℵ₀) : a + b < ℵ₀ :=
 match a, b, lt_aleph_0.1 ha, lt_aleph_0.1 hb with
@@ -1066,29 +1095,12 @@ by rw [← not_lt, lt_aleph_0_iff_finite, not_finite_iff_infinite]
 
 @[simp] lemma aleph_0_le_mk (α : Type u) [infinite α] : ℵ₀ ≤ #α := infinite_iff.1 ‹_›
 
-lemma encodable_iff {α : Type u} : nonempty (encodable α) ↔ #α ≤ ℵ₀ :=
-⟨λ ⟨h⟩, ⟨(@encodable.encode' α h).trans equiv.ulift.symm.to_embedding⟩,
-  λ ⟨h⟩, ⟨encodable.of_inj _ (h.trans equiv.ulift.to_embedding).injective⟩⟩
-
-@[simp] lemma mk_le_aleph_0 [countable α] : #α ≤ ℵ₀ :=
-encodable_iff.1 $ encodable.nonempty_encodable.2 ‹_›
-
 lemma denumerable_iff {α : Type u} : nonempty (denumerable α) ↔ #α = ℵ₀ :=
 ⟨λ ⟨h⟩, mk_congr ((@denumerable.eqv α h).trans equiv.ulift.symm),
  λ h, by { cases quotient.exact h with f, exact ⟨denumerable.mk' $ f.trans equiv.ulift⟩ }⟩
 
 @[simp] lemma mk_denumerable (α : Type u) [denumerable α] : #α = ℵ₀ :=
 denumerable_iff.1 ⟨‹_›⟩
-
-@[simp] lemma mk_set_le_aleph_0 (s : set α) : #s ≤ ℵ₀ ↔ s.countable :=
-begin
-  rw [set.countable_iff_exists_injective], split,
-  { rintro ⟨f'⟩, cases embedding.trans f' equiv.ulift.to_embedding with f hf, exact ⟨f, hf⟩ },
-  { rintro ⟨f, hf⟩, exact ⟨embedding.trans ⟨f, hf⟩ equiv.ulift.symm.to_embedding⟩ }
-end
-
-@[simp] lemma mk_subtype_le_aleph_0 (p : α → Prop) : #{x // p x} ≤ ℵ₀ ↔ {x | p x}.countable :=
-mk_set_le_aleph_0 _
 
 @[simp] lemma aleph_0_add_aleph_0 : ℵ₀ + ℵ₀ = ℵ₀ := mk_denumerable _
 
@@ -1160,10 +1172,13 @@ by rw [←to_nat_cast 0, nat.cast_zero]
 @[simp] lemma one_to_nat : to_nat 1 = 1 :=
 by rw [←to_nat_cast 1, nat.cast_one]
 
+lemma to_nat_eq_iff {c : cardinal} {n : ℕ} (hn : n ≠ 0) : to_nat c = n ↔ c = n :=
+⟨λ h, (cast_to_nat_of_lt_aleph_0 (lt_of_not_ge (hn ∘ h.symm.trans ∘
+  to_nat_apply_of_aleph_0_le))).symm.trans (congr_arg coe h),
+  λ h, (congr_arg to_nat h).trans (to_nat_cast n)⟩
+
 @[simp] lemma to_nat_eq_one {c : cardinal} : to_nat c = 1 ↔ c = 1 :=
-⟨λ h, (cast_to_nat_of_lt_aleph_0 (lt_of_not_ge (one_ne_zero ∘ h.symm.trans ∘
-  to_nat_apply_of_aleph_0_le))).symm.trans ((congr_arg coe h).trans nat.cast_one),
-  λ h, (congr_arg to_nat h).trans one_to_nat⟩
+by rw [to_nat_eq_iff one_ne_zero, nat.cast_one]
 
 lemma to_nat_eq_one_iff_unique {α : Type*} : (#α).to_nat = 1 ↔ subsingleton α ∧ nonempty α :=
 to_nat_eq_one.trans eq_one_iff_unique
@@ -1379,7 +1394,7 @@ by { rw bUnion_eq_Union, apply mk_Union_le }
 lemma finset_card_lt_aleph_0 (s : finset α) : #(↑s : set α) < ℵ₀ :=
 lt_aleph_0_of_finite _
 
-theorem mk_eq_nat_iff_finset {α} {s : set α} {n : ℕ} :
+theorem mk_set_eq_nat_iff_finset {α} {s : set α} {n : ℕ} :
   #s = n ↔ ∃ t : finset α, (t : set α) = s ∧ t.card = n :=
 begin
   split,
@@ -1388,6 +1403,19 @@ begin
     simpa using h },
   { rintro ⟨t, rfl, rfl⟩,
     exact mk_coe_finset }
+end
+
+theorem mk_eq_nat_iff_finset {n : ℕ} : #α = n ↔ ∃ t : finset α, (t : set α) = univ ∧ t.card = n :=
+by rw [← mk_univ, mk_set_eq_nat_iff_finset]
+
+theorem mk_eq_nat_iff_fintype {n : ℕ} : #α = n ↔ ∃ (h : fintype α), @fintype.card α h = n :=
+begin
+  rw [mk_eq_nat_iff_finset],
+  split,
+  { rintro ⟨t, ht, hn⟩,
+    exact ⟨⟨t, eq_univ_iff_forall.1 ht⟩, hn⟩ },
+  { rintro ⟨⟨t, ht⟩, hn⟩,
+    exact ⟨t, eq_univ_iff_forall.2 ht, hn⟩ }
 end
 
 theorem mk_union_add_mk_inter {α : Type u} {S T : set α} :
@@ -1415,6 +1443,12 @@ lemma mk_le_mk_of_subset {α} {s t : set α} (h : s ⊆ t) : #s ≤ #t :=
 
 lemma mk_subtype_mono {p q : α → Prop} (h : ∀ x, p x → q x) : #{x // p x} ≤ #{x // q x} :=
 ⟨embedding_of_subset _ _ h⟩
+
+lemma le_mk_diff_add_mk (S T : set α) : #S ≤ #(S \ T : set α) + #T :=
+(mk_le_mk_of_subset $ subset_diff_union _ _).trans $ mk_union_le _ _
+
+lemma mk_diff_add_mk {S T : set α} (h : T ⊆ S) : #(S \ T : set α) + #T = #S :=
+(mk_union_of_disjoint $ by exact disjoint_sdiff_self_left).symm.trans $ by rw diff_union_of_subset h
 
 lemma mk_union_le_aleph_0 {α} {P Q : set α} : #((P ∪ Q : set α)) ≤ ℵ₀ ↔ #P ≤ ℵ₀ ∧ #Q ≤ ℵ₀ :=
 by simp
@@ -1492,24 +1526,33 @@ begin
 end
 
 lemma two_le_iff : (2 : cardinal) ≤ #α ↔ ∃x y : α, x ≠ y :=
+by rw [← nat.cast_two, nat_succ, succ_le_iff, nat.cast_one, one_lt_iff_nontrivial, nontrivial_iff]
+
+lemma two_le_iff' (x : α) : (2 : cardinal) ≤ #α ↔ ∃y : α, y ≠ x :=
+by rw [two_le_iff, ← nontrivial_iff, nontrivial_iff_exists_ne x]
+
+lemma mk_eq_two_iff : #α = 2 ↔ ∃ x y : α, x ≠ y ∧ ({x, y} : set α) = univ :=
 begin
+  simp only [← @nat.cast_two cardinal, mk_eq_nat_iff_finset, finset.card_eq_two],
   split,
-  { rintro ⟨f⟩, refine ⟨f $ sum.inl ⟨⟩, f $ sum.inr ⟨⟩, _⟩, intro h, cases f.2 h },
-  { rintro ⟨x, y, h⟩, by_contra h',
-    rw [not_le, ←nat.cast_two, nat_succ, lt_succ_iff, nat.cast_one, le_one_iff_subsingleton] at h',
-    apply h, exactI subsingleton.elim _ _ }
+  { rintro ⟨t, ht, x, y, hne, rfl⟩,
+    exact ⟨x, y, hne, by simpa using ht⟩ },
+  { rintro ⟨x, y, hne, h⟩,
+    exact ⟨{x, y}, by simpa using h, x, y, hne, rfl⟩ }
 end
 
-lemma two_le_iff' (x : α) : (2 : cardinal) ≤ #α ↔ ∃y : α, x ≠ y :=
+lemma mk_eq_two_iff' (x : α) : #α = 2 ↔ ∃! y, y ≠ x :=
 begin
-  rw [two_le_iff],
-  split,
-  { rintro ⟨y, z, h⟩, refine classical.by_cases (λ(h' : x = y), _) (λ h', ⟨y, h'⟩),
-    rw [←h'] at h, exact ⟨z, h⟩ },
-  { rintro ⟨y, h⟩, exact ⟨x, y, h⟩ }
+  rw [mk_eq_two_iff], split,
+  { rintro ⟨a, b, hne, h⟩,
+    simp only [eq_univ_iff_forall, mem_insert_iff, mem_singleton_iff] at h,
+    rcases h x with rfl|rfl,
+    exacts [⟨b, hne.symm, λ z, (h z).resolve_left⟩, ⟨a, hne, λ z, (h z).resolve_right⟩] },
+  { rintro ⟨y, hne, hy⟩,
+    exact ⟨x, y, hne.symm, eq_univ_of_forall $ λ z, or_iff_not_imp_left.2 (hy z)⟩ }
 end
 
-lemma exists_not_mem_of_length_le {α : Type*} (l : list α) (h : ↑l.length < # α) :
+lemma exists_not_mem_of_length_lt {α : Type*} (l : list α) (h : ↑l.length < # α) :
   ∃ (z : α), z ∉ l :=
 begin
   contrapose! h,
@@ -1524,7 +1567,7 @@ lemma three_le {α : Type*} (h : 3 ≤ # α) (x : α) (y : α) :
 begin
   have : ↑(3 : ℕ) ≤ # α, simpa using h,
   have : ↑(2 : ℕ) < # α, rwa [← succ_le_iff, ← cardinal.nat_succ],
-  have := exists_not_mem_of_length_le [x, y] this,
+  have := exists_not_mem_of_length_lt [x, y] this,
   simpa [not_or_distrib] using this,
 end
 
@@ -1579,3 +1622,19 @@ begin
 end
 
 end cardinal
+
+namespace tactic
+open cardinal positivity
+
+/-- Extension for the `positivity` tactic: The cardinal power of a positive cardinal is positive. -/
+@[positivity]
+meta def positivity_cardinal_pow : expr → tactic strictness
+| `(@has_pow.pow _ _ %%inst %%a %%b) := do
+  strictness_a ← core a,
+  match strictness_a with
+  | positive p := positive <$> mk_app ``power_pos [b, p]
+  | _ := failed -- We already know that `0 ≤ x` for all `x : cardinal`
+  end
+| _ := failed
+
+end tactic

@@ -23,30 +23,30 @@ variables {S₁ S₂ S₃} (φ : S₁ ⟶ S₂) (h₁ : S₁.homology_data) (h�
 structure homology_map_data :=
 (left : left_homology_map_data φ h₁.left h₂.left)
 (right : right_homology_map_data φ h₁.right h₂.right)
-(comm : left.φH ≫ h₂.iso.hom = h₁.iso.hom ≫ right.φH)
 
 namespace homology_map_data
 
-attribute [reassoc] comm
+variables {φ h₁ h₂}
+
+@[reassoc]
+lemma comm (h : homology_map_data φ h₁ h₂) :
+  h.left.φH ≫ h₂.iso.hom = h₁.iso.hom ≫ h.right.φH :=
+by simp only [← cancel_epi h₁.left.π, ← cancel_mono h₂.right.ι, assoc,
+    h.left.commπ_assoc, h.right.commι, h₂.comm, h.left.commi_assoc,
+    h₁.comm_assoc, h.right.commp]
 
 instance : subsingleton (homology_map_data φ h₁ h₂) :=
 ⟨begin
-  rintro ⟨left₁, right₁, comm₁⟩ ⟨left₂, right₂, comm₂⟩,
+  rintro ⟨left₁, right₁⟩ ⟨left₂, right₂⟩,
   simp only [eq_iff_true_of_subsingleton, and_self],
 end⟩
 
 instance : inhabited (homology_map_data φ h₁ h₂) :=
-begin
-  let left : left_homology_map_data φ h₁.left h₂.left := default,
-  let right : right_homology_map_data φ h₁.right h₂.right := default,
-  refine ⟨⟨left, right, _⟩⟩,
-  simp only [← cancel_mono h₂.right.ι, ← cancel_epi h₁.left.π,
-    assoc, left.commπ_assoc, h₂.comm, right.commι],
-  slice_rhs 1 3 { rw h₁.comm, },
-  simp only [assoc, left.commi_assoc, right.commp],
-end
+⟨⟨default, default⟩⟩
 
 instance : unique (homology_map_data φ h₁ h₂) := unique.mk' _
+
+variables (φ h₁ h₂)
 
 def some : homology_map_data φ h₁ h₂ := default
 
@@ -192,8 +192,7 @@ namespace homology_map_data
 def id (h : S.homology_data) :
   homology_map_data (𝟙 S) h h :=
 { left := left_homology_map_data.id h.left,
-  right := right_homology_map_data.id h.right,
-  comm := by tidy, }
+  right := right_homology_map_data.id h.right, }
 
 @[simps]
 def comp {φ : S₁ ⟶ S₂} {φ' : S₂ ⟶ S₃} {h₁ : S₁.homology_data}
@@ -201,17 +200,14 @@ def comp {φ : S₁ ⟶ S₂} {φ' : S₂ ⟶ S₃} {h₁ : S₁.homology_data}
   (ψ : homology_map_data φ h₁ h₂) (ψ' : homology_map_data φ' h₂ h₃) :
   homology_map_data (φ ≫ φ') h₁ h₃ :=
 { left := ψ.left.comp ψ'.left,
-  right := ψ.right.comp ψ'.right,
-  comm := by simp only [left_homology_map_data.comp_φH, assoc, right_homology_map_data.comp_φH,
-      ψ'.comm, ψ.comm_assoc], }
+  right := ψ.right.comp ψ'.right, }
 
 @[simps]
 def op {φ : S₁ ⟶ S₂} {h₁ : S₁.homology_data} {h₂ : S₂.homology_data}
   (ψ : homology_map_data φ h₁ h₂) :
   homology_map_data (op_map φ) h₂.op h₁.op :=
 { left := ψ.right.op,
-  right := ψ.left.op,
-  comm := quiver.hom.unop_inj (ψ.comm.symm), }
+  right := ψ.left.op, }
 
 @[simps]
 def unop {S₁ S₂ : short_complex C} {φ : S₁.op ⟶ S₂.op}
@@ -219,24 +215,21 @@ def unop {S₁ S₂ : short_complex C} {φ : S₁.op ⟶ S₂.op}
   (ψ : homology_map_data φ h₁ h₂) :
   homology_map_data (unop_map φ) h₂.unop h₁.unop :=
 { left := ψ.right.unop,
-  right := ψ.left.unop,
-  comm := quiver.hom.op_inj ψ.comm.symm, }
+  right := ψ.left.unop, }
 
 @[simps]
 def unop' {S₁ S₂ : short_complex Cᵒᵖ} {φ : S₁ ⟶ S₂} {h₁ : S₁.homology_data} {h₂ : S₂.homology_data}
   (ψ : homology_map_data φ h₁ h₂) :
   homology_map_data (unop'_map φ) h₂.unop' h₁.unop' :=
 { left := ψ.right.unop',
-  right := ψ.left.unop',
-  comm := quiver.hom.op_inj (ψ.comm.symm), }
+  right := ψ.left.unop', }
 
 @[simps]
 def of_zeros {S₁ S₂ : short_complex C} (φ : S₁ ⟶ S₂) (hf₁ : S₁.f = 0) (hg₁ : S₁.g = 0)
   (hf₂ : S₂.f = 0) (hg₂ : S₂.g = 0) :
   homology_map_data φ (homology_data.of_zeros S₁ hf₁ hg₁) (homology_data.of_zeros S₂ hf₂ hg₂) :=
 { left := left_homology_map_data.of_zeros _ _ _ _,
-  right := right_homology_map_data.of_zeros _ _ _ _,
-  comm := by tidy, }
+  right := right_homology_map_data.of_zeros _ _ _ _, }
 
 end homology_map_data
 
@@ -462,16 +455,14 @@ def homology_map_data.of_epi_of_is_iso_of_mono (φ : S₁ ⟶ S₂) (h : homolog
   [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] :
     homology_map_data φ h (homology_data.of_epi_of_is_iso_of_mono φ h) :=
 { left := left_homology_map_data.of_epi_of_is_iso_of_mono φ h.left,
-  right := right_homology_map_data.of_epi_of_is_iso_of_mono φ h.right,
-  comm := by simp, }
+  right := right_homology_map_data.of_epi_of_is_iso_of_mono φ h.right, }
 
 @[simps]
 def homology_map_data.of_epi_of_is_iso_of_mono' (φ : S₁ ⟶ S₂) (h : homology_data S₂)
   [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] :
     homology_map_data φ (homology_data.of_epi_of_is_iso_of_mono' φ h) h :=
 { left := left_homology_map_data.of_epi_of_is_iso_of_mono' φ h.left,
-  right := right_homology_map_data.of_epi_of_is_iso_of_mono' φ h.right,
-  comm := by tidy, }
+  right := right_homology_map_data.of_epi_of_is_iso_of_mono' φ h.right, }
 
 variable (S)
 
@@ -721,5 +712,115 @@ begin
     S₁.some_left_homology_data S₂.some_right_homology_data,
 end
 
+section quasi_iso
+
+variables [has_homology S₁] [has_homology S₂] [has_homology S₃]
+
+@[protected]
+def quasi_iso (φ : S₁ ⟶ S₂) := is_iso (homology_map φ)
+
+lemma quasi_iso_of_iso (φ : S₁ ⟶ S₂) [is_iso φ] : quasi_iso φ :=
+is_iso.of_iso (homology_map_iso (as_iso φ))
+
+lemma quasi_iso_comp {φ : S₁ ⟶ S₂} {φ' : S₂ ⟶ S₃} (h : quasi_iso φ) (h' : quasi_iso φ') :
+  quasi_iso (φ ≫ φ') :=
+begin
+  unfreezingI { dsimp [quasi_iso] at ⊢ h h', },
+  rw homology_map_comp,
+  apply_instance,
+end
+
+lemma quasi_iso_of_comp_left {φ : S₁ ⟶ S₂} {φ' : S₂ ⟶ S₃}
+  (h : quasi_iso φ) (h' : quasi_iso (φ ≫ φ')) :
+  quasi_iso φ' :=
+begin
+  unfreezingI { dsimp [quasi_iso] at ⊢ h h', },
+  rw homology_map_comp at h',
+  haveI := h,
+  exact is_iso.of_is_iso_comp_left (homology_map φ) (homology_map φ'),
+end
+
+lemma quasi_iso_of_comp_right {φ : S₁ ⟶ S₂} {φ' : S₂ ⟶ S₃}
+  (h : quasi_iso φ') (h' : quasi_iso (φ ≫ φ')) :
+  quasi_iso φ :=
+begin
+  unfreezingI { dsimp [quasi_iso] at ⊢ h h', },
+  rw homology_map_comp at h',
+  haveI := h',
+  exact is_iso.of_is_iso_comp_right (homology_map φ) (homology_map φ'),
+end
+
+end quasi_iso
+
+lemma left_homology_map_data.quasi_iso_iff' {φ : S₁ ⟶ S₂} {h₁ h₁' : left_homology_data S₁}
+  {h₂ h₂' : left_homology_data S₂} (ψ : left_homology_map_data φ h₁ h₂) (ψ' : left_homology_map_data φ h₁' h₂')
+  [S₁.has_homology] [S₂.has_homology] :
+  is_iso ψ.φH ↔ is_iso ψ'.φH :=
+begin
+  let e := left_homology_map_iso' (iso.refl S₁) h₁ h₁',
+  let e' := left_homology_map_iso' (iso.refl S₂) h₂ h₂',
+  have fac₁ : ψ'.φH = e.inv ≫ ψ.φH ≫ e'.hom,
+  { dsimp [e, e'],
+    rw [← ψ.left_homology_map'_eq, ← ψ'.left_homology_map'_eq, ← left_homology_map'_comp,
+      ← left_homology_map'_comp, id_comp, comp_id], },
+  have fac₂ : ψ.φH = e.hom ≫ ψ'.φH ≫ e'.inv,
+  { simp only [fac₁, assoc, e.hom_inv_id_assoc, e'.hom_inv_id, comp_id], },
+  split,
+  { introI,
+    rw fac₁,
+    apply_instance, },
+  { introI,
+    rw fac₂,
+    apply_instance, },
+end
+
+lemma left_homology_map_data.quasi_iso_iff {φ : S₁ ⟶ S₂} {h₁ : left_homology_data S₁}
+  {h₂ : left_homology_data S₂} (ψ : left_homology_map_data φ h₁ h₂)
+  [S₁.has_homology] [S₂.has_homology] :
+  quasi_iso φ ↔ is_iso ψ.φH :=
+left_homology_map_data.quasi_iso_iff' _ _
+
+lemma homology_map_data.quasi_iso_iff' {φ : S₁ ⟶ S₂} {h : homology_data S}
+  {h : homology_data S₂} (ψ : homology_map_data φ h₁ h₂)
+  [S₁.has_homology] [S₂.has_homology] :
+  is_iso ψ.left.φH ↔ is_iso ψ.right.φH :=
+begin
+  have fac₁ : ψ.right.φH = h₁.iso.inv ≫ ψ.left.φH ≫ h₂.iso.hom,
+  { simp only [ψ.comm, iso.inv_hom_id_assoc], },
+  have fac₂ : ψ.left.φH = h₁.iso.hom ≫ ψ.right.φH ≫ h₂.iso.inv,
+  { simp only [← reassoc_of ψ.comm, iso.hom_inv_id, comp_id], },
+  split,
+  { introI,
+    rw fac₁,
+    apply_instance, },
+  { introI,
+    rw fac₂,
+    apply_instance, },
+end
+
+lemma right_homology_map_data.quasi_iso_iff {φ : S₁ ⟶ S₂} {h₁ : right_homology_data S₁}
+  {h₂ : right_homology_data S₂} (ψ : right_homology_map_data φ h₁ h₂)
+  [S₁.has_homology] [S₂.has_homology] :
+  quasi_iso φ ↔ is_iso ψ.φH :=
+begin
+  let h₁' := S₁.some_homology_data,
+  let h₂' := S₂.some_homology_data,
+  let ψ' : left_homology_map_data φ h₁'.left h₂'.left := default,
+  let h₁'' := homology_data.of_is_iso_left_right_homology_comparison' h₁'.left h₁,
+  let h₂'' := homology_data.of_is_iso_left_right_homology_comparison' h₂'.left h₂,
+  let Φ : homology_map_data φ h₁'' h₂'' := ⟨ψ', ψ⟩,
+  change is_iso (Φ.left.φH) ↔ is_iso (Φ.right.φH),
+  have fac₁ : Φ.right.φH = h₁''.iso.inv ≫ Φ.left.φH ≫ h₂''.iso.hom,
+  { rw [Φ.comm, iso.inv_hom_id_assoc], },
+  have fac₂ : Φ.left.φH = h₁''.iso.hom ≫ Φ.right.φH ≫ h₂''.iso.inv,
+  { rw [← Φ.comm_assoc, iso.hom_inv_id, comp_id], },
+  split,
+  { introI,
+    rw fac₁,
+    apply_instance, },
+  { introI,
+    rw fac₂,
+    apply_instance, },
+end
 
 end short_complex

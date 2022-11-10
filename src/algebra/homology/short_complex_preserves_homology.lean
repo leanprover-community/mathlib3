@@ -1,4 +1,4 @@
-import algebra.homology.short_complex_exact
+import algebra.homology.short_complex_homology
 
 noncomputable theory
 
@@ -252,8 +252,7 @@ def homology_map_data.map {φ : S₁ ⟶ S₂} {h₁ : S₁.homology_data}
   [h₂.left.is_preserved_by F] [h₂.right.is_preserved_by F] :
   homology_map_data (F.map_short_complex.map φ) (h₁.map F) (h₂.map F) :=
 { left := ψ.left.map F,
-  right := ψ.right.map F,
-  comm := by simpa only [F.map_comp] using F.congr_map ψ.comm, }
+  right := ψ.right.map F, }
 
 end short_complex
 
@@ -311,6 +310,14 @@ begin
   haveI := preserves_right_homology_of.condition F S,
   haveI := preserves_left_homology_of.condition F S,
   exact has_homology.mk' (S.some_homology_data.map F)
+end
+
+instance has_homology_of_preserves_left_and_right_homology_of'
+  [S.has_homology] [F.preserves_left_homology_of S]
+  [F.preserves_right_homology_of S] : (F.map_short_complex.obj S).has_homology :=
+begin
+  change (S.map F).has_homology,
+  apply_instance,
 end
 
 @[priority 100]
@@ -446,3 +453,73 @@ nat_iso.of_components (λ S, homology_iso F S)
 end functor
 
 end category_theory
+
+open category_theory
+
+namespace short_complex
+
+variables [has_zero_morphisms C] [has_zero_morphisms D] {S₁ S₂ : short_complex C}
+
+namespace left_homology_map_data
+
+lemma quasi_iso_map_iff {φ : S₁ ⟶ S₂} {h₁ : left_homology_data S₁} {h₂ : left_homology_data S₂}
+  (ψ : left_homology_map_data φ h₁ h₂) (F : C ⥤ D) [F.preserves_zero_morphisms]
+  [(F.map_short_complex.obj S₁).has_homology]
+  [(F.map_short_complex.obj S₂).has_homology]
+  [h₁.is_preserved_by F] [h₂.is_preserved_by F] :
+  short_complex.quasi_iso (F.map_short_complex.map φ) ↔ is_iso (F.map ψ.φH) :=
+(ψ.map F).quasi_iso_iff
+
+end left_homology_map_data
+
+namespace right_homology_map_data
+
+lemma quasi_iso_map_iff {φ : S₁ ⟶ S₂} {h₁ : right_homology_data S₁} {h₂ : right_homology_data S₂}
+  (ψ : right_homology_map_data φ h₁ h₂) (F : C ⥤ D) [F.preserves_zero_morphisms]
+  [(F.map_short_complex.obj S₁).has_homology]
+  [(F.map_short_complex.obj S₂).has_homology]
+  [h₁.is_preserved_by F] [h₂.is_preserved_by F] :
+  short_complex.quasi_iso (F.map_short_complex.map φ) ↔ is_iso (F.map ψ.φH) :=
+(ψ.map F).quasi_iso_iff
+
+end right_homology_map_data
+
+lemma quasi_iso_map_of_preserves_left_homology {φ : S₁ ⟶ S₂}
+  [S₁.has_homology] [S₂.has_homology] (h : short_complex.quasi_iso φ)
+  (F : C ⥤ D) [F.preserves_zero_morphisms] [F.preserves_left_homology_of S₁]
+  [F.preserves_left_homology_of S₂]
+  [(F.map_short_complex.obj S₁).has_homology]
+  [(F.map_short_complex.obj S₂).has_homology] :
+  short_complex.quasi_iso (F.map_short_complex.map φ) :=
+begin
+  haveI := functor.preserves_left_homology_of.condition F S₁,
+  haveI := functor.preserves_left_homology_of.condition F S₂,
+  let ψ := left_homology_map_data.some φ S₁.some_left_homology_data
+    S₂.some_left_homology_data,
+  haveI : is_iso ψ.φH := by simpa only [← ψ.quasi_iso_iff] using h,
+  rw ψ.quasi_iso_map_iff F,
+  apply_instance,
+end
+
+lemma quasi_iso_map_iff_of_preserves_left_homology (φ : S₁ ⟶ S₂)
+  [S₁.has_homology] [S₂.has_homology]
+  (F : C ⥤ D) [F.preserves_zero_morphisms] [F.preserves_left_homology_of S₁]
+  [F.preserves_left_homology_of S₂]
+  [(F.map_short_complex.obj S₁).has_homology]
+  [(F.map_short_complex.obj S₂).has_homology] [reflects_isomorphisms F]:
+  short_complex.quasi_iso (F.map_short_complex.map φ) ↔
+    short_complex.quasi_iso φ :=
+begin
+  haveI := functor.preserves_left_homology_of.condition F S₁,
+  haveI := functor.preserves_left_homology_of.condition F S₂,
+  let ψ := left_homology_map_data.some φ S₁.some_left_homology_data
+    S₂.some_left_homology_data,
+  rw [ψ.quasi_iso_map_iff F, ψ.quasi_iso_iff],
+  split,
+  { introI,
+    exact is_iso_of_reflects_iso ψ.φH F, },
+  { introI,
+    apply_instance, },
+end
+
+end short_complex

@@ -1,11 +1,12 @@
 import algebra.homology.short_complex_homology
 import algebra.homology.short_complex_abelian
+import algebra.homology.short_complex_preserves_homology
 import category_theory.preadditive.opposite
 
 open category_theory
 open_locale zero_object
 
-variables {C : Type*} [category C]
+variables {C D : Type*} [category C] [category D]
 
 namespace category_theory.limits
 
@@ -36,9 +37,8 @@ namespace short_complex
 
 section
 
-variable [has_zero_morphisms C]
-
-variables (S : short_complex C) {S₁ S₂ : short_complex C}
+variables [has_zero_morphisms C] [has_zero_morphisms D]
+  (S : short_complex C) {S₁ S₂ : short_complex C}
 
 def exact :=
 (∃ (h : S.homology_data), is_zero h.left.H)
@@ -94,6 +94,16 @@ lemma right_homology_data.exact_iff (h : S.right_homology_data) [S.has_homology]
 S.exact_iff_is_zero_homology.trans
   ⟨λ z, is_zero.of_iso z h.homology_iso.symm, λ z, is_zero.of_iso z h.homology_iso⟩
 
+lemma left_homology_data.exact_map_iff (h : S.left_homology_data) (F : C ⥤ D)
+  [F.preserves_zero_morphisms] [h.is_preserved_by F] [(S.map F).has_homology]:
+  (S.map F).exact ↔ is_zero (F.obj h.H) :=
+(h.map F).exact_iff
+
+lemma right_homology_data.exact_map_iff (h : S.right_homology_data) (F : C ⥤ D)
+  [F.preserves_zero_morphisms] [h.is_preserved_by F] [(S.map F).has_homology]:
+  (S.map F).exact ↔ is_zero (F.obj h.H) :=
+(h.map F).exact_iff
+
 lemma homology_data.exact_iff_i_p_zero (h : S.homology_data) :
   S.exact ↔ h.left.i ≫ h.right.p = 0 :=
 begin
@@ -107,7 +117,39 @@ begin
       ← cancel_mono h.right.ι, ← cancel_epi h.left.π, zero_comp, zero_comp, comp_zero, eq], },
 end
 
+lemma exact_map_of_preserves_homology (hS : S.exact)
+  (F : C ⥤ D) [F.preserves_zero_morphisms] [F.preserves_left_homology_of S]
+  [F.preserves_right_homology_of S] : (S.map F).exact :=
+begin
+  haveI : S.has_homology := hS.has_homology,
+  let h := S.some_homology_data,
+  haveI := functor.preserves_left_homology_of.condition F S,
+  haveI := functor.preserves_right_homology_of.condition F S,
+  rw [h.exact_iff, is_zero.iff_id_eq_zero] at hS,
+  simpa only [(h.map F).exact_iff, is_zero.iff_id_eq_zero,
+    category_theory.functor.map_id, functor.map_zero] using F.congr_map hS,
+end
+
 variable (S)
+
+lemma exact_map_iff_of_preserves_homology [S.has_homology]
+  (F : C ⥤ D) [F.preserves_zero_morphisms] [F.preserves_left_homology_of S]
+  [F.preserves_right_homology_of S] [faithful F] :
+  (S.map F).exact ↔ S.exact :=
+begin
+  let h := S.some_homology_data,
+  have e : F.map (𝟙 h.left.H) = 0 ↔ (𝟙 h.left.H) = 0,
+  { split,
+    { intro eq,
+      apply F.map_injective,
+      rw [eq, F.map_zero], },
+    { intro eq,
+      rw [eq, F.map_zero], }, },
+  haveI := functor.preserves_left_homology_of.condition F S,
+  haveI := functor.preserves_right_homology_of.condition F S,
+  simpa only [h.exact_iff, is_zero.iff_id_eq_zero, (h.map F).exact_iff,
+    F.map_id] using e,
+end
 
 lemma exact_iff_is_zero_left_homology [S.has_homology] :
   S.exact ↔ is_zero S.left_homology :=

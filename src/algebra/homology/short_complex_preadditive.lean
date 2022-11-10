@@ -310,14 +310,12 @@ namespace homology_map_data
 @[simps]
 def neg : homology_map_data (-φ) h₁ h₂ :=
 { left := γ.left.neg,
-  right := γ.right.neg,
-  comm := by simp [γ.comm], }
+  right := γ.right.neg, }
 
 @[simps]
 def add : homology_map_data (φ + φ') h₁ h₂ :=
 { left := γ.left.add γ'.left,
-  right := γ.right.add γ'.right,
-  comm := by simp [γ.comm, γ'.comm], }
+  right := γ.right.add γ'.right, }
 
 end homology_map_data
 
@@ -722,6 +720,10 @@ def homology_iso (e : homotopy_equiv S₁ S₂) [S₁.has_homology] [S₂.has_ho
     e.homotopy_hom_inv_id.congr_homology_map, homology_map_id],
   inv_hom_id' := by rw [← homology_map_comp,
     e.homotopy_inv_hom_id.congr_homology_map, homology_map_id], }
+
+lemma to_quasi_iso (e : homotopy_equiv S₁ S₂) [S₁.has_homology] [S₂.has_homology] :
+  short_complex.quasi_iso e.hom :=
+is_iso.of_iso e.homology_iso
 
 end homotopy_equiv
 

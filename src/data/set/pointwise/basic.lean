@@ -6,7 +6,6 @@ Authors: Johan Commelin, Floris van Doorn
 import data.fin.tuple.basic
 import data.set.finite
 import algebra.module.basic
-import algebra.support
 
 /-!
 # Pointwise operations of sets
@@ -1262,16 +1261,6 @@ let ⟨a, ha, ha₀⟩ := not_subset.1 hs in eq_univ_of_forall $ λ b,
 
 lemma smul_set_univ₀ (ha : a ≠ 0) : a • (univ : set β) = univ :=
 eq_univ_of_forall $ λ b, ⟨a⁻¹ • b, trivial, smul_inv_smul₀ ha _⟩
-
-lemma mul_support_comp_inv_smul₀ [has_one γ] {c : α} (hc : c ≠ 0) (f : β → γ) :
-  mul_support (λ x, f (c⁻¹ • x)) = c • mul_support f :=
-by { ext x, simp only [mem_smul_set_iff_inv_smul_mem₀ hc, mem_mul_support] }
-
-lemma support_comp_inv_smul₀ [has_zero γ] {c : α} (hc : c ≠ 0) (f : β → γ) :
-  support (λ x, f (c⁻¹ • x)) = c • support f :=
-by { ext x, simp only [mem_smul_set_iff_inv_smul_mem₀ hc, mem_support] }
-
-attribute [to_additive support_comp_inv_smul₀] mul_support_comp_inv_smul₀
 
 end group_with_zero
 

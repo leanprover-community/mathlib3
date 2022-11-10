@@ -9,14 +9,60 @@ import measure_theory.measure.probability_measure
 /-!
 # Bell's Inequality
 
-This file proves Bell's Inequality in several forms. (TODO: Add other forms.)
+This file proves Bell's Inequality as a probabilitstic statement in several
+forms. (TODO: Add other forms.)
 
-## Main Statements
+A star-algebra version of Bell's inequality has already been proved in
+  `algebra.star.chsh.CHSH_inequality_of_comm`
+Here, the inequality is formulated in terms of probabilities.
 
-* `bells_inequality_1964` is the 1964 version of Bell's inequality: Given six random variables
-  `Za Zb : fin 3 → Ω → ℤˣ` taking values in `±1`, and assuming perfect anticorrelation on the
-  diagonal (that is, `𝔼[(Za i) (Zb i)] = -1` for all `i`), we have that
+Bell's inequality is the cornerstone of Bell's theorem, which states that
+quantum mechanics is a non-local theory. The proof of Bell's theorem,
+established by J.S. Bell in 1964, first uses the Einstein-Podolsky-Rosen
+argument to establish that either quantum mechanics is non-local, or all
+quantum observables simultaneously have values (in other words, quantum
+mechanics is a non-contextual hidden variable theory). Bell's inequality is a
+necessary condition for all the observables in an abstract probabilistic theory
+to simultaneously have values. By showing that, in quantum mechanics, Bell's
+inequality is violated, Bell proved that quantum mechanics is non-local.
+
+The violation of Bell's inequality has also been verified experimentally in
+many different setups.
+
+
+## Bell's 1964 inequality
+
+We first prove Bell's original statement of the inequality, which was published
+in 1964, and will thus be called `bells_inequality_1964` in this file.
+
+Consider two observers, A and B, performing measurements that take values in
+{-1,+1}.
+
+Let `ℙ` be a probability measure, and let `Za i` and `Zb i` for i∈{1,2,3} be
+random variables taking values in {-1,+1}. For convenience, we identify {-1,+1}
+with ℤˣ. `Za i` represent the outcomes of measurements done by A, and `Zb i`
+those done by B. We assume perfect anticorrelation between the outcomes of A
+and B: 𝔼[(Za i) (Zb i)] = -1. Bell's inequality states that
   `𝔼[(Za 1) (Zb 2)] - 𝔼[(Za 1) (Zb 2)] ≤ 1 + 𝔼[(Za 2) (Zb 3)]`.
+
+
+## Future work
+
+J.S. Bell generalized the inequality in 1970 to include more probabilistic
+theories. In particular, the 1970 statement does not require observables to
+simultaneously have values. Instead, it is solely based on the requirement of
+locality. The 1970 inequality thus gives a more direct proof of Bell's theorem.
+
+
+## References
+
+* [J.S. Bell, *On the Einstein Podolsky Rosen Paradox*, 1964][MR3790629]
+
+* [J.S. Bell, *Introduction to the hidden variable question*, 1970,
+  reproduced in chapter 4 of *Speakable and unspeakable in quantum mechanics*][MR915338]
+
+
+
 -/
 
 noncomputable theory

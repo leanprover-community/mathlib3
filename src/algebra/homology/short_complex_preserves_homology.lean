@@ -143,9 +143,9 @@ def left_homology_map_data.map {φ : S₁ ⟶ S₂} {h₁ : S₁.left_homology_d
   left_homology_map_data (F.map_short_complex.map φ) (h₁.map F) (h₂.map F) :=
 { φK := F.map ψ.φK,
   φH := F.map ψ.φH,
-  commi := by simpa only [F.map_comp] using F.congr_map ψ.commi,
-  commf' := by simpa only [left_homology_data.map_f', F.map_comp] using F.congr_map ψ.commf',
-  commπ := by simpa only [F.map_comp] using F.congr_map ψ.commπ, }
+  commi' := by simpa only [F.map_comp] using F.congr_map ψ.commi,
+  commf'' := by simpa only [left_homology_data.map_f', F.map_comp] using F.congr_map ψ.commf',
+  commπ' := by simpa only [F.map_comp] using F.congr_map ψ.commπ, }
 
 namespace right_homology_data
 
@@ -223,9 +223,9 @@ def right_homology_map_data.map {φ : S₁ ⟶ S₂} {h₁ : S₁.right_homology
   right_homology_map_data (F.map_short_complex.map φ) (h₁.map F) (h₂.map F) :=
 { φQ := F.map ψ.φQ,
   φH := F.map ψ.φH,
-  commp := by simpa only [F.map_comp] using F.congr_map ψ.commp,
-  commg' := by simpa only [right_homology_data.map_g', F.map_comp] using F.congr_map ψ.commg',
-  commι := by simpa only [F.map_comp] using F.congr_map ψ.commι, }
+  commp' := by simpa only [F.map_comp] using F.congr_map ψ.commp,
+  commg'' := by simpa only [right_homology_data.map_g', F.map_comp] using F.congr_map ψ.commg',
+  commι' := by simpa only [F.map_comp] using F.congr_map ψ.commι, }
 
 namespace homology_data
 

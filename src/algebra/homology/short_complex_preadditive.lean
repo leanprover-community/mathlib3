@@ -131,17 +131,17 @@ namespace left_homology_map_data
 def neg : left_homology_map_data (-φ) h₁ h₂ :=
 { φK := -γ.φK,
   φH := -γ.φH,
-  commi := by simp [γ.commi],
-  commf' := by simp [γ.commf'],
-  commπ := by simp [γ.commπ], }
+  commi' := by simp [γ.commi],
+  commf'' := by simp [γ.commf'],
+  commπ' := by simp [γ.commπ], }
 
 @[simps]
 def add : left_homology_map_data (φ + φ') h₁ h₂ :=
 { φK := γ.φK + γ'.φK,
   φH := γ.φH + γ'.φH,
-  commi := by simp [γ.commi, γ'.commi],
-  commf' := by simp [γ.commf', γ'.commf'],
-  commπ := by simp [γ.commπ, γ'.commπ], }
+  commi' := by simp [γ.commi, γ'.commi],
+  commf'' := by simp [γ.commf', γ'.commf'],
+  commπ' := by simp [γ.commπ, γ'.commπ], }
 
 end left_homology_map_data
 
@@ -221,17 +221,17 @@ namespace right_homology_map_data
 def neg : right_homology_map_data (-φ) h₁ h₂ :=
 { φQ := -γ.φQ,
   φH := -γ.φH,
-  commp := by simp [γ.commp],
-  commg' := by simp [γ.commg'],
-  commι := by simp [γ.commι], }
+  commp' := by simp [γ.commp],
+  commg'' := by simp [γ.commg'],
+  commι' := by simp [γ.commι], }
 
 @[simps]
 def add : right_homology_map_data (φ + φ') h₁ h₂ :=
 { φQ := γ.φQ + γ'.φQ,
   φH := γ.φH + γ'.φH,
-  commp := by simp [γ.commp, γ'.commp],
-  commg' := by simp [γ.commg', γ'.commg'],
-  commι := by simp [γ.commι, γ'.commι], }
+  commp' := by simp [γ.commp, γ'.commp],
+  commg'' := by simp [γ.commg', γ'.commg'],
+  commι' := by simp [γ.commι, γ'.commι], }
 
 end right_homology_map_data
 
@@ -534,11 +534,11 @@ def left_homology_map_data.of_null_homotopic
   left_homology_map_data (null_homotopic h₀ h₀_f h₁ h₂ h₃ g_h₃) H₁ H₂ :=
 { φK := H₂.lift_K (H₁.i ≫ h₁ ≫ S₂.f) (by simp),
   φH := 0,
-  commi := by simp,
-  commf' := by simp only [← cancel_mono H₂.i, h₀_f, assoc, null_homotopic_τ₁,
+  commi' := by simp,
+  commf'' := by simp only [← cancel_mono H₂.i, h₀_f, assoc, null_homotopic_τ₁,
     add_comp, left_homology_data.lift_K_i, left_homology_data.f'_i_assoc,
     left_homology_data.f'_i, zero_add],
-  commπ := by rw [H₂.lift_K_π_eq_zero_of_boundary (H₁.i ≫ h₁ ≫ S₂.f)
+  commπ' := by rw [H₂.lift_K_π_eq_zero_of_boundary (H₁.i ≫ h₁ ≫ S₂.f)
     (H₁.i ≫ h₁) (by rw assoc), comp_zero], }
 
 @[simps]
@@ -549,11 +549,11 @@ def right_homology_map_data.of_null_homotopic
   right_homology_map_data (null_homotopic h₀ h₀_f h₁ h₂ h₃ g_h₃) H₁ H₂ :=
 { φQ := H₁.desc_Q (S₁.g ≫ h₂ ≫ H₂.p) (by simp),
   φH := 0,
-  commp := by simp,
-  commg' := by simp only [←cancel_epi H₁.p, g_h₃, null_homotopic_τ₃, comp_add, assoc,
-    add_right_eq_self, right_homology_data.p_g'_assoc, right_homology_data.p_desc_Q_assoc,
-    right_homology_data.p_g'],
-  commι := by rw [H₁.ι_desc_Q_eq_zero_of_boundary (S₁.g ≫ h₂ ≫ H₂.p) (h₂ ≫ H₂.p) rfl,
+  commp' := by simp,
+  commg'' := by simp only [←cancel_epi H₁.p, g_h₃, null_homotopic_τ₃,
+    comp_add, right_homology_data.p_desc_Q_assoc, assoc,
+    right_homology_data.p_g', right_homology_data.p_g'_assoc, add_zero],
+  commι' := by rw [H₁.ι_desc_Q_eq_zero_of_boundary (S₁.g ≫ h₂ ≫ H₂.p) (h₂ ≫ H₂.p) rfl,
     zero_comp], }
 
 namespace homotopy

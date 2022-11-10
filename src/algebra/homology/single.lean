@@ -183,6 +183,7 @@ end
 
 variable {V}
 
+@[simp]
 def homology_data_single₀_zero (A : V) :
   ((single₀ V).obj A).homology_data 0 :=
 short_complex.homology_data.of_zeros _ rfl rfl
@@ -193,10 +194,12 @@ def homology_map_data_single₀_map_zero {A A' : V} (f : A ⟶ A') :
     (homology_data_single₀_zero A') :=
   short_complex.homology_map_data.of_zeros _ rfl rfl rfl rfl
 
+@[simps]
 def homology_single₀_zero (A : V) :
   ((single₀ V).obj A).homology 0 ≅ A :=
 (homology_data_single₀_zero A).homology_iso
 
+@[simps]
 def homology_single₀_succ (A : V) (j : ℕ):
   ((single₀ V).obj A).homology (j+1) ≅ 0 :=
 is_zero.iso_zero
@@ -221,7 +224,6 @@ def homology_functor_0_single₀ [category_with_homology V] :
 nat_iso.of_components homology_single₀_zero
   (λ X Y f, (homology_map_data_single₀_map_zero f).map_comm)
 
-#exit
 /--
 Sending objects to chain complexes supported at `0` then taking `(n+1)`-st homology
 is the same as the zero functor.

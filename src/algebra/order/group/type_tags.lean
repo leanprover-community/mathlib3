@@ -3,7 +3,7 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
-import algebra.order.group.basic
+import algebra.order.group.defs
 import algebra.order.monoid.type_tags
 
 /-! # Ordered group structures on `multiplicative α` and `additive α`. -/

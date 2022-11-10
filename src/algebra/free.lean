@@ -17,9 +17,10 @@ import data.list.basic
 * `free_magma α`: free magma (structure with binary operation without any axioms) over alphabet `α`,
   defined inductively, with traversable instance and decidable equality.
 * `magma.assoc_quotient α`: quotient of a magma `α` by the associativity equivalence relation.
-* `free_semigroup α`: free semigroup over alphabet `α`, defined as a synonym for `α × list α`
-  (i.e. nonempty lists), with traversable instance and decidable equality.
-* `free_semigroup_free_magma α`: isomorphism between `magma.free_semigroup (free_magma α)` and
+* `free_semigroup α`: free semigroup over alphabet `α`, defined as a structure with two fields
+  `head : α` and `tail : list α` (i.e. nonempty lists), with traversable instance and decidable
+  equality.
+* `free_magma_assoc_quotient_equiv α`: isomorphism between `magma.assoc_quotient (free_magma α)` and
   `free_semigroup α`.
 * `free_magma.lift`: the universal property of the free magma, expressing its adjointness.
 -/
@@ -390,9 +391,6 @@ rfl
 
 @[simp, to_additive] lemma mk_mul_mk (x y : α) (L1 L2 : list α) :
   mk x L1 * mk y L2 = mk x (L1 ++ y :: L2) := rfl
-
-@[simp, to_additive] lemma fst_mul (x y : free_semigroup α) : (x * y).1 = x.1 := rfl
-@[simp, to_additive] lemma snd_mul (x y : free_semigroup α) : (x * y).2 = x.2 ++ y.1 :: y.2 := rfl
 
 /-- The embedding `α → free_semigroup α`. -/
 @[to_additive "The embedding `α → free_add_semigroup α`.", simps]

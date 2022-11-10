@@ -315,6 +315,11 @@ is_closed_singleton.is_open_compl
 lemma is_open_ne [t1_space α] {x : α} : is_open {y | y ≠ x} :=
 is_open_compl_singleton
 
+@[to_additive]
+lemma continuous.is_open_mul_support [t1_space α] [has_one α] [topological_space β]
+  {f : β → α} (hf : continuous f) : is_open (mul_support f) :=
+is_open_ne.preimage hf
+
 lemma ne.nhds_within_compl_singleton [t1_space α] {x y : α} (h : x ≠ y) :
   𝓝[{y}ᶜ] x = 𝓝 x :=
 is_open_ne.nhds_within_eq h
@@ -1082,11 +1087,6 @@ continuous_iff_is_closed.mp (hf.prod_mk hg) _ is_closed_diagonal
 lemma is_open_ne_fun [t2_space α] {f g : β → α}
   (hf : continuous f) (hg : continuous g) : is_open {x:β | f x ≠ g x} :=
 is_open_compl_iff.mpr $ is_closed_eq hf hg
-
-@[to_additive]
-lemma continuous.is_open_mul_support [t2_space β] [has_one β] {f : α → β} (hf : continuous f) :
-  is_open (mul_support f) :=
-is_open_ne_fun hf continuous_const
 
 /-- If two continuous maps are equal on `s`, then they are equal on the closure of `s`. See also
 `set.eq_on.of_subset_closure` for a more general version. -/

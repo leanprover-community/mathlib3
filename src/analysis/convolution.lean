@@ -589,6 +589,7 @@ lemma convolution_mul_swap [normed_space ℝ 𝕜] [complete_space 𝕜] {f : G 
   (f ⋆[mul 𝕜 𝕜, μ] g) x = ∫ t, f (x - t) * g t ∂μ :=
 convolution_eq_swap _
 
+/-- The convolution of two even functions is also even. -/
 lemma convolution_neg_of_neg_eq (h1 : ∀ᵐ x ∂μ, f (-x) = f x) (h2 : ∀ᵐ x ∂μ, g (-x) = g x) :
   (f ⋆[L, μ] g) (-x) = (f ⋆[L, μ] g) x :=
 calc ∫ (t : G), (L (f t)) (g (-x - t)) ∂μ

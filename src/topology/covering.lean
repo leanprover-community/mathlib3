@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 import topology.is_locally_homeomorph
-import topology.fiber_bundle
+import topology.fiber_bundle.basic
 
 /-!
 # Covering Maps

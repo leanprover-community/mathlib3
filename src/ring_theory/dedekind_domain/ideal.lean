@@ -1264,6 +1264,14 @@ is_dedekind_domain.quotient_equiv_pi_of_prod_eq _ _ _
     λ P, ideal.quotient.mk _ x :=
 rfl
 
+/-- **Chinese remainder theorem**, specialized to two ideals. -/
+noncomputable def ideal.quotient_mul_equiv_quotient_prod (I J : ideal R)
+  (coprime : I ⊔ J = ⊤) :
+  (R ⧸ (I * J)) ≃+* (R ⧸ I) × R ⧸ J :=
+ring_equiv.trans
+  (ideal.quot_equiv_of_eq (inf_eq_mul_of_coprime coprime).symm)
+  (ideal.quotient_inf_equiv_quotient_prod I J coprime)
+
 end dedekind_domain
 
 end chinese_remainder

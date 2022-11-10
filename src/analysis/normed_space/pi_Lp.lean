@@ -63,32 +63,30 @@ open_locale big_operators uniformity topological_space nnreal ennreal
 
 noncomputable theory
 
-variables {ι : Type*}
-
 /-- A copy of a Pi type, on which we will put the `L^p` distance. Since the Pi type itself is
 already endowed with the `L^∞` distance, we need the type synonym to avoid confusing typeclass
 resolution. Also, we let it depend on `p`, to get a whole family of type on which we can put
 different distances. -/
 @[nolint unused_arguments]
-def pi_Lp {ι : Type*} (p : ℝ≥0∞) (α : ι → Type*) : Type* := Π (i : ι), α i
+def pi_Lp (p : ℝ≥0∞) {ι : Type*} (α : ι → Type*) : Type* := Π (i : ι), α i
 
-instance {ι : Type*} (p : ℝ≥0∞) (α : ι → Type*) [Π i, inhabited (α i)] : inhabited (pi_Lp p α) :=
+instance (p : ℝ≥0∞) {ι : Type*} (α : ι → Type*) [Π i, inhabited (α i)] : inhabited (pi_Lp p α) :=
 ⟨λ i, default⟩
 
 namespace pi_Lp
 
-variables (p : ℝ≥0∞) (𝕜 : Type*) (α : ι → Type*) (β : ι → Type*)
+variables (p : ℝ≥0∞) (𝕜 : Type*) {ι : Type*} (α : ι → Type*) (β : ι → Type*)
 
 /-- Canonical bijection between `pi_Lp p α` and the original Pi type. We introduce it to be able
 to compare the `L^p` and `L^∞` distances through it. -/
 protected def equiv : pi_Lp p α ≃ Π (i : ι), α i :=
 equiv.refl _
 
-lemma equiv_apply (x : pi_Lp p α) (i : ι) : pi_Lp.equiv p α x i = x i := rfl
-lemma equiv_symm_apply (x : Π i, α i) (i : ι) : (pi_Lp.equiv p α).symm x i = x i := rfl
+/-! Note that the unapplied versions of these lemmas are deliberately omitted, as they break
+the use of the type synonym. -/
 
-@[simp] lemma equiv_apply' (x : pi_Lp p α) : pi_Lp.equiv p α x = x := rfl
-@[simp] lemma equiv_symm_apply' (x : Π i, α i) : (pi_Lp.equiv p α).symm x = x := rfl
+@[simp] lemma equiv_apply (x : pi_Lp p α) (i : ι) : pi_Lp.equiv p α x i = x i := rfl
+@[simp] lemma equiv_symm_apply (x : Π i, α i) (i : ι) : (pi_Lp.equiv p α).symm x i = x i := rfl
 
 section dist_norm
 variables [fintype ι]
@@ -320,7 +318,7 @@ lemma lipschitz_with_equiv_aux : lipschitz_with 1 (pi_Lp.equiv p β) :=
 begin
   intros x y,
   unfreezingI { rcases p.dichotomy with (rfl | h) },
-  { simpa only [equiv_apply', ennreal.coe_one, one_mul, edist_eq_supr, edist, finset.sup_le_iff,
+  { simpa only [ennreal.coe_one, one_mul, edist_eq_supr, edist, finset.sup_le_iff,
       finset.mem_univ, forall_true_left] using le_supr (λ i, edist (x i) (y i)), },
   { have cancel : p.to_real * (1/p.to_real) = 1 := mul_div_cancel' 1 (zero_lt_one.trans_le h).ne',
     rw edist_eq_sum (zero_lt_one.trans_le h),
@@ -343,13 +341,13 @@ begin
   intros x y,
   unfreezingI { rcases p.dichotomy with (rfl | h) },
   { simp only [edist_eq_supr, ennreal.div_top, ennreal.zero_to_real, nnreal.rpow_zero,
-      ennreal.coe_one, equiv_apply', one_mul, supr_le_iff],
+      ennreal.coe_one, one_mul, supr_le_iff],
     exact λ i, finset.le_sup (finset.mem_univ i), },
   { have pos : 0 < p.to_real := zero_lt_one.trans_le h,
     have nonneg : 0 ≤ 1 / p.to_real := one_div_nonneg.2 (le_of_lt pos),
     have cancel : p.to_real * (1/p.to_real) = 1 := mul_div_cancel' 1 (ne_of_gt pos),
     rw [edist_eq_sum pos, ennreal.to_real_div 1 p],
-    simp only [edist, equiv_apply', ←one_div, ennreal.one_to_real],
+    simp only [edist, ←one_div, ennreal.one_to_real],
     calc (∑ i, edist (x i) (y i) ^ p.to_real) ^ (1 / p.to_real) ≤
     (∑ i, edist (pi_Lp.equiv p β x) (pi_Lp.equiv p β y) ^ p.to_real) ^ (1 / p.to_real) :
     begin
@@ -650,7 +648,7 @@ lemma nnnorm_equiv_symm_const' {β} [seminormed_add_comm_group β] [nonempty ι]
   fintype.card ι ^ (1 / p).to_real * ∥b∥₊ :=
 begin
   unfreezingI { rcases (em $ p = ∞) with (rfl | hp) },
-  { simp only [equiv_symm_apply', ennreal.div_top, ennreal.zero_to_real, nnreal.rpow_zero, one_mul,
+  { simp only [equiv_symm_apply, ennreal.div_top, ennreal.zero_to_real, nnreal.rpow_zero, one_mul,
       nnnorm_eq_csupr, function.const_apply, csupr_const], },
   { exact nnnorm_equiv_symm_const hp b, },
 end
@@ -689,5 +687,45 @@ protected def linear_equiv : pi_Lp p β ≃ₗ[𝕜] Π i, β i :=
 { to_fun := pi_Lp.equiv _ _,
   inv_fun := (pi_Lp.equiv _ _).symm,
   ..linear_equiv.refl _ _}
+
+section basis
+
+variables (ι)
+
+/-- A version of `pi.basis_fun` for `pi_Lp`. -/
+def basis_fun : basis ι 𝕜 (pi_Lp p (λ _, 𝕜)) :=
+basis.of_equiv_fun (pi_Lp.linear_equiv p 𝕜 (λ _ : ι, 𝕜))
+
+@[simp] lemma basis_fun_apply [decidable_eq ι] (i) :
+  basis_fun p 𝕜 ι i = (pi_Lp.equiv p _).symm (pi.single i 1) :=
+by { simp_rw [basis_fun, basis.coe_of_equiv_fun, pi_Lp.linear_equiv_symm_apply, pi.single],
+     congr /- Get rid of a `decidable_eq` mismatch. -/ }
+
+@[simp] lemma basis_fun_repr (x : pi_Lp p (λ i : ι, 𝕜)) (i : ι) :
+  (basis_fun p 𝕜 ι).repr x i = x i :=
+rfl
+
+lemma basis_fun_eq_pi_basis_fun :
+  basis_fun p 𝕜 ι = (pi.basis_fun 𝕜 ι).map (pi_Lp.linear_equiv p 𝕜 (λ _ : ι, 𝕜)).symm :=
+rfl
+
+@[simp] lemma basis_fun_map :
+  (basis_fun p 𝕜 ι).map (pi_Lp.linear_equiv p 𝕜 (λ _ : ι, 𝕜)) = pi.basis_fun 𝕜 ι :=
+rfl
+
+open_locale matrix
+
+lemma basis_to_matrix_basis_fun_mul (b : basis ι 𝕜 (pi_Lp p (λ i : ι, 𝕜))) (A : matrix ι ι 𝕜) :
+  b.to_matrix (pi_Lp.basis_fun _ _ _) ⬝ A =
+    matrix.of (λ i j, b.repr ((pi_Lp.equiv _ _).symm (Aᵀ j)) i) :=
+begin
+  have := basis_to_matrix_basis_fun_mul (b.map (pi_Lp.linear_equiv _ 𝕜 _)) A,
+  simp_rw [←pi_Lp.basis_fun_map p, basis.map_repr, linear_equiv.trans_apply,
+    pi_Lp.linear_equiv_symm_apply, basis.to_matrix_map, function.comp, basis.map_apply,
+    linear_equiv.symm_apply_apply] at this,
+  exact this,
+end
+
+end basis
 
 end pi_Lp

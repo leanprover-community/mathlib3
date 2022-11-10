@@ -559,18 +559,16 @@ h x
 lemma differentiable_at.fderiv_within
   (h : differentiable_at 𝕜 f x) (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
-begin
-  apply has_fderiv_within_at.fderiv_within _ hxs,
-  exact h.has_fderiv_at.has_fderiv_within_at
-end
+h.has_fderiv_at.has_fderiv_within_at.fderiv_within hxs
 
 lemma differentiable_on.mono (h : differentiable_on 𝕜 f t) (st : s ⊆ t) :
   differentiable_on 𝕜 f s :=
-λx hx, (h x (st hx)).mono st
+λ x hx, (h x (st hx)).mono st
 
 lemma differentiable_on_univ :
   differentiable_on 𝕜 f univ ↔ differentiable 𝕜 f :=
-by { simp [differentiable_on, differentiable_within_at_univ], refl }
+by { simp only [differentiable_on, differentiable_within_at_univ, mem_univ, forall_true_left],
+  refl }
 
 lemma differentiable.differentiable_on (h : differentiable 𝕜 f) : differentiable_on 𝕜 f s :=
 (differentiable_on_univ.2 h).mono (subset_univ _)
@@ -686,7 +684,7 @@ begin
     rw ← sub_self x, exact tendsto_id.sub tendsto_const_nhds },
   have := tendsto.add this tendsto_const_nhds,
   rw zero_add (f x) at this,
-  exact this.congr (by simp)
+  exact this.congr (by simp only [sub_add_cancel, eq_self_iff_true, forall_const])
 end
 
 theorem has_fderiv_within_at.continuous_within_at
@@ -1580,17 +1578,20 @@ lemma fderiv_const_smul (h : differentiable_at 𝕜 f x) (c : R) :
 end const_smul
 
 section add
+
 /-! ### Derivative of the sum of two functions -/
 
 theorem has_strict_fderiv_at.add (hf : has_strict_fderiv_at f f' x)
   (hg : has_strict_fderiv_at g g' x) :
   has_strict_fderiv_at (λ y, f y + g y) (f' + g') x :=
-(hf.add hg).congr_left $ λ y, by simp; abel
+(hf.add hg).congr_left $ λ y,
+  by { simp only [linear_map.sub_apply, linear_map.add_apply, map_sub, map_add, add_apply], abel }
 
 theorem has_fderiv_at_filter.add
   (hf : has_fderiv_at_filter f f' x L) (hg : has_fderiv_at_filter g g' x L) :
   has_fderiv_at_filter (λ y, f y + g y) (f' + g') x L :=
-(hf.add hg).congr_left $ λ _, by simp; abel
+(hf.add hg).congr_left $ λ _,
+  by { simp only [linear_map.sub_apply, linear_map.add_apply, map_sub, map_add, add_apply], abel }
 
 theorem has_fderiv_within_at.add
   (hf : has_fderiv_within_at f f' s x) (hg : has_fderiv_within_at g g' s x) :

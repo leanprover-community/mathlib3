@@ -223,10 +223,12 @@ lemma is_clopen_of_is_clopen_coe (Y:Type*) [topological_space Y] (A: set Y)
  is_closed_of_is_closed_coe  Y A (λ x, let  ⟨ z,hz,hhz⟩:= hA x in ⟨ z,hz,hhz.2⟩  )⟩
 
 lemma test_false :true:=
-begin
-  refine ⟨ ⟩,
-end
+⟨⟩
 
+theorem clopen_equalizer_of_discrete {X Y : Type*} [topological_space X] [topological_space Y]
+  [discrete_topology Y] {f g : X → Y} (hf : continuous f) (hg : continuous g) :
+  is_clopen {x : X | f x = g x} :=
+sorry
 
 
 theorem uniqueness_of_homotopy_lifting (Y: Type*)
@@ -248,8 +250,6 @@ theorem uniqueness_of_homotopy_lifting (Y: Type*)
       intro x,
       let c:= (hf  $ composition x).to_trivialization,
 
-      have c1 := c.1,
-      have c2:=c.2,
       let cbase:= c.base_set,
       let d:= composition⁻¹' c.base_set,
       use d,
@@ -258,16 +258,18 @@ theorem uniqueness_of_homotopy_lifting (Y: Type*)
         set.mem_preimage.2 (is_evenly_covered.mem_to_trivialization_base_set _)⟩,
       split,
       exact l,
-      apply is_clopen_of_is_clopen_coe,
-      intro x,
-      let t:= λ j:d,(c1( H₁ j)).2,
-      use set.univ,
-      refine ⟨↑l,_⟩,
 
-
-
-      {sorry,}
-
+      let f₁ : d → E := H₁ ∘ coe,
+      let f₂ : d → E := H₂ ∘ coe,
+      let g₁ : d → f ⁻¹' {composition x} := prod.snd ∘ c.1 ∘ f₁,
+      let g₂ : d → f ⁻¹' {composition x} := prod.snd ∘ c.1 ∘ f₂,
+      change is_clopen {y : d | f₁ y = f₂ y},
+      haveI := (hf (composition x)).1,
+      have key : ∀ y : d, f₁ y = f₂ y ↔ g₁ y = g₂ y := sorry,
+      simp_rw [key],
+      have key₁ : continuous g₁ := sorry,
+      have key₂ : continuous g₂ := sorry,
+      exact clopen_equalizer_of_discrete key₁ key₂,
   end
 
   -- is_open.preimage k (connected_component_in r x)

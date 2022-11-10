@@ -21,7 +21,7 @@ section has_le
 
 variables [has_le α] [has_le β] [has_le γ]
 
-@[simp] lemma range_eq (e : α ≃o β) : set.range e = set.univ := e.surjective.range_eq
+lemma range_eq (e : α ≃o β) : set.range e = set.univ := e.surjective.range_eq
 
 @[simp] lemma symm_image_image (e : α ≃o β) (s : set α) : e.symm '' (e '' s) = s :=
 e.to_equiv.symm_image_image s

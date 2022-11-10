@@ -3,7 +3,7 @@ Copyright (c) 2022 Ian Jauslin and Alex Kontorovich. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ian Jauslin, Alex Kontorovich
 -/
-import probability.conditional_probability
+
 import measure_theory.measure.probability_measure
 
 /-!
@@ -18,33 +18,27 @@ This file proves Bell's Inequality in several forms.
 
 noncomputable theory
 
-open_locale ennreal probability_theory
-
-open measure_theory measurable_space probability_theory
-
-namespace probability_theory
-
-universe u
+open measure_theory
 
 section preliminaries
 
 lemma pm_one_space_vals (r : ℤˣ) :
-  (r:ℝ) = 1 ∨ (r:ℝ) = -1 :=
+  (r : ℝ) = 1 ∨ (r : ℝ) = -1 :=
 begin
   cases int.units_eq_one_or r with hh hh;
   rw hh; simp,
 end
 
 lemma pm_one_space_abs_le (r : ℤˣ) :
-  |(r:ℝ)| ≤ 1 :=
+  |(r : ℝ)| ≤ 1 :=
 begin
   cases int.units_eq_one_or r with hh hh;
   rw hh; simp,
 end
 
-lemma pm_one_space_le (r : ℤˣ) : (r:ℝ) ≤ 1 := (abs_le.mp (pm_one_space_abs_le r)).2
+lemma pm_one_space_le (r : ℤˣ) : (r : ℝ) ≤ 1 := (abs_le.mp (pm_one_space_abs_le r)).2
 
-lemma pm_one_space_ge (r : ℤˣ) : (r:ℝ) ≥ -1 := (abs_le.mp (pm_one_space_abs_le r)).1
+lemma pm_one_space_ge (r : ℤˣ) : -1 ≤ (r : ℝ) := (abs_le.mp (pm_one_space_abs_le r)).1
 
 /-- the CHSH inequality proved for intgers that are ±1 -/
 lemma CHSH_inequality_of_int_units (A₀ A₁ B₀ B₁ : ℤˣ) :
@@ -55,9 +49,12 @@ lemma CHSH_inequality_of_int_units (A₀ A₁ B₀ B₁ : ℤˣ) :
     cases pm_one_space_vals B₁ with hB1 hB1;
     rw [hA0, hA1, hB0, hB1]; ring_nf; simp
 
-lemma integrable_mul_of_units_int {Ω : Type u} [measurable_space Ω] (ℙ : probability_measure Ω)
-  {Za Zb : Ω → ℤˣ} (sm_a : strongly_measurable (λ ω , (Za ω : ℝ)))
-  (sm_b : strongly_measurable (λ ω , (Zb ω : ℝ))) :
+end preliminaries
+
+variables {Ω : Type*} [measurable_space Ω] (ℙ : probability_measure Ω)
+
+lemma integrable_mul_of_units_int {Za Zb : Ω → ℤˣ} (sm_a : strongly_measurable (λ ω, (Za ω : ℝ)))
+  (sm_b : strongly_measurable (λ ω, (Zb ω : ℝ))) :
   integrable (λ ω, (Za ω : ℝ) * Zb ω) (ℙ : measure Ω) :=
 begin
   refine ⟨strongly_measurable.ae_strongly_measurable (strongly_measurable.mul sm_a sm_b), _⟩,
@@ -67,9 +64,9 @@ begin
   simp,
 end
 
-lemma integrable_mul_of_units_int_neg {Ω : Type u} [measurable_space Ω] (ℙ : probability_measure Ω)
-  {Za Zb : Ω → ℤˣ} (sm_a : strongly_measurable (λ ω , (Za ω : ℝ)))
-  (sm_b : strongly_measurable (λ ω , (Zb ω : ℝ))) :
+lemma integrable_mul_of_units_int_neg {Za Zb : Ω → ℤˣ}
+  (sm_a : strongly_measurable (λ ω, (Za ω : ℝ)))
+  (sm_b : strongly_measurable (λ ω, (Zb ω : ℝ))) :
   integrable (λ ω : Ω , -(Za ω :ℝ) * Zb ω) (ℙ : measure Ω) :=
 begin
   convert @integrable_mul_of_units_int _ _ _ (λ x, -Za x) Zb _ sm_b,
@@ -80,11 +77,9 @@ begin
     simp, },
 end
 
-end preliminaries
-
 /-- Bell's inequality: 1964 version -/
-theorem bells_inequality_1964 {Ω : Type u} [measurable_space Ω] (ℙ : probability_measure Ω)
-  (Za Zb : fin 3 → Ω → ℤˣ) (Za_measurable : ∀ i, strongly_measurable (λ ω, (Za i ω : ℝ)))
+theorem bells_inequality_1964 {Za Zb : fin 3 → Ω → ℤˣ}
+  (Za_measurable : ∀ i, strongly_measurable (λ ω, (Za i ω : ℝ)))
   (Zb_measurable : ∀ i, strongly_measurable (λ ω, (Zb i ω : ℝ)))
   (anticorrelation : ∀ i, ∫ ω, (Za i ω : ℝ) * (Zb i ω) ∂(ℙ:measure Ω) = -1) :
   (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ : measure Ω)) - (∫ ω, (Za 1 ω : ℝ) * (Zb 3 ω) ∂(ℙ : measure Ω))
@@ -138,6 +133,7 @@ begin
     refine integrable.add _ (integrable_muls 1 2),
     exact integrable.add (integrable_mul_negs 2 2) (integrable_mul_negs 2 3), },
   { apply integrable_const, },
+  { exact has_add.to_covariant_class_right ℝ, },
 end
 
 #exit

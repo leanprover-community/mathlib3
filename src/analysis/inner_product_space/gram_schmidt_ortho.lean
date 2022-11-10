@@ -238,7 +238,7 @@ begin
   have : ↑(((b.repr) (gram_schmidt 𝕜 b i)).support) ⊆ set.Iio j,
     from basis.repr_support_subset_of_mem_span b (set.Iio j) this,
   exact (finsupp.mem_supported' _ _).1
-    ((finsupp.mem_supported 𝕜 _).2 this) j (not_mem_Iio.2 (le_refl j)),
+    ((finsupp.mem_supported 𝕜 _).2 this) j set.not_mem_Iio_self,
 end
 
 /-- `gram_schmidt` produces linearly independent vectors when given linearly independent vectors. -/

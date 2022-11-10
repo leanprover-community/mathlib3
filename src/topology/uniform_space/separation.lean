@@ -222,7 +222,7 @@ end
 lemma is_closed_range_of_spaced_out {ι} [separated_space α] {V₀ : set (α × α)} (V₀_in : V₀ ∈ 𝓤 α)
   {f : ι → α} (hf : pairwise (λ x y, (f x, f y) ∉ V₀)) : is_closed (range f) :=
 is_closed_of_spaced_out V₀_in $
-  by { rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ h, exact hf x y (ne_of_apply_ne f h) }
+  by { rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ h, exact hf (ne_of_apply_ne f h) }
 
 
 /-!

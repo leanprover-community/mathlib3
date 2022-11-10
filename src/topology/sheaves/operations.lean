@@ -9,7 +9,6 @@ import algebra.category.Ring.filtered_colimits
 import algebra.category.Group.limits
 import ring_theory.localization.basic
 import topology.sheaves.sheafify
-import topology.sheaves.sheaf_condition.sites
 
 /-!
 

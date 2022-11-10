@@ -252,7 +252,7 @@ lemma has_fpower_series_on_ball_inverse_one_sub_smul [complete_space A] (a : A) 
         (le_max_left _ _),
       { by_cases ∥a∥₊ = 0,
         { simp only [h, zero_mul, zero_le', pow_succ], },
-        { rw [←coe_inv h, coe_lt_coe, nnreal.lt_inv_iff_mul_lt h] at hr,
+        { rw [←ennreal.coe_inv h, coe_lt_coe, nnreal.lt_inv_iff_mul_lt h] at hr,
           simpa only [←mul_pow, mul_comm] using pow_le_one' hr.le n.succ } } }
   end,
   r_pos := ennreal.inv_pos.mpr coe_ne_top,
@@ -262,7 +262,7 @@ lemma has_fpower_series_on_ball_inverse_one_sub_smul [complete_space A] (a : A) 
     { by_cases h : ∥a∥₊ = 0,
       { simp only [nnnorm_eq_zero.mp h, norm_zero, zero_lt_one, smul_zero] },
       { have nnnorm_lt : ∥y∥₊ < ∥a∥₊⁻¹,
-          by simpa only [←coe_inv h, mem_ball_zero_iff, metric.emetric_ball_nnreal] using hy,
+        { simpa only [←ennreal.coe_inv h, mem_ball_zero_iff, metric.emetric_ball_nnreal] using hy },
         rwa [←coe_nnnorm, ←real.lt_to_nnreal_iff_coe_lt, real.to_nnreal_one, nnnorm_smul,
           ←nnreal.lt_inv_iff_mul_lt h] } },
     simpa [←smul_pow, (normed_ring.summable_geometric_of_norm_lt_1 _ norm_lt).has_sum_iff]
@@ -280,7 +280,7 @@ begin
     { rwa [is_unit.smul_sub_iff_sub_inv_smul, inv_inv u] at hu },
     { rw [units.smul_def, ←algebra.algebra_map_eq_smul_one, ←mem_resolvent_set_iff],
       refine mem_resolvent_set_of_spectral_radius_lt _,
-      rwa [units.coe_inv, nnnorm_inv, coe_inv (nnnorm_ne_zero_iff.mpr
+      rwa [units.coe_inv, nnnorm_inv, ennreal.coe_inv (nnnorm_ne_zero_iff.mpr
         (units.coe_mk0 hz ▸ hz : (u : 𝕜) ≠ 0)), lt_inv_iff_lt_inv] } }
 end
 
@@ -368,7 +368,7 @@ begin
   By Liouville's theorem `λ z, resolvent a z` is constant -/
   have H₂ := norm_resolvent_le_forall a,
   have H₃ : ∀ z : ℂ, resolvent a z = resolvent a (0 : ℂ),
-  { refine λ z, H₁.apply_eq_apply_of_bounded (bounded_iff_exists_norm_le.mpr _) z 0,
+  { refine λ z, H₁.apply_eq_apply_of_bounded (bounded_iff_forall_norm_le.mpr _) z 0,
     rcases H₂ 1 zero_lt_one with ⟨R, R_pos, hR⟩,
     rcases (proper_space.is_compact_closed_ball (0 : ℂ) R).exists_bound_of_continuous_on
       H₁.continuous.continuous_on with ⟨C, hC⟩,

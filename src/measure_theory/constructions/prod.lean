@@ -159,7 +159,7 @@ begin
     exact h2t.const_sub _ },
   { intros f h1f h2f h3f, simp_rw [preimage_Union],
     have : ∀ b, ν (⋃ i, prod.mk b ⁻¹' f i) = ∑' i, ν (prod.mk b ⁻¹' f i) :=
-      λ b, measure_Union (λ i j hij, disjoint.preimage _ (h1f i j hij))
+      λ b, measure_Union (λ i j hij, disjoint.preimage _ (h1f hij))
         (λ i, measurable_prod_mk_left (h2f i)),
     simp_rw [this], apply measurable.ennreal_tsum h3f },
 end

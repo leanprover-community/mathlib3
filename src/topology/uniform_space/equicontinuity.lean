@@ -64,6 +64,11 @@ and `set.uniform_equicontinuous` asserting the corresponding fact about the fami
 `coe : ↥H → (X → α)` where `H : set (X → α)`. Note however that these won't work for sets of hom
 types, and in that case one should go back to the family definition rather than using `set.image`.
 
+Since we have no use case for it yet, we don't introduce any relative version
+(i.e no `equicontinuous_within_at` or `equicontinuous_on`), but this is more of a conservative
+position than a design decision, so anyone needing relative versions should feel free to add them,
+and that should hopefully be a straightforward task.
+
 ## References
 
 * [N. Bourbaki, *General Topology, Chapter X*][bourbaki1966]

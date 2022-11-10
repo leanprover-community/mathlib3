@@ -5,6 +5,7 @@ Authors: Floris van Doorn
 -/
 import measure_theory.measure.content
 import measure_theory.group.prod
+import group_theory.divisible
 
 /-!
 # Haar measure
@@ -418,7 +419,7 @@ end
 lemma chaar_sup_eq [t2_space G] {K₀ : positive_compacts G} {K₁ K₂ : compacts G}
   (h : disjoint K₁.1 K₂.1) : chaar K₀ (K₁ ⊔ K₂) = chaar K₀ K₁ + chaar K₀ K₂ :=
 begin
-  rcases compact_compact_separated K₁.2 K₂.2 h with ⟨U₁, U₂, h1U₁, h1U₂, h2U₁, h2U₂, hU⟩,
+  rcases is_compact_is_compact_separated K₁.2 K₂.2 h with ⟨U₁, U₂, h1U₁, h1U₂, h2U₁, h2U₂, hU⟩,
   rcases compact_open_separated_mul_right K₁.2 h1U₁ h2U₁ with ⟨L₁, h1L₁, h2L₁⟩,
   rcases mem_nhds_iff.mp h1L₁ with ⟨V₁, h1V₁, h2V₁, h3V₁⟩,
   replace h2L₁ := subset.trans (mul_subset_mul_left h1V₁) h2L₁,
@@ -700,12 +701,13 @@ end group
 section comm_group
 
 variables {G : Type*} [comm_group G] [topological_space G] [topological_group G] [t2_space G]
-  [measurable_space G] [borel_space G] [locally_compact_space G] [second_countable_topology G]
+  [measurable_space G] [borel_space G] [second_countable_topology G]
+  (μ : measure G) [is_haar_measure μ]
 
 /-- Any Haar measure is invariant under inversion in an abelian group. -/
 @[priority 100, to_additive
   "Any additive Haar measure is invariant under negation in an abelian group."]
-instance is_haar_measure.is_inv_invariant (μ : measure G) [is_haar_measure μ] :
+instance is_haar_measure.is_inv_invariant [locally_compact_space G] :
   is_inv_invariant μ :=
 begin
   -- the image measure is a Haar measure. By uniqueness up to multiplication, it is of the form
@@ -713,7 +715,7 @@ begin
   -- involution, this is also `μ`. Hence, `c^2 = 1`, which implies `c = 1`.
   constructor,
   haveI : is_haar_measure (measure.map has_inv.inv μ) :=
-    is_haar_measure_map μ (mul_equiv.inv G) continuous_inv continuous_inv,
+    (mul_equiv.inv G).is_haar_measure_map μ continuous_inv continuous_inv,
   obtain ⟨c, cpos, clt, hc⟩ : ∃ (c : ℝ≥0∞), (c ≠ 0) ∧ (c ≠ ∞) ∧ (measure.map has_inv.inv μ = c • μ)
     := is_haar_measure_eq_smul_is_haar_measure _ _,
   have : map has_inv.inv (map has_inv.inv μ) = c^2 • μ,
@@ -732,6 +734,33 @@ begin
   have : c = 1 := (ennreal.pow_strict_mono two_ne_zero).injective this,
   rw [measure.inv, hc, this, one_smul]
 end
+
+@[to_additive]
+lemma measure_preserving_zpow [compact_space G] [rootable_by G ℤ] {n : ℤ} (hn : n ≠ 0) :
+  measure_preserving (λ (g : G), g^n) μ μ :=
+{ measurable := (continuous_zpow n).measurable,
+  map_eq :=
+  begin
+    let f := @zpow_group_hom G _ n,
+    have hf : continuous f := continuous_zpow n,
+    haveI : (μ.map f).is_haar_measure :=
+      is_haar_measure_map μ f hf (rootable_by.surjective_pow G ℤ hn) (by simp),
+    obtain ⟨C, -, -, hC⟩ := is_haar_measure_eq_smul_is_haar_measure (μ.map f) μ,
+    suffices : C = 1, { rwa [this, one_smul] at hC, },
+    have h_univ : (μ.map f) univ = μ univ,
+    { rw [map_apply_of_ae_measurable hf.measurable.ae_measurable measurable_set.univ,
+        preimage_univ], },
+    have hμ₀ : μ univ ≠ 0 := is_open_pos_measure.open_pos univ is_open_univ univ_nonempty,
+    have hμ₁ : μ univ ≠ ∞ := compact_space.is_finite_measure.measure_univ_lt_top.ne,
+    rwa [hC, smul_apply, algebra.id.smul_eq_mul, mul_comm, ← ennreal.eq_div_iff hμ₀ hμ₁,
+      ennreal.div_self hμ₀ hμ₁] at h_univ,
+  end, }
+
+@[to_additive]
+lemma measure_preserving.zpow [compact_space G] [rootable_by G ℤ] {n : ℤ} (hn : n ≠ 0)
+  {X : Type*} [measurable_space X] {μ' : measure X} {f : X → G} (hf : measure_preserving f μ' μ) :
+  measure_preserving (λ x, (f x)^n) μ' μ :=
+(measure_preserving_zpow μ hn).comp hf
 
 end comm_group
 

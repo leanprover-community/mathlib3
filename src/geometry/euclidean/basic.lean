@@ -57,7 +57,6 @@ Euclidean affine spaces.
 
 variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
-local notation `⟪`x`, `y`⟫` := @inner ℝ V _ x y
 include V
 
 /-- The midpoint of the segment AB is the same distance from A as it is from B. -/
@@ -70,7 +69,7 @@ terms of the pairwise distances. -/
 lemma inner_weighted_vsub {ι₁ : Type*} {s₁ : finset ι₁} {w₁ : ι₁ → ℝ} (p₁ : ι₁ → P)
     (h₁ : ∑ i in s₁, w₁ i = 0) {ι₂ : Type*} {s₂ : finset ι₂} {w₂ : ι₂ → ℝ} (p₂ : ι₂ → P)
     (h₂ : ∑ i in s₂, w₂ i = 0) :
-  inner (s₁.weighted_vsub p₁ w₁) (s₂.weighted_vsub p₂ w₂) =
+  ⟪s₁.weighted_vsub p₁ w₁, s₂.weighted_vsub p₂ w₂⟫ =
     (-∑ i₁ in s₁, ∑ i₂ in s₂,
       w₁ i₁ * w₂ i₂ * (dist (p₁ i₁) (p₂ i₂) * dist (p₁ i₁) (p₂ i₂))) / 2 :=
 begin
@@ -138,7 +137,7 @@ begin
                  ←real_inner_self_eq_norm_mul_norm, sub_self] },
   have hvi : ⟪v, v⟫ ≠ 0, by simpa using hv,
   have hd : discrim ⟪v, v⟫ (2 * ⟪v, p₁ -ᵥ p₂⟫) 0 =
-    (2 * inner v (p₁ -ᵥ p₂)) * (2 * inner v (p₁ -ᵥ p₂)),
+    (2 * ⟪v, p₁ -ᵥ p₂⟫) * (2 * ⟪v, p₁ -ᵥ p₂⟫),
   { rw discrim, ring },
   rw [quadratic_eq_zero_iff hvi hd, add_left_neg, zero_div, neg_mul_eq_neg_mul,
       ←mul_sub_right_distrib, sub_eq_add_neg, ←mul_two, mul_assoc, mul_div_assoc,
@@ -729,6 +728,10 @@ lemma sphere.center_ne_iff_ne_of_mem {s₁ s₂ : sphere P} {p : P} (hs₁ : p �
 lemma dist_center_eq_dist_center_of_mem_sphere {p₁ p₂ : P} {s : sphere P} (hp₁ : p₁ ∈ s)
   (hp₂ : p₂ ∈ s) : dist p₁ s.center = dist p₂ s.center :=
 by rw [mem_sphere.1 hp₁, mem_sphere.1 hp₂]
+
+lemma dist_center_eq_dist_center_of_mem_sphere' {p₁ p₂ : P} {s : sphere P} (hp₁ : p₁ ∈ s)
+  (hp₂ : p₂ ∈ s) : dist s.center p₁ = dist s.center p₂ :=
+by rw [mem_sphere'.1 hp₁, mem_sphere'.1 hp₂]
 
 /-- A set of points is cospherical if they are equidistant from some
 point.  In two dimensions, this is the same thing as being

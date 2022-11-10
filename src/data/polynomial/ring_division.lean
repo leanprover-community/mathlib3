@@ -163,7 +163,7 @@ begin
 end
 
 /-- This lemma is useful for working with the `int_degree` of a rational function. -/
-lemma nat_degree_sub_eq_of_prod_eq {p₁ p₂ q₁ q₂ : polynomial R} (hp₁ : p₁ ≠ 0) (hq₁ : q₁ ≠ 0)
+lemma nat_degree_sub_eq_of_prod_eq {p₁ p₂ q₁ q₂ : R[X]} (hp₁ : p₁ ≠ 0) (hq₁ : q₁ ≠ 0)
   (hp₂ : p₂ ≠ 0) (hq₂ : q₂ ≠ 0) (h_eq : p₁ * q₂ = p₂ * q₁) :
   (p₁.nat_degree : ℤ) - q₁.nat_degree = (p₂.nat_degree : ℤ) - q₂.nat_degree :=
 begin
@@ -175,7 +175,7 @@ end
 variables [char_zero R]
 
 @[simp] lemma degree_bit0_eq (p : R[X]) : degree (bit0 p) = degree p :=
-by rw [bit0_eq_two_mul, degree_mul, (by simp : (2 : polynomial R) = C 2),
+by rw [bit0_eq_two_mul, degree_mul, (by simp : (2 : R[X]) = C 2),
   @polynomial.degree_C R _ _ two_ne_zero', zero_add]
 
 @[simp] lemma nat_degree_bit0_eq (p : R[X]) : nat_degree (bit0 p) = nat_degree p :=
@@ -818,7 +818,7 @@ begin
   rw [prod_multiset_root_eq_finset_root, polynomial.map_prod],
   refine finset.prod_dvd_of_coprime (λ a _ b _ h, _) (λ a _, _),
   { simp_rw [polynomial.map_pow, polynomial.map_sub, map_C, map_X],
-    exact (pairwise_coprime_X_sub_C (is_fraction_ring.injective R $ fraction_ring R) _ _ h).pow },
+    exact (pairwise_coprime_X_sub_C (is_fraction_ring.injective R $ fraction_ring R) h).pow },
   { exact polynomial.map_dvd _ (pow_root_multiplicity_dvd p a) },
 end
 
@@ -922,6 +922,13 @@ end
 lemma card_roots_le_map [is_domain A] [is_domain B] {p : A[X]} {f : A →+* B} (h : p.map f ≠ 0) :
   p.roots.card ≤ (p.map f).roots.card :=
 by { rw ← p.roots.card_map f, exact multiset.card_le_of_le (map_roots_le h) }
+
+lemma card_roots_le_map_of_injective [is_domain A] [is_domain B] {p : A[X]} {f : A →+* B}
+  (hf : function.injective f) : p.roots.card ≤ (p.map f).roots.card :=
+begin
+  by_cases hp0 : p = 0, { simp only [hp0, roots_zero, polynomial.map_zero, multiset.card_zero], },
+  exact card_roots_le_map ((polynomial.map_ne_zero_iff hf).mpr hp0),
+end
 
 lemma roots_map_of_injective_of_card_eq_nat_degree [is_domain A] [is_domain B] {p : A[X]}
   {f : A →+* B} (hf : function.injective f) (hroots : p.roots.card = p.nat_degree) :

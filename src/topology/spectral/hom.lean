@@ -32,11 +32,11 @@ variables [topological_space α] [topological_space β] [topological_space γ] {
 /-- A function between topological spaces is spectral if it is continuous and the preimage of every
 compact open set is compact open. -/
 structure is_spectral_map (f : α → β) extends continuous f : Prop :=
-(compact_preimage_of_open ⦃s : set β⦄ : is_open s → is_compact s → is_compact (f ⁻¹' s))
+(is_compact_preimage_of_is_open ⦃s : set β⦄ : is_open s → is_compact s → is_compact (f ⁻¹' s))
 
-lemma is_compact.preimage_of_open (hf : is_spectral_map f) (h₀ : is_compact s) (h₁ : is_open s) :
+lemma is_compact.preimage_of_is_open (hf : is_spectral_map f) (h₀ : is_compact s) (h₁ : is_open s) :
   is_compact (f ⁻¹' s) :=
-hf.compact_preimage_of_open h₁ h₀
+hf.is_compact_preimage_of_is_open h₁ h₀
 
 lemma is_spectral_map.continuous {f : α → β} (hf : is_spectral_map f) : continuous f :=
 hf.to_continuous
@@ -47,7 +47,7 @@ lemma is_spectral_map.comp {f : β → γ} {g : α → β} (hf : is_spectral_map
   (hg : is_spectral_map g) :
   is_spectral_map (f ∘ g) :=
 ⟨hf.continuous.comp hg.continuous,
-  λ s hs₀ hs₁, (hs₁.preimage_of_open hf hs₀).preimage_of_open hg (hs₀.preimage hf.continuous)⟩
+  λ s hs₀ hs₁, (hs₁.preimage_of_is_open hf hs₀).preimage_of_is_open hg (hs₀.preimage hf.continuous)⟩
 
 end unbundled
 
@@ -56,6 +56,9 @@ structure spectral_map (α β : Type*) [topological_space α] [topological_space
 (to_fun : α → β)
 (spectral' : is_spectral_map to_fun)
 
+section
+set_option old_structure_cmd true
+
 /-- `spectral_map_class F α β` states that `F` is a type of spectral maps.
 
 You should extend this class when you extend `spectral_map`. -/
@@ -63,6 +66,8 @@ class spectral_map_class (F : Type*) (α β : out_param $ Type*) [topological_sp
   [topological_space β]
   extends fun_like F α (λ _, β) :=
 (map_spectral (f : F) : is_spectral_map f)
+
+end
 
 export spectral_map_class (map_spectral)
 

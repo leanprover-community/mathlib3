@@ -101,6 +101,9 @@ by simp only [is_O, is_O_with]
 lemma is_O.of_bound (c : ℝ) (h : ∀ᶠ x in l, ∥f x∥ ≤ c * ∥g x∥) : f =O[l] g :=
 is_O_iff.2 ⟨c, h⟩
 
+lemma is_O.of_bound' (h : ∀ᶠ x in l, ∥f x∥ ≤ ∥g x∥) : f =O[l] g :=
+is_O.of_bound 1 $ by { simp_rw one_mul, exact h }
+
 lemma is_O.bound : f =O[l] g → ∃ c : ℝ, ∀ᶠ x in l, ∥f x∥ ≤ c * ∥g x∥ := is_O_iff.1
 
 /-- The Landau notation `f =o[l] g` where `f` and `g` are two functions on a type `α` and `l` is
@@ -382,6 +385,14 @@ let ⟨c, cpos, hc⟩ := hfg.exists_pos in hc.trans_is_o hgk cpos
   (hgk : g =o[l] k) : f =o[l] k :=
 hfg.trans_is_O_with hgk.is_O_with one_pos
 
+lemma _root_.filter.eventually.trans_is_O {f : α → E} {g : α → F'} {k : α → G}
+  (hfg : ∀ᶠ x in l, ∥f x∥ ≤ ∥g x∥) (hgk : g =O[l] k) : f =O[l] k :=
+(is_O.of_bound' hfg).trans hgk
+
+lemma _root_.filter.eventually.is_O {f : α → E} {g : α → ℝ} {l : filter α}
+  (hfg : ∀ᶠ x in l, ∥f x∥ ≤ g x) : f =O[l] g :=
+is_O.of_bound' $ hfg.mono $ λ x hx, hx.trans $ real.le_norm_self _
+
 section
 
 variable (l)
@@ -466,6 +477,30 @@ is_o.of_is_O_with $ λ c cpos, (h.forall_is_O_with cpos).sup (h'.forall_is_O_wit
 
 @[simp] lemma is_o_sup : f =o[l ⊔ l'] g ↔ f =o[l] g ∧ f =o[l'] g :=
 ⟨λ h, ⟨h.mono le_sup_left, h.mono le_sup_right⟩, λ h, h.1.sup h.2⟩
+
+lemma is_O_with_insert [topological_space α] {x : α} {s : set α} {C : ℝ} {g : α → E} {g' : α → F}
+  (h : ∥g x∥ ≤ C * ∥g' x∥) :
+  is_O_with C (𝓝[insert x s] x) g g' ↔ is_O_with C (𝓝[s] x) g g' :=
+by simp_rw [is_O_with, nhds_within_insert, eventually_sup, eventually_pure, h, true_and]
+
+lemma is_O_with.insert [topological_space α] {x : α} {s : set α} {C : ℝ} {g : α → E} {g' : α → F}
+  (h1 : is_O_with C (𝓝[s] x) g g') (h2 : ∥g x∥ ≤ C * ∥g' x∥) :
+  is_O_with C (𝓝[insert x s] x) g g' :=
+(is_O_with_insert h2).mpr h1
+
+lemma is_o_insert [topological_space α] {x : α} {s : set α} {g : α → E'} {g' : α → F'}
+  (h : g x = 0) : g =o[𝓝[insert x s] x] g' ↔ g =o[𝓝[s] x] g' :=
+begin
+  simp_rw [is_o],
+  refine forall_congr (λ c, forall_congr (λ hc, _)),
+  rw [is_O_with_insert],
+  rw [h, norm_zero],
+  exact mul_nonneg hc.le (norm_nonneg _)
+end
+
+lemma is_o.insert [topological_space α] {x : α} {s : set α} {g : α → E'} {g' : α → F'}
+  (h1 : g =o[𝓝[s] x] g') (h2 : g x = 0) : g =o[𝓝[insert x s] x] g' :=
+(is_o_insert h2).mpr h1
 
 /-! ### Simplification : norm, abs -/
 
@@ -1523,6 +1558,28 @@ theorem is_o_norm_pow_id {n : ℕ} (h : 1 < n) :
   (λ x : E', ∥x∥^n) =o[𝓝 0] (λ x, x) :=
 by simpa only [pow_one, is_o_norm_right] using @is_o_norm_pow_norm_pow E' _ _ _ h
 
+lemma is_O.eq_zero_of_norm_pow_within {f : E'' → F''} {s : set E''} {x₀ : E''} {n : ℕ}
+  (h : f =O[𝓝[s] x₀] λ x, ∥x - x₀∥ ^ n) (hx₀ : x₀ ∈ s) (hn : 0 < n) : f x₀ = 0 :=
+mem_of_mem_nhds_within hx₀ h.eq_zero_imp $ by simp_rw [sub_self, norm_zero, zero_pow hn]
+
+lemma is_O.eq_zero_of_norm_pow {f : E'' → F''} {x₀ : E''} {n : ℕ}
+  (h : f =O[𝓝 x₀] λ x, ∥x - x₀∥ ^ n) (hn : 0 < n) : f x₀ = 0 :=
+by { rw [← nhds_within_univ] at h, exact h.eq_zero_of_norm_pow_within (mem_univ _) hn }
+
+lemma is_o_pow_sub_pow_sub (x₀ : E') {n m : ℕ} (h : n < m) :
+    (λ x, ∥x - x₀∥ ^ m) =o[𝓝 x₀] λ x, ∥x - x₀∥^n :=
+begin
+  have : tendsto (λ x, ∥x - x₀∥) (𝓝 x₀) (𝓝 0),
+  { apply tendsto_norm_zero.comp,
+    rw ← sub_self x₀,
+    exact tendsto_id.sub tendsto_const_nhds },
+  exact (is_o_pow_pow h).comp_tendsto this
+end
+
+lemma is_o_pow_sub_sub (x₀ : E') {m : ℕ} (h : 1 < m) :
+    (λ x, ∥x - x₀∥^m) =o[𝓝 x₀] λ x, x - x₀ :=
+by simpa only [is_o_norm_right, pow_one] using is_o_pow_sub_pow_sub x₀ h
+
 theorem is_O_with.right_le_sub_of_lt_1 {f₁ f₂ : α → E'} (h : is_O_with c l f₁ f₂) (hc : c < 1) :
   is_O_with (1 / (1 - c)) l f₂ (λx, f₂ x - f₁ x) :=
 is_O_with.of_bound $ mem_of_superset h.bound $ λ x hx,
@@ -1583,7 +1640,7 @@ theorem is_O_with_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed
   {f : α → Π i, E' i} {C : ℝ} (hC : 0 ≤ C) :
   is_O_with C l f g' ↔ ∀ i, is_O_with C l (λ x, f x i) g' :=
 have ∀ x, 0 ≤ C * ∥g' x∥, from λ x, mul_nonneg hC (norm_nonneg _),
-by simp only [is_O_with_iff, pi_norm_le_iff (this _), eventually_all]
+by simp only [is_O_with_iff, pi_norm_le_iff_of_nonneg (this _), eventually_all]
 
 @[simp] theorem is_O_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_add_comm_group (E' i)]
   {f : α → Π i, E' i} :

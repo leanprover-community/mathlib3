@@ -8,6 +8,7 @@ import algebra.module.linear_map
 import algebra.big_operators.basic
 import data.set.finite
 import group_theory.submonoid.membership
+import group_theory.group_action.big_operators
 import data.finset.preimage
 
 /-!
@@ -91,7 +92,7 @@ instance : inhabited (Π₀ i, β i) := ⟨0⟩
 @[simp]
 lemma coe_mk' (f : Π i, β i) (s) : ⇑(⟨f, s⟩ : Π₀ i, β i) = f := rfl
 
-@[simp] lemma coe_zero : ⇑(0 : Π₀ i, β i) = 0 := rfl
+@[simp] protected lemma coe_zero : ⇑(0 : Π₀ i, β i) = 0 := rfl
 lemma zero_apply (i : ι) : (0 : Π₀ i, β i) i = 0 := rfl
 
 /-- The composition of `f : β₁ → β₂` and `g : Π₀ i, β₁ i` is
@@ -125,7 +126,7 @@ by { ext, simp only [map_range_apply] }
 
 @[simp] lemma map_range_zero (f : Π i, β₁ i → β₂ i) (hf : ∀ i, f i 0 = 0) :
   map_range f hf (0 : Π₀ i, β₁ i) = 0 :=
-by { ext, simp only [map_range_apply, coe_zero, pi.zero_apply, hf] }
+by { ext, simp only [map_range_apply, dfinsupp.coe_zero, pi.zero_apply, hf] }
 
 /-- Let `f i` be a binary operation `β₁ i → β₂ i → β i` such that `f i 0 0 = 0`.
 Then `zip_with f hf` is a binary operation `Π₀ i, β₁ i → Π₀ i, β₂ i → Π₀ i, β i`. -/
@@ -147,6 +148,21 @@ end⟩
   zip_with f hf g₁ g₂ i = f i (g₁ i) (g₂ i) :=
 rfl
 
+section piecewise
+variables (x y : Π₀ i, β i) (s : set ι) [Π i, decidable (i ∈ s)]
+
+/-- `x.piecewise y s` is the finitely supported function equal to `x` on the set `s`,
+  and to `y` on its complement. -/
+def piecewise : Π₀ i, β i := zip_with (λ i x y, if i ∈ s then x else y) (λ _, if_t_t _ 0) x y
+
+lemma piecewise_apply (i : ι) : x.piecewise y s i = if i ∈ s then x i else y i :=
+zip_with_apply _ _ x y i
+
+@[simp, norm_cast] lemma coe_piecewise : ⇑(x.piecewise y s) = s.piecewise x y :=
+by { ext, apply piecewise_apply }
+
+end piecewise
+
 end basic
 
 section algebra
@@ -158,12 +174,12 @@ lemma add_apply [Π i, add_zero_class (β i)] (g₁ g₂ : Π₀ i, β i) (i : �
   (g₁ + g₂) i = g₁ i + g₂ i :=
 rfl
 
-@[simp] lemma coe_add [Π i, add_zero_class (β i)] (g₁ g₂ : Π₀ i, β i) :
+@[simp] protected lemma coe_add [Π i, add_zero_class (β i)] (g₁ g₂ : Π₀ i, β i) :
   ⇑(g₁ + g₂) = g₁ + g₂ :=
 rfl
 
 instance [Π i, add_zero_class (β i)] : add_zero_class (Π₀ i, β i) :=
-fun_like.coe_injective.add_zero_class _ coe_zero coe_add
+fun_like.coe_injective.add_zero_class _ dfinsupp.coe_zero dfinsupp.coe_add
 
 /-- Note the general `dfinsupp.has_smul` instance doesn't apply as `ℕ` is not distributive
 unless `β i`'s addition is commutative. -/
@@ -174,15 +190,17 @@ lemma nsmul_apply [Π i, add_monoid (β i)] (b : ℕ) (v : Π₀ i, β i) (i : �
   (b • v) i = b • (v i) :=
 rfl
 
-@[simp] lemma coe_nsmul [Π i, add_monoid (β i)] (b : ℕ) (v : Π₀ i, β i) : ⇑(b • v) = b • v :=
+@[simp] protected lemma coe_nsmul [Π i, add_monoid (β i)] (b : ℕ) (v : Π₀ i, β i) :
+  ⇑(b • v) = b • v :=
 rfl
 
 instance [Π i, add_monoid (β i)] : add_monoid (Π₀ i, β i) :=
-fun_like.coe_injective.add_monoid _ coe_zero coe_add (λ _ _, coe_nsmul _ _)
+fun_like.coe_injective.add_monoid _ dfinsupp.coe_zero dfinsupp.coe_add
+  (λ _ _, dfinsupp.coe_nsmul _ _)
 
 /-- Coercion from a `dfinsupp` to a pi type is an `add_monoid_hom`. -/
 def coe_fn_add_monoid_hom [Π i, add_zero_class (β i)] : (Π₀ i, β i) →+ (Π i, β i) :=
-{ to_fun := coe_fn, map_zero' := coe_zero, map_add' := coe_add }
+{ to_fun := coe_fn, map_zero' := dfinsupp.coe_zero, map_add' := dfinsupp.coe_add }
 
 /-- Evaluation at a point is an `add_monoid_hom`. This is the finitely-supported version of
 `pi.eval_add_monoid_hom`. -/
@@ -190,7 +208,8 @@ def eval_add_monoid_hom [Π i, add_zero_class (β i)] (i : ι) : (Π₀ i, β i)
 (pi.eval_add_monoid_hom β i).comp coe_fn_add_monoid_hom
 
 instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (Π₀ i, β i) :=
-fun_like.coe_injective.add_comm_monoid _ coe_zero coe_add (λ _ _, coe_nsmul _ _)
+fun_like.coe_injective.add_comm_monoid _ dfinsupp.coe_zero dfinsupp.coe_add
+  (λ _ _, dfinsupp.coe_nsmul _ _)
 
 @[simp] lemma coe_finset_sum {α} [Π i, add_comm_monoid (β i)] (s : finset α) (g : α → Π₀ i, β i) :
   ⇑(∑ a in s, g a) = ∑ a in s, g a :=
@@ -207,7 +226,7 @@ instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
 lemma neg_apply [Π i, add_group (β i)] (g : Π₀ i, β i) (i : ι) : (- g) i = - g i :=
 rfl
 
-@[simp] lemma coe_neg [Π i, add_group (β i)] (g : Π₀ i, β i) : ⇑(- g) = - g :=
+@[simp] protected lemma coe_neg [Π i, add_group (β i)] (g : Π₀ i, β i) : ⇑(- g) = - g :=
 rfl
 
 instance [Π i, add_group (β i)] : has_sub (Π₀ i, β i) :=
@@ -217,7 +236,7 @@ lemma sub_apply [Π i, add_group (β i)] (g₁ g₂ : Π₀ i, β i) (i : ι) :
   (g₁ - g₂) i = g₁ i - g₂ i :=
 rfl
 
-@[simp] lemma coe_sub [Π i, add_group (β i)] (g₁ g₂ : Π₀ i, β i) :
+@[simp] protected lemma coe_sub [Π i, add_group (β i)] (g₁ g₂ : Π₀ i, β i) :
   ⇑(g₁ - g₂) = g₁ - g₂ :=
 rfl
 
@@ -229,16 +248,19 @@ instance has_int_scalar [Π i, add_group (β i)] : has_smul ℤ (Π₀ i, β i) 
 lemma zsmul_apply [Π i, add_group (β i)] (b : ℤ) (v : Π₀ i, β i) (i : ι) : (b • v) i = b • (v i) :=
 rfl
 
-@[simp] lemma coe_zsmul [Π i, add_group (β i)] (b : ℤ) (v : Π₀ i, β i) : ⇑(b • v) = b • v :=
+@[simp] protected lemma coe_zsmul [Π i, add_group (β i)] (b : ℤ) (v : Π₀ i, β i) :
+  ⇑(b • v) = b • v :=
 rfl
 
 instance [Π i, add_group (β i)] : add_group (Π₀ i, β i) :=
 fun_like.coe_injective.add_group _
-  coe_zero coe_add coe_neg coe_sub (λ _ _, coe_nsmul _ _) (λ _ _, coe_zsmul _ _)
+  dfinsupp.coe_zero dfinsupp.coe_add dfinsupp.coe_neg dfinsupp.coe_sub
+  (λ _ _, dfinsupp.coe_nsmul _ _) (λ _ _, dfinsupp.coe_zsmul _ _)
 
 instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
 fun_like.coe_injective.add_comm_group _
-  coe_zero coe_add coe_neg coe_sub (λ _ _, coe_nsmul _ _) (λ _ _, coe_zsmul _ _)
+  dfinsupp.coe_zero dfinsupp.coe_add dfinsupp.coe_neg dfinsupp.coe_sub
+  (λ _ _, dfinsupp.coe_nsmul _ _) (λ _ _, dfinsupp.coe_zsmul _ _)
 
 /-- Dependent functions with finite support inherit a semiring action from an action on each
 coordinate. -/
@@ -251,7 +273,7 @@ lemma smul_apply [monoid γ] [Π i, add_monoid (β i)]
   (b • v) i = b • (v i) :=
 rfl
 
-@[simp] lemma coe_smul [monoid γ] [Π i, add_monoid (β i)]
+@[simp] protected lemma coe_smul [monoid γ] [Π i, add_monoid (β i)]
   [Π i, distrib_mul_action γ (β i)] (b : γ) (v : Π₀ i, β i) :
   ⇑(b • v) = b • v :=
 rfl
@@ -277,7 +299,8 @@ instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β 
 structure on each coordinate. -/
 instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] :
   distrib_mul_action γ (Π₀ i, β i) :=
-function.injective.distrib_mul_action coe_fn_add_monoid_hom fun_like.coe_injective coe_smul
+function.injective.distrib_mul_action coe_fn_add_monoid_hom fun_like.coe_injective
+  dfinsupp.coe_smul
 
 /-- Dependent functions with finite support inherit a module structure from such a structure on
 each coordinate. -/
@@ -582,6 +605,14 @@ by simp
 
 lemma erase_ne {i i' : ι} {f : Π₀ i, β i} (h : i' ≠ i) : (f.erase i) i' = f i' :=
 by simp [h]
+
+lemma piecewise_single_erase (x : Π₀ i, β i) (i : ι) :
+  (single i (x i)).piecewise (x.erase i) {i} = x :=
+begin
+  ext j, rw piecewise_apply, split_ifs,
+  { rw [(id h : j = i), single_eq_same] },
+  { exact erase_ne h },
+end
 
 lemma erase_eq_sub_single {β : ι → Type*} [Π i, add_group (β i)] (f : Π₀ i, β i) (i : ι) :
   f.erase i = f - single i (f i) :=
@@ -1505,7 +1536,8 @@ def sum_add_hom [Π i, add_zero_class (β i)] [add_comm_monoid γ] (φ : Π i, �
   map_add' := begin
     rintros ⟨f, sf, hf⟩ ⟨g, sg, hg⟩,
     change ∑ i in _, _ = (∑ i in _, _) + (∑ i in _, _),
-    simp only [coe_add, coe_mk', subtype.coe_mk, pi.add_apply, map_add, finset.sum_add_distrib],
+    simp only [dfinsupp.coe_add, coe_mk', subtype.coe_mk, pi.add_apply, map_add,
+      finset.sum_add_distrib],
     congr' 1,
     { refine (finset.sum_subset _ _).symm,
       { intro i, simp only [multiset.mem_to_finset, multiset.mem_add], exact or.inl },
@@ -1766,7 +1798,7 @@ lemma map_range_add (f : Π i, β₁ i → β₂ i) (hf : ∀ i, f i 0 = 0)
   map_range f hf (g₁ + g₂) = map_range f hf g₁ + map_range f hf g₂ :=
 begin
   ext,
-  simp only [map_range_apply f, coe_add, pi.add_apply, hf']
+  simp only [map_range_apply f, dfinsupp.coe_add, pi.add_apply, hf']
 end
 
 /-- `dfinsupp.map_range` as an `add_monoid_hom`. -/

@@ -69,59 +69,6 @@ lemma linear [add_comm_monoid F] [module R F] [∀ x, add_comm_monoid (E x)] [�
   is_linear_map R (λ x : E b, (e (total_space_mk b x)).2) :=
 pretrivialization.is_linear.linear b hb
 
-lemma coe_mem_source : ↑y ∈ e.source ↔ b ∈ e.base_set := e.mem_source
-
-@[simp, mfld_simps] lemma coe_coe_fst (hb : b ∈ e.base_set) : (e y).1 = b :=
-e.coe_fst (e.mem_source.2 hb)
-
-lemma mk_mem_target {x : B} {y : F} : (x, y) ∈ e.target ↔ x ∈ e.base_set :=
-e.mem_target
-
-lemma symm_coe_proj {x : B} {y : F} (e : pretrivialization F (π E)) (h : x ∈ e.base_set) :
-  (e.to_local_equiv.symm (x, y)).1 = x :=
-e.proj_symm_apply' h
-
-section has_zero
-variables [∀ x, has_zero (E x)]
-
-/-- A fiberwise inverse to `e`. This is the function `F → E b` that induces a local inverse
-`B × F → total_space E` of `e` on `e.base_set`. It is defined to be `0` outside `e.base_set`. -/
-protected def symm (e : pretrivialization F (π E)) (b : B) (y : F) : E b :=
-if hb : b ∈ e.base_set
-then cast (congr_arg E (e.proj_symm_apply' hb)) (e.to_local_equiv.symm (b, y)).2
-else 0
-
-lemma symm_apply (e : pretrivialization F (π E)) {b : B} (hb : b ∈ e.base_set) (y : F) :
-  e.symm b y = cast (congr_arg E (e.symm_coe_proj hb)) (e.to_local_equiv.symm (b, y)).2 :=
-dif_pos hb
-
-lemma symm_apply_of_not_mem (e : pretrivialization F (π E)) {b : B} (hb : b ∉ e.base_set) (y : F) :
-  e.symm b y = 0 :=
-dif_neg hb
-
-lemma coe_symm_of_not_mem (e : pretrivialization F (π E)) {b : B} (hb : b ∉ e.base_set) :
-  (e.symm b : F → E b) = 0 :=
-funext $ λ y, dif_neg hb
-
-lemma mk_symm (e : pretrivialization F (π E)) {b : B} (hb : b ∈ e.base_set) (y : F) :
-  total_space_mk b (e.symm b y) = e.to_local_equiv.symm (b, y) :=
-by rw [e.symm_apply hb, total_space.mk_cast, total_space.eta]
-
-lemma symm_proj_apply (e : pretrivialization F (π E)) (z : total_space E)
-  (hz : z.proj ∈ e.base_set) : e.symm z.proj (e z).2 = z.2 :=
-by rw [e.symm_apply hz, cast_eq_iff_heq, e.mk_proj_snd' hz,
-  e.symm_apply_apply (e.mem_source.mpr hz)]
-
-lemma symm_apply_apply_mk (e : pretrivialization F (π E)) {b : B} (hb : b ∈ e.base_set) (y : E b) :
-  e.symm b (e (total_space_mk b y)).2 = y :=
-e.symm_proj_apply (total_space_mk b y) hb
-
-lemma apply_mk_symm (e : pretrivialization F (π E)) {b : B} (hb : b ∈ e.base_set) (y : F) :
-  e (total_space_mk b (e.symm b y)) = (b, y) :=
-by rw [e.mk_symm hb, e.apply_symm_apply (e.mk_mem_target.mpr hb)]
-
-end has_zero
-
 variables [add_comm_monoid F] [module R F] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
 
 /-- A fiberwise linear inverse to `e`. -/
@@ -214,72 +161,6 @@ instance to_pretrivialization.is_linear [add_comm_monoid F] [module R F]
   [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)] [e.is_linear R] :
   e.to_pretrivialization.is_linear R :=
 { ..(‹_› : e.is_linear R) }
-
-protected lemma continuous_on : continuous_on e e.source := e.continuous_to_fun
-
-lemma coe_mem_source : ↑y ∈ e.source ↔ b ∈ e.base_set := e.mem_source
-
-lemma open_target : is_open e.target :=
-by { rw e.target_eq, exact e.open_base_set.prod is_open_univ }
-
-@[simp, mfld_simps] lemma coe_coe_fst (hb : b ∈ e.base_set) : (e y).1 = b :=
-e.coe_fst (e.mem_source.2 hb)
-
-lemma mk_mem_target {y : F} : (b, y) ∈ e.target ↔ b ∈ e.base_set :=
-e.to_pretrivialization.mem_target
-
-lemma symm_apply_apply {x : total_space E} (hx : x ∈ e.source) :
-  e.to_local_homeomorph.symm (e x) = x :=
-e.to_local_equiv.left_inv hx
-
-@[simp, mfld_simps] lemma symm_coe_proj {x : B} {y : F}
-  (e : trivialization F (π E)) (h : x ∈ e.base_set) :
-  (e.to_local_homeomorph.symm (x, y)).1 = x := e.proj_symm_apply' h
-
-section has_zero
-variables [∀ x, has_zero (E x)]
-
-/-- A fiberwise inverse to `e`. The function `F → E x` that induces a local inverse
-  `B × F → total_space E` of `e` on `e.base_set`. It is defined to be `0` outside `e.base_set`. -/
-protected def symm (e : trivialization F (π E)) (b : B) (y : F) : E b :=
-e.to_pretrivialization.symm b y
-
-lemma symm_apply (e : trivialization F (π E)) {b : B} (hb : b ∈ e.base_set) (y : F) :
-  e.symm b y = cast (congr_arg E (e.symm_coe_proj hb)) (e.to_local_homeomorph.symm (b, y)).2 :=
-dif_pos hb
-
-lemma symm_apply_of_not_mem (e : trivialization F (π E)) {b : B} (hb : b ∉ e.base_set) (y : F) :
-  e.symm b y = 0 :=
-dif_neg hb
-
-lemma mk_symm (e : trivialization F (π E)) {b : B} (hb : b ∈ e.base_set) (y : F) :
-  total_space_mk b (e.symm b y) = e.to_local_homeomorph.symm (b, y) :=
-e.to_pretrivialization.mk_symm hb y
-
-lemma symm_proj_apply (e : trivialization F (π E)) (z : total_space E)
-  (hz : z.proj ∈ e.base_set) : e.symm z.proj (e z).2 = z.2 :=
-e.to_pretrivialization.symm_proj_apply z hz
-
-lemma symm_apply_apply_mk (e : trivialization F (π E)) {b : B} (hb : b ∈ e.base_set) (y : E b) :
-  e.symm b (e (total_space_mk b y)).2 = y :=
-e.symm_proj_apply (total_space_mk b y) hb
-
-lemma apply_mk_symm (e : trivialization F (π E)) {b : B} (hb : b ∈ e.base_set) (y : F) :
-  e (total_space_mk b (e.symm b y)) = (b, y) :=
-e.to_pretrivialization.apply_mk_symm hb y
-
-lemma continuous_on_symm (e : trivialization F (π E)) :
-  continuous_on (λ z : B × F, total_space_mk z.1 (e.symm z.1 z.2)) (e.base_set ×ˢ univ) :=
-begin
-  have : ∀ (z : B × F) (hz : z ∈ e.base_set ×ˢ (univ : set F)),
-    total_space_mk z.1 (e.symm z.1 z.2) = e.to_local_homeomorph.symm z,
-  { rintro x ⟨hx : x.1 ∈ e.base_set, _⟩, simp_rw [e.mk_symm hx, prod.mk.eta] },
-  refine continuous_on.congr _ this,
-  rw [← e.target_eq],
-  exact e.to_local_homeomorph.continuous_on_symm
-end
-
-end has_zero
 
 variables [add_comm_monoid F] [module R F] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
 

@@ -766,10 +766,13 @@ noncomputable def disjoint_union (e e' : trivialization F proj)
 { to_local_homeomorph := e.to_local_homeomorph.disjoint_union e'.to_local_homeomorph
     (by {
       rw [e.source_eq, e'.source_eq],
-      refine (disjoint_preimage_iff _).mpr H,
-
-      sorry {exact H.mono _ _ }, })
-    (λ x hx, by  sorry { rw [e.target_eq, e'.target_eq] at hx, exact H ⟨hx.1.1, hx.2.1⟩ }),
+      rw disjoint_iff_inf_le at H ⊢,
+      exact λ x hx, H hx, })
+    (by {
+      rw [e.target_eq, e'.target_eq],
+      rw disjoint_iff_inf_le at H ⊢,
+      intros x hx,
+      refine H ⟨hx.1.1, hx.2.1⟩, }),
   base_set := e.base_set ∪ e'.base_set,
   open_base_set := is_open.union e.open_base_set e'.open_base_set,
   source_eq := congr_arg2 (∪) e.source_eq e'.source_eq,
@@ -782,7 +785,7 @@ noncomputable def disjoint_union (e e' : trivialization F proj)
       { show (e.source.piecewise e e' p).1 = proj p,
         rw [piecewise_eq_of_not_mem, e'.coe_fst hp'],
         simp only [e.source_eq, e'.source_eq] at hp' ⊢,
-        exact λ h, H ⟨h, hp'⟩ }
+        exact λ h, H.le_bot ⟨h, hp'⟩ }
     end }
 
 /-- If `h` is a topological fiber bundle over a conditionally complete linear order,

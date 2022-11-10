@@ -611,13 +611,13 @@ end
 end
 
 def homology_iso_kernel_desc [S.has_homology] [has_cokernel S.f]
-  [has_kernel (cokernel.desc₀ S.f S.g S.zero)] :
-  S.homology ≅ kernel (cokernel.desc₀ S.f S.g S.zero) :=
+  [has_kernel (cokernel.desc S.f S.g S.zero)] :
+  S.homology ≅ kernel (cokernel.desc S.f S.g S.zero) :=
 (right_homology_data.of_coker_of_ker S).homology_iso
 
 def homology_iso_cokernel_lift [S.has_homology] [has_kernel S.g]
-  [has_cokernel (kernel.lift₀ S.g S.f S.zero)] :
-  S.homology ≅ cokernel (kernel.lift₀ S.g S.f S.zero) :=
+  [has_cokernel (kernel.lift S.g S.f S.zero)] :
+  S.homology ≅ cokernel (kernel.lift S.g S.f S.zero) :=
 (left_homology_data.of_ker_of_coker S).homology_iso
 
 end short_complex

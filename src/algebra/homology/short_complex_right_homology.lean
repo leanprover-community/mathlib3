@@ -24,10 +24,10 @@ structure right_homology_data :=
 namespace right_homology_data
 
 @[simp]
-def of_coker_of_ker [has_cokernel S.f] [has_kernel (cokernel.desc₀ S.f S.g S.zero)] :
+def of_coker_of_ker [has_cokernel S.f] [has_kernel (cokernel.desc S.f S.g S.zero)] :
   S.right_homology_data :=
 { Q := cokernel S.f,
-  H := kernel (cokernel.desc₀ S.f S.g S.zero),
+  H := kernel (cokernel.desc S.f S.g S.zero),
   p := cokernel.π _,
   ι := kernel.ι _,
   hp₀ := cokernel.condition _,
@@ -162,7 +162,7 @@ lemma has_right_homology.mk' (h : S.right_homology_data) : has_right_homology S 
 
 @[priority 100]
 instance has_right_homology_of_coker_of_ker
-  [has_cokernel S.f] [has_kernel (cokernel.desc₀ S.f S.g S.zero)] :
+  [has_cokernel S.f] [has_kernel (cokernel.desc S.f S.g S.zero)] :
   S.has_right_homology := has_right_homology.mk' (right_homology_data.of_coker_of_ker S)
 
 instance has_right_homology_of_has_cokernel {X Y : C} (f : X ⟶ Y) (Z : C)
@@ -1023,11 +1023,11 @@ lemma has_cokernel [S.has_right_homology] : has_cokernel S.f :=
 ⟨⟨⟨_, S.some_right_homology_data.hp⟩⟩⟩
 
 lemma has_kernel [S.has_right_homology] [has_cokernel S.f] :
-  has_kernel (cokernel.desc₀ S.f S.g S.zero) :=
+  has_kernel (cokernel.desc S.f S.g S.zero) :=
 begin
   let h := S.some_right_homology_data,
   haveI : has_limit (parallel_pair h.g' 0) := ⟨⟨⟨_, h.hι'⟩⟩⟩,
-  let e : parallel_pair h.g' 0 ≅ parallel_pair (cokernel.desc₀ S.f S.g S.zero) 0 :=
+  let e : parallel_pair h.g' 0 ≅ parallel_pair (cokernel.desc S.f S.g S.zero) 0 :=
     parallel_pair.ext (is_colimit.cocone_point_unique_up_to_iso h.hp (cokernel_is_cokernel S.f))
       (iso.refl _) (by tidy) (by tidy),
   exact has_limit_of_iso e,
@@ -1038,8 +1038,8 @@ end has_right_homology
 variable (S)
 
 def right_homology_iso_kernel_desc [S.has_right_homology] [has_cokernel S.f]
-  [has_kernel (cokernel.desc₀ S.f S.g S.zero)] :
-  S.right_homology ≅ kernel (cokernel.desc₀ S.f S.g S.zero) :=
+  [has_kernel (cokernel.desc S.f S.g S.zero)] :
+  S.right_homology ≅ kernel (cokernel.desc S.f S.g S.zero) :=
 (right_homology_data.of_coker_of_ker S).right_homology_iso
 
 end short_complex

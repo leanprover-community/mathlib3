@@ -75,25 +75,25 @@ def left_homology_data.of_abelian (S : short_complex C) :
   S.left_homology_data :=
 begin
   let γ := kernel.ι S.g ≫ cokernel.π S.f,
-  let f' := kernel.lift₀ S.g S.f S.zero,
-  have hf' : f' = kernel.lift₀ γ f'
-    (by simp only [kernel.lift₀_ι_assoc, cokernel.condition]) ≫ kernel.ι γ,
-  { simp only [kernel.lift₀_ι], },
+  let f' := kernel.lift S.g S.f S.zero,
+  have hf' : f' = kernel.lift γ f'
+    (by simp only [kernel.lift_ι_assoc, cokernel.condition]) ≫ kernel.ι γ,
+  { simp only [kernel.lift_ι], },
   have hπ₀ : f' ≫ cokernel.π (kernel.ι γ) = 0,
   { rw [hf', assoc, cokernel.condition (kernel.ι γ), comp_zero], },
-  let α := kernel.lift₀ S.g (abelian.image.ι S.f)
+  let α := kernel.lift S.g (abelian.image.ι S.f)
     (by simp only [← cancel_epi (abelian.factor_thru_image S.f),
       abelian.image.fac_assoc, zero, comp_zero]),
   haveI : mono (α ≫ kernel.ι S.g),
-  { rw [kernel.lift₀_ι], apply_instance, },
+  { rw [kernel.lift_ι], apply_instance, },
   haveI : mono α := mono_of_mono α (kernel.ι S.g),
-  have αγ : α ≫ γ = 0 := by simp only [kernel.lift₀_ι_assoc, kernel.condition],
+  have αγ : α ≫ γ = 0 := by simp only [kernel.lift_ι_assoc, kernel.condition],
   have hα : is_limit (kernel_fork.of_ι α αγ) :=
     kernel_fork.is_limit.of_ι _ _
-      (λ A k hk, kernel.lift₀ _ (k ≫ kernel.ι S.g) (by rw [assoc, hk]))
-      (λ A k hk, by simp only [← cancel_mono (kernel.ι S.g), assoc, kernel.lift₀_ι])
+      (λ A k hk, kernel.lift _ (k ≫ kernel.ι S.g) (by rw [assoc, hk]))
+      (λ A k hk, by simp only [← cancel_mono (kernel.ι S.g), assoc, kernel.lift_ι])
       (λ A k hk b hb, by simp only [← cancel_mono α, ← cancel_mono (kernel.ι S.g),
-        hb, assoc, kernel.lift₀_ι]),
+        hb, assoc, kernel.lift_ι]),
   let e : abelian.image S.f ≅ kernel γ :=
     is_limit.cone_point_unique_up_to_iso hα (kernel_is_kernel γ),
   have fac : f' = abelian.factor_thru_image S.f ≫ e.hom ≫ kernel.ι γ,
@@ -102,7 +102,7 @@ begin
     simp only [is_limit.lift_comp_cone_point_unique_up_to_iso_inv, assoc, iso.hom_inv_id, comp_id],
     erw [← cancel_mono α, ← cancel_mono (kernel.ι S.g),
       hα.fac _ walking_parallel_pair.zero],
-    simp only [fork.of_ι_π_app, kernel.lift₀_ι, assoc, abelian.image.fac], },
+    simp only [fork.of_ι_π_app, kernel.lift_ι, assoc, abelian.image.fac], },
   have hπ : is_colimit (cokernel_cofork.of_π _ hπ₀) := cokernel_cofork.is_colimit.of_π _ _
     (λ A x hx, cokernel.desc _ x begin
       simp only [← cancel_epi e.hom, ← cancel_epi (abelian.factor_thru_image S.f), comp_zero],
@@ -153,25 +153,25 @@ def right_homology_data.of_abelian (S : short_complex C) :
   S.right_homology_data :=
 begin
   let γ := kernel.ι S.g ≫ cokernel.π S.f,
-  let g' := cokernel.desc₀ S.f S.g S.zero,
-  have hg' : g' = cokernel.π γ ≫ cokernel.desc₀ γ g'
-    (by simp only [assoc, cokernel.π_desc₀, kernel.condition]),
-  { simp only [cokernel.π_desc₀], },
+  let g' := cokernel.desc S.f S.g S.zero,
+  have hg' : g' = cokernel.π γ ≫ cokernel.desc γ g'
+    (by simp only [assoc, cokernel.π_desc, kernel.condition]),
+  { simp only [cokernel.π_desc], },
   have hι₀ : kernel.ι (cokernel.π γ) ≫ g' = 0,
   { rw [hg', kernel.condition_assoc, zero_comp], },
-  let β := cokernel.desc₀ S.f (abelian.coimage.π S.g)
+  let β := cokernel.desc S.f (abelian.coimage.π S.g)
     (by simp only [← cancel_mono (abelian.factor_thru_coimage S.g),
       assoc, cokernel.π_desc, zero, zero_comp]),
   haveI : epi (cokernel.π S.f ≫ β),
-  { rw [cokernel.π_desc₀], apply_instance, },
+  { rw [cokernel.π_desc], apply_instance, },
   haveI : epi β := epi_of_epi (cokernel.π S.f) β,
-  have γβ : γ ≫ β = 0 := by simp only [assoc, cokernel.π_desc₀, cokernel.condition],
+  have γβ : γ ≫ β = 0 := by simp only [assoc, cokernel.π_desc, cokernel.condition],
   have hβ : is_colimit (cokernel_cofork.of_π β γβ) := cokernel_cofork.is_colimit.of_π _ _
-    (λ A k hk, cokernel.desc₀ _ (cokernel.π S.f ≫ k) (by rw [← assoc, hk]))
+    (λ A k hk, cokernel.desc _ (cokernel.π S.f ≫ k) (by rw [← assoc, hk]))
     (λ A k hk, by simp only [← cancel_epi (cokernel.π S.f),
-      cokernel.π_desc₀_assoc, cokernel.π_desc₀])
+      cokernel.π_desc_assoc, cokernel.π_desc])
     (λ A k hk b hb, by simp only [← cancel_epi β, ← cancel_epi (cokernel.π S.f), hb,
-      cokernel.π_desc₀_assoc, cokernel.π_desc₀]),
+      cokernel.π_desc_assoc, cokernel.π_desc]),
   let e : abelian.coimage S.g ≅ cokernel γ :=
     is_colimit.cocone_point_unique_up_to_iso hβ (cokernel_is_cokernel γ),
   have fac : g' = cokernel.π γ ≫ e.inv ≫ abelian.factor_thru_coimage S.g,
@@ -180,7 +180,7 @@ begin
       is_colimit.cocone_point_unique_up_to_iso_hom_desc, iso.hom_inv_id_assoc],
     erw [← cancel_epi β, ← cancel_epi (cokernel.π S.f),
       hβ.fac _ walking_parallel_pair.one],
-    simp only [cokernel.π_desc₀, cofork.of_π_ι_app, cokernel.π_desc, cokernel.π_desc₀_assoc], },
+    simp only [cokernel.π_desc, cofork.of_π_ι_app, cokernel.π_desc, cokernel.π_desc_assoc], },
   have hι : is_limit (kernel_fork.of_ι _ hι₀) := kernel_fork.is_limit.of_ι _ _
     (λ A x hx, kernel.lift _ x (by simp only [← cancel_mono e.inv,
       ← cancel_mono (abelian.factor_thru_coimage S.g), assoc, zero_comp, ← fac, hx]))

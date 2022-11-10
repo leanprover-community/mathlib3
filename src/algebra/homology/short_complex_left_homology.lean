@@ -9,34 +9,9 @@ noncomputable theory
 open category_theory category_theory.category category_theory.limits
 open_locale zero_object
 
-
-
 namespace category_theory.limits
 
-
 variables {C : Type*} [category C] [has_zero_morphisms C]
-
-/-- change kernel.lift to get better definitional properties -/
-abbreviation kernel.lift₀
-  {W X Y : C} (f : X ⟶ Y) [has_kernel f] (k : W ⟶ X) (h : k ≫ f = 0) : W ⟶ kernel f :=
-(kernel_is_kernel f).lift (kernel_fork.of_ι k h)
-
-@[simp, reassoc]
-lemma kernel.lift₀_ι
-  {W X Y : C} (f : X ⟶ Y) [has_kernel f] (k : W ⟶ X) (h : k ≫ f = 0) :
-  kernel.lift₀ f k h ≫ kernel.ι f = k :=
-(kernel_is_kernel f).fac (kernel_fork.of_ι k h) walking_parallel_pair.zero
-
-/-- change cokernel.desc to get better definitional properties -/
-abbreviation cokernel.desc₀
-  {W X Y : C} (f : X ⟶ Y) [has_cokernel f] (k : Y ⟶ W) (h : f ≫ k = 0) : cokernel f ⟶ W :=
-(cokernel_is_cokernel f).desc (cokernel_cofork.of_π k h)
-
-@[simp, reassoc]
-lemma cokernel.π_desc₀
-  {W X Y : C} (f : X ⟶ Y) [has_cokernel f] (k : Y ⟶ W) (h : f ≫ k = 0) :
-  cokernel.π f ≫ cokernel.desc₀ f k h = k :=
-(cokernel_is_cokernel f).fac (cokernel_cofork.of_π k h) walking_parallel_pair.one
 
 @[simps]
 def kernel_zero {X Y : C} (f : X ⟶ Y) (hf : f = 0) :
@@ -268,7 +243,6 @@ def _root_.category_theory.functor.map_short_complex
     (by { dsimp, simp only [← F.map_comp, φ.comm₁₂], })
     (by { dsimp, simp only [← F.map_comp, φ.comm₂₃], }), }
 
-
 /-- A constructor for isomorphisms in the category `short_complex C`-/
 @[simps]
 def mk_iso (e₁ : S₁.X₁ ≅ S₂.X₁) (e₂ : S₁.X₂ ≅ S₂.X₂) (e₃ : S₁.X₃ ≅ S₂.X₃)
@@ -366,10 +340,10 @@ structure left_homology_data :=
 namespace left_homology_data
 
 @[simp]
-def of_ker_of_coker [has_kernel S.g] [has_cokernel (kernel.lift₀ S.g S.f S.zero)] :
+def of_ker_of_coker [has_kernel S.g] [has_cokernel (kernel.lift S.g S.f S.zero)] :
   S.left_homology_data :=
 { K := kernel S.g,
-  H := cokernel (kernel.lift₀ S.g S.f S.zero),
+  H := cokernel (kernel.lift S.g S.f S.zero),
   i := kernel.ι _,
   π := cokernel.π _,
   hi₀ := kernel.condition _,
@@ -538,7 +512,7 @@ lemma has_left_homology.mk' (h : S.left_homology_data) : has_left_homology S :=
 
 @[priority 100]
 instance has_left_homology_of_ker_of_coker
-  [has_kernel S.g] [has_cokernel (kernel.lift₀ S.g S.f S.zero)] :
+  [has_kernel S.g] [has_cokernel (kernel.lift S.g S.f S.zero)] :
   S.has_left_homology := has_left_homology.mk' (left_homology_data.of_ker_of_coker S)
 
 instance has_left_homology_of_has_cokernel {X Y : C} (f : X ⟶ Y) (Z : C)
@@ -1159,11 +1133,11 @@ lemma has_kernel [S.has_left_homology] : has_kernel S.g :=
 ⟨⟨⟨_, S.some_left_homology_data.hi⟩⟩⟩
 
 lemma has_cokernel [S.has_left_homology] [has_kernel S.g] :
-  has_cokernel (kernel.lift₀ S.g S.f S.zero) :=
+  has_cokernel (kernel.lift S.g S.f S.zero) :=
 begin
   let h := S.some_left_homology_data,
   haveI : has_colimit (parallel_pair h.f' 0) := ⟨⟨⟨_, h.hπ'⟩⟩⟩,
-  let e : parallel_pair (kernel.lift₀ S.g S.f S.zero) 0 ≅ parallel_pair h.f' 0 :=
+  let e : parallel_pair (kernel.lift S.g S.f S.zero) 0 ≅ parallel_pair h.f' 0 :=
     parallel_pair.ext (iso.refl _)
       (is_limit.cone_point_unique_up_to_iso (kernel_is_kernel S.g) h.hi) (by tidy) (by tidy),
   exact has_colimit_of_iso e,
@@ -1172,8 +1146,8 @@ end
 end has_left_homology
 
 def left_homology_iso_cokernel_lift [S.has_left_homology] [has_kernel S.g]
-  [has_cokernel (kernel.lift₀ S.g S.f S.zero)] :
-  S.left_homology ≅ cokernel (kernel.lift₀ S.g S.f S.zero) :=
+  [has_cokernel (kernel.lift S.g S.f S.zero)] :
+  S.left_homology ≅ cokernel (kernel.lift S.g S.f S.zero) :=
 (left_homology_data.of_ker_of_coker S).left_homology_iso
 
 end short_complex

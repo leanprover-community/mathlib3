@@ -531,7 +531,7 @@ section bounded_of_countinuous
 
 namespace seminorm
 
-variables [nonempty ι] [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
   [seminormed_add_comm_group F] [normed_space 𝕜 F]
   {p : seminorm_family 𝕜 E ι}
 
@@ -568,7 +568,7 @@ end
 by some family of seminorms `p`, and let `q` be a seminorm on `E`. If `q` is continuous,
 then it is uniformly controlled by *finitely many* seminorms of `p`, that is there
 is some finset `s` of the index set and some `C > 0` such that `q ≤ C • s.sup p`. -/
-lemma bound_of_continuous [t : topological_space E] (hp : with_seminorms p)
+lemma bound_of_continuous [nonempty ι] [t : topological_space E] (hp : with_seminorms p)
   (q : seminorm 𝕜 E) (hq : continuous q) :
   ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ q ≤ C • s.sup p :=
 begin

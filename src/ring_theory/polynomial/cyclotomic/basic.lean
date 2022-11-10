@@ -615,7 +615,7 @@ begin
   obtain ⟨j, hj⟩ := hμ,
   have := prod_cyclotomic_eq_X_pow_sub_one hnpos K,
   rw [←finset.prod_sdiff hni, finset.prod_pair key.ne, hk, hj] at this,
-  have hn := (X_pow_sub_one_separable_iff.mpr $ ne_zero.ne' n K).squarefree,
+  have hn := (X_pow_sub_one_separable_iff.mpr $ ne_zero.nat_cast_ne n K).squarefree,
   rw [←this, squarefree] at hn,
   contrapose! hn,
   refine ⟨X - C μ, ⟨(∏ x in n.divisors \ {i, n}, cyclotomic x K) * k * j, by ring⟩, _⟩,

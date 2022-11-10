@@ -514,7 +514,7 @@ def principal_unit_group : subgroup Kˣ :=
       ← valuation.map_mul, mul_sub_one, ← sub_add_sub_cancel],
     exact A.valuation.map_add _ _,
   end,
-  one_mem' := by simpa using zero_lt_one₀,
+  one_mem' := by simp,
   inv_mem' := begin
     dsimp,
     intros a ha,

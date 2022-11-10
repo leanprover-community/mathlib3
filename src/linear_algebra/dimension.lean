@@ -468,7 +468,7 @@ begin
   { contrapose! h,
     obtain ⟨x, hx⟩ := h,
     suffices : 1 ≤ module.rank R M,
-    { intro h, exact lt_irrefl _ (lt_of_lt_of_le cardinal.zero_lt_one (h ▸ this)) },
+    { intro h, exact this.not_lt (h.symm ▸ zero_lt_one) },
     suffices : linear_independent R (λ (y : ({x} : set M)), ↑y),
     { simpa using (cardinal_le_dim_of_linear_independent this), },
     exact linear_independent_singleton hx },

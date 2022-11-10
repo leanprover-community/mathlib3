@@ -603,7 +603,7 @@ theorem inv_eq_of_lf_zero {x : pgame} (h : x ⧏ 0) : x⁻¹ = -inv' (-x) :=
 
 /-- `1⁻¹` has exactly the same moves as `1`. -/
 def inv_one : 1⁻¹ ≡r 1 :=
-by { rw inv_eq_of_pos zero_lt_one, exact inv'_one }
+by { rw inv_eq_of_pos pgame.zero_lt_one, exact inv'_one }
 
 theorem inv_one_equiv : 1⁻¹ ≈ 1 := inv_one.equiv
 

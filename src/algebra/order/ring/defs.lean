@@ -239,43 +239,8 @@ lemma monotone.mul (hf : monotone f) (hg : monotone g) (hf₀ : ∀ x, 0 ≤ f x
 
 end monotone
 
-section nontrivial
-variables [nontrivial α]
-
-/-- See `zero_lt_one'` for a version with the type explicit. -/
-@[simp] lemma zero_lt_one : (0 : α) < 1 := zero_le_one.lt_of_ne zero_ne_one
-/-- See `zero_lt_two'` for a version with the type explicit. -/
-@[simp] lemma zero_lt_two : (0 : α) < 2 := zero_lt_one.trans_le one_le_two
-/-- See `zero_lt_three'` for a version with the type explicit. -/
-@[simp] lemma zero_lt_three : (0 : α) < 3 :=
-zero_lt_one.trans_le $ bit1_zero.symm.trans_le $ bit1_mono zero_le_one
-/-- See `zero_lt_four'` for a version with the type explicit. -/
-@[simp] lemma zero_lt_four : (0 : α) < 4 := zero_lt_two.trans_le $ bit0_mono one_le_two
-
-@[field_simps] lemma two_ne_zero : (2 : α) ≠ 0 := zero_lt_two.ne'
-@[field_simps] lemma three_ne_zero : (3 : α) ≠ 0 := zero_lt_three.ne'
-@[field_simps] lemma four_ne_zero : (4 : α) ≠ 0 := zero_lt_four.ne'
-
-alias zero_lt_one ← one_pos
-alias zero_lt_two ← two_pos
-alias zero_lt_three ← three_pos
-alias zero_lt_four ← four_pos
-
-lemma bit1_pos (h : 0 ≤ a) : 0 < bit1 a :=
+lemma bit1_pos [nontrivial α] (h : 0 ≤ a) : 0 < bit1 a :=
 zero_lt_one.trans_le $ bit1_zero.symm.trans_le $ bit1_mono h
-
-variables (α)
-
-/-- See `zero_lt_one` for a version with the type implicit. -/
-lemma zero_lt_one' : (0 : α) < 1 := zero_lt_one
-/-- See `zero_lt_two` for a version with the type implicit. -/
-lemma zero_lt_two' : (0 : α) < 2 := zero_lt_two
-/-- See `zero_lt_three` for a version with the type implicit. -/
-lemma zero_lt_three' : (0 : α) < 3 := zero_lt_three
-/-- See `zero_lt_four` for a version with the type implicit. -/
-lemma zero_lt_four' : (0 : α) < 4 := zero_lt_four
-
-end nontrivial
 
 lemma bit1_pos' (h : 0 < a) : 0 < bit1 a := by { nontriviality, exact bit1_pos h.le }
 
@@ -519,11 +484,6 @@ end monotone
 
 section nontrivial
 variables [nontrivial α]
-
-lemma lt_one_add (a : α) : a < 1 + a := lt_add_of_pos_left _ zero_lt_one
-lemma lt_add_one (a : α) : a < a + 1 := lt_add_of_pos_right _ zero_lt_one
-
-lemma one_lt_two : (1 : α) < 2 := lt_add_one _
 
 lemma lt_two_mul_self (ha : 0 < a) : a < 2 * a := lt_mul_of_one_lt_left ha one_lt_two
 
@@ -856,10 +816,10 @@ lemma mul_self_nonneg (a : α) : 0 ≤ a * a :=
 (le_total 0 a).elim (λ h, mul_nonneg h h) (λ h, mul_nonneg_of_nonpos_of_nonpos h h)
 
 @[simp] lemma neg_le_self_iff : -a ≤ a ↔ 0 ≤ a :=
-by simp [neg_le_iff_add_nonneg, ← two_mul, mul_nonneg_iff, zero_le_one, (@zero_lt_two α _ _).not_le]
+by simp [neg_le_iff_add_nonneg, ← two_mul, mul_nonneg_iff, zero_le_one, (zero_lt_two' α).not_le]
 
 @[simp] lemma neg_lt_self_iff : -a < a ↔ 0 < a :=
-by simp [neg_lt_iff_pos_add, ← two_mul, mul_pos_iff, zero_lt_one, (@zero_lt_two α _ _).not_lt]
+by simp [neg_lt_iff_pos_add, ← two_mul, mul_pos_iff, zero_lt_one, (zero_lt_two' α).not_lt]
 
 @[simp] lemma le_neg_self_iff : a ≤ -a ↔ a ≤ 0 :=
 calc a ≤ -a ↔ -(-a) ≤ -a : by rw neg_neg

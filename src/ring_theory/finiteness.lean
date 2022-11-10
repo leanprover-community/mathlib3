@@ -898,7 +898,7 @@ lemma of'_mem_span [nontrivial R] {m : M} {S : set M} :
 begin
   refine ⟨λ h, _, λ h, submodule.subset_span $ set.mem_image_of_mem (of R M) h⟩,
   rw [of', ← finsupp.supported_eq_span_single, finsupp.mem_supported,
-    finsupp.support_single_ne_zero _ (@one_ne_zero R _ (by apply_instance))] at h,
+    finsupp.support_single_ne_zero _ (one_ne_zero' R)] at h,
   simpa using h
 end
 
@@ -1056,7 +1056,7 @@ lemma of_mem_span_of_iff [nontrivial R] {m : M} {S : set M} :
 begin
   refine ⟨λ h, _, λ h, submodule.subset_span $ set.mem_image_of_mem (of R M) h⟩,
   rw [of, monoid_hom.coe_mk, ← finsupp.supported_eq_span_single, finsupp.mem_supported,
-    finsupp.support_single_ne_zero _ (@one_ne_zero R _ (by apply_instance))] at h,
+    finsupp.support_single_ne_zero _ (one_ne_zero' R)] at h,
   simpa using h
 end
 

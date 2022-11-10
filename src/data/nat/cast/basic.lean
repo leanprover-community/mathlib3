@@ -211,7 +211,7 @@ ext_nat' f g $ by simp only [map_one]
 
 lemma ne_zero.nat_of_injective {n : ℕ} [h : ne_zero (n : R)]
   [ring_hom_class F R S] {f : F} (hf : function.injective f) : ne_zero (n : S) :=
-⟨λ h, (ne_zero.ne' n R) $ hf $ by simpa only [map_nat_cast, map_zero]⟩
+⟨λ h, (ne_zero.nat_cast_ne n R) $ hf $ by simpa only [map_nat_cast, map_zero]⟩
 
 lemma ne_zero.nat_of_ne_zero {R S} [semiring R] [semiring S] {F} [ring_hom_class F R S] (f : F)
   {n : ℕ} [hn : ne_zero (n : S)] : ne_zero (n : R) :=

@@ -450,12 +450,12 @@ by rwa [← of_real_nat_cast, of_real_eq_zero, nat.cast_eq_zero] at h
 /-- A complex number `z` plus its conjugate `conj z` is `2` times its real part. -/
 theorem re_eq_add_conj (z : ℂ) : (z.re : ℂ) = (z + conj z) / 2 :=
 by simp only [add_conj, of_real_mul, of_real_one, of_real_bit0,
-     mul_div_cancel_left (z.re:ℂ) two_ne_zero']
+     mul_div_cancel_left (z.re:ℂ) two_ne_zero]
 
 /-- A complex number `z` minus its conjugate `conj z` is `2i` times its imaginary part. -/
 theorem im_eq_sub_conj (z : ℂ) : (z.im : ℂ) = (z - conj(z))/(2 * I) :=
 by simp only [sub_conj, of_real_mul, of_real_one, of_real_bit0, mul_right_comm,
-     mul_div_cancel_left _ (mul_ne_zero two_ne_zero' I_ne_zero : 2 * I ≠ 0)]
+     mul_div_cancel_left _ (mul_ne_zero two_ne_zero I_ne_zero : 2 * I ≠ 0)]
 
 /-! ### Absolute value -/
 
@@ -492,7 +492,7 @@ private lemma abs_add (z w : ℂ) : (abs (z + w)) ≤ (abs z) + abs w :=
   (add_nonneg (abs_nonneg' z) (abs_nonneg' w))).2 $
 begin
   rw [mul_self_abs, add_mul_self_eq, mul_self_abs, mul_self_abs, add_right_comm, norm_sq_add,
-      add_le_add_iff_left, mul_assoc, mul_le_mul_left (@zero_lt_two ℝ _ _),
+      add_le_add_iff_left, mul_assoc, mul_le_mul_left (zero_lt_two' ℝ),
       ←real.sqrt_mul $ norm_sq_nonneg z, ←norm_sq_conj w, ←map_mul],
   exact re_le_abs (z * conj w)
 end

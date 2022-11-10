@@ -488,7 +488,7 @@ variables [linear_ordered_comm_group_with_zero M] {a : M} {m n : ℕ}
 
 lemma pow_lt_pow_succ (ha : 1 < a) : a ^ n < a ^ n.succ :=
 by { rw [←one_mul (a ^ n), pow_succ],
-  exact mul_lt_right₀ _ ha (pow_ne_zero _ (zero_lt_one₀.trans ha).ne') }
+  exact mul_lt_right₀ _ ha (pow_ne_zero _ (zero_lt_one.trans ha).ne') }
 
 lemma pow_lt_pow₀ (ha : 1 < a) (hmn : m < n) : a ^ m < a ^ n :=
 by { induction hmn with n hmn ih, exacts [pow_lt_pow_succ ha, lt_trans ih (pow_lt_pow_succ ha)] }

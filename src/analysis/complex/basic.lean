@@ -100,7 +100,7 @@ by rw [edist_nndist, edist_nndist, nndist_of_im_eq h]
 
 lemma dist_conj_self (z : ℂ) : dist (conj z) z = 2 * |z.im| :=
 by rw [dist_of_re_eq (conj_re z), conj_im, dist_comm, real.dist_eq, sub_neg_eq_add, ← two_mul,
-  _root_.abs_mul, abs_of_pos (@two_pos ℝ _ _)]
+  _root_.abs_mul, abs_of_pos (zero_lt_two' ℝ)]
 
 lemma nndist_conj_self (z : ℂ) : nndist (conj z) z = 2 * real.nnabs z.im :=
 nnreal.eq $ by rw [← dist_nndist, nnreal.coe_mul, nnreal.coe_two, real.coe_nnabs, dist_conj_self]
@@ -272,7 +272,7 @@ begin
   convert congr_arg alg_hom.to_ring_hom
     (subsingleton.elim (alg_hom.mk' f $ map_real_smul f h) $ algebra.of_id ℝ ℂ),
   ext1, refl,
-end 
+end
 
 /-- Continuous linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
 def of_real_clm : ℝ →L[ℝ] ℂ := of_real_li.to_continuous_linear_map

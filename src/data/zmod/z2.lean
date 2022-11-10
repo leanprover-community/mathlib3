@@ -1,4 +1,4 @@
-import algebra.hom.equiv
+import algebra.hom.equiv.basic
 import data.fintype.basic
 
 @[derive decidable_eq, to_additive]

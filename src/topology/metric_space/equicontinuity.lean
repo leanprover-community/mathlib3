@@ -9,29 +9,26 @@ import topology.uniform_space.equicontinuity
 /-!
 # Equicontinuity in metric spaces
 
-## Main definitions
-
-* `foo_bar`
+This files contains various facts about (uniform) equicontinuity in metric spaces. Most
+importantly, we prove the usual characterization of equicontinuity of `F` at `x₀` in the case of
+(pseudo) metric spaces: `∀ ε > 0, ∃ δ > 0, ∀ x, dist x x₀ < δ → ∀ i, dist (F i x₀) (F i x) < ε`,
+and we prove that functions sharing a common (local or global) continuity modulus are
+(locally or uniformly) equicontinuous.
 
 ## Main statements
 
-* `foo_bar_unique`
-
-## Notation
-
-
-
-## Implementation details
-
-
-
-## References
-
-* [F. Bar, *Quuxes*][bibkey]
+* `equicontinuous_at_iff`: characterization of equicontinuity for families of functions between
+  (pseudo) metric spaces.
+* `equicontinuous_at_of_continuity_modulus`: convenient way to prove equicontinuity at a point of
+  a family of functions to a (pseudo) metric space by showing that they share a common *local*
+  continuity modulus.
+* `uniform_equicontinuous_of_continuity_modulus`: convenient way to prove uniform equicontinuity
+  of a family of functions to a (pseudo) metric space by showing that they share a common *global*
+  continuity modulus.
 
 ## Tags
 
-Foobars, barfoos
+equicontinuity, continuity modulus
 -/
 
 open filter
@@ -85,6 +82,7 @@ uniformity_basis_dist.uniform_equicontinuous_iff uniformity_basis_dist
 
 section uniform_convergence
 
+-- Note: These don't affect the *statements* of the following lemmas
 local attribute [-instance] Pi.topological_space
 local attribute [-instance] Pi.uniform_space
 local attribute [instance] uniform_convergence.topological_space

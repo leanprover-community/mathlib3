@@ -26,11 +26,6 @@ namespace probability_theory
 
 universe u
 
-variables [has_add ℤˣ] [has_sub ℤˣ]
-
--- for some reason, this breaks everything
---variables [add_group ℝ]
-
 section preliminaries
 
 lemma pm_one_space_vals (r : ℤˣ) :
@@ -40,249 +35,112 @@ begin
   rw hh; simp,
 end
 
-lemma pm_one_space_le (r : ℤˣ) :
-  (r:ℝ) ≤ 1 :=
-begin
-  cases int.units_eq_one_or r with hh hh;
-  rw hh; simp,
-end
-
-lemma pm_one_space_ge (r : ℤˣ) :
-  (r:ℝ) ≥ -1 :=
-begin
-  cases int.units_eq_one_or r with hh hh;
-  rw hh; simp,
-end
-
-lemma pm_one_space_ge_le (r : ℤˣ) :
+lemma pm_one_space_abs_le (r : ℤˣ) :
   |(r:ℝ)| ≤ 1 :=
 begin
-  apply abs_le.mpr,
-  split,
-  apply pm_one_space_ge r,
-  apply pm_one_space_le r,
+  cases int.units_eq_one_or r with hh hh;
+  rw hh; simp,
 end
 
--- the CHSH inequality proved for intgers that are +/-1
-lemma CHSH_inequality_of_int_units
-  (A₀ A₁ B₀ B₁ : ℤˣ)
-  :
-  (A₀:ℝ) * B₀ + A₀ * B₁ + A₁ * B₀ - A₁ * B₁ ≤ 2
-  :=
-  begin
-    -- split into cases for A₀ and A₁
-    cases pm_one_space_vals A₀ with hp0 hm0,
-    { cases pm_one_space_vals A₁ with hp1 hm1,
-      { rw hp0,
-        rw hp1,
-        simp only [one_mul],
-        ring_nf,
-        simp only [mul_le_iff_le_one_right, zero_lt_bit0, zero_lt_one],
-        exact pm_one_space_le B₀,
-      },
-      { rw hp0,
-        rw hm1,
-        simp only [one_mul],
-        ring_nf,
-        simp only [mul_le_iff_le_one_right, zero_lt_bit0, zero_lt_one],
-        exact pm_one_space_le B₁,
-      },
-    },
-    { cases pm_one_space_vals A₁ with hp1 hm1,
-      { rw hm0,
-        rw hp1,
-        simp only [neg_mul, one_mul, neg_add_cancel_comm, tsub_le_iff_right],
-        -- group B₁'s together
-        apply le_of_sub_nonneg,
-        ring_nf,
-        apply le_add_of_sub_left_le,
-        ring_nf,
-        -- put minus sign on other side
-        apply neg_le_of_neg_le,
-        have tpos: ((2:ℝ) >0),
-        { simp only [gt_iff_lt, zero_lt_bit0, zero_lt_one],
-        },
-        -- divide by 2
-        have almost : (-2)/2 ≤ (B₁:ℝ) ,
-        { simp only [neg_div_self, ne.def, bit0_eq_zero, one_ne_zero, not_false_iff],
-          exact pm_one_space_ge B₁,
-        },
-        exact (div_le_iff' tpos).mp almost,
-      },
-      { rw hm0,
-        rw hm1,
-        simp only [neg_mul, one_mul, sub_neg_eq_add],
-        ring_nf,
-        -- put minus sign on other side
-        apply neg_le_of_neg_le,
-        have tpos: ((2:ℝ) >0),
-        { simp only [gt_iff_lt, zero_lt_bit0, zero_lt_one],
-        },
-        -- divide by 2
-        have almost : (-2)/2 ≤ (B₀:ℝ) ,
-        { simp only [neg_div_self, ne.def, bit0_eq_zero, one_ne_zero, not_false_iff],
-          exact pm_one_space_ge B₀,
-        },
-        exact (div_le_iff' tpos).mp almost,
-      },
-    }
-  end
+lemma pm_one_space_le (r : ℤˣ) : (r:ℝ) ≤ 1 := (abs_le.mp (pm_one_space_abs_le r)).2
 
+lemma pm_one_space_ge (r : ℤˣ) : (r:ℝ) ≥ -1 := (abs_le.mp (pm_one_space_abs_le r)).1
 
-lemma integrable_mul_of_units_int
-  {Ω : Type u} [measurable_space Ω]
-  (ℙ : probability_measure Ω)
-  (Za Zb : Ω → ℤˣ)
-  (sm_a : strongly_measurable (λ ω , (Za ω : ℝ)))
-  (sm_b : strongly_measurable (λ ω , (Zb ω : ℝ)))
-  :
-  integrable (λ ω:Ω , (Za ω :ℝ) * Zb ω) (ℙ:measure Ω)
-  :=
-  begin
-    dsimp [integrable],
-    split,
-    exact strongly_measurable.ae_strongly_measurable (strongly_measurable.mul sm_a sm_b),
-    { apply has_finite_integral_of_bounded _,
-      apply is_probability_measure.to_is_finite_measure (ℙ:measure Ω),
-      use (1:ℝ),
-      apply ae_of_all,
-      intro a,
-      simp,
-      apply mul_le_one (pm_one_space_ge_le (Za a)) _ (pm_one_space_ge_le (Zb a)),
-      exact abs_nonneg (Zb a:ℝ),
-    },
-  end
-lemma integrable_mul_of_units_int_neg
-  {Ω : Type u} [measurable_space Ω]
-  (ℙ : probability_measure Ω)
-  (Za Zb : Ω → ℤˣ)
-  (sm_a : strongly_measurable (λ ω , (Za ω : ℝ)))
-  (sm_b : strongly_measurable (λ ω , (Zb ω : ℝ)))
-  :
-  integrable (λ ω:Ω , -(Za ω :ℝ) * Zb ω) (ℙ:measure Ω)
-  :=
-  begin
-    dsimp [integrable],
-    split,
-    have : strongly_measurable (λ ω , (-Za ω:ℝ)):= strongly_measurable.neg (sm_a),
-    exact strongly_measurable.ae_strongly_measurable (strongly_measurable.mul this sm_b),
-    { apply has_finite_integral_of_bounded _,
-      apply is_probability_measure.to_is_finite_measure (ℙ:measure Ω),
-      use (1:ℝ),
-      apply ae_of_all,
-      intro a,
-      simp,
-      rw abs_mul,
-      apply mul_le_one (pm_one_space_ge_le (Za a)) _ (pm_one_space_ge_le (Zb a)),
-      exact abs_nonneg (Zb a:ℝ),
-    },
-  end
+/-- the CHSH inequality proved for intgers that are ±1 -/
+lemma CHSH_inequality_of_int_units (A₀ A₁ B₀ B₁ : ℤˣ) :
+  (A₀ : ℝ) * B₀ + A₀ * B₁ + A₁ * B₀ + (-A₁) * B₁ + -2 ≤ 0 :=
+  by cases pm_one_space_vals A₀ with hA0 hA0;
+    cases pm_one_space_vals A₁ with hA1 hA1;
+    cases pm_one_space_vals B₀ with hB0 hB0;
+    cases pm_one_space_vals B₁ with hB1 hB1;
+    rw [hA0, hA1, hB0, hB1]; ring_nf; simp
 
+lemma integrable_mul_of_units_int {Ω : Type u} [measurable_space Ω] (ℙ : probability_measure Ω)
+  {Za Zb : Ω → ℤˣ} (sm_a : strongly_measurable (λ ω , (Za ω : ℝ)))
+  (sm_b : strongly_measurable (λ ω , (Zb ω : ℝ))) :
+  integrable (λ ω, (Za ω : ℝ) * Zb ω) (ℙ : measure Ω) :=
+begin
+  refine ⟨strongly_measurable.ae_strongly_measurable (strongly_measurable.mul sm_a sm_b), _⟩,
+  refine @has_finite_integral_of_bounded _ _ _ _ _ _ _ (1 : ℝ) _,
+  filter_upwards with x,
+  convert pm_one_space_abs_le (Za x * Zb x),
+  simp,
+end
+
+lemma integrable_mul_of_units_int_neg {Ω : Type u} [measurable_space Ω] (ℙ : probability_measure Ω)
+  {Za Zb : Ω → ℤˣ} (sm_a : strongly_measurable (λ ω , (Za ω : ℝ)))
+  (sm_b : strongly_measurable (λ ω , (Zb ω : ℝ))) :
+  integrable (λ ω : Ω , -(Za ω :ℝ) * Zb ω) (ℙ : measure Ω) :=
+begin
+  convert @integrable_mul_of_units_int _ _ _ (λ x, -Za x) Zb _ sm_b,
+  { ext1 x,
+    simp, },
+  { convert strongly_measurable.neg sm_a,
+    ext1 x,
+    simp, },
+end
 
 end preliminaries
 
--- Bell's inequality: 1964 version
-theorem bells_inequality_1964 
-  {Ω : Type u} [measurable_space Ω]
-  (ℙ : probability_measure Ω)
-  -- ℕ should be replaced with {1,2,3}
-  (Za : ℕ → Ω → ℤˣ)
-  (Zb : ℕ → Ω → ℤˣ)
-  (Za_measurable : ∀ i:ℕ , strongly_measurable (λ ω , (Za i ω : ℝ)))
-  (Zb_measurable : ∀ i:ℕ , strongly_measurable (λ ω , (Zb i ω : ℝ)))
-  (anticorrelation : ∀ i:ℕ , ∫ ω , (Za i ω : ℝ)*(Zb i ω) ∂(ℙ:measure Ω) = -1)
-  :
-  (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) ) 
-    - (∫ ω, (Za 1 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) )
-    ≤ 1 + (∫ ω, (Za 2 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) )
-  :=
-
+/-- Bell's inequality: 1964 version -/
+theorem bells_inequality_1964 {Ω : Type u} [measurable_space Ω] (ℙ : probability_measure Ω)
+  (Za Zb : fin 3 → Ω → ℤˣ) (Za_measurable : ∀ i, strongly_measurable (λ ω, (Za i ω : ℝ)))
+  (Zb_measurable : ∀ i, strongly_measurable (λ ω, (Zb i ω : ℝ)))
+  (anticorrelation : ∀ i, ∫ ω, (Za i ω : ℝ) * (Zb i ω) ∂(ℙ:measure Ω) = -1) :
+  (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ : measure Ω)) - (∫ ω, (Za 1 ω : ℝ) * (Zb 3 ω) ∂(ℙ : measure Ω))
+    ≤ 1 + (∫ ω, (Za 2 ω : ℝ) * (Zb 3 ω) ∂(ℙ : measure Ω)) :=
 begin
-  let f := λ ω:Ω , -(Za 2 ω :ℝ)*(Zb 2 ω) - (Za 2 ω)*(Zb 3 ω) 
-                      + (Za 1 ω)*(Zb 2 ω) - (Za 1 ω)*(Zb 3 ω) - 2,
-
-  have ineq : ∀ ω: Ω, f ω ≤ 0 ,
+  let integrable_muls :=
+    λ i j, integrable_mul_of_units_int ℙ (Za_measurable i) (Zb_measurable j),
+  let integrable_mul_negs :=
+    λ i j, integrable_mul_of_units_int_neg ℙ (Za_measurable i) (Zb_measurable j),
+  rw sub_eq_add_neg,
+  apply sub_nonpos.mp,
+  rw [sub_add_eq_sub_sub, sub_eq_add_neg, sub_eq_add_neg],
+  have : ∀ ω, (-Za 2 ω : ℝ) * (Zb 2 ω) + (-Za 2 ω) * (Zb 3 ω) + (Za 1 ω) * (Zb 2 ω)
+                  + -(Za 1 ω) * (Zb 3 ω) + -2 ≤ 0 ,
   { intro ω,
-    dsimp only [f],
-    -- will be sent to CHSH_inquality_of_int_units
-    set a:=-(Za 2 ω),
-    -- lift opposites
-    have : (Za 2 ω : ℝ) = -(a:ℝ) ,
-    { simp only [coe_coe, units.coe_neg, int.cast_neg, neg_neg], },
-    rw this,
-    -- get rid of first - -
-    simp only [neg_neg],
-    -- get rid of second - -
-    have : (-a:ℝ)*(Zb 3 ω) = -(a*(Zb 3 ω):ℝ) := neg_mul _ _,
-    rw this,
-    simp only [sub_neg_eq_add],
-
-    -- need to turn x<=2 to x-2<=0
-    exact sub_nonpos_of_le (CHSH_inequality_of_int_units a (Za 1 ω) (Zb 2 ω) (Zb 3 ω)),
-  },
-
-  -- integrate chsh
-  have int_chsh : ∫ ω , f ω ∂(ℙ:measure Ω) ≤ 0 := integral_nonpos ineq,
-  -- expand definition of f
-  dsimp [f] at int_chsh,
-
-  have split_int : 
-  (∫ ω, -(Za 2 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) ) 
-  - (∫ ω, (Za 2 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) ) 
-  + (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) )  
-  - (∫ ω, (Za 1 ω : ℝ) * (Zb 3 ω) ∂(ℙ:measure Ω) )  
-  - (∫ ω, 2 ∂(ℙ:measure Ω) )  
-  ≤ 0,
-  { have i_1: integrable (λ ω , -(Za 2 ω : ℝ) * (Zb 2 ω)) (ℙ:measure Ω)
-      := integrable_mul_of_units_int_neg ℙ (Za 2) (Zb 2) (Za_measurable 2) (Zb_measurable 2),
-    have i_2: integrable (λ ω , (Za 2 ω : ℝ) * (Zb 3 ω)) (ℙ:measure Ω)
-      := integrable_mul_of_units_int ℙ (Za 2) (Zb 3) (Za_measurable 2) (Zb_measurable 3),
-    rw [(integral_sub i_1 i_2).symm],
-
-    have i_12: integrable
-      (λ ω , -(Za 2 ω : ℝ) * (Zb 2 ω) - (Za 2 ω : ℝ) * (Zb 3 ω))
-      (ℙ:measure Ω) := integrable.sub i_1 i_2,
-    have i_3: integrable (λ ω , (Za 1 ω : ℝ) * (Zb 2 ω)) (ℙ:measure Ω)
-      := integrable_mul_of_units_int ℙ (Za 1) (Zb 2) (Za_measurable 1) (Zb_measurable 2),
-    rw [(integral_add i_12 i_3).symm],
-
-    have i_123: integrable
-      (λ ω , -(Za 2 ω : ℝ) * (Zb 2 ω) - (Za 2 ω : ℝ) * (Zb 3 ω) 
-        + (Za 1 ω : ℝ) * (Zb 2 ω))
-      (ℙ:measure Ω) := integrable.add i_12 i_3,
-    have i_4: integrable (λ ω , (Za 1 ω : ℝ) * (Zb 3 ω)) (ℙ:measure Ω)
-      := integrable_mul_of_units_int ℙ (Za 1) (Zb 3) (Za_measurable 1) (Zb_measurable 3),
-    rw [(integral_sub i_123 i_4).symm],
-
-    have i_1234: integrable
-      (λ ω , -(Za 2 ω : ℝ) * (Zb 2 ω) - (Za 2 ω : ℝ) * (Zb 3 ω) 
-        + (Za 1 ω : ℝ) * (Zb 2 ω) - (Za 1 ω : ℝ) * (Zb 3 ω))
-      (ℙ:measure Ω) := integrable.sub i_123 i_4,
-    have i_c: integrable (λ ω:Ω, (2:ℝ)) (ℙ:measure Ω) := integrable_const _,
-    rw [(integral_sub i_1234 i_c).symm],
-
-    exact int_chsh,
-  },
-  
-  have anticor : ∫ ω, -(Za 2 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) = 1,
-  {
-    have : ∫ ω, -(Za 2 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) = ∫ ω, -((Za 2 ω : ℝ) * (Zb 2 ω)) ∂(ℙ:measure Ω) ,
-    { simp only [neg_mul], },
-    rw this,
-    rw integral_neg _,
-    rw anticorrelation,
+    convert CHSH_inequality_of_int_units (-(Za 2 ω)) (Za 1 ω) (Zb 2 ω) (Zb 3 ω);
+    simp, },
+  have int_chsh := @integral_nonpos _ _ (ℙ : measure Ω) _ (λ x, this x), clear this,
+  rw [integral_add, integral_add, integral_add, integral_add] at int_chsh,
+  { have : ∫ ω, -(Za 2 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) = 1,
+    { convert neg_inj.mpr (anticorrelation 2),
+      { rw ← measure_theory.integral_neg,
+        rw integral_congr_ae,
+        filter_upwards with x,
+        simp, },
+      { simp, }, },
+    rw this at int_chsh, clear this,
+    rw (by simp : ∫ ω, (-2 : ℝ) ∂(ℙ : measure Ω) = -2) at int_chsh,
+    convert int_chsh using 1,
     ring_nf,
-  },
-
-  have int_2 : ∫ ω, (2:ℝ) ∂(ℙ:measure Ω) = 2 ,
-  { simp only [integral_const, measure_univ, ennreal.one_to_real, algebra.id.smul_eq_mul, one_mul], },
-  rw [anticor,int_2] at split_int,
-  ring_nf at split_int,
-  apply le_of_sub_nonpos,
-  ring_nf,
-  linarith,
+    congr' 1,
+    rw add_sub_left_comm,
+    congr' 1,
+    { rw integral_neg,
+      congr' 2,
+      ext1 x,
+      ring, },
+    { congr' 1,
+      rw integral_neg,
+      congr' 2,
+      ext1 x,
+      ring, }, },
+  { exact integrable_mul_negs 2 2, },
+  { exact integrable_mul_negs 2 3, },
+  { exact integrable.add (integrable_mul_negs 2 2) (integrable_mul_negs 2 3), },
+  { exact integrable_muls 1 2, },
+  { refine integrable.add (integrable.add (integrable_mul_negs 2 2) (integrable_mul_negs 2 3)) _,
+    exact integrable_muls 1 2, },
+  { exact integrable_mul_negs 1 3, },
+  { refine integrable.add _ (integrable_mul_negs 1 3),
+    refine integrable.add _ (integrable_muls 1 2),
+    exact integrable.add (integrable_mul_negs 2 2) (integrable_mul_negs 2 3), },
+  { apply integrable_const, },
 end
 
+#exit
 
 -- Bell's inequality: 1971 version
 theorem bells_inequality_1971 {Ω : Type u} {m : measurable_space Ω}
@@ -312,15 +170,15 @@ theorem bells_inequality_1971 {Ω : Type u} {m : measurable_space Ω}
 
   -- locality assumption
   (locality : ∀ lam_val:Λ, ∀ α:Aa, ∀ β:Ab , ∀ ω : set Ω ,
-    ((probability_theory.cond ((ℙ α β):measure Ω) (lam ⁻¹' {lam_val})) ω) = 
+    ((probability_theory.cond ((ℙ α β):measure Ω) (lam ⁻¹' {lam_val})) ω) =
       ((probability_theory.cond ((ℙa α):measure Ω) (lam ⁻¹' {lam_val})) ω)*
       ((probability_theory.cond ((ℙb β):measure Ω) (lam ⁻¹' {lam_val})) ω )
   )
   :
   ∀ α : Aa , ∀ α' : Aa, ∀ β : Ab , ∀ β' : Ab ,
-  | (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙ α β):measure Ω) ) 
+  | (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙ α β):measure Ω) )
     - (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙ α β'):measure Ω) ) |
-  + | (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙ α' β):measure Ω) ) 
+  + | (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙ α' β):measure Ω) )
     - (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙ α' β'):measure Ω) ) |
     ≤ 2
   :=

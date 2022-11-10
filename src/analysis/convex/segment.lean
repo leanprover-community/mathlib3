@@ -221,7 +221,7 @@ open_segment_translate_preimage 𝕜 a b c ▸ image_preimage_eq _ $ add_left_su
 
 end ordered_ring
 
-lemma same_ray_of_mem_segment [ordered_comm_ring 𝕜] [add_comm_group E] [module 𝕜 E]
+lemma same_ray_of_mem_segment [strict_ordered_comm_ring 𝕜] [add_comm_group E] [module 𝕜 E]
   {x y z : E} (h : x ∈ [y -[𝕜] z]) : same_ray 𝕜 (x - y) (z - x) :=
 begin
   rw segment_eq_image' at h,

@@ -86,6 +86,14 @@ calc (⨅ z ∈ s, edist x z) ≤ ⨅ z ∈ s, edist y z + edist x y :
 lemma inf_edist_le_edist_add_inf_edist : inf_edist x s ≤ edist x y + inf_edist y s :=
 by { rw add_comm, exact inf_edist_le_inf_edist_add_edist }
 
+lemma edist_le_inf_edist_add_ediam (hy : y ∈ s) : edist x y ≤ inf_edist x s + diam s :=
+begin
+  simp_rw [inf_edist, ennreal.infi_add],
+  refine le_infi (λ i, le_infi (λ hi, _)),
+  calc edist x y ≤ edist x i + edist i y : edist_triangle _ _ _
+  ... ≤ edist x i + diam s : add_le_add le_rfl (edist_le_diam_of_mem hi hy)
+end
+
 /-- The edist to a set depends continuously on the point -/
 @[continuity]
 lemma continuous_inf_edist : continuous (λx, inf_edist x s) :=
@@ -474,6 +482,17 @@ ball_inf_dist_subset_compl.trans (compl_compl s).subset
 lemma disjoint_closed_ball_of_lt_inf_dist {r : ℝ} (h : r < inf_dist x s) :
   disjoint (closed_ball x r) s :=
 disjoint_ball_inf_dist.mono_left $ closed_ball_subset_ball h
+
+lemma dist_le_inf_dist_add_diam (hs : bounded s) (hy : y ∈ s) : dist x y ≤ inf_dist x s + diam s :=
+begin
+  have A : inf_edist x s ≠ ∞, from inf_edist_ne_top ⟨y, hy⟩,
+  have B : emetric.diam s ≠ ∞, from hs.ediam_ne_top,
+  rw [inf_dist, diam, ← ennreal.to_real_add A B, dist_edist],
+  apply (ennreal.to_real_le_to_real _ _).2,
+  { exact edist_le_inf_edist_add_ediam hy },
+  { rw edist_dist, exact ennreal.of_real_ne_top },
+  { exact ennreal.add_ne_top.2 ⟨A, B⟩ }
+end
 
 variable (s)
 
@@ -933,6 +952,9 @@ by { ext x, simp [mem_closure_iff_inf_edist_zero, cthickening, ennreal.of_real_e
 @[simp] lemma cthickening_zero (E : set α) : cthickening 0 E = closure E :=
 cthickening_of_nonpos le_rfl E
 
+lemma cthickening_max_zero (δ : ℝ) (E : set α) : cthickening (max 0 δ) E = cthickening δ E :=
+by cases le_total δ 0; simp [cthickening_of_nonpos, *]
+
 /-- The closed thickening `cthickening δ E` of a fixed subset `E` is an increasing function of
 the thickening radius `δ`. -/
 lemma cthickening_mono {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) :
@@ -1135,6 +1157,10 @@ begin
   simp_rw inter_eq_right_iff_subset.mpr Ioc_subset_Ioi_self,
   exact λ _ hε, nonempty_Ioc.mpr hε,
 end
+
+lemma cthickening_eq_Inter_thickening'' (δ : ℝ) (E : set α) :
+  cthickening δ E = ⋂ (ε : ℝ) (h : max 0 δ < ε), thickening ε E :=
+by { rw [←cthickening_max_zero, cthickening_eq_Inter_thickening], exact le_max_left _ _ }
 
 /-- The closure of a set equals the intersection of its closed thickenings of positive radii
 accumulating at zero. -/

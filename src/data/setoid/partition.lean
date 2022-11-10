@@ -67,8 +67,9 @@ lemma classes_ker_subset_fiber_set {β : Type*} (f : α → β) :
   (setoid.ker f).classes ⊆ set.range (λ y, {x | f x = y}) :=
 by { rintro s ⟨x, rfl⟩, rw set.mem_range, exact ⟨f x, rfl⟩ }
 
-lemma finite_classes_ker {α β : Type*} [finite β] (f : α → β) : finite (setoid.ker f).classes :=
-by { classical, exact finite.set.subset _ (classes_ker_subset_fiber_set f) }
+lemma finite_classes_ker {α β : Type*} [finite β] (f : α → β) :
+  (setoid.ker f).classes.finite :=
+(set.finite_range _).subset $ classes_ker_subset_fiber_set f
 
 lemma card_classes_ker_le {α β : Type*} [fintype β]
   (f : α → β) [fintype (setoid.ker f).classes] :

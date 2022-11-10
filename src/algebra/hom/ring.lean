@@ -4,6 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston, Jireh Loreaux
 -/
 import algebra.ring.basic
+import algebra.divisibility.basic
+import data.pi.algebra
+import algebra.hom.units
+import data.set.basic
 
 /-!
 # Homomorphisms of semirings and rings
@@ -548,3 +552,49 @@ def mk_ring_hom_of_mul_self_of_two_ne_zero (h : ∀ x, f (x * x) = f x * f x) (h
 by { ext, refl }
 
 end add_monoid_hom
+
+section coe
+
+variables (R S : Type*) [has_lift_t R S]
+
+/-- `coe_is_non_unital_ring_hom R S` is a class stating that the coercion map `↑ : R → S`
+(a.k.a. `coe`) is a non-unital ring homomorphism.
+-/
+class coe_is_non_unital_ring_hom [non_unital_non_assoc_semiring R] [non_unital_non_assoc_semiring S]
+  extends coe_is_mul_hom R S, coe_is_add_monoid_hom R S
+
+/-- `non_unital_ring_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
+bundled as a non-unital ring homomorphism. -/
+@[simps { fully_applied := ff }]
+protected def non_unital_ring_hom.coe [non_unital_non_assoc_semiring R]
+  [non_unital_non_assoc_semiring S] [coe_is_non_unital_ring_hom R S] : R →ₙ+* S :=
+{ to_fun := coe,
+  .. mul_hom.coe R S,
+  .. add_monoid_hom.coe R S }
+
+/-- `coe_is_ring_hom R S` is a class stating that the coercion map `↑ : R → S` (a.k.a. `coe`)
+is a ring homomorphism.
+-/
+class coe_is_ring_hom [non_assoc_semiring R] [non_assoc_semiring S]
+  extends coe_is_monoid_hom R S, coe_is_add_monoid_hom R S
+
+@[priority 100] -- See note [lower instance priority]
+instance coe_is_ring_hom.to_coe_is_non_unital_ring_hom [non_assoc_semiring R] [non_assoc_semiring S]
+  [inst : coe_is_ring_hom R S] : coe_is_non_unital_ring_hom R S :=
+{ .. inst }
+
+@[priority 100] -- See note [lower instance priority]
+instance coe_is_ring_hom.to_coe_is_monoid_with_zero_hom [semiring R] [semiring S]
+  [inst : coe_is_ring_hom R S] : coe_is_monoid_with_zero_hom R S :=
+{ .. inst }
+
+/-- `ring_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
+bundled as a ring homomorphism. -/
+@[simps { fully_applied := ff }]
+protected def ring_hom.coe [non_assoc_semiring R] [non_assoc_semiring S] [coe_is_ring_hom R S] :
+  R →+* S :=
+{ to_fun := coe,
+  .. monoid_hom.coe R S,
+  .. add_monoid_hom.coe R S }
+
+end coe

@@ -87,6 +87,9 @@ def to_non_unital_alg_hom (φ : character_space 𝕜 A) : A →ₙₐ[𝕜] 𝕜
 @[simp]
 lemma coe_to_non_unital_alg_hom (φ : character_space 𝕜 A) : ⇑(to_non_unital_alg_hom φ) = φ := rfl
 
+instance [subsingleton A] : is_empty (character_space 𝕜 A) :=
+⟨λ φ, φ.prop.1 $ continuous_linear_map.ext (λ x, by simp only [subsingleton.elim x 0, map_zero])⟩
+
 variables (𝕜 A)
 
 lemma union_zero :
@@ -203,11 +206,15 @@ The character space itself consists of all algebra homomorphisms from `A` to `�
 { to_fun := λ a,
   { to_fun := λ φ, φ a,
     continuous_to_fun := (eval_continuous a).comp continuous_induced_dom },
-    map_one' := by {ext, simp only [coe_mk, coe_one, pi.one_apply, map_one a] },
-    map_mul' := λ a b, by {ext, simp only [map_mul, coe_mk, coe_mul, pi.mul_apply] },
-    map_zero' := by {ext, simp only [map_zero, coe_mk, coe_mul, coe_zero, pi.zero_apply], },
-    map_add' :=  λ a b, by {ext, simp only [map_add, coe_mk, coe_add, pi.add_apply] },
-    commutes' := λ k, by {ext, simp only [alg_hom_class.commutes, algebra.id.map_eq_id,
+    map_one' := by { ext, simp only [coe_mk, continuous_map.coe_one, pi.one_apply, map_one a] },
+    map_mul' := λ a b,
+      by { ext, simp only [map_mul, coe_mk, continuous_map.coe_mul, pi.mul_apply] },
+    map_zero' :=
+      by { ext, simp only [map_zero, coe_mk, continuous_map.coe_mul, continuous_map.coe_zero,
+                           pi.zero_apply], },
+    map_add' :=  λ a b,
+      by { ext, simp only [map_add, coe_mk, continuous_map.coe_add, pi.add_apply] },
+    commutes' := λ k, by { ext, simp only [alg_hom_class.commutes, algebra.id.map_eq_id,
       ring_hom.id_apply, coe_mk, algebra_map_apply, algebra.id.smul_eq_mul, mul_one] } }
 
 end gelfand_transform

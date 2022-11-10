@@ -80,7 +80,7 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
   end,
   symm := begin
     refine le_of_eq _,
-    rw map_supr,
+    rw filter.map_supr,
     congr' with x : 1,
     erw [nhds_prod_eq, ← prod_comm],
   end,
@@ -184,7 +184,7 @@ lemma compact_space.uniform_continuous_of_continuous [compact_space α]
   {f : α → β} (h : continuous f) : uniform_continuous f :=
 calc
 map (prod.map f f) (𝓤 α) = map (prod.map f f) (⨆ x, 𝓝 (x, x))  : by rw compact_space_uniformity
-                     ... =  ⨆ x, map (prod.map f f) (𝓝 (x, x)) : by rw map_supr
+                     ... =  ⨆ x, map (prod.map f f) (𝓝 (x, x)) : by rw filter.map_supr
                      ... ≤ ⨆ x, 𝓝 (f x, f x)     : supr_mono (λ x, (h.prod_map h).continuous_at)
                      ... ≤ ⨆ y, 𝓝 (y, y)         : supr_comp_le (λ y, 𝓝 (y, y)) f
                      ... ≤ 𝓤 β                   : supr_nhds_le_uniformity
@@ -210,7 +210,7 @@ lemma continuous_on.tendsto_uniformly [locally_compact_space α] [compact_space 
 begin
   rcases locally_compact_space.local_compact_nhds _ _ hxU with ⟨K, hxK, hKU, hK⟩,
   have : uniform_continuous_on ↿f (K ×ˢ univ),
-    from is_compact.uniform_continuous_on_of_continuous (hK.prod compact_univ)
+    from is_compact.uniform_continuous_on_of_continuous (hK.prod is_compact_univ)
       (h.mono $ prod_mono hKU subset.rfl),
   exact this.tendsto_uniformly hxK
 end

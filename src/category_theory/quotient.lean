@@ -126,7 +126,7 @@ include H
 def lift : quotient r ⥤ D :=
 { obj := λ a, F.obj a.as,
   map := λ a b hf, quot.lift_on hf (λ f, F.map f)
-    (by { rintros _ _ ⟨_, _, _, _, _, _, h⟩, simp [H _ _ _ _ h], }),
+    (by { rintro _ _ ⟨_, _, _, _, h⟩, simp [H _ _ _ _ h], }),
   map_id' := λ a, F.map_id a.as,
   map_comp' := by { rintros a b c ⟨f⟩ ⟨g⟩, exact F.map_comp f g, } }
 
@@ -137,7 +137,7 @@ begin
   { rintro X Y f, simp, },
 end
 
-lemma lift_spec_unique (Φ : quotient r ⥤ D) (hΦ : (functor r) ⋙ Φ = F) : Φ = lift r F H :=
+lemma lift_unique (Φ : quotient r ⥤ D) (hΦ : (functor r) ⋙ Φ = F) : Φ = lift r F H :=
 begin
   subst_vars,
   apply functor.hext,

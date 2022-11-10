@@ -5,6 +5,7 @@ Authors: Simon Hudon, Mario Carneiro
 -/
 import data.rat.cast
 import data.rat.meta_defs
+import data.int.lemmas
 
 /-!
 # `norm_num`
@@ -249,6 +250,8 @@ meta def prove_mul_nat : instance_cache → expr → expr → tactic (instance_c
 
 end
 
+lemma zero_lt_one [linear_ordered_semiring α] : (0 : α) < 1 := zero_lt_one
+
 section
 open match_numeral_result
 
@@ -256,7 +259,7 @@ open match_numeral_result
 meta def prove_pos_nat (c : instance_cache) : expr → tactic (instance_cache × expr)
 | e :=
   match match_numeral e with
-  | one := c.mk_app ``zero_lt_one' []
+  | one := c.mk_app ``zero_lt_one []
   | bit0 e := do (c, p) ← prove_pos_nat e, c.mk_app ``bit0_pos [e, p]
   | bit1 e := do (c, p) ← prove_pos_nat e, c.mk_app ``bit1_pos' [e, p]
   | _ := failed
@@ -308,7 +311,7 @@ if na.denom = 1 then
 else do
   [_, _, a, b] ← return a.get_app_args,
   (c, b') ← c.of_nat (nd / na.denom),
-  (c, p₀) ← prove_ne_zero c b (rat.of_int na.denom),
+  (c, p₀) ← prove_ne_zero c b na.denom,
   (c, _, p₁) ← prove_mul_nat c b b',
   (c, r, p₂) ← prove_mul_nat c a b',
   (c, p) ← c.mk_app ``clear_denom_div [a, b, b', r, d, p₀, p₁, p₂],
@@ -737,7 +740,7 @@ if na.denom = 1 ∧ nb.denom = 1 then
 else do
   let nd := na.denom.lcm nb.denom,
   (ic, d) ← ic.of_nat nd,
-  (ic, p₀) ← prove_ne_zero ic d (rat.of_int nd),
+  (ic, p₀) ← prove_ne_zero ic d nd,
   (ic, a', pa) ← prove_clear_denom ic a d na nd,
   (ic, b', pb) ← prove_clear_denom ic b d nb nd,
   (ic, c', pc) ← prove_clear_denom ic c d nc nd,
@@ -802,7 +805,7 @@ if na.denom = 1 then do
   return (c, d, a, p)
 else do
   [α, _, a, b] ← return a.get_app_args,
-  (c, p₀) ← prove_ne_zero c b (rat.of_int na.denom),
+  (c, p₀) ← prove_ne_zero c b na.denom,
   (c, p) ← c.mk_app ``clear_denom_simple_div [a, b, p₀],
   return (c, b, a, p)
 
@@ -1598,8 +1601,9 @@ meta def prove_div_mod (ic : instance_cache) :
     let nm := nq * nr,
     (ic, q) ← ic.of_int nq,
     (ic, r) ← ic.of_int nr,
-    (ic, m, pm) ← prove_mul_rat ic q b (rat.of_int nq) (rat.of_int nb),
-    (ic, p) ← prove_add_rat ic r m a (rat.of_int nr) (rat.of_int nm) (rat.of_int na),
+    (ic, m, pm) ← prove_mul_rat ic q b nq nb,
+    (ic, a') ← ic.of_rat na, -- ensure `a` is in normal form
+    (ic, p) ← prove_add_rat ic r m a' nr nm na,
     (ic, p') ← prove_lt_nat ic r b,
     if ic.α = `(nat) then
       if mod then return (ic, r, `(nat_mod).mk_app [a, b, q, r, m, pm, p, p'])

@@ -9,6 +9,8 @@ import ring_theory.valuation.basic
 import algebra.module.pi
 import ring_theory.power_series.basic
 import data.finsupp.pwo
+import data.finset.mul_antidiagonal
+import algebra.order.group.with_top
 
 /-!
 # Hahn Series
@@ -1012,8 +1014,9 @@ power_series.coeff_mk _ _
 lemma coeff_to_power_series_symm {f : power_series R} {n : ℕ} :
   (hahn_series.to_power_series.symm f).coeff n = power_series.coeff R n f := rfl
 
-variables (Γ) (R) [ordered_semiring Γ] [nontrivial Γ]
-/-- Casts a power series as a Hahn series with coefficients from an `ordered_semiring`. -/
+variables (Γ) (R) [strict_ordered_semiring Γ] [nontrivial Γ]
+
+/-- Casts a power series as a Hahn series with coefficients from an `strict_ordered_semiring`. -/
 def of_power_series : (power_series R) →+* hahn_series Γ R :=
 (hahn_series.emb_domain_ring_hom (nat.cast_add_monoid_hom Γ) nat.strict_mono_cast.injective
   (λ _ _, nat.cast_le)).comp
@@ -1130,8 +1133,8 @@ variables (R) [comm_semiring R] {A : Type*} [semiring A] [algebra R A]
   end,
   .. to_power_series }
 
-variables (Γ) (R) [ordered_semiring Γ] [nontrivial Γ]
-/-- Casting a power series as a Hahn series with coefficients from an `ordered_semiring`
+variables (Γ) (R) [strict_ordered_semiring Γ] [nontrivial Γ]
+/-- Casting a power series as a Hahn series with coefficients from an `strict_ordered_semiring`
   is an algebra homomorphism. -/
 @[simps] def of_power_series_alg : (power_series A) →ₐ[R] hahn_series Γ A :=
 (hahn_series.emb_domain_alg_hom (nat.cast_add_monoid_hom Γ) nat.strict_mono_cast.injective
@@ -1158,7 +1161,7 @@ end algebra
 
 section valuation
 
-variables (Γ R) [linear_ordered_add_comm_group Γ] [ring R] [is_domain R]
+variables (Γ R) [linear_ordered_cancel_add_comm_monoid Γ] [ring R] [is_domain R]
 
 /-- The additive valuation on `hahn_series Γ R`, returning the smallest index at which
   a Hahn Series has a nonzero coefficient, or `⊤` for the 0 series.  -/
@@ -1207,7 +1210,7 @@ end
 end valuation
 
 lemma is_pwo_Union_support_powers
-  [linear_ordered_add_comm_group Γ] [ring R] [is_domain R]
+  [linear_ordered_cancel_add_comm_monoid Γ] [ring R] [is_domain R]
   {x : hahn_series Γ R} (hx : 0 < add_val Γ R x) :
   (⋃ n : ℕ, (x ^ n).support).is_pwo :=
 begin
@@ -1530,7 +1533,7 @@ end emb_domain
 
 section powers
 
-variables [linear_ordered_add_comm_group Γ] [comm_ring R] [is_domain R]
+variables [linear_ordered_cancel_add_comm_monoid Γ] [comm_ring R] [is_domain R]
 
 /-- The powers of an element of positive valuation form a summable family. -/
 def powers (x : hahn_series Γ R) (hx : 0 < add_val Γ R x) :

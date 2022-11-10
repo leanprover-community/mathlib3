@@ -525,7 +525,9 @@ begin
   simp,
 end
 
-theorem p_adic_L_function_eval_neg_int_new [normed_algebra ℚ R] [norm_one_class R] (n : ℕ) (hn : 1 < n) :
+theorem p_adic_L_function_eval_neg_int_new [normed_algebra ℚ R] [norm_one_class R] [no_zero_divisors R]
+  (n : ℕ) (hn : 1 < n) (hχ : χ.is_even) (hp : 2 < p)
+  (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥) :
    (p_adic_L_function' p d R m hd χ hc hc' na (neg_pow' p d R (n - 1))) = (algebra_map ℚ R) (1 / n : ℚ) *
    -(1 - (χ (zmod.unit_of_coprime c (nat.coprime_mul_iff_right.2 ⟨hc', nat.coprime_pow_spl p c m hc⟩))
    * (neg_pow' p d R n (zmod.unit_of_coprime c hc', is_unit.unit ((is_unit_iff_not_dvd p c)
@@ -536,7 +538,7 @@ theorem p_adic_L_function_eval_neg_int_new [normed_algebra ℚ R] [norm_one_clas
      ((teichmuller_character_mod_p_change_level p d R m)^n)) n) :=
 begin
   delta p_adic_L_function',
-  have h1 := filter.tendsto.add (filter.tendsto.sub (U p d R m χ n) (V p d R m χ c hc' hc n hn))
+  have h1 := filter.tendsto.add (filter.tendsto.sub (U p d R m χ n hn hχ hp na) (V p d R m χ c hc' hc n hn))
     (W p d R m χ c n),
   conv at h1 { congr, skip, skip, rw ← helper_254 p d R m χ c hc hc' n (ne_zero_of_lt hn), },
   symmetry, apply helpful_much h1, clear h1,

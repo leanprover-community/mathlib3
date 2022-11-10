@@ -291,14 +291,49 @@ noncomputable def U_def [normed_algebra ℚ R] [norm_one_class R] (n : ℕ) (k :
 -- Idea 2 : Use `asso_dirichlet_character` instead to get rid of hk, since coercion on non-units
 -- can be anywhere
 
-lemma U [normed_algebra ℚ R] [norm_one_class R] (n : ℕ) :
+lemma finset.sum_equiv' {s t α : Type*} [fintype s] [fintype t] [add_comm_monoid α] (h : s ≃ t)
+  (f : t → α) : ∑ (x : t), f x = ∑ (x : s), f (h x) :=
+begin
+  apply finset.sum_bij,
+  swap 5, { rintros, refine h.inv_fun a, },
+  { rintros, apply finset.mem_univ _, },
+  { simp only [equiv.inv_fun_as_coe, equiv.apply_symm_apply, eq_self_iff_true, implies_true_iff], },
+  { simp only [equiv.inv_fun_as_coe, embedding_like.apply_eq_iff_eq, imp_self, forall_2_true_iff], },
+  { refine λ a ha, ⟨h a, finset.mem_univ _, _⟩,
+    simp only [equiv.inv_fun_as_coe, equiv.symm_apply_apply], },
+end
+
+lemma finset.sum_equiv {s t α : Type*} [fintype s] [fintype t] [add_comm_monoid α] (h : s ≃ t)
+  (f : s → α) : ∑ (x : s), f x = ∑ (x : t), f (h.inv_fun x) :=
+begin
+  rw finset.sum_equiv' h, simp,
+end
+
+noncomputable def units.equiv_is_unit {α : Type*} [monoid α] : units α ≃ {x : α // is_unit x} :=
+{ to_fun := λ u, ⟨u, units.is_unit u⟩,
+  inv_fun := λ ⟨u, hu⟩, is_unit.unit hu,
+  left_inv := λ x, units.ext_iff.2 (is_unit.unit_spec _),
+  right_inv := λ x, by { apply subtype.ext_val, tidy, }, }
+
+lemma U [normed_algebra ℚ R] [norm_one_class R] [no_zero_divisors R] (n : ℕ) (hn : 1 < n)
+  (hχ : χ.is_even) (hp : 2 < p)
+  (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥) :
   filter.tendsto (λ j : ℕ, U_def p d R m χ n j)
   filter.at_top (nhds ((1 - asso_dirichlet_character (dirichlet_character.mul χ
   ((teichmuller_character_mod_p_change_level p d R m)^n)) (p) * p^(n - 1) ) *
   (general_bernoulli_number (dirichlet_character.mul χ
   ((teichmuller_character_mod_p_change_level p d R m)^n)) n)) ) :=
 begin
-  sorry
+  delta U_def,
+  have h1 := lim_even_character d p m χ na hn hχ hp,
+  have h2 := filter.tendsto.const_mul ((asso_dirichlet_character
+    (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ n))) ↑p * ↑p ^ (n - 1)) h1,
+  have h3 := filter.tendsto.sub h1 h2,
+  clear h1 h2,
+  convert h3, -- might need a tendsto_congr' here
+  { clear h3,
+    sorry, },
+  { clear h3, sorry, },
 end
 
 lemma teichmuller_character_mod_p_change_level_def :
@@ -332,7 +367,10 @@ lemma V [normed_algebra ℚ R] [norm_one_class R] (hc' : c.coprime d) (hc : c.co
   asso_dirichlet_character (dirichlet_character.mul χ
   ((teichmuller_character_mod_p_change_level p d R m)^n)) (p) * p^(n - 1) ) *
   (general_bernoulli_number (dirichlet_character.mul χ
-  ((teichmuller_character_mod_p_change_level p d R m)^n)) n))) ) := sorry
+  ((teichmuller_character_mod_p_change_level p d R m)^n)) n))) ) :=
+begin
+  sorry
+end
 
 lemma W [normed_algebra ℚ R] [norm_one_class R] (n : ℕ) :
   filter.tendsto (λ j : ℕ, ∑ (x : (zmod (d * p ^ j))ˣ), ((asso_dirichlet_character (χ * (teichmuller_character_mod_p_change_level p d R m)^n) x : R) *

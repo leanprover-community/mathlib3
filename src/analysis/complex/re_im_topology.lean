@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.complex.basic
-import topology.fiber_bundle
+import topology.fiber_bundle.basic
 
 /-!
 # Closure, interior, and frontier of preimages under `re` and `im`

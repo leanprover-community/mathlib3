@@ -25,11 +25,16 @@ variables {α β : Type*}
 
 namespace nat
 
+instance (α : Type*) [add_monoid_with_one α] : coe_is_one_hom ℕ α :=
+{ coe_one := cast_one }
+
+instance (α : Type*) [add_monoid_with_one α] : coe_is_add_monoid_hom ℕ α :=
+{ coe_add := cast_add,
+  coe_zero := cast_zero }
+
 /-- `coe : ℕ → α` as an `add_monoid_hom`. -/
 def cast_add_monoid_hom (α : Type*) [add_monoid_with_one α] : ℕ →+ α :=
-{ to_fun := coe,
-  map_add' := cast_add,
-  map_zero' := cast_zero }
+add_monoid_hom.coe ℕ α
 
 @[simp] lemma coe_cast_add_monoid_hom [add_monoid_with_one α] :
   (cast_add_monoid_hom α : ℕ → α) = coe := rfl
@@ -38,12 +43,14 @@ def cast_add_monoid_hom (α : Type*) [add_monoid_with_one α] : ℕ →+ α :=
   ((m * n : ℕ) : α) = m * n :=
 by induction n; simp [mul_succ, mul_add, *]
 
+instance (α : Type*) [non_assoc_semiring α] : coe_is_ring_hom ℕ α :=
+{ coe_mul := cast_mul,
+  coe_one := cast_one,
+  .. nat.coe_is_add_monoid_hom α }
+
 /-- `coe : ℕ → α` as a `ring_hom` -/
 def cast_ring_hom (α : Type*) [non_assoc_semiring α] : ℕ →+* α :=
-{ to_fun := coe,
-  map_one' := cast_one,
-  map_mul' := cast_mul,
-  .. cast_add_monoid_hom α }
+ring_hom.coe ℕ α
 
 @[simp] lemma coe_cast_ring_hom [non_assoc_semiring α] : (cast_ring_hom α : ℕ → α) = coe := rfl
 

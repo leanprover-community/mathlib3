@@ -498,7 +498,8 @@ theorem sphere_subset_closed_ball : sphere x ε ⊆ closed_ball x ε :=
 λ y, le_of_eq
 
 lemma closed_ball_disjoint_ball (h : δ + ε ≤ dist x y) : disjoint (closed_ball x δ) (ball y ε) :=
-λ a ha, (h.trans $ dist_triangle_left _ _ _).not_lt $ add_lt_add_of_le_of_lt ha.1 ha.2
+set.disjoint_left.mpr $
+  λ a ha1 ha2, (h.trans $ dist_triangle_left _ _ _).not_lt $ add_lt_add_of_le_of_lt ha1 ha2
 
 lemma ball_disjoint_closed_ball (h : δ + ε ≤ dist x y) : disjoint (ball x δ) (closed_ball y ε) :=
 (closed_ball_disjoint_ball $ by rwa [add_comm, dist_comm]).symm
@@ -520,10 +521,10 @@ set.ext $ λ y, (@le_iff_lt_or_eq ℝ _ _ _).symm
 by rw [union_comm, ball_union_sphere]
 
 @[simp] theorem closed_ball_diff_sphere : closed_ball x ε \ sphere x ε = ball x ε :=
-by rw [← ball_union_sphere, set.union_diff_cancel_right sphere_disjoint_ball.symm]
+by rw [← ball_union_sphere, set.union_diff_cancel_right sphere_disjoint_ball.symm.le_bot]
 
 @[simp] theorem closed_ball_diff_ball : closed_ball x ε \ ball x ε = sphere x ε :=
-by rw [← ball_union_sphere, set.union_diff_cancel_left sphere_disjoint_ball.symm]
+by rw [← ball_union_sphere, set.union_diff_cancel_left sphere_disjoint_ball.symm.le_bot]
 
 theorem mem_ball_comm : x ∈ ball y ε ↔ y ∈ ball x ε :=
 by rw [mem_ball', mem_ball]

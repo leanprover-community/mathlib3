@@ -158,7 +158,7 @@ begin
     exact h1.coprime_dvd_left (card_comap_dvd_of_injective N K.subtype subtype.coe_injective) },
   obtain ⟨H, hH⟩ := h2 K h5 h6,
   replace hH : fintype.card (H.map K.subtype) = N.index :=
-    ((set.card_image_of_injective _ subtype.coe_injective).trans (nat.mul_left_injective
+    ((set.card_image_of_injective _ subtype.coe_injective).trans (mul_left_injective₀
       fintype.card_ne_zero (hH.symm.card_mul.trans (N.comap K.subtype).index_mul_card.symm))).trans
       h4,
   have h7 : fintype.card N * fintype.card (H.map K.subtype) = fintype.card G,

@@ -280,27 +280,15 @@ by rw [add_comm, add_one, pred_succ]
 theorem two_mul_ne_two_mul_add_one {n m} : 2 * n ≠ 2 * m + 1 :=
 mt (congr_arg (%2)) (by { rw [add_comm, add_mul_mod_self_left, mul_mod_right, mod_eq_of_lt]; simp })
 
-lemma mul_left_injective {a : ℕ} (ha : a ≠ 0) : function.injective (λ x, x * a) :=
-mul_left_injective₀ ha
-
-lemma mul_right_injective {a : ℕ} (ha : a ≠ 0) : function.injective (λ x, a * x) :=
-mul_right_injective₀ ha
-
-protected theorem mul_left_inj {a b c : ℕ} (ha : a ≠ 0) : b * a = c * a ↔ b = c :=
-(mul_left_injective ha).eq_iff
-
-protected theorem mul_right_inj {a b c : ℕ} (ha : a ≠ 0) : a * b = a * c ↔ b = c :=
-(mul_right_injective ha).eq_iff
-
 lemma mul_ne_mul_left {a b c : ℕ} (ha : a ≠ 0) : b * a ≠ c * a ↔ b ≠ c :=
-(mul_left_injective ha).ne_iff
+(mul_left_injective₀ ha).ne_iff
 
 lemma mul_ne_mul_right {a b c : ℕ} (ha : a ≠ 0) : a * b ≠ a * c ↔ b ≠ c :=
-(mul_right_injective ha).ne_iff
+(mul_right_injective₀ ha).ne_iff
 
 lemma mul_right_eq_self_iff {a b : ℕ} (ha : a ≠ 0) : a * b = a ↔ b = 1 :=
 suffices a * b = a * 1 ↔ b = 1, by rwa mul_one at this,
-nat.mul_right_inj ha
+mul_right_inj' ha
 
 lemma mul_left_eq_self_iff {a b : ℕ} (hb : b ≠ 0) : a * b = b ↔ a = 1 :=
 by rw [mul_comm, nat.mul_right_eq_self_iff hb]
@@ -633,10 +621,10 @@ protected theorem dvd_add_right {k m n : ℕ} (h : k ∣ m) : k ∣ m + n ↔ k 
 (nat.dvd_add_iff_right h).symm
 
 protected theorem mul_dvd_mul_iff_left {a b c : ℕ} (ha : a ≠ 0) : a * b ∣ a * c ↔ b ∣ c :=
-exists_congr $ λ d, by rw [mul_assoc, nat.mul_right_inj ha]
+exists_congr $ λ d, by rw [mul_assoc, mul_right_inj' ha]
 
 protected theorem mul_dvd_mul_iff_right {a b c : ℕ} (hc : c ≠ 0) : a * c ∣ b * c ↔ a ∣ b :=
-exists_congr $ λ d, by rw [mul_right_comm, nat.mul_left_inj hc]
+exists_congr $ λ d, by rw [mul_right_comm, mul_left_inj' hc]
 
 @[simp] theorem mod_mod_of_dvd (n : ℕ) {m k : ℕ} (h : m ∣ k) : n % k % m = n % m :=
 begin

@@ -622,12 +622,12 @@ begin
   wlog := hp.dvd_mul.1 pdvdxy using x y,
   cases case with a ha,
   have hap : a ∣ p, from ⟨y, by rwa [ha, sq,
-        mul_assoc, nat.mul_right_inj hp.ne_zero, eq_comm] at h⟩,
+        mul_assoc, mul_right_inj' hp.ne_zero, eq_comm] at h⟩,
   exact ((nat.dvd_prime hp).1 hap).elim
-    (λ _, by clear_aux_decl; simp [*, sq, nat.mul_right_inj hp.ne_zero] at *
+    (λ _, by clear_aux_decl; simp [*, sq, mul_right_inj' hp.ne_zero] at *
       {contextual := tt})
     (λ _, by clear_aux_decl; simp [*, sq, mul_comm, mul_assoc,
-      nat.mul_right_inj hp.ne_zero, nat.mul_right_eq_self_iff hp.ne_zero] at *
+      mul_right_inj' hp.ne_zero, nat.mul_right_eq_self_iff hp.pos] at *
       {contextual := tt})
 end,
 λ ⟨h₁, h₂⟩, h₁.symm ▸ h₂.symm ▸ (sq _).symm⟩

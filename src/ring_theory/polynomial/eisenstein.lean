@@ -275,7 +275,7 @@ begin
     obtain ⟨k, hk⟩ := int.coe_nat_dvd.1 h,
     rw [← mul_assoc, mul_one, mul_assoc] at hk,
     nth_rewrite 0 [← nat.mul_one p] at hk,
-    rw [nat.mul_right_inj hp.out.ne_zero] at hk,
+    rw [mul_right_inj' hp.out.ne_zero] at hk,
     exact nat.prime.not_dvd_one hp.out (dvd.intro k (hk.symm)) }
 end
 
@@ -319,7 +319,7 @@ begin
     obtain ⟨k, hk⟩ := int.coe_nat_dvd.1 h,
     rw [← mul_assoc, mul_one, mul_assoc] at hk,
     nth_rewrite 0 [← nat.mul_one p] at hk,
-    rw [nat.mul_right_inj hp.out.ne_zero] at hk,
+    rw [mul_right_inj' hp.out.ne_zero] at hk,
     exact nat.prime.not_dvd_one hp.out (dvd.intro k (hk.symm)) }
 end
 

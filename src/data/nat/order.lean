@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import algebra.ring.divisibility
+import algebra.group_with_zero.divisibility
 import algebra.order.ring.canonical
 import algebra.order.with_zero
 import data.nat.basic
@@ -380,7 +381,7 @@ lt_of_mul_lt_mul_left
 
 protected lemma div_eq_zero_iff {a b : ℕ} (hb : b ≠ 0) : a / b = 0 ↔ a < b :=
 ⟨λ h, by rw [← mod_add_div a b, h, mul_zero, add_zero]; exact mod_lt _ (nat.pos_of_ne_zero hb),
-  λ h, by rw [← nat.mul_right_inj hb, ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
+  λ h, by rw [← mul_right_inj' hb, ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
     mod_eq_of_lt h, mul_zero, add_zero]⟩
 
 protected lemma div_eq_zero {a b : ℕ} (hb : a < b) : a / b = 0 :=
@@ -438,12 +439,12 @@ by conv {to_rhs, rw [← nat.mod_add_div n 2, hn, add_tsub_cancel_left]}
 lemma div_dvd_of_dvd {a b : ℕ} (h : b ∣ a) : (a / b) ∣ a :=
 ⟨b, (nat.div_mul_cancel h).symm⟩
 
-protected lemma div_div_self : ∀ {a b : ℕ}, b ∣ a → 0 < a → a / (a / b) = b
-| a     0     h₁ h₂ := by rw [eq_zero_of_zero_dvd h₁, nat.div_zero, nat.div_zero]
-| 0     b     h₁ h₂ := absurd h₂ dec_trivial
-| (a+1) (b+1) h₁ h₂ :=
-(nat.mul_left_inj (nat.div_pos (le_of_dvd (succ_pos a) h₁) (succ_pos b)).ne').1 $
-  by rw [nat.div_mul_cancel (div_dvd_of_dvd h₁), nat.mul_div_cancel' h₁]
+protected lemma div_div_self {a b : ℕ} (h : b ∣ a) (ha : a ≠ 0) : a / (a / b) = b :=
+begin
+  rcases h with ⟨a, rfl⟩,
+  rw mul_ne_zero_iff at ha,
+  rw [nat.mul_div_right _ (nat.pos_of_ne_zero ha.1), nat.mul_div_left _ (nat.pos_of_ne_zero ha.2)]
+end
 
 lemma mod_mul_right_div_self (a b c : ℕ) : a % (b * c) / b = (a / b) % c :=
 begin

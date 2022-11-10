@@ -437,7 +437,7 @@ lemma nat_gcd_helper_1 (d x y a b u v tx ty : ℕ) (hu : d * u = x) (hv : d * v 
 
 lemma nat_lcm_helper (x y d m n : ℕ) (hd : nat.gcd x y = d) (d0 : 0 < d)
   (xy : x * y = n) (dm : d * m = n) : nat.lcm x y = m :=
-(nat.mul_right_inj d0.ne_bot).1 $ by rw [dm, ← xy, ← hd, nat.gcd_mul_lcm]
+mul_right_injective₀ d0.ne' $ by rw [dm, ← xy, ← hd, nat.gcd_mul_lcm]
 
 lemma nat_coprime_helper_zero_left (x : ℕ) (h : 1 < x) : ¬ nat.coprime 0 x :=
 mt (nat.coprime_zero_left _).1 $ ne_of_gt h

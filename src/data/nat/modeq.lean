@@ -326,7 +326,7 @@ end
 lemma div_mod_eq_mod_mul_div (a b c : ℕ) : a / b % c = a % (b * c) / b :=
 if hb0 : b = 0 then by simp [hb0]
 else by rw [← @add_right_cancel_iff _ _ (c * (a / b / c)), mod_add_div, nat.div_div_eq_div_mul,
-  ← nat.mul_right_inj hb0, ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
+  ← mul_right_inj' hb0, ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
   mul_add, ← @add_left_cancel_iff _ _ (a % (b * c) % b), add_left_comm,
   ← add_assoc (a % (b * c) % b), mod_add_div, ← mul_assoc, mod_add_div, mod_mul_right_mod]
 
@@ -360,7 +360,7 @@ by rw [← add_mod_add_ite, if_pos hc]
 lemma add_div {a b c : ℕ} (hc0 : c ≠ 0) : (a + b) / c = a / c + b / c +
   if c ≤ a % c + b % c then 1 else 0 :=
 begin
-  rw [← nat.mul_right_inj hc0, ← @add_left_cancel_iff _ _ ((a + b) % c + a % c + b % c)],
+  rw [← mul_right_inj' hc0.ne', ← @add_left_cancel_iff _ _ ((a + b) % c + a % c + b % c)],
   suffices : (a + b) % c + c * ((a + b) / c) + a % c + b % c =
     a % c + c * (a / c) + (b % c + c * (b / c)) + c * (if c ≤ a % c + b % c then 1 else 0) +
       (a + b) % c,
@@ -407,7 +407,7 @@ lemma odd_mul_odd_div_two {m n : ℕ} (hm1 : m % 2 = 1) (hn1 : n % 2 = 1) :
   (m * n) / 2 = m * (n / 2) + m / 2 :=
 have hm0 : 0 < m := nat.pos_of_ne_zero (λ h, by simp * at *),
 have hn0 : 0 < n := nat.pos_of_ne_zero (λ h, by simp * at *),
-(nat.mul_right_inj two_ne_zero).1 $
+mul_right_injective₀ two_ne_zero $
 by rw [mul_add, two_mul_odd_div_two hm1, mul_left_comm, two_mul_odd_div_two hn1,
   two_mul_odd_div_two (nat.odd_mul_odd hm1 hn1), mul_tsub, mul_one,
   ← add_tsub_assoc_of_le (succ_le_of_lt hm0),

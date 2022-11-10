@@ -395,7 +395,7 @@ begin
   -- Subtract the constant `f x₂` from `f`; this is still an element of the subalgebra
   have hFA : F ∈ A,
   { refine A.sub_mem hfA (@eq.subst _ (∈ A) _ _ _ $ A.smul_mem A.one_mem $ f x₂),
-    ext1, simp only [coe_smul, coe_one, pi.smul_apply,
+    ext1, simp only [continuous_map.coe_smul, continuous_map.coe_one, pi.smul_apply,
       pi.one_apply, algebra.id.smul_eq_mul, mul_one, const_apply] },
   -- Consider now the function `λ x, |f x - f x₂| ^ 2`
   refine ⟨_, ⟨(⟨is_R_or_C.norm_sq, continuous_norm_sq⟩ : C(𝕜, ℝ)).comp F, _, rfl⟩, _⟩,
@@ -407,7 +407,7 @@ begin
     exact (is_R_or_C.mul_conj _).symm },
   { -- And it also separates the points `x₁`, `x₂`
     have : f x₁ - f x₂ ≠ 0 := sub_ne_zero.mpr hf,
-    simpa only [comp_apply, coe_sub, coe_const, pi.sub_apply,
+    simpa only [comp_apply, continuous_map.coe_sub, coe_const, pi.sub_apply,
       coe_mk, sub_self, map_zero, ne.def, norm_sq_eq_zero] using this },
 end
 

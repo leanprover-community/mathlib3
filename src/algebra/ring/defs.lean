@@ -3,6 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Yury Kudryashov, Neil Strickland
 -/
+import algebra.group.basic
 import algebra.group_with_zero.defs
 import data.int.cast.defs
 
@@ -297,6 +298,62 @@ multiplicative monoid (`monoid`), and distributive laws (`distrib`).  Equivalent
 `semiring` with a negation operation making it an additive group.  -/
 @[protect_proj, ancestor add_comm_group monoid distrib]
 class ring (α : Type u) extends add_comm_group_with_one α, monoid α, distrib α
+
+section non_unital_non_assoc_ring
+variables [non_unital_non_assoc_ring α]
+
+@[priority 100]
+instance non_unital_non_assoc_ring.to_has_distrib_neg : has_distrib_neg α :=
+{ neg := has_neg.neg,
+  neg_neg := neg_neg,
+  neg_mul := λ a b, eq_neg_of_add_eq_zero_left $ by rw [←right_distrib, add_left_neg, zero_mul],
+  mul_neg := λ a b, eq_neg_of_add_eq_zero_left $ by rw [←left_distrib, add_left_neg, mul_zero] }
+
+lemma mul_sub_left_distrib (a b c : α) : a * (b - c) = a * b - a * c :=
+by simpa only [sub_eq_add_neg, neg_mul_eq_mul_neg] using mul_add a b (-c)
+
+alias mul_sub_left_distrib ← mul_sub
+
+lemma mul_sub_right_distrib (a b c : α) : (a - b) * c = a * c - b * c :=
+by simpa only [sub_eq_add_neg, neg_mul_eq_neg_mul] using add_mul a (-b) c
+
+alias mul_sub_right_distrib ← sub_mul
+
+variables {a b c d e : α}
+
+/-- An iff statement following from right distributivity in rings and the definition
+  of subtraction. -/
+theorem mul_add_eq_mul_add_iff_sub_mul_add_eq : a * e + c = b * e + d ↔ (a - b) * e + c = d :=
+calc
+  a * e + c = b * e + d ↔ a * e + c = d + b * e : by simp [add_comm]
+    ... ↔ a * e + c - b * e = d : iff.intro (λ h, begin rw h, simp end) (λ h,
+                                                  begin rw ← h, simp end)
+    ... ↔ (a - b) * e + c = d   : begin simp [sub_mul, sub_add_eq_add_sub] end
+
+/-- A simplification of one side of an equation exploiting right distributivity in rings
+  and the definition of subtraction. -/
+theorem sub_mul_add_eq_of_mul_add_eq_mul_add : a * e + c = b * e + d → (a - b) * e + c = d :=
+assume h,
+calc
+  (a - b) * e + c = (a * e + c) - b * e : begin simp [sub_mul, sub_add_eq_add_sub] end
+              ... = d                   : begin rw h, simp [@add_sub_cancel α] end
+
+end non_unital_non_assoc_ring
+
+
+section non_assoc_ring
+variables [non_assoc_ring α]
+
+lemma sub_one_mul (a b : α) : (a - 1) * b = a * b - b :=
+by rw [sub_mul, one_mul]
+lemma mul_sub_one (a b : α) : a * (b - 1) = a * b - a :=
+by rw [mul_sub, mul_one]
+lemma one_sub_mul (a b : α) : (1 - a) * b = b - a * b :=
+by rw [sub_mul, one_mul]
+lemma mul_one_sub (a b : α) : a * (1 - b) = a - a * b :=
+by rw [mul_sub, mul_one]
+
+end non_assoc_ring
 
 section ring
 variables [ring α] {a b c d e : α}

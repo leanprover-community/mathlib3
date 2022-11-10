@@ -162,7 +162,7 @@ begin
   { assume b,
     simp only [mem_infi, mem_ker, funext_iff, proj_apply, pi_apply],
     assume j hjJ,
-    have : j ∉ I := assume hjI, hd ⟨hjI, hjJ⟩,
+    have : j ∉ I := assume hjI, hd.le_bot ⟨hjI, hjJ⟩,
     rw [dif_neg this, zero_apply] },
   { simp only [pi_comp, comp_assoc, subtype_comp_cod_restrict, proj_pi, subtype.coe_prop],
     ext b ⟨j, hj⟩,

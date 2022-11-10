@@ -1429,7 +1429,7 @@ lemma mk_union_le {α : Type u} (S T : set α) : #(S ∪ T : set α) ≤ #S + #T
 
 theorem mk_union_of_disjoint {α : Type u} {S T : set α} (H : disjoint S T) :
   #(S ∪ T : set α) = #S + #T :=
-quot.sound ⟨equiv.set.union H⟩
+quot.sound ⟨equiv.set.union H.le_bot⟩
 
 theorem mk_insert {α : Type u} {s : set α} {a : α} (h : a ∉ s) :
   #(insert a s : set α) = #s + 1 :=

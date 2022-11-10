@@ -347,7 +347,7 @@ end
 
 @[simp] lemma coe_submonoid_class_iff {M B : Type*} [comm_monoid M] [set_like B M]
   [submonoid_class B M] {N : B} {ζ : N} : is_primitive_root (ζ : M) k ↔ is_primitive_root ζ k :=
-by simp [iff_def, ← submonoid_class.coe_pow]
+by simp [iff_def, ← submonoid_class.coe_pow, -_root_.coe_pow]
 
 @[simp] lemma coe_units_iff {ζ : Mˣ} :
   is_primitive_root (ζ : M) k ↔ is_primitive_root ζ k :=
@@ -383,7 +383,7 @@ begin
   obtain ⟨a, ha⟩ := i.gcd_dvd_left k,
   obtain ⟨b, hb⟩ := i.gcd_dvd_right k,
   suffices : b = k,
-  { rwa [this, ← one_mul k, nat.mul_left_inj h0, eq_comm] at hb { occs := occurrences.pos [1] } },
+  { rwa [this, ← one_mul k, mul_left_inj' h0.ne', eq_comm] at hb { occs := occurrences.pos [1] } },
   rw [ha] at hi,
   rw [mul_comm] at hb,
   apply nat.dvd_antisymm ⟨i.gcd k, hb⟩ (hi.dvd_of_pow_eq_one b _),

@@ -8,6 +8,7 @@ import group_theory.submonoid.membership
 import group_theory.submonoid.centralizer
 import algebra.group.conj
 import algebra.module.basic
+import algebra.order.group.inj_surj
 import order.atoms
 import order.sup_indep
 
@@ -229,17 +230,17 @@ include hSG
 
 /-- The natural group hom from a subgroup of group `G` to `G`. -/
 @[to_additive "The natural group hom from an additive subgroup of `add_group` `G` to `G`."]
-def subtype : H →* G := ⟨coe, rfl, λ _ _, rfl⟩
+def subtype : H →* G := monoid_hom.coe H G
 
 @[simp, to_additive] theorem coe_subtype : (subtype H : H → G) = coe := rfl
 
 variables {H}
 
-@[simp, norm_cast, to_additive coe_smul]
+@[norm_cast, to_additive coe_smul]
 lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n :=
 (subtype H : H →* G).map_pow _ _
 
-@[simp, norm_cast, to_additive] lemma coe_zpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n :=
+@[norm_cast, to_additive] lemma coe_zpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n :=
 (subtype H : H →* G).map_zpow _ _
 
 /-- The inclusion homomorphism from a subgroup `H` contained in `K` to `K`. -/
@@ -337,6 +338,10 @@ lemma mem_to_submonoid (K : subgroup G) (x : G) : x ∈ K.to_submonoid ↔ x ∈
 @[to_additive]
 instance (K : subgroup G) [d : decidable_pred (∈ K)] [fintype G] : fintype K :=
 show fintype {g : G // g ∈ K}, from infer_instance
+
+@[to_additive]
+instance (K : subgroup G) [finite G] : finite K :=
+subtype.finite
 
 @[to_additive]
 theorem to_submonoid_injective :
@@ -549,8 +554,8 @@ instance has_zpow : has_pow H ℤ := ⟨λ a n, ⟨a ^ n, H.zpow_mem a.2 n⟩⟩
 @[simp, norm_cast, to_additive] lemma coe_inv (x : H) : ↑(x⁻¹ : H) = (x⁻¹ : G) := rfl
 @[simp, norm_cast, to_additive] lemma coe_div (x y : H) : (↑(x / y) : G) = ↑x / ↑y := rfl
 @[simp, norm_cast, to_additive] lemma coe_mk (x : G) (hx : x ∈ H) : ((⟨x, hx⟩ : H) : G) = x := rfl
-@[simp, norm_cast, to_additive] lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n := rfl
-@[simp, norm_cast, to_additive] lemma coe_zpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n := rfl
+@[norm_cast, to_additive] lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n := rfl
+@[norm_cast, to_additive] lemma coe_zpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n := rfl
 
 /-- A subgroup of a group inherits a group structure. -/
 @[to_additive "An `add_subgroup` of an `add_group` inherits an `add_group` structure."]

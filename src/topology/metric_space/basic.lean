@@ -563,6 +563,13 @@ theorem closed_ball_subset_ball (h : ε₁ < ε₂) :
   closed_ball x ε₁ ⊆ ball x ε₂ :=
 λ y (yh : dist y x ≤ ε₁), lt_of_le_of_lt yh h
 
+lemma closed_ball_subset_ball' (h : ε₁ + dist x y < ε₂) :
+  closed_ball x ε₁ ⊆ ball y ε₂ :=
+λ z hz, calc
+  dist z y ≤ dist z x + dist x y : dist_triangle _ _ _
+  ... ≤ ε₁ + dist x y : add_le_add_right hz _
+  ... < ε₂ : h
+
 lemma dist_le_add_of_nonempty_closed_ball_inter_closed_ball
   (h : (closed_ball x ε₁ ∩ closed_ball y ε₂).nonempty) :
   dist x y ≤ ε₁ + ε₂ :=
@@ -1946,7 +1953,8 @@ export proper_space (is_compact_closed_ball)
 /-- In a proper pseudometric space, all spheres are compact. -/
 lemma is_compact_sphere {α : Type*} [pseudo_metric_space α] [proper_space α] (x : α) (r : ℝ) :
   is_compact (sphere x r) :=
-compact_of_is_closed_subset (is_compact_closed_ball x r) is_closed_sphere sphere_subset_closed_ball
+is_compact_of_is_closed_subset (is_compact_closed_ball x r) is_closed_sphere
+sphere_subset_closed_ball
 
 /-- In a proper pseudometric space, any sphere is a `compact_space` when considered as a subtype. -/
 instance {α : Type*} [pseudo_metric_space α] [proper_space α] (x : α) (r : ℝ) :
@@ -2015,7 +2023,7 @@ instance complete_of_proper [proper_space α] : complete_space α :=
     (metric.cauchy_iff.1 hf).2 1 zero_lt_one,
   rcases hf.1.nonempty_of_mem t_fset with ⟨x, xt⟩,
   have : closed_ball x 1 ∈ f := mem_of_superset t_fset (λ y yt, (ht y yt x xt).le),
-  rcases (compact_iff_totally_bounded_complete.1 (is_compact_closed_ball x 1)).2 f hf
+  rcases (is_compact_iff_totally_bounded_is_complete.1 (is_compact_closed_ball x 1)).2 f hf
     (le_principal_iff.2 this) with ⟨y, -, hy⟩,
   exact ⟨y, hy⟩
 end⟩
@@ -2040,7 +2048,7 @@ begin
   unfreezingI { rcases eq_empty_or_nonempty s with rfl|hne },
   { exact ⟨r / 2, ⟨half_pos hr, half_lt_self hr⟩, empty_subset _⟩ },
   have : is_compact s,
-    from compact_of_is_closed_subset (is_compact_closed_ball x r) hs
+    from is_compact_of_is_closed_subset (is_compact_closed_ball x r) hs
       (subset.trans h ball_subset_closed_ball),
   obtain ⟨y, hys, hy⟩ : ∃ y ∈ s, s ⊆ closed_ball x (dist y x),
     from this.exists_forall_ge hne (continuous_id.dist continuous_const).continuous_on,
@@ -2270,12 +2278,49 @@ bounded_range_of_tendsto_cofinite_uniformity $
 
 /-- In a compact space, all sets are bounded -/
 lemma bounded_of_compact_space [compact_space α] : bounded s :=
-compact_univ.bounded.mono (subset_univ _)
+is_compact_univ.bounded.mono (subset_univ _)
 
-lemma bounded_range_of_tendsto {α : Type*} [pseudo_metric_space α] (u : ℕ → α) {x : α}
-  (hu : tendsto u at_top (𝓝 x)) :
+lemma bounded_range_of_tendsto (u : ℕ → α) {x : α} (hu : tendsto u at_top (𝓝 x)) :
   bounded (range u) :=
 hu.cauchy_seq.bounded_range
+
+/-- If a function is continuous at every point of a compact set `k`, then it is bounded on
+some open neighborhood of `k`. -/
+lemma exists_is_open_bounded_image_of_is_compact_of_forall_continuous_at
+  [topological_space β] {k : set β} {f : β → α}
+  (hk : is_compact k) (hf : ∀ x ∈ k, continuous_at f x) :
+  ∃ t, k ⊆ t ∧ is_open t ∧ bounded (f '' t) :=
+begin
+  apply hk.induction_on,
+  { refine ⟨∅, subset.refl _, is_open_empty, by simp only [image_empty, bounded_empty]⟩ },
+  { rintros s s' hss' ⟨t, s't, t_open, t_bounded⟩,
+    exact ⟨t, hss'.trans s't, t_open, t_bounded⟩ },
+  { rintros s s' ⟨t, st, t_open, t_bounded⟩ ⟨t', s't', t'_open, t'_bounded⟩,
+    refine ⟨t ∪ t', union_subset_union st s't', t_open.union t'_open, _⟩,
+    rw image_union,
+    exact t_bounded.union t'_bounded },
+  { assume x hx,
+    have A : ball (f x) 1 ∈ 𝓝 (f x), from ball_mem_nhds _ zero_lt_one,
+    have B : f ⁻¹' (ball (f x) 1) ∈ 𝓝 x, from hf x hx A,
+    obtain ⟨u, uf, u_open, xu⟩ : ∃ (u : set β) (H : u ⊆ f ⁻¹' ball (f x) 1), is_open u ∧ x ∈ u,
+      from _root_.mem_nhds_iff.1 B,
+    refine ⟨u, _, u, subset.refl _, u_open, _⟩,
+    { apply nhds_within_le_nhds,
+      exact u_open.mem_nhds xu },
+    { apply bounded.mono (image_subset _ uf),
+      exact bounded_ball.mono (image_preimage_subset _ _) } }
+end
+
+/-- If a function is continuous on a neighborhood of a compact set `k`, then it is bounded on
+some open neighborhood of `k`. -/
+lemma exists_is_open_bounded_image_of_is_compact_of_continuous_on
+  [topological_space β] {k s : set β} {f : β → α}
+  (hk : is_compact k) (hs : is_open s) (hks : k ⊆ s) (hf : continuous_on f s) :
+  ∃ t, k ⊆ t ∧ is_open t ∧ bounded (f '' t) :=
+begin
+  apply exists_is_open_bounded_image_of_is_compact_of_forall_continuous_at hk
+  (λ x hx, hf.continuous_at (hs.mem_nhds (hks hx))),
+end
 
 /-- The **Heine–Borel theorem**: In a proper space, a closed bounded set is compact. -/
 lemma is_compact_of_is_closed_bounded [proper_space α] (hc : is_closed s) (hb : bounded s) :
@@ -2284,7 +2329,7 @@ begin
   unfreezingI { rcases eq_empty_or_nonempty s with (rfl|⟨x, hx⟩) },
   { exact is_compact_empty },
   { rcases hb.subset_ball x with ⟨r, hr⟩,
-    exact compact_of_is_closed_subset (is_compact_closed_ball x r) hc hr }
+    exact is_compact_of_is_closed_subset (is_compact_closed_ball x r) hc hr }
 end
 
 /-- The **Heine–Borel theorem**: In a proper space, the closure of a bounded set is compact. -/
@@ -2294,7 +2339,7 @@ is_compact_of_is_closed_bounded is_closed_closure h.closure
 
 /-- The **Heine–Borel theorem**:
 In a proper Hausdorff space, a set is compact if and only if it is closed and bounded. -/
-lemma compact_iff_closed_bounded [t2_space α] [proper_space α] :
+lemma is_compact_iff_is_closed_bounded [t2_space α] [proper_space α] :
   is_compact s ↔ is_closed s ∧ bounded s :=
 ⟨λ h, ⟨h.is_closed, h.bounded⟩, λ h, is_compact_of_is_closed_bounded h.1 h.2⟩
 

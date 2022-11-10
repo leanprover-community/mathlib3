@@ -247,7 +247,8 @@ by simpa only [zero_mul] using μ.test_against_nn_const 0
 
 @[simp] lemma test_against_nn_one (μ : finite_measure Ω) : μ.test_against_nn 1 = μ.mass :=
 begin
-  simp only [test_against_nn, coe_one, pi.one_apply, ennreal.coe_one, lintegral_one],
+  simp only [test_against_nn, bounded_continuous_function.coe_one, pi.one_apply, ennreal.coe_one,
+    lintegral_one],
   refl,
 end
 

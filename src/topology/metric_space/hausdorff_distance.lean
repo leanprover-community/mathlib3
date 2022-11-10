@@ -952,6 +952,9 @@ by { ext x, simp [mem_closure_iff_inf_edist_zero, cthickening, ennreal.of_real_e
 @[simp] lemma cthickening_zero (E : set α) : cthickening 0 E = closure E :=
 cthickening_of_nonpos le_rfl E
 
+lemma cthickening_max_zero (δ : ℝ) (E : set α) : cthickening (max 0 δ) E = cthickening δ E :=
+by cases le_total δ 0; simp [cthickening_of_nonpos, *]
+
 /-- The closed thickening `cthickening δ E` of a fixed subset `E` is an increasing function of
 the thickening radius `δ`. -/
 lemma cthickening_mono {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) :
@@ -1155,6 +1158,10 @@ begin
   simp_rw inter_eq_right_iff_subset.mpr Ioc_subset_Ioi_self,
   exact λ _ hε, nonempty_Ioc.mpr hε,
 end
+
+lemma cthickening_eq_Inter_thickening'' (δ : ℝ) (E : set α) :
+  cthickening δ E = ⋂ (ε : ℝ) (h : max 0 δ < ε), thickening ε E :=
+by { rw [←cthickening_max_zero, cthickening_eq_Inter_thickening], exact le_max_left _ _ }
 
 /-- The closure of a set equals the intersection of its closed thickenings of positive radii
 accumulating at zero. -/

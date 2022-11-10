@@ -1976,9 +1976,9 @@ section
 open encodable
 
 /-- Monotone convergence for a supremum over a directed family and indexed by a countable type -/
-theorem lintegral_supr_directed [countable β] {f : β → α → ℝ≥0∞}
-  (hf : ∀b, measurable (f b)) (h_directed : directed (≤) f) :
-  ∫⁻ a, ⨆b, f b a ∂μ = ⨆b, ∫⁻ a, f b a ∂μ :=
+theorem lintegral_supr_directed_of_measurable [countable β] {f : β → α → ℝ≥0∞}
+  (hf : ∀ b, measurable (f b)) (h_directed : directed (≤) f) :
+  ∫⁻ a, ⨆ b, f b a ∂μ = ⨆ b, ∫⁻ a, f b a ∂μ :=
 begin
   casesI nonempty_encodable β,
   casesI is_empty_or_nonempty β, { simp [supr_of_empty] },
@@ -2000,20 +2000,52 @@ begin
     end
 end
 
+/-- Monotone convergence for a supremum over a directed family and indexed by a countable type. -/
+theorem lintegral_supr_directed [countable β] {f : β → α → ℝ≥0∞}
+  (hf : ∀ b, ae_measurable (f b) μ) (h_directed : directed (≤) f) :
+  ∫⁻ a, ⨆ b, f b a ∂μ = ⨆ b, ∫⁻ a, f b a ∂μ :=
+begin
+  simp_rw ←supr_apply,
+  let p : α → (β → ennreal) → Prop := λ x f', directed has_le.le f',
+  have hp : ∀ᵐ x ∂μ, p x (λ i, f i x),
+  { filter_upwards with x i j,
+    obtain ⟨z, hz₁, hz₂⟩ := h_directed i j,
+    exact ⟨z, hz₁ x, hz₂ x⟩, },
+  have h_ae_seq_directed : directed has_le.le (ae_seq hf p),
+  { intros b₁ b₂,
+    obtain ⟨z, hz₁, hz₂⟩ := h_directed b₁ b₂,
+    refine ⟨z, _, _⟩;
+    { intros x,
+      by_cases hx : x ∈ ae_seq_set hf p,
+      { repeat { rw ae_seq.ae_seq_eq_fun_of_mem_ae_seq_set hf hx },
+        apply_rules [hz₁, hz₂], },
+      { simp only [ae_seq, hx, if_false],
+        exact le_rfl, }, }, },
+  convert (lintegral_supr_directed_of_measurable (ae_seq.measurable hf p) 
+    h_ae_seq_directed) using 1,
+  { simp_rw ←supr_apply,
+    rw lintegral_congr_ae (ae_seq.supr hf hp).symm, },
+  { congr' 1,
+    ext1 b,
+    rw lintegral_congr_ae,
+    symmetry,
+    refine ae_seq.ae_seq_n_eq_fun_n_ae hf hp _, },
 end
 
-lemma lintegral_tsum [countable β] {f : β → α → ℝ≥0∞} (hf : ∀i, measurable (f i)) :
+end
+
+lemma lintegral_tsum [countable β] {f : β → α → ℝ≥0∞} (hf : ∀i, ae_measurable (f i) μ) :
   ∫⁻ a, ∑' i, f i a ∂μ = ∑' i, ∫⁻ a, f i a ∂μ :=
 begin
   simp only [ennreal.tsum_eq_supr_sum],
   rw [lintegral_supr_directed],
-  { simp [lintegral_finset_sum _ (λ i _, hf i)] },
-  { assume b, exact finset.measurable_sum _ (λ i _, hf i) },
+  { simp [lintegral_finset_sum' _ (λ i _, hf i)] },
+  { assume b, exact finset.ae_measurable_sum _ (λ i _, hf i) },
   { assume s t,
     use [s ∪ t],
     split,
-    exact assume a, finset.sum_le_sum_of_subset (finset.subset_union_left _ _),
-    exact assume a, finset.sum_le_sum_of_subset (finset.subset_union_right _ _) }
+    { exact assume a, finset.sum_le_sum_of_subset (finset.subset_union_left _ _), },
+    { exact assume a, finset.sum_le_sum_of_subset (finset.subset_union_right _ _) } }
 end
 
 open measure
@@ -2389,7 +2421,7 @@ begin
   ext1 s hs,
   simp_rw [sum_apply _ hs, with_density_apply _ hs],
   change ∫⁻ x in s, (∑' n, f n) x ∂μ = ∑' (i : ℕ), ∫⁻ x, f i x ∂(μ.restrict s),
-  rw ← lintegral_tsum h,
+  rw ← lintegral_tsum (λ i, (h i).ae_measurable),
   refine lintegral_congr (λ x, tsum_apply (pi.summable.2 (λ _, ennreal.summable))),
 end
 

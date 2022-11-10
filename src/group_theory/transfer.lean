@@ -192,10 +192,11 @@ by apply transfer_eq_pow
 
 lemma ker_transfer_sylow_disjoint : disjoint (transfer_sylow P hP).ker ↑P :=
 begin
-  intros g hg,
-  obtain ⟨j, hj⟩ := P.2 ⟨g, hg.2⟩,
-  have := pow_gcd_eq_one (⟨g, hg.2⟩ : (P : subgroup G))
-    ((transfer_sylow_eq_pow P hP g hg.2).symm.trans hg.1) hj,
+  rw subgroup.disjoint_def,
+  intros g hg1 hg2,
+  obtain ⟨j, hj⟩ := P.2 ⟨g, hg2⟩,
+  have := pow_gcd_eq_one (⟨g, hg2⟩ : (P : subgroup G))
+    ((transfer_sylow_eq_pow P hP g hg2).symm.trans hg1) hj,
   rwa [((fact.out p.prime).coprime_pow_of_not_dvd (not_dvd_index_sylow P _)).gcd_eq_one,
     pow_one, subtype.ext_iff] at this,
   exact index_ne_zero_of_finite ∘ (relindex_top_right (P : subgroup G)).symm.trans ∘

@@ -864,7 +864,7 @@ lemma eq_top_of_disjoint [finite_dimensional K V] (s t : submodule K V)
   (hdisjoint : disjoint s t) : s ⊔ t = ⊤ :=
 begin
   have h_finrank_inf : finrank K ↥(s ⊓ t) = 0,
-  { rw [disjoint, le_bot_iff] at hdisjoint,
+  { rw [disjoint_iff_inf_le, le_bot_iff] at hdisjoint,
     rw [hdisjoint, finrank_bot] },
   apply eq_top_of_finrank_eq,
   rw ←hdim,
@@ -1266,7 +1266,7 @@ lemma finrank_add_eq_of_is_compl
   [finite_dimensional K V] {U W : submodule K V} (h : is_compl U W) :
   finrank K U + finrank K W = finrank K V :=
 begin
-  rw [← submodule.dim_sup_add_dim_inf_eq, top_le_iff.1 h.2, le_bot_iff.1 h.1,
+  rw [← submodule.dim_sup_add_dim_inf_eq, h.codisjoint.eq_top, h.disjoint.eq_bot,
       finrank_bot, add_zero],
   exact finrank_top
 end

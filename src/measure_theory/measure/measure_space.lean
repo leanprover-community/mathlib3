@@ -344,7 +344,9 @@ lemma exists_nonempty_inter_of_measure_univ_lt_sum_measure {m : measurable_space
 begin
   contrapose! H,
   apply sum_measure_le_measure_univ h,
-  exact λ i hi j hj hij x hx, H i hi j hj hij ⟨x, hx⟩
+  intros i hi j hj hij,
+  rw disjoint_iff_inf_le,
+  exact λ x hx, H i hi j hj hij ⟨x, hx⟩
 end
 
 /-- If two sets `s` and `t` are included in a set `u`, and `μ s + μ t > μ u`,

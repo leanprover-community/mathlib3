@@ -128,9 +128,9 @@ lemma partial_sups_disjoint_of_disjoint [distrib_lattice α] [order_bot α]
   disjoint (partial_sups f m) (f n) :=
 begin
   induction m with m ih,
-  { exact h 0 n hmn.ne, },
+  { exact h hmn.ne, },
   { rw [partial_sups_succ, disjoint_sup_left],
-    exact ⟨ih (nat.lt_of_succ_lt hmn), h (m + 1) n hmn.ne⟩ }
+    exact ⟨ih (nat.lt_of_succ_lt hmn), h hmn.ne⟩ }
 end
 
 section complete_lattice

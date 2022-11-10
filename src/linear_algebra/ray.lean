@@ -397,6 +397,12 @@ begin
   rwa [units.coe_neg, right.neg_pos_iff]
 end
 
+@[simp] protected lemma map_neg (f : M ≃ₗ[R] N) (v : module.ray R M) : map f (-v) = - map f v :=
+begin
+  induction v using module.ray.ind with g hg,
+  simp,
+end
+
 end module.ray
 
 end strict_ordered_comm_ring

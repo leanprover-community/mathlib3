@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin, Patrick Massot
 -/
 import algebra.order.group.type_tags
+import algebra.order.group.units
+import algebra.order.monoid.basic
 import algebra.order.monoid.with_zero
 
 /-!

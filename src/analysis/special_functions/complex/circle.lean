@@ -95,6 +95,12 @@ periodic_exp_map_circle.lift θ
   real.angle.exp_map_circle x = exp_map_circle x :=
 rfl
 
+lemma real.angle.coe_exp_map_circle (θ : real.angle) : (θ.exp_map_circle : ℂ) = θ.cos + θ.sin * I :=
+begin
+  induction θ using real.angle.induction_on,
+  simp [complex.exp_mul_I],
+end
+
 @[simp] lemma real.angle.exp_map_circle_zero :
   real.angle.exp_map_circle 0 = 1 :=
 by rw [←real.angle.coe_zero, real.angle.exp_map_circle_coe, exp_map_circle_zero]

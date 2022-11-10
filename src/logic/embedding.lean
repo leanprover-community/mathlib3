@@ -7,7 +7,7 @@ import data.fun_like.embedding
 import data.prod.pprod
 import data.set.basic
 import data.sigma.basic
-import logic.equiv.basic
+import logic.equiv.defs
 
 /-!
 # Injective functions

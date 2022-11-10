@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Yury Kudryashov
 -/
 import algebra.group.type_tags
+import algebra.group.commute
 import algebra.hom.group
 import algebra.opposites
 import logic.embedding
@@ -487,6 +488,16 @@ lemma is_scalar_tower.of_smul_one_mul {M N} [monoid N] [has_smul M N]
 @[to_additive] lemma smul_comm_class.of_mul_smul_one {M N} [monoid N] [has_smul M N]
   (H : ∀ (x : M) (y : N), y * (x • (1 : N)) = x • y) : smul_comm_class M N N :=
 ⟨λ x y z, by rw [← H x z, smul_eq_mul, ← H, smul_eq_mul, mul_assoc]⟩
+
+/-- If the multiplicative action of `M` on `N` is compatible with multiplication on `N`, then
+`λ x, x • 1` is a monoid homomorphism from `M` to `N`. -/
+@[to_additive "If the additive action of `M` on `N` is compatible with addition on `N`, then
+`λ x, x +ᵥ 0` is an additive monoid homomorphism from `M` to `N`.", simps]
+def smul_one_hom {M N} [monoid M] [monoid N] [mul_action M N] [is_scalar_tower M N N] :
+  M →* N :=
+{ to_fun := λ x, x • 1,
+  map_one' := one_smul _ _,
+  map_mul' := λ x y, by rw [smul_one_mul, smul_smul] }
 
 end compatible_scalar
 

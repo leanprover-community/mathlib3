@@ -1351,7 +1351,7 @@ calc abs (exp x - 1) = abs (exp x - ∑ m in range 1, x ^ m / m!) :
   by simp [sum_range_succ]
 ... ≤ abs x ^ 1 * ((nat.succ 1) * (1! * (1 : ℕ))⁻¹) :
   exp_bound hx dec_trivial
-... = 2 * abs x : by simp [two_mul, mul_two, mul_add, mul_comm]
+... = 2 * abs x : by simp [two_mul, mul_two, mul_add, mul_comm, add_mul]
 
 lemma abs_exp_sub_one_sub_id_le {x : ℂ} (hx : abs x ≤ 1) :
   abs (exp x - 1 - x) ≤ (abs x)^2 :=
@@ -1519,7 +1519,7 @@ calc 0 < (1 - x ^ 2 / 2) - |x| ^ 4 * (5 / 96) :
           ((div_le_div_right (by norm_num)).2 (by rw [sq, ← abs_mul_self, _root_.abs_mul];
             exact mul_le_one hx (abs_nonneg _) hx))
       ... < 1 : by norm_num)
-... ≤ cos x : sub_le.1 (abs_sub_le_iff.1 (cos_bound hx)).2
+... ≤ cos x : sub_le_comm.1 (abs_sub_le_iff.1 (cos_bound hx)).2
 
 lemma sin_pos_of_pos_of_le_one {x : ℝ} (hx0 : 0 < x) (hx : x ≤ 1) : 0 < sin x :=
 calc 0 < x - x ^ 3 / 6 - |x| ^ 4 * (5 / 96) :
@@ -1536,7 +1536,7 @@ calc 0 < x - x ^ 3 / 6 - |x| ^ 4 * (5 / 96) :
           (calc x ^ 3 ≤ x ^ 1 : pow_le_pow_of_le_one (le_of_lt hx0) hx dec_trivial
             ... = x : pow_one _))
     ... < x : by linarith)
-... ≤ sin x : sub_le.1 (abs_sub_le_iff.1 (sin_bound
+... ≤ sin x : sub_le_comm.1 (abs_sub_le_iff.1 (sin_bound
     (by rwa [_root_.abs_of_nonneg (le_of_lt hx0)]))).2
 
 lemma sin_pos_of_pos_of_le_two {x : ℝ} (hx0 : 0 < x) (hx : x ≤ 2) : 0 < sin x :=

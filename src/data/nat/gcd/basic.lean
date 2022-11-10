@@ -3,10 +3,17 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
-import algebra.group_power.order
+import algebra.group_power.basic
+import data.nat.order
 
 /-!
-# Definitions and properties of `gcd`, `lcm`, and `coprime`
+# Definitions and properties of `nat.gcd`, `nat.lcm`, and `nat.coprime`
+
+Generalizations of these are provided in a later file as `gcd_monoid.gcd` and
+`gcd_monoid.lcm`.
+
+Note that the global `is_coprime` is not a straightforward generalization of `nat.coprime`, see
+`nat.is_coprime_iff_coprime` for the connection between the two.
 
 -/
 
@@ -483,7 +490,10 @@ lemma coprime.eq_of_mul_eq_zero {m n : ℕ} (h : m.coprime n) (hmn : m * n = 0) 
   (λ hm, ⟨hm, n.coprime_zero_left.mp $ hm ▸ h⟩)
   (λ hn, ⟨m.coprime_zero_left.mp $ hn ▸ h.symm, hn⟩)
 
-/-- Represent a divisor of `m * n` as a product of a divisor of `m` and a divisor of `n`. -/
+/-- Represent a divisor of `m * n` as a product of a divisor of `m` and a divisor of `n`.
+
+See `exists_dvd_and_dvd_of_dvd_mul` for the more general but less constructive version for other
+`gcd_monoid`s. -/
 def prod_dvd_and_dvd_of_dvd_prod {m n k : ℕ} (H : k ∣ m * n) :
   { d : {m' // m' ∣ m} × {n' // n' ∣ n} // k = d.1 * d.2 } :=
 begin

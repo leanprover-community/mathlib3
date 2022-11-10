@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Jens Wagemaker
 import algebra.divisibility.basic
 import algebra.group_power.lemmas
 import algebra.invertible
+import algebra.parity
 import order.atoms
 
 /-!
@@ -191,29 +192,6 @@ begin
   exact H _ o.1 _ o.2 h.symm
 end
 
-protected lemma prime.irreducible [cancel_comm_monoid_with_zero α] {p : α} (hp : prime p) :
-  irreducible p :=
-⟨hp.not_unit, λ a b hab,
-  (show a * b ∣ a ∨ a * b ∣ b, from hab ▸ hp.dvd_or_dvd (hab ▸ dvd_rfl)).elim
-    (λ ⟨x, hx⟩, or.inr (is_unit_iff_dvd_one.2
-      ⟨x, mul_right_cancel₀ (show a ≠ 0, from λ h, by simp [*, prime] at *)
-        $ by conv {to_lhs, rw hx}; simp [mul_comm, mul_assoc, mul_left_comm]⟩))
-    (λ ⟨x, hx⟩, or.inl (is_unit_iff_dvd_one.2
-      ⟨x, mul_right_cancel₀ (show b ≠ 0, from λ h, by simp [*, prime] at *)
-        $ by conv {to_lhs, rw hx}; simp [mul_comm, mul_assoc, mul_left_comm]⟩))⟩
-
-lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul [cancel_comm_monoid_with_zero α]
-  {p : α} (hp : prime p) {a b : α} {k l : ℕ} :
-  p ^ k ∣ a → p ^ l ∣ b → p ^ ((k + l) + 1) ∣ a * b → p ^ (k + 1) ∣ a ∨ p ^ (l + 1) ∣ b :=
-λ ⟨x, hx⟩ ⟨y, hy⟩ ⟨z, hz⟩,
-have h : p ^ (k + l) * (x * y) = p ^ (k + l) * (p * z),
-  by simpa [mul_comm, pow_add, hx, hy, mul_assoc, mul_left_comm] using hz,
-have hp0: p ^ (k + l) ≠ 0, from pow_ne_zero _ hp.ne_zero,
-have hpd : p ∣ x * y, from ⟨z, by rwa [mul_right_inj' hp0] at h⟩,
-(hp.dvd_or_dvd hpd).elim
-  (λ ⟨d, hd⟩, or.inl ⟨d, by simp [*, pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
-  (λ ⟨d, hd⟩, or.inr ⟨d, by simp [*, pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
-
 /-- If `p` and `q` are irreducible, then `p ∣ q` implies `q ∣ p`. -/
 lemma irreducible.dvd_symm [monoid α] {p q : α}
   (hp : irreducible p) (hq : irreducible q) : p ∣ q → q ∣ p :=
@@ -273,9 +251,47 @@ end
 
 end
 
-lemma pow_not_prime [cancel_comm_monoid_with_zero α] {x : α} {n : ℕ} (hn : n ≠ 1) :
-  ¬ prime (x ^ n) :=
+section comm_monoid
+variables [comm_monoid α] {a : α}
+
+lemma irreducible.not_square (ha : irreducible a) : ¬ is_square a :=
+by { rintro ⟨b, rfl⟩, simp only [irreducible_mul_iff, or_self] at ha, exact ha.1.not_unit ha.2 }
+
+lemma is_square.not_irreducible (ha : is_square a) : ¬ irreducible a := λ h, h.not_square ha
+
+end comm_monoid
+
+section cancel_comm_monoid_with_zero
+variables [cancel_comm_monoid_with_zero α] {a p : α}
+
+protected lemma prime.irreducible (hp : prime p) : irreducible p :=
+⟨hp.not_unit, λ a b hab,
+  (show a * b ∣ a ∨ a * b ∣ b, from hab ▸ hp.dvd_or_dvd (hab ▸ dvd_rfl)).elim
+    (λ ⟨x, hx⟩, or.inr (is_unit_iff_dvd_one.2
+      ⟨x, mul_right_cancel₀ (show a ≠ 0, from λ h, by simp [*, prime] at *)
+        $ by conv {to_lhs, rw hx}; simp [mul_comm, mul_assoc, mul_left_comm]⟩))
+    (λ ⟨x, hx⟩, or.inl (is_unit_iff_dvd_one.2
+      ⟨x, mul_right_cancel₀ (show b ≠ 0, from λ h, by simp [*, prime] at *)
+        $ by conv {to_lhs, rw hx}; simp [mul_comm, mul_assoc, mul_left_comm]⟩))⟩
+
+lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul (hp : prime p) {a b : α} {k l : ℕ} :
+  p ^ k ∣ a → p ^ l ∣ b → p ^ ((k + l) + 1) ∣ a * b → p ^ (k + 1) ∣ a ∨ p ^ (l + 1) ∣ b :=
+λ ⟨x, hx⟩ ⟨y, hy⟩ ⟨z, hz⟩,
+have h : p ^ (k + l) * (x * y) = p ^ (k + l) * (p * z),
+  by simpa [mul_comm, pow_add, hx, hy, mul_assoc, mul_left_comm] using hz,
+have hp0: p ^ (k + l) ≠ 0, from pow_ne_zero _ hp.ne_zero,
+have hpd : p ∣ x * y, from ⟨z, by rwa [mul_right_inj' hp0] at h⟩,
+(hp.dvd_or_dvd hpd).elim
+  (λ ⟨d, hd⟩, or.inl ⟨d, by simp [*, pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
+  (λ ⟨d, hd⟩, or.inr ⟨d, by simp [*, pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
+
+lemma prime.not_square (hp : prime p) : ¬ is_square p := hp.irreducible.not_square
+lemma is_square.not_prime (ha : is_square a) : ¬ prime a := λ h, h.not_square ha
+
+lemma pow_not_prime {n : ℕ} (hn : n ≠ 1) : ¬ prime (a ^ n) :=
 λ hp, hp.not_unit $ is_unit.pow _ $ of_irreducible_pow hn $ hp.irreducible
+
+end cancel_comm_monoid_with_zero
 
 /-- Two elements of a `monoid` are `associated` if one of them is another one
 multiplied by a unit on the right. -/

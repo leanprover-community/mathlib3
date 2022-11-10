@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import data.bool.set
+import data.nat.set
 import data.ulift
-import data.nat.basic
-import order.bounds
+import order.bounds.basic
+import order.hom.basic
 
 /-!
 # Theory of complete lattices
@@ -1139,7 +1140,7 @@ lemma supr_ge_eq_supr_nat_add (u : ℕ → α) (n : ℕ) : (⨆ i ≥ n, u i) = 
 begin
   apply le_antisymm;
   simp only [supr_le_iff],
-  { exact λ i hi, le_Sup ⟨i - n, by { dsimp only, rw tsub_add_cancel_of_le hi }⟩ },
+  { exact λ i hi, le_Sup ⟨i - n, by { dsimp only, rw nat.sub_add_cancel hi }⟩ },
   { exact λ i, le_Sup ⟨i + n, supr_pos (nat.le_add_left _ _)⟩ }
 end
 
@@ -1167,20 +1168,17 @@ end
 @supr_infi_ge_nat_add αᵒᵈ _
 
 lemma sup_supr_nat_succ (u : ℕ → α) : u 0 ⊔ (⨆ i, u (i + 1)) = ⨆ i, u i :=
-begin
-  refine eq_of_forall_ge_iff (λ c, _),
-  simp only [sup_le_iff, supr_le_iff],
-  refine ⟨λ h, _, λ h, ⟨h _, λ i, h _⟩⟩,
-  rintro (_|i),
-  exacts [h.1, h.2 i]
-end
+calc u 0 ⊔ (⨆ i, u (i + 1)) = (⨆ (x ∈ {0} ∪ range nat.succ), u x)
+      : by rw [supr_union, supr_singleton, supr_range]
+... = ⨆ i, u i
+      : by rw [nat.zero_union_range_succ, supr_univ]
 
 lemma inf_infi_nat_succ (u : ℕ → α) : u 0 ⊓ (⨅ i, u (i + 1)) = ⨅ i, u i :=
 @sup_supr_nat_succ αᵒᵈ _ u
 
 lemma infi_nat_gt_zero_eq (f : ℕ → α) :
   (⨅ (i > 0), f i) = ⨅ i, f (i + 1) :=
-by simpa only [(by simp : ∀ (i : ℕ), i > 0 ↔ i ∈ range nat.succ)] using infi_range
+by { rw [←infi_range, nat.range_succ], simp only [mem_set_of] }
 
 lemma supr_nat_gt_zero_eq (f : ℕ → α) :
   (⨆ (i > 0), f i) = ⨆ i, f (i + 1) :=

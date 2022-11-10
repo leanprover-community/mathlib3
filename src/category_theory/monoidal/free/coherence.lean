@@ -258,12 +258,13 @@ nat_iso.of_components
 end
 
 /-- The monoidal coherence theorem. -/
-instance subsingleton_hom {X Y : F C} : subsingleton (X ⟶ Y) :=
-⟨λ f g, have (full_normalize C).map f = (full_normalize C).map g, from subsingleton.elim _ _,
- begin
-  rw [←functor.id_map f, ←functor.id_map g],
-  simp [←nat_iso.naturality_2 (full_normalize_iso.{u} C), this]
- end⟩
+instance subsingleton_hom : quiver.is_thin (F C) :=
+λ _ _,
+  ⟨λ f g, have (full_normalize C).map f = (full_normalize C).map g, from subsingleton.elim _ _,
+  begin
+    rw [←functor.id_map f, ←functor.id_map g],
+    simp [←nat_iso.naturality_2 (full_normalize_iso.{u} C), this]
+  end⟩
 
 section groupoid
 

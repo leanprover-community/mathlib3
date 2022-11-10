@@ -370,23 +370,54 @@ calc μ (affine_map.homothety x r '' s) = μ ((λ y, y + x) '' (r • ((λ y, y 
 ... = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :
   by simp only [image_add_right, measure_preimage_add_right, add_haar_smul]
 
-lemma integral_comp_smul (f : E → F) {R : ℝ} (hR : R ≠ 0) :
+lemma add_haar_univ [nontrivial E] : μ (univ : set E) = ∞ :=
+begin
+  have A : 0 < μ univ, from is_open_univ.measure_pos μ univ_nonempty,
+  have : tendsto (λ r, ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ univ) at_top (𝓝 (∞ * μ univ)),
+  { simp only [mul_comm _ (μ univ)],
+    refine ennreal.tendsto.const_mul _ (or.inl ennreal.top_ne_zero),
+    apply ennreal.tendsto_of_real_at_top.comp (tendsto_abs_at_top_at_top.comp _),
+    exact tendsto_pow_at_top (ne_of_gt finrank_pos) },
+  simp only [ennreal.top_mul, A.ne', if_false] at this,
+  have : ∞ ≤ μ univ,
+  { apply le_of_tendsto' this (λ r, _),
+    rw ← add_haar_smul,
+    exact measure_mono (subset_univ _) },
+  exact eq_top_iff.2 this,
+end
+
+lemma integral_comp_smul (f : E → F) (R : ℝ) :
   ∫ x, f (R • x) ∂μ = |(R ^ finrank ℝ E)⁻¹| • ∫ x, f x ∂μ :=
-calc ∫ x, f (R • x) ∂μ = ∫ y, f y ∂(measure.map (λ x, R • x) μ) :
-  (integral_map_equiv (homeomorph.smul (is_unit_iff_ne_zero.2 hR).unit).to_measurable_equiv f).symm
-... = |(R ^ finrank ℝ E)⁻¹| • ∫ x, f x ∂μ : by simp [map_add_haar_smul μ hR]
+begin
+  rcases eq_or_ne R 0 with rfl|hR,
+  { simp only [zero_smul, integral_const],
+    rcases nat.eq_zero_or_pos (finrank ℝ E) with hE|hE,
+    { haveI : subsingleton E, from finrank_zero_iff.1 hE,
+      have : f = (λ x, f 0), { ext x, rw subsingleton.elim x 0 },
+      conv_rhs { rw this },
+      simp only [hE, pow_zero, inv_one, abs_one, one_smul, integral_const] },
+    { haveI : nontrivial E, from finrank_pos_iff.1 hE,
+      simp only [zero_pow hE, inv_zero, abs_zero, zero_smul, add_haar_univ μ,
+        ennreal.top_to_real] } },
+  { calc ∫ x, f (R • x) ∂μ = ∫ y, f y ∂(measure.map (λ x, R • x) μ) :
+      (integral_map_equiv (homeomorph.smul (is_unit_iff_ne_zero.2 hR).unit)
+        .to_measurable_equiv f).symm
+    ... = |(R ^ finrank ℝ E)⁻¹| • ∫ x, f x ∂μ :
+      by simp only [map_add_haar_smul μ hR, integral_smul_measure, ennreal.to_real_of_real,
+                    abs_nonneg] }
+end
 
-lemma integral_comp_smul_of_pos (f : E → F) (R : ℝ) {hR : 0 < R} :
+lemma integral_comp_smul_of_nonneg (f : E → F) (R : ℝ) {hR : 0 ≤ R} :
   ∫ x, f (R • x) ∂μ = (R ^ finrank ℝ E)⁻¹ • ∫ x, f x ∂μ :=
-by rw [integral_comp_smul μ f hR.ne', abs_of_nonneg (inv_nonneg.2 (pow_nonneg hR.le _))]
+by rw [integral_comp_smul μ f R, abs_of_nonneg (inv_nonneg.2 (pow_nonneg hR _))]
 
-lemma integral_comp_inv_smul (f : E → F) {R : ℝ} (hR : R ≠ 0) :
+lemma integral_comp_inv_smul (f : E → F) (R : ℝ) :
   ∫ x, f (R⁻¹ • x) ∂μ = |(R ^ finrank ℝ E)| • ∫ x, f x ∂μ :=
-by rw [integral_comp_smul μ f (inv_ne_zero hR), inv_pow, inv_inv]
+by rw [integral_comp_smul μ f (R⁻¹), inv_pow, inv_inv]
 
-lemma integral_comp_inv_smul_of_pos (f : E → F) {R : ℝ} (hR : 0 < R) :
+lemma integral_comp_inv_smul_of_nonneg (f : E → F) {R : ℝ} (hR : 0 ≤ R) :
   ∫ x, f (R⁻¹ • x) ∂μ = R ^ finrank ℝ E • ∫ x, f x ∂μ :=
-by rw [integral_comp_inv_smul μ f hR.ne', abs_of_nonneg ((pow_nonneg hR.le _))]
+by rw [integral_comp_inv_smul μ f R, abs_of_nonneg ((pow_nonneg hR _))]
 
 /-! We don't need to state `map_add_haar_neg` here, because it has already been proved for
 general Haar measures on general commutative groups. -/

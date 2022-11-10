@@ -73,6 +73,10 @@ end
 eq.trans (congr_arg index (by refl))
   ((H.subgroup_of f.range).index_comap_of_surjective f.range_restrict_surjective)
 
+@[to_additive] lemma relindex_comap {G' : Type*} [group G'] (f : G' →* G) (K : subgroup G') :
+  relindex (comap f H) K = relindex H (map f K) :=
+by rw [relindex, subgroup_of, comap_comap, index_comap, ← f.map_range, K.subtype_range]
+
 variables {H K L}
 
 @[to_additive relindex_mul_index] lemma relindex_mul_index (h : H ≤ K) :
@@ -195,6 +199,14 @@ by rw [relindex, subgroup_of_bot_eq_top, index_top]
 
 @[simp, to_additive] lemma relindex_self : H.relindex H = 1 :=
 by rw [relindex, subgroup_of_self, index_top]
+
+@[to_additive] lemma index_ker {H} [group H] (f : G →* H) :
+  f.ker.index = nat.card (set.range f) :=
+by { rw [← monoid_hom.comap_bot, index_comap, relindex_bot_left], refl }
+
+@[to_additive] lemma relindex_ker {H} [group H] (f : G →* H) (K : subgroup G) :
+  f.ker.relindex K = nat.card (f '' K) :=
+by { rw [← monoid_hom.comap_bot, relindex_comap, relindex_bot_left], refl }
 
 @[simp, to_additive card_mul_index]
 lemma card_mul_index : nat.card H * H.index = nat.card G :=

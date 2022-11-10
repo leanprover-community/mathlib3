@@ -86,6 +86,25 @@ Let `Z : topological_fiber_bundle_core ι B F`. Then we define
 
 ## Implementation notes
 
+### Trivializations
+
+Previously, in mathlib, there was a structure `topological_vector_bundle.trivialization` which
+extended another structure `topological_fibre_bundle.trivialization` by a linearity hypothesis. As
+of PR #17359, we have changed this to a single structure `trivialization` (no namespace), together
+with a mixin class `trivialization.is_linear`.
+
+This permits all the *data* of a vector bundle to be held at the level of fibre bundles, so that the
+same trivializations can underlie an object's structure as (say) a vector bundle over `ℂ` and as a
+vector bundle over `ℝ`, as well as its structure simply as a fibre bundle.
+
+This might be a little surprising, given the general trend of the library to ever-increased
+bundling.  But in this case the typical motivation for more bundling does not apply: there is no
+algebraic or order structure on the whole type of linear (say) trivializations of a bundle.
+Indeed, since trivializations only have meaning on their base sets (taking junk values outside), the
+type of linear trivializations is not even particularly well-behaved.
+
+### Core construction
+
 A topological fiber bundle with fiber `F` over a base `B` is a family of spaces isomorphic to `F`,
 indexed by `B`, which is locally trivial in the following sense: there is a covering of `B` by open
 sets such that, on each such open set `s`, the bundle is isomorphic to `s × F`.
@@ -165,7 +184,7 @@ have a topology on both the fiber and the base space. Through the construction
 `topological_fiber_prebundle F proj` it will be possible to promote a
 `pretrivialization F proj` to a `trivialization F proj`. -/
 @[ext, nolint has_nonempty_instance]
-structure topological_fiber_bundle.pretrivialization (proj : Z → B) extends local_equiv Z (B × F) :=
+structure pretrivialization (proj : Z → B) extends local_equiv Z (B × F) :=
 (open_target   : is_open target)
 (base_set      : set B)
 (open_base_set : is_open base_set)
@@ -173,9 +192,7 @@ structure topological_fiber_bundle.pretrivialization (proj : Z → B) extends lo
 (target_eq     : target = base_set ×ˢ univ)
 (proj_to_fun   : ∀ p ∈ source, (to_fun p).1 = proj p)
 
-open topological_fiber_bundle
-
-namespace topological_fiber_bundle.pretrivialization
+namespace pretrivialization
 
 instance : has_coe_to_fun (pretrivialization F proj) (λ _, Z → (B × F)) := ⟨λ e, e.to_fun⟩
 
@@ -264,7 +281,7 @@ lemma symm_trans_target_eq (e e' : pretrivialization F proj) :
   (e.to_local_equiv.symm.trans e'.to_local_equiv).target = (e.base_set ∩ e'.base_set) ×ˢ univ :=
 by rw [← local_equiv.symm_source, symm_trans_symm, symm_trans_source_eq, inter_comm]
 
-end topological_fiber_bundle.pretrivialization
+end pretrivialization
 
 variable [topological_space Z]
 
@@ -274,7 +291,7 @@ A structure extending local homeomorphisms, defining a local trivialization of a
 sets of the form `proj ⁻¹' base_set` and `base_set × F`, acting trivially on the first coordinate.
 -/
 @[ext, nolint has_nonempty_instance]
-structure topological_fiber_bundle.trivialization (proj : Z → B)
+structure trivialization (proj : Z → B)
   extends local_homeomorph Z (B × F) :=
 (base_set      : set B)
 (open_base_set : is_open base_set)
@@ -282,14 +299,12 @@ structure topological_fiber_bundle.trivialization (proj : Z → B)
 (target_eq     : target = base_set ×ˢ univ)
 (proj_to_fun   : ∀ p ∈ source, (to_local_homeomorph p).1 = proj p)
 
-open topological_fiber_bundle
-
-namespace topological_fiber_bundle.trivialization
+namespace trivialization
 
 variables {F} (e : trivialization F proj) {x : Z}
 
 /-- Natural identification as a `pretrivialization`. -/
-def to_pretrivialization : topological_fiber_bundle.pretrivialization F proj := { ..e }
+def to_pretrivialization : pretrivialization F proj := { ..e }
 
 instance : has_coe_to_fun (trivialization F proj) (λ _, Z → B × F) := ⟨λ e, e.to_fun⟩
 instance : has_coe (trivialization F proj) (pretrivialization F proj) :=
@@ -455,7 +470,7 @@ begin
   exact hf_proj.preimage_mem_nhds (e.open_base_set.mem_nhds he),
 end
 
-end topological_fiber_bundle.trivialization
+end trivialization
 
 /-- A topological fiber bundle with fiber `F` over a base `B` is a space projecting on `B`
 for which the fibers are all homeomorphic to `F`, such that the local situation around each point
@@ -527,9 +542,9 @@ lemma is_topological_fiber_bundle.comp_homeomorph {Z' : Type*} [topological_spac
   (e : is_topological_fiber_bundle F proj) (h : Z' ≃ₜ Z) :
   is_topological_fiber_bundle F (proj ∘ h) :=
 λ x, let ⟨e, he⟩ := e x in
-⟨e.comp_homeomorph h, by simpa [topological_fiber_bundle.trivialization.comp_homeomorph] using he⟩
+⟨e.comp_homeomorph h, by simpa [trivialization.comp_homeomorph] using he⟩
 
-namespace topological_fiber_bundle.trivialization
+namespace trivialization
 
 /-- If `e` is a `trivialization` of `proj : Z → B` with fiber `F` and `h` is a homeomorphism
 `F ≃ₜ F'`, then `e.trans_fiber_homeomorph h` is the trivialization of `proj` with the fiber `F'`
@@ -619,7 +634,7 @@ def coord_change_homeomorph
   ⇑(e₁.coord_change_homeomorph e₂ h₁ h₂) = e₁.coord_change e₂ b :=
 rfl
 
-end topological_fiber_bundle.trivialization
+end trivialization
 
 section comap
 
@@ -630,7 +645,7 @@ variables {B' : Type*} [topological_space B']
 /-- Given a bundle trivialization of `proj : Z → B` and a continuous map `f : B' → B`,
 construct a bundle trivialization of `φ : {p : B' × Z | f p.1 = proj p.2} → B'`
 given by `φ x = (x : B' × Z).1`. -/
-noncomputable def topological_fiber_bundle.trivialization.comap
+noncomputable def trivialization.comap
   (e : trivialization F proj) (f : B' → B) (hf : continuous f)
   (b' : B') (hb' : f b' ∈ e.base_set) :
   trivialization F (λ x : {p : B' × Z | f p.1 = proj p.2}, (x : B' × Z).1) :=
@@ -685,7 +700,7 @@ lemma is_topological_fiber_bundle.comap (h : is_topological_fiber_bundle F proj)
 
 end comap
 
-namespace topological_fiber_bundle.trivialization
+namespace trivialization
 
 lemma is_image_preimage_prod (e : trivialization F proj) (s : set B) :
   e.to_local_homeomorph.is_image (proj ⁻¹' s) (s ×ˢ univ) :=
@@ -847,7 +862,7 @@ end
 
 end piecewise
 
-end topological_fiber_bundle.trivialization
+end trivialization
 
 end topological_fiber_bundle
 
@@ -1041,8 +1056,6 @@ begin
     mem_local_triv_as_local_equiv_source, and_true, mem_univ, mem_preimage],
 end
 
-open topological_fiber_bundle
-
 /-- Extended version of the local trivialization of a fiber bundle constructed from core,
 registering additionally in its type that it is a local bundle trivialization. -/
 def local_triv (i : ι) : trivialization F Z.proj :=
@@ -1202,8 +1215,6 @@ end
 end topological_fiber_bundle_core
 
 variables (F) {Z : Type*} [topological_space B] [topological_space F] {proj : Z → B}
-
-open topological_fiber_bundle
 
 /-- This structure permits to define a fiber bundle when trivializations are given as local
 equivalences but there is not yet a topology on the total space. The total space is hence given a

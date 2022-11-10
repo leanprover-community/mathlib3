@@ -168,7 +168,7 @@ begin
       (λ x y hxy, ennreal.coe_le_coe.2 hxy) },
   { calc ∫⁻ x, ∑' (n : ℕ), g n x ∂μ
     = ∑' n, ∫⁻ x, g n x ∂μ :
-      by rw lintegral_tsum (λ n, (gcont n).measurable.coe_nnreal_ennreal)
+      by rw lintegral_tsum (λ n, (gcont n).measurable.coe_nnreal_ennreal.ae_measurable)
     ... ≤ ∑' n, (∫⁻ x, eapprox_diff f n x ∂μ + δ n) : ennreal.tsum_le_tsum hg
     ... = ∑' n, (∫⁻ x, eapprox_diff f n x ∂μ) + ∑' n, δ n : ennreal.tsum_add
     ... ≤ ∫⁻ (x : α), f x ∂μ + ε :
@@ -176,7 +176,7 @@ begin
         refine add_le_add _ hδ.le,
         rw [← lintegral_tsum],
         { simp_rw [tsum_eapprox_diff f hf, le_refl] },
-        { assume n, exact (simple_func.measurable _).coe_nnreal_ennreal }
+        { assume n, exact (simple_func.measurable _).coe_nnreal_ennreal.ae_measurable }
       end }
 end
 

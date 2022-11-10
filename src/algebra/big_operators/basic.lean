@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.group.pi
-import algebra.hom.equiv
+import algebra.hom.equiv.basic
 import algebra.ring.opposite
 import data.finset.fold
 import data.fintype.basic
@@ -287,7 +287,7 @@ lemma prod_filter_mul_prod_filter_not (s : finset α) (p : α → Prop) [decidab
   (∏ x in s.filter p, f x) * (∏ x in s.filter (λ x, ¬p x), f x) = ∏ x in s, f x :=
 begin
   haveI := classical.dec_eq α,
-  rw [← prod_union (filter_inter_filter_neg_eq p s).le, filter_union_filter_neg_eq]
+  rw [← prod_union (disjoint_filter_filter_neg _ _ p), filter_union_filter_neg_eq]
 end
 
 section to_list
@@ -1725,25 +1725,10 @@ end
 
 @[simp] lemma to_finset_sum_count_eq (s : multiset α) :
   (∑ a in s.to_finset, s.count a) = s.card :=
-multiset.induction_on s rfl
-  (assume a s ih,
-    calc (∑ x in to_finset (a ::ₘ s), count x (a ::ₘ s)) =
-      ∑ x in to_finset (a ::ₘ s), ((if x = a then 1 else 0) + count x s) :
-        finset.sum_congr rfl $ λ _ _, by split_ifs;
-        [simp only [h, count_cons_self, nat.one_add], simp only [count_cons_of_ne h, zero_add]]
-      ... = card (a ::ₘ s) :
-      begin
-        by_cases a ∈ s.to_finset,
-        { have : ∑ x in s.to_finset, ite (x = a) 1 0 = ∑ x in {a}, ite (x = a) 1 0,
-          { rw [finset.sum_ite_eq', if_pos h, finset.sum_singleton, if_pos rfl], },
-          rw [to_finset_cons, finset.insert_eq_of_mem h, finset.sum_add_distrib, ih, this,
-            finset.sum_singleton, if_pos rfl, add_comm, card_cons] },
-        { have ha : a ∉ s, by rwa mem_to_finset at h,
-          have : ∑ x in to_finset s, ite (x = a) 1 0 = ∑ x in to_finset s, 0, from
-            finset.sum_congr rfl (λ x hx, if_neg $ by rintro rfl; cc),
-          rw [to_finset_cons, finset.sum_insert h, if_pos rfl, finset.sum_add_distrib, this,
-            finset.sum_const_zero, ih, count_eq_zero_of_not_mem ha, zero_add, add_comm, card_cons] }
-      end)
+calc (∑ a in s.to_finset, s.count a) = (∑ a in s.to_finset, s.count a • 1) :
+  by simp only [smul_eq_mul, mul_one]
+... = (s.map (λ _, 1)).sum : (finset.sum_multiset_map_count _ _).symm
+... = s.card : by simp
 
 lemma count_sum' {s : finset β} {a : α} {f : β → multiset α} :
   count a (∑ x in s, f x) = ∑ x in s, count a (f x) :=
@@ -1751,17 +1736,7 @@ by { dunfold finset.sum, rw count_sum }
 
 @[simp] lemma to_finset_sum_count_nsmul_eq (s : multiset α) :
   (∑ a in s.to_finset, s.count a • {a}) = s :=
-begin
-  apply ext', intro b,
-  rw count_sum',
-  have h : count b s = count b (count b s • {b}),
-  { rw [count_nsmul, count_singleton_self, mul_one] },
-  rw h, clear h,
-  apply finset.sum_eq_single b,
-  { intros c h hcb, rw count_nsmul, convert mul_zero (count c s),
-    apply count_eq_zero.mpr, exact finset.not_mem_singleton.mpr (ne.symm hcb) },
-  { intro hb, rw [count_eq_zero_of_not_mem (mt mem_to_finset.2 hb), count_nsmul, zero_mul]}
-end
+by rw [← finset.sum_multiset_map_count, multiset.sum_map_singleton]
 
 theorem exists_smul_of_dvd_count (s : multiset α) {k : ℕ}
   (h : ∀ (a : α), a ∈ s → k ∣ multiset.count a s) :

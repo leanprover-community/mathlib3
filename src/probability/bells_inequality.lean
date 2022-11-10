@@ -9,11 +9,14 @@ import measure_theory.measure.probability_measure
 /-!
 # Bell's Inequality
 
-This file proves Bell's Inequality in several forms.
+This file proves Bell's Inequality in several forms. (TODO: Add other forms.)
 
 ## Main Statements
 
-* `bells_inequality` says ...
+* `bells_inequality_1964` is the 1964 version of Bell's inequality: Given six random variables
+  `Za Zb : fin 3 → Ω → ℤˣ` taking values in `±1`, and assuming perfect anticorrelation on the
+  diagonal (that is, `𝔼[(Za i) (Zb i)] = -1` for all `i`), we have that
+  `𝔼[(Za 1) (Zb 2)] - 𝔼[(Za 1) (Zb 2)] ≤ 1 + 𝔼[(Za 2) (Zb 3)]`.
 -/
 
 noncomputable theory
@@ -23,24 +26,12 @@ open measure_theory
 section preliminaries
 
 lemma pm_one_space_vals (r : ℤˣ) :
-  (r : ℝ) = 1 ∨ (r : ℝ) = -1 :=
-begin
-  cases int.units_eq_one_or r with hh hh;
-  rw hh; simp,
-end
+  (r : ℝ) = 1 ∨ (r : ℝ) = -1 := by cases int.units_eq_one_or r with hh hh; rw hh; simp
 
 lemma pm_one_space_abs_le (r : ℤˣ) :
-  |(r : ℝ)| ≤ 1 :=
-begin
-  cases int.units_eq_one_or r with hh hh;
-  rw hh; simp,
-end
+  |(r : ℝ)| ≤ 1 := by cases int.units_eq_one_or r with hh hh; rw hh; simp
 
-lemma pm_one_space_le (r : ℤˣ) : (r : ℝ) ≤ 1 := (abs_le.mp (pm_one_space_abs_le r)).2
-
-lemma pm_one_space_ge (r : ℤˣ) : -1 ≤ (r : ℝ) := (abs_le.mp (pm_one_space_abs_le r)).1
-
-/-- the CHSH inequality proved for intgers that are ±1 -/
+/-- The CHSH inequality in `ℤˣ`. -/
 lemma CHSH_inequality_of_int_units (A₀ A₁ B₀ B₁ : ℤˣ) :
   (A₀ : ℝ) * B₀ + A₀ * B₁ + A₁ * B₀ + (-A₁) * B₁ + -2 ≤ 0 :=
   by cases pm_one_space_vals A₀ with hA0 hA0;
@@ -77,7 +68,10 @@ begin
     simp, },
 end
 
-/-- Bell's inequality: 1964 version -/
+/-- **Bell's inequality (1964 version)** Given six random variables `Za Zb : fin 3 → Ω → ℤˣ` taking
+  values in `±1`, and assuming perfect anticorrelation on the diagonal (that is,
+  `𝔼[(Za i) (Zb i)] = -1` for all `i`), we have that
+  `𝔼[(Za 1) (Zb 2)] - 𝔼[(Za 1) (Zb 2)] ≤ 1 + 𝔼[(Za 2) (Zb 3)]`. -/
 theorem bells_inequality_1964 {Za Zb : fin 3 → Ω → ℤˣ}
   (Za_measurable : ∀ i, strongly_measurable (λ ω, (Za i ω : ℝ)))
   (Zb_measurable : ∀ i, strongly_measurable (λ ω, (Zb i ω : ℝ)))
@@ -97,7 +91,7 @@ begin
   { intro ω,
     convert CHSH_inequality_of_int_units (-(Za 2 ω)) (Za 1 ω) (Zb 2 ω) (Zb 3 ω);
     simp, },
-  have int_chsh := @integral_nonpos _ _ (ℙ : measure Ω) _ (λ x, this x), clear this,
+  have int_chsh := @integral_nonpos _ _ (ℙ : measure Ω) _ (λ x, this x),
   rw [integral_add, integral_add, integral_add, integral_add] at int_chsh,
   { have : ∫ ω, -(Za 2 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) = 1,
     { convert neg_inj.mpr (anticorrelation 2),
@@ -106,8 +100,7 @@ begin
         filter_upwards with x,
         simp, },
       { simp, }, },
-    rw this at int_chsh, clear this,
-    rw (by simp : ∫ ω, (-2 : ℝ) ∂(ℙ : measure Ω) = -2) at int_chsh,
+    rw [this, (by simp : ∫ ω, (-2 : ℝ) ∂(ℙ : measure Ω) = -2)] at int_chsh,
     convert int_chsh using 1,
     ring_nf,
     congr' 1,

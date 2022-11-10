@@ -7,6 +7,7 @@ import algebra.algebra.spectrum
 import analysis.special_functions.pow
 import analysis.special_functions.exponential
 import analysis.complex.liouville
+import analysis.complex.polynomial
 import analysis.analytic.radius_liminf
 import topology.algebra.module.character_space
 /-!

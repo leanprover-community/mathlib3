@@ -270,6 +270,8 @@ end non_unital_subsemiring
 
 namespace non_unital_ring_hom
 
+open non_unital_subsemiring
+
 variables {F G : Type*} [non_unital_ring_hom_class F R S] [non_unital_ring_hom_class G S T]
   (f : F) (g : G)
 
@@ -289,14 +291,12 @@ by { ext, simp }
 lemma mem_srange_self (f : F) (x : R) : f x ∈ @srange R S _ _ _ _ f :=
 mem_srange.mpr ⟨x, rfl⟩
 
-lemma map_srange : (srange f).map g = ((g : S →ₙ+* T).comp (f : R →ₙ+* S)).srange :=
+lemma map_srange (g : S →ₙ+* T) (f : R →ₙ+* S) : map g (srange f) = srange (g.comp f) :=
 by simpa only [srange_eq_map] using (⊤ : non_unital_subsemiring R).map_map g f
 
-/-- The range of a morphism of non-unital semirings is a fintype, if the domain is a fintype.
-Note: this instance can form a diamond with `subtype.fintype` in the
-  presence of `fintype S`.-/
-instance fintype_srange [fintype R] [decidable_eq S] (f : F) : fintype (srange f) :=
-set.fintype_range f
+/-- The range of a morphism of non-unital semirings is finite if the domain is a finite. -/
+instance finite_srange [finite R] (f : F) : finite (srange f : non_unital_subsemiring S) :=
+(set.finite_range f).to_subtype
 
 end non_unital_ring_hom
 

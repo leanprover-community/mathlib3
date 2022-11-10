@@ -309,6 +309,8 @@ end
 
 end
 
+end
+
 section
 variables [preadditive V]
 
@@ -347,10 +349,55 @@ end
 namespace functor
 variables {W : Type u₂} [category.{v₂} W] [has_zero_morphisms V] [has_zero_morphisms W]
 
+lemma exact_map_of_exact_of_preserves_homology (F : V ⥤ W) [F.preserves_zero_morphisms]
+  {A B C : V} (f : A ⟶ B) (g : B ⟶ C) (h : exact f g)
+  [F.preserves_left_homology_of (short_complex.mk _ _ h.w)]
+  [F.preserves_right_homology_of (short_complex.mk _ _ h.w)] :
+  exact (F.map f) (F.map g) :=
+begin
+  have w' : F.map f ≫ F.map g = 0 := by simp only [← F.map_comp, h.w, F.map_zero],
+  have h' : (short_complex.mk _ _ h.w).exact,
+  { simpa only [← exact_iff_exact_short_complex] using h, },
+  simpa only [exact_iff_exact_short_complex _ _ w']
+    using short_complex.exact_map_of_preserves_homology h' F,
+end
+
+class preserves_exact_sequences (F : V ⥤ W) :=
+(preserves : ∀ {A B C : V} (f : A ⟶ B) (g : B ⟶ C), exact f g → exact (F.map f) (F.map g))
+
+lemma exact_map_of_exact (F : V ⥤ W) [preserves_exact_sequences F] {A B C : V} {f : A ⟶ B}
+  {g : B ⟶ C} (hfg : exact f g) : exact (F.map f) (F.map g) :=
+preserves_exact_sequences.preserves f g hfg
+
+instance preserves_exact_sequences_of_preserves_homology
+  (F : V ⥤ W) [F.preserves_zero_morphisms]
+  [F.preserves_homology] :
+  preserves_exact_sequences F :=
+⟨λ A B C f g h, exact_map_of_exact_of_preserves_homology F f g h⟩
+
+lemma exact_of_exact_map_of_preserves_homology (F : V ⥤ W) [F.preserves_zero_morphisms]
+  {A B C : V} (f : A ⟶ B) (g : B ⟶ C) (w : f ≫ g = 0) (h : exact (F.map f) (F.map g))
+  [(short_complex.mk _ _ w).has_homology]
+  [F.preserves_left_homology_of (short_complex.mk _ _ w)]
+  [F.preserves_right_homology_of (short_complex.mk _ _ w)] [faithful F] :
+  exact f g :=
+begin
+  have e := (short_complex.mk _ _ w).exact_map_iff_of_preserves_homology F,
+  simp only [short_complex.map, ← exact_iff_exact_short_complex] at e,
+  simpa only [e] using h,
+end
+
 /-- A functor reflects exact sequences if any composable pair of morphisms that is mapped to an
     exact pair is itself exact. -/
 class reflects_exact_sequences (F : V ⥤ W) :=
 (reflects : ∀ {A B C : V} (f : A ⟶ B) (g : B ⟶ C), exact (F.map f) (F.map g) → exact f g)
+
+instance reflects_exact_sequences_of_preserves_homology
+  (F : V ⥤ W) [F.preserves_zero_morphisms] [category_with_homology V]
+  [F.preserves_homology] [faithful F]:
+  reflects_exact_sequences F :=
+⟨λ A B C f g h, exact_of_exact_map_of_preserves_homology F f g
+  (F.map_injective (by simp only [F.map_comp, h.w, F.map_zero])) h⟩
 
 lemma exact_of_exact_map (F : V ⥤ W) [reflects_exact_sequences F] {A B C : V} {f : A ⟶ B}
   {g : B ⟶ C} (hfg : exact (F.map f) (F.map g)) : exact f g :=

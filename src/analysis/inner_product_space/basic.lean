@@ -483,6 +483,7 @@ lemma dfinsupp.inner_sum {ι : Type*} [dec : decidable_eq ι] {α : ι → Type*
   ⟪x, l.sum f⟫ = l.sum (λ i a, ⟪x, f i a⟫) :=
 by simp [dfinsupp.sum, inner_sum] {contextual := tt}
 
+@[simp, priority 1100]  -- see Note [simp-normal form]
 lemma inner_zero_left {x : E} : ⟪0, x⟫ = 0 :=
 by rw [← zero_smul 𝕜 (0:E), inner_smul_left, ring_hom.map_zero, zero_mul]
 
@@ -557,6 +558,7 @@ by { have h := @inner_self_abs_to_K ℝ F _ _ x, simpa using h }
 lemma inner_abs_conj_sym {x y : E} : abs ⟪x, y⟫ = abs ⟪y, x⟫ :=
 by rw [←inner_conj_sym, abs_conj]
 
+@[simp, priority 1100] -- see Note [simp-normal form]
 lemma inner_neg_left {x y : E} : ⟪-x, y⟫ = -⟪x, y⟫ :=
 by { rw [← neg_one_smul 𝕜 x, inner_smul_left], simp }
 

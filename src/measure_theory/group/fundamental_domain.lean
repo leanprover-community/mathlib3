@@ -83,7 +83,7 @@ lemma mk_of_measure_univ_le [is_finite_measure μ] [countable G]
   ae_covers :=
   begin
     replace ae_disjoint : pairwise (ae_disjoint μ on (λ (g : G), g • s)) :=
-      pairwise_ae_disjoint_of_ae_disjoint_forall_ne_one h_meas h_ae_disjoint h_qmp,
+      pairwise_ae_disjoint_of_ae_disjoint_forall_ne_one h_ae_disjoint h_qmp,
     replace h_meas : ∀ (g : G), null_measurable_set (g • s) μ :=
       λ g, by { rw [← inv_inv g, ← preimage_smul], exact h_meas.preimage (h_qmp g⁻¹), },
     have h_meas' : null_measurable_set {a | ∃ (g : G), g • a ∈ s} μ,
@@ -114,7 +114,7 @@ restrict_restrict₀ ((h.null_measurable_set_smul g).mono restrict_le_self)
 
 @[to_additive] lemma pairwise_ae_disjoint (h : is_fundamental_domain G s μ) :
   pairwise (λ g₁ g₂ : G, ae_disjoint μ (g₁ • s) (g₂ • s)) :=
-pairwise_ae_disjoint_of_ae_disjoint_forall_ne_one h.null_measurable_set h.ae_disjoint
+pairwise_ae_disjoint_of_ae_disjoint_forall_ne_one h.ae_disjoint
   (λ g, measure_preserving.quasi_measure_preserving $ by simp)
 
 @[to_additive] lemma pairwise_ae_disjoint_of_ac {ν} (h : is_fundamental_domain G s μ) (hν : ν ≪ μ) :
@@ -224,7 +224,9 @@ by simp [measure_eq_tsum h, ht, hts]
 
 /-- Given a measure space with an action of a finite group `G`, the measure of any `G`-invariant set
 is determined by the measure of its intersection with a fundamental domain for the action of `G`. -/
-@[to_additive measure_eq_card_smul_of_vadd_eq_self]
+@[to_additive measure_eq_card_smul_of_vadd_eq_self "Given a measure space with an action of a finite
+additive group `G`, the measure of any `G`-invariant set is determined by the measure of its
+intersection with a fundamental domain for the action of `G`."]
 lemma measure_eq_card_smul_of_smul_eq_self [finite G]
   (h : is_fundamental_domain G s μ) (t : set α) (ht : ∀ g : G, g • t = t) :
   μ t = nat.card G • μ (t ∩ s) :=

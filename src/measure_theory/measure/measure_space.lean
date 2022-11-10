@@ -2142,7 +2142,6 @@ open_locale pointwise
 @[to_additive]
 lemma pairwise_ae_disjoint_of_ae_disjoint_forall_ne_one
   {G α : Type*} [group G] [mul_action G α] [measurable_space α] {μ : measure α} {s : set α}
-  (h_meas : null_measurable_set s μ)
   (h_ae_disjoint : ∀ g ≠ (1 : G), ae_disjoint μ (g • s) s)
   (h_qmp : ∀ (g : G), quasi_measure_preserving ((•) g : α → α) μ μ) :
   pairwise (ae_disjoint μ on (λ (g : G), g • s)) :=

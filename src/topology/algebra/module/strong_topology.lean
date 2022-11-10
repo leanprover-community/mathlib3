@@ -245,7 +245,7 @@ continuous_linear_map.has_basis_nhds_zero_of_basis (𝓝 0).basis_sets
 instance [topological_space E'] [topological_space F'] [topological_add_group F']
   [has_continuous_const_smul ℝ F'] [locally_convex_space ℝ F'] :
   locally_convex_space ℝ (E' →L[ℝ] F') :=
-strong_topology.locally_convex_space _ _ _ ⟨∅, bornology.is_vonN_bounded_empty ℝ E'⟩
+strong_topology.locally_convex_space _ ⟨∅, bornology.is_vonN_bounded_empty ℝ E'⟩
   (directed_on_of_sup_mem $ λ _ _, bornology.is_vonN_bounded.union)
 
 end bounded_sets

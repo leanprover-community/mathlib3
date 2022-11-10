@@ -47,7 +47,7 @@ seminorm, locally convex
 open normed_field set seminorm topological_space
 open_locale big_operators nnreal pointwise topological_space
 
-variables {𝕜 𝕜₂ 𝕝 E F G ι ι' : Type*}
+variables {𝕜 𝕜₂ 𝕝 𝕝₂ E F G ι ι' : Type*}
 
 section filter_basis
 
@@ -510,7 +510,7 @@ lemma cont_with_seminorms_normed_space (F) [seminormed_add_comm_group F] [normed
   continuous f :=
 begin
   rw ←seminorm.is_bounded_const (fin 1) at hf,
-  exact continuous_from_bounded hp (norm_with_seminorms 𝕝 F) f hf,
+  exact continuous_from_bounded hp (norm_with_seminorms 𝕝₂ F) f hf,
 end
 
 lemma cont_normed_space_to_with_seminorms (E) [seminormed_add_comm_group E] [normed_space 𝕝 E]

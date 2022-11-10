@@ -5,7 +5,7 @@ Authors: Nicolò Cavalleri, Sebastien Gouezel, Heather Macbeth, Patrick Massot, 
 -/
 
 import analysis.normed_space.bounded_linear_maps
-import topology.fiber_bundle
+import topology.fiber_bundle.basic
 
 /-!
 # Topological vector bundles

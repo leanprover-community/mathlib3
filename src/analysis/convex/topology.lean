@@ -219,7 +219,7 @@ begin
   by_cases hx' : x ∈ interior s, { exact hs.open_segment_interior_self_subset_interior hx' hy },
   by_cases hy' : y ∈ interior s, { exact hs.open_segment_self_interior_subset_interior hx hy' },
   rcases h ⟨hx, hx'⟩ ⟨hy, hy'⟩ hne with ⟨c, hc⟩,
-  refine (open_segment_subset_union c x y).trans (insert_subset.2 ⟨hc, union_subset _ _⟩),
+  refine (open_segment_subset_union x y ⟨c, rfl⟩).trans (insert_subset.2 ⟨hc, union_subset _ _⟩),
   exacts [hs.open_segment_self_interior_subset_interior hx hc,
     hs.open_segment_interior_self_subset_interior hc hy]
 end

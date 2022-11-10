@@ -124,10 +124,9 @@ lemma strict_convex_space.of_norm_add_ne_two
 begin
   refine strict_convex_space.of_norm_combo_ne_one
     (λ x y hx hy hne, ⟨1/2, 1/2, one_half_pos.le, one_half_pos.le, add_halves _, _⟩),
-  contrapose! hne with H,
-  refine not_imp_not.1 (h hx hy) _,
-  rwa [← smul_add, norm_smul, real.norm_of_nonneg one_half_pos.le, one_div,
-    ← div_eq_inv_mul, div_eq_one_iff_eq (@two_ne_zero ℝ _ _)] at H
+  rw [← smul_add, norm_smul, real.norm_of_nonneg one_half_pos.le, one_div,
+    ← div_eq_inv_mul, ne.def, div_eq_one_iff_eq (@two_ne_zero ℝ _ _)],
+  exact h hx hy hne,
 end
 
 lemma strict_convex_space.of_pairwise_sphere_norm_ne_two

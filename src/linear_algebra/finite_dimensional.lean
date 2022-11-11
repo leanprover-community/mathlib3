@@ -249,7 +249,7 @@ lemma cardinal_mk_le_finrank_of_linear_independent
   #ι ≤ finrank K V :=
 begin
   rw ← lift_le.{_ (max v w)},
-  simpa [← finrank_eq_dim K V] using
+  simpa [← finrank_eq_dim K V, -module.free.finrank_eq_rank] using
     cardinal_lift_le_dim_of_linear_independent.{_ _ _ (max v w)} h
 end
 
@@ -369,7 +369,7 @@ end
 /-- Pushforwards of finite-dimensional submodules have a smaller finrank. -/
 lemma finrank_map_le (f : V →ₗ[K] V₂) (p : submodule K V) [finite_dimensional K p] :
   finrank K (p.map f) ≤ finrank K p :=
-by simpa [← finrank_eq_dim] using lift_dim_map_le f p
+by simpa [← finrank_eq_dim, -module.free.finrank_eq_rank] using lift_dim_map_le f p
 
 variable {K}
 

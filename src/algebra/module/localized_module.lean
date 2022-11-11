@@ -967,4 +967,150 @@ end
 
 end is_localized_module
 
+section submodule
+
+variable (N : submodule R M)
+
+/-- The localization of a submodule of `M` in `localized_module S M`. -/
+def submodule.localize : submodule (localization S) (localized_module S M) :=
+{ carrier := { x | ∃ (y ∈ N) s, localized_module.mk y s = x },
+  add_mem' := begin
+    rintros _ _ ⟨x, hx, s, rfl⟩ ⟨x', hx', s', rfl⟩,
+    refine ⟨_, _, _, localized_module.mk_add_mk⟩,
+    apply add_mem; apply submodule.smul_mem; assumption
+  end,
+  zero_mem' := ⟨_, zero_mem _, _, rfl⟩,
+  smul_mem' := begin
+    rintros r _ ⟨x, hx, s, rfl⟩,
+    induction r using localization.induction_on,
+    exact ⟨_, N.smul_mem _ hx, _, rfl⟩,
+  end }
+
+variables {S N}
+
+lemma submodule.mem_localize_of_mem {x : M} (hx : x ∈ N) (s : S) :
+  localized_module.mk x s ∈ N.localize S :=
+⟨_, hx, _, rfl⟩
+
+variables (S N)
+
+lemma submodule.localize_eq_span :
+  N.localize S = submodule.span (localization S) (N.map $ localized_module.mk_linear_map S M) :=
+begin
+  apply le_antisymm,
+  { rintro _ ⟨x, hx, s, rfl⟩,
+    rw [← mul_one s, ← one_smul R x, ← localized_module.mk_smul_mk],
+    exact submodule.smul_mem _ (localization.mk (1 : R) s)
+      (submodule.subset_span $ submodule.mem_map_of_mem hx) },
+  { rw submodule.span_le,
+    rintros _ ⟨x, hx, rfl⟩,
+    exact submodule.mem_localize_of_mem hx _ }
+end
+
+lemma submodule.localize_span (s : set M) :
+  (submodule.span R s).localize S =
+    submodule.span (localization S) (localized_module.mk_linear_map S M '' s) :=
+by rw [submodule.localize_eq_span, submodule.map_span, submodule.span_span_of_tower]
+
+@[simp]
+lemma submodule.localize_bot : (⊥ : submodule R M).localize S = ⊥ :=
+by rw [← submodule.span_empty, submodule.localize_span, set.image_empty, submodule.span_empty]
+
+@[simp]
+lemma submodule.localize_top : (⊤ : submodule R M).localize S = ⊤ :=
+begin
+  rw eq_top_iff,
+  rintros x -,
+  induction x using localized_module.induction_on,
+  exact submodule.mem_localize_of_mem trivial _
+end
+
+/-- `S⁻¹M →ₗ[R] S⁻¹M'`, the localization of a linear_map `M →ₗ[R] M'`.
+This is an `R`-linear map. See `localized_module.map` for the `S⁻¹R`-linear version. -/
+noncomputable
+def localized_module.map_restrict_scalars : localized_module S M →ₗ[R] localized_module S M' :=
+localized_module.lift _ ((localized_module.mk_linear_map S M').comp f)
+  (λ m, is_localized_module.map_units (localized_module.mk_linear_map S M') m)
+
+@[simp]
+lemma localized_module.map_restrict_scalars_mk (x : M) (m : S) :
+  localized_module.map_restrict_scalars S f (localized_module.mk x m) =
+    localized_module.mk (f x) m :=
+begin
+  apply (module.End_algebra_map_is_unit_inv_apply_eq_iff _ _ _).mpr,
+  dsimp,
+  rw localized_module.smul'_mk,
+  exact (localized_module.mk_cancel _ _).symm
+end
+
+/-- `S⁻¹M →ₗ[S⁻¹R] S⁻¹M'`, the localization of a linear_map `M →ₗ[R] M'`. -/
+noncomputable
+def localized_module.map : localized_module S M →ₗ[localization S] localized_module S M' :=
+{ map_smul' := begin
+    intros r x,
+    induction r using localization.induction_on, cases r,
+    induction x using localized_module.induction_on,
+    dsimp,
+    simp only [← localization.mk_eq_mk', localized_module.mk_smul_mk,
+      localized_module.map_restrict_scalars_mk, f.map_smul]
+  end,
+  ..localized_module.map_restrict_scalars S f }
+
+@[simp]
+lemma localized_module.map_mk (x : M) (m : S) :
+  localized_module.map S f (localized_module.mk x m) =
+    localized_module.mk (f x) m :=
+localized_module.map_restrict_scalars_mk S f x m
+
+@[simp]
+lemma localized_module.map_id :
+  localized_module.map S (linear_map.id : M →ₗ[R] M) = linear_map.id :=
+begin
+  apply linear_map.ext,
+  intro x,
+  induction x using localized_module.induction_on,
+  exact localized_module.map_mk _ _ _ _
+end
+
+@[simp]
+lemma localized_module.map_comp (g : M' →ₗ[R] M'') :
+  localized_module.map S (g.comp f) =
+    (localized_module.map S g).comp (localized_module.map S f) :=
+begin
+  apply linear_map.ext,
+  intro x,
+  induction x using localized_module.induction_on,
+  simp,
+end
+
+lemma submodule.localize_comap_map {N' : submodule R M'} :
+  (N'.localize S).comap (localized_module.map S f) = (N'.comap f).localize S :=
+begin
+  apply le_antisymm,
+  { rintros x ⟨x', hx, r, e⟩,
+    induction x using localized_module.induction_on with x s,
+    simp_rw [localized_module.map_mk, localized_module.mk_eq, submonoid.smul_def, ← f.map_smul,
+      smul_smul] at e,
+    obtain ⟨u, e⟩ := e,
+    refine ⟨(u * r : R) • x, _, u * r * s, _⟩,
+    { dsimp, rw e, exact N'.smul_mem _ hx },
+    { rw [← submonoid.coe_mul, ← submonoid.smul_def],
+      exact localized_module.mk_cancel_common_left _ _ _ } },
+  { rintros _ ⟨x, hx, s, rfl⟩, dsimp, rw localized_module.map_mk,
+    exact submodule.mem_localize_of_mem hx _ }
+end
+
+lemma submodule.localize_map_map {N : submodule R M} :
+  (N.localize S).map (localized_module.map S f) = (N.map f).localize S :=
+begin
+  apply le_antisymm,
+  { rintros _ ⟨_, ⟨x, hx, s, rfl⟩, rfl⟩,
+    rw [localized_module.map_mk],
+    exact submodule.mem_localize_of_mem (submodule.mem_map_of_mem hx) _ },
+  { rintros _ ⟨_, ⟨x, hx, rfl⟩, s, rfl⟩, rw ← localized_module.map_mk,
+    exact submodule.mem_map_of_mem (submodule.mem_localize_of_mem hx _) }
+end
+
+end submodule
+
 end is_localized_module

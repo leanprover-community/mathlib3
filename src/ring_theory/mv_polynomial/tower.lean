@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
 
-import algebra.algebra.tower.basic
+import algebra.algebra.subalgebra.basic
 import data.mv_polynomial.basic
 
 /-!

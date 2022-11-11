@@ -91,14 +91,15 @@ variables [star_ring A] [cstar_ring A] [star_module ℂ A]
 variables (a : A) [is_star_normal a] (S : star_subalgebra ℂ A)
 
 noncomputable instance : normed_comm_ring (elemental_star_algebra ℂ a) :=
-{ mul_comm := mul_comm, .. (infer_instance : normed_ring _) }
+{ mul_comm := mul_comm, .. subring_class.to_normed_ring (elemental_star_algebra ℂ a) }
 
-noncomputable instance : normed_algebra ℂ (elemental_star_algebra ℂ a) := infer_instance
-
---set_option trace.class_instances true
-/-example : let a' : elemental_star_algebra ℂ a := ⟨a, self_mem ℂ a⟩ in
+example : let a' : elemental_star_algebra ℂ a := ⟨a, self_mem ℂ a⟩ in
   spectrum ℂ (gelfand_transform ℂ (elemental_star_algebra ℂ a) (star a' * a')) = spectrum ℂ (star a' * a') :=
-let a' : elemental_star_algebra ℂ a := ⟨a, self_mem ℂ a⟩ in spectrum.gelfand_transform_eq (star a' * a')  -/
+let a' : elemental_star_algebra ℂ a := ⟨a, self_mem ℂ a⟩ in
+begin
+  letI bar := star_subalgebra.to_normed_algebra (elemental_star_algebra ℂ a),
+  exact spectrum.gelfand_transform_eq (star a' * a'),
+end
 
 /- This lemma is used in the proof of `star_subalgebra.is_unit_of_is_unit_of_is_star_normal`,
 which in turn is the key to spectral permanence `star_subalgebra.spectrum_eq`, which is itself
@@ -107,6 +108,9 @@ lemma can be superseded by one that omits the `is_star_normal` hypothesis. -/
 lemma spectrum_star_mul_self_of_is_star_normal :
   spectrum ℂ (star a * a) ⊆ set.Icc (0 : ℂ) (∥star a * a∥) :=
 begin
+  -- this instance should be found automatically, but without providing it Lean goes on a wild
+  -- goose chase when trying to apply `spectrum.gelfand_transform_eq`.
+  letI := star_subalgebra.to_normed_algebra (elemental_star_algebra ℂ a),
   unfreezingI { rcases subsingleton_or_nontrivial A },
   { simp only [spectrum.of_subsingleton, set.empty_subset] },
   { set a' : elemental_star_algebra ℂ a := ⟨a, self_mem ℂ a⟩,
@@ -209,10 +213,15 @@ set.ext $ λ _, not_iff_not.2 (coe_is_unit hS).symm
 
 variables (a)
 
-noncomputable instance foobar : star_alg_hom_class (character_space ℂ A) ℂ A ℂ :=
-{ coe := λ f, (f : A → ℂ),
-  map_star := λ f, map_star f,
-  .. character_space.alg_hom_class }
+
+-- without these instances Lean times out
+noncomputable instance : normed_algebra ℂ (elemental_star_algebra ℂ a) :=
+star_subalgebra.to_normed_algebra (elemental_star_algebra ℂ a)
+
+noncomputable instance : module ℂ (elemental_star_algebra ℂ a) :=
+normed_space.to_module
+
+.
 
 
 @[simps]
@@ -220,11 +229,10 @@ noncomputable def elemental_star_algebra.character_space :
   C(character_space ℂ (elemental_star_algebra ℂ a), spectrum ℂ a) :=
 { to_fun := λ φ,
   { val := φ ⟨a, self_mem ℂ a⟩,
-    property := by simpa only [spectrum_eq (elemental_star_algebra.is_closed ℂ a)
-      ⟨a, self_mem ℂ a⟩]
+    property := by simpa only [spectrum_eq (elemental_star_algebra.is_closed ℂ a) ⟨a, self_mem ℂ a⟩]
       using alg_hom.apply_mem_spectrum φ (⟨a, self_mem ℂ a⟩) },
   continuous_to_fun := continuous_induced_rng.2 (map_continuous $
-      gelfand_transform ℂ (elemental_star_algebra ℂ a) ⟨a, self_mem ℂ a⟩) }
+    gelfand_transform ℂ (elemental_star_algebra ℂ a) ⟨a, self_mem ℂ a⟩) }
 
 lemma character_space_elemental_algebra_bijective :
   function.bijective (elemental_star_algebra.character_space a) :=

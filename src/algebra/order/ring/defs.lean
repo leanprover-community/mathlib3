@@ -798,7 +798,7 @@ lemma mul_self_lt_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a < b 
 ((@strict_mono_on_mul_self α _).lt_iff_lt h1 h2).symm
 
 lemma mul_self_inj {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a * a = b * b ↔ a = b :=
-(@strict_mono_on_mul_self α _).inj_on.eq_iff h1 h2
+(@strict_mono_on_mul_self α _).eq_iff_eq h1 h2
 
 end linear_ordered_semiring
 

@@ -3,11 +3,10 @@ Copyright (c) 2014 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.nat.order
+import data.nat.order.basic
 import algebra.order.group.abs
 import algebra.group.prod
 import algebra.hom.ring
-import algebra.order.monoid.with_top
 
 /-!
 # Cast of natural numbers (additional theorems)
@@ -238,9 +237,6 @@ end ring_hom
 rfl
 
 @[simp] lemma nat.cast_ring_hom_nat : nat.cast_ring_hom ℕ = ring_hom.id ℕ := rfl
-
-@[simp] theorem nat.cast_with_bot (n : ℕ) :
-  @coe ℕ (with_bot ℕ) (@coe_to_lift _ _ nat.cast_coe) n = n := rfl
 
 -- I don't think `ring_hom_class` is good here, because of the `subsingleton` TC slowness
 instance nat.unique_ring_hom {R : Type*} [non_assoc_semiring R] : unique (ℕ →+* R) :=

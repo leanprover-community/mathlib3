@@ -3,7 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import algebra.order.ring
+import data.int.cast.lemmas
 import data.rat.defs
 import tactic.assert_exists
 

@@ -3,8 +3,9 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
-import data.rat.init
 import algebra.ring.defs
+import data.rat.init
+import data.rat.nnrat
 
 /-!
 # Division (semi)rings and (semi)fields
@@ -44,18 +45,29 @@ field, division ring, skew field, skew-field, skewfield
 -/
 
 open function set
+open_locale nnrat
 
 set_option old_structure_cmd true
 
 universe u
 variables {α β K : Type*}
 
+/-- The default definition of the coercion `(↑(a : ℚ≥0) : K)` for a division semiring `K` is defined
+as `(a / b : K) = (a : K) * (b : K)⁻¹`. Use `coe` instead of `nnrat.cast_rec` for better
+definitional behaviour. -/
+def nnrat.cast_rec [has_lift_t ℕ K] [has_mul K] [has_inv K] : ℚ≥0 → K := λ q, ↑q.num * (↑q.denom)⁻¹
+
 /-- The default definition of the coercion `(↑(a : ℚ) : K)` for a division ring `K`
 is defined as `(a / b : K) = (a : K) * (b : K)⁻¹`.
 Use `coe` instead of `rat.cast_rec` for better definitional behaviour.
 -/
-def rat.cast_rec [has_lift_t ℕ K] [has_lift_t ℤ K] [has_mul K] [has_inv K] : ℚ → K
-| ⟨a, b, _, _⟩ := ↑a * (↑b)⁻¹
+def rat.cast_rec [has_lift_t ℕ K] [has_lift_t ℤ K] [has_mul K] [has_inv K] : ℚ → K :=
+λ q, ↑q.1 * (↑q.2)⁻¹
+
+/-- Type class for the canonical homomorphism `ℚ≥0 → K`. -/
+@[protect_proj]
+class has_nnrat_cast (K : Type u) :=
+(nnrat_cast : ℚ≥0 → K)
 
 /--
 Type class for the canonical homomorphism `ℚ → K`.
@@ -63,6 +75,23 @@ Type class for the canonical homomorphism `ℚ → K`.
 @[protect_proj]
 class has_rat_cast (K : Type u) :=
 (rat_cast : ℚ → K)
+
+/-- Construct the canonical injection from `ℚ≥0` into an arbitrary division semiring. If the
+semifield has positive characteristic `p`, we define `1 / p = 1 / 0 = 0` for consistency with our
+division by zero convention. -/
+@[priority 900] -- see Note [coercion into rings]
+instance nnrat.cast_coe [has_nnrat_cast K] : has_coe_t ℚ≥0 K :=⟨has_nnrat_cast.nnrat_cast⟩
+
+/-- Construct the canonical injection from `ℚ` into an arbitrary division ring. If the field has
+positive characteristic `p`, we define `1 / p = 1 / 0 = 0` for consistency with our division by zero
+convention. -/
+@[priority 900] -- see Note [coercion into rings]
+instance rat.cast_coe {K : Type*} [has_rat_cast K] : has_coe_t ℚ K := ⟨has_rat_cast.rat_cast⟩
+
+/-- The default definition of the scalar multiplication `(a : ℚ≥0) • (x : K)` for a division
+semiring `K` is given by `a • x = (↑ a) * x`.
+Use `(a : ℚ≥0) • (x : K)` instead of `qsmul_rec` for better definitional behaviour. -/
+def nnqsmul_rec (coe : ℚ≥0 → K) [has_mul K] (a : ℚ≥0) (x : K) : K := coe a * x
 
 /-- The default definition of the scalar multiplication `(a : ℚ) • (x : K)` for a division ring `K`
 is given by `a • x = (↑ a) * x`.
@@ -73,22 +102,31 @@ coe a * x
 
 /-- A `division_semiring` is a `semiring` with multiplicative inverses for nonzero elements. -/
 @[protect_proj, ancestor semiring group_with_zero]
-class division_semiring (α : Type*) extends semiring α, group_with_zero α
+class division_semiring (α : Type u) extends semiring α, group_with_zero α, has_nnrat_cast α :=
+(nnrat_cast := nnrat.cast_rec)
+(nnrat_cast_eq : ∀ q, nnrat_cast q = q.num / q.denom . try_refl_tac)
+(nnqsmul : ℚ≥0 → α → α := nnqsmul_rec nnrat_cast)
+(nnqsmul_eq_mul : ∀ a x, nnqsmul a x = nnrat_cast a * x . try_refl_tac)
 
 /-- A `division_ring` is a `ring` with multiplicative inverses for nonzero elements.
 
-An instance of `division_ring K` includes maps `rat_cast : ℚ → K` and `qsmul : ℚ → K → K`.
-If the division ring has positive characteristic p, we define `rat_cast (1 / p) = 1 / 0 = 0`
+An instance of `division_ring K` includes maps `of_rat : ℚ → K` and `qsmul : ℚ → K → K`.
+If the division ring has positive characteristic p, we define `of_rat (1 / p) = 1 / 0 = 0`
 for consistency with our division by zero convention.
-The fields `rat_cast` and `qsmul` are needed to implement the
+The fields `of_rat` and `qsmul` are needed to implement the
 `algebra_rat [division_ring K] : algebra ℚ K` instance, since we need to control the specific
 definitions for some special cases of `K` (in particular `K = ℚ` itself).
 See also Note [forgetful inheritance].
 -/
 @[protect_proj, ancestor ring div_inv_monoid nontrivial]
-class division_ring (K : Type u) extends ring K, div_inv_monoid K, nontrivial K, has_rat_cast K :=
+class division_ring (K : Type u)
+  extends ring K, div_inv_monoid K, nontrivial K, has_nnrat_cast K, has_rat_cast K :=
 (mul_inv_cancel : ∀ {a : K}, a ≠ 0 → a * a⁻¹ = 1)
 (inv_zero : (0 : K)⁻¹ = 0)
+(nnrat_cast := nnrat.cast_rec)
+(nnrat_cast_eq : ∀ q, nnrat_cast q = q.num / q.denom . try_refl_tac)
+(nnqsmul : ℚ≥0 → K → K := nnqsmul_rec nnrat_cast)
+(nnqsmul_eq_mul : ∀ a x, nnqsmul a x = nnrat_cast a * x . try_refl_tac)
 (rat_cast := rat.cast_rec)
 (rat_cast_mk : ∀ (a : ℤ) (b : ℕ) h1 h2, rat_cast ⟨a, b, h1, h2⟩ = a * b⁻¹ . try_refl_tac)
 (qsmul : ℚ → K → K := qsmul_rec rat_cast)
@@ -97,6 +135,19 @@ class division_ring (K : Type u) extends ring K, div_inv_monoid K, nontrivial K,
 @[priority 100] -- see Note [lower instance priority]
 instance division_ring.to_division_semiring [division_ring α] : division_semiring α :=
 { ..‹division_ring α›, ..(infer_instance : semiring α) }
+
+section division_ring
+variables [division_ring α] {n : ℤ}
+
+@[simp] lemma zpow_bit1_neg (x : α) (n : ℤ) : (-x) ^ bit1 n = - x ^ bit1 n :=
+by rw [zpow_bit1', zpow_bit1', neg_mul_neg, neg_mul_eq_mul_neg]
+
+lemma odd.neg_zpow (h : odd n) (a : α) : (-a) ^ n = - a ^ n :=
+by { obtain ⟨k, rfl⟩ := h.exists_bit1, exact zpow_bit1_neg _ _ }
+
+lemma odd.neg_one_zpow (h : odd n) : (-1 : α) ^ n = -1 := by rw [h.neg_zpow, one_zpow]
+
+end division_ring
 
 /-- A `semifield` is a `comm_semiring` with multiplicative inverses for nonzero elements. -/
 @[protect_proj, ancestor comm_semiring division_semiring comm_group_with_zero]

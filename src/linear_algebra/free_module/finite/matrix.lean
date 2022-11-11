@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 
+import linear_algebra.finrank
 import linear_algebra.free_module.finite.basic
 import linear_algebra.matrix.to_lin
 
@@ -28,22 +29,6 @@ variables (R : Type u) (M : Type v) (N : Type w)
 
 namespace module.free
 
-section ring
-
-variables [ring R] [add_comm_group M] [module R M] [module.free R M]
-
-/-- If a free module is finite, then any basis is finite. -/
-noncomputable
-instance [nontrivial R] [module.finite R M] :
-  fintype (module.free.choose_basis_index R M) :=
-begin
-  obtain ⟨h⟩ := id ‹module.finite R M›,
-  choose s hs using h,
-  exact basis_fintype_of_finite_spans ↑s hs (choose_basis _ _),
-end
-
-end ring
-
 section comm_ring
 
 variables [comm_ring R] [add_comm_group M] [module R M] [module.free R M]
@@ -59,21 +44,6 @@ begin
 end
 
 variables {R}
-
-/-- A free module with a basis indexed by a `fintype` is finite. -/
-lemma _root_.module.finite.of_basis {R M ι : Type*} [comm_ring R] [add_comm_group M] [module R M]
-  [finite ι] (b : basis ι R M) : module.finite R M :=
-begin
-  casesI nonempty_fintype ι,
-  classical,
-  refine ⟨⟨finset.univ.image b, _⟩⟩,
-  simp only [set.image_univ, finset.coe_univ, finset.coe_image, basis.span_eq],
-end
-
-instance _root_.module.finite.matrix {ι₁ ι₂ : Type*} [finite ι₁] [finite ι₂] :
-  module.finite R (matrix ι₁ ι₂ R) :=
-by { casesI nonempty_fintype ι₁, casesI nonempty_fintype ι₂,
-  exact module.finite.of_basis (pi.basis $ λ i, pi.basis_fun R _) }
 
 instance _root_.module.finite.linear_map [module.finite R M] [module.finite R N] :
   module.finite R (M →ₗ[R] N) :=
@@ -102,5 +72,28 @@ begin
 end
 
 end integer
+
+section comm_ring
+
+open finite_dimensional
+
+variables [comm_ring R] [strong_rank_condition R]
+variables [add_comm_group M] [module R M] [module.free R M] [module.finite R M]
+variables [add_comm_group N] [module R N] [module.free R N] [module.finite R N]
+
+/-- The finrank of `M →ₗ[R] N` is `(finrank R M) * (finrank R N)`. -/
+--TODO: this should follow from `linear_equiv.finrank_eq`, that is over a field.
+lemma finrank_linear_hom : finrank R (M →ₗ[R] N) = (finrank R M) * (finrank R N) :=
+begin
+  classical,
+  letI := nontrivial_of_invariant_basis_number R,
+  have h := (linear_map.to_matrix (choose_basis R M) (choose_basis R N)),
+  let b := (matrix.std_basis _ _ _).map h.symm,
+  rw [finrank, dim_eq_card_basis b, ← cardinal.mk_fintype, cardinal.mk_to_nat_eq_card, finrank,
+    finrank, rank_eq_card_choose_basis_index, rank_eq_card_choose_basis_index,
+    cardinal.mk_to_nat_eq_card, cardinal.mk_to_nat_eq_card, fintype.card_prod, mul_comm]
+end
+
+end comm_ring
 
 end module.free

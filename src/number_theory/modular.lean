@@ -422,7 +422,7 @@ localized "notation (name := modular_group.fdo) `𝒟ᵒ` := modular_group.fdo" 
 
 lemma abs_two_mul_re_lt_one_of_mem_fdo (h : z ∈ 𝒟ᵒ) : |2 * z.re| < 1 :=
 begin
-  rw [abs_mul, abs_two, ← lt_div_iff' (zero_lt_two' ℝ)],
+  rw [abs_mul, abs_two, ← lt_div_iff' (@two_pos ℝ _ _)],
   exact h.2,
 end
 

@@ -220,7 +220,8 @@ begin
   refl,
 end
 
-instance ne_zero.one : ne_zero (1 : part_enat) := ⟨coe_inj.not.mpr dec_trivial⟩
+protected lemma zero_lt_one : (0 : part_enat) < 1 :=
+by { norm_cast, norm_num }
 
 instance semilattice_sup : semilattice_sup part_enat :=
 { sup := (⊔),

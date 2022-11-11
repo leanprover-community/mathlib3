@@ -8,10 +8,6 @@ import analysis.normed_space.star.gelfand_duality
 import topology.algebra.star_subalgebra
 
 .
-@[norm_cast] lemma algebra_map.coe_star {R A : Type*} [comm_semiring R] [star_ring R] [semiring A]
-  [star_ring A] [algebra R A] [star_module R A] (a : R) : (↑(star a) : A) = star ↑a :=
-algebra_map_star_comm a
-
 namespace star_subalgebra
 
 instance to_normed_algebra {𝕜 A : Type*} [normed_field 𝕜] [star_ring 𝕜]
@@ -123,9 +119,8 @@ begin
   simp only [complex.abs_of_real, map_inv₀, units.coe_map, units.coe_inv, ring_hom.coe_monoid_hom,
     ring_hom.to_monoid_hom_eq_coe, units.coe_mk0, units.coe_map_inv, norm_algebra_map', coe_nnnorm,
     inv_inv, complex.norm_eq_abs, abs_norm_eq_norm, subtype.val_eq_coe, coe_coe],
-  have h₂ : ∀ z ∈ spectrum ℂ ((↑(∥star a * a∥ : ℂ) : A) - star a * a), ∥z∥₊ < ∥star a * a∥₊,
+  have h₂ : ∀ z ∈ spectrum ℂ (algebra_map ℂ A (∥star a * a∥) - star a * a), ∥z∥₊ < ∥star a * a∥₊,
   { intros z hz,
-    change (coe : ℂ → A) with algebra_map ℂ A at hz,
     rw [←spectrum.singleton_sub_eq, set.singleton_sub] at hz,
     have h₃ : z ∈ set.Icc (0 : ℂ) (∥star a * a∥),
     { replace hz := set.image_subset _ (spectrum_star_mul_self_of_is_star_normal a) hz,
@@ -140,12 +135,12 @@ begin
       rw [hz', sub_eq_self] at hw₂,
       rwa hw₂ at hw₁ } },
   { exact ennreal.coe_lt_coe.1
-    (calc (∥star a' * a' - (↑(∥star a * a∥ : ℂ) : elemental_star_algebra ℂ a)∥₊ : ℝ≥0∞)
-        = ∥(↑(∥star a * a∥ : ℂ) : A) - star a * a∥₊ : by { rw [←nnnorm_neg, neg_sub], refl }
-    ... = spectral_radius ℂ ((↑(∥star a * a∥ : ℂ) : A) - star a * a)
+    (calc (∥star a' * a' - algebra_map ℂ _ (∥star a * a∥)∥₊ : ℝ≥0∞)
+        = ∥algebra_map ℂ A (∥star a * a∥) - star a * a∥₊ : by { rw [←nnnorm_neg, neg_sub], refl }
+    ... = spectral_radius ℂ (algebra_map ℂ A (∥star a * a∥) - star a * a)
         : begin
             refine (is_self_adjoint.spectral_radius_eq_nnnorm _).symm,
-            rw [is_self_adjoint, star_sub, star_mul, star_star, ←algebra_map.coe_star,
+            rw [is_self_adjoint, star_sub, star_mul, star_star, ←algebra_map_star_comm,
               is_R_or_C.star_def, is_R_or_C.conj_of_real],
           end
     ... < ∥star a * a∥₊ : spectrum.spectral_radius_lt_of_forall_lt _ h₂ ) },

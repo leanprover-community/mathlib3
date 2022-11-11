@@ -7,22 +7,6 @@ Authors: Jireh Loreaux
 import analysis.normed_space.star.gelfand_duality
 import topology.algebra.star_subalgebra
 
-namespace star_subalgebra
-
-instance to_normed_algebra {𝕜 A : Type*} [normed_field 𝕜] [star_ring 𝕜]
-  [semi_normed_ring A] [star_ring A] [normed_algebra 𝕜 A] [star_module 𝕜 A]
-  (S : star_subalgebra 𝕜 A) : normed_algebra 𝕜 S :=
-@normed_algebra.induced _ 𝕜 S A _ (subring_class.to_ring S) S.algebra _ _ _ S.subtype
-
-instance to_cstar_ring {R A} [comm_ring R] [star_ring R] [normed_ring A]
-  [star_ring A] [cstar_ring A] [algebra R A] [star_module R A] (S : star_subalgebra R A) :
-  cstar_ring S :=
-{ norm_star_mul_self := λ x, by { unfold norm, exact cstar_ring.norm_star_mul_self } }
-
-end star_subalgebra
-
-section c_star_algebra
-
 open_locale pointwise ennreal nnreal complex_order
 
 open weak_dual weak_dual.character_space elemental_star_algebra
@@ -202,5 +186,3 @@ lemma continuous_functional_calculus_map_id :
   continuous_functional_calculus a ((continuous_map.id ℂ).restrict (spectrum ℂ a)) =
     ⟨a, self_mem ℂ a⟩ :=
 star_alg_equiv.symm_apply_apply _ _
-
-end c_star_algebra

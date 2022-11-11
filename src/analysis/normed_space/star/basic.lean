@@ -10,6 +10,7 @@ import analysis.normed_space.linear_isometry
 import analysis.normed_space.operator_norm
 import algebra.star.self_adjoint
 import algebra.star.unitary
+import topology.algebra.star_subalgebra
 
 /-!
 # Normed star rings and algebras
@@ -311,3 +312,17 @@ lemma mul_flip_isometry : isometry (mul 𝕜 E).flip :=
 add_monoid_hom_class.isometry_of_norm _ (λ a, congr_arg coe $ op_nnnorm_mul_flip 𝕜 a)
 
 end mul
+
+namespace star_subalgebra
+
+instance to_normed_algebra {𝕜 A : Type*} [normed_field 𝕜] [star_ring 𝕜]
+  [semi_normed_ring A] [star_ring A] [normed_algebra 𝕜 A] [star_module 𝕜 A]
+  (S : star_subalgebra 𝕜 A) : normed_algebra 𝕜 S :=
+@normed_algebra.induced _ 𝕜 S A _ (subring_class.to_ring S) S.algebra _ _ _ S.subtype
+
+instance to_cstar_ring {R A} [comm_ring R] [star_ring R] [normed_ring A]
+  [star_ring A] [cstar_ring A] [algebra R A] [star_module R A] (S : star_subalgebra R A) :
+  cstar_ring S :=
+{ norm_star_mul_self := λ x, by { unfold norm, exact cstar_ring.norm_star_mul_self } }
+
+end star_subalgebra

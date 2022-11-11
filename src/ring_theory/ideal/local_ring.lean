@@ -322,6 +322,8 @@ ideal.quotient.mk _
 instance residue_field.algebra : algebra R (residue_field R) :=
 ideal.quotient.algebra _
 
+lemma residue_field.algebra_map_eq : algebra_map R (residue_field R) = residue R := rfl
+
 variables {R}
 
 namespace residue_field

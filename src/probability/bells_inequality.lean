@@ -48,18 +48,18 @@ and B: 𝔼[(Za i) (Zb i)] = -1. Bell's inequality states that
 
 ## Future work
 
-J.S. Bell generalized the inequality in 1970 to include more probabilistic
-theories. In particular, the 1970 statement does not require observables to
+J.S. Bell generalized the inequality in 1975 to include more probabilistic
+theories. In particular, the 1975 statement does not require observables to
 simultaneously have values. Instead, it is solely based on the requirement of
-locality. The 1970 inequality thus gives a more direct proof of Bell's theorem.
+locality. The 1975 inequality thus gives a more direct proof of Bell's theorem.
 
 
 ## References
 
 * [J.S. Bell, *On the Einstein Podolsky Rosen Paradox*, 1964][MR3790629]
 
-* [J.S. Bell, *Introduction to the hidden variable question*, 1970,
-  reproduced in chapter 4 of *Speakable and unspeakable in quantum mechanics*][MR915338]
+* [J.S. Bell, *The theory of local beables*, 1975,
+  reproduced in chapter 7 of *Speakable and unspeakable in quantum mechanics*][MR915338]
 
 
 
@@ -177,8 +177,8 @@ end
 
 #exit
 
--- Bell's inequality: 1970 version
-theorem bells_inequality_1970 {Ω : Type u} {m : measurable_space Ω}
+-- Bell's inequality: 1975 version
+theorem bells_inequality_1975 {Ω : Type u} {m : measurable_space Ω}
   -- parameter space for experiments
   {Aa Ab : Type u}
   -- shared variable space

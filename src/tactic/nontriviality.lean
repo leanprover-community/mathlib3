@@ -5,12 +5,13 @@ Authors: Scott Morrison
 -/
 import logic.nontrivial
 
-namespace tactic
 
 /-!
 # The `nontriviality` tactic.
 
 -/
+
+namespace tactic
 
 /--
 Tries to generate a `nontrivial α` instance by performing case analysis on

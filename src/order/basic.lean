@@ -432,8 +432,26 @@ instance (α : Type*) [linear_order α] : linear_order αᵒᵈ :=
   decidable_lt := (infer_instance : decidable_rel (λ a b : α, b < a)),
   min := @max α _,
   max := @min α _,
-  min_def := @linear_order.max_def α _,
-  max_def := @linear_order.min_def α _,
+  min_def :=
+  begin
+    ext x y,
+    dunfold min_default,
+    rw [max_def],
+    rcases lt_trichotomy x y with lt | eq | gt,
+    { simp [if_pos lt.le], rw [if_neg], exact not_le.mpr lt, },
+    { simp [if_pos eq.le], rw [if_pos], exact eq.symm, exact eq.ge, },
+    { rw [if_neg, if_pos], exact gt.le, exact not_le.mpr gt, },
+  end,
+  max_def :=
+  begin
+    ext x y,
+    dunfold max_default,
+    rw [min_def],
+    rcases lt_trichotomy x y with lt | eq | gt,
+    { simp [if_pos lt.le], rw [if_neg], exact not_le.mpr lt, },
+    { simp [if_pos eq.le], rw [if_pos], exact eq, exact eq.ge, },
+    { rw [if_neg, if_pos], exact gt.le, exact not_le.mpr gt, },
+  end,
   .. order_dual.partial_order α }
 
 instance : Π [inhabited α], inhabited αᵒᵈ := id
@@ -582,7 +600,7 @@ begin
   simp only [not_le],
 end
 
-lemma max_def' (x y : α) : max x y = if y < x then x else y :=
+lemma max_def' (x y : α) : max x y = if x < y then y else x :=
 begin
   rw [max_comm, max_def, ← ite_not],
   simp only [not_le],
@@ -641,7 +659,7 @@ for a version that takes `[has_sup α]` and `[has_inf α]`, then uses them as `m
 See note [reducible non-instances]. -/
 @[reducible] def linear_order.lift' {α β} [linear_order β] (f : α → β) (inj : injective f) :
   linear_order α :=
-@linear_order.lift α β _ ⟨λ x y, if f y ≤ f x then x else y⟩ ⟨λ x y, if f x ≤ f y then x else y⟩
+@linear_order.lift α β _ ⟨λ x y, if f x ≤ f y then y else x⟩ ⟨λ x y, if f x ≤ f y then x else y⟩
   f inj (λ x y, (apply_ite f _ _ _).trans (max_def _ _).symm)
   (λ x y, (apply_ite f _ _ _).trans (min_def _ _).symm)
 

@@ -7,7 +7,7 @@ Authors: Andrew Yang
 import data.polynomial.module
 import order.hom.complete_lattice
 import ring_theory.finiteness
-import ring_theory.noetherian.baasic
+import ring_theory.noetherian.basic
 import ring_theory.rees_algebra
 
 /-!

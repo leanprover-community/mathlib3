@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 
-import ring_theory.adjoin.basic
-import data.finsupp.antidiagonal
+import algebra.algebra.tower
 import algebra.monoid_algebra.support
+import data.finsupp.antidiagonal
 import order.symm_diff
 
 /-!
@@ -375,16 +375,6 @@ add_monoid_algebra.alg_hom_ext' (mul_hom_ext' (λ (x : σ), monoid_hom.ext_mnat 
 @[simp] lemma alg_hom_C (f : mv_polynomial σ R →ₐ[R] mv_polynomial σ R) (r : R) :
   f (C r) = C r :=
 f.commutes r
-
-@[simp] lemma adjoin_range_X : algebra.adjoin R (range (X : σ → mv_polynomial σ R)) = ⊤ :=
-begin
-  set S := algebra.adjoin R (range (X : σ → mv_polynomial σ R)),
-  refine top_unique (λ p hp, _), clear hp,
-  induction p using mv_polynomial.induction_on,
-  case h_C : { exact S.algebra_map_mem _ },
-  case h_add : p q hp hq { exact S.add_mem hp hq },
-  case h_X : p i hp { exact S.mul_mem hp (algebra.subset_adjoin $ mem_range_self _) }
-end
 
 @[ext] lemma linear_map_ext {M : Type*} [add_comm_monoid M] [module R M]
   {f g : mv_polynomial σ R →ₗ[R] M} (h : ∀ s, f ∘ₗ monomial s = g ∘ₗ monomial s) :
@@ -1193,17 +1183,6 @@ lemma aeval_sum {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) :
 lemma aeval_prod {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R) :
   aeval f (∏ i in s, φ i) = ∏ i in s, aeval f (φ i) :=
 (mv_polynomial.aeval f).map_prod _ _
-
-variable (R)
-
-lemma _root_.algebra.adjoin_range_eq_range_aeval :
-  algebra.adjoin R (set.range f) = (mv_polynomial.aeval f).range :=
-by simp only [← algebra.map_top, ← mv_polynomial.adjoin_range_X, alg_hom.map_adjoin,
-  ← set.range_comp, (∘), mv_polynomial.aeval_X]
-
-theorem _root_.algebra.adjoin_eq_range (s : set S₁) :
-  algebra.adjoin R s = (mv_polynomial.aeval (coe : s → S₁)).range :=
-by rw [← algebra.adjoin_range_eq_range_aeval, subtype.range_coe]
 
 end aeval
 

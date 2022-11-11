@@ -11,6 +11,7 @@ import category_theory.preadditive.left_exact
 import category_theory.adjunction.limits
 import algebra.homology.exact
 import algebra.homology.short_complex_short_exact
+import algebra.homology.short_complex_image_to_kernel
 import tactic.tfae
 
 /-!
@@ -43,27 +44,6 @@ open category_theory.limits
 open category_theory.preadditive
 
 variables {C : Type u₁} [category.{v₁} C] [abelian C]
-
-namespace short_complex
-
-variable (S : short_complex C)
-
-lemma exact_iff_epi_image_to_kernel :
-  S.exact ↔ epi S.image_to_kernel :=
-begin
-  rw S.exact_iff_is_zero_homology,
-  rw ← is_zero.iff_of_iso (S.cokernel_image_to_kernel_iso_homology),
-  rw ← epi_iff_is_zero_cokernel,
-end
-
-lemma exact_iff_image_eq_kernel :
-  S.exact ↔ image_subobject S.f = kernel_subobject S.g :=
-begin
-  rw S.exact_iff_epi_image_to_kernel,
-  sorry,
-end
-
-end short_complex
 
 namespace category_theory
 

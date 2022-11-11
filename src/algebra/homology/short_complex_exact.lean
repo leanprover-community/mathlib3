@@ -398,6 +398,74 @@ hS.epi_f' _
 lemma exact.mono_from_cycles_co (hS : S.exact) [S.has_homology] : mono S.from_cycles_co :=
 hS.mono_g' _
 
+lemma left_homology_data.exact_of_epi_f' [S.has_homology] (h : left_homology_data S)
+  [epi h.f'] : S.exact :=
+by simp only [h.exact_iff, is_zero.iff_id_eq_zero, ← cancel_epi h.π, ← cancel_epi h.f',
+    comp_id, left_homology_data.f'_π, comp_zero]
+
+lemma right_homology_data.exact_of_mono_g' [S.has_homology] (h : right_homology_data S)
+  [mono h.g'] : S.exact :=
+by simp only [h.exact_iff, is_zero.iff_id_eq_zero, ← cancel_mono h.ι, ← cancel_mono h.g',
+    id_comp, right_homology_data.ι_g', zero_comp]
+
+variable (S)
+
+lemma exact_iff_epi_to_cycles [S.has_homology] : S.exact ↔ epi S.to_cycles :=
+begin
+  split,
+  { intro hS,
+    exact hS.epi_to_cycles, },
+  { intro h,
+    haveI : epi S.some_left_homology_data.f' := h,
+    exact S.some_left_homology_data.exact_of_epi_f', },
+end
+
+lemma exact_iff_mono_from_cycles_co [S.has_homology] : S.exact ↔ mono S.from_cycles_co :=
+begin
+  split,
+  { intro hS,
+    exact hS.mono_from_cycles_co, },
+  { intro h,
+    haveI : mono S.some_right_homology_data.g' := h,
+    exact S.some_right_homology_data.exact_of_mono_g', },
+end
+
+lemma exact_iff_epi_kernel_lift [S.has_homology] [has_kernel S.g] :
+  S.exact ↔ epi (kernel.lift S.g S.f S.zero) :=
+begin
+  rw exact_iff_epi_to_cycles,
+  have eq₁ : kernel.lift S.g S.f S.zero = S.to_cycles ≫ S.cycles_iso_kernel.hom,
+  { simp only [← cancel_mono (kernel.ι S.g), kernel.lift_ι, cycles_iso_kernel_hom,
+      assoc, to_cycles_i], },
+  have eq₂ : S.to_cycles = kernel.lift S.g S.f S.zero ≫ S.cycles_iso_kernel.inv,
+  { rw [eq₁, assoc, iso.hom_inv_id, comp_id], },
+  split,
+  { introI,
+    rw eq₁,
+    apply epi_comp, },
+  { introI,
+    rw eq₂,
+    apply epi_comp, },
+end
+
+lemma exact_iff_mono_cokernel_desc [S.has_homology] [has_cokernel S.f] :
+  S.exact ↔ mono (cokernel.desc S.f S.g S.zero) :=
+begin
+  rw exact_iff_mono_from_cycles_co,
+  have eq₁ : cokernel.desc S.f S.g S.zero = S.cycles_co_iso_cokernel.inv ≫ S.from_cycles_co,
+  { simp only [← cancel_epi (cokernel.π S.f), cokernel.π_desc, cycles_co_iso_cokernel_inv,
+      cokernel.π_desc_assoc, p_from_cycles_co], },
+  have eq₂ : S.from_cycles_co = S.cycles_co_iso_cokernel.hom ≫ cokernel.desc S.f S.g S.zero,
+  { rw [eq₁, iso.hom_inv_id_assoc], },
+  split,
+  { introI,
+    rw eq₁,
+    apply mono_comp, },
+  { introI,
+    rw eq₂,
+    apply mono_comp, },
+end
+
 end preadditive
 
 end short_complex

@@ -64,7 +64,7 @@ variables {C : Type*} [category C] [abelian C]
 namespace short_complex
 
 @[simp]
-def image_to_kernel (S : short_complex C) :
+def abelian_image_to_kernel (S : short_complex C) :
   abelian.image S.f ⟶ kernel S.g :=
 kernel.lift S.g (abelian.image.ι S.f)
   (by simp only [← cancel_epi (abelian.factor_thru_image S.f), abelian.image.fac_assoc,
@@ -124,25 +124,25 @@ begin
     hπ := hπ, },
 end
 
-def left_homology_data.abelian_H_iso_cokernel_image_to_kernel (S : short_complex C) :
-  (left_homology_data.of_abelian S).H ≅ cokernel S.image_to_kernel :=
+def left_homology_data.abelian_H_iso_cokernel_abelian_image_to_kernel (S : short_complex C) :
+  (left_homology_data.of_abelian S).H ≅ cokernel S.abelian_image_to_kernel :=
 begin
   let h := left_homology_data.of_abelian S,
-  let e := cokernel_cofork.cocone_point_iso_of_epi_of_is_iso h.f' S.image_to_kernel
+  let e := cokernel_cofork.cocone_point_iso_of_epi_of_is_iso h.f' S.abelian_image_to_kernel
     (abelian.factor_thru_image S.f) (𝟙 _) (by simpa only [← cancel_mono (kernel.ι S.g),
-      image_to_kernel, comp_id, assoc, kernel.lift_ι] using h.f'_i) h.hπ' (cokernel_is_cokernel _),
+      abelian_image_to_kernel, comp_id, assoc, kernel.lift_ι] using h.f'_i) h.hπ' (cokernel_is_cokernel _),
   exact e,
 end
 
 lemma left_homology_data.cokernel_π_comp_abelian_H_iso_cokernel_image_to_kernel_hom
   (S : short_complex C) :
-  cokernel.π _ ≫ (left_homology_data.abelian_H_iso_cokernel_image_to_kernel S).hom =
+  cokernel.π _ ≫ (left_homology_data.abelian_H_iso_cokernel_abelian_image_to_kernel S).hom =
   cokernel.π  _ :=
 begin
   let h := left_homology_data.of_abelian S,
-  have eq := cokernel_cofork.comp_cocone_point_iso_of_epi_of_is_iso_hom h.f' S.image_to_kernel
+  have eq := cokernel_cofork.comp_cocone_point_iso_of_epi_of_is_iso_hom h.f' S.abelian_image_to_kernel
     (abelian.factor_thru_image S.f) (𝟙 _) (by simpa only [← cancel_mono (kernel.ι S.g),
-      image_to_kernel, comp_id, assoc, kernel.lift_ι] using h.f'_i) h.hπ' (cokernel_is_cokernel _),
+      abelian_image_to_kernel, comp_id, assoc, kernel.lift_ι] using h.f'_i) h.hπ' (cokernel_is_cokernel _),
   dsimp at eq,
   rw id_comp at eq,
   exact eq,
@@ -212,8 +212,8 @@ instance : category_with_homology C :=
 λ S, has_homology.mk' (homology_data.of_abelian S)
 
 def cokernel_image_to_kernel_iso_homology (S : short_complex C) :
-  cokernel S.image_to_kernel ≅ S.homology :=
-(left_homology_data.abelian_H_iso_cokernel_image_to_kernel S).symm ≪≫
+  cokernel S.abelian_image_to_kernel ≅ S.homology :=
+(left_homology_data.abelian_H_iso_cokernel_abelian_image_to_kernel S).symm ≪≫
   (left_homology_data.of_abelian S).homology_iso.symm
 
 end short_complex

@@ -961,6 +961,15 @@ S.some_right_homology_data.hp
 lemma is_iso_p_cycles_co_of (hf : S.f = 0) : is_iso (S.p_cycles_co) :=
 cokernel_cofork.is_colimit.is_iso_π_of_zero _ S.cycles_co_is_cokernel hf
 
+@[simps]
+def cycles_co_iso_cokernel [has_cokernel S.f] : S.cycles_co ≅ cokernel S.f :=
+{ hom := S.desc_cycles_co (cokernel.π S.f) (by simp),
+  inv := cokernel.desc S.f S.p_cycles_co (by simp),
+  hom_inv_id' := by simp only [← cancel_epi S.p_cycles_co, p_desc_cycles_co_assoc,
+    cokernel.π_desc, comp_id],
+  inv_hom_id' := by simp only [← cancel_epi (cokernel.π S.f), cokernel.π_desc_assoc,
+    p_desc_cycles_co, comp_id], }
+
 @[simp]
 def desc_right_homology : S.right_homology ⟶ A :=
 S.right_homology_ι ≫ S.desc_cycles_co k hk

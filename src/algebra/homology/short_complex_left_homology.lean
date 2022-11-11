@@ -1069,6 +1069,15 @@ S.some_left_homology_data.hi
 lemma is_iso_cycles_i_of (hg : S.g = 0) : is_iso (S.cycles_i) :=
 kernel_fork.is_limit.is_iso_ι_of_zero _ S.cycles_is_kernel hg
 
+@[simps]
+def cycles_iso_kernel [has_kernel S.g] : S.cycles ≅ kernel S.g :=
+{ hom := kernel.lift S.g S.cycles_i (by simp),
+  inv := S.lift_cycles (kernel.ι S.g) (by simp),
+  hom_inv_id' := by simp only [←  cancel_mono S.cycles_i, assoc, lift_cycles_i,
+    kernel.lift_ι, id_comp],
+  inv_hom_id' := by simp only [← cancel_mono (kernel.ι S.g), assoc, kernel.lift_ι,
+    lift_cycles_i, id_comp], }
+
 @[simp]
 def lift_left_homology : A ⟶ S.left_homology :=
 S.lift_cycles k hk ≫ S.left_homology_π

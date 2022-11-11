@@ -545,7 +545,7 @@ begin
   rwa [← normalize_normalized_factor p p_mem, normalize_eq_normalize_iff, dvd_dvd_iff_associated]
 end
 
-lemma normalized_factors_coprime (a : α) : ∀ (p q ∈ normalized_factors a), p ∣ q → p = q :=
+lemma normalized_factors_eq_of_dvd (a : α) : ∀ (p q ∈ normalized_factors a), p ∣ q → p = q :=
 begin
   intros p hp q hq hdvd,
   convert normalize_eq_normalize hdvd

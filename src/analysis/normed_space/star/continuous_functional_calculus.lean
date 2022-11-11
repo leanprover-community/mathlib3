@@ -7,7 +7,6 @@ Authors: Jireh Loreaux
 import analysis.normed_space.star.gelfand_duality
 import topology.algebra.star_subalgebra
 
-.
 namespace star_subalgebra
 
 instance to_normed_algebra {𝕜 A : Type*} [normed_field 𝕜] [star_ring 𝕜]
@@ -22,33 +21,6 @@ instance to_cstar_ring {R A} [comm_ring R] [star_ring R] [normed_ring A]
 
 end star_subalgebra
 
-section ring_topological_star_subalg
-
-open elemental_star_algebra star_subalgebra
-
-variables {R : Type*} [comm_ring R] [star_ring R]
-variables {A : Type*} [topological_space A] [ring A]
-variables [algebra R A] [star_ring A] [star_module R A]
-variables [topological_ring A] [has_continuous_star A]
-variables {B : Type*} [topological_space B] [ring B]
-variables [algebra R B] [star_ring B] [star_module R B]
-variables [topological_ring B] [has_continuous_star B]
-
-lemma ext_star_alg_hom_class_elemental_algebra [t2_space B] {F : Type*} {a : A}
-  [star_alg_hom_class F R (elemental_star_algebra R a) B] {φ ψ : F} (hφ : continuous φ)
-  (hψ : continuous ψ) (h : φ ⟨a, self_mem R a⟩ = ψ ⟨a, self_mem R a⟩) :
-  φ = ψ :=
-begin
-  refine ext_star_alg_hom_class_topological_closure hφ hψ (λ x, adjoin_induction' x _ _ _ _ _),
-  exacts [λ y hy, by simpa only [set.mem_singleton_iff.mp hy] using h,
-    λ r, by simp only [alg_hom_class.commutes],
-    λ x y hx hy, by simp only [map_add, hx, hy],
-    λ x y hx hy, by simp only [map_mul, hx, hy],
-    λ x hx, by simp only [map_star, hx]],
-end
-
-end ring_topological_star_subalg
-
 section c_star_algebra
 
 open_locale pointwise ennreal nnreal complex_order
@@ -61,14 +33,6 @@ variables (a : A) [is_star_normal a] (S : star_subalgebra ℂ A)
 
 noncomputable instance : normed_comm_ring (elemental_star_algebra ℂ a) :=
 { mul_comm := mul_comm, .. subring_class.to_normed_ring (elemental_star_algebra ℂ a) }
-
-example : let a' : elemental_star_algebra ℂ a := ⟨a, self_mem ℂ a⟩ in
-  spectrum ℂ (gelfand_transform ℂ (elemental_star_algebra ℂ a) (star a' * a')) = spectrum ℂ (star a' * a') :=
-let a' : elemental_star_algebra ℂ a := ⟨a, self_mem ℂ a⟩ in
-begin
-  letI bar := star_subalgebra.to_normed_algebra (elemental_star_algebra ℂ a),
-  exact spectrum.gelfand_transform_eq (star a' * a'),
-end
 
 /- This lemma is used in the proof of `star_subalgebra.is_unit_of_is_unit_of_is_star_normal`,
 which in turn is the key to spectral permanence `star_subalgebra.spectrum_eq`, which is itself
@@ -93,8 +57,6 @@ begin
     exact ⟨complex.zero_le_real.2 (norm_nonneg _),
       complex.real_le_real.2 (alg_hom.norm_apply_le_self φ (star a' * a'))⟩, }
 end
-
-.
 
 variables {a}
 
@@ -189,11 +151,12 @@ star_subalgebra.to_normed_algebra (elemental_star_algebra ℂ a)
 noncomputable instance : module ℂ (elemental_star_algebra ℂ a) :=
 normed_space.to_module
 
-.
-
-
+/-- The natrual map from `character_space ℂ (elemental_star_algebra ℂ a)` to `spectrum ℂ a` given
+by evaluating `φ` at `a`. This is essentially just evaluation of the `gelfand_transform` of `a`,
+but because we want something in `spectrum ℂ a`, as opposed to
+`spectrum ℂ ⟨a, elemental_star_algebra.self_mem ℂ a⟩` there is slightly more work to do. -/
 @[simps]
-noncomputable def elemental_star_algebra.character_space :
+noncomputable def elemental_star_algebra.character_space_to_spectrum :
   C(character_space ℂ (elemental_star_algebra ℂ a), spectrum ℂ a) :=
 { to_fun := λ φ,
   { val := φ ⟨a, self_mem ℂ a⟩,
@@ -202,12 +165,12 @@ noncomputable def elemental_star_algebra.character_space :
   continuous_to_fun := continuous_induced_rng.2 (map_continuous $
     gelfand_transform ℂ (elemental_star_algebra ℂ a) ⟨a, self_mem ℂ a⟩) }
 
-lemma character_space_elemental_algebra_bijective :
-  function.bijective (elemental_star_algebra.character_space a) :=
+lemma elemental_star_algebra.character_space_to_spectrum_bijective :
+  function.bijective (elemental_star_algebra.character_space_to_spectrum a) :=
 begin
-  refine ⟨λ φ ψ h, ext_star_alg_hom_class_elemental_algebra (map_continuous φ) (map_continuous ψ)
-    (by simpa only [elemental_star_algebra.character_space, subtype.mk_eq_mk, continuous_map.coe_mk]
-    using h), _⟩,
+  refine ⟨λ φ ψ h, star_alg_hom_class_ext ℂ (map_continuous φ) (map_continuous ψ)
+    (by simpa only [elemental_star_algebra.character_space_to_spectrum, subtype.mk_eq_mk,
+      continuous_map.coe_mk] using h), _⟩,
   rintros ⟨z, hz⟩,
   set a' : elemental_star_algebra ℂ a := ⟨a, self_mem ℂ a⟩,
   rw [(show a = a', from rfl), ←spectrum_eq (elemental_star_algebra.is_closed ℂ a) a',
@@ -216,23 +179,20 @@ begin
   exact ⟨φ, rfl⟩,
 end
 
--- I think this is actually another natural transformation, but I'm not entirely sure what the
--- category is here, maybe singly generated C⋆-algebras with morphisms that map the generator of
--- one to the generator of the other?
 /-- The homeomorphism between the character space of the unital C⋆-subalgebra generated by a
 single normal element `a : A` and `spectrum ℂ a`. -/
 noncomputable def character_space_elemental_algebra_homeo :
   character_space ℂ (elemental_star_algebra ℂ a) ≃ₜ spectrum ℂ a :=
 @continuous.homeo_of_equiv_compact_to_t2 _ _ _ _ _ _
-  (equiv.of_bijective (elemental_star_algebra.character_space a)
-    (character_space_elemental_algebra_bijective a))
-    (map_continuous $ elemental_star_algebra.character_space a)
+  (equiv.of_bijective (elemental_star_algebra.character_space_to_spectrum a)
+    (elemental_star_algebra.character_space_to_spectrum_bijective a))
+    (map_continuous $ elemental_star_algebra.character_space_to_spectrum a)
 
 /-- **Continuous functional calculus.** Given a normal element `a : A` of a unital C⋆-algebra,
 the continuous functional calculus is a `star_alg_equiv` from the complex-valued continuous
 funcitons on the spectrum of `a` to the unital C⋆-subalgebra generated by `a`. Moreover, this
 equivalence identifies `(continuous_map.id ℂ).restrict (spectrum ℂ a))` with `a`; see
-`continuous_functional_calculus_map_id`. -/
+`continuous_functional_calculus_map_id`. As such it extends the polynomial functional calculus. -/
 noncomputable def continuous_functional_calculus :
   C(spectrum ℂ a, ℂ) ≃⋆ₐ[ℂ] elemental_star_algebra ℂ a :=
 ((character_space_elemental_algebra_homeo a).comp_star_alg_equiv' ℂ ℂ).trans

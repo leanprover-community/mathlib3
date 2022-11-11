@@ -33,17 +33,21 @@ set_option old_structure_cmd true
 
 open modular_forms
 
-variables (F : Type*) (Γ : subgroup SL(2, ℤ)) (k : ℤ)
+variables (F : Type*) (Γ : out_param $ subgroup SL(2, ℤ)) (k : out_param ℤ)
 
 localized "notation f `∣[`:73 k:0, A `]` :72 := slash_action.map ℂ k A f" in slash_invariant_forms
 
+/--Functions `ℍ → ℂ` that are invariant under the `slash_action`. -/
 structure slash_invariant_form :=
 (to_fun : ℍ → ℂ)
 (slash_action_eq' : ∀ γ : Γ, to_fun ∣[k, γ] = to_fun)
 
+/--`slash_invariant_form_class F Γ k` asserts `F` is a type of bundled functions that are invariant
+under the `slash_action`. -/
 class slash_invariant_form_class extends fun_like F ℍ (λ _, ℂ) :=
 (slash_action_eq : ∀ (f : F) (γ : Γ), f ∣[k, γ] = f)
 
+@[priority 100]
 instance slash_invariant_form_class.slash_invariant_form :
    slash_invariant_form_class (slash_invariant_form Γ k) Γ k :=
 { coe := (slash_invariant_form.to_fun),
@@ -59,6 +63,8 @@ instance : has_coe_to_fun (slash_invariant_form Γ k) (λ _, ℍ → ℂ) := fun
 @[ext] theorem sif_ext {f g : slash_invariant_form Γ k} (h : ∀ x, f x = g x) : f = g :=
 fun_like.ext f g h
 
+/-- Copy of a `slash_invariant_form` with a new `to_fun` equal to the old one.
+Useful to fix definitional equalities. -/
 protected def sif_copy (f : slash_invariant_form Γ k) (f' : ℍ → ℂ) (h : f' = ⇑f) :
   slash_invariant_form Γ k :=
 { to_fun := f',
@@ -140,6 +146,7 @@ fun_like.coe_injective.add_comm_group _ rfl (λ _ _, by {refl}) (λ _, by{refl})
 
 lemma coe_zero : ((0 : (slash_invariant_form Γ k) ) : ℍ → ℂ) = (0 : ℍ → ℂ) := rfl
 
+/--Additive coercieon from `slash_invariant_form` to `ℍ → ℂ`. -/
 def coe_hom : (slash_invariant_form Γ k) →+ (ℍ → ℂ) :=
 { to_fun := λ f, f, map_zero' := slash_invariant_forms.coe_zero, map_add' := λ _ _, rfl }
 
@@ -152,5 +159,7 @@ coe_hom_injective.module ℂ (coe_hom) (λ _ _, rfl)
 instance : has_one (slash_invariant_form Γ 0) :=
 {one := {to_fun := 1, slash_action_eq' := by {intro A,
   convert modular_forms.const_one_form_is_invar A}}}
+
+instance : inhabited (slash_invariant_form Γ k) := ⟨0⟩
 
 end slash_invariant_forms

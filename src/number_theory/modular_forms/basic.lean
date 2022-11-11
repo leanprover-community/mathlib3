@@ -47,22 +47,31 @@ variables (F : Type*) (Γ : subgroup SL(2, ℤ)) (k : ℤ)
 
 local notation f `∣[`:73 k:0, A `]` :72 := slash_action.map ℂ k A f
 
+/--These are `slash_invariant_forms` that are holomophic and bounded at infinity. -/
 structure modular_form extends slash_invariant_form Γ k :=
 (hol' : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (to_fun : ℍ → ℂ))
 (bdd_at_infty' : ∀ (A : SL(2, ℤ)), is_bounded_at_im_infty (to_fun ∣[k, A]))
 
+/--These are `slash_invariant_forms` that are holomophic and zero at infinity. -/
 structure cusp_form extends slash_invariant_form Γ k :=
 (hol' : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (to_fun : ℍ → ℂ))
 (zero_at_infty' : ∀ (A : SL(2, ℤ)), is_zero_at_im_infty (to_fun ∣[k, A]))
 
+/--`modular_form_class F Γ k` says that `F` is a type of bundled functions that extend
+`slash_invariant_forms_class` by requiring that the functions be holomorphic and bounded
+at infinity. -/
 class modular_form_class extends slash_invariant_form_class F Γ k :=
 (hol : ∀ f : F, mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (f : ℍ → ℂ))
 (bdd_at_infty : ∀ (f : F) (A : SL(2, ℤ)), is_bounded_at_im_infty (f ∣[k, A]))
 
+/--`cusp_form_class F Γ k` says that `F` is a type of bundled functions that extend
+`slash_invariant_forms_class` by requiring that the functions be holomorphic and zero
+at infinity. -/
 class cusp_form_class extends slash_invariant_form_class F Γ k :=
 (hol : ∀ f : F, mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (f : ℍ → ℂ))
 (zero_at_infty : ∀ (f : F) (A : SL(2, ℤ)), is_zero_at_im_infty (f ∣[k, A]))
 
+@[priority 100]
 instance modular_form_class.modular_form : modular_form_class (modular_form Γ k) Γ k :=
 { coe := modular_form.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
@@ -70,6 +79,7 @@ instance modular_form_class.modular_form : modular_form_class (modular_form Γ k
   hol := modular_form.hol',
   bdd_at_infty := modular_form.bdd_at_infty' }
 
+@[priority 100]
 instance cusp_form_class.cusp_form : cusp_form_class (cusp_form Γ k) Γ k :=
 { coe := cusp_form.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
@@ -91,6 +101,8 @@ fun_like.ext f g h
 @[ext] theorem cf_ext {f g : cusp_form Γ k} (h : ∀ x, f x = g x) : f = g :=
 fun_like.ext f g h
 
+/-- Copy of a `modular_form` with a new `to_fun` equal to the old one. Useful to fix
+definitional equalities. -/
 protected def mf_copy (f : modular_form Γ k) (f' : ℍ → ℂ) (h : f' = ⇑f) :
   modular_form Γ k :=
 { to_fun := f',
@@ -98,6 +110,8 @@ protected def mf_copy (f : modular_form Γ k) (f' : ℍ → ℂ) (h : f' = ⇑f)
   hol' := h.symm ▸ f.hol',
   bdd_at_infty' := λ A, h.symm ▸ f.bdd_at_infty' A }
 
+/-- Copy of a `cusp_form` with a new `to_fun` equal to the old one. Useful to fix
+definitional equalities. -/
 protected def cf_copy (f : cusp_form Γ k) (f' : ℍ → ℂ) (h : f' = ⇑f) :
   cusp_form Γ k :=
 { to_fun := f',
@@ -190,16 +204,19 @@ fun_like.coe_injective.add_comm_group _ rfl (λ _ _, by {refl}) (λ _, by{refl})
 
 lemma coe_zero : ((0 : (modular_form Γ k) ) : ℍ → ℂ) = (0 : ℍ → ℂ) := rfl
 
+/--Additive coercieon from `modular_form` to `ℍ → ℂ`. -/
 def coe_hom : (modular_form Γ k) →+ (ℍ → ℂ) :=
 { to_fun := λ f, f, map_zero' := coe_zero, map_add' := λ _ _, rfl }
 
 lemma coe_hom_injective : function.injective (@coe_hom Γ k) :=
 fun_like.coe_injective
 
-instance modular_forms.module : module ℂ (modular_form Γ k) :=
+instance : module ℂ (modular_form Γ k) :=
 coe_hom_injective.module ℂ (coe_hom) (λ _ _, rfl)
 
-def modular_forms.mul (k_1 k_2 : ℤ) (Γ : subgroup SL(2, ℤ)) (f : (modular_form Γ k_1))
+instance : inhabited (modular_form Γ k) := ⟨0⟩
+
+def mul (k_1 k_2 : ℤ) (Γ : subgroup SL(2, ℤ)) (f : (modular_form Γ k_1))
   (g : (modular_form Γ k_2)) : (modular_form Γ (k_1 + k_2)) :=
 { to_fun := f * g,
   slash_action_eq' := by {intro A, rw mul_slash_subgroup, congr,
@@ -305,6 +322,7 @@ fun_like.coe_injective.add_comm_group _ rfl (λ _ _, by {refl}) (λ _, by{refl})
 
 lemma coe_zero : ((0 : (cusp_form Γ k) ) : ℍ → ℂ) = (0 : ℍ → ℂ) := rfl
 
+/--Additive coercieon from `cusp_form` to `ℍ → ℂ`. -/
 def coe_hom : (cusp_form Γ k) →+ (ℍ → ℂ) :=
 { to_fun := λ f, f, map_zero' := cusp_forms.coe_zero, map_add' := λ _ _, rfl }
 
@@ -314,6 +332,9 @@ fun_like.coe_injective
 instance : module ℂ (cusp_form Γ k) :=
 coe_hom_injective.module ℂ (coe_hom) (λ _ _, rfl)
 
+instance : inhabited (cusp_form Γ k) := ⟨0⟩
+
+@[priority 99]
 instance [cusp_form_class F Γ k] : modular_form_class F Γ k :=
 { coe := fun_like.coe,
   coe_injective' := fun_like.coe_injective',

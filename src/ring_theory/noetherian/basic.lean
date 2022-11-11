@@ -1,16 +1,16 @@
 /-
 Copyright (c) 2018 Mario Carneiro, Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Kevin Buzzard
+Authors: Mario Carneiro, Kevin Buzzard, Anne Baanen
 -/
-import group_theory.finiteness
-import data.multiset.finset_ops
 import algebra.algebra.tower.basic
+import algebra.ring.idempotents
+import data.multiset.finset_ops
+import group_theory.finiteness
+import linear_algebra.linear_independent
+import order.compactly_generated
 import order.order_iso_nat
 import ring_theory.nilpotent
-import order.compactly_generated
-import linear_algebra.linear_independent
-import algebra.ring.idempotents
 
 /-!
 # Noetherian rings and modules
@@ -147,11 +147,6 @@ end
 
 theorem fg_bot : (⊥ : submodule R M).fg :=
 ⟨∅, by rw [finset.coe_empty, span_empty]⟩
-
-lemma _root_.subalgebra.fg_bot_to_submodule {R A : Type*}
-  [comm_semiring R] [semiring A] [algebra R A] :
-  (⊥ : subalgebra R A).to_submodule.fg :=
-⟨{1}, by simp [algebra.to_submodule_bot] ⟩
 
 theorem fg_span {s : set M} (hs : s.finite) : fg (span R s) :=
 ⟨hs.to_finset, by rw [hs.coe_to_finset]⟩

@@ -7,7 +7,7 @@ import algebra.big_operators.finprod
 import ring_theory.integral_closure
 import ring_theory.localization.integer
 import ring_theory.localization.submodule
-import ring_theory.noetherian
+import ring_theory.noetherian.basic
 import ring_theory.principal_ideal_domain
 import tactic.field_simp
 

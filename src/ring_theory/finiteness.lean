@@ -8,7 +8,7 @@ import group_theory.finiteness
 import ring_theory.algebra_tower
 import ring_theory.mv_polynomial.tower
 import ring_theory.ideal.quotient
-import ring_theory.noetherian
+import ring_theory.noetherian.basic
 
 /-!
 # Finiteness conditions in commutative algebra

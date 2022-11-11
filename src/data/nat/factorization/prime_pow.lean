@@ -28,7 +28,7 @@ lemma is_prime_pow_of_min_fac_pow_factorization_eq {n : ℕ}
 begin
   rcases eq_or_ne n 0 with rfl | hn',
   { simpa using h },
-  refine ⟨_, _, nat.prime_iff.1 (nat.min_fac_prime hn), _, h⟩,
+  refine ⟨_, _, (nat.min_fac_prime hn).prime, _, h⟩,
   rw [pos_iff_ne_zero, ←finsupp.mem_support_iff, nat.factor_iff_mem_factorization,
     nat.mem_factors_iff_dvd hn' (nat.min_fac_prime hn)],
   apply nat.min_fac_dvd

@@ -94,7 +94,7 @@ begin
   intros H U hU hU',
   obtain ⟨S, hS, rfl⟩ := (is_compact_open_iff_eq_finset_affine_union U).mp ⟨hU', hU⟩,
   simp only [set.preimage_Union, subtype.val_eq_coe],
-  exact hS.compact_bUnion (λ i _, H i i.prop)
+  exact hS.is_compact_bUnion (λ i _, H i i.prop)
 end
 
 @[simp] lemma quasi_compact.affine_property_to_property {X Y : Scheme} (f : X ⟶ Y) :
@@ -124,7 +124,7 @@ begin
   obtain ⟨s, hs, e⟩ := (is_compact_open_iff_eq_finset_affine_union _).mp ⟨hU, U.prop⟩,
   let g : s → X.affine_opens,
   { intro V,
-    use V.1 ∩ X.basic_open f,
+    use V.1 ⊓ X.basic_open f,
     have : V.1.1 ⟶ U,
     { apply hom_of_le, change _ ⊆ (U : set X.carrier), rw e,
       convert @set.subset_Union₂ _ _ _ (λ (U : X.affine_opens) (h : U ∈ s), ↑U) V V.prop using 1,
@@ -133,7 +133,7 @@ begin
     exact is_affine_open.basic_open_is_affine V.1.prop _ },
   haveI : finite s := hs.to_subtype,
   refine ⟨set.range g, set.finite_range g, _⟩,
-  refine (set.inter_eq_right_iff_subset.mpr (RingedSpace.basic_open_subset _ _)).symm.trans _,
+  refine (set.inter_eq_right_iff_subset.mpr (RingedSpace.basic_open_le _ _)).symm.trans _,
   rw [e, set.Union₂_inter],
   apply le_antisymm; apply set.Union₂_subset,
   { intros i hi,
@@ -167,7 +167,8 @@ begin
     rw ← hS,
     dsimp [opens.map],
     simp only [opens.coe_supr, set.preimage_Union, subtype.val_eq_coe],
-    exacts [compact_Union (λ i, is_compact_iff_compact_space.mpr (hS' i)), top_is_affine_open _] }
+    exacts [is_compact_Union (λ i, is_compact_iff_compact_space.mpr (hS' i)),
+      top_is_affine_open _] }
 end
 
 lemma quasi_compact.affine_open_cover_tfae {X Y : Scheme.{u}} (f : X ⟶ Y) :

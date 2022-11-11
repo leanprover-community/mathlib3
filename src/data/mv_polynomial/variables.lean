@@ -387,7 +387,7 @@ begin
     intros v hv v2 hv2,
     rw finset.mem_bUnion at hv2,
     rcases hv2 with ⟨i, his, hi⟩,
-    refine h a i _ _ hv _ hi,
+    refine h _ _ hv _ hi,
     rintro rfl,
     contradiction }
 end
@@ -486,9 +486,8 @@ begin
   simp only [finset.sup_map],
   congr,
   ext,
-  simp only [ single, nat.one_ne_zero, add_right_eq_self, add_right_embedding_apply, coe_mk,
-              pi.add_apply, comp_app, ite_eq_right_iff, coe_add ],
-  cc,
+  simp only [single, nat.one_ne_zero, add_right_eq_self, add_right_embedding_apply, coe_mk,
+             pi.add_apply, comp_app, ite_eq_right_iff, finsupp.coe_add, pi.single_eq_of_ne h],
 end
 
 /- TODO in the following we have equality iff f ≠ 0 -/

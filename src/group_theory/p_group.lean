@@ -91,9 +91,33 @@ hG.of_surjective (quotient_group.mk' H) quotient.surjective_quotient_mk'
 lemma of_equiv {H : Type*} [group H] (ϕ : G ≃* H) : is_p_group p H :=
 hG.of_surjective ϕ.to_monoid_hom ϕ.surjective
 
+lemma order_of_coprime {n : ℕ} (hn : p.coprime n) (g : G) : (order_of g).coprime n :=
+let ⟨k, hk⟩ := hG g in (hn.pow_left k).coprime_dvd_left (order_of_dvd_of_pow_eq_one hk)
+
+/-- If `gcd(p,n) = 1`, then the `n`th power map is a bijection. -/
+noncomputable def pow_equiv {n : ℕ} (hn : p.coprime n) : G ≃ G :=
+let h : ∀ g : G, (nat.card (subgroup.zpowers g)).coprime n :=
+  λ g, order_eq_card_zpowers' g ▸ hG.order_of_coprime hn g in
+{ to_fun := (^ n),
+  inv_fun := λ g, (pow_coprime (h g)).symm ⟨g, subgroup.mem_zpowers g⟩,
+  left_inv := λ g, subtype.ext_iff.1 $ (pow_coprime (h (g ^ n))).left_inv
+    ⟨g, _, subtype.ext_iff.1 $ (pow_coprime (h g)).left_inv ⟨g, subgroup.mem_zpowers g⟩⟩,
+  right_inv := λ g, subtype.ext_iff.1 $ (pow_coprime (h g)).right_inv ⟨g, subgroup.mem_zpowers g⟩ }
+
+@[simp] lemma pow_equiv_apply {n : ℕ} (hn : p.coprime n) (g : G) : hG.pow_equiv hn g = g ^ n :=
+rfl
+
+@[simp] lemma pow_equiv_symm_apply {n : ℕ} (hn : p.coprime n) (g : G) :
+  (hG.pow_equiv hn).symm g = g ^ (order_of g).gcd_b n :=
+by rw order_eq_card_zpowers'; refl
+
 variables [hp : fact p.prime]
 
 include hp
+
+/-- If `p ∤ n`, then the `n`th power map is a bijection. -/
+@[reducible] noncomputable def pow_equiv' {n : ℕ} (hn : ¬ p ∣ n) : G ≃ G :=
+pow_equiv hG (hp.out.coprime_iff_not_dvd.mpr hn)
 
 lemma index (H : subgroup G) [finite (G ⧸ H)] :
   ∃ n : ℕ, H.index = p ^ n :=
@@ -103,6 +127,18 @@ begin
   obtain ⟨k, hk1, hk2⟩ := (nat.dvd_prime_pow hp.out).mp ((congr_arg _
     (H.normal_core.index_eq_card.trans hn)).mp (subgroup.index_dvd_of_le H.normal_core_le)),
   exact ⟨k, hk2⟩,
+end
+
+lemma card_eq_or_dvd : nat.card G = 1 ∨ p ∣ nat.card G :=
+begin
+  casesI fintype_or_infinite G,
+  { obtain ⟨n, hn⟩ := iff_card.mp hG,
+    rw [nat.card_eq_fintype_card, hn],
+    cases n,
+    { exact or.inl rfl },
+    { exact or.inr ⟨p ^ n, rfl⟩ } },
+  { rw nat.card_eq_zero_of_infinite,
+    exact or.inr ⟨0, rfl⟩ },
 end
 
 lemma nontrivial_iff_card [fintype G] : nontrivial G ↔ ∃ n > 0, card G = p ^ n :=
@@ -286,12 +322,9 @@ begin
   obtain ⟨n₂, hn₂⟩ := iff_order_of.mp hH₂ ⟨x, hx₂⟩,
   rw [← order_of_subgroup, subgroup.coe_mk] at hn₁ hn₂,
   have : p₁ ^ n₁ = p₂ ^ n₂, by rw [← hn₁, ← hn₂],
-  have : n₁ = 0,
-  { contrapose! hne with h,
-    rw ← associated_iff_eq at this ⊢,
-    exact associated.of_pow_associated_of_prime
-      (nat.prime_iff.mp hp₁.elim) (nat.prime_iff.mp hp₂.elim) (ne.bot_lt h) this },
-  simpa [this] using hn₁,
+  rcases n₁.eq_zero_or_pos with rfl|hn₁,
+  { simpa using hn₁ },
+  { exact absurd (eq_of_prime_pow_eq hp₁.out.prime hp₂.out.prime hn₁ this) hne }
 end
 
 section p2comm
@@ -321,10 +354,10 @@ begin
   rw [card_eq_card_quotient_mul_card_subgroup (center G), mul_comm, hk] at hG,
   have hk2 := (nat.pow_dvd_pow_iff_le_right (fact.out p.prime).one_lt).1 ⟨_, hG.symm⟩,
   interval_cases k,
-  { rw [sq, pow_one, nat.mul_right_inj (fact.out p.prime).pos] at hG,
+  { rw [sq, pow_one, mul_right_inj' (fact.out p.prime).ne_zero] at hG,
     exact is_cyclic_of_prime_card hG },
-  { exact @is_cyclic_of_subsingleton _ _ ⟨fintype.card_le_one_iff.1 ((nat.mul_right_inj
-      (pow_pos (fact.out p.prime).pos 2)).1 (hG.trans (mul_one (p ^ 2)).symm)).le⟩ },
+  { exact @is_cyclic_of_subsingleton _ _ ⟨fintype.card_le_one_iff.1 (mul_right_injective₀
+      (pow_ne_zero 2 (ne_zero.ne p)) (hG.trans (mul_one (p ^ 2)).symm)).le⟩ },
 end
 
 /-- A group of order `p ^ 2` is commutative. See also `is_p_group.commutative_of_card_eq_prime_sq`

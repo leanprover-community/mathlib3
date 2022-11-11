@@ -729,6 +729,10 @@ lemma dist_center_eq_dist_center_of_mem_sphere {p₁ p₂ : P} {s : sphere P} (h
   (hp₂ : p₂ ∈ s) : dist p₁ s.center = dist p₂ s.center :=
 by rw [mem_sphere.1 hp₁, mem_sphere.1 hp₂]
 
+lemma dist_center_eq_dist_center_of_mem_sphere' {p₁ p₂ : P} {s : sphere P} (hp₁ : p₁ ∈ s)
+  (hp₂ : p₂ ∈ s) : dist s.center p₁ = dist s.center p₂ :=
+by rw [mem_sphere'.1 hp₁, mem_sphere'.1 hp₂]
+
 /-- A set of points is cospherical if they are equidistant from some
 point.  In two dimensions, this is the same thing as being
 concyclic. -/

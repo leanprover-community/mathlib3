@@ -255,7 +255,11 @@ begin
   simp only [maximum, argmax_concat, id],
   cases h : argmax id l,
   { exact (max_eq_right bot_le).symm },
-  { simp [option.coe_def, max_def, ←not_lt] }
+  { simp [option.coe_def, max_def],
+    rcases lt_trichotomy val a with lt | eq | gt,
+    { simp [lt, lt.le], },
+    { simp [eq], },
+    { simp [asymm gt, not_le.mpr gt], }, }
 end
 
 lemma le_maximum_of_mem : a ∈ l → (maximum l : with_bot α) = m → a ≤ m := le_of_mem_argmax

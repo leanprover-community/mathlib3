@@ -495,6 +495,34 @@ lemma pi.lt_def {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] {x y
   x < y ↔ x ≤ y ∧ ∃ i, x i < y i :=
 by simp [lt_iff_le_not_le, pi.le_def] {contextual := tt}
 
+section pi
+variables {ι : Type*} {π : ι → Type*}
+
+/-- A function `a` is strongly less than a function `b`  if `a i < b i` for all `i`. -/
+def strong_lt [Π i, has_lt (π i)] (a b : Π i, π i) : Prop := ∀ i, a i < b i
+
+local infix ` ≺ `:50 := strong_lt
+
+variables [Π i, preorder (π i)] {a b c : Π i, π i}
+
+lemma le_of_strong_lt (h : a ≺ b) : a ≤ b := λ i, (h _).le
+
+lemma lt_of_strong_lt [nonempty ι] (h : a ≺ b) : a < b :=
+by { inhabit ι, exact pi.lt_def.2 ⟨le_of_strong_lt h, default, h _⟩ }
+
+lemma strong_lt_of_strong_lt_of_le (hab : a ≺ b) (hbc : b ≤ c) : a ≺ c :=
+λ i, (hab _).trans_le $ hbc _
+
+lemma strong_lt_of_le_of_strong_lt (hab : a ≤ b) (hbc : b ≺ c) : a ≺ c :=
+λ i, (hab _).trans_lt $ hbc _
+
+alias le_of_strong_lt ← strong_lt.le
+alias lt_of_strong_lt ← strong_lt.lt
+alias strong_lt_of_strong_lt_of_le ← strong_lt.trans_le
+alias strong_lt_of_le_of_strong_lt ← has_le.le.trans_strong_lt
+
+end pi
+
 lemma le_update_iff {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] [decidable_eq ι]
   {x y : Π i, α i} {i : ι} {a : α i} :
   x ≤ function.update y i a ↔ x i ≤ a ∧ ∀ j ≠ i, x j ≤ y j :=
@@ -731,7 +759,7 @@ end prod
 
 /-! ### Additional order classes -/
 
-/-- An order is dense if there is an element between any pair of distinct elements. -/
+/-- An order is dense if there is an element between any pair of distinct comparable elements. -/
 class densely_ordered (α : Type u) [has_lt α] : Prop :=
 (dense : ∀ a₁ a₂ : α, a₁ < a₂ → ∃ a, a₁ < a ∧ a < a₂)
 

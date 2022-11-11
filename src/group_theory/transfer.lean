@@ -16,7 +16,13 @@ In this file we construct the transfer homomorphism.
 
 - `diff ϕ S T` : The difference of two left transversals `S` and `T` under the homomorphism `ϕ`.
 - `transfer ϕ` : The transfer homomorphism induced by `ϕ`.
-- `transfer_center_pow`: The transfer homomorphism `G →*  center G`.
+- `transfer_center_pow`: The transfer homomorphism `G →* center G`.
+
+## Main results
+- `transfer_center_pow_apply`:
+  The transfer homomorphism `G →* center G` is given by `g ↦ g ^ (center G).index`.
+- `ker_transfer_sylow_is_complement'`: Burnside's transfer (or normal `p`-complement) theorem:
+  If `hP : N(P) ≤ C(P)`, then `(transfer P hP).ker` is a normal `p`-complement.
 -/
 
 open_locale big_operators
@@ -205,14 +211,12 @@ lemma transfer_sylow_eq_pow (g : G) (hg : g ∈ P) : transfer_sylow P hP g =
   ⟨g ^ (P : subgroup G).index, transfer_eq_pow_aux g (transfer_sylow_eq_pow_aux P hP g hg)⟩ :=
 by apply transfer_eq_pow
 
--- PRed
 lemma transfer_sylow_restrict_eq_pow :
   ⇑((transfer_sylow P hP).restrict (P : subgroup G)) = (^ (P : subgroup G).index) :=
 funext (λ g, transfer_sylow_eq_pow P hP g g.2)
 
--- PRed
 /-- Burnside's normal p-complement theorem: If `N(P) ≤ C(P)`, then `P` has a normal complement. -/
-lemma ker_transfer_sylow_is_complement : is_complement' (transfer_sylow P hP).ker P :=
+lemma ker_transfer_sylow_is_complement' : is_complement' (transfer_sylow P hP).ker P :=
 begin
   have hf : function.bijective ((transfer_sylow P hP).restrict (P : subgroup G)) :=
   (transfer_sylow_restrict_eq_pow P hP).symm ▸ (P.2.pow_equiv' (not_dvd_index_sylow P
@@ -227,7 +231,7 @@ end
 
 -- PR ready
 lemma not_dvd_card_ker_transfer_sylow : ¬ p ∣ nat.card (transfer_sylow P hP).ker :=
-(ker_transfer_sylow_is_complement P hP).index_eq_card ▸ not_dvd_index_sylow P $
+(ker_transfer_sylow_is_complement' P hP).index_eq_card ▸ not_dvd_index_sylow P $
   mt index_eq_zero_of_relindex_eq_zero index_ne_zero_of_finite
 
 -- PR ready

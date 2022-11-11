@@ -8,6 +8,7 @@ import topology.algebra.constructions
 import topology.homeomorph
 import group_theory.group_action.basic
 import topology.bases
+import topology.support
 /-!
 # Monoid actions continuous in the second variable
 
@@ -45,7 +46,9 @@ local attribute [instance] mul_action.orbit_rel
 /-- Class `has_continuous_const_smul Γ T` says that the scalar multiplication `(•) : Γ → T → T`
 is continuous in the second argument. We use the same class for all kinds of multiplicative
 actions, including (semi)modules and algebras.
--/
+
+Note that both `has_continuous_const_smul α α` and `has_continuous_const_smul αᵐᵒᵖ α` are
+weaker versions of `has_continuous_mul α`. -/
 class has_continuous_const_smul (Γ : Type*) (T : Type*) [topological_space T] [has_smul Γ T]
  : Prop :=
 (continuous_const_smul : ∀ γ : Γ, continuous (λ x : T, γ • x))
@@ -53,7 +56,9 @@ class has_continuous_const_smul (Γ : Type*) (T : Type*) [topological_space T] [
 /-- Class `has_continuous_const_vadd Γ T` says that the additive action `(+ᵥ) : Γ → T → T`
 is continuous in the second argument. We use the same class for all kinds of additive actions,
 including (semi)modules and algebras.
--/
+
+Note that both `has_continuous_const_vadd α α` and `has_continuous_const_vadd αᵐᵒᵖ α` are
+weaker versions of `has_continuous_add α`. -/
 class has_continuous_const_vadd (Γ : Type*) (T : Type*) [topological_space T]
   [has_vadd Γ T] : Prop :=
 (continuous_const_vadd : ∀ γ : Γ, continuous (λ x : T, γ +ᵥ x))
@@ -294,6 +299,18 @@ lemma is_closed.smul₀ {𝕜 M : Type*} [division_ring 𝕜] [add_comm_monoid M
   [t1_space M] [module 𝕜 M] [has_continuous_const_smul 𝕜 M] (c : 𝕜) {s : set M} (hs : is_closed s) :
   is_closed (c • s) :=
 is_closed_map_smul₀ c s hs
+
+lemma has_compact_mul_support.comp_smul {β : Type*} [has_one β] {f : α → β}
+  (h : has_compact_mul_support f) {c : G₀} (hc : c ≠ 0) :
+  has_compact_mul_support (λ x, f (c • x)) :=
+h.comp_homeomorph (homeomorph.smul_of_ne_zero c hc)
+
+lemma has_compact_support.comp_smul {β : Type*} [has_zero β] {f : α → β}
+  (h : has_compact_support f) {c : G₀} (hc : c ≠ 0) :
+  has_compact_support (λ x, f (c • x)) :=
+h.comp_homeomorph (homeomorph.smul_of_ne_zero c hc)
+
+attribute [to_additive has_compact_support.comp_smul] has_compact_mul_support.comp_smul
 
 end group_with_zero
 

@@ -973,6 +973,45 @@ begin
     simpa using ha }
 end
 
+/-- One of two vectors is zero or the oriented angle between them is plus or minus `π / 2` if
+and only if the inner product of those vectors is zero. -/
+lemma eq_zero_or_oangle_eq_iff_inner_eq_zero {x y : V} :
+  (x = 0 ∨ y = 0 ∨ o.oangle x y = (π / 2 : ℝ) ∨ o.oangle x y = (-π / 2 : ℝ)) ↔ ⟪x, y⟫ = 0 :=
+begin
+  by_cases hx : x = 0, { simp [hx] },
+  by_cases hy : y = 0, { simp [hy] },
+  rw [inner_product_geometry.inner_eq_zero_iff_angle_eq_pi_div_two, or_iff_right hx,
+      or_iff_right hy],
+  refine ⟨λ h, _, λ h, _⟩,
+  { rwa [o.angle_eq_abs_oangle_to_real hx hy, real.angle.abs_to_real_eq_pi_div_two_iff] },
+  { convert o.oangle_eq_angle_or_eq_neg_angle hx hy; rw [h],
+    exact neg_div _ _ }
+end
+
+/-- If the oriented angle between two vectors is `π / 2`, the inner product of those vectors
+is zero. -/
+lemma inner_eq_zero_of_oangle_eq_pi_div_two {x y : V} (h : o.oangle x y = (π / 2 : ℝ)) :
+  ⟪x, y⟫ = 0 :=
+o.eq_zero_or_oangle_eq_iff_inner_eq_zero.1 $ or.inr $ or.inr $ or.inl h
+
+/-- If the oriented angle between two vectors is `π / 2`, the inner product of those vectors
+(reversed) is zero. -/
+lemma inner_rev_eq_zero_of_oangle_eq_pi_div_two {x y : V} (h : o.oangle x y = (π / 2 : ℝ)) :
+  ⟪y, x⟫ = 0 :=
+by rw [real_inner_comm, o.inner_eq_zero_of_oangle_eq_pi_div_two h]
+
+/-- If the oriented angle between two vectors is `-π / 2`, the inner product of those vectors
+is zero. -/
+lemma inner_eq_zero_of_oangle_eq_neg_pi_div_two {x y : V} (h : o.oangle x y = (-π / 2 : ℝ)) :
+  ⟪x, y⟫ = 0 :=
+o.eq_zero_or_oangle_eq_iff_inner_eq_zero.1 $ or.inr $ or.inr $ or.inr h
+
+/-- If the oriented angle between two vectors is `-π / 2`, the inner product of those vectors
+(reversed) is zero. -/
+lemma inner_rev_eq_zero_of_oangle_eq_neg_pi_div_two {x y : V} (h : o.oangle x y = (-π / 2 : ℝ)) :
+  ⟪y, x⟫ = 0 :=
+by rw [real_inner_comm, o.inner_eq_zero_of_oangle_eq_neg_pi_div_two h]
+
 /-- Negating the first vector passed to `oangle` negates the sign of the angle. -/
 @[simp] lemma oangle_sign_neg_left (x y : V) :
   (o.oangle (-x) y).sign = -((o.oangle x y).sign) :=

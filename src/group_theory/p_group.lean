@@ -322,12 +322,9 @@ begin
   obtain ⟨n₂, hn₂⟩ := iff_order_of.mp hH₂ ⟨x, hx₂⟩,
   rw [← order_of_subgroup, subgroup.coe_mk] at hn₁ hn₂,
   have : p₁ ^ n₁ = p₂ ^ n₂, by rw [← hn₁, ← hn₂],
-  have : n₁ = 0,
-  { contrapose! hne with h,
-    rw ← associated_iff_eq at this ⊢,
-    exact associated.of_pow_associated_of_prime
-      (nat.prime_iff.mp hp₁.elim) (nat.prime_iff.mp hp₂.elim) (ne.bot_lt h) this },
-  simpa [this] using hn₁,
+  rcases n₁.eq_zero_or_pos with rfl|hn₁,
+  { simpa using hn₁ },
+  { exact absurd (eq_of_prime_pow_eq hp₁.out.prime hp₂.out.prime hn₁ this) hne }
 end
 
 section p2comm
@@ -357,10 +354,10 @@ begin
   rw [card_eq_card_quotient_mul_card_subgroup (center G), mul_comm, hk] at hG,
   have hk2 := (nat.pow_dvd_pow_iff_le_right (fact.out p.prime).one_lt).1 ⟨_, hG.symm⟩,
   interval_cases k,
-  { rw [sq, pow_one, nat.mul_right_inj (fact.out p.prime).pos] at hG,
+  { rw [sq, pow_one, mul_right_inj' (fact.out p.prime).ne_zero] at hG,
     exact is_cyclic_of_prime_card hG },
-  { exact @is_cyclic_of_subsingleton _ _ ⟨fintype.card_le_one_iff.1 ((nat.mul_right_inj
-      (pow_pos (fact.out p.prime).pos 2)).1 (hG.trans (mul_one (p ^ 2)).symm)).le⟩ },
+  { exact @is_cyclic_of_subsingleton _ _ ⟨fintype.card_le_one_iff.1 (mul_right_injective₀
+      (pow_ne_zero 2 (ne_zero.ne p)) (hG.trans (mul_one (p ^ 2)).symm)).le⟩ },
 end
 
 /-- A group of order `p ^ 2` is commutative. See also `is_p_group.commutative_of_card_eq_prime_sq`

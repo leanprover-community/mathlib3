@@ -359,8 +359,8 @@ end
 lemma linear_map.bijective_of_localization_maximal
   (H : ∀ (J : ideal R) (hJ : J.is_maximal),
     by exactI function.bijective (localized_module.map J.prime_compl g)) : function.bijective g :=
-⟨linear_map.injective_of_localization_maximal M g (λ J hJ, (H J hJ).1),
-  linear_map.surjective_of_localization_maximal M g (λ J hJ, (H J hJ).2)⟩
+⟨linear_map.injective_of_localization_maximal g (λ J hJ, (H J hJ).1),
+  linear_map.surjective_of_localization_maximal g (λ J hJ, (H J hJ).2)⟩
 
 lemma linear_map.injective_localized_module_map (h : function.injective g) :
   function.injective (localized_module.map M g) :=

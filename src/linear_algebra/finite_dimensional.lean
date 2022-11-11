@@ -6,6 +6,7 @@ Authors: Chris Hughes
 import algebra.algebra.subalgebra.basic
 import field_theory.finiteness
 import linear_algebra.finrank
+import linear_algebra.free_module.finite.rank
 import tactic.interval_cases
 
 /-!
@@ -1517,7 +1518,7 @@ begin
 end
 
 lemma cardinal_lt_aleph_0_of_finite_dimensional
-  (K V : Type u) [field K] [add_comm_group V] [module K V]
+  (K V : Type u) [field K] [add_comm_group V] [module K V] [finite_dimensional K V]
   [_root_.finite K] [finite_dimensional K V] :
   #V < ℵ₀ :=
 begin

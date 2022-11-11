@@ -24,7 +24,7 @@ variables (R : Type u) (M : Type v) (N : Type w)
 
 open_locale tensor_product direct_sum big_operators cardinal
 
-open cardinal finite_dimensional fintype
+open cardinal fintype
 
 namespace module.free
 

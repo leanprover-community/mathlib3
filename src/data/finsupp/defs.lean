@@ -316,7 +316,7 @@ lemma support_single_ne_bot (i : α) (h : b ≠ 0) :
   (single i b).support ≠ ⊥ :=
 by simpa only [support_single_ne_zero _ h] using singleton_ne_empty _
 
-lemma support_single_disjoint [decidable_eq α] {b' : M} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : α} :
+lemma support_single_disjoint {b' : M} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : α} :
   disjoint (single i b).support (single j b').support ↔ i ≠ j :=
 by rw [support_single_ne_zero _ hb, support_single_ne_zero _ hb', disjoint_singleton]
 

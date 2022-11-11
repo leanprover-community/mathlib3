@@ -316,12 +316,13 @@ end finset
 
 section
 open finset
-variables [fintype α] [decidable_eq α] [comm_monoid β]
+variables [fintype α] [comm_monoid β]
 
 @[to_additive]
 lemma is_compl.prod_mul_prod {s t : finset α} (h : is_compl s t) (f : α → β) :
   (∏ i in s, f i) * (∏ i in t, f i) = ∏ i, f i :=
-(finset.prod_union h.disjoint).symm.trans $ by rw [← finset.sup_eq_union, h.sup_eq_top]; refl
+(finset.prod_disj_union h.disjoint).symm.trans $
+  by { classical, rw [finset.disj_union_eq_union, ← finset.sup_eq_union, h.sup_eq_top]; refl }
 
 end
 

@@ -718,7 +718,7 @@ end
 two disjoint finite index sets, then the tuple formed by `f i` for `i ∈ S` is independent of the
 tuple `(f i)_i` for `i ∈ T`. -/
 lemma Indep_fun.indep_fun_finset [is_probability_measure μ]
-  {ι : Type*} [decidable_eq ι] {β : ι → Type*} {m : Π i, measurable_space (β i)}
+  {ι : Type*} {β : ι → Type*} {m : Π i, measurable_space (β i)}
   {f : Π i, Ω → β i} (S T : finset ι) (hST : disjoint S T) (hf_Indep : Indep_fun m f μ)
   (hf_meas : ∀ i, measurable (f i)) :
   indep_fun (λ a (i : S), f i a) (λ a (i : T), f i a) μ :=

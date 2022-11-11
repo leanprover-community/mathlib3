@@ -681,7 +681,7 @@ by simp [finset.subset_iff, set.subset_def]
 @[simp, mono] lemma to_finset_ssubset [fintype s] [fintype t] : s.to_finset ⊂ t.to_finset ↔ s ⊂ t :=
 by simp only [finset.ssubset_def, to_finset_subset, ssubset_def]
 
-@[simp] theorem to_finset_disjoint_iff [decidable_eq α] {s t : set α} [fintype s] [fintype t] :
+@[simp] theorem to_finset_disjoint_iff {s t : set α} [fintype s] [fintype t] :
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=
 by simp only [←disjoint_coe, coe_to_finset]
 

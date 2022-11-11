@@ -275,7 +275,7 @@ lemma filter_ge_eq_Iic [decidable_pred (≤ a)] : univ.filter (≤ a) = Iic a :=
 
 end locally_finite_order_bot
 
-variables [decidable_eq α] [locally_finite_order_top α] [locally_finite_order_bot α]
+variables [locally_finite_order_top α] [locally_finite_order_bot α]
 
 lemma disjoint_Ioi_Iio (a : α) :  disjoint (Ioi a) (Iio a) :=
 disjoint_left.2 $ λ b hab hba, (mem_Ioi.1 hab).not_lt $ mem_Iio.1 hba

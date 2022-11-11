@@ -34,17 +34,6 @@ open limits
 
 variable (F : C ⥤ D)
 
-@[protected]
-class exact :=
-(preserves_finite_limits : preserves_finite_limits F)
-(preserves_finite_colimits : preserves_finite_colimits F)
-
-@[priority 100]
-instance [F.exact] : preserves_finite_limits F := exact.preserves_finite_limits
-
-@[priority 100]
-instance [F.exact] : preserves_finite_colimits F := exact.preserves_finite_colimits
-
 class preserves_homology (F : C ⥤ D) [has_zero_morphisms C] [has_zero_morphisms D]
   [preserves_zero_morphisms F] :=
 (preserves_kernels [] : Π ⦃X Y : C⦄ (f : X ⟶ Y), preserves_limit (parallel_pair f 0) F)
@@ -52,7 +41,7 @@ class preserves_homology (F : C ⥤ D) [has_zero_morphisms C] [has_zero_morphism
 
 @[priority 100]
 instance preserves_homology_of_exact [has_zero_morphisms C] [has_zero_morphisms D] (F : C ⥤ D)
-  [F.preserves_zero_morphisms] [F.exact] :
+  [F.preserves_zero_morphisms] [preserves_finite_limits F] [preserves_finite_colimits F] :
   preserves_homology F :=
 { preserves_kernels := infer_instance,
   preserves_cokernels := infer_instance, }

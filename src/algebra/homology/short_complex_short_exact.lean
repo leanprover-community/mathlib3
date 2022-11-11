@@ -47,6 +47,45 @@ begin
   { exact short_exact.of_iso e.symm, },
 end
 
+variable {S}
+
+lemma op (h : S.short_exact) : S.op.short_exact :=
+begin
+  haveI := h.mono_f,
+  haveI := h.epi_g,
+  haveI : mono S.op.f := (infer_instance : mono S.g.op),
+  haveI : epi S.op.g := (infer_instance : epi S.f.op),
+  exact ⟨h.exact.op⟩,
+end
+
+lemma unop (h : S.op.short_exact) : S.short_exact :=
+begin
+  haveI : mono S.g.op := h.mono_f,
+  haveI : epi S.f.op := h.epi_g,
+  haveI : mono S.f := (infer_instance : mono S.f.op.unop),
+  haveI : epi S.g := (infer_instance : epi S.g.op.unop),
+  exact ⟨h.exact.unop⟩,
+end
+
+lemma op' {S : short_complex Cᵒᵖ}
+  (h : S.unop.short_exact) : S.short_exact :=
+begin
+  haveI : mono S.g.unop := h.mono_f,
+  haveI : epi S.f.unop := h.epi_g,
+  haveI : mono S.f := (infer_instance : mono S.f.unop.op),
+  haveI : epi S.g := (infer_instance : epi S.g.unop.op),
+  exact ⟨h.exact.op'⟩,
+end
+
+lemma unop' {S : short_complex Cᵒᵖ} (h : S.short_exact) : S.unop.short_exact :=
+begin
+  haveI := h.mono_f,
+  haveI := h.epi_g,
+  haveI : mono S.unop.f := (infer_instance : mono S.g.unop),
+  haveI : epi S.unop.g := (infer_instance : epi S.f.unop),
+  exact ⟨h.exact.unop'⟩,
+end
+
 end short_exact
 
 end
@@ -88,7 +127,7 @@ begin
   { rw h.p_g',
     apply_instance, },
   haveI : epi h.g' := epi_of_epi h.p h.g',
-  haveI : mono h.g':= mono_of_is_zero_ker _ h.hι hS,
+  haveI : mono h.g':= mono_of_is_zero_kernel' _ h.hι hS,
   haveI := is_iso_of_mono_of_epi h.g',
   exact is_colimit.of_iso_colimit h.hp (cofork.ext (as_iso h.g') (by simp)),
 end

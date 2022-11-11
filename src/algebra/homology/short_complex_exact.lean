@@ -207,20 +207,33 @@ begin
     exact ⟨homology_data.of_epi_of_is_iso_of_mono' φ h₁, z₁⟩, },
 end
 
-lemma exact_iff_op : S.exact ↔ S.op.exact :=
+variable {S}
+
+lemma exact.op (h : S.exact) : S.op.exact :=
 begin
-  split,
-  { rintro ⟨h, z⟩,
-    exact ⟨h.op, (is_zero.of_iso z h.iso.symm).op⟩, },
-  { rintro ⟨h, z⟩,
-    refine ⟨h.unop, (is_zero.of_iso z h.iso.symm).unop⟩, },
+  obtain ⟨h, z⟩ := h,
+  exact ⟨h.op, (is_zero.of_iso z h.iso.symm).op⟩,
 end
 
-lemma exact_iff_unop (S : short_complex Cᵒᵖ) : S.exact ↔ S.unop.exact :=
+lemma exact.unop (h : S.op.exact) : S.exact :=
 begin
-  rw S.unop.exact_iff_op,
-  exact exact_iff_of_iso S.unop_op.symm,
+  obtain ⟨h, z⟩ := h,
+  exact ⟨h.unop, (is_zero.of_iso z h.iso.symm).unop⟩,
 end
+
+variable (S)
+
+lemma exact_iff_op : S.exact ↔ S.op.exact :=
+⟨exact.op, exact.unop⟩
+
+lemma exact.unop' {S : short_complex Cᵒᵖ} (h : S.exact) : S.unop.exact :=
+by simpa only [S.unop.exact_iff_op, ← exact_iff_of_iso S.unop_op.symm] using h
+
+lemma exact.op' {S : short_complex Cᵒᵖ} (h : S.unop.exact) : S.exact :=
+by simpa only [S.unop.exact_iff_op, ← exact_iff_of_iso S.unop_op.symm] using h
+
+lemma exact_iff_unop (S : short_complex Cᵒᵖ) : S.exact ↔ S.unop.exact :=
+⟨exact.unop', exact.op'⟩
 
 variable {S}
 
@@ -254,7 +267,7 @@ begin
     haveI : S.has_homology := has_homology.mk' h.some,
     rw exact_iff_is_zero_homology at h,
     haveI : is_iso S.p_cycles_co := S.is_iso_p_cycles_co_of hf,
-    haveI : mono S.from_cycles_co := mono_of_is_zero_ker _ S.homology_is_kernel h,
+    haveI : mono S.from_cycles_co := mono_of_is_zero_kernel' _ S.homology_is_kernel h,
     rw ← S.p_from_cycles_co,
     apply mono_comp, },
   { introI,
@@ -362,6 +375,28 @@ lemma exact [has_zero_object C] (s : S.splitting) : S.exact :=
 ⟨s.homology_data, is_zero_zero _⟩
 
 end splitting
+
+variable {S}
+
+lemma exact.epi_f' (hS : S.exact) (h : left_homology_data S) : epi h.f' :=
+epi_of_is_zero_cokernel' _ h.hπ begin
+  haveI := hS.has_homology,
+  dsimp,
+  simpa only [← h.exact_iff] using hS,
+end
+
+lemma exact.mono_g' (hS : S.exact) (h : right_homology_data S) : mono h.g' :=
+mono_of_is_zero_kernel' _ h.hι begin
+  haveI := hS.has_homology,
+  dsimp,
+  simpa only [← h.exact_iff] using hS,
+end
+
+lemma exact.epi_to_cycles (hS : S.exact) [S.has_homology] : epi S.to_cycles :=
+hS.epi_f' _
+
+lemma exact.mono_from_cycles_co (hS : S.exact) [S.has_homology] : mono S.from_cycles_co :=
+hS.mono_g' _
 
 end preadditive
 

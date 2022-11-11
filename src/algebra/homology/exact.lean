@@ -124,6 +124,32 @@ begin
         iso.symm_hom, iso.inv_hom_id_assoc, iso.inv_hom_id, category.comp_id], }, },
 end
 
+lemma exact.op {A B C : V} {f : A ⟶ B} {g : B ⟶ C}
+  (h : exact f g) : exact g.op f.op :=
+begin
+  have w := h.w,
+  have w' : g.op ≫ f.op = 0 := by simpa only [← op_comp, w],
+  rw exact_iff_exact_short_complex _ _ w at h,
+  simpa only [exact_iff_exact_short_complex _ _ w'] using h.op,
+end
+
+lemma exact.unop {A B C : Vᵒᵖ} {f : A ⟶ B} {g : B ⟶ C}
+  (h : exact f g) : exact g.unop f.unop :=
+begin
+  have w := h.w,
+  have w' : g.unop ≫ f.unop = 0 := by simpa only [← unop_comp, w],
+  rw exact_iff_exact_short_complex _ _ w at h,
+  simpa only [exact_iff_exact_short_complex _ _ w'] using h.unop',
+end
+
+lemma exact.op_iff {A B C : V} (f : A ⟶ B) (g : B ⟶ C) :
+  exact g.op f.op ↔ exact f g :=
+⟨exact.unop, exact.op⟩
+
+lemma exact.unop_iff {A B C : Vᵒᵖ} (f : A ⟶ B) (g : B ⟶ C) :
+  exact g.unop f.unop ↔ exact f g :=
+⟨exact.op, exact.unop⟩
+
 section
 variables [has_zero_morphisms V]
 
@@ -315,7 +341,7 @@ section
 variables [preadditive V]
 
 lemma exact_zero_mono [has_zero_object V] {B C : V} (f : B ⟶ C) [mono f] :
-  exact (0 : (0 ⟶ B)) f :=
+  exact (0 : 0 ⟶ B) f :=
 begin
   rw [exact_iff_exact_short_complex _ _ zero_comp, short_complex.exact_iff_mono],
   { dsimp, apply_instance, },
@@ -323,25 +349,83 @@ begin
 end
 
 lemma exact_epi_zero [has_zero_object V] {A B : V} (f : A ⟶ B) [epi f] :
-  exact f (0 : (B ⟶ 0)) :=
+  exact f (0 : B ⟶ 0) :=
 begin
   rw [exact_iff_exact_short_complex _ _ comp_zero, short_complex.exact_iff_epi],
   { dsimp, apply_instance, },
   { refl, },
 end
 
-lemma mono_iff_exact_zero_left [has_zero_object V] {B C : V} (f : B ⟶ C) :
-  mono f ↔ exact (0 : (0 ⟶ B)) f :=
+lemma mono_iff_exact_zero_left [has_zero_object V] (Z : V) {B C : V} (f : B ⟶ C) :
+  mono f ↔ exact (0 : Z ⟶ B) f :=
 begin
   rw [exact_iff_exact_short_complex _ _ zero_comp, short_complex.exact_iff_mono],
   refl,
 end
 
-lemma epi_iff_exact_zero_right [has_zero_object V] {A B : V} (f : A ⟶ B) :
-  epi f ↔ exact f (0 : (B ⟶ 0)) :=
+lemma exact_zero_left_of_mono [has_zero_object V] (Z : V) {B C : V} (f : B ⟶ C) [mono f] :
+  exact (0 : Z ⟶ B) f :=
+by simpa only [← mono_iff_exact_zero_left Z]
+
+lemma mono_iff_exact_zero_left' [has_zero_object V] {B C : V} (f : B ⟶ C) :
+  mono f ↔ exact (0 : 0 ⟶ B) f :=
+mono_iff_exact_zero_left _ _
+
+lemma epi_iff_exact_zero_right [has_zero_object V] (Z : V) {A B : V} (f : A ⟶ B) :
+  epi f ↔ exact f (0 : B ⟶ Z) :=
 begin
   rw [exact_iff_exact_short_complex _ _ comp_zero, short_complex.exact_iff_epi],
   refl,
+end
+
+lemma epi_iff_exact_zero_right' [has_zero_object V] {A B : V} (f : A ⟶ B) :
+  epi f ↔ exact f (0 : B ⟶ 0) :=
+epi_iff_exact_zero_right _ _
+
+lemma exact_zero_right_of_epi [has_zero_object V] (Z : V) {B C : V} (f : B ⟶ C) [epi f] :
+  exact f (0 : C ⟶ Z) :=
+by simpa only [← epi_iff_exact_zero_right Z]
+
+lemma mono_iff_kernel_ι_eq_zero {A B : V} (f : A ⟶ B) [has_kernel f] [has_zero_object V] :
+  mono f ↔ kernel.ι f = 0 :=
+begin
+  rw mono_iff_is_zero_kernel,
+  split,
+  { intro h,
+    exact is_zero.eq_of_src h _ _, },
+  { intro h,
+    simp only [limits.is_zero.iff_id_eq_zero, ← cancel_mono (kernel.ι f), h, comp_zero], },
+end
+
+lemma tfae_mono (Z : V) {A B : V} (f : A ⟶ B) [has_kernel f] [has_zero_object V] :
+  tfae [mono f, kernel.ι f = 0, exact (0 : Z ⟶ A) f] :=
+begin
+  tfae_have : 1 ↔ 2,
+  { rw mono_iff_kernel_ι_eq_zero, },
+  tfae_have : 3 ↔ 1,
+  { rw mono_iff_exact_zero_left, },
+  tfae_finish,
+end
+
+lemma epi_iff_cokernel_π_eq_zero {A B : V} (f : A ⟶ B) [has_cokernel f] [has_zero_object V] :
+  epi f ↔ cokernel.π f = 0 :=
+begin
+  rw epi_iff_is_zero_cokernel,
+  split,
+  { intro h,
+    exact is_zero.eq_of_tgt h _ _, },
+  { intro h,
+    simp only [limits.is_zero.iff_id_eq_zero, ← cancel_epi (cokernel.π f), comp_id, h, comp_zero], }
+end
+
+lemma tfae_epi (Z : V) {A B : V} (f : A ⟶ B) [has_cokernel f] [has_zero_object V] :
+  tfae [epi f, cokernel.π f = 0, exact f (0 : B ⟶ Z)] :=
+begin
+  tfae_have : 1 ↔ 2,
+  { rw epi_iff_cokernel_π_eq_zero, },
+  tfae_have : 3 ↔ 1,
+  { rw epi_iff_exact_zero_right, },
+  tfae_finish,
 end
 
 end
@@ -349,7 +433,7 @@ end
 namespace functor
 variables {W : Type u₂} [category.{v₂} W] [has_zero_morphisms V] [has_zero_morphisms W]
 
-lemma exact_map_of_exact_of_preserves_homology (F : V ⥤ W) [F.preserves_zero_morphisms]
+lemma map_exact (F : V ⥤ W) [F.preserves_zero_morphisms]
   {A B C : V} (f : A ⟶ B) (g : B ⟶ C) (h : exact f g)
   [F.preserves_left_homology_of (short_complex.mk _ _ h.w)]
   [F.preserves_right_homology_of (short_complex.mk _ _ h.w)] :
@@ -373,7 +457,7 @@ instance preserves_exact_sequences_of_preserves_homology
   (F : V ⥤ W) [F.preserves_zero_morphisms]
   [F.preserves_homology] :
   preserves_exact_sequences F :=
-⟨λ A B C f g h, exact_map_of_exact_of_preserves_homology F f g h⟩
+⟨λ A B C f g h, map_exact F f g h⟩
 
 lemma exact_of_exact_map_of_preserves_homology (F : V ⥤ W) [F.preserves_zero_morphisms]
   {A B C : V} (f : A ⟶ B) (g : B ⟶ C) (w : f ≫ g = 0) (h : exact (F.map f) (F.map g))

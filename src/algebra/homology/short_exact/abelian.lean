@@ -36,8 +36,8 @@ begin
     0 f g 0 f' g' 0 i₁ i₂ i₃ _ comm₁ comm₂ 0 0 0 0 0 _ _ _ _ _ _ _ _ _ _ _;
   try { simp };
   try { apply exact_zero_left_of_mono };
-  try { assumption };
-  rwa ← epi_iff_exact_zero_right,
+  try { apply exact_zero_right_of_epi };
+  assumption,
 end
 
 /-- To construct a splitting of `A -f⟶ B -g⟶ C` it suffices to supply

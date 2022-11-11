@@ -14,10 +14,17 @@ section
 
 variables [has_zero_morphisms C] [has_zero_object C]
 def is_colimit_cokernel_cofork_of_epi {X Y : C} (f : X ⟶ Y) [epi f]  :
-  is_colimit (cokernel_cofork.of_π (0 : Y ⟶ 0) (comp_zero : f ≫ (0 : Y ⟶ 0) = 0)) :=
+  is_colimit (cokernel_cofork.of_π (0 : Y ⟶ 0) (comp_zero : f ≫ 0 = 0)) :=
 cokernel_cofork.is_colimit.of_π _ _
   (λ A x hx, 0)
   (λ A x hx, by simp only [comp_zero, ← cancel_epi f, hx])
+  (λ A x hx b hb, subsingleton.elim _ _)
+
+def is_limit_kernel_fork_of_mono {X Y : C} (f : X ⟶ Y) [mono f]  :
+  is_limit (kernel_fork.of_ι (0 : 0 ⟶ X) (zero_comp : 0 ≫ f = 0)) :=
+kernel_fork.is_limit.of_ι _ _
+  (λ A x hx, 0)
+  (λ A x hx, by simp only [zero_comp, ← cancel_mono f, hx])
   (λ A x hx b hb, subsingleton.elim _ _)
 
 @[priority 100]
@@ -25,11 +32,16 @@ instance has_cokernel_of_epi {X Y : C} (f : X ⟶ Y) [epi f] :
   has_cokernel f :=
 ⟨⟨⟨_, is_colimit_cokernel_cofork_of_epi f⟩⟩⟩
 
+@[priority 100]
+instance has_kernel_of_mono {X Y : C} (f : X ⟶ Y) [mono f] :
+  has_kernel f :=
+⟨⟨⟨_, is_limit_kernel_fork_of_mono f⟩⟩⟩
+
 end
 
 variable [preadditive C]
 
-lemma mono_of_is_zero_ker {X Y : C} {f : X ⟶ Y}
+lemma mono_of_is_zero_kernel' {X Y : C} {f : X ⟶ Y}
   (c : kernel_fork f) (hc₁ : is_limit c) (hc₂ : is_zero c.X) : mono f :=
 ⟨λ Z g₁ g₂ hg, begin
   rw ← sub_eq_zero at ⊢ hg,
@@ -38,6 +50,24 @@ lemma mono_of_is_zero_ker {X Y : C} {f : X ⟶ Y}
     using (kernel_fork.is_limit.lift_ι hc₁ (kernel_fork.of_ι _ hg)).symm,
 end⟩
 
+lemma mono_of_is_zero_kernel {X Y : C} {f : X ⟶ Y} [has_kernel f]
+  (h : is_zero (kernel f)) : mono f :=
+category_theory.mono_of_is_zero_kernel' _ (kernel_is_kernel f) h
+
+lemma is_zero_kernel_of_mono {X Y : C} (f : X ⟶ Y) [mono f] [has_zero_object C] :
+  is_zero (kernel f) :=
+is_zero.of_iso (is_zero_zero C)
+  (limits.is_limit.cone_point_unique_up_to_iso (kernel_is_kernel f)
+  (is_limit_kernel_fork_of_mono f))
+
+lemma mono_iff_is_zero_kernel {X Y : C} (f : X ⟶ Y) [has_kernel f] [has_zero_object C]:
+  mono f ↔ is_zero (kernel f) :=
+begin
+  split,
+  { introI,
+    exact is_zero_kernel_of_mono f, },
+  { exact mono_of_is_zero_kernel, },
+end
 lemma epi_of_is_zero_cokernel' {X Y : C} {f : X ⟶ Y}
   (c : cokernel_cofork f) (hc₁ : is_colimit c) (hc₂ : is_zero c.X) : epi f :=
 ⟨λ Z g₁ g₂ hg, begin

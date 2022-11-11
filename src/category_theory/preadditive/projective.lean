@@ -71,7 +71,7 @@ An arbitrarily chosen factorisation of a morphism out of a projective object thr
 def factor_thru {P X E : C} [projective P] (f : P ⟶ X) (e : E ⟶ X) [epi e] : P ⟶ E :=
 (projective.factors f e).some
 
-@[simp] lemma factor_thru_comp {P X E : C} [projective P] (f : P ⟶ X) (e : E ⟶ X) [epi e] :
+@[simp, reassoc] lemma factor_thru_comp {P X E : C} [projective P] (f : P ⟶ X) (e : E ⟶ X) [epi e] :
   factor_thru f e ≫ e = f :=
 (projective.factors f e).some_spec
 
@@ -215,7 +215,24 @@ end projective
 open projective
 
 section
-variables [has_zero_morphisms C] [has_equalizers C] [has_images C]
+variables [preadditive C]
+
+def _root_.short_complex.projective_lift {P : C} [projective P] (S : short_complex C)
+  (hS : S.exact) (h : P ⟶ S.X₂) (w : h ≫ S.g = 0) : P ⟶ S.X₁ :=
+begin
+  haveI := hS.has_homology,
+  haveI := hS.epi_to_cycles,
+  exact factor_thru (S.lift_cycles h w) S.to_cycles,
+end
+
+@[simp] lemma _root_.short_complex.projective_lift_comp {P : C} [projective P] (S : short_complex C)
+  (hS : S.exact) (h : P ⟶ S.X₂) (w : h ≫ S.g = 0) :
+    S.projective_lift hS h w ≫ S.f = h :=
+begin
+  dsimp [short_complex.projective_lift],
+  haveI := hS.has_homology,
+  rw [← S.to_cycles_i, factor_thru_comp_assoc, short_complex.lift_cycles_i],
+end
 
 /--
 Given a projective object `P` mapping via `h` into
@@ -224,21 +241,12 @@ such that `h ≫ g = 0`, there is a lift of `h` to `Q`.
 -/
 def exact.lift {P Q R S : C} [projective P] (h : P ⟶ R) (f : Q ⟶ R) (g : R ⟶ S)
   (hfg : exact f g) (w : h ≫ g = 0) : P ⟶ Q :=
-factor_thru
-  (factor_thru
-    (factor_thru_kernel_subobject g h w)
-    (image_to_kernel f g hfg.w))
-  (factor_thru_image_subobject f)
+short_complex.projective_lift _ ((exact_iff_exact_short_complex f g hfg.w).1 hfg) h w
+
 
 @[simp] lemma exact.lift_comp {P Q R S : C} [projective P] (h : P ⟶ R) (f : Q ⟶ R) (g : R ⟶ S)
   (hfg : exact f g) (w : h ≫ g = 0) : exact.lift h f g hfg w ≫ f = h :=
-begin
-  simp [exact.lift],
-  conv_lhs { congr, skip, rw ← image_subobject_arrow_comp f, },
-  rw [←category.assoc, factor_thru_comp, ←image_to_kernel_arrow,
-    ←category.assoc, category_theory.projective.factor_thru_comp,
-    factor_thru_kernel_subobject_comp_arrow],
-end
+short_complex.projective_lift_comp _ _ _ _
 
 end
 

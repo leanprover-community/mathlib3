@@ -133,17 +133,6 @@ begin
     is_iso.comp_right_eq_zero _ (cokernel_comparison f F)],
 end
 
-/-- The dual result is true even in non-abelian categories, see
-    `category_theory.exact_comp_mono_iff`. -/
-lemma exact_epi_comp_iff {W : C} (h : W ⟶ X) [epi h] : exact (h ≫ f) g ↔ exact f g :=
-begin
-  refine ⟨λ hfg, _, λ h, exact_epi_comp _ _ _ h⟩,
-  let hc := is_cokernel_of_comp _ _ (colimit.is_colimit (parallel_pair (h ≫ f) 0))
-    (by rw [← cancel_epi h, ← category.assoc, cokernel_cofork.condition, comp_zero]) rfl,
-  refine (exact_iff' _ _ (limit.is_limit _) hc).2 ⟨_, ((exact_iff _ _).1 hfg).2⟩,
-  exact zero_of_epi_comp h (by rw [← hfg.1, category.assoc])
-end
-
 /-- If `(f, g)` is exact, then `abelian.image.ι f` is a kernel of `g`. -/
 def is_limit_image (h : exact f g) :
   is_limit
@@ -243,79 +232,6 @@ by conv_lhs { rw ← abelian.image.fac f }; apply exact_epi_comp_iff
 lemma exact_iff_exact_coimage_π : exact f g ↔ exact f (coimage.π g) :=
 by conv_lhs { rw ← abelian.coimage.fac g}; apply exact_comp_mono_iff
 
-section
-variables (Z)
-
-lemma tfae_mono : tfae [mono f, kernel.ι f = 0, exact (0 : Z ⟶ X) f] :=
-begin
-  tfae_have : 3 → 2,
-  { sorry, },--{ exact kernel_ι_eq_zero_of_exact_zero_left Z },
-  tfae_have : 1 → 3,
-  { sorry, },
-  --{ introsI, exact exact_zero_left_of_mono Z },
-  tfae_have : 2 → 1,
-  { exact mono_of_kernel_ι_eq_zero _ },
-  tfae_finish
-end
-
--- Note we've already proved `mono_iff_exact_zero_left : mono f ↔ exact (0 : Z ⟶ X) f`
--- in any preadditive category with kernels and images.
-
-lemma mono_iff_kernel_ι_eq_zero : mono f ↔ kernel.ι f = 0 :=
-(tfae_mono X f).out 0 1
-
-lemma tfae_epi : tfae [epi f, cokernel.π f = 0, exact f (0 : Y ⟶ Z)] :=
-begin
-  tfae_have : 3 → 2,
-  { rw exact_iff,
-    rintro ⟨-, h⟩,
-    exact zero_of_epi_comp _ h },
-  tfae_have : 1 → 3,
-  { rw exact_iff,
-    introI,
-    exact ⟨by simp, by simp [cokernel.π_of_epi]⟩ },
-  tfae_have : 2 → 1,
-  { exact epi_of_cokernel_π_eq_zero _ },
-  tfae_finish
-end
-
--- Note we've already proved `epi_iff_exact_zero_right : epi f ↔ exact f (0 : Y ⟶ Z)`
--- in any preadditive category with equalizers and images.
-
-lemma epi_iff_cokernel_π_eq_zero : epi f ↔ cokernel.π f = 0 :=
-(tfae_epi X f).out 0 1
-
-end
-
-section opposite
-
-lemma exact.op (h : exact f g) : exact g.op f.op :=
-begin
-  rw exact_iff,
-  refine ⟨by simp [← op_comp, h.w], quiver.hom.unop_inj _⟩,
-  simp only [unop_comp, cokernel.π_op, eq_to_hom_refl, kernel.ι_op, category.id_comp,
-    category.assoc, kernel_comp_cokernel_assoc _ _ h, zero_comp, comp_zero, unop_zero],
-end
-
-lemma exact.op_iff : exact g.op f.op ↔ exact f g :=
-⟨λ e, begin
-  rw ← is_equivalence.exact_iff _ _ (op_op_equivalence C).inverse,
-  exact exact.op _ _ e
-end, exact.op _ _⟩
-
-
-lemma exact.unop {X Y Z : Cᵒᵖ} (g : X ⟶ Y) (f : Y ⟶ Z) (h : exact g f) : exact f.unop g.unop :=
-begin
-  rw [← f.op_unop, ← g.op_unop] at h,
-  rwa ← exact.op_iff,
-end
-
-lemma exact.unop_iff {X Y Z : Cᵒᵖ} (g : X ⟶ Y) (f : Y ⟶ Z) : exact f.unop g.unop ↔ exact g f :=
-⟨λ e, by rwa [← f.op_unop, ← g.op_unop, ← exact.op_iff] at e, λ e, @@exact.unop _ _ g f e⟩
-
-end opposite
-
-
 end abelian
 
 namespace functor
@@ -350,24 +266,6 @@ open limits abelian
 variables {A : Type u₁} {B : Type u₂} [category.{v₁} A] [category.{v₂} B]
 variables [abelian A] [abelian B]
 variables (L : A ⥤ B)
-
-section
-
-variables [preserves_finite_limits L] [preserves_finite_colimits L]
-
-/-- A functor preserving finite limits and finite colimits preserves exactness. The converse
-result is also true, see `functor.preserves_finite_limits_of_map_exact` and
-`functor.preserves_finite_colimits_of_map_exact`. -/
-lemma map_exact {X Y Z : A} (f : X ⟶ Y) (g : Y ⟶ Z) (e1 : exact f g) :
-  exact (L.map f) (L.map g) :=
-begin
-  let hcoker := is_colimit_of_has_cokernel_of_preserves_colimit L f,
-  let hker := is_limit_of_has_kernel_of_preserves_limit L g,
-  refine (exact_iff' _ _ hker hcoker).2 ⟨by simp [← L.map_comp, e1.1], _⟩,
-  rw [fork.ι_of_ι, cofork.π_of_π, ← L.map_comp, kernel_comp_cokernel _ _ e1, L.map_zero]
-end
-
-end
 
 section
 

@@ -827,4 +827,10 @@ begin
     apply_instance, },
 end
 
+variable (S)
+
+def some_homology_data' [S.has_homology] : S.homology_data :=
+homology_data.of_is_iso_left_right_homology_comparison'
+    S.some_left_homology_data S.some_right_homology_data
+
 end short_complex

@@ -557,6 +557,18 @@ begin
   tauto,
 end
 
+lemma eq_one_or_neg_one_of_mul_eq_neg_one' {z w : ℤ} (h : z * w = -1) :
+z = 1 ∧ w = -1 ∨ z = -1 ∧ w = 1 :=
+begin
+  obtain ⟨h₁, h₂⟩ := is_unit.mul_iff.mp (int.is_unit_iff.mpr (or.inr h)),
+  rcases is_unit_eq_one_or h₁ with (rfl | rfl),
+  { rw one_mul at h, exact or.inl ⟨rfl, h⟩, },
+  { rw [neg_one_mul, neg_inj] at h, exact or.inr ⟨rfl, h⟩, }
+end
+
+lemma eq_one_or_neg_one_of_mul_eq_neg_one {z w : ℤ} (h : z * w = -1) : z = 1 ∨ z = -1 :=
+or.elim (eq_one_or_neg_one_of_mul_eq_neg_one' h) (λ H, or.inl H.1) (λ H, or.inr H.1)
+
 theorem is_unit_iff_nat_abs_eq {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=
 by simp [nat_abs_eq_iff, is_unit_iff, nat.cast_zero]
 

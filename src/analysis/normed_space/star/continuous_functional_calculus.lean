@@ -12,39 +12,12 @@ import topology.algebra.star_subalgebra
   [star_ring A] [algebra R A] [star_module R A] (a : R) : (↑(star a) : A) = star ↑a :=
 algebra_map_star_comm a
 
-namespace subring_class
+namespace star_subalgebra
 
-variables {S R : Type*} [set_like S R]
-
-instance to_semi_normed_ring [semi_normed_ring R] [subring_class S R] (s : S) :
-  semi_normed_ring s :=
-semi_normed_ring.induced s R (subring_class.subtype s)
-
-instance to_normed_ring [normed_ring R] [subring_class S R] (s : S) :
-  normed_ring s :=
-normed_ring.induced s R (subring_class.subtype s) subtype.val_injective
-
-instance to_semi_normed_comm_ring [semi_normed_comm_ring R] [h : subring_class S R] (s : S) :
-  semi_normed_comm_ring s :=
-{ mul_comm := mul_comm, .. subring_class.to_semi_normed_ring s }
-
-instance to_normed_comm_ring [normed_comm_ring R] [subring_class S R] (s : S) :
-  normed_comm_ring s :=
-{ mul_comm := mul_comm, .. subring_class.to_normed_ring s }
-
-end subring_class
-
-instance subalgebra.to_normed_algebra {𝕜 A : Type*} [semi_normed_ring A] [normed_field 𝕜]
-  [normed_algebra 𝕜 A] (S : subalgebra 𝕜 A) : normed_algebra 𝕜 S :=
-@normed_algebra.induced _ 𝕜 S A _ (subring_class.to_ring S) S.algebra _ _ _ S.val
-
-instance star_subalgebra.to_normed_algebra {𝕜 A : Type*} [normed_field 𝕜] [star_ring 𝕜]
+instance to_normed_algebra {𝕜 A : Type*} [normed_field 𝕜] [star_ring 𝕜]
   [semi_normed_ring A] [star_ring A] [normed_algebra 𝕜 A] [star_module 𝕜 A]
   (S : star_subalgebra 𝕜 A) : normed_algebra 𝕜 S :=
 @normed_algebra.induced _ 𝕜 S A _ (subring_class.to_ring S) S.algebra _ _ _ S.subtype
-.
-
-namespace star_subalgebra
 
 instance to_cstar_ring {R A} [comm_ring R] [star_ring R] [normed_ring A]
   [star_ring A] [cstar_ring A] [algebra R A] [star_module R A] (S : star_subalgebra R A) :

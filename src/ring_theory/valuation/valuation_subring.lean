@@ -743,20 +743,12 @@ instance mul_action (A : valuation_subring L) :
   smul_mul := λ g k l, subtype.ext $ smul_mul' g k l,
    ..(sub_mul_action.mul_action (A.sub_mul_action K)) }
 
-variable {K}
-
-/--The group homomorphism from the decomposition subgroup to the group of automorphisms
- of the residue field of `A`.-/
-noncomputable def decomposition_subgroup_to_res_aut (A : valuation_subring L) :
-    (A.decomposition_subgroup K) →* ring_aut (local_ring.residue_field A) :=
-    (local_ring.residue_field.map_aut).comp
-    (mul_semiring_action.to_ring_aut (A.decomposition_subgroup K) A)
-
 /-- The inertia subgroup defined as the kernel of the group homomorphism from
 the decomposition subgroup to the group of automorphisms of the residue field of `A`. -/
-noncomputable def inertia_subgroup (A : valuation_subring L) :
+def inertia_subgroup (A : valuation_subring L) :
   subgroup (A.decomposition_subgroup K) :=
-  monoid_hom.ker $ decomposition_subgroup_to_res_aut A
+  monoid_hom.ker $
+  mul_semiring_action.to_ring_aut (A.decomposition_subgroup K) (local_ring.residue_field A)
 
 end
 

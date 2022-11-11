@@ -148,9 +148,9 @@ variables (G)
 
 /-- If `G` has `n` commutators `[g₁, g₂]`, then `|G'| ∣ [G : Z(G)] ^ ([G : Z(G)] * n + 1)`,
 where `G'` denotes the commutator of `G`. -/
-lemma card_commutator_dvd_index_center_pow [finite {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g}] :
+lemma card_commutator_dvd_index_center_pow [finite (commutator_set G)] :
   nat.card (commutator G) ∣
-    (center G).index ^ ((center G).index * nat.card {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} + 1) :=
+    (center G).index ^ ((center G).index * nat.card (commutator_set G) + 1) :=
 begin
   -- First handle the case when `Z(G)` has infinite index and `[G : Z(G)]` is defined to be `0`
   by_cases hG : (center G).index = 0,

@@ -279,12 +279,6 @@ instance : normed_add_comm_group punit :=
 
 @[simp] lemma punit.norm_eq_zero (r : punit) : ∥r∥ = 0 := rfl
 
-instance : has_norm ℝ := { norm := λ x, |x| }
-
-@[simp] lemma real.norm_eq_abs (r : ℝ) : ∥r∥ = |r| := rfl
-
-instance : normed_add_comm_group ℝ := ⟨λ x y, rfl⟩
-
 section seminormed_group
 variables [seminormed_group E] [seminormed_group F] [seminormed_group G] {s : set E}
   {a a₁ a₂ b b₁ b₂ : E} {r r₁ r₂ : ℝ}
@@ -321,6 +315,12 @@ lemma norm_inv' (a : E) : ∥a⁻¹∥ = ∥a∥ := by simpa using norm_div_rev 
 
 @[simp, to_additive] lemma dist_mul_right (a₁ a₂ b : E) : dist (a₁ * b) (a₂ * b) = dist a₁ a₂ :=
 by simp [dist_eq_norm_div]
+
+@[simp, to_additive] lemma dist_mul_self_right (a b : E) : dist b (a * b) = ∥a∥ :=
+by rw [←dist_one_left, ←dist_mul_right 1 a b, one_mul]
+
+@[simp, to_additive] lemma dist_mul_self_left (a b : E) : dist (a * b) b = ∥a∥ :=
+by rw [dist_comm, dist_mul_self_right]
 
 @[to_additive] lemma dist_div_right (a₁ a₂ b : E) : dist (a₁ / b) (a₂ / b) = dist a₁ a₂ :=
 by simpa only [div_eq_mul_inv] using dist_mul_right _ _ _
@@ -376,6 +376,9 @@ lemma norm_of_subsingleton' [subsingleton E] (a : E) : ∥a∥ = 0 :=
 by rw [subsingleton.elim a 1, norm_one']
 
 attribute [nontriviality] norm_of_subsingleton
+
+@[to_additive zero_lt_one_add_norm_sq]
+lemma zero_lt_one_add_norm_sq' (x : E) : 0 < 1 + ∥x∥^2 := by positivity
 
 @[to_additive] lemma norm_div_le (a b : E) : ∥a / b∥ ≤ ∥a∥ + ∥b∥ :=
 by simpa [dist_eq_norm_div] using dist_triangle a 1 b
@@ -454,6 +457,16 @@ by simpa only [div_div_div_cancel_right'] using norm_sub_norm_le' (u / w) (v / w
 @[to_additive bounded_iff_forall_norm_le]
 lemma bounded_iff_forall_norm_le' : bounded s ↔ ∃ C, ∀ x ∈ s, ∥x∥ ≤ C :=
 by simpa only [set.subset_def, mem_closed_ball_one_iff] using bounded_iff_subset_ball (1 : E)
+
+alias bounded_iff_forall_norm_le' ↔ metric.bounded.exists_norm_le' _
+alias bounded_iff_forall_norm_le ↔ metric.bounded.exists_norm_le _
+
+attribute [to_additive metric.bounded.exists_norm_le] metric.bounded.exists_norm_le'
+
+@[to_additive metric.bounded.exists_pos_norm_le]
+lemma metric.bounded.exists_pos_norm_le' (hs : metric.bounded s) : ∃ R > 0, ∀ x ∈ s, ∥x∥ ≤ R :=
+let ⟨R₀, hR₀⟩ := hs.exists_norm_le' in
+  ⟨max R₀ 1, by positivity, λ x hx, (hR₀ x hx).trans $ le_max_left _ _⟩
 
 @[simp, to_additive mem_sphere_iff_norm]
 lemma mem_sphere_iff_norm' : b ∈ sphere a r ↔ ∥b / a∥ = r := by simp [dist_eq_norm_div]
@@ -743,6 +756,12 @@ lipschitz_with_one_norm'.uniform_continuous
 @[to_additive uniform_continuous_nnnorm]
 lemma uniform_continuous_nnnorm' : uniform_continuous (λ (a : E), ∥a∥₊) :=
 uniform_continuous_norm'.subtype_mk _
+
+@[to_additive] lemma mem_closure_one_iff_norm {x : E} : x ∈ closure ({1} : set E) ↔ ∥x∥ = 0 :=
+by rw [←closed_ball_zero', mem_closed_ball_one_iff, (norm_nonneg' x).le_iff_eq]
+
+@[to_additive] lemma closure_one_eq : closure ({1} : set E) = {x | ∥x∥ = 0} :=
+set.ext (λ x, mem_closure_one_iff_norm)
 
 /-- A helper lemma used to prove that the (scalar or usual) product of a function that tends to one
 and a bounded function tends to one. This lemma is formulated for any binary operation
@@ -1160,12 +1179,46 @@ lemma nnnorm_prod_le_of_le (s : finset ι) {f : ι → E} {n : ι → ℝ≥0} (
   ∥∏ b in s, f b∥₊ ≤ ∑ b in s, n b :=
 (norm_prod_le_of_le s h).trans_eq nnreal.coe_sum.symm
 
-lemma real.to_nnreal_eq_nnnorm_of_nonneg {r : ℝ} (hr : 0 ≤ r) : r.to_nnreal = ∥r∥₊ :=
+namespace real
+
+instance : has_norm ℝ := { norm := λ r, |r| }
+
+@[simp] lemma norm_eq_abs (r : ℝ) : ∥r∥ = |r| := rfl
+
+instance : normed_add_comm_group ℝ := ⟨λ r y, rfl⟩
+
+lemma norm_of_nonneg (hr : 0 ≤ r) : ∥r∥ = r := abs_of_nonneg hr
+lemma norm_of_nonpos (hr : r ≤ 0) : ∥r∥ = -r := abs_of_nonpos hr
+lemma le_norm_self (r : ℝ) : r ≤ ∥r∥ := le_abs_self r
+
+@[simp] lemma norm_coe_nat (n : ℕ) : ∥(n : ℝ)∥ = n := abs_of_nonneg n.cast_nonneg
+@[simp] lemma nnnorm_coe_nat (n : ℕ) : ∥(n : ℝ)∥₊ = n := nnreal.eq $ norm_coe_nat _
+
+@[simp] lemma norm_two : ∥(2 : ℝ)∥ = 2 := abs_of_pos (@zero_lt_two ℝ _ _)
+
+@[simp] lemma nnnorm_two : ∥(2 : ℝ)∥₊ = 2 := nnreal.eq $ by simp
+
+lemma nnnorm_of_nonneg (hr : 0 ≤ r) : ∥r∥₊ = ⟨r, hr⟩ := nnreal.eq $ norm_of_nonneg hr
+
+lemma ennnorm_eq_of_real (hr : 0 ≤ r) : (∥r∥₊ : ℝ≥0∞) = ennreal.of_real r :=
+by { rw [← of_real_norm_eq_coe_nnnorm, norm_of_nonneg hr] }
+
+lemma to_nnreal_eq_nnnorm_of_nonneg (hr : 0 ≤ r) : r.to_nnreal = ∥r∥₊ :=
 begin
   rw real.to_nnreal_of_nonneg hr,
   congr,
   rw [real.norm_eq_abs, abs_of_nonneg hr],
 end
+
+lemma of_real_le_ennnorm (r : ℝ) : ennreal.of_real r ≤ ∥r∥₊ :=
+begin
+  obtain hr | hr := le_total 0 r,
+  { exact (real.ennnorm_eq_of_real hr).ge },
+  { rw [ennreal.of_real_eq_zero.2 hr],
+    exact bot_le }
+end
+
+end real
 
 namespace lipschitz_with
 variables [pseudo_emetric_space α] {K Kf Kg : ℝ≥0} {f g : α → E}

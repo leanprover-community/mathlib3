@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Julian Kuelshammer
 -/
 import algebra.hom.iterate
 import data.nat.modeq
+import data.int.units
 import data.set.pointwise.basic
 import dynamics.periodic_pts
 import group_theory.index
@@ -257,6 +258,14 @@ begin
   simp only [order_of, mul_left_iterate],
 end
 
+@[to_additive add_order_of_nsmul_coprime]
+lemma order_of_pow_coprime (h : (order_of y).coprime m) : order_of (y ^ m) = order_of y :=
+begin
+  by_cases hg : order_of y = 0,
+  { rw [m.coprime_zero_left.mp (hg ▸ h), pow_one] },
+  { rw [order_of_pow'' y m (hg.imp_symm order_of_eq_zero), h.gcd_eq_one, nat.div_one] },
+end
+
 @[to_additive]
 lemma commute.order_of_mul_dvd_lcm {x y : G} (h : commute x y) :
   order_of (x * y) ∣ nat.lcm (order_of x) (order_of y) :=
@@ -413,6 +422,47 @@ begin
   rw [pow_eq_mod_order_of, @pow_eq_mod_order_of _ _ _ m],
   exact ⟨pow_injective_of_lt_order_of _ (nat.mod_lt _ hx) (nat.mod_lt _ hx), λ h, congr_arg _ h⟩
 end
+
+@[simp, to_additive zsmul_smul_order_of]
+lemma zpow_pow_order_of : (x^i)^order_of x = 1 :=
+begin
+  by_cases h : is_of_fin_order x,
+  { rw [← zpow_coe_nat, ← zpow_mul, mul_comm, zpow_mul, zpow_coe_nat, pow_order_of_eq_one,
+      one_zpow], },
+  { rw [order_of_eq_zero h, pow_zero], },
+end
+
+@[to_additive is_of_fin_add_order.zsmul]
+lemma is_of_fin_order.zpow (h : is_of_fin_order x) {i : ℤ} : is_of_fin_order (x^i) :=
+(is_of_fin_order_iff_pow_eq_one _).mpr ⟨order_of x, order_of_pos' h, zpow_pow_order_of⟩
+
+@[to_additive is_of_fin_add_order.of_mem_zmultiples]
+lemma is_of_fin_order.of_mem_zpowers (h : is_of_fin_order x) (h' : y ∈ subgroup.zpowers x) :
+  is_of_fin_order y :=
+by { obtain ⟨k, rfl⟩ := subgroup.mem_zpowers_iff.mp h', exact h.zpow, }
+
+@[to_additive add_order_of_dvd_of_mem_zmultiples]
+lemma order_of_dvd_of_mem_zpowers (h : y ∈ subgroup.zpowers x) : order_of y ∣ order_of x :=
+begin
+  obtain ⟨k, rfl⟩ := subgroup.mem_zpowers_iff.mp h,
+  rw order_of_dvd_iff_pow_eq_one,
+  exact zpow_pow_order_of,
+end
+
+lemma smul_eq_self_of_mem_zpowers {α : Type*} [mul_action G α]
+  (hx : x ∈ subgroup.zpowers y) {a : α} (hs : y • a = a) : x • a = a :=
+begin
+  obtain ⟨k, rfl⟩ := subgroup.mem_zpowers_iff.mp hx,
+  rw [← mul_action.to_perm_apply, ← mul_action.to_perm_hom_apply,
+    monoid_hom.map_zpow _ y k, mul_action.to_perm_hom_apply],
+  exact equiv.is_fixed_pt.zpow hs k,
+end
+
+lemma vadd_eq_self_of_mem_zmultiples {α G : Type*} [add_group G] [add_action G α] {x y : G}
+  (hx : x ∈ add_subgroup.zmultiples y) {a : α} (hs : y +ᵥ a = a) : x +ᵥ a = a :=
+@smul_eq_self_of_mem_zpowers (multiplicative G) _ _ _ α _ hx a hs
+
+attribute [to_additive vadd_eq_self_of_mem_zmultiples] smul_eq_self_of_mem_zpowers
 
 end group
 

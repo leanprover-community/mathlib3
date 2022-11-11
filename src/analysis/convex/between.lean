@@ -3,6 +3,7 @@ Copyright (c) 2022 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
+import data.set.intervals.group
 import analysis.convex.segment
 import linear_algebra.affine_space.finite_dimensional
 import tactic.field_simp
@@ -573,6 +574,16 @@ begin
   refine ⟨wbtw_point_reflection _ _ _, h, _⟩,
   nth_rewrite 0 [←point_reflection_self R x],
   exact (point_reflection_involutive R x).injective.ne h
+end
+
+lemma wbtw_midpoint (x y : P) : wbtw R x (midpoint R x y) y :=
+by { convert wbtw_point_reflection R (midpoint R x y) x, simp }
+
+lemma sbtw_midpoint_of_ne {x y : P} (h : x ≠ y) : sbtw R x (midpoint R x y) y :=
+begin
+  have h : midpoint R x y ≠ x, { simp [h] },
+  convert sbtw_point_reflection_of_ne R h,
+  simp
 end
 
 end linear_ordered_field

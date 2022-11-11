@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Yury Kudryashov
 -/
 import algebra.group.type_tags
+import algebra.group.commute
 import algebra.hom.group
 import algebra.opposites
-import logic.embedding
+import logic.embedding.basic
 
 /-!
 # Definitions of group actions

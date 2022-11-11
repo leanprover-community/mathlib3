@@ -231,6 +231,9 @@ lemma sup_eq_sup_iff_left : a ⊔ b = a ⊔ c ↔ b ≤ a ⊔ c ∧ c ≤ a ⊔ 
 lemma sup_eq_sup_iff_right : a ⊔ c = b ⊔ c ↔ a ≤ b ⊔ c ∧ b ≤ a ⊔ c :=
 ⟨λ h, ⟨h ▸ le_sup_left, h.symm ▸ le_sup_left⟩, λ h, sup_congr_right h.1 h.2⟩
 
+lemma ne.lt_sup_or_lt_sup (hab : a ≠ b) : a < a ⊔ b ∨ b < a ⊔ b :=
+hab.symm.not_le_or_not_le.imp left_lt_sup.2 right_lt_sup.2
+
 /-- If `f` is monotone, `g` is antitone, and `f ≤ g`, then for all `a`, `b` we have `f a ≤ g b`. -/
 theorem monotone.forall_le_of_antitone {β : Type*} [preorder β] {f g : α → β}
   (hf : monotone f) (hg : antitone g) (h : f ≤ g) (m n : α) :
@@ -384,6 +387,8 @@ lemma inf_eq_inf_iff_left : a ⊓ b = a ⊓ c ↔ a ⊓ c ≤ b ∧ a ⊓ b ≤ 
 
 lemma inf_eq_inf_iff_right : a ⊓ c = b ⊓ c ↔ b ⊓ c ≤ a ∧ a ⊓ c ≤ b :=
 @sup_eq_sup_iff_right αᵒᵈ _ _ _ _
+
+lemma ne.inf_lt_or_inf_lt : a ≠ b → a ⊓ b < a ∨ a ⊓ b < b := @ne.lt_sup_or_lt_sup αᵒᵈ _ _ _
 
 theorem semilattice_inf.ext_inf {α} {A B : semilattice_inf α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)

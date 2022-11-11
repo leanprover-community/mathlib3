@@ -83,10 +83,9 @@ then `x` is an accumulation point of `U ∩ C`. -/
 theorem acc_pt.nhd_inter {x : α} {C U: set α} (h_acc : acc_pt x C) (hU : U ∈ 𝓝 x) :
   acc_pt x (U ∩ C) :=
 begin
-  have : 𝓝[≠] x ≤ 𝓟 U, {
-    rw le_principal_iff,
-    exact mem_nhds_within_of_mem_nhds hU,
-  },
+  have : 𝓝[≠] x ≤ 𝓟 U,
+  { rw le_principal_iff,
+    exact mem_nhds_within_of_mem_nhds hU, },
   rw [acc_pt, ← inf_principal, ← inf_assoc, inf_of_le_left this],
   exact h_acc,
 end
@@ -138,7 +137,8 @@ begin
 end
 
 --perhaps this belongs in a different file?
-theorem frequently_nhds_nhds {x : α} {p : α → α → Prop} : (∃ᶠ y in 𝓝 x, ∃ᶠ z in 𝓝 y, p x z) → (∃ᶠ z in 𝓝 x, p x z) :=
+theorem frequently_nhds_nhds {x : α} {p : α → α → Prop} :
+  (∃ᶠ y in 𝓝 x, ∃ᶠ z in 𝓝 y, p x z) → (∃ᶠ z in 𝓝 x, p x z) :=
 begin
   rw [(nhds_basis_opens _).frequently_iff, (nhds_basis_opens _).frequently_iff],
   rintros h U ⟨xU,Uop⟩,
@@ -210,8 +210,8 @@ begin
   let v := {U ∈ b | (U ∩ C).countable},
   let V := ⋃ U ∈ v, U,
   let D := C ∩ Vᶜ, --C \ V did not work
-  have Vct : (V ∩ C).countable, {
-    simp[V,Union_inter],
+  have Vct : (V ∩ C).countable,
+  { simp[V,Union_inter],
     apply set.countable.bUnion,
     { apply @set.countable.mono _ _ b,
       { apply set.inter_subset_left, },

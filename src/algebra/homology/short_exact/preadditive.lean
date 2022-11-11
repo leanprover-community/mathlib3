@@ -28,7 +28,7 @@ namespace category_theory
 variables {A B C A' B' C' : 𝒜} (f : A ⟶ B) (g : B ⟶ C) (f' : A' ⟶ B') (g' : B' ⟶ C')
 
 section has_zero_morphisms
-variables [has_zero_morphisms 𝒜] [has_kernels 𝒜] [has_images 𝒜]
+variables [has_zero_morphisms 𝒜]
 
 /-- If `f : A ⟶ B` and `g : B ⟶ C` then `short_exact f g` is the proposition saying
   the resulting diagram `0 ⟶ A ⟶ B ⟶ C ⟶ 0` is an exact sequence. -/
@@ -93,34 +93,35 @@ structure split : Prop :=
 (split : ∃ (φ : B ⟶ A) (χ : C ⟶ B),
   f ≫ φ = 𝟙 A ∧ χ ≫ g = 𝟙 C ∧ f ≫ g = 0 ∧ χ ≫ φ = 0 ∧ φ ≫ f + g ≫ χ = 𝟙 B)
 
-variables [has_kernels 𝒜] [has_images 𝒜]
-
-lemma exact_of_split {A B C : 𝒜} {f : A ⟶ B} {g : B ⟶ C} {χ : C ⟶ B} {φ : B ⟶ A}
+/-lemma exact_of_split [has_zero_object 𝒜]
+  {A B C : 𝒜} {f : A ⟶ B} {g : B ⟶ C} {χ : C ⟶ B} {φ : B ⟶ A}
   (hfg : f ≫ g = 0) (H : φ ≫ f + g ≫ χ = 𝟙 B) : exact f g :=
 { w := hfg,
-  epi :=
-  begin
-    let ψ : (kernel_subobject g : 𝒜) ⟶ image_subobject f :=
-      subobject.arrow _ ≫ φ ≫ factor_thru_image_subobject f,
-    suffices : ψ ≫ image_to_kernel f g hfg = 𝟙 _,
-    { convert epi_of_epi ψ _, rw this, apply_instance },
-    rw ← cancel_mono (subobject.arrow _), swap, { apply_instance },
-    simp only [image_to_kernel_arrow, image_subobject_arrow_comp, category.id_comp, category.assoc],
-    calc (kernel_subobject g).arrow ≫ φ ≫ f
-        = (kernel_subobject g).arrow ≫ 𝟙 B : _
-    ... = (kernel_subobject g).arrow        : category.comp_id _,
-    rw [← H, preadditive.comp_add],
-    simp only [add_zero, zero_comp, kernel_subobject_arrow_comp_assoc],
-  end }
+  exact := short_complex.splitting.exact
+  { r := sorry,
+    s := sorry,
+    f_r := sorry,
+    s_g := sorry,
+    id := sorry, }, }-/
 
 section
 
 variables {f g}
 
-lemma split.exact (h : split f g) : exact f g :=
-by { obtain ⟨φ, χ, -, -, h1, -, h2⟩ := h, exact exact_of_split h1 h2 }
+lemma split.exact [has_zero_object 𝒜] (h : split f g) : exact f g :=
+begin
+  obtain ⟨r, s, f_r, s_g, w, -, id⟩ := h,
+  exact
+  { w := w,
+    exact := short_complex.splitting.exact
+    { r := r,
+      s := s,
+      f_r := f_r,
+      s_g := s_g,
+      id := id, }, },
+end
 
-lemma split.left_split (h : split f g) : left_split f g :=
+lemma split.left_split [has_zero_object 𝒜] (h : split f g) : left_split f g :=
 { left_split := by { obtain ⟨φ, χ, h1, -⟩ := h, exact ⟨φ, h1⟩, },
   epi := begin
     obtain ⟨φ, χ, -, h2, -⟩ := h,
@@ -129,7 +130,7 @@ lemma split.left_split (h : split f g) : left_split f g :=
   end,
   exact := h.exact }
 
-lemma split.right_split (h : split f g) : right_split f g :=
+lemma split.right_split [has_zero_object 𝒜] (h : split f g) : right_split f g :=
 { right_split := by { obtain ⟨φ, χ, -, h1, -⟩ := h, exact ⟨χ, h1⟩, },
   mono := begin
     obtain ⟨φ, χ, h1, -⟩ := h,
@@ -138,7 +139,7 @@ lemma split.right_split (h : split f g) : right_split f g :=
   end,
   exact := h.exact }
 
-lemma split.short_exact (h : split f g) : short_exact f g :=
+lemma split.short_exact [has_zero_object 𝒜] (h : split f g) : short_exact f g :=
 h.left_split.short_exact
 
 end
@@ -153,14 +154,14 @@ begin
 end
 
 /-- The sequence `A ⟶ A ⊞ B ⟶ B` is exact. -/
-lemma exact_inl_snd [has_binary_biproducts 𝒜] (A B : 𝒜) :
+lemma exact_inl_snd [has_zero_object 𝒜] (A B : 𝒜) [has_binary_biproduct A B] :
   exact (biprod.inl : A ⟶ A ⊞ B) biprod.snd :=
-exact_of_split biprod.inl_snd biprod.total
+split.exact ⟨⟨biprod.fst, biprod.inr, by tidy⟩⟩
 
 /-- The sequence `B ⟶ A ⊞ B ⟶ A` is exact. -/
-lemma exact_inr_fst [has_binary_biproducts 𝒜] (A B : 𝒜) :
+lemma exact_inr_fst [has_zero_object 𝒜] (A B : 𝒜) [has_binary_biproduct A B] :
   exact (biprod.inr : B ⟶ A ⊞ B) biprod.fst :=
-exact_of_split biprod.inr_fst ((add_comm _ _).trans biprod.total)
+split.exact ⟨⟨biprod.snd, biprod.inl, by tidy⟩⟩
 
 end preadditive
 
@@ -168,7 +169,7 @@ end preadditive
 to the short exact sequence `0 ⟶ A ⟶ A ⊞ C ⟶ C ⟶ 0` such that
 the vertical maps on the left and the right are the identity. -/
 @[nolint has_nonempty_instance]
-structure splitting [has_zero_morphisms 𝒜] [has_binary_biproducts 𝒜] :=
+structure splitting [has_zero_morphisms 𝒜] [has_binary_biproduct A C] :=
 (iso : B ≅ A ⊞ C)
 (comp_iso_eq_inl : f ≫ iso.hom = biprod.inl)
 (iso_comp_snd_eq : iso.hom ≫ biprod.snd = g)
@@ -178,7 +179,7 @@ variables {f g}
 namespace splitting
 
 section has_zero_morphisms
-variables [has_zero_morphisms 𝒜] [has_binary_biproducts 𝒜]
+variables [has_zero_morphisms 𝒜] [has_binary_biproduct A C]
 
 attribute [simp, reassoc] comp_iso_eq_inl iso_comp_snd_eq
 
@@ -217,7 +218,8 @@ protected def split_epi : split_epi g := ⟨h.section, by simp⟩
 
 /-- A short exact sequence of the form `X -f⟶ Y -0⟶ Z` where `f` is an iso and `Z` is zero
 has a splitting. -/
-def splitting_of_is_iso_zero {X Y Z : 𝒜} (f : X ⟶ Y) [is_iso f] (hZ : is_zero Z) :
+def splitting_of_is_iso_zero {X Y Z : 𝒜} (f : X ⟶ Y) [is_iso f] (hZ : is_zero Z)
+  [has_binary_biproduct X Z] :
   splitting f (0 : Y ⟶ Z) :=
 ⟨(as_iso f).symm ≪≫ iso_biprod_zero hZ, by simp [hZ.eq_of_tgt _ 0], by simp⟩
 
@@ -246,7 +248,7 @@ by { delta retraction, apply epi_comp }
 end has_zero_morphisms
 
 section preadditive
-variables [preadditive 𝒜] [has_binary_biproducts 𝒜]
+variables [preadditive 𝒜] [has_binary_biproduct A C]
 variables (h : splitting f g)
 
 lemma split_add : h.retraction ≫ f + g ≫ h.section = 𝟙 _ :=
@@ -291,21 +293,11 @@ end
 @[reassoc] lemma comp_eq_zero : f ≫ g = 0 :=
 h.split.1.some_spec.some_spec.2.2.1
 
-variables [has_kernels 𝒜] [has_images 𝒜] [has_zero_object 𝒜] [has_cokernels 𝒜]
-
-protected lemma exact : exact f g :=
-begin
-  rw exact_iff_exact_of_iso f g (biprod.inl : A ⟶ A ⊞ C) (biprod.snd : A ⊞ C ⟶ C) _ _ _,
-  { exact exact_inl_snd _ _ },
-  { refine arrow.iso_mk (iso.refl _) h.iso _,
-    simp only [iso.refl_hom, arrow.mk_hom, category.id_comp, comp_iso_eq_inl], },
-  { refine arrow.iso_mk h.iso (iso.refl _) _,
-    dsimp, simp, },
-  { refl }
-end
+protected lemma exact [has_zero_object 𝒜] : exact f g :=
+(split h).exact
 
 protected
-lemma short_exact : short_exact f g :=
+lemma short_exact [has_zero_object 𝒜] : short_exact f g :=
 { mono := h.mono, epi := h.epi, exact := h.exact }
 
 end preadditive

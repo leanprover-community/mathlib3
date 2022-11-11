@@ -3,7 +3,9 @@ import algebra.homology.short_complex_abelian
 import algebra.homology.short_complex_preserves_homology
 import category_theory.preadditive.opposite
 
-open category_theory
+noncomputable theory
+
+open category_theory category_theory.preadditive
 open_locale zero_object
 
 variables {C D : Type*} [category C] [category D]
@@ -275,6 +277,91 @@ begin
   { introI,
     apply_instance, },
 end
+
+variable (S : short_complex C)
+
+structure splitting (S : short_complex C) :=
+(r : S.X₂ ⟶ S.X₁)
+(s : S.X₃ ⟶ S.X₂)
+(f_r : S.f ≫ r = 𝟙 _)
+(s_g : s ≫ S.g = 𝟙 _)
+(id : r ≫ S.f + S.g ≫ s = 𝟙 _)
+
+namespace splitting
+
+attribute [reassoc] f_r s_g
+
+variable {S}
+
+@[simps] def split_mono_f (s : S.splitting) : split_mono S.f := ⟨s.r, s.f_r⟩
+lemma is_split_mono_f (s : S.splitting) : is_split_mono S.f := ⟨⟨s.split_mono_f⟩⟩
+lemma mono_f (s : S.splitting) : mono S.f := by { haveI := s.is_split_mono_f, apply_instance, }
+
+@[simps] def split_epi_g (s : S.splitting) : split_epi S.g := ⟨s.s, s.s_g⟩
+lemma is_split_epi_g (s : S.splitting) : is_split_epi S.g := ⟨⟨s.split_epi_g⟩⟩
+lemma epi_g (s : S.splitting) : epi S.g := by { haveI := s.is_split_epi_g, apply_instance, }
+
+@[simp]
+def left_homology_data [has_zero_object C] (s : S.splitting) :
+  left_homology_data S :=
+begin
+  have hi := kernel_fork.is_limit.of_ι S.f S.zero (λ A x hx, x ≫ s.r)
+    (λ A x hx, by { conv_rhs { rw [← comp_id x, ← s.id, comp_add, reassoc_of hx,
+      zero_comp, add_zero, ← assoc], }, })
+    (λ A x hx b hb, by { dsimp, rw [← hb, assoc, s.f_r, comp_id], }),
+  let f' := hi.lift (kernel_fork.of_ι S.f S.zero),
+  have hf' : f' = 𝟙 _,
+  { apply kernel_fork.is_limit.hom_ext hi,
+    simp only [fork.is_limit.lift_ι, id_comp], },
+  have hπ₀ : f' ≫ (0 : _ ⟶ 0) = 0 := comp_zero,
+  have hπ := cokernel_cofork.is_colimit.of_π 0 hπ₀
+    (λ A x hx, 0)
+    (λ A x hx, begin
+      dsimp,
+      rw [hf', id_comp] at hx,
+      rw [hx, comp_zero],
+    end)
+    (λ A x hx b hb, is_zero.eq_of_src (is_zero_zero _) _ _),
+  exact ⟨S.X₁, 0, S.f, 0, S.zero, hi, hπ₀, hπ⟩,
+end
+
+@[simp]
+def right_homology_data [has_zero_object C] (s : S.splitting) :
+  right_homology_data S :=
+begin
+  have hp := cokernel_cofork.is_colimit.of_π S.g S.zero (λ A x hx, s.s ≫ x)
+    (λ A x hx, by { dsimp, conv_rhs { rw [← id_comp x, ← s.id, add_comp, assoc,
+      hx, comp_zero, zero_add, assoc], }, })
+  (λ A x hx b hb, by { dsimp, rw [← hb, s.s_g_assoc], }),
+  let g' := hp.desc (cokernel_cofork.of_π S.g S.zero),
+  have hg' : g' = 𝟙 _,
+  { apply cokernel_cofork.is_colimit.hom_ext hp,
+    simp only [cofork.is_colimit.π_desc],
+    erw comp_id, },
+  have hι₀ : (0 : 0 ⟶ _) ≫ g' = 0 := zero_comp,
+  have hι := kernel_fork.is_limit.of_ι 0 hι₀
+    (λ A x hx, 0)
+    (λ A x hx, begin
+      dsimp,
+      rw [hg', comp_id] at hx,
+      rw [hx, zero_comp],
+    end)
+    (λ A x hx b hb, is_zero.eq_of_tgt (is_zero_zero _) _ _),
+  exact ⟨S.X₃, 0, S.g, 0, S.zero, hp, hι₀, hι⟩,
+end
+
+@[simps]
+def homology_data [has_zero_object C] (s : S.splitting) :
+  homology_data S :=
+{ left := s.left_homology_data,
+  right := s.right_homology_data,
+  iso := iso.refl 0,
+  comm := by tidy, }
+
+lemma exact [has_zero_object C] (s : S.splitting) : S.exact :=
+⟨s.homology_data, is_zero_zero _⟩
+
+end splitting
 
 end preadditive
 

@@ -3,8 +3,9 @@ Copyright (c) 2022 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
-import algebra.homology.short_complex
+import algebra.homology.short_complex_homology
 
+#exit
 /-!
 
 The object `homology f g w`, where `w : f ≫ g = 0`, can be identified with either a

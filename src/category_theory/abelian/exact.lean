@@ -10,6 +10,7 @@ import category_theory.limits.preserves.shapes.kernels
 import category_theory.preadditive.left_exact
 import category_theory.adjunction.limits
 import algebra.homology.exact
+import algebra.homology.short_complex_short_exact
 import tactic.tfae
 
 /-!
@@ -196,8 +197,8 @@ lemma cokernel.desc.inv [epi g] (ex : exact f g) :
 by simp
 
 instance (ex : exact f g) [mono f] : is_iso (kernel.lift g f ex.w) :=
-  sorry
---  is_iso_of_mono_of_epi (limits.kernel.lift g f ex.w)
+is_iso.of_iso (is_limit.cone_point_unique_up_to_iso
+    ex.exact.f_is_kernel (kernel_is_kernel g))
 
 @[simp, reassoc]
 lemma kernel.lift.inv [mono f] (ex : exact f g) :

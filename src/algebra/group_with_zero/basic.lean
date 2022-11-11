@@ -119,22 +119,6 @@ section
 
 variables [mul_zero_one_class M₀] [nontrivial M₀] {a b : M₀}
 
-variable (M₀)
-
-/-- In a nontrivial monoid with zero, zero and one are different. -/
-instance ne_zero.one : ne_zero (1 : M₀) :=
-⟨begin
-  assume h,
-  rcases exists_pair_ne M₀ with ⟨x, y, hx⟩,
-  apply hx,
-  calc x = 1 * x : by rw [one_mul]
-  ... = 0 : by rw [h, zero_mul]
-  ... = 1 * y : by rw [h, zero_mul]
-  ... = y : by rw [one_mul]
-end⟩
-
-variable {M₀}
-
 lemma left_ne_zero_of_mul_eq_one (h : a * b = 1) : a ≠ 0 :=
 left_ne_zero_of_mul $ ne_zero_of_eq_one h
 

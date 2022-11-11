@@ -149,8 +149,8 @@ end
 lemma star_subalgebra.coe_is_unit {S : star_subalgebra ℂ A} (hS : is_closed (S : set A)) {x : S} :
   is_unit (x : A) ↔ is_unit x :=
 begin
-  refine ⟨λ hx, ⟨⟨x, ⟨(↑hx.unit⁻¹ : A), is_unit_coe_inv_mem hS hx x.prop⟩, _, _⟩, rfl⟩,
-    λ hx, hx.map S.subtype⟩,
+  refine ⟨λ hx, ⟨⟨x, ⟨(↑hx.unit⁻¹ : A), star_subalgebra.is_unit_coe_inv_mem hS hx x.prop⟩, _, _⟩,
+    rfl⟩, λ hx, hx.map S.subtype⟩,
   exacts [subtype.coe_injective hx.mul_coe_inv, subtype.coe_injective hx.coe_inv_mul],
 end
 
@@ -158,7 +158,7 @@ end
 which it is contained. -/
 lemma star_subalgebra.spectrum_eq {S : star_subalgebra ℂ A} (hS : is_closed (S : set A)) (x : S) :
   spectrum ℂ x = spectrum ℂ (x : A) :=
-set.ext $ λ _, not_iff_not.2 (coe_is_unit hS).symm
+set.ext $ λ _, not_iff_not.2 (star_subalgebra.coe_is_unit hS).symm
 
 variables (a)
 
@@ -179,8 +179,8 @@ noncomputable def elemental_star_algebra.character_space_to_spectrum :
   C(character_space ℂ (elemental_star_algebra ℂ a), spectrum ℂ a) :=
 { to_fun := λ φ,
   { val := φ ⟨a, self_mem ℂ a⟩,
-    property := by simpa only [spectrum_eq (elemental_star_algebra.is_closed ℂ a) ⟨a, self_mem ℂ a⟩]
-      using alg_hom.apply_mem_spectrum φ (⟨a, self_mem ℂ a⟩) },
+    property := by simpa only [star_subalgebra.spectrum_eq (elemental_star_algebra.is_closed ℂ a)
+      ⟨a, self_mem ℂ a⟩] using alg_hom.apply_mem_spectrum φ (⟨a, self_mem ℂ a⟩) },
   continuous_to_fun := continuous_induced_rng.2 (map_continuous $
     gelfand_transform ℂ (elemental_star_algebra ℂ a) ⟨a, self_mem ℂ a⟩) }
 
@@ -192,8 +192,9 @@ begin
       continuous_map.coe_mk] using h), _⟩,
   rintros ⟨z, hz⟩,
   set a' : elemental_star_algebra ℂ a := ⟨a, self_mem ℂ a⟩,
-  rw [(show a = a', from rfl), ←spectrum_eq (elemental_star_algebra.is_closed ℂ a) a',
-    ←spectrum.gelfand_transform_eq a', continuous_map.spectrum_eq_range] at hz,
+  rw [(show a = a', from rfl), ←star_subalgebra.spectrum_eq
+    (elemental_star_algebra.is_closed ℂ a) a', ←spectrum.gelfand_transform_eq a',
+    continuous_map.spectrum_eq_range] at hz,
   obtain ⟨φ, rfl⟩ := hz,
   exact ⟨φ, rfl⟩,
 end

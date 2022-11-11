@@ -119,10 +119,9 @@ include hp
 @[reducible] noncomputable def pow_equiv' {n : ℕ} (hn : ¬ p ∣ n) : G ≃ G :=
 pow_equiv hG (hp.out.coprime_iff_not_dvd.mpr hn)
 
-lemma index (H : subgroup G) [finite (G ⧸ H)] :
-  ∃ n : ℕ, H.index = p ^ n :=
+lemma index (H : subgroup G) [H.finite_index] : ∃ n : ℕ, H.index = p ^ n :=
 begin
-  casesI nonempty_fintype (G ⧸ H),
+  haveI := H.normal_core.fintype_quotient_of_finite_index,
   obtain ⟨n, hn⟩ := iff_card.mp (hG.to_quotient H.normal_core),
   obtain ⟨k, hk1, hk2⟩ := (nat.dvd_prime_pow hp.out).mp ((congr_arg _
     (H.normal_core.index_eq_card.trans hn)).mp (subgroup.index_dvd_of_le H.normal_core_le)),
@@ -154,6 +153,7 @@ lemma card_orbit (a : α) [fintype (orbit G a)] :
 begin
   let ϕ := orbit_equiv_quotient_stabilizer G a,
   haveI := fintype.of_equiv (orbit G a) ϕ,
+  haveI := (stabilizer G a).finite_index_of_finite_quotient,
   rw [card_congr ϕ, ←subgroup.index_eq_card],
   exact hG.index (stabilizer G a),
 end

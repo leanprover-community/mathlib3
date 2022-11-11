@@ -224,7 +224,6 @@ end properties
 
 section ideal
 
--- This proof should work for all modules, but we do not know how to localize a module yet.
 /-- An ideal is trivial if its localization at every maximal ideal is trivial. -/
 lemma ideal_eq_zero_of_localization (I : ideal R)
    (h : ∀ (J : ideal R) (hJ : J.is_maximal),
@@ -255,25 +254,6 @@ begin
   rwa mul_comm at hm,
 end
 
-lemma module_eq_zero_of_localization {M : Type*} [add_comm_group M] [module R M]
-  (H : ∀ (J : ideal R) (hJ : J.is_maximal),
-    by exactI subsingleton (localized_module J.prime_compl M)) : subsingleton M :=
-begin
-  rw ← not_nontrivial_iff_subsingleton,
-  introI h,
-  obtain ⟨x, hx⟩ := exists_ne (0 : M),
-  have : (submodule.span R ({x} : set M)).annihilator ≠ ⊤,
-  { rwa [ne.def, submodule.annihilator_eq_top_iff, submodule.span_singleton_eq_bot] },
-  obtain ⟨p, hp₁, hp₂⟩ := ideal.exists_le_maximal _ this,
-  specialize H p hp₁,
-  resetI,
-  have : localized_module.mk x (1 : p.prime_compl) = localized_module.mk 0 1 :=
-    subsingleton.elim _ _,
-  obtain ⟨⟨u, hu⟩, e⟩ := localized_module.mk_eq.mp this,
-  simp only [submonoid.smul_def, one_smul, smul_zero, subtype.coe_mk, @eq_comm M 0] at e,
-  exact hu (hp₂ $ by rwa submodule.mem_annihilator_span_singleton)
-end
-
 lemma eq_zero_of_localization (r : R)
    (h : ∀ (J : ideal R) (hJ : J.is_maximal),
       by exactI algebra_map R (localization.at_prime J) r = 0) : r = 0 :=
@@ -289,6 +269,234 @@ begin
 end
 
 end ideal
+
+section module
+
+variables {X : Type*} [add_comm_group X] [module R X]
+
+instance : is_scalar_tower R (localization M) (localized_module M X) :=
+restrict_scalars.is_scalar_tower R (localization M) (localized_module M X)
+
+def submodule.localize (X' : submodule R X) : submodule (localization M) (localized_module M X) :=
+{ carrier := { x | ∃ (y ∈ X') s, localized_module.mk y s = x },
+  add_mem' := begin
+    rintros _ _ ⟨x, hx, s, rfl⟩ ⟨x', hx', s', rfl⟩,
+    refine ⟨_, _, _, localized_module.mk_add_mk⟩,
+    apply add_mem; apply submodule.smul_mem; assumption
+  end,
+  zero_mem' := ⟨_, zero_mem _, _, rfl⟩,
+  smul_mem' := begin
+    rintros r _ ⟨x, hx, s, rfl⟩,
+    induction r using localization.induction_on,
+    exact ⟨_, X'.smul_mem _ hx, _, rfl⟩,
+  end }
+
+variables {M}
+
+lemma submodule.mem_localize_of_mem {X' : submodule R X} {x : X} (hx : x ∈ X') (s : M) :
+  localized_module.mk x s ∈ X'.localize M :=
+⟨_, hx, _, rfl⟩
+
+variable (M)
+
+lemma submodule.localize_eq_span (X' : submodule R X) :
+  X'.localize M = submodule.span (localization M) (X'.map $ localized_module.mk_linear_map M X) :=
+begin
+  apply le_antisymm,
+  { rintro _ ⟨x, hx, s, rfl⟩,
+    rw [← mul_one s, ← one_smul R x, ← localized_module.mk_smul_mk],
+    exact submodule.smul_mem _ (localization.mk (1 : R) s)
+      (submodule.subset_span $ submodule.mem_map_of_mem hx) },
+  { rw submodule.span_le,
+    rintros _ ⟨x, hx, rfl⟩,
+    exact submodule.mem_localize_of_mem hx _ }
+end
+
+lemma submodule.localize_span (s : set X) :
+  (submodule.span R s).localize M =
+    submodule.span (localization M) (localized_module.mk_linear_map M X '' s) :=
+by rw [submodule.localize_eq_span, submodule.map_span, submodule.span_span_of_tower]
+
+@[simp]
+lemma submodule.localize_bot : (⊥ : submodule R X).localize M = ⊥ :=
+by rw [← submodule.span_empty, submodule.localize_span, set.image_empty, submodule.span_empty]
+
+@[simp]
+lemma submodule.localize_top : (⊤ : submodule R X).localize M = ⊤ :=
+begin
+  rw eq_top_iff,
+  rintros x -,
+  induction x using localized_module.induction_on,
+  exact submodule.mem_localize_of_mem trivial _
+end
+
+lemma submodule.le_of_localization_maximal (M M' : submodule R X)
+  (H : ∀ (J : ideal R) (hJ : J.is_maximal),
+    by exactI M.localize J.prime_compl ≤ M'.localize J.prime_compl) : M ≤ M' :=
+begin
+  intros x hx,
+  by_contradiction hx',
+  have : (submodule.span R {M'.mkq x}).annihilator ≠ ⊤,
+  { rwa [ne.def, submodule.annihilator_eq_top_iff, submodule.span_singleton_eq_bot,
+      ← linear_map.mem_ker, submodule.ker_mkq] },
+  obtain ⟨p, hp₁, hp₂⟩ := ideal.exists_le_maximal _ this,
+  specialize H p hp₁,
+  resetI,
+  obtain ⟨y, hy, ⟨s, hs⟩, e⟩ := H (submodule.mem_localize_of_mem hx 1),
+  obtain ⟨⟨u, hu⟩, e⟩ := localized_module.mk_eq.mp e,
+  simp only [submonoid.smul_def, one_smul, smul_zero, subtype.coe_mk, @eq_comm X 0] at e,
+  exact (mul_mem hu hs) (hp₂ $ by { rw [submodule.mem_annihilator_span_singleton, ← M'.mkq.map_smul,
+    ← linear_map.mem_ker, submodule.ker_mkq, mul_smul, e], exact M'.smul_mem _ hy })
+end
+
+lemma submodule.eq_of_localization_maximal (M M' : submodule R X)
+  (H : ∀ (J : ideal R) (hJ : J.is_maximal),
+    by exactI M.localize J.prime_compl = M'.localize J.prime_compl) : M = M' :=
+(submodule.le_of_localization_maximal _ _ $ by simp [H]).antisymm
+  (submodule.le_of_localization_maximal _ _ $ by simp [H])
+
+lemma submodule.eq_bot_of_localization_maximal (M : submodule R X)
+  (H : ∀ (J : ideal R) (hJ : J.is_maximal),
+    by exactI M.localize J.prime_compl = ⊥) : M = ⊥ :=
+submodule.eq_of_localization_maximal _ _ (by simp [H])
+
+lemma module.subsingleton_of_localization_maximal (X : Type*) [add_comm_group X] [module R X]
+  (H : ∀ (J : ideal R) (hJ : J.is_maximal),
+    by exactI subsingleton (localized_module J.prime_compl X)) : subsingleton X :=
+begin
+  simp_rw [← submodule.subsingleton_iff R, ← subsingleton_iff_bot_eq_top, @eq_comm _ ⊥] at ⊢,
+  apply submodule.eq_bot_of_localization_maximal,
+  exact λ J hJ, subsingleton.elim _ _
+end
+
+lemma module.eq_zero_of_localization_maximal (x : X)
+  (H : ∀ (J : ideal R) (hJ : J.is_maximal),
+    by exactI localized_module.mk x (1 : J.prime_compl) = 0) : x = 0 :=
+begin
+  rw ← @submodule.span_singleton_eq_bot R,
+  apply submodule.eq_bot_of_localization_maximal,
+  simp_rw [submodule.localize_eq_span, submodule.map_span, set.image_singleton,
+    submodule.span_span_of_tower, submodule.span_singleton_eq_bot],
+  exact H
+end
+
+variables {Y : Type*} [add_comm_group Y] [module R Y] (g : X →ₗ[R] Y)
+
+noncomputable
+def localized_module.map_restrict_scalars : localized_module M X →ₗ[R] localized_module M Y :=
+localized_module.lift _ ((localized_module.mk_linear_map M Y).comp g)
+  (λ m, is_localized_module.map_units (localized_module.mk_linear_map M Y) m)
+
+@[simp]
+lemma localized_module.map_restrict_scalars_mk (x : X) (m : M) :
+  localized_module.map_restrict_scalars M g (localized_module.mk x m) =
+    localized_module.mk (g x) m :=
+begin
+  apply (module.End_algebra_map_is_unit_inv_apply_eq_iff _ _ _).mpr,
+  dsimp,
+  rw localized_module.smul'_mk,
+  exact (localized_module.mk_cancel _ _).symm
+end
+
+noncomputable
+def localized_module.map : localized_module M X →ₗ[localization M] localized_module M Y :=
+{ map_smul' := begin
+    intros r x,
+    induction r using localization.induction_on, cases r,
+    induction x using localized_module.induction_on,
+    dsimp,
+    simp only [← localization.mk_eq_mk', localized_module.mk_smul_mk,
+      localized_module.map_restrict_scalars_mk, g.map_smul]
+  end,
+  ..localized_module.map_restrict_scalars M g }
+
+@[simp]
+lemma localized_module.map_mk (x : X) (m : M) :
+  localized_module.map M g (localized_module.mk x m) =
+    localized_module.mk (g x) m :=
+localized_module.map_restrict_scalars_mk M g x m
+
+lemma submodule.localize_comap_map {Y' : submodule R Y} :
+  (Y'.localize M).comap (localized_module.map M g) = (Y'.comap g).localize M :=
+begin
+  apply le_antisymm,
+  { rintros x ⟨x', hx, r, e⟩,
+    induction x using localized_module.induction_on with x s,
+    simp_rw [localized_module.map_mk, localized_module.mk_eq, submonoid.smul_def, ← g.map_smul,
+      smul_smul] at e,
+    obtain ⟨u, e⟩ := e,
+    refine ⟨(u * r : R) • x, _, u * r * s, _⟩,
+    { dsimp, rw e, exact Y'.smul_mem _ hx },
+    { rw [← submonoid.coe_mul, ← submonoid.smul_def],
+      exact localized_module.mk_cancel_common_left _ _ _ } },
+  { rintros _ ⟨x, hx, s, rfl⟩, dsimp, rw localized_module.map_mk,
+    exact submodule.mem_localize_of_mem hx _ }
+end
+
+lemma submodule.localize_map_map {X' : submodule R X} :
+  (X'.localize M).map (localized_module.map M g) = (X'.map g).localize M :=
+begin
+  apply le_antisymm,
+  { rintros _ ⟨_, ⟨x, hx, s, rfl⟩, rfl⟩,
+    rw [localized_module.map_mk],
+    exact submodule.mem_localize_of_mem (submodule.mem_map_of_mem hx) _ },
+  { rintros _ ⟨_, ⟨x, hx, rfl⟩, s, rfl⟩, rw ← localized_module.map_mk,
+    exact submodule.mem_map_of_mem (submodule.mem_localize_of_mem hx _) }
+end
+
+instance {X : Type*} [add_comm_group X] [module R X] :
+  add_comm_group (localized_module M X) :=
+{ neg := λ p, localized_module.lift_on p (λ x, localized_module.mk (-x.1) x.2)
+    (λ ⟨m1, s1⟩ ⟨m2, s2⟩ ⟨u, hu⟩, by { rw localized_module.mk_eq, exact ⟨u, by simpa⟩ }),
+  add_left_neg := λ p, begin
+    obtain ⟨⟨m, s⟩, rfl : localized_module.mk m s = p⟩ := quotient.exists_rep p,
+    change (localized_module.mk m s).lift_on (λ x, localized_module.mk (-x.1) x.2)
+      (λ ⟨m1, s1⟩ ⟨m2, s2⟩ ⟨u, hu⟩, by { rw localized_module.mk_eq, exact ⟨u, by simpa⟩ }) + localized_module.mk m s = 0,
+    rw [localized_module.lift_on_mk, localized_module.mk_add_mk],
+    simp
+  end,
+  ..(show add_comm_monoid (localized_module M X), by apply_instance) }
+
+include M g
+
+
+lemma linear_map.injective_of_localization_maximal
+  (H : ∀ (J : ideal R) (hJ : J.is_maximal),
+    by exactI function.injective (localized_module.map J.prime_compl g)) : function.injective g :=
+begin
+  rw ← linear_map.ker_eq_bot,
+  apply submodule.eq_bot_of_localization_maximal,
+  introsI J hJ,
+  rw [linear_map.ker, ← submodule.localize_comap_map, submodule.localize_bot, submodule.comap_bot,
+    linear_map.ker_eq_bot],
+  exact H J hJ
+end
+
+lemma linear_map.surjective_of_localization_maximal
+  (H : ∀ (J : ideal R) (hJ : J.is_maximal),
+    by exactI function.surjective (localized_module.map J.prime_compl g)) : function.surjective g :=
+begin
+  rw ← linear_map.range_eq_top,
+  apply submodule.eq_bot_of_localization_maximal,
+  introsI J hJ,
+  rw [linear_map.ker, ← submodule.localize_comap_map, submodule.localize_bot, submodule.comap_bot,
+    linear_map.ker_eq_bot],
+  exact H J hJ
+end
+
+lemma linear_map.injective_of_localization_maximal
+  (H : ∀ (J : ideal R) (hJ : J.is_maximal),
+    by exactI function.injective (localized_module.map J.prime_compl g)) : function.injective g :=
+begin
+  rw ← linear_map.ker_eq_bot,
+  apply submodule.eq_bot_of_localization_maximal,
+  introsI J hJ,
+  rw [linear_map.ker, ← submodule.localize_comap_map, submodule.localize_bot, submodule.comap_bot,
+    linear_map.ker_eq_bot],
+  exact H J hJ
+end
+
+end module
 
 section reduced
 

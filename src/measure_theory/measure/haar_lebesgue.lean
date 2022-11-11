@@ -386,6 +386,9 @@ begin
   exact eq_top_iff.2 this,
 end
 
+/-- The integral of `f (R • x)` with respect to an additive Haar measure is a multiple of the
+integral of `f`. The formula we give works even when `f` is not integrable or `R = 0`
+thanks to the convention that a non-integrable function has integral zero. -/
 lemma integral_comp_smul (f : E → F) (R : ℝ) :
   ∫ x, f (R • x) ∂μ = |(R ^ finrank ℝ E)⁻¹| • ∫ x, f x ∂μ :=
 begin
@@ -407,14 +410,23 @@ begin
                     abs_nonneg] }
 end
 
+/-- The integral of `f (R • x)` with respect to an additive Haar measure is a multiple of the
+integral of `f`. The formula we give works even when `f` is not integrable or `R = 0`
+thanks to the convention that a non-integrable function has integral zero. -/
 lemma integral_comp_smul_of_nonneg (f : E → F) (R : ℝ) {hR : 0 ≤ R} :
   ∫ x, f (R • x) ∂μ = (R ^ finrank ℝ E)⁻¹ • ∫ x, f x ∂μ :=
 by rw [integral_comp_smul μ f R, abs_of_nonneg (inv_nonneg.2 (pow_nonneg hR _))]
 
+/-- The integral of `f (R⁻¹ • x)` with respect to an additive Haar measure is a multiple of the
+integral of `f`. The formula we give works even when `f` is not integrable or `R = 0`
+thanks to the convention that a non-integrable function has integral zero. -/
 lemma integral_comp_inv_smul (f : E → F) (R : ℝ) :
   ∫ x, f (R⁻¹ • x) ∂μ = |(R ^ finrank ℝ E)| • ∫ x, f x ∂μ :=
 by rw [integral_comp_smul μ f (R⁻¹), inv_pow, inv_inv]
 
+/-- The integral of `f (R⁻¹ • x)` with respect to an additive Haar measure is a multiple of the
+integral of `f`. The formula we give works even when `f` is not integrable or `R = 0`
+thanks to the convention that a non-integrable function has integral zero. -/
 lemma integral_comp_inv_smul_of_nonneg (f : E → F) {R : ℝ} (hR : 0 ≤ R) :
   ∫ x, f (R⁻¹ • x) ∂μ = R ^ finrank ℝ E • ∫ x, f x ∂μ :=
 by rw [integral_comp_inv_smul μ f R, abs_of_nonneg ((pow_nonneg hR _))]

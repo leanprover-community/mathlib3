@@ -209,15 +209,15 @@ lemma integrable_indicator_iff (hs : measurable_set s) :
 by simp [integrable_on, integrable, has_finite_integral, nnnorm_indicator_eq_indicator_nnnorm,
   ennreal.coe_indicator, lintegral_indicator _ hs, ae_strongly_measurable_indicator_iff hs]
 
-lemma integrable_on.indicator (h : integrable_on f s μ) (hs : measurable_set s) :
+lemma integrable_on.integrable_indicator (h : integrable_on f s μ) (hs : measurable_set s) :
   integrable (indicator s f) μ :=
 (integrable_indicator_iff hs).2 h
 
 lemma integrable.indicator (h : integrable f μ) (hs : measurable_set s) :
   integrable (indicator s f) μ :=
-h.integrable_on.indicator hs
+h.integrable_on.integrable_indicator hs
 
-lemma integrable_on.indicator' (h : integrable_on f s μ) (ht : measurable_set t) :
+lemma integrable_on.indicator (h : integrable_on f s μ) (ht : measurable_set t) :
   integrable_on (indicator t f) s μ :=
 integrable.indicator h ht
 

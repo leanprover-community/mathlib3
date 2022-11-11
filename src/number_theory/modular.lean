@@ -137,7 +137,7 @@ begin
   rw this,
   have hf : f.ker = ⊥,
   { let g : ℂ →ₗ[ℝ] (fin 2 → ℝ) :=
-      linear_map.pi ![im_lm, im_lm.comp ((z:ℂ) • (conj_ae  : ℂ →ₗ[ℝ] ℂ))],
+      linear_map.pi ![im_lm, im_lm.comp ((z:ℂ) • ((conj_ae : ℂ →ₐ[ℝ] ℂ) : ℂ →ₗ[ℝ] ℂ))],
     suffices : ((z:ℂ).im⁻¹ • g).comp f = linear_map.id,
     { exact linear_map.ker_eq_bot_of_inverse this },
     apply linear_map.ext,

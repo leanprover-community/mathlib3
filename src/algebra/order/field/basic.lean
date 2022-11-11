@@ -6,66 +6,16 @@ Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 import order.bounds.order_iso
 import algebra.field.basic
 import algebra.order.field.defs
-import algebra.order.ring.inj_surj
+import algebra.group_power.order
 
 /-!
-# Linear ordered (semi)fields
+# Lemmas about linear ordered (semi)fields
 
-A linear ordered (semi)field is a (semi)field equipped with a linear order such that
-* addition respects the order: `a ≤ b → c + a ≤ c + b`;
-* multiplication of positives is positive: `0 < a → 0 < b → 0 < a * b`;
-* `0 < 1`.
-
-## Main Definitions
-
-* `linear_ordered_semifield`: Typeclass for linear order semifields.
-* `linear_ordered_field`: Typeclass for linear ordered fields.
 -/
-
-set_option old_structure_cmd true
 
 open function order_dual
 
 variables {ι α β : Type*}
-
-namespace function
-
-/-- Pullback a `linear_ordered_semifield` under an injective map. -/
-@[reducible] -- See note [reducible non-instances]
-def injective.linear_ordered_semifield [linear_ordered_semifield α] [has_zero β] [has_one β]
-  [has_add β] [has_mul β] [has_pow β ℕ] [has_smul ℕ β] [has_nat_cast β] [has_inv β] [has_div β]
-  [has_pow β ℤ] [has_sup β] [has_inf β] (f : β → α) (hf : injective f) (zero : f 0 = 0)
-  (one : f 1 = 1) (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x)
-  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y))
-  (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
-  linear_ordered_semifield β :=
-{ ..hf.linear_ordered_semiring f zero one add mul nsmul npow nat_cast hsup hinf,
-  ..hf.semifield f zero one add mul inv div nsmul npow zpow nat_cast }
-
-/-- Pullback a `linear_ordered_field` under an injective map. -/
-@[reducible] -- See note [reducible non-instances]
-def injective.linear_ordered_field [linear_ordered_field α] [has_zero β] [has_one β] [has_add β]
-  [has_mul β] [has_neg β] [has_sub β] [has_pow β ℕ] [has_smul ℕ β] [has_smul ℤ β] [has_smul ℚ β]
-  [has_nat_cast β] [has_int_cast β] [has_rat_cast β] [has_inv β] [has_div β] [has_pow β ℤ]
-  [has_sup β] [has_inf β]
-  (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
-  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
-  (qsmul : ∀ x (n : ℚ), f (n • x) = n • f x)
-  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) (rat_cast : ∀ n : ℚ, f n = n)
-  (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
-  linear_ordered_field β :=
-{ .. hf.linear_ordered_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast hsup hinf,
-  .. hf.field f zero one add mul neg sub inv div nsmul zsmul qsmul npow zpow nat_cast int_cast
-      rat_cast }
-
-end function
 
 section linear_ordered_semifield
 variables [linear_ordered_semifield α] {a b c d e : α} {m n : ℤ}
@@ -854,10 +804,3 @@ begin
 end
 
 end
-
-section canonically_linear_ordered_semifield
-variables [canonically_linear_ordered_semifield α] [has_sub α] [has_ordered_sub α]
-
-lemma tsub_div (a b c : α) : (a - b) / c = a / c - b / c := by simp_rw [div_eq_mul_inv, tsub_mul]
-
-end canonically_linear_ordered_semifield

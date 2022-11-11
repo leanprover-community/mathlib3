@@ -3,6 +3,8 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin, Patrick Massot
 -/
+import algebra.hom.equiv.units.group_with_zero
+import algebra.group_with_zero.inj_surj
 import algebra.order.group.type_tags
 import algebra.order.group.units
 import algebra.order.monoid.basic

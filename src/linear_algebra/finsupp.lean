@@ -907,13 +907,7 @@ theorem top_le_span_range_iff_forall_exists_fun :
   ⊤ ≤ span R (range v) ↔ ∀ x, ∃ (c : α → R), ∑ i, (c i) • (v i) = x :=
 begin
   simp_rw ←mem_span_range_iff_exists_fun,
-  rw set_like.le_def,
-  constructor,
-  { intros h x,
-    apply h,
-    simp only [mem_top] },
-  { intros h x _,
-    exact h x },
+  exact ⟨λ h x, h trivial, λ h x _, h x⟩,
 end
 
 end span_range

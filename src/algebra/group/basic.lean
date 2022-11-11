@@ -203,6 +203,18 @@ theorem eq_inv_iff_eq_inv : a = b⁻¹ ↔ b = a⁻¹ :=
 theorem inv_eq_iff_inv_eq  : a⁻¹ = b ↔ b⁻¹ = a :=
 eq_comm.trans $ eq_inv_iff_eq_inv.trans eq_comm
 
+@[to_additive]
+lemma eq_inv_of_inv_eq (h : a⁻¹ = b) : a = b⁻¹ :=
+eq_inv_of_eq_inv h.symm
+
+@[to_additive]
+lemma inv_eq_of_eq_inv (h : a = b⁻¹) : a⁻¹ = b :=
+(eq_inv_of_eq_inv h).symm
+
+@[to_additive]
+theorem inv_eq_iff_eq_inv : a⁻¹ = b ↔ a = b⁻¹ :=
+⟨eq_inv_of_inv_eq, inv_eq_of_eq_inv⟩
+
 variables (G)
 
 @[simp, to_additive] lemma inv_comp_inv : has_inv.inv ∘ has_inv.inv = @id G :=

@@ -869,13 +869,22 @@ begin
   rwa [hK, submodule.mem_bot, sub_eq_zero] at h,
 end
 
-lemma eq_of_inner_left (hK : dense (K : set E)) (h : ∀ v : K, ⟪x, v⟫ = ⟪y, v⟫) :
-  x = y :=
+lemma eq_zero_of_mem_orthogonal (hK : dense (K : set E)) (h : x ∈ Kᗮ) : x = 0 :=
+hK.eq_of_sub_mem_orthogonal (by rwa [sub_zero])
+
+lemma eq_of_inner_left (hK : dense (K : set E)) (h : ∀ v : K, ⟪x, v⟫ = ⟪y, v⟫) : x = y :=
 hK.eq_of_sub_mem_orthogonal (submodule.sub_mem_orthogonal_of_inner_left h)
+
+lemma eq_zero_of_inner_left (hK : dense (K : set E)) (h : ∀ v : K, ⟪x, v⟫ = 0) : x = 0 :=
+hK.eq_of_inner_left (λ v, by rw [inner_zero_left, h v])
 
 lemma eq_of_inner_right (hK : dense (K : set E))
   (h : ∀ v : K, ⟪(v : E), x⟫ = ⟪(v : E), y⟫) : x = y :=
 hK.eq_of_sub_mem_orthogonal (submodule.sub_mem_orthogonal_of_inner_right h)
+
+lemma eq_zero_of_inner_right (hK : dense (K : set E))
+  (h : ∀ v : K, ⟪(v : E), x⟫ = 0) : x = 0 :=
+hK.eq_of_inner_right (λ v, by rw [inner_zero_right, h v])
 
 end dense
 

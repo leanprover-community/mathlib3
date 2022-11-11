@@ -735,7 +735,7 @@ begin
   change ((f ^ (n + 1)) * (f ^ (n + 1))) y = 0 at h,
   rw ←pow_add at h,
   convert h using 3,
-  linarith only,
+  ring
 end
 
 /-- Any surjective endomorphism of a Noetherian module is injective. -/

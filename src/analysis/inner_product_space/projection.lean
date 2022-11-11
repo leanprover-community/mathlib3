@@ -856,6 +856,29 @@ begin
   { rw [h, submodule.bot_orthogonal_eq_top] }
 end
 
+namespace dense
+
+open submodule
+
+variables {x y : E} [complete_space E]
+
+/-- If `S` is dense and `x - y ∈ Kᗮ`, then `x = y`. -/
+lemma eq_of_sub_mem_orthogonal (hK : dense (K : set E)) (h : x - y ∈ Kᗮ) : x = y :=
+begin
+  rw [dense_iff_topological_closure_eq_top, topological_closure_eq_top_iff] at hK,
+  rwa [hK, submodule.mem_bot, sub_eq_zero] at h,
+end
+
+lemma eq_of_inner_left (hK : dense (K : set E)) (h : ∀ v : K, ⟪x, v⟫ = ⟪y, v⟫) :
+  x = y :=
+hK.eq_of_sub_mem_orthogonal (submodule.sub_mem_orthogonal_of_inner_left h)
+
+lemma eq_of_inner_right (hK : dense (K : set E))
+  (h : ∀ v : K, ⟪(v : E), x⟫ = ⟪(v : E), y⟫) : x = y :=
+hK.eq_of_sub_mem_orthogonal (submodule.sub_mem_orthogonal_of_inner_right h)
+
+end dense
+
 /-- The reflection in `Kᗮ` of an element of `K` is its negation. -/
 lemma reflection_mem_subspace_orthogonal_precomplement_eq_neg
   [complete_space E] {v : E} (hv : v ∈ K) :

@@ -518,9 +518,13 @@ theorem mem_span_iff_total (s : set M) (x : M) :
   x ∈ span R s ↔ ∃ l : s →₀ R, finsupp.total s M R coe l = x :=
 (set_like.ext_iff.1 $ span_eq_range_total _ _) x
 
+variables {R}
+
 lemma mem_span_range_iff_exists_finsupp {v : α → M} {x : M} :
   x ∈ span R (range v) ↔ ∃ (c : α →₀ R), c.sum (λ i a, a • v i) = x :=
 by simp only [←finsupp.range_total, linear_map.mem_range, finsupp.total_apply]
+
+variables (R)
 
 theorem span_image_eq_map_total (s : set α):
   span R (v '' s) = submodule.map (finsupp.total α M R v) (supported R R s) :=

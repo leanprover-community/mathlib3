@@ -370,7 +370,7 @@ lemma equiv_map_domain_trans' (f : α ≃ β) (g : β ≃ γ) :
 by ext x; simp only [single_apply, equiv.apply_eq_iff_eq_symm_apply, equiv_map_domain_apply]; congr
 
 @[simp] lemma equiv_map_domain_zero {f : α ≃ β} : equiv_map_domain f (0 : α →₀ M) = (0 : β →₀ M) :=
-by ext x; simp only [equiv_map_domain_apply, coe_zero, pi.zero_apply]
+by ext x; simp only [equiv_map_domain_apply, finsupp.coe_zero, pi.zero_apply]
 
 /-- Given `f : α ≃ β`, the finitely supported function spaces are also in bijection:
 `(α →₀ M) ≃ (β →₀ M)`.
@@ -536,24 +536,14 @@ lemma map_domain_apply' (S : set α) {f : α → β} (x : α →₀ M)
 begin
   rw [map_domain, sum_apply, sum],
   simp_rw single_apply,
-  have : ∀ (b : α) (ha1 : b ∈ x.support),
-    (if f b = f a then x b else 0) = if f b = f a then x a else 0,
-  { intros b hb,
-    refine if_ctx_congr iff.rfl (λ hh, _) (λ _, rfl),
-    rw hf (hS hb) ha hh, },
-  conv in (ite _ _ _)
-  { rw [this _ H], },
-  by_cases ha : a ∈ x.support,
-  { rw [← finset.add_sum_erase _ _ ha, if_pos rfl],
+  by_cases hax : a ∈ x.support,
+  { rw [← finset.add_sum_erase _ _ hax, if_pos rfl],
     convert add_zero _,
-    have : ∀ i ∈ x.support.erase a, f i ≠ f a,
-    { intros i hi,
-      exact (finset.ne_of_mem_erase hi) ∘ (hf (hS $ finset.mem_of_mem_erase hi) (hS ha)), },
-    conv in (ite _ _ _)
-    { rw if_neg (this x H), },
-    exact finset.sum_const_zero, },
-  { rw [mem_support_iff, not_not] at ha,
-    simp [ha], }
+    refine finset.sum_eq_zero (λ i hi, if_neg _),
+    exact (hf.mono hS).ne (finset.mem_of_mem_erase hi) hax (finset.ne_of_mem_erase hi), },
+  { rw not_mem_support_iff.1 hax,
+    refine finset.sum_eq_zero (λ i hi, if_neg _),
+    exact hf.ne (hS hi) ha (ne_of_mem_of_not_mem hi hax) }
 end
 
 lemma map_domain_support_of_inj_on [decidable_eq β] {f : α → β} (s : α →₀ M)
@@ -744,7 +734,7 @@ lemma comap_domain_add (v₁ v₂ : β →₀ M)
   (hv₁ : set.inj_on f (f ⁻¹' ↑(v₁.support))) (hv₂ : set.inj_on f (f ⁻¹' ↑(v₂.support)))
   (hv₁₂ : set.inj_on f (f ⁻¹' ↑((v₁ + v₂).support))) :
   comap_domain f (v₁ + v₂) hv₁₂ = comap_domain f v₁ hv₁ + comap_domain f v₂ hv₂ :=
-by { ext, simp only [comap_domain_apply, coe_add, pi.add_apply] }
+by { ext, simp only [comap_domain_apply, finsupp.coe_add, pi.add_apply] }
 
 /-- A version of `finsupp.comap_domain_add` that's easier to use. -/
 lemma comap_domain_add_of_injective (hf : function.injective f) (v₁ v₂ : β →₀ M) :
@@ -1306,7 +1296,7 @@ Throughout this section, some `monoid` and `semiring` arguments are specified wi
 `[]`. See note [implicit instance arguments].
 -/
 
-@[simp] lemma coe_smul [add_monoid M] [distrib_smul R M]
+@[simp] protected lemma coe_smul [add_monoid M] [distrib_smul R M]
   (b : R) (v : α →₀ M) : ⇑(b • v) = b • v := rfl
 lemma smul_apply [add_monoid M] [distrib_smul R M]
   (b : R) (v : α →₀ M) (a : α) : (b • v) a = b • (v a) := rfl
@@ -1632,5 +1622,17 @@ noncomputable def sigma_finsupp_add_equiv_pi_finsupp
 sigma_finsupp_add_equiv_pi_finsupp f j i = f ⟨j, i⟩ := rfl
 
 end sigma
+
+/-! ### Meta declarations -/
+
+/-- Stringify a `finsupp` as a sequence of `finsupp.single` terms.
+
+Note this is `meta` as it has to choose some order for the terms. -/
+meta instance (ι α : Type*) [has_zero α] [has_repr ι] [has_repr α] :
+  has_repr (ι →₀ α) :=
+{ repr := λ f,
+  if f.support.card = 0 then "0"
+  else " + ".intercalate $
+    f.support.val.unquot.map (λ i, "finsupp.single " ++ repr i ++ " " ++ repr (f i)) }
 
 end finsupp

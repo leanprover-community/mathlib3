@@ -7,6 +7,7 @@ import algebra.algebra.spectrum
 import analysis.special_functions.pow
 import analysis.special_functions.exponential
 import analysis.complex.liouville
+import analysis.complex.polynomial
 import analysis.analytic.radius_liminf
 import topology.algebra.module.character_space
 /-!
@@ -41,7 +42,7 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 
 -/
 
-open_locale ennreal
+open_locale ennreal nnreal
 
 /-- The *spectral radius* is the supremum of the `nnnorm` (`∥⬝∥₊`) of elements in the spectrum,
     coerced into an element of `ℝ≥0∞`. Note that it is possible for `spectrum 𝕜 a = ∅`. In this
@@ -128,6 +129,20 @@ metric.is_compact_of_is_closed_bounded (spectrum.is_closed a) (is_bounded a)
 theorem spectral_radius_le_nnnorm [norm_one_class A] (a : A) :
   spectral_radius 𝕜 a ≤ ∥a∥₊ :=
 by { refine supr₂_le (λ k hk, _), exact_mod_cast norm_le_norm_of_mem hk }
+
+lemma exists_nnnorm_eq_spectral_radius_of_nonempty [proper_space 𝕜] {a : A} (ha : (σ a).nonempty) :
+  ∃ k ∈ σ a, (∥k∥₊ : ℝ≥0∞) = spectral_radius 𝕜 a :=
+begin
+  obtain ⟨k, hk, h⟩ := (spectrum.is_compact a).exists_forall_ge ha continuous_nnnorm.continuous_on,
+  exact ⟨k, hk, le_antisymm (le_supr₂ k hk) (supr₂_le $ by exact_mod_cast h)⟩,
+end
+
+lemma spectral_radius_lt_of_forall_lt_of_nonempty [proper_space 𝕜] {a : A}
+  (ha : (σ a).nonempty) {r : ℝ≥0} (hr : ∀ k ∈ σ a, ∥k∥₊ < r) :
+  spectral_radius 𝕜 a < r :=
+Sup_image.symm.trans_lt $ ((spectrum.is_compact a).Sup_lt_iff_of_continuous ha
+  (ennreal.continuous_coe.comp continuous_nnnorm).continuous_on (r : ℝ≥0∞)).mpr
+  (by exact_mod_cast hr)
 
 open ennreal polynomial
 
@@ -252,7 +267,7 @@ lemma has_fpower_series_on_ball_inverse_one_sub_smul [complete_space A] (a : A) 
         (le_max_left _ _),
       { by_cases ∥a∥₊ = 0,
         { simp only [h, zero_mul, zero_le', pow_succ], },
-        { rw [←coe_inv h, coe_lt_coe, nnreal.lt_inv_iff_mul_lt h] at hr,
+        { rw [←ennreal.coe_inv h, coe_lt_coe, nnreal.lt_inv_iff_mul_lt h] at hr,
           simpa only [←mul_pow, mul_comm] using pow_le_one' hr.le n.succ } } }
   end,
   r_pos := ennreal.inv_pos.mpr coe_ne_top,
@@ -262,7 +277,7 @@ lemma has_fpower_series_on_ball_inverse_one_sub_smul [complete_space A] (a : A) 
     { by_cases h : ∥a∥₊ = 0,
       { simp only [nnnorm_eq_zero.mp h, norm_zero, zero_lt_one, smul_zero] },
       { have nnnorm_lt : ∥y∥₊ < ∥a∥₊⁻¹,
-          by simpa only [←coe_inv h, mem_ball_zero_iff, metric.emetric_ball_nnreal] using hy,
+        { simpa only [←ennreal.coe_inv h, mem_ball_zero_iff, metric.emetric_ball_nnreal] using hy },
         rwa [←coe_nnnorm, ←real.lt_to_nnreal_iff_coe_lt, real.to_nnreal_one, nnnorm_smul,
           ←nnreal.lt_inv_iff_mul_lt h] } },
     simpa [←smul_pow, (normed_ring.summable_geometric_of_norm_lt_1 _ norm_lt).has_sum_iff]
@@ -280,7 +295,7 @@ begin
     { rwa [is_unit.smul_sub_iff_sub_inv_smul, inv_inv u] at hu },
     { rw [units.smul_def, ←algebra.algebra_map_eq_smul_one, ←mem_resolvent_set_iff],
       refine mem_resolvent_set_of_spectral_radius_lt _,
-      rwa [units.coe_inv, nnnorm_inv, coe_inv (nnnorm_ne_zero_iff.mpr
+      rwa [units.coe_inv, nnnorm_inv, ennreal.coe_inv (nnnorm_ne_zero_iff.mpr
         (units.coe_mk0 hz ▸ hz : (u : 𝕜) ≠ 0)), lt_inv_iff_lt_inv] } }
 end
 
@@ -351,10 +366,12 @@ end
 
 end gelfand_formula
 
+section nonempty_spectrum
+
+variables [normed_ring A] [normed_algebra ℂ A] [complete_space A] [nontrivial A] (a : A)
+
 /-- In a (nontrivial) complex Banach algebra, every element has nonempty spectrum. -/
-theorem nonempty {A : Type*} [normed_ring A] [normed_algebra ℂ A] [complete_space A]
-  [nontrivial A]
-  (a : A) : (spectrum ℂ a).nonempty :=
+protected theorem nonempty : (spectrum ℂ a).nonempty :=
 begin
   /- Suppose `σ a = ∅`, then resolvent set is `ℂ`, any `(z • 1 - a)` is a unit, and `resolvent`
   is differentiable on `ℂ`. -/
@@ -368,7 +385,7 @@ begin
   By Liouville's theorem `λ z, resolvent a z` is constant -/
   have H₂ := norm_resolvent_le_forall a,
   have H₃ : ∀ z : ℂ, resolvent a z = resolvent a (0 : ℂ),
-  { refine λ z, H₁.apply_eq_apply_of_bounded (bounded_iff_exists_norm_le.mpr _) z 0,
+  { refine λ z, H₁.apply_eq_apply_of_bounded (bounded_iff_forall_norm_le.mpr _) z 0,
     rcases H₂ 1 zero_lt_one with ⟨R, R_pos, hR⟩,
     rcases (proper_space.is_compact_closed_ball (0 : ℂ) R).exists_bound_of_continuous_on
       H₁.continuous.continuous_on with ⟨C, hC⟩,
@@ -387,6 +404,32 @@ begin
   exact not_is_unit_zero (H₅.subst (is_unit_resolvent.mp
     (mem_resolvent_set_iff.mp (H₀.symm ▸ set.mem_univ 0)))),
 end
+
+/-- In a complex Banach algebra, the spectral radius is always attained by some element of the
+spectrum. -/
+lemma exists_nnnorm_eq_spectral_radius : ∃ z ∈ spectrum ℂ a, (∥z∥₊ : ℝ≥0∞) = spectral_radius ℂ a :=
+exists_nnnorm_eq_spectral_radius_of_nonempty (spectrum.nonempty a)
+
+/-- In a complex Banach algebra, if every element of the spectrum has norm strictly less than
+`r : ℝ≥0`, then the spectral radius is also strictly less than `r`. -/
+lemma spectral_radius_lt_of_forall_lt {r : ℝ≥0} (hr : ∀ z ∈ spectrum ℂ a, ∥z∥₊ < r) :
+  spectral_radius ℂ a < r :=
+spectral_radius_lt_of_forall_lt_of_nonempty (spectrum.nonempty a) hr
+
+open_locale polynomial
+open polynomial
+
+/-- The **spectral mapping theorem** for polynomials in a Banach algebra over `ℂ`. -/
+lemma map_polynomial_aeval (p : ℂ[X]) :
+  spectrum ℂ (aeval a p) = (λ k, eval k p) '' (spectrum ℂ a) :=
+map_polynomial_aeval_of_nonempty a p (spectrum.nonempty a)
+
+/-- A specialization of the spectral mapping theorem for polynomials in a Banach algebra over `ℂ`
+to monic monomials. -/
+protected lemma map_pow (n : ℕ) : spectrum ℂ (a ^ n) = (λ x, x ^ n) '' (spectrum ℂ a) :=
+by simpa only [aeval_X_pow, eval_pow, eval_X] using map_polynomial_aeval a (X ^ n)
+
+end nonempty_spectrum
 
 section gelfand_mazur_isomorphism
 
@@ -462,12 +505,13 @@ end spectrum
 namespace alg_hom
 
 section normed_field
-variables [normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+variables {F : Type*} [normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 local notation `↑ₐ` := algebra_map 𝕜 A
 
 /-- An algebra homomorphism into the base field, as a continuous linear map (since it is
-automatically bounded). -/
-instance : continuous_linear_map_class (A →ₐ[𝕜] 𝕜) 𝕜 A 𝕜 :=
+automatically bounded). See note [lower instance priority] -/
+@[priority 100]
+instance [alg_hom_class F 𝕜 A 𝕜] : continuous_linear_map_class F 𝕜 A 𝕜 :=
 { map_continuous := λ φ, add_monoid_hom_class.continuous_of_bound φ ∥(1 : A)∥ $
     λ a, (mul_comm ∥a∥ ∥(1 : A)∥) ▸ spectrum.norm_le_norm_mul_of_mem (apply_mem_spectrum φ _),
   .. alg_hom_class.linear_map_class }
@@ -479,6 +523,13 @@ def to_continuous_linear_map (φ : A →ₐ[𝕜] 𝕜) : A →L[𝕜] 𝕜 :=
 
 @[simp] lemma coe_to_continuous_linear_map (φ : A →ₐ[𝕜] 𝕜) :
   ⇑φ.to_continuous_linear_map = φ := rfl
+
+lemma norm_apply_le_self_mul_norm_one [alg_hom_class F 𝕜 A 𝕜] (f : F) (a : A) :
+  ∥f a∥ ≤ ∥a∥ * ∥(1 : A)∥ :=
+spectrum.norm_le_norm_mul_of_mem (apply_mem_spectrum f _)
+
+lemma norm_apply_le_self [norm_one_class A] [alg_hom_class F 𝕜 A 𝕜] (f : F) (a : A) : ∥f a∥ ≤ ∥a∥ :=
+spectrum.norm_le_norm_of_mem (apply_mem_spectrum f _)
 
 end normed_field
 

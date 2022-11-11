@@ -135,7 +135,7 @@ instance : full (decomposed_to J) :=
 instance : faithful (decomposed_to J) :=
 { map_injective' :=
   begin
-    rintro ⟨_, j, rfl⟩ ⟨_, k, hY⟩ ⟨_, _, _, f⟩ ⟨_, _, _, g⟩ e,
+    rintro ⟨_, j, rfl⟩ ⟨_, k, hY⟩ ⟨f⟩ ⟨g⟩ e,
     change f = g at e,
     subst e,
   end }

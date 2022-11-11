@@ -132,12 +132,12 @@ end definitions
 
 section indep
 
-lemma indep_sets.symm {s₁ s₂ : set (set Ω)} [measurable_space Ω] {μ : measure Ω}
+@[symm] lemma indep_sets.symm {s₁ s₂ : set (set Ω)} [measurable_space Ω] {μ : measure Ω}
   (h : indep_sets s₁ s₂ μ) :
   indep_sets s₂ s₁ μ :=
 by { intros t1 t2 ht1 ht2, rw [set.inter_comm, mul_comm], exact h t2 t1 ht2 ht1, }
 
-lemma indep.symm {m₁ m₂ : measurable_space Ω} [measurable_space Ω] {μ : measure Ω}
+@[symm] lemma indep.symm {m₁ m₂ : measurable_space Ω} [measurable_space Ω] {μ : measure Ω}
   (h : indep m₁ m₂ μ) :
   indep m₂ m₁ μ :=
 indep_sets.symm h
@@ -215,6 +215,16 @@ begin
   exact hyp n t1 t2 ht1 ht2,
 end
 
+lemma indep_sets.bUnion [measurable_space Ω] {s : ι → set (set Ω)} {s' : set (set Ω)}
+  {μ : measure Ω} {u : set ι} (hyp : ∀ n ∈ u, indep_sets (s n) s' μ) :
+  indep_sets (⋃ n ∈ u, s n) s' μ :=
+begin
+  intros t1 t2 ht1 ht2,
+  simp_rw set.mem_Union at ht1,
+  rcases ht1 with ⟨n, hpn, ht1⟩,
+  exact hyp n hpn t1 t2 ht1 ht2,
+end
+
 lemma indep_sets.inter [measurable_space Ω] {s₁ s' : set (set Ω)} (s₂ : set (set Ω))
   {μ : measure Ω} (h₁ : indep_sets s₁ s' μ) :
   indep_sets (s₁ ∩ s₂) s' μ :=
@@ -224,6 +234,15 @@ lemma indep_sets.Inter [measurable_space Ω] {s : ι → set (set Ω)} {s' : set
   {μ : measure Ω} (h : ∃ n, indep_sets (s n) s' μ) :
   indep_sets (⋂ n, s n) s' μ :=
 by {intros t1 t2 ht1 ht2, cases h with n h, exact h t1 t2 (set.mem_Inter.mp ht1 n) ht2 }
+
+lemma indep_sets.bInter [measurable_space Ω] {s : ι → set (set Ω)} {s' : set (set Ω)}
+  {μ : measure Ω} {u : set ι} (h : ∃ n ∈ u, indep_sets (s n) s' μ) :
+  indep_sets (⋂ n ∈ u, s n) s' μ :=
+begin
+  intros t1 t2 ht1 ht2,
+  rcases h with ⟨n, hn, h⟩,
+  exact h t1 t2 (set.bInter_subset_of_mem hn ht1) ht2,
+end
 
 lemma indep_sets_singleton_iff [measurable_space Ω] {s t : set Ω} {μ : measure Ω} :
   indep_sets {s} {t} μ ↔ μ (s ∩ t) = μ s * μ t :=
@@ -346,24 +365,32 @@ begin
   exact indep_sets.indep_aux h2 hp2 hpm2 hyp ht ht2,
 end
 
+lemma indep_sets.indep' {m : measurable_space Ω}
+  {μ : measure Ω} [is_probability_measure μ] {p1 p2 : set (set Ω)}
+  (hp1m : ∀ s ∈ p1, measurable_set s) (hp2m : ∀ s ∈ p2, measurable_set s)
+  (hp1 : is_pi_system p1) (hp2 : is_pi_system p2) (hyp : indep_sets p1 p2 μ) :
+  indep (generate_from p1) (generate_from p2) μ :=
+hyp.indep (generate_from_le hp1m) (generate_from_le hp2m) hp1 hp2 rfl rfl
+
 variables {m0 : measurable_space Ω} {μ : measure Ω}
 
-lemma indep_sets_pi_Union_Inter_of_disjoint [decidable_eq ι] [is_probability_measure μ]
-  {s : ι → set (set Ω)} {S T : set (finset ι)}
-  (h_indep : Indep_sets s μ) (hST : ∀ u v, u ∈ S → v ∈ T → disjoint u v) :
+lemma indep_sets_pi_Union_Inter_of_disjoint [is_probability_measure μ]
+  {s : ι → set (set Ω)} {S T : set ι}
+  (h_indep : Indep_sets s μ) (hST : disjoint S T) :
   indep_sets (pi_Union_Inter s S) (pi_Union_Inter s T) μ :=
 begin
   rintros t1 t2 ⟨p1, hp1, f1, ht1_m, ht1_eq⟩ ⟨p2, hp2, f2, ht2_m, ht2_eq⟩,
+  classical,
   let g := λ i, ite (i ∈ p1) (f1 i) set.univ ∩ ite (i ∈ p2) (f2 i) set.univ,
   have h_P_inter : μ (t1 ∩ t2) = ∏ n in p1 ∪ p2, μ (g n),
   { have hgm : ∀ i ∈ p1 ∪ p2, g i ∈ s i,
     { intros i hi_mem_union,
       rw finset.mem_union at hi_mem_union,
       cases hi_mem_union with hi1 hi2,
-      { have hi2 : i ∉ p2 := finset.disjoint_left.mp (hST p1 p2 hp1 hp2) hi1,
+      { have hi2 : i ∉ p2 := λ hip2, set.disjoint_left.mp hST (hp1 hi1) (hp2 hip2),
         simp_rw [g, if_pos hi1, if_neg hi2, set.inter_univ],
         exact ht1_m i hi1, },
-      { have hi1 : i ∉ p1 := finset.disjoint_right.mp (hST p1 p2 hp1 hp2) hi2,
+      { have hi1 : i ∉ p1 := λ hip1, set.disjoint_right.mp hST (hp2 hi2) (hp1 hip1),
         simp_rw [g, if_neg hi1, if_pos hi2, set.univ_inter],
         exact ht2_m i hi2, }, },
     have h_p1_inter_p2 : ((⋂ x ∈ p1, f1 x) ∩ ⋂ x ∈ p2, f2 x)
@@ -377,7 +404,7 @@ begin
   { intro n,
     simp_rw g,
     split_ifs,
-    { exact absurd rfl (finset.disjoint_iff_ne.mp (hST p1 p2 hp1 hp2) n h n h_1), },
+    { exact absurd rfl (set.disjoint_iff_forall_ne.mp hST _ (hp1 h) _ (hp2 h_1)), },
     all_goals { simp only [measure_univ, one_mul, mul_one, set.inter_univ, set.univ_inter], }, },
   simp_rw [h_P_inter, h_μg, finset.prod_mul_distrib,
     finset.prod_ite_mem (p1 ∪ p2) p1 (λ x, μ (f1 x)),
@@ -385,25 +412,35 @@ begin
     finset.union_inter_cancel_right, ht1_eq, ← h_indep p1 ht1_m, ht2_eq, ← h_indep p2 ht2_m],
 end
 
+lemma Indep_set.indep_generate_from_of_disjoint [is_probability_measure μ] {s : ι → set Ω}
+  (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (S T : set ι) (hST : disjoint S T) :
+  indep (generate_from {t | ∃ n ∈ S, s n = t}) (generate_from {t | ∃ k ∈ T, s k = t}) μ :=
+begin
+  rw [← generate_from_pi_Union_Inter_singleton_left,
+    ← generate_from_pi_Union_Inter_singleton_left],
+  refine indep_sets.indep'
+    (λ t ht, generate_from_pi_Union_Inter_le _ _ _ _ (measurable_set_generate_from ht))
+    (λ t ht, generate_from_pi_Union_Inter_le _ _ _ _ (measurable_set_generate_from ht))
+    _ _ _,
+  { exact λ k, generate_from_le $ λ t ht, (set.mem_singleton_iff.1 ht).symm ▸ hsm k, },
+  { exact λ k, generate_from_le $ λ t ht, (set.mem_singleton_iff.1 ht).symm ▸ hsm k, },
+  { exact is_pi_system_pi_Union_Inter _ (λ k, is_pi_system.singleton _) _, },
+  { exact is_pi_system_pi_Union_Inter _ (λ k, is_pi_system.singleton _) _, },
+  { classical,
+    exact indep_sets_pi_Union_Inter_of_disjoint (Indep.Indep_sets (λ n, rfl) hs) hST, },
+end
+
 lemma indep_supr_of_disjoint [is_probability_measure μ] {m : ι → measurable_space Ω}
   (h_le : ∀ i, m i ≤ m0) (h_indep : Indep m μ) {S T : set ι} (hST : disjoint S T) :
   indep (⨆ i ∈ S, m i) (⨆ i ∈ T, m i) μ :=
 begin
   refine indep_sets.indep (supr₂_le (λ i _, h_le i)) (supr₂_le (λ i _, h_le i)) _ _
-    (generate_from_pi_Union_Inter_subsets m S).symm
-    (generate_from_pi_Union_Inter_subsets m T).symm _,
-  { refine is_pi_system_pi_Union_Inter _ (λ n, @is_pi_system_measurable_set Ω (m n)) _ _,
-    intros s t hs ht,
-    simp only [finset.sup_eq_union, set.mem_set_of_eq, finset.coe_union, set.union_subset_iff],
-    exact ⟨hs, ht⟩, },
-  { refine is_pi_system_pi_Union_Inter _ (λ n, @is_pi_system_measurable_set Ω (m n)) _ _,
-    intros s t hs ht,
-    simp only [finset.sup_eq_union, set.mem_set_of_eq, finset.coe_union, set.union_subset_iff],
-    exact ⟨hs, ht⟩, },
+    (generate_from_pi_Union_Inter_measurable_set m S).symm
+    (generate_from_pi_Union_Inter_measurable_set m T).symm _,
+  { exact is_pi_system_pi_Union_Inter _ (λ n, @is_pi_system_measurable_set Ω (m n)) _, },
+  { exact is_pi_system_pi_Union_Inter _ (λ n, @is_pi_system_measurable_set Ω (m n)) _ , },
   { classical,
-    refine indep_sets_pi_Union_Inter_of_disjoint h_indep (λ s t hs ht, _),
-    rw finset.disjoint_iff_ne,
-    exact λ i his j hjt, set.disjoint_iff_forall_ne.mp hST i (hs his) j (ht hjt), },
+    exact indep_sets_pi_Union_Inter_of_disjoint h_indep hST, },
 end
 
 lemma indep_supr_of_directed_le {Ω} {m : ι → measurable_space Ω}
@@ -430,6 +467,30 @@ begin
   exact (generate_from_Union_measurable_set _).symm,
 end
 
+lemma Indep_set.indep_generate_from_lt [preorder ι] [is_probability_measure μ]
+  {s : ι → set Ω} (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (i : ι) :
+  indep (generate_from {s i}) (generate_from {t | ∃ j < i, s j = t}) μ :=
+begin
+  convert hs.indep_generate_from_of_disjoint hsm {i} {j | j < i}
+    (λ x ⟨hx₁, hx₂⟩, (set.mem_set_of.1 hx₂).ne $ set.mem_singleton_iff.1 hx₁),
+  simp only [set.mem_singleton_iff, exists_prop, exists_eq_left, set.set_of_eq_eq_singleton'],
+end
+
+lemma Indep_set.indep_generate_from_le [linear_order ι] [is_probability_measure μ]
+  {s : ι → set Ω} (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ)
+  (i : ι) {k : ι} (hk : i < k) :
+  indep (generate_from {s k}) (generate_from {t | ∃ j ≤ i, s j = t}) μ :=
+begin
+  convert hs.indep_generate_from_of_disjoint hsm {k} {j | j ≤ i}
+    (λ x ⟨hx₁, hx₂⟩, not_lt.2 (set.mem_set_of.2 hx₂) $ (set.mem_singleton_iff.1 hx₁).symm ▸ hk),
+  simp only [set.mem_singleton_iff, exists_prop, exists_eq_left, set.set_of_eq_eq_singleton'],
+end
+
+lemma Indep_set.indep_generate_from_le_nat [is_probability_measure μ]
+  {s : ℕ → set Ω} (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (n : ℕ):
+  indep (generate_from {s (n + 1)}) (generate_from {t | ∃ k ≤ n, s k = t}) μ :=
+hs.indep_generate_from_le hsm _ n.lt_succ_self
+
 lemma indep_supr_of_monotone [semilattice_sup ι] {Ω} {m : ι → measurable_space Ω}
   {m' m0 : measurable_space Ω} {μ : measure Ω} [is_probability_measure μ]
   (h_indep : ∀ i, indep (m i) m' μ) (h_le : ∀ i, m i ≤ m0) (h_le' : m' ≤ m0) (hm : monotone m) :
@@ -442,13 +503,12 @@ lemma indep_supr_of_antitone [semilattice_inf ι] {Ω} {m : ι → measurable_sp
   indep (⨆ i, m i) m' μ :=
 indep_supr_of_directed_le h_indep h_le h_le' (directed_of_inf hm)
 
-lemma Indep_sets.pi_Union_Inter_singleton {π : ι → set (set Ω)} {a : ι} {S : finset ι}
+lemma Indep_sets.pi_Union_Inter_of_not_mem {π : ι → set (set Ω)} {a : ι} {S : finset ι}
   (hp_ind : Indep_sets π μ) (haS : a ∉ S) :
-  indep_sets (pi_Union_Inter π {S}) (π a) μ :=
+  indep_sets (pi_Union_Inter π S) (π a) μ :=
 begin
   rintros t1 t2 ⟨s, hs_mem, ft1, hft1_mem, ht1_eq⟩ ht2_mem_pia,
-  rw set.mem_singleton_iff at hs_mem,
-  subst hs_mem,
+  rw [finset.coe_subset] at hs_mem,
   classical,
   let f := λ n, ite (n = a) t2 (ite (n ∈ s) (ft1 n) set.univ),
   have h_f_mem : ∀ n ∈ insert a s, f n ∈ π n,
@@ -456,7 +516,7 @@ begin
     simp_rw f,
     cases (finset.mem_insert.mp hn_mem_insert) with hn_mem hn_mem,
     { simp [hn_mem, ht2_mem_pia], },
-    { have hn_ne_a : n ≠ a, by { rintro rfl, exact haS hn_mem, },
+    { have hn_ne_a : n ≠ a, by { rintro rfl, exact haS (hs_mem hn_mem), },
       simp [hn_ne_a, hn_mem, hft1_mem n hn_mem], }, },
   have h_f_mem_pi : ∀ n ∈ s, f n ∈ π n, from λ x hxS, h_f_mem x (by simp [hxS]),
   have h_t1 : t1 = ⋂ n ∈ s, f n,
@@ -466,7 +526,7 @@ begin
       congr' with hns y,
       simp only [(h_forall n hns).symm], },
     intros n hnS,
-    have hn_ne_a : n ≠ a, by { rintro rfl, exact haS hnS, },
+    have hn_ne_a : n ≠ a, by { rintro rfl, exact haS (hs_mem hnS), },
     simp_rw [f, if_pos hnS, if_neg hn_ne_a], },
   have h_μ_t1 : μ t1 = ∏ n in s, μ (f n), by rw [h_t1, ← hp_ind s h_f_mem_pi],
   have h_t2 : t2 = f a, by { simp_rw [f], simp, },
@@ -474,36 +534,8 @@ begin
   { have h_t1_inter_t2 : t1 ∩ t2 = ⋂ n ∈ insert a s, f n,
       by rw [h_t1, h_t2, finset.set_bInter_insert, set.inter_comm],
     rw [h_t1_inter_t2, ← hp_ind (insert a s) h_f_mem], },
-  rw [h_μ_inter, finset.prod_insert haS, h_t2, mul_comm, h_μ_t1],
-end
-
-/-- Auxiliary lemma for `Indep_sets.Indep`. -/
-theorem Indep_sets.Indep_aux [is_probability_measure μ] (m : ι → measurable_space Ω)
-  (h_le : ∀ i, m i ≤ m0) (π : ι → set (set Ω)) (h_pi : ∀ n, is_pi_system (π n))
-  (hp_univ : ∀ i, set.univ ∈ π i) (h_generate : ∀ i, m i = generate_from (π i))
-  (h_ind : Indep_sets π μ) :
-  Indep m μ :=
-begin
-  classical,
-  refine finset.induction (by simp [measure_univ]) _,
-  intros a S ha_notin_S h_rec f hf_m,
-  have hf_m_S : ∀ x ∈ S, measurable_set[m x] (f x) := λ x hx, hf_m x (by simp [hx]),
-  rw [finset.set_bInter_insert, finset.prod_insert ha_notin_S, ← h_rec hf_m_S],
-  let p := pi_Union_Inter π {S},
-  set m_p := generate_from p with hS_eq_generate,
-  have h_indep : indep m_p (m a) μ,
-  { have hp : is_pi_system p := is_pi_system_pi_Union_Inter π h_pi {S} (sup_closed_singleton S),
-    have h_le' : ∀ i, generate_from (π i) ≤ m0 := λ i, (h_generate i).symm.trans_le (h_le i),
-    have hm_p : m_p ≤ m0 := generate_from_pi_Union_Inter_le π h_le' {S},
-    exact indep_sets.indep hm_p (h_le a) hp (h_pi a) hS_eq_generate (h_generate a)
-      (h_ind.pi_Union_Inter_singleton ha_notin_S), },
-  refine h_indep.symm (f a) (⋂ n ∈ S, f n) (hf_m a (finset.mem_insert_self a S)) _,
-  have h_le_p : ∀ i ∈ S, m i ≤ m_p,
-  { intros n hn,
-    rw [hS_eq_generate, h_generate n],
-    exact le_generate_from_pi_Union_Inter {S} hp_univ (set.mem_singleton _) hn, },
-  have h_S_f : ∀ i ∈ S, measurable_set[m_p] (f i) := λ i hi, (h_le_p i hi) (f i) (hf_m_S i hi),
-  exact S.measurable_set_bInter h_S_f,
+  have has : a ∉ s := λ has_mem, haS (hs_mem has_mem),
+  rw [h_μ_inter, finset.prod_insert has, h_t2, mul_comm, h_μ_t1],
 end
 
 /-- The measurable space structures generated by independent pi-systems are independent. -/
@@ -512,48 +544,28 @@ theorem Indep_sets.Indep [is_probability_measure μ] (m : ι → measurable_spac
   (h_generate : ∀ i, m i = generate_from (π i)) (h_ind : Indep_sets π μ) :
   Indep m μ :=
 begin
-  -- We want to apply `Indep_sets.Indep_aux`, but `π i` does not contain `univ`, hence we replace
-  -- `π` with a new augmented pi-system `π'`, and prove all hypotheses for that pi-system.
-  let π' := λ i, insert set.univ (π i),
-  have h_subset : ∀ i, π i ⊆ π' i := λ i, set.subset_insert _ _,
-  have h_pi' : ∀ n, is_pi_system (π' n) := λ n, (h_pi n).insert_univ,
-  have h_univ' : ∀ i, set.univ ∈ π' i, from λ i, set.mem_insert _ _,
-  have h_gen' : ∀ i, m i = generate_from (π' i),
-  { intros i,
-    rw [h_generate i, generate_from_insert_univ (π i)], },
-  have h_ind' : Indep_sets π' μ,
-  { intros S f hfπ',
-    classical,
-    let S' := finset.filter (λ i, f i ≠ set.univ) S,
-    have h_mem : ∀ i ∈ S', f i ∈ π i,
-    { intros i hi,
-      simp_rw [S', finset.mem_filter] at hi,
-      cases hfπ' i hi.1,
-      { exact absurd h hi.2, },
-      { exact h, }, },
-    have h_left : (⋂ i ∈ S, f i) = ⋂ i ∈ S', f i,
-    { ext1 x,
-      simp only [set.mem_Inter, finset.mem_filter, ne.def, and_imp],
-      split,
-      { exact λ h i hiS hif, h i hiS, },
-      { intros h i hiS,
-        by_cases hfi_univ : f i = set.univ,
-        { rw hfi_univ, exact set.mem_univ _, },
-        { exact h i hiS hfi_univ, }, }, },
-    have h_right : ∏ i in S, μ (f i) = ∏ i in S', μ (f i),
-    { rw ← finset.prod_filter_mul_prod_filter_not S (λ i, f i ≠ set.univ),
-      simp only [ne.def, finset.filter_congr_decidable, not_not],
-      suffices : ∏ x in finset.filter (λ x, f x = set.univ) S, μ (f x) = 1,
-      { rw [this, mul_one], },
-      calc ∏ x in finset.filter (λ x, f x = set.univ) S, μ (f x)
-          = ∏ x in finset.filter (λ x, f x = set.univ) S, μ set.univ :
-            finset.prod_congr rfl (λ x hx, by { rw finset.mem_filter at hx, rw hx.2, })
-      ... = ∏ x in finset.filter (λ x, f x = set.univ) S, 1 :
-            finset.prod_congr rfl (λ _ _, measure_univ)
-      ... = 1 : finset.prod_const_one, },
-    rw [h_left, h_right],
-    exact h_ind S' h_mem, },
-  exact Indep_sets.Indep_aux m h_le π' h_pi' h_univ' h_gen' h_ind',
+  classical,
+  refine finset.induction _ _,
+  { simp only [measure_univ, implies_true_iff, set.Inter_false, set.Inter_univ, finset.prod_empty,
+      eq_self_iff_true], },
+  intros a S ha_notin_S h_rec f hf_m,
+  have hf_m_S : ∀ x ∈ S, measurable_set[m x] (f x) := λ x hx, hf_m x (by simp [hx]),
+  rw [finset.set_bInter_insert, finset.prod_insert ha_notin_S, ← h_rec hf_m_S],
+  let p := pi_Union_Inter π S,
+  set m_p := generate_from p with hS_eq_generate,
+  have h_indep : indep m_p (m a) μ,
+  { have hp : is_pi_system p := is_pi_system_pi_Union_Inter π h_pi S,
+    have h_le' : ∀ i, generate_from (π i) ≤ m0 := λ i, (h_generate i).symm.trans_le (h_le i),
+    have hm_p : m_p ≤ m0 := generate_from_pi_Union_Inter_le π h_le' S,
+    exact indep_sets.indep hm_p (h_le a) hp (h_pi a) hS_eq_generate (h_generate a)
+      (h_ind.pi_Union_Inter_of_not_mem ha_notin_S), },
+  refine h_indep.symm (f a) (⋂ n ∈ S, f n) (hf_m a (finset.mem_insert_self a S)) _,
+  have h_le_p : ∀ i ∈ S, m i ≤ m_p,
+  { intros n hn,
+    rw [hS_eq_generate, h_generate n],
+    exact le_generate_from_pi_Union_Inter S hn, },
+  have h_S_f : ∀ i ∈ S, measurable_set[m_p] (f i) := λ i hi, (h_le_p i hi) (f i) (hf_m_S i hi),
+  exact S.measurable_set_bInter h_S_f,
 end
 
 end from_pi_systems_to_measurable_spaces
@@ -676,7 +688,7 @@ begin
   { rwa ← indep_set_iff_measure_inter_eq_mul (hf hs) (hg ht) μ, },
 end
 
-lemma indep_fun.symm {mβ : measurable_space β} {f g : Ω → β} (hfg : indep_fun f g μ) :
+@[symm] lemma indep_fun.symm {mβ : measurable_space β} {f g : Ω → β} (hfg : indep_fun f g μ) :
   indep_fun g f μ :=
 hfg.symm
 
@@ -868,6 +880,23 @@ lemma Indep_fun.indep_fun_prod_range_succ [is_probability_measure μ]
   (n : ℕ) :
   indep_fun (∏ j in finset.range n, f j) (f n) μ :=
 hf_Indep.indep_fun_finset_prod_of_not_mem hf_meas finset.not_mem_range_self
+
+lemma Indep_set.Indep_fun_indicator [has_zero β] [has_one β] {m : measurable_space β}
+  {s : ι → set Ω} (hs : Indep_set s μ) :
+  Indep_fun (λ n, m) (λ n, (s n).indicator (λ ω, 1)) μ :=
+begin
+  classical,
+  rw Indep_fun_iff_measure_inter_preimage_eq_mul,
+  rintro S π hπ,
+  simp_rw set.indicator_const_preimage_eq_union,
+  refine @hs S (λ i, ite (1 ∈ π i) (s i) ∅ ∪ ite ((0 : β) ∈ π i) (s i)ᶜ ∅) (λ i hi, _),
+  have hsi : measurable_set[generate_from {s i}] (s i),
+    from measurable_set_generate_from (set.mem_singleton _),
+  refine measurable_set.union (measurable_set.ite' (λ _, hsi) (λ _, _))
+    (measurable_set.ite' (λ _, hsi.compl) (λ _, _)),
+  { exact @measurable_set.empty _ (generate_from {s i}), },
+  { exact @measurable_set.empty _ (generate_from {s i}), },
+end
 
 end indep_fun
 

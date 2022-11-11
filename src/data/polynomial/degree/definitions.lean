@@ -42,7 +42,7 @@ inv_image.wf degree (with_bot.well_founded_lt nat.lt_wf)
 instance : has_well_founded R[X] := ⟨_, degree_lt_wf⟩
 
 /-- `nat_degree p` forces `degree p` to ℕ, by defining nat_degree 0 = 0. -/
-def nat_degree (p : R[X]) : ℕ := (degree p).get_or_else 0
+def nat_degree (p : R[X]) : ℕ := (degree p).unbot' 0
 
 /-- `leading_coeff p` gives the coefficient of the highest power of `X` in `p`-/
 def leading_coeff (p : R[X]) : R := coeff p (nat_degree p)
@@ -106,7 +106,7 @@ option.some_inj.1 $ show (nat_degree p : with_bot ℕ) = n,
   by rwa [← degree_eq_nat_degree hp0]
 
 @[simp] lemma degree_le_nat_degree : degree p ≤ nat_degree p :=
-with_bot.gi_get_or_else_bot.gc.le_u_l _
+with_bot.gi_unbot'_bot.gc.le_u_l _
 
 lemma nat_degree_eq_of_degree_eq [semiring S] {q : S[X]} (h : degree p = degree q) :
   nat_degree p = nat_degree q :=
@@ -153,20 +153,20 @@ end
 
 lemma degree_ne_of_nat_degree_ne {n : ℕ} :
   p.nat_degree ≠ n → degree p ≠ n :=
-mt $ λ h, by rw [nat_degree, h, option.get_or_else_coe]
+mt $ λ h, by rw [nat_degree, h, with_bot.unbot'_coe]
 
 theorem nat_degree_le_iff_degree_le {n : ℕ} : nat_degree p ≤ n ↔ degree p ≤ n :=
-with_bot.get_or_else_bot_le_iff
+with_bot.unbot'_bot_le_iff
 
 lemma nat_degree_lt_iff_degree_lt (hp : p ≠ 0) :
   p.nat_degree < n ↔ p.degree < ↑n :=
-with_bot.get_or_else_bot_lt_iff $ degree_eq_bot.not.mpr hp
+with_bot.unbot'_lt_iff $ degree_eq_bot.not.mpr hp
 
 alias nat_degree_le_iff_degree_le ↔ ..
 
 lemma nat_degree_le_nat_degree [semiring S] {q : S[X]} (hpq : p.degree ≤ q.degree) :
   p.nat_degree ≤ q.nat_degree :=
-with_bot.gi_get_or_else_bot.gc.monotone_l hpq
+with_bot.gi_unbot'_bot.gc.monotone_l hpq
 
 @[simp] lemma degree_C (ha : a ≠ 0) : degree (C a) = (0 : with_bot ℕ) :=
 by rw [degree, ← monomial_zero_left, support_monomial 0 ha, max_eq_sup_coe, sup_singleton,
@@ -913,21 +913,8 @@ with_bot.coe_le_coe.mp ((degree_eq_nat_degree $ ne_zero_of_coe_le_degree hdeg) �
 
 lemma degree_sum_fin_lt {n : ℕ} (f : fin n → R) :
   degree (∑ i : fin n, C (f i) * X ^ (i : ℕ)) < n :=
-begin
-  haveI : is_commutative (with_bot ℕ) max := ⟨max_comm⟩,
-  haveI : is_associative (with_bot ℕ) max := ⟨max_assoc⟩,
-  calc  (∑ i, C (f i) * X ^ (i : ℕ)).degree
-      ≤ finset.univ.fold (⊔) ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) : degree_sum_le _ _
-  ... = finset.univ.fold max ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) : rfl
-  ... < n : (finset.fold_max_lt (n : with_bot ℕ)).mpr ⟨with_bot.bot_lt_coe _, _⟩,
-
-  rintros ⟨i, hi⟩ -,
-  calc (C (f ⟨i, hi⟩) * X ^ i).degree
-      ≤ (C _).degree + (X ^ i).degree : degree_mul_le _ _
-  ... ≤ 0 + i : add_le_add degree_C_le (degree_X_pow_le i)
-  ... = i : zero_add _
-  ... < n : with_bot.some_lt_some.mpr hi,
-end
+(degree_sum_le _ _).trans_lt $ (finset.sup_lt_iff $ with_bot.bot_lt_coe n).2 $
+  λ k hk, (degree_C_mul_X_pow_le _ _).trans_lt $ with_bot.coe_lt_coe.2 k.is_lt
 
 lemma degree_linear_le : degree (C a * X + C b) ≤ 1 :=
 degree_add_le_of_degree_le (degree_C_mul_X_le _) $ le_trans degree_C_le nat.with_bot.coe_nonneg

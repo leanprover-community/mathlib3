@@ -163,7 +163,7 @@ begin
 end
 
 /-- This lemma is useful for working with the `int_degree` of a rational function. -/
-lemma nat_degree_sub_eq_of_prod_eq {p₁ p₂ q₁ q₂ : polynomial R} (hp₁ : p₁ ≠ 0) (hq₁ : q₁ ≠ 0)
+lemma nat_degree_sub_eq_of_prod_eq {p₁ p₂ q₁ q₂ : R[X]} (hp₁ : p₁ ≠ 0) (hq₁ : q₁ ≠ 0)
   (hp₂ : p₂ ≠ 0) (hq₂ : q₂ ≠ 0) (h_eq : p₁ * q₂ = p₂ * q₁) :
   (p₁.nat_degree : ℤ) - q₁.nat_degree = (p₂.nat_degree : ℤ) - q₂.nat_degree :=
 begin
@@ -175,7 +175,7 @@ end
 variables [char_zero R]
 
 @[simp] lemma degree_bit0_eq (p : R[X]) : degree (bit0 p) = degree p :=
-by rw [bit0_eq_two_mul, degree_mul, (by simp : (2 : polynomial R) = C 2),
+by rw [bit0_eq_two_mul, degree_mul, (by simp : (2 : R[X]) = C 2),
   @polynomial.degree_C R _ _ two_ne_zero', zero_add]
 
 @[simp] lemma nat_degree_bit0_eq (p : R[X]) : nat_degree (bit0 p) = nat_degree p :=
@@ -818,7 +818,7 @@ begin
   rw [prod_multiset_root_eq_finset_root, polynomial.map_prod],
   refine finset.prod_dvd_of_coprime (λ a _ b _ h, _) (λ a _, _),
   { simp_rw [polynomial.map_pow, polynomial.map_sub, map_C, map_X],
-    exact (pairwise_coprime_X_sub_C (is_fraction_ring.injective R $ fraction_ring R) _ _ h).pow },
+    exact (pairwise_coprime_X_sub_C (is_fraction_ring.injective R $ fraction_ring R) h).pow },
   { exact polynomial.map_dvd _ (pow_root_multiplicity_dvd p a) },
 end
 

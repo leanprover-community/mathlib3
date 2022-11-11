@@ -41,7 +41,7 @@ end
 local attribute [instance, nolint fails_quickly] affine_subspace.nonempty_map
 local attribute [instance, nolint fails_quickly] affine_subspace.to_add_torsor
 
-/-- Restrict domain and codomain of an affine map to the given submodules. -/
+/-- Restrict domain and codomain of an affine map to the given subspaces. -/
 def affine_map.restrict
   (φ : P₁ →ᵃ[k] P₂) {E : affine_subspace k P₁} {F : affine_subspace k P₂}
   [nonempty E] [nonempty F]

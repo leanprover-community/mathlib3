@@ -561,7 +561,7 @@ lemma eq_one_or_neg_one_of_mul_eq_neg_one' {z w : ℤ} (h : z * w = -1) :
   z = 1 ∧ w = -1 ∨ z = -1 ∧ w = 1 :=
 begin
   rcases is_unit_eq_one_or (is_unit.mul_iff.mp (int.is_unit_iff.mpr (or.inr h))).1 with rfl | rfl,
-  { rw one_mul at h, exact or.inl ⟨rfl, h⟩, },
+  { exact or.inl ⟨rfl, one_mul w ▸ h⟩, },
   { rw [neg_one_mul, neg_inj] at h, exact or.inr ⟨rfl, h⟩, }
 end
 

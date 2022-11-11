@@ -41,6 +41,8 @@ by simp only [disjoint, or.comm, imp_self]
 lemma disjoint.symmetric : symmetric (@disjoint α) :=
 λ _ _, disjoint.symm
 
+instance : is_symm (perm α) disjoint := ⟨disjoint.symmetric⟩
+
 lemma disjoint_comm : disjoint f g ↔ disjoint g f :=
 ⟨disjoint.symm, disjoint.symm⟩
 

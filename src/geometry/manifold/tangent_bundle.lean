@@ -120,6 +120,39 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 instance : inhabited (basic_smooth_vector_bundle_core I M F) :=
 ⟨trivial_basic_smooth_vector_bundle_core I M F⟩
 
+/-- A reformulation of `coord_change_comp`, formulated in terms of a point in `M`.
+The conditions on this point a significantly simpler than in `coord_change_comp`. -/
+lemma coord_change_comp' {i j k : atlas H M} {x : M}
+  (hi : x ∈ i.1.source) (hj : x ∈ j.1.source) (hk : x ∈ k.1.source) (v : F) :
+  Z.coord_change j k (j x) (Z.coord_change i j (i x) v) = Z.coord_change i k (i x) v :=
+begin
+  rw [show j x = _, by rw [← i.1.left_inv hi]],
+  apply Z.coord_change_comp,
+  simp only [hi, hj, hk] with mfld_simps
+end
+
+/-- A reformulation of `coord_change_self`, formulated in terms of a point in `M`. -/
+lemma coord_change_self' {i : atlas H M} {x : M} (hi : x ∈ i.1.source) (v : F) :
+  Z.coord_change i i (i x) v = v :=
+Z.coord_change_self i (i x) (i.1.maps_to hi) v
+
+/-- `Z.coord_change j i` is a partial inverse of `Z.coord_change i j`. -/
+lemma coord_change_comp_eq_self (i j : atlas H M) {x : H}
+  (hx : x ∈ (i.1.symm.trans j.1).source) (v : F) :
+  Z.coord_change j i (i.1.symm.trans j.1 x) (Z.coord_change i j x v) = v :=
+begin
+  rw [Z.coord_change_comp i j i x _ v, Z.coord_change_self _ _ hx.1],
+  simp only with mfld_simps at hx,
+  simp only [hx.1, hx.2] with mfld_simps
+end
+
+/-- `Z.coord_change j i` is a partial inverse of `Z.coord_change i j`,
+formulated in terms of a point in `M`. -/
+lemma coord_change_comp_eq_self' {i j : atlas H M} {x : M}
+  (hi : x ∈ i.1.source) (hj : x ∈ j.1.source) (v : F) :
+  Z.coord_change j i (j x) (Z.coord_change i j (i x) v) = v :=
+by rw [Z.coord_change_comp' hi hj hi v, Z.coord_change_self' hi]
+
 lemma coord_change_continuous (i j : atlas H M) :
   continuous_on (Z.coord_change i j) (i.1.symm.trans j.1).source :=
 begin
@@ -181,6 +214,11 @@ def chart {e : local_homeomorph M H} (he : e ∈ atlas H M) :
   local_homeomorph (Z.to_topological_vector_bundle_core.total_space) (model_prod H F) :=
 (Z.to_topological_vector_bundle_core.local_triv ⟨e, he⟩).to_local_homeomorph.trans
   (local_homeomorph.prod e (local_homeomorph.refl F))
+
+lemma chart_apply {x : M} (z : Z.to_topological_vector_bundle_core.total_space) :
+  Z.chart (chart_mem_atlas H x) z = (chart_at H x z.proj,
+    Z.coord_change (achart H z.proj) (achart H x) (achart H z.proj z.proj) z.2) :=
+rfl
 
 @[simp, mfld_simps] lemma chart_source (e : local_homeomorph M H) (he : e ∈ atlas H M) :
   (Z.chart he).source = Z.to_topological_vector_bundle_core.proj ⁻¹' e.source :=
@@ -554,8 +592,7 @@ begin
   { cases x,
     simp only [chart_at, basic_smooth_vector_bundle_core.chart, tangent_bundle_core,
       basic_smooth_vector_bundle_core.to_topological_vector_bundle_core, A, prod.mk.inj_iff,
-      continuous_linear_map.coe_id'] with mfld_simps,
-      exact (tangent_bundle_core I H).coord_change_self _ _ trivial x_snd, },
+      continuous_linear_map.coe_id'] with mfld_simps },
   show ∀ x, ((chart_at (model_prod H E) p).to_local_equiv).symm x =
     (equiv.sigma_equiv_prod H E).symm x,
   { rintros ⟨x_fst, x_snd⟩,

@@ -139,6 +139,11 @@ begin
   rw count_bind, apply le_sum_of_mem,
   rw mem_map, exact ⟨x, hx, rfl⟩
 end
+
+@[simp] theorem attach_bind_coe (s : multiset α) (f : α → multiset β) :
+  s.attach.bind (λ i, f i) = s.bind f :=
+congr_arg join $ attach_map_coe' _ _
+
 end bind
 
 /-! ### Product of two multisets -/

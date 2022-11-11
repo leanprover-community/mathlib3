@@ -152,6 +152,8 @@ locally_finite_order.of_Icc (Π₀ i, α i)
 
 variables (f g : Π₀ i, α i)
 
+lemma Icc_eq : Icc f g = (f.support ∪ g.support).dfinsupp (f.range_Icc g) := rfl
+
 lemma card_Icc : (Icc f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (g i)).card :=
 card_dfinsupp _ _
 
@@ -165,4 +167,20 @@ lemma card_Ioo : (Ioo f g).card = ∏ i in f.support ∪ g.support, (Icc (f i) (
 by rw [card_Ioo_eq_card_Icc_sub_two, card_Icc]
 
 end locally_finite
+
+section canonically_ordered
+variables [decidable_eq ι] [Π i, decidable_eq (α i)]
+variables [Π i, canonically_ordered_add_monoid (α i)] [Π i, locally_finite_order (α i)]
+
+variables (f : Π₀ i, α i)
+
+lemma card_Iic : (Iic f).card = ∏ i in f.support, (Iic (f i)).card :=
+by simp_rw [Iic_eq_Icc, card_Icc, dfinsupp.bot_eq_zero, support_zero, empty_union, zero_apply,
+  bot_eq_zero]
+
+lemma card_Iio : (Iio f).card = ∏ i in f.support, (Iic (f i)).card - 1 :=
+by rw [card_Iio_eq_card_Iic_sub_one, card_Iic]
+
+end canonically_ordered
+
 end dfinsupp

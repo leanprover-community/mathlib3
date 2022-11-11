@@ -558,8 +558,7 @@ begin
     exact is_noetherian_of_linear_equiv (linear_equiv.Pi_congr_left R M coe_e), },
   intro s,
   induction s using finset.induction with a s has ih,
-  { split, intro s, convert submodule.fg_bot, apply eq_bot_iff.2,
-    intros x hx, refine (submodule.mem_bot R).2 _, ext i, cases i.2 },
+  { exact ⟨λ s, by convert submodule.fg_bot⟩ },
   refine @is_noetherian_of_linear_equiv _ _ _ _ _ _ _ _
     _ (@is_noetherian_prod _ (M a) _ _ _ _ _ _ _ ih),
   fconstructor,

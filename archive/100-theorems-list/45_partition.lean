@@ -335,7 +335,7 @@ begin
       rw multiset.count_eq_zero_of_not_mem,
       intro a, exact nat.lt_irrefl 0 (hs 0 (hp₂.2 0 a)),
       intro a, exact nat.lt_irrefl 0 (hs 0 (hp₁.2 0 a)) },
-    { rwa [nat.nsmul_eq_mul, nat.nsmul_eq_mul, nat.mul_left_inj i.succ_pos] at h } },
+    { rwa [nat.nsmul_eq_mul, nat.nsmul_eq_mul, mul_left_inj' i.succ_ne_zero] at h } },
   { simp only [mem_filter, mem_cut, mem_univ, exists_prop, true_and, and_assoc],
     rintros f ⟨hf₁, hf₂, hf₃⟩,
     refine ⟨⟨∑ i in s, multiset.repeat i (f i / i), _, _⟩, _, _, _⟩,

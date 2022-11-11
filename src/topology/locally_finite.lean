@@ -70,7 +70,7 @@ begin
   intro x,
   rcases hf x with ⟨s, hsx, hsf⟩,
   refine ⟨interior s, interior_mem_nhds.2 hsx, hsf.subset $ λ i hi, _⟩,
-  exact (hi.mono is_open_interior.closure_inter').of_closure.mono
+  exact (hi.mono is_open_interior.closure_inter).of_closure.mono
     (inter_subset_inter_right _ interior_subset)
 end
 

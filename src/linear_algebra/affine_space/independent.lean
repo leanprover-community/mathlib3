@@ -559,6 +559,101 @@ begin
   exact linear_independent_unique _ hz
 end
 
+variables {k V P}
+
+/-- If all but one point of a family are affinely independent, and that point does not lie in
+the affine span of that family, the family is affinely independent. -/
+lemma affine_independent.affine_independent_of_not_mem_span {p : ι → P} {i : ι}
+  (ha : affine_independent k (λ x : {y // y ≠ i}, p x))
+  (hi : p i ∉ affine_span k (p '' {x | x ≠ i})) : affine_independent k p :=
+begin
+  classical,
+  intros s w hw hs,
+  let s' : finset {y // y ≠ i} := s.subtype (≠ i),
+  let p' : {y // y ≠ i} → P := λ x, p x,
+  by_cases his : i ∈ s ∧ w i ≠ 0,
+  { refine false.elim (hi _),
+    let wm : ι → k := -(w i)⁻¹ • w,
+    have hms : s.weighted_vsub p wm = (0 : V), { simp [wm, hs] },
+    have hwm : ∑ i in s, wm i = 0, { simp [wm, ←finset.mul_sum, hw] },
+    have hwmi : wm i = -1, { simp [wm, his.2] },
+    let w' : {y // y ≠ i} → k := λ x, wm x,
+    have hw' : ∑ x in s', w' x = 1,
+    { simp_rw [w', finset.sum_subtype_eq_sum_filter],
+      rw ←s.sum_filter_add_sum_filter_not (≠ i) at hwm,
+      simp_rw [not_not, finset.filter_eq', if_pos his.1, finset.sum_singleton, ←wm, hwmi,
+               ←sub_eq_add_neg, sub_eq_zero] at hwm,
+      exact hwm },
+    rw [←s.affine_combination_eq_of_weighted_vsub_eq_zero_of_eq_neg_one hms his.1 hwmi,
+        ←(subtype.range_coe : _ = {x | x ≠ i}), ←set.range_comp,
+        ←s.affine_combination_subtype_eq_filter],
+    exact affine_combination_mem_affine_span hw' p' },
+  { rw [not_and_distrib, not_not] at his,
+    let w' : {y // y ≠ i} → k := λ x, w x,
+    have hw' : ∑ x in s', w' x = 0,
+    { simp_rw [finset.sum_subtype_eq_sum_filter],
+      rw [finset.sum_filter_of_ne, hw],
+      rintro x hxs hwx rfl,
+      exact hwx (his.neg_resolve_left hxs) },
+    have hs' : s'.weighted_vsub p' w' = (0 : V),
+    { simp_rw finset.weighted_vsub_subtype_eq_filter,
+      rw [finset.weighted_vsub_filter_of_ne, hs],
+      rintro x hxs hwx rfl,
+      exact hwx (his.neg_resolve_left hxs) },
+    intros j hj,
+    by_cases hji : j = i,
+    { rw hji at hj,
+      exact hji.symm ▸ (his.neg_resolve_left hj) },
+    { exact ha s' w' hw' hs' ⟨j, hji⟩ (finset.mem_subtype.2 hj) } }
+end
+
+/-- If distinct points `p₁` and `p₂` lie in `s` but `p₃` does not, the three points are affinely
+independent. -/
+lemma affine_independent_of_ne_of_mem_of_mem_of_not_mem {s : affine_subspace k P} {p₁ p₂ p₃ : P}
+  (hp₁p₂ : p₁ ≠ p₂) (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (hp₃ : p₃ ∉ s) :
+  affine_independent k ![p₁, p₂, p₃] :=
+begin
+  have ha : affine_independent k (λ x : {x : fin 3 // x ≠ 2}, ![p₁, p₂, p₃] x),
+  { rw ←affine_independent_equiv ((fin_succ_above_equiv (2 : fin 3)).to_equiv),
+    convert affine_independent_of_ne k hp₁p₂,
+    ext x,
+    fin_cases x;
+      refl },
+  refine ha.affine_independent_of_not_mem_span _,
+  intro h,
+  refine hp₃ ((affine_subspace.le_def' _ s).1 _ p₃ h),
+  simp_rw [affine_span_le, set.image_subset_iff, set.subset_def, set.mem_preimage],
+  intro x,
+  fin_cases x;
+    simp [hp₁, hp₂]
+end
+
+/-- If distinct points `p₁` and `p₃` lie in `s` but `p₂` does not, the three points are affinely
+independent. -/
+lemma affine_independent_of_ne_of_mem_of_not_mem_of_mem {s : affine_subspace k P} {p₁ p₂ p₃ : P}
+  (hp₁p₃ : p₁ ≠ p₃) (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∉ s) (hp₃ : p₃ ∈ s) :
+  affine_independent k ![p₁, p₂, p₃] :=
+begin
+  rw ←affine_independent_equiv (equiv.swap (1 : fin 3) 2),
+  convert affine_independent_of_ne_of_mem_of_mem_of_not_mem hp₁p₃ hp₁ hp₃ hp₂ using 1,
+  ext x,
+  fin_cases x;
+    refl
+end
+
+/-- If distinct points `p₂` and `p₃` lie in `s` but `p₁` does not, the three points are affinely
+independent. -/
+lemma affine_independent_of_ne_of_not_mem_of_mem_of_mem {s : affine_subspace k P} {p₁ p₂ p₃ : P}
+  (hp₂p₃ : p₂ ≠ p₃) (hp₁ : p₁ ∉ s) (hp₂ : p₂ ∈ s) (hp₃ : p₃ ∈ s) :
+  affine_independent k ![p₁, p₂, p₃] :=
+begin
+  rw ←affine_independent_equiv (equiv.swap (0 : fin 3) 2),
+  convert affine_independent_of_ne_of_mem_of_mem_of_not_mem hp₂p₃.symm hp₃ hp₂ hp₁ using 1,
+  ext x,
+  fin_cases x;
+    refl
+end
+
 end division_ring
 
 namespace affine

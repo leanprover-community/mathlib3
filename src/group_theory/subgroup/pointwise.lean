@@ -60,6 +60,9 @@ lemma mem_smul_pointwise_iff_exists (m : G) (a : α) (S : subgroup G) :
   m ∈ a • S ↔ ∃ (s : G), s ∈ S ∧ a • s = m :=
 (set.mem_smul_set : m ∈ a • (S : set G) ↔ _)
 
+@[simp] lemma smul_bot (a : α) : a • (⊥ : subgroup G) = ⊥ :=
+by simp [set_like.ext_iff, mem_smul_pointwise_iff_exists, eq_comm]
+
 instance pointwise_central_scalar [mul_distrib_mul_action αᵐᵒᵖ G] [is_central_scalar α G] :
   is_central_scalar α (subgroup G) :=
 ⟨λ a S, congr_arg (λ f, S.map f) $ monoid_hom.ext $ by exact op_smul_eq_smul _⟩
@@ -109,6 +112,9 @@ set_smul_subset_iff
 lemma subset_pointwise_smul_iff {a : α} {S T : subgroup G} : S ≤ a • T ↔ a⁻¹ • S ≤ T :=
 subset_set_smul_iff
 
+@[simp] lemma smul_inf (a : α) (S T : subgroup G) : a • (S ⊓ T) = a • S ⊓ a • T :=
+by simp [set_like.ext_iff, mem_pointwise_smul_iff_inv_smul_mem]
+
 /-- Applying a `mul_distrib_mul_action` results in an isomorphic subgroup -/
 @[simps] def equiv_smul (a : α) (H : subgroup G) : H ≃* (a • H : subgroup G) :=
 (mul_distrib_mul_action.to_mul_equiv G a).subgroup_map H
@@ -151,6 +157,9 @@ begin
     apply hH.conj_mem,
     exact h}
 end
+
+@[simp] lemma smul_normal (g : G) (H : subgroup G) [h : normal H] : mul_aut.conj g • H = H :=
+h.conj_act g
 
 end group
 

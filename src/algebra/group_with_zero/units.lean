@@ -97,6 +97,15 @@ by rw [← mul_assoc, mul_inverse_cancel x h, one_mul]
 lemma inverse_mul_cancel_left (x y : M₀) (h : is_unit x) : inverse x * (x * y) = y :=
 by rw [← mul_assoc, inverse_mul_cancel x h, one_mul]
 
+lemma inverse_mul_eq_iff_eq_mul (x y z : M₀) (h : is_unit x) :
+  inverse x * y = z ↔ y = x * z :=
+⟨λ h1, by rw [← h1, mul_inverse_cancel_left _ _ h], λ h1, by rw [h1, inverse_mul_cancel_left _ _ h]⟩
+
+lemma eq_mul_inverse_iff_mul_eq (x y z : M₀) (h : is_unit z) :
+  x = y * inverse z ↔ x * z = y :=
+⟨λ h1, by rw [h1, inverse_mul_cancel_right _ _ h],
+  λ h1, by rw [← h1, mul_inverse_cancel_right _ _ h]⟩
+
 variables (M₀)
 
 @[simp] lemma inverse_one : inverse (1 : M₀) = 1 :=
@@ -462,6 +471,16 @@ begin
 end
 
 @[simp] lemma map_div₀ : f (a / b) = f a / f b := map_div' f (map_inv₀ f) a b
+
+@[simp]
+lemma coe_inv₀ [has_lift_t G₀ G₀'] [coe_is_monoid_with_zero_hom G₀ G₀']
+  (a : G₀) : ↑(a⁻¹) = (↑a : G₀')⁻¹ :=
+map_inv₀ (monoid_with_zero_hom.coe G₀ G₀') a
+
+@[simp]
+lemma coe_div₀ [has_lift_t G₀ G₀'] [coe_is_monoid_with_zero_hom G₀ G₀']
+  (a b : G₀) : ↑(a / b) = (↑a : G₀') / ↑b :=
+map_div₀ (monoid_with_zero_hom.coe G₀ G₀') a b
 
 end group_with_zero
 

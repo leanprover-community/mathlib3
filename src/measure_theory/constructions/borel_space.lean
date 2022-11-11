@@ -11,6 +11,7 @@ import measure_theory.lattice
 import measure_theory.measure.open_pos
 import topology.algebra.order.liminf_limsup
 import topology.continuous_function.basic
+import topology.instances.add_circle
 import topology.instances.ereal
 import topology.G_delta
 import topology.order.lattice
@@ -1242,7 +1243,7 @@ end
 -/
 lemma measurable_liminf' {ι ι'} {f : ι → δ → α} {u : filter ι} (hf : ∀ i, measurable (f i))
   {p : ι' → Prop} {s : ι' → set ι} (hu : u.has_countable_basis p s) (hs : ∀ i, (s i).countable) :
-  measurable (λ x, liminf u (λ i, f i x)) :=
+  measurable (λ x, liminf (λ i, f i x) u) :=
 begin
   simp_rw [hu.to_has_basis.liminf_eq_supr_infi],
   refine measurable_bsupr _ hu.countable _,
@@ -1253,7 +1254,7 @@ end
 -/
 lemma measurable_limsup' {ι ι'}  {f : ι → δ → α} {u : filter ι} (hf : ∀ i, measurable (f i))
   {p : ι' → Prop} {s : ι' → set ι} (hu : u.has_countable_basis p s) (hs : ∀ i, (s i).countable) :
-  measurable (λ x, limsup u (λ i, f i x)) :=
+  measurable (λ x, limsup (λ i, f i x) u) :=
 begin
   simp_rw [hu.to_has_basis.limsup_eq_infi_supr],
   refine measurable_binfi _ hu.countable _,
@@ -1264,14 +1265,14 @@ end
 -/
 @[measurability]
 lemma measurable_liminf {f : ℕ → δ → α} (hf : ∀ i, measurable (f i)) :
-  measurable (λ x, liminf at_top (λ i, f i x)) :=
+  measurable (λ x, liminf (λ i, f i x) at_top) :=
 measurable_liminf' hf at_top_countable_basis (λ i, to_countable _)
 
 /-- `limsup` over `ℕ` is measurable. See `measurable_limsup'` for a version with a general filter.
 -/
 @[measurability]
 lemma measurable_limsup {f : ℕ → δ → α} (hf : ∀ i, measurable (f i)) :
-  measurable (λ x, limsup at_top (λ i, f i x)) :=
+  measurable (λ x, limsup (λ i, f i x) at_top) :=
 measurable_limsup' hf at_top_countable_basis (λ i, to_countable _)
 
 end complete_linear_order
@@ -1308,7 +1309,7 @@ protected lemma is_finite_measure_on_compacts.map
   assume K hK,
   rw [measure.map_apply f.measurable hK.measurable_set],
   apply is_compact.measure_lt_top,
-  rwa f.compact_preimage
+  rwa f.is_compact_preimage
 end⟩
 
 end borel_space
@@ -1342,6 +1343,15 @@ instance ereal.borel_space : borel_space ereal := ⟨rfl⟩
 
 instance complex.measurable_space : measurable_space ℂ := borel ℂ
 instance complex.borel_space : borel_space ℂ := ⟨rfl⟩
+
+instance add_circle.measurable_space {a : ℝ} : measurable_space (add_circle a) :=
+borel (add_circle a)
+
+instance add_circle.borel_space {a : ℝ} : borel_space (add_circle a) := ⟨rfl⟩
+
+@[measurability] protected lemma add_circle.measurable_mk' {a : ℝ} :
+  measurable (coe : ℝ → add_circle a) :=
+continuous.measurable $ add_circle.continuous_mk' a
 
 /-- One can cut out `ℝ≥0∞` into the sets `{0}`, `Ico (t^n) (t^(n+1))` for `n : ℤ` and `{∞}`. This
 gives a way to compute the measure of a set in terms of sets on which a given function `f` does not
@@ -1890,10 +1900,10 @@ lemma measurable_of_tendsto_ennreal' {ι} {f : ι → α → ℝ≥0∞} {g : α
 begin
   rcases u.exists_seq_tendsto with ⟨x, hx⟩,
   rw [tendsto_pi_nhds] at lim,
-  have : (λ y, liminf at_top (λ n, (f (x n) y : ℝ≥0∞))) = g :=
+  have : (λ y, liminf (λ n, (f (x n) y : ℝ≥0∞)) at_top) = g :=
     by { ext1 y, exact ((lim y).comp hx).liminf_eq, },
   rw ← this,
-  show measurable (λ y, liminf at_top (λ n, (f (x n) y : ℝ≥0∞))),
+  show measurable (λ y, liminf (λ n, (f (x n) y : ℝ≥0∞)) at_top),
   exact measurable_liminf (λ n, hf (x n)),
 end
 

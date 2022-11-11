@@ -127,7 +127,7 @@ exists.elim (zorn_nonempty_partial_order₀ {Q : subgroup G | is_p_group p Q} (�
       (λ T, ⟨S, ⟨S, rfl⟩, S.1.mul_mem (T hg) hh⟩) (λ T, ⟨R, ⟨R, rfl⟩, R.1.mul_mem hg (T hh)⟩) },
   λ ⟨g, _, ⟨S, rfl⟩, hg⟩, by
   { refine exists_imp_exists (λ k hk, _) (hc1 S.2 ⟨g, hg⟩),
-    rwa [subtype.ext_iff, coe_pow] at hk ⊢ },
+    rwa [subtype.ext_iff, subgroup.coe_pow] at hk ⊢ },
   λ M hM g hg, ⟨M, ⟨⟨M, hM⟩, rfl⟩, hg⟩⟩) P hP) (λ Q ⟨hQ1, hQ2, hQ3⟩, ⟨⟨Q, hQ1, hQ3⟩, hQ2⟩)
 
 instance sylow.nonempty : nonempty (sylow p G) :=
@@ -165,7 +165,7 @@ sylow.fintype_of_ker_is_p_group (is_p_group.ker_is_p_group_of_injective hf)
 
 /-- If `H` is a subgroup of `G`, then `fintype (sylow p G)` implies `fintype (sylow p H)`. -/
 noncomputable instance (H : subgroup G) [fintype (sylow p G)] : fintype (sylow p H) :=
-sylow.fintype_of_injective (show function.injective H.subtype, from subtype.coe_injective)
+sylow.fintype_of_injective H.subtype_injective
 
 /-- If `H` is a subgroup of `G`, then `finite (sylow p G)` implies `finite (sylow p H)`. -/
 instance (H : subgroup G) [finite (sylow p G)] : finite (sylow p H) :=
@@ -470,8 +470,7 @@ lemma prime_dvd_card_quotient_normalizer [fintype G] {p : ℕ} {n : ℕ} [hp : f
   p ∣ card (normalizer H ⧸ (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) :=
 let ⟨s, hs⟩ := exists_eq_mul_left_of_dvd hdvd in
 have hcard : card (G ⧸ H) = s * p :=
-  (nat.mul_left_inj (show card H > 0, from fintype.card_pos_iff.2
-      ⟨⟨1, H.one_mem⟩⟩)).1
+  (mul_left_inj' (show card H ≠ 0, from fintype.card_ne_zero)).1
     (by rwa [← card_eq_card_quotient_mul_card_subgroup H, hH, hs,
       pow_succ', mul_assoc, mul_comm p]),
 have hm : s * p % p =
@@ -496,8 +495,7 @@ theorem exists_subgroup_card_pow_succ [fintype G] {p : ℕ} {n : ℕ} [hp : fact
   ∃ K : subgroup G, fintype.card K = p ^ (n + 1) ∧ H ≤ K :=
 let ⟨s, hs⟩ := exists_eq_mul_left_of_dvd hdvd in
 have hcard : card (G ⧸ H) = s * p :=
-  (nat.mul_left_inj (show card H > 0, from fintype.card_pos_iff.2
-      ⟨⟨1, H.one_mem⟩⟩)).1
+  (mul_left_inj' (show card H ≠ 0, from fintype.card_ne_zero)).1
     (by rwa [← card_eq_card_quotient_mul_card_subgroup H, hH, hs,
       pow_succ', mul_assoc, mul_comm p]),
 have hm : s * p % p =

@@ -179,13 +179,40 @@ by refl
 abbreviation homology (C : homological_complex V c) (i : ι) [C.has_homology i] : V :=
 ((short_complex_functor V c i).obj C).homology
 
+abbreviation _root_.homology_map {C D : homological_complex V c}
+  (f : C ⟶ D) (i : ι) [C.has_homology i] [D.has_homology i] :
+  C.homology i ⟶ D.homology i :=
+short_complex.homology_map ((short_complex_functor V c i).map f)
+
+@[simp]
+lemma _root_.homology_map_id (C : homological_complex V c) (i : ι) [C.has_homology i] :
+  homology_map (𝟙 C) i = 𝟙 _ := short_complex.homology_map_id _
+
+@[simp]
+lemma _root_.homology_map_comp {C D E : homological_complex V c} (f : C ⟶ D) (g : D ⟶ E)
+  (i : ι) [C.has_homology i] [D.has_homology i] [E.has_homology i]:
+  homology_map (f ≫ g) i = homology_map f i ≫ homology_map g i :=
+begin
+  change short_complex.homology_map _ = _,
+  rw functor.map_comp,
+  apply short_complex.homology_map_comp,
+end
+
 variables (V c)
 
 @[simps]
-def homology_functor [category_with_homology V] (i : ι) : homological_complex V c ⥤ V :=
+def _root_.homology_functor [category_with_homology V] (i : ι) : homological_complex V c ⥤ V :=
   short_complex_functor V c i ⋙ short_complex.homology_functor V
 
-variable (c)
+variables {V c}
+
+lemma _root_.homology_functor_obj' [category_with_homology V] (C : homological_complex V c) (i : ι) :
+  (homology_functor V c i).obj C = C.homology i := rfl
+
+lemma _root_.homology_functor_map' [category_with_homology V] {C D : homological_complex V c}
+  (f : C ⟶ D) (i : ι) : (homology_functor V c i).map f = homology_map f i := rfl
+
+variables (V c)
 
 def short_complex_functor_nat_iso {i j k : ι} (hij : c.rel i j) (hjk : c.rel j k) :
   short_complex_functor V c j ≅ short_complex_functor' V c i j k :=

@@ -367,9 +367,9 @@ structure homotopy :=
 (h₂ : S₁.X₃ ⟶ S₂.X₂)
 (h₃ : S₁.X₃ ⟶ S₂.X₃)
 (g_h₃ : S₁.g ≫ h₃ = 0)
-(comm₁ : φ₁.τ₁ + h₀ + S₁.f ≫ h₁ = φ₂.τ₁)
-(comm₂ : φ₁.τ₂ + h₁ ≫ S₂.f + S₁.g ≫ h₂ = φ₂.τ₂)
-(comm₃ : φ₁.τ₃ + h₃ + h₂ ≫ S₂.g = φ₂.τ₃)
+(comm₁ : φ₁.τ₁ = S₁.f ≫ h₁ + h₀ + φ₂.τ₁)
+(comm₂ : φ₁.τ₂ = S₁.g ≫ h₂ + h₁ ≫ S₂.f + φ₂.τ₂)
+(comm₃ : φ₁.τ₃ = h₃ + h₂ ≫ S₂.g + φ₂.τ₃)
 
 @[simps]
 def null_homotopic (h₀ : S₁.X₁ ⟶ S₂.X₁) (h₀_f : h₀ ≫ S₂.f = 0)
@@ -409,9 +409,9 @@ def symm (h : homotopy φ₁ φ₂) : homotopy φ₂ φ₁ :=
   h₂ := -h.h₂,
   h₃ := -h.h₃,
   g_h₃ := by simp only [h.g_h₃, comp_neg, neg_zero],
-  comm₁ := by { simp only [← h.comm₁, comp_neg], abel, },
-  comm₂ := by { simp only [← h.comm₂, neg_comp, comp_neg], abel, },
-  comm₃ := by { simp only [←h.comm₃, neg_comp], abel, }, }
+  comm₁ := by { simp only [h.comm₁, comp_neg], abel, },
+  comm₂ := by { simp only [h.comm₂, neg_comp, comp_neg], abel, },
+  comm₃ := by { simp only [h.comm₃, neg_comp], abel, }, }
 
 @[simp]
 def trans (h : homotopy φ₁ φ₂) (h' : homotopy φ₂ φ₃) : homotopy φ₁ φ₃ :=
@@ -421,9 +421,9 @@ def trans (h : homotopy φ₁ φ₂) (h' : homotopy φ₂ φ₃) : homotopy φ�
   h₂ := h.h₂ + h'.h₂,
   h₃ := h.h₃ + h'.h₃,
   g_h₃ := by simp only [h.g_h₃, h'.g_h₃, comp_add, add_zero],
-  comm₁ := by { simp only [← h.comm₁, ←h'.comm₁, comp_add], abel, },
-  comm₂ := by { simp only [← h.comm₂, ← h'.comm₂, add_comp, comp_add], abel, },
-  comm₃ := by { simp only [← h.comm₃, ←h'.comm₃, add_comp], abel, }, }
+  comm₁ := by { simp only [h.comm₁, h'.comm₁, comp_add], abel, },
+  comm₂ := by { simp only [h.comm₂, h'.comm₂, add_comp, comp_add], abel, },
+  comm₃ := by { simp only [h.comm₃, h'.comm₃, add_comp], abel, }, }
 
 @[simp]
 def neg (h : homotopy φ₁ φ₂) : homotopy (-φ₁) (-φ₂) :=
@@ -433,9 +433,9 @@ def neg (h : homotopy φ₁ φ₂) : homotopy (-φ₁) (-φ₂) :=
   h₂ := -h.h₂,
   h₃ := -h.h₃,
   g_h₃ := by simp only [h.g_h₃, comp_neg, neg_zero],
-  comm₁ := by { simp only [← h.comm₁, neg_τ₁, comp_neg, neg_add_rev], abel, },
-  comm₂ := by { simp only [← h.comm₂, neg_τ₂, neg_comp, comp_neg, neg_add_rev], abel, },
-  comm₃ := by { simp only [← h.comm₃, neg_τ₃, neg_comp, neg_add_rev], abel, }, }
+  comm₁ := by { simp only [h.comm₁, neg_τ₁, comp_neg, neg_add_rev], abel, },
+  comm₂ := by { simp only [h.comm₂, neg_τ₂, neg_comp, comp_neg, neg_add_rev], abel, },
+  comm₃ := by { simp only [h.comm₃, neg_τ₃, neg_comp, neg_add_rev], abel, }, }
 
 @[simp]
 def add (h : homotopy φ₁ φ₂) (h' : homotopy φ₃ φ₄) : homotopy (φ₁ + φ₃) (φ₂ + φ₄) :=
@@ -445,9 +445,9 @@ def add (h : homotopy φ₁ φ₂) (h' : homotopy φ₃ φ₄) : homotopy (φ₁
   h₂ := h.h₂ + h'.h₂,
   h₃ := h.h₃ + h'.h₃,
   g_h₃ := by simp only [h.g_h₃, h'.g_h₃, comp_add, add_zero],
-  comm₁ := by { simp only [← h.comm₁, ← h'.comm₁, add_τ₁, comp_add], abel, },
-  comm₂:= by { simp only [← h.comm₂, ← h'.comm₂, add_τ₂, add_comp, comp_add], abel, },
-  comm₃ := by { simp only [← h.comm₃, ← h'.comm₃, add_τ₃, add_comp], abel, }, }
+  comm₁ := by { simp only [h.comm₁, h'.comm₁, add_τ₁, comp_add], abel, },
+  comm₂:= by { simp only [h.comm₂, h'.comm₂, add_τ₂, add_comp, comp_add], abel, },
+  comm₃ := by { simp only [h.comm₃, h'.comm₃, add_τ₃, add_comp], abel, }, }
 
 @[simp]
 def sub (h : homotopy φ₁ φ₂) (h' : homotopy φ₃ φ₄) : homotopy (φ₁ - φ₃) (φ₂ - φ₄) :=
@@ -457,9 +457,9 @@ def sub (h : homotopy φ₁ φ₂) (h' : homotopy φ₃ φ₄) : homotopy (φ₁
   h₂ := h.h₂ - h'.h₂,
   h₃ := h.h₃ - h'.h₃,
   g_h₃ := by simp only [h.g_h₃, h'.g_h₃, comp_sub, sub_self],
-  comm₁ := by { simp only [← h.comm₁, ←h'.comm₁, sub_τ₁, comp_sub], abel, },
-  comm₂ := by { simp only [← h.comm₂, ← h'.comm₂, sub_τ₂, sub_comp, comp_sub], abel, },
-  comm₃ := by { simp only [← h.comm₃, ← h'.comm₃, sub_τ₃, sub_comp], abel, }, }
+  comm₁ := by { simp only [h.comm₁, h'.comm₁, sub_τ₁, comp_sub], abel, },
+  comm₂ := by { simp only [h.comm₂, h'.comm₂, sub_τ₂, sub_comp, comp_sub], abel, },
+  comm₃ := by { simp only [h.comm₃, h'.comm₃, sub_τ₃, sub_comp], abel, }, }
 
 @[simp]
 def comp_right (h : homotopy φ₁ φ₂) (φ' : S₂ ⟶ S₃) :
@@ -470,10 +470,10 @@ def comp_right (h : homotopy φ₁ φ₂) (φ' : S₂ ⟶ S₃) :
   h₂ := h.h₂ ≫ φ'.τ₂,
   h₃ := h.h₃ ≫ φ'.τ₃,
   g_h₃ := by simp only [h.g_h₃_assoc, zero_comp],
-  comm₁ := by simp only [←h.comm₁, comp_τ₁, add_comp, assoc],
-  comm₂ := by simp only [← h.comm₂, comp_τ₂, assoc, add_comp,
+  comm₁ := by simp only [h.comm₁, comp_τ₁, add_comp, assoc],
+  comm₂ := by simp only [h.comm₂, comp_τ₂, assoc, add_comp,
     add_left_inj, add_right_inj, φ'.comm₁₂],
-  comm₃ := by simp only [←h.comm₃, comp_τ₃, assoc, add_comp, add_right_inj, φ'.comm₂₃], }
+  comm₃ := by simp only [h.comm₃, comp_τ₃, assoc, add_comp, add_right_inj, φ'.comm₂₃], }
 
 @[simp]
 def comp_left (h : homotopy φ₁ φ₂) (φ' : S₃ ⟶ S₁) :
@@ -484,10 +484,10 @@ def comp_left (h : homotopy φ₁ φ₂) (φ' : S₃ ⟶ S₁) :
   h₂ := φ'.τ₃ ≫ h.h₂,
   h₃ := φ'.τ₃ ≫ h.h₃,
   g_h₃ := by simp only [← φ'.comm₂₃_assoc, h.g_h₃, comp_zero],
-  comm₁ := by { simp only [←h.comm₁, comp_τ₁, comp_add, add_right_inj, φ'.comm₁₂_assoc], },
-  comm₂ := by simp only [← h.comm₂, comp_τ₂, assoc, comp_add,
+  comm₁ := by { simp only [h.comm₁, comp_τ₁, comp_add, add_right_inj, φ'.comm₁₂_assoc], },
+  comm₂ := by simp only [h.comm₂, comp_τ₂, assoc, comp_add,
     add_right_inj, φ'.comm₂₃_assoc],
-  comm₃ := by simp only [←h.comm₃, comp_τ₃, assoc, comp_add], }
+  comm₃ := by simp only [h.comm₃, comp_τ₃, assoc, comp_add], }
 
 @[simp]
 def equiv_sub_zero : homotopy φ₁ φ₂ ≃ homotopy (φ₁ - φ₂) 0 :=
@@ -498,12 +498,12 @@ def equiv_sub_zero : homotopy φ₁ φ₂ ≃ homotopy (φ₁ - φ₂) 0 :=
   right_inv := by tidy, }
 
 lemma eq_add_null_homotopic (h : homotopy φ₁ φ₂) :
-  φ₂ = φ₁ + null_homotopic h.h₀ h.h₀_f h.h₁ h.h₂ h.h₃ h.g_h₃ :=
+  φ₁ = φ₂ + null_homotopic h.h₀ h.h₀_f h.h₁ h.h₂ h.h₃ h.g_h₃ :=
 begin
   ext,
-  { simp only [← h.comm₁, add_τ₁, null_homotopic_τ₁], abel, },
-  { simp only [← h.comm₂, add_τ₂, null_homotopic_τ₂], abel, },
-  { simp only [← h.comm₃, add_τ₃, null_homotopic_τ₃], abel, },
+  { simp only [h.comm₁, add_τ₁, null_homotopic_τ₁], abel, },
+  { simp only [h.comm₂, add_τ₂, null_homotopic_τ₂], abel, },
+  { simp only [h.comm₃, add_τ₃, null_homotopic_τ₃], abel, },
 end
 
 variables (S₁ S₂)
@@ -512,15 +512,15 @@ variables (S₁ S₂)
 def of_null_homotopic (h₀ : S₁.X₁ ⟶ S₂.X₁) (h₀_f : h₀ ≫ S₂.f = 0)
   (h₁ : S₁.X₂ ⟶ S₂.X₁) (h₂ : S₁.X₃ ⟶ S₂.X₂) (h₃ : S₁.X₃ ⟶ S₂.X₃) (g_h₃ : S₁.g ≫ h₃ = 0) :
   homotopy (null_homotopic h₀ h₀_f h₁ h₂ h₃ g_h₃) 0 :=
-{ h₀ := -h₀,
-  h₀_f := by rw [neg_comp, h₀_f, neg_zero],
-  h₁ := -h₁,
-  h₂ := -h₂,
-  h₃ := -h₃,
-  g_h₃ := by rw [comp_neg, g_h₃, neg_zero],
-  comm₁ := by simp,
-  comm₂ := by simp,
-  comm₃ := by simp, }
+{ h₀ := h₀,
+  h₀_f := h₀_f,
+  h₁ := h₁,
+  h₂ := h₂,
+  h₃ := h₃,
+  g_h₃ := g_h₃,
+  comm₁ := by { simp only [null_homotopic_τ₁, hom.zero_τ₁, add_zero], abel, },
+  comm₂ := by { simp only [null_homotopic_τ₂, hom.zero_τ₂, add_zero], abel, },
+  comm₃ := by rw [null_homotopic_τ₃, hom.zero_τ₃, add_zero, add_comm], }
 
 end homotopy
 

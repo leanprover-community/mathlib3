@@ -249,10 +249,14 @@ lemma homology_map'_id (h : S.homology_data) :
   homology_map' (𝟙 S) h h = 𝟙 _ :=
 homology_map_data.congr_left_φH (subsingleton.elim default (homology_map_data.id h))
 
+variable (S)
+
 @[simp]
 lemma homology_map_id [has_homology S] :
   homology_map (𝟙 S) = 𝟙 _ :=
 homology_map'_id _
+
+variable {S}
 
 lemma homology_map'_comp (φ₁ : S₁ ⟶ S₂) (φ₂ : S₂ ⟶ S₃)
   (h₁ : S₁.homology_data) (h₂ : S₂.homology_data) (h₃ : S₃.homology_data) :

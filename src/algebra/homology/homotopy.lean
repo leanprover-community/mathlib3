@@ -729,44 +729,79 @@ def of_iso {ι : Type*} {V : Type u} [category.{v} V] [preadditive V]
 
 end homotopy_equiv
 
-variables [has_equalizers V] [has_cokernels V] [has_images V] [has_image_maps V]
+@[simps]
+def homotopy.to_short_complex (ho : homotopy f g) (i : ι) :
+  short_complex.homotopy ((short_complex_functor V c i).map f)
+    ((short_complex_functor V c i).map g) :=
+{ h₀ := if c.rel (c.prev i) i
+        then ho.hom (c.prev i) (c.prev (c.prev i)) ≫ D.d _ (c.prev i)
+        else f.f (c.prev i) - g.f (c.prev i) - C.d_to i ≫ ho.hom i (c.prev i),
+  h₀_f := begin
+    split_ifs,
+    { simp only [short_complex_functor_obj_f, category.assoc, d_comp_d, comp_zero], },
+    { dsimp,
+      rw [D.d_to_eq_zero h, comp_zero], }
+  end,
+  h₁ := ho.hom _ _ ,
+  h₂ := ho.hom _ _,
+  h₃ := if c.rel i (c.next i)
+        then C.d_from (c.next i) ≫ ho.hom (c.next (c.next i)) (c.next i)
+        else f.f (c.next i) - g.f (c.next i) - ho.hom (c.next i) i ≫ D.d_from i,
+  g_h₃ := begin
+    split_ifs,
+    { simp only [short_complex_functor_obj_g, d_comp_d_assoc, zero_comp], },
+    { dsimp,
+      rw [C.d_from_eq_zero h, zero_comp], },
+  end,
+  comm₁ := begin
+    dsimp,
+    split_ifs,
+    { rw ho.comm (c.prev i),
+      dsimp [from_next, to_prev],
+      congr' 2,
+      change C.d _ _ ≫ _ = C.d _ _ ≫ _,
+      rw c.next_eq' h, },
+    { abel, },
+  end,
+  comm₂ := ho.comm i,
+  comm₃ := begin
+    dsimp,
+    split_ifs,
+    { rw ho.comm (c.next i),
+      dsimp [from_next, to_prev],
+      congr' 2,
+      change _ ≫ D.d _ _ = _ ≫ D.d _ _,
+      rw c.prev_eq' h, },
+    { abel, },
+  end, }
+
+
+lemma homology_map_eq_of_homotopy' (h : homotopy f g) (i : ι) [has_homology C i]
+  [has_homology D i] : homology_map f i = homology_map g i :=
+short_complex.homotopy.congr_homology_map (h.to_short_complex i)
 
 /--
 Homotopic maps induce the same map on homology.
 -/
-theorem homology_map_eq_of_homotopy (h : homotopy f g) (i : ι) :
+theorem homology_map_eq_of_homotopy (h : homotopy f g) (i : ι) [category_with_homology V] :
   (homology_functor V c i).map f = (homology_functor V c i).map g :=
-begin
-  dsimp [homology_functor],
-  apply eq_of_sub_eq_zero,
-  ext,
-  simp only [homology.π_map, comp_zero, preadditive.comp_sub],
-  dsimp [kernel_subobject_map],
-  simp_rw [h.comm i],
-  simp only [zero_add, zero_comp, d_next_eq_d_from_from_next, kernel_subobject_arrow_comp_assoc,
-    preadditive.comp_add],
-  rw [←preadditive.sub_comp],
-  simp only [category_theory.subobject.factor_thru_add_sub_factor_thru_right],
-  erw [subobject.factor_thru_of_le (D.boundaries_le_cycles i)],
-  { simp, },
-  { rw [prev_d_eq_to_prev_d_to, ←category.assoc],
-    apply image_subobject_factors_comp_self, },
-end
+homology_map_eq_of_homotopy' h i
+
+def homotopy_equiv.to_homology_iso (h : homotopy_equiv C D) (i : ι) [has_homology C i]
+  [has_homology D i] :
+  C.homology i ≅ D.homology i :=
+{ hom := homology_map h.hom i,
+  inv := homology_map h.inv i,
+  hom_inv_id' := by rw [← homology_map_comp,
+    homology_map_eq_of_homotopy' h.homotopy_hom_inv_id i, homology_map_id],
+  inv_hom_id' := by rw [← homology_map_comp,
+    homology_map_eq_of_homotopy' h.homotopy_inv_hom_id i, homology_map_id], }
 
 /-- Homotopy equivalent complexes have isomorphic homologies. -/
-def homology_obj_iso_of_homotopy_equiv (f : homotopy_equiv C D) (i : ι) :
+def homology_obj_iso_of_homotopy_equiv (f : homotopy_equiv C D) (i : ι)
+  [category_with_homology V]:
   (homology_functor V c i).obj C ≅ (homology_functor V c i).obj D :=
-{ hom := (homology_functor V c i).map f.hom,
-  inv := (homology_functor V c i).map f.inv,
-  hom_inv_id' := begin
-    rw [←functor.map_comp, homology_map_eq_of_homotopy f.homotopy_hom_inv_id,
-      category_theory.functor.map_id],
-  end,
-  inv_hom_id' := begin
-    rw [←functor.map_comp, homology_map_eq_of_homotopy f.homotopy_inv_hom_id,
-      category_theory.functor.map_id],
-  end, }
-
+homotopy_equiv.to_homology_iso f i
 end
 
 namespace category_theory

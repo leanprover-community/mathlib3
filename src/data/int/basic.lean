@@ -558,7 +558,7 @@ begin
 end
 
 lemma eq_one_or_neg_one_of_mul_eq_neg_one' {z w : ℤ} (h : z * w = -1) :
-z = 1 ∧ w = -1 ∨ z = -1 ∧ w = 1 :=
+  z = 1 ∧ w = -1 ∨ z = -1 ∧ w = 1 :=
 begin
   obtain ⟨h₁, h₂⟩ := is_unit.mul_iff.mp (int.is_unit_iff.mpr (or.inr h)),
   rcases is_unit_eq_one_or h₁ with (rfl | rfl),

@@ -624,6 +624,61 @@ example {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [nontrivial E
   [is_add_haar_measure μ] :
   has_no_atoms μ := by apply_instance
 
+@[to_additive]
+lemma haar_univ [topological_group G] [borel_space G]
+  [t2_space G] [locally_compact_space G]
+  (μ : measure G) [μ.is_mul_left_invariant] [is_open_pos_measure μ] (h : ¬(compact_space G)) :
+  μ univ = ∞ :=
+begin
+  obtain ⟨K, hK, K_int⟩ : ∃ (K : set G), is_compact K ∧ (1 : G) ∈ interior K,
+  { rcases exists_compact_subset is_open_univ (mem_univ (1 : G)) with ⟨K, hK⟩,
+    exact ⟨K, hK.1, hK.2.1⟩ },
+  have K_pos : 0 < μ K, from measure_pos_of_nonempty_interior _ ⟨_, K_int⟩,
+  have A : ∀ (L : set G), is_compact L → ∃ (g : G), disjoint L (g • K),
+  { assume L hL,
+    have A : ¬ (L * K⁻¹ = univ),
+    { assume h',
+      rw [← is_compact_univ_iff, ← h'] at h,
+      exact h (hL.mul hK.inv) },
+    obtain ⟨g, hg⟩ : ∃ g, g ∉ L * K⁻¹,
+    { contrapose! A, exact eq_univ_iff_forall.2 A },
+    refine ⟨g, _⟩,
+    apply disjoint_left.2 (λ a ha h'a, hg _),
+    rcases h'a with ⟨b, bK, rfl⟩,
+    refine ⟨g * b, b⁻¹, ha, by simpa only [set.mem_inv, inv_inv] using bK, _⟩,
+    simp only [smul_eq_mul, mul_inv_cancel_right] },
+  choose! g hg using A,
+  let L : ℕ → set G := λ n, nat.rec_on n K (λ m T, T ∪ (g T • K)),
+  have B : ∀ n, is_compact (L n),
+  { assume n,
+    induction n with n IH,
+    { exact hK },
+    { exact is_compact.union IH (hK.smul (g (L n))) } },
+  have M : ∀ n, μ (L n) = (n + 1 : ℕ) * μ K,
+  { assume n,
+    induction n with n IH,
+    { simp only [one_mul, algebra_map.coe_one] },
+    { calc μ (L (n + 1)) = μ (L n) + μ (g (L n) • K) :
+        measure_union' (hg _ (B _)) (B _).measurable_set
+      ... = (n + 1 : ℕ) * μ K + μ K :
+        begin
+          rw IH,
+          congr' 1,
+          convert measure_preimage_mul μ (g (L n))⁻¹ K,
+          ext y,
+          simp only [mem_smul_set_iff_inv_smul_mem, smul_eq_mul, mem_preimage],
+        end
+      ... = ((n + 1) + 1 : ℕ) * μ K :
+        by simp only [add_mul, coe_is_add_hom.coe_add, algebra_map.coe_one, one_mul] } },
+  have N : tendsto (λ n, μ (L n)) at_top (𝓝 (∞ * μ K)),
+  { simp_rw [M],
+    apply ennreal.tendsto.mul_const _ (or.inl ennreal.top_ne_zero),
+    exact ennreal.tendsto_nat_nhds_top.comp (tendsto_add_at_top_nat _) },
+  simp only [ennreal.top_mul, K_pos.ne', if_false] at N,
+  apply top_le_iff.1,
+  exact le_of_tendsto' N (λ n, measure_mono (subset_univ _)),
+end
+
 end
 
 end measure

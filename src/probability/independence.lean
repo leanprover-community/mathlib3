@@ -750,6 +750,7 @@ begin
   rintros _ _ ⟨s, ⟨sets_s, hs1, hs2⟩, rfl⟩ ⟨t, ⟨sets_t, ht1, ht2⟩, rfl⟩,
   simp only [set.mem_univ_pi, set.mem_set_of_eq] at hs1 ht1,
   rw [← hs2, ← ht2],
+  classical,
   let sets_s' : (Π i : ι, set (β i)) := λ i, dite (i ∈ S) (λ hi, sets_s ⟨i, hi⟩) (λ _, set.univ),
   have h_sets_s'_eq : ∀ {i} (hi : i ∈ S), sets_s' i = sets_s ⟨i, hi⟩,
   { intros i hi, simp_rw [sets_s', dif_pos hi], },

@@ -341,6 +341,33 @@ lemma exact_of_exact_map (F : V ⥤ W) [reflects_exact_sequences F] {A B C : V} 
   {g : B ⟶ C} (hfg : exact (F.map f) (F.map g)) : exact f g :=
 reflects_exact_sequences.reflects f g hfg
 
-end functor
+open_locale zero_object
 
+instance reflects_monomorphisms_of_reflects_exact_sequences {V : Type u} [category V]
+  [preadditive V] [has_zero_object V] [has_images V] [has_kernels V]
+  {W : Type u₂} [category W] [preadditive W] [has_zero_object W] [has_images W] [has_equalizers W]
+  (F : V ⥤ W) [preserves_zero_morphisms F] [reflects_exact_sequences F] :
+  reflects_monomorphisms F :=
+{ reflects := λ X Y f hf,
+  begin
+  have : (0 : 0 ⟶ F.obj X) = (map_zero_object F).symm.hom ≫ (F.map 0) :=
+    subsingleton.elim _ _,
+  rw [mono_iff_exact_zero_left, this] at hf,
+  exact (mono_iff_exact_zero_left _).2 (F.exact_of_exact_map (exact_iso_comp.1 hf))
+  end }
+
+instance reflects_epimorphisms_of_reflects_exact_sequences {V : Type u} [category V]
+  [preadditive V] [has_zero_object V] [has_images V] [has_equalizers V]
+  {W : Type u₂} [category W] [preadditive W] [has_zero_object W] [has_images W] [has_equalizers W]
+  (F : V ⥤ W) [preserves_zero_morphisms F] [reflects_exact_sequences F] :
+  reflects_epimorphisms F :=
+{ reflects := λ X Y f hf,
+  begin
+  have : (0 : F.obj Y ⟶ 0) = F.map 0 ≫ (map_zero_object F).hom :=
+    subsingleton.elim _ _,
+  rw [epi_iff_exact_zero_right, this] at hf,
+  exact (epi_iff_exact_zero_right _).2 (F.exact_of_exact_map (exact_comp_iso.1 hf))
+  end }
+
+end functor
 end category_theory

@@ -146,7 +146,7 @@ fun_like.coe_injective.add_comm_group _ rfl (λ _ _, by {refl}) (λ _, by{refl})
 
 lemma coe_zero : ((0 : (slash_invariant_form Γ k) ) : ℍ → ℂ) = (0 : ℍ → ℂ) := rfl
 
-/--Additive coercieon from `slash_invariant_form` to `ℍ → ℂ`. -/
+/--Additive coercieon from `slash_invariant_form` to `ℍ → ℂ`.-/
 def coe_hom : (slash_invariant_form Γ k) →+ (ℍ → ℂ) :=
 { to_fun := λ f, f, map_zero' := slash_invariant_forms.coe_zero, map_add' := λ _ _, rfl }
 

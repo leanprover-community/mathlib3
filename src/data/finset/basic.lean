@@ -848,7 +848,7 @@ instance : lattice (finset α) :=
 lemma disjoint_iff_inter_eq_empty : disjoint s t ↔ s ∩ t = ∅ := disjoint_iff
 
 instance decidable_disjoint (U V : finset α) : decidable (disjoint U V) :=
-decidable_of_iff _ disjoint_iff_inter_eq_empty.symm
+decidable_of_iff _ disjoint_left.symm
 
 /-! #### union -/
 

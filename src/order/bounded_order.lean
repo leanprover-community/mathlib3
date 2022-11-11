@@ -1480,7 +1480,7 @@ variables [partial_order α] [order_bot α] {a b c d : α}
   (This generalizes disjoint sets, viewed as members of the subset lattice.)
 
 Note that we define this without reference to `⊓`, as this allows us to talk about orders where
-the infimum is not unique, or where implement `has_inf` would require additional `decidable`
+the infimum is not unique, or where implementing `has_inf` would require additional `decidable`
 arguments. -/
 def disjoint (a b : α) : Prop := ∀ ⦃x⦄, x ≤ a → x ≤ b → x ≤ ⊥
 

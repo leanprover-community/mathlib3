@@ -949,7 +949,7 @@ variables {β : Type*} [cancel_comm_monoid_with_zero β]
 
 open_locale big_operators
 
-lemma prime_pow_coprime_prod_of_coprime_insert [decidable_eq α] (s : finset α) (i : α → ℕ) (p : α)
+lemma prime_pow_coprime_prod_of_coprime_insert [decidable_eq α] {s : finset α} (i : α → ℕ) (p : α)
   (hps : p ∉ s) (is_prime : ∀ q ∈ insert p s, prime q)
   (is_coprime : ∀ (q q' ∈ insert p s), q ∣ q' → q = q') :
   ∀ (q : α), q ∣ p ^ i p → q ∣ ∏ p' in s, p' ^ i p' → is_unit q :=

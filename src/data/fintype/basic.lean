@@ -1565,7 +1565,7 @@ lemma pi_finset_subsingleton {f : Π i, finset (δ i)}
   (fintype.pi_finset f : set (Π i, δ i)).subsingleton :=
 λ a ha b hb, funext $ λ i, hf _ (mem_pi_finset.1 ha _) (mem_pi_finset.1 hb _)
 
-lemma pi_finset_disjoint_of_disjoint [∀ a, decidable_eq (δ a)]
+lemma pi_finset_disjoint_of_disjoint
   (t₁ t₂ : Π a, finset (δ a)) {a : α} (h : disjoint (t₁ a) (t₂ a)) :
   disjoint (pi_finset t₁) (pi_finset t₂) :=
 disjoint_iff_ne.2 $ λ f₁ hf₁ f₂ hf₂ eq₁₂,

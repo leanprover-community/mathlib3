@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import algebra.order.ring.defs
 import algebra.order.sub.canonical
+import group_theory.group_action.defs
 
 /-!
 # Canoncially ordered rings and semirings.

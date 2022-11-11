@@ -436,6 +436,13 @@ have multiset.rel associated (p ::ₘ factors b) (factors a),
         by rw multiset.prod_cons; exact (factors_prod hb0).symm.mul_left _),
 multiset.exists_mem_of_rel_of_mem this (by simp)
 
+lemma exists_mem_factors {x : α} (hx : x ≠ 0) (h : ¬ is_unit x) : ∃ p, p ∈ factors x :=
+begin
+  obtain ⟨p', hp', hp'x⟩ := wf_dvd_monoid.exists_irreducible_factor h hx,
+  obtain ⟨p, hp, hpx⟩ := exists_mem_factors_of_dvd hx hp' hp'x,
+  exact ⟨p, hp⟩
+end
+
 lemma factors_mul {x y : α} (hx : x ≠ 0) (hy : y ≠ 0) :
   multiset.rel associated (factors (x * y)) (factors x + factors y) :=
 begin
@@ -457,6 +464,18 @@ begin
   refine multiset.rel.trans _ (factors_mul h0 (pow_ne_zero n h0)) _,
   refine multiset.rel.add _ ih,
   exact multiset.rel_refl_of_refl_on (λ y hy, associated.refl _),
+end
+
+@[simp] lemma factors_pos (x : α) (hx : x ≠ 0) : 0 < factors x ↔ ¬ is_unit x :=
+begin
+  split,
+  { intros h hx,
+    obtain ⟨p, hp⟩ := multiset.exists_mem_of_ne_zero h.ne',
+    exact (prime_of_factor _ hp).not_unit (is_unit_of_dvd_unit (dvd_of_mem_factors hp) hx) },
+  { intros h,
+    obtain ⟨p, hp⟩ := exists_mem_factors hx h,
+    exact bot_lt_iff_ne_bot.mpr (mt multiset.eq_zero_iff_forall_not_mem.mp
+      (not_forall.mpr ⟨p, not_not.mpr hp⟩)) },
 end
 
 end unique_factorization_monoid
@@ -540,6 +559,14 @@ have multiset.rel associated (p ::ₘ normalized_factors b) (normalized_factors 
       ... ~ᵤ multiset.prod (p ::ₘ normalized_factors b) :
         by rw multiset.prod_cons; exact (normalized_factors_prod hb0).symm.mul_left _),
 multiset.exists_mem_of_rel_of_mem this (by simp)
+
+lemma exists_mem_normalized_factors {x : α} (hx : x ≠ 0) (h : ¬ is_unit x) :
+  ∃ p, p ∈ normalized_factors x :=
+begin
+  obtain ⟨p', hp', hp'x⟩ := wf_dvd_monoid.exists_irreducible_factor h hx,
+  obtain ⟨p, hp, hpx⟩ := exists_mem_normalized_factors_of_dvd hx hp' hp'x,
+  exact ⟨p, hp⟩
+end
 
 @[simp] lemma normalized_factors_zero : normalized_factors (0 : α) = 0 :=
 by simp [normalized_factors, factors]
@@ -665,6 +692,34 @@ begin
   apply associated.dvd_dvd h,
 end
 
+@[simp] lemma normalized_factors_pos (x : α) (hx : x ≠ 0) :
+  0 < normalized_factors x ↔ ¬ is_unit x :=
+begin
+  split,
+  { intros h hx,
+    obtain ⟨p, hp⟩ := multiset.exists_mem_of_ne_zero h.ne',
+    exact (prime_of_normalized_factor _ hp).not_unit
+      (is_unit_of_dvd_unit (dvd_of_mem_normalized_factors hp) hx) },
+  { intros h,
+    obtain ⟨p, hp⟩ := exists_mem_normalized_factors hx h,
+    exact bot_lt_iff_ne_bot.mpr (mt multiset.eq_zero_iff_forall_not_mem.mp
+      (not_forall.mpr ⟨p, not_not.mpr hp⟩)) },
+end
+
+lemma dvd_not_unit_iff_normalized_factors_lt_normalized_factors
+  {x y : α} (hx : x ≠ 0) (hy : y ≠ 0) :
+  dvd_not_unit x y ↔ normalized_factors x < normalized_factors y :=
+begin
+  split,
+  { rintro ⟨_, c, hc, rfl⟩,
+    simp only [hx, right_ne_zero_of_mul hy, normalized_factors_mul, ne.def, not_false_iff,
+      lt_add_iff_pos_right, normalized_factors_pos, hc] },
+  { intro h,
+    exact dvd_not_unit_of_dvd_of_not_dvd
+      ((dvd_iff_normalized_factors_le_normalized_factors hx hy).mpr h.le)
+      (mt (dvd_iff_normalized_factors_le_normalized_factors hy hx).mp h.not_le) }
+end
+
 end unique_factorization_monoid
 
 namespace unique_factorization_monoid
@@ -776,6 +831,24 @@ lemma exists_reduced_factors' (a b : R) (hb : b ≠ 0) :
   ∃ a' b' c', (∀ {d}, d ∣ a' → d ∣ b' → is_unit d) ∧ c' * a' = a ∧ c' * b' = b :=
 let ⟨b', a', c', no_factor, hb, ha⟩ := exists_reduced_factors b hb a
 in ⟨a', b', c', λ _ hpb hpa, no_factor hpa hpb, ha, hb⟩
+
+lemma pow_right_injective {a : R} (ha0 : a ≠ 0) (ha1 : ¬ is_unit a) :
+  function.injective ((^) a : ℕ → R) :=
+begin
+  letI := classical.dec_eq R,
+  intros i j hij,
+  letI : nontrivial R := ⟨⟨a, 0, ha0⟩⟩,
+  letI : normalization_monoid R := unique_factorization_monoid.normalization_monoid,
+  obtain ⟨p', hp', dvd'⟩ := wf_dvd_monoid.exists_irreducible_factor ha1 ha0,
+  obtain ⟨p, mem, _⟩ := exists_mem_normalized_factors_of_dvd ha0 hp' dvd',
+  have := congr_arg (λ x, multiset.count p (normalized_factors x)) hij,
+  simp only [normalized_factors_pow, multiset.count_nsmul] at this,
+  exact mul_right_cancel₀ (multiset.count_ne_zero.mpr mem) this
+end
+
+lemma pow_eq_pow_iff {a : R} (ha0 : a ≠ 0) (ha1 : ¬ is_unit a) {i j : ℕ} :
+  a ^ i = a ^ j ↔ i = j :=
+(pow_right_injective ha0 ha1).eq_iff
 
 section multiplicity
 variables [nontrivial R] [normalization_monoid R] [decidable_eq R]

@@ -5,6 +5,8 @@ Authors: Floris van Doorn
 -/
 import algebra.order.archimedean
 import algebra.order.nonneg.ring
+import algebra.order.field.inj_surj
+import algebra.order.field.canonical.defs
 
 /-!
 # Semifield structure on the type of nonnegative elements

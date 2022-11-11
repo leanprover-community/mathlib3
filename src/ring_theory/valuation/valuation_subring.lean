@@ -724,13 +724,23 @@ end pointwise_actions
 
 section
 
-variables {L : Type*} [field L]
+variables {L J: Type*} [field L] [field J]
 
 /-- The pullback of a valuation subring `A` along a ring homomorphism `K →+* L`. -/
 def comap (A : valuation_subring L) (f : K →+* L) :
   valuation_subring K :=
 { mem_or_inv_mem' := λ k, by simp [valuation_subring.mem_or_inv_mem],
   ..(A.to_subring.comap f) }
+
+@[simp]
+lemma coe_comap (A : valuation_subring L) (f : K →+* L) : (A.comap f : set K) = f ⁻¹' A := rfl
+
+@[simp]
+lemma mem_comap {A : valuation_subring L} {f : K →+* L} {x : K} : x ∈ A.comap f ↔ f x ∈ A := iff.rfl
+
+lemma comap_comap (A : valuation_subring L) (f : K →+* L) (g : J →+* K) :
+  (A.comap f).comap g = A.comap (f.comp g) :=
+rfl
 
 end
 

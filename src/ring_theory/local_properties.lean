@@ -330,7 +330,7 @@ begin
   exact H
 end
 
-include M g
+include g
 
 lemma linear_map.injective_of_localization_maximal
   (H : ∀ (J : ideal R) (hJ : J.is_maximal),

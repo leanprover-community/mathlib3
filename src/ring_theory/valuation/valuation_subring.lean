@@ -738,8 +738,8 @@ lemma coe_comap (A : valuation_subring L) (f : K →+* L) : (A.comap f : set K) 
 @[simp]
 lemma mem_comap {A : valuation_subring L} {f : K →+* L} {x : K} : x ∈ A.comap f ↔ f x ∈ A := iff.rfl
 
-lemma comap_comap (A : valuation_subring L) (f : K →+* L) (g : J →+* K) :
-  (A.comap f).comap g = A.comap (f.comp g) :=
+lemma comap_comap (A : valuation_subring J) (g : L →+* J) (f : K →+* L) :
+  (A.comap g).comap f = A.comap (g.comp f) :=
 rfl
 
 end

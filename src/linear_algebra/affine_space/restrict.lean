@@ -63,14 +63,19 @@ lemma affine_map.restrict.coe_apply
   (hEF : E.map φ ≤ F) (x : E) :
   ↑(φ.restrict hEF x) = φ x := rfl
 
+lemma affine_map.restrict.linear_aux
+  {φ : P₁ →ᵃ[k] P₂} {E : affine_subspace k P₁} {F : affine_subspace k P₂}
+  (hEF : E.map φ ≤ F) : E.direction ≤ F.direction.comap φ.linear :=
+begin
+  rw [←submodule.map_le_iff_le_comap, ←affine_subspace.map_direction],
+  exact affine_subspace.direction_le hEF,
+end
+
 lemma affine_map.restrict.linear
   (φ : P₁ →ᵃ[k] P₂) {E : affine_subspace k P₁} {F : affine_subspace k P₂}
   [nonempty E] [nonempty F]
   (hEF : E.map φ ≤ F) :
-  (φ.restrict hEF).linear = φ.linear.restrict
-    (by { change E.direction ≤ F.direction.comap φ.linear,
-          rw [←submodule.map_le_iff_le_comap, ←affine_subspace.map_direction],
-          exact affine_subspace.direction_le hEF }) := rfl
+  (φ.restrict hEF).linear = φ.linear.restrict (affine_map.restrict.linear_aux hEF) := rfl
 
 lemma affine_map.restrict.injective
   {φ : P₁ →ᵃ[k] P₂}

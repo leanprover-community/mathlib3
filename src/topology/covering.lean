@@ -149,6 +149,17 @@ protected lemma quotient_map (hf : is_covering_map f) (hf' : function.surjective
   quotient_map f :=
 hf.is_open_map.to_quotient_map hf.continuous hf'
 
+noncomputable def to_homeomorph (hf : is_covering_map f)
+  (h : function.bijective f) : homeomorph E X :=
+homeomorph.homeomorph_of_continuous_open (equiv.of_bijective f h) hf.continuous hf.is_open_map
+
+open_locale cardinal
+
+lemma is_locally_constant_card (hf : is_covering_map f) :
+  is_locally_constant (λ x, #(f ⁻¹' {x})) :=
+(is_locally_constant.iff_exists_open _).2 $ λ x, let ⟨t, ht⟩ := (hf x).2 in
+  ⟨_, t.open_base_set, ht, λ y hy, (t.preimage_singleton_homeomorph hy).to_equiv.cardinal_eq⟩
+
 end is_covering_map
 
 variables {f}
@@ -157,47 +168,13 @@ protected lemma is_topological_fiber_bundle.is_covering_map {F : Type*} [topolog
   [discrete_topology F] (hf : is_topological_fiber_bundle F f) : is_covering_map f :=
 is_covering_map.mk f (λ x, F) (λ x, classical.some (hf x)) (λ x, classical.some_spec (hf x))
 
-noncomputable def bijective_covering_map_is_homeomorph (hf : is_covering_map f)
-  (h : function.bijective f) : homeomorph E X:=
-homeomorph.homeomorph_of_continuous_open (equiv.of_bijective f h) hf.continuous hf.is_open_map
-
-open_locale cardinal
-lemma fiber_cardinality_is_locally_constant (hf : is_covering_map f) :
-  is_locally_constant (λ x : X, #(f⁻¹' {x} )):=
-  begin
-      rw is_locally_constant.iff_exists_open,
-      intro x,
-      have y:= (hf x).2,
-      obtain ⟨t,ht⟩:=y,
-      refine ⟨ t.base_set,t.open_base_set,ht,_⟩,
-      intros y hy,
-      apply equiv.cardinal_eq,
-      have:= t.preimage_singleton_homeomorph hy,
-      exact homeomorph.to_equiv this,
-
-
-  end
-lemma short_fiber_cardinality_is_locally_constant (hf : is_covering_map f) :
-  is_locally_constant (λ x : X, #(f⁻¹' {x} )):=
-   (is_locally_constant.iff_exists_open _).2 $ λx, let ⟨t,ht⟩:=(hf x).2
-   in ⟨ t.base_set,t.open_base_set,ht,
-   λ y hy,(t.preimage_singleton_homeomorph hy).to_equiv.cardinal_eq ⟩
-#where
-
 open_locale unit_interval
 
-lemma clopen_set_intersect_connected_components_whole_set (Y: Type*) [topological_space Y](S : set Y)
-  (hS:is_clopen S)(w:∀ x: Y, ∃y∈ connected_component x, y∈ S ): S = set.univ:=
-  begin
-    rw set.eq_univ_iff_forall,
-    intro x,
-    obtain ⟨y,hy,h⟩ := w x,
-    have t:= is_clopen.connected_component_subset hS h,
-    rw←   connected_component_eq hy at t,
-    exact t mem_connected_component,
-  end
-
-#check nhds
+lemma clopen_set_intersect_connected_components_whole_set (Y: Type*) [topological_space Y]
+  (S : set Y) (hS : is_clopen S) (w : ∀ x : Y, ∃ y ∈ connected_component x, y ∈ S) :
+  S = set.univ :=
+set.eq_univ_of_forall $ λ x, let ⟨y, hy, h⟩ := w x in
+  hS.connected_component_subset h (connected_component_eq hy ▸ mem_connected_component)
 
 open_locale topological_space
 
@@ -205,7 +182,6 @@ lemma is_open_inter_of_coe_preim {X : Type*} [topological_space X] (s t : set X)
   (h : is_open ((coe : s → X) ⁻¹' t)) : is_open (t ∩ s) :=
 let ⟨a, b, c⟩ := inducing_coe.is_open_iff.mp h in
   subtype.preimage_coe_eq_preimage_coe_iff.mp c ▸ b.inter hs
-
 
 lemma is_open_of_is_open_coe (Y:Type*) [topological_space Y] (A: set Y)
 (hA: ∀ x:Y, ∃ (U : set Y) (hU : U ∈ 𝓝 x), is_open ((coe : U → Y)⁻¹' A)):is_open A :=
@@ -221,9 +197,6 @@ lemma is_clopen_of_is_clopen_coe (Y:Type*) [topological_space Y] (A: set Y)
 (hA: ∀ x:Y, ∃ (U : set Y) (hU : U ∈ 𝓝 x), is_clopen ((coe : U → Y)⁻¹' A)):is_clopen A :=
 ⟨is_open_of_is_open_coe  Y A (λ x, let  ⟨ z,hz,hhz⟩:= hA x in ⟨ z,hz,hhz.1⟩  ) ,
  is_closed_of_is_closed_coe  Y A (λ x, let  ⟨ z,hz,hhz⟩:= hA x in ⟨ z,hz,hhz.2⟩  )⟩
-
-lemma test_false :true:=
-⟨⟩
 
 theorem clopen_equalizer_of_discrete {X Y : Type*} [topological_space X] [topological_space Y]
   [discrete_topology Y] {f g : X → Y} (hf : continuous f) (hg : continuous g) :

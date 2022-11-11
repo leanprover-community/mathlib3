@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Kevin Buzzard
 -/
 import group_theory.finiteness
 import data.multiset.finset_ops
-import algebra.algebra.tower
+import algebra.algebra.tower.basic
 import order.order_iso_nat
 import ring_theory.nilpotent
 import order.compactly_generated

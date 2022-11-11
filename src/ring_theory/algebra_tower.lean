@@ -6,7 +6,7 @@ Authors: Kenny Lau
 import algebra.invertible
 import ring_theory.adjoin.fg
 import linear_algebra.basis
-import algebra.algebra.tower
+import algebra.algebra.tower.basic
 import algebra.algebra.restrict_scalars
 
 /-!

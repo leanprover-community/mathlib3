@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 
-import algebra.algebra.tower
+import algebra.algebra.tower.basic
 import algebra.monoid_algebra.support
 import data.finsupp.antidiagonal
 import order.symm_diff

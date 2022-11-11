@@ -34,7 +34,7 @@ variables {C : Type u} [category.{v} C]
 
 open injective
 
-variables [has_zero_object C] [has_zero_morphisms C] [has_equalizers C] [has_images C]
+variables [has_zero_object C] [preadditive C]
 
 /--
 An `InjectiveResolution Z` consists of a bundled `ℕ`-indexed cochain complex of injective objects,

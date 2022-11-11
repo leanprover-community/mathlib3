@@ -47,7 +47,7 @@ variables {C : Type u} [category.{v} C]
 open projective
 
 section
-variables [has_zero_object C] [has_zero_morphisms C] [has_equalizers C] [has_images C]
+variables [preadditive C] [has_zero_object C]
 
 /--
 A `ProjectiveResolution Z` consists of a bundled `ℕ`-indexed chain complex of projective objects,
@@ -184,7 +184,7 @@ end
 
 namespace ProjectiveResolution
 
-variables [has_zero_object C] [preadditive C] [has_equalizers C] [has_images C]
+variables [has_zero_object C] [preadditive C]
 
 /-- An auxiliary definition for `lift_homotopy_zero`. -/
 def lift_homotopy_zero_zero {Y Z : C} {P : ProjectiveResolution Y} {Q : ProjectiveResolution Z}
@@ -270,7 +270,7 @@ end ProjectiveResolution
 
 section
 
-variables [has_zero_morphisms C] [has_zero_object C] [has_equalizers C] [has_images C]
+variables [preadditive C] [has_zero_object C]
 
 /-- An arbitrarily chosen projective resolution of an object. -/
 abbreviation projective_resolution (Z : C) [has_projective_resolution Z] : chain_complex C ℕ :=
@@ -290,8 +290,7 @@ ProjectiveResolution.lift f _ _
 
 end
 
-variables (C) [preadditive C] [has_zero_object C] [has_equalizers C] [has_images C]
-  [has_projective_resolutions C]
+variables (C) [preadditive C] [has_zero_object C] [has_projective_resolutions C]
 
 /--
 Taking projective resolutions is functorial,

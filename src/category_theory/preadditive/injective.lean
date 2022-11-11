@@ -61,7 +61,8 @@ Let `J` be injective and `g` a morphism into `J`, then `g` can be factored throu
 def factor_thru {J X Y : C} [injective J] (g : X ⟶ J) (f : X ⟶ Y) [mono f] : Y ⟶ J :=
 (injective.factors g f).some
 
-@[simp] lemma comp_factor_thru {J X Y : C} [injective J] (g : X ⟶ J) (f : X ⟶ Y) [mono f] :
+@[simp, reassoc]
+lemma comp_factor_thru {J X Y : C} [injective J] (g : X ⟶ J) (f : X ⟶ Y) [mono f] :
   f ≫ factor_thru g f = g :=
 (injective.factors g f).some_spec
 
@@ -275,7 +276,24 @@ lemma enough_injectives_of_enough_projectives_op [enough_projectives Cᵒᵖ] : 
 open injective
 
 section
-variables [has_zero_morphisms C] [has_images Cᵒᵖ] [has_equalizers Cᵒᵖ]
+variables [preadditive C]
+
+def _root_.short_complex.injective_desc {J : C} [injective J] (S : short_complex C)
+  (hS : S.exact) (h : S.X₂ ⟶ J) (w : S.f ≫ h = 0) : S.X₃ ⟶ J :=
+begin
+  haveI := hS.has_homology,
+  haveI := hS.mono_from_cycles_co,
+  exact factor_thru (S.desc_cycles_co h w) S.from_cycles_co,
+end
+
+@[simp] lemma _root_.short_complex.injective_desc_comp {J : C} [injective J] (S : short_complex C)
+  (hS : S.exact) (h : S.X₂ ⟶ J) (w : S.f ≫ h = 0) :
+    S.g ≫ S.injective_desc hS h w = h :=
+begin
+  dsimp [short_complex.injective_desc],
+  haveI := hS.has_homology,
+  rw [← short_complex.p_from_cycles_co, category.assoc, comp_factor_thru, S.p_desc_cycles_co],
+end
 
 /--
 Given a pair of exact morphism `f : Q ⟶ R` and `g : R ⟶ S` and a map `h : R ⟶ J` to an injective
@@ -290,13 +308,12 @@ Q --- f --> R --- g --> S
 ```
 -/
 def exact.desc {J Q R S : C} [injective J] (h : R ⟶ J) (f : Q ⟶ R) (g : R ⟶ S)
-  (hgf : exact g.op f.op) (w : f ≫ h = 0)  : S ⟶ J :=
-(exact.lift h.op g.op f.op hgf (congr_arg quiver.hom.op w)).unop
+  (hfg : exact f g) (w : f ≫ h = 0)  : S ⟶ J :=
+short_complex.injective_desc _ ((exact_iff_exact_short_complex f g hfg.w).1 hfg) h w
 
 @[simp] lemma exact.comp_desc {J Q R S : C} [injective J] (h : R ⟶ J) (f : Q ⟶ R) (g : R ⟶ S)
-  (hgf : exact g.op f.op) (w : f ≫ h = 0) : g ≫ exact.desc h f g hgf w = h :=
-by convert congr_arg quiver.hom.unop
-  (exact.lift_comp h.op g.op f.op hgf (congr_arg quiver.hom.op w))
+  (hfg : exact f g) (w : f ≫ h = 0) : g ≫ exact.desc h f g hfg w = h :=
+short_complex.injective_desc_comp _ ((exact_iff_exact_short_complex f g _).1 hfg) _ _
 
 end
 

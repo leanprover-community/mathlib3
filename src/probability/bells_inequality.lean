@@ -5,6 +5,7 @@ Authors: Ian Jauslin, Alex Kontorovich
 -/
 
 import measure_theory.measure.probability_measure
+import probability.conditional_probability
 
 /-!
 # Bell's Inequality
@@ -69,7 +70,7 @@ noncomputable theory
 
 open measure_theory
 
-section preliminaries
+section preliminaries_1964
 
 lemma pm_one_space_vals (r : ℤˣ) :
   (r : ℝ) = 1 ∨ (r : ℝ) = -1 := by cases int.units_eq_one_or r with hh hh; rw hh; simp
@@ -86,7 +87,9 @@ lemma CHSH_inequality_of_int_units (A₀ A₁ B₀ B₁ : ℤˣ) :
     cases pm_one_space_vals B₁ with hB1 hB1;
     rw [hA0, hA1, hB0, hB1]; ring_nf; simp
 
-end preliminaries
+end preliminaries_1964
+
+section bell_1964
 
 variables {Ω : Type*} [measurable_space Ω] (ℙ : probability_measure Ω)
 
@@ -175,46 +178,51 @@ begin
   { exact has_add.to_covariant_class_right ℝ, },
 end
 
-#exit
+end bell_1964
+
+
+section bell_1975
+
+variables {Ω : Type*} [measurable_space Ω]
 
 -- Bell's inequality: 1975 version
-theorem bells_inequality_1975 {Ω : Type u} {m : measurable_space Ω}
+theorem bells_inequality_1975
   -- parameter space for experiments
-  {Aa Ab : Type u}
+  {Aa Ab : Type*}
   -- shared variable space
-  {Λ : Type u}
-  {mm : measurable_space Λ}
+  {Λ : Type*}
+  [topological_space Λ]
 
   -- random variables
-  (Xa : Ω → ℤˣ)
-  (Xb : Ω → ℤˣ)
-  (Xa_measurable : measurable Xa)
-  (Xb_measurable : measurable Xb)
+  (Xa : Ω → (set.interval (-1:ℝ) 1))
+  (Xb : Ω → (set.interval (-1:ℝ) 1))
+  (Xa_measurable : strongly_measurable (λ ω, (Xa ω : ℝ)))
+  (Xb_measurable : strongly_measurable (λ ω, (Xb ω : ℝ)))
 
   -- probability distribution on outcomes of experiments that depends on two parameters α∈Aa and β∈Ab
-  (ℙ : Aa → Ab → (probability_measure Ω))
+  (ℙab : Aa → Ab → (probability_measure Ω))
   -- factorized probabilities
   (ℙa : Aa → (probability_measure Ω))
   (ℙb : Ab → (probability_measure Ω))
-  -- probability distribution on shared variable
-  (P_lam : probability_measure Ω)
 
   -- shared variable
   (lam : Ω → Λ)
-  (lam_measurable : measurable lam)
+  (lam_measurable : strongly_measurable lam)
+  -- probability distribution on shared variable
+  (P_lam : probability_measure Ω)
 
   -- locality assumption
   (locality : ∀ lam_val:Λ, ∀ α:Aa, ∀ β:Ab , ∀ ω : set Ω ,
-    ((probability_theory.cond ((ℙ α β):measure Ω) (lam ⁻¹' {lam_val})) ω) =
+    ((probability_theory.cond ((ℙab α β):measure Ω) (lam ⁻¹' {lam_val})) ω) =
       ((probability_theory.cond ((ℙa α):measure Ω) (lam ⁻¹' {lam_val})) ω)*
       ((probability_theory.cond ((ℙb β):measure Ω) (lam ⁻¹' {lam_val})) ω )
   )
   :
   ∀ α : Aa , ∀ α' : Aa, ∀ β : Ab , ∀ β' : Ab ,
-  | (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙ α β):measure Ω) )
-    - (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙ α β'):measure Ω) ) |
-  + | (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙ α' β):measure Ω) )
-    - (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙ α' β'):measure Ω) ) |
+  | (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙab α β):measure Ω) )
+    - (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙab α β'):measure Ω) ) |
+  + | (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙab α' β):measure Ω) )
+    - (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙab α' β'):measure Ω) ) |
     ≤ 2
   :=
 

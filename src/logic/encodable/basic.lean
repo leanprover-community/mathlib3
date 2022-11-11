@@ -7,7 +7,7 @@ import logic.equiv.nat
 import data.pnat.basic
 import order.directed
 import data.countable.defs
-import order.rel_iso
+import order.rel_iso.basic
 import data.fin.basic
 
 /-!

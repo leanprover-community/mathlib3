@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import order.hom.basic
-import algebra.hom.equiv.units -- I would prefer not to be importing this here. (@semorrison)
+import algebra.hom.equiv.units.basic
 import algebra.order.sub.defs
-import algebra.order.monoid.order_dual
 
 /-!
 # Ordered groups
@@ -46,16 +45,6 @@ instance ordered_comm_group.to_covariant_class_left_le (α : Type u) [ordered_co
 
 example (α : Type u) [ordered_add_comm_group α] : covariant_class α α (swap (+)) (<) :=
 add_right_cancel_semigroup.covariant_swap_add_lt_of_covariant_swap_add_le α
-
-@[priority 100, to_additive]    -- see Note [lower instance priority]
-instance ordered_comm_group.to_ordered_cancel_comm_monoid (α : Type u)
-  [s : ordered_comm_group α] :
-  ordered_cancel_comm_monoid α :=
-{ le_of_mul_le_mul_left := λ a b c, (mul_le_mul_iff_left a).mp,
-  ..s }
-
-@[to_additive] instance [ordered_comm_group α] : ordered_comm_group αᵒᵈ :=
-{ .. order_dual.ordered_comm_monoid, .. order_dual.group }
 
 section group
 variables [group α]
@@ -804,18 +793,8 @@ multiplication is monotone. -/
 @[protect_proj, ancestor ordered_comm_group linear_order, to_additive]
 class linear_ordered_comm_group (α : Type u) extends ordered_comm_group α, linear_order α
 
-@[to_additive] instance [linear_ordered_comm_group α] :
-  linear_ordered_comm_group αᵒᵈ :=
-{ .. order_dual.ordered_comm_group, .. order_dual.linear_order α }
-
 section linear_ordered_comm_group
 variables [linear_ordered_comm_group α] {a b c : α}
-
-@[priority 100, to_additive] -- see Note [lower instance priority]
-instance linear_ordered_comm_group.to_linear_ordered_cancel_comm_monoid :
-  linear_ordered_cancel_comm_monoid α :=
-{ le_of_mul_le_mul_left := λ x y z, le_of_mul_le_mul_left',
-  ..‹linear_ordered_comm_group α› }
 
 @[to_additive linear_ordered_add_comm_group.add_lt_add_left]
 lemma linear_ordered_comm_group.mul_lt_mul_left'

@@ -3,10 +3,8 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.group.defs
 import data.fun_like.basic
-import logic.embedding
-import logic.equiv.set
+import logic.embedding.basic
 import order.rel_classes
 
 /-!
@@ -71,16 +69,6 @@ end
 namespace rel_hom_class
 
 variables {F : Type*}
-
-lemma map_inf [semilattice_inf α] [linear_order β]
-  [rel_hom_class F ((<) : β → β → Prop) ((<) : α → α → Prop)]
-  (a : F) (m n : β) : a (m ⊓ n) = a m ⊓ a n :=
-(strict_mono.monotone $ λ x y, map_rel a).map_inf m n
-
-lemma map_sup [semilattice_sup α] [linear_order β]
-  [rel_hom_class F ((>) : β → β → Prop) ((>) : α → α → Prop)]
-  (a : F) (m n : β) : a (m ⊔ n) = a m ⊔ a n :=
-@map_inf αᵒᵈ βᵒᵈ _ _ _ _ _ _ _
 
 protected theorem is_irrefl [rel_hom_class F r s] (f : F) : ∀ [is_irrefl β s], is_irrefl α r
 | ⟨H⟩ := ⟨λ a h, H _ (map_rel f h)⟩
@@ -539,8 +527,6 @@ protected lemma bijective (e : r ≃r s) : bijective e := e.to_equiv.bijective
 protected lemma injective (e : r ≃r s) : injective e := e.to_equiv.injective
 protected lemma surjective (e : r ≃r s) : surjective e := e.to_equiv.surjective
 
-@[simp] lemma range_eq (e : r ≃r s) : set.range e = set.univ := e.surjective.range_eq
-
 @[simp] lemma eq_iff_eq (f : r ≃r s) {a b} : f a = f b ↔ a = b :=
 f.injective.eq_iff
 
@@ -581,25 +567,6 @@ def prod_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
 ⟨equiv.prod_congr e₁.to_equiv e₂.to_equiv,
   λ a b, by simp [prod.lex_def, e₁.map_rel_iff, e₂.map_rel_iff]⟩
 
-instance : group (r ≃r r) :=
-{ one := rel_iso.refl r,
-  mul := λ f₁ f₂, f₂.trans f₁,
-  inv := rel_iso.symm,
-  mul_assoc := λ f₁ f₂ f₃, rfl,
-  one_mul := λ f, ext $ λ _, rfl,
-  mul_one := λ f, ext $ λ _, rfl,
-  mul_left_inv := λ f, ext f.symm_apply_apply }
-
-@[simp] lemma coe_one : ⇑(1 : r ≃r r) = id := rfl
-
-@[simp] lemma coe_mul (e₁ e₂ : r ≃r r) : ⇑(e₁ * e₂) = e₁ ∘ e₂ := rfl
-
-lemma mul_apply (e₁ e₂ : r ≃r r) (x : α) : (e₁ * e₂) x = e₁ (e₂ x) := rfl
-
-@[simp] lemma inv_apply_self (e : r ≃r r) (x) : e⁻¹ (e x) = x := e.symm_apply_apply x
-
-@[simp] lemma apply_inv_self (e : r ≃r r) (x) : e (e⁻¹ x) = x := e.apply_symm_apply x
-
 /-- Two relations on empty types are isomorphic. -/
 def rel_iso_of_is_empty (r : α → α → Prop) (s : β → β → Prop) [is_empty α] [is_empty β] : r ≃r s :=
 ⟨equiv.equiv_of_is_empty α β, is_empty_elim⟩
@@ -617,43 +584,3 @@ def rel_iso_of_unique_of_refl (r : α → α → Prop) (s : β → β → Prop)
   λ x y, by simp [rel_of_subsingleton r, rel_of_subsingleton s]⟩
 
 end rel_iso
-
-/-- `subrel r p` is the inherited relation on a subset. -/
-def subrel (r : α → α → Prop) (p : set α) : p → p → Prop :=
-(coe : p → α) ⁻¹'o r
-
-@[simp] theorem subrel_val (r : α → α → Prop) (p : set α)
-  {a b} : subrel r p a b ↔ r a.1 b.1 := iff.rfl
-
-namespace subrel
-
-/-- The relation embedding from the inherited relation on a subset. -/
-protected def rel_embedding (r : α → α → Prop) (p : set α) :
-  subrel r p ↪r r := ⟨embedding.subtype _, λ a b, iff.rfl⟩
-
-@[simp] theorem rel_embedding_apply (r : α → α → Prop) (p a) :
-  subrel.rel_embedding r p a = a.1 := rfl
-
-instance (r : α → α → Prop) [is_well_order α r] (p : set α) : is_well_order p (subrel r p) :=
-rel_embedding.is_well_order (subrel.rel_embedding r p)
-
-instance (r : α → α → Prop) [is_refl α r] (p : set α) : is_refl p (subrel r p) :=
-⟨λ x, @is_refl.refl α r _ x⟩
-
-instance (r : α → α → Prop) [is_symm α r] (p : set α) : is_symm p (subrel r p) :=
-⟨λ x y, @is_symm.symm α r _ x y⟩
-
-instance (r : α → α → Prop) [is_trans α r] (p : set α) : is_trans p (subrel r p) :=
-⟨λ x y z, @is_trans.trans α r _ x y z⟩
-
-instance (r : α → α → Prop) [is_irrefl α r] (p : set α) : is_irrefl p (subrel r p) :=
-⟨λ x, @is_irrefl.irrefl α r _ x⟩
-
-end subrel
-
-/-- Restrict the codomain of a relation embedding. -/
-def rel_embedding.cod_restrict (p : set β) (f : r ↪r s) (H : ∀ a, f a ∈ p) : r ↪r subrel s p :=
-⟨f.to_embedding.cod_restrict p H, λ _ _, f.map_rel_iff'⟩
-
-@[simp] theorem rel_embedding.cod_restrict_apply (p) (f : r ↪r s) (H a) :
-  rel_embedding.cod_restrict p f H a = ⟨f a, H a⟩ := rfl

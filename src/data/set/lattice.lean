@@ -1621,7 +1621,7 @@ end disjoint
 namespace set
 
 lemma not_disjoint_iff : ¬disjoint s t ↔ ∃ x, x ∈ s ∧ x ∈ t :=
-disjoint_iff_inf_le.not.trans $ not_forall.trans $ exists_congr $ λ x, not_not
+set.disjoint_iff.not.trans $ not_forall.trans $ exists_congr $ λ x, not_not
 
 lemma not_disjoint_iff_nonempty_inter : ¬disjoint s t ↔ (s ∩ t).nonempty :=
 not_disjoint_iff

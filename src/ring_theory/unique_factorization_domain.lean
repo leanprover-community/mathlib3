@@ -985,7 +985,7 @@ begin
   { simpa using h1 is_unit_one },
   rw finset.prod_insert hpf',
   exact hcp
-    (prime_pow_coprime_prod_of_coprime_insert _ i p hpf' is_prime is_coprime)
+    (prime_pow_coprime_prod_of_coprime_insert i p hpf' is_prime is_coprime)
     (hpr (i p) (is_prime _ (finset.mem_insert_self _ _)))
     (ih (λ q hq, is_prime _ (finset.mem_insert_of_mem hq))
     (λ q hq q' hq', is_coprime _ (finset.mem_insert_of_mem hq) _ (finset.mem_insert_of_mem hq')))
@@ -1013,7 +1013,7 @@ begin
   refine induction_on_prime_power _ _ _ _ @h1 @hpr @hcp;
     simp only [multiset.mem_to_finset],
   { apply prime_of_normalized_factor },
-  { apply normalized_factors_coprime },
+  { apply normalized_factors_eq_of_dvd },
 end
 
 /-- If `f` maps `p ^ i` to `(f p) ^ i` for primes `p`, and `f`
@@ -1032,7 +1032,7 @@ begin
   { simpa using h1 is_unit_one },
   have hpr_p := is_prime _ (finset.mem_insert_self _ _),
   have hpr_s : ∀ p ∈ s, prime p := λ p hp, is_prime _ (finset.mem_insert_of_mem hp),
-  have hcp_p := λ i, (prime_pow_coprime_prod_of_coprime_insert _ i p hps is_prime is_coprime),
+  have hcp_p := λ i, (prime_pow_coprime_prod_of_coprime_insert i p hps is_prime is_coprime),
   have hcp_s : ∀ (p q ∈ s), p ∣ q → p = q := λ p hp q hq, is_coprime p
     (finset.mem_insert_of_mem hp) q
     (finset.mem_insert_of_mem hq),

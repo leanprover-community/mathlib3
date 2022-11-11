@@ -708,6 +708,33 @@ lemma ideal.exists_mem_pow_not_mem_pow_succ (I : ideal A) (hI0 : I ≠ ⊥) (hI1
   ∃ x ∈ I^e, x ∉ I^(e+1) :=
 set_like.exists_of_lt (I.strict_anti_pow hI0 hI1 e.lt_succ_self)
 
+open unique_factorization_monoid
+
+lemma ideal.eq_prime_pow_of_succ_lt_of_le {P I : ideal A} [P_prime : P.is_prime] (hP : P ≠ ⊥)
+  {i : ℕ} (hlt : P ^ (i + 1) < I) (hle : I ≤ P ^ i) :
+  I = P ^ i :=
+begin
+  letI := classical.dec_eq (ideal A),
+  refine le_antisymm hle _,
+  have P_prime' := ideal.prime_of_is_prime hP P_prime,
+  have : I ≠ ⊥ := (lt_of_le_of_lt bot_le hlt).ne',
+  have := pow_ne_zero i hP,
+  have := pow_ne_zero (i + 1) hP,
+  rw [← ideal.dvd_not_unit_iff_lt, dvd_not_unit_iff_normalized_factors_lt_normalized_factors,
+      normalized_factors_pow, normalized_factors_irreducible P_prime'.irreducible,
+      multiset.nsmul_singleton, multiset.lt_repeat_succ]
+    at hlt,
+  rw [← ideal.dvd_iff_le, dvd_iff_normalized_factors_le_normalized_factors, normalized_factors_pow,
+      normalized_factors_irreducible P_prime'.irreducible, multiset.nsmul_singleton],
+  all_goals { assumption }
+end
+
+lemma ideal.pow_succ_lt_pow {P : ideal A} [P_prime : P.is_prime] (hP : P ≠ ⊥)
+  (i : ℕ) :
+  P ^ (i + 1) < P ^ i :=
+lt_of_le_of_ne (ideal.pow_le_pow (nat.le_succ _))
+  (mt (pow_eq_pow_iff hP (mt ideal.is_unit_iff.mp P_prime.ne_top)).mp i.succ_ne_self)
+
 lemma associates.le_singleton_iff (x : A) (n : ℕ) (I : ideal A) :
   associates.mk I^n ≤ associates.mk (ideal.span {x}) ↔ x ∈ I^n :=
 begin

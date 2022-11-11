@@ -68,21 +68,22 @@ instance finite_dimensional_direction_affine_span_image_of_finite [_root_.finite
 finite_dimensional_direction_affine_span_of_finite k (set.to_finite _)
 
 /-- An affine-independent family of points in a finite-dimensional affine space is finite. -/
-noncomputable def fintype_of_fin_dim_affine_independent [finite_dimensional k V]
-  {p : ι → P} (hi : affine_independent k p) : fintype ι :=
-by classical; exact if hι : is_empty ι then (@fintype.of_is_empty _ hι) else
+lemma finite_of_fin_dim_affine_independent [finite_dimensional k V] {p : ι → P}
+  (hi : affine_independent k p) : _root_.finite ι :=
 begin
-  let q := (not_is_empty_iff.mp hι).some,
-  rw affine_independent_iff_linear_independent_vsub k p q at hi,
+  nontriviality ι, inhabit ι,
+  rw affine_independent_iff_linear_independent_vsub k p default at hi,
   letI : is_noetherian k V := is_noetherian.iff_fg.2 infer_instance,
-  exact fintype_of_fintype_ne _ (@fintype.of_finite _ hi.finite_of_is_noetherian),
+  exact (set.finite_singleton default).finite_of_compl
+    (set.finite_coe_iff.1 hi.finite_of_is_noetherian)
 end
 
 /-- An affine-independent subset of a finite-dimensional affine space is finite. -/
-lemma finite_of_fin_dim_affine_independent [finite_dimensional k V]
-  {s : set P} (hi : affine_independent k (coe : s → P)) : s.finite :=
-⟨fintype_of_fin_dim_affine_independent k hi⟩
+lemma finite_set_of_fin_dim_affine_independent [finite_dimensional k V] {s : set ι} {f : s → P}
+  (hi : affine_independent k f) : s.finite :=
+@set.to_finite _ s (finite_of_fin_dim_affine_independent k hi)
 
+open_locale classical
 variables {k}
 
 /-- The `vector_span` of a finite subset of an affinely independent

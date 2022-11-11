@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import algebra.group.defs
-import logic.embedding
+import logic.embedding.basic
 
 /-!
 # The embedding of a cancellative semigroup into itself by multiplication by a fixed element.

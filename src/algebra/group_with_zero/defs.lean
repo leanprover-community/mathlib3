@@ -154,10 +154,6 @@ end⟩
 
 variable {M₀}
 
-lemma ne_zero_of_eq_one {a : M₀} (h : a = 1) : a ≠ 0 :=
-calc a = 1 : h
-   ... ≠ 0 : one_ne_zero
-
 /-- Pullback a `nontrivial` instance along a function sending `0` to `0` and `1` to `1`. -/
 lemma pullback_nonzero [has_zero M₀'] [has_one M₀']
   (f : M₀' → M₀) (zero : f 0 = 0) (one : f 1 = 1) : nontrivial M₀' :=

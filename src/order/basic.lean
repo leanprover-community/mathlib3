@@ -259,7 +259,7 @@ protected lemma decidable.ne_iff_lt_iff_le [partial_order α] [decidable_eq α] 
 by haveI := classical.dec; exact decidable.ne_iff_lt_iff_le
 
 -- Variant of `min_def` with the branches reversed.
-protected lemma linear_order.min_def' [linear_order α] (a b : α) : min a b = if b ≤ a then b else a :=
+lemma min_def' [linear_order α] (a b : α) : min a b = if b ≤ a then b else a :=
 begin
   rw [min_def],
   rcases lt_trichotomy a b with lt | eq | gt,
@@ -269,7 +269,7 @@ begin
 end
 -- Variant of `min_def` with the branches reversed.
 -- This is sometimes useful as it used to be the default.
-protected lemma linear_order.max_def' [linear_order α] (a b : α) : max a b = if b ≤ a then a else b :=
+lemma max_def' [linear_order α] (a b : α) : max a b = if b ≤ a then a else b :=
 begin
   rw [max_def],
   rcases lt_trichotomy a b with lt | eq | gt,
@@ -452,8 +452,8 @@ instance (α : Type*) [linear_order α] : linear_order αᵒᵈ :=
   decidable_lt := (infer_instance : decidable_rel (λ a b : α, b < a)),
   min := @max α _,
   max := @min α _,
-  min_def := funext₂ $ @linear_order.max_def' α _,
-  max_def := funext₂ $ @linear_order.min_def' α _,
+  min_def := funext₂ $ @max_def' α _,
+  max_def := funext₂ $ @min_def' α _,
   .. order_dual.partial_order α }
 
 instance : Π [inhabited α], inhabited αᵒᵈ := id

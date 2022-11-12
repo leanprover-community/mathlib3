@@ -2216,9 +2216,6 @@ foldl_fixed' (λ _, rfl)
 @[simp] theorem foldr_fixed {b : β} : Π l : list α, foldr (λ a b, b) b l = b :=
 foldr_fixed' (λ _, rfl)
 
-@[simp] theorem foldl_combinator_K {a : α} : Π l : list β, foldl combinator.K a l = a :=
-foldl_fixed
-
 @[simp] theorem foldl_join (f : α → β → α) :
   ∀ (a : α) (L : list (list β)), foldl f a (join L) = foldl (foldl f) a L
 | a []     := rfl

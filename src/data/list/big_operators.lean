@@ -462,6 +462,14 @@ le_antisymm (hl₂ ▸ single_le_prod hl₁ _ hx) (hl₁ x hx)
 lemma prod_eq_one [monoid M] {l : list M} (hl : ∀ (x ∈ l), x = (1 : M)) : l.prod = 1 :=
 trans (prod_eq_pow_card l 1 hl) (one_pow l.length)
 
+@[to_additive]
+lemma mem_ne_one_of_prod_ne_one [monoid M] {l : list M} (h : l.prod ≠ 1) :
+  ∃ (x ∈ l), x ≠ (1 : M) :=
+begin
+  by_contra hf, push_neg at hf,
+  exact h (prod_eq_one hf),
+end
+
 /-- If all elements in a list are bounded below by `1`, then the length of the list is bounded
 by the sum of the elements. -/
 lemma length_le_sum_of_one_le (L : list ℕ) (h : ∀ i ∈ L, 1 ≤ i) : L.length ≤ L.sum :=

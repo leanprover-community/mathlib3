@@ -104,28 +104,28 @@ def left_mul : G → G → G := λ g : G, λ x : G, g * x
 def right_mul : G → G → G := λ g : G, λ x : G, x * g
 
 /-- A mixin for left cancellative multiplication. -/
-@[protect_proj] class is_left_cancel_mul (G : Type u) [has_mul G] :=
+@[protect_proj] class is_left_cancel_mul (G : Type u) [has_mul G] : Prop :=
   (mul_left_cancel : ∀ a b c : G, a * b = a * c → b = c)
 
 /-- A mixin for right cancellative multiplication. -/
-@[protect_proj] class is_right_cancel_mul (G : Type u) [has_mul G] :=
+@[protect_proj] class is_right_cancel_mul (G : Type u) [has_mul G] : Prop :=
   (mul_right_cancel : ∀ a b c : G, a * b = c * b → a = c)
 
 /-- A mixin for cancellative multiplication. -/
 @[protect_proj] class is_cancel_mul (G : Type u) [has_mul G]
-  extends is_left_cancel_mul G, is_right_cancel_mul G
+  extends is_left_cancel_mul G, is_right_cancel_mul G : Prop
 
 /-- A mixin for left cancellative addition. -/
-@[protect_proj] class is_left_cancel_add (G : Type u) [has_add G] :=
+@[protect_proj] class is_left_cancel_add (G : Type u) [has_add G] : Prop :=
   (add_left_cancel : ∀ a b c : G, a + b = a + c → b = c)
 
 /-- A mixin for right cancellative addition. -/
-@[protect_proj] class is_right_cancel_add (G : Type u) [has_add G] :=
+@[protect_proj] class is_right_cancel_add (G : Type u) [has_add G] : Prop :=
   (add_right_cancel : ∀ a b c : G, a + b = c + b → a = c)
 
 /-- A mixin for cancellative addition. -/
 @[protect_proj] class is_cancel_add (G : Type u) [has_add G]
-  extends is_left_cancel_add G, is_right_cancel_add G
+  extends is_left_cancel_add G, is_right_cancel_add G : Prop
 
 end has_mul
 
@@ -174,7 +174,7 @@ instance comm_semigroup.to_is_commutative : is_commutative G (*) :=
 
 /-- Any `comm_semigroup M` that satisfies `is_right_cancel_mul M` also satisfies
 `is_left_cancel_mul M`. -/
-def comm_semigroup.is_right_cancel_mul.to_is_left_cancel_mul (M : Type u) [comm_semigroup M]
+lemma comm_semigroup.is_right_cancel_mul.to_is_left_cancel_mul (M : Type u) [comm_semigroup M]
   [is_right_cancel_mul M] : is_left_cancel_mul M :=
 { mul_left_cancel := λ a b c h,
   begin
@@ -184,7 +184,7 @@ def comm_semigroup.is_right_cancel_mul.to_is_left_cancel_mul (M : Type u) [comm_
 
 /-- Any `add_comm_semigroup M` that satisfies `is_right_cancel_add M` also satisfies
 `is_right_cancel_add M`. -/
-def add_comm_semigroup.is_right_cancel_add.is_left_cancel_add (M : Type u)
+lemma add_comm_semigroup.is_right_cancel_add.is_left_cancel_add (M : Type u)
   [add_comm_semigroup M] [is_right_cancel_add M] : is_left_cancel_add M :=
 { add_left_cancel := λ a b c h,
   begin
@@ -194,7 +194,7 @@ def add_comm_semigroup.is_right_cancel_add.is_left_cancel_add (M : Type u)
 
 /-- Any `comm_semigroup M` that satisfies `is_left_cancel_mul M` also satisfies
 `is_right_cancel_mul M`. -/
-def comm_semigroup.is_left_cancel_mul.to_is_right_cancel_mul (M : Type u) [comm_semigroup M]
+lemma comm_semigroup.is_left_cancel_mul.to_is_right_cancel_mul (M : Type u) [comm_semigroup M]
   [is_left_cancel_mul M] : is_right_cancel_mul M :=
 { mul_right_cancel := λ a b c h,
   begin
@@ -204,7 +204,7 @@ def comm_semigroup.is_left_cancel_mul.to_is_right_cancel_mul (M : Type u) [comm_
 
 /-- Any `add_comm_semigroup M` that satisfies `is_left_cancel_add M` also satisfies
 `is_left_cancel_add M`. -/
-def add_comm_semigroup.is_left_cancel_add.is_right_cancel_add (M : Type u)
+lemma add_comm_semigroup.is_left_cancel_add.is_right_cancel_add (M : Type u)
   [add_comm_semigroup M] [is_left_cancel_add M] : is_right_cancel_add M :=
 { add_right_cancel := λ a b c h,
   begin
@@ -214,7 +214,7 @@ def add_comm_semigroup.is_left_cancel_add.is_right_cancel_add (M : Type u)
 
 /-- Any `comm_semigroup M` that satisfies `is_left_cancel_mul M` also satisfies
 `is_cancel_mul M`. -/
-def comm_semigroup.is_left_cancel_mul.to_is_cancel_mul (M : Type u) [comm_semigroup M]
+lemma comm_semigroup.is_left_cancel_mul.to_is_cancel_mul (M : Type u) [comm_semigroup M]
   [is_left_cancel_mul M] : is_cancel_mul M :=
 { mul_left_cancel := is_left_cancel_mul.mul_left_cancel,
   mul_right_cancel := λ a b c h,
@@ -225,7 +225,7 @@ def comm_semigroup.is_left_cancel_mul.to_is_cancel_mul (M : Type u) [comm_semigr
 
 /-- Any `comm_semigroup M` that satisfies `is_right_cancel_mul M` also satisfies
 `is_cancel_mul M`. -/
-def comm_semigroup.is_right_cancel_mul.to_is_cancel_mul (M : Type u) [comm_semigroup M]
+lemma comm_semigroup.is_right_cancel_mul.to_is_cancel_mul (M : Type u) [comm_semigroup M]
   [is_right_cancel_mul M] : is_cancel_mul M :=
 { mul_left_cancel := λ a b c h,
   begin
@@ -236,7 +236,7 @@ def comm_semigroup.is_right_cancel_mul.to_is_cancel_mul (M : Type u) [comm_semig
 
 /-- Any `add_comm_semigroup M` that satisfies `is_left_cancel_add M` also satisfies
 `is_cancel_add M`. -/
-def add_comm_semigroup.is_left_cancel_add.to_is_cancel_add (M : Type u)
+lemma add_comm_semigroup.is_left_cancel_add.to_is_cancel_add (M : Type u)
   [add_comm_semigroup M] [is_left_cancel_add M] : is_cancel_add M :=
 { add_left_cancel := is_left_cancel_add.add_left_cancel,
   add_right_cancel := λ a b c h,
@@ -247,7 +247,7 @@ def add_comm_semigroup.is_left_cancel_add.to_is_cancel_add (M : Type u)
 
 /-- Any `add_comm_semigroup M` that satisfies `is_right_cancel_add M` also satisfies
 `is_cancel_add M`. -/
-def add_comm_semigroup.is_right_cancel_add.to_is_cancel_add (M : Type u)
+lemma add_comm_semigroup.is_right_cancel_add.to_is_cancel_add (M : Type u)
   [add_comm_semigroup M] [is_right_cancel_add M] : is_cancel_add M :=
 { add_left_cancel := λ a b c h,
   begin

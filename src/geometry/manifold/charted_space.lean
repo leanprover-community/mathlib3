@@ -207,7 +207,7 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
     { simpa only [he, refl_trans]},
     { have : (e ≫ₕ e').source ⊆ e.source := sep_subset _ _,
       rw he at this,
-      have : (e ≫ₕ e') ∈ {e : local_homeomorph H H | e.source = ∅} := disjoint_iff.1 this,
+      have : (e ≫ₕ e') ∈ {e : local_homeomorph H H | e.source = ∅} := eq_bot_iff.2 this,
       exact (mem_union _ _ _).2 (or.inr this) },
   end,
   symm' := λe he, begin

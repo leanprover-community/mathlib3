@@ -7,6 +7,7 @@ import algebra.hom.equiv.basic
 import logic.function.conjugate
 import order.bounds.order_iso
 import order.conditionally_complete_lattice
+import order.rel_iso.group
 import order.ord_continuous
 
 /-!

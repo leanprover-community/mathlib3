@@ -896,8 +896,10 @@ begin
   have h₂ : injective int.neg_succ_of_nat := @int.neg_succ_of_nat.inj,
   have : is_compl (set.range (coe : ℕ → ℤ)) (set.range int.neg_succ_of_nat),
   { split,
-    { rintros _ ⟨⟨i, rfl⟩, ⟨j, ⟨⟩⟩⟩ },
-    { rintros (i | j) h,
+    { rw disjoint_iff_inf_le,
+      rintros _ ⟨⟨i, rfl⟩, ⟨j, ⟨⟩⟩⟩ },
+    { rw codisjoint_iff_le_sup,
+      rintros (i | j) h,
       exacts [or.inl ⟨_, rfl⟩, or.inr ⟨_, rfl⟩] } },
   exact has_sum.add_is_compl this (h₁.has_sum_range_iff.mpr hf) (h₂.has_sum_range_iff.mpr hg),
 end

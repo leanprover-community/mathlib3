@@ -114,6 +114,17 @@ begin
   exact is_unit.mul (u h (mem_cons_self h t)) (prod_is_unit (λ m mt, u m (mem_cons_of_mem h mt)))
 end
 
+@[to_additive]
+lemma prod_is_unit_iff {α : Type*} [comm_monoid α] {L : list α} :
+  is_unit L.prod ↔ ∀ m ∈ L, is_unit m :=
+begin
+  refine ⟨λ h, _, prod_is_unit⟩,
+  induction L with m L ih,
+  { exact λ m' h', false.elim (not_mem_nil m' h'), },
+  rw [prod_cons, is_unit.mul_iff] at h,
+  exact λ m' h', or.elim (eq_or_mem_of_mem_cons h') (λ H, H.substr h.1) (λ H, ih h.2 _ H),
+end
+
 @[simp, to_additive]
 lemma prod_take_mul_prod_drop :
   ∀ (L : list M) (i : ℕ), (L.take i).prod * (L.drop i).prod = L.prod

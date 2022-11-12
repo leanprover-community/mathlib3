@@ -196,8 +196,8 @@ begin
     (rank_closure_commutator_representations_le G)),
   replace h2 := h2.trans (pow_dvd_pow _ (add_le_add_right (mul_le_mul_right' h1 _) 1)),
   rw ← pow_succ' at h2,
-  replace h2 := nat.le_of_dvd (pow_pos (nat.pos_of_ne_zero (index_center_ne_zero _)) _) h2,
-  exact h2.trans (nat.pow_le_pow_of_le_left h1 _),
+  refine (nat.le_of_dvd _ h2).trans (nat.pow_le_pow_of_le_left h1 _),
+  exact pow_pos (nat.pos_of_ne_zero finite_index.finite_index) _,
 end
 
 /-- A theorem of Schur: A group with finitely many commutators has finite commutator subgroup. -/
@@ -206,7 +206,7 @@ begin
   have h2 := card_commutator_dvd_index_center_pow (closure_commutator_representatives G),
   refine nat.finite_of_card_ne_zero (λ h, _),
   rw [card_commutator_closure_commutator_representatives, h, zero_dvd_iff] at h2,
-  exact index_center_ne_zero (closure_commutator_representatives G) (pow_eq_zero h2),
+  exact finite_index.finite_index (pow_eq_zero h2),
 end
 
 end subgroup

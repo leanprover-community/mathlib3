@@ -46,7 +46,9 @@ variables {J : Type v'} [category.{u'} J] {C : Type u} [category.{v} C]
 
 variables {W X Y Z : C} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z}
 
--- end
+/-- A convenience formulation for a pushout being a van Kampen colimit.
+See `is_pushout.is_van_kampen_iff` below. -/
+@[nolint unused_arguments] -- This only makes sense when the original diagram is a pushout.
 def is_pushout.is_van_kampen (H : is_pushout f g h i) : Prop :=
 ∀ ⦃W' X' Y' Z' : C⦄ (f' : W' ⟶ X') (g' : W' ⟶ Y') (h' : X' ⟶ Z') (i' : Y' ⟶ Z')
   (αW : W' ⟶ W) (αX : X' ⟶ X) (αY : Y' ⟶ Y) (αZ : Z' ⟶ Z)
@@ -63,7 +65,7 @@ begin
     H' g' f' i' h' αW αY αX αZ hg hf hi hh w.flip,
 end
 
-lemma is_van_kampen_push_out_iff (H : is_pushout f g h i) :
+lemma is_pushout.is_van_kampen_iff (H : is_pushout f g h i) :
   H.is_van_kampen ↔ is_van_kampen_colimit (pushout_cocone.mk h i H.w) :=
 begin
   split,
@@ -217,13 +219,16 @@ is_kernel_pair.mono_of_is_iso_fst
   (is_kernel_pair.id_of_mono g) ⟨rfl⟩ H.1
   ⟨by simp⟩).mp (is_pushout.of_vert_is_iso ⟨by simp⟩)).1
 
+/-- A category is adhesive if it has pushouts and pullbacks along monomorphisms,
+and such pushouts are van Kampen. -/
 class adhesive (C : Type u) [category.{v} C] : Prop :=
 [has_pullback_of_mono_left : ∀ {X Y S : C} (f : X ⟶ S) (g : Y ⟶ S) [mono f], has_pullback f g]
 [has_pushout_of_mono_left : ∀ {X Y S : C} (f : S ⟶ X) (g : S ⟶ Y) [mono f], has_pushout f g]
 (van_kampen : ∀ {W X Y Z : C} {f : W ⟶ X} {g : W ⟶ Y} {h : X ⟶ Z} {i : Y ⟶ Z} [mono f]
   (H : is_pushout f g h i), H.is_van_kampen)
 
-attribute [instance] adhesive.has_pullback_of_mono_left adhesive.has_pushout_of_mono_left
+attribute [priority 100, instance]
+  adhesive.has_pullback_of_mono_left adhesive.has_pushout_of_mono_left
 
 lemma adhesive.van_kampen' [adhesive C] [mono g] (H : is_pushout f g h i) : H.is_van_kampen :=
 (adhesive.van_kampen H.flip).flip

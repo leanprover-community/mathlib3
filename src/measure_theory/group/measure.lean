@@ -646,6 +646,21 @@ example {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [nontrivial E
   [is_add_haar_measure μ] :
   has_no_atoms μ := by apply_instance
 
+set_option pp.all true
+
+
+-- @[to_additive]
+lemma my_test_smul {G : Type*} [group G] [topological_space G] [topological_group G] (a : G) (K : set G) (hK : is_compact K) :
+  is_compact (a • K) :=
+is_compact.smul a hK
+
+
+#print my_test_smul
+
+#check is_scalar_tower.has_continuous_const_smul
+
+#exit
+
 @[to_additive]
 lemma haar_univ [topological_group G] [borel_space G]
   [t2_space G] [locally_compact_space G]
@@ -676,7 +691,7 @@ begin
     induction n with n IH,
     { exact hK },
     { simp_rw [hL, iterate_succ'],
-      exact is_compact.union IH (hK.smul (g (L n))) } },
+      apply is_compact.union IH (hK.smul (g (L n))) } },
   have M : ∀ n, μ (L n) = (n + 1 : ℕ) * μ K,
   { assume n,
     induction n with n IH,

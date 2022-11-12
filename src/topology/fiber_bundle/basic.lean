@@ -9,8 +9,8 @@ import topology.fiber_bundle.trivialization
 # Fiber bundles
 
 Mathematically, a (topological) fiber bundle with fiber `F` over a base `B` is a space projecting on
-`B` for which the fibers are all homeomorphic to `F`, such that the local situation around each point
-is a direct product.
+`B` for which the fibers are all homeomorphic to `F`, such that the local situation around each
+point is a direct product.
 
 In our formalism, a fiber bundle is by definition the type
 `bundle.total_space E` where `E : B → Type*` is a function associating to
@@ -190,19 +190,10 @@ def is_trivial_fiber_bundle {Z : Type*} [topological_space Z] (proj : Z → B) :
 
 variables {F}
 
-/-- A `fiber_bundle` structure on a sigma-type `E` satisfying `is_trivial_fiber_bundle F (π E)`,
-consisting of the single global trivialization given by that hypothesis. -/
-noncomputable def is_trivial_fiber_bundle.fiber_bundle (h : is_trivial_fiber_bundle F (π E)) :
-  fiber_bundle F E :=
-let e := h.some in
-let he := h.some_spec in
-let a : trivialization F (π E) :=
-  ⟨e.to_local_homeomorph, univ, is_open_univ, rfl, univ_prod_univ.symm, λ x _, he x⟩ in
-{ total_space_mk_inducing := sorry,
-  trivialization_atlas := {a},
-  trivialization_at := λ x, a,
-  mem_base_set_trivialization_at := mem_univ,
-  trivialization_mem_atlas := λ x, rfl }
+lemma is_trivial_fiber_bundle.proj_eq {Z : Type*} [topological_space Z] {proj : Z → B}
+  (h : is_trivial_fiber_bundle F proj) :
+  ∃ e : Z ≃ₜ (B × F), proj = prod.fst ∘ e :=
+⟨h.some, (funext h.some_spec).symm⟩
 
 namespace fiber_bundle
 variables (F) {E} [fiber_bundle F E]
@@ -237,6 +228,39 @@ lemma continuous_total_space_mk (x : B) : continuous (@total_space_mk B E x) :=
 (total_space_mk_inducing F E x).continuous
 
 end fiber_bundle
+
+variables {F}
+
+/-- The projection from a trivial fiber bundle to its base is surjective. -/
+lemma is_trivial_fiber_bundle.surjective_proj [nonempty F] {Z : Type*} [topological_space Z]
+  {proj : Z → B} (h : is_trivial_fiber_bundle F proj) : function.surjective proj :=
+begin
+  obtain ⟨e, rfl⟩ := h.proj_eq,
+  exact prod.fst_surjective.comp e.surjective,
+end
+
+/-- The projection from a trivial fiber bundle to its base is continuous. -/
+lemma is_trivial_fiber_bundle.continuous_proj {Z : Type*} [topological_space Z] {proj : Z → B}
+  (h : is_trivial_fiber_bundle F proj) : continuous proj :=
+begin
+  obtain ⟨e, rfl⟩ := h.proj_eq,
+  exact continuous_fst.comp e.continuous,
+end
+
+/-- The projection from a trivial fiber bundle to its base is open. -/
+lemma is_trivial_fiber_bundle.is_open_map_proj {Z : Type*} [topological_space Z] {proj : Z → B}
+  (h : is_trivial_fiber_bundle F proj) : is_open_map proj :=
+begin
+  obtain ⟨e, rfl⟩ := h.proj_eq,
+  exact is_open_map_fst.comp e.is_open_map,
+end
+
+/-- The projection from a trivial fiber bundle to its base is open. -/
+lemma is_trivial_fiber_bundle.quotient_map_proj [nonempty F] {Z : Type*} [topological_space Z]
+  {proj : Z → B} (h : is_trivial_fiber_bundle F proj) : quotient_map proj :=
+h.is_open_map_proj.to_quotient_map h.continuous_proj h.surjective_proj
+
+variables (F)
 
 /-- The first projection in a product is a trivial fiber bundle. -/
 lemma is_trivial_fiber_bundle_fst :

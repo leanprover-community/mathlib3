@@ -62,7 +62,6 @@ begin
     (lower_closure s).lower.interior'.ord_connected,
 end
 
---TODO: Additivize `is_central_scalar`
 @[to_additive is_open.upper_closure]
 protected lemma is_open.upper_closure' (hs : is_open s) : is_open (upper_closure s : set α) :=
 by { rw [←mul_one s, ←mul_upper_closure], exact hs.mul_right }

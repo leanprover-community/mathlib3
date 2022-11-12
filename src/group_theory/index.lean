@@ -5,7 +5,7 @@ Authors: Thomas Browning
 -/
 
 import data.finite.card
-import group_theory.quotient_group
+import group_theory.group_action.quotient
 
 /-!
 # Index of a Subgroup
@@ -359,5 +359,59 @@ noncomputable def fintype_of_index_ne_zero (hH : H.index ≠ 0) : fintype (G ⧸
 @[to_additive one_lt_index_of_ne_top]
 lemma one_lt_index_of_ne_top [finite (G ⧸ H)] (hH : H ≠ ⊤) : 1 < H.index :=
 nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨index_ne_zero_of_finite, mt index_eq_one.mp hH⟩
+
+section finite_index
+
+variables (H K)
+
+/-- Typeclass for finite index subgroups. -/
+class finite_index : Prop :=
+(finite_index : H.index ≠ 0)
+
+/-- Typeclass for finite index subgroups. -/
+class _root_.add_subgroup.finite_index {G : Type*} [add_group G] (H : add_subgroup G) : Prop :=
+(finite_index : H.index ≠ 0)
+
+/-- A finite index subgroup has finite quotient. -/
+@[to_additive "A finite index subgroup has finite quotient"]
+noncomputable def fintype_quotient_of_finite_index [finite_index H] :
+  fintype (G ⧸ H) :=
+fintype_of_index_ne_zero finite_index.finite_index
+
+@[to_additive] instance finite_quotient_of_finite_index
+  [finite_index H] : finite (G ⧸ H) :=
+H.fintype_quotient_of_finite_index.finite
+
+@[to_additive] lemma finite_index_of_finite_quotient [finite (G ⧸ H)] : finite_index H :=
+⟨index_ne_zero_of_finite⟩
+
+@[priority 100, to_additive] instance finite_index_of_finite [finite G] : finite_index H :=
+finite_index_of_finite_quotient H
+
+@[to_additive] instance : finite_index (⊤ : subgroup G) :=
+⟨ne_of_eq_of_ne index_top one_ne_zero⟩
+
+@[to_additive] instance [finite_index H] [finite_index K] : finite_index (H ⊓ K) :=
+⟨index_inf_ne_zero finite_index.finite_index finite_index.finite_index⟩
+
+variables {H K}
+
+@[to_additive] lemma finite_index_of_le [finite_index H] (h : H ≤ K) : finite_index K :=
+⟨ne_zero_of_dvd_ne_zero finite_index.finite_index (index_dvd_of_le h)⟩
+
+variables (H K)
+
+@[to_additive] instance finite_index_ker {G' : Type*} [group G'] (f : G →* G') [finite f.range] :
+  f.ker.finite_index :=
+@finite_index_of_finite_quotient G _ f.ker
+  (finite.of_equiv f.range (quotient_group.quotient_ker_equiv_range f).symm)
+
+instance finite_index_normal_core [H.finite_index] : H.normal_core.finite_index :=
+begin
+  rw normal_core_eq_ker,
+  apply_instance,
+end
+
+end finite_index
 
 end subgroup

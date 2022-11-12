@@ -315,6 +315,11 @@ is_closed_singleton.is_open_compl
 lemma is_open_ne [t1_space α] {x : α} : is_open {y | y ≠ x} :=
 is_open_compl_singleton
 
+@[to_additive]
+lemma continuous.is_open_mul_support [t1_space α] [has_one α] [topological_space β]
+  {f : β → α} (hf : continuous f) : is_open (mul_support f) :=
+is_open_ne.preimage hf
+
 lemma ne.nhds_within_compl_singleton [t1_space α] {x y : α} (h : x ≠ y) :
   𝓝[{y}ᶜ] x = 𝓝 x :=
 is_open_ne.nhds_within_eq h

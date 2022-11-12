@@ -1156,6 +1156,12 @@ begin
   exact ae_eq_image_of_ae_eq_comap f μ hfi hf h.symm,
 end
 
+lemma comap_preimage {β} [measurable_space α] {mβ : measurable_space β} (f : α → β) (μ : measure β)
+  {s : set β} (hf : injective f) (hf' : measurable f)
+  (h : ∀ t, measurable_set t → null_measurable_set (f '' t) μ) (hs : measurable_set s) :
+  μ.comap f (f ⁻¹' s) = μ (s ∩ range f) :=
+by rw [comap_apply₀ _ _ hf h (hf' hs).null_measurable_set, image_preimage_eq_inter_range]
+
 section subtype
 
 /-! ### Subtype of a measure space -/
@@ -3456,6 +3462,11 @@ lemma restrict_map (μ : measure α) (s : set β) :
   (μ.map f).restrict s = (μ.restrict $ f ⁻¹' s).map f :=
 measure.ext $ λ t ht, by simp [hf.map_apply, ht, hf.measurable ht]
 
+protected lemma comap_preimage (μ : measure β) {s : set β} (hs : measurable_set s) :
+  μ.comap f (f ⁻¹' s) = μ (s ∩ range f) :=
+comap_preimage _ _ hf.injective hf.measurable
+  (λ t ht, (hf.measurable_set_image' ht).null_measurable_set) hs
+
 end measurable_embedding
 
 section subtype
@@ -3474,7 +3485,7 @@ lemma ae_restrict_iff_subtype {m0 : measurable_space α} {μ : measure α} {s : 
   (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂(comap (coe : s → α) μ), p ↑x :=
 by rw [← map_comap_subtype_coe hs, (measurable_embedding.subtype_coe hs).ae_map_iff]
 
-variables [measure_space α]
+variables [measure_space α] {s t : set α}
 
 /-!
 ### Volume on `s : set α`
@@ -3486,13 +3497,19 @@ instance _root_.set_coe.measure_space (s : set α) : measure_space s :=
 lemma volume_set_coe_def (s : set α) : (volume : measure s) = comap (coe : s → α) volume := rfl
 
 lemma measurable_set.map_coe_volume {s : set α} (hs : measurable_set s) :
-  volume.map (coe : s → α)= restrict volume s :=
+  volume.map (coe : s → α) = restrict volume s :=
 by rw [volume_set_coe_def, (measurable_embedding.subtype_coe hs).map_comap volume,
   subtype.range_coe]
 
 lemma volume_image_subtype_coe {s : set α} (hs : measurable_set s) (t : set s) :
   volume (coe '' t : set α) = volume t :=
 (comap_subtype_coe_apply hs volume t).symm
+
+@[simp] lemma volume_preimage_coe (hs : null_measurable_set s) (ht : measurable_set t) :
+  volume ((coe : s → α) ⁻¹' t) = volume (t ∩ s) :=
+by rw [volume_set_coe_def, comap_apply₀ _ _ subtype.coe_injective
+  (λ h, measurable_set.null_measurable_set_subtype_coe hs)
+  (measurable_subtype_coe ht).null_measurable_set, image_preimage_eq_inter_range, subtype.range_coe]
 
 end subtype
 

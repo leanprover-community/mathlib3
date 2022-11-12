@@ -8,6 +8,7 @@ import topology.algebra.constructions
 import topology.homeomorph
 import group_theory.group_action.basic
 import topology.bases
+import topology.support
 /-!
 # Monoid actions continuous in the second variable
 
@@ -298,6 +299,18 @@ lemma is_closed.smul₀ {𝕜 M : Type*} [division_ring 𝕜] [add_comm_monoid M
   [t1_space M] [module 𝕜 M] [has_continuous_const_smul 𝕜 M] (c : 𝕜) {s : set M} (hs : is_closed s) :
   is_closed (c • s) :=
 is_closed_map_smul₀ c s hs
+
+lemma has_compact_mul_support.comp_smul {β : Type*} [has_one β] {f : α → β}
+  (h : has_compact_mul_support f) {c : G₀} (hc : c ≠ 0) :
+  has_compact_mul_support (λ x, f (c • x)) :=
+h.comp_homeomorph (homeomorph.smul_of_ne_zero c hc)
+
+lemma has_compact_support.comp_smul {β : Type*} [has_zero β] {f : α → β}
+  (h : has_compact_support f) {c : G₀} (hc : c ≠ 0) :
+  has_compact_support (λ x, f (c • x)) :=
+h.comp_homeomorph (homeomorph.smul_of_ne_zero c hc)
+
+attribute [to_additive has_compact_support.comp_smul] has_compact_mul_support.comp_smul
 
 end group_with_zero
 

@@ -178,11 +178,7 @@ instance box_prod_fintype_neighbor_set (x : α × β)
   fintype ((G □ H).neighbor_set x) :=
 fintype.of_equiv
   ((G.neighbor_finset x.1 ×ˢ {x.2}).disj_union ({x.1} ×ˢ H.neighbor_finset x.2)
-      $ λ y hG hH, begin
-        simp_rw [finset.mem_product, finset.mem_singleton,
-          mem_neighbor_finset] at hG hH,
-        exact hG.1.ne hH.1.symm,
-      end)
+      $ finset.disjoint_product.mpr $ or.inl $ neighbor_finset_disjoint_singleton _ _)
   ((equiv.refl _).subtype_equiv $ λ y, begin
     simp_rw [finset.mem_disj_union, finset.mem_product, finset.mem_singleton,
           mem_neighbor_finset, mem_neighbor_set, equiv.refl_apply, box_prod_adj],
@@ -193,7 +189,7 @@ lemma box_prod_neighbor_finset (x : α × β)
   [fintype (G.neighbor_set x.1)] [fintype (H.neighbor_set x.2)] [fintype ((G □ H).neighbor_set x)] :
   (G □ H).neighbor_finset x =
     (G.neighbor_finset x.1 ×ˢ {x.2}).disj_union ({x.1} ×ˢ H.neighbor_finset x.2)
-      (box_prod_fintype_neighbor_set._proof_1 x) :=
+      (finset.disjoint_product.mpr $ or.inl $ neighbor_finset_disjoint_singleton _ _) :=
 begin
   -- swap out the fintype instance for the canonical one
   letI : fintype ((G □ H).neighbor_set x) := simple_graph.box_prod_fintype_neighbor_set _,

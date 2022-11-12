@@ -1097,7 +1097,7 @@ by simp [disjoint_def]
 
 theorem ker_eq_bot' {f : F} :
   ker f = ⊥ ↔ (∀ m, f m = 0 → m = 0) :=
-by simpa [disjoint] using @disjoint_ker _ _ _ _ _ _ _ _ _ _ _ _ _ f ⊤
+by simpa [disjoint_iff_inf_le] using @disjoint_ker _ _ _ _ _ _ _ _ _ _ _ _ _ f ⊤
 omit sc
 
 theorem ker_eq_bot_of_inverse {τ₂₁ : R₂ →+* R} [ring_hom_inv_pair τ₁₂ τ₂₁]
@@ -1173,7 +1173,7 @@ include sc
 theorem ker_eq_bot_of_injective {f : F} (hf : injective f) : ker f = ⊥ :=
 begin
   have : disjoint ⊤ (ker f), by { rw [disjoint_ker, ← map_zero f], exact λ x hx H, hf H },
-  simpa [disjoint]
+  simpa [disjoint_iff_inf_le]
 end
 omit sc
 
@@ -1225,7 +1225,7 @@ theorem inj_of_disjoint_ker {p : submodule R M}
 
 variables (F)
 theorem _root_.linear_map_class.ker_eq_bot : ker f = ⊥ ↔ injective f :=
-by simpa [disjoint] using @disjoint_ker' _ _ _ _ _ _ _ _ _ _ _ _ _ f ⊤
+by simpa [disjoint_iff_inf_le] using @disjoint_ker' _ _ _ _ _ _ _ _ _ _ _ _ _ f ⊤
 variables {F}
 
 omit sc

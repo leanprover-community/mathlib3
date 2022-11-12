@@ -741,7 +741,7 @@ variables {K}
 
 /-- If `K` is complete, `K` and `Kᗮ` are complements of each other. -/
 lemma submodule.is_compl_orthogonal_of_complete_space [complete_space K] : is_compl K Kᗮ :=
-⟨K.orthogonal_disjoint, le_of_eq submodule.sup_orthogonal_of_complete_space.symm⟩
+⟨K.orthogonal_disjoint, codisjoint_iff.2 submodule.sup_orthogonal_of_complete_space⟩
 
 @[simp] lemma submodule.orthogonal_eq_bot_iff [complete_space (K : set E)] :
   Kᗮ = ⊥ ↔ K = ⊤ :=

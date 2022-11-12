@@ -115,7 +115,7 @@ begin
   refine supr_le (assume a₁, supr_le $ assume h₁, range_le_iff_comap.2 _),
   simp only [(ker_comp _ _).symm, eq_top_iff, set_like.le_def, mem_ker, comap_infi, mem_infi],
   assume b hb a₂ h₂,
-  have : a₁ ≠ a₂ := assume eq, h ⟨h₁, eq.symm ▸ h₂⟩,
+  have : a₁ ≠ a₂ := assume eq, h.le_bot ⟨h₁, eq.symm ▸ h₂⟩,
   exact single_eq_of_ne this
 end
 
@@ -136,14 +136,15 @@ lemma disjoint_lsingle_lsingle (s t : set α) (hs : disjoint s t) :
   disjoint (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range)
     (⨆a∈t, (lsingle a : M →ₗ[R] (α →₀ M)).range) :=
 begin
-  refine disjoint.mono
+  refine (disjoint.mono
     (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right)
-    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right)
-    (le_trans (le_infi $ assume i, _) infi_ker_lapply_le_bot),
+    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right)) _,
+  rw disjoint_iff_inf_le,
+  refine (le_trans (le_infi $ assume i, _) infi_ker_lapply_le_bot),
   classical,
   by_cases his : i ∈ s,
   { by_cases hit : i ∈ t,
-    { exact (hs ⟨his, hit⟩).elim },
+    { exact (hs.le_bot ⟨his, hit⟩).elim },
     exact inf_le_of_right_le (infi_le_of_le i $ infi_le _ hit) },
   exact inf_le_of_left_le (infi_le_of_le i $ infi_le _ his)
 end
@@ -276,9 +277,9 @@ disjoint_iff.2 $ by rw [← supported_inter, disjoint_iff_inter_eq_empty.1 h, su
 theorem disjoint_supported_supported_iff [nontrivial M] {s t : set α} :
   disjoint (supported M R s) (supported M R t) ↔ disjoint s t :=
 begin
-  refine ⟨λ h x hx, _, disjoint_supported_supported⟩,
+  refine ⟨λ h, set.disjoint_left.mpr $ λ x hx1 hx2, _, disjoint_supported_supported⟩,
   rcases exists_ne (0 : M) with ⟨y, hy⟩,
-  have := h ⟨single_mem_supported R y hx.1, single_mem_supported R y hx.2⟩,
+  have := h.le_bot ⟨single_mem_supported R y hx1, single_mem_supported R y hx2⟩,
   rw [mem_bot, single_eq_zero] at this,
   exact hy this
 end
@@ -396,6 +397,7 @@ theorem lmap_domain_disjoint_ker (f : α → α') {s : set α}
   (H : ∀ a b ∈ s, f a = f b → a = b) :
   disjoint (supported M R s) (lmap_domain M R f).ker :=
 begin
+  rw disjoint_iff_inf_le,
   rintro l ⟨h₁, h₂⟩,
   rw [set_like.mem_coe, mem_ker, lmap_domain_apply, map_domain] at h₂,
   simp, ext x,

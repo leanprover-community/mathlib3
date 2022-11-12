@@ -631,7 +631,7 @@ lemma ne_bot.not_disjoint (hf : f.ne_bot) (hs : s ∈ f) (ht : t ∈ f) :
 
 lemma inf_eq_bot_iff {f g : filter α} :
   f ⊓ g = ⊥ ↔ ∃ (U ∈ f) (V ∈ g), U ∩ V = ∅ :=
-by simpa only [disjoint_iff] using filter.disjoint_iff
+by simpa only [←disjoint_iff, set.disjoint_iff_inter_eq_empty] using filter.disjoint_iff
 
 lemma _root_.pairwise.exists_mem_filter_of_disjoint {ι : Type*} [finite ι]
   {l : ι → filter α} (hd : pairwise (disjoint on l)) :

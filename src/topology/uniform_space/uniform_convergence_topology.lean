@@ -140,21 +140,27 @@ open set filter
 section type_alias
 
 def uniform_fun (α β : Type*) := α → β
+def uniform_on_fun (α β : Type*) (𝔖 : set (set α)) := α → β
 
-notation α ` →ᵤ `:25 β:0 := uniform_fun α β
+localized "notation α ` →ᵤ `:25 β:0 := uniform_fun α β" in uniform_convergence
+localized "notation α ` →ᵤ[`:25 𝔖 `] `:0 β:0 := uniform_on_fun α β 𝔖" in uniform_convergence
+localized "notation `λᵘ` binders `, ` r:(scoped p, uniform_fun.of_fun p) := r"
+  in uniform_convergence
+localized "notation `λᵘ[` 𝔖 `] ` binders `, ` r:(scoped p, uniform_fun.of_fun p) := r"
+  in uniform_convergence
 
 def uniform_fun.of_fun {α β} : (α → β) ≃ (α →ᵤ β) := ⟨λ x, x, λ x, x, λ x, rfl, λ x, rfl⟩
+def uniform_on_fun.of_fun {α β} (𝔖) : (α → β) ≃ (α →ᵤ[𝔖] β) := ⟨λ x, x, λ x, x, λ x, rfl, λ x, rfl⟩
 
 def uniform_fun.to_fun {α β} : (α →ᵤ β) ≃ (α → β) := uniform_fun.of_fun.symm
+def uniform_on_fun.to_fun {α β} (𝔖) : (α →ᵤ[𝔖] β) ≃ (α → β) := (uniform_on_fun.of_fun 𝔖).symm
 
--- local attribute [irreducible] uniform_fun
-
--- Should I keep this?
--- instance {α β} : has_coe_to_fun (α →ᵤ β) (λ _, α → β) := ⟨uniform_fun.to_fun⟩
-
-notation `λᵘ` binders `, ` r:(scoped p, uniform_fun.of_fun p) := r
+-- Note: we don't declare a `has_coe_to_fun` instance because Lean wouldn't insert it when writing
+-- `f x` (because of definitional equality with `α → β`).
 
 end type_alias
+
+open_locale uniform_convergence
 
 section test
 
@@ -217,8 +223,8 @@ begin
         by rw [uniform_fun.filter, ← filter_basis.generate, sets_iff_generate]
   ... ↔ ∀ U ∈ 𝓕, uniform_fun.gen α β U ∈ 𝓐 : image_subset_iff
   ... ↔ ∀ U ∈ 𝓕, {uv | ∀ x, (uv, x) ∈
-          {t : ((α → β) × (α → β)) × α | (t.1.1 t.2, t.1.2 t.2) ∈ U}} ∈ 𝓐 : iff.rfl
-  ... ↔ ∀ U ∈ 𝓕, {uvx : ((α → β) × (α → β)) × α | (uvx.1.1 uvx.2, uvx.1.2 uvx.2) ∈ U} ∈
+          {t : ((α →ᵤ β) × (α →ᵤ β)) × α | (t.1.1 t.2, t.1.2 t.2) ∈ U}} ∈ 𝓐 : iff.rfl
+  ... ↔ ∀ U ∈ 𝓕, {uvx : ((α →ᵤ β) × (α →ᵤ β)) × α | (uvx.1.1 uvx.2, uvx.1.2 uvx.2) ∈ U} ∈
           𝓐 ×ᶠ (⊤ : filter α) : forall₂_congr (λ U hU, mem_prod_top.symm)
   ... ↔ lower_adjoint 𝓐 ≤ 𝓕 : iff.rfl,
 end
@@ -373,7 +379,7 @@ protected lemma postcomp_uniform_inducing [uniform_space γ] {f : γ → β}
 begin
   split,
   replace hf : (𝓤 β).comap (prod.map f f) = _ := hf.comap_uniformity,
-  change comap (prod.map (of_fun ∘ ((∘) f) ∘ to_fun) (of_fun ∘ ((∘) f) ∘ to_fun)) _ = _,
+  change comap (prod.map (of_fun ∘ (∘) f ∘ to_fun) (of_fun ∘ (∘) f ∘ to_fun)) _ = _,
   rw [← uniformity_comap rfl] at ⊢ hf,
   congr,
   rw [← uniform_space_eq hf, uniform_fun.comap_eq],
@@ -494,8 +500,402 @@ end
 
 end uniform_fun
 
+namespace uniform_on_fun
+
+variables {α β : Type*} {γ ι : Type*}
+variables {s s' : set α} {x : α} {p : filter ι} {g : ι → α}
+
+local notation `𝒰(`α`, `β`, `u`)` := @uniform_fun.uniform_space α β u
+
+/-- Basis sets for the uniformity of `𝔖`-convergence: for `S : set α` and `V : set (β × β)`,
+`gen S V` is the set of pairs `(f, g)` of functions `α → β` such that `∀ x ∈ S, (f x, g x) ∈ V`. -/
+protected def gen (𝔖) (S : set α) (V : set (β × β)) : set ((α →ᵤ[𝔖] β) × (α →ᵤ[𝔖] β)) :=
+  {uv : (α →ᵤ[𝔖] β) × (α →ᵤ[𝔖] β) | ∀ x ∈ S, (uv.1 x, uv.2 x) ∈ V}
+
+/-- For `S : set α` and `V : set (β × β)`, we have
+`uniform_convergence_on.gen S V = (S.restrict × S.restrict) ⁻¹' (uniform_convergence.gen S β V)`.
+This is the crucial fact for proving that the family `uniform_convergence_on.gen S V` for
+`S ∈ 𝔖` and `V ∈ 𝓤 β` is indeed a basis for the uniformity `α → β` endowed with `𝒱(α, β, 𝔖, uβ)`
+the uniform structure of `𝔖`-convergence, as defined in `uniform_convergence_on.uniform_space`. -/
+protected lemma gen_eq_preimage_restrict {𝔖} (S : set α) (V : set (β × β)) :
+  uniform_on_fun.gen 𝔖 S V =
+  (prod.map S.restrict S.restrict) ⁻¹' (uniform_fun.gen S β V) :=
+begin
+  ext uv,
+  exact ⟨λ h ⟨x, hx⟩, h x hx, λ h x hx, h ⟨x, hx⟩⟩
+end
+
+/-- `uniform_convergence_on.gen` is antitone in the first argument and monotone in the second. -/
+protected lemma gen_mono {𝔖} {S S' : set α} {V V' : set (β × β)} (hS : S' ⊆ S) (hV : V ⊆ V') :
+  uniform_on_fun.gen 𝔖 S V ⊆ uniform_on_fun.gen 𝔖 S' V' :=
+λ uv h x hx, hV (h x $ hS hx)
+
+/-- If `𝔖 : set (set α)` is nonempty and directed and `𝓑` is a filter basis on `β × β`, then the
+family `uniform_convergence_on.gen S V` for `S ∈ 𝔖` and `V ∈ 𝓑` is a filter basis.
+We will show in `has_basis_uniformity_of_basis` that, if `𝓑` is a basis for `𝓤 β`, then the
+corresponding filter is the uniformity of `(α → β, 𝒱(α, β, 𝔖, uβ))`. -/
+protected lemma is_basis_gen (𝔖 : set (set α)) (h : 𝔖.nonempty) (h' : directed_on (⊆) 𝔖)
+  (𝓑 : filter_basis $ β × β) :
+  is_basis (λ SV : set α × set (β × β), SV.1 ∈ 𝔖 ∧ SV.2 ∈ 𝓑)
+    (λ SV, uniform_on_fun.gen 𝔖 SV.1 SV.2) :=
+⟨h.prod 𝓑.nonempty, λ U₁V₁ U₂V₂ h₁ h₂,
+  let ⟨U₃, hU₃, hU₁₃, hU₂₃⟩ := h' U₁V₁.1 h₁.1 U₂V₂.1 h₂.1 in
+  let ⟨V₃, hV₃, hV₁₂₃⟩ := 𝓑.inter_sets h₁.2 h₂.2 in ⟨⟨U₃, V₃⟩, ⟨⟨hU₃, hV₃⟩, λ uv huv,
+    ⟨(λ x hx, (hV₁₂₃ $ huv x $ hU₁₃ hx).1), (λ x hx, (hV₁₂₃ $ huv x $ hU₂₃ hx).2)⟩⟩⟩⟩
+
+variables (α β) [uniform_space β] (𝔖 : set (set α))
+
+/-- Uniform structure of `𝔖`-convergence, i.e uniform convergence on the elements of `𝔖`.
+It is defined as the infimum, for `S ∈ 𝔖`, of the pullback of `𝒰 S β` by `S.restrict`, the
+map of restriction to `S`. We will denote it `𝒱(α, β, 𝔖, uβ)`, where `uβ` is the uniform structure
+on `β`. -/
+instance : uniform_space (α →ᵤ[𝔖] β) :=
+⨅ (s : set α) (hs : s ∈ 𝔖), uniform_space.comap s.restrict
+  (𝒰(s, β, _))
+
+local notation `𝒱(`α`, `β`, `𝔖`, `u`)` := @uniform_on_fun.uniform_space α β u 𝔖
+
+/-- Topology of `𝔖`-convergence, i.e uniform convergence on the elements of `𝔖`. -/
+instance : topological_space (α →ᵤ[𝔖] β) :=
+(𝒱(α, β, 𝔖, _)).to_topological_space
+
+/-- The topology of `𝔖`-convergence is the infimum, for `S ∈ 𝔖`, of topology induced by the map
+of restriction to `S`, where `↥S → β` is endowed with the topology of uniform convergence. -/
+protected lemma topological_space_eq :
+  uniform_on_fun.topological_space α β 𝔖 = ⨅ (s : set α) (hs : s ∈ 𝔖),
+  topological_space.induced s.restrict (uniform_fun.topological_space s β) :=
+begin
+  simp only [uniform_on_fun.topological_space, to_topological_space_infi,
+    to_topological_space_infi, to_topological_space_comap],
+  refl
+end
+
+protected lemma has_basis_uniformity_of_basis_aux₁ {p : ι → Prop} {s : ι → set (β × β)}
+  (hb : has_basis (𝓤 β) p s) (S : set α) :
+  (@uniformity (α →ᵤ[𝔖] β) ((uniform_fun.uniform_space S β).comap S.restrict)).has_basis
+  p (λ i, uniform_on_fun.gen 𝔖 S (s i)) :=
+begin
+  simp_rw [uniform_on_fun.gen_eq_preimage_restrict, uniformity_comap rfl],
+  exact (uniform_fun.has_basis_uniformity_of_basis S β hb).comap _
+end
+
+protected lemma has_basis_uniformity_of_basis_aux₂ (h : directed_on (⊆) 𝔖) {p : ι → Prop}
+  {s : ι → set (β × β)} (hb : has_basis (𝓤 β) p s) :
+  directed_on ((λ s : set α, (uniform_fun.uniform_space s β).comap
+    (s.restrict : (α →ᵤ β) → s →ᵤ β)) ⁻¹'o ge) 𝔖 :=
+h.mono $ λ s t hst,
+  ((uniform_on_fun.has_basis_uniformity_of_basis_aux₁ α β 𝔖 hb _).le_basis_iff
+    (uniform_on_fun.has_basis_uniformity_of_basis_aux₁ α β 𝔖 hb _)).mpr
+  (λ V hV, ⟨V, hV, uniform_on_fun.gen_mono hst subset_rfl⟩)
+
+/-- If `𝔖 : set (set α)` is nonempty and directed and `𝓑` is a filter basis of `𝓤 β`, then the
+uniformity of `(α → β, 𝒱(α, β, 𝔖, uβ))` admits the family `{(f, g) | ∀ x ∈ S, (f x, g x) ∈ V}` for
+`S ∈ 𝔖` and `V ∈ 𝓑` as a filter basis. -/
+protected lemma has_basis_uniformity_of_basis (h : 𝔖.nonempty) (h' : directed_on (⊆) 𝔖)
+  {p : ι → Prop} {s : ι → set (β × β)} (hb : has_basis (𝓤 β) p s) :
+  (𝓤 (α →ᵤ[𝔖] β)).has_basis
+    (λ Si : set α × ι, Si.1 ∈ 𝔖 ∧ p Si.2)
+    (λ Si, uniform_on_fun.gen 𝔖 Si.1 (s Si.2)) :=
+begin
+  simp only [infi_uniformity'],
+  exact has_basis_binfi_of_directed h (λ S, (uniform_on_fun.gen 𝔖 S) ∘ s) _
+    (λ S hS, uniform_on_fun.has_basis_uniformity_of_basis_aux₁ α β 𝔖 hb S)
+    (uniform_on_fun.has_basis_uniformity_of_basis_aux₂ α β 𝔖 h' hb)
+end
+
+/-- If `𝔖 : set (set α)` is nonempty and directed, then the uniformity of
+`(α → β, 𝒱(α, β, 𝔖, uβ))` admits the family `{(f, g) | ∀ x ∈ S, (f x, g x) ∈ V}` for `S ∈ 𝔖` and
+`V ∈ 𝓤 β` as a filter basis. -/
+protected lemma has_basis_uniformity (h : 𝔖.nonempty) (h' : directed_on (⊆) 𝔖) :
+  (𝓤 (α →ᵤ[𝔖] β)).has_basis
+    (λ SV : set α × set (β × β), SV.1 ∈ 𝔖 ∧ SV.2 ∈ 𝓤 β)
+    (λ SV, uniform_on_fun.gen 𝔖 SV.1 SV.2) :=
+uniform_on_fun.has_basis_uniformity_of_basis α β 𝔖 h h' (𝓤 β).basis_sets
+
+/-- If `α → β` is endowed with the topology of `𝔖`-convergence, where `𝔖 : set (set α)` is
+nonempty and directed, then `𝓝 f` admits the family `{g | ∀ x ∈ S, (f x, g x) ∈ V}` for `S ∈ 𝔖`
+and `V ∈ 𝓑` as a filter basis, for any basis `𝓑` of `𝓤 β`. -/
+protected lemma has_basis_nhds_of_basis (f : α →ᵤ[𝔖] β) (h : 𝔖.nonempty) (h' : directed_on (⊆) 𝔖)
+  {p : ι → Prop} {s : ι → set (β × β)} (hb : has_basis (𝓤 β) p s) :
+  (𝓝 f).has_basis
+    (λ Si : set α × ι, Si.1 ∈ 𝔖 ∧ p Si.2)
+    (λ Si, {g | (g, f) ∈ uniform_on_fun.gen 𝔖 Si.1 (s Si.2)}) :=
+begin
+  letI : uniform_space (α → β) := uniform_on_fun.uniform_space α β 𝔖,
+  exact nhds_basis_uniformity (uniform_on_fun.has_basis_uniformity_of_basis α β 𝔖 h h' hb)
+end
+
+/-- If `α → β` is endowed with the topology of `𝔖`-convergence, where `𝔖 : set (set α)` is
+nonempty and directed, then `𝓝 f` admits the family `{g | ∀ x ∈ S, (f x, g x) ∈ V}` for `S ∈ 𝔖`
+and `V ∈ 𝓤 β` as a filter basis. -/
+protected lemma has_basis_nhds (f : α →ᵤ[𝔖] β) (h : 𝔖.nonempty) (h' : directed_on (⊆) 𝔖) :
+  (𝓝 f).has_basis
+    (λ SV : set α × set (β × β), SV.1 ∈ 𝔖 ∧ SV.2 ∈ 𝓤 β)
+    (λ SV, {g | (g, f) ∈ uniform_on_fun.gen 𝔖 SV.1 SV.2}) :=
+uniform_on_fun.has_basis_nhds_of_basis α β 𝔖 f h h' (filter.basis_sets _)
+
+/-- If `S ∈ 𝔖`, then the restriction to `S` is a uniformly continuous map from `𝒱(α, β, 𝔖, uβ)` to
+`𝒰(↥S, β, uβ)`. -/
+protected lemma uniform_continuous_restrict (h : s ∈ 𝔖) :
+  uniform_continuous (uniform_fun.of_fun ∘ (s.restrict : (α → β) → (s → β)) ∘ (to_fun 𝔖)) :=
+begin
+  change _ ≤ _,
+  rw [uniform_on_fun.uniform_space, map_le_iff_le_comap, uniformity, infi_uniformity],
+  refine infi_le_of_le s _,
+  rw infi_uniformity,
+  exact infi_le _ h,
+end
+
+variables {α}
+
+/-- Let `u₁`, `u₂` be two uniform structures on `γ` and `𝔖₁ 𝔖₂ : set (set α)`. If `u₁ ≤ u₂` and
+`𝔖₂ ⊆ 𝔖₁` then `𝒱(α, γ, 𝔖₁, u₁) ≤ 𝒱(α, γ, 𝔖₂, u₂)`. -/
+protected lemma mono ⦃u₁ u₂ : uniform_space γ⦄ (hu : u₁ ≤ u₂) ⦃𝔖₁ 𝔖₂ : set (set α)⦄
+  (h𝔖 : 𝔖₂ ⊆ 𝔖₁) :
+  𝒱(α, γ, 𝔖₁, u₁) ≤ 𝒱(α, γ, 𝔖₂, u₂) :=
+calc 𝒱(α, γ, 𝔖₁, u₁)
+    ≤ 𝒱(α, γ, 𝔖₂, u₁) : infi_le_infi_of_subset h𝔖
+... ≤ 𝒱(α, γ, 𝔖₂, u₂) : infi₂_mono
+        (λ i hi, uniform_space.comap_mono $ uniform_fun.mono hu)
+
+/-- If `x : α` is in some `S ∈ 𝔖`, then evaluation at `x` is uniformly continuous for
+`𝒱(α, β, 𝔖, uβ)`. -/
+lemma uniform_continuous_eval_of_mem {x : α} (hxs : x ∈ s) (hs : s ∈ 𝔖) :
+  uniform_continuous ((function.eval x : (α → β) → β) ∘ to_fun 𝔖) :=
+(uniform_fun.uniform_continuous_eval β (⟨x, hxs⟩ : s)).comp
+  (uniform_on_fun.uniform_continuous_restrict α β 𝔖 hs)
+
+variables {β} {𝔖}
+
+/-- If `u` is a family of uniform structures on `γ`, then
+`𝒱(α, γ, 𝔖, (⨅ i, u i)) = ⨅ i, 𝒱(α, γ, 𝔖, u i)`. -/
+protected lemma infi_eq {u : ι → uniform_space γ} :
+  𝒱(α, γ, 𝔖, ⨅ i, u i) =
+  ⨅ i, 𝒱(α, γ, 𝔖, u i) :=
+begin
+  simp_rw [uniform_on_fun.uniform_space, uniform_fun.infi_eq, uniform_space.comap_infi],
+  rw infi_comm,
+  exact infi_congr (λ s, infi_comm)
+end
+
+/-- If `u₁` and `u₂` are two uniform structures on `γ`, then
+`𝒱(α, γ, 𝔖, u₁ ⊓ u₂) = 𝒱(α, γ, 𝔖, u₁) ⊓ 𝒱(α, γ, 𝔖, u₂)`. -/
+protected lemma inf_eq {u₁ u₂ : uniform_space γ} :
+  𝒱(α, γ, 𝔖, u₁ ⊓ u₂) =
+  𝒱(α, γ, 𝔖, u₁) ⊓
+  𝒱(α, γ, 𝔖, u₂) :=
+begin
+  rw [inf_eq_infi, inf_eq_infi, uniform_on_fun.infi_eq],
+  refine infi_congr (λ i, _),
+  cases i; refl
+end
+
+/-- If `u` is a uniform structures on `β` and `f : γ → β`, then
+`𝒱(α, γ, 𝔖, comap f u) = comap (λ g, f ∘ g) 𝒱(α, γ, 𝔖, u₁)`. -/
+protected lemma comap_eq {f : γ → β} :
+  𝒱(α, γ, 𝔖, ‹uniform_space β›.comap f) =
+  𝒱(α, β, 𝔖, _).comap ((∘) f) :=
+begin
+  -- We reduce this to `uniform_convergence.comap_eq` using the fact that `comap` distributes
+  -- on `infi`.
+  simp_rw [uniform_on_fun.uniform_space, uniform_space.comap_infi,
+            uniform_fun.comap_eq, ← uniform_space.comap_comap],
+  refl -- by definition, `∀ S ∈ 𝔖, (f ∘ —) ∘ S.restrict = S.restrict ∘ (f ∘ —)`.
+end
+
+/-- Post-composition by a uniformly continuous function is uniformly continuous for the
+uniform structures of `𝔖`-convergence.
+
+More precisely, if `f : (γ, uγ) → (β, uβ)` is uniformly continuous, then
+`(λ g, f ∘ g) : (α → γ, 𝒱(α, γ, 𝔖, uγ)) → (α → β, 𝒱(α, β, 𝔖, uβ))` is uniformly continuous. -/
+protected lemma postcomp_uniform_continuous [uniform_space γ] {f : γ → β}
+  (hf : uniform_continuous f):
+  uniform_continuous (of_fun 𝔖 ∘ (∘) f ∘ to_fun 𝔖) :=
+begin
+  -- This is a direct consequence of `uniform_convergence.comap_eq`
+  rw uniform_continuous_iff,
+  calc 𝒱(α, γ, 𝔖, _)
+      ≤ 𝒱(α, γ, 𝔖, ‹uniform_space β›.comap f) :
+        uniform_on_fun.mono (uniform_continuous_iff.mp hf) (subset_rfl)
+  ... = 𝒱(α, β, 𝔖, _).comap ((∘) f) :
+        uniform_on_fun.comap_eq
+end
+
+/-- Post-composition by a uniform inducing is a uniform inducing for the
+uniform structures of `𝔖`-convergence.
+
+More precisely, if `f : (γ, uγ) → (β, uβ)` is a uniform inducing, then
+`(λ g, f ∘ g) : (α → γ, 𝒱(α, γ, 𝔖, uγ)) → (α → β, 𝒱(α, β, 𝔖, uβ))` is a uniform inducing. -/
+protected lemma postcomp_uniform_inducing [uniform_space γ] {f : γ → β}
+  (hf : uniform_inducing f):
+  uniform_inducing (of_fun 𝔖 ∘ (∘) f ∘ to_fun 𝔖) :=
+-- This is a direct consequence of `uniform_convergence.comap_eq`
+begin
+  split,
+  replace hf : (𝓤 β).comap (prod.map f f) = _ := hf.comap_uniformity,
+  change comap (prod.map (of_fun 𝔖 ∘ (∘) f ∘ to_fun 𝔖) (of_fun 𝔖 ∘ (∘) f ∘ to_fun 𝔖)) _ = _,
+  rw [← uniformity_comap rfl] at ⊢ hf,
+  congr,
+  rw [← uniform_space_eq hf, uniform_on_fun.comap_eq],
+  refl
+end
+
+/-- Turn a uniform isomorphism `(γ, uγ) ≃ᵤ (β, uβ)` into a uniform isomorphism
+`(α → γ, 𝒱(α, γ, 𝔖, uγ)) ≃ᵤ (α → β, 𝒱(α, β, 𝔖, uβ))` by post-composing. -/
+protected def congr_right [uniform_space γ] (e : γ ≃ᵤ β) :
+  (α →ᵤ[𝔖] γ) ≃ᵤ (α →ᵤ[𝔖] β) :=
+{ uniform_continuous_to_fun :=
+    uniform_on_fun.postcomp_uniform_continuous e.uniform_continuous,
+  uniform_continuous_inv_fun :=
+    uniform_on_fun.postcomp_uniform_continuous e.symm.uniform_continuous,
+  .. equiv.Pi_congr_right (λ a, e.to_equiv) }
+
+/-- Let `f : γ → α`, `𝔖 : set (set α)`, `𝔗 : set (set γ)`, and assume that `∀ T ∈ 𝔗, f '' T ∈ 𝔖`.
+Then, the function `(λ g, g ∘ f) : (α → β, 𝒱(α, β, 𝔖, uβ)) → (γ → β, 𝒱(γ, β, 𝔗 uβ))` is
+uniformly continuous.
+
+Note that one can easily see that assuming `∀ T ∈ 𝔗, ∃ S ∈ 𝔖, f '' T ⊆ S` would work too, but
+we will get this for free when we prove that `𝒱(α, β, 𝔖, uβ) = 𝒱(α, β, 𝔖', uβ)` for `𝔖'` the
+***noncovering*** bornology generated by `𝔖`. -/
+protected lemma precomp_uniform_continuous {𝔗 : set (set γ)} {f : γ → α}
+  (hf : 𝔗 ⊆ (image f) ⁻¹' 𝔖) :
+  uniform_continuous (λ g : α →ᵤ[𝔖] β, of_fun 𝔗 (g ∘ f)) :=
+begin
+  -- Since `comap` distributes on `infi`, it suffices to prove that
+  -- `⨅ s ∈ 𝔖, comap s.restrict 𝒰(↥s, β, uβ) ≤ ⨅ t ∈ 𝔗, comap (t.restrict ∘ (— ∘ f)) 𝒰(↥t, β, uβ)`.
+  simp_rw [uniform_continuous_iff, uniform_on_fun.uniform_space, uniform_space.comap_infi,
+            ← uniform_space.comap_comap],
+  -- For any `t ∈ 𝔗`, note `s := f '' t ∈ 𝔖`.
+  -- We will show that `comap s.restrict 𝒰(↥s, β, uβ) ≤ comap (t.restrict ∘ (— ∘ f)) 𝒰(↥t, β, uβ)`.
+  refine le_infi₂ (λ t ht, infi_le_of_le (f '' t) $ infi_le_of_le (hf ht) _),
+  -- Let `f'` be the map from `t` to `f '' t` induced by `f`.
+  let f' : t → f '' t := (maps_to_image f t).restrict f t (f '' t),
+  -- By definition `t.restrict ∘ (— ∘ f) = (— ∘ f') ∘ (f '' t).restrict`.
+  have : t.restrict ∘ (λ g : α →ᵤ[𝔖] β, of_fun 𝔗 (g ∘ f)) =
+    (λ g : (f '' t) → β, g ∘ f') ∘ (f '' t).restrict := rfl,
+  -- Thus, we have to show `comap (f '' t).restrict 𝒰(↥(f '' t), β, uβ) ≤`
+  -- `comap (f '' t).restrict (comap (— ∘ f') 𝒰(↥t, β, uβ))`.
+  rw [this, @uniform_space.comap_comap (α →ᵤ[𝔖] β) ((f '' t) →ᵤ β)],
+  -- But this is exactly monotonicity of `comap` applied to
+  -- `uniform_convergence.precomp_continuous`.
+  refine uniform_space.comap_mono _,
+  rw ← uniform_continuous_iff,
+  exact uniform_fun.precomp_uniform_continuous
+end
+
+/-- Turn a bijection `e : γ ≃ α` such that we have both `∀ T ∈ 𝔗, e '' T ∈ 𝔖` and
+`∀ S ∈ 𝔖, e ⁻¹' S ∈ 𝔗` into a uniform isomorphism `(γ → β, 𝒰(γ, β, uβ)) ≃ᵤ (α → β, 𝒰(α, β, uβ))`
+by pre-composing. -/
+protected def congr_left {𝔗 : set (set γ)} (e : γ ≃ α)
+  (he : 𝔗 ⊆ (image e) ⁻¹' 𝔖) (he' : 𝔖 ⊆ (preimage e) ⁻¹' 𝔗) :
+  (γ →ᵤ[𝔗] β) ≃ᵤ (α →ᵤ[𝔖] β) :=
+{ uniform_continuous_to_fun :=
+    uniform_on_fun.precomp_uniform_continuous
+    begin
+      intros s hs,
+      change e.symm '' s ∈ 𝔗,
+      rw ← preimage_equiv_eq_image_symm,
+      exact he' hs
+    end,
+  uniform_continuous_inv_fun :=
+    uniform_on_fun.precomp_uniform_continuous he,
+  .. equiv.arrow_congr e (equiv.refl _) }
+
+/-- If `𝔖` covers `α`, then the topology of `𝔖`-convergence is T₂. -/
+lemma t2_space_of_covering [t2_space β] (h : ⋃₀ 𝔖 = univ) :
+  t2_space (α →ᵤ[𝔖] β) :=
+{ t2 :=
+  begin
+    intros f g hfg,
+    obtain ⟨x, hx⟩ := not_forall.mp (mt funext hfg),
+    obtain ⟨s, hs, hxs⟩ : ∃ s ∈ 𝔖, x ∈ s := mem_sUnion.mp (h.symm ▸ true.intro),
+    exact separated_by_continuous (uniform_continuous_eval_of_mem β 𝔖 hxs hs).continuous hx
+  end }
+
+/-- If `𝔖` covers `α`, then the uniform structure of `𝔖`-convergence is finer than that of
+pointwise convergence. -/
+protected lemma uniform_continuous_to_fun (h : ⋃₀ 𝔖 = univ) :
+  uniform_continuous (to_fun 𝔖 : (α →ᵤ[𝔖] β) → α → β) :=
+begin
+  rw uniform_continuous_pi,
+  intros x,
+  obtain ⟨s : set α, hs : s ∈ 𝔖, hxs :  x ∈ s⟩ := sUnion_eq_univ_iff.mp h x,
+  exact uniform_continuous_eval_of_mem β 𝔖 hxs hs
+end
+
+/-- Convergence in the topology of `𝔖`-convergence means uniform convergence on `S` (in the sense
+of `tendsto_uniformly_on`) for all `S ∈ 𝔖`. -/
+protected lemma tendsto_iff_tendsto_uniformly_on {F : ι → α →ᵤ[𝔖] β} {f : α →ᵤ[𝔖] β} :
+  tendsto F p (𝓝 f) ↔
+  ∀ s ∈ 𝔖, tendsto_uniformly_on F f p s :=
+begin
+  rw [uniform_on_fun.topological_space_eq, nhds_infi, tendsto_infi],
+  refine forall_congr (λ s, _),
+  rw [nhds_infi, tendsto_infi],
+  refine forall_congr (λ hs, _),
+  rw [nhds_induced, tendsto_comap_iff, tendsto_uniformly_on_iff_tendsto_uniformly_comp_coe,
+      uniform_fun.tendsto_iff_tendsto_uniformly],
+  refl
+end
+
+/-- The natural bijection between `α → β × γ` and `(α → β) × (α → γ)`, upgraded to a uniform
+isomorphism between `(α → β × γ, 𝒱(α, β × γ, 𝔖, uβ × uγ))` and
+`((α → β) × (α → γ), 𝒱(α, β, 𝔖, uβ) × 𝒰(α, γ, 𝔖, uγ))`. -/
+protected def uniform_equiv_prod_arrow [uniform_space γ] :
+  (α →ᵤ[𝔖] β × γ) ≃ᵤ ((α →ᵤ[𝔖] β) × (α →ᵤ[𝔖] γ)) :=
+-- Denote `φ` this bijection. We want to show that
+-- `comap φ (𝒱(α, β, 𝔖, uβ) × 𝒱(α, γ, 𝔖, uγ)) = 𝒱(α, β × γ, 𝔖, uβ × uγ)`.
+-- But `uβ × uγ` is defined as `comap fst uβ ⊓ comap snd uγ`, so we just have to apply
+-- `uniform_convergence_on.inf_eq` and `uniform_convergence_on.comap_eq`, which leaves us to check
+-- that some square commutes.
+-- We could also deduce this from `uniform_convergence.uniform_equiv_prod_arrow`, but it turns out
+-- to be more annoying.
+(equiv.arrow_prod_equiv_prod_arrow _ _ _).to_uniform_equiv_of_uniform_inducing
+begin
+  split,
+  change comap (prod.map (equiv.arrow_prod_equiv_prod_arrow _ _ _)
+    (equiv.arrow_prod_equiv_prod_arrow _ _ _)) _ = _,
+  rw ← uniformity_comap rfl,
+  congr,
+  rw [prod.uniform_space, prod.uniform_space, uniform_space.comap_inf,
+      uniform_on_fun.inf_eq],
+  congr;
+  rw [← uniform_space.comap_comap, uniform_on_fun.comap_eq];
+  refl -- the relevant diagram commutes by definition
+end
+
+variables (𝔖) (δ : ι → Type*) [Π i, uniform_space (δ i)]
+
+/-- The natural bijection between `α → Π i, δ i` and `Π i, α → δ i`, upgraded to a uniform
+isomorphism between `(α → (Π i, δ i), 𝒱(α, (Π i, δ i), 𝔖, (Π i, uδ i)))` and
+`((Π i, α → δ i), (Π i, 𝒱(α, δ i, 𝔖, uδ i)))`. -/
+protected def uniform_equiv_Pi_comm :
+  (α →ᵤ[𝔖] Π i, δ i) ≃ᵤ (Π i, α →ᵤ[𝔖] δ i)  :=
+-- Denote `φ` this bijection. We want to show that
+-- `comap φ (Π i, 𝒱(α, δ i, 𝔖, uδ i)) = 𝒱(α, (Π i, δ i), 𝔖, (Π i, uδ i))`.
+-- But `Π i, uδ i` is defined as `⨅ i, comap (eval i) (uδ i)`, so we just have to apply
+-- `uniform_convergence_on.infi_eq` and `uniform_convergence_on.comap_eq`, which leaves us to check
+-- that some square commutes.
+-- We could also deduce this from `uniform_convergence.uniform_equiv_Pi_comm`, but it turns out
+-- to be more annoying.
+(equiv.Pi_comm _).to_uniform_equiv_of_uniform_inducing
+begin
+  split,
+  change comap (prod.map function.swap function.swap) _ = _,
+  rw ← uniformity_comap rfl,
+  congr,
+  rw [Pi.uniform_space, uniform_space.of_core_eq_to_core, Pi.uniform_space,
+      uniform_space.of_core_eq_to_core, uniform_space.comap_infi, uniform_on_fun.infi_eq],
+  refine infi_congr (λ i, _),
+  rw [← uniform_space.comap_comap, uniform_on_fun.comap_eq]
+  -- Like in the previous lemma, the diagram actually commutes by definition
+end
+
+end uniform_on_fun
+
 end test
 
+/-
 local attribute [-instance] Pi.uniform_space
 local attribute [-instance] Pi.topological_space
 
@@ -1252,3 +1652,4 @@ begin
 end
 
 end uniform_convergence_on
+-/

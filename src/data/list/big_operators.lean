@@ -470,6 +470,7 @@ begin
   exact h (prod_eq_one hf),
 end
 
+/-- If a product of integers is `-1`, then at least one factor must be `-1`. -/
 lemma int_prod_eq_neg_one {l : list ℤ} (h : l.prod = -1) : ∃ (x ∈ l), x = (-1 : ℤ) :=
 begin
   obtain ⟨x, h₁, h₂⟩ := mem_ne_one_of_prod_ne_one (ne_of_eq_of_ne h dec_trivial),

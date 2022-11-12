@@ -83,7 +83,7 @@ lemma strict_mono_cast : strict_mono (coe : ℕ → α) :=
 mono_cast.strict_mono_of_injective cast_injective
 
 /-- `coe : ℕ → α` as an `order_embedding` -/
-@[simps { fully_applied := ff }] def nat.cast_order_embedding : ℕ ↪o α :=
+@[simps { fully_applied := ff }] def cast_order_embedding : ℕ ↪o α :=
 order_embedding.of_strict_mono coe nat.strict_mono_cast
 
 @[simp, norm_cast] lemma cast_le : (m : α) ≤ n ↔ m ≤ n := strict_mono_cast.le_iff_le

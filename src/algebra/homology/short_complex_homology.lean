@@ -332,6 +332,26 @@ by rw [← cancel_epi h.homology_iso.inv, cancel_epi h.π]
 
 end left_homology_data
 
+namespace left_homology_map_data
+
+variables {φ} {h₁' : S₁.left_homology_data}
+  {h₂' : S₂.left_homology_data } (γ : left_homology_map_data φ h₁' h₂')
+
+lemma homology_map_eq [S₁.has_homology] [S₂.has_homology] :
+  homology_map φ = h₁'.homology_iso.hom ≫ γ.φH ≫ h₂'.homology_iso.inv :=
+begin
+  dsimp only [homology_map, homology_map',
+    left_homology_data.homology_iso, left_homology_map_iso', iso.refl],
+  rw [← γ.left_homology_map'_eq, ← left_homology_map'_comp,
+    ← left_homology_map'_comp, id_comp, comp_id],
+end
+
+lemma homology_map_comm [S₁.has_homology] [S₂.has_homology] :
+  homology_map φ ≫ h₂'.homology_iso.hom = h₁'.homology_iso.hom ≫ γ.φH :=
+by simp only [γ.homology_map_eq, assoc, iso.inv_hom_id, comp_id]
+
+end left_homology_map_data
+
 variables {C}
 
 def left_right_homology_comparison' (h₁ : S.left_homology_data) (h₂ : S.right_homology_data) :

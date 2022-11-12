@@ -497,6 +497,42 @@ begin
   exact h,
 end
 
+section change
+
+variables {S} {K H : C} {f' : S.X₁ ⟶ K} {i : K ⟶ S.X₂}
+  (commf' : f' ≫ i = S.f) (e : K ≅ h.K) (commi : e.hom ≫ h.i = i)
+  (π : K ⟶ H) (hπ₀ : f' ≫ π = 0) (hπ : is_colimit (cokernel_cofork.of_π π hπ₀))
+
+include commf' commi hπ
+
+def change :
+  left_homology_data S :=
+begin
+  have hi₀ : i ≫ S.g = 0 := by rw [← commi, assoc, h.hi₀, comp_zero],
+  have hi : is_limit (kernel_fork.of_ι i hi₀) :=
+    is_limit.of_iso_limit h.hi (fork.ext e.symm (by simp [← commi])),
+  let f'' := hi.lift (kernel_fork.of_ι S.f S.zero),
+  have eq : f'' = f',
+  { rw [← cancel_mono e.hom, ← cancel_mono h.i, assoc, commi],
+    dsimp,
+    erw kernel_fork.is_limit.lift_ι,
+    simp only [kernel_fork.ι_of_ι, assoc, commi, commf'], },
+  have hπ₀' : f'' ≫ π = 0 := by rw [eq, hπ₀],
+  have hπ' : is_colimit (cokernel_cofork.of_π π hπ₀'),
+  { let e : parallel_pair f'' 0 ≅ parallel_pair f' 0 :=
+      parallel_pair.ext (iso.refl _) (iso.refl _) (by simp [eq]) (by simp),
+    equiv_rw (is_colimit.precompose_inv_equiv e _).symm,
+    exact is_colimit.of_iso_colimit hπ (cofork.ext (iso.refl _) (by tidy)), },
+  exact ⟨K, H, i, π, hi₀, hi, hπ₀', hπ'⟩,
+end
+
+@[simp] lemma change_i : (h.change commf' e commi π hπ₀ hπ).i = i := rfl
+@[simp] lemma change_π : (h.change commf' e commi π hπ₀ hπ).π = π := rfl
+@[simp] lemma change_f' : (h.change commf' e commi π hπ₀ hπ).f' = f' :=
+by rw [← cancel_mono (h.change commf' e commi π hπ₀ hπ).i, f'_i, ← commf', change_i]
+
+end change
+
 end left_homology_data
 
 class has_left_homology : Prop :=

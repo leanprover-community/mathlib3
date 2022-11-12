@@ -899,8 +899,8 @@ begin
   rw [cardinal.mk_fintype, fintype.card_coe]
 end
 
-@[simp, norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
-by induction n; simp [pow_succ', power_add, *]
+@[norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
+by simp only [cardinal.pow_cast_right, coe_pow]
 
 @[simp, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
 begin
@@ -1429,7 +1429,7 @@ lemma mk_union_le {α : Type u} (S T : set α) : #(S ∪ T : set α) ≤ #S + #T
 
 theorem mk_union_of_disjoint {α : Type u} {S T : set α} (H : disjoint S T) :
   #(S ∪ T : set α) = #S + #T :=
-quot.sound ⟨equiv.set.union H⟩
+quot.sound ⟨equiv.set.union H.le_bot⟩
 
 theorem mk_insert {α : Type u} {s : set α} {a : α} (h : a ∉ s) :
   #(insert a s : set α) = #s + 1 :=

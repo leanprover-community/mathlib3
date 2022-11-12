@@ -199,7 +199,7 @@ end
 
 protected lemma is_compact [order_closed_topology 𝕜] [t2_space E] (hAB : is_exposed 𝕜 A B)
   (hA : is_compact A) : is_compact B :=
-compact_of_is_closed_subset hA (hAB.is_closed hA.is_closed) hAB.subset
+is_compact_of_is_closed_subset hA (hAB.is_closed hA.is_closed) hAB.subset
 
 end is_exposed
 

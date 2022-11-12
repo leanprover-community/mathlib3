@@ -576,4 +576,14 @@ begin
   exact (point_reflection_involutive R x).injective.ne h
 end
 
+lemma wbtw_midpoint (x y : P) : wbtw R x (midpoint R x y) y :=
+by { convert wbtw_point_reflection R (midpoint R x y) x, simp }
+
+lemma sbtw_midpoint_of_ne {x y : P} (h : x ≠ y) : sbtw R x (midpoint R x y) y :=
+begin
+  have h : midpoint R x y ≠ x, { simp [h] },
+  convert sbtw_point_reflection_of_ne R h,
+  simp
+end
+
 end linear_ordered_field

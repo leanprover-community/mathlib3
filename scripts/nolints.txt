@@ -208,7 +208,7 @@ apply_nolint matrix.induction_on' fintype_finite
 -- data/multiset/functor.lean
 apply_nolint multiset.traverse doc_blame
 
--- data/nat/basic.lean
+-- data/nat/order/basic.lean
 apply_nolint nat.subtype.order_bot fails_quickly
 
 -- data/num/bitwise.lean
@@ -910,6 +910,3 @@ apply_nolint transfer.compute_transfer doc_blame
 
 -- tactic/wlog.lean
 apply_nolint tactic.wlog doc_blame
-
--- topology/algebra/group.lean
-apply_nolint topological_space.positive_compacts.locally_compact_space_of_group to_additive_doc

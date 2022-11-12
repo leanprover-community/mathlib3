@@ -134,7 +134,7 @@ let h : ∀ ξ : roots_of_unity n R, (σ ξ) ^ (n : ℕ) = 1 := λ ξ, by
 { change (σ (ξ : Rˣ)) ^ (n : ℕ) = 1,
   rw [←map_pow, ←units.coe_pow, show ((ξ : Rˣ) ^ (n : ℕ) = 1), from ξ.2,
       units.coe_one, map_one σ] } in
-{ to_fun := λ ξ, ⟨@unit_of_invertible _ _ _ (invertible_of_pow_eq_one _ _ (h ξ) n.2),
+{ to_fun := λ ξ, ⟨@unit_of_invertible _ _ _ (invertible_of_pow_eq_one _ _ (h ξ) n.ne_zero),
     by { ext, rw units.coe_pow, exact h ξ }⟩,
   map_one' := by { ext, exact map_one σ },
   map_mul' := λ ξ₁ ξ₂, by { ext, rw [subgroup.coe_mul, units.coe_mul], exact map_mul σ _ _ } }
@@ -347,7 +347,7 @@ end
 
 @[simp] lemma coe_submonoid_class_iff {M B : Type*} [comm_monoid M] [set_like B M]
   [submonoid_class B M] {N : B} {ζ : N} : is_primitive_root (ζ : M) k ↔ is_primitive_root ζ k :=
-by simp [iff_def, ← submonoid_class.coe_pow]
+by simp [iff_def, ← submonoid_class.coe_pow, -_root_.coe_pow]
 
 @[simp] lemma coe_units_iff {ζ : Mˣ} :
   is_primitive_root (ζ : M) k ↔ is_primitive_root ζ k :=
@@ -383,7 +383,7 @@ begin
   obtain ⟨a, ha⟩ := i.gcd_dvd_left k,
   obtain ⟨b, hb⟩ := i.gcd_dvd_right k,
   suffices : b = k,
-  { rwa [this, ← one_mul k, nat.mul_left_inj h0, eq_comm] at hb { occs := occurrences.pos [1] } },
+  { rwa [this, ← one_mul k, mul_left_inj' h0.ne', eq_comm] at hb { occs := occurrences.pos [1] } },
   rw [ha] at hi,
   rw [mul_comm] at hb,
   apply nat.dvd_antisymm ⟨i.gcd k, hb⟩ (hi.dvd_of_pow_eq_one b _),
@@ -710,9 +710,9 @@ lemma eq_pow_of_pow_eq_one {k : ℕ} {ζ ξ : R}
   (h : is_primitive_root ζ k) (hξ : ξ ^ k = 1) (h0 : 0 < k) :
   ∃ i < k, ζ ^ i = ξ :=
 begin
-  obtain ⟨ζ, rfl⟩ := h.is_unit h0,
-  obtain ⟨ξ, rfl⟩ := is_unit_of_pow_eq_one ξ k hξ h0,
-  obtain ⟨k, rfl⟩ : ∃ k' : ℕ+, k = k' := ⟨⟨k, h0⟩, rfl⟩,
+  lift ζ to Rˣ using h.is_unit h0,
+  lift ξ to Rˣ using is_unit_of_pow_eq_one ξ k hξ h0.ne',
+  lift k to ℕ+ using h0,
   simp only [← units.coe_pow, ← units.ext_iff],
   rw coe_units_iff at h,
   apply h.eq_pow_of_mem_roots_of_unity,
@@ -840,10 +840,10 @@ lemma disjoint {k l : ℕ} (h : k ≠ l) :
 begin
   by_cases hk : k = 0, { simp [hk], },
   by_cases hl : l = 0, { simp [hl], },
+  rw finset.disjoint_left,
   intro z,
-  simp only [finset.inf_eq_inter, finset.mem_inter, mem_primitive_roots,
-    nat.pos_of_ne_zero hk, nat.pos_of_ne_zero hl, iff_def],
-  rintro ⟨⟨hzk, Hzk⟩, ⟨hzl, Hzl⟩⟩,
+  simp only [mem_primitive_roots, nat.pos_of_ne_zero hk, nat.pos_of_ne_zero hl, iff_def],
+  rintro ⟨hzk, Hzk⟩ ⟨hzl, Hzl⟩,
   apply_rules [h, nat.dvd_antisymm, Hzk, Hzl, hzk, hzl]
 end
 
@@ -1054,7 +1054,7 @@ begin
     simp [nat.is_unit_iff.mp hunit] },
   { intros a p ha hprime hind n hcop h,
     rw hind (nat.coprime.coprime_mul_left hcop) h, clear hind,
-    replace hprime := nat.prime_iff.2 hprime,
+    replace hprime := hprime.nat_prime,
     have hdiv := (nat.prime.coprime_iff_not_dvd hprime).1 (nat.coprime.coprime_mul_right hcop),
     haveI := fact.mk hprime,
     rw [minpoly_eq_pow (h.pow_of_coprime a (nat.coprime.coprime_mul_left hcop)) hdiv],

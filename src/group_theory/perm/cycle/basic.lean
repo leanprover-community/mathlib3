@@ -1025,11 +1025,12 @@ end
 lemma disjoint.disjoint_cycle_factors_finset {f g : perm α} (h : disjoint f g) :
   _root_.disjoint (cycle_factors_finset f) (cycle_factors_finset g) :=
 begin
-  rw disjoint_iff_disjoint_support at h,
-  intros x hx,
-  simp only [mem_cycle_factors_finset_iff, inf_eq_inter, mem_inter, mem_support] at hx,
-  obtain ⟨⟨⟨a, ha, -⟩, hf⟩, -, hg⟩ := hx,
-  refine h (_ : a ∈ f.support ∩ g.support),
+  rw [disjoint_iff_disjoint_support] at h,
+  rw finset.disjoint_left,
+  intros x hx hy,
+  simp only [mem_cycle_factors_finset_iff, mem_support] at hx hy,
+  obtain ⟨⟨⟨a, ha, -⟩, hf⟩, -, hg⟩ := ⟨hx, hy⟩,
+  refine h.le_bot (_ : a ∈ f.support ∩ g.support),
   simp [ha, ←hf a ha, ←hg a ha]
 end
 
@@ -1130,7 +1131,7 @@ begin
           { rw mul_apply,
             rw ←hf.right _ (mem_support.mpr hfx) at hx,
             contradiction } } },
-      { exact λ H, hd.disjoint_cycle_factors_finset (mem_inter_of_mem hf H) } },
+      { exact λ H, hd.disjoint_cycle_factors_finset.le_bot (mem_inter_of_mem hf H) } },
     { rw [union_sdiff_distrib, sdiff_singleton_eq_erase,
           erase_eq_of_not_mem, mul_assoc, disjoint.cycle_factors_finset_mul_eq_union, hτ hf],
       { rw mem_cycle_factors_finset_iff at hf,
@@ -1144,7 +1145,7 @@ begin
           { rw mul_apply,
             rw ←hf.right _ (mem_support.mpr hfx) at hx,
             contradiction } } },
-      { exact λ H, hd.disjoint_cycle_factors_finset (mem_inter_of_mem H hf) } } }
+      { exact λ H, hd.disjoint_cycle_factors_finset.le_bot (mem_inter_of_mem H hf) } } }
 end
 
 lemma same_cycle.nat_of_mem_support [fintype α] (f : perm α) {x y : α} (h : same_cycle f x y)
@@ -1386,9 +1387,9 @@ begin
   have hd1'' := disjoint_coe.2 (disjoint_iff_disjoint_support.1 hd1),
   have hd2'' := disjoint_coe.2 (disjoint_iff_disjoint_support.1 hd2),
   refine is_conj_of_support_equiv _ _,
-  { refine ((equiv.set.of_eq hd1').trans (equiv.set.union hd1'')).trans
+  { refine ((equiv.set.of_eq hd1').trans (equiv.set.union hd1''.le_bot)).trans
       ((equiv.sum_congr (subtype_equiv f (λ a, _)) (subtype_equiv g (λ a, _))).trans
-      ((equiv.set.of_eq hd2').trans (equiv.set.union hd2'')).symm);
+      ((equiv.set.of_eq hd2').trans (equiv.set.union hd2''.le_bot)).symm);
     { simp only [set.mem_image, to_embedding_apply, exists_eq_right,
         support_conj, coe_map, apply_eq_iff_eq] } },
   { intros x hx,
@@ -1397,7 +1398,7 @@ begin
     rw [hd1', set.mem_union] at hx,
     cases hx with hxσ hxτ,
     { rw [mem_coe, mem_support] at hxσ,
-      rw [set.union_apply_left hd1'' _, set.union_apply_left hd1'' _],
+      rw [set.union_apply_left hd1''.le_bot _, set.union_apply_left hd1''.le_bot _],
       simp only [subtype_equiv_apply, perm.coe_mul, sum.map_inl, comp_app,
         set.union_symm_apply_left, subtype.coe_mk, apply_eq_iff_eq],
       { have h := (hd2 (f x)).resolve_left _,
@@ -1408,7 +1409,7 @@ begin
       { rwa [subtype.coe_mk, subtype.coe_mk, perm.mul_apply,
           (hd1 x).resolve_left hxσ, mem_coe, apply_mem_support, mem_support] } },
     { rw [mem_coe, ← apply_mem_support, mem_support] at hxτ,
-      rw [set.union_apply_right hd1'' _, set.union_apply_right hd1'' _],
+      rw [set.union_apply_right hd1''.le_bot _, set.union_apply_right hd1''.le_bot _],
       simp only [subtype_equiv_apply, perm.coe_mul, sum.map_inr, comp_app,
         set.union_symm_apply_right, subtype.coe_mk, apply_eq_iff_eq],
       { have h := (hd2 (g (τ x))).resolve_right _,

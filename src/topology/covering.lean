@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 import topology.is_locally_homeomorph
-import topology.fiber_bundle
+import topology.fiber_bundle.basic
 
 /-!
 # Covering Maps
@@ -22,8 +22,6 @@ This file defines covering maps.
 -/
 
 variables {E X : Type*} [topological_space E] [topological_space X] (f : E → X) (s : set X)
-
-open topological_fiber_bundle
 
 /-- A point `x : X` is evenly covered by `f : E → X` if `x` has an evenly covered neighborhood. -/
 def is_evenly_covered (x : X) (I : Type*) [topological_space I] :=

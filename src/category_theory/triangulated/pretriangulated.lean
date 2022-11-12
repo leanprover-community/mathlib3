@@ -29,14 +29,16 @@ open category_theory.limits
 
 universes v v₀ v₁ v₂ u u₀ u₁ u₂
 
-namespace category_theory.triangulated
-open category_theory.category
+namespace category_theory
+open category pretriangulated
 
 /-
 We work in a preadditive category `C` equipped with an additive shift.
 -/
 variables (C : Type u) [category.{v} C] [has_zero_object C] [has_shift C ℤ] [preadditive C]
   [∀ n : ℤ, functor.additive (shift_functor C n)]
+variables (D : Type u₂) [category.{v₂} D] [has_zero_object D] [has_shift D ℤ] [preadditive D]
+  [∀ n : ℤ, functor.additive (shift_functor D n)]
 
 /--
 A preadditive category `C` with an additive shift, and a class of "distinguished triangles"
@@ -64,10 +66,10 @@ class pretriangulated :=
 (distinguished_triangles [] : set (triangle C))
 (isomorphic_distinguished : Π (T₁ ∈ distinguished_triangles) (T₂ ≅ T₁),
   T₂ ∈ distinguished_triangles)
-(contractible_distinguished : Π (X : C), (contractible_triangle C X) ∈ distinguished_triangles)
+(contractible_distinguished : Π (X : C), (contractible_triangle X) ∈ distinguished_triangles)
 (distinguished_cocone_triangle : Π (X Y : C) (f : X ⟶ Y), (∃ (Z : C) (g : Y ⟶ Z)
   (h : Z ⟶ X⟦(1:ℤ)⟧),
-  triangle.mk _ f g h ∈ distinguished_triangles))
+  triangle.mk f g h ∈ distinguished_triangles))
 (rotate_distinguished_triangle : Π (T : triangle C),
   T ∈ distinguished_triangles ↔ T.rotate ∈ distinguished_triangles)
 (complete_distinguished_triangle_morphism : Π (T₁ T₂ : triangle C)
@@ -76,7 +78,9 @@ class pretriangulated :=
   (∃ (c : T₁.obj₃ ⟶ T₂.obj₃), (T₁.mor₂ ≫ c = b ≫ T₂.mor₂) ∧ (T₁.mor₃ ≫ a⟦1⟧' = c ≫ T₂.mor₃) ))
 
 namespace pretriangulated
-variables [pretriangulated C]
+variables [hC : pretriangulated C]
+
+include hC
 
 notation `dist_triang `:20 C := distinguished_triangles C
 /--
@@ -103,16 +107,10 @@ See <https://stacks.math.columbia.edu/tag/0146>
 -/
 lemma comp_dist_triangle_mor_zero₁₂ (T ∈ dist_triang C) : T.mor₁ ≫ T.mor₂ = 0 :=
 begin
-  have h := contractible_distinguished T.obj₁,
-  have f := complete_distinguished_triangle_morphism,
-  specialize f (contractible_triangle C T.obj₁) T h H (𝟙 T.obj₁) T.mor₁,
-  have t : (contractible_triangle C T.obj₁).mor₁ ≫ T.mor₁ = 𝟙 T.obj₁ ≫ T.mor₁,
-    by refl,
-  specialize f t,
-  cases f with c f,
-  rw ← f.left,
-  simp only [limits.zero_comp, contractible_triangle_mor₂],
-end -- TODO : tidy this proof up
+  obtain ⟨c, hc⟩ := complete_distinguished_triangle_morphism _ _
+    (contractible_distinguished T.obj₁) H (𝟙 T.obj₁) T.mor₁ rfl,
+  simpa only [contractible_triangle_mor₂, zero_comp] using hc.left.symm,
+end
 
 /--
 Given any distinguished triangle
@@ -144,16 +142,8 @@ by simpa using comp_dist_triangle_mor_zero₁₂ C (T.rotate.rotate) H₂
 TODO: If `C` is pretriangulated with respect to a shift,
 then `Cᵒᵖ` is pretriangulated with respect to the inverse shift.
 -/
-end pretriangulated
-end category_theory.triangulated
 
-namespace category_theory.triangulated
-namespace pretriangulated
-
-variables (C : Type u₁) [category.{v₁} C] [has_zero_object C] [has_shift C ℤ] [preadditive C]
-  [∀ n : ℤ, functor.additive (shift_functor C n)]
-variables (D : Type u₂) [category.{v₂} D] [has_zero_object D] [has_shift D ℤ] [preadditive D]
-  [∀ n : ℤ, functor.additive (shift_functor D n)]
+omit hC
 
 /--
 The underlying structure of a triangulated functor between pretriangulated categories `C` and `D`
@@ -179,7 +169,7 @@ triangles of `D`.
 -/
 @[simps]
 def map_triangle (F : triangulated_functor_struct C D) : triangle C ⥤ triangle D :=
-{ obj := λ T, triangle.mk _ (F.map T.mor₁) (F.map T.mor₂)
+{ obj := λ T, triangle.mk (F.map T.mor₁) (F.map T.mor₂)
     (F.map T.mor₃ ≫ F.comm_shift.hom.app T.obj₁),
   map := λ S T f,
   { hom₁ := F.map f.hom₁,
@@ -195,7 +185,9 @@ def map_triangle (F : triangulated_functor_struct C D) : triangle C ⥤ triangle
 
 end triangulated_functor_struct
 
-variables (C D)
+include hC
+variables (C D) [pretriangulated D]
+
 /--
 A triangulated functor between pretriangulated categories `C` and `D` is a functor `F : C ⥤ D`
 together with given functorial isomorphisms `ξ X : F(X⟦1⟧) ⟶ F(X)⟦1⟧` such that for every
@@ -203,12 +195,11 @@ distinguished triangle `(X,Y,Z,f,g,h)` of `C`, the triangle
 `(F(X), F(Y), F(Z), F(f), F(g), F(h) ≫ (ξ X))` is a distinguished triangle of `D`.
 See <https://stacks.math.columbia.edu/tag/014V>
 -/
-structure triangulated_functor [pretriangulated C] [pretriangulated D] extends
-  triangulated_functor_struct C D :=
+structure triangulated_functor extends triangulated_functor_struct C D :=
 (map_distinguished' : Π (T : triangle C), (T ∈ dist_triang C) →
   (to_triangulated_functor_struct.map_triangle.obj T ∈ dist_triang D) )
 
-instance [pretriangulated C] : inhabited (triangulated_functor C C) :=
+instance : inhabited (triangulated_functor C C) :=
 ⟨{obj := λ X, X,
   map := λ _ _ f, f,
   comm_shift := by refl ,
@@ -218,7 +209,7 @@ instance [pretriangulated C] : inhabited (triangulated_functor C C) :=
     rwa category.comp_id,
   end }⟩
 
-variables {C D} [pretriangulated C] [pretriangulated D]
+variables {C D}
 /--
 Given a `triangulated_functor` we can define a functor from triangles of `C` to triangles of `D`.
 -/
@@ -234,6 +225,5 @@ maps onto in `D` is also distinguished.
 lemma triangulated_functor.map_distinguished (F : triangulated_functor C D) (T : triangle C)
   (h : T ∈ dist_triang C) : (F.map_triangle.obj T) ∈ dist_triang D := F.map_distinguished' T h
 
-
 end pretriangulated
-end category_theory.triangulated
+end category_theory

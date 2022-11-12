@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Keeley Hoek
 -/
 import algebra.ne_zero
-import data.nat.cast
-import order.rel_iso
+import algebra.order.with_zero
+import order.rel_iso.basic
+import data.nat.order.lemmas
 import tactic.apply_fun
 import tactic.localized
 

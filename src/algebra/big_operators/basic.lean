@@ -365,16 +365,8 @@ by simp
 @[to_additive]
 lemma prod_bUnion [decidable_eq α] {s : finset γ} {t : γ → finset α}
   (hs : set.pairwise_disjoint ↑s t) :
-  (∏ x in (s.bUnion t), f x) = ∏ x in s, ∏ i in t x, f i :=
-begin
-  haveI := classical.dec_eq γ,
-  induction s using finset.induction_on with x s hxs ih hd,
-  { simp_rw [bUnion_empty, prod_empty] },
-  { simp_rw [coe_insert, set.pairwise_disjoint_insert, mem_coe] at hs,
-    have : disjoint (t x) (finset.bUnion s t),
-    { exact (disjoint_bUnion_right _ _ _).mpr (λ y hy, hs.2 y hy $ λ H, hxs $ H.substr hy) },
-    rw [bUnion_insert, prod_insert hxs, prod_union this, ih hs.1] }
-end
+  (∏ x in s.bUnion t, f x) = ∏ x in s, ∏ i in t x, f i :=
+by rw [←disj_Union_eq_bUnion _ _ hs, prod_disj_Union]
 
 /-- Product over a sigma type equals the product of fiberwise products. For rewriting
 in the reverse direction, use `finset.prod_sigma'`.  -/
@@ -383,16 +375,7 @@ in the reverse direction, use `finset.sum_sigma'`"]
 lemma prod_sigma {σ : α → Type*}
   (s : finset α) (t : Π a, finset (σ a)) (f : sigma σ → β) :
   (∏ x in s.sigma t, f x) = ∏ a in s, ∏ s in (t a), f ⟨a, s⟩ :=
-by classical;
-calc (∏ x in s.sigma t, f x) =
-       ∏ x in s.bUnion (λ a, (t a).map (function.embedding.sigma_mk a)), f x : by rw sigma_eq_bUnion
-  ... = ∏ a in s, ∏ x in (t a).map (function.embedding.sigma_mk a), f x :
-    prod_bUnion $ λ a₁ ha a₂ ha₂ h, disjoint_left.mpr $
-      by { simp_rw [mem_map, function.embedding.sigma_mk_apply],
-           rintros _ ⟨y, hy, rfl⟩ ⟨z, hz, hz'⟩,
-           exact h (congr_arg sigma.fst hz'.symm) }
-  ... = ∏ a in s, ∏ s in t a, f ⟨a, s⟩ :
-    prod_congr rfl $ λ _ _, prod_map _ _ _
+by simp_rw [←disj_Union_map_sigma_mk, prod_disj_Union, prod_map, function.embedding.sigma_mk_apply]
 
 @[to_additive]
 lemma prod_sigma' {σ : α → Type*}
@@ -498,12 +481,8 @@ lemma prod_fiberwise_of_maps_to [decidable_eq γ] {s : finset α} {t : finset γ
   (h : ∀ x ∈ s, g x ∈ t) (f : α → β) :
   (∏ y in t, ∏ x in s.filter (λ x, g x = y), f x) = ∏ x in s, f x :=
 begin
-  letI := classical.dec_eq α,
-  rw [← bUnion_filter_eq_of_maps_to h] {occs := occurrences.pos [2]},
-  refine (prod_bUnion $ λ x' hx y' hy hne, _).symm,
-  rw [function.on_fun, disjoint_filter],
-  rintros x hx rfl,
-  exact hne
+  rw [← disj_Union_filter_eq_of_maps_to h] {occs := occurrences.pos [2]},
+  rw prod_disj_Union,
 end
 
 @[to_additive]

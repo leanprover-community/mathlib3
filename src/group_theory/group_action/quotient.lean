@@ -6,7 +6,7 @@ Authors: Chris Hughes, Thomas Browning
 import dynamics.periodic_pts
 import group_theory.group_action.conj_act
 import group_theory.commutator
-import group_theory.finiteness
+import group_theory.quotient_group
 
 /-!
 # Properties of group actions involving quotient groups

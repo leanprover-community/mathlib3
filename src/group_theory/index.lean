@@ -5,6 +5,7 @@ Authors: Thomas Browning
 -/
 
 import data.finite.card
+import group_theory.finiteness
 import group_theory.group_action.quotient
 
 /-!

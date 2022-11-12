@@ -181,7 +181,7 @@ variables {e₁ e₂}
 
 variables (R)
 
-lemma prod_apply [vector_bundle R F₁ E₁] [vector_bundle R F₂ E₂]
+lemma prod_apply
   [e₁.is_linear R] [e₂.is_linear R] {x : B} (hx₁ : x ∈ e₁.base_set)
   (hx₂ : x ∈ e₂.base_set) (v₁ : E₁ x) (v₂ : E₂ x) :
   prod e₁ e₂ ⟨x, (v₁, v₂)⟩
@@ -203,7 +203,6 @@ variables [Π x, add_comm_monoid (E₁ x)] [Π x, module R (E₁ x)]
 
 variables [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E₂ x)]
   [fiber_bundle F₁ E₁] [fiber_bundle F₂ E₂]
-  [vector_bundle R F₁ E₁] [vector_bundle R F₂ E₂]
 
 /-- The product of two fiber bundles is a fiber bundle. -/
 instance _root_.bundle.prod.fiber_bundle : fiber_bundle (F₁ × F₂) (E₁ ×ᵇ E₂) :=
@@ -223,7 +222,8 @@ instance _root_.bundle.prod.fiber_bundle : fiber_bundle (F₁ × F₂) (E₁ ×�
     by apply_instance, by apply_instance, rfl⟩ }
 
 /-- The product of two vector bundles is a vector bundle. -/
-instance _root_.bundle.prod.vector_bundle : vector_bundle R (F₁ × F₂) (E₁ ×ᵇ E₂) :=
+instance _root_.bundle.prod.vector_bundle  [vector_bundle R F₁ E₁] [vector_bundle R F₂ E₂] :
+  vector_bundle R (F₁ × F₂) (E₁ ×ᵇ E₂) :=
 { trivialization_linear' := begin
     rintros _ ⟨e₁, e₂, he₁, he₂, rfl⟩, resetI,
     apply_instance
@@ -264,5 +264,3 @@ begin
   rw [(e₁.prod e₂).continuous_linear_equiv_at_apply R, trivialization.prod],
   exact (congr_arg prod.snd (prod_apply R hx₁ hx₂ v₁ v₂) : _)
 end
-
-#lint

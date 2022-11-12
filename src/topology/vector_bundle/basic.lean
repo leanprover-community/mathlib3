@@ -12,28 +12,20 @@ import topology.fiber_bundle.basic
 
 In this file we define (topological) vector bundles.
 
-Let `B` be the base space. In our formalism, a vector bundle is by definition the type
-`bundle.total_space E` where `E : B → Type*` is a function associating to
-`x : B` the fiber over `x`. This type `bundle.total_space E` is just a type synonym for
-`Σ (x : B), E x`, with the interest that one can put another topology than on `Σ (x : B), E x`
-which has the disjoint union topology.
+Let `B` be the base space, let `F` be a normed space over a normed field `R`, and let `E : B → Type*`
+be a `fiber_bundle` with fiber `F`, in which, for each `x`, the fiber `E x` is a topological vector
+space over `R`.
 
-To have a vector bundle structure on `bundle.total_space E`, one should
-additionally have the following data:
+To have a vector bundle structure on `bundle.total_space E`, one should additionally have the
+following properties:
 
-* `F` should be a normed space over a normed field `R`;
-* There should be a topology on `bundle.total_space E`, for which the projection to `B` is
-a fiber bundle with fiber `F` (in particular, each fiber `E x` is homeomorphic to `F`);
-* For each `x`, the fiber `E x` should be a topological vector space over `R`, and the injection
-from `E x` to `bundle.total_space F E` should be an embedding;
-* There should be a distinguished set of bundle trivializations (which are continuous linear equivs
-in the fibres), the "trivialization atlas"
-* There should be a choice of bundle trivialization at each point, which belongs to this atlas.
+* The bundle trivializations in the trivialization atlas should be continuous linear equivs in the
+fibres;
+* For any two trivializations `e`, `e'` in the atlas the transition function considered as a map
+from `B` into `F →L[R] F` is continuous on `e.base_set ∩ e'.base_set` with respect to the operator
+norm topology on `F →L[R] F`.
 
-If all these conditions are satisfied, and if moreover for any two trivializations `e`, `e'` in the
-atlas the transition function considered as a map from `B` into `F →L[R] F` is continuous on
-`e.base_set ∩ e'.base_set` with respect to the operator norm topology on `F →L[R] F`, we register
-the typeclass `vector_bundle R F E`.
+If these conditions are satisfied, we register the typeclass `vector_bundle R F E`.
 
 We define constructions on vector bundles like pullbacks and direct sums in other files.
 Only the trivial bundle is defined in this file.
@@ -309,7 +301,7 @@ variables [nontrivially_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, m
   [topological_space (total_space E)] [∀ x, topological_space (E x)] [fiber_bundle F E]
 
 /-- The space `total_space E` (for `E : B → Type*` such that each `E x` is a topological vector
-space) has a topological vector space structure with fiber `F` (denoted with
+space) has a (topological) vector space structure with fiber `F` (denoted with
 `vector_bundle R F E`) if around every point there is a fiber bundle trivialization
 which is linear in the fibers. -/
 class vector_bundle : Prop :=
@@ -455,8 +447,7 @@ instance trivialization.is_linear : (trivialization B F).is_linear R :=
 variables {R}
 
 lemma trivialization.coord_changeL (b : B) :
-  (trivialization B F).coord_changeL R
-    (trivialization B F) b = continuous_linear_equiv.refl R F :=
+  (trivialization B F).coord_changeL R (trivialization B F) b = continuous_linear_equiv.refl R F :=
 begin
   ext v,
   rw [trivialization.coord_changeL_apply'],

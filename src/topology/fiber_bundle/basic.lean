@@ -8,10 +8,28 @@ import topology.fiber_bundle.trivialization
 /-!
 # Fiber bundles
 
-A (topological) fiber bundle with fiber `F` over a base `B` is a space projecting on `B` for which the
-fibers are all homeomorphic to `F`, such that the local situation around each point is a direct
-product. We define a structure `fiber_bundle F E` saying that `E : B → Type*` is a
-fiber bundle with fiber `F`.
+Mathematically, a (topological) fiber bundle with fiber `F` over a base `B` is a space projecting on
+`B` for which the fibers are all homeomorphic to `F`, such that the local situation around each point
+is a direct product.
+
+In our formalism, a fiber bundle is by definition the type
+`bundle.total_space E` where `E : B → Type*` is a function associating to
+`x : B` the fiber over `x`. This type `bundle.total_space E` is just a type synonym for
+`Σ (x : B), E x`, with the interest that one can put another topology than on `Σ (x : B), E x`
+which has the disjoint union topology.
+
+To have a fiber bundle structure on `bundle.total_space E`, one should
+additionally have the following data:
+
+* `F` should be a topological space;
+* There should be a topology on `bundle.total_space E`, for which the projection to `B` is
+a fiber bundle with fiber `F` (in particular, each fiber `E x` is homeomorphic to `F`);
+* For each `x`, the fiber `E x` should be a topological space, and the injection
+from `E x` to `bundle.total_space F E` should be an embedding;
+* There should be a distinguished set of bundle trivializations, the "trivialization atlas"
+* There should be a choice of bundle trivialization at each point, which belongs to this atlas.
+
+If all these conditions are satisfied, we register the typeclass `fiber_bundle F E`.
 
 It is in general nontrivial to construct a fiber bundle. A way is to start from the knowledge of
 how changes of local trivializations act on the fiber. From this, one can construct the total space
@@ -359,10 +377,7 @@ instance fiber_bundle : fiber_bundle F (bundle.trivial B F) :=
 lemma eq_trivialization (e : _root_.trivialization F (π (bundle.trivial B F)))
   [i : mem_trivialization_atlas e] :
   e = trivialization B F :=
-begin
-  unfreezingI { cases i },
-  exact i,
-end
+i.out
 
 end trivial
 
@@ -827,11 +842,11 @@ begin
   exact (a.inducing_total_space_mk b).continuous
 end
 
-/-- Make a `topological_vector_bundle` from a `topological_vector_prebundle`.  Concretely this means
-that, given a `topological_vector_prebundle` structure for a sigma-type `E` -- which consists of a
+/-- Make a `fiber_bundle` from a `fiber_prebundle`.  Concretely this means
+that, given a `fiber_prebundle` structure for a sigma-type `E` -- which consists of a
 number of "pretrivializations" identifying parts of `E` with product spaces `U × F` -- one
 establishes that for the topology constructed on the sigma-type using
-`topological_vector_prebundle.total_space_topology`, these "pretrivializations" are actually
+`fiber_prebundle.total_space_topology`, these "pretrivializations" are actually
 "trivializations" (i.e., homeomorphisms with respect to the constructed topology). -/
 def to_fiber_bundle :
   @fiber_bundle B F _ _ E a.total_space_topology a.fiber_topology :=
@@ -851,9 +866,9 @@ begin
   exact continuous_proj F E,
 end
 
-/-- For a fiber bundle `Z` over `B` constructed using the `fiber_prebundle` mechanism,
-continuity of a function `Z → X` on an open set `s` can be checked by precomposing at each point
-with the pretrivialization used for the construction at that point. -/
+/-- For a fiber bundle `E` over `B` constructed using the `fiber_prebundle` mechanism,
+continuity of a function `total_space E → X` on an open set `s` can be checked by precomposing at
+each point with the pretrivialization used for the construction at that point. -/
 lemma continuous_on_of_comp_right {X : Type*} [topological_space X] {f : total_space E → X}
   {s : set B} (hs : is_open s)
   (hf : ∀ b ∈ s, continuous_on (f ∘ (a.pretrivialization_at b).to_local_equiv.symm)

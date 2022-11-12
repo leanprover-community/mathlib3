@@ -326,6 +326,9 @@ instance linear_order [linear_order α] [linear_order β] : linear_order (α ⊕
   decidable_eq := sum.decidable_eq _ _,
   .. lex.partial_order }
 
+instance is_well_order' [has_lt α] [has_lt β] [is_well_order α (<)] [is_well_order β (<)] :
+  is_well_order (α ⊕ₗ β) (<) := sum.lex.is_well_order _ _
+
 /-- The lexicographical bottom of a sum is the bottom of the left component. -/
 instance order_bot [has_le α] [order_bot α] [has_le β] : order_bot (α ⊕ₗ β) :=
 { bot := inl ⊥,

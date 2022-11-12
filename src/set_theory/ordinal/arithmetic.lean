@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn, Violeta Hernández Palacios
 -/
+import data.prod.lex
 import set_theory.ordinal.basic
 import tactic.by_contra
 
@@ -119,7 +120,7 @@ by simp only [le_antisymm_iff, add_le_add_iff_right]
 
 theorem add_eq_zero_iff {a b : ordinal} : a + b = 0 ↔ (a = 0 ∧ b = 0) :=
 induction_on a $ λ α r _, induction_on b $ λ β s _, begin
-  simp_rw [←type_sum_lex, type_eq_zero_iff_is_empty],
+  simp_rw [add_def, type_eq_zero_iff_is_empty],
   exact is_empty_sum
 end
 
@@ -486,7 +487,7 @@ theorem sub_is_limit {a b} (l : is_limit a) (h : b < a) : is_limit (a - b) :=
 @[simp] theorem one_add_omega : 1 + ω = ω :=
 begin
   refine le_antisymm _ (le_add_left _ _),
-  rw [omega, ← lift_one.{0}, ← lift_add, lift_le, ← type_unit, ← type_sum_lex],
+  rw [omega, ← lift_one.{0}, ← lift_add, lift_le, ← type_unit, add_def],
   refine ⟨rel_embedding.collapse (rel_embedding.of_monotone _ _)⟩,
   { apply sum.rec, exact λ _, 0, exact nat.succ },
   { intros a b, cases a; cases b; intro H; cases H with _ _ H _ _ H;
@@ -522,12 +523,33 @@ instance : monoid ordinal.{u} :=
     ⟨⟨prod_punit _, λ a b, by rcases a with ⟨a, ⟨⟨⟩⟩⟩; rcases b with ⟨b, ⟨⟨⟩⟩⟩;
     simp only [prod.lex_def, empty_relation, and_false, or_false]; refl⟩⟩ }
 
-@[simp] theorem type_prod_lex {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
-  [is_well_order α r] [is_well_order β s] : type (prod.lex s r) = type r * type s := rfl
+theorem mul_def {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
+  [is_well_order α r] [is_well_order β s] : type r * type s = type (prod.lex s r) := rfl
+
+/-- Note the `(<)` on the RHS is the comparison on `β ×ₗ α` via `prod.lex.has_le` -/
+theorem mul_def_lt {α β : Type u} [has_lt α] [has_lt β]
+  [is_well_order α (<)] [is_well_order β (<)] :
+  @type α (<) _ * @type β (<) _ = @type (β ×ₗ α) (<) _ :=
+rfl
+
+@[simp] theorem type_prod_lex {α : Type u} {β : Type v} (r : α → α → Prop) (s : β → β → Prop)
+  [is_well_order α r] [is_well_order β s] :
+  type (prod.lex s r) = lift.{v} (type r) * lift.{u} (type s) :=
+begin
+  apply rel_iso.ordinal_type_eq,
+  apply rel_iso.prod_lex_congr;
+  exact (rel_iso.preimage equiv.ulift _).symm
+end
+
+/-- Note the `(<)` on the LHS is the comparison on `β ×ₗ α` via `prod.lex.has_le` -/
+@[simp] theorem type_lex_prod_lt {α : Type u} {β : Type v} [has_lt α] [has_lt β]
+  [is_well_order α (<)] [is_well_order β (<)] :
+  @type (β ×ₗ α) (<) _ = lift.{v} (@type α (<) _) * lift.{u} (@type β (<) _) :=
+type_prod_lex _ _
 
 private theorem mul_eq_zero' {a b : ordinal} : a * b = 0 ↔ a = 0 ∨ b = 0 :=
 induction_on a $ λ α _ _, induction_on b $ λ β _ _, begin
-  simp_rw [←type_prod_lex, type_eq_zero_iff_is_empty],
+  simp_rw [mul_def, type_eq_zero_iff_is_empty],
   rw or_comm,
   exact is_empty_prod
 end

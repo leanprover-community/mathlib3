@@ -3,6 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Minchao Wu
 -/
+import order.rel_classes
 import order.synonym
 
 /-!
@@ -104,5 +105,8 @@ instance linear_order (α β : Type*) [linear_order α] [linear_order β] : line
   decidable_lt := prod.lex.decidable _ _,
   decidable_eq := lex.decidable_eq _ _,
   .. prod.lex.partial_order α β }
+
+instance is_well_order' (α β : Type*) [has_lt α] [has_lt β]
+  [is_well_order α (<)] [is_well_order β (<)] : is_well_order (α ×ₗ β) (<) := prod.lex.is_well_order
 
 end prod.lex

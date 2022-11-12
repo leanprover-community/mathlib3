@@ -639,8 +639,29 @@ instance : add_monoid_with_one ordinal.{u} :=
 @[simp] theorem card_add (o₁ o₂ : ordinal) : card (o₁ + o₂) = card o₁ + card o₂ :=
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _, rfl
 
-@[simp] theorem type_sum_lex {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
-  [is_well_order α r] [is_well_order β s] : type (sum.lex r s) = type r + type s := rfl
+theorem add_def {α β : Type u} (r : α → α → Prop) (s : β → β → Prop)
+  [is_well_order α r] [is_well_order β s] : type r + type s = type (sum.lex r s) := rfl
+
+/-- Note the `(<)` on the RHS is the comparison on `α ⊕ₗ β` via `sum.lex.has_le` -/
+theorem add_def_lt {α β : Type u} [has_lt α] [has_lt β]
+  [is_well_order α (<)] [is_well_order β (<)] :
+  @type α (<) _ + @type β (<) _ = @type (α ⊕ₗ β) (<) _ :=
+rfl
+
+@[simp] theorem type_sum_lex {α : Type u} {β : Type v} (r : α → α → Prop) (s : β → β → Prop)
+  [is_well_order α r] [is_well_order β s] :
+  type (sum.lex r s) = lift.{v} (type r) + lift.{u} (type s) :=
+begin
+  apply rel_iso.ordinal_type_eq,
+  apply rel_iso.sum_lex_congr;
+  exact (rel_iso.preimage equiv.ulift _).symm
+end
+
+/-- Note the `(<)` on the LHS is the comparison on `α ⊕ₗ β` via `sum.lex.has_le` -/
+@[simp] theorem type_lex_sum_lt {α : Type u} {β : Type v} [has_lt α] [has_lt β]
+  [is_well_order α (<)] [is_well_order β (<)] :
+  @type (α ⊕ₗ β) (<) _ = lift.{v} (@type α (<) _) + lift.{u} (@type β (<) _) :=
+type_sum_lex _ _
 
 @[simp] theorem card_nat (n : ℕ) : card.{u} n = n :=
 by induction n; [refl, simp only [card_add, card_one, nat.cast_succ, *]]

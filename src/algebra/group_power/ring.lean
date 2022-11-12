@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.group_power.basic
+import algebra.group_with_zero.units
 import algebra.hom.ring
-import data.nat.order
+import data.nat.order.lemmas
 
 /-!
 # Power operations on monoids with zero, semirings, and rings

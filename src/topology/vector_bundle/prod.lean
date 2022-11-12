@@ -12,7 +12,7 @@ import topology.vector_bundle.basic
 If `E₁ : B → Type*` and `E₂ : B → Type*` define two topological vector bundles over `R` with fiber
 models `F₁` and `F₂`, we define the bundle of direct sums `E₁ ×ᵇ E₂ := λ x, E₁ x × E₂ x`.
 We can endow `E₁ ×ᵇ E₂` with a topological vector bundle structure:
-`bundle.prod.topological_vector_bundle`.
+`bundle.prod.vector_bundle`.
 
 A similar construction (which is yet to be formalized) can be done for the vector bundle of
 continuous linear maps from `E₁ x` to `E₂ x` with fiber a type synonym
@@ -39,7 +39,7 @@ variables [topological_space (total_space E₁)] [topological_space (total_space
 
 /-- Equip the total space of the fibrewise product of two topological vector bundles `E₁`, `E₂` with
 the induced topology from the diagonal embedding into `total_space E₁ × total_space E₂`. -/
-instance topological_vector_bundle.prod.topological_space :
+instance vector_bundle.prod.topological_space :
   topological_space (total_space (E₁ ×ᵇ E₂)) :=
 topological_space.induced
   (λ p, ((⟨p.1, p.2.1⟩ : total_space E₁), (⟨p.1, p.2.2⟩ : total_space E₂)))
@@ -47,14 +47,14 @@ topological_space.induced
 
 /-- The diagonal map from the total space of the fibrewise product of two topological vector bundles
 `E₁`, `E₂` into `total_space E₁ × total_space E₂` is `inducing`. -/
-lemma topological_vector_bundle.prod.inducing_diag : inducing
+lemma vector_bundle.prod.inducing_diag : inducing
   (λ p, (⟨p.1, p.2.1⟩, ⟨p.1, p.2.2⟩) :
     total_space (E₁ ×ᵇ E₂) → total_space E₁ × total_space E₂) :=
 ⟨rfl⟩
 
 end defs
 
-open topological_vector_bundle
+open vector_bundle
 
 variables [nontrivially_normed_field R] [topological_space B]
 
@@ -70,7 +70,7 @@ include e₁ e₂
 variables {R F₁ E₁ F₂ E₂}
 
 /-- Given trivializations `e₁`, `e₂` for vector bundles `E₁`, `E₂` over a base `B`, the forward
-function for the construction `topological_vector_bundle.trivialization.prod`, the induced
+function for the construction `vector_bundle.trivialization.prod`, the induced
 trivialization for the direct sum of `E₁` and `E₂`. -/
 def prod.to_fun' : total_space (E₁ ×ᵇ E₂) → B × (F₁ × F₂) :=
 λ p, ⟨p.1, (e₁ ⟨p.1, p.2.1⟩).2, (e₂ ⟨p.1, p.2.2⟩).2⟩
@@ -105,7 +105,7 @@ variables (e₁ e₂)
 
 
 /-- Given trivializations `e₁`, `e₂` for vector bundles `E₁`, `E₂` over a base `B`, the inverse
-function for the construction `topological_vector_bundle.trivialization.prod`, the induced
+function for the construction `vector_bundle.trivialization.prod`, the induced
 trivialization for the direct sum of `E₁` and `E₂`. -/
 def prod.inv_fun' (p : B × (F₁ × F₂)) : total_space (E₁ ×ᵇ E₂) :=
 ⟨p.1, e₁.symm p.1 p.2.1, e₂.symm p.1 p.2.2⟩
@@ -142,11 +142,9 @@ end
 
 variables (e₁ e₂ R)
 variables [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E₂ x)]
-  [topological_vector_bundle R F₁ E₁] [topological_vector_bundle R F₂ E₂]
+  [fiber_bundle F₁ E₁] [fiber_bundle F₂ E₂]
 
-include R
-
-/-- Given trivializations `e₁`, `e₂` for vector bundles `E₁`, `E₂` over a base `B`, the induced
+/-- Given trivializations `e₁`, `e₂` for fiber bundles `E₁`, `E₂` over a base `B`, the induced
 trivialization for the direct sum of `E₁` and `E₂`, whose base set is `e₁.base_set ∩ e₂.base_set`.
 -/
 @[nolint unused_arguments]
@@ -161,7 +159,7 @@ def prod : trivialization (F₁ × F₂) (π (E₁ ×ᵇ E₂)) :=
   right_inv' := λ x, prod.right_inv,
   open_source := begin
     refine (e₁.open_base_set.inter e₂.open_base_set).preimage _,
-    have : continuous (@total_space.proj B E₁) := continuous_proj R B F₁,
+    have : continuous (@total_space.proj B E₁) := continuous_proj F₁ E₁,
     exact this.comp (prod.inducing_diag E₁ E₂).continuous.fst,
   end,
   open_target := (e₁.open_base_set.inter e₂.open_base_set).prod is_open_univ,
@@ -173,27 +171,26 @@ def prod : trivialization (F₁ × F₂) (π (E₁ ×ᵇ E₂)) :=
   target_eq := rfl,
   proj_to_fun := λ x h, rfl }
 
-omit R
-
-instance prod.is_linear [e₁.is_linear R] [e₂.is_linear R] : (e₁.prod R e₂).is_linear R :=
+instance prod.is_linear [e₁.is_linear R] [e₂.is_linear R] : (e₁.prod e₂).is_linear R :=
 { linear := λ x ⟨h₁, h₂⟩, (((e₁.linear R h₁).mk' _).prod_map ((e₂.linear R h₂).mk' _)).is_linear }
 
-@[simp] lemma base_set_prod : (prod R e₁ e₂).base_set = e₁.base_set ∩ e₂.base_set :=
+@[simp] lemma base_set_prod : (prod e₁ e₂).base_set = e₁.base_set ∩ e₂.base_set :=
 rfl
 
 variables {e₁ e₂}
 
 variables (R)
 
-lemma prod_apply [e₁.is_linear R] [e₂.is_linear R] {x : B} (hx₁ : x ∈ e₁.base_set)
+lemma prod_apply [vector_bundle R F₁ E₁] [vector_bundle R F₂ E₂]
+  [e₁.is_linear R] [e₂.is_linear R] {x : B} (hx₁ : x ∈ e₁.base_set)
   (hx₂ : x ∈ e₂.base_set) (v₁ : E₁ x) (v₂ : E₂ x) :
-  prod R e₁ e₂ ⟨x, (v₁, v₂)⟩
+  prod e₁ e₂ ⟨x, (v₁, v₂)⟩
   = ⟨x, e₁.continuous_linear_equiv_at R x hx₁ v₁, e₂.continuous_linear_equiv_at R x hx₂ v₂⟩ :=
 rfl
 
 variables {R}
 
-lemma prod_symm_apply (x : B) (w₁ : F₁) (w₂ : F₂) : (prod R e₁ e₂).to_local_equiv.symm (x, w₁, w₂)
+lemma prod_symm_apply (x : B) (w₁ : F₁) (w₂ : F₂) : (prod e₁ e₂).to_local_equiv.symm (x, w₁, w₂)
   = ⟨x, e₁.symm x w₁, e₂.symm x w₂⟩ :=
 rfl
 
@@ -205,29 +202,32 @@ variables [Π x, add_comm_monoid (E₁ x)] [Π x, module R (E₁ x)]
   [Π x, add_comm_monoid (E₂ x)] [Π x, module R (E₂ x)]
 
 variables [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E₂ x)]
-  [topological_vector_bundle R F₁ E₁] [topological_vector_bundle R F₂ E₂]
+  [fiber_bundle F₁ E₁] [fiber_bundle F₂ E₂]
+  [vector_bundle R F₁ E₁] [vector_bundle R F₂ E₂]
 
-/-- The product of two vector bundles is a vector bundle. -/
-instance _root_.bundle.prod.topological_vector_bundle :
-  topological_vector_bundle R (F₁ × F₂) (E₁ ×ᵇ E₂) :=
+/-- The product of two fiber bundles is a fiber bundle. -/
+instance _root_.bundle.prod.fiber_bundle : fiber_bundle (F₁ × F₂) (E₁ ×ᵇ E₂) :=
 { total_space_mk_inducing := λ b,
   begin
     rw (prod.inducing_diag E₁ E₂).inducing_iff,
-    exact (total_space_mk_inducing R F₁ E₁ b).prod_mk (total_space_mk_inducing R F₂ E₂ b),
+    exact (total_space_mk_inducing F₁ E₁ b).prod_mk (total_space_mk_inducing F₂ E₂ b),
   end,
   trivialization_atlas :=
     {e |  ∃ (e₁ : trivialization F₁ (π E₁)) (e₂ : trivialization F₂ (π E₂))
-    [mem_trivialization_atlas R e₁] [mem_trivialization_atlas R e₂], by exactI
-    e = trivialization.prod R e₁ e₂},
-  trivialization_linear' := begin
+    [mem_trivialization_atlas e₁] [mem_trivialization_atlas e₂], by exactI
+    e = trivialization.prod e₁ e₂},
+  trivialization_at := λ b, (trivialization_at F₁ E₁ b).prod (trivialization_at F₂ E₂ b),
+  mem_base_set_trivialization_at :=
+    λ b, ⟨mem_base_set_trivialization_at F₁ E₁ b, mem_base_set_trivialization_at F₂ E₂ b⟩,
+  trivialization_mem_atlas := λ b, ⟨trivialization_at F₁ E₁ b, trivialization_at F₂ E₂ b,
+    by apply_instance, by apply_instance, rfl⟩ }
+
+/-- The product of two vector bundles is a vector bundle. -/
+instance _root_.bundle.prod.vector_bundle : vector_bundle R (F₁ × F₂) (E₁ ×ᵇ E₂) :=
+{ trivialization_linear' := begin
     rintros _ ⟨e₁, e₂, he₁, he₂, rfl⟩, resetI,
     apply_instance
   end,
-  trivialization_at := λ b, (trivialization_at R F₁ E₁ b).prod R (trivialization_at R F₂ E₂ b),
-  mem_base_set_trivialization_at :=
-    λ b, ⟨mem_base_set_trivialization_at R F₁ E₁ b, mem_base_set_trivialization_at R F₂ E₂ b⟩,
-  trivialization_mem_atlas := λ b, ⟨trivialization_at R F₁ E₁ b, trivialization_at R F₂ E₂ b,
-    by apply_instance, by apply_instance, rfl⟩,
   continuous_on_coord_change' := begin
     rintros _ _ ⟨e₁, e₂, he₁, he₂, rfl⟩ ⟨e₁', e₂', he₁', he₂', rfl⟩, resetI,
     refine (((continuous_on_coord_change R e₁ e₁').mono _).prod_mapL R
@@ -238,16 +238,16 @@ instance _root_.bundle.prod.topological_vector_bundle :
     { rintro b hb,
       rw [continuous_linear_map.ext_iff],
       rintro ⟨v₁, v₂⟩,
-      show (e₁.prod R e₂).coord_changeL R (e₁'.prod R e₂') b (v₁, v₂) =
+      show (e₁.prod e₂).coord_changeL R (e₁'.prod e₂') b (v₁, v₂) =
         (e₁.coord_changeL R e₁' b v₁, e₂.coord_changeL R e₂' b v₂),
       rw [e₁.coord_changeL_apply e₁', e₂.coord_changeL_apply e₂',
-        (e₁.prod R e₂).coord_changeL_apply'],
+        (e₁.prod e₂).coord_changeL_apply'],
       exacts [rfl, hb, ⟨hb.1.2, hb.2.2⟩, ⟨hb.1.1, hb.2.1⟩] }
   end }
 
 instance _root_.bundle.prod.mem_trivialization_atlas {e₁ : trivialization F₁ (π E₁)}
-  {e₂ : trivialization F₂ (π E₂)} [mem_trivialization_atlas R e₁] [mem_trivialization_atlas R e₂] :
-  mem_trivialization_atlas R (e₁.prod R e₂ : trivialization (F₁ × F₂) (π (E₁ ×ᵇ E₂))) :=
+  {e₂ : trivialization F₂ (π E₂)} [mem_trivialization_atlas e₁] [mem_trivialization_atlas e₂] :
+  mem_trivialization_atlas (e₁.prod e₂ : trivialization (F₁ × F₂) (π (E₁ ×ᵇ E₂))) :=
 { out := ⟨e₁, e₂, by apply_instance, by apply_instance, rfl⟩ }
 
 variables {R F₁ E₁ F₂ E₂}
@@ -255,12 +255,14 @@ variables {R F₁ E₁ F₂ E₂}
 @[simp] lemma trivialization.continuous_linear_equiv_at_prod {e₁ : trivialization F₁ (π E₁)}
   {e₂ : trivialization F₂ (π E₂)} [e₁.is_linear R] [e₂.is_linear R] {x : B} (hx₁ : x ∈ e₁.base_set)
   (hx₂ : x ∈ e₂.base_set) :
-  (e₁.prod R e₂).continuous_linear_equiv_at R x ⟨hx₁, hx₂⟩
+  (e₁.prod e₂).continuous_linear_equiv_at R x ⟨hx₁, hx₂⟩
   = (e₁.continuous_linear_equiv_at R x hx₁).prod (e₂.continuous_linear_equiv_at R x hx₂) :=
 begin
   ext1,
   funext v,
   obtain ⟨v₁, v₂⟩ := v,
-  rw [(e₁.prod R e₂).continuous_linear_equiv_at_apply R, trivialization.prod],
+  rw [(e₁.prod e₂).continuous_linear_equiv_at_apply R, trivialization.prod],
   exact (congr_arg prod.snd (prod_apply R hx₁ hx₂ v₁ v₂) : _)
 end
+
+#lint

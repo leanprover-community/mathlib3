@@ -301,7 +301,7 @@ variables [nontrivially_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, m
   [topological_space (total_space E)] [∀ x, topological_space (E x)] [fiber_bundle F E]
 
 /-- The space `total_space E` (for `E : B → Type*` such that each `E x` is a topological vector
-space) has a (topological) vector space structure with fiber `F` (denoted with
+space) has a topological vector space structure with fiber `F` (denoted with
 `vector_bundle R F E`) if around every point there is a fiber bundle trivialization
 which is linear in the fibers. -/
 class vector_bundle : Prop :=
@@ -439,6 +439,55 @@ by { ext v, rw [coord_changeL_apply e e' hb], refl }
 end trivialization
 
 namespace bundle.trivial
+variables (B) (F' : Type*) [topological_space B] [topological_space F']
+
+/-- Local trivialization for trivial bundle. -/
+def trivialization : trivialization F' (π (bundle.trivial B F')) :=
+{ to_fun := λ x, (x.fst, x.snd),
+  inv_fun := λ y, ⟨y.fst, y.snd⟩,
+  source := univ,
+  target := univ,
+  map_source' := λ x h, mem_univ (x.fst, x.snd),
+  map_target' := λ y h,  mem_univ ⟨y.fst, y.snd⟩,
+  left_inv' := λ x h, sigma.eq rfl rfl,
+  right_inv' := λ x h, prod.ext rfl rfl,
+  open_source := is_open_univ,
+  open_target := is_open_univ,
+  continuous_to_fun := by { rw [←continuous_iff_continuous_on_univ, continuous_iff_le_induced],
+    simp only [prod.topological_space, induced_inf, induced_compose], exact le_rfl, },
+  continuous_inv_fun := by { rw [←continuous_iff_continuous_on_univ, continuous_iff_le_induced],
+    simp only [bundle.total_space.topological_space, induced_inf, induced_compose],
+    exact le_rfl, },
+  base_set := univ,
+  open_base_set := is_open_univ,
+  source_eq := rfl,
+  target_eq := by simp only [univ_prod_univ],
+  proj_to_fun := λ y hy, rfl }
+
+@[simp]
+lemma trivialization_source : (trivialization B F').source = univ := rfl
+
+@[simp]
+lemma trivialization_target : (trivialization B F').target = univ := rfl
+
+/-- Fiber bundle instance on the trivial bundle. -/
+instance fiber_bundle : fiber_bundle F' (bundle.trivial B F') :=
+{ trivialization_atlas := {bundle.trivial.trivialization B F'},
+  trivialization_at := λ x, bundle.trivial.trivialization B F',
+  mem_base_set_trivialization_at := mem_univ,
+  trivialization_mem_atlas := λ x, mem_singleton _,
+  total_space_mk_inducing := λ b, ⟨begin
+    have : (λ (x : trivial B F' b), x) = @id F', by { ext x, refl },
+    simp only [total_space.topological_space, induced_inf, induced_compose, function.comp,
+      total_space.proj, induced_const, top_inf_eq, trivial.proj_snd, id.def,
+      trivial.topological_space, this, induced_id],
+  end⟩ }
+
+lemma eq_trivialization (e : _root_.trivialization F' (π (bundle.trivial B F')))
+  [i : mem_trivialization_atlas e] :
+  e = trivialization B F' :=
+i.out
+
 variables (R B F)
 
 instance trivialization.is_linear : (trivialization B F).is_linear R :=

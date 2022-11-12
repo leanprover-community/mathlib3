@@ -353,58 +353,6 @@ instance [t₁ : topological_space B] [t₂ : topological_space F] :
   topological_space (total_space (trivial B F)) :=
 induced total_space.proj t₁ ⊓ induced (trivial.proj_snd B F) t₂
 
-namespace trivial
-variables (B F) [topological_space B] [topological_space F]
-
-/-- Local trivialization for trivial bundle. -/
-def trivialization : trivialization F (π (bundle.trivial B F)) :=
-{ to_fun := λ x, (x.fst, x.snd),
-  inv_fun := λ y, ⟨y.fst, y.snd⟩,
-  source := univ,
-  target := univ,
-  map_source' := λ x h, mem_univ (x.fst, x.snd),
-  map_target' := λ y h,  mem_univ ⟨y.fst, y.snd⟩,
-  left_inv' := λ x h, sigma.eq rfl rfl,
-  right_inv' := λ x h, prod.ext rfl rfl,
-  open_source := is_open_univ,
-  open_target := is_open_univ,
-  continuous_to_fun := by { rw [←continuous_iff_continuous_on_univ, continuous_iff_le_induced],
-    simp only [prod.topological_space, induced_inf, induced_compose], exact le_rfl, },
-  continuous_inv_fun := by { rw [←continuous_iff_continuous_on_univ, continuous_iff_le_induced],
-    simp only [bundle.total_space.topological_space, induced_inf, induced_compose],
-    exact le_rfl, },
-  base_set := univ,
-  open_base_set := is_open_univ,
-  source_eq := rfl,
-  target_eq := by simp only [univ_prod_univ],
-  proj_to_fun := λ y hy, rfl }
-
-@[simp]
-lemma trivialization_source : (trivialization B F).source = univ := rfl
-
-@[simp]
-lemma trivialization_target : (trivialization B F).target = univ := rfl
-
-/-- Fiber bundle instance on the trivial bundle. -/
-instance fiber_bundle : fiber_bundle F (bundle.trivial B F) :=
-{ trivialization_atlas := {bundle.trivial.trivialization B F},
-  trivialization_at := λ x, bundle.trivial.trivialization B F,
-  mem_base_set_trivialization_at := mem_univ,
-  trivialization_mem_atlas := λ x, mem_singleton _,
-  total_space_mk_inducing := λ b, ⟨begin
-    have : (λ (x : trivial B F b), x) = @id F, by { ext x, refl },
-    simp only [total_space.topological_space, induced_inf, induced_compose, function.comp,
-      total_space.proj, induced_const, top_inf_eq, trivial.proj_snd, id.def,
-      trivial.topological_space, this, induced_id],
-  end⟩ }
-
-lemma eq_trivialization (e : _root_.trivialization F (π (bundle.trivial B F)))
-  [i : mem_trivialization_atlas e] :
-  e = trivialization B F :=
-i.out
-
-end trivial
-
 end bundle
 
 /-- Core data defining a locally trivial bundle with fiber `F` over a topological
@@ -532,7 +480,7 @@ def local_triv_as_local_equiv (i : ι) : local_equiv Z.total_space (B × F) :=
     { simp only [hx, mem_inter_iff, and_self, mem_base_set_at] }
   end }
 
-variables (i : ι)
+variable (i : ι)
 
 lemma mem_local_triv_as_local_equiv_source (p : Z.total_space) :
   p ∈ (Z.local_triv_as_local_equiv i).source ↔ p.1 ∈ Z.base_set i :=

@@ -439,7 +439,7 @@ by { ext v, rw [coord_changeL_apply e e' hb], refl }
 end trivialization
 
 namespace bundle.trivial
-variables (B) (F' : Type*) [topological_space B] [topological_space F']
+variables (R B) (F' : Type*) [topological_space B] [topological_space F']
 
 /-- Local trivialization for trivial bundle. -/
 def trivialization : trivialization F' (π (bundle.trivial B F')) :=
@@ -463,6 +463,19 @@ def trivialization : trivialization F' (π (bundle.trivial B F')) :=
   source_eq := rfl,
   target_eq := by simp only [univ_prod_univ],
   proj_to_fun := λ y hy, rfl }
+
+instance trivialization.is_linear : (trivialization B F).is_linear R :=
+{ linear := λ x hx, ⟨λ y z, rfl, λ c y, rfl⟩ }
+
+variables {R}
+
+lemma trivialization.coord_changeL (b : B) :
+  (trivialization B F).coord_changeL R (trivialization B F) b = continuous_linear_equiv.refl R F :=
+begin
+  ext v,
+  rw [trivialization.coord_changeL_apply'],
+  exacts [rfl, ⟨mem_univ _, mem_univ _⟩]
+end
 
 @[simp]
 lemma trivialization_source : (trivialization B F').source = univ := rfl
@@ -488,20 +501,7 @@ lemma eq_trivialization (e : _root_.trivialization F' (π (bundle.trivial B F'))
   e = trivialization B F' :=
 i.out
 
-variables (R B F)
-
-instance trivialization.is_linear : (trivialization B F).is_linear R :=
-{ linear := λ x hx, ⟨λ y z, rfl, λ c y, rfl⟩ }
-
-variables {R}
-
-lemma trivialization.coord_changeL (b : B) :
-  (trivialization B F).coord_changeL R (trivialization B F) b = continuous_linear_equiv.refl R F :=
-begin
-  ext v,
-  rw [trivialization.coord_changeL_apply'],
-  exacts [rfl, ⟨mem_univ _, mem_univ _⟩]
-end
+variables (R)
 
 instance vector_bundle : vector_bundle R F (bundle.trivial B F) :=
 { trivialization_linear' := begin

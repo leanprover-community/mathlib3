@@ -201,19 +201,11 @@ begin
   { dsimp [of_digits], push_cast }
 end
 
-lemma digits_zero_of_eq_zero {b : ℕ} (h : b ≠ 0) {L : list ℕ} (w : of_digits b L = 0) :
-  ∀ l ∈ L, l = 0 :=
-begin
-  induction L with d L ih,
-  { intros l m,
-    cases m, },
-  { intros l m,
-    dsimp [of_digits] at w,
-    rcases m with ⟨rfl⟩,
-    { apply nat.eq_zero_of_add_eq_zero_right w },
-    { exact ih (mul_right_injective₀ (pos_iff_ne_zero.1 h)
-        (nat.eq_zero_of_add_eq_zero_left w)) _ m, }, }
-end
+lemma digits_zero_of_eq_zero {b : ℕ} (h : b ≠ 0) :
+  ∀ {L : list ℕ} (h0 : of_digits b L = 0) (l ∈ L), l = 0
+| (a :: L) h0 l (or.inl rfl) := nat.eq_zero_of_add_eq_zero_right h0
+| (a :: L) h0 l (or.inr hL) :=
+  digits_zero_of_eq_zero (mul_right_injective₀ h (nat.eq_zero_of_add_eq_zero_left h0)) _ hL
 
 lemma digits_of_digits
   (b : ℕ) (h : 2 ≤ b) (L : list ℕ)

@@ -1224,6 +1224,37 @@ begin
   simp only [smul_eq_mul, mul_inv_cancel_right]
 end
 
+/-- In a locally compact group, any neighborhood of the identity contains a compact closed
+neighborhood of the identity, even without separation assumptions on the space. -/
+@[to_additive "In a locally compact additive group, any neighborhood of the identity contains a
+compact closed neighborhood of the identity, even without separation assumptions on the space."]
+lemma local_is_compact_is_closed_nhds_of_group [locally_compact_space G]
+  {U : set G} (hU : U ∈ 𝓝 (1 : G)) :
+  ∃ (K : set G), is_compact K ∧ is_closed K ∧ K ⊆ U ∧ (1 : G) ∈ interior K :=
+begin
+  obtain ⟨L, Lint, LU, Lcomp⟩ : ∃ (L : set G) (H : L ∈ 𝓝 (1 : G)), L ⊆ U ∧ is_compact L,
+    from local_compact_nhds hU,
+  obtain ⟨V, Vnhds, hV⟩ : ∃ V ∈ 𝓝 (1 : G), ∀ (v ∈ V) (w ∈ V), v * w ∈ L,
+  { have : ((λ p : G × G, p.1 * p.2) ⁻¹' L) ∈ 𝓝 ((1, 1) : G × G),
+    { refine continuous_at_fst.mul continuous_at_snd _,
+      simpa only [mul_one] using Lint },
+    simpa only [div_eq_mul_inv, nhds_prod_eq, mem_prod_self_iff, prod_subset_iff, mem_preimage] },
+  obtain ⟨K, Kcomp, Kint, KU⟩ : ∃ (K : set G), is_compact K ∧ (1 : G) ∈ interior K ∧ K ⊆ V,
+  { rcases exists_compact_subset is_open_interior (mem_interior_iff_mem_nhds.2 Vnhds)
+      with ⟨K, Kcomp, Kint, KV⟩,
+    exact ⟨K, Kcomp, Kint, KV.trans interior_subset⟩ },
+  have KL : closure K ⊆ L, from calc
+    closure K = {(1 : G)} * closure K : by simp only [singleton_mul, one_mul, image_id']
+    ... ⊆ interior V * closure K : mul_subset_mul_right
+      (by simpa only [singleton_subset_iff] using mem_interior_iff_mem_nhds.2 Vnhds)
+    ... = interior V * K : is_open_interior.mul_closure _
+    ... ⊆ V * V : mul_subset_mul interior_subset KU
+    ... ⊆ L :
+      by { rintros x ⟨y, z, yv, zv, rfl⟩, exact hV _ yv _ zv },
+  exact ⟨closure K, is_compact_of_is_closed_subset Lcomp is_closed_closure KL,
+    is_closed_closure, KL.trans LU, interior_mono subset_closure Kint⟩,
+end
+
 end
 
 section

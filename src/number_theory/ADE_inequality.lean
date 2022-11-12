@@ -178,7 +178,6 @@ begin
   interval_cases q,
   { exact admissible_D' r },
   have hr6 : r < 6 := lt_six H,
-  change 3 ≤ r at hqr,
   interval_cases r,
   { exact admissible_E6 },
   { exact admissible_E7 },

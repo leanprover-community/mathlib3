@@ -2230,8 +2230,7 @@ begin
   exact nat.not_succ_le_self n w,
 end
 
-lemma not_injective_infinite_finite {α β : Sort*} [infinite α] [finite β] (f : α → β) :
-  ¬ injective f :=
+lemma not_injective_infinite_finite {α β} [infinite α] [finite β] (f : α → β) : ¬ injective f :=
 λ hf, (finite.of_injective f hf).false
 
 /--
@@ -2246,7 +2245,7 @@ lemma finite.exists_ne_map_eq_of_infinite {α β} [infinite α] [finite β] (f :
 by simpa only [injective, not_forall, not_imp, and.comm] using not_injective_infinite_finite f
 
 instance function.embedding.is_empty {α β} [infinite α] [finite β] : is_empty (α ↪ β) :=
-⟨λ f, not_injective_infinite_finite f f.injective⟩
+⟨λ f, not_injective_infinite_finite f f.2⟩
 
 /--
 The strong pigeonhole principle for infinitely many pigeons in

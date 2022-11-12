@@ -923,25 +923,49 @@ with continuous addition/multiplication. See also `submonoid.top_closure_mul_sel
 `topology.algebra.monoid`.
 -/
 
-section has_continuous_mul
-variables [topological_space α] [group α] [has_continuous_mul α] {s t : set α}
+section has_continuous_const_smul
+variables [topological_space β] [group α] [mul_action α β]
+  [has_continuous_const_smul α β] {s : set α} {t : set β}
 
-@[to_additive] lemma is_open.mul_left (ht : is_open t) : is_open (s * t) :=
-by { rw ←Union_mul_left_image, exact is_open_bUnion (λ a ha, is_open_map_mul_left a t ht) }
+@[to_additive] lemma is_open.smul_left (ht : is_open t) : is_open (s • t) :=
+by { rw ←bUnion_smul_set, exact is_open_bUnion (λ a _, ht.smul _) }
+
+@[to_additive] lemma subset_interior_smul_right : s • interior t ⊆ interior (s • t) :=
+interior_maximal (set.smul_subset_smul_left interior_subset) is_open_interior.smul_left
+
+variables [topological_space α]
+
+@[to_additive] lemma subset_interior_smul : interior s • interior t ⊆ interior (s • t) :=
+(set.smul_subset_smul_right interior_subset).trans subset_interior_smul_right
+
+end has_continuous_const_smul
+
+section has_continuous_const_smul
+variables [topological_space α] [group α] [has_continuous_const_smul α α] {s t : set α}
+
+@[to_additive] lemma is_open.mul_left : is_open t → is_open (s * t) := is_open.smul_left
+
+@[to_additive] lemma subset_interior_mul_right : s * interior t ⊆ interior (s * t) :=
+subset_interior_smul_right
+
+@[to_additive] lemma subset_interior_mul : interior s * interior t ⊆ interior (s * t) :=
+subset_interior_smul
+
+end has_continuous_const_smul
+
+section has_continuous_const_smul_op
+variables [topological_space α] [group α] [has_continuous_const_smul αᵐᵒᵖ α] {s t : set α}
 
 @[to_additive] lemma is_open.mul_right (hs : is_open s) : is_open (s * t) :=
-by { rw ←Union_mul_right_image, exact is_open_bUnion (λ a ha, is_open_map_mul_right a s hs) }
+by { rw ←bUnion_op_smul_set, exact is_open_bUnion (λ a _, hs.smul _) }
 
 @[to_additive] lemma subset_interior_mul_left : interior s * t ⊆ interior (s * t) :=
 interior_maximal (set.mul_subset_mul_right interior_subset) is_open_interior.mul_right
 
-@[to_additive] lemma subset_interior_mul_right : s * interior t ⊆ interior (s * t) :=
-interior_maximal (set.mul_subset_mul_left interior_subset) is_open_interior.mul_left
-
-@[to_additive] lemma subset_interior_mul : interior s * interior t ⊆ interior (s * t) :=
+@[to_additive] lemma subset_interior_mul' : interior s * interior t ⊆ interior (s * t) :=
 (set.mul_subset_mul_left interior_subset).trans subset_interior_mul_left
 
-end has_continuous_mul
+end has_continuous_const_smul_op
 
 section topological_group
 variables [topological_space α] [group α] [topological_group α] {s t : set α}
@@ -1156,7 +1180,7 @@ instance separable_locally_compact_group.sigma_compact_space
 begin
   obtain ⟨L, hLc, hL1⟩ := exists_compact_mem_nhds (1 : G),
   refine ⟨⟨λ n, (λ x, x * dense_seq G n) ⁻¹' L, _, _⟩⟩,
-  { intro n, exact (homeomorph.mul_right _).compact_preimage.mpr hLc },
+  { intro n, exact (homeomorph.mul_right _).is_compact_preimage.mpr hLc },
   { refine Union_eq_univ_iff.2 (λ x, _),
     obtain ⟨_, ⟨n, rfl⟩, hn⟩ : (range (dense_seq G) ∩ (λ y, x * y) ⁻¹' L).nonempty,
     { rw [← (homeomorph.mul_left x).apply_symm_apply 1] at hL1,
@@ -1167,14 +1191,16 @@ end
 
 /-- Every separated topological group in which there exists a compact set with nonempty interior
 is locally compact. -/
-@[to_additive] lemma topological_space.positive_compacts.locally_compact_space_of_group
+@[to_additive "Every separated topological group in which there exists a compact set with nonempty
+interior is locally compact."]
+lemma topological_space.positive_compacts.locally_compact_space_of_group
   [t2_space G] (K : positive_compacts G) :
   locally_compact_space G :=
 begin
   refine locally_compact_of_compact_nhds (λ x, _),
   obtain ⟨y, hy⟩ := K.interior_nonempty,
   let F := homeomorph.mul_left (x * y⁻¹),
-  refine ⟨F '' K, _, K.compact.image F.continuous⟩,
+  refine ⟨F '' K, _, K.is_compact.image F.continuous⟩,
   suffices : F.symm ⁻¹' K ∈ 𝓝 x, by { convert this, apply equiv.image_eq_preimage },
   apply continuous_at.preimage_mem_nhds F.symm.continuous.continuous_at,
   have : F.symm x = y, by simp [F, homeomorph.mul_left_symm],

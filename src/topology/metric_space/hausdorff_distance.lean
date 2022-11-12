@@ -189,7 +189,7 @@ begin
   obtain ⟨x, hx, h⟩ : ∃ x ∈ s, ∀ y ∈ s, inf_edist x t ≤ inf_edist y t :=
     hs.exists_forall_le hne continuous_inf_edist.continuous_on,
   have : 0 < inf_edist x t,
-    from pos_iff_ne_zero.2 (λ H, hst ⟨hx, (mem_iff_inf_edist_zero_of_closed ht).mpr H⟩),
+    from pos_iff_ne_zero.2 (λ H, hst.le_bot ⟨hx, (mem_iff_inf_edist_zero_of_closed ht).mpr H⟩),
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 this with ⟨r, h₀, hr⟩,
   exact ⟨r, ennreal.coe_pos.mp h₀, λ y hy z hz, hr.trans_le $ le_inf_edist.1 (h y hy) z hz⟩
 end
@@ -952,6 +952,9 @@ by { ext x, simp [mem_closure_iff_inf_edist_zero, cthickening, ennreal.of_real_e
 @[simp] lemma cthickening_zero (E : set α) : cthickening 0 E = closure E :=
 cthickening_of_nonpos le_rfl E
 
+lemma cthickening_max_zero (δ : ℝ) (E : set α) : cthickening (max 0 δ) E = cthickening δ E :=
+by cases le_total δ 0; simp [cthickening_of_nonpos, *]
+
 /-- The closed thickening `cthickening δ E` of a fixed subset `E` is an increasing function of
 the thickening radius `δ`. -/
 lemma cthickening_mono {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) :
@@ -1068,6 +1071,7 @@ lemma _root_.disjoint.exists_thickenings (hst : disjoint s t) (hs : is_compact s
 begin
   obtain ⟨r, hr, h⟩ := exists_pos_forall_lt_edist hs ht hst,
   refine ⟨r / 2, half_pos (nnreal.coe_pos.2 hr), _⟩,
+  rw disjoint_iff_inf_le,
   rintro z ⟨hzs, hzt⟩,
   rw mem_thickening_iff_exists_edist_lt at hzs hzt,
   rw [← nnreal.coe_two, ← nnreal.coe_div, ennreal.of_real_coe_nnreal] at hzs hzt,
@@ -1154,6 +1158,10 @@ begin
   simp_rw inter_eq_right_iff_subset.mpr Ioc_subset_Ioi_self,
   exact λ _ hε, nonempty_Ioc.mpr hε,
 end
+
+lemma cthickening_eq_Inter_thickening'' (δ : ℝ) (E : set α) :
+  cthickening δ E = ⋂ (ε : ℝ) (h : max 0 δ < ε), thickening ε E :=
+by { rw [←cthickening_max_zero, cthickening_eq_Inter_thickening], exact le_max_left _ _ }
 
 /-- The closure of a set equals the intersection of its closed thickenings of positive radii
 accumulating at zero. -/

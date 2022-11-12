@@ -700,7 +700,7 @@ calc (∫⁻ a, ↑∥(f + g) a∥₊ ^ q ∂μ) ^ (1 / q)
 begin
   refine ennreal.rpow_le_rpow _ (by simp [le_trans zero_le_one hq1] : 0 ≤ 1 / q),
   refine lintegral_mono (λ a, ennreal.rpow_le_rpow _ (le_trans zero_le_one hq1)),
-  simp [←ennreal.coe_add, nnnorm_add_le],
+  simp [←ennreal.coe_add, -coe_add, nnnorm_add_le],
 end
 ... ≤ snorm' f q μ + snorm' g q μ :
   ennreal.lintegral_Lp_add_le hf.ennnorm hg.ennnorm hq1
@@ -755,7 +755,7 @@ calc (∫⁻ a, ↑∥(f + g) a∥₊ ^ q ∂μ) ^ (1 / q)
 begin
   refine ennreal.rpow_le_rpow _ (by simp [hq_pos.le] : 0 ≤ 1 / q),
   refine lintegral_mono (λ a, ennreal.rpow_le_rpow _ hq_pos.le),
-  simp [←ennreal.coe_add, nnnorm_add_le],
+  simp [←ennreal.coe_add, -coe_add, nnnorm_add_le],
 end
 ... ≤ (∫⁻ a, (∥f a∥₊ : ℝ≥0∞) ^ q + (∥g a∥₊ : ℝ≥0∞) ^ q ∂μ) ^ (1 / q) :
 begin
@@ -1029,7 +1029,7 @@ begin
   begin
     rw ennreal.mul_lt_top_iff,
     refine or.inl ⟨hfq_lt_top, ennreal.rpow_lt_top_of_nonneg _ (measure_ne_top μ set.univ)⟩,
-    rwa [le_sub, sub_zero, one_div, one_div, inv_le_inv hq_pos hp_pos],
+    rwa [le_sub_comm, sub_zero, one_div, one_div, inv_le_inv hq_pos hp_pos],
   end
 end
 
@@ -1433,7 +1433,7 @@ variables [measurable_space E] [opens_measurable_space E] {R : ℝ≥0}
 
 lemma ae_bdd_liminf_at_top_rpow_of_snorm_bdd {p : ℝ≥0∞}
   {f : ℕ → α → E} (hfmeas : ∀ n, measurable (f n)) (hbdd : ∀ n, snorm (f n) p μ ≤ R) :
-  ∀ᵐ x ∂μ, liminf at_top (λ n, (∥f n x∥₊ ^ p.to_real : ℝ≥0∞)) < ∞ :=
+  ∀ᵐ x ∂μ, liminf (λ n, (∥f n x∥₊ ^ p.to_real : ℝ≥0∞)) at_top < ∞ :=
 begin
   by_cases hp0 : p.to_real = 0,
   { simp only [hp0, ennreal.rpow_zero],
@@ -1456,7 +1456,7 @@ end
 
 lemma ae_bdd_liminf_at_top_of_snorm_bdd {p : ℝ≥0∞} (hp : p ≠ 0)
   {f : ℕ → α → E} (hfmeas : ∀ n, measurable (f n)) (hbdd : ∀ n, snorm (f n) p μ ≤ R) :
-  ∀ᵐ x ∂μ, liminf at_top (λ n, (∥f n x∥₊ : ℝ≥0∞)) < ∞ :=
+  ∀ᵐ x ∂μ, liminf (λ n, (∥f n x∥₊ : ℝ≥0∞)) at_top < ∞ :=
 begin
   by_cases hp' : p = ∞,
   { subst hp',
@@ -1470,14 +1470,14 @@ begin
       (ennreal.add_lt_top.2 ⟨ennreal.coe_lt_top, ennreal.one_lt_top⟩) },
   filter_upwards [ae_bdd_liminf_at_top_rpow_of_snorm_bdd hfmeas hbdd] with x hx,
   have hppos : 0 < p.to_real := ennreal.to_real_pos hp hp',
-  have : liminf at_top (λ n, (∥f n x∥₊ ^ p.to_real : ℝ≥0∞)) =
-    liminf at_top (λ n, (∥f n x∥₊ : ℝ≥0∞)) ^ p.to_real,
-  { change liminf at_top (λ n, ennreal.order_iso_rpow p.to_real hppos (∥f n x∥₊ : ℝ≥0∞)) =
-      ennreal.order_iso_rpow p.to_real hppos (liminf at_top (λ n, (∥f n x∥₊ : ℝ≥0∞))),
+  have : liminf (λ n, (∥f n x∥₊ ^ p.to_real : ℝ≥0∞)) at_top =
+    (liminf (λ n, (∥f n x∥₊ : ℝ≥0∞)) at_top)^ p.to_real,
+  { change liminf (λ n, ennreal.order_iso_rpow p.to_real hppos (∥f n x∥₊ : ℝ≥0∞)) at_top =
+      ennreal.order_iso_rpow p.to_real hppos (liminf (λ n, (∥f n x∥₊ : ℝ≥0∞)) at_top),
     refine (order_iso.liminf_apply (ennreal.order_iso_rpow p.to_real _) _ _ _ _).symm;
     is_bounded_default },
   rw this at hx,
-  rw [← ennreal.rpow_one (liminf at_top (λ n, ∥f n x∥₊)), ← mul_inv_cancel hppos.ne.symm,
+  rw [← ennreal.rpow_one (liminf (λ n, ∥f n x∥₊) at_top), ← mul_inv_cancel hppos.ne.symm,
     ennreal.rpow_mul],
   exact ennreal.rpow_lt_top_of_nonneg (inv_nonneg.2 hppos.le) hx.ne,
 end

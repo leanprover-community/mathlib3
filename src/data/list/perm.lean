@@ -767,6 +767,9 @@ begin
   convert (subperm_append_right _).mpr nil_subperm using 1
 end
 
+instance decidable_subperm : decidable_rel ((<+~) : list α → list α → Prop) :=
+λ l₁ l₂, decidable_of_iff _ list.subperm_ext_iff.symm
+
 @[simp] lemma subperm_singleton_iff {α} {l : list α} {a : α} : [a] <+~ l ↔ a ∈ l :=
 ⟨λ ⟨s, hla, h⟩, by rwa [perm_singleton.mp hla, singleton_sublist] at h,
  λ h, ⟨[a], perm.refl _, singleton_sublist.mpr h⟩⟩
@@ -1393,3 +1396,21 @@ end
 end permutations
 
 end list
+
+open list
+
+lemma equiv.perm.map_fin_range_perm {n : ℕ} (σ : equiv.perm (fin n)) :
+  map σ (fin_range n) ~ fin_range n :=
+begin
+  rw [perm_ext ((nodup_fin_range n).map σ.injective) $ nodup_fin_range n],
+  simpa only [mem_map, mem_fin_range, true_and, iff_true] using σ.surjective
+end
+
+/-- The list obtained from a permutation of a tuple `f` is permutation equivalent to
+the list obtained from `f`. -/
+lemma equiv.perm.of_fn_comp_perm {n : ℕ} {α : Type uu} (σ : equiv.perm (fin n)) (f : fin n → α) :
+  of_fn (f ∘ σ) ~ of_fn f :=
+begin
+  rw [of_fn_eq_map, of_fn_eq_map, ←map_map],
+  exact σ.map_fin_range_perm.map f,
+end

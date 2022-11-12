@@ -570,6 +570,10 @@ begin
   exact ((hd.mono hRs).has_fpower_series_on_ball hR0).analytic_at
 end
 
+lemma _root_.differentiable_on.analytic_on {s : set ℂ} {f : ℂ → E} (hd : differentiable_on ℂ f s)
+  (hs : is_open s) : analytic_on ℂ f s :=
+λ z hz, hd.analytic_at (hs.mem_nhds hz)
+
 /-- A complex differentiable function `f : ℂ → E` is analytic at every point. -/
 protected lemma _root_.differentiable.analytic_at {f : ℂ → E} (hf : differentiable ℂ f) (z : ℂ) :
   analytic_at ℂ f z :=

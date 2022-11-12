@@ -5,7 +5,7 @@ Authors: Johan Commelin
 -/
 import algebra.group.defs
 import logic.function.basic
-import data.int.cast.defs
+import data.int.cast.basic
 
 /-!
 # Lifting algebraic data classes along injective/surjective maps

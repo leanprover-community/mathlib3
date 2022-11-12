@@ -6,9 +6,10 @@ Authors: Kenny Lau
 
 import algebra.polynomial.big_operators
 import algebra.squarefree
-import field_theory.minpoly
-import field_theory.splitting_field
 import data.polynomial.expand
+import data.polynomial.splits
+import field_theory.minpoly
+import ring_theory.power_basis
 
 /-!
 
@@ -168,7 +169,7 @@ end
 
 lemma separable_prod {ι : Sort*} [fintype ι] {f : ι → R[X]}
   (h1 : pairwise (is_coprime on f)) (h2 : ∀ x, (f x).separable) : (∏ x, f x).separable :=
-separable_prod' (λ x hx y hy hxy, h1 x y hxy) (λ x hx, h2 x)
+separable_prod' (λ x hx y hy hxy, h1 hxy) (λ x hx, h2 x)
 
 lemma separable.inj_of_prod_X_sub_C [nontrivial R] {ι : Sort*} {f : ι → R} {s : finset ι}
   (hfs : (∏ i in s, (X - C (f i))).separable)
@@ -486,7 +487,7 @@ variables (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F
   [algebra K E] [is_scalar_tower F K E]
 
 lemma is_separable_tower_top_of_is_separable [is_separable F E] : is_separable K E :=
-⟨λ x, is_integral_of_is_scalar_tower x (is_separable.is_integral F x),
+⟨λ x, is_integral_of_is_scalar_tower (is_separable.is_integral F x),
  λ x, (is_separable.separable F x).map.of_dvd (minpoly.dvd_map_of_is_scalar_tower _ _ _)⟩
 
 lemma is_separable_tower_bot_of_is_separable [h : is_separable F E] : is_separable F K :=

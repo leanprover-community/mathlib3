@@ -29,6 +29,22 @@ instance perm_group : group (perm α) :=
   mul_one := refl_trans,
   mul_left_inv := self_trans_symm }
 
+/-- The permutation of a type is equivalent to the units group of the endomorphisms monoid of this
+type. -/
+@[simps] def equiv_units_End : perm α ≃* units (function.End α) :=
+{ to_fun := λ e, ⟨e, e.symm, e.self_comp_symm, e.symm_comp_self⟩,
+  inv_fun := λ u, ⟨(u : function.End α), (↑u⁻¹ : function.End α), congr_fun u.inv_val,
+    congr_fun u.val_inv⟩,
+  left_inv := λ e, ext $ λ x, rfl,
+  right_inv := λ u, units.ext rfl,
+  map_mul' := λ e₁ e₂, rfl }
+
+/-- Lift a monoid homomorphism `f : G →* function.End α` to a monoid homomorphism
+`f : G →* equiv.perm α`. -/
+@[simps] def _root_.monoid_hom.to_hom_perm {G : Type*} [group G] (f : G →* function.End α) :
+  G →* perm α :=
+equiv_units_End.symm.to_monoid_hom.comp f.to_hom_units
+
 theorem mul_apply (f g : perm α) (x) : (f * g) x = f (g x) :=
 equiv.trans_apply _ _ _
 
@@ -44,9 +60,9 @@ lemma mul_def (f g : perm α) : f * g = g.trans f := rfl
 
 lemma inv_def (f : perm α) : f⁻¹ = f.symm := rfl
 
-@[simp] lemma coe_mul (f g : perm α) : ⇑(f * g) = f ∘ g := rfl
+@[simp] protected lemma coe_mul (f g : perm α) : ⇑(f * g) = f ∘ g := rfl
 
-@[simp] lemma coe_one : ⇑(1 : perm α) = id := rfl
+@[simp] protected lemma coe_one : ⇑(1 : perm α) = id := rfl
 
 lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y := f.eq_symm_apply
 
@@ -297,30 +313,6 @@ lemma subtype_equiv_subtype_perm_apply_of_not_mem {α : Type*} {p : α → Prop}
   [decidable_pred p] (f : perm (subtype p)) {a : α} (h : ¬ p a) :
   perm.subtype_equiv_subtype_perm p f a = a :=
 f.of_subtype_apply_of_not_mem h
-
-variables (e : perm α) (ι : α ↪ β)
-
-open_locale classical
-
-/-- Noncomputable version of `equiv.perm.via_fintype_embedding` that does not assume `fintype` -/
-noncomputable def via_embedding : perm β :=
-extend_domain e (of_injective ι.1 ι.2)
-
-lemma via_embedding_apply (x : α) : e.via_embedding ι (ι x) = ι (e x) :=
-extend_domain_apply_image e (of_injective ι.1 ι.2) x
-
-lemma via_embedding_apply_of_not_mem (x : β) (hx : x ∉ _root_.set.range ι) :
-  e.via_embedding ι x = x :=
-extend_domain_apply_not_subtype e (of_injective ι.1 ι.2) hx
-
-/-- `via_embedding` as a group homomorphism -/
-noncomputable def via_embedding_hom : perm α →* perm β:=
-extend_domain_hom (of_injective ι.1 ι.2)
-
-lemma via_embedding_hom_apply : via_embedding_hom ι e = via_embedding e ι := rfl
-
-lemma via_embedding_hom_injective : function.injective (via_embedding_hom ι) :=
-extend_domain_hom_injective (of_injective ι.1 ι.2)
 
 end perm
 

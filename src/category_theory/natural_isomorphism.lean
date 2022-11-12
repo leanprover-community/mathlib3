@@ -188,11 +188,24 @@ lemma is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_is
 ⟨(is_iso.of_iso (of_components (λ X, as_iso (α.app X)) (by tidy))).1⟩
 
 /-- Horizontal composition of natural isomorphisms. -/
+@[simps]
 def hcomp {F G : C ⥤ D} {H I : D ⥤ E} (α : F ≅ G) (β : H ≅ I) : F ⋙ H ≅ G ⋙ I :=
 begin
   refine ⟨α.hom ◫ β.hom, α.inv ◫ β.inv, _, _⟩,
   { ext, rw [←nat_trans.exchange], simp, refl },
   ext, rw [←nat_trans.exchange], simp, refl
+end
+
+lemma is_iso_map_iff {F₁ F₂ : C ⥤ D} (e : F₁ ≅ F₂) {X Y : C} (f : X ⟶ Y) :
+  is_iso (F₁.map f) ↔ is_iso (F₂.map f) :=
+begin
+  revert F₁ F₂,
+  suffices : ∀ {F₁ F₂ : C ⥤ D} (e : F₁ ≅ F₂) (hf : is_iso (F₁.map f)), is_iso (F₂.map f),
+  { exact λ F₁ F₂ e, ⟨this e, this e.symm⟩, },
+  introsI F₁ F₂ e hf,
+  refine is_iso.mk ⟨e.inv.app Y ≫ inv (F₁.map f) ≫ e.hom.app X, _, _⟩,
+  { simp only [nat_trans.naturality_assoc, is_iso.hom_inv_id_assoc, iso.inv_hom_id_app], },
+  { simp only [assoc, ← e.hom.naturality, is_iso.inv_hom_id_assoc, iso.inv_hom_id_app], },
 end
 
 end nat_iso

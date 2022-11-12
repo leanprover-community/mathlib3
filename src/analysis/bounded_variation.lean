@@ -5,12 +5,15 @@ Authors: Sébastien Gouëzel
 -/
 import data.set.intervals.monotone
 import measure_theory.measure.lebesgue
+import analysis.calculus.monotone
 
 /-!
 # Functions of bounded variation
 
 We study functions of bounded variation. In particular, we show that a bounded variation function
-is a difference of monotone functions, and that Lipschitz functions have bounded variation
+is a difference of monotone functions, and differentiable almost everywhere. This implies that
+Lipschitz functions from the real line into finite-dimensional vector space are also differentiable
+almost everywhere.
 
 ## Main definitions and results
 
@@ -25,6 +28,9 @@ is a difference of monotone functions, and that Lipschitz functions have bounded
   with locally bounded variation is the difference of two monotone functions.
 * `lipschitz_with.has_locally_bounded_variation_on` shows that a Lipschitz function has locally
   bounded variation.
+* `has_locally_bounded_variation_on.ae_differentiable_within_at` shows that a bounded variation
+  function into a finite dimensional real vector space is differentiable almost everywhere.
+* `lipschitz_on_with.ae_differentiable_within_at` is the same result for Lipschitz functions.
 
 We also give several variations around these results.
 
@@ -240,7 +246,7 @@ begin
                   if_false, h], },
       { have A : ¬(i ≤ n), by linarith,
         have B : ¬(i + 1 ≤ n), by linarith,
-        simp [A, B] } },
+        simp only [A, B, if_false]} },
     refine ⟨v, n+2, hv, vs, (mem_image _ _ _).2 ⟨n+1, _, _⟩, _⟩,
     { rw mem_Iio, exact nat.lt_succ_self (n+1) },
     { have : ¬(n + 1 ≤ n), by linarith,
@@ -268,10 +274,10 @@ begin
     exacts [us _, hx, us _] },
   have hw : monotone w,
   { apply monotone_nat_of_le_succ (λ i, _),
-    dsimp [w],
+    dsimp only [w],
     rcases lt_trichotomy (i + 1) N with hi|hi|hi,
     { have : i < N, by linarith,
-      simp [hi, this],
+      simp only [hi, this, if_true],
       exact hu (nat.le_succ _) },
     { have A : i < N, by linarith,
       have B : ¬(i + 1 < N), by linarith,
@@ -651,3 +657,97 @@ hf.comp_has_locally_bounded_variation_on (maps_to_id _)
 lemma lipschitz_with.has_locally_bounded_variation_on {f : ℝ → E} {C : ℝ≥0}
   (hf : lipschitz_with C f) (s : set ℝ) : has_locally_bounded_variation_on f s :=
 (hf.lipschitz_on_with s).has_locally_bounded_variation_on
+
+
+/-! ## Almost everywhere differentiability of functions with locally bounded variation -/
+
+namespace has_locally_bounded_variation_on
+
+/-- A bounded variation function into `ℝ` is differentiable almost everywhere. Superseded by
+`ae_differentiable_within_at_of_mem`. -/
+theorem ae_differentiable_within_at_of_mem_real
+  {f : ℝ → ℝ} {s : set ℝ} (h : has_locally_bounded_variation_on f s) :
+  ∀ᵐ x, x ∈ s → differentiable_within_at ℝ f s x :=
+begin
+  obtain ⟨p, q, hp, hq, fpq⟩ : ∃ p q, monotone_on p s ∧ monotone_on q s ∧ f = p - q,
+    from h.exists_monotone_on_sub_monotone_on,
+  filter_upwards [hp.ae_differentiable_within_at_of_mem, hq.ae_differentiable_within_at_of_mem]
+    with x hxp hxq xs,
+  have fpq : ∀ x, f x = p x - q x, by simp [fpq],
+  refine ((hxp xs).sub (hxq xs)).congr (λ y hy, fpq y) (fpq x),
+end
+
+/-- A bounded variation function into a finite dimensional product vector space is differentiable
+almost everywhere. Superseded by `ae_differentiable_within_at_of_mem`. -/
+theorem ae_differentiable_within_at_of_mem_pi {ι : Type*} [fintype ι]
+  {f : ℝ → (ι → ℝ)} {s : set ℝ} (h : has_locally_bounded_variation_on f s) :
+  ∀ᵐ x, x ∈ s → differentiable_within_at ℝ f s x :=
+begin
+  have A : ∀ (i : ι), lipschitz_with 1 (λ (x : ι → ℝ), x i) := λ i, lipschitz_with.eval i,
+  have : ∀ (i : ι), ∀ᵐ x, x ∈ s → differentiable_within_at ℝ (λ (x : ℝ), f x i) s x,
+  { assume i,
+    apply ae_differentiable_within_at_of_mem_real,
+    exact lipschitz_with.comp_has_locally_bounded_variation_on (A i) h },
+  filter_upwards [ae_all_iff.2 this] with x hx xs,
+  exact differentiable_within_at_pi.2 (λ i, hx i xs),
+end
+
+/-- A real function into a finite dimensional real vector space with bounded variation on a set
+is differentiable almost everywhere in this set. -/
+theorem ae_differentiable_within_at_of_mem
+  {f : ℝ → V} {s : set ℝ} (h : has_locally_bounded_variation_on f s) :
+  ∀ᵐ x, x ∈ s → differentiable_within_at ℝ f s x :=
+begin
+  let A := (basis.of_vector_space ℝ V).equiv_fun.to_continuous_linear_equiv,
+  suffices H : ∀ᵐ x, x ∈ s → differentiable_within_at ℝ (A ∘ f) s x,
+  { filter_upwards [H] with x hx xs,
+    have : f = (A.symm ∘ A) ∘ f,
+      by simp only [continuous_linear_equiv.symm_comp_self, function.comp.left_id],
+    rw this,
+    exact A.symm.differentiable_at.comp_differentiable_within_at x (hx xs) },
+  apply ae_differentiable_within_at_of_mem_pi,
+  exact A.lipschitz.comp_has_locally_bounded_variation_on h,
+end
+
+/-- A real function into a finite dimensional real vector space with bounded variation on a set
+is differentiable almost everywhere in this set. -/
+theorem ae_differentiable_within_at
+  {f : ℝ → V} {s : set ℝ} (h : has_locally_bounded_variation_on f s) (hs : measurable_set s) :
+  ∀ᵐ x ∂(volume.restrict s), differentiable_within_at ℝ f s x :=
+begin
+  rw ae_restrict_iff' hs,
+  exact h.ae_differentiable_within_at_of_mem
+end
+
+/-- A real function into a finite dimensional real vector space with bounded variation
+is differentiable almost everywhere. -/
+theorem ae_differentiable_at {f : ℝ → V} (h : has_locally_bounded_variation_on f univ) :
+  ∀ᵐ x, differentiable_at ℝ f x :=
+begin
+  filter_upwards [h.ae_differentiable_within_at_of_mem] with x hx,
+  rw differentiable_within_at_univ at hx,
+  exact hx (mem_univ _),
+end
+
+end has_locally_bounded_variation_on
+
+/-- A real function into a finite dimensional real vector space which is Lipschitz on a set
+is differentiable almost everywhere in this set . -/
+lemma lipschitz_on_with.ae_differentiable_within_at_of_mem
+  {C : ℝ≥0} {f : ℝ → V} {s : set ℝ} (h : lipschitz_on_with C f s) :
+  ∀ᵐ x, x ∈ s → differentiable_within_at ℝ f s x :=
+h.has_locally_bounded_variation_on.ae_differentiable_within_at_of_mem
+
+/-- A real function into a finite dimensional real vector space which is Lipschitz on a set
+is differentiable almost everywhere in this set. -/
+lemma lipschitz_on_with.ae_differentiable_within_at
+  {C : ℝ≥0} {f : ℝ → V} {s : set ℝ} (h : lipschitz_on_with C f s) (hs : measurable_set s) :
+  ∀ᵐ x ∂(volume.restrict s), differentiable_within_at ℝ f s x :=
+h.has_locally_bounded_variation_on.ae_differentiable_within_at hs
+
+/-- A real Lipschitz function into a finite dimensional real vector space is differentiable
+almost everywhere. -/
+lemma lipschitz_with.ae_differentiable_at
+  {C : ℝ≥0} {f : ℝ → V} (h : lipschitz_with C f) :
+  ∀ᵐ x, differentiable_at ℝ f x :=
+(h.has_locally_bounded_variation_on univ).ae_differentiable_at

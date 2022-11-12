@@ -248,7 +248,7 @@ begin
   have hVne : (U ∩ V).nonempty := ⟨c, hcU, hcU, hm⟩,
   set W := U ∩ {z | ∥f z∥ ≠ ∥f c∥},
   have hWo : is_open W, from hd.continuous_on.norm.preimage_open_of_open ho is_open_ne,
-  have hdVW : disjoint V W, from λ x ⟨hxV, hxW⟩, hxW.2 (hV x hxV),
+  have hdVW : disjoint V W, from disjoint_left.mpr (λ x hxV hxW, hxW.2 (hV x hxV)),
   have hUVW : U ⊆ V ∪ W,
     from λ x hx, (eq_or_ne (∥f x∥) (∥f c∥)).imp (λ h, ⟨hx, λ y hy, (hm hy).out.trans_eq h.symm⟩)
       (and.intro hx),
@@ -346,6 +346,18 @@ begin
     (differentiable_on.diff_cont_on_cl $
       λ x hx, (hr $ closure_ball_subset_closed_ball hx).1.differentiable_within_at)
     (λ x hx, (hr $ ball_subset_closed_ball hx).2)⟩
+end
+
+lemma eventually_eq_or_eq_zero_of_is_local_min_norm {f : E → ℂ} {c : E}
+  (hf : ∀ᶠ z in 𝓝 c, differentiable_at ℂ f z) (hc : is_local_min (norm ∘ f) c) :
+  (∀ᶠ z in 𝓝 c, f z = f c) ∨ (f c = 0) :=
+begin
+  refine or_iff_not_imp_right.mpr (λ h, _),
+  have h1 : ∀ᶠ z in 𝓝 c, f z ≠ 0 := hf.self_of_nhds.continuous_at.eventually_ne h,
+  have h2 : is_local_max (norm ∘ f)⁻¹ c := hc.inv (h1.mono (λ z, norm_pos_iff.mpr)),
+  have h3 : is_local_max (norm ∘ f⁻¹) c := by { refine h2.congr (eventually_of_forall _); simp },
+  have h4 : ∀ᶠ z in 𝓝 c, differentiable_at ℂ f⁻¹ z, by filter_upwards [hf, h1] with z h using h.inv,
+  filter_upwards [eventually_eq_of_is_local_max_norm h4 h3] with z using inv_inj.mp
 end
 
 end strict_convex

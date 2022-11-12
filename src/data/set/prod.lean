@@ -192,6 +192,11 @@ lemma prod_sub_preimage_iff {W : set γ} {f : α × β → γ} :
   s ×ˢ t ⊆ f ⁻¹' W ↔ ∀ a b, a ∈ s → b ∈ t → f (a, b) ∈ W :=
 by simp [subset_def]
 
+
+lemma image_prod_mk_subset_prod {f : α → β} {g : α → γ} {s : set α} :
+  (λ x, (f x, g x)) '' s ⊆ (f '' s) ×ˢ (g '' s) :=
+by { rintros _ ⟨x, hx, rfl⟩, exact mk_mem_prod (mem_image_of_mem f hx) (mem_image_of_mem g hx) }
+
 lemma image_prod_mk_subset_prod_left (hb : b ∈ t) : (λ a, (a, b)) '' s ⊆ s ×ˢ t :=
 by { rintro _ ⟨a, ha, rfl⟩, exact ⟨ha, hb⟩ }
 
@@ -275,6 +280,13 @@ set.ext $ λ a,
   by { rintro ⟨_, _, _, _, rfl⟩, exact ⟨(_, _), mem_prod.mpr ⟨‹_›, ‹_›⟩, rfl⟩ }⟩
 
 @[simp] lemma image2_mk_eq_prod : image2 prod.mk s t = s ×ˢ t := ext $ by simp
+
+@[simp] lemma image2_curry (f : α × β → γ) (s : set α) (t : set β) :
+  image2 (λ a b, f (a, b)) s t = (s ×ˢ t).image f :=
+by rw [←image2_mk_eq_prod, image_image2]
+
+@[simp] lemma image_uncurry_prod (f : α → β → γ) (s : set α) (t : set β) :
+  uncurry f '' s ×ˢ t = image2 f s t := by { rw ←image2_curry, refl }
 
 section mono
 
@@ -363,7 +375,8 @@ lemma off_diag_eq_sep_prod : s.off_diag = {x ∈ s ×ˢ s | x.1 ≠ x.2} := ext 
 @[simp] lemma off_diag_univ : (univ : set α).off_diag = (diagonal α)ᶜ := ext $ by simp
 
 @[simp] lemma prod_sdiff_diagonal : s ×ˢ s \ diagonal α = s.off_diag := ext $ λ _, and.assoc
-@[simp] lemma disjoint_diagonal_off_diag : disjoint (diagonal α) s.off_diag := λ x hx, hx.2.2.2 hx.1
+@[simp] lemma disjoint_diagonal_off_diag : disjoint (diagonal α) s.off_diag :=
+disjoint_left.mpr $ λ x hd ho, ho.2.2 hd
 
 lemma off_diag_inter : (s ∩ t).off_diag = s.off_diag ∩ t.off_diag :=
 ext $ λ x, by { simp only [mem_off_diag, mem_inter_iff], tauto }
@@ -377,12 +390,16 @@ begin
     union_left_comm (s ×ˢ t), ←union_assoc, sep_union, sep_union, ←off_diag_eq_sep_prod,
     ←off_diag_eq_sep_prod, sep_eq_self_iff_mem_true.2, ←union_assoc],
   simp only [mem_union, mem_prod, ne.def, prod.forall],
-  rintro i j (⟨hi, hj⟩ | ⟨hi, hj⟩) rfl; exact h ⟨‹_›, ‹_›⟩,
+  rintro i j (⟨hi, hj⟩ | ⟨hi, hj⟩) rfl; exact h.le_bot ⟨‹_›, ‹_›⟩,
 end
 
 lemma off_diag_insert (ha : a ∉ s) : (insert a s).off_diag = s.off_diag ∪ {a} ×ˢ s ∪ s ×ˢ {a} :=
-by { rw [insert_eq, union_comm, off_diag_union, off_diag_singleton, union_empty, union_right_comm],
-   rintro b ⟨hb, (rfl : b = a)⟩, exact ha hb }
+begin
+  rw [insert_eq, union_comm, off_diag_union, off_diag_singleton, union_empty, union_right_comm],
+  rw disjoint_left,
+  rintro b hb (rfl : b = a),
+  exact ha hb
+end
 
 end off_diag
 

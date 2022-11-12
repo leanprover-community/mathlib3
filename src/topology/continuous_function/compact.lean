@@ -55,8 +55,9 @@ begin
   simp only [has_basis_compact_convergence_uniformity.mem_iff, uniformity_basis_dist_le.mem_iff],
   exact λ s, ⟨λ ⟨⟨a, b⟩, ⟨ha, ⟨ε, hε, hb⟩⟩, hs⟩, ⟨{p | ∀ x, (p.1 x, p.2 x) ∈ b},
     ⟨ε, hε, λ _ h x, hb (by exact (dist_le hε.le).mp h x)⟩, λ f g h, hs (by exact λ x hx, h x)⟩,
-    λ ⟨t, ⟨ε, hε, ht⟩, hs⟩, ⟨⟨set.univ, {p | dist p.1 p.2 ≤ ε}⟩, ⟨compact_univ, ⟨ε, hε, λ _ h, h⟩⟩,
-    λ ⟨f, g⟩ h, hs _ _ (ht (by exact (dist_le hε.le).mpr (λ x, h x (mem_univ x))))⟩⟩,
+    λ ⟨t, ⟨ε, hε, ht⟩, hs⟩, ⟨⟨set.univ, {p | dist p.1 p.2 ≤ ε}⟩,
+      ⟨is_compact_univ, ⟨ε, hε, λ _ h, h⟩⟩,
+      λ ⟨f, g⟩ h, hs _ _ (ht (by exact (dist_le hε.le).mpr (λ x, h x (mem_univ x))))⟩⟩,
 end
 
 lemma uniform_embedding_equiv_bounded_of_compact :
@@ -363,7 +364,7 @@ section comp_right
 Precomposition by a continuous map is itself a continuous map between spaces of continuous maps.
 -/
 def comp_right_continuous_map {X Y : Type*} (T : Type*) [topological_space X] [compact_space X]
-  [topological_space Y] [compact_space Y] [normed_add_comm_group T]
+  [topological_space Y] [compact_space Y] [metric_space T]
   (f : C(X, Y)) : C(C(Y, T), C(X, T)) :=
 { to_fun := λ g, g.comp f,
   continuous_to_fun :=
@@ -376,7 +377,7 @@ def comp_right_continuous_map {X Y : Type*} (T : Type*) [topological_space X] [c
   end }
 
 @[simp] lemma comp_right_continuous_map_apply {X Y : Type*} (T : Type*) [topological_space X]
-  [compact_space X] [topological_space Y] [compact_space Y] [normed_add_comm_group T]
+  [compact_space X] [topological_space Y] [compact_space Y] [metric_space T]
   (f : C(X, Y)) (g : C(Y, T)) :
   (comp_right_continuous_map T f) g = g.comp f :=
 rfl
@@ -385,39 +386,18 @@ rfl
 Precomposition by a homeomorphism is itself a homeomorphism between spaces of continuous maps.
 -/
 def comp_right_homeomorph {X Y : Type*} (T : Type*) [topological_space X] [compact_space X]
-  [topological_space Y] [compact_space Y] [normed_add_comm_group T]
+  [topological_space Y] [compact_space Y] [metric_space T]
   (f : X ≃ₜ Y) : C(Y, T) ≃ₜ C(X, T) :=
 { to_fun := comp_right_continuous_map T f.to_continuous_map,
   inv_fun := comp_right_continuous_map T f.symm.to_continuous_map,
-  left_inv := by tidy,
-  right_inv := by tidy, }
+  left_inv := λ g, ext $ λ _, congr_arg g (f.apply_symm_apply _),
+  right_inv := λ g, ext $ λ _, congr_arg g (f.symm_apply_apply _) }
 
-/--
-Precomposition of functions into a normed ring by continuous map is an algebra homomorphism.
--/
-def comp_right_alg_hom {X Y : Type*} (R : Type*)
-  [topological_space X] [topological_space Y] [normed_comm_ring R] (f : C(X, Y)) :
-  C(Y, R) →ₐ[R] C(X, R) :=
-{ to_fun := λ g, g.comp f,
-  map_zero' := by { ext, simp, },
-  map_add' := λ g₁ g₂, by { ext, simp, },
-  map_one' := by { ext, simp, },
-  map_mul' := λ g₁ g₂, by { ext, simp, },
-  commutes' := λ r, by { ext, simp, }, }
-
-@[simp] lemma comp_right_alg_hom_apply {X Y : Type*} (R : Type*)
-  [topological_space X] [topological_space Y] [normed_comm_ring R] (f : C(X, Y)) (g : C(Y, R)) :
-  (comp_right_alg_hom R f) g = g.comp f :=
-rfl
-
-lemma comp_right_alg_hom_continuous {X Y : Type*} (R : Type*)
-  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y]
-  [normed_comm_ring R] (f : C(X, Y)) :
-  continuous (comp_right_alg_hom R f) :=
-begin
-  change continuous (comp_right_continuous_map R f),
-  continuity,
-end
+lemma comp_right_alg_hom_continuous {X Y : Type*} (R A : Type*)
+  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y] [comm_semiring R]
+  [semiring A] [metric_space A] [topological_semiring A] [algebra R A] (f : C(X, Y)) :
+  continuous (comp_right_alg_hom R A f) :=
+map_continuous (comp_right_continuous_map A f)
 
 end comp_right
 

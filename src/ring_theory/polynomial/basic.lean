@@ -437,7 +437,7 @@ lemma polynomial_mem_ideal_of_coeff_mem_ideal (I : ideal R[X]) (p : R[X])
   (hp : ∀ (n : ℕ), (p.coeff n) ∈ I.comap (C : R →+* R[X])) : p ∈ I :=
 sum_C_mul_X_eq p ▸ submodule.sum_mem I (λ n hn, I.mul_mem_right _ (hp n))
 
-/-- The push-forward of an ideal `I` of `R` to `polynomial R` via inclusion
+/-- The push-forward of an ideal `I` of `R` to `R[X]` via inclusion
  is exactly the set of polynomials whose coefficients are in `I` -/
 theorem mem_map_C_iff {I : ideal R} {f : R[X]} :
   f ∈ (ideal.map (C : R →+* R[X]) I : ideal R[X]) ↔ ∀ n : ℕ, f.coeff n ∈ I :=
@@ -557,7 +557,7 @@ end comm_semiring
 section ring
 variables [ring R]
 
-/-- `polynomial R` is never a field for any ring `R`. -/
+/-- `R[X]` is never a field for any ring `R`. -/
 lemma polynomial_not_is_field : ¬ is_field R[X] :=
 begin
   nontriviality R,
@@ -613,10 +613,10 @@ begin
 end
 
 /-- If `I` is an ideal of `R`, then the ring polynomials over the quotient ring `I.quotient` is
-isomorphic to the quotient of `polynomial R` by the ideal `map C I`,
+isomorphic to the quotient of `R[X]` by the ideal `map C I`,
 where `map C I` contains exactly the polynomials whose coefficients all lie in `I` -/
 def polynomial_quotient_equiv_quotient_polynomial (I : ideal R) :
-  polynomial (R ⧸ I) ≃+* R[X] ⧸ (map C I : ideal R[X]) :=
+  (R ⧸ I)[X] ≃+* R[X] ⧸ (map C I : ideal R[X]) :=
 { to_fun := eval₂_ring_hom
     (quotient.lift I ((quotient.mk (map C I : ideal R[X])).comp C) quotient_map_C_eq_zero)
     ((quotient.mk (map C I : ideal R[X]) X)),
@@ -675,7 +675,7 @@ lemma is_prime_map_C_of_is_prime {P : ideal R} (H : is_prime P) :
 (quotient.is_domain_iff_prime (map C P : ideal R[X])).mp
   (is_domain_map_C_quotient H)
 
-/-- Given any ring `R` and an ideal `I` of `polynomial R`, we get a map `R → R[x] → R[x]/I`.
+/-- Given any ring `R` and an ideal `I` of `R[X]`, we get a map `R → R[x] → R[x]/I`.
   If we let `R` be the image of `R` in `R[x]/I` then we also have a map `R[x] → R'[x]`.
   In particular we can map `I` across this map, to get `I'` and a new map `R' → R'[x] → R'[x]/I`.
   This theorem shows `I'` will not contain any non-zero constant polynomials
@@ -745,9 +745,9 @@ begin
 end
 
 lemma prime_C_iff : prime (C r : mv_polynomial σ R) ↔ prime r :=
-⟨ comap_prime C constant_coeff constant_coeff_C,
+⟨ comap_prime C constant_coeff (constant_coeff_C _),
   λ hr, ⟨ λ h, hr.1 $ by { rw [← C_inj, h], simp },
-    λ h, hr.2.1 $ by { rw ← constant_coeff_C r, exact h.map _ },
+    λ h, hr.2.1 $ by { rw ← constant_coeff_C _ r, exact h.map _ },
     λ a b hd, begin
       obtain ⟨s,a',b',rfl,rfl⟩ := exists_finset_rename₂ a b,
       rw ← algebra_map_eq at hd, have : algebra_map R _ r ∣ a' * b',
@@ -907,6 +907,7 @@ lemma disjoint_ker_aeval_of_coprime
   (f : M →ₗ[R] M) {p q : R[X]} (hpq : is_coprime p q) :
   disjoint (aeval f p).ker (aeval f q).ker :=
 begin
+  rw disjoint_iff_inf_le,
   intros v hv,
   rcases hpq with ⟨p', q', hpq'⟩,
   simpa [linear_map.mem_ker.1 (submodule.mem_inf.1 hv).1,
@@ -1182,7 +1183,7 @@ open unique_factorization_monoid
 namespace polynomial
 
 @[priority 100]
-instance unique_factorization_monoid : unique_factorization_monoid (polynomial D) :=
+instance unique_factorization_monoid : unique_factorization_monoid D[X] :=
 begin
   haveI := arbitrary (normalization_monoid D),
   haveI := to_normalized_gcd_monoid D,

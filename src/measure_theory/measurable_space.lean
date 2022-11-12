@@ -157,6 +157,10 @@ comap_le_iff_le_map.symm
 
 alias measurable_iff_comap_le ↔ measurable.comap_le measurable.of_comap_le
 
+lemma comap_measurable {m : measurable_space β} (f : α → β) :
+  measurable[m.comap f] f :=
+λ s hs, ⟨s, hs, rfl⟩
+
 lemma measurable.mono {ma ma' : measurable_space α} {mb mb' : measurable_space β} {f : α → β}
   (hf : @measurable α β ma mb f) (ha : ma ≤ ma') (hb : mb' ≤ mb) :
   @measurable α β ma' mb' f :=
@@ -204,6 +208,10 @@ end
 
 lemma measurable_of_finite [finite α] [measurable_singleton_class α] (f : α → β) : measurable f :=
 λ s hs, (f ⁻¹' s).to_finite.measurable_set
+
+lemma measurable_of_countable [countable α] [measurable_singleton_class α] (f : α → β) :
+  measurable f :=
+λ s hs, (f ⁻¹' s).to_countable.measurable_set
 
 end typeclass_measurable_space
 
@@ -266,7 +274,6 @@ begin
   rw this,
   exact (hf ht).inter h.measurable_set.of_compl,
 end
-
 
 end measurable_functions
 
@@ -628,7 +635,7 @@ begin
     simpa only [B', mem_union, mem_Inter, or_false, compl_Union, mem_compl_iff] using B },
   congr,
   by_contra h,
-  exact t_disj n (nat.find (P x)) (ne.symm h) ⟨hx, this⟩
+  exact (t_disj (ne.symm h)).le_bot ⟨hx, this⟩
 end
 
 end prod
@@ -1461,5 +1468,19 @@ instance : boolean_algebra (subtype (measurable_set : set α → Prop)) :=
   sdiff_eq := λ a b, subtype.eq $ sdiff_eq,
   .. measurable_set.subtype.bounded_order,
   .. measurable_set.subtype.distrib_lattice }
+
+@[measurability] lemma measurable_set_limsup {s : ℕ → set α} (hs : ∀ n, measurable_set $ s n) :
+  measurable_set $ filter.limsup s filter.at_top :=
+begin
+  simp only [filter.limsup_eq_infi_supr_of_nat', supr_eq_Union, infi_eq_Inter],
+  exact measurable_set.Inter (λ n, measurable_set.Union $ λ m, hs $ m + n),
+end
+
+@[measurability] lemma measurable_set_liminf {s : ℕ → set α} (hs : ∀ n, measurable_set $ s n) :
+  measurable_set $ filter.liminf s filter.at_top :=
+begin
+  simp only [filter.liminf_eq_supr_infi_of_nat', supr_eq_Union, infi_eq_Inter],
+  exact measurable_set.Union (λ n, measurable_set.Inter $ λ m, hs $ m + n),
+end
 
 end measurable_set

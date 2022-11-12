@@ -264,7 +264,7 @@ lemma algebra_ext {R : Type*} [comm_semiring R] {A : Type*} [semiring A] (P Q : 
     by { haveI := Q, exact algebra_map R A r }) :
   P = Q :=
 begin
-  unfreezingI { rcases P with ⟨⟨P⟩⟩, rcases Q with ⟨⟨Q⟩⟩ },
+  unfreezingI { rcases P with @⟨⟨P⟩⟩, rcases Q with @⟨⟨Q⟩⟩ },
   congr,
   { funext r a,
     replace w := congr_arg (λ s, s * a) (w r),
@@ -641,6 +641,12 @@ instance {F : Type*} [alg_hom_class F R A B] : linear_map_class F R A B :=
 { map_smulₛₗ := λ f r x, by simp only [algebra.smul_def, map_mul, commutes, ring_hom.id_apply],
   ..‹alg_hom_class F R A B› }
 
+instance {F : Type*} [alg_hom_class F R A B] : has_coe_t F (A →ₐ[R] B) :=
+{ coe := λ f,
+  { to_fun := f,
+    commutes' := alg_hom_class.commutes f,
+    .. (f : A →+* B) } }
+
 end alg_hom_class
 
 namespace alg_hom
@@ -655,6 +661,9 @@ variables [algebra R A] [algebra R B] [algebra R C] [algebra R D]
 instance : has_coe_to_fun (A →ₐ[R] B) (λ _, A → B) := ⟨alg_hom.to_fun⟩
 
 initialize_simps_projections alg_hom (to_fun → apply)
+
+@[simp, protected] lemma coe_coe {F : Type*} [alg_hom_class F R A B] (f : F) :
+  ⇑(f : A →ₐ[R] B) = f := rfl
 
 @[simp] lemma to_fun_eq_coe (f : A →ₐ[R] B) : f.to_fun = f := rfl
 
@@ -771,7 +780,7 @@ def comp (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) : A →ₐ[R] C :=
 lemma comp_apply (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) (p : A) : φ₁.comp φ₂ p = φ₁ (φ₂ p) := rfl
 
 lemma comp_to_ring_hom (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) :
-  ⇑(φ₁.comp φ₂ : A →+* C) = (φ₁ : B →+* C).comp ↑φ₂ := rfl
+  (φ₁.comp φ₂ : A →+* C) = (φ₁ : B →+* C).comp ↑φ₂ := rfl
 
 @[simp] theorem comp_id : φ.comp (alg_hom.id R A) = φ :=
 ext $ λ x, rfl
@@ -963,6 +972,14 @@ instance to_linear_equiv_class (F R A B : Type*)
 { map_smulₛₗ := λ f, map_smulₛₗ f,
   ..h }
 
+instance (F R A B : Type*) [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
+  [h : alg_equiv_class F R A B] : has_coe_t F (A ≃ₐ[R] B) :=
+{ coe := λ f,
+  { to_fun := f,
+  inv_fun := equiv_like.inv f,
+  commutes' := alg_hom_class.commutes f,
+  .. (f : A ≃+* B) } }
+
 end alg_equiv_class
 
 namespace alg_equiv
@@ -988,6 +1005,9 @@ instance : alg_equiv_class (A₁ ≃ₐ[R] A₂) R A₁ A₂ :=
 /--  Helper instance for when there's too many metavariables to apply
 `fun_like.has_coe_to_fun` directly. -/
 instance : has_coe_to_fun (A₁ ≃ₐ[R] A₂) (λ _, A₁ → A₂) := ⟨alg_equiv.to_fun⟩
+
+@[simp, protected] lemma coe_coe {F : Type*} [alg_equiv_class F R A₁ A₂] (f : F) :
+  ⇑(f : A₁ ≃ₐ[R] A₂) = f := rfl
 
 @[ext]
 lemma ext {f g : A₁ ≃ₐ[R] A₂} (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
@@ -1047,12 +1067,9 @@ e.map_sum _ _
 /-- Interpret an algebra equivalence as an algebra homomorphism.
 
 This definition is included for symmetry with the other `to_*_hom` projections.
-The `simp` normal form is to use the coercion of the `has_coe_to_alg_hom` instance. -/
+The `simp` normal form is to use the coercion of the `alg_hom_class.has_coe_t` instance. -/
 def to_alg_hom : A₁ →ₐ[R] A₂ :=
 { map_one' := e.map_one, map_zero' := e.map_zero, ..e }
-
-instance has_coe_to_alg_hom : has_coe (A₁ ≃ₐ[R] A₂) (A₁ →ₐ[R] A₂) :=
-⟨to_alg_hom⟩
 
 @[simp] lemma to_alg_hom_eq_coe : e.to_alg_hom = e := rfl
 
@@ -1091,6 +1108,12 @@ def symm (e : A₁ ≃ₐ[R] A₂) : A₂ ≃ₐ[R] A₁ :=
 def simps.symm_apply (e : A₁ ≃ₐ[R] A₂) : A₂ → A₁ := e.symm
 
 initialize_simps_projections alg_equiv (to_fun → apply, inv_fun → symm_apply)
+
+@[simp] lemma coe_apply_coe_coe_symm_apply {F : Type*} [alg_equiv_class F R A₁ A₂]
+  (f : F) (x : A₂) : f ((f : A₁ ≃ₐ[R] A₂).symm x) = x := equiv_like.right_inv f x
+
+@[simp] lemma coe_coe_symm_apply_coe_apply {F : Type*} [alg_equiv_class F R A₁ A₂]
+  (f : F) (x : A₁) : (f : A₁ ≃ₐ[R] A₂).symm (f x) = x := equiv_like.left_inv f x
 
 @[simp] lemma inv_fun_eq_symm {e : A₁ ≃ₐ[R] A₂} : e.inv_fun = e.symm := rfl
 
@@ -1633,6 +1656,10 @@ instance algebra {r : comm_semiring R}
 { commutes' := λ a f, begin ext, simp [algebra.commutes], end,
   smul_def' := λ a f, begin ext, simp [algebra.smul_def], end,
   ..(pi.ring_hom (λ i, algebra_map R (f i)) : R →+* Π i : I, f i) }
+
+lemma algebra_map_def {r : comm_semiring R}
+  [s : ∀ i, semiring (f i)] [∀ i, algebra R (f i)] (a : R) :
+  algebra_map R (Π i, f i) a = (λ i, algebra_map R (f i) a) := rfl
 
 @[simp] lemma algebra_map_apply {r : comm_semiring R}
   [s : ∀ i, semiring (f i)] [∀ i, algebra R (f i)] (a : R) (i : I) :

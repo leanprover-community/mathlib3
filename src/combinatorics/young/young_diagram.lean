@@ -47,6 +47,8 @@ Young diagram
 
 -/
 
+open function
+
 /-- A Young diagram is a finite collection of cells on the `ℕ × ℕ` grid such that whenever
 a cell is present, so are all the ones above and to the left of it. Like matrices, an `(i, j)` cell
 is a cell in row `i` and column `j`, where rows are enumerated downward and columns rightward.
@@ -322,7 +324,7 @@ protected def cells_of_row_lens : list ℕ → finset (ℕ × ℕ)
 | [] := ∅
 | (w :: ws) := (({0} : finset ℕ) ×ˢ finset.range w) ∪
                  (cells_of_row_lens ws).map
-                   (embedding.prod_map ⟨_, nat.succ_injective⟩ (embedding.refl ℕ)
+                   (embedding.prod_map ⟨_, nat.succ_injective⟩ (embedding.refl ℕ))
 
 protected lemma mem_cells_of_row_lens {w : list ℕ} {c : ℕ × ℕ} :
   c ∈ young_diagram.cells_of_row_lens w ↔ ∃ (h : c.fst < w.length), c.snd < w.nth_le c.fst h :=

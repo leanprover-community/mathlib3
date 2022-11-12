@@ -439,7 +439,7 @@ by { ext v, rw [coord_changeL_apply e e' hb], refl }
 end trivialization
 
 namespace bundle.trivial
-variables (R B) (F' : Type*) [topological_space B] [topological_space F']
+variables (R B) (F' : Type*) [topological_space F']
 
 /-- Local trivialization for trivial bundle. -/
 def trivialization : trivialization F' (π (bundle.trivial B F')) :=

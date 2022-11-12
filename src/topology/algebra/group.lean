@@ -1208,6 +1208,22 @@ begin
   exact mem_interior_iff_mem_nhds.1 hy
 end
 
+/-- Given two compact sets in a noncompact topological group, there is a translate of the second
+one that is disjoint from the first one. -/
+@[to_additive]
+lemma exists_disjoint_smul_of_is_compact [noncompact_space G] {K L : set G}
+  (hK : is_compact K) (hL : is_compact L) : ∃ (g : G), disjoint K (g • L) :=
+begin
+  have A : ¬ (K * L⁻¹ = univ), from (hK.mul hL.inv).ne_univ,
+  obtain ⟨g, hg⟩ : ∃ g, g ∉ K * L⁻¹,
+  { contrapose! A, exact eq_univ_iff_forall.2 A },
+  refine ⟨g, _⟩,
+  apply disjoint_left.2 (λ a ha h'a, hg _),
+  rcases h'a with ⟨b, bL, rfl⟩,
+  refine ⟨g * b, b⁻¹, ha, by simpa only [set.mem_inv, inv_inv] using bL, _⟩,
+  simp only [smul_eq_mul, mul_inv_cancel_right]
+end
+
 end
 
 section

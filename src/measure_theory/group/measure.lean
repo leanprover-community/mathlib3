@@ -213,6 +213,15 @@ calc μ ((λ h, h * g) ⁻¹' A) = map (λ h, h * g) μ A :
   ((measurable_equiv.mul_right g).map_apply A).symm
 ... = μ A : by rw map_mul_right_eq_self μ g
 
+@[simp, to_additive]
+lemma measure_smul (μ : measure G) [is_mul_left_invariant μ] (g : G) (A : set G) :
+  μ (g • A) = μ A :=
+begin
+  convert measure_preimage_mul μ (g⁻¹) A,
+  ext x,
+  simp only [mem_smul_set_iff_inv_smul_mem, smul_eq_mul, mem_preimage]
+end
+
 @[to_additive]
 lemma map_mul_left_ae (μ : measure G) [is_mul_left_invariant μ] (x : G) :
   filter.map (λ h, x * h) μ.ae = μ.ae :=
@@ -646,23 +655,8 @@ example {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [nontrivial E
   [is_add_haar_measure μ] :
   has_no_atoms μ := by apply_instance
 
-set_option pp.all true
-
-
--- @[to_additive]
-lemma my_test_smul {G : Type*} [group G] [topological_space G] [topological_group G] (a : G) (K : set G) (hK : is_compact K) :
-  is_compact (a • K) :=
-is_compact.smul a hK
-
-
-#print my_test_smul
-
-#check is_scalar_tower.has_continuous_const_smul
-
-#exit
-
 @[to_additive]
-lemma haar_univ [topological_group G] [borel_space G]
+lemma measure_univ_of_is_mul_left_invariant [topological_group G] [borel_space G]
   [t2_space G] [locally_compact_space G]
   (μ : measure G) [μ.is_mul_left_invariant] [is_open_pos_measure μ] (h : ¬(compact_space G)) :
   μ univ = ∞ :=
@@ -701,16 +695,8 @@ begin
           simp_rw [hL, iterate_succ'],
           exact measure_union' (hg _ (B _)) (B _).measurable_set
         end
-      ... = (n + 1 : ℕ) * μ K + μ K :
-        begin
-          rw IH,
-          congr' 1,
-          convert measure_preimage_mul μ (g (L n))⁻¹ K,
-          ext y,
-          simp only [mem_smul_set_iff_inv_smul_mem, smul_eq_mul, mem_preimage],
-        end
       ... = ((n + 1) + 1 : ℕ) * μ K :
-        by simp only [add_mul, nat.cast_add, algebra_map.coe_one, one_mul] } },
+        by simp only [IH, measure_smul, add_mul, nat.cast_add, algebra_map.coe_one, one_mul] } },
   have N : tendsto (λ n, μ (L n)) at_top (𝓝 (∞ * μ K)),
   { simp_rw [M],
     apply ennreal.tendsto.mul_const _ (or.inl ennreal.top_ne_zero),

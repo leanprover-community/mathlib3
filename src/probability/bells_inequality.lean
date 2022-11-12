@@ -191,6 +191,7 @@ theorem bells_inequality_1975
   {Aa Ab : Type*}
   -- shared variable space
   {Λ : Type*}
+  [measure_space Λ]
   [topological_space Λ]
 
   -- random variables
@@ -212,11 +213,10 @@ theorem bells_inequality_1975
   (P_lam : probability_measure Ω)
 
   -- locality assumption
-  (locality : ∀ lam_val:Λ, ∀ α:Aa, ∀ β:Ab , ∀ ω : set Ω ,
-    ((probability_theory.cond ((ℙab α β):measure Ω) (lam ⁻¹' {lam_val})) ω) =
-      ((probability_theory.cond ((ℙa α):measure Ω) (lam ⁻¹' {lam_val})) ω)*
-      ((probability_theory.cond ((ℙb β):measure Ω) (lam ⁻¹' {lam_val})) ω )
-  )
+  (locality : ∀ l:Λ, ∀ α:Aa, ∀ β:Ab ,
+    ∫ ω , (Xa ω :ℝ) * (Xb ω) ∂(probability_theory.cond ((ℙab α β):measure Ω) (lam ⁻¹' {l})) =
+      ∫ ω , (Xa ω :ℝ) * (Xb ω) ∂(probability_theory.cond ((ℙa α):measure Ω) (lam ⁻¹' {l})) *
+      ∫ ω , (Xa ω :ℝ) * (Xb ω) ∂(probability_theory.cond ((ℙb β):measure Ω) (lam ⁻¹' {l})) )
   :
   ∀ α : Aa , ∀ α' : Aa, ∀ β : Ab , ∀ β' : Ab ,
   | (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙab α β):measure Ω) )
@@ -227,6 +227,15 @@ theorem bells_inequality_1975
   :=
 
 begin
+  intros α α' β β',
+  
+  let ℙab_cond:= λ α β l , (probability_theory.cond ((ℙab α β):measure Ω) (lam ⁻¹' {l})),
+  
+  have cond_expectation :
+  ∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙab α β):measure Ω)
+    = ∫ l:Λ, ∫ ω , (Xa ω : ℝ) * (Xb ω) ∂(ℙab_cond α β l) ,
+
+
   sorry,
 end
 

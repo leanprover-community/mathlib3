@@ -3,6 +3,7 @@ Copyright (c) 2021 Alex J. Best. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best
 -/
+import algebra.module.pi
 import algebra.module.pointwise_pi
 import measure_theory.group.fundamental_domain
 import analysis.convex.measure
@@ -21,6 +22,11 @@ Hermann Minkowski.
 - `exists_nonzero_mem_lattice_of_volume_mul_two_pow_card_lt_measure`: Minkowski's theorem, existence
   of a non-zero lattice point inside a convex symmetric domain of large enough covolume.
 -/
+
+instance function.no_zero_smul_divisors {ι α β : Type*} {r : semiring α} {m : add_comm_monoid β}
+  [module α β] [no_zero_smul_divisors α β] :
+  no_zero_smul_divisors α (ι → β) :=
+pi.no_zero_smul_divisors _
 
 namespace measure_theory
 section
@@ -44,8 +50,6 @@ variables {G H α β E : Type*} [group G] [group H]
   [mul_action H β] [measurable_space β]
   [normed_add_comm_group E] {s t : set α} {μ : measure α} {ν : measure β}
 
-
-
 @[to_additive is_add_fundamental_domain.preimage_of_equiv']
 lemma is_fundamental_domain.preimage_of_equiv' [measurable_space H]
   [has_measurable_smul H β] [smul_invariant_measure H β ν]
@@ -59,7 +63,7 @@ lemma is_fundamental_domain.preimage_of_equiv' [measurable_space H]
     begin
       lift e to H ≃ G using he,
       have : (e.symm g⁻¹)⁻¹ ≠ (e.symm 1)⁻¹, by simp [hg],
-      convert (h.pairwise_ae_disjoint _ _ this).preimage hf using 1,
+      convert (h.pairwise_ae_disjoint this).preimage hf using 1,
       { simp only [← preimage_smul_inv, preimage_preimage, ← hef _ _, e.apply_symm_apply,
           inv_inv] },
       { ext1 x,
@@ -126,7 +130,7 @@ section
 variables [measurable_space V]
 
 open smul_invariant_measure
--- #check smul_invaria.nt_measure.measure_preimage_smul
+
 --TODO given subgroup we don't get has_scalar in the same way as mul_action
 @[to_additive]
 instance smul_invariant_measure.to_subgroup_smul_invariant_measure {G : Type*} [group G]
@@ -212,10 +216,10 @@ begin
   { rw pi_pi,
     { congr',
       ext i : 1,
-      exact measure_preimage_add _ _ _, }, },
-  { refl, },
-  { exact measurable_const_add v, },
-  { exact measurable_set.univ_pi hs, },
+      exact measure_preimage_add _ _ _ } },
+  { refl },
+  { exact measurable_const_add v },
+  { exact measurable_set.univ_pi hs },
 end
 
 variable {ι}
@@ -410,11 +414,7 @@ lemma exists_mul_inv_mem_lattice_of_volume_lt_volume' {X : Type*} [measure_space
   ∃ (x y : X) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), y * x⁻¹ ∈ L :=
 begin
   haveI : smul_invariant_measure L X measure_space.volume,
-  { apply smul_invariant_measure.to_subgroup_smul_invariant_measure L,
-    apply_instance,
-    constructor,
-    intros c S hS,
-    exact measure_preimage_mul volume c S },
+  { exact smul_invariant_measure.to_subgroup_smul_invariant_measure L },
   obtain ⟨x, y, hx, hy, hne, h⟩ := exists_mul_inv_mem_lattice_of_volume_lt_volume hS F fund hlt _,
   { refine ⟨x, y, hx, hy, hne, _⟩,
     simp only [image_univ, mem_range] at h,
@@ -436,13 +436,13 @@ begin
     rw ennreal.of_real_eq_zero at h,
     linarith },
   have hrtop : ennreal.of_real r ≠ ⊤, from ennreal.of_real_ne_top,
-  suffices : (1 / ennreal.of_real r) ^ (fintype.card ι) •
+  suffices : (1 / ennreal.of_real r) ^ card ι •
     measure.comap ((•) r) (volume : measure (ι → ℝ)) = (volume : measure (ι → ℝ)),
   { conv_rhs { rw ←this },
     rw [one_div, smul_smul, ←mul_pow, ennreal.mul_inv_cancel hrzero hrtop],
     simp only [one_pow, one_smul] },
   refine (pi_eq $ λ s hS, _).symm,
-  simp only [one_div, algebra.id.smul_eq_mul, coe_smul, pi.smul_apply],
+  simp only [one_div, algebra.id.smul_eq_mul, measure.coe_smul, pi.smul_apply],
   rw [comap_apply, image_smul, smul_univ_pi],
   { erw pi_pi,
     dsimp,
@@ -481,7 +481,7 @@ begin
     intros s hs h,
     rw [measure.smul_apply, smul_eq_zero] at h,
     -- TODO nice lemma for this?
-    exact h.resolve_left (measure_pos_of_nonempty_interior _ (pi_Icc01 _).interior_nonempty).ne', },
+    exact h.resolve_left (measure_pos_of_nonempty_interior _ (pi_Icc01 _).interior_nonempty).ne' },
 
   rw [add_haar_measure_unique μ (pi_Icc01 ι), add_haar_measure_eq_volume_pi, measure.smul_apply,
     measure.smul_apply, smul_mul_assoc, smul_eq_mul, smul_eq_mul] at h,
@@ -525,7 +525,6 @@ begin
   exact smul_mem_smul_set (h_symm ⟨x, interior_subset hx, rfl⟩),
 end
 
-
 open finite_dimensional
 
 @[simp, to_additive]
@@ -537,7 +536,7 @@ begin
   rw [subtype.coe_mk, subtype.coe_eq_iff],
   refine ⟨_, _⟩,
   { convert h_prop,
-    erw [mul_equiv.symm_apply_apply], },
+    erw [mul_equiv.symm_apply_apply] },
   erw [mul_equiv.symm_apply_eq, subtype.ext_iff, subgroup.coe_equiv_map_of_injective_apply,
     subtype.coe_mk, mul_equiv.apply_symm_apply],
 end
@@ -560,14 +559,14 @@ begin
       rw eq_comm,
       convert map_id,
       ext,
-      simp, },
+      simp },
     convert e.symm.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv.measurable,
     convert e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv.measurable,
     ext,
-    refl, },
+    refl },
   { refine ((L.equiv_map_of_injective _ _).symm.to_equiv : L.map (e : E →+ G) ≃ L),
     change injective e,
-    exact equiv_like.injective _, },
+    exact equiv_like.injective _ },
   { intros g x,
     simp only [add_subgroup.vadd_def, add_equiv.to_equiv_symm, add_equiv.to_equiv_eq_coe,
       vadd_eq_add, linear_equiv.coe_to_equiv, _root_.map_add, _root_.add_left_inj],
@@ -576,7 +575,7 @@ begin
     convert add_subgroup.coe_equiv_map_of_injective_symm_apply e.to_add_equiv,
     change injective e,
     exact equiv_like.injective _,
-    exact equiv_like.injective _, },
+    exact equiv_like.injective _ }
 end
 
 lemma exists_nonzero_mem_lattice_of_measure_mul_two_pow_finrank_lt_measure
@@ -592,13 +591,13 @@ begin
   have e : E ≃ₗ[ℝ] ι → ℝ := linear_equiv.of_finrank_eq E (ι → ℝ) this,
   have Ce : continuous e := (e : E →ₗ[ℝ] (ι → ℝ)).continuous_of_finite_dimensional,
   have Cesymm : continuous e.symm := (e.symm : (ι → ℝ) →ₗ[ℝ] E).continuous_of_finite_dimensional,
-  haveI : is_add_haar_measure (map e μ) := is_add_haar_measure_map μ e.to_add_equiv Ce Cesymm,
+  haveI : is_add_haar_measure (map e μ) := e.to_add_equiv.is_add_haar_measure_map μ Ce Cesymm,
   have hfund : is_add_fundamental_domain (L.map (e : E →+ ι → ℝ)) ((e : E → ι → ℝ) '' F) (map e μ)
     := by convert fund.map_linear_equiv μ e,
   haveI : countable (L.map (e : E →+ ι → ℝ)),
   { refine function.injective.countable
       (equiv.injective _ : injective (L.equiv_map_of_injective _ _).symm),
-    exact equiv_like.injective e, },
+    exact equiv_like.injective e },
   obtain ⟨x, hx, hxT⟩ :=
     exists_nonzero_mem_lattice_of_volume_mul_two_pow_card_lt_measure (map e μ) hfund
       (_ : (map e μ) ((e : E → ι → ℝ) '' F) * _ < (map e μ) ((e : E → ι → ℝ) '' T)) _
@@ -608,15 +607,15 @@ begin
     exact equiv_like.injective e,
     simp only [hx, ne.def, add_equiv_class.map_eq_zero_iff, not_false_iff, exists_true_left],
     erw add_subgroup.coe_equiv_map_of_injective_symm_apply e.to_add_equiv,
-    exact mem_image_equiv.mp hxT, },
+    exact mem_image_equiv.mp hxT },
   { erw [measurable_equiv.map_apply e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv,
       measurable_equiv.map_apply e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv,
       preimage_image_eq _ e.injective, preimage_image_eq _ e.injective],
     convert h,
-    simp [ι], },
-  { rintros - ⟨-, ⟨hy, hy_h, rfl⟩, rfl⟩,
+    simp [ι] },
+  { rintro - ⟨-, ⟨hy, hy_h, rfl⟩, rfl⟩,
     use -hy,
     simp only [linear_equiv.map_neg, eq_self_iff_true, and_true],
     refine h_symm ⟨hy, _⟩,
-    simpa, },
+    simpa }
 end

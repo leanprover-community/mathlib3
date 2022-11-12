@@ -308,7 +308,7 @@ end row_lens
 section equiv_list_row_lens
 /-! ### Equivalence between Young diagrams and lists of natural numbers
 
-This section defines the equivalence between Young diagrams `mu` and weakly decreasing lists `w`
+This section defines the equivalence between Young diagrams `μ` and weakly decreasing lists `w`
 of positive natural numbers, corresponding to row lengths of the diagram:
   `young_diagram.equiv_list_row_lens :`
   `young_diagram ≃ {w : list ℕ // w.sorted (≥) ∧ ∀ x ∈ w, 0 < x}`
@@ -319,10 +319,10 @@ The two directions are `young_diagram.row_lens` (defined above) and `young_diagr
 
 /-- The cells making up a `young_diagram` from a list of row lengths -/
 protected def cells_of_row_lens : list ℕ → finset (ℕ × ℕ)
-| [] := finset.empty
+| [] := ∅
 | (w :: ws) := (({0} : finset ℕ) ×ˢ finset.range w) ∪
                  (cells_of_row_lens ws).map
-                   (function.embedding.prod_map ⟨_, nat.succ_injective⟩ (by refl))
+                   (embedding.prod_map ⟨_, nat.succ_injective⟩ (embedding.refl ℕ)
 
 protected lemma mem_cells_of_row_lens {w : list ℕ} {c : ℕ × ℕ} :
   c ∈ young_diagram.cells_of_row_lens w ↔ ∃ (h : c.fst < w.length), c.snd < w.nth_le c.fst h :=
@@ -346,8 +346,8 @@ def of_row_lens (w : list ℕ) (hw : w.sorted (≥)) : young_diagram :=
     calc j1 ≤ j2            : hj
       ...   < w.nth_le i2 _ : h2
       ...   ≤ w.nth_le i1 _ : _,
-    cases eq_or_lt_of_le hi,
-    { subst h },
+    obtain (rfl | h) := eq_or_lt_of_le hi,
+    { refl },
     { apply list.pairwise_iff_nth_le.mp hw _ _ _ h }
   end }
 
@@ -393,6 +393,7 @@ end
 
 /-- Equivalence between Young diagrams and weakly decreasing lists of positive natural numbers.
 A Young diagram `μ` is equivalent to a list of row lengths. -/
+@[simps]
 def equiv_list_row_lens : young_diagram ≃ {w : list ℕ // w.sorted (≥) ∧ ∀ x ∈ w, 0 < x} :=
 { to_fun    := λ μ, ⟨μ.row_lens, μ.row_lens_sorted, μ.pos_of_mem_row_lens⟩,
   inv_fun   := λ ww, of_row_lens ww.1 ww.2.1,

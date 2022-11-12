@@ -3111,7 +3111,7 @@ end
 begin
   suffices : x * y * x⁻¹ * y⁻¹ = 1,
   { show x * y = y * x, by { rw [mul_assoc, mul_eq_one_iff_eq_inv] at this, simpa } },
-  apply hdis, split,
+  apply hdis.le_bot, split,
   { suffices : x * (y * x⁻¹ * y⁻¹) ∈ H₁, by simpa [mul_assoc],
     exact H₁.mul_mem hx (hH₁.conj_mem _ (H₁.inv_mem hx) _) },
   { show x * y * x⁻¹ * y⁻¹ ∈ H₂,
@@ -3124,7 +3124,7 @@ end subgroup_normal
 @[to_additive]
 lemma disjoint_def {H₁ H₂ : subgroup G} :
   disjoint H₁ H₂ ↔ ∀ {x : G}, x ∈ H₁ → x ∈ H₂ → x = 1 :=
-by simp only [disjoint, set_like.le_def, mem_inf, mem_bot, and_imp]
+disjoint_iff_inf_le.trans $ by simp only [disjoint, set_like.le_def, mem_inf, mem_bot, and_imp]
 
 @[to_additive]
 lemma disjoint_def' {H₁ H₂ : subgroup G} :

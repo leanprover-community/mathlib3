@@ -907,6 +907,7 @@ lemma disjoint_ker_aeval_of_coprime
   (f : M →ₗ[R] M) {p q : R[X]} (hpq : is_coprime p q) :
   disjoint (aeval f p).ker (aeval f q).ker :=
 begin
+  rw disjoint_iff_inf_le,
   intros v hv,
   rcases hpq with ⟨p', q', hpq'⟩,
   simpa [linear_map.mem_ker.1 (submodule.mem_inf.1 hv).1,

@@ -248,7 +248,7 @@ begin
   have hVne : (U ∩ V).nonempty := ⟨c, hcU, hcU, hm⟩,
   set W := U ∩ {z | ∥f z∥ ≠ ∥f c∥},
   have hWo : is_open W, from hd.continuous_on.norm.preimage_open_of_open ho is_open_ne,
-  have hdVW : disjoint V W, from λ x ⟨hxV, hxW⟩, hxW.2 (hV x hxV),
+  have hdVW : disjoint V W, from disjoint_left.mpr (λ x hxV hxW, hxW.2 (hV x hxV)),
   have hUVW : U ⊆ V ∪ W,
     from λ x hx, (eq_or_ne (∥f x∥) (∥f c∥)).imp (λ h, ⟨hx, λ y hy, (hm hy).out.trans_eq h.symm⟩)
       (and.intro hx),

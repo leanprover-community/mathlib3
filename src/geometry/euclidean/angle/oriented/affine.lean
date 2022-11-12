@@ -3,6 +3,7 @@ Copyright (c) 2022 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
+import analysis.convex.side
 import geometry.euclidean.angle.oriented.basic
 import geometry.euclidean.angle.unoriented.affine
 
@@ -195,6 +196,18 @@ lemma angle_eq_iff_oangle_eq_of_sign_eq {p₁ p₂ p₃ p₄ p₅ p₆ : P} (hp�
   ∠ p₁ p₂ p₃ = ∠ p₄ p₅ p₆ ↔ ∡ p₁ p₂ p₃ = ∡ p₄ p₅ p₆ :=
 (o).angle_eq_iff_oangle_eq_of_sign_eq (vsub_ne_zero.2 hp₁) (vsub_ne_zero.2 hp₃)
                                       (vsub_ne_zero.2 hp₄) (vsub_ne_zero.2 hp₆) hs
+
+/-- The oriented angle between three points equals the unoriented angle if the sign is
+positive. -/
+lemma oangle_eq_angle_of_sign_eq_one {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign = 1) :
+  ∡ p₁ p₂ p₃ = ∠ p₁ p₂ p₃ :=
+(o).oangle_eq_angle_of_sign_eq_one h
+
+/-- The oriented angle between three points equals minus the unoriented angle if the sign is
+negative. -/
+lemma oangle_eq_neg_angle_of_sign_eq_neg_one {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign = -1) :
+  ∡ p₁ p₂ p₃ = -∠ p₁ p₂ p₃ :=
+(o).oangle_eq_neg_angle_of_sign_eq_neg_one h
 
 /-- The unoriented angle at `p` between two points not equal to `p` is zero if and only if the
 unoriented angle is zero. -/
@@ -417,10 +430,10 @@ begin
     rw ←real.angle.sign_eq_zero_iff at hs₁₅₂ hs₃₅₄,
     rw [hs₁₅₂, hs₃₅₄] },
   { let s : set (P × P × P) :=
-      (λ x : affine_span ℝ ({p₁, p₂} : set P) × V, (x.1, p₅, x.2 +ᵥ x.1)) ''
+      (λ x : line[ℝ, p₁, p₂] × V, (x.1, p₅, x.2 +ᵥ x.1)) ''
         set.univ ×ˢ {v | same_ray ℝ (p₂ -ᵥ p₁) v ∧ v ≠ 0},
     have hco : is_connected s,
-    { haveI : connected_space (affine_span ℝ ({p₁, p₂} : set P)) := add_torsor.connected_space _ _,
+    { haveI : connected_space line[ℝ, p₁, p₂] := add_torsor.connected_space _ _,
       exact (is_connected_univ.prod (is_connected_set_of_same_ray_and_ne_zero
         (vsub_ne_zero.2 hp₁p₂.symm))).image _
           ((continuous_fst.subtype_coe.prod_mk
@@ -455,7 +468,7 @@ begin
       obtain ⟨hvr, hv0⟩ := hv,
       rw ←exists_nonneg_left_iff_same_ray (vsub_ne_zero.2 hp₁p₂.symm) at hvr,
       obtain ⟨r, -, rfl⟩ := hvr,
-      change q ∈ affine_span ℝ ({p₁, p₂} : set P) at hq,
+      change q ∈ line[ℝ, p₁, p₂] at hq,
       rw [oangle_ne_zero_and_ne_pi_iff_affine_independent],
       refine affine_independent_of_ne_of_mem_of_not_mem_of_mem _ hq
         (λ h, hc₅₁₂ ((collinear_insert_iff_of_mem_affine_span h).2 (collinear_pair _ _ _))) _,
@@ -521,5 +534,48 @@ fourth point between the second and third or first and third points have the sam
 lemma _root_.sbtw.oangle_sign_eq_right {p₁ p₂ p₃ : P} (p₄ : P) (h : sbtw ℝ p₁ p₂ p₃) :
   (∡ p₂ p₄ p₃).sign = (∡ p₁ p₄ p₃).sign :=
 h.wbtw.oangle_sign_eq_of_ne_right _ h.ne_right
+
+/-- Given two points in an affine subspace, the angles between those two points at two other
+points on the same side of that subspace have the same sign. -/
+lemma _root_.affine_subspace.s_same_side.oangle_sign_eq {s : affine_subspace ℝ P}
+  {p₁ p₂ p₃ p₄ : P} (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (hp₃p₄ : s.s_same_side p₃ p₄) :
+  (∡ p₁ p₄ p₂).sign = (∡ p₁ p₃ p₂).sign :=
+begin
+  by_cases h : p₁ = p₂, { simp [h] },
+  let sp : set (P × P × P) := (λ p : P, (p₁, p, p₂)) '' {p | s.s_same_side p₃ p},
+  have hc : is_connected sp := (is_connected_set_of_s_same_side hp₃p₄.2.1 hp₃p₄.nonempty).image
+    _ (continuous_const.prod_mk (continuous.prod.mk_left _)).continuous_on,
+  have hf : continuous_on (λ p : P × P × P, ∡ p.1 p.2.1 p.2.2) sp,
+  { refine continuous_at.continuous_on (λ p hp, continuous_at_oangle _ _),
+    all_goals { simp_rw [sp, set.mem_image, set.mem_set_of] at hp,
+                obtain ⟨p', hp', rfl⟩ := hp,
+                dsimp only,
+                rintro rfl },
+    { exact hp'.2.2 hp₁ },
+    { exact hp'.2.2 hp₂ } },
+  have hsp : ∀ p : P × P × P, p ∈ sp → ∡ p.1 p.2.1 p.2.2 ≠ 0 ∧ ∡ p.1 p.2.1 p.2.2 ≠ π,
+  { intros p hp,
+    simp_rw [sp, set.mem_image, set.mem_set_of] at hp,
+    obtain ⟨p', hp', rfl⟩ := hp,
+    dsimp only,
+    rw [oangle_ne_zero_and_ne_pi_iff_affine_independent],
+    exact affine_independent_of_ne_of_mem_of_not_mem_of_mem h hp₁ hp'.2.2 hp₂ },
+  have hp₃ : (p₁, p₃, p₂) ∈ sp :=
+    set.mem_image_of_mem _ (s_same_side_self_iff.2 ⟨hp₃p₄.nonempty, hp₃p₄.2.1⟩),
+  have hp₄ : (p₁, p₄, p₂) ∈ sp := set.mem_image_of_mem _ hp₃p₄,
+  convert real.angle.sign_eq_of_continuous_on hc hf hsp hp₃ hp₄
+end
+
+/-- Given two points in an affine subspace, the angles between those two points at two other
+points on opposite sides of that subspace have opposite signs. -/
+lemma _root_.affine_subspace.s_opp_side.oangle_sign_eq_neg {s : affine_subspace ℝ P}
+  {p₁ p₂ p₃ p₄ : P} (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (hp₃p₄ : s.s_opp_side p₃ p₄) :
+  (∡ p₁ p₄ p₂).sign = -(∡ p₁ p₃ p₂).sign :=
+begin
+  have hp₁p₃ : p₁ ≠ p₃, { rintro rfl, exact hp₃p₄.left_not_mem hp₁ },
+  rw [←(hp₃p₄.symm.trans (s_opp_side_point_reflection hp₁ hp₃p₄.left_not_mem)).oangle_sign_eq
+          hp₁ hp₂, ←oangle_rotate_sign p₁, ←oangle_rotate_sign p₁, oangle_swap₁₃_sign,
+      (sbtw_point_reflection_of_ne ℝ hp₁p₃).symm.oangle_sign_eq _],
+end
 
 end euclidean_geometry

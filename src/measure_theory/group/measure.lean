@@ -648,18 +648,22 @@ begin
     refine ⟨g * b, b⁻¹, ha, by simpa only [set.mem_inv, inv_inv] using bK, _⟩,
     simp only [smul_eq_mul, mul_inv_cancel_right] },
   choose! g hg using A,
-  let L : ℕ → set G := λ n, nat.rec_on n K (λ m T, T ∪ (g T • K)),
+  set L : ℕ → set G := λ n, (λ T, T ∪ (g T • K))^[n] K with hL,
   have B : ∀ n, is_compact (L n),
   { assume n,
     induction n with n IH,
     { exact hK },
-    { exact is_compact.union IH (hK.smul (g (L n))) } },
+    { simp_rw [hL, iterate_succ'],
+      exact is_compact.union IH (hK.smul (g (L n))) } },
   have M : ∀ n, μ (L n) = (n + 1 : ℕ) * μ K,
   { assume n,
     induction n with n IH,
-    { simp only [one_mul, algebra_map.coe_one] },
+    { simp only [L, one_mul, algebra_map.coe_one, iterate_zero, id.def] },
     { calc μ (L (n + 1)) = μ (L n) + μ (g (L n) • K) :
-        measure_union' (hg _ (B _)) (B _).measurable_set
+        begin
+          simp_rw [hL, iterate_succ'],
+          exact measure_union' (hg _ (B _)) (B _).measurable_set
+        end
       ... = (n + 1 : ℕ) * μ K + μ K :
         begin
           rw IH,
@@ -669,7 +673,7 @@ begin
           simp only [mem_smul_set_iff_inv_smul_mem, smul_eq_mul, mem_preimage],
         end
       ... = ((n + 1) + 1 : ℕ) * μ K :
-        by simp only [add_mul, coe_is_add_hom.coe_add, algebra_map.coe_one, one_mul] } },
+        by simp only [add_mul, nat.cast_add, algebra_map.coe_one, one_mul] } },
   have N : tendsto (λ n, μ (L n)) at_top (𝓝 (∞ * μ K)),
   { simp_rw [M],
     apply ennreal.tendsto.mul_const _ (or.inl ennreal.top_ne_zero),

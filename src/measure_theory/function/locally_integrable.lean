@@ -62,7 +62,7 @@ lemma locally_integrable_const [is_locally_finite_measure μ] (c : E) :
 
 lemma locally_integrable.indicator (hf : locally_integrable f μ)
   {s : set X} (hs : measurable_set s) : locally_integrable (s.indicator f) μ :=
-λ K hK, (hf hK).indicator' hs
+λ K hK, (hf hK).indicator hs
 
 theorem locally_integrable_map_homeomorph [borel_space X] [borel_space Y]
   (e : X ≃ₜ Y) {f : Y → E} {μ : measure X} :

@@ -1068,7 +1068,7 @@ begin
   obtain ⟨y', hy', hyy'⟩ := hy,
   refine (edist_triangle_right _ _ _).trans ((add_le_add hxx'.le $ (edist_triangle _ _ _).trans $
     add_le_add hyy'.le $ edist_le_diam_of_mem hy' hx').trans_eq _),
-  -- Now we're done, but `ring` won't do it :(
+  -- Now we're done, but `ring` won't do it because we're on `ennreal` :(
   rw [←add_assoc, ←two_mul, mul_add,
     ennreal.mul_div_cancel' ennreal.two_ne_zero ennreal.two_ne_top],
   abel,

@@ -1125,7 +1125,7 @@ variables {R : Type*} [comm_ring R] {M : Type*} [add_comm_group M] [module R M] 
 
 noncomputable theory
 
-/-- The structure of a module `M` over a ring `R` as a module over `polynomial R` when given a
+/-- The structure of a module `M` over a ring `R` as a module over `R[X]` when given a
 choice of how `X` acts by choosing a linear map `f : M →ₗ[R] M` -/
 def module_polynomial_of_endo : module R[X] M :=
 module.comp_hom M (polynomial.aeval f).to_ring_hom

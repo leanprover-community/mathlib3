@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Minchao Wu, Chris Hughes, Mantas Bakšys
 -/
 import data.list.basic
+import algebra.order.monoid.with_top
+
 /-!
 # Minimum and maximum of lists
 

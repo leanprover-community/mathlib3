@@ -71,6 +71,10 @@ instance induced_functor_linear : functor.linear R (induced_functor F) := {}
 
 end induced_category
 
+instance full_subcategory_inclusion_linear
+  {C : Type*} [category C] [preadditive C] [category_theory.linear R C] (Z : C → Prop) :
+  (full_subcategory_inclusion Z).linear R := {}
+
 section
 
 variables {R} {C D : Type*} [category C] [category D]

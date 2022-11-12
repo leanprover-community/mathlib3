@@ -101,6 +101,24 @@ lemma filter.tendsto.mul_const (b : M) {c : M} {f : α → M} {l : filter α}
   (h : tendsto (λ (k:α), f k) l (𝓝 c)) : tendsto (λ (k:α), f k * b) l (𝓝 (c * b)) :=
 h.mul tendsto_const_nhds
 
+lemma filter.tendsto_nhds_within_pos.const_mul {α 𝕜 : Type*} {l : filter α}
+  [preorder 𝕜] [has_zero 𝕜] [has_mul 𝕜] [topological_space 𝕜] [has_continuous_mul 𝕜]
+  [pos_mul_strict_mono 𝕜] [pos_mul_reflect_lt 𝕜]
+  {f : α → 𝕜} {b c : 𝕜} (hb : 0 < b) (h : tendsto f l (𝓝[>] c)) :
+  tendsto (λ a, b * f a) l (𝓝[>] (b * c)) :=
+tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
+  ((tendsto_nhds_of_tendsto_nhds_within h).const_mul b) $
+  (tendsto_nhds_within_iff.mp h).2.mono (λ j, (mul_lt_mul_left hb).mpr)
+
+lemma filter.tendsto_nhds_within_pos.mul_const {α 𝕜 : Type*} {l : filter α}
+  [preorder 𝕜] [has_zero 𝕜] [has_mul 𝕜] [topological_space 𝕜] [has_continuous_mul 𝕜]
+  [mul_pos_strict_mono 𝕜] [mul_pos_reflect_lt 𝕜]
+  {f : α → 𝕜} {b c : 𝕜} (hb : 0 < b) (h : tendsto f l (𝓝[>] c)) :
+  tendsto (λ a, f a * b) l (𝓝[>] (c * b)) :=
+tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
+  ((tendsto_nhds_of_tendsto_nhds_within h).mul_const b) $
+  (tendsto_nhds_within_iff.mp h).2.mono (λ j, (mul_lt_mul_right hb).mpr)
+
 /-- Construct a unit from limits of units and their inverses. -/
 @[to_additive filter.tendsto.add_units "Construct an additive unit from limits of additive units
 and their negatives.", simps]

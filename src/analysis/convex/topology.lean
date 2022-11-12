@@ -72,8 +72,8 @@ lemma is_closed_std_simplex : is_closed (std_simplex ℝ ι) :=
   (is_closed_eq (continuous_finset_sum _ $ λ x _, continuous_apply x) continuous_const)
 
 /-- `std_simplex ℝ ι` is compact. -/
-lemma compact_std_simplex : is_compact (std_simplex ℝ ι) :=
-metric.compact_iff_closed_bounded.2 ⟨is_closed_std_simplex ι, bounded_std_simplex ι⟩
+lemma is_compact_std_simplex : is_compact (std_simplex ℝ ι) :=
+metric.is_compact_iff_is_closed_bounded.2 ⟨is_closed_std_simplex ι, bounded_std_simplex ι⟩
 
 end std_simplex
 
@@ -216,7 +216,7 @@ lemma set.finite.compact_convex_hull {s : set E} (hs : s.finite) :
   is_compact (convex_hull ℝ s) :=
 begin
   rw [hs.convex_hull_eq_image],
-  apply (compact_std_simplex _).image,
+  apply (is_compact_std_simplex _).image,
   haveI := hs.fintype,
   apply linear_map.continuous_on_pi
 end
@@ -338,15 +338,6 @@ begin
   { rw cthickening_of_nonpos hδ,
     exact hs.closure }
 end
-
-/-- If `s`, `t` are disjoint convex sets, `s` is compact and `t` is closed then we can find open
-disjoint convex sets containing them. -/
-lemma disjoint.exists_open_convexes (disj : disjoint s t) (hs₁ : convex ℝ s) (hs₂ : is_compact s)
-  (ht₁ : convex ℝ t) (ht₂ : is_closed t) :
-  ∃ u v, is_open u ∧ is_open v ∧ convex ℝ u ∧ convex ℝ v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v :=
-let ⟨δ, hδ, hst⟩ := disj.exists_thickenings hs₂ ht₂ in
-  ⟨_, _, is_open_thickening, is_open_thickening, hs₁.thickening _, ht₁.thickening _,
-    self_subset_thickening hδ _, self_subset_thickening hδ _, hst⟩
 
 /-- Given a point `x` in the convex hull of `s` and a point `y`, there exists a point
 of `s` at distance at least `dist x y` from `y`. -/

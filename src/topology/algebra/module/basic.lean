@@ -1594,12 +1594,17 @@ def prod [module R₁ M₂] [module R₁ M₃] [module R₁ M₄] (e : M₁ ≃L
   (e.prod e' : (M₁ × M₃) →L[R₁] (M₂ × M₄)) = (e : M₁ →L[R₁] M₂).prod_map (e' : M₃ →L[R₁] M₄) :=
 rfl
 
+lemma prod_symm [module R₁ M₂] [module R₁ M₃] [module R₁ M₄]
+  (e : M₁ ≃L[R₁] M₂) (e' : M₃ ≃L[R₁] M₄) :
+  (e.prod e').symm = e.symm.prod e'.symm :=
+rfl
+
 include σ₂₁
-theorem bijective (e : M₁ ≃SL[σ₁₂] M₂) : function.bijective e :=
+protected theorem bijective (e : M₁ ≃SL[σ₁₂] M₂) : function.bijective e :=
 e.to_linear_equiv.to_equiv.bijective
-theorem injective (e : M₁ ≃SL[σ₁₂] M₂) : function.injective e :=
+protected theorem injective (e : M₁ ≃SL[σ₁₂] M₂) : function.injective e :=
 e.to_linear_equiv.to_equiv.injective
-theorem surjective (e : M₁ ≃SL[σ₁₂] M₂) : function.surjective e :=
+protected theorem surjective (e : M₁ ≃SL[σ₁₂] M₂) : function.surjective e :=
 e.to_linear_equiv.to_equiv.surjective
 
 include σ₃₂ σ₃₁ σ₁₃
@@ -1738,6 +1743,14 @@ variables {M₁} {R₄ : Type*} [semiring R₄] [module R₄ M₄]
   {σ₂₄ : R₂ →+* R₄} {σ₁₄ : R₁ →+* R₄}
   [ring_hom_comp_triple σ₂₁ σ₁₄ σ₂₄] [ring_hom_comp_triple σ₂₄ σ₄₃ σ₂₃]
   [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄]
+
+/-- The continuous linear equivalence between `ulift M₁` and `M₁`. -/
+def ulift : ulift M₁ ≃L[R₁] M₁ :=
+{ map_add' := λ x y, rfl,
+  map_smul' := λ c x, rfl,
+  continuous_to_fun := continuous_ulift_down,
+  continuous_inv_fun := continuous_ulift_up,
+  .. equiv.ulift }
 
 include σ₂₁ σ₃₄ σ₂₃ σ₂₄ σ₁₃
 

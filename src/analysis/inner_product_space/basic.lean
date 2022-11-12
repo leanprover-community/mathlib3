@@ -9,7 +9,6 @@ import analysis.convex.uniform
 import analysis.normed_space.completion
 import analysis.normed_space.bounded_linear_maps
 import analysis.normed_space.banach
-import linear_algebra.bilinear_form
 import linear_algebra.sesquilinear_form
 
 /-!
@@ -335,7 +334,7 @@ add_group_norm.to_normed_add_comm_group
     have h₃ : re ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ := by linarith,
     have h₄ : re ⟪y, x⟫ ≤ ∥x∥ * ∥y∥ := by rwa [←inner_conj_sym, conj_re],
     have : ∥x + y∥ * ∥x + y∥ ≤ (∥x∥ + ∥y∥) * (∥x∥ + ∥y∥),
-    { simp [←inner_self_eq_norm_mul_norm, inner_add_add_self, add_mul, mul_add, mul_comm],
+    { simp only [←inner_self_eq_norm_mul_norm, inner_add_add_self, mul_add, mul_comm, map_add],
       linarith },
     exact nonneg_le_nonneg_of_sq_le_sq (add_nonneg (sqrt_nonneg _) (sqrt_nonneg _)) this,
   end,
@@ -428,7 +427,9 @@ lemma real_inner_smul_right {x y : F} {r : ℝ} : ⟪x, r • y⟫_ℝ = r * ⟪
 lemma inner_smul_real_right {x y : E} {r : ℝ} : ⟪x, (r : 𝕜) • y⟫ = r • ⟪x, y⟫ :=
 by { rw [inner_smul_right, algebra.smul_def], refl }
 
-/-- The inner product as a sesquilinear form. -/
+/-- The inner product as a sesquilinear form.
+
+Note that in the case `𝕜 = ℝ` this is a bilinear form. -/
 @[simps]
 def sesq_form_of_inner : E →ₗ[𝕜] E →ₗ⋆[𝕜] 𝕜 :=
 linear_map.mk₂'ₛₗ (ring_hom.id 𝕜) (star_ring_end _)
@@ -437,15 +438,6 @@ linear_map.mk₂'ₛₗ (ring_hom.id 𝕜) (star_ring_end _)
   (λ r x y, inner_smul_right)
   (λ x y z, inner_add_left)
   (λ r x y, inner_smul_left)
-
-/-- The real inner product as a bilinear form. -/
-@[simps]
-def bilin_form_of_real_inner : bilin_form ℝ F :=
-{ bilin := inner,
-  bilin_add_left := λ x y z, inner_add_left,
-  bilin_smul_left := λ a x y, inner_smul_left,
-  bilin_add_right := λ x y z, inner_add_right,
-  bilin_smul_right := λ a x y, inner_smul_right }
 
 /-- An inner product with a sum on the left. -/
 lemma sum_inner {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
@@ -498,7 +490,8 @@ lemma real_inner_self_nonneg {x : F} : 0 ≤ ⟪x, x⟫_ℝ := @inner_self_nonne
 begin
   split,
   { intro h,
-    have h₁ : re ⟪x, x⟫ = 0 := by rw is_R_or_C.ext_iff at h; simp [h.1],
+    have h₁ : re ⟪x, x⟫ = 0 :=
+    by rw is_R_or_C.ext_iff at h; simp only [h.1, zero_re'],
     rw [←norm_sq_eq_inner x] at h₁,
     rw [←norm_eq_zero],
     exact pow_eq_zero h₁ },
@@ -576,7 +569,7 @@ by simp only [inner_add_left, inner_add_right]; ring
 lemma real_inner_add_add_self {x y : F} : ⟪x + y, x + y⟫_ℝ = ⟪x, x⟫_ℝ + 2 * ⟪x, y⟫_ℝ + ⟪y, y⟫_ℝ :=
 begin
   have : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := by rw [←inner_conj_sym]; refl,
-  simp [inner_add_add_self, this],
+  simp only [inner_add_add_self, this, add_left_inj],
   ring,
 end
 
@@ -588,7 +581,7 @@ by simp only [inner_sub_left, inner_sub_right]; ring
 lemma real_inner_sub_sub_self {x y : F} : ⟪x - y, x - y⟫_ℝ = ⟪x, x⟫_ℝ - 2 * ⟪x, y⟫_ℝ + ⟪y, y⟫_ℝ :=
 begin
   have : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := by rw [←inner_conj_sym]; refl,
-  simp [inner_sub_sub_self, this],
+  simp only [inner_sub_sub_self, this, add_left_inj],
   ring,
 end
 
@@ -1347,6 +1340,12 @@ begin
   norm_num
 end
 
+/-- Pythagorean theorem, if-and-if vector inner product form using square roots. -/
+lemma norm_add_eq_sqrt_iff_real_inner_eq_zero {x y : F} :
+  ∥x + y∥ = sqrt (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) ↔ ⟪x, y⟫_ℝ = 0 :=
+by rw [←norm_add_sq_eq_norm_sq_add_norm_sq_iff_real_inner_eq_zero, eq_comm,
+  sqrt_eq_iff_mul_self_eq (add_nonneg (mul_self_nonneg _) (mul_self_nonneg _)) (norm_nonneg _)]
+
 /-- Pythagorean theorem, vector inner product form. -/
 lemma norm_add_sq_eq_norm_sq_add_norm_sq_of_inner_eq_zero (x y : E) (h : ⟪x, y⟫ = 0) :
   ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
@@ -1370,6 +1369,13 @@ begin
       mul_eq_zero],
   norm_num
 end
+
+/-- Pythagorean theorem, subtracting vectors, if-and-if vector inner product form using square
+roots. -/
+lemma norm_sub_eq_sqrt_iff_real_inner_eq_zero {x y : F} :
+  ∥x - y∥ = sqrt (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) ↔ ⟪x, y⟫_ℝ = 0 :=
+by rw [←norm_sub_sq_eq_norm_sq_add_norm_sq_iff_real_inner_eq_zero, eq_comm,
+  sqrt_eq_iff_mul_self_eq (add_nonneg (mul_self_nonneg _) (mul_self_nonneg _)) (norm_nonneg _)]
 
 /-- Pythagorean theorem, subtracting vectors, vector inner product
 form. -/
@@ -2117,6 +2123,14 @@ omit 𝕜
 instance inner_product_space.complex_to_real [inner_product_space ℂ G] : inner_product_space ℝ G :=
 inner_product_space.is_R_or_C_to_real ℂ G
 
+@[simp] protected lemma complex.inner (w z : ℂ) : ⟪w, z⟫_ℝ = (conj w * z).re := rfl
+
+/-- The inner product on an inner product space of dimension 2 can be evaluated in terms
+of a complex-number representation of the space. -/
+lemma inner_map_complex [inner_product_space ℝ G] (f : G ≃ₗᵢ[ℝ] ℂ) (x y : G) :
+  ⟪x, y⟫_ℝ = (conj (f x) * f y).re :=
+by rw [← complex.inner, f.inner_map_map]
+
 end is_R_or_C_to_real
 
 section continuous
@@ -2234,6 +2248,23 @@ end
 /-- A vector orthogonal to `u` lies in `(𝕜 ∙ u)ᗮ`. -/
 lemma mem_orthogonal_singleton_of_inner_left (u : E) {v : E} (hv : ⟪v, u⟫ = 0) : v ∈ (𝕜 ∙ u)ᗮ :=
 mem_orthogonal_singleton_of_inner_right u $ inner_eq_zero_sym.2 hv
+
+lemma submodule.sub_mem_orthogonal_of_inner_left {x y : E}
+  (h : ∀ (v : K), ⟪x, v⟫ = ⟪y, v⟫) : x - y ∈ Kᗮ :=
+begin
+  rw submodule.mem_orthogonal',
+  intros u hu,
+  rw [inner_sub_left, sub_eq_zero],
+  exact h ⟨u, hu⟩,
+end
+
+lemma submodule.sub_mem_orthogonal_of_inner_right {x y : E}
+  (h : ∀ (v : K), ⟪(v : E), x⟫ = ⟪(v : E), y⟫) : x - y ∈ Kᗮ :=
+begin
+  intros u hu,
+  rw [inner_sub_right, sub_eq_zero],
+  exact h ⟨u, hu⟩,
+end
 
 variables (K)
 

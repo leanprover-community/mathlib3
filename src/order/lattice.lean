@@ -231,6 +231,9 @@ lemma sup_eq_sup_iff_left : a ⊔ b = a ⊔ c ↔ b ≤ a ⊔ c ∧ c ≤ a ⊔ 
 lemma sup_eq_sup_iff_right : a ⊔ c = b ⊔ c ↔ a ≤ b ⊔ c ∧ b ≤ a ⊔ c :=
 ⟨λ h, ⟨h ▸ le_sup_left, h.symm ▸ le_sup_left⟩, λ h, sup_congr_right h.1 h.2⟩
 
+lemma ne.lt_sup_or_lt_sup (hab : a ≠ b) : a < a ⊔ b ∨ b < a ⊔ b :=
+hab.symm.not_le_or_not_le.imp left_lt_sup.2 right_lt_sup.2
+
 /-- If `f` is monotone, `g` is antitone, and `f ≤ g`, then for all `a`, `b` we have `f a ≤ g b`. -/
 theorem monotone.forall_le_of_antitone {β : Type*} [preorder β] {f g : α → β}
   (hf : monotone f) (hg : antitone g) (h : f ≤ g) (m n : α) :
@@ -384,6 +387,8 @@ lemma inf_eq_inf_iff_left : a ⊓ b = a ⊓ c ↔ a ⊓ c ≤ b ∧ a ⊓ b ≤ 
 
 lemma inf_eq_inf_iff_right : a ⊓ c = b ⊓ c ↔ b ⊓ c ≤ a ∧ a ⊓ c ≤ b :=
 @sup_eq_sup_iff_right αᵒᵈ _ _ _ _
+
+lemma ne.inf_lt_or_inf_lt : a ≠ b → a ⊓ b < a ∨ a ⊓ b < b := @ne.lt_sup_or_lt_sup αᵒᵈ _ _ _
 
 theorem semilattice_inf.ext_inf {α} {A B : semilattice_inf α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)
@@ -911,6 +916,24 @@ variables (α β)
 
 instance [has_sup α] [has_sup β] : has_sup (α × β) := ⟨λp q, ⟨p.1 ⊔ q.1, p.2 ⊔ q.2⟩⟩
 instance [has_inf α] [has_inf β] : has_inf (α × β) := ⟨λp q, ⟨p.1 ⊓ q.1, p.2 ⊓ q.2⟩⟩
+
+@[simp] lemma mk_sup_mk [has_sup α] [has_sup β] (a₁ a₂ : α) (b₁ b₂ : β) :
+  (a₁, b₁) ⊔ (a₂, b₂) = (a₁ ⊔ a₂, b₁ ⊔ b₂) := rfl
+
+@[simp] lemma mk_inf_mk [has_inf α] [has_inf β] (a₁ a₂ : α) (b₁ b₂ : β) :
+  (a₁, b₁) ⊓ (a₂, b₂) = (a₁ ⊓ a₂, b₁ ⊓ b₂) := rfl
+
+@[simp] lemma fst_sup [has_sup α] [has_sup β] (p q : α × β) : (p ⊔ q).fst = p.fst ⊔ q.fst := rfl
+@[simp] lemma fst_inf [has_inf α] [has_inf β] (p q : α × β) : (p ⊓ q).fst = p.fst ⊓ q.fst := rfl
+
+@[simp] lemma snd_sup [has_sup α] [has_sup β] (p q : α × β) : (p ⊔ q).snd = p.snd ⊔ q.snd := rfl
+@[simp] lemma snd_inf [has_inf α] [has_inf β] (p q : α × β) : (p ⊓ q).snd = p.snd ⊓ q.snd := rfl
+
+@[simp] lemma swap_sup [has_sup α] [has_sup β] (p q : α × β) : (p ⊔ q).swap = p.swap ⊔ q.swap := rfl
+@[simp] lemma swap_inf [has_inf α] [has_inf β] (p q : α × β) : (p ⊓ q).swap = p.swap ⊓ q.swap := rfl
+
+lemma sup_def [has_sup α] [has_sup β] (p q : α × β) : p ⊔ q = (p.fst ⊔ q.fst, p.snd ⊔ q.snd) := rfl
+lemma inf_def [has_inf α] [has_inf β] (p q : α × β) : p ⊓ q = (p.fst ⊓ q.fst, p.snd ⊓ q.snd) := rfl
 
 instance [semilattice_sup α] [semilattice_sup β] : semilattice_sup (α × β) :=
 { sup_le := assume a b c h₁ h₂, ⟨sup_le h₁.1 h₂.1, sup_le h₁.2 h₂.2⟩,

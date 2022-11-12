@@ -783,6 +783,19 @@ lemma eq_on_source.restr {e e' : local_homeomorph α β} (he : e ≈ e') (s : se
   e.restr s ≈ e'.restr s :=
 local_equiv.eq_on_source.restr he _
 
+lemma set.eq_on.restr_eq_on_source {e e' : local_homeomorph α β}
+  (h : eq_on e e' (e.source ∩ e'.source)) :
+  e.restr e'.source ≈ e'.restr e.source :=
+begin
+  split,
+  { rw e'.restr_source' _ e.open_source,
+    rw e.restr_source' _ e'.open_source,
+    exact set.inter_comm _ _ },
+  { rw e.restr_source' _ e'.open_source,
+    refine (eq_on.trans _ h).trans _;
+    simp only with mfld_simps },
+end
+
 /-- Composition of a local homeomorphism and its inverse is equivalent to the restriction of the
 identity to the source -/
 lemma trans_self_symm :
@@ -812,6 +825,11 @@ def prod (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
 @[simp, mfld_simps] lemma prod_symm (e : local_homeomorph α β) (e' : local_homeomorph γ δ) :
   (e.prod e').symm = (e.symm.prod e'.symm) :=
 rfl
+
+@[simp]
+lemma refl_prod_refl {α β : Type*} [topological_space α] [topological_space β] :
+  (local_homeomorph.refl α).prod (local_homeomorph.refl β) = local_homeomorph.refl (α × β) :=
+by { ext1 ⟨x, y⟩, { refl }, { rintro ⟨x, y⟩, refl }, exact univ_prod_univ }
 
 @[simp, mfld_simps] lemma prod_trans
   {η : Type*} {ε : Type*} [topological_space η] [topological_space ε]

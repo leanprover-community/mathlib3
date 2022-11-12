@@ -3,6 +3,7 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yaël Dillies
 -/
+import analysis.normed.group.add_torsor
 import analysis.normed.group.pointwise
 import analysis.normed_space.basic
 
@@ -52,8 +53,7 @@ lemma metric.bounded.smul {s : set E} (hs : bounded s) (c : 𝕜) :
   bounded (c • s) :=
 begin
   obtain ⟨R, hR⟩ : ∃ (R : ℝ), ∀ x ∈ s, ∥x∥ ≤ R := hs.exists_norm_le,
-  refine (bounded_iff_exists_norm_le).2 ⟨∥c∥ * R, _⟩,
-  assume z hz,
+  refine bounded_iff_forall_norm_le.2 ⟨∥c∥ * R, λ z hz, _⟩,
   obtain ⟨y, ys, rfl⟩ : ∃ (y : E), y ∈ s ∧ c • y = z := mem_smul_set.1 hz,
   calc ∥c • y∥ = ∥c∥ * ∥y∥ : norm_smul _ _
   ... ≤ ∥c∥ * R : mul_le_mul_of_nonneg_left (hR y ys) (norm_nonneg _)
@@ -154,7 +154,7 @@ begin
   rw add_comm at hxy,
   obtain ⟨z, hxz, hzy⟩ := exists_dist_lt_lt hδ hε hxy,
   rw dist_comm at hxz,
-  exact h ⟨hxz, hzy⟩,
+  exact h.le_bot ⟨hxz, hzy⟩,
 end
 
 -- This is also true for `ℚ`-normed spaces
@@ -165,7 +165,7 @@ begin
   rw add_comm at hxy,
   obtain ⟨z, hxz, hzy⟩ := exists_dist_lt_le hδ hε hxy,
   rw dist_comm at hxz,
-  exact h ⟨hxz, hzy⟩,
+  exact h.le_bot ⟨hxz, hzy⟩,
 end
 
 -- This is also true for `ℚ`-normed spaces
@@ -180,7 +180,7 @@ begin
   rw add_comm at hxy,
   obtain ⟨z, hxz, hzy⟩ := exists_dist_le_le hδ hε hxy,
   rw dist_comm at hxz,
-  exact h ⟨hxz, hzy⟩,
+  exact h.le_bot ⟨hxz, hzy⟩,
 end
 
 open emetric ennreal

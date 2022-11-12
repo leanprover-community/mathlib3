@@ -58,9 +58,10 @@ monotone_nat_of_le_succ $ λ n, by by_cases h : p n; simp [count_succ, h]
 lemma count_add (a b : ℕ) : count p (a + b) = count p a + count (λ k, p (a + k)) b :=
 begin
   have : disjoint ((range a).filter p) (((range b).map $ add_left_embedding a).filter p),
-  { intros x hx,
-    simp_rw [inf_eq_inter, mem_inter, mem_filter, mem_map, mem_range] at hx,
-    obtain ⟨⟨hx, _⟩, ⟨c, _, rfl⟩, _⟩ := hx,
+  { apply disjoint_filter_filter,
+    rw finset.disjoint_left,
+    simp_rw [mem_map, mem_range, add_left_embedding_apply],
+    rintro x hx ⟨c, _, rfl⟩,
     exact (self_le_add_right _ _).not_lt hx },
   simp_rw [count_eq_card_filter_range, range_add, filter_union, card_disjoint_union this,
     map_filter, add_left_embedding, card_map], refl,

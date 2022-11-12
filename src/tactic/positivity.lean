@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Heather Macbeth, Yaël Dillies
 -/
 import tactic.norm_num
+import algebra.order.field.power
 
 /-! # `positivity` tactic
-αᵒᵈ βᵒᵈ
+
 The `positivity` tactic in this file solves goals of the form `0 ≤ x`, `0 < x` and `x ≠ 0`.  The
 tactic works recursively according to the syntax of the expression `x`.  For example, a goal of the
 form `0 ≤ 3 * a ^ 2 + b * c` can be solved either
@@ -345,7 +346,7 @@ add_tactic_doc
 
 end interactive
 
-variables {α R : Type*}
+variables {ι α R : Type*}
 
 /-! ### `positivity` extensions for particular arithmetic operations -/
 

@@ -47,7 +47,7 @@ lemma tendsto_coe_int_at_top_iff [strict_ordered_ring R] [archimedean R]
   tendsto (λ n, (f n : R)) l at_top ↔ tendsto f l at_top :=
 by rw [← tendsto_comap_iff, int.comap_coe_at_top]
 
-lemma tendsto_coe_int_at_bot_iff [strict_ordered_ring R] [nontrivial R] [archimedean R]
+lemma tendsto_coe_int_at_bot_iff [strict_ordered_ring R] [archimedean R]
   {f : α → ℤ} {l : filter α} :
   tendsto (λ n, (f n : R)) l at_bot ↔ tendsto f l at_bot :=
 by rw [← tendsto_comap_iff, int.comap_coe_at_bot]

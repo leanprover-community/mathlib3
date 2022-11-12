@@ -108,7 +108,7 @@ let ⟨n, h⟩ := archimedean.arch x hy in
        ... = (y + 1) ^ n : by rw [add_comm]⟩
 
 section strict_ordered_ring
-variables [strict_ordered_ring α] [nontrivial α] [archimedean α]
+variables [strict_ordered_ring α] [archimedean α]
 
 lemma pow_unbounded_of_one_lt (x : α) {y : α} (hy1 : 1 < y) :
   ∃ n : ℕ, x < y ^ n :=
@@ -280,7 +280,7 @@ archimedean_iff_nat_lt.trans
    lt_of_le_of_lt h (nat.cast_lt.2 (lt_add_one _))⟩⟩
 
 lemma archimedean_iff_int_lt : archimedean α ↔ ∀ x : α, ∃ n : ℤ, x < n :=
-⟨@exists_int_gt α _ _,
+⟨@exists_int_gt α _,
 begin
   rw archimedean_iff_nat_lt,
   intros h x,

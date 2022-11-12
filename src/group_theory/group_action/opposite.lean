@@ -52,7 +52,7 @@ instance {M N} [has_smul M N] [has_smul M α] [has_smul N α] [is_scalar_tower M
   smul_comm_class M N αᵐᵒᵖ :=
 ⟨λ x y z, unop_injective $ smul_comm _ _ _⟩
 
-instance (R : Type*) [has_smul R α] [has_smul Rᵐᵒᵖ α] [is_central_scalar R α] :
+@[to_additive] instance (R : Type*) [has_smul R α] [has_smul Rᵐᵒᵖ α] [is_central_scalar R α] :
   is_central_scalar R αᵐᵒᵖ :=
 ⟨λ r m, unop_injective $ op_smul_eq_smul _ _⟩
 

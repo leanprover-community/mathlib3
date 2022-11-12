@@ -3,6 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import logic.embedding.set
 import algebra.parity
 import data.array.lemmas
 import data.finset.fin
@@ -631,7 +632,7 @@ variables {s t : set α}
 
 /-- Construct a finset enumerating a set `s`, given a `fintype` instance.  -/
 def to_finset (s : set α) [fintype s] : finset α :=
-⟨(@finset.univ s _).1.map subtype.val, finset.univ.nodup.map $ λ a b, subtype.eq⟩
+(@finset.univ s _).map $ function.embedding.subtype _
 
 @[congr]
 lemma to_finset_congr {s t : set α} [fintype s] [fintype t] (h : s = t) :
@@ -680,7 +681,7 @@ by simp [finset.subset_iff, set.subset_def]
 @[simp, mono] lemma to_finset_ssubset [fintype s] [fintype t] : s.to_finset ⊂ t.to_finset ↔ s ⊂ t :=
 by simp only [finset.ssubset_def, to_finset_subset, ssubset_def]
 
-@[simp] theorem to_finset_disjoint_iff [decidable_eq α] {s t : set α} [fintype s] [fintype t] :
+@[simp] theorem to_finset_disjoint_iff {s t : set α} [fintype s] [fintype t] :
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=
 by simp only [←disjoint_coe, coe_to_finset]
 
@@ -1564,7 +1565,7 @@ lemma pi_finset_subsingleton {f : Π i, finset (δ i)}
   (fintype.pi_finset f : set (Π i, δ i)).subsingleton :=
 λ a ha b hb, funext $ λ i, hf _ (mem_pi_finset.1 ha _) (mem_pi_finset.1 hb _)
 
-lemma pi_finset_disjoint_of_disjoint [∀ a, decidable_eq (δ a)]
+lemma pi_finset_disjoint_of_disjoint
   (t₁ t₂ : Π a, finset (δ a)) {a : α} (h : disjoint (t₁ a) (t₂ a)) :
   disjoint (pi_finset t₁) (pi_finset t₂) :=
 disjoint_iff_ne.2 $ λ f₁ hf₁ f₂ hf₂ eq₁₂,

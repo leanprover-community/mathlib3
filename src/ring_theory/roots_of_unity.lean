@@ -840,10 +840,10 @@ lemma disjoint {k l : ℕ} (h : k ≠ l) :
 begin
   by_cases hk : k = 0, { simp [hk], },
   by_cases hl : l = 0, { simp [hl], },
+  rw finset.disjoint_left,
   intro z,
-  simp only [finset.inf_eq_inter, finset.mem_inter, mem_primitive_roots,
-    nat.pos_of_ne_zero hk, nat.pos_of_ne_zero hl, iff_def],
-  rintro ⟨⟨hzk, Hzk⟩, ⟨hzl, Hzl⟩⟩,
+  simp only [mem_primitive_roots, nat.pos_of_ne_zero hk, nat.pos_of_ne_zero hl, iff_def],
+  rintro ⟨hzk, Hzk⟩ ⟨hzl, Hzl⟩,
   apply_rules [h, nat.dvd_antisymm, Hzk, Hzl, hzk, hzl]
 end
 

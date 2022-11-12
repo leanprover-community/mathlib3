@@ -55,10 +55,12 @@ lemma is_compl_of_proj {f : E →ₗ[R] p} (hf : ∀ x : p, f x = x) :
   is_compl p f.ker :=
 begin
   split,
-  { rintros x ⟨hpx, hfx⟩,
+  { rw disjoint_iff_inf_le,
+    rintros x ⟨hpx, hfx⟩,
     erw [set_like.mem_coe, mem_ker, hf ⟨x, hpx⟩, mk_eq_zero] at hfx,
     simp only [hfx, set_like.mem_coe, zero_mem] },
-  { intros x hx,
+  { rw codisjoint_iff_le_sup,
+    intros x hx,
     rw [mem_sup'],
     refine ⟨f x, ⟨x - f x, _⟩, add_sub_cancel'_right _ _⟩,
     rw [mem_ker, linear_map.map_sub, hf, sub_self] }

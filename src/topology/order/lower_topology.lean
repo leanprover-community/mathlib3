@@ -317,20 +317,12 @@ include s t
 lemma inf_hom_continuous (f : Inf_hom α β) :
   continuous f :=
 begin
-  sorry,
-/-
-  have e2: ∀ (s : set β), s ∈ (lower_topology.lower_basis β) → is_open (f ⁻¹' s) :=
-  begin
+  convert continuous_generated_from _,
+  exact t.topology_eq_lower_topology,
   intros s hs,
-  rw lower_topology.lower_basis at hs,
-  rw mem_set_of_eq at hs,
+  rw mem_set_of_eq' at hs,
   cases hs with a,
-  cases hs_h,
-  rw ← hs_h_right,
-  rw ← is_closed_compl_iff,
-  rw upper_set.coe_compl,
-  rw preimage_compl,
-  rw compl_compl,
+  rw [← hs_h, ← is_closed_compl_iff, preimage_compl, compl_compl],
   let p :=  Inf (f ⁻¹' Ici a),
   have e1: f ⁻¹' Ici a = Ici p :=
   begin
@@ -351,12 +343,7 @@ begin
       apply le_trans e1 (inf_hom_monotone f hx), },
   end,
   rw e1,
-  exact with_lower_topology.is_closed_Ici p
-  end,
-
-  convert continuous_generated_from e2,
-
--/
+  exact lower_topology.is_closed_Ici p,
 end
 
 end complete_lattice

@@ -37,6 +37,8 @@ Type synonym for a preorder equipped with the lower topology
 def with_lower_topology := α
 
 instance [p : preorder α] : preorder (with_lower_topology α) := p
+instance [p : nonempty α] : nonempty (with_lower_topology α) := p
+instance [p : inhabited α] : inhabited (with_lower_topology α) := p
 
 @[simp] lemma mem_set_of_eq' {x : set (with_lower_topology α)} {p : set α → Prop} :
   x ∈ {y | p y} = p x := rfl

@@ -101,10 +101,11 @@ def continuous_linear_map_coord_change
   (F₁ →SL[σ] F₂) ≃L[𝕜₂] F₁ →SL[σ] F₂)
 
 variables {σ e₁ e₁' e₂ e₂'}
-variables [Π x : B, topological_space (E₁ x)] [fiber_bundle F₁ E₁] [vector_bundle 𝕜₁ F₁ E₁]
-variables [Π x : B, topological_space (E₂ x)] [fiber_bundle F₂ E₂] [vector_bundle 𝕜₂ F₂ E₂]
+variables [Π x : B, topological_space (E₁ x)] [fiber_bundle F₁ E₁]
+variables [Π x : B, topological_space (E₂ x)] [fiber_bundle F₂ E₂]
 
 lemma continuous_on_continuous_linear_map_coord_change
+  [vector_bundle 𝕜₁ F₁ E₁] [vector_bundle 𝕜₂ F₂ E₂]
   [mem_trivialization_atlas e₁] [mem_trivialization_atlas e₁']
   [mem_trivialization_atlas e₂] [mem_trivialization_atlas e₂'] :
   continuous_on (continuous_linear_map_coord_change σ e₁ e₁' e₂ e₂')

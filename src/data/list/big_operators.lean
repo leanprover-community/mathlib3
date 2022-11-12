@@ -470,6 +470,13 @@ begin
   exact h (prod_eq_one hf),
 end
 
+lemma int_prod_eq_neg_one {l : list ℤ} (h : l.prod = -1) : ∃ (x ∈ l), x = (-1 : ℤ) :=
+begin
+  obtain ⟨x, h₁, h₂⟩ := mem_ne_one_of_prod_ne_one (ne_of_eq_of_ne h dec_trivial),
+  exact ⟨x, h₁, or.resolve_left (int.is_unit_iff.mp
+               (prod_is_unit_iff.mp (h.symm ▸ is_unit.neg is_unit_one : is_unit l.prod) x h₁)) h₂⟩,
+end
+
 /-- If all elements in a list are bounded below by `1`, then the length of the list is bounded
 by the sum of the elements. -/
 lemma length_le_sum_of_one_le (L : list ℕ) (h : ∀ i ∈ L, 1 ≤ i) : L.length ≤ L.sum :=

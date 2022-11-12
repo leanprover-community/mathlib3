@@ -58,7 +58,7 @@ preorder, order, partial order, poset, linear order, chain
 open function
 
 universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
+variables {ι : Type*} {α : Type u} {β : Type v} {γ : Type w} {π : ι → Type*} {r : α → α → Prop}
 
 section preorder
 variables [preorder α] {a b c : α}
@@ -495,25 +495,56 @@ lemma pi.lt_def {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] {x y
   x < y ↔ x ≤ y ∧ ∃ i, x i < y i :=
 by simp [lt_iff_le_not_le, pi.le_def] {contextual := tt}
 
-lemma le_update_iff {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] [decidable_eq ι]
-  {x y : Π i, α i} {i : ι} {a : α i} :
-  x ≤ function.update y i a ↔ x i ≤ a ∧ ∀ j ≠ i, x j ≤ y j :=
+instance pi.partial_order [Π i, partial_order (π i)] : partial_order (Π i, π i) :=
+{ le_antisymm := λ f g h1 h2, funext $ λ b, (h1 b).antisymm (h2 b),
+  ..pi.preorder }
+
+section pi
+
+/-- A function `a` is strongly less than a function `b`  if `a i < b i` for all `i`. -/
+def strong_lt [Π i, has_lt (π i)] (a b : Π i, π i) : Prop := ∀ i, a i < b i
+
+local infix ` ≺ `:50 := strong_lt
+
+variables [Π i, preorder (π i)] {a b c : Π i, π i}
+
+lemma le_of_strong_lt (h : a ≺ b) : a ≤ b := λ i, (h _).le
+
+lemma lt_of_strong_lt [nonempty ι] (h : a ≺ b) : a < b :=
+by { inhabit ι, exact pi.lt_def.2 ⟨le_of_strong_lt h, default, h _⟩ }
+
+lemma strong_lt_of_strong_lt_of_le (hab : a ≺ b) (hbc : b ≤ c) : a ≺ c :=
+λ i, (hab _).trans_le $ hbc _
+
+lemma strong_lt_of_le_of_strong_lt (hab : a ≤ b) (hbc : b ≺ c) : a ≺ c :=
+λ i, (hab _).trans_lt $ hbc _
+
+alias le_of_strong_lt ← strong_lt.le
+alias lt_of_strong_lt ← strong_lt.lt
+alias strong_lt_of_strong_lt_of_le ← strong_lt.trans_le
+alias strong_lt_of_le_of_strong_lt ← has_le.le.trans_strong_lt
+
+end pi
+
+section function
+variables [decidable_eq ι] [Π i, preorder (π i)] {x y : Π i, π i} {i : ι} {a b : π i}
+
+lemma le_update_iff : x ≤ function.update y i a ↔ x i ≤ a ∧ ∀ j ≠ i, x j ≤ y j :=
 function.forall_update_iff _ (λ j z, x j ≤ z)
 
-lemma update_le_iff {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] [decidable_eq ι]
-  {x y : Π i, α i} {i : ι} {a : α i} :
-  function.update x i a ≤ y ↔ a ≤ y i ∧ ∀ j ≠ i, x j ≤ y j :=
+lemma update_le_iff : function.update x i a ≤ y ↔ a ≤ y i ∧ ∀ j ≠ i, x j ≤ y j :=
 function.forall_update_iff _ (λ j z, z ≤ y j)
 
-lemma update_le_update_iff {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] [decidable_eq ι]
-  {x y : Π i, α i} {i : ι} {a b : α i} :
+lemma update_le_update_iff :
   function.update x i a ≤ function.update y i b ↔ a ≤ b ∧ ∀ j ≠ i, x j ≤ y j :=
 by simp [update_le_iff] {contextual := tt}
 
-instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀ i, partial_order (α i)] :
-  partial_order (Π i, α i) :=
-{ le_antisymm := λ f g h1 h2, funext (λ b, (h1 b).antisymm (h2 b)),
-  ..pi.preorder }
+@[simp] lemma le_update_self_iff : x ≤ update x i a ↔ x i ≤ a := by simp [le_update_iff]
+@[simp] lemma update_le_self_iff : update x i a ≤ x ↔ a ≤ x i := by simp [update_le_iff]
+@[simp] lemma lt_update_self_iff : x < update x i a ↔ x i < a := by simp [lt_iff_le_not_le]
+@[simp] lemma update_lt_self_iff : update x i a < x ↔ a < x i := by simp [lt_iff_le_not_le]
+
+end function
 
 instance pi.has_sdiff {ι : Type u} {α : ι → Type v} [∀ i, has_sdiff (α i)] :
   has_sdiff (Π i, α i) :=
@@ -731,7 +762,7 @@ end prod
 
 /-! ### Additional order classes -/
 
-/-- An order is dense if there is an element between any pair of distinct elements. -/
+/-- An order is dense if there is an element between any pair of distinct comparable elements. -/
 class densely_ordered (α : Type u) [has_lt α] : Prop :=
 (dense : ∀ a₁ a₂ : α, a₁ < a₂ → ∃ a, a₁ < a ∧ a < a₂)
 
@@ -742,6 +773,32 @@ densely_ordered.dense
 instance order_dual.densely_ordered (α : Type u) [has_lt α] [densely_ordered α] :
   densely_ordered αᵒᵈ :=
 ⟨λ a₁ a₂ ha, (@exists_between α _ _ _ _ ha).imp $ λ a, and.symm⟩
+
+@[simp] lemma densely_ordered_order_dual [has_lt α] : densely_ordered αᵒᵈ ↔ densely_ordered α :=
+⟨by { convert @order_dual.densely_ordered αᵒᵈ _, casesI ‹has_lt α›, refl },
+  @order_dual.densely_ordered α _⟩
+
+instance [preorder α] [preorder β] [densely_ordered α] [densely_ordered β] :
+  densely_ordered (α × β) :=
+⟨λ a b, begin
+  simp_rw prod.lt_iff,
+  rintro (⟨h₁, h₂⟩ | ⟨h₁, h₂⟩),
+  { obtain ⟨c, ha, hb⟩ := exists_between h₁,
+    exact ⟨(c, _), or.inl ⟨ha, h₂⟩, or.inl ⟨hb, le_rfl⟩⟩ },
+  { obtain ⟨c, ha, hb⟩ := exists_between h₂,
+    exact ⟨(_, c), or.inr ⟨h₁, ha⟩, or.inr ⟨le_rfl, hb⟩⟩ }
+end⟩
+
+instance {α : ι → Type*} [Π i, preorder (α i)] [Π i, densely_ordered (α i)] :
+  densely_ordered (Π i, α i) :=
+⟨λ a b, begin
+  classical,
+  simp_rw pi.lt_def,
+  rintro ⟨hab, i, hi⟩,
+  obtain ⟨c, ha, hb⟩ := exists_between hi,
+  exact ⟨a.update i c, ⟨le_update_iff.2 ⟨ha.le, λ _ _, le_rfl⟩, i, by rwa update_same⟩,
+    update_le_iff.2 ⟨hb.le, λ _ _, hab _⟩, i, by rwa update_same⟩,
+end⟩
 
 lemma le_of_forall_le_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}
   (h : ∀ a, a₂ < a → a₁ ≤ a) :

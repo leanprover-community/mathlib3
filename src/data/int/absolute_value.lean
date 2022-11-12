@@ -5,7 +5,7 @@ Authors: Anne Baanen
 -/
 import algebra.module.basic
 import group_theory.group_action.units
-import data.int.cast
+import data.int.cast.lemmas
 import algebra.order.absolute_value
 
 /-!

@@ -8,6 +8,7 @@ import topology.algebra.constructions
 import topology.homeomorph
 import group_theory.group_action.basic
 import topology.bases
+import topology.support
 /-!
 # Monoid actions continuous in the second variable
 
@@ -45,7 +46,9 @@ local attribute [instance] mul_action.orbit_rel
 /-- Class `has_continuous_const_smul Γ T` says that the scalar multiplication `(•) : Γ → T → T`
 is continuous in the second argument. We use the same class for all kinds of multiplicative
 actions, including (semi)modules and algebras.
--/
+
+Note that both `has_continuous_const_smul α α` and `has_continuous_const_smul αᵐᵒᵖ α` are
+weaker versions of `has_continuous_mul α`. -/
 class has_continuous_const_smul (Γ : Type*) (T : Type*) [topological_space T] [has_smul Γ T]
  : Prop :=
 (continuous_const_smul : ∀ γ : Γ, continuous (λ x : T, γ • x))
@@ -53,7 +56,9 @@ class has_continuous_const_smul (Γ : Type*) (T : Type*) [topological_space T] [
 /-- Class `has_continuous_const_vadd Γ T` says that the additive action `(+ᵥ) : Γ → T → T`
 is continuous in the second argument. We use the same class for all kinds of additive actions,
 including (semi)modules and algebras.
--/
+
+Note that both `has_continuous_const_vadd α α` and `has_continuous_const_vadd αᵐᵒᵖ α` are
+weaker versions of `has_continuous_add α`. -/
 class has_continuous_const_vadd (Γ : Type*) (T : Type*) [topological_space T]
   [has_vadd Γ T] : Prop :=
 (continuous_const_vadd : ∀ γ : Γ, continuous (λ x : T, γ +ᵥ x))
@@ -295,6 +300,18 @@ lemma is_closed.smul₀ {𝕜 M : Type*} [division_ring 𝕜] [add_comm_monoid M
   is_closed (c • s) :=
 is_closed_map_smul₀ c s hs
 
+lemma has_compact_mul_support.comp_smul {β : Type*} [has_one β] {f : α → β}
+  (h : has_compact_mul_support f) {c : G₀} (hc : c ≠ 0) :
+  has_compact_mul_support (λ x, f (c • x)) :=
+h.comp_homeomorph (homeomorph.smul_of_ne_zero c hc)
+
+lemma has_compact_support.comp_smul {β : Type*} [has_zero β] {f : α → β}
+  (h : has_compact_support f) {c : G₀} (hc : c ≠ 0) :
+  has_compact_support (λ x, f (c • x)) :=
+h.comp_homeomorph (homeomorph.smul_of_ne_zero c hc)
+
+attribute [to_additive has_compact_support.comp_smul] has_compact_mul_support.comp_smul
+
 end group_with_zero
 
 namespace is_unit
@@ -405,7 +422,7 @@ begin
   refine ⟨f '' U₀, U_nhds, f '' V₀, V_nhds, mul_action.disjoint_image_image_iff.2 _⟩,
   rintros x ⟨x_in_U₀₀, x_in_K₀⟩ γ,
   by_cases H : γ ∈ bad_Γ_set,
-  { exact λ h, u_v_disjoint γ ⟨mem_Inter₂.mp x_in_U₀₀ γ H, mem_Inter₂.mp h.1 γ H⟩ },
+  { exact λ h, (u_v_disjoint γ).le_bot ⟨mem_Inter₂.mp x_in_U₀₀ γ H, mem_Inter₂.mp h.1 γ H⟩ },
   { rintros ⟨-, h'⟩,
     simp only [image_smul, not_not, mem_set_of_eq, ne.def] at H,
     exact eq_empty_iff_forall_not_mem.mp H (γ • x) ⟨mem_image_of_mem _ x_in_K₀, h'⟩ },

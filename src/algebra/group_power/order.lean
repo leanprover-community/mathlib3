@@ -3,7 +3,8 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
-import algebra.order.ring
+import algebra.order.ring.abs
+import algebra.order.with_zero
 import algebra.group_power.ring
 import data.set.intervals.basic
 
@@ -358,7 +359,7 @@ one_lt_pow_iff_of_nonneg ha (nat.succ_ne_zero _)
 
 @[simp] theorem pow_left_inj {x y : R} {n : ℕ} (Hxpos : 0 ≤ x) (Hypos : 0 ≤ y) (Hnpos : 0 < n) :
   x ^ n = y ^ n ↔ x = y :=
-(@strict_mono_on_pow R _ _ Hnpos).inj_on.eq_iff Hxpos Hypos
+(@strict_mono_on_pow R _ _ Hnpos).eq_iff_eq Hxpos Hypos
 
 lemma lt_of_pow_lt_pow {a b : R} (n : ℕ) (hb : 0 ≤ b) (h : a ^ n < b ^ n) : a < b :=
 lt_of_not_ge $ λ hn, not_lt_of_ge (pow_le_pow_of_le_left hb hn _) h

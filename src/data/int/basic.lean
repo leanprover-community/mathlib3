@@ -557,7 +557,7 @@ begin
   tauto,
 end
 
-lemma eq_one_or_neg_one_iff_mul_eq_one {z w : ℤ} :
+lemma mul_eq_one_iff_eq_one_or_neg_one {z w : ℤ} :
   z * w = 1 ↔ z = 1 ∧ w = 1 ∨ z = -1 ∧ w = -1 :=
 begin
   refine ⟨eq_one_or_neg_one_of_mul_eq_one', λ h, or.elim h (λ H, _) (λ H, _)⟩;
@@ -573,7 +573,7 @@ begin
   { exact or.inr ⟨rfl, neg_inj.mp (neg_one_mul w ▸ h)⟩, }
 end
 
-lemma eq_one_or_neg_one_iff_mul_eq_neg_one {z w : ℤ} :
+lemma mul_eq_neg_one_iff_eq_one_or_neg_one {z w : ℤ} :
   z * w = -1 ↔ z = 1 ∧ w = -1 ∨ z = -1 ∧ w = 1 :=
 begin
   refine ⟨eq_one_or_neg_one_of_mul_eq_neg_one', λ h, or.elim h (λ H, _) (λ H, _)⟩;

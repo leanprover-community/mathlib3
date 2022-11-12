@@ -120,6 +120,11 @@ families of functions on these modules. See note [bundled maps over different ri
       rw finset.univ_sum_single
     end }
 
+@[simp] lemma lsum_single {ι R : Type*} [fintype ι] [decidable_eq ι] [comm_ring R]
+  {M : ι → Type*} [∀ i, add_comm_group (M i)] [∀ i, module R (M i)] :
+  linear_map.lsum R M R linear_map.single = linear_map.id :=
+linear_map.ext (λ x, by simp [finset.univ_sum_single])
+
 variables {R φ}
 
 section ext
@@ -246,6 +251,17 @@ begin
   { intros x hx,
     rw [← finset.univ_sum_single x],
     exact sum_mem_supr (λ i, mem_map_of_mem (hx i trivial)) }
+end
+
+lemma le_comap_single_pi [decidable_eq ι] (p : Π i, submodule R (φ i)) {i} :
+  p i ≤ submodule.comap (linear_map.single i : φ i →ₗ[R] _) (submodule.pi set.univ p) :=
+begin
+  intros x hx,
+  rw [submodule.mem_comap, submodule.mem_pi],
+  rintros j -,
+  by_cases h : j = i,
+  { rwa [h, linear_map.coe_single, pi.single_eq_same] },
+  { rw [linear_map.coe_single, pi.single_eq_of_ne h], exact (p j).zero_mem }
 end
 
 end submodule

@@ -1982,7 +1982,18 @@ lemma comap_equiv_eq_map_symm (e : M ≃ₛₗ[τ₁₂] M₂) (K : submodule R�
   K.comap (e : M →ₛₗ[τ₁₂] M₂) = K.map (e.symm : M₂ →ₛₗ[τ₂₁] M) :=
 (map_equiv_eq_comap_symm e.symm K).symm
 
+variables {p}
 include τ₂₁
+lemma map_symm_eq_iff (e : M ≃ₛₗ[τ₁₂] M₂) {K : submodule R₂ M₂} :
+  K.map e.symm = p ↔ p.map e = K :=
+begin
+  split; rintro rfl,
+  { calc map e (map e.symm K) = comap e.symm (map e.symm K) : map_equiv_eq_comap_symm _ _
+    ... = K : comap_map_eq_of_injective e.symm.injective _ },
+  { calc map e.symm (map e p) = comap e (map e p) : (comap_equiv_eq_map_symm _ _).symm
+    ... = p : comap_map_eq_of_injective e.injective _ },
+end
+
 lemma order_iso_map_comap_apply' (e : M ≃ₛₗ[τ₁₂] M₂) (p : submodule R M) :
   order_iso_map_comap e p = comap e.symm p :=
 p.map_equiv_eq_comap_symm _

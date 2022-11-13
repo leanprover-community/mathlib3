@@ -166,6 +166,31 @@ by { ext ⟨x, y⟩, simp only [or_and_distrib_right, mem_union, mem_product] }
   s ×ˢ (t ∪ t') = s ×ˢ t ∪ s ×ˢ t' :=
 by { ext ⟨x, y⟩, simp only [and_or_distrib_left, mem_union, mem_product] }
 
+lemma inter_product [decidable_eq α] [decidable_eq β] :
+  (s ∩ s') ×ˢ t = s ×ˢ t ∩ s' ×ˢ t :=
+by { ext ⟨x, y⟩, simp only [←and_and_distrib_right, mem_inter, mem_product] }
+
+lemma product_inter [decidable_eq α] [decidable_eq β] :
+  s ×ˢ (t ∩ t') = s ×ˢ t ∩ s ×ˢ t' :=
+by { ext ⟨x, y⟩, simp only [←and_and_distrib_left, mem_inter, mem_product] }
+
+lemma product_inter_product [decidable_eq α] [decidable_eq β] :
+  s ×ˢ t ∩ s' ×ˢ t' = (s ∩ s') ×ˢ (t ∩ t') :=
+by { ext ⟨x, y⟩, simp only [and_assoc, and.left_comm, mem_inter, mem_product] }
+
+lemma disjoint_product : disjoint (s ×ˢ t) (s' ×ˢ t') ↔ disjoint s s' ∨ disjoint t t' :=
+by simp_rw [←disjoint_coe, coe_product, set.disjoint_prod]
+
+@[simp] lemma disj_union_product (hs : disjoint s s') :
+  s.disj_union s' hs ×ˢ t = (s ×ˢ t).disj_union (s' ×ˢ t)
+    (disjoint_product.mpr $ or.inl hs) :=
+eq_of_veq $ multiset.add_product _ _ _
+
+@[simp] lemma product_disj_union (ht : disjoint t t') :
+  s ×ˢ t.disj_union t' ht = (s ×ˢ t).disj_union (s ×ˢ t')
+    (disjoint_product.mpr $ or.inr ht) :=
+eq_of_veq $ multiset.product_add _ _ _
+
 end prod
 
 section diag

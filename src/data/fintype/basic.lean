@@ -3,6 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import logic.embedding.set
 import algebra.parity
 import data.array.lemmas
 import data.finset.fin
@@ -631,7 +632,7 @@ variables {s t : set α}
 
 /-- Construct a finset enumerating a set `s`, given a `fintype` instance.  -/
 def to_finset (s : set α) [fintype s] : finset α :=
-⟨(@finset.univ s _).1.map subtype.val, finset.univ.nodup.map $ λ a b, subtype.eq⟩
+(@finset.univ s _).map $ function.embedding.subtype _
 
 @[congr]
 lemma to_finset_congr {s t : set α} [fintype s] [fintype t] (h : s = t) :

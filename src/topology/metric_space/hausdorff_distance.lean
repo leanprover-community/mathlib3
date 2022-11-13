@@ -944,7 +944,7 @@ begin
 end
 
 lemma frontier_thickening_disjoint' (A : set X) (radii : set ℝ) :
-  radii.pairwise_disjoint(λ (r : ℝ), frontier (thickening r A)) :=
+  radii.pairwise_disjoint (λ (r : ℝ), frontier (thickening r A)) :=
 λ r₁ _ r₂ _, frontier_thickening_disjoint A r₁ r₂
 
 end thickening --section

@@ -10,15 +10,7 @@ import topology.algebra.uniform_convergence
 -/
 
 open function
-
-section
-
---Note: these attributes don't affect the *statements* of the following lemmas.
-local attribute [-instance] Pi.topological_space
-local attribute [-instance] Pi.uniform_space
-local attribute [instance] uniform_convergence.topological_space
-local attribute [instance] uniform_convergence.uniform_space
-local attribute [instance] uniform_convergence.uniform_group
+open_locale uniform_convergence
 
 @[to_additive] lemma equicontinuous_of_equicontinuous_at_one {ι G M hom : Type*}
   [topological_space G] [uniform_space M] [group G] [group M] [topological_group G]
@@ -49,6 +41,4 @@ begin
     map_one' := by ext; exact map_one _,
     map_mul' := λ a b, by ext; exact map_mul _ _ _ },
   exact uniform_continuous_of_continuous_at_one φ hf
-end
-
 end

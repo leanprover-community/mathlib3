@@ -1137,7 +1137,6 @@ lemma affine_span_induction' {x : P} {s : set P} {p : Π x, x ∈ affine_span k 
 begin
   refine exists.elim _ (λ (hx : x ∈ affine_span k s) (hc : p x hx), hc),
   refine @affine_span_induction k V P _ _ _ _ _ _ _ h _ _,
-  -- Why can't I substitute the following goals into the `refine` expression?
   { exact (λ y hy, ⟨subset_affine_span _ _ hy, Hs y hy⟩) },
   { exact (λ c u v w hu hv hw, exists.elim hu $ λ hu' hu, exists.elim hv $ λ hv' hv,
       exists.elim hw $ λ hw' hw,

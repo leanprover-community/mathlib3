@@ -48,8 +48,8 @@ def fiberwise_equiv_pi (f : α → β) : fiberwise f ≃* Π y : β, equiv.perm 
       rintro ⟨x, rfl⟩,
       simp only [subtype.coe_mk, coe_fn_mk, subtype_perm_apply, subtype.coe_eta],
     end,
-  map_mul' := λ e₁ e₂, funext $ λ y, ext $ λ x, by simp only [subgroup.coe_mul, coe_mul, (∘),
-    subtype.coe_mk, subtype_perm_apply, pi.mul_apply] }
+  map_mul' := λ e₁ e₂, funext $ λ y, ext $ λ x, by simp only [subgroup.coe_mul, equiv.perm.coe_mul,
+    (∘), subtype.coe_mk, subtype_perm_apply, pi.mul_apply] }
 
 end perm
 

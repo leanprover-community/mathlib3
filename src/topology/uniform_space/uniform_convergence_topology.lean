@@ -139,7 +139,13 @@ open set filter
 
 section type_alias
 
+/-- The type of functions from `α` to `β` equipped with the uniform structure and topology of
+uniform convergence. We denote it `α →ᵤ β`. -/
 def uniform_fun (α β : Type*) := α → β
+
+/-- The type of functions from `α` to `β` equipped with the uniform structure and topology of
+uniform convergence on some family `𝔖` of subsets of `α`. We denote it `α →ᵤ[𝔖] β`. -/
+@[nolint unused_arguments]
 def uniform_on_fun (α β : Type*) (𝔖 : set (set α)) := α → β
 
 localized "notation α ` →ᵤ `:25 β:0 := uniform_fun α β" in uniform_convergence
@@ -149,10 +155,19 @@ localized "notation `λᵘ` binders `, ` r:(scoped p, uniform_fun.of_fun p) := r
 localized "notation `λᵘ[` 𝔖 `] ` binders `, ` r:(scoped p, uniform_fun.of_fun p) := r"
   in uniform_convergence
 
+instance {α β} [nonempty β] : nonempty (α →ᵤ β) := pi.nonempty
+instance {α β 𝔖} [nonempty β] : nonempty (α →ᵤ[𝔖] β) := pi.nonempty
+
+/-- Reinterpret `f : α → β` as an element of `α →ᵤ β`. -/
 def uniform_fun.of_fun {α β} : (α → β) ≃ (α →ᵤ β) := ⟨λ x, x, λ x, x, λ x, rfl, λ x, rfl⟩
+
+/-- Reinterpret `f : α → β` as an element of `α →ᵤ[𝔖] β`. -/
 def uniform_on_fun.of_fun {α β} (𝔖) : (α → β) ≃ (α →ᵤ[𝔖] β) := ⟨λ x, x, λ x, x, λ x, rfl, λ x, rfl⟩
 
+/-- Reinterpret `f : α →ᵤ β` as an element of `α → β`. -/
 def uniform_fun.to_fun {α β} : (α →ᵤ β) ≃ (α → β) := uniform_fun.of_fun.symm
+
+/-- Reinterpret `f : α →ᵤ[𝔖] β` as an element of `α → β`. -/
 def uniform_on_fun.to_fun {α β} (𝔖) : (α →ᵤ[𝔖] β) ≃ (α → β) := (uniform_on_fun.of_fun 𝔖).symm
 
 -- Note: we don't declare a `has_coe_to_fun` instance because Lean wouldn't insert it when writing
@@ -175,18 +190,19 @@ protected def gen (V : set (β × β)) : set ((α →ᵤ β) × (α →ᵤ β)) 
   {uv : (α →ᵤ β) × (α →ᵤ β) | ∀ x, (uv.1 x, uv.2 x) ∈ V}
 
 /-- If `𝓕` is a filter on `β × β`, then the set of all `uniform_convergence.gen α β V` for
-`V ∈ 𝓕` is too. This will only be applied to `𝓕 = 𝓤 β` when `β` is equipped with a `uniform_space`
-structure, but it is useful to define it for any filter in order to be able to state that it
-has a lower adjoint (see `uniform_convergence.gc`). -/
+`V ∈ 𝓕` is a filter basis on `(α →ᵤ β) × (α →ᵤ β)`. This will only be applied to `𝓕 = 𝓤 β` when
+`β` is equipped with a `uniform_space` structure, but it is useful to define it for any filter in
+order to be able to state that it has a lower adjoint (see `uniform_convergence.gc`). -/
 protected lemma is_basis_gen (𝓑 : filter $ β × β) :
   is_basis (λ V : set (β × β), V ∈ 𝓑) (uniform_fun.gen α β) :=
 ⟨⟨univ, univ_mem⟩, λ U V hU hV, ⟨U ∩ V, inter_mem hU hV, λ uv huv,
   ⟨λ x, (huv x).left, λ x, (huv x).right⟩⟩⟩
 
 /-- For `𝓕 : filter (β × β)`, this is the set of all `uniform_convergence.gen α β V` for
-`V ∈ 𝓕` is as a bundled `filter_basis`. This will only be applied to `𝓕 = 𝓤 β` when `β` is
-equipped with a `uniform_space` structure, but it is useful to define it for any filter in order
-to be able to state that it has a lower adjoint (see `uniform_convergence.gc`). -/
+`V ∈ 𝓕` as a bundled `filter_basis` over `(α →ᵤ β) × (α →ᵤ β)`. This will only be applied to
+`𝓕 = 𝓤 β` when `β` is equipped with a `uniform_space` structure, but it is useful to define it for
+any filter in order to be able to state that it has a lower adjoint
+(see `uniform_convergence.gc`). -/
 protected def basis (𝓕 : filter $ β × β) : filter_basis ((α →ᵤ β) × (α →ᵤ β)) :=
 (uniform_fun.is_basis_gen α β 𝓕).filter_basis
 
@@ -203,16 +219,16 @@ local notation `Φ` :=
 The exact definition of the lower adjoint `l` is not interesting; we will only use that it exists
 (in `uniform_convergence.mono` and `uniform_convergence.infi_eq`) and that
 `l (filter.map (prod.map f f) 𝓕) = filter.map (prod.map ((∘) f) ((∘) f)) (l 𝓕)` for each
-`𝓕 : filter (γ × γ)` and `f : γ →ᵤ α` (in `uniform_convergence.comap_eq`). -/
+`𝓕 : filter (γ × γ)` and `f : γ → α` (in `uniform_convergence.comap_eq`). -/
 local notation `lower_adjoint` :=
 λ 𝓐, map (Φ α β) (𝓐 ×ᶠ ⊤)
 
-/-- The function `uniform_convergence.filter α β : filter (β × β) → filter ((α → β) × (α → β))`
+/-- The function `uniform_convergence.filter α β : filter (β × β) → filter ((α →ᵤ β) × (α →ᵤ β))`
 has a lower adjoint `l` (in the sense of `galois_connection`). The exact definition of `l` is not
 interesting; we will only use that it exists (in `uniform_convergence.mono` and
 `uniform_convergence.infi_eq`) and that
 `l (filter.map (prod.map f f) 𝓕) = filter.map (prod.map ((∘) f) ((∘) f)) (l 𝓕)` for each
-`𝓕 : filter (γ × γ)` and `f : γ →ᵤ α` (in `uniform_convergence.comap_eq`). -/
+`𝓕 : filter (γ × γ)` and `f : γ → α` (in `uniform_convergence.comap_eq`). -/
 protected lemma gc : galois_connection lower_adjoint
   (λ 𝓕, uniform_fun.filter α β 𝓕) :=
 begin
@@ -241,25 +257,26 @@ uniform_space.core.mk_of_basis (uniform_fun.basis α β (𝓤 β))
     ⟨uniform_fun.gen α β W, ⟨W, hW, rfl⟩, λ uv ⟨w, huw, hwv⟩ x, hWV
       ⟨w x, by exact ⟨huw x, hwv x⟩⟩⟩)
 
-/-- Uniform structure of uniform convergence. We will denote it `𝒰(α, β, uβ)`. -/
+/-- Uniform structure of uniform convergence, declared as an instance on `α →ᵤ β`.
+We will denote it `𝒰(α, β, uβ)` in the rest of this file. -/
 instance : uniform_space (α →ᵤ β) :=
 uniform_space.of_core (uniform_fun.uniform_core α β)
 
-/-- Topology of uniform convergence. -/
+/-- Topology of uniform convergence, declared as an instance on `α →ᵤ β`. -/
 instance : topological_space (α →ᵤ β) := infer_instance
 
 local notation `𝒰(`α`, `β`, `u`)` := @uniform_fun.uniform_space α β u
 
-/-- By definition, the uniformity of `α → β` endowed with the structure of uniform convergence on
-`α` admits the family `{(f, g) | ∀ x, (f x, g x) ∈ V}` for `V ∈ 𝓤 β` as a filter basis. -/
+/-- By definition, the uniformity of `α →ᵤ β` admits the family `{(f, g) | ∀ x, (f x, g x) ∈ V}`
+for `V ∈ 𝓤 β` as a filter basis. -/
 protected lemma has_basis_uniformity :
   (𝓤 (α →ᵤ β)).has_basis (λ V, V ∈ 𝓤 β)
   (uniform_fun.gen α β) :=
 (uniform_fun.is_basis_gen α β (𝓤 β)).has_basis
 
-/-- The uniformity of `α → β` endowed with the uniform structure of uniform convergence on admits
-the family `{(f, g) | ∀ x, (f x, g x) ∈ V}` for `V ∈ 𝓑` as a filter basis, for any basis
-`𝓑` of `𝓤 β` (in the case `𝓑 = (𝓤 β).as_basis` this is true by definition). -/
+/-- The uniformity of `α →ᵤ β` admits the family `{(f, g) | ∀ x, (f x, g x) ∈ V}` for `V ∈ 𝓑` as
+a filter basis, for any basis `𝓑` of `𝓤 β` (in the case `𝓑 = (𝓤 β).as_basis` this is true by
+definition). -/
 protected lemma has_basis_uniformity_of_basis {ι : Sort*} {p : ι → Prop} {s : ι → set (β × β)}
   (h : (𝓤 β).has_basis p s) :
   (𝓤 (α →ᵤ β)).has_basis p (uniform_fun.gen α β ∘ s) :=
@@ -267,22 +284,22 @@ protected lemma has_basis_uniformity_of_basis {ι : Sort*} {p : ι → Prop} {s 
   (λ U hU, let ⟨i, hi, hiU⟩ := h.mem_iff.mp hU in ⟨i, hi, λ uv huv x, hiU (huv x)⟩)
   (λ i hi, ⟨s i, h.mem_of_mem hi, subset_refl _⟩)
 
-/-- If `α → β` is endowed with the topology of uniform convergence, `𝓝 f` admits the family
-`{g | ∀ x, (f x, g x) ∈ V}` for `V ∈ 𝓑` as a filter basis, for any basis `𝓑` of `𝓤 β`. -/
+/-- For `f : α →ᵤ β`, `𝓝 f` admits the family `{g | ∀ x, (f x, g x) ∈ V}` for `V ∈ 𝓑` as a filter
+basis, for any basis `𝓑` of `𝓤 β`. -/
 protected lemma has_basis_nhds_of_basis (f) {p : ι → Prop} {s : ι → set (β × β)}
   (h : has_basis (𝓤 β) p s) :
   (𝓝 f).has_basis p (λ i, {g | (f, g) ∈ uniform_fun.gen α β (s i)}) :=
 nhds_basis_uniformity' (uniform_fun.has_basis_uniformity_of_basis α β h)
 
-/-- If `α → β` is endowed with the topology of uniform convergence, `𝓝 f` admits the family
-`{g | ∀ x, (f x, g x) ∈ V}` for `V ∈ 𝓤 β` as a filter basis. -/
+/-- For `f : α →ᵤ β`, `𝓝 f` admits the family `{g | ∀ x, (f x, g x) ∈ V}` for `V ∈ 𝓤 β` as a
+filter basis. -/
 protected lemma has_basis_nhds (f) :
   (𝓝 f).has_basis (λ V, V ∈ 𝓤 β) (λ V, {g | (f, g) ∈ uniform_fun.gen α β V}) :=
 uniform_fun.has_basis_nhds_of_basis α β f (filter.basis_sets _)
 
 variables {α}
 
-/-- Evaluation at a fixed point is uniformly continuous for `𝒰(α, β, uβ)`. -/
+/-- Evaluation at a fixed point is uniformly continuous on `α →ᵤ β`. -/
 lemma uniform_continuous_eval (x : α) :
   uniform_continuous (function.eval x ∘ to_fun : (α →ᵤ β) → β) :=
 begin
@@ -298,7 +315,6 @@ variables {β}
 `𝒰(α, γ, u₁) ≤ 𝒰(α, γ, u₂)`. -/
 protected lemma mono : monotone (@uniform_fun.uniform_space α γ) :=
 λ u₁ u₂ hu, (uniform_fun.gc α γ).monotone_u hu
-
 
 /-- If `u` is a family of uniform structures on `γ`, then
 `𝒰(α, γ, (⨅ i, u i)) = ⨅ i, 𝒰(α, γ, u i)`. -/
@@ -351,11 +367,10 @@ begin
   refl
 end
 
-/-- Post-composition by a uniformly continuous function is uniformly continuous for the
-uniform structures of uniform convergence.
+/-- Post-composition by a uniformly continuous function is uniformly continuous on `α →ᵤ β`.
 
-More precisely, if `f : (γ, uγ) → (β, uβ)` is uniformly continuous, then
-`(λ g, f ∘ g) : (α → γ, 𝒰(α, γ, uγ)) → (α → β, 𝒰(α, β, uβ))` is uniformly continuous. -/
+More precisely, if `f : γ → β` is uniformly continuous, then `(λ g, f ∘ g) : (α →ᵤ γ) → (α →ᵤ β)`
+is uniformly continuous. -/
 protected lemma postcomp_uniform_continuous [uniform_space γ] {f : γ → β}
   (hf : uniform_continuous f):
   uniform_continuous (of_fun ∘ ((∘) f) ∘ to_fun : (α →ᵤ γ) → (α →ᵤ β)) :=
@@ -370,8 +385,8 @@ calc 𝒰(α, γ, _)
 /-- Post-composition by a uniform inducing is a uniform inducing for the
 uniform structures of uniform convergence.
 
-More precisely, if `f : (γ, uγ) → (β, uβ)` is a uniform inducing, then
-`(λ g, f ∘ g) : (α → γ, 𝒰(α, γ, uγ)) → (α → β, 𝒰(α, β, uβ))` is a uniform inducing. -/
+More precisely, if `f : γ → β` is a uniform inducing, then `(λ g, f ∘ g) : (α →ᵤ γ) → (α →ᵤ β)` is
+a uniform inducing. -/
 protected lemma postcomp_uniform_inducing [uniform_space γ] {f : γ → β}
   (hf : uniform_inducing f):
   uniform_inducing (of_fun ∘ ((∘) f) ∘ to_fun : (α →ᵤ γ) → (α →ᵤ β)) :=
@@ -386,8 +401,8 @@ begin
   refl
 end
 
-/-- Turn a uniform isomorphism `(γ, uγ) ≃ᵤ (β, uβ)` into a uniform isomorphism
-`(α →ᵤ γ, 𝒰(α, γ, uγ)) ≃ᵤ (α →ᵤ β, 𝒰(α, β, uβ))` by post-composing. -/
+/-- Turn a uniform isomorphism `γ ≃ᵤ β` into a uniform isomorphism `(α →ᵤ γ) ≃ᵤ (α →ᵤ β)` by
+post-composing. -/
 protected def congr_right [uniform_space γ] (e : γ ≃ᵤ β) :
   (α →ᵤ γ) ≃ᵤ (α →ᵤ β) :=
 { uniform_continuous_to_fun :=
@@ -399,8 +414,8 @@ protected def congr_right [uniform_space γ] (e : γ ≃ᵤ β) :
 /-- Pre-composition by a any function is uniformly continuous for the uniform structures of
 uniform convergence.
 
-More precisely, for any `f : γ → α`, the function
-`(λ g, g ∘ f) : (α → β, 𝒰(α, β, uβ)) → (γ → β, 𝒰(γ, β, uβ))` is uniformly continuous. -/
+More precisely, for any `f : γ → α`, the function `(λ g, g ∘ f) : (α →ᵤ β) → (γ →ᵤ β)` is uniformly
+continuous. -/
 protected lemma precomp_uniform_continuous {f : γ → α} :
   uniform_continuous (λ g : α →ᵤ β, of_fun (g ∘ f)) :=
 begin
@@ -413,7 +428,7 @@ begin
 end
 
 /-- Turn a bijection `γ ≃ α` into a uniform isomorphism
-`(γ → β, 𝒰(γ, β, uβ)) ≃ᵤ (α → β, 𝒰(α, β, uβ))` by pre-composing. -/
+`(γ →ᵤ β) ≃ᵤ (α →ᵤ β)` by pre-composing. -/
 protected def congr_left (e : γ ≃ α) :
   (γ →ᵤ β) ≃ᵤ (α →ᵤ β) :=
 { uniform_continuous_to_fun :=
@@ -431,8 +446,10 @@ instance [t2_space β] : t2_space (α →ᵤ β) :=
     exact separated_by_continuous (uniform_continuous_eval β x).continuous hx
   end }
 
-/-- The uniform structure of uniform convergence is finer than that of pointwise convergence,
-aka the product uniform structure. -/
+/-- The natural map `uniform_fun.to_fun` from `α →ᵤ β` to `α → β` is uniformly continuous.
+
+In other words, the uniform structure of uniform convergence is finer than that of pointwise
+convergence, aka the product uniform structure. -/
 protected lemma uniform_continuous_to_fun : uniform_continuous (to_fun : (α →ᵤ β) → α → β) :=
 begin
   -- By definition of the product uniform structure, this is just `uniform_continuous_eval`.

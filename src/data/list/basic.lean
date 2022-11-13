@@ -3,7 +3,9 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
-import data.nat.order
+import algebra.order.with_zero
+import data.nat.order.lemmas
+import data.set.function
 
 /-!
 # Basic properties of lists
@@ -1094,6 +1096,12 @@ eq_nil_of_subset_nil $ s.subset
 @[simp] theorem repeat_sublist_repeat (a : α) {m n} : repeat a m <+ repeat a n ↔ m ≤ n :=
 ⟨λ h, by simpa only [length_repeat] using h.length_le,
  λ h, by induction h; [refl, simp only [*, repeat_succ, sublist.cons]] ⟩
+
+lemma sublist_repeat_iff {l : list α} {a : α} {n : ℕ} :
+  l <+ repeat a n ↔ ∃ (k ≤ n), l = repeat a k :=
+⟨λ h, ⟨l.length, h.length_le.trans (length_repeat _ _).le, eq_repeat.mpr
+         ⟨rfl, λ b hb, list.eq_of_mem_repeat (h.subset hb)⟩⟩,
+ by { rintro ⟨k, h, rfl⟩, exact (repeat_sublist_repeat _).mpr h }⟩
 
 theorem sublist.eq_of_length : ∀ {l₁ l₂ : list α}, l₁ <+ l₂ → length l₁ = length l₂ → l₁ = l₂
 | ._ ._ sublist.slnil             h := rfl
@@ -2215,9 +2223,6 @@ foldl_fixed' (λ _, rfl)
 
 @[simp] theorem foldr_fixed {b : β} : Π l : list α, foldr (λ a b, b) b l = b :=
 foldr_fixed' (λ _, rfl)
-
-@[simp] theorem foldl_combinator_K {a : α} : Π l : list β, foldl combinator.K a l = a :=
-foldl_fixed
 
 @[simp] theorem foldl_join (f : α → β → α) :
   ∀ (a : α) (L : list (list β)), foldl f a (join L) = foldl (foldl f) a L

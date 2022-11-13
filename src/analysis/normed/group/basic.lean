@@ -316,6 +316,12 @@ lemma norm_inv' (a : E) : ∥a⁻¹∥ = ∥a∥ := by simpa using norm_div_rev 
 @[simp, to_additive] lemma dist_mul_right (a₁ a₂ b : E) : dist (a₁ * b) (a₂ * b) = dist a₁ a₂ :=
 by simp [dist_eq_norm_div]
 
+@[simp, to_additive] lemma dist_mul_self_right (a b : E) : dist b (a * b) = ∥a∥ :=
+by rw [←dist_one_left, ←dist_mul_right 1 a b, one_mul]
+
+@[simp, to_additive] lemma dist_mul_self_left (a b : E) : dist (a * b) b = ∥a∥ :=
+by rw [dist_comm, dist_mul_self_right]
+
 @[to_additive] lemma dist_div_right (a₁ a₂ b : E) : dist (a₁ / b) (a₂ / b) = dist a₁ a₂ :=
 by simpa only [div_eq_mul_inv] using dist_mul_right _ _ _
 

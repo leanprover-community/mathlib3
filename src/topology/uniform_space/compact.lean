@@ -224,11 +224,6 @@ h.continuous_on.tendsto_uniformly univ_mem
 
 section uniform_convergence
 
-local attribute [-instance] Pi.topological_space
-local attribute [-instance] Pi.uniform_space
-local attribute [instance] uniform_convergence.topological_space
-local attribute [instance] uniform_convergence.uniform_space
-
 /-- An equicontinuous family of functions defined on a compact uniform space is automatically
 uniformly equicontinuous. -/
 lemma compact_space.uniform_equicontinuous_of_equicontinuous {ι : Type*} {F : ι → β → α}

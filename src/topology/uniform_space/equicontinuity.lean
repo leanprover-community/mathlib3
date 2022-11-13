@@ -81,7 +81,7 @@ equicontinuity, uniform convergence, ascoli
 section
 
 open uniform_space filter set
-open_locale uniformity topological_space
+open_locale uniformity topological_space uniform_convergence
 
 variables {ι κ X Y Z α β γ 𝓕 : Type*} [topological_space X] [topological_space Y]
   [topological_space Z] [uniform_space α] [uniform_space β] [uniform_space γ]
@@ -227,25 +227,22 @@ lemma uniform_equicontinuous_at_iff_range {F : ι → β → α} :
 
 section
 
-local attribute [-instance] Pi.topological_space
-local attribute [-instance] Pi.uniform_space
-local attribute [instance] uniform_convergence.topological_space
-local attribute [instance] uniform_convergence.uniform_space
+open uniform_fun
 
 /-- A family `𝓕 : ι → X → α` is equicontinuous at `x₀` iff the function `swap 𝓕 : X → ι → α` is
 continuous at `x₀` *when `ι → α` is equipped with the topology of uniform convergence*. This is
 very useful for developping the equicontinuity API, but it should not be used directly for other
 purposes. -/
 lemma equicontinuous_at_iff_continuous_at {F : ι → X → α} {x₀ : X} :
-  equicontinuous_at F x₀ ↔ continuous_at (function.swap F) x₀ :=
-by rw [continuous_at, (uniform_convergence.has_basis_nhds ι α _).tendsto_right_iff]; refl
+  equicontinuous_at F x₀ ↔ continuous_at (of_fun ∘ function.swap F : X → (ι →ᵤ α)) x₀ :=
+by rw [continuous_at, (uniform_fun.has_basis_nhds ι α _).tendsto_right_iff]; refl
 
 /-- A family `𝓕 : ι → X → α` is equicontinuous iff the function `swap 𝓕 : X → ι → α` is
 continuous *when `ι → α` is equipped with the topology of uniform convergence*. This is
 very useful for developping the equicontinuity API, but it should not be used directly for other
 purposes. -/
 lemma equicontinuous_iff_continuous {F : ι → X → α} :
-  equicontinuous F ↔ continuous (function.swap F) :=
+  equicontinuous F ↔ continuous (of_fun ∘ function.swap F : X → (ι →ᵤ α)) :=
 by simp_rw [equicontinuous, continuous_iff_continuous_at, equicontinuous_at_iff_continuous_at]
 
 /-- A family `𝓕 : ι → β → α` is uniformly equicontinuous iff the function `swap 𝓕 : β → ι → α` is
@@ -253,8 +250,8 @@ uniformly continuous *when `ι → α` is equipped with the uniform structure of
 This is very useful for developping the equicontinuity API, but it should not be used directly
 for other purposes. -/
 lemma uniform_equicontinuous_iff_uniform_continuous {F : ι → β → α} :
-  uniform_equicontinuous F ↔ uniform_continuous (function.swap F) :=
-by rw [uniform_continuous, (uniform_convergence.has_basis_uniformity ι α).tendsto_right_iff]; refl
+  uniform_equicontinuous F ↔ uniform_continuous (of_fun ∘ function.swap F : β → (ι →ᵤ α)) :=
+by rw [uniform_continuous, (uniform_fun.has_basis_uniformity ι α).tendsto_right_iff]; refl
 
 lemma equicontinuous_at_infi_rng {α' : Type*} [u : κ → uniform_space α'] {F : ι → X → α'}
   {x₀ : X} :
@@ -311,7 +308,7 @@ lemma filter.has_basis.equicontinuous_at_iff_left {κ : Type*} {p : κ → Prop}
   ∀ U ∈ 𝓤 α, ∃ k (_ : p k), ∀ x ∈ s k, ∀ i, (F i x₀, F i x) ∈ U :=
 begin
   rw [equicontinuous_at_iff_continuous_at, continuous_at,
-      hX.tendsto_iff (uniform_convergence.has_basis_nhds ι α _)],
+      hX.tendsto_iff (uniform_fun.has_basis_nhds ι α _)],
   refl
 end
 
@@ -320,7 +317,7 @@ lemma filter.has_basis.equicontinuous_at_iff_right {κ : Type*} {p : κ → Prop
   ∀ k, p k → ∀ᶠ x in 𝓝 x₀, ∀ i, (F i x₀, F i x) ∈ s k :=
 begin
   rw [equicontinuous_at_iff_continuous_at, continuous_at,
-      (uniform_convergence.has_basis_nhds_of_basis ι α _ hα).tendsto_right_iff],
+      (uniform_fun.has_basis_nhds_of_basis ι α _ hα).tendsto_right_iff],
   refl
 end
 
@@ -330,7 +327,7 @@ lemma filter.has_basis.equicontinuous_at_iff {κ₁ κ₂ : Type*} {p₁ : κ₁
   ∀ k₂, p₂ k₂ → ∃ k₁ (_ : p₁ k₁), ∀ x ∈ s₁ k₁, ∀ i, (F i x₀, F i x) ∈ s₂ k₂ :=
 begin
   rw [equicontinuous_at_iff_continuous_at, continuous_at,
-      hX.tendsto_iff (uniform_convergence.has_basis_nhds_of_basis ι α _ hα)],
+      hX.tendsto_iff (uniform_fun.has_basis_nhds_of_basis ι α _ hα)],
   refl
 end
 
@@ -339,7 +336,7 @@ lemma filter.has_basis.uniform_equicontinuous_iff_left {κ : Type*} {p : κ → 
   ∀ U ∈ 𝓤 α, ∃ k (_ : p k), ∀ x y, (x, y) ∈ s k → ∀ i, (F i x, F i y) ∈ U :=
 begin
   rw [uniform_equicontinuous_iff_uniform_continuous, uniform_continuous,
-      hβ.tendsto_iff (uniform_convergence.has_basis_uniformity ι α)],
+      hβ.tendsto_iff (uniform_fun.has_basis_uniformity ι α)],
   simp_rw [prod.forall],
   refl
 end
@@ -349,7 +346,7 @@ lemma filter.has_basis.uniform_equicontinuous_iff_right {κ : Type*} {p : κ →
   ∀ k, p k → ∀ᶠ (xy : β × β) in 𝓤 β, ∀ i, (F i xy.1, F i xy.2) ∈ s k :=
 begin
   rw [uniform_equicontinuous_iff_uniform_continuous, uniform_continuous,
-      (uniform_convergence.has_basis_uniformity_of_basis ι α hα).tendsto_right_iff],
+      (uniform_fun.has_basis_uniformity_of_basis ι α hα).tendsto_right_iff],
   refl
 end
 
@@ -359,7 +356,7 @@ lemma filter.has_basis.uniform_equicontinuous_iff {κ₁ κ₂ : Type*} {p₁ : 
   ∀ k₂, p₂ k₂ → ∃ k₁ (_ : p₁ k₁), ∀ x y, (x, y) ∈ s₁ k₁ → ∀ i, (F i x, F i y) ∈ s₂ k₂ :=
 begin
   rw [uniform_equicontinuous_iff_uniform_continuous, uniform_continuous,
-      hβ.tendsto_iff (uniform_convergence.has_basis_uniformity_of_basis ι α hα)],
+      hβ.tendsto_iff (uniform_fun.has_basis_uniformity_of_basis ι α hα)],
   simp_rw [prod.forall],
   refl
 end
@@ -371,9 +368,10 @@ lemma uniform_inducing.equicontinuous_at_iff {F : ι → X → α} {x₀ : X} {u
   (hu : uniform_inducing u) :
   equicontinuous_at F x₀ ↔ equicontinuous_at (((∘) u) ∘ F) x₀ :=
 begin
-  have := (uniform_convergence.postcomp_uniform_inducing hu).inducing,
+  have := (uniform_fun.postcomp_uniform_inducing hu).inducing,
   rw [equicontinuous_at_iff_continuous_at, equicontinuous_at_iff_continuous_at,
-      this.continuous_at_iff]
+      this.continuous_at_iff],
+  refl
 end
 
 /-- Given `u : α → β` a uniform inducing, a family `𝓕 : ι → X → α` is equicontinuous iff the
@@ -393,14 +391,15 @@ lemma uniform_inducing.uniform_equicontinuous_iff {F : ι → β → α} {u : α
   (hu : uniform_inducing u) :
   uniform_equicontinuous F ↔ uniform_equicontinuous (((∘) u) ∘ F) :=
 begin
-  have := uniform_convergence.postcomp_uniform_inducing hu,
+  have := uniform_fun.postcomp_uniform_inducing hu,
   rw [uniform_equicontinuous_iff_uniform_continuous, uniform_equicontinuous_iff_uniform_continuous,
-      this.uniform_continuous_iff]
+      this.uniform_continuous_iff],
+  refl
 end
 
 /-- If a set of functions is equicontinuous, its closure *for the topology of uniform convergence*
 is also equicontinuous. -/
-lemma equicontinuous.closure {A : set $ X → α} (hA : A.equicontinuous) :
+lemma equicontinuous.closure {A : set $ X →ᵤ α} (hA : A.equicontinuous) :
   (closure A).equicontinuous :=
 begin
   intros x U hU,
@@ -408,7 +407,7 @@ begin
   filter_upwards [hA x V hV],
   rintros y hy ⟨f, hf⟩,
   rcases uniform_space.mem_closure_iff_ball.mp hf
-    ((uniform_convergence.has_basis_uniformity X α).mem_of_mem hV) with ⟨g, hgf, hg⟩,
+    ((uniform_fun.has_basis_uniformity X α).mem_of_mem hV) with ⟨g, hgf, hg⟩,
   exact hVU (prod_mk_mem_comp_rel (prod_mk_mem_comp_rel (hgf x) (hy ⟨g, hg⟩)) $
     hVsymm.mk_mem_comm.mp (hgf y))
 end
@@ -417,7 +416,7 @@ end
 into `X → α` *with the topology of uniform convergence*. It turns out we don't need any
 other condition on the embedding than continuity, but in practice this will mostly be applied
 to `fun_like` types where the coercion is injective. -/
-lemma continuous.equicontinuous_closure {A : set Y} {u : Y → X → α}
+lemma continuous.equicontinuous_closure {A : set Y} {u : Y → X →ᵤ α}
   (hA : equicontinuous (u ∘ coe : A → X → α)) (hu : continuous u) :
   equicontinuous (u ∘ coe : (closure A) → X → α) :=
 begin

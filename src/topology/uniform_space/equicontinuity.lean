@@ -259,7 +259,7 @@ lemma equicontinuous_at_infi_rng {α' : Type*} [u : κ → uniform_space α'] {F
   ∀ k, @equicontinuous_at _ _ _ _ (u k) F x₀ :=
 begin
   simp_rw [equicontinuous_at_iff_continuous_at, continuous_at],
-  rw [uniform_convergence.topological_space, uniform_convergence.infi_eq,
+  rw [uniform_fun.topological_space, uniform_fun.infi_eq,
       to_topological_space_infi, nhds_infi, tendsto_infi]
 end
 
@@ -267,7 +267,7 @@ lemma equicontinuous_infi_rng {α' : Type*} [u : κ → uniform_space α'] {F : 
   @equicontinuous _ _ _ _ (⨅ k, u k) F ↔ ∀ k, @equicontinuous _ _ _ _ (u k) F :=
 begin
   simp_rw [equicontinuous_iff_continuous],
-  rw [uniform_convergence.topological_space, uniform_convergence.infi_eq,
+  rw [uniform_fun.topological_space, uniform_fun.infi_eq,
       to_topological_space_infi, continuous_infi_rng]
 end
 
@@ -275,7 +275,7 @@ lemma uniform_equicontinuous_infi_rng {α' : Type*} [u : κ → uniform_space α
   @uniform_equicontinuous _ _ _ (⨅ k, u k) _ F ↔ ∀ k, @uniform_equicontinuous _ _ _ (u k) _ F :=
 begin
   simp_rw [uniform_equicontinuous_iff_uniform_continuous],
-  rw [uniform_convergence.infi_eq, uniform_continuous_infi_rng],
+  rw [uniform_fun.infi_eq, uniform_continuous_infi_rng],
 end
 
 lemma equicontinuous_at_infi_dom {X' : Type*} [t : κ → topological_space X'] {F : ι → X' → α}

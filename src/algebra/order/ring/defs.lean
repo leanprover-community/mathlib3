@@ -8,6 +8,7 @@ import algebra.order.monoid.cancel.defs
 import algebra.order.sub.defs
 import algebra.order.group.defs
 import algebra.order.ring.lemmas
+import tactic.nontriviality
 
 /-!
 # Ordered rings and semirings

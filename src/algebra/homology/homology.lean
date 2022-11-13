@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import algebra.homology.image_to_kernel
 import algebra.homology.homological_complex
 import category_theory.graded_object
+import algebra.homology.short_complex_preserves_homology
 
 /-!
 # The homology of a complex
@@ -26,6 +27,7 @@ open category_theory category_theory.limits category_theory.category
 
 variables {ι : Type*}
 variables {V : Type u} [category.{v} V] [has_zero_morphisms V]
+  {W : Type*} [category W] [has_zero_morphisms W]
 variables {c : complex_shape ι} (C : homological_complex V c)
 
 open_locale classical zero_object
@@ -520,3 +522,18 @@ def homology_functor [has_cokernels V] (i : ι) :
   homological_complex V c ⥤ graded_object ι V :=
 { obj := λ C i, C.homology i,
   map := λ C C' f i, (homology_functor V c i).map f, }
+
+namespace cochain_complex
+example : ℕ := 42
+
+instance preserves_left_homology_zero_of_preserves_finite_limits (F : V ⥤ W)
+  [F.preserves_zero_morphisms] [preserves_finite_limits F] (C : cochain_complex V ℕ) :
+  F.preserves_left_homology_of (C.sc' 0) :=
+short_complex.preserves_left_homology_of_zero_left F _ (by simp)
+
+instance preserves_right_homology_zero_of_preserves_finite_limits (F : V ⥤ W)
+  [F.preserves_zero_morphisms] [preserves_finite_limits F] (C : cochain_complex V ℕ) :
+  F.preserves_right_homology_of (C.sc' 0) :=
+short_complex.preserves_right_homology_of_zero_left F _ (by simp)
+
+end cochain_complex

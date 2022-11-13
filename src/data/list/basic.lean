@@ -2062,7 +2062,7 @@ theorem drop_eq_nth_le_cons : ∀ {n} {l : list α} h,
 calc l.drop l.length = (l ++ []).drop l.length : by simp
                  ... = [] : drop_left _ _
 
-lemma drop_length_cons {l : list α} {a : α} (h : l ≠ []) :
+lemma drop_length_cons {l : list α} (h : l ≠ []) (a : α) :
   (a :: l).drop l.length = [l.last h] :=
 begin
   induction l with y l ih generalizing a,

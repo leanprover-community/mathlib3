@@ -8,6 +8,7 @@ import analysis.normed.group.hom
 import measure_theory.function.ess_sup
 import measure_theory.function.ae_eq_fun
 import measure_theory.integral.mean_inequalities
+import measure_theory.function.strongly_measurable.inner
 import topology.continuous_function.compact
 
 /-!

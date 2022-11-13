@@ -64,10 +64,9 @@ instance {R A : Type*} [normed_field R] [star_ring R] [normed_ring A] [normed_al
   normed_space R (elemental_star_algebra R a) :=
 normed_algebra.to_normed_space _
 
-noncomputable instance foo (a : A) : normed_algebra ℂ (elemental_star_algebra ℂ a) :=
-infer_instance
-
-noncomputable instance (a : A) : module ℂ (elemental_star_algebra ℂ a) :=
+-- without this instance type class search causes timeouts
+noncomputable instance elemental_star_algebra.complex.normed_algebra (a : A) :
+  normed_algebra ℂ (elemental_star_algebra ℂ a) :=
 infer_instance
 
 variables [complete_space A] (a : A) [is_star_normal a] (S : star_subalgebra ℂ A)

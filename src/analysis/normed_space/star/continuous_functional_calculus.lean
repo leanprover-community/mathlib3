@@ -49,15 +49,26 @@ open weak_dual weak_dual.character_space elemental_star_algebra
 variables {A : Type*} [normed_ring A] [normed_algebra ℂ A]
 variables [star_ring A] [cstar_ring A] [star_module ℂ A]
 
-noncomputable instance (a : A) [is_star_normal a] : normed_comm_ring (elemental_star_algebra ℂ a) :=
-{ mul_comm := mul_comm, .. subring_class.to_normed_ring (elemental_star_algebra ℂ a) }
+instance {R A : Type*} [comm_ring R] [star_ring R] [normed_ring A] [algebra R A] [star_ring A]
+  [has_continuous_star A] [star_module R A] (a : A) [is_star_normal a] :
+  normed_comm_ring (elemental_star_algebra R a) :=
+{ mul_comm := mul_comm, .. subring_class.to_normed_ring (elemental_star_algebra R a) }
 
--- without these instances Lean times out
-noncomputable instance (a : A) : normed_algebra ℂ (elemental_star_algebra ℂ a) :=
-star_subalgebra.to_normed_algebra (elemental_star_algebra ℂ a)
+instance {R A : Type*} [normed_field R] [star_ring R] [normed_ring A] [normed_algebra R A]
+  [star_ring A] [has_continuous_star A] [star_module R A] (a : A) :
+  normed_algebra R (elemental_star_algebra R a) :=
+star_subalgebra.to_normed_algebra (elemental_star_algebra R a)
+
+instance {R A : Type*} [normed_field R] [star_ring R] [normed_ring A] [normed_algebra R A]
+  [star_ring A] [has_continuous_star A] [star_module R A] (a : A) :
+  normed_space R (elemental_star_algebra R a) :=
+normed_algebra.to_normed_space _
+
+noncomputable instance foo (a : A) : normed_algebra ℂ (elemental_star_algebra ℂ a) :=
+infer_instance
 
 noncomputable instance (a : A) : module ℂ (elemental_star_algebra ℂ a) :=
-normed_space.to_module
+infer_instance
 
 variables [complete_space A] (a : A) [is_star_normal a] (S : star_subalgebra ℂ A)
 

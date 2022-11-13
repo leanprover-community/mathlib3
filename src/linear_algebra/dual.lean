@@ -93,6 +93,16 @@ lemma transpose_comp (u : M' →ₗ[R] M'') (v : M →ₗ[R] M') :
 
 end dual
 
+section prod
+variables (M' : Type*) [add_comm_monoid M'] [module R M']
+
+/-- Taking duals commutes with products. -/
+@[reducible] def dual_prod_dual_equiv_dual :
+  (module.dual R M × module.dual R M') ≃ₗ[R] module.dual R (M × M') :=
+linear_map.coprod_equiv R
+
+end prod
+
 end module
 
 namespace basis
@@ -593,7 +603,6 @@ begin
     { exact @dfinsupp.sum_zero ι _ (λ i, U i) _ _ _ _ f, } }
 end
 
--- TODO: when `M` is finite-dimensional this is an equality
 lemma sup_dual_annihilator_le_inf (U V : submodule R M) :
   U.dual_annihilator ⊔ V.dual_annihilator ≤ (U ⊓ V).dual_annihilator :=
 begin
@@ -657,6 +666,11 @@ begin
   intros v hv,
   convert linear_map.of_is_compl_left_apply hW ⟨v, hv⟩,
 end
+
+theorem forall_mem_dual_annihilator_apply_eq_zero_iff (W : subspace K V) (v : V) :
+  (∀ (φ : module.dual K V), φ ∈ W.dual_annihilator → φ v = 0) ↔ v ∈ W :=
+by rw [← set_like.ext_iff.mp dual_annihilator_dual_annihilator_comap_eq v,
+       mem_dual_annihilator_comap]
 
 /-- Given a subspace `W` of `V` and an element of its dual `φ`, `dual_lift W φ` is
 the natural extension of `φ` to an element of the dual of `V`.
@@ -792,6 +806,15 @@ lemma linear_map.dual_map_comp_dual_map {M₃ : Type*} [add_comm_group M₃] [mo
   f.dual_map.comp g.dual_map = (g.comp f).dual_map :=
 rfl
 
+lemma linear_map.dual_map_injective_of_surjective {f : M₁ →ₗ[R] M₂} (hf : function.surjective f) :
+  function.injective f.dual_map :=
+begin
+  intros φ ψ h,
+  ext x,
+  obtain ⟨y, rfl⟩ := hf x,
+  exact congr_arg (λ (g : module.dual R M₁), g y) h,
+end
+
 /-- The `linear_equiv` version of `linear_map.dual_map`. -/
 def linear_equiv.dual_map (f : M₁ ≃ₗ[R] M₂) : dual R M₂ ≃ₗ[R] dual R M₁ :=
 { inv_fun := f.symm.to_linear_map.dual_map,
@@ -856,16 +879,108 @@ begin
   rw [dual_map_apply, hx, map_zero]
 end
 
-section finite_dimensional
+end linear_map
+
+section vector_space
 
 variables {K : Type*} [field K] {V₁ : Type*} {V₂ : Type*}
 variables [add_comm_group V₁] [module K V₁] [add_comm_group V₂] [module K V₂]
 
-open finite_dimensional
+namespace linear_map
+
+lemma dual_pairing_nondegenerate : (dual_pairing K V₁).nondegenerate :=
+⟨separating_left_iff_ker_eq_bot.mpr ker_id, λ x, (forall_dual_apply_eq_zero_iff K x).mp⟩
+
+lemma dual_map_surjective_of_injective {f : V₁ →ₗ[K] V₂} (hf : function.injective f) :
+  function.surjective f.dual_map :=
+begin
+  intro φ,
+  let f' := linear_equiv.of_injective f hf,
+  use subspace.dual_lift (range f) (f'.symm.dual_map φ),
+  ext x,
+  rw [linear_map.dual_map_apply, subspace.dual_lift_of_mem (mem_range_self f x),
+    linear_equiv.dual_map_apply],
+  congr' 1,
+  exact linear_equiv.symm_apply_apply f' x,
+end
+
+-- Mentioned in https://math.stackexchange.com/a/2423263/172988 that this result does not
+-- depend on finite dimensionality.
+lemma range_dual_map_eq_dual_annihilator_ker (f : V₁ →ₗ[K] V₂) :
+  f.dual_map.range = f.ker.dual_annihilator :=
+begin
+  refine le_antisymm (range_dual_map_le_dual_annihilator_ker f) _,
+  intros φ h,
+  rw mem_range,
+  -- Take an arbitrary section of `f`, push `φ` across the dual of this section, then extend
+  -- its domain.
+  obtain ⟨f', hf'⟩ :=
+    linear_map.exists_right_inverse_of_surjective f.range_restrict (range_range_restrict _),
+  existsi subspace.dual_lift _ (f'.dual_map φ),
+  -- Now we show the choice of section does not matter.
+  ext x,
+  rw [dual_map_apply, subspace.dual_lift_of_mem (mem_range_self f x), linear_map.dual_map_apply],
+  apply (@linear_map.sub_mem_ker_iff _ _ _ _ _ _ _ _ _ _ _ _ _ φ _ x).mp,
+  rw linear_map.mem_ker,
+  rw [submodule.mem_dual_annihilator] at h,
+  apply h,
+  rw linear_map.sub_mem_ker_iff,
+  exact subtype.ext_iff.mp (linear_map.ext_iff.mp hf' ⟨f x, mem_range_self _ _⟩),
+end
+
+/-- That $\operatorname{im}(q^* : (V/W)^* \to V^*) = \operatorname{ann}(W)$. -/
+lemma range_dual_map_mkq_eq_dual_annihilator (W : subspace K V₁) :
+  (submodule.mkq W).dual_map.range = W.dual_annihilator :=
+by rw [range_dual_map_eq_dual_annihilator_ker, submodule.ker_mkq W]
+
+def dual_quot_equiv_dual_annihilator (W : submodule K V₁) :
+  module.dual K (V₁ ⧸ W) ≃ₗ[K] W.dual_annihilator :=
+begin
+  sorry,
+  -- Argument: we have a short exact sequence 0 -> W -> V₁ -> V/W -> 0
+  -- where the first map is `submodule.subtype W` and the second is `submodule.mkq W`.
+  -- Dualizing, we have a short exact sequence 0 -> (V/W)^* -> V₁^* -> W^* -> 0.
+  -- Therefore, (V/W)^* is isomorphic to ker(V₁^* → W^*).
+  -- This is `W.dual_annihilator` by definition.
+end
+
+end linear_map
+
+namespace subspace
+open submodule
+
+-- Argument from https://math.stackexchange.com/a/2423263/172988
+lemma sup_dual_annihilator_le_inf' (W W' : subspace K V₁) :
+  (W ⊓ W').dual_annihilator = W.dual_annihilator ⊔ W'.dual_annihilator :=
+begin
+  refine le_antisymm _ (sup_dual_annihilator_le_inf W W'),
+  let F : V₁ →ₗ[K] (V₁ ⧸ W) × (V₁ ⧸ W') := (submodule.mkq W).prod (submodule.mkq W'),
+  have : F.ker = W ⊓ W' := by simp only [linear_map.ker_prod, ker_mkq],
+  rw [← this, ← linear_map.range_dual_map_eq_dual_annihilator_ker],
+  intro φ,
+  let F' := F.dual_map,
+  -- F' : dual K ((V₁ ⧸ W) × V₁ ⧸ W') →ₗ[K] dual K V₁
+  -- Up to isomorphism,
+  -- F' : dual K W.dual_annihilator × dual K W'.dual_annihilator →ₗ[K] dual K V₁
+  -- and F'(a, b) = a + b, so one can see F' is surjective.
+  simp only [linear_map.mem_range, forall_exists_index],
+  rintro x rfl,
+  sorry {
+  let x' := (dual_prod_dual_equiv_dual K (V₁ ⧸ W) (V₁ ⧸ W')).symm x,
+  have := linear_map.coprod_equiv_symm_apply K x,
+  rw submodule.mem_sup,
+  },
+end
+
+end subspace
+
+section finite_dimensional
+
+open finite_dimensional linear_map
 
 variable [finite_dimensional K V₂]
 
-@[simp] lemma finrank_range_dual_map_eq_finrank_range (f : V₁ →ₗ[K] V₂) :
+@[simp] lemma linear_map.finrank_range_dual_map_eq_finrank_range (f : V₁ →ₗ[K] V₂) :
   finrank K f.dual_map.range = finrank K f.range :=
 begin
   have := submodule.finrank_quotient_add_finrank f.range,
@@ -877,42 +992,9 @@ begin
   rw [finrank_range_add_finrank_ker f.dual_map, add_comm, this],
 end
 
-lemma range_dual_map_eq_dual_annihilator_ker [finite_dimensional K V₁] (f : V₁ →ₗ[K] V₂) :
-  f.dual_map.range = f.ker.dual_annihilator :=
-begin
-  refine eq_of_le_of_finrank_eq f.range_dual_map_le_dual_annihilator_ker _,
-  have := submodule.finrank_quotient_add_finrank f.ker,
-  rw (subspace.quot_equiv_annihilator f.ker).finrank_eq at this,
-  refine add_left_injective (finrank K f.ker) _,
-  simp_rw [this, finrank_range_dual_map_eq_finrank_range],
-  exact finrank_range_add_finrank_ker f,
-end
-
 end finite_dimensional
 
-section field
-
-variables {K V : Type*}
-variables [field K] [add_comm_group V] [module K V]
-
-lemma dual_pairing_nondegenerate : (dual_pairing K V).nondegenerate :=
-begin
-  refine ⟨separating_left_iff_ker_eq_bot.mpr ker_id, _⟩,
-  intros x,
-  contrapose,
-  rintros hx : x ≠ 0,
-  rw [not_forall],
-  let f : V →ₗ[K] K := classical.some (linear_pmap.mk_span_singleton x 1 hx).to_fun.exists_extend,
-  use [f],
-  refine ne_zero_of_eq_one _,
-  have h : f.comp (K ∙ x).subtype = (linear_pmap.mk_span_singleton x 1 hx).to_fun :=
-    classical.some_spec (linear_pmap.mk_span_singleton x (1 : K) hx).to_fun.exists_extend,
-  exact (fun_like.congr_fun h _).trans (linear_pmap.mk_span_singleton_apply _ hx _),
-end
-
-end field
-
-end linear_map
+end vector_space
 
 namespace tensor_product
 

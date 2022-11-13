@@ -85,8 +85,8 @@ do env ← tactic.get_env,
   pure mods.to_list
 
 meta def main : io unit := do
-  args ← io.cmdline_args,
-  let tgt' := (args.head.split_on '.').foldl (λ n s, name.mk_string s n) name.anonymous,
+  [arg] ← io.cmdline_args,
+  tgt' ← io.run_tactic ((lean.parser.ident).run_with_input arg),
   let tgt := module_info.resolve_module_name tgt',
   let home_len := tgt.length - (tgt'.length + 5),
   let project := ((tgt.to_list.take home_len)).as_string,
@@ -96,6 +96,6 @@ meta def main : io unit := do
     let files := (files.filter_map (λ s, s.get_rest project)),
     -- Convert paths to imports, e.g. `data/nat/order/basic.lean` -> `data.nat.order.basic`.
     -- ... the string library is not exactly featureful.
-    let files := files.map (λ s,
-      string.join (((s.to_list.reverse.drop 5).reverse.as_string.split_on '/').intersperse ".")),
+    let files := files.map (λ s, ((s.to_list.reverse.drop 5).reverse.as_string.split_on '/').foldr
+      name.mk_string name.anonymous),
     files.mmap' trace

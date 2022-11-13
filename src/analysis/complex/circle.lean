@@ -66,6 +66,7 @@ circle.subtype.map_div z w
 /-- The elements of the circle embed into the units. -/
 def circle.to_units : circle →* units ℂ := unit_sphere_to_units ℂ
 
+-- written manually because `@[simps]` was slow and generated the wrong lemma
 @[simp] lemma circle.to_units_apply (z : circle) :
   circle.to_units z = units.mk0 z (ne_zero_of_mem_circle z) := rfl
 

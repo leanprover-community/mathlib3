@@ -675,12 +675,17 @@ begin
   ext x y,
   dunfold max_default,
   split_ifs with h',
-  exacts [sup_of_le_left h', sup_of_le_right $ (total_of (≤) x y).resolve_right h']
+  exacts [sup_of_le_right h', sup_of_le_left $ (total_of (≤) x y).resolve_left h']
 end
 
 lemma inf_eq_min_default [semilattice_inf α] [decidable_rel ((≤) : α → α → Prop)]
   [is_total α (≤)] : (⊓) = (min_default : α → α → α) :=
-@sup_eq_max_default αᵒᵈ _ _ _
+begin
+  ext x y,
+  dunfold min_default,
+  split_ifs with h',
+  exacts [inf_of_le_left h', inf_of_le_right $ (total_of (≤) x y).resolve_left h']
+end
 
 /-- A lattice with total order is a linear order.
 

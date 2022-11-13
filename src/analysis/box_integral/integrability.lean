@@ -171,7 +171,8 @@ lemma has_box_integral (f : simple_func (ι → ℝ) E) (μ : measure (ι → �
   has_integral.{u v v} I l f μ.to_box_additive.to_smul (f.integral (μ.restrict I)) :=
 begin
   induction f using measure_theory.simple_func.induction with y s hs f g hd hfi hgi,
-  { simpa [function.const, measure.restrict_apply hs]
+  { simpa only [measure.restrict_apply hs, const_zero, integral_piecewise_zero, integral_const,
+      measure.restrict_apply, measurable_set.univ, set.univ_inter]
       using box_integral.has_integral_indicator_const l hl hs I y μ },
   { borelize E, haveI := fact.mk (I.measure_coe_lt_top μ),
     rw integral_add,

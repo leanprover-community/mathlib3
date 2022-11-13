@@ -1331,13 +1331,6 @@ lemma nth_le_length_sub_one {l : list α} (h : l.length - 1 < l.length) :
   l.nth_le (l.length - 1) h = l.last (by { rintro rfl, exact nat.lt_irrefl 0 h }) :=
 (last_eq_nth_le l _).symm
 
-lemma nth_le_length_cons {l : list α} (a : α) (h : l ≠ []) :
-  (a :: l).nth_le l.length (lt_add_one l.length) = l.last h :=
-begin
-  rw [nth_le_cons, dif_neg, last_eq_nth_le],
-  rwa length_eq_zero,
-end
-
 @[simp] lemma nth_concat_length : ∀ (l : list α) (a : α), (l ++ [a]).nth l.length = some a
 | []     a := rfl
 | (b::l) a := by rw [cons_append, length_cons, nth, nth_concat_length]
@@ -2069,7 +2062,7 @@ begin
   { cases h rfl },
   { simp only [drop, length],
     by_cases h₁ : l = [], { simp [h₁] },
-    convert ih h₁ using 2, exact last_cons h₁ },
+    rw last_cons h₁, exact ih h₁ y },
 end
 
 /-- Dropping the elements up to `n` in `l₁ ++ l₂` is the same as dropping the elements up to `n`

@@ -5,8 +5,8 @@ Authors: Alex J. Best
 -/
 import algebra.module.pi
 import algebra.module.pointwise_pi
-import measure_theory.group.fundamental_domain
 import analysis.convex.measure
+import measure_theory.group.fundamental_domain
 
 /-!
 # Geometry of numbers
@@ -28,23 +28,47 @@ instance function.no_zero_smul_divisors {ι α β : Type*} {r : semiring α} {m 
   no_zero_smul_divisors α (ι → β) :=
 pi.no_zero_smul_divisors _
 
-namespace measure_theory
-section
-variables {α : Type*} (μ : outer_measure α)
-
-@[simp] lemma outer_measure.measure_Union_null_iff' {ι : Prop} {s : ι → set α} :
-  μ (⋃ i, s i) = 0 ↔ ∀ i, μ (s i) = 0 :=
-by by_cases i : ι; simp [i]
-
-@[simp] lemma measure.measure_Union_null_iff' [measurable_space α] {μ : measure α} {ι : Prop}
-  {s : ι → set α} : μ (⋃ i, s i) = 0 ↔ ∀ i, μ (s i) = 0 :=
-μ.to_outer_measure.measure_Union_null_iff'
+@[simp, to_additive]
+lemma subgroup.coe_equiv_map_of_injective_symm_apply {G H : Type*} [group G] [group H] (e : G ≃* H)
+  {L : subgroup G} {g : L.map (e : G →* H)} {hh} :
+  (((L.equiv_map_of_injective _ hh).symm g) : G) = e.symm g :=
+begin
+  rcases g with ⟨-, h, h_prop, rfl⟩,
+  rw [subtype.coe_mk, subtype.coe_eq_iff],
+  refine ⟨_, _⟩,
+  { convert h_prop,
+    erw [mul_equiv.symm_apply_apply] },
+  erw [mul_equiv.symm_apply_eq, subtype.ext_iff, subgroup.coe_equiv_map_of_injective_apply,
+    subtype.coe_mk, mul_equiv.apply_symm_apply],
 end
 
+namespace linear_equiv
+variables {𝕜 α β : Type*} [semiring 𝕜] [add_comm_monoid α] [add_comm_monoid β] [module 𝕜 α]
+  [module 𝕜 β]
 
-open measure_theory measure_theory.measure set topological_space
+@[simp] lemma symm_comp_self (e : α ≃ₗ[𝕜] β) : e.symm ∘ e = id := e.to_equiv.symm_comp_self
+@[simp] lemma self_comp_symm (e : α ≃ₗ[𝕜] β) : e ∘ e.symm = id := e.to_equiv.self_comp_symm
+
+end linear_equiv
+
+namespace measure_theory
+open function measure set topological_space
+
 section
-open function
+variables {𝕜 G H : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜] [measurable_space G]
+  [topological_space G] [add_comm_group G] [module 𝕜 G] [finite_dimensional 𝕜 G]
+  [has_continuous_smul 𝕜 G] (μ : measure G) [is_add_haar_measure μ] [borel_space G] [t2_space G]
+  [topological_add_group G] [topological_space H] [add_comm_group H] [module 𝕜 H]
+  [finite_dimensional 𝕜 H] [has_continuous_smul 𝕜 H] [measurable_space H] [borel_space H]
+  [t2_space H] [topological_add_group H]
+
+instance (e : G ≃ₗ[𝕜] H) : is_add_haar_measure (μ.map e) :=
+e.to_add_equiv.is_add_haar_measure_map _ (e : G →ₗ[𝕜] H).continuous_of_finite_dimensional
+  (e.symm : H →ₗ[𝕜] G).continuous_of_finite_dimensional
+
+end
+
+section
 variables {G H α β E : Type*} [group G] [group H]
   [mul_action G α] [measurable_space α]
   [mul_action H β] [measurable_space β]
@@ -83,15 +107,13 @@ begin
   rcases f.surjective x with ⟨x, rfl⟩,
   rw [← hef _ _, f.symm_apply_apply, f.symm_apply_apply, e.apply_symm_apply]
 end
+
 end
 
-section
-variables {G α β E : Type*} [group G]
+variables {G α β E : Type*} [group G] [measurable_space G]
   [mul_action G α] [measurable_space α]
   [mul_action G β] [measurable_space β]
   [normed_add_comm_group E] {s t : set α} {μ : measure α} {ν : measure β}
-
-variables [measurable_space G]
 
 -- TODO not needed but maybe useful?
 -- @[to_additive is_add_fundamental_domain.image_of_equiv']
@@ -109,25 +131,15 @@ variables [measurable_space G]
 --   -- simp,
 --   -- rw measurable_equiv.map_apply,
 -- end⟩
-end
-end measure_theory
 
+end measure_theory
 
 open_locale ennreal pointwise
 open has_inv set function measure_theory measure_theory.measure
-section
+
 -- TODO move to measure_theory.group.basic
-noncomputable theory
-
-variables {α : Type*} [measurable_space α] {μ : measure α}
-
 namespace measure_theory
-
-variables {G V : Type*}
-
-section
-
-variables [measurable_space V]
+variables {α G V : Type*} [measurable_space α] [measurable_space V] {μ : measure α}
 
 open smul_invariant_measure
 
@@ -148,56 +160,11 @@ by rw [←measure_preimage_smul (g⁻¹) μ S, preimage_smul, inv_inv]
 @[to_additive]
 instance is_mul_left_invariant.to_smul_invariant_measure [measurable_space G] [has_mul G]
   [has_measurable_mul G] {μ : measure G} [h : is_mul_left_invariant μ] :
-smul_invariant_measure G G μ :=
+  smul_invariant_measure G G μ :=
 ⟨λ g s hs,
   by simp_rw [smul_eq_mul, ← measure.map_apply (measurable_const_mul g) hs, map_mul_left_eq_self]⟩
 
-end
 end measure_theory
-end
-
-section
-variables {X Y : Type*} [measure_space Y] [group X] [mul_action X Y] [measurable_space X]
-  [has_measurable_smul X Y]
-
-@[to_additive]
-lemma measurable_set.smul (x : X) {S : set Y} (h : measurable_set S) : measurable_set (x • S) :=
-by { rw [←inv_inv x, ←preimage_smul (x⁻¹)], exact has_measurable_smul.measurable_const_smul _ h }
-
-end
-
-section
-variables {X Y : Type*} [measure_space Y] [group_with_zero X] [mul_action X Y]
-  [measurable_space X] [has_measurable_smul X Y] {S : set Y} {x : X}
-
-lemma measurable_set_smul₀ (hx : x ≠ 0) (h : measurable_set S) : measurable_set (x • S) :=
-begin
-  rw [←inv_inv x, ←preimage_smul₀ (inv_ne_zero hx)],
-  exact has_measurable_smul.measurable_const_smul _ h,
-end
-
-end
-
-section
-variables {X Y : Type*} [measure_space Y] [group_with_zero X] [measurable_space X]
-
-lemma measurable_set_smul₀_of_measurable_singleton_class [has_zero Y] [mul_action_with_zero X Y]
-  [measurable_singleton_class Y] [has_measurable_smul X Y]
-  {x : X} {S : set Y} (h : measurable_set S) :
-  measurable_set (x • S) :=
-begin
-  by_cases hx : x = 0,
-  { by_cases hS : S.nonempty,
-    { rw [hx, zero_smul_set hS],
-      exact measurable_set_singleton 0 },
-    { convert measurable_set.empty,
-      rw not_nonempty_iff_eq_empty at hS,
-      rw hS,
-      simp } },
-  { exact measurable_set_smul₀ hx h }
-end
-
-end
 
 variables (ι : Type*) [fintype ι]
 noncomputable theory
@@ -356,74 +323,19 @@ end measure_theory
 --   almost_disjoint := by simp,
 --   covers := λ v, by simp } }
 
-namespace subtype
-
-variables {V : Type*} [measure_space V] {p : V → Prop}
-variables {s t : set V}
-
-
-open function
-open measure_theory
-open subtype
-
-@[simp] lemma volume_preimage_coe (hs : null_measurable_set s) (ht : measurable_set t) :
-  volume ((coe : s → V) ⁻¹' t) = volume (t ∩ s) :=
-by rw [volume_set_coe_def, comap_apply₀ _ _
-    subtype.coe_injective (λ h, measurable_set.null_measurable_set_subtype_coe hs)
-    (measurable_subtype_coe ht).null_measurable_set,
-    image_preimage_eq_inter_range, subtype.range_coe]
-
-end subtype
 open measure_theory
 
-/-- **Blichfeldt's Principle** --/
-@[to_additive "**Blichfeldt's Principle**"]
-lemma exists_mul_inv_mem_lattice_of_volume_lt_volume {X Y : Type*} [measurable_space X]
-  [measure_space Y] [group X] [mul_action X Y] [has_measurable_smul X Y] [countable X] {S : set Y}
-  (hS : measurable_set S) (F : set Y) (fund : is_fundamental_domain X F) (hlt : volume F < volume S)
-  [smul_invariant_measure X Y volume]
-  (hnostab : ∀ (p₁ p₂ : X) (q : Y) (hq : q ∈ S) (hppq : p₁ • q = p₂ • q), p₁ = p₂) :
-  ∃ (x y : Y) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), y ∈ (• x) '' (univ : set X) :=
-begin
-  suffices : ∃ (p₁ p₂ : X) (hne : p₁ ≠ p₂), ((p₁ • S ∩ F) ∩ (p₂ • S ∩ F)).nonempty,
-  { obtain ⟨p₁, p₂, hne, u, ⟨⟨q₁, hS₁, ht₁⟩, hu⟩, ⟨q₂, hS₂, ht₂⟩, hu⟩ := this,
-    refine ⟨q₁, q₂, hS₁, hS₂, _, p₂⁻¹ * p₁, mem_univ _, _⟩,
-    { rintro rfl,
-      rw ←ht₂ at *,
-      exact hne (hnostab _ _ _ hS₁ ht₁) },
-    { simp only,
-      rw [mul_smul, ht₁, ←ht₂, inv_smul_smul] } },
-  refine Exists₃.imp _ (exists_nonempty_inter_of_measure_univ_lt_tsum_measure
-    (set_coe.measure_space _).volume (_ : (∀ p : X, measurable_set ((coe : F → Y) ⁻¹' (p • S)))) _),
-  { exact λ i j hij ⟨x, hi, hj⟩, ⟨x, ⟨hi, x.2⟩, hj, x.2⟩ },
-  { exact λ p, measurable_id'.subtype_coe (hS.smul p) },
-  rw ←subtype.volume_univ fund.null_measurable_set at hlt,
-  simp_rw subtype.volume_preimage_coe fund.null_measurable_set (hS.smul _),
-  exact hlt.trans_eq (fund.measure_eq_tsum _),
-end
-
--- TODO version giving `⌈volume S / volume F⌉` points whose difference is in a subgroup
--- needs the m-fold version of exists_nonempty_inter_of_measure_univ_lt_tsum_measure when
+-- TODO: Prove version giving `⌈volume S / volume F⌉` points whose difference is in a subgroup
+-- needs the `m`-fold version of `exists_nonempty_inter_of_measure_univ_lt_tsum_measure` when
 -- measure > m * measure giving some x in m sets
 @[to_additive]
-lemma exists_mul_inv_mem_lattice_of_volume_lt_volume' {X : Type*} [measure_space X] [group X]
-  [has_measurable_mul X] (L : subgroup X) [countable L] {S : set X} (hS : measurable_set S)
+lemma exists_mul_inv_mem_lattice_of_volume_lt_volume {X : Type*} [measure_space X] [group X]
+  [has_measurable_mul X] (L : subgroup X) [countable L] {S : set X} (hS : null_measurable_set S)
   {F : set X} (fund : is_fundamental_domain L F) (hlt : volume F < volume S)
-  -- [smul_invariant_measure X Y (volume : measure Y)]
   [is_mul_left_invariant (volume : measure X)] :
-  ∃ (x y : X) (hx : x ∈ S) (hy : y ∈ S) (hne : x ≠ y), y * x⁻¹ ∈ L :=
-begin
-  haveI : smul_invariant_measure L X measure_space.volume,
-  { exact smul_invariant_measure.to_subgroup_smul_invariant_measure L },
-  obtain ⟨x, y, hx, hy, hne, h⟩ := exists_mul_inv_mem_lattice_of_volume_lt_volume hS F fund hlt _,
-  { refine ⟨x, y, hx, hy, hne, _⟩,
-    simp only [image_univ, mem_range] at h,
-    obtain ⟨l, rfl⟩ := h,
-    simp [subgroup.smul_def] },
-  -- { exact smul_invariant_measure.to_subgroup_smul_invariant_measure _  },
-  { rintro ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ q hq hleft,
-    simpa [subgroup.smul_def] using hleft }
-end
+  ∃ (x y ∈ S), x ≠ y ∧ y * x⁻¹ ∈ L :=
+let ⟨x, hx, y, hy, g, hg, rfl⟩ := fund.exists_ne_one_smul_eq hS hlt in
+  by refine ⟨x, hx, _, hy, _, _⟩; simp [subgroup.smul_def]; assumption
 
 open measure_theory measure_theory.measure topological_space set fintype
 
@@ -436,13 +348,13 @@ begin
     rw ennreal.of_real_eq_zero at h,
     linarith },
   have hrtop : ennreal.of_real r ≠ ⊤, from ennreal.of_real_ne_top,
-  suffices : (1 / ennreal.of_real r) ^ card ι •
-    measure.comap ((•) r) (volume : measure (ι → ℝ)) = (volume : measure (ι → ℝ)),
+  suffices : (ennreal.of_real r)⁻¹ ^ card ι •
+    measure.comap ((•) r) (volume : measure (ι → ℝ)) = volume,
   { conv_rhs { rw ←this },
-    rw [one_div, smul_smul, ←mul_pow, ennreal.mul_inv_cancel hrzero hrtop],
+    rw [smul_smul, ←mul_pow, ennreal.mul_inv_cancel hrzero hrtop],
     simp only [one_pow, one_smul] },
   refine (pi_eq $ λ s hS, _).symm,
-  simp only [one_div, algebra.id.smul_eq_mul, measure.coe_smul, pi.smul_apply],
+  simp only [algebra.id.smul_eq_mul, measure.coe_smul, pi.smul_apply],
   rw [comap_apply, image_smul, smul_univ_pi],
   { erw pi_pi,
     dsimp,
@@ -452,13 +364,12 @@ begin
     { rw ←preimage_smul₀ (inv_ne_zero (ne_of_gt hr)) },
     simp only [algebra.id.smul_eq_mul],
     rw [fintype.card, ←finset.prod_const, ←finset.prod_mul_distrib],
-    congr,
-    ext i : 1,
+    congr' with i,
     erw ←measure.map_apply (measurable_const_mul r⁻¹) (hS i),
-    conv_rhs { rw [←real.smul_map_volume_mul_left (inv_ne_zero (ne_of_gt hr))] },
+    conv_rhs { rw ←real.smul_map_volume_mul_left (inv_ne_zero hr.ne') },
     rw [ennreal.of_real_inv_of_pos hr, abs_of_pos (inv_pos.mpr hr)],
     refl },
-  { exact smul_right_injective (ι → ℝ) (ne_of_gt hr) },
+  { exact smul_right_injective (ι → ℝ) hr.ne' },
   { exact λ S hS, hS.const_smul₀ r },
   { exact measurable_set.univ_pi hS }
 end
@@ -468,85 +379,59 @@ open ennreal topological_space.positive_compacts
 -- TODO version for any real vector space in terms of dimension
 -- actually the proof shows that there is a point in the interior of T, perhaps we should expose
 -- this
-lemma exists_nonzero_mem_lattice_of_volume_mul_two_pow_card_lt_measure {L : add_subgroup (ι → ℝ)}
-  [countable L] {F T : set (ι → ℝ)}
-  (μ : measure (ι → ℝ)) [is_add_haar_measure μ]
-  (fund : is_add_fundamental_domain L F μ)
-  (h : μ F * 2 ^ card ι < μ T) (h_symm : has_neg.neg '' T ⊆ T) (h_conv : convex ℝ T) :
-  ∃ (x : L) (h : x ≠ 0), (x : ι → ℝ) ∈ T :=
+@[to_additive]
+lemma exists_ne_zero_mem_subgroup_of_volume_mul_two_pow_card_lt_measure {L : add_subgroup (ι → ℝ)}
+  [countable L] {F T : set (ι → ℝ)} (μ : measure (ι → ℝ)) [is_add_haar_measure μ]
+  (fund : is_add_fundamental_domain L F μ) (h : μ F * 2 ^ card ι < μ T) (h_symm : ∀ x ∈ T, -x ∈ T)
+  (h_conv : convex ℝ T) :
+  ∃ x : L, x ≠ 0 ∧ (x : ι → ℝ) ∈ T :=
 begin
   rw [add_haar_measure_unique μ (pi_Icc01 ι), add_haar_measure_eq_volume_pi] at fund,
   have fund_vol : is_add_fundamental_domain L F volume,
-  { refine is_add_fundamental_domain.mono fund (absolutely_continuous.mk _),
-    intros s hs h,
+  { refine fund.mono (absolutely_continuous.mk $ λ s hs h, _),
     rw [measure.smul_apply, smul_eq_zero] at h,
     -- TODO nice lemma for this?
     exact h.resolve_left (measure_pos_of_nonempty_interior _ (pi_Icc01 _).interior_nonempty).ne' },
-
   rw [add_haar_measure_unique μ (pi_Icc01 ι), add_haar_measure_eq_volume_pi, measure.smul_apply,
     measure.smul_apply, smul_mul_assoc, smul_eq_mul, smul_eq_mul] at h,
-  replace h := lt_of_mul_lt_mul_left' h,
   have hS : measurable_set (interior T) := measurable_set_interior,
   rw ← measure_interior_of_null_frontier (h_conv.add_haar_frontier volume) at *,
   set S := interior T,
-  have mhalf : measurable_set ((1/2 : ℝ) • S),
-  { convert measurable_const_smul (2 : ℝ) hS,
-    ext x,
-    simp only [one_div, set.mem_preimage],
-    exact mem_inv_smul_set_iff₀ two_ne_zero _ x },
-  have : volume ((1/2 : ℝ) • S) * 2 ^ card ι = volume S,
-  { suffices : volume ((1/2 : ℝ) • S) = (1 / 2) ^ card ι * volume S,
-    { rw [this, mul_comm _ (volume S), mul_assoc, ←mul_pow, one_div,
+  have : volume ((2⁻¹ : ℝ) • S) * 2 ^ card ι = volume S,
+  { suffices : volume ((2⁻¹ : ℝ) • S) = 2⁻¹ ^ card ι * volume S,
+    { rw [this, mul_comm _ (volume S), mul_assoc, ←mul_pow,
         ennreal.inv_mul_cancel ennreal.two_ne_zero two_ne_top, one_pow, mul_one] },
-    have := rescale ι (half_pos zero_lt_one),
-    simp only [one_div, fintype.card_fin] at this ⊢,
+    have := rescale ι (inv_pos_of_pos two_pos),
     rw ←ennreal.of_real_inv_of_pos (two_pos : 0 < (2 : ℝ)) at this,
     simp only [zero_le_one, of_real_one, of_real_bit0] at this,
-    rw [←smul_eq_mul, ←measure.smul_apply, ←this, comap_apply _ _ _ _ hS],
-    { simp },
+    rw [←smul_eq_mul, ←measure.smul_apply, ←this, comap_apply _ _ _ _ hS, image_smul],
     { exact smul_right_injective _ (by norm_num) },
     intros S hS,
     rw [image_smul, ←preimage_smul₀],
-    { apply measurable_set_preimage _ hS,
-      rw measurable_const_smul_iff₀,
-      exact measurable_id',
-      exact two_ne_zero },
+    { exact measurable_id'.const_smul _ hS },
     { exact two_ne_zero } },
-  have h2 : volume F < volume ((1/2 : ℝ) • S),
+  have h2 : volume F < volume ((2⁻¹ : ℝ) • S),
   { rw ←ennreal.mul_lt_mul_right (pow_ne_zero (card ι) two_ne_zero') (pow_ne_top two_ne_top),
-    convert h },
-  rw [←one_smul ℝ T, ←_root_.add_halves (1 : ℝ), h_conv.add_smul one_half_pos.le one_half_pos.le],
-  obtain ⟨x, y, hx, hy, hne, hsub⟩ :=
-    exists_add_neg_mem_lattice_of_volume_lt_volume' L mhalf fund_vol h2,
+    convert lt_of_mul_lt_mul_left' h },
+  rw [←one_smul ℝ T, ←_root_.add_halves (1 : ℝ), one_div, h_conv.add_smul (inv_nonneg.2 zero_le_two)
+    (inv_nonneg.2 zero_le_two)],
+  obtain ⟨x, hx, y, hy, hne, hsub⟩ := exists_add_neg_mem_lattice_of_volume_lt_volume
+    L (hS.const_smul₀ _).null_measurable_set fund_vol h2,
   refine ⟨⟨y - x, hsub⟩, subtype.ne_of_val_ne $ sub_ne_zero.2 hne.symm, y, -x,
     smul_set_mono interior_subset hy, _, rfl⟩,
-  obtain ⟨x, hx, rfl⟩ := hx,
-  rw ←smul_neg,
-  exact smul_mem_smul_set (h_symm ⟨x, interior_subset hx, rfl⟩),
+  rw mem_inv_smul_set_iff₀ (@_root_.two_ne_zero ℝ _ _) at ⊢ hx,
+  rw smul_neg,
+  exact h_symm _ (interior_subset hx),
 end
 
 open finite_dimensional
-
-@[simp, to_additive]
-lemma subgroup.coe_equiv_map_of_injective_symm_apply {G H : Type*} [group G] [group H] (e : G ≃* H)
-  {L : subgroup G} {g : L.map (e : G →* H)} {hh} :
-  (((L.equiv_map_of_injective _ hh).symm g) : G) = e.symm g :=
-begin
-  rcases g with ⟨-, h, h_prop, rfl⟩,
-  rw [subtype.coe_mk, subtype.coe_eq_iff],
-  refine ⟨_, _⟩,
-  { convert h_prop,
-    erw [mul_equiv.symm_apply_apply] },
-  erw [mul_equiv.symm_apply_eq, subtype.ext_iff, subgroup.coe_equiv_map_of_injective_apply,
-    subtype.coe_mk, mul_equiv.apply_symm_apply],
-end
 
 lemma measure_theory.is_add_fundamental_domain.map_linear_equiv
   {E G : Type*} [normed_add_comm_group E] [normed_add_comm_group G] [normed_space ℝ E]
   [normed_space ℝ G] [measurable_space E] [measurable_space G] [borel_space E] [borel_space G]
   [finite_dimensional ℝ E] [finite_dimensional ℝ G] (μ : measure E) [is_add_haar_measure μ]
   {L : add_subgroup E} {F : set E} (fund : is_add_fundamental_domain L F μ) (e : E ≃ₗ[ℝ] G) :
-  is_add_fundamental_domain (L.map (e : E →+ G)) ((e : E → G) '' F) (map e μ) :=
+  is_add_fundamental_domain (L.map (e : E →+ G)) (e '' F) (map e μ) :=
 begin
   refine is_add_fundamental_domain.image_of_equiv' fund e.to_equiv _ _ _,
   { refine ⟨_, _⟩, -- TODO lemma
@@ -554,12 +439,7 @@ begin
     ext,
     refl,
     simp only [linear_equiv.coe_to_equiv_symm],
-    rw [map_map],
-    { convert absolutely_continuous.refl _,
-      rw eq_comm,
-      convert map_id,
-      ext,
-      simp },
+    rw [map_map, e.symm_comp_self, map_id],
     convert e.symm.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv.measurable,
     convert e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv.measurable,
     ext,
@@ -582,30 +462,24 @@ lemma exists_nonzero_mem_lattice_of_measure_mul_two_pow_finrank_lt_measure
   {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ] {L : add_subgroup E}
   [countable L] {F T : set E} (fund : is_add_fundamental_domain L F μ)
-  (h : μ F * 2 ^ finrank ℝ E < μ T) (h_symm : has_neg.neg '' T ⊆ T) (h_conv : convex ℝ T) :
+  (h : μ F * 2 ^ finrank ℝ E < μ T) (h_symm : ∀ x ∈ T, -x ∈ T) (h_conv : convex ℝ T) :
   ∃ (x : L) (h : x ≠ 0), (x : E) ∈ T :=
 begin
   let ι := fin (finrank ℝ E),
-  haveI : finite_dimensional ℝ (ι → ℝ) := by apply_instance,
   have : finrank ℝ E = finrank ℝ (ι → ℝ), by simp,
   have e : E ≃ₗ[ℝ] ι → ℝ := linear_equiv.of_finrank_eq E (ι → ℝ) this,
-  have Ce : continuous e := (e : E →ₗ[ℝ] (ι → ℝ)).continuous_of_finite_dimensional,
-  have Cesymm : continuous e.symm := (e.symm : (ι → ℝ) →ₗ[ℝ] E).continuous_of_finite_dimensional,
-  haveI : is_add_haar_measure (map e μ) := e.to_add_equiv.is_add_haar_measure_map μ Ce Cesymm,
   have hfund : is_add_fundamental_domain (L.map (e : E →+ ι → ℝ)) ((e : E → ι → ℝ) '' F) (map e μ)
     := by convert fund.map_linear_equiv μ e,
   haveI : countable (L.map (e : E →+ ι → ℝ)),
-  { refine function.injective.countable
-      (equiv.injective _ : injective (L.equiv_map_of_injective _ _).symm),
+  { refine (L.equiv_map_of_injective _ _).symm.injective.countable,
     exact equiv_like.injective e },
   obtain ⟨x, hx, hxT⟩ :=
-    exists_nonzero_mem_lattice_of_volume_mul_two_pow_card_lt_measure (map e μ) hfund
+    exists_ne_zero_mem_subgroup_of_volume_mul_two_pow_card_lt_measure (map e μ) hfund
       (_ : (map e μ) ((e : E → ι → ℝ) '' F) * _ < (map e μ) ((e : E → ι → ℝ) '' T)) _
-      (convex.linear_image h_conv e.to_linear_map),
-  { existsi (L.equiv_map_of_injective _ _).symm x,
-    swap,
-    exact equiv_like.injective e,
-    simp only [hx, ne.def, add_equiv_class.map_eq_zero_iff, not_false_iff, exists_true_left],
+      (h_conv.linear_image e.to_linear_map),
+  { refine ⟨(L.equiv_map_of_injective _ _).symm x, _, _⟩,
+    { exact equiv_like.injective e },
+    { simp only [hx, ne.def, add_equiv_class.map_eq_zero_iff, not_false_iff, exists_true_left] },
     erw add_subgroup.coe_equiv_map_of_injective_symm_apply e.to_add_equiv,
     exact mem_image_equiv.mp hxT },
   { erw [measurable_equiv.map_apply e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv,
@@ -613,9 +487,6 @@ begin
       preimage_image_eq _ e.injective, preimage_image_eq _ e.injective],
     convert h,
     simp [ι] },
-  { rintro - ⟨-, ⟨hy, hy_h, rfl⟩, rfl⟩,
-    use -hy,
-    simp only [linear_equiv.map_neg, eq_self_iff_true, and_true],
-    refine h_symm ⟨hy, _⟩,
-    simpa }
+  { rintro _ ⟨x, hx, rfl⟩,
+    exact ⟨-x, h_symm _ hx, map_neg _ _⟩ }
 end

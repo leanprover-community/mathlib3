@@ -32,7 +32,7 @@ open_locale classical big_operators ennreal
 
 open classical set filter
 
-variables {α β γ δ ε : Type*}
+variables {α β : Type*}
 
 namespace measure_theory
 
@@ -42,38 +42,38 @@ variables [measurable_space α] [measurable_space β]
 
 /-- Measurability structure on `measure`: Measures are measurable w.r.t. all projections -/
 instance : measurable_space (measure α) :=
-⨆ (s : set α) (hs : measurable_set s), (borel ℝ≥0∞).comap (λμ, μ s)
+⨆ (s : set α) (hs : measurable_set s), (borel ℝ≥0∞).comap (λ μ, μ s)
 
-lemma measurable_coe {s : set α} (hs : measurable_set s) : measurable (λμ : measure α, μ s) :=
+lemma measurable_coe {s : set α} (hs : measurable_set s) : measurable (λ μ : measure α, μ s) :=
 measurable.of_comap_le $ le_supr_of_le s $ le_supr_of_le hs $ le_rfl
 
 lemma measurable_of_measurable_coe (f : β → measure α)
-  (h : ∀(s : set α) (hs : measurable_set s), measurable (λb, f b s)) :
+  (h : ∀ (s : set α) (hs : measurable_set s), measurable (λ b, f b s)) :
   measurable f :=
 measurable.of_le_map $ supr₂_le $ assume s hs, measurable_space.comap_le_iff_le_map.2 $
   by rw [measurable_space.map_comp]; exact h s hs
 
 lemma measurable_measure {μ : α → measure β} :
-  measurable μ ↔ ∀(s : set β) (hs : measurable_set s), measurable (λb, μ b s) :=
+  measurable μ ↔ ∀ (s : set β) (hs : measurable_set s), measurable (λ b, μ b s) :=
 ⟨λ hμ s hs, (measurable_coe hs).comp hμ, measurable_of_measurable_coe μ⟩
 
 lemma measurable_map (f : α → β) (hf : measurable f) :
-  measurable (λμ : measure α, map f μ) :=
-measurable_of_measurable_coe _ $ assume s hs,
-  suffices measurable (λ (μ : measure α), μ (f ⁻¹' s)),
-    by simpa [map_apply, hs, hf],
-  measurable_coe (hf hs)
+  measurable (λ μ : measure α, map f μ) :=
+begin
+  refine measurable_of_measurable_coe _ (λ s hs, _),
+  simp_rw map_apply hf hs,
+  exact measurable_coe (hf hs),
+end
 
-lemma measurable_dirac :
-  measurable (measure.dirac : α → measure α) :=
-measurable_of_measurable_coe _ $ assume s hs,
-  begin
-    simp only [dirac_apply', hs],
-    exact measurable_one.indicator hs
-  end
+lemma measurable_dirac : measurable (measure.dirac : α → measure α) :=
+begin
+  refine measurable_of_measurable_coe _ (λ s hs, _),
+  simp_rw [dirac_apply' _ hs],
+  exact measurable_one.indicator hs
+end
 
 lemma measurable_lintegral {f : α → ℝ≥0∞} (hf : measurable f) :
-  measurable (λμ : measure α, ∫⁻ x, f x ∂μ) :=
+  measurable (λ μ : measure α, ∫⁻ x, f x ∂μ) :=
 begin
   simp only [lintegral_eq_supr_eapprox_lintegral, hf, simple_func.lintegral],
   refine measurable_supr (λ n, finset.measurable_sum _ (λ i _, _)),
@@ -85,21 +85,21 @@ end
 functions. -/
 def join (m : measure (measure α)) : measure α :=
 measure.of_measurable
-  (λs hs, ∫⁻ μ, μ s ∂m)
-  (by simp)
+  (λ s hs, ∫⁻ μ, μ s ∂m)
+  (by simp only [measure_empty, lintegral_const, zero_mul])
   begin
     assume f hf h,
-    simp [measure_Union h hf],
+    simp_rw [measure_Union h hf],
     apply lintegral_tsum,
-    assume i, exact measurable_coe (hf i)
+    assume i, exact (measurable_coe (hf i)).ae_measurable
   end
 
-@[simp] lemma join_apply {m : measure (measure α)} :
-  ∀{s : set α}, measurable_set s → join m s = ∫⁻ μ, μ s ∂m :=
-measure.of_measurable_apply
+@[simp] lemma join_apply {m : measure (measure α)} {s : set α} (hs : measurable_set s) :
+  join m s = ∫⁻ μ, μ s ∂m :=
+measure.of_measurable_apply s hs
 
 @[simp] lemma join_zero : (0 : measure (measure α)).join = 0 :=
-by { ext1 s hs, simp [hs] }
+by { ext1 s hs, simp only [hs, join_apply, lintegral_zero_measure, coe_zero, pi.zero_apply], }
 
 lemma measurable_join : measurable (join : measure (measure α) → measure α) :=
 measurable_of_measurable_coe _ $ assume s hs,
@@ -108,47 +108,23 @@ measurable_of_measurable_coe _ $ assume s hs,
 lemma lintegral_join {m : measure (measure α)} {f : α → ℝ≥0∞} (hf : measurable f) :
   ∫⁻ x, f x ∂(join m) = ∫⁻ μ, ∫⁻ x, f x ∂μ ∂m :=
 begin
-  rw [lintegral_eq_supr_eapprox_lintegral hf],
-  have : ∀n x,
-    join m (⇑(simple_func.eapprox (λ (a : α), f a) n) ⁻¹' {x}) =
-      ∫⁻ μ, μ ((⇑(simple_func.eapprox (λ (a : α), f a) n) ⁻¹' {x})) ∂m :=
-    assume n x, join_apply (simple_func.measurable_set_preimage _ _),
-  simp only [simple_func.lintegral, this],
-  transitivity,
-  have : ∀(s : ℕ → finset ℝ≥0∞) (f : ℕ → ℝ≥0∞ → measure α → ℝ≥0∞)
-    (hf : ∀n r, measurable (f n r)) (hm : monotone (λn μ, ∑ r in s n, r * f n r μ)),
-    (⨆n:ℕ, ∑ r in s n, r * ∫⁻ μ, f n r μ ∂m) =
-    ∫⁻ μ, ⨆n:ℕ, ∑ r in s n, r * f n r μ ∂m,
-  { assume s f hf hm,
-    symmetry,
-    transitivity,
-    apply lintegral_supr,
-    { assume n,
-      exact finset.measurable_sum _ (assume r _, (hf _ _).const_mul _) },
-    { exact hm },
-    congr, funext n,
-    transitivity,
-    apply lintegral_finset_sum,
-    { assume r _, exact (hf _ _).const_mul _ },
-    congr, funext r,
-    apply lintegral_const_mul,
-    exact hf _ _ },
-  specialize this (λn, simple_func.range (simple_func.eapprox f n)),
-  specialize this
-    (λn r μ, μ (⇑(simple_func.eapprox (λ (a : α), f a) n) ⁻¹' {r})),
-  refine this _ _; clear this,
-  { assume n r,
-    apply measurable_coe,
-    exact simple_func.measurable_set_preimage _ _ },
-  { change monotone (λn μ, (simple_func.eapprox f n).lintegral μ),
-    assume n m h μ,
-    refine simple_func.lintegral_mono _ le_rfl,
-    apply simple_func.monotone_eapprox,
-    assumption },
-  congr, funext μ,
-  symmetry,
-  apply lintegral_eq_supr_eapprox_lintegral,
-  exact hf
+  simp_rw [lintegral_eq_supr_eapprox_lintegral hf,
+    simple_func.lintegral, join_apply (simple_func.measurable_set_preimage _ _)],
+  suffices : ∀ (s : ℕ → finset ℝ≥0∞) (f : ℕ → ℝ≥0∞ → measure α → ℝ≥0∞)
+    (hf : ∀ n r, measurable (f n r)) (hm : monotone (λ n μ, ∑ r in s n, r * f n r μ)),
+    (⨆ n, ∑ r in s n, r * ∫⁻ μ, f n r μ ∂m) = ∫⁻ μ, ⨆ n, ∑ r in s n, r * f n r μ ∂m,
+  { refine this (λ n, simple_func.range (simple_func.eapprox f n))
+      (λ n r μ, μ (simple_func.eapprox f n ⁻¹' {r})) _ _,
+    { exact λ n r, measurable_coe (simple_func.measurable_set_preimage _ _), },
+    { exact λ n m h μ, simple_func.lintegral_mono (simple_func.monotone_eapprox _ h) le_rfl, }, },
+  intros s f hf hm,
+  rw lintegral_supr _ hm,
+  swap, { exact λ n, finset.measurable_sum _ (λ r _, (hf _ _).const_mul _) },
+  congr,
+  funext n,
+  rw lintegral_finset_sum (s n),
+  { simp_rw lintegral_const_mul _ (hf _ _), },
+  { exact λ r _, (hf _ _).const_mul _ },
 end
 
 /-- Monadic bind on `measure`, only works in the category of measurable spaces and measurable
@@ -164,7 +140,7 @@ begin
   ext1 s hs,
   simp only [bind, hs, join_apply, coe_zero, pi.zero_apply],
   rw [lintegral_map (measurable_coe hs) measurable_zero],
-  simp
+  simp only [pi.zero_apply, coe_zero, lintegral_const, zero_mul],
 end
 
 @[simp] lemma bind_zero_right' (m : measure α) :
@@ -176,44 +152,44 @@ bind_zero_right m
   bind m f s = ∫⁻ a, f a s ∂m :=
 by rw [bind, join_apply hs, lintegral_map (measurable_coe hs) hf]
 
-lemma measurable_bind' {g : α → measure β} (hg : measurable g) : measurable (λm, bind m g) :=
+lemma measurable_bind' {g : α → measure β} (hg : measurable g) : measurable (λ m, bind m g) :=
 measurable_join.comp (measurable_map _ hg)
 
 lemma lintegral_bind {m : measure α} {μ : α → measure β} {f : β → ℝ≥0∞}
   (hμ : measurable μ) (hf : measurable f) :
-  ∫⁻ x, f x ∂ (bind m μ) = ∫⁻ a, ∫⁻ x, f x ∂(μ a) ∂m:=
+  ∫⁻ x, f x ∂ (bind m μ) = ∫⁻ a, ∫⁻ x, f x ∂(μ a) ∂m :=
 (lintegral_join hf).trans (lintegral_map (measurable_lintegral hf) hμ)
 
 lemma bind_bind {γ} [measurable_space γ] {m : measure α} {f : α → measure β} {g : β → measure γ}
   (hf : measurable f) (hg : measurable g) :
-  bind (bind m f) g = bind m (λa, bind (f a) g) :=
-measure.ext $ assume s hs,
+  bind (bind m f) g = bind m (λ a, bind (f a) g) :=
 begin
-  rw [bind_apply hs hg, bind_apply hs ((measurable_bind' hg).comp hf), lintegral_bind hf],
-  { congr, funext a,
-    exact (bind_apply hs hg).symm },
-  exact (measurable_coe hs).comp hg
+  ext1 s hs,
+  simp_rw [bind_apply hs hg, bind_apply hs ((measurable_bind' hg).comp hf),
+    lintegral_bind hf ((measurable_coe hs).comp hg), (bind_apply hs hg)],
 end
 
 lemma bind_dirac {f : α → measure β} (hf : measurable f) (a : α) : bind (dirac a) f = f a :=
-measure.ext $ λ s hs, by rw [bind_apply hs hf, lintegral_dirac' a ((measurable_coe hs).comp hf)]
+by { ext1 s hs, rw [bind_apply hs hf, lintegral_dirac' a ((measurable_coe hs).comp hf)], }
 
 lemma dirac_bind {m : measure α} : bind m dirac = m :=
-measure.ext $ assume s hs,
-by simp [bind_apply hs measurable_dirac, dirac_apply' _ hs, lintegral_indicator 1 hs]
+begin
+  ext1 s hs,
+  simp only [bind_apply hs measurable_dirac, dirac_apply' _ hs, lintegral_indicator 1 hs,
+    pi.one_apply, lintegral_one, restrict_apply, measurable_set.univ, univ_inter],
+end
 
 lemma join_eq_bind (μ : measure (measure α)) : join μ = bind μ id :=
 by rw [bind, map_id]
 
 lemma join_map_map {f : α → β} (hf : measurable f) (μ : measure (measure α)) :
   join (map (map f) μ) = map f (join μ) :=
-measure.ext $ assume s hs,
-  begin
-    rw [join_apply hs, map_apply hf hs, join_apply,
-      lintegral_map (measurable_coe hs) (measurable_map f hf)],
-    { congr, funext ν, exact map_apply hf hs },
-    exact hf hs
-  end
+begin
+  ext1 s hs,
+  rw [join_apply hs, map_apply hf hs, join_apply (hf hs),
+    lintegral_map (measurable_coe hs) (measurable_map f hf)],
+  simp_rw map_apply hf hs,
+end
 
 lemma join_map_join (μ : measure (measure (measure α))) :
   join (map join μ) = join (join μ) :=
@@ -229,7 +205,7 @@ lemma join_map_dirac (μ : measure α) : join (map dirac μ) = μ :=
 dirac_bind
 
 lemma join_dirac (μ : measure α) : join (dirac μ) = μ :=
-eq.trans (join_eq_bind (dirac μ)) (bind_dirac measurable_id _)
+(join_eq_bind (dirac μ)).trans (bind_dirac measurable_id _)
 
 end measure
 

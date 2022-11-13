@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import topology.uniform_space.basic
+import topology.uniform_space.cauchy
 
 /-!
 # Uniform convergence
@@ -571,6 +572,18 @@ begin
   exact (hh.prod_map hh).eventually ((h.prod h') u hu),
 end
 
+/-- If a sequence of functions is uniformly Cauchy on a set, then the values at each point form
+a Cauchy sequence. -/
+lemma uniform_cauchy_seq_on.cauchy_map [hp : ne_bot p]
+  (hf : uniform_cauchy_seq_on F p s) (hx : x ∈ s) :
+  cauchy (map (λ i, F i x) p) :=
+begin
+  simp only [cauchy_map_iff, hp, true_and],
+  assume u hu,
+  rw mem_map,
+  filter_upwards [hf u hu] with p hp using hp x hx,
+end
+
 section seq_tendsto
 
 lemma tendsto_uniformly_on_of_seq_tendsto_uniformly_on {l : filter ι} [l.is_countably_generated]
@@ -722,7 +735,7 @@ lemma tendsto_locally_uniformly_iff_tendsto_uniformly_of_compact_space [compact_
 begin
   refine ⟨λ h V hV, _, tendsto_uniformly.tendsto_locally_uniformly⟩,
   choose U hU using h V hV,
-  obtain ⟨t, ht⟩ := compact_univ.elim_nhds_subcover' (λ k hk, U k) (λ k hk, (hU k).1),
+  obtain ⟨t, ht⟩ := is_compact_univ.elim_nhds_subcover' (λ k hk, U k) (λ k hk, (hU k).1),
   replace hU := λ (x : t), (hU x).2,
   rw ← eventually_all at hU,
   refine hU.mono (λ i hi x, _),

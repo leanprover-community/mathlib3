@@ -540,6 +540,17 @@ tsum_eq_tsum_of_has_sum_iff_has_sum $ λ x, has_sum_subtype_iff_of_support_subse
 @[simp] lemma tsum_univ (f : β → α) : ∑' x : (set.univ : set β), f x = ∑' x, f x :=
 tsum_subtype_eq_of_support_subset $ set.subset_univ _
 
+@[simp] lemma tsum_singleton (b : β) (f : β → α) :
+  ∑' x : ({b} : set β), f x = f b :=
+begin
+  rw [tsum_subtype, tsum_eq_single b],
+  { simp },
+  { intros b' hb',
+    rw set.indicator_of_not_mem,
+    rwa set.mem_singleton_iff },
+  { apply_instance }
+end
+
 lemma tsum_image {g : γ → β} (f : β → α) {s : set γ} (hg : set.inj_on g s) :
   ∑' x : g '' s, f x = ∑' x : s, f (g x) :=
 ((equiv.set.image_of_inj_on _ _ hg).tsum_eq (λ x, f x)).symm
@@ -885,8 +896,10 @@ begin
   have h₂ : injective int.neg_succ_of_nat := @int.neg_succ_of_nat.inj,
   have : is_compl (set.range (coe : ℕ → ℤ)) (set.range int.neg_succ_of_nat),
   { split,
-    { rintros _ ⟨⟨i, rfl⟩, ⟨j, ⟨⟩⟩⟩ },
-    { rintros (i | j) h,
+    { rw disjoint_iff_inf_le,
+      rintros _ ⟨⟨i, rfl⟩, ⟨j, ⟨⟩⟩⟩ },
+    { rw codisjoint_iff_le_sup,
+      rintros (i | j) h,
       exacts [or.inl ⟨_, rfl⟩, or.inr ⟨_, rfl⟩] } },
   exact has_sum.add_is_compl this (h₁.has_sum_range_iff.mpr hf) (h₂.has_sum_range_iff.mpr hg),
 end

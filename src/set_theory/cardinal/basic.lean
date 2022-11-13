@@ -7,7 +7,7 @@ import data.fintype.card
 import data.finsupp.defs
 import data.nat.part_enat
 import data.set.countable
-import logic.small
+import logic.small.basic
 import order.conditionally_complete_lattice
 import order.succ_pred.basic
 import set_theory.cardinal.schroeder_bernstein
@@ -899,8 +899,8 @@ begin
   rw [cardinal.mk_fintype, fintype.card_coe]
 end
 
-@[simp, norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
-by induction n; simp [pow_succ', power_add, *]
+@[norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
+by simp only [cardinal.pow_cast_right, coe_pow]
 
 @[simp, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
 begin
@@ -974,6 +974,9 @@ theorem aleph_0_le {c : cardinal} : ℵ₀ ≤ c ↔ ∀ n : ℕ, ↑n ≤ c :=
   rcases lt_aleph_0.1 hn with ⟨n, rfl⟩,
   exact (nat.lt_succ_self _).not_le (nat_cast_le.1 (h (n+1)))
 end⟩
+
+@[simp] lemma range_nat_cast : range (coe : ℕ → cardinal) = Iio ℵ₀ :=
+ext $ λ x, by simp only [mem_Iio, mem_range, eq_comm, lt_aleph_0]
 
 theorem mk_eq_nat_iff {α : Type u} {n : ℕ} : #α = n ↔ nonempty (α ≃ fin n) :=
 by rw [← lift_mk_fin, ← lift_uzero (#α), lift_mk_eq']
@@ -1426,7 +1429,7 @@ lemma mk_union_le {α : Type u} (S T : set α) : #(S ∪ T : set α) ≤ #S + #T
 
 theorem mk_union_of_disjoint {α : Type u} {S T : set α} (H : disjoint S T) :
   #(S ∪ T : set α) = #S + #T :=
-quot.sound ⟨equiv.set.union H⟩
+quot.sound ⟨equiv.set.union H.le_bot⟩
 
 theorem mk_insert {α : Type u} {s : set α} {a : α} (h : a ∉ s) :
   #(insert a s : set α) = #s + 1 :=

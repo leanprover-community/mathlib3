@@ -1640,7 +1640,7 @@ theorem is_O_with_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed
   {f : α → Π i, E' i} {C : ℝ} (hC : 0 ≤ C) :
   is_O_with C l f g' ↔ ∀ i, is_O_with C l (λ x, f x i) g' :=
 have ∀ x, 0 ≤ C * ∥g' x∥, from λ x, mul_nonneg hC (norm_nonneg _),
-by simp only [is_O_with_iff, pi_norm_le_iff (this _), eventually_all]
+by simp only [is_O_with_iff, pi_norm_le_iff_of_nonneg (this _), eventually_all]
 
 @[simp] theorem is_O_pi {ι : Type*} [fintype ι] {E' : ι → Type*} [Π i, normed_add_comm_group (E' i)]
   {f : α → Π i, E' i} :

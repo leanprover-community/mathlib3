@@ -21,16 +21,35 @@ product space `E`.
   construction of oriented area should pass through `ω`.)
 
 * `orientation.right_angle_rotation`: an isometric automorphism `E ≃ₗᵢ[ℝ] E` (usual notation `J`).
-  This automorphism squares to -1.  TODO: this agrees with the rotation by 90 degrees defined in
-  `orientation.rotation`.
+  This automorphism squares to -1.  In a later file, rotations (`orientation.rotation`) are defined,
+  in such a way that this automorphism is equal to rotation by 90 degrees.
 
 * `orientation.basis_right_angle_rotation`: for a nonzero vector `x` in `E`, the basis `![x, J x]`
   for `E`.
 
 * `orientation.kahler`: a complex-valued real-bilinear map `E →ₗ[ℝ] E →ₗ[ℝ] ℂ`. Its real part is the
   inner product and its imaginary part is `orientation.area_form`.  For vectors `x` and `y` in `E`,
-  the complex number `o.kahler x y` has modulus `∥x∥ * ∥y∥`. TODO: the argument of `o.kahler x y` is
-  the oriented angle (`orientation.oangle`) from `x` to `y`.
+  the complex number `o.kahler x y` has modulus `∥x∥ * ∥y∥`. In a later file, oriented angles
+  (`orientation.oangle`) are defined, in such a way that the argument of `o.kahler x y` is the
+  oriented angle from `x` to `y`.
+
+## Main results
+
+* `orientation.right_angle_rotation_right_angle_rotation`: the identity `J (J x) = - x`
+
+* `orientation.nonneg_inner_and_area_form_eq_zero_iff_same_ray`: `x`, `y` are in the same ray, if
+  and only if `0 ≤ ⟪x, y⟫` and `ω x y = 0`
+
+* `orientation.kahler_mul`: the identity `o.kahler x a * o.kahler a y = ∥a∥ ^ 2 * o.kahler x y`
+
+* `complex.area_form`, `complex.right_angle_rotation`, `complex.kahler`: the concrete
+  interpretations of `area_form`, `right_angle_rotation`, `kahler` for the oriented real inner
+  product space `ℂ`
+
+* `orientation.area_form_map_complex`, `orientation.right_angle_rotation_map_complex`,
+  `orientation.kahler_map_complex`: given an orientation-preserving isometry from `E` to `ℂ`,
+  expressions for `area_form`, `right_angle_rotation`, `kahler` as the pullback of their concrete
+  interpretations on `ℂ`
 
 ## Implementation notes
 
@@ -128,6 +147,29 @@ begin
   { simpa }
 end
 
+lemma area_form_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+  (φ : E ≃ₗᵢ[ℝ] F) (x y : F) :
+  (orientation.map (fin 2) φ.to_linear_equiv o).area_form x y = o.area_form (φ.symm x) (φ.symm y) :=
+begin
+  have : φ.symm ∘ ![x, y] = ![φ.symm x, φ.symm y],
+  { ext i,
+    fin_cases i; refl },
+  simp [area_form_to_volume_form, volume_form_map, this],
+end
+
+/-- The area form is invariant under pullback by a positively-oriented isometric automorphism. -/
+lemma area_form_comp_linear_isometry_equiv (φ : E ≃ₗᵢ[ℝ] E)
+  (hφ : 0 < (φ.to_linear_equiv : E →ₗ[ℝ] E).det) (x y : E) :
+  o.area_form (φ x) (φ y) = o.area_form x y :=
+begin
+  convert o.area_form_map φ (φ x) (φ y),
+  { symmetry,
+    rwa ← o.map_eq_iff_det_pos φ.to_linear_equiv at hφ,
+    rw [fact.out (finrank ℝ E = 2), fintype.card_fin] },
+  { simp },
+  { simp }
+end
+
 /-- Auxiliary construction for `orientation.right_angle_rotation`, rotation by 90 degrees in an
 oriented real inner product space of dimension 2. -/
 @[irreducible] def right_angle_rotation_aux₁ : E →ₗ[ℝ] E :=
@@ -137,7 +179,11 @@ let to_dual : E ≃ₗ[ℝ] (E →ₗ[ℝ] ℝ) :=
 
 @[simp] lemma inner_right_angle_rotation_aux₁_left (x y : E) :
   ⟪o.right_angle_rotation_aux₁ x, y⟫ = ω x y :=
-by simp [right_angle_rotation_aux₁]
+by simp only [right_angle_rotation_aux₁, linear_equiv.trans_symm, linear_equiv.coe_trans,
+              linear_equiv.coe_coe, inner_product_space.to_dual_symm_apply, eq_self_iff_true,
+              linear_map.coe_to_continuous_linear_map', linear_isometry_equiv.coe_to_linear_equiv,
+              linear_map.comp_apply, linear_equiv.symm_symm,
+              linear_isometry_equiv.to_linear_equiv_symm]
 
 @[simp] lemma inner_right_angle_rotation_aux₁_right (x y : E) :
   ⟪x, o.right_angle_rotation_aux₁ y⟫ = - ω x y :=
@@ -262,6 +308,45 @@ end
   (-o).right_angle_rotation = o.right_angle_rotation.trans (linear_isometry_equiv.neg ℝ) :=
 linear_isometry_equiv.ext $ o.right_angle_rotation_neg_orientation
 
+lemma right_angle_rotation_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+  (φ : E ≃ₗᵢ[ℝ] F) (x : F) :
+  (orientation.map (fin 2) φ.to_linear_equiv o).right_angle_rotation x
+  = φ (o.right_angle_rotation (φ.symm x)) :=
+begin
+  apply ext_inner_right ℝ,
+  intros y,
+  rw inner_right_angle_rotation_left,
+  transitivity ⟪J (φ.symm x), φ.symm y⟫,
+  { simp [o.area_form_map] },
+  transitivity ⟪φ (J (φ.symm x)), φ (φ.symm y)⟫,
+  { rw φ.inner_map_map },
+  { simp },
+end
+
+/-- `J` commutes with any positively-oriented isometric automorphism. -/
+lemma linear_isometry_equiv_comp_right_angle_rotation (φ : E ≃ₗᵢ[ℝ] E)
+  (hφ : 0 < (φ.to_linear_equiv : E →ₗ[ℝ] E).det) (x : E) :
+  φ (J x) = J (φ x) :=
+begin
+  convert (o.right_angle_rotation_map φ (φ x)).symm,
+  { simp },
+  { symmetry,
+    rwa ← o.map_eq_iff_det_pos φ.to_linear_equiv at hφ,
+    rw [fact.out (finrank ℝ E = 2), fintype.card_fin] },
+end
+
+lemma right_angle_rotation_map' {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+  (φ : E ≃ₗᵢ[ℝ] F) :
+  (orientation.map (fin 2) φ.to_linear_equiv o).right_angle_rotation
+  = (φ.symm.trans o.right_angle_rotation).trans φ :=
+linear_isometry_equiv.ext $ o.right_angle_rotation_map φ
+
+/-- `J` commutes with any positively-oriented isometric automorphism. -/
+lemma linear_isometry_equiv_comp_right_angle_rotation' (φ : E ≃ₗᵢ[ℝ] E)
+  (hφ : 0 < (φ.to_linear_equiv : E →ₗ[ℝ] E).det) :
+  linear_isometry_equiv.trans J φ = φ.trans J :=
+linear_isometry_equiv.ext $ o.linear_isometry_equiv_comp_right_angle_rotation φ hφ
+
 /-- For a nonzero vector `x` in an oriented two-dimensional real inner product space `E`,
 `![x, J x]` forms an (orthogonal) basis for `E`. -/
 def basis_right_angle_rotation (x : E) (hx : x ≠ 0) : basis (fin 2) ℝ E :=
@@ -312,7 +397,7 @@ lemma inner_sq_add_area_form_sq (a b : E) : ⟪a, b⟫ ^ 2 + ω a b ^ 2 = ∥a�
 by simpa [sq, real_inner_self_eq_norm_sq] using o.inner_mul_inner_add_area_form_mul_area_form a b b
 
 /-- For vectors `a x y : E`, the identity `⟪a, x⟫ * ω a y - ω a x * ⟪a, y⟫ = ∥a∥ ^ 2 * ω x y`. (See
-`orientation.inner_mul_area_form_sub` for the "applied" form.)-/
+`orientation.inner_mul_area_form_sub` for the "applied" form.) -/
 lemma inner_mul_area_form_sub' (a x : E) :
   ⟪a, x⟫ • ω a - ω a x • @innerₛₗ ℝ _ _ _ a = ∥a∥ ^ 2 • ω x :=
 begin
@@ -371,7 +456,7 @@ end
 /-- A complex-valued real-bilinear map on an oriented real inner product space of dimension 2. Its
 real part is the inner product and its imaginary part is `orientation.area_form`.
 
-TODO On `ℂ` with the standard orientation, `kahler w z = conj w * z`. -/
+On `ℂ` with the standard orientation, `kahler w z = conj w * z`; see `complex.kahler`. -/
 def kahler : E →ₗ[ℝ] E →ₗ[ℝ] ℂ :=
 (linear_map.llcomp ℝ E ℝ ℂ complex.of_real_clm) ∘ₗ (@innerₛₗ ℝ E _ _)
 + (linear_map.llcomp ℝ E ℝ ℂ ((linear_map.lsmul ℝ ℂ).flip complex.I)) ∘ₗ ω
@@ -470,6 +555,91 @@ begin
   contrapose,
   simp only [not_and_distrib, not_not, kahler_apply_apply, complex.real_smul],
   rintros (rfl | rfl);
+  simp,
+end
+
+lemma kahler_map {F : Type*} [inner_product_space ℝ F] [fact (finrank ℝ F = 2)]
+  (φ : E ≃ₗᵢ[ℝ] F) (x y : F) :
+  (orientation.map (fin 2) φ.to_linear_equiv o).kahler x y = o.kahler (φ.symm x) (φ.symm y) :=
+by simp [kahler_apply_apply, area_form_map]
+
+/-- The bilinear map `kahler` is invariant under pullback by a positively-oriented isometric
+automorphism. -/
+lemma kahler_comp_linear_isometry_equiv (φ : E ≃ₗᵢ[ℝ] E)
+  (hφ : 0 < (φ.to_linear_equiv : E →ₗ[ℝ] E).det) (x y : E) :
+  o.kahler (φ x) (φ y) = o.kahler x y :=
+by simp [kahler_apply_apply, o.area_form_comp_linear_isometry_equiv φ hφ]
+
+end orientation
+
+namespace complex
+
+local attribute [instance] complex.finrank_real_complex_fact
+
+@[simp] protected lemma area_form (w z : ℂ) : complex.orientation.area_form w z = (conj w * z).im :=
+begin
+  let o := complex.orientation,
+  simp only [o.area_form_to_volume_form, o.volume_form_robust complex.orthonormal_basis_one_I rfl,
+    basis.det_apply, matrix.det_fin_two, basis.to_matrix_apply,to_basis_orthonormal_basis_one_I,
+    matrix.cons_val_zero, coe_basis_one_I_repr, matrix.cons_val_one, matrix.head_cons, mul_im,
+    conj_re, conj_im],
+  ring,
+end
+
+@[simp] protected lemma right_angle_rotation (z : ℂ) :
+  complex.orientation.right_angle_rotation z = I * z :=
+begin
+  apply ext_inner_right ℝ,
+  intros w,
+  rw orientation.inner_right_angle_rotation_left,
+  simp only [complex.area_form, complex.inner, mul_re, mul_im, conj_re, conj_im, map_mul, conj_I,
+    neg_re, neg_im, I_re, I_im],
+  ring,
+end
+
+@[simp] protected lemma kahler (w z : ℂ) :
+  complex.orientation.kahler w z = conj w * z :=
+begin
+  rw orientation.kahler_apply_apply,
+  ext1; simp,
+end
+
+end complex
+
+namespace orientation
+
+local notation `ω` := o.area_form
+local notation `J` := o.right_angle_rotation
+
+open complex
+
+/-- The area form on an oriented real inner product space of dimension 2 can be evaluated in terms
+of a complex-number representation of the space. -/
+lemma area_form_map_complex (f : E ≃ₗᵢ[ℝ] ℂ)
+  (hf : (orientation.map (fin 2) f.to_linear_equiv o) = complex.orientation) (x y : E) :
+  ω x y = (conj (f x) * f y).im :=
+begin
+  rw [← complex.area_form, ← hf, o.area_form_map],
+  simp,
+end
+
+/-- The rotation by 90 degrees on an oriented real inner product space of dimension 2 can be
+evaluated in terms of a complex-number representation of the space. -/
+lemma right_angle_rotation_map_complex (f : E ≃ₗᵢ[ℝ] ℂ)
+  (hf : (orientation.map (fin 2) f.to_linear_equiv o) = complex.orientation) (x : E) :
+  f (J x) = I * f x :=
+begin
+  rw [← complex.right_angle_rotation, ← hf, o.right_angle_rotation_map],
+  simp,
+end
+
+/-- The Kahler form on an oriented real inner product space of dimension 2 can be evaluated in terms
+of a complex-number representation of the space. -/
+lemma kahler_map_complex (f : E ≃ₗᵢ[ℝ] ℂ)
+  (hf : (orientation.map (fin 2) f.to_linear_equiv o) = complex.orientation) (x y : E) :
+  o.kahler x y = conj (f x) * f y :=
+begin
+  rw [← complex.kahler, ← hf, o.kahler_map],
   simp,
 end
 

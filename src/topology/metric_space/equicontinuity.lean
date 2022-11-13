@@ -80,13 +80,6 @@ lemma uniform_equicontinuous_iff {ι : Type*} [pseudo_metric_space β] {F : ι �
   ∀ ε > 0, ∃ δ > 0, ∀ x y, dist x y < δ → ∀ i, dist (F i x) (F i y) < ε :=
 uniformity_basis_dist.uniform_equicontinuous_iff uniformity_basis_dist
 
-section uniform_convergence
-
--- Note: These don't affect the *statements* of the following lemmas
-local attribute [-instance] Pi.topological_space
-local attribute [-instance] Pi.uniform_space
-local attribute [instance] uniform_convergence.topological_space
-
 /-- For a family of functions to a (pseudo) metric spaces, a convenient way to prove
 equicontinuity at a point is to show that all of the functions share a common *local* continuity
 modulus. -/
@@ -130,7 +123,5 @@ lemma equicontinuous_of_continuity_modulus {ι : Type*} [pseudo_metric_space β]
   (H : ∀ (x y : β) i, dist (F i x) (F i y) ≤ b (dist x y)) :
   equicontinuous F :=
 (uniform_equicontinuous_of_continuity_modulus b b_lim F H).equicontinuous
-
-end uniform_convergence
 
 end metric

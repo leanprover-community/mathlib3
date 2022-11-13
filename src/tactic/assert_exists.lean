@@ -137,13 +137,13 @@ do
 
 /-- A linter for checking that the declarations marked `assert_no_instance` eventually exist. -/
 meta def assert_no_instance.linter : linter :=
-{ test := λ d, do {
+{ test := λ d, (do
     let n := d.to_name,
     tt ← pure ((`assert_no_instance._checked).is_prefix_of n) | pure none,
     declaration.defn _ _ _ val _ _ ← pure d,
     tt ← succeeds (tactic.mk_instance val)
       | (some ∘ format.to_string) <$> pformat!"No instance of `{val}`",
-    pure none },
+    pure none),
   auto_decls := tt,
   no_errors_found := "All `assert_no_instance` instances eventually exist.",
   errors_found :=

@@ -378,6 +378,28 @@ lemma sbtw.trans_right [no_zero_smul_divisors R V] {w x y z : P} (h₁ : sbtw R 
   (h₂ : sbtw R x y z) : sbtw R w y z :=
 h₁.wbtw.trans_sbtw_right h₂
 
+lemma wbtw.trans_left_ne [no_zero_smul_divisors R V] {w x y z : P} (h₁ : wbtw R w y z)
+  (h₂ : wbtw R w x y) (h : y ≠ z) : x ≠ z :=
+begin
+  rintro rfl,
+  exact h (h₁.swap_right_iff.1 h₂)
+end
+
+lemma wbtw.trans_right_ne [no_zero_smul_divisors R V] {w x y z : P} (h₁ : wbtw R w x z)
+  (h₂ : wbtw R x y z) (h : w ≠ x) : w ≠ y :=
+begin
+  rintro rfl,
+  exact h (h₁.swap_left_iff.1 h₂)
+end
+
+lemma sbtw.trans_wbtw_left_ne [no_zero_smul_divisors R V] {w x y z : P} (h₁ : sbtw R w y z)
+  (h₂ : wbtw R w x y) : x ≠ z :=
+h₁.wbtw.trans_left_ne h₂ h₁.ne_right
+
+lemma sbtw.trans_wbtw_right_ne [no_zero_smul_divisors R V] {w x y z : P} (h₁ : sbtw R w x z)
+  (h₂ : wbtw R x y z) : w ≠ y :=
+h₁.wbtw.trans_right_ne h₂ h₁.left_ne
+
 end ordered_ring
 
 section strict_ordered_comm_ring

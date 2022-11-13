@@ -91,25 +91,20 @@ rfl
 
 lemma strong_uniformity.uniform_embedding_coe_fn [uniform_space F] [uniform_add_group F]
   (𝔖 : set (set E)) :
-  @uniform_embedding (E →SL[σ] F) (E → F) (strong_uniformity σ F 𝔖)
-  (uniform_convergence_on.uniform_space E F 𝔖) coe_fn :=
+  @uniform_embedding (E →SL[σ] F) (E →ᵤ[𝔖] F) (strong_uniformity σ F 𝔖)
+  (uniform_on_fun.uniform_space E F 𝔖) coe_fn :=
 begin
-  letI : uniform_space (E → F) := uniform_convergence_on.uniform_space E F 𝔖,
   letI : uniform_space (E →SL[σ] F) := strong_uniformity σ F 𝔖,
   exact ⟨⟨rfl⟩, fun_like.coe_injective⟩
 end
 
-lemma strong_topology.embedding_coe_fn [topological_space F] [topological_add_group F]
+lemma strong_topology.embedding_coe_fn [uniform_space F] [uniform_add_group F]
   (𝔖 : set (set E)) :
-  @embedding (E →SL[σ] F) (E → F) (strong_topology σ F 𝔖)
-  (@uniform_convergence_on.topological_space E F (topological_add_group.to_uniform_space F) 𝔖)
-  coe_fn :=
-begin
-  letI : uniform_space F := topological_add_group.to_uniform_space F,
-  haveI : uniform_add_group F := topological_add_comm_group_is_uniform,
-  exact @uniform_embedding.embedding _ _ (_root_.id _) (_root_.id _) _
-    (strong_uniformity.uniform_embedding_coe_fn _ _ _)
-end
+  @embedding (E →SL[σ] F) (E →ᵤ[𝔖] F) (strong_topology σ F 𝔖)
+  (uniform_on_fun.topological_space E F 𝔖)
+  (uniform_on_fun.of_fun 𝔖 ∘ coe_fn) :=
+@uniform_embedding.embedding _ _ (_root_.id _) _ _
+  (strong_uniformity.uniform_embedding_coe_fn _ _ _)
 
 lemma strong_uniformity.uniform_add_group [uniform_space F] [uniform_add_group F]
   (𝔖 : set (set E)) : @uniform_add_group (E →SL[σ] F) (strong_uniformity σ F 𝔖) _ :=
@@ -134,9 +129,9 @@ lemma strong_topology.t2_space [topological_space F] [topological_add_group F] [
   (𝔖 : set $ set E) (h𝔖 : ⋃₀ 𝔖 = set.univ) : @t2_space (E →SL[σ] F) (strong_topology σ F 𝔖) :=
 begin
   letI : uniform_space F := topological_add_group.to_uniform_space F,
-  letI : topological_space (E → F) := uniform_convergence_on.topological_space E F 𝔖,
+  haveI : uniform_add_group F := topological_add_comm_group_is_uniform,
   letI : topological_space (E →SL[σ] F) := strong_topology σ F 𝔖,
-  haveI : t2_space (E → F) := uniform_convergence_on.t2_space_of_covering h𝔖,
+  haveI : t2_space (E →ᵤ[𝔖] F) := uniform_on_fun.t2_space_of_covering h𝔖,
   exact (strong_topology.embedding_coe_fn σ F 𝔖).t2_space
 end
 

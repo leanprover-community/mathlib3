@@ -379,7 +379,6 @@ open ennreal topological_space.positive_compacts
 -- TODO version for any real vector space in terms of dimension
 -- actually the proof shows that there is a point in the interior of T, perhaps we should expose
 -- this
-@[to_additive]
 lemma exists_ne_zero_mem_subgroup_of_volume_mul_two_pow_card_lt_measure {L : add_subgroup (ι → ℝ)}
   [countable L] {F T : set (ι → ℝ)} (μ : measure (ι → ℝ)) [is_add_haar_measure μ]
   (fund : is_add_fundamental_domain L F μ) (h : μ F * 2 ^ card ι < μ T) (h_symm : ∀ x ∈ T, -x ∈ T)

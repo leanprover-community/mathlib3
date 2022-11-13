@@ -68,7 +68,7 @@ do
   pure ()
 
 /-- A linter for checking that the declarations marked `assert_not_exists` eventually exist. -/
-@[linter] meta def assert_not_exists.linter : linter :=
+meta def assert_not_exists.linter : linter :=
 { test := λ d, do {
     let n := d.to_name,
     tt ← pure ((`assert_not_exists._checked).is_prefix_of n) | pure none,
@@ -136,7 +136,7 @@ do
   end
 
 /-- A linter for checking that the declarations marked `assert_no_instance` eventually exist. -/
-@[linter] meta def assert_no_instance.linter : linter :=
+meta def assert_no_instance.linter : linter :=
 { test := λ d, do {
     let n := d.to_name,
     tt ← pure ((`assert_no_instance._checked).is_prefix_of n) | pure none,
@@ -152,3 +152,5 @@ do
   is_fast := ff }
 
 end
+
+#eval (`fo«o.f»ar).length

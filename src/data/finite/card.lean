@@ -33,29 +33,14 @@ variables {α β γ : Type*}
 
 /-- There is (noncomputably) an equivalence between a finite type `α` and `fin (nat.card α)`. -/
 def finite.equiv_fin (α : Type*) [finite α] : α ≃ fin (nat.card α) :=
-begin
-  have := (finite.exists_equiv_fin α).some_spec.some,
-  rwa nat.card_eq_of_equiv_fin this,
-end
+(finite.nonempty_equiv_fin α).some
 
 /-- Similar to `finite.equiv_fin` but with control over the term used for the cardinality. -/
 def finite.equiv_fin_of_card_eq [finite α] {n : ℕ} (h : nat.card α = n) : α ≃ fin n :=
 by { subst h, apply finite.equiv_fin }
 
-lemma nat.card_eq (α : Type*) :
-  nat.card α = if h : finite α then by exactI @fintype.card α (fintype.of_finite α) else 0 :=
-begin
-  casesI finite_or_infinite α,
-  { letI := fintype.of_finite α,
-    simp only [*, nat.card_eq_fintype_card, dif_pos] },
-  { simp [*, not_finite_iff_infinite.mpr h] },
-end
-
 lemma finite.card_pos_iff [finite α] : 0 < nat.card α ↔ nonempty α :=
-begin
-  haveI := fintype.of_finite α,
-  rw [nat.card_eq_fintype_card, fintype.card_pos_iff],
-end
+by rw [← with_top.coe_lt_coe, coe_zero, ← enat.card_finite, enat.card_pos_iff]
 
 lemma finite.card_pos [finite α] [h : nonempty α] : 0 < nat.card α :=
 finite.card_pos_iff.mpr h
@@ -63,7 +48,7 @@ finite.card_pos_iff.mpr h
 namespace finite
 
 lemma cast_card_eq_mk {α : Type*} [finite α] : ↑(nat.card α) = cardinal.mk α :=
-cardinal.cast_to_nat_of_lt_aleph_0 (cardinal.lt_aleph_0_of_finite α)
+by rw []
 
 lemma card_eq [finite α] [finite β] : nat.card α = nat.card β ↔ nonempty (α ≃ β) :=
 by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, simp [fintype.card_eq] }

@@ -67,7 +67,7 @@ card_congr (equiv.of_bijective f hf)
 
 lemma card_fin (n : ℕ) : #ₑ(fin n) = n := card_eq_nat_iff.2 ⟨equiv.refl _⟩
 
-lemma card_of_equiv_fin {n} (e : α ≃ fin n) : #ₑα = n := by rw [card_congr e, card_fin]
+lemma card_eq_of_equiv_fin {n} (e : α ≃ fin n) : #ₑα = n := by rw [card_congr e, card_fin]
 
 lemma card_eq_zero_iff : #ₑα = 0 ↔ is_empty α :=
 begin
@@ -99,14 +99,14 @@ by rw [le_antisymm_iff, one_le_card_iff, card_le_one_iff]
 
 variables (α β γ δ)
 
-@[simp] lemma card_unique [unique α] : #ₑ α = 1 := card_of_equiv_fin $ equiv.equiv_of_unique _ _
+@[simp] lemma card_unique [unique α] : #ₑ α = 1 := card_eq_of_equiv_fin $ equiv.equiv_of_unique _ _
 
 lemma card_of_subsingleton (a : α) [subsingleton α] : #ₑ α = 1 :=
 @card_unique α $ unique_of_subsingleton a
 
 lemma card_punit : #ₑpunit = 1 := card_unique _
 lemma card_true : #ₑ true = 1 := card_unique _
-lemma card_fintype [fintype γ] : #ₑγ = fintype.card γ := card_of_equiv_fin $ fintype.equiv_fin _
+lemma card_fintype [fintype γ] : #ₑγ = fintype.card γ := card_eq_of_equiv_fin $ fintype.equiv_fin _
 @[simp] lemma card_plift : #ₑ(plift α) = #ₑα := card_congr equiv.plift
 @[simp] lemma card_empty [is_empty α] : #ₑα = 0 := card_eq_zero_iff.2 ‹_›
 lemma card_false : #ₑ false = 0 := card_empty _
@@ -153,8 +153,8 @@ variables {α β}
 lemma card_congr (e : α ≃ β) : #ₙα = #ₙβ := congr_arg enat.to_nat (enat.card_congr e)
 @[simp] lemma {u v} card_ulift (α : Type v) : #ₙ(ulift.{u} α) = #ₙα := card_congr equiv.ulift
 
-lemma card_of_equiv_fin {n} (e : α ≃ fin n) : #ₙα = n :=
-by rw [nat.card, enat.card_of_equiv_fin e, enat.to_nat_coe]
+lemma card_eq_of_equiv_fin {n} (e : α ≃ fin n) : #ₙα = n :=
+by rw [nat.card, enat.card_eq_of_equiv_fin e, enat.to_nat_coe]
 
 lemma card_eq_of_bijective (f : α → β) (hf : bijective f) : #ₙ α = #ₙ β :=
 card_congr (equiv.of_bijective f hf)
@@ -168,11 +168,11 @@ lemma _root_.finite.of_card_ne_zero (h : nat.card α ≠ 0) : finite α :=
 finite.of_not_infinite $ h ∘ @nat.card_infinite α
 
 @[simp] lemma card_fintype [fintype γ] : #ₙγ = fintype.card γ :=
-card_of_equiv_fin $ fintype.equiv_fin _
+card_eq_of_equiv_fin $ fintype.equiv_fin _
 
-lemma card_fin (n : ℕ) : #ₙ(fin n) = n := card_of_equiv_fin (equiv.refl _)
+lemma card_fin (n : ℕ) : #ₙ(fin n) = n := card_eq_of_equiv_fin (equiv.refl _)
 
-@[simp] lemma card_unique [unique α] : #ₙ α = 1 := card_of_equiv_fin $ equiv.equiv_of_unique _ _
+@[simp] lemma card_unique [unique α] : #ₙ α = 1 := card_eq_of_equiv_fin $ equiv.equiv_of_unique _ _
 
 lemma card_of_subsingleton (a : α) [subsingleton α] : #ₙ α = 1 :=
 @card_unique α $ unique_of_subsingleton a

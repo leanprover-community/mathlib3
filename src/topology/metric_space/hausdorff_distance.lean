@@ -1335,12 +1335,8 @@ lemma frontier_cthickening_disjoint (A : set α) :
   (frontier_cthickening_subset _)
 
 lemma frontier_cthickening_disjoint' (A : set α) (radii : set ℝ≥0) :
-  pairwise (disjoint on (λ (r : radii), frontier (cthickening r A))) :=
-begin
-  intros r₁ r₂ hr,
-  apply frontier_cthickening_disjoint A r₁ r₂,
-  simp [subtype.coe_inj, hr],
-end
+  radii.pairwise_disjoint (λ (r : ℝ≥0), frontier (cthickening r A)) :=
+λ r₁ _ r₂ _, frontier_cthickening_disjoint A r₁ r₂
 
 end cthickening --section
 

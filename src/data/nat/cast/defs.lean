@@ -40,7 +40,7 @@ class has_nat_cast (R : Type u) :=
 An `add_monoid_with_one` is an `add_monoid` with a `1`.
 It also contains data for the unique homomorphism `ℕ → R`.
 -/
-@[protect_proj]
+@[protect_proj, ancestor has_nat_cast add_monoid has_one]
 class add_monoid_with_one (R : Type u) extends has_nat_cast R, add_monoid R, has_one R :=
 (nat_cast := nat.unary_cast)
 (nat_cast_zero : nat_cast 0 = (0 : R) . control_laws_tac)
@@ -50,7 +50,7 @@ class add_monoid_with_one (R : Type u) extends has_nat_cast R, add_monoid R, has
 protected def nat.cast {R : Type u} [has_nat_cast R] : ℕ → R := has_nat_cast.nat_cast
 
 /-- An `add_comm_monoid_with_one` is an `add_monoid_with_one` satisfying `a + b = b + a`.  -/
-@[protect_proj]
+@[protect_proj, ancestor add_monoid_with_one add_comm_monoid]
 class add_comm_monoid_with_one (R : Type*) extends add_monoid_with_one R, add_comm_monoid R
 
 section

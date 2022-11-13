@@ -54,7 +54,7 @@ This is useful for finding imports which might be removable.
 open tactic declaration environment io io.fs
 
 meta def tactic.get_decls_used (env : environment) : name → name_set → tactic name_set
-| n ns := if ns.contains n then pure ns else do
+| n ns := if ns.contains n then pure ns else (do
   d ← env.get n,
   -- Add `n` to the accumulated name set.
   let ns := ns.insert n,
@@ -69,7 +69,9 @@ meta def tactic.get_decls_used (env : environment) : name → name_set → tacti
   | (declaration.defn _ _ _ v _ _) := process v
   | (declaration.thm _ _ _ v)      := process v.get
   | _ := pure ns
-  end
+  end) <|> (do
+  trace format!"Error while processing: {n}",
+  pure ns)
 
 meta def tactic.get_modules_used_by_theorems_in (tgt : string) : tactic (list string) :=
 do env ← tactic.get_env,
@@ -96,6 +98,6 @@ meta def main : io unit := do
     let files := (files.filter_map (λ s, s.get_rest project)),
     -- Convert paths to imports, e.g. `data/nat/order/basic.lean` -> `data.nat.order.basic`.
     -- ... the string library is not exactly featureful.
-    let files := files.map (λ s, ((s.to_list.reverse.drop 5).reverse.as_string.split_on '/').foldr
-      name.mk_string name.anonymous),
+    let files := files.map (λ s, ((s.to_list.reverse.drop 5).reverse.as_string.split_on '/').foldl
+      (λ n s, name.mk_string s n) name.anonymous),
     files.mmap' trace

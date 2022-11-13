@@ -47,6 +47,7 @@ sets).
 ## TODO
 
 * show that these topologies are T₂ and locally convex if the topology on `F` is
+* add a type alias for continuous linear maps with the topology of `𝔖`-convergence?
 
 ## Tags
 

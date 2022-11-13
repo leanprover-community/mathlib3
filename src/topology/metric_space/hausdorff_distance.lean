@@ -943,10 +943,6 @@ begin
   rwa [ennreal.to_real_of_real h₁, ennreal.to_real_of_real (h₁.trans hr.le)] at h
 end
 
-lemma frontier_thickening_disjoint' (A : set X) (radii : set ℝ) :
-  radii.pairwise_disjoint (λ (r : ℝ), frontier (thickening r A)) :=
-λ r₁ _ r₂ _, frontier_thickening_disjoint A r₁ r₂
-
 end thickening --section
 
 section cthickening
@@ -1333,10 +1329,6 @@ lemma frontier_cthickening_disjoint (A : set α) :
   pairwise (disjoint on (λ (r : ℝ≥0), frontier (cthickening r A))) :=
 λ r₁ r₂ hr, ((disjoint_singleton.2 $ by simpa).preimage _).mono (frontier_cthickening_subset _)
   (frontier_cthickening_subset _)
-
-lemma frontier_cthickening_disjoint' (A : set α) (radii : set ℝ≥0) :
-  radii.pairwise_disjoint (λ (r : ℝ≥0), frontier (cthickening r A)) :=
-λ r₁ _ r₂ _, frontier_cthickening_disjoint A r₁ r₂
 
 end cthickening --section
 

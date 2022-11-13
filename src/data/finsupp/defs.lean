@@ -202,17 +202,17 @@ variables [has_zero M] {a a' : α} {b : M}
 
 /-- `single a b` is the finitely supported function with value `b` at `a` and zero otherwise. -/
 def single (a : α) (b : M) : α →₀ M :=
-⟨if b = 0 then ∅ else {a}, λ a', if a = a' then b else 0, λ a', begin
-  by_cases hb : b = 0; by_cases a = a';
-    simp only [hb, h, if_pos, if_false, mem_singleton],
-  { exact ⟨false.elim, λ H, H rfl⟩ },
-  { exact ⟨false.elim, λ H, H rfl⟩ },
-  { exact ⟨λ _, hb, λ _, rfl⟩ },
-  { exact ⟨λ H _, h H.symm, λ H, (H rfl).elim⟩ }
+⟨if b = 0 then ∅ else {a}, pi.single a b, λ a', begin
+  obtain rfl | hb := eq_or_ne b 0,
+  { simp },
+  rw [if_neg hb, mem_singleton],
+  obtain rfl | ha := eq_or_ne a' a,
+  { simp [hb] },
+  simp [pi.single_eq_of_ne', ha],
 end⟩
 
 lemma single_apply [decidable (a = a')] : single a b a' = if a = a' then b else 0 :=
-by convert rfl
+by { simp_rw [@eq_comm _ a a'], convert pi.single_apply _ _ _, }
 
 lemma single_apply_left {f : α → β} (hf : function.injective f)
   (x z : α) (y : M) :
@@ -223,10 +223,10 @@ lemma single_eq_indicator : ⇑(single a b) = set.indicator {a} (λ _, b) :=
 by { ext, simp [single_apply, set.indicator, @eq_comm _ a] }
 
 @[simp] lemma single_eq_same : (single a b : α →₀ M) a = b :=
-if_pos rfl
+pi.single_eq_same a b
 
 @[simp] lemma single_eq_of_ne (h : a ≠ a') : (single a b : α →₀ M) a' = 0 :=
-if_neg h
+pi.single_eq_of_ne' h _
 
 lemma single_eq_update [decidable_eq α] (a : α) (b : M) : ⇑(single a b) = function.update 0 a b :=
 by rw [single_eq_indicator, ← set.piecewise_eq_indicator, set.piecewise_singleton]
@@ -577,7 +577,7 @@ support_on_finset_subset
 
 @[simp] lemma map_range_single {f : M → N} {hf : f 0 = 0} {a : α} {b : M} :
   map_range f hf (single a b) = single a (f b) :=
-ext $ λ a', show f (ite _ _ _) = ite _ _ _, by split_ifs; [refl, exact hf]
+ext $ λ a', by simpa only [single_eq_pi_single] using pi.apply_single _ (λ _, hf) a _ a'
 
 lemma support_map_range_of_injective
   {e : M → N} (he0 : e 0 = 0) (f : ι →₀ M) (he : function.injective e) :

@@ -19,7 +19,7 @@ the uniform distance.
 -/
 
 noncomputable theory
-open_locale topological_space classical nnreal uniformity
+open_locale topological_space classical nnreal uniformity uniform_convergence
 
 open set filter metric function
 
@@ -227,30 +227,19 @@ iff.intro
     λ n hn, lt_of_le_of_lt ((dist_le (half_pos ε_pos).le).mpr $
     λ x, dist_comm (f x) (F n x) ▸ le_of_lt (hn x)) (half_lt_self ε_pos)))
 
-section uniform_convergence
-
-local attribute [-instance] Pi.topological_space
-local attribute [-instance] Pi.uniform_space
-local attribute [instance] uniform_convergence.topological_space
-
-/-- The topology on `α →ᵇ β` is exactly the one induced by the topology of uniform convergence on
-`α → β` (note this is not the topology `α → β` is typically endowed with).-/
-lemma inducing_coe_fn : @inducing (α →ᵇ β) (α → β) _
-  (uniform_convergence.topological_space α β) (coe_fn : (α →ᵇ β) → (α → β)) :=
+/-- The topology on `α →ᵇ β` is exactly the topology induced by the natural map to `α →ᵤ β`. -/
+lemma inducing_coe_fn : inducing (uniform_fun.of_fun ∘ coe_fn : (α →ᵇ β) → (α →ᵤ β)) :=
 begin
   rw inducing_iff_nhds,
   refine λ f, eq_of_forall_le_iff (λ l, _),
   rw [← tendsto_iff_comap, ← tendsto_id', tendsto_iff_tendsto_uniformly,
-      uniform_convergence.tendsto_iff_tendsto_uniformly],
+      uniform_fun.tendsto_iff_tendsto_uniformly],
   refl
 end
 
 -- TODO: upgrade to a `uniform_embedding`
-lemma embedding_coe_fn : @_root_.embedding (α →ᵇ β) (α → β) _
-  (uniform_convergence.topological_space α β) (coe_fn : (α →ᵇ β) → (α → β)) :=
-⟨inducing_coe_fn, λ f g h, ext $ λ x, h ▸ rfl⟩
-
-end uniform_convergence
+lemma embedding_coe_fn : embedding (uniform_fun.of_fun ∘ coe_fn : (α →ᵇ β) → (α →ᵤ β)) :=
+⟨inducing_coe_fn, λ f g h, ext $ λ x, congr_fun h x⟩
 
 variables (α) {β}
 
@@ -525,12 +514,6 @@ begin
     exact ⟨g, hf, rfl⟩ }
 end
 
-section uniform_convergence
-
-local attribute [-instance] Pi.topological_space
-local attribute [-instance] Pi.uniform_space
-local attribute [instance] uniform_convergence.topological_space
-
 /-- Third (main) version, with pointwise equicontinuity and range in a compact subset, but
 without closedness. The closure is then compact -/
 theorem arzela_ascoli [t2_space β]
@@ -546,8 +529,6 @@ arzela_ascoli₂ s hs (closure A) is_closed_closure
     let ⟨g, gA, dist_fg⟩ := metric.mem_closure_iff.1 hf ε ε0 in
     ⟨g x, in_s g x gA, lt_of_le_of_lt (dist_coe_le_dist _) dist_fg⟩)
   (inducing_coe_fn.continuous.equicontinuous_closure H)
-
-end uniform_convergence
 
 end arzela_ascoli
 

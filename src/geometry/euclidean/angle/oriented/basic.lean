@@ -263,6 +263,32 @@ begin
     simp [h]
 end
 
+/-- If the spans of two vectors are equal, twice angles with those vectors on the left are
+equal. -/
+lemma two_zsmul_oangle_left_of_span_eq {x y : V} (z : V) (h : (ℝ ∙ x) = ℝ ∙ y) :
+  (2 : ℤ) • o.oangle x z = (2 : ℤ) • o.oangle y z :=
+begin
+  rw submodule.span_singleton_eq_span_singleton at h,
+  rcases h with ⟨r, rfl⟩,
+  exact (o.two_zsmul_oangle_smul_left_of_ne_zero _ _ (units.ne_zero _)).symm
+end
+
+/-- If the spans of two vectors are equal, twice angles with those vectors on the right are
+equal. -/
+lemma two_zsmul_oangle_right_of_span_eq (x : V) {y z : V} (h : (ℝ ∙ y) = ℝ ∙ z) :
+  (2 : ℤ) • o.oangle x y = (2 : ℤ) • o.oangle x z :=
+begin
+  rw submodule.span_singleton_eq_span_singleton at h,
+  rcases h with ⟨r, rfl⟩,
+  exact (o.two_zsmul_oangle_smul_right_of_ne_zero _ _ (units.ne_zero _)).symm
+end
+
+/-- If the spans of two pairs of vectors are equal, twice angles between those vectors are
+equal. -/
+lemma two_zsmul_oangle_of_span_eq_of_span_eq {w x y z : V} (hwx : (ℝ ∙ w) = ℝ ∙ x)
+  (hyz : (ℝ ∙ y) = ℝ ∙ z) : (2 : ℤ) • o.oangle w y = (2 : ℤ) • o.oangle x z :=
+by rw [(o).two_zsmul_oangle_left_of_span_eq y hwx, (o).two_zsmul_oangle_right_of_span_eq x hyz]
+
 /-- The oriented angle between two vectors is zero if and only if the angle with the vectors
 swapped is zero. -/
 lemma oangle_eq_zero_iff_oangle_rev_eq_zero {x y : V} : o.oangle x y = 0 ↔ o.oangle y x = 0 :=

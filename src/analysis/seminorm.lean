@@ -6,7 +6,23 @@ Authors: Jean Lo, Yaël Dillies, Moritz Doll
 import data.real.pointwise
 import data.real.sqrt
 import topology.algebra.filter_basis
-import topology.algebra.module.locally_convex
+import analysis.convex.function
+import analysis.locally_convex.basic
+--topology.algebra.module.locally_convex
+
+--analysis.convex.topology
+
+-- import analysis.convex.jensen
+-- import analysis.convex.strict
+-- import analysis.normed.group.pointwise
+-- import analysis.normed_space.ray
+-- import topology.path_connected
+-- import topology.algebra.affine
+
+-- import topology.algebra.module.finite_dimension
+
+-- import analysis.locally_convex.balanced_core_hull
+-- import order.closure
 
 /-!
 # Seminorms
@@ -1007,3 +1023,6 @@ lemma balanced_ball_zero : balanced 𝕜 (metric.ball (0 : E) r) :=
 by { rw ←ball_norm_seminorm 𝕜, exact (norm_seminorm _ _).balanced_ball_zero r }
 
 end norm_seminorm
+
+-- Guard against import creep.
+assert_not_exists balanced_core

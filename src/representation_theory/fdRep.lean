@@ -115,7 +115,7 @@ def forget₂_hom_linear_equiv (X Y : fdRep k G) :
 { to_fun := λ f, ⟨f.hom, f.comm⟩,
   map_add' := λ _ _, rfl,
   map_smul' := λ _ _, rfl,
-  inv_fun := λ f, ⟨(forget₂ (FinVect k) (Module k)).map f.hom, f.comm⟩,
+  inv_fun := λ f, ⟨(forget₂ (fgModule k) (Module k)).map f.hom, f.comm⟩,
   left_inv := λ _, by { ext, refl },
   right_inv := λ _, by { ext, refl } }
 

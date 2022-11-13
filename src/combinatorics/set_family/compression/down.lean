@@ -128,7 +128,7 @@ namespace down
 resulting finset is not already in `𝒜`. -/
 def compression (a : α) (𝒜 : finset (finset α)) : finset (finset α) :=
 (𝒜.filter $ λ s, erase s a ∈ 𝒜).disj_union ((𝒜.image $ λ s, erase s a).filter $ λ s, s ∉ 𝒜) $
-  λ s h₁ h₂, (mem_filter.1 h₂).2 (mem_filter.1 h₁).1
+  disjoint_left.2 $ λ s h₁ h₂, (mem_filter.1 h₂).2 (mem_filter.1 h₁).1
 
 localized "notation (name := down.compression) `𝓓 ` := down.compression" in finset_family
 

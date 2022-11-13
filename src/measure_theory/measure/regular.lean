@@ -413,7 +413,7 @@ begin
         add_le_add_right (add_le_add_left ((ennreal.sum_le_tsum _).trans hδε.le) _) _
       ... = μ (⋃ k ∈ t, F k) + ε : _,
       rw [measure_bUnion_finset, add_assoc, ennreal.add_halves],
-      exacts [λ k _ n _ hkn, (hsd k n hkn).mono (hFs k) (hFs n), λ k hk, (hFc k).measurable_set] },
+      exacts [λ k _ n _ hkn, (hsd hkn).mono (hFs k) (hFs n), λ k hk, (hFc k).measurable_set] },
     { calc μ (⋃ n, U n) ≤ ∑' n, μ (U n) : measure_Union_le _
       ... ≤ ∑' n, (μ (s n) + δ n) : ennreal.tsum_le_tsum hU
       ... = μ (⋃ n, s n) + ∑' n, δ n : by rw [measure_Union hsd hsm, ennreal.tsum_add]

@@ -119,6 +119,9 @@ lemma mem_span_insert {s : set α} {x y} :
 lemma mem_span_singleton' {x y : α} :
   x ∈ span ({y} : set α) ↔ ∃ a, a * y = x := submodule.mem_span_singleton
 
+lemma span_singleton_le_iff_mem {x : α} : span {x} ≤ I ↔ x ∈ I :=
+submodule.span_singleton_le_iff_mem _ _
+
 lemma span_insert (x) (s : set α) : span (insert x s) = span ({x} : set α) ⊔ span s :=
 submodule.span_insert x s
 
@@ -141,6 +144,18 @@ lemma span_eq_top_iff_finite (s : set α) :
 begin
   simp_rw eq_top_iff_one,
   exact ⟨submodule.mem_span_finite_of_mem_span, λ ⟨s', h₁, h₂⟩, span_mono h₁ h₂⟩
+end
+
+lemma mem_span_singleton_sup {S : Type*} [comm_semiring S] {x y : S} {I : ideal S} :
+  x ∈ ideal.span {y} ⊔ I ↔ ∃ (a : S) (b ∈ I), a * y + b = x :=
+begin
+  rw submodule.mem_sup,
+  split,
+  { rintro ⟨ya, hya, b, hb, rfl⟩,
+    obtain ⟨a, rfl⟩ := mem_span_singleton'.mp hya,
+    exact ⟨a, b, hb, rfl⟩ },
+  { rintro ⟨a, b, hb, rfl⟩,
+    exact ⟨a * y, ideal.mem_span_singleton'.mpr ⟨a, rfl⟩, b, hb, rfl⟩ }
 end
 
 /--

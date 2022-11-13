@@ -453,7 +453,7 @@ begin
   refine ⟨λ H, ⟨H.mono $ subset_union_left _ _, H.mono $ subset_union_right _ _, _⟩, _⟩,
   { intros x hx y hy hxy,
     obtain rfl : x = y, from H (or.inl hx) (or.inr hy) hxy,
-    exact h ⟨hx, hy⟩ },
+    exact h.le_bot ⟨hx, hy⟩ },
   { rintro ⟨h₁, h₂, h₁₂⟩,
     rintro x (hx|hx) y (hy|hy) hxy,
     exacts [h₁ hx hy hxy, (h₁₂ _ hx _ hy hxy).elim, (h₁₂ _ hy _ hx hxy.symm).elim, h₂ hx hy hxy] }
@@ -461,7 +461,7 @@ end
 
 theorem inj_on_insert {f : α → β} {s : set α} {a : α} (has : a ∉ s) :
   set.inj_on f (insert a s) ↔ set.inj_on f s ∧ f a ∉ f '' s :=
-have disjoint s {a}, from λ x ⟨hxs, (hxa : x = a)⟩, has (hxa ▸ hxs),
+have disjoint s {a}, from disjoint_iff_inf_le.mpr $ λ x ⟨hxs, (hxa : x = a)⟩, has (hxa ▸ hxs),
 by { rw [← union_singleton, inj_on_union this], simp }
 
 lemma injective_iff_inj_on_univ : injective f ↔ inj_on f univ :=

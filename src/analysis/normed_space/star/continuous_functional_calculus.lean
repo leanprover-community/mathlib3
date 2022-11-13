@@ -32,7 +32,7 @@ This file also includes a proof of the **spectral permanence** theorem for (unit
 
 * `star_subalgebra.coe_is_unit`: for `x : S` in a C⋆-subalgebra `S` of `A`, then `↑x : A` is a unit
   if and only if `x` is a unit.
-* `star_subalgebra.spectrum_eq`: **spectral_permanence.** for `x : S`, where `S` is a C⋆-subalgebra
+* `star_subalgebra.spectrum_eq`: **spectral_permanence** for `x : S`, where `S` is a C⋆-subalgebra
   of `A`, `spectrum ℂ x = spectrum ℂ (x : A)`.
 
 ## Notes
@@ -88,9 +88,7 @@ begin
     rw [←spectrum.gelfand_transform_eq (star a' * a'), continuous_map.spectrum_eq_range],
     rintro - ⟨φ, rfl⟩,
     rw [gelfand_transform_apply_apply ℂ _ (star a' * a') φ, map_mul φ, map_star φ],
-    rw [←star_ring_end_apply, mul_comm],
-    rw [is_R_or_C.mul_conj, is_R_or_C.norm_sq_eq_def', sq, ←cstar_ring.norm_star_mul_self,
-      ←map_star, ←map_mul],
+    rw [complex.eq_coe_norm_of_nonneg star_mul_self_nonneg, ←map_star, ←map_mul],
     exact ⟨complex.zero_le_real.2 (norm_nonneg _),
       complex.real_le_real.2 (alg_hom.norm_apply_le_self φ (star a' * a'))⟩, }
 end
@@ -109,14 +107,14 @@ begin
   suffices : is_unit (star a' * a'),
   { exact (is_unit.mul_iff.1 this).2 },
   replace h := (show commute (star a) a, from star_comm_self' a).is_unit_mul_iff.2 ⟨h.star, h⟩,
-  have h₁ : (∥star a * a∥₊ : ℂ) ≠ 0,
-  { simpa only [coe_nnnorm, coe_coe, complex.of_real_eq_zero, ne.def]
+  have h₁ : (∥star a * a∥ : ℂ) ≠ 0,
+  { simpa only [coe_coe, complex.of_real_eq_zero, ne.def]
     using norm_ne_zero_iff.2 h.ne_zero },
   set u : units (elemental_star_algebra ℂ a) :=
     units.map (algebra_map ℂ (elemental_star_algebra ℂ a)).to_monoid_hom (units.mk0 _ h₁),
   refine ⟨u.unit_of_nearby _ _, rfl⟩,
   simp only [complex.abs_of_real, map_inv₀, units.coe_map, units.coe_inv, ring_hom.coe_monoid_hom,
-    ring_hom.to_monoid_hom_eq_coe, units.coe_mk0, units.coe_map_inv, norm_algebra_map', coe_nnnorm,
+    ring_hom.to_monoid_hom_eq_coe, units.coe_mk0, units.coe_map_inv, norm_algebra_map',
     inv_inv, complex.norm_eq_abs, abs_norm_eq_norm, subtype.val_eq_coe, coe_coe],
   have h₂ : ∀ z ∈ spectrum ℂ (algebra_map ℂ A (∥star a * a∥) - star a * a), ∥z∥₊ < ∥star a * a∥₊,
   { intros z hz,
@@ -180,7 +178,7 @@ set.ext $ λ _, not_iff_not.2 (star_subalgebra.coe_is_unit hS).symm
 
 variables (a)
 
-/-- The natrual map from `character_space ℂ (elemental_star_algebra ℂ a)` to `spectrum ℂ a` given
+/-- The natural map from `character_space ℂ (elemental_star_algebra ℂ a)` to `spectrum ℂ a` given
 by evaluating `φ` at `a`. This is essentially just evaluation of the `gelfand_transform` of `a`,
 but because we want something in `spectrum ℂ a`, as opposed to
 `spectrum ℂ ⟨a, elemental_star_algebra.self_mem ℂ a⟩` there is slightly more work to do. -/

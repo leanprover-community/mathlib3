@@ -323,6 +323,6 @@ instance to_normed_algebra {𝕜 A : Type*} [normed_field 𝕜] [star_ring 𝕜]
 instance to_cstar_ring {R A} [comm_ring R] [star_ring R] [normed_ring A]
   [star_ring A] [cstar_ring A] [algebra R A] [star_module R A] (S : star_subalgebra R A) :
   cstar_ring S :=
-{ norm_star_mul_self := λ x, by { unfold norm, exact cstar_ring.norm_star_mul_self } }
+{ norm_star_mul_self := λ x, @cstar_ring.norm_star_mul_self A _ _ _ x }
 
 end star_subalgebra

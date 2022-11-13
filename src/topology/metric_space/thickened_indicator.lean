@@ -5,6 +5,7 @@ Authors: Kalle Kytölä
 -/
 import data.real.ennreal
 import topology.continuous_function.bounded
+import order.filter.indicator_function
 
 /-!
 # Thickened indicators
@@ -249,33 +250,51 @@ section indicator
 
 variables {α : Type*} [pseudo_emetric_space α]
 
-lemma tendsto_indicator_thickening_indicator_closure (f : α → ℝ≥0∞) {δs : ℕ → ℝ}
-  (δs_pos : ∀ n, 0 < δs n) (δs_lim : tendsto δs at_top (𝓝 0)) (E : set α) :
-  tendsto (λ n, (metric.thickening (δs n) E).indicator f) at_top (𝓝 (indicator (closure E) f)) :=
+#check filter.has_mem
+
+variables (F : filter α)
+
+/- lemma antitone.tendsto_indicator' {α β ι : Type*} (F : filter ι) [has_zero β]
+  (s : ι → set α) (hFs : ∀ (I ∈ F) (J ∈ F) (i ∈ I) (k ∈ I ∩ J), s k \) (f : α → β) (a : α) :
+  tendsto (λ i, indicator (s i) f a) F (pure $ indicator (⋂ i, s i) f a) :=
+begin
+  by_cases h : ∃ i, a ∉ s i,
+  { rcases h with ⟨i, hi⟩,
+    refine tendsto_pure.2 ((eventually_ge_at_top i).mono $ assume n hn, _),
+    rw [indicator_of_not_mem _ _, indicator_of_not_mem _ _],
+    { simp only [mem_Inter, not_forall], exact ⟨i, hi⟩ },
+    { assume h, have := hs hn h, contradiction } },
+  { push_neg at h,
+    simp only [indicator_of_mem, h, (mem_Inter.2 h), tendsto_const_pure] }
+end
+ -/
+
+lemma tendsto_indicator_thickening_indicator_closure (f : α → ℝ≥0∞) (E : set α) :
+  tendsto (λ δ, (metric.thickening δ E).indicator f) (𝓝[>] 0) (𝓝 (indicator (closure E) f)) :=
 begin
   rw tendsto_pi_nhds,
   intro x,
   by_cases x_mem_closure : x ∈ closure E,
-  { simp only [x_mem_closure, (λ n, closure_subset_thickening (δs_pos n) E x_mem_closure),
-               indicator_of_mem],
+  { have obs : (λ δ, (metric.thickening δ E).indicator f x) =ᶠ[(𝓝[>] 0)] (λ δ, f x),
+    { filter_upwards [self_mem_nhds_within],
+      intros δ δ_pos,
+      simp only [closure_subset_thickening δ_pos E x_mem_closure, indicator_of_mem], },
+    simp only [x_mem_closure, indicator_of_mem],
+    apply (tendsto_congr' obs).mpr,
     exact tendsto_const_nhds, },
   { have pos_dist : 0 < inf_edist x (closure E),
     { rw mem_iff_inf_edist_zero_of_closed is_closed_closure at x_mem_closure,
       exact zero_lt_iff.mpr x_mem_closure, },
     rcases exists_real_pos_lt_infdist_of_not_mem_closure x_mem_closure with ⟨ε, ⟨ε_pos, ε_lt⟩⟩,
-    rw metric.tendsto_nhds at δs_lim,
-    specialize δs_lim ε ε_pos,
-    simp only [dist_zero_right, real.norm_eq_abs, eventually_at_top, ge_iff_le] at δs_lim,
-    rcases δs_lim with ⟨N, hN⟩,
-    apply @tendsto_at_top_of_eventually_const _ _ _ _ _ _ _ N,
-    intros n n_large,
-    have key : x ∉ thickening ε E, by simpa only [thickening, mem_set_of_eq, not_lt] using ε_lt.le,
-    have key' : x ∉ thickening (δs n) E,
-    { intros con,
-      have δ_small : δs n ≤ ε, from (abs_lt.mp (hN n n_large)).2.le,
-      have oops := thickening_mono δ_small E con,
-      contradiction, },
-    simp only [x_mem_closure, key', indicator_of_not_mem, not_false_iff], },
+    have obs : (λ δ, (metric.thickening δ E).indicator f x) =ᶠ[(𝓝[>] 0)] (λ δ, 0),
+    { filter_upwards [Ioo_mem_nhds_within_Ioi (left_mem_Ico.mpr ε_pos)],
+      intros δ hδ,
+      have x_not_mem : x ∉ metric.thickening δ E,
+        by simp [thickening, (((of_real_lt_of_real_iff ε_pos).mpr hδ.2).trans ε_lt).le],
+      simp only [x_not_mem, indicator_of_not_mem, not_false_iff], },
+    simp only [x_mem_closure, indicator_of_not_mem, not_false_iff],
+    apply (tendsto_congr' obs).mpr,
+    exact tendsto_const_nhds, },
 end
 
 end indicator

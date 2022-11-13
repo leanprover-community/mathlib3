@@ -18,7 +18,8 @@ variables {α : Type*}
 
 /-- A canonically linear ordered field is a linear ordered field in which `a ≤ b` iff there exists
 `c` with `b = a + c`. -/
-@[protect_proj] class canonically_linear_ordered_semifield (α : Type*)
+@[protect_proj, ancestor canonically_ordered_comm_semiring linear_ordered_semifield]
+class canonically_linear_ordered_semifield (α : Type*)
   extends canonically_ordered_comm_semiring α, linear_ordered_semifield α
 
 @[priority 100] -- See note [lower instance priority]

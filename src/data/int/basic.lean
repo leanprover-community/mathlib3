@@ -557,6 +557,33 @@ begin
   tauto,
 end
 
+lemma mul_eq_one_iff_eq_one_or_neg_one {z w : ℤ} :
+  z * w = 1 ↔ z = 1 ∧ w = 1 ∨ z = -1 ∧ w = -1 :=
+begin
+  refine ⟨eq_one_or_neg_one_of_mul_eq_one', λ h, or.elim h (λ H, _) (λ H, _)⟩;
+  rcases H with ⟨rfl, rfl⟩;
+  refl,
+end
+
+lemma eq_one_or_neg_one_of_mul_eq_neg_one' {z w : ℤ} (h : z * w = -1) :
+  z = 1 ∧ w = -1 ∨ z = -1 ∧ w = 1 :=
+begin
+  rcases is_unit_eq_one_or (is_unit.mul_iff.mp (int.is_unit_iff.mpr (or.inr h))).1 with rfl | rfl,
+  { exact or.inl ⟨rfl, one_mul w ▸ h⟩, },
+  { exact or.inr ⟨rfl, neg_inj.mp (neg_one_mul w ▸ h)⟩, }
+end
+
+lemma mul_eq_neg_one_iff_eq_one_or_neg_one {z w : ℤ} :
+  z * w = -1 ↔ z = 1 ∧ w = -1 ∨ z = -1 ∧ w = 1 :=
+begin
+  refine ⟨eq_one_or_neg_one_of_mul_eq_neg_one', λ h, or.elim h (λ H, _) (λ H, _)⟩;
+  rcases H with ⟨rfl, rfl⟩;
+  refl,
+end
+
+lemma eq_one_or_neg_one_of_mul_eq_neg_one {z w : ℤ} (h : z * w = -1) : z = 1 ∨ z = -1 :=
+or.elim (eq_one_or_neg_one_of_mul_eq_neg_one' h) (λ H, or.inl H.1) (λ H, or.inr H.1)
+
 theorem is_unit_iff_nat_abs_eq {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=
 by simp [nat_abs_eq_iff, is_unit_iff, nat.cast_zero]
 

@@ -465,7 +465,7 @@ begin
   { exact is_pullback.map_iff G (nat_trans.congr_app h.symm j) }
 end
 
-lemma is_van_campen_colimit_of_evaluation [has_pullbacks D] [has_colimits_of_shape J D]
+lemma is_van_kampen_colimit_of_evaluation [has_pullbacks D] [has_colimits_of_shape J D]
   (F : J ⥤ C ⥤ D) (c : cocone F)
   (hc : ∀ x : C, is_van_kampen_colimit (((evaluation C D).obj x).map_cocone c)) :
   is_van_kampen_colimit c :=
@@ -488,7 +488,7 @@ instance [has_pullbacks C] [finitary_extensive C] : finitary_extensive (D ⥤ C)
 begin
   haveI : has_finite_coproducts (D ⥤ C) :=
     ⟨λ J hJ, by exactI limits.functor_category_has_colimits_of_shape⟩,
-  exact ⟨λ X Y c hc, is_van_campen_colimit_of_evaluation _ c
+  exact ⟨λ X Y c hc, is_van_kampen_colimit_of_evaluation _ c
     (λ x, finitary_extensive.van_kampen _ $ preserves_colimit.preserves hc)⟩
 end
 

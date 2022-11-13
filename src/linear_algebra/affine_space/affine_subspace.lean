@@ -1117,6 +1117,12 @@ span_points_nonempty k s
 instance {s : set P} [nonempty s] : nonempty (affine_span k s) :=
 ((affine_span_nonempty k s).mpr (nonempty_subtype.mp ‹_›)).to_subtype
 
+/-- The affine span of a set is `⊥` if and only if that set is empty. -/
+@[simp] lemma affine_span_eq_bot {s : set P} :
+  affine_span k s = ⊥ ↔ s = ∅ :=
+by rw [←not_iff_not, ←ne.def, ←ne.def, ←nonempty_iff_ne_bot, affine_span_nonempty,
+       ne_empty_iff_nonempty]
+
 variables {k}
 
 /-- Suppose a set of vectors spans `V`.  Then a point `p`, together
@@ -1603,5 +1609,25 @@ begin
         simp },
       { simpa using hd.symm } } }
 end
+
+lemma parallel.vector_span_eq {s₁ s₂ : set P} (h : affine_span k s₁ ‖ affine_span k s₂) :
+  vector_span k s₁ = vector_span k s₂ :=
+begin
+  simp_rw ←direction_affine_span,
+  exact h.direction_eq
+end
+
+lemma affine_span_parallel_iff_vector_span_eq_and_eq_empty_iff_eq_empty {s₁ s₂ : set P} :
+  affine_span k s₁ ‖ affine_span k s₂ ↔ vector_span k s₁ = vector_span k s₂ ∧ (s₁ = ∅ ↔ s₂ = ∅) :=
+begin
+  simp_rw [←direction_affine_span, ←affine_span_eq_bot k],
+  exact parallel_iff_direction_eq_and_eq_bot_iff_eq_bot
+end
+
+lemma affine_span_pair_parallel_iff_vector_span_eq {p₁ p₂ p₃ p₄ : P} :
+  line[k, p₁, p₂] ‖ line[k, p₃, p₄] ↔
+    vector_span k ({p₁, p₂} : set P) = vector_span k ({p₃, p₄} : set P) :=
+by simp [affine_span_parallel_iff_vector_span_eq_and_eq_empty_iff_eq_empty,
+         ←not_nonempty_iff_eq_empty]
 
 end affine_subspace

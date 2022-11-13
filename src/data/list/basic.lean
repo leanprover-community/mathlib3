@@ -1956,7 +1956,7 @@ lemma take_eq_take : ∀ {l : list α} {m n : ℕ},
 | (x :: xs) 0 (n + 1) := by simp [@eq_comm ℕ 0]
 | (x :: xs) (m + 1) (n + 1) := by simp [nat.min_succ_succ, take_eq_take]
 
-lemma take_add {l : list α} {m n : ℕ} :
+lemma take_add (l : list α) (m n : ℕ) :
   l.take (m + n) = l.take m ++ (l.drop m).take n :=
 begin
   convert_to

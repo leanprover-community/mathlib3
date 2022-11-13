@@ -71,7 +71,7 @@ infer_instance
 
 variables [complete_space A] (a : A) [is_star_normal a] (S : star_subalgebra ℂ A)
 
-/- This lemma is used in the proof of `star_subalgebra.is_unit_of_is_unit_of_is_star_normal`,
+/-- This lemma is used in the proof of `star_subalgebra.is_unit_of_is_unit_of_is_star_normal`,
 which in turn is the key to spectral permanence `star_subalgebra.spectrum_eq`, which is itself
 necessary for the continuous functional calculus. Using the continuous functional calculus, this
 lemma can be superseded by one that omits the `is_star_normal` hypothesis. -/
@@ -80,7 +80,7 @@ lemma spectrum_star_mul_self_of_is_star_normal :
 begin
   -- this instance should be found automatically, but without providing it Lean goes on a wild
   -- goose chase when trying to apply `spectrum.gelfand_transform_eq`.
-  letI := star_subalgebra.to_normed_algebra (elemental_star_algebra ℂ a),
+  letI := elemental_star_algebra.complex.normed_algebra a,
   unfreezingI { rcases subsingleton_or_nontrivial A },
   { simp only [spectrum.of_subsingleton, set.empty_subset] },
   { set a' : elemental_star_algebra ℂ a := ⟨a, self_mem ℂ a⟩,
@@ -172,7 +172,7 @@ begin
   exacts [subtype.coe_injective hx.mul_coe_inv, subtype.coe_injective hx.coe_inv_mul],
 end
 
-/-- **Spectral permanence**. The spectrum of an element is invariant of the `star_subalgebra` in
+/-- **Spectral permanence.** The spectrum of an element is invariant of the `star_subalgebra` in
 which it is contained. -/
 lemma star_subalgebra.spectrum_eq {S : star_subalgebra ℂ A} (hS : is_closed (S : set A)) (x : S) :
   spectrum ℂ x = spectrum ℂ (x : A) :=

@@ -208,7 +208,7 @@ apply_nolint matrix.induction_on' fintype_finite
 -- data/multiset/functor.lean
 apply_nolint multiset.traverse doc_blame
 
--- data/nat/order.lean
+-- data/nat/order/basic.lean
 apply_nolint nat.subtype.order_bot fails_quickly
 
 -- data/num/bitwise.lean

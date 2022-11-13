@@ -44,10 +44,11 @@ end
 theorem Union_decode₂_disjoint_on {f : β → set α} (hd : pairwise (disjoint on f)) :
   pairwise (disjoint on λ i, ⋃ b ∈ decode₂ β i, f b) :=
 begin
-  rintro i j ij x,
+  rintro i j ij,
+  refine disjoint_left.mpr (λ x, _),
   suffices : ∀ a, encode a = i → x ∈ f a → ∀ b, encode b = j → x ∉ f b, by simpa [decode₂_eq_some],
   rintro a rfl ha b rfl hb,
-  exact hd (mt (congr_arg encode) ij) ⟨ha, hb⟩
+  exact (hd (mt (congr_arg encode) ij)).le_bot ⟨ha, hb⟩
 end
 
 end encodable

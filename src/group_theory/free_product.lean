@@ -607,7 +607,7 @@ begin
   have : X k ⊆ X i,
     by simpa [heq1] using lift_word_ping_pong f X hpp w hlast.symm,
   obtain ⟨x, hx⟩ := hXnonempty k,
-  exact hXdisj hhead ⟨hx, this hx⟩,
+  exact (hXdisj hhead).le_bot ⟨hx, this hx⟩,
 end
 
 include hnontriv

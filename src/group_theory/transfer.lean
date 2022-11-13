@@ -211,7 +211,7 @@ begin
   rw [←(comap_injective this).eq_iff, comap_top, comap_map_eq, sup_comm, set_like.ext'_iff,
       normal_mul, ←ker_eq_bot_iff, ←(map_injective (P : subgroup G).subtype_injective).eq_iff,
       restrict_ker, subgroup_of_map_subtype, subgroup.map_bot, coe_top] at hf,
-  exact is_complement'_of_disjoint_and_mul_eq_univ hf.1.le hf.2,
+  exact is_complement'_of_disjoint_and_mul_eq_univ (disjoint_iff.2 hf.1) hf.2,
 end
 
 lemma ker_transfer_sylow_disjoint : disjoint (transfer_sylow P hP).ker ↑P :=

@@ -763,7 +763,7 @@ lemma eq_top_of_disjoint [finite_dimensional K V] (s t : submodule K V)
   (hdisjoint : disjoint s t) : s ⊔ t = ⊤ :=
 begin
   have h_finrank_inf : finrank K ↥(s ⊓ t) = 0,
-  { rw [disjoint, le_bot_iff] at hdisjoint,
+  { rw [disjoint_iff_inf_le, le_bot_iff] at hdisjoint,
     rw [hdisjoint, finrank_bot] },
   apply eq_top_of_finrank_eq,
   rw ←hdim,
@@ -1132,7 +1132,7 @@ lemma finrank_add_eq_of_is_compl
   [finite_dimensional K V] {U W : submodule K V} (h : is_compl U W) :
   finrank K U + finrank K W = finrank K V :=
 begin
-  rw [← submodule.dim_sup_add_dim_inf_eq, top_le_iff.1 h.2, le_bot_iff.1 h.1,
+  rw [← submodule.dim_sup_add_dim_inf_eq, h.codisjoint.eq_top, h.disjoint.eq_bot,
       finrank_bot, add_zero],
   exact finrank_top
 end
@@ -1496,4 +1496,34 @@ begin
 end
 
 end End
+end module
+
+section module
+
+open module
+
+open_locale cardinal
+
+lemma cardinal_mk_eq_cardinal_mk_field_pow_dim
+  (K V : Type u) [field K] [add_comm_group V] [module K V] [finite_dimensional K V] :
+  #V = #K ^ module.rank K V :=
+begin
+  let s := basis.of_vector_space_index K V,
+  let hs := basis.of_vector_space K V,
+  calc #V = #(s →₀ K) : quotient.sound ⟨hs.repr.to_equiv⟩
+    ... = #(s → K) : quotient.sound ⟨finsupp.equiv_fun_on_fintype⟩
+    ... = _ : by rw [← cardinal.lift_inj.1 hs.mk_eq_dim, cardinal.power_def]
+end
+
+lemma cardinal_lt_aleph_0_of_finite_dimensional
+  (K V : Type u) [field K] [add_comm_group V] [module K V]
+  [_root_.finite K] [finite_dimensional K V] :
+  #V < ℵ₀ :=
+begin
+  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
+  rw cardinal_mk_eq_cardinal_mk_field_pow_dim K V,
+  exact cardinal.power_lt_aleph_0 (cardinal.lt_aleph_0_of_finite K)
+    (is_noetherian.dim_lt_aleph_0 K V),
+end
+
 end module

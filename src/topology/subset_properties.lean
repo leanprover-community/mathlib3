@@ -561,8 +561,8 @@ begin
   have : f '' K ∈ l,
   { filter_upwards [htl, le_principal_iff.1 hle] with y hyt hyf,
     rcases hyf with (rfl|⟨x, rfl⟩),
-    exacts [(hd ⟨mem_of_mem_nhds hsb, hyt⟩).elim,
-      mem_image_of_mem _ (not_not.1 $ λ hxK, hd ⟨hKs hxK, hyt⟩)] },
+    exacts [(hd.le_bot ⟨mem_of_mem_nhds hsb, hyt⟩).elim,
+      mem_image_of_mem _ (not_not.1 $ λ hxK, hd.le_bot ⟨hKs hxK, hyt⟩)] },
   rcases hKc.image hfc (le_principal_iff.2 this) with ⟨y, hy, hyl⟩,
   exact ⟨y, or.inr $ image_subset_range _ _ hy, hyl⟩
 end

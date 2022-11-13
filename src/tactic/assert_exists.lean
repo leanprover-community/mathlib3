@@ -69,12 +69,12 @@ do
 
 /-- A linter for checking that the declarations marked `assert_not_exists` eventually exist. -/
 meta def assert_not_exists.linter : linter :=
-{ test := λ d, do {
+{ test := λ d, (do
     let n := d.to_name,
     tt ← pure ((`assert_not_exists._checked).is_prefix_of n) | pure none,
     let n := n.replace_prefix `assert_not_exists._checked name.anonymous,
     tt ← succeeds (get_decl n) | pure (some (format!"`{n}` does not ever exist").to_string),
-    pure none },
+    pure none),
   auto_decls := tt,
   no_errors_found := "All `assert_not_exists` declarations eventually exist.",
   errors_found :=

@@ -453,7 +453,7 @@ begin
 end
 
 /-- If `U` is qcqs, then `Γ(X, D(f)) ≃ Γ(X, U)_f` for every `f : Γ(X, U)`.
-This is known as the **Qcqs lemma** in Vakil's "The rising sea". -/
+This is known as the **Qcqs lemma** in [R. Vakil, *The rising sea*][RisingSea]. -/
 lemma is_localization_basic_open_of_qcqs {X : Scheme} {U : opens X.carrier}
   (hU : is_compact U.1) (hU' : is_quasi_separated U.1)
   (f : X.presheaf.obj (op U)) :

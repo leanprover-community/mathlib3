@@ -5,6 +5,7 @@ Authors: Jeremy Avigad
 -/
 import order.monotone
 import data.nat.basic
+import algebra.ring.units
 
 /-!
 # Basic instances on the integers

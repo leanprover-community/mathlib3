@@ -250,25 +250,6 @@ section indicator
 
 variables {α : Type*} [pseudo_emetric_space α]
 
-#check filter.has_mem
-
-variables (F : filter α)
-
-/- lemma antitone.tendsto_indicator' {α β ι : Type*} (F : filter ι) [has_zero β]
-  (s : ι → set α) (hFs : ∀ (I ∈ F) (J ∈ F) (i ∈ I) (k ∈ I ∩ J), s k \) (f : α → β) (a : α) :
-  tendsto (λ i, indicator (s i) f a) F (pure $ indicator (⋂ i, s i) f a) :=
-begin
-  by_cases h : ∃ i, a ∉ s i,
-  { rcases h with ⟨i, hi⟩,
-    refine tendsto_pure.2 ((eventually_ge_at_top i).mono $ assume n hn, _),
-    rw [indicator_of_not_mem _ _, indicator_of_not_mem _ _],
-    { simp only [mem_Inter, not_forall], exact ⟨i, hi⟩ },
-    { assume h, have := hs hn h, contradiction } },
-  { push_neg at h,
-    simp only [indicator_of_mem, h, (mem_Inter.2 h), tendsto_const_pure] }
-end
- -/
-
 lemma tendsto_indicator_thickening_indicator_closure (f : α → ℝ≥0∞) (E : set α) :
   tendsto (λ δ, (metric.thickening δ E).indicator f) (𝓝[>] 0) (𝓝 (indicator (closure E) f)) :=
 begin

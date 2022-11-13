@@ -23,6 +23,7 @@ Turing machine for evaluating these functions. This amounts to a constructive pr
 * `partrec_to_TM2.tr`: A TM2 turing machine which can evaluate `code` programs
 -/
 
+#exit -- TODO: Refactor to use `tree`
 open function (update)
 open relation
 

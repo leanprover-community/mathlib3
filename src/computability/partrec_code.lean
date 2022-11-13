@@ -38,6 +38,8 @@ of some code.
 
 -/
 
+#exit
+-- TODO: Automate godel numbering; refactor this file
 
 open encodable denumerable
 

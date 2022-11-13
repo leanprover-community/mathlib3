@@ -15,6 +15,7 @@ A universal partial recursive function, Rice's theorem, and the halting problem.
 * [Mario Carneiro, *Formalizing computability theory via partial recursive functions*][carneiro2019]
 -/
 
+#exit -- TODO: Refactor to use `tree`
 open encodable denumerable
 
 namespace nat.partrec

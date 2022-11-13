@@ -596,6 +596,8 @@ local attribute [instance, nolint fails_quickly] affine_subspace.to_add_torsor
 include V₁
 omit V
 
+/-- Restricts an affine isometry to an affine isometry equivalence between a nonempty affine
+subspace `E` and its image. -/
 noncomputable def affine_isometry.restrict_to_equiv
   (E : affine_subspace 𝕜 P₁) [nonempty E]
   (φ : P₁ →ᵃⁱ[𝕜] P₂) : E ≃ᵃⁱ[𝕜] E.map φ.to_affine_map :=

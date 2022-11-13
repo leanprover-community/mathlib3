@@ -110,7 +110,7 @@ calc  a + 1 ≤ a + a : add_le_add_left a1 a
 
 /-- An `ordered_semiring` is a semiring with a partial order such that addition is monotone and
 multiplication by a nonnegative number is monotone. -/
-@[protect_proj]
+@[protect_proj, ancestor semiring ordered_add_comm_monoid]
 class ordered_semiring (α : Type u) extends semiring α, ordered_add_comm_monoid α :=
 (zero_le_one : (0 : α) ≤ 1)
 (mul_le_mul_of_nonneg_left  : ∀ a b c : α, a ≤ b → 0 ≤ c → c * a ≤ c * b)
@@ -118,24 +118,24 @@ class ordered_semiring (α : Type u) extends semiring α, ordered_add_comm_monoi
 
 /-- An `ordered_comm_semiring` is a commutative semiring with a partial order such that addition is
 monotone and multiplication by a nonnegative number is monotone. -/
-@[protect_proj]
+@[protect_proj, ancestor ordered_semiring comm_semiring]
 class ordered_comm_semiring (α : Type u) extends ordered_semiring α, comm_semiring α
 
 /-- An `ordered_ring` is a ring with a partial order such that addition is monotone and
 multiplication by a nonnegative number is monotone. -/
-@[protect_proj]
+@[protect_proj, ancestor ring ordered_add_comm_group]
 class ordered_ring (α : Type u) extends ring α, ordered_add_comm_group α :=
 (zero_le_one : 0 ≤ (1 : α))
 (mul_nonneg : ∀ a b : α, 0 ≤ a → 0 ≤ b → 0 ≤ a * b)
 
 /-- An `ordered_comm_ring` is a commutative ring with a partial order such that addition is monotone
 and multiplication by a nonnegative number is monotone. -/
-@[protect_proj]
+@[protect_proj, ancestor ordered_ring comm_ring]
 class ordered_comm_ring (α : Type u) extends ordered_ring α, comm_ring α
 
 /-- A `strict_ordered_semiring` is a semiring with a partial order such that addition is strictly
 monotone and multiplication by a positive number is strictly monotone. -/
-@[protect_proj]
+@[protect_proj, ancestor semiring ordered_cancel_add_comm_monoid]
 class strict_ordered_semiring (α : Type u) extends semiring α, ordered_cancel_add_comm_monoid α :=
 (zero_le_one : (0 : α) ≤ 1)
 (mul_lt_mul_of_pos_left  : ∀ a b c : α, a < b → 0 < c → c * a < c * b)
@@ -143,19 +143,19 @@ class strict_ordered_semiring (α : Type u) extends semiring α, ordered_cancel_
 
 /-- A `strict_ordered_comm_semiring` is a commutative semiring with a partial order such that
 addition is strictly monotone and multiplication by a positive number is strictly monotone. -/
-@[protect_proj]
+@[protect_proj, ancestor strict_ordered_semiring comm_semiring]
 class strict_ordered_comm_semiring (α : Type u) extends strict_ordered_semiring α, comm_semiring α
 
 /-- A `strict_ordered_ring` is a ring with a partial order such that addition is strictly monotone
 and multiplication by a positive number is strictly monotone. -/
-@[protect_proj]
+@[protect_proj, ancestor ring ordered_add_comm_group]
 class strict_ordered_ring (α : Type u) extends ring α, ordered_add_comm_group α :=
 (zero_le_one : 0 ≤ (1 : α))
 (mul_pos     : ∀ a b : α, 0 < a → 0 < b → 0 < a * b)
 
 /-- A `strict_ordered_comm_ring` is a commutative ring with a partial order such that addition is
 strictly monotone and multiplication by a positive number is strictly monotone. -/
-@[protect_proj]
+@[protect_proj, ancestor strict_ordered_ring comm_ring]
 class strict_ordered_comm_ring (α : Type*) extends strict_ordered_ring α, comm_ring α
 
 /-- A `linear_ordered_semiring` is a nontrivial semiring with a linear order such that
@@ -163,7 +163,7 @@ addition is monotone and multiplication by a positive number is strictly monoton
 /- It's not entirely clear we should assume `nontrivial` at this point; it would be reasonable to
 explore changing this, but be warned that the instances involving `domain` may cause typeclass
 search loops. -/
-@[protect_proj]
+@[protect_proj, ancestor strict_ordered_semiring linear_ordered_add_comm_monoid nontrivial]
 class linear_ordered_semiring (α : Type u)
   extends strict_ordered_semiring α, linear_ordered_add_comm_monoid α, nontrivial α
 
@@ -175,12 +175,12 @@ class linear_ordered_comm_semiring (α : Type*)
 
 /-- A `linear_ordered_ring` is a ring with a linear order such that addition is monotone and
 multiplication by a positive number is strictly monotone. -/
-@[protect_proj]
+@[protect_proj, ancestor strict_ordered_ring linear_order nontrivial]
 class linear_ordered_ring (α : Type u) extends strict_ordered_ring α, linear_order α, nontrivial α
 
 /-- A `linear_ordered_comm_ring` is a commutative ring with a linear order such that addition is
 monotone and multiplication by a positive number is strictly monotone. -/
-@[protect_proj]
+@[protect_proj, ancestor linear_ordered_ring comm_monoid]
 class linear_ordered_comm_ring (α : Type u) extends linear_ordered_ring α, comm_monoid α
 
 

@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzza
 Amelia Livingston, Yury Kudryashov, Yakov Pechersky, Jireh Loreaux
 -/
 import group_theory.subsemigroup.basic
+import algebra.group.prod
 
 /-!
 # Operations on `subsemigroup`s
@@ -395,9 +396,14 @@ include hA
 priority 900] -- lower priority so other instances are found first
 instance has_mul : has_mul S' := ⟨λ a b, ⟨a.1 * b.1, mul_mem a.2 b.2⟩⟩
 
-@[simp, norm_cast, to_additive, priority 900]
--- lower priority so later simp lemmas are used first; to appease simp_nf
-lemma coe_mul (x y : S') : (↑(x * y) : M) = ↑x * ↑y := rfl
+@[to_additive]
+instance : coe_is_mul_hom S' M :=
+{ coe_mul := λ _ _, rfl }
+
+-- even though there is a generic `coe_mul`, this can still be useful as a `dsimp` lemma,
+-- so keep it `@[simp]`
+@[simp, priority 900, nolint simp_nf, to_additive]
+protected lemma coe_mul (x y : S') : (↑(x * y) : M) = ↑x * ↑y := rfl
 
 @[simp, to_additive, priority 900]
 -- lower priority so later simp lemmas are used first; to appease simp_nf

@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Jeremy Avigad, Yury Kudryashov, Patrick Massot
 import algebra.order.field.basic
 import data.finset.preimage
 import data.set.intervals.disjoint
+import data.set.intervals.order_iso
 import order.filter.bases
 
 /-!

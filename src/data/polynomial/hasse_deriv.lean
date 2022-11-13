@@ -220,8 +220,8 @@ begin
   congr' 2, clear f g,
   ext m r n s : 4,
   simp only [finset_sum_apply, coe_mul_left, coe_comp, flip_apply, comp_app,
-    hasse_deriv_monomial, linear_map.to_add_monoid_hom_coe, comp_hom_apply_apply, coe_mul,
-    monomial_mul_monomial],
+    hasse_deriv_monomial, linear_map.to_add_monoid_hom_coe, comp_hom_apply_apply,
+    add_monoid_hom.coe_mul, monomial_mul_monomial],
   have aux : ∀ (x : ℕ × ℕ), x ∈ antidiagonal k →
     monomial (m - x.1 + (n - x.2)) (↑(m.choose x.1) * r * (↑(n.choose x.2) * s)) =
     monomial (m + n - k) (↑(m.choose x.1) * ↑(n.choose x.2) * (r * s)),

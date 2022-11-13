@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 import algebra.group.defs
 import logic.nontrivial
+import algebra.ne_zero
 
 /-!
 # Typeclasses for groups with an adjoined zero element
@@ -25,8 +26,6 @@ universe u
 -- We have to fix the universe of `G₀` here, since the default argument to
 -- `group_with_zero.div'` cannot contain a universe metavariable.
 variables {G₀ : Type u} {M₀ M₀' G₀' : Type*}
-
-section
 
 /-- Typeclass for expressing that a type `M₀` with multiplication and a zero satisfies
 `0 * a = 0` and `a * 0 = 0` for all `a : M₀`. -/
@@ -135,4 +134,76 @@ such that every nonzero element is invertible.
 The type is required to come with an “inverse” function, and the inverse of `0` must be `0`. -/
 class comm_group_with_zero (G₀ : Type*) extends comm_monoid_with_zero G₀, group_with_zero G₀.
 
+section ne_zero
+
+variables [mul_zero_one_class M₀] [nontrivial M₀] {a b : M₀}
+
+/-- In a nontrivial monoid with zero, zero and one are different. -/
+@[simp] lemma zero_ne_one : 0 ≠ (1:M₀) :=
+begin
+  assume h,
+  rcases exists_pair_ne M₀ with ⟨x, y, hx⟩,
+  apply hx,
+  calc x = 1 * x : by rw [one_mul]
+  ... = 0 : by rw [← h, zero_mul]
+  ... = 1 * y : by rw [← h, zero_mul]
+  ... = y : by rw [one_mul]
 end
+
+@[simp] lemma one_ne_zero : (1:M₀) ≠ 0 := zero_ne_one.symm
+
+instance ne_zero.one (R) [mul_zero_one_class R] [nontrivial R] : ne_zero (1 : R) := ⟨one_ne_zero⟩
+
+lemma ne_zero_of_eq_one {a : M₀} (h : a = 1) : a ≠ 0 :=
+calc a = 1 : h
+   ... ≠ 0 : one_ne_zero
+
+/-- Pullback a `nontrivial` instance along a function sending `0` to `0` and `1` to `1`. -/
+lemma pullback_nonzero [has_zero M₀'] [has_one M₀']
+  (f : M₀' → M₀) (zero : f 0 = 0) (one : f 1 = 1) : nontrivial M₀' :=
+⟨⟨0, 1, mt (congr_arg f) $ by { rw [zero, one], exact zero_ne_one }⟩⟩
+
+end ne_zero
+
+section mul_zero_class
+
+variables [mul_zero_class M₀]
+
+lemma mul_eq_zero_of_left {a : M₀} (h : a = 0) (b : M₀) : a * b = 0 := h.symm ▸ zero_mul b
+
+lemma mul_eq_zero_of_right (a : M₀) {b : M₀} (h : b = 0) : a * b = 0 := h.symm ▸ mul_zero a
+
+variables [no_zero_divisors M₀] {a b : M₀}
+
+/-- If `α` has no zero divisors, then the product of two elements equals zero iff one of them
+equals zero. -/
+@[simp] theorem mul_eq_zero : a * b = 0 ↔ a = 0 ∨ b = 0 :=
+⟨eq_zero_or_eq_zero_of_mul_eq_zero,
+  λo, o.elim (λ h, mul_eq_zero_of_left h b) (mul_eq_zero_of_right a)⟩
+
+/-- If `α` has no zero divisors, then the product of two elements equals zero iff one of them
+equals zero. -/
+@[simp] theorem zero_eq_mul : 0 = a * b ↔ a = 0 ∨ b = 0 :=
+by rw [eq_comm, mul_eq_zero]
+
+/-- If `α` has no zero divisors, then the product of two elements is nonzero iff both of them
+are nonzero. -/
+theorem mul_ne_zero_iff : a * b ≠ 0 ↔ a ≠ 0 ∧ b ≠ 0 :=
+mul_eq_zero.not.trans not_or_distrib
+
+/-- If `α` has no zero divisors, then for elements `a, b : α`, `a * b` equals zero iff so is
+`b * a`. -/
+theorem mul_eq_zero_comm : a * b = 0 ↔ b * a = 0 :=
+mul_eq_zero.trans $ (or_comm _ _).trans mul_eq_zero.symm
+
+/-- If `α` has no zero divisors, then for elements `a, b : α`, `a * b` is nonzero iff so is
+`b * a`. -/
+theorem mul_ne_zero_comm : a * b ≠ 0 ↔ b * a ≠ 0 :=
+mul_eq_zero_comm.not
+
+lemma mul_self_eq_zero : a * a = 0 ↔ a = 0 := by simp
+lemma zero_eq_mul_self : 0 = a * a ↔ a = 0 := by simp
+lemma mul_self_ne_zero : a * a ≠ 0 ↔ a ≠ 0 := mul_self_eq_zero.not
+lemma zero_ne_mul_self : 0 ≠ a * a ↔ a ≠ 0 := zero_eq_mul_self.not
+
+end mul_zero_class

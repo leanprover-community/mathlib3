@@ -3,7 +3,6 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 -/
-import data.int.basic
 import data.multiset.finset_ops
 import algebra.hom.embedding
 import tactic.apply
@@ -2017,6 +2016,14 @@ finset.val_inj.symm.trans multiset.dedup_eq_zero
 @[simp] lemma to_finset_subset (s t : multiset α) : s.to_finset ⊆ t.to_finset ↔ s ⊆ t :=
 by simp only [finset.subset_iff, multiset.subset_iff, multiset.mem_to_finset]
 
+@[simp] lemma to_finset_dedup (m : multiset α) :
+  m.dedup.to_finset = m.to_finset :=
+by simp_rw [to_finset, dedup_idempotent]
+
+@[simp] lemma to_finset_bind_dedup [decidable_eq β] (m : multiset α) (f : α → multiset β) :
+  (m.dedup.bind f).to_finset = (m.bind f).to_finset :=
+by simp_rw [to_finset, dedup_bind_dedup]
+
 end multiset
 
 namespace finset
@@ -2903,11 +2910,7 @@ variables {s : finset α}
 
 lemma pairwise_subtype_iff_pairwise_finset' (r : β → β → Prop) (f : α → β) :
   pairwise (r on λ x : s, f x) ↔ (s : set α).pairwise (r on f) :=
-begin
-  refine ⟨λ h x hx y hy hxy, h ⟨x, hx⟩ ⟨y, hy⟩ (by simpa only [subtype.mk_eq_mk, ne.def]), _⟩,
-  rintros h ⟨x, hx⟩ ⟨y, hy⟩ hxy,
-  exact h hx hy (subtype.mk_eq_mk.not.mp hxy)
-end
+pairwise_subtype_iff_pairwise_set (s : set α) (r on f)
 
 lemma pairwise_subtype_iff_pairwise_finset (r : α → α → Prop) :
   pairwise (r on λ x : s, x) ↔ (s : set α).pairwise r :=

@@ -6,10 +6,12 @@ Authors: Oliver Nash
 import tactic.tfae
 import order.atoms
 import order.order_iso_nat
+import order.rel_iso.set
 import order.sup_indep
 import order.zorn
 import data.finset.order
 import data.finite.default
+import data.set.intervals.order_iso
 
 /-!
 # Compactness properties for complete lattices

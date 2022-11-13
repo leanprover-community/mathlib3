@@ -55,8 +55,9 @@ begin
   simp only [has_basis_compact_convergence_uniformity.mem_iff, uniformity_basis_dist_le.mem_iff],
   exact λ s, ⟨λ ⟨⟨a, b⟩, ⟨ha, ⟨ε, hε, hb⟩⟩, hs⟩, ⟨{p | ∀ x, (p.1 x, p.2 x) ∈ b},
     ⟨ε, hε, λ _ h x, hb (by exact (dist_le hε.le).mp h x)⟩, λ f g h, hs (by exact λ x hx, h x)⟩,
-    λ ⟨t, ⟨ε, hε, ht⟩, hs⟩, ⟨⟨set.univ, {p | dist p.1 p.2 ≤ ε}⟩, ⟨compact_univ, ⟨ε, hε, λ _ h, h⟩⟩,
-    λ ⟨f, g⟩ h, hs _ _ (ht (by exact (dist_le hε.le).mpr (λ x, h x (mem_univ x))))⟩⟩,
+    λ ⟨t, ⟨ε, hε, ht⟩, hs⟩, ⟨⟨set.univ, {p | dist p.1 p.2 ≤ ε}⟩,
+      ⟨is_compact_univ, ⟨ε, hε, λ _ h, h⟩⟩,
+      λ ⟨f, g⟩ h, hs _ _ (ht (by exact (dist_le hε.le).mpr (λ x, h x (mem_univ x))))⟩⟩,
 end
 
 lemma uniform_embedding_equiv_bounded_of_compact :

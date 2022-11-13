@@ -325,6 +325,42 @@ begin
   exact real.cos_sq_add_sin_sq θ,
 end
 
+lemma sin_add_pi_div_two (θ : angle) : sin (θ + ↑(π / 2)) = cos θ :=
+begin
+  induction θ using real.angle.induction_on,
+  exact sin_add_pi_div_two _
+end
+
+lemma sin_sub_pi_div_two (θ : angle) : sin (θ - ↑(π / 2)) = -cos θ :=
+begin
+  induction θ using real.angle.induction_on,
+  exact sin_sub_pi_div_two _
+end
+
+lemma sin_pi_div_two_sub (θ : angle) : sin (↑(π / 2) - θ) = cos θ :=
+begin
+  induction θ using real.angle.induction_on,
+  exact sin_pi_div_two_sub _
+end
+
+lemma cos_add_pi_div_two (θ : angle) : cos (θ + ↑(π / 2)) = -sin θ :=
+begin
+  induction θ using real.angle.induction_on,
+  exact cos_add_pi_div_two _
+end
+
+lemma cos_sub_pi_div_two (θ : angle) : cos (θ - ↑(π / 2)) = sin θ :=
+begin
+  induction θ using real.angle.induction_on,
+  exact cos_sub_pi_div_two _
+end
+
+lemma cos_pi_div_two_sub (θ : angle) : cos (↑(π / 2) - θ) = sin θ :=
+begin
+  induction θ using real.angle.induction_on,
+  exact cos_pi_div_two_sub _
+end
+
 @[simp] lemma coe_to_Ico_mod (θ ψ : ℝ) : ↑(to_Ico_mod ψ two_pi_pos θ) = (θ : angle) :=
 begin
   rw angle_eq_iff_two_pi_dvd_sub,

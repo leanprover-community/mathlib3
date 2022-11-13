@@ -50,10 +50,9 @@ variables {C : Type u} [category.{v} C] {D : Type*} [category D]
 
 -- Importing `category_theory.abelian.projective` and assuming
 -- `[abelian C] [enough_projectives C] [abelian D]` suffices to acquire all the following:
-variables [preadditive C] [has_zero_object C] [has_equalizers C]
-  [has_images C] [has_projective_resolutions C]
-variables [preadditive D] [has_equalizers D] [has_cokernels D]
-  [has_images D] [has_image_maps D]
+variables [preadditive C] [has_zero_object C] [category_with_homology C]
+  [has_projective_resolutions C]
+variables [preadditive D] [has_equalizers D] [category_with_homology D]
 
 /-- The left derived functors of an additive functor. -/
 def functor.left_derived (F : C ⥤ D) [F.additive] (n : ℕ) : C ⥤ D :=
@@ -93,8 +92,7 @@ def functor.left_derived_obj_projective_succ (F : C ⥤ D) [F.additive] (n : ℕ
   (F.left_derived (n+1)).obj X ≅ 0 :=
 F.left_derived_obj_iso (n+1) (ProjectiveResolution.self X) ≪≫
   (homology_functor _ _ _).map_iso ((chain_complex.single₀_map_homological_complex F).app X) ≪≫
-  (chain_complex.homology_functor_succ_single₀ D n).app (F.obj X) ≪≫
-  (functor.zero_obj _).iso_zero
+  (chain_complex.homology_functor_succ_single₀ D n).app (F.obj X)
 
 end
 

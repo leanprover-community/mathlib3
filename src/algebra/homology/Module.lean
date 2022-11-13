@@ -23,6 +23,7 @@ open category_theory category_theory.limits homological_complex
 variables {R : Type v} [ring R]
 variables {ι : Type*} {c : complex_shape ι} {C D : homological_complex (Module.{u} R) c}
 
+/-
 namespace Module
 
 /--
@@ -95,4 +96,4 @@ begin
   abel
 end
 
-end Module
+end Module-/

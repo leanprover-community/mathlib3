@@ -113,8 +113,7 @@ def homotopy_equiv_of_iso
   homotopy_hom_inv_id := homotopy_of_eq _ _ (by { simp, refl, }),
   homotopy_inv_hom_id := homotopy_of_eq _ _ (by { simp, refl, }), }
 
-variables (V c) [has_equalizers V] [has_images V] [has_image_maps V]
-  [has_cokernels V]
+variables (V c) [category_with_homology V]
 
 /-- The `i`-th homology, as a functor from the homotopy category. -/
 def homology_functor (i : ι) : homotopy_category V c ⥤ V :=

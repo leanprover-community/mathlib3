@@ -80,7 +80,8 @@ In any abelian category with enough projectives,
     (by { simp, exact (exact_d_f (projective.π Z)).w.symm, })
     (λ n _, ⟨0, by ext⟩),
   projective := by { rintros (_|_|_|n); apply projective.projective_over, },
-  exact₀ := by simpa using exact_d_f (projective.π Z),
+  exact₀ := by simpa only [of_complex_d, eq_self_iff_true, eq_to_hom_refl, category.id_comp,
+    dite_eq_ite, if_true, chain_complex.mk_hom_f_0] using exact_d_f (projective.π Z),
   exact := by { rintros (_|n); { simp, apply exact_d_f, }, },
   epi := projective.π_epi Z, }
 

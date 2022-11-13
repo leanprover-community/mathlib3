@@ -487,8 +487,7 @@ begin
   congr,
   ext,
   simp only [single, nat.one_ne_zero, add_right_eq_self, add_right_embedding_apply, coe_mk,
-             pi.add_apply, comp_app, ite_eq_right_iff, finsupp.coe_add],
-  cc,
+             pi.add_apply, comp_app, ite_eq_right_iff, finsupp.coe_add, pi.single_eq_of_ne h],
 end
 
 /- TODO in the following we have equality iff f ≠ 0 -/

@@ -138,6 +138,12 @@ General algebra:
     perfection of a ring: 'ring.perfection'
   Transcendental numbers:
     Liouville's theorem on existence of transcendental numbers: liouville.is_transcendental
+  
+  Representation theory:
+    representation : 'representation'
+    category of finite dimensional representations : 'fdRep'
+    character : 'fdRep.character'
+    orthogonality of characters : 'fdRep.char_orthonormal'
 
 Linear algebra:
   Fundamentals:

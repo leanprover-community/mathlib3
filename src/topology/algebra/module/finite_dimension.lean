@@ -334,6 +334,18 @@ rfl
   range f.to_continuous_linear_map = range f :=
 rfl
 
+/-- A surjective linear map `f` with finite dimensional codomain is an open map. -/
+lemma is_open_map_of_finite_dimensional (f : F →ₗ[𝕜] E) (hf : function.surjective f) :
+  is_open_map f :=
+begin
+  rcases f.exists_right_inverse_of_surjective (linear_map.range_eq_top.2 hf) with ⟨g, hg⟩,
+  refine is_open_map.of_sections (λ x, ⟨λ y, g (y - f x) + x, _, _, λ y, _⟩),
+  { exact ((g.continuous_of_finite_dimensional.comp $ continuous_id.sub continuous_const).add
+      continuous_const).continuous_at },
+  { rw [sub_self, map_zero, zero_add] },
+  { simp only [map_sub, map_add, ← comp_apply f g, hg, id_apply, sub_add_cancel] }
+end
+
 end linear_map
 
 namespace linear_equiv

@@ -73,7 +73,7 @@ product_subset_product (subset.refl _) ht
 
 @[simp] lemma image_swap_product [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
   (t ×ˢ s).image prod.swap = s ×ˢ t :=
-coe_injective $ by { push_cast, exact set.image_swap_prod }
+coe_injective $ by { push_cast, exact set.image_swap_prod _ _ }
 
 lemma product_eq_bUnion [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
   s ×ˢ t = s.bUnion (λa, t.image $ λb, (a, b)) :=

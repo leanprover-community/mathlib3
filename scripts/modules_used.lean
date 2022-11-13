@@ -84,7 +84,7 @@ do env ← tactic.get_env,
     | some mod := mods.insert mod
     | none := mods
     end),
-  pure mods.to_list
+  pure mods.to_list.reverse
 
 meta def main : io unit := do
   [arg] ← io.cmdline_args,

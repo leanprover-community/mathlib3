@@ -471,39 +471,37 @@ measure_lt_top_of_is_compact_of_is_mul_left_invariant (interior U) is_open_inter
 
 /-- In a noncompact locally compact group, a left-invariant measure which is positive
 on open sets has infinite mass. -/
-@[to_additive "In a noncompact locally compact additive group, a left-invariant measure which is
-positive on open sets has infinite mass."]
-lemma measure_univ_of_is_mul_left_invariant
-  [locally_compact_space G] [noncompact_space G]
-  (μ : measure G) [μ.is_mul_left_invariant] [is_open_pos_measure μ] :
+@[simp, to_additive "In a noncompact locally compact additive group, a left-invariant measure which
+is positive on open sets has infinite mass."]
+lemma measure_univ_of_is_mul_left_invariant [locally_compact_space G] [noncompact_space G]
+  (μ : measure G) [is_open_pos_measure μ] [μ.is_mul_left_invariant] :
   μ univ = ∞ :=
 begin
-  /- Consider a compact set `K` with nonempty interior. For any compact set `L`, one may find
-  `g = g (L)` such that `L` is disjoint from `g • K`. Iterating this, one finds
+  /- Consider a closed compact set `K` with nonempty interior. For any compact set `L`, one may
+  find `g = g (L)` such that `L` is disjoint from `g • K`. Iterating this, one finds
   infinitely many translates of `K` which are disjoint from each other. As they all have the
   same positive mass, it follows that the space has infinite measure. -/
-  obtain ⟨K, hK, K_int⟩ : ∃ (K : set G), is_compact K ∧ is_closed K ∧ (1 : G) ∈ interior K,
-  { rcases exists_compact_subset is_open_univ (mem_univ (1 : G)) with ⟨K, hK⟩,
-    exact ⟨K, hK.1, hK.2.1⟩ },
-end
-
-#exit
-
-  have : is_compact (closure K),
-  { apply is_compact_closure_of_subset_compact,
-
-  },
-  have K_pos : 0 < μ K, from measure_pos_of_nonempty_interior _ ⟨_, K_int⟩,
+  obtain ⟨K, hK, Kclosed, Kint⟩ : ∃ (K : set G), is_compact K ∧ is_closed K ∧ (1 : G) ∈ interior K,
+  { rcases local_is_compact_is_closed_nhds_of_group (is_open_univ.mem_nhds (mem_univ (1 : G)))
+      with ⟨K, hK⟩,
+    exact ⟨K, hK.1, hK.2.1, hK.2.2.2⟩, },
+  have K_pos : 0 < μ K, from measure_pos_of_nonempty_interior _ ⟨_, Kint⟩,
   have A : ∀ (L : set G), is_compact L → ∃ (g : G), disjoint L (g • K),
     from λ L hL, exists_disjoint_smul_of_is_compact hL hK,
   choose! g hg using A,
   set L : ℕ → set G := λ n, (λ T, T ∪ (g T • K))^[n] K with hL,
-  have B : ∀ n, is_compact (L n),
+  have Lcompact : ∀ n, is_compact (L n),
   { assume n,
     induction n with n IH,
     { exact hK },
     { simp_rw [hL, iterate_succ'],
       apply is_compact.union IH (hK.smul (g (L n))) } },
+  have Lclosed : ∀ n, is_closed (L n),
+  { assume n,
+    induction n with n IH,
+    { exact Kclosed },
+    { simp_rw [hL, iterate_succ'],
+      apply is_closed.union IH (Kclosed.smul (g (L n))) } },
   have M : ∀ n, μ (L n) = (n + 1 : ℕ) * μ K,
   { assume n,
     induction n with n IH,
@@ -511,7 +509,7 @@ end
     { calc μ (L (n + 1)) = μ (L n) + μ (g (L n) • K) :
         begin
           simp_rw [hL, iterate_succ'],
-          exact measure_union' (hg _ (B _)) (B _).measurable_set
+          exact measure_union' (hg _ (Lcompact _)) (Lclosed _).measurable_set
         end
       ... = ((n + 1) + 1 : ℕ) * μ K :
         by simp only [IH, measure_smul, add_mul, nat.cast_add, algebra_map.coe_one, one_mul] } },
@@ -523,7 +521,6 @@ end
   apply top_le_iff.1,
   exact le_of_tendsto' N (λ n, measure_mono (subset_univ _)),
 end
-
 
 end topological_group
 

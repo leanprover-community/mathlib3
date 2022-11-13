@@ -370,22 +370,6 @@ calc μ (affine_map.homothety x r '' s) = μ ((λ y, y + x) '' (r • ((λ y, y 
 ... = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :
   by simp only [image_add_right, measure_preimage_add_right, add_haar_smul]
 
-lemma add_haar_univ [nontrivial E] : μ (univ : set E) = ∞ :=
-begin
-  have A : 0 < μ univ, from is_open_univ.measure_pos μ univ_nonempty,
-  have : tendsto (λ r, ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ univ) at_top (𝓝 (∞ * μ univ)),
-  { simp only [mul_comm _ (μ univ)],
-    refine ennreal.tendsto.const_mul _ (or.inl ennreal.top_ne_zero),
-    apply ennreal.tendsto_of_real_at_top.comp (tendsto_abs_at_top_at_top.comp _),
-    exact tendsto_pow_at_top (ne_of_gt finrank_pos) },
-  simp only [ennreal.top_mul, A.ne', if_false] at this,
-  have : ∞ ≤ μ univ,
-  { apply le_of_tendsto' this (λ r, _),
-    rw ← add_haar_smul,
-    exact measure_mono (subset_univ _) },
-  exact eq_top_iff.2 this,
-end
-
 /-- The integral of `f (R • x)` with respect to an additive Haar measure is a multiple of the
 integral of `f`. The formula we give works even when `f` is not integrable or `R = 0`
 thanks to the convention that a non-integrable function has integral zero. -/
@@ -400,8 +384,8 @@ begin
       conv_rhs { rw this },
       simp only [hE, pow_zero, inv_one, abs_one, one_smul, integral_const] },
     { haveI : nontrivial E, from finrank_pos_iff.1 hE,
-      simp only [zero_pow hE, inv_zero, abs_zero, zero_smul, add_haar_univ μ,
-        ennreal.top_to_real] } },
+      simp only [zero_pow hE, measure_univ_of_is_add_left_invariant, ennreal.top_to_real, zero_smul,
+        inv_zero, abs_zero]} },
   { calc ∫ x, f (R • x) ∂μ = ∫ y, f y ∂(measure.map (λ x, R • x) μ) :
       (integral_map_equiv (homeomorph.smul (is_unit_iff_ne_zero.2 hR).unit)
         .to_measurable_equiv f).symm

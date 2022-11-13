@@ -194,7 +194,9 @@ lemma independent_range_of_coprime_order [finite ι] [Π i, fintype (H i)]
 begin
   casesI nonempty_fintype ι,
   classical,
-  rintros i f ⟨hxi, hxp⟩, dsimp at hxi hxp,
+  rintros i,
+  rw disjoint_iff_inf_le,
+  rintros f ⟨hxi, hxp⟩, dsimp at hxi hxp,
   rw [supr_subtype', ← noncomm_pi_coprod_range] at hxp,
   rotate, { intros _ _ hj, apply hcomm, exact hj ∘ subtype.ext },
   cases hxp with g hgf, cases hxi with g' hg'f,

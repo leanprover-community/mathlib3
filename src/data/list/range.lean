@@ -122,6 +122,9 @@ by rw [← length_eq_zero, length_range]
 theorem pairwise_lt_range (n : ℕ) : pairwise (<) (range n) :=
 by simp only [range_eq_range', pairwise_lt_range']
 
+theorem pairwise_le_range (n : ℕ) : pairwise (≤) (range n) :=
+pairwise.imp (@le_of_lt ℕ _) (pairwise_lt_range _)
+
 theorem nodup_range (n : ℕ) : nodup (range n) :=
 by simp only [range_eq_range', nodup_range']
 

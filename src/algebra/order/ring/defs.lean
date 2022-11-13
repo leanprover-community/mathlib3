@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Yaël Dillies
 -/
 import order.min_max
-import algebra.order.group.basic
+import algebra.order.monoid.cancel.defs
+import algebra.order.sub.defs
+import algebra.order.group.defs
 import algebra.order.ring.lemmas
 
 /-!
@@ -45,10 +47,6 @@ For short,
   `≤` and `*` respects `<`.
 * `canonically_ordered_comm_semiring`: Commutative semiring with a partial order such that `+`
   respects `≤`, `*` respects `<`, and `a ≤ b ↔ ∃ c, b = a + c`.
-
-and some typeclasses to define ordered rings by specifying their nonnegative elements:
-* `nonneg_ring`: To define `ordered_ring`s.
-* `linear_nonneg_ring`: To define `linear_ordered_ring`s.
 
 ## Hierarchy
 
@@ -798,7 +796,7 @@ lemma mul_self_lt_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a < b 
 ((@strict_mono_on_mul_self α _).lt_iff_lt h1 h2).symm
 
 lemma mul_self_inj {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a * a = b * b ↔ a = b :=
-(@strict_mono_on_mul_self α _).inj_on.eq_iff h1 h2
+(@strict_mono_on_mul_self α _).eq_iff_eq h1 h2
 
 end linear_ordered_semiring
 
@@ -966,228 +964,3 @@ max_le
   (by simpa [mul_comm, max_comm] using cd)
 
 end linear_ordered_comm_ring
-
-namespace function.injective
-
-/-- Pullback an `ordered_semiring` under an injective map. -/
-@[reducible] -- See note [reducible non-instances]
-protected def ordered_semiring [ordered_semiring α] [has_zero β] [has_one β] [has_add β] [has_mul β]
-  [has_pow β ℕ] [has_smul ℕ β] [has_nat_cast β] (f : β → α) (hf : injective f) (zero : f 0 = 0)
-  (one : f 1 = 1) (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) :
-  ordered_semiring β :=
-{ zero_le_one := show f 0 ≤ f 1, by simp only [zero, one, zero_le_one],
-  mul_le_mul_of_nonneg_left := λ a b c h hc, show f (c * a) ≤ f (c * b),
-    by { rw [mul, mul], refine mul_le_mul_of_nonneg_left h _, rwa ←zero },
-  mul_le_mul_of_nonneg_right := λ a b c h hc, show f (a * c) ≤ f (b * c),
-    by { rw [mul, mul], refine mul_le_mul_of_nonneg_right h _, rwa ←zero },
-  ..hf.ordered_add_comm_monoid f zero add nsmul,
-  ..hf.semiring f zero one add mul nsmul npow nat_cast }
-
-/-- Pullback an `ordered_comm_semiring` under an injective map. -/
-@[reducible] -- See note [reducible non-instances]
-protected def ordered_comm_semiring [ordered_comm_semiring α] [has_zero β] [has_one β] [has_add β]
-  [has_mul β] [has_pow β ℕ] [has_smul ℕ β] [has_nat_cast β] (f : β → α) (hf : injective f)
-  (zero : f 0 = 0) (one : f 1 = 1) (add : ∀ x y, f (x + y) = f x + f y)
-  (mul : ∀ x y, f (x * y) = f x * f y) (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x)
-  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (nat_cast : ∀ n : ℕ, f n = n) :
-  ordered_comm_semiring β :=
-{ ..hf.comm_semiring f zero one add mul nsmul npow nat_cast,
-  ..hf.ordered_semiring f zero one add mul nsmul npow nat_cast }
-
-/-- Pullback an `ordered_ring` under an injective map. -/
-@[reducible] -- See note [reducible non-instances]
-protected def ordered_ring [ordered_ring α] [has_zero β] [has_one β] [has_add β] [has_mul β]
-  [has_neg β] [has_sub β] [has_smul ℕ β] [has_smul ℤ β] [has_pow β ℕ] [has_nat_cast β]
-  [has_int_cast β] (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (- x) = - f x) (sub : ∀ x y, f (x - y) = f x - f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
-  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
-  ordered_ring β :=
-{ mul_nonneg := λ a b ha hb, show f 0 ≤ f (a * b),
-    by { rw [zero, mul], apply mul_nonneg; rwa ← zero },
-  ..hf.ordered_semiring f zero one add mul nsmul npow nat_cast,
-  ..hf.ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
-
-/-- Pullback an `ordered_comm_ring` under an injective map. -/
-@[reducible] -- See note [reducible non-instances]
-protected def ordered_comm_ring [ordered_comm_ring α] [has_zero β] [has_one β] [has_add β]
-  [has_mul β] [has_neg β] [has_sub β] [has_pow β ℕ] [has_smul ℕ β] [has_smul ℤ β] [has_nat_cast β]
-  [has_int_cast β] (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (- x) = - f x) (sub : ∀ x y, f (x - y) = f x - f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
-  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
-  ordered_comm_ring β :=
-{ ..hf.ordered_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast,
-  ..hf.comm_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
-
-/-- Pullback a `strict_ordered_semiring` under an injective map. -/
-@[reducible] -- See note [reducible non-instances]
-protected def strict_ordered_semiring [strict_ordered_semiring α] [has_zero β] [has_one β]
-  [has_add β] [has_mul β] [has_pow β ℕ] [has_smul ℕ β] [has_nat_cast β] (f : β → α)
-  (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1) (add : ∀ x y, f (x + y) = f x + f y)
-  (mul : ∀ x y, f (x * y) = f x * f y) (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x)
-  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (nat_cast : ∀ n : ℕ, f n = n) :
-  strict_ordered_semiring β :=
-{ mul_lt_mul_of_pos_left := λ a b c h hc, show f (c * a) < f (c * b),
-    by simpa only [mul, zero] using mul_lt_mul_of_pos_left ‹f a < f b› (by rwa ←zero),
-  mul_lt_mul_of_pos_right := λ a b c h hc, show f (a * c) < f (b * c),
-    by simpa only [mul, zero] using mul_lt_mul_of_pos_right ‹f a < f b› (by rwa ←zero),
-  ..hf.ordered_cancel_add_comm_monoid f zero add nsmul,
-  ..hf.ordered_semiring f zero one add mul nsmul npow nat_cast,
-  .. pullback_nonzero f zero one }
-
-/-- Pullback a `strict_ordered_comm_semiring` under an injective map. -/
-@[reducible] -- See note [reducible non-instances]
-protected def strict_ordered_comm_semiring [strict_ordered_comm_semiring α] [has_zero β] [has_one β]
-  [has_add β] [has_mul β] [has_pow β ℕ] [has_smul ℕ β] [has_nat_cast β] (f : β → α)
-  (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1) (add : ∀ x y, f (x + y) = f x + f y)
-  (mul : ∀ x y, f (x * y) = f x * f y) (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x)
-  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (nat_cast : ∀ n : ℕ, f n = n) :
-  strict_ordered_comm_semiring β :=
-{ ..hf.comm_semiring f zero one add mul nsmul npow nat_cast,
-  ..hf.strict_ordered_semiring f zero one add mul nsmul npow nat_cast }
-
-/-- Pullback a `strict_ordered_ring` under an injective map. -/
-@[reducible] -- See note [reducible non-instances]
-protected def strict_ordered_ring [strict_ordered_ring α] [has_zero β] [has_one β] [has_add β]
-  [has_mul β] [has_neg β] [has_sub β] [has_smul ℕ β] [has_smul ℤ β] [has_pow β ℕ] [has_nat_cast β]
-  [has_int_cast β] (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (- x) = - f x) (sub : ∀ x y, f (x - y) = f x - f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
-  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
-  strict_ordered_ring β :=
-{ mul_pos := λ a b a0 b0, show f 0 < f (a * b), by { rw [zero, mul], apply mul_pos; rwa ← zero },
-  ..hf.strict_ordered_semiring f zero one add mul nsmul npow nat_cast,
-  ..hf.ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
-
-/-- Pullback a `strict_ordered_comm_ring` under an injective map. -/
-@[reducible] -- See note [reducible non-instances]
-protected def strict_ordered_comm_ring [strict_ordered_comm_ring α] [has_zero β]
-  [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_pow β ℕ] [has_smul ℕ β]
-  [has_smul ℤ β] [has_nat_cast β] [has_int_cast β] (f : β → α) (hf : injective f) (zero : f 0 = 0)
-  (one : f 1 = 1) (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (- x) = - f x) (sub : ∀ x y, f (x - y) = f x - f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
-  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n) :
-  strict_ordered_comm_ring β :=
-{ ..hf.strict_ordered_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast,
-  ..hf.comm_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
-
-/-- Pullback a `linear_ordered_semiring` under an injective map. -/
-@[reducible] -- See note [reducible non-instances]
-protected def linear_ordered_semiring [linear_ordered_semiring α] [has_zero β] [has_one β]
-  [has_add β] [has_mul β] [has_pow β ℕ] [has_smul ℕ β] [has_nat_cast β] [has_sup β] [has_inf β]
-  (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y))
-  (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
-  linear_ordered_semiring β :=
-{ .. linear_order.lift f hf hsup hinf,
-  .. hf.strict_ordered_semiring f zero one add mul nsmul npow nat_cast }
-
-/-- Pullback a `linear_ordered_semiring` under an injective map. -/
-@[reducible] -- See note [reducible non-instances]
-protected def linear_ordered_comm_semiring [linear_ordered_comm_semiring α]
-  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_pow β ℕ] [has_smul ℕ β] [has_nat_cast β]
-  [has_sup β] [has_inf β] (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y))
-  (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
-  linear_ordered_comm_semiring β :=
-{ ..hf.linear_ordered_semiring f zero one add mul nsmul npow nat_cast hsup hinf,
-  ..hf.strict_ordered_comm_semiring f zero one add mul nsmul npow nat_cast }
-
-/-- Pullback a `linear_ordered_ring` under an injective map. -/
-@[reducible] -- See note [reducible non-instances]
-def linear_ordered_ring [linear_ordered_ring α] [has_zero β] [has_one β] [has_add β] [has_mul β]
-  [has_neg β] [has_sub β] [has_smul ℕ β] [has_smul ℤ β] [has_pow β ℕ] [has_nat_cast β]
-  [has_int_cast β] [has_sup β] [has_inf β] (f : β → α) (hf : injective f) (zero : f 0 = 0)
-  (one : f 1 = 1) (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
-  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n)
-  (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
-  linear_ordered_ring β :=
-{ .. linear_order.lift f hf hsup hinf,
-  .. hf.strict_ordered_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
-
-/-- Pullback a `linear_ordered_comm_ring` under an injective map. -/
-@[reducible] -- See note [reducible non-instances]
-protected def linear_ordered_comm_ring [linear_ordered_comm_ring α] [has_zero β]
-  [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β] [has_pow β ℕ] [has_smul ℕ β]
-  [has_smul ℤ β] [has_nat_cast β] [has_int_cast β]  [has_sup β] [has_inf β] (f : β → α)
-  (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1) (add : ∀ x y, f (x + y) = f x + f y)
-  (mul : ∀ x y, f (x * y) = f x * f y) (neg : ∀ x, f (-x) = -f x)
-  (sub : ∀ x y, f (x - y) = f x - f y) (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x)
-  (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
-  (nat_cast : ∀ n : ℕ, f n = n) (int_cast : ∀ n : ℤ, f n = n)
-  (hsup : ∀ x y, f (x ⊔ y) = max (f x) (f y)) (hinf : ∀ x y, f (x ⊓ y) = min (f x) (f y)) :
-  linear_ordered_comm_ring β :=
-{ .. linear_order.lift f hf hsup hinf,
-  .. hf.strict_ordered_comm_ring f zero one add mul neg sub nsmul zsmul npow nat_cast int_cast }
-
-end function.injective
-
-/-! ### Positive cones -/
-
-variables [ring α] [nontrivial α]
-
-namespace ring
-
-/-- A positive cone in a ring consists of a positive cone in underlying `add_comm_group`,
-which contains `1` and such that the positive elements are closed under multiplication. -/
-@[nolint has_nonempty_instance]
-structure positive_cone (α : Type*) [ring α] extends add_comm_group.positive_cone α :=
-(one_nonneg : nonneg 1)
-(mul_pos : ∀ (a b), pos a → pos b → pos (a * b))
-
-/-- Forget that a positive cone in a ring respects the multiplicative structure. -/
-add_decl_doc positive_cone.to_positive_cone
-
-/-- A total positive cone in a nontrivial ring induces a linear order. -/
-@[nolint has_nonempty_instance]
-structure total_positive_cone (α : Type*) [ring α]
-  extends positive_cone α, add_comm_group.total_positive_cone α
-
-/-- Forget that a `total_positive_cone` in a ring is total. -/
-add_decl_doc total_positive_cone.to_positive_cone
-
-/-- Forget that a `total_positive_cone` in a ring respects the multiplicative structure. -/
-add_decl_doc total_positive_cone.to_total_positive_cone
-
-lemma positive_cone.one_pos (C : positive_cone α) : C.pos 1 :=
-(C.pos_iff _).2 ⟨C.one_nonneg, λ h, one_ne_zero $ C.nonneg_antisymm C.one_nonneg h⟩
-
-end ring
-
-open ring
-
-/-- Construct a `strict_ordered_ring` by designating a positive cone in an existing `ring`. -/
-def strict_ordered_ring.mk_of_positive_cone (C : positive_cone α) : strict_ordered_ring α :=
-{ exists_pair_ne := ⟨0, 1, λ h, by simpa [←h, C.pos_iff] using C.one_pos⟩,
-  zero_le_one := by { change C.nonneg (1 - 0), convert C.one_nonneg, simp, },
-  mul_pos := λ x y xp yp, begin
-    change C.pos (x*y - 0),
-    convert C.mul_pos x y (by { convert xp, simp, }) (by { convert yp, simp, }),
-    simp,
-  end,
-  ..‹ring α›,
-  ..ordered_add_comm_group.mk_of_positive_cone C.to_positive_cone }
-
-/-- Construct a `linear_ordered_ring` by
-designating a positive cone in an existing `ring`. -/
-def linear_ordered_ring.mk_of_positive_cone (C : total_positive_cone α) : linear_ordered_ring α :=
-{ ..strict_ordered_ring.mk_of_positive_cone C.to_positive_cone,
-  ..linear_ordered_add_comm_group.mk_of_positive_cone C.to_total_positive_cone, }

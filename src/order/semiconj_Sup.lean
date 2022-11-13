@@ -3,10 +3,11 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import algebra.hom.equiv
+import algebra.hom.equiv.basic
 import logic.function.conjugate
 import order.bounds.order_iso
 import order.conditionally_complete_lattice
+import order.rel_iso.group
 import order.ord_continuous
 
 /-!

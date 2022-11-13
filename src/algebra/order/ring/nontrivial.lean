@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import algebra.char_zero.defs
-import algebra.order.ring.basic
+import algebra.order.ring.defs
 
 /-!
 # Strict ordered semiring have characteristic zero

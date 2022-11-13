@@ -403,6 +403,7 @@ begin
 Found problems!
 
 f := [0 ↦ 1, _ ↦ 0]
+issue: finsupp.single 0 1 = 0 does not hold
 (2 shrinks)
 -------------------
 ",

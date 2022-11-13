@@ -297,7 +297,7 @@ begin
   rcases refinement_of_locally_compact_sigma_compact_of_nhds_basis_set hs hB
     with ⟨ι, c, f, hf, hsub', hfin⟩, choose hcs hfU using hf,
   /- Then we use the shrinking lemma to get a covering by smaller open -/
-  rcases exists_subset_Union_closed_subset hs (λ i, (f i).open_support)
+  rcases exists_subset_Union_closed_subset hs (λ i, (f i).is_open_support)
     (λ x hx, hfin.point_finite x) hsub' with ⟨V, hsV, hVc, hVf⟩,
   choose r hrR hr using λ i, (f i).exists_r_pos_lt_subset_ball (hVc i) (hVf i),
   refine ⟨ι, ⟨c, λ i, (f i).update_r (r i) (hrR i), hcs, _, λ x hx, _⟩, λ i, _⟩,

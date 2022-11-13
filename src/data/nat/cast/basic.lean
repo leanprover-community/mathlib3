@@ -3,12 +3,12 @@ Copyright (c) 2014 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import algebra.char_zero.defs
 import algebra.group.prod
 import algebra.hom.ring
 import algebra.order.group.abs
-import algebra.order.monoid.with_top
-import algebra.order.ring.nontrivial
-import data.nat.order
+import algebra.order.with_zero
+import data.nat.order.basic
 
 /-!
 # Cast of natural numbers (additional theorems)
@@ -26,11 +26,16 @@ variables {α β : Type*}
 
 namespace nat
 
+instance (α : Type*) [add_monoid_with_one α] : coe_is_one_hom ℕ α :=
+{ coe_one := cast_one }
+
+instance (α : Type*) [add_monoid_with_one α] : coe_is_add_monoid_hom ℕ α :=
+{ coe_add := cast_add,
+  coe_zero := cast_zero }
+
 /-- `coe : ℕ → α` as an `add_monoid_hom`. -/
 def cast_add_monoid_hom (α : Type*) [add_monoid_with_one α] : ℕ →+ α :=
-{ to_fun := coe,
-  map_add' := cast_add,
-  map_zero' := cast_zero }
+add_monoid_hom.coe ℕ α
 
 @[simp] lemma coe_cast_add_monoid_hom [add_monoid_with_one α] :
   (cast_add_monoid_hom α : ℕ → α) = coe := rfl
@@ -39,12 +44,14 @@ def cast_add_monoid_hom (α : Type*) [add_monoid_with_one α] : ℕ →+ α :=
   ((m * n : ℕ) : α) = m * n :=
 by induction n; simp [mul_succ, mul_add, *]
 
+instance (α : Type*) [non_assoc_semiring α] : coe_is_ring_hom ℕ α :=
+{ coe_mul := cast_mul,
+  coe_one := cast_one,
+  .. nat.coe_is_add_monoid_hom α }
+
 /-- `coe : ℕ → α` as a `ring_hom` -/
 def cast_ring_hom (α : Type*) [non_assoc_semiring α] : ℕ →+* α :=
-{ to_fun := coe,
-  map_one' := cast_one,
-  map_mul' := cast_mul,
-  .. cast_add_monoid_hom α }
+ring_hom.coe ℕ α
 
 @[simp] lemma coe_cast_ring_hom [non_assoc_semiring α] : (cast_ring_hom α : ℕ → α) = coe := rfl
 
@@ -231,9 +238,6 @@ end ring_hom
 rfl
 
 @[simp] lemma nat.cast_ring_hom_nat : nat.cast_ring_hom ℕ = ring_hom.id ℕ := rfl
-
-@[simp] theorem nat.cast_with_bot (n : ℕ) :
-  @coe ℕ (with_bot ℕ) (@coe_to_lift _ _ nat.cast_coe) n = n := rfl
 
 -- I don't think `ring_hom_class` is good here, because of the `subsingleton` TC slowness
 instance nat.unique_ring_hom {R : Type*} [non_assoc_semiring R] : unique (ℕ →+* R) :=

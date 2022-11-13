@@ -192,10 +192,11 @@ begin
   convert finset.card_disjoint_union _;
     simp only [set.to_finset_prod, finset.card_product, set.to_finset_card,
       set.card_singleton, mul_one, one_mul],
-  { rintro ⟨_,_⟩ q,
-    simp only [finset.inf_eq_inter, finset.mem_inter, finset.mem_product, set.mem_to_finset,
-      mem_neighbor_set, set.mem_singleton_iff] at q,
-    obtain ⟨⟨q, rfl⟩, ⟨rfl, _⟩⟩ := q,
+  { rw finset.disjoint_left,
+    rintro ⟨_,_⟩ hG hH,
+    simp only [finset.mem_product, set.mem_to_finset,
+      mem_neighbor_set, set.mem_singleton_iff] at hG hH,
+    obtain ⟨⟨q, rfl⟩, ⟨rfl, _⟩⟩ := ⟨hG, hH⟩,
     exact (q.ne rfl).elim, },
 end
 

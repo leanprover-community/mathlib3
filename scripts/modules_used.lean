@@ -1,5 +1,6 @@
 import all
 import system.io
+import tactic.algebra
 
 /-!
 # Find all imported modules which are used by the declarations in the target module.
@@ -55,7 +56,12 @@ open tactic declaration environment io io.fs
 meta def tactic.get_decls_used (env : environment) : name → name_set → tactic name_set
 | n ns := if ns.contains n then pure ns else do
   d ← env.get n,
+  -- Add `n` to the accumulated name set.
   let ns := ns.insert n,
+  -- Run `get_decls_used` on any ancestors of `n` (if `n` is a structure)
+  ancestors ← get_ancestors n,
+  ns ← ancestors.mfoldl (λ ns n, tactic.get_decls_used n ns) ns,
+  -- Now traverse the body of the declaration, processing any constants.
   let process (v : expr) : tactic (name_set) :=
     v.fold (pure ns) $ λ e _ r, r >>= λ ns,
       if e.is_constant then tactic.get_decls_used e.const_name ns else pure ns,

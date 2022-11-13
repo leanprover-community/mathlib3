@@ -18,7 +18,7 @@ namespace list
 
 attribute [simp] join
 
-@[simp] lemma join_singleton {l : list α} : [l].join = l :=
+@[simp] lemma join_singleton (l : list α) : [l].join = l :=
 by rw [join, join, append_nil]
 
 @[simp] lemma join_eq_nil : ∀ {L : list (list α)}, join L = [] ↔ ∀ l ∈ L, l = []

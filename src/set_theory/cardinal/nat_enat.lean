@@ -1,3 +1,4 @@
+import data.enat.card
 import set_theory.cardinal.basic
 
 /-!
@@ -30,6 +31,9 @@ set.ext_iff.1 range_enat_cast.symm c
 lemma le_aleph_0 {c} : c ≤ ℵ₀ ↔ ∃ n : ℕ∞, c = n :=
 le_aleph_0'.trans $ exists_congr $ λ _, eq_comm
 
+lemma eq_enat_or_aleph_0_lt (c : cardinal) : (∃ n : ℕ∞, c = n) ∨ ℵ₀ < c :=
+(le_or_lt _ _).imp_left le_aleph_0.1
+
 @[simp] lemma aleph_0_add_enat (n : ℕ∞) : ℵ₀ + n = ℵ₀ :=
 by { cases n, exacts [aleph_0_add_aleph_0, aleph_0_add_nat _] }
 
@@ -44,34 +48,6 @@ by rw [mul_comm, aleph_0_mul_enat hn]
 
 instance can_lift_enat : can_lift cardinal ℕ∞ coe (≤ ℵ₀) :=
 ⟨λ c h, (le_aleph_0.1 h).imp $ λ _, eq.symm⟩
-
-@[simp, norm_cast] lemma enat_cast_add : ∀ m n : ℕ∞, ↑(m + n) = (m + n : cardinal)
-| ⊤ n := by rw [top_add, enat_cast_top, aleph_0_add_enat]
-| m ⊤ := by rw [add_top, enat_cast_top, enat_add_aleph_0]
-| (m : ℕ) (n : ℕ) := by rw [← with_top.coe_add, coe_coe, nat.cast_add, coe_coe, coe_coe]
-
-@[simp, norm_cast] lemma enat_cast_mul (m n : ℕ∞) : ↑(m * n) = (m * n : cardinal) :=
-begin
-  rcases eq_or_ne m 0 with rfl|hm, { simp },
-  rcases eq_or_ne n 0 with rfl|hn, { simp },
-  induction m using with_top.rec_top_coe, { simp [hn] },
-  rw [ne.def, with_top.coe_eq_zero] at hm,
-  induction n using with_top.rec_top_coe, { simp [hm] },
-  simp only [← nat.cast_mul, coe_coe]
-end
-
-/-- Coersion `coe : ℕ∞ → cardinal` as a ring homomorphism. -/
-@[simps] def enat_cast_hom : ℕ∞ →+* cardinal :=
-⟨coe, enat_cast_one, enat_cast_mul, enat_cast_zero, enat_cast_add⟩
-
-@[simp, norm_cast] lemma enat_cast_bit0 (m : ℕ∞) : ↑(bit0 m) = (bit0 m : cardinal) :=
-enat_cast_hom.map_bit0 _
-
-@[simp, norm_cast] lemma enat_cast_bit1 (m : ℕ∞) : ↑(bit1 m) = (bit1 m : cardinal) :=
-enat_cast_hom.map_bit1 _
-
-@[simp, norm_cast] lemma enat_cast_pow (m : ℕ∞) (n : ℕ) : ↑(m ^ n) = (m ^ n : cardinal) :=
-map_pow enat_cast_hom m n
 
 @[mono] lemma enat_cast_strict_mono : strict_mono (coe : ℕ∞ → cardinal) :=
 with_top.strict_mono_iff.2 ⟨λ m n, nat_cast_lt.2, nat_lt_aleph_0⟩
@@ -108,94 +84,80 @@ by rw [← lift_enat_cast, lift_inj]
 @[simp] lemma lift_eq_enat_cast {m : ℕ∞} {c : cardinal.{v}} : lift.{u} c = m ↔ c = m :=
 by rw [← lift_enat_cast, lift_inj]
 
-noncomputable def to_enat_aux : cardinal → ℕ∞ := extend (coe : ℕ∞ → cardinal) id (const _ ⊤)
-
-lemma to_enat_aux_enat (n : ℕ∞) : to_enat_aux n = n := extend_apply enat_cast_injective _ _ _
-lemma to_enat_aux_nat (n : ℕ) : to_enat_aux n = n := to_enat_aux_enat n
-lemma to_enat_aux_zero : to_enat_aux 0 = 0 := to_enat_aux_nat 0
-lemma to_enat_aux_aleph_0 : to_enat_aux ℵ₀ = ⊤ := to_enat_aux_enat ⊤
-
-lemma gc_to_enat_aux : galois_connection coe to_enat_aux :=
+lemma to_enat_aux_infinite (α : Type*) [infinite α] :
+  extend (coe : ℕ∞ → cardinal) id (const _ ⊤) (#α) = ⊤ :=
 begin
-  intros n c,
-  cases le_or_lt c ℵ₀ with hc hc,
-  { rcases le_aleph_0.1 hc with ⟨m, rfl⟩,
-    rw [enat_cast_le, to_enat_aux_enat] },
-  { rw [to_enat_aux, extend_apply'],
-    { simp [(enat_le_aleph_0 _).trans hc.le] },
-    { rintro ⟨_, rfl⟩, exact hc.not_le (enat_le_aleph_0 _) } }
+  cases (aleph_0_le_mk α).eq_or_lt with hα hα,
+  { rw [← hα, ← enat_cast_top, extend_apply enat_cast_injective, id] },
+  { rw [extend_apply'], rwa [← le_aleph_0', not_le] }
 end
 
-lemma to_enat_aux_eq_top {c : cardinal} : to_enat_aux c = ⊤ ↔  ℵ₀ ≤ c := gc_to_enat_aux.u_eq_top
-
-lemma to_enat_aux_eq_nat {c : cardinal} {n : ℕ} : to_enat_aux c = n ↔ c = n :=
+lemma to_enat_aux (α : Type*) : extend (coe : ℕ∞ → cardinal) id (const _ ⊤) (#α) = #ₑα :=
 begin
-  cases lt_or_le c ℵ₀ with hc hc,
-  { rcases lt_aleph_0.1 hc with ⟨m, rfl⟩, simp [to_enat_aux_nat] },
-  { simp only [to_enat_aux_eq_top.2 hc, with_top.top_ne_coe, ((nat_lt_aleph_0 _).trans_le hc).ne'] }
+  casesI fintype_or_infinite α,
+  { rw [mk_fintype, ← coe_coe, extend_apply enat_cast_injective, id, enat.card_fintype] },
+  { rw [to_enat_aux_infinite, enat.card_infinite] }
 end
-
-lemma to_enat_aux_eq_zero {c : cardinal} : to_enat_aux c = 0 ↔ c = 0 := to_enat_aux_eq_nat
-
-lemma to_enat_aux_lift (c : cardinal.{v}) : (lift.{u} c).to_enat_aux = c.to_enat_aux :=
-begin
-  cases le_total c ℵ₀ with hc hc,
-  { lift c to ℕ∞ using hc, simp [to_enat_aux_enat] },
-  { rw [to_enat_aux_eq_top.2 hc, to_enat_aux_eq_top.2 (aleph_0_le_lift.2 hc)] }
-end
-
-/-- An auxiliary definition, use `cardinal.gi_to_enat` instead. -/
-noncomputable def gi_to_enat_aux : galois_coinsertion coe to_enat_aux :=
-gc_to_enat_aux.to_galois_coinsertion $ λ n, (to_enat_aux_enat _).le
 
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
 to `⊤`. -/
 noncomputable def to_enat : cardinal →+* ℕ∞ :=
-{ to_fun := to_enat_aux,
-  map_one' := by rw [← nat.cast_one, to_enat_aux_nat, nat.cast_one],
-  map_mul' := λ x y,
-    begin
-      rcases eq_or_ne x 0 with rfl|hx₀, { simp only [to_enat_aux_zero, zero_mul] },
-      rcases eq_or_ne y 0 with rfl|hy₀, { simp only [to_enat_aux_zero, mul_zero] },
-      cases lt_or_le x ℵ₀ with hx hx,
-      { lift x to ℕ using hx,
-        cases lt_or_le y ℵ₀ with hy hy,
-        { lift y to ℕ using hy, simp only [to_enat_aux_nat, ← nat.cast_mul] },
-        { rw [to_enat_aux_eq_top.2 (aleph_0_le_mul_iff.2 ⟨hx₀, hy₀, or.inr hy⟩), to_enat_aux_nat,
-            to_enat_aux_eq_top.2 hy, with_top.mul_top],
-          simpa using hx₀ } },
-      { rw [to_enat_aux_eq_top.2 hx, with_top.top_mul (to_enat_aux_eq_zero.not.mpr hy₀),
-          to_enat_aux_eq_top.2 (aleph_0_le_mul_iff.2 ⟨hx₀, hy₀, or.inl hx⟩)] }
-    end,
-  map_zero' := to_enat_aux_zero,
-  map_add' := λ x y,
-    begin
-      cases le_or_lt ℵ₀ x with hx hx,
-      { rw [to_enat_aux_eq_top.2 hx, top_add, to_enat_aux_eq_top.2 (le_add_right hx)] },
-      { cases le_or_lt ℵ₀ y with hy hy,
-        { rw [to_enat_aux_eq_top.2 hy, add_top, to_enat_aux_eq_top.2 (le_add_left hy)] },
-        { lift x to ℕ using hx, lift y to ℕ using hy,
-          simp only [← nat.cast_add, to_enat_aux_nat] } }
-    end }
+{ to_fun := extend (coe : ℕ∞ → cardinal) id (const _ ⊤),
+  map_one' := by rw [← mk_punit, to_enat_aux, enat.card_punit],
+  map_mul' := λ x y, induction_on₂ x y $ λ α β, by simp only [mul_def, to_enat_aux, enat.card_prod],
+  map_zero' := by rw [← mk_pempty, to_enat_aux, enat.card_empty],
+  map_add' := λ x y, induction_on₂ x y $ λ α β, by simp only [add_def, to_enat_aux, enat.card_sum] }
 
-@[simp] lemma to_enat_enat (n : ℕ∞) : to_enat n = n := to_enat_aux_enat n
-@[simp] lemma to_enat_nat (n : ℕ) : to_enat n = n := to_enat_enat n
-@[simp] lemma to_enat_zero : to_enat 0 = 0 := to_enat_nat 0
-@[simp] lemma to_enat_aleph_0 : to_enat ℵ₀ = ⊤ := to_enat_enat ⊤
+@[simp, norm_cast] lemma to_enat_enat (n : ℕ∞) : to_enat n = n :=
+extend_apply enat_cast_injective _ _ _
 
-lemma gc_to_enat : galois_connection coe to_enat := gc_to_enat_aux
+@[simp, norm_cast] lemma to_enat_nat (n : ℕ∞) : to_enat n = n := to_enat_enat n
+@[simp, norm_cast] lemma to_enat_mk (α : Type*) : to_enat #α = #ₑ α := to_enat_aux α
 
-@[simp] lemma le_to_enat {c : cardinal} {n : ℕ∞} : n ≤ c.to_enat ↔ ↑n ≤ c :=
-gc_to_enat.le_iff_le.symm
+@[simp] lemma to_enat_of_aleph_0_le {c : cardinal} (hc : ℵ₀ ≤ c) : to_enat c = ⊤ :=
+induction_on c (λ α hα, @to_enat_aux_infinite α (infinite_iff.2 hα)) hc
 
-@[simp] lemma to_enat_eq_top {c : cardinal} : to_enat c = ⊤ ↔ ℵ₀ ≤ c := to_enat_aux_eq_top
-@[simp] lemma to_enat_eq_nat {c : cardinal} {n : ℕ} : to_enat c = n ↔ c = n := to_enat_aux_eq_nat
+@[simp] lemma le_to_enat {n : ℕ∞} {c : cardinal} : n ≤ to_enat c ↔ ↑n ≤ c :=
+begin
+  cases le_total c ℵ₀ with hc hc,
+  { rcases le_aleph_0.1 hc with ⟨m, rfl⟩,
+    rw [enat_cast_le, to_enat_enat] },
+  { simp only [to_enat_of_aleph_0_le hc, le_top, (enat_le_aleph_0 _).trans hc] }
+end
+
+lemma gc_to_enat : galois_connection coe to_enat := λ n c, le_to_enat.symm
+
+/-- Coercion `ℕ∞ → cardinal` and `cardinal.to_enat` form a Galois coinsertion. -/
+noncomputable def gi_to_enat : galois_coinsertion coe to_enat :=
+gc_to_enat.to_galois_coinsertion $ λ n, (to_enat_enat _).le
+
+lemma to_enat_surjective : surjective to_enat := gi_to_enat.u_surjective
+@[simp] lemma range_to_enat : range to_enat = univ := to_enat_surjective.range_eq
+@[simp] lemma to_enat_eq_top {c : cardinal} : to_enat c = ⊤ ↔  ℵ₀ ≤ c := gc_to_enat.u_eq_top
+
+@[simp] lemma to_enat_eq_nat {c : cardinal} {n : ℕ} : to_enat c = n ↔ c = n :=
+induction_on c $ λ α, by simp only [to_enat_mk, mk_eq_nat_iff, enat.card_eq_nat_iff]
+
 @[simp] lemma to_enat_eq_zero {c : cardinal} : to_enat c = 0 ↔ c = 0 := to_enat_eq_nat
 
 @[simp] lemma to_enat_eq_one {c : cardinal} : to_enat c = 1 ↔ c = 1 :=
 by rw [← enat.coe_one, to_enat_eq_nat, nat.cast_one]
 
-alias to_enat_eq_top ↔ _ to_enat_of_aleph_0_le
+@[simp] lemma to_enat_lift (c : cardinal.{v}) : (lift.{u} c).to_enat = c.to_enat :=
+induction_on c $ λ α, by rw [← mk_ulift, to_enat_mk, to_enat_mk, enat.card_ulift]
+
+lemma enat_cast_eq_iff {n : ℕ∞} {c : cardinal} : ↑n = c ↔ c.to_enat = n ∧ c ≤ ℵ₀ :=
+⟨λ h, h ▸ ⟨to_enat_enat _, enat_le_aleph_0 _⟩,
+  λ h, by { lift c to ℕ∞ using h.2, simpa only [to_enat_enat, enat_cast_inj] using h.1.symm }⟩
+
+/-- Coercion `ℕ∞ → cardinal` is a ring homomorphism. -/
+instance enat_coe_is_ring_hom : coe_is_ring_hom ℕ∞ cardinal :=
+{ coe_one := enat_cast_eq_iff.2 ⟨map_one _, one_le_aleph_0⟩,
+  coe_mul := λ m n, enat_cast_eq_iff.2 ⟨by rw [map_mul, to_enat_enat, to_enat_enat],
+    aleph_0_mul_aleph_0 ▸ mul_le_mul' (enat_le_aleph_0 _) (enat_le_aleph_0 _)⟩,
+  coe_zero := rfl,
+  coe_add := λ m n, enat_cast_eq_iff.2 ⟨by rw [map_add, to_enat_enat, to_enat_enat],
+    add_le_aleph_0.2 ⟨enat_le_aleph_0 _, enat_le_aleph_0 _⟩⟩ }
 
 @[simp] lemma cast_to_enat_eq_self {c : cardinal} : ↑c.to_enat = c ↔ c ≤ ℵ₀ :=
 ⟨λ h, h ▸ enat_le_aleph_0 _, λ h, by { lift c to ℕ∞ using h, rw [to_enat_enat] }⟩
@@ -204,16 +166,6 @@ alias cast_to_enat_eq_self ↔ _ cast_to_enat_of_le_aleph_0
 
 lemma cast_to_enat_le_self (c : cardinal) : ↑c.to_enat ≤ c := gc_to_enat.l_u_le _
 
-/-- Coercion `ℕ∞ → cardinal` and `cardinal.to_enat` form a Galois coinsertion. -/
-noncomputable def gi_to_enat : galois_coinsertion coe to_enat := gi_to_enat_aux
-
-lemma to_enat_surjective : surjective to_enat := gi_to_enat.u_surjective
-
-@[simp] lemma range_to_enat : range to_enat = univ := to_enat_surjective.range_eq
-
-@[simp] lemma to_enat_lift (c : cardinal.{v}) : (lift.{u} c).to_enat = c.to_enat :=
-to_enat_aux_lift c
-
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
 to 0. -/
 noncomputable def to_nat : cardinal →*₀ ℕ := enat.to_nat.comp to_enat.to_monoid_with_zero_hom
@@ -221,6 +173,9 @@ noncomputable def to_nat : cardinal →*₀ ℕ := enat.to_nat.comp to_enat.to_m
 @[simp] lemma to_nat_to_enat (c : cardinal) : c.to_enat.to_nat = c.to_nat := rfl
 @[simp] lemma to_nat_enat (n : ℕ∞) : to_nat n = n.to_nat := by rw [← to_nat_to_enat, to_enat_enat]
 @[simp] lemma to_nat_nat (n : ℕ) : to_nat n = n := by rw [← coe_coe, to_nat_enat, enat.to_nat_coe]
+
+@[simp] lemma to_nat_mk (α : Type*) : (#α).to_nat = #ₙ α :=
+by rw [← to_nat_to_enat, to_enat_mk, enat.to_nat_card]
 
 lemma to_nat_apply_of_aleph_0_le {c : cardinal} (h : ℵ₀ ≤ c) : c.to_nat = 0 :=
 by rw [← to_nat_to_enat, to_enat_of_aleph_0_le h, enat.to_nat_top]

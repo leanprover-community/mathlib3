@@ -903,14 +903,15 @@ end
 by simp only [cardinal.pow_cast_right, coe_pow]
 
 @[simp, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
-begin
-  rw [←lift_mk_fin, ←lift_mk_fin, lift_le],
-  exact ⟨λ ⟨⟨f, hf⟩⟩, by simpa only [fintype.card_fin] using fintype.card_le_of_injective f hf,
-    λ h, ⟨(fin.cast_le h).to_embedding⟩⟩
-end
+by rw [←lift_mk_fin, ←lift_mk_fin, lift_le, le_def, embedding.nonempty_iff_card_le,
+  fintype.card_fin, fintype.card_fin]
+
+/-- Coercion `coe : ℕ → cardinal` as an order embedding. -/
+@[simps { fully_applied := ff }] def nat_cast_order_embedding : ℕ ↪o cardinal :=
+order_embedding.of_map_le_iff coe $ λ m n, nat_cast_le
 
 @[simp, norm_cast] theorem nat_cast_lt {m n : ℕ} : (m : cardinal) < n ↔ m < n :=
-by simp [lt_iff_le_not_le, ←not_le]
+nat_cast_order_embedding.lt_iff_lt
 
 instance : char_zero cardinal := ⟨strict_mono.injective $ λ m n, nat_cast_lt.2⟩
 

@@ -840,10 +840,10 @@ lemma disjoint {k l : ℕ} (h : k ≠ l) :
 begin
   by_cases hk : k = 0, { simp [hk], },
   by_cases hl : l = 0, { simp [hl], },
+  rw finset.disjoint_left,
   intro z,
-  simp only [finset.inf_eq_inter, finset.mem_inter, mem_primitive_roots,
-    nat.pos_of_ne_zero hk, nat.pos_of_ne_zero hl, iff_def],
-  rintro ⟨⟨hzk, Hzk⟩, ⟨hzl, Hzl⟩⟩,
+  simp only [mem_primitive_roots, nat.pos_of_ne_zero hk, nat.pos_of_ne_zero hl, iff_def],
+  rintro ⟨hzk, Hzk⟩ ⟨hzl, Hzl⟩,
   apply_rules [h, nat.dvd_antisymm, Hzk, Hzl, hzk, hzl]
 end
 
@@ -1054,7 +1054,7 @@ begin
     simp [nat.is_unit_iff.mp hunit] },
   { intros a p ha hprime hind n hcop h,
     rw hind (nat.coprime.coprime_mul_left hcop) h, clear hind,
-    replace hprime := nat.prime_iff.2 hprime,
+    replace hprime := hprime.nat_prime,
     have hdiv := (nat.prime.coprime_iff_not_dvd hprime).1 (nat.coprime.coprime_mul_right hcop),
     haveI := fact.mk hprime,
     rw [minpoly_eq_pow (h.pow_of_coprime a (nat.coprime.coprime_mul_left hcop)) hdiv],

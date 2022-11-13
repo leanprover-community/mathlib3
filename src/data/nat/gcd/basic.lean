@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import algebra.group_power.basic
-import data.nat.order
+import algebra.group_with_zero.divisibility
+import data.nat.order.lemmas
 
 /-!
 # Definitions and properties of `nat.gcd`, `nat.lcm`, and `nat.coprime`

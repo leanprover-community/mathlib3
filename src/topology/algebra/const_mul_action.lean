@@ -103,6 +103,8 @@ lemma continuous.const_smul (hg : continuous g) (c : M) :
 (continuous_const_smul _).comp hg
 
 /-- If a scalar is central, then its right action is continuous when its left action is. -/
+@[to_additive "If an additive action is central, then its right action is continuous when its left
+action is."]
 instance has_continuous_const_smul.op [has_smul Mᵐᵒᵖ α] [is_central_scalar M α] :
   has_continuous_const_smul Mᵐᵒᵖ α :=
 ⟨ mul_opposite.rec $ λ c, by simpa only [op_smul_eq_smul] using continuous_const_smul c ⟩
@@ -422,7 +424,7 @@ begin
   refine ⟨f '' U₀, U_nhds, f '' V₀, V_nhds, mul_action.disjoint_image_image_iff.2 _⟩,
   rintros x ⟨x_in_U₀₀, x_in_K₀⟩ γ,
   by_cases H : γ ∈ bad_Γ_set,
-  { exact λ h, u_v_disjoint γ ⟨mem_Inter₂.mp x_in_U₀₀ γ H, mem_Inter₂.mp h.1 γ H⟩ },
+  { exact λ h, (u_v_disjoint γ).le_bot ⟨mem_Inter₂.mp x_in_U₀₀ γ H, mem_Inter₂.mp h.1 γ H⟩ },
   { rintros ⟨-, h'⟩,
     simp only [image_smul, not_not, mem_set_of_eq, ne.def] at H,
     exact eq_empty_iff_forall_not_mem.mp H (γ • x) ⟨mem_image_of_mem _ x_in_K₀, h'⟩ },

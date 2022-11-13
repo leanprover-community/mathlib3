@@ -541,7 +541,7 @@ by { casesI nonempty_encodable β, rw ← encodable.Union_decode₂, exact
     (λ n, encodable.Union_decode₂_cases d.has_empty h) }
 
 theorem has_union {s₁ s₂ : set α}
-  (h₁ : d.has s₁) (h₂ : d.has s₂) (h : s₁ ∩ s₂ ⊆ ∅) : d.has (s₁ ∪ s₂) :=
+  (h₁ : d.has s₁) (h₂ : d.has s₂) (h : disjoint s₁ s₂) : d.has (s₁ ∪ s₂) :=
 by { rw union_eq_Union, exact
   d.has_Union (pairwise_disjoint_on_bool.2 h) (bool.forall_bool.2 ⟨h₂, h₁⟩) }
 
@@ -549,7 +549,7 @@ lemma has_diff {s₁ s₂ : set α} (h₁ : d.has s₁) (h₂ : d.has s₂) (h :
 begin
   apply d.has_compl_iff.1,
   simp [diff_eq, compl_inter],
-  exact d.has_union (d.has_compl h₁) h₂ (λ x ⟨h₁, h₂⟩, h₁ (h h₂)),
+  exact d.has_union (d.has_compl h₁) h₂ (disjoint_compl_left.mono_right h),
 end
 
 instance : has_le (dynkin_system α) :=
@@ -626,10 +626,10 @@ def restrict_on {s : set α} (h : d.has s) : dynkin_system α :=
       (compl_subset_compl.mpr $ inter_subset_right _ _) },
   has_Union_nat := assume f hd hf,
     begin
-      rw [inter_comm, inter_Union],
-      apply d.has_Union_nat,
-      { exact λ i j h x ⟨⟨_, h₁⟩, _, h₂⟩, hd h ⟨h₁, h₂⟩ },
-      { simpa [inter_comm] using hf },
+      rw [Union_inter],
+      refine d.has_Union_nat _ hf,
+      exact hd.mono (λ i j,
+        disjoint.mono (inter_subset_left _ _) (inter_subset_left _ _)),
     end }
 
 lemma generate_le {s : set (set α)} (h : ∀ t ∈ s, d.has t) : generate s ≤ d :=

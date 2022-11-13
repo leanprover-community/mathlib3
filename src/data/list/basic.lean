@@ -1097,6 +1097,12 @@ eq_nil_of_subset_nil $ s.subset
 ⟨λ h, by simpa only [length_repeat] using h.length_le,
  λ h, by induction h; [refl, simp only [*, repeat_succ, sublist.cons]] ⟩
 
+lemma sublist_repeat_iff {l : list α} {a : α} {n : ℕ} :
+  l <+ repeat a n ↔ ∃ (k ≤ n), l = repeat a k :=
+⟨λ h, ⟨l.length, h.length_le.trans (length_repeat _ _).le, eq_repeat.mpr
+         ⟨rfl, λ b hb, list.eq_of_mem_repeat (h.subset hb)⟩⟩,
+ by { rintro ⟨k, h, rfl⟩, exact (repeat_sublist_repeat _).mpr h }⟩
+
 theorem sublist.eq_of_length : ∀ {l₁ l₂ : list α}, l₁ <+ l₂ → length l₁ = length l₂ → l₁ = l₂
 | ._ ._ sublist.slnil             h := rfl
 | ._ ._ (sublist.cons  l₁ l₂ a s) h := by cases s.length_le.not_lt (by rw h; apply lt_succ_self)
@@ -2217,9 +2223,6 @@ foldl_fixed' (λ _, rfl)
 
 @[simp] theorem foldr_fixed {b : β} : Π l : list α, foldr (λ a b, b) b l = b :=
 foldr_fixed' (λ _, rfl)
-
-@[simp] theorem foldl_combinator_K {a : α} : Π l : list β, foldl combinator.K a l = a :=
-foldl_fixed
 
 @[simp] theorem foldl_join (f : α → β → α) :
   ∀ (a : α) (L : list (list β)), foldl f a (join L) = foldl (foldl f) a L

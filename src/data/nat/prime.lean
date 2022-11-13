@@ -569,8 +569,10 @@ mt pp.dvd_mul.1 $ by simp [Hm, Hn]
 theorem prime_iff {p : ℕ} : p.prime ↔ _root_.prime p :=
 ⟨λ h, ⟨h.ne_zero, h.not_unit, λ a b, h.dvd_mul.mp⟩, prime.irreducible⟩
 
-theorem irreducible_iff_prime {p : ℕ} : irreducible p ↔ _root_.prime p :=
-by rw [←prime_iff, prime]
+alias prime_iff ↔ prime.prime _root_.prime.nat_prime
+attribute [protected, nolint dup_namespace] prime.prime
+
+theorem irreducible_iff_prime {p : ℕ} : irreducible p ↔ _root_.prime p := prime_iff
 
 theorem prime.dvd_of_dvd_pow {p m n : ℕ} (pp : prime p) (h : p ∣ m^n) : p ∣ m :=
 begin

@@ -152,5 +152,3 @@ meta def assert_no_instance.linter : linter :=
   is_fast := ff }
 
 end
-
-#eval (`fo«o.f»ar).length

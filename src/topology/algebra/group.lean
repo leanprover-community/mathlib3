@@ -1210,7 +1210,8 @@ end
 
 /-- Given two compact sets in a noncompact topological group, there is a translate of the second
 one that is disjoint from the first one. -/
-@[to_additive]
+@[to_additive "Given two compact sets in a noncompact additive topological group, there is a
+translate of the second one that is disjoint from the first one."]
 lemma exists_disjoint_smul_of_is_compact [noncompact_space G] {K L : set G}
   (hK : is_compact K) (hL : is_compact L) : ∃ (g : G), disjoint K (g • L) :=
 begin

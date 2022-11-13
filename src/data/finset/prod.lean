@@ -71,6 +71,14 @@ product_subset_product hs (subset.refl _)
 lemma product_subset_product_right (ht : t ⊆ t') : s ×ˢ t ⊆ s ×ˢ t' :=
 product_subset_product (subset.refl _) ht
 
+lemma map_swap_product (s : finset α) (t : finset β) :
+  (t ×ˢ s).map ⟨prod.swap, prod.swap_injective⟩ = s ×ˢ t :=
+coe_injective $ by { push_cast, exact set.image_swap_prod _ _ }
+
+@[simp] lemma image_swap_product [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
+  (t ×ˢ s).image prod.swap = s ×ˢ t :=
+coe_injective $ by { push_cast, exact set.image_swap_prod _ _ }
+
 lemma product_eq_bUnion [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
   s ×ˢ t = s.bUnion (λa, t.image $ λb, (a, b)) :=
 ext $ λ ⟨x, y⟩, by simp only [mem_product, mem_bUnion, mem_image, exists_prop, prod.mk.inj_iff,

@@ -1051,4 +1051,14 @@ def right_homology_iso_kernel_desc [S.has_right_homology] [has_cokernel S.f]
   S.right_homology ≅ kernel (cokernel.desc S.f S.g S.zero) :=
 (right_homology_data.of_coker_of_ker S).right_homology_iso
 
+namespace right_homology_data
+
+variable {S}
+
+lemma is_iso_g'_of_zero_f (h : right_homology_data S) (hf : S.f = 0) : is_iso h.p :=
+⟨⟨h.desc_Q (𝟙 S.X₂) (by rw [hf, zero_comp]), p_desc_Q _ _ _,
+  by simp only [←cancel_epi h.p, p_desc_Q_assoc, id_comp, comp_id]⟩⟩
+
+end right_homology_data
+
 end short_complex

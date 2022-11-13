@@ -190,18 +190,43 @@ abelian.exact_of_is_kernel _ _ (by simp [← functor.map_comp, ex.w]) $
 lemma exact_of_map_injective_resolution (P: InjectiveResolution X) [preserves_finite_limits F] :
   exact (F.map (P.ι.f 0))
     (((F.map_homological_complex (complex_shape.up ℕ)).obj P.cocomplex).d_from 0) :=
-preadditive.exact_of_iso_of_exact' (F.map (P.ι.f 0)) (F.map (P.cocomplex.d 0 1)) _ _
+exact_of_iso_of_exact (F.map (P.ι.f 0)) (F.map (P.cocomplex.d 0 1)) _ _
   (iso.refl _) (iso.refl _)
   (homological_complex.X_next_iso ((F.map_homological_complex _).obj P.cocomplex) rfl).symm
   (by simp)
   (by rw [iso.refl_hom, category.id_comp, iso.symm_hom, homological_complex.d_from_eq]; congr')
   (preserves_exact_of_preserves_finite_limits_of_mono _ (P.exact₀))
 
+
+def homology_data_right_derived_zero {X : C} (P : InjectiveResolution X)
+  [preserves_finite_limits F] :
+    ((F.map_homological_complex _).obj P.cocomplex).homology_data 0 :=
+begin
+  -- preserves_left_homology_of_zero_left
+  -- preserves_right_homology_of_zero_left
+end
+#exit
+short_complex.homology_data.of_limit_kernel_fork _
+  (homological_complex.shape _ _ _ (by simp)) _ (category_theory.limits.kernel_fork.map_is_limit P.is_limit_kernel_fork F)
+
+#exit
+  F.map_homotopy_
+#exit
+[enough_injectives C] : F=F :=
+short_complex.homology_data
+((injective_resolutions C ⋙ F.map_homotopy_category _ ⋙ homological_complex.short_complex_functor _ _ 0).obj X) :=
+sorry
+
 /-- Given `P : InjectiveResolution X`, a morphism `(F.right_derived 0).obj X ⟶ F.obj X` given
 `preserves_finite_limits F`. -/
 def right_derived_zero_to_self_app [enough_injectives C] [preserves_finite_limits F] {X : C}
   (P : InjectiveResolution X) :
   (F.right_derived 0).obj X ⟶ F.obj X :=
+begin
+  have pif := (right_derived_obj_iso F 0 P).hom,
+  sorry,
+end
+#exit
 (right_derived_obj_iso F 0 P).hom ≫ (homology_iso_kernel_desc _ _ _).hom ≫
   kernel.map _ _ (cokernel.desc _ (𝟙 _) (by simp)) (𝟙 _) (by { ext, simp }) ≫
   (as_iso (kernel.lift _ _ (exact_of_map_injective_resolution F P).w)).inv

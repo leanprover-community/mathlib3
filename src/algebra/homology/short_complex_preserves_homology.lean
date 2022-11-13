@@ -26,6 +26,35 @@ def parallel_pair.comp_nat_iso
   parallel_pair f 0 ⋙ F ≅ parallel_pair (F.map f) 0 :=
 category_theory.limits.parallel_pair.comp_nat_iso' F f _ rfl
 
+@[simps]
+def kernel_fork.map {X Y : C} {f : X ⟶ Y} [has_zero_morphisms C] [has_zero_morphisms D]
+  (c : kernel_fork f) (F : C ⥤ D) [F.preserves_zero_morphisms] :
+  kernel_fork (F.map f) :=
+kernel_fork.of_ι (F.map c.ι) (by rw [← F.map_comp, c.condition, F.map_zero])
+
+def kernel_fork.map_is_limit {X Y : C} {f : X ⟶ Y} [has_zero_morphisms C] [has_zero_morphisms D]
+  {c : kernel_fork f} (hc : is_limit c) (F : C ⥤ D) [F.preserves_zero_morphisms]
+  [preserves_limit (parallel_pair f 0) F] :
+  is_limit (c.map F) :=
+begin
+  equiv_rw (is_limit.postcompose_inv_equiv(parallel_pair.comp_nat_iso F f) _).symm,
+  refine is_limit.of_iso_limit (is_limit_of_preserves F hc) _,
+  refine cones.ext (iso.refl _) _,
+  rintro (_|_),
+  { tidy, },
+  { dsimp,
+    simp only [kernel_fork.app_one, category.comp_id, category.id_comp,
+      ← F.map_comp, c.condition], },
+end
+
+instance preserves_kernel_zero {X Y : C} [has_zero_morphisms C] [has_zero_morphisms D] (F : C ⥤ D)
+  [F.preserves_zero_morphisms] :
+  preserves_limit (parallel_pair (0 : X ⟶ Y) 0) F := sorry
+
+instance preserves_cokernel_zero {X Y : C} [has_zero_morphisms C] [has_zero_morphisms D] (F : C ⥤ D)
+  [F.preserves_zero_morphisms] :
+  preserves_colimit (parallel_pair (0 : X ⟶ Y) 0) F := sorry
+
 end limits
 
 namespace functor
@@ -511,4 +540,31 @@ begin
     apply_instance, },
 end
 
+section
+
+variables (F : C ⥤ D) [functor.preserves_zero_morphisms F] (S : short_complex C)
+
+lemma preserves_left_homology_of_zero_left (hf : S.f = 0)
+  [preserves_limit (parallel_pair S.g 0) F] [F.preserves_zero_morphisms]:
+  F.preserves_left_homology_of S :=
+⟨λ h, begin
+  split,
+  { apply_instance, },
+  { rw [show h.f' = 0, by rw [← cancel_mono h.i, h.f'_i, zero_comp, hf]],
+    apply_instance, },
+end⟩
+
+lemma preserves_right_homology_of_zero_left (hf : S.f = 0)
+  [preserves_limit (parallel_pair S.g 0) F] [F.preserves_zero_morphisms]:
+  F.preserves_right_homology_of S :=
+⟨λ h, begin
+  split,
+  { rw hf, apply_instance, },
+  { let e : parallel_pair S.g 0 ≅ parallel_pair h.g' 0,
+    { haveI : is_iso h.p := h.is_iso_g'_of_zero_f hf,
+      exact parallel_pair.ext (as_iso h.p) (iso.refl _) (by tidy) (by tidy), },
+    exact limits.preserves_limit_of_iso_diagram F e, },
+end⟩
+
+end
 end short_complex

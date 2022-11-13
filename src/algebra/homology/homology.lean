@@ -163,6 +163,12 @@ abbreviation has_homology (C : homological_complex V c) (i : ι) :=
 abbreviation homology_data (C : homological_complex V c) (i : ι) :=
 ((short_complex_functor V c i).obj C).homology_data
 
+abbreviation left_homology_data (C : homological_complex V c) (i : ι) :=
+((short_complex_functor V c i).obj C).left_homology_data
+
+abbreviation right_homology_data (C : homological_complex V c) (i : ι) :=
+((short_complex_functor V c i).obj C).right_homology_data
+
 abbreviation homology_map_data {C₁ C₂ : homological_complex V c} (φ : C₁ ⟶ C₂) (i : ι)
   (h₁ : C₁.homology_data i) (h₂ : C₂.homology_data i) :=
 short_complex.homology_map_data ((short_complex_functor V c i).map φ) h₁ h₂
@@ -232,6 +238,12 @@ nat_iso.of_components (λ C, short_complex.mk_iso (C.X_prev_iso hij) (iso.refl _
 
 variables {V c}
 
+@[simp]
+def homology_data_mk (C : homological_complex V c)
+  {i j k : ι} (hij : c.rel i j) (hjk : c.rel j k) (h : (C.sc i j k).homology_data) :
+  C.homology_data j :=
+short_complex.homology_data.of_iso ((short_complex_functor_nat_iso V c hij hjk).app C).symm h
+
 lemma X_next_iso_self_naturality {C₁ C₂ : homological_complex V c} (φ : C₁ ⟶ C₂)
   (j : ι) (hj : ¬c.rel j (c.next j)) :
   φ.f (c.next j) ≫ (C₂.X_next_iso_self hj).hom = (C₁.X_next_iso_self hj).hom ≫ φ.f j :=
@@ -298,43 +310,75 @@ nat_iso.of_components (λ C, short_complex.mk_iso (C.X_prev_iso_self hi) (iso.re
 
 variables {V c}
 
+@[simp]
+def homology_data_mk₁₂
+  (C : homological_complex V c) {i j : ι} (hij : c.rel i j)
+  (hj : ¬c.rel j (c.next j)) (h : (C.sc i j j).homology_data) :
+  C.homology_data j :=
+short_complex.homology_data.of_iso
+  ((short_complex_functor_nat_iso₁₂ V c hij hj).app C).symm h
+
+@[simp]
+def homology_data_mk₁₂_of_cokernel'
+  (C : homological_complex V c) {i j : ι} (hij : c.rel i j)
+  (hj : ¬c.rel j (c.next j)) (cc : cokernel_cofork (C.d i j)) (hcc : is_colimit cc) :
+  C.homology_data j :=
+C.homology_data_mk₁₂ hij hj
+  (short_complex.homology_data.of_colimit_cokernel_cofork _
+    (C.shape _ _ (c.not_rel_of_not_rel_next hj)) cc hcc)
+
+@[simp]
+def homology_data_mk₁₂_of_cokernel
+  (C : homological_complex V c) {i j : ι} (hij : c.rel i j)
+  (hj : ¬c.rel j (c.next j)) [has_cokernel (C.d i j)] :
+  C.homology_data j :=
+C.homology_data_mk₁₂_of_cokernel' hij hj _ (cokernel_is_cokernel (C.d i j))
+
+@[simps]
 def homology_iso_cokernel' (C : homological_complex V c) {i j : ι} (hij : c.rel i j)
   (hj : ¬c.rel j (c.next j)) [C.has_homology j] (cc : cokernel_cofork (C.d i j)) (hcc : is_colimit cc) :
   C.homology j ≅ cc.X :=
-begin
-  let e := (short_complex_functor_nat_iso₁₂ V c hij hj).app C,
-  haveI := short_complex.has_homology_of_iso e,
-  exact short_complex.homology_map_iso e ≪≫
-    (short_complex.homology_data.of_colimit_cokernel_cofork (C.sc i j j)
-      (shape _ j j (c.not_rel_of_not_rel_next hj)) cc hcc).homology_iso,
-end
+(C.homology_data_mk₁₂_of_cokernel' hij hj cc hcc).homology_iso
 
 def homology_iso_cokernel (C : homological_complex V c) {i j : ι} (hij : c.rel i j)
   (hj : ¬c.rel j (c.next j)) [C.has_homology j] [has_cokernel (C.d i j)] :
   C.homology j ≅ cokernel (C.d i j) :=
-begin
-  let e := C.homology_iso_cokernel' hij hj _ (cokernel_is_cokernel (C.d i j)),
-  exact e,
-end
+(C.homology_data_mk₁₂_of_cokernel hij hj).homology_iso
 
+@[simp]
+def homology_data_mk₂₃
+  (C : homological_complex V c) {i j : ι} (hij : c.rel i j)
+  (hi : ¬c.rel (c.prev i) i) (h : (C.sc i i j).homology_data) :
+  C.homology_data i :=
+short_complex.homology_data.of_iso ((short_complex_functor_nat_iso₂₃ V c hij hi).app C).symm h
+
+@[simp]
+def homology_data_mk₂₃_of_kernel'
+  (C : homological_complex V c) {i j : ι} (hij : c.rel i j)
+  (hi : ¬c.rel (c.prev i) i) (kf : kernel_fork (C.d i j)) (hkf : is_limit kf) :
+  C.homology_data i :=
+C.homology_data_mk₂₃ hij hi
+  (short_complex.homology_data.of_limit_kernel_fork _
+    (C.shape _ _ (c.not_rel_of_not_prev_rel hi)) kf hkf)
+
+@[simp]
+def homology_data_mk₂₃_of_kernel
+  (C : homological_complex V c) {i j : ι} (hij : c.rel i j)
+  (hi : ¬c.rel (c.prev i) i) [has_kernel (C.d i j)] :
+  C.homology_data i :=
+C.homology_data_mk₂₃_of_kernel' hij hi _ (kernel_is_kernel (C.d i j))
+
+@[simp]
 def homology_iso_kernel' (C : homological_complex V c) {i j : ι} (hij : c.rel i j)
   (hi : ¬c.rel (c.prev i) i) [C.has_homology i] (kc : kernel_fork (C.d i j)) (hkc : is_limit kc) :
   C.homology i ≅ kc.X :=
-begin
-  let e := (short_complex_functor_nat_iso₂₃ V c hij hi).app C,
-  haveI := short_complex.has_homology_of_iso e,
-  exact short_complex.homology_map_iso e ≪≫
-    (short_complex.homology_data.of_limit_kernel_fork (C.sc i i j)
-      (shape _ i i (c.not_rel_of_not_prev_rel hi)) kc hkc).homology_iso,
-end
+(C.homology_data_mk₂₃_of_kernel' hij hi kc hkc).homology_iso
 
+@[simp]
 def homology_iso_kernel (C : homological_complex V c) {i j : ι} (hij : c.rel i j)
   (hi : ¬c.rel (c.prev i) i) [C.has_homology i] [has_kernel (C.d i j)] :
   C.homology i ≅ kernel (C.d i j) :=
-begin
-  let e := C.homology_iso_kernel' hij hi _ (kernel_is_kernel (C.d i j)),
-  exact e,
-end
+(C.homology_data_mk₂₃_of_kernel hij hi).homology_iso
 
 end homological_complex
 

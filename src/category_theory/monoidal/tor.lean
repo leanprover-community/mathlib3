@@ -29,7 +29,7 @@ open category_theory.monoidal_category
 namespace category_theory
 
 variables {C : Type*} [category C] [monoidal_category C] [preadditive C] [monoidal_preadditive C]
-  [has_zero_object C] [has_equalizers C] [has_cokernels C] [has_images C] [has_image_maps C]
+  [has_zero_object C] [category_with_homology C]
   [has_projective_resolutions C]
 
 variables (C)

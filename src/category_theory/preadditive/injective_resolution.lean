@@ -93,6 +93,36 @@ I.exact₀.w
   I.cocomplex.d n (n + 1) ≫ I.cocomplex.d (n + 1) (n + 2) = 0 :=
 (I.exact _).w
 
+@[simps]
+def kernel_fork {Z : C} (I : InjectiveResolution Z) : kernel_fork (I.cocomplex.d 0 1) :=
+  kernel_fork.of_ι (I.ι.f 0) I.ι_f_zero_comp_complex_d
+
+def is_limit_kernel_fork {Z : C} (I : InjectiveResolution Z) [balanced C]:
+  is_limit I.kernel_fork :=
+I.exact₀.exact.f_is_kernel
+
+@[simp]
+def homology_data_cocomplex_zero {Z : C} (I : InjectiveResolution Z) [balanced C] :
+  I.cocomplex.homology_data 0 :=
+I.cocomplex.homology_data_mk₂₃_of_kernel' (zero_add 1) (by simp) _ I.is_limit_kernel_fork
+
+instance cocomplex_has_homology_succ' {Z : C} (I : InjectiveResolution Z) (n : ℕ):
+  (homological_complex.sc I.cocomplex n (n + 1) (n + 2)).has_homology :=
+(I.exact n).has_homology
+
+instance cocomplex_has_homology_succ {Z : C} (I : InjectiveResolution Z) (n : ℕ):
+  I.cocomplex.has_homology (n+1) :=
+short_complex.has_homology.mk' (I.cocomplex.homology_data_mk rfl rfl
+    ((I.cocomplex.sc n (n+1) (n+2)).some_homology_data))
+
+instance cocomplex_has_homology {Z : C} (I : InjectiveResolution Z) [balanced C] (n : ℕ) :
+  I.cocomplex.has_homology n :=
+begin
+  cases n,
+  { exact short_complex.has_homology.mk' I.homology_data_cocomplex_zero, },
+  { apply_instance, },
+end
+
 instance {Z : C} (I : InjectiveResolution Z) (n : ℕ) : category_theory.mono (I.ι.f n) :=
 by cases n; apply_instance
 

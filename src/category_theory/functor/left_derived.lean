@@ -52,7 +52,7 @@ variables {C : Type u} [category.{v} C] {D : Type*} [category D]
 -- `[abelian C] [enough_projectives C] [abelian D]` suffices to acquire all the following:
 variables [preadditive C] [has_zero_object C] [category_with_homology C]
   [has_projective_resolutions C]
-variables [preadditive D] [has_equalizers D] [category_with_homology D]
+variables [preadditive D] [category_with_homology D]
 
 /-- The left derived functors of an additive functor. -/
 def functor.left_derived (F : C ⥤ D) [F.additive] (n : ℕ) : C ⥤ D :=

@@ -8,21 +8,6 @@ import data.real.sqrt
 import topology.algebra.filter_basis
 import analysis.convex.function
 import analysis.locally_convex.basic
---topology.algebra.module.locally_convex
-
---analysis.convex.topology
-
--- import analysis.convex.jensen
--- import analysis.convex.strict
--- import analysis.normed.group.pointwise
--- import analysis.normed_space.ray
--- import topology.path_connected
--- import topology.algebra.affine
-
--- import topology.algebra.module.finite_dimension
-
--- import analysis.locally_convex.balanced_core_hull
--- import order.closure
 
 /-!
 # Seminorms

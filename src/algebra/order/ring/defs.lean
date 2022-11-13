@@ -117,7 +117,7 @@ class ordered_semiring (α : Type u) extends semiring α, ordered_add_comm_monoi
 
 /-- An `ordered_comm_semiring` is a commutative semiring with a partial order such that addition is
 monotone and multiplication by a nonnegative number is monotone. -/
-@[protect_proj, ancestor ordering_semiring comm_semiring]
+@[protect_proj, ancestor ordered_semiring comm_semiring]
 class ordered_comm_semiring (α : Type u) extends ordered_semiring α, comm_semiring α
 
 /-- An `ordered_ring` is a ring with a partial order such that addition is monotone and

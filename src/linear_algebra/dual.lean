@@ -973,7 +973,8 @@ begin
       linear_map.quot_ker_equiv_range_symm_apply_image, mkq_apply], }
 end
 
--- Note, this can be specialized to the case where `R` is an injective `R`-module.
+-- Note, this can be specialized to the case where `R` is an injective `R`-module, or when
+-- `f.coker` is a projective `R`-module.
 lemma range_dual_map_eq_dual_annihilator_ker_of_subtype_range_surjective
   (f : M →ₗ[R] M') (hf : function.surjective f.range.subtype.dual_map) :
   f.dual_map.range = f.ker.dual_annihilator :=

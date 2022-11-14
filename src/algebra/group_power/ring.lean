@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.group_power.basic
-import algebra.group_with_zero.units
+import algebra.group_with_zero.commute
 import algebra.hom.ring
 import algebra.ring.commute
 import data.nat.order.lemmas

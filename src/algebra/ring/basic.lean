@@ -6,7 +6,6 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Yury Kudryashov, Ne
 import algebra.ring.defs
 import algebra.hom.group
 import algebra.opposites
-import algebra.ring.inj_surj
 
 /-!
 # Semirings and rings
@@ -75,12 +74,6 @@ section has_distrib_neg
 
 section has_mul
 variables [has_mul α] [has_distrib_neg α]
-
-namespace add_opposite
-
-instance : has_distrib_neg αᵃᵒᵖ := unop_injective.has_distrib_neg _ unop_neg unop_mul
-
-end add_opposite
 
 open mul_opposite
 

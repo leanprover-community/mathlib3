@@ -1228,97 +1228,78 @@ lemma mfderiv_within_const (hxs : unique_mdiff_within_at I s x) :
 end const
 
 section arithmetic
-/-! #### Arithmetic -/
+/-! #### Arithmetic
 
-variables {S: topological_space.opens 𝕜} { z : M}
-{F' : Type*} [normed_field F'] [normed_algebra 𝕜 F']
+Note that in the in `has_mfderiv_at` lemmas there is an abuse of the defeq between `E'` and
+`tangent_space 𝓘(𝕜, E') (f z)` (similarly for `g',F',p',q'`). In general this defeq is not
+canonical, but in this case (the tangent space of a vector space) it is canonical.
+ -/
+
+variables { z : M} {F' : Type*} [normed_comm_ring F'] [normed_algebra 𝕜 F']
 {f g : M → E'} {p q : M → F'}
-{f' : tangent_space I z →L[𝕜] tangent_space 𝓘(𝕜, E') (f z)}
-{g' : tangent_space I z →L[𝕜] tangent_space 𝓘(𝕜, E') (g z)}
-{p' : tangent_space I z →L[𝕜] tangent_space 𝓘(𝕜, F') (p z)}
-{q' : tangent_space I z →L[𝕜] tangent_space 𝓘(𝕜, F') (q z)}
+{f' g' : tangent_space I z →L[𝕜] E'}
+{p' q' : tangent_space I z →L[𝕜] F'}
 
 lemma has_mfderiv_at.add (hf : has_mfderiv_at I 𝓘(𝕜, E') f z f')
   (hg : has_mfderiv_at I 𝓘(𝕜, E') g z g') : has_mfderiv_at I 𝓘(𝕜, E') (f + g) z (f' + g') :=
-begin
-  split,
-  { apply continuous_at.add (hf).1 (hg).1 },
-  { apply has_fderiv_within_at.add hf.2 hg.2}
-end
+⟨hf.1.add hg.1, hf.2.add hg.2⟩
 
 lemma mdifferentiable_at.add (hf : mdifferentiable_at I 𝓘(𝕜, E') f z)
   (hg : mdifferentiable_at I 𝓘(𝕜, E') g z) : mdifferentiable_at I 𝓘(𝕜, E') (f + g) z :=
-(has_mfderiv_at.add I hf.has_mfderiv_at hg.has_mfderiv_at).mdifferentiable_at
+(hf.has_mfderiv_at.add I hg.has_mfderiv_at).mdifferentiable_at
 
 lemma mdifferentiable.add (hf : mdifferentiable I 𝓘(𝕜, E') f) (hg : mdifferentiable I 𝓘(𝕜, E') g) :
   mdifferentiable I 𝓘(𝕜, E') (f + g) :=
-λ x, mdifferentiable_at.add I (hf x) (hg x)
+λ x, (hf x).add I (hg x)
 
 lemma has_mfderiv_at.mul (hp : has_mfderiv_at I 𝓘(𝕜, F') p z p')
-  (hq : has_mfderiv_at I 𝓘(𝕜, F') q z q') : has_mfderiv_at I 𝓘(𝕜, F') (p * q) z
-  (((((written_in_ext_chart_at I 𝓘(𝕜, F') z) p ((ext_chart_at I z) z)) • q') : E →L[𝕜] F') +
-  (written_in_ext_chart_at I 𝓘(𝕜, F') z q ((ext_chart_at I z) z) • p' :  E →L[𝕜] F' )) :=
-begin
-  split,
-  apply continuous_at.mul hp.1 hq.1,
-  apply has_fderiv_within_at.mul hp.2 hq.2,
-end
+  (hq : has_mfderiv_at I 𝓘(𝕜, F') q z q') :
+  has_mfderiv_at I 𝓘(𝕜, F') (p * q) z (p z • q' + q z • p' : E →L[𝕜] F') :=
+⟨hp.1.mul hq.1, by simpa only with mfld_simps using hp.2.mul hq.2⟩
 
 lemma mdifferentiable_at.mul (hp : mdifferentiable_at I 𝓘(𝕜, F') p z)
   (hq : mdifferentiable_at I 𝓘(𝕜, F') q z) : mdifferentiable_at I 𝓘(𝕜, F') (p * q) z :=
-(has_mfderiv_at.mul I hp.has_mfderiv_at hq.has_mfderiv_at).mdifferentiable_at
+(hp.has_mfderiv_at.mul I hq.has_mfderiv_at).mdifferentiable_at
 
 lemma mdifferentiable.mul {f g : M → F'} (hf : mdifferentiable I 𝓘(𝕜, F') f)
   (hg : mdifferentiable I 𝓘(𝕜, F') g) : mdifferentiable I 𝓘(𝕜, F') (f * g) :=
-λ x, mdifferentiable_at.mul I (hf x) (hg x)
+λ x, (hf x).mul I (hg x)
 
 lemma has_mfderiv_at.const_smul (hf : has_mfderiv_at I 𝓘(𝕜, E') f z f') (s : 𝕜) :
    has_mfderiv_at I 𝓘(𝕜, E') (s • f) z (s • f') :=
-begin
-  split,
-  apply continuous_at.const_smul (hf).1 s,
-  apply has_fderiv_within_at.const_smul hf.2 s,
-end
+⟨hf.1.const_smul s, hf.2.const_smul s⟩
 
 lemma mdifferentiable_at.const_smul (hf : mdifferentiable_at I 𝓘(𝕜, E') f z) (s : 𝕜) :
   mdifferentiable_at I 𝓘(𝕜, E') (s • f) z :=
-(has_mfderiv_at.const_smul I hf.has_mfderiv_at s).mdifferentiable_at
+(hf.has_mfderiv_at.const_smul I s).mdifferentiable_at
 
 lemma mdifferentiable.const_smul {f : M → E'} (s : 𝕜) (hf : mdifferentiable I 𝓘(𝕜, E') f) :
   mdifferentiable I 𝓘(𝕜, E') (s • f) :=
-λ x, mdifferentiable_at.const_smul I (hf x) s
+λ x, (hf x).const_smul I s
 
 lemma has_mfderiv_at.neg (hf : has_mfderiv_at I 𝓘(𝕜, E') f z f') :
    has_mfderiv_at I 𝓘(𝕜, E') (-f) z (-f') :=
-begin
-  split,
-  apply continuous_at.neg (hf).1,
-  apply has_fderiv_within_at.neg hf.2,
-end
+⟨hf.1.neg, hf.2.neg⟩
 
 lemma mdifferentiable_at.neg (hf : mdifferentiable_at I 𝓘(𝕜, E') f z) :
   mdifferentiable_at I 𝓘(𝕜, E') (-f) z :=
-(has_mfderiv_at.neg I hf.has_mfderiv_at).mdifferentiable_at
+(hf.has_mfderiv_at.neg I).mdifferentiable_at
 
 lemma mdifferentiable.neg {f : M → E'} (hf : mdifferentiable I 𝓘(𝕜, E') f) :
   mdifferentiable I 𝓘(𝕜, E') (-f) :=
-λ x, mdifferentiable_at.neg I (hf x)
+λ x, (hf x).neg I
 
 lemma has_mfderiv_at.sub (hf : has_mfderiv_at I 𝓘(𝕜, E') f z f')
-  (hg : has_mfderiv_at I 𝓘(𝕜, E') g z g') : has_mfderiv_at I 𝓘(𝕜, E') (f-g) z (f'-g') :=
-begin
-  split,
-  apply continuous_at.sub (hf).1 hg.1,
-  apply has_fderiv_within_at.sub hf.2 hg.2,
-end
+  (hg : has_mfderiv_at I 𝓘(𝕜, E') g z g') : has_mfderiv_at I 𝓘(𝕜, E') (f - g) z (f'- g') :=
+⟨hf.1.sub hg.1, hf.2.sub hg.2⟩
 
 lemma mdifferentiable_at.sub (hf : mdifferentiable_at I 𝓘(𝕜, E') f z)
-  (hg : mdifferentiable_at I 𝓘(𝕜, E') g z) : mdifferentiable_at I 𝓘(𝕜, E') (f-g) z :=
-(has_mfderiv_at.sub I hf.has_mfderiv_at hg.has_mfderiv_at).mdifferentiable_at
+  (hg : mdifferentiable_at I 𝓘(𝕜, E') g z) : mdifferentiable_at I 𝓘(𝕜, E') (f - g) z :=
+(hf.has_mfderiv_at.sub I hg.has_mfderiv_at).mdifferentiable_at
 
 lemma mdifferentiable.sub {f : M → E'} (hf : mdifferentiable I 𝓘(𝕜, E') f)
-  (hg : mdifferentiable I 𝓘(𝕜, E') g)  : mdifferentiable I 𝓘(𝕜, E') (f-g) :=
-λ x, mdifferentiable_at.sub I (hf x) (hg x)
+  (hg : mdifferentiable I 𝓘(𝕜, E') g)  : mdifferentiable I 𝓘(𝕜, E') (f - g) :=
+λ x, (hf x).sub I (hg x)
 
 end arithmetic
 

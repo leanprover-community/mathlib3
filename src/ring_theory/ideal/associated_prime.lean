@@ -23,7 +23,7 @@ We provide the definition and related lemmas about associated primes of modules.
 ## Main results
 - `exists_le_is_associated_prime_of_is_noetherian_ring`: In a noetherian ring, any `ann(x)` is
   contained in an associated prime for `x ≠ 0`.
-- `associated_primes_of_is_primary`: In a noetherian ring, `I.radical` is the only
+- `associated_primes.eq_singleton_of_is_primary`: In a noetherian ring, `I.radical` is the only
   associated prime of `R ⧸ I` when `I` is primary.
 
 ## Todo
@@ -101,23 +101,23 @@ end
 
 variable {R}
 
-lemma associated_primes_subset_of_injective (hf : function.injective f) :
+lemma associated_primes.subset_of_injective (hf : function.injective f) :
   associated_primes R M ⊆ associated_primes R M' :=
 λ I h, h.map_of_injective f hf
 
-lemma linear_equiv.associated_primes_eq (l : M ≃ₗ[R] M') :
+lemma linear_equiv.associated_primes.eq (l : M ≃ₗ[R] M') :
   associated_primes R M = associated_primes R M' :=
-le_antisymm (associated_primes_subset_of_injective l l.injective)
-  (associated_primes_subset_of_injective l.symm l.symm.injective)
+le_antisymm (associated_primes.subset_of_injective l l.injective)
+  (associated_primes.subset_of_injective l.symm l.symm.injective)
 
-lemma associated_primes_eq_empty_of_subsingleton [subsingleton M] : associated_primes R M = ∅ :=
+lemma associated_primes.eq_empty_of_subsingleton [subsingleton M] : associated_primes R M = ∅ :=
 begin
   ext, simp only [set.mem_empty_iff_false, iff_false], apply not_is_associated_prime_of_subsingleton
 end
 
 variables (R M)
 
-lemma associated_primes_nonempty [is_noetherian_ring R] [nontrivial M] :
+lemma associated_primes.nonempty [is_noetherian_ring R] [nontrivial M] :
   (associated_primes R M).nonempty :=
 begin
   obtain ⟨x, hx⟩ := exists_ne (0 : M),
@@ -151,7 +151,7 @@ begin
   { rw hJ.radical_le_iff, intros y hy, exact e.mpr (I.mul_mem_left x hy) }
 end
 
-lemma associated_primes_eq_singleton_of_is_primary [is_noetherian_ring R] (hI : I.is_primary) :
+lemma associated_primes.eq_singleton_of_is_primary [is_noetherian_ring R] (hI : I.is_primary) :
   associated_primes R (R ⧸ I) = {I.radical} :=
 begin
   ext J,
@@ -159,7 +159,7 @@ begin
   refine ⟨is_associated_prime.eq_radical hI, _⟩,
   rintro rfl,
   haveI : nontrivial (R ⧸ I) := ⟨⟨(I^.quotient.mk : _) 1, (I^.quotient.mk : _) 0, _⟩⟩,
-  obtain ⟨a, ha⟩ := associated_primes_nonempty R (R ⧸ I),
+  obtain ⟨a, ha⟩ := associated_primes.nonempty R (R ⧸ I),
   exact ha.eq_radical hI ▸ ha,
   rw [ne.def, ideal.quotient.eq, sub_zero, ← ideal.eq_top_iff_one],
   exact hI.1

@@ -1518,7 +1518,7 @@ begin
 end
 
 lemma cardinal_lt_aleph_0_of_finite_dimensional
-  (K V : Type u) [field K] [add_comm_group V] [module K V] [finite_dimensional K V]
+  (K V : Type u) [field K] [add_comm_group V] [module K V]
   [_root_.finite K] [finite_dimensional K V] :
   #V < ℵ₀ :=
 begin

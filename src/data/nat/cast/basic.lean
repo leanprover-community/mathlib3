@@ -5,8 +5,10 @@ Authors: Mario Carneiro
 -/
 import data.nat.order.basic
 import algebra.order.group.abs
-import algebra.group.prod
+import algebra.group_with_zero.commute
+import algebra.group.opposite
 import algebra.hom.ring
+import algebra.ring.commute
 
 /-!
 # Cast of natural numbers (additional theorems)
@@ -136,23 +138,6 @@ map_dvd (nat.cast_ring_hom α) h
 alias coe_nat_dvd ← _root_.has_dvd.dvd.nat_cast
 
 end nat
-
-namespace prod
-variables [add_monoid_with_one α] [add_monoid_with_one β]
-
-instance : add_monoid_with_one (α × β) :=
-{ nat_cast := λ n, (n, n),
-  nat_cast_zero := congr_arg2 prod.mk nat.cast_zero nat.cast_zero,
-  nat_cast_succ := λ n, congr_arg2 prod.mk (nat.cast_succ _) (nat.cast_succ _),
-  .. prod.add_monoid, .. prod.has_one }
-
-@[simp] lemma fst_nat_cast (n : ℕ) : (n : α × β).fst = n :=
-by induction n; simp *
-
-@[simp] lemma snd_nat_cast (n : ℕ) : (n : α × β).snd = n :=
-by induction n; simp *
-
-end prod
 
 section add_monoid_hom_class
 

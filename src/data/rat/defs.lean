@@ -5,7 +5,8 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.rat.init
 import data.int.cast.defs
-import data.int.div
+import data.int.dvd.basic
+import algebra.ring.regular
 import data.nat.gcd.basic
 import data.pnat.defs
 
@@ -585,3 +586,6 @@ lemma coe_int_inj (m n : ℤ) : (m : ℚ) = n ↔ m = n := ⟨congr_arg num, con
 end casts
 
 end rat
+
+-- Guard against import creep.
+assert_not_exists field

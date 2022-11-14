@@ -96,7 +96,7 @@ end dual
 section prod
 variables (M' : Type*) [add_comm_monoid M'] [module R M']
 
-/-- Taking duals commutes with products. -/
+/-- Taking duals distributes over products. -/
 @[simps] def dual_prod_dual_equiv_dual :
   (module.dual R M × module.dual R M') ≃ₗ[R] module.dual R (M × M') :=
 linear_map.coprod_equiv R
@@ -686,6 +686,11 @@ begin
   convert linear_map.of_is_compl_left_apply hW ⟨v, hv⟩,
 end
 
+theorem forall_mem_dual_annihilator_apply_eq_zero_iff (W : subspace K V) (v : V) :
+  (∀ (φ : module.dual K V), φ ∈ W.dual_annihilator → φ v = 0) ↔ v ∈ W :=
+by rw [← set_like.ext_iff.mp dual_annihilator_dual_annihilator_comap_eq v,
+       mem_dual_annihilator_comap]
+
 /-- The `submodule.dual_annihilator` and `submodule.dual_annihilator_comap` form a Galois
 coinsertion. -/
 def dual_annihilator_gci :
@@ -696,11 +701,6 @@ def dual_annihilator_gci :
   gc := dual_annihilator_gc,
   u_l_le := λ W, dual_annihilator_dual_annihilator_comap_eq.le,
   choice_eq := λ W h, rfl }
-
-theorem forall_mem_dual_annihilator_apply_eq_zero_iff (W : subspace K V) (v : V) :
-  (∀ (φ : module.dual K V), φ ∈ W.dual_annihilator → φ v = 0) ↔ v ∈ W :=
-by rw [← set_like.ext_iff.mp dual_annihilator_dual_annihilator_comap_eq v,
-       mem_dual_annihilator_comap]
 
 /-- Given a subspace `W` of `V` and an element of its dual `φ`, `dual_lift W φ` is
 the natural extension of `φ` to an element of the dual of `V`.

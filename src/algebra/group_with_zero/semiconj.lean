@@ -7,7 +7,7 @@ import algebra.group_with_zero.units.basic
 import algebra.group.semiconj
 
 /-!
-# Lemmas semiconjugate elements in a `group_with_zero`.
+# Lemmas about semiconjugate elements in a `group_with_zero`.
 
 -/
 

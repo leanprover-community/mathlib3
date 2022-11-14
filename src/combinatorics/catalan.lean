@@ -143,11 +143,12 @@ lemma catalan_three : catalan 3 = 5 :=
 by norm_num [catalan_eq_central_binom_div, nat.central_binom, nat.choose]
 
 namespace tree
+open_locale tree
 
 /-- Given two finsets, find all trees that can be formed with
   left child in `a` and right child in `b` -/
 @[simp] def pairwise_node (a : finset (tree unit)) (b : finset (tree unit)) : finset (tree unit) :=
-  (a ×ˢ b).map ⟨λ x, x.1.unode x.2, λ ⟨x₁, x₂⟩ ⟨y₁, y₂⟩, by { simp, tauto, }⟩
+  (a ×ˢ b).map ⟨λ x, x.1 △ x.2, λ ⟨x₁, x₂⟩ ⟨y₁, y₂⟩, by { simp, tauto, }⟩
 
 /-- A finset of all trees with `n` nodes. See `mem_trees_of_nodes_eq` -/
 def trees_of_num_nodes_eq : ℕ → finset (tree unit)

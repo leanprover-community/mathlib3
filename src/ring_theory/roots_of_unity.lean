@@ -277,6 +277,13 @@ begin
   exact is_primitive_root.pow_eq_one
 end
 
+@[simp] lemma primitive_roots_zero : primitive_roots 0 R = ∅ :=
+by rw [primitive_roots, nth_roots_zero, multiset.to_finset_zero, finset.filter_empty]
+
+lemma is_primitive_root_of_mem_primitive_roots {ζ : R} (h : ζ ∈ primitive_roots k R) :
+  is_primitive_root ζ k :=
+(eq_or_ne k 0).elim (λ hk, false.elim $ by simpa [hk] using h) (λ hk, (mem_primitive_roots hk).1 h)
+
 end primitive_roots
 
 namespace is_primitive_root
@@ -531,14 +538,6 @@ section is_domain
 
 variables {ζ : R}
 variables [comm_ring R] [is_domain R]
-
-@[simp] lemma primitive_roots_zero : primitive_roots 0 R = ∅ :=
-begin
-  rw [← finset.val_eq_zero, ← multiset.subset_zero, ← nth_roots_zero (1 : R), primitive_roots],
-    simp only [finset.not_mem_empty, forall_const, forall_prop_of_false, multiset.to_finset_zero,
-    finset.filter_true_of_mem, finset.empty_val, not_false_iff,
-    multiset.zero_subset, nth_roots_zero]
-end
 
 @[simp] lemma primitive_roots_one : primitive_roots 1 R = {(1 : R)} :=
 begin
@@ -829,12 +828,9 @@ end
 lemma disjoint {k l : ℕ} (h : k ≠ l) :
   disjoint (primitive_roots k R) (primitive_roots l R) :=
 begin
-  by_cases hk : k = 0, { simp [hk], },
-  by_cases hl : l = 0, { simp [hl], },
-  rw finset.disjoint_left,
-  intro z,
-  simp only [mem_primitive_roots, hk, hl],
-  rintro ⟨hzk, Hzk⟩ ⟨hzl, Hzl⟩,
+  refine finset.disjoint_left.2 (λ z hk hl, _),
+  rcases is_primitive_root_of_mem_primitive_roots hk with ⟨hzk, Hzk⟩,
+  rcases is_primitive_root_of_mem_primitive_roots hl with ⟨hzl, Hzl⟩,
   apply_rules [h, nat.dvd_antisymm, Hzk, Hzl, hzk, hzl]
 end
 

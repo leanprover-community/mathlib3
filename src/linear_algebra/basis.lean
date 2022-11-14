@@ -735,7 +735,7 @@ linear_equiv.trans b.repr
   ({ to_fun := coe_fn,
      map_add' := finsupp.coe_add,
      map_smul' := finsupp.coe_smul,
-     ..finsupp.equiv_fun_on_fintype } : (ι →₀ R) ≃ₗ[R] (ι → R))
+     ..finsupp.equiv_fun_on_finite } : (ι →₀ R) ≃ₗ[R] (ι → R))
 
 /-- A module over a finite ring that admits a finite basis is finite. -/
 def module.fintype_of_fintype [fintype R] : fintype M :=

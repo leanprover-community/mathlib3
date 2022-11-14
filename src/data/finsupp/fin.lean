@@ -27,34 +27,27 @@ variables {n : ℕ} (i : fin n) {M : Type*} [has_zero M] (y : M)
 
 /-- `tail` for maps `fin (n + 1) →₀ M`. See `fin.tail` for more details. -/
 def tail (s : fin (n + 1) →₀ M) : fin n →₀ M :=
-finsupp.equiv_fun_on_fintype.inv_fun (fin.tail s.to_fun)
+finsupp.equiv_fun_on_finite.symm (fin.tail s)
 
 /-- `cons` for maps `fin n →₀ M`. See `fin.cons` for more details. -/
 def cons (y : M) (s : fin n →₀ M) : fin (n + 1) →₀ M :=
-finsupp.equiv_fun_on_fintype.inv_fun (fin.cons y s.to_fun)
+finsupp.equiv_fun_on_finite.symm (fin.cons y s : fin (n + 1) → M)
 
 lemma tail_apply : tail t i = t i.succ :=
-begin
-  simp only [tail, equiv_fun_on_fintype_symm_apply_to_fun, equiv.inv_fun_as_coe],
-  refl,
-end
+by simp only [tail, equiv_fun_on_finite_symm_apply_to_fun, fin.tail]
 
 @[simp] lemma cons_zero : cons y s 0 = y :=
-by simp [cons, finsupp.equiv_fun_on_fintype]
+by simp [cons, finsupp.equiv_fun_on_finite]
 
 @[simp] lemma cons_succ : cons y s i.succ = s i :=
-begin
-  simp only [finsupp.cons, fin.cons, finsupp.equiv_fun_on_fintype, fin.cases_succ, finsupp.coe_mk],
-  refl,
-end
+by simp only [finsupp.cons, fin.cons, finsupp.equiv_fun_on_finite_symm_apply_to_fun, fin.cases_succ,
+  finsupp.coe_mk]
 
 @[simp] lemma tail_cons : tail (cons y s) = s :=
 begin
-  simp only [finsupp.cons, fin.cons, finsupp.tail, fin.tail],
-  ext,
-  simp only [equiv_fun_on_fintype_symm_apply_to_fun, equiv.inv_fun_as_coe,
-    finsupp.coe_mk, fin.cases_succ, equiv_fun_on_fintype],
-  refl,
+  ext1,
+  simp only [finsupp.cons, fin.cons, finsupp.tail, fin.tail, equiv_fun_on_finite_symm_apply_to_fun,
+    fin.cases_succ]
 end
 
 @[simp] lemma cons_tail : cons (t 0) (tail t) = t :=

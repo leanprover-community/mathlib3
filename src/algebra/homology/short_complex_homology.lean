@@ -536,7 +536,11 @@ end
 variable (C)
 /-- We shall say that a category with homology is a category for which
 all short complexes have homology. -/
-abbreviation _root_.category_with_homology := ∀ (S : short_complex C), S.has_homology
+class _root_.category_with_homology :=
+(has_homology : ∀ (S : short_complex C), S.has_homology)
+
+instance category_with_homology.has_homology [category_with_homology C] (S : short_complex C) :
+  S.has_homology := category_with_homology.has_homology S
 
 /-- Assuming that all short complexes have homology, this is the homology functor. -/
 @[simps]
@@ -856,6 +860,6 @@ homology_data.of_is_iso_left_right_homology_comparison'
 
 instance {D : Type*} [category D] [has_zero_morphisms D] [category_with_homology D] :
   category_with_homology Dᵒᵖ :=
-λ S, has_homology.mk' (homology_data.of_iso S.unop_op S.unop.some_homology_data.op)
+⟨λ S, has_homology.mk' (homology_data.of_iso S.unop_op S.unop.some_homology_data.op)⟩
 
 end short_complex

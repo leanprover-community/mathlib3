@@ -36,8 +36,6 @@ open category_theory
 variables (R : Type u) [ring R] (C : Type*) [category C] [abelian C] [linear R C]
   [enough_projectives C]
 
-instance category_with_homology_Module_R_op : category_with_homology (Module R)ᵒᵖ := infer_instance
-
 /--
 `Ext R C n` is defined by deriving in the first argument of `(X, Y) ↦ Module.of R (unop X ⟶ Y)`
 (which is the second argument of `linear_yoneda`).

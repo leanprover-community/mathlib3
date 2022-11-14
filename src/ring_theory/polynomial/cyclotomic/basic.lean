@@ -168,12 +168,10 @@ by rw [splits_iff_card_roots, ← nth_roots, is_primitive_root.card_nth_roots h,
 `∏ i in nat.divisors n, cyclotomic' i K = X ^ n - 1`. -/
 lemma prod_cyclotomic'_eq_X_pow_sub_one {K : Type*} [comm_ring K] [is_domain K] {ζ : K} {n : ℕ}
   (hpos : 0 < n) (h : is_primitive_root ζ n) : ∏ i in nat.divisors n, cyclotomic' i K = X ^ n - 1 :=
-begin
-  have hd : (n.divisors : set ℕ).pairwise_disjoint (λ k, primitive_roots k K),
-    from λ x hx y hy hne, is_primitive_root.disjoint hne,
-  simp only [X_pow_sub_one_eq_prod hpos h, cyclotomic', ← finset.prod_bUnion hd,
+have hd : (n.divisors : set ℕ).pairwise_disjoint (λ k, primitive_roots k K),
+  from λ x hx y hy hne, is_primitive_root.disjoint hne,
+by simp only [X_pow_sub_one_eq_prod hpos h, cyclotomic', ← finset.prod_bUnion hd,
     h.nth_roots_one_eq_bUnion_primitive_roots]
-end
 
 /-- If there is a primitive `n`-th root of unity in `K`, then
 `cyclotomic' n K = (X ^ k - 1) /ₘ (∏ i in nat.proper_divisors k, cyclotomic' i K)`. -/

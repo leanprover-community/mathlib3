@@ -169,3 +169,61 @@ begin
   ... = (sqrt (π / b)) ^ 2 :
     by { rw sq_sqrt, exact div_nonneg pi_pos.le hb.le }
 end
+
+open_locale interval
+
+/- The Gaussian integral on the half-line, `∫ x in Ioi 0, exp (-b * x^2)`. -/
+lemma integral_gaussian_Ioi {b : ℝ} (hb : 0 < b): ∫ x in Ioi 0, exp (-b * x^2) = sqrt (π / b) / 2 :=
+begin
+  have full_integral := integral_gaussian b,
+  have : measurable_set (Ioi (0:ℝ)) := measurable_set_Ioi,
+  rw [←integral_add_compl this (integrable_exp_neg_mul_sq hb), compl_Ioi] at full_integral,
+  suffices : ∫ x in Iic 0, exp (-b * x^2) = ∫ x in Ioi 0, exp (-b * x^2),
+  { rw [this, ←mul_two] at full_integral,
+    rwa eq_div_iff, exact two_ne_zero },
+  have : ∀ (c : ℝ), ∫ x in 0 .. c, exp (-b * x^2) = ∫ x in -c .. 0, exp (-b * x^2),
+  { intro c,
+    have := @interval_integral.integral_comp_sub_left _ _ _ _ 0 c (λ x, exp(-b * x^2)) 0,
+    simpa [zero_sub, neg_sq, neg_zero] using this },
+  have t1 := interval_integral_tendsto_integral_Ioi _
+     ((integrable_exp_neg_mul_sq hb).integrable_on) tendsto_id,
+  have t2 : tendsto (λ c:ℝ, ∫ x in 0 .. c, exp (-b * x^2)) at_top (𝓝 ∫ x in Iic 0, exp (-b * x^2)),
+  { simp_rw this,
+    refine interval_integral_tendsto_integral_Iic _ _ tendsto_neg_at_top_at_bot,
+    apply (integrable_exp_neg_mul_sq hb).integrable_on },
+  exact tendsto_nhds_unique t2 t1,
+end
+
+namespace complex
+
+/-- The special-value formula `Γ(1/2) = √π`, which is equivalent to the Gaussian integral. -/
+lemma Gamma_one_half_eq : Gamma (1 / 2) = sqrt real.pi :=
+begin
+  -- first reduce to real integrals
+  have hh : (1 / 2 : ℂ) = ↑(1 / 2 : ℝ),
+  { simp only [one_div, of_real_inv, of_real_bit0, of_real_one] },
+  have hh2 : (1 / 2 : ℂ).re = 1 / 2,
+  { convert complex.of_real_re (1 / 2 : ℝ) },
+  replace hh2 : 0 < (1 / 2 : ℂ).re := by { rw hh2, exact one_half_pos, },
+  rw [Gamma_eq_integral _ hh2, hh, Gamma_integral_of_real, of_real_inj, real.Gamma_integral],
+  -- setup for change-of-variables
+  let g : ℝ → ℝ := λ x, real.exp (-x) * x ^ ((1/2 : ℝ) - 1),
+  have contg : continuous_on g (Ioi 0) := (real.continuous_exp.comp
+    continuous_id'.neg).continuous_on.mul (continuous_at.continuous_on $ λ x hx,
+    continuous_at_rpow_const _ _ (or.inl (mem_Ioi.mp hx).ne')),
+  -- show the result of the substitution is 2 * Gaussian integrand
+  have eq_funcs : eq_on (λ x, g (x ^ (2:ℝ)) * (2 * x ^ ((2:ℝ) - 1)))
+    (λ (x:ℝ), 2 * real.exp(-1 * x ^ 2)) (Ioi 0),
+  { intros x hx, rw mem_Ioi at hx,
+    dsimp only [g], norm_num,
+    rw [←rpow_two, ←rpow_mul hx.le, mul_neg, rpow_neg hx.le],
+    have := hx.ne', field_simp, ring, },
+  have intg := ((integrable_exp_neg_mul_sq zero_lt_one).const_mul 2).integrable_on.congr_fun
+    eq_funcs.symm measurable_set_Ioi,
+  rw [←(integral_comp_rpow_Ioi zero_lt_two contg (real.Gamma_integral_convergent one_half_pos)
+    intg), set_integral_congr measurable_set_Ioi eq_funcs, integral_mul_left,
+    integral_gaussian_Ioi zero_lt_one],
+    field_simp, ring,
+end
+
+end complex

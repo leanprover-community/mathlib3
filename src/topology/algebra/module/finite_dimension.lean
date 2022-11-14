@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Anatole Dedecker
 -/
 import analysis.locally_convex.balanced_core_hull
+import topology.algebra.module.determinant
 
 /-!
 # Finite dimensional topological vector spaces over complete fields

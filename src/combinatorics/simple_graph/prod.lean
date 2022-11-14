@@ -198,7 +198,7 @@ begin
 end
 
 lemma box_prod_degree (x : α × β)
-  [fintype (G.neighbor_set x.1)] [fintype (H.neighbor_set x.2)] [fintype ((G □ H).neighbor_set x)]:
+  [fintype (G.neighbor_set x.1)] [fintype (H.neighbor_set x.2)] [fintype ((G □ H).neighbor_set x)] :
   (G □ H).degree x = G.degree x.1 + H.degree x.2 :=
 begin
   rw [degree, degree, degree, box_prod_neighbor_finset, finset.card_disj_union],

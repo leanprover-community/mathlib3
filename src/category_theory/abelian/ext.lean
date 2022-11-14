@@ -9,6 +9,7 @@ import category_theory.functor.left_derived
 import category_theory.linear.yoneda
 import category_theory.abelian.opposite
 import category_theory.abelian.projective
+import algebra.homology.short_complex_Module
 
 /-!
 # Ext
@@ -28,10 +29,14 @@ right deriving in the second argument, and show these agree.
 
 noncomputable theory
 
+universes v u
+
 open category_theory
 
-variables (R : Type*) [ring R] (C : Type*) [category C] [abelian C] [linear R C]
+variables (R : Type u) [ring R] (C : Type*) [category C] [abelian C] [linear R C]
   [enough_projectives C]
+
+instance category_with_homology_Module_R_op : category_with_homology (Module R)ᵒᵖ := infer_instance
 
 /--
 `Ext R C n` is defined by deriving in the first argument of `(X, Y) ↦ Module.of R (unop X ⟶ Y)`

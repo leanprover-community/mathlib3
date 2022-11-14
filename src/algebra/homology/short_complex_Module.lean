@@ -2,6 +2,7 @@ import algebra.category.Module.abelian
 import algebra.category.Module.subobject
 import algebra.homology.short_complex_homology
 import algebra.homology.short_complex_preadditive
+import algebra.homology.short_complex_abelian
 import linear_algebra.quotient
 
 noncomputable theory
@@ -10,6 +11,9 @@ open category_theory category_theory.category Module category_theory.limits
 
 universes v u
 variables {R : Type v} [ring R]
+
+instance : category_with_homology (Module.{u v} R) :=
+  category_with_homology.of_abelian (Module R)
 
 lemma Module.is_zero_iff (M : Module R) : is_zero M ↔ ∀ (x : M), x = 0 :=
 begin

@@ -365,12 +365,13 @@ left_right_homology_comparison' h₁ h₂ =
 @[simp, reassoc]
 lemma comp_left_right_homology_comparison'_comp (h₁ : S.left_homology_data) (h₂ : S.right_homology_data) :
   h₁.π ≫ left_right_homology_comparison' h₁ h₂ ≫ h₂.ι = h₁.i ≫ h₂.p :=
-by simp [left_right_homology_comparison'_eq₁]
+by simp only [left_right_homology_comparison'_eq₁, right_homology_data.lift_H_ι, left_homology_data.π_desc_H]
 
 lemma left_right_homology_comparison'_eq₂ (h₁ : S.left_homology_data) (h₂ : S.right_homology_data) :
 left_right_homology_comparison' h₁ h₂ =
   h₁.desc_H (h₂.lift_H (h₁.i ≫ h₂.p) (by simp)) (by simp [← cancel_mono h₂.ι]) :=
-by simp [← cancel_mono h₂.ι, ← cancel_epi h₁.π]
+by simp only [←cancel_mono h₂.ι, ←cancel_epi h₁.π, assoc, right_homology_data.lift_H_ι,
+  left_homology_data.π_desc_H, comp_left_right_homology_comparison'_comp]
 
 variable (S)
 
@@ -852,5 +853,9 @@ variable (S)
 def some_homology_data' [S.has_homology] : S.homology_data :=
 homology_data.of_is_iso_left_right_homology_comparison'
     S.some_left_homology_data S.some_right_homology_data
+
+instance {D : Type*} [category D] [has_zero_morphisms D] [category_with_homology D] :
+  category_with_homology Dᵒᵖ :=
+λ S, has_homology.mk' (homology_data.of_iso S.unop_op S.unop.some_homology_data.op)
 
 end short_complex

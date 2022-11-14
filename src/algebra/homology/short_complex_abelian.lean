@@ -208,8 +208,14 @@ def homology_data.of_abelian (S : short_complex C) :
   iso := abelian.coimage_iso_image (kernel.ι S.g ≫ cokernel.π S.f),
   comm := abelian.coimage_image_factorisation _, }
 
-instance : category_with_homology C :=
+variable (C)
+
+lemma _root_.category_with_homology.of_abelian : category_with_homology C :=
 λ S, has_homology.mk' (homology_data.of_abelian S)
+
+instance : category_with_homology C := category_with_homology.of_abelian C
+
+variable {C}
 
 def cokernel_image_to_kernel_iso_homology (S : short_complex C) :
   cokernel S.abelian_image_to_kernel ≅ S.homology :=

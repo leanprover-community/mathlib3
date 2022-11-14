@@ -913,10 +913,10 @@ end linear_map
 
 section comm_ring
 
-namespace submodule
-
 variables {R M M' : Type*}
 variables [comm_ring R] [add_comm_group M] [module R M] [add_comm_group M'] [module R M']
+
+namespace submodule
 
 /-- Equivalence $(M/W)^* \approx \operatorname{ann}(W)$. That is, there is a one-to-one
 correspondence between the dual of `M ⧸ W` and those elements of the dual of `M` that
@@ -942,6 +942,11 @@ lemma dual_quot_equiv_dual_annihilator_apply (W : submodule R M)
 lemma dual_quot_equiv_dual_annihilator_symm_apply_mk (W : submodule R M)
   (φ : W.dual_annihilator) (x : M) :
   (dual_quot_equiv_dual_annihilator W).symm φ (quotient.mk x) = φ x := rfl
+
+end submodule
+
+namespace linear_map
+open submodule
 
 /-- That $\operatorname{im}(q^* : (V/W)^* \to V^*) = \operatorname{ann}(W)$. -/
 lemma range_dual_map_mkq_eq_dual_annihilator (W : submodule R M) :
@@ -991,7 +996,7 @@ begin
     exact (linear_map.ker_range_restrict f).symm, },
 end
 
-end submodule
+end linear_map
 
 end comm_ring
 

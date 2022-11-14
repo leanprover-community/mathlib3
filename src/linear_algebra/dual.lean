@@ -915,8 +915,8 @@ section comm_ring
 
 namespace submodule
 
-variables {R M : Type*}
-variables [comm_ring R] [add_comm_group M] [module R M]
+variables {R M M' : Type*}
+variables [comm_ring R] [add_comm_group M] [module R M] [add_comm_group M'] [module R M']
 
 /-- Equivalence $(M/W)^* \approx \operatorname{ann}(W)$. That is, there is a one-to-one
 correspondence between the dual of `M ⧸ W` and those elements of the dual of `M` that
@@ -954,6 +954,23 @@ begin
     { rw range_subtype },
     apply linear_equiv.range, },
   refl,
+end
+
+lemma range_dual_map_eq_dual_annihilator_ker_of_surjective
+  (f : M →ₗ[R] M') (hf : function.surjective f) :
+  f.dual_map.range = f.ker.dual_annihilator :=
+begin
+  rw ← range_dual_map_mkq_eq_dual_annihilator f.ker,
+  let f' := linear_map.quot_ker_equiv_of_surjective f hf,
+  transitivity linear_map.range (f.dual_map.comp f'.symm.dual_map.to_linear_map),
+  { rw linear_map.range_comp_of_range_eq_top,
+    apply linear_equiv.range },
+  { congr' 1,
+    ext φ x,
+    simp only [linear_map.coe_comp, linear_equiv.coe_to_linear_map, linear_map.dual_map_apply,
+      linear_equiv.dual_map_apply, mkq_apply, f', linear_map.quot_ker_equiv_of_surjective,
+      linear_equiv.trans_symm, linear_equiv.trans_apply, linear_equiv.of_top_symm_apply,
+      linear_map.quot_ker_equiv_range_symm_apply_image, mkq_apply], }
 end
 
 end submodule

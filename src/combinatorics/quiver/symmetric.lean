@@ -21,7 +21,7 @@ This file contains constructions related to symmetric quivers:
   of `symmetrify`.
 -/
 
-universes v u
+universes v u w
 
 namespace quiver
 
@@ -33,7 +33,7 @@ def symmetrify (V) : Type u := V
 instance symmetrify_quiver (V : Type u) [quiver V] : quiver (symmetrify V) :=
 ⟨λ a b : V, (a ⟶ b) ⊕ (b ⟶ a)⟩
 
-variables (U V : Type*) [quiver.{u+1} U] [quiver.{v+1} V]
+variables (U V W : Type*) [quiver.{u+1} U] [quiver.{v+1} V]
 
 /-- A quiver `has_reverse` if we can reverse an arrow `p` from `a` to `b` to get an arrow
     `p.reverse` from `b` to `a`.-/
@@ -66,15 +66,24 @@ begin
   rw reverse_eq_reverse_iff,
 end
 
-variables {U V}
+variables {U V W}
 
 /-- A prefunctor preserving reversal of arrows -/
-class prefunctor.preserves_reverse [has_reverse U] [has_reverse V] (φ : U ⟶q V) :=
+class _root_.prefunctor.preserves_reverse [has_reverse U] [has_reverse V] (φ : U ⟶q V) :=
 (map_reverse' : ∀ {u v : U} (e : u ⟶ v), φ.map (reverse e) = reverse (φ.map e))
 
-@[simp] lemma map_reverse  [has_reverse U] [has_reverse V] (φ : U ⟶q V) [φ.preserves_reverse]
-  {u v : U} (e : u ⟶ v) : φ.map (reverse e) = reverse (φ.map e) :=
+@[simp] lemma _root_.prefunctor.map_reverse  [has_reverse U] [has_reverse V] (φ : U ⟶q V)
+  [φ.preserves_reverse] {u v : U} (e : u ⟶ v) : φ.map (reverse e) = reverse (φ.map e) :=
 prefunctor.preserves_reverse.map_reverse' e
+
+instance _root_.prefunctor.preserves_reverse_comp [quiver.{w+1} W]
+  [has_reverse U] [has_reverse V] [has_reverse W] (φ : U ⟶q V) (ψ : V ⟶q W)
+  [φ.preserves_reverse] [ψ.preserves_reverse] : (φ ≫q ψ).preserves_reverse :=
+{ map_reverse' := λ u v e, by { simp only [prefunctor.comp_map, prefunctor.map_reverse], } }
+
+instance _root_.prefunctor.preserves_reverse_id [has_reverse U] :
+  (prefunctor.id U).preserves_reverse :=
+{ map_reverse' := λ u v e, rfl }
 
 instance : has_reverse (symmetrify V) := ⟨λ a b e, e.swap⟩
 instance : has_involutive_reverse (symmetrify V) :=
@@ -159,7 +168,7 @@ begin
     cases f,
     { refl, },
     { dsimp [lift,of],
-      simp only [←map_reverse, symmetrify_reverse, sum.swap_inl], }, },
+      simp only [←prefunctor.map_reverse, symmetrify_reverse, sum.swap_inl], }, },
 end
 
 /-- A prefunctor canonically defines a prefunctor of the symmetrifications. -/
@@ -174,7 +183,7 @@ end symmetrify
 
 namespace push
 
-variables {W : Type*} (σ : V → W)
+variables {W} (σ : V → W)
 
 instance [has_reverse V] : has_reverse (push σ) :=
 { reverse' := λ a b F, by { cases F, constructor, apply reverse, exact F_f, } }

@@ -170,14 +170,16 @@ lemma lift_unique (φ : prefunctor V V') (Φ : free_groupoid V ⥤ V')
 begin
   apply quotient.lift_unique,
   apply paths.lift_unique,
-  apply quiver.symmetrify.lift_unique,
-  { rw ←functor.to_prefunctor_comp, exact hΦ, },
-  { rintros X Y f,
+  haveI : (paths.of ≫q (quotient.functor red_step ⋙ Φ).to_prefunctor).preserves_reverse, by
+  { constructor, rintros X Y f,
     simp only [←functor.to_prefunctor_comp,prefunctor.comp_map, paths.of_map, inv_eq_inv],
     change Φ.map (inv ((quotient.functor red_step).to_prefunctor.map f.to_path)) =
            inv (Φ.map ((quotient.functor red_step).to_prefunctor.map f.to_path)),
     have := functor.map_inv Φ ((quotient.functor red_step).to_prefunctor.map f.to_path),
     convert this; simp only [inv_eq_inv], },
+  apply quiver.symmetrify.lift_unique,
+  { rw ←functor.to_prefunctor_comp, exact hΦ, },
+
 end
 
 end universal_property

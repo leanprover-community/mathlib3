@@ -15,11 +15,9 @@ We provide some instances for finite and free modules involving matrices.
 
 ## Main results
 
-* `module.free.choose_basis_index.fintype` : If a free module is finite, then any basis is
-  finite.
-* `module.free.linear_map.free ` : if `M` and `N` are finite and free, then `M →ₗ[R] N` is free.
+* `module.free.linear_map` : if `M` and `N` are finite and free, then `M →ₗ[R] N` is free.
 * `module.finite.of_basis` : A free module with a basis indexed by a `fintype` is finite.
-* `module.free.linear_map.module.finite` : if `M` and `N` are finite and free, then `M →ₗ[R] N`
+* `module.finite.linear_map` : if `M` and `N` are finite and free, then `M →ₗ[R] N`
   is finite.
 -/
 

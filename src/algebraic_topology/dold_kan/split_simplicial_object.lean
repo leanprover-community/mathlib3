@@ -98,7 +98,7 @@ end
 /-- If a simplicial object `X` in an additive category is split,
 then `P_infty` vanishes on all the summands of `X _[n]` which do
 not correspond to the identity of `[n]`. -/
-lemma ι_summand_comp_P_infty_eq_zero {X : simplicial_object C} [has_finite_coproducts C]
+lemma ι_summand_comp_P_infty_eq_zero {X : simplicial_object C}
   (s : simplicial_object.splitting X)
   {n : ℕ} (A : simplicial_object.splitting.index_set (op [n]))
   (hA : ¬ A.eq_id) :

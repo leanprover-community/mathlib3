@@ -57,7 +57,9 @@ example (s : finset (fin 3)) (f : equiv.perm (fin 3)) : s.map f.to_embedding = s
 example (s : finset (fin 3)) (f : equiv.perm (fin 3)) : s.map f = s.map f.to_embedding := by simp
 ```
 -/
-@[simps] protected def equiv.to_embedding : α ↪ β := ⟨f, f.injective⟩
+protected def equiv.to_embedding : α ↪ β := ⟨f, f.injective⟩
+
+@[simp] lemma equiv.coe_to_embedding : ⇑f.to_embedding = f := rfl
 
 instance equiv.coe_embedding : has_coe (α ≃ β) (α ↪ β) := ⟨equiv.to_embedding⟩
 
@@ -65,7 +67,6 @@ instance equiv.coe_embedding : has_coe (α ≃ β) (α ↪ β) := ⟨equiv.to_em
 instance equiv.perm.coe_embedding : has_coe (equiv.perm α) (α ↪ α) := equiv.coe_embedding
 
 @[simp] lemma equiv.coe_eq_to_embedding  : ↑f = f.to_embedding := rfl
-@[simp] lemma equiv.coe_to_embedding : ⇑f.to_embedding = f := rfl
 
 /-- Given an equivalence to a subtype, produce an embedding to the elements of the corresponding
 set. -/

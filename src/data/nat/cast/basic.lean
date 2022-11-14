@@ -7,7 +7,6 @@ import algebra.char_zero.defs
 import algebra.group.prod
 import algebra.hom.ring
 import algebra.order.group.abs
-import algebra.order.with_zero
 import data.nat.order.basic
 
 /-!
@@ -100,7 +99,7 @@ order_embedding.of_strict_mono coe nat.strict_mono_cast
 @[simp, norm_cast] lemma one_le_cast : 1 ≤ (n : α) ↔ 1 ≤ n := by rw [←cast_one, cast_le]
 
 @[simp, norm_cast] lemma cast_lt_one : (n : α) < 1 ↔ n = 0 :=
-by rw [←cast_one, cast_lt, lt_succ_iff, le_zero_iff]
+by rw [←cast_one, cast_lt, lt_succ_iff, ←bot_eq_zero, le_bot_iff]
 
 @[simp, norm_cast] lemma cast_le_one : (n : α) ≤ 1 ↔ n ≤ 1 := by rw [←cast_one, cast_le]
 

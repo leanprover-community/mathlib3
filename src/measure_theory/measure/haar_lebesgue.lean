@@ -300,6 +300,63 @@ begin
     exact le_antisymm (le_trans (measure_mono (image_subset_range _ _)) this.le) (zero_le _) }
 end
 
+variables {ι : Type*} [fintype ι]
+open_locale big_operators
+
+def parallelogram {κ : Type*} [fintype κ] (v : κ → (ι → ℝ)) : set (ι → ℝ) :=
+(λ (t : κ → ℝ), ∑ i, t i • v i) '' (Icc 0 1)
+
+lemma volume_parallelogram [decidable_eq ι] (v : ι → (ι → ℝ)) :
+  volume (parallelogram v) = ennreal.of_real (|(pi.basis_fun ℝ ι).det v|) :=
+begin
+  let M := (pi.basis_fun ℝ ι).to_matrix v,
+  have A : parallelogram v = M.to_lin' '' (Icc 0 1),
+  { rw parallelogram,
+    congr' 1,
+    ext t,
+    simp only [M, fintype.sum_apply, pi.smul_apply, algebra.id.smul_eq_mul],
+    simp_rw [mul_comm (t _)],
+    refl },
+  change volume (parallelogram v) = ennreal.of_real (|M.det|),
+  rw [A, add_haar_image_linear_map, ← pi_univ_Icc],
+  simp only [volume_pi_pi (λ i, Icc (0 : ℝ) 1), pi.zero_apply, pi.one_apply,
+    real.volume_Icc, tsub_zero, ennreal.of_real_one, finset.prod_const_one, mul_one],
+  congr' 2,
+  rw ← matrix.to_lin_eq_to_lin',
+  rw linear_map.det_to_lin,
+end
+
+
+#exit
+
+
+open finite_dimensional measure_theory
+
+section volume_form
+
+def parallelogram (E : Type*) [add_comm_group E] [module ℝ E] {n : ℕ} (v : fin n → E) : set E :=
+(λ (t : fin n → ℝ), ∑ i, t i • v i) '' (Icc 0 1)
+
+
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+[measurable_space E] [borel_space E]
+{n : ℕ} [_i : fact (finrank ℝ E = n)]
+
+include _i
+
+lemma exists_measure (ω : alternating_map ℝ E ℝ (fin n)) :
+  ∃ (μ : measure_theory.measure E), ∀ (v : fin n → E),
+    μ (parallelogram E v) = ennreal.of_real (ω v)
+
+
+
+
+lemma glou (v : alternating_map ℝ E ℝ (fin n)) :
+
+
+#exit
+
+
 /-- The image of a set `s` under a continuous linear map `f` has measure
 equal to `μ s` times the absolute value of the determinant of `f`. -/
 @[simp] lemma add_haar_image_continuous_linear_map

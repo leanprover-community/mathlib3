@@ -46,10 +46,8 @@ variables {ω p q r s t : K}
 
 lemma cube_root_of_unity_sum (hω : is_primitive_root ω 3) : 1 + ω + ω^2 = 0 :=
 begin
-  convert hω.is_root_cyclotomic (nat.succ_pos _),
-  rw [cyclotomic_eq_geom_sum nat.prime_three, eval_geom_sum],
-  simp only [geom_sum_succ, geom_sum_zero],
-  ring,
+  convert hω.is_root_cyclotomic (nat.succ_ne_zero _),
+  simp [cyclotomic_three, add_comm, add_assoc, add_left_comm]
 end
 
 /-- The roots of a monic cubic whose quadratic term is zero and whose discriminant is nonzero. -/

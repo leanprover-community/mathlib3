@@ -157,7 +157,7 @@ quotient.lift _
       symmetry,
       apply groupoid.comp_inv, })
 
-lemma lift_spec (φ : V ⥤q V') : (of V) ⋙q (lift φ).to_prefunctor = φ :=
+lemma lift_spec (φ : V ⥤q V') : of V ⋙q (lift φ).to_prefunctor = φ :=
 begin
   rw [of_eq, prefunctor.comp_assoc, prefunctor.comp_assoc, functor.to_prefunctor_comp],
   dsimp [lift],
@@ -165,7 +165,7 @@ begin
 end
 
 lemma lift_unique (φ : V ⥤q V') (Φ : free_groupoid V ⥤ V')
-  (hΦ : (of V) ⋙q Φ.to_prefunctor = φ) : Φ = (lift φ) :=
+  (hΦ : of V ⋙q Φ.to_prefunctor = φ) : Φ = lift φ :=```
 begin
   apply quotient.lift_unique,
   apply paths.lift_unique,
@@ -177,7 +177,6 @@ begin
            inv (Φ.map ((quotient.functor red_step).to_prefunctor.map f.to_path)),
     have := functor.map_inv Φ ((quotient.functor red_step).to_prefunctor.map f.to_path),
     convert this; simp only [inv_eq_inv], },
-
 end
 
 end universal_property

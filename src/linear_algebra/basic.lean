@@ -1449,6 +1449,11 @@ end linear_map
   f.range_restrict.range = ⊤ :=
 by simp [f.range_cod_restrict _]
 
+@[simp] lemma linear_map.ker_range_restrict [semiring R] [add_comm_monoid M]
+  [add_comm_monoid M₂] [module R M] [module R M₂] (f : M →ₗ[R] M₂) :
+  linear_map.ker f.range_restrict = linear_map.ker f :=
+linear_map.ker_cod_restrict _ _ _
+
 /-! ### Linear equivalences -/
 namespace linear_equiv
 

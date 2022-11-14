@@ -973,6 +973,23 @@ begin
       linear_map.quot_ker_equiv_range_symm_apply_image, mkq_apply], }
 end
 
+-- Note, this can be specialized to the case where `R` is an injective `R`-module.
+lemma range_dual_map_eq_dual_annihilator_ker_of_subtype_range_surjective
+  (f : M →ₗ[R] M') (hf : function.surjective f.range.subtype.dual_map) :
+  f.dual_map.range = f.ker.dual_annihilator :=
+begin
+  have rr_surj : function.surjective f.range_restrict,
+  { rw [← linear_map.range_eq_top, linear_map.range_range_restrict] },
+  have := range_dual_map_eq_dual_annihilator_ker_of_surjective f.range_restrict rr_surj,
+  convert this using 1,
+  { transitivity ((submodule.subtype f.range).comp f.range_restrict).dual_map.range,
+    { refl, },
+    rw [← linear_map.dual_map_comp_dual_map, linear_map.range_comp_of_range_eq_top],
+    rwa linear_map.range_eq_top, },
+  { congr' 1,
+    exact (linear_map.ker_range_restrict f).symm, },
+end
+
 end submodule
 
 end comm_ring

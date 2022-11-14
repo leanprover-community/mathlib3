@@ -118,6 +118,37 @@ P.exact₀.w
 instance {Z : C} (P : ProjectiveResolution Z) (n : ℕ) : category_theory.epi (P.π.f n) :=
 by cases n; apply_instance
 
+@[simps]
+def cokernel_cofork {Z : C} (P : ProjectiveResolution Z) :
+  cokernel_cofork (P.complex.d 1 0) :=
+  cokernel_cofork.of_π (P.π.f 0)  (P.complex_d_comp_π_f_zero)
+
+def is_colimit_cokernel_cofork {Z : C} (P : ProjectiveResolution Z) [balanced C]:
+  is_colimit P.cokernel_cofork :=
+P.exact₀.exact.g_is_cokernel
+
+@[simp]
+def homology_data_complex_zero {Z : C} (P : ProjectiveResolution Z) [balanced C] :
+  P.complex.homology_data 0 :=
+P.complex.homology_data_mk₁₂_of_cokernel' (zero_add 1) (by simp) _ P.is_colimit_cokernel_cofork
+
+instance complex_has_homology_succ' {Z : C} (P : ProjectiveResolution Z) (n : ℕ):
+  (homological_complex.sc P.complex (n+2) (n + 1) n).has_homology :=
+(P.exact n).has_homology
+
+instance complex_has_homology_succ {Z : C} (P : ProjectiveResolution Z) (n : ℕ):
+  P.complex.has_homology (n+1) :=
+short_complex.has_homology.mk' (P.complex.homology_data_mk rfl rfl
+    ((P.complex.sc (n+2) (n+1) n).some_homology_data))
+
+instance complex_has_homology {Z : C} (P : ProjectiveResolution Z) [balanced C] (n : ℕ) :
+  P.complex.has_homology n :=
+begin
+  cases n,
+  { exact short_complex.has_homology.mk' P.homology_data_complex_zero, },
+  { apply_instance, },
+end
+
 /-- A projective object admits a trivial projective resolution: itself in degree 0. -/
 def self (Z : C) [category_theory.projective Z] : ProjectiveResolution Z :=
 { complex := (chain_complex.single₀ C).obj Z,

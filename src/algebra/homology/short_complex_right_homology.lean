@@ -1055,7 +1055,7 @@ namespace right_homology_data
 
 variable {S}
 
-lemma is_iso_g'_of_zero_f (h : right_homology_data S) (hf : S.f = 0) : is_iso h.p :=
+lemma is_iso_p_of_zero_f (h : right_homology_data S) (hf : S.f = 0) : is_iso h.p :=
 ⟨⟨h.desc_Q (𝟙 S.X₂) (by rw [hf, zero_comp]), p_desc_Q _ _ _,
   by simp only [←cancel_epi h.p, p_desc_Q_assoc, id_comp, comp_id]⟩⟩
 

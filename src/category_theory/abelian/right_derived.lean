@@ -197,8 +197,7 @@ exact_of_iso_of_exact (F.map (P.ι.f 0)) (F.map (P.cocomplex.d 0 1)) _ _
   (by rw [iso.refl_hom, category.id_comp, iso.symm_hom, homological_complex.d_from_eq]; congr')
   (preserves_exact_of_preserves_finite_limits_of_mono _ (P.exact₀))
 
-/-- Given `P : InjectiveResolution X`, the isomorphism `(F.right_derived 0).obj X ≅ F.obj X` if
-`preserves_finite_limits F`. -/
+/-- The isomorphism `(F.right_derived 0).obj X ≅ F.obj X` if `preserves_finite_limits F`. -/
 def right_derived_zero_iso_self_app [enough_injectives C] [preserves_finite_limits F]
   (X : C) : (F.right_derived 0).obj X ≅ F.obj X :=
 begin
@@ -214,7 +213,15 @@ naturality of the square given by `right_derived_zero_to_self_natural`. -/
 lemma right_derived_zero_iso_self_naturality [enough_injectives C]
   {X : C} {Y : C} (f : X ⟶ Y) [preserves_finite_limits F] :
   (F.right_derived 0).map f ≫ (right_derived_zero_iso_self_app F Y).hom =
-    (right_derived_zero_iso_self_app F X).hom ≫ F.map f := sorry
+    (right_derived_zero_iso_self_app F X).hom ≫ F.map f :=
+begin
+  dsimp only [right_derived_zero_iso_self_app, iso.trans, iso.app, functor.map_iso],
+  simp only [category.assoc],
+  erw (homotopy_category.homology_factors D (complex_shape.up ℕ) 0).hom.naturality_assoc,
+  congr' 1,
+  sorry,
+end
+
 --begin
 --  dsimp [right_derived_zero_to_self_app_inv],
 --  simp only [category_theory.functor.map_id, category.id_comp, ← category.assoc],

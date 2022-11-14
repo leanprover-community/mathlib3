@@ -1192,4 +1192,12 @@ def left_homology_iso_cokernel_lift [S.has_left_homology] [has_kernel S.g]
   S.left_homology ≅ cokernel (kernel.lift S.g S.f S.zero) :=
 (left_homology_data.of_ker_of_coker S).left_homology_iso
 
+namespace left_homology_data
+
+lemma is_iso_i_of_zero_g (h : left_homology_data S) (hg : S.g = 0) : is_iso h.i :=
+⟨⟨h.lift_K (𝟙 S.X₂) (by rw [hg, id_comp]),
+    by simp only [← cancel_mono h.i, id_comp, assoc, lift_K_i, comp_id], lift_K_i _ _ _⟩⟩
+
+end left_homology_data
+
 end short_complex

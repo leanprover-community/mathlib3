@@ -37,7 +37,7 @@ def kernel_fork.map_is_limit {X Y : C} {f : X ⟶ Y} [has_zero_morphisms C] [has
   [preserves_limit (parallel_pair f 0) F] :
   is_limit (c.map F) :=
 begin
-  equiv_rw (is_limit.postcompose_inv_equiv(parallel_pair.comp_nat_iso F f) _).symm,
+  equiv_rw (is_limit.postcompose_inv_equiv (parallel_pair.comp_nat_iso F f) _).symm,
   refine is_limit.of_iso_limit (is_limit_of_preserves F hc) _,
   refine cones.ext (iso.refl _) _,
   rintro (_|_),
@@ -49,11 +49,24 @@ end
 
 instance preserves_kernel_zero {X Y : C} [has_zero_morphisms C] [has_zero_morphisms D] (F : C ⥤ D)
   [F.preserves_zero_morphisms] :
-  preserves_limit (parallel_pair (0 : X ⟶ Y) 0) F := sorry
+  preserves_limit (parallel_pair (0 : X ⟶ Y) 0) F :=
+⟨λ c hc, begin
+  haveI := kernel_fork.is_limit.is_iso_ι_of_zero c hc rfl,
+  equiv_rw (is_limit.postcompose_inv_equiv (parallel_pair.comp_nat_iso F _).symm _).symm,
+  refine is_limit.of_iso_limit (kernel_zero _ (F.map_zero _ _)) _,
+  symmetry,
+  exact (fork.ext (F.map_iso (as_iso (fork.ι c))) rfl),
+end⟩
 
 instance preserves_cokernel_zero {X Y : C} [has_zero_morphisms C] [has_zero_morphisms D] (F : C ⥤ D)
   [F.preserves_zero_morphisms] :
-  preserves_colimit (parallel_pair (0 : X ⟶ Y) 0) F := sorry
+  preserves_colimit (parallel_pair (0 : X ⟶ Y) 0) F :=
+⟨λ c hc, begin
+  haveI := cokernel_cofork.is_colimit.is_iso_π_of_zero c hc rfl,
+  equiv_rw (is_colimit.precompose_hom_equiv (parallel_pair.comp_nat_iso F _).symm _).symm,
+  exact is_colimit.of_iso_colimit (cokernel_zero _ (F.map_zero _ _))
+    (cofork.ext (F.map_iso (as_iso (cofork.π c))) rfl),
+end⟩
 
 end limits
 
@@ -561,10 +574,33 @@ lemma preserves_right_homology_of_zero_left (hf : S.f = 0)
   split,
   { rw hf, apply_instance, },
   { let e : parallel_pair S.g 0 ≅ parallel_pair h.g' 0,
-    { haveI : is_iso h.p := h.is_iso_g'_of_zero_f hf,
+    { haveI : is_iso h.p := h.is_iso_p_of_zero_f hf,
       exact parallel_pair.ext (as_iso h.p) (iso.refl _) (by tidy) (by tidy), },
     exact limits.preserves_limit_of_iso_diagram F e, },
 end⟩
 
+lemma preserves_left_homology_of_zero_right (hg : S.g = 0)
+  [preserves_colimit (parallel_pair S.f 0) F] [F.preserves_zero_morphisms]:
+  F.preserves_left_homology_of S :=
+⟨λ h, begin
+  split,
+  { rw hg, apply_instance, },
+  { let e : parallel_pair h.f' 0 ≅ parallel_pair S.f 0,
+    { haveI : is_iso h.i := h.is_iso_i_of_zero_g hg,
+      refine parallel_pair.ext (iso.refl _) (as_iso h.i) (by tidy) (by tidy), },
+    exact limits.preserves_colimit_of_iso_diagram F e.symm, },
+end⟩
+
+lemma preserves_right_homology_of_zero_right (hg : S.g = 0)
+  [preserves_colimit (parallel_pair S.f 0) F] [F.preserves_zero_morphisms]:
+  F.preserves_right_homology_of S :=
+⟨λ h, begin
+  split,
+  { apply_instance, },
+  { rw [show h.g' = 0, by rw [← cancel_epi h.p, h.p_g', comp_zero, hg]],
+    apply_instance, },
+end⟩
+
 end
+
 end short_complex

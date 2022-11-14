@@ -43,11 +43,15 @@ add_subgroup.index S.to_add_subgroup
   card_quot S = fintype.card (M ⧸ S) :=
 add_subgroup.index_eq_card _
 
+variables (R M)
+
 @[simp] lemma card_quot_bot [infinite M] : card_quot (⊥ : submodule R M) = 0 :=
 add_subgroup.index_bot.trans nat.card_eq_zero_of_infinite
 
 @[simp] lemma card_quot_top : card_quot (⊤ : submodule R M) = 1 :=
 add_subgroup.index_top
+
+variables {R M}
 
 @[simp] lemma card_quot_eq_one_iff {P : submodule R M} : card_quot P = 1 ↔ P = ⊤ :=
 add_subgroup.index_eq_one.trans (by simp [set_like.ext_iff])

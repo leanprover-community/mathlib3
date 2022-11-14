@@ -51,10 +51,11 @@ structure is_fundamental_domain (G : Type*) {α : Type*} [has_one G] [has_smul G
 (ae_covers : ∀ᵐ x ∂μ, ∃ g : G, g • x ∈ s)
 (ae_disjoint : ∀ g ≠ (1 : G), ae_disjoint μ (g • s) s)
 
-namespace is_fundamental_domain
+variables {G α E : Type*}
 
-variables {G α E : Type*} [group G] [mul_action G α] [measurable_space α]
-  [normed_add_comm_group E] {s t : set α} {μ : measure α}
+namespace is_fundamental_domain
+variables [group G] [mul_action G α] [measurable_space α] [normed_add_comm_group E] {s t : set α}
+  {μ : measure α}
 
 /-- If for each `x : α`, exactly one of `g • x`, `g : G`, belongs to a measurable set `s`, then `s`
 is a fundamental domain for the action of `G` on `α`. -/
@@ -358,4 +359,68 @@ end
 
 end is_fundamental_domain
 
+/-! ### Interior/frontier of a fundamental domain -/
+
+section measurable_space
+variables (G) [group G] [mul_action G α] (s : set α)
+
+/-- The boundary of a fundamental domain, those points of the domain that also lie in a nontrivial
+translate. -/
+@[to_additive measure_theory.add_fundamental_frontier "The boundary of a fundamental domain, those
+points of the domain that also lie in a nontrivial translate."]
+def fundamental_frontier : set α := s ∩ ⋃ (g : G) (hg : g ≠ 1), g • s
+
+/-- The interior of a fundamental domain, those points of the domain not lying in any translate. -/
+@[to_additive measure_theory.add_fundamental_interior "The interior of a fundamental domain, those
+points of the domain not lying in any translate."]
+def fundamental_interior : set α := s \ ⋃ (g : G) (hg : g ≠ 1), g • s
+
+@[to_additive measure_theory.disjoint_add_fundamental_interior_add_fundamental_frontier]
+lemma disjoint_fundamental_interior_fundamental_frontier :
+  disjoint (fundamental_interior G s) (fundamental_frontier G s) :=
+disjoint_sdiff_self_left.mono_right inf_le_right
+
+@[simp, to_additive measure_theory.add_fundamental_interior_union_add_fundamental_frontier]
+lemma fundamental_interior_union_fundamental_frontier :
+  fundamental_interior G s ∪ fundamental_frontier G s = s :=
+diff_union_inter _ _
+
+@[simp, to_additive measure_theory.sdiff_add_fundamental_interior]
+lemma sdiff_fundamental_interior : s \ fundamental_interior G s = fundamental_frontier G s :=
+sdiff_sdiff_right_self
+
+@[simp, to_additive measure_theory.sdiff_add_fundamental_frontier]
+lemma sdiff_fundamental_frontier : s \ fundamental_frontier G s = fundamental_interior G s :=
+diff_self_inter
+
+variables [countable G] [measurable_space G] [measurable_space α] [has_measurable_smul G α]
+  {μ : measure α} [smul_invariant_measure G α μ]
+
+@[to_additive measure_theory.null_measurable_set.add_fundamental_frontier]
+protected lemma null_measurable_set.fundamental_frontier (hs : null_measurable_set s μ) :
+  null_measurable_set (fundamental_frontier G s) μ :=
+hs.inter $ null_measurable_set.Union $ λ g, null_measurable_set.Union $ λ hg, hs.smul _
+
+@[to_additive measure_theory.null_measurable_set.add_fundamental_interior]
+protected lemma null_measurable_set.fundamental_interior (hs : null_measurable_set s μ) :
+  null_measurable_set (fundamental_interior G s) μ :=
+hs.diff $ null_measurable_set.Union $ λ g, null_measurable_set.Union $ λ hg, hs.smul _
+
+end measurable_space
+
+namespace is_fundamental_domain
+variables [countable G] [group G] [mul_action G α] [measure_space α] {s : set α}
+  (hs : is_fundamental_domain G s)
+include hs
+
+@[to_additive measure_theory.is_add_fundamental_domain.volume_add_fundamental_frontier]
+lemma volume_fundamental_frontier : volume (fundamental_frontier G s) = 0 :=
+by simpa only [fundamental_frontier, Union₂_inter, measure_Union_null_iff',
+  measure_Union_null_iff, inter_comm s] using hs.ae_disjoint
+
+@[to_additive measure_theory.is_add_fundamental_domain.volume_add_fundamental_interior]
+lemma volume_fundamental_interior : volume (fundamental_interior G s) = volume s :=
+measure_diff_null' hs.volume_fundamental_frontier
+
+end is_fundamental_domain
 end measure_theory

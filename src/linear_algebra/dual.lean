@@ -880,43 +880,6 @@ rfl
 
 end dual_map
 
-section comm_ring
-
-namespace submodule
-
-variables {R M : Type*}
-variables [comm_ring R] [add_comm_group M] [module R M]
-
-/-- Equivalence $(M/W)^* \approx \operatorname{ann}(W)$. That is, there is a one-to-one
-correspondence between the dual of `M ⧸ W` and those elements of the dual of `M` that
-vanish on `W`. -/
-def dual_quot_equiv_dual_annihilator (W : submodule R M) :
-  module.dual R (M ⧸ W) ≃ₗ[R] W.dual_annihilator :=
-begin
-  refine linear_equiv.of_linear
-    (W.mkq.dual_map.cod_restrict W.dual_annihilator _)
-    (linear_map.flip $ W.liftq ((module.dual_pairing R M).dom_restrict W.dual_annihilator).flip _)
-    _ _,
-  { intro φ,
-    rw mem_dual_annihilator,
-    intros w hw,
-    rw [linear_map.dual_map_apply, mkq_apply, ← φ.map_zero],
-    congr' 1,
-    rwa submodule.quotient.mk_eq_zero, },
-  { intros w hw, ext ⟨φ, hφ⟩, exact (submodule.mem_dual_annihilator φ).mp hφ w hw },
-  iterate 2 { ext, refl },
-end
-
-lemma dual_quot_equiv_dual_annihilator_apply (W : submodule R M) (φ : module.dual R (M ⧸ W)) (x : M) :
-  dual_quot_equiv_dual_annihilator W φ x = φ (quotient.mk x) := rfl
-
-lemma dual_quot_equiv_dual_annihilator_symm_apply_mk (W : submodule R M) (φ : W.dual_annihilator)
-  (x : M) : (dual_quot_equiv_dual_annihilator W).symm φ (quotient.mk x) = φ x := rfl
-
-end submodule
-
-end comm_ring
-
 namespace linear_map
 variables {R : Type*} [comm_semiring R] {M₁ : Type*} {M₂ : Type*}
 variables [add_comm_monoid M₁] [module R M₁] [add_comm_monoid M₂] [module R M₂]
@@ -947,6 +910,55 @@ begin
 end
 
 end linear_map
+
+section comm_ring
+
+namespace submodule
+
+variables {R M : Type*}
+variables [comm_ring R] [add_comm_group M] [module R M]
+
+/-- Equivalence $(M/W)^* \approx \operatorname{ann}(W)$. That is, there is a one-to-one
+correspondence between the dual of `M ⧸ W` and those elements of the dual of `M` that
+vanish on `W`. -/
+def dual_quot_equiv_dual_annihilator (W : submodule R M) :
+  module.dual R (M ⧸ W) ≃ₗ[R] W.dual_annihilator :=
+begin
+  refine linear_equiv.of_linear
+    (W.mkq.dual_map.cod_restrict W.dual_annihilator _)
+    (linear_map.flip $ W.liftq ((module.dual_pairing R M).dom_restrict W.dual_annihilator).flip _)
+    _ _,
+  { intro φ,
+    have := linear_map.mem_range_self W.mkq.dual_map φ,
+    simpa only [ker_mkq] using linear_map.range_dual_map_le_dual_annihilator_ker W.mkq this, },
+  { intros w hw, ext ⟨φ, hφ⟩, exact (mem_dual_annihilator φ).mp hφ w hw },
+  iterate 2 { ext, refl },
+end
+
+lemma dual_quot_equiv_dual_annihilator_apply (W : submodule R M)
+  (φ : module.dual R (M ⧸ W)) (x : M) :
+  dual_quot_equiv_dual_annihilator W φ x = φ (quotient.mk x) := rfl
+
+lemma dual_quot_equiv_dual_annihilator_symm_apply_mk (W : submodule R M)
+  (φ : W.dual_annihilator) (x : M) :
+  (dual_quot_equiv_dual_annihilator W).symm φ (quotient.mk x) = φ x := rfl
+
+/-- That $\operatorname{im}(q^* : (V/W)^* \to V^*) = \operatorname{ann}(W)$. -/
+lemma range_dual_map_mkq_eq_dual_annihilator (W : submodule R M) :
+  (submodule.mkq W).dual_map.range = W.dual_annihilator :=
+begin
+  let F := (submodule.subtype W.dual_annihilator).comp
+             (dual_quot_equiv_dual_annihilator W).to_linear_map,
+  convert_to _ = F.range,
+  { rw linear_map.range_comp_of_range_eq_top,
+    { rw range_subtype },
+    apply linear_equiv.range, },
+  refl,
+end
+
+end submodule
+
+end comm_ring
 
 section vector_space
 
@@ -994,11 +1006,6 @@ begin
   rw linear_map.sub_mem_ker_iff,
   exact subtype.ext_iff.mp (linear_map.ext_iff.mp hf' ⟨f x, mem_range_self _ _⟩),
 end
-
-/-- That $\operatorname{im}(q^* : (V/W)^* \to V^*) = \operatorname{ann}(W)$. -/
-lemma range_dual_map_mkq_eq_dual_annihilator (W : subspace K V₁) :
-  (submodule.mkq W).dual_map.range = W.dual_annihilator :=
-by rw [range_dual_map_eq_dual_annihilator_ker, submodule.ker_mkq W]
 
 end linear_map
 

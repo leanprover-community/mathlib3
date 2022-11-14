@@ -141,7 +141,7 @@ variables [semiring R] [add_comm_monoid M] [add_comm_monoid N] [module R M] [mod
 instance is_noetherian.finite [is_noetherian R M] : finite R M :=
 ⟨is_noetherian.noetherian ⊤⟩
 
-lemma of_injective [is_noetherian R N] (f : M →ₗ[R] N)
+lemma finite.of_injective [is_noetherian R N] (f : M →ₗ[R] N)
   (hf : function.injective f) : finite R M :=
 ⟨fg_of_injective f hf⟩
 

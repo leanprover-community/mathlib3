@@ -46,7 +46,7 @@ def monoid_hom_slash_action {β G H α δ γ : Type*} [group G] [has_zero (α �
   smul_action := by {intros k g a z, apply slash_action.smul_action, },
   add_action := by {intros k g a b, apply slash_action.add_action, }, }
 
-namespace modular_forms
+namespace modular_form
 
 noncomputable theory
 
@@ -56,8 +56,8 @@ f (γ • x) * (((↑ₘ γ).det) : ℝ)^(k-1) * (upper_half_plane.denom γ x)^(
 
 variables {Γ : subgroup SL(2, ℤ)} {k: ℤ} (f : ℍ → ℂ)
 
-localized "notation (name := modular_forms.slash) f ` ∣[`:100 k `]`:0 γ :100 :=
-  modular_forms.slash k γ f" in modular_forms
+localized "notation (name := modular_form.slash) f ` ∣[`:100 k `]`:0 γ :100 :=
+  modular_form.slash k γ f" in modular_form
 
 lemma slash_right_action (k : ℤ) (A B : GL(2, ℝ)⁺) (f : ℍ → ℂ) :
   (f ∣[k] A) ∣[k] B = f ∣[k] (A * B) :=
@@ -151,7 +151,7 @@ lemma slash_action_eq'_iff (k : ℤ) (Γ : subgroup SL(2, ℤ)) (f : ℍ → ℂ
   ∀ z : ℍ, f ∣[k, γ] z = f z ↔ f (γ • z) = ((↑ₘγ 1 0 : ℝ) * z +(↑ₘγ 1 1 : ℝ))^k * f z :=
 begin
   intro z,
-  simp only [subgroup_slash, modular_forms.slash],
+  simp only [subgroup_slash, modular_form.slash],
   convert inv_mul_eq_iff_eq_mul₀ _ using 2,
   { rw mul_comm,
     simp [-matrix.special_linear_group.coe_matrix_coe] },
@@ -189,4 +189,4 @@ lemma mul_slash_subgroup (k1 k2 : ℤ) (Γ : subgroup SL(2, ℤ)) (A : Γ) (f g 
   (f * g) ∣[k1 + k2, A] = (f ∣[k1, A]) * (g ∣[k2, A]) :=
 mul_slash_SL2 k1 k2 A f g
 
-end modular_forms
+end modular_form

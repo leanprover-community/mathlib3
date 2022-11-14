@@ -269,31 +269,6 @@ lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = (↑g : matrix (fin 2
 
 end SL_modular_action
 
-section upper_half_plane_manifold
-
-/--The upper half space as a subset of `ℂ` which is convenient sometimes.-/
-def upper_half_space := {z : ℂ | 0 <  z.im}
-
-
-lemma hcoe : upper_half_space = coe '' (set.univ : set upper_half_plane) :=
-begin
-simp, refl,
-end
-instance : has_coe ℍ (topological_space.opens ℂ) :=
-⟨λ _, ⟨(coe : ℍ → ℂ) '' (set.univ : set upper_half_plane) , by { rw ← hcoe,
-apply  is_open.preimage complex.continuous_im is_open_Ioi}⟩⟩
-
-lemma upper_half_plane_is_open: is_open upper_half_space  :=
-is_open.preimage complex.continuous_im is_open_Ioi
-
-local notation `ℍ'`:= (⟨upper_half_space , upper_half_plane_is_open⟩: topological_space.opens ℂ)
-
-/--The extension of a function from `ℍ` to `ℍ'`-/
-def hol_extn (f : ℍ → ℂ) : ℍ' → ℂ := λ (z : ℍ'), (f (z : ℍ))
-
-instance : has_coe (ℍ → ℂ) (ℍ' → ℂ) := ⟨λ f, hol_extn f ⟩
-
-end upper_half_plane_manifold
 section pos_real_action
 
 instance pos_real_action : mul_action {x : ℝ // 0 < x} ℍ :=

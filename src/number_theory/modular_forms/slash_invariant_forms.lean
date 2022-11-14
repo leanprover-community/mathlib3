@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Birkbeck, David Loeffler
+Authors: Chris Birkbeck
 -/
 import analysis.complex.upper_half_plane.basic
 import number_theory.modular_forms.slash_actions
@@ -31,7 +31,7 @@ section slash_invariant_forms
 
 set_option old_structure_cmd true
 
-open modular_forms
+open modular_form
 
 variables (F : Type*) (Γ : out_param $ subgroup SL(2, ℤ)) (k : out_param ℤ)
 
@@ -47,6 +47,8 @@ under the `slash_action`. -/
 class slash_invariant_form_class extends fun_like F ℍ (λ _, ℂ) :=
 (slash_action_eq : ∀ (f : F) (γ : Γ), f ∣[k, γ] = f)
 
+attribute [nolint dangerous_instance] slash_invariant_form_class.to_fun_like
+
 @[priority 100]
 instance slash_invariant_form_class.slash_invariant_form :
    slash_invariant_form_class (slash_invariant_form Γ k) Γ k :=
@@ -58,10 +60,11 @@ variables {F Γ k}
 
 instance : has_coe_to_fun (slash_invariant_form Γ k) (λ _, ℍ → ℂ) := fun_like.has_coe_to_fun
 
-@[simp] lemma sif_to_fun_eq_coe {f : slash_invariant_form Γ k} : f.to_fun = (f : ℍ → ℂ) := rfl
+@[simp] lemma slash_invariant_form_to_fun_eq_coe {f : slash_invariant_form Γ k} :
+  f.to_fun = (f : ℍ → ℂ) := rfl
 
-@[ext] theorem sif_ext {f g : slash_invariant_form Γ k} (h : ∀ x, f x = g x) : f = g :=
-fun_like.ext f g h
+@[ext] theorem slash_invaraint_form_ext {f g : slash_invariant_form Γ k} (h : ∀ x, f x = g x) :
+  f = g := fun_like.ext f g h
 
 /-- Copy of a `slash_invariant_form` with a new `to_fun` equal to the old one.
 Useful to fix definitional equalities. -/
@@ -76,8 +79,9 @@ namespace slash_invariant_forms
 
 open slash_invariant_forms
 
-variables {F : Type*} {Γ : subgroup SL(2, ℤ)} {k : ℤ}
+variables {F : Type*} {Γ : out_param $ subgroup SL(2, ℤ)} {k : out_param ℤ}
 
+@[priority 100, nolint dangerous_instance]
 instance slash_invariant_form_class.coe_to_fun [slash_invariant_form_class F Γ k] :
   has_coe_to_fun F (λ _, ℍ → ℂ) := fun_like.has_coe_to_fun
 
@@ -88,7 +92,7 @@ lemma slash_action_eqn' (k : ℤ) (Γ : subgroup SL(2, ℤ)) [slash_invariant_fo
 ∀ γ : Γ, ∀ z : ℍ, f (γ • z) = ((↑ₘγ 1 0 : ℝ) * z +(↑ₘγ 1 1 : ℝ))^k * f z :=
 begin
   intros γ z,
-  rw ←modular_forms.slash_action_eq'_iff,
+  rw ←modular_form.slash_action_eq'_iff,
   simp,
 end
 
@@ -102,6 +106,9 @@ instance has_add : has_add (slash_invariant_form Γ k) :=
 ⟨λ f g , ⟨ f + g, by {intro γ, convert slash_action.add_action k γ f g,
    exact ((f.slash_action_eq') γ).symm, exact ((g.slash_action_eq') γ).symm} ⟩⟩
 
+@[simp] lemma coe_add {f g : (slash_invariant_form Γ k)} : ⇑(f + g) = f + g := rfl
+@[simp] lemma add_apply {f g : (slash_invariant_form Γ k)} {z : ℍ} : (f + g) z = f z + g z := rfl
+
 instance has_zero : has_zero (slash_invariant_form Γ k) :=
 {zero := ⟨ 0 , slash_action.mul_zero _⟩}
 
@@ -110,39 +117,67 @@ instance has_nsmul : has_smul ℕ (slash_invariant_form Γ k) :=
     slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f (c : ℂ),
     exact ((f.slash_action_eq') γ).symm}}⟩
 
+@[simp] lemma coe_nsmul {f : (slash_invariant_form Γ k)} {n : ℕ} : ⇑(n • f) = n • f :=
+begin
+  simp only [nsmul_eq_mul],
+  refl,
+end
+
+@[simp] lemma nsmul_apply {f : (slash_invariant_form Γ k)} {n : ℕ} {z : ℍ} :
+   (n • f) z = (n : ℂ) • (f z) := rfl
+
 instance has_zsmul : has_smul ℤ (slash_invariant_form Γ k) :=
 ⟨ λ c f, {to_fun := (c : ℂ) • f,
     slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f (c : ℂ),
     exact ((f.slash_action_eq') γ).symm}}⟩
+
+@[simp] lemma coe_zsmul {f : (slash_invariant_form Γ k)} {n : ℤ} : ⇑(n • f) = n • f :=
+begin
+  simp only [zsmul_eq_mul],
+  refl,
+end
+
+@[simp] lemma zsmul_apply {f : (slash_invariant_form Γ k)} {n : ℤ} {z : ℍ} :
+   (n • f) z = (n : ℂ) • (f z) := rfl
 
 instance has_csmul : has_smul ℂ (slash_invariant_form Γ k) :=
 ⟨ λ c f, {to_fun := c • f,
     slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f c,
     exact ((f.slash_action_eq') γ).symm}}⟩
 
+@[simp] lemma coe_csmul {f : (slash_invariant_form Γ k)} {n : ℂ} : ⇑(n • f) = n • f := rfl
+@[simp] lemma csmul_apply {f : (slash_invariant_form Γ k)} {n : ℂ} {z : ℍ} :
+   (n • f) z = n • (f z) := rfl
+
 instance has_neg : has_neg (slash_invariant_form Γ k) :=
 ⟨λ f, ⟨ -f,
   begin intro g,
   have := ((f.slash_action_eq') g),
-  rw modular_forms.subgroup_slash at *,
-  rw modular_forms.neg_slash,
+  rw modular_form.subgroup_slash at *,
+  rw modular_form.neg_slash,
   simp only [neg_inj],
   convert this
   end⟩ ⟩
+
+@[simp] lemma coe_neg {f : (slash_invariant_form Γ k)} : ⇑(-f) = -f := rfl
+@[simp] lemma neg_apply {f : (slash_invariant_form Γ k)} {z : ℍ} : (-f) z = - (f z) := rfl
 
 instance has_sub : has_sub (slash_invariant_form Γ k) :=
 ⟨λ f g, ⟨f - g, by { intro γ,
   have : (f : ℍ → ℂ) - g = f + (-g), by {funext, simp, ring,},
   rw [this, slash_action.add_action k γ],
-  simp only [modular_forms.subgroup_slash, add_right_inj, slash_invariant_forms.slash_action_eqn,
+  simp only [modular_form.subgroup_slash, add_right_inj, slash_invariant_forms.slash_action_eqn,
     coe_coe],
-  rw modular_forms.neg_slash,
+  rw modular_form.neg_slash,
   simp only [neg_inj],
   convert ((g.slash_action_eq') γ)} ⟩⟩
 
+@[simp] lemma coe_sub {f g : (slash_invariant_form Γ k)} : ⇑(f - g) = f - g := rfl
+@[simp] lemma sub_apply {f g : (slash_invariant_form Γ k)} {z : ℍ} : (f - g) z = f z - g z := rfl
+
 instance : add_comm_group (slash_invariant_form Γ k) :=
-fun_like.coe_injective.add_comm_group _ rfl (λ _ _, by {refl}) (λ _, by{refl}) (λ _ _, by {refl})
-(λ _ _, by {simp, refl,}) (λ _ _, by {simp, refl})
+fun_like.coe_injective.add_comm_group _ rfl (λ _ _, coe_add) (λ _, coe_neg) (λ _ _, coe_sub)
+(λ _ _, coe_nsmul) (λ _ _, coe_zsmul)
 
 lemma coe_zero : ((0 : (slash_invariant_form Γ k) ) : ℍ → ℂ) = (0 : ℍ → ℂ) := rfl
 
@@ -158,7 +193,7 @@ coe_hom_injective.module ℂ (coe_hom) (λ _ _, rfl)
 
 instance : has_one (slash_invariant_form Γ 0) :=
 {one := {to_fun := 1, slash_action_eq' := by {intro A,
-  convert modular_forms.const_one_form_is_invar A}}}
+  convert modular_form.const_one_form_is_invar A}}}
 
 instance : inhabited (slash_invariant_form Γ k) := ⟨0⟩
 

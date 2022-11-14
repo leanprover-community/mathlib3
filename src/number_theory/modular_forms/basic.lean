@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Birkbeck, David Loeffler
+Authors: Chris Birkbeck
 -/
 
 import geometry.manifold.mfderiv
@@ -37,20 +37,23 @@ local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 
 local notation `SL(` n `, ` R `)` := matrix.special_linear_group (fin n) R
 
-set_option old_structure_cmd true
+section modular_form
 
-section modular_forms
-
-open modular_forms
+open modular_form
 
 variables (F : Type*) (Γ : subgroup SL(2, ℤ)) (k : ℤ)
 
 local notation f `∣[`:73 k:0, A `]` :72 := slash_action.map ℂ k A f
 
+set_option old_structure_cmd true
+
 /--These are `slash_invariant_forms` that are holomophic and bounded at infinity. -/
 structure modular_form extends slash_invariant_form Γ k :=
 (hol' : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (to_fun : ℍ → ℂ))
 (bdd_at_infty' : ∀ (A : SL(2, ℤ)), is_bounded_at_im_infty (to_fun ∣[k, A]))
+
+/--The `slash_invariant_form` defined by a `modular_form`. -/
+attribute modular_form.to_slash_invariant_form
 
 /--These are `slash_invariant_forms` that are holomophic and zero at infinity. -/
 structure cusp_form extends slash_invariant_form Γ k :=
@@ -92,18 +95,18 @@ variables {F Γ k}
 instance : has_coe_to_fun (modular_form Γ k) (λ _, ℍ → ℂ) := fun_like.has_coe_to_fun
 instance : has_coe_to_fun (cusp_form Γ k) (λ _, ℍ → ℂ) := fun_like.has_coe_to_fun
 
-@[simp] lemma mf_to_fun_eq_coe {f : modular_form Γ k} : f.to_fun = (f : ℍ → ℂ) := rfl
-@[simp] lemma cf_to_fun_eq_coe {f : cusp_form Γ k} : f.to_fun = (f : ℍ → ℂ) := rfl
+@[simp] lemma modular_form_to_fun_eq_coe {f : modular_form Γ k} : f.to_fun = (f : ℍ → ℂ) := rfl
+@[simp] lemma cusp_form_to_fun_eq_coe {f : cusp_form Γ k} : f.to_fun = (f : ℍ → ℂ) := rfl
 
-@[ext] theorem mf_ext {f g : modular_form Γ k} (h : ∀ x, f x = g x) : f = g :=
+@[ext] theorem modular_form_ext {f g : modular_form Γ k} (h : ∀ x, f x = g x) : f = g :=
 fun_like.ext f g h
 
-@[ext] theorem cf_ext {f g : cusp_form Γ k} (h : ∀ x, f x = g x) : f = g :=
+@[ext] theorem cusp_form_ext {f g : cusp_form Γ k} (h : ∀ x, f x = g x) : f = g :=
 fun_like.ext f g h
 
 /-- Copy of a `modular_form` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
-protected def mf_copy (f : modular_form Γ k) (f' : ℍ → ℂ) (h : f' = ⇑f) :
+protected def modular_form_copy (f : modular_form Γ k) (f' : ℍ → ℂ) (h : f' = ⇑f) :
   modular_form Γ k :=
 { to_fun := f',
   slash_action_eq' := h.symm ▸ f.slash_action_eq',
@@ -112,31 +115,33 @@ protected def mf_copy (f : modular_form Γ k) (f' : ℍ → ℂ) (h : f' = ⇑f)
 
 /-- Copy of a `cusp_form` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
-protected def cf_copy (f : cusp_form Γ k) (f' : ℍ → ℂ) (h : f' = ⇑f) :
+protected def cusp_form_copy (f : cusp_form Γ k) (f' : ℍ → ℂ) (h : f' = ⇑f) :
   cusp_form Γ k :=
 { to_fun := f',
   slash_action_eq' := h.symm ▸ f.slash_action_eq',
   hol' := h.symm ▸ f.hol',
   zero_at_infty' := λ A, h.symm ▸ f.zero_at_infty' A }
 
-end modular_forms
+end modular_form
 
-namespace modular_forms
+namespace modular_form
 
 open slash_invariant_forms
-
-set_option old_structure_cmd true
 
 variables {F : Type*} {Γ : subgroup SL(2, ℤ)} {k : ℤ}
 
 instance has_add : has_add (modular_form Γ k) :=
-{ add := λ f g, {to_fun := f + g,
-  slash_action_eq' := (f.to_slash_invariant_form + g.to_slash_invariant_form).2,
-  hol' := mdifferentiable.add _ f.hol' g.hol',
-  bdd_at_infty' := λ A, begin
-      rw slash_action.add_action,
-      exact (bounded_at_im_infty_subalgebra ℂ).add_mem' (f.bdd_at_infty' A) (g.bdd_at_infty' A),
-      end}}
+{ add := λ f g,
+  { to_fun := f + g,
+    slash_action_eq' := (f.to_slash_invariant_form + g.to_slash_invariant_form).2,
+    hol' := mdifferentiable.add _ f.hol' g.hol',
+    bdd_at_infty' := λ A, begin
+        rw slash_action.add_action,
+        exact (bounded_at_im_infty_subalgebra ℂ).add_mem' (f.bdd_at_infty' A) (g.bdd_at_infty' A),
+        end}}
+
+@[simp] lemma coe_add {f g : (modular_form Γ k)} : ⇑(f + g) = f + g := rfl
+@[simp] lemma add_apply {f g : (modular_form Γ k)} {z : ℍ} : (f + g) z = f z + g z := rfl
 
 instance has_zero : has_zero (modular_form Γ k) :=
 { zero := ⟨0, slash_action.mul_zero _, (λ _, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
@@ -145,7 +150,8 @@ instance has_zero : has_zero (modular_form Γ k) :=
     apply slash_action.mul_zero _ }⟩}
 
 instance has_nsmul : has_smul ℕ (modular_form Γ k) :=
-⟨ λ c f, {to_fun := (c : ℂ) • f,
+⟨ λ c f,
+  { to_fun := (c : ℂ) • f,
     slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f (c : ℂ),
     exact ((f.slash_action_eq') γ).symm},
     hol' := mdifferentiable.const_smul _ _ f.hol',
@@ -153,9 +159,19 @@ instance has_nsmul : has_smul ℕ (modular_form Γ k) :=
       rw slash_action.smul_action,
       apply (bounded_at_im_infty_subalgebra ℂ).smul_mem (f.bdd_at_infty' A)
     end }⟩
+
+@[simp] lemma coe_nsmul {f : (modular_form Γ k)} {n : ℕ} : ⇑(n • f) = n • f :=
+begin
+  simp only [nsmul_eq_mul],
+  refl,
+end
+
+@[simp] lemma nsmul_apply {f : (modular_form Γ k)} {n : ℕ} {z : ℍ} :
+   (n • f) z = (n : ℂ) • (f z) := rfl
 
 instance has_zsmul : has_smul ℤ (modular_form Γ k) :=
-⟨ λ c f, {to_fun := (c : ℂ) • f,
+⟨ λ c f,
+  { to_fun := (c : ℂ) • f,
     slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f (c : ℂ),
     exact ((f.slash_action_eq') γ).symm},
     hol' := mdifferentiable.const_smul _ _ f.hol',
@@ -164,8 +180,18 @@ instance has_zsmul : has_smul ℤ (modular_form Γ k) :=
       apply (bounded_at_im_infty_subalgebra ℂ).smul_mem (f.bdd_at_infty' A)
     end }⟩
 
+@[simp] lemma coe_zsmul {f : (modular_form Γ k)} {n : ℤ} : ⇑(n • f) = n • f :=
+begin
+  simp only [zsmul_eq_mul],
+  refl,
+end
+
+@[simp] lemma zsmul_apply {f : (modular_form Γ k)} {n : ℤ} {z : ℍ} :
+   (n • f) z = (n : ℂ) • (f z) := rfl
+
 instance has_csmul : has_smul ℂ (modular_form Γ k) :=
-⟨ λ c f, {to_fun := c • f,
+⟨ λ c f,
+  { to_fun := c • f,
     slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f c,
     exact ((f.slash_action_eq') γ).symm},
     hol' := mdifferentiable.const_smul _ _ f.hol',
@@ -174,33 +200,45 @@ instance has_csmul : has_smul ℂ (modular_form Γ k) :=
       apply (bounded_at_im_infty_subalgebra ℂ).smul_mem (f.bdd_at_infty' A)
     end }⟩
 
+@[simp] lemma coe_csmul {f : (modular_form Γ k)} {n : ℂ} : ⇑(n • f) = n • f := rfl
+@[simp] lemma csmul_apply {f : (modular_form Γ k)} {n : ℂ} {z : ℍ} :
+   (n • f) z = n • (f z) := rfl
+
 instance has_neg : has_neg (modular_form Γ k) :=
-⟨λ f, {to_fun := -f,
+⟨λ f,
+  { to_fun := -f,
     slash_action_eq':= (-(f.to_slash_invariant_form)).2,
     hol' := mdifferentiable.neg _ f.hol',
     bdd_at_infty':= λ A, begin
       convert (bounded_at_im_infty_subalgebra ℂ).smul_mem (f.bdd_at_infty' A) (-1),
       simp only [_root_.neg_smul, one_smul],
-      apply  modular_forms.neg_slash,
+      apply  modular_form.neg_slash,
       end }⟩
 
+@[simp] lemma coe_neg {f : (modular_form Γ k)} : ⇑(-f) = -f := rfl
+@[simp] lemma neg_apply {f : (modular_form Γ k)} {z : ℍ} : (-f) z = - (f z) := rfl
+
 instance has_sub  : has_sub (modular_form Γ k) :=
-⟨λ f g, {to_fun := f - g,
-  slash_action_eq' :=
-    (slash_invariant_forms.has_sub.1 f.to_slash_invariant_form g.to_slash_invariant_form).2,
+⟨λ f g,
+  { to_fun := f - g,
+    slash_action_eq' :=
+      (slash_invariant_forms.has_sub.1 f.to_slash_invariant_form g.to_slash_invariant_form).2,
     hol' := mdifferentiable.sub _ f.hol' g.hol',
     bdd_at_infty' := λ A, begin
       convert (bounded_at_im_infty_subalgebra ℂ).sub_mem (f.bdd_at_infty' A) (g.bdd_at_infty' A),
       have :  (f : ℍ → ℂ) - g = f + (-g), by {funext, simp, ring,},
       have h2 := slash_action.smul_action k A g.1 (-1 : ℂ),
-      simp only [_root_.neg_smul, one_smul, mf_to_fun_eq_coe] at h2,
+      simp only [_root_.neg_smul, one_smul, modular_form_to_fun_eq_coe] at h2,
       rw [this, slash_action.add_action k A, h2],
       refl,
-    end  }⟩
+      end}⟩
+
+@[simp] lemma coe_sub {f g : (modular_form Γ k)} : ⇑(f - g) = f - g := rfl
+@[simp] lemma sub_apply {f g : (modular_form Γ k)} {z : ℍ} : (f - g) z = f z - g z := rfl
 
 instance : add_comm_group (modular_form Γ k) :=
-fun_like.coe_injective.add_comm_group _ rfl (λ _ _, by {refl}) (λ _, by{refl}) (λ _ _, by {refl})
-(λ _ _, by {simp, refl,}) (λ _ _, by {simp, refl})
+fun_like.coe_injective.add_comm_group _ rfl (λ _ _, coe_add) (λ _, coe_neg) (λ _ _, coe_sub)
+(λ _ _, coe_nsmul) (λ _ _, coe_zsmul)
 
 lemma coe_zero : ((0 : (modular_form Γ k) ) : ℍ → ℂ) = (0 : ℍ → ℂ) := rfl
 
@@ -216,6 +254,8 @@ coe_hom_injective.module ℂ (coe_hom) (λ _ _, rfl)
 
 instance : inhabited (modular_form Γ k) := ⟨0⟩
 
+/--The modular form of weight `k_1+k_2` given by the product of two modular forms of weights
+`k_1` and `k_2`. -/
 def mul (k_1 k_2 : ℤ) (Γ : subgroup SL(2, ℤ)) (f : (modular_form Γ k_1))
   (g : (modular_form Γ k_2)) : (modular_form Γ (k_1 + k_2)) :=
 { to_fun := f * g,
@@ -228,33 +268,36 @@ def mul (k_1 k_2 : ℤ) (Γ : subgroup SL(2, ℤ)) (f : (modular_form Γ k_1))
   end}
 
   /-- The constant function is bounded at infinity. -/
-lemma const_one_form_is_bound : is_bounded_at_im_infty (1 : ℍ → ℂ):=
+lemma is_bounded_at_im_infty_one : is_bounded_at_im_infty (1 : ℍ → ℂ):=
 @asymptotics.is_O_const_const _ _ ℂ _ _ 1 _ one_ne_zero _
 
 instance : has_one (modular_form Γ 0) :=
-{ one := { to_fun := (1 : slash_invariant_form Γ 0),
-  slash_action_eq' := (1 : slash_invariant_form Γ 0).2,
-  hol' := (λ (x : ℍ), mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
-  bdd_at_infty' := by {intro A,
-    convert const_one_form_is_bound,
-    apply const_one_form_is_invar A}}}
+{ one :=
+  { to_fun := (1 : slash_invariant_form Γ 0),
+    slash_action_eq' := (1 : slash_invariant_form Γ 0).2,
+    hol' := (λ (x : ℍ), mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
+    bdd_at_infty' := by {intro A,
+      convert is_bounded_at_im_infty_one,
+      apply const_one_form_is_invar A}}}
 
-end modular_forms
+end modular_form
 
 namespace cusp_forms
-
-set_option old_structure_cmd true
 
 variables {F : Type*} {Γ : subgroup SL(2, ℤ)} {k : ℤ}
 
 instance has_add : has_add (cusp_form Γ k) :=
-{ add := λ f g, {to_fun := f + g,
-  slash_action_eq' := (f.to_slash_invariant_form + g.to_slash_invariant_form).2,
-  hol' :=  mdifferentiable.add _ f.hol' g.hol',
-  zero_at_infty' := λ A, begin
+{ add := λ f g,
+  { to_fun := f + g,
+    slash_action_eq' := (f.to_slash_invariant_form + g.to_slash_invariant_form).2,
+    hol' :=  mdifferentiable.add _ f.hol' g.hol',
+    zero_at_infty' := λ A, begin
       rw slash_action.add_action,
       exact (zero_at_im_infty_submodule ℂ).add_mem' (f.zero_at_infty' A) (g.zero_at_infty' A),
       end}}
+
+@[simp] lemma coe_add {f g : (cusp_form Γ k)} : ⇑(f + g) = f + g := rfl
+@[simp] lemma add_apply {f g : (cusp_form Γ k)} {z : ℍ} : (f + g) z = f z + g z := rfl
 
 instance has_zero : has_zero (cusp_form Γ k) :=
 { zero := ⟨0, slash_action.mul_zero _, (λ _, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
@@ -263,7 +306,8 @@ instance has_zero : has_zero (cusp_form Γ k) :=
       apply slash_action.mul_zero _ }⟩}
 
 instance has_nsmul : has_smul ℕ (cusp_form Γ k) :=
-⟨ λ c f, {to_fun := (c : ℂ) • f,
+⟨ λ c f,
+  { to_fun := (c : ℂ) • f,
     slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f (c : ℂ),
     exact ((f.slash_action_eq') γ).symm},
     hol' := mdifferentiable.const_smul _ _ f.hol',
@@ -271,9 +315,19 @@ instance has_nsmul : has_smul ℕ (cusp_form Γ k) :=
       rw slash_action.smul_action,
       apply (zero_at_im_infty_submodule ℂ).smul_mem c (f.zero_at_infty' A)
     end }⟩
+
+@[simp] lemma coe_nsmul {f : (cusp_form Γ k)} {n : ℕ} : ⇑(n • f) = n • f :=
+begin
+  simp only [nsmul_eq_mul],
+  refl,
+end
+
+@[simp] lemma nsmul_apply {f : (cusp_form Γ k)} {n : ℕ} {z : ℍ} :
+   (n • f) z = (n : ℂ) • (f z) := rfl
 
 instance has_zsmul : has_smul ℤ (cusp_form Γ k) :=
-⟨ λ c f, {to_fun := (c : ℂ) • f,
+⟨ λ c f,
+  { to_fun := (c : ℂ) • f,
     slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f (c : ℂ),
     exact ((f.slash_action_eq') γ).symm},
     hol' := mdifferentiable.const_smul _ _ f.hol',
@@ -282,8 +336,18 @@ instance has_zsmul : has_smul ℤ (cusp_form Γ k) :=
       apply (zero_at_im_infty_submodule ℂ).smul_mem c (f.zero_at_infty' A)
     end }⟩
 
+@[simp] lemma coe_zsmul {f : (cusp_form Γ k)} {n : ℤ} : ⇑(n • f) = n • f :=
+begin
+  simp only [zsmul_eq_mul],
+  refl,
+end
+
+@[simp] lemma zsmul_apply {f : (cusp_form Γ k)} {n : ℤ} {z : ℍ} :
+   (n • f) z = (n : ℂ) • (f z) := rfl
+
 instance has_csmul : has_smul ℂ (cusp_form Γ k) :=
-⟨ λ c f, {to_fun := c • f,
+⟨ λ c f,
+  { to_fun := c • f,
     slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f c,
     exact ((f.slash_action_eq') γ).symm},
     hol' := mdifferentiable.const_smul _ _ f.hol',
@@ -292,33 +356,45 @@ instance has_csmul : has_smul ℂ (cusp_form Γ k) :=
       apply (zero_at_im_infty_submodule ℂ).smul_mem c (f.zero_at_infty' A)
     end }⟩
 
+@[simp] lemma coe_csmul {f : (cusp_form Γ k)} {n : ℂ} : ⇑(n • f) = n • f := rfl
+@[simp] lemma csmul_apply {f : (cusp_form Γ k)} {n : ℂ} {z : ℍ} :
+   (n • f) z = n • (f z) := rfl
+
 instance has_neg : has_neg (cusp_form Γ k) :=
-⟨λ f, {to_fun := -f,
+⟨λ f,
+  { to_fun := -f,
     slash_action_eq':= (-(f.to_slash_invariant_form)).2,
     hol' := mdifferentiable.neg _ f.hol',
     zero_at_infty':= λ A, begin
       convert (zero_at_im_infty_submodule ℂ).smul_mem (-1) (f.zero_at_infty' A),
       simp only [_root_.neg_smul, one_smul],
-      apply  modular_forms.neg_slash,
+      apply  modular_form.neg_slash,
       end }⟩
 
+@[simp] lemma coe_neg {f : (cusp_form Γ k)} : ⇑(-f) = -f := rfl
+@[simp] lemma neg_apply {f : (cusp_form Γ k)} {z : ℍ} : (-f) z = - (f z) := rfl
+
 instance has_sub : has_sub (cusp_form Γ k) :=
-⟨λ f g, {to_fun := f - g,
-  slash_action_eq' :=
-    (slash_invariant_forms.has_sub.1 f.to_slash_invariant_form g.to_slash_invariant_form).2,
+⟨λ f g,
+  { to_fun := f - g,
+    slash_action_eq' :=
+      (slash_invariant_forms.has_sub.1 f.to_slash_invariant_form g.to_slash_invariant_form).2,
     hol' := mdifferentiable.sub _ f.hol' g.hol',
     zero_at_infty' := λ A, begin
       convert (zero_at_im_infty_submodule ℂ).sub_mem (f.zero_at_infty' A) (g.zero_at_infty' A),
       have : (f : ℍ → ℂ) - g = f + (-g), by {funext, simp, ring,},
       have h2 := slash_action.smul_action k A g.1 (-1 : ℂ),
-      simp only [_root_.neg_smul, one_smul, cf_to_fun_eq_coe] at h2,
+      simp only [_root_.neg_smul, one_smul, cusp_form_to_fun_eq_coe] at h2,
       rw [this, slash_action.add_action k A, h2],
       refl,
-    end }⟩
+    end}⟩
+
+@[simp] lemma coe_sub {f g : (cusp_form Γ k)} : ⇑(f - g) = f - g := rfl
+@[simp] lemma sub_apply {f g : (cusp_form Γ k)} {z : ℍ} : (f - g) z = f z - g z := rfl
 
 instance : add_comm_group (cusp_form Γ k) :=
-fun_like.coe_injective.add_comm_group _ rfl (λ _ _, by {refl}) (λ _, by{refl}) (λ _ _, by {refl})
-(λ _ _, by {simp, refl,}) (λ _ _, by {simp, refl})
+fun_like.coe_injective.add_comm_group _ rfl (λ _ _, coe_add) (λ _, coe_neg) (λ _ _, coe_sub)
+(λ _ _, coe_nsmul) (λ _ _, coe_zsmul)
 
 lemma coe_zero : ((0 : (cusp_form Γ k) ) : ℍ → ℂ) = (0 : ℍ → ℂ) := rfl
 

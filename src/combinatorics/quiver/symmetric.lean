@@ -69,16 +69,16 @@ end
 variables {U V W}
 
 /-- A prefunctor preserving reversal of arrows -/
-class _root_.prefunctor.preserves_reverse [has_reverse U] [has_reverse V] (φ : U ⟶q V) :=
+class _root_.prefunctor.preserves_reverse [has_reverse U] [has_reverse V] (φ : U ⥤q V) :=
 (map_reverse' : ∀ {u v : U} (e : u ⟶ v), φ.map (reverse e) = reverse (φ.map e))
 
-@[simp] lemma _root_.prefunctor.map_reverse  [has_reverse U] [has_reverse V] (φ : U ⟶q V)
+@[simp] lemma _root_.prefunctor.map_reverse  [has_reverse U] [has_reverse V] (φ : U ⥤q V)
   [φ.preserves_reverse] {u v : U} (e : u ⟶ v) : φ.map (reverse e) = reverse (φ.map e) :=
 prefunctor.preserves_reverse.map_reverse' e
 
 instance _root_.prefunctor.preserves_reverse_comp [quiver.{w+1} W]
-  [has_reverse U] [has_reverse V] [has_reverse W] (φ : U ⟶q V) (ψ : V ⟶q W)
-  [φ.preserves_reverse] [ψ.preserves_reverse] : (φ ≫q ψ).preserves_reverse :=
+  [has_reverse U] [has_reverse V] [has_reverse W] (φ : U ⥤q V) (ψ : V ⥤q W)
+  [φ.preserves_reverse] [ψ.preserves_reverse] : (φ ⋙q ψ).preserves_reverse :=
 { map_reverse' := λ u v e, by { simp only [prefunctor.comp_map, prefunctor.map_reverse], } }
 
 instance _root_.prefunctor.preserves_reverse_id [has_reverse U] :
@@ -131,13 +131,13 @@ def of : prefunctor V (symmetrify V) :=
 
 /-- Given a quiver `V'` with reversible arrows, a prefunctor to `V'` can be lifted to one from
     `symmetrify V` to `V'` -/
-def lift {V' : Type*} [quiver V'] [has_reverse V'] (φ : prefunctor V V') :
-  prefunctor (symmetrify V) V' :=
+def lift {V' : Type*} [quiver V'] [has_reverse V'] (φ : V ⥤q V') :
+  (symmetrify V) ⥤q V' :=
 { obj := φ.obj,
   map := λ X Y f, sum.rec (λ fwd, φ.map fwd) (λ bwd, reverse (φ.map bwd)) f }
 
-lemma lift_spec  (V' : Type*) [quiver V'] [has_reverse V'] (φ : prefunctor V V') :
-  of.comp (lift φ) = φ :=
+lemma lift_spec  (V' : Type*) [quiver V'] [has_reverse V'] (φ : V ⥤q V') :
+  of ⋙q (lift φ) = φ :=
 begin
   fapply prefunctor.ext,
   { rintro X, refl, },
@@ -145,7 +145,7 @@ begin
 end
 
 lemma lift_reverse  (V' : Type*) [quiver V'] [h : has_involutive_reverse V']
-  (φ : prefunctor V V')
+  (φ : V ⥤q V')
   {X Y : symmetrify V} (f : X ⟶ Y) :
   (lift φ).map (quiver.reverse f) = quiver.reverse ((lift φ).map f) :=
 begin
@@ -156,9 +156,9 @@ end
 
 /-- `lift φ` is the only prefunctor extending `φ` and preserving reverses. -/
 lemma lift_unique (V' : Type*) [quiver V'] [has_reverse V']
-  (φ : prefunctor V V')
-  (Φ : prefunctor (symmetrify V) V')
-  (hΦ : of.comp Φ = φ) [hΦrev : Φ.preserves_reverse] :
+  (φ : V ⥤q V')
+  (Φ : (symmetrify V) ⥤q V')
+  (hΦ : of ⋙q Φ = φ) [hΦrev : Φ.preserves_reverse] :
   Φ = lift φ :=
 begin
   subst_vars,
@@ -172,11 +172,11 @@ begin
 end
 
 /-- A prefunctor canonically defines a prefunctor of the symmetrifications. -/
-@[simps] def _root_.prefunctor.symmetrify (φ : U ⟶q V) : (symmetrify U) ⟶q (symmetrify V) :=
+@[simps] def _root_.prefunctor.symmetrify (φ : U ⥤q V) : (symmetrify U) ⥤q (symmetrify V) :=
 { obj := φ.obj,
   map := λ X Y, sum.map φ.map φ.map }
 
-instance _root_.prefunctor.symmetrify_preserves_reverse  (φ : U ⟶q V) :
+instance _root_.prefunctor.symmetrify_preserves_reverse  (φ : U ⥤q V) :
   prefunctor.preserves_reverse φ.symmetrify := ⟨λ u v e, by { cases e; refl }⟩
 
 end symmetrify
@@ -205,4 +205,3 @@ vertices.
 def is_connected (V) [quiver.{u+1} V] [has_involutive_reverse V] := ∀ (X Y : V), nonempty (path X Y)
 
 end quiver
-

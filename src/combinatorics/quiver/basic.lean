@@ -98,11 +98,11 @@ lemma comp_assoc
   (F : prefunctor U V) (G : prefunctor V W) (H : prefunctor W Z) :
   (F.comp G).comp H = F.comp (G.comp H) := rfl
 
-infix ` ⟶q `:50 := prefunctor
+infix ` ⥤q `:50 := prefunctor
 
-infix ` ≫q `:50 := prefunctor.comp
+infix ` ⋙q `:50 := prefunctor.comp
 
-notation `𝟙q` := id
+notation `𝟭q` := id
 
 end prefunctor
 
@@ -176,7 +176,7 @@ def lift : prefunctor (push σ) W' :=
 
 lemma lift_spec_obj : (lift σ φ τ h).obj = τ := rfl
 
-lemma lift_spec_comm : (of σ).comp (lift σ φ τ h) = φ :=
+lemma lift_spec_comm : (of σ) ⋙q (lift σ φ τ h) = φ :=
 begin
   fapply prefunctor.ext,
   { rintros, simp only [prefunctor.comp_obj], symmetry, exact h X, },
@@ -188,7 +188,7 @@ begin
     refl, },
 end
 
-lemma lift_unique (Φ : prefunctor (push σ) W') (Φ₀ : Φ.obj = τ) (Φcomm : (of σ).comp Φ = φ) :
+lemma lift_unique (Φ : (push σ) ⥤q W') (Φ₀ : Φ.obj = τ) (Φcomm : (of σ) ⋙q Φ = φ) :
   Φ = (lift σ φ τ h) :=
 begin
   dsimp only [of,lift],

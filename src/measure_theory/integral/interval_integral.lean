@@ -2511,48 +2511,69 @@ end
 section smul
 
 /--
-Change of variables, general form. If `f` is continuous on `[a, b]` and has
+Change of variables, general form. If `f` is continuous on `[a, b]` and has continuous
+right-derivative `f'` in `(a, b)`, `g` is continuous on `f '' (a, b)` and integrable on
+`f '' [a, b]`, and `f' x • (g ∘ f) x` is integrable on `[a, b]`,
+then we can substitute `u = f x` to get `∫ x in a..b, f' x • (g ∘ f) x = ∫ u in f a..f b, g u`.
+--/
+theorem integral_comp_smul_deriv''' {f f' : ℝ → ℝ} {g : ℝ → E}
+  (hf : continuous_on f [a, b])
+  (hff' : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at f (f' x) (Ioi x) x)
+  (hg_cont : continuous_on g (f '' Ioo (min a b) (max a b)))
+  (hg1 : integrable_on g (f '' [a, b]) )
+  (hg2 : integrable_on (λ x, f'(x) • (g ∘ f) x) [a, b]) :
+  ∫ x in a..b, f' x • (g ∘ f) x = ∫ u in f a..f b, g u :=
+begin
+  rw [hf.image_interval, ←interval_integrable_iff'] at hg1,
+  have h_cont : continuous_on (λ u, ∫ t in f a..f u, g t) [a, b],
+  { refine (continuous_on_primitive_interval' hg1 _).comp hf _,
+    { rw ← hf.image_interval, exact mem_image_of_mem f left_mem_interval },
+    { rw ← hf.image_interval, exact maps_to_image _ _ } },
+  have h_der : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at
+    (λ u, ∫ t in f a..f u, g t) (f' x • ((g ∘ f) x)) (Ioi x) x,
+  { intros x hx,
+    obtain ⟨c, hc⟩ := nonempty_Ioo.mpr hx.1,
+    obtain ⟨d, hd⟩ := nonempty_Ioo.mpr hx.2,
+    have cdsub : [c, d] ⊆ Ioo (min a b) (max a b),
+    { rw interval_of_le (hc.2.trans hd.1).le, exact Icc_subset_Ioo hc.1 hd.2 },
+    replace hg_cont := hg_cont.mono (image_subset f cdsub),
+    let J := [Inf (f '' [c, d]), Sup (f '' [c, d])],
+    have hJ : f '' [c, d] = J := (hf.mono (cdsub.trans Ioo_subset_Icc_self)).image_interval,
+    rw hJ at hg_cont,
+    have h2x : f x ∈ J, { rw ←hJ, exact mem_image_of_mem _ (mem_interval_of_le hc.2.le hd.1.le), },
+    have h2g : interval_integrable g volume (f a) (f x),
+    { refine hg1.mono_set _,
+      rw ←hf.image_interval,
+      exact hf.surj_on_interval left_mem_interval (Ioo_subset_Icc_self hx) },
+    have h3g := hg_cont.strongly_measurable_at_filter_nhds_within measurable_set_Icc (f x),
+    haveI : fact (f x ∈ J) := ⟨h2x⟩,
+    have : has_deriv_within_at (λ u, ∫ x in f a..u, g x) (g (f x)) J (f x) :=
+      interval_integral.integral_has_deriv_within_at_right h2g h3g (hg_cont (f x) h2x),
+    refine (this.scomp x ((hff' x hx).Ioo_of_Ioi hd.1) _).Ioi_of_Ioo hd.1,
+    rw ←hJ,
+    refine (maps_to_image _ _).mono _ subset.rfl,
+    exact Ioo_subset_Icc_self.trans ((Icc_subset_Icc_left hc.2.le).trans Icc_subset_interval) },
+  rw ←interval_integrable_iff' at hg2,
+  simp_rw [integral_eq_sub_of_has_deriv_right h_cont h_der hg2, integral_same, sub_zero],
+end
+
+/--
+Change of variables for continuous integrands. If `f` is continuous on `[a, b]` and has
 continuous right-derivative `f'` in `(a, b)`, and `g` is continuous on `f '' [a, b]` then we can
 substitute `u = f x` to get `∫ x in a..b, f' x • (g ∘ f) x = ∫ u in f a..f b, g u`.
-
-We could potentially slightly weaken the conditions, by not requiring that `f'` and `g` are
-continuous on the endpoints of these intervals, but in that case we need to additionally assume that
-the functions are integrable on that interval.
 -/
 theorem integral_comp_smul_deriv'' {f f' : ℝ → ℝ} {g : ℝ → E}
   (hf : continuous_on f [a, b])
   (hff' : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at f (f' x) (Ioi x) x)
   (hf' : continuous_on f' [a, b])
   (hg : continuous_on g (f '' [a, b])) :
-  ∫ x in a..b, f' x • (g ∘ f) x= ∫ u in f a..f b, g u :=
+  ∫ x in a..b, f' x • (g ∘ f) x = ∫ u in f a..f b, g u :=
 begin
-  have h_cont : continuous_on (λ u, ∫ t in f a..f u, g t) [a, b],
-  { rw [hf.image_interval] at hg,
-    refine (continuous_on_primitive_interval' hg.interval_integrable _).comp hf _,
-    { rw ← hf.image_interval, exact mem_image_of_mem f left_mem_interval },
-    { rw ← hf.image_interval, exact maps_to_image _ _ } },
-  have h_der : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at
-    (λ u, ∫ t in f a..f u, g t) (f' x • ((g ∘ f) x)) (Ioi x) x,
-  { intros x hx,
-    let I := [Inf (f '' [a, b]), Sup (f '' [a, b])],
-    have hI : f '' [a, b] = I := hf.image_interval,
-    have h2x : f x ∈ I, { rw [← hI], exact mem_image_of_mem f (Ioo_subset_Icc_self hx) },
-    have h2g : interval_integrable g volume (f a) (f x),
-    { refine (hg.mono $ _).interval_integrable,
-      exact hf.surj_on_interval left_mem_interval (Ioo_subset_Icc_self hx) },
-    rw [hI] at hg,
-    have h3g : strongly_measurable_at_filter g (𝓝[I] f x) volume :=
-    hg.strongly_measurable_at_filter_nhds_within measurable_set_Icc (f x),
-    haveI : fact (f x ∈ I) := ⟨h2x⟩,
-    have : has_deriv_within_at (λ u, ∫ x in f a..u, g x) (g (f x)) I (f x) :=
-    integral_has_deriv_within_at_right h2g h3g (hg (f x) h2x),
-    refine (this.scomp x ((hff' x hx).Ioo_of_Ioi hx.2) _).Ioi_of_Ioo hx.2,
-    rw ← hI,
-    exact (maps_to_image _ _).mono (Ioo_subset_Icc_self.trans $ Icc_subset_Icc_left hx.1.le)
-      subset.rfl },
-  have h_int : interval_integrable (λ (x : ℝ), f' x • (g ∘ f) x) volume a b :=
-  (hf'.smul (hg.comp hf $ subset_preimage_image f _)).interval_integrable,
-  simp_rw [integral_eq_sub_of_has_deriv_right h_cont h_der h_int, integral_same, sub_zero],
+  refine integral_comp_smul_deriv''' hf hff'
+    (hg.mono $ image_subset _ Ioo_subset_Icc_self) _
+    (hf'.smul (hg.comp hf $ subset_preimage_image f _)).integrable_on_Icc,
+  rw hf.image_interval at hg ⊢,
+  exact hg.integrable_on_Icc,
 end
 
 /--
@@ -2607,6 +2628,24 @@ section mul
 
 /--
 Change of variables, general form for scalar functions. If `f` is continuous on `[a, b]` and has
+continuous right-derivative `f'` in `(a, b)`, `g` is continuous on `f '' (a, b)` and integrable on
+`f '' [a, b]`, and `(g ∘ f) x * f' x` is integrable on `[a, b]`, then we can substitute `u = f x`
+to get `∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u`.
+-/
+theorem integral_comp_mul_deriv''' {a b : ℝ} {f f' : ℝ → ℝ} {g : ℝ → ℝ}
+  (hf : continuous_on f [a, b])
+  (hff' : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at f (f' x) (Ioi x) x)
+  (hg_cont : continuous_on g (f '' Ioo (min a b) (max a b)))
+  (hg1 : integrable_on g (f '' [a, b]) )
+  (hg2 : integrable_on (λ x, (g ∘ f) x * f' x) [a, b]) :
+  ∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u :=
+begin
+  have hg2' : integrable_on (λ x, f' x • (g ∘ f) x) [a, b] := by simpa [mul_comm] using hg2,
+  simpa [mul_comm] using integral_comp_smul_deriv''' hf hff' hg_cont hg1 hg2',
+end
+
+/--
+Change of variables for continuous integrands. If `f` is continuous on `[a, b]` and has
 continuous right-derivative `f'` in `(a, b)`, and `g` is continuous on `f '' [a, b]` then we can
 substitute `u = f x` to get `∫ x in a..b, (g ∘ f) x * f' x = ∫ u in f a..f b, g u`.
 -/
@@ -2661,4 +2700,123 @@ by simpa [mul_comm] using integral_deriv_comp_smul_deriv hf hg hf' hg'
 
 end mul
 
+lemma integral_smul_comp_pow {g : ℝ → E} {p : ℝ} (hp : 0 < p) (ha : 0 < a) (hb : 0 < b)
+  (hg : continuous_on g (interval (a ^ p) (b ^ p))) :
+  p • ∫ x in a..b, x ^ (p - 1) • g (x ^ p) = ∫ x in a ^ p .. b ^ p, g x :=
+begin
+  rw ← interval_integral.integral_smul,
+  simp_rw ←smul_assoc,
+  simp_rw smul_eq_mul,
+  have mon : monotone_on (λ x, x ^ p) (Ioi (0:ℝ)),
+  { intros x1 hx1 x2 hx2 h,
+    apply real.rpow_le_rpow _ h hp.le,
+    rw mem_Ioi at hx1, exact hx1.le, },
+  have rng : (λ x, x ^ p) '' [a, b] ⊆ [a ^ p, b ^ p], -- (equality holds but we don't need it)
+  { intros u hu, rw mem_image at hu,
+    rcases hu with ⟨x, ⟨hx1, hx2⟩⟩,
+    rw ←hx2, split,
+    { rw ←mon.map_min ha hb, refine mon (lt_min ha hb) (lt_of_lt_of_le (lt_min ha hb) hx1.1) hx1.1},
+    { rw ←mon.map_max ha hb, refine mon (lt_of_lt_of_le (lt_min ha hb) hx1.1) _ hx1.2,
+      exact lt_of_lt_of_le ha (le_max_left _ _), } },
+  replace hg := hg.mono rng,
+  refine integral_comp_smul_deriv'' (continuous_on_id.rpow_const (λx u, or.inr hp.le)) _ _ hg,
+  { intros x hx,
+    apply has_deriv_at.has_deriv_within_at,
+    apply real.has_deriv_at_rpow_const,
+    exact or.inl (lt_trans (lt_min ha hb) hx.1).ne' },
+  { refine continuous_on_const.mul _,
+    apply continuous_on_id.rpow_const,
+    exact λ x hx, or.inl (lt_of_lt_of_le (lt_min ha hb) hx.1).ne' }
+end
+
+lemma integral_mul_comp_pow {g : ℝ → ℝ} {p : ℝ} (hp : 0 < p) (ha : 0 < a) (hb : 0 < b)
+  (hg : continuous_on g (interval (a ^ p) (b ^ p))) :
+  p * ∫ x in a..b, g (x ^ p) * x ^ (p - 1) = ∫ x in a ^ p .. b ^ p, g x :=
+by simpa [mul_comm] using integral_smul_comp_pow hp ha hb hg
+
+
+lemma integral_comp_pow {g : ℝ → ℝ} {p : ℝ} (hp : 0 < p) (ha : 0 < a) (hb : 0 < b)
+  (hg : continuous_on g (interval (a ^ p) (b ^ p))) :
+  ∫ x in a..b, g (x ^ p) = ∫ y in a ^ p .. b ^ p, g y / p / y ^ (1 - 1 / p) :=
+begin
+  have pne : p ≠ 0 := hp.ne',
+  have pow_pos := lt_min (real.rpow_pos_of_pos ha p) (real.rpow_pos_of_pos hb p),
+  have y_pos : ∀ y:ℝ, y ∈ [a ^ p, b ^ p] → y ≠ 0 := λ y hy, (lt_of_lt_of_le pow_pos hy.1).ne',
+  let G : ℝ → ℝ := (λ (u : ℝ), g u / p / u ^ (1 - 1 / p)),
+  have hG : continuous_on G [a ^ p, b ^ p],
+  { refine hg.div_const.div _ _,
+    { apply continuous_at.continuous_on,
+      exact λ y hy, real.continuous_at_rpow_const _ _ (or.inl (y_pos y hy)) },
+    { intros y hy,
+      rw [ne.def, real.rpow_eq_zero_iff_of_nonneg (lt_of_lt_of_le pow_pos hy.1).le],
+      apply not_and_of_not_or_not, exact or.inl (y_pos y hy) } },
+  have int := integral_mul_comp_pow hp ha hb hG,
+  rw ←integral_const_mul at int,
+  rw ←int,
+  apply integral_congr,
+  intros x hx,
+  have xpos := (lt_of_lt_of_le (lt_min ha hb) hx.1),
+  dsimp only [G],
+  rw [←real.rpow_mul xpos.le, (by {field_simp, ring} : p * (1 - 1 / p) = (p - 1))],
+  have t1 : x ^ (p - 1) ≠ 0, -- provide for field_simp
+  { rw [ne.def, real.rpow_eq_zero_iff_of_nonneg],
+    apply not_and_of_not_or_not,
+    exacts [or.inl xpos.ne', xpos.le] },
+  field_simp, ring,
+end
+
+lemma integral_comp_sq {g : ℝ → ℝ} (ha : 0 < a) (hb : 0 < b)
+  (hg : continuous_on g (interval (a ^ 2) (b ^ 2))) :
+  ∫ x in a..b, g (x ^ 2) = ∫ y in a ^ 2 .. b ^ 2, g y / 2 / y ^ (1 / 2 : ℝ) :=
+begin
+  have int := @integral_comp_pow a b g (2 : ℝ) zero_lt_two ha hb,
+  have half : 1 - (1 / 2 : ℝ) = (1 / 2 : ℝ) := by norm_num,
+  simp_rw [real.rpow_two, half] at int,
+  exact int hg
+end
+
+-- lemma integral_comp_sq' {g : ℝ → ℝ} (hb : 0 < b)
+--   (hg : continuous_on g (Ioc 0 (b ^ 2)))
+--   (hg2 : interval_integrable g volume 0 (b ^ 2))
+--   (hg3 : interval_integrable (λ x, g (x ^ 2) * x) volume 0 b):
+--   2 * ∫ x in 0..b, g (x ^ 2) * x = ∫ y in a ^ 2 .. b ^ 2, g y :=
+-- begin
+--   have : ∀ (a : ℝ), a ∈ Ioc 0 b →
+--     2 * ∫ x in a..b, g (x ^ 2) * x = ∫ y in a ^ 2 .. b ^ 2, g y,
+--   { intros a ha,
+--     have : continuous_on g [a ^ 2, b ^ 2],
+--     { refine hg.mono _,
+--       rw [interval, Icc_subset_Ioc_iff],
+--       { rw mem_Ioc at ha,
+--         split, rw lt_min_iff, split,
+--         { apply sq_pos_of_pos, exact ha.1 },
+--         { apply sq_pos_of_pos, exact hb, },
+--         simp only [max_le_iff, le_refl, and_true],
+--         rw [sq_le_sq, abs_of_nonneg, abs_of_nonneg],
+--         all_goals {linarith}, },
+--       exact min_le_max },
+--     simp_rw ←real.rpow_two at this,
+--     have int := integral_mul_comp_pow (zero_lt_two' ℝ) ha.1 hb this,
+--     simp_rw real.rpow_two at int,
+--     rw ←int, norm_num },
+
+--   have tends : continuous_on (λ a, ∫ x in a..b, g (x ^ 2) * x) (interval 0 b),
+--   { refine interval_integral.continuous_on_primitive_interval_left _,
+--     rw interval_of_le hb.le,
+--     rw ←interval_integrable_iff_integrable_Icc_of_le hb.le,
+--     exact hg3,
+--     exact real.has_no_atoms_volume },
+--   --replace tends := continuous_on.const_smul tends 2,
+--   replace tends := tends 0 left_mem_interval,
+--   rw continuous_within_at at tends,
+
+--   have tends2 : continuous_on (λ c, ∫ y in c .. b ^ 2, g y) (interval 0 (b ^ 2)),
+--   { refine interval_integral.continuous_on_primitive_interval_left _,
+--     rw interval_of_le _,
+--     rw ←interval_integrable_iff_integrable_Icc_of_le _,
+--     exact hg2, exact sq_nonneg _, exact real.has_no_atoms_volume,
+--     exact sq_nonneg _,
+--     },
+--   sorry,
+-- end
 end interval_integral

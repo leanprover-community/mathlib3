@@ -134,7 +134,7 @@ instance has_add : has_add (modular_form Γ k) :=
 { add := λ f g,
   { to_fun := f + g,
     slash_action_eq' := (f.to_slash_invariant_form + g.to_slash_invariant_form).2,
-    hol' := f.hol'.add _ g.hol',
+    hol' := f.hol'.add g.hol',
     bdd_at_infty' := λ A, begin
         rw slash_action.add_action,
         exact (bounded_at_im_infty_subalgebra ℂ).add_mem' (f.bdd_at_infty' A) (g.bdd_at_infty' A),
@@ -154,7 +154,7 @@ instance has_nsmul : has_smul ℕ (modular_form Γ k) :=
   { to_fun := (c : ℂ) • f,
     slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f (c : ℂ),
     exact ((f.slash_action_eq') γ).symm},
-    hol' := f.hol'.const_smul _ _,
+    hol' := f.hol'.const_smul _,
     bdd_at_infty' := λ A, begin
       rw slash_action.smul_action,
       apply (bounded_at_im_infty_subalgebra ℂ).smul_mem (f.bdd_at_infty' A)
@@ -174,7 +174,7 @@ instance has_zsmul : has_smul ℤ (modular_form Γ k) :=
   { to_fun := (c : ℂ) • f,
     slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f (c : ℂ),
     exact ((f.slash_action_eq') γ).symm},
-    hol' :=  f.hol'.const_smul _ _,
+    hol' :=  f.hol'.const_smul _,
     bdd_at_infty' := λ A, begin
       rw slash_action.smul_action,
       apply (bounded_at_im_infty_subalgebra ℂ).smul_mem (f.bdd_at_infty' A)
@@ -194,7 +194,7 @@ instance has_csmul : has_smul ℂ (modular_form Γ k) :=
   { to_fun := c • f,
     slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f c,
     exact ((f.slash_action_eq') γ).symm},
-    hol' :=  f.hol'.const_smul _ _,
+    hol' :=  f.hol'.const_smul _,
     bdd_at_infty' := λ A, begin
       rw slash_action.smul_action,
       apply (bounded_at_im_infty_subalgebra ℂ).smul_mem (f.bdd_at_infty' A)
@@ -208,7 +208,7 @@ instance has_neg : has_neg (modular_form Γ k) :=
 ⟨λ f,
   { to_fun := -f,
     slash_action_eq':= (-(f.to_slash_invariant_form)).2,
-    hol' := f.hol'.neg _,
+    hol' := f.hol'.neg,
     bdd_at_infty':= λ A, begin
       convert (bounded_at_im_infty_subalgebra ℂ).smul_mem (f.bdd_at_infty' A) (-1),
       simp only [_root_.neg_smul, one_smul],
@@ -223,7 +223,7 @@ instance has_sub  : has_sub (modular_form Γ k) :=
   { to_fun := f - g,
     slash_action_eq' :=
       (slash_invariant_forms.has_sub.1 f.to_slash_invariant_form g.to_slash_invariant_form).2,
-    hol' := f.hol'.sub _ g.hol',
+    hol' := f.hol'.sub g.hol',
     bdd_at_infty' := λ A, begin
       convert (bounded_at_im_infty_subalgebra ℂ).sub_mem (f.bdd_at_infty' A) (g.bdd_at_infty' A),
       have :  (f : ℍ → ℂ) - g = f + (-g), by {funext, simp, ring,},
@@ -261,7 +261,7 @@ def mul (k_1 k_2 : ℤ) (Γ : subgroup SL(2, ℤ)) (f : (modular_form Γ k_1))
 { to_fun := f * g,
   slash_action_eq' := by {intro A, rw mul_slash_subgroup, congr,
   apply f.slash_action_eq' A, apply g.slash_action_eq' A,},
-  hol' := f.hol'.mul _ g.hol',
+  hol' := f.hol'.mul g.hol',
   bdd_at_infty' := λ A, begin
     rw [mul_slash_SL2],
     exact (f.bdd_at_infty' A).mul (g.bdd_at_infty' A),
@@ -278,7 +278,7 @@ instance : has_one (modular_form Γ 0) :=
     hol' := (λ (x : ℍ), mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
     bdd_at_infty' := by {intro A,
       convert is_bounded_at_im_infty_one,
-      apply const_one_form_is_invar A}}}
+      apply is_invariant_one A}}}
 
 end modular_form
 
@@ -290,7 +290,7 @@ instance has_add : has_add (cusp_form Γ k) :=
 { add := λ f g,
   { to_fun := f + g,
     slash_action_eq' := (f.to_slash_invariant_form + g.to_slash_invariant_form).2,
-    hol' := f.hol'.add _ g.hol',
+    hol' := f.hol'.add g.hol',
     zero_at_infty' := λ A, begin
       rw slash_action.add_action,
       exact (zero_at_im_infty_submodule ℂ).add_mem' (f.zero_at_infty' A) (g.zero_at_infty' A),
@@ -310,11 +310,35 @@ instance has_nsmul : has_smul ℕ (cusp_form Γ k) :=
   { to_fun := (c : ℂ) • f,
     slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f (c : ℂ),
     exact ((f.slash_action_eq') γ).symm},
-    hol' := f.hol'.const_smul _ _,
+    hol' := f.hol'.const_smul _,
     zero_at_infty' := λ A, begin
       rw slash_action.smul_action,
       apply (zero_at_im_infty_submodule ℂ).smul_mem c (f.zero_at_infty' A)
     end }⟩
+
+/-
+instance has_nsmul : has_smul ℕ (cusp_form Γ k) :=
+⟨ λ c f,
+  { to_fun := c • f,
+    slash_action_eq' := by {intro γ,
+    have h2 : slash_action.map ℂ k γ ((c : ℂ) • ⇑f) = slash_action.map ℂ k γ (c • ⇑f), by {
+      simp_rw nsmul_eq_mul,
+      congr,},
+     have := slash_action.smul_action k γ f (c : ℂ),
+     have h3 : (c : ℂ) • slash_action.map ℂ k γ (⇑f) = c • slash_action.map ℂ k γ ( ⇑f), by
+     {simp_rw nsmul_eq_mul, congr', },
+     rw [h2, h3] at this,
+     convert this,
+    exact ((f.slash_action_eq') γ).symm},
+    hol' := by {have :=  f.hol'.const_smul (c : ℂ), simp at *, convert this, },
+    zero_at_infty' := λ A, begin
+      have := slash_action.smul_action (c : ℂ) A f _,
+
+      apply (zero_at_im_infty_submodule ℂ).smul_mem c (f.zero_at_infty' A)
+    end }⟩
+
+
+-/
 
 @[simp] lemma coe_nsmul {f : (cusp_form Γ k)} {n : ℕ} : ⇑(n • f) = n • f :=
 begin
@@ -330,7 +354,7 @@ instance has_zsmul : has_smul ℤ (cusp_form Γ k) :=
   { to_fun := (c : ℂ) • f,
     slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f (c : ℂ),
     exact ((f.slash_action_eq') γ).symm},
-    hol' := f.hol'.const_smul _ _,
+    hol' := f.hol'.const_smul _,
     zero_at_infty' := λ A, begin
       rw slash_action.smul_action,
       apply (zero_at_im_infty_submodule ℂ).smul_mem c (f.zero_at_infty' A)
@@ -350,7 +374,7 @@ instance has_csmul : has_smul ℂ (cusp_form Γ k) :=
   { to_fun := c • f,
     slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f c,
     exact ((f.slash_action_eq') γ).symm},
-    hol' := f.hol'.const_smul _ _,
+    hol' := f.hol'.const_smul _,
     zero_at_infty' := λ A, begin
       rw slash_action.smul_action,
       apply (zero_at_im_infty_submodule ℂ).smul_mem c (f.zero_at_infty' A)
@@ -364,7 +388,7 @@ instance has_neg : has_neg (cusp_form Γ k) :=
 ⟨λ f,
   { to_fun := -f,
     slash_action_eq':= (-(f.to_slash_invariant_form)).2,
-    hol' := f.hol'.neg _,
+    hol' := f.hol'.neg,
     zero_at_infty':= λ A, begin
       convert (zero_at_im_infty_submodule ℂ).smul_mem (-1) (f.zero_at_infty' A),
       simp only [_root_.neg_smul, one_smul],
@@ -379,7 +403,7 @@ instance has_sub : has_sub (cusp_form Γ k) :=
   { to_fun := f - g,
     slash_action_eq' :=
       (slash_invariant_forms.has_sub.1 f.to_slash_invariant_form g.to_slash_invariant_form).2,
-    hol' := f.hol'.sub _ g.hol',
+    hol' := f.hol'.sub g.hol',
     zero_at_infty' := λ A, begin
       convert (zero_at_im_infty_submodule ℂ).sub_mem (f.zero_at_infty' A) (g.zero_at_infty' A),
       have : (f : ℍ → ℂ) - g = f + (-g), by {funext, simp, ring,},

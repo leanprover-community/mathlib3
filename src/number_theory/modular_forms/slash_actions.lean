@@ -27,7 +27,7 @@ local notation `SL(` n `, ` R `)` := matrix.special_linear_group (fin n) R
 
 /--A general version of the slash action of the space of modular forms.-/
 class slash_action (β G α δ γ : Type*) [group G] [has_zero (α → δ)]
-[has_one (α → δ)] [has_smul γ δ] [has_add (α → δ)] :=
+[has_one (α → δ)] [has_smul γ (α → δ)] [has_add (α → δ)] :=
 (map : β → G → (α → δ) → (α → δ))
 (mul_zero : ∀ (k : β) (g : G), map k g 0 = 0)
 (one_mul : ∀ (k : β) (a : (α → δ)) , map k 1 a = a)
@@ -37,14 +37,29 @@ class slash_action (β G α δ γ : Type*) [group G] [has_zero (α → δ)]
 
 /--Slash_action induced by a monoid homomorphism.-/
 def monoid_hom_slash_action {β G H α δ γ : Type*} [group G] [has_zero (α → δ)]
-  [has_one (α → δ)] [has_smul γ δ] [has_add (α → δ)] [group H] [slash_action β G α δ γ]
+  [has_one (α → δ)] [has_smul γ (α → δ)] [has_add (α → δ)] [group H] [slash_action β G α δ γ]
   (h : H →* G) : slash_action β H α δ γ :=
 { map := λ k g , slash_action.map γ k (h g) ,
   mul_zero := by {intros k g, apply slash_action.mul_zero k (h g), },
   one_mul := by {intros k a, simp only [map_one], apply slash_action.one_mul,},
   right_action := by {simp only [map_mul], intros k g gg a, apply slash_action.right_action,},
   smul_action := by {intros k g a z, apply slash_action.smul_action, },
-  add_action := by {intros k g a b, apply slash_action.add_action, }, }
+  add_action := by {intros k g a b, apply slash_action.add_action}}
+
+/-
+instance sls {β G H α δ γ γ' : Type*} [group G] [has_zero (α → δ)]
+  [has_one (α → δ)] [has_smul γ (α → δ)] [has_smul γ' (α → δ)] [has_smul γ' γ]
+  [is_scalar_tower γ' γ (α → δ)]
+  [has_add (α → δ)] [has_coe γ' γ]
+  [slash_action β G α δ γ] : slash_action β G α δ γ' :={
+   map := λ k g , slash_action.map γ k g,
+   mul_zero := slash_action.mul_zero,
+   one_mul := slash_action.one_mul,
+   right_action := slash_action.right_action,
+   smul_action := by {intros k g f c, have := slash_action.smul_action k g f (c : γ),  }
+
+  }
+  -/
 
 namespace modular_form
 
@@ -113,7 +128,7 @@ instance : slash_action ℤ GL(2, ℝ)⁺ ℍ ℂ ℂ :=
   one_mul := by {apply slash_one,},
   right_action := by {apply slash_right_action},
   smul_action := by {apply smul_slash},
-  add_action := by {apply slash_add},}
+  add_action := by {apply slash_add}}
 
 instance subgroup_action (Γ : subgroup SL(2, ℤ)) : slash_action ℤ Γ ℍ ℂ ℂ :=
 monoid_hom_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
@@ -132,7 +147,7 @@ monoid_hom_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
 local notation f `∣[`:73 k:0, A `]` :72 := slash_action.map ℂ k A f
 
 /-- The constant function 1 is invariant under any subgroup of `SL(2, ℤ)`. -/
-lemma const_one_form_is_invar (A : SL(2, ℤ)) : (1 : ℍ → ℂ) ∣[(0 : ℤ), A] = (1 : ℍ → ℂ) :=
+lemma is_invariant_one (A : SL(2, ℤ)) : (1 : ℍ → ℂ) ∣[(0 : ℤ), A] = (1 : ℍ → ℂ) :=
 begin
   rw [SL_slash],
   have : (((↑ₘ(A : GL(2,ℝ)⁺)).det) : ℝ) = 1,

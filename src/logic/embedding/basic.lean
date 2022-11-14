@@ -60,6 +60,7 @@ example (s : finset (fin 3)) (f : equiv.perm (fin 3)) : s.map f = s.map f.to_emb
 protected def equiv.to_embedding : α ↪ β := ⟨f, f.injective⟩
 
 @[simp] lemma equiv.coe_to_embedding : ⇑f.to_embedding = f := rfl
+lemma equiv.to_embedding_apply (a : α) : f.to_embedding a = f a := rfl
 
 instance equiv.coe_embedding : has_coe (α ≃ β) (α ↪ β) := ⟨equiv.to_embedding⟩
 

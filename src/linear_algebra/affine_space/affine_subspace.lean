@@ -486,8 +486,8 @@ begin
   refine ⟨λ h, _, λ h, _⟩,
   { rw ←direction_mk' p₁ direction,
     exact vsub_mem_direction h (self_mem_mk' _ _) },
-  { convert vadd_mem_mk' p₁ h,
-    simp }
+  { rw ← vsub_vadd p₂ p₁,
+    exact vadd_mem_mk' p₁ h }
 end
 
 /-- Constructing an affine subspace from a point in a subspace and

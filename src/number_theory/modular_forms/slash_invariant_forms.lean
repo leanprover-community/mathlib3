@@ -193,7 +193,7 @@ coe_hom_injective.module ℂ (coe_hom) (λ _ _, rfl)
 
 instance : has_one (slash_invariant_form Γ 0) :=
 {one := {to_fun := 1, slash_action_eq' := by {intro A,
-  convert modular_form.const_one_form_is_invar A}}}
+  convert modular_form.is_invariant_one A}}}
 
 instance : inhabited (slash_invariant_form Γ k) := ⟨0⟩
 

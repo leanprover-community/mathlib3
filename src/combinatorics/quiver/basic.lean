@@ -96,12 +96,7 @@ def comp {U : Type*} [quiver U] {V : Type*} [quiver V] {W : Type*} [quiver W]
 lemma comp_assoc
   {U V W Z : Type*} [quiver U] [quiver V] [quiver W] [quiver Z]
   (F : prefunctor U V) (G : prefunctor V W) (H : prefunctor W Z) :
-  (F.comp G).comp H = F.comp (G.comp H) :=
-begin
-  fapply prefunctor.ext,
-  exact (λ X, rfl),
-  exact (λ X Y Z, rfl),
-end
+  (F.comp G).comp H = F.comp (G.comp H) := rfl
 
 infix ` ⟶q `:50 := prefunctor
 

@@ -255,14 +255,14 @@ begin
 end
 
 /-- Given a connected free groupoid, its generating quiver is rooted-connected. -/
-instance generators_connected (G) [groupoid.{u u} G] [is_connected G] [is_free_groupoid G]
-  (r : G) : rooted_connected (symgen r) :=
+instance generators_connected (G) [groupoid.{u u} G]
+  [category_theory.is_connected G] [is_free_groupoid G] (r : G) : rooted_connected (symgen r) :=
 ⟨λ b, path_nonempty_of_hom (category_theory.nonempty_hom_of_connected_groupoid r b)⟩
 
 /-- A vertex group in a free connected groupoid is free. With some work one could drop the
 connectedness assumption, by looking at connected components. -/
-instance End_is_free_of_connected_free {G} [groupoid G] [is_connected G] [is_free_groupoid G]
-  (r : G) : is_free_group (End r) :=
+instance End_is_free_of_connected_free {G} [groupoid G] [category_theory.is_connected G]
+  [is_free_groupoid G] (r : G) : is_free_group (End r) :=
 spanning_tree.End_is_free $ geodesic_subtree (symgen r)
 
 end is_free_groupoid

@@ -332,7 +332,9 @@ lemma exists_nonempty_inter_of_measure_univ_lt_tsum_measure {m : measurable_spac
 begin
   contrapose! H,
   apply tsum_measure_le_measure_univ hs,
-  exact λ i j hij x hx, H i j hij ⟨x, hx⟩
+  intros i j hij,
+  rw [function.on_fun, disjoint_iff_inf_le],
+  exact λ x hx, H i j hij ⟨x, hx⟩
 end
 
 /-- Pigeonhole principle for measure spaces: if `s` is a `finset` and
@@ -344,7 +346,9 @@ lemma exists_nonempty_inter_of_measure_univ_lt_sum_measure {m : measurable_space
 begin
   contrapose! H,
   apply sum_measure_le_measure_univ h,
-  exact λ i hi j hj hij x hx, H i hi j hj hij ⟨x, hx⟩
+  intros i hi j hj hij,
+  rw [function.on_fun, disjoint_iff_inf_le],
+  exact λ x hx, H i hi j hj hij ⟨x, hx⟩
 end
 
 /-- If two sets `s` and `t` are included in a set `u`, and `μ s + μ t > μ u`,
@@ -355,9 +359,9 @@ lemma nonempty_inter_of_measure_lt_add
   (h : μ u < μ s + μ t) :
   (s ∩ t).nonempty :=
 begin
+  rw ←set.not_disjoint_iff_nonempty_inter,
   contrapose! h,
-  calc μ s + μ t = μ (s ∪ t) :
-    by { rw measure_union _ ht, exact λ x hx, h ⟨x, hx⟩ }
+  calc μ s + μ t = μ (s ∪ t) : (measure_union h ht).symm
   ... ≤ μ u : measure_mono (union_subset h's h't)
 end
 

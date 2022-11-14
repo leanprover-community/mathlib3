@@ -103,7 +103,7 @@ See also `equiv.sum_compl`, for when `is_compl p q`.  -/
       { suffices : ¬ p x,
         { simpa },
         intro hp,
-        simpa using h x ⟨hp, x.prop⟩ } }
+        simpa using h.le_bot x ⟨hp, x.prop⟩ } }
   end }
 
 @[simp] lemma subtype_or_equiv_symm_inl (p q : α → Prop) [decidable_pred p] (h : disjoint p q)

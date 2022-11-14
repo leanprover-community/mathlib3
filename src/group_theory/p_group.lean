@@ -316,8 +316,8 @@ lemma disjoint_of_ne (p₁ p₂ : ℕ) [hp₁ : fact p₁.prime] [hp₂ : fact p
   (H₁ H₂ : subgroup G) (hH₁ : is_p_group p₁ H₁) (hH₂ : is_p_group p₂ H₂) :
   disjoint H₁ H₂ :=
 begin
-  rintro x ⟨hx₁, hx₂⟩,
-  rw subgroup.mem_bot,
+  rw subgroup.disjoint_def,
+  intros x hx₁ hx₂,
   obtain ⟨n₁, hn₁⟩ := iff_order_of.mp hH₁ ⟨x, hx₁⟩,
   obtain ⟨n₂, hn₂⟩ := iff_order_of.mp hH₂ ⟨x, hx₂⟩,
   rw [← order_of_subgroup, subgroup.coe_mk] at hn₁ hn₂,

@@ -577,7 +577,7 @@ theorem nat_le : primrec_rel ((≤) : ℕ → ℕ → Prop) :=
 end
 
 theorem nat_min : primrec₂ (@min ℕ _) := ite nat_le fst snd
-theorem nat_max : primrec₂ (@max ℕ _) := ite (nat_le.comp primrec.snd primrec.fst) fst snd
+theorem nat_max : primrec₂ (@max ℕ _) := ite (nat_le.comp primrec.fst primrec.snd) snd fst
 
 theorem dom_bool (f : bool → α) : primrec f :=
 (cond primrec.id (const (f tt)) (const (f ff))).of_eq $

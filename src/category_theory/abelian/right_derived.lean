@@ -6,7 +6,6 @@ Authors: Jujian Zhang, Scott Morrison
 import category_theory.abelian.injective_resolution
 import algebra.homology.additive
 import category_theory.limits.constructions.epi_mono
-import category_theory.abelian.homology
 import category_theory.abelian.exact
 
 /-!

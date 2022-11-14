@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca, Adam Topaz
 -/
 
-import category_theory.abelian.homology
 import category_theory.functor.left_derived
 import category_theory.abelian.projective
 import category_theory.limits.constructions.epi_mono

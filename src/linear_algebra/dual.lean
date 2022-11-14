@@ -1091,6 +1091,17 @@ begin
     rw [infi_option, supr_option, dual_annihilator_inf_eq, h], }
 end
 
+/-- For vector spaces, dual annihilators carry direct sum decompositions
+to direct sum decompositions. -/
+lemma is_compl_dual_annihilator {W W' : subspace K V₁} (h : is_compl W W') :
+  is_compl W.dual_annihilator W'.dual_annihilator :=
+begin
+  rw [is_compl_iff, disjoint_iff, codisjoint_iff] at h ⊢,
+  rw [← dual_annihilator_inf_eq, ← dual_annihilator_sup_eq, h.1, h.2,
+    dual_annihilator_top, dual_annihilator_bot],
+  exact ⟨rfl, rfl⟩
+end
+
 end subspace
 
 section finite_dimensional

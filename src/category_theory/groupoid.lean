@@ -74,8 +74,8 @@ instance groupoid_has_involutive_reverse : quiver.has_involutive_reverse C :=
 { reverse' := λ X Y f, groupoid.inv f,
   inv' := λ X Y f, by { dsimp [quiver.reverse], simp, } }
 
-instance functor_preserves_reverse {D : Type*} [groupoid D] (F : C ⥤ D) :
-  F.to_prefunctor.preserves_reverse :=
+instance functor_map_reverse {D : Type*} [groupoid D] (F : C ⥤ D) :
+  F.to_prefunctor.map_reverse :=
 { map_reverse' := λ X Y f, by
   { simp only [quiver.reverse, quiver.has_reverse.reverse', groupoid.inv_eq_inv,
                functor.to_prefunctor_map, functor.map_inv], } }

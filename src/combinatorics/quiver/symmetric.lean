@@ -69,20 +69,20 @@ end
 variables {U V W}
 
 /-- A prefunctor preserving reversal of arrows -/
-class _root_.prefunctor.preserves_reverse [has_reverse U] [has_reverse V] (φ : U ⥤q V) :=
+class _root_.prefunctor.map_reverse [has_reverse U] [has_reverse V] (φ : U ⥤q V) :=
 (map_reverse' : ∀ {u v : U} (e : u ⟶ v), φ.map (reverse e) = reverse (φ.map e))
 
-@[simp] lemma _root_.prefunctor.map_reverse  [has_reverse U] [has_reverse V] (φ : U ⥤q V)
-  [φ.preserves_reverse] {u v : U} (e : u ⟶ v) : φ.map (reverse e) = reverse (φ.map e) :=
-prefunctor.preserves_reverse.map_reverse' e
+@[simp] lemma _root_.prefunctor.map_reverse'  [has_reverse U] [has_reverse V] (φ : U ⥤q V)
+  [φ.map_reverse] {u v : U} (e : u ⟶ v) : φ.map (reverse e) = reverse (φ.map e) :=
+prefunctor.map_reverse.map_reverse' e
 
-instance _root_.prefunctor.preserves_reverse_comp [quiver.{w+1} W]
+instance _root_.prefunctor.map_reverse_comp [quiver.{w+1} W]
   [has_reverse U] [has_reverse V] [has_reverse W] (φ : U ⥤q V) (ψ : V ⥤q W)
-  [φ.preserves_reverse] [ψ.preserves_reverse] : (φ ⋙q ψ).preserves_reverse :=
-{ map_reverse' := λ u v e, by { simp only [prefunctor.comp_map, prefunctor.map_reverse], } }
+  [φ.map_reverse] [ψ.map_reverse] : (φ ⋙q ψ).map_reverse :=
+{ map_reverse' := λ u v e, by { simp only [prefunctor.comp_map, prefunctor.map_reverse'], } }
 
-instance _root_.prefunctor.preserves_reverse_id [has_reverse U] :
-  (prefunctor.id U).preserves_reverse :=
+instance _root_.prefunctor.map_reverse_id [has_reverse U] :
+  (prefunctor.id U).map_reverse :=
 { map_reverse' := λ u v e, rfl }
 
 instance : has_reverse (symmetrify V) := ⟨λ a b e, e.swap⟩
@@ -158,7 +158,7 @@ end
 lemma lift_unique (V' : Type*) [quiver V'] [has_reverse V']
   (φ : V ⥤q V')
   (Φ : (symmetrify V) ⥤q V')
-  (hΦ : of ⋙q Φ = φ) [hΦrev : Φ.preserves_reverse] :
+  (hΦ : of ⋙q Φ = φ) [hΦrev : Φ.map_reverse] :
   Φ = lift φ :=
 begin
   subst_vars,
@@ -168,7 +168,7 @@ begin
     cases f,
     { refl, },
     { dsimp [lift,of],
-      simp only [←prefunctor.map_reverse, symmetrify_reverse, sum.swap_inl], }, },
+      simp only [←prefunctor.map_reverse', symmetrify_reverse, sum.swap_inl], }, },
 end
 
 /-- A prefunctor canonically defines a prefunctor of the symmetrifications. -/
@@ -176,8 +176,8 @@ end
 { obj := φ.obj,
   map := λ X Y, sum.map φ.map φ.map }
 
-instance _root_.prefunctor.symmetrify_preserves_reverse  (φ : U ⥤q V) :
-  prefunctor.preserves_reverse φ.symmetrify := ⟨λ u v e, by { cases e; refl }⟩
+instance _root_.prefunctor.symmetrify_map_reverse  (φ : U ⥤q V) :
+  prefunctor.map_reverse φ.symmetrify := ⟨λ u v e, by { cases e; refl }⟩
 
 end symmetrify
 

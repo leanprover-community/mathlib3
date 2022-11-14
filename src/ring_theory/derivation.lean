@@ -722,9 +722,9 @@ begin
     derivation.tensor_product_to_tmul, one_smul, D.map_one_eq_zero, smul_zero, sub_zero],
 end
 
-@[simp] lemma derivation.lift_kaehler_differential_comp_D (D : derivation R S M) (x : S) :
-  D.lift_kaehler_differential (kaehler_differential.D R S x) = D x :=
-derivation.congr_fun D.lift_kaehler_differential_comp x
+@[simp] lemma derivation.lift_kaehler_differential_comp_D (D' : derivation R S M) (x : S) :
+  D'.lift_kaehler_differential (kaehler_differential.D R S x) = D' x :=
+derivation.congr_fun D'.lift_kaehler_differential_comp x
 
 @[ext]
 lemma derivation.lift_kaehler_differential_unique

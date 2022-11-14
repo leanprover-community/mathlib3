@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import logic.embedding.set
 import algebra.parity
 import data.array.lemmas
+import data.int.units
 import data.finset.fin
 import data.finset.option
 import data.finset.pi
@@ -1443,6 +1444,10 @@ lemma nonempty_of_card_le [fintype α] [fintype β]
   (h : fintype.card α ≤ fintype.card β) : nonempty (α ↪ β) :=
 by { classical, exact (trunc_of_card_le h).nonempty }
 
+lemma nonempty_iff_card_le [fintype α] [fintype β] :
+  nonempty (α ↪ β) ↔ fintype.card α ≤ fintype.card β :=
+⟨λ ⟨e⟩, fintype.card_le_of_embedding e, nonempty_of_card_le⟩
+
 lemma exists_of_card_le_finset [fintype α] {s : finset β} (h : fintype.card α ≤ s.card) :
   ∃ (f : α ↪ β), set.range f ⊆ s :=
 begin
@@ -2102,10 +2107,10 @@ let ⟨y, hy⟩ := exists_not_mem_finset ({x} : finset α) in
 protected lemma nonempty (α : Type*) [infinite α] : nonempty α :=
 by apply_instance
 
-lemma of_injective [infinite β] (f : β → α) (hf : injective f) : infinite α :=
+lemma of_injective {α β} [infinite β] (f : β → α) (hf : injective f) : infinite α :=
 ⟨λ I, by exactI (finite.of_injective f hf).false⟩
 
-lemma of_surjective [infinite β] (f : α → β) (hf : surjective f) : infinite α :=
+lemma of_surjective {α β} [infinite β] (f : α → β) (hf : surjective f) : infinite α :=
 ⟨λ I, by exactI (finite.of_surjective f hf).false⟩
 
 end infinite
@@ -2264,7 +2269,7 @@ begin
   exact key.false,
 end
 
-lemma not_surjective_finite_infinite [finite α] [infinite β] (f : α → β) : ¬ surjective f :=
+lemma not_surjective_finite_infinite {α β} [finite α] [infinite β] (f : α → β) : ¬ surjective f :=
 λ hf, (infinite.of_surjective f hf).not_finite ‹_›
 
 section trunc

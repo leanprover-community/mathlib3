@@ -46,7 +46,7 @@ def associated_primes : set (ideal R) := { I | is_associated_prime I M }
 variables {I J M R} (h : is_associated_prime I M)
 variables {M' : Type*} [add_comm_group M'] [module R M'] (f : M →ₗ[R] M')
 
-lemma mem_associate_primes : I ∈ associated_primes R M ↔ is_associated_prime I M := iff.rfl
+lemma associate_primes.mem_iff : I ∈ associated_primes R M ↔ is_associated_prime I M := iff.rfl
 
 lemma is_associated_prime.is_prime : I.is_prime := h.1
 

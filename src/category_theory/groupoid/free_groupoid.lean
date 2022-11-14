@@ -165,7 +165,7 @@ begin
 end
 
 lemma lift_unique (φ : V ⥤q V') (Φ : free_groupoid V ⥤ V')
-  (hΦ : of V ⋙q Φ.to_prefunctor = φ) : Φ = lift φ :=```
+  (hΦ : of V ⋙q Φ.to_prefunctor = φ) : Φ = lift φ :=
 begin
   apply quotient.lift_unique,
   apply paths.lift_unique,

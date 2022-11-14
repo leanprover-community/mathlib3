@@ -33,36 +33,24 @@ variables {R M : Type*} [ring R] [add_comm_group M] [module R M]
 
 section
 
-open_locale classical
-
 /-- The cardinality of `(M ⧸ S)`, if `(M ⧸ S)` is finite, and `0` otherwise.
 This is used to define the absolute ideal norm `ideal.abs_norm`.
 -/
 noncomputable def card_quot (S : submodule R M) : ℕ :=
-if h : nonempty (fintype (M ⧸ S)) then @fintype.card _ h.some else 0
+add_subgroup.index S.to_add_subgroup
 
-@[simp] lemma card_quot_apply (S : submodule R M) [h : fintype (M ⧸ S)] :
+@[simp] lemma card_quot_apply (S : submodule R M) [fintype (M ⧸ S)] :
   card_quot S = fintype.card (M ⧸ S) :=
-by convert dif_pos (nonempty.intro h) -- `convert` deals with the different `fintype` instances
+add_subgroup.index_eq_card _
 
 @[simp] lemma card_quot_bot [infinite M] : card_quot (⊥ : submodule R M) = 0 :=
-dif_neg (by simp; apply_instance)
+add_subgroup.index_bot.trans nat.card_eq_zero_of_infinite
 
 @[simp] lemma card_quot_top : card_quot (⊤ : submodule R M) = 1 :=
-calc card_quot ⊤ = fintype.card (M ⧸ ⊤) : card_quot_apply _
-... = fintype.card punit : fintype.card_eq.mpr ⟨equiv_of_subsingleton_of_subsingleton 0 0⟩
-... = 1 : fintype.card_punit
+add_subgroup.index_top
 
 @[simp] lemma card_quot_eq_one_iff {P : submodule R M} : card_quot P = 1 ↔ P = ⊤ :=
-begin
-  unfold card_quot,
-  split_ifs,
-  { rw [fintype.card_eq_one_iff_nonempty_unique, submodule.unique_quotient_iff_eq_top] },
-  { simp only [zero_ne_one, false_iff],
-    rintro rfl,
-    have : nonempty (fintype (M ⧸ ⊤)) := ⟨@quotient_top.fintype R M _ _ _⟩,
-    contradiction }
-end
+add_subgroup.index_eq_one.trans (by simp [set_like.ext_iff])
 
 end
 

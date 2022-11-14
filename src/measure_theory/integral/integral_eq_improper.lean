@@ -659,4 +659,83 @@ end
 
 end integral_of_interval_integral
 
+section Ioi_change_variables
+
+open real
+open_locale interval
+
+variables {E : Type*} {μ : measure ℝ} {f : ℝ → E}
+  [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+
+/-- Change-of-variables formula for `Ioi` integrals of vector-valued functions, proved by taking
+limits from the result for finite intervals. -/
+lemma integral_comp_smul_deriv_Ioi {f f' : ℝ → ℝ} {g : ℝ → E} {a : ℝ}
+  (hf : continuous_on f $ Ici a)
+  (hft : tendsto f at_top at_top)
+  (hff' : ∀ x ∈ Ioi a, has_deriv_within_at f (f' x) (Ioi x) x)
+  (hg_cont : continuous_on g $ f '' Ioi a)
+  (hg1 : integrable_on g $ f '' Ici a)
+  (hg2 : integrable_on (λ x, f'(x) • (g ∘ f) x) (Ici a)) :
+  ∫ x in Ioi a, f' x • (g ∘ f) x = ∫ u in Ioi (f a), g u :=
+begin
+  have eq : ∀ b : ℝ, a < b → ∫ x in a..b, f' x • (g ∘ f) x = ∫ u in f a .. f b, g u,
+  { intros b hb,
+    have i1 : Ioo (min a b) (max a b) ⊆ Ioi a,
+    { rw min_eq_left hb.le, exact Ioo_subset_Ioi_self },
+    have i2 : [a, b] ⊆ Ici a,
+    { rw interval_of_le hb.le, exact Icc_subset_Ici_self },
+    refine interval_integral.integral_comp_smul_deriv''' (hf.mono i2)
+      (λ x hx, hff' x $ mem_of_mem_of_subset hx i1) (hg_cont.mono $ image_subset _ _)
+      (hg1.mono_set $ image_subset _ _) (hg2.mono_set i2),
+    { rw min_eq_left hb.le, exact Ioo_subset_Ioi_self },
+    { rw interval_of_le hb.le, exact Icc_subset_Ici_self } },
+  rw integrable_on_Ici_iff_integrable_on_Ioi at hg2,
+  have t2 := interval_integral_tendsto_integral_Ioi _ hg2 tendsto_id,
+  have : Ioi (f a) ⊆ f '' Ici a := (Ioi_subset_Ici_self.trans $
+    is_preconnected.intermediate_value_Ici is_preconnected_Ici left_mem_Ici
+    (le_principal_iff.mpr $ Ici_mem_at_top _) hf hft),
+  have t1 := (interval_integral_tendsto_integral_Ioi _ (hg1.mono_set this) tendsto_id).comp hft,
+  exact tendsto_nhds_unique (tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top a) eq) t2) t1,
+end
+
+/-- Change-of-variables formula for `Ioi` integrals of scalar-valued functions -/
+lemma integral_comp_mul_deriv_Ioi {f f' : ℝ → ℝ} {g : ℝ → ℝ} {a : ℝ}
+  (hf : continuous_on f $ Ici a)
+  (hft : tendsto f at_top at_top)
+  (hff' : ∀ x ∈ Ioi a, has_deriv_within_at f (f' x) (Ioi x) x)
+  (hg_cont : continuous_on g $ f '' Ioi a)
+  (hg1 : integrable_on g $ f '' Ici a)
+  (hg2 : integrable_on (λ x, (g ∘ f) x * f' x) (Ici a)) :
+  ∫ x in Ioi a, (g ∘ f) x * f' x = ∫ u in Ioi (f a), g u :=
+begin
+  have hg2' : integrable_on (λ x, f' x • (g ∘ f) x) (Ici a) := by simpa [mul_comm] using hg2,
+  simpa [mul_comm] using integral_comp_smul_deriv_Ioi hf hft hff' hg_cont hg1 hg2',
+end
+
+/-- Substitution `y = x ^ p` in integrals over `Ioi 0`, with integrability hypotheses -/
+lemma integral_comp_rpow_Ioi {g : ℝ → ℝ} {p : ℝ} (hp : 0 < p)
+  (hg : continuous_on g (Ioi 0))
+  (hg2 : integrable_on g (Ioi 0))
+  (hg3 : integrable_on (λ x, g (x ^ p) * (p * x ^ (p - 1))) (Ioi 0)) :
+  ∫ x in Ioi 0, g (x ^ p) * (p * x ^ (p - 1)) = ∫ y in Ioi 0, g y :=
+begin
+  conv_rhs { rw ← zero_rpow hp.ne', },
+  have hf := continuous_at.continuous_on (λ x hx, continuous_at_rpow_const _ _ (or.inr hp)),
+  have hff' := λ x hx, (has_deriv_at_rpow_const (or.inl (mem_Ioi.mp hx).ne')).has_deriv_within_at,
+  rw ←integrable_on_Ici_iff_integrable_on_Ioi at hg2 hg3,
+  have dom1 : (λ x:ℝ, x ^ p) '' Ioi 0 = Ioi 0,
+  { ext, simp_rw [mem_image, mem_Ioi], split,
+    { rintro ⟨u, ⟨hu1, rfl⟩⟩, exact rpow_pos_of_pos hu1 _,},
+    { refine λ hu, ⟨x ^ (1 / p), ⟨rpow_pos_of_pos hu _, _⟩⟩,
+      rw [←rpow_mul hu.le, div_mul_cancel _ hp.ne'], simp } },
+  have dom2 : (λ x:ℝ, x ^ p) '' Ici 0 = Ici 0,
+  { rw [← Icc_union_Ioi_eq_Ici (le_refl (0:ℝ)), image_union], congr' 1,
+    simpa using zero_rpow hp.ne',  },
+  rw ←dom1 at hg,
+  rw ←dom2 at hg2,
+  exact integral_comp_mul_deriv_Ioi hf (tendsto_rpow_at_top hp) hff' hg hg2 hg3,
+end
+
+end Ioi_change_variables
+
 end measure_theory

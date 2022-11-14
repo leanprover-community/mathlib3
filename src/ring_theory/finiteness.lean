@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
+import algebra.algebra.restrict_scalars
 import group_theory.finiteness
 import ring_theory.adjoin.tower
 import ring_theory.mv_polynomial.tower

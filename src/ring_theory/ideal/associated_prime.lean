@@ -46,6 +46,8 @@ def associated_primes : set (ideal R) := { I | is_associated_prime I M }
 variables {I J M R} (h : is_associated_prime I M)
 variables {M' : Type*} [add_comm_group M'] [module R M'] (f : M →ₗ[R] M')
 
+lemma mem_associate_primes : I ∈ associated_primes R M ↔ is_associated_prime I M := iff.rfl
+
 lemma is_associated_prime.is_prime : I.is_prime := h.1
 
 lemma is_associated_prime.map_of_injective
@@ -59,7 +61,7 @@ begin
     ← map_smul, ← f.map_zero, hf.eq_iff],
 end
 
-lemma is_associated_prime.iff_of_equiv (l : M ≃ₗ[R] M') :
+lemma linear_equiv.is_associated_prime_iff (l : M ≃ₗ[R] M') :
   is_associated_prime I M ↔ is_associated_prime I M' :=
 ⟨λ h, h.map_of_injective l l.injective, λ h, h.map_of_injective l.symm l.symm.injective⟩
 
@@ -99,8 +101,6 @@ end
 
 variable {R}
 
-lemma mem_associate_primes : I ∈ associated_primes R M ↔ is_associated_prime I M := iff.rfl
-
 lemma associated_primes_subset_of_injective (hf : function.injective f) :
   associated_primes R M ⊆ associated_primes R M' :=
 λ I h, h.map_of_injective f hf
@@ -110,7 +110,7 @@ lemma linear_equiv.associated_primes_eq (l : M ≃ₗ[R] M') :
 le_antisymm (associated_primes_subset_of_injective l l.injective)
   (associated_primes_subset_of_injective l.symm l.symm.injective)
 
-lemma associated_primes_of_subsingleton [subsingleton M] : associated_primes R M = ∅ :=
+lemma associated_primes_eq_empty_of_subsingleton [subsingleton M] : associated_primes R M = ∅ :=
 begin
   ext, simp only [set.mem_empty_iff_false, iff_false], apply not_is_associated_prime_of_subsingleton
 end
@@ -127,14 +127,14 @@ end
 
 variables {R M}
 
-lemma annihilator_le_of_mem_associate_primes (I ∈ associated_primes R M) :
+lemma is_associated_prime.annihilator_le (h : is_associated_prime I M) :
   (⊤ : submodule R M).annihilator ≤ I :=
 begin
-  obtain ⟨hI, x, rfl⟩ := H,
+  obtain ⟨hI, x, rfl⟩ := h,
   exact submodule.annihilator_mono le_top,
 end
 
-lemma is_associated_prime.eq_primary (hI : I.is_primary) (h : is_associated_prime J (R ⧸ I)) :
+lemma is_associated_prime.eq_radical (hI : I.is_primary) (h : is_associated_prime J (R ⧸ I)) :
   J = I.radical :=
 begin
   obtain ⟨hJ, x, e⟩ := h,
@@ -151,16 +151,16 @@ begin
   { rw hJ.radical_le_iff, intros y hy, exact e.mpr (I.mul_mem_left x hy) }
 end
 
-lemma associated_primes_of_is_primary [is_noetherian_ring R] (hI : I.is_primary) :
+lemma associated_primes_eq_singleton_of_is_primary [is_noetherian_ring R] (hI : I.is_primary) :
   associated_primes R (R ⧸ I) = {I.radical} :=
 begin
   ext J,
   rw [set.mem_singleton_iff],
-  refine ⟨is_associated_prime.eq_primary hI, _⟩,
+  refine ⟨is_associated_prime.eq_radical hI, _⟩,
   rintro rfl,
   haveI : nontrivial (R ⧸ I) := ⟨⟨(I^.quotient.mk : _) 1, (I^.quotient.mk : _) 0, _⟩⟩,
   obtain ⟨a, ha⟩ := associated_primes_nonempty R (R ⧸ I),
-  exact ha.eq_primary hI ▸ ha,
+  exact ha.eq_radical hI ▸ ha,
   rw [ne.def, ideal.quotient.eq, sub_zero, ← ideal.eq_top_iff_one],
   exact hI.1
 end

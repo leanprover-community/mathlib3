@@ -6,9 +6,9 @@ Authors: Mario Carneiro
 import algebra.char_zero.defs
 import algebra.group.prod
 import algebra.group_with_zero.commute
-import algebra.ring.commute
 import algebra.hom.ring
 import algebra.order.group.abs
+import algebra.ring.commute
 import data.nat.order.basic
 
 /-!

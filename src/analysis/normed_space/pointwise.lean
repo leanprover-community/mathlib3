@@ -154,7 +154,7 @@ begin
   rw add_comm at hxy,
   obtain ⟨z, hxz, hzy⟩ := exists_dist_lt_lt hδ hε hxy,
   rw dist_comm at hxz,
-  exact h ⟨hxz, hzy⟩,
+  exact h.le_bot ⟨hxz, hzy⟩,
 end
 
 -- This is also true for `ℚ`-normed spaces
@@ -165,7 +165,7 @@ begin
   rw add_comm at hxy,
   obtain ⟨z, hxz, hzy⟩ := exists_dist_lt_le hδ hε hxy,
   rw dist_comm at hxz,
-  exact h ⟨hxz, hzy⟩,
+  exact h.le_bot ⟨hxz, hzy⟩,
 end
 
 -- This is also true for `ℚ`-normed spaces
@@ -180,7 +180,7 @@ begin
   rw add_comm at hxy,
   obtain ⟨z, hxz, hzy⟩ := exists_dist_le_le hδ hε hxy,
   rw dist_comm at hxz,
-  exact h ⟨hxz, hzy⟩,
+  exact h.le_bot ⟨hxz, hzy⟩,
 end
 
 open emetric ennreal

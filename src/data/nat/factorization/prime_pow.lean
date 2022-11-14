@@ -138,7 +138,7 @@ begin
   have : a.factorization p = 0 ∨ b.factorization p = 0,
   { rw [←finsupp.not_mem_support_iff, ←finsupp.not_mem_support_iff, ←not_and_distrib,
       ←finset.mem_inter],
-    exact λ t, nat.factorization_disjoint_of_coprime hab t },
+    exact λ t, (nat.factorization_disjoint_of_coprime hab).le_bot t },
   cases this;
   simp [this, imp_or_distrib],
 end

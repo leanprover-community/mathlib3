@@ -7,6 +7,7 @@ import data.nat.order.basic
 import algebra.order.group.abs
 import algebra.group.prod
 import algebra.hom.ring
+import algebra.ring.commute
 
 /-!
 # Cast of natural numbers (additional theorems)

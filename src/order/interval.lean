@@ -260,6 +260,7 @@ variables [lattice α]
 
 instance : semilattice_sup (interval α) := with_bot.semilattice_sup
 
+section decidable
 variables [@decidable_rel α (≤)]
 
 instance : lattice (interval α) :=
@@ -321,9 +322,14 @@ begin
       h ⟨le_sup_left.trans $ H.trans inf_le_right, le_sup_right.trans $ H.trans inf_le_left⟩).symm }
 end
 
+end decidable
+
 @[simp, norm_cast]
 lemma disjoint_coe (s t : interval α) : disjoint (s : set α) t ↔ disjoint s t :=
-by { rw [disjoint, disjoint, le_eq_subset, ←coe_subset_coe, coe_inf], refl }
+begin
+  classical,
+  rw [disjoint_iff_inf_le, disjoint_iff_inf_le, le_eq_subset, ←coe_subset_coe, coe_inf], refl
+end
 
 end lattice
 end interval

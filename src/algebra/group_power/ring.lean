@@ -6,6 +6,7 @@ Authors: Jeremy Avigad, Robert Y. Lewis
 import algebra.group_power.basic
 import algebra.group_with_zero.units
 import algebra.hom.ring
+import algebra.ring.commute
 import data.nat.order.lemmas
 
 /-!

@@ -3,6 +3,7 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
+import algebra.algebra.subalgebra.basic
 import analysis.normed.group.infinite_sum
 import topology.algebra.module.basic
 import topology.instances.ennreal
@@ -1013,3 +1014,6 @@ instance to_normed_comm_ring [normed_comm_ring R] [subring_class S R] (s : S) :
 { mul_comm := mul_comm, .. subring_class.to_normed_ring s }
 
 end subring_class
+
+-- Guard again import creep.
+assert_not_exists restrict_scalars

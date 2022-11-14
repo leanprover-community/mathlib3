@@ -8,6 +8,7 @@ import algebra.homology.quasi_iso
 import algebraic_topology.extra_degeneracy
 import category_theory.abelian.homology
 import representation_theory.Rep
+import algebra.homology.short_complex_Module
 
 /-!
 # The structure of the `k[G]`-module `k[Gⁿ]`
@@ -436,10 +437,10 @@ end
 theorem forget₂_to_Module_exact_succ (n : ℕ) :
   exact ((group_cohomology.resolution.forget₂_to_Module k G).d (n + 2) (n + 1))
     ((group_cohomology.resolution.forget₂_to_Module k G).d (n + 1) n) :=
-(preadditive.exact_iff_homology_zero _ _).2
-  ⟨(group_cohomology.resolution.forget₂_to_Module k G).d_comp_d _ _ _,
-  ⟨(chain_complex.homology_succ_iso _ _).symm.trans ((homology_obj_iso_of_homotopy_equiv
-  (forget₂_to_Module_homotopy_equiv k G) _).trans homology_zero_zero)⟩⟩
+(exact_iff_homology_zero _ _ ((group_cohomology.resolution.forget₂_to_Module k G).d_comp_d _ _ _)).2
+⟨(chain_complex.homology_succ_iso _ _).symm ≪≫
+  (homology_obj_iso_of_homotopy_equiv (forget₂_to_Module_homotopy_equiv k G) _) ≪≫
+  chain_complex.homology_single₀_succ _ _⟩
 
 theorem exact_at_succ (n : ℕ) :
   exact ((group_cohomology.resolution k G).d (n + 2) (n + 1))
@@ -451,11 +452,11 @@ lemma forget_to_Module_exact₀ :
   exact ((group_cohomology.resolution.forget₂_to_Module k G).d 1 0)
   ((forget₂_to_Module_homotopy_equiv k G).1.f 0) :=
 begin
-  rw preadditive.exact_iff_homology_zero,
   have h : (forget₂_to_Module k G).d 1 0 ≫ (forget₂_to_Module_homotopy_equiv k G).hom.f 0 = 0,
   { rw ← (forget₂_to_Module_homotopy_equiv k G).1.2 1 0 rfl,
     simp only [chain_complex.single₀_obj_X_d, comp_zero], },
-  refine ⟨h, nonempty.intro (homology_iso_kernel_desc _ _ _ ≪≫ _)⟩,
+  rw exact_iff_homology_zero _ _ h,
+  refine nonempty.intro (short_complex.homology_iso_kernel_desc _ ≪≫ _),
   { suffices : is_split_mono (cokernel.desc _ _ h),
     { haveI := this, apply kernel.of_mono, },
       refine is_split_mono.mk' ⟨(forget₂_to_Module_homotopy_equiv k G).2.f 0 ≫

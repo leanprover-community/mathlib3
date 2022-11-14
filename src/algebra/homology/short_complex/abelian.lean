@@ -1,4 +1,4 @@
-import algebra.homology.short_complex_preadditive
+import algebra.homology.short_complex.preadditive
 import category_theory.abelian.basic
 
 noncomputable theory

@@ -1,6 +1,6 @@
-import algebra.homology.short_complex_homology
-import algebra.homology.short_complex_abelian
-import algebra.homology.short_complex_preserves_homology
+import algebra.homology.short_complex.homology
+import algebra.homology.short_complex.abelian
+import algebra.homology.short_complex.preserves_homology
 import category_theory.preadditive.opposite
 
 noncomputable theory

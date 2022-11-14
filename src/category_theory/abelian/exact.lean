@@ -10,8 +10,8 @@ import category_theory.limits.preserves.shapes.kernels
 import category_theory.preadditive.left_exact
 import category_theory.adjunction.limits
 import algebra.homology.exact
-import algebra.homology.short_complex_short_exact
-import algebra.homology.short_complex_image_to_kernel
+import algebra.homology.short_complex.short_exact
+import algebra.homology.short_complex.image_to_kernel
 import tactic.tfae
 
 /-!

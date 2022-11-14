@@ -1,4 +1,4 @@
-import algebra.homology.short_complex_right_homology
+import algebra.homology.short_complex.right_homology
 
 noncomputable theory
 

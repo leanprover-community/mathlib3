@@ -8,7 +8,7 @@ import algebra.homology.quasi_iso
 import algebraic_topology.extra_degeneracy
 import category_theory.abelian.homology
 import representation_theory.Rep
-import algebra.homology.short_complex_Module
+import algebra.homology.short_complex.Module
 
 /-!
 # The structure of the `k[G]`-module `k[Gⁿ]`

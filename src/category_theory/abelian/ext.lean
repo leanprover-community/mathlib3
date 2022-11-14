@@ -9,7 +9,7 @@ import category_theory.functor.left_derived
 import category_theory.linear.yoneda
 import category_theory.abelian.opposite
 import category_theory.abelian.projective
-import algebra.homology.short_complex_Module
+import algebra.homology.short_complex.Module
 
 /-!
 # Ext

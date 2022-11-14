@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import algebra.homology.homology
 import algebra.homology.single
-import algebra.homology.short_complex_preadditive
+import algebra.homology.short_complex.preadditive
 
 /-!
 # Homology is an additive functor

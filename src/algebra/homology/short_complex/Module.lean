@@ -1,8 +1,8 @@
 import algebra.category.Module.abelian
 import algebra.category.Module.subobject
-import algebra.homology.short_complex_homology
-import algebra.homology.short_complex_preadditive
-import algebra.homology.short_complex_abelian
+import algebra.homology.short_complex.homology
+import algebra.homology.short_complex.preadditive
+import algebra.homology.short_complex.abelian
 import linear_algebra.quotient
 
 noncomputable theory

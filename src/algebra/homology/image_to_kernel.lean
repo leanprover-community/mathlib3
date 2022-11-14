@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.subobject.limits
-import algebra.homology.short_complex_homology
+import algebra.homology.short_complex.homology
 
 /-!
 # Image-to-kernel comparison maps

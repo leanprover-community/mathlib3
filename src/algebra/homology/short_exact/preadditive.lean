@@ -93,17 +93,6 @@ structure split : Prop :=
 (split : ∃ (φ : B ⟶ A) (χ : C ⟶ B),
   f ≫ φ = 𝟙 A ∧ χ ≫ g = 𝟙 C ∧ f ≫ g = 0 ∧ χ ≫ φ = 0 ∧ φ ≫ f + g ≫ χ = 𝟙 B)
 
-/-lemma exact_of_split [has_zero_object 𝒜]
-  {A B C : 𝒜} {f : A ⟶ B} {g : B ⟶ C} {χ : C ⟶ B} {φ : B ⟶ A}
-  (hfg : f ≫ g = 0) (H : φ ≫ f + g ≫ χ = 𝟙 B) : exact f g :=
-{ w := hfg,
-  exact := short_complex.splitting.exact
-  { r := sorry,
-    s := sorry,
-    f_r := sorry,
-    s_g := sorry,
-    id := sorry, }, }-/
-
 section
 
 variables {f g}

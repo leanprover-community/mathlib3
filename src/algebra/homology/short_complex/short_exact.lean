@@ -1,5 +1,5 @@
-import algebra.homology.short_complex_exact
-import algebra.homology.short_complex_preadditive
+import algebra.homology.short_complex.exact
+import algebra.homology.short_complex.preadditive
 
 noncomputable theory
 

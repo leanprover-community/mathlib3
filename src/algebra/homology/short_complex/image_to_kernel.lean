@@ -1,4 +1,4 @@
-import algebra.homology.short_complex_exact
+import algebra.homology.short_complex.exact
 import category_theory.subobject.limits
 
 noncomputable theory

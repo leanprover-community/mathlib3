@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Wojciech Nawrocki
 -/
 import data.rbtree.init
 import data.num.basic
+import order.basic
 
 /-!
 # Binary tree
@@ -14,7 +15,8 @@ See also `data.rbtree` for red-black trees - this version allows more operations
 to be defined and is better suited for in-kernel computation.
 
 We also specialize for `tree unit`, which is a binary tree without any
-additional data.
+additional data. We provide the notation `a △ b` for making a `tree unit` with children
+`a` and `b`.
 
 ## References
 
@@ -106,7 +108,7 @@ lemma num_leaves_pos (x : tree α) : 0 < x.num_leaves :=
 by { rw num_leaves_eq_num_nodes_succ, exact x.num_nodes.zero_lt_succ, }
 
 lemma height_le_num_nodes : ∀ (x : tree α), x.height ≤ x.num_nodes
-| nil := le_refl _
+| nil := le_rfl
 | (node _ a b) := nat.succ_le_succ
     (max_le
       (trans a.height_le_num_nodes $ a.num_nodes.le_add_right _)
@@ -122,26 +124,18 @@ lemma height_le_num_nodes : ∀ (x : tree α), x.height ≤ x.num_nodes
 | nil := nil
 | (node _ l r) := r
 
-/-- Abbreviation for making a node with `unit` data -/
-@[pattern] abbreviation unode : tree unit → tree unit → tree unit :=
-tree.node ()
+/- Notation for making a node with `unit` data -/
+localized "infixr ` △ `:65 := tree.node ()" in tree
 
-lemma unode_def (x y : tree unit) : x.unode y = x.node () y := rfl
-
-@[simp] lemma unode_eq_unode_iff (a b c d : tree unit) : a.unode b = c.unode d ↔ a = c ∧ b = d :=
-by simp [unode_def]
-
-@[simp] lemma unode_ne_nil (a b : tree unit) : a.unode b ≠ nil := by trivial
-@[simp] lemma nil_ne_unode (a b : tree unit) : nil ≠ a.unode b := by trivial
-
-/-- Recursion on `tree unit` using `unode` -/
+/-- Recursion on `tree unit`; allows for a better `induction` which does not have to worry
+  about the element of type `α = unit` -/
 @[elab_as_eliminator]
 def unit_rec_on {motive : tree unit → Sort*} (t : tree unit) (base : motive nil)
-  (ind : ∀ x y, motive x → motive y → motive (x.unode y)) : motive t :=
+  (ind : ∀ x y, motive x → motive y → motive (x △ y)) : motive t :=
 t.rec_on base (λ u, u.rec_on (by exact ind))
 
-lemma left_unode_right_eq_self : ∀ {x : tree unit} (hx : x ≠ nil), x.left.unode x.right = x
+lemma left_node_right_eq_self : ∀ {x : tree unit} (hx : x ≠ nil), x.left △ x.right = x
 | nil h := by trivial
-| (unode a b) _ := rfl
+| (a △ b) _ := rfl
 
 end tree

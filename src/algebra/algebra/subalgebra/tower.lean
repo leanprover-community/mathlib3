@@ -5,7 +5,7 @@ Authors: Kenny Lau, Anne Baanen
 -/
 
 import algebra.algebra.subalgebra.basic
-import algebra.algebra.tower.basic
+import algebra.algebra.tower
 
 /-!
 # Subalgebras in towers of algebras

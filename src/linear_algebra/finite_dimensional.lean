@@ -800,7 +800,7 @@ instance finite_dimensional_finsupp {ι : Type*} [_root_.finite ι] [h : finite_
 begin
   casesI nonempty_fintype ι,
   letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
-  exact (finsupp.linear_equiv_fun_on_fintype K V ι).symm.finite_dimensional
+  exact (finsupp.linear_equiv_fun_on_finite K V ι).symm.finite_dimensional
 end
 
 end
@@ -1511,7 +1511,7 @@ begin
   let s := basis.of_vector_space_index K V,
   let hs := basis.of_vector_space K V,
   calc #V = #(s →₀ K) : quotient.sound ⟨hs.repr.to_equiv⟩
-    ... = #(s → K) : quotient.sound ⟨finsupp.equiv_fun_on_fintype⟩
+    ... = #(s → K) : quotient.sound ⟨finsupp.equiv_fun_on_finite⟩
     ... = _ : by rw [← cardinal.lift_inj.1 hs.mk_eq_dim, cardinal.power_def]
 end
 

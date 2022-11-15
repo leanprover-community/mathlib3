@@ -47,7 +47,7 @@ fiber bundle from trivializations given as local equivalences with minimum addit
 
 * `fiber_bundle F E` : Structure saying that `E : B → Type*` is a fiber bundle with fiber `F`.
 
-* `is_trivial_fiber_bundle F p` : Prop saying that the map `p : Z → B` between
+* `is_homeomorphic_trivial_fiber_bundle F p` : Prop saying that the map `p : Z → B` between
   topological spaces is a trivial fiber bundle, i.e., there exists a homeomorphism
   `h : Z ≃ₜ B × F` such that `proj x = (h x).1`.
 
@@ -214,13 +214,13 @@ variables (F E)
 /-- A trivial fiber bundle with fiber `F` over a base `B` is a space `Z`
 projecting on `B` for which there exists a homeomorphism to `B × F` that sends `proj`
 to `prod.fst`. -/
-def is_trivial_fiber_bundle {Z : Type*} [topological_space Z] (proj : Z → B) : Prop :=
+def is_homeomorphic_trivial_fiber_bundle {Z : Type*} [topological_space Z] (proj : Z → B) : Prop :=
 ∃ e : Z ≃ₜ (B × F), ∀ x, (e x).1 = proj x
 
 variables {F}
 
-lemma is_trivial_fiber_bundle.proj_eq {Z : Type*} [topological_space Z] {proj : Z → B}
-  (h : is_trivial_fiber_bundle F proj) :
+lemma is_homeomorphic_trivial_fiber_bundle.proj_eq {Z : Type*} [topological_space Z] {proj : Z → B}
+  (h : is_homeomorphic_trivial_fiber_bundle F proj) :
   ∃ e : Z ≃ₜ (B × F), proj = prod.fst ∘ e :=
 ⟨h.some, (funext h.some_spec).symm⟩
 
@@ -261,44 +261,48 @@ end fiber_bundle
 variables {F}
 
 /-- The projection from a trivial fiber bundle to its base is surjective. -/
-lemma is_trivial_fiber_bundle.surjective_proj [nonempty F] {Z : Type*} [topological_space Z]
-  {proj : Z → B} (h : is_trivial_fiber_bundle F proj) : function.surjective proj :=
+lemma is_homeomorphic_trivial_fiber_bundle.surjective_proj [nonempty F] {Z : Type*}
+  [topological_space Z] {proj : Z → B} (h : is_homeomorphic_trivial_fiber_bundle F proj) :
+  function.surjective proj :=
 begin
   obtain ⟨e, rfl⟩ := h.proj_eq,
   exact prod.fst_surjective.comp e.surjective,
 end
 
 /-- The projection from a trivial fiber bundle to its base is continuous. -/
-lemma is_trivial_fiber_bundle.continuous_proj {Z : Type*} [topological_space Z] {proj : Z → B}
-  (h : is_trivial_fiber_bundle F proj) : continuous proj :=
+lemma is_homeomorphic_trivial_fiber_bundle.continuous_proj {Z : Type*} [topological_space Z]
+  {proj : Z → B} (h : is_homeomorphic_trivial_fiber_bundle F proj) :
+  continuous proj :=
 begin
   obtain ⟨e, rfl⟩ := h.proj_eq,
   exact continuous_fst.comp e.continuous,
 end
 
 /-- The projection from a trivial fiber bundle to its base is open. -/
-lemma is_trivial_fiber_bundle.is_open_map_proj {Z : Type*} [topological_space Z] {proj : Z → B}
-  (h : is_trivial_fiber_bundle F proj) : is_open_map proj :=
+lemma is_homeomorphic_trivial_fiber_bundle.is_open_map_proj {Z : Type*} [topological_space Z]
+  {proj : Z → B} (h : is_homeomorphic_trivial_fiber_bundle F proj) :
+  is_open_map proj :=
 begin
   obtain ⟨e, rfl⟩ := h.proj_eq,
   exact is_open_map_fst.comp e.is_open_map,
 end
 
 /-- The projection from a trivial fiber bundle to its base is open. -/
-lemma is_trivial_fiber_bundle.quotient_map_proj [nonempty F] {Z : Type*} [topological_space Z]
-  {proj : Z → B} (h : is_trivial_fiber_bundle F proj) : quotient_map proj :=
+lemma is_homeomorphic_trivial_fiber_bundle.quotient_map_proj [nonempty F] {Z : Type*}
+  [topological_space Z] {proj : Z → B} (h : is_homeomorphic_trivial_fiber_bundle F proj) :
+  quotient_map proj :=
 h.is_open_map_proj.to_quotient_map h.continuous_proj h.surjective_proj
 
 variables (F)
 
 /-- The first projection in a product is a trivial fiber bundle. -/
-lemma is_trivial_fiber_bundle_fst :
-  is_trivial_fiber_bundle F (prod.fst : B × F → B) :=
+lemma is_homeomorphic_trivial_fiber_bundle_fst :
+  is_homeomorphic_trivial_fiber_bundle F (prod.fst : B × F → B) :=
 ⟨homeomorph.refl _, λ x, rfl⟩
 
 /-- The second projection in a product is a trivial fiber bundle. -/
-lemma is_trivial_fiber_bundle_snd :
-  is_trivial_fiber_bundle F (prod.snd : F × B → B) :=
+lemma is_homeomorphic_trivial_fiber_bundle_snd :
+  is_homeomorphic_trivial_fiber_bundle F (prod.snd : F × B → B) :=
 ⟨homeomorph.prod_comm _ _, λ x, rfl⟩
 
 /-- If `E` is a fiber bundle over a conditionally complete linear order,

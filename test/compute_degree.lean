@@ -95,7 +95,7 @@ example {R} [ring R] [nontrivial R] {a b c d e : R} :
   (X - monomial 11 1 : R[X]).nat_degree = 11 :=
 begin
   compute_degree,
-  norm_num,
+  exact neg_ne_zero.mpr one_ne_zero,
 end
 
 example (h : (5 : R) ≠ 0) :

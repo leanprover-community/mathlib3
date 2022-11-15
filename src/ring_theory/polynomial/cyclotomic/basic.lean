@@ -697,7 +697,7 @@ begin
     rw eq_comm at this,
     rw [this, nat.prod_proper_divisors_prime_pow hp], },
   induction n with n_n n_ih,
-  { haveI := fact.mk hp, simp [cyclotomic_eq_geom_sum p], },
+  { haveI := fact.mk hp, simp [cyclotomic_eq_geom_sum], },
   rw ((eq_cyclotomic_iff (pow_pos hp.pos (n_n.succ + 1)) _).mpr _).symm,
   rw [nat.prod_proper_divisors_prime_pow hp, finset.prod_range_succ, n_ih],
   rw this at n_ih,

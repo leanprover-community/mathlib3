@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2022 Devon Tuma. All rights reserved.
+Copyright (c) 2022 Benjamin Davidson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Devon Tuma, Heather Macbeth, Eric Rodriguez, Oliver Nash
+Authors: Benjamin Davidson, Devon Tuma, Eric Rodriguez, Oliver Nash
 -/
 
 import topology.algebra.order.basic

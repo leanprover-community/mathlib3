@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import logic.embedding.set
 import algebra.parity
 import data.array.lemmas
+import data.int.units
 import data.finset.fin
 import data.finset.option
 import data.finset.pi

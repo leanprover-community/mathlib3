@@ -34,10 +34,6 @@ variables {R : Type*}
 section semiring
 variables [semiring R] {f g : R[X]} {d e n : ℕ}
 
-lemma coeff_bit0 (P : R[X]) (n : ℕ) :
-  (bit0 P).coeff n = bit0 P.coeff n :=
-coeff_add _ _ _
-
 lemma coeff_bit1_zero (P : R[X]) :
   (bit1 P).coeff 0 = bit1 P.coeff 0 :=
 by simp only [bit1, bit0, coeff_add, coeff_one_zero, pi.add_apply, pi.one_apply]
@@ -308,7 +304,7 @@ focus1 $ do t ← target,
   if deg_bound < expected_deg
   then fail sformat!"the given polynomial has a term of expected degree\nat least '{expected_deg}'"
   else
-    repeat $ target >>= resolve_sum_step,
+    repeat $ target >>= instantiate_mvars >>= resolve_sum_step,
     (do gs ← get_goals >>= list.mmap infer_type,
       success_if_fail $ gs.mfirst $ unify t) <|> fail "Goal did not change",
     try $ any_goals' norm_assum
@@ -323,12 +319,12 @@ expression making up `f` and matches each step with what `get_lead_coeff` would 
 situation.  This means that all the side-goals that `resolve_coeff` leaves are always of the same
 shape `f'.coeff n' = get_lead_coeff c f'`.
 
-In some sense, this views `coeff _ <visible_top_degree>` and a "monad" converting between
+In some sense, this views `coeff _ <visible_top_degree>` as a "monad" converting between
 `R[X]` and `R`.  `resolve_coeff` performs the operations building `f` across the monad.
 -/
 meta def resolve_coeff : tactic unit := focus1 $ do
 t ← target >>= instantiate_mvars,
-`(coeff %%f %%n = _) ← whnf t reducible | fail!"{t} has the wrong form",
+`(coeff %%f %%n = _) ← pure t | fail!"{t} has the wrong form",
 match f with
 | `(@has_one.one %%RX %%_)            := refine ``(coeff_one_zero)
 | (app `(⇑C) _)                       := refine ``(coeff_C_zero)

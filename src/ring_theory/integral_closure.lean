@@ -7,6 +7,7 @@ import data.polynomial.expand
 import linear_algebra.finite_dimensional
 import linear_algebra.matrix.charpoly.linear_map
 import ring_theory.adjoin.fg
+import ring_theory.finite_type
 import ring_theory.polynomial.scale_roots
 import ring_theory.polynomial.tower
 import ring_theory.tensor_product

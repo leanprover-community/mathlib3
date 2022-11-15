@@ -478,6 +478,18 @@ begin
                  self_mem_mk' _ _, (vadd_vsub _ _).symm⟩ }
 end
 
+/-- A point lies in an affine subspace constructed from another point and a direction if and only
+if their difference is in that direction. -/
+lemma mem_mk'_iff_vsub_mem {p₁ p₂ : P} {direction : submodule k V} :
+  p₂ ∈ mk' p₁ direction ↔ p₂ -ᵥ p₁ ∈ direction :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw ←direction_mk' p₁ direction,
+    exact vsub_mem_direction h (self_mem_mk' _ _) },
+  { rw ← vsub_vadd p₂ p₁,
+    exact vadd_mem_mk' p₁ h }
+end
+
 /-- Constructing an affine subspace from a point in a subspace and
 that subspace's direction yields the original subspace. -/
 @[simp] lemma mk'_eq {s : affine_subspace k P} {p : P} (hp : p ∈ s) : mk' p s.direction = s :=

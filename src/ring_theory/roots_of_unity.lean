@@ -297,10 +297,8 @@ lemma iff_def (ζ : M) (k : ℕ) :
 lemma mk_of_lt (ζ : M) (hk : k ≠ 0) (h1 : ζ ^ k = 1) (h : ∀ l : ℕ, 0 < l →  l < k → ζ ^ l ≠ 1) :
   is_primitive_root ζ k :=
 begin
-  refine ⟨h1, _⟩,
-  intros l hl,
-  apply dvd_trans _ (k.gcd_dvd_right l),
-  suffices : k.gcd l = k, { rw this },
+  refine ⟨h1, λ l hl, _⟩,
+  suffices : k.gcd l = k, { exact this ▸ k.gcd_dvd_right l },
   rw eq_iff_le_not_lt,
   refine ⟨nat.le_of_dvd hk.bot_lt (k.gcd_dvd_left l), _⟩,
   intro h', apply h _ (nat.gcd_pos_of_pos_left _ hk.bot_lt) h',
@@ -827,12 +825,8 @@ end
 /-- The sets `primitive_roots k R` are pairwise disjoint. -/
 lemma disjoint {k l : ℕ} (h : k ≠ l) :
   disjoint (primitive_roots k R) (primitive_roots l R) :=
-begin
-  refine finset.disjoint_left.2 (λ z hk hl, _),
-  rcases is_primitive_root_of_mem_primitive_roots hk with ⟨hzk, Hzk⟩,
-  rcases is_primitive_root_of_mem_primitive_roots hl with ⟨hzl, Hzl⟩,
-  apply_rules [h, nat.dvd_antisymm, Hzk, Hzl, hzk, hzl]
-end
+finset.disjoint_left.2 $ λ z hk hl, h $ (is_primitive_root_of_mem_primitive_roots hk).unique $
+  is_primitive_root_of_mem_primitive_roots hl
 
 /-- `nth_roots n` as a `finset` is equal to the union of `primitive_roots i R` for `i ∣ n`
 if there is a primitive root of unity in `R`.

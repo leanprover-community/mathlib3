@@ -198,10 +198,10 @@ instance [h : quiver.has_involutive_reverse V] : quiver.has_involutive_reverse (
 end push
 
 /--
-A quiver with involutive reverses is connected iff there exists a path between any pair of
+A quiver with reverses is preconnected iff there exists a path between any pair of
 vertices.
 -/
 @[nolint unused_arguments]
-def is_connected (V) [quiver.{u+1} V] [has_involutive_reverse V] := ∀ (X Y : V), nonempty (path X Y)
+def is_preconnected (V) [quiver.{u+1} V] [has_reverse V] := ∀ (X Y : V), nonempty (path X Y)
 
 end quiver

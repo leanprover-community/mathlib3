@@ -5,7 +5,6 @@ Authors: Chris Hughes
 -/
 import algebra.algebra.subalgebra.basic
 import field_theory.finiteness
-import linear_algebra.finrank
 import linear_algebra.free_module.finite.rank
 import tactic.interval_cases
 

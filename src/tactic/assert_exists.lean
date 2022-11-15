@@ -62,9 +62,12 @@ do
   ff ← succeeds (get_decl decl) |
   fail format!"Declaration {decl} is not allowed to exist in this file.",
   let marker := (`assert_not_exists._checked).append decl,
-  tt ← succeeds (get_decl marker) |
-  add_decl
-    (declaration.defn marker [] `(unit) `(()) default tt),
+  -- FIXME turning off adding the `_checked` declaration for now,
+  -- as it prevents using `assert_not_exists` in two independent files
+  -- which are later jointly imported.
+  -- tt ← succeeds (get_decl marker) |
+  -- add_decl
+  --   (declaration.defn marker [] `(unit) `(()) default tt),
   pure ()
 
 /-- A linter for checking that the declarations marked `assert_not_exists` eventually exist. -/

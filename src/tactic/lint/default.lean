@@ -99,7 +99,6 @@ add_tactic_doc
 /-- The default linters used in mathlib CI. -/
 meta def mathlib_linters : list name := by do
 ls ← get_checks tt [] ff,
-let ls := ls.map (λ ⟨n, _⟩, `linter ++ n),
-  -- FIXME linter currently prohibits using `assert_not_exists` multiple times, so disabling for now
-  -- ++ [`assert_not_exists.linter, `assert_no_instance.linter],
+let ls := ls.map (λ ⟨n, _⟩, `linter ++ n) ++
+  [`assert_not_exists.linter, `assert_no_instance.linter],
 exact (reflect ls)

@@ -249,7 +249,7 @@ instance has_sub  : has_sub (modular_form Γ k) :=
 instance : add_comm_group (modular_form Γ k) :=
 fun_like.coe_injective.add_comm_group _ rfl (coe_add) (coe_neg) (coe_sub) (coe_nsmul) (coe_zsmul)
 
-lemma coe_zero : ((0 : (modular_form Γ k) ) : ℍ → ℂ) = (0 : ℍ → ℂ) := rfl
+lemma coe_zero : ⇑(0 : modular_form Γ k) = (0 : ℍ → ℂ) := rfl
 
 /--Additive coercion from `modular_form` to `ℍ → ℂ`. -/
 def coe_hom : (modular_form Γ k) →+ (ℍ → ℂ) :=
@@ -263,7 +263,7 @@ coe_hom_injective.module ℂ (coe_hom) (λ _ _, rfl)
 
 instance : inhabited (modular_form Γ k) := ⟨0⟩
 
-/--The modular form of weight `k_1+k_2` given by the product of two modular forms of weights
+/--The modular form of weight `k_1 + k_2` given by the product of two modular forms of weights
 `k_1` and `k_2`. -/
 def mul (k_1 k_2 : ℤ) (Γ : subgroup SL(2, ℤ)) (f : (modular_form Γ k_1))
   (g : (modular_form Γ k_2)) : (modular_form Γ (k_1 + k_2)) :=
@@ -291,7 +291,7 @@ instance : has_one (modular_form Γ 0) :=
 
 end modular_form
 
-namespace cusp_forms
+namespace cusp_form
 
 variables {F : Type*} {Γ : subgroup SL(2, ℤ)} {k : ℤ}
 
@@ -324,7 +324,7 @@ instance has_nsmul : has_smul ℕ (cusp_form Γ k) :=
       exact ((f.slash_action_eq') γ).symm},
     hol' := by {have :=  f.hol'.const_smul (c : ℂ),
       simp only [nsmul_eq_mul, cusp_form_to_fun_eq_coe] at *,
-      convert this, },
+      convert this},
     zero_at_infty' :=  λ A, begin
       have := slash_action.smul_action k A f (c : ℂ),
       rw ←slash_invariant_forms.nsmul_coe at this,
@@ -346,7 +346,7 @@ instance has_zsmul : has_smul ℤ (cusp_form Γ k) :=
       exact ((f.slash_action_eq') γ).symm},
     hol' := by {have :=  f.hol'.const_smul (c : ℂ),
       simp only [zsmul_eq_mul, cusp_form_to_fun_eq_coe] at *,
-      convert this, },
+      convert this},
     zero_at_infty' :=  λ A, begin
       have := slash_action.smul_action k A f (c : ℂ),
       rw ←slash_invariant_forms.zsmul_coe at this,
@@ -413,11 +413,11 @@ instance has_sub : has_sub (cusp_form Γ k) :=
 instance : add_comm_group (cusp_form Γ k) :=
 fun_like.coe_injective.add_comm_group _ rfl (coe_add) (coe_neg) (coe_sub) (coe_nsmul) (coe_zsmul)
 
-lemma coe_zero : ((0 : (cusp_form Γ k) ) : ℍ → ℂ) = (0 : ℍ → ℂ) := rfl
+lemma coe_zero : ⇑(0 : cusp_form Γ k) = (0 : ℍ → ℂ) := rfl
 
-/--Additive coercieon from `cusp_form` to `ℍ → ℂ`. -/
+/--Additive coercion from `cusp_form` to `ℍ → ℂ`. -/
 def coe_hom : (cusp_form Γ k) →+ (ℍ → ℂ) :=
-{ to_fun := λ f, f, map_zero' := cusp_forms.coe_zero, map_add' := λ _ _, rfl }
+{ to_fun := λ f, f, map_zero' := cusp_form.coe_zero, map_add' := λ _ _, rfl }
 
 lemma coe_hom_injective : function.injective (@coe_hom Γ k) :=
 fun_like.coe_injective
@@ -436,4 +436,4 @@ instance [cusp_form_class F Γ k] : modular_form_class F Γ k :=
   bdd_at_infty := λ _ _, filter.zero_at_filter_is_bounded_at_filter
     (cusp_form_class.zero_at_infty _ _)}
 
-end cusp_forms
+end cusp_form

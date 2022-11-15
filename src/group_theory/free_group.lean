@@ -15,17 +15,17 @@ functor from groups to types, see `algebra/category/Group/adjunctions`.
 
 ## Main definitions
 
-* `free_group`: the free group associated to a type `α` defined as the words over `a : α × bool`
-  modulo the relation `a * x * x⁻¹ * b = a * b`.
-* `free_group.mk`: the canonical quotient map `list (α × bool) → free_group α`.
-* `free_group.of`: the canonical injection `α → free_group α`.
-* `free_group.lift f`: the canonical group homomorphism `free_group α →* G`
+* `free_group`/`free_add_group`: the free group (resp. free additive group) associated to a type
+  `α` defined as the words over `a : α × bool` modulo the relation `a * x * x⁻¹ * b = a * b`.
+* `free_group.mk`/`free_add_group.mk`: the canonical quotient map `list (α × bool) → free_group α`.
+* `free_group.of`/`free_add_group.of`: the canonical injection `α → free_group α`.
+* `free_group.lift f`/`free_add_group.lift`: the canonical group homomorphism `free_group α →* G`
   given a group `G` and a function `f : α → G`.
 
 ## Main statements
 
-* `free_group.church_rosser`: The Church-Rosser theorem for word reduction
-  (also known as Newman's diamond lemma).
+* `free_group.church_rosser`/`free_add_group.church_rosser`: The Church-Rosser theorem for word
+  reduction (also known as Newman's diamond lemma).
 * `free_group.free_group_unit_equiv_int`: The free group over the one-point type
   is isomorphic to the integers.
 * The free group construction is an instance of a monad.
@@ -36,6 +36,10 @@ First we introduce the one step reduction relation `free_group.red.step`:
 `w * x * x⁻¹ * v   ~>   w * v`, its reflexive transitive closure `free_group.red.trans`
 and prove that its join is an equivalence relation. Then we introduce `free_group α` as a quotient
 over `free_group.red.step`.
+
+For the additive version we introduce the same relation under a different name so that we can
+distinguish the quotient types more easily.
+
 
 ## Tags
 
@@ -734,7 +738,7 @@ end sum
 
 /-- The bijection between the free group on the empty type, and a type with one element. -/
 @[to_additive
-"The bijection between the addititve free group on the empty type, and a type with one element."]
+"The bijection between the additive free group on the empty type, and a type with one element."]
 def free_group_empty_equiv_unit : free_group empty ≃ unit :=
 { to_fun    := λ _, (),
   inv_fun   := λ _, 1,

@@ -157,10 +157,10 @@ begin
 end
 
 lemma cont_diff_within_at_prop_id (x : H) :
-  cont_diff_within_at_prop I I ∞ id univ x :=
+  cont_diff_within_at_prop I I n id univ x :=
 begin
   simp [cont_diff_within_at_prop],
-  have : cont_diff_within_at 𝕜 ∞ id (range I) (I x) :=
+  have : cont_diff_within_at 𝕜 n id (range I) (I x) :=
     cont_diff_id.cont_diff_at.cont_diff_within_at,
   apply this.congr (λ y hy, _),
   { simp only with mfld_simps },
@@ -1056,11 +1056,10 @@ cont_mdiff_on_symm_of_mem_maximal_atlas
 omit Is
 
 /-- An element of `cont_diff_groupoid ⊤ I` is smooth for any `n`. -/
-lemma cont_mdiff_on_of_mem_cont_diff_groupoid
+lemma cont_mdiff_on_of_mem_cont_diff_groupoid {e' : local_homeomorph H H}
   (h : e' ∈ cont_diff_groupoid ⊤ I) : cont_mdiff_on I I n e' e'.source :=
-cont_mdiff_on.of_le
-  ((cont_diff_within_at_local_invariant_prop I I ∞).lift_prop_on_of_mem_groupoid
-    (cont_diff_within_at_prop_id I) h) le_top
+(cont_diff_within_at_local_invariant_prop I I n).lift_prop_on_of_mem_groupoid
+  (cont_diff_within_at_prop_id I) h
 
 end atlas
 

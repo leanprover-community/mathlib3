@@ -6,6 +6,7 @@ Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 import data.rat.defs
 import algebra.field.defs
 import algebra.ring.basic
+import algebra.group_with_zero.units.lemmas
 
 /-!
 # Lemmas about division (semi)rings and (semi)fields

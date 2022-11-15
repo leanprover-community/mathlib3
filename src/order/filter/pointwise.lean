@@ -651,7 +651,7 @@ instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ] [i
   is_scalar_tower (filter α) (filter β) (filter γ) :=
 ⟨λ f g h, map₂_assoc smul_assoc⟩
 
-instance is_central_scalar [has_smul α β] [has_smul αᵐᵒᵖ β] [is_central_scalar α β] :
+@[to_additive] instance is_central_scalar [has_smul α β] [has_smul αᵐᵒᵖ β] [is_central_scalar α β] :
   is_central_scalar α (filter β) :=
 ⟨λ a f, congr_arg (λ m, map m f) $ by exact funext (λ _, op_smul_eq_smul _ _)⟩
 

@@ -18,7 +18,8 @@ open_locale topological_space
 variables {α : Type*}
 
 /-- A `normed_ordered_add_group` is an additive group that is both a `normed_add_comm_group` and an
-`ordered_add_comm_group`. This class is necessary to avoid diamonds. -/
+`ordered_add_comm_group`. This class is necessary to avoid diamonds caused by both classes
+carrying their own group structure. -/
 class normed_ordered_add_group (α : Type*)
   extends ordered_add_comm_group α, has_norm α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = ∥x - y∥ . obviously)

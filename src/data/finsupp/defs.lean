@@ -174,7 +174,7 @@ lemma support_subset_iff {s : set α} {f : α →₀ M} :
 by simp only [set.subset_def, mem_coe, mem_support_iff];
    exact forall_congr (assume a, not_imp_comm)
 
-/-- Given `fintype α`, `equiv_fun_on_finite` is the `equiv` between `α →₀ β` and `α → β`.
+/-- Given `finite α`, `equiv_fun_on_finite` is the `equiv` between `α →₀ β` and `α → β`.
   (All functions on a finite type are finitely supported.) -/
 @[simps] def equiv_fun_on_finite [finite α] : (α →₀ M) ≃ (α → M) :=
 { to_fun := coe_fn,

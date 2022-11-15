@@ -77,26 +77,26 @@ Let `Z : fiber_bundle_core ι B F`. Then we define
 
 ### Data vs mixins
 
-For both fiber and vector bundles, one faces a choice: should the definition state the *existence* of
-local trivializations (a propositional typeclass), or specify a fixed atlas of trivializations (a
+For both fiber and vector bundles, one faces a choice: should the definition state the *existence*
+of local trivializations (a propositional typeclass), or specify a fixed atlas of trivializations (a
 typeclass containing data)?
 
-In their initial mathlib implementations, both fiber and vector bundles were defined propositionally.
-For vector bundles, this turns out to be mathematically wrong: in infinite dimension, the transition
-function between two trivializations is not automatically continuous as a map from the base `B` to
-the endomorphisms `F →L[R] F` of the fibre (considered with the operator-norm topology), and so the
-definition needs to be modified by restricting consideration to a family of trivializations
-(constituting the data) which are all mutually-compatible in this sense.  The PRs #13052 and #13175
-implemented this change.
+In their initial mathlib implementations, both fiber and vector bundles were defined
+propositionally. For vector bundles, this turns out to be mathematically wrong: in infinite
+dimension, the transition function between two trivializations is not automatically continuous as a
+map from the base `B` to the endomorphisms `F →L[R] F` of the fibre (considered with the
+operator-norm topology), and so the definition needs to be modified by restricting consideration to
+a family of trivializations (constituting the data) which are all mutually-compatible in this sense.
+The PRs #13052 and #13175 implemented this change.
 
 There is still the choice about whether to hold this data at the level of fiber bundles or of vector
 bundles. As of PR #17505, the data is all held in `fiber_bundle`, with `vector_bundle` a
 (propositional) mixin stating fibrewise-linearity.
 
-This allows bundles to carry instances of typeclasses in which the scalar field, `R`, does not appear
-as a parameter. Notably, we would like a vector bundle over `R` with fibre `F` over base `B` to be a
-`charted_space (B × F)`, with the trivializations providing the charts. This would be a dangerous
-instance for typeclass inference, because `R` does not appear as a parameter in
+This allows bundles to carry instances of typeclasses in which the scalar field, `R`, does not
+appear as a parameter. Notably, we would like a vector bundle over `R` with fibre `F` over base `B`
+to be a `charted_space (B × F)`, with the trivializations providing the charts. This would be a
+dangerous instance for typeclass inference, because `R` does not appear as a parameter in
 `charted_space (B × F)`. But if the data of the trivializations is held in `fiber_bundle`, then a
 fibre bundle with fibre `F` over base `B` can be a `charted_space (B × F)`, and this is safe for
 typeclass inference.

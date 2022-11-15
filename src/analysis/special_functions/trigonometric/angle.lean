@@ -562,9 +562,9 @@ begin
   induction ψ using real.angle.induction_on,
   rw [←smul_add, ←coe_add, ←coe_nsmul, two_nsmul, ←two_mul, angle_eq_iff_two_pi_dvd_sub] at h,
   rcases h with ⟨k, h⟩,
-  rw [sub_eq_iff_eq_add, ←mul_inv_cancel_left₀ (@two_ne_zero ℝ _ _) π, mul_assoc, ←mul_add,
-      mul_right_inj' (@two_ne_zero ℝ _ _), ←eq_sub_iff_add_eq',
-      mul_inv_cancel_left₀ (@two_ne_zero ℝ _ _), inv_mul_eq_div, mul_comm] at h,
+  rw [sub_eq_iff_eq_add, ←mul_inv_cancel_left₀ two_ne_zero π, mul_assoc, ←mul_add,
+      mul_right_inj' (two_ne_zero' ℝ), ←eq_sub_iff_add_eq',
+      mul_inv_cancel_left₀ two_ne_zero π, inv_mul_eq_div, mul_comm] at h,
   rw [tan_coe, tan_coe, ←tan_pi_div_two_sub, h, add_sub_assoc, add_comm],
   exact real.tan_periodic.int_mul _ _
 end

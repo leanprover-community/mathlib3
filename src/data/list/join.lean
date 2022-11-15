@@ -148,15 +148,20 @@ begin
   { simp },
 end
 
+lemma join_self_append (L : list (list α)) (x : list α) :
+  (list.map (λ l, l ++ x) L).join = x.intercalate L ++ x :=
+sorry
+
+lemma join_append_self (L : list (list α)) (x : list α) :
+  (list.map (λ l, x ++ l) L).join = x ++ x.intercalate L :=
+sorry
+
 /-- We can rebracket `x ++ (l₁ ++ x) ++ (l₂ ++ x) ++ ... ++ (lₙ ++ x)` to
 `(x ++ l₁) ++ (x ++ l₂) ++ ... ++ (x ++ lₙ) ++ x` where `L = [l₁, l₂, ..., lₙ]`. -/
 lemma append_join_append (L : list (list α)) (x : list α) :
   x ++ (list.map (λ l, l ++ x) L).join = (list.map (λ l, x ++ l) L).join ++ x :=
 begin
-  induction L,
-  { rw [map_nil, join, append_nil, map_nil, join, nil_append] },
-  { rw [map_cons, join, map_cons, join, append_assoc, L_ih, append_assoc, append_assoc] },
-
+  rw [join_self_append, join_append_self, append_assoc],
 end
 
 /-- Reversing a join is the same as reversing the order of parts and reversing all parts. -/

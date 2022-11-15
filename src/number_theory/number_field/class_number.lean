@@ -25,13 +25,13 @@ variables (K : Type*) [field K] [number_field K]
 
 namespace ring_of_integers
 
-noncomputable instance : fintype (class_group (ring_of_integers K) K) :=
-class_group.fintype_of_admissible_of_finite ℚ _ absolute_value.abs_is_admissible
+noncomputable instance : fintype (class_group (ring_of_integers K)) :=
+class_group.fintype_of_admissible_of_finite ℚ K absolute_value.abs_is_admissible
 
 end ring_of_integers
 
 /-- The class number of a number field is the (finite) cardinality of the class group. -/
-noncomputable def class_number : ℕ := fintype.card (class_group (ring_of_integers K) K)
+noncomputable def class_number : ℕ := fintype.card (class_group (ring_of_integers K))
 
 variables {K}
 

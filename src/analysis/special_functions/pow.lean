@@ -1442,6 +1442,16 @@ begin
   rw [←nnreal.coe_rpow, real.to_nnreal_coe],
 end
 
+lemma eventually_pow_one_div_le (x : ℝ≥0) {y : ℝ≥0} (hy : 1 < y) :
+  ∀ᶠ (n : ℕ) in at_top, x ^ (1 / n : ℝ) ≤ y :=
+begin
+  obtain ⟨m, hm⟩ := add_one_pow_unbounded_of_pos x (tsub_pos_of_lt hy),
+  rw [tsub_add_cancel_of_le hy.le] at hm,
+  refine eventually_at_top.2 ⟨m + 1, λ n hn, _⟩,
+  simpa only [nnreal.rpow_one_div_le_iff (nat.cast_pos.2 $ m.succ_pos.trans_le hn),
+    nnreal.rpow_nat_cast] using hm.le.trans (pow_le_pow hy.le (m.le_succ.trans hn)),
+end
+
 end nnreal
 
 namespace real
@@ -1596,7 +1606,7 @@ begin
 end
 
 @[simp] lemma one_rpow (x : ℝ) : (1 : ℝ≥0∞) ^ x = 1 :=
-by { rw [← coe_one, coe_rpow_of_ne_zero one_ne_zero], simp }
+by { rw [← @coe_one ℝ≥0, coe_rpow_of_ne_zero one_ne_zero], simp }
 
 @[simp] lemma rpow_eq_zero_iff {x : ℝ≥0∞} {y : ℝ} :
   x ^ y = 0 ↔ (x = 0 ∧ 0 < y) ∨ (x = ⊤ ∧ y < 0) :=
@@ -1656,7 +1666,7 @@ begin
     { rcases lt_trichotomy y 0 with H|H|H;
       simp [h, zero_rpow_of_pos, zero_rpow_of_neg, H, neg_pos.mpr] },
     { have A : x ^ y ≠ 0, by simp [h],
-      simp [coe_rpow_of_ne_zero h, ← coe_inv A, nnreal.rpow_neg] } }
+      simp [coe_rpow_of_ne_zero h, ← ennreal.coe_inv A, nnreal.rpow_neg] } }
 end
 
 lemma rpow_sub {x : ℝ≥0∞} (y z : ℝ) (hx : x ≠ 0) (h'x : x ≠ ⊤) : x ^ (y - z) = x ^ y / x ^ z :=
@@ -2001,6 +2011,18 @@ begin
   change ↑c < ↑a at ha,
   rw coe_rpow_of_nonneg _ hy.le,
   exact_mod_cast hc a (by exact_mod_cast ha),
+end
+
+lemma eventually_pow_one_div_le {x : ℝ≥0∞} (hx : x ≠ ∞) {y : ℝ≥0∞} (hy : 1 < y) :
+  ∀ᶠ (n : ℕ) in at_top, x ^ (1 / n : ℝ) ≤ y :=
+begin
+  lift x to ℝ≥0 using hx,
+  by_cases y = ∞,
+  { exact eventually_of_forall (λ n, h.symm ▸ le_top) },
+  { lift y to ℝ≥0 using h,
+    have := nnreal.eventually_pow_one_div_le x (by exact_mod_cast hy : 1 < y),
+    refine this.congr (eventually_of_forall $ λ n, _),
+    rw [coe_rpow_of_nonneg x (by positivity : 0 ≤ (1 / n : ℝ)), coe_le_coe] },
 end
 
 private lemma continuous_at_rpow_const_of_pos {x : ℝ≥0∞} {y : ℝ} (h : 0 < y) :

@@ -305,7 +305,7 @@ lemma is_integral_norm [algebra S L] [algebra S K] [is_scalar_tower S K L]
   [is_separable K L] [finite_dimensional K L] {x : L} (hx : _root_.is_integral S x) :
   _root_.is_integral S (norm K x) :=
 begin
-  have hx' : _root_.is_integral K x := is_integral_of_is_scalar_tower _ hx,
+  have hx' : _root_.is_integral K x := is_integral_of_is_scalar_tower hx,
   rw [← is_integral_algebra_map_iff (algebra_map K (algebraic_closure L)).injective,
       norm_eq_prod_roots],
   { refine (is_integral.multiset_prod (λ y hy, _)).pow _,

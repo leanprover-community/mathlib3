@@ -216,6 +216,27 @@ begin
   exact monotone.le_iterate_of_le succ_mono le_succ k x,
 end
 
+lemma is_max_iterate_succ_of_eq_of_lt {n m : ℕ}
+  (h_eq : (succ^[n] a) = (succ^[m] a)) (h_lt : n < m) :
+  is_max (succ^[n] a) :=
+begin
+  refine max_of_succ_le (le_trans _ h_eq.symm.le),
+  have : succ (succ^[n] a) = (succ^[n + 1] a), by rw function.iterate_succ',
+  rw this,
+  have h_le : n + 1 ≤ m := nat.succ_le_of_lt h_lt,
+  exact monotone.monotone_iterate_of_le_map succ_mono (le_succ a) h_le,
+end
+
+lemma is_max_iterate_succ_of_eq_of_ne {n m : ℕ}
+  (h_eq : (succ^[n] a) = (succ^[m] a)) (h_ne : n ≠ m) :
+  is_max (succ^[n] a) :=
+begin
+  cases le_total n m,
+  { exact is_max_iterate_succ_of_eq_of_lt h_eq (lt_of_le_of_ne h h_ne), },
+  { rw h_eq,
+    exact is_max_iterate_succ_of_eq_of_lt h_eq.symm (lt_of_le_of_ne h h_ne.symm), },
+end
+
 lemma Iio_succ_of_not_is_max (ha : ¬ is_max a) : Iio (succ a) = Iic a :=
 set.ext $ λ x, lt_succ_iff_of_not_is_max ha
 
@@ -447,6 +468,16 @@ begin
   exact monotone.iterate_le_of_le pred_mono pred_le k x,
 end
 
+lemma is_min_iterate_pred_of_eq_of_lt {n m : ℕ}
+  (h_eq : (pred^[n] a) = (pred^[m] a)) (h_lt : n < m) :
+  is_min (pred^[n] a) :=
+@is_max_iterate_succ_of_eq_of_lt αᵒᵈ _ _ _ _ _ h_eq h_lt
+
+lemma is_min_iterate_pred_of_eq_of_ne {n m : ℕ}
+  (h_eq : (pred^[n] a) = (pred^[m] a)) (h_ne : n ≠ m) :
+  is_min (pred^[n] a) :=
+@is_max_iterate_succ_of_eq_of_ne αᵒᵈ _ _ _ _ _ h_eq h_ne
+
 lemma Ioi_pred_of_not_is_min (ha : ¬ is_min a) : Ioi (pred a) = Ici a :=
 set.ext $ λ x, pred_lt_iff_of_not_is_min ha
 
@@ -637,6 +668,32 @@ variables [partial_order α] [succ_order α] [pred_order α] {a b : α}
 
 @[simp] lemma succ_pred [no_min_order α] (a : α) : succ (pred a) = a := (pred_covby _).succ_eq
 @[simp] lemma pred_succ [no_max_order α] (a : α) : pred (succ a) = a := (covby_succ _).pred_eq
+
+lemma pred_succ_iterate_of_not_is_max (i : α) (n : ℕ) (hin : ¬ is_max (succ^[n-1] i)) :
+  pred^[n] (succ^[n] i) = i :=
+begin
+  induction n with n hn,
+  { simp only [function.iterate_zero, id.def], },
+  rw [nat.succ_sub_succ_eq_sub, nat.sub_zero] at hin,
+  have h_not_max : ¬ is_max (succ^[n - 1] i),
+  { cases n,
+    { simpa using hin, },
+    rw [nat.succ_sub_succ_eq_sub, nat.sub_zero] at hn ⊢,
+    have h_sub_le : (succ^[n] i) ≤ (succ^[n.succ] i),
+    { rw function.iterate_succ',
+      exact le_succ _, },
+    refine λ h_max, hin (λ j hj, _),
+    have hj_le : j ≤ (succ^[n] i) := h_max (h_sub_le.trans hj),
+    exact hj_le.trans h_sub_le, },
+  rw [function.iterate_succ, function.iterate_succ'],
+  simp only [function.comp_app],
+  rw pred_succ_of_not_is_max hin,
+  exact hn h_not_max,
+end
+
+lemma succ_pred_iterate_of_not_is_min (i : α) (n : ℕ) (hin : ¬ is_min (pred^[n-1] i)) :
+  succ^[n] (pred^[n] i) = i :=
+@pred_succ_iterate_of_not_is_max αᵒᵈ _ _ _ i n hin
 
 end succ_pred_order
 

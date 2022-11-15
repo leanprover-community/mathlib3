@@ -5,7 +5,7 @@ Authors: Markus Himmel, Johan Commelin, Scott Morrison
 -/
 
 import category_theory.limits.constructions.pullbacks
-import category_theory.limits.shapes.biproducts
+import category_theory.preadditive.biproducts
 import category_theory.limits.shapes.images
 import category_theory.limits.constructions.limits_of_products_and_equalizers
 import category_theory.limits.constructions.epi_mono
@@ -157,7 +157,7 @@ def image_factorisation {X Y : C} (f : X ⟶ Y) [is_iso (abelian.coimage_image_c
       simp only [image_mono_factorisation_m, is_iso.inv_comp_eq, category.assoc,
         abelian.coimage_image_comparison],
       ext,
-      rw [limits.coequalizer.π_desc_assoc, limits.coequalizer.π_desc_assoc, F.fac, kernel.lift_ι]
+      simp only [cokernel.π_desc_assoc, mono_factorisation.fac, image.fac],
     end } }
 
 instance [has_zero_object C] {X Y : C} (f : X ⟶ Y) [mono f]

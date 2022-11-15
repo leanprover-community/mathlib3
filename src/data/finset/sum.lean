@@ -34,6 +34,14 @@ val_inj.1 $ multiset.disj_sum_zero _
 
 @[simp] lemma card_disj_sum : (s.disj_sum t).card = s.card + t.card := multiset.card_disj_sum _ _
 
+lemma disjoint_map_inl_map_inr : disjoint (s.map embedding.inl) (t.map embedding.inr) :=
+by { simp_rw [disjoint_left, mem_map], rintro x ⟨a, _, rfl⟩ ⟨b, _, ⟨⟩⟩ }
+
+@[simp]
+lemma map_inl_disj_union_map_inr :
+  (s.map embedding.inl).disj_union (t.map embedding.inr) (disjoint_map_inl_map_inr _ _) =
+    s.disj_sum t := rfl
+
 variables {s t} {s₁ s₂ : finset α} {t₁ t₂ : finset β} {a : α} {b : β} {x : α ⊕ β}
 
 lemma mem_disj_sum : x ∈ s.disj_sum t ↔ (∃ a, a ∈ s ∧ inl a = x) ∨ ∃ b, b ∈ t ∧ inr b = x :=

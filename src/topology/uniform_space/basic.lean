@@ -709,6 +709,32 @@ begin
                 ... ⊆ U                          : hI z (htK z hzt),
 end
 
+lemma disjoint.exists_uniform_thickening {A B : set α}
+  (hA : is_compact A) (hB : is_closed B) (h : disjoint A B) :
+  ∃ V ∈ 𝓤 α, disjoint (⋃ x ∈ A, ball x V) (⋃ x ∈ B, ball x V) :=
+begin
+  have : Bᶜ ∈ 𝓝ˢ A := hB.is_open_compl.mem_nhds_set.mpr h.le_compl_right,
+  rw (hA.nhds_set_basis_uniformity (filter.basis_sets _)).mem_iff at this,
+  rcases this with ⟨U, hU, hUAB⟩,
+  rcases comp_symm_mem_uniformity_sets hU with ⟨V, hV, hVsymm, hVU⟩,
+  refine ⟨V, hV, set.disjoint_left.mpr $ λ x, _⟩,
+  simp only [mem_Union₂],
+  rintro ⟨a, ha, hxa⟩ ⟨b, hb, hxb⟩,
+  rw mem_ball_symmetry hVsymm at hxa hxb,
+  exact hUAB (mem_Union₂_of_mem ha $ hVU $ mem_comp_of_mem_ball hVsymm hxa hxb) hb
+end
+
+lemma disjoint.exists_uniform_thickening_of_basis {p : ι → Prop} {s : ι → set (α × α)}
+  (hU : (𝓤 α).has_basis p s) {A B : set α}
+  (hA : is_compact A) (hB : is_closed B) (h : disjoint A B) :
+  ∃ i, p i ∧ disjoint (⋃ x ∈ A, ball x (s i)) (⋃ x ∈ B, ball x (s i)) :=
+begin
+  rcases h.exists_uniform_thickening hA hB with ⟨V, hV, hVAB⟩,
+  rcases hU.mem_iff.1 hV with ⟨i, hi, hiV⟩,
+  exact ⟨i, hi, hVAB.mono
+    (Union₂_mono $ λ a _, ball_mono hiV a) (Union₂_mono $ λ b _, ball_mono hiV b)⟩,
+end
+
 lemma tendsto_right_nhds_uniformity {a : α} : tendsto (λa', (a', a)) (𝓝 a) (𝓤 α) :=
 assume s, mem_nhds_right a
 
@@ -1217,6 +1243,10 @@ end
 lemma to_topological_space_inf {u v : uniform_space α} :
   (u ⊓ v).to_topological_space = u.to_topological_space ⊓ v.to_topological_space :=
 rfl
+
+/-- Uniform space structure on `ulift α`. -/
+instance ulift.uniform_space [uniform_space α] : uniform_space (ulift α) :=
+uniform_space.comap ulift.down ‹_›
 
 section uniform_continuous_infi
 

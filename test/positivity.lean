@@ -14,10 +14,11 @@ import tactic.positivity
 This tactic proves goals of the form `0 ≤ a` and `0 < a`.
 -/
 
+open function
 open_locale ennreal nat nnrat nnreal
 
 universe u
-variables {α β : Type*}
+variables {ι α β : Type*}
 
 /- ## Numeric goals -/
 
@@ -72,6 +73,11 @@ example {a b : ℤ} (h : 0 ≤ a + b) : 0 ≤ a + b := by positivity
 example {a : ℤ} (hlt : 0 ≤ a) (hne : a ≠ 0) : 0 < a := by positivity
 
 /- ## Tests of the @[positivity] plugin tactics (addition, multiplication, division) -/
+
+example [nonempty ι] [has_zero α] {a : α} (ha : a ≠ 0) : const ι a ≠ 0 := by positivity
+example [has_zero α] [preorder α] {a : α} (ha : 0 < a) : 0 ≤ const ι a := by positivity
+example [has_zero α] [preorder α] {a : α} (ha : 0 ≤ a) : 0 ≤ const ι a := by positivity
+example [nonempty ι] [has_zero α] [preorder α] {a : α} (ha : 0 < a) : 0 < const ι a := by positivity
 
 example {a b : ℚ} (ha : 0 < a) (hb : 0 < b) : 0 < min a b := by positivity
 example {a b : ℚ} (ha : 0 < a) (hb : 0 ≤ b) : 0 ≤ min a b := by positivity
@@ -136,7 +142,9 @@ example {a : ℤ} (ha : 0 < a) : 0 < a / a := by positivity
 example [ordered_semiring α] [nontrivial α] (a : α) : 0 < a ^ 0 := by positivity
 example [linear_ordered_ring α] (a : α) (n : ℕ) : 0 ≤ a ^ bit0 n := by positivity
 example [ordered_semiring α] {a : α} {n : ℕ} (ha : 0 ≤ a) : 0 ≤ a ^ n := by positivity
-example [ordered_semiring α] {a : α} {n : ℕ} (ha : 0 < a) : 0 < a ^ n := by positivity
+example [strict_ordered_semiring α] {a : α} {n : ℕ} (ha : 0 < a) : 0 < a ^ n := by positivity
+example [canonically_ordered_comm_semiring α] {a : α} (ha : 0 < a) (n : ℕ) : 0 < a ^ n :=
+by positivity
 
 example [linear_ordered_semifield α] (a : α) : 0 < a ^ (0 : ℤ) := by positivity
 example [linear_ordered_field α] (a : α) (n : ℤ) : 0 ≤ a ^ bit0 n := by positivity
@@ -215,7 +223,8 @@ example {r : ℝ} : 0 < real.exp r := by positivity
 
 example {V : Type*} [normed_add_comm_group V] (x : V) : 0 ≤ ∥x∥ := by positivity
 
-example {X : Type*} [metric_space X] (x y : X) : 0 ≤ dist x y := by positivity
+example [metric_space α] (x y : α) : 0 ≤ dist x y := by positivity
+example [metric_space α] {s : set α} : 0 ≤ metric.diam s := by positivity
 
 example {E : Type*} [add_group E] {p : add_group_seminorm E} {x : E} : 0 ≤ p x := by positivity
 example {E : Type*} [group E] {p : group_seminorm E} {x : E} : 0 ≤ p x := by positivity
@@ -235,7 +244,9 @@ example {a : ℝ≥0∞} : 0 ≤ a := by positivity
 /- ### Coercions -/
 
 example {a : ℕ} : (0 : ℤ) ≤ a := by positivity
+example {a : ℕ} : (0 : ℚ) ≤ a := by positivity
 example {a : ℕ} (ha : 0 < a) : (0 : ℤ) < a := by positivity
+example {a : ℕ} (ha : 0 < a) : (0 : ℚ) < a := by positivity
 example {a : ℤ} (ha : a ≠ 0) : (a : ℚ) ≠ 0 := by positivity
 example {a : ℤ} (ha : 0 ≤ a) : (0 : ℚ) ≤ a := by positivity
 example {a : ℤ} (ha : 0 < a) : (0 : ℚ) < a := by positivity

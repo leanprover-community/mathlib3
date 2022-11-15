@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Anatole Dedecker
 -/
 import analysis.locally_convex.balanced_core_hull
+import topology.algebra.module.determinant
 
 /-!
 # Finite dimensional topological vector spaces over complete fields
@@ -197,6 +198,19 @@ lemma linear_map.continuous_iff_is_closed_ker (l : E →ₗ[𝕜] 𝕜) :
   continuous l ↔ is_closed (l.ker : set E) :=
 ⟨λ h, is_closed_singleton.preimage h, l.continuous_of_is_closed_ker⟩
 
+/-- Over a nontrivially normed field, any linear form which is nonzero on a nonempty open set is
+    automatically continuous. -/
+lemma linear_map.continuous_of_nonzero_on_open (l : E →ₗ[𝕜] 𝕜) (s : set E) (hs₁ : is_open s)
+  (hs₂ : s.nonempty) (hs₃ : ∀ x ∈ s, l x ≠ 0) : continuous l :=
+begin
+  refine l.continuous_of_is_closed_ker (l.is_closed_or_dense_ker.resolve_right $ λ hl, _),
+  rcases hs₂ with ⟨x, hx⟩,
+  have : x ∈ interior (l.ker : set E)ᶜ,
+  { rw mem_interior_iff_mem_nhds,
+    exact mem_of_superset (hs₁.mem_nhds hx) hs₃ },
+  rwa hl.interior_compl at this
+end
+
 variables [complete_space 𝕜]
 
 /-- This version imposes `ι` and `E` to live in the same universe, so you should instead use
@@ -320,6 +334,18 @@ rfl
 @[simp] lemma range_to_continuous_linear_map (f : E →ₗ[𝕜] F') :
   range f.to_continuous_linear_map = range f :=
 rfl
+
+/-- A surjective linear map `f` with finite dimensional codomain is an open map. -/
+lemma is_open_map_of_finite_dimensional (f : F →ₗ[𝕜] E) (hf : function.surjective f) :
+  is_open_map f :=
+begin
+  rcases f.exists_right_inverse_of_surjective (linear_map.range_eq_top.2 hf) with ⟨g, hg⟩,
+  refine is_open_map.of_sections (λ x, ⟨λ y, g (y - f x) + x, _, _, λ y, _⟩),
+  { exact ((g.continuous_of_finite_dimensional.comp $ continuous_id.sub continuous_const).add
+      continuous_const).continuous_at },
+  { rw [sub_self, map_zero, zero_add] },
+  { simp only [map_sub, map_add, ← comp_apply f g, hg, id_apply, sub_add_cancel] }
+end
 
 end linear_map
 

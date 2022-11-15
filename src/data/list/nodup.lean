@@ -18,7 +18,7 @@ universes u v
 
 open nat function
 
-variables {α : Type u} {β : Type v} {l l₁ l₂ : list α} {a b : α}
+variables {α : Type u} {β : Type v} {l l₁ l₂ : list α} {r : α → α → Prop} {a b : α}
 
 namespace list
 
@@ -351,6 +351,18 @@ end
 lemma nodup.pairwise_of_set_pairwise {l : list α} {r : α → α → Prop}
   (hl : l.nodup) (h : {x | x ∈ l}.pairwise r) : l.pairwise r :=
 hl.pairwise_of_forall_ne h
+
+@[simp] lemma nodup.pairwise_coe [is_symm α r] (hl : l.nodup) :
+  {a | a ∈ l}.pairwise r ↔ l.pairwise r :=
+begin
+  induction l with a l ih,
+  { simp },
+  rw list.nodup_cons at hl,
+  have : ∀ b ∈ l, ¬a = b → r a b ↔ r a b :=
+    λ b hb, imp_iff_right (ne_of_mem_of_not_mem hb hl.1).symm,
+  simp [set.set_of_or, set.pairwise_insert_of_symmetric (@symm_of _ r _), ih hl.2, and_comm,
+    forall₂_congr this],
+end
 
 end list
 

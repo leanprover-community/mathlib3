@@ -509,8 +509,7 @@ end
 
 /-- The product of a list of positive natural numbers is positive,
 and likewise for any nontrivial ordered semiring. -/
-lemma prod_pos [ordered_semiring R] [nontrivial R] (l : list R) (h : ∀ a ∈ l, (0 : R) < a) :
-  0 < l.prod :=
+lemma prod_pos [strict_ordered_semiring R] (l : list R) (h : ∀ a ∈ l, (0 : R) < a) : 0 < l.prod :=
 begin
   induction l with a l ih,
   { simp },

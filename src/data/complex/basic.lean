@@ -169,6 +169,8 @@ by { ext; simp [equiv_real_prod] }
 diamond from the other actions they inherit through the `ℝ`-action on `ℂ` and action transitivity
 defined in `data.complex.module.lean`. -/
 
+instance : nontrivial ℂ := pullback_nonzero re rfl rfl
+
 instance : add_comm_group ℂ :=
 by refine_struct
   { zero := (0 : ℂ),
@@ -378,10 +380,9 @@ by rw [inv_def, ← mul_assoc, mul_conj, ← of_real_mul,
 
 noncomputable instance : field ℂ :=
 { inv := has_inv.inv,
-  exists_pair_ne := ⟨0, 1, mt (congr_arg re) zero_ne_one⟩,
   mul_inv_cancel := @complex.mul_inv_cancel,
   inv_zero := complex.inv_zero,
-  ..complex.comm_ring }
+  ..complex.comm_ring, ..complex.nontrivial }
 
 @[simp] lemma I_zpow_bit0 (n : ℤ) : I ^ (bit0 n) = (-1) ^ n :=
 by rw [zpow_bit0', I_mul_I]
@@ -644,18 +645,20 @@ by rw [lt_def, not_and_distrib, not_lt]
 lemma not_le_zero_iff {z : ℂ} : ¬z ≤ 0 ↔ 0 < z.re ∨ z.im ≠ 0 := not_le_iff
 lemma not_lt_zero_iff {z : ℂ} : ¬z < 0 ↔ 0 ≤ z.re ∨ z.im ≠ 0 := not_lt_iff
 
+lemma eq_re_of_real_le {r : ℝ} {z : ℂ} (hz : (r : ℂ) ≤ z) : z = z.re :=
+by { ext, refl, simp only [←(complex.le_def.1 hz).2, complex.zero_im, complex.of_real_im] }
+
 /--
-With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is an ordered ring.
+With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is a strictly ordered ring.
 -/
-protected def ordered_comm_ring : ordered_comm_ring ℂ :=
+protected def strict_ordered_comm_ring : strict_ordered_comm_ring ℂ :=
 { zero_le_one := ⟨zero_le_one, rfl⟩,
   add_le_add_left := λ w z h y, ⟨add_le_add_left h.1 _, congr_arg2 (+) rfl h.2⟩,
   mul_pos := λ z w hz hw,
     by simp [lt_def, mul_re, mul_im, ← hz.2, ← hw.2, mul_pos hz.1 hw.1],
-  .. complex.partial_order,
-  .. complex.comm_ring }
+  ..complex.partial_order, ..complex.comm_ring, ..complex.nontrivial }
 
-localized "attribute [instance] complex.ordered_comm_ring" in complex_order
+localized "attribute [instance] complex.strict_ordered_comm_ring" in complex_order
 
 /--
 With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is a star ordered ring.
@@ -673,7 +676,7 @@ protected def star_ordered_ring : star_ordered_ring ℂ :=
                    mul_im, mul_zero, neg_zero] } },
     { obtain ⟨s, rfl⟩ := h,
       simp only [←norm_sq_eq_conj_mul_self, norm_sq_nonneg, zero_le_real, star_def] } },
-  ..complex.ordered_comm_ring }
+  ..complex.strict_ordered_comm_ring }
 
 localized "attribute [instance] complex.star_ordered_ring" in complex_order
 

@@ -95,7 +95,7 @@ begin
   have h_map_ℚ_minpoly := minpoly.gcd_domain_eq_field_fractions' ℚ hx.1,
   refine ⟨_, ⟨_, λ i, _⟩, (mem_root_set_iff (minpoly.ne_zero hx.1) x).2 (minpoly.aeval ℤ x)⟩,
   { rw [← (minpoly.monic hx.1).nat_degree_map (algebra_map ℤ ℚ), ← h_map_ℚ_minpoly],
-    exact minpoly.nat_degree_le (is_integral_of_is_scalar_tower x hx.1), },
+    exact minpoly.nat_degree_le (is_integral_of_is_scalar_tower hx.1) },
   rw [mem_Icc, ← abs_le, ← @int.cast_le ℝ],
   refine (eq.trans_le _ $ coeff_bdd_of_norm_le hx.2 i).trans (nat.le_ceil _),
   rw [h_map_ℚ_minpoly, coeff_map, eq_int_cast, int.norm_cast_rat, int.norm_eq_abs, int.cast_abs],

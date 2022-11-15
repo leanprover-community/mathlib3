@@ -89,7 +89,7 @@ end
 
 variables [measurable_space α] [measurable_space α'] [measurable_space β] [measurable_space β']
 variables [measurable_space γ]
-variables {μ : measure α} {ν : measure β} {τ : measure γ}
+variables {μ μ' : measure α} {ν ν' : measure β} {τ : measure γ}
 variables [normed_add_comm_group E]
 
 /-! ### Measurability
@@ -159,7 +159,7 @@ begin
     exact h2t.const_sub _ },
   { intros f h1f h2f h3f, simp_rw [preimage_Union],
     have : ∀ b, ν (⋃ i, prod.mk b ⁻¹' f i) = ∑' i, ν (prod.mk b ⁻¹' f i) :=
-      λ b, measure_Union (λ i j hij, disjoint.preimage _ (h1f i j hij))
+      λ b, measure_Union (λ i j hij, disjoint.preimage _ (h1f hij))
         (λ i, measurable_prod_mk_left (h2f i)),
     simp_rw [this], apply measurable.ennreal_tsum h3f },
 end
@@ -325,7 +325,7 @@ bind μ $ λ x : α, map (prod.mk x) ν
 instance prod.measure_space {α β} [measure_space α] [measure_space β] : measure_space (α × β) :=
 { volume := volume.prod volume }
 
-variables {μ ν} [sigma_finite ν]
+variables [sigma_finite ν]
 
 lemma volume_eq_prod (α β) [measure_space α] [measure_space β] :
   (volume : measure (α × β)) = (volume : measure α).prod (volume : measure β) :=
@@ -447,6 +447,14 @@ begin
   exact ⟨eventually_le.trans_eq
     (eventually_of_forall $ λ x, (measure_mono (preimage_mono hst) : _)) ht,
     eventually_of_forall $ λ x, zero_le _⟩
+end
+
+lemma absolutely_continuous.prod [sigma_finite ν'] (h1 : μ ≪ μ') (h2 : ν ≪ ν') :
+  μ.prod ν ≪ μ'.prod ν' :=
+begin
+  refine absolutely_continuous.mk (λ s hs h2s, _),
+  simp_rw [measure_prod_null hs] at h2s ⊢,
+  exact (h2s.filter_mono h1.ae_le).mono (λ _ h, h2 h)
 end
 
 /-- Note: the converse is not true. For a counterexample, see

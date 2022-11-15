@@ -920,7 +920,7 @@ begin
     ← linear_map.map_smul_of_tower, finsupp.smul_single, mul_comm, algebra.smul_def],
 end
 
-/-- (Implementation) An auxiliary definition for `kaehler_differential.ker_total_eq`. -/
+/-- The (universal) derivation into `(S →₀ S) ⧸ kaehler_differential.ker_total R S`. -/
 noncomputable
 def kaehler_differential.derivation_quot_ker_total :
   derivation R S ((S →₀ S) ⧸ kaehler_differential.ker_total R S) :=
@@ -983,6 +983,12 @@ def kaehler_differential.quot_ker_total_equiv :
   ..(kaehler_differential.ker_total R S).liftq
     (finsupp.total S Ω[S⁄R] S (kaehler_differential.D R S))
     (kaehler_differential.ker_total_eq R S).ge }
+
+lemma kaehler_differential.quot_ker_total_equiv_symm_comp_D :
+  (kaehler_differential.quot_ker_total_equiv R S).symm.to_linear_map.comp_der
+    (kaehler_differential.D R S) = kaehler_differential.derivation_quot_ker_total R S :=
+by convert
+  (kaehler_differential.derivation_quot_ker_total R S).lift_kaehler_differential_comp using 0
 
 variables (A B : Type*) [comm_ring A] [comm_ring B] [algebra R A] [algebra S B] [algebra R B]
 variables [algebra A B] [is_scalar_tower R S B] [is_scalar_tower R A B]

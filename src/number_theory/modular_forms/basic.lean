@@ -8,7 +8,6 @@ import geometry.manifold.mfderiv
 import analysis.complex.upper_half_plane.functions_bounded_at_infty
 import analysis.complex.upper_half_plane.topology
 import number_theory.modular_forms.slash_invariant_forms
-
 /-!
 # Modular forms
 
@@ -155,13 +154,13 @@ instance has_nsmul : has_smul ℕ (modular_form Γ k) :=
   { to_fun := c • f,
     slash_action_eq' := by  {intro γ,
       rw slash_invariant_form.nsmul_coe,
-      convert slash_action.smul_action k γ f (c : ℂ),
+      convert slash_action.smul_action k γ ⇑f (c : ℂ),
       exact ((f.slash_action_eq') γ).symm},
     hol' := by {have :=  f.hol'.const_smul (c : ℂ),
       simp only [nsmul_eq_mul, modular_form_to_fun_eq_coe] at *,
       convert this, },
     bdd_at_infty' :=  λ A, begin
-      have := slash_action.smul_action k A f (c : ℂ),
+      have := slash_action.smul_action k A ⇑f (c : ℂ),
       rw ←slash_invariant_form.nsmul_coe at this,
       simp_rw this,
       apply (bounded_at_im_infty_subalgebra ℂ).smul_mem (f.bdd_at_infty' A)
@@ -177,13 +176,13 @@ instance has_zsmul : has_smul ℤ (modular_form Γ k) :=
   { to_fun := c • f,
     slash_action_eq' := by  {intro γ,
       rw slash_invariant_form.zsmul_coe,
-      convert slash_action.smul_action k γ f (c : ℂ),
+      convert slash_action.smul_action k γ ⇑f (c : ℂ),
       exact ((f.slash_action_eq') γ).symm},
     hol' := by {have :=  f.hol'.const_smul (c : ℂ),
       simp only [zsmul_eq_mul, modular_form_to_fun_eq_coe] at *,
       convert this, },
     bdd_at_infty' :=  λ A, begin
-      have := slash_action.smul_action k A f (c : ℂ),
+      have := slash_action.smul_action k A ⇑f (c : ℂ),
       rw ←slash_invariant_form.zsmul_coe at this,
       simp_rw this,
       apply (bounded_at_im_infty_subalgebra ℂ).smul_mem (f.bdd_at_infty' A)
@@ -197,7 +196,7 @@ instance has_zsmul : has_smul ℤ (modular_form Γ k) :=
 instance has_csmul : has_smul ℂ (modular_form Γ k) :=
 ⟨ λ c f,
   { to_fun := c • f,
-    slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f c,
+    slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ ⇑f c,
     exact ((f.slash_action_eq') γ).symm},
     hol' :=  f.hol'.const_smul _,
     bdd_at_infty' := λ A, begin
@@ -320,13 +319,13 @@ instance has_nsmul : has_smul ℕ (cusp_form Γ k) :=
   { to_fun := c • f,
     slash_action_eq' := by {intro γ,
       rw slash_invariant_form.nsmul_coe,
-      convert slash_action.smul_action k γ f (c : ℂ),
+      convert slash_action.smul_action k γ ⇑f (c : ℂ),
       exact ((f.slash_action_eq') γ).symm},
     hol' := by {have :=  f.hol'.const_smul (c : ℂ),
       simp only [nsmul_eq_mul, cusp_form_to_fun_eq_coe] at *,
       convert this},
     zero_at_infty' :=  λ A, begin
-      have := slash_action.smul_action k A f (c : ℂ),
+      have := slash_action.smul_action k A ⇑f (c : ℂ),
       rw ←slash_invariant_form.nsmul_coe at this,
       simp_rw this,
       apply (zero_at_im_infty_submodule ℂ).smul_mem c (f.zero_at_infty' A)
@@ -342,13 +341,13 @@ instance has_zsmul : has_smul ℤ (cusp_form Γ k) :=
   { to_fun := c • f,
     slash_action_eq' := by {intro γ,
       rw slash_invariant_form.zsmul_coe,
-      convert slash_action.smul_action k γ f (c : ℂ),
+      convert slash_action.smul_action k γ ⇑f (c : ℂ),
       exact ((f.slash_action_eq') γ).symm},
     hol' := by {have :=  f.hol'.const_smul (c : ℂ),
       simp only [zsmul_eq_mul, cusp_form_to_fun_eq_coe] at *,
       convert this},
     zero_at_infty' :=  λ A, begin
-      have := slash_action.smul_action k A f (c : ℂ),
+      have := slash_action.smul_action k A ⇑f (c : ℂ),
       rw ←slash_invariant_form.zsmul_coe at this,
       simp_rw this,
       apply (zero_at_im_infty_submodule ℂ).smul_mem c (f.zero_at_infty' A)
@@ -363,7 +362,7 @@ instance has_csmul : has_smul ℂ (cusp_form Γ k) :=
 ⟨ λ c f,
   { to_fun := c • f,
     slash_action_eq' := by {intro γ,
-      convert slash_action.smul_action k γ f c,
+      convert slash_action.smul_action k γ ⇑f c,
       exact ((f.slash_action_eq') γ).symm},
     hol' := f.hol'.const_smul _,
     zero_at_infty' := λ A, begin

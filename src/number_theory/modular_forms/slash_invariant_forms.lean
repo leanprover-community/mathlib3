@@ -45,7 +45,7 @@ structure slash_invariant_form :=
 /--`slash_invariant_form_class F Γ k` asserts `F` is a type of bundled functions that are invariant
 under the `slash_action`. -/
 class slash_invariant_form_class extends fun_like F ℍ (λ _, ℂ) :=
-(slash_action_eq : ∀ (f : F) (γ : Γ), f ∣[k, γ] = f)
+(slash_action_eq : ∀ (f : F) (γ : Γ),  (f : ℍ → ℂ) ∣[k, γ] = f)
 
 attribute [nolint dangerous_instance] slash_invariant_form_class.to_fun_like
 
@@ -103,7 +103,7 @@ instance [slash_invariant_form_class F Γ k] : has_coe_t F (slash_invariant_form
   ((f : (slash_invariant_form Γ k)) : ℍ → ℂ) = f := rfl
 
 instance has_add : has_add (slash_invariant_form Γ k) :=
-⟨λ f g , ⟨ f + g, by {intro γ, convert slash_action.add_action k γ f g,
+⟨λ f g , ⟨ f + g, by {intro γ, convert slash_action.add_action k γ (f : ℍ → ℂ) g,
    exact ((f.slash_action_eq') γ).symm, exact ((g.slash_action_eq') γ).symm} ⟩⟩
 
 @[simp] lemma coe_add (f g : slash_invariant_form Γ k) : ⇑(f + g) = f + g := rfl
@@ -130,7 +130,7 @@ instance has_nsmul : has_smul ℕ (slash_invariant_form Γ k) :=
 ⟨ λ c f, {to_fun := c • f,
     slash_action_eq' := by {intro γ,
       rw nsmul_coe,
-      convert slash_action.smul_action k γ f (c : ℂ),
+      convert slash_action.smul_action k γ ⇑f (c : ℂ),
       exact ((f.slash_action_eq') γ).symm},}⟩
 
 @[simp] lemma coe_nsmul (f : slash_invariant_form Γ k) (n : ℕ) : ⇑(n • f) = n • f := rfl
@@ -142,7 +142,7 @@ instance has_zsmul : has_smul ℤ (slash_invariant_form Γ k) :=
 ⟨ λ c f, {to_fun := c • f,
     slash_action_eq' := by {intro γ,
       rw zsmul_coe,
-      convert slash_action.smul_action k γ f (c : ℂ),
+      convert slash_action.smul_action k γ ⇑f (c : ℂ),
       exact ((f.slash_action_eq') γ).symm},}⟩
 
 @[simp] lemma coe_zsmul (f : slash_invariant_form Γ k) (n : ℤ) : ⇑(n • f) = n • f := rfl
@@ -152,7 +152,7 @@ instance has_zsmul : has_smul ℤ (slash_invariant_form Γ k) :=
 
 instance has_csmul : has_smul ℂ (slash_invariant_form Γ k) :=
 ⟨ λ c f, {to_fun := c • f,
-    slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f c,
+    slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ ⇑f c,
     exact ((f.slash_action_eq') γ).symm}}⟩
 
 @[simp] lemma coe_csmul (f : slash_invariant_form Γ k) (n : ℂ) : ⇑(n • f) = n • f := rfl

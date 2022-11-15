@@ -8,6 +8,10 @@ import tactic.basic
 import logic.relator
 
 /-!
+THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+https://github.com/leanprover-community/mathlib4/pull/493
+Any changes to this file require a corresponding PR to mathlib4.
+
 # Option of a type
 
 This file develops the basic theory of option types.

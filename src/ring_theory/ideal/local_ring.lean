@@ -5,7 +5,6 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
 
 import algebra.algebra.basic
-import algebra.category.Ring.basic
 import ring_theory.ideal.operations
 import ring_theory.jacobson_ideal
 
@@ -227,10 +226,6 @@ lemma is_local_ring_hom_of_comp (f : R →+* S) (g : S →+* T) [is_local_ring_h
   is_local_ring_hom f :=
 ⟨λ a ha, (is_unit_map_iff (g.comp f) _).mp (g.is_unit_map ha)⟩
 
-instance _root_.CommRing.is_local_ring_hom_comp {R S T : CommRing} (f : R ⟶ S) (g : S ⟶ T)
-  [is_local_ring_hom g] [is_local_ring_hom f] :
-  is_local_ring_hom (f ≫ g) := is_local_ring_hom_comp _ _
-
 /-- If `f : R →+* S` is a local ring hom, then `R` is a local ring if `S` is. -/
 lemma _root_.ring_hom.domain_local_ring {R S : Type*} [comm_semiring R] [comm_semiring S]
   [H : _root_.local_ring S] (f : R →+* S)
@@ -241,23 +236,6 @@ begin
   intros a b,
   simp_rw [←map_mem_nonunits_iff f, f.map_add],
   exact local_ring.nonunits_add
-end
-
-section
-open category_theory
-
-lemma is_local_ring_hom_of_iso {R S : CommRing} (f : R ≅ S) : is_local_ring_hom f.hom :=
-{ map_nonunit := λ a ha,
-  begin
-    convert f.inv.is_unit_map ha,
-    rw category_theory.iso.hom_inv_id_apply,
-  end }
-
-@[priority 100] -- see Note [lower instance priority]
-instance is_local_ring_hom_of_is_iso {R S : CommRing} (f : R ⟶ S) [is_iso f] :
-  is_local_ring_hom f :=
-is_local_ring_hom_of_iso (as_iso f)
-
 end
 
 end
@@ -331,27 +309,27 @@ section
 variables (R) [comm_ring R] [local_ring R] [comm_ring S] [local_ring S] [comm_ring T] [local_ring T]
 
 /-- The residue field of a local ring is the quotient of the ring by its maximal ideal. -/
+@[derive [ring, comm_ring, inhabited]]
 def residue_field := R ⧸ maximal_ideal R
 
 noncomputable instance residue_field.field : field (residue_field R) :=
 ideal.quotient.field (maximal_ideal R)
 
-noncomputable instance : inhabited (residue_field R) := ⟨37⟩
-
 /-- The quotient map from a local ring to its residue field. -/
 def residue : R →+* (residue_field R) :=
 ideal.quotient.mk _
 
-noncomputable
-instance residue_field.algebra : algebra R (residue_field R) := (residue R).to_algebra
+instance residue_field.algebra : algebra R (residue_field R) :=
+ideal.quotient.algebra _
+
+lemma residue_field.algebra_map_eq : algebra_map R (residue_field R) = residue R := rfl
 
 variables {R}
 
 namespace residue_field
 
 /-- The map on residue fields induced by a local homomorphism between local rings -/
-noncomputable def map (f : R →+* S) [is_local_ring_hom f] :
-  residue_field R →+* residue_field S :=
+def map (f : R →+* S) [is_local_ring_hom f] : residue_field R →+* residue_field S :=
 ideal.quotient.lift (maximal_ideal R) ((ideal.quotient.mk _).comp f) $
 λ a ha,
 begin
@@ -381,8 +359,7 @@ fun_like.congr_fun (map_comp f g).symm x
 
 /-- A ring isomorphism defines an isomorphism of residue fields. -/
 @[simps apply]
-noncomputable def map_equiv (f : R ≃+* S) :
-  local_ring.residue_field R ≃+* local_ring.residue_field S :=
+def map_equiv (f : R ≃+* S) : local_ring.residue_field R ≃+* local_ring.residue_field S :=
 { to_fun := map (f : R →+* S),
   inv_fun := map (f.symm : S →+* R),
   left_inv := λ x, by simp only [map_map, ring_equiv.symm_comp, map_id, ring_hom.id_apply],
@@ -401,7 +378,7 @@ ring_equiv.to_ring_hom_injective map_id
 
 /-- The group homomorphism from `ring_aut R` to `ring_aut k` where `k`
 is the residue field of `R`. -/
-@[simps] noncomputable def map_aut : ring_aut R →* ring_aut (local_ring.residue_field R) :=
+@[simps] def map_aut : ring_aut R →* ring_aut (local_ring.residue_field R) :=
 { to_fun := map_equiv,
   map_mul' := λ e₁ e₂, map_equiv_trans e₂ e₁,
   map_one' := map_equiv_refl }

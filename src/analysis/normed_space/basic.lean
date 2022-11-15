@@ -3,6 +3,7 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
+import algebra.algebra.restrict_scalars
 import analysis.normed.field.basic
 import analysis.normed.group.infinite_sum
 import data.real.sqrt
@@ -198,10 +199,8 @@ def homeomorph_unit_ball [normed_space ℝ E] :
   end⟩,
   inv_fun := λ y, (1 - ∥(y : E)∥^2).sqrt⁻¹ • (y : E),
   left_inv := λ x,
-  begin
-    have : 0 < 1 + ∥x∥ ^ 2, by positivity,
-    field_simp [norm_smul, smul_smul, this.ne', real.sq_sqrt this.le, ← real.sqrt_div this.le],
-  end,
+  by field_simp [norm_smul, smul_smul, (zero_lt_one_add_norm_sq x).ne',
+    real.sq_sqrt (zero_lt_one_add_norm_sq x).le, ← real.sqrt_div (zero_lt_one_add_norm_sq x).le],
   right_inv := λ y,
   begin
     have : 0 < 1 - ∥(y : E)∥ ^ 2 :=
@@ -521,6 +520,10 @@ def normed_algebra.induced {F : Type*} (α β γ : Type*) [normed_field α] [rin
   [algebra α β] [semi_normed_ring γ] [normed_algebra α γ] [non_unital_alg_hom_class F α β γ]
   (f : F) : @normed_algebra α β _ (semi_normed_ring.induced β γ f) :=
 { norm_smul_le := λ a b, by {unfold norm, exact (map_smul f a b).symm ▸ (norm_smul a (f b)).le } }
+
+instance subalgebra.to_normed_algebra {𝕜 A : Type*} [semi_normed_ring A] [normed_field 𝕜]
+  [normed_algebra 𝕜 A] (S : subalgebra 𝕜 A) : normed_algebra 𝕜 S :=
+@normed_algebra.induced _ 𝕜 S A _ (subring_class.to_ring S) S.algebra _ _ _ S.val
 
 section restrict_scalars
 

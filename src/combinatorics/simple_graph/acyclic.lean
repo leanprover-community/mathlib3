@@ -113,7 +113,7 @@ end
 lemma is_acyclic_iff : G.is_acyclic ↔ ∀ ⦃v w : V⦄ (p q : G.path v w), p = q :=
 ⟨is_acyclic.path_unique, is_acyclic_of_path_unique⟩
 
-lemma is_tree_iff : G.is_tree ↔ nonempty V ∧ ∀ (v w : V), ∃!(p : G.walk v w), p.is_path :=
+lemma is_tree_iff : G.is_tree ↔ nonempty V ∧ ∀ (v w : V), ∃! (p : G.walk v w), p.is_path :=
 begin
   classical,
   simp only [is_tree, is_acyclic_iff],

@@ -2130,7 +2130,7 @@ begin
   exact H'.false
 end
 
-instance pi.infinite_of_left {ι : Type*} {π : ι → Sort*} [∀ i, nontrivial $ π i]
+instance pi.infinite_of_left {ι : Sort*} {π : ι → Sort*} [∀ i, nontrivial $ π i]
   [infinite ι] : infinite (Π i : ι, π i) :=
 begin
   choose m n hm using λ i, exists_pair_ne (π i),
@@ -2146,17 +2146,17 @@ lemma pi.infinite_of_exists_right {ι : Type*} {π : ι → Type*} (i : ι)
 let ⟨m⟩ := @pi.nonempty ι π _ in infinite.of_injective _ (update_injective m i)
 
 /-- See `pi.infinite_of_exists_right` for the case that only one `π i` is infinite. -/
-instance pi.infinite_of_right {ι : Type*} {π : ι → Sort*} [∀ i, infinite $ π i] [nonempty ι] :
+instance pi.infinite_of_right {ι : Sort*} {π : ι → Sort*} [∀ i, infinite $ π i] [nonempty ι] :
   infinite (Π i : ι, π i) :=
 pi.infinite_of_exists_right (classical.arbitrary ι)
 
 /-- Non-dependent version of `pi.infinite_of_left`. -/
-instance function.infinite_of_left {ι π : Type*} [nontrivial π]
+instance function.infinite_of_left {ι π : Sort*} [nontrivial π]
   [infinite ι] : infinite (ι → π) :=
 pi.infinite_of_left
 
 /-- Non-dependent version of `pi.infinite_of_exists_right` and `pi.infinite_of_right`. -/
-instance function.infinite_of_right {ι π : Type*} [infinite π] [nonempty ι] :
+instance function.infinite_of_right {ι π : Sort*} [infinite π] [nonempty ι] :
   infinite (ι → π) :=
 pi.infinite_of_right
 

@@ -27,6 +27,8 @@ You can use these to produce instances for specific `fun_like` types.
 They can't be instances themselves since they can cause loops.
 -/
 
+section type
+
 variables (F G : Type*) {α γ : Type*} {β : α → Type*} [fun_like F α β] [fun_like G α (λ _, γ)]
 
 /-- All `fun_like`s are finite if their domain and codomain are.
@@ -46,6 +48,12 @@ This is not an instance because specific `fun_like` types might have a better-su
 noncomputable def fun_like.fintype' [decidable_eq α] [fintype α] [fintype γ] : fintype G :=
 fun_like.fintype G
 
+end type
+
+section sort
+
+variables (F G : Sort*) {α γ : Sort*} {β : α → Sort*} [fun_like F α β] [fun_like G α (λ _, γ)]
+
 /-- All `fun_like`s are finite if their domain and codomain are.
 
 Can't be an instance because it can cause infinite loops.
@@ -60,3 +68,5 @@ Can't be an instance because it can cause infinite loops.
 -/
 lemma fun_like.finite' [finite α] [finite γ] : finite G :=
 fun_like.finite G
+
+end sort

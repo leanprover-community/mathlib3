@@ -3,6 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import order.rel_iso.set
 import data.fintype.basic
 import data.multiset.sort
 import data.list.nodup_equiv_fin
@@ -143,7 +144,16 @@ rfl
 
 @[simp] lemma range_order_emb_of_fin (s : finset α) {k : ℕ} (h : s.card = k) :
   set.range (s.order_emb_of_fin h) = s :=
-by simp [order_emb_of_fin, set.range_comp coe (s.order_iso_of_fin h)]
+by simp only [order_emb_of_fin, set.range_comp coe (s.order_iso_of_fin h), rel_embedding.coe_trans,
+ set.image_univ,
+ finset.order_emb_of_fin.equations._eqn_1,
+ rel_iso.range_eq,
+ order_embedding.subtype_apply,
+ order_iso.coe_to_order_embedding,
+ eq_self_iff_true,
+ subtype.range_coe_subtype,
+ finset.set_of_mem,
+ finset.coe_inj]
 
 /-- The bijection `order_emb_of_fin s h` sends `0` to the minimum of `s`. -/
 lemma order_emb_of_fin_zero {s : finset α} {k : ℕ} (h : s.card = k) (hz : 0 < k) :

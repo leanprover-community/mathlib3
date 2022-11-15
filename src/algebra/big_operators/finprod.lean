@@ -752,6 +752,7 @@ finprod_set_coe_eq_finprod_mem {i | p i}
   (∏ᶠ i ∈ s ∩ t, f i) * ∏ᶠ i ∈ s \ t, f i = ∏ᶠ i ∈ s, f i :=
 begin
   rw [← finprod_mem_union', inter_union_diff],
+  rw disjoint_iff_inf_le,
   exacts [λ x hx, hx.2.2 hx.1.2, h.subset (λ x hx, ⟨hx.1.1, hx.2⟩),
     h.subset (λ x hx, ⟨hx.1.1, hx.2⟩)],
 end
@@ -792,7 +793,7 @@ begin
   rw [← bUnion_univ, ← finset.coe_univ, ← finset.coe_bUnion,
     finprod_mem_coe_finset, finset.prod_bUnion],
   { simp only [finprod_mem_coe_finset, finprod_eq_prod_of_fintype] },
-  { exact λ x _ y _ hxy, finset.disjoint_coe.1 (h x y hxy) }
+  { exact λ x _ y _ hxy, finset.disjoint_coe.1 (h hxy) }
 end
 
 /-- Given a family of sets `t : ι → set α`, a finite set `I` in the index type such that all sets

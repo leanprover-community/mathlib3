@@ -3,6 +3,8 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import logic.embedding.set
+import algebra.parity
 import data.array.lemmas
 import data.finset.fin
 import data.finset.option
@@ -123,9 +125,10 @@ finset.ext $ λ x, iff_of_true (mem_univ _) $ mem_singleton.2 $ subsingleton.eli
 
 @[simp] theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
-instance : order_top (finset α) :=
+instance : bounded_order (finset α) :=
 { top := univ,
-  le_top := subset_univ }
+  le_top := subset_univ,
+  .. finset.order_bot }
 
 @[simp] lemma top_eq_univ : (⊤ : finset α) = univ := rfl
 
@@ -328,6 +331,10 @@ show decidable (∀ x, g (f x) = x), by apply_instance
 instance decidable_left_inverse_fintype [decidable_eq β] [fintype β] (f : α → β) (g : β → α) :
   decidable (function.left_inverse f g) :=
 show decidable (∀ x, f (g x) = x), by apply_instance
+
+instance is_square.decidable_pred [has_mul α] [fintype α] [decidable_eq α] :
+  decidable_pred (is_square : α → Prop) :=
+λ a, fintype.decidable_exists_fintype
 
 /-- Construct a proof of `fintype α` from a universal multiset -/
 def of_multiset [decidable_eq α] (s : multiset α) (H : ∀ x : α, x ∈ s) :
@@ -625,7 +632,7 @@ variables {s t : set α}
 
 /-- Construct a finset enumerating a set `s`, given a `fintype` instance.  -/
 def to_finset (s : set α) [fintype s] : finset α :=
-⟨(@finset.univ s _).1.map subtype.val, finset.univ.nodup.map $ λ a b, subtype.eq⟩
+(@finset.univ s _).map $ function.embedding.subtype _
 
 @[congr]
 lemma to_finset_congr {s t : set α} [fintype s] [fintype t] (h : s = t) :
@@ -674,7 +681,7 @@ by simp [finset.subset_iff, set.subset_def]
 @[simp, mono] lemma to_finset_ssubset [fintype s] [fintype t] : s.to_finset ⊂ t.to_finset ↔ s ⊂ t :=
 by simp only [finset.ssubset_def, to_finset_subset, ssubset_def]
 
-@[simp] theorem to_finset_disjoint_iff [decidable_eq α] {s t : set α} [fintype s] [fintype t] :
+@[simp] theorem to_finset_disjoint_iff {s t : set α} [fintype s] [fintype t] :
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=
 by simp only [←disjoint_coe, coe_to_finset]
 
@@ -798,6 +805,11 @@ list.length_fin_range n
 
 @[simp] lemma finset.card_fin (n : ℕ) : finset.card (finset.univ : finset (fin n)) = n :=
 by rw [finset.card_univ, fintype.card_fin]
+
+/-- The cardinality of `fin (bit0 n)` is even, `fact` version.
+This `fact` is needed as an instance by `matrix.special_linear_group.has_neg`. -/
+lemma fintype.card_fin_even {n : ℕ} : fact (even (fintype.card (fin (bit0 n)))) :=
+⟨by { rw fintype.card_fin, exact even_bit0 _ }⟩
 
 /-- `fin` as a map from `ℕ` to `Type` is injective. Note that since this is a statement about
 equality of types, using it should be avoided if possible. -/
@@ -1065,6 +1077,10 @@ by { casesI nonempty_fintype α, simpa using exists_min_image univ f univ_nonemp
 lemma finite.exists_univ_list (α) [finite α] : ∃ l : list α, l.nodup ∧ ∀ x : α, x ∈ l :=
 by { casesI nonempty_fintype α, obtain ⟨l, e⟩ := quotient.exists_rep (@univ α _).1,
   have := and.intro univ.2 mem_univ_val, exact ⟨_, by rwa ←e at this⟩ }
+
+lemma list.nodup.length_le_card {α : Type*} [fintype α] {l : list α} (h : l.nodup) :
+  l.length ≤ fintype.card α :=
+by { classical, exact list.to_finset_card_of_nodup h ▸ l.to_finset.card_le_univ }
 
 namespace fintype
 variables [fintype α] [fintype β]
@@ -1427,6 +1443,10 @@ lemma nonempty_of_card_le [fintype α] [fintype β]
   (h : fintype.card α ≤ fintype.card β) : nonempty (α ↪ β) :=
 by { classical, exact (trunc_of_card_le h).nonempty }
 
+lemma nonempty_iff_card_le [fintype α] [fintype β] :
+  nonempty (α ↪ β) ↔ fintype.card α ≤ fintype.card β :=
+⟨λ ⟨e⟩, fintype.card_le_of_embedding e, nonempty_of_card_le⟩
+
 lemma exists_of_card_le_finset [fintype α] {s : finset β} (h : fintype.card α ≤ s.card) :
   ∃ (f : α ↪ β), set.range f ⊆ s :=
 begin
@@ -1549,7 +1569,7 @@ lemma pi_finset_subsingleton {f : Π i, finset (δ i)}
   (fintype.pi_finset f : set (Π i, δ i)).subsingleton :=
 λ a ha b hb, funext $ λ i, hf _ (mem_pi_finset.1 ha _) (mem_pi_finset.1 hb _)
 
-lemma pi_finset_disjoint_of_disjoint [∀ a, decidable_eq (δ a)]
+lemma pi_finset_disjoint_of_disjoint
   (t₁ t₂ : Π a, finset (δ a)) {a : α} (h : disjoint (t₁ a) (t₂ a)) :
   disjoint (pi_finset t₁) (pi_finset t₂) :=
 disjoint_iff_ne.2 $ λ f₁ hf₁ f₂ hf₂ eq₁₂,
@@ -2057,6 +2077,23 @@ namespace infinite
 
 lemma of_not_fintype (h : fintype α → false) : infinite α := is_empty_fintype.mp ⟨h⟩
 
+/-- If `s : set α` is a proper subset of `α` and `f : α → s` is injective, then `α` is infinite. -/
+lemma of_injective_to_set {s : set α} (hs : s ≠ set.univ) {f : α → s} (hf : injective f) :
+  infinite α :=
+of_not_fintype $ λ h, begin
+  resetI, classical,
+  refine lt_irrefl (fintype.card α) _,
+  calc fintype.card α ≤ fintype.card s : fintype.card_le_of_injective f hf
+  ... = s.to_finset.card : s.to_finset_card.symm
+  ... < fintype.card α : finset.card_lt_card $
+    by rwa [set.to_finset_ssubset_univ, set.ssubset_univ_iff]
+end
+
+/-- If `s : set α` is a proper subset of `α` and `f : s → α` is surjective, then `α` is infinite. -/
+lemma of_surjective_from_set {s : set α} (hs : s ≠ set.univ) {f : s → α} (hf : surjective f) :
+  infinite α :=
+of_injective_to_set hs (injective_surj_inv hf)
+
 lemma exists_not_mem_finset [infinite α] (s : finset α) : ∃ x, x ∉ s :=
 not_forall.1 $ λ h, fintype.false ⟨s, h⟩
 
@@ -2069,10 +2106,10 @@ let ⟨y, hy⟩ := exists_not_mem_finset ({x} : finset α) in
 protected lemma nonempty (α : Type*) [infinite α] : nonempty α :=
 by apply_instance
 
-lemma of_injective [infinite β] (f : β → α) (hf : injective f) : infinite α :=
+lemma of_injective {α β} [infinite β] (f : β → α) (hf : injective f) : infinite α :=
 ⟨λ I, by exactI (finite.of_injective f hf).false⟩
 
-lemma of_surjective [infinite β] (f : α → β) (hf : surjective f) : infinite α :=
+lemma of_surjective {α β} [infinite β] (f : α → β) (hf : surjective f) : infinite α :=
 ⟨λ I, by exactI (finite.of_surjective f hf).false⟩
 
 end infinite
@@ -2231,7 +2268,7 @@ begin
   exact key.false,
 end
 
-lemma not_surjective_finite_infinite [finite α] [infinite β] (f : α → β) : ¬ surjective f :=
+lemma not_surjective_finite_infinite {α β} [finite α] [infinite β] (f : α → β) : ¬ surjective f :=
 λ hf, (infinite.of_surjective f hf).not_finite ‹_›
 
 section trunc

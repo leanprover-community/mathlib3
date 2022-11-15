@@ -592,8 +592,7 @@ begin
   { cases x,
     simp only [chart_at, basic_smooth_vector_bundle_core.chart, tangent_bundle_core,
       basic_smooth_vector_bundle_core.to_topological_vector_bundle_core, A, prod.mk.inj_iff,
-      continuous_linear_map.coe_id'] with mfld_simps,
-      exact (tangent_bundle_core I H).coord_change_self _ _ trivial x_snd, },
+      continuous_linear_map.coe_id'] with mfld_simps },
   show ∀ x, ((chart_at (model_prod H E) p).to_local_equiv).symm x =
     (equiv.sigma_equiv_prod H E).symm x,
   { rintros ⟨x_fst, x_snd⟩,

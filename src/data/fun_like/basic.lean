@@ -184,6 +184,10 @@ ext_iff.not.trans not_forall
 lemma exists_ne {f g : F} (h : f ≠ g) : ∃ x, f x ≠ g x :=
 ne_iff.mp h
 
+/-- This is not an instance to avoid slowing down every single `subsingleton` typeclass search.-/
+lemma subsingleton_cod [∀ a, subsingleton (β a)] : subsingleton F :=
+⟨λ f g, coe_injective $ subsingleton.elim _ _⟩
+
 end fun_like
 
 end dependent

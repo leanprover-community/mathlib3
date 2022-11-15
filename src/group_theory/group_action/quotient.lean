@@ -6,11 +6,7 @@ Authors: Chris Hughes, Thomas Browning
 import dynamics.periodic_pts
 import group_theory.group_action.conj_act
 import group_theory.commutator
-<<<<<<< HEAD
-import group_theory.finiteness
-=======
 import group_theory.quotient_group
->>>>>>> master
 
 /-!
 # Properties of group actions involving quotient groups
@@ -285,14 +281,6 @@ begin
     exact (mul_action.quotient.smul_mk H g 1).symm.trans (equiv.perm.ext_iff.mp hg (1 : G)) },
 end
 
-<<<<<<< HEAD
-lemma stabilizer_conj_act_eq_centralizer (g : G) :
-  mul_action.stabilizer (conj_act G) g = (zpowers g).centralizer :=
-le_antisymm (le_centralizer_iff.mp (zpowers_le.mpr (λ x, mul_inv_eq_iff_eq_mul.mp)))
-  (λ x h, mul_inv_eq_of_eq_mul (h g (mem_zpowers g)).symm)
-
-=======
->>>>>>> master
 open quotient_group
 
 /-- Cosets of the centralizer of an element embed into the set of commutators. -/

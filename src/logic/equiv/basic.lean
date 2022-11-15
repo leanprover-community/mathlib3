@@ -89,10 +89,11 @@ rfl
 
 /-- Type product is commutative up to an equivalence: `α × β ≃ β × α`. This is `prod.swap` as an
 equivalence.-/
-def prod_comm (α β : Type*) : α × β ≃ β × α := ⟨prod.swap, prod.swap, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
+def prod_comm (α β : Type*) : α × β ≃ β × α :=
+⟨prod.swap, prod.swap, prod.swap_swap, prod.swap_swap⟩
 
 @[simp] lemma coe_prod_comm (α β : Type*) : ⇑(prod_comm α β) = prod.swap := rfl
-@[simp] lemma prod_comm_apply (α β : Type*) (x : α × β) : prod_comm α β x = x.swap := rfl
+@[simp] lemma prod_comm_apply {α β : Type*} (x : α × β) : prod_comm α β x = x.swap := rfl
 
 @[simp] lemma prod_comm_symm (α β) : (prod_comm α β).symm = prod_comm β α := rfl
 

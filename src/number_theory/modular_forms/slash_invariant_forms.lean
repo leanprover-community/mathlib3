@@ -68,16 +68,16 @@ instance : has_coe_to_fun (slash_invariant_form Γ k) (λ _, ℍ → ℂ) := fun
 
 /-- Copy of a `slash_invariant_form` with a new `to_fun` equal to the old one.
 Useful to fix definitional equalities. -/
-protected def sif_copy (f : slash_invariant_form Γ k) (f' : ℍ → ℂ) (h : f' = ⇑f) :
+protected def slash_invariant_form.copy (f : slash_invariant_form Γ k) (f' : ℍ → ℂ) (h : f' = ⇑f) :
   slash_invariant_form Γ k :=
 { to_fun := f',
   slash_action_eq' := h.symm ▸ f.slash_action_eq',}
 
 end slash_invariant_forms
 
-namespace slash_invariant_forms
+namespace slash_invariant_form
 
-open slash_invariant_forms
+open slash_invariant_form
 
 variables {F : Type*} {Γ : out_param $ subgroup SL(2, ℤ)} {k : out_param ℤ}
 
@@ -176,7 +176,7 @@ instance has_sub : has_sub (slash_invariant_form Γ k) :=
 ⟨λ f g, ⟨f - g, by { intro γ,
   have : (f : ℍ → ℂ) - g = f + (-g), by {funext, simp, ring,},
   rw [this, slash_action.add_action k γ],
-  simp only [modular_form.subgroup_slash, add_right_inj, slash_invariant_forms.slash_action_eqn,
+  simp only [modular_form.subgroup_slash, add_right_inj, slash_invariant_form.slash_action_eqn,
     coe_coe],
   rw modular_form.neg_slash,
   simp only [neg_inj],
@@ -192,7 +192,7 @@ lemma coe_zero : ⇑(0 : slash_invariant_form Γ k) = (0 : ℍ → ℂ) := rfl
 
 /--Additive coercieon from `slash_invariant_form` to `ℍ → ℂ`.-/
 def coe_hom : (slash_invariant_form Γ k) →+ (ℍ → ℂ) :=
-{ to_fun := λ f, f, map_zero' := slash_invariant_forms.coe_zero, map_add' := λ _ _, rfl }
+{ to_fun := λ f, f, map_zero' := slash_invariant_form.coe_zero, map_add' := λ _ _, rfl }
 
 lemma coe_hom_injective : function.injective (@coe_hom Γ k) :=
 fun_like.coe_injective
@@ -206,4 +206,4 @@ instance : has_one (slash_invariant_form Γ 0) :=
 
 instance : inhabited (slash_invariant_form Γ k) := ⟨0⟩
 
-end slash_invariant_forms
+end slash_invariant_form

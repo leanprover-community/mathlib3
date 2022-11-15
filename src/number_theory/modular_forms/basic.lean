@@ -47,7 +47,7 @@ local notation f `∣[`:73 k:0, A `]` :72 := slash_action.map ℂ k A f
 
 set_option old_structure_cmd true
 
-/--These are `slash_invariant_forms` that are holomophic and bounded at infinity. -/
+/--These are `slash_invariant_form`'s that are holomophic and bounded at infinity. -/
 structure modular_form extends slash_invariant_form Γ k :=
 (hol' : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (to_fun : ℍ → ℂ))
 (bdd_at_infty' : ∀ (A : SL(2, ℤ)), is_bounded_at_im_infty (to_fun ∣[k, A]))
@@ -55,7 +55,7 @@ structure modular_form extends slash_invariant_form Γ k :=
 /-- The `slash_invariant_form` associated to a `modular_form` -/
 add_decl_doc modular_form.to_slash_invariant_form
 
-/--These are `slash_invariant_forms` that are holomophic and zero at infinity. -/
+/--These are `slash_invariant_form`s that are holomophic and zero at infinity. -/
 structure cusp_form extends slash_invariant_form Γ k :=
 (hol' : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (to_fun : ℍ → ℂ))
 (zero_at_infty' : ∀ (A : SL(2, ℤ)), is_zero_at_im_infty (to_fun ∣[k, A]))
@@ -106,7 +106,7 @@ fun_like.ext f g h
 
 /-- Copy of a `modular_form` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
-protected def modular_form_copy (f : modular_form Γ k) (f' : ℍ → ℂ) (h : f' = ⇑f) :
+protected def modular_form.copy (f : modular_form Γ k) (f' : ℍ → ℂ) (h : f' = ⇑f) :
   modular_form Γ k :=
 { to_fun := f',
   slash_action_eq' := h.symm ▸ f.slash_action_eq',
@@ -115,7 +115,7 @@ protected def modular_form_copy (f : modular_form Γ k) (f' : ℍ → ℂ) (h : 
 
 /-- Copy of a `cusp_form` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
-protected def cusp_form_copy (f : cusp_form Γ k) (f' : ℍ → ℂ) (h : f' = ⇑f) :
+protected def cusp_form.copy (f : cusp_form Γ k) (f' : ℍ → ℂ) (h : f' = ⇑f) :
   cusp_form Γ k :=
 { to_fun := f',
   slash_action_eq' := h.symm ▸ f.slash_action_eq',
@@ -126,7 +126,7 @@ end modular_form
 
 namespace modular_form
 
-open slash_invariant_forms
+open slash_invariant_form
 
 variables {F : Type*} {Γ : subgroup SL(2, ℤ)} {k : ℤ}
 
@@ -154,7 +154,7 @@ instance has_nsmul : has_smul ℕ (modular_form Γ k) :=
 ⟨ λ c f,
   { to_fun := c • f,
     slash_action_eq' := by  {intro γ,
-      rw slash_invariant_forms.nsmul_coe,
+      rw slash_invariant_form.nsmul_coe,
       convert slash_action.smul_action k γ f (c : ℂ),
       exact ((f.slash_action_eq') γ).symm},
     hol' := by {have :=  f.hol'.const_smul (c : ℂ),
@@ -162,7 +162,7 @@ instance has_nsmul : has_smul ℕ (modular_form Γ k) :=
       convert this, },
     bdd_at_infty' :=  λ A, begin
       have := slash_action.smul_action k A f (c : ℂ),
-      rw ←slash_invariant_forms.nsmul_coe at this,
+      rw ←slash_invariant_form.nsmul_coe at this,
       simp_rw this,
       apply (bounded_at_im_infty_subalgebra ℂ).smul_mem (f.bdd_at_infty' A)
     end }⟩
@@ -176,7 +176,7 @@ instance has_zsmul : has_smul ℤ (modular_form Γ k) :=
 ⟨ λ c f,
   { to_fun := c • f,
     slash_action_eq' := by  {intro γ,
-      rw slash_invariant_forms.zsmul_coe,
+      rw slash_invariant_form.zsmul_coe,
       convert slash_action.smul_action k γ f (c : ℂ),
       exact ((f.slash_action_eq') γ).symm},
     hol' := by {have :=  f.hol'.const_smul (c : ℂ),
@@ -184,7 +184,7 @@ instance has_zsmul : has_smul ℤ (modular_form Γ k) :=
       convert this, },
     bdd_at_infty' :=  λ A, begin
       have := slash_action.smul_action k A f (c : ℂ),
-      rw ←slash_invariant_forms.zsmul_coe at this,
+      rw ←slash_invariant_form.zsmul_coe at this,
       simp_rw this,
       apply (bounded_at_im_infty_subalgebra ℂ).smul_mem (f.bdd_at_infty' A)
     end }⟩
@@ -229,7 +229,7 @@ instance has_sub  : has_sub (modular_form Γ k) :=
 ⟨λ f g,
   { to_fun := f - g,
     slash_action_eq' :=
-      (slash_invariant_forms.has_sub.1 f.to_slash_invariant_form g.to_slash_invariant_form).2,
+      (slash_invariant_form.has_sub.1 f.to_slash_invariant_form g.to_slash_invariant_form).2,
     hol' := f.hol'.sub g.hol',
     bdd_at_infty' := λ A, begin
       convert (bounded_at_im_infty_subalgebra ℂ).sub_mem (f.bdd_at_infty' A) (g.bdd_at_infty' A),
@@ -319,7 +319,7 @@ instance has_nsmul : has_smul ℕ (cusp_form Γ k) :=
 ⟨ λ c f,
   { to_fun := c • f,
     slash_action_eq' := by {intro γ,
-      rw slash_invariant_forms.nsmul_coe,
+      rw slash_invariant_form.nsmul_coe,
       convert slash_action.smul_action k γ f (c : ℂ),
       exact ((f.slash_action_eq') γ).symm},
     hol' := by {have :=  f.hol'.const_smul (c : ℂ),
@@ -327,7 +327,7 @@ instance has_nsmul : has_smul ℕ (cusp_form Γ k) :=
       convert this},
     zero_at_infty' :=  λ A, begin
       have := slash_action.smul_action k A f (c : ℂ),
-      rw ←slash_invariant_forms.nsmul_coe at this,
+      rw ←slash_invariant_form.nsmul_coe at this,
       simp_rw this,
       apply (zero_at_im_infty_submodule ℂ).smul_mem c (f.zero_at_infty' A)
     end }⟩
@@ -341,7 +341,7 @@ instance has_zsmul : has_smul ℤ (cusp_form Γ k) :=
 ⟨ λ c f,
   { to_fun := c • f,
     slash_action_eq' := by {intro γ,
-      rw slash_invariant_forms.zsmul_coe,
+      rw slash_invariant_form.zsmul_coe,
       convert slash_action.smul_action k γ f (c : ℂ),
       exact ((f.slash_action_eq') γ).symm},
     hol' := by {have :=  f.hol'.const_smul (c : ℂ),
@@ -349,7 +349,7 @@ instance has_zsmul : has_smul ℤ (cusp_form Γ k) :=
       convert this},
     zero_at_infty' :=  λ A, begin
       have := slash_action.smul_action k A f (c : ℂ),
-      rw ←slash_invariant_forms.zsmul_coe at this,
+      rw ←slash_invariant_form.zsmul_coe at this,
       simp_rw this,
       apply (zero_at_im_infty_submodule ℂ).smul_mem c (f.zero_at_infty' A)
     end }⟩
@@ -394,7 +394,7 @@ instance has_sub : has_sub (cusp_form Γ k) :=
 ⟨λ f g,
   { to_fun := f - g,
     slash_action_eq' :=
-      (slash_invariant_forms.has_sub.1 f.to_slash_invariant_form g.to_slash_invariant_form).2,
+      (slash_invariant_form.has_sub.1 f.to_slash_invariant_form g.to_slash_invariant_form).2,
     hol' := f.hol'.sub g.hol',
     zero_at_infty' := λ A, begin
       convert (zero_at_im_infty_submodule ℂ).sub_mem (f.zero_at_infty' A) (g.zero_at_infty' A),

@@ -429,7 +429,6 @@ do
   co_eq_co ← mk_app `eq [cf.mk_app [f, `(exp_deg)], lc],
   assert nn co_eq_co,
   resolve_coeff
-  -- >> try `[ conv_rhs at c_c {norm_num} ]
 
 end parsing
 

@@ -35,7 +35,7 @@ section semiring
 variables [semiring R] {f g : R[X]} {d e n : ℕ}
 
 lemma coeff_bit1_zero (P : R[X]) :
-  (bit1 P).coeff 0 = bit1 P.coeff 0 :=
+  (bit1 P).coeff 0 = bit1 (P.coeff 0) :=
 by simp only [bit1, bit0, coeff_add, coeff_one_zero, pi.add_apply, pi.one_apply]
 
 /-  This lemma is useful to expose the right hypotheses for `tactic.interactive.compute_degree`. -/
@@ -333,12 +333,10 @@ match f with
 | `(X ^ %%n)                          := refine ``(coeff_X_pow_self %%n)
 | `(bit0 %%a) := do
   refine ``((coeff_bit0 _ _).trans _),
-  refine ``((pi.bit0_apply _ _).trans _),
   refine ``(congr_arg bit0 _),
   reflexivity <|> resolve_coeff
 | `(bit1 %%a) := do
   refine ``((coeff_bit1_zero _).trans _),
-  refine ``((pi.bit1_apply _ _).trans _),
   refine ``(congr_arg bit1 _),
   reflexivity <|> resolve_coeff
 | `(%%a + %%b) := do

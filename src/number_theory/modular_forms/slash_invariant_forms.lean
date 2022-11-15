@@ -106,48 +106,58 @@ instance has_add : has_add (slash_invariant_form Γ k) :=
 ⟨λ f g , ⟨ f + g, by {intro γ, convert slash_action.add_action k γ f g,
    exact ((f.slash_action_eq') γ).symm, exact ((g.slash_action_eq') γ).symm} ⟩⟩
 
-@[simp] lemma coe_add {f g : (slash_invariant_form Γ k)} : ⇑(f + g) = f + g := rfl
-@[simp] lemma add_apply {f g : (slash_invariant_form Γ k)} {z : ℍ} : (f + g) z = f z + g z := rfl
+@[simp] lemma coe_add (f g : slash_invariant_form Γ k) : ⇑(f + g) = f + g := rfl
+@[simp] lemma add_apply (f g : slash_invariant_form Γ k) (z : ℍ) : (f + g) z = f z + g z := rfl
 
 instance has_zero : has_zero (slash_invariant_form Γ k) :=
 {zero := ⟨ 0 , slash_action.mul_zero _⟩}
 
-instance has_nsmul : has_smul ℕ (slash_invariant_form Γ k) :=
-⟨ λ c f, {to_fun := (c : ℂ) • f,
-    slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f (c : ℂ),
-    exact ((f.slash_action_eq') γ).symm}}⟩
-
-@[simp] lemma coe_nsmul {f : (slash_invariant_form Γ k)} {n : ℕ} : ⇑(n • f) = n • f :=
+lemma nsmul_coe [slash_invariant_form_class F Γ k] (f : F) (c : ℕ) :
+  c • (f : ℍ → ℂ) = (c : ℂ) • f :=
 begin
-  simp only [nsmul_eq_mul],
-  refl,
+ simp only [nsmul_eq_mul],
+ congr,
 end
 
-@[simp] lemma nsmul_apply {f : (slash_invariant_form Γ k)} {n : ℕ} {z : ℍ} :
-   (n • f) z = (n : ℂ) • (f z) := rfl
+lemma zsmul_coe [slash_invariant_form_class F Γ k] (f : F) (c : ℤ) :
+  c • (f : ℍ → ℂ) = (c : ℂ) • f :=
+begin
+ simp only [zsmul_eq_mul],
+ congr,
+end
+
+instance has_nsmul : has_smul ℕ (slash_invariant_form Γ k) :=
+⟨ λ c f, {to_fun := c • f,
+    slash_action_eq' := by {intro γ,
+      rw nsmul_coe,
+      convert slash_action.smul_action k γ f (c : ℂ),
+      exact ((f.slash_action_eq') γ).symm},}⟩
+
+@[simp] lemma coe_nsmul (f : slash_invariant_form Γ k) (n : ℕ) : ⇑(n • f) = n • f := rfl
+
+@[simp] lemma nsmul_apply (f : slash_invariant_form Γ k) (n : ℕ) (z : ℍ) :
+   (n • f) z = n • (f z) := rfl
 
 instance has_zsmul : has_smul ℤ (slash_invariant_form Γ k) :=
-⟨ λ c f, {to_fun := (c : ℂ) • f,
-    slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f (c : ℂ),
-    exact ((f.slash_action_eq') γ).symm}}⟩
+⟨ λ c f, {to_fun := c • f,
+    slash_action_eq' := by {intro γ,
+      rw zsmul_coe,
+      convert slash_action.smul_action k γ f (c : ℂ),
+      exact ((f.slash_action_eq') γ).symm},}⟩
 
-@[simp] lemma coe_zsmul {f : (slash_invariant_form Γ k)} {n : ℤ} : ⇑(n • f) = n • f :=
-begin
-  simp only [zsmul_eq_mul],
-  refl,
-end
+@[simp] lemma coe_zsmul (f : slash_invariant_form Γ k) (n : ℤ) : ⇑(n • f) = n • f := rfl
 
-@[simp] lemma zsmul_apply {f : (slash_invariant_form Γ k)} {n : ℤ} {z : ℍ} :
-   (n • f) z = (n : ℂ) • (f z) := rfl
+@[simp] lemma zsmul_apply (f : slash_invariant_form Γ k) (n : ℤ) (z : ℍ) :
+   (n • f) z = n • (f z) := rfl
 
 instance has_csmul : has_smul ℂ (slash_invariant_form Γ k) :=
 ⟨ λ c f, {to_fun := c • f,
     slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ f c,
     exact ((f.slash_action_eq') γ).symm}}⟩
 
-@[simp] lemma coe_csmul {f : (slash_invariant_form Γ k)} {n : ℂ} : ⇑(n • f) = n • f := rfl
-@[simp] lemma csmul_apply {f : (slash_invariant_form Γ k)} {n : ℂ} {z : ℍ} :
-   (n • f) z = n • (f z) := rfl
+@[simp] lemma coe_csmul (f : slash_invariant_form Γ k) (n : ℂ) : ⇑(n • f) = n • f := rfl
+@[simp] lemma csmul_apply (f : slash_invariant_form Γ k) (n : ℂ) (z : ℍ) :
+  (n • f) z = n • (f z) := rfl
 
 instance has_neg : has_neg (slash_invariant_form Γ k) :=
 ⟨λ f, ⟨ -f,
@@ -159,8 +169,8 @@ instance has_neg : has_neg (slash_invariant_form Γ k) :=
   convert this
   end⟩ ⟩
 
-@[simp] lemma coe_neg {f : (slash_invariant_form Γ k)} : ⇑(-f) = -f := rfl
-@[simp] lemma neg_apply {f : (slash_invariant_form Γ k)} {z : ℍ} : (-f) z = - (f z) := rfl
+@[simp] lemma coe_neg (f : slash_invariant_form Γ k) : ⇑(-f) = -f := rfl
+@[simp] lemma neg_apply (f : slash_invariant_form Γ k) (z : ℍ) : (-f) z = - (f z) := rfl
 
 instance has_sub : has_sub (slash_invariant_form Γ k) :=
 ⟨λ f g, ⟨f - g, by { intro γ,
@@ -172,14 +182,13 @@ instance has_sub : has_sub (slash_invariant_form Γ k) :=
   simp only [neg_inj],
   convert ((g.slash_action_eq') γ)} ⟩⟩
 
-@[simp] lemma coe_sub {f g : (slash_invariant_form Γ k)} : ⇑(f - g) = f - g := rfl
-@[simp] lemma sub_apply {f g : (slash_invariant_form Γ k)} {z : ℍ} : (f - g) z = f z - g z := rfl
+@[simp] lemma coe_sub (f g : slash_invariant_form Γ k) : ⇑(f - g) = f - g := rfl
+@[simp] lemma sub_apply (f g : slash_invariant_form Γ k) (z : ℍ) : (f - g) z = f z - g z := rfl
 
 instance : add_comm_group (slash_invariant_form Γ k) :=
-fun_like.coe_injective.add_comm_group _ rfl (λ _ _, coe_add) (λ _, coe_neg) (λ _ _, coe_sub)
-(λ _ _, coe_nsmul) (λ _ _, coe_zsmul)
+fun_like.coe_injective.add_comm_group _ rfl (coe_add) (coe_neg) (coe_sub) (coe_nsmul) (coe_zsmul)
 
-lemma coe_zero : ((0 : (slash_invariant_form Γ k) ) : ℍ → ℂ) = (0 : ℍ → ℂ) := rfl
+lemma coe_zero : ⇑(0 : slash_invariant_form Γ k) = (0 : ℍ → ℂ) := rfl
 
 /--Additive coercieon from `slash_invariant_form` to `ℍ → ℂ`.-/
 def coe_hom : (slash_invariant_form Γ k) →+ (ℍ → ℂ) :=

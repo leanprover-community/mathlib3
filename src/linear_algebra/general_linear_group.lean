@@ -141,7 +141,7 @@ end
 @[simp] lemma mem_GL_pos (A : GL n R) : A ∈ GL_pos n R ↔ 0 < (A.det : R) := iff.rfl
 
 lemma GL_pos.det_ne_zero (A : GL_pos n R) : (A : matrix n n R).det ≠ 0 :=
-ne_of_gt ((mem_GL_pos (A : GL n R)).1 A.prop)
+((mem_GL_pos (A : GL n R)).1 A.prop).ne'
 
 end
 

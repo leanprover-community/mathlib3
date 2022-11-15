@@ -69,13 +69,6 @@ is_iso.eq_inv_of_hom_inv_id $ groupoid.comp_inv f
 @[simps] def groupoid.inv_equiv : (X ⟶ Y) ≃ (Y ⟶ X) :=
 ⟨groupoid.inv, groupoid.inv, λ f, by simp, λ f, by simp⟩
 
-@[priority 100]
-instance groupoid_has_involutive_reverse : quiver.has_involutive_reverse C :=
-{ reverse' := λ X Y f, groupoid.inv f,
-  inv' := λ X Y f, by { dsimp [quiver.reverse], simp, } }
-
-@[simp] lemma groupoid.reverse_eq_inv (f : X ⟶ Y) : quiver.reverse f = groupoid.inv f := rfl
-
 variables (X Y)
 
 /-- In a groupoid, isomorphisms are equivalent to morphisms. -/

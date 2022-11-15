@@ -656,7 +656,7 @@ let ⟨w, hw, hw', hw''⟩ := (orthonormal_empty 𝕜 E).exists_orthonormal_basi
 ⟨w, hw, hw''⟩
 
 /-- A finite-dimensional `inner_product_space` has an orthonormal basis. -/
-def std_orthonormal_basis : orthonormal_basis (fin (finrank 𝕜 E)) 𝕜 E :=
+@[irreducible] def std_orthonormal_basis : orthonormal_basis (fin (finrank 𝕜 E)) 𝕜 E :=
 begin
   let b := classical.some (classical.some_spec $ exists_orthonormal_basis 𝕜 E),
   rw [finrank_eq_card_basis b.to_basis],

@@ -258,7 +258,7 @@ begin
     refine ((cyclotomic.monic p ℤ).comp (monic_X_add_C 1) (λ h, _)),
     rw [nat_degree_X_add_C] at h,
     exact zero_ne_one h.symm },
-  { rw [cyclotomic_eq_geom_sum hp.out, geom_sum_X_comp_X_add_one_eq_sum, ← lcoeff_apply,
+  { rw [cyclotomic_eq_geom_sum, geom_sum_X_comp_X_add_one_eq_sum, ← lcoeff_apply,
       linear_map.map_sum],
     conv { congr, congr, skip, funext,
       rw [lcoeff_apply, ← C_eq_nat_cast, ← monomial_eq_C_mul_X, coeff_monomial] },
@@ -268,7 +268,7 @@ begin
       if_true, ideal.submodule_span_eq, ideal.mem_span_singleton],
     exact int.coe_nat_dvd.2
       (nat.prime.dvd_choose_self (nat.succ_pos i) (lt_tsub_iff_right.1 hi) hp.out) },
-  { rw [coeff_zero_eq_eval_zero, eval_comp, cyclotomic_eq_geom_sum hp.out, eval_add, eval_X,
+  { rw [coeff_zero_eq_eval_zero, eval_comp, cyclotomic_eq_geom_sum, eval_add, eval_X,
       eval_one, zero_add, eval_geom_sum, one_geom_sum,
       ideal.submodule_span_eq, ideal.span_singleton_pow, ideal.mem_span_singleton],
     intro h,

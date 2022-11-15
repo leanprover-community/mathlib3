@@ -168,12 +168,10 @@ by rw [splits_iff_card_roots, ← nth_roots, is_primitive_root.card_nth_roots h,
 `∏ i in nat.divisors n, cyclotomic' i K = X ^ n - 1`. -/
 lemma prod_cyclotomic'_eq_X_pow_sub_one {K : Type*} [comm_ring K] [is_domain K] {ζ : K} {n : ℕ}
   (hn : n ≠ 0) (h : is_primitive_root ζ n) : ∏ i in nat.divisors n, cyclotomic' i K = X ^ n - 1 :=
-begin
-  have hd : (n.divisors : set ℕ).pairwise_disjoint (λ k, primitive_roots k K),
-    from λ x hx y hy hne, is_primitive_root.disjoint hne,
-  simp only [X_pow_sub_one_eq_prod hn h, cyclotomic', ← finset.prod_bUnion hd,
+have hd : (n.divisors : set ℕ).pairwise_disjoint (λ k, primitive_roots k K),
+  from λ x hx y hy hne, is_primitive_root.disjoint hne,
+by simp only [X_pow_sub_one_eq_prod hn h, cyclotomic', ← finset.prod_bUnion hd,
     h.nth_roots_one_eq_bUnion_primitive_roots]
-end
 
 /-- If there is a primitive `n`-th root of unity in `K`, then
 `cyclotomic' n K = (X ^ k - 1) /ₘ (∏ i in nat.proper_divisors k, cyclotomic' i K)`. -/
@@ -366,8 +364,7 @@ begin
   { apply map_injective (int.cast_ring_hom ℂ) int.cast_injective,
     simp only [polynomial.map_prod, int_cyclotomic_spec, polynomial.map_pow, map_X,
                polynomial.map_one, polynomial.map_sub],
-    exact prod_cyclotomic'_eq_X_pow_sub_one hn
-          (complex.is_primitive_root_exp n hn) },
+    exact prod_cyclotomic'_eq_X_pow_sub_one hn (complex.is_primitive_root_exp n hn) },
   simpa only [polynomial.map_prod, map_cyclotomic_int, polynomial.map_sub, polynomial.map_one,
     polynomial.map_pow, polynomial.map_X] using congr_arg (map (int.cast_ring_hom R)) integer
 end
@@ -521,7 +518,7 @@ lemma X_pow_sub_one_dvd_prod_cyclotomic (R : Type*) [comm_ring R] {n m : ℕ} (h
   (hm : m ∣ n) (hdiff : m ≠ n) : X ^ m - 1 ∣ ∏ i in nat.proper_divisors n, cyclotomic i R :=
 begin
   replace hm := nat.mem_proper_divisors.2 ⟨hm, lt_of_le_of_ne (nat.divisor_le (nat.mem_divisors.2
-    ⟨hm, (ne_of_lt hpos).symm⟩)) hdiff⟩,
+    ⟨hm, hpos.ne'⟩)) hdiff⟩,
   rw [← finset.sdiff_union_of_subset (nat.divisors_subset_proper_divisors (ne_of_lt hpos).symm
     (nat.mem_proper_divisors.1 hm).1 (ne_of_lt (nat.mem_proper_divisors.1 hm).2)),
     finset.prod_union finset.sdiff_disjoint,
@@ -684,7 +681,7 @@ end
 
 /-- If `p ^ k` is a prime power, then
 `cyclotomic (p ^ (n + 1)) R = ∑ i in range p, (X ^ (p ^ n)) ^ i`. -/
-lemma cyclotomic_prime_pow_eq_geom_sum {R : Type*} [comm_ring R] {p n : ℕ} (hp : nat.prime p) :
+lemma cyclotomic_prime_pow_eq_geom_sum {R : Type*} [comm_ring R] {p n : ℕ} (hp : p.prime) :
   cyclotomic (p ^ (n + 1)) R = ∑ i in finset.range p, (X ^ (p ^ n)) ^ i :=
 begin
   have : ∀ m, cyclotomic (p ^ (m + 1)) R = ∑ i in finset.range p, (X ^ (p ^ m)) ^ i ↔
@@ -695,7 +692,7 @@ begin
     rw eq_comm at this,
     rw [this, nat.prod_proper_divisors_prime_pow hp], },
   induction n with n ihn,
-  { simp [cyclotomic_eq_geom_sum hp], },
+  { haveI := fact.mk hp, simp [cyclotomic_eq_geom_sum], },
   rw ((eq_cyclotomic_iff (pow_ne_zero _ hp.ne_zero) _).mpr _).symm,
   rw [nat.prod_proper_divisors_prime_pow hp, finset.prod_range_succ, ihn],
   rw this at ihn,

@@ -26,7 +26,7 @@ open_locale big_operators
 
 @[simp] lemma eval_one_cyclotomic_prime {R : Type*} [comm_ring R] {p : ℕ} [hn : fact p.prime] :
   eval 1 (cyclotomic p R) = p :=
-by simp only [cyclotomic_eq_geom_sum hn.out, eval_X, one_pow, finset.sum_const, eval_pow,
+by simp only [cyclotomic_eq_geom_sum, eval_X, one_pow, finset.sum_const, eval_pow,
               eval_finset_sum, finset.card_range, smul_one_eq_coe]
 
 @[simp] lemma eval₂_one_cyclotomic_prime {R S : Type*} [comm_ring R] [semiring S] (f : R →+* S)

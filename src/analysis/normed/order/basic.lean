@@ -25,7 +25,8 @@ class normed_ordered_add_group (α : Type*)
 (dist_eq : ∀ x y, dist x y = ∥x - y∥ . obviously)
 
 /-- A `normed_ordered_group` is a group that is both a `normed_comm_group` and an
-`ordered_comm_group`. This class is necessary to avoid diamonds. -/
+`ordered_comm_group`. This class is necessary to avoid diamonds caused by both classes
+carrying their own group structure. -/
 @[to_additive]
 class normed_ordered_group (α : Type*) extends ordered_comm_group α, has_norm α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = ∥x / y∥ . obviously)

@@ -2169,6 +2169,36 @@ begin
   exact H'.false
 end
 
+instance pi.infinite_of_left {ι : Sort*} {π : ι → Sort*} [∀ i, nontrivial $ π i]
+  [infinite ι] : infinite (Π i : ι, π i) :=
+begin
+  choose m n hm using λ i, exists_pair_ne (π i),
+  refine infinite.of_injective (λ i, m.update i (n i)) (λ x y h, not_not.1 $ λ hne, _),
+  simp_rw [update_eq_iff, update_noteq hne] at h,
+  exact (hm x h.1.symm).elim,
+end
+
+/-- If at least one `π i` is infinite and the rest nonempty, the pi type of all `π` is infinite. -/
+lemma pi.infinite_of_exists_right {ι : Type*} {π : ι → Type*} (i : ι)
+  [infinite $ π i] [∀ i, nonempty $ π i] :
+  infinite (Π i : ι, π i) :=
+let ⟨m⟩ := @pi.nonempty ι π _ in infinite.of_injective _ (update_injective m i)
+
+/-- See `pi.infinite_of_exists_right` for the case that only one `π i` is infinite. -/
+instance pi.infinite_of_right {ι : Sort*} {π : ι → Sort*} [∀ i, infinite $ π i] [nonempty ι] :
+  infinite (Π i : ι, π i) :=
+pi.infinite_of_exists_right (classical.arbitrary ι)
+
+/-- Non-dependent version of `pi.infinite_of_left`. -/
+instance function.infinite_of_left {ι π : Sort*} [nontrivial π]
+  [infinite ι] : infinite (ι → π) :=
+pi.infinite_of_left
+
+/-- Non-dependent version of `pi.infinite_of_exists_right` and `pi.infinite_of_right`. -/
+instance function.infinite_of_right {ι π : Sort*} [infinite π] [nonempty ι] :
+  infinite (ι → π) :=
+pi.infinite_of_right
+
 namespace infinite
 
 private noncomputable def nat_embedding_aux (α : Type*) [infinite α] : ℕ → α

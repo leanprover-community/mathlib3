@@ -614,7 +614,7 @@ lemma supr_dual_annihilator_le_infi {ι : Type*} (U : ι → submodule R M) :
   (⨆ (i : ι), (U i).dual_annihilator) ≤ (⨅ (i : ι), U i).dual_annihilator :=
 begin
   rw [le_dual_annihilator_iff_le_dual_annihilator_comap, dual_annihilator_comap_supr_eq],
-  apply' infi_le_infi,
+  apply' infi_mono,
   exact λ (i : ι), le_dual_annihilator_dual_annihilator_comap (U i),
 end
 

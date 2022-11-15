@@ -797,11 +797,7 @@ variables [division_ring K] [add_comm_group V] [module K V]
 
 instance finite_dimensional_finsupp {ι : Type*} [_root_.finite ι] [h : finite_dimensional K V] :
   finite_dimensional K (ι →₀ V) :=
-begin
-  casesI nonempty_fintype ι,
-  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
-  exact (finsupp.linear_equiv_fun_on_finite K V ι).symm.finite_dimensional
-end
+(finsupp.linear_equiv_fun_on_finite K V ι).symm.finite_dimensional
 
 end
 

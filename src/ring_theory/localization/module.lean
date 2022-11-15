@@ -3,7 +3,7 @@ Copyright (c) 2022 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Junyan Xu, Anne Baanen
 -/
-import linear_algebra.linear_independent
+import linear_algebra.basis
 import ring_theory.localization.fraction_ring
 import ring_theory.localization.integer
 
@@ -43,7 +43,7 @@ begin
   choose a g' hg' using is_localization.exist_integer_multiples S s g,
   letI := λ i, classical.prop_decidable (i ∈ s),
   specialize hli s (λ i, if hi : i ∈ s then g' i hi else 0) _ i hi,
-  { rw [← @smul_zero _ M _ _ _ (a : R), ← hg, finset.smul_sum],
+  { rw [← @smul_zero _ M _ _ (a : R), ← hg, finset.smul_sum],
     refine finset.sum_congr rfl (λ i hi, _),
     dsimp only,
     rw [dif_pos hi, ← is_scalar_tower.algebra_map_smul Rₛ, hg' i hi, smul_assoc],

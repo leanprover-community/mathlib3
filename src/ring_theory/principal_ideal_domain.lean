@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Morenikeji Neri
 -/
+import algebra.euclidean_domain.instances
 import ring_theory.unique_factorization_domain
 
 /-!
@@ -104,7 +105,7 @@ lemma prime_generator_of_is_prime (S : ideal R) [submodule.is_principal S] [is_p
   prime (generator S) :=
 ⟨λ h, ne_bot ((eq_bot_iff_generator_eq_zero S).2 h),
  λ h, is_prime.ne_top (S.eq_top_of_is_unit_mem (generator_mem S) h),
- by simpa only [← mem_iff_generator_dvd S] using is_prime.2⟩
+ λ _ _, by simpa only [← mem_iff_generator_dvd S] using is_prime.2⟩
 
 -- Note that the converse may not hold if `ϕ` is not injective.
 lemma generator_map_dvd_of_mem {N : submodule R M}

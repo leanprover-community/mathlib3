@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Thomas Browning
 -/
+import dynamics.periodic_pts
 import group_theory.group_action.basic
 import group_theory.quotient_group
 
@@ -74,6 +75,11 @@ by rw [←quotient.smul_mk, quotient_group.out_eq']
 @[simp, to_additive] lemma quotient.coe_smul_out' [quotient_action β H] (b : β) (q : α ⧸ H) :
   ↑(b • q.out') = b • q :=
 quotient.mk_smul_out' H b q
+
+lemma _root_.quotient_group.out'_conj_pow_minimal_period_mem
+  (a : α) (q : α ⧸ H) : q.out'⁻¹ * a ^ function.minimal_period ((•) a) q * q.out' ∈ H :=
+by rw [mul_assoc, ←quotient_group.eq', quotient_group.out_eq', ←smul_eq_mul, quotient.mk_smul_out',
+  eq_comm, pow_smul_eq_iff_minimal_period_dvd]
 
 end quotient_action
 
@@ -272,14 +278,6 @@ begin
     exact H.normal_core.inv_mem hg g'⁻¹ },
   { rw [←H.inv_mem_iff, ←mul_one g⁻¹, ←quotient_group.eq, ←mul_one g],
     exact (mul_action.quotient.smul_mk H g 1).symm.trans (equiv.perm.ext_iff.mp hg (1 : G)) },
-end
-
-noncomputable instance fintype_quotient_normal_core [fintype (G ⧸ H)] :
-  fintype (G ⧸ H.normal_core) :=
-begin
-  rw H.normal_core_eq_ker,
-  classical,
-  exact fintype.of_equiv _ (quotient_group.quotient_ker_equiv_range _).symm.to_equiv,
 end
 
 end subgroup

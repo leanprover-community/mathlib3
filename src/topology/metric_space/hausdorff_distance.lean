@@ -86,6 +86,14 @@ calc (⨅ z ∈ s, edist x z) ≤ ⨅ z ∈ s, edist y z + edist x y :
 lemma inf_edist_le_edist_add_inf_edist : inf_edist x s ≤ edist x y + inf_edist y s :=
 by { rw add_comm, exact inf_edist_le_inf_edist_add_edist }
 
+lemma edist_le_inf_edist_add_ediam (hy : y ∈ s) : edist x y ≤ inf_edist x s + diam s :=
+begin
+  simp_rw [inf_edist, ennreal.infi_add],
+  refine le_infi (λ i, le_infi (λ hi, _)),
+  calc edist x y ≤ edist x i + edist i y : edist_triangle _ _ _
+  ... ≤ edist x i + diam s : add_le_add le_rfl (edist_le_diam_of_mem hi hy)
+end
+
 /-- The edist to a set depends continuously on the point -/
 @[continuity]
 lemma continuous_inf_edist : continuous (λx, inf_edist x s) :=
@@ -181,7 +189,7 @@ begin
   obtain ⟨x, hx, h⟩ : ∃ x ∈ s, ∀ y ∈ s, inf_edist x t ≤ inf_edist y t :=
     hs.exists_forall_le hne continuous_inf_edist.continuous_on,
   have : 0 < inf_edist x t,
-    from pos_iff_ne_zero.2 (λ H, hst ⟨hx, (mem_iff_inf_edist_zero_of_closed ht).mpr H⟩),
+    from pos_iff_ne_zero.2 (λ H, hst.le_bot ⟨hx, (mem_iff_inf_edist_zero_of_closed ht).mpr H⟩),
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 this with ⟨r, h₀, hr⟩,
   exact ⟨r, ennreal.coe_pos.mp h₀, λ y hy z hz, hr.trans_le $ le_inf_edist.1 (h y hy) z hz⟩
 end
@@ -474,6 +482,17 @@ ball_inf_dist_subset_compl.trans (compl_compl s).subset
 lemma disjoint_closed_ball_of_lt_inf_dist {r : ℝ} (h : r < inf_dist x s) :
   disjoint (closed_ball x r) s :=
 disjoint_ball_inf_dist.mono_left $ closed_ball_subset_ball h
+
+lemma dist_le_inf_dist_add_diam (hs : bounded s) (hy : y ∈ s) : dist x y ≤ inf_dist x s + diam s :=
+begin
+  have A : inf_edist x s ≠ ∞, from inf_edist_ne_top ⟨y, hy⟩,
+  have B : emetric.diam s ≠ ∞, from hs.ediam_ne_top,
+  rw [inf_dist, diam, ← ennreal.to_real_add A B, dist_edist],
+  apply (ennreal.to_real_le_to_real _ _).2,
+  { exact edist_le_inf_edist_add_ediam hy },
+  { rw edist_dist, exact ennreal.of_real_ne_top },
+  { exact ennreal.add_ne_top.2 ⟨A, B⟩ }
+end
 
 variable (s)
 
@@ -933,6 +952,9 @@ by { ext x, simp [mem_closure_iff_inf_edist_zero, cthickening, ennreal.of_real_e
 @[simp] lemma cthickening_zero (E : set α) : cthickening 0 E = closure E :=
 cthickening_of_nonpos le_rfl E
 
+lemma cthickening_max_zero (δ : ℝ) (E : set α) : cthickening (max 0 δ) E = cthickening δ E :=
+by cases le_total δ 0; simp [cthickening_of_nonpos, *]
+
 /-- The closed thickening `cthickening δ E` of a fixed subset `E` is an increasing function of
 the thickening radius `δ`. -/
 lemma cthickening_mono {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) :
@@ -990,7 +1012,7 @@ end
 
 lemma thickening_subset_interior_cthickening (δ : ℝ) (E : set α) :
   thickening δ E ⊆ interior (cthickening δ E) :=
-(subset_interior_iff_open.mpr (is_open_thickening)).trans
+(subset_interior_iff_is_open.mpr (is_open_thickening)).trans
   (interior_mono (thickening_subset_cthickening δ E))
 
 lemma closure_thickening_subset_cthickening (δ : ℝ) (E : set α) :
@@ -1035,6 +1057,54 @@ by simp_rw [cthickening, inf_edist_union, inf_eq_min, min_le_iff, set_of_or]
   thickening δ (⋃ i, f i) = ⋃ i, thickening δ (f i) :=
 by simp_rw [thickening, inf_edist_Union, infi_lt_iff, set_of_exists]
 
+lemma ediam_cthickening_le (ε : ℝ≥0) : emetric.diam (cthickening ε s) ≤ emetric.diam s + 2 * ε :=
+begin
+  refine diam_le (λ x hx y hy, ennreal.le_of_forall_pos_le_add $ λ δ hδ _, _),
+  rw [mem_cthickening_iff, ennreal.of_real_coe_nnreal] at hx hy,
+  have hε : (ε : ℝ≥0∞) < ε + ↑(δ / 2) :=
+    ennreal.coe_lt_coe.2 (lt_add_of_pos_right _ $ half_pos hδ),
+  rw [ennreal.coe_div two_ne_zero, ennreal.coe_two] at hε,
+  replace hx := hx.trans_lt hε,
+  replace hy := hy.trans_lt hε,
+  rw inf_edist_lt_iff at hx hy,
+  obtain ⟨x', hx', hxx'⟩ := hx,
+  obtain ⟨y', hy', hyy'⟩ := hy,
+  refine (edist_triangle_right _ _ _).trans ((add_le_add hxx'.le $ (edist_triangle _ _ _).trans $
+    add_le_add hyy'.le $ edist_le_diam_of_mem hy' hx').trans_eq _),
+  -- Now we're done, but `ring` won't do it because we're on `ennreal` :(
+  rw [←add_assoc, ←two_mul, mul_add,
+    ennreal.mul_div_cancel' ennreal.two_ne_zero ennreal.two_ne_top],
+  abel,
+end
+
+lemma ediam_thickening_le (ε : ℝ≥0) : emetric.diam (thickening ε s) ≤ emetric.diam s + 2 * ε :=
+(emetric.diam_mono $ thickening_subset_cthickening _ _).trans $ ediam_cthickening_le _
+
+lemma diam_cthickening_le {α : Type*} [pseudo_metric_space α] (s : set α) (hε : 0 ≤ ε) :
+  diam (cthickening ε s) ≤ diam s + 2 * ε :=
+begin
+  by_cases hs : bounded (cthickening ε s),
+  { replace hs := hs.mono (self_subset_cthickening _),
+    have : (2 : ℝ≥0∞) * @coe ℝ≥0 _ _ ⟨ε, hε⟩ ≠ ⊤ := by simp,
+    refine (ennreal.to_real_mono (ennreal.add_ne_top.2 ⟨hs.ediam_ne_top, this⟩) $
+      ediam_cthickening_le ⟨ε, hε⟩).trans_eq _,
+    simp [ennreal.to_real_add hs.ediam_ne_top this, diam] },
+  { rw diam_eq_zero_of_unbounded hs,
+    positivity }
+end
+
+lemma diam_thickening_le {α : Type*} [pseudo_metric_space α] (s : set α) (hε : 0 ≤ ε) :
+  diam (thickening ε s) ≤ diam s + 2 * ε :=
+begin
+  by_cases hs : bounded s,
+  { exact (diam_mono (thickening_subset_cthickening _ _) hs.cthickening).trans
+      (diam_cthickening_le _ hε) },
+  obtain rfl | hε := hε.eq_or_lt,
+  { simp [thickening_of_nonpos, diam_nonneg] },
+  { rw diam_eq_zero_of_unbounded (mt (bounded.mono $ self_subset_thickening hε _) hs),
+    positivity }
+end
+
 @[simp] lemma thickening_closure : thickening δ (closure s) = thickening δ s :=
 by simp_rw [thickening, inf_edist_closure]
 
@@ -1049,6 +1119,7 @@ lemma _root_.disjoint.exists_thickenings (hst : disjoint s t) (hs : is_compact s
 begin
   obtain ⟨r, hr, h⟩ := exists_pos_forall_lt_edist hs ht hst,
   refine ⟨r / 2, half_pos (nnreal.coe_pos.2 hr), _⟩,
+  rw disjoint_iff_inf_le,
   rintro z ⟨hzs, hzt⟩,
   rw mem_thickening_iff_exists_edist_lt at hzs hzt,
   rw [← nnreal.coe_two, ← nnreal.coe_div, ennreal.of_real_coe_nnreal] at hzs hzt,
@@ -1135,6 +1206,10 @@ begin
   simp_rw inter_eq_right_iff_subset.mpr Ioc_subset_Ioi_self,
   exact λ _ hε, nonempty_Ioc.mpr hε,
 end
+
+lemma cthickening_eq_Inter_thickening'' (δ : ℝ) (E : set α) :
+  cthickening δ E = ⋂ (ε : ℝ) (h : max 0 δ < ε), thickening ε E :=
+by { rw [←cthickening_max_zero, cthickening_eq_Inter_thickening], exact le_max_left _ _ }
 
 /-- The closure of a set equals the intersection of its closed thickenings of positive radii
 accumulating at zero. -/

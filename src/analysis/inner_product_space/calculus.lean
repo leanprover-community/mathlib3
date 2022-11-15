@@ -53,7 +53,7 @@ lemma differentiable_inner : differentiable ℝ (λ p : E × E, ⟪p.1, p.2⟫) 
 is_bounded_bilinear_map_inner.differentiable_at
 
 variables {G : Type*} [normed_add_comm_group G] [normed_space ℝ G]
-  {f g : G → E} {f' g' : G →L[ℝ] E} {s : set G} {x : G} {n : with_top ℕ}
+  {f g : G → E} {f' g' : G →L[ℝ] E} {s : set G} {x : G} {n : ℕ∞}
 
 include 𝕜
 
@@ -304,28 +304,28 @@ begin
   refl
 end
 
-lemma cont_diff_within_at_euclidean {n : with_top ℕ} :
+lemma cont_diff_within_at_euclidean {n : ℕ∞} :
   cont_diff_within_at 𝕜 n f t y ↔ ∀ i, cont_diff_within_at 𝕜 n (λ x, f x i) t y :=
 begin
   rw [← (euclidean_space.equiv ι 𝕜).comp_cont_diff_within_at_iff, cont_diff_within_at_pi],
   refl
 end
 
-lemma cont_diff_at_euclidean {n : with_top ℕ} :
+lemma cont_diff_at_euclidean {n : ℕ∞} :
   cont_diff_at 𝕜 n f y ↔ ∀ i, cont_diff_at 𝕜 n (λ x, f x i) y :=
 begin
   rw [← (euclidean_space.equiv ι 𝕜).comp_cont_diff_at_iff, cont_diff_at_pi],
   refl
 end
 
-lemma cont_diff_on_euclidean {n : with_top ℕ} :
+lemma cont_diff_on_euclidean {n : ℕ∞} :
   cont_diff_on 𝕜 n f t ↔ ∀ i, cont_diff_on 𝕜 n (λ x, f x i) t :=
 begin
   rw [← (euclidean_space.equiv ι 𝕜).comp_cont_diff_on_iff, cont_diff_on_pi],
   refl
 end
 
-lemma cont_diff_euclidean {n : with_top ℕ} :
+lemma cont_diff_euclidean {n : ℕ∞} :
   cont_diff 𝕜 n f ↔ ∀ i, cont_diff 𝕜 n (λ x, f x i) :=
 begin
   rw [← (euclidean_space.equiv ι 𝕜).comp_cont_diff_iff, cont_diff_pi],
@@ -333,3 +333,41 @@ begin
 end
 
 end pi_like
+
+section diffeomorph_unit_ball
+
+open metric (hiding mem_nhds_iff)
+
+variables {n : ℕ∞} {E : Type*} [inner_product_space ℝ E]
+
+lemma cont_diff_homeomorph_unit_ball :
+  cont_diff ℝ n $ λ (x : E), (homeomorph_unit_ball x : E) :=
+begin
+  suffices : cont_diff ℝ n (λ x, (1 + ∥x∥^2).sqrt⁻¹), { exact this.smul cont_diff_id, },
+  have h : ∀ (x : E), 0 < 1 + ∥x∥ ^ 2 := λ x, by positivity,
+  refine cont_diff.inv _ (λ x, real.sqrt_ne_zero'.mpr (h x)),
+  exact (cont_diff_const.add cont_diff_norm_sq).sqrt (λ x, (h x).ne.symm),
+end
+
+lemma cont_diff_on_homeomorph_unit_ball_symm
+  {f : E → E} (h : ∀ y (hy : y ∈ ball (0 : E) 1), f y = homeomorph_unit_ball.symm ⟨y, hy⟩) :
+  cont_diff_on ℝ n f $ ball 0 1 :=
+begin
+  intros y hy,
+  apply cont_diff_at.cont_diff_within_at,
+  have hf : f =ᶠ[𝓝 y] λ y, (1 - ∥(y : E)∥^2).sqrt⁻¹ • (y : E),
+  { rw eventually_eq_iff_exists_mem,
+    refine ⟨ball (0 : E) 1, mem_nhds_iff.mpr ⟨ball (0 : E) 1, set.subset.refl _, is_open_ball, hy⟩,
+      λ z hz, _⟩,
+    rw h z hz,
+    refl, },
+  refine cont_diff_at.congr_of_eventually_eq _ hf,
+  suffices : cont_diff_at ℝ n (λy, (1 - ∥(y : E)∥^2).sqrt⁻¹) y, { exact this.smul cont_diff_at_id },
+  have h : 0 < 1 - ∥(y : E)∥^2, by rwa [mem_ball_zero_iff, ← _root_.abs_one, ← abs_norm_eq_norm,
+    ← sq_lt_sq, one_pow, ← sub_pos] at hy,
+  refine cont_diff_at.inv _ (real.sqrt_ne_zero'.mpr h),
+  refine cont_diff_at.comp _ (cont_diff_at_sqrt h.ne.symm) _,
+  exact cont_diff_at_const.sub cont_diff_norm_sq.cont_diff_at,
+end
+
+end diffeomorph_unit_ball

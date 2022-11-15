@@ -270,6 +270,16 @@ begin
   congr' 1 with z, simp [submonoid.closure_union, submonoid.mem_sup, set.mem_mul]
 end
 
+lemma adjoin_adjoin_of_tower [semiring B] [algebra R B] [algebra A B] [is_scalar_tower R A B]
+  (s : set B) : adjoin A (adjoin R s : set B) = adjoin A s :=
+begin
+  apply le_antisymm (adjoin_le _),
+  { exact adjoin_mono subset_adjoin },
+  { change adjoin R s ≤ (adjoin A s).restrict_scalars R,
+    refine adjoin_le _,
+    exact subset_adjoin }
+end
+
 variable {R}
 
 lemma pow_smul_mem_of_smul_subset_of_mem_adjoin

@@ -179,7 +179,7 @@ variables {ι 𝕜 E F : Type*} [normed_add_comm_group E]
 interval `a..b` if it is integrable on both intervals `(a, b]` and `(b, a]`. One of these
 intervals is always empty, so this property is equivalent to `f` being integrable on
 `(min a b, max a b]`. -/
-def interval_integrable (f : ℝ → E) (μ : measure ℝ) (a b : ℝ) :=
+def interval_integrable (f : ℝ → E) (μ : measure ℝ) (a b : ℝ) : Prop :=
 integrable_on f (Ioc a b) μ ∧ integrable_on f (Ioc b a) μ
 
 section
@@ -201,8 +201,7 @@ lemma interval_integrable_iff_integrable_Ioc_of_le (hab : a ≤ b) :
   interval_integrable f μ a b ↔ integrable_on f (Ioc a b) μ :=
 by rw [interval_integrable_iff, interval_oc_of_le hab]
 
-lemma integrable_on_Icc_iff_integrable_on_Ioc'
-  {E : Type*} [normed_add_comm_group E] {f : ℝ → E} (ha : μ {a} ≠ ∞) :
+lemma integrable_on_Icc_iff_integrable_on_Ioc' {f : ℝ → E} (ha : μ {a} ≠ ∞) :
   integrable_on f (Icc a b) μ ↔ integrable_on f (Ioc a b) μ :=
 begin
   cases le_or_lt a b with hab hab,
@@ -212,13 +211,11 @@ begin
   { simp [hab, hab.le] },
 end
 
-lemma integrable_on_Icc_iff_integrable_on_Ioc
-  {E : Type*}[normed_add_comm_group E] [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
+lemma integrable_on_Icc_iff_integrable_on_Ioc [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
   integrable_on f (Icc a b) μ ↔ integrable_on f (Ioc a b) μ :=
 integrable_on_Icc_iff_integrable_on_Ioc' (by simp)
 
 lemma integrable_on_Ioc_iff_integrable_on_Ioo'
-  {E : Type*} [normed_add_comm_group E]
   {f : ℝ → E} {a b : ℝ} (hb : μ {b} ≠ ∞) :
   integrable_on f (Ioc a b) μ ↔ integrable_on f (Ioo a b) μ :=
 begin
@@ -229,13 +226,11 @@ begin
   { simp [hab] },
 end
 
-lemma integrable_on_Ioc_iff_integrable_on_Ioo
-  {E : Type*} [normed_add_comm_group E] [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
+lemma integrable_on_Ioc_iff_integrable_on_Ioo [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
   integrable_on f (Ioc a b) μ ↔ integrable_on f (Ioo a b) μ :=
 integrable_on_Ioc_iff_integrable_on_Ioo' (by simp)
 
-lemma integrable_on_Icc_iff_integrable_on_Ioo
-  {E : Type*} [normed_add_comm_group E] [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
+lemma integrable_on_Icc_iff_integrable_on_Ioo [has_no_atoms μ] {f : ℝ → E} {a b : ℝ} :
   integrable_on f (Icc a b) μ ↔ integrable_on f (Ioo a b) μ :=
 by rw [integrable_on_Icc_iff_integrable_on_Ioc, integrable_on_Ioc_iff_integrable_on_Ioo]
 
@@ -243,13 +238,12 @@ lemma interval_integrable_iff' [has_no_atoms μ] :
   interval_integrable f μ a b ↔ integrable_on f (interval a b) μ :=
 by rw [interval_integrable_iff, interval, interval_oc, integrable_on_Icc_iff_integrable_on_Ioc]
 
-lemma interval_integrable_iff_integrable_Icc_of_le {E : Type*} [normed_add_comm_group E]
+lemma interval_integrable_iff_integrable_Icc_of_le
   {f : ℝ → E} {a b : ℝ} (hab : a ≤ b) {μ : measure ℝ} [has_no_atoms μ] :
   interval_integrable f μ a b ↔ integrable_on f (Icc a b) μ :=
 by rw [interval_integrable_iff_integrable_Ioc_of_le hab, integrable_on_Icc_iff_integrable_on_Ioc]
 
-lemma integrable_on_Ici_iff_integrable_on_Ioi'
-  {E : Type*} [normed_add_comm_group E] {f : ℝ → E} (ha : μ {a} ≠ ∞) :
+lemma integrable_on_Ici_iff_integrable_on_Ioi' {f : ℝ → E} (ha : μ {a} ≠ ∞) :
   integrable_on f (Ici a) μ ↔ integrable_on f (Ioi a) μ :=
 begin
   have : Ici a = Icc a a ∪ Ioi a := (Icc_union_Ioi_eq_Ici le_rfl).symm,
@@ -257,8 +251,7 @@ begin
   simp [ha.lt_top]
 end
 
-lemma integrable_on_Ici_iff_integrable_on_Ioi
-  {E : Type*} [normed_add_comm_group E] [has_no_atoms μ] {f : ℝ → E} :
+lemma integrable_on_Ici_iff_integrable_on_Ioi [has_no_atoms μ] {f : ℝ → E} :
   integrable_on f (Ici a) μ ↔ integrable_on f (Ioi a) μ :=
 integrable_on_Ici_iff_integrable_on_Ioi' (by simp)
 
@@ -322,6 +315,11 @@ lemma norm (h : interval_integrable f μ a b) :
   interval_integrable (λ x, ∥f x∥) μ a b  :=
 ⟨h.1.norm, h.2.norm⟩
 
+lemma interval_integrable_norm_iff {f : ℝ → E} {μ : measure ℝ} {a b : ℝ}
+  (hf : ae_strongly_measurable f (μ.restrict (Ι a b))) :
+  interval_integrable (λ t, ∥f t∥) μ a b ↔ interval_integrable f μ a b :=
+by { simp_rw [interval_integrable_iff, integrable_on], exact integrable_norm_iff hf }
+
 lemma abs {f : ℝ → ℝ} (h : interval_integrable f μ a b) :
   interval_integrable (λ x, |f x|) μ a b  :=
 h.norm
@@ -331,17 +329,21 @@ lemma mono (hf : interval_integrable f ν a b) (h1 : [c, d] ⊆ [a, b]) (h2 : μ
 interval_integrable_iff.mpr $ hf.def.mono
   (interval_oc_subset_interval_oc_of_interval_subset_interval h1) h2
 
-lemma mono_set (hf : interval_integrable f μ a b) (h : [c, d] ⊆ [a, b]) :
-  interval_integrable f μ c d :=
-hf.mono h rfl.le
-
 lemma mono_measure (hf : interval_integrable f ν a b) (h : μ ≤ ν) :
   interval_integrable f μ a b :=
 hf.mono rfl.subset h
 
+lemma mono_set (hf : interval_integrable f μ a b) (h : [c, d] ⊆ [a, b]) :
+  interval_integrable f μ c d :=
+hf.mono h rfl.le
+
 lemma mono_set_ae (hf : interval_integrable f μ a b) (h : Ι c d ≤ᵐ[μ] Ι a b) :
   interval_integrable f μ c d :=
 interval_integrable_iff.mpr $ hf.def.mono_set_ae h
+
+lemma mono_set' (hf : interval_integrable f μ a b) (hsub : Ι c d ⊆ Ι a b) :
+  interval_integrable f μ c d :=
+hf.mono_set_ae $ eventually_of_forall hsub
 
 lemma mono_fun [normed_add_comm_group F] {g : ℝ → F}
   (hf : interval_integrable f μ a b) (hgm : ae_strongly_measurable g (μ.restrict (Ι a b)))
@@ -394,6 +396,14 @@ lemma continuous_on_mul {f g : ℝ → ℝ} (hf : interval_integrable f μ a b)
   (hg : continuous_on g [a, b]) :
   interval_integrable (λ x, g x * f x) μ a b :=
 by simpa [mul_comm] using hf.mul_continuous_on hg
+
+lemma const_mul {f : ℝ → ℝ} {a b : ℝ} {μ : measure ℝ}
+  (hf : interval_integrable f μ a b) (c : ℝ) : interval_integrable (λ x, c * f x) μ a b :=
+hf.continuous_on_mul continuous_on_const
+
+lemma mul_const {f : ℝ → ℝ} {a b : ℝ} {μ : measure ℝ}
+  (hf : interval_integrable f μ a b) (c : ℝ) : interval_integrable (λ x, f x * c) μ a b :=
+hf.mul_continuous_on continuous_on_const
 
 lemma comp_mul_left (hf : interval_integrable f volume a b) (c : ℝ) :
   interval_integrable (λ x, f (c * x)) volume (a / c) (b / c) :=
@@ -511,7 +521,7 @@ variables [complete_space E] [normed_space ℝ E]
 /-- The interval integral `∫ x in a..b, f x ∂μ` is defined
 as `∫ x in Ioc a b, f x ∂μ - ∫ x in Ioc b a, f x ∂μ`. If `a ≤ b`, then it equals
 `∫ x in Ioc a b, f x ∂μ`, otherwise it equals `-∫ x in Ioc b a, f x ∂μ`. -/
-def interval_integral (f : ℝ → E) (a b : ℝ) (μ : measure ℝ) :=
+def interval_integral (f : ℝ → E) (a b : ℝ) (μ : measure ℝ) : E :=
 ∫ x in Ioc a b, f x ∂μ - ∫ x in Ioc b a, f x ∂μ
 
 notation `∫` binders ` in ` a `..` b `, ` r:(scoped:60 f, f) ` ∂` μ:70 := interval_integral r a b μ
@@ -546,6 +556,17 @@ begin
   { simp only [integral_of_ge (not_le.1 h).le, interval_oc_of_lt (not_le.1 h), neg_one_smul] }
 end
 
+lemma norm_interval_integral_eq (f : ℝ → E) (a b : ℝ) (μ : measure ℝ) :
+  ∥∫ x in a..b, f x ∂μ∥ = ∥∫ x in Ι a b, f x ∂μ∥ :=
+begin
+  simp_rw [interval_integral_eq_integral_interval_oc, norm_smul],
+  split_ifs; simp only [norm_neg, norm_one, one_mul],
+end
+
+lemma abs_interval_integral_eq (f : ℝ → ℝ) (a b : ℝ) (μ : measure ℝ) :
+  |∫ x in a..b, f x ∂μ| = |∫ x in Ι a b, f x ∂μ| :=
+norm_interval_integral_eq f a b μ
+
 lemma integral_cases (f : ℝ → E) (a b) :
   ∫ x in a..b, f x ∂μ ∈ ({∫ x in Ι a b, f x ∂μ, -∫ x in Ι a b, f x ∂μ} : set E) :=
 by { rw interval_integral_eq_integral_interval_oc, split_ifs; simp }
@@ -556,6 +577,11 @@ by cases le_total a b with hab hab;
   simp only [integral_of_le, integral_of_ge, hab, neg_eq_zero];
     refine integral_undef (not_imp_not.mpr integrable.integrable_on' _);
       simpa [hab] using not_and_distrib.mp h
+
+lemma interval_integrable_of_integral_ne_zero {a b : ℝ}
+  {f : ℝ → E} {μ : measure ℝ} (h : ∫ x in a..b, f x ∂μ ≠ 0) :
+  interval_integrable f μ a b :=
+by { contrapose! h, exact interval_integral.integral_undef h }
 
 lemma integral_non_ae_strongly_measurable
   (hf : ¬ ae_strongly_measurable f (μ.restrict (Ι a b))) :
@@ -595,6 +621,14 @@ end
 lemma norm_integral_le_integral_norm (h : a ≤ b) :
   ∥∫ x in a..b, f x ∂μ∥ ≤ ∫ x in a..b, ∥f x∥ ∂μ :=
 norm_integral_le_integral_norm_Ioc.trans_eq $ by rw [interval_oc_of_le h, integral_of_le h]
+
+lemma norm_integral_le_of_norm_le {g : ℝ → ℝ}
+  (h : ∀ᵐ t ∂(μ.restrict $ Ι a b), ∥f t∥ ≤ g t)
+  (hbound : interval_integrable g μ a b) :
+  ∥∫ t in a..b, f t ∂μ∥ ≤ |∫ t in a..b, g t ∂μ| :=
+by simp_rw [norm_interval_integral_eq, abs_interval_integral_eq,
+  abs_eq_self.mpr (integral_nonneg_of_ae $ h.mono $ λ t ht, (norm_nonneg _).trans ht),
+  norm_integral_le_of_norm_le hbound.def h]
 
 lemma norm_integral_le_of_norm_le_const_ae {a b C : ℝ} {f : ℝ → E}
   (h : ∀ᵐ x, x ∈ Ι a b → ∥f x∥ ≤ C) :
@@ -661,18 +695,29 @@ lemma integral_smul_measure (c : ℝ≥0∞) :
   ∫ x in a..b, f x ∂(c • μ) = c.to_real • ∫ x in a..b, f x ∂μ :=
 by simp only [interval_integral, measure.restrict_smul, integral_smul_measure, smul_sub]
 
-variables [normed_add_comm_group F] [complete_space F] [normed_space ℝ F]
-
-lemma _root_.continuous_linear_map.interval_integral_comp_comm
-  (L : E →L[ℝ] F) (hf : interval_integrable f μ a b) :
-  ∫ x in a..b, L (f x) ∂μ = L (∫ x in a..b, f x ∂μ) :=
-begin
-  rw [interval_integral, interval_integral, L.integral_comp_comm, L.integral_comp_comm, L.map_sub],
-  exacts [hf.2, hf.1]
-end
-
 end basic
 
+section continuous_linear_map
+
+variables {a b : ℝ} {μ : measure ℝ} {f : ℝ → E}
+variables [is_R_or_C 𝕜] [normed_space 𝕜 E] [normed_add_comm_group F] [normed_space 𝕜 F]
+
+open continuous_linear_map
+
+lemma _root_.continuous_linear_map.interval_integral_apply {a b : ℝ} {φ : ℝ → F →L[𝕜] E}
+  (hφ : interval_integrable φ μ a b) (v : F) :
+  (∫ x in a..b, φ x ∂μ) v = ∫ x in a..b, φ x v ∂μ :=
+by simp_rw [interval_integral_eq_integral_interval_oc, ← integral_apply hφ.def v, coe_smul',
+  pi.smul_apply]
+
+variables [normed_space ℝ F] [complete_space F]
+
+lemma _root_.continuous_linear_map.interval_integral_comp_comm
+  (L : E →L[𝕜] F) (hf : interval_integrable f μ a b) :
+  ∫ x in a..b, L (f x) ∂μ = L (∫ x in a..b, f x ∂μ) :=
+by simp_rw [interval_integral, L.integral_comp_comm hf.1, L.integral_comp_comm hf.2, L.map_sub]
+
+end continuous_linear_map
 section comp
 
 variables {a b c d : ℝ} (f : ℝ → E)
@@ -960,7 +1005,7 @@ begin
 end
 
 /-- Lebesgue dominated convergence theorem for series. -/
-lemma has_sum_integral_of_dominated_convergence {ι} [encodable ι]
+lemma has_sum_integral_of_dominated_convergence {ι} [countable ι]
   {F : ι → ℝ → E} (bound : ι → ℝ → ℝ)
   (hF_meas : ∀ n, ae_strongly_measurable (F n) (μ.restrict (Ι a b)))
   (h_bound : ∀ n, ∀ᵐ t ∂μ, t ∈ Ι a b → ∥F n t∥ ≤ bound n t)

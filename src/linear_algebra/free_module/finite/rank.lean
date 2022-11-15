@@ -83,7 +83,7 @@ lemma finrank_pi_fintype {ι : Type v} [fintype ι] {M : ι → Type w}
   [Π (i : ι), module.finite R (M i)] : finrank R (Π i, M i) = ∑ i, finrank R (M i) :=
 begin
   letI := nontrivial_of_invariant_basis_number R,
-  simp only [finrank, λ i, rank_eq_card_choose_basis_index R (M i), rank_pi_fintype,
+  simp only [finrank, λ i, rank_eq_card_choose_basis_index R (M i), rank_pi_finite,
     ← mk_sigma, mk_to_nat_eq_card, card_sigma],
 end
 

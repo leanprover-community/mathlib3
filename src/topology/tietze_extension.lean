@@ -220,7 +220,8 @@ begin
     whenever `g y = a`, and `0 ≤ dg y ≤ c - a` for all `y`.  -/
     have hd : disjoint (range e ∪ g ⁻¹' (Ici c)) (g ⁻¹' {a}),
     { refine disjoint_union_left.2 ⟨_, disjoint.preimage _ _⟩,
-      { rintro _ ⟨⟨x, rfl⟩, rfl : g (e x) = a⟩,
+      { rw set.disjoint_left,
+        rintro _ ⟨x, rfl⟩ (rfl : g (e x) = a),
         exact ha' ⟨x, (congr_fun hgf x).symm⟩ },
       { exact set.disjoint_singleton_right.2 hac.not_le } },
     rcases exists_bounded_mem_Icc_of_closed_of_le
@@ -249,7 +250,8 @@ begin
   { exact ⟨g, λ y, ⟨xl y, x, hxl y, hgb y⟩, hgf⟩ },
   have hd : disjoint (range e ∪ g ⁻¹' (Iic c)) (g ⁻¹' {b}),
   { refine disjoint_union_left.2 ⟨_, disjoint.preimage _ _⟩,
-    { rintro _ ⟨⟨x, rfl⟩, rfl : g (e x) = b⟩,
+    { rw set.disjoint_left,
+      rintro _ ⟨x, rfl⟩ (rfl : g (e x) = b),
       exact hb' ⟨x, (congr_fun hgf x).symm⟩ },
     { exact set.disjoint_singleton_right.2 hcb.not_le } },
   rcases exists_bounded_mem_Icc_of_closed_of_le
@@ -348,7 +350,7 @@ begin
   rcases F.exists_extension_forall_mem_of_closed_embedding hFt (hne.image _) he
     with ⟨G, hG, hGF⟩,
   set g : C(Y, ℝ) := ⟨h.symm ∘ cod_restrict G _ (λ y, ht_sub (hG y)), h.symm.continuous.comp $
-    continuous_subtype_mk _ G.continuous⟩,
+    G.continuous.subtype_mk _⟩,
   have hgG : ∀ {y a}, g y = a ↔ G y = h a,
     from λ y a, h.to_equiv.symm_apply_eq.trans subtype.ext_iff,
   refine ⟨g, λ y, _, _⟩,

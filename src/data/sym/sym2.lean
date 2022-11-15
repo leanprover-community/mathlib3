@@ -363,6 +363,20 @@ lemma from_rel_proj_prop {sym : symmetric r} {z : α × α} : ⟦z⟧ ∈ from_r
 @[simp]
 lemma from_rel_prop {sym : symmetric r} {a b : α} : ⟦(a, b)⟧ ∈ from_rel sym ↔ r a b := iff.rfl
 
+lemma from_rel_bot : from_rel (λ (x y : α) z, z : symmetric ⊥) = ∅ :=
+begin
+  apply set.eq_empty_of_forall_not_mem (λ e, _),
+  refine e.ind _,
+  simp [-set.bot_eq_empty, Prop.bot_eq_false],
+end
+
+lemma from_rel_top : from_rel (λ (x y : α) z, z : symmetric ⊤) = set.univ :=
+begin
+  apply set.eq_univ_of_forall (λ e, _),
+  refine e.ind _,
+  simp [-set.top_eq_univ, Prop.top_eq_true],
+end
+
 lemma from_rel_irreflexive {sym : symmetric r} :
   irreflexive r ↔ ∀ {z}, z ∈ from_rel sym → ¬is_diag z :=
 { mp  := λ h, sym2.ind $ by { rintros a b hr (rfl : a = b), exact h _ hr },
@@ -402,7 +416,7 @@ private def from_vector : vector α 2 → α × α
 
 private lemma perm_card_two_iff {a₁ b₁ a₂ b₂ : α} :
   [a₁, b₁].perm [a₂, b₂] ↔ a₁ = a₂ ∧ b₁ = b₂ ∨ a₁ = b₂ ∧ b₁ = a₂ :=
-{ mp  := by { simp [← multiset.coe_eq_coe, ← multiset.cons_coe, multiset.cons_eq_cons]; tidy },
+{ mp  := by { simp [← multiset.coe_eq_coe, ← multiset.cons_coe, multiset.cons_eq_cons], tidy },
   mpr := by { intro h, cases h; rw [h.1, h.2], apply list.perm.swap', refl } }
 
 /--
@@ -547,7 +561,7 @@ begin
 end
 
 lemma filter_image_quotient_mk_is_diag [decidable_eq α] (s : finset α) :
-  ((s.product s).image quotient.mk).filter is_diag = s.diag.image quotient.mk :=
+  ((s ×ˢ s).image quotient.mk).filter is_diag = s.diag.image quotient.mk :=
 begin
   ext z,
   induction z using quotient.induction_on,
@@ -563,7 +577,7 @@ begin
 end
 
 lemma filter_image_quotient_mk_not_is_diag [decidable_eq α] (s : finset α) :
-  ((s.product s).image quotient.mk).filter (λ a : sym2 α, ¬a.is_diag) =
+  ((s ×ˢ s).image quotient.mk).filter (λ a : sym2 α, ¬a.is_diag) =
     s.off_diag.image quotient.mk :=
 begin
   ext z,

@@ -47,30 +47,25 @@ matrices, permutation matrices being the extreme points.
 
 See chapter 8 of [Barry Simon, *Convexity*][simon2011]
 
-## TODO
-
-* Both theorems are currently stated for normed `ℝ`-spaces due to our version of geometric
-  Hahn-Banach. They are more generally true in a LCTVS without changes to the proofs.
 -/
 
 open set
 open_locale classical
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {s : set E}
+variables {E : Type*} [add_comm_group E] [module ℝ E] [topological_space E] [t2_space E]
+  [topological_add_group E] [has_continuous_smul ℝ E] [locally_convex_space ℝ E] {s : set E}
 
-/-- **Krein-Milman lemma**: In a LCTVS (currently only in normed `ℝ`-spaces), any nonempty compact
-set has an extreme point. -/
+/-- **Krein-Milman lemma**: In a LCTVS, any nonempty compact set has an extreme point. -/
 lemma is_compact.has_extreme_point (hscomp : is_compact s) (hsnemp : s.nonempty) :
   (s.extreme_points ℝ).nonempty :=
 begin
   let S : set (set E) := {t | t.nonempty ∧ is_closed t ∧ is_extreme ℝ s t},
-  suffices h : ∃ t ∈ S, ∀ u ∈ S, u ⊆ t → u = t,
-  { obtain ⟨t, ⟨⟨x, hxt⟩, htclos, hst⟩, hBmin⟩ := h,
-    refine ⟨x, mem_extreme_points_iff_extreme_singleton.2 _⟩,
+  rsuffices ⟨t, ⟨⟨x, hxt⟩, htclos, hst⟩, hBmin⟩ : ∃ t ∈ S, ∀ u ∈ S, u ⊆ t → u = t,
+  { refine ⟨x, mem_extreme_points_iff_extreme_singleton.2 _⟩,
     rwa ←eq_singleton_iff_unique_mem.2 ⟨hxt, λ y hyB, _⟩,
     by_contra hyx,
     obtain ⟨l, hl⟩ := geometric_hahn_banach_point_point hyx,
-    obtain ⟨z, hzt, hz⟩ := (compact_of_is_closed_subset hscomp htclos hst.1).exists_forall_ge
+    obtain ⟨z, hzt, hz⟩ := (is_compact_of_is_closed_subset hscomp htclos hst.1).exists_forall_ge
       ⟨x, hxt⟩ l.continuous.continuous_on,
     have h : is_exposed ℝ t {z ∈ t | ∀ w ∈ t, l w ≤ l z} := λ h, ⟨l, rfl⟩,
     rw ←hBmin {z ∈ t | ∀ w ∈ t, l w ≤ l z} ⟨⟨z, hzt, hz⟩, h.is_closed htclos, hst.trans
@@ -84,14 +79,15 @@ begin
   haveI : nonempty ↥F := hFnemp.to_subtype,
   rw sInter_eq_Inter,
   refine is_compact.nonempty_Inter_of_directed_nonempty_compact_closed _ (λ t u, _)
-    (λ t, (hFS t.mem).1) (λ t, compact_of_is_closed_subset hscomp (hFS t.mem).2.1 (hFS t.mem).2.2.1)
+    (λ t, (hFS t.mem).1)
+    (λ t, is_compact_of_is_closed_subset hscomp (hFS t.mem).2.1 (hFS t.mem).2.2.1)
     (λ t, (hFS t.mem).2.1),
   obtain htu | hut := hF.total t.mem u.mem,
   exacts [⟨t, subset.rfl, htu⟩, ⟨u, hut, subset.rfl⟩],
 end
 
-/-- **Krein-Milman theorem**: In a LCTVS (currently only in normed `ℝ`-spaces), any compact convex
-set is the closure of the convex hull of its extreme points. -/
+/-- **Krein-Milman theorem**: In a LCTVS, any compact convex set is the closure of the convex hull
+    of its extreme points. -/
 lemma closure_convex_hull_extreme_points (hscomp : is_compact s) (hAconv : convex ℝ s) :
   closure (convex_hull ℝ $ s.extreme_points ℝ) = s :=
 begin

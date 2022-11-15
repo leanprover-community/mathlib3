@@ -3,11 +3,9 @@ Copyright (c) 2015 Nathaniel Thomas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
-import algebra.big_operators.basic
 import algebra.smul_with_zero
-import data.rat.cast
-import group_theory.group_action.big_operators
 import group_theory.group_action.group
+import tactic.abel
 
 /-!
 # Modules over a ring
@@ -170,6 +168,10 @@ lemma finset.sum_smul {f : ι → R} {s : finset ι} {x : M} :
   (∑ i in s, f i) • x = (∑ i in s, (f i) • x) :=
 ((smul_add_hom R M).flip x).map_sum f s
 
+@[simp] lemma smul_add_one_sub_smul {R : Type*} [ring R] [module R M]
+  {r : R} {m : M} : r • m + (1 - r) • m = m :=
+by rw [← add_smul, add_sub_cancel'_right, one_smul]
+
 end add_comm_monoid
 
 variables (R)
@@ -223,6 +225,12 @@ by letI := H.to_has_smul; exact
 { zero_smul := λ x, (add_monoid_hom.mk' (λ r : R, r • x) (λ r s, H.add_smul r s x)).map_zero,
   smul_zero := λ r, (add_monoid_hom.mk' ((•) r) (H.smul_add r)).map_zero,
   ..H }
+
+lemma convex.combo_eq_smul_sub_add [module R M] {x y : M} {a b : R} (h : a + b = 1) :
+  a • x + b • y = b • (y - x) + x :=
+calc
+  a • x + b • y = (b • y - b • x) + (a • x + b • x) : by abel
+            ... = b • (y - x) + x                   : by rw [smul_sub, convex.combo_self h]
 
 end add_comm_group
 
@@ -416,10 +424,8 @@ lemma map_rat_smul [add_comm_group M] [add_comm_group M₂] [module ℚ M] [modu
   f (c • x) = c • f x :=
 rat.cast_id c ▸ map_rat_cast_smul f ℚ ℚ c x
 
-/-- There can be at most one `module ℚ E` structure on an additive commutative group. This is not
-an instance because `simp` becomes very slow if we have many `subsingleton` instances,
-see [gh-6025]. -/
-lemma subsingleton_rat_module (E : Type*) [add_comm_group E] : subsingleton (module ℚ E) :=
+/-- There can be at most one `module ℚ E` structure on an additive commutative group. -/
+instance subsingleton_rat_module (E : Type*) [add_comm_group E] : subsingleton (module ℚ E) :=
 ⟨λ P Q, module.ext' P Q $ λ r x,
   @map_rat_smul _ _ _ _ P Q _ _ (add_monoid_hom.id E) r x⟩
 
@@ -507,19 +513,23 @@ instance no_zero_divisors.to_no_zero_smul_divisors [has_zero R] [has_mul R] [no_
   no_zero_smul_divisors R R :=
 ⟨λ c x, eq_zero_or_eq_zero_of_mul_eq_zero⟩
 
-section module
+lemma smul_ne_zero [has_zero R] [has_zero M] [has_smul R M] [no_zero_smul_divisors R M] {c : R}
+  {x : M} (hc : c ≠ 0) (hx : x ≠ 0) : c • x ≠ 0 :=
+λ h, (eq_zero_or_eq_zero_of_smul_eq_zero h).elim hc hx
 
-variables [semiring R] [add_comm_monoid M] [module R M]
+section smul_with_zero
+variables [has_zero R] [has_zero M] [smul_with_zero R M] [no_zero_smul_divisors R M] {c : R} {x : M}
 
-@[simp]
-theorem smul_eq_zero [no_zero_smul_divisors R M] {c : R} {x : M} :
-  c • x = 0 ↔ c = 0 ∨ x = 0 :=
+@[simp] lemma smul_eq_zero : c • x = 0 ↔ c = 0 ∨ x = 0 :=
 ⟨eq_zero_or_eq_zero_of_smul_eq_zero,
- λ h, h.elim (λ h, h.symm ▸ zero_smul R x) (λ h, h.symm ▸ smul_zero c)⟩
+  λ h, h.elim (λ h, h.symm ▸ zero_smul R x) (λ h, h.symm ▸ smul_zero c)⟩
 
-theorem smul_ne_zero [no_zero_smul_divisors R M] {c : R} {x : M} :
-  c • x ≠ 0 ↔ c ≠ 0 ∧ x ≠ 0 :=
-by simp only [ne.def, smul_eq_zero, not_or_distrib]
+lemma smul_ne_zero_iff : c • x ≠ 0 ↔ c ≠ 0 ∧ x ≠ 0 := by rw [ne.def, smul_eq_zero, not_or_distrib]
+
+end smul_with_zero
+
+section module
+variables [semiring R] [add_comm_monoid M] [module R M]
 
 section nat
 
@@ -606,15 +616,21 @@ end smul_injective
 
 end module
 
-section division_ring
+section group_with_zero
 
-variables [division_ring R] [add_comm_group M] [module R M]
+variables [group_with_zero R] [add_monoid M] [distrib_mul_action R M]
 
+/-- This instance applies to `division_semiring`s, in particular `nnreal` and `nnrat`. -/
 @[priority 100] -- see note [lower instance priority]
-instance division_ring.to_no_zero_smul_divisors : no_zero_smul_divisors R M :=
+instance group_with_zero.to_no_zero_smul_divisors : no_zero_smul_divisors R M :=
 ⟨λ c x h, or_iff_not_imp_left.2 $ λ hc, (smul_eq_zero_iff_eq' hc).1 h⟩
 
-end division_ring
+end group_with_zero
+
+@[priority 100] -- see note [lower instance priority]
+instance rat_module.no_zero_smul_divisors [add_comm_group M] [module ℚ M] :
+  no_zero_smul_divisors ℤ M :=
+⟨λ k x h, by simpa [zsmul_eq_smul_cast ℚ k x] using h⟩
 
 end no_zero_smul_divisors
 

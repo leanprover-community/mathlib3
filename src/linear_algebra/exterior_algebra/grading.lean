@@ -47,7 +47,7 @@ lift R ⟨by apply graded_algebra.ι R M, graded_algebra.ι_sq_zero R M⟩
 variables (R M)
 
 lemma graded_algebra.lift_ι_eq (i : ℕ)
-  (x : ((ι R).range ^ i : submodule R (exterior_algebra R M))) :
+  (x : ((ι R : M →ₗ[R] exterior_algebra R M).range ^ i : submodule R (exterior_algebra R M))) :
   graded_algebra.lift_ι R M x =
     direct_sum.of (λ i, ↥((ι R).range ^ i : submodule R (exterior_algebra R M))) i x :=
 begin

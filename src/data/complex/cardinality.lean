@@ -27,4 +27,4 @@ by rw [mk_univ, mk_complex]
 
 /-- The complex numbers are not countable. -/
 lemma not_countable_complex : ¬ (set.univ : set ℂ).countable :=
-by { rw [← mk_set_le_aleph_0, not_le, mk_univ_complex], apply cantor }
+by { rw [← le_aleph_0_iff_set_countable, not_le, mk_univ_complex], apply cantor }

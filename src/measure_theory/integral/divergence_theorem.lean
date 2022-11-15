@@ -61,7 +61,7 @@ variables {n : ℕ}
 local notation `ℝⁿ` := fin n → ℝ
 local notation `ℝⁿ⁺¹` := fin (n + 1) → ℝ
 local notation `Eⁿ⁺¹` := fin (n + 1) → E
-local notation `e` i := pi.single i 1
+local notation `e ` i := pi.single i 1
 
 section
 
@@ -69,13 +69,13 @@ section
 ### Divergence theorem for functions on `ℝⁿ⁺¹ = fin (n + 1) → ℝ`.
 
 In this section we use the divergence theorem for a Henstock-Kurzweil-like integral
-`box_integral.has_integral_bot_divergence_of_forall_has_deriv_within_at` to prove the divergence
+`box_integral.has_integral_GP_divergence_of_forall_has_deriv_within_at` to prove the divergence
 theorem for Bochner integral. The divergence theorem for Bochner integral
 `measure_theory.integral_divergence_of_has_fderiv_within_at_off_countable` assumes that the function
 itself is continuous on a closed box, differentiable at all but countably many points of its
 interior, and the divergence is integrable on the box.
 
-This statement differs from `box_integral.has_integral_bot_divergence_of_forall_has_deriv_within_at`
+This statement differs from `box_integral.has_integral_GP_divergence_of_forall_has_deriv_within_at`
 in several aspects.
 
 * We use Bochner integral instead of a Henstock-Kurzweil integral. This modification is done in
@@ -93,7 +93,7 @@ in several aspects.
 
 /-- An auxiliary lemma for
 `measure_theory.integral_divergence_of_has_fderiv_within_at_off_countable`. This is exactly
-`box_integral.has_integral_bot_divergence_of_forall_has_deriv_within_at` reformulated for the
+`box_integral.has_integral_GP_divergence_of_forall_has_deriv_within_at` reformulated for the
 Bochner integral. -/
 lemma integral_divergence_of_has_fderiv_within_at_off_countable_aux₁ (I : box (fin (n + 1)))
   (f : ℝⁿ⁺¹ → Eⁿ⁺¹) (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (s : set ℝⁿ⁺¹) (hs : s.countable)
@@ -106,7 +106,7 @@ lemma integral_divergence_of_has_fderiv_within_at_off_countable_aux₁ (I : box 
 begin
   simp only [← set_integral_congr_set_ae (box.coe_ae_eq_Icc _)],
   have A := ((Hi.mono_set box.coe_subset_Icc).has_box_integral ⊥ rfl),
-  have B := has_integral_bot_divergence_of_forall_has_deriv_within_at I f f' (s ∩ I.Icc)
+  have B := has_integral_GP_divergence_of_forall_has_deriv_within_at I f f' (s ∩ I.Icc)
     (hs.mono (inter_subset_left _ _)) (λ x hx, Hc _ hx.2)
     (λ x hx, Hd _ ⟨hx.1, λ h, hx.2 ⟨h, hx.1⟩⟩),
   rw continuous_on_pi at Hc,
@@ -230,9 +230,9 @@ end
 
 variables (a b : ℝⁿ⁺¹)
 
-local notation `face` i := set.Icc (a ∘ fin.succ_above i) (b ∘ fin.succ_above i)
-local notation `front_face` i:2000 := fin.insert_nth i (b i)
-local notation `back_face` i:2000 := fin.insert_nth i (a i)
+local notation `face ` i := set.Icc (a ∘ fin.succ_above i) (b ∘ fin.succ_above i)
+local notation `front_face ` i:2000 := fin.insert_nth i (b i)
+local notation `back_face ` i:2000 := fin.insert_nth i (a i)
 
 /-- **Divergence theorem** for Bochner integral. If `f : ℝⁿ⁺¹ → Eⁿ⁺¹` is continuous on a rectangular
 box `[a, b] : set ℝⁿ⁺¹`, `a ≤ b`, is differentiable on its interior with derivative

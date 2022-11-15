@@ -100,7 +100,7 @@ variables {𝒜 : finset (finset α)} {A A₁ A₂ : finset α} {r r₁ r₂ : �
 /-- The `r`-th slice of a set family is the subset of its elements which have cardinality `r`. -/
 def slice (𝒜 : finset (finset α)) (r : ℕ) : finset (finset α) := 𝒜.filter (λ i, i.card = r)
 
-localized "infix ` # `:90 := finset.slice" in finset_family
+localized "infix (name := finset.slice) ` # `:90 := finset.slice" in finset_family
 
 /-- `A` is in the `r`-th slice of `𝒜` iff it's in `𝒜` and has cardinality `r`. -/
 lemma mem_slice : A ∈ 𝒜 # r ↔ A ∈ 𝒜 ∧ A.card = r := mem_filter
@@ -118,7 +118,7 @@ lemma eq_of_mem_slice (h₁ : A ∈ 𝒜 # r₁) (h₂ : A ∈ 𝒜 # r₂) : r�
 lemma ne_of_mem_slice (h₁ : A₁ ∈ 𝒜 # r₁) (h₂ : A₂ ∈ 𝒜 # r₂) : r₁ ≠ r₂ → A₁ ≠ A₂ :=
 mt $ λ h, (sized_slice h₁).symm.trans ((congr_arg card h).trans (sized_slice h₂))
 
-lemma pairwise_disjoint_slice [decidable_eq α] : (set.univ : set ℕ).pairwise_disjoint (slice 𝒜) :=
+lemma pairwise_disjoint_slice : (set.univ : set ℕ).pairwise_disjoint (slice 𝒜) :=
 λ m _ n _ hmn, disjoint_filter.2 $ λ s hs hm hn, hmn $ hm.symm.trans hn
 
 variables [fintype α] (𝒜)
@@ -128,8 +128,11 @@ subset.antisymm (bUnion_subset.2 $ λ r _, slice_subset) $ λ s hs,
   mem_bUnion.2 ⟨s.card, mem_Iic.2 $ s.card_le_univ, mem_slice.2 $ ⟨hs, rfl⟩⟩
 
 @[simp] lemma sum_card_slice : ∑ r in Iic (fintype.card α), (𝒜 # r).card = 𝒜.card :=
-by { rw [←card_bUnion (finset.pairwise_disjoint_slice.subset (set.subset_univ _)), bUnion_slice],
-  exact classical.dec_eq _ }
+begin
+  letI := classical.dec_eq α,
+  rw [←card_bUnion, bUnion_slice],
+  exact finset.pairwise_disjoint_slice.subset (set.subset_univ _),
+end
 
 end slice
 end finset

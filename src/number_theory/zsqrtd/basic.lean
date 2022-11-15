@@ -761,7 +761,7 @@ def lift {d : ℤ} : {r : R // r * r = ↑d} ≃ (ℤ√d →+* R) :=
               a.re * b.re + (a.re * b.im + a.im * b.re) * r + a.im * b.im * (r * r) := by ring,
       simp [this, r.prop],
       ring, } },
-  inv_fun := λ f, ⟨f sqrtd, by rw [←f.map_mul, dmuld, ring_hom.map_int_cast]⟩,
+  inv_fun := λ f, ⟨f sqrtd, by rw [←f.map_mul, dmuld, map_int_cast]⟩,
   left_inv := λ r, by { ext, simp },
   right_inv := λ f, by { ext, simp } }
 

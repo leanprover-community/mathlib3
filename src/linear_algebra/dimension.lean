@@ -988,18 +988,20 @@ begin
 end
 
 section fintype
-variable [fintype η]
 variables [∀i, add_comm_group (φ i)] [∀i, module K (φ i)]
 
 open linear_map
 
-lemma dim_pi : module.rank K (Πi, φ i) = cardinal.sum (λi, module.rank K (φ i)) :=
+lemma dim_pi [finite η] : module.rank K (Πi, φ i) = cardinal.sum (λi, module.rank K (φ i)) :=
 begin
+  casesI nonempty_fintype η,
   let b := assume i, basis.of_vector_space K (φ i),
   let this : basis (Σ j, _) K (Π j, φ j) := pi.basis b,
   rw [← cardinal.lift_inj, ← this.mk_eq_dim],
   simp [← (b _).mk_range_eq_dim]
 end
+
+variable [fintype η]
 
 lemma dim_fun {V η : Type u} [fintype η] [add_comm_group V] [module K V] :
   module.rank K (η → V) = fintype.card η * module.rank K V :=
@@ -1201,7 +1203,7 @@ lemma le_dim_iff_exists_linear_independent_finset {n : ℕ} :
   ↑n ≤ module.rank K V ↔
     ∃ s : finset V, s.card = n ∧ linear_independent K (coe : (s : set V) → V) :=
 begin
-  simp only [le_dim_iff_exists_linear_independent, cardinal.mk_eq_nat_iff_finset],
+  simp only [le_dim_iff_exists_linear_independent, cardinal.mk_set_eq_nat_iff_finset],
   split,
   { rintro ⟨s, ⟨t, rfl, rfl⟩, si⟩,
     exact ⟨t, rfl, si⟩ },
@@ -1330,7 +1332,7 @@ lemma le_rank_iff_exists_linear_independent_finset {n : ℕ} {f : V →ₗ[K] V'
   ↑n ≤ rank f ↔ ∃ s : finset V, s.card = n ∧ linear_independent K (λ x : (s : set V), f x) :=
 begin
   simp only [le_rank_iff_exists_linear_independent, cardinal.lift_nat_cast,
-    cardinal.lift_eq_nat_iff, cardinal.mk_eq_nat_iff_finset],
+    cardinal.lift_eq_nat_iff, cardinal.mk_set_eq_nat_iff_finset],
   split,
   { rintro ⟨s, ⟨t, rfl, rfl⟩, si⟩,
     exact ⟨t, rfl, si⟩ },

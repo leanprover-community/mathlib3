@@ -190,7 +190,7 @@ begin
   { have key : ∀ k ∈ p.support, (p.coeff k) ^ 2 = 1 :=
     λ k hk, int.sq_eq_one_of_sq_le_three ((single_le_sum
       (λ k hk, sq_nonneg (p.coeff k)) hk).trans hp.le) (mem_support_iff.mp hk),
-    refine is_unit_trinomial_iff.mpr ⟨_, λ k hk, is_unit_of_pow_eq_one _ 2 (key k hk) zero_lt_two⟩,
+    refine is_unit_trinomial_iff.mpr ⟨_, λ k hk, is_unit_of_pow_eq_one _ 2 (key k hk) two_ne_zero⟩,
     rw [sum_def, sum_congr rfl key, sum_const, nat.smul_one_eq_coe] at hp,
     exact nat.cast_injective hp },
 end
@@ -341,7 +341,7 @@ begin
     replace hp := hp.leading_coeff_is_unit,
     rw leading_coeff_mul at hp,
     replace hp := is_unit_of_mul_is_unit_left hp,
-    rw [not_lt, nat.le_zero_iff] at this,
+    rw [not_lt, le_zero_iff] at this,
     rwa [eq_C_of_nat_degree_eq_zero this, is_unit_C, ←this] },
   intro hq'',
   rw nat_degree_pos_iff_degree_pos at hq'',

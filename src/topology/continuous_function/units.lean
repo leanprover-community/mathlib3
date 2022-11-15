@@ -63,10 +63,9 @@ noncomputable def units_of_forall_is_unit {f : C(X, R)} (h : ∀ x, is_unit (f x
 { to_fun := λ x, (h x).unit,
   continuous_to_fun :=  normed_ring.is_unit_unit_continuous h }
 
-instance : can_lift C(X, R) C(X, Rˣ) :=
-{ coe := λ f, ⟨λ x, f x, units.continuous_coe.comp f.continuous⟩,
-  cond := λ f, ∀ x, is_unit (f x),
-  prf := λ f h, ⟨units_of_forall_is_unit h, by { ext, refl }⟩ }
+instance can_lift : can_lift C(X, R) C(X, Rˣ)
+  (λ f, ⟨λ x, f x, units.continuous_coe.comp f.continuous⟩) (λ f, ∀ x, is_unit (f x)) :=
+{ prf := λ f h, ⟨units_of_forall_is_unit h, by { ext, refl }⟩ }
 
 lemma is_unit_iff_forall_is_unit (f : C(X, R)) :
   is_unit f ↔ ∀ x, is_unit (f x) :=
@@ -87,7 +86,7 @@ lemma spectrum_eq_range (f : C(X, 𝕜)) :
   spectrum 𝕜 f = set.range f :=
 begin
   ext,
-  simp only [spectrum.mem_iff, is_unit_iff_forall_ne_zero, not_forall, coe_sub,
+  simp only [spectrum.mem_iff, is_unit_iff_forall_ne_zero, not_forall, continuous_map.coe_sub,
     pi.sub_apply, algebra_map_apply, algebra.id.smul_eq_mul, mul_one, not_not, set.mem_range,
     sub_eq_zero, @eq_comm _ x _]
 end

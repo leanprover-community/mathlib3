@@ -162,6 +162,18 @@ begin
   exact hx (c'.π.app left).right (c'.π.app right).right hg₁ hg₂ (e₁.symm.trans e₂)
 end
 
+lemma compatible_preserving_of_downwards_closed (F : C ⥤ D) [full F] [faithful F]
+  (hF : Π {c : C} {d : D} (f : d ⟶ F.obj c), Σ c', F.obj c' ≅ d) : compatible_preserving K F :=
+begin
+  constructor,
+  introv hx he,
+  obtain ⟨X', e⟩ := hF f₁,
+  apply (ℱ.1.map_iso e.op).to_equiv.injective,
+  simp only [iso.op_hom, iso.to_equiv_fun, ℱ.1.map_iso_hom, ← functor_to_types.map_comp_apply],
+  simpa using hx (F.preimage $ e.hom ≫ f₁) (F.preimage $ e.hom ≫ f₂) hg₁ hg₂
+    (F.map_injective $ by simpa using he),
+end
+
 /--
 If `G` is cover-preserving and compatible-preserving,
 then `G.op ⋙ _` pulls sheaves back to sheaves.

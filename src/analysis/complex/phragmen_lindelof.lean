@@ -85,12 +85,12 @@ begin
   have : ∀ {c₁ c₂ B₁ B₂ : ℝ}, c₁ ≤ c₂ → 0 ≤ B₂ → B₁ ≤ B₂ →
     (λ z : ℂ, expR (B₁ * (abs z) ^ c₁)) =O[comap complex.abs at_top ⊓ l]
       (λ z, expR (B₂ * (abs z) ^ c₂)),
-  { have : ∀ᶠ z : ℂ in comap abs at_top ⊓ l, 1 ≤ abs z,
+  { have : ∀ᶠ z : ℂ in comap complex.abs at_top ⊓ l, 1 ≤ abs z,
       from ((eventually_ge_at_top 1).comap _).filter_mono inf_le_left,
     refine λ c₁ c₂ B₁ B₂ hc hB₀ hB, is_O.of_bound 1 (this.mono $ λ z hz, _),
     rw [one_mul, real.norm_eq_abs, real.norm_eq_abs, real.abs_exp, real.abs_exp, real.exp_le_exp],
     exact mul_le_mul hB (real.rpow_le_rpow_of_exponent_le hz hc)
-      (real.rpow_nonneg_of_nonneg (abs_nonneg _) _) hB₀ },
+      (real.rpow_nonneg_of_nonneg (complex.abs.nonneg _) _) hB₀ },
   rcases hBf with ⟨cf, hcf, Bf, hOf⟩, rcases hBg with ⟨cg, hcg, Bg, hOg⟩,
   refine ⟨max cf cg, max_lt hcf hcg, max 0 (max Bf Bg), _⟩,
   refine (hOf.trans $ this _ _ _).sub (hOg.trans $ this _ _ _),
@@ -469,7 +469,7 @@ begin
     simpa only [mem_re_prod_im, mul_I_re, mul_I_im, neg_lt_zero, mem_Iio] using hw.symm },
   refine quadrant_I (hd.comp (differentiable_id.mul_const _).diff_cont_on_cl H)
     (Exists₃.imp (λ c hc B hO, _) hB) him (λ x hx, _) hz_im hz_re,
-  { simpa only [(∘), complex.abs_mul, abs_I, mul_one]
+  { simpa only [(∘), map_mul, abs_I, mul_one]
       using hO.comp_tendsto ((tendsto_mul_right_cobounded I_ne_zero).inf H.tendsto) },
   { rw [comp_app, mul_assoc, I_mul_I, mul_neg_one, ← of_real_neg],
     exact hre _ (neg_nonpos.2 hx) }
@@ -534,7 +534,7 @@ begin
   refine quadrant_I (hd.comp differentiable_neg.diff_cont_on_cl H) _ (λ x hx, _) (λ x hx, _)
     hz_re hz_im,
   { refine Exists₃.imp (λ c hc B hO, _) hB,
-    simpa only [(∘), complex.abs_neg]
+    simpa only [(∘), complex.abs.map_neg]
       using hO.comp_tendsto (tendsto_neg_cobounded.inf H.tendsto) },
   { rw [comp_app, ← of_real_neg],
     exact hre (-x) (neg_nonpos.2 hx) },
@@ -601,7 +601,7 @@ begin
   refine quadrant_II (hd.comp differentiable_neg.diff_cont_on_cl H) _ (λ x hx, _) (λ x hx, _)
     hz_re hz_im,
   { refine Exists₃.imp (λ c hc B hO, _) hB,
-    simpa only [(∘), complex.abs_neg]
+    simpa only [(∘), complex.abs.map_neg]
       using hO.comp_tendsto (tendsto_neg_cobounded.inf H.tendsto) },
   { rw [comp_app, ← of_real_neg],
     exact hre (-x) (neg_nonneg.2 hx) },
@@ -756,7 +756,7 @@ begin
     rw [hgn, one_mul],
     refine mul_le_of_le_one_left (norm_nonneg _) (real.exp_le_one_iff.2 _),
     exact mul_nonpos_of_nonpos_of_nonneg ε₀.le (le_of_lt hz) },
-  { simp_rw [g, ← of_real_mul, ← of_real_exp, coe_smul],
+  { simp_rw [g, ← of_real_mul, ← of_real_exp, complex.coe_smul],
     have h₀ : tendsto (λ x : ℝ, expR (ε * x)) at_top (𝓝 0),
       from real.tendsto_exp_at_bot.comp (tendsto_const_nhds.neg_mul_at_top ε₀ tendsto_id),
     exact h₀.zero_smul_is_bounded_under_le hre },
@@ -814,7 +814,7 @@ begin
       ... = abs z ^ (1 : ℝ) : (real.rpow_one _).symm
       ... ≤ abs z ^ (max c 1) : real.rpow_le_rpow_of_exponent_le hr (le_max_right _ _) },
     { exact mul_le_mul (le_max_left _ _) (real.rpow_le_rpow_of_exponent_le hr (le_max_left _ _))
-        (real.rpow_nonneg_of_nonneg (abs_nonneg _) _) (le_max_right _ _) } },
+        (real.rpow_nonneg_of_nonneg (complex.abs.nonneg _) _) (le_max_right _ _) } },
   { rw tendsto_zero_iff_norm_tendsto_zero, simp only [hg],
     exact hre n },
   { rw [hg, of_real_mul_re, I_re, mul_zero, real.exp_zero, one_pow, one_mul],
@@ -845,7 +845,7 @@ begin
   suffices : eq_on (f - g) 0 {z : ℂ | 0 ≤ z.re},
     by simpa only [eq_on, pi.sub_apply, pi.zero_apply, sub_eq_zero] using this,
   refine eq_zero_on_right_half_plane_of_superexponential_decay (hfd.sub hgd) _ hre _,
-  { set l : filter ℂ := comap abs at_top ⊓ 𝓟 {z : ℂ | 0 < z.re},
+  { set l : filter ℂ := comap complex.abs at_top ⊓ 𝓟 {z : ℂ | 0 < z.re},
     suffices : ∀ {c₁ c₂ B₁ B₂ : ℝ}, c₁ ≤ c₂ → B₁ ≤ B₂ → 0 ≤ B₂ →
       (λ z, expR (B₁ * abs z ^ c₁)) =O[l] (λ z, expR (B₂ * abs z ^ c₂)),
     { rcases hfexp with ⟨cf, hcf, Bf, hOf⟩, rcases hgexp with ⟨cg, hcg, Bg, hOg⟩,
@@ -857,7 +857,7 @@ begin
     refine is_O.of_bound 1 (this.mono $ λ z hz, _),
     simp only [real.norm_of_nonneg (real.exp_pos _).le, real.exp_le_exp, one_mul],
     exact mul_le_mul hB (real.rpow_le_rpow_of_exponent_le hz hc)
-      (real.rpow_nonneg_of_nonneg (abs_nonneg _) _) hB₂ },
+      (real.rpow_nonneg_of_nonneg (complex.abs.nonneg _) _) hB₂ },
   { rcases hfim with ⟨Cf, hCf⟩, rcases hgim with ⟨Cg, hCg⟩,
     exact ⟨Cf + Cg, λ x, norm_sub_le_of_le (hCf x) (hCg x)⟩ }
 end

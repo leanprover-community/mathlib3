@@ -3,7 +3,7 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker, Sébastien Gouëzel, Yury G. Kudryashov, Dylan MacKenzie, Patrick Massot
 -/
-import algebra.order.field
+import algebra.order.field.basic
 import analysis.asymptotics.asymptotics
 import analysis.specific_limits.basic
 
@@ -558,14 +558,12 @@ begin
            nat.succ_sub_succ_eq_sub, tsub_zero],
   apply (normed_field.tendsto_zero_smul_of_tendsto_zero_of_bounded hf0
     ⟨b, eventually_map.mpr $ eventually_of_forall $ λ n, hgb $ n+1⟩).cauchy_seq.add,
-  apply (cauchy_seq_range_of_norm_bounded _ _ (_ : ∀ n, _ ≤ b * |f(n+1) - f(n)|)).neg,
-  { exact normed_uniform_group },
+  refine (cauchy_seq_range_of_norm_bounded _ _ (λ n, _ : ∀ n, _ ≤ b * |f(n+1) - f(n)|)).neg,
   { simp_rw [abs_of_nonneg (sub_nonneg_of_le (hfa (nat.le_succ _))), ← mul_sum],
-    apply real.uniform_continuous_mul_const.comp_cauchy_seq,
+    apply real.uniform_continuous_const_mul.comp_cauchy_seq,
     simp_rw [sum_range_sub, sub_eq_add_neg],
     exact (tendsto.cauchy_seq hf0).add_const },
-  { intro n,
-    rw [norm_smul, mul_comm],
+  { rw [norm_smul, mul_comm],
     exact mul_le_mul_of_nonneg_right (hgb _) (abs_nonneg _) },
 end
 

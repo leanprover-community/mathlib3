@@ -99,7 +99,7 @@ begin
 end
 
 /-- A finite group of prime order is cyclic. -/
-@[to_additive is_add_cyclic_of_prime_card]
+@[to_additive is_add_cyclic_of_prime_card "A finite group of prime order is cyclic."]
 lemma is_cyclic_of_prime_card {α : Type u} [group α] [fintype α] {p : ℕ} [hp : fact p.prime]
   (h : fintype.card α = p) : is_cyclic α :=
 ⟨begin
@@ -246,8 +246,8 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card
 end classical
 
 @[to_additive]
-lemma is_cyclic.exists_monoid_generator [fintype α]
-[is_cyclic α] : ∃ x : α, ∀ y : α, y ∈ submonoid.powers x :=
+lemma is_cyclic.exists_monoid_generator [finite α] [is_cyclic α] :
+  ∃ x : α, ∀ y : α, y ∈ submonoid.powers x :=
 by { simp_rw [mem_powers_iff_mem_zpowers], exact is_cyclic.exists_generator α }
 
 section
@@ -309,7 +309,7 @@ begin
     simp only [mem_filter, mem_range, mem_proper_divisors] at hm,
     refine IH m hm.2 (hm.1.trans hd) (finset.card_pos.2 ⟨a ^ (d / m), _⟩),
     simp only [mem_filter, mem_univ, order_of_pow a, ha, true_and,
-      nat.gcd_eq_right (div_dvd_of_dvd hm.1), nat.div_div_self hm.1 hd_pos] },
+      nat.gcd_eq_right (div_dvd_of_dvd hm.1), nat.div_div_self hm.1 hd_pos.ne'] },
   have h2 : ∑ m in d.divisors, (univ.filter (λ a : α, order_of a = m)).card =
     ∑ m in d.divisors, φ m,
     { rw [←filter_dvd_eq_divisors hd_pos.ne', sum_card_order_of_eq_card_pow_eq_one hd_pos,
@@ -382,7 +382,7 @@ end
 attribute [to_additive is_cyclic.card_order_of_eq_totient] is_add_cyclic.card_order_of_eq_totient
 
 /-- A finite group of prime order is simple. -/
-@[to_additive]
+@[to_additive "A finite group of prime order is simple."]
 lemma is_simple_group_of_prime_card {α : Type u} [group α] [fintype α] {p : ℕ} [hp : fact p.prime]
   (h : fintype.card α = p) : is_simple_group α :=
 ⟨begin

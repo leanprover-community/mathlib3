@@ -138,6 +138,32 @@ begin
   simp
 end
 
+/-! #### Space of paths -/
+
+open continuous_map
+
+instance : has_coe (path x y) C(I, X) := ⟨λ γ, γ.1⟩
+
+/--
+The following instance defines the topology on the path space to be induced from the
+compact-open topology on the space `C(I,X)` of continuous maps from `I` to `X`.
+-/
+instance : topological_space (path x y) :=
+topological_space.induced (coe : _ → C(I, X)) continuous_map.compact_open
+
+lemma continuous_eval : continuous (λ p : path x y × I, p.1 p.2) :=
+continuous_eval'.comp $ continuous_induced_dom.prod_map continuous_id
+
+@[continuity] lemma _root_.continuous.path_eval {Y} [topological_space Y]
+  {f : Y → path x y} {g : Y → I} (hf : continuous f) (hg : continuous g) :
+  continuous (λ y, f y (g y)) := continuous.comp continuous_eval (hf.prod_mk hg)
+
+lemma continuous_uncurry_iff {Y} [topological_space Y] {g : Y → path x y} :
+  continuous ↿g ↔ continuous g :=
+iff.symm $ continuous_induced_rng.trans
+  ⟨λ h, continuous_uncurry_of_continuous ⟨_, h⟩, continuous_of_continuous_uncurry ↑g⟩
+
+
 /-- A continuous map extending a path to `ℝ`, constant before `0` and after `1`. -/
 def extend : ℝ → X := Icc_extend zero_le_one γ
 
@@ -347,8 +373,12 @@ lemma symm_continuous_family {X ι : Type*} [topological_space X] [topological_s
 h.comp (continuous_id.prod_map continuous_symm)
 
 @[continuity]
+lemma continuous_symm : continuous (symm : path x y → path y x) :=
+continuous_uncurry_iff.mp $ symm_continuous_family _ (continuous_fst.path_eval continuous_snd)
+
+@[continuity]
 lemma continuous_uncurry_extend_of_continuous_family {X ι : Type*} [topological_space X]
-  [topological_space ι] {a b : ι → X}  (γ : Π (t : ι), path (a t) (b t)) (h : continuous ↿γ) :
+  [topological_space ι] {a b : ι → X} (γ : Π (t : ι), path (a t) (b t)) (h : continuous ↿γ) :
   continuous ↿(λ t, (γ t).extend) :=
 h.comp (continuous_id.prod_map continuous_proj_Icc)
 
@@ -371,6 +401,20 @@ begin
   { rintros st hst,
     simp [hst, mul_inv_cancel (@two_ne_zero ℝ _ _)] }
 end
+
+@[continuity]
+lemma _root_.continuous.path_trans {f : Y → path x y} {g : Y → path y z} : continuous f →
+  continuous g → continuous (λ t, (f t).trans (g t)) :=
+begin
+  intros hf hg,
+  apply continuous_uncurry_iff.mp,
+  exact trans_continuous_family _ (continuous_uncurry_iff.mpr hf)
+    _ (continuous_uncurry_iff.mpr hg),
+end
+
+@[continuity]
+lemma continuous_trans {x y z : X} : continuous (λ ρ : path x y × path y z, ρ.1.trans ρ.2) :=
+  continuous_fst.path_trans continuous_snd
 
 /-! #### Product of paths -/
 section prod
@@ -443,7 +487,7 @@ def truncate {X : Type*} [topological_space X] {a b : X}
     ((continuous_subtype_coe.max continuous_const).min continuous_const),
   source' :=
   begin
-    simp only [min_def, max_def],
+    simp only [min_def, max_def'],
     norm_cast,
     split_ifs with h₁ h₂ h₃ h₄,
     { simp [γ.extend_of_le_zero h₁] },
@@ -454,7 +498,7 @@ def truncate {X : Type*} [topological_space X] {a b : X}
   end,
   target' :=
   begin
-    simp only [min_def, max_def],
+    simp only [min_def, max_def'],
     norm_cast,
     split_ifs with h₁ h₂ h₃,
     { simp [γ.extend_of_one_le h₂] },
@@ -507,7 +551,6 @@ begin
   rw cast_coe,
   simp only [truncate, has_coe_to_fun.coe, coe_fn, refl, min_def, max_def],
   split_ifs with h₁ h₂; congr,
-  exact le_antisymm ‹_› ‹_›
 end
 
 @[simp] lemma truncate_zero_zero {X : Type*} [topological_space X] {a b : X} (γ : path a b) :
@@ -799,7 +842,7 @@ begin
     induction n with n hn,
     { use path.refl (p' 0),
       { split,
-        { rintros i hi, rw nat.le_zero_iff.mp hi, exact ⟨0, rfl⟩ },
+        { rintros i hi, rw le_zero_iff.mp hi, exact ⟨0, rfl⟩ },
         { rw range_subset_iff, rintros x, exact hp' 0 le_rfl } } },
     { rcases hn (λ i hi, hp' i $ nat.le_succ_of_le hi) with ⟨γ₀, hγ₀⟩,
       rcases h.joined_in (p' n) (hp' n n.le_succ) (p' $ n+1) (hp' (n+1) $ le_rfl) with ⟨γ₁, hγ₁⟩,
@@ -980,7 +1023,7 @@ begin
   { introI hX,
     rw path_connected_space_iff_eq,
     use (classical.arbitrary X),
-    refine eq_univ_of_nonempty_clopen (by simp) ⟨_, _⟩,
+    refine is_clopen.eq_univ ⟨_, _⟩ (by simp),
     { rw is_open_iff_mem_nhds,
       intros y y_in,
       rcases (path_connected_basis y).ex_mem with ⟨U, ⟨U_in, hU⟩⟩,

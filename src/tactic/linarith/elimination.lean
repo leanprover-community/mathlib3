@@ -100,9 +100,9 @@ meta structure pcomp : Type :=
 (c : comp)
 (src : comp_source)
 (history : rb_set ℕ)
-(vars : rb_set ℕ)
 (effective : rb_set ℕ)
 (implicit : rb_set ℕ)
+(vars : rb_set ℕ)
 
 /--
 Any comparison whose history is not minimal is redundant,
@@ -165,7 +165,7 @@ let c := c1.c.add c2.c,
     vars := c1.vars.union c2.vars,
     effective := (c1.effective.union c2.effective).insert elim_var,
     implicit := (vars.sdiff (rb_set.of_list c.vars)).sdiff effective in
-⟨c, src, history, vars, effective, implicit⟩
+⟨c, src, history, effective, implicit, vars⟩
 
 /--
 `pcomp.assump c n` creates a `pcomp` whose comparison is `c` and whose source is
@@ -177,9 +177,9 @@ meta def pcomp.assump (c : comp) (n : ℕ) : pcomp :=
 { c := c,
   src := comp_source.assump n,
   history := mk_rb_set.insert n,
-  vars := rb_set.of_list c.vars,
   effective := mk_rb_set,
-  implicit := mk_rb_set, }
+  implicit := mk_rb_set,
+  vars := rb_set.of_list c.vars }
 
 meta instance pcomp.to_format : has_to_format pcomp :=
 ⟨λ p, to_fmt p.c.coeffs ++ to_string p.c.str ++ "0"⟩

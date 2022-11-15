@@ -150,7 +150,7 @@ end
 
 /-- We can rebracket `x ++ (l₁ ++ x) ++ (l₂ ++ x) ++ ... ++ (lₙ ++ x)` to
 `(x ++ l₁) ++ (x ++ l₂) ++ ... ++ (x ++ lₙ) ++ x` where `L = [l₁, l₂, ..., lₙ]`. -/
-lemma append_join_append (L : list (list α)) (x : list α) :
+@[simp] lemma append_join_append (L : list (list α)) (x : list α) :
   x ++ (list.map (λ l, l ++ x) L).join = (list.map (λ l, x ++ l) L).join ++ x :=
 begin
   induction L,
@@ -167,9 +167,9 @@ begin
   { rw [join, reverse_append, L_ih, map_cons, reverse_cons', join_concat] },
 end
 
-/-- Joining a reverse is the same as reversing all parts and reversing the join result. -/
+/-- Joining a reverse is the same as reversing all parts and reversing the joined result. -/
 lemma join_reverse (L : list (list α)) :
   L.reverse.join = (list.map list.reverse L).join.reverse :=
-by simpa using congr_arg list.reverse (reverse_join L.reverse)
+by simpa [reverse_reverse] using congr_arg list.reverse (reverse_join L.reverse)
 
 end list

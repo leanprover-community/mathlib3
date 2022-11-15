@@ -152,3 +152,7 @@ end category_theory
 -- low into the category theory hierarchy again.
 assert_no_instance add_comm_monoid ℕ
 assert_no_instance add_comm_group ℤ
+
+-- We don't need to have developed any set theory to reach (at least) this point
+-- in the category theory hierarchy.
+assert_not_exists set.range

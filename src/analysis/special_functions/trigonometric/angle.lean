@@ -510,6 +510,72 @@ by conv_rhs { rw [← coe_to_real θ, sin_coe] }
 @[simp] lemma cos_to_real (θ : angle) : real.cos θ.to_real = cos θ :=
 by conv_rhs { rw [← coe_to_real θ, cos_coe] }
 
+/-- The tangent of a `real.angle`. -/
+def tan (θ : angle) : ℝ := sin θ / cos θ
+
+lemma tan_eq_sin_div_cos (θ : angle) : tan θ = sin θ / cos θ := rfl
+
+@[simp] lemma tan_coe (x : ℝ) : tan (x : angle) = real.tan x :=
+by rw [tan, sin_coe, cos_coe, real.tan_eq_sin_div_cos]
+
+@[simp] lemma tan_zero : tan (0 : angle) = 0 :=
+by rw [←coe_zero, tan_coe, real.tan_zero]
+
+@[simp] lemma tan_coe_pi : tan (π : angle) = 0 :=
+by rw [tan_eq_sin_div_cos, sin_coe_pi, zero_div]
+
+lemma tan_periodic : function.periodic tan (π : angle) :=
+begin
+  intro θ,
+  induction θ using real.angle.induction_on,
+  rw [←coe_add, tan_coe, tan_coe],
+  exact real.tan_periodic θ
+end
+
+@[simp] lemma tan_add_pi (θ : angle) : tan (θ + π) = tan θ :=
+tan_periodic θ
+
+@[simp] lemma tan_sub_pi (θ : angle) : tan (θ - π) = tan θ :=
+tan_periodic.sub_eq θ
+
+@[simp] lemma tan_to_real (θ : angle) : real.tan θ.to_real = tan θ :=
+by conv_rhs { rw [←coe_to_real θ, tan_coe] }
+
+lemma tan_eq_of_two_nsmul_eq {θ ψ : angle} (h : (2 : ℕ) • θ = (2 : ℕ) • ψ) : tan θ = tan ψ :=
+begin
+  rw two_nsmul_eq_iff at h,
+  rcases h with rfl | rfl,
+  { refl },
+  { exact tan_add_pi _ }
+end
+
+lemma tan_eq_of_two_zsmul_eq {θ ψ : angle} (h : (2 : ℤ) • θ = (2 : ℤ) • ψ) : tan θ = tan ψ :=
+begin
+  simp_rw [two_zsmul, ←two_nsmul] at h,
+  exact tan_eq_of_two_nsmul_eq h
+end
+
+lemma tan_eq_inv_of_two_nsmul_add_two_nsmul_eq_pi {θ ψ : angle}
+  (h : (2 : ℕ) • θ + (2 : ℕ) • ψ = π) : tan ψ = (tan θ)⁻¹ :=
+begin
+  induction θ using real.angle.induction_on,
+  induction ψ using real.angle.induction_on,
+  rw [←smul_add, ←coe_add, ←coe_nsmul, two_nsmul, ←two_mul, angle_eq_iff_two_pi_dvd_sub] at h,
+  rcases h with ⟨k, h⟩,
+  rw [sub_eq_iff_eq_add, ←mul_inv_cancel_left₀ (@two_ne_zero ℝ _ _) π, mul_assoc, ←mul_add,
+      mul_right_inj' (@two_ne_zero ℝ _ _), ←eq_sub_iff_add_eq',
+      mul_inv_cancel_left₀ (@two_ne_zero ℝ _ _), inv_mul_eq_div, mul_comm] at h,
+  rw [tan_coe, tan_coe, ←tan_pi_div_two_sub, h, add_sub_assoc, add_comm],
+  exact real.tan_periodic.int_mul _ _
+end
+
+lemma tan_eq_inv_of_two_zsmul_add_two_zsmul_eq_pi {θ ψ : angle}
+  (h : (2 : ℤ) • θ + (2 : ℤ) • ψ = π) : tan ψ = (tan θ)⁻¹ :=
+begin
+  simp_rw [two_zsmul, ←two_nsmul] at h,
+  exact tan_eq_inv_of_two_nsmul_add_two_nsmul_eq_pi h
+end
+
 /-- The sign of a `real.angle` is `0` if the angle is `0` or `π`, `1` if the angle is strictly
 between `0` and `π` and `-1` is the angle is strictly between `-π` and `0`. It is defined as the
 sign of the sine of the angle. -/

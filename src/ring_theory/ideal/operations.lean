@@ -2235,7 +2235,8 @@ def lift_sup_quot_quot_mk (I J : ideal R) :
   R ⧸ (I ⊔ J) →+* (R ⧸ I) ⧸ J.map (ideal.quotient.mk I) :=
 ideal.quotient.lift (I ⊔ J) (quot_quot_mk I J) (ker_quot_quot_mk I J).symm.le
 
-/-- `quot_quot_to_quot_add` and `lift_sup_double_qot_mk` are inverse isomorphisms -/
+/-- `quot_quot_to_quot_add` and `lift_sup_double_qot_mk` are inverse isomorphisms. In the case where
+    `I ≤ J`, this is the Third Isomorphism Theorem (see `quot_quot_equiv_quot_of_le`)-/
 def quot_quot_equiv_quot_sup : (R ⧸ I) ⧸ J.map (ideal.quotient.mk I) ≃+* R ⧸ I ⊔ J :=
 ring_equiv.of_hom_inv (quot_quot_to_quot_sup I J) (lift_sup_quot_quot_mk I J)
   (by { ext z, refl }) (by { ext z, refl })
@@ -2270,6 +2271,29 @@ ring_hom.ext $ quot_quot_equiv_comm_quot_quot_mk I J
 lemma quot_quot_equiv_comm_symm :
   (quot_quot_equiv_comm I J).symm = quot_quot_equiv_comm J I :=
 rfl
+
+variables {I J}
+
+/-- **The Third Isomorphism theorem** for rings. See `quot_quot_equiv_quot_sup` for a version
+    that does not assume an inclusion of ideals. -/
+def quot_quot_equiv_quot_of_le (h : I ≤ J) : (R ⧸ I) ⧸ (J.map I^.quotient.mk) ≃+* R ⧸ J :=
+    (quot_quot_equiv_quot_sup I J).trans (ideal.quot_equiv_of_eq $ sup_eq_right.mpr h)
+
+@[simp]
+lemma quot_quot_equiv_quot_of_le_quot_quot_mk (x : R) (h : I ≤ J) :
+  quot_quot_equiv_quot_of_le h (quot_quot_mk I J x) = J^.quotient.mk x := rfl
+
+@[simp]
+lemma quot_quot_equiv_quot_of_le_symm_mk (x : R) (h : I ≤ J) :
+  (quot_quot_equiv_quot_of_le h).symm (J^.quotient.mk x) = (quot_quot_mk I J x) := rfl
+
+lemma quot_quot_equiv_quot_of_le_comp_quot_quot_mk (h : I ≤ J) :
+  ring_hom.comp ↑(quot_quot_equiv_quot_of_le h) (quot_quot_mk I J) = J^.quotient.mk :=
+by ext ; refl
+
+lemma quot_quot_equiv_quot_of_le_symm_comp_mk (h : I ≤ J) :
+  ring_hom.comp ↑(quot_quot_equiv_quot_of_le h).symm J^.quotient.mk = quot_quot_mk I J :=
+by ext ; refl
 
 end
 

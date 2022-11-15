@@ -55,16 +55,19 @@ export no_zero_divisors (eq_zero_or_eq_zero_of_mul_eq_zero)
 
 /-- A type `S₀` is a "semigroup with zero” if it is a semigroup with zero element, and `0` is left
 and right absorbing. -/
-@[protect_proj] class semigroup_with_zero (S₀ : Type*) extends semigroup S₀, mul_zero_class S₀.
+@[protect_proj, ancestor semigroup mul_zero_class]
+class semigroup_with_zero (S₀ : Type*) extends semigroup S₀, mul_zero_class S₀.
 
 /- By defining this _after_ `semigroup_with_zero`, we ensure that searches for `mul_zero_class` find
 this class first. -/
 /-- A typeclass for non-associative monoids with zero elements. -/
-@[protect_proj] class mul_zero_one_class (M₀ : Type*) extends mul_one_class M₀, mul_zero_class M₀.
+@[protect_proj, ancestor mul_one_class mul_zero_class]
+class mul_zero_one_class (M₀ : Type*) extends mul_one_class M₀, mul_zero_class M₀.
 
 /-- A type `M₀` is a “monoid with zero” if it is a monoid with zero element, and `0` is left
 and right absorbing. -/
-@[protect_proj] class monoid_with_zero (M₀ : Type*) extends monoid M₀, mul_zero_one_class M₀.
+@[protect_proj, ancestor monoid mul_zero_one_class]
+class monoid_with_zero (M₀ : Type*) extends monoid M₀, mul_zero_one_class M₀.
 
 @[priority 100] -- see Note [lower instance priority]
 instance monoid_with_zero.to_semigroup_with_zero (M₀ : Type*) [monoid_with_zero M₀] :
@@ -73,7 +76,8 @@ instance monoid_with_zero.to_semigroup_with_zero (M₀ : Type*) [monoid_with_zer
 
 /-- A type `M` is a `cancel_monoid_with_zero` if it is a monoid with zero element, `0` is left
 and right absorbing, and left/right multiplication by a non-zero element is injective. -/
-@[protect_proj] class cancel_monoid_with_zero (M₀ : Type*) extends monoid_with_zero M₀ :=
+@[protect_proj, ancestor monoid_with_zero]
+class cancel_monoid_with_zero (M₀ : Type*) extends monoid_with_zero M₀ :=
 (mul_left_cancel_of_ne_zero : ∀ {a b c : M₀}, a ≠ 0 → a * b = a * c → b = c)
 (mul_right_cancel_of_ne_zero : ∀ {a b c : M₀}, b ≠ 0 → a * b = c * b → a = c)
 
@@ -97,13 +101,14 @@ end cancel_monoid_with_zero
 
 /-- A type `M` is a commutative “monoid with zero” if it is a commutative monoid with zero
 element, and `0` is left and right absorbing. -/
-@[protect_proj]
+@[protect_proj, ancestor comm_monoid monoid_with_zero]
 class comm_monoid_with_zero (M₀ : Type*) extends comm_monoid M₀, monoid_with_zero M₀.
 
 /-- A type `M` is a `cancel_comm_monoid_with_zero` if it is a commutative monoid with zero element,
  `0` is left and right absorbing,
   and left/right multiplication by a non-zero element is injective. -/
-@[protect_proj] class cancel_comm_monoid_with_zero (M₀ : Type*) extends
+@[protect_proj, ancestor comm_monoid_with_zero cancel_monoid_with_zero] 
+class cancel_comm_monoid_with_zero (M₀ : Type*) extends
   comm_monoid_with_zero M₀, cancel_monoid_with_zero M₀.
 
 /-- A type `G₀` is a “group with zero” if it is a monoid with zero element (distinct from `1`)
@@ -112,6 +117,7 @@ The type is required to come with an “inverse” function, and the inverse of 
 
 Examples include division rings and the ordered monoids that are the
 target of valuations in general valuation theory.-/
+@[protect_proj, ancestor monoid_with_zero div_inv_monoid nontrivial]
 class group_with_zero (G₀ : Type u) extends
   monoid_with_zero G₀, div_inv_monoid G₀, nontrivial G₀ :=
 (inv_zero : (0 : G₀)⁻¹ = 0)
@@ -132,6 +138,7 @@ end group_with_zero
 if it is a commutative monoid with zero element (distinct from `1`)
 such that every nonzero element is invertible.
 The type is required to come with an “inverse” function, and the inverse of `0` must be `0`. -/
+@[protect_proj, ancestor comm_monoid_with_zero group_with_zero]
 class comm_group_with_zero (G₀ : Type*) extends comm_monoid_with_zero G₀, group_with_zero G₀.
 
 section ne_zero

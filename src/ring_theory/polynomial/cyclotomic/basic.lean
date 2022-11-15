@@ -72,7 +72,7 @@ def cyclotomic' (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] : R[X] :=
 /-- The zeroth modified cyclotomic polyomial is `1`. -/
 @[simp] lemma cyclotomic'_zero
   (R : Type*) [comm_ring R] [is_domain R] : cyclotomic' 0 R = 1 :=
-by simp only [cyclotomic', finset.prod_empty, is_primitive_root.primitive_roots_zero]
+by simp only [cyclotomic', finset.prod_empty, primitive_roots_zero]
 
 /-- The first modified cyclotomic polyomial is `X - 1`. -/
 @[simp] lemma cyclotomic'_one

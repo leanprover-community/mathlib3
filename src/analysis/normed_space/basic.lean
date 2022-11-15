@@ -3,6 +3,7 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
+import algebra.algebra.restrict_scalars
 import analysis.normed.field.basic
 import analysis.normed.group.infinite_sum
 import data.real.sqrt
@@ -519,6 +520,10 @@ def normed_algebra.induced {F : Type*} (α β γ : Type*) [normed_field α] [rin
   [algebra α β] [semi_normed_ring γ] [normed_algebra α γ] [non_unital_alg_hom_class F α β γ]
   (f : F) : @normed_algebra α β _ (semi_normed_ring.induced β γ f) :=
 { norm_smul_le := λ a b, by {unfold norm, exact (map_smul f a b).symm ▸ (norm_smul a (f b)).le } }
+
+instance subalgebra.to_normed_algebra {𝕜 A : Type*} [semi_normed_ring A] [normed_field 𝕜]
+  [normed_algebra 𝕜 A] (S : subalgebra 𝕜 A) : normed_algebra 𝕜 S :=
+@normed_algebra.induced _ 𝕜 S A _ (subring_class.to_ring S) S.algebra _ _ _ S.val
 
 section restrict_scalars
 

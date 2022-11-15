@@ -6,7 +6,8 @@ Authors: Jean Lo, Yaël Dillies, Moritz Doll
 import data.real.pointwise
 import data.real.sqrt
 import topology.algebra.filter_basis
-import topology.algebra.module.locally_convex
+import analysis.convex.function
+import analysis.locally_convex.basic
 
 /-!
 # Seminorms
@@ -1007,3 +1008,6 @@ lemma balanced_ball_zero : balanced 𝕜 (metric.ball (0 : E) r) :=
 by { rw ←ball_norm_seminorm 𝕜, exact (norm_seminorm _ _).balanced_ball_zero r }
 
 end norm_seminorm
+
+-- Guard against import creep.
+assert_not_exists balanced_core

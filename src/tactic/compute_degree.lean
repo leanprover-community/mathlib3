@@ -48,6 +48,9 @@ lemma coeff_pow_of_nat_degree_le' (de : d * e = n) (df : f.nat_degree ≤ d) :
   (f ^ e).coeff n = (f.coeff d) ^ e :=
 by rwa [← de, coeff_pow_of_nat_degree_le]
 
+lemma coeff_monomial_self {a : R} : coeff (monomial n a) n = a :=
+coeff_monomial.trans $ if_pos rfl
+
 end semiring
 
 end polynomial
@@ -324,11 +327,11 @@ In some sense, this views `coeff _ <visible_top_degree>` as a "monad" converting
 -/
 meta def resolve_coeff : tactic unit := focus1 $ do
 t ← target >>= instantiate_mvars,
-`(coeff %%f %%n = _) ← pure t | fail!"{t} has the wrong form",
+`(coeff %%f %%n = _) ← pure t | fail!"{t} is not of the form\n`f.coeff n = x`",
 match f with
 | `(@has_one.one %%RX %%_)            := refine ``(coeff_one_zero)
 | (app `(⇑C) _)                       := refine ``(coeff_C_zero)
-| (app `(⇑(@monomial %%R %%_ %%n)) x) := refine ``(coeff_monomial)
+| (app `(⇑(@monomial %%R %%_ %%n)) x) := refine ``(coeff_monomial_self)
 | `(X)                                := refine ``(coeff_X_one)
 | `(X ^ %%n)                          := refine ``(coeff_X_pow_self %%n)
 | `(bit0 %%a) := do

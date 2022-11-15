@@ -41,7 +41,9 @@ This file defines derivation. A derivation `D` from the `R`-algebra `A` to the `
 
 ## Future project
 
-Generalize this into bimodules.
+- Generalize derivations into bimodules.
+- Define a `is_kaehler_differential` predicate.
+
 -/
 
 open algebra

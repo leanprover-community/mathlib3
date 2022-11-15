@@ -537,6 +537,12 @@ lemma infi₂_le_of_le {f : Π i, κ i → α} (i : ι) (j : κ i) (h : f i j �
 lemma supr_le (h : ∀ i, f i ≤ a) : supr f ≤ a := Sup_le $ λ b ⟨i, eq⟩, eq ▸ h i
 lemma le_infi (h : ∀ i, a ≤ f i) : a ≤ infi f := le_Inf $ λ b ⟨i, eq⟩, eq ▸ h i
 
+lemma supr_le_supr (f g : ι → α) (h : ∀ i, f i ≤ g i) : supr f ≤ supr g :=
+supr_le (λ i, le_trans (h i) (le_supr _ _))
+
+lemma infi_le_infi (f g : ι → α) (h : ∀ i, f i ≤ g i) : infi f ≤ infi g :=
+le_infi (λ i, le_trans (infi_le _ _) (h i))
+
 lemma supr₂_le {f : Π i, κ i → α} (h : ∀ i j, f i j ≤ a) : (⨆ i j, f i j) ≤ a :=
 supr_le $ λ i, supr_le $ h i
 

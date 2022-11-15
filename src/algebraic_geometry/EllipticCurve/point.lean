@@ -73,10 +73,32 @@ variables {F : Type u} [field F] (E : EllipticCurve F) {K : Type v} [field K] [a
 
 namespace EllipticCurve
 
-/-- The proposition that an affine point $(x, y)$ lies in `E`. In other words, it satisfies the
-Weierstrass equation $y^2 + a_1xy + a_3y = x^3 + a_2x^2 + a_4x + a_6$. -/
-@[simp] def weierstrass (x y : K) : Prop :=
-y ^ 2 + ↑E.a₁ * x * y + ↑E.a₃ * y = x ^ 3 + ↑E.a₂ * x ^ 2 + ↑E.a₄ * x + ↑E.a₆
+open polynomial
+
+open_locale polynomial
+
+/-- The Weierstrass polynomial $Y^2 + a_1XY + a_3Y - (X^3 + a_2X^2 + a_4X + a_6)$ of `E`. -/
+@[simp] noncomputable def weierstrass_polynomial : K[X][X] :=
+X ^ 2 + C (C ↑E.a₁ * X) * X + C (C ↑E.a₃) * X - C (X ^ 3 + C ↑E.a₂ * X ^ 2 + C ↑E.a₄ * X + C ↑E.a₆)
+
+/-- The proposition that an affine point $(x, y)$ lies in `E`.
+In other words, the Weierstrass polynomial of `E` evaluates to zero at $(x, y)$. -/
+def weierstrass_equation (x y : K) : Prop := eval x (eval (C y) E.weierstrass_polynomial) = 0
+
+@[simp] lemma eval_weierstrass_polynomial (x y : K) :
+  eval x (eval (C y) E.weierstrass_polynomial)
+    = y ^ 2 + ↑E.a₁ * x * y + ↑E.a₃ * y - (x ^ 3 + ↑E.a₂ * x ^ 2 + ↑E.a₄ * x + ↑E.a₆) :=
+by simp only [weierstrass_polynomial, eval_sub, eval_add, eval_mul, eval_pow, eval_C, eval_X]
+
+lemma weierstrass_equation_iff' (x y : K) :
+  E.weierstrass_equation x y
+    ↔ y ^ 2 + ↑E.a₁ * x * y + ↑E.a₃ * y - (x ^ 3 + ↑E.a₂ * x ^ 2 + ↑E.a₄ * x + ↑E.a₆) = 0 :=
+by rw [weierstrass_equation, eval_weierstrass_polynomial]
+
+@[simp] lemma weierstrass_equation_iff (x y : K) :
+  E.weierstrass_equation x y
+    ↔ y ^ 2 + ↑E.a₁ * x * y + ↑E.a₃ * y = x ^ 3 + ↑E.a₂ * x ^ 2 + ↑E.a₄ * x + ↑E.a₆ :=
+by rw [weierstrass_equation_iff', sub_eq_zero]
 
 variables (K)
 
@@ -85,7 +107,7 @@ unique point at infinity `EllipticCurve.point.zero`and the affine points `Ellipt
 satisfying the Weierstrass equation $y^2 + a_1xy + a_3y = x^3 + a_2x^2 + a_4x + a_6$. -/
 inductive point
 | zero
-| some (x y : K) (h : E.weierstrass x y)
+| some (x y : K) (h : E.weierstrass_equation x y)
 
 localized "notation E⟮K⟯ := point E K" in EllipticCurve
 
@@ -117,7 +139,7 @@ section negation
 Given `P : E⟮K⟯`, use `-P` instead of `neg P`.
 -/
 
-variables {x y : K} (h : E.weierstrass x y)
+variables {x y : K} (h : E.weierstrass_equation x y)
 
 include h
 
@@ -127,15 +149,15 @@ include h
 @[simp] lemma neg_y_def : neg_y h = -y - ↑E.a₁ * x - ↑E.a₃ := rfl
 
 /-- The negation of an affine point in `E` lies in `E`. -/
-lemma weierstrass_neg : E.weierstrass x $ neg_y h :=
-by { rw [weierstrass] at h, rw [weierstrass, neg_y_def, ← h], ring1 }
+lemma weierstrass_equation_neg : E.weierstrass_equation x $ neg_y h :=
+by { rw [weierstrass_equation_iff] at h, rw [weierstrass_equation_iff, neg_y_def, ← h], ring1 }
 
 omit h
 
 /-- Negation in `E⟮K⟯`. Given `P : E⟮K⟯`, use `-P` instead of `neg P`. -/
 def neg : E⟮K⟯ → E⟮K⟯
 | 0            := 0
-| (some x y h) := some x (neg_y h) $ weierstrass_neg h
+| (some x y h) := some x (neg_y h) $ weierstrass_equation_neg h
 
 instance : has_neg E⟮K⟯ := ⟨neg⟩
 
@@ -143,7 +165,7 @@ instance : has_neg E⟮K⟯ := ⟨neg⟩
 
 @[simp] lemma neg_zero : -0 = (0 : E⟮K⟯) := rfl
 
-@[simp] lemma neg_some : -some x y h = some x (neg_y h) (weierstrass_neg h) := rfl
+@[simp] lemma neg_some : -some x y h = some x (neg_y h) (weierstrass_equation_neg h) := rfl
 
 @[simp] lemma neg_neg (P : E⟮K⟯) : -(-P) = P := by { cases P, { refl }, { simp, ring1 } }
 
@@ -159,7 +181,7 @@ section doubling
 Given `P : E⟮K⟯`, use `2 • P` instead of `P + P` (TODO: immediate once `add_comm_group` is defined).
 -/
 
-variables {x y : K} (h : E.weierstrass x y)
+variables {x y : K} (h : E.weierstrass_equation x y)
 
 include h
 
@@ -189,9 +211,9 @@ def dbl_y : K := -dbl_y' h - ↑E.a₁ * dbl_x h - ↑E.a₃
 
 /-- The doubling of an affine point in `E` whose tangent is not vertical,
 before applying the final negation that maps $y$ to $-y - a_1x - a_3$, lies in `E`. -/
-lemma weierstrass_dbl' (hy : y ≠ neg_y h) : E.weierstrass (dbl_x h) (dbl_y' h) :=
+lemma weierstrass_equation_dbl' (hy : y ≠ neg_y h) : E.weierstrass_equation (dbl_x h) (dbl_y' h) :=
 begin
-  rw [weierstrass, ← sub_eq_zero],
+  rw [weierstrass_equation_iff'],
   convert_to
     dbl_L h * (dbl_L h * (dbl_L h * (y - neg_y h)
                           + (-3 * x ^ 2 + ↑E.a₁ ^ 2 * x - 2 * ↑E.a₂ * x + 3 * ↑E.a₁ * y
@@ -202,14 +224,14 @@ begin
         - ↑E.a₁ * ↑E.a₂ * y + ↑E.a₃ * y + ↑E.a₂ * ↑E.a₄ - ↑E.a₆) = 0,
   { simp only [dbl_x_def, dbl_y'_def, neg_y_def], ring1 },
   field_simp [-neg_y_def, sub_ne_zero_of_ne hy],
-  rw [weierstrass] at h,
+  rw [weierstrass_equation_iff'] at h,
   linear_combination (2 * y + ↑E.a₁ * x + ↑E.a₃) ^ 2 * h
     with { normalization_tactic := `[rw [neg_y_def], ring1] }
 end
 
 /-- The doubling of an affine point in `E` whose tangent is not vertical lies in `E`. -/
-lemma weierstrass_dbl (hy : y ≠ neg_y h) : E.weierstrass (dbl_x h) (dbl_y h) :=
-weierstrass_neg $ weierstrass_dbl' h hy
+lemma weierstrass_equation_dbl (hy : y ≠ neg_y h) : E.weierstrass_equation (dbl_x h) (dbl_y h) :=
+weierstrass_equation_neg $ weierstrass_equation_dbl' h hy
 
 end doubling
 
@@ -221,7 +243,7 @@ section addition
 Given `P Q : E⟮K⟯`, use `P + Q` instead of `add P Q`.
 -/
 
-variables {x₁ y₁ x₂ y₂ : K} (h₁ : E.weierstrass x₁ y₁) (h₂ : E.weierstrass x₂ y₂)
+variables {x₁ x₂ y₁ y₂ : K} (h₁ : E.weierstrass_equation x₁ y₁) (h₂ : E.weierstrass_equation x₂ y₂)
 
 include h₁ h₂
 
@@ -250,9 +272,10 @@ def add_y : K := -add_y' h₁ h₂ - ↑E.a₁ * add_x h₁ h₂ - ↑E.a₃
 
 /-- The addition of two affine points in `E` with distinct $x$-coordinates,
 before applying the final negation that maps $y$ to $-y - a_1x - a_3$, lies in `E`. -/
-lemma weierstrass_add' (hx : x₁ ≠ x₂) : E.weierstrass (add_x h₁ h₂) (add_y' h₁ h₂) :=
+lemma weierstrass_equation_add' (hx : x₁ ≠ x₂) :
+  E.weierstrass_equation (add_x h₁ h₂) (add_y' h₁ h₂) :=
 begin
-  rw [weierstrass, ← sub_eq_zero],
+  rw [weierstrass_equation_iff'],
   convert_to
     add_L h₁ h₂ * (add_L h₁ h₂ * (add_L h₁ h₂ * (add_L h₁ h₂ * (x₁ - x₂) * -1
                                                   + (-↑E.a₁ * x₁ + 2 * ↑E.a₁ * x₂ + 2 * y₁ + ↑E.a₃))
@@ -268,7 +291,7 @@ begin
         + ↑E.a₃ * y₁ + ↑E.a₂ * ↑E.a₄ - ↑E.a₆) = 0,
   { simp only [add_x_def, add_y'_def], ring1 },
   field_simp [sub_ne_zero_of_ne hx],
-  rw [weierstrass] at h₁ h₂,
+  rw [weierstrass_equation_iff'] at h₁ h₂,
   linear_combination
     -((x₁ - x₂) ^ 2 * (x₁ + 2 * x₂ + ↑E.a₂) - (x₁ - x₂) * (y₁ - y₂) * ↑E.a₁ - (y₁ - y₂) ^ 2) * h₁
     + ((x₁ - x₂) ^ 2 * (2 * x₁ + x₂ + ↑E.a₂) - (x₁ - x₂) * (y₁ - y₂) * ↑E.a₁ - (y₁ - y₂) ^ 2) * h₂
@@ -276,16 +299,17 @@ begin
 end
 
 /-- The addition of two affine points in `E` with distinct $x$-coordinates lies in `E`. -/
-lemma weierstrass_add (hx : x₁ ≠ x₂) : E.weierstrass (add_x h₁ h₂) (add_y h₁ h₂) :=
-weierstrass_neg $ weierstrass_add' h₁ h₂ hx
+lemma weierstrass_equation_add (hx : x₁ ≠ x₂) :
+  E.weierstrass_equation (add_x h₁ h₂) (add_y h₁ h₂) :=
+weierstrass_equation_neg $ weierstrass_equation_add' h₁ h₂ hx
 
 private lemma y_eq_of_y_ne (hx : x₁ = x₂) (hy : y₁ ≠ neg_y h₂) : y₁ = y₂ :=
 begin
-  rw [weierstrass] at h₂,
-  rw [weierstrass, hx, ← h₂, ← sub_eq_zero] at h₁,
+  rw [neg_y] at hy,
+  rw [weierstrass_equation_iff] at h₂,
+  rw [weierstrass_equation_iff', hx, ← h₂] at h₁,
   apply eq_of_sub_eq_zero ∘ eq_zero_of_ne_zero_of_mul_right_eq_zero (sub_ne_zero.mpr hy),
   convert h₁,
-  rw [neg_y],
   ring1
 end
 
@@ -302,8 +326,8 @@ noncomputable def add : E⟮K⟯ → E⟮K⟯ → E⟮K⟯
 | P               0               := P
 | (some x₁ y₁ h₁) (some x₂ y₂ h₂) :=
 if hx : x₁ = x₂ then if hy : y₁ = neg_y h₂ then 0
-else some _ _ $ weierstrass_dbl h₁ $ y_ne_of_y_ne h₁ h₂ hx hy
-else some _ _ $ weierstrass_add h₁ h₂ hx
+else some _ _ $ weierstrass_equation_dbl h₁ $ y_ne_of_y_ne h₁ h₂ hx hy
+else some _ _ $ weierstrass_equation_add h₁ h₂ hx
 
 noncomputable instance : has_add E⟮K⟯ := ⟨add⟩
 
@@ -316,8 +340,8 @@ noncomputable instance : has_add E⟮K⟯ := ⟨add⟩
 lemma some_add_some :
   some x₁ y₁ h₁ + some x₂ y₂ h₂
     = if hx : x₁ = x₂ then if hy : y₁ = neg_y h₂ then 0
-      else some _ _ $ weierstrass_dbl h₁ $ y_ne_of_y_ne h₁ h₂ hx hy
-      else some _ _ $ weierstrass_add h₁ h₂ hx :=
+      else some _ _ $ weierstrass_equation_dbl h₁ $ y_ne_of_y_ne h₁ h₂ hx hy
+      else some _ _ $ weierstrass_equation_add h₁ h₂ hx :=
 rfl
 
 @[simp] lemma some_add_some_of_y_eq (hx : x₁ = x₂) (hy : y₁ = neg_y h₂) :
@@ -328,27 +352,31 @@ by rw [some_add_some, dif_pos hx, dif_pos hy]
 some_add_some_of_y_eq h₁ h₁ rfl hy
 
 @[simp] lemma some_add_some_of_y_ne (hx : x₁ = x₂) (hy : y₁ ≠ neg_y h₂) :
-  some x₁ y₁ h₁ + some x₂ y₂ h₂ = some _ _ (weierstrass_dbl h₁ $ y_ne_of_y_ne h₁ h₂ hx hy) :=
+  some x₁ y₁ h₁ + some x₂ y₂ h₂
+    = some _ _ (weierstrass_equation_dbl h₁ $ y_ne_of_y_ne h₁ h₂ hx hy) :=
 by rw [some_add_some, dif_pos hx, dif_neg hy]
 
 lemma some_add_some_of_y_ne' (hx : x₁ = x₂) (hy : y₁ ≠ neg_y h₂) :
-  some x₁ y₁ h₁ + some x₂ y₂ h₂ = -some _ _ (weierstrass_dbl' h₁ $ y_ne_of_y_ne h₁ h₂ hx hy) :=
+  some x₁ y₁ h₁ + some x₂ y₂ h₂
+    = -some _ _ (weierstrass_equation_dbl' h₁ $ y_ne_of_y_ne h₁ h₂ hx hy) :=
 some_add_some_of_y_ne h₁ h₂ hx hy
 
 @[simp] lemma some_add_self_of_y_ne (hy : y₁ ≠ neg_y h₁) :
-  some x₁ y₁ h₁ + some x₁ y₁ h₁ = some _ _ (weierstrass_dbl h₁ $ y_ne_of_y_ne h₁ h₁ rfl hy) :=
+  some x₁ y₁ h₁ + some x₁ y₁ h₁
+    = some _ _ (weierstrass_equation_dbl h₁ $ y_ne_of_y_ne h₁ h₁ rfl hy) :=
 some_add_some_of_y_ne h₁ h₁ rfl hy
 
 lemma some_add_self_of_y_ne' (hy : y₁ ≠ neg_y h₁) :
-  some x₁ y₁ h₁ + some x₁ y₁ h₁ = -some _ _ (weierstrass_dbl' h₁ $ y_ne_of_y_ne h₁ h₁ rfl hy) :=
+  some x₁ y₁ h₁ + some x₁ y₁ h₁
+    = -some _ _ (weierstrass_equation_dbl' h₁ $ y_ne_of_y_ne h₁ h₁ rfl hy) :=
 some_add_some_of_y_ne h₁ h₁ rfl hy
 
 @[simp] lemma some_add_some_of_x_ne (hx : x₁ ≠ x₂) :
-  some x₁ y₁ h₁ + some x₂ y₂ h₂ = some _ _ (weierstrass_add h₁ h₂ hx) :=
+  some x₁ y₁ h₁ + some x₂ y₂ h₂ = some _ _ (weierstrass_equation_add h₁ h₂ hx) :=
 by rw [some_add_some, dif_neg hx]
 
 lemma some_add_some_of_x_ne' (hx : x₁ ≠ x₂) :
-  some x₁ y₁ h₁ + some x₂ y₂ h₂ = -some _ _ (weierstrass_add' h₁ h₂ hx) :=
+  some x₁ y₁ h₁ + some x₂ y₂ h₂ = -some _ _ (weierstrass_equation_add' h₁ h₂ hx) :=
 some_add_some_of_x_ne h₁ h₂ hx
 
 end addition

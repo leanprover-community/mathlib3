@@ -186,7 +186,7 @@ iterate_derivative_C h
 @[simp] lemma iterate_derivative_X {k} (h : 1 < k) : (derivative^[k] (X : R[X])) = 0 :=
 iterate_derivative_eq_zero $ nat_degree_X_le.trans_lt h
 
-theorem nat_degree_eq_zero_of_derivative_eq_zero [no_zero_divisors R] [char_zero R] {f : R[X]}
+theorem nat_degree_eq_zero_of_derivative_eq_zero [no_zero_smul_divisors ℕ R] {f : R[X]}
   (h : f.derivative = 0) : f.nat_degree = 0 :=
 begin
   rcases eq_or_ne f 0 with rfl | hf,
@@ -198,14 +198,14 @@ begin
   have hm : m + 1 = f.nat_degree := tsub_add_cancel_of_le f_nat_degree_pos,
   have h2 := coeff_derivative f m,
   rw polynomial.ext_iff at h,
-  rw [h m, coeff_zero, zero_eq_mul] at h2,
-  replace h2 := h2.resolve_right (λ h2, by norm_cast at h2),
+  rw [h m, coeff_zero, ← nat.cast_add_one, ← nsmul_eq_mul', eq_comm, smul_eq_zero] at h2,
+  replace h2 := h2.resolve_left m.succ_ne_zero,
   rw [hm, ←leading_coeff, leading_coeff_eq_zero] at h2,
   exact hf h2
 end
 
-theorem eq_C_of_derivative_eq_zero [no_zero_divisors R] [char_zero R] {f : R[X]}
-  (h : f.derivative = 0) : f = C (f.coeff 0) :=
+theorem eq_C_of_derivative_eq_zero [no_zero_smul_divisors ℕ R] {f : R[X]} (h : f.derivative = 0) :
+  f = C (f.coeff 0) :=
 eq_C_of_nat_degree_eq_zero $ nat_degree_eq_zero_of_derivative_eq_zero h
 
 @[simp] lemma derivative_mul {f g : R[X]} :

@@ -359,8 +359,8 @@ namespace polynomial
 
 open_locale big_operators
 
-/-- The number of roots of a real polynomial is at most the number of roots of its derivative plus
-one. -/
+/-- The number of roots of a real polynomial `p` is at most the number of roots of its derivative
+that are not roots of `p` plus one. -/
 lemma card_roots_to_finset_le_card_roots_derivative_diff_roots_succ (p : ℝ[X]) :
   p.roots.to_finset.card ≤ (p.derivative.roots.to_finset \ p.roots.to_finset).card + 1 :=
 begin

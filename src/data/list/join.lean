@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sébastien Gouëzel, Floris van Doorn, Mario Carneiro
+Authors: Sébastien Gouëzel, Floris van Doorn, Mario Carneiro, Martin Dvorak
 -/
 import data.list.big_operators
 
@@ -156,15 +156,21 @@ begin
   induction L,
   { rw [map_nil, join, append_nil, map_nil, join, nil_append] },
   { rw [map_cons, join, map_cons, join, append_assoc, L_ih, append_assoc, append_assoc] },
+
 end
 
-/-- Reversing a list join is the same as reversing the order of parts and reversing all parts. -/
+/-- Reversing a join is the same as reversing the order of parts and reversing all parts. -/
 lemma reverse_join (L : list (list α)) :
   L.join.reverse = (list.map list.reverse L).reverse.join :=
 begin
   induction L,
   { refl },
-  { rw [join, reverse_append, L_ih, map_cons, reverse_cons, join_append, join_singleton] },
+  { rw [join, reverse_append, L_ih, map_cons, reverse_cons', join_concat] },
 end
+
+/-- Joining a reverse is the same as reversing all parts and reversing the join result. -/
+lemma join_reverse (L : list (list α)) :
+  L.reverse.join = (list.map list.reverse L).join.reverse :=
+by simpa using congr_arg list.reverse (reverse_join L.reverse)
 
 end list

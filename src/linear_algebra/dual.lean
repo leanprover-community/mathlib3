@@ -970,7 +970,7 @@ begin
   transitivity linear_map.range (f.dual_map.comp f'.symm.dual_map.to_linear_map),
   { rw linear_map.range_comp_of_range_eq_top,
     apply linear_equiv.range },
-  { congr' 1,
+  { apply congr_arg,
     ext φ x,
     simp only [linear_map.coe_comp, linear_equiv.coe_to_linear_map, linear_map.dual_map_apply,
       linear_equiv.dual_map_apply, mkq_apply, f', linear_map.quot_ker_equiv_of_surjective,
@@ -1023,29 +1023,10 @@ begin
   exact linear_equiv.symm_apply_apply f' x,
 end
 
--- Mentioned in https://math.stackexchange.com/a/2423263/172988 that this result does not
--- depend on finite dimensionality.
 lemma range_dual_map_eq_dual_annihilator_ker (f : V₁ →ₗ[K] V₂) :
   f.dual_map.range = f.ker.dual_annihilator :=
-begin
-  refine le_antisymm (range_dual_map_le_dual_annihilator_ker f) _,
-  intros φ h,
-  rw mem_range,
-  -- Take an arbitrary section of `f`, push `φ` across the dual of this section, then extend
-  -- its domain.
-  obtain ⟨f', hf'⟩ :=
-    linear_map.exists_right_inverse_of_surjective f.range_restrict (range_range_restrict _),
-  existsi subspace.dual_lift _ (f'.dual_map φ),
-  -- Now we show the choice of section does not matter.
-  ext x,
-  rw [dual_map_apply, subspace.dual_lift_of_mem (mem_range_self f x), linear_map.dual_map_apply],
-  apply (@linear_map.sub_mem_ker_iff _ _ _ _ _ _ _ _ _ _ _ _ _ φ _ x).mp,
-  rw linear_map.mem_ker,
-  rw [submodule.mem_dual_annihilator] at h,
-  apply h,
-  rw linear_map.sub_mem_ker_iff,
-  exact subtype.ext_iff.mp (linear_map.ext_iff.mp hf' ⟨f x, mem_range_self _ _⟩),
-end
+range_dual_map_eq_dual_annihilator_ker_of_subtype_range_surjective f $
+  dual_map_surjective_of_injective (range f).injective_subtype
 
 end linear_map
 

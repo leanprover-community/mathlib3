@@ -762,7 +762,7 @@ end
 lemma len_eq_add_succ_of_mono {Δ' Δ : simplex_category} (i : Δ' ⟶ Δ) [hi : mono i]
   (hi' : ¬ Δ = Δ') : ∃ (k : ℕ), Δ.len = Δ'.len + (k + 1) :=
 begin
-  obtain ⟨(_|k), h⟩ := le_iff_exists_add.mp (simplex_category.len_le_of_mono hi),
+  obtain ⟨(_|k), h⟩ := le_iff_exists_add.mp (len_le_of_mono hi),
   { exfalso,
     exact hi' (ext Δ Δ' h), },
   { exact ⟨k, h⟩, },

@@ -52,13 +52,16 @@ structure modular_form extends slash_invariant_form Γ k :=
 (hol' : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (to_fun : ℍ → ℂ))
 (bdd_at_infty' : ∀ (A : SL(2, ℤ)), is_bounded_at_im_infty (to_fun ∣[k, A]))
 
-/--The `slash_invariant_form` defined by a `modular_form`. -/
-attribute modular_form.to_slash_invariant_form
+/-- The `slash_invariant_form` associated to a `modular_form` -/
+add_decl_doc modular_form.to_slash_invariant_form
 
 /--These are `slash_invariant_forms` that are holomophic and zero at infinity. -/
 structure cusp_form extends slash_invariant_form Γ k :=
 (hol' : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (to_fun : ℍ → ℂ))
 (zero_at_infty' : ∀ (A : SL(2, ℤ)), is_zero_at_im_infty (to_fun ∣[k, A]))
+
+/-- The `slash_invariant_form` associated to a `cusp_form` -/
+add_decl_doc cusp_form.to_slash_invariant_form
 
 /--`modular_form_class F Γ k` says that `F` is a type of bundled functions that extend
 `slash_invariant_forms_class` by requiring that the functions be holomorphic and bounded

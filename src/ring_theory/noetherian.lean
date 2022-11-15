@@ -137,9 +137,13 @@ namespace module
 variables {R M N : Type*}
 variables [semiring R] [add_comm_monoid M] [add_comm_monoid N] [module R M] [module R N]
 
+variables (R M)
+
 @[priority 100] -- see Note [lower instance priority]
 instance is_noetherian.finite [is_noetherian R M] : finite R M :=
 ⟨is_noetherian.noetherian ⊤⟩
+
+variables {R M}
 
 lemma finite.of_injective [is_noetherian R N] (f : M →ₗ[R] N)
   (hf : function.injective f) : finite R M :=

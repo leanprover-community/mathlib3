@@ -51,7 +51,7 @@ structure modular_form extends slash_invariant_form Γ k :=
 (hol' : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (to_fun : ℍ → ℂ))
 (bdd_at_infty' : ∀ (A : SL(2, ℤ)), is_bounded_at_im_infty (to_fun ∣[k, A]))
 
-/-- The `slash_invariant_form` associated to a `modular_form` -/
+/-- The `slash_invariant_form` associated to a `modular_form`. -/
 add_decl_doc modular_form.to_slash_invariant_form
 
 /--These are `slash_invariant_form`s that are holomophic and zero at infinity. -/
@@ -59,7 +59,7 @@ structure cusp_form extends slash_invariant_form Γ k :=
 (hol' : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (to_fun : ℍ → ℂ))
 (zero_at_infty' : ∀ (A : SL(2, ℤ)), is_zero_at_im_infty (to_fun ∣[k, A]))
 
-/-- The `slash_invariant_form` associated to a `cusp_form` -/
+/-- The `slash_invariant_form` associated to a `cusp_form`. -/
 add_decl_doc cusp_form.to_slash_invariant_form
 
 /--`modular_form_class F Γ k` says that `F` is a type of bundled functions that extend
@@ -97,10 +97,10 @@ variables {F Γ k}
 @[simp] lemma modular_form_to_fun_eq_coe {f : modular_form Γ k} : f.to_fun = (f : ℍ → ℂ) := rfl
 @[simp] lemma cusp_form_to_fun_eq_coe {f : cusp_form Γ k} : f.to_fun = (f : ℍ → ℂ) := rfl
 
-@[ext] theorem modular_form_ext {f g : modular_form Γ k} (h : ∀ x, f x = g x) : f = g :=
+@[ext] theorem modular_form.ext {f g : modular_form Γ k} (h : ∀ x, f x = g x) : f = g :=
 fun_like.ext f g h
 
-@[ext] theorem cusp_form_ext {f g : cusp_form Γ k} (h : ∀ x, f x = g x) : f = g :=
+@[ext] theorem cusp_form.ext {f g : cusp_form Γ k} (h : ∀ x, f x = g x) : f = g :=
 fun_like.ext f g h
 
 /-- Copy of a `modular_form` with a new `to_fun` equal to the old one. Useful to fix

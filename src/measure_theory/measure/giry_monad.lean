@@ -91,7 +91,7 @@ measure.of_measurable
     assume f hf h,
     simp_rw [measure_Union h hf],
     apply lintegral_tsum,
-    assume i, exact measurable_coe (hf i)
+    assume i, exact (measurable_coe (hf i)).ae_measurable
   end
 
 @[simp] lemma join_apply {m : measure (measure α)} {s : set α} (hs : measurable_set s) :

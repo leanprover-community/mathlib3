@@ -37,7 +37,7 @@ src/tactic/interactive.lean : line 10 : ERR_MOD : Module docstring missing, or t
 src/tactic/local_cache.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/monotonicity/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/monotonicity/interactive.lean : line 11 : ERR_MOD : Module docstring missing, or too late
-src/tactic/monotonicity/lemmas.lean : line 10 : ERR_MOD : Module docstring missing, or too late
+src/tactic/monotonicity/lemmas.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/tactic/noncomm_ring.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/nth_rewrite/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/nth_rewrite/congr.lean : line 9 : ERR_MOD : Module docstring missing, or too late
@@ -59,7 +59,6 @@ src/tactic/omega/nat/preterm.lean : line 7 : ERR_MOD : Module docstring missing,
 src/tactic/omega/nat/sub_elim.lean : line 7 : ERR_MOD : Module docstring missing, or too late
 src/tactic/omega/prove_unsats.lean : line 7 : ERR_MOD : Module docstring missing, or too late
 src/tactic/omega/term.lean : line 7 : ERR_MOD : Module docstring missing, or too late
-src/tactic/push_neg.lean : line 12 : ERR_MOD : Module docstring missing, or too late
 src/tactic/restate_axiom.lean : line 8 : ERR_MOD : Module docstring missing, or too late
 src/tactic/rewrite.lean : line 9 : ERR_MOD : Module docstring missing, or too late
 src/tactic/rewrite_all/basic.lean : line 8 : ERR_MOD : Module docstring missing, or too late

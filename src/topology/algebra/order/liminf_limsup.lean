@@ -382,7 +382,7 @@ begin
 end
 
 lemma limsup_eq_tendsto_sum_indicator_at_top
-  (R : Type*) [strict_ordered_semiring R] [nontrivial R] [archimedean R] (s : ℕ → set α) :
+  (R : Type*) [strict_ordered_semiring R] [archimedean R] (s : ℕ → set α) :
   limsup s at_top =
     {ω | tendsto (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : α → R) ω) at_top at_top} :=
 begin

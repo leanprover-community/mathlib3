@@ -467,6 +467,30 @@ begin
   exact (generate_from_Union_measurable_set _).symm,
 end
 
+lemma Indep_set.indep_generate_from_lt [preorder ι] [is_probability_measure μ]
+  {s : ι → set Ω} (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (i : ι) :
+  indep (generate_from {s i}) (generate_from {t | ∃ j < i, s j = t}) μ :=
+begin
+  convert hs.indep_generate_from_of_disjoint hsm {i} {j | j < i}
+    (set.disjoint_singleton_left.mpr (lt_irrefl _)),
+  simp only [set.mem_singleton_iff, exists_prop, exists_eq_left, set.set_of_eq_eq_singleton'],
+end
+
+lemma Indep_set.indep_generate_from_le [linear_order ι] [is_probability_measure μ]
+  {s : ι → set Ω} (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ)
+  (i : ι) {k : ι} (hk : i < k) :
+  indep (generate_from {s k}) (generate_from {t | ∃ j ≤ i, s j = t}) μ :=
+begin
+  convert hs.indep_generate_from_of_disjoint hsm {k} {j | j ≤ i}
+    (set.disjoint_singleton_left.mpr hk.not_le),
+  simp only [set.mem_singleton_iff, exists_prop, exists_eq_left, set.set_of_eq_eq_singleton'],
+end
+
+lemma Indep_set.indep_generate_from_le_nat [is_probability_measure μ]
+  {s : ℕ → set Ω} (hsm : ∀ n, measurable_set (s n)) (hs : Indep_set s μ) (n : ℕ):
+  indep (generate_from {s (n + 1)}) (generate_from {t | ∃ k ≤ n, s k = t}) μ :=
+hs.indep_generate_from_le hsm _ n.lt_succ_self
+
 lemma indep_supr_of_monotone [semilattice_sup ι] {Ω} {m : ι → measurable_space Ω}
   {m' m0 : measurable_space Ω} {μ : measure Ω} [is_probability_measure μ]
   (h_indep : ∀ i, indep (m i) m' μ) (h_le : ∀ i, m i ≤ m0) (h_le' : m' ≤ m0) (hm : monotone m) :
@@ -694,7 +718,7 @@ end
 two disjoint finite index sets, then the tuple formed by `f i` for `i ∈ S` is independent of the
 tuple `(f i)_i` for `i ∈ T`. -/
 lemma Indep_fun.indep_fun_finset [is_probability_measure μ]
-  {ι : Type*} [decidable_eq ι] {β : ι → Type*} {m : Π i, measurable_space (β i)}
+  {ι : Type*} {β : ι → Type*} {m : Π i, measurable_space (β i)}
   {f : Π i, Ω → β i} (S T : finset ι) (hST : disjoint S T) (hf_Indep : Indep_fun m f μ)
   (hf_meas : ∀ i, measurable (f i)) :
   indep_fun (λ a (i : S), f i a) (λ a (i : T), f i a) μ :=
@@ -726,6 +750,7 @@ begin
   rintros _ _ ⟨s, ⟨sets_s, hs1, hs2⟩, rfl⟩ ⟨t, ⟨sets_t, ht1, ht2⟩, rfl⟩,
   simp only [set.mem_univ_pi, set.mem_set_of_eq] at hs1 ht1,
   rw [← hs2, ← ht2],
+  classical,
   let sets_s' : (Π i : ι, set (β i)) := λ i, dite (i ∈ S) (λ hi, sets_s ⟨i, hi⟩) (λ _, set.univ),
   have h_sets_s'_eq : ∀ {i} (hi : i ∈ S), sets_s' i = sets_s ⟨i, hi⟩,
   { intros i hi, simp_rw [sets_s', dif_pos hi], },
@@ -804,12 +829,9 @@ begin
       (measurable_pi_apply ⟨j, finset.mem_insert_of_mem (finset.mem_singleton_self j)⟩),
   rw [h_left, h_right],
   refine (hf_Indep.indep_fun_finset s {k} _ hf_meas).comp h_meas_left h_meas_right,
-  intros x hx,
-  simp only [finset.inf_eq_inter, finset.mem_inter, finset.mem_insert, finset.mem_singleton] at hx,
-  simp only [finset.bot_eq_empty, finset.not_mem_empty],
-  cases hx.1 with hx_eq hx_eq; rw hx_eq at hx,
-  { exact hik hx.2, },
-  { exact hjk hx.2, },
+  rw finset.disjoint_singleton_right,
+  simp only [finset.mem_insert, finset.mem_singleton, not_or_distrib],
+  exact ⟨hik.symm, hjk.symm⟩,
 end
 
 @[to_additive]
@@ -856,6 +878,23 @@ lemma Indep_fun.indep_fun_prod_range_succ [is_probability_measure μ]
   (n : ℕ) :
   indep_fun (∏ j in finset.range n, f j) (f n) μ :=
 hf_Indep.indep_fun_finset_prod_of_not_mem hf_meas finset.not_mem_range_self
+
+lemma Indep_set.Indep_fun_indicator [has_zero β] [has_one β] {m : measurable_space β}
+  {s : ι → set Ω} (hs : Indep_set s μ) :
+  Indep_fun (λ n, m) (λ n, (s n).indicator (λ ω, 1)) μ :=
+begin
+  classical,
+  rw Indep_fun_iff_measure_inter_preimage_eq_mul,
+  rintro S π hπ,
+  simp_rw set.indicator_const_preimage_eq_union,
+  refine @hs S (λ i, ite (1 ∈ π i) (s i) ∅ ∪ ite ((0 : β) ∈ π i) (s i)ᶜ ∅) (λ i hi, _),
+  have hsi : measurable_set[generate_from {s i}] (s i),
+    from measurable_set_generate_from (set.mem_singleton _),
+  refine measurable_set.union (measurable_set.ite' (λ _, hsi) (λ _, _))
+    (measurable_set.ite' (λ _, hsi.compl) (λ _, _)),
+  { exact @measurable_set.empty _ (generate_from {s i}), },
+  { exact @measurable_set.empty _ (generate_from {s i}), },
+end
 
 end indep_fun
 

@@ -18,25 +18,29 @@ open_locale topological_space
 variables {α : Type*}
 
 /-- A `normed_ordered_add_group` is an additive group that is both a `normed_add_comm_group` and an
-`ordered_add_comm_group`. This class is necessary to avoid diamonds. -/
+`ordered_add_comm_group`. This class is necessary to avoid diamonds caused by both classes
+carrying their own group structure. -/
 class normed_ordered_add_group (α : Type*)
   extends ordered_add_comm_group α, has_norm α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = ∥x - y∥ . obviously)
 
 /-- A `normed_ordered_group` is a group that is both a `normed_comm_group` and an
-`ordered_comm_group`. This class is necessary to avoid diamonds. -/
+`ordered_comm_group`. This class is necessary to avoid diamonds caused by both classes
+carrying their own group structure. -/
 @[to_additive]
 class normed_ordered_group (α : Type*) extends ordered_comm_group α, has_norm α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = ∥x / y∥ . obviously)
 
 /-- A `normed_linear_ordered_add_group` is an additive group that is both a `normed_add_comm_group`
-and a `linear_ordered_add_comm_group`. This class is necessary to avoid diamonds. -/
+and a `linear_ordered_add_comm_group`. This class is necessary to avoid diamonds caused by both
+classes carrying their own group structure. -/
 class normed_linear_ordered_add_group (α : Type*)
   extends linear_ordered_add_comm_group α, has_norm α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = ∥x - y∥ . obviously)
 
 /-- A `normed_linear_ordered_group` is a group that is both a `normed_comm_group` and a
-`linear_ordered_comm_group`. This class is necessary to avoid diamonds. -/
+`linear_ordered_comm_group`. This class is necessary to avoid diamonds caused by both classes
+carrying their own group structure. -/
 @[to_additive]
 class normed_linear_ordered_group (α : Type*)
   extends linear_ordered_comm_group α, has_norm α, metric_space α :=
@@ -54,8 +58,8 @@ instance normed_ordered_group.to_normed_comm_group [normed_ordered_group α] : n
 ⟨normed_ordered_group.dist_eq⟩
 
 @[to_additive, priority 100]
-instance normed_linear_ordered_group.to_normed_comm_group [normed_linear_ordered_group α] :
-  normed_comm_group α :=
+instance normed_linear_ordered_group.to_normed_ordered_group [normed_linear_ordered_group α] :
+  normed_ordered_group α :=
 ⟨normed_linear_ordered_group.dist_eq⟩
 
 @[priority 100] instance normed_linear_ordered_field.to_normed_field (α : Type*)
@@ -71,7 +75,19 @@ instance : normed_linear_ordered_field ℝ :=
 ⟨dist_eq_norm, norm_mul⟩
 
 @[to_additive] instance [normed_ordered_group α] : normed_ordered_group αᵒᵈ :=
-‹normed_ordered_group α›
+{ ..normed_ordered_group.to_normed_comm_group, ..order_dual.ordered_comm_group }
 
 @[to_additive] instance [normed_linear_ordered_group α] : normed_linear_ordered_group αᵒᵈ :=
-‹normed_linear_ordered_group α›
+{ ..order_dual.normed_ordered_group, ..order_dual.linear_order _ }
+
+instance [normed_ordered_group α] : normed_ordered_add_group (additive α) :=
+{ ..additive.normed_add_comm_group }
+
+instance [normed_ordered_add_group α] : normed_ordered_group (multiplicative α) :=
+{ ..multiplicative.normed_comm_group }
+
+instance [normed_linear_ordered_group α] : normed_linear_ordered_add_group (additive α) :=
+{ ..additive.normed_add_comm_group }
+
+instance [normed_linear_ordered_add_group α] : normed_linear_ordered_group (multiplicative α) :=
+{ ..multiplicative.normed_comm_group }

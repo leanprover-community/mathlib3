@@ -478,6 +478,18 @@ begin
                  self_mem_mk' _ _, (vadd_vsub _ _).symm⟩ }
 end
 
+/-- A point lies in an affine subspace constructed from another point and a direction if and only
+if their difference is in that direction. -/
+lemma mem_mk'_iff_vsub_mem {p₁ p₂ : P} {direction : submodule k V} :
+  p₂ ∈ mk' p₁ direction ↔ p₂ -ᵥ p₁ ∈ direction :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw ←direction_mk' p₁ direction,
+    exact vsub_mem_direction h (self_mem_mk' _ _) },
+  { rw ← vsub_vadd p₂ p₁,
+    exact vadd_mem_mk' p₁ h }
+end
+
 /-- Constructing an affine subspace from a point in a subspace and
 that subspace's direction yields the original subspace. -/
 @[simp] lemma mk'_eq {s : affine_subspace k P} {p : P} (hp : p ∈ s) : mk' p s.direction = s :=
@@ -1183,50 +1195,53 @@ by rw [vector_span_pair_rev, submodule.mem_span_singleton]
 
 variables (k)
 
+notation `line[` k `, ` p₁ `, ` p₂ `]` :=
+affine_span k (insert p₁ (@singleton _ _ set.has_singleton p₂))
+
 /-- The first of two points lies in their affine span. -/
-lemma left_mem_affine_span_pair (p₁ p₂ : P) : p₁ ∈ affine_span k ({p₁, p₂} : set P) :=
+lemma left_mem_affine_span_pair (p₁ p₂ : P) : p₁ ∈ line[k, p₁, p₂] :=
 mem_affine_span _ (set.mem_insert _ _)
 
 /-- The second of two points lies in their affine span. -/
-lemma right_mem_affine_span_pair (p₁ p₂ : P) : p₂ ∈ affine_span k ({p₁, p₂} : set P) :=
+lemma right_mem_affine_span_pair (p₁ p₂ : P) : p₂ ∈ line[k, p₁, p₂] :=
 mem_affine_span _ (set.mem_insert_of_mem _ (set.mem_singleton _))
 
 variables {k}
 
 /-- A combination of two points expressed with `line_map` lies in their affine span. -/
 lemma affine_map.line_map_mem_affine_span_pair (r : k) (p₁ p₂ : P) :
-  affine_map.line_map p₁ p₂ r ∈ affine_span k ({p₁, p₂} : set P) :=
+  affine_map.line_map p₁ p₂ r ∈ line[k, p₁, p₂] :=
 affine_map.line_map_mem _ (left_mem_affine_span_pair _ _ _) (right_mem_affine_span_pair _ _ _)
 
 /-- A combination of two points expressed with `line_map` (with the two points reversed) lies in
 their affine span. -/
 lemma affine_map.line_map_rev_mem_affine_span_pair (r : k) (p₁ p₂ : P) :
-  affine_map.line_map p₂ p₁ r ∈ affine_span k ({p₁, p₂} : set P) :=
+  affine_map.line_map p₂ p₁ r ∈ line[k, p₁, p₂] :=
 affine_map.line_map_mem _ (right_mem_affine_span_pair _ _ _) (left_mem_affine_span_pair _ _ _)
 
 /-- A multiple of the difference of two points added to the first point lies in their affine
 span. -/
 lemma smul_vsub_vadd_mem_affine_span_pair (r : k) (p₁ p₂ : P) :
-  r • (p₂ -ᵥ p₁) +ᵥ p₁ ∈ affine_span k ({p₁, p₂} : set P) :=
+  r • (p₂ -ᵥ p₁) +ᵥ p₁ ∈ line[k, p₁, p₂] :=
 affine_map.line_map_mem_affine_span_pair _ _ _
 
 /-- A multiple of the difference of two points added to the second point lies in their affine
 span. -/
 lemma smul_vsub_rev_vadd_mem_affine_span_pair (r : k) (p₁ p₂ : P) :
-  r • (p₁ -ᵥ p₂) +ᵥ p₂ ∈ affine_span k ({p₁, p₂} : set P) :=
+  r • (p₁ -ᵥ p₂) +ᵥ p₂ ∈ line[k, p₁, p₂] :=
 affine_map.line_map_rev_mem_affine_span_pair _ _ _
 
 /-- A vector added to the first point lies in the affine span of two points if and only if it is
 a multiple of their difference. -/
 lemma vadd_left_mem_affine_span_pair {p₁ p₂ : P} {v : V} :
-  v +ᵥ p₁ ∈ affine_span k ({p₁, p₂} : set P) ↔ ∃ r : k, r • (p₂ -ᵥ p₁) = v :=
+  v +ᵥ p₁ ∈ line[k, p₁, p₂] ↔ ∃ r : k, r • (p₂ -ᵥ p₁) = v :=
 by rw [vadd_mem_iff_mem_direction _ (left_mem_affine_span_pair _ _ _), direction_affine_span,
        mem_vector_span_pair_rev]
 
 /-- A vector added to the second point lies in the affine span of two points if and only if it is
 a multiple of their difference. -/
 lemma vadd_right_mem_affine_span_pair {p₁ p₂ : P} {v : V} :
-  v +ᵥ p₂ ∈ affine_span k ({p₁, p₂} : set P) ↔ ∃ r : k, r • (p₁ -ᵥ p₂) = v :=
+  v +ᵥ p₂ ∈ line[k, p₁, p₂] ↔ ∃ r : k, r • (p₁ -ᵥ p₂) = v :=
 by rw [vadd_mem_iff_mem_direction _ (right_mem_affine_span_pair _ _ _), direction_affine_span,
        mem_vector_span_pair]
 

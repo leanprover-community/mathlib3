@@ -34,13 +34,52 @@ open_locale big_operators ennreal nnreal topological_space
 ### Definition of the Lebesgue measure and lengths of intervals
 -/
 
+lemma glouk : stieltjes_function.id.measure
+    (std_orthonormal_basis ℝ ℝ).to_basis.parallelogram_positive_compacts = 1 :=
+begin
+  have A : finite_dimensional.finrank ℝ ℝ = 1, by simp only [finite_dimensional.finrank_self],
+  simp only [basis.parallelogram_positive_compacts, parallelogram, orthonormal_basis.coe_to_basis,
+    algebra.id.smul_eq_mul, positive_compacts.coe_mk, compacts.coe_mk],
+  let i : fin (finite_dimensional.finrank ℝ ℝ) := ⟨0, sorry⟩,
+  have : (λ (a : fin (finite_dimensional.finrank ℝ ℝ) → ℝ), ∑ (x : fin (finite_dimensional.finrank ℝ ℝ)), a x * (std_orthonormal_basis ℝ ℝ) x) '' Icc 0 1
+    = Icc 0 1,
+  { apply subset.antisymm,
+    { rintros x ⟨y, hy, rfl⟩,
+      simp,
+
+    }
+
+
+  }
+end
+
+#exit
+
 lemma volume_eq_stieltjes_id : (volume : measure ℝ) = stieltjes_function.id.measure :=
 begin
-  simp [volume],
+  haveI : is_add_left_invariant stieltjes_function.id.measure :=
+  ⟨λ a, eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
+    by simp only [measure.map_apply (measurable_const_add a) measurable_set_Ioo,
+    sub_sub_sub_cancel_right, stieltjes_function.measure_Ioo, stieltjes_function.id_left_lim,
+    stieltjes_function.id_apply, id.def, preimage_const_add_Ioo]⟩,
+  have A : stieltjes_function.id.measure
+    (std_orthonormal_basis ℝ ℝ).to_basis.parallelogram_positive_compacts = 1,
+  {
+
+  },
+  conv_rhs { rw [add_haar_measure_unique stieltjes_function.id.measure
+    (std_orthonormal_basis ℝ ℝ).to_basis.parallelogram_positive_compacts, A] },
+  simp only [volume, basis.add_haar, one_smul],
+
 end
 
 
 #exit
+
+
+/-- The Haar measure equals the Lebesgue measure on `ℝ`. -/
+lemma add_haar_measure_eq_volume : add_haar_measure Icc01 = volume :=
+by { convert (add_haar_measure_unique volume Icc01).symm, simp [Icc01] }
 
 /-- Lebesgue measure on the Borel sigma algebra, giving measure `b - a` to the interval `[a, b]`. -/
 instance real.measure_space : measure_space ℝ :=

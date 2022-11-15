@@ -243,11 +243,6 @@ class add_left_cancel_semigroup (G : Type u) extends add_semigroup G :=
 (add_left_cancel : ∀ a b c : G, a + b = a + c → b = c)
 attribute [to_additive add_left_cancel_semigroup] left_cancel_semigroup
 
-@[priority 100, to_additive]
-instance left_cancel_semigroup.to_is_left_cancel_mul (G : Type u) [left_cancel_semigroup G] :
-  is_left_cancel_mul G :=
-{ mul_left_cancel := left_cancel_semigroup.mul_left_cancel }
-
 section left_cancel_semigroup
 variables [left_cancel_semigroup G] {a b c : G}
 
@@ -271,6 +266,11 @@ theorem mul_right_inj (a : G) {b c : G} : a * b = a * c ↔ b = c :=
 theorem mul_ne_mul_right (a : G) {b c : G} : a * b ≠ a * c ↔ b ≠ c :=
 (mul_right_injective a).ne_iff
 
+@[priority 100, to_additive]
+instance left_cancel_semigroup.to_is_left_cancel_mul (G : Type u) [left_cancel_semigroup G] :
+  is_left_cancel_mul G :=
+{ mul_left_cancel := left_cancel_semigroup.mul_left_cancel }
+
 end left_cancel_semigroup
 
 /-- A `right_cancel_semigroup` is a semigroup such that `a * b = c * b` implies `a = c`. -/
@@ -284,11 +284,6 @@ class right_cancel_semigroup (G : Type u) extends semigroup G :=
 class add_right_cancel_semigroup (G : Type u) extends add_semigroup G :=
 (add_right_cancel : ∀ a b c : G, a + b = c + b → a = c)
 attribute [to_additive add_right_cancel_semigroup] right_cancel_semigroup
-
-@[priority 100, to_additive]
-instance right_cancel_semigroup.to_is_right_cancel_mul (G : Type u)
-  [right_cancel_semigroup G] : is_right_cancel_mul G :=
-{ mul_right_cancel := right_cancel_semigroup.mul_right_cancel }
 
 section right_cancel_semigroup
 variables [right_cancel_semigroup G] {a b c : G}
@@ -312,6 +307,11 @@ theorem mul_left_inj (a : G) {b c : G} : b * a = c * a ↔ b = c :=
 @[to_additive]
 theorem mul_ne_mul_left (a : G) {b c : G} : b * a ≠ c * a ↔ b ≠ c :=
 (mul_left_injective a).ne_iff
+
+@[priority 100, to_additive]
+instance right_cancel_semigroup.to_is_right_cancel_mul (G : Type u)
+  [right_cancel_semigroup G] : is_right_cancel_mul G :=
+{ mul_right_cancel := right_cancel_semigroup.mul_right_cancel }
 
 end right_cancel_semigroup
 

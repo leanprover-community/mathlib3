@@ -78,7 +78,7 @@ open polynomial
 open_locale polynomial
 
 /-- The Weierstrass polynomial $Y^2 + a_1XY + a_3Y - (X^3 + a_2X^2 + a_4X + a_6)$ of `E`. -/
-@[simp] noncomputable def weierstrass_polynomial : K[X][X] :=
+noncomputable def weierstrass_polynomial : K[X][X] :=
 X ^ 2 + C (C ↑E.a₁ * X) * X + C (C ↑E.a₃) * X - C (X ^ 3 + C ↑E.a₂ * X ^ 2 + C ↑E.a₄ * X + C ↑E.a₆)
 
 /-- The proposition that an affine point $(x, y)$ lies in `E`.

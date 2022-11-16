@@ -52,6 +52,7 @@ end homological_complex
 
 end karoubi
 
+open karoubi
 
 namespace karoubi_homological_complex_equivalence
 
@@ -64,7 +65,7 @@ def obj (P : karoubi (homological_complex C c)) : homological_complex (karoubi C
   d := λ i j,
     { f := P.p.f i ≫ P.X.d i j,
       comm := by tidy, },
-  shape' := λ i j hij, by simp only [karoubi.hom_eq_zero_iff,
+  shape' := λ i j hij, by simp only [hom_eq_zero_iff,
     P.X.shape i j hij, limits.comp_zero], }
 
 @[simps]
@@ -88,9 +89,9 @@ def obj (K : homological_complex (karoubi C) c) : karoubi (homological_complex C
 { X :=
   { X := λ n, (K.X n).X,
     d := λ i j, (K.d i j).f,
-    shape' := λ i j hij, karoubi.hom_eq_zero_iff.mp (K.shape i j hij),
-    d_comp_d' := λ i j k hij hjk, by { simpa only [karoubi.comp_f]
-      using karoubi.hom_eq_zero_iff.mp (K.d_comp_d i j k), }, },
+    shape' := λ i j hij, hom_eq_zero_iff.mp (K.shape i j hij),
+    d_comp_d' := λ i j k hij hjk, by { simpa only [comp_f]
+      using hom_eq_zero_iff.mp (K.d_comp_d i j k), }, },
   p :=
     { f := λ n, (K.X n).p,
       comm' := by simp, },
@@ -100,8 +101,8 @@ def obj (K : homological_complex (karoubi C) c) : karoubi (homological_complex C
 def map {K L : homological_complex (karoubi C) c} (f : K ⟶ L) : obj K ⟶ obj L :=
 { f:=
   { f := λ n, (f.f n).f,
-    comm' := λ i j hij, by simpa only [karoubi.comp_f]
-      using karoubi.hom_ext.mp (f.comm' i j hij), },
+    comm' := λ i j hij, by simpa only [comp_f]
+      using hom_ext.mp (f.comm' i j hij), },
   comm := by tidy, }
 
 end inverse
@@ -120,12 +121,46 @@ eq_to_iso (functor.ext (λ P, homological_complex.ext (by tidy) (by tidy)) (by t
 def unit_iso : 𝟭 (karoubi (homological_complex C c)) ≅ functor ⋙ inverse :=
 { hom :=
   { app := λ P,
-    { f := { f := λ n, P.p.f n, },
-      comm := by tidy, }, },
+    { f :=
+      { f := λ n, P.p.f n,
+        comm' := λ i j hij, begin
+          dsimp,
+          simp only [homological_complex.hom.comm, homological_complex.hom.comm_assoc,
+            homological_complex.p_idem],
+        end },
+      comm := by { ext n, dsimp, simp only [homological_complex.p_idem], }, },
+    naturality' := λ P Q φ, begin
+      ext,
+      dsimp,
+      simp only [comp_f, homological_complex.comp_f, homological_complex.comp_p_d,
+        inverse.map_f_f, functor.map_f_f, homological_complex.p_comp_d],
+    end, },
   inv :=
   { app := λ P,
-    { f := { f := λ n, P.p.f n, },
-      comm := by tidy, }, }, }
+    { f :=
+      { f := λ n, P.p.f n,
+        comm' := λ i j hij, begin
+          dsimp,
+          simp only [homological_complex.hom.comm, assoc, homological_complex.p_idem],
+        end },
+      comm := by { ext n, dsimp, simp only [homological_complex.p_idem], }, },
+    naturality' := λ P Q φ, begin
+      ext,
+      dsimp,
+      simp only [comp_f, homological_complex.comp_f, inverse.map_f_f, functor.map_f_f,
+        homological_complex.comp_p_d, homological_complex.p_comp_d],
+    end, },
+  hom_inv_id' := begin
+    ext,
+    dsimp,
+    simp only [homological_complex.p_idem, comp_f, homological_complex.comp_f, id_eq],
+  end,
+  inv_hom_id' := begin
+    ext,
+    dsimp,
+    simp only [homological_complex.p_idem, comp_f, homological_complex.comp_f, id_eq,
+      inverse.obj_p_f, functor.obj_X_p],
+  end, }
 
 end karoubi_homological_complex_equivalence
 
@@ -143,16 +178,15 @@ variables (α : Type*) [add_right_cancel_semigroup α] [has_one α]
 
 @[simps]
 def karoubi_chain_complex_equivalence :
-  karoubi (chain_complex C α) ≌
-    chain_complex (karoubi C) α :=
+  karoubi (chain_complex C α) ≌ chain_complex (karoubi C) α :=
 karoubi_homological_complex_equivalence C (complex_shape.down α)
 
 @[simps]
 def karoubi_cochain_complex_equivalence :
-  karoubi (cochain_complex C α) ≌
-    cochain_complex (karoubi C) α :=
+  karoubi (cochain_complex C α) ≌ cochain_complex (karoubi C) α :=
 karoubi_homological_complex_equivalence C (complex_shape.up α)
 
+#check karoubi_chain_complex_equivalence
 end idempotents
 
 end category_theory

@@ -359,8 +359,7 @@ end linear_ordered_semifield
 end nat
 
 /-- There exists at most one `floor_semiring` structure on an ordered semiring. -/
-lemma floor_semiring.subsingleton [strict_ordered_semiring α] :
-  subsingleton (floor_semiring α) :=
+lemma floor_semiring.subsingleton [ordered_semiring α] : subsingleton (floor_semiring α) :=
 begin
   refine ⟨λ H₁ H₂, _⟩,
   have : H₁.ceil = H₂.ceil,
@@ -382,7 +381,7 @@ end
 A `floor_ring` is an ordered ring over `α` with a function `floor : α → ℤ` satisfying
 `∀ (z : ℤ) (a : α), z ≤ floor a ↔ (z : α) ≤ a)`.
 -/
-class floor_ring (α) [strict_ordered_ring α] :=
+class floor_ring (α) [ordered_ring α] :=
 (floor : α → ℤ)
 (ceil : α → ℤ)
 (gc_coe_floor : galois_connection coe floor)
@@ -395,7 +394,7 @@ instance : floor_ring ℤ :=
   gc_ceil_coe := λ a b, by { rw int.cast_id, refl } }
 
 /-- A `floor_ring` constructor from the `floor` function alone. -/
-def floor_ring.of_floor (α) [strict_ordered_ring α] (floor : α → ℤ)
+def floor_ring.of_floor (α) [ordered_ring α] (floor : α → ℤ)
   (gc_coe_floor : galois_connection coe floor) : floor_ring α :=
 { floor := floor,
   ceil := λ a, -floor (-a),
@@ -403,7 +402,7 @@ def floor_ring.of_floor (α) [strict_ordered_ring α] (floor : α → ℤ)
   gc_ceil_coe := λ a z, by rw [neg_le, ←gc_coe_floor, int.cast_neg, neg_le_neg_iff] }
 
 /-- A `floor_ring` constructor from the `ceil` function alone. -/
-def floor_ring.of_ceil (α) [strict_ordered_ring α] (ceil : α → ℤ)
+def floor_ring.of_ceil (α) [ordered_ring α] (ceil : α → ℤ)
   (gc_ceil_coe : galois_connection ceil coe) : floor_ring α :=
 { floor := λ a, -ceil (-a),
   ceil := ceil,
@@ -411,17 +410,17 @@ def floor_ring.of_ceil (α) [strict_ordered_ring α] (ceil : α → ℤ)
   gc_ceil_coe := gc_ceil_coe }
 
 @[priority 100] -- see Note [lower instance priority]
-instance floor_ring.to_nontrivial [strict_ordered_ring α] [floor_ring α] : nontrivial α :=
+instance floor_ring.to_nontrivial [ordered_ring α] [floor_ring α] : nontrivial α :=
 begin
   refine (subsingleton_or_nontrivial α).resolve_left (λ h, (int.zero_lt_one).not_le _),
-  rw ← add_le_iff_nonpos_right (floor_ring.floor (0 : α)),
-  exactI (floor_ring.gc_coe_floor).le_u (by exactI subsingleton.le _ _)
+  rw ←add_le_iff_nonpos_right (floor_ring.floor (0 : α)),
+  exactI (floor_ring.gc_coe_floor).le_u (by exactI subsingleton.le _ _),
 end
 
 namespace int
 
 section ordered_ring
-variables [strict_ordered_ring α] [floor_ring α] {z : ℤ} {a : α}
+variables [ordered_ring α] [floor_ring α] {z : ℤ} {a : α}
 
 /-- `int.floor a` is the greatest integer `z` such that `z ≤ a`. It is denoted with `⌊a⌋`. -/
 def floor : α → ℤ := floor_ring.floor
@@ -960,11 +959,9 @@ end linear_ordered_field
 end round
 
 namespace nat
-
 section ordered_semiring
-
-variables [strict_ordered_semiring α] [strict_ordered_semiring β] [floor_semiring α]
-  [floor_semiring β] [ring_hom_class F α β] {a : α} {b : β}
+variables [ordered_semiring α] [ordered_semiring β] [floor_semiring α] [floor_semiring β]
+  [ring_hom_class F α β] {a : α} {b : β}
 include β
 
 lemma ceil_congr (h : ∀ n : ℕ, a ≤ n ↔ b ≤ n) : ⌈a⌉₊ = ⌈b⌉₊ :=
@@ -973,9 +970,8 @@ lemma ceil_congr (h : ∀ n : ℕ, a ≤ n ↔ b ≤ n) : ⌈a⌉₊ = ⌈b⌉�
 end ordered_semiring
 
 section linear_ordered_semiring_ordered_semiring
-
-variables [linear_ordered_semiring α] [strict_ordered_semiring β] [floor_semiring α]
-  [floor_semiring β] [ring_hom_class F α β] {a : α} {b : β}
+variables [linear_ordered_semiring α] [ordered_semiring β] [floor_semiring α] [floor_semiring β]
+  [ring_hom_class F α β] {a : α} {b : β}
 include β
 
 lemma map_ceil (f : F) (hf : strict_mono f) (a : α) : ⌈f a⌉₊ = ⌈a⌉₊ :=
@@ -984,7 +980,6 @@ ceil_congr $ λ n, by rw [←map_nat_cast f, hf.le_iff_le]
 end linear_ordered_semiring_ordered_semiring
 
 section linear_ordered_semiring_linear_ordered_semiring
-
 variables [linear_ordered_semiring α] [linear_ordered_semiring β] [floor_semiring α]
   [floor_semiring β] [ring_hom_class F α β] {a : α} {b : β}
 include β
@@ -1001,14 +996,12 @@ lemma map_floor (f : F) (hf : strict_mono f) (a : α) : ⌊f a⌋₊ = ⌊a⌋�
 floor_congr $ λ n, by rw [←map_nat_cast f, hf.le_iff_le]
 
 end linear_ordered_semiring_linear_ordered_semiring
-
 end nat
 
 namespace int
 section ordered_ring
-variables [strict_ordered_ring α] [strict_ordered_ring β] [floor_ring α] [floor_ring β]
-  [ring_hom_class F α β] {a : α} {b : β}
-include β
+variables [ordered_ring α] [ordered_ring β] [floor_ring α] [floor_ring β] [ring_hom_class F α β]
+  {a : α} {b : β}
 
 lemma floor_congr (h : ∀ n : ℤ, (n : α) ≤ a ↔ (n : β) ≤ b) : ⌊a⌋ = ⌊b⌋ :=
 (le_floor.2 $ (h _).1 $ floor_le _).antisymm $ le_floor.2 $ (h _).2 $ floor_le _
@@ -1019,8 +1012,7 @@ lemma ceil_congr (h : ∀ n : ℤ, a ≤ n ↔ b ≤ n) : ⌈a⌉ = ⌈b⌉ :=
 end ordered_ring
 
 section linear_ordered_ring_ordered_ring
-
-variables [linear_ordered_ring α] [strict_ordered_ring β] [floor_ring α] [floor_ring β]
+variables [linear_ordered_ring α] [ordered_ring β] [floor_ring α] [floor_ring β]
   [ring_hom_class F α β] {a : α} {b : β}
 include β
 
@@ -1035,9 +1027,6 @@ by simp_rw [fract, map_sub, map_int_cast, map_floor _ hf]
 
 end linear_ordered_ring_ordered_ring
 
-end int
-
-namespace int
 variables [linear_ordered_field α] [linear_ordered_field β] [floor_ring α] [floor_ring β]
   [ring_hom_class F α β] {a : α} {b : β}
 include β
@@ -1050,7 +1039,7 @@ end int
 /-! #### A floor ring as a floor semiring -/
 
 @[priority 100] -- see Note [lower instance priority]
-instance floor_ring.to_floor_semiring [strict_ordered_ring α] [zero_le_one_class α] [floor_ring α] :
+instance floor_ring.to_floor_semiring [ordered_ring α] [zero_le_one_class α] [floor_ring α] :
 floor_semiring α :=
 { floor := λ a, ⌊a⌋.to_nat,
   ceil := λ a, ⌈a⌉.to_nat,
@@ -1062,10 +1051,9 @@ floor_semiring α :=
   gc_ceil := λ a n, by rw [int.to_nat_le, int.ceil_le, int.cast_coe_nat] }
 
 namespace int
-variables [strict_ordered_ring α] [floor_ring α] (a : α)
+variables [ordered_ring α] [floor_ring α] (a : α)
 
 lemma floor_to_nat : ⌊a⌋.to_nat = ⌊a⌋₊ := rfl
-
 lemma ceil_to_nat : ⌈a⌉.to_nat = ⌈a⌉₊ := rfl
 
 end int
@@ -1074,7 +1062,7 @@ namespace nat
 @[simp] lemma floor_int : (nat.floor : ℤ → ℕ) = int.to_nat := rfl
 @[simp] lemma ceil_int : (nat.ceil : ℤ → ℕ) = int.to_nat := rfl
 
-variables [strict_ordered_ring α] [floor_ring α] {a : α}
+variables [ordered_ring α] [floor_ring α] {a : α}
 
 lemma cast_floor_eq_int_floor (ha : 0 ≤ a) : (⌊a⌋₊ : ℤ) = ⌊a⌋ :=
 by rw [←int.floor_to_nat, int.to_nat_of_nonneg (int.floor_nonneg.2 ha)]
@@ -1091,8 +1079,7 @@ by rw [←nat.cast_ceil_eq_int_ceil ha, int.cast_coe_nat]
 end nat
 
 /-- There exists at most one `floor_ring` structure on a given ordered ring. -/
-lemma floor_ring.subsingleton [strict_ordered_ring α] :
-  subsingleton (floor_ring α) :=
+lemma floor_ring.subsingleton [ordered_ring α] : subsingleton (floor_ring α) :=
 begin
   refine ⟨λ H₁ H₂, _⟩,
   have : H₁.floor = H₂.floor := funext (λ a, H₁.gc_coe_floor.u_unique H₂.gc_coe_floor $ λ _, rfl),
@@ -1103,10 +1090,10 @@ end
 namespace tactic
 open positivity
 
-private lemma int_floor_nonneg [strict_ordered_ring α] [floor_ring α] {a : α} (ha : 0 ≤ a) :
-  0 ≤ ⌊a⌋ := int.floor_nonneg.2 ha
-private lemma int_floor_nonneg_of_pos [strict_ordered_ring α] [floor_ring α] {a : α} (ha : 0 < a) :
-  0 ≤ ⌊a⌋ := int_floor_nonneg ha.le
+private lemma int_floor_nonneg [ordered_ring α] [floor_ring α] {a : α} (ha : 0 ≤ a) : 0 ≤ ⌊a⌋ :=
+int.floor_nonneg.2 ha
+private lemma int_floor_nonneg_of_pos [ordered_ring α] [floor_ring α] {a : α} (ha : 0 < a) :
+ 0 ≤ ⌊a⌋ := int_floor_nonneg ha.le
 
 /-- Extension for the `positivity` tactic: `int.floor` is nonnegative if its input is. -/
 @[positivity]

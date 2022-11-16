@@ -678,12 +678,10 @@ begin
   rcases this with H|H,
   { left,
     ext j,
-    have : j = i, from subsingleton.elim _ _,
-    rw [this, H] },
+    rw [subsingleton.elim j i, H] },
   { right,
     ext j,
-    have : j = i, from subsingleton.elim _ _,
-    rw [this, H] },
+    rw [subsingleton.elim j i, H] },
 end
 
 variables {𝕜 E}

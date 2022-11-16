@@ -27,25 +27,58 @@ The dual space of an $R$-module $M$ is the $R$-module of $R$-linear maps $M \to 
   * `basis.to_dual` produces the map `M →ₗ[R] dual R M` associated to a basis for an `R`-module `M`.
   * `basis.to_dual_equiv` is the equivalence `M ≃ₗ[R] dual R M` associated to a finite basis.
   * `basis.dual_basis` is a basis for `dual R M` given a finite basis for `M`.
-
-* Given families of vectors `e` and `ε`, `module.dual_bases e ε` states that these families have the
-  characteristic properties of a basis and a dual.
-* `dual_annihilator W` is the submodule of `dual R M` where every element annihilates `W`.
+  * `module.dual_bases e ε` is the proposition that the families `e` of vectors and `ε` of dual
+    vectors have the characteristic properties of a basis and a dual.
+* Submodules:
+  * `submodule.dual_restrict W` is the transpose `dual R M →ₗ[R] dual R W` of the inclusion map.
+  * `submodule.dual_annihilator W` is the kernel of `W.dual_restrict`. That is, it is the submodule
+    of `dual R M` whose elements all annihilate `W`.
+  * `submodule.dual_restrict_comap W'` is the dual annihilator of `W' : submodule R (dual R M)`,
+    pulled back along `module.dual.eval R M`.
+  * `submodule.dual_copairing W` is the canonical pairing between `W.dual_annihilator` and `M ⧸ W`.
+    It is nondegenerate for vector spaces (`subspace.dual_copairing_nondegenerate`).
+  * `submodule.dual_pairing W` is the canonical pairing between `dual R M ⧸ W.dual_annihilator`
+    and `W`. It is nondegenerate for vector spaces (`subspace.dual_pairing_nondegenerate`).
+* Vector spaces:
+  * `subspace.dual_lift W` is an arbitrary section (using choice) of `submodule.dual_restrict W`.
 
 ## Main results
 
 * Bases:
+  * `module.dual_basis.basis` and `module.dual_basis.coe_basis`: if `e` and `ε` form a dual pair,
+    then `e` is a basis.
+  * `module.dual_basis.coe_dual_basis`: if `e` and `ε` form a dual pair,
+    then `ε` is a basis.
+* Annihilators:
+  * `module.dual_annihilator_gc R M` is the antitone Galois correspondence between
+    `submodule.dual_annihilator` and `submodule.dual_annihilator_comap`.
+  * `linear_map.ker_dual_map_eq_dual_annihilator_range` is that
+    `f.dual_map.ker = f.range.dual_annihilator`
+  * `linear_map.range_dual_map_eq_dual_annihilator_ker_of_subtype_range_surjective` is that
+    `f.dual_map.range = f.ker.dual_annihilator`, specialized to vector spaces in
+    `linear_map.range_dual_map_eq_dual_annihilator_ker`.
+  * `submodule.dual_quot_equiv_dual_annihilator` is the equivalence
+    `dual R (M ⧸ W) ≃ₗ[R] W.dual_annihilator`
 * Vector spaces:
+  * `subspace.dual_annihilator_dual_annihilator_comap_eq` is that the double dual annihilator,
+    pulled back ground `module.dual.eval`, is the original submodule.
+  * `subspace.dual_annihilator_gci` is that `module.dual_annihilator_gc R M` is an
+    antitone Galois coinsertion.
+  * `subspace.quot_annihilator_equiv` is the equivalence
+    `dual K V ⧸ W.dual_annihilator ≃ₗ[K] dual K W`.
+  * `linear_map.dual_pairing_nondegenerate` is that `module.dual_pairing` is nondegenerate.
+  * `subspace.is_compl_dual_annihilator` is that the dual annihilator carries complementary
+    subspaces to complementary subspaces.
 * Finite-dimensional vector spaces:
   * `module.eval_equiv` is the equivalence `V ≃ₗ[K] dual K (dual K V)`
   * `module.map_eval_equiv` is the order isomorphism between subspaces of `V` and
     subspaces of `dual K (dual K V)`.
-
-* `to_dual_equiv` : the linear equivalence between the dual module and primal module,
-  given a finite basis.
-* `module.dual_bases.basis` and `module.dual_bases.eq_dual`: if `e` and `ε` form a dual pair, `e`
-  is a basis and `ε` is its dual basis.
-* `quot_equiv_annihilator`: the quotient by a subspace is isomorphic to its dual annihilator.
+  * `subspace.quot_dual_equiv_annihilator W` is the equivalence
+    `(dual K V ⧸ W.dual_lift.range) ≃ₗ[K] W.dual_annihilator`, where `W.dual_lift.range` is a copy
+    of `dual K W` inside `dual K V`.
+  * `subspace.quot_equiv_annihilator W` is the equivalence `(V ⧸ W) ≃ₗ[K] W.dual_annihilator`
+  * `subspace.dual_quot_distrib W` is the equivalence
+    `dual K (V₁ ⧸ W) ≃ₗ[K] dual K V₁ ⧸ W.dual_lift.range`.
 
 ## TODO
 
@@ -496,10 +529,10 @@ variables [comm_semiring R] [add_comm_monoid M] [module R M] [decidable_eq ι]
 
 /-- `e` and `ε` have characteristic properties of a basis and its dual -/
 @[nolint has_nonempty_instance]
-structure module.dual_bases (e : ι → M) (ε : ι → (dual R M)) :=
+structure module.dual_bases (e : ι → M) (ε : ι → (dual R M)) : Prop :=
 (eval : ∀ i j : ι, ε i (e j) = if i = j then 1 else 0)
 (total : ∀ {m : M}, (∀ i, ε i m = 0) → m = 0)
-[finite : ∀ m : M, fintype {i | ε i m ≠ 0}]
+[finite : ∀ m : M, _root_.finite {i | ε i m ≠ 0}]
 
 end dual_bases
 
@@ -514,8 +547,8 @@ variables {e : ι → M} {ε : ι → dual R M}
 /-- The coefficients of `v` on the basis `e` -/
 def coeffs [decidable_eq ι] (h : dual_bases e ε) (m : M) : ι →₀ R :=
 { to_fun := λ i, ε i m,
-  support := by { haveI := h.finite m, exact {i : ι | ε i m ≠ 0}.to_finset },
-  mem_support_to_fun := by {intro i, rw set.mem_to_finset, exact iff.rfl } }
+  support := by { haveI := h.finite m, exact {i : ι | ε i m ≠ 0}.to_finite.to_finset },
+  mem_support_to_fun := by { intro i, rw [set.finite.mem_to_finset, set.mem_set_of_eq] } }
 
 @[simp] lemma coeffs_apply [decidable_eq ι] (h : dual_bases e ε) (m : M) (i : ι) :
   h.coeffs m i = ε i m := rfl
@@ -600,6 +633,8 @@ variable {W : submodule R M}
 def dual_restrict (W : submodule R M) :
   module.dual R M →ₗ[R] module.dual R W :=
 linear_map.dom_restrict' W
+
+lemma dual_restrict_def (W : submodule R M) : W.dual_restrict = W.subtype.dual_map := rfl
 
 @[simp] lemma dual_restrict_apply
   (W : submodule R M) (φ : module.dual R M) (x : W) :
@@ -1167,6 +1202,12 @@ begin
     dual_annihilator_top, dual_annihilator_bot],
   exact ⟨rfl, rfl⟩
 end
+
+/-- For finite-dimensional vector spaces, one can distribute duals over quotients by identifying
+`W.dual_lift.range` with `W`. Note that this depends on a choice of splitting of `V₁`. -/
+def dual_quot_distrib [finite_dimensional K V₁] (W : subspace K V₁) :
+  module.dual K (V₁ ⧸ W) ≃ₗ[K] (module.dual K V₁ ⧸ W.dual_lift.range) :=
+W.dual_quot_equiv_dual_annihilator.trans W.quot_dual_equiv_annihilator.symm
 
 end subspace
 

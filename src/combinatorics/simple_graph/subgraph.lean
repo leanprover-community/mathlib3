@@ -679,7 +679,7 @@ lemma coe_subgraph_injective (G' : G.subgraph) :
   function.injective (subgraph.coe_subgraph : G'.coe.subgraph → G.subgraph) :=
 function.left_inverse.injective restrict_coe_subgraph
 
-/-! #### Edge deletion -/
+/-! ### Edge deletion -/
 
 /-- Given a subgraph `G'` and a set of vertex pairs, remove all of the corresponding edges
 from its edge set, if present.
@@ -762,7 +762,7 @@ spanning_coe_le_of_le (delete_edges_le s)
 
 end delete_edges
 
-/-! #### Induced subgraphs -/
+/-! ### Induced subgraphs -/
 
 /- Given a subgraph, we can change its vertex set while removing any invalid edges, which
 gives induced subgraphs. See also `simple_graph.induce` for the `simple_graph` version, which,

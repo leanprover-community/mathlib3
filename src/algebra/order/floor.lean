@@ -691,6 +691,7 @@ begin
     rw [← nat.cast_add, nat.mod_add_div m n], },
 end
 
+-- TODO Generalise this to allow `n : ℤ` using `int.fmod` instead of `int.mod`.
 lemma fract_div_int_cast_eq_div_int_cast_mod {m : ℤ} {n : ℕ} :
   fract ((m : k) / n) = ↑(m % n) / n :=
 begin
@@ -698,24 +699,26 @@ begin
   replace hn : 0 < (n : k), { norm_cast, assumption, },
   have : ∀ {l : ℤ} (hl : 0 ≤ l), fract ((l : k) / n) = ↑(l % n) / n,
   { intros,
-    induction l,
-    { rw [of_nat_eq_coe, cast_coe_nat, ← coe_nat_mod, cast_coe_nat,
-        fract_div_nat_cast_eq_div_nat_cast_mod], },
-    { rw [neg_succ_not_nonneg] at hl, contradiction, }, },
-  induction m, { exact this (of_nat_nonneg m), },
-  let q := ⌈↑(m + 1) / (n : k)⌉,
-  let m' := (q * ↑n) -(↑(m + 1) : ℤ),
-  have hm' : 0 ≤ m',
+    obtain ⟨l₀, hl₀⟩ := l.eq_coe_or_neg,
+    rcases hl₀ with rfl | rfl,
+    { rw [cast_coe_nat, ← coe_nat_mod, cast_coe_nat, fract_div_nat_cast_eq_div_nat_cast_mod], },
+    { rw [right.nonneg_neg_iff, coe_nat_nonpos_iff] at hl, simp [hl, zero_mod], }, },
+  obtain ⟨m₀, hm₀⟩ := m.eq_coe_or_neg,
+  rcases hm₀ with rfl | rfl, { exact this (of_nat_nonneg m₀), },
+  rw [coe_neg, cast_coe_nat],
+  let q := ⌈↑m₀ / (n : k)⌉,
+  let m₁ := (q * ↑n) -(↑m₀ : ℤ),
+  have hm₁ : 0 ≤ m₁,
   { rw [← @cast_le k, coe_zero, coe_sub, coe_mul, cast_coe_nat, cast_coe_nat, le_sub_iff_add_le,
       zero_add, ← div_le_iff hn],
     apply floor_ring.gc_ceil_coe.le_u_l, },
-  calc fract (↑-(↑(m + 1) : ℤ) / ↑n) = fract ((m' : k) / n) : _
-                                 ... = ↑(m' % (n : ℤ)) / ↑n : this hm'
-                                 ... = ↑(-(↑(m + 1) : ℤ) % ↑n) / ↑n : _,
-  { rw [← fract_int_add q, ← mul_div_cancel (q : k) (ne_of_gt hn), ← add_div, coe_neg,
-      ← sub_eq_add_neg, coe_sub, coe_mul, cast_coe_nat, cast_coe_nat], },
+  calc fract (-(↑m₀ : k) / n) = fract ((m₁ : k) / n) : _
+                          ... = ↑(m₁ % (n : ℤ)) / ↑n : this hm₁
+                          ... = ↑(-(↑m₀ : ℤ) % ↑n) / ↑n : _,
+  { rw [← fract_int_add q, ← mul_div_cancel (q : k) (ne_of_gt hn), ← add_div, ← sub_eq_add_neg,
+      coe_sub, coe_mul, cast_coe_nat, cast_coe_nat], },
   { congr' 2,
-    change ((q * ↑n) -(↑(m + 1) : ℤ)) % ↑n = _,
+    change ((q * ↑n) -(↑m₀ : ℤ)) % ↑n = _,
     rw [sub_eq_add_neg, add_comm (q * ↑n), add_mul_mod_self], },
 end
 

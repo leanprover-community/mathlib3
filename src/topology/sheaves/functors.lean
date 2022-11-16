@@ -69,8 +69,6 @@ variables {C}
 @[simp] lemma pushforward_map (f : X ⟶ Y) {F F' : X.sheaf C} (α : F ⟶ F') :
   ((pushforward C f).map α).1 = (presheaf.pushforward _ f).map α.1 := rfl
 
-set_option pp.universes true
-
 variables (A : Type*) [category.{w} A] [concrete_category.{w} A] [has_colimits A] [has_limits A]
 variables [preserves_limits (category_theory.forget A)]
 variables [preserves_filtered_colimits (category_theory.forget A)]

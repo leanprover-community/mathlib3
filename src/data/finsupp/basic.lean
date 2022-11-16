@@ -719,8 +719,8 @@ by { ext, refl }
 begin
   rcases eq_or_ne m 0 with rfl | hm,
   { simp only [single_zero, comap_domain_zero] },
-  { rw [eq_single_iff, comap_domain_apply, comap_domain_support, ← finset.coe_subset, coe_preimage,
-      support_single_ne_zero _ hm, coe_singleton, coe_singleton, single_eq_same],
+  { rw [eq_single_iff, comap_domain_apply, support_def, comap_domain_support, ← finset.coe_subset,
+      coe_preimage, support_single_ne_zero _ hm, coe_singleton, coe_singleton, single_eq_same],
     rw [support_single_ne_zero _ hm, coe_singleton] at hif,
     exact ⟨λ x hx, hif hx rfl hx, rfl⟩ }
 end
@@ -1561,7 +1561,7 @@ begin
   rw [split_support, mem_image, ne.def, ← support_eq_empty, ← ne.def,
     ← finset.nonempty_iff_ne_empty, split, comap_domain, finset.nonempty],
   simp only [exists_prop, finset.mem_preimage, exists_and_distrib_right, exists_eq_right,
-    mem_support_iff, sigma.exists, ne.def]
+    mem_support_iff, sigma.exists, ne.def, coe_mk],
 end
 
 /-- Given `l`, a finitely supported function from the sigma type `Σ i, αs i` to `β` and

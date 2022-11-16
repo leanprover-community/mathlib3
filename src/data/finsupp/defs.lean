@@ -84,21 +84,75 @@ open_locale classical big_operators
 
 variables {α β γ ι M M' N P G H R S : Type*}
 
-/-- `finsupp α M`, denoted `α →₀ M`, is the type of functions `f : α → M` such that
-  `f x = 0` for all but finitely many `x`. -/
-structure finsupp (α : Type*) (M : Type*) [has_zero M] :=
+/-- `finsupp' α M v` is the type of functions `f : α → M` such that
+  `f x = v` for all but finitely many `x`. -/
+structure finsupp' (α : Type*) (M : Type*) (v : M) :=
 (support            : finset α)
 (to_fun             : α → M)
-(mem_support_to_fun : ∀a, a ∈ support ↔ to_fun a ≠ 0)
+(mem_support_to_fun : ∀a, a ∈ support ↔ to_fun a ≠ v)
+
+/-- `finsupp α M`, denoted `α →₀ M`, is the type of functions `f : α → M` such that
+  `f x = 0` for all but finitely many `x`. -/
+def finsupp (α : Type*) (M : Type*) [has_zero M] :=
+finsupp' α M 0
 
 infixr ` →₀ `:25 := finsupp
 
+namespace finsupp'
+
+/-! ### Basic declarations about `finsupp'` -/
+
+section basic
+variables {v : M}
+
+instance fun_like : fun_like (finsupp' α M v) α (λ _, M) := ⟨to_fun, begin
+  rintro ⟨s, f, hf⟩ ⟨t, g, hg⟩ (rfl : f = g),
+  congr',
+  ext a,
+  exact (hf _).trans (hg _).symm,
+end⟩
+
+/-- Helper instance for when there are too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
+instance : has_coe_to_fun (finsupp' α M v) (λ _, α → M) := fun_like.has_coe_to_fun
+
+@[ext] lemma ext {f g : finsupp' α M v} (h : ∀ a, f a = g a) : f = g := fun_like.ext _ _ h
+
+@[simp] lemma coe_mk (f : α → M) (s : finset α) (h : ∀ a, a ∈ s ↔ f a ≠ v) :
+  ⇑(⟨s, f, h⟩ : finsupp' α M v) = f := rfl
+
+instance : inhabited (finsupp' α M v) := ⟨⟨∅, λ _, v, λ _, ⟨false.elim, λ H, H rfl⟩⟩⟩
+
+@[simp] lemma mem_support_iff {f : finsupp' α M v} : ∀{a:α}, a ∈ f.support ↔ f a ≠ v :=
+f.mem_support_to_fun
+
+lemma not_mem_support_iff {f : finsupp' α M v} {a} : a ∉ f.support ↔ f a = v :=
+not_iff_comm.1 mem_support_iff.symm
+
+end basic
+
+end finsupp'
+
 namespace finsupp
+
+open finsupp'
 
 /-! ### Basic declarations about `finsupp` -/
 
 section basic
 variable [has_zero M]
+
+/-! We expose fields of `finsupp'` in a more convenient way for the `finsupp` API. -/
+
+/-- Coerces a finitely supported function into the function itself. -/
+abbreviation to_fun : (α →₀ M) → α → M := finsupp'.to_fun
+/-- The finite set of values on which this function takes nonzero values. -/
+abbreviation support : (α →₀ M) → finset α := finsupp'.support
+lemma mem_support_to_fun : ∀ (f : α →₀ M), ∀a, a ∈ f.support ↔ f.to_fun a ≠ 0 :=
+finsupp'.mem_support_to_fun
+
+lemma to_fun_def (f : α →₀ M) : f.to_fun = finsupp'.to_fun f := rfl
+lemma support_def (f : α →₀ M) : f.support = finsupp'.support f := rfl
 
 instance fun_like : fun_like (α →₀ M) α (λ _, M) := ⟨to_fun, begin
   rintro ⟨s, f, hf⟩ ⟨t, g, hg⟩ (rfl : f = g),
@@ -123,6 +177,9 @@ lemma congr_fun {f g : α →₀ M} (h : f = g) (a : α) : f a = g a := fun_like
 
 @[simp] lemma coe_mk (f : α → M) (s : finset α) (h : ∀ a, a ∈ s ↔ f a ≠ 0) :
   ⇑(⟨s, f, h⟩ : α →₀ M) = f := rfl
+
+@[simp] lemma to_fun_mk (f : α → M) (s : finset α) (h : ∀ a, a ∈ s ↔ f a ≠ 0) :
+  to_fun (⟨s, f, h⟩ : finsupp' α M 0) = f := rfl
 
 instance : has_zero (α →₀ M) := ⟨⟨∅, 0, λ _, ⟨false.elim, λ H, H rfl⟩⟩⟩
 

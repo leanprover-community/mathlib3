@@ -8,6 +8,8 @@ import algebra.direct_sum.decomposition
 import algebra.direct_sum.internal
 import algebra.direct_sum.ring
 import group_theory.subgroup.basic
+import ring_theory.polynomial.homogeneous
+import data.mv_polynomial
 
 /-!
 # Internally-graded rings and algebras

@@ -6,6 +6,7 @@ Authors: Heather Macbeth
 import analysis.inner_product_space.projection
 import analysis.normed_space.lp_space
 import analysis.inner_product_space.pi_L2
+import tactic.expand_exists
 
 /-!
 # Hilbert sum of a family of inner product spaces
@@ -559,8 +560,70 @@ let ⟨w, hws, hw_ortho, hw_max⟩ := exists_maximal_orthonormal hs in
 variables (𝕜 E)
 
 /-- A Hilbert space admits a Hilbert basis. -/
+@[expand_exists hilbert_basis_index std_hilbert_basis coe_std_hilbert_basis]
 lemma _root_.exists_hilbert_basis :
   ∃ (w : set E) (b : hilbert_basis w 𝕜 E), ⇑b = (coe : w → E) :=
 let ⟨w, hw, hw', hw''⟩ := (orthonormal_empty 𝕜 E).exists_hilbert_basis_extension in ⟨w, hw, hw''⟩
 
+/-- Index for an arbitrary Hilbert basis of a Hilbert space. -/
+add_decl_doc hilbert_basis_index
+
+/-- An arbitrary Hilbert basis of a Hilbert space. -/
+add_decl_doc std_hilbert_basis
+
 end hilbert_basis
+
+namespace is_hilbert_sum
+
+variables {𝕜 E} {V : Π i, G i →ₗᵢ[𝕜] E}
+  (hV : is_hilbert_sum 𝕜 E V)
+
+/-- Given a Hilbert sum decomposition of `E` and a Hilbert basis of the summand, we obtain a
+Hilbert basis of `E` by concatenating all of these bases. -/
+def collected_hilbert_basis {α : ι → Type*}
+  (v : Π i, hilbert_basis (α i) 𝕜 (G i)) :
+  hilbert_basis (Σ i, α i) 𝕜 E :=
+{ repr :=
+  linear_isometry_equiv.trans
+    hV.linear_isometry_equiv $
+  linear_isometry_equiv.trans
+    (lp.congr_right _ (λ i : ι, lp (λ a : α i, 𝕜) 2) 2 (λ i, (v i).repr) : _ ≃ₗᵢ[𝕜] _)
+    (lp.curry_equiv _ _ 𝕜).symm }
+
+lemma collected_hilbert_basis_repr {α : ι → Type*}
+  (v : Π i, hilbert_basis (α i) 𝕜 (G i)) :
+  (hV.collected_hilbert_basis v).repr =
+  linear_isometry_equiv.trans
+    hV.linear_isometry_equiv
+  (linear_isometry_equiv.trans
+    (lp.congr_right _ (λ i : ι, lp (λ a : α i, 𝕜) 2) 2 (λ i, (v i).repr) : _ ≃ₗᵢ[𝕜] _)
+    (lp.curry_equiv _ _ 𝕜).symm) :=
+rfl
+
+attribute [irreducible] collected_hilbert_basis
+
+lemma collected_hilbert_basis_repr_symm_apply {α : ι → Type*}
+  (v : Π i, hilbert_basis (α i) 𝕜 (G i))
+  (f : lp (λ ia : Σ i, α i, 𝕜) 2) :
+  (hV.collected_hilbert_basis v).repr.symm f =
+  hV.linear_isometry_equiv.symm
+    ((lp.congr_right (λ i, lp (λ a : α i, 𝕜) 2) G 2 (λ i, (v i).repr.symm) : _ ≃ₗᵢ[𝕜] _)
+      (lp.curry (λ i, λ a : α i, 𝕜) f)) :=
+begin
+  rw collected_hilbert_basis_repr,
+  refl
+end
+
+lemma coe_collected_hilbert_basis_mk {α : ι → Type*}
+  (v : Π i, hilbert_basis (α i) 𝕜 (G i)) (i : ι) (a : α i) :
+  hV.collected_hilbert_basis v ⟨i, a⟩ = V i (v i a) :=
+by rw [← hilbert_basis.repr_symm_single, collected_hilbert_basis_repr_symm_apply,
+  lp.curry_single, lp.congr_right_single, (v i).repr_symm_single,
+  hV.linear_isometry_equiv_symm_apply_single]
+
+lemma coe_collected_hilbert_basis {α : ι → Type*}
+  (v : Π i, hilbert_basis (α i) 𝕜 (G i)) (ia : Σ i, α i) :
+  hV.collected_hilbert_basis v ia = V ia.1 (v ia.1 ia.2) :=
+let ⟨i, a⟩ := ia in coe_collected_hilbert_basis_mk _ _ i a
+
+end is_hilbert_sum

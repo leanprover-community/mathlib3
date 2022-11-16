@@ -114,6 +114,10 @@ lemma has_sum_subtype_iff_of_support_subset {s : set β} (hf : support f ⊆ s) 
   has_sum (f ∘ coe : s → α) a ↔ has_sum f a :=
 subtype.coe_injective.has_sum_iff $ by simpa using support_subset_iff'.1 hf
 
+lemma summable_subtype_iff_of_support_subset {s : set β} (hf : support f ⊆ s) :
+  summable (f ∘ coe : s → α) ↔ summable f :=
+subtype.coe_injective.summable_iff $ by simpa using support_subset_iff'.1 hf
+
 lemma has_sum_subtype_iff_indicator {s : set β} :
   has_sum (f ∘ coe : s → α) a ↔ has_sum (s.indicator f) a :=
 by rw [← set.indicator_range_comp, subtype.range_coe,

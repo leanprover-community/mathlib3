@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin, Fabian Glöckle
+Authors: Johan Commelin, Fabian Glöckle, Kyle Miller
 -/
 import linear_algebra.finite_dimensional
 import linear_algebra.projection
@@ -12,27 +12,40 @@ import linear_algebra.free_module.finite.rank
 /-!
 # Dual vector spaces
 
-The dual space of an R-module M is the R-module of linear maps `M → R`.
+The dual space of an $R$-module $M$ is the $R$-module of $R$-linear maps $M \to R$.
 
 ## Main definitions
 
-* `dual R M` defines the dual space of M over R.
-* Given a basis for an `R`-module `M`, `basis.to_dual` produces a map from `M` to `dual R M`.
+* Duals and transposes:
+  * `module.dual R M` defines the dual space of the `R`-module `M`, as `M →ₗ[R] R`.
+  * `module.dual_pairing R M` is the canonical pairing between `dual R M` and `M`.
+  * `module.dual.eval R M : M →ₗ[R] dual R (dual R)` is the canonical map to the double dual.
+  * `module.dual.transpose` is the linear map from `M →ₗ[R] M'` to `dual R M' →ₗ[R] dual R M`.
+  * `linear_map.dual_map` is `module.dual.transpose` of a given linear map, for dot notation.
+  * `linear_equiv.dual_map` is for the dual of an equivalence.
+* Bases:
+  * `basis.to_dual` produces the map `M →ₗ[R] dual R M` associated to a basis for an `R`-module `M`.
+  * `basis.to_dual_equiv` is the equivalence `M ≃ₗ[R] dual R M` associated to a finite basis.
+  * `basis.dual_basis` is a basis for `dual R M` given a finite basis for `M`.
+
 * Given families of vectors `e` and `ε`, `module.dual_bases e ε` states that these families have the
   characteristic properties of a basis and a dual.
 * `dual_annihilator W` is the submodule of `dual R M` where every element annihilates `W`.
 
 ## Main results
 
+* Bases:
+* Vector spaces:
+* Finite-dimensional vector spaces:
+  * `module.eval_equiv` is the equivalence `V ≃ₗ[K] dual K (dual K V)`
+  * `module.map_eval_equiv` is the order isomorphism between subspaces of `V` and
+    subspaces of `dual K (dual K V)`.
+
 * `to_dual_equiv` : the linear equivalence between the dual module and primal module,
   given a finite basis.
 * `module.dual_bases.basis` and `module.dual_bases.eq_dual`: if `e` and `ε` form a dual pair, `e`
   is a basis and `ε` is its dual basis.
 * `quot_equiv_annihilator`: the quotient by a subspace is isomorphic to its dual annihilator.
-
-## Notation
-
-We sometimes use `V'` as local notation for `dual K V`.
 
 ## TODO
 
@@ -107,6 +120,80 @@ linear_map.coprod_equiv R
 end prod
 
 end module
+
+section dual_map
+open module
+
+variables {R : Type*} [comm_semiring R] {M₁ : Type*} {M₂ : Type*}
+variables [add_comm_monoid M₁] [module R M₁] [add_comm_monoid M₂] [module R M₂]
+
+/-- Given a linear map `f : M₁ →ₗ[R] M₂`, `f.dual_map` is the linear map between the dual of
+`M₂` and `M₁` such that it maps the functional `φ` to `φ ∘ f`. -/
+def linear_map.dual_map (f : M₁ →ₗ[R] M₂) : dual R M₂ →ₗ[R] dual R M₁ :=
+module.dual.transpose f
+
+lemma linear_map.dual_map_def (f : M₁ →ₗ[R] M₂) : f.dual_map = module.dual.transpose f := rfl
+
+lemma linear_map.dual_map_apply' (f : M₁ →ₗ[R] M₂) (g : dual R M₂) (x : M₁) :
+  f.dual_map g = g.comp f :=
+module.dual.transpose_apply f g
+
+@[simp] lemma linear_map.dual_map_apply (f : M₁ →ₗ[R] M₂) (g : dual R M₂) (x : M₁) :
+  f.dual_map g x = g (f x) :=
+linear_map.lcomp_apply f g x
+
+@[simp] lemma linear_map.dual_map_id :
+  (linear_map.id : M₁ →ₗ[R] M₁).dual_map = linear_map.id :=
+by { ext, refl }
+
+lemma linear_map.dual_map_comp_dual_map {M₃ : Type*} [add_comm_group M₃] [module R M₃]
+  (f : M₁ →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) :
+  f.dual_map.comp g.dual_map = (g.comp f).dual_map :=
+rfl
+
+lemma linear_map.dual_map_injective_of_surjective {f : M₁ →ₗ[R] M₂} (hf : function.surjective f) :
+  function.injective f.dual_map :=
+begin
+  intros φ ψ h,
+  ext x,
+  obtain ⟨y, rfl⟩ := hf x,
+  exact congr_arg (λ (g : module.dual R M₁), g y) h,
+end
+
+/-- The `linear_equiv` version of `linear_map.dual_map`. -/
+def linear_equiv.dual_map (f : M₁ ≃ₗ[R] M₂) : dual R M₂ ≃ₗ[R] dual R M₁ :=
+{ inv_fun := f.symm.to_linear_map.dual_map,
+  left_inv :=
+    begin
+      intro φ, ext x,
+      simp only [linear_map.dual_map_apply, linear_equiv.coe_to_linear_map,
+                 linear_map.to_fun_eq_coe, linear_equiv.apply_symm_apply]
+    end,
+  right_inv :=
+    begin
+      intro φ, ext x,
+      simp only [linear_map.dual_map_apply, linear_equiv.coe_to_linear_map,
+                 linear_map.to_fun_eq_coe, linear_equiv.symm_apply_apply]
+    end,
+  .. f.to_linear_map.dual_map }
+
+@[simp] lemma linear_equiv.dual_map_apply (f : M₁ ≃ₗ[R] M₂) (g : dual R M₂) (x : M₁) :
+  f.dual_map g x = g (f x) :=
+linear_map.lcomp_apply f g x
+
+@[simp] lemma linear_equiv.dual_map_refl :
+  (linear_equiv.refl R M₁).dual_map = linear_equiv.refl R (dual R M₁) :=
+by { ext, refl }
+
+@[simp] lemma linear_equiv.dual_map_symm {f : M₁ ≃ₗ[R] M₂} :
+  (linear_equiv.dual_map f).symm = linear_equiv.dual_map f.symm := rfl
+
+lemma linear_equiv.dual_map_trans {M₃ : Type*} [add_comm_group M₃] [module R M₃]
+  (f : M₁ ≃ₗ[R] M₂) (g : M₂ ≃ₗ[R] M₃) :
+  g.dual_map.trans f.dual_map = (f.trans g).dual_map :=
+rfl
+
+end dual_map
 
 namespace basis
 
@@ -333,6 +420,20 @@ variables (K) (V)
 theorem eval_ker : (eval K V).ker = ⊥ :=
 by { classical, exact (basis.of_vector_space K V).eval_ker }
 
+theorem map_eval_injective : (submodule.map (eval K V)).injective :=
+begin
+  apply submodule.map_injective_of_injective,
+  rw ← linear_map.ker_eq_bot,
+  apply eval_ker K V, -- elaborates faster than `exact`
+end
+
+theorem comap_eval_surjective : (submodule.comap (eval K V)).surjective :=
+begin
+  apply submodule.comap_surjective_of_injective,
+  rw ← linear_map.ker_eq_bot,
+  apply eval_ker K V, -- elaborates faster than `exact`
+end
+
 end
 
 section
@@ -368,10 +469,21 @@ linear_equiv.of_bijective (eval K V)
   (by { rw ← ker_eq_bot, apply eval_ker K V }) -- 60x faster elaboration
   (range_eq_top.mp erange_coe)
 
+/-- The isomorphism `module.eval_equiv` induces an order isomorphism on subspaces. -/
+def map_eval_equiv [finite_dimensional K V] : subspace K V ≃o subspace K (dual K (dual K V)) :=
+submodule.order_iso_map_comap (eval_equiv K V)
+
 variables {K V}
 
 @[simp] lemma eval_equiv_to_linear_map [finite_dimensional K V] :
   (eval_equiv K V).to_linear_map = dual.eval K V := rfl
+
+@[simp] lemma map_eval_equiv_apply [finite_dimensional K V] (W : subspace K V) :
+  map_eval_equiv K V W = W.map (eval K V) := rfl
+
+@[simp] lemma map_eval_equiv_symm_apply [finite_dimensional K V]
+  (W'' : subspace K (dual K (dual K V))) :
+  (map_eval_equiv K V).symm W'' = W''.comap (eval K V) := rfl
 
 end module
 
@@ -749,6 +861,14 @@ by apply_instance
 
 variables [finite_dimensional K V] [finite_dimensional K V₁]
 
+lemma dual_annihilator_dual_annihilator_eq (W : subspace K V) :
+  W.dual_annihilator.dual_annihilator = module.map_eval_equiv K V W :=
+begin
+  have : _ = W := subspace.dual_annihilator_dual_annihilator_comap_eq,
+  rw [dual_annihilator_comap, ← module.map_eval_equiv_symm_apply] at this,
+  rwa ← order_iso.symm_apply_eq,
+end
+
 @[simp] lemma dual_finrank_eq :
   finrank K (module.dual K V) = finrank K V :=
 linear_equiv.finrank_eq (basis.of_vector_space K V).to_dual_equiv.symm
@@ -791,72 +911,6 @@ end
 end subspace
 
 open module
-
-section dual_map
-variables {R : Type*} [comm_semiring R] {M₁ : Type*} {M₂ : Type*}
-variables [add_comm_monoid M₁] [module R M₁] [add_comm_monoid M₂] [module R M₂]
-
-/-- Given a linear map `f : M₁ →ₗ[R] M₂`, `f.dual_map` is the linear map between the dual of
-`M₂` and `M₁` such that it maps the functional `φ` to `φ ∘ f`. -/
-def linear_map.dual_map (f : M₁ →ₗ[R] M₂) : dual R M₂ →ₗ[R] dual R M₁ :=
-linear_map.lcomp R R f
-
-@[simp] lemma linear_map.dual_map_apply (f : M₁ →ₗ[R] M₂) (g : dual R M₂) (x : M₁) :
-  f.dual_map g x = g (f x) :=
-linear_map.lcomp_apply f g x
-
-@[simp] lemma linear_map.dual_map_id :
-  (linear_map.id : M₁ →ₗ[R] M₁).dual_map = linear_map.id :=
-by { ext, refl }
-
-lemma linear_map.dual_map_comp_dual_map {M₃ : Type*} [add_comm_group M₃] [module R M₃]
-  (f : M₁ →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) :
-  f.dual_map.comp g.dual_map = (g.comp f).dual_map :=
-rfl
-
-lemma linear_map.dual_map_injective_of_surjective {f : M₁ →ₗ[R] M₂} (hf : function.surjective f) :
-  function.injective f.dual_map :=
-begin
-  intros φ ψ h,
-  ext x,
-  obtain ⟨y, rfl⟩ := hf x,
-  exact congr_arg (λ (g : module.dual R M₁), g y) h,
-end
-
-/-- The `linear_equiv` version of `linear_map.dual_map`. -/
-def linear_equiv.dual_map (f : M₁ ≃ₗ[R] M₂) : dual R M₂ ≃ₗ[R] dual R M₁ :=
-{ inv_fun := f.symm.to_linear_map.dual_map,
-  left_inv :=
-    begin
-      intro φ, ext x,
-      simp only [linear_map.dual_map_apply, linear_equiv.coe_to_linear_map,
-                 linear_map.to_fun_eq_coe, linear_equiv.apply_symm_apply]
-    end,
-  right_inv :=
-    begin
-      intro φ, ext x,
-      simp only [linear_map.dual_map_apply, linear_equiv.coe_to_linear_map,
-                 linear_map.to_fun_eq_coe, linear_equiv.symm_apply_apply]
-    end,
-  .. f.to_linear_map.dual_map }
-
-@[simp] lemma linear_equiv.dual_map_apply (f : M₁ ≃ₗ[R] M₂) (g : dual R M₂) (x : M₁) :
-  f.dual_map g x = g (f x) :=
-linear_map.lcomp_apply f g x
-
-@[simp] lemma linear_equiv.dual_map_refl :
-  (linear_equiv.refl R M₁).dual_map = linear_equiv.refl R (dual R M₁) :=
-by { ext, refl }
-
-@[simp] lemma linear_equiv.dual_map_symm {f : M₁ ≃ₗ[R] M₂} :
-  (linear_equiv.dual_map f).symm = linear_equiv.dual_map f.symm := rfl
-
-lemma linear_equiv.dual_map_trans {M₃ : Type*} [add_comm_group M₃] [module R M₃]
-  (f : M₁ ≃ₗ[R] M₂) (g : M₂ ≃ₗ[R] M₃) :
-  g.dual_map.trans f.dual_map = (f.trans g).dual_map :=
-rfl
-
-end dual_map
 
 namespace linear_map
 variables {R : Type*} [comm_semiring R] {M₁ : Type*} {M₂ : Type*}

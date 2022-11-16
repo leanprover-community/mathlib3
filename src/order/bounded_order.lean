@@ -1828,12 +1828,12 @@ end
 
 protected lemma codisjoint_iff [order_top α] [order_top β] {x y : α × β} :
   codisjoint x y ↔ codisjoint x.1 y.1 ∧ codisjoint x.2 y.2 :=
-@disjoint_iff αᵒᵈ βᵒᵈ _ _ _ _ _ _
+@prod.disjoint_iff αᵒᵈ βᵒᵈ _ _ _ _ _ _
 
 protected lemma is_compl_iff [bounded_order α] [bounded_order β]
   {x y : α × β} :
   is_compl x y ↔ is_compl x.1 y.1 ∧ is_compl x.2 y.2 :=
-by simp_rw [is_compl_iff, disjoint_iff, codisjoint_iff, and_and_and_comm]
+by simp_rw [is_compl_iff, prod.disjoint_iff, prod.codisjoint_iff, and_and_and_comm]
 
 end prod
 

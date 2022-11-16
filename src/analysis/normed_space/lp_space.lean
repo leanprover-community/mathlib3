@@ -524,7 +524,7 @@ end
 example (a b : ℕ) : ((a + b) : ℝ) = (a : ℝ) + (b : ℝ) := by library_search
 
 -- `[FAE]` I believe that with the non-standard norm, ℓ^p(E) is not a normed group when `1 ≤ p`
--- because the triangle inequality is not satisfied.
+-- because the triangle inequality isn't satisfied.
 def non_standard_normed_group_lp (H : p < 1) : normed_add_comm_group (lp E p) :=
 normed_add_comm_group.of_core _
 { norm_eq_zero_iff :=

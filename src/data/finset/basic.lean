@@ -1188,9 +1188,25 @@ begin
   exact not_imp_not.mp hsa hs
 end
 
+@[simp]
+theorem erase_eq_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : erase s a = s :=
+eq_of_veq $ erase_of_not_mem h
+
+@[simp] lemma erase_eq_self : s.erase a = s ↔ a ∉ s :=
+⟨λ h, h ▸ not_mem_erase _ _, erase_eq_of_not_mem⟩
+
+@[simp] lemma erase_insert_eq_erase (s : finset α) (a : α) :
+  (insert a s).erase a = s.erase a :=
+ext $ λ x, by simp only [mem_erase, mem_insert, and.congr_right_iff, false_or, iff_self,
+  implies_true_iff] { contextual := tt }
+
 theorem erase_insert {a : α} {s : finset α} (h : a ∉ s) : erase (insert a s) a = s :=
-ext $ assume x, by simp only [mem_erase, mem_insert, and_or_distrib_left, not_and_self, false_or];
-apply and_iff_right_of_imp; rintro H rfl; exact h H
+by rw [erase_insert_eq_erase, erase_eq_of_not_mem h]
+
+theorem erase_insert_of_ne {a b : α} {s : finset α} (h : a ≠ b) :
+  erase (insert a s) b = insert a (erase s b) :=
+ext $ λ x, have x ≠ b ∧ x = a ↔ x = a, from and_iff_right_of_imp (λ hx, hx.symm ▸ h),
+by simp only [mem_erase, mem_insert, and_or_distrib_left, this]
 
 theorem insert_erase {a : α} {s : finset α} (h : a ∈ s) : insert a (erase s a) = s :=
 ext $ assume x, by simp only [mem_insert, mem_erase, or_and_distrib_left, dec_em, true_and];
@@ -1222,18 +1238,7 @@ end
 lemma erase_ssubset_insert (s : finset α) (a : α) : s.erase a ⊂ insert a s :=
 ssubset_iff_exists_subset_erase.2 ⟨a, mem_insert_self _ _, erase_subset_erase _ $ subset_insert _ _⟩
 
-@[simp]
-theorem erase_eq_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : erase s a = s :=
-eq_of_veq $ erase_of_not_mem h
-
-@[simp] lemma erase_eq_self : s.erase a = s ↔ a ∉ s :=
-⟨λ h, h ▸ not_mem_erase _ _, erase_eq_of_not_mem⟩
-
 lemma erase_ne_self : s.erase a ≠ s ↔ a ∈ s := erase_eq_self.not_left
-
-@[simp] lemma erase_insert_eq_erase (s : finset α) (a : α) :
-  (insert a s).erase a = s.erase a :=
-by by_cases ha : a ∈ s; { simp [ha, erase_insert] }
 
 lemma erase_cons {s : finset α} {a : α} (h : a ∉ s) : (s.cons a h).erase a = s :=
 by rw [cons_eq_insert, erase_insert_eq_erase, erase_eq_of_not_mem h]

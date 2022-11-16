@@ -258,6 +258,26 @@ protected lemma decidable.ne_iff_lt_iff_le [partial_order α] [decidable_eq α] 
 @[simp] lemma ne_iff_lt_iff_le [partial_order α] {a b : α} : (a ≠ b ↔ a < b) ↔ a ≤ b :=
 by haveI := classical.dec; exact decidable.ne_iff_lt_iff_le
 
+-- Variant of `min_def` with the branches reversed.
+lemma min_def' [linear_order α] (a b : α) : min a b = if b ≤ a then b else a :=
+begin
+  rw [min_def],
+  rcases lt_trichotomy a b with lt | eq | gt,
+  { rw [if_pos lt.le, if_neg (not_le.mpr lt)], },
+  { rw [if_pos eq.le, if_pos eq.ge, eq], },
+  { rw [if_neg (not_le.mpr gt), if_pos gt.le], }
+end
+-- Variant of `min_def` with the branches reversed.
+-- This is sometimes useful as it used to be the default.
+lemma max_def' [linear_order α] (a b : α) : max a b = if b ≤ a then a else b :=
+begin
+  rw [max_def],
+  rcases lt_trichotomy a b with lt | eq | gt,
+  { rw [if_pos lt.le, if_neg (not_le.mpr lt)], },
+  { rw [if_pos eq.le, if_pos eq.ge, eq], },
+  { rw [if_neg (not_le.mpr gt), if_pos gt.le], }
+end
+
 lemma lt_of_not_le [linear_order α] {a b : α} (h : ¬ b ≤ a) : a < b :=
 ((le_total _ _).resolve_right h).lt_of_not_le h
 
@@ -432,8 +452,8 @@ instance (α : Type*) [linear_order α] : linear_order αᵒᵈ :=
   decidable_lt := (infer_instance : decidable_rel (λ a b : α, b < a)),
   min := @max α _,
   max := @min α _,
-  min_def := @linear_order.max_def α _,
-  max_def := @linear_order.min_def α _,
+  min_def := funext₂ $ @max_def' α _,
+  max_def := funext₂ $ @min_def' α _,
   .. order_dual.partial_order α }
 
 instance : Π [inhabited α], inhabited αᵒᵈ := id
@@ -579,13 +599,13 @@ lemma max_rec (hx : y ≤ x → p x) (hy : x ≤ y → p y) : p (max x y) := @mi
 lemma min_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (min x y) := min_rec (λ _, hx) (λ _, hy)
 lemma max_rec' (p : α → Prop) (hx : p x) (hy : p y) : p (max x y) := max_rec (λ _, hx) (λ _, hy)
 
-lemma min_def' (x y : α) : min x y = if x < y then x else y :=
+lemma min_def_lt (x y : α) : min x y = if x < y then x else y :=
 begin
   rw [min_comm, min_def, ← ite_not],
   simp only [not_le],
 end
 
-lemma max_def' (x y : α) : max x y = if y < x then x else y :=
+lemma max_def_lt (x y : α) : max x y = if x < y then y else x :=
 begin
   rw [max_comm, max_def, ← ite_not],
   simp only [not_le],
@@ -644,7 +664,7 @@ for a version that takes `[has_sup α]` and `[has_inf α]`, then uses them as `m
 See note [reducible non-instances]. -/
 @[reducible] def linear_order.lift' {α β} [linear_order β] (f : α → β) (inj : injective f) :
   linear_order α :=
-@linear_order.lift α β _ ⟨λ x y, if f y ≤ f x then x else y⟩ ⟨λ x y, if f x ≤ f y then x else y⟩
+@linear_order.lift α β _ ⟨λ x y, if f x ≤ f y then y else x⟩ ⟨λ x y, if f x ≤ f y then x else y⟩
   f inj (λ x y, (apply_ite f _ _ _).trans (max_def _ _).symm)
   (λ x y, (apply_ite f _ _ _).trans (min_def _ _).symm)
 

@@ -146,7 +146,7 @@ end
 end semiring
 
 section strict_ordered_semiring
-variables {S : Type*} [strict_ordered_semiring S] [nontrivial S]
+variables {S : Type*} [strict_ordered_semiring S]
 
 lemma pochhammer_pos (n : ℕ) (s : S) (h : 0 < s) : 0 < (pochhammer S n).eval s :=
 begin

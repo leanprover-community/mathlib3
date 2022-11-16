@@ -2165,7 +2165,7 @@ ext $ λ _, by simpa only [mem_map, exists_prop] using exists_eq_right
   s.map (equiv.cast h).to_embedding == s :=
 by { subst h, simp }
 
-theorem map_map {g : β ↪ γ} : (s.map f).map g = s.map (f.trans g) :=
+theorem map_map (f : α ↪ β) (g : β ↪ γ) (s : finset α) : (s.map f).map g = s.map (f.trans g) :=
 eq_of_veq $ by simp only [map_val, multiset.map_map]; refl
 
 lemma map_comm {β'} {f : β ↪ γ} {g : α ↪ β} {f' : α ↪ β'} {g' : β' ↪ γ}

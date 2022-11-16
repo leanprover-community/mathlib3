@@ -3,7 +3,7 @@ Copyright (c) 2019 Kevin Kappelmann. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Kappelmann, Kyle Miller, Mario Carneiro
 -/
-import data.nat.gcd
+import data.nat.gcd.basic
 import logic.function.iterate
 import data.finset.nat_antidiagonal
 import algebra.big_operators.basic
@@ -77,7 +77,7 @@ by rw [fib_add_two, add_tsub_cancel_right]
 
 lemma fib_lt_fib_succ {n : ℕ} (hn : 2 ≤ n) : fib n < fib (n + 1) :=
 begin
-  rcases le_iff_exists_add.1 hn with ⟨n, rfl⟩,
+  rcases exists_add_of_le hn with ⟨n, rfl⟩,
   rw [← tsub_pos_iff_lt, add_comm 2, fib_add_two_sub_fib_add_one],
   apply fib_pos (succ_pos n),
 end

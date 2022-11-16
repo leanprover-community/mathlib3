@@ -4,21 +4,13 @@ open polynomial
 open_locale polynomial
 --universe u
 
---set_option pp.all true
-lemma qui {F : Type*} [comm_ring F] (a : F[X]) (a0 : a.nat_degree = 0) :
-  a.nat_degree ≤ 0 :=
-begin
-  norm_num,
-  assumption
-end
-
 example {F : Type*} [comm_ring F] (t : ((2 : ℕ) : F) ≠ 0) (a b c : F[X])
   (a0 : a.nat_degree = 0) :
   nat_degree (X + a + X : F[X]) = 1 :=
 begin
 --  sorry;
   compute_degree,
-  { exact nat.le_zero_iff.mpr a0 },
+  { exact a0.le },
   rw ← two_mul,
   compute_degree,
 end
@@ -180,6 +172,13 @@ end
 /- From here
 This part should be better and about `compute_degree_le`. -/
 variables {R : Type*} [semiring R] {a b c d e : R}
+
+example {R : Type*} [ring R] (h : ∀ {p q : R[X]}, p.nat_degree ≤ 0 → (p * q).nat_degree = 0) :
+  nat_degree (- 1 * 1 : R[X]) = 0 :=
+begin
+  apply h _,
+  compute_degree_le,
+end
 
 example {p : R[X]} {n : ℕ} {p0 : p.nat_degree = 0} :
  (p ^ n).nat_degree ≤ 0 :=

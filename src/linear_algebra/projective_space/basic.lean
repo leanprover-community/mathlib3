@@ -43,7 +43,7 @@ def projectivization_setoid : setoid { v : V // v ≠ 0 } :=
 
 /-- The projectivization of the `K`-vector space `V`.
 The notation `ℙ K V` is preferred. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def projectivization := quotient (projectivization_setoid K V)
 
 notation `ℙ` := projectivization

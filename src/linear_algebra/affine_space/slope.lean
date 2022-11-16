@@ -36,6 +36,9 @@ omit E
 lemma slope_def_field (f : k → k) (a b : k) : slope f a b = (f b - f a) / (b - a) :=
 (div_eq_inv_mul _ _).symm
 
+lemma slope_fun_def_field (f : k → k) (a : k) : slope f a = λ b, (f b - f a) / (b - a) :=
+(div_eq_inv_mul _ _).symm
+
 @[simp] lemma slope_same (f : k → PE) (a : k) : (slope f a a : E) = 0 :=
 by rw [slope, sub_self, inv_zero, zero_smul]
 

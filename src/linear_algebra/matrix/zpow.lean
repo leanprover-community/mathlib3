@@ -123,12 +123,11 @@ lemma is_unit_det_zpow_iff {A : M} {z : ℤ} :
 begin
   induction z using int.induction_on with z IH z IH,
   { simp },
-  { rw [←int.coe_nat_succ, zpow_coe_nat, det_pow, is_unit_pos_pow_iff (z.zero_lt_succ),
-        ←int.coe_nat_zero, int.coe_nat_eq_coe_nat_iff],
-    simp },
-  { rw [←neg_add', ←int.coe_nat_succ, zpow_neg_coe_nat, is_unit_nonsing_inv_det_iff,
-        det_pow, is_unit_pos_pow_iff (z.zero_lt_succ), neg_eq_zero, ←int.coe_nat_zero,
+  { rw [←int.coe_nat_succ, zpow_coe_nat, det_pow, is_unit_pow_succ_iff, ←int.coe_nat_zero,
         int.coe_nat_eq_coe_nat_iff],
+    simp },
+  { rw [←neg_add', ←int.coe_nat_succ, zpow_neg_coe_nat, is_unit_nonsing_inv_det_iff, det_pow,
+        is_unit_pow_succ_iff, neg_eq_zero, ←int.coe_nat_zero, int.coe_nat_eq_coe_nat_iff],
     simp }
 end
 

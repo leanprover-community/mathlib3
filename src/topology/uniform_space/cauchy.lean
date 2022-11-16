@@ -365,10 +365,8 @@ instance complete_space.prod [uniform_space β] [complete_space α] [complete_sp
     let ⟨x1, hx1⟩ := complete_space.complete $ hf.map uniform_continuous_fst in
     let ⟨x2, hx2⟩ := complete_space.complete $ hf.map uniform_continuous_snd in
     ⟨(x1, x2), by rw [nhds_prod_eq, filter.prod_def];
-      from filter.le_lift (λ s hs, filter.le_lift' $ λ t ht,
-        have H1 : prod.fst ⁻¹' s ∈ f.sets := hx1 hs,
-        have H2 : prod.snd ⁻¹' t ∈ f.sets := hx2 ht,
-        filter.inter_mem H1 H2)⟩ }
+      from filter.le_lift.2 (λ s hs, filter.le_lift'.2 $ λ t ht,
+        inter_mem (hx1 hs) (hx2 ht))⟩ }
 
 /--If `univ` is complete, the space is a complete space -/
 lemma complete_space_of_is_complete_univ (h : is_complete (univ : set α)) : complete_space α :=
@@ -536,7 +534,7 @@ begin
   exact ⟨ultrafilter.of f, ultrafilter.of_le f, H _ ((ultrafilter.of_le f).trans hfs)⟩
 end
 
-lemma compact_iff_totally_bounded_complete {s : set α} :
+lemma is_compact_iff_totally_bounded_is_complete {s : set α} :
   is_compact s ↔ totally_bounded s ∧ is_complete s :=
 ⟨λ hs, ⟨totally_bounded_iff_ultrafilter.2 (λ f hf,
     let ⟨x, xs, fx⟩ := is_compact_iff_ultrafilter_le_nhds.1 hs f hf in cauchy_nhds.mono fx),
@@ -547,18 +545,32 @@ lemma compact_iff_totally_bounded_complete {s : set α} :
    (λf hf, hc _ (totally_bounded_iff_ultrafilter.1 ht f hf) hf)⟩
 
 protected lemma is_compact.totally_bounded {s : set α} (h : is_compact s) : totally_bounded s :=
-(compact_iff_totally_bounded_complete.1 h).1
+(is_compact_iff_totally_bounded_is_complete.1 h).1
 
 protected lemma is_compact.is_complete {s : set α} (h : is_compact s) : is_complete s :=
-(compact_iff_totally_bounded_complete.1 h).2
+(is_compact_iff_totally_bounded_is_complete.1 h).2
 
 @[priority 100] -- see Note [lower instance priority]
 instance complete_of_compact {α : Type u} [uniform_space α] [compact_space α] : complete_space α :=
-⟨λf hf, by simpa using (compact_iff_totally_bounded_complete.1 compact_univ).2 f hf⟩
+⟨λf hf, by simpa using (is_compact_iff_totally_bounded_is_complete.1 is_compact_univ).2 f hf⟩
 
-lemma compact_of_totally_bounded_is_closed [complete_space α] {s : set α}
+lemma is_compact_of_totally_bounded_is_closed [complete_space α] {s : set α}
   (ht : totally_bounded s) (hc : is_closed s) : is_compact s :=
-(@compact_iff_totally_bounded_complete α _ s).2 ⟨ht, hc.is_complete⟩
+(@is_compact_iff_totally_bounded_is_complete α _ s).2 ⟨ht, hc.is_complete⟩
+
+/-- Every Cauchy sequence over `ℕ` is totally bounded. -/
+lemma cauchy_seq.totally_bounded_range {s : ℕ → α} (hs : cauchy_seq s) :
+  totally_bounded (range s) :=
+begin
+  refine totally_bounded_iff_subset.2 (λ a ha, _),
+  cases cauchy_seq_iff.1 hs a ha with n hn,
+  refine ⟨s '' {k | k ≤ n}, image_subset_range _ _, (finite_le_nat _).image _, _⟩,
+  rw [range_subset_iff, bUnion_image],
+  intro m,
+  rw [mem_Union₂],
+  cases le_total m n with hm hm,
+  exacts [⟨m, hm, refl_mem_uniformity ha⟩, ⟨n, le_refl n, hn m hm n le_rfl⟩]
+end
 
 /-!
 ### Sequentially complete space

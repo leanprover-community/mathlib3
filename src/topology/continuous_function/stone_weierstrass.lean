@@ -45,6 +45,7 @@ noncomputable theory
 namespace continuous_map
 
 variables {X : Type*} [topological_space X] [compact_space X]
+open_locale polynomial
 
 /--
 Turn a function `f : C(X, ℝ)` into a continuous map into `set.Icc (-∥f∥) (∥f∥)`,
@@ -55,7 +56,7 @@ def attach_bound (f : C(X, ℝ)) : C(X, set.Icc (-∥f∥) (∥f∥)) :=
 
 @[simp] lemma attach_bound_apply_coe (f : C(X, ℝ)) (x : X) : ((attach_bound f) x : ℝ) = f x := rfl
 
-lemma polynomial_comp_attach_bound (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : polynomial ℝ) :
+lemma polynomial_comp_attach_bound (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : ℝ[X]) :
   (g.to_continuous_map_on (set.Icc (-∥f∥) ∥f∥)).comp (f : C(X, ℝ)).attach_bound =
     polynomial.aeval f g :=
 begin
@@ -77,7 +78,7 @@ we take `f`, and think of it as a function into the restricted target `set.Icc (
 and then postcompose with a polynomial function on that interval.
 This is in fact the same situation as above, and so also gives a function in `A`.
 -/
-lemma polynomial_comp_attach_bound_mem (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : polynomial ℝ) :
+lemma polynomial_comp_attach_bound_mem (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : ℝ[X]) :
   (g.to_continuous_map_on (set.Icc (-∥f∥) ∥f∥)).comp (f : C(X, ℝ)).attach_bound ∈ A :=
 begin
   rw polynomial_comp_attach_bound,
@@ -393,10 +394,9 @@ begin
   let F : C(X, 𝕜) := f - const _ (f x₂),
   -- Subtract the constant `f x₂` from `f`; this is still an element of the subalgebra
   have hFA : F ∈ A,
-  { refine A.sub_mem hfA _,
-    convert A.smul_mem A.one_mem (f x₂),
-    ext1,
-    simp },
+  { refine A.sub_mem hfA (@eq.subst _ (∈ A) _ _ _ $ A.smul_mem A.one_mem $ f x₂),
+    ext1, simp only [continuous_map.coe_smul, continuous_map.coe_one, pi.smul_apply,
+      pi.one_apply, algebra.id.smul_eq_mul, mul_one, const_apply] },
   -- Consider now the function `λ x, |f x - f x₂| ^ 2`
   refine ⟨_, ⟨(⟨is_R_or_C.norm_sq, continuous_norm_sq⟩ : C(𝕜, ℝ)).comp F, _, rfl⟩, _⟩,
   { -- This is also an element of the subalgebra, and takes only real values
@@ -407,7 +407,8 @@ begin
     exact (is_R_or_C.mul_conj _).symm },
   { -- And it also separates the points `x₁`, `x₂`
     have : f x₁ - f x₂ ≠ 0 := sub_ne_zero.mpr hf,
-    simpa using this },
+    simpa only [comp_apply, continuous_map.coe_sub, coe_const, pi.sub_apply,
+      coe_mk, sub_self, map_zero, ne.def, norm_sq_eq_zero] using this },
 end
 
 variables [compact_space X]

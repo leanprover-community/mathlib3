@@ -8,12 +8,40 @@ import algebra.module.linear_map
 import algebra.big_operators.basic
 import data.set.finite
 import group_theory.submonoid.membership
+import group_theory.group_action.big_operators
 import data.finset.preimage
 
 /-!
 # Dependent functions with finite support
 
 For a non-dependent version see `data/finsupp.lean`.
+
+## Notation
+
+This file introduces the notation `Π₀ a, β a` as notation for `dfinsupp β`, mirroring the `α →₀ β`
+notation used for `finsupp`. This works for nested binders too, with `Π₀ a b, γ a b` as notation
+for `dfinsupp (λ a, dfinsupp (γ a))`.
+
+## Implementation notes
+
+The support is internally represented (in the primed `dfinsupp.support'`) as a `multiset` that
+represents a superset of the true support of the function, quotiented by the always-true relation so
+that this does not impact equality. This approach has computational benefits over storing a
+`finset`; it allows us to add together two finitely-supported functions (`dfinsupp.has_add`) without
+having to evaluate the resulting function to recompute its support (which would required
+decidability of `b = 0` for `b : β i`).
+
+The true support of the function can still be recovered with `dfinsupp.support`; but these
+decidability obligations are now postponed to when the support is actually needed. As a consequence,
+there are two ways to sum a `dfinsupp`: with `dfinsupp.sum` which works over an arbitrary function
+but requires recomputation of the support and therefore a `decidable` argument; and with
+`dfinsupp.sum_add_hom` which requires an additive morphism, using its properties to show that
+summing over a superset of the support is sufficient.
+
+`finsupp` takes an altogether different approach here; it uses `classical.decidable` and declares
+`finsupp.has_add` as noncomputable. This design difference is independent of the fact that
+`dfinsupp` is dependently-typed and `finsupp` is not; in future, we may want to align these two
+definitions, or introduce two more definitions for the other combinations of decisions.
 -/
 
 universes u u₁ u₂ v v₁ v₂ v₃ w x y l
@@ -24,10 +52,11 @@ variables {ι : Type u} {γ : Type w} {β : ι → Type v} {β₁ : ι → Type 
 
 
 variable (β)
-/-- A dependent function `Π i, β i` with finite support.
+/-- A dependent function `Π i, β i` with finite support, with notation `Π₀ i, β i`.
 
-Instead of storing the support directly, which would make `dfinsupp.has_add` require decidability
-of equality on `β i`, we store a multiset that is a superset of the true support. -/
+Note that `dfinsupp.support` is the preferred API for accessing the support of the function,
+`dfinsupp.support'` is a implementation detail that aids computability; see the implementation
+notes in this file for more information. -/
 structure dfinsupp [Π i, has_zero (β i)] : Type (max u v) :=
 mk' ::
 (to_fun : Π i, β i)
@@ -63,7 +92,7 @@ instance : inhabited (Π₀ i, β i) := ⟨0⟩
 @[simp]
 lemma coe_mk' (f : Π i, β i) (s) : ⇑(⟨f, s⟩ : Π₀ i, β i) = f := rfl
 
-@[simp] lemma coe_zero : ⇑(0 : Π₀ i, β i) = 0 := rfl
+@[simp] protected lemma coe_zero : ⇑(0 : Π₀ i, β i) = 0 := rfl
 lemma zero_apply (i : ι) : (0 : Π₀ i, β i) i = 0 := rfl
 
 /-- The composition of `f : β₁ → β₂` and `g : Π₀ i, β₁ i` is
@@ -97,7 +126,7 @@ by { ext, simp only [map_range_apply] }
 
 @[simp] lemma map_range_zero (f : Π i, β₁ i → β₂ i) (hf : ∀ i, f i 0 = 0) :
   map_range f hf (0 : Π₀ i, β₁ i) = 0 :=
-by { ext, simp only [map_range_apply, coe_zero, pi.zero_apply, hf] }
+by { ext, simp only [map_range_apply, dfinsupp.coe_zero, pi.zero_apply, hf] }
 
 /-- Let `f i` be a binary operation `β₁ i → β₂ i → β i` such that `f i 0 0 = 0`.
 Then `zip_with f hf` is a binary operation `Π₀ i, β₁ i → Π₀ i, β₂ i → Π₀ i, β i`. -/
@@ -119,6 +148,21 @@ end⟩
   zip_with f hf g₁ g₂ i = f i (g₁ i) (g₂ i) :=
 rfl
 
+section piecewise
+variables (x y : Π₀ i, β i) (s : set ι) [Π i, decidable (i ∈ s)]
+
+/-- `x.piecewise y s` is the finitely supported function equal to `x` on the set `s`,
+  and to `y` on its complement. -/
+def piecewise : Π₀ i, β i := zip_with (λ i x y, if i ∈ s then x else y) (λ _, if_t_t _ 0) x y
+
+lemma piecewise_apply (i : ι) : x.piecewise y s i = if i ∈ s then x i else y i :=
+zip_with_apply _ _ x y i
+
+@[simp, norm_cast] lemma coe_piecewise : ⇑(x.piecewise y s) = s.piecewise x y :=
+by { ext, apply piecewise_apply }
+
+end piecewise
+
 end basic
 
 section algebra
@@ -130,12 +174,12 @@ lemma add_apply [Π i, add_zero_class (β i)] (g₁ g₂ : Π₀ i, β i) (i : �
   (g₁ + g₂) i = g₁ i + g₂ i :=
 rfl
 
-@[simp] lemma coe_add [Π i, add_zero_class (β i)] (g₁ g₂ : Π₀ i, β i) :
+@[simp] protected lemma coe_add [Π i, add_zero_class (β i)] (g₁ g₂ : Π₀ i, β i) :
   ⇑(g₁ + g₂) = g₁ + g₂ :=
 rfl
 
 instance [Π i, add_zero_class (β i)] : add_zero_class (Π₀ i, β i) :=
-fun_like.coe_injective.add_zero_class _ coe_zero coe_add
+fun_like.coe_injective.add_zero_class _ dfinsupp.coe_zero dfinsupp.coe_add
 
 /-- Note the general `dfinsupp.has_smul` instance doesn't apply as `ℕ` is not distributive
 unless `β i`'s addition is commutative. -/
@@ -146,15 +190,17 @@ lemma nsmul_apply [Π i, add_monoid (β i)] (b : ℕ) (v : Π₀ i, β i) (i : �
   (b • v) i = b • (v i) :=
 rfl
 
-@[simp] lemma coe_nsmul [Π i, add_monoid (β i)] (b : ℕ) (v : Π₀ i, β i) : ⇑(b • v) = b • v :=
+@[simp] protected lemma coe_nsmul [Π i, add_monoid (β i)] (b : ℕ) (v : Π₀ i, β i) :
+  ⇑(b • v) = b • v :=
 rfl
 
 instance [Π i, add_monoid (β i)] : add_monoid (Π₀ i, β i) :=
-fun_like.coe_injective.add_monoid _ coe_zero coe_add (λ _ _, coe_nsmul _ _)
+fun_like.coe_injective.add_monoid _ dfinsupp.coe_zero dfinsupp.coe_add
+  (λ _ _, dfinsupp.coe_nsmul _ _)
 
 /-- Coercion from a `dfinsupp` to a pi type is an `add_monoid_hom`. -/
 def coe_fn_add_monoid_hom [Π i, add_zero_class (β i)] : (Π₀ i, β i) →+ (Π i, β i) :=
-{ to_fun := coe_fn, map_zero' := coe_zero, map_add' := coe_add }
+{ to_fun := coe_fn, map_zero' := dfinsupp.coe_zero, map_add' := dfinsupp.coe_add }
 
 /-- Evaluation at a point is an `add_monoid_hom`. This is the finitely-supported version of
 `pi.eval_add_monoid_hom`. -/
@@ -162,7 +208,8 @@ def eval_add_monoid_hom [Π i, add_zero_class (β i)] (i : ι) : (Π₀ i, β i)
 (pi.eval_add_monoid_hom β i).comp coe_fn_add_monoid_hom
 
 instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (Π₀ i, β i) :=
-fun_like.coe_injective.add_comm_monoid _ coe_zero coe_add (λ _ _, coe_nsmul _ _)
+fun_like.coe_injective.add_comm_monoid _ dfinsupp.coe_zero dfinsupp.coe_add
+  (λ _ _, dfinsupp.coe_nsmul _ _)
 
 @[simp] lemma coe_finset_sum {α} [Π i, add_comm_monoid (β i)] (s : finset α) (g : α → Π₀ i, β i) :
   ⇑(∑ a in s, g a) = ∑ a in s, g a :=
@@ -179,7 +226,7 @@ instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
 lemma neg_apply [Π i, add_group (β i)] (g : Π₀ i, β i) (i : ι) : (- g) i = - g i :=
 rfl
 
-@[simp] lemma coe_neg [Π i, add_group (β i)] (g : Π₀ i, β i) : ⇑(- g) = - g :=
+@[simp] protected lemma coe_neg [Π i, add_group (β i)] (g : Π₀ i, β i) : ⇑(- g) = - g :=
 rfl
 
 instance [Π i, add_group (β i)] : has_sub (Π₀ i, β i) :=
@@ -189,7 +236,7 @@ lemma sub_apply [Π i, add_group (β i)] (g₁ g₂ : Π₀ i, β i) (i : ι) :
   (g₁ - g₂) i = g₁ i - g₂ i :=
 rfl
 
-@[simp] lemma coe_sub [Π i, add_group (β i)] (g₁ g₂ : Π₀ i, β i) :
+@[simp] protected lemma coe_sub [Π i, add_group (β i)] (g₁ g₂ : Π₀ i, β i) :
   ⇑(g₁ - g₂) = g₁ - g₂ :=
 rfl
 
@@ -201,16 +248,19 @@ instance has_int_scalar [Π i, add_group (β i)] : has_smul ℤ (Π₀ i, β i) 
 lemma zsmul_apply [Π i, add_group (β i)] (b : ℤ) (v : Π₀ i, β i) (i : ι) : (b • v) i = b • (v i) :=
 rfl
 
-@[simp] lemma coe_zsmul [Π i, add_group (β i)] (b : ℤ) (v : Π₀ i, β i) : ⇑(b • v) = b • v :=
+@[simp] protected lemma coe_zsmul [Π i, add_group (β i)] (b : ℤ) (v : Π₀ i, β i) :
+  ⇑(b • v) = b • v :=
 rfl
 
 instance [Π i, add_group (β i)] : add_group (Π₀ i, β i) :=
 fun_like.coe_injective.add_group _
-  coe_zero coe_add coe_neg coe_sub (λ _ _, coe_nsmul _ _) (λ _ _, coe_zsmul _ _)
+  dfinsupp.coe_zero dfinsupp.coe_add dfinsupp.coe_neg dfinsupp.coe_sub
+  (λ _ _, dfinsupp.coe_nsmul _ _) (λ _ _, dfinsupp.coe_zsmul _ _)
 
 instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
 fun_like.coe_injective.add_comm_group _
-  coe_zero coe_add coe_neg coe_sub (λ _ _, coe_nsmul _ _) (λ _ _, coe_zsmul _ _)
+  dfinsupp.coe_zero dfinsupp.coe_add dfinsupp.coe_neg dfinsupp.coe_sub
+  (λ _ _, dfinsupp.coe_nsmul _ _) (λ _ _, dfinsupp.coe_zsmul _ _)
 
 /-- Dependent functions with finite support inherit a semiring action from an action on each
 coordinate. -/
@@ -223,7 +273,7 @@ lemma smul_apply [monoid γ] [Π i, add_monoid (β i)]
   (b • v) i = b • (v i) :=
 rfl
 
-@[simp] lemma coe_smul [monoid γ] [Π i, add_monoid (β i)]
+@[simp] protected lemma coe_smul [monoid γ] [Π i, add_monoid (β i)]
   [Π i, distrib_mul_action γ (β i)] (b : γ) (v : Π₀ i, β i) :
   ⇑(b • v) = b • v :=
 rfl
@@ -249,7 +299,8 @@ instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β 
 structure on each coordinate. -/
 instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] :
   distrib_mul_action γ (Π₀ i, β i) :=
-function.injective.distrib_mul_action coe_fn_add_monoid_hom fun_like.coe_injective coe_smul
+function.injective.distrib_mul_action coe_fn_add_monoid_hom fun_like.coe_injective
+  dfinsupp.coe_smul
 
 /-- Dependent functions with finite support inherit a module structure from such a structure on
 each coordinate. -/
@@ -433,8 +484,10 @@ begin
 end
 
 omit dec
-instance [is_empty ι] : unique (Π₀ i, β i) :=
-⟨⟨0⟩, λ a, by { ext, exact is_empty_elim i }⟩
+
+instance unique [∀ i, subsingleton (β i)] : unique (Π₀ i, β i) := fun_like.coe_injective.unique
+
+instance unique_of_is_empty [is_empty ι] : unique (Π₀ i, β i) := fun_like.coe_injective.unique
 
 /-- Given `fintype ι`, `equiv_fun_on_fintype` is the `equiv` between `Π₀ i, β i` and `Π i, β i`.
   (All dependent functions on a finite type are finitely supported.) -/
@@ -498,6 +551,12 @@ begin
     { rw [hi, hj, dfinsupp.single_zero, dfinsupp.single_zero], }, },
 end
 
+/-- `dfinsupp.single a b` is injective in `a`. For the statement that it is injective in `b`, see
+`dfinsupp.single_injective` -/
+lemma single_left_injective {b : Π (i : ι), β i} (h : ∀ i, b i ≠ 0) :
+  function.injective (λ i, single i (b i) : ι → Π₀ i, β i) :=
+λ a a' H, (((single_eq_single_iff _ _ _ _).mp H).resolve_right $ λ hb, h _ hb.1).left
+
 @[simp] lemma single_eq_zero {i : ι} {xi : β i} : single i xi = 0 ↔ xi = 0 :=
 begin
   rw [←single_zero i, single_eq_single_iff],
@@ -552,6 +611,14 @@ by simp
 
 lemma erase_ne {i i' : ι} {f : Π₀ i, β i} (h : i' ≠ i) : (f.erase i) i' = f i' :=
 by simp [h]
+
+lemma piecewise_single_erase (x : Π₀ i, β i) (i : ι) :
+  (single i (x i)).piecewise (x.erase i) {i} = x :=
+begin
+  ext j, rw piecewise_apply, split_ifs,
+  { rw [(id h : j = i), single_eq_same] },
+  { exact erase_ne h },
+end
 
 lemma erase_eq_sub_single {β : ι → Type*} [Π i, add_group (β i)] (f : Π₀ i, β i) (i : ι) :
   f.erase i = f - single i (f i) :=
@@ -1475,7 +1542,8 @@ def sum_add_hom [Π i, add_zero_class (β i)] [add_comm_monoid γ] (φ : Π i, �
   map_add' := begin
     rintros ⟨f, sf, hf⟩ ⟨g, sg, hg⟩,
     change ∑ i in _, _ = (∑ i in _, _) + (∑ i in _, _),
-    simp only [coe_add, coe_mk', subtype.coe_mk, pi.add_apply, map_add, finset.sum_add_distrib],
+    simp only [dfinsupp.coe_add, coe_mk', subtype.coe_mk, pi.add_apply, map_add,
+      finset.sum_add_distrib],
     congr' 1,
     { refine (finset.sum_subset _ _).symm,
       { intro i, simp only [multiset.mem_to_finset, multiset.mem_add], exact or.inl },
@@ -1736,7 +1804,7 @@ lemma map_range_add (f : Π i, β₁ i → β₂ i) (hf : ∀ i, f i 0 = 0)
   map_range f hf (g₁ + g₂) = map_range f hf g₁ + map_range f hf g₂ :=
 begin
   ext,
-  simp only [map_range_apply f, coe_add, pi.add_apply, hf']
+  simp only [map_range_apply f, dfinsupp.coe_add, pi.add_apply, hf']
 end
 
 /-- `dfinsupp.map_range` as an `add_monoid_hom`. -/
@@ -1898,3 +1966,32 @@ add_monoid_hom.congr_fun (comp_lift_add_hom h.to_add_monoid_hom g) f
 end add_equiv
 
 end
+
+section finite_infinite
+
+instance dfinsupp.fintype {ι : Sort*} {π : ι → Sort*} [decidable_eq ι] [Π i, has_zero (π i)]
+  [fintype ι] [∀ i, fintype (π i)] :
+  fintype (Π₀ i, π i) :=
+fintype.of_equiv (Π i, π i) dfinsupp.equiv_fun_on_fintype.symm
+
+instance dfinsupp.infinite_of_left {ι : Sort*} {π : ι → Sort*}
+  [∀ i, nontrivial (π i)] [Π i, has_zero (π i)] [infinite ι] :
+  infinite (Π₀ i, π i) :=
+by letI := classical.dec_eq ι; choose m hm using (λ i, exists_ne (0 : π i)); exact
+infinite.of_injective _ (dfinsupp.single_left_injective hm)
+
+/-- See `dfinsupp.infinite_of_right` for this in instance form, with the drawback that
+it needs all `π i` to be infinite. -/
+lemma dfinsupp.infinite_of_exists_right {ι : Sort*} {π : ι → Sort*}
+  (i : ι) [infinite (π i)] [Π i, has_zero (π i)] :
+  infinite (Π₀ i, π i) :=
+by letI := classical.dec_eq ι; exact
+infinite.of_injective (λ j, dfinsupp.single i j) dfinsupp.single_injective
+
+/-- See `dfinsupp.infinite_of_exists_right` for the case that only one `π ι` is infinite. -/
+instance dfinsupp.infinite_of_right {ι : Sort*} {π : ι → Sort*}
+  [∀ i, infinite (π i)] [Π i, has_zero (π i)] [nonempty ι] :
+  infinite (Π₀ i, π i) :=
+dfinsupp.infinite_of_exists_right (classical.arbitrary ι)
+
+end finite_infinite

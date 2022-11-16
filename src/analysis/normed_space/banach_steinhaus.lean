@@ -23,8 +23,8 @@ open set
 
 variables
 {E F 𝕜 𝕜₂ : Type*}
-[semi_normed_group E] [semi_normed_group F]
-[nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂]
+[seminormed_add_comm_group E] [seminormed_add_comm_group F]
+[nontrivially_normed_field 𝕜] [nontrivially_normed_field 𝕜₂]
 [normed_space 𝕜 E] [normed_space 𝕜₂ F]
 {σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂]
 

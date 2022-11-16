@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import analysis.specific_limits.basic
 import measure_theory.pi_system
+import data.countable.basic
 import data.fin.vec_notation
 import topology.algebra.infinite_sum
 
@@ -52,7 +53,7 @@ outer measure, Carathéodory-measurable, Carathéodory's criterion
 
 noncomputable theory
 
-open set finset function filter encodable topological_space (second_countable_topology)
+open set function filter topological_space (second_countable_topology)
 open_locale classical big_operators nnreal topological_space ennreal measure_theory
 
 namespace measure_theory
@@ -86,18 +87,24 @@ lemma pos_of_subset_ne_zero (m : outer_measure α) {a b : set α} (hs : a ⊆ b)
   0 < m b :=
 (lt_of_lt_of_le (pos_iff_ne_zero.mpr hnz) (m.mono hs))
 
-protected theorem Union (m : outer_measure α)
-  {β} [encodable β] (s : β → set α) :
+protected theorem Union (m : outer_measure α) {β} [countable β] (s : β → set α) :
   m (⋃ i, s i) ≤ ∑' i, m (s i) :=
 rel_supr_tsum m m.empty (≤) m.Union_nat s
 
-lemma Union_null [encodable β] (m : outer_measure α) {s : β → set α} (h : ∀ i, m (s i) = 0) :
+lemma Union_null [countable β] (m : outer_measure α) {s : β → set α} (h : ∀ i, m (s i) = 0) :
   m (⋃ i, s i) = 0 :=
 by simpa [h] using m.Union s
 
-@[simp] lemma Union_null_iff [encodable β] (m : outer_measure α) {s : β → set α} :
+@[simp] lemma Union_null_iff [countable β] (m : outer_measure α) {s : β → set α} :
   m (⋃ i, s i) = 0 ↔ ∀ i, m (s i) = 0 :=
 ⟨λ h i, m.mono_null (subset_Union _ _) h, m.Union_null⟩
+
+/-- A version of `Union_null_iff` for unions indexed by Props.
+TODO: in the long run it would be better to combine this with `Union_null_iff` by
+generalising to `Sort`. -/
+@[simp] lemma Union_null_iff' (m : outer_measure α) {ι : Prop} {s : ι → set α} :
+  m (⋃ i, s i) = 0 ↔ ∀ i, m (s i) = 0 :=
+by by_cases i : ι; simp [i]
 
 lemma bUnion_null_iff (m : outer_measure α) {s : set β} (hs : s.countable) {t : β → set α} :
   m (⋃ i ∈ s, t i) = 0 ↔ ∀ i ∈ s, m (t i) = 0 :=
@@ -521,7 +528,7 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑'i, m (f i) in
     infi_mono' $ assume hb, ⟨hs.trans hb, le_rfl⟩,
   Union_nat := assume s, ennreal.le_of_forall_pos_le_add $ begin
     assume ε hε (hb : ∑'i, μ (s i) < ∞),
-    rcases ennreal.exists_pos_sum_of_encodable (ennreal.coe_pos.2 hε).ne' ℕ with ⟨ε', hε', hl⟩,
+    rcases ennreal.exists_pos_sum_of_countable (ennreal.coe_pos.2 hε).ne' ℕ with ⟨ε', hε', hl⟩,
     refine le_trans _ (add_le_add_left (le_of_lt hl) _),
     rw ← ennreal.tsum_add,
     choose f hf using show
@@ -588,7 +595,7 @@ begin
     ... = m (f i) : (h (f i) hs ht).symm
     ... ≤ ∑' i, m (f i) : ennreal.le_tsum i },
   set I := λ s, {i : ℕ | (s ∩ f i).nonempty},
-  have hd : disjoint (I s) (I t), from λ i hi, he ⟨i, hi⟩,
+  have hd : disjoint (I s) (I t), from disjoint_iff_inf_le.mpr (λ i hi, he ⟨i, hi⟩),
   have hI : ∀ u ⊆ s ∪ t, μ u ≤ ∑'  i : I u, μ (f i), from λ u hu,
   calc μ u ≤ μ (⋃ i : I u, f i) :
     μ.mono (λ x hx, let ⟨i, hi⟩ := mem_Union.1 (hf (hu hx)) in mem_Union.2 ⟨⟨i, ⟨x, hx, hi⟩⟩, hi⟩)
@@ -662,7 +669,7 @@ variables {α : Type*} (m : set α → ℝ≥0∞)
   satisfying `μ s ≤ m s` for all `s : set α`. This is the same as `outer_measure.of_function`,
   except that it doesn't require `m ∅ = 0`. -/
 def bounded_by : outer_measure α :=
-outer_measure.of_function (λ s, ⨆ (h : s.nonempty), m s) (by simp [empty_not_nonempty])
+outer_measure.of_function (λ s, ⨆ (h : s.nonempty), m s) (by simp [not_nonempty_empty])
 
 variables {m}
 theorem bounded_by_le (s : set α) : bounded_by m s ≤ m s :=
@@ -672,7 +679,7 @@ theorem bounded_by_eq_of_function (m_empty : m ∅ = 0) (s : set α) :
   bounded_by m s = outer_measure.of_function m m_empty s :=
 begin
   have : (λ s : set α, ⨆ (h : s.nonempty), m s) = m,
-  { ext1 t, cases t.eq_empty_or_nonempty with h h; simp [h, empty_not_nonempty, m_empty] },
+  { ext1 t, cases t.eq_empty_or_nonempty with h h; simp [h, not_nonempty_empty, m_empty] },
   simp [bounded_by, this]
 end
 theorem bounded_by_apply (s : set α) :
@@ -689,7 +696,7 @@ ext $ λ s, bounded_by_eq _ m.empty' (λ t ht, m.mono' ht) m.Union
 theorem le_bounded_by {μ : outer_measure α} : μ ≤ bounded_by m ↔ ∀ s, μ s ≤ m s :=
 begin
   rw [bounded_by, le_of_function, forall_congr], intro s,
-  cases s.eq_empty_or_nonempty with h h; simp [h, empty_not_nonempty]
+  cases s.eq_empty_or_nonempty with h h; simp [h, not_nonempty_empty]
 end
 
 theorem le_bounded_by' {μ : outer_measure α} :
@@ -790,7 +797,7 @@ lemma is_caratheodory_sum {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))
   rw [bUnion_lt_succ, finset.sum_range_succ, set.union_comm, is_caratheodory_sum,
     m.measure_inter_union _ (h n), add_comm],
   intro a,
-  simpa using λ (h₁ : a ∈ s n) i (hi : i < n) h₂, hd _ _ (ne_of_gt hi) ⟨h₁, h₂⟩
+  simpa using λ (h₁ : a ∈ s n) i (hi : i < n) h₂, (hd (ne_of_gt hi)).le_bot ⟨h₁, h₂⟩
 end
 
 lemma is_caratheodory_Union_nat {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))
@@ -867,7 +874,7 @@ lemma bounded_by_caratheodory {m : set α → ℝ≥0∞} {s : set α}
 begin
   apply of_function_caratheodory, intro t,
   cases t.eq_empty_or_nonempty with h h,
-  { simp [h, empty_not_nonempty] },
+  { simp [h, not_nonempty_empty] },
   { convert le_trans _ (hs t), { simp [h] }, exact add_le_add supr_const_le supr_const_le }
 end
 
@@ -925,7 +932,7 @@ lemma supr_Inf_gen_nonempty {m : set (outer_measure α)} (h : m.nonempty) (t : s
 begin
   rcases t.eq_empty_or_nonempty with rfl|ht,
   { rcases h with ⟨μ, hμ⟩,
-    rw [eq_false_intro empty_not_nonempty, supr_false, eq_comm],
+    rw [eq_false_intro not_nonempty_empty, supr_false, eq_comm],
     simp_rw [empty'],
     apply bot_unique,
     refine infi_le_of_le μ (infi_le _ hμ) },
@@ -1121,10 +1128,11 @@ end mono
 
 section unions
 include P0 m0 PU mU
-lemma extend_Union {β} [encodable β] {f : β → set α}
-  (hd : pairwise (disjoint on f)) (hm : ∀i, P (f i)) :
+lemma extend_Union {β} [countable β] {f : β → set α} (hd : pairwise (disjoint on f))
+  (hm : ∀ i, P (f i)) :
   extend m (⋃i, f i) = ∑'i, extend m (f i) :=
 begin
+  casesI nonempty_encodable β,
   rw [← encodable.Union_decode₂, ← tsum_Union_decode₂],
   { exact extend_Union_nat PU
       (λ n, encodable.Union_decode₂_cases P0 hm)
@@ -1365,7 +1373,7 @@ end
 
 /-- If `μ i` is a countable family of outer measures, then for every set `s` there exists
 a measurable set `t ⊇ s` such that `μ i t = (μ i).trim s` for all `i`. -/
-lemma exists_measurable_superset_forall_eq_trim {ι} [encodable ι] (μ : ι → outer_measure α)
+lemma exists_measurable_superset_forall_eq_trim {ι} [countable ι] (μ : ι → outer_measure α)
   (s : set α) : ∃ t, s ⊆ t ∧ measurable_set t ∧ ∀ i, μ i t = (μ i).trim s :=
 begin
   choose t hst ht hμt using λ i, (μ i).exists_measurable_superset_eq_trim s,
@@ -1410,12 +1418,13 @@ ext $ λ s, (trim_binop (sup_apply m₁ m₂) s).trans (sup_apply _ _ _).symm
 
 /-- `trim` sends the supremum of a countable family of outer measures to the supremum
 of the trimmed measures. -/
-lemma trim_supr {ι} [encodable ι] (μ : ι → outer_measure α) :
-  trim (⨆ i, μ i) = ⨆ i, trim (μ i) :=
+lemma trim_supr {ι} [countable ι] (μ : ι → outer_measure α) : trim (⨆ i, μ i) = ⨆ i, trim (μ i) :=
 begin
+  simp_rw [←@supr_plift_down _ ι],
   ext1 s,
-  rcases exists_measurable_superset_forall_eq_trim (option.elim (supr μ) μ) s
-    with ⟨t, hst, ht, hμt⟩,
+  haveI : countable (option $ plift ι) := @option.countable (plift ι) _,
+  obtain ⟨t, hst, ht, hμt⟩ := exists_measurable_superset_forall_eq_trim
+    (option.elim (⨆ i, μ (plift.down i)) (μ ∘ plift.down)) s,
   simp only [option.forall, option.elim] at hμt,
   simp only [supr_apply, ← hμt.1, ← hμt.2]
 end

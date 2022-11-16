@@ -81,8 +81,8 @@ open topological_space metric set filter asymptotics function measure_theory aff
 open_locale topological_space filter nnreal real
 
 universes u v w
-variables {E : Type u} [normed_group E] [normed_space ℂ E]
-  {F : Type v} [normed_group F] [normed_space ℂ F]
+variables {E : Type u} [normed_add_comm_group E] [normed_space ℂ E]
+  {F : Type v} [normed_add_comm_group F] [normed_space ℂ F]
 
 local postfix `̂`:100 := uniform_space.completion
 
@@ -248,7 +248,7 @@ begin
   have hVne : (U ∩ V).nonempty := ⟨c, hcU, hcU, hm⟩,
   set W := U ∩ {z | ∥f z∥ ≠ ∥f c∥},
   have hWo : is_open W, from hd.continuous_on.norm.preimage_open_of_open ho is_open_ne,
-  have hdVW : disjoint V W, from λ x ⟨hxV, hxW⟩, hxW.2 (hV x hxV),
+  have hdVW : disjoint V W, from disjoint_left.mpr (λ x hxV hxW, hxW.2 (hV x hxV)),
   have hUVW : U ⊆ V ∪ W,
     from λ x hx, (eq_or_ne (∥f x∥) (∥f c∥)).imp (λ h, ⟨hx, λ y hy, (hm hy).out.trans_eq h.symm⟩)
       (and.intro hx),
@@ -348,6 +348,18 @@ begin
     (λ x hx, (hr $ ball_subset_closed_ball hx).2)⟩
 end
 
+lemma eventually_eq_or_eq_zero_of_is_local_min_norm {f : E → ℂ} {c : E}
+  (hf : ∀ᶠ z in 𝓝 c, differentiable_at ℂ f z) (hc : is_local_min (norm ∘ f) c) :
+  (∀ᶠ z in 𝓝 c, f z = f c) ∨ (f c = 0) :=
+begin
+  refine or_iff_not_imp_right.mpr (λ h, _),
+  have h1 : ∀ᶠ z in 𝓝 c, f z ≠ 0 := hf.self_of_nhds.continuous_at.eventually_ne h,
+  have h2 : is_local_max (norm ∘ f)⁻¹ c := hc.inv (h1.mono (λ z, norm_pos_iff.mpr)),
+  have h3 : is_local_max (norm ∘ f⁻¹) c := by { refine h2.congr (eventually_of_forall _); simp },
+  have h4 : ∀ᶠ z in 𝓝 c, differentiable_at ℂ f⁻¹ z, by filter_upwards [hf, h1] with z h using h.inv,
+  filter_upwards [eventually_eq_of_is_local_max_norm h4 h3] with z using inv_inj.mp
+end
+
 end strict_convex
 
 /-!
@@ -369,7 +381,7 @@ begin
   have hc : is_compact (closure U), from hb.is_compact_closure,
   obtain ⟨w, hwU, hle⟩ : ∃ w ∈ closure U, is_max_on (norm ∘ f) (closure U) w,
     from hc.exists_forall_ge hne.closure hd.continuous_on.norm,
-  rw [closure_eq_interior_union_frontier, mem_union_eq] at hwU,
+  rw [closure_eq_interior_union_frontier, mem_union] at hwU,
   cases hwU, rotate, { exact ⟨w, hwU, hle⟩ },
   have : interior U ≠ univ, from ne_top_of_le_ne_top hc.ne_univ interior_subset_closure,
   rcases exists_mem_frontier_inf_dist_compl_eq_dist hwU this with ⟨z, hzU, hzw⟩,
@@ -386,7 +398,7 @@ lemma norm_le_of_forall_mem_frontier_norm_le {f : E → F} {U : set E} (hU : bou
   {z : E} (hz : z ∈ closure U) :
   ∥f z∥ ≤ C :=
 begin
-  rw [closure_eq_self_union_frontier, union_comm, mem_union_eq] at hz,
+  rw [closure_eq_self_union_frontier, union_comm, mem_union] at hz,
   cases hz, { exact hC z hz },
   /- In case of a finite dimensional domain, one can just apply
   `complex.exists_mem_frontier_is_max_on_norm`. To make it work in any Banach space, we restrict

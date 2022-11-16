@@ -22,14 +22,11 @@ namespace stream
 variables {α : Type u} {β : Type v} {δ : Type w}
 
 /-- Prepend an element to a stream. -/
-def cons (a : α) (s : stream α) : stream α :=
-λ i,
-  match i with
-  | 0      := a
-  | succ n := s n
-  end
+def cons (a : α) (s : stream α) : stream α
+| 0       := a
+| (n + 1) := s n
 
-notation h :: t := cons h t
+notation (name := stream.cons) h :: t := cons h t
 
 /-- Head of a stream: `stream.head s = stream.nth 0 s`. -/
 def head (s : stream α) : α :=
@@ -65,6 +62,9 @@ def map (f : α → β) (s : stream α) : stream β :=
 `stream.nth n (stream.zip f s₁ s₂) = f (stream.nth s₁) (stream.nth s₂)`. -/
 def zip (f : α → β → δ) (s₁ : stream α) (s₂ : stream β) : stream δ :=
 λ n, f (nth s₁ n) (nth s₂ n)
+
+/-- Enumerate a stream by tagging each element with its index. -/
+def enum (s : stream α) : stream (ℕ × α) := λ n, (n, s.nth n)
 
 /-- The constant stream: `stream.nth n (stream.const a) = a`. -/
 def const (a : α) : stream α :=

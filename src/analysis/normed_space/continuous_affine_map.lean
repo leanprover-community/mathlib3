@@ -42,11 +42,11 @@ submultiplicative: for a composition of maps, we have only `∥f.comp g∥ ≤ �
 namespace continuous_affine_map
 
 variables {𝕜 R V W W₂ P Q Q₂ : Type*}
-variables [normed_group V] [metric_space P] [normed_add_torsor V P]
-variables [normed_group W] [metric_space Q] [normed_add_torsor W Q]
-variables [normed_group W₂] [metric_space Q₂] [normed_add_torsor W₂ Q₂]
+variables [normed_add_comm_group V] [metric_space P] [normed_add_torsor V P]
+variables [normed_add_comm_group W] [metric_space Q] [normed_add_torsor W Q]
+variables [normed_add_comm_group W₂] [metric_space Q₂] [normed_add_torsor W₂ Q₂]
 variables [normed_field R] [normed_space R V] [normed_space R W] [normed_space R W₂]
-variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 V] [normed_space 𝕜 W] [normed_space 𝕜 W₂]
+variables [nontrivially_normed_field 𝕜] [normed_space 𝕜 V] [normed_space 𝕜 W] [normed_space 𝕜 W₂]
 
 include V W
 
@@ -158,12 +158,17 @@ calc ∥f∥ = (max ∥f 0∥ ∥f.cont_linear∥) : by rw norm_def
     ... = (max 0 ∥f.cont_linear∥) : by rw [h, norm_zero]
     ... = ∥f.cont_linear∥ : max_eq_right (norm_nonneg _)
 
-noncomputable instance : normed_group (V →A[𝕜] W) :=
-normed_group.of_core _
-{ norm_eq_zero_iff := λ f,
-    begin
-      rw norm_def,
-      refine ⟨λ h₀, _, by { rintros rfl, simp, }⟩,
+noncomputable instance : normed_add_comm_group (V →A[𝕜] W) :=
+add_group_norm.to_normed_add_comm_group
+{ to_fun := λ f, max ∥f 0∥ ∥f.cont_linear∥,
+  map_zero' := by simp,
+  neg' := λ f, by simp,
+  add_le' := λ f g, begin
+      simp only [pi.add_apply, add_cont_linear, coe_add, max_le_iff],
+      exact ⟨(norm_add_le _ _).trans (add_le_add (le_max_left _ _) (le_max_left _ _)),
+             (norm_add_le _ _).trans (add_le_add (le_max_right _ _) (le_max_right _ _))⟩,
+    end,
+  eq_zero_of_map_eq_zero' := λ f h₀, begin
       rcases max_eq_iff.mp h₀ with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩;
       rw h₁ at h₂,
       { rw [norm_le_zero_iff, cont_linear_eq_zero_iff_exists_const] at h₂,
@@ -171,19 +176,12 @@ normed_group.of_core _
         simp only [function.const_apply, coe_const, norm_eq_zero] at h₁,
         rw h₁,
         refl, },
-      { rw [norm_eq_zero_iff', cont_linear_eq_zero_iff_exists_const] at h₁,
+      { rw [norm_eq_zero', cont_linear_eq_zero_iff_exists_const] at h₁,
         obtain ⟨q, rfl⟩ := h₁,
         simp only [function.const_apply, coe_const, norm_le_zero_iff] at h₂,
         rw h₂,
         refl, },
-    end,
-  triangle := λ f g,
-    begin
-      simp only [norm_def, pi.add_apply, add_cont_linear, coe_add, max_le_iff],
-      exact ⟨(norm_add_le _ _).trans (add_le_add (le_max_left _ _) (le_max_left _ _)),
-             (norm_add_le _ _).trans (add_le_add (le_max_right _ _) (le_max_right _ _))⟩,
-    end,
-  norm_neg := λ f, by simp [norm_def], }
+    end }
 
 instance : normed_space 𝕜 (V →A[𝕜] W) :=
 { norm_smul_le := λ t f, by simp only [norm_def, smul_cont_linear, coe_smul, pi.smul_apply,
@@ -220,9 +218,9 @@ def to_const_prod_continuous_linear_map : (V →A[𝕜] W) ≃ₗᵢ[𝕜] W × 
   inv_fun   := λ p, p.2.to_continuous_affine_map + const 𝕜 V p.1,
   left_inv  := λ f, by { ext, rw f.decomp, simp, },
   right_inv := by { rintros ⟨v, f⟩, ext; simp, },
-  map_add'  := by simp,
-  map_smul' := by simp,
-  norm_map' := λ f, by simp [prod.norm_def, norm_def], }
+  map_add'  := λ _ _, rfl,
+  map_smul' := λ _ _, rfl,
+  norm_map' := λ f, rfl }
 
 @[simp] lemma to_const_prod_continuous_linear_map_fst (f : V →A[𝕜] W) :
   (to_const_prod_continuous_linear_map 𝕜 V W f).fst = f 0 :=

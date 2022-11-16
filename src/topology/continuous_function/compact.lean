@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import topology.continuous_function.bounded
-import topology.uniform_space.compact_separated
+import topology.uniform_space.compact
 import topology.compact_open
 import topology.sets.compacts
 
@@ -32,7 +32,8 @@ open bounded_continuous_function
 
 namespace continuous_map
 
-variables {α β E : Type*} [topological_space α] [compact_space α] [metric_space β] [normed_group E]
+variables {α β E : Type*} [topological_space α] [compact_space α] [metric_space β]
+  [normed_add_comm_group E]
 
 section
 
@@ -54,8 +55,9 @@ begin
   simp only [has_basis_compact_convergence_uniformity.mem_iff, uniformity_basis_dist_le.mem_iff],
   exact λ s, ⟨λ ⟨⟨a, b⟩, ⟨ha, ⟨ε, hε, hb⟩⟩, hs⟩, ⟨{p | ∀ x, (p.1 x, p.2 x) ∈ b},
     ⟨ε, hε, λ _ h x, hb (by exact (dist_le hε.le).mp h x)⟩, λ f g h, hs (by exact λ x hx, h x)⟩,
-    λ ⟨t, ⟨ε, hε, ht⟩, hs⟩, ⟨⟨set.univ, {p | dist p.1 p.2 ≤ ε}⟩, ⟨compact_univ, ⟨ε, hε, λ _ h, h⟩⟩,
-    λ ⟨f, g⟩ h, hs _ _ (ht (by exact (dist_le hε.le).mpr (λ x, h x (mem_univ x))))⟩⟩,
+    λ ⟨t, ⟨ε, hε, ht⟩, hs⟩, ⟨⟨set.univ, {p | dist p.1 p.2 ≤ ε}⟩,
+      ⟨is_compact_univ, ⟨ε, hε, λ _ h, h⟩⟩,
+      λ ⟨f, g⟩ h, hs _ _ (ht (by exact (dist_le hε.le).mpr (λ x, h x (mem_univ x))))⟩⟩,
 end
 
 lemma uniform_embedding_equiv_bounded_of_compact :
@@ -153,10 +155,13 @@ rfl
 
 open bounded_continuous_function
 
-instance : normed_group C(α, E) :=
+instance : normed_add_comm_group C(α, E) :=
 { dist_eq := λ x y, by
     rw [← norm_mk_of_compact, ← dist_mk_of_compact, dist_eq_norm, mk_of_compact_sub],
   dist := dist, norm := norm, .. continuous_map.metric_space _ _, .. continuous_map.add_comm_group }
+
+instance [nonempty α] [has_one E] [norm_one_class E] : norm_one_class C(α, E) :=
+{ norm_one := by simp only [←norm_mk_of_compact, mk_of_compact_one, norm_one] }
 
 section
 variables (f : C(α, E))
@@ -181,9 +186,16 @@ lemma norm_le_of_nonempty [nonempty α] {M : ℝ} : ∥f∥ ≤ M ↔ ∀ x, ∥
 lemma norm_lt_iff {M : ℝ} (M0 : 0 < M) : ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
 @bounded_continuous_function.norm_lt_iff_of_compact _ _ _ _ _ (mk_of_compact f) _ M0
 
+theorem nnnorm_lt_iff {M : ℝ≥0} (M0 : 0 < M) : ∥f∥₊ < M ↔ ∀ (x : α), ∥f x∥₊ < M :=
+f.norm_lt_iff M0
+
 lemma norm_lt_iff_of_nonempty [nonempty α] {M : ℝ} :
   ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
 @bounded_continuous_function.norm_lt_iff_of_nonempty_compact _ _ _ _ _ _ (mk_of_compact f) _
+
+lemma nnnorm_lt_iff_of_nonempty [nonempty α] {M : ℝ≥0} :
+  ∥f∥₊ < M ↔ ∀ x, ∥f x∥₊ < M :=
+f.norm_lt_iff_of_nonempty
 
 lemma apply_le_norm (f : C(α, ℝ)) (x : α) : f x ≤ ∥f∥ :=
 le_trans (le_abs.mpr (or.inl (le_refl (f x)))) (f.norm_coe_le_norm x)
@@ -201,7 +213,7 @@ variables {R : Type*} [normed_ring R]
 
 instance : normed_ring C(α,R) :=
 { norm_mul := λ f g, norm_mul_le (mk_of_compact f) (mk_of_compact g),
-  ..(infer_instance : normed_group C(α,R)),
+  ..(infer_instance : normed_add_comm_group C(α,R)),
   .. continuous_map.ring }
 
 end
@@ -307,8 +319,8 @@ end continuous_map
 
 section comp_left
 variables (X : Type*) {𝕜 β γ : Type*} [topological_space X] [compact_space X]
-  [nondiscrete_normed_field 𝕜]
-variables [normed_group β] [normed_space 𝕜 β] [normed_group γ] [normed_space 𝕜 γ]
+  [nontrivially_normed_field 𝕜]
+variables [normed_add_comm_group β] [normed_space 𝕜 β] [normed_add_comm_group γ] [normed_space 𝕜 γ]
 
 open continuous_map
 
@@ -351,8 +363,8 @@ section comp_right
 /--
 Precomposition by a continuous map is itself a continuous map between spaces of continuous maps.
 -/
-def comp_right_continuous_map {X Y : Type*} (T : Type*)
-  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y] [normed_group T]
+def comp_right_continuous_map {X Y : Type*} (T : Type*) [topological_space X] [compact_space X]
+  [topological_space Y] [compact_space Y] [metric_space T]
   (f : C(X, Y)) : C(C(Y, T), C(X, T)) :=
 { to_fun := λ g, g.comp f,
   continuous_to_fun :=
@@ -364,8 +376,8 @@ def comp_right_continuous_map {X Y : Type*} (T : Type*)
     { exact λ x, h (f x), },
   end }
 
-@[simp] lemma comp_right_continuous_map_apply {X Y : Type*} (T : Type*)
-  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y] [normed_group T]
+@[simp] lemma comp_right_continuous_map_apply {X Y : Type*} (T : Type*) [topological_space X]
+  [compact_space X] [topological_space Y] [compact_space Y] [metric_space T]
   (f : C(X, Y)) (g : C(Y, T)) :
   (comp_right_continuous_map T f) g = g.comp f :=
 rfl
@@ -373,40 +385,19 @@ rfl
 /--
 Precomposition by a homeomorphism is itself a homeomorphism between spaces of continuous maps.
 -/
-def comp_right_homeomorph {X Y : Type*} (T : Type*)
-  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y] [normed_group T]
+def comp_right_homeomorph {X Y : Type*} (T : Type*) [topological_space X] [compact_space X]
+  [topological_space Y] [compact_space Y] [metric_space T]
   (f : X ≃ₜ Y) : C(Y, T) ≃ₜ C(X, T) :=
 { to_fun := comp_right_continuous_map T f.to_continuous_map,
   inv_fun := comp_right_continuous_map T f.symm.to_continuous_map,
-  left_inv := by tidy,
-  right_inv := by tidy, }
+  left_inv := λ g, ext $ λ _, congr_arg g (f.apply_symm_apply _),
+  right_inv := λ g, ext $ λ _, congr_arg g (f.symm_apply_apply _) }
 
-/--
-Precomposition of functions into a normed ring by continuous map is an algebra homomorphism.
--/
-def comp_right_alg_hom {X Y : Type*} (R : Type*)
-  [topological_space X] [topological_space Y] [normed_comm_ring R] (f : C(X, Y)) :
-  C(Y, R) →ₐ[R] C(X, R) :=
-{ to_fun := λ g, g.comp f,
-  map_zero' := by { ext, simp, },
-  map_add' := λ g₁ g₂, by { ext, simp, },
-  map_one' := by { ext, simp, },
-  map_mul' := λ g₁ g₂, by { ext, simp, },
-  commutes' := λ r, by { ext, simp, }, }
-
-@[simp] lemma comp_right_alg_hom_apply {X Y : Type*} (R : Type*)
-  [topological_space X] [topological_space Y] [normed_comm_ring R] (f : C(X, Y)) (g : C(Y, R)) :
-  (comp_right_alg_hom R f) g = g.comp f :=
-rfl
-
-lemma comp_right_alg_hom_continuous {X Y : Type*} (R : Type*)
-  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y]
-  [normed_comm_ring R] (f : C(X, Y)) :
-  continuous (comp_right_alg_hom R f) :=
-begin
-  change continuous (comp_right_continuous_map R f),
-  continuity,
-end
+lemma comp_right_alg_hom_continuous {X Y : Type*} (R A : Type*)
+  [topological_space X] [compact_space X] [topological_space Y] [compact_space Y] [comm_semiring R]
+  [semiring A] [metric_space A] [topological_semiring A] [algebra R A] (f : C(X, Y)) :
+  continuous (comp_right_alg_hom R A f) :=
+map_continuous (comp_right_continuous_map A f)
 
 end comp_right
 
@@ -415,7 +406,7 @@ section weierstrass
 open topological_space
 
 variables {X : Type*} [topological_space X] [t2_space X] [locally_compact_space X]
-variables {E : Type*} [normed_group E] [complete_space E]
+variables {E : Type*} [normed_add_comm_group E] [complete_space E]
 
 lemma summable_of_locally_summable_norm {ι : Type*} {F : ι → C(X, E)}
   (hF : ∀ K : compacts X, summable (λ i, ∥(F i).restrict K∥)) :
@@ -442,7 +433,7 @@ Furthermore, if `α` is compact and `β` is a C⋆-ring, then `C(α, β)` is a C
 section normed_space
 
 variables {α : Type*} {β : Type*}
-variables [topological_space α] [normed_group β] [star_add_monoid β] [normed_star_group β]
+variables [topological_space α] [normed_add_comm_group β] [star_add_monoid β] [normed_star_group β]
 
 lemma _root_.bounded_continuous_function.mk_of_compact_star [compact_space α] (f : C(α, β)) :
   mk_of_compact (star f) = star (mk_of_compact f) := rfl

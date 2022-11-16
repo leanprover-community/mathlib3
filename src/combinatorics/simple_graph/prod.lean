@@ -50,6 +50,14 @@ by rw [box_prod_adj, and_iff_left rfl, or_iff_left (λ h : H.adj b b ∧ _, h.1.
 @[simp] lemma box_prod_adj_right : (G □ H).adj (a, b₁) (a, b₂) ↔ H.adj b₁ b₂ :=
 by rw [box_prod_adj, and_iff_left rfl, or_iff_right (λ h : G.adj a a ∧ _, h.1.ne rfl)]
 
+lemma box_prod_neighbor_set (x : α × β) :
+  (G □ H).neighbor_set x = ((G.neighbor_set x.1) ×ˢ {x.2}) ∪ ({x.1} ×ˢ (H.neighbor_set x.2)) :=
+begin
+  ext ⟨a',b'⟩,
+  simp only [mem_neighbor_set, set.mem_union, box_prod_adj, set.mem_prod, set.mem_singleton_iff],
+  simp only [eq_comm, and_comm],
+end
+
 variables (G H I)
 
 /-- The box product is commutative up to isomorphism. `equiv.prod_comm` as a graph isomorphism. -/
@@ -85,21 +93,23 @@ variables (G) {H}
 protected def box_prod_right (a : α) : H.walk b₁ b₂ → (G □ H).walk (a, b₁) (a, b₂) :=
 walk.map (G.box_prod_right H a).to_hom
 
-variables {G} [decidable_eq α] [decidable_eq β] [decidable_rel G.adj] [decidable_rel H.adj]
+variables {G}
 
 /-- Project a walk on `G □ H` to a walk on `G` by discarding the moves in the direction of `H`. -/
-def of_box_prod_left : Π {x y : α × β}, (G □ H).walk x y → G.walk x.1 y.1
+def of_box_prod_left [decidable_eq β] [decidable_rel G.adj] :
+  Π {x y : α × β}, (G □ H).walk x y → G.walk x.1 y.1
 | _ _ nil := nil
 | x z (cons h w) := or.by_cases h (λ hG, w.of_box_prod_left.cons hG.1)
     (λ hH, show G.walk x.1 z.1, by rw hH.2; exact w.of_box_prod_left)
 
 /-- Project a walk on `G □ H` to a walk on `H` by discarding the moves in the direction of `G`. -/
-def of_box_prod_right : Π {x y : α × β}, (G □ H).walk x y → H.walk x.2 y.2
+def of_box_prod_right [decidable_eq α] [decidable_rel H.adj] :
+  Π {x y : α × β}, (G □ H).walk x y → H.walk x.2 y.2
 | _ _ nil := nil
 | x z (cons h w) := (or.symm h).by_cases (λ hH, w.of_box_prod_right.cons hH.1)
   (λ hG, show H.walk x.2 z.2, by rw hG.2; exact w.of_box_prod_right)
 
-@[simp] lemma of_box_prod_left_box_prod_left :
+@[simp] lemma of_box_prod_left_box_prod_left [decidable_eq β] [decidable_rel G.adj] :
   ∀ {a₁ a₂ : α} (w : G.walk a₁ a₂), (w.box_prod_left H b).of_box_prod_left = w
 | _ _ nil := rfl
 | _ _ (cons' x y z h w) := begin
@@ -108,7 +118,7 @@ def of_box_prod_right : Π {x y : α × β}, (G □ H).walk x y → H.walk x.2 y
   exacts [rfl, ⟨h, rfl⟩],
 end
 
-@[simp] lemma of_box_prod_left_box_prod_right :
+@[simp] lemma of_box_prod_left_box_prod_right [decidable_eq α] [decidable_rel G.adj] :
   ∀ {b₁ b₂ : α} (w : G.walk b₁ b₂), (w.box_prod_right G a).of_box_prod_right = w
 | _ _ nil := rfl
 | _ _ (cons' x y z h w) := begin
@@ -162,5 +172,37 @@ by { haveI := (nonempty_prod.1 h.nonempty).1, haveI := (nonempty_prod.1 h.nonemp
 
 @[simp] lemma box_prod_connected : (G □ H).connected ↔ G.connected ∧ H.connected :=
 ⟨λ h, ⟨h.of_box_prod_left, h.of_box_prod_right⟩, λ h, h.1.box_prod h.2⟩
+
+instance box_prod_fintype_neighbor_set (x : α × β)
+  [fintype (G.neighbor_set x.1)] [fintype (H.neighbor_set x.2)] :
+  fintype ((G □ H).neighbor_set x) :=
+fintype.of_equiv
+  ((G.neighbor_finset x.1 ×ˢ {x.2}).disj_union ({x.1} ×ˢ H.neighbor_finset x.2)
+      $ finset.disjoint_product.mpr $ or.inl $ neighbor_finset_disjoint_singleton _ _)
+  ((equiv.refl _).subtype_equiv $ λ y, begin
+    simp_rw [finset.mem_disj_union, finset.mem_product, finset.mem_singleton,
+          mem_neighbor_finset, mem_neighbor_set, equiv.refl_apply, box_prod_adj],
+    simp only [eq_comm, and_comm],
+  end)
+
+lemma box_prod_neighbor_finset (x : α × β)
+  [fintype (G.neighbor_set x.1)] [fintype (H.neighbor_set x.2)] [fintype ((G □ H).neighbor_set x)] :
+  (G □ H).neighbor_finset x =
+    (G.neighbor_finset x.1 ×ˢ {x.2}).disj_union ({x.1} ×ˢ H.neighbor_finset x.2)
+      (finset.disjoint_product.mpr $ or.inl $ neighbor_finset_disjoint_singleton _ _) :=
+begin
+  -- swap out the fintype instance for the canonical one
+  letI : fintype ((G □ H).neighbor_set x) := simple_graph.box_prod_fintype_neighbor_set _,
+  refine eq.trans _ finset.attach_map_val,
+  convert (finset.map_map _ (function.embedding.subtype _) finset.univ),
+end
+
+lemma box_prod_degree (x : α × β)
+  [fintype (G.neighbor_set x.1)] [fintype (H.neighbor_set x.2)] [fintype ((G □ H).neighbor_set x)] :
+  (G □ H).degree x = G.degree x.1 + H.degree x.2 :=
+begin
+  rw [degree, degree, degree, box_prod_neighbor_finset, finset.card_disj_union],
+  simp_rw [finset.card_product, finset.card_singleton, mul_one, one_mul],
+end
 
 end simple_graph

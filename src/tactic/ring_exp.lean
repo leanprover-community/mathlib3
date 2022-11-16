@@ -1477,7 +1477,7 @@ end tactic.ring_exp
 namespace tactic.interactive
 open interactive interactive.types lean.parser tactic tactic.ring_exp
 
-local postfix `?`:9001 := optional
+local postfix (name := parser.optional) `?`:9001 := optional
 
 /--
 Tactic for solving equations of *commutative* (semi)rings,
@@ -1543,7 +1543,7 @@ open conv interactive
 open tactic tactic.interactive (ring_exp_eq)
 open tactic.ring_exp (normalize)
 
-local postfix `?`:9001 := optional
+local postfix (name := parser.optional) `?`:9001 := optional
 
 /--
 Normalises expressions in commutative (semi-)rings inside of a `conv` block using the tactic

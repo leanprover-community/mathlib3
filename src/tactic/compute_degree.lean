@@ -87,11 +87,6 @@ lemma nat_degree_add_right_succ (n : ℕ) (f g : polynomial R)
   (f + g).nat_degree = n.succ :=
 by rwa nat_degree_add_eq_right_of_nat_degree_lt (df.trans_lt (nat.lt_of_succ_le dg.ge))
 
-lemma nat_degree_eq_of_le_of_coeff_ne_zero {n : ℕ} {f : polynomial R}
-  (fn : f.nat_degree ≤ n) (f0 : f.coeff n ≠ 0) :
-  f.nat_degree = n :=
-fn.antisymm (le_nat_degree_of_ne_zero f0)
-
 lemma monic_of_le_of_coeff_eq_one [nontrivial R] {n : ℕ} {f : polynomial R}
   (fn : f.nat_degree ≤ n) (f0 : f.coeff n = 1) :
   f.monic :=
@@ -254,33 +249,32 @@ or of the form `m ≤ n`, where `m n : ℕ`.
 
 If `d` is less than `guess_degree f`, this tactic will create unsolvable goals.
 -/
-meta def resolve_sum_step : tactic unit :=
-do t ← target, match t with
-| `(nat_degree %%tl ≤ %%tr) := match tl with
-  | `(%%tl1 + %%tl2) := refine ``((nat_degree_add_le_iff_left _ _ _).mpr _)
-  | `(%%tl1 - %%tl2) := refine ``((nat_degree_sub_le_iff_left _ _ _).mpr _)
-  | `(%%tl1 * %%tl2) := do [d1, d2] ← [tl1, tl2].mmap guess_degree,
-    refine ``(nat_degree_mul_le.trans $ (add_le_add _ _).trans (_ : %%d1 + %%d2 ≤ %%tr))
-  | `(- %%f)         := refine ``((nat_degree_neg _).le.trans _)
-  | `(X ^ %%n)       := refine ``((nat_degree_X_pow_le %%n).trans _)
-  | (app `(⇑(@monomial %%R %%inst %%n)) x) := refine ``((nat_degree_monomial_le %%x).trans _)
-  | (app `(⇑C) x)    := refine ``((nat_degree_C %%x).le.trans (nat.zero_le %%tr))
-  | `(X)             := refine ``(nat_degree_X_le.trans _)
-  | `(has_zero.zero) := refine ``(nat_degree_zero.le.trans (nat.zero_le _))
-  | `(has_one.one)   := refine ``(nat_degree_one.le.trans (nat.zero_le _))
-  | `(bit0 %%a)      := refine ``((nat_degree_bit0 %%a).trans _)
-  | `(bit1 %%a)      := refine ``((nat_degree_bit1 %%a).trans _)
-  | `(%%tl1 ^ %%n)   := do
-      refine ``(nat_degree_pow_le.trans _),
-      refine ``(dite (%%n = 0) (λ (n0 : %%n = 0), (by simp only [n0, zero_mul, zero_le])) _),
-      n0 ← get_unused_name "n0" >>= intro,
-      refine ``((mul_comm _ _).le.trans ((nat.le_div_iff_mul_le' (nat.pos_of_ne_zero %%n0)).mp _)),
-      lem1 ← to_expr ``(nat.mul_div_cancel _ (nat.pos_of_ne_zero %%n0)) tt ff,
-      lem2 ← to_expr ``(nat.div_self (nat.pos_of_ne_zero %%n0)) tt ff,
-      focus1 (refine ``((%%n0 rfl).elim) <|> rewrite_target lem1 <|> rewrite_target lem2) <|> skip
-  | e                := fail!"'{e}' is not supported"
-  end
-| e := fail!("'resolve_sum_step' was called on\n{e}\nbut it expects `f.nat_degree ≤ d`")
+meta def resolve_sum_step : tactic unit := do
+t ← target >>= instantiate_mvars,
+`(nat_degree %%tl ≤ %%tr) ← whnf t reducible | fail!("Goal is not of the form `f.nat_degree ≤ d`"),
+match tl with
+| `(%%tl1 + %%tl2) := refine ``((nat_degree_add_le_iff_left _ _ _).mpr _)
+| `(%%tl1 - %%tl2) := refine ``((nat_degree_sub_le_iff_left _).mpr _)
+| `(%%tl1 * %%tl2) := do [d1, d2] ← [tl1, tl2].mmap guess_degree,
+  refine ``(nat_degree_mul_le.trans $ (add_le_add _ _).trans (_ : %%d1 + %%d2 ≤ %%tr))
+| `(- %%f)         := refine ``((nat_degree_neg _).le.trans _)
+| `(X ^ %%n)       := refine ``((nat_degree_X_pow_le %%n).trans _)
+| (app `(⇑(@monomial %%R %%inst %%n)) x) := refine ``((nat_degree_monomial_le %%x).trans _)
+| (app `(⇑C) x)    := refine ``((nat_degree_C %%x).le.trans (nat.zero_le %%tr))
+| `(X)             := refine ``(nat_degree_X_le.trans _)
+| `(has_zero.zero) := refine ``(nat_degree_zero.le.trans (nat.zero_le _))
+| `(has_one.one)   := refine ``(nat_degree_one.le.trans (nat.zero_le _))
+| `(bit0 %%a)      := refine ``((nat_degree_bit0 %%a).trans _)
+| `(bit1 %%a)      := refine ``((nat_degree_bit1 %%a).trans _)
+| `(%%tl1 ^ %%n)   := do
+    refine ``(nat_degree_pow_le.trans _),
+    refine ``(dite (%%n = 0) (λ (n0 : %%n = 0), (by simp only [n0, zero_mul, zero_le])) _),
+    n0 ← get_unused_name "n0" >>= intro,
+    refine ``((mul_comm _ _).le.trans ((nat.le_div_iff_mul_le' (nat.pos_of_ne_zero %%n0)).mp _)),
+    lem1 ← to_expr ``(nat.mul_div_cancel _ (nat.pos_of_ne_zero %%n0)) tt ff,
+    lem2 ← to_expr ``(nat.div_self (nat.pos_of_ne_zero %%n0)) tt ff,
+    focus1 (refine ``((%%n0 rfl).elim) <|> rewrite_target lem1 <|> rewrite_target lem2) <|> skip
+| e                := fail!"'{e}' is not supported"
 end
 
 /--  `norm_assum` simply tries `norm_num` and `assumption`.
@@ -312,6 +306,19 @@ meta def check_target_changes (t : expr) : tactic unit :=
 do gs ← get_goals >>= list.mmap infer_type,
   (success_if_fail $ gs.mfirst $ unify t) <|> fail "Goal did not change"
 
+/--  A general description of `compute_degree_le_aux` is in the doc-string of `compute_degree`.
+The difference between the two is that `compute_degree_le_aux` makes no effort to close side-goals,
+nor fails if the goal does not change. -/
+meta def compute_degree_le_aux : tactic unit := do
+try $ refine ``(degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
+`(nat_degree %%tl ≤ %%tr) ← target |
+  fail "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
+expected_deg ← guess_degree tl >>= eval_guessing 0,
+deg_bound ← eval_expr' ℕ tr <|> pure expected_deg,
+if deg_bound < expected_deg
+then fail sformat!"the given polynomial has a term of expected degree\nat least '{expected_deg}'"
+else repeat $ resolve_sum_step
+
 end compute_degree
 
 namespace interactive
@@ -334,12 +341,30 @@ else repeat $ resolve_sum_step
 where `f : R[X]` and `d : ℕ` or `d : with_bot ℕ`.
 
 If the given degree `d` is smaller than the one that the tactic computes,
-then the tactic suggests the degree that it computed. -/
+then the tactic suggests the degree that it computed.
+
+Examples:
+
+```lean
+open polynomial
+open_locale polynomial
+
+variables {R : Type*} [semiring R] {a b c d e : R}
+
+example {F} [ring F] {a : F} {n : ℕ} (h : n ≤ 10) :
+  nat_degree (X ^ n + C a * X ^ 10 : F[X]) ≤ 10 :=
+by compute_degree_le
+
+example : nat_degree (7 * X : R[X]) ≤ 1 :=
+by compute_degree_le
+
+example {p : R[X]} {n : ℕ} {p0 : p.nat_degree = 0} :
+ (p ^ n).nat_degree ≤ 0 :=
+by compute_degree_le
+```
+-/
 meta def compute_degree_le : tactic unit :=
-do t ← target,
-  compute_degree_le_aux,
-  check_target_changes t,
-  try $ any_goals' norm_assum
+check_target_changes compute_degree_le_aux >> (try $ any_goals' norm_assum)
 
 /--  A slightly better sum of a list.  It is used for lists that have length at least one. -/
 meta def _root_.list.gsum (op : expr) : list expr → expr
@@ -409,7 +434,7 @@ add_tactic_doc
 { name := "compute_degree_le",
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.compute_degree_le],
-  tags := ["arithmetic, finishing"] }
+  tags := ["arithmetic", "finishing"] }
 
 add_tactic_doc
 { name := "compute_degree",

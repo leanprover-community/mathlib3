@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import order.conditionally_complete_lattice
-import algebra.big_operators.basic
 import algebra.group.prod
 import algebra.group.pi
 import algebra.module.pi
@@ -53,6 +52,20 @@ iff.rfl
 @[to_additive] lemma mul_support_subset_iff' {f : α → M} {s : set α} :
   mul_support f ⊆ s ↔ ∀ x ∉ s, f x = 1 :=
 forall_congr $ λ x, not_imp_comm
+
+@[to_additive] lemma mul_support_eq_iff {f : α → M} {s : set α} :
+  mul_support f = s ↔ ((∀ x, x ∈ s → f x ≠ 1) ∧ (∀ x, x ∉ s → f x = 1)) :=
+begin
+  split,
+  { rintros rfl,
+    simp },
+  { rintros ⟨hs, hsc⟩,
+    refine subset.antisymm _ hs,
+    simp only [mul_support_subset_iff, ne.def],
+    assume x hx,
+    contrapose! hx,
+    exact hsc x hx }
+end
 
 @[to_additive] lemma mul_support_disjoint_iff {f : α → M} {s : set α} :
   disjoint (mul_support f) s ↔ eq_on f 1 s :=
@@ -149,7 +162,7 @@ rfl
 
 @[to_additive support_prod_mk] lemma mul_support_prod_mk (f : α → M) (g : α → N) :
   mul_support (λ x, (f x, g x)) = mul_support f ∪ mul_support g :=
-set.ext $ λ x, by simp only [mul_support, not_and_distrib, mem_union_eq, mem_set_of_eq,
+set.ext $ λ x, by simp only [mul_support, not_and_distrib, mem_union, mem_set_of_eq,
   prod.mk_eq_one, ne.def]
 
 @[to_additive support_prod_mk'] lemma mul_support_prod_mk' (f : α → M × N) :
@@ -198,9 +211,14 @@ mul_support_binop_subset (/) one_div_one f g
 
 end division_monoid
 
+lemma support_smul [has_zero R] [has_zero M] [smul_with_zero R M] [no_zero_smul_divisors R M]
+  (f : α → R) (g : α → M) :
+  support (f • g) = support f ∩ support g :=
+ext $ λ x, smul_ne_zero_iff
+
 @[simp] lemma support_mul [mul_zero_class R] [no_zero_divisors R] (f g : α → R) :
   support (λ x, f x * g x) = support f ∩ support g :=
-set.ext $ λ x, by simp only [mem_support, mul_ne_zero_iff, mem_inter_eq, not_or_distrib]
+support_smul f g
 
 @[simp] lemma support_mul_subset_left [mul_zero_class R] (f g : α → R) :
   support (λ x, f x * g x) ⊆ support f :=
@@ -219,11 +237,6 @@ lemma support_smul_subset_left [has_zero M] [has_zero β] [smul_with_zero M β]
   (f : α → M) (g : α → β) :
   support (f • g) ⊆ support f :=
 λ x hfg hf, hfg $ by rw [pi.smul_apply', hf, zero_smul]
-
-lemma support_smul [semiring R] [add_comm_monoid M] [module R M]
-  [no_zero_smul_divisors R M] (f : α → R) (g : α → M) :
-  support (f • g) = support f ∩ support g :=
-ext $ λ x, smul_ne_zero
 
 lemma support_const_smul_of_ne_zero [semiring R] [add_comm_monoid M] [module R M]
   [no_zero_smul_divisors R M] (c : R) (g : α → M) (hc : c ≠ 0) :

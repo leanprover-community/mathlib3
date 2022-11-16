@@ -62,7 +62,10 @@ consisting of the entries of `un` whose corresponding entry in `bo` is `tt`.
 
 Used for error management: `un` is the list of user inputs, `bo` is the list encoding which input
 is unused (`tt`) and which input is used (`ff`).
-`return_unused` returns the unused user inputs. -/
+`return_unused` returns the unused user inputs.
+
+If `bo` is shorter than `un`, `return_unused` will include the remainder of `un`.
+-/
 def return_unused {α : Type*} : list α → list bool → list α
 | un [] := un
 | [] bo := []
@@ -107,8 +110,8 @@ do
   (l1, l2, l3, is_unused) ← move_left_or_right lp_exp sl [],
   return (l1 ++ l3 ++ l2, is_unused)
 
-/-- `as_given_op op e` unifies the head term of `e` with the binary operation `op`, failing
-if it cannot. -/
+/-- `as_given_op op e` unifies the head term of `e`, which is a ≥2-argument function application,
+with the binary operation `op`, failing if it cannot. -/
 meta def as_given_op (op : pexpr) : expr → tactic expr
 | (expr.app (expr.app F a) b) := do
     to_expr op tt ff >>= unify F,
@@ -140,6 +143,8 @@ Here are two examples:
    (λ (e : ℕ), ∀ (x : ℕ), ∃ (y : ℕ),
       x * (5 + y + e) + y + 2   = x + e + 2 → x + 2 = 5 + x + y + 2, [ff, ff]) -/
 ```
+
+TODO: use `ext_simplify_core` instead of traversing the expression manually
 -/
 meta def reorder_oper (op : pexpr) (lp : list (bool × pexpr)) :
   expr → tactic (expr × list bool)
@@ -211,7 +216,8 @@ pre ← pp reordered,
   | `(has_mul.mul) := `[{ simp only [mul_comm, mul_assoc, mul_left_comm]; refl, done }]
   | _ := ac_refl <|>
     fail format!("the associative/commutative lemmas used do not suffice to prove that " ++
-      "the initial goal equals:\n\n{pre}\n")
+      "the initial goal equals:\n\n{pre}\n" ++
+      "Hint: try adding `is_associative` or `is_commutative` instances.\n")
   end,
 match hyploc with
 | none := replace_target reordered prf

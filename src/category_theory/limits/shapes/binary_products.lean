@@ -219,6 +219,36 @@ cones.ext (iso.refl _) (λ j, by discrete_cases; cases j; tidy)
 def iso_binary_cofan_mk {X Y : C} (c : binary_cofan X Y) : c ≅ binary_cofan.mk c.inl c.inr :=
 cocones.ext (iso.refl _) (λ j, by discrete_cases; cases j; tidy)
 
+/--
+This is a more convenient formulation to show that a `binary_fan` constructed using
+`binary_fan.mk` is a limit cone.
+-/
+def binary_fan.is_limit_mk {W : C} {fst : W ⟶ X} {snd : W ⟶ Y}
+  (lift : Π (s : binary_fan X Y), s.X ⟶ W)
+  (fac_left : ∀ (s : binary_fan X Y), lift s ≫ fst = s.fst)
+  (fac_right : ∀ (s : binary_fan X Y), lift s ≫ snd = s.snd)
+  (uniq : ∀ (s : binary_fan X Y) (m : s.X ⟶ W)
+    (w_fst : m ≫ fst = s.fst) (w_snd : m ≫ snd = s.snd), m = lift s) :
+  is_limit (binary_fan.mk fst snd) :=
+{ lift := lift,
+  fac' := λ s j, by { rcases j with ⟨⟨⟩⟩, exacts [fac_left s, fac_right s], },
+  uniq' := λ s m w, uniq s m (w ⟨walking_pair.left⟩) (w ⟨walking_pair.right⟩) }
+
+/--
+This is a more convenient formulation to show that a `binary_cofan` constructed using
+`binary_cofan.mk` is a colimit cocone.
+-/
+def binary_cofan.is_colimit_mk {W : C} {inl : X ⟶ W} {inr : Y ⟶ W}
+  (desc : Π (s : binary_cofan X Y), W ⟶ s.X)
+  (fac_left : ∀ (s : binary_cofan X Y), inl ≫ desc s = s.inl)
+  (fac_right : ∀ (s : binary_cofan X Y), inr ≫ desc s = s.inr)
+  (uniq : ∀ (s : binary_cofan X Y) (m : W ⟶ s.X)
+    (w_inl : inl ≫ m = s.inl) (w_inr : inr ≫ m = s.inr), m = desc s) :
+  is_colimit (binary_cofan.mk inl inr) :=
+{ desc := desc,
+  fac' := λ s j, by { rcases j with ⟨⟨⟩⟩, exacts [fac_left s, fac_right s], },
+  uniq' := λ s m w, uniq s m (w ⟨walking_pair.left⟩) (w ⟨walking_pair.right⟩) }
+
 /-- If `s` is a limit binary fan over `X` and `Y`, then every pair of morphisms `f : W ⟶ X` and
     `g : W ⟶ Y` induces a morphism `l : W ⟶ s.X` satisfying `l ≫ s.fst = f` and `l ≫ s.snd = g`.
     -/
@@ -234,6 +264,107 @@ def binary_fan.is_limit.lift' {W X Y : C} {s : binary_fan X Y} (h : is_limit s) 
 def binary_cofan.is_colimit.desc' {W X Y : C} {s : binary_cofan X Y} (h : is_colimit s) (f : X ⟶ W)
   (g : Y ⟶ W) : {l : s.X ⟶ W // s.inl ≫ l = f ∧ s.inr ≫ l = g} :=
 ⟨h.desc $ binary_cofan.mk f g, h.fac _ _, h.fac _ _⟩
+
+/-- Binary products are symmetric. -/
+def binary_fan.is_limit_flip {X Y : C} {c : binary_fan X Y} (hc : is_limit c) :
+  is_limit (binary_fan.mk c.snd c.fst) :=
+binary_fan.is_limit_mk (λ s, hc.lift (binary_fan.mk s.snd s.fst))
+  (λ s, hc.fac _ _) (λ s, hc.fac _ _)
+  (λ s m e₁ e₂, binary_fan.is_limit.hom_ext hc
+    (e₂.trans (hc.fac (binary_fan.mk s.snd s.fst) ⟨walking_pair.left⟩).symm)
+    (e₁.trans (hc.fac (binary_fan.mk s.snd s.fst) ⟨walking_pair.right⟩).symm))
+
+lemma binary_fan.is_limit_iff_is_iso_fst {X Y : C} (h : is_terminal Y) (c : binary_fan X Y) :
+  nonempty (is_limit c) ↔ is_iso c.fst :=
+begin
+  split,
+  { rintro ⟨H⟩,
+    obtain ⟨l, hl, -⟩ := binary_fan.is_limit.lift' H (𝟙 X) (h.from X),
+    exact ⟨⟨l, binary_fan.is_limit.hom_ext H
+      (by simpa [hl, -category.comp_id] using category.comp_id _) (h.hom_ext _ _), hl⟩⟩ },
+  { introI,
+    exact ⟨binary_fan.is_limit.mk _ (λ _ f _, f ≫ inv c.fst)
+      (λ _ _ _, by simp) (λ _ _ _, h.hom_ext _ _)
+      (λ _ _ _ _ e _, by simp [← e])⟩ }
+end
+
+lemma binary_fan.is_limit_iff_is_iso_snd {X Y : C} (h : is_terminal X) (c : binary_fan X Y) :
+  nonempty (is_limit c) ↔ is_iso c.snd :=
+begin
+  refine iff.trans _ (binary_fan.is_limit_iff_is_iso_fst h (binary_fan.mk c.snd c.fst)),
+  exact ⟨λ h, ⟨binary_fan.is_limit_flip h.some⟩,
+    λ h, ⟨(binary_fan.is_limit_flip h.some).of_iso_limit (iso_binary_fan_mk c).symm⟩⟩,
+end
+
+/-- If `X' ≅ X`, then `X × Y` also is the product of `X'` and `Y`. -/
+noncomputable
+def binary_fan.is_limit_comp_left_iso {X Y X' : C} (c : binary_fan X Y) (f : X ⟶ X')
+  [is_iso f] (h : is_limit c) : is_limit (binary_fan.mk (c.fst ≫ f) c.snd) :=
+begin
+  fapply binary_fan.is_limit_mk,
+  { exact λ s, h.lift (binary_fan.mk (s.fst ≫ inv f) s.snd) },
+  { intro s, simp },
+  { intro s, simp },
+  { intros s m e₁ e₂, apply binary_fan.is_limit.hom_ext h; simpa }
+end
+
+/-- If `Y' ≅ Y`, then `X x Y` also is the product of `X` and `Y'`. -/
+noncomputable
+def binary_fan.is_limit_comp_right_iso {X Y Y' : C} (c : binary_fan X Y) (f : Y ⟶ Y')
+  [is_iso f] (h : is_limit c) : is_limit (binary_fan.mk c.fst (c.snd ≫ f)) :=
+binary_fan.is_limit_flip $ binary_fan.is_limit_comp_left_iso _ f (binary_fan.is_limit_flip h)
+
+/-- Binary coproducts are symmetric. -/
+def binary_cofan.is_colimit_flip {X Y : C} {c : binary_cofan X Y} (hc : is_colimit c) :
+  is_colimit (binary_cofan.mk c.inr c.inl) :=
+binary_cofan.is_colimit_mk (λ s, hc.desc (binary_cofan.mk s.inr s.inl))
+  (λ s, hc.fac _ _) (λ s, hc.fac _ _)
+  (λ s m e₁ e₂, binary_cofan.is_colimit.hom_ext hc
+    (e₂.trans (hc.fac (binary_cofan.mk s.inr s.inl) ⟨walking_pair.left⟩).symm)
+    (e₁.trans (hc.fac (binary_cofan.mk s.inr s.inl) ⟨walking_pair.right⟩).symm))
+
+lemma binary_cofan.is_colimit_iff_is_iso_inl {X Y : C} (h : is_initial Y) (c : binary_cofan X Y) :
+  nonempty (is_colimit c) ↔ is_iso c.inl :=
+begin
+  split,
+  { rintro ⟨H⟩,
+    obtain ⟨l, hl, -⟩ := binary_cofan.is_colimit.desc' H (𝟙 X) (h.to X),
+    exact ⟨⟨l, hl, binary_cofan.is_colimit.hom_ext H (by simp [reassoc_of hl]) (h.hom_ext _ _)⟩⟩ },
+  { introI,
+    exact ⟨binary_cofan.is_colimit.mk _ (λ _ f _, inv c.inl ≫ f)
+      (λ _ _ _, is_iso.hom_inv_id_assoc _ _) (λ _ _ _, h.hom_ext _ _)
+      (λ _ _ _ _ e _, (is_iso.eq_inv_comp _).mpr e)⟩ }
+end
+
+lemma binary_cofan.is_colimit_iff_is_iso_inr {X Y : C} (h : is_initial X) (c : binary_cofan X Y) :
+  nonempty (is_colimit c) ↔ is_iso c.inr :=
+begin
+  refine iff.trans _ (binary_cofan.is_colimit_iff_is_iso_inl h (binary_cofan.mk c.inr c.inl)),
+  exact ⟨λ h, ⟨binary_cofan.is_colimit_flip h.some⟩,
+    λ h, ⟨(binary_cofan.is_colimit_flip h.some).of_iso_colimit (iso_binary_cofan_mk c).symm⟩⟩,
+end
+
+/-- If `X' ≅ X`, then `X ⨿ Y` also is the coproduct of `X'` and `Y`. -/
+noncomputable
+def binary_cofan.is_colimit_comp_left_iso {X Y X' : C} (c : binary_cofan X Y) (f : X' ⟶ X)
+  [is_iso f] (h : is_colimit c) : is_colimit (binary_cofan.mk (f ≫ c.inl) c.inr) :=
+begin
+  fapply binary_cofan.is_colimit_mk,
+  { exact λ s, h.desc (binary_cofan.mk (inv f ≫ s.inl) s.inr) },
+  { intro s, simp },
+  { intro s, simp },
+  { intros s m e₁ e₂,
+    apply binary_cofan.is_colimit.hom_ext h,
+    { rw ← cancel_epi f, simpa using e₁ },
+    { simpa } }
+end
+
+/-- If `Y' ≅ Y`, then `X ⨿ Y` also is the coproduct of `X` and `Y'`. -/
+noncomputable
+def binary_cofan.is_colimit_comp_right_iso {X Y Y' : C} (c : binary_cofan X Y) (f : Y' ⟶ Y)
+  [is_iso f] (h : is_colimit c) : is_colimit (binary_cofan.mk c.inl (f ≫ c.inr)) :=
+binary_cofan.is_colimit_flip $
+  binary_cofan.is_colimit_comp_left_iso _ f (binary_cofan.is_colimit_flip h)
 
 /-- An abbreviation for `has_limit (pair X Y)`. -/
 abbreviation has_binary_product (X Y : C) := has_limit (pair X Y)
@@ -471,8 +602,8 @@ lemma prod.diag_map_fst_snd_comp  [has_limits_of_shape (discrete walking_pair) C
   diag (X ⨯ X') ≫ prod.map (prod.fst ≫ g) (prod.snd ≫ g') = prod.map g g' :=
 by simp
 
-instance {X : C} [has_binary_product X X] : split_mono (diag X) :=
-{ retraction := prod.fst }
+instance {X : C} [has_binary_product X X] : is_split_mono (diag X) :=
+is_split_mono.mk' { retraction := prod.fst }
 
 end prod_lemmas
 

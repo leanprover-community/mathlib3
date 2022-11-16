@@ -94,7 +94,7 @@ end
 lemma s_mod_nonneg (p : ℕ) (w : 0 < p) (i : ℕ) : 0 ≤ s_mod p i :=
 begin
   cases i; dsimp [s_mod],
-  { exact sup_eq_left.mp rfl },
+  { exact sup_eq_right.mp rfl },
   { apply int.mod_nonneg, exact mersenne_int_ne_zero p w },
 end
 
@@ -159,9 +159,6 @@ def lucas_lehmer_test (p : ℕ) : Prop := lucas_lehmer_residue p = 0
 
 /-- `q` is defined as the minimum factor of `mersenne p`, bundled as an `ℕ+`. -/
 def q (p : ℕ) : ℕ+ := ⟨nat.min_fac (mersenne p), nat.min_fac_pos (mersenne p)⟩
-
-local attribute [instance]
-lemma fact_pnat_pos (q : ℕ+) : fact (0 < (q : ℕ)) := ⟨q.2⟩
 
 /-- We construct the ring `X q` as ℤ/qℤ + √3 ℤ/qℤ. -/
 -- It would be nice to define this as (ℤ/qℤ)[x] / (x^2 - 3),
@@ -248,8 +245,11 @@ instance [fact (1 < (q : ℕ))] : nontrivial (X q) :=
 @[simp] lemma int_coe_snd (n : ℤ) : (n : X q).snd = (0 : zmod q) := rfl
 
 @[norm_cast]
-lemma coe_mul (n m : ℤ) : ((n * m : ℤ) : X q) = (n : X q) * (m : X q) :=
+protected lemma coe_mul (n m : ℤ) : ((n * m : ℤ) : X q) = (n : X q) * (m : X q) :=
 by { ext; simp; ring }
+
+instance : coe_is_mul_hom ℤ (X q) :=
+{ coe_mul := lucas_lehmer.X.coe_mul }
 
 @[norm_cast]
 lemma coe_nat (n : ℕ) : ((n : ℤ) : X q) = (n : X q) :=
@@ -316,7 +316,7 @@ Here and below, we introduce `p' = p - 2`, in order to avoid using subtraction i
 lemma two_lt_q (p' : ℕ) : 2 < q (p'+2) := begin
   by_contradiction H,
   simp at H,
-  interval_cases q (p'+2); clear H,
+  interval_cases q (p'+2), clear H,
   { -- If q = 1, we get a contradiction from 2^p = 2
     dsimp [q] at h, injection h with h', clear h,
     simp [mersenne] at h',

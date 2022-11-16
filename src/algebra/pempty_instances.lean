@@ -5,7 +5,7 @@ Authors: Julian Kuelshammer
 -/
 
 import algebra.group.defs
-import algebra.group.to_additive
+import tactic.to_additive
 
 /-!
 # Instances on pempty

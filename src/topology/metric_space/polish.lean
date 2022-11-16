@@ -104,10 +104,11 @@ instance t2_space (α : Type*) [topological_space α] [polish_space α] : t2_spa
 by { letI := upgrade_polish_space α, apply_instance }
 
 /-- A countable product of Polish spaces is Polish. -/
-instance pi_countable {ι : Type*} [encodable ι] {E : ι → Type*}
+instance pi_countable {ι : Type*} [countable ι] {E : ι → Type*}
   [∀ i, topological_space (E i)] [∀ i, polish_space (E i)] :
   polish_space (Π i, E i) :=
 begin
+  casesI nonempty_encodable ι,
   letI := λ i, upgrade_polish_space (E i),
   letI : metric_space (Π i, E i) := pi_countable.metric_space,
   apply_instance,
@@ -119,7 +120,7 @@ instance nat_fun [topological_space α] [polish_space α] :
 by apply_instance
 
 /-- A countable disjoint union of Polish spaces is Polish. -/
-instance sigma {ι : Type*} [encodable ι]
+instance sigma {ι : Type*} [countable ι]
   {E : ι → Type*} [∀ n, topological_space (E n)] [∀ n, polish_space (E n)] :
   polish_space (Σ n, E n) :=
 begin
@@ -180,12 +181,12 @@ lemma _root_.is_closed.polish_space {α : Type*} [topological_space α] [polish_
 
 /-- A sequence of type synonyms of a given type `α`, useful in the proof of
 `exists_polish_space_forall_le` to endow each copy with a different topology. -/
-@[nolint unused_arguments has_inhabited_instance]
+@[nolint unused_arguments has_nonempty_instance]
 def aux_copy (α : Type*) {ι : Type*} (i : ι) : Type* := α
 
 /-- Given a Polish space, and countably many finer Polish topologies, there exists another Polish
 topology which is finer than all of them. -/
-lemma exists_polish_space_forall_le {ι : Type*} [encodable ι]
+lemma exists_polish_space_forall_le {ι : Type*} [countable ι]
   [t : topological_space α] [p : polish_space α]
   (m : ι → topological_space α) (hm : ∀ n, m n ≤ t) (h'm : ∀ n, @polish_space α (m n)) :
   ∃ (t' : topological_space α), (∀ n, t' ≤ m n) ∧ (t' ≤ t) ∧ @polish_space α t' :=
@@ -259,7 +260,7 @@ variables [metric_space α] {s : set α}
 
 /-- A type synonym for a subset `s` of a metric space, on which we will construct another metric
 for which it will be complete. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def complete_copy {α : Type*} (s : set α) : Type* := s
 
 /-- A distance on a subset `s` of a metric space, designed to make it complete if `s` is open.

@@ -112,7 +112,7 @@ instance : small_category (walking_multispan fst snd) :=
 end walking_multispan
 
 /-- This is a structure encapsulating the data necessary to define a `multicospan`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure multicospan_index (C : Type u) [category.{v} C] :=
 (L R : Type w)
 (fst_to snd_to : R → L)
@@ -122,7 +122,7 @@ structure multicospan_index (C : Type u) [category.{v} C] :=
 (snd : Π b, left (snd_to b) ⟶ right b)
 
 /-- This is a structure encapsulating the data necessary to define a `multispan`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure multispan_index (C : Type u) [category.{v} C] :=
 (L R : Type w)
 (fst_from snd_from : L → R)
@@ -252,11 +252,11 @@ end multispan_index
 variables {C : Type u} [category.{v} C]
 
 /-- A multifork is a cone over a multicospan. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 abbreviation multifork (I : multicospan_index C) := cone I.multicospan
 
 /-- A multicofork is a cocone over a multispan. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 abbreviation multicofork (I : multispan_index C) := cocone I.multispan
 
 namespace multifork

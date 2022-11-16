@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.set.function
-import logic.equiv.basic
+import logic.equiv.defs
 
 /-!
 # Equivalences and sets
@@ -99,13 +99,6 @@ preimage_eq_iff_eq_image e.bijective
 
 lemma eq_preimage_iff_image_eq {α β} (e : α ≃ β) (s t) : s = e ⁻¹' t ↔ e '' s = t :=
 eq_preimage_iff_image_eq e.bijective
-
-@[simp] lemma prod_comm_preimage {α β} {s : set α} {t : set β} :
-  equiv.prod_comm α β ⁻¹' t ×ˢ s = s ×ˢ t :=
-preimage_swap_prod
-
-lemma prod_comm_image {α β} {s : set α} {t : set β} : equiv.prod_comm α β '' s ×ˢ t = t ×ˢ s :=
-image_swap_prod
 
 @[simp]
 lemma prod_assoc_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :
@@ -503,7 +496,7 @@ e.injective.preimage_surjective.forall
 lemma preimage_pi_equiv_pi_subtype_prod_symm_pi {α : Type*} {β : α → Type*}
   (p : α → Prop) [decidable_pred p] (s : Π i, set (β i)) :
   (pi_equiv_pi_subtype_prod p β).symm ⁻¹' pi univ s =
-    (pi univ (λ i : {i // p i}, s i)) ×ˢ (pi univ (λ i : {i // ¬p i}, s i)) :=
+    (pi univ (λ i : {i // p i}, s i)) ×ˢ pi univ (λ i : {i // ¬p i}, s i) :=
 begin
   ext ⟨f, g⟩,
   simp only [mem_preimage, mem_univ_pi, prod_mk_mem_set_prod_eq, subtype.forall,

@@ -3,9 +3,9 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
-import algebra.divisibility
+import algebra.divisibility.basic
 import algebra.group.commute
-import data.nat.basic
+import algebra.group.type_tags
 
 /-!
 # Power operations on monoids and groups
@@ -68,6 +68,10 @@ by rw [pow_succ, pow_one]
 
 alias pow_two ← sq
 
+theorem pow_three' (a : M) : a^3 = a * a * a := by rw [pow_succ', pow_two]
+
+theorem pow_three (a : M) : a^3 = a * (a * a) := by rw [pow_succ, pow_two]
+
 @[to_additive]
 theorem pow_mul_comm' (a : M) (n : ℕ) : a^n * a = a * a^n := commute.pow_self a n
 
@@ -102,18 +106,18 @@ by rw [nat.mul_comm, pow_mul]
 
 @[to_additive nsmul_add_sub_nsmul]
 theorem pow_mul_pow_sub (a : M) {m n : ℕ} (h : m ≤ n) : a ^ m * a ^ (n - m) = a ^ n :=
-by rw [←pow_add, nat.add_comm, tsub_add_cancel_of_le h]
+by rw [←pow_add, nat.add_comm, nat.sub_add_cancel h]
 
 @[to_additive sub_nsmul_nsmul_add]
 theorem pow_sub_mul_pow (a : M) {m n : ℕ} (h : m ≤ n) : a ^ (n - m) * a ^ m = a ^ n :=
-by rw [←pow_add, tsub_add_cancel_of_le h]
+by rw [←pow_add, nat.sub_add_cancel h]
 
 /-- If `x ^ n = 1`, then `x ^ m` is the same as `x ^ (m % n)` -/
 @[to_additive nsmul_eq_mod_nsmul "If `n • x = 0`, then `m • x` is the same as `(m % n) • x`"]
 lemma pow_eq_pow_mod {M : Type*} [monoid M] {x : M} (m : ℕ) {n : ℕ} (h : x ^ n = 1) :
   x ^ m = x ^ (m % n) :=
 begin
-  have t := congr_arg (λ a, x ^ a) (nat.div_add_mod m n).symm,
+  have t := congr_arg (λ a, x ^ a) ((nat.add_comm _ _).trans (nat.mod_add_div _ _)).symm,
   dsimp at t,
   rw [t, pow_add, pow_mul, h, one_pow, one_mul],
 end
@@ -141,6 +145,17 @@ by rw [pow_bit0, (commute.refl a).mul_pow]
 @[to_additive bit1_nsmul']
 theorem pow_bit1' (a : M) (n : ℕ) : a ^ bit1 n = (a * a) ^ n * a :=
 by rw [bit1, pow_succ', pow_bit0']
+
+@[to_additive]
+lemma pow_mul_pow_eq_one {a b : M} (n : ℕ) (h : a * b = 1) :
+  a ^ n * b ^ n = 1 :=
+begin
+  induction n with n hn,
+  { simp },
+  { calc a ^ n.succ * b ^ n.succ = a ^ n * a * (b * b ^ n) : by rw [pow_succ', pow_succ]
+    ... = a ^ n * (a * b) * b ^ n : by simp only [mul_assoc]
+    ... = 1 : by simp [h, hn] }
+end
 
 lemma dvd_pow {x y : M} (hxy : x ∣ y) :
   ∀ {n : ℕ} (hn : n ≠ 0), x ∣ y^n
@@ -271,7 +286,7 @@ section group
 variables [group G] [group H] [add_group A] [add_group B]
 
 @[to_additive sub_nsmul] lemma pow_sub (a : G) {m n : ℕ} (h : n ≤ m) : a^(m - n) = a^m * (a^n)⁻¹ :=
-eq_mul_inv_of_mul_eq $ by rw [←pow_add, tsub_add_cancel_of_le h]
+eq_mul_inv_of_mul_eq $ by rw [←pow_add, nat.sub_add_cancel h]
 
 @[to_additive] lemma pow_inv_comm (a : G) (m n : ℕ) : (a⁻¹)^m * a^n = a^n * (a⁻¹)^m :=
 (commute.refl a).inv_left.pow_pow _ _
@@ -283,11 +298,7 @@ by rw [pow_sub a⁻¹ h, inv_pow, inv_pow, inv_inv]
 end group
 
 lemma pow_dvd_pow [monoid R] (a : R) {m n : ℕ} (h : m ≤ n) :
-  a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_comm, tsub_add_cancel_of_le h]⟩
-
-theorem pow_dvd_pow_of_dvd [comm_monoid R] {a b : R} (h : a ∣ b) : ∀ n : ℕ, a ^ n ∣ b ^ n
-| 0     := by rw [pow_zero, pow_zero]
-| (n+1) := by { rw [pow_succ, pow_succ], exact mul_dvd_mul h (pow_dvd_pow_of_dvd n) }
+  a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_comm, nat.sub_add_cancel h]⟩
 
 lemma of_add_nsmul [add_monoid A] (x : A) (n : ℕ) :
   multiplicative.of_add (n • x) = (multiplicative.of_add x)^n := rfl

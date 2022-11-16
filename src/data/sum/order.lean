@@ -40,7 +40,7 @@ variables (r : α → α → Prop) (s : β → β → Prop)
 instance [is_refl α r] [is_refl β s] : is_refl (α ⊕ β) (lift_rel r s) := ⟨lift_rel.refl _ _⟩
 
 instance [is_irrefl α r] [is_irrefl β s] : is_irrefl (α ⊕ β) (lift_rel r s) :=
-⟨by { rintro _ (⟨a, _, h⟩ | ⟨a, _, h⟩); exact irrefl _ h }⟩
+⟨by { rintro _ (⟨h⟩ | ⟨h⟩); exact irrefl _ h }⟩
 
 @[trans] lemma lift_rel.trans [is_trans α r] [is_trans β s] :
   ∀ {a b c}, lift_rel r s a b → lift_rel r s b c → lift_rel r s a c
@@ -51,7 +51,7 @@ instance [is_trans α r] [is_trans β s] : is_trans (α ⊕ β) (lift_rel r s) :
 ⟨λ _ _ _, lift_rel.trans _ _⟩
 
 instance [is_antisymm α r] [is_antisymm β s] : is_antisymm (α ⊕ β) (lift_rel r s) :=
-⟨by { rintro _ _ (⟨a, b, hab⟩ | ⟨a, b, hab⟩) (⟨_, _, hba⟩ | ⟨_, _, hba⟩); rw antisymm hab hba }⟩
+⟨by { rintro _ _ (⟨hab⟩ | ⟨hab⟩) (⟨hba⟩ | ⟨hba⟩); rw antisymm hab hba }⟩
 
 end lift_rel
 
@@ -62,14 +62,14 @@ instance [is_refl α r] [is_refl β s] : is_refl (α ⊕ β) (lex r s) :=
 ⟨by { rintro (a | a), exacts [lex.inl (refl _), lex.inr (refl _)] }⟩
 
 instance [is_irrefl α r] [is_irrefl β s] : is_irrefl (α ⊕ β) (lex r s) :=
-⟨by { rintro _ (⟨a, _, h⟩ | ⟨a, _, h⟩); exact irrefl _ h }⟩
+⟨by { rintro _ (⟨h⟩ | ⟨h⟩); exact irrefl _ h }⟩
 
 instance [is_trans α r] [is_trans β s] : is_trans (α ⊕ β) (lex r s) :=
-⟨by { rintro _ _ _ (⟨a, b, hab⟩ | ⟨a, b, hab⟩) (⟨_, c, hbc⟩ | ⟨_, c, hbc⟩),
+⟨by { rintro _ _ _ (⟨hab⟩ | ⟨hab⟩) (⟨hbc⟩ | ⟨hbc⟩),
   exacts [lex.inl (trans hab hbc), lex.sep _ _, lex.inr (trans hab hbc), lex.sep _ _] }⟩
 
 instance [is_antisymm α r] [is_antisymm β s] : is_antisymm (α ⊕ β) (lex r s) :=
-⟨by { rintro _ _ (⟨a, b, hab⟩ | ⟨a, b, hab⟩) (⟨_, _, hba⟩ | ⟨_, _, hba⟩); rw antisymm hab hba }⟩
+⟨by { rintro _ _ (⟨hab⟩ | ⟨hab⟩) (⟨hba⟩ | ⟨hba⟩); rw antisymm hab hba }⟩
 
 instance [is_total α r] [is_total β s] : is_total (α ⊕ β) (lex r s) :=
 ⟨λ a b, match a, b with
@@ -88,7 +88,7 @@ instance [is_trichotomous α r] [is_trichotomous β s] : is_trichotomous (α ⊕
 end⟩
 
 instance [is_well_order α r] [is_well_order β s] : is_well_order (α ⊕ β) (sum.lex r s) :=
-{ wf := sum.lex_wf is_well_order.wf is_well_order.wf }
+{ wf := sum.lex_wf is_well_founded.wf is_well_founded.wf }
 
 end lex
 
@@ -134,10 +134,10 @@ instance : preorder (α ⊕ β) :=
   le_trans := λ _ _ _, trans,
   lt_iff_le_not_le := λ a b, begin
     refine ⟨λ hab, ⟨hab.mono (λ _ _, le_of_lt) (λ _ _, le_of_lt), _⟩, _⟩,
-    { rintro (⟨b, a, hba⟩ | ⟨b, a, hba⟩),
+    { rintro (⟨hba⟩ | ⟨hba⟩),
       { exact hba.not_lt (inl_lt_inl_iff.1 hab) },
       { exact hba.not_lt (inr_lt_inr_iff.1 hab) } },
-    { rintro ⟨⟨a, b, hab⟩ | ⟨a, b, hab⟩, hba⟩,
+    { rintro ⟨⟨hab⟩ | ⟨hab⟩, hba⟩,
       { exact lift_rel.inl (hab.lt_of_not_le $ λ h, hba $ lift_rel.inl h) },
       { exact lift_rel.inr (hab.lt_of_not_le $ λ h, hba $ lift_rel.inr h) } }
   end,
@@ -291,11 +291,11 @@ instance preorder : preorder (α ⊕ₗ β) :=
   le_trans := λ _ _ _, trans_of (lex (≤) (≤)),
   lt_iff_le_not_le := λ a b, begin
     refine ⟨λ hab, ⟨hab.mono (λ _ _, le_of_lt) (λ _ _, le_of_lt), _⟩, _⟩,
-    { rintro (⟨b, a, hba⟩ | ⟨b, a, hba⟩ | ⟨b, a⟩),
+    { rintro (⟨hba⟩ | ⟨hba⟩ | ⟨b, a⟩),
       { exact hba.not_lt (inl_lt_inl_iff.1 hab) },
       { exact hba.not_lt (inr_lt_inr_iff.1 hab) },
       { exact not_inr_lt_inl hab } },
-    { rintro ⟨⟨a, b, hab⟩ | ⟨a, b, hab⟩ | ⟨a, b⟩, hba⟩,
+    { rintro ⟨⟨hab⟩ | ⟨hab⟩ | ⟨a, b⟩, hba⟩,
       { exact lex.inl (hab.lt_of_not_le $ λ h, hba $ lex.inl h) },
       { exact lex.inr (hab.lt_of_not_le $ λ h, hba $ lex.inr h) },
       { exact lex.sep _ _} }

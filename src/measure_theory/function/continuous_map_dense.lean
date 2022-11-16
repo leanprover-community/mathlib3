@@ -46,7 +46,7 @@ open_locale ennreal nnreal topological_space bounded_continuous_function
 open measure_theory topological_space continuous_map
 
 variables {α : Type*} [measurable_space α] [topological_space α] [normal_space α] [borel_space α]
-variables (E : Type*) [normed_group E]
+variables (E : Type*) [normed_add_comm_group E]
   [second_countable_topology_either α E]
 variables {p : ℝ≥0∞} [_i : fact (1 ≤ p)] (hp : p ≠ ∞) (μ : measure α)
 
@@ -154,7 +154,7 @@ begin
     rw [simple_func.coe_indicator_const, indicator_const_Lp, ← mem_ℒp.to_Lp_sub, Lp.norm_to_Lp],
     exact ennreal.to_real_le_coe_of_le_coe gc_snorm },
   { rw [set_like.mem_coe, mem_bounded_continuous_function_iff],
-    refine ⟨bounded_continuous_function.of_normed_group _ gc_cont (∥c∥) _, rfl⟩,
+    refine ⟨bounded_continuous_function.of_normed_add_comm_group _ gc_cont (∥c∥) _, rfl⟩,
     intros x,
     have h₀ : g x * ∥c∥ ≤ ∥c∥,
     { nlinarith [(hg_range x).1, (hg_range x).2, norm_nonneg c] },
@@ -166,13 +166,14 @@ end measure_theory.Lp
 variables (𝕜 : Type*) [normed_field 𝕜] [normed_algebra ℝ 𝕜] [normed_space 𝕜 E]
 
 namespace bounded_continuous_function
+open linear_map (range)
 
 lemma to_Lp_dense_range [μ.weakly_regular] [is_finite_measure μ] :
   dense_range ⇑(to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] Lp E p μ) :=
 begin
   haveI : normed_space ℝ E := restrict_scalars.normed_space ℝ 𝕜 E,
   rw dense_range_iff_closure_range,
-  suffices : (to_Lp p μ 𝕜 : _ →L[𝕜] Lp E p μ).range.to_add_subgroup.topological_closure = ⊤,
+  suffices : (range (to_Lp p μ 𝕜 : _ →L[𝕜] Lp E p μ)).to_add_subgroup.topological_closure = ⊤,
   { exact congr_arg coe this },
   simp [range_to_Lp p μ, measure_theory.Lp.bounded_continuous_function_dense E hp],
 end
@@ -180,13 +181,14 @@ end
 end bounded_continuous_function
 
 namespace continuous_map
+open linear_map (range)
 
 lemma to_Lp_dense_range [compact_space α] [μ.weakly_regular] [is_finite_measure μ] :
   dense_range ⇑(to_Lp p μ 𝕜 : C(α, E) →L[𝕜] Lp E p μ) :=
 begin
   haveI : normed_space ℝ E := restrict_scalars.normed_space ℝ 𝕜 E,
   rw dense_range_iff_closure_range,
-  suffices : (to_Lp p μ 𝕜 : _ →L[𝕜] Lp E p μ).range.to_add_subgroup.topological_closure = ⊤,
+  suffices : (range (to_Lp p μ 𝕜 : _ →L[𝕜] Lp E p μ)).to_add_subgroup.topological_closure = ⊤,
   { exact congr_arg coe this },
   simp [range_to_Lp p μ, measure_theory.Lp.bounded_continuous_function_dense E hp]
 end

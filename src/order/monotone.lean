@@ -549,6 +549,15 @@ lemma strict_anti_on.le_iff_le (hf : strict_anti_on f s) {a b : α} (ha : a ∈ 
   f a ≤ f b ↔ b ≤ a :=
 hf.dual_right.le_iff_le hb ha
 
+lemma strict_mono_on.eq_iff_eq (hf : strict_mono_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  f a = f b ↔ a = b :=
+⟨λ h, le_antisymm ((hf.le_iff_le ha hb).mp h.le) ((hf.le_iff_le hb ha).mp h.ge),
+ by { rintro rfl, refl, }⟩
+
+lemma strict_anti_on.eq_iff_eq (hf : strict_anti_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  f a = f b ↔ b = a :=
+(hf.dual_right.eq_iff_eq ha hb).trans eq_comm
+
 lemma strict_mono_on.lt_iff_lt (hf : strict_mono_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
   f a < f b ↔ a < b :=
 by rw [lt_iff_le_not_le, lt_iff_le_not_le, hf.le_iff_le ha hb, hf.le_iff_le hb ha]
@@ -843,3 +852,11 @@ lemma strict_anti.prod_map (hf : strict_anti f) (hg : strict_anti g) : strict_an
   exact or.imp (and.imp hf.imp hg.antitone.imp) (and.imp hf.antitone.imp hg.imp) }
 
 end partial_order
+
+namespace function
+variables [preorder α]
+
+lemma const_mono : monotone (const β : α → β → α) := λ a b h i, h
+lemma const_strict_mono [nonempty β] : strict_mono (const β : α → β → α) := λ a b, const_lt_const.2
+
+end function

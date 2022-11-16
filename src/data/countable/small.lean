@@ -4,12 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.countable.basic
-import logic.small
+import logic.small.basic
 
 /-!
-# All encodable types are small.
+# All countable types are small.
 
-That is, any encodable type is equivalent to a type in any universe.
+That is, any countable type is equivalent to a type in any universe.
 -/
 
 universes w v

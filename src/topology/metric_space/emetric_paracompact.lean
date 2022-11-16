@@ -46,8 +46,8 @@ begin
   refine ⟨λ ι s ho hcov, _⟩,
   simp only [Union_eq_univ_iff] at hcov,
   -- choose a well founded order on `S`
-  letI : linear_order ι := linear_order_of_STO' well_ordering_rel,
-  have wf : well_founded ((<) : ι → ι → Prop) := @is_well_order.wf ι well_ordering_rel _,
+  letI : linear_order ι := linear_order_of_STO well_ordering_rel,
+  have wf : well_founded ((<) : ι → ι → Prop) := @is_well_founded.wf ι well_ordering_rel _,
   -- Let `ind x` be the minimal index `s : S` such that `x ∈ s`.
   set ind : α → ι := λ x, wf.min {i : ι | x ∈ s i} (hcov x),
   have mem_ind : ∀ x, x ∈ s (ind x), from λ x, wf.min_mem _ (hcov x),
@@ -122,7 +122,9 @@ begin
     refine ⟨B, ball_mem_nhds _ (pow_pos _), _⟩,
     -- The sets `D m i`, `m > n + k`, are disjoint with `B`
     have Hgt : ∀ (m ≥ n + k + 1) (i : ι), disjoint (D m i) B,
-    { rintros m hm i y ⟨hym, hyx⟩,
+    { rintros m hm i,
+      rw disjoint_iff_inf_le,
+      rintros y ⟨hym, hyx⟩,
       rcases memD.1 hym with ⟨z, rfl, hzi, H, hz⟩,
       have : z ∉ ball x (2⁻¹ ^ k), from λ hz, H n (by linarith) i (hsub hz), apply this,
       calc edist z x ≤ edist y z + edist y x : edist_triangle_left _ _ _
@@ -152,7 +154,7 @@ begin
       (finite_le_nat _).bUnion' (λ i hi, (Hle i hi).finite.bUnion' (λ _ _, finite_singleton _)),
     refine this.subset (λ I hI, _), simp only [mem_Union],
     refine ⟨I.1, _, I.2, hI, prod.mk.eta.symm⟩,
-    exact not_lt.1 (λ hlt, Hgt I.1 hlt I.2 hI.some_spec) }
+    exact not_lt.1 (λ hlt, (Hgt I.1 hlt I.2).le_bot hI.some_spec) }
 end
 
 @[priority 100] -- see Note [lower instance priority]

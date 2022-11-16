@@ -5,7 +5,7 @@ Authors: Simon Hudon
 -/
 import data.list.sigma
 import data.int.range
-import data.finsupp.basic
+import data.finsupp.defs
 import data.finsupp.to_dfinsupp
 import tactic.pretty_cases
 import testing.slim_check.sampleable

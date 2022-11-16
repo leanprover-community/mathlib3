@@ -8,6 +8,10 @@ import data.option.basic
 /-!
 # Disjoint union of types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/497
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves basic results about the sum type `α ⊕ β`.
 
 `α ⊕ β` is the type made of a copy of `α` and a copy of `β`. It is also called *disjoint union*.
@@ -84,6 +88,16 @@ by cases x; simp only [get_left, is_right, coe_sort_tt, coe_sort_ff, eq_self_iff
 lemma get_right_eq_none_iff : x.get_right = none ↔ x.is_left :=
 by cases x; simp only [get_right, is_left, coe_sort_tt, coe_sort_ff, eq_self_iff_true]
 
+@[simp] lemma bnot_is_left (x : α ⊕ β) : bnot x.is_left = x.is_right := by cases x; refl
+@[simp] lemma is_left_eq_ff : x.is_left = ff ↔ x.is_right := by cases x; simp
+lemma not_is_left : ¬x.is_left ↔ x.is_right := by simp
+@[simp] lemma bnot_is_right (x : α ⊕ β) : bnot x.is_right = x.is_left := by cases x; refl
+@[simp] lemma is_right_eq_ff : x.is_right = ff ↔ x.is_left := by cases x; simp
+lemma not_is_right : ¬x.is_right ↔ x.is_left := by simp
+
+lemma is_left_iff : x.is_left ↔ ∃ y, x = sum.inl y := by cases x; simp
+lemma is_right_iff : x.is_right ↔ ∃ y, x = sum.inr y := by cases x; simp
+
 end get
 
 theorem inl.inj_iff {a b} : (inl a : α ⊕ β) = inl b ↔ a = b :=
@@ -146,6 +160,22 @@ lemma elim_comp_map {α β γ δ ε : Sort*} {f₁ : α → β} {f₂ : β → �
   sum.elim f₂ g₂ ∘ sum.map f₁ g₁ = sum.elim (f₂ ∘ f₁) (g₂ ∘ g₁) :=
 by ext (_|_); refl
 
+@[simp] lemma is_left_map (f : α → β) (g : γ → δ) (x : α ⊕ γ) :
+  is_left (x.map f g) = is_left x :=
+by cases x; refl
+
+@[simp] lemma is_right_map (f : α → β) (g : γ → δ) (x : α ⊕ γ) :
+  is_right (x.map f g) = is_right x :=
+by cases x; refl
+
+@[simp] lemma get_left_map (f : α → β) (g : γ → δ) (x : α ⊕ γ) :
+  (x.map f g).get_left = x.get_left.map f :=
+by cases x; refl
+
+@[simp] lemma get_right_map (f : α → β) (g : γ → δ) (x : α ⊕ γ) :
+  (x.map f g).get_right = x.get_right.map g :=
+by cases x; refl
+
 open function (update update_eq_iff update_comp_eq_of_injective update_comp_eq_of_forall_ne)
 
 @[simp] lemma update_elim_inl [decidable_eq α] [decidable_eq (α ⊕ β)] {f : α → γ} {g : β → γ}
@@ -203,6 +233,10 @@ def swap : α ⊕ β → β ⊕ α := sum.elim inr inl
 @[simp] lemma swap_swap_eq : swap ∘ swap = @id (α ⊕ β) := funext $ swap_swap
 @[simp] lemma swap_left_inverse : function.left_inverse (@swap α β) swap := swap_swap
 @[simp] lemma swap_right_inverse : function.right_inverse (@swap α β) swap := swap_swap
+@[simp] lemma is_left_swap (x : α ⊕ β) : x.swap.is_left = x.is_right := by cases x; refl
+@[simp] lemma is_right_swap (x : α ⊕ β) : x.swap.is_right = x.is_left := by cases x; refl
+@[simp] lemma get_left_swap (x : α ⊕ β) : x.swap.get_left = x.get_right := by cases x; refl
+@[simp] lemma get_right_swap (x : α ⊕ β) : x.swap.get_right = x.get_left := by cases x; refl
 
 section lift_rel
 
@@ -345,6 +379,42 @@ lemma surjective.sum_map {f : α → β} {g : α' → β'} (hf : surjective f) (
 | (inr y) := let ⟨x, hx⟩ := hg y in ⟨inr x, congr_arg inr hx⟩
 
 end function
+
+namespace sum
+open function
+
+lemma elim_const_const (c : γ) :
+  sum.elim (const _ c : α → γ) (const _ c : β → γ) = const _ c :=
+by { ext x, cases x; refl }
+
+@[simp]
+lemma elim_lam_const_lam_const (c : γ) :
+  sum.elim (λ (_ : α), c) (λ (_ : β), c) = λ _, c :=
+sum.elim_const_const c
+
+lemma elim_update_left [decidable_eq α] [decidable_eq β]
+    (f : α → γ) (g : β → γ) (i : α) (c : γ) :
+  sum.elim (function.update f i c) g = function.update (sum.elim f g) (inl i) c :=
+begin
+  ext x, cases x,
+  { by_cases h : x = i,
+    { subst h, simp },
+    { simp [h] } },
+  { simp }
+end
+
+lemma elim_update_right [decidable_eq α] [decidable_eq β]
+    (f : α → γ) (g : β → γ) (i : β) (c : γ) :
+  sum.elim f (function.update g i c) = function.update (sum.elim f g) (inr i) c :=
+begin
+  ext x, cases x,
+  { simp },
+  { by_cases h : x = i,
+    { subst h, simp },
+    { simp [h] } }
+end
+
+end sum
 
 /-!
 ### Ternary sum

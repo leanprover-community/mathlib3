@@ -699,22 +699,17 @@ begin
   replace hn : 0 < (n : k), { norm_cast, assumption, },
   have : ∀ {l : ℤ} (hl : 0 ≤ l), fract ((l : k) / n) = ↑(l % n) / n,
   { intros,
-    obtain ⟨l₀, hl₀⟩ := l.eq_coe_or_neg,
-    rcases hl₀ with rfl | rfl,
+    obtain ⟨l₀, rfl | rfl⟩ := l.eq_coe_or_neg,
     { rw [cast_coe_nat, ← coe_nat_mod, cast_coe_nat, fract_div_nat_cast_eq_div_nat_cast_mod], },
     { rw [right.nonneg_neg_iff, coe_nat_nonpos_iff] at hl, simp [hl, zero_mod], }, },
-  obtain ⟨m₀, hm₀⟩ := m.eq_coe_or_neg,
-  rcases hm₀ with rfl | rfl, { exact this (of_nat_nonneg m₀), },
-  rw [coe_neg, cast_coe_nat],
+  obtain ⟨m₀, rfl | rfl⟩ := m.eq_coe_or_neg, { exact this (of_nat_nonneg m₀), },
   let q := ⌈↑m₀ / (n : k)⌉,
   let m₁ := (q * ↑n) -(↑m₀ : ℤ),
-  have hm₁ : 0 ≤ m₁,
-  { rw [← @cast_le k, coe_zero, coe_sub, coe_mul, cast_coe_nat, cast_coe_nat, le_sub_iff_add_le,
-      zero_add, ← div_le_iff hn],
-    apply floor_ring.gc_ceil_coe.le_u_l, },
-  calc fract (-(↑m₀ : k) / n) = fract ((m₁ : k) / n) : _
-                          ... = ↑(m₁ % (n : ℤ)) / ↑n : this hm₁
-                          ... = ↑(-(↑m₀ : ℤ) % ↑n) / ↑n : _,
+  have hm₁ : 0 ≤ m₁, { simpa [←@cast_le k, ←div_le_iff hn] using floor_ring.gc_ceil_coe.le_u_l _, },
+  calc fract (↑-↑m₀ / ↑n) = fract (-(m₀ : k) / n) : by rw [coe_neg, cast_coe_nat]
+                      ... = fract ((m₁ : k) / n) : _
+                      ... = ↑(m₁ % (n : ℤ)) / ↑n : this hm₁
+                      ... = ↑(-(↑m₀ : ℤ) % ↑n) / ↑n : _,
   { rw [← fract_int_add q, ← mul_div_cancel (q : k) (ne_of_gt hn), ← add_div, ← sub_eq_add_neg,
       coe_sub, coe_mul, cast_coe_nat, cast_coe_nat], },
   { congr' 2,

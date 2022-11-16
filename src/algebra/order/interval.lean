@@ -12,7 +12,8 @@ import order.interval
 # Interval arithmetic
 
 This file defines arithmetic operations on intervals and prove their correctness. Note that this is
-full precision operations. We do not yet have float operations.
+full precision operations. The essentials of float operations can be found
+in `data.fp.basic`. We hsve not yet integrated these with the rest of the library.
 -/
 
 open function set
@@ -96,7 +97,7 @@ end mul
 
 /-! ### Powers -/
 
--- TODO: Why is `to_additive` failing here?
+-- TODO: if `to_additive` gets improved sufficiently, derive this from `has_pow`
 instance nonempty_interval.has_nsmul [add_monoid α] [preorder α] [covariant_class α α (+) (≤)]
   [covariant_class α α (swap (+)) (≤)] : has_smul ℕ (nonempty_interval α) :=
 ⟨λ n s, ⟨(n • s.fst, n • s.snd), nsmul_le_nsmul_of_le_right s.fst_le_snd _⟩⟩

@@ -394,7 +394,7 @@ by rw [← mul_left_inj' (cyclotomic_ne_zero 1 ℤ), prod_erase_mul _ _ (nat.one
   cyclotomic_one, geom_sum_mul, prod_cyclotomic_eq_X_pow_sub_one h]
 
 /-- If `p` is prime, then `cyclotomic p R = ∑ i in range p, X ^ i`. -/
-lemma cyclotomic_eq_geom_sum {R : Type*} [ring R] (p : ℕ) [hp : fact p.prime] :
+lemma cyclotomic_prime (R : Type*) [ring R] (p : ℕ) [hp : fact p.prime] :
   cyclotomic p R = ∑ i in finset.range p, X ^ i :=
 begin
   suffices : cyclotomic p ℤ = ∑ i in range p, X ^ i,
@@ -406,13 +406,13 @@ end
 
 lemma cyclotomic_prime_mul_X_sub_one (R : Type*) [ring R] (p : ℕ) [hn : fact (nat.prime p)] :
   (cyclotomic p R) * (X - 1) = X ^ p - 1 :=
-by rw [cyclotomic_eq_geom_sum p, geom_sum_mul]
+by rw [cyclotomic_prime, geom_sum_mul]
 
 @[simp] lemma cyclotomic_two (R : Type*) [ring R] : cyclotomic 2 R = X + 1 :=
-by simp [cyclotomic_eq_geom_sum]
+by simp [cyclotomic_prime]
 
 @[simp] lemma cyclotomic_three (R : Type*) [ring R] : cyclotomic 3 R = X ^ 2 + X + 1 :=
-by simp [cyclotomic_eq_geom_sum 3, sum_range_succ']
+by simp [cyclotomic_prime, sum_range_succ']
 
 lemma cyclotomic_dvd_geom_sum_of_dvd (R) [ring R] {d n : ℕ} (hdn : d ∣ n)
   (hd : d ≠ 1) : cyclotomic d R ∣ ∑ i in finset.range n, X ^ i :=
@@ -697,7 +697,7 @@ begin
     rw eq_comm at this,
     rw [this, nat.prod_proper_divisors_prime_pow hp], },
   induction n with n_n n_ih,
-  { haveI := fact.mk hp, simp [cyclotomic_eq_geom_sum], },
+  { haveI := fact.mk hp, simp [cyclotomic_prime], },
   rw ((eq_cyclotomic_iff (pow_pos hp.pos (n_n.succ + 1)) _).mpr _).symm,
   rw [nat.prod_proper_divisors_prime_pow hp, finset.prod_range_succ, n_ih],
   rw this at n_ih,

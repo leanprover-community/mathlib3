@@ -573,8 +573,7 @@ instance strict_ordered_ring.to_strict_ordered_semiring : strict_ordered_semirin
 `int` lemmas. -/
 @[reducible] -- See note [reducible non-instances]
 def strict_ordered_ring.to_ordered_ring' [@decidable_rel α (≤)] : ordered_ring α :=
-{ zero_le_one := strict_ordered_ring.zero_le_one,
-  mul_nonneg := λ a b ha hb, begin
+{ mul_nonneg := λ a b ha hb, begin
     obtain ha | ha := decidable.eq_or_lt_of_le ha,
     { rw [←ha, zero_mul] },
     obtain hb | hb := decidable.eq_or_lt_of_le hb,

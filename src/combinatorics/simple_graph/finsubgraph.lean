@@ -53,15 +53,11 @@ def finsubgraph_of_adj {u v : V} (e : G.adj u v) : G.finsubgraph :=
 
 lemma singleton_finsubgraph_le_adj_left {u v : V} {e : G.adj u v} :
   singleton_finsubgraph u ≤ finsubgraph_of_adj e :=
-begin
-  unfold singleton_finsubgraph finsubgraph_of_adj, simp,
-end
+by simp [singleton_finsubgraph, finsubgraph_of_adj]
 
 lemma singleton_finsubgraph_le_adj_right {u v : V} {e : G.adj u v} :
   singleton_finsubgraph v ≤ finsubgraph_of_adj e :=
-begin
-  unfold singleton_finsubgraph finsubgraph_of_adj, simp,
-end
+by simp [singleton_finsubgraph, finsubgraph_of_adj]
 
 /-- Given a homomorphism from a subgraph to `F`, construct its restriction to a sub-subgraph. -/
 def finsubgraph_hom.restrict {G' G'' : G.finsubgraph} (h : G'' ≤ G') (f : G' →fg F) : G'' →fg F :=

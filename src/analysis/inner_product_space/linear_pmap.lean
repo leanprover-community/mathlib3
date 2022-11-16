@@ -107,11 +107,11 @@ namespace linear_pmap
 This definition is needed to construct the adjoint operator and the preferred version to use is
 `T.adjoint.domain` instead of `T.adjoint_domain`. -/
 def adjoint_domain (T : linear_pmap 𝕜 E F) : submodule 𝕜 F :=
-{ carrier := {y | continuous ((@inner 𝕜 _ _ y).comp T)},
-  zero_mem' := by { simp only [set.mem_set_of_eq, inner_zero, pi.zero_comp],
-    exact continuous_zero },
-  add_mem' := λ x y hx hy, by { simp only [set.mem_set_of_eq, inner_add] at *, exact hx.add hy },
-  smul_mem' := λ a x hx, by { simp only [set.mem_set_of_eq, inner_smul] at *,
+{ carrier := {y | continuous ((innerₛₗ y).comp T.to_fun)},
+  zero_mem' := by { rw [set.mem_set_of_eq, linear_map.map_zero, linear_map.zero_comp],
+      exact continuous_zero },
+  add_mem' := λ x y hx hy, by { rw [set.mem_set_of_eq, linear_map.map_add] at *, exact hx.add hy },
+  smul_mem' := λ a x hx, by { rw [set.mem_set_of_eq, linear_map.map_smulₛₗ] at *,
     exact hx.const_smul (conj a) } }
 
 variables (T : linear_pmap 𝕜 E F)
@@ -183,7 +183,8 @@ lemma inner_adjoint_apply (y : T.adjoint.domain) (x : T.domain) :
 lemma adjoint_is_formal_adjoint : is_formal_adjoint T.adjoint T :=
 T.adjoint_elem_spec
 
-lemma mem_adjoint_domain_iff (y : F) : y ∈ T.adjoint.domain ↔ continuous ((@inner 𝕜 _ _ y).comp T) :=
+lemma mem_adjoint_domain_iff (y : F) :
+  y ∈ T.adjoint.domain ↔ continuous ((innerₛₗ y).comp T.to_fun) :=
 by refl
 
 lemma mem_adjoint_domain_of_exists (y : F) (h : ∃ w : E, ∀ (x : T.domain), ⟪w, x⟫ = ⟪y, T x⟫) :

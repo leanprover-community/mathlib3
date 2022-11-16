@@ -54,8 +54,7 @@ classical.some (exists_reduced_fraction A x)
 noncomputable def denom (x : K) : non_zero_divisors A :=
 classical.some (classical.some_spec (exists_reduced_fraction A x))
 
-lemma num_denom_reduced (x : K) :
-  ∀ {d}, d ∣ num A x → d ∣ denom A x → is_unit d :=
+lemma num_denom_reduced (x : K) {d} : d ∣ num A x → d ∣ denom A x → is_unit d :=
 (classical.some_spec (classical.some_spec (exists_reduced_fraction A x))).1
 
 @[simp] lemma mk'_num_denom (x : K) : mk' K (num A x) (denom A x) = x :=
@@ -88,7 +87,7 @@ begin
     is_fraction_ring.to_map_ne_zero_of_mem_non_zero_divisors (denom A x).2,
   use ↑d⁻¹ * num A x,
   refine trans _ (mk'_num_denom A x),
-  rw [ring_hom.map_mul, ring_hom.map_units_inv, hd],
+  rw [map_mul, map_units_inv, hd],
   apply mul_left_cancel₀ d_ne_zero,
   rw [←mul_assoc, mul_inv_cancel d_ne_zero, one_mul, mk'_spec']
 end

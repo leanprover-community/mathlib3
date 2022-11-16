@@ -14,12 +14,11 @@ This file defines `scale_roots p s` for a polynomial `p` in one variable and a r
 be the polynomial with root `r * s` for each root `r` of `p` and proves some basic results about it.
 -/
 
-section scale_roots
-
 variables {A K R S : Type*} [comm_ring A] [is_domain A] [field K] [comm_ring R] [comm_ring S]
 variables {M : submonoid A}
 
-open polynomial
+namespace polynomial
+
 open_locale big_operators polynomial
 
 /-- `scale_roots p s` is a polynomial with root `r * s` for each root `r` of `p`. -/
@@ -84,9 +83,9 @@ lemma monic_scale_roots_iff {p : R[X]} (s : R) :
   monic (scale_roots p s) ↔ monic p :=
 by simp only [monic, leading_coeff, nat_degree_scale_roots, coeff_scale_roots_nat_degree]
 
-lemma scale_roots_eval₂_eq_zero {p : S[X]} (f : S →+* R)
-  {r : R} {s : S} (hr : eval₂ f r p = 0) :
-  eval₂ f (f s * r) (scale_roots p s) = 0 :=
+lemma scale_roots_eval₂_mul {p : S[X]} (f : S →+* R)
+  (r : R) (s : S) :
+  eval₂ f (f s * r) (scale_roots p s) = f s ^ p.nat_degree * eval₂ f r p :=
 calc eval₂ f (f s * r) (scale_roots p s) =
   (scale_roots p s).support.sum (λ i, f (coeff p i * s ^ (p.nat_degree - i)) * (f s * r) ^ i) :
   by simp [eval₂_eq_sum, sum_def]
@@ -103,7 +102,11 @@ calc eval₂ f (f s * r) (scale_roots p s) =
                 exact le_nat_degree_of_ne_zero (polynomial.mem_support_iff.mp hi) })
 ... = f s ^ p.nat_degree * p.support.sum (λ (i : ℕ), (f (p.coeff i) * r ^ i)) : finset.mul_sum.symm
 ... = f s ^ p.nat_degree * eval₂ f r p : by { simp [eval₂_eq_sum, sum_def] }
-... = 0 : by rw [hr, _root_.mul_zero]
+
+lemma scale_roots_eval₂_eq_zero {p : S[X]} (f : S →+* R)
+  {r : R} {s : S} (hr : eval₂ f r p = 0) :
+  eval₂ f (f s * r) (scale_roots p s) = 0 :=
+by rw [scale_roots_eval₂_mul, hr, _root_.mul_zero]
 
 lemma scale_roots_aeval_eq_zero [algebra S R] {p : S[X]}
   {r : R} {s : S} (hr : aeval r p = 0) :
@@ -126,4 +129,11 @@ lemma scale_roots_aeval_eq_zero_of_aeval_div_eq_zero [algebra A K]
   aeval (algebra_map A K r) (scale_roots p s) = 0 :=
 scale_roots_eval₂_eq_zero_of_eval₂_div_eq_zero inj hr hs
 
-end scale_roots
+lemma map_scale_roots (p : R[X]) (x : R) (f : R →+* S) (h : f p.leading_coeff ≠ 0) :
+    (p.scale_roots x).map f = (p.map f).scale_roots (f x) :=
+begin
+  ext,
+  simp [polynomial.nat_degree_map_of_leading_coeff_ne_zero _ h],
+end
+
+end polynomial

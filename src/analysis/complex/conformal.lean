@@ -39,7 +39,7 @@ conj_lie.to_linear_isometry.is_conformal_map
 
 section conformal_into_complex_normed
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] [normed_space ℂ E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [normed_space ℂ E]
   {z : ℂ} {g : ℂ →L[ℝ] E} {f : ℂ → E}
 
 lemma is_conformal_map_complex_linear {map : ℂ →L[ℂ] E} (nonzero : map ≠ 0) :

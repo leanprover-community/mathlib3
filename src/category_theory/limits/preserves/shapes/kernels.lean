@@ -19,12 +19,12 @@ the limit of the parallel pair `f,0`, as well as the dual result.
 
 noncomputable theory
 
-universes v u₁ u₂
+universes v₁ v₂ u₁ u₂
 
 open category_theory category_theory.category category_theory.limits
 
-variables {C : Type u₁} [category.{v} C] [has_zero_morphisms C]
-variables {D : Type u₂} [category.{v} D] [has_zero_morphisms D]
+variables {C : Type u₁} [category.{v₁} C] [has_zero_morphisms C]
+variables {D : Type u₂} [category.{v₂} D] [has_zero_morphisms D]
 variables (G : C ⥤ D) [functor.preserves_zero_morphisms G]
 
 namespace category_theory.limits
@@ -89,8 +89,8 @@ def preserves_kernel.of_iso_comparison [i : is_iso (kernel_comparison f G)] :
 begin
   apply preserves_limit_of_preserves_limit_cone (kernel_is_kernel f),
   apply (is_limit_map_cone_fork_equiv' G (kernel.condition f)).symm _,
-  apply is_limit.of_point_iso (limit.is_limit (parallel_pair (G.map f) 0)),
-  apply i,
+  apply is_limit.of_point_iso (kernel_is_kernel (G.map f)),
+  exact i,
 end
 
 variables [preserves_limit (parallel_pair f 0) G]
@@ -102,7 +102,7 @@ def preserves_kernel.iso :
   G.obj (kernel f) ≅ kernel (G.map f) :=
 is_limit.cone_point_unique_up_to_iso
   (is_limit_of_has_kernel_of_preserves_limit G f)
-  (limit.is_limit _)
+  (kernel_is_kernel _)
 
 @[simp]
 lemma preserves_kernel.iso_hom :
@@ -181,8 +181,8 @@ def preserves_cokernel.of_iso_comparison [i : is_iso (cokernel_comparison f G)] 
 begin
   apply preserves_colimit_of_preserves_colimit_cocone (cokernel_is_cokernel f),
   apply (is_colimit_map_cocone_cofork_equiv' G (cokernel.condition f)).symm _,
-  apply is_colimit.of_point_iso (colimit.is_colimit (parallel_pair (G.map f) 0)),
-  apply i,
+  apply is_colimit.of_point_iso (cokernel_is_cokernel (G.map f)),
+  exact i,
 end
 
 variables [preserves_colimit (parallel_pair f 0) G]
@@ -194,7 +194,7 @@ def preserves_cokernel.iso :
   G.obj (cokernel f) ≅ cokernel (G.map f) :=
 is_colimit.cocone_point_unique_up_to_iso
   (is_colimit_of_has_cokernel_of_preserves_colimit G f)
-  (colimit.is_colimit _)
+  (cokernel_is_cokernel _)
 
 @[simp]
 lemma preserves_cokernel.iso_inv :

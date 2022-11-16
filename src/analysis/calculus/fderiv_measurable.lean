@@ -5,7 +5,7 @@ Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.deriv
 import measure_theory.constructions.borel_space
-import measure_theory.function.strongly_measurable
+import measure_theory.function.strongly_measurable.basic
 import tactic.ring_exp
 
 /-!
@@ -80,8 +80,8 @@ open_locale topological_space
 
 namespace continuous_linear_map
 
-variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜]
-  [normed_group E] [normed_space 𝕜 E] [normed_group F] [normed_space 𝕜 F]
+variables {𝕜 E F : Type*} [nontrivially_normed_field 𝕜]
+  [normed_add_comm_group E] [normed_space 𝕜 E] [normed_add_comm_group F] [normed_space 𝕜 F]
 
 lemma measurable_apply₂ [measurable_space E] [opens_measurable_space E]
   [second_countable_topology E] [second_countable_topology (E →L[𝕜] F)]
@@ -93,9 +93,9 @@ end continuous_linear_map
 
 section fderiv
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
-variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 variables {f : E → F} (K : set (E →L[𝕜] F))
 
 namespace fderiv_measurable_aux
@@ -211,7 +211,7 @@ begin
   rcases mem_A_of_differentiable this hx.1 with ⟨R, R_pos, hR⟩,
   obtain ⟨n, hn⟩ : ∃ (n : ℕ), (1/2) ^ n < R :=
     exists_pow_lt_of_lt_one R_pos (by norm_num : (1 : ℝ)/2 < 1),
-  simp only [mem_Union, mem_Inter, B, mem_inter_eq],
+  simp only [mem_Union, mem_Inter, B, mem_inter_iff],
   refine ⟨n, λ p hp q hq, ⟨fderiv 𝕜 f x, hx.2, ⟨_, _⟩⟩⟩;
   { refine hR _ ⟨pow_pos (by norm_num) _, lt_of_le_of_lt _ hn⟩,
     exact pow_le_pow_of_le_one (by norm_num) (by norm_num) (by assumption) }
@@ -378,8 +378,8 @@ is Borel-measurable. -/
 theorem measurable_set_of_differentiable_at_of_is_complete
   {K : set (E →L[𝕜] F)} (hK : is_complete K) :
   measurable_set {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ K} :=
-by simp [differentiable_set_eq_D K hK, D, is_open_B.measurable_set, measurable_set.Inter_Prop,
-         measurable_set.Inter, measurable_set.Union]
+by simp [differentiable_set_eq_D K hK, D, is_open_B.measurable_set, measurable_set.Inter,
+         measurable_set.Union]
 
 variable [complete_space F]
 
@@ -432,7 +432,7 @@ end fderiv
 
 section right_deriv
 
-variables {F : Type*} [normed_group F] [normed_space ℝ F]
+variables {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
 variables {f : ℝ → F} (K : set F)
 
 namespace right_deriv_measurable_aux
@@ -474,9 +474,9 @@ lemma B_mem_nhds_within_Ioi {K : set F} {r s ε x : ℝ} (hx : x ∈ B f K r s �
   B f K r s ε ∈ 𝓝[>] x :=
 begin
   obtain ⟨L, LK, hL₁, hL₂⟩ : ∃ (L : F), L ∈ K ∧ x ∈ A f L r ε ∧ x ∈ A f L s ε,
-    by simpa only [B, mem_Union, mem_inter_eq, exists_prop] using hx,
+    by simpa only [B, mem_Union, mem_inter_iff, exists_prop] using hx,
   filter_upwards [A_mem_nhds_within_Ioi hL₁, A_mem_nhds_within_Ioi hL₂] with y hy₁ hy₂,
-  simp only [B, mem_Union, mem_inter_eq, exists_prop],
+  simp only [B, mem_Union, mem_inter_iff, exists_prop],
   exact ⟨L, LK, hy₁, hy₂⟩
 end
 
@@ -567,7 +567,7 @@ begin
   rcases mem_A_of_differentiable this hx.1 with ⟨R, R_pos, hR⟩,
   obtain ⟨n, hn⟩ : ∃ (n : ℕ), (1/2) ^ n < R :=
     exists_pow_lt_of_lt_one R_pos (by norm_num : (1 : ℝ)/2 < 1),
-  simp only [mem_Union, mem_Inter, B, mem_inter_eq],
+  simp only [mem_Union, mem_Inter, B, mem_inter_iff],
   refine ⟨n, λ p hp q hq, ⟨deriv_within f (Ici x) x, hx.2, ⟨_, _⟩⟩⟩;
   { refine hR _ ⟨pow_pos (by norm_num) _, lt_of_le_of_lt _ hn⟩,
     exact pow_le_pow_of_le_one (by norm_num) (by norm_num) (by assumption) }
@@ -728,8 +728,8 @@ set, is Borel-measurable. -/
 theorem measurable_set_of_differentiable_within_at_Ici_of_is_complete
   {K : set F} (hK : is_complete K) :
   measurable_set {x | differentiable_within_at ℝ f (Ici x) x ∧ deriv_within f (Ici x) x ∈ K} :=
-by simp [differentiable_set_eq_D K hK, D, measurable_set_B, measurable_set.Inter_Prop,
-         measurable_set.Inter, measurable_set.Union]
+by simp [differentiable_set_eq_D K hK, D, measurable_set_B, measurable_set.Inter,
+         measurable_set.Union]
 
 variable [complete_space F]
 

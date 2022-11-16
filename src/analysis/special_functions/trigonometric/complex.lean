@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import algebra.quadratic_discriminant
-import analysis.complex.polynomial
-import field_theory.is_alg_closed.basic
 import analysis.special_functions.trigonometric.basic
 import analysis.convex.specific_functions
 
@@ -36,7 +34,7 @@ begin
   rw [cos, h, ← exp_pi_mul_I, exp_eq_exp_iff_exists_int, mul_right_comm],
   refine exists_congr (λ x, _),
   refine (iff_of_eq $ congr_arg _ _).trans (mul_right_inj' $ mul_ne_zero two_ne_zero' I_ne_zero),
-  ring,
+  field_simp, ring,
 end
 
 theorem cos_ne_zero_iff {θ : ℂ} : cos θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ (2 * k + 1) * π / 2 :=
@@ -162,8 +160,8 @@ lemma cos_surjective : function.surjective cos :=
 begin
   intro x,
   obtain ⟨w, w₀, hw⟩ : ∃ w ≠ 0, 1 * w * w + (-2 * x) * w + 1 = 0,
-  { rcases exists_quadratic_eq_zero (@one_ne_zero ℂ _ _) (is_alg_closed.exists_eq_mul_self _)
-      with ⟨w, hw⟩,
+  { rcases exists_quadratic_eq_zero (@one_ne_zero ℂ _ _)
+      ⟨_, ((cpow_nat_inv_pow _ two_ne_zero).symm.trans $ pow_two _)⟩ with ⟨w, hw⟩,
     refine ⟨w, _, hw⟩,
     rintro rfl,
     simpa only [zero_add, one_ne_zero, mul_zero] using hw },

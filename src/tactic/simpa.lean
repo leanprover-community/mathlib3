@@ -12,7 +12,7 @@ namespace tactic
 namespace interactive
 open expr lean.parser
 
-local postfix `?`:9001 := optional
+local postfix (name := parser.optional) `?`:9001 := optional
 
 /--
 This is a "finishing" tactic modification of `simp`. It has two forms.

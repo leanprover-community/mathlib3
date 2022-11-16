@@ -3,7 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Manuel Candales
 -/
-import geometry.euclidean.basic
+import geometry.euclidean.angle.unoriented.affine
 import tactic.interval_cases
 
 /-!
@@ -26,7 +26,6 @@ unnecessarily.
 
 ## References
 
-* https://en.wikipedia.org/wiki/Pythagorean_theorem
 * https://en.wikipedia.org/wiki/Law_of_cosines
 * https://en.wikipedia.org/wiki/Pons_asinorum
 * https://en.wikipedia.org/wiki/Sum_of_angles_of_a_triangle
@@ -51,32 +50,6 @@ deduce corresponding results for Euclidean affine spaces.
 -/
 
 variables {V : Type*} [inner_product_space ℝ V]
-
-/-- Pythagorean theorem, if-and-only-if vector angle form. -/
-lemma norm_add_sq_eq_norm_sq_add_norm_sq_iff_angle_eq_pi_div_two (x y : V) :
-  ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ ↔ angle x y = π / 2 :=
-begin
-  rw norm_add_sq_eq_norm_sq_add_norm_sq_iff_real_inner_eq_zero,
-  exact inner_eq_zero_iff_angle_eq_pi_div_two x y
-end
-
-/-- Pythagorean theorem, vector angle form. -/
-lemma norm_add_sq_eq_norm_sq_add_norm_sq' (x y : V) (h : angle x y = π / 2) :
-  ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
-(norm_add_sq_eq_norm_sq_add_norm_sq_iff_angle_eq_pi_div_two x y).2 h
-
-/-- Pythagorean theorem, subtracting vectors, if-and-only-if vector angle form. -/
-lemma norm_sub_sq_eq_norm_sq_add_norm_sq_iff_angle_eq_pi_div_two (x y : V) :
-  ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ ↔ angle x y = π / 2 :=
-begin
-  rw norm_sub_sq_eq_norm_sq_add_norm_sq_iff_real_inner_eq_zero,
-  exact inner_eq_zero_iff_angle_eq_pi_div_two x y
-end
-
-/-- Pythagorean theorem, subtracting vectors, vector angle form. -/
-lemma norm_sub_sq_eq_norm_sq_add_norm_sq' (x y : V) (h : angle x y = π / 2) :
-  ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
-(norm_sub_sq_eq_norm_sq_add_norm_sq_iff_angle_eq_pi_div_two x y).2 h
 
 /-- Law of cosines (cosine rule), vector angle form. -/
 lemma norm_sub_sq_eq_norm_sq_add_norm_sq_sub_two_mul_norm_mul_norm_mul_cos_angle
@@ -150,12 +123,12 @@ begin
                 ∥x∥ * ∥y∥ * ∥x - y∥ * ∥x - y∥ =
               (real.sin (angle x (x - y)) * (∥x∥ * ∥x - y∥)) *
                 (real.sin (angle y (y - x)) * (∥y∥ * ∥x - y∥)), { ring },
-    have H2 : ⟪x, x⟫ * (inner x x - inner x y - (inner x y - inner y y)) -
-                (inner x x - inner x y) * (inner x x - inner x y) =
-              inner x x * inner y y - inner x y * inner x y, { ring },
-    have H3 : ⟪y, y⟫ * (inner y y - inner x y - (inner x y - inner x x)) -
-                (inner y y - inner x y) * (inner y y - inner x y) =
-              inner x x * inner y y - inner x y * inner x y, { ring },
+    have H2 : ⟪x, x⟫ * (⟪x, x⟫ - ⟪x, y⟫ - (⟪x, y⟫ - ⟪y, y⟫)) -
+                (⟪x, x⟫ - ⟪x, y⟫) * (⟪x, x⟫ - ⟪x, y⟫) =
+              ⟪x, x⟫ * ⟪y, y⟫ - ⟪x, y⟫ * ⟪x, y⟫, { ring },
+    have H3 : ⟪y, y⟫ * (⟪y, y⟫ - ⟪x, y⟫ - (⟪x, y⟫ - ⟪x, x⟫)) -
+                (⟪y, y⟫ - ⟪x, y⟫) * (⟪y, y⟫ - ⟪x, y⟫) =
+              ⟪x, x⟫ * ⟪y, y⟫ - ⟪x, y⟫ * ⟪x, y⟫, { ring },
     rw [mul_sub_right_distrib, mul_sub_right_distrib, mul_sub_right_distrib,
         mul_sub_right_distrib, H1, sin_angle_mul_norm_mul_norm, norm_sub_rev x y,
         sin_angle_mul_norm_mul_norm, norm_sub_rev y x, inner_sub_left, inner_sub_left,
@@ -292,15 +265,6 @@ variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
 include V
 
-/-- **Pythagorean theorem**, if-and-only-if angle-at-point form. -/
-lemma dist_sq_eq_dist_sq_add_dist_sq_iff_angle_eq_pi_div_two (p1 p2 p3 : P) :
-  dist p1 p3 * dist p1 p3 = dist p1 p2 * dist p1 p2 + dist p3 p2 * dist p3 p2 ↔
-    ∠ p1 p2 p3 = π / 2 :=
-by erw [pseudo_metric_space.dist_comm p3 p2, dist_eq_norm_vsub V p1 p3, dist_eq_norm_vsub V p1 p2,
-        dist_eq_norm_vsub V p2 p3,
-        ←norm_sub_sq_eq_norm_sq_add_norm_sq_iff_angle_eq_pi_div_two,
-        vsub_sub_vsub_cancel_right p1, ←neg_vsub_eq_vsub_rev p2 p3, norm_neg]
-
 /-- **Law of cosines** (cosine rule), angle-at-point form. -/
 lemma dist_sq_eq_dist_sq_add_dist_sq_sub_two_mul_dist_mul_dist_mul_cos_angle
     (p1 p2 p3 : P) :
@@ -397,7 +361,7 @@ begin
   { have hab'₁ : a' = b', { rw [← dist_eq_zero, hab, dist_eq_zero.mpr hab₁, mul_zero r] },
     rw [hab₁, hab'₁, dist_comm b' c', dist_comm b c, hcb] },
   { have h1 : 0 ≤ r * dist a b, { rw ← hab, exact dist_nonneg },
-    have h2 : 0 ≤ r := nonneg_of_mul_nonneg_right h1 (dist_pos.mpr hab₁),
+    have h2 : 0 ≤ r := nonneg_of_mul_nonneg_left h1 (dist_pos.mpr hab₁),
     exact (sq_eq_sq dist_nonneg (mul_nonneg h2 dist_nonneg)).mp h' },
 end
 

@@ -3,13 +3,11 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import algebra.add_torsor
-import data.set.intervals.unordered_interval
+import data.set.pointwise.interval
 import linear_algebra.affine_space.basic
 import linear_algebra.bilinear_map
 import linear_algebra.pi
 import linear_algebra.prod
-import tactic.abel
 
 /-!
 # Affine maps
@@ -177,7 +175,7 @@ def mk' (f : P1 → P2) (f' : V1 →ₗ[k] V2) (p : P1) (h : ∀ p' : P1, f p' =
 
 @[simp] lemma mk'_linear (f : P1 → P2) (f' : V1 →ₗ[k] V2) (p h) : (mk' f f' p h).linear = f' := rfl
 
-section has_scalar
+section has_smul
 variables {R : Type*} [monoid R] [distrib_mul_action R V2] [smul_comm_class k R V2]
 
 /-- The space of affine maps to a module inherits an `R`-action from the action on its codomain. -/
@@ -194,7 +192,7 @@ instance [distrib_mul_action Rᵐᵒᵖ V2] [is_central_scalar R V2] :
   is_central_scalar R (P1 →ᵃ[k] V2) :=
 { op_smul_eq_smul := λ r x, ext $ λ _, op_smul_eq_smul _ _ }
 
-end has_scalar
+end has_smul
 
 instance : has_zero (P1 →ᵃ[k] V2) := { zero := ⟨0, 0, λ p v, (zero_vadd _ _).symm⟩ }
 instance : has_add (P1 →ᵃ[k] V2) :=
@@ -621,3 +619,14 @@ rfl
 end comm_ring
 
 end affine_map
+
+section
+variables {𝕜 E F : Type*} [ring 𝕜] [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
+
+/-- Applying an affine map to an affine combination of two points yields an affine combination of
+the images. -/
+lemma convex.combo_affine_apply {x y : E} {a b : 𝕜} {f : E →ᵃ[𝕜] F} (h : a + b = 1) :
+  f (a • x + b • y) = a • f x + b • f y :=
+by { simp only [convex.combo_eq_smul_sub_add h, ←vsub_eq_sub], exact f.apply_line_map _ _ _ }
+
+end

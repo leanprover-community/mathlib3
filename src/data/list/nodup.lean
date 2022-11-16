@@ -18,7 +18,7 @@ universes u v
 
 open nat function
 
-variables {α : Type u} {β : Type v} {l l₁ l₂ : list α} {a b : α}
+variables {α : Type u} {β : Type v} {l l₁ l₂ : list α} {r : α → α → Prop} {a b : α}
 
 namespace list
 
@@ -69,12 +69,12 @@ pairwise_iff_nth_le.trans
   .resolve_right (λ h', H _ _ h₁ h' h.symm),
  λ H i j h₁ h₂ h, ne_of_lt h₂ (H _ _ _ _ h)⟩
 
-theorem nodup.nth_le_inj_iff {α : Type*} {l : list α} (h : nodup l)
+theorem nodup.nth_le_inj_iff {l : list α} (h : nodup l)
   {i j : ℕ} (hi : i < l.length) (hj : j < l.length) :
   l.nth_le i hi = l.nth_le j hj ↔ i = j :=
 ⟨nodup_iff_nth_le_inj.mp h _ _ _ _, by simp {contextual := tt}⟩
 
-lemma nodup_iff_nth_ne_nth {α : Type} {l : list α} :
+lemma nodup_iff_nth_ne_nth {l : list α} :
   l.nodup ↔ ∀ (i j : ℕ), i < j → j < l.length → l.nth i ≠ l.nth j :=
 begin
   rw nodup_iff_nth_le_inj,
@@ -135,6 +135,14 @@ theorem nodup_repeat (a : α) : ∀ {n : ℕ}, nodup (repeat a n) ↔ n ≤ 1
   (d : nodup l) (h : a ∈ l) : count a l = 1 :=
 le_antisymm (nodup_iff_count_le_one.1 d a) (count_pos.2 h)
 
+lemma count_eq_of_nodup [decidable_eq α] {a : α} {l : list α}
+  (d : nodup l) : count a l = if a ∈ l then 1 else 0 :=
+begin
+  split_ifs with h,
+  { exact count_eq_one_of_mem d h },
+  { exact count_eq_zero_of_not_mem h },
+end
+
 lemma nodup.of_append_left : nodup (l₁ ++ l₂) → nodup l₁ :=
 nodup.sublist (sublist_append_left l₁ l₂)
 
@@ -191,7 +199,7 @@ theorem nodup_map_iff {f : α → β} {l : list α} (hf : injective f) : nodup (
 ⟨λ h, attach_map_val l ▸ h.map (λ a b, subtype.eq),
   λ h, nodup.of_map subtype.val ((attach_map_val l).symm ▸ h)⟩
 
-alias nodup_attach ↔ list.nodup.of_attach list.nodup.attach
+alias nodup_attach ↔ nodup.of_attach nodup.attach
 
 attribute [protected] nodup.attach
 
@@ -288,8 +296,8 @@ lemma nodup.inter [decidable_eq α] (l₂ : list α) : nodup l₁ → nodup (l�
 by rw [sublists'_eq_sublists, nodup_map_iff reverse_injective,
        nodup_sublists, nodup_reverse]
 
-alias nodup_sublists ↔ list.nodup.of_sublists list.nodup.sublists
-alias nodup_sublists' ↔ list.nodup.of_sublists' list.nodup.sublists'
+alias nodup_sublists ↔ nodup.of_sublists nodup.sublists
+alias nodup_sublists' ↔ nodup.of_sublists' nodup.sublists'
 
 attribute [protected] nodup.sublists nodup.sublists'
 
@@ -343,6 +351,18 @@ end
 lemma nodup.pairwise_of_set_pairwise {l : list α} {r : α → α → Prop}
   (hl : l.nodup) (h : {x | x ∈ l}.pairwise r) : l.pairwise r :=
 hl.pairwise_of_forall_ne h
+
+@[simp] lemma nodup.pairwise_coe [is_symm α r] (hl : l.nodup) :
+  {a | a ∈ l}.pairwise r ↔ l.pairwise r :=
+begin
+  induction l with a l ih,
+  { simp },
+  rw list.nodup_cons at hl,
+  have : ∀ b ∈ l, ¬a = b → r a b ↔ r a b :=
+    λ b hb, imp_iff_right (ne_of_mem_of_not_mem hb hl.1).symm,
+  simp [set.set_of_or, set.pairwise_insert_of_symmetric (@symm_of _ r _), ih hl.2, and_comm,
+    forall₂_congr this],
+end
 
 end list
 

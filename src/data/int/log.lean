@@ -3,9 +3,8 @@ Copyright (c) 2022 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import data.nat.log
 import algebra.order.floor
-import algebra.field_power
+import data.nat.log
 
 /-!
 # Integer logarithms in a field with respect to a natural base
@@ -44,9 +43,9 @@ def digits (b : ℕ) (q : ℚ) (n : ℕ) : ℕ :=
     `(b : R) ^ (clog b r - 1) < r ≤ (b : R) ^ clog b r`.
   * `int.clog_zpow_gi`:  the galois insertion between `int.clog` and `zpow`.
 * `int.neg_log_inv_eq_clog`, `int.neg_clog_inv_eq_log`: the link between the two definitions.
-
 -/
-variables {R : Type*} [linear_ordered_field R] [floor_ring R]
+
+variables {R : Type*} [linear_ordered_semifield R] [floor_semiring R]
 
 namespace int
 
@@ -137,7 +136,7 @@ begin
       zpow_coe_nat, ←nat.cast_pow, nat.floor_coe, nat.log_pow hb],
     exact_mod_cast hb.le, },
   { rw [log_of_right_le_one _ (zpow_le_one_of_nonpos _ $ neg_nonpos.mpr (int.coe_nat_nonneg _)),
-      zpow_neg, inv_inv, zpow_coe_nat, ←nat.cast_pow, nat.ceil_coe, nat.clog_pow _ _ hb],
+      zpow_neg, inv_inv, zpow_coe_nat, ←nat.cast_pow, nat.ceil_nat_cast, nat.clog_pow _ _ hb],
     exact_mod_cast hb.le, },
 end
 
@@ -252,9 +251,9 @@ end
 lemma zpow_pred_clog_lt_self {b : ℕ} {r : R} (hb : 1 < b) (hr : 0 < r) :
   (b : R) ^ (clog b r - 1) < r :=
 begin
-  rw [←neg_log_inv_eq_clog, ←neg_add', zpow_neg, inv_lt (zpow_pos_of_pos _ _) hr],
+  rw [←neg_log_inv_eq_clog, ←neg_add', zpow_neg, inv_lt _ hr],
   { exact lt_zpow_succ_log_self hb _, },
-  { exact nat.cast_pos.mpr (zero_le_one.trans_lt hb), },
+  { exact zpow_pos_of_pos (nat.cast_pos.mpr $ zero_le_one.trans_lt hb) _ }
 end
 
 @[simp] lemma clog_zero_right (b : ℕ) : clog b (0 : R) = 0 :=

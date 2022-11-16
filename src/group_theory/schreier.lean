@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
-import data.finset.pointwise
-import group_theory.complement
-import group_theory.finiteness
-import group_theory.index
-import tactic.group
+import group_theory.abelianization
+import group_theory.exponent
+import group_theory.transfer
 
 /-!
 # Schreier's Lemma
@@ -103,19 +101,21 @@ begin
   exact closure_mul_image_eq_top hR hR1 hS,
 end
 
-lemma exists_finset_card_le_mul (hH : H.index ≠ 0) {S : finset G} (hS : closure (S : set G) = ⊤) :
+variables (H)
+
+lemma exists_finset_card_le_mul [finite_index H] {S : finset G} (hS : closure (S : set G) = ⊤) :
   ∃ T : finset H, T.card ≤ H.index * S.card ∧ closure (T : set H) = ⊤ :=
 begin
+  letI := H.fintype_quotient_of_finite_index,
   haveI : decidable_eq G := classical.dec_eq G,
   obtain ⟨R₀, hR : R₀ ∈ right_transversals (H : set G), hR1⟩ := exists_right_transversal (1 : G),
-  haveI : fintype (G ⧸ H) := fintype_of_index_ne_zero hH,
   haveI : fintype R₀ := fintype.of_equiv _ (mem_right_transversals.to_equiv hR),
   let R : finset G := set.to_finset R₀,
   replace hR : (R : set G) ∈ right_transversals (H : set G) := by rwa set.coe_to_finset,
   replace hR1 : (1 : G) ∈ R := by rwa set.mem_to_finset,
   refine ⟨_, _, closure_mul_image_eq_top' hR hR1 hS⟩,
   calc _ ≤ (R * S).card : finset.card_image_le
-  ... ≤ (R.product S).card : finset.card_image_le
+  ... ≤ (R ×ˢ S).card : finset.card_image_le
   ... = R.card * S.card : R.card_product S
   ... = H.index * S.card : congr_arg (* S.card) _,
   calc R.card = fintype.card R : (fintype.card_coe R).symm
@@ -126,24 +126,56 @@ end
 
 /-- **Schreier's Lemma**: A finite index subgroup of a finitely generated
   group is finitely generated. -/
-lemma fg_of_index_ne_zero [hG : group.fg G] (hH : H.index ≠ 0) : group.fg H :=
+instance fg_of_index_ne_zero [hG : group.fg G] [finite_index H] : group.fg H :=
 begin
   obtain ⟨S, hS⟩ := hG.1,
-  obtain ⟨T, -, hT⟩ := exists_finset_card_le_mul hH hS,
+  obtain ⟨T, -, hT⟩ := exists_finset_card_le_mul H hS,
   exact ⟨⟨T, hT⟩⟩,
 end
 
-lemma rank_le_index_mul_rank [hG : group.fg G] {H : subgroup G} (hH : H.index ≠ 0)
-  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)]
-  [decidable_pred (λ n, ∃ (S : finset H), S.card = n ∧ subgroup.closure (S : set H) = ⊤)] :
-  @group.rank H _ (fg_of_index_ne_zero hH) _ ≤ H.index * group.rank G :=
+lemma rank_le_index_mul_rank [hG : group.fg G] [finite_index H] :
+  group.rank H ≤ H.index * group.rank G :=
 begin
-  haveI := fg_of_index_ne_zero hH,
+  haveI := H.fg_of_index_ne_zero,
   obtain ⟨S, hS₀, hS⟩ := group.rank_spec G,
-  obtain ⟨T, hT₀, hT⟩ := exists_finset_card_le_mul hH hS,
+  obtain ⟨T, hT₀, hT⟩ := exists_finset_card_le_mul H hS,
   calc group.rank H ≤ T.card : group.rank_le H hT
   ... ≤ H.index * S.card : hT₀
   ... = H.index * group.rank G : congr_arg ((*) H.index) hS₀,
+end
+
+variables (G)
+
+/-- If `G` has `n` commutators `[g₁, g₂]`, then `|G'| ∣ [G : Z(G)] ^ ([G : Z(G)] * n + 1)`,
+where `G'` denotes the commutator of `G`. -/
+lemma card_commutator_dvd_index_center_pow [finite (commutator_set G)] :
+  nat.card (commutator G) ∣
+    (center G).index ^ ((center G).index * nat.card (commutator_set G) + 1) :=
+begin
+  -- First handle the case when `Z(G)` has infinite index and `[G : Z(G)]` is defined to be `0`
+  by_cases hG : (center G).index = 0,
+  { simp_rw [hG, zero_mul, zero_add, pow_one, dvd_zero] },
+  haveI : finite_index (center G) := ⟨hG⟩,
+  -- Rewrite as `|Z(G) ∩ G'| * [G' : Z(G) ∩ G'] ∣ [G : Z(G)] ^ ([G : Z(G)] * n) * [G : Z(G)]`
+  rw [←((center G).subgroup_of (commutator G)).card_mul_index, pow_succ'],
+  -- We have `h1 : [G' : Z(G) ∩ G'] ∣ [G : Z(G)]`
+  have h1 := relindex_dvd_index_of_normal (center G) (commutator G),
+  -- So we can reduce to proving `|Z(G) ∩ G'| ∣ [G : Z(G)] ^ ([G : Z(G)] * n)`
+  refine mul_dvd_mul _ h1,
+  -- We know that `[G' : Z(G) ∩ G'] < ∞` by `h1` and `hG`
+  haveI : finite_index ((center G).subgroup_of (commutator G)) := ⟨ne_zero_of_dvd_ne_zero hG h1⟩,
+  -- We have `h2 : rank (Z(G) ∩ G') ≤ [G' : Z(G) ∩ G'] * rank G'` by Schreier's lemma
+  have h2 := rank_le_index_mul_rank ((center G).subgroup_of (commutator G)),
+  -- We have `h3 : [G' : Z(G) ∩ G'] * rank G' ≤ [G : Z(G)] * n` by `h1` and `rank G' ≤ n`
+  have h3 := nat.mul_le_mul (nat.le_of_dvd (nat.pos_of_ne_zero hG) h1) (rank_commutator_le_card G),
+  -- So we can reduce to proving `|Z(G) ∩ G'| ∣ [G : Z(G)] ^ rank (Z(G) ∩ G')`
+  refine dvd_trans _ (pow_dvd_pow (center G).index (h2.trans h3)),
+  -- `Z(G) ∩ G'` is abelian, so it enough to prove that `g ^ [G : Z(G)] = 1` for `g ∈ Z(G) ∩ G'`
+  apply card_dvd_exponent_pow_rank' _ (λ g, _),
+  -- `Z(G)` is abelian, so `g ∈ Z(G) ∩ G' ≤ G' ≤ ker (transfer : G → Z(G))`
+  have := abelianization.commutator_subset_ker (monoid_hom.transfer_center_pow G) g.1.2,
+  -- `transfer g` is defeq to `g ^ [G : Z(G)]`, so we are done
+  simpa only [monoid_hom.mem_ker, subtype.ext_iff] using this,
 end
 
 end subgroup

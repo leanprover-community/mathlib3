@@ -387,7 +387,7 @@ begin
     intros v hv v2 hv2,
     rw finset.mem_bUnion at hv2,
     rcases hv2 with ⟨i, his, hi⟩,
-    refine h a i _ _ hv _ hi,
+    refine h _ _ hv _ hi,
     rintro rfl,
     contradiction }
 end
@@ -486,9 +486,8 @@ begin
   simp only [finset.sup_map],
   congr,
   ext,
-  simp only [ single, nat.one_ne_zero, add_right_eq_self, add_right_embedding_apply, coe_mk,
-              pi.add_apply, comp_app, ite_eq_right_iff, coe_add ],
-  cc,
+  simp only [single, nat.one_ne_zero, add_right_eq_self, add_right_embedding_apply, coe_mk,
+             pi.add_apply, comp_app, ite_eq_right_iff, finsupp.coe_add, pi.single_eq_of_ne h],
 end
 
 /- TODO in the following we have equality iff f ≠ 0 -/
@@ -770,7 +769,7 @@ lemma exists_rename_eq_of_vars_subset_range
   (p : mv_polynomial σ R) (f : τ → σ)
   (hfi : injective f) (hf : ↑p.vars ⊆ set.range f) :
   ∃ q : mv_polynomial τ R, rename f q = p :=
-⟨bind₁ (λ i : σ, option.elim (partial_inv f i) 0 X) p,
+⟨bind₁ (λ i : σ, option.elim 0 X $ partial_inv f i) p,
   begin
     show (rename f).to_ring_hom.comp _ p = ring_hom.id _ p,
     refine hom_congr_vars _ _ _,

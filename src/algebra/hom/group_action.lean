@@ -35,9 +35,9 @@ The above types have corresponding classes:
 -/
 
 variables (M' : Type*)
-variables (X : Type*) [has_scalar M' X]
-variables (Y : Type*) [has_scalar M' Y]
-variables (Z : Type*) [has_scalar M' Z]
+variables (X : Type*) [has_smul M' X]
+variables (Y : Type*) [has_smul M' Y]
+variables (Z : Type*) [has_smul M' Z]
 variables (M : Type*) [monoid M]
 variables (A : Type*) [add_monoid A] [distrib_mul_action M A]
 variables (A' : Type*) [add_group A'] [distrib_mul_action M A']
@@ -54,18 +54,18 @@ variables (G : Type*) [group G] (H : subgroup G)
 set_option old_structure_cmd true
 
 /-- Equivariant functions. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure mul_action_hom :=
 (to_fun : X → Y)
 (map_smul' : ∀ (m : M') (x : X), to_fun (m • x) = m • to_fun x)
 
-notation X ` →[`:25 M:25 `] `:0 Y:0 := mul_action_hom M X Y
+notation (name := mul_action_hom) X ` →[`:25 M:25 `] `:0 Y:0 := mul_action_hom M X Y
 
 /-- `smul_hom_class F M X Y` states that `F` is a type of morphisms preserving
 scalar multiplication by `M`.
 
 You should extend this class when you extend `mul_action_hom`. -/
-class smul_hom_class (F : Type*) (M X Y : out_param $ Type*) [has_scalar M X] [has_scalar M Y]
+class smul_hom_class (F : Type*) (M X Y : out_param $ Type*) [has_smul M X] [has_smul M Y]
   extends fun_like F X (λ _, Y) :=
 (map_smul : ∀ (f : F) (c : M) (x : X), f (c • x) = c • f x)
 
@@ -258,7 +258,7 @@ end semiring
 end distrib_mul_action_hom
 
 /-- Equivariant ring homomorphisms. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure mul_semiring_action_hom extends R →+[M] S, R →+* S.
 
 /-- Reinterpret an equivariant ring homomorphism as a ring homomorphism. -/
@@ -354,3 +354,55 @@ def is_invariant_subring.subtype_hom : U →+*[M] R' :=
   (is_invariant_subring.subtype_hom M U : U →+* R') = U.subtype := rfl
 
 end
+
+section coe
+
+variables (M' X Y)
+
+/-- `coe_is_smul_hom M X Y` is a class stating that the coercion map `↑ : X → Y`
+(a.k.a. `coe`) preserves scalar multiplication by `M`.
+
+Note that there is no class corresponding to `mul_action`, `distrib_mul_action` or
+`mul_semiring_action`: instead we assume `coe_is_smul_hom` and `coe_is_add_monoid_hom` or
+`coe_is_ring_hom` in separate parameters.
+This is because `coe_is_smul_hom` has a different set of parameters from those other classes,
+so extending both classes at once wouldn't work.
+-/
+class coe_is_smul_hom [has_lift_t X Y] :=
+(coe_smul : ∀ (c : M') (x : X), ↑(c • x) = c • (↑x : Y))
+
+export coe_is_smul_hom (coe_smul)
+
+attribute [simp, norm_cast] coe_smul
+
+/-- `mul_action_hom.coe X Y` is the map `↑ : M → N` (a.k.a. `coe`),
+bundled as a scalar-multiplication preserving map. -/
+@[simps { fully_applied := ff }]
+protected def mul_action_hom.coe [has_lift_t X Y] [coe_is_smul_hom M' X Y] : X →[M'] Y :=
+{ to_fun := coe,
+  map_smul' := coe_smul }
+
+variables (M A B)
+
+/-- `distrib_mul_action_hom.coe X Y` is the map `↑ : M → N` (a.k.a. `coe`),
+bundled as an equivariant additive monoid homomorphism. -/
+@[simps { fully_applied := ff }]
+protected def distrib_mul_action_hom.coe [has_lift_t A B] [coe_is_add_monoid_hom A B]
+  [coe_is_smul_hom M A B] : A →+[M] B :=
+{ to_fun := coe,
+  .. mul_action_hom.coe M A B,
+  .. add_monoid_hom.coe A B }
+
+variables (M X Y)
+
+/-- `mul_semiring_action_hom.coe X Y` is the map `↑ : M → N` (a.k.a. `coe`),
+bundled as an equivariant semiring homomorphism. -/
+@[simps { fully_applied := ff }]
+protected def mul_semiring_action_hom.coe [has_lift_t R S] [coe_is_ring_hom R S]
+  [coe_is_smul_hom M R S] :
+  R →+*[M] S :=
+{ to_fun := coe,
+  .. distrib_mul_action_hom.coe M R S,
+  .. ring_hom.coe R S }
+
+end coe

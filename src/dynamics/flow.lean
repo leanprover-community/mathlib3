@@ -109,7 +109,7 @@ protected lemma continuous {β : Type*} [topological_space β]
   continuous (λ x, ϕ (t x) (f x)) :=
 ϕ.cont'.comp (ht.prod_mk hf)
 
-alias flow.continuous ← continuous.flow
+alias flow.continuous ← _root_.continuous.flow
 
 lemma map_add (t₁ t₂ : τ) (x : α) : ϕ (t₁ + t₂) x = ϕ t₁ (ϕ t₂ x) :=
 ϕ.map_add' _ _ _
@@ -129,8 +129,7 @@ def from_iter {g : α → α} (h : continuous g) : flow ℕ α :=
 /-- Restriction of a flow onto an invariant set. -/
 def restrict {s : set α} (h : is_invariant ϕ s) : flow τ ↥s :=
 { to_fun    := λ t, (h t).restrict _ _ _,
-  cont'     := continuous_subtype_mk _ (ϕ.continuous continuous_fst
-    (continuous_subtype_coe.comp continuous_snd)),
+  cont'     := (ϕ.continuous continuous_fst continuous_subtype_coe.snd').subtype_mk _,
   map_add'  := λ _ _ _, subtype.ext (map_add _ _ _ _),
   map_zero' := λ _, subtype.ext (map_zero_apply _ _)}
 

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebraic_geometry.Spec
+import algebra.category.Ring.constructions
 
 /-!
 # The category of schemes
@@ -39,11 +40,16 @@ structure Scheme extends to_LocallyRingedSpace : LocallyRingedSpace :=
 
 namespace Scheme
 
+/-- A morphism between schemes is a morphism between the underlying locally ringed spaces. -/
+@[nolint has_nonempty_instance] -- There isn't nessecarily a morphism between two schemes.
+def hom (X Y : Scheme) : Type* :=
+X.to_LocallyRingedSpace ⟶ Y.to_LocallyRingedSpace
+
 /--
 Schemes are a full subcategory of locally ringed spaces.
 -/
 instance : category Scheme :=
-induced_category.category Scheme.to_LocallyRingedSpace
+{ hom := hom, ..(induced_category.category Scheme.to_LocallyRingedSpace) }
 
 /-- The structure sheaf of a Scheme. -/
 protected abbreviation sheaf (X : Scheme) := X.to_SheafedSpace.sheaf
@@ -61,16 +67,11 @@ def forget_to_LocallyRingedSpace : Scheme ⥤ LocallyRingedSpace :=
 def forget_to_Top : Scheme ⥤ Top :=
   Scheme.forget_to_LocallyRingedSpace ⋙ LocallyRingedSpace.forget_to_Top
 
-instance {X Y : Scheme} : has_lift_t (X ⟶ Y)
-  (X.to_SheafedSpace ⟶ Y.to_SheafedSpace) := (@@coe_to_lift $ @@coe_base coe_subtype)
-
-lemma id_val_base (X : Scheme) : (subtype.val (𝟙 X)).base = 𝟙 _ := rfl
-
-@[simp] lemma id_coe_base (X : Scheme) :
-  (↑(𝟙 X) : X.to_SheafedSpace ⟶ X.to_SheafedSpace).base = 𝟙 _ := rfl
+@[simp]
+lemma id_val_base (X : Scheme) : (𝟙 X : _).1.base = 𝟙 _ := rfl
 
 @[simp] lemma id_app {X : Scheme} (U : (opens X.carrier)ᵒᵖ) :
-  (subtype.val (𝟙 X)).c.app U = X.presheaf.map
+  (𝟙 X : _).val.c.app U = X.presheaf.map
     (eq_to_hom (by { induction U using opposite.rec, cases U, refl })) :=
 PresheafedSpace.id_c_app X.to_PresheafedSpace U
 
@@ -80,7 +81,7 @@ lemma comp_val {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) :
 
 @[reassoc, simp]
 lemma comp_coe_base {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) :
-  (↑(f ≫ g) : X.to_SheafedSpace ⟶ Z.to_SheafedSpace).base = f.val.base ≫ g.val.base := rfl
+  (f ≫ g).val.base = f.val.base ≫ g.val.base := rfl
 
 @[reassoc, elementwise]
 lemma comp_val_base {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) :
@@ -118,6 +119,13 @@ begin
   refl
 end
 
+/-- Given a morphism of schemes `f : X ⟶ Y`, and open sets `U ⊆ Y`, `V ⊆ f ⁻¹' U`,
+this is the induced map `Γ(Y, U) ⟶ Γ(X, V)`. -/
+abbreviation hom.app_le {X Y : Scheme}
+  (f : X ⟶ Y) {V : opens X.carrier} {U : opens Y.carrier} (e : V ≤ (opens.map f.1.base).obj U) :
+    Y.presheaf.obj (op U) ⟶ X.presheaf.obj (op V) :=
+f.1.c.app (op U) ≫ X.presheaf.map (hom_of_le e).op
+
 /--
 The spectrum of a commutative ring, as a scheme.
 -/
@@ -154,10 +162,15 @@ The spectrum, as a contravariant functor from commutative rings to schemes.
   map_comp' := λ R S T f g, by rw [unop_comp, Spec_map_comp] }
 
 /--
-The empty scheme, as `Spec 0`.
+The empty scheme.
 -/
-def empty : Scheme :=
-Spec_obj (CommRing.of punit)
+@[simps]
+def {u} empty : Scheme.{u} :=
+{ carrier := Top.of pempty,
+  presheaf := (category_theory.functor.const _).obj (CommRing.of punit),
+  is_sheaf := presheaf.is_sheaf_of_is_terminal _ CommRing.punit_is_terminal,
+  local_ring := λ x, pempty.elim x,
+  local_affine := λ x, pempty.elim x }
 
 instance : has_emptyc Scheme := ⟨empty⟩
 
@@ -199,7 +212,7 @@ RingedSpace.mem_basic_open _ f ⟨x, trivial⟩
 
 @[simp]
 lemma basic_open_res (i : op U ⟶ op V) :
-  X.basic_open (X.presheaf.map i f) = V ∩ X.basic_open f :=
+  X.basic_open (X.presheaf.map i f) = V ⊓ X.basic_open f :=
 RingedSpace.basic_open_res _ i f
 
 -- This should fire before `basic_open_res`.
@@ -208,9 +221,11 @@ lemma basic_open_res_eq (i : op U ⟶ op V) [is_iso i] :
   X.basic_open (X.presheaf.map i f) = X.basic_open f :=
 RingedSpace.basic_open_res_eq _ i f
 
-lemma basic_open_subset : X.basic_open f ⊆ U :=
-RingedSpace.basic_open_subset _ _
+@[sheaf_restrict]
+lemma basic_open_le : X.basic_open f ≤ U :=
+RingedSpace.basic_open_le _ _
 
+@[simp]
 lemma preimage_basic_open {X Y : Scheme} (f : X ⟶ Y) {U : opens Y.carrier}
   (r : Y.presheaf.obj $ op U) :
   (opens.map f.1.base).obj (Y.basic_open r) =
@@ -218,21 +233,13 @@ lemma preimage_basic_open {X Y : Scheme} (f : X ⟶ Y) {U : opens Y.carrier}
 LocallyRingedSpace.preimage_basic_open f r
 
 @[simp]
-lemma preimage_basic_open' {X Y : Scheme} (f : X ⟶ Y) {U : opens Y.carrier}
-  (r : Y.presheaf.obj $ op U) :
-  (opens.map (↑f : X.to_SheafedSpace ⟶ Y.to_SheafedSpace).base).obj (Y.basic_open r) =
-    @Scheme.basic_open X ((opens.map f.1.base).obj U) (f.1.c.app _ r) :=
-LocallyRingedSpace.preimage_basic_open f r
-
-@[simp]
-lemma basic_open_zero (U : opens X.carrier) : X.basic_open (0 : X.presheaf.obj $ op U) = ∅ :=
+lemma basic_open_zero (U : opens X.carrier) : X.basic_open (0 : X.presheaf.obj $ op U) = ⊥ :=
 LocallyRingedSpace.basic_open_zero _ U
 
 @[simp]
 lemma basic_open_mul : X.basic_open (f * g) = X.basic_open f ⊓ X.basic_open g :=
 RingedSpace.basic_open_mul _ _ _
 
-@[simp]
 lemma basic_open_of_is_unit {f : X.presheaf.obj (op U)} (hf : is_unit f) : X.basic_open f = U :=
 RingedSpace.basic_open_of_is_unit _ hf
 

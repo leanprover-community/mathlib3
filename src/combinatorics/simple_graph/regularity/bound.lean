@@ -33,10 +33,9 @@ lemma le_step_bound : id ≤ step_bound := λ n, nat.le_mul_of_pos_right $ pow_p
 lemma step_bound_mono : monotone step_bound :=
 λ a b h, nat.mul_le_mul h $ nat.pow_le_pow_of_le_right (by norm_num) h
 
-lemma step_bound_pos_iff {n : ℕ} : 0 < step_bound n ↔ 0 < n :=
-zero_lt_mul_right $ pow_pos (by norm_num) _
+lemma step_bound_pos_iff {n : ℕ} : 0 < step_bound n ↔ 0 < n := zero_lt_mul_right $ by positivity
 
-alias step_bound_pos_iff ↔ _ szemeredi_regularity.step_bound_pos
+alias step_bound_pos_iff ↔ _ step_bound_pos
 
 variables {α : Type*} [decidable_eq α] [fintype α] {P : finpartition (univ : finset α)}
   {u : finset α} {ε : ℝ}
@@ -57,17 +56,15 @@ lemma one_le_m_coe [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card
 nat.one_le_cast.2 $ m_pos hPα
 
 lemma eps_pow_five_pos (hPε : 100 ≤ 4^P.parts.card * ε^5) : 0 < ε^5 :=
-pos_of_mul_pos_left ((by norm_num : (0 : ℝ) < 100).trans_le hPε) $ pow_nonneg (by norm_num) _
+pos_of_mul_pos_right ((by norm_num : (0 : ℝ) < 100).trans_le hPε) $ pow_nonneg (by norm_num) _
 
 lemma eps_pos (hPε : 100 ≤ 4^P.parts.card * ε^5) : 0 < ε :=
 pow_bit1_pos_iff.1 $ eps_pow_five_pos hPε
 
-lemma four_pow_pos {n : ℕ} : 0 < (4 : ℝ)^n := pow_pos (by norm_num) n
-
 lemma hundred_div_ε_pow_five_le_m [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α)
   (hPε : 100 ≤ 4^P.parts.card * ε^5) :
   100 / ε^5 ≤ m :=
-(div_le_of_nonneg_of_le_mul (eps_pow_five_pos hPε).le four_pow_pos.le hPε).trans
+(div_le_of_nonneg_of_le_mul (eps_pow_five_pos hPε).le (by positivity) hPε).trans
 begin
   norm_cast,
   rwa [nat.le_div_iff_mul_le'(step_bound_pos (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos),
@@ -83,7 +80,7 @@ by exact_mod_cast
 lemma a_add_one_le_four_pow_parts_card : a + 1 ≤ 4^P.parts.card :=
 begin
   have h : 1 ≤ 4^P.parts.card := one_le_pow_of_one_le (by norm_num) _,
-  rw [step_bound, ←nat.div_div_eq_div_mul, nat.add_le_to_le_sub _ h, tsub_le_iff_left,
+  rw [step_bound, ←nat.div_div_eq_div_mul, ←nat.le_sub_iff_right h, tsub_le_iff_left,
     ←nat.add_sub_assoc h],
   exact nat.le_pred_of_lt (nat.lt_div_mul_add h),
 end
@@ -130,7 +127,7 @@ lemma hundred_lt_pow_initial_bound_mul {ε : ℝ} (hε : 0 < ε) (l : ℕ) :
 begin
   rw [←rpow_nat_cast 4, ←div_lt_iff (pow_pos hε 5), lt_rpow_iff_log_lt _ zero_lt_four,
     ←div_lt_iff, initial_bound, nat.cast_max, nat.cast_max],
-  { exact lt_max_of_lt_right (lt_max_of_lt_right $ nat.lt_floor_add_one _) },
+  { push_cast, exact lt_max_of_lt_right (lt_max_of_lt_right $ nat.lt_floor_add_one _) },
   { exact log_pos (by norm_num) },
   { exact div_pos (by norm_num) (pow_pos hε 5) }
 end
@@ -141,9 +138,26 @@ noncomputable def bound : ℕ :=
 (step_bound^[⌊4 / ε^5⌋₊] $ initial_bound ε l) * 16 ^ (step_bound^[⌊4 / ε^5⌋₊] $ initial_bound ε l)
 
 lemma initial_bound_le_bound : initial_bound ε l ≤ bound ε l :=
-(id_le_iterate_of_id_le le_step_bound _ _).trans $ nat.le_mul_of_pos_right $ pow_pos (by norm_num) _
+(id_le_iterate_of_id_le le_step_bound _ _).trans $ nat.le_mul_of_pos_right $ by positivity
 
 lemma le_bound : l ≤ bound ε l := (le_initial_bound ε l).trans $ initial_bound_le_bound ε l
 lemma bound_pos : 0 < bound ε l := (initial_bound_pos ε l).trans_le $ initial_bound_le_bound ε l
 
 end szemeredi_regularity
+
+namespace tactic
+open positivity szemeredi_regularity
+
+/-- Extension for the `positivity` tactic: `szemeredi_regularity.initial_bound` and
+`szemeredi_regularity.bound` are always positive. -/
+@[positivity]
+meta def positivity_szemeredi_regularity_bound : expr → tactic strictness
+| `(szemeredi_regularity.initial_bound %%ε %%l) := positive <$> mk_app ``initial_bound_pos [ε, l]
+| `(szemeredi_regularity.bound %%ε %%l) := positive <$> mk_app ``bound_pos [ε, l]
+| e := pp e >>= fail ∘ format.bracket "The expression `"
+ "` isn't of the form `szemeredi_regularity.initial_bound ε l` nor `szemeredi_regularity.bound ε l`"
+
+example (ε : ℝ) (l : ℕ) : 0 < szemeredi_regularity.initial_bound ε l := by positivity
+example (ε : ℝ) (l : ℕ) : 0 < szemeredi_regularity.bound ε l := by positivity
+
+end tactic

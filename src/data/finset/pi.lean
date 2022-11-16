@@ -104,9 +104,8 @@ lemma pi_subset {s : finset α} (t₁ t₂ : Πa, finset (δ a)) (h : ∀ a ∈ 
 λ g hg, mem_pi.2 $ λ a ha, h a ha (mem_pi.mp hg a ha)
 
 
-lemma pi_disjoint_of_disjoint {δ : α → Type*} [∀a, decidable_eq (δ a)]
-  {s : finset α} [decidable_eq (Πa∈s, δ a)]
-  (t₁ t₂ : Πa, finset (δ a)) {a : α} (ha : a ∈ s) (h : disjoint (t₁ a) (t₂ a)) :
+lemma pi_disjoint_of_disjoint {δ : α → Type*}
+  {s : finset α} (t₁ t₂ : Πa, finset (δ a)) {a : α} (ha : a ∈ s) (h : disjoint (t₁ a) (t₂ a)) :
   disjoint (s.pi t₁) (s.pi t₂) :=
 disjoint_iff_ne.2 $ λ f₁ hf₁ f₂ hf₂ eq₁₂,
   disjoint_iff_ne.1 h (f₁ a ha) (mem_pi.mp hf₁ a ha) (f₂ a ha) (mem_pi.mp hf₂ a ha)

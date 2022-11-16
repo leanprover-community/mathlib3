@@ -30,7 +30,7 @@ lemma tendsto_const_div_at_top_nhds_0_nat (C : ℝ) : tendsto (λ n : ℕ, C / n
 by simpa only [mul_zero] using tendsto_const_nhds.mul tendsto_inverse_at_top_nhds_0_nat
 
 lemma nnreal.tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ≥0)⁻¹) at_top (𝓝 0) :=
-by { rw ← nnreal.tendsto_coe, convert tendsto_inverse_at_top_nhds_0_nat, simp }
+by { rw ← nnreal.tendsto_coe, exact tendsto_inverse_at_top_nhds_0_nat }
 
 lemma nnreal.tendsto_const_div_at_top_nhds_0_nat (C : ℝ≥0) :
   tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
@@ -309,7 +309,7 @@ end
 /-- If `edist (f n) (f (n+1))` is bounded by `C * 2^-n`, then the distance from
 `f 0` to the limit of `f` is bounded above by `2 * C`. -/
 lemma edist_le_of_edist_le_geometric_two_of_tendsto₀: edist (f 0) a ≤ 2 * C :=
-by simpa only [pow_zero, div_eq_mul_inv, ennreal.inv_one, mul_one]
+by simpa only [pow_zero, div_eq_mul_inv, inv_one, mul_one]
   using edist_le_of_edist_le_geometric_two_of_tendsto C hu ha 0
 
 end edist_le_geometric_two
@@ -399,7 +399,7 @@ begin
   exact pow_pos (zero_lt_one.trans hm) _
 end
 
-/-! ### Positive sequences with small sums on encodable types -/
+/-! ### Positive sequences with small sums on countable types -/
 
 /-- For any positive `ε`, define on an encodable type a positive sequence with sum less than `ε` -/
 def pos_sum_of_encodable {ε : ℝ} (hε : 0 < ε)
@@ -439,42 +439,44 @@ end
 
 namespace nnreal
 
-theorem exists_pos_sum_of_encodable {ε : ℝ≥0} (hε : ε ≠ 0) (ι) [encodable ι] :
+theorem exists_pos_sum_of_countable {ε : ℝ≥0} (hε : ε ≠ 0) (ι) [countable ι] :
   ∃ ε' : ι → ℝ≥0, (∀ i, 0 < ε' i) ∧ ∃c, has_sum ε' c ∧ c < ε :=
-let ⟨a, a0, aε⟩ := exists_between (pos_iff_ne_zero.2 hε) in
-let ⟨ε', hε', c, hc, hcε⟩ := pos_sum_of_encodable a0 ι in
-⟨ λi, ⟨ε' i, le_of_lt $ hε' i⟩, assume i, nnreal.coe_lt_coe.1 $ hε' i,
-  ⟨c, has_sum_le (assume i, le_of_lt $ hε' i) has_sum_zero hc ⟩, nnreal.has_sum_coe.1 hc,
-   lt_of_le_of_lt (nnreal.coe_le_coe.1 hcε) aε ⟩
+begin
+  casesI nonempty_encodable ι,
+  obtain ⟨a, a0, aε⟩ := exists_between (pos_iff_ne_zero.2 hε),
+  obtain ⟨ε', hε', c, hc, hcε⟩ := pos_sum_of_encodable a0 ι,
+  exact ⟨λ i, ⟨ε' i, (hε' i).le⟩, λ i, nnreal.coe_lt_coe.1 $ hε' i, ⟨c, has_sum_le (λ i, (hε' i).le)
+    has_sum_zero hc⟩, nnreal.has_sum_coe.1 hc, aε.trans_le' $ nnreal.coe_le_coe.1 hcε⟩,
+end
 
 end nnreal
 
 namespace ennreal
 
-theorem exists_pos_sum_of_encodable {ε : ℝ≥0∞} (hε : ε ≠ 0) (ι) [encodable ι] :
+theorem exists_pos_sum_of_countable {ε : ℝ≥0∞} (hε : ε ≠ 0) (ι) [countable ι] :
   ∃ ε' : ι → ℝ≥0, (∀ i, 0 < ε' i) ∧ ∑' i, (ε' i : ℝ≥0∞) < ε :=
 begin
   rcases exists_between (pos_iff_ne_zero.2 hε) with ⟨r, h0r, hrε⟩,
   rcases lt_iff_exists_coe.1 hrε with ⟨x, rfl, hx⟩,
-  rcases nnreal.exists_pos_sum_of_encodable (coe_pos.1 h0r).ne' ι with ⟨ε', hp, c, hc, hcr⟩,
+  rcases nnreal.exists_pos_sum_of_countable (coe_pos.1 h0r).ne' ι with ⟨ε', hp, c, hc, hcr⟩,
   exact ⟨ε', hp, (ennreal.tsum_coe_eq hc).symm ▸ lt_trans (coe_lt_coe.2 hcr) hrε⟩
 end
 
-theorem exists_pos_sum_of_encodable' {ε : ℝ≥0∞} (hε : ε ≠ 0) (ι) [encodable ι] :
+theorem exists_pos_sum_of_countable' {ε : ℝ≥0∞} (hε : ε ≠ 0) (ι) [countable ι] :
   ∃ ε' : ι → ℝ≥0∞, (∀ i, 0 < ε' i) ∧ (∑' i, ε' i) < ε :=
-let ⟨δ, δpos, hδ⟩ := exists_pos_sum_of_encodable hε ι in
+let ⟨δ, δpos, hδ⟩ := exists_pos_sum_of_countable hε ι in
   ⟨λ i, δ i, λ i, ennreal.coe_pos.2 (δpos i), hδ⟩
 
-theorem exists_pos_tsum_mul_lt_of_encodable {ε : ℝ≥0∞} (hε : ε ≠ 0) {ι} [encodable ι]
+theorem exists_pos_tsum_mul_lt_of_countable {ε : ℝ≥0∞} (hε : ε ≠ 0) {ι} [countable ι]
   (w : ι → ℝ≥0∞) (hw : ∀ i, w i ≠ ∞) :
   ∃ δ : ι → ℝ≥0, (∀ i, 0 < δ i) ∧ ∑' i, (w i * δ i : ℝ≥0∞) < ε :=
 begin
   lift w to ι → ℝ≥0 using hw,
-  rcases exists_pos_sum_of_encodable hε ι with ⟨δ', Hpos, Hsum⟩,
+  rcases exists_pos_sum_of_countable hε ι with ⟨δ', Hpos, Hsum⟩,
   have : ∀ i, 0 < max 1 (w i), from λ i, zero_lt_one.trans_le (le_max_left _ _),
   refine ⟨λ i, δ' i / max 1 (w i), λ i, nnreal.div_pos (Hpos _) (this i), _⟩,
   refine lt_of_le_of_lt (ennreal.tsum_le_tsum $ λ i, _) Hsum,
-  rw [coe_div (this i).ne'],
+  rw [ennreal.coe_div (this i).ne'],
   refine mul_le_of_le_div' (ennreal.mul_le_mul le_rfl $ ennreal.inv_le_inv.2 _),
   exact coe_le_coe.2 (le_max_right _ _)
 end
@@ -539,7 +541,7 @@ end
 
 lemma tendsto_nat_floor_div_at_top :
   tendsto (λ x, (⌊x⌋₊ : R) / x) at_top (𝓝 1) :=
-by simpa using tendsto_nat_floor_mul_div_at_top (@zero_le_one R _ _ _ _)
+by simpa using tendsto_nat_floor_mul_div_at_top (zero_le_one' R)
 
 lemma tendsto_nat_ceil_mul_div_at_top {a : R} (ha : 0 ≤ a) :
   tendsto (λ x, (⌈a * x⌉₊ : R) / x) at_top (𝓝 a) :=
@@ -558,6 +560,6 @@ end
 
 lemma tendsto_nat_ceil_div_at_top :
   tendsto (λ x, (⌈x⌉₊ : R) / x) at_top (𝓝 1) :=
-by simpa using tendsto_nat_ceil_mul_div_at_top (@zero_le_one R _ _ _ _)
+by simpa using tendsto_nat_ceil_mul_div_at_top (zero_le_one' R)
 
 end

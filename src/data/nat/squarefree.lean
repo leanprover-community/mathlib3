@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import ring_theory.int.basic
-import algebra.is_prime_pow
+import data.nat.factorization.prime_pow
 import algebra.squarefree
 
 /-!
@@ -84,7 +84,7 @@ begin
   refine ⟨λ h, _, by { rintro ⟨hn, rfl⟩, simpa }⟩,
   rcases eq_or_ne n 0 with rfl | hn₀,
   { simpa [zero_pow hk.bot_lt] using h },
-  refine ⟨squarefree_of_dvd_of_squarefree (dvd_pow_self _ hk) h, by_contradiction $ λ h₁, _⟩,
+  refine ⟨h.squarefree_of_dvd (dvd_pow_self _ hk), by_contradiction $ λ h₁, _⟩,
   have : 2 ≤ k := k.two_le_iff.mpr ⟨hk, h₁⟩,
   apply hn (nat.is_unit_iff.1 (h _ _)),
   rw ←sq,
@@ -510,7 +510,7 @@ match match_numeral en with
 | _ := failed
 end
 
-/-- Evaluates the `prime` and `min_fac` functions. -/
+/-- Evaluates the `squarefree` predicate on naturals. -/
 @[norm_num] meta def eval_squarefree : expr → tactic (expr × expr)
 | `(squarefree (%%e : ℕ)) := do
   n ← e.to_nat,

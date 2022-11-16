@@ -7,7 +7,7 @@ import algebra.group.semiconj
 import algebra.group_with_zero.basic
 import algebra.hom.aut
 import algebra.hom.group
-import data.fintype.basic
+import data.finite.basic
 
 /-!
 # Conjugacy of group elements
@@ -101,11 +101,11 @@ end group
 @[simp] lemma is_conj_iff₀ [group_with_zero α] {a b : α} :
   is_conj a b ↔ ∃ c : α, c ≠ 0 ∧ c * a * c⁻¹ = b :=
 ⟨λ ⟨c, hc⟩, ⟨c, begin
-    rw [← units.coe_inv', units.mul_inv_eq_iff_eq_mul],
+    rw [← units.coe_inv, units.mul_inv_eq_iff_eq_mul],
     exact ⟨c.ne_zero, hc⟩,
   end⟩, λ ⟨c, c0, hc⟩,
   ⟨units.mk0 c c0, begin
-    rw [semiconj_by, ← units.mul_inv_eq_iff_eq_mul, units.coe_inv', units.coe_mk0],
+    rw [semiconj_by, ← units.mul_inv_eq_iff_eq_mul, units.coe_inv, units.coe_mk0],
     exact hc
   end⟩⟩
 
@@ -177,6 +177,9 @@ instance [fintype α] [decidable_rel (is_conj : α → α → Prop)] :
   fintype (conj_classes α) :=
 quotient.fintype (is_conj.setoid α)
 
+instance [finite α] : finite (conj_classes α) :=
+quotient.finite _
+
 /--
 Certain instances trigger further searches when they are considered as candidate instances;
 these instances should be assigned a priority lower than the default of 1000 (for example, 900).
@@ -191,7 +194,7 @@ If those conditions hold, the instance `instT` should be assigned lower priority
 For example, suppose the search for an instance of `decidable_eq (multiset α)` tries the
 candidate instance `con.quotient.decidable_eq (c : con M) : decidable_eq c.quotient`.
 Since `multiset` and `con.quotient` are both quotient types, unification will check
-that the relations `list.perm` and `c.to_setoid.r` unify. However, `c.to_setoid` depends on 
+that the relations `list.perm` and `c.to_setoid.r` unify. However, `c.to_setoid` depends on
 a `has_mul M` instance, so this unification triggers a search for `has_mul (list α)`;
 this will traverse all subclasses of `has_mul` before failing.
 On the other hand, the search for an instance of `decidable_eq (con.quotient c)` for `c : con M`

@@ -20,7 +20,7 @@ open tactic
 namespace conv.interactive
 open interactive interactive.types lean.parser
 
-local postfix `?`:9001 := optional
+local postfix (name := parser.optional) `?`:9001 := optional
 
 
 /--

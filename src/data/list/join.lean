@@ -18,7 +18,8 @@ namespace list
 
 attribute [simp] join
 
-@[simp] lemma join_nil : [([] : list α)].join = [] := rfl
+@[simp] lemma join_singleton (l : list α) : [l].join = l :=
+by rw [join, join, append_nil]
 
 @[simp] lemma join_eq_nil : ∀ {L : list (list α)}, join L = [] ↔ ∀ l ∈ L, l = []
 | []       := iff_of_true rfl (forall_mem_nil _)
@@ -26,6 +27,9 @@ attribute [simp] join
 
 @[simp] lemma join_append (L₁ L₂ : list (list α)) : join (L₁ ++ L₂) = join L₁ ++ join L₂ :=
 by induction L₁; [refl, simp only [*, join, cons_append, append_assoc]]
+
+lemma join_concat (L : list (list α)) (l : list α) : join (L.concat l) = join L ++ l :=
+by simp
 
 @[simp] lemma join_filter_empty_eq_ff [decidable_pred (λ l : list α, l.empty = ff)] :
   ∀ {L : list (list α)}, join (L.filter (λ l, l.empty = ff)) = L.join
@@ -134,6 +138,14 @@ begin
     simpa using this },
   { assume n h₁ h₂,
     rw [← drop_take_succ_join_eq_nth_le, ← drop_take_succ_join_eq_nth_le, join_eq, length_eq] }
+end
+
+lemma join_drop_length_sub_one {L : list (list α)} (h : L ≠ []) :
+  (L.drop (L.length - 1)).join = L.last h :=
+begin
+  induction L using list.reverse_rec_on,
+  { cases h rfl },
+  { simp },
 end
 
 end list

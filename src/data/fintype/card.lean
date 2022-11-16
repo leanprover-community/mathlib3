@@ -179,13 +179,17 @@ lemma equiv.prod_comp [fintype α] [fintype β] [comm_monoid γ] (e : α ≃ β)
   ∏ i, f (e i) = ∏ i, f i :=
 e.bijective.prod_comp f
 
+@[to_additive]
+lemma equiv.prod_comp' [fintype α] [fintype β] [comm_monoid γ] (e : α ≃ β) (f : α → γ) (g : β → γ)
+  (h : ∀ i, f i = g (e i)) : ∏ i, f i = ∏ i, g i :=
+(show f = g ∘ e, from funext h).symm ▸ e.prod_comp _
+
 /-- It is equivalent to sum a function over `fin n` or `finset.range n`. -/
 @[to_additive]
 lemma fin.prod_univ_eq_prod_range [comm_monoid α] (f : ℕ → α) (n : ℕ) :
   ∏ i : fin n, f i = ∏ i in range n, f i :=
 calc (∏ i : fin n, f i) = ∏ i : {x // x ∈ range n}, f i :
-  ((equiv.fin_equiv_subtype n).trans
-    (equiv.subtype_equiv_right (λ _, mem_range.symm))).prod_comp (f ∘ coe)
+  (fin.equiv_subtype.trans (equiv.subtype_equiv_right (by simp))).prod_comp' _ _ (by simp)
 ... = ∏ i in range n, f i : by rw [← attach_eq_univ, prod_attach]
 
 @[to_additive]
@@ -237,11 +241,11 @@ variables {α₁ : Type*} {α₂ : Type*} {M : Type*} [fintype α₁] [fintype �
 @[to_additive]
 lemma fintype.prod_sum_elim (f : α₁ → M) (g : α₂ → M) :
   (∏ x, sum.elim f g x) = (∏ a₁, f a₁) * (∏ a₂, g a₂) :=
-by { classical, rw [univ_sum_type, prod_sum_elim] }
+prod_disj_sum _ _ _
 
-@[to_additive]
+@[simp, to_additive]
 lemma fintype.prod_sum_type (f : α₁ ⊕ α₂ → M) :
   (∏ x, f x) = (∏ a₁, f (sum.inl a₁)) * (∏ a₂, f (sum.inr a₂)) :=
-by simp only [← fintype.prod_sum_elim, sum.elim_comp_inl_inr]
+prod_disj_sum _ _ _
 
 end

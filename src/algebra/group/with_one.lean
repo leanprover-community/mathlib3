@@ -3,10 +3,10 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johan Commelin
 -/
-import algebra.hom.equiv
-import algebra.ring.basic
-import logic.equiv.basic
-import logic.equiv.option
+import order.bounded_order
+import algebra.hom.equiv.basic
+import algebra.group_with_zero.units.basic
+import algebra.ring.defs
 
 /-!
 # Adjoining a zero/one to semigroups and related algebraic structures
@@ -51,6 +51,11 @@ instance [has_mul α] : has_mul (with_one α) := ⟨option.lift_or_get (*)⟩
 { inv_inv := λ a, (option.map_map _ _ _).trans $ by simp_rw [inv_comp_inv, option.map_id, id],
   ..with_one.has_inv }
 
+@[to_additive] instance [has_inv α] : inv_one_class (with_one α) :=
+{ inv_one := rfl,
+  ..with_one.has_one,
+  ..with_one.has_inv }
+
 @[to_additive]
 instance : inhabited (with_one α) := ⟨1⟩
 
@@ -66,6 +71,17 @@ instance : has_coe_t α (with_one α) := ⟨some⟩
 def rec_one_coe {C : with_one α → Sort*} (h₁ : C 1) (h₂ : Π (a : α), C a) :
   Π (n : with_one α), C n :=
 option.rec h₁ h₂
+
+/-- Deconstruct a `x : with_one α` to the underlying value in `α`, given a proof that `x ≠ 1`. -/
+@[to_additive unzero
+  "Deconstruct a `x : with_zero α` to the underlying value in `α`, given a proof that `x ≠ 0`."]
+def unone {x : with_one α} (hx : x ≠ 1) : α := with_bot.unbot x hx
+
+@[simp, to_additive unzero_coe]
+lemma unone_coe {x : α} (hx : (x : with_one α) ≠ 1) : unone hx = x := rfl
+
+@[simp, to_additive coe_unzero]
+lemma coe_unone {x : with_one α} (hx : x ≠ 1) : ↑(unone hx) = x := with_bot.coe_unbot x hx
 
 @[to_additive]
 lemma some_eq_coe {a : α} : (some a : with_one α) = ↑a := rfl
@@ -83,10 +99,8 @@ lemma ne_one_iff_exists {x : with_one α} : x ≠ 1 ↔ ∃ (a : α), ↑a = x :
 option.ne_none_iff_exists
 
 @[to_additive]
-instance : can_lift (with_one α) α :=
-{ coe := coe,
-  cond := λ a, a ≠ 1,
-  prf := λ a, ne_one_iff_exists.1 }
+instance can_lift : can_lift (with_one α) α coe (λ a, a ≠ 1) :=
+{ prf := λ a, ne_one_iff_exists.1 }
 
 @[simp, norm_cast, to_additive]
 lemma coe_inj {a b : α} : (a : with_one α) = b ↔ a = b :=
@@ -317,6 +331,11 @@ instance [has_involutive_inv α] : has_involutive_inv (with_zero α) :=
 { inv_inv := λ a, (option.map_map _ _ _).trans $ by simp_rw [inv_comp_inv, option.map_id, id],
   ..with_zero.has_inv }
 
+instance [inv_one_class α] : inv_one_class (with_zero α) :=
+{ inv_one := show ((1⁻¹ : α) : with_zero α) = 1, by simp,
+  ..with_zero.has_one,
+  ..with_zero.has_inv }
+
 instance [has_div α] : has_div (with_zero α) :=
 ⟨λ o₁ o₂, o₁.bind (λ a, option.map (λ b, a / b) o₂)⟩
 
@@ -356,6 +375,10 @@ instance [div_inv_monoid α] : div_inv_monoid (with_zero α) :=
   .. with_zero.has_inv,
   .. with_zero.monoid_with_zero, }
 
+instance [div_inv_one_monoid α] : div_inv_one_monoid (with_zero α) :=
+{ ..with_zero.div_inv_monoid,
+  ..with_zero.inv_one_class }
+
 instance [division_monoid α] : division_monoid (with_zero α) :=
 { mul_inv_rev := λ a b, match a, b with
     | none,   none   := rfl
@@ -377,9 +400,6 @@ instance [division_comm_monoid α] : division_comm_monoid (with_zero α) :=
 section group
 variables [group α]
 
-@[simp] lemma inv_one : (1 : with_zero α)⁻¹ = 1 :=
-show ((1⁻¹ : α) : with_zero α) = 1, by simp
-
 /-- if `G` is a group then `with_zero G` is a group with zero. -/
 instance : group_with_zero (with_zero α) :=
 { inv_zero := inv_zero,
@@ -393,6 +413,17 @@ end group
 instance [comm_group α] : comm_group_with_zero (with_zero α) :=
 { .. with_zero.group_with_zero, .. with_zero.comm_monoid_with_zero }
 
+instance [add_monoid_with_one α] : add_monoid_with_one (with_zero α) :=
+{ nat_cast := λ n, if n = 0 then 0 else (n.cast : α),
+  nat_cast_zero := rfl,
+  nat_cast_succ := λ n, begin
+    cases n,
+    show (((1 : ℕ) : α) : with_zero α) = 0 + 1, by rw [nat.cast_one, coe_one, zero_add],
+    show (((n + 2 : ℕ) : α) : with_zero α) = ((n + 1 : ℕ) : α) + 1,
+    by rw [nat.cast_succ, coe_add, coe_one],
+  end,
+  .. with_zero.add_monoid, ..with_zero.has_one }
+
 instance [semiring α] : semiring (with_zero α) :=
 { left_distrib := λ a b c, begin
     cases a with a, {refl},
@@ -405,9 +436,18 @@ instance [semiring α] : semiring (with_zero α) :=
     cases a with a; cases b with b; try {refl},
     exact congr_arg some (right_distrib _ _ _)
   end,
+  ..with_zero.add_monoid_with_one,
   ..with_zero.add_comm_monoid,
   ..with_zero.mul_zero_class,
   ..with_zero.monoid_with_zero }
+
+/-- Any group is isomorphic to the units of itself adjoined with `0`. -/
+def units_with_zero_equiv [group α] : (with_zero α)ˣ ≃* α :=
+{ to_fun    := λ a, unzero a.ne_zero,
+  inv_fun   := λ a, units.mk0 a coe_ne_zero,
+  left_inv  := λ _, units.ext $ by simpa only [coe_unzero],
+  right_inv := λ _, rfl,
+  map_mul'  := λ _ _, coe_inj.mp $ by simpa only [coe_unzero, coe_mul] }
 
 attribute [irreducible] with_zero
 

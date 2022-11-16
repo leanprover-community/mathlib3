@@ -47,7 +47,7 @@ Thinking of `C` as a 2-category with a single `0`-morphism, these are the same a
 transformations (in the pseudo- sense) of the identity 2-functor on `C`, which send the unique
 `0`-morphism to `X`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure half_braiding (X : C) :=
 (β : Π U, X ⊗ U ≅ U ⊗ X)
 (monoidal' : ∀ U U', (β (U ⊗ U')).hom =
@@ -65,7 +65,7 @@ variables (C)
 The Drinfeld center of a monoidal category `C` has as objects pairs `⟨X, b⟩`, where `X : C`
 and `b` is a half-braiding on `X`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def center := Σ X : C, half_braiding X
 
 namespace center
@@ -73,7 +73,7 @@ namespace center
 variables {C}
 
 /-- A morphism in the Drinfeld center of `C`. -/
-@[ext, nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure hom (X Y : center C) :=
 (f : X.1 ⟶ Y.1)
 (comm' : ∀ U, (f ⊗ 𝟙 U) ≫ (Y.2.β U).hom = (X.2.β U).hom ≫ (𝟙 U ⊗ f) . obviously)

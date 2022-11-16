@@ -68,7 +68,7 @@ universe u
 open function set submodule
 open_locale classical big_operators
 
-variables {ι : Type*} {ι' : Type*} {R : Type*} {K : Type*}
+variables {ι : Type*} {ι' : Type*} {R : Type*} {R₂ : Type*} {K : Type*}
 variables {M : Type*} {M' M'' : Type*} {V : Type u} {V' : Type*}
 
 section module
@@ -293,7 +293,7 @@ variables {R' : Type*} [semiring R'] [module R' M] (f : R ≃+* R') (h : ∀ c (
 
 include f h b
 
-local attribute [instance] has_scalar.comp.is_scalar_tower
+local attribute [instance] has_smul.comp.is_scalar_tower
 
 /-- If `R` and `R'` are isomorphic rings that act identically on a module `M`,
 then a basis for `M` as `R`-module is also a basis for `M` as `R'`-module.
@@ -360,12 +360,6 @@ if h : nontrivial R then
 else
   by letI : subsingleton R := not_nontrivial_iff_subsingleton.mp h; exact
     basis.of_repr (module.subsingleton_equiv R M (range b))
-
-lemma finsupp.single_apply_left {α β γ : Type*} [has_zero γ]
-  {f : α → β} (hf : function.injective f)
-  (x z : α) (y : γ) :
-  finsupp.single (f x) y (f z) = finsupp.single x y z :=
-by simp [finsupp.single_apply, hf.eq_iff]
 
 lemma reindex_range_self (i : ι) (h := set.mem_range_self i) :
   b.reindex_range ⟨b i, h⟩ = b i :=
@@ -470,6 +464,15 @@ begin
   exact ⟨i⟩
 end
 
+/-- If the submodule `P` has a basis, `x ∈ P` iff it is a linear combination of basis vectors. -/
+lemma mem_submodule_iff {P : submodule R M} (b : basis ι R P) {x : M} :
+  x ∈ P ↔ ∃ (c : ι →₀ R), x = finsupp.sum c (λ i x, x • b i) :=
+begin
+  conv_lhs { rw [← P.range_subtype, ← submodule.map_top, ← b.span_eq, submodule.map_span,
+    ← set.range_comp, ← finsupp.range_total] },
+  simpa only [@eq_comm _ x],
+end
+
 section constr
 
 variables (S : Type*) [semiring S] [module S M']
@@ -561,7 +564,8 @@ section prod
 variables (b' : basis ι' R M')
 
 /-- `basis.prod` maps a `ι`-indexed basis for `M` and a `ι'`-indexed basis for `M'`
-to a `ι ⊕ ι'`-index basis for `M × M'`. -/
+to a `ι ⊕ ι'`-index basis for `M × M'`.
+For the specific case of `R × R`, see also `basis.fin_two_prod`. -/
 protected def prod : basis (ι ⊕ ι') R (M × M') :=
 of_repr ((b.repr.prod b'.repr).trans (finsupp.sum_finsupp_lequiv_prod_finsupp R).symm)
 
@@ -768,6 +772,16 @@ b.sum_equiv_fun u
 lemma basis.equiv_fun_self (i j : ι) : b.equiv_fun (b i) j = if i = j then 1 else 0 :=
 by { rw [b.equiv_fun_apply, b.repr_self_apply] }
 
+lemma basis.repr_sum_self (c : ι → R) : ⇑(b.repr (∑ i, c i • b i)) = c :=
+begin
+  ext j,
+  simp only [map_sum, linear_equiv.map_smul, repr_self, finsupp.smul_single, smul_eq_mul,
+             mul_one, finset.sum_apply'],
+  rw [finset.sum_eq_single j, finsupp.single_eq_same],
+  { rintros i - hi, exact finsupp.single_eq_of_ne hi },
+  { intros, have := finset.mem_univ j, contradiction }
+end
+
 /-- Define a basis by mapping each vector `x : M` to its coordinates `e x : ι → R`,
 as long as `ι` is finite. -/
 def basis.of_equiv_fun (e : M ≃ₗ[R] (ι → R)) : basis ι R M :=
@@ -796,6 +810,13 @@ variables [smul_comm_class R S M']
 @[simp] theorem basis.constr_apply_fintype (f : ι → M') (x : M) :
   (b.constr S f : M → M') x = ∑ i, (b.equiv_fun x i) • f i :=
 by simp [b.constr_apply, b.equiv_fun_apply, finsupp.sum_fintype]
+
+/-- If the submodule `P` has a finite basis,
+`x ∈ P` iff it is a linear combination of basis vectors. -/
+lemma basis.mem_submodule_iff' {P : submodule R M} (b : basis ι R P) {x : M} :
+  x ∈ P ↔ ∃ (c : ι → R), x = ∑ i, c i • b i :=
+b.mem_submodule_iff.trans $ finsupp.equiv_fun_on_fintype.exists_congr_left.trans $ exists_congr $
+λ c, by simp [finsupp.sum_fintype]
 
 end fintype
 
@@ -858,8 +879,8 @@ section module
 open linear_map
 
 variables {v : ι → M}
-variables [ring R] [add_comm_group M] [add_comm_group M'] [add_comm_group M'']
-variables [module R M] [module R M'] [module R M'']
+variables [ring R] [comm_ring R₂] [add_comm_group M] [add_comm_group M'] [add_comm_group M'']
+variables [module R M] [module R₂ M] [module R M'] [module R M'']
 variables {c d : R} {x y : M}
 variables (b : basis ι R M)
 
@@ -897,7 +918,7 @@ end
 
 section mk
 
-variables (hli : linear_independent R v) (hsp : span R (range v) = ⊤)
+variables (hli : linear_independent R v) (hsp : ⊤ ≤ span R (range v))
 
 /-- A linear independent family of vectors spanning the whole module is a basis. -/
 protected noncomputable def mk : basis ι R M :=
@@ -905,10 +926,10 @@ basis.of_repr
 { inv_fun := finsupp.total _ _ _ v,
   left_inv := λ x, hli.total_repr ⟨x, _⟩,
   right_inv := λ x, hli.repr_eq rfl,
-  .. hli.repr.comp (linear_map.id.cod_restrict _ (λ h, hsp.symm ▸ submodule.mem_top)) }
+  .. hli.repr.comp (linear_map.id.cod_restrict _ (λ h, hsp submodule.mem_top)) }
 
 @[simp] lemma mk_repr :
-  (basis.mk hli hsp).repr x = hli.repr ⟨x, hsp.symm ▸ submodule.mem_top⟩ :=
+  (basis.mk hli hsp).repr x = hli.repr ⟨x, hsp submodule.mem_top⟩ :=
 rfl
 
 lemma mk_apply (i : ι) : basis.mk hli hsp i = v i :=
@@ -953,21 +974,24 @@ variables (hli : linear_independent R v)
 protected noncomputable def span : basis ι R (span R (range v)) :=
 basis.mk (linear_independent_span hli) $
 begin
-  rw eq_top_iff,
   intros x _,
   have h₁ : (coe : span R (range v) → M) '' set.range (λ i, subtype.mk (v i) _) = range v,
   { rw ← set.range_comp,
     refl },
-  have h₂ : map (submodule.subtype _) (span R (set.range (λ i, subtype.mk (v i) _)))
-    = span R (range v),
+  have h₂ : map (submodule.subtype (span R (range v)))
+    (span R (set.range (λ i, subtype.mk (v i) _))) = span R (range v),
   { rw [← span_image, submodule.coe_subtype, h₁] },
-  have h₃ : (x : M) ∈ map (submodule.subtype _) (span R (set.range (λ i, subtype.mk (v i) _))),
+  have h₃ : (x : M) ∈ map (submodule.subtype (span R (range v)))
+    (span R (set.range (λ i, subtype.mk (v i) _))),
   { rw h₂, apply subtype.mem x },
   rcases mem_map.1 h₃ with ⟨y, hy₁, hy₂⟩,
   have h_x_eq_y : x = y,
   { rw [subtype.ext_iff, ← hy₂], simp },
   rwa h_x_eq_y
 end
+
+protected lemma span_apply (i : ι) : (basis.span hli i : M) = v i :=
+congr_arg (coe : span R (range v) → M) $ basis.mk_apply (linear_independent_span hli) _ i
 
 end span
 
@@ -992,13 +1016,13 @@ def group_smul {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_actio
   [is_scalar_tower G R M] [smul_comm_class G R M] (v : basis ι R M) (w : ι → G) :
   basis ι R M :=
 @basis.mk ι R M (w • v) _ _ _
-  (v.linear_independent.group_smul w) (group_smul_span_eq_top v.span_eq)
+  (v.linear_independent.group_smul w) (group_smul_span_eq_top v.span_eq).ge
 
 lemma group_smul_apply {G : Type*} [group G] [distrib_mul_action G R] [distrib_mul_action G M]
   [is_scalar_tower G R M] [smul_comm_class G R M] {v : basis ι R M} {w : ι → G} (i : ι) :
   v.group_smul w i = (w • v : ι → M) i :=
 mk_apply
-  (v.linear_independent.group_smul w) (group_smul_span_eq_top v.span_eq) i
+  (v.linear_independent.group_smul w) (group_smul_span_eq_top v.span_eq).ge i
 
 lemma units_smul_span_eq_top {v : ι → M} (hv : submodule.span R (set.range v) = ⊤)
   {w : ι → Rˣ} : submodule.span R (set.range (w • v)) = ⊤ :=
@@ -1009,12 +1033,31 @@ provides the basis corresponding to `w • v`. -/
 def units_smul (v : basis ι R M) (w : ι → Rˣ) :
   basis ι R M :=
 @basis.mk ι R M (w • v) _ _ _
-  (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq)
+  (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq).ge
 
 lemma units_smul_apply {v : basis ι R M} {w : ι → Rˣ} (i : ι) :
   v.units_smul w i = w i • v i :=
 mk_apply
-  (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq) i
+  (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq).ge i
+
+@[simp] lemma coord_units_smul (e : basis ι R₂ M) (w : ι → R₂ˣ) (i : ι) :
+  (e.units_smul w).coord i = (w i)⁻¹ • e.coord i :=
+begin
+  apply e.ext,
+  intros j,
+  transitivity ((e.units_smul w).coord i) ((w j)⁻¹ • (e.units_smul w) j),
+  { congr,
+    simp [basis.units_smul, ← mul_smul], },
+  simp only [basis.coord_apply, linear_map.smul_apply, basis.repr_self, units.smul_def,
+    smul_hom_class.map_smul, finsupp.single_apply],
+  split_ifs with h h,
+  { simp [h] },
+  { simp }
+end
+
+@[simp] lemma repr_units_smul (e : basis ι R₂ M) (w : ι → R₂ˣ) (v : M) (i : ι) :
+  (e.units_smul w).repr v i = (w i)⁻¹ • e.repr v i :=
+congr_arg (λ f : M →ₗ[R₂] R₂, f v) (e.coord_units_smul w i)
 
 /-- A version of `smul_of_units` that uses `is_unit`. -/
 def is_unit_smul (v : basis ι R M) {w : ι → R} (hw : ∀ i, is_unit (w i)):
@@ -1039,8 +1082,7 @@ have span_b : submodule.span R (set.range (N.subtype ∘ b)) = N,
 @basis.mk _ _ _ (fin.cons y (N.subtype ∘ b) : fin (n + 1) → M) _ _ _
   ((b.linear_independent.map' N.subtype (submodule.ker_subtype _)) .fin_cons' _ _ $
     by { rintros c ⟨x, hx⟩ hc, rw span_b at hx, exact hli c x hx hc })
-  (eq_top_iff.mpr (λ x _,
-    by { rw [fin.range_cons, submodule.mem_span_insert', span_b], exact hsp x }))
+  (λ x _, by { rw [fin.range_cons, submodule.mem_span_insert', span_b], exact hsp x })
 
 @[simp] lemma coe_mk_fin_cons {n : ℕ} {N : submodule R M} (y : M) (b : basis (fin n) R N)
   (hli : ∀ (c : R) (x ∈ N), c • y + x = 0 → c = 0)
@@ -1067,6 +1109,20 @@ mk_fin_cons ⟨y, yO⟩ (b.map (submodule.comap_subtype_equiv_of_le hNO).symm)
   (mk_fin_cons_of_le y yO b hNO hli hsp : fin (n + 1) → O) =
     fin.cons ⟨y, yO⟩ (submodule.of_le hNO ∘ b) :=
 coe_mk_fin_cons _ _ _ _
+
+/-- The basis of `R × R` given by the two vectors `(1, 0)` and `(0, 1)`. -/
+protected def fin_two_prod (R : Type*) [semiring R] : basis (fin 2) R (R × R) :=
+basis.of_equiv_fun (linear_equiv.fin_two_arrow R R).symm
+
+@[simp] lemma fin_two_prod_zero (R : Type*) [semiring R] : basis.fin_two_prod R 0 = (1, 0) :=
+by simp [basis.fin_two_prod]
+
+@[simp] lemma fin_two_prod_one (R : Type*) [semiring R] : basis.fin_two_prod R 1 = (0, 1) :=
+by simp [basis.fin_two_prod]
+
+@[simp] lemma coe_fin_two_prod_repr {R : Type*} [semiring R] (x : R × R) :
+  ⇑((basis.fin_two_prod R).repr x) = ![x.fst, x.snd] :=
+rfl
 
 end fin
 
@@ -1099,7 +1155,7 @@ begin
   induction n with n rank_ih generalizing N,
   { suffices : N = ⊥,
     { rwa this },
-    apply eq_bot_of_rank_eq_zero b _ (λ m v hv, nat.le_zero_iff.mp (rank_le v hv)) },
+    apply eq_bot_of_rank_eq_zero b _ (λ m v hv, le_zero_iff.mp (rank_le v hv)) },
   apply ih,
   intros N' N'_le x x_mem x_ortho,
   apply rank_ih,
@@ -1133,8 +1189,7 @@ noncomputable def extend (hs : linear_independent K (coe : s → V)) :
   basis _ K V :=
 basis.mk
   (@linear_independent.restrict_of_comp_subtype _ _ _ id _ _ _ _ (hs.linear_independent_extend _))
-  (eq_top_iff.mpr $ set_like.coe_subset_coe.mp $
-    by simpa using hs.subset_span_extend (subset_univ s))
+  (set_like.coe_subset_coe.mp $ by simpa using hs.subset_span_extend (subset_univ s))
 
 lemma extend_apply_self (hs : linear_independent K (coe : s → V))
   (x : hs.extend _) :
@@ -1207,6 +1262,54 @@ theorem vector_space.card_fintype [fintype K] [fintype V] :
   ∃ n : ℕ, card V = (card K) ^ n :=
 ⟨card (basis.of_vector_space_index K V), module.card_fintype (basis.of_vector_space K V)⟩
 
+section atoms_of_submodule_lattice
+
+variables {K V}
+
+/-- For a module over a division ring, the span of a nonzero element is an atom of the
+lattice of submodules. -/
+lemma nonzero_span_atom (v : V) (hv : v ≠ 0) : is_atom (span K {v} : submodule K V) :=
+begin
+  split,
+  { rw submodule.ne_bot_iff, exact ⟨v, ⟨mem_span_singleton_self v, hv⟩⟩ },
+  { intros T hT, by_contra, apply hT.2,
+    change (span K {v}) ≤ T,
+    simp_rw [span_singleton_le_iff_mem, ← ne.def, submodule.ne_bot_iff] at *,
+    rcases h with ⟨s, ⟨hs, hz⟩⟩,
+    cases (mem_span_singleton.1 (hT.1 hs)) with a ha,
+    have h : a ≠ 0, by { intro h, rw [h, zero_smul] at ha, exact hz ha.symm },
+    apply_fun (λ x, a⁻¹ • x) at ha,
+    simp_rw [← mul_smul, inv_mul_cancel h, one_smul, ha] at *, exact smul_mem T _ hs},
+end
+
+/-- The atoms of the lattice of submodules of a module over a division ring are the
+submodules equal to the span of a nonzero element of the module. -/
+lemma atom_iff_nonzero_span (W : submodule K V) :
+  is_atom W ↔ ∃ (v : V) (hv : v ≠ 0), W = span K {v} :=
+begin
+  refine ⟨λ h, _, λ h, _ ⟩,
+  { cases h with hbot h,
+    rcases ((submodule.ne_bot_iff W).1 hbot) with ⟨v, ⟨hW, hv⟩⟩,
+    refine ⟨v, ⟨hv, _⟩⟩,
+    by_contra heq,
+    specialize h (span K {v}),
+    rw [span_singleton_eq_bot, lt_iff_le_and_ne] at h,
+    exact hv (h ⟨(span_singleton_le_iff_mem v W).2 hW, ne.symm heq⟩) },
+  { rcases h with ⟨v, ⟨hv, rfl⟩⟩, exact nonzero_span_atom v hv },
+end
+
+/-- The lattice of submodules of a module over a division ring is atomistic. -/
+instance : is_atomistic (submodule K V) :=
+{ eq_Sup_atoms :=
+  begin
+    intro W,
+    use {T : submodule K V | ∃ (v : V) (hv : v ∈ W) (hz : v ≠ 0), T = span K {v}},
+    refine ⟨submodule_eq_Sup_le_nonzero_spans W, _⟩,
+    rintros _ ⟨w, ⟨_, ⟨hw, rfl⟩⟩⟩, exact nonzero_span_atom w hw
+  end }
+
+end atoms_of_submodule_lattice
+
 end division_ring
 
 section field
@@ -1243,7 +1346,7 @@ lemma submodule.exists_is_compl (p : submodule K V) : ∃ q : submodule K V, is_
 let ⟨f, hf⟩ := p.subtype.exists_left_inverse_of_injective p.ker_subtype in
 ⟨f.ker, linear_map.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩
 
-instance module.submodule.is_complemented : is_complemented (submodule K V) :=
+instance module.submodule.complemented_lattice : complemented_lattice (submodule K V) :=
 ⟨submodule.exists_is_compl⟩
 
 lemma linear_map.exists_right_inverse_of_surjective (f : V →ₗ[K] V')

@@ -64,6 +64,9 @@ lemma continuous_within_at.star (hf : continuous_within_at f s x) :
   continuous_within_at (λ x, star (f x)) s x :=
 hf.star
 
+/-- The star operation bundled as a continuous map. -/
+@[simps] def star_continuous_map : C(R, R) := ⟨star, continuous_star⟩
+
 end continuity
 
 section instances
@@ -81,6 +84,6 @@ instance [has_star R] [topological_space R] [has_continuous_star R] : has_contin
 
 instance [monoid R] [star_semigroup R] [topological_space R] [has_continuous_star R] :
   has_continuous_star Rˣ :=
-⟨continuous_induced_rng units.continuous_embed_product.star⟩
+⟨continuous_induced_rng.2 units.continuous_embed_product.star⟩
 
 end instances

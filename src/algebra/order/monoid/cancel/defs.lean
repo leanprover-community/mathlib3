@@ -35,7 +35,7 @@ class ordered_cancel_comm_monoid (α : Type u) extends comm_monoid α, partial_o
 section ordered_cancel_comm_monoid
 variables [ordered_cancel_comm_monoid α] {a b c d : α}
 
-@[priority 200, to_additive] -- see Note [lower instance priority]
+@[to_additive]
 instance ordered_cancel_comm_monoid.to_contravariant_class_le_left :
   contravariant_class α α (*) (≤) :=
 ⟨ordered_cancel_comm_monoid.le_of_mul_le_mul_left⟩

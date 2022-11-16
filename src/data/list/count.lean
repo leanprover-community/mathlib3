@@ -3,7 +3,7 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
-import data.list.big_operators
+import data.list.basic
 
 /-!
 # Counting in lists
@@ -49,10 +49,6 @@ by simpa only [countp_eq_length_filter] using length_filter_le _ _
 
 @[simp] lemma countp_append (l₁ l₂) : countp p (l₁ ++ l₂) = countp p l₁ + countp p l₂ :=
 by simp only [countp_eq_length_filter, filter_append, length_append]
-
-lemma countp_join : ∀ l : list (list α), countp p l.join = (l.map (countp p)).sum
-| [] := rfl
-| (a :: l) := by rw [join, countp_append, map_cons, sum_cons, countp_join]
 
 lemma countp_pos {l} : 0 < countp p l ↔ ∃ a ∈ l, p a :=
 by simp only [countp_eq_length_filter, length_pos_iff_exists_mem, mem_filter, exists_prop]
@@ -136,9 +132,6 @@ lemma count_singleton' (a b : α) : count a [b] = ite (a = b) 1 0 := rfl
 @[simp] lemma count_append (a : α) : ∀ l₁ l₂, count a (l₁ ++ l₂) = count a l₁ + count a l₂ :=
 countp_append _
 
-lemma count_join (l : list (list α)) (a : α) : l.join.count a = (l.map (count a)).sum :=
-countp_join _ _
-
 lemma count_concat (a : α) (l : list α) : count a (concat l a) = succ (count a l) :=
 by simp [-add_comm]
 
@@ -181,10 +174,6 @@ lemma repeat_count_eq_of_count_eq_length  {a : α} {l : list α} (h : count a l 
   {a} {l : list α} (h : p a) : count a (filter p l) = count a l :=
 by simp only [count, countp_filter, show (λ b, a = b ∧ p b) = eq a, by { ext b, constructor; cc }]
 
-lemma count_bind {α β} [decidable_eq β] (l : list α) (f : α → list β) (x : β)  :
-  count x (l.bind f) = sum (map (count x ∘ f) l) :=
-by rw [list.bind, count_join, map_map]
-
 @[simp] lemma count_map_of_injective {α β} [decidable_eq α] [decidable_eq β]
   (l : list α) (f : α → β) (hf : function.injective f) (x : α) :
   count (f x) (map f l) = count x l :=
@@ -217,24 +206,6 @@ by rw [count_erase, if_pos rfl]
 @[simp] lemma count_erase_of_ne {a b : α} (ab : a ≠ b) (l : list α) :
   count a (l.erase b) = count a l :=
 by rw [count_erase, if_neg ab, tsub_zero]
-
-@[to_additive]
-lemma prod_map_eq_pow_single [monoid β] {l : list α} (a : α) (f : α → β)
-  (hf : ∀ a' ≠ a, a' ∈ l → f a' = 1) : (l.map f).prod = (f a) ^ (l.count a) :=
-begin
-  induction l with a' as h generalizing a,
-  { rw [map_nil, prod_nil, count_nil, pow_zero] },
-  { specialize h a (λ a' ha' hfa', hf a' ha' (mem_cons_of_mem _ hfa')),
-    rw [list.map_cons, list.prod_cons, count_cons, h],
-    split_ifs with ha',
-    { rw [ha', pow_succ] },
-    { rw [hf a' (ne.symm ha') (list.mem_cons_self a' as), one_mul] } }
-end
-
-@[to_additive]
-lemma prod_eq_pow_single [monoid α] {l : list α} (a : α)
-  (h : ∀ a' ≠ a, a' ∈ l → a' = 1) : l.prod = a ^ (l.count a) :=
-trans (by rw [map_id'']) (prod_map_eq_pow_single a id h)
 
 end count
 

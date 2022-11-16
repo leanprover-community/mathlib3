@@ -3,7 +3,12 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Floris van Doorn, Sébastien Gouëzel, Alex J. Best
 -/
-import algebra.group_power
+import algebra.group.opposite
+import algebra.group_power.basic
+import algebra.group_with_zero.commute
+import algebra.ring.commute
+import data.int.basic
+import data.list.count
 import data.list.forall2
 
 /-!
@@ -590,6 +595,35 @@ sum_map_hom L f $ add_monoid_hom.mul_left r
 lemma sum_map_mul_right [non_unital_non_assoc_semiring R] (L : list ι) (f : ι → R) (r : R) :
   (L.map (λ b, f b * r)).sum = (L.map f).sum * r :=
 sum_map_hom L f $ add_monoid_hom.mul_right r
+
+lemma countp_join (p : α → Prop) [decidable_pred p] :
+  ∀ l : list (list α), countp p l.join = (l.map (countp p)).sum
+| [] := rfl
+| (a :: l) := by rw [join, countp_append, map_cons, sum_cons, countp_join]
+
+lemma count_join [decidable_eq α] (l : list (list α)) (a : α) :
+  l.join.count a = (l.map (count a)).sum :=
+countp_join _ _
+
+lemma count_bind [decidable_eq M] (l : list α) (f : α → list M) (x : M)  :
+  count x (l.bind f) = (map (count x ∘ f) l).sum :=
+by rw [list.bind, count_join, map_map]
+
+@[to_additive] lemma prod_map_eq_pow_single [decidable_eq α] [monoid M] {l : list α} (a : α)
+  (f : α → M) (hf : ∀ a' ≠ a, a' ∈ l → f a' = 1) : (l.map f).prod = f a ^ l.count a :=
+begin
+  induction l with a' as h generalizing a,
+  { rw [map_nil, prod_nil, count_nil, pow_zero] },
+  specialize h a (λ a' ha' hfa', hf a' ha' (mem_cons_of_mem _ hfa')),
+  rw [list.map_cons, list.prod_cons, count_cons, h],
+  split_ifs with ha',
+  { rw [ha', pow_succ] },
+  { rw [hf a' (ne.symm ha') (list.mem_cons_self a' as), one_mul] }
+end
+
+@[to_additive] lemma prod_eq_pow_single [decidable_eq α] [monoid α] {l : list α} (a : α)
+  (h : ∀ a' ≠ a, a' ∈ l → a' = 1) : l.prod = a ^ l.count a :=
+trans (by rw [map_id'']) $ prod_map_eq_pow_single a id h
 
 end list
 

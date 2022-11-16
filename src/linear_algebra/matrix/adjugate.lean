@@ -3,12 +3,11 @@ Copyright (c) 2019 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import algebra.associated
 import algebra.regular.basic
 import linear_algebra.matrix.mv_polynomial
 import linear_algebra.matrix.polynomial
 import ring_theory.polynomial.basic
-import tactic.linarith
+import tactic.linarith.default
 import tactic.ring_exp
 
 /-!

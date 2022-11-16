@@ -5,6 +5,15 @@ Authors: Mario Carneiro
 -/
 import data.fin.fin2
 import tactic.localized
+import tactic.binder_matching
+import tactic.cache
+import tactic.core
+import tactic.derive_inhabited
+import tactic.doc_commands
+import tactic.interactive_expr
+import tactic.lean_core_docs
+import tactic.project_dir
+import tactic.reserved_notation
 
 /-!
 # Alternate definition of `vector` in terms of `fin2`

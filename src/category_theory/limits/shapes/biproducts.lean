@@ -3,11 +3,11 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Jakob von Raumer
 -/
-import algebra.group.ext
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.binary_products
-import category_theory.preadditive
 import category_theory.limits.shapes.kernels
+import tactic.abel
+import tactic.norm_num
 
 /-!
 # Biproducts and binary biproducts

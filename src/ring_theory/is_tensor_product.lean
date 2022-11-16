@@ -6,7 +6,8 @@ Authors: Andrew Yang
 
 import ring_theory.tensor_product
 import algebra.module.ulift
-import logic.equiv.transfer_instance
+import tactic.compute_degree
+import tactic.ring_exp
 
 /-!
 # The characteristice predicate of tensor product

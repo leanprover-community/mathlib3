@@ -6,6 +6,12 @@ Authors: Jakob von Raumer
 import category_theory.monoidal.coherence_lemmas
 import category_theory.closed.monoidal
 import tactic.apply_fun
+import tactic.assert_exists
+import tactic.monotonicity.basic
+import tactic.monotonicity.default
+import tactic.monotonicity.interactive
+import tactic.monotonicity.lemmas
+import tactic.nontriviality
 
 /-!
 # Rigid (autonomous) monoidal categories

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Yaël Dillies
 -/
 import order.min_max
+import algebra.ring.defs
 import algebra.order.monoid.cancel.defs
-import algebra.order.sub.defs
 import algebra.order.group.defs
 import algebra.order.ring.lemmas
 import tactic.nontriviality

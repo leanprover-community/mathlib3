@@ -5,6 +5,12 @@ Authors: Floris van Doorn
 -/
 import logic.function.basic
 import tactic.protected
+import tactic.binder_matching
+import tactic.core
+import tactic.derive_inhabited
+import tactic.interactive_expr
+import tactic.lean_core_docs
+import tactic.project_dir
 
 /-!
 # Types that are empty

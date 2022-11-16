@@ -3,12 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.int.units
 import group_theory.perm.support
-import data.fintype.basic
 import group_theory.order_of_element
-import tactic.norm_swap
-import data.finset.sort
+import data.finset.fin
+import data.int.order.units
 
 /-!
 # Sign of a permutation

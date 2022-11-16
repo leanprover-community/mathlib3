@@ -7,6 +7,8 @@ import category_theory.subobject.mono_over
 import category_theory.skeletal
 import tactic.elementwise
 import tactic.apply_fun
+import category_theory.concrete_category.basic
+import tactic.fresh_names
 
 /-!
 # Subobjects

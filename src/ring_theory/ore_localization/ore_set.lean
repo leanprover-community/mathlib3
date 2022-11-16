@@ -3,7 +3,21 @@ Copyright (c) 2022 Jakob von Raumer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob von Raumer, Kevin Klinge
 -/
-import group_theory.subgroup.basic
+import algebra.ring.regular
+import group_theory.submonoid.basic
+import tactic.abel
+import tactic.apply
+import tactic.apply_fun
+import tactic.by_contra
+import tactic.monotonicity.default
+import tactic.monotonicity.interactive
+import tactic.monotonicity.lemmas
+import tactic.nontriviality
+import tactic.norm_num
+import tactic.nth_rewrite.basic
+import tactic.nth_rewrite.congr
+import tactic.nth_rewrite.default
+import tactic.wlog
 
 /-!
 

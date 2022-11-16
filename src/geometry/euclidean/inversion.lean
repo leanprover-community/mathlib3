@@ -3,7 +3,8 @@ Copyright (c) 2022 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import geometry.euclidean.basic
+import analysis.inner_product_space.basic
+import tactic.linear_combination
 
 /-!
 # Inversion in an affine space

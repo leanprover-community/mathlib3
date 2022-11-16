@@ -3,9 +3,13 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import data.finset.basic
-import data.set.pairwise
 import logic.encodable.basic
+import logic.pairwise
+import tactic.apply
+import tactic.by_contra
+import tactic.nth_rewrite.basic
+import tactic.nth_rewrite.congr
+import tactic.nth_rewrite.default
 
 /-!
 # Lattice operations on encodable types

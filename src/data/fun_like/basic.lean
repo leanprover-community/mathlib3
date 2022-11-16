@@ -5,8 +5,29 @@ Authors: Anne Baanen
 -/
 
 import logic.function.basic
-import tactic.lint
+import tactic.lint.default
 import tactic.norm_cast
+import tactic.algebra
+import tactic.alias
+import tactic.binder_matching
+import tactic.converter.interactive
+import tactic.converter.old_conv
+import tactic.core
+import tactic.dependencies
+import tactic.derive_inhabited
+import tactic.hint
+import tactic.interactive
+import tactic.interactive_expr
+import tactic.lean_core_docs
+import tactic.lint.basic
+import tactic.lint.frontend
+import tactic.lint.misc
+import tactic.lint.simp
+import tactic.lint.type_classes
+import tactic.project_dir
+import tactic.solve_by_elim
+import tactic.to_additive
+import tactic.transform_decl
 
 /-!
 # Typeclass for a type `F` with an injective map to `A → B`

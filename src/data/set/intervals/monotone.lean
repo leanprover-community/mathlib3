@@ -7,6 +7,8 @@ import data.set.intervals.disjoint
 import order.conditionally_complete_lattice
 import order.succ_pred.basic
 import tactic.field_simp
+import algebra.order.field.basic
+import tactic.norm_num
 
 /-!
 # Monotonicity on intervals

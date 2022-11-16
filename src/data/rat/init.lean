@@ -4,6 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import tactic.ext
+import logic.basic
+import tactic.binder_matching
+import tactic.cache
+import tactic.clear
+import tactic.core
+import tactic.derive_inhabited
+import tactic.interactive_expr
+import tactic.lean_core_docs
+import tactic.project_dir
+import tactic.rcases
 
 /-!
 # The definition of the Rational Numbers

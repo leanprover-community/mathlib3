@@ -3,9 +3,11 @@ Copyright (c) 2021 Christopher Hoskin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
-import algebra.group_power.basic -- Needed for squares
+import algebra.group_power.basic
 import algebra.order.group.abs
-import tactic.nth_rewrite
+import tactic.nth_rewrite.default
+import tactic.nth_rewrite.basic
+import tactic.nth_rewrite.congr
 
 /-!
 # Lattice ordered groups

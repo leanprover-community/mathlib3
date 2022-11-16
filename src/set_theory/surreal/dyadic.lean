@@ -4,9 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Apurva Nakade
 -/
 import algebra.algebra.basic
-import ring_theory.localization.away
 import set_theory.game.birthday
 import set_theory.surreal.basic
+import ring_theory.localization.basic
+import tactic.compute_degree
+import tactic.fin_cases
+import tactic.group
+import tactic.interval_cases
+import tactic.norm_fin
+import tactic.norm_swap
 
 /-!
 # Dyadic numbers

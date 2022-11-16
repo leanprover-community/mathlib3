@@ -5,10 +5,23 @@ Authors: Johan Commelin
 -/
 import topology.subset_properties
 import topology.connected
-import topology.algebra.monoid
 import topology.continuous_function.basic
 import tactic.tfae
 import tactic.fin_cases
+import algebra.indicator_function
+import tactic.cancel_denoms
+import tactic.field_simp
+import tactic.linarith.datatypes
+import tactic.linarith.default
+import tactic.linarith.elimination
+import tactic.linarith.frontend
+import tactic.linarith.lemmas
+import tactic.linarith.parsing
+import tactic.linarith.preprocessing
+import tactic.linarith.verification
+import tactic.positivity
+import tactic.ring
+import tactic.zify
 
 /-!
 # Locally constant functions

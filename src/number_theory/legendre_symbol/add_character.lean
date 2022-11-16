@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Stoll
 -/
 import tactic.basic
-import field_theory.finite.galois_field
 import number_theory.cyclotomic.primitive_roots
 import field_theory.finite.trace
 

@@ -4,8 +4,26 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import meta.univs
-import tactic.lint
+import tactic.lint.default
 import tactic.ext
+import logic.function.basic
+import tactic.algebra
+import tactic.alias
+import tactic.binder_matching
+import tactic.clear
+import tactic.core
+import tactic.derive_inhabited
+import tactic.interactive_expr
+import tactic.lean_core_docs
+import tactic.lint.basic
+import tactic.lint.frontend
+import tactic.lint.misc
+import tactic.lint.simp
+import tactic.lint.type_classes
+import tactic.project_dir
+import tactic.rcases
+import tactic.to_additive
+import tactic.transform_decl
 
 /-!
 THIS FILE IS SYNCHRONIZED WITH MATHLIB4.

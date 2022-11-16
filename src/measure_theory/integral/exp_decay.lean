@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Loeffler
 -/
 import measure_theory.integral.interval_integral
-import analysis.special_functions.exponential
-import analysis.special_functions.integrals
 import measure_theory.integral.integral_eq_improper
+import tactic.linear_combination
 
 /-!
 # Integrals with exponential decay at ∞

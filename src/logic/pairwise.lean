@@ -3,7 +3,73 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import logic.relation
+import logic.function.basic
+import tactic.algebra
+import tactic.alias
+import tactic.auto_cases
+import tactic.basic
+import tactic.binder_matching
+import tactic.chain
+import tactic.choose
+import tactic.clear
+import tactic.congr
+import tactic.converter.apply_congr
+import tactic.converter.interactive
+import tactic.converter.old_conv
+import tactic.core
+import tactic.dec_trivial
+import tactic.delta_instance
+import tactic.dependencies
+import tactic.derive_inhabited
+import tactic.elide
+import tactic.explode
+import tactic.ext
+import tactic.find
+import tactic.finish
+import tactic.generalize_proofs
+import tactic.generalizes
+import tactic.hint
+import tactic.interactive
+import tactic.interactive_expr
+import tactic.itauto
+import tactic.lean_core_docs
+import tactic.lift
+import tactic.lint.basic
+import tactic.lint.default
+import tactic.lint.frontend
+import tactic.lint.misc
+import tactic.lint.simp
+import tactic.lint.type_classes
+import tactic.localized
+import tactic.mk_iff_of_inductive_prop
+import tactic.norm_cast
+import tactic.obviously
+import tactic.pretty_cases
+import tactic.project_dir
+import tactic.protected
+import tactic.push_neg
+import tactic.rcases
+import tactic.rename_var
+import tactic.replacer
+import tactic.restate_axiom
+import tactic.rewrite
+import tactic.show_term
+import tactic.simpa
+import tactic.simp_command
+import tactic.simp_result
+import tactic.simp_rw
+import tactic.simps
+import tactic.solve_by_elim
+import tactic.split_ifs
+import tactic.squeeze
+import tactic.suggest
+import tactic.tauto
+import tactic.tidy
+import tactic.to_additive
+import tactic.transform_decl
+import tactic.trunc_cases
+import tactic.unify_equations
+import tactic.where
 
 /-!
 # Relations holding pairwise

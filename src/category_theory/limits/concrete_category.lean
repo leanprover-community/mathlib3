@@ -7,7 +7,10 @@ import category_theory.limits.preserves.basic
 import category_theory.limits.types
 import category_theory.limits.shapes.wide_pullbacks
 import category_theory.limits.shapes.multiequalizer
-import category_theory.concrete_category.elementwise
+import category_theory.concrete_category.basic
+import category_theory.limits.shapes.kernels
+import tactic.elementwise
+import tactic.fresh_names
 
 /-!
 # Facts about (co)limits of functors into concrete categories

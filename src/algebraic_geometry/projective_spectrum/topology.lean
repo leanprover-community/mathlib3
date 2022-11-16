@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang, Johan Commelin
 -/
 
-import topology.category.Top
 import ring_theory.graded_algebra.homogeneous_ideal
+import topology.category.Top.basic
+import topology.sets.opens
+import tactic.equiv_rw
 
 /-!
 # Projective spectrum of a graded ring

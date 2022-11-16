@@ -3,7 +3,25 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather
 -/
-import tactic.lint
+import tactic.lint.default
+import tactic.algebra
+import tactic.alias
+import tactic.binder_matching
+import tactic.cache
+import tactic.core
+import tactic.derive_inhabited
+import tactic.doc_commands
+import tactic.interactive_expr
+import tactic.lean_core_docs
+import tactic.lint.basic
+import tactic.lint.frontend
+import tactic.lint.misc
+import tactic.lint.simp
+import tactic.lint.type_classes
+import tactic.project_dir
+import tactic.reserved_notation
+import tactic.to_additive
+import tactic.transform_decl
 
 /-!
 # Bundled types

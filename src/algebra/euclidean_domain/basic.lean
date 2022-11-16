@@ -6,7 +6,6 @@ Authors: Louis Carlin, Mario Carneiro
 import algebra.euclidean_domain.defs
 import algebra.ring.divisibility
 import algebra.ring.regular
-import algebra.field.defs
 import algebra.group_with_zero.divisibility
 
 /-!

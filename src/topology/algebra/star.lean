@@ -5,7 +5,22 @@ Authors: Eric Wieser
 -/
 import algebra.star.pi
 import algebra.star.prod
-import topology.algebra.group
+import topology.algebra.constructions
+import topology.continuous_function.basic
+import tactic.cancel_denoms
+import tactic.field_simp
+import tactic.group
+import tactic.linarith.datatypes
+import tactic.linarith.default
+import tactic.linarith.elimination
+import tactic.linarith.frontend
+import tactic.linarith.lemmas
+import tactic.linarith.parsing
+import tactic.linarith.preprocessing
+import tactic.linarith.verification
+import tactic.positivity
+import tactic.ring
+import tactic.zify
 
 /-!
 # Continuity of `star`

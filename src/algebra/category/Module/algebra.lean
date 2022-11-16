@@ -3,9 +3,26 @@ Copyright (c) 2022 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.category.Module.monoidal
 import algebra.algebra.restrict_scalars
-import category_theory.linear
+import category_theory.linear.default
+import algebra.category.Module.basic
+import tactic.cancel_denoms
+import tactic.compute_degree
+import tactic.equiv_rw
+import tactic.fin_cases
+import tactic.group
+import tactic.interval_cases
+import tactic.linarith.datatypes
+import tactic.linarith.default
+import tactic.linarith.elimination
+import tactic.linarith.frontend
+import tactic.linarith.lemmas
+import tactic.linarith.parsing
+import tactic.linarith.preprocessing
+import tactic.linarith.verification
+import tactic.ring
+import tactic.ring_exp
+import tactic.zify
 
 /-!
 # Additional typeclass for modules over an algebra

@@ -5,10 +5,10 @@ Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 
 import category_theory.skeletal
-import tactic.linarith
 import data.fintype.sort
 import order.category.NonemptyFinLinOrd
 import category_theory.functor.reflects_isomorphisms
+import tactic.linarith
 
 /-! # The simplex category
 

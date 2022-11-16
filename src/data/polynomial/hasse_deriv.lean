@@ -7,8 +7,9 @@ Authors: Johan Commelin
 import algebra.polynomial.big_operators
 import data.nat.choose.cast
 import data.nat.choose.vandermonde
-import data.polynomial.degree.lemmas
 import data.polynomial.derivative
+import tactic.fin_cases
+import tactic.interval_cases
 
 /-!
 # Hasse derivative of polynomials

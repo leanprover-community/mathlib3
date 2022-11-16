@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
 import order.basic
-import algebra.ring.basic
 import algebra.group_power.basic
 import tactic.nth_rewrite.default
+import algebra.ring.defs
+import tactic.nth_rewrite.basic
+import tactic.nth_rewrite.congr
 
 /-!
 # Idempotents

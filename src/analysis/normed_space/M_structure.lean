@@ -3,9 +3,9 @@ Copyright (c) 2022 Christopher Hoskin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
-import analysis.normed_space.basic
 import algebra.ring.idempotents
 import tactic.noncomm_ring
+import analysis.normed.group.basic
 
 /-!
 # M-structure

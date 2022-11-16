@@ -7,8 +7,6 @@ Authors: Johan Commelin
 import group_theory.finiteness
 import ring_theory.adjoin.tower
 import ring_theory.finiteness
-import ring_theory.ideal.quotient
-import ring_theory.mv_polynomial.tower
 import ring_theory.noetherian
 
 /-!

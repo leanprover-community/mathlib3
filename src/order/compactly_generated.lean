@@ -10,8 +10,10 @@ import order.rel_iso.set
 import order.sup_indep
 import order.zorn
 import data.finset.order
-import data.finite.default
 import data.set.intervals.order_iso
+import data.finite.set
+import data.list.tfae
+import tactic.scc
 
 /-!
 # Compactness properties for complete lattices

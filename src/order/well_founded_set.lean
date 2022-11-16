@@ -7,6 +7,8 @@ import order.antichain
 import order.order_iso_nat
 import order.well_founded
 import tactic.tfae
+import data.list.tfae
+import tactic.scc
 
 /-!
 # Well-founded sets

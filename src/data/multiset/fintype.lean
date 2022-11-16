@@ -3,8 +3,22 @@ Copyright (c) 2022 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import data.fintype.card
-import algebra.big_operators
+import algebra.big_operators.basic
+import data.prod.lex
+import tactic.abel
+import tactic.cancel_denoms
+import tactic.linarith.datatypes
+import tactic.linarith.default
+import tactic.linarith.elimination
+import tactic.linarith.frontend
+import tactic.linarith.lemmas
+import tactic.linarith.parsing
+import tactic.linarith.preprocessing
+import tactic.linarith.verification
+import tactic.norm_num
+import tactic.positivity
+import tactic.ring
+import tactic.zify
 
 /-!
 # Multiset coercion to type

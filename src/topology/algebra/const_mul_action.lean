@@ -3,12 +3,24 @@ Copyright (c) 2021 Alex Kontorovich, Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth
 -/
-import data.real.nnreal
 import topology.algebra.constructions
 import topology.homeomorph
 import group_theory.group_action.basic
 import topology.bases
 import topology.support
+import tactic.cancel_denoms
+import tactic.field_simp
+import tactic.linarith.datatypes
+import tactic.linarith.default
+import tactic.linarith.elimination
+import tactic.linarith.frontend
+import tactic.linarith.lemmas
+import tactic.linarith.parsing
+import tactic.linarith.preprocessing
+import tactic.linarith.verification
+import tactic.positivity
+import tactic.ring
+import tactic.zify
 /-!
 # Monoid actions continuous in the second variable
 

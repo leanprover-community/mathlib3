@@ -3,8 +3,13 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.set.lattice
 import tactic.wlog
+import data.nat.order.basic
+import tactic.apply_fun
+import tactic.by_contra
+import tactic.monotonicity.default
+import tactic.monotonicity.interactive
+import tactic.monotonicity.lemmas
 
 /-!
 # Set enumeration

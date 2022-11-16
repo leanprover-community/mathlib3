@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
 
-import data.int.modeq
 import algebra.ne_zero
+import data.nat.modeq
+import tactic.ring
 
 /-!
 # Definition of `zmod n` + basic results.

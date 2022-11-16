@@ -5,9 +5,12 @@ Authors: Julian Kuelshammer
 -/
 import algebra.char_p.invertible
 import data.zmod.basic
-import field_theory.finite.basic
 import ring_theory.localization.fraction_ring
 import ring_theory.polynomial.chebyshev
+import ring_theory.ideal.local_ring
+import tactic.field_simp
+import tactic.norm_fin
+import tactic.norm_swap
 
 
 /-!

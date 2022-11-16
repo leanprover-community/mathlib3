@@ -7,8 +7,18 @@ Authors: Johannes Hölzl
 import algebra.big_operators.basic
 import algebra.module.basic
 import data.nat.interval
-import tactic.linarith
+import tactic.linarith.default
 import tactic.abel
+import tactic.ring
+import tactic.cancel_denoms
+import tactic.linarith.datatypes
+import tactic.linarith.elimination
+import tactic.linarith.frontend
+import tactic.linarith.lemmas
+import tactic.linarith.parsing
+import tactic.linarith.preprocessing
+import tactic.linarith.verification
+import tactic.zify
 
 /-!
 # Results about big operators over intervals

@@ -5,7 +5,7 @@ Authors: Alexander Bentkamp, François Dupuis
 -/
 import analysis.convex.basic
 import tactic.field_simp
-import tactic.linarith
+import tactic.linarith.default
 import tactic.ring
 
 /-!

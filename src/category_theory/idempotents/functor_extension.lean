@@ -5,7 +5,6 @@ Authors: Joël Riou
 -/
 
 import category_theory.idempotents.karoubi
-import category_theory.natural_isomorphism
 
 /-!
 # Extension of functors to the idempotent completion

@@ -3,7 +3,13 @@ Copyright (c) 2022 Rishikesh Vaishnav. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rishikesh Vaishnav
 -/
-import probability.independence
+import measure_theory.measure.measure_space
+import tactic.compute_degree
+import tactic.derive_fintype
+import tactic.interval_cases
+import tactic.norm_fin
+import tactic.norm_swap
+import tactic.ring_exp
 
 /-!
 # Conditional Probability

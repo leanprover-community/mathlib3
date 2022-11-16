@@ -4,7 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import data.nat.bits
-import tactic.linarith
+import tactic.linarith.default
+import tactic.linarith.lemmas
+import tactic.ring
+import tactic.cancel_denoms
+import tactic.linarith.datatypes
+import tactic.linarith.elimination
+import tactic.linarith.frontend
+import tactic.linarith.parsing
+import tactic.linarith.preprocessing
+import tactic.linarith.verification
+import tactic.zify
 
 /-!
 # Bitwise operations on natural numbers

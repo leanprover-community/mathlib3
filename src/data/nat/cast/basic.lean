@@ -4,12 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.char_zero.defs
-import algebra.group.prod
 import algebra.group_with_zero.commute
 import algebra.hom.ring
 import algebra.order.group.abs
 import algebra.ring.commute
 import data.nat.order.basic
+import algebra.group.opposite
 
 /-!
 # Cast of natural numbers (additional theorems)

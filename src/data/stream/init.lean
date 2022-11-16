@@ -5,6 +5,15 @@ Authors: Leonardo de Moura
 -/
 import data.stream.defs
 import tactic.ext
+import logic.function.basic
+import tactic.binder_matching
+import tactic.clear
+import tactic.core
+import tactic.derive_inhabited
+import tactic.interactive_expr
+import tactic.lean_core_docs
+import tactic.project_dir
+import tactic.rcases
 
 /-!
 # Streams a.k.a. infinite lists a.k.a. infinite sequences

@@ -5,7 +5,8 @@ Authors: Scott Morrison
 -/
 import algebra.category.Ring.basic
 import category_theory.limits.has_limits
-import category_theory.limits.concrete_category
+import category_theory.concrete_category.elementwise
+import tactic.equiv_rw
 
 /-!
 # The category of commutative rings has all colimits.

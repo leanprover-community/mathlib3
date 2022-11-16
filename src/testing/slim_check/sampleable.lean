@@ -8,8 +8,18 @@ import data.tree
 import data.pnat.basic
 import control.bifunctor
 import control.ulift
-import tactic.linarith
+import tactic.linarith.default
 import testing.slim_check.gen
+import tactic.linarith.lemmas
+import tactic.ring
+import tactic.cancel_denoms
+import tactic.linarith.datatypes
+import tactic.linarith.elimination
+import tactic.linarith.frontend
+import tactic.linarith.parsing
+import tactic.linarith.preprocessing
+import tactic.linarith.verification
+import tactic.zify
 
 /-!
 # `sampleable` Class

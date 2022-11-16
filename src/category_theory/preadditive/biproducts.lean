@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import tactic.abel
+import algebra.group.ext
 import category_theory.limits.shapes.biproducts
+import category_theory.limits.preserves.shapes.binary_products
 import category_theory.limits.preserves.shapes.biproducts
-import category_theory.preadditive
+import category_theory.limits.preserves.shapes.products
+import category_theory.preadditive.default
 
 /-!
 # Basic facts about biproducts in preadditive categories.
@@ -597,7 +600,10 @@ instance subsingleton_preadditive_of_has_binary_biproducts {C : Type u} [categor
   [has_zero_morphisms C] [has_binary_biproducts C] : subsingleton (preadditive C) :=
 subsingleton.intro $ λ a b,
 begin
-  ext X Y f g,
+  refine a.ext b
+  (funext
+     (λ (X : C),
+        funext (λ (Y : C), add_comm_group.ext (funext (λ (f : X ⟶ Y), funext (λ (g : X ⟶ Y), _)))))),
   have h₁ := @biprod.add_eq_lift_id_desc _ _ a _ _ f g
     (by convert (infer_instance : has_binary_biproduct X X)),
   have h₂ := @biprod.add_eq_lift_id_desc _ _ b _ _ f g

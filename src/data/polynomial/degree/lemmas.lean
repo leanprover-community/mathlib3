@@ -5,6 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.eval
 import tactic.interval_cases
+import tactic.fin_cases
 
 /-!
 # Theory of degrees of polynomials

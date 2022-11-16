@@ -5,6 +5,12 @@ Authors: Yury Kudryashov
 -/
 import data.set.intervals.ord_connected
 import tactic.wlog
+import tactic.apply_fun
+import tactic.by_contra
+import tactic.monotonicity.default
+import tactic.monotonicity.interactive
+import tactic.monotonicity.lemmas
+import tactic.nontriviality
 
 /-!
 # Order connected components of a set

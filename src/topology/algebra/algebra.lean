@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import algebra.algebra.subalgebra.basic
 import topology.algebra.module.basic
-import topology.algebra.field
 import ring_theory.adjoin.basic
 
 /-!

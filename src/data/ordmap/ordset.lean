@@ -6,7 +6,17 @@ Authors: Mario Carneiro
 import data.ordmap.ordnode
 import algebra.order.ring.defs
 import data.nat.dist
-import tactic.linarith
+import tactic.linarith.default
+import tactic.linarith.lemmas
+import tactic.ring
+import tactic.cancel_denoms
+import tactic.linarith.datatypes
+import tactic.linarith.elimination
+import tactic.linarith.frontend
+import tactic.linarith.parsing
+import tactic.linarith.preprocessing
+import tactic.linarith.verification
+import tactic.zify
 
 /-!
 # Verification of the `ordnode α` datatype

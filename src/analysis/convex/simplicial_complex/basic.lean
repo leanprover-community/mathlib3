@@ -3,8 +3,16 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import analysis.convex.topology
 import tactic.by_contra
+import analysis.convex.hull
+import linear_algebra.affine_space.independent
+import tactic.compute_degree
+import tactic.field_simp
+import tactic.interval_cases
+import tactic.norm_fin
+import tactic.norm_swap
+import tactic.ring_exp
+import tactic.with_local_reducibility
 
 /-!
 # Simplicial complexes

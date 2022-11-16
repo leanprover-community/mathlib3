@@ -4,8 +4,24 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
 import algebra.hom.equiv.basic
-import data.zmod.basic
 import tactic.group
+import algebra.hom.aut
+import data.zmod.defs
+import tactic.cancel_denoms
+import tactic.congrm
+import tactic.fin_cases
+import tactic.linarith.datatypes
+import tactic.linarith.default
+import tactic.linarith.elimination
+import tactic.linarith.frontend
+import tactic.linarith.lemmas
+import tactic.linarith.parsing
+import tactic.linarith.preprocessing
+import tactic.linarith.verification
+import tactic.positivity
+import tactic.scc
+import tactic.tfae
+import tactic.zify
 
 /-!
 # Racks and Quandles

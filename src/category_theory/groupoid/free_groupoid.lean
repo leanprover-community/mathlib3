@@ -6,8 +6,7 @@ Authors: Rémi Bottinelli
 import category_theory.category.basic
 import category_theory.functor.basic
 import category_theory.groupoid
-import logic.relation
-import tactic.nth_rewrite
+import tactic.nth_rewrite.default
 import category_theory.path_category
 import category_theory.quotient
 
@@ -35,7 +34,7 @@ and finally quotienting by the reducibility relation.
 
 -/
 
-open set classical function relation
+open set classical function
 local attribute [instance] prop_decidable
 
 namespace category_theory

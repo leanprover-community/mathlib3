@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Jens Wagemaker, Anne Baanen
 
 import algebra.associated
 import algebra.big_operators.finsupp
+import tactic.positivity
 
 /-!
 # Products of associated, prime, and irreducible elements.

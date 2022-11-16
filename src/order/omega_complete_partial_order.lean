@@ -6,8 +6,13 @@ Authors: Simon Hudon
 import control.monad.basic
 import data.part
 import order.hom.order
-import tactic.monotonicity
+import tactic.monotonicity.default
 import tactic.wlog
+import data.nat.order.basic
+import tactic.apply_fun
+import tactic.by_contra
+import tactic.monotonicity.interactive
+import tactic.monotonicity.lemmas
 
 /-!
 # Omega Complete Partial Orders

@@ -3,8 +3,10 @@ Copyright (c) 2022 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.category.Module.epi_mono
 import linear_algebra.pi
+import algebra.category.Module.basic
+import tactic.group
+import tactic.ring
 
 /-!
 # The concrete products in the category of modules are products in the categorical sense.

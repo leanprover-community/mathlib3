@@ -8,8 +8,9 @@ import algebra.hom.iterate
 import data.list.cycle
 import data.pnat.basic
 import data.nat.prime
-import data.set.pointwise.basic
 import dynamics.fixed_points.basic
+import group_theory.group_action.group
+import tactic.abel
 
 /-!
 # Periodic points

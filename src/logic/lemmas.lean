@@ -5,6 +5,28 @@ Authors: Yaël Dillies
 -/
 import tactic.protected
 import tactic.split_ifs
+import logic.basic
+import tactic.algebra
+import tactic.alias
+import tactic.binder_matching
+import tactic.cache
+import tactic.core
+import tactic.dependencies
+import tactic.derive_inhabited
+import tactic.hint
+import tactic.interactive
+import tactic.interactive_expr
+import tactic.lean_core_docs
+import tactic.lint.basic
+import tactic.lint.default
+import tactic.lint.frontend
+import tactic.lint.misc
+import tactic.lint.simp
+import tactic.lint.type_classes
+import tactic.project_dir
+import tactic.solve_by_elim
+import tactic.to_additive
+import tactic.transform_decl
 
 /-!
 # More basic logic properties

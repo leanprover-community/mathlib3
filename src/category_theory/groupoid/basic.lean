@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémi Bottinelli
 -/
 import category_theory.groupoid
-import category_theory.is_connected
 import combinatorics.quiver.basic
+import tactic.assert_exists
+import tactic.monotonicity.basic
+import tactic.nontriviality
 
 /-!
 This file defines a few basic properties of groupoids.

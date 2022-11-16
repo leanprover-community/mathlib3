@@ -7,7 +7,9 @@ import data.rat.defs
 import data.int.cast.lemmas
 import data.int.div
 import algebra.group_with_zero.units.lemmas
-import tactic.nth_rewrite
+import tactic.nth_rewrite.default
+import tactic.nth_rewrite.basic
+import tactic.nth_rewrite.congr
 
 /-!
 # Further lemmas for the Rational Numbers

@@ -3,6 +3,7 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yaël Dillies
 -/
+import analysis.normed.group.add_torsor
 import analysis.normed.group.pointwise
 import analysis.normed_space.basic
 
@@ -19,8 +20,8 @@ open_locale pointwise topological_space
 
 variables {𝕜 E : Type*} [normed_field 𝕜]
 
-section semi_normed_group
-variables [semi_normed_group E] [normed_space 𝕜 E]
+section seminormed_add_comm_group
+variables [seminormed_add_comm_group E] [normed_space 𝕜 E]
 
 theorem smul_ball {c : 𝕜} (hc : c ≠ 0) (x : E) (r : ℝ) :
   c • ball x r = ball (c • x) (∥c∥ * r) :=
@@ -52,8 +53,7 @@ lemma metric.bounded.smul {s : set E} (hs : bounded s) (c : 𝕜) :
   bounded (c • s) :=
 begin
   obtain ⟨R, hR⟩ : ∃ (R : ℝ), ∀ x ∈ s, ∥x∥ ≤ R := hs.exists_norm_le,
-  refine (bounded_iff_exists_norm_le).2 ⟨∥c∥ * R, _⟩,
-  assume z hz,
+  refine bounded_iff_forall_norm_le.2 ⟨∥c∥ * R, λ z hz, _⟩,
   obtain ⟨y, ys, rfl⟩ : ∃ (y : E), y ∈ s ∧ c • y = z := mem_smul_set.1 hz,
   calc ∥c • y∥ = ∥c∥ * ∥y∥ : norm_smul _ _
   ... ≤ ∥c∥ * R : mul_le_mul_of_nonneg_left (hR y ys) (norm_nonneg _)
@@ -154,7 +154,7 @@ begin
   rw add_comm at hxy,
   obtain ⟨z, hxz, hzy⟩ := exists_dist_lt_lt hδ hε hxy,
   rw dist_comm at hxz,
-  exact h ⟨hxz, hzy⟩,
+  exact h.le_bot ⟨hxz, hzy⟩,
 end
 
 -- This is also true for `ℚ`-normed spaces
@@ -165,7 +165,7 @@ begin
   rw add_comm at hxy,
   obtain ⟨z, hxz, hzy⟩ := exists_dist_lt_le hδ hε hxy,
   rw dist_comm at hxz,
-  exact h ⟨hxz, hzy⟩,
+  exact h.le_bot ⟨hxz, hzy⟩,
 end
 
 -- This is also true for `ℚ`-normed spaces
@@ -180,7 +180,7 @@ begin
   rw add_comm at hxy,
   obtain ⟨z, hxz, hzy⟩ := exists_dist_le_le hδ hε hxy,
   rw dist_comm at hxz,
-  exact h ⟨hxz, hzy⟩,
+  exact h.le_bot ⟨hxz, hzy⟩,
 end
 
 open emetric ennreal
@@ -306,10 +306,10 @@ lemma closed_ball_sub_closed_ball [proper_space E] (hε : 0 ≤ ε) (hδ : 0 ≤
   closed_ball a ε - closed_ball b δ = closed_ball (a - b) (ε + δ) :=
 by simp_rw [sub_eq_add_neg, neg_closed_ball, closed_ball_add_closed_ball hε hδ]
 
-end semi_normed_group
+end seminormed_add_comm_group
 
-section normed_group
-variables [normed_group E] [normed_space 𝕜 E]
+section normed_add_comm_group
+variables [normed_add_comm_group E] [normed_space 𝕜 E]
 
 theorem smul_closed_ball (c : 𝕜) (x : E) {r : ℝ} (hr : 0 ≤ r) :
   c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
@@ -360,4 +360,4 @@ lemma affinity_unit_closed_ball {r : ℝ} (hr : 0 ≤ r) (x : E) :
   x +ᵥ r • closed_ball 0 1 = closed_ball x r :=
 by rw [smul_closed_unit_ball, real.norm_of_nonneg hr, vadd_closed_ball_zero]
 
-end normed_group
+end normed_add_comm_group

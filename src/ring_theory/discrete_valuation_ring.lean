@@ -30,7 +30,7 @@ Let R be an integral domain, assumed to be a principal ideal ring and a local ri
 
 ### Definitions
 
-* `add_val R : add_valuation R enat` : the additive valuation on a DVR.
+* `add_val R : add_valuation R part_enat` : the additive valuation on a DVR.
 
 ## Implementation notes
 
@@ -60,17 +60,17 @@ variables (R : Type u) [comm_ring R] [is_domain R] [discrete_valuation_ring R]
 
 lemma not_a_field : maximal_ideal R ≠ ⊥ := not_a_field'
 
+/-- A discrete valuation ring `R` is not a field. -/
+lemma not_is_field : ¬ is_field R :=
+ring.not_is_field_iff_exists_prime.mpr ⟨_, not_a_field R, is_maximal.is_prime' (maximal_ideal R)⟩
+
 variable {R}
 
 open principal_ideal_ring
 
-/-- An element of a DVR is irreducible iff it is a uniformizer, that is, generates the
-  maximal ideal of R -/
-theorem irreducible_iff_uniformizer (ϖ : R) :
-  irreducible ϖ ↔ maximal_ideal R = ideal.span {ϖ} :=
-⟨λ hϖ, (eq_maximal_ideal (is_maximal_of_irreducible hϖ)).symm,
+theorem irreducible_of_span_eq_maximal_ideal {R : Type*} [comm_ring R] [local_ring R] [is_domain R]
+  (ϖ : R) (hϖ : ϖ ≠ 0) (h : maximal_ideal R = ideal.span {ϖ}) : irreducible ϖ :=
 begin
-  intro h,
   have h2 : ¬(is_unit ϖ) := show ϖ ∈ maximal_ideal R,
     from h.symm ▸ submodule.mem_span_singleton_self ϖ,
   refine ⟨h2, _⟩,
@@ -81,11 +81,17 @@ begin
   rcases ha with ⟨a, rfl⟩,
   rcases hb with ⟨b, rfl⟩,
   rw (show a * ϖ * (b * ϖ) = ϖ * (ϖ * (a * b)), by ring) at hab,
-  have h3 := eq_zero_of_mul_eq_self_right _ hab.symm,
-  { apply not_a_field R,
-    simp [h, h3] },
-  { exact λ hh, h2 (is_unit_of_dvd_one ϖ ⟨_, hh.symm⟩) }
-end⟩
+  apply hϖ,
+  apply eq_zero_of_mul_eq_self_right _ hab.symm,
+  exact λ hh, h2 (is_unit_of_dvd_one ϖ ⟨_, hh.symm⟩)
+end
+
+/-- An element of a DVR is irreducible iff it is a uniformizer, that is, generates the
+  maximal ideal of R -/
+theorem irreducible_iff_uniformizer (ϖ : R) :
+  irreducible ϖ ↔ maximal_ideal R = ideal.span {ϖ} :=
+⟨λ hϖ, (eq_maximal_ideal (is_maximal_of_irreducible hϖ)).symm, λ h,
+  irreducible_of_span_eq_maximal_ideal ϖ (λ e, not_a_field R $ by rwa [h, span_singleton_eq_bot]) h⟩
 
 lemma _root_.irreducible.maximal_ideal_eq {ϖ : R} (h : irreducible ϖ) :
   maximal_ideal R = ideal.span {ϖ} :=
@@ -108,7 +114,7 @@ theorem iff_pid_with_one_nonzero_prime (R : Type u) [comm_ring R] [is_domain R] 
 begin
   split,
   { intro RDVR,
-    rcases id RDVR with ⟨RPID, Rlocal, Rnotafield⟩,
+    rcases id RDVR with ⟨Rlocal⟩,
     split, assumption,
     resetI,
     use local_ring.maximal_ideal R,
@@ -393,10 +399,10 @@ end
 
 open multiplicity
 
-/-- The `enat`-valued additive valuation on a DVR -/
+/-- The `part_enat`-valued additive valuation on a DVR -/
 noncomputable def add_val
   (R : Type u) [comm_ring R] [is_domain R] [discrete_valuation_ring R] :
-  add_valuation R enat :=
+  add_valuation R part_enat :=
 add_valuation (classical.some_spec (exists_prime R))
 
 lemma add_val_def (r : R) (u : Rˣ) {ϖ : R} (hϖ : irreducible ϖ) (n : ℕ) (hr : r = u * ϖ ^ n) :
@@ -441,7 +447,7 @@ begin
     obtain ⟨n, ha⟩ := associated_pow_irreducible h hi,
     obtain ⟨u, rfl⟩ := ha.symm,
     rw [mul_comm, add_val_def' u hi n],
-    exact enat.coe_ne_top _ },
+    exact part_enat.coe_ne_top _ },
   { rintro rfl,
     exact add_val_zero }
 end
@@ -476,7 +482,7 @@ instance (R : Type*) [comm_ring R] [is_domain R] [discrete_valuation_ring R] :
     simp only [← ideal.one_eq_top, smul_eq_mul, mul_one, smodeq.zero,
       hϖ.maximal_ideal_eq, ideal.span_singleton_pow, ideal.mem_span_singleton,
       ← add_val_le_iff_dvd, hϖ.add_val_pow] at hx,
-    rwa [← add_val_eq_top_iff, enat.eq_top_iff_forall_le],
+    rwa [← add_val_eq_top_iff, part_enat.eq_top_iff_forall_le],
   end }
 
 end discrete_valuation_ring

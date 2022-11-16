@@ -78,8 +78,10 @@ def tensor_product : Type* :=
 
 variables {R}
 
-localized "infix ` ⊗ `:100 := tensor_product _" in tensor_product
-localized "notation M ` ⊗[`:100 R `] `:0 N:100 := tensor_product R M N" in tensor_product
+localized "infix (name := tensor_product.infer)
+  ` ⊗ `:100 := tensor_product hole!" in tensor_product
+localized "notation (name := tensor_product)
+  M ` ⊗[`:100 R `] `:0 N:100 := tensor_product R M N" in tensor_product
 
 namespace tensor_product
 
@@ -524,6 +526,15 @@ begin
   exact H w x y z,
 end
 
+/-- Two linear maps (M ⊗ N) ⊗ (P ⊗ Q) → S which agree on all elements of the
+form (m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q) are equal. -/
+theorem ext_fourfold' {φ ψ : (M ⊗[R] N) ⊗[R] (P ⊗[R] Q) →ₗ[R] S}
+  (H : ∀ w x y z, φ ((w ⊗ₜ x) ⊗ₜ (y ⊗ₜ z)) = ψ ((w ⊗ₜ x) ⊗ₜ (y ⊗ₜ z))) : φ = ψ :=
+begin
+  ext m n p q,
+  exact H m n p q,
+end
+
 end UMP
 
 variables {M N}
@@ -872,8 +883,16 @@ def rtensor_hom : (N →ₗ[R] P) →ₗ[R] (N ⊗[R] M →ₗ[R] P ⊗[R] M) :=
 lemma ltensor_comp : (g.comp f).ltensor M = (g.ltensor M).comp (f.ltensor M) :=
 by { ext m n, simp only [compr₂_apply, mk_apply, comp_apply, ltensor_tmul] }
 
+lemma ltensor_comp_apply (x : M ⊗[R] N) :
+  (g.comp f).ltensor M x = (g.ltensor M) ((f.ltensor M) x) :=
+by { rw [ltensor_comp, coe_comp], }
+
 lemma rtensor_comp : (g.comp f).rtensor M = (g.rtensor M).comp (f.rtensor M) :=
 by { ext m n, simp only [compr₂_apply, mk_apply, comp_apply, rtensor_tmul] }
+
+lemma rtensor_comp_apply (x : N ⊗[R] M) :
+  (g.comp f).rtensor M x = (g.rtensor M) ((f.rtensor M) x) :=
+by { rw [rtensor_comp, coe_comp], }
 
 lemma ltensor_mul (f g : module.End R N) : (f * g).ltensor M = (f.ltensor M) * (g.ltensor M) :=
 ltensor_comp M f g
@@ -885,7 +904,15 @@ variables (N)
 
 @[simp] lemma ltensor_id : (id : N →ₗ[R] N).ltensor M = id := map_id
 
+-- `simp` can prove this.
+lemma ltensor_id_apply (x : M ⊗[R] N) : (linear_map.id : N →ₗ[R] N).ltensor M x = x :=
+by {rw [ltensor_id, id_coe, id.def], }
+
 @[simp] lemma rtensor_id : (id : N →ₗ[R] N).rtensor M = id := map_id
+
+-- `simp` can prove this.
+lemma rtensor_id_apply (x : N ⊗[R] M) : (linear_map.id : N →ₗ[R] N).rtensor M x = x :=
+by { rw [rtensor_id, id_coe, id.def], }
 
 variables {N}
 

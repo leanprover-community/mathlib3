@@ -62,7 +62,8 @@ def special_linear_group := { A : matrix n n R // A.det = 1 }
 
 end
 
-localized "notation `SL(` n `,` R `)`:= matrix.special_linear_group (fin n) R" in matrix_groups
+localized "notation (name := special_linear_group.fin)
+  `SL(`n`, `R`)`:= matrix.special_linear_group (fin n) R" in matrix_groups
 
 namespace special_linear_group
 
@@ -106,15 +107,21 @@ variables (A B : special_linear_group n R)
   ↑(⟨A, h⟩ : special_linear_group n R) = A :=
 rfl
 
-@[simp] lemma coe_inv : ↑ₘ(A⁻¹) = adjugate A := rfl
+@[simp] protected lemma coe_inv : ↑ₘ(A⁻¹) = adjugate A := rfl
 
-@[simp] lemma coe_mul : ↑ₘ(A * B) = ↑ₘA ⬝ ↑ₘB := rfl
+@[simp] protected lemma coe_mul : ↑ₘ(A * B) = ↑ₘA ⬝ ↑ₘB := rfl
 
-@[simp] lemma coe_one : ↑ₘ(1 : special_linear_group n R) = (1 : matrix n n R) := rfl
+instance : coe_is_mul_hom (special_linear_group n R) (matrix n n R) :=
+{ coe_mul := special_linear_group.coe_mul }
+
+@[simp] protected lemma coe_one : ↑ₘ(1 : special_linear_group n R) = (1 : matrix n n R) := rfl
+
+instance : coe_is_one_hom (special_linear_group n R) (matrix n n R) :=
+{ coe_one := special_linear_group.coe_one }
 
 @[simp] lemma det_coe : det ↑ₘA = 1 := A.2
 
-@[simp] lemma coe_pow (m : ℕ) : ↑ₘ(A ^ m) = ↑ₘA ^ m := rfl
+@[simp] protected lemma coe_pow (m : ℕ) : ↑ₘ(A ^ m) = ↑ₘA ^ m := rfl
 
 lemma det_ne_zero [nontrivial R] (g : special_linear_group n R) :
   det ↑ₘg ≠ 0 :=
@@ -127,7 +134,7 @@ lemma row_ne_zero [nontrivial R] (g : special_linear_group n R) (i : n):
 end coe_lemmas
 
 instance : monoid (special_linear_group n R) :=
-function.injective.monoid coe subtype.coe_injective coe_one coe_mul coe_pow
+function.injective.monoid coe subtype.coe_injective coe_one coe_mul special_linear_group.coe_pow
 
 instance : group (special_linear_group n R) :=
 { mul_left_inv := λ A, by { ext1, simp [adjugate_mul] },
@@ -137,8 +144,8 @@ instance : group (special_linear_group n R) :=
 /-- A version of `matrix.to_lin' A` that produces linear equivalences. -/
 def to_lin' : special_linear_group n R →* (n → R) ≃ₗ[R] (n → R) :=
 { to_fun := λ A, linear_equiv.of_linear (matrix.to_lin' ↑ₘA) (matrix.to_lin' ↑ₘ(A⁻¹))
-    (by rw [←to_lin'_mul, ←coe_mul, mul_right_inv, coe_one, to_lin'_one])
-    (by rw [←to_lin'_mul, ←coe_mul, mul_left_inv, coe_one, to_lin'_one]),
+    (by rw [←to_lin'_mul, ←special_linear_group.coe_mul, mul_right_inv, coe_one, to_lin'_one])
+    (by rw [←to_lin'_mul, ←special_linear_group.coe_mul, mul_left_inv, coe_one, to_lin'_one]),
   map_one' := linear_equiv.to_linear_map_injective matrix.to_lin'_one,
   map_mul' := λ A B, linear_equiv.to_linear_map_injective $ matrix.to_lin'_mul A B }
 
@@ -208,6 +215,29 @@ function.injective.has_distrib_neg _ subtype.coe_injective coe_neg coe_mul
 subtype.ext $ (@ring_hom.map_matrix n _ _ _ _ _ _ (int.cast_ring_hom R)).map_neg ↑g
 
 end has_neg
+
+section special_cases
+
+lemma SL2_inv_expl_det (A : SL(2,R)) : det ![![A.1 1 1, -A.1 0 1], ![-A.1 1 0 , A.1 0 0]] = 1 :=
+begin
+  rw [matrix.det_fin_two, mul_comm],
+  simp only [subtype.val_eq_coe, cons_val_zero, cons_val_one, head_cons, mul_neg, neg_mul, neg_neg],
+  have := A.2,
+  rw matrix.det_fin_two at this,
+  convert this,
+end
+
+lemma SL2_inv_expl (A : SL(2, R)) : A⁻¹ = ⟨![![A.1 1 1, -A.1 0 1], ![-A.1 1 0 , A.1 0 0]],
+    SL2_inv_expl_det A⟩ :=
+begin
+  ext,
+  have := matrix.adjugate_fin_two A.1,
+  simp only [subtype.val_eq_coe] at this,
+  rw [special_linear_group.coe_inv, this],
+  refl,
+end
+
+end special_cases
 
 -- this section should be last to ensure we do not use it in lemmas
 section coe_fn_instance

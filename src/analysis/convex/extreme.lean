@@ -179,7 +179,7 @@ variables {𝕜} [ordered_semiring 𝕜] [add_comm_group E] [module 𝕜 E] {A B
 
 lemma is_extreme.convex_diff (hA : convex 𝕜 A) (hAB : is_extreme 𝕜 A B) :
   convex 𝕜 (A \ B) :=
-convex_iff_open_segment_subset.2 (λ x₁ x₂ ⟨hx₁A, hx₁B⟩ ⟨hx₂A, hx₂B⟩ x hx,
+convex_iff_open_segment_subset.2 (λ x₁ ⟨hx₁A, hx₁B⟩ x₂ ⟨hx₂A, hx₂B⟩ x hx,
     ⟨hA.open_segment_subset hx₁A hx₂A hx, λ hxB, hx₁B (hAB.2 hx₁A hx₂A hxB hx).1⟩)
 
 end ordered_semiring

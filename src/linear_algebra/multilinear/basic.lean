@@ -878,6 +878,23 @@ begin
   refl
 end
 
+lemma mk_pi_ring_eq_iff [fintype ι] {z₁ z₂ : M₂} :
+  multilinear_map.mk_pi_ring R ι z₁ = multilinear_map.mk_pi_ring R ι z₂ ↔ z₁ = z₂ :=
+begin
+  simp_rw [multilinear_map.ext_iff, mk_pi_ring_apply],
+  split; intro h,
+  { simpa using h (λ _, 1) },
+  { intro x, simp [h] }
+end
+
+lemma mk_pi_ring_zero [fintype ι] :
+  multilinear_map.mk_pi_ring R ι (0 : M₂) = 0 :=
+by ext; rw [mk_pi_ring_apply, smul_zero, multilinear_map.zero_apply]
+
+lemma mk_pi_ring_eq_zero_iff [fintype ι] (z : M₂) :
+  multilinear_map.mk_pi_ring R ι z = 0 ↔ z = 0 :=
+by rw [← mk_pi_ring_zero, mk_pi_ring_eq_iff]
+
 end comm_semiring
 
 section range_add_comm_group

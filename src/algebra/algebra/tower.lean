@@ -1,11 +1,10 @@
 /-
 Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kenny Lau
+Authors: Kenny Lau, Anne Baanen
 -/
 
-import algebra.algebra.subalgebra.basic
-import algebra.algebra.bilinear
+import algebra.algebra.basic
 
 /-!
 # Towers of algebras
@@ -47,10 +46,6 @@ def lsmul : A →ₐ[R] module.End R M :=
 
 @[simp] lemma lsmul_coe (a : A) : (lsmul R M a : M → M) = (•) a := rfl
 
-lemma lmul_algebra_map (x : R) :
-  lmul R A (algebra_map R A x) = algebra.lsmul R A x :=
-eq.symm $ linear_map.ext $ smul_def x
-
 end algebra
 
 namespace is_scalar_tower
@@ -84,9 +79,6 @@ of_algebra_map_eq $ ring_hom.ext_iff.1 h
 
 variables (R S A)
 
-instance subalgebra (S₀ : subalgebra R S) : is_scalar_tower S₀ S A :=
-of_algebra_map_eq $ λ x, rfl
-
 variables [algebra R A] [algebra R B]
 variables [is_scalar_tower R S A] [is_scalar_tower R S B]
 
@@ -97,10 +89,6 @@ ring_hom.ext $ λ x, by simp_rw [ring_hom.comp_apply, algebra.algebra_map_eq_smu
 
 theorem algebra_map_apply (x : R) : algebra_map R A x = algebra_map S A (algebra_map R S x) :=
 by rw [algebra_map_eq R S A, ring_hom.comp_apply]
-
-instance subalgebra' (S₀ : subalgebra R S) : is_scalar_tower R S₀ A :=
-@is_scalar_tower.of_algebra_map_eq R S₀ A _ _ _ _ _ _ $ λ _,
-(is_scalar_tower.algebra_map_apply R S A _ : _)
 
 @[ext] lemma algebra.ext {S : Type u} {A : Type v} [comm_semiring S] [semiring A]
   (h1 h2 : algebra S A) (h : ∀ (r : S) (x : A), (by haveI := h1; exact r • x) = r • x) : h1 = h2 :=
@@ -202,50 +190,6 @@ end alg_equiv
 
 end homs
 
-namespace subalgebra
-
-open is_scalar_tower
-
-section semiring
-
-variables (R) {S A B} [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
-variables [algebra R S] [algebra S A] [algebra R A] [algebra S B] [algebra R B]
-variables [is_scalar_tower R S A] [is_scalar_tower R S B]
-
-/-- Given a scalar tower `R`, `S`, `A` of algebras, reinterpret an `S`-subalgebra of `A` an as an
-`R`-subalgebra. -/
-def restrict_scalars (U : subalgebra S A) : subalgebra R A :=
-{ algebra_map_mem' := λ x, by { rw algebra_map_apply R S A, exact U.algebra_map_mem _ },
-  .. U }
-
-@[simp] lemma coe_restrict_scalars {U : subalgebra S A} :
-  (restrict_scalars R U : set A) = (U : set A) := rfl
-
-@[simp] lemma restrict_scalars_top : restrict_scalars R (⊤ : subalgebra S A) = ⊤ :=
-set_like.coe_injective rfl
-
-@[simp] lemma restrict_scalars_to_submodule {U : subalgebra S A} :
-  (U.restrict_scalars R).to_submodule = U.to_submodule.restrict_scalars R :=
-set_like.coe_injective rfl
-
-@[simp] lemma mem_restrict_scalars {U : subalgebra S A} {x : A} :
-  x ∈ restrict_scalars R U ↔ x ∈ U := iff.rfl
-
-lemma restrict_scalars_injective :
-  function.injective (restrict_scalars R : subalgebra S A → subalgebra R A) :=
-λ U V H, ext $ λ x, by rw [← mem_restrict_scalars R, H, mem_restrict_scalars]
-
-/-- Produces an `R`-algebra map from `U.restrict_scalars R` given an `S`-algebra map from `U`.
-
-This is a special case of `alg_hom.restrict_scalars` that can be helpful in elaboration. -/
-@[simp]
-def of_restrict_scalars (U : subalgebra S A) (f : U →ₐ[S] B) : U.restrict_scalars R →ₐ[R] B :=
-f.restrict_scalars R
-
-end semiring
-
-end subalgebra
-
 namespace algebra
 
 variables {R A} [comm_semiring R] [semiring A] [algebra R A]
@@ -272,25 +216,6 @@ lemma coe_span_eq_span_of_surjective
 congr_arg coe (algebra.span_restrict_scalars_eq_span_of_surjective h s)
 
 end algebra
-
-namespace is_scalar_tower
-
-open subalgebra
-
-variables [comm_semiring R] [comm_semiring S] [comm_semiring A]
-variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
-
-theorem adjoin_range_to_alg_hom (t : set A) :
-  (algebra.adjoin (to_alg_hom R S A).range t).restrict_scalars R =
-    (algebra.adjoin S t).restrict_scalars R :=
-subalgebra.ext $ λ z,
-show z ∈ subsemiring.closure (set.range (algebra_map (to_alg_hom R S A).range A) ∪ t : set A) ↔
-  z ∈ subsemiring.closure (set.range (algebra_map S A) ∪ t : set A),
-from suffices set.range (algebra_map (to_alg_hom R S A).range A) = set.range (algebra_map S A),
-  by rw this,
-by { ext z, exact ⟨λ ⟨⟨x, y, h1⟩, h2⟩, ⟨y, h2 ▸ h1⟩, λ ⟨y, hy⟩, ⟨⟨z, y, hy⟩, rfl⟩⟩ }
-
-end is_scalar_tower
 
 section semiring
 

@@ -58,23 +58,23 @@ by { cases o, exacts [iff.rfl, eq_comm, iff.rfl] }
 
 alias compares_swap ↔ compares.of_swap compares.swap
 
-lemma swap_eq_iff_eq_swap {o o' : ordering} : o.swap = o' ↔ o = o'.swap :=
-⟨λ h, by rw [← swap_swap o, h], λ h, by rw [← swap_swap o', h]⟩
+@[simp] theorem swap_inj (o₁ o₂ : ordering) : o₁.swap = o₂.swap ↔ o₁ = o₂ :=
+by cases o₁; cases o₂; dec_trivial
 
-lemma compares.eq_lt [preorder α] :
-  ∀ {o} {a b : α}, compares o a b → (o = lt ↔ a < b)
+lemma swap_eq_iff_eq_swap {o o' : ordering} : o.swap = o' ↔ o = o'.swap :=
+by rw [←swap_inj, swap_swap]
+
+lemma compares.eq_lt [preorder α] : ∀ {o} {a b : α}, compares o a b → (o = lt ↔ a < b)
 | lt a b h := ⟨λ _, h, λ _, rfl⟩
 | eq a b h := ⟨λ h, by injection h, λ h', (ne_of_lt h' h).elim⟩
 | gt a b h := ⟨λ h, by injection h, λ h', (lt_asymm h h').elim⟩
 
-lemma compares.ne_lt [preorder α] :
-  ∀ {o} {a b : α}, compares o a b → (o ≠ lt ↔ b ≤ a)
+lemma compares.ne_lt [preorder α] : ∀ {o} {a b : α}, compares o a b → (o ≠ lt ↔ b ≤ a)
 | lt a b h := ⟨absurd rfl, λ h', (not_le_of_lt h h').elim⟩
 | eq a b h := ⟨λ _, ge_of_eq h, λ _ h, by injection h⟩
 | gt a b h := ⟨λ _, le_of_lt h, λ _ h, by injection h⟩
 
-lemma compares.eq_eq [preorder α] :
-  ∀ {o} {a b : α}, compares o a b → (o = eq ↔ a = b)
+lemma compares.eq_eq [preorder α] : ∀ {o} {a b : α}, compares o a b → (o = eq ↔ a = b)
 | lt a b h := ⟨λ h, by injection h, λ h', (ne_of_lt h h').elim⟩
 | eq a b h := ⟨λ _, h, λ _, rfl⟩
 | gt a b h := ⟨λ h, by injection h, λ h', (ne_of_gt h h').elim⟩
@@ -85,20 +85,17 @@ swap_eq_iff_eq_swap.symm.trans h.swap.eq_lt
 lemma compares.ne_gt [preorder α] {o} {a b : α} (h : compares o a b) : (o ≠ gt ↔ a ≤ b) :=
 (not_congr swap_eq_iff_eq_swap.symm).trans h.swap.ne_lt
 
-lemma compares.le_total [preorder α] {a b : α} :
-  ∀ {o}, compares o a b → a ≤ b ∨ b ≤ a
+lemma compares.le_total [preorder α] {a b : α} : ∀ {o}, compares o a b → a ≤ b ∨ b ≤ a
 | lt h := or.inl (le_of_lt h)
 | eq h := or.inl (le_of_eq h)
 | gt h := or.inr (le_of_lt h)
 
-lemma compares.le_antisymm [preorder α] {a b : α} :
-  ∀ {o}, compares o a b → a ≤ b → b ≤ a → a = b
+lemma compares.le_antisymm [preorder α] {a b : α} : ∀ {o}, compares o a b → a ≤ b → b ≤ a → a = b
 | lt h _ hba := (not_le_of_lt h hba).elim
 | eq h _ _   := h
 | gt h hab _ := (not_le_of_lt h hab).elim
 
-lemma compares.inj [preorder α] {o₁} :
-  ∀ {o₂} {a b : α}, compares o₁ a b → compares o₂ a b → o₁ = o₂
+lemma compares.inj [preorder α] {o₁} : ∀ {o₂} {a b : α}, compares o₁ a b → compares o₂ a b → o₁ = o₂
 | lt a b h₁ h₂ := h₁.eq_lt.2 h₂
 | eq a b h₁ h₂ := h₁.eq_eq.2 h₂
 | gt a b h₁ h₂ := h₁.eq_gt.2 h₂
@@ -143,7 +140,7 @@ lemma ordering.compares.cmp_eq [linear_order α] {a b : α} {o : ordering} (h : 
   cmp a b = o :=
 (cmp_compares a b).inj h
 
-lemma cmp_swap [preorder α] [@decidable_rel α (<)] (a b : α) : (cmp a b).swap = cmp b a :=
+@[simp] lemma cmp_swap [preorder α] [@decidable_rel α (<)] (a b : α) : (cmp a b).swap = cmp b a :=
 begin
   unfold cmp cmp_using,
   by_cases a < b; by_cases h₂ : b < a; simp [h, h₂, ordering.swap],
@@ -190,8 +187,7 @@ by rw cmp_eq_eq_iff
 variables {x y} {β : Type*} [linear_order β] {x' y' : β}
 
 lemma cmp_eq_cmp_symm : cmp x y = cmp x' y' ↔ cmp y x = cmp y' x' :=
-by { split, rw [←cmp_swap _ y, ←cmp_swap _ y'], cc,
-  rw [←cmp_swap _ x, ←cmp_swap _ x'], cc, }
+⟨λ h, by rwa [←cmp_swap x', ←cmp_swap, swap_inj], λ h, by rwa [←cmp_swap y', ←cmp_swap, swap_inj]⟩
 
 lemma lt_iff_lt_of_cmp_eq_cmp (h : cmp x y = cmp x' y') : x < y ↔ x' < y' :=
 by rw [←cmp_eq_lt_iff, ←cmp_eq_lt_iff, h]

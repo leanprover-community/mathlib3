@@ -5,7 +5,9 @@ Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.invertible
 import algebra.group_power.ring
-import data.int.cast
+import algebra.order.monoid.with_top
+import data.nat.pow
+import data.int.cast.lemmas
 
 /-!
 # Lemmas about power operations on monoids and groups
@@ -56,8 +58,9 @@ begin
   exact and.left
 end
 
-lemma is_unit_pos_pow_iff {m : M} :
-  ∀ {n : ℕ} (h : 0 < n), is_unit (m ^ n) ↔ is_unit m
+lemma is_unit_pow_iff {m : M} :
+  ∀ {n : ℕ} (h : n ≠ 0), is_unit (m ^ n) ↔ is_unit m
+| 0 h := (h rfl).elim
 | (n + 1) _ := is_unit_pow_succ_iff
 
 /-- If `x ^ n.succ = 1` then `x` has an inverse, `x^n`. -/
@@ -66,15 +69,15 @@ def invertible_of_pow_succ_eq_one (x : M) (n : ℕ) (hx : x ^ n.succ = 1) :
 ⟨x ^ n, (pow_succ' x n).symm.trans hx, (pow_succ x n).symm.trans hx⟩
 
 /-- If `x ^ n = 1` then `x` has an inverse, `x^(n - 1)`. -/
-def invertible_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :
+def invertible_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : n ≠ 0) :
   invertible x :=
 begin
   apply invertible_of_pow_succ_eq_one x (n - 1),
   convert hx,
-  exact tsub_add_cancel_of_le (nat.succ_le_of_lt hn),
+  exact nat.succ_pred_eq_of_pos (pos_iff_ne_zero.2 hn),
 end
 
-lemma is_unit_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :
+lemma is_unit_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : n ≠ 0) :
   is_unit x :=
 begin
   haveI := invertible_of_pow_eq_one x n hx hn,
@@ -358,14 +361,14 @@ instance non_unital_non_assoc_semiring.nat_is_scalar_tower [non_unital_non_assoc
   | (n + 1) := by simp_rw [succ_nsmul, ←_match n, smul_eq_mul, add_mul]
   end⟩
 
-@[simp, norm_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
+@[norm_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 begin
   induction m with m ih,
   { rw [pow_zero, pow_zero], exact nat.cast_one },
   { rw [pow_succ', pow_succ', nat.cast_mul, ih] }
 end
 
-@[simp, norm_cast] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ) = n ^ m :=
+@[norm_cast] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ) = n ^ m :=
 by induction m with m ih; [exact int.coe_nat_one, rw [pow_succ', pow_succ', int.coe_nat_mul, ih]]
 
 theorem int.nat_abs_pow (n : ℤ) (k : ℕ) : int.nat_abs (n ^ k) = (int.nat_abs n) ^ k :=
@@ -413,7 +416,7 @@ lemma zsmul_int_int (a b : ℤ) : a • b = a * b := by simp
 
 lemma zsmul_int_one (n : ℤ) : n • 1 = n := by simp
 
-@[simp, norm_cast] theorem int.cast_pow [ring R] (n : ℤ) (m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
+@[norm_cast] theorem int.cast_pow [ring R] (n : ℤ) (m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 begin
   induction m with m ih,
   { rw [pow_zero, pow_zero, int.cast_one] },
@@ -423,8 +426,8 @@ end
 lemma neg_one_pow_eq_pow_mod_two [ring R] {n : ℕ} : (-1 : R) ^ n = (-1) ^ (n % 2) :=
 by rw [← nat.mod_add_div n 2, pow_add, pow_mul]; simp [sq]
 
-section ordered_semiring
-variables [ordered_semiring R] {a : R}
+section strict_ordered_semiring
+variables [strict_ordered_semiring R] {a : R}
 
 /-- Bernoulli's inequality. This version works for semirings but requires
 additional hypotheses `0 ≤ a * a` and `0 ≤ (1 + a) * (1 + a)`. -/
@@ -461,7 +464,7 @@ lemma pow_le_of_le_one (h₀ : 0 ≤ a) (h₁ : a ≤ 1) {n : ℕ} (hn : n ≠ 0
 
 lemma sq_le (h₀ : 0 ≤ a) (h₁ : a ≤ 1) : a ^ 2 ≤ a := pow_le_of_le_one h₀ h₁ two_ne_zero
 
-end ordered_semiring
+end strict_ordered_semiring
 
 section linear_ordered_semiring
 
@@ -472,7 +475,7 @@ lemma sign_cases_of_C_mul_pow_nonneg {C r : R} (h : ∀ n : ℕ, 0 ≤ C * r ^ n
 begin
   have : 0 ≤ C, by simpa only [pow_zero, mul_one] using h 0,
   refine this.eq_or_lt.elim (λ h, or.inl h.symm) (λ hC, or.inr ⟨hC, _⟩),
-  refine nonneg_of_mul_nonneg_left _ hC,
+  refine nonneg_of_mul_nonneg_right _ hC,
   simpa only [pow_one] using h 1
 end
 
@@ -520,11 +523,6 @@ by simpa only [add_sub_cancel'_right] using one_add_mul_le_pow this n
 end linear_ordered_ring
 
 namespace int
-
-alias units_sq ← units_pow_two
-
-lemma units_pow_eq_pow_mod_two (u : ℤˣ) (n : ℕ) : u ^ n = u ^ (n % 2) :=
-by conv {to_lhs, rw ← nat.mod_add_div n 2}; rw [pow_add, pow_mul, units_sq, one_pow, mul_one]
 
 @[simp] lemma nat_abs_sq (x : ℤ) : (x.nat_abs ^ 2 : ℤ) = x ^ 2 :=
 by rw [sq, int.nat_abs_mul_self', sq]

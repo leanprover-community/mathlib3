@@ -509,7 +509,7 @@ meta def eval (norm_atom : expr → tactic (expr × expr)) : expr → ring_m (ho
   | _, _ := eval_norm_atom norm_atom e
   end
 | e := match e.to_nat with
-  | some n := (const e (rat.of_int n)).refl_conv
+  | some n := (const e n).refl_conv
   | none := eval_norm_atom norm_atom e
   end
 
@@ -708,7 +708,7 @@ open conv interactive
 open tactic tactic.interactive (ring.mode ring1)
 open tactic.ring (normalize normalize_mode.horner)
 
-local postfix `?`:9001 := optional
+local postfix (name := parser.optional) `?`:9001 := optional
 
 /--
 Normalises expressions in commutative (semi-)rings inside of a `conv` block using the tactic `ring`.

@@ -88,6 +88,22 @@ by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*),
   npow := monoid.npow };
 tactic.pi_instance_derive_field
 
+/-- A family of non-unital ring homomorphisms `f a : γ →ₙ+* β a` defines a non-unital ring
+homomorphism `pi.non_unital_ring_hom f : γ →+* Π a, β a` given by
+`pi.non_unital_ring_hom f x b = f b x`. -/
+@[simps]
+protected def non_unital_ring_hom {γ : Type w} [Π i, non_unital_non_assoc_semiring (f i)]
+  [non_unital_non_assoc_semiring γ] (g : Π i, γ →ₙ+* f i) : γ →ₙ+* Π i, f i :=
+{ to_fun := λ x b, g b x,
+  map_add' := λ x y, funext $ λ z, map_add (g z) x y,
+  map_mul' := λ x y, funext $ λ z, map_mul (g z) x y,
+  map_zero' := funext $ λ z, map_zero (g z) }
+
+lemma non_unital_ring_hom_injective {γ : Type w} [nonempty I]
+  [Π i, non_unital_non_assoc_semiring (f i)] [non_unital_non_assoc_semiring γ] (g : Π i, γ →ₙ+* f i)
+  (hg : ∀ i, function.injective (g i)) : function.injective (pi.non_unital_ring_hom g) :=
+λ x y h, let ⟨i⟩ := ‹nonempty I› in hg i ((function.funext_iff.mp h : _) i)
+
 /-- A family of ring homomorphisms `f a : γ →+* β a` defines a ring homomorphism
 `pi.ring_hom f : γ →+* Π a, β a` given by `pi.ring_hom f x b = f b x`. -/
 @[simps]
@@ -105,6 +121,36 @@ lemma ring_hom_injective {γ : Type w} [nonempty I] [Π i, non_assoc_semiring (f
 λ x y h, let ⟨i⟩ := ‹nonempty I› in hg i ((function.funext_iff.mp h : _) i)
 
 end pi
+
+section non_unital_ring_hom
+
+universes u v
+variable {I : Type u}
+
+/-- Evaluation of functions into an indexed collection of non-unital rings at a point is a
+non-unital ring homomorphism. This is `function.eval` as a `non_unital_ring_hom`. -/
+@[simps]
+def pi.eval_non_unital_ring_hom (f : I → Type v)
+  [Π i, non_unital_non_assoc_semiring (f i)] (i : I) : (Π i, f i) →ₙ+* f i :=
+{ ..(pi.eval_mul_hom f i),
+  ..(pi.eval_add_monoid_hom f i) }
+
+/-- `function.const` as a `non_unital_ring_hom`. -/
+@[simps]
+def pi.const_non_unital_ring_hom (α β : Type*) [non_unital_non_assoc_semiring β] : β →ₙ+* (α → β) :=
+{ to_fun := function.const _,
+  .. pi.non_unital_ring_hom (λ _, non_unital_ring_hom.id β) }
+
+/-- Non-unital ring homomorphism between the function spaces `I → α` and `I → β`, induced by a
+non-unital ring homomorphism `f` between `α` and `β`. -/
+@[simps] protected def non_unital_ring_hom.comp_left {α β : Type*} [non_unital_non_assoc_semiring α]
+  [non_unital_non_assoc_semiring β] (f : α →ₙ+* β) (I : Type*) :
+  (I → α) →ₙ+* (I → β) :=
+{ to_fun := λ h, f ∘ h,
+  .. f.to_mul_hom.comp_left I,
+  .. f.to_add_monoid_hom.comp_left I }
+
+end non_unital_ring_hom
 
 section ring_hom
 

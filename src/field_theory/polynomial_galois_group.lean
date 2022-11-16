@@ -56,6 +56,9 @@ namespace gal
 instance : has_coe_to_fun p.gal (λ _, p.splitting_field → p.splitting_field) :=
 alg_equiv.has_coe_to_fun
 
+instance apply_mul_semiring_action : mul_semiring_action p.gal p.splitting_field :=
+alg_equiv.apply_mul_semiring_action
+
 @[ext] lemma ext {σ τ : p.gal} (h : ∀ x ∈ p.root_set p.splitting_field, σ x = τ x) : σ = τ :=
 begin
   refine alg_equiv.ext (λ x, (alg_hom.mem_equalizer σ.to_alg_hom τ.to_alg_hom x).mp
@@ -185,10 +188,7 @@ variables (p E)
 
 /-- `polynomial.gal.gal_action` as a permutation representation -/
 def gal_action_hom [fact (p.splits (algebra_map F E))] : p.gal →* equiv.perm (root_set p E) :=
-{ to_fun := λ ϕ, equiv.mk (λ x, ϕ • x) (λ x, ϕ⁻¹ • x)
-  (λ x, inv_smul_smul ϕ x) (λ x, smul_inv_smul ϕ x),
-  map_one' := by { ext1 x, exact mul_action.one_smul x },
-  map_mul' := λ x y, by { ext1 z, exact mul_action.mul_smul x y z } }
+mul_action.to_perm_hom _ _
 
 lemma gal_action_hom_restrict [fact (p.splits (algebra_map F E))]
   (ϕ : E ≃ₐ[F] E) (x : root_set p E) : ↑(gal_action_hom p E (restrict p E ϕ) x) = ϕ x :=
@@ -363,7 +363,7 @@ lemma card_complex_roots_eq_card_real_add_card_not_gal_inv (p : ℚ[X]) :
 begin
   by_cases hp : p = 0,
   { simp_rw [hp, root_set_zero, set.to_finset_eq_empty_iff.mpr rfl, finset.card_empty, zero_add],
-    refine eq.symm (nat.le_zero_iff.mp ((finset.card_le_univ _).trans (le_of_eq _))),
+    refine eq.symm (le_zero_iff.mp ((finset.card_le_univ _).trans (le_of_eq _))),
     simp_rw [hp, root_set_zero, fintype.card_eq_zero_iff],
     apply_instance },
   have inj : function.injective (is_scalar_tower.to_alg_hom ℚ ℝ ℂ) := (algebra_map ℝ ℂ).injective,
@@ -402,8 +402,9 @@ begin
   { apply congr_arg finset.card,
     simp_rw [finset.ext_iff, finset.mem_union, ha, hb, hc],
     tauto },
-  { intro z,
-    rw [finset.inf_eq_inter, finset.mem_inter, hb, hc],
+  { rw finset.disjoint_left,
+    intros z,
+    rw [hb, hc],
     tauto },
   { apply_instance },
 end

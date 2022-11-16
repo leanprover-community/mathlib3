@@ -274,13 +274,13 @@ begin
       ext x, dsimp [locally_constant.of_clopen],
       rw if_neg, { refl },
       refine mt (λ α, hVU α) _,
-      simp only [set.mem_range_self, not_true, not_false_iff, set.mem_compl_eq], },
+      simp only [set.mem_range_self, not_true, not_false_iff, set.mem_compl_iff], },
     apply_fun (λ e, (e y).down) at H,
     dsimp [locally_constant.of_clopen] at H,
     rw if_pos hyV at H,
     exact top_ne_bot H },
   { rw ← category_theory.epi_iff_surjective,
-    apply faithful_reflects_epi (forget Profinite) },
+    apply (forget Profinite).epi_of_epi_map }
 end
 
 lemma mono_iff_injective {X Y : Profinite.{u}} (f : X ⟶ Y) : mono f ↔ function.injective f :=
@@ -291,7 +291,7 @@ begin
     haveI : mono (Profinite_to_CompHaus.map f) := infer_instance,
     rwa ← CompHaus.mono_iff_injective },
   { rw ← category_theory.mono_iff_injective,
-    apply faithful_reflects_mono (forget Profinite) }
+    apply (forget Profinite).mono_of_mono_map }
 end
 
 end Profinite

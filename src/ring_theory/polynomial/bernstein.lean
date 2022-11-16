@@ -149,7 +149,7 @@ begin
     { simp [eval_at_0], },
     { simp only [derivative_succ, int.coe_nat_eq_zero, mul_eq_zero,
         function.comp_app, function.iterate_succ,
-        polynomial.iterate_derivative_sub, polynomial.iterate_derivative_cast_nat_mul,
+        polynomial.iterate_derivative_sub, polynomial.iterate_derivative_nat_cast_mul,
         polynomial.eval_mul, polynomial.eval_nat_cast, polynomial.eval_sub],
       intro h,
       apply mul_eq_zero_of_right,
@@ -176,7 +176,7 @@ begin
     { have h' : ν ≤ n-1 := le_tsub_of_add_le_right h,
       simp only [derivative_succ, ih (n-1) h', iterate_derivative_succ_at_0_eq_zero,
         nat.succ_sub_succ_eq_sub, tsub_zero, sub_zero,
-        iterate_derivative_sub, iterate_derivative_cast_nat_mul,
+        iterate_derivative_sub, iterate_derivative_nat_cast_mul,
         eval_one, eval_mul, eval_add, eval_sub, eval_X, eval_comp, eval_nat_cast,
         function.comp_app, function.iterate_succ, pochhammer_succ_left],
       obtain rfl | h'' := ν.eq_zero_or_pos,
@@ -306,43 +306,41 @@ begin
   let x : mv_polynomial bool R := mv_polynomial.X tt,
   let y : mv_polynomial bool R := mv_polynomial.X ff,
 
-  have pderiv_tt_x : pderiv tt x = 1, { simp [x], },
-  have pderiv_tt_y : pderiv tt y = 0, { simp [pderiv_X, y], },
+  have pderiv_tt_x : pderiv tt x = 1, { rw [pderiv_X], refl, },
+  have pderiv_tt_y : pderiv tt y = 0, { rw [pderiv_X], refl, },
 
   let e : bool → R[X] := λ i, cond i X (1-X),
 
   -- Start with `(x+y)^n = (x+y)^n`,
   -- take the `x`-derivative, evaluate at `x=X, y=1-X`, and multiply by `X`:
-  have h : (x+y)^n = (x+y)^n := rfl,
-  apply_fun (pderiv tt) at h,
-  apply_fun (aeval e) at h,
-  apply_fun (λ p, p * X) at h,
+  transitivity aeval e (pderiv tt ((x + y) ^ n)) * X,
 
   -- On the left hand side we'll use the binomial theorem, then simplify.
 
-  -- We first prepare a tedious rewrite:
-  have w : ∀ k : ℕ,
-    ↑k * polynomial.X ^ (k - 1) * (1 - polynomial.X) ^ (n - k) * ↑(n.choose k) * polynomial.X =
-      k • bernstein_polynomial R n k,
-  { rintro (_|k),
-    { simp, },
-    { dsimp [bernstein_polynomial],
-      simp only [←nat_cast_mul, nat.succ_eq_add_one, nat.add_succ_sub_one, add_zero, pow_succ],
-      push_cast,
-      ring, }, },
+  { -- We first prepare a tedious rewrite:
+    have w : ∀ k : ℕ,
+      k • bernstein_polynomial R n k =
+        ↑k * polynomial.X ^ (k - 1) * (1 - polynomial.X) ^ (n - k) * ↑(n.choose k) * polynomial.X,
+    { rintro (_|k),
+      { simp, },
+      { dsimp [bernstein_polynomial],
+        simp only [←nat_cast_mul, nat.succ_eq_add_one, nat.add_succ_sub_one, add_zero, pow_succ],
+        push_cast,
+        ring, }, },
 
-  conv at h
-  { to_lhs,
     rw [add_pow, (pderiv tt).map_sum, (mv_polynomial.aeval e).map_sum, finset.sum_mul],
     -- Step inside the sum:
-    apply_congr, skip,
-    simp [pderiv_mul, pderiv_tt_x, pderiv_tt_y, e, w], },
-  -- On the right hand side, we'll just simplify.
-  conv at h
-  { to_rhs,
-    rw [(pderiv tt).leibniz_pow, (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
-    simp [e] },
-  simpa using h,
+    refine finset.sum_congr rfl (λ k hk, (w k).trans _),
+    simp only [pderiv_tt_x, pderiv_tt_y, algebra.id.smul_eq_mul, nsmul_eq_mul,
+      e, bool.cond_tt, bool.cond_ff, add_zero, mul_one, mul_zero, smul_zero,
+      mv_polynomial.aeval_X, mv_polynomial.pderiv_mul,
+      derivation.leibniz_pow, derivation.map_coe_nat,
+      map_nat_cast, map_pow, map_mul], },
+
+  { rw [(pderiv tt).leibniz_pow, (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
+    simp only [algebra.id.smul_eq_mul, nsmul_eq_mul,
+      map_nat_cast, map_pow, map_add, map_mul, e, bool.cond_tt, bool.cond_ff,
+      mv_polynomial.aeval_X, add_sub_cancel'_right, one_pow, add_zero, mul_one] },
 end
 
 lemma sum_mul_smul (n : ℕ) :
@@ -355,49 +353,44 @@ begin
   let x : mv_polynomial bool R := mv_polynomial.X tt,
   let y : mv_polynomial bool R := mv_polynomial.X ff,
 
-  have pderiv_tt_x : pderiv tt x = 1, { simp [x], },
-  have pderiv_tt_y : pderiv tt y = 0, { simp [pderiv_X, y], },
+  have pderiv_tt_x : pderiv tt x = 1, { rw [pderiv_X], refl, },
+  have pderiv_tt_y : pderiv tt y = 0, { rw [pderiv_X], refl, },
 
   let e : bool → R[X] := λ i, cond i X (1-X),
 
   -- Start with `(x+y)^n = (x+y)^n`,
   -- take the second `x`-derivative, evaluate at `x=X, y=1-X`, and multiply by `X`:
-  have h : (x+y)^n = (x+y)^n := rfl,
-  apply_fun (pderiv tt) at h,
-  apply_fun (pderiv tt) at h,
-  apply_fun (aeval e) at h,
-  apply_fun (λ p, p * X^2) at h,
+  transitivity aeval e (pderiv tt (pderiv tt ((x + y) ^ n))) * X ^ 2,
 
   -- On the left hand side we'll use the binomial theorem, then simplify.
-
-  -- We first prepare a tedious rewrite:
-  have w : ∀ k : ℕ,
-    ↑k * (↑(k-1) * polynomial.X ^ (k - 1 - 1)) *
-      (1 - polynomial.X) ^ (n - k) * ↑(n.choose k) * polynomial.X^2 =
-      (k * (k-1)) • bernstein_polynomial R n k,
-  { rintro (_|k),
-    { simp, },
-    { rcases k with (_|k),
+  { -- We first prepare a tedious rewrite:
+    have w : ∀ k : ℕ,
+      (k * (k-1)) • bernstein_polynomial R n k =
+        ↑(n.choose k) * ((1 - polynomial.X) ^ (n - k) *
+          (↑k * (↑(k-1) * polynomial.X ^ (k - 1 - 1)))) * polynomial.X^2,
+    { rintro (_|_|k),
+      { simp, },
       { simp, },
       { dsimp [bernstein_polynomial],
         simp only [←nat_cast_mul, nat.succ_eq_add_one, nat.add_succ_sub_one, add_zero, pow_succ],
         push_cast,
-        ring, }, }, },
+        ring, }, },
 
-  conv at h
-  { to_lhs,
     rw [add_pow, (pderiv tt).map_sum, (pderiv tt).map_sum, (mv_polynomial.aeval e).map_sum,
       finset.sum_mul],
     -- Step inside the sum:
-    apply_congr, skip,
-    simp [pderiv_mul, pderiv_tt_x, pderiv_tt_y, e, w] },
+    refine finset.sum_congr rfl (λ k hk, (w k).trans _),
+    simp only [pderiv_tt_x, pderiv_tt_y, algebra.id.smul_eq_mul, nsmul_eq_mul,
+      e, bool.cond_tt, bool.cond_ff, add_zero, zero_add, mul_zero, smul_zero, mul_one,
+      mv_polynomial.aeval_X, mv_polynomial.pderiv_X_self, mv_polynomial.pderiv_X_of_ne,
+      derivation.leibniz_pow, derivation.leibniz, derivation.map_coe_nat,
+      map_nat_cast, map_pow, map_mul, map_add], },
+
   -- On the right hand side, we'll just simplify.
-  conv at h
-  { to_rhs,
-    simp only [pderiv_one, pderiv_mul, (pderiv _).leibniz_pow, (pderiv _).map_coe_nat,
-      (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
-    simp [e, smul_smul] },
-  simpa using h,
+  { simp only [pderiv_one, pderiv_mul, (pderiv _).leibniz_pow, (pderiv _).map_coe_nat,
+      (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y, algebra.id.smul_eq_mul, add_zero, mul_one,
+      derivation.map_smul_of_tower, map_nsmul, map_pow, map_add, e, bool.cond_tt, bool.cond_ff,
+      mv_polynomial.aeval_X, add_sub_cancel'_right, one_pow, smul_smul, smul_one_mul] },
 end
 
 /--

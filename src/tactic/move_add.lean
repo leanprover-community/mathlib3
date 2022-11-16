@@ -62,7 +62,10 @@ consisting of the entries of `un` whose corresponding entry in `bo` is `tt`.
 
 Used for error management: `un` is the list of user inputs, `bo` is the list encoding which input
 is unused (`tt`) and which input is used (`ff`).
-`return_unused` returns the unused user inputs. -/
+`return_unused` returns the unused user inputs.
+
+If `bo` is shorter than `un`, `return_unused` will include the remainder of `un`.
+-/
 def return_unused {α : Type*} : list α → list bool → list α
 | un [] := un
 | [] bo := []
@@ -107,8 +110,8 @@ do
   (l1, l2, l3, is_unused) ← move_left_or_right lp_exp sl [],
   return (l1 ++ l3 ++ l2, is_unused)
 
-/-- `as_given_op op e` unifies the head term of `e` with the binary operation `op`, failing
-if it cannot. -/
+/-- `as_given_op op e` unifies the head term of `e`, which is a ≥2-argument function application,
+with the binary operation `op`, failing if it cannot. -/
 meta def as_given_op (op : pexpr) : expr → tactic expr
 | (expr.app (expr.app F a) b) := do
     to_expr op tt ff >>= unify F,
@@ -130,7 +133,7 @@ Here are two examples:
 #eval trace $ reorder_oper ``((=)) [(ff,``(2)), (tt,``(7))] `(∀ x y : ℕ, 2 = 0)
 --  (ℕ → ℕ → 0 = 2, [ff, tt])
 -- the input `[(ff,``(2)), (tt,``(7))]` instructs Lean to move `2` to the right and `7`
--- to the right.  Lean reports that `2` is not unused and `7` is unused as `[ff, tt]`.
+-- to the left.  Lean reports that `2` is not unused and `7` is unused as `[ff, tt]`.
 
 #eval trace $ reorder_oper ``((+)) [(ff,``(2)), (tt,``(5))]
   `(λ (e : ℕ), ∀ (x : ℕ), ∃ (y : ℕ),
@@ -140,6 +143,8 @@ Here are two examples:
    (λ (e : ℕ), ∀ (x : ℕ), ∃ (y : ℕ),
       x * (5 + y + e) + y + 2   = x + e + 2 → x + 2 = 5 + x + y + 2, [ff, ff]) -/
 ```
+
+TODO: use `ext_simplify_core` instead of traversing the expression manually
 -/
 meta def reorder_oper (op : pexpr) (lp : list (bool × pexpr)) :
   expr → tactic (expr × list bool)
@@ -211,7 +216,8 @@ pre ← pp reordered,
   | `(has_mul.mul) := `[{ simp only [mul_comm, mul_assoc, mul_left_comm]; refl, done }]
   | _ := ac_refl <|>
     fail format!("the associative/commutative lemmas used do not suffice to prove that " ++
-      "the initial goal equals:\n\n{pre}\n")
+      "the initial goal equals:\n\n{pre}\n" ++
+      "Hint: try adding `is_associative` or `is_commutative` instances.\n")
   end,
 match hyploc with
 | none := replace_target reordered prf
@@ -254,11 +260,15 @@ tg ← target,
 let locas_with_tg := if locat.include_goal then locas ++ [tg] else locas,
 ner ← locas_with_tg.mmap (λ e, reorder_hyp op args e.local_pp_name <|> reorder_hyp op args none),
 let (unch_tgts, unus_vars) := ner.unzip,
-let str_unva := match
+str_unva ← match
   (return_unused args (unus_vars.transpose.map list.band)).map (λ e : bool × pexpr, e.2) with
-  | []   := []
-  | [pe] := [format!"'{pe}' is an unused variable"]
-  | pes  := [format!"'{pes}' are unused variables"]
+  | []   := pure []
+  | [pe] := do
+    nm ← to_expr pe tt ff >>= λ ex, pp ex.replace_mvars,
+    return [format!"'{nm}' is an unused variable"]
+  | pes  := do
+    nms ← pes.mmap (λ e, to_expr e tt ff) >>= λ exs, (exs.map expr.replace_mvars).mmap pp,
+    return [format!"'{nms}' are unused variables"]
   end,
 let str_tgts := match locat with
   | loc.wildcard := if unch_tgts.band then [format!"nothing changed"] else []

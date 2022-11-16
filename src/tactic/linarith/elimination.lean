@@ -79,18 +79,17 @@ along with information about how this comparison was derived.
 The original expressions fed into `linarith` are each assigned a unique natural number label.
 The *historical set* `pcomp.history` stores the labels of expressions
 that were used in deriving the current `pcomp`.
-Variables are also indexed by natural numbers. The sets `pcomp.effective`, `pcomp.implicit`,
-and `pcomp.vars` contain variable indices.
-* `pcomp.vars` contains the variables that appear in `pcomp.c`. We store them in `pcomp` to
-  avoid recomputing the set, which requires folding over a list. (TODO: is this really needed?)
+Variables are also indexed by natural numbers. The sets `PComp.effective`, `PComp.implicit`,
+and `PComp.vars` contain variable indices.
+* `pcomp.vars` contains the variables that appear in any inequality in the historical set.
 * `pcomp.effective` contains the variables that have been effectively eliminated from `pcomp`.
-  A variable `n` is said to be *effectively eliminated* in `pcomp` if the elimination of `n`
-  produced at least one of the ancestors of `pcomp`.
+  A variable `n` is said to be *effectively eliminated* in `p : pcomp` if the elimination of `n`
+  produced at least one of the ancestors of `p` (or `p` itself).
 * `pcomp.implicit` contains the variables that have been implicitly eliminated from `pcomp`.
-  A variable `n` is said to be *implicitly eliminated* in `pcomp` if it satisfies the following
+  A variable `n` is said to be *implicitly eliminated* in `p` if it satisfies the following
   properties:
-  - There is some `ancestor` of `pcomp` such that `n` appears in `ancestor.vars`.
-  - `n` does not appear in `pcomp.vars`.
+  - `n` appears in some inequality in the historical set (i.e. in `p.vars`).
+  - `n` does not appear in `p.c.vars` (i.e. it has been eliminated).
   - `n` was not effectively eliminated.
 
 We track these sets in order to compute whether the history of a `pcomp` is *minimal*.
@@ -115,8 +114,7 @@ This test is an overapproximation to minimality. It gives necessary but not suff
 If the history of `c` is minimal, then `c.maybe_minimal` is true,
 but `c.maybe_minimal` may also be true for some `c` with minimal history.
 Thus, if `c.maybe_minimal` is false, `c` is known not to be minimal and must be redundant.
-See http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.51.493&rep=rep1&type=pdf p.13
-(Theorem 7).
+See https://doi.org/10.1016/B978-0-444-88771-9.50019-2 (Theorem 13).
 The condition described there considers only implicitly eliminated variables that have been
 officially eliminated from the system. This is not the case for every implicitly eliminated
 variable. Consider eliminating `z` from `{x + y + z < 0, x - y - z < 0}`. The result is the set
@@ -149,20 +147,24 @@ and does not appear in the sum.
 Computing the sum of the two comparisons is easy; the complicated details lie in tracking the
 additional fields of `pcomp`.
 * The historical set `pcomp.history` of `c1 + c2` is the union of the two historical sets.
-* We recompute the variables that appear in `c1 + c2` from the newly created `linexp`,
-  since some may have been implicitly eliminated.
+* `vars` is the union of `c1.vars` and `c2.vars`.
 * The effectively eliminated variables of `c1 + c2` are the union of the two effective sets,
   with `elim_var` inserted.
-* The implicitly eliminated variables of `c1 + c2` are those that appear in at least one of
-  `c1.vars` and `c2.vars` but not in `(c1 + c2).vars`, excluding `elim_var`.
+* The implicitly eliminated variables of `c1 + c2` are those that appear in
+  `vars` but not `c.vars` or `effective`.
+(Note that the description of the implicitly eliminated variables of `c1 + c2` in the algorithm
+described in Section 6 of https://doi.org/10.1016/B978-0-444-88771-9.50019-2 seems to be wrong:
+that says it should be `(c1.implicit.union c2.implicit).sdiff explicit`.
+Since the implicitly eliminated sets start off empty for the assumption,
+this formula would leave them always empty.)
 -/
 meta def pcomp.add (c1 c2 : pcomp) (elim_var : ℕ) : pcomp :=
 let c := c1.c.add c2.c,
     src := c1.src.add c2.src,
     history := c1.history.union c2.history,
-    vars := native.rb_set.of_list c.vars,
+    vars := c1.vars.union c2.vars,
     effective := (c1.effective.union c2.effective).insert elim_var,
-    implicit := ((c1.vars.union c2.vars).sdiff vars).erase elim_var in
+    implicit := (vars.sdiff (rb_set.of_list c.vars)).sdiff effective in
 ⟨c, src, history, effective, implicit, vars⟩
 
 /--

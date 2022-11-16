@@ -3,12 +3,11 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
-import algebra.group_with_zero.power
 import data.set.intervals.pi
+import data.set.pointwise.interval
 import order.filter.interval
 import topology.algebra.group
-import tactic.linarith
-import tactic.tfae
+import topology.algebra.order.left_right
 
 /-!
 # Theory of topology on ordered spaces
@@ -75,7 +74,7 @@ definition `preorder.topology α` though, that can be registered as an instance 
 for specific types.
 -/
 
-open classical set filter topological_space
+open set filter topological_space
 open function
 open order_dual (to_dual of_dual)
 open_locale topological_space classical filter
@@ -89,8 +88,6 @@ This property is satisfied for the order topology on a linear order, but it can 
 generally, and suffices to derive many interesting properties relating order and topology. -/
 class order_closed_topology (α : Type*) [topological_space α] [preorder α] : Prop :=
 (is_closed_le' : is_closed {p:α×α | p.1 ≤ p.2})
-
-instance : Π [topological_space α], topological_space αᵒᵈ := id
 
 instance [topological_space α] [h : first_countable_topology α] : first_countable_topology αᵒᵈ := h
 
@@ -763,22 +760,16 @@ tendsto_Ixx_class_of_subset (λ _ _, Ioc_subset_Icc_self)
 instance tendsto_Ioo_class_nhds (a : α) : tendsto_Ixx_class Ioo (𝓝 a) (𝓝 a) :=
 tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Icc_self)
 
-/-- Also known as squeeze or sandwich theorem. This version assumes that inequalities hold
-eventually for the filter. -/
+/-- **Squeeze theorem** (also known as **sandwich theorem**). This version assumes that inequalities
+hold eventually for the filter. -/
 lemma tendsto_of_tendsto_of_tendsto_of_le_of_le' {f g h : β → α} {b : filter β} {a : α}
   (hg : tendsto g b (𝓝 a)) (hh : tendsto h b (𝓝 a))
   (hgf : ∀ᶠ b in b, g b ≤ f b) (hfh : ∀ᶠ b in b, f b ≤ h b) :
   tendsto f b (𝓝 a) :=
-tendsto_order.2
-  ⟨assume a' h',
-    have ∀ᶠ b in b, a' < g b, from (tendsto_order.1 hg).left a' h',
-    by filter_upwards [this, hgf] with _ using lt_of_lt_of_le,
-    assume a' h',
-    have ∀ᶠ b in b, h b < a', from (tendsto_order.1 hh).right a' h',
-    by filter_upwards [this, hfh] with a h₁ h₂ using lt_of_le_of_lt h₂ h₁⟩
+(hg.Icc hh).of_small_sets $ hgf.and hfh
 
-/-- Also known as squeeze or sandwich theorem. This version assumes that inequalities hold
-everywhere. -/
+/-- **Squeeze theorem** (also known as **sandwich theorem**). This version assumes that inequalities
+hold everywhere. -/
 lemma tendsto_of_tendsto_of_tendsto_of_le_of_le {f g h : β → α} {b : filter β} {a : α}
   (hg : tendsto g b (𝓝 a)) (hh : tendsto h b (𝓝 a)) (hgf : g ≤ f) (hfh : f ≤ h) :
   tendsto f b (𝓝 a) :=
@@ -906,6 +897,47 @@ begin
       exact λ hx, ht.out a.2 y.2 ⟨le_of_lt h, le_of_not_gt hx⟩ } }
 end
 
+lemma nhds_within_Ici_eq'' [topological_space α] [partial_order α] [order_topology α] (a : α) :
+  𝓝[≥] a = (⨅ u (hu : a < u), 𝓟 (Iio u)) ⊓ 𝓟 (Ici a) :=
+begin
+  rw [nhds_within, nhds_eq_order],
+  refine le_antisymm (inf_le_inf_right _ inf_le_right) (le_inf (le_inf _ inf_le_left) inf_le_right),
+  exact inf_le_right.trans (le_infi₂ $ λ l hl, principal_mono.2 $ Ici_subset_Ioi.2 hl)
+end
+
+lemma nhds_within_Iic_eq'' [topological_space α] [partial_order α] [order_topology α] (a : α) :
+  𝓝[≤] a = (⨅ l < a, 𝓟 (Ioi l)) ⊓ 𝓟 (Iic a) :=
+nhds_within_Ici_eq'' (to_dual a)
+
+lemma nhds_within_Ici_eq' [topological_space α] [partial_order α] [order_topology α] {a : α}
+  (ha : ∃ u, a < u) :
+  𝓝[≥] a = ⨅ u (hu : a < u), 𝓟 (Ico a u) :=
+by simp only [nhds_within_Ici_eq'', binfi_inf ha, inf_principal, Iio_inter_Ici]
+
+lemma nhds_within_Iic_eq' [topological_space α] [partial_order α] [order_topology α] {a : α}
+  (ha : ∃ l, l < a) :
+  𝓝[≤] a = ⨅ l < a, 𝓟 (Ioc l a) :=
+by simp only [nhds_within_Iic_eq'', binfi_inf ha, inf_principal, Ioi_inter_Iic]
+
+lemma nhds_within_Ici_basis' [topological_space α] [linear_order α] [order_topology α] {a : α}
+  (ha : ∃ u, a < u) : (𝓝[≥] a).has_basis (λ u, a < u) (λ u, Ico a u) :=
+(nhds_within_Ici_eq' ha).symm ▸ has_basis_binfi_principal (λ b hb c hc,
+  ⟨min b c, lt_min hb hc, Ico_subset_Ico_right (min_le_left _ _),
+    Ico_subset_Ico_right (min_le_right _ _)⟩) ha
+
+lemma nhds_within_Iic_basis' [topological_space α] [linear_order α] [order_topology α] {a : α}
+  (ha : ∃ l, l < a) : (𝓝[≤] a).has_basis (λ l, l < a) (λ l, Ioc l a) :=
+by { convert @nhds_within_Ici_basis' αᵒᵈ _ _ _ (to_dual a) ha,
+     exact funext (λ x, (@dual_Ico _ _ _ _).symm) }
+
+lemma nhds_within_Ici_basis [topological_space α] [linear_order α] [order_topology α]
+  [no_max_order α] (a : α) : (𝓝[≥] a).has_basis (λ u, a < u) (λ u, Ico a u) :=
+nhds_within_Ici_basis' (exists_gt a)
+
+lemma nhds_within_Iic_basis [topological_space α] [linear_order α] [order_topology α]
+  [no_min_order α] (a : α) : (𝓝[≤] a).has_basis (λ l, l < a) (λ l, Ioc l a) :=
+nhds_within_Iic_basis' (exists_lt a)
+
 lemma nhds_top_order [topological_space α] [partial_order α] [order_top α] [order_topology α] :
   𝓝 (⊤:α) = (⨅l (h₂ : l < ⊤), 𝓟 (Ioi l)) :=
 by simp [nhds_eq_order (⊤:α)]
@@ -917,16 +949,8 @@ by simp [nhds_eq_order (⊥:α)]
 lemma nhds_top_basis [topological_space α] [linear_order α] [order_top α] [order_topology α]
   [nontrivial α] :
   (𝓝 ⊤).has_basis (λ a : α, a < ⊤) (λ a : α, Ioi a) :=
-⟨ begin
-    simp only [nhds_top_order],
-    refine @filter.mem_binfi_of_directed α α (λ a, 𝓟 (Ioi a)) (λ a, a < ⊤) _ _,
-    { rintros a (ha : a < ⊤) b (hb : b < ⊤),
-      use a ⊔ b,
-      simp only [filter.le_principal_iff, ge_iff_le, order.preimage],
-      exact ⟨sup_lt_iff.mpr ⟨ha, hb⟩, Ioi_subset_Ioi le_sup_left, Ioi_subset_Ioi le_sup_right⟩ },
-    { obtain ⟨a, ha⟩ : ∃ a : α, a ≠ ⊤ := exists_ne ⊤,
-      exact ⟨a, lt_top_iff_ne_top.mpr ha⟩ }
-  end ⟩
+have ∃ x : α, x < ⊤, from (exists_ne ⊤).imp $ λ x hx, hx.lt_top,
+by simpa only [Iic_top, nhds_within_univ, Ioc_top] using nhds_within_Iic_basis' this
 
 lemma nhds_bot_basis [topological_space α] [linear_order α] [order_bot α] [order_topology α]
   [nontrivial α] :
@@ -992,58 +1016,6 @@ end order_closed_topology
 section order_topology
 variables [order_topology α]
 
-lemma exists_Ioc_subset_of_mem_nhds' {a : α} {s : set α} (hs : s ∈ 𝓝 a) {l : α} (hl : l < a) :
-  ∃ l' ∈ Ico l a, Ioc l' a ⊆ s :=
-begin
-  rw [nhds_eq_order a] at hs,
-  rcases hs with ⟨t₁, ht₁, t₂, ht₂, rfl⟩,
-  -- First we show that `t₂` includes `(-∞, a]`, so it suffices to show `(l', ∞) ⊆ t₁`
-  suffices : ∃ l' ∈ Ico l a, Ioi l' ⊆ t₁,
-  { have A : 𝓟 (Iic a) ≤ ⨅ b ∈ Ioi a, 𝓟 (Iio b),
-      from (le_infi $ λ b, le_infi $ λ hb, principal_mono.2 $ Iic_subset_Iio.2 hb),
-    have B : t₁ ∩ Iic a ⊆ t₁ ∩ t₂,
-      from inter_subset_inter_right _ (A ht₂),
-    from this.imp (λ l', Exists.imp $ λ hl' hl x hx, B ⟨hl hx.1, hx.2⟩) },
-  clear ht₂ t₂,
-  -- Now we find `l` such that `(l', ∞) ⊆ t₁`
-  rw [mem_binfi_of_directed] at ht₁,
-  { rcases ht₁ with ⟨b, hb, hb'⟩,
-    exact ⟨max b l, ⟨le_max_right _ _, max_lt hb hl⟩,
-      λ x hx, hb' $ Ioi_subset_Ioi (le_max_left _ _) hx⟩ },
-  { intros b hb b' hb', simp only [mem_Iio] at hb hb',
-    use [max b b', max_lt hb hb'],
-    simp [le_refl] },
-  exact ⟨l, hl⟩
-end
-
-lemma exists_Ico_subset_of_mem_nhds' {a : α} {s : set α} (hs : s ∈ 𝓝 a) {u : α} (hu : a < u) :
-  ∃ u' ∈ Ioc a u, Ico a u' ⊆ s :=
-by simpa only [order_dual.exists, exists_prop, dual_Ico, dual_Ioc]
-    using exists_Ioc_subset_of_mem_nhds' (show of_dual ⁻¹' s ∈ 𝓝 (to_dual a), from hs) hu.dual
-
-lemma exists_Ioc_subset_of_mem_nhds {a : α} {s : set α} (hs : s ∈ 𝓝 a) (h : ∃ l, l < a) :
-  ∃ l < a, Ioc l a ⊆ s :=
-let ⟨l', hl'⟩ := h in let ⟨l, hl⟩ := exists_Ioc_subset_of_mem_nhds' hs hl' in ⟨l, hl.fst.2, hl.snd⟩
-
-lemma exists_Ico_subset_of_mem_nhds {a : α} {s : set α} (hs : s ∈ 𝓝 a) (h : ∃ u, a < u) :
-  ∃ u (_ : a < u), Ico a u ⊆ s :=
-let ⟨l', hl'⟩ := h in let ⟨l, hl⟩ := exists_Ico_subset_of_mem_nhds' hs hl' in ⟨l, hl.fst.1, hl.snd⟩
-
-lemma is_open.exists_Ioo_subset [nontrivial α] {s : set α} (hs : is_open s) (h : s.nonempty) :
-  ∃ a b, a < b ∧ Ioo a b ⊆ s :=
-begin
-  obtain ⟨x, hx⟩ : ∃ x, x ∈ s := h,
-  obtain ⟨y, hy⟩ : ∃ y, y ≠ x := exists_ne x,
-  rcases lt_trichotomy x y with H|rfl|H,
-  { obtain ⟨u, xu, hu⟩ : ∃ (u : α) (hu : x < u), Ico x u ⊆ s :=
-      exists_Ico_subset_of_mem_nhds (hs.mem_nhds hx) ⟨y, H⟩,
-    exact ⟨x, u, xu, Ioo_subset_Ico_self.trans hu⟩ },
-  { exact (hy rfl).elim },
-  { obtain ⟨l, lx, hl⟩ : ∃ (l : α) (hl : l < x), Ioc l x ⊆ s :=
-      exists_Ioc_subset_of_mem_nhds (hs.mem_nhds hx) ⟨y, H⟩,
-    exact ⟨l, x, lx, Ioo_subset_Ioc_self.trans hl⟩ }
-end
-
 lemma order_separated {a₁ a₂ : α} (h : a₁ < a₂) :
   ∃u v : set α, is_open u ∧ is_open v ∧ a₁ ∈ u ∧ a₂ ∈ v ∧ (∀b₁∈u, ∀b₂∈v, b₁ < b₂) :=
 match dense_or_discrete a₁ a₂ with
@@ -1064,6 +1036,71 @@ instance order_topology.to_order_closed_topology : order_closed_topology α :=
       let ⟨u, v, hu, hv, ha₁, ha₂, h⟩ := order_separated h in
       ⟨v, u, hv, hu, ha₂, ha₁, assume ⟨b₁, b₂⟩ ⟨h₁, h₂⟩, not_le_of_gt $ h b₂ h₂ b₁ h₁⟩ }
 
+lemma exists_Ioc_subset_of_mem_nhds {a : α} {s : set α} (hs : s ∈ 𝓝 a) (h : ∃ l, l < a) :
+  ∃ l < a, Ioc l a ⊆ s :=
+(nhds_within_Iic_basis' h).mem_iff.mp (nhds_within_le_nhds hs)
+
+lemma exists_Ioc_subset_of_mem_nhds' {a : α} {s : set α} (hs : s ∈ 𝓝 a) {l : α} (hl : l < a) :
+  ∃ l' ∈ Ico l a, Ioc l' a ⊆ s :=
+let ⟨l', hl'a, hl's⟩ := exists_Ioc_subset_of_mem_nhds hs ⟨l, hl⟩
+in ⟨max l l', ⟨le_max_left _ _, max_lt hl hl'a⟩,
+  (Ioc_subset_Ioc_left $ le_max_right _ _).trans hl's⟩
+
+lemma exists_Ico_subset_of_mem_nhds' {a : α} {s : set α} (hs : s ∈ 𝓝 a) {u : α} (hu : a < u) :
+  ∃ u' ∈ Ioc a u, Ico a u' ⊆ s :=
+by simpa only [order_dual.exists, exists_prop, dual_Ico, dual_Ioc]
+  using exists_Ioc_subset_of_mem_nhds' (show of_dual ⁻¹' s ∈ 𝓝 (to_dual a), from hs) hu.dual
+
+lemma exists_Ico_subset_of_mem_nhds {a : α} {s : set α} (hs : s ∈ 𝓝 a) (h : ∃ u, a < u) :
+  ∃ u (_ : a < u), Ico a u ⊆ s :=
+let ⟨l', hl'⟩ := h, ⟨l, hl⟩ := exists_Ico_subset_of_mem_nhds' hs hl' in ⟨l, hl.fst.1, hl.snd⟩
+
+lemma exists_Icc_mem_subset_of_mem_nhds_within_Ici {a : α} {s : set α} (hs : s ∈ 𝓝[≥] a) :
+  ∃ b (_ : a ≤ b), Icc a b ∈ 𝓝[≥] a ∧ Icc a b ⊆ s :=
+begin
+  rcases (em (is_max a)).imp_right not_is_max_iff.mp with ha|ha,
+  { use a, simpa [ha.Ici_eq] using hs },
+  { rcases (nhds_within_Ici_basis' ha).mem_iff.mp hs with ⟨b, hab, hbs⟩,
+    rcases eq_empty_or_nonempty (Ioo a b) with H|⟨c, hac, hcb⟩,
+    { have : Ico a b = Icc a a,
+      { rw [← Icc_union_Ioo_eq_Ico le_rfl hab, H, union_empty] },
+      exact ⟨a, le_rfl, this ▸ ⟨Ico_mem_nhds_within_Ici $ left_mem_Ico.2 hab, hbs⟩⟩ },
+    { refine ⟨c, hac.le, Icc_mem_nhds_within_Ici $ left_mem_Ico.mpr hac, _⟩,
+      exact (Icc_subset_Ico_right hcb).trans hbs } }
+end
+
+lemma exists_Icc_mem_subset_of_mem_nhds_within_Iic {a : α} {s : set α} (hs : s ∈ 𝓝[≤] a) :
+  ∃ b ≤ a, Icc b a ∈ 𝓝[≤] a ∧ Icc b a ⊆ s :=
+by simpa only [dual_Icc, to_dual.surjective.exists]
+  using @exists_Icc_mem_subset_of_mem_nhds_within_Ici αᵒᵈ _ _ _ (to_dual a) _ hs
+
+lemma exists_Icc_mem_subset_of_mem_nhds {a : α} {s : set α} (hs : s ∈ 𝓝 a) :
+  ∃ b c, a ∈ Icc b c ∧ Icc b c ∈ 𝓝 a ∧ Icc b c ⊆ s :=
+begin
+  rcases exists_Icc_mem_subset_of_mem_nhds_within_Iic (nhds_within_le_nhds hs)
+    with ⟨b, hba, hb_nhds, hbs⟩,
+  rcases exists_Icc_mem_subset_of_mem_nhds_within_Ici (nhds_within_le_nhds hs)
+    with ⟨c, hac, hc_nhds, hcs⟩,
+  refine ⟨b, c, ⟨hba, hac⟩, _⟩,
+  rw [← Icc_union_Icc_eq_Icc hba hac, ← nhds_left_sup_nhds_right],
+  exact ⟨union_mem_sup hb_nhds hc_nhds, union_subset hbs hcs⟩
+end
+
+lemma is_open.exists_Ioo_subset [nontrivial α] {s : set α} (hs : is_open s) (h : s.nonempty) :
+  ∃ a b, a < b ∧ Ioo a b ⊆ s :=
+begin
+  obtain ⟨x, hx⟩ : ∃ x, x ∈ s := h,
+  obtain ⟨y, hy⟩ : ∃ y, y ≠ x := exists_ne x,
+  rcases lt_trichotomy x y with H|rfl|H,
+  { obtain ⟨u, xu, hu⟩ : ∃ (u : α) (hu : x < u), Ico x u ⊆ s :=
+      exists_Ico_subset_of_mem_nhds (hs.mem_nhds hx) ⟨y, H⟩,
+    exact ⟨x, u, xu, Ioo_subset_Ico_self.trans hu⟩ },
+  { exact (hy rfl).elim },
+  { obtain ⟨l, lx, hl⟩ : ∃ (l : α) (hl : l < x), Ioc l x ⊆ s :=
+      exists_Ioc_subset_of_mem_nhds (hs.mem_nhds hx) ⟨y, H⟩,
+    exact ⟨l, x, lx, Ioo_subset_Ioc_self.trans hl⟩ }
+end
+
 lemma dense_of_exists_between [nontrivial α] {s : set α}
   (h : ∀ ⦃a b⦄, a < b → ∃ c ∈ s, a < c ∧ c < b) : dense s :=
 begin
@@ -1080,53 +1117,6 @@ lemma dense_iff_exists_between [densely_ordered α] [nontrivial α] {s : set α}
   dense s ↔ ∀ a b, a < b → ∃ c ∈ s, a < c ∧ c < b :=
 ⟨λ h a b hab, h.exists_between hab, dense_of_exists_between⟩
 
-lemma order_topology.t2_space : t2_space α := by apply_instance
-
-@[priority 100] -- see Note [lower instance priority]
-instance order_topology.regular_space : regular_space α :=
-{ regular := assume s a hs ha,
-    have hs' : sᶜ ∈ 𝓝 a, from is_open.mem_nhds hs.is_open_compl ha,
-    have ∃t:set α, is_open t ∧ (∀l∈ s, l < a → l ∈ t) ∧ 𝓝[t] a = ⊥,
-      from by_cases
-        (assume h : ∃l, l < a,
-          let ⟨l, hl, h⟩ := exists_Ioc_subset_of_mem_nhds hs' h in
-          match dense_or_discrete l a with
-          | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | a < b}, is_open_gt' _,
-              assume c hcs hca, show c < b,
-                from lt_of_not_ge $ assume hbc, h ⟨lt_of_lt_of_le hb₁ hbc, le_of_lt hca⟩ hcs,
-              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset ((is_open_lt' _).mem_nhds hb₂) $
-                assume x (hx : b < x), show ¬ x < b, from not_lt.2 $ le_of_lt hx⟩
-          | or.inr ⟨h₁, h₂⟩ := ⟨{a' | a' < a}, is_open_gt' _, assume b hbs hba, hba,
-              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset ((is_open_lt' _).mem_nhds hl) $
-                assume x (hx : l < x), show ¬ x < a, from not_lt.2 $ h₁ _ hx⟩
-          end)
-        (assume : ¬ ∃l, l < a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
-          nhds_within_empty _⟩),
-    let ⟨t₁, ht₁o, ht₁s, ht₁a⟩ := this in
-    have ∃t:set α, is_open t ∧ (∀u∈ s, u>a → u ∈ t) ∧ 𝓝[t] a = ⊥,
-      from by_cases
-        (assume h : ∃u, u > a,
-          let ⟨u, hu, h⟩ := exists_Ico_subset_of_mem_nhds hs' h in
-          match dense_or_discrete a u with
-          | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | b < a}, is_open_lt' _,
-              assume c hcs hca, show c > b,
-                from lt_of_not_ge $ assume hbc, h ⟨le_of_lt hca, lt_of_le_of_lt hbc hb₂⟩ hcs,
-              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset ((is_open_gt' _).mem_nhds hb₁) $
-                assume x (hx : b > x), show ¬ x > b, from not_lt.2 $ le_of_lt hx⟩
-          | or.inr ⟨h₁, h₂⟩ := ⟨{a' | a' > a}, is_open_lt' _, assume b hbs hba, hba,
-              inf_principal_eq_bot.2 $ (𝓝 a).sets_of_superset ((is_open_gt' _).mem_nhds hu) $
-                assume x (hx : u > x), show ¬ x > a, from not_lt.2 $ h₂ _ hx⟩
-          end)
-        (assume : ¬ ∃u, u > a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
-          nhds_within_empty _⟩),
-    let ⟨t₂, ht₂o, ht₂s, ht₂a⟩ := this in
-    ⟨t₁ ∪ t₂, is_open.union ht₁o ht₂o,
-      assume x hx,
-      have x ≠ a, from assume eq, ha $ eq ▸ hx,
-      (ne_iff_lt_or_gt.mp this).imp (ht₁s _ hx) (ht₂s _ hx),
-      by rw [nhds_within_union, ht₁a, ht₂a, bot_sup_eq]⟩,
-  ..order_topology.t2_space }
-
 /-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`,
 provided `a` is neither a bottom element nor a top element. -/
 lemma mem_nhds_iff_exists_Ioo_subset' {a : α} {s : set α} (hl : ∃ l, l < a) (hu : ∃ u, a < u) :
@@ -1136,12 +1126,9 @@ begin
   { assume h,
     rcases exists_Ico_subset_of_mem_nhds h hu with ⟨u, au, hu⟩,
     rcases exists_Ioc_subset_of_mem_nhds h hl with ⟨l, la, hl⟩,
-    refine ⟨l, u, ⟨la, au⟩, λx hx, _⟩,
-    cases le_total a x with hax hax,
-    { exact hu ⟨hax, hx.2⟩ },
-    { exact hl ⟨hx.1, hax⟩ } },
+    exact ⟨l, u, ⟨la, au⟩, Ioc_union_Ico_eq_Ioo la au ▸ union_subset hl hu⟩ },
   { rintros ⟨l, u, ha, h⟩,
-    apply mem_of_superset (is_open.mem_nhds is_open_Ioo ha) h }
+    apply mem_of_superset (Ioo_mem_nhds ha.1 ha.2) h }
 end
 
 /-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`.
@@ -1192,8 +1179,8 @@ begin
       {x | x ∈ s ∧ x ∈ a ∧ y x ∉ a ∧ ¬(is_bot x)} ∪ {x | is_bot x},
     { assume x hx,
       by_cases h'x : is_bot x,
-      { simp only [h'x, mem_set_of_eq, mem_union_eq, not_true, and_false, false_or] },
-      { simpa only [h'x, hx.2.1, hx.2.2, mem_set_of_eq, mem_union_eq,
+      { simp only [h'x, mem_set_of_eq, mem_union, not_true, and_false, false_or] },
+      { simpa only [h'x, hx.2.1, hx.2.2, mem_set_of_eq, mem_union,
           not_false_iff, and_true, or_false] using hx.left } },
     exact countable.mono this (H.union (subsingleton_is_bot α).countable) },
   let t := {x | x ∈ s ∧ x ∈ a ∧ y x ∉ a ∧ ¬(is_bot x)},
@@ -1261,23 +1248,23 @@ sometimes Lean fails to unify different instances while trying to apply the depe
 e.g., `ι → ℝ`.
 -/
 
-variables {ι : Type*} {π : ι → Type*} [fintype ι] [Π i, linear_order (π i)]
+variables {ι : Type*} {π : ι → Type*} [finite ι] [Π i, linear_order (π i)]
   [Π i, topological_space (π i)] [∀ i, order_topology (π i)] {a b x : Π i, π i} {a' b' x' : ι → α}
 
 lemma pi_Iic_mem_nhds (ha : ∀ i, x i < a i) : Iic a ∈ 𝓝 x :=
-pi_univ_Iic a ▸ set_pi_mem_nhds (finite.of_fintype _) (λ i _, Iic_mem_nhds (ha _))
+pi_univ_Iic a ▸ set_pi_mem_nhds (set.to_finite _) (λ i _, Iic_mem_nhds (ha _))
 
 lemma pi_Iic_mem_nhds' (ha : ∀ i, x' i < a' i) : Iic a' ∈ 𝓝 x' :=
 pi_Iic_mem_nhds ha
 
 lemma pi_Ici_mem_nhds (ha : ∀ i, a i < x i) : Ici a ∈ 𝓝 x :=
-pi_univ_Ici a ▸ set_pi_mem_nhds (finite.of_fintype _) (λ i _, Ici_mem_nhds (ha _))
+pi_univ_Ici a ▸ set_pi_mem_nhds (set.to_finite _) (λ i _, Ici_mem_nhds (ha _))
 
 lemma pi_Ici_mem_nhds' (ha : ∀ i, a' i < x' i) : Ici a' ∈ 𝓝 x' :=
 pi_Ici_mem_nhds ha
 
 lemma pi_Icc_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Icc a b ∈ 𝓝 x :=
-pi_univ_Icc a b ▸ set_pi_mem_nhds (finite.of_fintype _) (λ i _, Icc_mem_nhds (ha _) (hb _))
+pi_univ_Icc a b ▸ set_pi_mem_nhds finite_univ (λ i _, Icc_mem_nhds (ha _) (hb _))
 
 lemma pi_Icc_mem_nhds' (ha : ∀ i, a' i < x' i) (hb : ∀ i, x' i < b' i) : Icc a' b' ∈ 𝓝 x' :=
 pi_Icc_mem_nhds ha hb
@@ -1286,7 +1273,7 @@ variables [nonempty ι]
 
 lemma pi_Iio_mem_nhds (ha : ∀ i, x i < a i) : Iio a ∈ 𝓝 x :=
 begin
-  refine mem_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+  refine mem_of_superset (set_pi_mem_nhds (set.to_finite _) (λ i _, _))
     (pi_univ_Iio_subset a),
   exact Iio_mem_nhds (ha i)
 end
@@ -1302,7 +1289,7 @@ pi_Ioi_mem_nhds ha
 
 lemma pi_Ioc_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Ioc a b ∈ 𝓝 x :=
 begin
-  refine mem_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+  refine mem_of_superset (set_pi_mem_nhds (set.to_finite _) (λ i _, _))
     (pi_univ_Ioc_subset a b),
   exact Ioc_mem_nhds (ha i) (hb i)
 end
@@ -1312,7 +1299,7 @@ pi_Ioc_mem_nhds ha hb
 
 lemma pi_Ico_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Ico a b ∈ 𝓝 x :=
 begin
-  refine mem_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+  refine mem_of_superset (set_pi_mem_nhds (set.to_finite _) (λ i _, _))
     (pi_univ_Ico_subset a b),
   exact Ico_mem_nhds (ha i) (hb i)
 end
@@ -1322,7 +1309,7 @@ pi_Ico_mem_nhds ha hb
 
 lemma pi_Ioo_mem_nhds (ha : ∀ i, a i < x i) (hb : ∀ i, x i < b i) : Ioo a b ∈ 𝓝 x :=
 begin
-  refine mem_of_superset (set_pi_mem_nhds (finite.of_fintype _) (λ i _, _))
+  refine mem_of_superset (set_pi_mem_nhds (set.to_finite _) (λ i _, _))
     (pi_univ_Ioo_subset a b),
   exact Ioo_mem_nhds (ha i) (hb i)
 end
@@ -1496,17 +1483,12 @@ lemma tfae_mem_nhds_within_Ici {a b : α} (hab : a < b) (s : set α) :
 begin
   tfae_have : 1 ↔ 2, by rw [nhds_within_Icc_eq_nhds_within_Ici hab],
   tfae_have : 1 ↔ 3, by rw [nhds_within_Ico_eq_nhds_within_Ici hab],
+  tfae_have : 1 ↔ 5, from (nhds_within_Ici_basis' ⟨b, hab⟩).mem_iff,
   tfae_have : 4 → 5, from λ ⟨u, umem, hu⟩, ⟨u, umem.1, hu⟩,
-  tfae_have : 5 → 1,
-  { rintros ⟨u, hau, hu⟩,
-    exact mem_of_superset (Ico_mem_nhds_within_Ici ⟨le_refl a, hau⟩) hu },
-  tfae_have : 1 → 4,
-  { assume h,
-    rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
-    rcases exists_Ico_subset_of_mem_nhds' va hab with ⟨u, au, hu⟩,
-    refine ⟨u, au, λx hx, _⟩,
-    refine hv ⟨hu ⟨hx.1, hx.2⟩, _⟩,
-    exact hx.1 },
+  tfae_have : 5 → 4,
+  { rintro ⟨u, hua, hus⟩,
+    exact ⟨min u b, ⟨lt_min hua hab, min_le_right _ _⟩,
+      (Ico_subset_Ico_right $ min_le_left _ _).trans hus⟩, },
   tfae_finish
 end
 
@@ -1526,10 +1508,14 @@ lemma mem_nhds_within_Ici_iff_exists_Ico_subset [no_max_order α] {a : α} {s : 
   s ∈ 𝓝[≥] a ↔ ∃u ∈ Ioi a, Ico a u ⊆ s :=
 let ⟨u', hu'⟩ := exists_gt a in mem_nhds_within_Ici_iff_exists_Ico_subset' hu'
 
+lemma nhds_within_Ici_basis_Ico [no_max_order α] (a : α) :
+  (𝓝[≥] a).has_basis (λ u, a < u) (Ico a) :=
+⟨λ s, mem_nhds_within_Ici_iff_exists_Ico_subset⟩
+
 /-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u]`
 with `a < u`. -/
-lemma mem_nhds_within_Ici_iff_exists_Icc_subset' [no_max_order α] [densely_ordered α]
-  {a : α} {s : set α} : s ∈ 𝓝[≥] a ↔ ∃u ∈ Ioi a, Icc a u ⊆ s :=
+lemma mem_nhds_within_Ici_iff_exists_Icc_subset [no_max_order α] [densely_ordered α]
+  {a : α} {s : set α} : s ∈ 𝓝[≥] a ↔ ∃ u, a < u ∧ Icc a u ⊆ s :=
 begin
   rw mem_nhds_within_Ici_iff_exists_Ico_subset,
   split,
@@ -1574,40 +1560,12 @@ let ⟨l', hl'⟩ := exists_lt a in mem_nhds_within_Iic_iff_exists_Ioc_subset' h
 
 /-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `[l, a]`
 with `l < a`. -/
-lemma mem_nhds_within_Iic_iff_exists_Icc_subset' [no_min_order α] [densely_ordered α]
-  {a : α} {s : set α} : s ∈ 𝓝[≤] a ↔ ∃l ∈ Iio a, Icc l a ⊆ s :=
+lemma mem_nhds_within_Iic_iff_exists_Icc_subset [no_min_order α] [densely_ordered α]
+  {a : α} {s : set α} : s ∈ 𝓝[≤] a ↔ ∃ l, l < a ∧ Icc l a ⊆ s :=
 begin
-  convert @mem_nhds_within_Ici_iff_exists_Icc_subset' αᵒᵈ _ _ _ _ _ _ _,
+  convert @mem_nhds_within_Ici_iff_exists_Icc_subset αᵒᵈ _ _ _ _ _ _ _,
   simp_rw (show ∀ u : αᵒᵈ, @Icc αᵒᵈ _ a u = @Icc α _ u a, from λ u, dual_Icc),
   refl,
-end
-
-/-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u]`
-with `a < u`. -/
-lemma mem_nhds_within_Ici_iff_exists_Icc_subset [no_max_order α] [densely_ordered α]
-  {a : α} {s : set α} : s ∈ 𝓝[≥] a ↔ ∃u, a < u ∧ Icc a u ⊆ s :=
-begin
-  rw mem_nhds_within_Ici_iff_exists_Ico_subset,
-  split,
-  { rintros ⟨u, au, as⟩,
-    rcases exists_between au with ⟨v, hv⟩,
-    exact ⟨v, hv.1, λx hx, as ⟨hx.1, lt_of_le_of_lt hx.2 hv.2⟩⟩ },
-  { rintros ⟨u, au, as⟩,
-    exact ⟨u, au, subset.trans Ico_subset_Icc_self as⟩ }
-end
-
-/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `[l, a]`
-with `l < a`. -/
-lemma mem_nhds_within_Iic_iff_exists_Icc_subset [no_min_order α] [densely_ordered α]
-  {a : α} {s : set α} : s ∈ 𝓝[≤] a ↔ ∃l, l < a ∧ Icc l a ⊆ s :=
-begin
-  rw mem_nhds_within_Iic_iff_exists_Ioc_subset,
-  split,
-  { rintros ⟨l, la, as⟩,
-    rcases exists_between la with ⟨v, hv⟩,
-    refine ⟨v, hv.2, λx hx, as ⟨lt_of_lt_of_le hv.1 hx.1, hx.2⟩⟩, },
-  { rintros ⟨l, la, as⟩,
-    exact ⟨l, la, subset.trans Ioc_subset_Icc_self as⟩ }
 end
 
 end order_topology
@@ -1621,7 +1579,7 @@ variables {l : filter β} {f g : β → α}
 lemma nhds_eq_infi_abs_sub (a : α) : 𝓝 a = (⨅r>0, 𝓟 {b | |a - b| < r}) :=
 begin
   simp only [le_antisymm_iff, nhds_eq_order, le_inf_iff, le_infi_iff, le_principal_iff, mem_Ioi,
-    mem_Iio, abs_sub_lt_iff, @sub_lt_iff_lt_add _ _ _ _ _ _ a, @sub_lt _ _ _ _ a, set_of_and],
+    mem_Iio, abs_sub_lt_iff, @sub_lt_iff_lt_add _ _ _ _ _ _ a, @sub_lt_comm _ _ _ _ a, set_of_and],
   refine ⟨_, _, _⟩,
   { intros ε ε0,
     exact inter_mem_inf
@@ -1659,7 +1617,7 @@ instance linear_ordered_add_comm_group.topological_add_group : topological_add_g
       refine linear_ordered_add_comm_group.tendsto_nhds.2 (λ ε ε0, _),
       rcases dense_or_discrete 0 ε with (⟨δ, δ0, δε⟩|⟨h₁, h₂⟩),
       { -- If there exists `δ ∈ (0, ε)`, then we choose `δ`-nhd of `a` and `(ε-δ)`-nhd of `b`
-        filter_upwards [prod_is_open.mem_nhds (eventually_abs_sub_lt a δ0)
+        filter_upwards [(eventually_abs_sub_lt a δ0).prod_nhds
           (eventually_abs_sub_lt b (sub_pos.2 δε))],
         rintros ⟨x, y⟩ ⟨hx : |x - a| < δ, hy : |y - b| < ε - δ⟩,
         rw [add_sub_add_comm],
@@ -1670,8 +1628,7 @@ instance linear_ordered_add_comm_group.topological_add_group : topological_add_g
         have hε : ∀ {x y}, |x - y| < ε → x = y,
         { intros x y h,
           simpa [sub_eq_zero] using h₂ _ h },
-        filter_upwards [prod_is_open.mem_nhds (eventually_abs_sub_lt a ε0)
-          (eventually_abs_sub_lt b ε0)],
+        filter_upwards [(eventually_abs_sub_lt a ε0).prod_nhds (eventually_abs_sub_lt b ε0)],
         rintros ⟨x, y⟩ ⟨hx : |x - a| < ε, hy : |y - b| < ε⟩,
         simpa [hε hx, hε hy] }
     end,
@@ -1703,7 +1660,7 @@ lemma nhds_basis_Ioo_pos [no_min_order α] [no_max_order α] (a : α) :
     refine ⟨min (a-l) (u-a), by apply lt_min; rwa sub_pos, _⟩,
     rintros x ⟨hx, hx'⟩,
     apply h',
-    rw [sub_lt, lt_min_iff, sub_lt_sub_iff_left] at hx,
+    rw [sub_lt_comm, lt_min_iff, sub_lt_sub_iff_left] at hx,
     rw [← sub_lt_iff_lt_add', lt_min_iff, sub_lt_sub_iff_right] at hx',
     exact ⟨hx.1, hx'.2⟩ },
   { rintros ⟨ε, ε_pos, h⟩,
@@ -1786,282 +1743,6 @@ lemma filter.tendsto.at_bot_add {C : α} (hf : tendsto f l at_bot) (hg : tendsto
 by { conv in (_ + _) { rw add_comm }, exact hg.add_at_bot hf }
 
 end linear_ordered_add_comm_group
-
-section linear_ordered_field
-variables [linear_ordered_field α] [topological_space α] [order_topology α]
-variables {l : filter β} {f g : β → α}
-
-section continuous_mul
-
-lemma mul_tendsto_nhds_zero_right (x : α) :
-  tendsto (uncurry ((*) : α → α → α)) (𝓝 0 ×ᶠ 𝓝 x) $ 𝓝 0 :=
-begin
-  have hx : 0 < 2 * (1 + |x|) := (mul_pos (zero_lt_two) $
-    lt_of_lt_of_le zero_lt_one $ le_add_of_le_of_nonneg le_rfl (abs_nonneg x)),
-  rw ((nhds_basis_zero_abs_sub_lt α).prod $ nhds_basis_abs_sub_lt x).tendsto_iff
-     (nhds_basis_zero_abs_sub_lt α),
-  refine λ ε ε_pos, ⟨(ε/(2 * (1 + |x|)), 1), ⟨div_pos ε_pos hx, zero_lt_one⟩, _⟩,
-  suffices : ∀ (a b : α), |a| < ε / (2 * (1 + |x|)) → |b - x| < 1 → |a| * |b| < ε,
-  by simpa only [and_imp, prod.forall, mem_prod, ← abs_mul],
-  intros a b h h',
-  refine lt_of_le_of_lt (mul_le_mul_of_nonneg_left _ (abs_nonneg a)) ((lt_div_iff hx).1 h),
-  calc |b| = |(b - x) + x| : by rw sub_add_cancel b x
-    ... ≤ |b - x| + |x| : abs_add (b - x) x
-    ... ≤ 1 + |x| : add_le_add_right (le_of_lt h') (|x|)
-    ... ≤ 2 * (1 + |x|) : by linarith,
-end
-
-lemma mul_tendsto_nhds_zero_left (x : α) :
-  tendsto (uncurry ((*) : α → α → α)) (𝓝 x ×ᶠ 𝓝 0) $ 𝓝 0 :=
-begin
-  intros s hs,
-  have := mul_tendsto_nhds_zero_right x hs,
-  rw [filter.mem_map, mem_prod_iff] at this ⊢,
-  obtain ⟨U, hU, V, hV, h⟩ := this,
-  exact ⟨V, hV, U, hU, λ y hy, ((mul_comm y.2 y.1) ▸
-    h (⟨hy.2, hy.1⟩ : (prod.mk y.2 y.1) ∈ U ×ˢ V) : y.1 * y.2 ∈ s)⟩,
-end
-
-lemma nhds_eq_map_mul_left_nhds_one {x₀ : α} (hx₀ : x₀ ≠ 0) :
-  𝓝 x₀ = map (λ x, x₀*x) (𝓝 1) :=
-begin
-  have hx₀' : 0 < |x₀| := abs_pos.2 hx₀,
-  refine filter.ext (λ t, _),
-  simp only [exists_prop, set_of_subset_set_of, (nhds_basis_abs_sub_lt x₀).mem_iff,
-    (nhds_basis_abs_sub_lt (1 : α)).mem_iff, filter.mem_map'],
-  refine ⟨λ h, _, λ h, _⟩,
-  { obtain ⟨i, hi, hit⟩ := h,
-    refine ⟨i / (|x₀|), div_pos hi (abs_pos.2 hx₀), λ x hx, hit _⟩,
-    calc |x₀ * x - x₀| = |x₀ * (x - 1)| : congr_arg abs (by ring_nf)
-      ... = |x₀| * |x - 1| : abs_mul x₀ (x - 1)
-      ... < |x₀| * (i / |x₀|) : mul_lt_mul' le_rfl hx (abs_nonneg (x - 1)) (abs_pos.2 hx₀)
-      ... = |x₀| * i / |x₀| : by ring
-      ... = i : mul_div_cancel_left i (λ h, hx₀ (abs_eq_zero.1 h)) },
-  { obtain ⟨i, hi, hit⟩ := h,
-    refine ⟨i * |x₀|, mul_pos hi (abs_pos.2 hx₀), λ x hx, _⟩,
-    have : |x / x₀ - 1| < i,
-    calc |x / x₀ - 1| = |x / x₀ - x₀ / x₀| : (by rw div_self hx₀)
-    ... = |(x - x₀) / x₀| : congr_arg abs (sub_div x x₀ x₀).symm
-    ... = |x - x₀| / |x₀| : abs_div (x - x₀) x₀
-    ... < i * |x₀| / |x₀| : div_lt_div hx le_rfl
-      (mul_nonneg (le_of_lt hi) (abs_nonneg x₀)) (abs_pos.2 hx₀)
-    ... = i : by rw [← mul_div_assoc', div_self (ne_of_lt $ abs_pos.2 hx₀).symm, mul_one],
-    specialize hit (x / x₀) this,
-    rwa [mul_div_assoc', mul_div_cancel_left x hx₀] at hit }
-end
-
-lemma nhds_eq_map_mul_right_nhds_one {x₀ : α} (hx₀ : x₀ ≠ 0) :
-  𝓝 x₀ = map (λ x, x*x₀) (𝓝 1) :=
-by simp_rw [mul_comm _ x₀, nhds_eq_map_mul_left_nhds_one hx₀]
-
-lemma mul_tendsto_nhds_one_nhds_one :
-  tendsto (uncurry ((*) : α → α → α)) (𝓝 1 ×ᶠ 𝓝 1) $ 𝓝 1 :=
-begin
-  rw ((nhds_basis_Ioo_pos (1 : α)).prod $ nhds_basis_Ioo_pos (1 : α)).tendsto_iff
-     (nhds_basis_Ioo_pos_of_pos (zero_lt_one : (0 : α) < 1)),
-  intros ε hε,
-  have hε' : 0 ≤ 1 - ε / 4 := by linarith,
-  have ε_pos : 0 < ε / 4 := by linarith,
-  have ε_pos' : 0 < ε / 2 := by linarith,
-  simp only [and_imp, prod.forall, mem_Ioo, function.uncurry_apply_pair, mem_prod, prod.exists],
-  refine ⟨ε/4, ε/4, ⟨ε_pos, ε_pos⟩, λ a b ha ha' hb hb', _⟩,
-  have ha0 : 0 ≤ a := le_trans hε' (le_of_lt ha),
-  have hb0 : 0 ≤ b := le_trans hε' (le_of_lt hb),
-  refine ⟨lt_of_le_of_lt _ (mul_lt_mul'' ha hb hε' hε'),
-    lt_of_lt_of_le (mul_lt_mul'' ha' hb' ha0 hb0) _⟩,
-  { calc 1 - ε = 1 - ε / 2 - ε/2 : by ring_nf
-    ... ≤ 1 - ε/2 - ε/2 + (ε/2)*(ε/2) : le_add_of_nonneg_right (le_of_lt (mul_pos ε_pos' ε_pos'))
-    ... = (1 - ε/2) * (1 - ε/2) : by ring_nf
-    ... ≤ (1 - ε/4) * (1 - ε/4) : mul_le_mul (by linarith) (by linarith) (by linarith) hε' },
-  { calc (1 + ε/4) * (1 + ε/4) = 1 + ε/2 + (ε/4)*(ε/4) : by ring_nf
-    ... = 1 + ε/2 + (ε * ε) / 16 : by ring_nf
-    ... ≤ 1 + ε/2 + ε/2 : add_le_add_left (div_le_div (le_of_lt hε.1) (le_trans
-      ((mul_le_mul_left hε.1).2 hε.2) (le_of_eq $ mul_one ε)) zero_lt_two (by linarith)) (1 + ε/2)
-    ... ≤ 1 + ε : by ring_nf }
-end
-
-@[priority 100]
-instance linear_ordered_field.has_continuous_mul : has_continuous_mul α :=
-⟨begin
-  rw continuous_iff_continuous_at,
-  rintro ⟨x₀, y₀⟩,
-  by_cases hx₀ : x₀ = 0,
-  { rw [hx₀, continuous_at, zero_mul, nhds_prod_eq],
-    exact mul_tendsto_nhds_zero_right y₀ },
-  by_cases hy₀ : y₀ = 0,
-  { rw [hy₀, continuous_at, mul_zero, nhds_prod_eq],
-    exact mul_tendsto_nhds_zero_left x₀ },
-  have hxy : x₀ * y₀ ≠ 0 := mul_ne_zero hx₀ hy₀,
-  have key : (λ p : α × α, x₀ * p.1 * (p.2 * y₀)) = ((λ x, x₀*x) ∘ (λ x, x*y₀)) ∘ (uncurry (*)),
-  { ext p, simp [uncurry, mul_assoc] },
-  have key₂ : (λ x, x₀*x) ∘ (λ x, y₀*x) = λ x, (x₀ *y₀)*x,
-  { ext x, simp },
-  calc map (uncurry (*)) (𝓝 (x₀, y₀))
-      = map (uncurry (*)) (𝓝 x₀ ×ᶠ 𝓝 y₀) : by rw nhds_prod_eq
-  ... = map (λ (p : α × α), x₀ * p.1 * (p.2 * y₀)) ((𝓝 1) ×ᶠ (𝓝 1))
-          : by rw [uncurry, nhds_eq_map_mul_left_nhds_one hx₀, nhds_eq_map_mul_right_nhds_one hy₀,
-                    prod_map_map_eq, filter.map_map]
-  ... = map ((λ x, x₀ * x) ∘ λ x, x * y₀) (map (uncurry (*)) (𝓝 1 ×ᶠ 𝓝 1))
-          : by rw [key, ← filter.map_map]
-  ... ≤ map ((λ (x : α), x₀ * x) ∘ λ x, x * y₀) (𝓝 1) : map_mono (mul_tendsto_nhds_one_nhds_one)
-  ... = 𝓝 (x₀*y₀) : by rw [← filter.map_map, ← nhds_eq_map_mul_right_nhds_one hy₀,
-    nhds_eq_map_mul_left_nhds_one hy₀, filter.map_map, key₂, ← nhds_eq_map_mul_left_nhds_one hxy],
-end⟩
-
-end continuous_mul
-
-/-- In a linearly ordered field with the order topology, if `f` tends to `at_top` and `g` tends to
-a positive constant `C` then `f * g` tends to `at_top`. -/
-lemma filter.tendsto.at_top_mul {C : α} (hC : 0 < C) (hf : tendsto f l at_top)
-  (hg : tendsto g l (𝓝 C)) :
-  tendsto (λ x, (f x * g x)) l at_top :=
-begin
-  refine tendsto_at_top_mono' _ _ (hf.at_top_mul_const (half_pos hC)),
-  filter_upwards [hg.eventually (lt_mem_nhds (half_lt_self hC)),
-    hf.eventually (eventually_ge_at_top 0)] with x hg hf using mul_le_mul_of_nonneg_left hg.le hf,
-end
-
-/-- In a linearly ordered field with the order topology, if `f` tends to a positive constant `C` and
-`g` tends to `at_top` then `f * g` tends to `at_top`. -/
-lemma filter.tendsto.mul_at_top {C : α} (hC : 0 < C) (hf : tendsto f l (𝓝 C))
-  (hg : tendsto g l at_top) :
-  tendsto (λ x, (f x * g x)) l at_top :=
-by simpa only [mul_comm] using hg.at_top_mul hC hf
-
-/-- In a linearly ordered field with the order topology, if `f` tends to `at_top` and `g` tends to
-a negative constant `C` then `f * g` tends to `at_bot`. -/
-lemma filter.tendsto.at_top_mul_neg {C : α} (hC : C < 0) (hf : tendsto f l at_top)
-  (hg : tendsto g l (𝓝 C)) :
-  tendsto (λ x, (f x * g x)) l at_bot :=
-by simpa only [(∘), neg_mul_eq_mul_neg, neg_neg]
-  using tendsto_neg_at_top_at_bot.comp (hf.at_top_mul (neg_pos.2 hC) hg.neg)
-
-/-- In a linearly ordered field with the order topology, if `f` tends to a negative constant `C` and
-`g` tends to `at_top` then `f * g` tends to `at_bot`. -/
-lemma filter.tendsto.neg_mul_at_top {C : α} (hC : C < 0) (hf : tendsto f l (𝓝 C))
-  (hg : tendsto g l at_top) :
-  tendsto (λ x, (f x * g x)) l at_bot :=
-by simpa only [mul_comm] using hg.at_top_mul_neg hC hf
-
-/-- In a linearly ordered field with the order topology, if `f` tends to `at_bot` and `g` tends to
-a positive constant `C` then `f * g` tends to `at_bot`. -/
-lemma filter.tendsto.at_bot_mul {C : α} (hC : 0 < C) (hf : tendsto f l at_bot)
-  (hg : tendsto g l (𝓝 C)) :
-  tendsto (λ x, (f x * g x)) l at_bot :=
-by simpa [(∘)]
-  using tendsto_neg_at_top_at_bot.comp ((tendsto_neg_at_bot_at_top.comp hf).at_top_mul hC hg)
-
-/-- In a linearly ordered field with the order topology, if `f` tends to `at_bot` and `g` tends to
-a negative constant `C` then `f * g` tends to `at_top`. -/
-lemma filter.tendsto.at_bot_mul_neg {C : α} (hC : C < 0) (hf : tendsto f l at_bot)
-  (hg : tendsto g l (𝓝 C)) :
-  tendsto (λ x, (f x * g x)) l at_top :=
-by simpa [(∘)]
-  using tendsto_neg_at_bot_at_top.comp ((tendsto_neg_at_bot_at_top.comp hf).at_top_mul_neg hC hg)
-
-/-- In a linearly ordered field with the order topology, if `f` tends to a positive constant `C` and
-`g` tends to `at_bot` then `f * g` tends to `at_bot`. -/
-lemma filter.tendsto.mul_at_bot {C : α} (hC : 0 < C) (hf : tendsto f l (𝓝 C))
-  (hg : tendsto g l at_bot) :
-  tendsto (λ x, (f x * g x)) l at_bot :=
-by simpa only [mul_comm] using hg.at_bot_mul hC hf
-
-/-- In a linearly ordered field with the order topology, if `f` tends to a negative constant `C` and
-`g` tends to `at_bot` then `f * g` tends to `at_top`. -/
-lemma filter.tendsto.neg_mul_at_bot {C : α} (hC : C < 0) (hf : tendsto f l (𝓝 C))
-  (hg : tendsto g l at_bot) :
-  tendsto (λ x, (f x * g x)) l at_top :=
-by simpa only [mul_comm] using hg.at_bot_mul_neg hC hf
-
-/-- The function `x ↦ x⁻¹` tends to `+∞` on the right of `0`. -/
-lemma tendsto_inv_zero_at_top : tendsto (λx:α, x⁻¹) (𝓝[>] (0:α)) at_top :=
-begin
-  refine (at_top_basis' 1).tendsto_right_iff.2 (λ b hb, _),
-  have hb' : 0 < b := zero_lt_one.trans_le hb,
-  filter_upwards [Ioc_mem_nhds_within_Ioi ⟨le_rfl, inv_pos.2 hb'⟩]
-    with x hx using (le_inv hx.1 hb').1 hx.2,
-end
-
-/-- The function `r ↦ r⁻¹` tends to `0` on the right as `r → +∞`. -/
-lemma tendsto_inv_at_top_zero' : tendsto (λr:α, r⁻¹) at_top (𝓝[>] (0:α)) :=
-begin
-  refine (has_basis.tendsto_iff at_top_basis ⟨λ s, mem_nhds_within_Ioi_iff_exists_Ioc_subset⟩).2 _,
-  refine λ b hb, ⟨b⁻¹, trivial, λ x hx, _⟩,
-  have : 0 < x := lt_of_lt_of_le (inv_pos.2 hb) hx,
-  exact ⟨inv_pos.2 this, (inv_le this hb).2 hx⟩
-end
-
-lemma tendsto_inv_at_top_zero : tendsto (λr:α, r⁻¹) at_top (𝓝 0) :=
-tendsto_inv_at_top_zero'.mono_right inf_le_left
-
-lemma filter.tendsto.div_at_top [has_continuous_mul α] {f g : β → α} {l : filter β} {a : α}
-  (h : tendsto f l (𝓝 a)) (hg : tendsto g l at_top) : tendsto (λ x, f x / g x) l (𝓝 0) :=
-by { simp only [div_eq_mul_inv], exact mul_zero a ▸ h.mul (tendsto_inv_at_top_zero.comp hg) }
-
-lemma filter.tendsto.inv_tendsto_at_top (h : tendsto f l at_top) : tendsto (f⁻¹) l (𝓝 0) :=
-tendsto_inv_at_top_zero.comp h
-
-lemma filter.tendsto.inv_tendsto_zero (h : tendsto f l (𝓝[>] 0)) :
-  tendsto (f⁻¹) l at_top :=
-tendsto_inv_zero_at_top.comp h
-
-/-- The function `x^(-n)` tends to `0` at `+∞` for any positive natural `n`.
-A version for positive real powers exists as `tendsto_rpow_neg_at_top`. -/
-lemma tendsto_pow_neg_at_top {n : ℕ} (hn : 1 ≤ n) : tendsto (λ x : α, x ^ (-(n:ℤ))) at_top (𝓝 0) :=
-tendsto.congr (λ x, (zpow_neg x n).symm)
-  (filter.tendsto.inv_tendsto_at_top (by simpa [zpow_coe_nat] using tendsto_pow_at_top hn))
-
-lemma tendsto_zpow_at_top_zero {n : ℤ} (hn : n < 0) :
-  tendsto (λ x : α, x^n) at_top (𝓝 0) :=
-begin
-  have : 1 ≤ -n := le_neg.mp (int.le_of_lt_add_one (hn.trans_le (neg_add_self 1).symm.le)),
-  apply tendsto.congr (show ∀ x : α, x^-(-n) = x^n, by simp),
-  lift -n to ℕ using le_of_lt (neg_pos.mpr hn) with N,
-  exact tendsto_pow_neg_at_top (by exact_mod_cast this)
-end
-
-lemma tendsto_const_mul_zpow_at_top_zero {n : ℤ} {c : α} (hn : n < 0) :
-  tendsto (λ x, c * x ^ n) at_top (𝓝 0) :=
-(mul_zero c) ▸ (filter.tendsto.const_mul c (tendsto_zpow_at_top_zero hn))
-
-lemma tendsto_const_mul_pow_nhds_iff {n : ℕ} {c d : α} (hc : c ≠ 0) :
-  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔ n = 0 ∧ c = d :=
-begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { have hn : n = 0,
-    { by_contradiction hn,
-      have hn : 1 ≤ n := nat.succ_le_iff.2 (lt_of_le_of_ne (zero_le _) (ne.symm hn)),
-      by_cases hc' : 0 < c,
-      { have := (tendsto_const_mul_pow_at_top_iff c n).2 ⟨hn, hc'⟩,
-        exact not_tendsto_nhds_of_tendsto_at_top this d h },
-      { have := (tendsto_neg_const_mul_pow_at_top_iff c n).2 ⟨hn, lt_of_le_of_ne (not_lt.1 hc') hc⟩,
-        exact not_tendsto_nhds_of_tendsto_at_bot this d h } },
-    have : (λ x : α, c * x ^ n) = (λ x : α, c), by simp [hn],
-    rw [this, tendsto_const_nhds_iff] at h,
-    exact ⟨hn, h⟩ },
-  { obtain ⟨hn, hcd⟩ := h,
-    simpa [hn, hcd] using tendsto_const_nhds }
-end
-
-lemma tendsto_const_mul_zpow_at_top_zero_iff {n : ℤ} {c d : α} (hc : c ≠ 0) :
-  tendsto (λ x : α, c * x ^ n) at_top (𝓝 d) ↔
-    (n = 0 ∧ c = d) ∨ (n < 0 ∧ d = 0) :=
-begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { by_cases hn : 0 ≤ n,
-    { lift n to ℕ using hn,
-      simp only [zpow_coe_nat] at h,
-      rw [tendsto_const_mul_pow_nhds_iff hc, ← int.coe_nat_eq_zero] at h,
-      exact or.inl h },
-    { rw not_le at hn,
-      refine or.inr ⟨hn, tendsto_nhds_unique h (tendsto_const_mul_zpow_at_top_zero hn)⟩ } },
-  { cases h,
-    { simp only [h.left, h.right, zpow_zero, mul_one],
-      exact tendsto_const_nhds },
-    { exact h.2.symm ▸ tendsto_const_mul_zpow_at_top_zero h.1} }
-end
-
-end linear_ordered_field
 
 lemma preimage_neg [add_group α] : preimage (has_neg.neg : α → α) = image (has_neg.neg : α → α) :=
 (image_eq_preimage_of_inverse neg_neg neg_neg).symm
@@ -2288,6 +1969,12 @@ begin
   exact ⟨u, hu_mono, λ n, (hu_mem n).2, hux⟩
 end
 
+lemma exists_seq_strict_mono_tendsto_nhds_within [densely_ordered α] [no_min_order α]
+  [first_countable_topology α] (x : α) :
+  ∃ u : ℕ → α, strict_mono u ∧ (∀ n, u n < x) ∧ tendsto u at_top (𝓝[<] x) :=
+let ⟨u, hu, hx, h⟩ := exists_seq_strict_mono_tendsto x in ⟨u, hu, hx,
+  tendsto_nhds_within_mono_right (range_subset_iff.2 hx) $ tendsto_nhds_within_range.2 h⟩
+
 lemma exists_seq_tendsto_Sup {α : Type*} [conditionally_complete_linear_order α]
   [topological_space α] [order_topology α] [first_countable_topology α]
   {S : set α} (hS : S.nonempty) (hS' : bdd_above S) :
@@ -2318,6 +2005,11 @@ lemma exists_seq_strict_anti_tendsto [densely_ordered α] [no_max_order α]
   [first_countable_topology α] (x : α) :
   ∃ u : ℕ → α, strict_anti u ∧ (∀ n, x < u n) ∧ tendsto u at_top (𝓝 x) :=
 @exists_seq_strict_mono_tendsto αᵒᵈ _ _ _ _ _ _ x
+
+lemma exists_seq_strict_anti_tendsto_nhds_within [densely_ordered α] [no_max_order α]
+  [first_countable_topology α] (x : α) :
+  ∃ u : ℕ → α, strict_anti u ∧ (∀ n, x < u n) ∧ tendsto u at_top (𝓝[>] x) :=
+@exists_seq_strict_mono_tendsto_nhds_within αᵒᵈ _ _ _ _ _ _ _
 
 lemma exists_seq_strict_anti_strict_mono_tendsto [densely_ordered α] [first_countable_topology α]
   {x y : α} (h : x < y) :
@@ -2699,7 +2391,7 @@ end densely_ordered
 section complete_linear_order
 
 variables [complete_linear_order α] [topological_space α] [order_topology α]
-  [complete_linear_order β] [topological_space β] [order_topology β] [nonempty γ]
+  [complete_linear_order β] [topological_space β] [order_closed_topology β] [nonempty γ]
 
 lemma Sup_mem_closure {α : Type u} [topological_space α] [complete_linear_order α]
   [order_topology α] {s : set α} (hs : s.nonempty) :
@@ -2723,72 +2415,137 @@ lemma is_closed.Inf_mem {α : Type u} [topological_space α] [complete_linear_or
 
 /-- A monotone function continuous at the supremum of a nonempty set sends this supremum to
 the supremum of the image of this set. -/
-lemma map_Sup_of_continuous_at_of_monotone' {f : α → β} {s : set α} (Cf : continuous_at f (Sup s))
+lemma monotone.map_Sup_of_continuous_at' {f : α → β} {s : set α} (Cf : continuous_at f (Sup s))
   (Mf : monotone f) (hs : s.nonempty) :
   f (Sup s) = Sup (f '' s) :=
 --This is a particular case of the more general is_lub.is_lub_of_tendsto
 ((is_lub_Sup _).is_lub_of_tendsto (λ x hx y hy xy, Mf xy) hs $
   Cf.mono_left inf_le_left).Sup_eq.symm
 
-/-- A monotone function `s` sending `bot` to `bot` and continuous at the supremum of a set sends
+/-- A monotone function `f` sending `bot` to `bot` and continuous at the supremum of a set sends
 this supremum to the supremum of the image of this set. -/
-lemma map_Sup_of_continuous_at_of_monotone {f : α → β} {s : set α} (Cf : continuous_at f (Sup s))
+lemma monotone.map_Sup_of_continuous_at {f : α → β} {s : set α} (Cf : continuous_at f (Sup s))
   (Mf : monotone f) (fbot : f ⊥ = ⊥) :
   f (Sup s) = Sup (f '' s) :=
 begin
   cases s.eq_empty_or_nonempty with h h,
   { simp [h, fbot] },
-  { exact map_Sup_of_continuous_at_of_monotone' Cf Mf h }
+  { exact Mf.map_Sup_of_continuous_at' Cf h }
 end
 
 /-- A monotone function continuous at the indexed supremum over a nonempty `Sort` sends this indexed
 supremum to the indexed supremum of the composition. -/
-lemma map_supr_of_continuous_at_of_monotone' {ι : Sort*} [nonempty ι] {f : α → β} {g : ι → α}
+lemma monotone.map_supr_of_continuous_at' {ι : Sort*} [nonempty ι] {f : α → β} {g : ι → α}
   (Cf : continuous_at f (supr g)) (Mf : monotone f) :
   f (⨆ i, g i) = ⨆ i, f (g i) :=
-by rw [supr, map_Sup_of_continuous_at_of_monotone' Cf Mf (range_nonempty g), ← range_comp, supr]
+by rw [supr, Mf.map_Sup_of_continuous_at' Cf (range_nonempty g), ← range_comp, supr]
 
 /-- If a monotone function sending `bot` to `bot` is continuous at the indexed supremum over
 a `Sort`, then it sends this indexed supremum to the indexed supremum of the composition. -/
-lemma map_supr_of_continuous_at_of_monotone {ι : Sort*} {f : α → β} {g : ι → α}
+lemma monotone.map_supr_of_continuous_at {ι : Sort*} {f : α → β} {g : ι → α}
   (Cf : continuous_at f (supr g)) (Mf : monotone f) (fbot : f ⊥ = ⊥) :
   f (⨆ i, g i) = ⨆ i, f (g i) :=
-by rw [supr, map_Sup_of_continuous_at_of_monotone Cf Mf fbot, ← range_comp, supr]
+by rw [supr, Mf.map_Sup_of_continuous_at Cf fbot, ← range_comp, supr]
 
 /-- A monotone function continuous at the infimum of a nonempty set sends this infimum to
 the infimum of the image of this set. -/
-lemma map_Inf_of_continuous_at_of_monotone' {f : α → β} {s : set α} (Cf : continuous_at f (Inf s))
+lemma monotone.map_Inf_of_continuous_at' {f : α → β} {s : set α} (Cf : continuous_at f (Inf s))
   (Mf : monotone f) (hs : s.nonempty) :
   f (Inf s) = Inf (f '' s) :=
-@map_Sup_of_continuous_at_of_monotone' αᵒᵈ βᵒᵈ _ _ _ _ _ _ f s Cf Mf.dual hs
+@monotone.map_Sup_of_continuous_at' αᵒᵈ βᵒᵈ _ _ _ _ _ _ f s Cf Mf.dual hs
 
-/-- A monotone function `s` sending `top` to `top` and continuous at the infimum of a set sends
+/-- A monotone function `f` sending `top` to `top` and continuous at the infimum of a set sends
 this infimum to the infimum of the image of this set. -/
-lemma map_Inf_of_continuous_at_of_monotone {f : α → β} {s : set α} (Cf : continuous_at f (Inf s))
+lemma monotone.map_Inf_of_continuous_at {f : α → β} {s : set α} (Cf : continuous_at f (Inf s))
   (Mf : monotone f) (ftop : f ⊤ = ⊤) :
   f (Inf s) = Inf (f '' s) :=
-@map_Sup_of_continuous_at_of_monotone αᵒᵈ βᵒᵈ _ _ _ _ _ _ f s Cf Mf.dual ftop
+@monotone.map_Sup_of_continuous_at αᵒᵈ βᵒᵈ _ _ _ _ _ _ f s Cf Mf.dual ftop
 
 /-- A monotone function continuous at the indexed infimum over a nonempty `Sort` sends this indexed
 infimum to the indexed infimum of the composition. -/
-lemma map_infi_of_continuous_at_of_monotone' {ι : Sort*} [nonempty ι] {f : α → β} {g : ι → α}
+lemma monotone.map_infi_of_continuous_at' {ι : Sort*} [nonempty ι] {f : α → β} {g : ι → α}
   (Cf : continuous_at f (infi g)) (Mf : monotone f) :
   f (⨅ i, g i) = ⨅ i, f (g i) :=
-@map_supr_of_continuous_at_of_monotone' αᵒᵈ βᵒᵈ _ _ _ _ _ _ ι _ f g Cf Mf.dual
+@monotone.map_supr_of_continuous_at' αᵒᵈ βᵒᵈ _ _ _ _ _ _ ι _ f g Cf Mf.dual
 
 /-- If a monotone function sending `top` to `top` is continuous at the indexed infimum over
 a `Sort`, then it sends this indexed infimum to the indexed infimum of the composition. -/
-lemma map_infi_of_continuous_at_of_monotone {ι : Sort*} {f : α → β} {g : ι → α}
+lemma monotone.map_infi_of_continuous_at {ι : Sort*} {f : α → β} {g : ι → α}
   (Cf : continuous_at f (infi g)) (Mf : monotone f) (ftop : f ⊤ = ⊤) :
   f (infi g) = infi (f ∘ g) :=
-@map_supr_of_continuous_at_of_monotone αᵒᵈ βᵒᵈ _ _ _ _ _ _ ι f g Cf Mf.dual ftop
+@monotone.map_supr_of_continuous_at αᵒᵈ βᵒᵈ _ _ _ _ _ _ ι f g Cf Mf.dual ftop
+
+/-- An antitone function continuous at the supremum of a nonempty set sends this supremum to
+the infimum of the image of this set. -/
+lemma antitone.map_Sup_of_continuous_at' {f : α → β} {s : set α} (Cf : continuous_at f (Sup s))
+  (Af : antitone f) (hs : s.nonempty) :
+  f (Sup s) = Inf (f '' s) :=
+monotone.map_Sup_of_continuous_at'
+  (show continuous_at (order_dual.to_dual ∘ f) (Sup s), from Cf) Af hs
+
+/-- An antitone function `f` sending `bot` to `top` and continuous at the supremum of a set sends
+this supremum to the infimum of the image of this set. -/
+lemma antitone.map_Sup_of_continuous_at {f : α → β} {s : set α} (Cf : continuous_at f (Sup s))
+  (Af : antitone f) (fbot : f ⊥ = ⊤) :
+  f (Sup s) = Inf (f '' s) :=
+monotone.map_Sup_of_continuous_at
+  (show continuous_at (order_dual.to_dual ∘ f) (Sup s), from Cf) Af fbot
+
+/-- An antitone function continuous at the indexed supremum over a nonempty `Sort` sends this
+indexed supremum to the indexed infimum of the composition. -/
+lemma antitone.map_supr_of_continuous_at' {ι : Sort*} [nonempty ι] {f : α → β} {g : ι → α}
+  (Cf : continuous_at f (supr g)) (Af : antitone f) :
+  f (⨆ i, g i) = ⨅ i, f (g i) :=
+monotone.map_supr_of_continuous_at'
+  (show continuous_at (order_dual.to_dual ∘ f) (supr g), from Cf) Af
+
+/-- An antitone function sending `bot` to `top` is continuous at the indexed supremum over
+a `Sort`, then it sends this indexed supremum to the indexed supremum of the composition. -/
+lemma antitone.map_supr_of_continuous_at {ι : Sort*} {f : α → β} {g : ι → α}
+  (Cf : continuous_at f (supr g)) (Af : antitone f) (fbot : f ⊥ = ⊤) :
+  f (⨆ i, g i) = ⨅ i, f (g i) :=
+monotone.map_supr_of_continuous_at
+  (show continuous_at (order_dual.to_dual ∘ f) (supr g), from Cf) Af fbot
+
+/-- An antitone function continuous at the infimum of a nonempty set sends this infimum to
+the supremum of the image of this set. -/
+lemma antitone.map_Inf_of_continuous_at' {f : α → β} {s : set α} (Cf : continuous_at f (Inf s))
+  (Af : antitone f) (hs : s.nonempty) :
+  f (Inf s) = Sup (f '' s) :=
+monotone.map_Inf_of_continuous_at'
+  (show continuous_at (order_dual.to_dual ∘ f) (Inf s), from Cf) Af hs
+
+/-- An antitone function `f` sending `top` to `bot` and continuous at the infimum of a set sends
+this infimum to the supremum of the image of this set. -/
+lemma antitone.map_Inf_of_continuous_at {f : α → β} {s : set α} (Cf : continuous_at f (Inf s))
+  (Af : antitone f) (ftop : f ⊤ = ⊥) :
+  f (Inf s) = Sup (f '' s) :=
+monotone.map_Inf_of_continuous_at
+  (show continuous_at (order_dual.to_dual ∘ f) (Inf s), from Cf) Af ftop
+
+/-- An antitone function continuous at the indexed infimum over a nonempty `Sort` sends this indexed
+infimum to the indexed supremum of the composition. -/
+lemma antitone.map_infi_of_continuous_at' {ι : Sort*} [nonempty ι] {f : α → β} {g : ι → α}
+  (Cf : continuous_at f (infi g)) (Af : antitone f) :
+  f (⨅ i, g i) = ⨆ i, f (g i) :=
+monotone.map_infi_of_continuous_at'
+  (show continuous_at (order_dual.to_dual ∘ f) (infi g), from Cf) Af
+
+/-- If an antitone function sending `top` to `bot` is continuous at the indexed infimum over
+a `Sort`, then it sends this indexed infimum to the indexed supremum of the composition. -/
+lemma antitone.map_infi_of_continuous_at {ι : Sort*} {f : α → β} {g : ι → α}
+  (Cf : continuous_at f (infi g)) (Af : antitone f) (ftop : f ⊤ = ⊥) :
+  f (infi g) = supr (f ∘ g) :=
+monotone.map_infi_of_continuous_at
+  (show continuous_at (order_dual.to_dual ∘ f) (infi g), from Cf) Af ftop
 
 end complete_linear_order
 
 section conditionally_complete_linear_order
 
 variables [conditionally_complete_linear_order α] [topological_space α] [order_topology α]
-  [conditionally_complete_linear_order β] [topological_space β] [order_topology β] [nonempty γ]
+  [conditionally_complete_linear_order β] [topological_space β] [order_closed_topology β]
+  [nonempty γ]
 
 lemma cSup_mem_closure {s : set α} (hs : s.nonempty) (B : bdd_above s) : Sup s ∈ closure s :=
 (is_lub_cSup hs B).mem_closure hs
@@ -2806,7 +2563,7 @@ lemma is_closed.cInf_mem {s : set α} (hc : is_closed s) (hs : s.nonempty) (B : 
 
 /-- If a monotone function is continuous at the supremum of a nonempty bounded above set `s`,
 then it sends this supremum to the supremum of the image of `s`. -/
-lemma map_cSup_of_continuous_at_of_monotone {f : α → β} {s : set α} (Cf : continuous_at f (Sup s))
+lemma monotone.map_cSup_of_continuous_at {f : α → β} {s : set α} (Cf : continuous_at f (Sup s))
   (Mf : monotone f) (ne : s.nonempty) (H : bdd_above s) :
   f (Sup s) = Sup (f '' s) :=
 begin
@@ -2817,28 +2574,61 @@ end
 
 /-- If a monotone function is continuous at the indexed supremum of a bounded function on
 a nonempty `Sort`, then it sends this supremum to the supremum of the composition. -/
-lemma map_csupr_of_continuous_at_of_monotone {f : α → β} {g : γ → α}
+lemma monotone.map_csupr_of_continuous_at {f : α → β} {g : γ → α}
   (Cf : continuous_at f (⨆ i, g i)) (Mf : monotone f) (H : bdd_above (range g)) :
   f (⨆ i, g i) = ⨆ i, f (g i) :=
-by rw [supr, map_cSup_of_continuous_at_of_monotone Cf Mf (range_nonempty _) H, ← range_comp, supr]
+by rw [supr, Mf.map_cSup_of_continuous_at Cf (range_nonempty _) H, ← range_comp, supr]
 
 /-- If a monotone function is continuous at the infimum of a nonempty bounded below set `s`,
 then it sends this infimum to the infimum of the image of `s`. -/
-lemma map_cInf_of_continuous_at_of_monotone {f : α → β} {s : set α} (Cf : continuous_at f (Inf s))
+lemma monotone.map_cInf_of_continuous_at {f : α → β} {s : set α} (Cf : continuous_at f (Inf s))
   (Mf : monotone f) (ne : s.nonempty) (H : bdd_below s) :
   f (Inf s) = Inf (f '' s) :=
-@map_cSup_of_continuous_at_of_monotone αᵒᵈ βᵒᵈ _ _ _ _ _ _ f s Cf Mf.dual ne H
+@monotone.map_cSup_of_continuous_at αᵒᵈ βᵒᵈ _ _ _ _ _ _ f s Cf Mf.dual ne H
 
 /-- A continuous monotone function sends indexed infimum to indexed infimum in conditionally
 complete linear order, under a boundedness assumption. -/
-lemma map_cinfi_of_continuous_at_of_monotone {f : α → β} {g : γ → α}
+lemma monotone.map_cinfi_of_continuous_at {f : α → β} {g : γ → α}
   (Cf : continuous_at f (⨅ i, g i)) (Mf : monotone f) (H : bdd_below (range g)) :
   f (⨅ i, g i) = ⨅ i, f (g i) :=
-@map_csupr_of_continuous_at_of_monotone αᵒᵈ βᵒᵈ _ _ _ _ _ _ _ _ _ _ Cf Mf.dual H
+@monotone.map_csupr_of_continuous_at αᵒᵈ βᵒᵈ _ _ _ _ _ _ _ _ _ _ Cf Mf.dual H
+
+/-- If an antitone function is continuous at the supremum of a nonempty bounded above set `s`,
+then it sends this supremum to the infimum of the image of `s`. -/
+lemma antitone.map_cSup_of_continuous_at {f : α → β} {s : set α} (Cf : continuous_at f (Sup s))
+  (Af : antitone f) (ne : s.nonempty) (H : bdd_above s) :
+  f (Sup s) = Inf (f '' s) :=
+monotone.map_cSup_of_continuous_at
+  (show continuous_at (order_dual.to_dual ∘ f) (Sup s), from Cf) Af ne H
+
+/-- If an antitone function is continuous at the indexed supremum of a bounded function on
+a nonempty `Sort`, then it sends this supremum to the infimum of the composition. -/
+lemma antitone.map_csupr_of_continuous_at {f : α → β} {g : γ → α}
+  (Cf : continuous_at f (⨆ i, g i)) (Af : antitone f) (H : bdd_above (range g)) :
+  f (⨆ i, g i) = ⨅ i, f (g i) :=
+monotone.map_csupr_of_continuous_at
+  (show continuous_at (order_dual.to_dual ∘ f) (⨆ i, g i), from Cf) Af H
+
+/-- If an antitone function is continuous at the infimum of a nonempty bounded below set `s`,
+then it sends this infimum to the supremum of the image of `s`. -/
+lemma antitone.map_cInf_of_continuous_at {f : α → β} {s : set α} (Cf : continuous_at f (Inf s))
+  (Af : antitone f) (ne : s.nonempty) (H : bdd_below s) :
+  f (Inf s) = Sup (f '' s) :=
+monotone.map_cInf_of_continuous_at
+  (show continuous_at (order_dual.to_dual ∘ f) (Inf s), from Cf) Af ne H
+
+/-- A continuous antitone function sends indexed infimum to indexed supremum in conditionally
+complete linear order, under a boundedness assumption. -/
+lemma antitone.map_cinfi_of_continuous_at {f : α → β} {g : γ → α}
+  (Cf : continuous_at f (⨅ i, g i)) (Af : antitone f) (H : bdd_below (range g)) :
+  f (⨅ i, g i) = ⨆ i, f (g i) :=
+monotone.map_cinfi_of_continuous_at
+  (show continuous_at (order_dual.to_dual ∘ f) (⨅ i, g i), from Cf) Af H
 
 /-- A monotone map has a limit to the left of any point `x`, equal to `Sup (f '' (Iio x))`. -/
-lemma monotone.tendsto_nhds_within_Iio
-  {α : Type*} [linear_order α] [topological_space α] [order_topology α]
+lemma monotone.tendsto_nhds_within_Iio {α β : Type*}
+  [linear_order α] [topological_space α] [order_topology α]
+  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
   {f : α → β} (Mf : monotone f) (x : α) :
   tendsto f (𝓝[<] x) (𝓝 (Sup (f '' (Iio x)))) :=
 begin
@@ -2855,12 +2645,34 @@ begin
 end
 
 /-- A monotone map has a limit to the right of any point `x`, equal to `Inf (f '' (Ioi x))`. -/
-lemma monotone.tendsto_nhds_within_Ioi
-  {α : Type*} [linear_order α] [topological_space α] [order_topology α]
+lemma monotone.tendsto_nhds_within_Ioi {α β : Type*}
+  [linear_order α] [topological_space α] [order_topology α]
+  [conditionally_complete_linear_order β] [topological_space β] [order_topology β]
   {f : α → β} (Mf : monotone f) (x : α) :
   tendsto f (𝓝[>] x) (𝓝 (Inf (f '' (Ioi x)))) :=
-@monotone.tendsto_nhds_within_Iio βᵒᵈ _ _ _ αᵒᵈ _ _ _ f Mf.dual x
+@monotone.tendsto_nhds_within_Iio αᵒᵈ βᵒᵈ _ _ _ _ _ _ f Mf.dual x
 
 end conditionally_complete_linear_order
+
+section nhds_with_pos
+
+section linear_ordered_add_comm_group
+
+variables [linear_ordered_add_comm_group α] [topological_space α] [order_topology α]
+
+lemma eventually_nhds_within_pos_mem_Ioo {ε : α} (h : 0 < ε) :
+  ∀ᶠ x in 𝓝[>] 0, x ∈ Ioo 0 ε :=
+begin
+  rw [eventually_iff, mem_nhds_within],
+  exact ⟨Ioo (-ε) ε, is_open_Ioo, by simp [h], λ x hx, ⟨hx.2, hx.1.2⟩⟩,
+end
+
+lemma eventually_nhds_within_pos_mem_Ioc {ε : α} (h : 0 < ε) :
+  ∀ᶠ x in 𝓝[>] 0, x ∈ Ioc 0 ε :=
+(eventually_nhds_within_pos_mem_Ioo h).mono Ioo_subset_Ioc_self
+
+end linear_ordered_add_comm_group
+
+end nhds_with_pos
 
 end order_topology

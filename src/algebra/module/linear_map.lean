@@ -4,12 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro, Anne Baanen,
   Frédéric Dupuis, Heather Macbeth
 -/
-import algebra.hom.group
 import algebra.hom.group_action
-import algebra.module.basic
 import algebra.module.pi
-import algebra.ring.comp_typeclasses
 import algebra.star.basic
+import data.set.pointwise.basic
 
 /-!
 # (Semi)linear maps
@@ -258,36 +256,40 @@ by simp
 section pointwise
 open_locale pointwise
 
-@[simp] lemma image_smul_setₛₗ (c : R) (s : set M) :
-  f '' (c • s) = (σ c) • f '' s :=
+variables (M M₃ σ) {F : Type*} (h : F)
+
+@[simp] lemma _root_.image_smul_setₛₗ [semilinear_map_class F σ M M₃] (c : R) (s : set M) :
+  h '' (c • s) = (σ c) • h '' s :=
 begin
   apply set.subset.antisymm,
   { rintros x ⟨y, ⟨z, zs, rfl⟩, rfl⟩,
-    exact ⟨f z, set.mem_image_of_mem _ zs, (f.map_smulₛₗ _ _).symm ⟩ },
+    exact ⟨h z, set.mem_image_of_mem _ zs, (map_smulₛₗ _ _ _).symm ⟩ },
   { rintros x ⟨y, ⟨z, hz, rfl⟩, rfl⟩,
-    exact (set.mem_image _ _ _).2 ⟨c • z, set.smul_mem_smul_set hz, f.map_smulₛₗ _ _⟩ }
+    exact (set.mem_image _ _ _).2 ⟨c • z, set.smul_mem_smul_set hz, map_smulₛₗ _ _ _⟩ }
 end
 
-lemma image_smul_set (c : R) (s : set M) :
-  fₗ '' (c • s) = c • fₗ '' s :=
-by simp
-
-lemma preimage_smul_setₛₗ {c : R} (hc : is_unit c) (s : set M₃) :
-  f ⁻¹' (σ c • s) = c • f ⁻¹' s :=
+lemma _root_.preimage_smul_setₛₗ [semilinear_map_class F σ M M₃] {c : R} (hc : is_unit c)
+  (s : set M₃) : h ⁻¹' (σ c • s) = c • h ⁻¹' s :=
 begin
   apply set.subset.antisymm,
   { rintros x ⟨y, ys, hy⟩,
     refine ⟨(hc.unit.inv : R) • x, _, _⟩,
-    { simp only [←hy, smul_smul, set.mem_preimage, units.inv_eq_coe_inv, map_smulₛₗ f, ← map_mul,
+    { simp only [←hy, smul_smul, set.mem_preimage, units.inv_eq_coe_inv, map_smulₛₗ h, ← map_mul,
         is_unit.coe_inv_mul, one_smul, map_one, ys] },
     { simp only [smul_smul, is_unit.mul_coe_inv, one_smul, units.inv_eq_coe_inv] } },
   { rintros x ⟨y, hy, rfl⟩,
-    refine ⟨f y, hy, by simp only [ring_hom.id_apply, map_smulₛₗ f]⟩ }
+    refine ⟨h y, hy, by simp only [ring_hom.id_apply, map_smulₛₗ h]⟩ }
 end
 
-lemma preimage_smul_set {c : R} (hc : is_unit c) (s : set M₂) :
-  fₗ ⁻¹' (c • s) = c • fₗ ⁻¹' s :=
-fₗ.preimage_smul_setₛₗ hc s
+variables (R M₂)
+
+lemma _root_.image_smul_set [linear_map_class F R M M₂] (c : R) (s : set M) :
+  h '' (c • s) = c • h '' s :=
+image_smul_setₛₗ _ _ _ h c s
+
+lemma _root_.preimage_smul_set [linear_map_class F R M M₂] {c : R} (hc : is_unit c) (s : set M₂) :
+  h ⁻¹' (c • s) = c • h ⁻¹' s :=
+preimage_smul_setₛₗ _ _ _ h hc s
 
 end pointwise
 
@@ -788,8 +790,8 @@ lemma mul_eq_comp (f g : module.End R M) : f * g = f.comp g := rfl
 @[simp] lemma one_apply (x : M) : (1 : module.End R M) x = x := rfl
 @[simp] lemma mul_apply (f g : module.End R M) (x : M) : (f * g) x = f (g x) := rfl
 
-lemma coe_one : ⇑(1 : module.End R M) = _root_.id := rfl
-lemma coe_mul (f g : module.End R M) : ⇑(f * g) = f ∘ g := rfl
+protected lemma coe_one : ⇑(1 : module.End R M) = _root_.id := rfl
+protected lemma coe_mul (f g : module.End R M) : ⇑(f * g) = f ∘ g := rfl
 
 instance _root_.module.End.monoid : monoid (module.End R M) :=
 { mul := (*),
@@ -807,12 +809,26 @@ instance _root_.module.End.semiring : semiring (module.End R M) :=
   zero_mul := zero_comp,
   left_distrib := λ f g h, comp_add _ _ _,
   right_distrib := λ f g h, add_comp _ _ _,
+  nat_cast := λ n, n • 1,
+  nat_cast_zero := add_monoid.nsmul_zero' _,
+  nat_cast_succ := λ n, (add_monoid.nsmul_succ' n 1).trans (add_comm _ _),
   .. add_monoid_with_one.unary,
   .. _root_.module.End.monoid,
   .. linear_map.add_comm_monoid }
 
+/-- See also `module.End.nat_cast_def`. -/
+@[simp] lemma _root_.module.End.nat_cast_apply (n : ℕ) (m : M) :
+  (↑n : module.End R M) m = n • m := rfl
+
 instance _root_.module.End.ring : ring (module.End R N₁) :=
-{ ..module.End.semiring, ..linear_map.add_comm_group }
+{ int_cast := λ z, z • 1,
+  int_cast_of_nat := of_nat_zsmul _,
+  int_cast_neg_succ_of_nat := zsmul_neg_succ_of_nat _,
+  ..module.End.semiring, ..linear_map.add_comm_group }
+
+/-- See also `module.End.int_cast_def`. -/
+@[simp] lemma _root_.module.End.int_cast_apply (z : ℤ) (m : N₁) :
+  (↑z : module.End R N₁) m = z • m := rfl
 
 section
 variables [monoid S] [distrib_mul_action S M] [smul_comm_class R S M]
@@ -896,7 +912,7 @@ namespace module
 variables (R M) [semiring R] [add_comm_monoid M] [module R M]
 variables [semiring S] [module S M] [smul_comm_class S R M]
 
-/-- Each element of the monoid defines a module endomorphism.
+/-- Each element of the semiring defines a module endomorphism.
 
 This is a stronger version of `distrib_mul_action.to_module_End`. -/
 @[simps]
@@ -926,4 +942,60 @@ def module_End_self_op : R ≃+* module.End Rᵐᵒᵖ R :=
   right_inv := λ f, linear_map.ext_ring_op $ mul_one _,
   ..module.to_module_End _ _ }
 
+lemma End.nat_cast_def (n : ℕ) [add_comm_monoid N₁] [module R N₁] :
+  (↑n : module.End R N₁) = module.to_module_End R N₁ n := rfl
+
+lemma End.int_cast_def (z : ℤ) [add_comm_group N₁] [module R N₁] :
+  (↑z : module.End R N₁) = module.to_module_End R N₁ z := rfl
+
 end module
+
+section coe
+
+variables {R S} [semiring R] [semiring S] (σ : R →+* S)
+
+/-- `coe_is_semilinear_map σ M N` is a class stating that the coercion map `↑ : M → N`
+(a.k.a. `coe`) is a `σ`-semilinear map.
+
+Note that there isn't one class directly corresponding to semilinear maps: we pass instances of
+`coe_is_semilinear_map` and `coe_is_add_monoid_hom` in separate parameters.
+This is because `coe_is_semilinear_map` has a different set of parameters from
+`coe_is_add_monoid_hom`, so extending both classes at once wouldn't work.
+Compare the situation for `coe_is_smul_hom` where there is no single class corresponding to
+distributive multiplicative homomorphisms.
+-/
+class coe_is_semilinear_map (M N : Type*) [has_lift_t M N] [has_smul R M] [has_smul S N] :=
+(coe_smulₛₗ' : ∀ (c : R) (x : M), ↑(c • x) = σ c • (↑ x : N))
+
+/-- `simp` can't infer `σ` so this can't be a `@[simp]` lemma -/
+lemma coe_smulₛₗ {M N : Type*} [has_lift_t M N] [has_smul R M] [has_smul S N]
+  [coe_is_semilinear_map σ M N] (c : R) (x : M) : ↑(c • x) = σ c • (↑ x : N) :=
+coe_is_semilinear_map.coe_smulₛₗ' c x
+
+/-- `coe_is_linear_map R M N` is a class stating that the coercion map `↑ : M → N`
+(a.k.a. `coe`) is an R-linear map.
+
+This is essentially the same as `coe_is_smul_hom R M N` except it's compatible with
+`linear_map.coe`.
+-/
+@[reducible]
+def coe_is_linear_map (R M N : Type*) [semiring R] [has_lift_t M N] [has_smul R M] [has_smul R N] :=
+coe_is_semilinear_map (ring_hom.id R) M N
+
+@[priority 100] -- See note [lower instance priority]
+instance coe_is_linear_map.to_coe_is_smul_hom (M N : Type*) [has_lift_t M N]
+  [has_smul R M] [has_smul R N] [coe_is_linear_map R M N] :
+  coe_is_smul_hom R M N :=
+{ coe_smul := coe_smulₛₗ (ring_hom.id R) }
+
+/-- `linear_map.coe σ M N` is the map `↑ : M → N` (a.k.a. `coe`), bundled as a (semi)linear map. -/
+@[simps { fully_applied := ff }]
+protected def linear_map.coe (M N : Type*) [has_lift_t M N]
+  [add_comm_monoid M] [add_comm_monoid N] [module R M] [module S N]
+  [coe_is_add_monoid_hom M N] [coe_is_semilinear_map σ M N] :
+  M →ₛₗ[σ] N :=
+{ to_fun := coe,
+  map_smul' := coe_smulₛₗ σ,
+  .. add_monoid_hom.coe M N }
+
+end coe

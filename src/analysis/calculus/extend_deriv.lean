@@ -20,8 +20,8 @@ of the one-dimensional derivative `deriv ℝ f`.
 -/
 
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E]
-          {F : Type*} [normed_group F] [normed_space ℝ F]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+          {F : Type*} [normed_add_comm_group F] [normed_space ℝ F]
 
 open filter set metric continuous_linear_map
 open_locale topological_space
@@ -58,7 +58,7 @@ begin
   { rw closure_prod_eq at this,
     intros y y_in,
     apply this ⟨x, y⟩,
-    have : B ∩ closure s ⊆ closure (B ∩ s), from closure_inter_open is_open_ball,
+    have : B ∩ closure s ⊆ closure (B ∩ s), from is_open_ball.inter_closure,
     exact ⟨this ⟨mem_ball_self δ_pos, hx⟩, this y_in⟩ },
   have key : ∀ p : E × E, p ∈ (B ∩ s) ×ˢ (B ∩ s) → ∥f p.2 - f p.1 - (f' p.2 - f' p.1)∥
     ≤ ε * ∥p.2 - p.1∥,
@@ -131,7 +131,7 @@ begin
   have : has_deriv_within_at f e (Icc a b) a,
   { rw [has_deriv_within_at_iff_has_fderiv_within_at, ← t_closure],
     exact has_fderiv_at_boundary_of_tendsto_fderiv t_diff t_conv t_open t_cont t_diff' },
-  exact this.nhds_within (mem_nhds_within_Ici_iff_exists_Icc_subset.2 ⟨b, ab, subset.refl _⟩)
+  exact this.nhds_within (Icc_mem_nhds_within_Ici $ left_mem_Ico.2 ab)
 end
 
 /-- If a function is differentiable on the left of a point `a : ℝ`, continuous at `a`, and
@@ -170,7 +170,7 @@ begin
   have : has_deriv_within_at f e (Icc b a) a,
   { rw [has_deriv_within_at_iff_has_fderiv_within_at, ← t_closure],
     exact has_fderiv_at_boundary_of_tendsto_fderiv t_diff t_conv t_open t_cont t_diff' },
-  exact this.nhds_within (mem_nhds_within_Iic_iff_exists_Icc_subset.2 ⟨b, ba, subset.refl _⟩)
+  exact this.nhds_within (Icc_mem_nhds_within_Iic $ right_mem_Ioc.2 ba)
 end
 
 /-- If a real function `f` has a derivative `g` everywhere but at a point, and `f` and `g` are

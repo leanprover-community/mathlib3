@@ -49,7 +49,7 @@ begin
     rwa [dist_ne_zero] }
 end
 
-lemma inversion_of_mem_sphere (h : x ∈ sphere c R) : inversion c R x = x :=
+lemma inversion_of_mem_sphere (h : x ∈ metric.sphere c R) : inversion c R x = x :=
 h.out ▸ inversion_dist_center c x
 
 /-- Distance from the image of a point under inversion to the center. This formula accidentally
@@ -58,7 +58,7 @@ lemma dist_inversion_center (c x : P) (R : ℝ) : dist (inversion c R x) c = R ^
 begin
   rcases eq_or_ne x c with (rfl|hx), { simp },
   have : dist x c ≠ 0, from dist_ne_zero.2 hx,
-  field_simp [inversion, norm_smul, norm_eq_abs, abs_div, ← dist_eq_norm_vsub, sq, mul_assoc]
+  field_simp [inversion, norm_smul, abs_div, ← dist_eq_norm_vsub, sq, mul_assoc]
 end
 
 /-- Distance from the center of an inversion to the image of a point under the inversion. This

@@ -234,7 +234,7 @@ section module
 variables {R M : Type*} [ring R] [add_comm_group M] [module R M] (f : ℕ → R) (g : ℕ → M) {m n : ℕ}
 open finset
 -- The partial sum of `g`, starting from zero
-local notation `G` n:80 := ∑ i in range n, g i
+local notation `G ` n:80 := ∑ i in range n, g i
 
 /-- **Summation by parts**, also known as **Abel's lemma** or an **Abel transformation** -/
 theorem sum_Ico_by_parts (hmn : m < n) :

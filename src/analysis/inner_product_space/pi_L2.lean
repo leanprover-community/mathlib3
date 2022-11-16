@@ -663,6 +663,29 @@ begin
   exact b.reindex (fintype.equiv_fin_of_card_eq rfl),
 end
 
+/-- The standard orthonormal basis of `ℝ` is made either of the vector `1`,
+or of the vector `-1`. -/
+lemma std_orthonormal_basis_one_dim :
+  ⇑(std_orthonormal_basis ℝ ℝ) = (λ _, (1 : ℝ))
+    ∨ ⇑(std_orthonormal_basis ℝ ℝ) = (λ _, (-1 : ℝ)) :=
+begin
+  haveI : subsingleton (fin (finrank ℝ ℝ)),
+  { simp only [finrank_self], apply_instance },
+  let i : fin (finrank ℝ ℝ) := ⟨0, zero_lt_one.trans_le (finrank_self ℝ).ge⟩,
+  have : std_orthonormal_basis ℝ ℝ i = 1 ∨ std_orthonormal_basis ℝ ℝ i = - 1,
+  { have : ∥std_orthonormal_basis ℝ ℝ i∥ = 1, from (std_orthonormal_basis ℝ ℝ).orthonormal.1 i,
+    rwa [real.norm_eq_abs, abs_eq (zero_le_one : (0 : ℝ) ≤ 1)] at this },
+  rcases this with H|H,
+  { left,
+    ext j,
+    have : j = i, from subsingleton.elim _ _,
+    rw [this, H] },
+  { right,
+    ext j,
+    have : j = i, from subsingleton.elim _ _,
+    rw [this, H] },
+end
+
 variables {𝕜 E}
 
 section subordinate_orthonormal_basis

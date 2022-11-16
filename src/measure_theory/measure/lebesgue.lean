@@ -34,27 +34,12 @@ open_locale big_operators ennreal nnreal topological_space
 ### Definition of the Lebesgue measure and lengths of intervals
 -/
 
-lemma glouk : stieltjes_function.id.measure
-    (std_orthonormal_basis ℝ ℝ).to_basis.parallelogram_positive_compacts = 1 :=
-begin
-  have A : finite_dimensional.finrank ℝ ℝ = 1, by simp only [finite_dimensional.finrank_self],
-  simp only [basis.parallelogram_positive_compacts, parallelogram, orthonormal_basis.coe_to_basis,
-    algebra.id.smul_eq_mul, positive_compacts.coe_mk, compacts.coe_mk],
-  let i : fin (finite_dimensional.finrank ℝ ℝ) := ⟨0, sorry⟩,
-  have : (λ (a : fin (finite_dimensional.finrank ℝ ℝ) → ℝ), ∑ (x : fin (finite_dimensional.finrank ℝ ℝ)), a x * (std_orthonormal_basis ℝ ℝ) x) '' Icc 0 1
-    = Icc 0 1,
-  { apply subset.antisymm,
-    { rintros x ⟨y, hy, rfl⟩,
-      simp,
+namespace real
 
-    }
+variables {ι : Type*} [fintype ι]
 
-
-  }
-end
-
-#exit
-
+/-- The volume on the real line (as a particular case of the volume on a finite-dimensional
+inner product space) coincides with the Stieltjes measure coming from the identity function. -/
 lemma volume_eq_stieltjes_id : (volume : measure ℝ) = stieltjes_function.id.measure :=
 begin
   haveI : is_add_left_invariant stieltjes_function.id.measure :=
@@ -63,87 +48,18 @@ begin
     sub_sub_sub_cancel_right, stieltjes_function.measure_Ioo, stieltjes_function.id_left_lim,
     stieltjes_function.id_apply, id.def, preimage_const_add_Ioo]⟩,
   have A : stieltjes_function.id.measure
-    (std_orthonormal_basis ℝ ℝ).to_basis.parallelogram_positive_compacts = 1,
-  {
-
-  },
+    (std_orthonormal_basis ℝ ℝ).to_basis.parallelogram = 1,
+  { change stieltjes_function.id.measure (parallelogram (std_orthonormal_basis ℝ ℝ)) = 1,
+    rcases parallelogram_std_orthonormal_basis_one_dim with H|H;
+    simp only [H, stieltjes_function.measure_Icc, stieltjes_function.id_apply, id.def, tsub_zero,
+      stieltjes_function.id_left_lim, sub_neg_eq_add, zero_add, ennreal.of_real_one] },
   conv_rhs { rw [add_haar_measure_unique stieltjes_function.id.measure
-    (std_orthonormal_basis ℝ ℝ).to_basis.parallelogram_positive_compacts, A] },
+    (std_orthonormal_basis ℝ ℝ).to_basis.parallelogram, A] },
   simp only [volume, basis.add_haar, one_smul],
-
 end
 
-
-#exit
-
-
-/-- The Haar measure equals the Lebesgue measure on `ℝ`. -/
-lemma add_haar_measure_eq_volume : add_haar_measure Icc01 = volume :=
-by { convert (add_haar_measure_unique volume Icc01).symm, simp [Icc01] }
-
-/-- Lebesgue measure on the Borel sigma algebra, giving measure `b - a` to the interval `[a, b]`. -/
-instance real.measure_space : measure_space ℝ :=
-⟨stieltjes_function.id.measure⟩
-
-
-lemma volume_parallelogram [decidable_eq ι] (v : ι → (ι → ℝ)) :
-  volume (parallelogram v) = ennreal.of_real (|(pi.basis_fun ℝ ι).det v|) :=
-begin
-  let M := (pi.basis_fun ℝ ι).to_matrix v,
-  have A : parallelogram v = M.to_lin' '' (Icc 0 1),
-  { rw parallelogram,
-    congr' 1,
-    ext t,
-    simp only [M, fintype.sum_apply, pi.smul_apply, algebra.id.smul_eq_mul],
-    simp_rw [mul_comm (t _)],
-    refl },
-  change volume (parallelogram v) = ennreal.of_real (|M.det|),
-  rw [A, add_haar_image_linear_map, ← pi_univ_Icc],
-  simp only [volume_pi_pi (λ i, Icc (0 : ℝ) 1), pi.zero_apply, pi.one_apply,
-    real.volume_Icc, tsub_zero, ennreal.of_real_one, finset.prod_const_one, mul_one],
-  congr' 2,
-  rw ← matrix.to_lin_eq_to_lin',
-  rw linear_map.det_to_lin,
-end
-
-
-#exit
-
-
-open finite_dimensional measure_theory
-
-section volume_form
-
-def parallelogram (E : Type*) [add_comm_group E] [module ℝ E] {n : ℕ} (v : fin n → E) : set E :=
-(λ (t : fin n → ℝ), ∑ i, t i • v i) '' (Icc 0 1)
-
-
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
-[measurable_space E] [borel_space E]
-{n : ℕ} [_i : fact (finrank ℝ E = n)]
-
-include _i
-
-lemma exists_measure (ω : alternating_map ℝ E ℝ (fin n)) :
-  ∃ (μ : measure_theory.measure E), ∀ (v : fin n → E),
-    μ (parallelogram E v) = ennreal.of_real (ω v)
-
-
-
-
-lemma glou (v : alternating_map ℝ E ℝ (fin n)) :
-
-
-#exit
-
-
-namespace real
-
-variables {ι : Type*} [fintype ι]
-
-open_locale topological_space
-
-theorem volume_val (s) : volume s = stieltjes_function.id.measure s := rfl
+theorem volume_val (s) : volume s = stieltjes_function.id.measure s :=
+by simp [volume_eq_stieltjes_id]
 
 @[simp] lemma volume_Ico {a b : ℝ} : volume (Ico a b) = of_real (b - a) :=
 by simp [volume_val]
@@ -313,11 +229,6 @@ calc volume s ≤ ∏ i : ι, emetric.diam (function.eval i '' s) : volume_pi_le
 ### Images of the Lebesgue measure under translation/multiplication in ℝ
 -/
 
-instance is_add_left_invariant_real_volume :
-  is_add_left_invariant (volume : measure ℝ) :=
-⟨λ a, eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
-  by simp [measure.map_apply (measurable_const_add a) measurable_set_Ioo, sub_sub_sub_cancel_right]⟩
-
 lemma smul_map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
   ennreal.of_real (|a|) • measure.map ((*) a) volume = volume :=
 begin
@@ -357,10 +268,6 @@ by simpa only [mul_comm] using real.map_volume_mul_left h
 calc volume ((* a) ⁻¹' s) = measure.map (* a) volume s :
   ((homeomorph.mul_right₀ a h).to_measurable_equiv.map_apply s).symm
 ... = ennreal.of_real (abs a⁻¹) * volume s : by { rw map_volume_mul_right h, refl }
-
-instance : is_neg_invariant (volume : measure ℝ) :=
-⟨eq.symm $ real.measure_ext_Ioo_rat $ λ p q, by simp [show volume.neg (Ioo (p : ℝ) q) = _,
-  from measure.map_apply measurable_neg measurable_set_Ioo]⟩
 
 /-!
 ### Images of the Lebesgue measure under translation/linear maps in ℝⁿ

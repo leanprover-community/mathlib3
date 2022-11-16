@@ -1200,8 +1200,13 @@ lemma le_norm_self (r : ℝ) : r ≤ ∥r∥ := le_abs_self r
 
 lemma nnnorm_of_nonneg (hr : 0 ≤ r) : ∥r∥₊ = ⟨r, hr⟩ := nnreal.eq $ norm_of_nonneg hr
 
+@[simp] lemma nnnorm_abs (r : ℝ) : ∥(|r|)∥₊ = ∥r∥₊ := by simp [nnnorm]
+
 lemma ennnorm_eq_of_real (hr : 0 ≤ r) : (∥r∥₊ : ℝ≥0∞) = ennreal.of_real r :=
 by { rw [← of_real_norm_eq_coe_nnnorm, norm_of_nonneg hr] }
+
+lemma ennnorm_eq_of_real_abs (r : ℝ) : (∥r∥₊ : ℝ≥0∞) = ennreal.of_real (|r|) :=
+by rw [← real.nnnorm_abs r, real.ennnorm_eq_of_real (abs_nonneg _)]
 
 lemma to_nnreal_eq_nnnorm_of_nonneg (hr : 0 ≤ r) : r.to_nnreal = ∥r∥₊ :=
 begin

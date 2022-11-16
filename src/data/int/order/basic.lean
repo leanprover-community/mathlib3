@@ -624,11 +624,6 @@ calc _ ↔ true : ⟨λ _, trivial, λ h, to_nat_neg_nat _⟩
 @[simp] lemma to_nat_sub_of_le {a b : ℤ} (h : b ≤ a) : (to_nat (a - b) : ℤ) = a - b :=
 int.to_nat_of_nonneg (sub_nonneg_of_le h)
 
-/-! ### units -/
-
-lemma is_unit_iff_abs_eq {x : ℤ} : is_unit x ↔ abs x = 1 :=
-by rw [is_unit_iff_nat_abs_eq, abs_eq_nat_abs, ←int.coe_nat_one, coe_nat_inj']
-
 end int
 
 -- We should need only a minimal development of sets in order to get here.

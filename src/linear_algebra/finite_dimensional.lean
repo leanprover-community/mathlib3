@@ -6,6 +6,7 @@ Authors: Chris Hughes
 import algebra.algebra.subalgebra.basic
 import field_theory.finiteness
 import linear_algebra.finrank
+import tactic.interval_cases
 
 /-!
 # Finite dimensional vector spaces

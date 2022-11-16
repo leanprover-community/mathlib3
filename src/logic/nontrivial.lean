@@ -11,6 +11,10 @@ import logic.unique
 /-!
 # Nontrivial types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/547
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A type is *nontrivial* if it contains at least two elements. This is useful in particular for rings
 (where it is equivalent to the fact that zero is different from one) and for vector spaces
 (where it is equivalent to the fact that the dimension is positive).

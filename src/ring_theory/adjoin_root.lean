@@ -7,6 +7,8 @@ import algebra.algebra.basic
 import data.polynomial.field_division
 import linear_algebra.finite_dimensional
 import ring_theory.adjoin.basic
+import ring_theory.finite_presentation
+import ring_theory.finite_type
 import ring_theory.power_basis
 import ring_theory.principal_ideal_domain
 

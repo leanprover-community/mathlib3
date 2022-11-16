@@ -98,7 +98,7 @@ begin
     { exact hσ.min (hf.adapted.is_stopping_time_least_ge _ _), },
     { exact hπ.min (hf.adapted.is_stopping_time_least_ge _ _), },
     { exact λ ω, min_le_min (hσ_le_π ω) le_rfl, }, },
-  { exact λ i, strongly_measurable_stopped_value_of_le hf.adapted.prog_measurable_of_nat
+  { exact λ i, strongly_measurable_stopped_value_of_le hf.adapted.prog_measurable_of_discrete
       (hf.adapted.is_stopping_time_least_ge _ _) least_ge_le, },
   { exact λ i, integrable_stopped_value _ ((hf.adapted.is_stopping_time_least_ge _ _))
       (hf.integrable) least_ge_le, },

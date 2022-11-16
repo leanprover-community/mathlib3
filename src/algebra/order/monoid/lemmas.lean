@@ -5,7 +5,6 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl, Dami
 Yuyang Zhao
 -/
 import algebra.covariant_and_contravariant
-import order.monotone
 
 /-!
 # Ordered monoids

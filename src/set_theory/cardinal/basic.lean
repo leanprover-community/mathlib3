@@ -7,7 +7,7 @@ import data.fintype.card
 import data.finsupp.defs
 import data.nat.part_enat
 import data.set.countable
-import logic.small
+import logic.small.basic
 import order.conditionally_complete_lattice
 import order.succ_pred.basic
 import set_theory.cardinal.schroeder_bernstein
@@ -893,21 +893,14 @@ lemma mk_finsupp_of_fintype (α β : Type u) [fintype α] [has_zero β] :
 by simp
 
 theorem card_le_of_finset {α} (s : finset α) : (s.card : cardinal) ≤ #α :=
-begin
-  rw (_ : (s.card : cardinal) = #s),
-  { exact ⟨function.embedding.subtype _⟩ },
-  rw [cardinal.mk_fintype, fintype.card_coe]
-end
+@mk_coe_finset _ s ▸ mk_set_le _
 
-@[simp, norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
-by induction n; simp [pow_succ', power_add, *]
+@[norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
+by simp only [cardinal.pow_cast_right, coe_pow]
 
 @[simp, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
-begin
-  rw [←lift_mk_fin, ←lift_mk_fin, lift_le],
-  exact ⟨λ ⟨⟨f, hf⟩⟩, by simpa only [fintype.card_fin] using fintype.card_le_of_injective f hf,
-    λ h, ⟨(fin.cast_le h).to_embedding⟩⟩
-end
+by rw [← lift_mk_fin, ← lift_mk_fin, lift_le, le_def, function.embedding.nonempty_iff_card_le,
+  fintype.card_fin, fintype.card_fin]
 
 @[simp, norm_cast] theorem nat_cast_lt {m n : ℕ} : (m : cardinal) < n ↔ m < n :=
 by simp [lt_iff_le_not_le, ←not_le]
@@ -1429,7 +1422,7 @@ lemma mk_union_le {α : Type u} (S T : set α) : #(S ∪ T : set α) ≤ #S + #T
 
 theorem mk_union_of_disjoint {α : Type u} {S T : set α} (H : disjoint S T) :
   #(S ∪ T : set α) = #S + #T :=
-quot.sound ⟨equiv.set.union H⟩
+quot.sound ⟨equiv.set.union H.le_bot⟩
 
 theorem mk_insert {α : Type u} {s : set α} {a : α} (h : a ∉ s) :
   #(insert a s : set α) = #s + 1 :=

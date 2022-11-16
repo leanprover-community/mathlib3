@@ -745,9 +745,9 @@ begin
 end
 
 lemma prime_C_iff : prime (C r : mv_polynomial σ R) ↔ prime r :=
-⟨ comap_prime C constant_coeff constant_coeff_C,
+⟨ comap_prime C constant_coeff (constant_coeff_C _),
   λ hr, ⟨ λ h, hr.1 $ by { rw [← C_inj, h], simp },
-    λ h, hr.2.1 $ by { rw ← constant_coeff_C r, exact h.map _ },
+    λ h, hr.2.1 $ by { rw ← constant_coeff_C _ r, exact h.map _ },
     λ a b hd, begin
       obtain ⟨s,a',b',rfl,rfl⟩ := exists_finset_rename₂ a b,
       rw ← algebra_map_eq at hd, have : algebra_map R _ r ∣ a' * b',
@@ -907,6 +907,7 @@ lemma disjoint_ker_aeval_of_coprime
   (f : M →ₗ[R] M) {p q : R[X]} (hpq : is_coprime p q) :
   disjoint (aeval f p).ker (aeval f q).ker :=
 begin
+  rw disjoint_iff_inf_le,
   intros v hv,
   rcases hpq with ⟨p', q', hpq'⟩,
   simpa [linear_map.mem_ker.1 (submodule.mem_inf.1 hv).1,

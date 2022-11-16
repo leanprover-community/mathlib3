@@ -5,7 +5,7 @@ Authors: Andrew Yang
 -/
 import group_theory.submonoid.pointwise
 import logic.equiv.transfer_instance
-import ring_theory.finiteness
+import ring_theory.finite_type
 import ring_theory.localization.at_prime
 import ring_theory.localization.away
 import ring_theory.localization.integer

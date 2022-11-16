@@ -179,7 +179,11 @@ let to_dual : E ≃ₗ[ℝ] (E →ₗ[ℝ] ℝ) :=
 
 @[simp] lemma inner_right_angle_rotation_aux₁_left (x y : E) :
   ⟪o.right_angle_rotation_aux₁ x, y⟫ = ω x y :=
-by simp [right_angle_rotation_aux₁]
+by simp only [right_angle_rotation_aux₁, linear_equiv.trans_symm, linear_equiv.coe_trans,
+              linear_equiv.coe_coe, inner_product_space.to_dual_symm_apply, eq_self_iff_true,
+              linear_map.coe_to_continuous_linear_map', linear_isometry_equiv.coe_to_linear_equiv,
+              linear_map.comp_apply, linear_equiv.symm_symm,
+              linear_isometry_equiv.to_linear_equiv_symm]
 
 @[simp] lemma inner_right_angle_rotation_aux₁_right (x y : E) :
   ⟪x, o.right_angle_rotation_aux₁ y⟫ = - ω x y :=

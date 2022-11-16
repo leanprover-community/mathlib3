@@ -3,10 +3,10 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
+import logic.pairwise
 import algebra.hom.group_instances
 import data.pi.algebra
 import data.set.function
-import data.set.pairwise
 import tactic.pi_instances
 
 /-!
@@ -320,7 +320,7 @@ lemma pi.mul_single_apply_commute [Π i, mul_one_class $ f i] (x : Π i, f i) (i
 begin
   obtain rfl | hij := decidable.eq_or_ne i j,
   { refl },
-  { exact pi.mul_single_commute _ _ hij _ _, },
+  { exact pi.mul_single_commute hij _ _, },
 end
 
 @[to_additive update_eq_sub_add_single]

@@ -10,10 +10,11 @@ import topology.fiber_bundle.basic
 
 This file contains several standard constructions on fiber bundles:
 
-* `bundle.trivial.fiber_bundle 𝕜 B F`: the trivial fiber bundle with model fibre `F` over the base `B`
+* `bundle.trivial.fiber_bundle 𝕜 B F`: the trivial fiber bundle with model fibre `F` over the base
+  `B`
 
-* `fiber_bundle.prod`: for fiber bundles `E₁` and `E₂` over a common base, a fiber bundle structure on
-  their fibrewise product `E₁ ×ᵇ E₂` (the notation stands for `λ x, E₁ x × E₂ x`).
+* `fiber_bundle.prod`: for fiber bundles `E₁` and `E₂` over a common base, a fiber bundle structure
+  on their fibrewise product `E₁ ×ᵇ E₂` (the notation stands for `λ x, E₁ x × E₂ x`).
 
 * `fiber_bundle.pullback`: for a fiber bundle `E` over `B`, a fiber bundle structure on its
   pullback `f *ᵖ E` by a map `f : B' → B` (the notation is a type synonym for `E ∘ f`).

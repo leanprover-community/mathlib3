@@ -172,6 +172,35 @@ lemma Top.presheaf.is_sheaf_of_open_embedding (h : open_embedding f)
   (hF : F.is_sheaf) : is_sheaf (h.is_open_map.functor.op ⋙ F) :=
 pullback_is_sheaf_of_cover_preserving h.compatible_preserving h.is_open_map.cover_preserving ⟨_, hF⟩
 
+variable (f)
+
+instance : representably_flat (opens.map f) :=
+begin
+  constructor,
+  intro U,
+  apply_with is_cofiltered.mk { instances := ff },
+  constructor,
+  { intros V W,
+    refine ⟨⟨⟨punit.star⟩, V.right ⊓ W.right, hom_of_le $ le_inf V.hom.le W.hom.le⟩,
+      { right := hom_of_le inf_le_left }, { right := hom_of_le inf_le_right }, trivial⟩ },
+  { intros U V i j, refine ⟨_, 𝟙 _, by ext; congr⟩ },
+  { exact ⟨structured_arrow.mk $ show U ⟶ (opens.map f).obj ⊤, from hom_of_le le_top⟩ },
+end
+
+lemma compatible_preserving_opens_map :
+  compatible_preserving (opens.grothendieck_topology X) (opens.map f) :=
+compatible_preserving_of_flat _ _
+
+lemma cover_preserving_opens_map :
+  cover_preserving (opens.grothendieck_topology Y)
+    (opens.grothendieck_topology X) (opens.map f) :=
+begin
+  constructor,
+  intros U S hS x hx,
+  obtain ⟨V, i, hi, hxV⟩ := hS (f x) hx,
+  exact ⟨_, (opens.map f).map i, ⟨_, _, 𝟙 _, hi, subsingleton.elim _ _⟩, hxV⟩
+end
+
 end open_embedding
 
 namespace Top.sheaf

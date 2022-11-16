@@ -206,8 +206,7 @@ A morphism of presheaves gives rise to a morphisms of the pushforwards of those 
 @[simps]
 def pushforward_map {X Y : Top.{w}} (f : X ⟶ Y) {ℱ 𝒢 : X.presheaf C} (α : ℱ ⟶ 𝒢) :
   f _* ℱ ⟶ f _* 𝒢 :=
-{ app := λ U, α.app _,
-  naturality' := λ U V i, by { erw α.naturality, refl, } }
+whisker_left _ α
 
 open category_theory.limits
 section pullback
@@ -288,8 +287,7 @@ variable (C)
 The pushforward functor.
 -/
 def pushforward {X Y : Top.{w}} (f : X ⟶ Y) : X.presheaf C ⥤ Y.presheaf C :=
-{ obj := pushforward_obj f,
-  map := @pushforward_map _ _ X Y f }
+(whiskering_left _ _ _).obj (opens.map f).op
 
 @[simp]
 lemma pushforward_map_app' {X Y : Top.{w}} (f : X ⟶ Y)

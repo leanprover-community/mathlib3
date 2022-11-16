@@ -1,20 +1,21 @@
 /-
 Copyright (c) 2021 Junyan Xu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Junyan Xu
+Authors: Junyan Xu, Andrew Yang
 -/
 
 import topology.sheaves.sheaf_condition.pairwise_intersections
+import topology.sheaves.sheaf_condition.sites
 
 /-!
-# functors between categories of sheaves
+# Functors between categories of sheaves
 
-Show that the pushforward of a sheaf is a sheaf, and define
-the pushforward functor from the category of C-valued sheaves
-on X to that of sheaves on Y, given a continuous map between
-topological spaces X and Y.
+## Main definitions
+- `Top.sheaf.pushforward`: The pushforward functor between sheaf categories over topological spaces.
+- `Top.sheaf.pullback`: The pullback functor between sheaf categories over topological spaces.
+- `Top.sheaf.pullback_pushforward_adjunction`:
+  The adjunction between pullback and pushforward for sheaves on topological spaces.
 
-TODO: pullback for presheaves and sheaves
 -/
 
 noncomputable theory
@@ -30,38 +31,6 @@ variables {X Y : Top.{w}} (f : X ⟶ Y)
 variables ⦃ι : Type w⦄ {U : ι → opens Y}
 
 namespace Top
-namespace presheaf.sheaf_condition_pairwise_intersections
-
-lemma map_diagram :
-  pairwise.diagram U ⋙ opens.map f = pairwise.diagram ((opens.map f).obj ∘ U) :=
-begin
-  apply functor.hext,
-  abstract obj_eq {intro i, cases i; refl},
-  intros i j g, apply subsingleton.helim,
-  iterate 2 {rw map_diagram.obj_eq},
-end
-
-lemma map_cocone : (opens.map f).map_cocone (pairwise.cocone U)
-                     == pairwise.cocone ((opens.map f).obj ∘ U) :=
-begin
-  unfold functor.map_cocone cocones.functoriality, dsimp, congr,
-  iterate 2 {rw map_diagram, rw opens.map_supr},
-  apply subsingleton.helim, rw [map_diagram, opens.map_supr],
-  apply proof_irrel_heq,
-end
-
-theorem pushforward_sheaf_of_sheaf {F : presheaf C X}
-  (h : F.is_sheaf_pairwise_intersections) :
-  (f _* F).is_sheaf_pairwise_intersections :=
-λ ι U, begin
-  convert h ((opens.map f).obj ∘ U) using 2,
-  rw ← map_diagram, refl,
-  change F.map_cone ((opens.map f).map_cocone _).op == _,
-  congr, iterate 2 {rw map_diagram}, apply map_cocone,
-end
-
-end presheaf.sheaf_condition_pairwise_intersections
-
 namespace sheaf
 
 open presheaf
@@ -71,15 +40,65 @@ The pushforward of a sheaf (by a continuous map) is a sheaf.
 -/
 theorem pushforward_sheaf_of_sheaf
   {F : X.presheaf C} (h : F.is_sheaf) : (f _* F).is_sheaf :=
-by rw is_sheaf_iff_is_sheaf_pairwise_intersections at h ⊢;
-   exact sheaf_condition_pairwise_intersections.pushforward_sheaf_of_sheaf f h
+pullback_is_sheaf_of_cover_preserving (compatible_preserving_opens_map f)
+  (cover_preserving_opens_map f) ⟨F, h⟩
+
+variables (C)
 
 /--
 The pushforward functor.
 -/
 def pushforward (f : X ⟶ Y) : X.sheaf C ⥤ Y.sheaf C :=
-{ obj := λ ℱ, ⟨f _* ℱ.1, pushforward_sheaf_of_sheaf f ℱ.2⟩,
-  map := λ _ _ g, ⟨pushforward_map f g.1⟩ }
+sites.pullback _ (compatible_preserving_opens_map f)
+  (cover_preserving_opens_map f)
+
+lemma pushforward_forget (f : X ⟶ Y) :
+  pushforward C f ⋙ forget C Y = forget C X ⋙ presheaf.pushforward C f := rfl
+
+/--
+Pushforward of sheaves is isomorphic (actually definitionally equal) to pushforward of presheaves.
+-/
+def pushforward_forget_iso (f : X ⟶ Y) :
+  pushforward C f ⋙ forget C Y ≅ forget C X ⋙ presheaf.pushforward C f := iso.refl _
+
+variables {C}
+
+@[simp] lemma pushforward_obj_val (f : X ⟶ Y) (F : X.sheaf C) :
+  ((pushforward C f).obj F).1 = f _* F.1 := rfl
+
+@[simp] lemma pushforward_map (f : X ⟶ Y) {F F' : X.sheaf C} (α : F ⟶ F') :
+  ((pushforward C f).map α).1 = (presheaf.pushforward _ f).map α.1 := rfl
+
+set_option pp.universes true
+
+variables (A : Type*) [category.{w} A] [concrete_category.{w} A] [has_colimits A] [has_limits A]
+variables [preserves_limits (category_theory.forget A)]
+variables [preserves_filtered_colimits (category_theory.forget A)]
+variables [reflects_isomorphisms (category_theory.forget A)]
+
+/--
+The pushforward functor.
+-/
+def pullback (f : X ⟶ Y) : Y.sheaf A ⥤ X.sheaf A :=
+sites.pushforward A _ _ (opens.map f)
+
+lemma pullback_eq (f : X ⟶ Y) :
+  pullback A f = forget A Y ⋙ presheaf.pullback A f ⋙ presheaf_to_Sheaf _ _ := rfl
+
+/--
+The pullback of a sheaf is isomorphic (actually definitionally equal) to the sheafification
+of the pullback as a presheaf.
+-/
+def pullback_iso (f : X ⟶ Y) :
+  pullback A f ≅ forget A Y ⋙ presheaf.pullback A f ⋙ presheaf_to_Sheaf _ _ := iso.refl _
+
+/-- The adjunction between pullback and pushforward for sheaves on topological spaces. -/
+def pullback_pushforward_adjunction (f : X ⟶ Y) :
+  pullback A f ⊣ pushforward A f :=
+sites.pullback_pushforward_adjunction _ _ _ _ _
+
+instance : is_left_adjoint (pullback A f) := ⟨_, pullback_pushforward_adjunction A f⟩
+instance : is_right_adjoint (pushforward A f) := ⟨_, pullback_pushforward_adjunction A f⟩
 
 end sheaf
 

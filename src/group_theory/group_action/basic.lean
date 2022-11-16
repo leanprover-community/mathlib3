@@ -7,6 +7,7 @@ import algebra.hom.group_action
 import group_theory.group_action.defs
 import group_theory.group_action.group
 import data.setoid.basic
+import data.set.pointwise.basic
 import data.fintype.card
 
 /-!

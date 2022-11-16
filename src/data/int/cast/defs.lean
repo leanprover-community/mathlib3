@@ -41,7 +41,7 @@ class has_int_cast (R : Type u) :=
 An `add_group_with_one` is an `add_group` with a `1`.
 It also contains data for the unique homomorphisms `ℕ → R` and `ℤ → R`.
 -/
-@[protect_proj]
+@[protect_proj, ancestor has_int_cast add_group add_monoid_with_one]
 class add_group_with_one (R : Type u)
   extends has_int_cast R, add_group R, add_monoid_with_one R :=
 (int_cast := int.cast_def)
@@ -49,7 +49,7 @@ class add_group_with_one (R : Type u)
 (int_cast_neg_succ_of_nat : ∀ n : ℕ, int_cast (-(n+1 : ℕ)) = -((n+1 : ℕ) : R) . control_laws_tac)
 
 /-- An `add_comm_group_with_one` is an `add_group_with_one` satisfying `a + b = b + a`. -/
-@[protect_proj]
+@[protect_proj, ancestor add_comm_group add_group_with_one]
 class add_comm_group_with_one (R : Type u) extends add_comm_group R, add_group_with_one R
 
 /-- Canonical homomorphism from the integers to any ring(-like) structure `R` -/

@@ -3,6 +3,7 @@ Copyright © 2022 Nicolò Cavalleri. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri, Sébastien Gouëzel, Heather Macbeth, Floris van Doorn
 -/
+import topology.fiber_bundle.constructions
 import topology.vector_bundle.basic
 
 /-!

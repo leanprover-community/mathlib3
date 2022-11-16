@@ -8,6 +8,7 @@ import algebra.ring.divisibility
 import algebra.ring.regular
 import algebra.field.defs
 import algebra.group_with_zero.divisibility
+import tactic.move_add
 
 /-!
 # Lemmas about Euclidean domains

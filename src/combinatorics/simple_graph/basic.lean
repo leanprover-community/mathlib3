@@ -330,14 +330,20 @@ def from_edge_set : simple_graph V :=
 
 @[simp] lemma from_edge_set_adj : (from_edge_set s).adj v w ↔ v ≠ w ∧ ⟦(v, w)⟧ ∈ s := iff.rfl
 
-@[simp] lemma from_edge_set_edge_set : from_edge_set (G.edge_set) = G :=
-  by { ext v w, exact ⟨λ h, h.2, λ h, ⟨G.ne_of_adj h, h⟩⟩ }
+@[simp] lemma from_edge_set_edge_set : from_edge_set G.edge_set = G :=
+by { ext v w, exact ⟨λ h, h.2, λ h, ⟨G.ne_of_adj h, h⟩⟩ }
+
+@[simp] lemma edge_set_from_edge_set : (from_edge_set s).edge_set = {e ∈ s | ¬ e.is_diag} :=
+by { ext e, exact sym2.ind (λ u v, by simp [and_comm]) e }
 
 @[simp] lemma from_edge_set_empty : from_edge_set (∅ : set (sym2 V)) = ⊥ :=
-  by { ext v w, simp only [from_edge_set_adj, set.mem_empty_iff_false, and_false, bot_adj] }
+by { ext v w, simp only [from_edge_set_adj, set.mem_empty_iff_false, and_false, bot_adj] }
 
 @[simp] lemma from_edge_set_univ : from_edge_set (set.univ : set (sym2 V)) = ⊤ :=
-  by { ext v w, simp only [from_edge_set_adj, set.mem_univ, and_true, top_adj] }
+by { ext v w, simp only [from_edge_set_adj, set.mem_univ, and_true, top_adj] }
+
+instance [decidable_eq V] [fintype s] : fintype (from_edge_set s).edge_set :=
+by { rw edge_set_from_edge_set s, apply_instance }
 
 end from_edge_set
 
@@ -504,29 +510,6 @@ set.to_finset_card _
   (univ : finset G.edge_set).card = G.edge_finset.card :=
 fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
 
-section from_edge_finset
-
-variable (s : finset (sym2 V))
-
-/--
-`from_edge_finset` constructs a `simple_graph` from a finset of edges, without loops.
--/
-def from_edge_finset : simple_graph V := from_edge_set s
-
-@[simp] lemma from_edge_finset_adj : (from_edge_finset s).adj v w ↔ v ≠ w ∧ ⟦(v, w)⟧ ∈ s := iff.rfl
-
-@[simp] lemma from_edge_finset_edge_finset [fintype G.edge_set] :
-  from_edge_finset (G.edge_finset) = G :=
-by simp only [from_edge_finset, coe_edge_finset, from_edge_set_edge_set]
-
-@[simp] lemma from_edge_finset_empty : from_edge_finset (∅ : finset (sym2 V)) = ⊥ :=
-  by simp only [from_edge_finset, coe_empty, from_edge_set_empty]
-
-@[simp] lemma from_edge_finset_univ [fintype V] : from_edge_finset (univ : finset (sym2 V)) = ⊤ :=
-  by simp only [from_edge_finset, coe_univ, from_edge_set_univ]
-
-end from_edge_finset
-
 @[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
 iff.rfl
 
@@ -657,8 +640,8 @@ graph's edge set, if present.
 
 See also: `simple_graph.subgraph.delete_edges`. -/
 def delete_edges (s : set (sym2 V)) : simple_graph V :=
-  { adj := G.adj \ sym2.to_rel s,
-    symm := λ a b, by simp [adj_comm, sym2.eq_swap] }
+{ adj := G.adj \ sym2.to_rel s,
+  symm := λ a b, by simp [adj_comm, sym2.eq_swap] }
 
 @[simp] lemma delete_edges_adj (s : set (sym2 V)) (v w : V) :
   (G.delete_edges s).adj v w ↔ G.adj v w ∧ ¬ ⟦(v, w)⟧ ∈ s := iff.rfl
@@ -668,7 +651,7 @@ lemma sdiff_eq_delete_edges (G G' : simple_graph V) :
 by { ext, simp }
 
 lemma delete_edges_eq_sdiff_from_edge_set (s : set (sym2 V)) :
-  (G.delete_edges s) = G \ (from_edge_set s) :=
+  G.delete_edges s = G \ from_edge_set s :=
 by { ext, exact ⟨λ h, ⟨h.1, not_and_of_not_right _ h.2⟩, λ h, ⟨h.1, not_and.mp h.2 h.ne⟩⟩ }
 
 lemma compl_eq_delete_edges :

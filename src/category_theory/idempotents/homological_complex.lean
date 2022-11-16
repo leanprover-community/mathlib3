@@ -186,7 +186,6 @@ def karoubi_cochain_complex_equivalence :
   karoubi (cochain_complex C α) ≌ cochain_complex (karoubi C) α :=
 karoubi_homological_complex_equivalence C (complex_shape.up α)
 
-#check karoubi_chain_complex_equivalence
 end idempotents
 
 end category_theory

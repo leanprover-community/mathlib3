@@ -8,6 +8,7 @@ import topology.algebra.uniform_group
 import topology.algebra.uniform_mul_action
 import topology.algebra.ring
 import topology.algebra.star
+import topology.algebra.order.field
 import ring_theory.subring.basic
 import group_theory.archimedean
 import algebra.order.group.bounds

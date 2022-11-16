@@ -98,19 +98,11 @@ variables (R M) [add_comm_monoid M] [semiring R] [module R M]
 
 @[simp] lemma linear_equiv_fun_on_fintype_single [decidable_eq α] (x : α) (m : M) :
   (linear_equiv_fun_on_fintype R M α) (single x m) = pi.single x m :=
-begin
-  ext a,
-  change (equiv_fun_on_fintype (single x m)) a = _,
-  convert _root_.congr_fun (equiv_fun_on_fintype_single x m) a,
-end
+equiv_fun_on_fintype_single x m
 
 @[simp] lemma linear_equiv_fun_on_fintype_symm_single [decidable_eq α]
   (x : α) (m : M) : (linear_equiv_fun_on_fintype R M α).symm (pi.single x m) = single x m :=
-begin
-  ext a,
-  change (equiv_fun_on_fintype.symm (pi.single x m)) a = _,
-  convert congr_fun (equiv_fun_on_fintype_symm_single x m) a,
-end
+equiv_fun_on_fintype_symm_single x m
 
 @[simp] lemma linear_equiv_fun_on_fintype_symm_coe (f : α →₀ M) :
   (linear_equiv_fun_on_fintype R M α).symm f = f :=

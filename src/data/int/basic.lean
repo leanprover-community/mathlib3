@@ -9,6 +9,10 @@ import order.monotone
 /-!
 # Basic instances on the integers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/584
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains:
 * instances on `ℤ`. The stronger one is `int.comm_ring`.
   See `data/int/defs/order` for `int.linear_ordered_comm_ring`.

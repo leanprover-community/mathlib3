@@ -8,7 +8,7 @@ import measure_theory.measure.haar
 import analysis.inner_product_space.pi_L2
 
 /-!
-# Haar measure constructed from a basis
+# Additive Haar measure constructed from a basis
 
 Given a basis of a finite-dimensional real vector space, we define the corresponding Lebesgue
 measure, which gives measure `1` to the parallelogram spanned by the basis.
@@ -124,6 +124,12 @@ measure.add_haar_measure b.parallelogram
 instance is_add_haar_measure_basis_add_haar (b : basis ι ℝ E) :
   is_add_haar_measure (b.add_haar) :=
 by { rw basis.add_haar, apply measure.is_add_haar_measure_add_haar_measure }
+
+lemma basis.add_haar_self (b : basis ι ℝ E) : b.add_haar (parallelogram b) = 1 :=
+begin
+  rw [basis.add_haar],
+  exact add_haar_measure_self
+end
 
 end normed_space
 

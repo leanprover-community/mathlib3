@@ -504,51 +504,52 @@ end
 
 section
 /-!
-### Measures coming from a basis -/
+### Measures coming from a basis or an alternating map -/
 
 variables {ι F : Type*} [fintype ι] [decidable_eq ι]
 [normed_add_comm_group F] [normed_space ℝ F] [measurable_space F] [borel_space F]
 
 lemma add_haar_parallelogram (b : basis ι ℝ F) (v : ι → F) :
   b.add_haar (parallelogram v) = ennreal.of_real (|b.det v|) :=
-sorry
-/- begin
-  let M := b.to_matrix v,
-  have A : parallelogram v = M.to_lin' '' (Icc 0 1),
-  { rw parallelogram,
+begin
+  haveI : finite_dimensional ℝ F, from finite_dimensional.of_fintype_basis b,
+  have A : parallelogram v = (b.constr ℕ v) '' (parallelogram b),
+  { rw image_parallelogram,
     congr' 1,
-    ext t,
-    simp only [M, fintype.sum_apply, pi.smul_apply, algebra.id.smul_eq_mul],
-    simp_rw [mul_comm (t _)],
-    refl },
-  change volume (parallelogram v) = ennreal.of_real (|M.det|),
-  rw [A, add_haar_image_linear_map, ← pi_univ_Icc],
-  simp only [volume_pi_pi (λ i, Icc (0 : ℝ) 1), pi.zero_apply, pi.one_apply,
-    real.volume_Icc, tsub_zero, ennreal.of_real_one, finset.prod_const_one, mul_one],
-  congr' 2,
-  rw ← matrix.to_lin_eq_to_lin',
-  rw linear_map.det_to_lin,
+    ext i,
+    exact (b.constr_basis ℕ v i).symm },
+  rw [A, add_haar_image_linear_map, basis.add_haar_self, mul_one,
+    ← linear_map.det_to_matrix b, ← basis.to_matrix_eq_to_matrix_constr],
+  refl,
 end
--/
 
-variables
-[finite_dimensional ℝ F] {n : ℕ} [_i : fact (finrank ℝ F = n)]
-
+variables [finite_dimensional ℝ F] {n : ℕ} [_i : fact (finrank ℝ F = n)]
 include _i
 
-noncomputable def alternating_map.measure (ω : alternating_map ℝ F ℝ (fin n)) : measure F :=
+/-- The Lebesgue measure associated to an alternating map. It gives measure `|ω v|` to the
+parallelogram spanned by the vectors `(v₁, ..., vₙ)`. -/
+noncomputable def alternating_map.add_haar (ω : alternating_map ℝ F ℝ (fin n)) : measure F :=
 ∥ω (fin_basis_of_finrank_eq ℝ F _i.out)∥₊ • (fin_basis_of_finrank_eq ℝ F _i.out).add_haar
 
-lemma alternating_map.measure_parallelogram (ω : alternating_map ℝ F ℝ (fin n)) (v : fin n → F) :
-  ω.measure (parallelogram v) = ennreal.of_real (|ω v|) :=
+lemma alternating_map.add_haar_parallelogram (ω : alternating_map ℝ F ℝ (fin n)) (v : fin n → F) :
+  ω.add_haar (parallelogram v) = ennreal.of_real (|ω v|) :=
 begin
   conv_rhs { rw ω.eq_smul_basis_det (fin_basis_of_finrank_eq ℝ F _i.out) },
-  simp only [add_haar_parallelogram, alternating_map.measure, coe_nnreal_smul_apply,
+  simp only [add_haar_parallelogram, alternating_map.add_haar, coe_nnreal_smul_apply,
     alternating_map.smul_apply, algebra.id.smul_eq_mul, abs_mul,
-    ennreal.of_real_mul (abs_nonneg _), real.ennnorm_eq_of_real_abs],
+    ennreal.of_real_mul (abs_nonneg _), real.ennnorm_eq_of_real_abs]
+end
+
+instance (ω : alternating_map ℝ F ℝ (fin n)) : is_add_left_invariant ω.add_haar :=
+begin
+  rw [alternating_map.add_haar],
+  haveI : is_add_left_invariant ((fin_basis_of_finrank_eq ℝ F _i.out).add_haar), sorry,
+  apply_instance,
 end
 
 end
+
+#exit
 
 /-!
 ### Density points

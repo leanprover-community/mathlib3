@@ -1006,6 +1006,10 @@ begin
     simp [map_of_not_ae_measurable hf, map_of_not_ae_measurable hfc] }
 end
 
+@[simp] protected lemma map_smul_nnreal (c : ℝ≥0) (μ : measure α) (f : α → β) :
+  (c • μ).map f = c • μ.map f :=
+μ.map_smul (c : ℝ≥0∞) f
+
 /-- We can evaluate the pushforward on measurable sets. For non-measurable sets, see
   `measure_theory.measure.le_map_apply` and `measurable_equiv.map_apply`. -/
 @[simp] theorem map_apply_of_ae_measurable

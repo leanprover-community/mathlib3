@@ -26,7 +26,7 @@ We also give analogues of all these notions in the additive world.
 
 noncomputable theory
 
-open_locale ennreal pointwise big_operators
+open_locale nnreal ennreal pointwise big_operators
 open has_inv set function measure_theory.measure
 
 variables {G : Type*} [measurable_space G]
@@ -69,13 +69,25 @@ is_mul_left_invariant.map_mul_left_eq_self g
 lemma map_mul_right_eq_self (μ : measure G) [is_mul_right_invariant μ] (g : G) : map (* g) μ = μ :=
 is_mul_right_invariant.map_mul_right_eq_self g
 
-@[to_additive]
-instance [is_mul_left_invariant μ] (c : ℝ≥0∞) : is_mul_left_invariant (c • μ) :=
+@[to_additive measure_theory.is_add_left_invariant_smul]
+instance is_mul_left_invariant_smul [is_mul_left_invariant μ] (c : ℝ≥0∞) :
+  is_mul_left_invariant (c • μ) :=
 ⟨λ g, by rw [measure.map_smul, map_mul_left_eq_self]⟩
 
-@[to_additive]
-instance [is_mul_right_invariant μ] (c : ℝ≥0∞) : is_mul_right_invariant (c • μ) :=
+@[to_additive measure_theory.is_add_right_invariant_smul]
+instance is_mul_right_invariant_smul [is_mul_right_invariant μ] (c : ℝ≥0∞) :
+  is_mul_right_invariant (c • μ) :=
 ⟨λ g, by rw [measure.map_smul, map_mul_right_eq_self]⟩
+
+@[to_additive measure_theory.is_add_left_invariant_smul_nnreal]
+instance is_mul_left_invariant_smul_nnreal [is_mul_left_invariant μ] (c : ℝ≥0) :
+  is_mul_left_invariant (c • μ) :=
+measure_theory.is_mul_left_invariant_smul (c : ℝ≥0∞)
+
+@[to_additive measure_theory.is_add_right_invariant_smul_nnreal]
+instance is_mul_right_invariant_smul_nnreal [is_mul_right_invariant μ] (c : ℝ≥0) :
+  is_mul_right_invariant (c • μ) :=
+measure_theory.is_mul_right_invariant_smul (c : ℝ≥0∞)
 
 section has_measurable_mul
 

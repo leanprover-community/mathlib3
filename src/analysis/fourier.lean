@@ -64,7 +64,7 @@ namespace real.angle
 
 section angle_lemmas
 
-/-! ### Lemmas about `real.angle` -/
+/-! ### Lemmas about the exponential map -/
 
 /-- These lemmas should eventually move to `special_functions.complex.circle` -/
 
@@ -76,12 +76,24 @@ begin
   intros a b h, rw [←arg_exp_map_circle a, ←arg_exp_map_circle b, h],
 end
 
+@[simp] lemma exp_map_circle_zsmul (n : ℤ) (θ : real.angle) :
+  exp_map_circle (n • θ) = (exp_map_circle θ) ^ n :=
+begin
+  induction θ using real.angle.induction_on,
+  exact exp_map_circle_hom.map_zsmul θ n,
+end
+
+/-! ### Properties of `real.angle` -/
+
 instance : compact_space real.angle :=
 begin
   haveI : fact (0 < 2 * π) := ⟨real.two_pi_pos⟩,
   apply add_circle.compact_space,
 end
 
+
+/-- This is a little silly, since the standard measure on `add_circle T` is defined to be
+`T` times the normalised Haar measure, and we're just dividing out the constant again.  --/
 instance : measure_space real.angle :=
 begin
   haveI : fact (0 < 2 * π) := ⟨real.two_pi_pos⟩,
@@ -99,13 +111,6 @@ end
 
 instance : measurable_space real.angle := add_circle.measurable_space
 instance : borel_space      real.angle := add_circle.borel_space
-
-@[simp] lemma exp_map_circle_zsmul (n : ℤ) (θ : real.angle) :
-  exp_map_circle (n • θ) = (exp_map_circle θ) ^ n :=
-begin
-  induction θ using real.angle.induction_on,
-  exact exp_map_circle_hom.map_zsmul θ n,
-end
 
 end angle_lemmas
 
@@ -212,7 +217,7 @@ end
 
 /-- The family of monomials `exp (i n θ)`, parametrized by `n : ℤ` and considered as elements of
 the `Lp` space of functions on `real.angle` taking values in `ℂ`. -/
-abbreviation fourier_Lp (p : ℝ≥0∞) [fact (1 ≤ p)] (n : ℤ) : Lp ℂ p volume :=
+abbreviation fourier_Lp (p : ℝ≥0∞) [fact (1 ≤ p)] (n : ℤ) : Lp ℂ p :=
 to_Lp p volume ℂ (fourier n)
 
 lemma coe_fn_fourier_Lp (p : ℝ≥0∞) [fact (1 ≤ p)] (n : ℤ) :
@@ -268,7 +273,7 @@ section fourier
 
 /-- We define `fourier_series` to be a `ℤ`-indexed Hilbert basis for `Lp ℂ 2 volume`, which by
 definition is an isometric isomorphism from `Lp ℂ 2 volume` to `ℓ²(ℤ, ℂ)`. -/
-def fourier_series : hilbert_basis ℤ ℂ (Lp ℂ 2 volume) :=
+def fourier_series : hilbert_basis ℤ ℂ (Lp ℂ 2) :=
 hilbert_basis.mk orthonormal_fourier (span_fourier_Lp_closure_eq_top (by norm_num)).ge
 
 /-- The elements of the Hilbert basis `fourier_series` are the functions `fourier_Lp 2`, i.e. the

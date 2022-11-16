@@ -7,6 +7,7 @@ import algebra.order.ring.abs
 import algebra.order.with_zero
 import algebra.group_power.ring
 import data.set.intervals.basic
+import tactic.move_add
 
 /-!
 # Lemmas about the interaction of power operations with order

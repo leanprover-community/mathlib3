@@ -171,7 +171,7 @@ instance : has_neg (E →ₗ.[R] F) :=
 instance : has_le (E →ₗ.[R] F) :=
 ⟨λ f g, f.domain ≤ g.domain ∧ ∀ ⦃x : f.domain⦄ ⦃y : g.domain⦄ (h : (x:E) = y), f x = g y⟩
 
-lemma exists_of_le {T S : E →ₗ.[R] F} (h : T ≤ S) (x : T.domain):
+lemma exists_of_le {T S : E →ₗ.[R] F} (h : T ≤ S) (x : T.domain) :
   ∃ (y : S.domain), (x : E) = y ∧ T x = S y :=
 ⟨⟨x.1, h.1 x.2⟩, ⟨rfl, h.2 rfl⟩⟩
 

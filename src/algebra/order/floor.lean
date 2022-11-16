@@ -678,7 +678,7 @@ sub_nonneg_of_le $ (le_div_iff hb).1 $ floor_le _
 lemma sub_floor_div_mul_lt (a : k) (hb : 0 < b) : a - ⌊a / b⌋ * b < b :=
 sub_lt_iff_lt_add.2 $ by { rw [←one_add_mul, ←div_lt_iff hb, add_comm], exact lt_floor_add_one _ }
 
-lemma fract_div_coe_eq_div_coe_mod {m n : ℕ} :
+lemma fract_div_nat_cast_eq_div_nat_cast_mod {m n : ℕ} :
   fract ((m : k) / n) = ↑(m % n) / n :=
 begin
   rcases n.eq_zero_or_pos with rfl | hn, { simp, },
@@ -689,6 +689,34 @@ begin
       mul_div_cancel' _ hn'.ne.symm],
     norm_cast,
     rw [← nat.cast_add, nat.mod_add_div m n], },
+end
+
+lemma fract_div_int_cast_eq_div_int_cast_mod {m : ℤ} {n : ℕ} :
+  fract ((m : k) / n) = ↑(m % n) / n :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn, { simp, },
+  replace hn : 0 < (n : k), { norm_cast, assumption, },
+  have : ∀ {l : ℤ} (hl : 0 ≤ l), fract ((l : k) / n) = ↑(l % n) / n,
+  { intros,
+    induction l,
+    { rw [of_nat_eq_coe, cast_coe_nat, ← coe_nat_mod, cast_coe_nat,
+        fract_div_nat_cast_eq_div_nat_cast_mod], },
+    { rw [neg_succ_not_nonneg] at hl, contradiction, }, },
+  induction m, { exact this (of_nat_nonneg m), },
+  let q := ⌈↑(m + 1) / (n : k)⌉,
+  let m' := (q * ↑n) -(↑(m + 1) : ℤ),
+  have hm' : 0 ≤ m',
+  { rw [← @cast_le k, coe_zero, coe_sub, coe_mul, cast_coe_nat, cast_coe_nat, le_sub_iff_add_le,
+      zero_add, ← div_le_iff hn],
+    apply floor_ring.gc_ceil_coe.le_u_l, },
+  calc fract (↑-(↑(m + 1) : ℤ) / ↑n) = fract ((m' : k) / n) : _
+                                 ... = ↑(m' % (n : ℤ)) / ↑n : this hm'
+                                 ... = ↑(-(↑(m + 1) : ℤ) % ↑n) / ↑n : _,
+  { rw [← fract_int_add q, ← mul_div_cancel (q : k) (ne_of_gt hn), ← add_div, coe_neg,
+      ← sub_eq_add_neg, coe_sub, coe_mul, cast_coe_nat, cast_coe_nat], },
+  { congr' 2,
+    change ((q * ↑n) -(↑(m + 1) : ℤ)) % ↑n = _,
+    rw [sub_eq_add_neg, add_comm (q * ↑n), add_mul_mod_self], },
 end
 
 end linear_ordered_field
@@ -938,13 +966,14 @@ begin
   split; linarith
 end
 
-lemma abs_sub_round_div_coe_eq {m n : ℕ} :
+lemma abs_sub_round_div_nat_cast_eq {m n : ℕ} :
   |(m : α) / n - round ((m : α) / n)| = ↑(min (m % n) (n - m % n)) / n :=
 begin
   rcases n.eq_zero_or_pos with rfl | hn, { simp, },
   have hn' : 0 < (n : α), { norm_cast, assumption, },
-  rw [abs_sub_round_eq_min, nat.cast_min, ← min_div_div_right hn'.le, fract_div_coe_eq_div_coe_mod,
-    nat.cast_sub (m.mod_lt hn).le, sub_div, div_self hn'.ne.symm],
+  rw [abs_sub_round_eq_min, nat.cast_min, ← min_div_div_right hn'.le,
+    fract_div_nat_cast_eq_div_nat_cast_mod, nat.cast_sub (m.mod_lt hn).le, sub_div,
+    div_self hn'.ne.symm],
 end
 
 end linear_ordered_field

@@ -69,13 +69,21 @@ elliptic curve, rational point, group law
 
 universes u v
 
-variables {F : Type u} [field F] (E : EllipticCurve F) {K : Type v} [field K] [algebra F K]
-
 namespace EllipticCurve
+
+section basic
+
+/-!
+### Points in `E⟮K⟯`
+
+Use `0` instead of `EllipticCurve.point.zero`.
+-/
 
 open polynomial
 
 open_locale polynomial
+
+variables {F : Type u} [comm_ring F] (E : EllipticCurve F) {K : Type v} [comm_ring K] [algebra F K]
 
 /-- The Weierstrass polynomial $Y^2 + a_1XY + a_3Y - (X^3 + a_2X^2 + a_4X + a_6)$ of `E`. -/
 noncomputable def weierstrass_polynomial : K[X][X] :=
@@ -119,12 +127,6 @@ instance : inhabited E⟮K⟯ := ⟨zero⟩
 
 section zero
 
-/-!
-### Zero in `E⟮K⟯`
-
-Use `0` instead of `EllipticCurve.point.zero`.
--/
-
 instance : has_zero E⟮K⟯ := ⟨zero⟩
 
 @[simp] lemma zero_def : zero = (0 : E⟮K⟯) := rfl
@@ -132,12 +134,6 @@ instance : has_zero E⟮K⟯ := ⟨zero⟩
 end zero
 
 section negation
-
-/-!
-### Negation in `E⟮K⟯`
-
-Given `P : E⟮K⟯`, use `-P` instead of `neg P`.
--/
 
 variables {x y : K} (h : E.weierstrass_equation x y)
 
@@ -173,13 +169,25 @@ instance : has_involutive_neg E⟮K⟯ := ⟨neg, neg_neg⟩
 
 end negation
 
-section doubling
+end point
+
+end basic
+
+namespace point
+
+open_locale EllipticCurve
+
+variables {F : Type u} [field F] {E : EllipticCurve F} {K : Type v} [field K] [algebra F K]
+
+section dbl_add
 
 /-!
-### Doubling in `E⟮K⟯`
+### Addition in `E⟮K⟯`
 
-Given `P : E⟮K⟯`, use `2 • P` instead of `P + P` (TODO: immediate once `add_comm_group` is defined).
+Given `P Q : E⟮K⟯`, use `P + Q` instead of `add P Q`.
 -/
+
+section doubling
 
 variables {x y : K} (h : E.weierstrass_equation x y)
 
@@ -236,12 +244,6 @@ weierstrass_equation_neg $ weierstrass_equation_dbl' h hy
 end doubling
 
 section addition
-
-/-!
-### Addition in `E⟮K⟯`
-
-Given `P Q : E⟮K⟯`, use `P + Q` instead of `add P Q`.
--/
 
 variables {x₁ x₂ y₁ y₂ : K} (h₁ : E.weierstrass_equation x₁ y₁) (h₂ : E.weierstrass_equation x₂ y₂)
 
@@ -380,6 +382,8 @@ lemma some_add_some_of_x_ne' (hx : x₁ ≠ x₂) :
 some_add_some_of_x_ne h₁ h₂ hx
 
 end addition
+
+end dbl_add
 
 section add_comm_group
 

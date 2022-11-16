@@ -123,13 +123,13 @@ def inverse :
   map := λ K L f, inverse.map f, }
 
 
-/-- The counit isomoprhism of the equivalence
+/-- The counit isomorphism of the equivalence
 `karoubi (homological_complex C c) ≌ homological_complex (karoubi C) c`. -/
 @[simps]
 def counit_iso : inverse ⋙ functor ≅ 𝟭 (homological_complex (karoubi C) c) :=
 eq_to_iso (functor.ext (λ P, homological_complex.ext (by tidy) (by tidy)) (by tidy))
 
-/-- The unit isomoprhism of the equivalence
+/-- The unit isomorphism of the equivalence
 `karoubi (homological_complex C c) ≌ homological_complex (karoubi C) c`. -/
 @[simps]
 def unit_iso : 𝟭 (karoubi (homological_complex C c)) ≅ functor ⋙ inverse :=

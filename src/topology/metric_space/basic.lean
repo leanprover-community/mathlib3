@@ -9,7 +9,6 @@ import tactic.positivity
 import topology.algebra.order.compact
 import topology.metric_space.emetric_space
 import topology.bornology.constructions
-import topology.uniform_space.complete_separated
 
 /-!
 # Metric spaces

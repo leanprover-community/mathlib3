@@ -1039,9 +1039,7 @@ begin
   },
   rw this, clear this,
   have : (Ebar:ℝ ) * (l * rbar + (B * a + D * c) * P) / q₁ = q₂ * q' + r',
-  {
-    sorry,
-    /- field_simp,
+  { field_simp,
     norm_cast,
     rw← div,
     field_simp,
@@ -1050,10 +1048,7 @@ begin
     ring,
     simp at div3,
     have:= div3.linear_comb (_: (q₁:ℤ )∣ 0) Ebar 0,
-    simp at this, exact this, simp, -/
-
-  },
-
+    simp at this, exact this, simp, },
   rw ← this, clear this,field_simp, ring,
   exact (0:ℤ ),exact (q₁:ℤ ), refl, exact ge0Z, simp,
   { intros x xhyp,

@@ -210,6 +210,8 @@ instance : group (G ⋆ H) :=
 (inr_one_nmem : sum.inr (1 : N) ∉ to_list)
 (chain'_ne_on : to_list.chain' ((≠) on sum.is_left))
 
+attribute [simp] word.inl_one_nmem word.inr_one_nmem
+
 namespace word
 
 instance : has_one (word M N) := ⟨⟨[], not_mem_nil _, not_mem_nil _, chain'_nil⟩⟩
@@ -415,22 +417,29 @@ by simp_rw [← mclosure_range_inl_union_inr, ← image_univ, ← union_compl_se
   ← union_compl_self ({1} : set N), image_union, image_singleton, map_one, submonoid.closure_union,
   submonoid.closure_singleton_one, bot_sup_eq]
 
-def swap : word M N →* word N M :=
+lemma mk_append {l₁ l₂ : list (M ⊕ N)} (h₁ h₂ h₃) :
+  mk (l₁++ l₂) h₁ h₂ h₃ =
+    mk l₁ (mt (mem_append_left _) h₁) (mt (mem_append_left _) h₂) h₃.left_of_append *
+      mk l₂ (mt (mem_append_right _) h₁) (mt (mem_append_right _) h₂) h₃.right_of_append :=
 begin
-  refine monoid_hom.of_mclosure_eq_top_left
-    (λ w, ⟨w.1.map sum.swap, by simp [w.3], by simp [w.2], _⟩) mclosure_image_inl_union_inr _ _,
-  { refine chain'_map_of_chain' sum.swap (λ a b, _) w.4,
-    simp [on_fun, ← sum.bnot_is_right, bool.eq_bnot_iff] },
-  { refl },
-  { rintro _ (⟨x, hx : x ≠ 1, rfl⟩|⟨x, hx : x ≠ 1, rfl⟩) w,
-    { simp only [to_list_inl hx, list.map, sum.swap_inl, mk_inr],
- }
- }
--- { to_fun := λ w, ⟨w.1.map sum.swap, by simp [w.3], by simp [w.2],
---     by { refine chain'_map_of_chain' sum.swap (λ a b, _) w.4,
---          simp [on_fun, ← sum.bnot_is_right, bool.eq_bnot_iff] }⟩,
---   map_one' := rfl,
---   map_mul' := λ w₁ w₂, _ }
+  induction l₁ with a l₁ ihl, { refl },
+  specialize ihl (mt (mem_cons_of_mem _) h₁) (mt (mem_cons_of_mem _) h₂) h₃.tail,
+  simp only [list.cons_append, mk_cons, cons'_eq_cons, ← of_mul, mul_assoc],
+  congr, exact ihl
+end
+
+lemma prod_eq (l : list (word M N)) (hl : (l.map to_list).join.chain' ((≠) on sum.is_left)) :
+  l.prod = ⟨(l.map to_list).join, by simp [mem_join], by simp [mem_join], hl⟩ :=
+begin
+  induction l with w l ihl, { refl },
+  specialize ihl hl.right_of_append,
+  simp only [list.map, join, prod_cons, mk_append, ihl, mk_to_list]
+end
+
+lemma prod_eq_of_join_eq {l : list (word M N)} {w : word M N} (h : (l.map to_list).join = w.1) :
+  l.prod = w :=
+begin
+  simp only [prod_eq l (h.symm ▸ w.4), h, mk_to_list],
 end
 
 instance : has_inv (word G H) :=
@@ -500,7 +509,7 @@ lemma mk_word_mul (w₁ w₂ : word M N) :
   mk (of_list (w₁ * w₂).to_list) = mk (of_list w₁.to_list) * mk (of_list w₂.to_list) :=
 mk_smul_word _ _
 
-def to_word : M ⋆ N ≃* word M N :=
+@[simps symm_apply] def to_word : M ⋆ N ≃* word M N :=
 { to_fun := clift
     (@smul_one_hom (free_monoid (M ⊕ N)) (word M N) _ _ _ _)
     (by rw [smul_one_hom_apply, of_smul, word.cons_inl_one])
@@ -614,6 +623,43 @@ by rw [← fst_prod_snd, monoid_hom.snd_comp_prod]
 
 @[simp] lemma snd_to_prod (x : word M N) : (to_prod x).2 = snd x :=
 by { rw [← snd_comp_to_prod], refl }
+
+@[simps apply_to_list] def swap_hom : word M N →* word N M :=
+monoid_hom.copy (lift inr inl)
+  (λ w, ⟨w.1.map sum.swap, by simp [w.3], by simp [w.2], by
+  { refine chain'_map_of_chain' sum.swap (λ a b, _) w.4,
+    simp [on_fun, ← sum.bnot_is_right, bool.eq_bnot_iff] }⟩) $ funext $ λ w,
+  begin
+    rcases w with ⟨l, hl, hr, hc⟩,
+    simp only [lift_apply_mk],
+    refine (prod_eq_of_join_eq _).symm, simp only,
+    clear hc, induction l with a l ihl, { refl },
+    specialize ihl (mt (mem_cons_of_mem _) hl) (mt (mem_cons_of_mem _) hr),
+    cases a,
+    { have ha : a ≠ 1, by { rintro rfl, simp * at * },
+      simpa only [map_cons, sum.elim_inl, ha, to_list_inr, join, ne.def, not_false_iff,
+        singleton_append, sum.swap_inl, eq_self_iff_true, true_and] },
+    { have ha : a ≠ 1, by { rintro rfl, simp * at * },
+      simpa only [map_cons, sum.elim_inr, ha, to_list_inl, join, ne.def, not_false_iff,
+        singleton_append, sum.swap_inr, eq_self_iff_true, true_and] },
+  end
+
+@[simps apply_to_list] def swap : word M N ≃* word N M :=
+{ to_fun := swap_hom,
+  inv_fun := swap_hom,
+  left_inv := λ w, ext _ _ $
+    by simp only [swap_hom_apply_to_list, map_map, sum.swap_swap_eq, list.map_id],
+  right_inv := λ w, ext _ _ $
+    by simp only [swap_hom_apply_to_list, map_map, sum.swap_swap_eq, list.map_id],
+  map_mul' := map_mul swap_hom }
+
+@[simp] lemma swap_apply_inl (x : M) : swap (inl x : word M N) = inr x :=
+by simp only [swap, mul_equiv.coe_mk, swap_hom, monoid_hom.copy_eq_self, lift_apply_inl]
+
+@[simp] lemma swap_apply_inr (x : N) : swap (inr x : word M N) = inl x :=
+by simp only [swap, mul_equiv.coe_mk, swap_hom, monoid_hom.copy_eq_self, lift_apply_inr]
+
+@[simp] lemma swap_symm : (swap : word M N ≃* word N M).symm = swap := rfl
 
 end word
 
@@ -770,15 +816,55 @@ lemma to_list_coe_z2_prod_mker_fst (w : word M M) :
     (w.to_list.map (sum.elim (λ x, [sum.inl σ, sum.inr x, sum.inl σ]) (λ x, [sum.inr x]))).join :=
 z2_prod_mker_fst_aux₂_eq_join _
 
-lemma z2_prod_mker_fst_symm_conj_a (w : (fst : word ℤ₂ M →* ℤ₂).mker) :
-  (z2_prod_mker_fst.symm ⟨inl σ * (w : word ℤ₂ M) * inl σ, by simpa only [monoid_hom.mem_mker,
-    map_mul fst, fst_apply_inl, mul_right_comm _ _ σ] using w.2⟩).1 =
-    (z2_prod_mker_fst.symm w).1.map sum.swap :=
+@[simp] lemma z2_prod_mker_fst_inl (x : M) :
+  (z2_prod_mker_fst (inl x) : word ℤ₂ M) = inl σ * inr x * inl σ :=
 begin
-  change z2_prod_mker_fst_aux₁ _ ff = (z2_prod_mker_fst_aux₁ _ ff).map sum.swap,
-  cases w with w hw, simp only [subtype.coe_mk], clear hw,
-  
+  rcases eq_or_ne x 1 with rfl | hx, { simp [← map_mul] },
+  rw [← mk_to_list (z2_prod_mker_fst (inl x) : word ℤ₂ M)],
+  simp only [to_list_coe_z2_prod_mker_fst, to_list_inl hx, list.map, join_singleton, sum.elim_inl,
+    mk_cons, cons'_eq_cons, mk_nil, ← of_mul, of_inl, of_inr, mul_one, mul_assoc]
 end
+
+@[simp] lemma z2_prod_mker_fst_inr (x : M) : (z2_prod_mker_fst (inr x) : word ℤ₂ M) = inr x :=
+begin
+  rcases eq_or_ne x 1 with rfl | hx, { simp [← map_mul] },
+  rw [← mk_to_list (z2_prod_mker_fst (inr x) : word ℤ₂ M)],
+  simp only [to_list_coe_z2_prod_mker_fst, to_list_inr hx, list.map, sum.elim_inr, join_singleton,
+    mk_cons, mk_nil, cons'_one, of_inr]
+end
+
+def conj_a_mker_fst_z2 : (fst : word ℤ₂ M →* ℤ₂).mker ≃* (fst : word ℤ₂ M →* ℤ₂).mker :=
+{ map_mul' := λ w₁ w₂, subtype.ext $
+    begin
+      simp_rw [involutive.to_perm, coe_mul, set_like.coe_mk, mul_assoc],
+      rw [← mul_assoc (inl σ) (inl σ), ← map_mul, mul_z2.mul_self, map_one, one_mul]
+    end,
+  .. involutive.to_perm (λ w, ⟨inl σ * (w : word ℤ₂ M) * inl σ,
+    by simpa only [monoid_hom.mem_mker, map_mul fst, fst_apply_inl, mul_right_comm _ _ σ]
+      using w.2⟩ : (fst : word ℤ₂ M →* ℤ₂).mker → (fst : word ℤ₂ M →* ℤ₂).mker)
+    (λ w, subtype.ext $ by simp_rw [subtype.coe_mk, mul_assoc, ← map_mul, mul_z2.mul_self, map_one,
+      mul_one, ← mul_assoc, ← map_mul, mul_z2.mul_self, map_one, one_mul]), }
+
+@[simp] lemma coe_conj_a_mker_fst_z2 (w : (fst : word ℤ₂ M →* ℤ₂).mker) :
+  (conj_a_mker_fst_z2 w : word ℤ₂ M) = inl σ * w * inl σ :=
+rfl
+
+@[simp] lemma conj_a_mker_fst_z2_symm : (@conj_a_mker_fst_z2 M _ _).symm = conj_a_mker_fst_z2 :=
+rfl
+
+lemma z2_prod_mker_fst_trans_conj_a_mker_fst_z2 :
+  (@z2_prod_mker_fst M _ _).trans conj_a_mker_fst_z2 = swap.trans z2_prod_mker_fst :=
+begin
+  refine mul_equiv.to_monoid_hom_injective
+    (monoid_hom.eq_of_eq_on_mdense mclosure_image_inl_union_inr _),
+  rintro _ (⟨x, hx : x ≠ 1, rfl⟩ | ⟨x, hx : x ≠ 1, rfl⟩); ext1; simp [mul_assoc, ← map_mul],
+  simp [← mul_assoc, ← map_mul]
+end
+
+lemma z2_prod_mker_fst_symm_conj_a (w : (fst : word ℤ₂ M →* ℤ₂).mker) :
+  (z2_prod_mker_fst.symm (conj_a_mker_fst_z2 w)) = swap (z2_prod_mker_fst.symm w) :=
+by rw [← conj_a_mker_fst_z2_symm, ← mul_equiv.symm_trans_apply,
+  z2_prod_mker_fst_trans_conj_a_mker_fst_z2, mul_equiv.symm_trans_apply, swap_symm]
 
 end word
 

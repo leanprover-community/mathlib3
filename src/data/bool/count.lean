@@ -41,6 +41,22 @@ end
 theorem count_ff_eq_count_tt (hl : chain' (≠) l) (h2 : even (length l)) : count ff l = count tt l :=
 hl.count_bnot_eq_count h2 tt
 
+lemma count_bnot_le_count_add_one (hl : chain' (≠) l) (b : bool) :
+  count (!b) l ≤ count b l + 1 :=
+begin
+  cases l with x l, { exact zero_le _ },
+  obtain rfl | rfl : b = x ∨ b = !x, by simp only [bool.eq_bnot_iff, em],
+  { rw [count_cons_of_ne b.bnot_ne_self, count_cons_self, hl.count_bnot, add_assoc],
+    exact add_le_add_left (nat.mod_lt _ two_pos).le _ },
+  { rw [bnot_bnot, count_cons_self, count_cons_of_ne b.bnot_ne_self.symm, hl.count_bnot] }
+end
+
+lemma count_ff_le_count_tt_add_one (hl : chain' (≠) l) : count ff l ≤ count tt l + 1 :=
+hl.count_bnot_le_count_add_one tt
+
+lemma count_tt_le_count_ff_add_one (hl : chain' (≠) l) : count tt l ≤ count ff l + 1 :=
+hl.count_bnot_le_count_add_one ff
+
 theorem two_mul_count_bool_of_even (hl : chain' (≠) l) (h2 : even (length l)) (b : bool) :
   2 * count b l = length l :=
 by rw [← count_bnot_add_count l b, hl.count_bnot_eq_count h2, two_mul]

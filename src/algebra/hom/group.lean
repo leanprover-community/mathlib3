@@ -671,6 +671,10 @@ protected def monoid_hom.copy {hM : mul_one_class M} {hN : mul_one_class N} (f :
   (f' : M → N) (h : f' = f) : M →* N :=
 { ..f.to_one_hom.copy f' h, ..f.to_mul_hom.copy f' h }
 
+protected lemma monoid_hom.copy_eq_self {hM : mul_one_class M} {hN : mul_one_class N} (f : M →* N)
+  (f' : M → N) (h : f' = f) : f.copy f' h = f :=
+fun_like.ext' h
+
 /-- Copy of a `monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
 protected def monoid_with_zero_hom.copy {hM : mul_zero_one_class M} {hN : mul_zero_one_class N}

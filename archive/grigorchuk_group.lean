@@ -191,6 +191,8 @@ namespace even_a_word
 
 def equiv_ker : even_a_word ≃* word.even_a := free_prod.word.z2_prod_mker_fst
 
+def swap : even_a_word ≃* even_a_word := free_prod.word.swap
+
 def proj₁ : ℤ₂ × ℤ₂ →* word := free_prod.word.inl.comp (monoid_hom.fst _ _ * monoid_hom.snd _ _)
 
 def proj₂ : ℤ₂ × ℤ₂ →* word :=
@@ -204,6 +206,19 @@ free_prod.word.lift_apply_inl _ _ _
 
 @[simp] lemma proj_apply_inr (x : ℤ₂ × ℤ₂) : proj (free_prod.word.inr x) = (proj₂ x, proj₁ x) :=
 free_prod.word.lift_apply_inr _ _ _
+
+lemma proj_comp_swap : proj.comp swap.to_monoid_hom =
+  (mul_equiv.prod_comm : word × word ≃* word × word).to_monoid_hom.comp proj :=
+free_prod.word.hom_ext
+  (monoid_hom.ext $ λ x, by simp only [monoid_hom.comp_apply, mul_equiv.coe_to_monoid_hom, swap,
+    free_prod.word.swap_apply_inl, proj_apply_inr, mul_equiv.coe_prod_comm, prod.swap,
+    proj_apply_inl])
+  (monoid_hom.ext $ λ x, by simp only [monoid_hom.comp_apply, mul_equiv.coe_to_monoid_hom, swap,
+    free_prod.word.swap_apply_inr, proj_apply_inr, mul_equiv.coe_prod_comm, prod.swap,
+    proj_apply_inl])
+
+lemma proj_swap (w : even_a_word) : w.swap.proj = w.proj.swap :=
+fun_like.congr_fun proj_comp_swap w
 
 lemma proj_apply_mk (l hl hr hc) :
   proj ⟨l, hl, hr, hc⟩ =
@@ -322,6 +337,13 @@ end
 namespace word
 
 @[simp] lemma index_even_a : even_a.index = 2 := by simp [even_a, fst, subgroup.index_ker]
+
+@[simp] lemma a_nmem_even_a : (free_prod.word.inl σ : word) ∉ even_a :=
+mt (monoid_hom.mem_ker _).1 $
+  by simp only [fst, free_prod.word.fst_apply_inl, mul_z2.a_ne_one, not_false_iff]
+
+@[simp] lemma mul_mem_even_a {w₁ w₂ : word} : w₁ * w₂ ∈ even_a ↔ (w₁ ∈ even_a ↔ w₂ ∈ even_a) :=
+subgroup.mul_mem_iff_of_index_two index_even_a
 
 lemma sq_mem_ker (w : word) : w ^ 2 ∈ even_a := subgroup.sq_mem_of_index_two index_even_a w
 
@@ -491,12 +513,51 @@ lemma weight_proj_le (w : even_a_word) :
 w.weight_proj_le_eta_mul_weight_add_length.trans_eq $ by rw [weight_equiv_ker, add_assoc, ← add_mul,
   ← length_map sum.is_left, ← count_tt_add_count_ff, two_mul, add_add_sub_cancel, nat.cast_add]
 
+lemma weight_proj_le' (w : even_a_word) :
+  (proj w).1.weight + (proj w).2.weight ≤ η * (word.weight (equiv_ker w) + weight₁ (sum.inl σ)) :=
+begin
+  refine w.weight_proj_le.trans (mul_le_mul_of_nonneg_left _ eta_nonneg),
+  refine add_le_add_left (mul_le_of_le_one_left (weight₁_nonneg _) _) _,
+  rw [sub_le_iff_le_add', ← nat.cast_add_one, nat.cast_le],
+  exact w.chain'_ne_map.count_ff_le_count_tt_add_one
+end
+
 lemma weight_proj_le_of_even (w : even_a_word) (hw : even w.to_list.length) :
   (proj w).1.weight + (proj w).2.weight ≤ η * word.weight (equiv_ker w) :=
 w.weight_proj_le.trans_eq $ by rw [w.chain'_ne_map.count_ff_eq_count_tt (by rwa length_map),
   sub_self, zero_mul, add_zero]
 
-lemma weight_proj_fst_eq_snd (w : word.even_a) (hw : even (length (w : word).1))
+lemma weight_proj_le_and_le {w : word} (hw : w ∉ word.even_a) (we : even_a_word)
+  (h : (equiv_ker we : word) = w * w) :
+  (proj we).1.weight ≤ η * (w.weight + 2 * weight₁ (sum.inl σ)) ∧
+    (proj we).2.weight ≤ η * (w.weight + 2 * weight₁ (sum.inl σ)) :=
+begin
+  obtain ⟨w, rfl⟩ : ∃ w' : word.even_a, w = w' * free_prod.word.inl σ,
+  { refine ⟨⟨w * free_prod.word.inl σ, _⟩, _⟩,
+    { simpa only [word.mul_mem_even_a, word.a_nmem_even_a, iff_false] },
+    { rw [subtype.coe_mk, mul_assoc, ← map_mul, mul_z2.mul_self, map_one, mul_one] } },
+  clear hw,
+  rw [mul_assoc, ← mul_assoc _ ↑w, ← free_prod.word.coe_conj_a_mker_fst_z2, ← coe_mul,
+    subtype.coe_inj, ← mul_equiv.eq_symm_apply] at h,
+  subst we,
+  have : ((equiv_ker.symm w).proj.fst * (equiv_ker.symm w).proj.snd).weight ≤
+    η * ((w * free_prod.word.inl σ : word).weight + 2 * weight₁ (sum.inl σ)),
+  { refine (word.weight_mul_le _ _).trans ((weight_proj_le' _).trans _),
+    rw [mul_equiv.apply_symm_apply, two_mul, ← add_assoc],
+    refine mul_le_mul_of_nonneg_left _ eta_nonneg,
+    have : (w * free_prod.word.inl σ * free_prod.word.inl σ : word) = w,
+      by rw [mul_assoc, ← map_mul, mul_z2.mul_self, map_one, mul_one],
+    conv_lhs { rw [← this] },
+    refine add_le_add_right ((word.weight_mul_le _ _).trans_eq _) _,
+    rw []
+  },
+  split,
+  { rw [equiv_ker, map_mul, map_mul, free_prod.word.z2_prod_mker_fst_symm_conj_a, ← swap,
+      proj_swap, prod.fst_mul, prod.fst_swap],
+
+
+  }
+end
 
 end even_a_word
 

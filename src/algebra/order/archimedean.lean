@@ -83,8 +83,7 @@ lemma exists_unique_add_zsmul_mem_Ioc {a : α} (ha : 0 < a) (b c : α) :
 
 end linear_ordered_add_comm_group
 
-theorem exists_nat_gt [strict_ordered_semiring α] [nontrivial α] [archimedean α]
-  (x : α) : ∃ n : ℕ, x < n :=
+theorem exists_nat_gt [strict_ordered_semiring α] [archimedean α] (x : α) : ∃ n : ℕ, x < n :=
 let ⟨n, h⟩ := archimedean.arch x zero_lt_one in
 ⟨n+1, lt_of_le_of_lt (by rwa ← nsmul_one)
   (nat.cast_lt.2 (nat.lt_succ_self _))⟩
@@ -96,8 +95,8 @@ begin
   exact (exists_nat_gt x).imp (λ n, le_of_lt)
 end
 
-lemma add_one_pow_unbounded_of_pos [strict_ordered_semiring α] [nontrivial α] [archimedean α]
-  (x : α) {y : α} (hy : 0 < y) :
+lemma add_one_pow_unbounded_of_pos [strict_ordered_semiring α] [archimedean α] (x : α) {y : α}
+  (hy : 0 < y) :
   ∃ n : ℕ, x < (y + 1) ^ n :=
 have 0 ≤ 1 + y, from add_nonneg zero_le_one hy.le,
 let ⟨n, h⟩ := archimedean.arch x hy in
@@ -109,7 +108,7 @@ let ⟨n, h⟩ := archimedean.arch x hy in
        ... = (y + 1) ^ n : by rw [add_comm]⟩
 
 section strict_ordered_ring
-variables [strict_ordered_ring α] [nontrivial α] [archimedean α]
+variables [strict_ordered_ring α] [archimedean α]
 
 lemma pow_unbounded_of_one_lt (x : α) {y : α} (hy1 : 1 < y) :
   ∃ n : ℕ, x < y ^ n :=
@@ -270,7 +269,7 @@ section linear_ordered_field
 variables [linear_ordered_field α]
 
 lemma archimedean_iff_nat_lt : archimedean α ↔ ∀ x : α, ∃ n : ℕ, x < n :=
-⟨@exists_nat_gt α _ _, λ H, ⟨λ x y y0,
+⟨@exists_nat_gt α _, λ H, ⟨λ x y y0,
   (H (x / y)).imp $ λ n h, le_of_lt $
   by rwa [div_lt_iff y0, ← nsmul_eq_mul] at h⟩⟩
 
@@ -281,7 +280,7 @@ archimedean_iff_nat_lt.trans
    lt_of_le_of_lt h (nat.cast_lt.2 (lt_add_one _))⟩⟩
 
 lemma archimedean_iff_int_lt : archimedean α ↔ ∀ x : α, ∃ n : ℤ, x < n :=
-⟨@exists_int_gt α _ _,
+⟨@exists_int_gt α _,
 begin
   rw archimedean_iff_nat_lt,
   intros h x,

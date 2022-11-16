@@ -5,10 +5,8 @@ Authors: Christopher Hoskin
 -/
 import order.basic
 import algebra.group_power.basic
-import tactic.nth_rewrite.default
 import algebra.ring.defs
-import tactic.nth_rewrite.basic
-import tactic.nth_rewrite.congr
+import tactic.nth_rewrite
 
 /-!
 # Idempotents

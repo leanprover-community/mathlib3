@@ -6,7 +6,7 @@ Authors: Rémi Bottinelli
 import category_theory.category.basic
 import category_theory.functor.basic
 import category_theory.groupoid
-import tactic.nth_rewrite.default
+import tactic.nth_rewrite
 import category_theory.path_category
 import category_theory.quotient
 

@@ -5,7 +5,6 @@ Authors: Matej Penciak, Moritz Doll, Fabien Clery
 -/
 
 import linear_algebra.matrix.nonsingular_inverse
-import tactic.field_simp
 
 /-!
 # The Symplectic Group

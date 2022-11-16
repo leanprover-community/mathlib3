@@ -7,7 +7,6 @@ import algebra.field.defs
 import algebra.group_with_zero.units.lemmas
 import algebra.hom.ring
 import algebra.ring.inj_surj
-import tactic.monotonicity.basic
 
 /-!
 # Lemmas about division (semi)rings and (semi)fields

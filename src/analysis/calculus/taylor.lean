@@ -8,7 +8,6 @@ import analysis.calculus.iterated_deriv
 import analysis.calculus.mean_value
 import data.polynomial.basic
 import data.polynomial.module
-import tactic.derive_fintype
 
 /-!
 # Taylor's theorem

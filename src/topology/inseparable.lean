@@ -6,8 +6,6 @@ Authors: Andrew Yang, Yury G. Kudryashov
 import topology.continuous_on
 import data.setoid.basic
 import tactic.tfae
-import data.list.tfae
-import tactic.scc
 
 /-!
 # Inseparable points in a topological space

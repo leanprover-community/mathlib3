@@ -8,9 +8,6 @@ import algebra.group_ring_action
 import group_theory.subgroup.pointwise
 import ring_theory.subsemiring.pointwise
 import data.set.pointwise.basic
-import tactic.congrm
-import tactic.scc
-import tactic.tfae
 
 /-! # Pointwise instances on `subring`s
 

@@ -5,12 +5,6 @@ Authors: Rémy Degenne
 -/
 import probability.probability_mass_function.basic
 import measure_theory.function.conditional_expectation.basic
-import tactic.compute_degree
-import tactic.derive_fintype
-import tactic.interval_cases
-import tactic.norm_fin
-import tactic.norm_swap
-import tactic.ring_exp
 
 /-! # Notations for probability theory
 

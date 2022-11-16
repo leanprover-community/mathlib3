@@ -6,8 +6,6 @@ Authors: Andrew Yang
 
 import ring_theory.localization.at_prime
 import order.minimal
-import tactic.norm_fin
-import tactic.norm_swap
 
 /-!
 

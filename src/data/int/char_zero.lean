@@ -4,16 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.int.cast.field
-import tactic.apply
-import tactic.apply_fun
-import tactic.by_contra
-import tactic.monotonicity.default
-import tactic.monotonicity.interactive
-import tactic.monotonicity.lemmas
-import tactic.nth_rewrite.basic
-import tactic.nth_rewrite.congr
-import tactic.nth_rewrite.default
-import tactic.wlog
 
 /-!
 # Injectivity of `int.cast` into characteristic zero rings and fields.

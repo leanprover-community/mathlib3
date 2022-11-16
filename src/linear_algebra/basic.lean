@@ -10,9 +10,6 @@ import algebra.module.prod
 import algebra.module.submodule.lattice
 import data.dfinsupp.basic
 import data.finsupp.basic
-import tactic.congrm
-import tactic.scc
-import tactic.tfae
 
 /-!
 # Linear algebra

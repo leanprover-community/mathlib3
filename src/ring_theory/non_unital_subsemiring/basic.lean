@@ -10,8 +10,6 @@ import data.set.finite
 import group_theory.submonoid.membership
 import group_theory.subsemigroup.membership
 import group_theory.subsemigroup.centralizer
-import tactic.abel
-import tactic.norm_num
 
 /-!
 # Bundled non-unital subsemirings

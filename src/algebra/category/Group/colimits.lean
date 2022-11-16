@@ -7,7 +7,6 @@ import algebra.category.Group.preadditive
 import group_theory.quotient_group
 import category_theory.limits.shapes.kernels
 import category_theory.concrete_category.elementwise
-import tactic.equiv_rw
 
 /-!
 # The category of additive commutative groups has all colimits.

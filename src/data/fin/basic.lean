@@ -7,12 +7,7 @@ import algebra.ne_zero
 import algebra.order.with_zero
 import order.rel_iso.basic
 import data.nat.order.lemmas
-import tactic.apply_fun
-import tactic.localized
 import order.hom.set
-import tactic.monotonicity.default
-import tactic.monotonicity.interactive
-import tactic.monotonicity.lemmas
 
 /-!
 # The finite type with `n` elements

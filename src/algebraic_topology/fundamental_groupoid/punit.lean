@@ -5,7 +5,6 @@ Authors: Praneeth Kolichala
 -/
 import category_theory.punit
 import algebraic_topology.fundamental_groupoid.basic
-import tactic.equiv_rw
 
 /-!
 # Fundamental groupoid of punit

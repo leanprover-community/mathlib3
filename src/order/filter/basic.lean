@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Jeremy Avigad
 import control.traversable.instances
 import data.set.finite
 import order.copy
-import tactic.monotonicity.default
+import tactic.monotonicity
 
 /-!
 # Theory of filters on sets

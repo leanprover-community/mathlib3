@@ -5,14 +5,6 @@ Authors: Scott Morrison
 -/
 import logic.small.basic
 import data.countable.defs
-import tactic.apply_fun
-import tactic.assert_exists
-import tactic.by_contra
-import tactic.monotonicity.basic
-import tactic.monotonicity.default
-import tactic.monotonicity.interactive
-import tactic.monotonicity.lemmas
-import tactic.nontriviality
 
 /-!
 # All countable types are small.

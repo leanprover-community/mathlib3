@@ -5,9 +5,6 @@ Authors: Michael Stoll
 -/
 import algebra.char_p.basic
 import algebra.euclidean_domain.instances
-import tactic.field_simp
-import tactic.interval_cases
-import tactic.ring_exp
 
 /-!
 # Multiplicative characters of finite rings and fields

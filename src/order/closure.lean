@@ -7,10 +7,6 @@ import data.set.lattice
 import data.set_like.basic
 import order.galois_connection
 import order.hom.basic
-import tactic.monotonicity.default
-import tactic.monotonicity.interactive
-import tactic.monotonicity.lemmas
-import tactic.nontriviality
 
 /-!
 # Closure operators between preorders

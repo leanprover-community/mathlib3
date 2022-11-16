@@ -6,7 +6,6 @@ Authors: Yaël Dillies
 import algebra.hom.group
 import order.hom.basic
 import algebra.order.group.instances
-import tactic.nontriviality
 
 /-!
 # Ordered monoid and group homomorphisms

@@ -5,9 +5,6 @@ Authors: Rémi Bottinelli
 -/
 import category_theory.groupoid
 import combinatorics.quiver.basic
-import tactic.assert_exists
-import tactic.monotonicity.basic
-import tactic.nontriviality
 
 /-!
 This file defines a few basic properties of groupoids.

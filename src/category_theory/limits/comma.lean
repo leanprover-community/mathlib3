@@ -8,14 +8,6 @@ import category_theory.limits.constructions.epi_mono
 import category_theory.limits.creates
 import category_theory.limits.unit
 import category_theory.structured_arrow
-import tactic.apply
-import tactic.apply_fun
-import tactic.by_contra
-import tactic.monotonicity.default
-import tactic.monotonicity.interactive
-import tactic.monotonicity.lemmas
-import tactic.nontriviality
-import tactic.wlog
 
 /-!
 # Limits and colimits in comma categories

@@ -7,8 +7,6 @@ import algebra.regular.basic
 import linear_algebra.matrix.mv_polynomial
 import linear_algebra.matrix.polynomial
 import ring_theory.polynomial.basic
-import tactic.linarith.default
-import tactic.ring_exp
 
 /-!
 # Cramer's rule and adjugate matrices

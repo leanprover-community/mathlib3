@@ -9,9 +9,7 @@ import group_theory.is_free_group
 import data.list.chain
 import set_theory.cardinal.ordinal
 import data.set.pointwise.basic
-import tactic.congrm
-import tactic.scc
-import tactic.tfae
+
 /-!
 # The free product of groups or monoids
 

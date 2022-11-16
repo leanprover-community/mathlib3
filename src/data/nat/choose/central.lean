@@ -5,19 +5,7 @@ Authors: Patrick Stevens, Thomas Browning
 -/
 
 import data.nat.choose.basic
-import tactic.linarith.lemmas
-import tactic.ring
-import tactic.abel
-import tactic.cancel_denoms
-import tactic.linarith.datatypes
-import tactic.linarith.default
-import tactic.linarith.elimination
-import tactic.linarith.frontend
-import tactic.linarith.parsing
-import tactic.linarith.preprocessing
-import tactic.linarith.verification
-import tactic.positivity
-import tactic.zify
+import tactic.linarith
 
 /-!
 # Central binomial coefficients

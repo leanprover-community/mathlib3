@@ -9,16 +9,7 @@ import data.nat.log
 import data.list.indexes
 import data.list.palindrome
 import tactic.interval_cases
-import tactic.linarith.default
-import tactic.linarith.lemmas
-import tactic.cancel_denoms
-import tactic.linarith.datatypes
-import tactic.linarith.elimination
-import tactic.linarith.frontend
-import tactic.linarith.parsing
-import tactic.linarith.preprocessing
-import tactic.linarith.verification
-import tactic.zify
+import tactic.linarith
 
 /-!
 # Digits of a natural number

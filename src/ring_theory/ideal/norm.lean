@@ -6,24 +6,6 @@ Authors: Anne Baanen, Alex J. Best
 
 import group_theory.index
 import linear_algebra.quotient
-import tactic.cancel_denoms
-import tactic.compute_degree
-import tactic.field_simp
-import tactic.fin_cases
-import tactic.interval_cases
-import tactic.linarith.datatypes
-import tactic.linarith.default
-import tactic.linarith.elimination
-import tactic.linarith.frontend
-import tactic.linarith.lemmas
-import tactic.linarith.parsing
-import tactic.linarith.preprocessing
-import tactic.linarith.verification
-import tactic.norm_fin
-import tactic.norm_swap
-import tactic.ring_exp
-import tactic.with_local_reducibility
-import tactic.zify
 
 /-!
 # Ideal norms

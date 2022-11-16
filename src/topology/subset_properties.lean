@@ -7,10 +7,8 @@ import order.filter.pi
 import topology.bases
 import data.finset.order
 import data.set.accumulate
-import tactic.tfae
 import topology.bornology.basic
 import order.minimal
-import tactic.scc
 
 /-!
 # Properties of subsets of topological spaces

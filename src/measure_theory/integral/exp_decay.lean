@@ -5,7 +5,6 @@ Authors: David Loeffler
 -/
 import measure_theory.integral.interval_integral
 import measure_theory.integral.integral_eq_improper
-import tactic.linear_combination
 
 /-!
 # Integrals with exponential decay at ∞

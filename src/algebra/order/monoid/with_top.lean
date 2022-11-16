@@ -7,8 +7,6 @@ import algebra.order.monoid.order_dual
 import algebra.hom.group
 import algebra.order.monoid.canonical.defs
 import data.nat.cast.defs
-import tactic.assert_exists
-import tactic.nontriviality
 
 /-! # Adjoining top/bottom elements to ordered monoids. -/
 

@@ -7,7 +7,6 @@ import algebra.category.Ring.instances
 import algebra.category.Ring.filtered_colimits
 import ring_theory.localization.basic
 import topology.sheaves.stalks
-import tactic.field_simp
 
 /-!
 

@@ -7,12 +7,6 @@ import algebra.algebra.basic
 import set_theory.game.birthday
 import set_theory.surreal.basic
 import ring_theory.localization.basic
-import tactic.compute_degree
-import tactic.fin_cases
-import tactic.group
-import tactic.interval_cases
-import tactic.norm_fin
-import tactic.norm_swap
 
 /-!
 # Dyadic numbers

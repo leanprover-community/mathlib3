@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Floris van Doorn
 -/
 import order.well_founded_set
-import tactic.abel
-import tactic.norm_num
 
 /-! # Multiplication antidiagonal -/
 

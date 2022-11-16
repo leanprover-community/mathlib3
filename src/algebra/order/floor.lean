@@ -6,18 +6,8 @@ Authors: Mario Carneiro, Kevin Kappelmann
 import data.int.lemmas
 import data.set.intervals.group
 import tactic.abel
-import tactic.linarith.default
+import tactic.linarith
 import tactic.positivity
-import tactic.cancel_denoms
-import tactic.linarith.lemmas
-import tactic.ring
-import tactic.linarith.datatypes
-import tactic.linarith.elimination
-import tactic.linarith.frontend
-import tactic.linarith.parsing
-import tactic.linarith.preprocessing
-import tactic.linarith.verification
-import tactic.zify
 
 /-!
 # Floor and ceil

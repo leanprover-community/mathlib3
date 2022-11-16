@@ -5,9 +5,6 @@ Authors: Adam Topaz
 -/
 import category_theory.whiskering
 import category_theory.adjunction.basic
-import tactic.nth_rewrite.basic
-import tactic.nth_rewrite.congr
-import tactic.nth_rewrite.default
 
 /-!
 

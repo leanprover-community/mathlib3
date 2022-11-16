@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import algebra.star.basic
 import data.complex.is_R_or_C
-import tactic.derive_fintype
 
 /-!
 # The Clauser-Horne-Shimony-Holt inequality and Tsirelson's inequality.

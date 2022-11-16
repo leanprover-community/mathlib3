@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuma Mizuno
 -/
 import category_theory.bicategory.free
-import tactic.pi_instances
 
 /-!
 # A `coherence` tactic for bicategories, and `⊗≫` (composition up to associators)

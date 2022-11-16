@@ -4,53 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import logic.is_empty
-import tactic.basic
 import control.traversable.basic
-import tactic.auto_cases
-import tactic.chain
-import tactic.choose
-import tactic.congr
-import tactic.converter.apply_congr
-import tactic.converter.interactive
-import tactic.converter.old_conv
-import tactic.dec_trivial
-import tactic.delta_instance
-import tactic.dependencies
-import tactic.elide
-import tactic.explode
-import tactic.find
-import tactic.finish
-import tactic.generalize_proofs
-import tactic.generalizes
-import tactic.hint
-import tactic.interactive
-import tactic.itauto
-import tactic.lift
-import tactic.localized
-import tactic.mk_iff_of_inductive_prop
-import tactic.norm_cast
-import tactic.obviously
-import tactic.pretty_cases
-import tactic.push_neg
-import tactic.rename_var
-import tactic.replacer
-import tactic.restate_axiom
-import tactic.rewrite
-import tactic.show_term
-import tactic.simpa
-import tactic.simp_command
-import tactic.simp_result
-import tactic.simp_rw
-import tactic.simps
-import tactic.solve_by_elim
-import tactic.split_ifs
-import tactic.squeeze
-import tactic.suggest
-import tactic.tauto
-import tactic.tidy
-import tactic.trunc_cases
-import tactic.unify_equations
-import tactic.where
+import tactic.basic
 
 /-!
 THIS FILE IS SYNCHRONIZED WITH MATHLIB4.

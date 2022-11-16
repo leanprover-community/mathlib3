@@ -6,7 +6,6 @@ Authors: Joseph Myers
 import algebra.module.basic
 import algebra.order.archimedean
 import algebra.periodic
-import tactic.group
 
 /-!
 # Reducing to an interval modulo its length

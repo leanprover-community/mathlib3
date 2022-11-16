@@ -6,8 +6,6 @@ Authors: Scott Morrison, Jakob von Raumer
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.kernels
-import tactic.abel
-import tactic.norm_num
 
 /-!
 # Biproducts and binary biproducts

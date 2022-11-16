@@ -5,9 +5,6 @@ Authors: Scott Morrison
 -/
 import algebra.category.Module.basic
 import category_theory.concrete_category.elementwise
-import tactic.equiv_rw
-import tactic.group
-import tactic.ring
 
 /-!
 # The category of R-modules has all colimits.

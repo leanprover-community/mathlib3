@@ -5,27 +5,6 @@ Authors: Markus Himmel
 -/
 import category_theory.subobject.limits
 import category_theory.abelian.basic
-import tactic.cancel_denoms
-import tactic.compute_degree
-import tactic.congrm
-import tactic.equiv_rw
-import tactic.fin_cases
-import tactic.group
-import tactic.interval_cases
-import tactic.linarith.datatypes
-import tactic.linarith.default
-import tactic.linarith.elimination
-import tactic.linarith.frontend
-import tactic.linarith.lemmas
-import tactic.linarith.parsing
-import tactic.linarith.preprocessing
-import tactic.linarith.verification
-import tactic.positivity
-import tactic.ring
-import tactic.ring_exp
-import tactic.scc
-import tactic.tfae
-import tactic.zify
 
 /-!
 # Equivalence between subobjects and quotients in an abelian category

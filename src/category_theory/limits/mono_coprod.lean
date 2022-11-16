@@ -6,17 +6,6 @@ Authors: Joël Riou
 
 import category_theory.limits.shapes.regular_mono
 import category_theory.limits.shapes.zero_morphisms
-import tactic.abel
-import tactic.apply
-import tactic.apply_fun
-import tactic.by_contra
-import tactic.equiv_rw
-import tactic.monotonicity.default
-import tactic.monotonicity.interactive
-import tactic.monotonicity.lemmas
-import tactic.nontriviality
-import tactic.norm_num
-import tactic.wlog
 
 /-!
 

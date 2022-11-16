@@ -7,22 +7,6 @@ import algebra.module.linear_map
 import linear_algebra.bilinear_map
 import algebra.euclidean_domain.instances
 import ring_theory.non_zero_divisors
-import tactic.cancel_denoms
-import tactic.compute_degree
-import tactic.fin_cases
-import tactic.interval_cases
-import tactic.linarith.datatypes
-import tactic.linarith.default
-import tactic.linarith.elimination
-import tactic.linarith.frontend
-import tactic.linarith.lemmas
-import tactic.linarith.parsing
-import tactic.linarith.preprocessing
-import tactic.linarith.verification
-import tactic.norm_fin
-import tactic.norm_swap
-import tactic.ring_exp
-import tactic.zify
 
 /-!
 # Sesquilinear form

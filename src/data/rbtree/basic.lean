@@ -6,17 +6,6 @@ Authors: Leonardo de Moura
 import data.rbtree.init
 import logic.is_empty
 import tactic.interactive
-import tactic.algebra
-import tactic.alias
-import tactic.dependencies
-import tactic.lint.basic
-import tactic.lint.default
-import tactic.lint.frontend
-import tactic.lint.misc
-import tactic.lint.simp
-import tactic.lint.type_classes
-import tactic.to_additive
-import tactic.transform_decl
 
 universe u
 

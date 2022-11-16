@@ -6,7 +6,6 @@ Authors: Scott Morrison
 import algebra.category.Mon.basic
 import category_theory.limits.has_limits
 import category_theory.concrete_category.elementwise
-import tactic.equiv_rw
 
 /-!
 # The category of monoids has all colimits.

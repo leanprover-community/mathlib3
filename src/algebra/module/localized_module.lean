@@ -7,8 +7,6 @@ Authors: Andrew Yang, Jujian Zhang
 import group_theory.monoid_localization
 import ring_theory.localization.basic
 import algebra.algebra.restrict_scalars
-import tactic.fin_cases
-import tactic.group
 
 /-!
 # Localized Module

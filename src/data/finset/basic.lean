@@ -8,6 +8,7 @@ import data.multiset.finset_ops
 import algebra.hom.embedding
 import tactic.apply
 import tactic.nth_rewrite
+import tactic.monotonicity
 
 /-!
 # Finite sets

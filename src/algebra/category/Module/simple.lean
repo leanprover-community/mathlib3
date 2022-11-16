@@ -6,20 +6,6 @@ Authors: Pierre-Alexandre Bazin, Scott Morrison
 import category_theory.simple
 import algebra.category.Module.subobject
 import ring_theory.simple_module
-import tactic.cancel_denoms
-import tactic.compute_degree
-import tactic.fin_cases
-import tactic.interval_cases
-import tactic.linarith.datatypes
-import tactic.linarith.default
-import tactic.linarith.elimination
-import tactic.linarith.frontend
-import tactic.linarith.lemmas
-import tactic.linarith.parsing
-import tactic.linarith.preprocessing
-import tactic.linarith.verification
-import tactic.ring_exp
-import tactic.zify
 
 /-!
 # Simple objects in the category of `R`-modules

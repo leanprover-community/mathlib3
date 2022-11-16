@@ -10,7 +10,7 @@ import data.polynomial.coeff
 import linear_algebra.std_basis
 import ring_theory.ideal.local_ring
 import ring_theory.multiplicity
-import tactic.linarith.default
+import tactic.linarith
 
 /-!
 # Formal power series

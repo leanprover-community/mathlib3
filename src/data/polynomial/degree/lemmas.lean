@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.eval
-import tactic.interval_cases
-import tactic.fin_cases
 
 /-!
 # Theory of degrees of polynomials

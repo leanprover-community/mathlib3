@@ -5,13 +5,6 @@ Authors: Aaron Anderson
 -/
 import data.set_like.basic
 import model_theory.semantics
-import tactic.congrm
-import tactic.group
-import tactic.norm_fin
-import tactic.norm_swap
-import tactic.ring
-import tactic.scc
-import tactic.tfae
 
 /-!
 # Definable Sets

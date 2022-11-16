@@ -5,9 +5,7 @@ Authors: Christopher Hoskin
 -/
 import algebra.group_power.basic
 import algebra.order.group.abs
-import tactic.nth_rewrite.default
-import tactic.nth_rewrite.basic
-import tactic.nth_rewrite.congr
+import tactic.nth_rewrite
 
 /-!
 # Lattice ordered groups

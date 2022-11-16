@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import algebra.order.monoid.with_top
 import data.nat.basic
-import tactic.monotonicity.basic
 
 /-!
 # Lemma about the coercion `ℕ → with_bot ℕ`.

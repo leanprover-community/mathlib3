@@ -8,7 +8,6 @@ import data.list.sort
 import data.nat.gcd.basic
 import data.nat.order.lemmas
 import data.set.finite
-import tactic.wlog
 import algebra.parity
 import data.nat.sqrt
 import tactic.norm_num

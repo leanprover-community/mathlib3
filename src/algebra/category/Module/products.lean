@@ -5,8 +5,6 @@ Authors: Scott Morrison
 -/
 import linear_algebra.pi
 import algebra.category.Module.basic
-import tactic.group
-import tactic.ring
 
 /-!
 # The concrete products in the category of modules are products in the categorical sense.

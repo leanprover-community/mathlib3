@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import tactic.elementwise
 import category_theory.concrete_category.basic
-import tactic.fresh_names
 
 /-!
 # Use the `elementwise` attribute to create applied versions of lemmas.

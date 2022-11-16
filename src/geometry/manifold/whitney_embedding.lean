@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import geometry.manifold.diffeomorph
-import geometry.manifold.partition_of_unity
 import geometry.manifold.instances.real
+import geometry.manifold.partition_of_unity
 
 /-!
 # Whitney embedding theorem

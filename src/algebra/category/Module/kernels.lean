@@ -5,7 +5,6 @@ Authors: Markus Himmel
 -/
 import algebra.category.Module.epi_mono
 import category_theory.concrete_category.elementwise
-import tactic.equiv_rw
 
 /-!
 # The concrete (co)kernels in the category of modules are (co)kernels in the categorical sense.

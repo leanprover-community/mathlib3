@@ -58,6 +58,8 @@ namespace karoubi_homological_complex_equivalence
 
 namespace functor
 
+/-- The functor `karoubi (homological_complex C c) ⥤ homological_complex (karoubi C) c`,
+on objects. -/
 @[simps]
 def obj (P : karoubi (homological_complex C c)) : homological_complex (karoubi C) c :=
 { X := λ n, ⟨P.X.X n, P.p.f n, by simpa only [homological_complex.comp_f]
@@ -68,6 +70,8 @@ def obj (P : karoubi (homological_complex C c)) : homological_complex (karoubi C
   shape' := λ i j hij, by simp only [hom_eq_zero_iff,
     P.X.shape i j hij, limits.comp_zero], }
 
+/-- The functor `karoubi (homological_complex C c) ⥤ homological_complex (karoubi C) c`,
+on morphisms. -/
 @[simps]
 def map {P Q : karoubi (homological_complex C c)} (f : P ⟶ Q) : obj P ⟶ obj Q :=
 { f:= λ n,
@@ -76,14 +80,16 @@ def map {P Q : karoubi (homological_complex C c)} (f : P ⟶ Q) : obj P ⟶ obj 
 
 end functor
 
+/-- The functor `karoubi (homological_complex C c) ⥤ homological_complex (karoubi C) c`. -/
 @[simps]
-def functor :
-  karoubi (homological_complex C c) ⥤ homological_complex (karoubi C) c :=
+def functor : karoubi (homological_complex C c) ⥤ homological_complex (karoubi C) c :=
 { obj := functor.obj,
   map := λ P Q f, functor.map f, }
 
 namespace inverse
 
+/-- The functor `homological_complex (karoubi C) c ⥤ karoubi (homological_complex C c)`,
+on objects -/
 @[simps]
 def obj (K : homological_complex (karoubi C) c) : karoubi (homological_complex C c) :=
 { X :=
@@ -97,6 +103,8 @@ def obj (K : homological_complex (karoubi C) c) : karoubi (homological_complex C
       comm' := by simp, },
   idem := by tidy, }
 
+/-- The functor `homological_complex (karoubi C) c ⥤ karoubi (homological_complex C c)`,
+on morphisms -/
 @[simps]
 def map {K L : homological_complex (karoubi C) c} (f : K ⟶ L) : obj K ⟶ obj L :=
 { f:=
@@ -107,16 +115,22 @@ def map {K L : homological_complex (karoubi C) c} (f : K ⟶ L) : obj K ⟶ obj 
 
 end inverse
 
+/-- The functor `homological_complex (karoubi C) c ⥤ karoubi (homological_complex C c)`. -/
 @[simps]
 def inverse :
   homological_complex (karoubi C) c ⥤ karoubi (homological_complex C c) :=
 { obj := inverse.obj,
   map := λ K L f, inverse.map f, }
 
+
+/-- The counit isomoprhism of the equivalence
+`karoubi (homological_complex C c) ≌ homological_complex (karoubi C) c`. -/
 @[simps]
 def counit_iso : inverse ⋙ functor ≅ 𝟭 (homological_complex (karoubi C) c) :=
 eq_to_iso (functor.ext (λ P, homological_complex.ext (by tidy) (by tidy)) (by tidy))
 
+/-- The unit isomoprhism of the equivalence
+`karoubi (homological_complex C c) ≌ homological_complex (karoubi C) c`. -/
 @[simps]
 def unit_iso : 𝟭 (karoubi (homological_complex C c)) ≅ functor ⋙ inverse :=
 { hom :=
@@ -166,6 +180,7 @@ end karoubi_homological_complex_equivalence
 
 variables (C) (c)
 
+/-- The equivalence `karoubi (homological_complex C c) ≌ homological_complex (karoubi C) c`. -/
 @[simps]
 def karoubi_homological_complex_equivalence :
   karoubi (homological_complex C c) ≌ homological_complex (karoubi C) c :=
@@ -176,11 +191,13 @@ def karoubi_homological_complex_equivalence :
 
 variables (α : Type*) [add_right_cancel_semigroup α] [has_one α]
 
+/-- The equivalence `karoubi (chain_complex C α) ≌ chain_complex (karoubi C) α`. -/
 @[simps]
 def karoubi_chain_complex_equivalence :
   karoubi (chain_complex C α) ≌ chain_complex (karoubi C) α :=
 karoubi_homological_complex_equivalence C (complex_shape.down α)
 
+/-- The equivalence `karoubi (cochain_complex C α) ≌ cochain_complex (karoubi C) α`. -/
 @[simps]
 def karoubi_cochain_complex_equivalence :
   karoubi (cochain_complex C α) ≌ cochain_complex (karoubi C) α :=

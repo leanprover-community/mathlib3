@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 
+import tactic.linarith
 import category_theory.skeletal
 import data.fintype.sort
 import order.category.NonemptyFinLinOrd
 import category_theory.functor.reflects_isomorphisms
-import tactic.linarith
 
 /-! # The simplex category
 

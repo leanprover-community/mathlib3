@@ -24,6 +24,10 @@ open equiv function fintype finset
 open_locale big_operators
 variables {α : Type u} {β : Type v}
 
+-- An example on how to determine the order of an element of a finite group.
+example : order_of (-1 : ℤˣ) = 2 :=
+order_of_eq_prime (int.units_sq _) dec_trivial
+
 namespace equiv.perm
 
 /--

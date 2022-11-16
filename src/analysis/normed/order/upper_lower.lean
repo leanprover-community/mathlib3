@@ -3,6 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import algebra.order.field.pi
 import analysis.normed.group.pointwise
 import analysis.normed.order.basic
 import topology.algebra.order.upper_lower
@@ -36,17 +37,6 @@ lemma is_antichain_iff_forall_not_lt : is_antichain (≤) s ↔ ∀ ⦃a⦄, a �
 lemma is_antichain.ord_connected (hs : is_antichain (≤) s) : s.ord_connected :=
 ⟨λ x hx y hy z hz, by { obtain rfl := hs.eq hx hy (hz.1.trans hz.2),
   rw [Icc_self, mem_singleton_iff] at hz, rwa hz }⟩
-
-end
-
-section
-variables {E : Type*} [seminormed_group E]
-
-@[simp, to_additive] lemma dist_mul_self_right (a b : E) : dist b (a * b) = ∥a∥ :=
-by rw [←dist_one_left, ←dist_mul_right 1 a b, one_mul]
-
-@[simp, to_additive] lemma dist_mul_self_left (a b : E) : dist (a * b) b = ∥a∥ :=
-by rw [dist_comm, dist_mul_self_right]
 
 end
 
@@ -139,6 +129,11 @@ by { rw ←ball_mul_one, exact hs.mul_left }
 protected lemma is_upper_set.cthickening' (hs : is_upper_set s) (ε : ℝ) :
   is_upper_set (cthickening ε s) :=
 by { rw cthickening_eq_Inter_thickening'', exact is_upper_set_Inter₂ (λ δ hδ, hs.thickening' _) }
+
+@[to_additive is_lower_set.cthickening]
+protected lemma is_lower_set.cthickening' (hs : is_lower_set s) (ε : ℝ) :
+  is_lower_set (cthickening ε s) :=
+by { rw cthickening_eq_Inter_thickening'', exact is_lower_set_Inter₂ (λ δ hδ, hs.thickening' _) }
 
 @[to_additive upper_closure_interior_subset]
 lemma upper_closure_interior_subset' (s : set α) :

@@ -45,7 +45,7 @@ variables {α β γ : Type*} {ι : Sort*} {κ : ι → Sort*}
 /-! ### Unbundled upper/lower sets -/
 
 section has_le
-variables [has_le α] [has_le β] [has_le β] {s t : set α}
+variables [has_le α] [has_le β] {s t : set α}
 
 /-- An upper set in an order `α` is a set such that any element greater than one of its members is
 also a member. Also called up-set, upward-closed set. -/

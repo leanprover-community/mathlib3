@@ -150,7 +150,7 @@ end
 
 /-- We can rebracket `x ++ (l₁ ++ x) ++ (l₂ ++ x) ++ ... ++ (lₙ ++ x)` to
 `(x ++ l₁) ++ (x ++ l₂) ++ ... ++ (x ++ lₙ) ++ x` where `L = [l₁, l₂, ..., lₙ]`. -/
-@[simp] lemma append_join_append (L : list (list α)) (x : list α) :
+lemma append_join_map_append (L : list (list α)) (x : list α) :
   x ++ (list.map (λ l, l ++ x) L).join = (list.map (λ l, x ++ l) L).join ++ x :=
 begin
   induction L,

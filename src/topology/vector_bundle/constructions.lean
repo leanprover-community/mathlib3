@@ -80,13 +80,13 @@ namespace trivialization
 variables {F₁ E₁ F₂ E₂}
   [Π x, add_comm_monoid (E₁ x)] [Π x, module 𝕜 (E₁ x)]
   [Π x, add_comm_monoid (E₂ x)] [Π x, module 𝕜 (E₂ x)]
-  [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E₂ x)]
   (e₁ : trivialization F₁ (π E₁)) (e₂ : trivialization F₂ (π E₂))
 
 instance prod.is_linear [e₁.is_linear 𝕜] [e₂.is_linear 𝕜] : (e₁.prod e₂).is_linear 𝕜 :=
 { linear := λ x ⟨h₁, h₂⟩, (((e₁.linear 𝕜 h₁).mk' _).prod_map ((e₂.linear 𝕜 h₂).mk' _)).is_linear }
 
-variables {e₁ e₂} [fiber_bundle F₁ E₁] [fiber_bundle F₂ E₂]
+variables {e₁ e₂} [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E₂ x)]
+  [fiber_bundle F₁ E₁] [fiber_bundle F₂ E₂]
 
 lemma prod_apply [e₁.is_linear 𝕜] [e₂.is_linear 𝕜] {x : B} (hx₁ : x ∈ e₁.base_set)
   (hx₂ : x ∈ e₂.base_set) (v₁ : E₁ x) (v₂ : E₂ x) :

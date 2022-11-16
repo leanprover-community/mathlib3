@@ -164,7 +164,7 @@ lemma coe_top [bounded_order α] : ((⊤ : nonempty_interval α) : set α) = uni
 @[simp, norm_cast]
 lemma coe_dual (s : nonempty_interval α) : (s.dual : set αᵒᵈ) = of_dual ⁻¹' s := dual_Icc
 
-lemma subset_coe_map (f : α →o β) (s : nonempty_interval α) : f '' s ⊆ (s.map f : set β) :=
+lemma subset_coe_map (f : α →o β) (s : nonempty_interval α) : f '' s ⊆ s.map f :=
 image_subset_iff.2 $ λ a ha, ⟨f.mono ha.1, f.mono ha.2⟩
 
 end partial_order
@@ -283,7 +283,7 @@ Icc_bot_top
 @[simp, norm_cast] lemma coe_dual (s : interval α) : (s.dual : set αᵒᵈ) = of_dual ⁻¹' s :=
 by { cases s, { refl }, exact s.coe_dual }
 
-lemma subset_coe_map (f : α →o β) : ∀ s : interval α, f '' s ⊆ (s.map f : set β)
+lemma subset_coe_map (f : α →o β) : ∀ s : interval α, f '' s ⊆ s.map f
 | ⊥ := by simp
 | (s : nonempty_interval α) := s.subset_coe_map _
 

@@ -3,6 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import algebra.big_operators.order
 import algebra.order.group.basic
 import data.option.n_ary
 import data.set.pointwise.basic
@@ -360,8 +361,9 @@ def length : α := s.snd - s.fst
 @[simp] lemma length_nonneg : 0 ≤ s.length := sub_nonneg_of_le s.fst_le_snd
 @[simp] lemma length_pure : (pure a).length = 0 := sub_self _
 @[simp] lemma length_zero : (0 : nonempty_interval α).length = 0 := length_pure _
+@[simp] lemma length_neg : (-s).length = s.length := neg_sub_neg _ _
 @[simp] lemma length_add : (s + t).length = s.length + t.length := add_sub_add_comm _ _ _ _
-@[simp] lemma length_sub : (s - t).length = s.length + t.length := by { dsimp [length], abel }
+@[simp] lemma length_sub : (s - t).length = s.length + t.length := by simp [sub_eq_add_neg]
 
 @[simp] lemma length_sum (f : ι → nonempty_interval α) (s : finset ι) :
   (∑ i in s, f i).length = ∑ i in s, (f i).length :=
@@ -382,19 +384,33 @@ def length : interval α → α
 | ⊥ := le_rfl
 | (s : nonempty_interval α) := s.length_nonneg
 @[simp] lemma length_pure : (pure a).length = 0 := nonempty_interval.length_pure _
-@[simp] lemma length_zero : (0 : nonempty_interval α).length = 0 := length_pure _
-@[simp] lemma length_add : ∀ s t : interval α, (s + t).length ≤ s.length + t.length
+@[simp] lemma length_zero : (0 : interval α).length = 0 := length_pure _
+@[simp] lemma length_neg :  ∀ s : interval α, (-s).length = s.length
+| ⊥ := rfl
+| (s : nonempty_interval α) := s.length_neg
+lemma length_add_le : ∀ s t : interval α, (s + t).length ≤ s.length + t.length
 | ⊥ _ := by simp
 | _ ⊥ := by simp
 | (s : nonempty_interval α) (t : nonempty_interval α) := (s.length_add t).le
-@[simp] lemma length_sub : ∀ s t : interval α, (s - t).length ≤ s.length + t.length
-| ⊥ _ := by simp
-| _ ⊥ := by simp
-| (s : nonempty_interval α) (t : nonempty_interval α) := (s.length_sub t).le
+lemma length_sub_le : (s - t).length ≤ s.length + t.length :=
+by simpa [sub_eq_add_neg] using length_add_le s (-t)
 
-@[simp] lemma length_sum_le (f : ι → interval α) (s : finset ι) :
+lemma length_sum_le (f : ι → interval α) (s : finset ι) :
   (∑ i in s, f i).length ≤ ∑ i in s, (f i).length :=
-sorry
+finset.le_sum_of_subadditive _ length_zero length_add_le _ _
 
 end interval
 end length
+
+namespace tactic
+open positivity
+
+/-- Extension for the `positivity` tactic: The length of an interval is always nonnegative. -/
+@[positivity]
+meta def positivity_exp : expr → tactic strictness
+| `(nonempty_interval.length %%s) := nonnegative <$> mk_app `nonempty_interval.length_nonneg [s]
+| `(interval.length %%s) := nonnegative <$> mk_app `interval.length_nonneg [s]
+| e := pp e >>= fail ∘ format.bracket "The expression `"
+         "` isn't of the form `nonempty_interval.length s` or `interval.length s`"
+
+end tactic

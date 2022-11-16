@@ -1,5 +1,5 @@
 import tactic.assert_exists
-import algebra.order.ring.basic
+import algebra.order.ring.defs
 import data.int.basic
 
 assert_exists int

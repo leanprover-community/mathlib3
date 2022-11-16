@@ -1180,7 +1180,7 @@ instance separable_locally_compact_group.sigma_compact_space
 begin
   obtain ⟨L, hLc, hL1⟩ := exists_compact_mem_nhds (1 : G),
   refine ⟨⟨λ n, (λ x, x * dense_seq G n) ⁻¹' L, _, _⟩⟩,
-  { intro n, exact (homeomorph.mul_right _).compact_preimage.mpr hLc },
+  { intro n, exact (homeomorph.mul_right _).is_compact_preimage.mpr hLc },
   { refine Union_eq_univ_iff.2 (λ x, _),
     obtain ⟨_, ⟨n, rfl⟩, hn⟩ : (range (dense_seq G) ∩ (λ y, x * y) ⁻¹' L).nonempty,
     { rw [← (homeomorph.mul_left x).apply_symm_apply 1] at hL1,

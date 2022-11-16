@@ -321,7 +321,7 @@ end
 
 namespace word
 
-@[simp] lemma index_even_a : even_a.index = 2 := by simp [even_a, fst]
+@[simp] lemma index_even_a : even_a.index = 2 := by simp [even_a, fst, subgroup.index_ker]
 
 lemma sq_mem_ker (w : word) : w ^ 2 ∈ even_a := subgroup.sq_mem_of_index_two index_even_a w
 
@@ -395,6 +395,15 @@ lemma weight_prod_le : ∀ l : list word, weight l.prod ≤ (l.map weight).sum
     exact (weight_mul_le _ _).trans (add_le_add_left (weight_prod_le _) _)
   end
 
+/-
+def to_conj_even_aux₁ : ∀ (n : ℕ) (l : list (ℤ₂ ⊕ ℤ₂ × ℤ₂)) (h : l.length = n), list (ℤ₂ ⊕ ℤ₂ × ℤ₂)
+| 0 l h := l
+| 1 l h := l
+| (n + 2) (x :: l) h := if even n then x :: l
+  else if hx : x.is_left = (l.last $ by { rintro rfl, simpa [bit0, ← add_assoc] using h }).is_left
+  then _
+  else _
+
 def to_conj_even_aux : ∀ (n : ℕ) (w : word) (h : w.1.length = n),
   {w' : word // is_conj w w' ∧ (even (length w'.1) ∨ length (w'.1) = 1) ∧
     length w'.1 ≤ n ∧ weight w' ≤ weight w}
@@ -403,6 +412,7 @@ def to_conj_even_aux : ∀ (n : ℕ) (w : word) (h : w.1.length = n),
 | (n + 2) w h :=
   if hn : even n then ⟨w, is_conj.refl _, or.inl $ h.symm ▸ hn.add (even_bit0 _), h.le, le_rfl⟩
   else if hw : w.1.head' = w.1.last' then ⟨⟨init (tail w.1), _, _, _⟩, _⟩ else _
+-/
 
 end word
 

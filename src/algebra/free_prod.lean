@@ -342,8 +342,14 @@ def inr : N →* word M N :=
 lemma to_list_inl {x : M} (hx : x ≠ 1) : (inl x : word M N).to_list = [sum.inl x] :=
 by rw [← of_inl, of, cons', dif_pos]; [refl, exact ⟨mt sum.inl.inj hx, sum.inl_ne_inr⟩]
 
+@[simp] lemma mk_inl (x : M) (h₁ h₂ h₃) : (mk [sum.inl x] h₁ h₂ h₃ : word M N) = inl x :=
+ext _ _ $ eq.symm $ to_list_inl $ by simpa [eq_comm] using h₁
+
 lemma to_list_inr {x : N} (hx : x ≠ 1) : (inr x : word M N).to_list = [sum.inr x] :=
 by rw [← of_inr, of, cons', dif_pos]; [refl, exact ⟨sum.inr_ne_inl, mt sum.inr.inj hx⟩]
+
+@[simp] lemma mk_inr (x : N) (h₁ h₂ h₃) : (mk [sum.inr x] h₁ h₂ h₃ : word M N) = inr x :=
+ext _ _ $ eq.symm $ to_list_inr $ by simpa [eq_comm] using h₂
 
 lemma cons'_mul (x : M ⊕ N) (w₁ w₂ : word M N) (h) : cons' x w₁ h * w₂ = cons x (w₁ * w₂) :=
 begin
@@ -402,6 +408,30 @@ by simp_rw [← mrange_smul_one_hom, monoid_hom.mrange_eq_map, ← free_monoid.c
 @[simp] lemma mclosure_range_inl_union_inr :
   submonoid.closure (range inl ∪ range inr : set (word M N)) = ⊤ :=
 by { rw [← mclosure_range_of, sum.range_eq], refl }
+
+@[simp] lemma mclosure_image_inl_union_inr :
+  submonoid.closure (inl '' {1}ᶜ ∪ inr '' {1}ᶜ : set (word M N)) = ⊤ :=
+by simp_rw [← mclosure_range_inl_union_inr, ← image_univ, ← union_compl_self ({1} : set M),
+  ← union_compl_self ({1} : set N), image_union, image_singleton, map_one, submonoid.closure_union,
+  submonoid.closure_singleton_one, bot_sup_eq]
+
+def swap : word M N →* word N M :=
+begin
+  refine monoid_hom.of_mclosure_eq_top_left
+    (λ w, ⟨w.1.map sum.swap, by simp [w.3], by simp [w.2], _⟩) mclosure_image_inl_union_inr _ _,
+  { refine chain'_map_of_chain' sum.swap (λ a b, _) w.4,
+    simp [on_fun, ← sum.bnot_is_right, bool.eq_bnot_iff] },
+  { refl },
+  { rintro _ (⟨x, hx : x ≠ 1, rfl⟩|⟨x, hx : x ≠ 1, rfl⟩) w,
+    { simp only [to_list_inl hx, list.map, sum.swap_inl, mk_inr],
+ }
+ }
+-- { to_fun := λ w, ⟨w.1.map sum.swap, by simp [w.3], by simp [w.2],
+--     by { refine chain'_map_of_chain' sum.swap (λ a b, _) w.4,
+--          simp [on_fun, ← sum.bnot_is_right, bool.eq_bnot_iff] }⟩,
+--   map_one' := rfl,
+--   map_mul' := λ w₁ w₂, _ }
+end
 
 instance : has_inv (word G H) :=
 ⟨λ w, ⟨(w.to_list.map (sum.map has_inv.inv has_inv.inv)).reverse,
@@ -739,6 +769,16 @@ lemma to_list_coe_z2_prod_mker_fst (w : word M M) :
   (w.z2_prod_mker_fst : word ℤ₂ M).to_list =
     (w.to_list.map (sum.elim (λ x, [sum.inl σ, sum.inr x, sum.inl σ]) (λ x, [sum.inr x]))).join :=
 z2_prod_mker_fst_aux₂_eq_join _
+
+lemma z2_prod_mker_fst_symm_conj_a (w : (fst : word ℤ₂ M →* ℤ₂).mker) :
+  (z2_prod_mker_fst.symm ⟨inl σ * (w : word ℤ₂ M) * inl σ, by simpa only [monoid_hom.mem_mker,
+    map_mul fst, fst_apply_inl, mul_right_comm _ _ σ] using w.2⟩).1 =
+    (z2_prod_mker_fst.symm w).1.map sum.swap :=
+begin
+  change z2_prod_mker_fst_aux₁ _ ff = (z2_prod_mker_fst_aux₁ _ ff).map sum.swap,
+  cases w with w hw, simp only [subtype.coe_mk], clear hw,
+  
+end
 
 end word
 

@@ -869,7 +869,7 @@ noncomputable def quot_annihilator_equiv (W : subspace K V) :
   W.dual_restrict.quot_ker_equiv_of_surjective dual_restrict_surjective
 
 @[simp] lemma quot_annihilator_equiv_apply (W : subspace K V) (φ : module.dual K V) :
-  W.quot_annihilator_equiv.to_linear_map (submodule.quotient.mk φ) = W.dual_restrict φ :=
+  W.quot_annihilator_equiv (submodule.quotient.mk φ) = W.dual_restrict φ :=
 by { ext, refl }
 
 /-- The natural isomorphism forom the dual of a subspace `W` to `W.dual_lift.range`. -/

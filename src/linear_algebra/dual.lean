@@ -167,7 +167,7 @@ module.dual.transpose f
 
 lemma linear_map.dual_map_def (f : M₁ →ₗ[R] M₂) : f.dual_map = module.dual.transpose f := rfl
 
-lemma linear_map.dual_map_apply' (f : M₁ →ₗ[R] M₂) (g : dual R M₂) (x : M₁) :
+lemma linear_map.dual_map_apply' (f : M₁ →ₗ[R] M₂) (g : dual R M₂) :
   f.dual_map g = g.comp f :=
 module.dual.transpose_apply f g
 

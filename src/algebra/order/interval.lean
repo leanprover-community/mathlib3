@@ -17,10 +17,10 @@ in `data.fp.basic`. We hsve not yet integrated these with the rest of the librar
 -/
 
 open function set
-open_locale pointwise
+open_locale big_operators pointwise
 
 universe u
-variables {α : Type*}
+variables {ι α : Type*}
 
 /-! ### One/zero -/
 
@@ -36,7 +36,8 @@ namespace nonempty_interval
 @[simp, to_additive to_prod_zero] lemma to_prod_one : (1 : nonempty_interval α).to_prod = 1 := rfl
 @[to_additive] lemma fst_one : (1 : nonempty_interval α).fst = 1 := rfl
 @[to_additive] lemma snd_one : (1 : nonempty_interval α).snd = 1 := rfl
-@[simp, norm_cast, to_additive] lemma coe_one : ((1 : nonempty_interval α) : interval α) = 1 := rfl
+@[simp, norm_cast, to_additive]
+lemma coe_one_interval : ((1 : nonempty_interval α) : interval α) = 1 := rfl
 @[simp, to_additive] lemma pure_one : pure (1 : α) = 1 := rfl
 
 end nonempty_interval
@@ -53,10 +54,19 @@ end preorder
 section partial_order
 variables [partial_order α] [has_one α]
 
-@[simp, to_additive]
-lemma nonempty_interval.coe_set_one : ((1 : nonempty_interval α) : set α) = 1 := Icc_self _
-@[simp, to_additive] lemma interval.coe_one : ((1 : interval α) : set α) = 1 := Icc_self _
+namespace nonempty_interval
 
+@[simp, to_additive] lemma coe_one : ((1 : nonempty_interval α) : set α) = 1 := coe_pure _
+@[to_additive] lemma one_mem_one : (1 : α) ∈ (1 : nonempty_interval α) := ⟨le_rfl, le_rfl⟩
+
+end nonempty_interval
+
+namespace interval
+
+@[simp, to_additive] lemma coe_one : ((1 : interval α) : set α) = 1 := Icc_self _
+@[to_additive] lemma one_mem_one : (1 : α) ∈ (1 : interval α) := ⟨le_rfl, le_rfl⟩
+
+end interval
 end partial_order
 end one
 
@@ -81,7 +91,7 @@ variables (s t : nonempty_interval α) (a b : α)
 @[simp, to_additive to_prod_add] lemma to_prod_mul : (s * t).to_prod = s.to_prod * t.to_prod := rfl
 @[to_additive] lemma fst_mul : (s * t).fst = s.fst * t.fst := rfl
 @[to_additive] lemma snd_mul : (s * t).snd = s.snd * t.snd := rfl
-@[simp, to_additive] lemma coe_mul : (↑(s * t) : interval α) = s * t := rfl
+@[simp, to_additive] lemma coe_mul_interval : (↑(s * t) : interval α) = s * t := rfl
 @[simp, to_additive] lemma pure_mul_pure : pure a * pure b = pure (a * b) := rfl
 
 end nonempty_interval
@@ -145,9 +155,10 @@ instance [ordered_comm_monoid α] : comm_monoid (interval α) :=
 
 namespace nonempty_interval
 
-@[simp, to_additive] lemma coe_pow [ordered_comm_monoid α] (s : nonempty_interval α) (n : ℕ) :
+@[simp, to_additive] lemma coe_pow_interval [ordered_comm_monoid α] (s : nonempty_interval α)
+  (n : ℕ) :
   (↑(s ^ n) : interval α) = s ^ n :=
-map_pow (⟨coe, coe_one, coe_mul⟩ : nonempty_interval α →* interval α) _ _
+map_pow (⟨coe, coe_one_interval, coe_mul_interval⟩ : nonempty_interval α →* interval α) _ _
 
 end nonempty_interval
 
@@ -177,12 +188,14 @@ instance : has_sub (nonempty_interval α) :=
 instance : has_sub (interval α) := ⟨option.map₂ has_sub.sub⟩
 
 namespace nonempty_interval
-variables (s t : nonempty_interval α) (a b : α)
+variables (s t : nonempty_interval α) {a b : α}
 
 @[simp] lemma fst_sub : (s - t).fst = s.fst - t.snd := rfl
 @[simp] lemma snd_sub : (s - t).snd = s.snd - t.fst := rfl
-@[simp] lemma coe_sub : (↑(s - t) : interval α) = s - t := rfl
-@[simp] lemma pure_sub_pure : pure a - pure b = pure (a - b) := rfl
+@[simp] lemma coe_sub_interval : (↑(s - t) : interval α) = s - t := rfl
+lemma sub_mem_sub (ha : a ∈ s) (hb : b ∈ t) : a - b ∈ s - t :=
+⟨tsub_le_tsub ha.1 hb.2, tsub_le_tsub ha.2 hb.1⟩
+@[simp] lemma pure_sub_pure (a b : α) : pure a - pure b = pure (a - b) := rfl
 
 end nonempty_interval
 
@@ -214,7 +227,9 @@ variables (s t : nonempty_interval α) (a b : α)
 
 @[simp, to_additive] lemma fst_div : (s / t).fst = s.fst / t.snd := rfl
 @[simp, to_additive] lemma snd_div : (s / t).snd = s.snd / t.fst := rfl
-@[simp, to_additive] lemma coe_div : (↑(s / t) : interval α) = s / t := rfl
+@[simp, to_additive] lemma coe_div_interval : (↑(s / t) : interval α) = s / t := rfl
+@[to_additive] lemma div_mem_div (ha : a ∈ s) (hb : b ∈ t) : a / b ∈ s / t :=
+⟨div_le_div'' ha.1 hb.2, div_le_div'' ha.2 hb.1⟩
 @[simp, to_additive] lemma pure_div_pure : pure a / pure b = pure (a / b) := rfl
 
 end nonempty_interval
@@ -243,7 +258,8 @@ variables (s t : nonempty_interval α) (a : α)
 
 @[simp, to_additive] lemma fst_inv : s⁻¹.fst = s.snd⁻¹ := rfl
 @[simp, to_additive] lemma snd_inv : s⁻¹.snd = s.fst⁻¹ := rfl
-@[simp, to_additive] lemma coe_inv : (↑(s⁻¹) : interval α) = s⁻¹ := rfl
+@[simp, to_additive] lemma coe_inv_interval : (↑(s⁻¹) : interval α) = s⁻¹ := rfl
+@[to_additive] lemma inv_mem_inv (ha : a ∈ s) : a⁻¹ ∈ s⁻¹ := ⟨inv_le_inv' ha.2, inv_le_inv' ha.1⟩
 @[simp, to_additive] lemma inv_pure : (pure a)⁻¹ = pure a⁻¹ := rfl
 
 end nonempty_interval
@@ -304,7 +320,8 @@ begin
   { simp [with_bot.none_eq_bot] },
   cases t,
   { simp [with_bot.none_eq_bot] },
-  { simp [with_bot.some_eq_coe, ←nonempty_interval.coe_mul, nonempty_interval.mul_eq_one_iff] }
+  { simp [with_bot.some_eq_coe, ←nonempty_interval.coe_mul_interval,
+    nonempty_interval.mul_eq_one_iff] }
 end
 
 instance {α : Type u} [ordered_add_comm_group α] : subtraction_comm_monoid (interval α) :=
@@ -334,14 +351,50 @@ section length
 variables [ordered_add_comm_group α]
 
 namespace nonempty_interval
-variables (s t : nonempty_interval α)
+variables (s t : nonempty_interval α) (a : α)
 
 /-- The length of an interval is its first component minus its second component. This measures the
 accuracy of the approximation by an interval. -/
 def length : α := s.snd - s.fst
 
+@[simp] lemma length_nonneg : 0 ≤ s.length := sub_nonneg_of_le s.fst_le_snd
+@[simp] lemma length_pure : (pure a).length = 0 := sub_self _
+@[simp] lemma length_zero : (0 : nonempty_interval α).length = 0 := length_pure _
 @[simp] lemma length_add : (s + t).length = s.length + t.length := add_sub_add_comm _ _ _ _
 @[simp] lemma length_sub : (s - t).length = s.length + t.length := by { dsimp [length], abel }
 
+@[simp] lemma length_sum (f : ι → nonempty_interval α) (s : finset ι) :
+  (∑ i in s, f i).length = ∑ i in s, (f i).length :=
+map_sum (⟨length, length_zero, length_add⟩ : nonempty_interval α →+ α) _ _
+
 end nonempty_interval
+
+namespace interval
+variables (s t : interval α) (a : α)
+
+/-- The length of an interval is its first component minus its second component. This measures the
+accuracy of the approximation by an interval. -/
+def length : interval α → α
+| ⊥ := 0
+| (s : nonempty_interval α) := s.length
+
+@[simp] lemma length_nonneg : ∀ s : interval α, 0 ≤ s.length
+| ⊥ := le_rfl
+| (s : nonempty_interval α) := s.length_nonneg
+@[simp] lemma length_pure : (pure a).length = 0 := nonempty_interval.length_pure _
+@[simp] lemma length_zero : (0 : nonempty_interval α).length = 0 := length_pure _
+@[simp] lemma length_add : ∀ s t : interval α, (s + t).length ≤ s.length + t.length
+| ⊥ _ := by simp
+| _ ⊥ := by simp
+| (s : nonempty_interval α) (t : nonempty_interval α) := (s.length_add t).le
+@[simp] lemma length_sub : ∀ s t : interval α, (s - t).length ≤ s.length + t.length
+| ⊥ _ := by simp
+| _ ⊥ := by simp
+| (s : nonempty_interval α) (t : nonempty_interval α) := (s.length_sub t).le
+
+@[simp] lemma length_sum_le (f : ι → interval α) (s : finset ι) :
+  (∑ i in s, f i).length ≤ ∑ i in s, (f i).length :=
+sorry
+
+end interval
 end length

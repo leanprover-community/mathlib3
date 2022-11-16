@@ -73,12 +73,24 @@ def dual : nonempty_interval α ≃ nonempty_interval αᵒᵈ :=
 end has_le
 
 section preorder
-variables [preorder α] [preorder β] [preorder γ] [preorder δ]
+variables [preorder α] [preorder β] [preorder γ] [preorder δ] {s : nonempty_interval α} {x : α × α}
+  {a : α}
 
 instance : preorder (nonempty_interval α) := preorder.lift to_dual_prod
 
+instance : has_coe_t (nonempty_interval α) (set α) := ⟨λ s, Icc s.fst s.snd⟩
+@[priority 100] instance : has_mem α (nonempty_interval α) := ⟨λ a s, a ∈ (s : set α)⟩
+
+@[simp] lemma mem_mk {hx : x.1 ≤ x.2} : a ∈ mk x hx ↔ x.1 ≤ a ∧ a ≤ x.2 := iff.rfl
+lemma mem_def : a ∈ s ↔ s.fst ≤ a ∧ a ≤ s.snd := iff.rfl
+
+@[simp] lemma coe_nonempty (s : nonempty_interval α) : (s : set α).nonempty :=
+nonempty_Icc.2 s.fst_le_snd
+
 /-- `{a}` as an interval. -/
 @[simps] def pure (a : α) : nonempty_interval α := ⟨⟨a, a⟩, le_rfl⟩
+
+lemma mem_pure_self (a : α) : a ∈ pure a := ⟨le_rfl, le_rfl⟩
 
 lemma pure_injective : injective (pure : α → nonempty_interval α) :=
 λ s t, congr_arg $ prod.fst ∘ to_prod
@@ -124,7 +136,7 @@ instance : order_top (nonempty_interval α) :=
 end preorder
 
 section partial_order
-variables [partial_order α] [partial_order β] {s t : nonempty_interval α} {x : α × α} {a : α}
+variables [partial_order α] [partial_order β] {s t : nonempty_interval α} {x : α × α} {a b : α}
 
 instance : partial_order (nonempty_interval α) := partial_order.lift _ to_dual_prod_injective
 
@@ -136,18 +148,15 @@ instance : set_like (nonempty_interval α) α :=
 { coe := λ s, Icc s.fst s.snd,
   coe_injective' := coe_hom.injective }
 
-@[simp] lemma mem_mk {hx : x.1 ≤ x.2} : a ∈ mk x hx ↔ x.1 ≤ a ∧ a ≤ x.2 := iff.rfl
-lemma mem_def : a ∈ s ↔ s.fst ≤ a ∧ a ≤ s.snd := iff.rfl
-
 @[simp, norm_cast] lemma coe_subset_coe : (s : set α) ⊆ t ↔ s ≤ t := (@coe_hom α _).le_iff_le
 @[simp, norm_cast] lemma coe_ssubset_coe : (s : set α) ⊂ t ↔ s < t := (@coe_hom α _).lt_iff_lt
 
-@[simp] lemma coe_nonempty (s : nonempty_interval α) : (s : set α).nonempty :=
-nonempty_Icc.2 s.fst_le_snd
-
 @[simp] lemma coe_coe_hom : (coe_hom : nonempty_interval α → set α) = coe := rfl
 
-@[simp, norm_cast] lemma coe_pure (s : α) : (pure s : set α) = {s} := Icc_self _
+@[simp, norm_cast] lemma coe_pure (a : α) : (pure a : set α) = {a} := Icc_self _
+
+@[simp] lemma mem_pure : b ∈ pure a ↔ b = a :=
+by rw [←set_like.mem_coe, coe_pure, mem_singleton_iff]
 
 @[simp, norm_cast]
 lemma coe_top [bounded_order α] : ((⊤ : nonempty_interval α) : set α) = univ := Icc_bot_top
@@ -244,7 +253,7 @@ instance : bounded_order (interval α) := with_bot.bounded_order
 end preorder
 
 section partial_order
-variables [partial_order α] {s t : interval α}
+variables [partial_order α] [partial_order β] {s t : interval α} {a b : α}
 
 instance : partial_order (interval α) := with_bot.partial_order
 
@@ -273,6 +282,14 @@ instance : set_like (interval α) α :=
 Icc_bot_top
 @[simp, norm_cast] lemma coe_dual (s : interval α) : (s.dual : set αᵒᵈ) = of_dual ⁻¹' s :=
 by { cases s, { refl }, exact s.coe_dual }
+
+lemma subset_coe_map (f : α →o β) : ∀ s : interval α, f '' s ⊆ (s.map f : set β)
+| ⊥ := by simp
+| (s : nonempty_interval α) := s.subset_coe_map _
+
+@[simp] lemma mem_pure : b ∈ pure a ↔ b = a :=
+by rw [←set_like.mem_coe, coe_pure, mem_singleton_iff]
+lemma mem_pure_self (a : α) : a ∈ pure a := mem_pure.2 rfl
 
 end partial_order
 

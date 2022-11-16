@@ -79,8 +79,8 @@ def finsubgraph_hom_functor (G : simple_graph V) (F : simple_graph W) :
 
 /-- If every finite subgraph of a graph `G` has a homomorphism to a finite graph `F`, then there is
 a homomorphism from the whole of `G` to `F`. -/
-lemma exists_hom_of_all_finite_homs [finite W]
-  (h : Π (G' : G.finsubgraph), G' →fg F) : nonempty (G →g F) :=
+lemma nonempty_hom_of_forall_finite_subgraph_hom [finite W]
+  (h : Π (G' : G.subgraph), G'.verts.finite → G'.coe →g F) : nonempty (G →g F) :=
 begin
   /- Obtain a `fintype` instance for `W`. -/
   casesI nonempty_fintype W,
@@ -91,7 +91,7 @@ begin
                               by { simp_rw [← subtype.coe_le_coe, subtype.coe_mk],
                                    exact ⟨le_sup_left, le_sup_right⟩ }⟩⟩,
   haveI : ∀ (G' : (G.finsubgraph)ᵒᵖ), nonempty ((finsubgraph_hom_functor G F).obj G') :=
-    λ G', ⟨h G'.unop⟩,
+    λ G', ⟨h G'.unop G'.unop.property⟩,
   haveI : Π (G' : (G.finsubgraph)ᵒᵖ), fintype ((finsubgraph_hom_functor G F).obj G') :=
   begin
     intro G',

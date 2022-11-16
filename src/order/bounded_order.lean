@@ -1527,8 +1527,7 @@ end partial_bounded_order
 section semilattice_inf_bot
 variables [semilattice_inf α] [order_bot α] {a b c d : α}
 
-lemma 
-_inf_le : disjoint a b ↔ a ⊓ b ≤ ⊥ :=
+lemma disjoint_iff_inf_le : disjoint a b ↔ a ⊓ b ≤ ⊥ :=
 ⟨λ hd, hd inf_le_left inf_le_right, λ h x ha hb, (le_inf ha hb).trans h⟩
 lemma disjoint_iff : disjoint a b ↔ a ⊓ b = ⊥ := disjoint_iff_inf_le.trans le_bot_iff
 lemma disjoint.le_bot : disjoint a b → a ⊓ b ≤ ⊥ := disjoint_iff_inf_le.mp

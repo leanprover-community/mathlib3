@@ -1527,7 +1527,8 @@ end partial_bounded_order
 section semilattice_inf_bot
 variables [semilattice_inf α] [order_bot α] {a b c d : α}
 
-lemma disjoint_iff_inf_le : disjoint a b ↔ a ⊓ b ≤ ⊥ :=
+lemma 
+_inf_le : disjoint a b ↔ a ⊓ b ≤ ⊥ :=
 ⟨λ hd, hd inf_le_left inf_le_right, λ h x ha hb, (le_inf ha hb).trans h⟩
 lemma disjoint_iff : disjoint a b ↔ a ⊓ b = ⊥ := disjoint_iff_inf_le.trans le_bot_iff
 lemma disjoint.le_bot : disjoint a b → a ⊓ b ≤ ⊥ := disjoint_iff_inf_le.mp
@@ -1815,7 +1816,7 @@ end is_compl
 namespace prod
 variables [partial_order α] [partial_order β]
 
-lemma disjoint_iff [order_bot α] [order_bot β] {x y : α × β} :
+protected lemma disjoint_iff [order_bot α] [order_bot β] {x y : α × β} :
   disjoint x y ↔ disjoint x.1 y.1 ∧ disjoint x.2 y.2 :=
 begin
   split,
@@ -1826,11 +1827,11 @@ begin
     refine ⟨ha hza.1 hzb.1, hb hza.2 hzb.2⟩ },
 end
 
-lemma codisjoint_iff [order_top α] [order_top β] {x y : α × β} :
+protected lemma codisjoint_iff [order_top α] [order_top β] {x y : α × β} :
   codisjoint x y ↔ codisjoint x.1 y.1 ∧ codisjoint x.2 y.2 :=
 @disjoint_iff αᵒᵈ βᵒᵈ _ _ _ _ _ _
 
-lemma is_compl_iff [bounded_order α] [bounded_order β]
+protected lemma is_compl_iff [bounded_order α] [bounded_order β]
   {x y : α × β} :
   is_compl x y ↔ is_compl x.1 y.1 ∧ is_compl x.2 y.2 :=
 by simp_rw [is_compl_iff, disjoint_iff, codisjoint_iff, and_and_and_comm]

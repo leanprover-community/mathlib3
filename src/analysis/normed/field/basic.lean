@@ -3,6 +3,7 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
+import algebra.algebra.subalgebra.basic
 import analysis.normed.group.infinite_sum
 import topology.algebra.module.basic
 import topology.instances.ennreal
@@ -896,6 +897,8 @@ instance ring_hom_isometric.ids : ring_hom_isometric (ring_hom.id R₁) :=
 
 end ring_hom_isometric
 
+/-! ### Induced normed structures -/
+
 section induced
 
 variables {F : Type*} (R S : Type*)
@@ -989,3 +992,28 @@ lemma norm_one_class.induced {F : Type*} (R S : Type*) [ring R] [semi_normed_rin
 { norm_one := (congr_arg norm (map_one f)).trans norm_one }
 
 end induced
+
+namespace subring_class
+
+variables {S R : Type*} [set_like S R]
+
+instance to_semi_normed_ring [semi_normed_ring R] [subring_class S R] (s : S) :
+  semi_normed_ring s :=
+semi_normed_ring.induced s R (subring_class.subtype s)
+
+instance to_normed_ring [normed_ring R] [subring_class S R] (s : S) :
+  normed_ring s :=
+normed_ring.induced s R (subring_class.subtype s) subtype.val_injective
+
+instance to_semi_normed_comm_ring [semi_normed_comm_ring R] [h : subring_class S R] (s : S) :
+  semi_normed_comm_ring s :=
+{ mul_comm := mul_comm, .. subring_class.to_semi_normed_ring s }
+
+instance to_normed_comm_ring [normed_comm_ring R] [subring_class S R] (s : S) :
+  normed_comm_ring s :=
+{ mul_comm := mul_comm, .. subring_class.to_normed_ring s }
+
+end subring_class
+
+-- Guard again import creep.
+assert_not_exists restrict_scalars

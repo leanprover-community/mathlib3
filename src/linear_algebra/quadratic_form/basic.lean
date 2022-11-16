@@ -929,7 +929,7 @@ begin
     { rw [is_ortho, hB₂],
       exact (v' j).prop _ (submodule.mem_span_singleton_self x) },
     { exact (v' i).prop _ (submodule.mem_span_singleton_self x) },
-    { exact hv₁ _ _ (ne_of_apply_ne _ hij), }, }
+    { exact hv₁ (ne_of_apply_ne _ hij), }, }
 end
 
 end bilin_form
@@ -986,7 +986,7 @@ begin
   { rw [smul_left, smul_right, smul_eq_mul], ring },
   { intros i _ hij,
     rw [smul_left, smul_right,
-        show associated_hom R₁ Q (v j) (v i) = 0, from hv₂ j i hij.symm,
+        show associated_hom R₁ Q (v j) (v i) = 0, from hv₂ hij.symm,
         mul_zero, mul_zero] },
 end
 

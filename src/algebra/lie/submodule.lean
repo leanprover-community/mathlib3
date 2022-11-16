@@ -584,7 +584,7 @@ by simpa only [← lie_submodule.coe_to_submodule_eq_iff, lie_submodule.coe_subm
 lemma comap_incl_eq_bot : N₂.comap N.incl = ⊥ ↔ N ⊓ N₂ = ⊥ :=
 by simpa only [_root_.eq_bot_iff, ← lie_submodule.coe_to_submodule_eq_iff,
   lie_submodule.coe_submodule_comap, lie_submodule.incl_coe, lie_submodule.bot_coe_submodule,
-  ← submodule.disjoint_iff_comap_eq_bot]
+  ← submodule.disjoint_iff_comap_eq_bot, disjoint_iff]
 
 end lie_submodule
 

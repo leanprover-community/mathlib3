@@ -10,6 +10,7 @@ import algebra.module.pi
 import ring_theory.power_series.basic
 import data.finsupp.pwo
 import data.finset.mul_antidiagonal
+import algebra.order.group.with_top
 
 /-!
 # Hahn Series
@@ -1013,7 +1014,7 @@ power_series.coeff_mk _ _
 lemma coeff_to_power_series_symm {f : power_series R} {n : ℕ} :
   (hahn_series.to_power_series.symm f).coeff n = power_series.coeff R n f := rfl
 
-variables (Γ) (R) [strict_ordered_semiring Γ] [nontrivial Γ]
+variables (Γ R) [strict_ordered_semiring Γ]
 
 /-- Casts a power series as a Hahn series with coefficients from an `strict_ordered_semiring`. -/
 def of_power_series : (power_series R) →+* hahn_series Γ R :=
@@ -1132,7 +1133,8 @@ variables (R) [comm_semiring R] {A : Type*} [semiring A] [algebra R A]
   end,
   .. to_power_series }
 
-variables (Γ) (R) [strict_ordered_semiring Γ] [nontrivial Γ]
+variables (Γ R) [strict_ordered_semiring Γ]
+
 /-- Casting a power series as a Hahn series with coefficients from an `strict_ordered_semiring`
   is an algebra homomorphism. -/
 @[simps] def of_power_series_alg : (power_series A) →ₐ[R] hahn_series Γ A :=

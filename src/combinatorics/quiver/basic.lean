@@ -139,7 +139,10 @@ section push
 ### Pushing the quiver structure on `V` along a map `V → W`
 -/
 
-/-- The `quiver` instance obtained by pushing arrows of `V` along the map `σ : V → W` -/
+/-- 
+A type synonym for the (underlying set of objects of a) quiver 
+obtained by pushing arrows of `V` along the map `σ : V → W` 
+-/
 @[nolint unused_arguments]
 def push {V : Type u} [quiver V] {W : Type u₂} (σ : V → W) := W
 
@@ -155,6 +158,7 @@ inductive push_quiver {V : Type u} [quiver.{v} V] {W : Type u₂} (σ : V → W)
   W → W → Type (max u u₂ v)
 | arrow {X Y : V} (f : X ⟶ Y) : push_quiver (σ X) (σ Y)
 
+/-- The `quiver` instance obtained by pushing arrows of `V` along the map `σ : V → W` -/
 instance : quiver (push σ) := ⟨λ X Y, push_quiver σ X Y⟩
 
 /-- The prefunctor induced by pushing arrows via `σ` -/

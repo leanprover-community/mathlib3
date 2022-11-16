@@ -734,6 +734,37 @@ by { ext, simp [face_points] }
   {m : ℕ} (h : fs.card = m + 1) : set.range (s.face h).points = s.points '' ↑fs :=
 by rw [face_points', set.range_comp, finset.range_order_emb_of_fin]
 
+/-- Remap a simplex along an `equiv` of index types. -/
+@[simps]
+def reindex {m n : ℕ} (s : simplex k P m) (e : fin (m + 1) ≃ fin (n + 1)) : simplex k P n :=
+⟨s.points ∘ e.symm, (affine_independent_equiv e.symm).2 s.independent⟩
+
+/-- Reindexing by `equiv.refl` yields the original simplex. -/
+@[simp] lemma reindex_refl {n : ℕ} (s : simplex k P n) :
+  s.reindex (equiv.refl (fin (n + 1))) = s :=
+ext $ λ _, rfl
+
+/-- Reindexing by the composition of two equivalences is the same as reindexing twice. -/
+@[simp] lemma reindex_trans {n₁ n₂ n₃ : ℕ} (e₁₂ : fin (n₁ + 1) ≃ fin (n₂ + 1))
+  (e₂₃ : fin (n₂ + 1) ≃ fin (n₃ + 1)) (s : simplex k P n₁) :
+  s.reindex (e₁₂.trans e₂₃) = (s.reindex e₁₂).reindex e₂₃ :=
+rfl
+
+/-- Reindexing by an equivalence and its inverse yields the original simplex. -/
+@[simp] lemma reindex_reindex_symm {m n : ℕ} (s : simplex k P m) (e : fin (m + 1) ≃ fin (n + 1)) :
+  (s.reindex e).reindex e.symm = s :=
+by rw [←reindex_trans, equiv.self_trans_symm, reindex_refl]
+
+/-- Reindexing by the inverse of an equivalence and that equivalence yields the original simplex. -/
+@[simp] lemma reindex_symm_reindex {m n : ℕ} (s : simplex k P m) (e : fin (n + 1) ≃ fin (m + 1)) :
+  (s.reindex e.symm).reindex e = s :=
+by rw [←reindex_trans, equiv.symm_trans_self, reindex_refl]
+
+/-- Reindexing a simplex produces one with the same set of points. -/
+@[simp] lemma reindex_range_points {m n : ℕ} (s : simplex k P m) (e : fin (m + 1) ≃ fin (n + 1)) :
+  set.range (s.reindex e).points = set.range s.points :=
+by rw [reindex, set.range_comp, equiv.range_eq_univ, set.image_univ]
+
 end simplex
 
 end affine

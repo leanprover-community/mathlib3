@@ -47,13 +47,13 @@ example (α : Type u) [ordered_add_comm_group α] : covariant_class α α (swap 
 add_right_cancel_semigroup.covariant_swap_add_lt_of_covariant_swap_add_le α
 
 /-- A choice-free shortcut instance. -/
-@[to_additive]
+@[to_additive "A choice-free shortcut instance."]
 instance ordered_comm_group.to_contravariant_class_left_le (α : Type u) [ordered_comm_group α] :
   contravariant_class α α (*) (≤) :=
 { elim := λ a b c bc, by simpa using mul_le_mul_left' bc a⁻¹, }
 
 /-- A choice-free shortcut instance. -/
-@[to_additive]
+@[to_additive "A choice-free shortcut instance."]
 instance ordered_comm_group.to_contravariant_class_right_le (α : Type u) [ordered_comm_group α] :
   contravariant_class α α (swap (*)) (≤) :=
 { elim := λ a b c bc, by simpa using mul_le_mul_right' bc a⁻¹, }

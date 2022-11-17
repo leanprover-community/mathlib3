@@ -466,17 +466,16 @@ trans (prod_eq_pow_card l 1 hl) (one_pow l.length)
 lemma exists_mem_ne_one_of_prod_ne_one [monoid M] {l : list M} (h : l.prod ≠ 1) :
   ∃ (x ∈ l), x ≠ (1 : M) :=
 begin
-  by_contra hf, push_neg at hf,
+  by_contra hf, push_neg at hf, -- `by_contra'` is not visible here
   exact h (prod_eq_one hf),
 end
 
 /-- If a product of integers is `-1`, then at least one factor must be `-1`. -/
-lemma exists_mem_eq_neg_one_of_prod_eq_neg_one {l : list ℤ} (h : l.prod = -1) :
-  ∃ (x ∈ l), x = (-1 : ℤ) :=
+lemma exists_mem_eq_neg_one_of_prod_eq_neg_one {l : list ℤ} (h : l.prod = -1) : (-1 : ℤ) ∈ l :=
 begin
   obtain ⟨x, h₁, h₂⟩ := exists_mem_ne_one_of_prod_ne_one (ne_of_eq_of_ne h dec_trivial),
-  exact ⟨x, h₁, or.resolve_left (int.is_unit_iff.mp
-               (prod_is_unit_iff.mp (h.symm ▸ is_unit.neg is_unit_one : is_unit l.prod) x h₁)) h₂⟩,
+  exact or.resolve_left (int.is_unit_iff.mp (prod_is_unit_iff.mp
+         (h.symm ▸ is_unit.neg is_unit_one : is_unit l.prod) x h₁)) h₂ ▸ h₁,
 end
 
 /-- If all elements in a list are bounded below by `1`, then the length of the list is bounded

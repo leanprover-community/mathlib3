@@ -818,20 +818,20 @@ begin
     rw [int.cast_coe_nat, int.cast_coe_nat, nat_cast_self, sub_zero, nat_cast_zmod_val], }
 end
 
-lemma zmod.val_min_abs_neg_of_ne_half {n : ℕ} {a : zmod n} (ha : a.val ≠ n / 2) :
+lemma val_min_abs_neg_of_ne_half {n : ℕ} {a : zmod n} (ha : a.val ≠ n / 2) :
   (-a).val_min_abs = -a.val_min_abs :=
 begin
   cases n, { refl },
   simp only [zmod.val_min_abs_def_pos, zmod.neg_val],
-  split_ifs with h h' h'' h'' h' h'' h'';
-    try { subst h, simp only [zmod.nat_cast_self, nat.cast_succ, zero_sub, neg_add_rev,
-      zmod.val_zero, neg_zero', neg_neg, zero_le', not_true, ne.def] at *}; try { contradiction },
-  { exfalso, apply not_le.mpr (lt_of_le_of_ne h'' ha) (nat.half_le_of_sub_le_half h') },
+  split_ifs with h h' h'' h'' h' h'' h''; try { subst h },
+  { simp },
+  { contradiction },
+  { contradiction },
+  { simp only [zero_le', not_true] at h', contradiction },
+  { exfalso, exact not_le.mpr (lt_of_le_of_ne h'' ha) (nat.half_le_of_sub_le_half h') },
   { rw [neg_sub, nat.cast_sub], apply le_of_lt (zmod.val_lt a) },
-  { rw [nat.cast_sub (le_of_lt (zmod.val_lt a))], simp only [sub_sub_cancel_left] },
-  { exfalso, clear ha,
-    rw [not_le] at h',
-    exact h'' (nat.le_half_of_half_lt_sub h') }
+  { rw [nat.cast_sub (le_of_lt (zmod.val_lt a))], apply sub_sub_cancel_left },
+  { exfalso, exact h'' (nat.le_half_of_half_lt_sub (not_le.mp h')) }
 end
 
 @[simp] lemma nat_abs_val_min_abs_neg {n : ℕ} (a : zmod n) :

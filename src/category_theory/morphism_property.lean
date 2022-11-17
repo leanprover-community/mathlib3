@@ -523,10 +523,10 @@ variable (C)
 /-- Injectiveness (in a concrete category) as a `morphism_property` -/
 protected def injective : morphism_property C := λ X Y f, injective f
 
-/-- Injectiveness (in a concrete category) as a `morphism_property` -/
+/-- Surjectiveness (in a concrete category) as a `morphism_property` -/
 protected def surjective : morphism_property C := λ X Y f, surjective f
 
-/-- Injectiveness (in a concrete category) as a `morphism_property` -/
+/-- Bijectiveness (in a concrete category) as a `morphism_property` -/
 protected def bijective : morphism_property C := λ X Y f, bijective f
 
 lemma bijective_eq_sup : morphism_property.bijective C =

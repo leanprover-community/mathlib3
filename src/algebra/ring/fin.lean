@@ -5,10 +5,7 @@ Authors: Anne Baanen
 -/
 import logic.equiv.fin
 import algebra.ring.equiv
-<<<<<<< HEAD
 import algebra.group.prod
-=======
->>>>>>> origin/master
 
 /-!
 # Rings and `fin`

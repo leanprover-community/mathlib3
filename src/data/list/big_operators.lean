@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Floris van Doorn, Sébastien Gouëzel, Alex J. Best
 import algebra.group.opposite
 import algebra.group_power.basic
 import algebra.group_with_zero.commute
+import algebra.ring.basic
 import algebra.ring.commute
 import data.int.basic
 import data.list.count

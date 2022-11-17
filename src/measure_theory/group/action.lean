@@ -64,6 +64,13 @@ instance is_mul_left_invariant.to_smul_invariant_measure [measurable_space G] [h
   [has_measurable_mul G] {μ : measure G} [μ.is_mul_left_invariant] : smul_invariant_measure G G μ :=
 ⟨λ g s hs, by simp_rw [smul_eq_mul, ←map_apply (measurable_const_mul g) hs, map_mul_left_eq_self]⟩
 
+@[to_additive]
+instance is_mul_right_invariant.to_smul_invariant_measure_op [measurable_space G] [has_mul G]
+  [has_measurable_mul G] {μ : measure G} [μ.is_mul_right_invariant] :
+  smul_invariant_measure Gᵐᵒᵖ G μ :=
+⟨λ g s hs, by simp_rw [mul_opposite.smul_eq_mul_unop, ←map_apply (measurable_mul_const _) hs,
+  map_mul_right_eq_self]⟩
+
 variables (G) {m : measurable_space α} [measurable_space β] [group G] [mul_action G α]
   [mul_action G β] [measurable_space G] [has_measurable_smul G α] [has_measurable_smul G β] (c : G)
   (μ : measure α) (ν : measure β)

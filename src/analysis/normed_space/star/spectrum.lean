@@ -5,8 +5,8 @@ Authors: Jireh Loreaux
 -/
 import analysis.normed_space.star.basic
 import analysis.normed_space.spectrum
-import algebra.star.module
 import analysis.normed_space.star.exponential
+import analysis.special_functions.exponential
 import algebra.star.star_alg_hom
 
 /-! # Spectral properties in C⋆-algebras
@@ -186,6 +186,18 @@ noncomputable instance : star_hom_class F A ℂ :=
 /-- This is not an instance to avoid type class inference loops. See
 `weak_dual.complex.star_hom_class`. -/
 noncomputable def _root_.alg_hom_class.star_alg_hom_class : star_alg_hom_class F ℂ A ℂ :=
-{ .. hF, .. weak_dual.complex.star_hom_class }
+{ coe := λ f, f,
+  .. weak_dual.complex.star_hom_class,
+  .. hF }
+
+omit hF
+
+namespace character_space
+
+noncomputable instance : star_alg_hom_class (character_space ℂ A) ℂ A ℂ :=
+{ coe := λ f, f,
+  .. alg_hom_class.star_alg_hom_class }
+
+end character_space
 
 end weak_dual

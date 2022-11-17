@@ -5,7 +5,8 @@ Authors: Eric Wieser
 -/
 import algebra.star.pi
 import algebra.star.prod
-import topology.algebra.group
+import topology.algebra.constructions
+import topology.continuous_function.basic
 
 /-!
 # Continuity of `star`

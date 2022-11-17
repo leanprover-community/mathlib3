@@ -5,8 +5,7 @@ Authors: Jean Lo, Bhavik Mehta, Yaël Dillies
 -/
 import analysis.convex.basic
 import analysis.convex.hull
-import analysis.normed_space.lattice_ordered_group
-import analysis.normed_space.ordered
+import analysis.normed_space.basic
 
 /-!
 # Local convexity

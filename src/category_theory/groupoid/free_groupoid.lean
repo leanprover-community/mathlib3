@@ -6,9 +6,6 @@ Authors: Rémi Bottinelli
 import category_theory.category.basic
 import category_theory.functor.basic
 import category_theory.groupoid
-import combinatorics.quiver.basic
-import combinatorics.quiver.connected_component
-import logic.relation
 import tactic.nth_rewrite
 import category_theory.path_category
 import category_theory.quotient
@@ -37,7 +34,7 @@ and finally quotienting by the reducibility relation.
 
 -/
 
-open set classical function relation
+open set classical function
 local attribute [instance] prop_decidable
 
 namespace category_theory
@@ -70,9 +67,9 @@ inductive red_step : hom_rel (paths (quiver.symmetrify V))
     red_step (𝟙 X) (f.to_path ≫ (quiver.reverse f).to_path)
 
 /-- The underlying vertices of the free groupoid -/
-def _root_.category_theory.free_groupoid (V) [Q : quiver.{v+1} V] := quotient (@red_step V Q)
+def _root_.category_theory.free_groupoid (V) [Q : quiver V] := quotient (@red_step V Q)
 
-instance {V} [Q : quiver.{v+1} V] [h : nonempty V] : nonempty (free_groupoid V) := ⟨⟨h.some⟩⟩
+instance {V} [Q : quiver V] [h : nonempty V] : nonempty (free_groupoid V) := ⟨⟨h.some⟩⟩
 
 lemma congr_reverse {X Y : paths $ quiver.symmetrify V} (p q : X ⟶ Y) :
   quotient.comp_closure red_step p q →
@@ -132,7 +129,7 @@ instance : groupoid (free_groupoid V) :=
   comp_inv' := λ X Y p, quot.induction_on p $ λ pp, congr_comp_reverse pp }
 
 /-- The inclusion of the quiver on `V` to the underlying quiver on `free_groupoid V`-/
-def of (V) [quiver.{v+1} V] : prefunctor V (free_groupoid V) :=
+def of (V) [quiver V] : prefunctor V (free_groupoid V) :=
 { obj := λ X, ⟨X⟩,
   map := λ X Y f, quot.mk _ f.to_pos_path }
 
@@ -175,7 +172,7 @@ begin
   apply quiver.symmetrify.lift_unique,
   { rw ←functor.to_prefunctor_comp, exact hΦ, },
   { rintros X Y f,
-    simp [←functor.to_prefunctor_comp,prefunctor.comp_map, paths.of_map, inv_eq_inv],
+    simp only [←functor.to_prefunctor_comp,prefunctor.comp_map, paths.of_map, inv_eq_inv],
     change Φ.map (inv ((quotient.functor red_step).to_prefunctor.map f.to_path)) =
            inv (Φ.map ((quotient.functor red_step).to_prefunctor.map f.to_path)),
     have := functor.map_inv Φ ((quotient.functor red_step).to_prefunctor.map f.to_path),

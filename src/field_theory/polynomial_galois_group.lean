@@ -402,8 +402,9 @@ begin
   { apply congr_arg finset.card,
     simp_rw [finset.ext_iff, finset.mem_union, ha, hb, hc],
     tauto },
-  { intro z,
-    rw [finset.inf_eq_inter, finset.mem_inter, hb, hc],
+  { rw finset.disjoint_left,
+    intros z,
+    rw [hb, hc],
     tauto },
   { apply_instance },
 end

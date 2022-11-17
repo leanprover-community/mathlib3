@@ -5,7 +5,6 @@ Authors: Andrew Yang
 -/
 import algebra.gcd_monoid.basic
 import ring_theory.integrally_closed
-import ring_theory.polynomial.scale_roots
 import ring_theory.polynomial.eisenstein
 
 /-!
@@ -22,11 +21,12 @@ lemma is_localization.surj_of_gcd_domain (M : submonoid R) [is_localization M A]
   ∃ a b : R, is_unit (gcd a b) ∧ z * algebra_map R A b = algebra_map R A a :=
 begin
   obtain ⟨x, ⟨y, hy⟩, rfl⟩ := is_localization.mk'_surjective M z,
-  obtain ⟨x', y', d, rfl, rfl, hu⟩ := extract_gcd x y,
+  obtain ⟨x', y', hx', hy', hu⟩ := extract_gcd x y,
   use [x', y', hu],
   rw [mul_comm, is_localization.mul_mk'_eq_mk'_of_mul],
   convert is_localization.mk'_mul_cancel_left _ _ using 2,
-  { rw [← mul_assoc, mul_comm y'], refl }, { apply_instance },
+  { rw [subtype.coe_mk, hy', ← mul_comm y', mul_assoc], conv_lhs { rw hx' } },
+  { apply_instance },
 end
 
 @[priority 100]

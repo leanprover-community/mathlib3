@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import measure_theory.function.convergence_in_measure
+import measure_theory.function.l1_space
 
 /-!
 # Uniform integrability
@@ -675,6 +676,7 @@ begin
         rw [← inter_union_distrib_left, (by { ext, simp [le_or_lt] } :
           {x : α | C ≤ ∥f i x∥₊} ∪ {x : α | ∥f i x∥₊ < C} = set.univ), inter_univ] },
       { refine (disjoint.inf_right' _ _).inf_left' _,
+        rw disjoint_iff_inf_le,
         rintro x ⟨hx₁ : _ ≤ _, hx₂ : _ < _⟩,
         exact false.elim (hx₂.ne (eq_of_le_of_not_lt hx₁ (not_lt.2 hx₂.le)).symm) }
     end

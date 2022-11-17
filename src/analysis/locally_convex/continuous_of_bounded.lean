@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll
 -/
 import analysis.locally_convex.bounded
-import analysis.normed_space.is_R_or_C
+import data.complex.is_R_or_C
 
 /-!
 # Continuity and Von Neumann boundedness

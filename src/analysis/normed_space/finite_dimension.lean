@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.asymptotics.asymptotic_equivalent
+import analysis.normed_space.add_torsor
 import analysis.normed_space.affine_isometry
 import analysis.normed_space.operator_norm
 import analysis.normed_space.riesz_lemma
@@ -209,7 +210,7 @@ end
 lemma linear_map.exists_antilipschitz_with [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F)
   (hf : f.ker = ⊥) : ∃ K > 0, antilipschitz_with K f :=
 begin
-  cases subsingleton_or_nontrivial E; resetI,
+  casesI subsingleton_or_nontrivial E,
   { exact ⟨1, zero_lt_one, antilipschitz_with.of_subsingleton⟩ },
   { rw linear_map.ker_eq_bot at hf,
     let e : E ≃L[𝕜] f.range := (linear_equiv.of_injective f hf).to_continuous_linear_equiv,
@@ -511,6 +512,27 @@ begin
   simpa using h.image this,
 end
 
+/-- If a function has compact multiplicative support, then either the function is trivial or the
+space if finite-dimensional. -/
+@[to_additive "If a function has compact support, then either the function is trivial or the
+space if finite-dimensional."]
+lemma has_compact_mul_support.eq_one_or_finite_dimensional {X : Type*}
+  [topological_space X] [has_one X] [t2_space X]
+  {f : E → X} (hf : has_compact_mul_support f) (h'f : continuous f) :
+  f = 1 ∨ finite_dimensional 𝕜 E :=
+begin
+  by_cases h : ∀ x, f x = 1, { apply or.inl, ext x, exact h x },
+  apply or.inr,
+  push_neg at h,
+  obtain ⟨x, hx⟩ : ∃ x, f x ≠ 1, from h,
+  have : function.mul_support f ∈ 𝓝 x, from h'f.is_open_mul_support.mem_nhds hx,
+  obtain ⟨r, rpos, hr⟩ : ∃ (r : ℝ) (hi : 0 < r), metric.closed_ball x r ⊆ function.mul_support f,
+    from metric.nhds_basis_closed_ball.mem_iff.1 this,
+  have : is_compact (metric.closed_ball x r),
+    from is_compact_of_is_closed_subset hf metric.is_closed_ball (hr.trans (subset_mul_tsupport _)),
+  exact finite_dimensional_of_is_compact_closed_ball 𝕜 rpos this,
+end
+
 end riesz
 
 /-- An injective linear map with finite-dimensional domain is a closed embedding. -/
@@ -644,7 +666,7 @@ begin
     rcases hx' with ⟨r, hr₀, hrK⟩,
     haveI : finite_dimensional ℝ E,
       from finite_dimensional_of_is_compact_closed_ball ℝ hr₀
-        (compact_of_is_closed_subset hK metric.is_closed_ball hrK),
+        (is_compact_of_is_closed_subset hK metric.is_closed_ball hrK),
     exact exists_mem_frontier_inf_dist_compl_eq_dist hx hK.ne_univ },
   { refine ⟨x, hx', _⟩,
     rw frontier_eq_closure_inter_closure at hx',

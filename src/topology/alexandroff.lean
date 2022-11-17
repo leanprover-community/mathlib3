@@ -149,7 +149,7 @@ instance : topological_space (alexandroff X) :=
     suffices : is_open (coe ⁻¹' ⋃₀ S : set X),
     { refine ⟨_, this⟩,
       rintro ⟨s, hsS : s ∈ S, hs : ∞ ∈ s⟩,
-      refine compact_of_is_closed_subset ((ho s hsS).1 hs) this.is_closed_compl _,
+      refine is_compact_of_is_closed_subset ((ho s hsS).1 hs) this.is_closed_compl _,
       exact compl_subset_compl.mpr (preimage_mono $ subset_sUnion_of_mem hsS) },
     rw [preimage_sUnion],
     exact is_open_bUnion (λ s hs, (ho s hs).2)
@@ -356,7 +356,7 @@ Finally, if the original space `X` is *not* compact and is a preconnected space,
 
 /-- For any topological space `X`, its one point compactification is a compact space. -/
 instance : compact_space (alexandroff X) :=
-{ compact_univ :=
+{ is_compact_univ :=
   begin
     have : tendsto (coe : X → alexandroff X) (cocompact X) (𝓝 ∞),
     { rw [nhds_infty_eq],

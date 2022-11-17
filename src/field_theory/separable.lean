@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import algebra.polynomial.big_operators
 import algebra.squarefree
-import field_theory.minpoly
-import field_theory.splitting_field
 import data.polynomial.expand
+import data.polynomial.splits
+import field_theory.minpoly
+import ring_theory.power_basis
 
 /-!
 
@@ -168,7 +168,7 @@ end
 
 lemma separable_prod {ι : Sort*} [fintype ι] {f : ι → R[X]}
   (h1 : pairwise (is_coprime on f)) (h2 : ∀ x, (f x).separable) : (∏ x, f x).separable :=
-separable_prod' (λ x hx y hy hxy, h1 x y hxy) (λ x hx, h2 x)
+separable_prod' (λ x hx y hy hxy, h1 hxy) (λ x hx, h2 x)
 
 lemma separable.inj_of_prod_X_sub_C [nontrivial R] {ι : Sort*} {f : ι → R} {s : finset ι}
   (hfs : (∏ i in s, (X - C (f i))).separable)

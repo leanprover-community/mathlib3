@@ -1,9 +1,6 @@
 import analysis.inner_product_space.orientation
 import measure_theory.measure.haar_lebesgue
 
-open finite_dimensional measure_theory measure_theory.measure set
-
-
 /-!
 # Volume forms and measures on inner product space
 
@@ -14,6 +11,7 @@ measure `1` to the parallelogram spanned by any orthonormal basis, and that it c
 the canonical `volume` from the `measure_space` instance.
 -/
 
+open finite_dimensional measure_theory measure_theory.measure set
 
 variables {ι F : Type*} [fintype ι] [inner_product_space ℝ F] [finite_dimensional ℝ F]
 [measurable_space F] [borel_space F]

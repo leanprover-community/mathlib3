@@ -75,9 +75,17 @@ end
 
 /- The parallelogram associated to the standard orthonormal basis of `ℝ` is either `[-1, 0]`
 or `[0, 1]`. -/
-lemma parallelogram_std_orthonormal_basis_one_dim (v : orthonormal_basis ι ℝ ℝ) :
-  parallelogram v = Icc 0 1 ∨ parallelogram v = Icc (-1) 0 :=
+lemma parallelogram_orthonormal_basis_one_dim (b : orthonormal_basis ι ℝ ℝ) :
+  parallelogram b = Icc 0 1 ∨ parallelogram b = Icc (-1) 0 :=
 begin
+  have e : ι ≃ fin 1,
+  { apply fintype.equiv_fin_of_card_eq,
+    simp only [← finrank_eq_card_basis b.to_basis, finrank_self] },
+  have B : parallelogram (b.reindex e) = parallelogram b,
+  { convert parallelogram_comp b e.symm,
+    ext i,
+    simp only [orthonormal_basis.coe_reindex] },
+  rw ← B,
   let F : ℝ → (fin 1 → ℝ) := λ t, (λ i, t),
   have A : Icc (0 : fin 1 → ℝ) 1 = F '' (Icc (0 : ℝ) 1),
   { apply subset.antisymm,
@@ -87,24 +95,15 @@ begin
       simp only [subsingleton.elim j 0] },
     { rintros x ⟨y, hy, rfl⟩,
       exact ⟨λ j, hy.1, λ j, hy.2⟩ } },
-  rcases std_orthonormal_basis_one_dim with H|H,
+  rcases orthonormal_basis_one_dim (b.reindex e) with H|H,
   { left,
-    rw H,
-    simp only [parallelogram, algebra.id.smul_eq_mul, mul_one],
-    generalize h : finrank ℝ ℝ = a,
-    simp only [finrank_self] at h,
-    induction h,
-    rw A,
-    simp only [finset.sum_singleton, ←image_comp, image_id', finset.univ_unique], },
+    simp only [H, parallelogram, algebra.id.smul_eq_mul, mul_one, A,
+      finset.sum_singleton, ←image_comp, image_id', finset.univ_unique], },
   { right,
-    rw H,
-    simp only [parallelogram, algebra.id.smul_eq_mul, mul_one],
-    generalize h : finrank ℝ ℝ = a,
-    simp only [finrank_self] at h,
-    induction h,
+    simp only [H, parallelogram, algebra.id.smul_eq_mul, mul_one],
     rw A,
     simp only [←image_comp, mul_neg, mul_one, finset.sum_singleton, image_neg, preimage_neg_Icc,
-      neg_zero, finset.univ_unique], },
+      neg_zero, finset.univ_unique] },
 end
 
 end add_comm_group

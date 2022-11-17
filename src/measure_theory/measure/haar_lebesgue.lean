@@ -203,8 +203,8 @@ begin
     real.map_linear_map_volume_pi_eq_smul_volume_pi hf, smul_comm],
 end
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E]
+  [borel_space E] [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
 
 lemma map_linear_map_add_haar_eq_smul_add_haar
   {f : E →ₗ[ℝ] E} (hf : f.det ≠ 0) :

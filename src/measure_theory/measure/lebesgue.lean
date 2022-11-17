@@ -50,7 +50,7 @@ begin
   have A : stieltjes_function.id.measure
     (std_orthonormal_basis ℝ ℝ).to_basis.parallelogram = 1,
   { change stieltjes_function.id.measure (parallelogram (std_orthonormal_basis ℝ ℝ)) = 1,
-    rcases parallelogram_std_orthonormal_basis_one_dim with H|H;
+    rcases parallelogram_orthonormal_basis_one_dim (std_orthonormal_basis ℝ ℝ) with H|H;
     simp only [H, stieltjes_function.measure_Icc, stieltjes_function.id_apply, id.def, tsub_zero,
       stieltjes_function.id_left_lim, sub_neg_eq_add, zero_add, ennreal.of_real_one] },
   conv_rhs { rw [add_haar_measure_unique stieltjes_function.id.measure

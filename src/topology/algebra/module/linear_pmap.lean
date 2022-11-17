@@ -181,3 +181,40 @@ begin
 end
 
 end linear_pmap
+
+/-! ### Densely defined linear operators -/
+
+/-- A densely defined operator is a `linear_pmap R E F` bundled with the proposition that the domain
+is dense in `E`-/
+structure dense_linear_pmap (R E F : Type*) [comm_ring R] [add_comm_group E] [add_comm_group F]
+  [module R E] [module R F] [topological_space E] [topological_space F] extends E →ₗ.[R] F :=
+(dense : dense (domain : set E))
+
+notation E ` →ₗ'[`:25 R:25 `] `:0 F:0 := dense_linear_pmap R E F
+
+namespace dense_linear_pmap
+
+instance : has_coe (E →ₗ'[R] F) (E →ₗ.[R] F) := ⟨λ f, f.to_linear_pmap⟩
+
+-- make the coercion the preferred form
+@[simp] lemma to_linear_map_eq_coe (f : E →ₗ'[R] F) : f.to_linear_pmap = f := rfl
+
+@[simp] lemma coe_apply (f : E →ₗ'[R] F) {x : f.domain} :
+  (↑f : E →ₗ.[R] F) x = f x := rfl
+
+@[simp] lemma to_linear_pmap_apply (f : E →ₗ'[R] F) {x : f.domain} :
+  f.to_linear_pmap x = f x := rfl
+
+theorem coe_injective : function.injective (coe : (E →ₗ'[R] F) → (E →ₗ.[R] F)) :=
+by { intros f g H, cases f, cases g, congr' }
+
+@[simp] lemma coe_domain (f : E →ₗ'[R] F) : (f : E →ₗ.[R] F).domain = f.domain := rfl
+
+instance : has_coe_to_fun (E →ₗ'[R] F)
+  (λ f : E →ₗ'[R] F, f.domain → F) :=
+⟨λ f, f.to_fun⟩
+
+@[simp] lemma to_fun_eq_coe (f : E →ₗ'[R] F) (x : f.domain) :
+  f.to_fun x = f x := rfl
+
+end dense_linear_pmap

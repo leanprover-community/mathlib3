@@ -74,7 +74,7 @@ units.ext $ by rwa [units.coe_pow, units.coe_of_pow_eq_one, units.coe_one]
 
 @[to_additive] lemma is_unit_of_pow_eq_one {x : M} {n : ℕ} (hx : x ^ n = 1) (hn : n ≠ 0) :
   is_unit x :=
-(is_unit_pow_iff hn).1 (hx.symm ▸ is_unit_one)
+(units.of_pow_eq_one x n hx hn).is_unit
 
 /-- If `x ^ n = 1` then `x` has an inverse, `x^(n - 1)`. -/
 def invertible_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : n ≠ 0) :

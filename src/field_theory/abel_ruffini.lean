@@ -106,7 +106,7 @@ begin
   rw [mem_root_set hn'', alg_hom.map_sub, aeval_X_pow, aeval_one, sub_eq_zero] at ha,
   have key : ∀ σ : (X ^ n - 1 : F[X]).gal, ∃ m : ℕ, σ a = a ^ m,
   { intro σ,
-    lift n to ℕ+ using hn.bot_lt,
+    lift n to ℕ+ using hn',
     exact map_root_of_unity_eq_pow_self σ.to_alg_hom
       ⟨unit_of_pow_eq_one a n ha hn, by { rw [mem_roots_of_unity, pow_unit_of_pow_eq_one] }⟩ },
   obtain ⟨c, hc⟩ := key σ,

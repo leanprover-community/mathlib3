@@ -3,10 +3,9 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import measure_theory.group.measurable_equiv
-import measure_theory.measure.regular
-import dynamics.ergodic.measure_preserving
 import dynamics.minimal
+import measure_theory.group.measure
+import measure_theory.measure.regular
 
 /-!
 # Measures invariant under group actions
@@ -22,7 +21,7 @@ open measure_theory measure_theory.measure set function
 
 namespace measure_theory
 
-variables {G M α : Type*}
+variables {G M α β : Type*}
 
 /-- A measure `μ : measure α` is invariant under an additive action of `M` on `α` if for any
 measurable set `s : set α` and `c : M`, the measure of its preimage under `λ x, c +ᵥ x` is equal to
@@ -60,8 +59,14 @@ smul_invariant_measure.smul c
 
 end smul_invariant_measure
 
-variables (G) {m : measurable_space α} [group G] [mul_action G α] [measurable_space G]
-  [has_measurable_smul G α] (c : G) (μ : measure α)
+@[to_additive]
+instance is_mul_left_invariant.to_smul_invariant_measure [measurable_space G] [has_mul G]
+  [has_measurable_mul G] {μ : measure G} [μ.is_mul_left_invariant] : smul_invariant_measure G G μ :=
+⟨λ g s hs, by simp_rw [smul_eq_mul, ←map_apply (measurable_const_mul g) hs, map_mul_left_eq_self]⟩
+
+variables (G) {m : measurable_space α} [measurable_space β] [group G] [mul_action G α]
+  [mul_action G β] [measurable_space G] [has_measurable_smul G α] [has_measurable_smul G β] (c : G)
+  (μ : measure α) (ν : measure β)
 
 /-- Equivalent definitions of a measure invariant under a multiplicative action of a group.
 
@@ -180,5 +185,13 @@ by rw [← not_iff_not, ← ne.def, ← pos_iff_ne_zero,
   measure_pos_iff_nonempty_of_smul_invariant G hμ hU, ← ne_empty_iff_nonempty]
 
 end is_minimal
+
+@[to_additive] instance subgroup.smul_invariant_measure [has_measurable_mul G] {μ : measure G}
+  [μ.is_mul_left_invariant] {Γ : subgroup G} : smul_invariant_measure Γ G μ :=
+⟨λ c s hs, measure_preimage_mul μ _ s⟩
+
+@[to_additive] instance subgroup.smul_invariant_measure_op [has_measurable_mul G] {μ : measure G}
+  [μ.is_mul_right_invariant] {Γ : subgroup G} : smul_invariant_measure Γ.opposite G μ :=
+⟨λ c s hs, measure_preimage_mul_right μ _ s⟩
 
 end measure_theory

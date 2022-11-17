@@ -30,7 +30,7 @@ We deduce basic properties of any Haar measure on a finite dimensional real vect
 * `add_haar_closed_ball`: the measure of `closed_ball x r` is `r ^ dim * μ (ball 0 1)`.
 * `add_haar_sphere`: spheres have zero measure.
 
-This makes it possible to associate a Lebesgue measure to an `n`-alternate map in dimension `n`.
+This makes it possible to associate a Lebesgue measure to an `n`-alternating map in dimension `n`.
 This measure is called `alternating_map.measure`. Its main property is
 `ω.measure_parallelogram v`, stating that the associated measure of the parallelogram spanned
 by vectors `v₁, ..., vₙ` is given by `|ω v|`.

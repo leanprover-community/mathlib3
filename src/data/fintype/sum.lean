@@ -10,7 +10,7 @@ import logic.embedding.set
 /-!
 ## Instances
 
-We provide the `fintype` instance fort he sum of two fintypes.
+We provide the `fintype` instance for the sum of two fintypes.
 -/
 
 universes u v

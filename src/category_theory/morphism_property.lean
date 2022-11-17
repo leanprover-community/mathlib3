@@ -560,8 +560,6 @@ lemma bijective_respects_iso :
 (bijective_stable_under_composition C).respects_iso
   (λ X Y e, ((forget C).map_iso e).to_equiv.bijective)
 
-variable {C}
-
 end bijective
 
 end morphism_property

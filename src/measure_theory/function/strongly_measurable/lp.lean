@@ -5,7 +5,7 @@ Authors: Rémy Degenne
 -/
 
 import measure_theory.function.simple_func_dense_lp
-import measure_theory.function.strongly_measurable
+import measure_theory.function.strongly_measurable.basic
 
 /-!
 # Finitely strongly measurable functions in `Lp`

@@ -6,7 +6,7 @@ Authors: Eric Wieser
 
 import linear_algebra.pi_tensor_product
 import logic.equiv.fin
-import algebra.direct_sum.algebra
+import algebra.graded_monoid
 
 /-!
 # Tensor power of a semimodule over a commutative semirings
@@ -47,7 +47,7 @@ localized "notation (name := tensor_power)
   `⨂[`:100 R `]^`:80 n:max := tensor_power R n" in tensor_product
 
 namespace tensor_power
-open_locale tensor_product direct_sum
+open_locale tensor_product
 open pi_tensor_product
 
 /-- As a graded monoid, `⨂[R]^i M` has a `1 : ⨂[R]^0 M`. -/

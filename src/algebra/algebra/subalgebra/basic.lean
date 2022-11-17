@@ -1057,35 +1057,40 @@ end centralizer
 /-- Suppose we are given `∑ i, lᵢ * sᵢ = 1` in `S`, and `S'` a subalgebra of `S` that contains
 `lᵢ` and `sᵢ`. To check that an `x : S` falls in `S'`, we only need to show that
 `r ^ n • x ∈ M'` for some `n` for each `r : s`. -/
+lemma mem_of_finset_sum_eq_one_of_pow_smul_mem {S : Type*} [comm_ring S]
+  [algebra R S] (S' : subalgebra R S) {ι : Type*} (ι' : finset ι) (s : ι → S) (l : ι → S)
+  (e : ∑ i in ι', l i * s i = 1)
+  (hs : ∀ i, s i ∈ S') (hl : ∀ i, l i ∈ S') (x : S)
+  (H : ∀ i, ∃ (n : ℕ), (s i ^ n : S) • x ∈ S') : x ∈ S' :=
+begin
+  classical,
+  suffices : x ∈ (algebra.of_id S' S).range.to_submodule,
+  { obtain ⟨x, rfl⟩ := this, exact x.2 },
+  choose n hn using H,
+  let s' : ι → S' := λ x, ⟨s x, hs x⟩,
+  have : ideal.span (s' '' ι')= ⊤,
+  { rw [ideal.eq_top_iff_one, ideal.span, finsupp.mem_span_iff_total],
+    refine ⟨(finsupp.of_support_finite (λ i : ι', (⟨l i, hl i⟩ : S')) (set.to_finite _))
+      .map_domain $ λ i, ⟨s' i, i, i.2, rfl⟩, S'.to_submodule.injective_subtype _⟩,
+    rw [finsupp.total_map_domain, finsupp.total_apply, finsupp.sum_fintype,
+      map_sum, submodule.subtype_apply, subalgebra.coe_one],
+    { exact finset.sum_attach.trans e },
+    { exact λ _, zero_smul _ _ } },
+  let N := ι'.sup n,
+  have hs' := ideal.span_pow_eq_top _ this N,
+  apply (algebra.of_id S' S).range.to_submodule.mem_of_span_top_of_smul_mem _ hs',
+  rintros ⟨_, _, ⟨i, hi, rfl⟩, rfl⟩,
+  change s i ^ N • x ∈ _,
+  rw [← tsub_add_cancel_of_le (show n i ≤ N, from finset.le_sup hi), pow_add, mul_smul],
+  refine submodule.smul_mem _ (⟨_, pow_mem (hs i) _⟩ : S') _,
+  exact ⟨⟨_, hn i⟩, rfl⟩,
+end
+
 lemma mem_of_span_eq_top_of_smul_pow_mem {S : Type*} [comm_ring S] [algebra R S]
   (S' : subalgebra R S) (s : set S) (l : s →₀ S) (hs : finsupp.total s S S coe l = 1)
   (hs' : s ⊆ S') (hl : ∀ i, l i ∈ S') (x : S)
   (H : ∀ r : s, ∃ (n : ℕ), (r ^ n : S) • x ∈ S') : x ∈ S' :=
-begin
-  let s' : set S' := coe ⁻¹' s,
-  let e : s' ≃ s := ⟨λ x, ⟨x.1, x.2⟩, λ x, ⟨⟨_, hs' x.2⟩, x.2⟩, λ ⟨⟨_, _⟩, _⟩, rfl, λ ⟨_, _⟩, rfl⟩,
-  let l' : s →₀ S' := ⟨l.support, λ x, ⟨_, hl x⟩,
-    λ _, finsupp.mem_support_iff.trans $ iff.not $ by { rw ← subtype.coe_inj, refl }⟩,
-  have : ideal.span s' = ⊤,
-  { rw [ideal.eq_top_iff_one, ideal.span, finsupp.mem_span_iff_total],
-    refine ⟨finsupp.equiv_map_domain e.symm l', subtype.ext $ eq.trans _ hs⟩,
-    rw finsupp.total_equiv_map_domain,
-    exact finsupp.apply_total _ (algebra.of_id S' S).to_linear_map _ _ },
-  obtain ⟨s'', hs₁, hs₂⟩ := (ideal.span_eq_top_iff_finite _).mp this,
-  replace H : ∀ r : s'', ∃ (n : ℕ), (r ^ n : S) • x ∈ S' := λ r, H ⟨r, hs₁ r.2⟩,
-  choose n₁ n₂ using H,
-  let N := s''.attach.sup n₁,
-  have hs' := ideal.span_pow_eq_top _ hs₂ N,
-  have : ∀ {x : S}, x ∈ (algebra.of_id S' S).range.to_submodule ↔ x ∈ S' :=
-    λ x, ⟨by { rintro ⟨x, rfl⟩, exact x.2 }, λ h, ⟨⟨x, h⟩, rfl⟩⟩,
-  rw ← this,
-  apply (algebra.of_id S' S).range.to_submodule.mem_of_span_top_of_smul_mem _ hs',
-  rintro ⟨_, r, hr, rfl⟩,
-  convert submodule.smul_mem _ (r ^ (N - n₁ ⟨r, hr⟩)) (this.mpr $ n₂ ⟨r, hr⟩) using 1,
-  simp only [_root_.coe_coe, subtype.coe_mk,
-    subalgebra.smul_def, smul_smul, ← pow_add, subalgebra.coe_pow],
-  rw tsub_add_cancel_of_le (finset.le_sup (s''.mem_attach _) : n₁ ⟨r, hr⟩ ≤ N),
-end
+mem_of_finset_sum_eq_one_of_pow_smul_mem S' l.support coe l hs (λ x, hs' x.2) hl x H
 
 end subalgebra
 

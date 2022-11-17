@@ -5,7 +5,7 @@ Authors: Kyle Miller
 -/
 import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.subgraph
-import data.list
+import data.list.rotate
 /-!
 
 # Graph connectivity

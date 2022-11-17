@@ -3,9 +3,7 @@ Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Sébastien Gouëzel
 -/
-import measure_theory.function.ess_sup
-import measure_theory.integral.mean_inequalities
-import topology.continuous_function.compact
+import analysis.normed_space.bounded_linear_maps
 import topology.metric_space.metrizable
 import measure_theory.function.simple_func_dense
 
@@ -825,11 +823,6 @@ lemma _root_.measurable_embedding.exists_strongly_measurable_extend
   hg.strongly_measurable_extend hf (strongly_measurable_const' $ λ _ _, rfl),
   funext $ λ x, extend_apply hg.injective _ _ _⟩
 
-protected lemma inner {𝕜 : Type*} {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
-  {m : measurable_space α} {f g : α → E} (hf : strongly_measurable f) (hg : strongly_measurable g) :
-  strongly_measurable (λ t, @inner 𝕜 _ _(f t) (g t)) :=
-continuous.comp_strongly_measurable continuous_inner (hf.prod_mk hg)
-
 lemma measurable_set_eq_fun {m : measurable_space α} {E} [topological_space E] [metrizable_space E]
   {f g : α → E} (hf : strongly_measurable f) (hg : strongly_measurable g) :
   measurable_set {x | f x = g x} :=
@@ -1411,25 +1404,6 @@ protected lemma real_to_nnreal {f : α → ℝ}
   ae_strongly_measurable (λ x, (f x).to_nnreal) μ :=
 continuous_real_to_nnreal.comp_ae_strongly_measurable hf
 
-section
-variables {𝕜 : Type*} {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
-local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
-
-protected lemma re {f : α → 𝕜} (hf : ae_strongly_measurable f μ) :
-  ae_strongly_measurable (λ x, is_R_or_C.re (f x)) μ :=
-is_R_or_C.continuous_re.comp_ae_strongly_measurable hf
-
-protected lemma im {f : α → 𝕜} (hf : ae_strongly_measurable f μ) :
-  ae_strongly_measurable (λ x, is_R_or_C.im (f x)) μ :=
-is_R_or_C.continuous_im.comp_ae_strongly_measurable hf
-
-protected lemma inner {m : measurable_space α} {μ : measure α} {f g : α → E}
-  (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
-  ae_strongly_measurable (λ x, ⟪f x, g x⟫) μ :=
-continuous_inner.comp_ae_strongly_measurable (hf.prod_mk hg)
-
-end
-
 lemma _root_.ae_strongly_measurable_indicator_iff [has_zero β] {s : set α} (hs : measurable_set s) :
   ae_strongly_measurable (indicator s f) μ ↔ ae_strongly_measurable f (μ.restrict s)  :=
 begin
@@ -1927,3 +1901,6 @@ begin
 end
 
 end measure_theory
+
+-- Guard against import creep
+assert_not_exists inner_product_space

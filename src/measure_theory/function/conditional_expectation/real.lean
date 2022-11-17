@@ -5,6 +5,8 @@ Authors: Rémy Degenne, Kexing Ying
 -/
 
 import measure_theory.function.conditional_expectation.indicator
+import measure_theory.function.uniform_integrable
+import measure_theory.decomposition.radon_nikodym
 
 /-!
 

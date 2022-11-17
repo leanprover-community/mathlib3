@@ -5,7 +5,6 @@ Authors: Heather Macbeth
 -/
 import analysis.mean_inequalities
 import analysis.mean_inequalities_pow
-import analysis.normed.group.pointwise
 import topology.algebra.order.liminf_limsup
 
 /-!

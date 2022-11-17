@@ -5,8 +5,6 @@ Authors: Moritz Doll
 -/
 
 import analysis.calculus.cont_diff
-import analysis.complex.basic
-import analysis.locally_convex.continuous_of_bounded
 import analysis.locally_convex.with_seminorms
 import topology.algebra.uniform_filter_basis
 import topology.continuous_function.bounded

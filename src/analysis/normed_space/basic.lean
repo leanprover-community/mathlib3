@@ -3,11 +3,9 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
+import algebra.algebra.restrict_scalars
 import analysis.normed.field.basic
-import analysis.normed.group.infinite_sum
 import data.real.sqrt
-import data.matrix.basic
-import topology.sequences
 
 /-!
 # Normed spaces

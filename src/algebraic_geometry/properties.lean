@@ -6,9 +6,7 @@ Authors: Andrew Yang
 import algebraic_geometry.AffineScheme
 import ring_theory.nilpotent
 import topology.sheaves.sheaf_condition.sites
-import category_theory.limits.constructions.binary_products
 import algebra.category.Ring.constructions
-import ring_theory.integral_domain
 import ring_theory.local_properties
 
 /-!

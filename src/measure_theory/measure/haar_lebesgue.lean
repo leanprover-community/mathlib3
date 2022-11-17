@@ -31,8 +31,8 @@ We deduce basic properties of any Haar measure on a finite dimensional real vect
 * `add_haar_sphere`: spheres have zero measure.
 
 This makes it possible to associate a Lebesgue measure to an `n`-alternate map in dimension `n`.
-This measure is called `alternating_map.add_haar`. Its main property is
-`ω.add_haar_parallelogram v`, stating that the associated measure of the parallelogram spanned
+This measure is called `alternating_map.measure`. Its main property is
+`ω.measure_parallelogram v`, stating that the associated measure of the parallelogram spanned
 by vectors `v₁, ..., vₙ` is given by `|ω v|`.
 
 We also show that a Lebesgue density point `x` of a set `s` (with respect to closed balls) has
@@ -533,26 +533,27 @@ variables [finite_dimensional ℝ F] {n : ℕ} [_i : fact (finrank ℝ F = n)]
 include _i
 
 /-- The Lebesgue measure associated to an alternating map. It gives measure `|ω v|` to the
-parallelogram spanned by the vectors `v₁, ..., vₙ`. -/
-@[irreducible] noncomputable def _root_.alternating_map.add_haar
+parallelogram spanned by the vectors `v₁, ..., vₙ`. Note that it is not always a Haar measure,
+as it can be zero, but it is always locally finite and translation invariant. -/
+@[irreducible] noncomputable def _root_.alternating_map.measure
   (ω : alternating_map ℝ F ℝ (fin n)) : measure F :=
 ∥ω (fin_basis_of_finrank_eq ℝ F _i.out)∥₊ • (fin_basis_of_finrank_eq ℝ F _i.out).add_haar
 
-lemma _root_.alternating_map.add_haar_parallelogram
+lemma _root_.alternating_map.measure_parallelogram
   (ω : alternating_map ℝ F ℝ (fin n)) (v : fin n → F) :
-  ω.add_haar (parallelogram v) = ennreal.of_real (|ω v|) :=
+  ω.measure (parallelogram v) = ennreal.of_real (|ω v|) :=
 begin
   conv_rhs { rw ω.eq_smul_basis_det (fin_basis_of_finrank_eq ℝ F _i.out) },
-  simp only [add_haar_parallelogram, alternating_map.add_haar, coe_nnreal_smul_apply,
+  simp only [add_haar_parallelogram, alternating_map.measure, coe_nnreal_smul_apply,
     alternating_map.smul_apply, algebra.id.smul_eq_mul, abs_mul,
     ennreal.of_real_mul (abs_nonneg _), real.ennnorm_eq_of_real_abs]
 end
 
-instance (ω : alternating_map ℝ F ℝ (fin n)) : is_add_left_invariant ω.add_haar :=
-by { rw [alternating_map.add_haar], apply_instance }
+instance (ω : alternating_map ℝ F ℝ (fin n)) : is_add_left_invariant ω.measure :=
+by { rw [alternating_map.measure], apply_instance }
 
-instance (ω : alternating_map ℝ F ℝ (fin n)) : is_locally_finite_measure ω.add_haar :=
-by { rw [alternating_map.add_haar], apply_instance }
+instance (ω : alternating_map ℝ F ℝ (fin n)) : is_locally_finite_measure ω.measure :=
+by { rw [alternating_map.measure], apply_instance }
 
 end
 

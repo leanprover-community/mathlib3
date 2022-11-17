@@ -486,7 +486,7 @@ lemma val_aux_one : val_aux K v O hv p 1 = 1 :=
 (val_aux_eq $ show coeff (mod_p K v O hv p) p 0 1 ≠ 0, from one_ne_zero).trans $
 by { rw [pow_zero, pow_one, ring_hom.map_one, ← (ideal.quotient.mk _).map_one, mod_p.pre_val_mk,
     ring_hom.map_one, v.map_one],
-  haveI := ne_zero.one (mod_p K v O hv p), -- why can't find this instance?
+  change (1 : mod_p K v O hv p) ≠ 0,
   exact one_ne_zero }
 
 lemma val_aux_mul (f g : pre_tilt K v O hv p) :

@@ -228,7 +228,7 @@ begin
     contrapose! hx,
     refine le_trans _ ((div_le_iff' (zero_lt_two' ℝ)).2 (hd_le x.1 x.2)),
     rwa [← nnreal.coe_two, ← nnreal.coe_div, ← nnreal.coe_pow, nnreal.coe_le_coe, pow_succ',
-      mul_one_div, nnreal.div_le_iff two_ne_zero, div_mul_cancel _ (zero_lt_two' ℝ≥0).ne',
+      mul_one_div, nnreal.div_le_iff two_ne_zero, div_mul_cancel _ (two_ne_zero' ℝ≥0),
       hle_d, prod.mk.eta] }
 end
 

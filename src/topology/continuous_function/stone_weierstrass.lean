@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Heather Macbeth
 -/
 import topology.continuous_function.weierstrass
-import analysis.complex.basic
+import data.complex.is_R_or_C
 
 /-!
 # The Stone-Weierstrass theorem

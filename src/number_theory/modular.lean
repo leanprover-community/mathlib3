@@ -6,7 +6,6 @@ Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 
 import analysis.complex.upper_half_plane.basic
 import linear_algebra.general_linear_group
-import analysis.matrix
 
 /-!
 # The action of the modular group SL(2, ℤ) on the upper half-plane
@@ -108,7 +107,6 @@ end bottom_row
 section tendsto_lemmas
 
 open filter continuous_linear_map
-local attribute [instance] matrix.normed_add_comm_group matrix.normed_space
 local attribute [simp] coe_smul
 
 /-- The function `(c,d) → |cz+d|^2` is proper, that is, preimages of bounded-above sets are finite.

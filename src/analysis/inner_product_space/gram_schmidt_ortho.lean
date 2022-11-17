@@ -5,7 +5,6 @@ Authors: Jiale Miao, Kevin Buzzard, Alexander Bentkamp
 -/
 
 import analysis.inner_product_space.pi_L2
-import order.well_founded_set
 import linear_algebra.matrix.block
 
 /-!

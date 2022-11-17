@@ -3,9 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
+import data.fintype.card
 import data.nat.with_bot
-import data.polynomial.induction
 import data.polynomial.monomial
+import data.polynomial.coeff
 
 /-!
 # Theory of univariate polynomials

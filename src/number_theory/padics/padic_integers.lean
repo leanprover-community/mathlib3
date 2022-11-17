@@ -3,7 +3,6 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Mario Carneiro, Johan Commelin
 -/
-import data.int.modeq
 import number_theory.padics.padic_numbers
 import ring_theory.discrete_valuation_ring
 import topology.metric_space.cau_seq_filter

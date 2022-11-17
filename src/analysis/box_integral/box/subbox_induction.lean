@@ -64,6 +64,7 @@ lemma split_center_box_le (I : box ι) (s : set ι) : I.split_center_box s ≤ I
 lemma disjoint_split_center_box (I : box ι) {s t : set ι} (h : s ≠ t) :
   disjoint (I.split_center_box s : set (ι → ℝ)) (I.split_center_box t) :=
 begin
+  rw disjoint_iff_inf_le,
   rintro y ⟨hs, ht⟩, apply h,
   ext i,
   rw [mem_coe, mem_split_center_box] at hs ht,

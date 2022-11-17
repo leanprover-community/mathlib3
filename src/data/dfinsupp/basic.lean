@@ -3,7 +3,6 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau
 -/
-import algebra.module.pi
 import algebra.module.linear_map
 import algebra.big_operators.basic
 import data.set.finite
@@ -550,6 +549,12 @@ begin
     { rw eq_of_heq hxi, },
     { rw [hi, hj, dfinsupp.single_zero, dfinsupp.single_zero], }, },
 end
+
+/-- `dfinsupp.single a b` is injective in `a`. For the statement that it is injective in `b`, see
+`dfinsupp.single_injective` -/
+lemma single_left_injective {b : Π (i : ι), β i} (h : ∀ i, b i ≠ 0) :
+  function.injective (λ i, single i (b i) : ι → Π₀ i, β i) :=
+λ a a' H, (((single_eq_single_iff _ _ _ _).mp H).resolve_right $ λ hb, h _ hb.1).left
 
 @[simp] lemma single_eq_zero {i : ι} {xi : β i} : single i xi = 0 ↔ xi = 0 :=
 begin
@@ -1960,3 +1965,32 @@ add_monoid_hom.congr_fun (comp_lift_add_hom h.to_add_monoid_hom g) f
 end add_equiv
 
 end
+
+section finite_infinite
+
+instance dfinsupp.fintype {ι : Sort*} {π : ι → Sort*} [decidable_eq ι] [Π i, has_zero (π i)]
+  [fintype ι] [∀ i, fintype (π i)] :
+  fintype (Π₀ i, π i) :=
+fintype.of_equiv (Π i, π i) dfinsupp.equiv_fun_on_fintype.symm
+
+instance dfinsupp.infinite_of_left {ι : Sort*} {π : ι → Sort*}
+  [∀ i, nontrivial (π i)] [Π i, has_zero (π i)] [infinite ι] :
+  infinite (Π₀ i, π i) :=
+by letI := classical.dec_eq ι; choose m hm using (λ i, exists_ne (0 : π i)); exact
+infinite.of_injective _ (dfinsupp.single_left_injective hm)
+
+/-- See `dfinsupp.infinite_of_right` for this in instance form, with the drawback that
+it needs all `π i` to be infinite. -/
+lemma dfinsupp.infinite_of_exists_right {ι : Sort*} {π : ι → Sort*}
+  (i : ι) [infinite (π i)] [Π i, has_zero (π i)] :
+  infinite (Π₀ i, π i) :=
+by letI := classical.dec_eq ι; exact
+infinite.of_injective (λ j, dfinsupp.single i j) dfinsupp.single_injective
+
+/-- See `dfinsupp.infinite_of_exists_right` for the case that only one `π ι` is infinite. -/
+instance dfinsupp.infinite_of_right {ι : Sort*} {π : ι → Sort*}
+  [∀ i, infinite (π i)] [Π i, has_zero (π i)] [nonempty ι] :
+  infinite (Π₀ i, π i) :=
+dfinsupp.infinite_of_exists_right (classical.arbitrary ι)
+
+end finite_infinite

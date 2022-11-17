@@ -487,7 +487,7 @@ def truncate {X : Type*} [topological_space X] {a b : X}
     ((continuous_subtype_coe.max continuous_const).min continuous_const),
   source' :=
   begin
-    simp only [min_def, max_def],
+    simp only [min_def, max_def'],
     norm_cast,
     split_ifs with h₁ h₂ h₃ h₄,
     { simp [γ.extend_of_le_zero h₁] },
@@ -498,7 +498,7 @@ def truncate {X : Type*} [topological_space X] {a b : X}
   end,
   target' :=
   begin
-    simp only [min_def, max_def],
+    simp only [min_def, max_def'],
     norm_cast,
     split_ifs with h₁ h₂ h₃,
     { simp [γ.extend_of_one_le h₂] },
@@ -551,7 +551,6 @@ begin
   rw cast_coe,
   simp only [truncate, has_coe_to_fun.coe, coe_fn, refl, min_def, max_def],
   split_ifs with h₁ h₂; congr,
-  exact le_antisymm ‹_› ‹_›
 end
 
 @[simp] lemma truncate_zero_zero {X : Type*} [topological_space X] {a b : X} (γ : path a b) :

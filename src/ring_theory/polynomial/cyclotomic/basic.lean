@@ -4,15 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 
+import algebra.ne_zero
 import algebra.polynomial.big_operators
 import analysis.complex.roots_of_unity
 import data.polynomial.lifts
+import data.polynomial.splits
+import field_theory.ratfunc
 import field_theory.separable
-import field_theory.splitting_field
 import number_theory.arithmetic_function
 import ring_theory.roots_of_unity
-import field_theory.ratfunc
-import algebra.ne_zero
 
 /-!
 # Cyclotomic polynomials.
@@ -72,7 +72,7 @@ def cyclotomic' (n : ℕ) (R : Type*) [comm_ring R] [is_domain R] : R[X] :=
 /-- The zeroth modified cyclotomic polyomial is `1`. -/
 @[simp] lemma cyclotomic'_zero
   (R : Type*) [comm_ring R] [is_domain R] : cyclotomic' 0 R = 1 :=
-by simp only [cyclotomic', finset.prod_empty, is_primitive_root.primitive_roots_zero]
+by simp only [cyclotomic', finset.prod_empty, primitive_roots_zero]
 
 /-- The first modified cyclotomic polyomial is `X - 1`. -/
 @[simp] lemma cyclotomic'_one

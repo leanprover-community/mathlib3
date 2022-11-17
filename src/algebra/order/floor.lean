@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Kappelmann
 -/
 import data.int.lemmas
+import data.set.intervals.group
 import tactic.abel
 import tactic.linarith
 import tactic.positivity
@@ -861,7 +862,7 @@ by { rw [add_comm, round_add_nat, add_comm] }
 
 lemma abs_sub_round_eq_min (x : α) : |x - round x| = min (fract x) (1 - fract x) :=
 begin
-  simp_rw [round, min_def', two_mul, ← lt_tsub_iff_left],
+  simp_rw [round, min_def_lt, two_mul, ← lt_tsub_iff_left],
   cases lt_or_ge (fract x) (1 - fract x) with hx hx,
   { rw [if_pos hx, if_pos hx, self_sub_floor, abs_fract], },
   { have : 0 < fract x,

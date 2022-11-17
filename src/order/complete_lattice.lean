@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import data.bool.set
-import data.ulift
 import data.nat.set
-import order.bounds
+import data.ulift
+import order.bounds.basic
+import order.hom.basic
 
 /-!
 # Theory of complete lattices
@@ -1334,11 +1335,11 @@ lemma infi_sup_infi_le (f g : ι → α) : (⨅ i, f i) ⊔ (⨅ i, g i) ≤ ⨅
 
 lemma disjoint_Sup_left {a : set α} {b : α} (d : disjoint (Sup a) b) {i} (hi : i ∈ a) :
   disjoint i b :=
-(supr₂_le_iff.1 (supr_inf_le_Sup_inf.trans d) i hi : _)
+disjoint_iff_inf_le.mpr (supr₂_le_iff.1 (supr_inf_le_Sup_inf.trans d.le_bot) i hi : _)
 
 lemma disjoint_Sup_right {a : set α} {b : α} (d : disjoint b (Sup a)) {i} (hi : i ∈ a) :
   disjoint b i :=
-(supr₂_le_iff.mp (supr_inf_le_inf_Sup.trans d) i hi : _)
+disjoint_iff_inf_le.mpr (supr₂_le_iff.mp (supr_inf_le_inf_Sup.trans d.le_bot) i hi : _)
 
 end complete_lattice
 

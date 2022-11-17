@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin
 -/
 
+import linear_algebra.finite_dimensional
 import linear_algebra.tensor_product_basis
 import ring_theory.adjoin.basic
 

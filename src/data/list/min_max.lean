@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Minchao Wu, Chris Hughes, Mantas Bakšys
 -/
 import data.list.basic
+import algebra.order.monoid.with_top
+
 /-!
 # Minimum and maximum of lists
 
@@ -253,7 +255,7 @@ begin
   simp only [maximum, argmax_concat, id],
   cases h : argmax id l,
   { exact (max_eq_right bot_le).symm },
-  { simp [option.coe_def, max_def, ←not_lt] }
+  { simp [option.coe_def, max_def_lt], }
 end
 
 lemma le_maximum_of_mem : a ∈ l → (maximum l : with_bot α) = m → a ≤ m := le_of_mem_argmax

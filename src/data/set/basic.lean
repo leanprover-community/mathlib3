@@ -298,13 +298,6 @@ lemma nonempty_of_mem {x} (h : x ∈ s) : s.nonempty := ⟨x, h⟩
 theorem nonempty.not_subset_empty : s.nonempty → ¬(s ⊆ ∅)
 | ⟨x, hx⟩ hs := hs hx
 
-/-- See also `set.ne_empty_iff_nonempty` and `set.not_nonempty_iff_eq_empty`. -/
-theorem nonempty.ne_empty : ∀ {s : set α}, s.nonempty → s ≠ ∅
-| _ ⟨x, hx⟩ rfl := hx
-
-@[simp] theorem not_nonempty_empty : ¬(∅ : set α).nonempty :=
-λ h, h.ne_empty rfl
-
 /-- Extract a witness from `s.nonempty`. This function might be used instead of case analysis
 on the argument. Note that it makes a proof depend on the `classical.choice` axiom. -/
 protected noncomputable def nonempty.some (h : s.nonempty) : α := classical.some h
@@ -381,12 +374,16 @@ eq_empty_of_subset_empty $ λ x hx, is_empty_elim x
 instance unique_empty [is_empty α] : unique (set α) :=
 { default := ∅, uniq := eq_empty_of_is_empty }
 
+/-- See also `set.ne_empty_iff_nonempty`. -/
 lemma not_nonempty_iff_eq_empty {s : set α} : ¬s.nonempty ↔ s = ∅ :=
 by simp only [set.nonempty, eq_empty_iff_forall_not_mem, not_exists]
 
-lemma empty_not_nonempty : ¬(∅ : set α).nonempty := λ h, h.ne_empty rfl
-
+/-- See also `set.not_nonempty_iff_eq_empty`. -/
 theorem ne_empty_iff_nonempty : s ≠ ∅ ↔ s.nonempty := not_iff_comm.1 not_nonempty_iff_eq_empty
+
+alias ne_empty_iff_nonempty ↔ _ nonempty.ne_empty
+
+@[simp] lemma not_nonempty_empty : ¬(∅ : set α).nonempty := λ ⟨x, hx⟩, hx
 
 @[simp] lemma is_empty_coe_sort {s : set α} : is_empty ↥s ↔ s = ∅ :=
 not_iff_not.1 $ by simpa using ne_empty_iff_nonempty.symm
@@ -908,14 +905,15 @@ ssubset_singleton_iff.1 hs
 
 /-! ### Disjointness -/
 
-protected theorem disjoint_iff : disjoint s t ↔ s ∩ t ⊆ ∅ := iff.rfl
+protected theorem disjoint_iff : disjoint s t ↔ s ∩ t ⊆ ∅ := disjoint_iff_inf_le
 
 theorem disjoint_iff_inter_eq_empty : disjoint s t ↔ s ∩ t = ∅ :=
 disjoint_iff
 
 lemma _root_.disjoint.inter_eq : disjoint s t → s ∩ t = ∅ := disjoint.eq_bot
 
-lemma disjoint_left : disjoint s t ↔ ∀ ⦃a⦄, a ∈ s → a ∉ t := forall_congr $ λ _, not_and
+lemma disjoint_left : disjoint s t ↔ ∀ ⦃a⦄, a ∈ s → a ∉ t :=
+disjoint_iff_inf_le.trans $ forall_congr $ λ _, not_and
 lemma disjoint_right : disjoint s t ↔ ∀ ⦃a⦄, a ∈ t → a ∉ s := by rw [disjoint.comm, disjoint_left]
 
 /-! ### Lemmas about complement -/
@@ -1035,10 +1033,10 @@ theorem union_diff_cancel {s t : set α} (h : s ⊆ t) : s ∪ (t \ s) = t :=
 sup_sdiff_cancel_right h
 
 theorem union_diff_cancel_left {s t : set α} (h : s ∩ t ⊆ ∅) : (s ∪ t) \ s = t :=
-disjoint.sup_sdiff_cancel_left h
+disjoint.sup_sdiff_cancel_left $ disjoint_iff_inf_le.2 h
 
 theorem union_diff_cancel_right {s t : set α} (h : s ∩ t ⊆ ∅) : (s ∪ t) \ t = s :=
-disjoint.sup_sdiff_cancel_right h
+disjoint.sup_sdiff_cancel_right $ disjoint_iff_inf_le.2 h
 
 @[simp] theorem union_diff_left {s t : set α} : (s ∪ t) \ s = t \ s :=
 sup_sdiff_left_self
@@ -1180,7 +1178,7 @@ sdiff_inf_self_right _ _
 @[simp] theorem diff_self_inter {s t : set α} : s \ (s ∩ t) = s \ t := sdiff_inf_self_left _ _
 
 @[simp] theorem diff_eq_self {s t : set α} : s \ t = s ↔ t ∩ s ⊆ ∅ :=
-show s \ t = s ↔ t ⊓ s ≤ ⊥, from sdiff_eq_self_iff_disjoint
+show s \ t = s ↔ t ⊓ s ≤ ⊥, from sdiff_eq_self_iff_disjoint.trans disjoint_iff_inf_le
 
 @[simp] theorem diff_singleton_eq_self {a : α} {s : set α} (h : a ∉ s) : s \ {a} = s :=
 diff_eq_self.2 $ by simp [singleton_inter_eq_empty.2 h]
@@ -1280,6 +1278,22 @@ by split_ifs; simp [h]
 @[simp] lemma mem_ite_univ_left (p : Prop) [decidable p] (t : set α) (x : α) :
   x ∈ ite p set.univ t ↔ (¬ p → x ∈ t) :=
 mem_dite_univ_left p (λ _, t) x
+
+lemma mem_dite_empty_right (p : Prop) [decidable p] (t : p → set α) (x : α) :
+  (x ∈ if h : p then t h else ∅) ↔ (∃ h : p, x ∈ t h) :=
+by split_ifs; simp [h]
+
+@[simp] lemma mem_ite_empty_right (p : Prop) [decidable p] (t : set α) (x : α) :
+  x ∈ ite p t ∅ ↔ p ∧ x ∈ t :=
+by split_ifs; simp [h]
+
+lemma mem_dite_empty_left (p : Prop) [decidable p] (t : ¬ p → set α) (x : α) :
+  (x ∈ if h : p then ∅ else t h) ↔ (∃ h : ¬ p, x ∈ t h) :=
+by split_ifs; simp [h]
+
+@[simp] lemma mem_ite_empty_left (p : Prop) [decidable p] (t : set α) (x : α) :
+  x ∈ ite p ∅ t ↔ ¬ p ∧ x ∈ t :=
+by split_ifs; simp [h]
 
 /-! ### If-then-else for sets -/
 
@@ -1607,7 +1621,7 @@ theorem mem_image_iff_of_inverse {f : α → β} {g : β → α} {b : β} {s : s
 by rw image_eq_preimage_of_inverse h₁ h₂; refl
 
 theorem image_compl_subset {f : α → β} {s : set α} (H : injective f) : f '' sᶜ ⊆ (f '' s)ᶜ :=
-disjoint.subset_compl_left $ by simp [disjoint, image_inter H]
+disjoint.subset_compl_left $ by simp [disjoint_iff_inf_le, image_inter H]
 
 theorem subset_image_compl {f : α → β} {s : set α} (H : surjective f) : (f '' s)ᶜ ⊆ f '' sᶜ :=
 compl_subset_iff_union.2 $
@@ -2104,6 +2118,9 @@ by rw ← image_univ; exact image_subset _ (subset_univ _)
 theorem mem_range_of_mem_image (f : α → β) (s) {x : β} (h : x ∈ f '' s) : x ∈ range f :=
 image_subset_range f s h
 
+lemma _root_.nat.mem_range_succ (i : ℕ) : i ∈ range nat.succ ↔ 0 < i :=
+⟨by { rintros ⟨n, rfl⟩, exact nat.succ_pos n, }, λ h, ⟨_, nat.succ_pred_eq_of_pos h⟩⟩
+
 lemma nonempty.preimage' {s : set β} (hs : s.nonempty) {f : α → β} (hf : s ⊆ set.range f) :
   (f ⁻¹' s).nonempty :=
 let ⟨y, hy⟩ := hs, ⟨x, hx⟩ := hf hy in ⟨x, set.mem_preimage.2 $ hx.symm ▸ hy⟩
@@ -2225,8 +2242,9 @@ prod.snd_surjective.range_eq
 (surjective_eval i).range_eq
 
 theorem is_compl_range_inl_range_inr : is_compl (range $ @sum.inl α β) (range sum.inr) :=
-⟨by { rintro y ⟨⟨x₁, rfl⟩, ⟨x₂, _⟩⟩, cc },
-  by { rintro (x|y) -; [left, right]; exact mem_range_self _ }⟩
+is_compl.of_le
+  (by { rintro y ⟨⟨x₁, rfl⟩, ⟨x₂, _⟩⟩, cc })
+  (by { rintro (x|y) -; [left, right]; exact mem_range_self _ })
 
 @[simp] theorem range_inl_union_range_inr : range (sum.inl : α → α ⊕ β) ∪ range sum.inr = univ :=
 is_compl_range_inl_range_inr.sup_eq_top
@@ -2402,8 +2420,9 @@ lemma preimage_range_splitting {f : α → β} (hf : injective f) :
 
 lemma is_compl_range_some_none (α : Type*) :
   is_compl (range (some : α → option α)) {none} :=
-⟨λ x ⟨⟨a, ha⟩, (hn : x = none)⟩, option.some_ne_none _ (ha.trans hn),
-  λ x hx, option.cases_on x (or.inr rfl) (λ x, or.inl $ mem_range_self _)⟩
+is_compl.of_le
+  (λ x ⟨⟨a, ha⟩, (hn : x = none)⟩, option.some_ne_none _ (ha.trans hn))
+  (λ x hx, option.cases_on x (or.inr rfl) (λ x, or.inl $ mem_range_self _))
 
 @[simp] lemma compl_range_some (α : Type*) :
   (range (some : α → option α))ᶜ = {none} :=
@@ -2495,7 +2514,9 @@ by rw [← preimage_comp, h.comp_eq_id, preimage_id]
 end function
 open function
 
-lemma option.injective_iff {α β} {f : option α → β} :
+namespace option
+
+lemma injective_iff {α β} {f : option α → β} :
   injective f ↔ injective (f ∘ some) ∧ f none ∉ range (f ∘ some) :=
 begin
   simp only [mem_range, not_exists, (∘)],
@@ -2503,6 +2524,19 @@ begin
   rintro ⟨h_some, h_none⟩ (_|a) (_|b) hab,
   exacts [rfl, (h_none _ hab.symm).elim, (h_none _ hab).elim, congr_arg some (h_some hab)]
 end
+
+lemma range_eq {α β} (f : option α → β) : range f = insert (f none) (range (f ∘ some)) :=
+set.ext $ λ y, option.exists.trans $ eq_comm.or iff.rfl
+
+end option
+
+lemma with_bot.range_eq {α β} (f : with_bot α → β) :
+  range f = insert (f ⊥) (range (f ∘ coe : α → β)) :=
+option.range_eq f
+
+lemma with_top.range_eq {α β} (f : with_top α → β) :
+  range f = insert (f ⊤) (range (f ∘ coe : α → β)) :=
+option.range_eq f
 
 /-! ### Image and preimage on subtypes -/
 

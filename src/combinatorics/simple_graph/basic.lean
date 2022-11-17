@@ -331,9 +331,9 @@ def from_edge_set : simple_graph V :=
 @[simp] lemma from_edge_set_adj : (from_edge_set s).adj v w ↔ ⟦(v, w)⟧ ∈ s ∧ v ≠ w := iff.rfl
 
 -- Note: we need to make sure `from_edge_set_adj` and this lemma are confluent.
--- In particular, both give `⟦(u, v)⟧ ∈ (from_edge_set s).edge_set` ==> `⟦(v, w)⟧ ∈ s ∧ v ≠ w`.
+-- In particular, both yield `⟦(u, v)⟧ ∈ (from_edge_set s).edge_set` ==> `⟦(v, w)⟧ ∈ s ∧ v ≠ w`.
 @[simp] lemma edge_set_from_edge_set : (from_edge_set s).edge_set = {e ∈ s | ¬ e.is_diag} :=
-by { ext e, exact sym2.ind (λ u v, by simp [and_comm]) e }
+by { ext e, exact sym2.ind (by simp) e }
 
 @[simp] lemma from_edge_set_edge_set : from_edge_set G.edge_set = G :=
 by { ext v w, exact ⟨λ h, h.1, λ h, ⟨h, G.ne_of_adj h⟩⟩ }

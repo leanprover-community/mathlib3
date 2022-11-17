@@ -115,11 +115,11 @@ by simp only [← is_o_one_iff ℝ, h.is_o_congr_left]
 
 lemma is_Theta.tendsto_norm_at_top_iff (h : f' =Θ[l] g') :
   tendsto (norm ∘ f') l at_top ↔ tendsto (norm ∘ g') l at_top :=
-by simp only [← is_o_const_left_of_ne (@one_ne_zero ℝ _ _), h.is_o_congr_right]
+by simp only [← is_o_const_left_of_ne (one_ne_zero' ℝ), h.is_o_congr_right]
 
 lemma is_Theta.is_bounded_under_le_iff (h : f' =Θ[l] g') :
   is_bounded_under (≤) l (norm ∘ f') ↔ is_bounded_under (≤) l (norm ∘ g') :=
-by simp only [← is_O_const_of_ne (@one_ne_zero ℝ _ _), h.is_O_congr_left]
+by simp only [← is_O_const_of_ne (one_ne_zero' ℝ), h.is_O_congr_left]
 
 lemma is_Theta.smul [normed_space 𝕜 E'] [normed_space 𝕜' F'] {f₁ : α → 𝕜} {f₂ : α → 𝕜'}
   {g₁ : α → E'} {g₂ : α → F'} (hf : f₁ =Θ[l] f₂) (hg : g₁ =Θ[l] g₂) :

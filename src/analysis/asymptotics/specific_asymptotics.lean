@@ -24,7 +24,7 @@ lemma filter.is_bounded_under.is_o_sub_self_inv {𝕜 E : Type*} [normed_field �
   {a : 𝕜} {f : 𝕜 → E} (h : is_bounded_under (≤) (𝓝[≠] a) (norm ∘ f)) :
   f =o[𝓝[≠] a] (λ x, (x - a)⁻¹) :=
 begin
-  refine (h.is_O_const (@one_ne_zero ℝ _ _)).trans_is_o (is_o_const_left.2 $ or.inr _),
+  refine (h.is_O_const (one_ne_zero' ℝ)).trans_is_o (is_o_const_left.2 $ or.inr _),
   simp only [(∘), norm_inv],
   exact (tendsto_norm_sub_self_punctured_nhds a).inv_tendsto_zero
 end

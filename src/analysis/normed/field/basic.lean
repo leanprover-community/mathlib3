@@ -411,7 +411,7 @@ normed_division_ring.norm_mul' a b
 
 @[priority 900]
 instance normed_division_ring.to_norm_one_class : norm_one_class α :=
-⟨mul_left_cancel₀ (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
+⟨mul_left_cancel₀ (mt norm_eq_zero.1 (one_ne_zero' α)) $
   by rw [← norm_mul, mul_one, mul_one]⟩
 
 @[simp] lemma nnnorm_mul (a b : α) : ‖a * b‖₊ = ‖a‖₊ * ‖b‖₊ :=

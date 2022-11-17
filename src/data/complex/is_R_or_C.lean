@@ -154,13 +154,6 @@ ext_iff.2 $ by simp [bit0]
 lemma of_real_bit1 (r : ℝ) : ((bit1 r : ℝ) : K) = bit1 (r : K) :=
 ext_iff.2 $ by simp [bit1]
 
-/- Note: This can be proven by `norm_num` once K is proven to be of characteristic zero below. -/
-lemma two_ne_zero : (2 : K) ≠ 0 :=
-begin
-  intro h, rw [(show (2 : K) = ((2 : ℝ) : K), by norm_num), ←of_real_zero, of_real_inj] at h,
-  linarith,
-end
-
 @[simp, norm_cast, is_R_or_C_simps, priority 900]
 lemma of_real_neg (r : ℝ) : ((-r : ℝ) : K) = -r := ext_iff.2 $ by simp
 
@@ -463,7 +456,7 @@ char_zero_of_inj_zero $ λ n h,
 by rwa [← of_real_nat_cast, of_real_eq_zero, nat.cast_eq_zero] at h
 
 theorem re_eq_add_conj (z : K) : ↑(re z) = (z + conj z) / 2 :=
-by rw [add_conj, mul_div_cancel_left ((re z):K) two_ne_zero']
+by rw [add_conj, mul_div_cancel_left ((re z):K) two_ne_zero]
 
 theorem im_eq_conj_sub (z : K) : ↑(im z) = I * (conj z - z) / 2 :=
 begin

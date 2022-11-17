@@ -2240,26 +2240,12 @@ begin
   exact funext (λ a, lintegral_dirac a f),
 end
 
-lemma measurable_space.top.measurable {α β : Type*} [measurable_space β] (f : α → β) :
-  @measurable α β ⊤ _ f :=
-λ s hs, measurable_space.measurable_set_top
-
 -- Q: Is this instance a bad idea? It is certainly always the correct one, but does it
 -- affect performance?
 @[priority 100]
 instance measurable_space.top.measurable_singleton_class {α : Type*} :
   @measurable_singleton_class α (⊤ : measurable_space α) :=
 { measurable_set_singleton := λ i, measurable_space.measurable_set_top, }
-
--- Place near `ennreal.tsum_eq_top_of_eq_top`?
-lemma _root_.ennreal.lt_top_of_tsum_ne_top {α : Type*} {a : α → ℝ≥0∞}
-  (tsum_ne_top : ∑' i, a i ≠ ∞) (j : α) :
-  a j < ⊤ :=
-begin
-  have key := not_imp_not.mpr ennreal.tsum_eq_top_of_eq_top,
-  simp only [not_exists] at key,
-  exact lt_top_iff_ne_top.mpr (key tsum_ne_top j),
-end
 
 lemma _root_.ennreal.tsum_const_eq [measurable_singleton_class α] (c : ℝ≥0∞) :
   (∑' (i : α), c) = (measure.count (univ : set α)) * c :=
@@ -2345,14 +2331,15 @@ begin
 end
 
 /-- Markov's inequality for `finset.card` and `tsum` in `ℝ≥0`. -/
-lemma finset_card_const_le_le_of_tsum_nnreal_le
-  {a : α → ℝ≥0} (a_summable : summable a) {c : ℝ≥0} (tsum_le_c : ∑' i, a i ≤ c) {ε : ℝ≥0} (ε_ne_zero : ε ≠ 0) :
+lemma finset_card_const_le_le_of_tsum_nnreal_le {a : α → ℝ≥0} (a_summable : summable a)
+  {c : ℝ≥0} (tsum_le_c : ∑' i, a i ≤ c) {ε : ℝ≥0} (ε_ne_zero : ε ≠ 0) :
   ∃ hf : {i : α | ε ≤ a i}.finite, ↑hf.to_finset.card ≤ c / ε :=
 begin
   have a_mble : @measurable _ _ ⊤ _ a, from measurable_space.top.measurable a,
   have hf : {i : α | ε ≤ a i}.finite, from finite_const_le_of_summable a_summable ε_ne_zero,
   use hf,
-  have obs := @nnreal.count_const_le_le_of_tsum_le α ⊤ _ _ a_mble a_summable c tsum_le_c ε ε_ne_zero,
+  have obs := @nnreal.count_const_le_le_of_tsum_le α ⊤ _ _ a_mble a_summable c tsum_le_c
+                ε ε_ne_zero,
   rw @measure.count_apply_finite _ ⊤ _ _ hf at obs,
   exact_mod_cast obs,
 end

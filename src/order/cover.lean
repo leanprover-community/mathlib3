@@ -239,7 +239,7 @@ instance covby.is_irrefl : is_irrefl α (⋖) := ⟨λ a ha, ha.ne rfl⟩
 lemma covby.Ioo_eq (h : a ⋖ b) : Ioo a b = ∅ :=
 h.wcovby.Ioo_eq
 
-lemma covby_iff_Ioo : a ⋖ b ↔ a < b ∧ Ioo a b = ∅ :=
+lemma covby_iff_Ioo_eq : a ⋖ b ↔ a < b ∧ Ioo a b = ∅ :=
 and_congr_right' $ by simp [eq_empty_iff_forall_not_mem]
 
 lemma covby.of_image (f : α ↪o β) (h : f a ⋖ f b) : a ⋖ b :=

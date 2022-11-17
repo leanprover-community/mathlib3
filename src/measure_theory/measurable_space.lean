@@ -635,7 +635,7 @@ begin
     simpa only [B', mem_union, mem_Inter, or_false, compl_Union, mem_compl_iff] using B },
   congr,
   by_contra h,
-  exact t_disj n (nat.find (P x)) (ne.symm h) ⟨hx, this⟩
+  exact (t_disj (ne.symm h)).le_bot ⟨hx, this⟩
 end
 
 end prod

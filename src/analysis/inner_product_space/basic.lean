@@ -334,7 +334,7 @@ add_group_norm.to_normed_add_comm_group
     have h₃ : re ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ := by linarith,
     have h₄ : re ⟪y, x⟫ ≤ ∥x∥ * ∥y∥ := by rwa [←inner_conj_sym, conj_re],
     have : ∥x + y∥ * ∥x + y∥ ≤ (∥x∥ + ∥y∥) * (∥x∥ + ∥y∥),
-    { simp [←inner_self_eq_norm_mul_norm, inner_add_add_self, add_mul, mul_add, mul_comm],
+    { simp only [←inner_self_eq_norm_mul_norm, inner_add_add_self, mul_add, mul_comm, map_add],
       linarith },
     exact nonneg_le_nonneg_of_sq_le_sq (add_nonneg (sqrt_nonneg _) (sqrt_nonneg _)) this,
   end,
@@ -490,7 +490,8 @@ lemma real_inner_self_nonneg {x : F} : 0 ≤ ⟪x, x⟫_ℝ := @inner_self_nonne
 begin
   split,
   { intro h,
-    have h₁ : re ⟪x, x⟫ = 0 := by rw is_R_or_C.ext_iff at h; simp [h.1],
+    have h₁ : re ⟪x, x⟫ = 0 :=
+    by rw is_R_or_C.ext_iff at h; simp only [h.1, zero_re'],
     rw [←norm_sq_eq_inner x] at h₁,
     rw [←norm_eq_zero],
     exact pow_eq_zero h₁ },
@@ -568,7 +569,7 @@ by simp only [inner_add_left, inner_add_right]; ring
 lemma real_inner_add_add_self {x y : F} : ⟪x + y, x + y⟫_ℝ = ⟪x, x⟫_ℝ + 2 * ⟪x, y⟫_ℝ + ⟪y, y⟫_ℝ :=
 begin
   have : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := by rw [←inner_conj_sym]; refl,
-  simp [inner_add_add_self, this],
+  simp only [inner_add_add_self, this, add_left_inj],
   ring,
 end
 
@@ -580,7 +581,7 @@ by simp only [inner_sub_left, inner_sub_right]; ring
 lemma real_inner_sub_sub_self {x y : F} : ⟪x - y, x - y⟫_ℝ = ⟪x, x⟫_ℝ - 2 * ⟪x, y⟫_ℝ + ⟪y, y⟫_ℝ :=
 begin
   have : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := by rw [←inner_conj_sym]; refl,
-  simp [inner_sub_sub_self, this],
+  simp only [inner_sub_sub_self, this, add_left_inj],
   ring,
 end
 
@@ -2247,6 +2248,23 @@ end
 /-- A vector orthogonal to `u` lies in `(𝕜 ∙ u)ᗮ`. -/
 lemma mem_orthogonal_singleton_of_inner_left (u : E) {v : E} (hv : ⟪v, u⟫ = 0) : v ∈ (𝕜 ∙ u)ᗮ :=
 mem_orthogonal_singleton_of_inner_right u $ inner_eq_zero_sym.2 hv
+
+lemma submodule.sub_mem_orthogonal_of_inner_left {x y : E}
+  (h : ∀ (v : K), ⟪x, v⟫ = ⟪y, v⟫) : x - y ∈ Kᗮ :=
+begin
+  rw submodule.mem_orthogonal',
+  intros u hu,
+  rw [inner_sub_left, sub_eq_zero],
+  exact h ⟨u, hu⟩,
+end
+
+lemma submodule.sub_mem_orthogonal_of_inner_right {x y : E}
+  (h : ∀ (v : K), ⟪(v : E), x⟫ = ⟪(v : E), y⟫) : x - y ∈ Kᗮ :=
+begin
+  intros u hu,
+  rw [inner_sub_right, sub_eq_zero],
+  exact h ⟨u, hu⟩,
+end
 
 variables (K)
 

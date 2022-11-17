@@ -173,6 +173,11 @@ lemma is_topological_basis.open_eq_sUnion {B : set (set α)}
   ∃ S ⊆ B, u = ⋃₀ S :=
 ⟨{s ∈ B | s ⊆ u}, λ s h, h.1, hB.open_eq_sUnion' ou⟩
 
+lemma is_topological_basis.open_iff_eq_sUnion {B : set (set α)}
+  (hB : is_topological_basis B) {u : set α} :
+  is_open u ↔ ∃ S ⊆ B, u = ⋃₀ S :=
+⟨hB.open_eq_sUnion, λ ⟨S, hSB, hu⟩, hu.symm ▸ is_open_sUnion (λ s hs, hB.is_open (hSB hs))⟩
+
 lemma is_topological_basis.open_eq_Union {B : set (set α)}
   (hB : is_topological_basis B) {u : set α} (ou : is_open u) :
   ∃ (β : Type u) (f : β → set α), u = (⋃ i, f i) ∧ ∀ i, f i ∈ B :=
@@ -327,7 +332,8 @@ begin
   choose f hfs hfu using this,
   lift f to a → u using hfu,
   have f_inj : injective f,
-  { refine injective_iff_pairwise_ne.mpr ((h.subtype _ _).mono $ λ i j hij hfij, hij ⟨hfs i, _⟩),
+  { refine injective_iff_pairwise_ne.mpr
+      ((h.subtype _ _).mono $ λ i j hij hfij, hij.le_bot ⟨hfs i, _⟩),
     simp only [congr_arg coe hfij, hfs j] },
   exact ⟨@encodable.of_inj _ _ u_encodable f f_inj⟩
 end

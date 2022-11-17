@@ -6,7 +6,7 @@ Authors: Rémy Degenne
 
 import analysis.inner_product_space.projection
 import measure_theory.function.l2_space
-import measure_theory.decomposition.radon_nikodym
+import measure_theory.function.ae_eq_of_integral
 import measure_theory.function.uniform_integrable
 
 /-! # Conditional expectation

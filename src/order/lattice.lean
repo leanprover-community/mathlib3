@@ -71,6 +71,7 @@ end
 /-- A `semilattice_sup` is a join-semilattice, that is, a partial order
   with a join (a.k.a. lub / least upper bound, sup / supremum) operation
   `⊔` which is the least element larger than both factors. -/
+@[protect_proj, ancestor has_sup partial_order]
 class semilattice_sup (α : Type u) extends has_sup α, partial_order α :=
 (le_sup_left : ∀ a b : α, a ≤ a ⊔ b)
 (le_sup_right : ∀ a b : α, b ≤ a ⊔ b)
@@ -269,6 +270,7 @@ end semilattice_sup
 /-- A `semilattice_inf` is a meet-semilattice, that is, a partial order
   with a meet (a.k.a. glb / greatest lower bound, inf / infimum) operation
   `⊓` which is the greatest element smaller than both factors. -/
+@[protect_proj, ancestor has_inf partial_order]
 class semilattice_inf (α : Type u) extends has_inf α, partial_order α :=
 (inf_le_left : ∀ a b : α, a ⊓ b ≤ a)
 (inf_le_right : ∀ a b : α, a ⊓ b ≤ b)
@@ -435,7 +437,8 @@ end
 -/
 
 /-- A lattice is a join-semilattice which is also a meet-semilattice. -/
-@[protect_proj] class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
+@[protect_proj, ancestor semilattice_sup semilattice_inf]
+class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
 
 instance (α) [lattice α] : lattice αᵒᵈ :=
 { .. order_dual.semilattice_sup α, .. order_dual.semilattice_inf α }
@@ -558,6 +561,7 @@ A classic example of a distributive lattice
 is the lattice of subsets of a set, and in fact this example is
 generic in the sense that every distributive lattice is realizable
 as a sublattice of a powerset lattice. -/
+@[protect_proj, ancestor lattice]
 class distrib_lattice α extends lattice α :=
 (le_sup_inf : ∀x y z : α, (x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z))
 
@@ -675,12 +679,17 @@ begin
   ext x y,
   dunfold max_default,
   split_ifs with h',
-  exacts [sup_of_le_left h', sup_of_le_right $ (total_of (≤) x y).resolve_right h']
+  exacts [sup_of_le_right h', sup_of_le_left $ (total_of (≤) x y).resolve_left h']
 end
 
 lemma inf_eq_min_default [semilattice_inf α] [decidable_rel ((≤) : α → α → Prop)]
   [is_total α (≤)] : (⊓) = (min_default : α → α → α) :=
-@sup_eq_max_default αᵒᵈ _ _ _
+begin
+  ext x y,
+  dunfold min_default,
+  split_ifs with h',
+  exacts [inf_of_le_left h', inf_of_le_right $ (total_of (≤) x y).resolve_left h']
+end
 
 /-- A lattice with total order is a linear order.
 

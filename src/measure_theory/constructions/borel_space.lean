@@ -714,7 +714,7 @@ variables [second_countable_topology α]
 @[measurability]
 lemma measurable.max {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ a, max (f a) (g a)) :=
-by simpa only [max_def] using hf.piecewise (measurable_set_le hg hf) hg
+by simpa only [max_def'] using hf.piecewise (measurable_set_le hg hf) hg
 
 @[measurability]
 lemma ae_measurable.max {f g : δ → α} {μ : measure δ}
@@ -1309,7 +1309,7 @@ protected lemma is_finite_measure_on_compacts.map
   assume K hK,
   rw [measure.map_apply f.measurable hK.measurable_set],
   apply is_compact.measure_lt_top,
-  rwa f.compact_preimage
+  rwa f.is_compact_preimage
 end⟩
 
 end borel_space

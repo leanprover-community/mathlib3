@@ -2353,7 +2353,7 @@ begin
     apply hl _ (list.mem_cons_self _ _) }
 end
 
-lemma foldr_range_subset_of_range_subset {f : α → γ → γ} {g : β → γ → γ}
+lemma foldr_range_subset_of_range_subset {f : β → α → α} {g : γ → α → α}
   (hfg : set.range f ⊆ set.range g) (a : α) :
   set.range (foldr f a) ⊆ set.range (foldr g a) :=
 begin
@@ -2366,7 +2366,7 @@ begin
     exact ⟨c :: m, rfl⟩ }
 end
 
-lemma foldl_range_subset_of_range_subset {f : γ → α → γ} {g : γ → β → γ}
+lemma foldl_range_subset_of_range_subset {f : α → β → α} {g : α → γ → α}
   (hfg : set.range (λ a c, f c a) ⊆ set.range (λ b c, g c b)) (a : α) :
   set.range (foldl f a) ⊆ set.range (foldl g a) :=
 begin
@@ -2377,12 +2377,12 @@ begin
   exact foldr_range_subset_of_range_subset hfg a,
 end
 
-lemma foldr_range_eq_of_range_eq {f : α → γ → γ} {g : β → γ → γ}
-  (hfg : set.range f = set.range g) (a : α) :
+lemma foldr_range_eq_of_range_eq {f : β → α → α} {g : γ → α → α} (hfg : set.range f = set.range g)
+  (a : α) :
   set.range (foldr f a) = set.range (foldr g a) :=
 (foldr_range_subset_of_range_subset hfg.le a).antisymm (foldr_range_subset_of_range_subset hfg.ge a)
 
-lemma foldl_range_eq_of_range_eq {f : γ → α → γ} {g : γ → β → γ}
+lemma foldl_range_eq_of_range_eq {f : α → β → α} {g : α → γ → α}
   (hfg : set.range (λ a c, f c a) = set.range (λ b c, g c b)) (a : α) :
   set.range (foldl f a) = set.range (foldl g a) :=
 (foldl_range_subset_of_range_subset hfg.le a).antisymm (foldl_range_subset_of_range_subset hfg.ge a)

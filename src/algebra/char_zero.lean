@@ -5,7 +5,8 @@ Authors: Mario Carneiro
 -/
 
 import data.nat.cast.field
-import data.fintype.basic
+import data.fintype.lattice
+import algebra.group_power.lemmas
 
 /-!
 # Characteristic zero (additional theorems)

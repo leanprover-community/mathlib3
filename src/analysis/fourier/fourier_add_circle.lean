@@ -23,7 +23,7 @@ This file contains basic results on Fourier series for functions on the additive
 
 * `haar_add_circle`, Haar measure on `add_circle T`, normalized to have total measure `1`. (Note
   that this is not the same normalisation as the standard measure defined in `integral.periodic`,
-  so we do not declare it as a `measure_space` instance.)
+  so we do not declare it as a `measure_space` instance, to avoid confusion.)
 * for `n : ℤ`, `fourier n` is the monomial `λ x, exp (2 π i n x / T)`, bundled as a continuous map
   from `add_circle T` to `ℂ`.
 * for `n : ℤ` and `p : ℝ≥0∞`, `fourier_Lp p n` is an abbreviation for the monomial `fourier n`
@@ -109,13 +109,10 @@ begin
   obtain ⟨m, hm⟩ := exp_map_circle_eq_exp_map_circle.mp h.symm,
   simp_rw [quotient_add_group.eq, add_subgroup.mem_zmultiples_iff, zsmul_eq_mul],
   use m,
-  replace hm := sub_eq_of_eq_add' hm,
-  rw [←mul_sub, div_mul_eq_mul_div₀] at hm,
-  conv_rhs at hm { rw mul_comm },
-  rw [mul_div_assoc, mul_eq_mul_left_iff] at hm,
-  cases hm,
-  { rw div_eq_iff hT at hm, rw [←hm, sub_eq_neg_add], },
-  { exfalso, exact real.two_pi_pos.ne' hm }
+  have : ↑m * (2 * π) = (2 * π / T) * (m * T) := by { field_simp, ring },
+  rw [this, ←mul_add, mul_eq_mul_left_iff] at hm,
+  cases hm, { rw hm, ring, },
+  { exfalso, refine div_ne_zero real.two_pi_pos.ne' hT hm },
 end
 
 @[simp] lemma add_circle.to_circle_zsmul (n : ℤ) (x : add_circle T) :

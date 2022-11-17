@@ -3,7 +3,7 @@ Copyright (c) 2021 Eric Rodriguez. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
-import algebra.group.defs
+import logic.basic
 
 /-!
 # `ne_zero` typeclass

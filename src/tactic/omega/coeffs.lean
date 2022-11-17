@@ -112,7 +112,7 @@ lemma val_between_set {a : int} {l n : nat} :
   val v ([] {m ↦ a}) = a * v m :=
 begin
   apply val_between_set (zero_le _),
-  refine lt_of_lt_of_le (lt_add_one _) _,
+  rw [length_set, zero_add],
   exact lt_max_of_lt_right (lt_add_one _),
 end
 

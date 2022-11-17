@@ -314,6 +314,26 @@ begin
   { exact L2.integrable_inner f f },
 end
 
+lemma fourier_series_repr' (f : Lp ℂ 2 volume) (i : ℤ) :
+  fourier_series.repr f i = 1 / (2 * π) * ∫ x in 0 .. 2 * π, fourier (-i) x * f x :=
+begin
+  rw fourier_series_repr,
+  dsimp [(volume)],
+  rw [integral_smul_measure, ennreal.to_real_of_real],
+  dsimp [real.angle],
+  have := @add_circle.interval_integral_preimage (2 * π) ⟨real.two_pi_pos⟩ ℂ _ _ _ 0
+    (λ (t : real.angle), fourier (-i) t * f t),
+  rw zero_add at this,
+  dsimp [(volume)] at this,
+  rw this,
+  congr' 1,
+  simp,
+  apply ae_strongly_measurable.mul,
+  apply continuous.ae_strongly_measurable,
+
+end
+
+
 end fourier
 
 end real.angle

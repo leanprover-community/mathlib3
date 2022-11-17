@@ -377,6 +377,26 @@ lemma mem_conj_invariant_subalgebra {A : subalgebra ℝ C(X, 𝕜)} (hA : conj_i
   (conj_ae.to_alg_hom.comp_left_continuous ℝ conj_cle.continuous) f ∈ A :=
 hA ⟨f, hf, rfl⟩
 
+/-- If a set `S` is conjugation-invariant, then its `𝕜`-span is conjugation-invariant. -/
+lemma subalgebra_conj_invariant {S : set C(X, 𝕜)}
+  (hS : ∀ f, f ∈ S → (conj_ae.to_alg_hom.comp_left_continuous ℝ conj_cle.continuous) f ∈ S) :
+conj_invariant_subalgebra ((algebra.adjoin 𝕜 S).restrict_scalars ℝ) :=
+begin
+  rintros _ ⟨f, hf, rfl⟩,
+  change _ ∈ ((algebra.adjoin 𝕜 S).restrict_scalars ℝ),
+  change _ ∈ ((algebra.adjoin 𝕜 S).restrict_scalars ℝ) at hf,
+  rw subalgebra.mem_restrict_scalars at hf ⊢,
+  apply algebra.adjoin_induction hf,
+  { exact λ g hg, algebra.subset_adjoin (hS g hg), },
+  { exact λ c, subalgebra.algebra_map_mem _ (star_ring_end 𝕜 c) },
+  { intros f g hf hg,
+    convert subalgebra.add_mem _ hf hg,
+    exact alg_hom.map_add _ f g },
+  { intros f g hf hg,
+    convert subalgebra.mul_mem _ hf hg,
+    exact alg_hom.map_mul _ f g, }
+end
+
 end continuous_map
 
 open continuous_map

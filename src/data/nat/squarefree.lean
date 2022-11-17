@@ -361,7 +361,7 @@ lemma squarefree_bit10 (n : ℕ) (h : squarefree_helper n 1) :
   squarefree (bit0 (bit1 n)) :=
 begin
   refine @nat.min_sq_fac_prop_div _ _ nat.prime_two two_dvd_bit0 _ none _,
-  { rw [bit0_eq_two_mul (bit1 n), mul_dvd_mul_iff_left (@two_ne_zero ℕ _ _)],
+  { rw [bit0_eq_two_mul (bit1 n), mul_dvd_mul_iff_left (two_ne_zero' ℕ)],
     exact nat.not_two_dvd_bit1 _ },
   { rw [bit0_eq_two_mul, nat.mul_div_right _ (dec_trivial:0<2)],
     refine h dec_trivial (λ p pp dp, nat.succ_le_of_lt (lt_of_le_of_ne pp.two_le _)),

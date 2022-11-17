@@ -1690,7 +1690,7 @@ lemma ker_is_maximal_of_surjective {R K F : Type*} [ring R] [field K] [ring_hom_
   (ker f).is_maximal :=
 begin
   refine ideal.is_maximal_iff.mpr
-    ⟨λ h1, @one_ne_zero K _ _ $ map_one f ▸ (mem_ker f).mp h1,
+    ⟨λ h1, one_ne_zero' K $ map_one f ▸ (mem_ker f).mp h1,
     λ J x hJ hxf hxJ, _⟩,
   obtain ⟨y, hy⟩ := hf (f x)⁻¹,
   have H : 1 = y * x - (y * x - 1) := (sub_sub_cancel _ _).symm,

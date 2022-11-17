@@ -5,18 +5,17 @@ Authors: Floris van Doorn, Heather Macbeth
 -/
 import geometry.manifold.cont_mdiff
 
-/-! # Smooth vector bundles
+/-! # The groupoid of smooth, fibrewise-linear maps
 
-This file will eventually contain the definition of a smooth vector bundle.  For now, it contains
-preliminaries regarding an associated `structure_groupoid`, the groupoid of
-`smooth_fibrewise_linear` functions. -/
+This file contains preliminaries for the definition of a smooth vector bundle: an associated
+`structure_groupoid`, the groupoid of `smooth_fibrewise_linear` functions.
+-/
 
 noncomputable theory
 
 open set topological_space
 open_locale manifold topological_space
 
-/-! ### The groupoid of smooth, fibrewise-linear maps -/
 
 variables {𝕜 B F : Type*} [topological_space B]
 variables [nontrivially_normed_field 𝕜] [normed_add_comm_group F] [normed_space 𝕜 F]

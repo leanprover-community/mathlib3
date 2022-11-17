@@ -107,8 +107,7 @@ begin
   have key : ∀ σ : (X ^ n - 1 : F[X]).gal, ∃ m : ℕ, σ a = a ^ m,
   { intro σ,
     lift n to ℕ+ using hn',
-    exact map_root_of_unity_eq_pow_self σ.to_alg_hom
-      ⟨unit_of_pow_eq_one a n ha hn, by { rw [mem_roots_of_unity, pow_unit_of_pow_eq_one] }⟩ },
+    exact map_root_of_unity_eq_pow_self σ.to_alg_hom (roots_of_unity.mk_of_pow_eq a ha) },
   obtain ⟨c, hc⟩ := key σ,
   obtain ⟨d, hd⟩ := key τ,
   rw [σ.mul_apply, τ.mul_apply, hc, τ.map_pow, hd, σ.map_pow, hc, ←pow_mul, pow_mul'],

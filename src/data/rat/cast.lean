@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import algebra.big_operators.basic
 import algebra.field.opposite
 import algebra.group_with_zero.power
+import algebra.order.field.basic
 import data.int.char_zero
 import data.rat.lemmas
 import data.rat.order

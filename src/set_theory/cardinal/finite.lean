@@ -105,14 +105,6 @@ end
 
 end nat
 
-@[to_additive] lemma subgroup.eq_bot_of_card_eq' {G : Type*} [group G] (H : subgroup G)
-  (h : nat.card H = 1) : H = ⊥ :=
-begin
-  haveI := nat.finite_of_card_ne_zero (ne_of_eq_of_ne h one_ne_zero),
-  haveI := fintype.of_finite H,
-  exact H.eq_bot_of_card_le (nat.card_eq_fintype_card.symm.trans h).le,
-end
-
 namespace part_enat
 
 /-- `part_enat.card α` is the cardinality of `α` as an extended natural number.

@@ -8,7 +8,6 @@ import algebra.big_operators.basic
 import algebra.module.basic
 import data.nat.interval
 import tactic.linarith
-import tactic.abel
 
 /-!
 # Results about big operators over intervals

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
 Amelia Livingston, Yury Kudryashov
 -/
+import algebra.hom.group  -- Only needed for notation
+import algebra.group.units
 import group_theory.subsemigroup.basic
 
 /-!

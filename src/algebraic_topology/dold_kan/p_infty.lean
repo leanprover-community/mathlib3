@@ -61,15 +61,29 @@ def P_infty : K[X] ⟶ K[X] := chain_complex.of_hom _ _ _ _ _ _
   (λ n, by simpa only [← P_is_eventually_constant (show n ≤ n, by refl),
     alternating_face_map_complex.obj_d_eq] using (P (n+1)).comm (n+1) n)
 
+/-- The endomorphism `Q_infty : K[X] ⟶ K[X]` obtained from the `Q q` by passing to the limit. -/
+def Q_infty : K[X] ⟶ K[X] := 𝟙 _ - P_infty
+
 @[simp]
 lemma P_infty_f_0 : (P_infty.f 0 : X _[0] ⟶ X _[0]) = 𝟙 _ := rfl
 
 lemma P_infty_f (n : ℕ) : (P_infty.f n : X _[n] ⟶  X _[n] ) = (P n).f n := rfl
 
+@[simp]
+lemma Q_infty_f_0 : (Q_infty.f 0 : X _[0] ⟶ X _[0]) = 0 :=
+by { dsimp [Q_infty], simp only [sub_self], }
+
+lemma Q_infty_f (n : ℕ) : (Q_infty.f n : X _[n] ⟶  X _[n] ) = (Q n).f n := rfl
+
 @[simp, reassoc]
 lemma P_infty_f_naturality (n : ℕ) {X Y : simplicial_object C} (f : X ⟶ Y) :
   f.app (op [n]) ≫ P_infty.f n = P_infty.f n ≫ f.app (op [n]) :=
 P_f_naturality n n f
+
+@[simp, reassoc]
+lemma Q_infty_f_naturality (n : ℕ) {X Y : simplicial_object C} (f : X ⟶ Y) :
+  f.app (op [n]) ≫ Q_infty.f n = Q_infty.f n ≫ f.app (op [n]) :=
+Q_f_naturality n n f
 
 @[simp, reassoc]
 lemma P_infty_f_idem (n : ℕ) :
@@ -79,6 +93,52 @@ by simp only [P_infty_f, P_f_idem]
 @[simp, reassoc]
 lemma P_infty_idem : (P_infty : K[X] ⟶ _) ≫ P_infty = P_infty :=
 by { ext n, exact P_infty_f_idem n, }
+
+@[simp, reassoc]
+lemma Q_infty_f_idem (n : ℕ) :
+  (Q_infty.f n : X _[n] ⟶ _) ≫ (Q_infty.f n) = Q_infty.f n :=
+Q_f_idem _ _
+
+@[simp, reassoc]
+lemma Q_infty_idem : (Q_infty : K[X] ⟶ _) ≫ Q_infty = Q_infty :=
+by { ext n, exact Q_infty_f_idem n, }
+
+@[simp, reassoc]
+lemma P_infty_f_comp_Q_infty_f (n : ℕ) :
+  (P_infty.f n : X _[n] ⟶ _) ≫ Q_infty.f n = 0 :=
+begin
+  dsimp only [Q_infty],
+  simp only [homological_complex.sub_f_apply, homological_complex.id_f, comp_sub, comp_id,
+    P_infty_f_idem, sub_self],
+end
+
+@[simp, reassoc]
+lemma P_infty_comp_Q_infty :
+  (P_infty : K[X] ⟶ _) ≫ Q_infty = 0 :=
+by { ext n, apply P_infty_f_comp_Q_infty_f, }
+
+@[simp, reassoc]
+lemma Q_infty_f_comp_P_infty_f (n : ℕ) :
+  (Q_infty.f n : X _[n] ⟶ _) ≫ P_infty.f n = 0 :=
+begin
+  dsimp only [Q_infty],
+  simp only [homological_complex.sub_f_apply, homological_complex.id_f, sub_comp, id_comp,
+    P_infty_f_idem, sub_self],
+end
+
+@[simp, reassoc]
+lemma Q_infty_comp_P_infty :
+  (Q_infty : K[X] ⟶ _) ≫ P_infty = 0 :=
+by { ext n, apply Q_infty_f_comp_P_infty_f, }
+
+@[simp]
+lemma P_infty_add_Q_infty :
+  (P_infty : K[X] ⟶ _) + Q_infty = 𝟙 _ :=
+by { dsimp only [Q_infty], simp only [add_sub_cancel'_right], }
+
+lemma P_infty_f_add_Q_infty_f (n : ℕ) :
+  (P_infty.f n : X _[n] ⟶ _ ) + Q_infty.f n = 𝟙 _ :=
+homological_complex.congr_hom (P_infty_add_Q_infty) n
 
 variable (C)
 

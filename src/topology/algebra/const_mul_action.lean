@@ -3,12 +3,12 @@ Copyright (c) 2021 Alex Kontorovich, Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth
 -/
-import data.real.nnreal
 import topology.algebra.constructions
 import topology.homeomorph
 import group_theory.group_action.basic
 import topology.bases
 import topology.support
+
 /-!
 # Monoid actions continuous in the second variable
 

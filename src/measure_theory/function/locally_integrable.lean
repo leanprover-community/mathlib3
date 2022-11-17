@@ -66,7 +66,7 @@ lemma integrable_on.mul_continuous_on_of_subset
 begin
   rcases is_compact.exists_bound_of_continuous_on hK hg' with ⟨C, hC⟩,
   rw [integrable_on, ← mem_ℒp_one_iff_integrable] at hg ⊢,
-  have : ∀ᵐ x ∂(μ.restrict A), ∥g x * g' x∥ ≤ C * ∥g x∥,
+  have : ∀ᵐ x ∂(μ.restrict A), ‖g x * g' x‖ ≤ C * ‖g x‖,
   { filter_upwards [ae_restrict_mem hA] with x hx,
     rw [real.norm_eq_abs, abs_mul, mul_comm, real.norm_eq_abs],
     apply mul_le_mul_of_nonneg_right (hC x (hAK hx)) (abs_nonneg _), },

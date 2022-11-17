@@ -3,7 +3,6 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Christopher Hoskin
 -/
-import algebra.group.pi
 import algebra.group_power.lemmas
 import algebra.hom.group_instances
 

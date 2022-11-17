@@ -654,7 +654,7 @@ end topological_space
 section liminf
 
 lemma exists_frequently_lt_of_liminf_ne_top
-  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf (λ n, (∥x n∥₊ : ℝ≥0∞)) l ≠ ∞) :
+  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf (λ n, (‖x n‖₊ : ℝ≥0∞)) l ≠ ∞) :
   ∃ R, ∃ᶠ n in l, x n < R :=
 begin
   by_contra h,
@@ -665,7 +665,7 @@ begin
 end
 
 lemma exists_frequently_lt_of_liminf_ne_top'
-  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf (λ n, (∥x n∥₊ : ℝ≥0∞)) l ≠ ∞) :
+  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf (λ n, (‖x n‖₊ : ℝ≥0∞)) l ≠ ∞) :
   ∃ R, ∃ᶠ n in l, R < x n :=
 begin
   by_contra h,
@@ -677,7 +677,7 @@ end
 
 lemma exists_upcrossings_of_not_bounded_under
   {ι : Type*} {l : filter ι} {x : ι → ℝ}
-  (hf : liminf (λ i, (∥x i∥₊ : ℝ≥0∞)) l ≠ ∞)
+  (hf : liminf (λ i, (‖x i‖₊ : ℝ≥0∞)) l ≠ ∞)
   (hbdd : ¬ is_bounded_under (≤) l (λ i, |x i|)) :
   ∃ a b : ℚ, a < b ∧ (∃ᶠ i in l, x i < a) ∧ (∃ᶠ i in l, ↑b < x i) :=
 begin

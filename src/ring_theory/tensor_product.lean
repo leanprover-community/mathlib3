@@ -5,8 +5,8 @@ Authors: Scott Morrison, Johan Commelin
 -/
 
 import linear_algebra.finite_dimensional
-import linear_algebra.tensor_product_basis
 import ring_theory.adjoin.basic
+import linear_algebra.direct_sum.finsupp
 
 /-!
 # The tensor product of R-algebras

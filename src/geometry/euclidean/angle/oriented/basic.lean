@@ -335,7 +335,7 @@ lemma oangle_ne_zero_and_ne_pi_iff_linear_independent {x y : V} :
 by rw [←not_or_distrib, ←not_iff_not, not_not, oangle_eq_zero_or_eq_pi_iff_not_linear_independent]
 
 /-- Two vectors are equal if and only if they have equal norms and zero angle between them. -/
-lemma eq_iff_norm_eq_and_oangle_eq_zero (x y : V) : x = y ↔ ∥x∥ = ∥y∥ ∧ o.oangle x y = 0 :=
+lemma eq_iff_norm_eq_and_oangle_eq_zero (x y : V) : x = y ↔ ‖x‖ = ‖y‖ ∧ o.oangle x y = 0 :=
 begin
   rw oangle_eq_zero_iff_same_ray,
   split,
@@ -345,7 +345,7 @@ begin
     { simp },
     rintros ⟨h₁, h₂⟩,
     obtain ⟨r, hr, rfl⟩ := h₂.exists_nonneg_right hy,
-    have : ∥y∥ ≠ 0 := by simpa using hy,
+    have : ‖y‖ ≠ 0 := by simpa using hy,
     obtain rfl : r = 1,
     { apply mul_right_cancel₀ this,
       simpa [norm_smul, _root_.abs_of_nonneg hr] using h₁ },
@@ -353,12 +353,12 @@ begin
 end
 
 /-- Two vectors with equal norms are equal if and only if they have zero angle between them. -/
-lemma eq_iff_oangle_eq_zero_of_norm_eq {x y : V} (h : ∥x∥ = ∥y∥) : x = y ↔ o.oangle x y = 0 :=
+lemma eq_iff_oangle_eq_zero_of_norm_eq {x y : V} (h : ‖x‖ = ‖y‖) : x = y ↔ o.oangle x y = 0 :=
 ⟨λ he, ((o.eq_iff_norm_eq_and_oangle_eq_zero x y).1 he).2,
  λ ha, (o.eq_iff_norm_eq_and_oangle_eq_zero x y).2 ⟨h, ha⟩⟩
 
 /-- Two vectors with zero angle between them are equal if and only if they have equal norms. -/
-lemma eq_iff_norm_eq_of_oangle_eq_zero {x y : V} (h : o.oangle x y = 0) : x = y ↔ ∥x∥ = ∥y∥ :=
+lemma eq_iff_norm_eq_of_oangle_eq_zero {x y : V} (h : o.oangle x y = 0) : x = y ↔ ‖x‖ = ‖y‖ :=
 ⟨λ he, ((o.eq_iff_norm_eq_and_oangle_eq_zero x y).1 he).1,
  λ hn, (o.eq_iff_norm_eq_and_oangle_eq_zero x y).2 ⟨hn, h⟩⟩
 
@@ -370,9 +370,9 @@ begin
   simp_rw [oangle],
   rw [←complex.arg_mul_coe_angle, o.kahler_mul y x z],
   congr' 1,
-  convert complex.arg_real_mul _ (_ : 0 < ∥y∥ ^ 2) using 2,
+  convert complex.arg_real_mul _ (_ : 0 < ‖y‖ ^ 2) using 2,
   { norm_cast },
-  { have : 0 < ∥y∥ := by simpa using hy,
+  { have : 0 < ‖y‖ := by simpa using hy,
     positivity },
   { exact o.kahler_ne_zero hx hy, },
   { exact o.kahler_ne_zero hy hz }
@@ -419,13 +419,13 @@ sum of the angles of a triangle. -/
 by simp_rw [←oangle_neg_left_eq_neg_right, o.oangle_add_cyc3_neg_left hx hy hz]
 
 /-- Pons asinorum, oriented vector angle form. -/
-lemma oangle_sub_eq_oangle_sub_rev_of_norm_eq {x y : V} (h : ∥x∥ = ∥y∥) :
+lemma oangle_sub_eq_oangle_sub_rev_of_norm_eq {x y : V} (h : ‖x‖ = ‖y‖) :
   o.oangle x (x - y) = o.oangle (y - x) y :=
 by simp [oangle, h]
 
 /-- The angle at the apex of an isosceles triangle is `π` minus twice a base angle, oriented
 vector angle form. -/
-lemma oangle_eq_pi_sub_two_zsmul_oangle_sub_of_norm_eq {x y : V} (hn : x ≠ y) (h : ∥x∥ = ∥y∥) :
+lemma oangle_eq_pi_sub_two_zsmul_oangle_sub_of_norm_eq {x y : V} (hn : x ≠ y) (h : ‖x‖ = ‖y‖) :
   o.oangle y x = π - (2 : ℤ) • o.oangle (y - x) y :=
 begin
   rw two_zsmul,
@@ -685,7 +685,7 @@ by rw [←rotation_eq_self_iff, eq_comm]
 /-- Rotating a vector by the angle to another vector gives the second vector if and only if the
 norms are equal. -/
 @[simp] lemma rotation_oangle_eq_iff_norm_eq (x y : V) :
-  o.rotation (o.oangle x y) x = y ↔ ∥x∥ = ∥y∥ :=
+  o.rotation (o.oangle x y) x = y ↔ ‖x‖ = ‖y‖ :=
 begin
   split,
   { intro h,
@@ -698,7 +698,7 @@ end
 /-- The angle between two nonzero vectors is `θ` if and only if the second vector is the first
 rotated by `θ` and scaled by the ratio of the norms. -/
 lemma oangle_eq_iff_eq_norm_div_norm_smul_rotation_of_ne_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0)
-  (θ : real.angle) : o.oangle x y = θ ↔ y = (∥y∥ / ∥x∥) • o.rotation θ x :=
+  (θ : real.angle) : o.oangle x y = θ ↔ y = (‖y‖ / ‖x‖) • o.rotation θ x :=
 begin
   have hp := div_pos (norm_pos_iff.2 hy) (norm_pos_iff.2 hx),
   split,
@@ -718,7 +718,7 @@ begin
   split,
   { intro h,
     rw o.oangle_eq_iff_eq_norm_div_norm_smul_rotation_of_ne_zero hx hy at h,
-    exact ⟨∥y∥ / ∥x∥, div_pos (norm_pos_iff.2 hy) (norm_pos_iff.2 hx), h⟩ },
+    exact ⟨‖y‖ / ‖x‖, div_pos (norm_pos_iff.2 hy) (norm_pos_iff.2 hx), h⟩ },
   { rintro ⟨r, hr, rfl⟩,
     rw [o.oangle_smul_right_of_pos _ _ hr, o.oangle_rotation_self_right hx] }
 end
@@ -728,7 +728,7 @@ is the first rotated by `θ` and scaled by the ratio of the norms, or `θ` and a
 vectors are zero. -/
 lemma oangle_eq_iff_eq_norm_div_norm_smul_rotation_or_eq_zero {x y : V} (θ : real.angle) :
   o.oangle x y = θ ↔
-    (x ≠ 0 ∧ y ≠ 0 ∧ y = (∥y∥ / ∥x∥) • o.rotation θ x) ∨ (θ = 0 ∧ (x = 0 ∨ y = 0)) :=
+    (x ≠ 0 ∧ y ≠ 0 ∧ y = (‖y‖ / ‖x‖) • o.rotation θ x) ∨ (θ = 0 ∧ (x = 0 ∨ y = 0)) :=
 begin
   by_cases hx : x = 0,
   { simp [hx, eq_comm] },
@@ -830,12 +830,12 @@ linear_isometry_equiv.ext $ by simp [rotation_apply]
 /-- The inner product of two vectors is the product of the norms and the cosine of the oriented
 angle between the vectors. -/
 lemma inner_eq_norm_mul_norm_mul_cos_oangle (x y : V) :
-  ⟪x, y⟫ = ∥x∥ * ∥y∥ * real.angle.cos (o.oangle x y) :=
+  ⟪x, y⟫ = ‖x‖ * ‖y‖ * real.angle.cos (o.oangle x y) :=
 begin
   by_cases hx : x = 0, { simp [hx] },
   by_cases hy : y = 0, { simp [hy] },
-  have : ∥x∥ ≠ 0 := by simpa using hx,
-  have : ∥y∥ ≠ 0 := by simpa using hy,
+  have : ‖x‖ ≠ 0 := by simpa using hx,
+  have : ‖y‖ ≠ 0 := by simpa using hy,
   rw [oangle, real.angle.cos_coe, complex.cos_arg, o.abs_kahler],
   { simp only [kahler_apply_apply, real_smul, add_re, of_real_re, mul_re, I_re, of_real_im],
     field_simp,
@@ -846,7 +846,7 @@ end
 /-- The cosine of the oriented angle between two nonzero vectors is the inner product divided by
 the product of the norms. -/
 lemma cos_oangle_eq_inner_div_norm_mul_norm {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
-  real.angle.cos (o.oangle x y) = ⟪x, y⟫ / (∥x∥ * ∥y∥) :=
+  real.angle.cos (o.oangle x y) = ⟪x, y⟫ / (‖x‖ * ‖y‖) :=
 begin
   rw o.inner_eq_norm_mul_norm_mul_cos_oangle,
   field_simp [norm_ne_zero_iff.2 hx, norm_ne_zero_iff.2 hy],

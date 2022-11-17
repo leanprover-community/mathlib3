@@ -184,7 +184,7 @@ lemma sub_one_pow_totient_lt_cyclotomic_eval {n : ℕ} {q : ℝ} (hn' : 2 ≤ n)
 begin
   have hn : 0 < n := pos_of_gt hn',
   have hq := zero_lt_one.trans hq',
-  have hfor : ∀ ζ' ∈ primitive_roots n ℂ, q - 1 ≤ ∥↑q - ζ'∥,
+  have hfor : ∀ ζ' ∈ primitive_roots n ℂ, q - 1 ≤ ‖↑q - ζ'‖,
   { intros ζ' hζ',
     rw mem_primitive_roots hn at hζ',
     convert norm_sub_norm_le (↑q) ζ',
@@ -192,7 +192,7 @@ begin
     { rw [hζ'.norm'_eq_one hn.ne'] } },
   let ζ := complex.exp (2 * ↑real.pi * complex.I / ↑n),
   have hζ : is_primitive_root ζ n := complex.is_primitive_root_exp n hn.ne',
-  have hex : ∃ ζ' ∈ primitive_roots n ℂ, q - 1 < ∥↑q - ζ'∥,
+  have hex : ∃ ζ' ∈ primitive_roots n ℂ, q - 1 < ‖↑q - ζ'‖,
   { refine ⟨ζ, (mem_primitive_roots hn).mpr hζ, _⟩,
     suffices : ¬ same_ray ℝ (q : ℂ) ζ,
     { convert lt_norm_sub_of_not_same_ray this;
@@ -209,7 +209,7 @@ begin
     simpa only [complex.coe_algebra_map, complex.of_real_eq_zero]
                 using (cyclotomic_pos' n hq').ne' },
   suffices : (units.mk0 (real.to_nnreal (q - 1)) (by simp [hq'])) ^ totient n
-              < units.mk0 (∥(cyclotomic n ℂ).eval q∥₊) (by simp [this]),
+              < units.mk0 (‖(cyclotomic n ℂ).eval q‖₊) (by simp [this]),
   { simp only [←units.coe_lt_coe, units.coe_pow, units.coe_mk0, ← nnreal.coe_lt_coe, hq'.le,
                real.to_nnreal_lt_to_nnreal_iff_of_nonneg, coe_nnnorm, complex.norm_eq_abs,
                nnreal.coe_pow, real.coe_to_nnreal', max_eq_left, sub_nonneg] at this,
@@ -237,7 +237,7 @@ lemma cyclotomic_eval_lt_sub_one_pow_totient {n : ℕ} {q : ℝ} (hn' : 3 ≤ n)
 begin
   have hn : 0 < n := pos_of_gt hn',
   have hq := zero_lt_one.trans hq',
-  have hfor : ∀ ζ' ∈ primitive_roots n ℂ, ∥↑q - ζ'∥ ≤ q + 1,
+  have hfor : ∀ ζ' ∈ primitive_roots n ℂ, ‖↑q - ζ'‖ ≤ q + 1,
   { intros ζ' hζ',
     rw mem_primitive_roots hn at hζ',
     convert norm_sub_le (↑q) ζ',
@@ -245,7 +245,7 @@ begin
     { rw [hζ'.norm'_eq_one hn.ne'] }, },
   let ζ := complex.exp (2 * ↑real.pi * complex.I / ↑n),
   have hζ : is_primitive_root ζ n := complex.is_primitive_root_exp n hn.ne',
-  have hex : ∃ ζ' ∈ primitive_roots n ℂ, ∥↑q - ζ'∥ < q + 1,
+  have hex : ∃ ζ' ∈ primitive_roots n ℂ, ‖↑q - ζ'‖ < q + 1,
   { refine ⟨ζ, (mem_primitive_roots hn).mpr hζ, _⟩,
     suffices : ¬ same_ray ℝ (q : ℂ) (-ζ),
     { convert norm_add_lt_of_not_same_ray this;
@@ -270,7 +270,7 @@ begin
   { erw cyclotomic.eval_apply q n (algebra_map ℝ ℂ),
     simp only [complex.coe_algebra_map, complex.of_real_eq_zero],
     exact (cyclotomic_pos' n hq').ne.symm, },
-  suffices : units.mk0 (∥(cyclotomic n ℂ).eval q∥₊) (by simp [this])
+  suffices : units.mk0 (‖(cyclotomic n ℂ).eval q‖₊) (by simp [this])
            < (units.mk0 (real.to_nnreal (q + 1)) (by simp; linarith)) ^ totient n,
   { simp only [←units.coe_lt_coe, units.coe_pow, units.coe_mk0, ← nnreal.coe_lt_coe, hq'.le,
                real.to_nnreal_lt_to_nnreal_iff_of_nonneg, coe_nnnorm, complex.norm_eq_abs,

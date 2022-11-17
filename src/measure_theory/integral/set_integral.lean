@@ -32,7 +32,7 @@ for set integral, see `filter.tendsto.integral_sub_linear_is_o_ae` and its corol
 Namely, consider a measurably generated filter `l`, a measure `μ` finite at this filter, and
 a function `f` that has a finite limit `c` at `l ⊓ μ.ae`. Then `∫ x in s, f x ∂μ = μ s • c + o(μ s)`
 as `s` tends to `l.small_sets`, i.e. for any `ε>0` there exists `t ∈ l` such that
-`∥∫ x in s, f x ∂μ - μ s • c∥ ≤ ε * μ s` whenever `s ⊆ t`. We also formulate a version of this
+`‖∫ x in s, f x ∂μ - μ s • c‖ ≤ ε * μ s` whenever `s ⊆ t`. We also formulate a version of this
 theorem for a locally finite measure `μ` and a function `f` continuous at a point `a`.
 
 ## Notation
@@ -151,7 +151,7 @@ lemma of_real_set_integral_one_of_measure_ne_top {α : Type*} {m : measurable_sp
   ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ) = μ s :=
 calc
 ennreal.of_real (∫ x in s, (1 : ℝ) ∂μ)
-    = ennreal.of_real (∫ x in s, ∥(1 : ℝ)∥ ∂μ) : by simp only [norm_one]
+    = ennreal.of_real (∫ x in s, ‖(1 : ℝ)‖ ∂μ) : by simp only [norm_one]
 ... = ∫⁻ x in s, 1 ∂μ :
 begin
   rw of_real_integral_norm_eq_lintegral_nnnorm (integrable_on_const.2 (or.inr hs.lt_top)),
@@ -176,12 +176,12 @@ lemma tendsto_set_integral_of_monotone {ι : Type*} [countable ι] [semilattice_
   (h_mono : monotone s) (hfi : integrable_on f (⋃ n, s n) μ) :
   tendsto (λ i, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋃ n, s n), f a ∂μ)) :=
 begin
-  have hfi' : ∫⁻ x in ⋃ n, s n, ∥f x∥₊ ∂μ < ∞ := hfi.2,
+  have hfi' : ∫⁻ x in ⋃ n, s n, ‖f x‖₊ ∂μ < ∞ := hfi.2,
   set S := ⋃ i, s i,
   have hSm : measurable_set S := measurable_set.Union hsm,
   have hsub : ∀ {i}, s i ⊆ S, from subset_Union s,
   rw [← with_density_apply _ hSm] at hfi',
-  set ν := μ.with_density (λ x, ∥f x∥₊) with hν,
+  set ν := μ.with_density (λ x, ‖f x‖₊) with hν,
   refine metric.nhds_basis_closed_ball.tendsto_right_iff.2 (λ ε ε0, _),
   lift ε to ℝ≥0 using ε0.le,
   have : ∀ᶠ i in at_top, ν (s i) ∈ Icc (ν S - ε) (ν S + ε),
@@ -255,11 +255,11 @@ end
 
 lemma integral_norm_eq_pos_sub_neg {f : α → ℝ} (hf : strongly_measurable f)
   (hfi : integrable f μ) :
-  ∫ x, ∥f x∥ ∂μ = ∫ x in {x | 0 ≤ f x}, f x ∂μ - ∫ x in {x | f x ≤ 0}, f x ∂μ :=
+  ∫ x, ‖f x‖ ∂μ = ∫ x in {x | 0 ≤ f x}, f x ∂μ - ∫ x in {x | f x ≤ 0}, f x ∂μ :=
 have h_meas : measurable_set {x | 0 ≤ f x}, from strongly_measurable_const.measurable_set_le hf,
-calc ∫ x, ∥f x∥ ∂μ = ∫ x in {x | 0 ≤ f x}, ∥f x∥ ∂μ + ∫ x in {x | 0 ≤ f x}ᶜ, ∥f x∥ ∂μ :
+calc ∫ x, ‖f x‖ ∂μ = ∫ x in {x | 0 ≤ f x}, ‖f x‖ ∂μ + ∫ x in {x | 0 ≤ f x}ᶜ, ‖f x‖ ∂μ :
   by rw ← integral_add_compl h_meas hfi.norm
-... = ∫ x in {x | 0 ≤ f x}, f x ∂μ + ∫ x in {x | 0 ≤ f x}ᶜ, ∥f x∥ ∂μ :
+... = ∫ x in {x | 0 ≤ f x}, f x ∂μ + ∫ x in {x | 0 ≤ f x}ᶜ, ‖f x‖ ∂μ :
 begin
   congr' 1,
   refine set_integral_congr h_meas (λ x hx, _),
@@ -344,8 +344,8 @@ lemma set_integral_map_equiv {β} [measurable_space β] (e : α ≃ᵐ β) (f : 
 e.measurable_embedding.set_integral_map f s
 
 lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ∞)
-  (hC : ∀ᵐ x ∂μ.restrict s, ∥f x∥ ≤ C) :
-  ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=
+  (hC : ∀ᵐ x ∂μ.restrict s, ‖f x‖ ≤ C) :
+  ‖∫ x in s, f x ∂μ‖ ≤ C * (μ s).to_real :=
 begin
   rw ← measure.restrict_apply_univ at *,
   haveI : is_finite_measure (μ.restrict s) := ⟨‹_›⟩,
@@ -353,33 +353,33 @@ begin
 end
 
 lemma norm_set_integral_le_of_norm_le_const_ae' {C : ℝ} (hs : μ s < ∞)
-  (hC : ∀ᵐ x ∂μ, x ∈ s → ∥f x∥ ≤ C) (hfm : ae_strongly_measurable f (μ.restrict s)) :
-  ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=
+  (hC : ∀ᵐ x ∂μ, x ∈ s → ‖f x‖ ≤ C) (hfm : ae_strongly_measurable f (μ.restrict s)) :
+  ‖∫ x in s, f x ∂μ‖ ≤ C * (μ s).to_real :=
 begin
   apply norm_set_integral_le_of_norm_le_const_ae hs,
-  have A : ∀ᵐ (x : α) ∂μ, x ∈ s → ∥ae_strongly_measurable.mk f hfm x∥ ≤ C,
+  have A : ∀ᵐ (x : α) ∂μ, x ∈ s → ‖ae_strongly_measurable.mk f hfm x‖ ≤ C,
   { filter_upwards [hC, hfm.ae_mem_imp_eq_mk] with _ h1 h2 h3,
     rw [← h2 h3],
     exact h1 h3 },
-  have B : measurable_set {x | ∥(hfm.mk f) x∥ ≤ C} :=
+  have B : measurable_set {x | ‖(hfm.mk f) x‖ ≤ C} :=
     hfm.strongly_measurable_mk.norm.measurable measurable_set_Iic,
   filter_upwards [hfm.ae_eq_mk, (ae_restrict_iff B).2 A] with _ h1 _,
   rwa h1,
 end
 
 lemma norm_set_integral_le_of_norm_le_const_ae'' {C : ℝ} (hs : μ s < ∞) (hsm : measurable_set s)
-  (hC : ∀ᵐ x ∂μ, x ∈ s → ∥f x∥ ≤ C) :
-  ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=
+  (hC : ∀ᵐ x ∂μ, x ∈ s → ‖f x‖ ≤ C) :
+  ‖∫ x in s, f x ∂μ‖ ≤ C * (μ s).to_real :=
 norm_set_integral_le_of_norm_le_const_ae hs $ by rwa [ae_restrict_eq hsm, eventually_inf_principal]
 
 lemma norm_set_integral_le_of_norm_le_const {C : ℝ} (hs : μ s < ∞)
-  (hC : ∀ x ∈ s, ∥f x∥ ≤ C) (hfm : ae_strongly_measurable f (μ.restrict s)) :
-  ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=
+  (hC : ∀ x ∈ s, ‖f x‖ ≤ C) (hfm : ae_strongly_measurable f (μ.restrict s)) :
+  ‖∫ x in s, f x ∂μ‖ ≤ C * (μ s).to_real :=
 norm_set_integral_le_of_norm_le_const_ae' hs (eventually_of_forall hC) hfm
 
 lemma norm_set_integral_le_of_norm_le_const' {C : ℝ} (hs : μ s < ∞) (hsm : measurable_set s)
-  (hC : ∀ x ∈ s, ∥f x∥ ≤ C) :
-  ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=
+  (hC : ∀ x ∈ s, ‖f x‖ ≤ C) :
+  ‖∫ x in s, f x ∂μ‖ ≤ C * (μ s).to_real :=
 norm_set_integral_le_of_norm_le_const_ae'' hs hsm $ eventually_of_forall hC
 
 lemma set_integral_eq_zero_iff_of_nonneg_ae {f : α → ℝ} (hf : 0 ≤ᵐ[μ.restrict s] f)
@@ -552,7 +552,7 @@ lemma _root_.antitone.tendsto_set_integral (hsm : ∀ i, measurable_set (s i))
   (h_anti : antitone s) (hfi : integrable_on f (s 0) μ) :
   tendsto (λi, ∫ a in s i, f a ∂μ) at_top (𝓝 (∫ a in (⋂ n, s n), f a ∂μ)) :=
 begin
-  let bound : α → ℝ := indicator (s 0) (λ a, ∥f a∥),
+  let bound : α → ℝ := indicator (s 0) (λ a, ‖f a‖),
   have h_int_eq : (λ i, ∫ a in s i, f a ∂μ) = (λ i, ∫ a, (s i).indicator f a ∂μ),
     from funext (λ i, (integral_indicator (hsm i)).symm),
   rw h_int_eq,
@@ -612,7 +612,7 @@ end
 /-- For `f : Lp E p μ`, we can define an element of `Lp E p (μ.restrict s)` by
 `(Lp.mem_ℒp f).restrict s).to_Lp f`. This map is non-expansive. -/
 lemma norm_Lp_to_Lp_restrict_le (s : set α) (f : Lp E p μ) :
-  ∥((Lp.mem_ℒp f).restrict s).to_Lp f∥ ≤ ∥f∥ :=
+  ‖((Lp.mem_ℒp f).restrict s).to_Lp f‖ ≤ ‖f‖ :=
 begin
   rw [Lp.norm_def, Lp.norm_def, ennreal.to_real_le_to_real (Lp.snorm_ne_top _) (Lp.snorm_ne_top _)],
   refine (le_of_eq _).trans (snorm_mono_measure _ measure.restrict_le_self),

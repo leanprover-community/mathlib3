@@ -90,7 +90,7 @@ end
 lemma linear_isometry.im_apply_eq_im {f : ℂ →ₗᵢ[ℝ] ℂ} (h : f 1 = 1) (z : ℂ) :
   z + conj z = f z + conj (f z) :=
 begin
-  have : ∥f z - 1∥ = ∥z - 1∥ := by rw [← f.norm_map (z - 1), f.map_sub, h],
+  have : ‖f z - 1‖ = ‖z - 1‖ := by rw [← f.norm_map (z - 1), f.map_sub, h],
   apply_fun λ x, x ^ 2 at this,
   simp only [norm_eq_abs, ←norm_sq_eq_abs] at this,
   rw [←of_real_inj, ←mul_conj, ←mul_conj] at this,

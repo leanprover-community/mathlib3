@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Yury Kudryashov
 -/
 import topology.algebra.order.intermediate_value
+import topology.local_extr
 
 /-!
 # Compactness of a closed interval
@@ -388,3 +389,24 @@ begin
 end
 
 end continuous_on
+
+lemma is_compact.exists_local_min_on_mem_subset {f : β → α} {s t : set β} {z : β}
+  (ht : is_compact t) (hf : continuous_on f t) (hz : z ∈ t) (hfz : ∀ z' ∈ t \ s, f z < f z') :
+  ∃ x ∈ s, is_local_min_on f t x :=
+begin
+  obtain ⟨x, hx, hfx⟩ : ∃ x ∈ t, ∀ y ∈ t, f x ≤ f y := ht.exists_forall_le ⟨z, hz⟩ hf,
+  have key : ∀ ⦃y⦄, y ∈ t → (∀ z' ∈ t \ s, f y < f z') → y ∈ s := λ y hy hfy,
+    by { by_contra; simpa using ((hfy y ((mem_diff y).mpr ⟨hy,h⟩))) },
+  have h1 : ∀ z' ∈ t \ s, f x < f z' := λ z' hz', (hfx z hz).trans_lt (hfz z' hz'),
+  have h2 : x ∈ s := key hx h1,
+  refine ⟨x, h2, eventually_nhds_within_of_forall hfx⟩
+end
+
+lemma is_compact.exists_local_min_mem_open {f : β → α} {s t : set β} {z : β} (ht : is_compact t)
+  (hst : s ⊆ t) (hf : continuous_on f t) (hz : z ∈ t) (hfz : ∀ z' ∈ t \ s, f z < f z')
+  (hs : is_open s) :
+  ∃ x ∈ s, is_local_min f x :=
+begin
+  obtain ⟨x, hx, hfx⟩ := ht.exists_local_min_on_mem_subset hf hz hfz,
+  exact ⟨x, hx, hfx.is_local_min (filter.mem_of_superset (hs.mem_nhds hx) hst)⟩
+end

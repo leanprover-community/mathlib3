@@ -205,12 +205,7 @@ variables {l l' : filter α} {p : ι → Prop} {s : ι → set α} {t : set α} 
 
 lemma has_basis_generate (s : set (set α)) :
   (generate s).has_basis (λ t, set.finite t ∧ t ⊆ s) (λ t, ⋂₀ t) :=
-⟨begin
-  intro U,
-  rw mem_generate_iff,
-  apply exists_congr,
-  tauto
-end⟩
+⟨λ U, by simp only [mem_generate_iff, exists_prop, and.assoc, and.left_comm]⟩
 
 /-- The smallest filter basis containing a given collection of sets. -/
 def filter_basis.of_sets (s : set (set α)) : filter_basis α :=
@@ -331,6 +326,10 @@ lemma has_basis.eq_bot_iff (hl : l.has_basis p s) :
   l = ⊥ ↔ ∃ i, p i ∧ s i = ∅ :=
 not_iff_not.1 $ ne_bot_iff.symm.trans $ hl.ne_bot_iff.trans $
 by simp only [not_exists, not_and, ← ne_empty_iff_nonempty]
+
+lemma generate_ne_bot_iff {s : set (set α)} :
+  ne_bot (generate s) ↔ ∀ t ⊆ s, t.finite → (⋂₀ t).nonempty :=
+(has_basis_generate s).ne_bot_iff.trans $ by simp only [← and_imp, and_comm]
 
 lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=
 ⟨λ t, exists_mem_subset_iff.symm⟩
@@ -601,7 +600,7 @@ lemma mem_iff_inf_principal_compl {f : filter α} {s : set α} :
   s ∈ f ↔ f ⊓ 𝓟 sᶜ = ⊥ :=
 begin
   refine not_iff_not.1 ((inf_principal_ne_bot_iff.trans _).symm.trans ne_bot_iff),
-  exact ⟨λ h hs, by simpa [empty_not_nonempty] using h s hs,
+  exact ⟨λ h hs, by simpa [not_nonempty_empty] using h s hs,
     λ hs t ht, inter_compl_nonempty_iff.2 $ λ hts, hs $ mem_of_superset ht hts⟩,
 end
 

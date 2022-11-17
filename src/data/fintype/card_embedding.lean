@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
 import data.fintype.card
-import logic.equiv.fin
 import logic.equiv.embedding
 
 /-!

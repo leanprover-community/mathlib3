@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import order.complete_lattice
 import order.synonym
+import order.hom.set
 
 /-!
 # Galois connections, insertions and coinsertions
@@ -200,20 +201,24 @@ end
 end partial_order
 
 section order_top
-variables [partial_order α] [preorder β] [order_top α] [order_top β] {l : α → β} {u : β → α}
-  (gc : galois_connection l u)
-include gc
+variables [partial_order α] [preorder β] [order_top α]
 
-lemma u_top : u ⊤ = ⊤ := top_unique $ gc.le_u le_top
+lemma u_eq_top {l : α → β} {u : β → α} (gc : galois_connection l u) {x} : u x = ⊤ ↔ l ⊤ ≤ x :=
+top_le_iff.symm.trans gc.le_iff_le.symm
+
+lemma u_top [order_top β] {l : α → β} {u : β → α} (gc : galois_connection l u) : u ⊤ = ⊤ :=
+gc.u_eq_top.2 le_top
 
 end order_top
 
 section order_bot
-variables [preorder α] [partial_order β] [order_bot α] [order_bot β] {l : α → β} {u : β → α}
-  (gc : galois_connection l u)
-include gc
+variables [preorder α] [partial_order β] [order_bot β]
 
-lemma l_bot : l ⊥ = ⊥ := gc.dual.u_top
+lemma l_eq_bot {l : α → β} {u : β → α} (gc : galois_connection l u) {x} : l x = ⊥ ↔ x ≤ u ⊥ :=
+gc.dual.u_eq_top
+
+lemma l_bot [order_bot α] {l : α → β} {u : β → α} (gc : galois_connection l u) : l ⊥ = ⊥ :=
+gc.dual.u_top
 
 end order_bot
 
@@ -766,11 +771,11 @@ end lift
 
 end galois_coinsertion
 
-/-- If `α` is a partial order with bottom element (e.g., `ℕ`, `ℝ≥0`), then
-`λ o : with_bot α, o.get_or_else ⊥` and coercion form a Galois insertion. -/
-def with_bot.gi_get_or_else_bot [preorder α] [order_bot α] :
-  galois_insertion (λ o : with_bot α, o.get_or_else ⊥) coe :=
-{ gc := λ a b, with_bot.get_or_else_bot_le_iff,
+/-- If `α` is a partial order with bottom element (e.g., `ℕ`, `ℝ≥0`), then `with_bot.unbot' ⊥` and
+coercion form a Galois insertion. -/
+def with_bot.gi_unbot'_bot [preorder α] [order_bot α] :
+  galois_insertion (with_bot.unbot' ⊥) (coe : α → with_bot α) :=
+{ gc := λ a b, with_bot.unbot'_bot_le_iff,
   le_l_u := λ a, le_rfl,
-  choice := λ o ho, _,
+  choice := λ o ho, o.unbot' ⊥,
   choice_eq := λ _ _, rfl }

@@ -714,7 +714,7 @@ variables [second_countable_topology α]
 @[measurability]
 lemma measurable.max {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ a, max (f a) (g a)) :=
-by simpa only [max_def] using hf.piecewise (measurable_set_le hg hf) hg
+by simpa only [max_def'] using hf.piecewise (measurable_set_le hg hf) hg
 
 @[measurability]
 lemma ae_measurable.max {f g : δ → α} {μ : measure δ}
@@ -1243,7 +1243,7 @@ end
 -/
 lemma measurable_liminf' {ι ι'} {f : ι → δ → α} {u : filter ι} (hf : ∀ i, measurable (f i))
   {p : ι' → Prop} {s : ι' → set ι} (hu : u.has_countable_basis p s) (hs : ∀ i, (s i).countable) :
-  measurable (λ x, liminf u (λ i, f i x)) :=
+  measurable (λ x, liminf (λ i, f i x) u) :=
 begin
   simp_rw [hu.to_has_basis.liminf_eq_supr_infi],
   refine measurable_bsupr _ hu.countable _,
@@ -1254,7 +1254,7 @@ end
 -/
 lemma measurable_limsup' {ι ι'}  {f : ι → δ → α} {u : filter ι} (hf : ∀ i, measurable (f i))
   {p : ι' → Prop} {s : ι' → set ι} (hu : u.has_countable_basis p s) (hs : ∀ i, (s i).countable) :
-  measurable (λ x, limsup u (λ i, f i x)) :=
+  measurable (λ x, limsup (λ i, f i x) u) :=
 begin
   simp_rw [hu.to_has_basis.limsup_eq_infi_supr],
   refine measurable_binfi _ hu.countable _,
@@ -1265,14 +1265,14 @@ end
 -/
 @[measurability]
 lemma measurable_liminf {f : ℕ → δ → α} (hf : ∀ i, measurable (f i)) :
-  measurable (λ x, liminf at_top (λ i, f i x)) :=
+  measurable (λ x, liminf (λ i, f i x) at_top) :=
 measurable_liminf' hf at_top_countable_basis (λ i, to_countable _)
 
 /-- `limsup` over `ℕ` is measurable. See `measurable_limsup'` for a version with a general filter.
 -/
 @[measurability]
 lemma measurable_limsup {f : ℕ → δ → α} (hf : ∀ i, measurable (f i)) :
-  measurable (λ x, limsup at_top (λ i, f i x)) :=
+  measurable (λ x, limsup (λ i, f i x) at_top) :=
 measurable_limsup' hf at_top_countable_basis (λ i, to_countable _)
 
 end complete_linear_order
@@ -1309,7 +1309,7 @@ protected lemma is_finite_measure_on_compacts.map
   assume K hK,
   rw [measure.map_apply f.measurable hK.measurable_set],
   apply is_compact.measure_lt_top,
-  rwa f.compact_preimage
+  rwa f.is_compact_preimage
 end⟩
 
 end borel_space
@@ -1863,26 +1863,26 @@ lemma measurable_nnnorm : measurable (nnnorm : α → ℝ≥0) :=
 continuous_nnnorm.measurable
 
 @[measurability]
-lemma measurable.nnnorm {f : β → α} (hf : measurable f) : measurable (λ a, ∥f a∥₊) :=
+lemma measurable.nnnorm {f : β → α} (hf : measurable f) : measurable (λ a, ‖f a‖₊) :=
 measurable_nnnorm.comp hf
 
 @[measurability]
 lemma ae_measurable.nnnorm {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
-  ae_measurable (λ a, ∥f a∥₊) μ :=
+  ae_measurable (λ a, ‖f a‖₊) μ :=
 measurable_nnnorm.comp_ae_measurable hf
 
 @[measurability]
-lemma measurable_ennnorm : measurable (λ x : α, (∥x∥₊ : ℝ≥0∞)) :=
+lemma measurable_ennnorm : measurable (λ x : α, (‖x‖₊ : ℝ≥0∞)) :=
 measurable_nnnorm.coe_nnreal_ennreal
 
 @[measurability]
 lemma measurable.ennnorm {f : β → α} (hf : measurable f) :
-  measurable (λ a, (∥f a∥₊ : ℝ≥0∞)) :=
+  measurable (λ a, (‖f a‖₊ : ℝ≥0∞)) :=
 hf.nnnorm.coe_nnreal_ennreal
 
 @[measurability]
 lemma ae_measurable.ennnorm {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
-  ae_measurable (λ a, (∥f a∥₊ : ℝ≥0∞)) μ :=
+  ae_measurable (λ a, (‖f a‖₊ : ℝ≥0∞)) μ :=
 measurable_ennnorm.comp_ae_measurable hf
 
 end normed_add_comm_group
@@ -1900,10 +1900,10 @@ lemma measurable_of_tendsto_ennreal' {ι} {f : ι → α → ℝ≥0∞} {g : α
 begin
   rcases u.exists_seq_tendsto with ⟨x, hx⟩,
   rw [tendsto_pi_nhds] at lim,
-  have : (λ y, liminf at_top (λ n, (f (x n) y : ℝ≥0∞))) = g :=
+  have : (λ y, liminf (λ n, (f (x n) y : ℝ≥0∞)) at_top) = g :=
     by { ext1 y, exact ((lim y).comp hx).liminf_eq, },
   rw ← this,
-  show measurable (λ y, liminf at_top (λ n, (f (x n) y : ℝ≥0∞))),
+  show measurable (λ y, liminf (λ n, (f (x n) y : ℝ≥0∞)) at_top),
   exact measurable_liminf (λ n, hf (x n)),
 end
 

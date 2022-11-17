@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jean Lo, Yaël Dillies, Moritz Doll
 -/
 import data.real.pointwise
-import data.real.sqrt
-import topology.algebra.filter_basis
-import topology.algebra.module.locally_convex
+import analysis.convex.function
+import analysis.locally_convex.basic
 
 /-!
 # Seminorms
@@ -38,13 +37,13 @@ set_option old_structure_cmd true
 open normed_field set
 open_locale big_operators nnreal pointwise topological_space
 
-variables {R R' 𝕜 E F G ι : Type*}
+variables {R R' 𝕜 𝕜₂ 𝕜₃ E E₂ E₃ F G ι : Type*}
 
 /-- A seminorm on a module over a normed ring is a function to the reals that is positive
 semidefinite, positive homogeneous, and subadditive. -/
 structure seminorm (𝕜 : Type*) (E : Type*) [semi_normed_ring 𝕜] [add_group E] [has_smul 𝕜 E]
   extends add_group_seminorm E :=
-(smul' : ∀ (a : 𝕜) (x : E), to_fun (a • x) = ∥a∥ * to_fun x)
+(smul' : ∀ (a : 𝕜) (x : E), to_fun (a • x) = ‖a‖ * to_fun x)
 
 attribute [nolint doc_blame] seminorm.to_add_group_seminorm
 
@@ -53,7 +52,7 @@ attribute [nolint doc_blame] seminorm.to_add_group_seminorm
 You should extend this class when you extend `seminorm`. -/
 class seminorm_class (F : Type*) (𝕜 E : out_param $ Type*) [semi_normed_ring 𝕜] [add_group E]
   [has_smul 𝕜 E] extends add_group_seminorm_class F E :=
-(map_smul_eq_mul (f : F) (a : 𝕜) (x : E) : f (a • x) = ∥a∥ * f x)
+(map_smul_eq_mul (f : F) (a : 𝕜) (x : E) : f (a • x) = ‖a‖ * f x)
 
 export seminorm_class (map_smul_eq_mul)
 
@@ -66,7 +65,7 @@ section of
 `semi_norm_ring 𝕜`. -/
 def seminorm.of [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E] (f : E → ℝ)
   (add_le : ∀ (x y : E), f (x + y) ≤ f x + f y)
-  (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x) : seminorm 𝕜 E :=
+  (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ‖a‖ * f x) : seminorm 𝕜 E :=
 { to_fun    := f,
   map_zero' := by rw [←zero_smul 𝕜 (0 : E), smul, norm_zero, zero_mul],
   add_le'   := add_le,
@@ -77,7 +76,7 @@ def seminorm.of [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E] (f : 
 and an inequality for the scalar multiplication. -/
 def seminorm.of_smul_le [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] (f : E → ℝ)
   (map_zero : f 0 = 0) (add_le : ∀ x y, f (x + y) ≤ f x + f y)
-  (smul_le : ∀ (r : 𝕜) x, f (r • x) ≤ ∥r∥ * f x) : seminorm 𝕜 E :=
+  (smul_le : ∀ (r : 𝕜) x, f (r • x) ≤ ‖r‖ * f x) : seminorm 𝕜 E :=
 seminorm.of f add_le
   (λ r x, begin
     refine le_antisymm (smul_le r x) _,
@@ -192,8 +191,6 @@ instance [semiring R] [module R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ
   module R (seminorm 𝕜 E) :=
 (coe_fn_add_monoid_hom_injective 𝕜 E).module R _ coe_smul
 
--- TODO: define `has_Sup` too, from the skeleton at
--- https://github.com/leanprover-community/mathlib/pull/11329#issuecomment-1008915345
 instance : has_sup (seminorm 𝕜 E) :=
 { sup := λ p q,
   { to_fun  := p ⊔ q,
@@ -226,47 +223,56 @@ end has_smul
 end add_group
 
 section module
-variables [add_comm_group E] [add_comm_group F] [add_comm_group G]
-variables [module 𝕜 E] [module 𝕜 F] [module 𝕜 G]
+variables [semi_normed_ring 𝕜₂] [semi_normed_ring 𝕜₃]
+variables {σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂]
+variables {σ₂₃ : 𝕜₂ →+* 𝕜₃} [ring_hom_isometric σ₂₃]
+variables {σ₁₃ : 𝕜 →+* 𝕜₃} [ring_hom_isometric σ₁₃]
+variables [add_comm_group E] [add_comm_group E₂] [add_comm_group E₃]
+variables [add_comm_group F] [add_comm_group G]
+variables [module 𝕜 E] [module 𝕜₂ E₂] [module 𝕜₃ E₃] [module 𝕜 F] [module 𝕜 G]
 variables [has_smul R ℝ] [has_smul R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ]
 
 /-- Composition of a seminorm with a linear map is a seminorm. -/
-def comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : seminorm 𝕜 E :=
+def comp (p : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) : seminorm 𝕜 E :=
 { to_fun    := λ x, p (f x),
-  smul'     := λ _ _, (congr_arg p (f.map_smul _ _)).trans (map_smul_eq_mul p _ _),
+  smul'     := λ _ _, by rw [map_smulₛₗ, map_smul_eq_mul, ring_hom_isometric.is_iso],
   ..(p.to_add_group_seminorm.comp f.to_add_monoid_hom) }
 
-lemma coe_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : ⇑(p.comp f) = p ∘ f := rfl
+lemma coe_comp (p : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) : ⇑(p.comp f) = p ∘ f := rfl
 
-@[simp] lemma comp_apply (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (x : E) : (p.comp f) x = p (f x) := rfl
+@[simp] lemma comp_apply (p : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) (x : E) :
+  (p.comp f) x = p (f x) := rfl
 
 @[simp] lemma comp_id (p : seminorm 𝕜 E) : p.comp linear_map.id = p :=
 ext $ λ _, rfl
 
-@[simp] lemma comp_zero (p : seminorm 𝕜 F) : p.comp (0 : E →ₗ[𝕜] F) = 0 :=
+@[simp] lemma comp_zero (p : seminorm 𝕜₂ E₂) : p.comp (0 : E →ₛₗ[σ₁₂] E₂) = 0 :=
 ext $ λ _, map_zero p
 
-@[simp] lemma zero_comp (f : E →ₗ[𝕜] F) : (0 : seminorm 𝕜 F).comp f = 0 :=
+@[simp] lemma zero_comp (f : E →ₛₗ[σ₁₂] E₂) : (0 : seminorm 𝕜₂ E₂).comp f = 0 :=
 ext $ λ _, rfl
 
-lemma comp_comp (p : seminorm 𝕜 G) (g : F →ₗ[𝕜] G) (f : E →ₗ[𝕜] F) :
+lemma comp_comp [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃] (p : seminorm 𝕜₃ E₃)
+  (g : E₂ →ₛₗ[σ₂₃] E₃) (f : E →ₛₗ[σ₁₂] E₂) :
   p.comp (g.comp f) = (p.comp g).comp f :=
 ext $ λ _, rfl
 
-lemma add_comp (p q : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : (p + q).comp f = p.comp f + q.comp f :=
+lemma add_comp (p q : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) : (p + q).comp f = p.comp f + q.comp f :=
 ext $ λ _, rfl
 
-lemma comp_add_le (p : seminorm 𝕜 F) (f g : E →ₗ[𝕜] F) : p.comp (f + g) ≤ p.comp f + p.comp g :=
+lemma comp_add_le (p : seminorm 𝕜₂ E₂) (f g : E →ₛₗ[σ₁₂] E₂) :
+  p.comp (f + g) ≤ p.comp f + p.comp g :=
 λ _, map_add_le_add p _ _
 
-lemma smul_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (c : R) : (c • p).comp f = c • (p.comp f) :=
+lemma smul_comp (p : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) (c : R) :
+  (c • p).comp f = c • (p.comp f) :=
 ext $ λ _, rfl
 
-lemma comp_mono {p : seminorm 𝕜 F} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] F) (hp : p ≤ q) :
+lemma comp_mono {p q : seminorm 𝕜₂ E₂} (f : E →ₛₗ[σ₁₂] E₂) (hp : p ≤ q) :
   p.comp f ≤ q.comp f := λ _, hp _
 
 /-- The composition as an `add_monoid_hom`. -/
-@[simps] def pullback (f : E →ₗ[𝕜] F) : seminorm 𝕜 F →+ seminorm 𝕜 E :=
+@[simps] def pullback (f : E →ₛₗ[σ₁₂] E₂) : seminorm 𝕜₂ E₂ →+ seminorm 𝕜 E :=
 ⟨λ p, p.comp f, zero_comp f, λ p q, add_comp p q f⟩
 
 instance : order_bot (seminorm 𝕜 E) := ⟨0, map_nonneg⟩
@@ -320,22 +326,24 @@ begin
   { exact nnreal.coe_pos.mpr ha },
 end
 
-lemma norm_sub_map_le_sub (p : seminorm 𝕜 E) (x y : E) : ∥p x - p y∥ ≤ p (x - y) :=
+lemma norm_sub_map_le_sub (p : seminorm 𝕜 E) (x y : E) : ‖p x - p y‖ ≤ p (x - y) :=
 abs_sub_map_le_sub p x y
 
 end module
 end semi_normed_ring
 
 section semi_normed_comm_ring
-variables [semi_normed_comm_ring 𝕜] [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
+variables [semi_normed_ring 𝕜] [semi_normed_comm_ring 𝕜₂]
+variables {σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂]
+variables [add_comm_group E] [add_comm_group E₂] [module 𝕜 E] [module 𝕜₂ E₂]
 
-lemma comp_smul (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (c : 𝕜) :
-  p.comp (c • f) = ∥c∥₊ • p.comp f :=
+lemma comp_smul (p : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) (c : 𝕜₂) :
+  p.comp (c • f) = ‖c‖₊ • p.comp f :=
 ext $ λ _, by rw [comp_apply, smul_apply, linear_map.smul_apply, map_smul_eq_mul, nnreal.smul_def,
   coe_nnnorm, smul_eq_mul, comp_apply]
 
-lemma comp_smul_apply (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (c : 𝕜) (x : E) :
-  p.comp (c • f) x = ∥c∥ * p (f x) := map_smul_eq_mul p _ _
+lemma comp_smul_apply (p : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) (c : 𝕜₂) (x : E) :
+  p.comp (c • f) x = ‖c‖ * p (f x) := map_smul_eq_mul p _ _
 
 end semi_normed_comm_ring
 
@@ -384,6 +392,107 @@ begin
   simp_rw [smul_apply, inf_apply, smul_apply, ←smul_one_smul ℝ≥0 r (_ : ℝ), nnreal.smul_def,
     smul_eq_mul, real.mul_infi_of_nonneg (subtype.prop _), mul_add],
 end
+
+section classical
+
+open_locale classical
+
+/-- We define the supremum of an arbitrary subset of `seminorm 𝕜 E` as follows:
+* if `s` is `bdd_above` *as a set of functions `E → ℝ`* (that is, if `s` is pointwise bounded
+above), we take the pointwise supremum of all elements of `s`, and we prove that it is indeed a
+seminorm.
+* otherwise, we take the zero seminorm `⊥`.
+
+There are two things worth mentionning here:
+* First, it is not trivial at first that `s` being bounded above *by a function* implies
+being bounded above *as a seminorm*. We show this in `seminorm.bdd_above_iff` by using
+that the `Sup s` as defined here is then a bounding seminorm for `s`. So it is important to make
+the case disjunction on `bdd_above (coe_fn '' s : set (E → ℝ))` and not `bdd_above s`.
+* Since the pointwise `Sup` already gives `0` at points where a family of functions is
+not bounded above, one could hope that just using the pointwise `Sup` would work here, without the
+need for an additional case disjunction. As discussed on Zulip, this doesn't work because this can
+give a function which does *not* satisfy the seminorm axioms (typically sub-additivity).
+-/
+noncomputable instance : has_Sup (seminorm 𝕜 E) :=
+{ Sup := λ s, if h : bdd_above (coe_fn '' s : set (E → ℝ)) then
+  { to_fun := ⨆ p : s, ((p : seminorm 𝕜 E) : E → ℝ),
+    map_zero' :=
+    begin
+      rw [supr_apply, ← @real.csupr_const_zero s],
+      congrm ⨆ i, _,
+      exact map_zero i.1
+    end,
+    add_le' := λ x y,
+    begin
+      rcases h with ⟨q, hq⟩,
+      obtain rfl | h := s.eq_empty_or_nonempty,
+      { simp [real.csupr_empty] },
+      haveI : nonempty ↥s := h.coe_sort,
+      simp only [supr_apply],
+      refine csupr_le (λ i, ((i : seminorm 𝕜 E).add_le' x y).trans $
+        add_le_add (le_csupr ⟨q x, _⟩ i) (le_csupr ⟨q y, _⟩ i));
+      rw [mem_upper_bounds, forall_range_iff];
+      exact λ j, hq (mem_image_of_mem _ j.2) _,
+    end,
+    neg' := λ x,
+    begin
+      simp only [supr_apply],
+      congrm ⨆ i, _,
+      exact i.1.neg' _
+    end,
+    smul' := λ a x,
+    begin
+      simp only [supr_apply],
+      rw [← smul_eq_mul, real.smul_supr_of_nonneg (norm_nonneg a) (λ i : s, (i : seminorm 𝕜 E) x)],
+      congrm ⨆ i, _,
+      exact i.1.smul' a x
+    end }
+  else ⊥ }
+
+protected lemma coe_Sup_eq' {s : set $ seminorm 𝕜 E} (hs : bdd_above (coe_fn '' s : set (E → ℝ))) :
+  coe_fn (Sup s) = ⨆ p : s, p :=
+congr_arg _ (dif_pos hs)
+
+protected lemma bdd_above_iff {s : set $ seminorm 𝕜 E} :
+  bdd_above s ↔ bdd_above (coe_fn '' s : set (E → ℝ)) :=
+⟨λ ⟨q, hq⟩, ⟨q, ball_image_of_ball $ λ p hp, hq hp⟩,
+  λ H, ⟨Sup s, λ p hp x,
+  begin
+    rw [seminorm.coe_Sup_eq' H, supr_apply],
+    rcases H with ⟨q, hq⟩,
+    exact le_csupr ⟨q x, forall_range_iff.mpr $ λ i : s, hq (mem_image_of_mem _ i.2) x⟩ ⟨p, hp⟩
+  end ⟩⟩
+
+protected lemma coe_Sup_eq {s : set $ seminorm 𝕜 E} (hs : bdd_above s) :
+  coe_fn (Sup s) = ⨆ p : s, p :=
+seminorm.coe_Sup_eq' (seminorm.bdd_above_iff.mp hs)
+
+protected lemma coe_supr_eq {ι : Type*} {p : ι → seminorm 𝕜 E} (hp : bdd_above (range p)) :
+  coe_fn (⨆ i, p i) = ⨆ i, p i :=
+by rw [← Sup_range, seminorm.coe_Sup_eq hp]; exact supr_range' (coe_fn : seminorm 𝕜 E → E → ℝ) p
+
+private lemma seminorm.is_lub_Sup (s : set (seminorm 𝕜 E)) (hs₁ : bdd_above s) (hs₂ : s.nonempty) :
+  is_lub s (Sup s) :=
+begin
+  refine ⟨λ p hp x, _, λ p hp x, _⟩;
+  haveI : nonempty ↥s := hs₂.coe_sort;
+  rw [seminorm.coe_Sup_eq hs₁, supr_apply],
+  { rcases hs₁ with ⟨q, hq⟩,
+    exact le_csupr ⟨q x, forall_range_iff.mpr $ λ i : s, hq i.2 x⟩ ⟨p, hp⟩ },
+  { exact csupr_le (λ q, hp q.2 x) }
+end
+
+/-- `seminorm 𝕜 E` is a conditionally complete lattice.
+
+Note that, while `inf`, `sup` and `Sup` have good definitional properties (corresponding to
+`seminorm.has_inf`, `seminorm.has_sup` and `seminorm.has_Sup` respectively), `Inf s` is just
+defined as the supremum of the lower bounds of `s`, which is not really useful in practice. If you
+need to use `Inf` on seminorms, then you should probably provide a more workable definition first,
+but this is unlikely to happen so we keep the "bad" definition for now. -/
+noncomputable instance : conditionally_complete_lattice (seminorm 𝕜 E) :=
+conditionally_complete_lattice_of_lattice_of_Sup (seminorm 𝕜 E) seminorm.is_lub_Sup
+
+end classical
 
 end normed_field
 
@@ -505,16 +614,17 @@ end has_smul
 section module
 
 variables [module 𝕜 E]
-variables [add_comm_group F] [module 𝕜 F]
+variables [semi_normed_ring 𝕜₂] [add_comm_group E₂] [module 𝕜₂ E₂]
+variables {σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂]
 
-lemma ball_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (x : E) (r : ℝ) :
+lemma ball_comp (p : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) (x : E) (r : ℝ) :
   (p.comp f).ball x r = f ⁻¹' (p.ball (f x) r) :=
 begin
   ext,
   simp_rw [ball, mem_preimage, comp_apply, set.mem_set_of_eq, map_sub],
 end
 
-lemma closed_ball_comp (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (x : E) (r : ℝ) :
+lemma closed_ball_comp (p : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) (x : E) (r : ℝ) :
   (p.comp f).closed_ball x r = f ⁻¹' (p.closed_ball (f x) r) :=
 begin
   ext,
@@ -649,8 +759,8 @@ section normed_field
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] (p : seminorm 𝕜 E) {A B : set E}
   {a : 𝕜} {r : ℝ} {x : E}
 
-lemma smul_ball_zero {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} (hk : 0 < ∥k∥) :
-  k • p.ball 0 r = p.ball 0 (∥k∥ * r) :=
+lemma smul_ball_zero {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} (hk : 0 < ‖k‖) :
+  k • p.ball 0 r = p.ball 0 (‖k‖ * r) :=
 begin
   ext,
   rw [set.mem_smul_set, seminorm.mem_ball_zero],
@@ -661,7 +771,7 @@ begin
     exact (mul_lt_mul_left hk).mpr hy },
   refine ⟨k⁻¹ • x, _, _⟩,
   { rw [seminorm.mem_ball_zero, map_smul_eq_mul, norm_inv, ←(mul_lt_mul_left hk),
-      ←mul_assoc, ←(div_eq_mul_inv ∥k∥ ∥k∥), div_self (ne_of_gt hk), one_mul],
+      ←mul_assoc, ←(div_eq_mul_inv ‖k‖ ‖k‖), div_self (ne_of_gt hk), one_mul],
     exact h},
   rw [←smul_assoc, smul_eq_mul, ←div_eq_mul_inv, div_self (norm_pos_iff.mp hk), one_smul],
 end
@@ -676,7 +786,7 @@ begin
   refine ⟨r₂/r, div_pos hr₂ hr, _⟩,
   simp_rw set.subset_def,
   intros a ha x hx,
-  have ha' : 0 < ∥a∥ := lt_of_lt_of_le (div_pos hr₂ hr) ha,
+  have ha' : 0 < ‖a‖ := lt_of_lt_of_le (div_pos hr₂ hr) ha,
   rw [smul_ball_zero ha', p.mem_ball_zero],
   rw p.mem_ball_zero at hx,
   rw div_le_iff hr at ha,
@@ -690,7 +800,7 @@ begin
   rintro x,
   have hxr : 0 ≤ p x / r := by positivity,
   refine ⟨p x/r, hxr, λ a ha, _⟩,
-  have ha₀ : 0 < ∥a∥ := hxr.trans_lt ha,
+  have ha₀ : 0 < ‖a‖ := hxr.trans_lt ha,
   refine ⟨a⁻¹ • x, _, smul_inv_smul₀ (norm_pos_iff.1 ha₀) x⟩,
   rwa [mem_ball_zero, map_smul_eq_mul, norm_inv, inv_mul_lt_iff ha₀, ←div_lt_iff hr],
 end
@@ -725,7 +835,7 @@ by { ext, rw [mem_neg, mem_ball, mem_ball, ←neg_add', sub_neg_eq_add, map_neg_
 
 @[simp]
 lemma smul_ball_preimage (p : seminorm 𝕜 E) (y : E) (r : ℝ) (a : 𝕜) (ha : a ≠ 0) :
-  ((•) a) ⁻¹' p.ball y r = p.ball (a⁻¹ • y) (r / ∥a∥) :=
+  ((•) a) ⁻¹' p.ball y r = p.ball (a⁻¹ • y) (r / ‖a‖) :=
 set.ext $ λ _, by rw [mem_preimage, mem_ball, mem_ball,
   lt_div_iff (norm_pos_iff.mpr ha), mul_comm, ←map_smul_eq_mul p, smul_sub, smul_inv_smul₀ ha]
 
@@ -742,7 +852,7 @@ protected lemma convex_on : convex_on ℝ univ p :=
 begin
   refine ⟨convex_univ, λ x _ y _ a b ha hb hab, _⟩,
   calc p (a • x + b • y) ≤ p (a • x) + p (b • y) : map_add_le_add p _ _
-    ... = ∥a • (1 : 𝕜)∥ * p x + ∥b • (1 : 𝕜)∥ * p y
+    ... = ‖a • (1 : 𝕜)‖ * p x + ‖b • (1 : 𝕜)‖ * p y
         : by rw [←map_smul_eq_mul p, ←map_smul_eq_mul p, smul_one_smul, smul_one_smul]
     ... = a * p x + b * p y
         : by rw [norm_smul, norm_smul, norm_one, mul_one, mul_one, real.norm_of_nonneg ha,
@@ -888,7 +998,7 @@ lemma absorbent_ball_zero (hr : 0 < r) : absorbent 𝕜 (metric.ball (0 : E) r) 
 by { rw ←ball_norm_seminorm 𝕜, exact (norm_seminorm _ _).absorbent_ball_zero hr }
 
 /-- Balls containing the origin are absorbent. -/
-lemma absorbent_ball (hx : ∥x∥ < r) : absorbent 𝕜 (metric.ball x r) :=
+lemma absorbent_ball (hx : ‖x‖ < r) : absorbent 𝕜 (metric.ball x r) :=
 by { rw ←ball_norm_seminorm 𝕜, exact (norm_seminorm _ _).absorbent_ball hx }
 
 /-- Balls at the origin are balanced. -/
@@ -896,3 +1006,6 @@ lemma balanced_ball_zero : balanced 𝕜 (metric.ball (0 : E) r) :=
 by { rw ←ball_norm_seminorm 𝕜, exact (norm_seminorm _ _).balanced_ball_zero r }
 
 end norm_seminorm
+
+-- Guard against import creep.
+assert_not_exists balanced_core

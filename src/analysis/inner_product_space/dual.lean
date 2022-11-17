@@ -61,8 +61,8 @@ variables {E}
 
 @[simp] lemma to_dual_map_apply {x y : E} : to_dual_map 𝕜 E x y = ⟪x, y⟫ := rfl
 
-lemma innerSL_norm [nontrivial E] : ∥(innerSL : E →L⋆[𝕜] E →L[𝕜] 𝕜)∥ = 1 :=
-show ∥(to_dual_map 𝕜 E).to_continuous_linear_map∥ = 1,
+lemma innerSL_norm [nontrivial E] : ‖(innerSL : E →L⋆[𝕜] E →L[𝕜] 𝕜)‖ = 1 :=
+show ‖(to_dual_map 𝕜 E).to_continuous_linear_map‖ = 1,
   from linear_isometry.norm_to_continuous_linear_map _
 
 variable {𝕜}
@@ -103,7 +103,7 @@ begin
   by_cases htriv : Y = ⊤,
   { have hℓ : ℓ = 0,
     { have h' := linear_map.ker_eq_top.mp htriv,
-      rw [←coe_zero] at h',
+      rw [←continuous_linear_map.coe_zero] at h',
       apply coe_injective,
       exact h' },
     exact ⟨0, by simp [hℓ]⟩ },

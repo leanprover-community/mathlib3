@@ -7,7 +7,6 @@ import category_theory.limits.preserves.shapes.binary_products
 import category_theory.limits.preserves.shapes.products
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.finite_products
-import category_theory.pempty
 import logic.equiv.fin
 
 /-!

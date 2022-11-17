@@ -5,8 +5,9 @@ Authors: Kevin Buzzard, Patrick Massot
 
 This file is to a certain extent based on `quotient_module.lean` by Johannes Hölzl.
 -/
-import group_theory.coset
 import group_theory.congruence
+import group_theory.coset
+import group_theory.subgroup.pointwise
 
 /-!
 # Quotients of groups by normal subgroups
@@ -412,18 +413,18 @@ def hom_quotient_zpow_of_hom :
 lift _ ((mk' _).comp f) $
   λ g ⟨h, (hg : h ^ n = g)⟩, (eq_one_iff _).mpr ⟨_, by simpa only [← hg, map_zpow]⟩
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma hom_quotient_zpow_of_hom_id :
   hom_quotient_zpow_of_hom (monoid_hom.id A) n = monoid_hom.id _ :=
 monoid_hom_ext _ rfl
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma hom_quotient_zpow_of_hom_comp :
   hom_quotient_zpow_of_hom (f.comp g) n
     = (hom_quotient_zpow_of_hom f n).comp (hom_quotient_zpow_of_hom g n) :=
 monoid_hom_ext _ rfl
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma hom_quotient_zpow_of_hom_comp_of_right_inverse (i : function.right_inverse g f) :
   (hom_quotient_zpow_of_hom f n).comp (hom_quotient_zpow_of_hom g n) = monoid_hom.id _ :=
 monoid_hom_ext _ $ monoid_hom.ext $ λ x, congr_arg coe $ i x
@@ -436,18 +437,18 @@ def equiv_quotient_zpow_of_equiv :
 monoid_hom.to_mul_equiv _ _ (hom_quotient_zpow_of_hom_comp_of_right_inverse e.symm e n e.left_inv)
   (hom_quotient_zpow_of_hom_comp_of_right_inverse e e.symm n e.right_inv)
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma equiv_quotient_zpow_of_equiv_refl :
   mul_equiv.refl (A ⧸ (zpow_group_hom n : A →* A).range)
     = equiv_quotient_zpow_of_equiv (mul_equiv.refl A) n :=
 by { ext x, rw [← quotient.out_eq' x], refl }
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma equiv_quotient_zpow_of_equiv_symm :
   (equiv_quotient_zpow_of_equiv e n).symm = equiv_quotient_zpow_of_equiv e.symm n :=
 rfl
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma equiv_quotient_zpow_of_equiv_trans :
   (equiv_quotient_zpow_of_equiv e n).trans (equiv_quotient_zpow_of_equiv d n)
     = equiv_quotient_zpow_of_equiv (e.trans d) n :=

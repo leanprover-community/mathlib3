@@ -168,13 +168,10 @@ variables {G}
 rfl
 
 -- PRed
-lemma _root_.subgroup.eq_bot_of_card_eq' {G : Type*} [group G] (H : subgroup G)
-  (h : nat.card H = 1) : H = ⊥ :=
+lemma _root_.subgroup.card_eq_one {G : Type*} [group G] {H : subgroup G} :
+  nat.card H = 1 ↔ H = ⊥ :=
 begin
-  haveI := nat.finite_of_card_ne_zero (ne_of_eq_of_ne h one_ne_zero),
-  haveI := fintype.of_finite H,
-  apply eq_bot_of_card_le,
-  rw [←nat.card_eq_fintype_card, h],
+  sorry
 end
 
 -- PRed
@@ -237,8 +234,7 @@ lemma not_dvd_card_ker_transfer_sylow : ¬ p ∣ nat.card (transfer_sylow P hP).
 -- PR ready
 lemma ker_transfer_sylow_disjoint (Q : subgroup G) (hQ : is_p_group p Q) :
   disjoint (transfer_sylow P hP).ker Q :=
-disjoint_iff.mpr $ ((transfer_sylow P hP).ker ⊓ Q).eq_bot_of_card_eq' $
-  (hQ.to_le inf_le_right).card_eq_or_dvd.resolve_right $
+disjoint_iff.mpr $ subgroup.card_eq_one.mp $ (hQ.to_le inf_le_right).card_eq_or_dvd.resolve_right $
   λ h, not_dvd_card_ker_transfer_sylow P hP $ h.trans $ subgroup.card_dvd_of_le' inf_le_left
 
 end burnside_transfer

@@ -48,7 +48,6 @@ We define (semi)modularity typeclasses as Prop-valued mixins.
 ## TODO
 
 - Relate atoms and coatoms in modular lattices
-- Prove that a modular lattice is both upper and lower modular.
 -/
 
 variable {α : Type*}
@@ -339,21 +338,6 @@ end complemented_lattice
 
 end is_modular_lattice
 
-
-section preorder
-
-variables [preorder α] {a b : α}
-
-open set
-
-lemma wcovby_iff_Ioo : a ⩿ b ↔ a ≤ b ∧ Ioo a b = ∅ :=
-and_congr_right' $ by simp [eq_empty_iff_forall_not_mem]
-
-lemma covby_iff_Ioo : a ⋖ b ↔ a < b ∧ Ioo a b = ∅ :=
-and_congr_right' $ by simp [eq_empty_iff_forall_not_mem]
-
-end preorder
-
 section modular_to_lower
 
 open set
@@ -361,7 +345,7 @@ open set
 variables [lattice α] [is_modular_lattice α]
 
 @[simps]
-def thing (a b : α) : Icc a (a ⊔ b) ≃o Icc (a ⊓ b) b :=
+def set.Icc_sup_right_order_iso_Icc_inf_left (a b : α) : Icc a (a ⊔ b) ≃o Icc (a ⊓ b) b :=
 { to_fun       := λ c, ⟨c ⊓ b, inf_le_inf_right _ c.2.1, inf_le_right⟩,
   inv_fun      := λ c, ⟨a ⊔ c, le_sup_left, sup_le_sup_left c.2.2 _⟩,
   left_inv     := λ ⟨c, h⟩, subtype.ext begin
@@ -386,13 +370,13 @@ lemma strict_mono_restrict {α β : Type*} [preorder α] [preorder β] (f : α �
 h (begin exact hab end : (⟨a,ha⟩ : s) < ⟨b,hb⟩)
 
 lemma inf_strict_mono_on_Icc_sup (a b : α) : strict_mono_on (λ c, c ⊓ b) (Icc a (a ⊔ b)) :=
-strict_mono_restrict _ (thing a b).strict_mono
+strict_mono_restrict _ (set.Icc_sup_right_order_iso_Icc_inf_left a b).strict_mono
 
 lemma sup_strict_mono_on_Icc_inf (a b : α) : strict_mono_on (λ c, a ⊔ c) (Icc (a ⊓ b) b) :=
-strict_mono_restrict _ (thing a b).symm.strict_mono
+strict_mono_restrict _ (set.Icc_sup_right_order_iso_Icc_inf_left a b).symm.strict_mono
 
 @[simps]
-def thing2 (a b : α) : Ioo a (a ⊔ b) ≃o Ioo (a ⊓ b) b :=
+def set.Ioo_sup_right_order_iso_Ioo_inf_left (a b : α) : Ioo a (a ⊔ b) ≃o Ioo (a ⊓ b) b :=
 { to_fun       := λ c, ⟨c ⊓ b,
     ⟨ inf_strict_mono_on_Icc_sup a b ⟨le_refl _, le_sup_left⟩ ⟨c.2.1.le, c.2.2.le⟩ c.2.1,
       lt_of_lt_of_le (inf_strict_mono_on_Icc_sup a b ⟨c.2.1.le, c.2.2.le⟩
@@ -420,12 +404,13 @@ def thing2 (a b : α) : Ioo a (a ⊔ b) ≃o Ioo (a ⊓ b) b :=
 
 instance is_modular_lattice.to_is_lower_modular_lattice [lattice α] [is_modular_lattice α] :
   is_lower_modular_lattice α :=
-⟨λ a b, by { simp_rw [covby_iff_Ioo, ←is_empty_coe_sort, left_lt_sup, inf_lt_right,
-    (thing2 a b).to_equiv.is_empty_congr], exact id }⟩
+⟨λ a b, by { simp_rw [covby_iff_Ioo_eq, ←is_empty_coe_sort, left_lt_sup, inf_lt_right,
+    (Ioo_sup_right_order_iso_Ioo_inf_left a b).to_equiv.is_empty_congr], exact id }⟩
 
 instance is_modular_lattice.to_is_upper_modular_lattice [lattice α] [is_modular_lattice α] :
   is_upper_modular_lattice α :=
-⟨λ a b, by { simp_rw [covby_iff_Ioo, ←is_empty_coe_sort, right_lt_sup, inf_lt_left,
-    @inf_comm _ _ a b, @sup_comm _ _ a b, (thing2 b a).to_equiv.is_empty_congr], exact id }⟩
+⟨λ a b, by { simp_rw [covby_iff_Ioo_eq, ←is_empty_coe_sort, right_lt_sup, inf_lt_left,
+    @inf_comm _ _ a b, @sup_comm _ _ a b,
+    (Ioo_sup_right_order_iso_Ioo_inf_left b a).to_equiv.is_empty_congr], exact id }⟩
 
 end modular_to_lower

@@ -136,7 +136,7 @@ lemma Spec.basic_open_hom_ext {X : RingedSpace} {R : CommRing} {α β : X ⟶ Sp
      to_open R U ≫ β.c.app (op U)) : α = β :=
 begin
   ext1,
-  { apply ((Top.sheaf.pushforward β.base).obj X.sheaf).hom_ext _
+  { apply ((Top.sheaf.pushforward _ β.base).obj X.sheaf).hom_ext _
       prime_spectrum.is_basis_basic_opens,
     intro r,
     apply (structure_sheaf.to_basic_open_epi R r).1,

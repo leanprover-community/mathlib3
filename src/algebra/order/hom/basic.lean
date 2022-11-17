@@ -220,6 +220,12 @@ You should extend this class when you extend `mul_ring_norm`. -/
 class mul_ring_norm_class (F : Type*) (α β : out_param $ Type*) [non_assoc_ring α]
   [ordered_semiring β] extends mul_ring_seminorm_class F α β, add_group_norm_class F α β
 
+-- TODO: Somehow this does not get inferred.
+@[priority 100] -- See note [lower instance priority]
+instance ring_seminorm_class.to_nonneg_hom_class [non_unital_non_assoc_ring α]
+  [linear_ordered_semiring β] [ring_seminorm_class F α β] : nonneg_hom_class F α β :=
+add_group_seminorm_class.to_nonneg_hom_class
+
 @[priority 100] -- See note [lower instance priority]
 instance mul_ring_seminorm_class.to_ring_seminorm_class [non_assoc_ring α] [ordered_semiring β]
   [mul_ring_seminorm_class F α β] : ring_seminorm_class F α β :=

@@ -77,7 +77,7 @@ instance wcovby.is_refl : is_refl α (⩿) := ⟨wcovby.refl⟩
 lemma wcovby.Ioo_eq (h : a ⩿ b) : Ioo a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x hx, h.2 hx.1 hx.2
 
-lemma wcovby_iff_Ioo : a ⩿ b ↔ a ≤ b ∧ Ioo a b = ∅ :=
+lemma wcovby_iff_Ioo_eq : a ⩿ b ↔ a ≤ b ∧ Ioo a b = ∅ :=
 and_congr_right' $ by simp [eq_empty_iff_forall_not_mem]
 
 lemma wcovby.of_image (f : α ↪o β) (h : f a ⩿ f b) : a ⩿ b :=

@@ -73,8 +73,7 @@ begin
   simp only [equiv.apply_symm_apply],
 end
 
-/- The parallelogram associated to the standard orthonormal basis of `ℝ` is either `[-1, 0]`
-or `[0, 1]`. -/
+/- The parallelogram associated to an orthonormal basis of `ℝ` is either `[0, 1]` or `[-1, 0]`. -/
 lemma parallelogram_orthonormal_basis_one_dim (b : orthonormal_basis ι ℝ ℝ) :
   parallelogram b = Icc 0 1 ∨ parallelogram b = Icc (-1) 0 :=
 begin
@@ -133,7 +132,7 @@ def basis.parallelogram (b : basis ι ℝ E) : positive_compacts E :=
 
 variables [measurable_space E] [borel_space E]
 
-/-- The Lebesgue measure associated to a basis, given measure `1` to the parallelogram spanned
+/-- The Lebesgue measure associated to a basis, giving measure `1` to the parallelogram spanned
 by the basis. -/
 @[irreducible] def basis.add_haar (b : basis ι ℝ E) : measure E :=
 measure.add_haar_measure b.parallelogram
@@ -154,7 +153,7 @@ end normed_space
 volume `1` to the parallelogram spanned by any orthonormal basis. We define the measure using
 some arbitrary choice of orthonormal basis. The fact that it works with any orthonormal basis
 is proved in `orthonormal_basis.volume_parallelogram`. -/
-instance measure_space_of_inner_product_space
+@[priority 100] instance measure_space_of_inner_product_space
   [inner_product_space ℝ E] [finite_dimensional ℝ E] [measurable_space E] [borel_space E] :
   measure_space E :=
 { volume := (std_orthonormal_basis ℝ E).to_basis.add_haar }

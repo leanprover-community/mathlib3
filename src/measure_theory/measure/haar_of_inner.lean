@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Sébastien Gouëzel
+-/
 import analysis.inner_product_space.orientation
 import measure_theory.measure.haar_lebesgue
 

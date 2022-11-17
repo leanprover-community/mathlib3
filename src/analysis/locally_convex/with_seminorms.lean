@@ -6,6 +6,8 @@ Authors: Moritz Doll, Anatole Dedecker
 
 import analysis.seminorm
 import analysis.locally_convex.bounded
+import topology.algebra.filter_basis
+import topology.algebra.module.locally_convex
 
 /-!
 # Topology induced by a family of seminorms

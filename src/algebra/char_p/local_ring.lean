@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jon Eugster
 -/
 import algebra.char_p.basic
-import data.nat.factorization.prime_pow
 import ring_theory.ideal.local_ring
+import algebra.is_prime_pow
+import data.nat.factorization.basic
 
 /-!
 # Characteristics of local rings

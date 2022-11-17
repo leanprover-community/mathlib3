@@ -3,7 +3,6 @@ Copyright (c) 2021 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.epi_mono
 import category_theory.limits.has_limits
 import category_theory.limits.shapes.equalizers
 

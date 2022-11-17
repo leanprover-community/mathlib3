@@ -5,8 +5,8 @@ Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
 -/
 import order.filter.ultrafilter
 import order.filter.partial
-import order.filter.small_sets
 import algebra.support
+import order.filter.lift
 
 /-!
 # Basic theory of topological spaces.

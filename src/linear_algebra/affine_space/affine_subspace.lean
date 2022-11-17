@@ -3,7 +3,6 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import data.set.intervals.unordered_interval
 import linear_algebra.affine_space.affine_equiv
 
 /-!
@@ -476,6 +475,18 @@ begin
     exact direction.sub_mem  hv1 hv2 },
   { exact λ hv, ⟨v +ᵥ p, vadd_mem_mk' _ hv, p,
                  self_mem_mk' _ _, (vadd_vsub _ _).symm⟩ }
+end
+
+/-- A point lies in an affine subspace constructed from another point and a direction if and only
+if their difference is in that direction. -/
+lemma mem_mk'_iff_vsub_mem {p₁ p₂ : P} {direction : submodule k V} :
+  p₂ ∈ mk' p₁ direction ↔ p₂ -ᵥ p₁ ∈ direction :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw ←direction_mk' p₁ direction,
+    exact vsub_mem_direction h (self_mem_mk' _ _) },
+  { rw ← vsub_vadd p₂ p₁,
+    exact vadd_mem_mk' p₁ h }
 end
 
 /-- Constructing an affine subspace from a point in a subspace and

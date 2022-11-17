@@ -6,7 +6,6 @@ Authors: Moritz Doll
 
 import analysis.special_functions.integrals
 import analysis.special_functions.pow
-import measure_theory.integral.integral_eq_improper
 import measure_theory.integral.layercake
 import tactic.positivity
 

@@ -5,6 +5,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import algebra.group.pi
 import algebra.group_power.lemmas
+import algebra.group.prod
 import logic.function.iterate
 
 /-!

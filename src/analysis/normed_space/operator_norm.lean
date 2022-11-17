@@ -6,7 +6,6 @@ Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
 import algebra.algebra.tower
 import analysis.asymptotics.asymptotics
 import analysis.normed_space.linear_isometry
-import analysis.normed_space.riesz_lemma
 import topology.algebra.module.strong_topology
 
 /-!

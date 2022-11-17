@@ -1207,6 +1207,10 @@ theorem erase_insert_of_ne {a b : α} {s : finset α} (h : a ≠ b) :
 ext $ λ x, have x ≠ b ∧ x = a ↔ x = a, from and_iff_right_of_imp (λ hx, hx.symm ▸ h),
 by simp only [mem_erase, mem_insert, and_or_distrib_left, this]
 
+theorem erase_cons_of_ne {a b : α} {s : finset α} (ha : a ∉ s) (hb : a ≠ b) :
+  erase (cons a s ha) b = cons a (erase s b) (λ h, ha $ erase_subset _ _ h) :=
+by simp only [cons_eq_insert, erase_insert_of_ne hb]
+
 theorem insert_erase {a : α} {s : finset α} (h : a ∈ s) : insert a (erase s a) = s :=
 ext $ assume x, by simp only [mem_insert, mem_erase, or_and_distrib_left, dec_em, true_and];
 apply or_iff_right_of_imp; rintro rfl; exact h

@@ -664,9 +664,8 @@ lemma eq_cyclotomic_iff {R : Type*} [comm_ring R] {n : ℕ} (hn : n ≠ 0)
 begin
   nontriviality R,
   refine ⟨λ hcycl, _, λ hP, _⟩,
-  { rw [hcycl, ← finset.prod_insert (@nat.proper_divisors.not_self_mem n),
-      ← nat.divisors_eq_proper_divisors_insert_self hn],
-    exact prod_cyclotomic_eq_X_pow_sub_one hn R },
+  { rw [hcycl, ← prod_cyclotomic_eq_X_pow_sub_one hn R, ← nat.cons_self_proper_divisors hn,
+        finset.prod_cons] },
   { have prod_monic : (∏ i in nat.proper_divisors n, cyclotomic i R).monic,
     { apply monic_prod_of_monic,
       intros i hi,

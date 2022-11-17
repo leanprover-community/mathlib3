@@ -5,7 +5,9 @@ Authors: Johan Commelin
 -/
 
 import algebra.algebra.restrict_scalars
+import algebra.algebra.subalgebra.basic
 import group_theory.finiteness
+import ring_theory.ideal.operations
 
 /-!
 # Finiteness conditions in commutative algebra

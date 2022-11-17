@@ -148,9 +148,9 @@ begin
   rcases hf _ h_bounded hV with ⟨r, hr, h'⟩,
   cases exists_nat_gt r with n hn,
   -- We now find a contradiction between `f (u n) ∉ V` and the absorbing property
-  have h1 : r ≤ ∥(n : 𝕜')∥ :=
+  have h1 : r ≤ ‖(n : 𝕜')‖ :=
   by { rw [is_R_or_C.norm_eq_abs, is_R_or_C.abs_cast_nat], exact hn.le },
-  have hn' : 0 < ∥(n : 𝕜')∥ := lt_of_lt_of_le hr h1,
+  have hn' : 0 < ‖(n : 𝕜')‖ := lt_of_lt_of_le hr h1,
   rw [norm_pos_iff, ne.def, nat.cast_eq_zero] at hn',
   have h'' : f (u n) ∈ V :=
   begin

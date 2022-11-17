@@ -53,7 +53,7 @@ def tendsto_in_measure [has_dist E] {m : measurable_space α}
 lemma tendsto_in_measure_iff_norm [seminormed_add_comm_group E] {l : filter ι}
   {f : ι → α → E} {g : α → E} :
   tendsto_in_measure μ f l g
-  ↔ ∀ ε (hε : 0 < ε), tendsto (λ i, μ {x | ε ≤ ∥f i x - g x∥}) l (𝓝 0) :=
+  ↔ ∀ ε (hε : 0 < ε), tendsto (λ i, μ {x | ε ≤ ‖f i x - g x‖}) l (𝓝 0) :=
 by simp_rw [tendsto_in_measure, dist_eq_norm]
 
 namespace tendsto_in_measure
@@ -340,7 +340,7 @@ begin
   refine hfg.mono (λ n hn, _),
   simp only [true_and, gt_iff_lt, ge_iff_le, zero_tsub, zero_le, zero_add, set.mem_Icc,
     pi.sub_apply] at *,
-  have : ess_sup (λ (x : α), (∥f n x - g x∥₊ : ℝ≥0∞)) μ < ennreal.of_real δ :=
+  have : ess_sup (λ (x : α), (‖f n x - g x‖₊ : ℝ≥0∞)) μ < ennreal.of_real δ :=
     lt_of_le_of_lt hn (ennreal.half_lt_self (ennreal.of_real_pos.2 hδ).ne.symm
       ennreal.of_real_lt_top.ne),
   refine ((le_of_eq _).trans (ae_lt_of_ess_sup_lt this).le).trans hε.le,

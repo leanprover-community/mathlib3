@@ -15,7 +15,7 @@ separates points, then it is dense.
 We argue as follows.
 
 * In any subalgebra `A` of `C(X, ℝ)`, if `f ∈ A`, then `abs f ∈ A.topological_closure`.
-  This follows from the Weierstrass approximation theorem on `[-∥f∥, ∥f∥]` by
+  This follows from the Weierstrass approximation theorem on `[-‖f‖, ‖f‖]` by
   approximating `abs` uniformly thereon by polynomials.
 * This ensures that `A.topological_closure` is actually a sublattice:
   if it contains `f` and `g`, then it contains the pointwise supremum `f ⊔ g`
@@ -48,16 +48,16 @@ variables {X : Type*} [topological_space X] [compact_space X]
 open_locale polynomial
 
 /--
-Turn a function `f : C(X, ℝ)` into a continuous map into `set.Icc (-∥f∥) (∥f∥)`,
+Turn a function `f : C(X, ℝ)` into a continuous map into `set.Icc (-‖f‖) (‖f‖)`,
 thereby explicitly attaching bounds.
 -/
-def attach_bound (f : C(X, ℝ)) : C(X, set.Icc (-∥f∥) (∥f∥)) :=
+def attach_bound (f : C(X, ℝ)) : C(X, set.Icc (-‖f‖) (‖f‖)) :=
 { to_fun := λ x, ⟨f x, ⟨neg_norm_le_apply f x, apply_le_norm f x⟩⟩ }
 
 @[simp] lemma attach_bound_apply_coe (f : C(X, ℝ)) (x : X) : ((attach_bound f) x : ℝ) = f x := rfl
 
 lemma polynomial_comp_attach_bound (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : ℝ[X]) :
-  (g.to_continuous_map_on (set.Icc (-∥f∥) ∥f∥)).comp (f : C(X, ℝ)).attach_bound =
+  (g.to_continuous_map_on (set.Icc (-‖f‖) ‖f‖)).comp (f : C(X, ℝ)).attach_bound =
     polynomial.aeval f g :=
 begin
   ext,
@@ -74,23 +74,23 @@ Given a continuous function `f` in a subalgebra of `C(X, ℝ)`, postcomposing by
 gives another function in `A`.
 
 This lemma proves something slightly more subtle than this:
-we take `f`, and think of it as a function into the restricted target `set.Icc (-∥f∥) ∥f∥)`,
+we take `f`, and think of it as a function into the restricted target `set.Icc (-‖f‖) ‖f‖)`,
 and then postcompose with a polynomial function on that interval.
 This is in fact the same situation as above, and so also gives a function in `A`.
 -/
 lemma polynomial_comp_attach_bound_mem (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : ℝ[X]) :
-  (g.to_continuous_map_on (set.Icc (-∥f∥) ∥f∥)).comp (f : C(X, ℝ)).attach_bound ∈ A :=
+  (g.to_continuous_map_on (set.Icc (-‖f‖) ‖f‖)).comp (f : C(X, ℝ)).attach_bound ∈ A :=
 begin
   rw polynomial_comp_attach_bound,
   apply set_like.coe_mem,
 end
 
 theorem comp_attach_bound_mem_closure
-  (A : subalgebra ℝ C(X, ℝ)) (f : A) (p : C(set.Icc (-∥f∥) (∥f∥), ℝ)) :
+  (A : subalgebra ℝ C(X, ℝ)) (f : A) (p : C(set.Icc (-‖f‖) (‖f‖), ℝ)) :
   p.comp (attach_bound f) ∈ A.topological_closure :=
 begin
   -- `p` itself is in the closure of polynomials, by the Weierstrass theorem,
-  have mem_closure : p ∈ (polynomial_functions (set.Icc (-∥f∥) (∥f∥))).topological_closure :=
+  have mem_closure : p ∈ (polynomial_functions (set.Icc (-‖f‖) (‖f‖))).topological_closure :=
     continuous_map_mem_polynomial_functions_closure _ _ p,
   -- and so there are polynomials arbitrarily close.
   have frequently_mem_polynomials := mem_closure_iff_frequently.mp mem_closure,
@@ -110,10 +110,10 @@ end
 theorem abs_mem_subalgebra_closure (A : subalgebra ℝ C(X, ℝ)) (f : A) :
   (f : C(X, ℝ)).abs ∈ A.topological_closure :=
 begin
-  let M := ∥f∥,
+  let M := ‖f‖,
   let f' := attach_bound (f : C(X, ℝ)),
-  let abs : C(set.Icc (-∥f∥) (∥f∥), ℝ) :=
-  { to_fun := λ x : set.Icc (-∥f∥) (∥f∥), |(x : ℝ)| },
+  let abs : C(set.Icc (-‖f‖) (‖f‖), ℝ) :=
+  { to_fun := λ x : set.Icc (-‖f‖) (‖f‖), |(x : ℝ)| },
   change (abs.comp f') ∈ A.topological_closure,
   apply comp_attach_bound_mem_closure,
 end
@@ -331,7 +331,7 @@ every real-valued continuous function on `X` is within any `ε > 0` of some elem
 theorem exists_mem_subalgebra_near_continuous_map_of_separates_points
   (A : subalgebra ℝ C(X, ℝ)) (w : A.separates_points)
   (f : C(X, ℝ)) (ε : ℝ) (pos : 0 < ε) :
-  ∃ (g : A), ∥(g : C(X, ℝ)) - f∥ < ε :=
+  ∃ (g : A), ‖(g : C(X, ℝ)) - f‖ < ε :=
 begin
   have w := mem_closure_iff_frequently.mp
     (continuous_map_mem_subalgebra_closure_of_separates_points A w f),
@@ -351,7 +351,7 @@ every real-valued continuous function on `X` is within any `ε > 0` of some elem
 theorem exists_mem_subalgebra_near_continuous_of_separates_points
   (A : subalgebra ℝ C(X, ℝ)) (w : A.separates_points)
   (f : X → ℝ) (c : continuous f) (ε : ℝ) (pos : 0 < ε) :
-  ∃ (g : A), ∀ x, ∥g x - f x∥ < ε :=
+  ∃ (g : A), ∀ x, ‖g x - f x‖ < ε :=
 begin
   obtain ⟨g, b⟩ := exists_mem_subalgebra_near_continuous_map_of_separates_points A w ⟨f, c⟩ ε pos,
   use g,

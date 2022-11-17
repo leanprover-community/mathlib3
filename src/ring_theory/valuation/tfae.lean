@@ -3,10 +3,10 @@ Copyright (c) 2022 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import ring_theory.valuation.valuation_subring
 import ring_theory.ideal.cotangent
 import ring_theory.dedekind_domain.basic
-
+import ring_theory.valuation.valuation_ring
+import ring_theory.nakayama
 /-!
 
 # Equivalent conditions for DVR

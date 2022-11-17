@@ -689,22 +689,18 @@ partially well ordered, and also to consider the case of `set.partially_well_ord
 lemma pi.is_pwo {α : ι → Type*} [Π i, linear_order (α i)] [∀ i, is_well_order (α i) (<)] [finite ι]
   (s : set (Π i, α i)) : s.is_pwo :=
 begin
-  classical,
   casesI nonempty_fintype ι,
-  refine is_pwo.mono _ (subset_univ _),
-  rw is_pwo_iff_exists_monotone_subseq,
-  simp only [mem_univ, forall_const, function.comp_app],
   suffices : ∀ s : finset ι, ∀ (f : ℕ → Π s, α s), ∃ g : ℕ ↪o ℕ,
     ∀ ⦃a b : ℕ⦄, a ≤ b → ∀ (x : ι) (hs : x ∈ s), (f ∘ g) a x ≤ (f ∘ g) b x,
-  { simpa only [forall_true_left, finset.mem_univ] using this finset.univ },
-  apply' finset.induction,
+  { refine is_pwo_iff_exists_monotone_subseq.2 (λ f hf, _),
+    simpa only [finset.mem_univ, true_implies_iff] using this finset.univ f },
+  refine finset.cons_induction _ _,
   { intros f, existsi rel_embedding.refl (≤),
     simp only [is_empty.forall_iff, implies_true_iff, forall_const, finset.not_mem_empty], },
   { intros x s hx ih f,
     obtain ⟨g, hg⟩ := (is_well_founded.wf.is_wf univ).is_pwo.exists_monotone_subseq (λ n, f n x)
       mem_univ,
     obtain ⟨g', hg'⟩ := ih (f ∘ g),
-    refine ⟨g'.trans g, λ a b hab, _⟩,
-    simp only [finset.mem_insert, rel_embedding.coe_trans, function.comp_app, forall_eq_or_imp],
+    refine ⟨g'.trans g, λ a b hab, (finset.forall_mem_cons _ _).2 _⟩,
     exact ⟨hg (order_hom_class.mono g' hab), hg' hab⟩ }
 end

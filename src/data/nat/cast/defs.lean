@@ -164,7 +164,7 @@ end nat
 
 namespace ne_zero
 
-lemma ne' (n : ℕ) (R) [add_monoid_with_one R] [h : ne_zero (n : R)] :
+lemma nat_cast_ne (n : ℕ) (R) [add_monoid_with_one R] [h : ne_zero (n : R)] :
   (n : R) ≠ 0 := h.out
 
 lemma of_ne_zero_coe (R) [add_monoid_with_one R] {n : ℕ} [h : ne_zero (n : R)] : ne_zero n :=

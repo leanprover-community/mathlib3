@@ -156,7 +156,7 @@ lemma ae_tendsto_average_norm_sub {f : α → E} (hf : integrable f μ) (K : ℝ
   ∀ᵐ x ∂μ, ∀ {ι : Type*} {l : filter ι} (w : ι → α) (δ : ι → ℝ)
     (δlim : tendsto δ l (𝓝[>] 0))
     (xmem : ∀ᶠ j in l, x ∈ closed_ball (w j) (K * δ j)),
-    tendsto (λ j, ⨍ y in closed_ball (w j) (δ j), ∥f y - f x∥ ∂μ) l (𝓝 0) :=
+    tendsto (λ j, ⨍ y in closed_ball (w j) (δ j), ‖f y - f x‖ ∂μ) l (𝓝 0) :=
 by filter_upwards [(vitali_family μ K).ae_tendsto_average_norm_sub hf] with x hx ι l w δ δlim xmem
 using hx.comp (tendsto_closed_ball_filter_at μ _ _ δlim xmem)
 

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import linear_algebra.matrix.adjugate
-import ring_theory.matrix_algebra
 import ring_theory.polynomial_algebra
 import tactic.apply_fun
 import tactic.squeeze

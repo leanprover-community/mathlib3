@@ -10,7 +10,7 @@ import category_theory.limits.shapes.multiequalizer
 import category_theory.concrete_category.basic
 import category_theory.limits.shapes.kernels
 import tactic.apply_fun
-__
+
 /-!
 # Facts about (co)limits of functors into concrete categories
 -/

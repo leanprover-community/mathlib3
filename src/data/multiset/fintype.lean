@@ -3,8 +3,8 @@ Copyright (c) 2022 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import data.fintype.card
-import algebra.big_operators
+import algebra.big_operators.basic
+import data.prod.lex
 
 /-!
 # Multiset coercion to type

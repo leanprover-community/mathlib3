@@ -197,6 +197,18 @@ lemma angle_eq_iff_oangle_eq_of_sign_eq {p₁ p₂ p₃ p₄ p₅ p₆ : P} (hp�
 (o).angle_eq_iff_oangle_eq_of_sign_eq (vsub_ne_zero.2 hp₁) (vsub_ne_zero.2 hp₃)
                                       (vsub_ne_zero.2 hp₄) (vsub_ne_zero.2 hp₆) hs
 
+/-- The oriented angle between three points equals the unoriented angle if the sign is
+positive. -/
+lemma oangle_eq_angle_of_sign_eq_one {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign = 1) :
+  ∡ p₁ p₂ p₃ = ∠ p₁ p₂ p₃ :=
+(o).oangle_eq_angle_of_sign_eq_one h
+
+/-- The oriented angle between three points equals minus the unoriented angle if the sign is
+negative. -/
+lemma oangle_eq_neg_angle_of_sign_eq_neg_one {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign = -1) :
+  ∡ p₁ p₂ p₃ = -∠ p₁ p₂ p₃ :=
+(o).oangle_eq_neg_angle_of_sign_eq_neg_one h
+
 /-- The unoriented angle at `p` between two points not equal to `p` is zero if and only if the
 unoriented angle is zero. -/
 lemma oangle_eq_zero_iff_angle_eq_zero {p p₁ p₂ : P} (hp₁ : p₁ ≠ p) (hp₂ : p₂ ≠ p) :
@@ -418,10 +430,10 @@ begin
     rw ←real.angle.sign_eq_zero_iff at hs₁₅₂ hs₃₅₄,
     rw [hs₁₅₂, hs₃₅₄] },
   { let s : set (P × P × P) :=
-      (λ x : affine_span ℝ ({p₁, p₂} : set P) × V, (x.1, p₅, x.2 +ᵥ x.1)) ''
+      (λ x : line[ℝ, p₁, p₂] × V, (x.1, p₅, x.2 +ᵥ x.1)) ''
         set.univ ×ˢ {v | same_ray ℝ (p₂ -ᵥ p₁) v ∧ v ≠ 0},
     have hco : is_connected s,
-    { haveI : connected_space (affine_span ℝ ({p₁, p₂} : set P)) := add_torsor.connected_space _ _,
+    { haveI : connected_space line[ℝ, p₁, p₂] := add_torsor.connected_space _ _,
       exact (is_connected_univ.prod (is_connected_set_of_same_ray_and_ne_zero
         (vsub_ne_zero.2 hp₁p₂.symm))).image _
           ((continuous_fst.subtype_coe.prod_mk
@@ -456,7 +468,7 @@ begin
       obtain ⟨hvr, hv0⟩ := hv,
       rw ←exists_nonneg_left_iff_same_ray (vsub_ne_zero.2 hp₁p₂.symm) at hvr,
       obtain ⟨r, -, rfl⟩ := hvr,
-      change q ∈ affine_span ℝ ({p₁, p₂} : set P) at hq,
+      change q ∈ line[ℝ, p₁, p₂] at hq,
       rw [oangle_ne_zero_and_ne_pi_iff_affine_independent],
       refine affine_independent_of_ne_of_mem_of_not_mem_of_mem _ hq
         (λ h, hc₅₁₂ ((collinear_insert_iff_of_mem_affine_span h).2 (collinear_pair _ _ _))) _,

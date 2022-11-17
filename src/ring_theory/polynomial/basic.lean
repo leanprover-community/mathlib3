@@ -5,6 +5,7 @@ Authors: Kenny Lau
 -/
 
 import algebra.char_p.basic
+import algebra.geom_sum
 import data.mv_polynomial.comm_ring
 import data.mv_polynomial.equiv
 import ring_theory.polynomial.content
@@ -907,6 +908,7 @@ lemma disjoint_ker_aeval_of_coprime
   (f : M →ₗ[R] M) {p q : R[X]} (hpq : is_coprime p q) :
   disjoint (aeval f p).ker (aeval f q).ker :=
 begin
+  rw disjoint_iff_inf_le,
   intros v hv,
   rcases hpq with ⟨p', q', hpq'⟩,
   simpa [linear_map.mem_ker.1 (submodule.mem_inf.1 hv).1,

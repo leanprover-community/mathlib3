@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.bundle
-import topology.algebra.order.basic
+import topology.algebra.order.field
 import topology.local_homeomorph
 
 /-!
@@ -689,8 +689,9 @@ noncomputable def disjoint_union (e e' : trivialization F proj)
   (H : disjoint e.base_set e'.base_set) :
   trivialization F proj :=
 { to_local_homeomorph := e.to_local_homeomorph.disjoint_union e'.to_local_homeomorph
-    (λ x hx, by { rw [e.source_eq, e'.source_eq] at hx, exact H hx })
-    (λ x hx, by { rw [e.target_eq, e'.target_eq] at hx, exact H ⟨hx.1.1, hx.2.1⟩ }),
+    (by { rw [e.source_eq, e'.source_eq], exact H.preimage _, })
+    (by { rw [e.target_eq, e'.target_eq, disjoint_iff_inf_le],
+          intros x hx, exact H.le_bot ⟨hx.1.1, hx.2.1⟩ }),
   base_set := e.base_set ∪ e'.base_set,
   open_base_set := is_open.union e.open_base_set e'.open_base_set,
   source_eq := congr_arg2 (∪) e.source_eq e'.source_eq,
@@ -703,7 +704,7 @@ noncomputable def disjoint_union (e e' : trivialization F proj)
       { show (e.source.piecewise e e' p).1 = proj p,
         rw [piecewise_eq_of_not_mem, e'.coe_fst hp'],
         simp only [e.source_eq, e'.source_eq] at hp' ⊢,
-        exact λ h, H ⟨h, hp'⟩ }
+        exact λ h, H.le_bot ⟨h, hp'⟩ }
     end }
 
 end piecewise

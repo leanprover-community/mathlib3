@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
-import data.finite.card
 import group_theory.abelianization
 import group_theory.exponent
 import group_theory.transfer
@@ -180,12 +179,6 @@ begin
   -- `transfer g` is defeq to `g ^ [G : Z(G)]`, so we are done
   simpa only [monoid_hom.mem_ker, subtype.ext_iff] using this,
 end
-
-open_locale big_operators
-
-variables {G}
-
-variables (G)
 
 /-- A bound for the size of the commutator subgroup in terms of the number of commutators. -/
 def card_commutator_bound (n : ℕ) := (n ^ (2 * n)) ^ (n ^ (2 * n + 1) + 1)

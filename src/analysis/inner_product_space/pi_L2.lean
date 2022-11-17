@@ -673,7 +673,7 @@ begin
   haveI : subsingleton ι, from e.subsingleton,
   let i : ι := e.symm 0,
   have : b i = 1 ∨ b i = - 1,
-  { have : ∥b i∥ = 1, from b.orthonormal.1 i,
+  { have : ‖b i‖ = 1, from b.orthonormal.1 i,
     rwa [real.norm_eq_abs, abs_eq (zero_le_one : (0 : ℝ) ≤ 1)] at this },
   rcases this with H|H,
   { left,

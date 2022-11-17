@@ -75,9 +75,8 @@ end
 
 /- The parallelogram associated to the standard orthonormal basis of `ℝ` is either `[-1, 0]`
 or `[0, 1]`. -/
-lemma parallelogram_std_orthonormal_basis_one_dim :
-  parallelogram (std_orthonormal_basis ℝ ℝ) = Icc 0 1
-    ∨ parallelogram (std_orthonormal_basis ℝ ℝ) = Icc (-1) 0 :=
+lemma parallelogram_std_orthonormal_basis_one_dim (v : orthonormal_basis ι ℝ ℝ) :
+  parallelogram v = Icc 0 1 ∨ parallelogram v = Icc (-1) 0 :=
 begin
   let F : ℝ → (fin 1 → ℝ) := λ t, (λ i, t),
   have A : Icc (0 : fin 1 → ℝ) 1 = F '' (Icc (0 : ℝ) 1),

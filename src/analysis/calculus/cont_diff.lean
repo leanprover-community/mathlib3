@@ -2323,9 +2323,9 @@ A.comp_cont_diff_on B
 /-- If a function is at least `C^1`, its bundled derivative (mapping `(x, v)` to `Df(x) v`) is
 continuous. -/
 lemma cont_diff_on.continuous_on_fderiv_within_apply
-  (h : cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hn : 1 ≤ n) :
+  (hf : cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hn : 1 ≤ n) :
   continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1 : E → F) p.2) (s ×ˢ univ) :=
-(cont_diff_on_fderiv_within_apply hf hs (hn : 0 + 1 ≤ n)).continuous_on
+(cont_diff_on_fderiv_within_apply hf hs $ by rwa [zero_add]).continuous_on
 
 /-- The bundled derivative of a `C^{n+1}` function is `C^n`. -/
 lemma cont_diff.cont_diff_fderiv_apply {f : E → F}

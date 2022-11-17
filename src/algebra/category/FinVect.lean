@@ -5,7 +5,6 @@ Authors: Jakob von Raumer
 -/
 import category_theory.monoidal.rigid.basic
 import category_theory.monoidal.subcategory
-import linear_algebra.tensor_product_basis
 import linear_algebra.coevaluation
 import algebra.category.Module.monoidal
 

@@ -453,7 +453,8 @@ end
 multiplication by constants.
 
 Notably, this instances applies when `R = A`, or when `[algebra R A]` is available. -/
-@[priority 100]
+@[priority 100, to_additive  "If `R` acts on `A` via `A`, then continuous addition implies
+continuous affine addition by constants."]
 instance is_scalar_tower.has_continuous_const_smul {R A : Type*} [monoid A] [has_smul R A]
   [is_scalar_tower R A A] [topological_space A] [has_continuous_mul A] :
   has_continuous_const_smul R A :=

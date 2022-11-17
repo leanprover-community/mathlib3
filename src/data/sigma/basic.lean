@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import meta.univs
-import tactic.lint
+import tactic.lint.default
 import tactic.ext
+import logic.function.basic
 
 /-!
 THIS FILE IS SYNCHRONIZED WITH MATHLIB4.

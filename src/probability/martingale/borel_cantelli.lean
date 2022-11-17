@@ -6,7 +6,6 @@ Authors: Kexing Ying
 import probability.martingale.convergence
 import probability.martingale.optional_stopping
 import probability.martingale.centering
-import probability.conditional_expectation
 
 /-!
 
@@ -322,7 +321,8 @@ end
 lemma integrable_process (μ : measure Ω) [is_finite_measure μ]
   (hs : ∀ n, measurable_set[ℱ n] (s n)) (n : ℕ) :
   integrable (process s n) μ :=
-integrable_finset_sum' _ $ λ k hk, integrable_on.indicator (integrable_const 1) $ ℱ.le _ _ $ hs _
+integrable_finset_sum' _ $ λ k hk,
+  integrable_on.integrable_indicator (integrable_const 1) $ ℱ.le _ _ $ hs _
 
 end borel_cantelli
 

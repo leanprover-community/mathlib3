@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Yaël Dillies
 -/
 import order.min_max
+import algebra.ring.defs
 import algebra.order.monoid.cancel.defs
-import algebra.order.sub.defs
 import algebra.order.group.defs
 import algebra.order.ring.lemmas
 import tactic.nontriviality
@@ -263,9 +263,9 @@ zero_lt_one.trans_le $ bit1_zero.symm.trans_le $ bit1_mono zero_le_one
 /-- See `zero_lt_four'` for a version with the type explicit. -/
 @[simp] lemma zero_lt_four : (0 : α) < 4 := zero_lt_two.trans_le $ bit0_mono one_le_two
 
-@[field_simps] lemma two_ne_zero : (2 : α) ≠ 0 := zero_lt_two.ne'
-@[field_simps] lemma three_ne_zero : (3 : α) ≠ 0 := zero_lt_three.ne'
-@[field_simps] lemma four_ne_zero : (4 : α) ≠ 0 := zero_lt_four.ne'
+instance zero_le_one_class.ne_zero.two : ne_zero (2 : α) := ⟨zero_lt_two.ne'⟩
+instance zero_le_one_class.ne_zero.three : ne_zero (3 : α) := ⟨zero_lt_three.ne'⟩
+instance zero_le_one_class.ne_zero.four : ne_zero (4 : α) := ⟨zero_lt_four.ne'⟩
 
 alias zero_lt_one ← one_pos
 alias zero_lt_two ← two_pos

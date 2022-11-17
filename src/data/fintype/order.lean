@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Peter Nelson, Yaël Dillies
 -/
 import data.fintype.basic
-import order.conditionally_complete_lattice
 import data.finset.order
 
 /-!

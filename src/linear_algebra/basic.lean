@@ -10,7 +10,6 @@ import algebra.module.prod
 import algebra.module.submodule.lattice
 import data.dfinsupp.basic
 import data.finsupp.basic
-import order.compactly_generated
 
 /-!
 # Linear algebra

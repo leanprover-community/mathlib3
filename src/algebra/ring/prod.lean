@@ -5,8 +5,8 @@ Authors: Johannes Hölzl, Chris Hughes, Mario Carneiro, Yury Kudryashov
 -/
 import data.int.cast.prod
 import algebra.group.prod
-import algebra.order.group.prod
 import algebra.ring.equiv
+import algebra.order.monoid.prod
 
 /-!
 # Semiring, ring etc structures on `R × S`

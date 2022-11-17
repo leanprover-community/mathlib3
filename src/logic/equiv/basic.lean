@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import logic.equiv.defs
+import data.option.basic
 import data.prod.basic
 import data.sigma.basic
 import data.subtype

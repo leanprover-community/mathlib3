@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.bundle
-import topology.algebra.order.basic
+import topology.algebra.order.field
 import topology.local_homeomorph
 
 /-!

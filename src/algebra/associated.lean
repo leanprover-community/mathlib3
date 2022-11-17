@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Jens Wagemaker
 -/
 import algebra.divisibility.basic
 import algebra.group_power.lemmas
-import algebra.invertible
 import algebra.parity
 import order.atoms
 

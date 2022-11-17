@@ -102,11 +102,11 @@ def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 (λ (i : n), 𝕜)
 
 lemma euclidean_space.nnnorm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
-  (x : euclidean_space 𝕜 n) : ∥x∥₊ = nnreal.sqrt (∑ i, ∥x i∥₊ ^ 2) :=
+  (x : euclidean_space 𝕜 n) : ‖x‖₊ = nnreal.sqrt (∑ i, ‖x i‖₊ ^ 2) :=
 pi_Lp.nnnorm_eq_of_L2 x
 
 lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
-  (x : euclidean_space 𝕜 n) : ∥x∥ = real.sqrt (∑ i, ∥x i∥ ^ 2) :=
+  (x : euclidean_space 𝕜 n) : ‖x‖ = real.sqrt (∑ i, ‖x i‖ ^ 2) :=
 by simpa only [real.coe_sqrt, nnreal.coe_sum] using congr_arg (coe : ℝ≥0 → ℝ) x.nnnorm_eq
 
 lemma euclidean_space.dist_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
@@ -547,7 +547,7 @@ end
 /-- The determinant of the change-of-basis matrix between two orthonormal bases `a`, `b` has
 unit length. -/
 @[simp] lemma orthonormal_basis.det_to_matrix_orthonormal_basis :
-  ∥a.to_basis.det b∥ = 1 :=
+  ‖a.to_basis.det b‖ = 1 :=
 begin
   have : (norm_sq (a.to_basis.det b) : 𝕜) = 1,
   { simpa [is_R_or_C.mul_conj]
@@ -778,7 +778,7 @@ begin
   -- Build a linear map from the isometries on S and Sᗮ
   let M := L.to_linear_map.comp p1 + L3.to_linear_map.comp p2,
   -- Prove that M is an isometry
-  have M_norm_map : ∀ (x : V), ∥M x∥ = ∥x∥,
+  have M_norm_map : ∀ (x : V), ‖M x‖ = ‖x‖,
   { intro x,
     -- Apply M to the orthogonal decomposition of x
     have Mx_decomp : M x = L (p1 x) + L3 (p2 x),

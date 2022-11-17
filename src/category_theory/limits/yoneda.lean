@@ -150,5 +150,4 @@ end category_theory
 
 -- These act as a guard that the algebraic hierarchy has not been imported
 -- low into the category theory hierarchy again.
-assert_no_instance add_comm_monoid ℕ
-assert_no_instance add_comm_group ℤ
+assert_not_exists add_comm_monoid

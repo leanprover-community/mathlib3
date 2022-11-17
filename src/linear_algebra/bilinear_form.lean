@@ -6,7 +6,6 @@ Authors: Andreas Swerdlow, Kexing Ying
 
 import linear_algebra.dual
 import linear_algebra.matrix.to_lin
-import linear_algebra.tensor_product
 
 /-!
 # Bilinear form

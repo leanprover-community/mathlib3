@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import group_theory.group_action.conj_act
 import group_theory.group_action.quotient
+import group_theory.quotient_group
 import order.filter.pointwise
 import topology.algebra.monoid
 import topology.compact_open

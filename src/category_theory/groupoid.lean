@@ -7,7 +7,6 @@ import category_theory.full_subcategory
 import category_theory.products.basic
 import category_theory.pi.basic
 import category_theory.category.basic
-import tactic.nth_rewrite
 import combinatorics.quiver.connected_component
 
 /-!

@@ -6,7 +6,6 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 import order.hom.basic
 import order.min_max
 import algebra.group.units
-import algebra.order.monoid.defs
 
 /-!
 # Units in ordered monoids

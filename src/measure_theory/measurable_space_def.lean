@@ -469,4 +469,8 @@ lemma measurable.le {α} {m m0 : measurable_space α} {mb : measurable_space β}
   (hf : measurable[m] f) : measurable[m0] f :=
 λ s hs, hm _ (hf hs)
 
+lemma measurable_space.top.measurable {α β : Type*} [measurable_space β] (f : α → β) :
+  @measurable α β ⊤ _ f :=
+λ s hs, measurable_space.measurable_set_top
+
 end measurable_functions

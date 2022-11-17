@@ -2240,6 +2240,123 @@ begin
   exact funext (λ a, lintegral_dirac a f),
 end
 
+lemma measurable_space.top.measurable {α β : Type*} [measurable_space β] (f : α → β) :
+  @measurable α β ⊤ _ f :=
+λ s hs, measurable_space.measurable_set_top
+
+-- Q: Is this instance a bad idea? It is certainly always the correct one, but does it
+-- affect performance?
+@[priority 100]
+instance measurable_space.top.measurable_singleton_class {α : Type*} :
+  @measurable_singleton_class α (⊤ : measurable_space α) :=
+{ measurable_set_singleton := λ i, measurable_space.measurable_set_top, }
+
+-- Place near `ennreal.tsum_eq_top_of_eq_top`?
+lemma _root_.ennreal.lt_top_of_tsum_ne_top {α : Type*} {a : α → ℝ≥0∞}
+  (tsum_ne_top : ∑' i, a i ≠ ∞) (j : α) :
+  a j < ⊤ :=
+begin
+  have key := not_imp_not.mpr ennreal.tsum_eq_top_of_eq_top,
+  simp only [not_exists] at key,
+  exact lt_top_iff_ne_top.mpr (key tsum_ne_top j),
+end
+
+lemma _root_.ennreal.tsum_const_eq [measurable_singleton_class α] (c : ℝ≥0∞) :
+  (∑' (i : α), c) = (measure.count (univ : set α)) * c :=
+by rw [← lintegral_count, lintegral_const, mul_comm]
+
+/-- Markov's inequality for the counting measure with hypothesis using `tsum` in `ℝ≥0∞`. -/
+lemma _root_.ennreal.count_const_le_le_of_tsum_le [measurable_singleton_class α]
+  {a : α → ℝ≥0∞} (a_mble : measurable a) {c : ℝ≥0∞} (tsum_le_c : ∑' i, a i ≤ c)
+  {ε : ℝ≥0∞} (ε_ne_zero : ε ≠ 0) (ε_ne_top : ε ≠ ∞) :
+  measure.count {i : α | ε ≤ a i} ≤ c / ε :=
+begin
+  rw ← lintegral_count at tsum_le_c,
+  apply (measure_theory.meas_ge_le_lintegral_div a_mble.ae_measurable ε_ne_zero ε_ne_top).trans,
+  exact ennreal.div_le_div tsum_le_c rfl.le,
+end
+
+/-- A sum of extended nonnegative reals which is finite can have only finitely many terms
+above any positive threshold.-/
+lemma finite_const_le_of_tsum_lt_top {a : α → ℝ≥0∞}
+  (tsum_ne_top : ∑' i, a i ≠ ∞) {ε : ℝ≥0∞} (ε_ne_zero : ε ≠ 0) :
+  {i : α | ε ≤ a i}.finite :=
+begin
+  have a_mble : @measurable _ _ ⊤ _ a, from measurable_space.top.measurable a,
+  by_cases ε = ∞,
+  { by_contra con,
+    rcases set.infinite.nonempty con with ⟨i, hi⟩,
+    have infty_le_ai : ∞ ≤ a i, by simpa only [h, mem_set_of_eq] using hi,
+    exact (lt_of_le_of_lt infty_le_ai (ennreal.lt_top_of_tsum_ne_top tsum_ne_top i)).ne rfl, },
+  apply (measure.count_apply_lt_top' measurable_space.measurable_set_top).mp,
+  have obs := @ennreal.count_const_le_le_of_tsum_le α ⊤ _ a a_mble _ rfl.le _ ε_ne_zero h,
+  exact lt_of_le_of_lt obs (ennreal.div_lt_top tsum_ne_top ε_ne_zero),
+end
+
+/-- Markov's inequality for `finset.card` and `tsum` in `ℝ≥0∞`. -/
+lemma finset_card_const_le_le_of_tsum_le {a : α → ℝ≥0∞}
+  {c : ℝ≥0∞} (c_ne_top : c ≠ ∞) (tsum_le_c : ∑' i, a i ≤ c)
+  {ε : ℝ≥0∞} (ε_ne_zero : ε ≠ 0) (ε_ne_top : ε ≠ ∞) :
+  ∃ hf : {i : α | ε ≤ a i}.finite, ↑hf.to_finset.card ≤ c / ε :=
+begin
+  by_cases ε = ∞,
+  { have obs : {i : α | ε ≤ a i} = ∅,
+    { rw eq_empty_iff_forall_not_mem,
+      intros i hi,
+      have infty_le_ai : ∞ ≤ a i, by simpa only [mem_set_of_eq] using hi,
+      refine (lt_of_le_of_lt infty_le_ai (ennreal.lt_top_of_tsum_ne_top _ i)).ne rfl,
+      exact (lt_of_le_of_lt tsum_le_c c_ne_top.lt_top).ne, },
+    simp only [obs, finite_empty, finite_empty_to_finset, finset.card_empty,
+               algebra_map.coe_zero, zero_le', exists_true_left], },
+  have a_mble : @measurable _ _ ⊤ _ a, from measurable_space.top.measurable a,
+  have hf : {i : α | ε ≤ a i}.finite,
+    from finite_const_le_of_tsum_lt_top (lt_of_le_of_lt tsum_le_c c_ne_top.lt_top).ne ε_ne_zero,
+  use hf,
+  have obs := @ennreal.count_const_le_le_of_tsum_le α ⊤ _ _ a_mble c
+    tsum_le_c _ ε_ne_zero ε_ne_top,
+  simpa [← @measure.count_apply_finite _ ⊤ _ _ hf] using obs,
+end
+
+/-- Markov's inequality for counting measure with hypothesis using `tsum` in `ℝ≥0`. -/
+lemma _root_.nnreal.count_const_le_le_of_tsum_le [measurable_singleton_class α]
+  {a : α → ℝ≥0} (a_mble : measurable a) (a_summable : summable a)
+  {c : ℝ≥0} (tsum_le_c : ∑' i, a i ≤ c) {ε : ℝ≥0} (ε_ne_zero : ε ≠ 0) :
+  measure.count {i : α | ε ≤ a i} ≤ c / ε :=
+begin
+  rw [show (λ i, ε ≤ a i) = (λ i, (ε : ℝ≥0∞) ≤ (coe ∘ a) i),
+        by { funext i, simp only [ennreal.coe_le_coe], }],
+  apply ennreal.count_const_le_le_of_tsum_le (measurable_coe_nnreal_ennreal.comp a_mble)
+          _ (by exact_mod_cast ε_ne_zero) (@ennreal.coe_ne_top ε),
+  convert ennreal.coe_le_coe.mpr tsum_le_c,
+  rw ennreal.tsum_coe_eq a_summable.has_sum,
+end
+
+/-- If a sum of nonnegative reals is summable, then it can only have finitely many terms
+above any positive threshold. -/
+lemma finite_const_le_of_summable {a : α → ℝ≥0} (a_summable : summable a)
+  {ε : ℝ≥0} (ε_ne_zero : ε ≠ 0) :
+  {i : α | ε ≤ a i}.finite :=
+begin
+  have a_mble : @measurable _ _ ⊤ _ a, from measurable_space.top.measurable a,
+  apply (measure.count_apply_lt_top' measurable_space.measurable_set_top).mp,
+  have obs := @nnreal.count_const_le_le_of_tsum_le α ⊤ _ a a_mble a_summable _ rfl.le _ ε_ne_zero,
+  refine lt_of_le_of_lt obs _,
+  simp only [← ennreal.coe_div ε_ne_zero, ennreal.coe_lt_top],
+end
+
+/-- Markov's inequality for `finset.card` and `tsum` in `ℝ≥0`. -/
+lemma finset_card_const_le_le_of_tsum_nnreal_le
+  {a : α → ℝ≥0} (a_summable : summable a) {c : ℝ≥0} (tsum_le_c : ∑' i, a i ≤ c) {ε : ℝ≥0} (ε_ne_zero : ε ≠ 0) :
+  ∃ hf : {i : α | ε ≤ a i}.finite, ↑hf.to_finset.card ≤ c / ε :=
+begin
+  have a_mble : @measurable _ _ ⊤ _ a, from measurable_space.top.measurable a,
+  have hf : {i : α | ε ≤ a i}.finite, from finite_const_le_of_summable a_summable ε_ne_zero,
+  use hf,
+  have obs := @nnreal.count_const_le_le_of_tsum_le α ⊤ _ _ a_mble a_summable c tsum_le_c ε ε_ne_zero,
+  rw @measure.count_apply_finite _ ⊤ _ _ hf at obs,
+  exact_mod_cast obs,
+end
+
 end dirac_and_count
 
 section countable

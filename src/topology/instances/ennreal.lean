@@ -803,6 +803,14 @@ le_tsum' ennreal.summable a
 protected lemma tsum_eq_top_of_eq_top : (∃ a, f a = ∞) → ∑' a, f a = ∞
 | ⟨a, ha⟩ := top_unique $ ha ▸ ennreal.le_tsum a
 
+protected lemma lt_top_of_tsum_ne_top {a : α → ℝ≥0∞} (tsum_ne_top : ∑' i, a i ≠ ∞) (j : α) :
+  a j < ⊤ :=
+begin
+  have key := not_imp_not.mpr ennreal.tsum_eq_top_of_eq_top,
+  simp only [not_exists] at key,
+  exact lt_top_iff_ne_top.mpr (key tsum_ne_top j),
+end
+
 @[simp] protected lemma tsum_top [nonempty α] : ∑' a : α, ∞ = ∞ :=
 let ⟨a⟩ := ‹nonempty α› in ennreal.tsum_eq_top_of_eq_top ⟨a, rfl⟩
 

@@ -3,7 +3,7 @@ Copyright (c) 2022 Yuma Mizuno. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuma Mizuno
 -/
-import category_theory.bicategory.free
+import category_theory.bicategory.coherence
 
 /-!
 # A `coherence` tactic for bicategories, and `⊗≫` (composition up to associators)

@@ -5,6 +5,7 @@ Authors: Riccardo Brasca
 -/
 
 import category_theory.abelian.pseudoelements
+import algebra.category.Module.biproducts
 
 /-!
 # Pseudoelements and pullbacks

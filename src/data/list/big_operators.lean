@@ -465,10 +465,7 @@ trans (prod_eq_pow_card l 1 hl) (one_pow l.length)
 @[to_additive]
 lemma exists_mem_ne_one_of_prod_ne_one [monoid M] {l : list M} (h : l.prod ≠ 1) :
   ∃ (x ∈ l), x ≠ (1 : M) :=
-begin
-  by_contra hf, push_neg at hf, -- `by_contra'` is not visible here
-  exact h (prod_eq_one hf),
-end
+by simpa only [not_forall] using mt prod_eq_one h
 
 /-- If a product of integers is `-1`, then at least one factor must be `-1`. -/
 lemma neg_one_mem_of_prod_eq_neg_one {l : list ℤ} (h : l.prod = -1) : (-1 : ℤ) ∈ l :=

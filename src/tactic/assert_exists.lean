@@ -16,7 +16,7 @@ These commands are used to enforce the independence of different parts of mathli
 This file provides two linters that verify that things we assert do not _yet_ exist do _eventually_
 exist. This works by creating declarations of the form:
 
-* `assert_not_exists._checked.foo : unit` for `assert_not_exists foo`
+* ``assert_not_exists._checked.<uniq> : name := `foo`` for `assert_not_exists foo`
 * `assert_no_instance._checked.<uniq> := t` for `assert_instance t`
 
 These declarations are then picked up by the linter and analyzed accordingly.
@@ -61,10 +61,10 @@ do
   decl ← ident,
   ff ← succeeds (get_decl decl) |
   fail format!"Declaration {decl} is not allowed to exist in this file.",
-  let marker := (`assert_not_exists._checked).append decl,
-  tt ← succeeds (get_decl marker) |
+  n ← tactic.mk_fresh_name,
+  let marker := (`assert_not_exists._checked).append n,
   add_decl
-    (declaration.defn marker [] `(unit) `(()) default tt),
+    (declaration.defn marker [] `(name) `(decl) default tt),
   pure ()
 
 /-- A linter for checking that the declarations marked `assert_not_exists` eventually exist. -/
@@ -72,7 +72,8 @@ meta def assert_not_exists.linter : linter :=
 { test := λ d, (do
     let n := d.to_name,
     tt ← pure ((`assert_not_exists._checked).is_prefix_of n) | pure none,
-    let n := n.replace_prefix `assert_not_exists._checked name.anonymous,
+    declaration.defn _ _ `(name) val _ _ ← pure d,
+    n ← tactic.eval_expr name val,
     tt ← succeeds (get_decl n) | pure (some (format!"`{n}` does not ever exist").to_string),
     pure none),
   auto_decls := tt,

@@ -6,11 +6,11 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 import data.list.prime
 import data.list.sort
 import data.nat.gcd.basic
-import data.nat.sqrt_norm_num
 import data.nat.order.lemmas
 import data.set.finite
-import tactic.wlog
 import algebra.parity
+import data.nat.sqrt
+import tactic.norm_num
 
 /-!
 # Prime numbers

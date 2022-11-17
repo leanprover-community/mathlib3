@@ -5,6 +5,7 @@ Authors: Thomas Browning
 -/
 
 import data.finite.card
+import group_theory.finiteness
 import group_theory.group_action.quotient
 
 /-!
@@ -410,6 +411,22 @@ instance finite_index_normal_core [H.finite_index] : H.normal_core.finite_index 
 begin
   rw normal_core_eq_ker,
   apply_instance,
+end
+
+variables (G)
+
+instance finite_index_center [finite (commutator_set G)] [group.fg G] : finite_index (center G) :=
+begin
+  obtain ⟨S, -, hS⟩ := group.rank_spec G,
+  exact ⟨mt (finite.card_eq_zero_of_embedding (quotient_center_embedding hS)) finite.card_pos.ne'⟩,
+end
+
+lemma index_center_le_pow [finite (commutator_set G)] [group.fg G] :
+  (center G).index ≤ (nat.card (commutator_set G)) ^ group.rank G :=
+begin
+  obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
+  rw [←hS1, ←fintype.card_coe, ←nat.card_eq_fintype_card, ←finset.coe_sort_coe, ←nat.card_fun],
+  exact finite.card_le_of_embedding (quotient_center_embedding hS2),
 end
 
 end finite_index

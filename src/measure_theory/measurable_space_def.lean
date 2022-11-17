@@ -7,7 +7,6 @@ import data.set.countable
 import logic.encodable.lattice
 import order.conditionally_complete_lattice
 import order.disjointed
-import order.symm_diff
 
 /-!
 # Measurable spaces and measurable functions

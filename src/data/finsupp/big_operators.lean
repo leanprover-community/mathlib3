@@ -5,6 +5,7 @@ Authors: Yakov Pechersky
 -/
 
 import data.finsupp.defs
+import data.finset.pairwise
 
 /-!
 

@@ -45,9 +45,9 @@ variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [normed_spa
 lemma is_conformal_map_complex_linear {map : ℂ →L[ℂ] E} (nonzero : map ≠ 0) :
   is_conformal_map (map.restrict_scalars ℝ) :=
 begin
-  have minor₁ : ∥map 1∥ ≠ 0,
+  have minor₁ : ‖map 1‖ ≠ 0,
   { simpa [ext_ring_iff] using nonzero },
-  refine ⟨∥map 1∥, minor₁, ⟨∥map 1∥⁻¹ • map, _⟩, _⟩,
+  refine ⟨‖map 1‖, minor₁, ⟨‖map 1‖⁻¹ • map, _⟩, _⟩,
   { intros x,
     simp only [linear_map.smul_apply],
     have : x = x • 1 := by rw [smul_eq_mul, mul_one],

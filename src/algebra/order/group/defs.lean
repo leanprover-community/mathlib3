@@ -6,6 +6,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 import order.hom.basic
 import algebra.hom.equiv.units.basic
 import algebra.order.sub.defs
+import algebra.order.monoid.defs
 
 /-!
 # Ordered groups

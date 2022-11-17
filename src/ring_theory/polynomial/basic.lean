@@ -5,6 +5,7 @@ Authors: Kenny Lau
 -/
 
 import algebra.char_p.basic
+import algebra.geom_sum
 import data.mv_polynomial.comm_ring
 import data.mv_polynomial.equiv
 import ring_theory.polynomial.content

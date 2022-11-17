@@ -6,7 +6,8 @@ Authors: Yury Kudryashov
 import order.conditionally_complete_lattice
 import algebra.group.prod
 import algebra.group.pi
-import algebra.module.pi
+import algebra.module.basic
+import group_theory.group_action.pi
 
 /-!
 # Support of a function

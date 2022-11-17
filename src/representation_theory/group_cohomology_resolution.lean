@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
 
-import algebra.homology.quasi_iso
 import algebraic_topology.extra_degeneracy
 import category_theory.abelian.homology
 import representation_theory.Rep

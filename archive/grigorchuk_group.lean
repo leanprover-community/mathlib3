@@ -540,23 +540,23 @@ begin
   rw [mul_assoc, ← mul_assoc _ ↑w, ← free_prod.word.coe_conj_a_mker_fst_z2, ← coe_mul,
     subtype.coe_inj, ← mul_equiv.eq_symm_apply] at h,
   subst we,
-  have : ((equiv_ker.symm w).proj.fst * (equiv_ker.symm w).proj.snd).weight ≤
+  have : (equiv_ker.symm w).proj.fst.weight + (equiv_ker.symm w).proj.snd.weight ≤
     η * ((w * free_prod.word.inl σ : word).weight + 2 * weight₁ (sum.inl σ)),
-  { refine (word.weight_mul_le _ _).trans ((weight_proj_le' _).trans _),
+  { refine (weight_proj_le' _).trans _,
     rw [mul_equiv.apply_symm_apply, two_mul, ← add_assoc],
     refine mul_le_mul_of_nonneg_left _ eta_nonneg,
     have : (w * free_prod.word.inl σ * free_prod.word.inl σ : word) = w,
       by rw [mul_assoc, ← map_mul, mul_z2.mul_self, map_one, mul_one],
     conv_lhs { rw [← this] },
     refine add_le_add_right ((word.weight_mul_le _ _).trans_eq _) _,
-    rw []
-  },
+    rw [← free_prod.word.of_inl, word.weight_of] },
   split,
   { rw [equiv_ker, map_mul, map_mul, free_prod.word.z2_prod_mker_fst_symm_conj_a, ← swap,
-      proj_swap, prod.fst_mul, prod.fst_swap],
-
-
-  }
+      proj_swap],
+    exact (word.weight_mul_le _ _).trans this },
+  { rw [equiv_ker, map_mul, map_mul, free_prod.word.z2_prod_mker_fst_symm_conj_a, ← swap,
+      proj_swap],
+    exact (word.weight_mul_le _ _).trans ((add_comm _ _).trans_le this) }
 end
 
 end even_a_word

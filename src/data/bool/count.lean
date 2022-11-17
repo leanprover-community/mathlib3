@@ -48,7 +48,8 @@ begin
   obtain rfl | rfl : b = x ∨ b = !x, by simp only [bool.eq_bnot_iff, em],
   { rw [count_cons_of_ne b.bnot_ne_self, count_cons_self, hl.count_bnot, add_assoc],
     exact add_le_add_left (nat.mod_lt _ two_pos).le _ },
-  { rw [bnot_bnot, count_cons_self, count_cons_of_ne b.bnot_ne_self.symm, hl.count_bnot] }
+  { rw [bnot_bnot, count_cons_self, count_cons_of_ne x.bnot_ne_self, hl.count_bnot],
+    exact add_le_add_right (le_add_right le_rfl) _ }
 end
 
 lemma count_ff_le_count_tt_add_one (hl : chain' (≠) l) : count ff l ≤ count tt l + 1 :=

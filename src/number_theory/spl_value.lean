@@ -987,7 +987,7 @@ begin
     -- `U` is a set of `A` which is an element of `S` and contains `f(w)`
     cases hU with z hz,
 end
-#exit
+
     { delta c2, congr',
       any_goals
       { have := classical.some_spec (exists_of_exists_unique (finset_clopen_prop (ε/2) f y)),
@@ -995,7 +995,7 @@ end
         apply hw _ (this.1) (this.2), }, },
     --rw this,
 end
-#exit
+
   convert real_secret p d R f ε,
   ext,
   { delta c', simp only [prod_map, id.def], },
@@ -1048,7 +1048,7 @@ end
   intros s hs,
   rw filter.mem_map,
 end
-#exit
+
   have : ∀ (x : (zmod d)ˣ × ℤ_[p]ˣ) (n : ℕ), ∑ (a : (zmod d)ˣ × (zmod (p ^ n))ˣ), f (a.fst, rev_coe p a.snd) •
     (locally_constant.char_fn R (is_clopen_units_clopen_from p d n a)) x =
     f (x.1, (rev_coe p ((units.map (@padic_int.to_zmod_pow p _ n).to_monoid_hom) x.2))),

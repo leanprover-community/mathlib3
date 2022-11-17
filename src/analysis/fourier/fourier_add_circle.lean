@@ -75,12 +75,6 @@ end
 
 def to_circle := (@scaled_exp_map_periodic T).lift
 
-lemma to_circle_zero : @to_circle T 0 = 1 :=
-begin
-  rw [←quotient_add_group.coe_zero, to_circle, function.periodic.lift_coe, mul_zero],
-  exact exp_map_circle_zero,
-end
-
 lemma to_circle_add (x : add_circle T) (y : add_circle T) :
   to_circle (x + y) = to_circle x * to_circle y :=
 begin
@@ -89,11 +83,6 @@ begin
   simp_rw [←quotient_add_group.coe_add, to_circle, function.periodic.lift_coe,
     mul_add, exp_map_circle_add],
 end
-
-def to_circle_hom : add_circle T →+ (additive circle) :=
-{ to_fun := additive.of_mul ∘ to_circle,
-  map_zero' := to_circle_zero,
-  map_add' := to_circle_add }
 
 lemma to_circle_continuous : continuous (@to_circle T) :=
 continuous_coinduced_dom.mpr (exp_map_circle.continuous.comp $ continuous_const.mul continuous_id')
@@ -107,10 +96,9 @@ begin
   obtain ⟨m, hm⟩ := exp_map_circle_eq_exp_map_circle.mp h.symm,
   simp_rw [quotient_add_group.eq, add_subgroup.mem_zmultiples_iff, zsmul_eq_mul],
   use m,
-  have : ↑m * (2 * π) = (2 * π / T) * (m * T) := by { field_simp, ring },
-  rw [this, ←mul_add, mul_eq_mul_left_iff] at hm,
-  cases hm, { rw hm, ring, },
-  { exfalso, refine div_ne_zero real.two_pi_pos.ne' hT hm },
+  rw ( by { field_simp, ring } : ↑m * (2 * π) = (2 * π / T) * (m * T) ) at hm,
+  rw [←mul_right_inj' (div_ne_zero real.two_pi_pos.ne' hT), mul_add, hm],
+  ring,
 end
 
 end add_circle
@@ -145,26 +133,25 @@ def fourier (n : ℤ) : C(add_circle T, ℂ) :=
   fourier n x = add_circle.to_circle (n • x) := rfl
 
 @[simp] lemma fourier_zero {x : add_circle T} : fourier 0 x = 1 :=
-by simp only [fourier_apply, zero_smul, add_circle.to_circle_zero, coe_one_unit_sphere]
-
-lemma fourier_eq_pow (n : ℤ) (x : add_circle T) : fourier n x = (add_circle.to_circle x) ^ n :=
 begin
-  rw [fourier_apply, ←coe_zpow_unit_sphere, subtype.coe_inj],
-  exact add_circle.to_circle_hom.map_zsmul x n,
+  induction x using quotient_add_group.induction_on',
+  rw [fourier_apply, add_circle.to_circle, zero_zsmul, ←quotient_add_group.coe_zero,
+    function.periodic.lift_coe, mul_zero, exp_map_circle_zero, coe_one_unit_sphere],
 end
 
 @[simp] lemma fourier_one {x : add_circle T} : fourier 1 x = add_circle.to_circle x :=
 by rw [fourier_apply, one_zsmul]
 
 @[simp] lemma fourier_neg {n : ℤ} {x : add_circle T} : fourier (-n) x = conj (fourier n x) :=
-by simp_rw [fourier_eq_pow, zpow_neg, ←coe_zpow_unit_sphere, ←coe_inv_circle_eq_conj,
-  coe_inv_unit_sphere]
+begin
+  induction x using quotient_add_group.induction_on',
+  simp_rw [fourier_apply, add_circle.to_circle, ←quotient_add_group.coe_zsmul,
+    function.periodic.lift_coe, ←coe_inv_circle_eq_conj, ←exp_map_circle_neg, neg_smul, mul_neg],
+end
 
 @[simp] lemma fourier_add {m n : ℤ} {x : add_circle T} :
   fourier (m + n) x = (fourier m x) * (fourier n x) :=
-begin
-  simp_rw [fourier, continuous_map.coe_mk, add_zsmul, add_circle.to_circle_add, coe_mul_unit_sphere]
-end
+by simp_rw [fourier_apply, add_zsmul, add_circle.to_circle_add, coe_mul_unit_sphere]
 
 /-- For `n ≠ 0`, a translation by `T / 2 / n` negates the function `fourier n`. -/
 lemma fourier_add_half_inv_index {n : ℤ} (hn : n ≠ 0) (hT : 0 < T) (x : add_circle T) :

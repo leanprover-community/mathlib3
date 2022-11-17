@@ -3113,7 +3113,7 @@ lemma cont_diff_on_clm_apply {n : ℕ∞} {f : E → F →L[𝕜] G}
   {s : set E} [finite_dimensional 𝕜 F] :
   cont_diff_on 𝕜 n f s ↔ ∀ y, cont_diff_on 𝕜 n (λ x, f x y) s :=
 begin
-  refine ⟨λ h y, h.clm_apply cont_diff_on_const, λ h, _⟩,
+  refine ⟨λ h y, (continuous_linear_map.apply 𝕜 G y).cont_diff.comp_cont_diff_on h, λ h, _⟩,
   let d := finrank 𝕜 F,
   have hd : d = finrank 𝕜 (fin d → 𝕜) := (finrank_fin_fun 𝕜).symm,
   let e₁ := continuous_linear_equiv.of_finrank_eq hd,

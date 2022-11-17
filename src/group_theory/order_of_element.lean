@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Julian Kuelshammer
 -/
 import algebra.hom.iterate
 import data.nat.modeq
-import data.int.units
 import data.set.pointwise.basic
 import dynamics.periodic_pts
 import group_theory.index
@@ -322,11 +321,6 @@ begin
   obtain ⟨k, _, hk⟩ := (nat.dvd_prime_pow hp.elim).mp (order_of_dvd_of_pow_eq_one hm),
   exact ⟨k, hk⟩,
 end⟩
-
-omit hp
--- An example on how to determine the order of an element of a finite group.
-example : order_of (-1 : ℤˣ) = 2 :=
-order_of_eq_prime (int.units_sq _) dec_trivial
 
 end p_prime
 

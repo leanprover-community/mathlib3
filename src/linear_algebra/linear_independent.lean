@@ -155,7 +155,7 @@ linear_independent_iff.mpr $ λ v hv, subsingleton.elim v 0
 
 lemma linear_independent.ne_zero [nontrivial R]
   (i : ι) (hv : linear_independent R v) : v i ≠ 0 :=
-λ h, @zero_ne_one R _ _ $ eq.symm begin
+λ h, zero_ne_one' R $ eq.symm begin
   suffices : (finsupp.single i 1 : ι →₀ R) i = 0, {simpa},
   rw linear_independent_iff.1 hv (finsupp.single i 1),
   { simp },
@@ -882,8 +882,7 @@ begin
   { dsimp only [l],
     rw finsupp.total_map_domain,
     rw (hv.comp f f.injective).total_repr,
-    { refl },
-    { exact f.injective } },
+    { refl } },
   have h_total_eq : (finsupp.total ι M R v) l = (finsupp.total ι M R v) (finsupp.single i 1),
     by rw [h_total_l, finsupp.total_single, one_smul],
   have l_eq : l = _ := linear_map.ker_eq_bot.1 hv h_total_eq,

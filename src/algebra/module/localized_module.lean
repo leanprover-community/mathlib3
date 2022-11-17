@@ -6,7 +6,6 @@ Authors: Andrew Yang, Jujian Zhang
 
 import group_theory.monoid_localization
 import ring_theory.localization.basic
-import ring_theory.ideal.operations
 import algebra.algebra.restrict_scalars
 
 /-!

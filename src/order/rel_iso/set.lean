@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import order.rel_iso.basic
 import logic.embedding.set
-import logic.equiv.set
 
 /-!
 # Interactions between relation homomorphisms and sets

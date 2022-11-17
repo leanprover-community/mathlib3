@@ -43,7 +43,7 @@ as an `ae_cover` w.r.t. `μ.restrict (Iic b)`, instead of using `(λ x, Ioc x b)
   then `∫⁻ x in φ n, f x ∂μ` tends to `∫⁻ x, f x ∂μ` as `n` tends to `l`
 - `measure_theory.ae_cover.integrable_of_integral_norm_tendsto` : if `φ` is a `ae_cover μ l`,
   where `l` is a countably generated filter, if `f` is measurable and integrable on each `φ n`,
-  and if `∫ x in φ n, ∥f x∥ ∂μ` tends to some `I : ℝ` as n tends to `l`, then `f` is integrable
+  and if `∫ x in φ n, ‖f x‖ ∂μ` tends to some `I : ℝ` as n tends to `l`, then `f` is integrable
 - `measure_theory.ae_cover.integral_tendsto_of_countably_generated` : if `φ` is a `ae_cover μ l`,
   where `l` is a countably generated filter, and if `f` is measurable and integrable (globally),
   then `∫ x in φ n, f x ∂μ` tends to `∫ x, f x ∂μ` as `n` tends to `+∞`.
@@ -389,7 +389,7 @@ variables {α ι E : Type*} [measurable_space α] {μ : measure α} {l : filter 
 
 lemma ae_cover.integrable_of_lintegral_nnnorm_bounded [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (I : ℝ) (hfm : ae_strongly_measurable f μ)
-  (hbounded : ∀ᶠ i in l, ∫⁻ x in φ i, ∥f x∥₊ ∂μ ≤ ennreal.of_real I) :
+  (hbounded : ∀ᶠ i in l, ∫⁻ x in φ i, ‖f x‖₊ ∂μ ≤ ennreal.of_real I) :
   integrable f μ :=
 begin
   refine ⟨hfm, (le_of_tendsto _ hbounded).trans_lt ennreal.of_real_lt_top⟩,
@@ -399,7 +399,7 @@ end
 lemma ae_cover.integrable_of_lintegral_nnnorm_tendsto [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (I : ℝ)
   (hfm : ae_strongly_measurable f μ)
-  (htendsto : tendsto (λ i, ∫⁻ x in φ i, ∥f x∥₊ ∂μ) l (𝓝 $ ennreal.of_real I)) :
+  (htendsto : tendsto (λ i, ∫⁻ x in φ i, ‖f x‖₊ ∂μ) l (𝓝 $ ennreal.of_real I)) :
   integrable f μ :=
 begin
   refine hφ.integrable_of_lintegral_nnnorm_bounded (max 1 (I + 1)) hfm _,
@@ -410,7 +410,7 @@ end
 
 lemma ae_cover.integrable_of_lintegral_nnnorm_bounded' [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (I : ℝ≥0) (hfm : ae_strongly_measurable f μ)
-  (hbounded : ∀ᶠ i in l, ∫⁻ x in φ i, ∥f x∥₊ ∂μ ≤ I) :
+  (hbounded : ∀ᶠ i in l, ∫⁻ x in φ i, ‖f x‖₊ ∂μ ≤ I) :
   integrable f μ :=
 hφ.integrable_of_lintegral_nnnorm_bounded I hfm
   (by simpa only [ennreal.of_real_coe_nnreal] using hbounded)
@@ -418,7 +418,7 @@ hφ.integrable_of_lintegral_nnnorm_bounded I hfm
 lemma ae_cover.integrable_of_lintegral_nnnorm_tendsto' [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E} (I : ℝ≥0)
   (hfm : ae_strongly_measurable f μ)
-  (htendsto : tendsto (λ i, ∫⁻ x in φ i, ∥f x∥₊ ∂μ) l (𝓝 I)) :
+  (htendsto : tendsto (λ i, ∫⁻ x in φ i, ‖f x‖₊ ∂μ) l (𝓝 I)) :
   integrable f μ :=
 hφ.integrable_of_lintegral_nnnorm_tendsto I hfm
   (by simpa only [ennreal.of_real_coe_nnreal] using htendsto)
@@ -426,7 +426,7 @@ hφ.integrable_of_lintegral_nnnorm_tendsto I hfm
 lemma ae_cover.integrable_of_integral_norm_bounded [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E}
   (I : ℝ) (hfi : ∀ i, integrable_on f (φ i) μ)
-  (hbounded : ∀ᶠ i in l, ∫ x in φ i, ∥f x∥ ∂μ ≤ I) :
+  (hbounded : ∀ᶠ i in l, ∫ x in φ i, ‖f x‖ ∂μ ≤ I) :
   integrable f μ :=
 begin
   have hfm : ae_strongly_measurable f μ :=
@@ -444,7 +444,7 @@ end
 lemma ae_cover.integrable_of_integral_norm_tendsto [l.ne_bot] [l.is_countably_generated]
   {φ : ι → set α} (hφ : ae_cover μ l φ) {f : α → E}
   (I : ℝ) (hfi : ∀ i, integrable_on f (φ i) μ)
-  (htendsto : tendsto (λ i, ∫ x in φ i, ∥f x∥ ∂μ) l (𝓝 I)) :
+  (htendsto : tendsto (λ i, ∫ x in φ i, ‖f x‖ ∂μ) l (𝓝 I)) :
   integrable f μ :=
 let ⟨I', hI'⟩ := htendsto.is_bounded_under_le in hφ.integrable_of_integral_norm_bounded I' hfi hI'
 
@@ -476,7 +476,7 @@ lemma ae_cover.integral_tendsto_of_countably_generated [l.is_countably_generated
   tendsto (λ i, ∫ x in φ i, f x ∂μ) l (𝓝 $ ∫ x, f x ∂μ) :=
 suffices h : tendsto (λ i, ∫ (x : α), (φ i).indicator f x ∂μ) l (𝓝 (∫ (x : α), f x ∂μ)),
 by { convert h, ext n, rw integral_indicator (hφ.measurable n) },
-tendsto_integral_filter_of_dominated_convergence (λ x, ∥f x∥)
+tendsto_integral_filter_of_dominated_convergence (λ x, ‖f x‖)
   (eventually_of_forall $ λ i, hfi.ae_strongly_measurable.indicator $ hφ.measurable i)
   (eventually_of_forall $ λ i, ae_of_all _ $ λ x, norm_indicator_le_norm_self _ _)
   hfi.norm (hφ.ae_tendsto_indicator f)
@@ -511,7 +511,7 @@ variables {ι E : Type*} {μ : measure ℝ}
 lemma integrable_of_interval_integral_norm_bounded
   (I : ℝ) (hfi : ∀ i, integrable_on f (Ioc (a i) (b i)) μ)
   (ha : tendsto a l at_bot) (hb : tendsto b l at_top)
-  (h : ∀ᶠ i in l, ∫ x in a i .. b i, ∥f x∥ ∂μ ≤ I) :
+  (h : ∀ᶠ i in l, ∫ x in a i .. b i, ‖f x‖ ∂μ ≤ I) :
   integrable f μ :=
 begin
   have hφ : ae_cover μ l _ := ae_cover_Ioc ha hb,
@@ -523,19 +523,19 @@ end
 
 /-- If `f` is integrable on intervals `Ioc (a i) (b i)`,
 where `a i` tends to -∞ and `b i` tends to ∞, and
-`∫ x in a i .. b i, ∥f x∥ ∂μ` converges to `I : ℝ` along a filter `l`,
+`∫ x in a i .. b i, ‖f x‖ ∂μ` converges to `I : ℝ` along a filter `l`,
 then `f` is integrable on the interval (-∞, ∞) -/
 lemma integrable_of_interval_integral_norm_tendsto
   (I : ℝ) (hfi : ∀ i, integrable_on f (Ioc (a i) (b i)) μ)
   (ha : tendsto a l at_bot) (hb : tendsto b l at_top)
-  (h : tendsto (λ i, ∫ x in a i .. b i, ∥f x∥ ∂μ) l (𝓝 I)) :
+  (h : tendsto (λ i, ∫ x in a i .. b i, ‖f x‖ ∂μ) l (𝓝 I)) :
   integrable f μ :=
 let ⟨I', hI'⟩ := h.is_bounded_under_le in
   integrable_of_interval_integral_norm_bounded I' hfi ha hb hI'
 
 lemma integrable_on_Iic_of_interval_integral_norm_bounded (I b : ℝ)
   (hfi : ∀ i, integrable_on f (Ioc (a i) b) μ) (ha : tendsto a l at_bot)
-  (h : ∀ᶠ i in l, (∫ x in a i .. b, ∥f x∥ ∂μ) ≤ I) :
+  (h : ∀ᶠ i in l, (∫ x in a i .. b, ‖f x‖ ∂μ) ≤ I) :
   integrable_on f (Iic b) μ :=
 begin
   have hφ : ae_cover (μ.restrict $ Iic b) l _ := ae_cover_Ioi ha,
@@ -551,18 +551,18 @@ end
 
 /-- If `f` is integrable on intervals `Ioc (a i) b`,
 where `a i` tends to -∞, and
-`∫ x in a i .. b, ∥f x∥ ∂μ` converges to `I : ℝ` along a filter `l`,
+`∫ x in a i .. b, ‖f x‖ ∂μ` converges to `I : ℝ` along a filter `l`,
 then `f` is integrable on the interval (-∞, b) -/
 lemma integrable_on_Iic_of_interval_integral_norm_tendsto (I b : ℝ)
   (hfi : ∀ i, integrable_on f (Ioc (a i) b) μ) (ha : tendsto a l at_bot)
-  (h : tendsto (λ i, ∫ x in a i .. b, ∥f x∥ ∂μ) l (𝓝 I)) :
+  (h : tendsto (λ i, ∫ x in a i .. b, ‖f x‖ ∂μ) l (𝓝 I)) :
   integrable_on f (Iic b) μ :=
 let ⟨I', hI'⟩ := h.is_bounded_under_le in
   integrable_on_Iic_of_interval_integral_norm_bounded I' b hfi ha hI'
 
 lemma integrable_on_Ioi_of_interval_integral_norm_bounded (I a : ℝ)
   (hfi : ∀ i, integrable_on f (Ioc a (b i)) μ) (hb : tendsto b l at_top)
-  (h : ∀ᶠ i in l, (∫ x in a .. b i, ∥f x∥ ∂μ) ≤ I) :
+  (h : ∀ᶠ i in l, (∫ x in a .. b i, ‖f x‖ ∂μ) ≤ I) :
   integrable_on f (Ioi a) μ :=
 begin
   have hφ : ae_cover (μ.restrict $ Ioi a) l _ := ae_cover_Iic hb,
@@ -579,11 +579,11 @@ end
 
 /-- If `f` is integrable on intervals `Ioc a (b i)`,
 where `b i` tends to ∞, and
-`∫ x in a .. b i, ∥f x∥ ∂μ` converges to `I : ℝ` along a filter `l`,
+`∫ x in a .. b i, ‖f x‖ ∂μ` converges to `I : ℝ` along a filter `l`,
 then `f` is integrable on the interval (a, ∞) -/
 lemma integrable_on_Ioi_of_interval_integral_norm_tendsto (I a : ℝ)
   (hfi : ∀ i, integrable_on f (Ioc a (b i)) μ) (hb : tendsto b l at_top)
-  (h : tendsto (λ i, ∫ x in a .. b i, ∥f x∥ ∂μ) l (𝓝 $ I)) :
+  (h : tendsto (λ i, ∫ x in a .. b i, ‖f x‖ ∂μ) l (𝓝 $ I)) :
   integrable_on f (Ioi a) μ :=
 let ⟨I', hI'⟩ := h.is_bounded_under_le in
   integrable_on_Ioi_of_interval_integral_norm_bounded I' a hfi hb hI'
@@ -591,7 +591,7 @@ let ⟨I', hI'⟩ := h.is_bounded_under_le in
 lemma integrable_on_Ioc_of_interval_integral_norm_bounded {I a₀ b₀ : ℝ}
   (hfi : ∀ i, integrable_on f $ Ioc (a i) (b i))
   (ha : tendsto a l $ 𝓝 a₀) (hb : tendsto b l $ 𝓝 b₀)
-  (h : ∀ᶠ i in l, (∫ x in Ioc (a i) (b i), ∥f x∥) ≤ I) : integrable_on f (Ioc a₀ b₀) :=
+  (h : ∀ᶠ i in l, (∫ x in Ioc (a i) (b i), ‖f x‖) ≤ I) : integrable_on f (Ioc a₀ b₀) :=
 begin
   refine (ae_cover_Ioc_of_Ioc ha hb).integrable_of_integral_norm_bounded I
     (λ i, (hfi i).restrict measurable_set_Ioc) (eventually.mono h _),
@@ -603,12 +603,12 @@ end
 
 lemma integrable_on_Ioc_of_interval_integral_norm_bounded_left {I a₀ b : ℝ}
   (hfi : ∀ i, integrable_on f $ Ioc (a i) b) (ha : tendsto a l $ 𝓝 a₀)
-  (h : ∀ᶠ i in l, (∫ x in Ioc (a i) b, ∥f x∥ ) ≤ I) : integrable_on f (Ioc a₀ b) :=
+  (h : ∀ᶠ i in l, (∫ x in Ioc (a i) b, ‖f x‖ ) ≤ I) : integrable_on f (Ioc a₀ b) :=
 integrable_on_Ioc_of_interval_integral_norm_bounded hfi ha tendsto_const_nhds h
 
 lemma integrable_on_Ioc_of_interval_integral_norm_bounded_right {I a b₀ : ℝ}
   (hfi : ∀ i, integrable_on f $ Ioc a (b i)) (hb : tendsto b l $ 𝓝 b₀)
-  (h : ∀ᶠ i in l, (∫ x in Ioc a (b i), ∥f x∥ ) ≤ I) : integrable_on f (Ioc a b₀) :=
+  (h : ∀ᶠ i in l, (∫ x in Ioc a (b i), ‖f x‖ ) ≤ I) : integrable_on f (Ioc a b₀) :=
 integrable_on_Ioc_of_interval_integral_norm_bounded hfi tendsto_const_nhds hb h
 
 end integrable_of_interval_integral

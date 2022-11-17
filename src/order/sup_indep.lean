@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Kevin Buzzard, Yaël Dillies, Eric Wieser
 -/
 import data.finset.pairwise
-import data.set.finite
+import data.fintype.basic
 
 /-!
 # Supremum independence

@@ -31,6 +31,8 @@ Given a commutative ring `R`, a multiplicative subset `S ⊆ R` and an `R`-modul
   we have `mk r s • mk m t = mk (r • m) (s * t)` where `mk r s : localization S` is localized ring
   by `S`.
 * `localized_module.is_module` : `localized_module M S` is a `localization S`-module.
+* `submodule.localized`: The localization of a submodule as a submodule of `localized_module M S`.
+* `localized_module.map`: The map `S⁻¹M →ₗ[S⁻¹R] S⁻¹ N` obtained from a linear map `M →ₗ[R] N`.
 
 ## Future work
 

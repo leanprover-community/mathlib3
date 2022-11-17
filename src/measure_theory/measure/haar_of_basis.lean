@@ -15,10 +15,10 @@ measure, which gives measure `1` to the parallelogram spanned by the basis.
 
 ## Main definitions
 
-`parallelogram v` is the parallelogram spanned by a finite family of vectors.
-`basis.parallelogram` is the parallelogram associated to a basis, seen as a compact set with
+* `parallelogram v` is the parallelogram spanned by a finite family of vectors.
+* `basis.parallelogram` is the parallelogram associated to a basis, seen as a compact set with
 nonempty interior.
-`basis.add_haar` is the Lebesgue measure associated to a basis, giving measure `1` to the
+* `basis.add_haar` is the Lebesgue measure associated to a basis, giving measure `1` to the
 corresponding parallelogram.
 
 In particular, we declare a `measure_space` instance on any finite-dimensional inner product space,

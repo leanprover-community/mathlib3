@@ -3,6 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import algebra.parity
 import data.array.lemmas
 import data.finset.fin
 import data.finset.option
@@ -330,6 +331,10 @@ instance decidable_left_inverse_fintype [decidable_eq β] [fintype β] (f : α �
   decidable (function.left_inverse f g) :=
 show decidable (∀ x, f (g x) = x), by apply_instance
 
+instance is_square.decidable_pred [has_mul α] [fintype α] [decidable_eq α] :
+  decidable_pred (is_square : α → Prop) :=
+λ a, fintype.decidable_exists_fintype
+
 /-- Construct a proof of `fintype α` from a universal multiset -/
 def of_multiset [decidable_eq α] (s : multiset α) (H : ∀ x : α, x ∈ s) :
   fintype α :=
@@ -626,7 +631,7 @@ variables {s t : set α}
 
 /-- Construct a finset enumerating a set `s`, given a `fintype` instance.  -/
 def to_finset (s : set α) [fintype s] : finset α :=
-⟨(@finset.univ s _).1.map subtype.val, finset.univ.nodup.map $ λ a b, subtype.eq⟩
+(@finset.univ s _).map $ function.embedding.subtype _
 
 @[congr]
 lemma to_finset_congr {s t : set α} [fintype s] [fintype t] (h : s = t) :
@@ -799,6 +804,11 @@ list.length_fin_range n
 
 @[simp] lemma finset.card_fin (n : ℕ) : finset.card (finset.univ : finset (fin n)) = n :=
 by rw [finset.card_univ, fintype.card_fin]
+
+/-- The cardinality of `fin (bit0 n)` is even, `fact` version.
+This `fact` is needed as an instance by `matrix.special_linear_group.has_neg`. -/
+lemma fintype.card_fin_even {n : ℕ} : fact (even (fintype.card (fin (bit0 n)))) :=
+⟨by { rw fintype.card_fin, exact even_bit0 _ }⟩
 
 /-- `fin` as a map from `ℕ` to `Type` is injective. Note that since this is a statement about
 equality of types, using it should be avoided if possible. -/
@@ -1066,6 +1076,10 @@ by { casesI nonempty_fintype α, simpa using exists_min_image univ f univ_nonemp
 lemma finite.exists_univ_list (α) [finite α] : ∃ l : list α, l.nodup ∧ ∀ x : α, x ∈ l :=
 by { casesI nonempty_fintype α, obtain ⟨l, e⟩ := quotient.exists_rep (@univ α _).1,
   have := and.intro univ.2 mem_univ_val, exact ⟨_, by rwa ←e at this⟩ }
+
+lemma list.nodup.length_le_card {α : Type*} [fintype α] {l : list α} (h : l.nodup) :
+  l.length ≤ fintype.card α :=
+by { classical, exact list.to_finset_card_of_nodup h ▸ l.to_finset.card_le_univ }
 
 namespace fintype
 variables [fintype α] [fintype β]

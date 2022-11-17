@@ -10,7 +10,7 @@ import data.set.lattice
 /-!
 # Relations holding pairwise
 
-This file defines pairwise relations on sets and pairwise disjoint indexed sets.
+This file develops pairwise relations and defines pairwise disjoint indexed sets.
 
 We also prove many basic facts about `pairwise`. It is possible that an intermediate file,
 with more imports than `logic.pairwise` but not importing `data.set.lattice` would be appropriate

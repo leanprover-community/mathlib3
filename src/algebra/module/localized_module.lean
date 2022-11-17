@@ -6,6 +6,8 @@ Authors: Andrew Yang, Jujian Zhang
 
 import group_theory.monoid_localization
 import ring_theory.localization.basic
+import ring_theory.ideal.operations
+import algebra.algebra.restrict_scalars
 
 /-!
 # Localized Module
@@ -183,6 +185,115 @@ instance : add_comm_monoid (localized_module S M) :=
   nsmul_succ' := nsmul_succ',
   add_comm := add_comm' }
 
+instance {M : Type*} [add_comm_group M] [module R M] :
+  add_comm_group (localized_module S M) :=
+{ neg := λ p, lift_on p (λ x, localized_module.mk (-x.1) x.2)
+    (λ ⟨m1, s1⟩ ⟨m2, s2⟩ ⟨u, hu⟩, by { rw mk_eq, exact ⟨u, by simpa⟩ }),
+  add_left_neg := λ p, begin
+    obtain ⟨⟨m, s⟩, rfl : mk m s = p⟩ := quotient.exists_rep p,
+    change (mk m s).lift_on (λ x, mk (-x.1) x.2)
+      (λ ⟨m1, s1⟩ ⟨m2, s2⟩ ⟨u, hu⟩, by { rw mk_eq, exact ⟨u, by simpa⟩ }) + mk m s = 0,
+    rw [lift_on_mk, mk_add_mk],
+    simp
+  end,
+  ..(show add_comm_monoid (localized_module S M), by apply_instance) }
+
+lemma mk_neg {M : Type*} [add_comm_group M] [module R M] {m : M} {s : S} :
+  mk (-m) s = - mk m s := rfl
+
+instance {A : Type*} [semiring A] [algebra R A] {S : submonoid R} :
+  semiring (localized_module S A) :=
+{ mul := λ m₁ m₂, lift_on₂ m₁ m₂ (λ x₁ x₂, localized_module.mk (x₁.1 * x₂.1) (x₁.2 * x₂.2))
+    (begin
+      rintros ⟨a₁, s₁⟩ ⟨a₂, s₂⟩ ⟨b₁, t₁⟩ ⟨b₂, t₂⟩ ⟨u₁, e₁⟩ ⟨u₂, e₂⟩,
+      rw mk_eq,
+      use u₁ * u₂,
+      dsimp only,
+      transitivity (u₁ • t₁ • a₁) • u₂ • t₂ • a₂,
+      rw [← e₁, ← e₂], swap, rw eq_comm,
+      all_goals { rw [smul_smul, mul_mul_mul_comm, ← smul_eq_mul, ← smul_eq_mul A,
+        smul_smul_smul_comm, mul_smul, mul_smul] }
+    end),
+  left_distrib := begin
+    intros x₁ x₂ x₃,
+    obtain ⟨⟨a₁, s₁⟩, rfl : mk a₁ s₁ = x₁⟩ := quotient.exists_rep x₁,
+    obtain ⟨⟨a₂, s₂⟩, rfl : mk a₂ s₂ = x₂⟩ := quotient.exists_rep x₂,
+    obtain ⟨⟨a₃, s₃⟩, rfl : mk a₃ s₃ = x₃⟩ := quotient.exists_rep x₃,
+    apply mk_eq.mpr _,
+    use 1,
+    simp only [one_mul, smul_add, mul_add, mul_smul_comm, smul_smul, ← mul_assoc, mul_right_comm]
+  end,
+  right_distrib := begin
+    intros x₁ x₂ x₃,
+    obtain ⟨⟨a₁, s₁⟩, rfl : mk a₁ s₁ = x₁⟩ := quotient.exists_rep x₁,
+    obtain ⟨⟨a₂, s₂⟩, rfl : mk a₂ s₂ = x₂⟩ := quotient.exists_rep x₂,
+    obtain ⟨⟨a₃, s₃⟩, rfl : mk a₃ s₃ = x₃⟩ := quotient.exists_rep x₃,
+    apply mk_eq.mpr _,
+    use 1,
+    simp only [one_mul, smul_add, add_mul, smul_smul, ← mul_assoc, smul_mul_assoc, mul_right_comm],
+  end,
+  zero_mul := begin
+    intros x,
+    obtain ⟨⟨a, s⟩, rfl : mk a s = x⟩ := quotient.exists_rep x,
+    exact mk_eq.mpr ⟨1, by simp only [zero_mul, smul_zero]⟩,
+  end,
+  mul_zero := begin
+    intros x,
+    obtain ⟨⟨a, s⟩, rfl : mk a s = x⟩ := quotient.exists_rep x,
+    exact mk_eq.mpr ⟨1, by simp only [mul_zero, smul_zero]⟩,
+  end,
+  mul_assoc := begin
+    intros x₁ x₂ x₃,
+    obtain ⟨⟨a₁, s₁⟩, rfl : mk a₁ s₁ = x₁⟩ := quotient.exists_rep x₁,
+    obtain ⟨⟨a₂, s₂⟩, rfl : mk a₂ s₂ = x₂⟩ := quotient.exists_rep x₂,
+    obtain ⟨⟨a₃, s₃⟩, rfl : mk a₃ s₃ = x₃⟩ := quotient.exists_rep x₃,
+    apply mk_eq.mpr _,
+    use 1,
+    simp only [one_mul, smul_smul, ← mul_assoc, mul_right_comm],
+  end,
+  one := mk 1 (1 : S),
+  one_mul := begin
+    intros x,
+    obtain ⟨⟨a, s⟩, rfl : mk a s = x⟩ := quotient.exists_rep x,
+    exact mk_eq.mpr ⟨1, by simp only [one_mul, one_smul]⟩,
+  end,
+  mul_one := begin
+    intros x,
+    obtain ⟨⟨a, s⟩, rfl : mk a s = x⟩ := quotient.exists_rep x,
+    exact mk_eq.mpr ⟨1, by simp only [mul_one, one_smul]⟩,
+  end,
+  ..(show add_comm_monoid (localized_module S A), by apply_instance) }
+
+instance {A : Type*} [comm_semiring A] [algebra R A] {S : submonoid R} :
+  comm_semiring (localized_module S A) :=
+{ mul_comm := begin
+    intros x₁ x₂,
+    obtain ⟨⟨a₁, s₁⟩, rfl : mk a₁ s₁ = x₁⟩ := quotient.exists_rep x₁,
+    obtain ⟨⟨a₂, s₂⟩, rfl : mk a₂ s₂ = x₂⟩ := quotient.exists_rep x₂,
+    exact mk_eq.mpr ⟨1, by simp only [one_smul, mul_comm]⟩
+  end,
+  ..(show semiring (localized_module S A), by apply_instance) }
+
+instance {A : Type*} [ring A] [algebra R A] {S : submonoid R} :
+  ring (localized_module S A) :=
+{ ..(show add_comm_group (localized_module S A), by apply_instance),
+  ..(show monoid (localized_module S A), by apply_instance),
+  ..(show distrib (localized_module S A), by apply_instance) }
+
+instance {A : Type*} [comm_ring A] [algebra R A] {S : submonoid R} :
+  comm_ring (localized_module S A) :=
+{ mul_comm := begin
+    intros x₁ x₂,
+    obtain ⟨⟨a₁, s₁⟩, rfl : mk a₁ s₁ = x₁⟩ := quotient.exists_rep x₁,
+    obtain ⟨⟨a₂, s₂⟩, rfl : mk a₂ s₂ = x₂⟩ := quotient.exists_rep x₂,
+    exact mk_eq.mpr ⟨1, by simp only [one_smul, mul_comm]⟩
+  end,
+  ..(show ring (localized_module S A), by apply_instance) }
+
+lemma mk_mul_mk {A : Type*} [semiring A] [algebra R A] {a₁ a₂ : A} {s₁ s₂ : S} :
+  mk a₁ s₁ * mk a₂ s₂ = mk (a₁ * a₂) (s₁ * s₂) :=
+rfl
+
 instance : has_smul (localization S) (localized_module S M) :=
 { smul := λ f x, localization.lift_on f (λ r s, lift_on x (λ p, mk (r • p.1) (s * p.2))
     begin
@@ -296,6 +407,55 @@ instance is_module' : module R (localized_module S M) :=
 lemma smul'_mk (r : R) (s : S) (m : M) : r • mk m s = mk (r • m) s :=
 by erw [mk_smul_mk r m 1 s, one_mul]
 
+instance {A : Type*} [semiring A] [algebra R A] :
+  algebra (localization S) (localized_module S A) :=
+algebra.of_module
+begin
+  intros r x₁ x₂,
+  obtain ⟨y, s, rfl : is_localization.mk' _ y s = r⟩ := is_localization.mk'_surjective S r,
+  obtain ⟨⟨a₁, s₁⟩, rfl : mk a₁ s₁ = x₁⟩ := quotient.exists_rep x₁,
+  obtain ⟨⟨a₂, s₂⟩, rfl : mk a₂ s₂ = x₂⟩ := quotient.exists_rep x₂,
+  rw [mk_mul_mk, ← localization.mk_eq_mk', mk_smul_mk, mk_smul_mk, mk_mul_mk,
+    mul_assoc, smul_mul_assoc],
+end
+begin
+  intros r x₁ x₂,
+  obtain ⟨y, s, rfl : is_localization.mk' _ y s = r⟩ := is_localization.mk'_surjective S r,
+  obtain ⟨⟨a₁, s₁⟩, rfl : mk a₁ s₁ = x₁⟩ := quotient.exists_rep x₁,
+  obtain ⟨⟨a₂, s₂⟩, rfl : mk a₂ s₂ = x₂⟩ := quotient.exists_rep x₂,
+  rw [mk_mul_mk, ← localization.mk_eq_mk', mk_smul_mk, mk_smul_mk, mk_mul_mk,
+    mul_left_comm, mul_smul_comm]
+end
+
+lemma algebra_map_mk {A : Type*} [semiring A] [algebra R A] (a : R) (s : S) :
+  algebra_map _ _ (localization.mk a s) = mk (algebra_map R A a) s :=
+begin
+  rw [algebra.algebra_map_eq_smul_one],
+  change _ • mk _ _ = _,
+  rw [mk_smul_mk, algebra.algebra_map_eq_smul_one, mul_one]
+end
+
+instance : is_scalar_tower R (localization S) (localized_module S M) :=
+restrict_scalars.is_scalar_tower R (localization S) (localized_module S M)
+
+instance algebra' {A : Type*} [semiring A] [algebra R A] :
+  algebra R (localized_module S A) :=
+{ commutes' := begin
+    intros r x,
+    obtain ⟨⟨a, s⟩, rfl : mk a s = x⟩ := quotient.exists_rep x,
+    dsimp,
+    rw [← localization.mk_one_eq_algebra_map, algebra_map_mk, mk_mul_mk, mk_mul_mk, mul_comm,
+      algebra.commutes],
+  end,
+  smul_def' := begin
+    intros r x,
+    obtain ⟨⟨a, s⟩, rfl : mk a s = x⟩ := quotient.exists_rep x,
+    dsimp,
+    rw [← localization.mk_one_eq_algebra_map, algebra_map_mk, mk_mul_mk, smul'_mk,
+      algebra.smul_def, one_mul],
+  end,
+  ..(algebra_map (localization S) (localized_module S A)).comp (algebra_map R $ localization S),
+  ..(show module R (localized_module S A), by apply_instance) }
 section
 
 variables (S M)
@@ -355,8 +515,8 @@ section is_localized_module
 
 universes u v
 
-variables {R : Type u} [comm_ring R] (S : submonoid R)
-variables {M M' M'' : Type u} [add_comm_monoid M] [add_comm_monoid M'] [add_comm_monoid M'']
+variables {R : Type*} [comm_ring R] (S : submonoid R)
+variables {M M' M'' : Type*} [add_comm_monoid M] [add_comm_monoid M'] [add_comm_monoid M'']
 variables [module R M] [module R M'] [module R M''] (f : M →ₗ[R] M') (g : M →ₗ[R] M'')
 
 /--
@@ -682,6 +842,275 @@ are isomorphic as `R`-module
 noncomputable def linear_equiv [is_localized_module S g] : M' ≃ₗ[R] M'' :=
 (iso S f).symm.trans (iso S g)
 
+variable {S}
+
+lemma smul_injective (s : S) : function.injective (λ m : M', s • m) :=
+((module.End_is_unit_iff _).mp (is_localized_module.map_units f s)).injective
+
+lemma smul_inj (s : S) (m₁ m₂ : M') : s • m₁ = s • m₂ ↔ m₁ = m₂ :=
+(smul_injective f s).eq_iff
+
+/-- `mk' f m s` is the fraction `m/s` with respect to the localization map `f`. -/
+noncomputable
+def mk' (m : M) (s : S) : M' := from_localized_module S f (localized_module.mk m s)
+
+lemma mk'_smul (r : R) (m : M) (s : S) : mk' f (r • m) s = r • mk' f m s :=
+by { delta mk', rw [← localized_module.smul'_mk, linear_map.map_smul] }
+
+lemma mk'_add_mk' (m₁ m₂ : M) (s₁ s₂ : S) :
+  mk' f m₁ s₁ + mk' f m₂ s₂ = mk' f (s₂ • m₁ + s₁ • m₂) (s₁ * s₂)  :=
+by { delta mk', rw [← map_add, localized_module.mk_add_mk] }
+
+@[simp] lemma mk'_zero (s : S) :
+  mk' f 0 s = 0 :=
+by rw [← zero_smul R (0 : M), mk'_smul, zero_smul]
+
+variable (S)
+
+@[simp] lemma mk'_one (m : M) :
+  mk' f m (1 : S) = f m :=
+by { delta mk', rw [from_localized_module_mk, module.End_algebra_map_is_unit_inv_apply_eq_iff,
+  submonoid.coe_one, one_smul] }
+
+variable {S}
+
+@[simp] lemma mk'_cancel (m : M) (s : S) :
+  mk' f (s • m) s = f m :=
+by { delta mk', rw [localized_module.mk_cancel, ← mk'_one S f], refl }
+
+@[simp] lemma mk'_cancel' (m : M) (s : S) :
+  s • mk' f m s = f m :=
+by rw [submonoid.smul_def, ← mk'_smul, ← submonoid.smul_def, mk'_cancel]
+
+@[simp] lemma mk'_cancel_left (m : M) (s₁ s₂ : S) :
+  mk' f (s₁ • m) (s₁ * s₂) = mk' f m s₂ :=
+by { delta mk', rw localized_module.mk_cancel_common_left }
+
+@[simp] lemma mk'_cancel_right (m : M) (s₁ s₂ : S) :
+  mk' f (s₂ • m) (s₁ * s₂) = mk' f m s₁ :=
+by { delta mk', rw localized_module.mk_cancel_common_right }
+
+lemma mk'_add (m₁ m₂ : M) (s : S) : mk' f (m₁ + m₂) s = mk' f m₁ s + mk' f m₂ s :=
+by { rw [mk'_add_mk', ← smul_add, mk'_cancel_left] }
+
+lemma mk'_eq_mk'_iff (m₁ m₂ : M) (s₁ s₂ : S) :
+  mk' f m₁ s₁ = mk' f m₂ s₂ ↔ ∃ s : S, s • s₁ • m₂ = s • s₂ • m₁ :=
+by { delta mk', rw [(from_localized_module.inj S f).eq_iff, localized_module.mk_eq] }
+
+lemma mk'_neg {M M' : Type*} [add_comm_group M] [add_comm_group M'] [module R M]
+  [module R M'] (f : M →ₗ[R] M') [is_localized_module S f] (m : M) (s : S) :
+  mk' f (-m) s = - mk' f m s :=
+by { delta mk', rw [localized_module.mk_neg, map_neg] }
+
+lemma mk'_sub {M M' : Type*} [add_comm_group M] [add_comm_group M'] [module R M]
+  [module R M'] (f : M →ₗ[R] M') [is_localized_module S f] (m₁ m₂ : M) (s : S) :
+  mk' f (m₁ - m₂) s = mk' f m₁ s - mk' f m₂ s :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, mk'_add, mk'_neg]
+
+lemma mk'_sub_mk' {M M' : Type*} [add_comm_group M] [add_comm_group M'] [module R M]
+  [module R M'] (f : M →ₗ[R] M') [is_localized_module S f] (m₁ m₂ : M) (s₁ s₂ : S) :
+  mk' f m₁ s₁ - mk' f m₂ s₂ = mk' f (s₂ • m₁ - s₁ • m₂) (s₁ * s₂) :=
+by rw [sub_eq_add_neg, ← mk'_neg, mk'_add_mk', smul_neg, ← sub_eq_add_neg]
+
+lemma mk'_mul_mk'_of_map_mul {M M' : Type*} [semiring M] [semiring M'] [module R M]
+  [algebra R M'] (f : M →ₗ[R] M') (hf : ∀ m₁ m₂, f (m₁ * m₂) = f m₁ * f m₂)
+  [is_localized_module S f] (m₁ m₂ : M) (s₁ s₂ : S) :
+  mk' f m₁ s₁ * mk' f m₂ s₂ = mk' f (m₁ * m₂) (s₁ * s₂) :=
+begin
+  symmetry,
+  apply (module.End_algebra_map_is_unit_inv_apply_eq_iff _ _ _).mpr,
+  simp_rw [submonoid.coe_mul, ← smul_eq_mul],
+  rw [smul_smul_smul_comm, ← mk'_smul, ← mk'_smul],
+  simp_rw [← submonoid.smul_def, mk'_cancel, smul_eq_mul, hf],
+end
+
+lemma mk'_mul_mk' {M M' : Type*} [semiring M] [semiring M'] [algebra R M]
+  [algebra R M'] (f : M →ₐ[R] M')
+  [is_localized_module S f.to_linear_map] (m₁ m₂ : M) (s₁ s₂ : S) :
+  mk' f.to_linear_map m₁ s₁ * mk' f.to_linear_map m₂ s₂ =
+    mk' f.to_linear_map (m₁ * m₂) (s₁ * s₂) :=
+mk'_mul_mk'_of_map_mul f.to_linear_map f.map_mul m₁ m₂ s₁ s₂
+
+variables {f}
+
+@[simp] lemma mk'_eq_iff {m : M} {s : S} {m' : M'} :
+  mk' f m s = m' ↔ f m = s • m' :=
+by rw [← smul_inj f s, submonoid.smul_def, ← mk'_smul, ← submonoid.smul_def, mk'_cancel]
+
+@[simp] lemma mk'_eq_zero {m : M} (s : S) :
+  mk' f m s = 0 ↔ f m = 0 :=
+by rw [mk'_eq_iff, smul_zero]
+
+variable (f)
+
+lemma mk'_eq_zero' {m : M} (s : S) :
+  mk' f m s = 0 ↔ ∃ s' : S, s' • m = 0 :=
+by simp_rw [← mk'_zero f (1 : S), mk'_eq_mk'_iff, smul_zero, one_smul, eq_comm]
+
+lemma mk_eq_mk' (s : S) (m : M) :
+  localized_module.mk m s = mk' (localized_module.mk_linear_map S M) m s :=
+by rw [eq_comm, mk'_eq_iff, submonoid.smul_def, localized_module.smul'_mk,
+  ← submonoid.smul_def, localized_module.mk_cancel, localized_module.mk_linear_map_apply]
+
+variable (S)
+
+lemma eq_zero_iff {m : M} :
+  f m = 0 ↔ ∃ s' : S, s' • m = 0 :=
+(mk'_eq_zero (1 : S)).symm.trans (mk'_eq_zero' f _)
+
+lemma mk'_surjective : function.surjective (function.uncurry $ mk' f : M × S → M') :=
+begin
+  intro x,
+  obtain ⟨⟨m, s⟩, e : s • x = f m⟩ := is_localized_module.surj S f x,
+  exact ⟨⟨m, s⟩, mk'_eq_iff.mpr e.symm⟩
+end
+
 end is_localized_module
+
+section submodule
+
+variable (N : submodule R M)
+
+/-- The localization of a submodule of `M` in `localized_module S M`. -/
+def submodule.localize : submodule (localization S) (localized_module S M) :=
+{ carrier := { x | ∃ (y ∈ N) s, localized_module.mk y s = x },
+  add_mem' := begin
+    rintros _ _ ⟨x, hx, s, rfl⟩ ⟨x', hx', s', rfl⟩,
+    refine ⟨_, _, _, localized_module.mk_add_mk⟩,
+    apply add_mem; apply submodule.smul_mem; assumption
+  end,
+  zero_mem' := ⟨_, zero_mem _, _, rfl⟩,
+  smul_mem' := begin
+    rintros r _ ⟨x, hx, s, rfl⟩,
+    induction r using localization.induction_on,
+    exact ⟨_, N.smul_mem _ hx, _, rfl⟩,
+  end }
+
+variables {S N}
+
+lemma submodule.mem_localize_of_mem {x : M} (hx : x ∈ N) (s : S) :
+  localized_module.mk x s ∈ N.localize S :=
+⟨_, hx, _, rfl⟩
+
+variables (S N)
+
+lemma submodule.localize_eq_span :
+  N.localize S = submodule.span (localization S) (N.map $ localized_module.mk_linear_map S M) :=
+begin
+  apply le_antisymm,
+  { rintro _ ⟨x, hx, s, rfl⟩,
+    rw [← mul_one s, ← one_smul R x, ← localized_module.mk_smul_mk],
+    exact submodule.smul_mem _ (localization.mk (1 : R) s)
+      (submodule.subset_span $ submodule.mem_map_of_mem hx) },
+  { rw submodule.span_le,
+    rintros _ ⟨x, hx, rfl⟩,
+    exact submodule.mem_localize_of_mem hx _ }
+end
+
+lemma submodule.localize_span (s : set M) :
+  (submodule.span R s).localize S =
+    submodule.span (localization S) (localized_module.mk_linear_map S M '' s) :=
+by rw [submodule.localize_eq_span, submodule.map_span, submodule.span_span_of_tower]
+
+@[simp]
+lemma submodule.localize_bot : (⊥ : submodule R M).localize S = ⊥ :=
+by rw [← submodule.span_empty, submodule.localize_span, set.image_empty, submodule.span_empty]
+
+@[simp]
+lemma submodule.localize_top : (⊤ : submodule R M).localize S = ⊤ :=
+begin
+  rw eq_top_iff,
+  rintros x -,
+  induction x using localized_module.induction_on,
+  exact submodule.mem_localize_of_mem trivial _
+end
+
+/-- `S⁻¹M →ₗ[R] S⁻¹M'`, the localization of a linear_map `M →ₗ[R] M'`.
+This is an `R`-linear map. See `localized_module.map` for the `S⁻¹R`-linear version. -/
+noncomputable
+def localized_module.map_restrict_scalars : localized_module S M →ₗ[R] localized_module S M' :=
+localized_module.lift _ ((localized_module.mk_linear_map S M').comp f)
+  (λ m, is_localized_module.map_units (localized_module.mk_linear_map S M') m)
+
+@[simp]
+lemma localized_module.map_restrict_scalars_mk (x : M) (m : S) :
+  localized_module.map_restrict_scalars S f (localized_module.mk x m) =
+    localized_module.mk (f x) m :=
+begin
+  apply (module.End_algebra_map_is_unit_inv_apply_eq_iff _ _ _).mpr,
+  dsimp,
+  rw localized_module.smul'_mk,
+  exact (localized_module.mk_cancel _ _).symm
+end
+
+/-- `S⁻¹M →ₗ[S⁻¹R] S⁻¹M'`, the localization of a linear_map `M →ₗ[R] M'`. -/
+noncomputable
+def localized_module.map : localized_module S M →ₗ[localization S] localized_module S M' :=
+{ map_smul' := begin
+    intros r x,
+    induction r using localization.induction_on, cases r,
+    induction x using localized_module.induction_on,
+    dsimp,
+    simp only [← localization.mk_eq_mk', localized_module.mk_smul_mk,
+      localized_module.map_restrict_scalars_mk, f.map_smul]
+  end,
+  ..localized_module.map_restrict_scalars S f }
+
+@[simp]
+lemma localized_module.map_mk (x : M) (m : S) :
+  localized_module.map S f (localized_module.mk x m) =
+    localized_module.mk (f x) m :=
+localized_module.map_restrict_scalars_mk S f x m
+
+@[simp]
+lemma localized_module.map_id :
+  localized_module.map S (linear_map.id : M →ₗ[R] M) = linear_map.id :=
+begin
+  apply linear_map.ext,
+  intro x,
+  induction x using localized_module.induction_on,
+  exact localized_module.map_mk _ _ _ _
+end
+
+@[simp]
+lemma localized_module.map_comp (g : M' →ₗ[R] M'') :
+  localized_module.map S (g.comp f) =
+    (localized_module.map S g).comp (localized_module.map S f) :=
+begin
+  apply linear_map.ext,
+  intro x,
+  induction x using localized_module.induction_on,
+  simp,
+end
+
+lemma submodule.localize_comap_map {N' : submodule R M'} :
+  (N'.localize S).comap (localized_module.map S f) = (N'.comap f).localize S :=
+begin
+  apply le_antisymm,
+  { rintros x ⟨x', hx, r, e⟩,
+    induction x using localized_module.induction_on with x s,
+    simp_rw [localized_module.map_mk, localized_module.mk_eq, submonoid.smul_def, ← f.map_smul,
+      smul_smul] at e,
+    obtain ⟨u, e⟩ := e,
+    refine ⟨(u * r : R) • x, _, u * r * s, _⟩,
+    { dsimp, rw e, exact N'.smul_mem _ hx },
+    { rw [← submonoid.coe_mul, ← submonoid.smul_def],
+      exact localized_module.mk_cancel_common_left _ _ _ } },
+  { rintros _ ⟨x, hx, s, rfl⟩, dsimp, rw localized_module.map_mk,
+    exact submodule.mem_localize_of_mem hx _ }
+end
+
+lemma submodule.localize_map_map {N : submodule R M} :
+  (N.localize S).map (localized_module.map S f) = (N.map f).localize S :=
+begin
+  apply le_antisymm,
+  { rintros _ ⟨_, ⟨x, hx, s, rfl⟩, rfl⟩,
+    rw [localized_module.map_mk],
+    exact submodule.mem_localize_of_mem (submodule.mem_map_of_mem hx) _ },
+  { rintros _ ⟨_, ⟨x, hx, rfl⟩, s, rfl⟩, rw ← localized_module.map_mk,
+    exact submodule.mem_map_of_mem (submodule.mem_localize_of_mem hx _) }
+end
+
+end submodule
 
 end is_localized_module

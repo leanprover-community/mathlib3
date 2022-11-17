@@ -390,7 +390,7 @@ by rw [← mul_left_inj' (cyclotomic_ne_zero 1 ℤ), prod_erase_mul _ _ (nat.one
   cyclotomic_one, geom_sum_mul, prod_cyclotomic_eq_X_pow_sub_one h]
 
 /-- If `p` is prime, then `cyclotomic p R = ∑ i in range p, X ^ i`. -/
-lemma cyclotomic_eq_geom_sum {R : Type*} [ring R] (p : ℕ) [hp : fact p.prime] :
+lemma cyclotomic_prime (R : Type*) [ring R] (p : ℕ) [hp : fact p.prime] :
   cyclotomic p R = ∑ i in finset.range p, X ^ i :=
 begin
   suffices : cyclotomic p ℤ = ∑ i in range p, X ^ i,

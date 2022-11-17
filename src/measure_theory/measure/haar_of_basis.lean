@@ -156,4 +156,4 @@ is proved in `orthonormal_basis.volume_parallelogram`. -/
 
 /- This instance should not be necessary, but Lean has difficulties to find it in product
 situations if we do not declare it explicitly. -/
-instance : measure_space ℝ := by apply_instance
+instance real.measure_space : measure_space ℝ := by apply_instance

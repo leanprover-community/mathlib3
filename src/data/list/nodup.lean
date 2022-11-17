@@ -6,6 +6,7 @@ Authors: Mario Carneiro, Kenny Lau
 import data.list.lattice
 import data.list.pairwise
 import data.list.forall2
+import data.set.pairwise
 
 /-!
 # Lists with no duplicates

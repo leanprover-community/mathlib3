@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import algebra.group.type_tags
-import algebra.hom.equiv
+import algebra.hom.equiv.basic
 import algebra.hom.ring
 import algebra.hom.units
 

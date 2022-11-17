@@ -6,7 +6,6 @@ Authors: Kexing Ying
 import probability.martingale.convergence
 import probability.martingale.optional_stopping
 import probability.martingale.centering
-import probability.conditional_expectation
 
 /-!
 
@@ -25,10 +24,6 @@ is required to prove the generalized Borel-Cantelli.
 - `measure_theory.ae_mem_limsup_at_top_iff`: Lévy's generalized Borel-Cantelli:
   given a filtration `ℱ` and a sequence of sets `s` such that `s n ∈ ℱ n` for all `n`,
   `limsup at_top s` is almost everywhere equal to the set for which `∑ ℙ[s (n + 1)∣ℱ n] = ∞`.
-
-## TODO
-
-Prove the missing second Borel-Cantelli lemma using this generalized version.
 
 -/
 
@@ -102,7 +97,7 @@ begin
     { exact hσ.min (hf.adapted.is_stopping_time_least_ge _ _), },
     { exact hπ.min (hf.adapted.is_stopping_time_least_ge _ _), },
     { exact λ ω, min_le_min (hσ_le_π ω) le_rfl, }, },
-  { exact λ i, strongly_measurable_stopped_value_of_le hf.adapted.prog_measurable_of_nat
+  { exact λ i, strongly_measurable_stopped_value_of_le hf.adapted.prog_measurable_of_discrete
       (hf.adapted.is_stopping_time_least_ge _ _) least_ge_le, },
   { exact λ i, integrable_stopped_value _ ((hf.adapted.is_stopping_time_least_ge _ _))
       (hf.integrable) least_ge_le, },
@@ -387,7 +382,7 @@ end
 /-- **Lévy's generalization of the Borel-Cantelli lemma**: given a sequence of sets `s` and a
 filtration `ℱ` such that for all `n`, `s n` is `ℱ n`-measurable, `at_top.limsup s` is almost
 everywhere equal to the set for which `∑ k, ℙ(s (k + 1) | ℱ k) = ∞`. -/
-theorem ae_mem_limsup_at_top_iff [is_finite_measure μ]
+theorem ae_mem_limsup_at_top_iff (μ : measure Ω) [is_finite_measure μ]
   {s : ℕ → set Ω} (hs : ∀ n, measurable_set[ℱ n] (s n)) :
   ∀ᵐ ω ∂μ, ω ∈ limsup s at_top ↔
     tendsto (λ n, ∑ k in finset.range n, μ[(s (k + 1)).indicator (1 : Ω → ℝ) | ℱ k] ω)

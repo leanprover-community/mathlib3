@@ -3,7 +3,6 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import data.set.intervals.unordered_interval
 import linear_algebra.affine_space.affine_equiv
 
 /-!
@@ -23,7 +22,7 @@ This file defines affine subspaces (over modules) and the affine span of a set o
   various lemmas relating to the set of vectors in the `direction`,
   and relating the lattice structure on affine subspaces to that on
   their directions.
-* `affine_subspace.parallel`, notation `‖`, gives the property of two affine subspaces being
+* `affine_subspace.parallel`, notation `∥`, gives the property of two affine subspaces being
   parallel (one being a translate of the other).
 * `affine_span` gives the affine subspace spanned by a set of points,
   with `vector_span` giving its direction.  `affine_span` is defined
@@ -476,6 +475,18 @@ begin
     exact direction.sub_mem  hv1 hv2 },
   { exact λ hv, ⟨v +ᵥ p, vadd_mem_mk' _ hv, p,
                  self_mem_mk' _ _, (vadd_vsub _ _).symm⟩ }
+end
+
+/-- A point lies in an affine subspace constructed from another point and a direction if and only
+if their difference is in that direction. -/
+lemma mem_mk'_iff_vsub_mem {p₁ p₂ : P} {direction : submodule k V} :
+  p₂ ∈ mk' p₁ direction ↔ p₂ -ᵥ p₁ ∈ direction :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw ←direction_mk' p₁ direction,
+    exact vsub_mem_direction h (self_mem_mk' _ _) },
+  { rw ← vsub_vadd p₂ p₁,
+    exact vadd_mem_mk' p₁ h }
 end
 
 /-- Constructing an affine subspace from a point in a subspace and
@@ -1183,50 +1194,53 @@ by rw [vector_span_pair_rev, submodule.mem_span_singleton]
 
 variables (k)
 
+notation `line[` k `, ` p₁ `, ` p₂ `]` :=
+affine_span k (insert p₁ (@singleton _ _ set.has_singleton p₂))
+
 /-- The first of two points lies in their affine span. -/
-lemma left_mem_affine_span_pair (p₁ p₂ : P) : p₁ ∈ affine_span k ({p₁, p₂} : set P) :=
+lemma left_mem_affine_span_pair (p₁ p₂ : P) : p₁ ∈ line[k, p₁, p₂] :=
 mem_affine_span _ (set.mem_insert _ _)
 
 /-- The second of two points lies in their affine span. -/
-lemma right_mem_affine_span_pair (p₁ p₂ : P) : p₂ ∈ affine_span k ({p₁, p₂} : set P) :=
+lemma right_mem_affine_span_pair (p₁ p₂ : P) : p₂ ∈ line[k, p₁, p₂] :=
 mem_affine_span _ (set.mem_insert_of_mem _ (set.mem_singleton _))
 
 variables {k}
 
 /-- A combination of two points expressed with `line_map` lies in their affine span. -/
 lemma affine_map.line_map_mem_affine_span_pair (r : k) (p₁ p₂ : P) :
-  affine_map.line_map p₁ p₂ r ∈ affine_span k ({p₁, p₂} : set P) :=
+  affine_map.line_map p₁ p₂ r ∈ line[k, p₁, p₂] :=
 affine_map.line_map_mem _ (left_mem_affine_span_pair _ _ _) (right_mem_affine_span_pair _ _ _)
 
 /-- A combination of two points expressed with `line_map` (with the two points reversed) lies in
 their affine span. -/
 lemma affine_map.line_map_rev_mem_affine_span_pair (r : k) (p₁ p₂ : P) :
-  affine_map.line_map p₂ p₁ r ∈ affine_span k ({p₁, p₂} : set P) :=
+  affine_map.line_map p₂ p₁ r ∈ line[k, p₁, p₂] :=
 affine_map.line_map_mem _ (right_mem_affine_span_pair _ _ _) (left_mem_affine_span_pair _ _ _)
 
 /-- A multiple of the difference of two points added to the first point lies in their affine
 span. -/
 lemma smul_vsub_vadd_mem_affine_span_pair (r : k) (p₁ p₂ : P) :
-  r • (p₂ -ᵥ p₁) +ᵥ p₁ ∈ affine_span k ({p₁, p₂} : set P) :=
+  r • (p₂ -ᵥ p₁) +ᵥ p₁ ∈ line[k, p₁, p₂] :=
 affine_map.line_map_mem_affine_span_pair _ _ _
 
 /-- A multiple of the difference of two points added to the second point lies in their affine
 span. -/
 lemma smul_vsub_rev_vadd_mem_affine_span_pair (r : k) (p₁ p₂ : P) :
-  r • (p₁ -ᵥ p₂) +ᵥ p₂ ∈ affine_span k ({p₁, p₂} : set P) :=
+  r • (p₁ -ᵥ p₂) +ᵥ p₂ ∈ line[k, p₁, p₂] :=
 affine_map.line_map_rev_mem_affine_span_pair _ _ _
 
 /-- A vector added to the first point lies in the affine span of two points if and only if it is
 a multiple of their difference. -/
 lemma vadd_left_mem_affine_span_pair {p₁ p₂ : P} {v : V} :
-  v +ᵥ p₁ ∈ affine_span k ({p₁, p₂} : set P) ↔ ∃ r : k, r • (p₂ -ᵥ p₁) = v :=
+  v +ᵥ p₁ ∈ line[k, p₁, p₂] ↔ ∃ r : k, r • (p₂ -ᵥ p₁) = v :=
 by rw [vadd_mem_iff_mem_direction _ (left_mem_affine_span_pair _ _ _), direction_affine_span,
        mem_vector_span_pair_rev]
 
 /-- A vector added to the second point lies in the affine span of two points if and only if it is
 a multiple of their difference. -/
 lemma vadd_right_mem_affine_span_pair {p₁ p₂ : P} {v : V} :
-  v +ᵥ p₂ ∈ affine_span k ({p₁, p₂} : set P) ↔ ∃ r : k, r • (p₁ -ᵥ p₂) = v :=
+  v +ᵥ p₂ ∈ line[k, p₁, p₂] ↔ ∃ r : k, r • (p₁ -ᵥ p₂) = v :=
 by rw [vadd_mem_iff_mem_direction _ (right_mem_affine_span_pair _ _ _), direction_affine_span,
        mem_vector_span_pair]
 
@@ -1537,9 +1551,9 @@ def parallel (s₁ s₂ : affine_subspace k P) : Prop :=
 /- The notation should logically be U+2225 PARALLEL TO, but that is used globally for norms at
 present, and norms and parallelism are both widely used in geometry, so use U+2016 DOUBLE
 VERTICAL LINE (which is logically more appropriate for norms) instead here to avoid conflict. -/
-localized "infix (name := affine_subspace.parallel) ` ‖ `:50 := affine_subspace.parallel" in affine
+localized "infix (name := affine_subspace.parallel) ` ∥ `:50 := affine_subspace.parallel" in affine
 
-@[symm] lemma parallel.symm {s₁ s₂ : affine_subspace k P} (h : s₁ ‖ s₂) : s₂ ‖ s₁ :=
+@[symm] lemma parallel.symm {s₁ s₂ : affine_subspace k P} (h : s₁ ∥ s₂) : s₂ ∥ s₁ :=
 begin
   rcases h with ⟨v, rfl⟩,
   refine ⟨-v, _⟩,
@@ -1547,14 +1561,14 @@ begin
       coe_refl_to_affine_map, map_id]
 end
 
-lemma parallel_comm {s₁ s₂ : affine_subspace k P} : s₁ ‖ s₂ ↔ s₂ ‖ s₁ :=
+lemma parallel_comm {s₁ s₂ : affine_subspace k P} : s₁ ∥ s₂ ↔ s₂ ∥ s₁ :=
 ⟨parallel.symm, parallel.symm⟩
 
-@[refl] lemma parallel.refl (s : affine_subspace k P) : s ‖ s :=
+@[refl] lemma parallel.refl (s : affine_subspace k P) : s ∥ s :=
 ⟨0, by simp⟩
 
-@[trans] lemma parallel.trans {s₁ s₂ s₃ : affine_subspace k P} (h₁₂ : s₁ ‖ s₂) (h₂₃ : s₂ ‖ s₃) :
-  s₁ ‖ s₃ :=
+@[trans] lemma parallel.trans {s₁ s₂ s₃ : affine_subspace k P} (h₁₂ : s₁ ∥ s₂) (h₂₃ : s₂ ∥ s₃) :
+  s₁ ∥ s₃ :=
 begin
   rcases h₁₂ with ⟨v₁₂, rfl⟩,
   rcases h₂₃ with ⟨v₂₃, rfl⟩,
@@ -1562,7 +1576,7 @@ begin
   rw [map_map, ←coe_trans_to_affine_map, ←const_vadd_add]
 end
 
-lemma parallel.direction_eq {s₁ s₂ : affine_subspace k P} (h : s₁ ‖ s₂) :
+lemma parallel.direction_eq {s₁ s₂ : affine_subspace k P} (h : s₁ ∥ s₂) :
   s₁.direction = s₂.direction :=
 begin
   rcases h with ⟨v, rfl⟩,
@@ -1570,7 +1584,7 @@ begin
 end
 
 @[simp] lemma parallel_bot_iff_eq_bot {s : affine_subspace k P} :
-  s ‖ ⊥ ↔ s = ⊥ :=
+  s ∥ ⊥ ↔ s = ⊥ :=
 begin
   refine ⟨λ h, _, λ h, h ▸ parallel.refl _⟩,
   rcases h with ⟨v, h⟩,
@@ -1578,11 +1592,11 @@ begin
 end
 
 @[simp] lemma bot_parallel_iff_eq_bot {s : affine_subspace k P} :
-  ⊥ ‖ s ↔ s = ⊥ :=
+  ⊥ ∥ s ↔ s = ⊥ :=
 by rw [parallel_comm, parallel_bot_iff_eq_bot]
 
 lemma parallel_iff_direction_eq_and_eq_bot_iff_eq_bot {s₁ s₂ : affine_subspace k P} :
-  s₁ ‖ s₂ ↔ s₁.direction = s₂.direction ∧ (s₁ = ⊥ ↔ s₂ = ⊥) :=
+  s₁ ∥ s₂ ↔ s₁.direction = s₂.direction ∧ (s₁ = ⊥ ↔ s₂ = ⊥) :=
 begin
   refine ⟨λ h, ⟨h.direction_eq, _, _⟩, λ h, _⟩,
   { rintro rfl, exact bot_parallel_iff_eq_bot.1 h },

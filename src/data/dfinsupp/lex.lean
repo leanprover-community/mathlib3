@@ -5,6 +5,7 @@ Authors: Damiano Testa, Junyan Xu
 -/
 import data.dfinsupp.order
 import data.dfinsupp.ne_locus
+import order.well_founded_set
 
 /-!
 # Lexicographic order on finitely supported dependent functions

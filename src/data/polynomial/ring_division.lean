@@ -176,7 +176,7 @@ variables [char_zero R]
 
 @[simp] lemma degree_bit0_eq (p : R[X]) : degree (bit0 p) = degree p :=
 by rw [bit0_eq_two_mul, degree_mul, (by simp : (2 : R[X]) = C 2),
-  @polynomial.degree_C R _ _ two_ne_zero', zero_add]
+  @polynomial.degree_C R _ _ two_ne_zero, zero_add]
 
 @[simp] lemma nat_degree_bit0_eq (p : R[X]) : nat_degree (bit0 p) = nat_degree p :=
 nat_degree_eq_of_degree_eq $ degree_bit0_eq p
@@ -818,7 +818,7 @@ begin
   rw [prod_multiset_root_eq_finset_root, polynomial.map_prod],
   refine finset.prod_dvd_of_coprime (λ a _ b _ h, _) (λ a _, _),
   { simp_rw [polynomial.map_pow, polynomial.map_sub, map_C, map_X],
-    exact (pairwise_coprime_X_sub_C (is_fraction_ring.injective R $ fraction_ring R) _ _ h).pow },
+    exact (pairwise_coprime_X_sub_C (is_fraction_ring.injective R $ fraction_ring R) h).pow },
   { exact polynomial.map_dvd _ (pow_root_multiplicity_dvd p a) },
 end
 

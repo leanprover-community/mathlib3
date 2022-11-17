@@ -286,7 +286,6 @@ begin
       ← linear_map.mem_ker, submodule.ker_mkq] },
   obtain ⟨p, hp₁, hp₂⟩ := ideal.exists_le_maximal _ this,
   specialize H p hp₁,
-  resetI,
   obtain ⟨y, hy, ⟨s, hs⟩, e⟩ := H (submodule.mem_localize_of_mem hx 1),
   obtain ⟨⟨u, hu⟩, e⟩ := localized_module.mk_eq.mp e,
   simp only [submonoid.smul_def, one_smul, smul_zero, subtype.coe_mk, @eq_comm X 0] at e,

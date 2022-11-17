@@ -147,7 +147,7 @@ instance [div_inv_monoid G] [div_inv_monoid H] : div_inv_monoid (G × H) :=
   zpow_neg' := λ z a, ext (div_inv_monoid.zpow_neg' _ _) (div_inv_monoid.zpow_neg' _ _),
   .. prod.monoid, .. prod.has_inv, .. prod.has_div }
 
-@[to_additive subtraction_monoid]
+@[to_additive]
 instance [division_monoid G] [division_monoid H] : division_monoid (G × H) :=
 { mul_inv_rev := λ a b, ext (mul_inv_rev _ _) (mul_inv_rev _ _),
   inv_eq_of_mul := λ a b h, ext (inv_eq_of_mul_eq_one_right $ congr_arg fst h)

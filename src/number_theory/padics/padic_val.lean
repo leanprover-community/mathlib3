@@ -489,18 +489,16 @@ begin
 end
 
 lemma range_pow_padic_val_nat_subset_divisors' {n : ℕ} [hp : fact p.prime] :
-  (finset.range (padic_val_nat p n)).image (λ t, p ^ (t + 1)) ⊆ n.divisors \ {1} :=
+  (finset.range (padic_val_nat p n)).image (λ t, p ^ (t + 1)) ⊆ n.divisors.erase 1 :=
 begin
   rcases eq_or_ne n 0 with rfl | hn,
   { simp },
   intros t ht,
   simp only [exists_prop, finset.mem_image, finset.mem_range] at ht,
   obtain ⟨k, hk, rfl⟩ := ht,
-  rw [finset.mem_sdiff, nat.mem_divisors],
-  refine ⟨⟨(pow_dvd_pow p $ by linarith).trans pow_padic_val_nat_dvd, hn⟩, _⟩,
-  rw [finset.mem_singleton],
-  nth_rewrite 1 ← one_pow (k + 1),
-  exact (nat.pow_lt_pow_of_lt_left hp.1.one_lt $ nat.succ_pos k).ne'
+  rw [finset.mem_erase, nat.mem_divisors],
+  refine ⟨_, (pow_dvd_pow p $ succ_le_iff.2 hk).trans pow_padic_val_nat_dvd, hn⟩,
+  exact (nat.one_lt_pow _ _ k.succ_pos hp.out.one_lt).ne'
 end
 
 end padic_val_nat

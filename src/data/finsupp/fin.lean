@@ -33,22 +33,14 @@ finsupp.equiv_fun_on_finite.symm (fin.tail s)
 def cons (y : M) (s : fin n →₀ M) : fin (n + 1) →₀ M :=
 finsupp.equiv_fun_on_finite.symm (fin.cons y s : fin (n + 1) → M)
 
-lemma tail_apply : tail t i = t i.succ :=
-by simp only [tail, equiv_fun_on_finite_symm_apply_to_fun, fin.tail]
+lemma tail_apply : tail t i = t i.succ := rfl
 
-@[simp] lemma cons_zero : cons y s 0 = y :=
-by simp [cons, finsupp.equiv_fun_on_finite]
+@[simp] lemma cons_zero : cons y s 0 = y := rfl
 
-@[simp] lemma cons_succ : cons y s i.succ = s i :=
-by simp only [finsupp.cons, fin.cons, finsupp.equiv_fun_on_finite_symm_apply_to_fun, fin.cases_succ,
-  finsupp.coe_mk]
+@[simp] lemma cons_succ : cons y s i.succ = s i := fin.cons_succ _ _ _
 
 @[simp] lemma tail_cons : tail (cons y s) = s :=
-begin
-  ext1,
-  simp only [finsupp.cons, fin.cons, finsupp.tail, fin.tail, equiv_fun_on_finite_symm_apply_to_fun,
-    fin.cases_succ]
-end
+ext $ λ k, by simp only [tail_apply, cons_succ]
 
 @[simp] lemma cons_tail : cons (t 0) (tail t) = t :=
 begin

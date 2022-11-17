@@ -567,6 +567,10 @@ map_bit0 (map_ring_hom f) p
 @[simp] protected lemma map_bit1 : (bit1 p).map f = bit1 (p.map f) :=
 map_bit1 (map_ring_hom f) p
 
+--TODO rename to `map_dvd_map`
+lemma map_dvd (f : R →+* S) {x y : R[X]} : x ∣ y → x.map f ∣ y.map f :=
+(map_ring_hom f).map_dvd
+
 @[simp]
 lemma coeff_map (n : ℕ) : coeff (p.map f) n = f (coeff p n) :=
 begin
@@ -881,10 +885,6 @@ end
 end eval
 
 section map
-
---TODO rename to `map_dvd_map`
-lemma map_dvd {R S} [semiring R] [comm_semiring S] (f : R →+* S) {x y : R[X]} :
-  x ∣ y → x.map f ∣ y.map f := eval₂_dvd _ _
 
 lemma support_map_subset [semiring R] [semiring S] (f : R →+* S) (p : R[X]) :
   (map f p).support ⊆ p.support :=

@@ -6,7 +6,6 @@ Authors: Alex Kontorovich, Heather Macbeth
 
 import measure_theory.measure.haar
 import measure_theory.group.fundamental_domain
-import topology.compact_open
 import algebra.group.opposite
 
 /-!
@@ -32,7 +31,7 @@ Note that a group `G` with Haar measure that is both left and right invariant is
 -/
 
 open set measure_theory topological_space measure_theory.measure
-open_locale pointwise
+open_locale pointwise nnreal
 
 variables {G : Type*} [group G] [measurable_space G] [topological_space G]
   [topological_group G] [borel_space G]
@@ -156,5 +155,22 @@ begin
     h𝓕.is_mul_left_invariant_map,
   rw [measure.haar_measure_unique (measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)) K,
     measure.map_apply meas_π, measure.restrict_apply₀' 𝓕meas, inter_comm],
-  exact K.compact.measurable_set,
+  exact K.is_compact.measurable_set,
 end
+
+/-- Given a normal subgroup `Γ` of a topological group `G` with Haar measure `μ`, which is also
+  right-invariant, and a finite volume fundamental domain `𝓕`, the quotient map to `G ⧸ Γ` is
+  measure-preserving between appropriate multiples of Haar measure on `G` and `G ⧸ Γ`. -/
+@[to_additive measure_preserving_quotient_add_group.mk' "Given a normal subgroup `Γ` of an additive
+  topological group `G` with Haar measure `μ`, which is also right-invariant, and a finite volume
+  fundamental domain `𝓕`, the quotient map to `G ⧸ Γ` is measure-preserving between appropriate
+  multiples of Haar measure on `G` and `G ⧸ Γ`."]
+lemma measure_preserving_quotient_group.mk' [subgroup.normal Γ]
+  [measure_theory.measure.is_haar_measure μ] [μ.is_mul_right_invariant]
+  (h𝓕_finite : μ 𝓕 < ⊤) (c : ℝ≥0) (h : μ (𝓕 ∩ (quotient_group.mk' Γ) ⁻¹' K) = c) :
+  measure_preserving
+    (quotient_group.mk' Γ)
+    (μ.restrict 𝓕)
+    (c • (measure_theory.measure.haar_measure K)) :=
+{ measurable := continuous_quotient_mk.measurable,
+  map_eq := by rw [h𝓕.map_restrict_quotient K h𝓕_finite, h]; refl }

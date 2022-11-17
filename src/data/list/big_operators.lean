@@ -3,8 +3,13 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Floris van Doorn, Sébastien Gouëzel, Alex J. Best
 -/
-import algebra.group_power
 import data.list.forall2
+import algebra.group.opposite
+import algebra.group_power.basic
+import algebra.group_with_zero.commute
+import algebra.ring.basic
+import algebra.ring.commute
+import data.int.basic
 
 /-!
 # Sums and products from lists
@@ -509,8 +514,7 @@ end
 
 /-- The product of a list of positive natural numbers is positive,
 and likewise for any nontrivial ordered semiring. -/
-lemma prod_pos [ordered_semiring R] [nontrivial R] (l : list R) (h : ∀ a ∈ l, (0 : R) < a) :
-  0 < l.prod :=
+lemma prod_pos [strict_ordered_semiring R] (l : list R) (h : ∀ a ∈ l, (0 : R) < a) : 0 < l.prod :=
 begin
   induction l with a l ih,
   { simp },

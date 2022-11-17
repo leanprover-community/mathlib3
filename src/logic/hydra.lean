@@ -3,9 +3,9 @@ Copyright (c) 2022 Junyan Xu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Junyan Xu
 -/
-import data.multiset.basic
+import data.finsupp.lex
+import data.finsupp.multiset
 import order.game_add
-import order.well_founded
 
 /-!
 # Termination of a hydra game
@@ -24,9 +24,7 @@ valid "moves" of the game are modelled by the relation `cut_expand r` on `multis
 `cut_expand r s' s` is true iff `s'` is obtained by removing one head `a ∈ s` and
 adding back an arbitrary multiset `t` of heads such that all `a' ∈ t` satisfy `r a' a`.
 
-To prove this theorem, we follow the proof by Peter LeFanu Lumsdaine at
-https://mathoverflow.net/a/229084/3332, and along the way we introduce the notion of `fibration`
-of relations.
+We follow the proof by Peter LeFanu Lumsdaine at https://mathoverflow.net/a/229084/3332.
 
 TODO: formalize the relations corresponding to more powerful (e.g. Kirby–Paris and Buchholz)
 hydras, and prove their well-foundedness.
@@ -34,36 +32,9 @@ hydras, and prove their well-foundedness.
 
 namespace relation
 
-variables {α β : Type*}
-
-section fibration
-variables (rα : α → α → Prop) (rβ : β → β → Prop) (f : α → β)
-
-/-- A function `f : α → β` is a fibration between the relation `rα` and `rβ` if for all
-  `a : α` and `b : β`, whenever `b : β` and `f a` are related by `rβ`, `b` is the image
-  of some `a' : α` under `f`, and `a'` and `a` are related by `rα`. -/
-def fibration := ∀ ⦃a b⦄, rβ b (f a) → ∃ a', rα a' a ∧ f a' = b
-
-variables {rα rβ}
-
-/-- If `f : α → β` is a fibration between relations `rα` and `rβ`, and `a : α` is
-  accessible under `rα`, then `f a` is accessible under `rβ`. -/
-lemma _root_.acc.of_fibration (fib : fibration rα rβ f) {a} (ha : acc rα a) : acc rβ (f a) :=
-begin
-  induction ha with a ha ih,
-  refine acc.intro (f a) (λ b hr, _),
-  obtain ⟨a', hr', rfl⟩ := fib hr,
-  exact ih a' hr',
-end
-
-lemma _root_.acc.of_downward_closed (dc : ∀ {a b}, rβ b (f a) → b ∈ set.range f)
-  (a : α) (ha : acc (inv_image rβ f) a) : acc rβ (f a) :=
-ha.of_fibration f (λ a b h, let ⟨a', he⟩ := dc h in ⟨a', he.substr h, he⟩)
-
-end fibration
-
-section hydra
 open multiset prod
+
+variables {α : Type*}
 
 /-- The relation that specifies valid moves in our hydra game. `cut_expand r s' s`
   means that `s'` is obtained by removing one head `a ∈ s` and adding back an arbitrary
@@ -84,6 +55,18 @@ def cut_expand (r : α → α → Prop) (s' s : multiset α) : Prop :=
 
 variable {r : α → α → Prop}
 
+lemma cut_expand_le_inv_image_lex [hi : is_irrefl α r] :
+  cut_expand r ≤ inv_image (finsupp.lex (rᶜ ⊓ (≠)) (<)) to_finsupp :=
+λ s t ⟨u, a, hr, he⟩, begin
+  classical, refine ⟨a, λ b h, _, _⟩; simp_rw to_finsupp_apply,
+  { apply_fun count b at he, simp_rw count_add at he,
+    convert he; convert (add_zero _).symm; rw count_eq_zero; intro hb,
+    exacts [h.2 (mem_singleton.1 hb), h.1 (hr b hb)] },
+  { apply_fun count a at he, simp_rw [count_add, count_singleton_self] at he,
+    apply nat.lt_of_succ_le, convert he.le, convert (add_zero _).symm,
+    exact count_eq_zero.2 (λ ha, hi.irrefl a $ hr a ha) },
+end
+
 theorem cut_expand_singleton {s x} (h : ∀ x' ∈ s, r x' x) : cut_expand r s {x} :=
 ⟨s, x, h, add_comm s _⟩
 
@@ -99,7 +82,7 @@ begin
   simp_rw [cut_expand, add_singleton_eq_iff],
   refine exists₂_congr (λ t a, ⟨_, _⟩),
   { rintro ⟨ht, ha, rfl⟩,
-    obtain (h|h) := mem_add.1 ha,
+    obtain h|h := mem_add.1 ha,
     exacts [⟨ht, h, t.erase_add_left_pos h⟩, (@irrefl α r _ a (ht a h)).elim] },
   { rintro ⟨ht, h, rfl⟩,
     exact ⟨ht, mem_add.2 (or.inl h), (t.erase_add_left_pos h).symm⟩ },
@@ -152,6 +135,5 @@ end
 /-- `cut_expand r` is well-founded when `r` is. -/
 theorem _root_.well_founded.cut_expand (hr : well_founded r) : well_founded (cut_expand r) :=
 ⟨by { letI h := hr.is_irrefl, exact λ s, acc_of_singleton $ λ a _, (hr.apply a).cut_expand }⟩
-end hydra
 
 end relation

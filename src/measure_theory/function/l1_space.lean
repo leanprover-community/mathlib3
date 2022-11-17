@@ -509,6 +509,10 @@ lemma integrable_smul_measure {f : α → β} {c : ℝ≥0∞} (h₁ : c ≠ 0) 
 ⟨λ h, by simpa only [smul_smul, ennreal.inv_mul_cancel h₁ h₂, one_smul]
   using h.smul_measure (ennreal.inv_ne_top.2 h₁), λ h, h.smul_measure h₂⟩
 
+lemma integrable_inv_smul_measure {f : α → β} {c : ℝ≥0∞} (h₁ : c ≠ 0) (h₂ : c ≠ ∞) :
+  integrable f (c⁻¹ • μ) ↔ integrable f μ :=
+integrable_smul_measure (by simpa using h₂) (by simpa using h₁)
+
 lemma integrable.to_average {f : α → β} (h : integrable f μ) :
   integrable f ((μ univ)⁻¹ • μ) :=
 begin

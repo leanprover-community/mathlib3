@@ -3,11 +3,9 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
+import algebra.algebra.restrict_scalars
 import analysis.normed.field.basic
-import analysis.normed.group.infinite_sum
 import data.real.sqrt
-import data.matrix.basic
-import topology.sequences
 
 /-!
 # Normed spaces
@@ -120,7 +118,7 @@ begin
     ((continuous_id.smul continuous_const).add continuous_const).continuous_within_at,
   convert this.mem_closure _ _,
   { rw [one_smul, sub_add_cancel] },
-  { simp [closure_Ico (@zero_ne_one ℝ _ _), zero_le_one] },
+  { simp [closure_Ico zero_ne_one, zero_le_one] },
   { rintros c ⟨hc0, hc1⟩,
     rw [mem_ball, dist_eq_norm, add_sub_cancel, norm_smul, real.norm_eq_abs,
       abs_of_nonneg hc0, mul_comm, ← mul_one r],
@@ -198,10 +196,8 @@ def homeomorph_unit_ball [normed_space ℝ E] :
   end⟩,
   inv_fun := λ y, (1 - ∥(y : E)∥^2).sqrt⁻¹ • (y : E),
   left_inv := λ x,
-  begin
-    have : 0 < 1 + ∥x∥ ^ 2, by positivity,
-    field_simp [norm_smul, smul_smul, this.ne', real.sq_sqrt this.le, ← real.sqrt_div this.le],
-  end,
+  by field_simp [norm_smul, smul_smul, (zero_lt_one_add_norm_sq x).ne',
+    real.sq_sqrt (zero_lt_one_add_norm_sq x).le, ← real.sqrt_div (zero_lt_one_add_norm_sq x).le],
   right_inv := λ y,
   begin
     have : 0 < 1 - ∥(y : E)∥ ^ 2 :=
@@ -282,6 +278,16 @@ begin
 end
 
 end seminormed_add_comm_group
+
+/-- A linear map from a `module` to a `normed_space` induces a `normed_space` structure on the
+domain, using the `seminormed_add_comm_group.induced` norm.
+
+See note [reducible non-instances] -/
+@[reducible]
+def normed_space.induced {F : Type*} (α β γ : Type*) [normed_field α] [add_comm_group β]
+  [module α β] [seminormed_add_comm_group γ] [normed_space α γ] [linear_map_class F α β γ]
+  (f : F) : @normed_space α β _ (seminormed_add_comm_group.induced β γ f) :=
+{ norm_smul_le := λ a b, by {unfold norm, exact (map_smul f a b).symm ▸ (norm_smul a (f b)).le } }
 
 section normed_add_comm_group
 
@@ -446,6 +452,18 @@ by rw [norm_algebra_map, norm_one, mul_one]
 @[simp] lemma nnnorm_algebra_map' [norm_one_class 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥₊ = ∥x∥₊ :=
 subtype.ext $ norm_algebra_map' _ _
 
+section nnreal
+
+variables [norm_one_class 𝕜'] [normed_algebra ℝ 𝕜']
+
+@[simp] lemma norm_algebra_map_nnreal (x : ℝ≥0) : ∥algebra_map ℝ≥0 𝕜' x∥ = x :=
+(norm_algebra_map' 𝕜' (x : ℝ)).symm ▸ real.norm_of_nonneg x.prop
+
+@[simp] lemma nnnorm_algebra_map_nnreal (x : ℝ≥0) : ∥algebra_map ℝ≥0 𝕜' x∥₊ = x :=
+subtype.ext $ norm_algebra_map_nnreal 𝕜' x
+
+end nnreal
+
 variables (𝕜 𝕜')
 
 /-- In a normed algebra, the inclusion of the base field in the extended field is an isometry. -/
@@ -454,25 +472,6 @@ begin
   refine isometry.of_dist_eq (λx y, _),
   rw [dist_eq_norm, dist_eq_norm, ← ring_hom.map_sub, norm_algebra_map'],
 end
-
-/-- The inclusion of the base field in a normed algebra as a continuous linear map. -/
-@[simps]
-def algebra_map_clm : 𝕜 →L[𝕜] 𝕜' :=
-{ to_fun := algebra_map 𝕜 𝕜',
-  map_add' := (algebra_map 𝕜 𝕜').map_add,
-  map_smul' := λ r x, by rw [algebra.id.smul_eq_mul, map_mul, ring_hom.id_apply, algebra.smul_def],
-  cont :=
-    have lipschitz_with ∥(1 : 𝕜')∥₊ (algebra_map 𝕜 𝕜') := λ x y, begin
-      rw [edist_eq_coe_nnnorm_sub, edist_eq_coe_nnnorm_sub, ←map_sub, ←ennreal.coe_mul,
-        ennreal.coe_le_coe, mul_comm],
-      exact (nnnorm_algebra_map _ _).le,
-    end, this.continuous }
-
-lemma algebra_map_clm_coe :
-  (algebra_map_clm 𝕜 𝕜' : 𝕜 → 𝕜') = (algebra_map 𝕜 𝕜' : 𝕜 → 𝕜') := rfl
-
-lemma algebra_map_clm_to_linear_map :
-  (algebra_map_clm 𝕜 𝕜').to_linear_map = algebra.linear_map 𝕜 𝕜' := rfl
 
 instance normed_algebra.id : normed_algebra 𝕜 𝕜 :=
 { .. normed_field.to_normed_space,
@@ -508,6 +507,20 @@ instance pi.normed_algebra {E : ι → Type*} [fintype ι]
   .. pi.algebra _ E }
 
 end normed_algebra
+
+/-- A non-unital algebra homomorphism from an `algebra` to a `normed_algebra` induces a
+`normed_algebra` structure on the domain, using the `semi_normed_ring.induced` norm.
+
+See note [reducible non-instances] -/
+@[reducible]
+def normed_algebra.induced {F : Type*} (α β γ : Type*) [normed_field α] [ring β]
+  [algebra α β] [semi_normed_ring γ] [normed_algebra α γ] [non_unital_alg_hom_class F α β γ]
+  (f : F) : @normed_algebra α β _ (semi_normed_ring.induced β γ f) :=
+{ norm_smul_le := λ a b, by {unfold norm, exact (map_smul f a b).symm ▸ (norm_smul a (f b)).le } }
+
+instance subalgebra.to_normed_algebra {𝕜 A : Type*} [semi_normed_ring A] [normed_field 𝕜]
+  [normed_algebra 𝕜 A] (S : subalgebra 𝕜 A) : normed_algebra 𝕜 S :=
+@normed_algebra.induced _ 𝕜 S A _ (subring_class.to_ring S) S.algebra _ _ _ S.val
 
 section restrict_scalars
 

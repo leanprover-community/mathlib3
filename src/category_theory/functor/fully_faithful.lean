@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.natural_isomorphism
-import logic.equiv.basic
+import logic.equiv.defs
 
 /-!
 # Full and faithful functors
@@ -170,6 +170,24 @@ by { ext, simp [nat_iso_of_comp_fully_faithful], }
 lemma nat_iso_of_comp_fully_faithful_inv (i : F ⋙ H ≅ G ⋙ H) :
   (nat_iso_of_comp_fully_faithful H i).inv = nat_trans_of_comp_fully_faithful H i.inv :=
 by { ext, simp [←preimage_comp], dsimp, simp, }
+
+/-- Horizontal composition with a fully faithful functor induces a bijection on
+natural transformations. -/
+@[simps]
+def nat_trans.equiv_of_comp_fully_faithful : (F ⟶ G) ≃ (F ⋙ H ⟶ G ⋙ H) :=
+{ to_fun := λ α, α ◫ 𝟙 H,
+  inv_fun := nat_trans_of_comp_fully_faithful H,
+  left_inv := by tidy,
+  right_inv := by tidy, }
+
+/-- Horizontal composition with a fully faithful functor induces a bijection on
+natural isomorphisms. -/
+@[simps]
+def nat_iso.equiv_of_comp_fully_faithful : (F ≅ G) ≃ (F ⋙ H ≅ G ⋙ H) :=
+{ to_fun := λ e, nat_iso.hcomp e (iso.refl H),
+  inv_fun := nat_iso_of_comp_fully_faithful H,
+  left_inv := by tidy,
+  right_inv := by tidy, }
 
 end
 

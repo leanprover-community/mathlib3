@@ -5,6 +5,7 @@ Authors: Floris van Doorn, Yury Kudryashov, Sébastien Gouëzel, Chris Hughes
 -/
 import data.fin.basic
 import data.pi.lex
+import data.set.intervals.basic
 
 /-!
 # Operation on tuples
@@ -198,21 +199,13 @@ begin
   simp [and_assoc, exists_and_distrib_left],
 end
 
-@[simp]
-lemma range_cons {α : Type*} {n : ℕ} (x : α) (b : fin n → α) :
+lemma range_fin_succ {α} (f : fin (n + 1) → α) :
+  set.range f = insert (f 0) (set.range (fin.tail f)) :=
+set.ext $ λ y, exists_fin_succ.trans $ eq_comm.or iff.rfl
+
+@[simp] lemma range_cons {α : Type*} {n : ℕ} (x : α) (b : fin n → α) :
   set.range (fin.cons x b : fin n.succ → α) = insert x (set.range b) :=
-begin
-  ext y,
-  simp only [set.mem_range, set.mem_insert_iff],
-  split,
-  { rintros ⟨i, rfl⟩,
-    refine cases (or.inl (cons_zero _ _)) (λ i, or.inr ⟨i, _⟩) i,
-    rw cons_succ },
-  { rintros (rfl | ⟨i, hi⟩),
-    { exact ⟨0, fin.cons_zero _ _⟩ },
-    { refine ⟨i.succ, _⟩,
-      rw [cons_succ, hi] } }
-end
+by rw [range_fin_succ, cons_zero, tail_cons]
 
 /-- `fin.append ho u v` appends two vectors of lengths `m` and `n` to produce
 one of length `o = m + n`.  `ho` provides control of definitional equality

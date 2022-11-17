@@ -734,9 +734,40 @@ by { rw [mem_canonical_equiv_apply, canonical_equiv, map_equiv_symm, map_equiv,
          ring_equiv.coe_mk, mem_map],
     exact ⟨λ ⟨y, mem, eq⟩, ⟨y, mem, eq⟩, λ ⟨y, mem, eq⟩, ⟨y, mem, eq⟩⟩ }
 
-@[simp] lemma canonical_equiv_flip (I) :
+lemma canonical_equiv_flip (I) :
   canonical_equiv S P P' (canonical_equiv S P' P I) = I :=
 by rw [←canonical_equiv_symm, ring_equiv.symm_apply_apply]
+
+@[simp]
+lemma canonical_equiv_canonical_equiv (P'' : Type*) [comm_ring P''] [algebra R P'']
+  [is_localization S P''] (I : fractional_ideal S P) :
+  canonical_equiv S P' P'' (canonical_equiv S P P' I) = canonical_equiv S P P'' I :=
+begin
+  ext,
+  simp only [is_localization.map_map, ring_hom_inv_pair.comp_eq₂, mem_canonical_equiv_apply,
+      exists_prop, exists_exists_and_eq_and],
+  refl
+end
+
+lemma canonical_equiv_trans_canonical_equiv (P'' : Type*) [comm_ring P'']
+  [algebra R P''] [is_localization S P''] :
+  (canonical_equiv S P P').trans (canonical_equiv S P' P'') = canonical_equiv S P P'' :=
+ring_equiv.ext (canonical_equiv_canonical_equiv S P P' P'')
+
+@[simp]
+lemma canonical_equiv_coe_ideal (I : ideal R) :
+  canonical_equiv S P P' I = I :=
+by { ext, simp [is_localization.map_eq] }
+
+omit loc'
+
+@[simp]
+lemma canonical_equiv_self : canonical_equiv S P P = ring_equiv.refl _ :=
+begin
+  rw ← canonical_equiv_trans_canonical_equiv S P P,
+  convert (canonical_equiv S P P).symm_trans_self,
+  exact (canonical_equiv_symm S P P).symm
+end
 
 end semiring
 
@@ -821,7 +852,7 @@ instance : nontrivial (fractional_ideal R₁⁰ K) :=
   one_ne_zero ((mem_zero_iff _).mp this)⟩⟩
 
 lemma ne_zero_of_mul_eq_one (I J : fractional_ideal R₁⁰ K) (h : I * J = 1) : I ≠ 0 :=
-λ hI, @zero_ne_one (fractional_ideal R₁⁰ K) _ _ (by { convert h, simp [hI], })
+λ hI, zero_ne_one' (fractional_ideal R₁⁰ K) (by { convert h, simp [hI], })
 
 variables [is_domain R₁]
 
@@ -910,7 +941,7 @@ end
 
 @[simp] lemma div_one {I : fractional_ideal R₁⁰ K} : I / 1 = I :=
 begin
-  rw [div_nonzero (@one_ne_zero (fractional_ideal R₁⁰ K) _ _)],
+  rw [div_nonzero (one_ne_zero' (fractional_ideal R₁⁰ K))],
   ext,
   split; intro h,
   { simpa using mem_div_iff_forall_mul_mem.mp h 1

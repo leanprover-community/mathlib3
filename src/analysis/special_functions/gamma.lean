@@ -5,6 +5,7 @@ Authors: David Loeffler
 -/
 import measure_theory.integral.exp_decay
 import analysis.calculus.parametric_integral
+import analysis.special_functions.integrals
 
 /-!
 # The Gamma function
@@ -510,7 +511,7 @@ begin
   { rw mem_nhds_iff, use S,
     refine ⟨subset.rfl, _, hn⟩,
     have : S = re⁻¹' Ioi (1 - n : ℝ),
-    { ext, rw [preimage,Ioi, mem_set_of_eq, mem_set_of_eq, mem_set_of_eq], exact sub_lt },
+    { ext, rw [preimage,Ioi, mem_set_of_eq, mem_set_of_eq, mem_set_of_eq], exact sub_lt_comm },
     rw this,
     refine continuous.is_open_preimage continuous_re _ is_open_Ioi, },
   apply eventually_eq_of_mem this,

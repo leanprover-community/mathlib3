@@ -81,8 +81,8 @@ omit h₁ h₂ distrib
 
 /-- If a type carries a unital magma structure that distributes over a unital binary
 operations, then the magma structure is a commutative monoid. -/
-@[to_additive "If a type carries a unital additive magma structure that distributes over a
-unital binary operations, then the additive magma structure is a commutative additive monoid."]
+@[reducible, to_additive "If a type carries a unital additive magma structure that distributes over
+a unital binary operations, then the additive magma structure is a commutative additive monoid."]
 def comm_monoid [h : mul_one_class X]
   (distrib : ∀ a b c d, ((a * b) <m₁> (c * d)) = ((a <m₁> c) * (b <m₁> d))) : comm_monoid X :=
 { mul := (*),
@@ -93,8 +93,8 @@ def comm_monoid [h : mul_one_class X]
 
 /-- If a type carries a group structure that distributes over a unital binary operation,
 then the group is commutative. -/
-@[to_additive "If a type carries an additive group structure that distributes
-over a unital binary operation, then the additive group is commutative."]
+@[reducible, to_additive "If a type carries an additive group structure that
+distributes over a unital binary operation, then the additive group is commutative."]
 def comm_group [G : group X]
   (distrib : ∀ a b c d, ((a * b) <m₁> (c * d)) = ((a <m₁> c) * (b <m₁> d))) : comm_group X :=
 { ..(eckmann_hilton.comm_monoid h₁ distrib),

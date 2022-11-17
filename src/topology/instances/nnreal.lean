@@ -21,7 +21,7 @@ Instances for the following typeclasses are defined:
 * `order_topology ℝ≥0`
 * `has_continuous_sub ℝ≥0`
 * `has_continuous_inv₀ ℝ≥0` (continuity of `x⁻¹` away from `0`)
-* `has_continuous_smul ℝ≥0 ℝ`
+* `has_continuous_smul ℝ≥0 α` (whenever `α` has a continuous `mul_action ℝ α`)
 
 Everything is inherited from the corresponding structures on the reals.
 
@@ -116,9 +116,9 @@ instance : has_continuous_inv₀ ℝ≥0 :=
 ⟨λ x hx, tendsto_coe.1 $ (real.tendsto_inv $ nnreal.coe_ne_zero.2 hx).comp
   continuous_coe.continuous_at⟩
 
-instance : has_continuous_smul ℝ≥0 ℝ :=
-{ continuous_smul := real.continuous_mul.comp $
-    (continuous_subtype_val.comp continuous_fst).prod_mk continuous_snd }
+instance [topological_space α] [mul_action ℝ α] [has_continuous_smul ℝ α] :
+  has_continuous_smul ℝ≥0 α :=
+{ continuous_smul := (continuous_induced_dom.comp continuous_fst).smul continuous_snd }
 
 @[norm_cast] lemma has_sum_coe {f : α → ℝ≥0} {r : ℝ≥0} :
   has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=

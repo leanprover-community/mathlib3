@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import topology.algebra.continuous_affine_map
-import analysis.normed_space.add_torsor
 import analysis.normed_space.affine_isometry
 import analysis.normed_space.operator_norm
 
@@ -159,11 +158,16 @@ calc ∥f∥ = (max ∥f 0∥ ∥f.cont_linear∥) : by rw norm_def
     ... = ∥f.cont_linear∥ : max_eq_right (norm_nonneg _)
 
 noncomputable instance : normed_add_comm_group (V →A[𝕜] W) :=
-normed_add_comm_group.of_core _
-{ norm_eq_zero_iff := λ f,
-    begin
-      rw norm_def,
-      refine ⟨λ h₀, _, by { rintros rfl, simp, }⟩,
+add_group_norm.to_normed_add_comm_group
+{ to_fun := λ f, max ∥f 0∥ ∥f.cont_linear∥,
+  map_zero' := by simp,
+  neg' := λ f, by simp,
+  add_le' := λ f g, begin
+      simp only [pi.add_apply, add_cont_linear, coe_add, max_le_iff],
+      exact ⟨(norm_add_le _ _).trans (add_le_add (le_max_left _ _) (le_max_left _ _)),
+             (norm_add_le _ _).trans (add_le_add (le_max_right _ _) (le_max_right _ _))⟩,
+    end,
+  eq_zero_of_map_eq_zero' := λ f h₀, begin
       rcases max_eq_iff.mp h₀ with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩;
       rw h₁ at h₂,
       { rw [norm_le_zero_iff, cont_linear_eq_zero_iff_exists_const] at h₂,
@@ -171,19 +175,12 @@ normed_add_comm_group.of_core _
         simp only [function.const_apply, coe_const, norm_eq_zero] at h₁,
         rw h₁,
         refl, },
-      { rw [norm_eq_zero_iff', cont_linear_eq_zero_iff_exists_const] at h₁,
+      { rw [norm_eq_zero', cont_linear_eq_zero_iff_exists_const] at h₁,
         obtain ⟨q, rfl⟩ := h₁,
         simp only [function.const_apply, coe_const, norm_le_zero_iff] at h₂,
         rw h₂,
         refl, },
-    end,
-  triangle := λ f g,
-    begin
-      simp only [norm_def, pi.add_apply, add_cont_linear, coe_add, max_le_iff],
-      exact ⟨(norm_add_le _ _).trans (add_le_add (le_max_left _ _) (le_max_left _ _)),
-             (norm_add_le _ _).trans (add_le_add (le_max_right _ _) (le_max_right _ _))⟩,
-    end,
-  norm_neg := λ f, by simp [norm_def], }
+    end }
 
 instance : normed_space 𝕜 (V →A[𝕜] W) :=
 { norm_smul_le := λ t f, by simp only [norm_def, smul_cont_linear, coe_smul, pi.smul_apply,

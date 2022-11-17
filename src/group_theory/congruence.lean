@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
 import algebra.group.prod
-import algebra.hom.equiv
+import algebra.hom.equiv.basic
 import data.setoid.basic
 import group_theory.submonoid.operations
 
@@ -660,6 +660,9 @@ lemma mk'_surjective : surjective c.mk' :=
 quotient.surjective_quotient_mk'
 
 @[simp, to_additive] lemma coe_mk' : (c.mk' : M → c.quotient) = coe := rfl
+
+@[simp, to_additive] lemma mrange_mk' : c.mk'.mrange = ⊤ :=
+monoid_hom.mrange_top_iff_surjective.2 mk'_surjective
 
 /-- The elements related to `x ∈ M`, `M` a monoid, by the kernel of a monoid homomorphism are
     those in the preimage of `f(x)` under `f`. -/

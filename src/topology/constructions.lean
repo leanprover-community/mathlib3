@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 import topology.maps
 import topology.locally_finite
 import order.filter.pi
-import data.fin.tuple
 
 /-!
 # Constructions of new topological spaces from old ones
@@ -179,6 +178,23 @@ mem_nhds_induced coe a t
 theorem nhds_subtype (s : set α) (a : {x // x ∈ s}) :
   𝓝 a = comap coe (𝓝 (a : α)) :=
 nhds_induced coe a
+
+lemma nhds_within_subtype_eq_bot_iff {s t : set α} {x : s} :
+  𝓝[(coe : s → α) ⁻¹' t] x = ⊥ ↔ 𝓝[t] (x : α) ⊓ 𝓟 s = ⊥ :=
+by rw [inf_principal_eq_bot_iff_comap, nhds_within, nhds_within, comap_inf, comap_principal,
+       nhds_induced]
+
+lemma nhds_ne_subtype_eq_bot_iff {S : set α} {x : S} : 𝓝[{x}ᶜ] x = ⊥ ↔ 𝓝[{x}ᶜ] (x : α) ⊓ 𝓟 S = ⊥ :=
+by rw [← nhds_within_subtype_eq_bot_iff, preimage_compl, ← image_singleton,
+       subtype.coe_injective.preimage_image ]
+
+lemma nhds_ne_subtype_ne_bot_iff {S : set α} {x : S} :
+  (𝓝[{x}ᶜ] x).ne_bot ↔ (𝓝[{x}ᶜ] (x : α) ⊓ 𝓟 S).ne_bot :=
+by rw [ne_bot_iff, ne_bot_iff, not_iff_not, nhds_ne_subtype_eq_bot_iff]
+
+lemma discrete_topology_subtype_iff {S : set α} :
+  discrete_topology S ↔ ∀ x ∈ S, 𝓝[≠] x ⊓ 𝓟 S = ⊥ :=
+by simp_rw [discrete_topology_iff_nhds_ne, set_coe.forall', nhds_ne_subtype_eq_bot_iff]
 
 end topα
 

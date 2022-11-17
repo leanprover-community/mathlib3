@@ -54,6 +54,12 @@ protected lemma symm {a b : S} (h : commute a b) : commute b a := eq.symm h
 protected theorem symm_iff {a b : S} : commute a b ↔ commute b a :=
 ⟨commute.symm, commute.symm⟩
 
+@[to_additive] instance : is_refl S commute := ⟨commute.refl⟩
+
+-- This instance is useful for `finset.noncomm_prod`
+@[to_additive] instance on_is_refl {f : G → S} : is_refl G (λ a b, commute (f a) (f b)) :=
+⟨λ _, commute.refl _⟩
+
 end has_mul
 
 section semigroup

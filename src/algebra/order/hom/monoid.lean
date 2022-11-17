@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import algebra.hom.group
-import algebra.order.with_zero
 import order.hom.basic
+import algebra.order.group.instances
 
 /-!
 # Ordered monoid and group homomorphisms
@@ -70,13 +70,19 @@ structure order_add_monoid_hom (α β : Type*) [preorder α] [preorder β] [add_
 
 infixr ` →+o `:25 := order_add_monoid_hom
 
+section
+set_option old_structure_cmd true
+
 /-- `order_add_monoid_hom_class F α β` states that `F` is a type of ordered monoid homomorphisms.
 
 You should also extend this typeclass when you extend `order_add_monoid_hom`. -/
+@[ancestor add_monoid_hom_class]
 class order_add_monoid_hom_class (F : Type*) (α β : out_param $ Type*) [preorder α] [preorder β]
   [add_zero_class α] [add_zero_class β]
   extends add_monoid_hom_class F α β :=
 (monotone (f : F) : monotone f)
+
+end
 
 -- Instances and lemmas are defined below through `@[to_additive]`.
 
@@ -101,19 +107,25 @@ structure order_monoid_hom (α β : Type*) [preorder α] [preorder β] [mul_one_
 
 infixr ` →*o `:25 := order_monoid_hom
 
+section
+set_option old_structure_cmd true
+
 /-- `order_monoid_hom_class F α β` states that `F` is a type of ordered monoid homomorphisms.
 
 You should also extend this typeclass when you extend `order_monoid_hom`. -/
-@[to_additive]
+@[ancestor monoid_hom_class, to_additive]
 class order_monoid_hom_class (F : Type*) (α β : out_param $ Type*)
   [preorder α] [preorder β] [mul_one_class α] [mul_one_class β]
   extends monoid_hom_class F α β :=
 (monotone (f : F) : monotone f)
 
+end
+
 @[priority 100, to_additive] -- See note [lower instance priority]
 instance order_monoid_hom_class.to_order_hom_class [order_monoid_hom_class F α β] :
   order_hom_class F α β :=
-{ map_rel := order_monoid_hom_class.monotone }
+{ map_rel := order_monoid_hom_class.monotone,
+  .. ‹order_monoid_hom_class F α β› }
 
 @[to_additive]
 instance [order_monoid_hom_class F α β] : has_coe_t F (α →*o β) :=
@@ -141,6 +153,9 @@ structure order_monoid_with_zero_hom (α β : Type*) [preorder α] [preorder β]
 
 infixr ` →*₀o `:25 := order_monoid_with_zero_hom
 
+section
+set_option old_structure_cmd true
+
 /-- `order_monoid_with_zero_hom_class F α β` states that `F` is a type of
 ordered monoid with zero homomorphisms.
 
@@ -149,6 +164,8 @@ class order_monoid_with_zero_hom_class (F : Type*) (α β : out_param $ Type*)
   [preorder α] [preorder β] [mul_zero_one_class α] [mul_zero_one_class β]
   extends monoid_with_zero_hom_class F α β :=
 (monotone (f : F) : monotone f)
+
+end
 
 @[priority 100] -- See note [lower instance priority]
 instance order_monoid_with_zero_hom_class.to_order_monoid_hom_class

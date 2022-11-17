@@ -3,7 +3,6 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import data.set.intervals.unordered_interval
 import linear_algebra.affine_space.affine_equiv
 
 /-!
@@ -476,6 +475,18 @@ begin
     exact direction.sub_mem  hv1 hv2 },
   { exact λ hv, ⟨v +ᵥ p, vadd_mem_mk' _ hv, p,
                  self_mem_mk' _ _, (vadd_vsub _ _).symm⟩ }
+end
+
+/-- A point lies in an affine subspace constructed from another point and a direction if and only
+if their difference is in that direction. -/
+lemma mem_mk'_iff_vsub_mem {p₁ p₂ : P} {direction : submodule k V} :
+  p₂ ∈ mk' p₁ direction ↔ p₂ -ᵥ p₁ ∈ direction :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw ←direction_mk' p₁ direction,
+    exact vsub_mem_direction h (self_mem_mk' _ _) },
+  { rw ← vsub_vadd p₂ p₁,
+    exact vadd_mem_mk' p₁ h }
 end
 
 /-- Constructing an affine subspace from a point in a subspace and
@@ -1140,6 +1151,101 @@ end
 
 variables (k)
 
+/-- The `vector_span` of two points is the span of their difference. -/
+lemma vector_span_pair (p₁ p₂ : P) : vector_span k ({p₁, p₂} : set P) = k ∙ (p₁ -ᵥ p₂) :=
+by rw [vector_span_eq_span_vsub_set_left k (mem_insert p₁ _), image_pair, vsub_self,
+       submodule.span_insert_zero]
+
+/-- The `vector_span` of two points is the span of their difference (reversed). -/
+lemma vector_span_pair_rev (p₁ p₂ : P) : vector_span k ({p₁, p₂} : set P) = k ∙ (p₂ -ᵥ p₁) :=
+by rw [pair_comm, vector_span_pair]
+
+/-- The difference between two points lies in their `vector_span`. -/
+lemma vsub_mem_vector_span_pair (p₁ p₂ : P) : p₁ -ᵥ p₂ ∈ vector_span k ({p₁, p₂} : set P) :=
+vsub_mem_vector_span _ (set.mem_insert _ _) (set.mem_insert_of_mem _ (set.mem_singleton _))
+
+/-- The difference between two points (reversed) lies in their `vector_span`. -/
+lemma vsub_rev_mem_vector_span_pair (p₁ p₂ : P) : p₂ -ᵥ p₁ ∈ vector_span k ({p₁, p₂} : set P) :=
+vsub_mem_vector_span _ (set.mem_insert_of_mem _ (set.mem_singleton _)) (set.mem_insert _ _)
+
+variables {k}
+
+/-- A multiple of the difference between two points lies in their `vector_span`. -/
+lemma smul_vsub_mem_vector_span_pair (r : k) (p₁ p₂ : P) :
+  r • (p₁ -ᵥ p₂) ∈ vector_span k ({p₁, p₂} : set P) :=
+submodule.smul_mem _ _ (vsub_mem_vector_span_pair k p₁ p₂)
+
+/-- A multiple of the difference between two points (reversed) lies in their `vector_span`. -/
+lemma smul_vsub_rev_mem_vector_span_pair (r : k) (p₁ p₂ : P) :
+  r • (p₂ -ᵥ p₁) ∈ vector_span k ({p₁, p₂} : set P) :=
+submodule.smul_mem _ _ (vsub_rev_mem_vector_span_pair k p₁ p₂)
+
+/-- A vector lies in the `vector_span` of two points if and only if it is a multiple of their
+difference. -/
+lemma mem_vector_span_pair {p₁ p₂ : P} {v : V} :
+  v ∈ vector_span k ({p₁, p₂} : set P) ↔ ∃ r : k, r • (p₁ -ᵥ p₂) = v :=
+by rw [vector_span_pair, submodule.mem_span_singleton]
+
+/-- A vector lies in the `vector_span` of two points if and only if it is a multiple of their
+difference (reversed). -/
+lemma mem_vector_span_pair_rev {p₁ p₂ : P} {v : V} :
+  v ∈ vector_span k ({p₁, p₂} : set P) ↔ ∃ r : k, r • (p₂ -ᵥ p₁) = v :=
+by rw [vector_span_pair_rev, submodule.mem_span_singleton]
+
+variables (k)
+
+notation `line[` k `, ` p₁ `, ` p₂ `]` :=
+affine_span k (insert p₁ (@singleton _ _ set.has_singleton p₂))
+
+/-- The first of two points lies in their affine span. -/
+lemma left_mem_affine_span_pair (p₁ p₂ : P) : p₁ ∈ line[k, p₁, p₂] :=
+mem_affine_span _ (set.mem_insert _ _)
+
+/-- The second of two points lies in their affine span. -/
+lemma right_mem_affine_span_pair (p₁ p₂ : P) : p₂ ∈ line[k, p₁, p₂] :=
+mem_affine_span _ (set.mem_insert_of_mem _ (set.mem_singleton _))
+
+variables {k}
+
+/-- A combination of two points expressed with `line_map` lies in their affine span. -/
+lemma affine_map.line_map_mem_affine_span_pair (r : k) (p₁ p₂ : P) :
+  affine_map.line_map p₁ p₂ r ∈ line[k, p₁, p₂] :=
+affine_map.line_map_mem _ (left_mem_affine_span_pair _ _ _) (right_mem_affine_span_pair _ _ _)
+
+/-- A combination of two points expressed with `line_map` (with the two points reversed) lies in
+their affine span. -/
+lemma affine_map.line_map_rev_mem_affine_span_pair (r : k) (p₁ p₂ : P) :
+  affine_map.line_map p₂ p₁ r ∈ line[k, p₁, p₂] :=
+affine_map.line_map_mem _ (right_mem_affine_span_pair _ _ _) (left_mem_affine_span_pair _ _ _)
+
+/-- A multiple of the difference of two points added to the first point lies in their affine
+span. -/
+lemma smul_vsub_vadd_mem_affine_span_pair (r : k) (p₁ p₂ : P) :
+  r • (p₂ -ᵥ p₁) +ᵥ p₁ ∈ line[k, p₁, p₂] :=
+affine_map.line_map_mem_affine_span_pair _ _ _
+
+/-- A multiple of the difference of two points added to the second point lies in their affine
+span. -/
+lemma smul_vsub_rev_vadd_mem_affine_span_pair (r : k) (p₁ p₂ : P) :
+  r • (p₁ -ᵥ p₂) +ᵥ p₂ ∈ line[k, p₁, p₂] :=
+affine_map.line_map_rev_mem_affine_span_pair _ _ _
+
+/-- A vector added to the first point lies in the affine span of two points if and only if it is
+a multiple of their difference. -/
+lemma vadd_left_mem_affine_span_pair {p₁ p₂ : P} {v : V} :
+  v +ᵥ p₁ ∈ line[k, p₁, p₂] ↔ ∃ r : k, r • (p₂ -ᵥ p₁) = v :=
+by rw [vadd_mem_iff_mem_direction _ (left_mem_affine_span_pair _ _ _), direction_affine_span,
+       mem_vector_span_pair_rev]
+
+/-- A vector added to the second point lies in the affine span of two points if and only if it is
+a multiple of their difference. -/
+lemma vadd_right_mem_affine_span_pair {p₁ p₂ : P} {v : V} :
+  v +ᵥ p₂ ∈ line[k, p₁, p₂] ↔ ∃ r : k, r • (p₁ -ᵥ p₂) = v :=
+by rw [vadd_mem_iff_mem_direction _ (right_mem_affine_span_pair _ _ _), direction_affine_span,
+       mem_vector_span_pair]
+
+variables (k)
+
 /-- `affine_span` is monotone. -/
 @[mono]
 lemma affine_span_mono {s₁ s₂ : set P} (h : s₁ ⊆ s₂) : affine_span k s₁ ≤ affine_span k s₂ :=
@@ -1160,6 +1266,14 @@ begin
   rw ←mem_coe at h,
   rw [←affine_span_insert_affine_span, set.insert_eq_of_mem h, affine_span_coe]
 end
+
+variables {k}
+
+/-- If a point is in the affine span of a set, adding it to that set
+does not change the vector span. -/
+lemma vector_span_insert_eq_vector_span {p : P} {ps : set P} (h : p ∈ affine_span k ps) :
+  vector_span k (insert p ps) = vector_span k ps :=
+by simp_rw [←direction_affine_span, affine_span_insert_eq_affine_span _ h]
 
 end affine_space'
 

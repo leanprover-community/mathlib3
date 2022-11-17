@@ -77,7 +77,7 @@ theorem nodup_range' (s n : ℕ) : nodup (range' s n) :=
                by rw [add_right_comm, range'_append]
 
 theorem range'_sublist_right {s m n : ℕ} : range' s m <+ range' s n ↔ m ≤ n :=
-⟨λ h, by simpa only [length_range'] using length_le_of_sublist h,
+⟨λ h, by simpa only [length_range'] using h.length_le,
  λ h, by rw [← tsub_add_cancel_of_le h, ← range'_append]; apply sublist_append_left⟩
 
 theorem range'_subset_right {s m n : ℕ} : range' s m ⊆ range' s n ↔ m ≤ n :=
@@ -121,6 +121,9 @@ by rw [← length_eq_zero, length_range]
 
 theorem pairwise_lt_range (n : ℕ) : pairwise (<) (range n) :=
 by simp only [range_eq_range', pairwise_lt_range']
+
+theorem pairwise_le_range (n : ℕ) : pairwise (≤) (range n) :=
+pairwise.imp (@le_of_lt ℕ _) (pairwise_lt_range _)
 
 theorem nodup_range (n : ℕ) : nodup (range n) :=
 by simp only [range_eq_range', nodup_range']

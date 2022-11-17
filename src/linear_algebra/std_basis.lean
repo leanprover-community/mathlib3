@@ -47,6 +47,13 @@ def std_basis : Π (i : ι), φ i →ₗ[R] (Πi, φ i) := single
 lemma std_basis_apply (i : ι) (b : φ i) : std_basis R φ i b = update 0 i b :=
 rfl
 
+@[simp] lemma std_basis_apply' (i i' : ι) : (std_basis R (λ (_x : ι), R) i) 1 i' =
+  ite (i = i') 1 0  :=
+begin
+  rw [linear_map.std_basis_apply, function.update_apply, pi.zero_apply],
+  congr' 1, rw [eq_iff_iff, eq_comm],
+end
+
 lemma coe_std_basis (i : ι) : ⇑(std_basis R φ i) = pi.single i :=
 rfl
 
@@ -83,7 +90,7 @@ begin
   rintro b - j hj,
   rw [proj_std_basis_ne R φ j i, zero_apply],
   rintro rfl,
-  exact h ⟨hi, hj⟩
+  exact h.le_bot ⟨hi, hj⟩
 end
 
 lemma infi_ker_proj_le_supr_range_std_basis {I : finset ι} {J : set ι} (hu : set.univ ⊆ ↑I ∪ J) :
@@ -127,13 +134,13 @@ begin
   refine disjoint.mono
     (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ disjoint_compl_right)
     (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ disjoint_compl_right) _,
-  simp only [disjoint, set_like.le_def, mem_infi, mem_inf, mem_ker, mem_bot, proj_apply,
+  simp only [disjoint_iff_inf_le, set_like.le_def, mem_infi, mem_inf, mem_ker, mem_bot, proj_apply,
     funext_iff],
   rintros b ⟨hI, hJ⟩ i,
   classical,
   by_cases hiI : i ∈ I,
   { by_cases hiJ : i ∈ J,
-    { exact (h ⟨hiI, hiJ⟩).elim },
+    { exact (h.le_bot ⟨hiI, hiJ⟩).elim },
     { exact hJ i hiJ } },
   { exact hI i hiI }
 end
@@ -209,7 +216,7 @@ begin
     simp only [pi.basis, linear_equiv.trans_apply, basis.repr_self, std_basis_same,
         linear_equiv.Pi_congr_right_apply, finsupp.sigma_finsupp_lequiv_pi_finsupp_symm_apply],
     symmetry,
-    exact basis.finsupp.single_apply_left
+    exact finsupp.single_apply_left
       (λ i i' (h : (⟨j, i⟩ : Σ j, ιs j) = ⟨j, i'⟩), eq_of_heq (sigma.mk.inj h).2) _ _ _ },
   simp only [pi.basis, linear_equiv.trans_apply, finsupp.sigma_finsupp_lequiv_pi_finsupp_symm_apply,
       linear_equiv.Pi_congr_right_apply],

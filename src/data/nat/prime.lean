@@ -5,11 +5,12 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import data.list.prime
 import data.list.sort
-import data.nat.gcd
-import data.nat.sqrt_norm_num
+import data.nat.gcd.basic
+import data.nat.order.lemmas
 import data.set.finite
-import tactic.wlog
 import algebra.parity
+import data.nat.sqrt
+import tactic.norm_num
 
 /-!
 # Prime numbers
@@ -82,7 +83,7 @@ begin
   simp only [nat.is_unit_iff],
   apply or.imp_right _ (h.2 a _),
   { rintro rfl,
-    rw [←nat.mul_right_inj (pos_of_gt h1), ←hab, mul_one] },
+    rw [← mul_right_inj' (pos_of_gt h1).ne', ←hab, mul_one] },
   { rw hab,
     exact dvd_mul_right _ _ }
 end
@@ -568,8 +569,10 @@ mt pp.dvd_mul.1 $ by simp [Hm, Hn]
 theorem prime_iff {p : ℕ} : p.prime ↔ _root_.prime p :=
 ⟨λ h, ⟨h.ne_zero, h.not_unit, λ a b, h.dvd_mul.mp⟩, prime.irreducible⟩
 
-theorem irreducible_iff_prime {p : ℕ} : irreducible p ↔ _root_.prime p :=
-by rw [←prime_iff, prime]
+alias prime_iff ↔ prime.prime _root_.prime.nat_prime
+attribute [protected, nolint dup_namespace] prime.prime
+
+theorem irreducible_iff_prime {p : ℕ} : irreducible p ↔ _root_.prime p := prime_iff
 
 theorem prime.dvd_of_dvd_pow {p m n : ℕ} (pp : prime p) (h : p ∣ m^n) : p ∣ m :=
 begin
@@ -620,12 +623,12 @@ begin
   wlog := hp.dvd_mul.1 pdvdxy using x y,
   cases case with a ha,
   have hap : a ∣ p, from ⟨y, by rwa [ha, sq,
-        mul_assoc, nat.mul_right_inj hp.pos, eq_comm] at h⟩,
+        mul_assoc, mul_right_inj' hp.ne_zero, eq_comm] at h⟩,
   exact ((nat.dvd_prime hp).1 hap).elim
-    (λ _, by clear_aux_decl; simp [*, sq, nat.mul_right_inj hp.pos] at *
+    (λ _, by clear_aux_decl; simp [*, sq, mul_right_inj' hp.ne_zero] at *
       {contextual := tt})
     (λ _, by clear_aux_decl; simp [*, sq, mul_comm, mul_assoc,
-      nat.mul_right_inj hp.pos, nat.mul_right_eq_self_iff hp.pos] at *
+      mul_right_inj' hp.ne_zero, nat.mul_right_eq_self_iff hp.pos] at *
       {contextual := tt})
 end,
 λ ⟨h₁, h₂⟩, h₁.symm ▸ h₂.symm ▸ (sq _).symm⟩
@@ -847,18 +850,19 @@ instance inhabited_primes : inhabited primes := ⟨⟨2, prime_two⟩⟩
 
 instance coe_nat : has_coe nat.primes ℕ := ⟨subtype.val⟩
 
-theorem coe_nat_inj (p q : nat.primes) : (p : ℕ) = (q : ℕ) → p = q :=
-λ h, subtype.eq h
+theorem coe_nat_injective : function.injective (coe : nat.primes → ℕ) :=
+subtype.coe_injective
+
+theorem coe_nat_inj (p q : nat.primes) : (p : ℕ) = (q : ℕ) ↔ p = q :=
+subtype.ext_iff.symm
 
 end primes
 
-instance monoid.prime_pow {α : Type*} [monoid α] : has_pow α primes := ⟨λ x p, x^p.val⟩
+instance monoid.prime_pow {α : Type*} [monoid α] : has_pow α primes := ⟨λ x p, x^(p : ℕ)⟩
 
 end nat
 
 /-! ### Primality prover -/
-
-open norm_num
 
 namespace tactic
 namespace norm_num
@@ -940,6 +944,8 @@ begin
   rw nat.le_sqrt at this,
   exact not_le_of_lt hd this
 end
+
+open _root_.norm_num
 
 /-- Given `e` a natural numeral and `d : nat` a factor of it, return `⊢ ¬ prime e`. -/
 meta def prove_non_prime (e : expr) (n d₁ : ℕ) : tactic expr :=

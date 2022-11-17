@@ -6,9 +6,7 @@ Authors: Andrew Yang
 import algebraic_geometry.AffineScheme
 import ring_theory.nilpotent
 import topology.sheaves.sheaf_condition.sites
-import category_theory.limits.constructions.binary_products
 import algebra.category.Ring.constructions
-import ring_theory.integral_domain
 import ring_theory.local_properties
 
 /-!
@@ -166,8 +164,8 @@ begin
   apply h₁,
 end
 
-lemma eq_zero_of_basic_open_empty {X : Scheme} [hX : is_reduced X] {U : opens X.carrier}
-  (s : X.presheaf.obj (op U)) (hs : X.basic_open s = ∅) :
+lemma eq_zero_of_basic_open_eq_bot {X : Scheme} [hX : is_reduced X] {U : opens X.carrier}
+  (s : X.presheaf.obj (op U)) (hs : X.basic_open s = ⊥) :
   s = 0 :=
 begin
   apply Top.presheaf.section_ext X.sheaf U,
@@ -178,7 +176,7 @@ begin
     obtain ⟨V, hx, i, H⟩ := hx x,
     unfreezingI { specialize H (X.presheaf.map i.op s) },
     erw Scheme.basic_open_res at H,
-    rw [hs, ← subtype.coe_injective.eq_iff, opens.empty_eq, opens.inter_eq, inf_bot_eq] at H,
+    rw [hs, ← subtype.coe_injective.eq_iff, inf_bot_eq] at H,
     specialize H rfl ⟨x, hx⟩,
     erw Top.presheaf.germ_res_apply at H,
     exact H },
@@ -209,7 +207,7 @@ lemma basic_open_eq_bot_iff {X : Scheme} [is_reduced X] {U : opens X.carrier}
   (s : X.presheaf.obj $ op U) :
   X.basic_open s = ⊥ ↔ s = 0 :=
 begin
-  refine ⟨eq_zero_of_basic_open_empty s, _⟩,
+  refine ⟨eq_zero_of_basic_open_eq_bot s, _⟩,
   rintro rfl,
   simp,
 end
@@ -280,7 +278,7 @@ begin
   subst e',
   replace e := congr_arg (X.presheaf.germ x) e,
   rw [ring_hom.map_mul, ring_hom.map_zero] at e,
-  refine @zero_ne_one (X.presheaf.stalk x.1) _ _ (is_unit_zero_iff.1 _),
+  refine zero_ne_one' (X.presheaf.stalk x.1) (is_unit_zero_iff.1 _),
   convert hx₁.mul hx₂,
   exact e.symm
 end

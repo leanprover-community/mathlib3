@@ -6,7 +6,7 @@ Authors: Simon Hudon
 The writer monad transformer for passing immutable state.
 -/
 import algebra.group.defs
-import logic.equiv.basic
+import logic.equiv.defs
 
 universes u v w u₀ u₁ v₀ v₁
 

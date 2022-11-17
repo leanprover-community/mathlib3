@@ -824,6 +824,15 @@ lemma neighbor_finset_def : G.neighbor_finset v = (G.neighbor_set v).to_finset :
   w ∈ G.neighbor_finset v ↔ G.adj v w :=
 set.mem_to_finset
 
+@[simp] lemma not_mem_neighbor_finset_self : v ∉ G.neighbor_finset v :=
+(mem_neighbor_finset _ _ _).not.mpr $ G.loopless _
+
+lemma neighbor_finset_disjoint_singleton : disjoint (G.neighbor_finset v) {v} :=
+finset.disjoint_singleton_right.mpr $ not_mem_neighbor_finset_self _ _
+
+lemma singleton_disjoint_neighbor_finset : disjoint {v} (G.neighbor_finset v) :=
+finset.disjoint_singleton_left.mpr $ not_mem_neighbor_finset_self _ _
+
 /--
 `G.degree v` is the number of vertices adjacent to `v`.
 -/
@@ -960,7 +969,7 @@ end
 lemma min_degree_le_degree [decidable_rel G.adj] (v : V) : G.min_degree ≤ G.degree v :=
 begin
   obtain ⟨t, ht⟩ := finset.min_of_mem (mem_image_of_mem (λ v, G.degree v) (mem_univ v)),
-  have := finset.min_le_of_mem (mem_image_of_mem _ (mem_univ v)) ht,
+  have := finset.min_le_of_eq (mem_image_of_mem _ (mem_univ v)) ht,
   rwa [min_degree, ht]
 end
 
@@ -1002,7 +1011,7 @@ end
 lemma degree_le_max_degree [decidable_rel G.adj] (v : V) : G.degree v ≤ G.max_degree :=
 begin
   obtain ⟨t, ht : _ = _⟩ := finset.max_of_mem (mem_image_of_mem (λ v, G.degree v) (mem_univ v)),
-  have := finset.le_max_of_mem (mem_image_of_mem _ (mem_univ v)) ht,
+  have := finset.le_max_of_eq (mem_image_of_mem _ (mem_univ v)) ht,
   rwa [max_degree, ht],
 end
 

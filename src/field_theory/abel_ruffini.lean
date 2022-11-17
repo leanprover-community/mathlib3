@@ -107,7 +107,7 @@ begin
   have key : ∀ σ : (X ^ n - 1 : F[X]).gal, ∃ m : ℕ, σ a = a ^ m,
   { intro σ,
     obtain ⟨m, hm⟩ := map_root_of_unity_eq_pow_self σ.to_alg_hom
-      ⟨is_unit.unit (is_unit_of_pow_eq_one a n ha hn'),
+      ⟨is_unit.unit (is_unit_of_pow_eq_one a n ha hn),
       by { ext, rwa [units.coe_pow, is_unit.unit_spec, subtype.coe_mk n hn'] }⟩,
     use m,
     convert hm },
@@ -346,7 +346,7 @@ begin
       suffices : aeval (⟨γ, hγ⟩ : F ⟮α, β⟯) (minpoly F γ) = 0,
       { rw [aeval_alg_hom_apply, this, alg_hom.map_zero] },
       apply (algebra_map F⟮α, β⟯ (solvable_by_rad F E)).injective,
-      rw [ring_hom.map_zero, is_scalar_tower.algebra_map_aeval],
+      rw [ring_hom.map_zero, ← aeval_algebra_map_apply],
       exact minpoly.aeval F γ,
     end (minpoly.monic (is_integral γ)),
   rw [P, key],

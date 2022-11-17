@@ -242,7 +242,7 @@ argument of `f`.
 variables {R : Type*}
 variables {𝕜₂ 𝕜' : Type*} [nontrivially_normed_field 𝕜'] [nontrivially_normed_field 𝕜₂]
 variables {M : Type*} [topological_space M]
-variables {σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂]
+variables {σ₁₂ : 𝕜 →+* 𝕜₂}
 variables {G' : Type*} [normed_add_comm_group G'] [normed_space 𝕜₂ G'] [normed_space 𝕜' G']
 variables [smul_comm_class 𝕜₂ 𝕜' G']
 
@@ -315,7 +315,8 @@ H.is_O.comp_tendsto le_top
 
 protected lemma is_bounded_bilinear_map.is_O' (h : is_bounded_bilinear_map 𝕜 f) :
   f =O[⊤] (λ p : E × F, ∥p∥ * ∥p∥) :=
-h.is_O.trans (asymptotics.is_O_fst_prod'.norm_norm.mul asymptotics.is_O_snd_prod'.norm_norm)
+h.is_O.trans $ (@asymptotics.is_O_fst_prod' _ E F _ _ _ _).norm_norm.mul
+  (@asymptotics.is_O_snd_prod' _ E F _ _ _ _).norm_norm
 
 lemma is_bounded_bilinear_map.map_sub_left (h : is_bounded_bilinear_map 𝕜 f) {x y : E} {z : F} :
   f (x - y, z) = f (x, z) - f(y, z) :=
@@ -487,11 +488,12 @@ end
 
 variables (𝕜)
 
-/-- The function `lmul_left_right : 𝕜' × 𝕜' → (𝕜' →L[𝕜] 𝕜')` is a bounded bilinear map. -/
-lemma continuous_linear_map.lmul_left_right_is_bounded_bilinear
+/-- The function `continuous_linear_map.mul_left_right : 𝕜' × 𝕜' → (𝕜' →L[𝕜] 𝕜')` is a bounded
+bilinear map. -/
+lemma continuous_linear_map.mul_left_right_is_bounded_bilinear
   (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] :
-  is_bounded_bilinear_map 𝕜 (λ p : 𝕜' × 𝕜', continuous_linear_map.lmul_left_right 𝕜 𝕜' p.1 p.2) :=
-(continuous_linear_map.lmul_left_right 𝕜 𝕜').is_bounded_bilinear_map
+  is_bounded_bilinear_map 𝕜 (λ p : 𝕜' × 𝕜', continuous_linear_map.mul_left_right 𝕜 𝕜' p.1 p.2) :=
+(continuous_linear_map.mul_left_right 𝕜 𝕜').is_bounded_bilinear_map
 
 variables {𝕜}
 
@@ -502,8 +504,10 @@ lemma is_bounded_bilinear_map.is_bounded_linear_map_deriv (h : is_bounded_biline
 begin
   rcases h.bound with ⟨C, Cpos : 0 < C, hC⟩,
   refine is_linear_map.with_bound ⟨λ p₁ p₂, _, λ c p, _⟩ (C + C) (λ p, _),
-  { ext; simp [h.add_left, h.add_right]; abel },
-  { ext; simp [h.smul_left, h.smul_right, smul_add] },
+  { ext; simp only [h.add_left, h.add_right, coe_comp', function.comp_app, inl_apply,
+    is_bounded_bilinear_map_deriv_coe, prod.fst_add, prod.snd_add, add_apply]; abel },
+  { ext; simp only [h.smul_left, h.smul_right, smul_add, coe_comp', function.comp_app,
+    is_bounded_bilinear_map_deriv_coe, prod.smul_fst, prod.smul_snd, coe_smul', pi.smul_apply] },
   { refine continuous_linear_map.op_norm_le_bound _
       (mul_nonneg (add_nonneg Cpos.le Cpos.le) (norm_nonneg _)) (λ q, _),
     calc ∥f (p.1, q.2) + f (q.1, p.2)∥
@@ -542,7 +546,7 @@ begin
   refine λ e, is_open.mem_nhds _ (mem_range_self _),
   let O : (E →L[𝕜] F) → (E →L[𝕜] E) := λ f, (e.symm : F →L[𝕜] E).comp f,
   have h_O : continuous O := is_bounded_bilinear_map_comp.continuous_right,
-  convert units.is_open.preimage h_O using 1,
+  convert show is_open (O ⁻¹' {x | is_unit x}), from units.is_open.preimage h_O using 1,
   ext f',
   split,
   { rintros ⟨e', rfl⟩,

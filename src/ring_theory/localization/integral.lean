@@ -3,16 +3,14 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
-import algebra.ring.equiv
+import data.polynomial.lifts
 import group_theory.monoid_localization
 import ring_theory.algebraic
 import ring_theory.ideal.local_ring
-import ring_theory.ideal.quotient
 import ring_theory.integral_closure
 import ring_theory.localization.fraction_ring
 import ring_theory.localization.integer
 import ring_theory.non_zero_divisors
-import group_theory.submonoid.inverses
 import tactic.ring_exp
 
 /-!
@@ -152,7 +150,7 @@ begin
   { refine ⟨p.map (algebra_map A K), λ h, hp (polynomial.ext (λ i, _)), _⟩,
     { have : algebra_map A K (p.coeff i) = 0 := trans (polynomial.coeff_map _ _).symm (by simp [h]),
       exact to_map_eq_zero_iff.mp this },
-    { rwa is_scalar_tower.aeval_apply _ K at px } },
+    { exact (polynomial.aeval_map_algebra_map K _ _).trans px, } },
   { exact ⟨integer_normalization _ p,
            mt integer_normalization_eq_zero_iff.mp hp,
            integer_normalization_aeval_eq_zero _ p px⟩ },
@@ -386,11 +384,11 @@ begin
                     (no_zero_smul_divisors.algebra_map_injective _ _) b h)))),
         rw [polynomial.aeval_def, ← inv_of_eq_inv, polynomial.eval₂_reverse_eq_zero_iff,
           polynomial.eval₂_map, ← is_scalar_tower.algebra_map_eq, ← polynomial.aeval_def,
-          ← is_scalar_tower.algebra_map_aeval, hf₂, ring_hom.map_zero] } } },
+          polynomial.aeval_algebra_map_apply, hf₂, ring_hom.map_zero] } } },
   { intros h x,
     obtain ⟨f, hf₁, hf₂⟩ := h (algebra_map S K x),
     use [f, hf₁],
-    rw [← is_scalar_tower.algebra_map_aeval] at hf₂,
+    rw [polynomial.aeval_algebra_map_apply] at hf₂,
     exact (injective_iff_map_eq_zero (algebra_map S K)).1
       (no_zero_smul_divisors.algebra_map_injective _ _) _ hf₂ }
 end

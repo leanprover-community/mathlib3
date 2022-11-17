@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import group_theory.group_action.conj_act
 import group_theory.group_action.quotient
+import group_theory.quotient_group
 import order.filter.pointwise
 import topology.algebra.monoid
 import topology.compact_open
@@ -923,25 +924,49 @@ with continuous addition/multiplication. See also `submonoid.top_closure_mul_sel
 `topology.algebra.monoid`.
 -/
 
-section has_continuous_mul
-variables [topological_space α] [group α] [has_continuous_mul α] {s t : set α}
+section has_continuous_const_smul
+variables [topological_space β] [group α] [mul_action α β]
+  [has_continuous_const_smul α β] {s : set α} {t : set β}
 
-@[to_additive] lemma is_open.mul_left (ht : is_open t) : is_open (s * t) :=
-by { rw ←Union_mul_left_image, exact is_open_bUnion (λ a ha, is_open_map_mul_left a t ht) }
+@[to_additive] lemma is_open.smul_left (ht : is_open t) : is_open (s • t) :=
+by { rw ←bUnion_smul_set, exact is_open_bUnion (λ a _, ht.smul _) }
+
+@[to_additive] lemma subset_interior_smul_right : s • interior t ⊆ interior (s • t) :=
+interior_maximal (set.smul_subset_smul_left interior_subset) is_open_interior.smul_left
+
+variables [topological_space α]
+
+@[to_additive] lemma subset_interior_smul : interior s • interior t ⊆ interior (s • t) :=
+(set.smul_subset_smul_right interior_subset).trans subset_interior_smul_right
+
+end has_continuous_const_smul
+
+section has_continuous_const_smul
+variables [topological_space α] [group α] [has_continuous_const_smul α α] {s t : set α}
+
+@[to_additive] lemma is_open.mul_left : is_open t → is_open (s * t) := is_open.smul_left
+
+@[to_additive] lemma subset_interior_mul_right : s * interior t ⊆ interior (s * t) :=
+subset_interior_smul_right
+
+@[to_additive] lemma subset_interior_mul : interior s * interior t ⊆ interior (s * t) :=
+subset_interior_smul
+
+end has_continuous_const_smul
+
+section has_continuous_const_smul_op
+variables [topological_space α] [group α] [has_continuous_const_smul αᵐᵒᵖ α] {s t : set α}
 
 @[to_additive] lemma is_open.mul_right (hs : is_open s) : is_open (s * t) :=
-by { rw ←Union_mul_right_image, exact is_open_bUnion (λ a ha, is_open_map_mul_right a s hs) }
+by { rw ←bUnion_op_smul_set, exact is_open_bUnion (λ a _, hs.smul _) }
 
 @[to_additive] lemma subset_interior_mul_left : interior s * t ⊆ interior (s * t) :=
 interior_maximal (set.mul_subset_mul_right interior_subset) is_open_interior.mul_right
 
-@[to_additive] lemma subset_interior_mul_right : s * interior t ⊆ interior (s * t) :=
-interior_maximal (set.mul_subset_mul_left interior_subset) is_open_interior.mul_left
-
-@[to_additive] lemma subset_interior_mul : interior s * interior t ⊆ interior (s * t) :=
+@[to_additive] lemma subset_interior_mul' : interior s * interior t ⊆ interior (s * t) :=
 (set.mul_subset_mul_left interior_subset).trans subset_interior_mul_left
 
-end has_continuous_mul
+end has_continuous_const_smul_op
 
 section topological_group
 variables [topological_space α] [group α] [topological_group α] {s t : set α}
@@ -1036,6 +1061,52 @@ begin
   exact topological_group.t1_space (G ⧸ S) ((quotient_map_quotient_mk.is_closed_preimage).mp hS),
 end
 
+/-- A subgroup `S` of a topological group `G` acts on `G` properly discontinuously on the left, if
+it is discrete in the sense that `S ∩ K` is finite for all compact `K`. (See also
+`discrete_topology`.) -/
+@[to_additive "A subgroup `S` of an additive topological group `G` acts on `G` properly
+discontinuously on the left, if it is discrete in the sense that `S ∩ K` is finite for all compact
+`K`. (See also `discrete_topology`."]
+lemma subgroup.properly_discontinuous_smul_of_tendsto_cofinite
+  (S : subgroup G) (hS : tendsto S.subtype cofinite (cocompact G)) :
+  properly_discontinuous_smul S G :=
+{ finite_disjoint_inter_image := begin
+    intros K L hK hL,
+    have H : set.finite _ := hS ((hL.prod hK).image continuous_div').compl_mem_cocompact,
+    rw [preimage_compl, compl_compl] at H,
+    convert H,
+    ext x,
+    simpa only [image_smul, mem_image, prod.exists] using set.smul_inter_ne_empty_iff',
+  end }
+
+local attribute [semireducible] mul_opposite
+
+/-- A subgroup `S` of a topological group `G` acts on `G` properly discontinuously on the right, if
+it is discrete in the sense that `S ∩ K` is finite for all compact `K`. (See also
+`discrete_topology`.)
+
+If `G` is Hausdorff, this can be combined with `t2_space_of_properly_discontinuous_smul_of_t2_space`
+to show that the quotient group `G ⧸ S` is Hausdorff. -/
+@[to_additive "A subgroup `S` of an additive topological group `G` acts on `G` properly
+discontinuously on the right, if it is discrete in the sense that `S ∩ K` is finite for all compact
+`K`. (See also `discrete_topology`.)
+
+If `G` is Hausdorff, this can be combined with `t2_space_of_properly_discontinuous_vadd_of_t2_space`
+to show that the quotient group `G ⧸ S` is Hausdorff."]
+lemma subgroup.properly_discontinuous_smul_opposite_of_tendsto_cofinite
+  (S : subgroup G) (hS : tendsto S.subtype cofinite (cocompact G)) :
+  properly_discontinuous_smul S.opposite G :=
+{ finite_disjoint_inter_image := begin
+    intros K L hK hL,
+    have : continuous (λ p : G × G, (p.1⁻¹, p.2)) := continuous_inv.prod_map continuous_id,
+    have H : set.finite _ :=
+      hS ((hK.prod hL).image (continuous_mul.comp this)).compl_mem_cocompact,
+    rw [preimage_compl, compl_compl] at H,
+    convert H,
+    ext x,
+    simpa only [image_smul, mem_image, prod.exists] using set.op_smul_inter_ne_empty_iff,
+  end }
+
 end
 
 section
@@ -1110,7 +1181,7 @@ instance separable_locally_compact_group.sigma_compact_space
 begin
   obtain ⟨L, hLc, hL1⟩ := exists_compact_mem_nhds (1 : G),
   refine ⟨⟨λ n, (λ x, x * dense_seq G n) ⁻¹' L, _, _⟩⟩,
-  { intro n, exact (homeomorph.mul_right _).compact_preimage.mpr hLc },
+  { intro n, exact (homeomorph.mul_right _).is_compact_preimage.mpr hLc },
   { refine Union_eq_univ_iff.2 (λ x, _),
     obtain ⟨_, ⟨n, rfl⟩, hn⟩ : (range (dense_seq G) ∩ (λ y, x * y) ⁻¹' L).nonempty,
     { rw [← (homeomorph.mul_left x).apply_symm_apply 1] at hL1,
@@ -1121,14 +1192,16 @@ end
 
 /-- Every separated topological group in which there exists a compact set with nonempty interior
 is locally compact. -/
-@[to_additive] lemma topological_space.positive_compacts.locally_compact_space_of_group
+@[to_additive "Every separated topological group in which there exists a compact set with nonempty
+interior is locally compact."]
+lemma topological_space.positive_compacts.locally_compact_space_of_group
   [t2_space G] (K : positive_compacts G) :
   locally_compact_space G :=
 begin
   refine locally_compact_of_compact_nhds (λ x, _),
   obtain ⟨y, hy⟩ := K.interior_nonempty,
   let F := homeomorph.mul_left (x * y⁻¹),
-  refine ⟨F '' K, _, K.compact.image F.continuous⟩,
+  refine ⟨F '' K, _, K.is_compact.image F.continuous⟩,
   suffices : F.symm ⁻¹' K ∈ 𝓝 x, by { convert this, apply equiv.image_eq_preimage },
   apply continuous_at.preimage_mem_nhds F.symm.continuous.continuous_at,
   have : F.symm x = y, by simp [F, homeomorph.mul_left_symm],
@@ -1209,6 +1282,13 @@ instance quotient_group.has_continuous_smul [locally_compact_space G] :
       refine continuous_coinduced_rng.comp continuous_mul },
     exact quotient_map.continuous_lift_prod_right quotient_map_quotient_mk H,
   end }
+
+/-- The quotient of a second countable topological group by a subgroup is second countable. -/
+@[to_additive "The quotient of a second countable additive topological group by a subgroup is second
+countable."]
+instance quotient_group.second_countable_topology [second_countable_topology G] :
+  second_countable_topology (G ⧸ Γ) :=
+has_continuous_const_smul.second_countable_topology
 
 end quotient
 

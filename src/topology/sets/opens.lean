@@ -151,6 +151,10 @@ by rw [← subtype.coe_injective.eq_iff, opens.coe_bot, ← set.not_nonempty_iff
 lemma ne_bot_iff_nonempty (U : opens α) : U ≠ ⊥ ↔ set.nonempty (U : set α) :=
 by rw [ne.def, ← opens.not_nonempty_iff_eq_bot, not_not]
 
+/-- An open set in the indiscrete topology is either empty or the whole space. -/
+lemma eq_bot_or_top {α} [t : topological_space α] (h : t = ⊤) (U : opens α) : U = ⊥ ∨ U = ⊤ :=
+by { simp_rw ← ext_iff, unfreezingI { subst h }, exact (is_open_top_iff U.1).1 U.2 }
+
 /-- A set of `opens α` is a basis if the set of corresponding sets is a topological basis. -/
 def is_basis (B : set (opens α)) : Prop := is_topological_basis ((coe : _ → set α) '' B)
 

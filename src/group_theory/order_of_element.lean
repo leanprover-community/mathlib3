@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Julian Kuelshammer
 -/
 import algebra.hom.iterate
 import data.nat.modeq
-import data.set.pointwise
+import data.set.pointwise.basic
 import dynamics.periodic_pts
 import group_theory.index
 
@@ -257,6 +257,14 @@ begin
   simp only [order_of, mul_left_iterate],
 end
 
+@[to_additive add_order_of_nsmul_coprime]
+lemma order_of_pow_coprime (h : (order_of y).coprime m) : order_of (y ^ m) = order_of y :=
+begin
+  by_cases hg : order_of y = 0,
+  { rw [m.coprime_zero_left.mp (hg ▸ h), pow_one] },
+  { rw [order_of_pow'' y m (hg.imp_symm order_of_eq_zero), h.gcd_eq_one, nat.div_one] },
+end
+
 @[to_additive]
 lemma commute.order_of_mul_dvd_lcm {x y : G} (h : commute x y) :
   order_of (x * y) ∣ nat.lcm (order_of x) (order_of y) :=
@@ -313,11 +321,6 @@ begin
   obtain ⟨k, _, hk⟩ := (nat.dvd_prime_pow hp.elim).mp (order_of_dvd_of_pow_eq_one hm),
   exact ⟨k, hk⟩,
 end⟩
-
-omit hp
--- An example on how to determine the order of an element of a finite group.
-example : order_of (-1 : ℤˣ) = 2 :=
-order_of_eq_prime (int.units_sq _) dec_trivial
 
 end p_prime
 
@@ -413,6 +416,47 @@ begin
   rw [pow_eq_mod_order_of, @pow_eq_mod_order_of _ _ _ m],
   exact ⟨pow_injective_of_lt_order_of _ (nat.mod_lt _ hx) (nat.mod_lt _ hx), λ h, congr_arg _ h⟩
 end
+
+@[simp, to_additive zsmul_smul_order_of]
+lemma zpow_pow_order_of : (x^i)^order_of x = 1 :=
+begin
+  by_cases h : is_of_fin_order x,
+  { rw [← zpow_coe_nat, ← zpow_mul, mul_comm, zpow_mul, zpow_coe_nat, pow_order_of_eq_one,
+      one_zpow], },
+  { rw [order_of_eq_zero h, pow_zero], },
+end
+
+@[to_additive is_of_fin_add_order.zsmul]
+lemma is_of_fin_order.zpow (h : is_of_fin_order x) {i : ℤ} : is_of_fin_order (x^i) :=
+(is_of_fin_order_iff_pow_eq_one _).mpr ⟨order_of x, order_of_pos' h, zpow_pow_order_of⟩
+
+@[to_additive is_of_fin_add_order.of_mem_zmultiples]
+lemma is_of_fin_order.of_mem_zpowers (h : is_of_fin_order x) (h' : y ∈ subgroup.zpowers x) :
+  is_of_fin_order y :=
+by { obtain ⟨k, rfl⟩ := subgroup.mem_zpowers_iff.mp h', exact h.zpow, }
+
+@[to_additive add_order_of_dvd_of_mem_zmultiples]
+lemma order_of_dvd_of_mem_zpowers (h : y ∈ subgroup.zpowers x) : order_of y ∣ order_of x :=
+begin
+  obtain ⟨k, rfl⟩ := subgroup.mem_zpowers_iff.mp h,
+  rw order_of_dvd_iff_pow_eq_one,
+  exact zpow_pow_order_of,
+end
+
+lemma smul_eq_self_of_mem_zpowers {α : Type*} [mul_action G α]
+  (hx : x ∈ subgroup.zpowers y) {a : α} (hs : y • a = a) : x • a = a :=
+begin
+  obtain ⟨k, rfl⟩ := subgroup.mem_zpowers_iff.mp hx,
+  rw [← mul_action.to_perm_apply, ← mul_action.to_perm_hom_apply,
+    monoid_hom.map_zpow _ y k, mul_action.to_perm_hom_apply],
+  exact equiv.is_fixed_pt.zpow hs k,
+end
+
+lemma vadd_eq_self_of_mem_zmultiples {α G : Type*} [add_group G] [add_action G α] {x y : G}
+  (hx : x ∈ add_subgroup.zmultiples y) {a : α} (hs : y +ᵥ a = a) : x +ᵥ a = a :=
+@smul_eq_self_of_mem_zpowers (multiplicative G) _ _ _ α _ hx a hs
+
+attribute [to_additive vadd_eq_self_of_mem_zmultiples] smul_eq_self_of_mem_zpowers
 
 end group
 
@@ -624,7 +668,6 @@ lemma order_eq_card_zpowers : order_of x = fintype.card (zpowers x) :=
 
 open quotient_group
 
-/- TODO: use cardinal theory, introduce `card : set G → ℕ`, or setup decidability for cosets -/
 @[to_additive add_order_of_dvd_card_univ]
 lemma order_of_dvd_card_univ : order_of x ∣ fintype.card G :=
 begin
@@ -649,15 +692,25 @@ begin
           (by rw [eq₁, eq₂, mul_comm])
 end
 
+@[to_additive add_order_of_dvd_nat_card]
+lemma order_of_dvd_nat_card {G : Type*} [group G] {x : G} : order_of x ∣ nat.card G :=
+begin
+  casesI fintype_or_infinite G with h h,
+  { simp only [nat.card_eq_fintype_card, order_of_dvd_card_univ] },
+  { simp only [card_eq_zero_of_infinite, dvd_zero] },
+end
+
+@[simp, to_additive card_nsmul_eq_zero']
+lemma pow_card_eq_one' {G : Type*} [group G] {x : G} : x ^ nat.card G = 1 :=
+order_of_dvd_iff_pow_eq_one.mp order_of_dvd_nat_card
+
 @[simp, to_additive card_nsmul_eq_zero]
 lemma pow_card_eq_one : x ^ fintype.card G = 1 :=
-let ⟨m, hm⟩ := @order_of_dvd_card_univ _ x _ _ in
-by simp [hm, pow_mul, pow_order_of_eq_one]
+by rw [←nat.card_eq_fintype_card, pow_card_eq_one']
 
 @[to_additive] lemma subgroup.pow_index_mem {G : Type*} [group G] (H : subgroup G)
-  [finite (G ⧸ H)] [normal H] (g : G) : g ^ index H ∈ H :=
-by { casesI nonempty_fintype (G ⧸ H),
-  rw [←eq_one_iff, quotient_group.coe_pow H, index_eq_card, pow_card_eq_one] }
+  [normal H] (g : G) : g ^ index H ∈ H :=
+by rw [←eq_one_iff, quotient_group.coe_pow H, index, pow_card_eq_one']
 
 @[to_additive] lemma pow_eq_mod_card (n : ℕ) :
   x ^ n = x ^ (n % fintype.card G) :=
@@ -671,23 +724,23 @@ by rw [zpow_eq_mod_order_of, ← int.mod_mod_of_dvd n (int.coe_nat_dvd.2 order_o
 
 /-- If `gcd(|G|,n)=1` then the `n`th power map is a bijection -/
 @[to_additive "If `gcd(|G|,n)=1` then the smul by `n` is a bijection", simps]
-  def pow_coprime (h : nat.coprime (fintype.card G) n) : G ≃ G :=
+noncomputable def pow_coprime {G : Type*} [group G] (h : (nat.card G).coprime n) : G ≃ G :=
 { to_fun := λ g, g ^ n,
-  inv_fun := λ g, g ^ (nat.gcd_b (fintype.card G) n),
+  inv_fun := λ g, g ^ ((nat.card G).gcd_b n),
   left_inv := λ g, by
-  { have key : g ^ _ = g ^ _ := congr_arg (λ n : ℤ, g ^ n) (nat.gcd_eq_gcd_ab (fintype.card G) n),
+  { have key := congr_arg ((^) g) ((nat.card G).gcd_eq_gcd_ab n),
     rwa [zpow_add, zpow_mul, zpow_mul, zpow_coe_nat, zpow_coe_nat, zpow_coe_nat,
-      h.gcd_eq_one, pow_one, pow_card_eq_one, one_zpow, one_mul, eq_comm] at key },
+      h.gcd_eq_one, pow_one, pow_card_eq_one', one_zpow, one_mul, eq_comm] at key },
   right_inv := λ g, by
-  { have key : g ^ _ = g ^ _ := congr_arg (λ n : ℤ, g ^ n) (nat.gcd_eq_gcd_ab (fintype.card G) n),
+  { have key := congr_arg ((^) g) ((nat.card G).gcd_eq_gcd_ab n),
     rwa [zpow_add, zpow_mul, zpow_mul', zpow_coe_nat, zpow_coe_nat, zpow_coe_nat,
-      h.gcd_eq_one, pow_one, pow_card_eq_one, one_zpow, one_mul, eq_comm] at key } }
+      h.gcd_eq_one, pow_one, pow_card_eq_one', one_zpow, one_mul, eq_comm] at key } }
 
-@[simp, to_additive] lemma pow_coprime_one (h : nat.coprime (fintype.card G) n) :
+@[simp, to_additive] lemma pow_coprime_one {G : Type*} [group G] (h : (nat.card G).coprime n) :
   pow_coprime h 1 = 1 := one_pow n
 
-@[simp, to_additive] lemma pow_coprime_inv (h : nat.coprime (fintype.card G) n) {g : G} :
-  pow_coprime h g⁻¹ = (pow_coprime h g)⁻¹ := inv_pow g n
+@[simp, to_additive] lemma pow_coprime_inv {G : Type*} [group G] (h : (nat.card G).coprime n)
+  {g : G} : pow_coprime h g⁻¹ = (pow_coprime h g)⁻¹ := inv_pow g n
 
 @[to_additive add_inf_eq_bot_of_coprime]
 lemma inf_eq_bot_of_coprime {G : Type*} [group G] {H K : subgroup G} [fintype H] [fintype K]

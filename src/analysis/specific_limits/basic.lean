@@ -309,7 +309,7 @@ end
 /-- If `edist (f n) (f (n+1))` is bounded by `C * 2^-n`, then the distance from
 `f 0` to the limit of `f` is bounded above by `2 * C`. -/
 lemma edist_le_of_edist_le_geometric_two_of_tendsto₀: edist (f 0) a ≤ 2 * C :=
-by simpa only [pow_zero, div_eq_mul_inv, ennreal.inv_one, mul_one]
+by simpa only [pow_zero, div_eq_mul_inv, inv_one, mul_one]
   using edist_le_of_edist_le_geometric_two_of_tendsto C hu ha 0
 
 end edist_le_geometric_two
@@ -476,7 +476,7 @@ begin
   have : ∀ i, 0 < max 1 (w i), from λ i, zero_lt_one.trans_le (le_max_left _ _),
   refine ⟨λ i, δ' i / max 1 (w i), λ i, nnreal.div_pos (Hpos _) (this i), _⟩,
   refine lt_of_le_of_lt (ennreal.tsum_le_tsum $ λ i, _) Hsum,
-  rw [coe_div (this i).ne'],
+  rw [ennreal.coe_div (this i).ne'],
   refine mul_le_of_le_div' (ennreal.mul_le_mul le_rfl $ ennreal.inv_le_inv.2 _),
   exact coe_le_coe.2 (le_max_right _ _)
 end

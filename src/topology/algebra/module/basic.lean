@@ -11,7 +11,7 @@ import topology.uniform_space.uniform_embedding
 import algebra.algebra.basic
 import linear_algebra.projection
 import linear_algebra.pi
-import linear_algebra.determinant
+import ring_theory.simple_module
 
 /-!
 # Theory of topological modules and continuous linear maps.
@@ -167,10 +167,13 @@ S.to_add_subgroup.topological_add_group
 end submodule
 
 section closure
-variables {R : Type u} {M : Type v}
+variables {R R' : Type u} {M M' : Type v}
 [semiring R] [topological_space R]
+[ring R'] [topological_space R']
 [topological_space M] [add_comm_monoid M]
+[topological_space M'] [add_comm_group M']
 [module R M] [has_continuous_smul R M]
+[module R' M'] [has_continuous_smul R' M']
 
 lemma submodule.closure_smul_self_subset (s : submodule R M) :
   (λ p : R × M, p.1 • p.2) '' (set.univ ×ˢ closure s) ⊆ closure s :=
@@ -237,6 +240,24 @@ instance {M' : Type*} [add_comm_monoid M'] [module R M'] [uniform_space M']
   [has_continuous_add M'] [has_continuous_smul R M'] [complete_space M'] (U : submodule R M') :
   complete_space U.topological_closure :=
 is_closed_closure.complete_space_coe
+
+/-- A maximal proper subspace of a topological module (i.e a `submodule` satisfying `is_coatom`)
+is either closed or dense. -/
+lemma submodule.is_closed_or_dense_of_is_coatom (s : submodule R M) (hs : is_coatom s) :
+  is_closed (s : set M) ∨ dense (s : set M) :=
+(hs.le_iff.mp s.submodule_topological_closure).swap.imp (is_closed_of_closure_subset ∘ eq.le)
+  submodule.dense_iff_topological_closure_eq_top.mpr
+
+lemma linear_map.is_closed_or_dense_ker [has_continuous_add M'] [is_simple_module R' R']
+  (l : M' →ₗ[R'] R') :
+  is_closed (l.ker : set M') ∨ dense (l.ker : set M') :=
+begin
+  rcases l.surjective_or_eq_zero with (hl|rfl),
+  { refine l.ker.is_closed_or_dense_of_is_coatom (linear_map.is_coatom_ker_of_surjective hl) },
+  { rw linear_map.ker_zero,
+    left,
+    exact is_closed_univ },
+end
 
 end closure
 
@@ -1297,12 +1318,6 @@ end smul_rightₗ
 
 section comm_ring
 
-/-- The determinant of a continuous linear map, mainly as a convenience device to be able to
-write `A.det` instead of `(A : M →ₗ[R] M).det`. -/
-@[reducible] noncomputable def det {R : Type*} [comm_ring R]
-  {M : Type*} [topological_space M] [add_comm_group M] [module R M] (A : M →L[R] M) : R :=
-linear_map.det (A : M →ₗ[R] M)
-
 variables
 {R : Type*} [comm_ring R]
 {M : Type*} [topological_space M] [add_comm_group M]
@@ -1572,12 +1587,17 @@ def prod [module R₁ M₂] [module R₁ M₃] [module R₁ M₄] (e : M₁ ≃L
   (e.prod e' : (M₁ × M₃) →L[R₁] (M₂ × M₄)) = (e : M₁ →L[R₁] M₂).prod_map (e' : M₃ →L[R₁] M₄) :=
 rfl
 
+lemma prod_symm [module R₁ M₂] [module R₁ M₃] [module R₁ M₄]
+  (e : M₁ ≃L[R₁] M₂) (e' : M₃ ≃L[R₁] M₄) :
+  (e.prod e').symm = e.symm.prod e'.symm :=
+rfl
+
 include σ₂₁
-theorem bijective (e : M₁ ≃SL[σ₁₂] M₂) : function.bijective e :=
+protected theorem bijective (e : M₁ ≃SL[σ₁₂] M₂) : function.bijective e :=
 e.to_linear_equiv.to_equiv.bijective
-theorem injective (e : M₁ ≃SL[σ₁₂] M₂) : function.injective e :=
+protected theorem injective (e : M₁ ≃SL[σ₁₂] M₂) : function.injective e :=
 e.to_linear_equiv.to_equiv.injective
-theorem surjective (e : M₁ ≃SL[σ₁₂] M₂) : function.surjective e :=
+protected theorem surjective (e : M₁ ≃SL[σ₁₂] M₂) : function.surjective e :=
 e.to_linear_equiv.to_equiv.surjective
 
 include σ₃₂ σ₃₁ σ₁₃
@@ -1716,6 +1736,14 @@ variables {M₁} {R₄ : Type*} [semiring R₄] [module R₄ M₄]
   {σ₂₄ : R₂ →+* R₄} {σ₁₄ : R₁ →+* R₄}
   [ring_hom_comp_triple σ₂₁ σ₁₄ σ₂₄] [ring_hom_comp_triple σ₂₄ σ₄₃ σ₂₃]
   [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄]
+
+/-- The continuous linear equivalence between `ulift M₁` and `M₁`. -/
+def ulift : ulift M₁ ≃L[R₁] M₁ :=
+{ map_add' := λ x y, rfl,
+  map_smul' := λ c x, rfl,
+  continuous_to_fun := continuous_ulift_down,
+  continuous_inv_fun := continuous_ulift_up,
+  .. equiv.ulift }
 
 include σ₂₁ σ₃₄ σ₂₃ σ₂₄ σ₁₃
 
@@ -1902,11 +1930,6 @@ def fin_two_arrow : (fin 2 → M) ≃L[R] M × M :=
 { to_linear_equiv := linear_equiv.fin_two_arrow R M, .. pi_fin_two R (λ _, M) }
 
 end
-
-@[simp] lemma det_coe_symm {R : Type*} [field R]
-  {M : Type*} [topological_space M] [add_comm_group M] [module R M] (A : M ≃L[R] M) :
-  (A.symm : M →L[R] M).det = (A : M →L[R] M).det ⁻¹ :=
-linear_equiv.det_coe_symm A.to_linear_equiv
 
 end continuous_linear_equiv
 

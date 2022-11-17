@@ -106,6 +106,13 @@ P.comap_of_injective N.subtype subtype.coe_injective (by simp [h])
 
 @[simp] lemma coe_subtype (h : ↑P ≤ N) : ↑(P.subtype h) = subgroup.comap N.subtype ↑P := rfl
 
+lemma subtype_injective {P Q : sylow p G} {hP : ↑P ≤ N} {hQ : ↑Q ≤ N}
+  (h : P.subtype hP = Q.subtype hQ) : P = Q :=
+begin
+  rw set_like.ext_iff at h ⊢,
+  exact λ g, ⟨λ hg, (h ⟨g, hP hg⟩).mp hg, λ hg, (h ⟨g, hQ hg⟩).mpr hg⟩,
+end
+
 end sylow
 
 /-- A generalization of **Sylow's first theorem**.
@@ -120,7 +127,7 @@ exists.elim (zorn_nonempty_partial_order₀ {Q : subgroup G | is_p_group p Q} (�
       (λ T, ⟨S, ⟨S, rfl⟩, S.1.mul_mem (T hg) hh⟩) (λ T, ⟨R, ⟨R, rfl⟩, R.1.mul_mem hg (T hh)⟩) },
   λ ⟨g, _, ⟨S, rfl⟩, hg⟩, by
   { refine exists_imp_exists (λ k hk, _) (hc1 S.2 ⟨g, hg⟩),
-    rwa [subtype.ext_iff, coe_pow] at hk ⊢ },
+    rwa [subtype.ext_iff, subgroup.coe_pow] at hk ⊢ },
   λ M hM g hg, ⟨M, ⟨⟨M, hM⟩, rfl⟩, hg⟩⟩) P hP) (λ Q ⟨hQ1, hQ2, hQ3⟩, ⟨⟨Q, hQ1, hQ3⟩, hQ2⟩)
 
 instance sylow.nonempty : nonempty (sylow p G) :=
@@ -158,7 +165,7 @@ sylow.fintype_of_ker_is_p_group (is_p_group.ker_is_p_group_of_injective hf)
 
 /-- If `H` is a subgroup of `G`, then `fintype (sylow p G)` implies `fintype (sylow p H)`. -/
 noncomputable instance (H : subgroup G) [fintype (sylow p G)] : fintype (sylow p H) :=
-sylow.fintype_of_injective (show function.injective H.subtype, from subtype.coe_injective)
+sylow.fintype_of_injective H.subtype_injective
 
 /-- If `H` is a subgroup of `G`, then `finite (sylow p G)` implies `finite (sylow p H)`. -/
 instance (H : subgroup G) [finite (sylow p G)] : finite (sylow p H) :=
@@ -289,6 +296,30 @@ lemma sylow.stabilizer_eq_normalizer (P : sylow p G) :
   stabilizer G P = (P : subgroup G).normalizer :=
 ext (λ g, sylow.smul_eq_iff_mem_normalizer)
 
+lemma sylow.conj_eq_normalizer_conj_of_mem_centralizer
+  [fact p.prime] [finite (sylow p G)] (P : sylow p G) (x g : G)
+  (hx : x ∈ (P : subgroup G).centralizer) (hy : g⁻¹ * x * g ∈ (P : subgroup G).centralizer) :
+  ∃ n ∈ (P : subgroup G).normalizer, g⁻¹ * x * g = n⁻¹ * x * n :=
+begin
+  have h1 : ↑P ≤ (zpowers x).centralizer,
+  { rwa [le_centralizer_iff, zpowers_le] },
+  have h2 : ↑(g • P) ≤ (zpowers x).centralizer,
+  { rw [le_centralizer_iff, zpowers_le],
+    rintros - ⟨z, hz, rfl⟩,
+    specialize hy z hz,
+    rwa [←mul_assoc, ←eq_mul_inv_iff_mul_eq, mul_assoc, mul_assoc, mul_assoc, ←mul_assoc,
+      eq_inv_mul_iff_mul_eq, ←mul_assoc, ←mul_assoc] at hy },
+  obtain ⟨h, hh⟩ := exists_smul_eq (zpowers x).centralizer ((g • P).subtype h2) (P.subtype h1),
+  simp_rw [sylow.smul_subtype, smul_def, smul_smul] at hh,
+  refine ⟨h * g, sylow.smul_eq_iff_mem_normalizer.mp (sylow.subtype_injective hh), _⟩,
+  rw [←mul_assoc, commute.right_comm (h.prop x (mem_zpowers x)), mul_inv_rev, inv_mul_cancel_right]
+end
+
+lemma sylow.conj_eq_normalizer_conj_of_mem [fact p.prime] [finite (sylow p G)] (P : sylow p G)
+  [hP : (P : subgroup G).is_commutative] (x g : G) (hx : x ∈ P) (hy : g⁻¹ * x * g ∈ P) :
+  ∃ n ∈ (P : subgroup G).normalizer, g⁻¹ * x * g = n⁻¹ * x * n :=
+P.conj_eq_normalizer_conj_of_mem_centralizer x g (le_centralizer P hx) (le_centralizer P hy)
+
 /-- Sylow `p`-subgroups are in bijection with cosets of the normalizer of a Sylow `p`-subgroup -/
 noncomputable def sylow.equiv_quotient_normalizer [fact p.prime] [fintype (sylow p G)]
   (P : sylow p G) : sylow p G ≃ G ⧸ (P : subgroup G).normalizer :=
@@ -314,10 +345,10 @@ lemma card_sylow_dvd_index [fact p.prime] [fintype (sylow p G)] (P : sylow p G) 
 ((congr_arg _ (card_sylow_eq_index_normalizer P)).mp dvd_rfl).trans (index_dvd_of_le le_normalizer)
 
 lemma not_dvd_index_sylow' [hp : fact p.prime] (P : sylow p G) [(P : subgroup G).normal]
-  (hP : (P : subgroup G).index ≠ 0) : ¬ p ∣ (P : subgroup G).index :=
+  [finite_index (P : subgroup G)] : ¬ p ∣ (P : subgroup G).index :=
 begin
   intro h,
-  haveI : fintype (G ⧸ (P : subgroup G)) := fintype_of_index_ne_zero hP,
+  haveI := (P : subgroup G).fintype_quotient_of_finite_index,
   rw index_eq_card at h,
   obtain ⟨x, hx⟩ := exists_prime_order_of_dvd_card p h,
   have h := is_p_group.of_card ((order_eq_card_zpowers.symm.trans hx).trans (pow_one p).symm),
@@ -339,7 +370,8 @@ begin
   rw [←relindex_mul_index le_normalizer, ←card_sylow_eq_index_normalizer],
   haveI : (P.subtype le_normalizer : subgroup (P : subgroup G).normalizer).normal :=
   subgroup.normal_in_normalizer,
-  replace hP := not_dvd_index_sylow' (P.subtype le_normalizer) hP,
+  haveI : finite_index ↑(P.subtype le_normalizer) := ⟨hP⟩,
+  replace hP := not_dvd_index_sylow' (P.subtype le_normalizer),
   exact hp.1.not_dvd_mul hP (not_dvd_card_sylow p G),
 end
 
@@ -439,8 +471,7 @@ lemma prime_dvd_card_quotient_normalizer [fintype G] {p : ℕ} {n : ℕ} [hp : f
   p ∣ card (normalizer H ⧸ (subgroup.comap ((normalizer H).subtype : normalizer H →* G) H)) :=
 let ⟨s, hs⟩ := exists_eq_mul_left_of_dvd hdvd in
 have hcard : card (G ⧸ H) = s * p :=
-  (nat.mul_left_inj (show card H > 0, from fintype.card_pos_iff.2
-      ⟨⟨1, H.one_mem⟩⟩)).1
+  (mul_left_inj' (show card H ≠ 0, from fintype.card_ne_zero)).1
     (by rwa [← card_eq_card_quotient_mul_card_subgroup H, hH, hs,
       pow_succ', mul_assoc, mul_comm p]),
 have hm : s * p % p =
@@ -465,8 +496,7 @@ theorem exists_subgroup_card_pow_succ [fintype G] {p : ℕ} {n : ℕ} [hp : fact
   ∃ K : subgroup G, fintype.card K = p ^ (n + 1) ∧ H ≤ K :=
 let ⟨s, hs⟩ := exists_eq_mul_left_of_dvd hdvd in
 have hcard : card (G ⧸ H) = s * p :=
-  (nat.mul_left_inj (show card H > 0, from fintype.card_pos_iff.2
-      ⟨⟨1, H.one_mem⟩⟩)).1
+  (mul_left_inj' (show card H ≠ 0, from fintype.card_ne_zero)).1
     (by rwa [← card_eq_card_quotient_mul_card_subgroup H, hH, hs,
       pow_succ', mul_assoc, mul_comm p]),
 have hm : s * p % p =

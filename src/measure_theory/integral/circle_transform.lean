@@ -3,9 +3,6 @@ Copyright (c) 2022 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
-import analysis.complex.cauchy_integral
-import analysis.analytic.basic
-import analysis.calculus.parametric_interval_integral
 import data.complex.basic
 import measure_theory.integral.circle_integral
 /-!
@@ -132,8 +129,11 @@ begin
   have cts := continuous_on_abs_circle_transform_bounding_function hr z,
   have comp : is_compact (closed_ball z r ×ˢ [0, 2 * π]),
   { apply_rules [is_compact.prod, proper_space.is_compact_closed_ball z r, is_compact_interval], },
-  have none := (nonempty_closed_ball.2 hr').prod nonempty_interval,
-  simpa using is_compact.exists_forall_ge comp none (cts.mono (by { intro z, simp, tauto })),
+  have none : (closed_ball z r ×ˢ [0, 2 * π]).nonempty :=
+    (nonempty_closed_ball.2 hr').prod nonempty_interval,
+  have := is_compact.exists_forall_ge comp none (cts.mono
+    (by { intro z, simp only [mem_prod, mem_closed_ball, mem_univ, and_true, and_imp], tauto })),
+  simpa only [set_coe.forall, subtype.coe_mk, set_coe.exists],
 end
 
 /-- The derivative of a `circle_transform` is locally bounded. -/

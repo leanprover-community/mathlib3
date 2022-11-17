@@ -7,6 +7,7 @@ import category_theory.limits.types
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.terminal
+import category_theory.concrete_category.basic
 import tactic.elementwise
 
 /-!
@@ -35,7 +36,7 @@ As an example, when setting up the monoidal category structure on `Type`
 we use the `types_has_terminal` and `types_has_binary_products` instances.
 -/
 
-universes u
+universes u v
 
 open category_theory
 open category_theory.limits
@@ -68,6 +69,11 @@ def terminal_limit_cone : limits.limit_cone (functor.empty (Type u)) :=
 noncomputable def terminal_iso : ⊤_ (Type u) ≅ punit :=
 limit.iso_limit_cone terminal_limit_cone
 
+/-- The terminal object in `Type u` is `punit`. -/
+noncomputable
+def is_terminal_punit : is_terminal (punit : Type u) :=
+terminal_is_terminal.of_iso terminal_iso
+
 /-- The category of types has `pempty` as an initial object. -/
 def initial_colimit_cocone : limits.colimit_cocone (functor.empty (Type u)) :=
 { cocone :=
@@ -78,6 +84,11 @@ def initial_colimit_cocone : limits.colimit_cocone (functor.empty (Type u)) :=
 /-- The initial object in `Type u` is `pempty`. -/
 noncomputable def initial_iso : ⊥_ (Type u) ≅ pempty :=
 colimit.iso_colimit_cocone initial_colimit_cocone
+
+/-- The initial object in `Type u` is `pempty`. -/
+noncomputable
+def is_initial_punit : is_initial (pempty : Type u) :=
+initial_is_initial.of_iso initial_iso
 
 open category_theory.limits.walking_pair
 
@@ -201,10 +212,61 @@ colimit.iso_colimit_cocone_ι_inv (binary_coproduct_colimit_cocone X Y) ⟨walki
   ↾(sum.inr : Y ⟶ X ⊕ Y) ≫ (binary_coproduct_iso X Y).inv = limits.coprod.inr :=
 colimit.iso_colimit_cocone_ι_inv (binary_coproduct_colimit_cocone X Y) ⟨walking_pair.right⟩
 
+open function (injective)
+
+lemma binary_cofan_is_colimit_iff {X Y : Type u} (c : binary_cofan X Y) :
+  nonempty (is_colimit c) ↔
+    injective c.inl ∧ injective c.inr ∧ is_compl (set.range c.inl) (set.range c.inr) :=
+begin
+  classical,
+  split,
+  { rintro ⟨h⟩,
+    rw [← show _ = c.inl, from h.comp_cocone_point_unique_up_to_iso_inv
+      (binary_coproduct_colimit X Y) ⟨walking_pair.left⟩,
+      ← show _ = c.inr, from h.comp_cocone_point_unique_up_to_iso_inv
+      (binary_coproduct_colimit X Y) ⟨walking_pair.right⟩],
+    dsimp [binary_coproduct_cocone],
+    refine
+    ⟨(h.cocone_point_unique_up_to_iso (binary_coproduct_colimit X Y)).symm.to_equiv.injective.comp
+      sum.inl_injective, (h.cocone_point_unique_up_to_iso (binary_coproduct_colimit X Y)).symm
+      .to_equiv.injective.comp sum.inr_injective, _⟩,
+    erw [set.range_comp, ← eq_compl_iff_is_compl, set.range_comp _ sum.inr, ← set.image_compl_eq
+      (h.cocone_point_unique_up_to_iso (binary_coproduct_colimit X Y)).symm.to_equiv.bijective],
+    congr' 1,
+    exact set.compl_range_inr.symm },
+  { rintros ⟨h₁, h₂, h₃⟩,
+    have : ∀ x, x ∈ set.range c.inl ∨ x ∈ set.range c.inr,
+    { rw [eq_compl_iff_is_compl.mpr h₃.symm], exact λ _, or_not },
+    refine ⟨binary_cofan.is_colimit.mk _ _ _ _ _⟩,
+    { intros T f g x,
+      exact if h : x ∈ set.range c.inl
+        then f ((equiv.of_injective _ h₁).symm ⟨x, h⟩)
+        else g ((equiv.of_injective _ h₂).symm ⟨x, (this x).resolve_left h⟩) },
+    { intros T f g, ext x, dsimp, simp [h₁.eq_iff] },
+    { intros T f g, ext x, dsimp,
+      simp only [forall_exists_index, equiv.of_injective_symm_apply,
+        dif_ctx_congr, dite_eq_right_iff],
+      intros y e,
+      have : c.inr x ∈ set.range c.inl ⊓ set.range c.inr := ⟨⟨_, e⟩, ⟨_, rfl⟩⟩,
+      rw disjoint_iff.mp h₃.1 at this,
+      exact this.elim },
+    { rintro T _ _ m rfl rfl, ext x, dsimp,
+      split_ifs; exact congr_arg _ (equiv.apply_of_injective_symm _ ⟨_, _⟩).symm } }
+end
+
+/-- Any monomorphism in `Type` is an coproduct injection. -/
+noncomputable
+def is_coprod_of_mono {X Y : Type u} (f : X ⟶ Y) [mono f] :
+  is_colimit (binary_cofan.mk f (subtype.val : (set.range f)ᶜ → Y)) :=
+nonempty.some $ (binary_cofan_is_colimit_iff _).mpr
+  ⟨(mono_iff_injective f).mp infer_instance, subtype.val_injective,
+    (eq_compl_iff_is_compl.mp $ subtype.range_val).symm⟩
+
 /--
 The category of types has `Π j, f j` as the product of a type family `f : J → Type`.
 -/
-def product_limit_cone {J : Type u} (F : J → Type u) : limits.limit_cone (discrete.functor F) :=
+def product_limit_cone {J : Type u} (F : J → Type (max u v)) :
+  limits.limit_cone (discrete.functor F) :=
 { cone :=
   { X := Π j, F j,
     π := { app := λ j f, f j.as }, },
@@ -213,14 +275,14 @@ def product_limit_cone {J : Type u} (F : J → Type u) : limits.limit_cone (disc
     uniq' := λ s m w, funext $ λ x, funext $ λ j, (congr_fun (w ⟨j⟩) x : _) } }
 
 /-- The categorical product in `Type u` is the type theoretic product `Π j, F j`. -/
-noncomputable def product_iso {J : Type u} (F : J → Type u) : ∏ F ≅ Π j, F j :=
+noncomputable def product_iso {J : Type u} (F : J → Type (max u v)) : ∏ F ≅ Π j, F j :=
 limit.iso_limit_cone (product_limit_cone F)
 
-@[simp, elementwise] lemma product_iso_hom_comp_eval {J : Type u} (F : J → Type u) (j : J) :
+@[simp, elementwise] lemma product_iso_hom_comp_eval {J : Type u} (F : J → Type (max u v)) (j : J) :
   (product_iso F).hom ≫ (λ f, f j) = pi.π F j :=
 rfl
 
-@[simp, elementwise] lemma product_iso_inv_comp_π {J : Type u} (F : J → Type u) (j : J) :
+@[simp, elementwise] lemma product_iso_inv_comp_π {J : Type u} (F : J → Type (max u v)) (j : J) :
   (product_iso F).inv ≫ pi.π F j = (λ f, f j) :=
 limit.iso_limit_cone_inv_π (product_limit_cone F) ⟨j⟩
 

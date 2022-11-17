@@ -113,9 +113,14 @@ lemma gauge_nonneg (x : E) : 0 ≤ gauge s x := real.Inf_nonneg _ $ λ x hx, hx.
 lemma gauge_neg (symmetric : ∀ x ∈ s, -x ∈ s) (x : E) : gauge s (-x) = gauge s x :=
 begin
   have : ∀ x, -x ∈ s ↔ x ∈ s := λ x, ⟨λ h, by simpa using symmetric _ h, symmetric x⟩,
-  rw [gauge_def', gauge_def'],
-  simp_rw [smul_neg, this],
+  simp_rw [gauge_def', smul_neg, this]
 end
+
+lemma gauge_neg_set_neg (x : E) : gauge (-s) (-x) = gauge s x :=
+by simp_rw [gauge_def', smul_neg, neg_mem_neg]
+
+lemma gauge_neg_set_eq_gauge_neg (x : E) : gauge (-s) x = gauge s (-x) :=
+by rw [← gauge_neg_set_neg, neg_neg]
 
 lemma gauge_le_of_mem (ha : 0 ≤ a) (hx : x ∈ a • s) : gauge s x ≤ a :=
 begin

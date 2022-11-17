@@ -100,6 +100,10 @@ noncomputable
 instance norm_on_quotient (S : add_subgroup M) : has_norm (M ⧸ S) :=
 { norm := λ x, Inf (norm '' {m | mk' S m = x}) }
 
+lemma add_subgroup.quotient_norm_eq {S : add_subgroup M} (x : M ⧸ S) :
+  ∥x∥ = Inf (norm '' {m : M | (m : M ⧸ S) = x}) :=
+rfl
+
 lemma image_norm_nonempty {S : add_subgroup M} :
   ∀ x : M ⧸ S, (norm '' {m | mk' S m = x}).nonempty :=
 begin

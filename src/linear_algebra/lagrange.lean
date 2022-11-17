@@ -6,7 +6,6 @@ Authors: Kenny Lau, Wrenna Robson
 
 import algebra.big_operators.basic
 import linear_algebra.vandermonde
-import logic.lemmas
 import ring_theory.polynomial.basic
 
 /-!

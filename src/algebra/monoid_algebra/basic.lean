@@ -268,9 +268,13 @@ instance [comm_ring k] [comm_monoid G] : comm_ring (monoid_algebra k G) :=
 
 variables {S : Type*}
 
-instance [monoid R] [semiring k] [distrib_mul_action R k] :
-  has_smul R (monoid_algebra k G) :=
-finsupp.has_smul
+instance [semiring k] [smul_zero_class R k] :
+  smul_zero_class R (monoid_algebra k G) :=
+finsupp.smul_zero_class
+
+instance [semiring k] [distrib_smul R k] :
+  distrib_smul R (monoid_algebra k G) :=
+finsupp.distrib_smul _ _
 
 instance [monoid R] [semiring k] [distrib_mul_action R k] :
   distrib_mul_action R (monoid_algebra k G) :=
@@ -451,7 +455,7 @@ end misc_theorems
 /-! #### Non-unital, non-associative algebra structure -/
 section non_unital_non_assoc_algebra
 
-variables (k) [monoid R] [semiring k] [distrib_mul_action R k] [has_mul G]
+variables (k) [semiring k] [distrib_smul R k] [has_mul G]
 
 instance is_scalar_tower_self [is_scalar_tower R k k] :
   is_scalar_tower R (monoid_algebra k G) (monoid_algebra k G) :=
@@ -460,8 +464,8 @@ begin
   ext m,
   classical,
   simp only [mul_apply, finsupp.smul_sum, smul_ite, smul_mul_assoc, sum_smul_index', zero_mul,
-     if_t_t, implies_true_iff, eq_self_iff_true, sum_zero, coe_smul, smul_eq_mul, pi.smul_apply,
-     smul_zero],
+     if_t_t, implies_true_iff, eq_self_iff_true, sum_zero, finsupp.coe_smul, smul_eq_mul,
+     pi.smul_apply, smul_zero],
 end⟩
 
 /-- Note that if `k` is a `comm_semiring` then we have `smul_comm_class k k k` and so we can take
@@ -473,8 +477,8 @@ instance smul_comm_class_self [smul_comm_class R k k] :
 begin
   ext m,
   simp only [mul_apply, finsupp.sum, finset.smul_sum, smul_ite, mul_smul_comm, sum_smul_index',
-    implies_true_iff, eq_self_iff_true, coe_smul, ite_eq_right_iff, smul_eq_mul, pi.smul_apply,
-    mul_zero, smul_zero],
+    implies_true_iff, eq_self_iff_true, finsupp.coe_smul, ite_eq_right_iff, smul_eq_mul,
+    pi.smul_apply, mul_zero, smul_zero],
 end⟩
 
 instance smul_comm_class_symm_self [smul_comm_class k R k] :
@@ -999,9 +1003,9 @@ end mul_one_class
 /-! #### Semiring structure -/
 section semiring
 
-instance {R : Type*} [monoid R] [semiring k] [distrib_mul_action R k] :
-  has_smul R (add_monoid_algebra k G) :=
-finsupp.has_smul
+instance {R : Type*} [semiring k] [smul_zero_class R k] :
+  smul_zero_class R (add_monoid_algebra k G) :=
+finsupp.smul_zero_class
 
 variables [semiring k] [add_monoid G]
 
@@ -1298,22 +1302,22 @@ variables {k G}
 
 section non_unital_non_assoc_algebra
 
-variables (k) [monoid R] [semiring k] [distrib_mul_action R k] [has_add G]
+variables (k) [semiring k] [distrib_smul R k] [has_add G]
 
 instance is_scalar_tower_self [is_scalar_tower R k k] :
   is_scalar_tower R (add_monoid_algebra k G) (add_monoid_algebra k G) :=
-@monoid_algebra.is_scalar_tower_self k (multiplicative G) R _ _ _ _ _
+@monoid_algebra.is_scalar_tower_self k (multiplicative G) R _ _ _ _
 
 /-- Note that if `k` is a `comm_semiring` then we have `smul_comm_class k k k` and so we can take
 `R = k` in the below. In other words, if the coefficients are commutative amongst themselves, they
 also commute with the algebra multiplication. -/
 instance smul_comm_class_self [smul_comm_class R k k] :
   smul_comm_class R (add_monoid_algebra k G) (add_monoid_algebra k G) :=
-@monoid_algebra.smul_comm_class_self k (multiplicative G) R _ _ _ _ _
+@monoid_algebra.smul_comm_class_self k (multiplicative G) R _ _ _ _
 
 instance smul_comm_class_symm_self [smul_comm_class k R k] :
   smul_comm_class (add_monoid_algebra k G) R (add_monoid_algebra k G) :=
-@monoid_algebra.smul_comm_class_symm_self k (multiplicative G) R _ _ _ _ _
+@monoid_algebra.smul_comm_class_symm_self k (multiplicative G) R _ _ _ _
 
 variables {A : Type u₃} [non_unital_non_assoc_semiring A]
 

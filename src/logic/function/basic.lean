@@ -9,6 +9,10 @@ import tactic.cache
 
 /-!
 # Miscellaneous function constructions and lemmas
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/511
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes u v w
@@ -420,6 +424,7 @@ end surj_inv
 
 section update
 variables {α : Sort u} {β : α → Sort v} {α' : Sort w} [decidable_eq α] [decidable_eq α']
+  {f g : Π a, β a} {a : α} {b : β a}
 
 /-- Replacing the value of a function at a given point by a given value. -/
 def update (f : Πa, β a) (a' : α) (v : β a') (a : α) : β a :=
@@ -465,6 +470,12 @@ funext_iff.trans $ forall_update_iff _ (λ x y, y = g x)
 lemma eq_update_iff {a : α} {b : β a} {f g : Π a, β a} :
   g = update f a b ↔ g a = b ∧ ∀ x ≠ a, g x = f x :=
 funext_iff.trans $ forall_update_iff _ (λ x y, g x = y)
+
+@[simp] lemma update_eq_self_iff : update f a b = f ↔ b = f a := by simp [update_eq_iff]
+@[simp] lemma eq_update_self_iff : f = update f a b ↔ f a = b := by simp [eq_update_iff]
+
+lemma ne_update_self_iff : f ≠ update f a b ↔ f a ≠ b := eq_update_self_iff.not
+lemma update_ne_self_iff : update f a b ≠ f ↔ b ≠ f a := update_eq_self_iff.not
 
 @[simp] lemma update_eq_self (a : α) (f : Πa, β a) : update f a (f a) = f :=
 update_eq_iff.2 ⟨rfl, λ _ _, rfl⟩
@@ -661,6 +672,8 @@ def involutive {α} (f : α → α) : Prop := ∀ x, f (f x) = x
 
 lemma involutive_iff_iter_2_eq_id {α} {f : α → α} : involutive f ↔ (f^[2] = id) :=
 funext_iff.symm
+
+lemma _root_.bool.involutive_bnot : involutive bnot := bnot_bnot
 
 namespace involutive
 variables {α : Sort u} {f : α → α} (h : involutive f)

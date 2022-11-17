@@ -84,7 +84,7 @@ begin
     mul_add, exp_map_circle_add],
 end
 
-lemma to_circle_continuous : continuous (@to_circle T) :=
+lemma continuous_to_circle : continuous (@to_circle T) :=
 continuous_coinduced_dom.mpr (exp_map_circle.continuous.comp $ continuous_const.mul continuous_id')
 
 lemma injective_to_circle (hT : T ≠ 0) : function.injective (@to_circle T) :=
@@ -126,7 +126,7 @@ section monomials
 considered as bundled continuous maps from `ℝ / ℤ • T` to `ℂ`. -/
 def fourier (n : ℤ) : C(add_circle T, ℂ) :=
 { to_fun := λ x, add_circle.to_circle (n • x),
-  continuous_to_fun := continuous_induced_dom.comp $ add_circle.to_circle_continuous.comp $
+  continuous_to_fun := continuous_induced_dom.comp $ add_circle.continuous_to_circle.comp $
   continuous_zsmul _ }
 
 @[simp] lemma fourier_apply {n : ℤ} {x : add_circle T} :
@@ -277,8 +277,7 @@ hilbert_basis.mk orthonormal_fourier (span_fourier_Lp_closure_eq_top (by norm_nu
 
 /-- The elements of the Hilbert basis `fourier_series` are the functions `fourier_Lp 2`, i.e. the
 monomials `fourier n` on the circle considered as elements of `L²`. -/
-@[simp] lemma coe_fourier_series : ⇑(@fourier_series _ hT) = fourier_Lp 2 :=
-hilbert_basis.coe_mk _ _
+@[simp] lemma coe_fourier_series : ⇑(@fourier_series _ hT) = fourier_Lp 2:= hilbert_basis.coe_mk _ _
 
 /-- Under the isometric isomorphism `fourier_series` from `Lp ℂ 2 haar_circle` to `ℓ²(ℤ, ℂ)`, the
 `i`-th coefficient is the integral over `add_circle T` of `λ t, fourier (-i) t * f t`. -/
@@ -306,13 +305,28 @@ begin
   have H₁ : ∥fourier_series.repr f∥ ^ 2 = ∑' i, ∥fourier_series.repr f i∥ ^ 2,
   { exact_mod_cast lp.norm_rpow_eq_tsum _ (fourier_series.repr f),
     norm_num },
-  have H₂ : ∥fourier_series.repr f∥ ^ 2 = ∥f∥ ^2 := by simp,
+  have H₂ : ∥fourier_series.repr f∥ ^ 2 = ∥f∥ ^ 2 := by simp,
   have H₃ := congr_arg is_R_or_C.re (@L2.inner_def (add_circle T) ℂ ℂ _ _ _ _ f f),
   rw ← integral_re at H₃,
   { simp only [← norm_sq_eq_inner] at H₃,
-    rw [← H₁, H₂],
-    exact H₃ },
+    rw [← H₁, H₂, H₃], },
   { exact L2.integrable_inner f f },
+end
+
+/-- The Fourier coefficients are given by integrating over the interval `[a, a + T] ⊂ ℝ`. -/
+lemma fourier_series_repr' (f : Lp ℂ 2 $ @haar_add_circle T hT) (n : ℤ) (a : ℝ):
+  fourier_series.repr f n = 1 / T * ∫ x in a .. a + T, @fourier T (-n) x * f x :=
+begin
+  have ha : ae_strongly_measurable (λ (t : add_circle T), fourier (-n) t * f t) haar_add_circle :=
+  (continuous_map_class.map_continuous _).ae_strongly_measurable.mul (Lp.ae_strongly_measurable _),
+  have := add_circle.interval_integral_preimage T a (ha.smul_measure _),
+  rw [fourier_series_repr, this, ←complex.of_real_one, ←complex.of_real_div, ←complex.real_smul,
+    ←@ennreal.to_real_of_real (1 / T) (one_div_pos.mpr hT.elim).le, ←integral_smul_measure],
+  congr' 1,
+  dsimp only [(volume), haar_add_circle],
+  rw [←smul_assoc, smul_eq_mul],
+  suffices : ennreal.of_real (1 / T) * ennreal.of_real T = 1, { rw [this,  one_smul], },
+  { rw [←ennreal.of_real_mul' hT.elim.le, one_div_mul_cancel hT.elim.ne', ennreal.of_real_one] },
 end
 
 end fourier

@@ -5,8 +5,8 @@ Authors: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 -/
 import data.multiset.finset_ops
 import algebra.hom.embedding
+import data.int.order.basic
 import tactic.apply
-import tactic.monotonicity
 import tactic.nth_rewrite
 
 /-!

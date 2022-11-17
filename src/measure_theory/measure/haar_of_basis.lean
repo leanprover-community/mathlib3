@@ -56,21 +56,20 @@ end
 begin
   simp only [parallelogram],
   let K : (ι' → ℝ) ≃ (ι → ℝ) := equiv.Pi_congr_left' (λ (a : ι'), ℝ) e,
-  have : K ⁻¹' (Icc (0 : (ι → ℝ)) 1) = (Icc (0 : (ι' → ℝ)) 1),
-  { ext x,
+  have : Icc (0 : (ι → ℝ)) 1 = K '' (Icc (0 : (ι' → ℝ)) 1),
+  { rw ← equiv.preimage_eq_iff_eq_image,
+    ext x,
     simp only [mem_preimage, mem_Icc, pi.le_def, pi.zero_apply, equiv.Pi_congr_left'_apply,
       pi.one_apply],
     refine ⟨λ h, ⟨λ i, _, λ i, _⟩, λ h, ⟨λ i, h.1 (e.symm i), λ i, h.2 (e.symm i)⟩⟩,
     { simpa only [equiv.symm_apply_apply] using h.1 (e i) },
     { simpa only [equiv.symm_apply_apply] using h.2 (e i) } },
-  rw equiv.preimage_eq_iff_eq_image at this,
   rw [this, ← image_comp],
   congr' 1,
   ext x,
-  simp only [orthonormal_basis.coe_reindex, function.comp_app, equiv.symm_apply_apply,
-    equiv.Pi_congr_left'_apply],
-  convert ((equiv.sum_comp e.symm (λ (i : ι'), x i • v (e i)))).symm,
-  simp only [equiv.apply_symm_apply],
+  simpa only [orthonormal_basis.coe_reindex, function.comp_app, equiv.symm_apply_apply,
+    equiv.Pi_congr_left'_apply, equiv.apply_symm_apply]
+      using (e.symm.sum_comp (λ (i : ι'), x i • v (e i))).symm,
 end
 
 /- The parallelogram associated to an orthonormal basis of `ℝ` is either `[0, 1]` or `[-1, 0]`. -/
@@ -138,14 +137,11 @@ by the basis. -/
 measure.add_haar_measure b.parallelogram
 
 instance is_add_haar_measure_basis_add_haar (b : basis ι ℝ E) :
-  is_add_haar_measure (b.add_haar) :=
-by { rw basis.add_haar, apply measure.is_add_haar_measure_add_haar_measure }
+  is_add_haar_measure b.add_haar :=
+by { rw basis.add_haar, exact measure.is_add_haar_measure_add_haar_measure _ }
 
 lemma basis.add_haar_self (b : basis ι ℝ E) : b.add_haar (parallelogram b) = 1 :=
-begin
-  rw [basis.add_haar],
-  exact add_haar_measure_self
-end
+by { rw [basis.add_haar], exact add_haar_measure_self }
 
 end normed_space
 

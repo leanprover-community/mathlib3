@@ -7,7 +7,7 @@ import analysis.inner_product_space.orientation
 import measure_theory.measure.haar_lebesgue
 
 /-!
-# Volume forms and measures on inner product space
+# Volume forms and measures on inner product spaces
 
 A volume form induces a Lebesgue measure on general finite-dimensional real vector spaces. In this
 file, we discuss the specific situation of inner product spaces, where an orientation gives

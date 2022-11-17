@@ -788,6 +788,15 @@ lemma neighbor_finset_def : G.neighbor_finset v = (G.neighbor_set v).to_finset :
   w ∈ G.neighbor_finset v ↔ G.adj v w :=
 set.mem_to_finset
 
+@[simp] lemma not_mem_neighbor_finset_self : v ∉ G.neighbor_finset v :=
+(mem_neighbor_finset _ _ _).not.mpr $ G.loopless _
+
+lemma neighbor_finset_disjoint_singleton : disjoint (G.neighbor_finset v) {v} :=
+finset.disjoint_singleton_right.mpr $ not_mem_neighbor_finset_self _ _
+
+lemma singleton_disjoint_neighbor_finset : disjoint {v} (G.neighbor_finset v) :=
+finset.disjoint_singleton_left.mpr $ not_mem_neighbor_finset_self _ _
+
 /--
 `G.degree v` is the number of vertices adjacent to `v`.
 -/

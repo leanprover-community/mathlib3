@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 import data.rat.defs
 import data.int.cast.lemmas
 import data.int.div
+import algebra.group_with_zero.units.lemmas
 import tactic.nth_rewrite
 
 /-!
@@ -178,14 +179,9 @@ by rw [sub_eq_add_neg, sub_eq_add_neg, ←neg_mul, ←num_neg_eq_neg_num, ←den
 end casts
 
 lemma inv_def' {q : ℚ} : q⁻¹ = (q.denom : ℚ) / q.num :=
-by { conv_lhs { rw ←(@num_denom q) }, cases q, simp [div_num_denom] }
+by { conv_lhs { rw ←@num_denom q }, rw [inv_def, mk_eq_div, int.cast_coe_nat] }
 
-protected lemma inv_neg (q : ℚ) : (-q)⁻¹ = -(q⁻¹) :=
-begin
-  simp only [inv_def'],
-  cases eq_or_ne (q.num : ℚ) 0 with hq hq;
-  simp [div_eq_iff, hq]
-end
+protected lemma inv_neg (q : ℚ) : (-q)⁻¹ = -q⁻¹ := by { rw ←@num_denom q, simp [-num_denom] }
 
 @[simp] lemma mul_denom_eq_num {q : ℚ} : q * q.denom = q.num :=
 begin

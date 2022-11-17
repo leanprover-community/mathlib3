@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.group.pi
-import algebra.hom.equiv
+import algebra.hom.equiv.basic
 import algebra.ring.opposite
 import data.finset.fold
 import data.fintype.basic
@@ -316,12 +316,13 @@ end finset
 
 section
 open finset
-variables [fintype α] [decidable_eq α] [comm_monoid β]
+variables [fintype α] [comm_monoid β]
 
 @[to_additive]
 lemma is_compl.prod_mul_prod {s t : finset α} (h : is_compl s t) (f : α → β) :
   (∏ i in s, f i) * (∏ i in t, f i) = ∏ i, f i :=
-(finset.prod_union h.disjoint).symm.trans $ by rw [← finset.sup_eq_union, h.sup_eq_top]; refl
+(finset.prod_disj_union h.disjoint).symm.trans $
+  by { classical, rw [finset.disj_union_eq_union, ← finset.sup_eq_union, h.sup_eq_top]; refl }
 
 end
 
@@ -386,9 +387,10 @@ by classical;
 calc (∏ x in s.sigma t, f x) =
        ∏ x in s.bUnion (λ a, (t a).map (function.embedding.sigma_mk a)), f x : by rw sigma_eq_bUnion
   ... = ∏ a in s, ∏ x in (t a).map (function.embedding.sigma_mk a), f x :
-    prod_bUnion $ assume a₁ ha a₂ ha₂ h x hx,
-    by { simp only [inf_eq_inter, mem_inter, mem_map, function.embedding.sigma_mk_apply] at hx,
-      rcases hx with ⟨⟨y, hy, rfl⟩, ⟨z, hz, hz'⟩⟩, cc }
+    prod_bUnion $ λ a₁ ha a₂ ha₂ h, disjoint_left.mpr $
+      by { simp_rw [mem_map, function.embedding.sigma_mk_apply],
+           rintros _ ⟨y, hy, rfl⟩ ⟨z, hz, hz'⟩,
+           exact h (congr_arg sigma.fst hz'.symm) }
   ... = ∏ a in s, ∏ s in t a, f ⟨a, s⟩ :
     prod_congr rfl $ λ _ _, prod_map _ _ _
 

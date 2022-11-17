@@ -993,6 +993,7 @@ begin
       { rwa [finset.mem_coe] }},
     convert h_add _ Pg (h_ind x mx),
     { ext1 y, by_cases hy : y ∈ f ⁻¹' {x}; [simpa [hy], simp [hy]] },
+    rw disjoint_iff_inf_le,
     rintro y, by_cases hy : y ∈ f ⁻¹' {x}; simp [hy] }
 end
 
@@ -2020,7 +2021,7 @@ begin
         apply_rules [hz₁, hz₂], },
       { simp only [ae_seq, hx, if_false],
         exact le_rfl, }, }, },
-  convert (lintegral_supr_directed_of_measurable (ae_seq.measurable hf p) 
+  convert (lintegral_supr_directed_of_measurable (ae_seq.measurable hf p)
     h_ae_seq_directed) using 1,
   { simp_rw ←supr_apply,
     rw lintegral_congr_ae (ae_seq.supr hf hp).symm, },

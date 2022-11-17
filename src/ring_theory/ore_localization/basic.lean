@@ -3,8 +3,6 @@ Copyright (c) 2022 Jakob von Raumer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob von Raumer, Kevin Klinge
 -/
-import algebra.group_with_zero.basic
-import group_theory.congruence
 import group_theory.monoid_localization
 import ring_theory.non_zero_divisors
 import ring_theory.ore_localization.ore_set

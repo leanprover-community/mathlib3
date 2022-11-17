@@ -5,7 +5,6 @@ Authors: Moritz Doll
 -/
 
 import analysis.calculus.cont_diff
-import analysis.complex.basic
 import analysis.locally_convex.with_seminorms
 import topology.algebra.uniform_filter_basis
 import topology.continuous_function.bounded
@@ -31,6 +30,8 @@ Schwartz space into a locally convex topological vector space.
 * `schwartz_map`: The Schwartz space is the space of smooth functions such that all derivatives
 decay faster than any power of `∥x∥`.
 * `schwartz_map.seminorm`: The family of seminorms as described above
+* `schwartz_map.fderiv_clm`: The differential as a continuous linear map
+`𝓢(E, F) →L[𝕜] 𝓢(E, E →L[ℝ] F)`
 
 ## Main statements
 
@@ -94,6 +95,10 @@ lemma smooth (f : 𝓢(E, F)) (n : ℕ∞) : cont_diff ℝ n f := f.smooth'.of_l
 
 /-- Every Schwartz function is continuous. -/
 @[continuity, protected] lemma continuous (f : 𝓢(E, F)) : continuous f := (f.smooth 0).continuous
+
+/-- Every Schwartz function is differentiable. -/
+@[protected] lemma differentiable (f : 𝓢(E, F)) : differentiable ℝ f :=
+(f.smooth 1).differentiable rfl.le
 
 @[ext] lemma ext {f g : 𝓢(E, F)} (h : ∀ x, (f : E → F) x = g x) : f = g := fun_like.ext f g h
 
@@ -412,6 +417,67 @@ instance : topological_space.first_countable_topology (𝓢(E, F)) :=
 (schwartz_with_seminorms ℝ E F).first_countable
 
 end topology
+
+section fderiv
+
+/-! ### Derivatives of Schwartz functions -/
+
+variables {E F}
+
+/-- The derivative of a Schwartz function as a Schwartz function with values in the
+continuous linear maps `E→L[ℝ] F`. -/
+@[protected] def fderiv (f : 𝓢(E, F)) : 𝓢(E, E →L[ℝ] F) :=
+{ to_fun := fderiv ℝ f,
+  smooth' := (cont_diff_top_iff_fderiv.mp f.smooth').2,
+  decay' :=
+  begin
+    intros k n,
+    cases f.decay' k (n+1) with C hC,
+    use C,
+    intros x,
+    rw norm_iterated_fderiv_fderiv,
+    exact hC x,
+  end }
+
+@[simp, norm_cast] lemma coe_fderiv (f : 𝓢(E, F)) : ⇑f.fderiv = fderiv ℝ f := rfl
+@[simp] lemma fderiv_apply (f : 𝓢(E, F)) (x : E) : f.fderiv x = fderiv ℝ f x := rfl
+
+variables (𝕜)
+variables [is_R_or_C 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
+
+/-- The derivative on Schwartz space as a linear map. -/
+def fderiv_lm : 𝓢(E, F) →ₗ[𝕜] 𝓢(E, E →L[ℝ] F) :=
+{ to_fun := schwartz_map.fderiv,
+  map_add' := λ f g, ext $ λ _, fderiv_add
+    f.differentiable.differentiable_at
+    g.differentiable.differentiable_at,
+  map_smul' := λ a f, ext $ λ _, fderiv_const_smul f.differentiable.differentiable_at a }
+
+@[simp, norm_cast] lemma fderiv_lm_apply (f : 𝓢(E, F)) : fderiv_lm 𝕜 f = schwartz_map.fderiv f :=
+rfl
+
+/-- The derivative on Schwartz space as a continuous linear map. -/
+def fderiv_clm : 𝓢(E, F) →L[𝕜] 𝓢(E, E →L[ℝ] F) :=
+{ cont :=
+  begin
+    change continuous (fderiv_lm 𝕜 : 𝓢(E, F) →ₗ[𝕜] 𝓢(E, E →L[ℝ] F)),
+    refine seminorm.continuous_from_bounded (schwartz_with_seminorms 𝕜 E F)
+      (schwartz_with_seminorms 𝕜 E (E →L[ℝ] F)) _ _,
+    rintros ⟨k, n⟩,
+    use [{⟨k, n+1⟩}, 1, one_ne_zero],
+    intros f,
+    simp only [schwartz_seminorm_family_apply, seminorm.comp_apply, finset.sup_singleton, one_smul],
+    refine (fderiv_lm 𝕜 f).seminorm_le_bound 𝕜 k n (by positivity) _,
+    intros x,
+    rw [fderiv_lm_apply, coe_fderiv, norm_iterated_fderiv_fderiv],
+    exact f.le_seminorm 𝕜 k (n+1) x,
+  end,
+  to_linear_map := fderiv_lm 𝕜 }
+
+@[simp, norm_cast] lemma fderiv_clm_apply (f : 𝓢(E, F)) : fderiv_clm 𝕜 f = schwartz_map.fderiv f :=
+rfl
+
+end fderiv
 
 section bounded_continuous_function
 

@@ -3,8 +3,8 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Simon Hudon, Mario Carneiro
 -/
-import tactic.to_additive
 import tactic.basic
+import logic.function.basic
 
 /-!
 # Typeclasses for (semi)groups and monoids
@@ -808,7 +808,7 @@ involutivity of negation. -/
 `(a * b)⁻¹ = b⁻¹ * a⁻¹` and `a * b = 1 → a⁻¹ = b`.
 
 This is the immediate common ancestor of `group` and `group_with_zero`. -/
-@[protect_proj, ancestor div_inv_monoid has_involutive_inv, to_additive subtraction_monoid]
+@[protect_proj, ancestor div_inv_monoid has_involutive_inv, to_additive]
 class division_monoid (G : Type u) extends div_inv_monoid G, has_involutive_inv G :=
 (mul_inv_rev (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹)
 /- Despite the asymmetry of `inv_eq_of_mul`, the symmetric version is true thanks to the
@@ -900,7 +900,7 @@ by rw [mul_assoc, mul_right_inv, mul_one]
 @[simp, to_additive] lemma inv_mul_cancel_right (a b : G) : a * b⁻¹ * b = a :=
 by rw [mul_assoc, mul_left_inv, mul_one]
 
-@[priority 100, to_additive]
+@[priority 100, to_additive add_group.to_subtraction_monoid]
 instance group.to_division_monoid : division_monoid G :=
 { inv_inv := λ a, inv_eq_of_mul (mul_left_inv a),
   mul_inv_rev := λ a b, inv_eq_of_mul $ by rw [mul_assoc, mul_inv_cancel_left, mul_right_inv],

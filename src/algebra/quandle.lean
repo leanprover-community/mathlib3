@@ -3,8 +3,9 @@ Copyright (c) 2020 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import algebra.hom.equiv
-import data.zmod.basic
+import algebra.hom.equiv.basic
+import algebra.hom.aut
+import data.zmod.defs
 import tactic.group
 
 /-!

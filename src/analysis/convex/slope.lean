@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudriashov, Malo Jaffré
 -/
 import analysis.convex.function
+import tactic.field_simp
 
 /-!
 # Slopes of convex functions

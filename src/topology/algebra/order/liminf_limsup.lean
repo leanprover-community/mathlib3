@@ -3,9 +3,10 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
+import algebra.big_operators.intervals
 import order.liminf_limsup
-import topology.algebra.order.basic
 import order.filter.archimedean
+import topology.algebra.order.basic
 
 /-!
 # Lemmas about liminf and limsup in an order topology.
@@ -382,7 +383,7 @@ begin
 end
 
 lemma limsup_eq_tendsto_sum_indicator_at_top
-  (R : Type*) [strict_ordered_semiring R] [nontrivial R] [archimedean R] (s : ℕ → set α) :
+  (R : Type*) [strict_ordered_semiring R] [archimedean R] (s : ℕ → set α) :
   limsup s at_top =
     {ω | tendsto (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : α → R) ω) at_top at_top} :=
 begin

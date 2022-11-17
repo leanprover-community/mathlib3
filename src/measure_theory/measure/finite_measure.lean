@@ -3,9 +3,9 @@ Copyright (c) 2021 Kalle Kytölä. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä
 -/
-import measure_theory.integral.set_integral
 import topology.continuous_function.bounded
 import topology.algebra.module.weak_dual
+import measure_theory.integral.bochner
 
 /-!
 # Finite measures
@@ -247,7 +247,8 @@ by simpa only [zero_mul] using μ.test_against_nn_const 0
 
 @[simp] lemma test_against_nn_one (μ : finite_measure Ω) : μ.test_against_nn 1 = μ.mass :=
 begin
-  simp only [test_against_nn, coe_one, pi.one_apply, ennreal.coe_one, lintegral_one],
+  simp only [test_against_nn, bounded_continuous_function.coe_one, pi.one_apply, ennreal.coe_one,
+    lintegral_one],
   refl,
 end
 

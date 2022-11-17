@@ -6,7 +6,6 @@ Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
 import algebra.algebra.tower
 import analysis.asymptotics.asymptotics
 import analysis.normed_space.linear_isometry
-import analysis.normed_space.riesz_lemma
 import topology.algebra.module.strong_topology
 
 /-!
@@ -1538,7 +1537,7 @@ lemma is_compact_closure_image_coe_of_bounded [proper_space F] {s : set (E' →S
   is_compact (closure ((coe_fn : (E' →SL[σ₁₂] F) → E' → F) '' s)) :=
 have ∀ x, is_compact (closure (apply' F σ₁₂ x '' s)),
   from λ x, ((apply' F σ₁₂ x).lipschitz.bounded_image hb).is_compact_closure,
-compact_closure_of_subset_compact (is_compact_pi_infinite this)
+is_compact_closure_of_subset_compact (is_compact_pi_infinite this)
   (image_subset_iff.2 $ λ g hg x, subset_closure $ mem_image_of_mem _ hg)
 
 /-- Let `s` be a bounded set in the space of continuous (semi)linear maps `E →SL[σ] F` taking values
@@ -1636,6 +1635,9 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
     { assume x, rw ← map_smul, simp only [eq], exact continuous_linear_map.map_smulₛₗ _ _ _ },
   end,
   cont := cont }
+
+@[simp] lemma extend_eq (x : E) : extend f e h_dense h_e (e x) = f x :=
+dense_inducing.extend_eq _ f.cont _
 
 lemma extend_unique (g : Fₗ →SL[σ₁₂] F) (H : g.comp e = f) : extend f e h_dense h_e = g :=
 continuous_linear_map.coe_fn_injective $

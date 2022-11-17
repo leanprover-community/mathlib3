@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import algebra.order.field.basic
 import ring_theory.polynomial.bernstein
 import topology.continuous_function.polynomial
+import topology.continuous_function.compact
 
 /-!
 # Bernstein approximations and Weierstrass' theorem

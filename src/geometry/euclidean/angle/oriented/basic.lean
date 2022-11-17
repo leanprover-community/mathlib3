@@ -3,7 +3,6 @@ Copyright (c) 2022 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Heather Macbeth
 -/
-import analysis.complex.arg
 import analysis.inner_product_space.two_dim
 import analysis.special_functions.complex.circle
 import geometry.euclidean.angle.unoriented.basic
@@ -945,6 +944,33 @@ begin
   rw [o.angle_eq_abs_oangle_to_real hw hx, o.angle_eq_abs_oangle_to_real hy hz, h]
 end
 
+/-- The oriented angle between two vectors equals the unoriented angle if the sign is positive. -/
+lemma oangle_eq_angle_of_sign_eq_one {x y : V} (h : (o.oangle x y).sign = 1) :
+  o.oangle x y = inner_product_geometry.angle x y :=
+begin
+  by_cases hx : x = 0, { exfalso, simpa [hx] using h },
+  by_cases hy : y = 0, { exfalso, simpa [hy] using h },
+  refine (o.oangle_eq_angle_or_eq_neg_angle hx hy).resolve_right _,
+  intro hxy,
+  rw [hxy, real.angle.sign_neg, neg_eq_iff_neg_eq, eq_comm, ←sign_type.neg_iff, ←not_le] at h,
+  exact h (real.angle.sign_coe_nonneg_of_nonneg_of_le_pi (inner_product_geometry.angle_nonneg _ _)
+                                                         (inner_product_geometry.angle_le_pi _ _))
+end
+
+/-- The oriented angle between two vectors equals minus the unoriented angle if the sign is
+negative. -/
+lemma oangle_eq_neg_angle_of_sign_eq_neg_one {x y : V} (h : (o.oangle x y).sign = -1) :
+  o.oangle x y = -inner_product_geometry.angle x y :=
+begin
+  by_cases hx : x = 0, { exfalso, simpa [hx] using h },
+  by_cases hy : y = 0, { exfalso, simpa [hy] using h },
+  refine (o.oangle_eq_angle_or_eq_neg_angle hx hy).resolve_left _,
+  intro hxy,
+  rw [hxy, ←sign_type.neg_iff, ←not_le] at h,
+  exact h (real.angle.sign_coe_nonneg_of_nonneg_of_le_pi (inner_product_geometry.angle_nonneg _ _)
+                                                         (inner_product_geometry.angle_le_pi _ _))
+end
+
 /-- The oriented angle between two nonzero vectors is zero if and only if the unoriented angle
 is zero. -/
 lemma oangle_eq_zero_iff_angle_eq_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0) :
@@ -972,6 +998,45 @@ begin
     rw h at ha,
     simpa using ha }
 end
+
+/-- One of two vectors is zero or the oriented angle between them is plus or minus `π / 2` if
+and only if the inner product of those vectors is zero. -/
+lemma eq_zero_or_oangle_eq_iff_inner_eq_zero {x y : V} :
+  (x = 0 ∨ y = 0 ∨ o.oangle x y = (π / 2 : ℝ) ∨ o.oangle x y = (-π / 2 : ℝ)) ↔ ⟪x, y⟫ = 0 :=
+begin
+  by_cases hx : x = 0, { simp [hx] },
+  by_cases hy : y = 0, { simp [hy] },
+  rw [inner_product_geometry.inner_eq_zero_iff_angle_eq_pi_div_two, or_iff_right hx,
+      or_iff_right hy],
+  refine ⟨λ h, _, λ h, _⟩,
+  { rwa [o.angle_eq_abs_oangle_to_real hx hy, real.angle.abs_to_real_eq_pi_div_two_iff] },
+  { convert o.oangle_eq_angle_or_eq_neg_angle hx hy; rw [h],
+    exact neg_div _ _ }
+end
+
+/-- If the oriented angle between two vectors is `π / 2`, the inner product of those vectors
+is zero. -/
+lemma inner_eq_zero_of_oangle_eq_pi_div_two {x y : V} (h : o.oangle x y = (π / 2 : ℝ)) :
+  ⟪x, y⟫ = 0 :=
+o.eq_zero_or_oangle_eq_iff_inner_eq_zero.1 $ or.inr $ or.inr $ or.inl h
+
+/-- If the oriented angle between two vectors is `π / 2`, the inner product of those vectors
+(reversed) is zero. -/
+lemma inner_rev_eq_zero_of_oangle_eq_pi_div_two {x y : V} (h : o.oangle x y = (π / 2 : ℝ)) :
+  ⟪y, x⟫ = 0 :=
+by rw [real_inner_comm, o.inner_eq_zero_of_oangle_eq_pi_div_two h]
+
+/-- If the oriented angle between two vectors is `-π / 2`, the inner product of those vectors
+is zero. -/
+lemma inner_eq_zero_of_oangle_eq_neg_pi_div_two {x y : V} (h : o.oangle x y = (-π / 2 : ℝ)) :
+  ⟪x, y⟫ = 0 :=
+o.eq_zero_or_oangle_eq_iff_inner_eq_zero.1 $ or.inr $ or.inr $ or.inr h
+
+/-- If the oriented angle between two vectors is `-π / 2`, the inner product of those vectors
+(reversed) is zero. -/
+lemma inner_rev_eq_zero_of_oangle_eq_neg_pi_div_two {x y : V} (h : o.oangle x y = (-π / 2 : ℝ)) :
+  ⟪y, x⟫ = 0 :=
+by rw [real_inner_comm, o.inner_eq_zero_of_oangle_eq_neg_pi_div_two h]
 
 /-- Negating the first vector passed to `oangle` negates the sign of the angle. -/
 @[simp] lemma oangle_sign_neg_left (x y : V) :
@@ -1091,6 +1156,64 @@ not change the sign of the angle. -/
 @[simp] lemma oangle_sign_sub_smul_left (x y : V) (r : ℝ) :
   (o.oangle (x - r • y) y).sign = (o.oangle x y).sign :=
 by rw [sub_eq_add_neg, ←neg_smul, oangle_sign_add_smul_left]
+
+/-- Adding the first vector passed to `oangle` to the second vector does not change the sign of
+the angle. -/
+@[simp] lemma oangle_sign_add_right (x y : V) : (o.oangle x (x + y)).sign = (o.oangle x y).sign :=
+by rw [←o.oangle_sign_smul_add_right x y 1, one_smul]
+
+/-- Adding the second vector passed to `oangle` to the first vector does not change the sign of
+the angle. -/
+@[simp] lemma oangle_sign_add_left (x y : V) : (o.oangle (x + y) y).sign = (o.oangle x y).sign :=
+by rw [←o.oangle_sign_add_smul_left x y 1, one_smul]
+
+/-- Subtracting the first vector passed to `oangle` from the second vector does not change the
+sign of the angle. -/
+@[simp] lemma oangle_sign_sub_right (x y : V) :
+  (o.oangle x (y - x)).sign = (o.oangle x y).sign :=
+by rw [←o.oangle_sign_sub_smul_right x y 1, one_smul]
+
+/-- Subtracting the second vector passed to `oangle` from the first vector does not change the
+sign of the angle. -/
+@[simp] lemma oangle_sign_sub_left (x y : V) :
+  (o.oangle (x - y) y).sign = (o.oangle x y).sign :=
+by rw [←o.oangle_sign_sub_smul_left x y 1, one_smul]
+
+/-- Subtracting the second vector passed to `oangle` from a multiple of the first vector negates
+the sign of the angle. -/
+@[simp] lemma oangle_sign_smul_sub_right (x y : V) (r : ℝ) :
+  (o.oangle x (r • x - y)).sign = -(o.oangle x y).sign :=
+by rw [←oangle_sign_neg_right, sub_eq_add_neg, oangle_sign_smul_add_right]
+
+/-- Subtracting the first vector passed to `oangle` from a multiple of the second vector negates
+the sign of the angle. -/
+@[simp] lemma oangle_sign_smul_sub_left (x y : V) (r : ℝ) :
+  (o.oangle (r • y - x) y).sign = -(o.oangle x y).sign :=
+by rw [←oangle_sign_neg_left, sub_eq_neg_add, oangle_sign_add_smul_left]
+
+/-- Subtracting the second vector passed to `oangle` from the first vector negates the sign of
+the angle. -/
+lemma oangle_sign_sub_right_eq_neg (x y : V) :
+  (o.oangle x (x - y)).sign = -(o.oangle x y).sign :=
+by rw [←o.oangle_sign_smul_sub_right x y 1, one_smul]
+
+/-- Subtracting the first vector passed to `oangle` from the second vector negates the sign of
+the angle. -/
+lemma oangle_sign_sub_left_eq_neg (x y : V) :
+  (o.oangle (y - x) y).sign = -(o.oangle x y).sign :=
+by rw [←o.oangle_sign_smul_sub_left x y 1, one_smul]
+
+/-- Subtracting the first vector passed to `oangle` from the second vector then swapping the
+vectors does not change the sign of the angle. -/
+@[simp] lemma oangle_sign_sub_right_swap (x y : V) :
+  (o.oangle y (y - x)).sign = (o.oangle x y).sign :=
+by rw [oangle_sign_sub_right_eq_neg, o.oangle_rev y x, real.angle.sign_neg]
+
+/-- Subtracting the second vector passed to `oangle` from the first vector then swapping the
+vectors does not change the sign of the angle. -/
+@[simp] lemma oangle_sign_sub_left_swap (x y : V) :
+  (o.oangle (x - y) x).sign = (o.oangle x y).sign :=
+by rw [oangle_sign_sub_left_eq_neg, o.oangle_rev y x, real.angle.sign_neg]
 
 /-- The sign of the angle between a vector, and a linear combination of that vector with a second
 vector, is the sign of the factor by which the second vector is multiplied in that combination

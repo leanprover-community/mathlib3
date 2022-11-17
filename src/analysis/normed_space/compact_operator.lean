@@ -87,7 +87,7 @@ lemma is_compact_operator_iff_exists_mem_nhds_is_compact_closure_image [t2_space
   is_compact_operator f ↔ ∃ V ∈ (𝓝 0 : filter M₁), is_compact (closure $ f '' V) :=
 begin
   rw is_compact_operator_iff_exists_mem_nhds_image_subset_compact,
-  exact ⟨λ ⟨V, hV, K, hK, hKV⟩, ⟨V, hV, compact_closure_of_subset_compact hK hKV⟩,
+  exact ⟨λ ⟨V, hV, K, hK, hKV⟩, ⟨V, hV, is_compact_closure_of_subset_compact hK hKV⟩,
     λ ⟨V, hV, hVc⟩, ⟨V, hV, closure (f '' V), hVc, subset_closure⟩⟩,
 end
 
@@ -113,7 +113,7 @@ lemma is_compact_operator.is_compact_closure_image_of_vonN_bounded [t2_space M�
   {f : M₁ →ₛₗ[σ₁₂] M₂} (hf : is_compact_operator f) {S : set M₁}
   (hS : is_vonN_bounded 𝕜₁ S) : is_compact (closure $ f '' S) :=
 let ⟨K, hK, hKf⟩ := hf.image_subset_compact_of_vonN_bounded hS in
-compact_closure_of_subset_compact hK hKf
+is_compact_closure_of_subset_compact hK hKf
 
 end bounded
 
@@ -388,7 +388,7 @@ begin
   { change is_compact_operator (u : M₁ →ₛₗ[σ₁₂] M₂),
     rw is_compact_operator_iff_is_compact_closure_image_closed_ball (u : M₁ →ₛₗ[σ₁₂] M₂)
       zero_lt_one,
-    exact compact_of_totally_bounded_is_closed this.closure is_closed_closure },
+    exact is_compact_of_totally_bounded_is_closed this.closure is_closed_closure },
   rw metric.totally_bounded_iff,
   intros ε hε,
   rcases hu (ε/2) (by linarith) with ⟨v, hv, huv⟩,

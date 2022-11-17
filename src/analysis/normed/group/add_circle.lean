@@ -197,12 +197,18 @@ begin
     rintros y ⟨⟨hy₁, hy₂⟩, hy₀⟩,
     obtain ⟨hy₃, hy₄⟩ := hs hy₀,
     rcases lt_trichotomy 0 p with hp | rfl | hp,
-    { cases int.cast_le_neg_one_or_one_le_cast_of_ne_zero ℝ hz with hz' hz';
-      nlinarith [hz', abs_eq_self.mpr hp.le], },
+    { cases int.cast_le_neg_one_or_one_le_cast_of_ne_zero ℝ hz with hz' hz',
+      { have : ↑z * p ≤ - p, nlinarith,
+        linarith [abs_eq_self.mpr hp.le] },
+      { have : p ≤ ↑z * p, nlinarith,
+        linarith [abs_eq_self.mpr hp.le] } },
     { simp only [mul_zero, add_zero, abs_zero, zero_div] at hy₁ hy₂ hε,
-      linarith, },
-    { cases int.cast_le_neg_one_or_one_le_cast_of_ne_zero ℝ hz with hz' hz';
-      nlinarith [hz', abs_eq_neg_self.mpr hp.le], }, },
+      linarith },
+    { cases int.cast_le_neg_one_or_one_le_cast_of_ne_zero ℝ hz with hz' hz',
+      { have : - p ≤ ↑z * p, nlinarith,
+        linarith [abs_eq_neg_self.mpr hp.le] },
+      { have : ↑z * p ≤ p, nlinarith,
+        linarith [abs_eq_neg_self.mpr hp.le] } } },
 end
 
 end add_circle

@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 
-import ring_theory.adjoin.basic
-import data.finsupp.antidiagonal
+import algebra.algebra.tower
 import algebra.monoid_algebra.support
+import data.finsupp.antidiagonal
 import order.symm_diff
+import ring_theory.adjoin.basic
 
 /-!
 # Multivariate polynomials
@@ -657,15 +658,15 @@ def constant_coeff : mv_polynomial σ R →+* R :=
 
 lemma constant_coeff_eq : (constant_coeff : mv_polynomial σ R → R) = coeff 0 := rfl
 
-@[simp]
-lemma constant_coeff_C (r : R) :
-  constant_coeff (C r : mv_polynomial σ R) = r :=
+variables (σ)
+@[simp] lemma constant_coeff_C (r : R) : constant_coeff (C r : mv_polynomial σ R) = r :=
 by simp [constant_coeff_eq]
+variables {σ}
 
-@[simp]
-lemma constant_coeff_X (i : σ) :
-  constant_coeff (X i : mv_polynomial σ R) = 0 :=
+variables (R)
+@[simp] lemma constant_coeff_X (i : σ) : constant_coeff (X i : mv_polynomial σ R) = 0 :=
 by simp [constant_coeff_eq]
+variables {R}
 
 lemma constant_coeff_monomial [decidable_eq σ] (d : σ →₀ ℕ) (r : R) :
   constant_coeff (monomial d r) = if d = 0 then r else 0 :=
@@ -675,7 +676,7 @@ variables (σ R)
 
 @[simp] lemma constant_coeff_comp_C :
   constant_coeff.comp (C : R →+* mv_polynomial σ R) = ring_hom.id R :=
-by { ext, apply constant_coeff_C }
+by { ext x, exact constant_coeff_C σ x }
 
 @[simp] lemma constant_coeff_comp_algebra_map :
   constant_coeff.comp (algebra_map R (mv_polynomial σ R)) = ring_hom.id R :=

@@ -153,7 +153,7 @@ begin
     rw [int.nat_abs_dvd_iff_dvd, ←one_geom_sum, ←eval_geom_sum, ←prod_cyclotomic_eq_geom_sum hn'],
     apply eval_dvd,
     apply finset.dvd_prod_of_mem,
-    simp [hn'.ne', hn.ne'] },
+    simp [hn', hn.ne'] },
 
   have := prod_cyclotomic_eq_geom_sum hn' ℤ,
   apply_fun eval 1 at this,
@@ -165,7 +165,7 @@ begin
   swap,
   { simp only [singleton_subset_iff, mem_sdiff, mem_erase, ne.def, mem_divisors, dvd_refl,
       true_and, mem_image, mem_range, exists_prop, not_exists, not_and],
-    exact ⟨⟨hn.ne', hn'.ne'⟩, λ t _, h hp _⟩ },
+    exact ⟨⟨hn.ne', hn'⟩, λ t _, h hp _⟩ },
   rw [←int.nat_abs_of_nat p, int.nat_abs_dvd_iff_dvd] at hpe,
   obtain ⟨t, ht⟩ := hpe,
   rw [finset.prod_singleton, ht, mul_left_comm, mul_comm, ←mul_assoc, mul_assoc] at this,

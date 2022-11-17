@@ -254,25 +254,6 @@ begin
   rwa mul_comm at hm,
 end
 
-lemma module_eq_zero_of_localization {M : Type*} [add_comm_group M] [module R M]
-  (H : ∀ (J : ideal R) (hJ : J.is_maximal),
-    by exactI subsingleton (localized_module J.prime_compl M)) : subsingleton M :=
-begin
-  rw ← not_nontrivial_iff_subsingleton,
-  introI h,
-  obtain ⟨x, hx⟩ := exists_ne (0 : M),
-  have : (submodule.span R ({x} : set M)).annihilator ≠ ⊤,
-  { rwa [ne.def, submodule.annihilator_eq_top_iff, submodule.span_singleton_eq_bot] },
-  obtain ⟨p, hp₁, hp₂⟩ := ideal.exists_le_maximal _ this,
-  specialize H p hp₁,
-  resetI,
-  have : localized_module.mk x (1 : p.prime_compl) = localized_module.mk 0 1 :=
-    subsingleton.elim _ _,
-  obtain ⟨⟨u, hu⟩, e⟩ := localized_module.mk_eq.mp this,
-  simp only [submonoid.smul_def, one_smul, smul_zero, subtype.coe_mk, @eq_comm M 0] at e,
-  exact hu (hp₂ $ by rwa submodule.mem_annihilator_span_singleton)
-end
-
 lemma eq_zero_of_localization (r : R)
    (h : ∀ (J : ideal R) (hJ : J.is_maximal),
       by exactI algebra_map R (localization.at_prime J) r = 0) : r = 0 :=

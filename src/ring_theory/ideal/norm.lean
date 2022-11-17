@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Alex J. Best
 -/
 
-import linear_algebra.isomorphisms
-import ring_theory.dedekind_domain.ideal
+import group_theory.index
+import linear_algebra.quotient
 
 /-!
 # Ideal norms

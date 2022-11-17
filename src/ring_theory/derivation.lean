@@ -8,7 +8,6 @@ import ring_theory.adjoin.basic
 import algebra.lie.of_associative
 import ring_theory.ideal.cotangent
 import ring_theory.is_tensor_product
-import ring_theory.ideal.cotangent
 
 /-!
 # Derivations

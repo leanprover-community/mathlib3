@@ -852,7 +852,7 @@ instance : nontrivial (fractional_ideal R₁⁰ K) :=
   one_ne_zero ((mem_zero_iff _).mp this)⟩⟩
 
 lemma ne_zero_of_mul_eq_one (I J : fractional_ideal R₁⁰ K) (h : I * J = 1) : I ≠ 0 :=
-λ hI, @zero_ne_one (fractional_ideal R₁⁰ K) _ _ (by { convert h, simp [hI], })
+λ hI, zero_ne_one' (fractional_ideal R₁⁰ K) (by { convert h, simp [hI], })
 
 variables [is_domain R₁]
 
@@ -941,7 +941,7 @@ end
 
 @[simp] lemma div_one {I : fractional_ideal R₁⁰ K} : I / 1 = I :=
 begin
-  rw [div_nonzero (@one_ne_zero (fractional_ideal R₁⁰ K) _ _)],
+  rw [div_nonzero (one_ne_zero' (fractional_ideal R₁⁰ K))],
   ext,
   split; intro h,
   { simpa using mem_div_iff_forall_mul_mem.mp h 1

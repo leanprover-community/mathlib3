@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Kenny Lau
 -/
 import data.int.order.basic
 import data.list.range
+import data.int.order.basic
 
 /-!
 # Intervals in ℤ

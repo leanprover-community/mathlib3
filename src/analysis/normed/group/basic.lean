@@ -1193,7 +1193,7 @@ lemma le_norm_self (r : ℝ) : r ≤ ‖r‖ := le_abs_self r
 @[simp] lemma norm_coe_nat (n : ℕ) : ‖(n : ℝ)‖ = n := abs_of_nonneg n.cast_nonneg
 @[simp] lemma nnnorm_coe_nat (n : ℕ) : ‖(n : ℝ)‖₊ = n := nnreal.eq $ norm_coe_nat _
 
-@[simp] lemma norm_two : ∥(2 : ℝ)∥ = 2 := abs_of_pos zero_lt_two
+@[simp] lemma norm_two : ‖(2 : ℝ)‖ = 2 := abs_of_pos zero_lt_two
 
 @[simp] lemma nnnorm_two : ‖(2 : ℝ)‖₊ = 2 := nnreal.eq $ by simp
 

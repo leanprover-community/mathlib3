@@ -31,8 +31,15 @@ In this file, we provide the proofs of various local properties.
 
 The following properties are covered:
 
-* The triviality of an ideal or an element:
+* The triviality of an ideal or an element in a ring:
   `ideal_eq_zero_of_localization`, `eq_zero_of_localization`
+* Inclusions and equalities of submodules:
+  `submodule.le_of_localization_maximal`, `submodule.eq_of_localization_maximal`
+* The triviality of an (sub)module or an element in a module:
+  `submodule.eq_bot_of_localization_maximal`, `module.subsingleton_of_localization_maximal`,
+  `module.eq_zero_of_localization`
+* (In/Sur/Bi)jectiveness of linear maps:
+  `linear_map.injective_of_localization_maximal`, `linear_map.injective_localized_module_map` etc.
 * `is_reduced` : `localization_is_reduced`, `is_reduced_of_localization_maximal`.
 * `finite`: `localization_finite`, `finite_of_localization_span`
 * `finite_type`: `localization_finite_type`, `finite_type_of_localization_span`

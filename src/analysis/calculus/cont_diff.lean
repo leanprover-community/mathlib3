@@ -2281,7 +2281,7 @@ Warning: see remarks attached to `cont_diff_prod_assoc`
 lemma cont_diff_prod_assoc_symm : cont_diff 𝕜 ⊤ $ (equiv.prod_assoc E F G).symm :=
 (linear_isometry_equiv.prod_assoc 𝕜 E F G).symm.cont_diff
 
-/-! ### More properties about derivatives -/
+/-! ### Bundled derivatives -/
 
 lemma cont_diff_within_at.fderiv_within'
   (hf : cont_diff_within_at 𝕜 n f s x) (hs : ∀ᶠ y in 𝓝[insert x s] x, unique_diff_within_at 𝕜 s y)

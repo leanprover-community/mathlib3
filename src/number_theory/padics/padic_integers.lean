@@ -343,7 +343,7 @@ local attribute [reducible] padic_int
 lemma mul_inv : ∀ {z : ℤ_[p]}, ∥z∥ = 1 → z * z.inv = 1
 | ⟨k, _⟩ h :=
   begin
-    have hk : k ≠ 0, from λ h', @zero_ne_one ℚ_[p] _ _ (by simpa [h'] using h),
+    have hk : k ≠ 0, from λ h', zero_ne_one' ℚ_[p] (by simpa [h'] using h),
     unfold padic_int.inv,
     rw [norm_eq_padic_norm] at h,
     rw dif_pos h,

@@ -135,7 +135,7 @@ begin
   { rwa [integral_undef, integral_undef],
     rwa integrable_indicator_iff hs },
   calc ∫ x, indicator s f x ∂μ = ∫ x in s, indicator s f x ∂μ + ∫ x in sᶜ, indicator s f x ∂μ :
-    (integral_add_compl hs (hfi.indicator hs)).symm
+    (integral_add_compl hs (hfi.integrable_indicator hs)).symm
   ... = ∫ x in s, f x ∂μ + ∫ x in sᶜ, 0 ∂μ :
     congr_arg2 (+) (integral_congr_ae (indicator_ae_eq_restrict hs))
       (integral_congr_ae (indicator_ae_eq_restrict_compl hs))
@@ -168,7 +168,7 @@ lemma integral_piecewise [decidable_pred (∈ s)] (hs : measurable_set s)
   {f g : α → E} (hf : integrable_on f s μ) (hg : integrable_on g sᶜ μ) :
   ∫ x, s.piecewise f g x ∂μ = ∫ x in s, f x ∂μ + ∫ x in sᶜ, g x ∂μ :=
 by rw [← set.indicator_add_compl_eq_piecewise,
-  integral_add' (hf.indicator hs) (hg.indicator hs.compl),
+  integral_add' (hf.integrable_indicator hs) (hg.integrable_indicator hs.compl),
   integral_indicator hs, integral_indicator hs.compl]
 
 lemma tendsto_set_integral_of_monotone {ι : Type*} [countable ι] [semilattice_sup ι]
@@ -838,6 +838,15 @@ lemma integral_comp_comm (L : E →ₗᵢ[𝕜] F) (φ : α → E) : ∫ a, L (�
 L.to_continuous_linear_map.integral_comp_comm' L.antilipschitz _
 
 end linear_isometry
+
+namespace continuous_linear_equiv
+
+variables [complete_space F] [normed_space ℝ F] [complete_space E] [normed_space ℝ E]
+
+lemma integral_comp_comm (L : E ≃L[𝕜] F) (φ : α → E) : ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
+L.to_continuous_linear_map.integral_comp_comm' L.antilipschitz _
+
+end continuous_linear_equiv
 
 variables [complete_space E] [normed_space ℝ E] [complete_space F] [normed_space ℝ F]
 

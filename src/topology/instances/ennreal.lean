@@ -166,6 +166,9 @@ tendsto_nhds_top $ λ n, mem_at_top_sets.2
 by rw [tendsto_nhds_top_iff_nnreal, at_top_basis_Ioi.tendsto_right_iff];
   [simp, apply_instance, apply_instance]
 
+lemma tendsto_of_real_at_top : tendsto ennreal.of_real at_top (𝓝 ∞) :=
+tendsto_coe_nhds_top.2 tendsto_real_to_nnreal_at_top
+
 lemma nhds_zero : 𝓝 (0 : ℝ≥0∞) = ⨅a ≠ 0, 𝓟 (Iio a) :=
 nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
 

@@ -3,9 +3,9 @@ Copyright (c) 2022 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.category.Module.monoidal
 import algebra.algebra.restrict_scalars
-import category_theory.linear
+import category_theory.linear.default
+import algebra.category.Module.basic
 
 /-!
 # Additional typeclass for modules over an algebra

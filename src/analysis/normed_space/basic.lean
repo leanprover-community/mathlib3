@@ -5,10 +5,7 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 import algebra.algebra.restrict_scalars
 import analysis.normed.field.basic
-import analysis.normed.group.infinite_sum
 import data.real.sqrt
-import data.matrix.basic
-import topology.sequences
 
 /-!
 # Normed spaces

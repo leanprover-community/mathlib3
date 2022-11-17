@@ -7,9 +7,8 @@ import measure_theory.covering.vitali_family
 import measure_theory.measure.regular
 import measure_theory.function.ae_measurable_order
 import measure_theory.integral.lebesgue
-import measure_theory.decomposition.radon_nikodym
 import measure_theory.integral.average
-import measure_theory.function.locally_integrable
+import measure_theory.decomposition.lebesgue
 
 /-!
 # Differentiation of measures

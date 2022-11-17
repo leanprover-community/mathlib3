@@ -5,7 +5,7 @@ Authors: Zhouhang Zhou
 -/
 import algebra.char_p.invertible
 import order.filter.at_top_bot
-import tactic.linarith
+import tactic.linarith.default
 import tactic.field_simp
 import tactic.linear_combination
 

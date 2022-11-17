@@ -3,7 +3,6 @@ Copyright (c) 2022 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Heather Macbeth
 -/
-import analysis.complex.arg
 import analysis.inner_product_space.two_dim
 import analysis.special_functions.complex.circle
 import geometry.euclidean.angle.unoriented.basic

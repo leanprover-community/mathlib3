@@ -1621,7 +1621,7 @@ begin
       { simpa using hd.symm } } }
 end
 
-lemma parallel.vector_span_eq {s₁ s₂ : set P} (h : affine_span k s₁ ‖ affine_span k s₂) :
+lemma parallel.vector_span_eq {s₁ s₂ : set P} (h : affine_span k s₁ ∥ affine_span k s₂) :
   vector_span k s₁ = vector_span k s₂ :=
 begin
   simp_rw ←direction_affine_span,
@@ -1629,14 +1629,14 @@ begin
 end
 
 lemma affine_span_parallel_iff_vector_span_eq_and_eq_empty_iff_eq_empty {s₁ s₂ : set P} :
-  affine_span k s₁ ‖ affine_span k s₂ ↔ vector_span k s₁ = vector_span k s₂ ∧ (s₁ = ∅ ↔ s₂ = ∅) :=
+  affine_span k s₁ ∥ affine_span k s₂ ↔ vector_span k s₁ = vector_span k s₂ ∧ (s₁ = ∅ ↔ s₂ = ∅) :=
 begin
   simp_rw [←direction_affine_span, ←affine_span_eq_bot k],
   exact parallel_iff_direction_eq_and_eq_bot_iff_eq_bot
 end
 
 lemma affine_span_pair_parallel_iff_vector_span_eq {p₁ p₂ p₃ p₄ : P} :
-  line[k, p₁, p₂] ‖ line[k, p₃, p₄] ↔
+  line[k, p₁, p₂] ∥ line[k, p₃, p₄] ↔
     vector_span k ({p₁, p₂} : set P) = vector_span k ({p₃, p₄} : set P) :=
 by simp [affine_span_parallel_iff_vector_span_eq_and_eq_empty_iff_eq_empty,
          ←not_nonempty_iff_eq_empty]

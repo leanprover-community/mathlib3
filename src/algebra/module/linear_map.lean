@@ -8,6 +8,7 @@ import algebra.hom.group_action
 import algebra.module.pi
 import algebra.star.basic
 import data.set.pointwise.basic
+import algebra.ring.comp_typeclasses
 
 /-!
 # (Semi)linear maps

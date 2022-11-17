@@ -8,8 +8,6 @@ import analysis.complex.basic
 import analysis.convex.uniform
 import analysis.normed_space.completion
 import analysis.normed_space.bounded_linear_maps
-import analysis.normed_space.banach
-import linear_algebra.sesquilinear_form
 
 /-!
 # Inner product space

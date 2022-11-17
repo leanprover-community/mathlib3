@@ -3,11 +3,15 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
-import order.monotone
 import data.nat.basic
+import order.monotone
 
 /-!
 # Basic instances on the integers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/584
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains:
 * instances on `ℤ`. The stronger one is `int.comm_ring`.

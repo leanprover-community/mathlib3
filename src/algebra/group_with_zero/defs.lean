@@ -143,27 +143,25 @@ class comm_group_with_zero (G₀ : Type*) extends comm_monoid_with_zero G₀, gr
 
 section ne_zero
 
+attribute [field_simps] two_ne_zero three_ne_zero four_ne_zero
+
 variables [mul_zero_one_class M₀] [nontrivial M₀] {a b : M₀}
 
+variable (M₀)
+
 /-- In a nontrivial monoid with zero, zero and one are different. -/
-@[simp] lemma zero_ne_one : 0 ≠ (1:M₀) :=
-begin
+instance ne_zero.one : ne_zero (1 : M₀) :=
+⟨begin
   assume h,
   rcases exists_pair_ne M₀ with ⟨x, y, hx⟩,
   apply hx,
   calc x = 1 * x : by rw [one_mul]
-  ... = 0 : by rw [← h, zero_mul]
-  ... = 1 * y : by rw [← h, zero_mul]
+  ... = 0 : by rw [h, zero_mul]
+  ... = 1 * y : by rw [h, zero_mul]
   ... = y : by rw [one_mul]
-end
+end⟩
 
-@[simp] lemma one_ne_zero : (1:M₀) ≠ 0 := zero_ne_one.symm
-
-instance ne_zero.one (R) [mul_zero_one_class R] [nontrivial R] : ne_zero (1 : R) := ⟨one_ne_zero⟩
-
-lemma ne_zero_of_eq_one {a : M₀} (h : a = 1) : a ≠ 0 :=
-calc a = 1 : h
-   ... ≠ 0 : one_ne_zero
+variable {M₀}
 
 /-- Pullback a `nontrivial` instance along a function sending `0` to `0` and `1` to `1`. -/
 lemma pullback_nonzero [has_zero M₀'] [has_one M₀']

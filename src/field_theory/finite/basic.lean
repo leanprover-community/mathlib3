@@ -3,11 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Joey van Langen, Casper Putz
 -/
-import algebra.ring.equiv
-import data.zmod.algebra
 import field_theory.separable
 import field_theory.splitting_field
-import linear_algebra.finite_dimensional
 import ring_theory.integral_domain
 import tactic.apply_fun
 

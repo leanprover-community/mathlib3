@@ -21,9 +21,9 @@ This file contains basic results on Fourier series for functions on the additive
 
 ## Main definitions
 
-* `haar_add_circle`, Haar measure on `add_circle T`, normalized to have total measure `1`.
-* instances `measure_space`, `is_probability_measure` for `add_circle T`  with respect to this
-  measure.
+* `haar_add_circle`, Haar measure on `add_circle T`, normalized to have total measure `1`. (Note
+  that this is not the same normalisation as the standard measure defined in `integral.periodic`,
+  so we do not declare it as a `measure_space` instance.)
 * for `n : ℤ`, `fourier n` is the monomial `λ x, exp (2 π i n x / T)`, bundled as a continuous map
   from `add_circle T` to `ℂ`.
 * for `n : ℤ` and `p : ℝ≥0∞`, `fourier_Lp p n` is an abbreviation for the monomial `fourier n`

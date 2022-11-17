@@ -2354,7 +2354,8 @@ begin
 end
 
 lemma foldr_range_subset_of_range_subset {f : α → γ → γ} {g : β → γ → γ}
-  (hfg : set.range f ⊆ set.range g) (a) : set.range (foldr f a) ⊆ set.range (foldr g a) :=
+  (hfg : set.range f ⊆ set.range g) (a : α) :
+  set.range (foldr f a) ⊆ set.range (foldr g a) :=
 begin
   rintro _ ⟨l, rfl⟩,
   induction l with b l H,
@@ -2366,8 +2367,8 @@ begin
 end
 
 lemma foldl_range_subset_of_range_subset {f : γ → α → γ} {g : γ → β → γ}
-  (hfg : set.range (λ a c, f c a) ⊆ set.range (λ b c, g c b)) (a) :
-    set.range (foldl f a) ⊆ set.range (foldl g a) :=
+  (hfg : set.range (λ a c, f c a) ⊆ set.range (λ b c, g c b)) (a : α) :
+  set.range (foldl f a) ⊆ set.range (foldl g a) :=
 begin
   change set.range (λ l, _) ⊆ set.range (λ l, _),
   simp_rw ←foldr_reverse at hfg ⊢,
@@ -2376,13 +2377,14 @@ begin
   exact foldr_range_subset_of_range_subset hfg a,
 end
 
-lemma foldr_range_eq_of_range_eq {f : α → γ → γ} {g : β → γ → γ} (hfg : set.range f = set.range g)
-  (a) : set.range (foldr f a) = set.range (foldr g a) :=
+lemma foldr_range_eq_of_range_eq {f : α → γ → γ} {g : β → γ → γ}
+  (hfg : set.range f = set.range g) (a : α) :
+  set.range (foldr f a) = set.range (foldr g a) :=
 (foldr_range_subset_of_range_subset hfg.le a).antisymm (foldr_range_subset_of_range_subset hfg.ge a)
 
 lemma foldl_range_eq_of_range_eq {f : γ → α → γ} {g : γ → β → γ}
-  (hfg : set.range (λ a c, f c a) = set.range (λ b c, g c b))
-  (a) : set.range (foldl f a) = set.range (foldl g a) :=
+  (hfg : set.range (λ a c, f c a) = set.range (λ b c, g c b)) (a : α) :
+  set.range (foldl f a) = set.range (foldl g a) :=
 (foldl_range_subset_of_range_subset hfg.le a).antisymm (foldl_range_subset_of_range_subset hfg.ge a)
 
 /-- Induction principle for values produced by a `foldr`: if a property holds

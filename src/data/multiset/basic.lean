@@ -3,7 +3,6 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.bool.all_any
 import data.list.perm
 
 /-!
@@ -612,6 +611,8 @@ subrelation.wf (λ _ _, multiset.card_lt_of_lt) (measure_wf multiset.card)
 /-- `repeat a n` is the multiset containing only `a` with multiplicity `n`. -/
 def repeat (a : α) (n : ℕ) : multiset α := repeat a n
 
+lemma coe_repeat (a : α) (n : ℕ) : (list.repeat a n : multiset α) = repeat a n := rfl
+
 @[simp] lemma repeat_zero (a : α) : repeat a 0 = 0 := rfl
 
 @[simp] lemma repeat_succ (a : α) (n) : repeat a (n+1) = a ::ₘ repeat a n := by simp [repeat]
@@ -665,6 +666,36 @@ end
 
 lemma nsmul_repeat {a : α} (n m : ℕ) : n • (repeat a m) = repeat a (n * m) :=
 ((repeat_add_monoid_hom a).map_nsmul _ _).symm
+
+lemma repeat_le_repeat (a : α) {k n : ℕ} :
+  repeat a k ≤ repeat a n ↔ k ≤ n :=
+trans (by rw [← repeat_le_coe, coe_repeat]) (list.repeat_sublist_repeat a)
+
+lemma le_repeat_iff {m : multiset α} {a : α} {n : ℕ} :
+  m ≤ repeat a n ↔ ∃ (k ≤ n), m = repeat a k :=
+quot.induction_on m (λ l, show (l : multiset α) ≤ repeat a n ↔ ∃ (k ≤ n), ↑l = repeat a k,
+begin
+  simp only [← coe_repeat, coe_le, subperm, sublist_repeat_iff, coe_eq_coe, perm_repeat],
+  split,
+  { rintros ⟨l, hl, k, h, rfl⟩,
+    rw [perm_comm, perm_repeat] at hl,
+    exact ⟨k, h, hl⟩ },
+  { rintros ⟨k, h, hl⟩,
+    exact ⟨l, refl _, k, h, hl⟩ }
+end)
+
+lemma lt_repeat_succ {m : multiset α} {x : α} {n : ℕ} :
+  m < repeat x (n + 1) ↔ m ≤ repeat x n :=
+begin
+  rw lt_iff_cons_le,
+  split,
+  { rintros ⟨x', hx'⟩,
+    have := eq_of_mem_repeat (mem_of_le hx' (mem_cons_self _ _)),
+    rwa [this, repeat_succ, cons_le_cons_iff] at hx' },
+  { intro h,
+    rw repeat_succ,
+    exact ⟨x, cons_le_cons _ h⟩ }
+end
 
 /-! ### Erasing one copy of an element -/
 section erase

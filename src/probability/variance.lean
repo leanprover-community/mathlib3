@@ -42,7 +42,7 @@ namespace probability_theory
 /-- The `ℝ≥0∞`-valued variance of a real-valued random variable defined as the Lebesgue integral of
 `(X - 𝔼[X])^2`. -/
 def evariance {Ω : Type*} {m : measurable_space Ω} (X : Ω → ℝ) (μ : measure Ω) : ℝ≥0∞ :=
-∫⁻ ω, ∥X ω - μ[X]∥₊^2 ∂μ
+∫⁻ ω, ‖X ω - μ[X]‖₊^2 ∂μ
 
 /-- The `ℝ`-valued variance of a real-valued random variable defined by applying `ennreal.to_real`
 to `evariance`. -/
@@ -252,7 +252,7 @@ end
 
 lemma evariance_def' [is_probability_measure (ℙ : measure Ω)]
   {X : Ω → ℝ} (hX : ae_strongly_measurable X ℙ) :
-  eVar[X] = (∫⁻ ω, ∥X ω∥₊^2) - ennreal.of_real (𝔼[X]^2) :=
+  eVar[X] = (∫⁻ ω, ‖X ω‖₊^2) - ennreal.of_real (𝔼[X]^2) :=
 begin
   by_cases hℒ : mem_ℒp X 2,
   { rw [← hℒ.of_real_variance_eq, variance_def' hℒ, ennreal.of_real_sub _ (sq_nonneg _)],

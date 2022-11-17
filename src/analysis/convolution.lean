@@ -110,7 +110,7 @@ variables [add_group G] [topological_space G]
 
 lemma has_compact_support.convolution_integrand_bound_right (hcg : has_compact_support g)
   (hg : continuous g) {x t : G} {s : set G} (hx : x ∈ s) :
-  ∥L (f t) (g (x - t))∥ ≤ (- tsupport g + s).indicator (λ t, ∥L∥ * ∥f t∥ * (⨆ i, ∥g i∥)) t :=
+  ‖L (f t) (g (x - t))‖ ≤ (- tsupport g + s).indicator (λ t, ‖L‖ * ‖f t‖ * (⨆ i, ‖g i‖)) t :=
 begin
   refine le_indicator (λ t ht, _) (λ t ht, _) t,
   { refine (L.le_op_norm₂ _ _).trans _,
@@ -129,7 +129,7 @@ L.continuous₂.comp₂ continuous_const $ hg.comp $ continuous_id.sub continuou
 
 lemma has_compact_support.convolution_integrand_bound_left (hcf : has_compact_support f)
   (hf : continuous f) {x t : G} {s : set G} (hx : x ∈ s) :
-  ∥L (f (x - t)) (g t)∥ ≤ (- tsupport f + s).indicator (λ t, ∥L∥ * (⨆ i, ∥f i∥) * ∥g t∥) t :=
+  ‖L (f (x - t)) (g t)‖ ≤ (- tsupport f + s).indicator (λ t, ‖L‖ * (⨆ i, ‖f i‖) * ‖g t‖) t :=
 by { convert hcf.convolution_integrand_bound_right L.flip hf hx,
   simp_rw [L.op_norm_flip, mul_right_comm] }
 
@@ -189,7 +189,7 @@ integrable on the support of the integrand, and that both functions are strongly
 
 Note: we could weaken the measurability condition to hold only for `μ.restrict s`. -/
 lemma bdd_above.convolution_exists_at' {x₀ : G}
-  {s : set G} (hbg : bdd_above ((λ i, ∥g i∥) '' ((λ t, - t + x₀) ⁻¹' s)))
+  {s : set G} (hbg : bdd_above ((λ i, ‖g i‖) '' ((λ t, - t + x₀) ⁻¹' s)))
   (hs : measurable_set s) (h2s : support (λ t, L (f t) (g (x₀ - t))) ⊆ s)
   (hf : integrable_on f s μ)
   (hmf : ae_strongly_measurable f μ)
@@ -198,7 +198,7 @@ lemma bdd_above.convolution_exists_at' {x₀ : G}
 begin
   set s' := (λ t, - t + x₀) ⁻¹' s,
   have : ∀ᵐ (t : G) ∂μ,
-    ∥L (f t) (g (x₀ - t))∥ ≤ s.indicator (λ t, ∥L∥ * ∥f t∥ * ⨆ i : s', ∥g i∥) t,
+    ‖L (f t) (g (x₀ - t))‖ ≤ s.indicator (λ t, ‖L‖ * ‖f t‖ * ⨆ i : s', ‖g i‖) t,
   { refine eventually_of_forall _,
     refine le_indicator (λ t ht, _) (λ t ht, _),
     { refine (L.le_op_norm₂ _ _).trans _,
@@ -213,14 +213,14 @@ begin
   { exact hmf.convolution_integrand_snd' L hmg }
 end
 
-/-- If `∥f∥ *[μ] ∥g∥` exists, then `f *[L, μ] g` exists. -/
+/-- If `‖f‖ *[μ] ‖g‖` exists, then `f *[L, μ] g` exists. -/
 lemma convolution_exists_at.of_norm' {x₀ : G}
-  (h : convolution_exists_at (λ x, ∥f x∥) (λ x, ∥g x∥) x₀ (mul ℝ ℝ) μ)
+  (h : convolution_exists_at (λ x, ‖f x‖) (λ x, ‖g x‖) x₀ (mul ℝ ℝ) μ)
   (hmf : ae_strongly_measurable f μ)
   (hmg : ae_strongly_measurable g $ map (λ t, x₀ - t) μ) :
   convolution_exists_at f g x₀ L μ :=
 begin
-  refine (h.const_mul ∥L∥).mono' (hmf.convolution_integrand_snd' L hmg)
+  refine (h.const_mul ‖L‖).mono' (hmf.convolution_integrand_snd' L hmg)
     (eventually_of_forall $ λ x, _),
   rw [mul_apply', ← mul_assoc],
   apply L.le_op_norm₂,
@@ -241,9 +241,9 @@ lemma measure_theory.ae_strongly_measurable.convolution_integrand_swap_snd
 (hf.mono' (quasi_measure_preserving_sub_left_of_right_invariant μ x).absolutely_continuous)
   .convolution_integrand_swap_snd' L hg
 
-/-- If `∥f∥ *[μ] ∥g∥` exists, then `f *[L, μ] g` exists. -/
+/-- If `‖f‖ *[μ] ‖g‖` exists, then `f *[L, μ] g` exists. -/
 lemma convolution_exists_at.of_norm {x₀ : G}
-  (h : convolution_exists_at (λ x, ∥f x∥) (λ x, ∥g x∥) x₀ (mul ℝ ℝ) μ)
+  (h : convolution_exists_at (λ x, ‖f x‖) (λ x, ‖g x‖) x₀ (mul ℝ ℝ) μ)
   (hmf : ae_strongly_measurable f μ)
   (hmg : ae_strongly_measurable g μ) :
   convolution_exists_at f g x₀ L μ :=
@@ -267,13 +267,13 @@ lemma measure_theory.integrable.convolution_integrand (hf : integrable f ν) (hg
 begin
   have h_meas : ae_strongly_measurable (λ (p : G × G), L (f p.2) (g (p.1 - p.2))) (μ.prod ν) :=
     hf.ae_strongly_measurable.convolution_integrand L hg.ae_strongly_measurable,
-  have h2_meas : ae_strongly_measurable (λ (y : G), ∫ (x : G), ∥L (f y) (g (x - y))∥ ∂μ) ν :=
+  have h2_meas : ae_strongly_measurable (λ (y : G), ∫ (x : G), ‖L (f y) (g (x - y))‖ ∂μ) ν :=
     h_meas.prod_swap.norm.integral_prod_right',
   simp_rw [integrable_prod_iff' h_meas],
   refine ⟨eventually_of_forall (λ t, (L (f t)).integrable_comp (hg.comp_sub_right t)), _⟩,
   refine integrable.mono' _ h2_meas (eventually_of_forall $
-    λ t, (_ : _ ≤ ∥L∥ * ∥f t∥ * ∫ x, ∥g (x - t)∥ ∂μ)),
-  { simp_rw [integral_sub_right_eq_self (λ t, ∥ g t ∥)],
+    λ t, (_ : _ ≤ ‖L‖ * ‖f t‖ * ∫ x, ‖g (x - t)‖ ∂μ)),
+  { simp_rw [integral_sub_right_eq_self (λ t, ‖ g t ‖)],
     exact (hf.norm.const_mul _).mul_const _ },
   { simp_rw [← integral_mul_left],
     rw [real.norm_of_nonneg],
@@ -339,7 +339,7 @@ integrable on the support of the integrand, and that both functions are strongly
 This is a variant of `bdd_above.convolution_exists_at'` in an abelian group with a left-invariant
 measure. This allows us to state the boundedness and measurability of `g` in a more natural way. -/
 lemma bdd_above.convolution_exists_at [sigma_finite μ] {x₀ : G}
-  {s : set G} (hbg : bdd_above ((λ i, ∥g i∥) '' ((λ t, x₀ - t) ⁻¹' s)))
+  {s : set G} (hbg : bdd_above ((λ i, ‖g i‖) '' ((λ t, x₀ - t) ⁻¹' s)))
   (hs : measurable_set s) (h2s : support (λ t, L (f t) (g (x₀ - t))) ⊆ s)
   (hf : integrable_on f s μ)
   (hmf : ae_strongly_measurable f μ)
@@ -509,7 +509,7 @@ begin
   let K' := - tsupport g + K,
   have hK' : is_compact K' := hcg.neg.add hK,
   have : ∀ᶠ x in 𝓝 x₀, ∀ᵐ (t : G) ∂μ,
-    ∥L (f t) (g (x - t))∥ ≤ K'.indicator (λ t, ∥L∥ * ∥f t∥ * (⨆ i, ∥g i∥)) t :=
+    ‖L (f t) (g (x - t))‖ ≤ K'.indicator (λ t, ‖L‖ * ‖f t‖ * (⨆ i, ‖g i‖)) t :=
   eventually_of_mem h2K (λ x hx, eventually_of_forall $
     λ t, hcg.convolution_integrand_bound_right L hg hx),
   refine continuous_at_of_dominated _ this _ _,
@@ -524,12 +524,12 @@ end
 /-- The convolution is continuous if one function is integrable and the other is bounded and
 continuous. -/
 lemma bdd_above.continuous_convolution_right_of_integrable
-  (hbg : bdd_above (range (λ x, ∥g x∥))) (hf : integrable f μ) (hg : continuous g) :
+  (hbg : bdd_above (range (λ x, ‖g x‖))) (hf : integrable f μ) (hg : continuous g) :
     continuous (f ⋆[L, μ] g) :=
 begin
   refine continuous_iff_continuous_at.mpr (λ x₀, _),
   have : ∀ᶠ x in 𝓝 x₀, ∀ᵐ (t : G) ∂μ,
-    ∥L (f t) (g (x - t))∥ ≤ ∥L∥ * ∥f t∥ * (⨆ i, ∥g i∥),
+    ‖L (f t) (g (x - t))‖ ≤ ‖L‖ * ‖f t‖ * (⨆ i, ‖g i‖),
   { refine eventually_of_forall (λ x, eventually_of_forall $ λ t, _),
     refine (L.le_op_norm₂ _ _).trans _,
     exact mul_le_mul_of_nonneg_left (le_csupr hbg $ x - t)
@@ -615,7 +615,7 @@ lemma has_compact_support.continuous_convolution_left [locally_compact_space G] 
 by { rw [← convolution_flip], exact hcf.continuous_convolution_right L.flip hg hf }
 
 lemma bdd_above.continuous_convolution_left_of_integrable
-  (hbf : bdd_above (range (λ x, ∥f x∥))) (hf : continuous f) (hg : integrable g μ) :
+  (hbf : bdd_above (range (λ x, ‖f x‖))) (hf : continuous f) (hg : integrable g μ) :
     continuous (f ⋆[L, μ] g) :=
 by { rw [← convolution_flip], exact hbf.continuous_convolution_right_of_integrable L.flip hg hf }
 
@@ -667,18 +667,18 @@ lemma dist_convolution_le' {x₀ : G} {R ε : ℝ} {z₀ : E'}
   (hf : support f ⊆ ball (0 : G) R)
   (hmg : ae_strongly_measurable g μ)
   (hg : ∀ x ∈ ball x₀ R, dist (g x) z₀ ≤ ε) :
-  dist ((f ⋆[L, μ] g : G → F) x₀) (∫ t, L (f t) z₀ ∂μ) ≤ ∥L∥ * ∫ x, ∥f x∥ ∂μ * ε :=
+  dist ((f ⋆[L, μ] g : G → F) x₀) (∫ t, L (f t) z₀ ∂μ) ≤ ‖L‖ * ∫ x, ‖f x‖ ∂μ * ε :=
 begin
   have hfg : convolution_exists_at f g x₀ L μ,
   { refine bdd_above.convolution_exists_at L _ metric.is_open_ball.measurable_set
     (subset_trans _ hf) hif.integrable_on hif.ae_strongly_measurable hmg,
     swap, { refine λ t, mt (λ ht : f t = 0, _), simp_rw [ht, L.map_zero₂] },
     rw [bdd_above_def],
-    refine ⟨∥z₀∥ + ε, _⟩,
+    refine ⟨‖z₀‖ + ε, _⟩,
     rintro _ ⟨x, hx, rfl⟩,
     refine norm_le_norm_add_const_of_dist_le (hg x _),
     rwa [mem_ball_iff_norm, norm_sub_rev, ← mem_ball_zero_iff] },
-  have h2 : ∀ t, dist (L (f t) (g (x₀ - t))) (L (f t) z₀) ≤ ∥L (f t)∥ * ε,
+  have h2 : ∀ t, dist (L (f t) (g (x₀ - t))) (L (f t) z₀) ≤ ‖L (f t)‖ * ε,
   { intro t, by_cases ht : t ∈ support f,
     { have h2t := hf ht,
       rw [mem_ball_zero_iff] at h2t,
@@ -695,7 +695,7 @@ begin
     (eventually_of_forall h2)).trans _,
   rw [integral_mul_right],
   refine mul_le_mul_of_nonneg_right _ hε,
-  have h3 : ∀ t, ∥L (f t)∥ ≤ ∥L∥ * ∥f t∥,
+  have h3 : ∀ t, ‖L (f t)‖ ≤ ‖L‖ * ‖f t‖,
   { intros t,
     exact L.le_op_norm (f t) },
   refine (integral_mono (L.integrable_comp hif).norm (hif.norm.const_mul _) h3).trans_eq _,
@@ -901,16 +901,16 @@ calc    ((f ⋆[L, ν] g) ⋆[L₂, μ] k) x₀
 /-- Convolution is associative. This requires that
 * all maps are a.e. strongly measurable w.r.t one of the measures
 * `f ⋆[L, ν] g` exists almost everywhere
-* `∥g∥ ⋆[μ] ∥k∥` exists almost everywhere
-* `∥f∥ ⋆[ν] (∥g∥ ⋆[μ] ∥k∥)` exists at `x₀` -/
+* `‖g‖ ⋆[μ] ‖k‖` exists almost everywhere
+* `‖f‖ ⋆[ν] (‖g‖ ⋆[μ] ‖k‖)` exists at `x₀` -/
 lemma convolution_assoc (hL : ∀ (x : E) (y : E') (z : E''), L₂ (L x y) z = L₃ x (L₄ y z))
   {x₀ : G}
   (hf : ae_strongly_measurable f ν)
   (hg : ae_strongly_measurable g μ)
   (hk : ae_strongly_measurable k μ)
   (hfg : ∀ᵐ y ∂μ, convolution_exists_at f g y L ν)
-  (hgk : ∀ᵐ x ∂ν, convolution_exists_at (λ x, ∥g x∥) (λ x, ∥k x∥) x (mul ℝ ℝ) μ)
-  (hfgk : convolution_exists_at (λ x, ∥f x∥) ((λ x, ∥g x∥) ⋆[mul ℝ ℝ, μ] (λ x, ∥k x∥))
+  (hgk : ∀ᵐ x ∂ν, convolution_exists_at (λ x, ‖g x‖) (λ x, ‖k x‖) x (mul ℝ ℝ) μ)
+  (hfgk : convolution_exists_at (λ x, ‖f x‖) ((λ x, ‖g x‖) ⋆[mul ℝ ℝ, μ] (λ x, ‖k x‖))
     x₀ (mul ℝ ℝ) ν) :
   ((f ⋆[L, ν] g) ⋆[L₂, μ] k) x₀ = (f ⋆[L₃, ν] (g ⋆[L₄, μ] k)) x₀ :=
 begin
@@ -926,7 +926,7 @@ begin
       ((measurable_const.sub measurable_snd).sub measurable_fst) (eventually_of_forall $ λ y, _),
     dsimp only,
     exact quasi_measure_preserving_sub_left_of_right_invariant μ _ },
-  have h2_meas : ae_strongly_measurable (λ y, ∫ x, ∥L₃ (f y) (L₄ (g x) (k (x₀ - y - x)))∥ ∂μ) ν :=
+  have h2_meas : ae_strongly_measurable (λ y, ∫ x, ‖L₃ (f y) (L₄ (g x) (k (x₀ - y - x)))‖ ∂μ) ν :=
     h_meas.prod_swap.norm.integral_prod_right',
   have h3 : map (λ z : G × G, (z.1 - z.2, z.2)) (μ.prod ν) = μ.prod ν :=
     (measure_preserving_sub_prod μ ν).map_eq,
@@ -938,9 +938,9 @@ begin
   simp_rw [integrable_prod_iff' h_meas],
   refine ⟨((quasi_measure_preserving_sub_left_of_right_invariant ν x₀).ae hgk).mono
     (λ t ht, (L₃ (f t)).integrable_comp $ ht.of_norm L₄ hg hk), _⟩,
-  refine (hfgk.const_mul (∥L₃∥ * ∥L₄∥)).mono' h2_meas
+  refine (hfgk.const_mul (‖L₃‖ * ‖L₄‖)).mono' h2_meas
     (((quasi_measure_preserving_sub_left_of_right_invariant ν x₀).ae hgk).mono $ λ t ht, _),
-  { simp_rw [convolution_def, mul_apply', mul_mul_mul_comm ∥L₃∥ ∥L₄∥, ← integral_mul_left],
+  { simp_rw [convolution_def, mul_apply', mul_mul_mul_comm ‖L₃‖ ‖L₄‖, ← integral_mul_left],
     rw [real.norm_of_nonneg],
     { refine integral_mono_of_nonneg (eventually_of_forall $ λ t, norm_nonneg _)
         ((ht.const_mul _).const_mul _) (eventually_of_forall $ λ s, _),
@@ -999,7 +999,7 @@ begin
   have hK' : is_compact K' := (hcg.fderiv 𝕜).neg.add (is_compact_closed_ball x₀ 1),
   refine has_fderiv_at_integral_of_dominated_of_fderiv_le
     zero_lt_one h1 _ (h2 x₀) _ _ _,
-  { exact K'.indicator (λ t, ∥L'∥ * ∥f t∥ * (⨆ x, ∥fderiv 𝕜 g x∥)) },
+  { exact K'.indicator (λ t, ‖L'‖ * ‖f t‖ * (⨆ x, ‖fderiv 𝕜 g x‖)) },
   { exact hcg.convolution_exists_right L hf hg.continuous x₀ },
   { refine eventually_of_forall (λ t x hx, _),
     exact (hcg.fderiv 𝕜).convolution_integrand_bound_right L'

@@ -8,6 +8,10 @@ import logic.relator
 /-!
 # Quotient types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/559
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module extends the core library's treatment of quotient types (`init.data.quot`).
 
 ## Tags

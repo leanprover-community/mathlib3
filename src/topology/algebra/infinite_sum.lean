@@ -352,7 +352,7 @@ lemma has_sum.even_add_odd {f : ℕ → α} (he : has_sum (λ k, f (2 * k)) a)
   (ho : has_sum (λ k, f (2 * k + 1)) b) :
   has_sum f (a + b) :=
 begin
-  have := mul_right_injective₀ (@two_ne_zero ℕ _ _),
+  have := mul_right_injective₀ (two_ne_zero' ℕ),
   replace he := this.has_sum_range_iff.2 he,
   replace ho := ((add_left_injective 1).comp this).has_sum_range_iff.2 ho,
   refine he.add_is_compl _ ho,
@@ -896,8 +896,10 @@ begin
   have h₂ : injective int.neg_succ_of_nat := @int.neg_succ_of_nat.inj,
   have : is_compl (set.range (coe : ℕ → ℤ)) (set.range int.neg_succ_of_nat),
   { split,
-    { rintros _ ⟨⟨i, rfl⟩, ⟨j, ⟨⟩⟩⟩ },
-    { rintros (i | j) h,
+    { rw disjoint_iff_inf_le,
+      rintros _ ⟨⟨i, rfl⟩, ⟨j, ⟨⟩⟩⟩ },
+    { rw codisjoint_iff_le_sup,
+      rintros (i | j) h,
       exacts [or.inl ⟨_, rfl⟩, or.inr ⟨_, rfl⟩] } },
   exact has_sum.add_is_compl this (h₁.has_sum_range_iff.mpr hf) (h₂.has_sum_range_iff.mpr hg),
 end

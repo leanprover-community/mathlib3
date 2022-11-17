@@ -4,12 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro, Anne Baanen,
   Frédéric Dupuis, Heather Macbeth
 -/
-import algebra.hom.group
 import algebra.hom.group_action
-import algebra.module.basic
 import algebra.module.pi
-import algebra.ring.comp_typeclasses
 import algebra.star.basic
+import data.set.pointwise.basic
+import algebra.ring.comp_typeclasses
 
 /-!
 # (Semi)linear maps

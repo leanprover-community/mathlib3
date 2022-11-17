@@ -211,59 +211,71 @@ end
 end enough_projectives
 
 end projective
+namespace adjunction
 
-lemma equivalence.map_projective_iff {D : Type*} [category D] (F : C ≌  D)
-  (Y : C) : projective (F.functor.obj Y) ↔ projective Y :=
+variables {D : Type*} [category D] {F : C ⥤ D} {G : D ⥤ C}
+
+lemma map_projective (adj : F ⊣ G) [G.preserves_epimorphisms] (P : C) (hP : projective P) :
+  projective (F.obj P) :=
 begin
-  split,
-  all_goals { intro hY, constructor, intros E X f e he },
-  { haveI : epi (F.functor.map e) := by unfreezingI { apply_instance },
-    rcases @hY.1 (F.functor.map f) (F.functor.map e),
-    use F.unit.app Y ≫ F.inverse.map w ≫ F.unit_inv.app E,
-    refine faithful.map_injective F.functor _,
-    simp only [functor.map_comp, equivalence.fun_inv_map],
-    simp only [category.assoc, equivalence.counit_inv_functor_comp, category.comp_id],
-    simp [←category.assoc, h] },
-  { haveI : epi (F.inverse.map e) :=
-    by unfreezingI { apply_instance },
-    rcases @hY.1 (F.unit.app Y ≫ F.inverse.map f) (F.inverse.map e),
-    use F.functor.map w ≫ F.counit.app E,
-    have : F.functor.map w ≫ F.counit.app E ≫ e = f :=
-    by simpa [←category.assoc _ (F.counit.app (F.functor.obj Y)) f] using F.functor.congr_map h,
-    rw [category.assoc, this] }
+  constructor,
+  intros X Y f g hg,
+  haveI : epi (G.map g) := by unfreezingI { apply_instance },
+  rcases @hP.1 (adj.unit.app P ≫ G.map f) (G.map g),
+  use F.map w ≫ adj.counit.app X,
+  rw [category.assoc, ←adjunction.counit_naturality, ←category.assoc, ←F.map_comp, h],
+  simp,
 end
 
-/-- An equivalence of categories `F` maps a projective presentation of `X` to a projective
-presentation of `F(X)`. -/
-def equivalence.map_projective_presentation {D : Type*} [category D] (F : C ≌ D)
-  (X : C) (Y : projective_presentation X) : projective_presentation (F.functor.obj X) :=
-{ P := F.functor.obj Y.P,
-  projective := (F.map_projective_iff _).2 Y.projective,
-  f := F.functor.map Y.f,
-  epi := by haveI := Y.epi; apply_instance }
+lemma projective_of_map_projective (adj : F ⊣ G) [full F] [faithful F] (P : C)
+  (hP : projective (F.obj P)) : projective P :=
+begin
+  constructor,
+  intros X Y f g hg,
+  haveI := adj.left_adjoint_preserves_colimits,
+  haveI : epi (F.map g) := by unfreezingI { apply_instance },
+  rcases @hP.1 (F.map f) (F.map g),
+  use adj.unit.app _ ≫ G.map w ≫ (inv $ adj.unit.app _),
+  refine faithful.map_injective F _,
+  simpa
+end
+
+/-- Given an adjunction `F ⊣ G` such that `G` preserves epis, `F` maps a projective presentation of
+`X` to a projective presentation of `F(X)`. -/
+def map_projective_presentation (adj : F ⊣ G) [G.preserves_epimorphisms] (X : C)
+  (Y : projective_presentation X) : projective_presentation (F.obj X) :=
+{ P := F.obj Y.P,
+  projective := adj.map_projective _ Y.projective,
+  f := F.map Y.f,
+  epi := by haveI := Y.epi; haveI := adj.left_adjoint_preserves_colimits; apply_instance }
+
+end adjunction
+namespace equivalence
+
+variables {D : Type*} [category D] (F : C ≌ D)
 
 /-- Given an equivalence of categories `F`, a projective presentation of `F(X)` induces a
 projective presentation of `X.` -/
-def equivalence.inv_map_projective_presentation {D : Type*} [category D] (F : C ≌ D)
+def projective_presentation_of_map_projective_presentation
   (X : C) (Y : projective_presentation (F.functor.obj X)) : projective_presentation X :=
 { P := F.inverse.obj Y.P,
-  projective := (F.symm.map_projective_iff _).2 Y.projective,
+  projective := adjunction.map_projective F.symm.to_adjunction Y.P Y.projective,
   f := F.inverse.map Y.f ≫ F.unit_inv.app _,
   epi := by haveI : epi Y.f := Y.epi; refine epi_comp _ _ }
 
-lemma equivalence.enough_projectives_iff {D : Type*} [category D] (F : C ≌ D) :
+lemma enough_projectives_iff (F : C ≌ D) :
   enough_projectives C ↔ enough_projectives D :=
 begin
   split,
   all_goals { intro H, constructor, intro X, constructor },
-  { exact F.symm.inv_map_projective_presentation _
+  { exact F.symm.projective_presentation_of_map_projective_presentation _
       (nonempty.some (H.presentation (F.inverse.obj X))) },
-  { exact F.inv_map_projective_presentation X
+  { exact F.projective_presentation_of_map_projective_presentation X
       (nonempty.some (H.presentation (F.functor.obj X))) },
 end
 
+end equivalence
 open projective
-
 section
 variables [has_zero_morphisms C] [has_equalizers C] [has_images C]
 

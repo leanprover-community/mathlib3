@@ -278,38 +278,22 @@ instance : has_injective_resolutions C :=
 { out := λ _, infer_instance }
 
 end InjectiveResolution
-
-section
-variables [abelian C]
-
-/-- An equivalence of abelian categories sends injective resolutions to injective resolutions. -/
-def equivalence.map_InjectiveResolution {D : Type*} [category D]
-  [abelian D] (F : C ≌ D) [F.functor.additive]
-  (X : C) (I : InjectiveResolution X) : InjectiveResolution (F.functor.obj X) :=
-{ cocomplex := (F.functor.map_homological_complex _).obj I.cocomplex,
-  ι := ((cochain_complex.single₀_map_homological_complex F.functor).app X).inv
-    ≫ (F.functor.map_homological_complex _).map I.ι,
-  injective := λ n, (F.map_injective_iff (I.1.X n)).2 (I.3 n),
-  exact₀ :=
-  begin
-    show exact (𝟙 _ ≫ F.functor.map _) (F.functor.map _),
-    rw category.id_comp,
-    haveI := @preserves_colimits.preserves_finite_colimits
-      _ _ _ _ F.functor (adjunction.is_equivalence_preserves_colimits _),
-    exact F.functor.map_exact _ _ I.4,
-  end,
-  exact := λ n,
-  begin
-    haveI := @preserves_colimits.preserves_finite_colimits
-      _ _ _ _ F.functor (adjunction.is_equivalence_preserves_colimits _),
-    exact F.functor.map_exact _ _ (I.5 n),
-  end,
-  mono :=
-  begin
-    show mono (𝟙 _ ≫ F.functor.map _),
-    rw category.id_comp,
-    apply_instance,
-  end }
-
-end
 end category_theory
+namespace homological_complex.hom
+
+variables {C : Type u} [category.{v} C] [abelian C]
+
+/-- If `X` is a cochain complex of injective objects and we have a quasi-isomorphism
+`f : Y[0] ⟶ X`, then `X` is an injective resolution of `Y.` -/
+def homological_complex.hom.from_single₀_InjectiveResolution (X : cochain_complex C ℕ) (Y : C)
+  (f : (cochain_complex.single₀ C).obj Y ⟶ X) [quasi_iso f]
+  (H : ∀ n, injective (X.X n)) :
+  InjectiveResolution Y :=
+{ cocomplex := X,
+  ι := f,
+  injective := H,
+  exact₀ := f.from_single₀_exact_f_d_at_zero,
+  exact := f.from_single₀_exact_at_succ,
+  mono := f.from_single₀_mono_at_zero }
+
+end homological_complex.hom

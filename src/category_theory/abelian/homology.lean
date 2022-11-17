@@ -3,8 +3,11 @@ Copyright (c) 2022 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
+import algebra.homology.additive
 import category_theory.abelian.exact
 import category_theory.abelian.pseudoelements
+import category_theory.limits.preserves.shapes.kernels
+import category_theory.limits.preserves.shapes.images
 
 /-!
 
@@ -261,5 +264,54 @@ begin
 end
 
 end
-
 end homology
+
+namespace category_theory.functor
+
+variables {ι : Type*} {c : complex_shape ι} {B : Type*} [category B] [abelian B] (F : A ⥤ B)
+  [functor.additive F] [preserves_finite_limits F] [preserves_finite_colimits F]
+
+/-- When `F` is an exact additive functor, `F(Hᵢ(X)) ≅ Hᵢ(F(X))` for `X` a complex. -/
+noncomputable def map_homology_iso (C : homological_complex A c) (j : ι) :
+  F.obj (C.homology j) ≅ ((F.map_homological_complex _).obj C).homology j :=
+(preserves_cokernel.iso _ _).trans (cokernel.map_iso _ _ ((F.map_iso (image_subobject_iso _)).trans
+  ((preserves_image.iso _ _).symm.trans (image_subobject_iso _).symm))
+  ((F.map_iso (kernel_subobject_iso _)).trans ((preserves_kernel.iso _ _).trans
+  (kernel_subobject_iso _).symm))
+  begin
+    dsimp,
+    ext,
+    simp only [category.assoc, image_to_kernel_arrow],
+    erw [kernel_subobject_arrow', kernel_comparison_comp_ι, image_subobject_arrow'],
+    simp [←F.map_comp],
+  end)
+
+lemma homology_map_comp_map_homology_iso
+  {C D : homological_complex A c} (f : C ⟶ D) (j : ι) :
+  (homology_functor A c j ⋙ F).map f ≫ (map_homology_iso F D j).hom
+    = (map_homology_iso F C j).hom ≫ (homology_functor B c j).map
+      ((F.map_homological_complex _).map f) :=
+begin
+  rw [←iso.inv_comp_eq, ←category.assoc, ←iso.eq_comp_inv],
+  refine coequalizer.hom_ext _,
+  dsimp [map_homology_iso],
+  simp only [homology.map, ←category.assoc, cokernel.π_desc],
+  simp only [category.assoc, cokernel_comparison_map_desc, cokernel.π_desc,
+    π_comp_cokernel_comparison, ←F.map_comp],
+  erw ←kernel_subobject_iso_comp_map_assoc,
+  simp only [homological_complex.hom.sq_from_right,
+    homological_complex.hom.sq_from_left, F.map_homological_complex_map_f, F.map_comp],
+  dunfold homological_complex.d_from homological_complex.hom.next,
+  dsimp,
+  rw [map_comp_preserves_kernel_iso_inv_assoc, ←F.map_comp_assoc,
+    ←map_comp_kernel_subobject_iso_inv],
+  any_goals { simp },
+end
+
+/-- If `F` is an exact additive functor, then `F` commutes with `Hᵢ` (up to natural isomorphism). -/
+noncomputable def preserves_homology_of_exact (i : ι) :
+  homology_functor A c i ⋙ F ≅ F.map_homological_complex c ⋙ homology_functor B c i :=
+nat_iso.of_components (λ X, map_homology_iso F X i)
+  (λ X Y f, homology_map_comp_map_homology_iso _ _ _)
+
+end category_theory.functor

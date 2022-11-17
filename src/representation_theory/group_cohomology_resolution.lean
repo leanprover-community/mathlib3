@@ -347,7 +347,7 @@ def X_iso (n : ℕ) :
 
 lemma X_projective (G : Type u) [group G] (n : ℕ) :
   projective ((group_cohomology.resolution k G).X n) :=
-(Rep.equivalence_Module_monoid_algebra.map_projective_iff _).1 $
+Rep.equivalence_Module_monoid_algebra.to_adjunction.projective_of_map_projective _ $
   @Module.projective_of_free.{u} _ _ (Module.of (monoid_algebra k G)
   (representation.of_mul_action k G (fin (n + 1) → G)).as_module) _ (of_mul_action_basis k G n)
 
@@ -438,6 +438,36 @@ begin
   exact linear_map.ext_iff.1 this _,
 end
 
+/-- The chain map from the standard resolution of `k` to `k[0]` given by `∑ nᵢgᵢ ↦ ∑ nᵢ` in
+degree zero. -/
+def ε_to_single₀ : group_cohomology.resolution k G ⟶ (chain_complex.single₀ _).obj
+  (Rep.of representation.trivial) :=
+((group_cohomology.resolution k G).to_single₀_equiv _).symm ⟨ε k G, d_comp_ε k G⟩
+
+lemma ε_to_single₀_comp_eq : ((forget₂ _ (Module.{u} k)).map_homological_complex _).map
+  (ε_to_single₀ k G) ≫ ((chain_complex.single₀_map_homological_complex _).hom.app _) =
+  (forget₂_to_Module_homotopy_equiv k G).hom :=
+begin
+  refine chain_complex.to_single₀_ext _ _ _,
+  dsimp,
+  rw category.comp_id,
+  exact (forget₂_to_Module_homotopy_equiv_f_0_eq k G).symm,
+end
+
+lemma quasi_iso_of_forget₂_ε_to_single₀ :
+  quasi_iso (((forget₂ _ (Module.{u} k)).map_homological_complex _).map (ε_to_single₀ k G)) :=
+begin
+  convert quasi_iso_of_comp_right _
+    ((chain_complex.single₀_map_homological_complex _).hom.app _),
+  { apply_instance },
+  { exact quasi_iso_of_iso _ },
+  { erw ε_to_single₀_comp_eq,
+    exact homotopy_equiv.to_quasi_iso _ },
+end
+
+instance : quasi_iso (ε_to_single₀ k G) :=
+(forget₂ _ (Module.{u} k)).quasi_iso_of_map_quasi_iso _ (quasi_iso_of_forget₂_ε_to_single₀ k G)
+
 end exactness
 end group_cohomology.resolution
 open group_cohomology.resolution
@@ -447,25 +477,7 @@ variables [group G]
 /-- The standard projective resolution of `k` as a trivial `k`-linear `G`-representation. -/
 def group_cohomology.ProjectiveResolution :
   ProjectiveResolution (Rep.of (@representation.trivial k G _ _)) :=
-{ complex := group_cohomology.resolution k G,
-  π := ((group_cohomology.resolution k G).to_single₀_equiv _).symm ⟨ε k G, d_comp_ε k G⟩,
-  projective := X_projective k G,
-  exact₀ :=
-  begin
-    dsimp [chain_complex.to_single₀_equiv],
-    refine (forget₂ (Rep k G) (Module.{u} k)).exact_of_exact_map _,
-    rw ←forget₂_to_Module_homotopy_equiv_f_0_eq,
-    exact (forget₂_to_Module_homotopy_equiv k G).to_single₀_exact_d_f_0,
-  end,
-  exact := λ n, (forget₂ (Rep k G) (Module.{u} k)).exact_of_exact_map
-    ((forget₂_to_Module_homotopy_equiv k G).to_chain_complex_single₀_exact_succ _),
-  epi :=
-  begin
-    dsimp [chain_complex.to_single₀_equiv],
-    refine (forget₂ (Rep k G) (Module.{u} k)).reflects_epimorphisms_of_faithful.reflects _ _,
-    rw ←forget₂_to_Module_homotopy_equiv_f_0_eq,
-    exact homotopy_equiv.to_single₀_f_0_epi _,
-  end }
+(ε_to_single₀ k G).to_single₀_ProjectiveResolution (X_projective k G)
 
 instance : enough_projectives (Rep k G) :=
 Rep.equivalence_Module_monoid_algebra.enough_projectives_iff.2

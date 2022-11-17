@@ -94,34 +94,22 @@ instance : has_projective_resolutions C :=
 { out := λ Z, by apply_instance }
 
 end ProjectiveResolution
-
-/-- An equivalence of abelian categories maps projective resolutions to projective resolutions. -/
-def equivalence.map_ProjectiveResolution {D : Type*} [category D] [abelian D] (F : C ≌ D)
-  [F.functor.additive] (X : C) (P : ProjectiveResolution X) :
-  ProjectiveResolution (F.functor.obj X) :=
-{ complex := (F.functor.map_homological_complex _).obj P.complex,
-  π := (F.functor.map_homological_complex _).map P.π ≫
-    ((chain_complex.single₀_map_homological_complex F.functor).app X).hom,
-  projective := λ n, (F.map_projective_iff (P.1.X n)).2 (P.3 n),
-  exact₀ :=
-  begin
-    show exact (F.functor.map _) (F.functor.map _ ≫ 𝟙 _),
-    rw category.comp_id,
-    haveI := @preserves_colimits.preserves_finite_colimits
-      _ _ _ _ F.functor (adjunction.is_equivalence_preserves_colimits _),
-    exact F.functor.map_exact _ _ P.4,
-  end,
-  exact := λ n,
-  begin
-    haveI := @preserves_colimits.preserves_finite_colimits
-      _ _ _ _ F.functor (adjunction.is_equivalence_preserves_colimits _),
-    exact F.functor.map_exact _ _ (P.5 n),
-  end,
-  epi :=
-  begin
-    show epi (F.functor.map _ ≫ 𝟙 _),
-    rw category.comp_id,
-    apply_instance,
-  end }
-
 end category_theory
+namespace homological_complex.hom
+
+variables {C : Type u} [category.{v} C] [abelian C]
+
+/-- If `X` is a chain complex of projective objects and we have a quasi-isomorphism `f : X ⟶ Y[0]`,
+then `X` is a projective resolution of `Y.` -/
+def to_single₀_ProjectiveResolution {X : chain_complex C ℕ} {Y : C}
+  (f : X ⟶ (chain_complex.single₀ C).obj Y) [quasi_iso f]
+  (H : ∀ n, projective (X.X n)) :
+  ProjectiveResolution Y :=
+{ complex := X,
+  π := f,
+  projective := H,
+  exact₀ := f.to_single₀_exact_d_f_at_zero,
+  exact := f.to_single₀_exact_at_succ,
+  epi := f.to_single₀_epi_at_zero }
+
+end homological_complex.hom

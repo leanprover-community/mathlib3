@@ -19,24 +19,30 @@ Other searches through the environment can be done using `tactic.find_all_exprs`
 namespace tactic
 /-- Auxilliary data type for `tactic.find_all_exprs` -/
 meta structure find_all_expr_data :=
-(depends_on_sorry : bool) -- this declaration depends on sorry
-(found_sorry : bool) -- the search has found sorry somewhere
-(descendants : list (name × bool × name_set)) -- name, contains sorry directly, direct descendants
+(matching_subexpr : bool) -- this declaration contains a subexpression on which the test passes
+(test_passed : bool) -- the search has found a matching subexpression somewhere
+-- name, contains subexpression directly, direct descendants
+(descendants : list (name × bool × name_set))
 (name_map : name_map bool) -- all data
 (direct_descendants : name_set) -- direct descendants of a declaration
 
-/-- Auxilliary declaration for `tactic.find_all_exprs` -/
+/-- Auxilliary declaration for `tactic.find_all_exprs`.
+
+Traverse all declarations occurring in the declaration with the given name,
+excluding declarations `n` such that `g n` is true (and all their descendants),
+recording the structure of which declaration depends on which,
+and whether `f e` is true on any subexpression `e` of the declaration. -/
 meta def find_all_exprs_aux (env : environment) (f : expr → bool) (g : name → bool) : name →
   find_all_expr_data → tactic find_all_expr_data
 | n ⟨b₀, b₁, l, ns, desc⟩ :=
-  match ns.find n with
+  match ns.find n with -- Skip declarations that we have already handled.
   | some b := pure ⟨b₀, b || b₁, l, ns, if b then desc.insert n else desc⟩
   | none := if g n then pure ⟨b₀, b₁, l, ns.insert n ff, desc⟩ else do
     d ← env.get n,
-    let process (v : expr) : tactic find_all_expr_data := (do
+    let process (v : expr) : tactic find_all_expr_data :=
       v.mfold ⟨ff, ff, l, ns, mk_name_set⟩ $ λ e _ p,
         if f e then pure ⟨tt, tt, p.descendants, p.name_map, p.direct_descendants⟩ else
-        if e.is_constant then find_all_exprs_aux e.const_name p else pure p),
+        if e.is_constant then find_all_exprs_aux e.const_name p else pure p,
     ⟨b', b, l, ns, desc'⟩ ← process d.value,
     pure ⟨b₀, b₁ || b, if b then (n, b', desc')::l else l, ns.insert n b,
       if b then desc.insert n else desc⟩
@@ -53,7 +59,7 @@ meta def find_all_exprs (env : environment) (test : expr → bool) (exclude : na
 end tactic
 open tactic
 
-/-- Print all declarations that (transively) occur in the value of declaration `nm` and depend on
+/-- Print all declarations that (transitively) occur in the value of declaration `nm` and depend on
 `sorry`. If `ignore_mathlib` is set true, then all declarations in `mathlib` are
 assumed to be `sorry`-free, which greatly reduces the search space. We could also exclude `core`,
 but this doesn't speed up the search. -/
@@ -76,7 +82,7 @@ setup_tactic_parser
 ```
 #print_sorry_in nm
 ```
-prints all declarations that (transively) occur in the value of declaration `nm` and depend on
+prints all declarations that (transitively) occur in the value of declaration `nm` and depend on
 `sorry`. This command assumes that no `sorry` occurs in mathlib. To find `sorry` in mathlib, use
 ``#eval print_sorry_in `nm ff`` instead.
 Example:

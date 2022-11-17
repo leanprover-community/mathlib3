@@ -361,9 +361,7 @@ begin
   ext x, split,
   { rintro ⟨x, hx, rfl⟩, exact ⟨rfl, hx, hx⟩ },
   { obtain ⟨x, y⟩ := x,
-    rintro ⟨h1x, h2x⟩,
-    dsimp [mem_diagonal_iff] at h1x,
-    obtain rfl := h1x,
+    rintro ⟨rfl : x = y, h2x⟩,
     exact mem_image_of_mem _ h2x.1 }
 end
 

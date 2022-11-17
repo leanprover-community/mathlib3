@@ -1640,7 +1640,6 @@ by { rw [subsingleton.elim f (λ _, 0)], exact cont_diff_on_const }
 
 /-! ### Smoothness of linear functions -/
 
-
 /--
 Unbundled bounded linear functions are `C^∞`.
 -/
@@ -2347,7 +2346,7 @@ lemma cont_diff_within_at.fderiv_within'' {f : E → F → G} {g : E → F} {u :
   (hu : u ∈ 𝓝[(λ x', (x', g x')) '' s] (x, g x)) :
   cont_diff_within_at 𝕜 m (λ x', fderiv_within 𝕜 (f x') t (g x')) s x :=
 begin
-  have : ∀ k : ℕ, (k : with_top ℕ) ≤ m →
+  have : ∀ k : ℕ, (k : ℕ∞) ≤ m →
     cont_diff_within_at 𝕜 k (λ x, fderiv_within 𝕜 (f x) t (g x)) s x,
   { intros k hkm,
     obtain ⟨v, hv, -, f', hvf', hf'⟩ :=
@@ -2458,7 +2457,7 @@ lemma cont_diff.fderiv_apply {f : E → F → G} {g k : E → F} {n m : ℕ∞}
 (hf.fderiv hg hnm).clm_apply hk
 
 /-- The bundled derivative of a `C^{n+1}` function is `C^n`. -/
-lemma cont_diff_on_fderiv_within_apply {m n : with_top ℕ} {s : set E}
+lemma cont_diff_on_fderiv_within_apply {m n : ℕ∞} {s : set E}
   {f : E → F} (hf : cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hmn : m + 1 ≤ n) :
   cont_diff_on 𝕜 m (λp : E × E, (fderiv_within 𝕜 f s p.1 : E →L[𝕜] F) p.2) (s ×ˢ univ) :=
 ((hf.fderiv_within hs hmn).comp cont_diff_on_fst (prod_subset_preimage_fst _ _)).clm_apply

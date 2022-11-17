@@ -20,6 +20,10 @@ measure, which gives measure `1` to the parallelogram spanned by the basis.
 nonempty interior.
 `basis.add_haar` is the Lebesgue measure associated to a basis, giving measure `1` to the
 corresponding parallelogram.
+
+In particular, we declare a `measure_space` instance on any finite-dimensional inner product space,
+by using the Lebesgue measure associated to some orthonormal basis (which is in fact independent
+of the basis).
 -/
 
 open set topological_space measure_theory measure_theory.measure finite_dimensional
@@ -27,7 +31,7 @@ open_locale big_operators
 
 noncomputable theory
 
-variables {ι E F : Type*} [finite ι]
+variables {ι ι' E F : Type*} [fintype ι] [fintype ι']
 
 section add_comm_group
 
@@ -35,10 +39,7 @@ variables [add_comm_group E] [module ℝ E] [add_comm_group F] [module ℝ F]
 
 /-- The parallelogram spanned by a finite family of vectors. -/
 def parallelogram (v : ι → E) : set E :=
-begin
-  letI : fintype ι := fintype.of_finite ι,
-  exact (λ (t : ι → ℝ), ∑ i, t i • v i) '' (Icc 0 1)
-end
+(λ (t : ι → ℝ), ∑ i, t i • v i) '' (Icc 0 1)
 
 lemma image_parallelogram (f : E →ₗ[ℝ] F) (v : ι → E) :
   f '' (parallelogram v) = parallelogram (f ∘ v) :=
@@ -47,6 +48,29 @@ begin
   congr' 1,
   ext t,
   simp only [function.comp_app, linear_map.map_sum, linear_map.map_smulₛₗ, ring_hom.id_apply],
+end
+
+/-- Reindexing a family of vectors does not change their parallelogram. -/
+@[simp] lemma parallelogram_comp (v : ι → E) (e : ι' ≃ ι) :
+  parallelogram (v ∘ e) = parallelogram v :=
+begin
+  simp only [parallelogram],
+  let K : (ι' → ℝ) ≃ (ι → ℝ) := equiv.Pi_congr_left' (λ (a : ι'), ℝ) e,
+  have : K ⁻¹' (Icc (0 : (ι → ℝ)) 1) = (Icc (0 : (ι' → ℝ)) 1),
+  { ext x,
+    simp only [mem_preimage, mem_Icc, pi.le_def, pi.zero_apply, equiv.Pi_congr_left'_apply,
+      pi.one_apply],
+    refine ⟨λ h, ⟨λ i, _, λ i, _⟩, λ h, ⟨λ i, h.1 (e.symm i), λ i, h.2 (e.symm i)⟩⟩,
+    { simpa only [equiv.symm_apply_apply] using h.1 (e i) },
+    { simpa only [equiv.symm_apply_apply] using h.2 (e i) } },
+  rw equiv.preimage_eq_iff_eq_image at this,
+  rw [this, ← image_comp],
+  congr' 1,
+  ext x,
+  simp only [orthonormal_basis.coe_reindex, function.comp_app, equiv.symm_apply_apply,
+    equiv.Pi_congr_left'_apply],
+  convert ((equiv.sum_comp e.symm (λ (i : ι'), x i • v (e i)))).symm,
+  simp only [equiv.apply_symm_apply],
 end
 
 /- The parallelogram associated to the standard orthonormal basis of `ℝ` is either `[-1, 0]`
@@ -93,15 +117,10 @@ variables [normed_add_comm_group E] [normed_space ℝ E]
 /-- The parallelogram spanned by a basis, as a compact set with nonempty interior. -/
 def basis.parallelogram (b : basis ι ℝ E) : positive_compacts E :=
 { carrier := parallelogram b,
-  is_compact' :=
-    begin
-      letI : fintype ι := fintype.of_finite ι,
-      exact is_compact_Icc.image (continuous_finset_sum finset.univ
-        (λ (i : ι) (H : i ∈ finset.univ), (continuous_apply i).smul continuous_const)),
-    end,
+  is_compact' := is_compact_Icc.image (continuous_finset_sum finset.univ
+    (λ (i : ι) (H : i ∈ finset.univ), (continuous_apply i).smul continuous_const)),
   interior_nonempty' :=
     begin
-      letI : fintype ι := fintype.of_finite ι,
       suffices H : set.nonempty (interior (b.equiv_funL.symm.to_homeomorph '' (Icc 0 1))),
       { dsimp only [parallelogram],
         convert H,
@@ -133,15 +152,15 @@ end
 
 end normed_space
 
-section inner_product_space
-
-variables [inner_product_space ℝ E] [finite_dimensional ℝ E] [measurable_space E] [borel_space E]
-
-instance measure_space_of_inner_product_space : measure_space E :=
+/-- A finite dimensional inner product space has a canonical measure, the Lebesgue measure giving
+volume `1` to the parallelogram spanned by any orthonormal basis. We define the measure using
+some arbitrary choice of orthonormal basis. The fact that it works with any orthonormal basis
+is proved in `orthonormal_basis.volume_parallelogram`. -/
+instance measure_space_of_inner_product_space
+  [inner_product_space ℝ E] [finite_dimensional ℝ E] [measurable_space E] [borel_space E] :
+  measure_space E :=
 { volume := (std_orthonormal_basis ℝ E).to_basis.add_haar }
 
 /- This instance should not be necessary, but Lean has difficulties to find it in product
 situations if we do not declare it explicitly. -/
 instance : measure_space ℝ := by apply_instance
-
-end inner_product_space

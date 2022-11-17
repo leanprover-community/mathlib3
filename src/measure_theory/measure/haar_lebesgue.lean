@@ -502,9 +502,10 @@ begin
 end
 
 
-section
 /-!
 ### Measures coming from a basis or an alternating map -/
+
+section
 
 variables {ι F : Type*} [fintype ι] [decidable_eq ι]
 [normed_add_comm_group F] [normed_space ℝ F] [measurable_space F] [borel_space F]
@@ -528,10 +529,12 @@ include _i
 
 /-- The Lebesgue measure associated to an alternating map. It gives measure `|ω v|` to the
 parallelogram spanned by the vectors `(v₁, ..., vₙ)`. -/
-noncomputable def alternating_map.add_haar (ω : alternating_map ℝ F ℝ (fin n)) : measure F :=
+noncomputable def _root_.alternating_map.add_haar (ω : alternating_map ℝ F ℝ (fin n)) :
+  measure F :=
 ∥ω (fin_basis_of_finrank_eq ℝ F _i.out)∥₊ • (fin_basis_of_finrank_eq ℝ F _i.out).add_haar
 
-lemma alternating_map.add_haar_parallelogram (ω : alternating_map ℝ F ℝ (fin n)) (v : fin n → F) :
+lemma _root_.alternating_map.add_haar_parallelogram
+  (ω : alternating_map ℝ F ℝ (fin n)) (v : fin n → F) :
   ω.add_haar (parallelogram v) = ennreal.of_real (|ω v|) :=
 begin
   conv_rhs { rw ω.eq_smul_basis_det (fin_basis_of_finrank_eq ℝ F _i.out) },
@@ -541,15 +544,12 @@ begin
 end
 
 instance (ω : alternating_map ℝ F ℝ (fin n)) : is_add_left_invariant ω.add_haar :=
-begin
-  rw [alternating_map.add_haar],
-  haveI : is_add_left_invariant ((fin_basis_of_finrank_eq ℝ F _i.out).add_haar), sorry,
-  apply_instance,
-end
+by { rw [alternating_map.add_haar], apply_instance }
+
+instance (ω : alternating_map ℝ F ℝ (fin n)) : is_locally_finite_measure ω.add_haar :=
+by { rw [alternating_map.add_haar], apply_instance }
 
 end
-
-#exit
 
 /-!
 ### Density points

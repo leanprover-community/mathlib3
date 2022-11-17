@@ -406,7 +406,7 @@ open positivity
 
 /-- Extension for the `positivity` tactic: The length of an interval is always nonnegative. -/
 @[positivity]
-meta def positivity_exp : expr → tactic strictness
+meta def positivity_interval_length : expr → tactic strictness
 | `(nonempty_interval.length %%s) := nonnegative <$> mk_app `nonempty_interval.length_nonneg [s]
 | `(interval.length %%s) := nonnegative <$> mk_app `interval.length_nonneg [s]
 | e := pp e >>= fail ∘ format.bracket "The expression `"

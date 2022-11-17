@@ -137,7 +137,7 @@ lemma to_Γ_Spec_c_app_spec :
 /-- The sheaf hom on all basic opens, commuting with restrictions. -/
 def to_Γ_Spec_c_basic_opens :
   (induced_functor basic_open).op ⋙ (structure_sheaf (Γ.obj (op X))).1 ⟶
-  (induced_functor basic_open).op ⋙ ((Top.sheaf.pushforward X.to_Γ_Spec_base).obj X.𝒪).1 :=
+  (induced_functor basic_open).op ⋙ ((Top.sheaf.pushforward _ X.to_Γ_Spec_base).obj X.𝒪).1 :=
 { app := λ r, X.to_Γ_Spec_c_app r.unop,
   naturality' := λ r s f, begin
     apply (structure_sheaf.to_basic_open_epi (Γ.obj (op X)) r.unop).1,

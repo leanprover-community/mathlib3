@@ -44,7 +44,7 @@ sub-relation of the adjacency relation of the simple graph.
 
 -/
 
-universe u
+universes u v
 
 namespace simple_graph
 
@@ -61,9 +61,27 @@ structure subgraph {V : Type u} (G : simple_graph V) :=
 (edge_vert : ∀ {v w : V}, adj v w → v ∈ verts)
 (symm : symmetric adj . obviously)
 
+variables {V : Type u} {W : Type v}
+
+/-- The one-vertex subgraph. -/
+@[simps]
+protected def singleton_subgraph (G : simple_graph V) (v : V) : G.subgraph :=
+{ verts := {v},
+  adj := ⊥,
+  adj_sub := by simp [-set.bot_eq_empty],
+  edge_vert := by simp [-set.bot_eq_empty] }
+
+/-- The one-edge subgraph. -/
+@[simps]
+def subgraph_of_adj (G : simple_graph V) {v w : V} (hvw : G.adj v w) : G.subgraph :=
+{ verts := {v, w},
+  adj := λ a b, ⟦(v, w)⟧ = ⟦(a, b)⟧,
+  adj_sub := λ a b h, by { rw [← G.mem_edge_set, ← h], exact hvw },
+  edge_vert := λ a b h, by { apply_fun (λ e, a ∈ e) at h, simpa using h } }
+
 namespace subgraph
 
-variables {V : Type u} {G : simple_graph V}
+variables {G : simple_graph V}
 
 protected lemma loopless (G' : subgraph G) : irreflexive G'.adj :=
 λ v h, G.loopless v (G'.adj_sub h)
@@ -73,6 +91,18 @@ lemma adj_comm (G' : subgraph G) (v w : V) : G'.adj v w ↔ G'.adj w v :=
 
 @[symm] lemma adj_symm (G' : subgraph G) {u v : V} (h : G'.adj u v) : G'.adj v u := G'.symm h
 
+protected lemma adj.symm {G' : subgraph G} {u v : V} (h : G'.adj u v) : G'.adj v u := G'.symm h
+
+protected lemma adj.adj_sub {H : G.subgraph} {u v : V} (h : H.adj u v) : G.adj u v := H.adj_sub h
+
+protected lemma adj.fst_mem {H : G.subgraph} {u v : V} (h : H.adj u v) : u ∈ H.verts :=
+H.edge_vert h
+
+protected lemma adj.snd_mem {H : G.subgraph} {u v : V} (h : H.adj u v) : v ∈ H.verts :=
+h.symm.fst_mem
+
+protected lemma adj.ne {H : G.subgraph} {u v : V} (h : H.adj u v) : u ≠ v := h.adj_sub.ne
+
 /-- Coercion from `G' : subgraph G` to a `simple_graph ↥G'.verts`. -/
 @[simps] protected def coe (G' : subgraph G) : simple_graph G'.verts :=
 { adj := λ v w, G'.adj v w,
@@ -81,6 +111,10 @@ lemma adj_comm (G' : subgraph G) (v w : V) : G'.adj v w ↔ G'.adj w v :=
 
 @[simp] lemma coe_adj_sub (G' : subgraph G) (u v : G'.verts) (h : G'.coe.adj u v) : G.adj u v :=
 G'.adj_sub h
+
+/- Given `h : H.adj u v`, then `h.coe : H.coe.adj ⟨u, _⟩ ⟨v, _⟩`. -/
+protected lemma adj.coe {H : G.subgraph} {u v : V} (h : H.adj u v) :
+  H.coe.adj ⟨u, H.edge_vert h⟩ ⟨v, H.edge_vert h.symm⟩ := h
 
 /-- A subgraph is called a *spanning subgraph* if it contains all the vertices of `G`. --/
 def is_spanning (G' : subgraph G) : Prop := ∀ (v : V), v ∈ G'.verts
@@ -184,8 +218,8 @@ def copy (G' : subgraph G)
   subgraph G :=
 { verts := V'',
   adj := adj',
-  adj_sub := hadj.symm ▸ G'.adj_sub,
-  edge_vert := hV.symm ▸ hadj.symm ▸ G'.edge_vert,
+  adj_sub := λ _ _, hadj.symm ▸ G'.adj_sub,
+  edge_vert := λ _ _, hV.symm ▸ hadj.symm ▸ G'.edge_vert,
   symm := hadj.symm ▸ G'.symm }
 
 lemma copy_eq (G' : subgraph G)
@@ -226,8 +260,6 @@ def bot : subgraph G :=
   edge_vert := λ v w h, false.rec _ h,
   symm := λ u v h, h }
 
-instance subgraph_inhabited : inhabited (subgraph G) := ⟨bot⟩
-
 /-- The relation that one subgraph is a subgraph of another. -/
 def is_subgraph (x y : subgraph G) : Prop := x.verts ⊆ y.verts ∧ ∀ ⦃v w : V⦄, x.adj v w → y.adj v w
 
@@ -258,6 +290,8 @@ instance : bounded_order (subgraph G) :=
   bot := bot,
   le_top := λ x, ⟨set.subset_univ _, (λ v w h, x.adj_sub h)⟩,
   bot_le := λ x, ⟨set.empty_subset _, (λ v w h, false.rec _ h)⟩ }
+
+@[simps] instance subgraph_inhabited : inhabited (subgraph G) := ⟨⊥⟩
 
 -- TODO simp lemmas for the other lattice operations on subgraphs
 @[simp] lemma top_verts : (⊤ : subgraph G).verts = set.univ := rfl
@@ -329,35 +363,94 @@ lemma edge_set_mono {H₁ H₂ : subgraph G} (h : H₁ ≤ H₂) : H₁.edge_set
 
 lemma _root_.disjoint.edge_set {H₁ H₂ : subgraph G}
   (h : disjoint H₁ H₂) : disjoint H₁.edge_set H₂.edge_set :=
-by simpa using edge_set_mono h
+disjoint_iff_inf_le.mpr $ by simpa using edge_set_mono h.le_bot
+
+/-- Graph homomorphisms induce a covariant function on subgraphs. -/
+@[simps]
+protected def map {G' : simple_graph W} (f : G →g G') (H : G.subgraph) : G'.subgraph :=
+{ verts := f '' H.verts,
+  adj := relation.map H.adj f f,
+  adj_sub := by { rintro _ _ ⟨u, v, h, rfl, rfl⟩, exact f.map_rel (H.adj_sub h) },
+  edge_vert := by { rintro _ _ ⟨u, v, h, rfl, rfl⟩, exact set.mem_image_of_mem _ (H.edge_vert h) },
+  symm := by { rintro _ _ ⟨u, v, h, rfl, rfl⟩, exact ⟨v, u, H.symm h, rfl, rfl⟩ } }
+
+lemma map_monotone {G' : simple_graph W} (f : G →g G') : monotone (subgraph.map f) :=
+begin
+  intros H H' h,
+  split,
+  { intro,
+    simp only [map_verts, set.mem_image, forall_exists_index, and_imp],
+    rintro v hv rfl,
+    exact ⟨_, h.1 hv, rfl⟩ },
+  { rintros _ _ ⟨u, v, ha, rfl, rfl⟩,
+    exact ⟨_, _, h.2 ha, rfl, rfl⟩ }
+end
+
+/-- Graph homomorphisms induce a contravariant function on subgraphs. -/
+@[simps]
+protected def comap {G' : simple_graph W} (f : G →g G') (H : G'.subgraph) : G.subgraph :=
+{ verts := f ⁻¹' H.verts,
+  adj := λ u v, G.adj u v ∧ H.adj (f u) (f v),
+  adj_sub := by { rintros v w ⟨ga, ha⟩, exact ga },
+  edge_vert := by { rintros v w ⟨ga, ha⟩, simp [H.edge_vert ha] } }
+
+lemma comap_monotone {G' : simple_graph W} (f : G →g G') : monotone (subgraph.comap f) :=
+begin
+  intros H H' h,
+  split,
+  { intro,
+    simp only [comap_verts, set.mem_preimage],
+    apply h.1, },
+  { intros v w,
+    simp only [comap_adj, and_imp, true_and] { contextual := tt },
+    intro,
+    apply h.2, }
+end
+
+lemma map_le_iff_le_comap {G' : simple_graph W} (f : G →g G') (H : G.subgraph) (H' : G'.subgraph) :
+  H.map f ≤ H' ↔ H ≤ H'.comap f :=
+begin
+  refine ⟨λ h, ⟨λ v hv, _, λ v w hvw, _⟩, λ h, ⟨λ v, _, λ v w, _⟩⟩,
+  { simp only [comap_verts, set.mem_preimage],
+    exact h.1 ⟨v, hv, rfl⟩, },
+  { simp only [H.adj_sub hvw, comap_adj, true_and],
+    exact h.2 ⟨v, w, hvw, rfl, rfl⟩, },
+  { simp only [map_verts, set.mem_image, forall_exists_index, and_imp],
+    rintro w hw rfl,
+    exact h.1 hw, },
+  { simp only [relation.map, map_adj, forall_exists_index, and_imp],
+    rintros u u' hu rfl rfl,
+    have := h.2 hu,
+    simp only [comap_adj] at this,
+    exact this.2, }
+end
 
 /-- Given two subgraphs, one a subgraph of the other, there is an induced injective homomorphism of
 the subgraphs as graphs. -/
-def map {x y : subgraph G} (h : x ≤ y) : x.coe →g y.coe :=
+@[simps]
+def inclusion {x y : subgraph G} (h : x ≤ y) : x.coe →g y.coe :=
 { to_fun := λ v, ⟨↑v, and.left h v.property⟩,
   map_rel' := λ v w hvw, h.2 hvw }
 
-lemma map.injective {x y : subgraph G} (h : x ≤ y) : function.injective (map h) :=
-λ v w h, by { simp only [map, rel_hom.coe_fn_mk, subtype.mk_eq_mk] at h, exact subtype.ext h }
+lemma inclusion.injective {x y : subgraph G} (h : x ≤ y) : function.injective (inclusion h) :=
+λ v w h, by { simp only [inclusion, rel_hom.coe_fn_mk, subtype.mk_eq_mk] at h, exact subtype.ext h }
 
 /-- There is an induced injective homomorphism of a subgraph of `G` into `G`. -/
-def map_top (x : subgraph G) : x.coe →g G :=
+@[simps]
+protected def hom (x : subgraph G) : x.coe →g G :=
 { to_fun := λ v, v,
   map_rel' := λ v w hvw, x.adj_sub hvw }
 
-lemma map_top.injective {x : subgraph G} : function.injective x.map_top :=
+lemma hom.injective {x : subgraph G} : function.injective x.hom :=
 λ v w h, subtype.ext h
-
-@[simp]
-lemma map_top_to_fun {x : subgraph G} (v : x.verts) : x.map_top v = v := rfl
 
 /-- There is an induced injective homomorphism of a subgraph of `G` as
 a spanning subgraph into `G`. -/
-@[simps] def map_spanning_top (x : subgraph G) : x.spanning_coe →g G :=
+@[simps] def spanning_hom (x : subgraph G) : x.spanning_coe →g G :=
 { to_fun := id,
   map_rel' := λ v w hvw, x.adj_sub hvw }
 
-lemma map_spanning_top.injective {x : subgraph G} : function.injective x.map_spanning_top :=
+lemma spanning_hom.injective {x : subgraph G} : function.injective x.spanning_hom :=
 λ v w h, h
 
 lemma neighbor_set_subset_of_subgraph {x y : subgraph G} (h : x ≤ y) (v : V) :
@@ -432,7 +525,161 @@ begin
   simp only [set.mem_to_finset, mem_neighbor_set],
 end
 
-/-! ## Edge deletion -/
+end subgraph
+
+section mk_properties
+/-! ### Properties of `singleton_subgraph` and `subgraph_of_adj` -/
+
+variables {G : simple_graph V} {G' : simple_graph W}
+
+instance nonempty_singleton_subgraph_verts (v : V) : nonempty (G.singleton_subgraph v).verts :=
+⟨⟨v, set.mem_singleton v⟩⟩
+
+@[simp] lemma singleton_subgraph_le_iff (v : V) (H : G.subgraph) :
+  G.singleton_subgraph v ≤ H ↔ v ∈ H.verts :=
+begin
+  refine ⟨λ h, h.1 (set.mem_singleton v), _⟩,
+  intro h,
+  split,
+  { simp [h] },
+  { simp [-set.bot_eq_empty] }
+end
+
+@[simp] lemma map_singleton_subgraph (f : G →g G') {v : V} :
+  subgraph.map f (G.singleton_subgraph v) = G'.singleton_subgraph (f v) :=
+by ext; simp only [relation.map, subgraph.map_adj, singleton_subgraph_adj, pi.bot_apply,
+  exists_and_distrib_left, and_iff_left_iff_imp, is_empty.forall_iff, subgraph.map_verts,
+  singleton_subgraph_verts, set.image_singleton]
+
+@[simp] lemma neighbor_set_singleton_subgraph (v w : V) :
+  (G.singleton_subgraph v).neighbor_set w = ∅ :=
+by { ext u, refl }
+
+@[simp] lemma edge_set_singleton_subgraph (v : V) :
+  (G.singleton_subgraph v).edge_set = ∅ :=
+sym2.from_rel_bot
+
+lemma eq_singleton_subgraph_iff_verts_eq (H : G.subgraph) {v : V} :
+  H = G.singleton_subgraph v ↔ H.verts = {v} :=
+begin
+  refine ⟨λ h, by simp [h], λ h, _⟩,
+  ext,
+  { rw [h, singleton_subgraph_verts] },
+  { simp only [Prop.bot_eq_false, singleton_subgraph_adj, pi.bot_apply, iff_false],
+    intro ha,
+    have ha1 := ha.fst_mem,
+    have ha2 := ha.snd_mem,
+    rw [h, set.mem_singleton_iff] at ha1 ha2,
+    subst_vars,
+    exact ha.ne rfl },
+end
+
+instance nonempty_subgraph_of_adj_verts {v w : V} (hvw : G.adj v w) :
+  nonempty (G.subgraph_of_adj hvw).verts := ⟨⟨v, by simp⟩⟩
+
+@[simp] lemma edge_set_subgraph_of_adj {v w : V} (hvw : G.adj v w) :
+  (G.subgraph_of_adj hvw).edge_set = {⟦(v, w)⟧} :=
+begin
+  ext e,
+  refine e.ind _,
+  simp only [eq_comm, set.mem_singleton_iff, subgraph.mem_edge_set, subgraph_of_adj_adj,
+    iff_self, forall_2_true_iff],
+end
+
+lemma subgraph_of_adj_symm {v w : V} (hvw : G.adj v w) :
+  G.subgraph_of_adj hvw.symm = G.subgraph_of_adj hvw :=
+by ext; simp [or_comm, and_comm]
+
+@[simp] lemma map_subgraph_of_adj (f : G →g G')
+  {v w : V} (hvw : G.adj v w) :
+  subgraph.map f (G.subgraph_of_adj hvw) = G'.subgraph_of_adj (f.map_adj hvw) :=
+begin
+  ext,
+  { simp only [subgraph.map_verts, subgraph_of_adj_verts, set.mem_image,
+      set.mem_insert_iff, set.mem_singleton_iff],
+    split,
+    { rintro ⟨u, rfl|rfl, rfl⟩; simp },
+    { rintro (rfl|rfl),
+      { use v, simp },
+      { use w, simp } } },
+  { simp only [relation.map, subgraph.map_adj, subgraph_of_adj_adj, quotient.eq, sym2.rel_iff],
+    split,
+    { rintro ⟨a, b, (⟨rfl,rfl⟩|⟨rfl,rfl⟩), rfl, rfl⟩; simp },
+    { rintro (⟨rfl,rfl⟩|⟨rfl,rfl⟩),
+      { use [v, w], simp },
+      { use [w, v], simp } } }
+end
+
+lemma neighbor_set_subgraph_of_adj_subset {u v w : V} (hvw : G.adj v w) :
+  (G.subgraph_of_adj hvw).neighbor_set u ⊆ {v, w} :=
+(G.subgraph_of_adj hvw).neighbor_set_subset_verts _
+
+@[simp] lemma neighbor_set_fst_subgraph_of_adj {v w : V} (hvw : G.adj v w) :
+  (G.subgraph_of_adj hvw).neighbor_set v = {w} :=
+begin
+  ext u,
+  suffices : w = u ↔ u = w, by simpa [hvw.ne.symm] using this,
+  rw eq_comm,
+end
+
+@[simp] lemma neighbor_set_snd_subgraph_of_adj {v w : V} (hvw : G.adj v w) :
+  (G.subgraph_of_adj hvw).neighbor_set w = {v} :=
+begin
+  rw subgraph_of_adj_symm hvw.symm,
+  exact neighbor_set_fst_subgraph_of_adj hvw.symm,
+end
+
+@[simp] lemma neighbor_set_subgraph_of_adj_of_ne_of_ne {u v w : V} (hvw : G.adj v w)
+  (hv : u ≠ v) (hw : u ≠ w) :
+  (G.subgraph_of_adj hvw).neighbor_set u = ∅ :=
+by { ext, simp [hv.symm, hw.symm] }
+
+lemma neighbor_set_subgraph_of_adj [decidable_eq V] {u v w : V} (hvw : G.adj v w) :
+  (G.subgraph_of_adj hvw).neighbor_set u =
+  (if u = v then {w} else ∅) ∪ (if u = w then {v} else ∅) :=
+by split_ifs; subst_vars; simp [*]
+
+lemma singleton_subgraph_fst_le_subgraph_of_adj {u v : V} {h : G.adj u v} :
+  G.singleton_subgraph u ≤ G.subgraph_of_adj h :=
+by split; simp [-set.bot_eq_empty]
+
+lemma singleton_subgraph_snd_le_subgraph_of_adj {u v : V} {h : G.adj u v} :
+  G.singleton_subgraph v ≤ G.subgraph_of_adj h :=
+by split; simp [-set.bot_eq_empty]
+
+end mk_properties
+
+namespace subgraph
+
+variables {G : simple_graph V}
+
+/-! ### Subgraphs of subgraphs -/
+
+/-- Given a subgraph of a subgraph of `G`, construct a subgraph of `G`. -/
+@[reducible]
+protected def coe_subgraph {G' : G.subgraph} : G'.coe.subgraph → G.subgraph := subgraph.map G'.hom
+
+/-- Given a subgraph of `G`, restrict it to being a subgraph of another subgraph `G'` by
+taking the portion of `G` that intersects `G'`. -/
+@[reducible]
+protected def restrict {G' : G.subgraph} : G.subgraph → G'.coe.subgraph := subgraph.comap G'.hom
+
+lemma restrict_coe_subgraph {G' : G.subgraph} (G'' : G'.coe.subgraph) :
+  G''.coe_subgraph.restrict = G'' :=
+begin
+  ext,
+  { simp },
+  { simp only [relation.map, comap_adj, coe_adj, subtype.coe_prop, hom_apply, map_adj,
+      set_coe.exists, subtype.coe_mk, exists_and_distrib_right, exists_eq_right_right,
+      subtype.coe_eta, exists_true_left, exists_eq_right, and_iff_right_iff_imp],
+    apply G''.adj_sub, }
+end
+
+lemma coe_subgraph_injective (G' : G.subgraph) :
+  function.injective (subgraph.coe_subgraph : G'.coe.subgraph → G.subgraph) :=
+function.left_inverse.injective restrict_coe_subgraph
+
+/-! ### Edge deletion -/
 
 /-- Given a subgraph `G'` and a set of vertex pairs, remove all of the corresponding edges
 from its edge set, if present.
@@ -514,6 +761,121 @@ lemma spanning_coe_delete_edges_le (G' : G.subgraph) (s : set (sym2 V)) :
 spanning_coe_le_of_le (delete_edges_le s)
 
 end delete_edges
+
+/-! ### Induced subgraphs -/
+
+/- Given a subgraph, we can change its vertex set while removing any invalid edges, which
+gives induced subgraphs. See also `simple_graph.induce` for the `simple_graph` version, which,
+unlike for subgraphs, results in a graph with a different vertex type. -/
+
+/-- The induced subgraph of a subgraph. The expectation is that `s ⊆ G'.verts` for the usual
+notion of an induced subgraph, but, in general, `s` is taken to be the new vertex set and edges
+are induced from the subgraph `G'`. -/
+@[simps]
+def induce (G' : G.subgraph) (s : set V) : G.subgraph :=
+{ verts := s,
+  adj := λ u v, u ∈ s ∧ v ∈ s ∧ G'.adj u v,
+  adj_sub := λ u v, by { rintro ⟨-, -, ha⟩, exact G'.adj_sub ha },
+  edge_vert := λ u v, by { rintro ⟨h, -, -⟩, exact h } }
+
+lemma _root_.simple_graph.induce_eq_coe_induce_top (s : set V) :
+  G.induce s = ((⊤ : G.subgraph).induce s).coe :=
+by { ext v w, simp }
+
+section induce
+variables {G' G'' : G.subgraph} {s s' : set V}
+
+lemma induce_mono (hg : G' ≤ G'') (hs : s ⊆ s') : G'.induce s ≤ G''.induce s' :=
+begin
+  split,
+  { simp [hs], },
+  { simp only [induce_adj, true_and, and_imp] { contextual := tt },
+    intros v w hv hw ha,
+    exact ⟨hs hv, hs hw, hg.2 ha⟩, },
+end
+
+@[mono]
+lemma induce_mono_left (hg : G' ≤ G'') : G'.induce s ≤ G''.induce s := induce_mono hg (by refl)
+
+@[mono]
+lemma induce_mono_right (hs : s ⊆ s') : G'.induce s ≤ G'.induce s' := induce_mono (by refl) hs
+
+@[simp] lemma induce_empty : G'.induce ∅ = ⊥ :=
+by ext; simp
+
+@[simp] lemma induce_self_verts : G'.induce G'.verts = G' :=
+begin
+  ext,
+  { simp },
+  { split;
+    simp only [induce_adj, implies_true_iff, and_true] {contextual := tt},
+    exact λ ha, ⟨G'.edge_vert ha, G'.edge_vert ha.symm⟩ }
+end
+
+lemma singleton_subgraph_eq_induce {v : V} :
+  G.singleton_subgraph v = (⊤ : G.subgraph).induce {v} :=
+by ext; simp [-set.bot_eq_empty, Prop.bot_eq_false] { contextual := tt }
+
+lemma subgraph_of_adj_eq_induce {v w : V} (hvw : G.adj v w) :
+  G.subgraph_of_adj hvw = (⊤ : G.subgraph).induce {v, w} :=
+begin
+  ext,
+  { simp },
+  { split,
+    { intro h,
+      simp only [subgraph_of_adj_adj, quotient.eq, sym2.rel_iff] at h,
+      obtain ⟨rfl, rfl⟩|⟨rfl, rfl⟩ := h; simp [hvw, hvw.symm], },
+    { intro h,
+      simp only [induce_adj, set.mem_insert_iff, set.mem_singleton_iff, top_adj_iff] at h,
+      obtain ⟨rfl|rfl, rfl|rfl, ha⟩ := h;
+        exact (ha.ne rfl).elim <|> simp } }
+end
+
+end induce
+
+/-- Given a subgraph and a set of vertices, delete all the vertices from the subgraph,
+if present. Any edges indicent to the deleted vertices are deleted as well. -/
+@[reducible] def delete_verts (G' : G.subgraph) (s : set V) : G.subgraph := G'.induce (G'.verts \ s)
+
+section delete_verts
+variables {G' : G.subgraph} {s : set V}
+
+lemma delete_verts_verts : (G'.delete_verts s).verts = G'.verts \ s := rfl
+
+lemma delete_verts_adj {u v : V} :
+  (G'.delete_verts s).adj u v ↔
+  u ∈ G'.verts ∧ ¬ u ∈ s ∧ v ∈ G'.verts ∧ ¬ v ∈ s ∧ G'.adj u v :=
+by simp [and_assoc]
+
+@[simp] lemma delete_verts_delete_verts (s s' : set V) :
+  (G'.delete_verts s).delete_verts s' = G'.delete_verts (s ∪ s') :=
+by ext; simp [not_or_distrib, and_assoc] { contextual := tt }
+
+@[simp] lemma delete_verts_empty : G'.delete_verts ∅ = G' :=
+by simp [delete_verts]
+
+lemma delete_verts_le : G'.delete_verts s ≤ G' :=
+by split; simp [set.diff_subset]
+
+@[mono]
+lemma delete_verts_mono {G' G'' : G.subgraph} (h : G' ≤ G'') :
+  G'.delete_verts s ≤ G''.delete_verts s :=
+induce_mono h (set.diff_subset_diff_left h.1)
+
+@[mono]
+lemma delete_verts_anti {s s' : set V} (h : s ⊆ s') :
+  G'.delete_verts s' ≤ G'.delete_verts s :=
+induce_mono (le_refl _) (set.diff_subset_diff_right h)
+
+@[simp] lemma delete_verts_inter_verts_left_eq :
+  G'.delete_verts (G'.verts ∩ s) = G'.delete_verts s :=
+by ext; simp [imp_false] { contextual := tt }
+
+@[simp] lemma delete_verts_inter_verts_set_right_eq :
+  G'.delete_verts (s ∩ G'.verts) = G'.delete_verts s :=
+by ext; simp [imp_false] { contextual := tt }
+
+end delete_verts
 
 end subgraph
 

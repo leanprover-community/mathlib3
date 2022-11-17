@@ -169,7 +169,7 @@ variables [is_ordered L] [L.Structure M]
 @[simp] lemma rel_map_le_symb [has_le M] [L.is_ordered_structure M] {a b : M} :
   rel_map (le_symb : L.relations 2) ![a, b] ↔ a ≤ b :=
 begin
-  rw [← order_Lhom_le_symb, Lhom.is_expansion_on.map_on_relation],
+  rw [← order_Lhom_le_symb, Lhom.map_on_relation],
   refl,
 end
 

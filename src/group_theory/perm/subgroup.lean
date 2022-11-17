@@ -59,9 +59,9 @@ fintype.card_eq.mpr ⟨(of_injective (subtype_congr_hom p) (subtype_congr_hom_in
 
 /-- **Cayley's theorem**: Every group G is isomorphic to a subgroup of the symmetric group acting on
 `G`. Note that we generalize this to an arbitrary "faithful" group action by `G`. Setting `H = G`
-recovers the usual statement of Cayley's theorem via `right_cancel_monoid.to_has_faithful_scalar` -/
+recovers the usual statement of Cayley's theorem via `right_cancel_monoid.to_has_faithful_smul` -/
 noncomputable def subgroup_of_mul_action (G H : Type*) [group G] [mul_action G H]
-  [has_faithful_scalar G H] : G ≃* (mul_action.to_perm_hom G H).range :=
+  [has_faithful_smul G H] : G ≃* (mul_action.to_perm_hom G H).range :=
 mul_equiv.of_left_inverse' _ (classical.some_spec mul_action.to_perm_injective.has_left_inverse)
 
 end perm

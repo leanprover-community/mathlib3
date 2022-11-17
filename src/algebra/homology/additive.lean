@@ -35,10 +35,10 @@ instance : has_zero (C ⟶ D) := ⟨{ f := λ i, 0 }⟩
 instance : has_add (C ⟶ D) := ⟨λ f g, { f := λ i, f.f i + g.f i, }⟩
 instance : has_neg (C ⟶ D) := ⟨λ f, { f := λ i, -(f.f i) }⟩
 instance : has_sub (C ⟶ D) := ⟨λ f g, { f := λ i, f.f i - g.f i, }⟩
-instance has_nat_scalar : has_scalar ℕ (C ⟶ D) := ⟨λ n f,
+instance has_nat_scalar : has_smul ℕ (C ⟶ D) := ⟨λ n f,
   { f := λ i, n • f.f i,
     comm' := λ i j h, by simp [preadditive.nsmul_comp, preadditive.comp_nsmul] }⟩
-instance has_int_scalar : has_scalar ℤ (C ⟶ D) := ⟨λ n f,
+instance has_int_scalar : has_smul ℤ (C ⟶ D) := ⟨λ n f,
   { f := λ i, n • f.f i,
     comm' := λ i j h, by simp [preadditive.zsmul_comp, preadditive.comp_zsmul] }⟩
 
@@ -66,8 +66,6 @@ end homological_complex
 namespace homological_complex
 
 instance eval_additive (i : ι) : (eval V c i).additive := {}
-
-variables [has_zero_object V]
 
 instance cycles_additive [has_equalizers V] : (cycles_functor V c i).additive := {}
 
@@ -162,6 +160,8 @@ end chain_complex
 variables [has_zero_object V] {W : Type*} [category W] [preadditive W] [has_zero_object W]
 
 namespace homological_complex
+
+local attribute [simp] eq_to_hom_map
 
 /--
 Turning an object into a complex supported at `j` then applying a functor is

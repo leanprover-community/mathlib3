@@ -3,6 +3,7 @@ Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
+import order.complete_lattice
 import order.galois_connection
 
 /-!
@@ -62,7 +63,7 @@ lemma dom_inv : r.inv.dom = r.codom := by { ext x y, reflexivity}
 def comp (r : rel α β) (s : rel β γ) : rel α γ :=
 λ x z, ∃ y, r x y ∧ s y z
 
-local infixr ` ∘ ` := rel.comp
+local infixr (name := rel.comp) ` ∘ ` := rel.comp
 
 lemma comp_assoc (r : rel α β) (s : rel β γ) (t : rel γ δ) :
   (r ∘ s) ∘ t = r ∘ s ∘ t :=

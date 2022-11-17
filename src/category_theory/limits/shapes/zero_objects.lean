@@ -3,9 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin
 -/
-import category_theory.limits.shapes.products
-import category_theory.limits.shapes.images
-import category_theory.isomorphism_classes
+import category_theory.limits.shapes.terminal
 
 /-!
 # Zero objects
@@ -132,7 +130,7 @@ class has_zero_object : Prop :=
 (zero : ∃ X : C, is_zero X)
 
 instance has_zero_object_punit : has_zero_object (discrete punit) :=
-{ zero := ⟨punit.star, by tidy, by tidy⟩, }
+{ zero := ⟨⟨⟨⟩⟩, by tidy, by tidy⟩, }
 
 section
 
@@ -200,6 +198,10 @@ instance {X : C} (f : 0 ⟶ X) : mono f :=
 
 instance {X : C} (f : X ⟶ 0) : epi f :=
 { left_cancellation := λ Z g h w, by ext, }
+
+instance zero_to_zero_is_iso (f : (0 : C) ⟶ 0) :
+  is_iso f :=
+by convert (show is_iso (𝟙 (0 : C)), by apply_instance)
 
 /-- A zero object is in particular initial. -/
 def zero_is_initial : is_initial (0 : C) :=

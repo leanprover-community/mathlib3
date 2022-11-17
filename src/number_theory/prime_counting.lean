@@ -6,7 +6,6 @@ Authors: Bolton Bailey
 
 import data.nat.prime
 import data.nat.totient
-import algebra.periodic
 import data.finset.locally_finite
 import data.nat.count
 import data.nat.nth
@@ -48,8 +47,8 @@ def prime_counting' : ℕ → ℕ := nat.count prime
 /-- The prime counting function: Returns the number of primes less than or equal to the input. -/
 def prime_counting (n : ℕ) : ℕ := prime_counting' (n + 1)
 
-localized "notation `π` := nat.prime_counting" in nat
-localized "notation `π'` := nat.prime_counting'" in nat
+localized "notation (name := prime_counting) `π` := nat.prime_counting" in nat
+localized "notation (name := prime_counting') `π'` := nat.prime_counting'" in nat
 
 lemma monotone_prime_counting' : monotone prime_counting' := count_monotone prime
 

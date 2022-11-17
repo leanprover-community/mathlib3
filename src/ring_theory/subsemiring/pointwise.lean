@@ -5,6 +5,8 @@ Authors: Eric Wieser
 -/
 import algebra.group_ring_action
 import ring_theory.subsemiring.basic
+import group_theory.submonoid.pointwise
+import data.set.pointwise.basic
 
 /-! # Pointwise instances on `subsemiring`s
 
@@ -18,6 +20,8 @@ This actions is available in the `pointwise` locale.
 This file is almost identical to `group_theory/submonoid/pointwise.lean`. Where possible, try to
 keep them in sync.
 -/
+
+open set
 
 variables {M R : Type*}
 

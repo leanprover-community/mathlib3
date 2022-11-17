@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import algebra.gcd_monoid.basic
-import data.multiset.lattice
 
 /-!
 # GCD and LCM operations on multisets
@@ -134,6 +133,17 @@ begin
     simp [h a (mem_cons_self a s), sgcd (λ x hx, h x (mem_cons_of_mem hx))] }
 end
 
+lemma gcd_map_mul (a : α) (s : multiset α) :
+  (s.map ((*) a)).gcd = normalize a * s.gcd :=
+begin
+  refine s.induction_on _ (λ b s ih, _),
+  { simp_rw [map_zero, gcd_zero, mul_zero] },
+  { simp_rw [map_cons, gcd_cons, ← gcd_mul_left], rw ih,
+    apply ((normalize_associated a).mul_right _).gcd_eq_right },
+end
+
+section
+
 variables [decidable_eq α]
 
 @[simp] lemma gcd_dedup (s : multiset α) : (dedup s).gcd = s.gcd :=
@@ -155,6 +165,29 @@ by { rw [← gcd_dedup, dedup_ext.2, gcd_dedup, gcd_add], simp }
 @[simp] lemma gcd_ndinsert (a : α) (s : multiset α) :
   (ndinsert a s).gcd = gcd_monoid.gcd a s.gcd :=
 by { rw [← gcd_dedup, dedup_ext.2, gcd_dedup, gcd_cons], simp }
+
+end
+
+lemma extract_gcd' (s t : multiset α) (hs : ∃ x, x ∈ s ∧ x ≠ (0 : α))
+  (ht : s = t.map ((*) s.gcd)) : t.gcd = 1 :=
+((@mul_right_eq_self₀ _ _ s.gcd _).1 $ by conv_lhs { rw [← normalize_gcd, ← gcd_map_mul, ← ht] })
+  .resolve_right $ by { contrapose! hs, exact s.gcd_eq_zero_iff.1 hs }
+
+lemma extract_gcd (s : multiset α) (hs : s ≠ 0) :
+  ∃ t : multiset α, s = t.map ((*) s.gcd) ∧ t.gcd = 1 :=
+begin
+  classical,
+  by_cases h : ∀ x ∈ s, x = (0 : α),
+  { use repeat 1 s.card,
+    rw [map_repeat, eq_repeat, mul_one, s.gcd_eq_zero_iff.2 h, ←nsmul_singleton, ←gcd_dedup],
+    rw [dedup_nsmul (card_pos.2 hs).ne', dedup_singleton, gcd_singleton],
+    exact ⟨⟨rfl, h⟩, normalize_one⟩ },
+  { choose f hf using @gcd_dvd _ _ _ s,
+    have := _, push_neg at h,
+    refine ⟨s.pmap @f (λ _, id), this, extract_gcd' s _ h this⟩,
+    rw map_pmap, conv_lhs { rw [← s.map_id, ← s.pmap_eq_map _ _ (λ _, id)] },
+    congr' with x hx, rw [id, ← hf hx] },
+end
 
 end gcd
 

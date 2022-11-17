@@ -3,9 +3,9 @@ Copyright (c) 2022 Jireh Loreaux. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
-import topology.continuous_function.compact
 import analysis.normed_space.units
 import algebra.algebra.spectrum
+import topology.continuous_function.algebra
 
 /-!
 # Units of continuous functions
@@ -35,7 +35,7 @@ def units_lift : C(X, Mˣ) ≃ C(X, M)ˣ :=
   inv_fun := λ f,
   { to_fun := λ x, ⟨f x, f⁻¹ x, continuous_map.congr_fun f.mul_inv x,
                                 continuous_map.congr_fun f.inv_mul x⟩,
-    continuous_to_fun := continuous_induced_rng $ continuous.prod_mk (f : C(X, M)).continuous
+    continuous_to_fun := continuous_induced_rng.2 $ continuous.prod_mk (f : C(X, M)).continuous
       $ mul_opposite.continuous_op.comp (↑f⁻¹ : C(X, M)).continuous },
   left_inv := λ f, by { ext, refl },
   right_inv := λ f, by { ext, refl } }
@@ -49,7 +49,7 @@ variables [normed_ring R] [complete_space R]
 lemma _root_.normed_ring.is_unit_unit_continuous {f : C(X, R)} (h : ∀ x, is_unit (f x)) :
   continuous (λ x, (h x).unit) :=
 begin
-  refine continuous_induced_rng (continuous.prod_mk f.continuous
+  refine continuous_induced_rng.2 (continuous.prod_mk f.continuous
     (mul_opposite.continuous_op.comp (continuous_iff_continuous_at.mpr (λ x, _)))),
   have := normed_ring.inverse_continuous_at (h x).unit,
   simp only [←ring.inverse_unit, is_unit.unit_spec, ←function.comp_apply] at this ⊢,
@@ -63,10 +63,9 @@ noncomputable def units_of_forall_is_unit {f : C(X, R)} (h : ∀ x, is_unit (f x
 { to_fun := λ x, (h x).unit,
   continuous_to_fun :=  normed_ring.is_unit_unit_continuous h }
 
-instance : can_lift C(X, R) C(X, Rˣ) :=
-{ coe := λ f, ⟨λ x, f x, units.continuous_coe.comp f.continuous⟩,
-  cond := λ f, ∀ x, is_unit (f x),
-  prf := λ f h, ⟨units_of_forall_is_unit h, by { ext, refl }⟩ }
+instance can_lift : can_lift C(X, R) C(X, Rˣ)
+  (λ f, ⟨λ x, f x, units.continuous_coe.comp f.continuous⟩) (λ f, ∀ x, is_unit (f x)) :=
+{ prf := λ f h, ⟨units_of_forall_is_unit h, by { ext, refl }⟩ }
 
 lemma is_unit_iff_forall_is_unit (f : C(X, R)) :
   is_unit f ↔ ∀ x, is_unit (f x) :=
@@ -87,7 +86,7 @@ lemma spectrum_eq_range (f : C(X, 𝕜)) :
   spectrum 𝕜 f = set.range f :=
 begin
   ext,
-  simp only [spectrum.mem_iff, is_unit_iff_forall_ne_zero, not_forall, coe_sub,
+  simp only [spectrum.mem_iff, is_unit_iff_forall_ne_zero, not_forall, continuous_map.coe_sub,
     pi.sub_apply, algebra_map_apply, algebra.id.smul_eq_mul, mul_one, not_not, set.mem_range,
     sub_eq_zero, @eq_comm _ x _]
 end

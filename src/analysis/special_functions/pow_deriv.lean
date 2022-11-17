@@ -32,7 +32,7 @@ begin
   have : (λ x : ℂ × ℂ, x.1 ^ x.2) =ᶠ[𝓝 p] (λ x, exp (log x.1 * x.2)),
     from ((is_open_ne.preimage continuous_fst).eventually_mem A).mono
       (λ p hp, cpow_def_of_ne_zero hp _),
-  rw [cpow_sub _ _ A, cpow_one, mul_div_comm, mul_smul, mul_smul, ← smul_add],
+  rw [cpow_sub _ _ A, cpow_one, mul_div_left_comm, mul_smul, mul_smul, ← smul_add],
   refine has_strict_fderiv_at.congr_of_eventually_eq _ this.symm,
   simpa only [cpow_def_of_ne_zero A, div_eq_mul_inv, mul_smul, add_comm]
     using ((has_strict_fderiv_at_fst.clog hp).mul has_strict_fderiv_at_snd).cexp
@@ -68,7 +68,7 @@ section fderiv
 
 open complex
 
-variables {E : Type*} [normed_group E] [normed_space ℂ E] {f g : E → ℂ} {f' g' : E →L[ℂ] ℂ}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E] {f g : E → ℂ} {f' g' : E →L[ℂ] ℂ}
   {x : E} {s : set E} {c : ℂ}
 
 lemma has_strict_fderiv_at.cpow (hf : has_strict_fderiv_at f f' x)
@@ -203,7 +203,7 @@ begin
     from (continuous_at_fst.eventually (lt_mem_nhds hp)).mono (λ p hp, rpow_def_of_pos hp _),
   refine has_strict_fderiv_at.congr_of_eventually_eq _ this.symm,
   convert ((has_strict_fderiv_at_fst.log hp.ne').mul has_strict_fderiv_at_snd).exp,
-  rw [rpow_sub_one hp.ne', ← rpow_def_of_pos hp, smul_add, smul_smul, mul_div_comm,
+  rw [rpow_sub_one hp.ne', ← rpow_def_of_pos hp, smul_add, smul_smul, mul_div_left_comm,
     div_eq_mul_inv, smul_smul, smul_smul, mul_assoc, add_comm]
 end
 
@@ -225,7 +225,7 @@ begin
 end
 
 /-- The function `λ (x, y), x ^ y` is infinitely smooth at `(x, y)` unless `x = 0`. -/
-lemma cont_diff_at_rpow_of_ne (p : ℝ × ℝ) (hp : p.1 ≠ 0) {n : with_top ℕ} :
+lemma cont_diff_at_rpow_of_ne (p : ℝ × ℝ) (hp : p.1 ≠ 0) {n : ℕ∞} :
   cont_diff_at ℝ n (λ p : ℝ × ℝ, p.1 ^ p.2) p :=
 begin
   cases hp.lt_or_lt with hneg hpos,
@@ -302,7 +302,7 @@ lemma deriv_rpow_const' {p : ℝ} (h : 1 ≤ p) :
   deriv (λ x : ℝ, x ^ p) = λ x, p * x ^ (p - 1) :=
 funext $ λ x, deriv_rpow_const (or.inr h)
 
-lemma cont_diff_at_rpow_const_of_ne {x p : ℝ} {n : with_top ℕ} (h : x ≠ 0) :
+lemma cont_diff_at_rpow_const_of_ne {x p : ℝ} {n : ℕ∞} (h : x ≠ 0) :
   cont_diff_at ℝ n (λ x, x ^ p) x :=
 (cont_diff_at_rpow_of_ne (x, p) h).comp x
   (cont_diff_at_id.prod cont_diff_at_const)
@@ -311,11 +311,11 @@ lemma cont_diff_rpow_const_of_le {p : ℝ} {n : ℕ} (h : ↑n ≤ p) :
   cont_diff ℝ n (λ x : ℝ, x ^ p) :=
 begin
   induction n with n ihn generalizing p,
-  { exact cont_diff_zero.2 (continuous_id.rpow_const (λ x, or.inr h)) },
+  { exact cont_diff_zero.2 (continuous_id.rpow_const (λ x, by exact_mod_cast or.inr h)) },
   { have h1 : 1 ≤ p, from le_trans (by simp) h,
     rw [nat.cast_succ, ← le_sub_iff_add_le] at h,
-    simpa [cont_diff_succ_iff_deriv, differentiable_rpow_const, h1, deriv_rpow_const']
-      using cont_diff_const.mul (ihn h) }
+    rw [cont_diff_succ_iff_deriv, deriv_rpow_const' h1],
+    refine ⟨differentiable_rpow_const h1, cont_diff_const.mul (ihn h)⟩ }
 end
 
 lemma cont_diff_at_rpow_const_of_le {x p : ℝ} {n : ℕ} (h : ↑n ≤ p) :
@@ -339,8 +339,8 @@ open real
 
 section fderiv
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] {f g : E → ℝ} {f' g' : E →L[ℝ] ℝ}
-  {x : E} {s : set E} {c p : ℝ} {n : with_top ℕ}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f g : E → ℝ} {f' g' : E →L[ℝ] ℝ}
+  {x : E} {s : set E} {c p : ℝ} {n : ℕ∞}
 
 lemma has_fderiv_within_at.rpow (hf : has_fderiv_within_at f f' s x)
   (hg : has_fderiv_within_at g g' s x) (h : 0 < f x) :

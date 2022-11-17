@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Patrick Stevens
 -/
 import data.nat.choose.basic
-import tactic.linarith
+import tactic.linarith.default
 import algebra.big_operators.ring
 import algebra.big_operators.intervals
 import algebra.big_operators.order
@@ -93,7 +93,7 @@ lemma sum_range_choose_halfway (m : nat) :
 have ∑ i in range (m + 1), choose (2 * m + 1) (2 * m + 1 - i) =
   ∑ i in range (m + 1), choose (2 * m + 1) i,
 from sum_congr rfl $ λ i hi, choose_symm $ by linarith [mem_range.1 hi],
-(nat.mul_right_inj zero_lt_two).1 $
+mul_right_injective₀ two_ne_zero $
 calc 2 * (∑ i in range (m + 1), choose (2 * m + 1) i) =
   (∑ i in range (m + 1), choose (2 * m + 1) i) +
     ∑ i in range (m + 1), choose (2 * m + 1) (2 * m + 1 - i) :
@@ -135,7 +135,7 @@ theorem int.alternating_sum_range_choose {n : ℕ} :
 begin
   cases n, { simp },
   have h := add_pow (-1 : ℤ) 1 n.succ,
-  simp only [one_pow, mul_one, add_left_neg, int.nat_cast_eq_coe_nat] at h,
+  simp only [one_pow, mul_one, add_left_neg] at h,
   rw [← h, zero_pow (nat.succ_pos n), if_neg (nat.succ_ne_zero n)],
 end
 
@@ -164,10 +164,7 @@ theorem sum_powerset_neg_one_pow_card {α : Type*} [decidable_eq α] {x : finset
   ∑ m in x.powerset, (-1 : ℤ) ^ m.card = if x = ∅ then 1 else 0 :=
 begin
   rw sum_powerset_apply_card,
-  simp only [nsmul_eq_mul', ← card_eq_zero],
-  convert int.alternating_sum_range_choose,
-  ext,
-  simp,
+  simp only [nsmul_eq_mul', ← card_eq_zero, int.alternating_sum_range_choose]
 end
 
 theorem sum_powerset_neg_one_pow_card_of_nonempty {α : Type*} {x : finset α}

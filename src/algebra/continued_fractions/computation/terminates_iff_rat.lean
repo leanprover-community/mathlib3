@@ -5,7 +5,6 @@ Authors: Kevin Kappelmann
 -/
 import algebra.continued_fractions.computation.approximations
 import algebra.continued_fractions.computation.correctness_terminating
-import algebra.order.archimedean
 import data.rat.floor
 /-!
 # Termination of Continued Fraction Computations (`gcf.of`)
@@ -188,8 +187,7 @@ begin
         have : (fr : K)⁻¹ = ((fr⁻¹ : ℚ) : K), by norm_cast,
         have coe_of_fr := (coe_of_rat_eq this),
         simp [int_fract_pair.stream, IH.symm, v_eq_q, stream_q_nth_eq, fr_ne_zero],
-        unfold_coes,
-        simpa [coe_of_fr] } } }
+        exact congr_arg some coe_of_fr } } }
 end
 
 lemma coe_stream_rat_eq :

@@ -5,6 +5,7 @@ Authors: Kalle Kytölä
 -/
 import data.real.ennreal
 import topology.continuous_function.bounded
+import topology.metric_space.hausdorff_distance
 
 /-!
 # Thickened indicators
@@ -97,6 +98,15 @@ end
 lemma thickened_indicator_aux_mono {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) :
   thickened_indicator_aux δ₁ E ≤ thickened_indicator_aux δ₂ E :=
 λ _, tsub_le_tsub (@rfl ℝ≥0∞ 1).le (ennreal.div_le_div rfl.le (of_real_le_of_real hle))
+
+lemma indicator_le_thickened_indicator_aux (δ : ℝ) (E : set α) :
+  E.indicator (λ _, (1 : ℝ≥0∞)) ≤ thickened_indicator_aux δ E :=
+begin
+  intro a,
+  by_cases a ∈ E,
+  { simp only [h, indicator_of_mem, thickened_indicator_aux_one δ E h, le_refl], },
+  { simp only [h, indicator_of_not_mem, not_false_iff, zero_le], },
+end
 
 lemma thickened_indicator_aux_subset (δ : ℝ) {E₁ E₂ : set α} (subset : E₁ ⊆ E₂) :
   thickened_indicator_aux δ E₁ ≤ thickened_indicator_aux δ E₂ :=
@@ -195,6 +205,15 @@ lemma thickened_indicator_zero
   {δ : ℝ} (δ_pos : 0 < δ) (E : set α) {x : α} (x_out : x ∉ thickening δ E) :
   thickened_indicator δ_pos E x = 0 :=
 by rw [thickened_indicator_apply, thickened_indicator_aux_zero δ_pos E x_out, zero_to_nnreal]
+
+lemma indicator_le_thickened_indicator {δ : ℝ} (δ_pos : 0 < δ) (E : set α) :
+  E.indicator (λ _, (1 : ℝ≥0)) ≤ thickened_indicator δ_pos E :=
+begin
+  intro a,
+  by_cases a ∈ E,
+  { simp only [h, indicator_of_mem, thickened_indicator_one δ_pos E h, le_refl], },
+  { simp only [h, indicator_of_not_mem, not_false_iff, zero_le], },
+end
 
 lemma thickened_indicator_mono {δ₁ δ₂ : ℝ}
   (δ₁_pos : 0 < δ₁) (δ₂_pos : 0 < δ₂) (hle : δ₁ ≤ δ₂) (E : set α) :

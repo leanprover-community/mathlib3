@@ -52,6 +52,7 @@ instance : has_add (regular_expression α) := ⟨plus⟩
 instance : has_mul (regular_expression α) := ⟨comp⟩
 instance : has_one (regular_expression α) := ⟨epsilon⟩
 instance : has_zero (regular_expression α) := ⟨zero⟩
+instance : has_pow (regular_expression α) ℕ := ⟨λ n r, npow_rec r n⟩
 
 attribute [pattern] has_mul.mul
 
@@ -77,6 +78,10 @@ attribute [pattern] has_mul.mul
   (P + Q).matches = P.matches + Q.matches := rfl
 @[simp] lemma matches_mul (P Q : regular_expression α) :
   (P * Q).matches = P.matches * Q.matches := rfl
+@[simp] lemma matches_pow (P : regular_expression α) :
+  ∀ n : ℕ, (P ^ n).matches = P.matches ^ n
+| 0 := matches_epsilon
+| (n + 1) := (matches_mul _ _).trans $ eq.trans (congr_arg _ (matches_pow n)) (pow_succ _ _).symm
 @[simp] lemma matches_star (P : regular_expression α) : P.star.matches = P.matches.star := rfl
 
 /-- `match_epsilon P` is true if and only if `P` matches the empty string -/
@@ -325,6 +330,11 @@ omit dec
 | (R + S) := map R + map S
 | (R * S) := map R * map S
 | (star R) := star (map R)
+
+@[simp] protected lemma map_pow (f : α → β) (P : regular_expression α) :
+  ∀ n : ℕ, map f (P ^ n) = map f P ^ n
+| 0 := rfl
+| (n + 1) := (congr_arg ((*) (map f P)) (map_pow n) : _)
 
 @[simp] lemma map_id : ∀ (P : regular_expression α), P.map id = P
 | 0 := rfl

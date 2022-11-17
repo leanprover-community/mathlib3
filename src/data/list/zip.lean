@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kenny Lau
 -/
 import data.list.big_operators
+import algebra.order.monoid.min_max
 
 /-!
 # zip & unzip
@@ -61,6 +62,13 @@ zip_with_nil_right _ l
 @[simp] theorem length_zip : ∀ (l₁ : list α) (l₂ : list β),
    length (zip l₁ l₂) = min (length l₁) (length l₂) :=
 length_zip_with _
+
+theorem all₂_zip_with {f : α → β → γ} {p : γ → Prop} :
+  ∀ {l₁ : list α} {l₂ : list β} (h : length l₁ = length l₂),
+  all₂ p (zip_with f l₁ l₂) ↔ forall₂ (λ x y, p (f x y)) l₁ l₂
+| [] [] _ := by simp
+| (a :: l₁) (b :: l₂) h :=
+  by { simp only [length_cons, add_left_inj] at h, simp [all₂_zip_with h] }
 
 lemma lt_length_left_of_zip_with {f : α → β → γ} {i : ℕ} {l : list α} {l' : list β}
   (h : i < (zip_with f l l').length) :
@@ -388,8 +396,8 @@ variables [comm_monoid α]
 @[to_additive]
 lemma prod_mul_prod_eq_prod_zip_with_mul_prod_drop : ∀ (L L' : list α), L.prod * L'.prod =
   (zip_with (*) L L').prod * (L.drop L'.length).prod * (L'.drop L.length).prod
-| [] ys := by simp
-| xs [] := by simp
+| [] ys := by simp [@zero_le' ℕ]
+| xs [] := by simp [@zero_le' ℕ]
 | (x :: xs) (y :: ys) := begin
   simp only [drop, length, zip_with_cons_cons, prod_cons],
   rw [mul_assoc x, mul_comm xs.prod, mul_assoc y, mul_comm ys.prod,

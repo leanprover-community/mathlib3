@@ -24,7 +24,7 @@ namespace functor
 /-- The constant functor sending everything to `punit.star`. -/
 @[simps]
 def star : C ⥤ discrete punit :=
-(functor.const _).obj punit.star
+(functor.const _).obj ⟨⟨⟩⟩
 
 variable {C}
 /-- Any two functors to `discrete punit` are isomorphic. -/
@@ -47,18 +47,18 @@ abbreviation from_punit (X : C) : discrete punit.{v+1} ⥤ C :=
 @[simps]
 def equiv : (discrete punit ⥤ C) ≌ C :=
 { functor :=
-  { obj := λ F, F.obj punit.star,
-    map := λ F G θ, θ.app punit.star },
+  { obj := λ F, F.obj ⟨⟨⟩⟩,
+    map := λ F G θ, θ.app ⟨⟨⟩⟩ },
   inverse := functor.const _,
   unit_iso :=
   begin
     apply nat_iso.of_components _ _,
     intro X,
     apply discrete.nat_iso,
-    rintro ⟨⟩,
+    rintro ⟨⟨⟩⟩,
     apply iso.refl _,
     intros,
-    ext ⟨⟩,
+    ext ⟨⟨⟩⟩,
     simp,
   end,
   counit_iso :=
@@ -77,10 +77,10 @@ theorem equiv_punit_iff_unique :
 begin
   split,
   { rintro ⟨h⟩,
-    refine ⟨⟨h.inverse.obj punit.star⟩, λ x y, nonempty.intro _⟩,
+    refine ⟨⟨h.inverse.obj ⟨⟨⟩⟩⟩, λ x y, nonempty.intro _⟩,
     apply (unique_of_subsingleton _), swap,
-    { have hx : x ⟶ h.inverse.obj punit.star := by convert h.unit.app x,
-      have hy : h.inverse.obj punit.star ⟶ y := by convert h.unit_inv.app y,
+    { have hx : x ⟶ h.inverse.obj ⟨⟨⟩⟩ := by convert h.unit.app x,
+      have hy : h.inverse.obj ⟨⟨⟩⟩ ⟶ y := by convert h.unit_inv.app y,
       exact hx ≫ hy, },
     have : ∀ z, z = h.unit.app x ≫ (h.functor ⋙ h.inverse).map z ≫ h.unit_inv.app y,
     { intro z, simpa using congr_arg (≫ (h.unit_inv.app y)) (h.unit.naturality z), },
@@ -91,7 +91,7 @@ begin
   { rintro ⟨⟨p⟩, h⟩,
     haveI := λ x y, (h x y).some,
     refine nonempty.intro (category_theory.equivalence.mk
-      ((functor.const _).obj punit.star) ((functor.const _).obj p) _ (by apply functor.punit_ext)),
+      ((functor.const _).obj ⟨⟨⟩⟩) ((functor.const _).obj p) _ (by apply functor.punit_ext)),
     exact nat_iso.of_components (λ _, { hom := default, inv := default }) (λ _ _ _, by tidy), },
 end
 

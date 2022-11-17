@@ -184,7 +184,7 @@ fix F a b = F a b (fix F a b)
 def fix {n : ℕ} (F : typevec (n+1) → Type*) [mvfunctor F] [q : mvqpf F] (α : typevec n) :=
 quotient (W_setoid α : setoid (q.P.W α))
 
-attribute [nolint has_inhabited_instance] fix
+attribute [nolint has_nonempty_instance] fix
 
 /-- `fix F` is a functor -/
 def fix.map {α β : typevec n} (g : α ⟹ β) : fix F α → fix F β :=

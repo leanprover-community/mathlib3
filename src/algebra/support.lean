@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import order.conditionally_complete_lattice
-import algebra.big_operators.basic
 import algebra.group.prod
 import algebra.group.pi
-import algebra.module.pi
+import algebra.module.basic
+import group_theory.group_action.pi
 
 /-!
 # Support of a function
@@ -54,9 +54,23 @@ iff.rfl
   mul_support f ⊆ s ↔ ∀ x ∉ s, f x = 1 :=
 forall_congr $ λ x, not_imp_comm
 
+@[to_additive] lemma mul_support_eq_iff {f : α → M} {s : set α} :
+  mul_support f = s ↔ ((∀ x, x ∈ s → f x ≠ 1) ∧ (∀ x, x ∉ s → f x = 1)) :=
+begin
+  split,
+  { rintros rfl,
+    simp },
+  { rintros ⟨hs, hsc⟩,
+    refine subset.antisymm _ hs,
+    simp only [mul_support_subset_iff, ne.def],
+    assume x hx,
+    contrapose! hx,
+    exact hsc x hx }
+end
+
 @[to_additive] lemma mul_support_disjoint_iff {f : α → M} {s : set α} :
   disjoint (mul_support f) s ↔ eq_on f 1 s :=
-by simp_rw [disjoint_iff_subset_compl_right, mul_support_subset_iff', not_mem_compl_iff, eq_on,
+by simp_rw [←subset_compl_iff_disjoint_right, mul_support_subset_iff', not_mem_compl_iff, eq_on,
   pi.one_apply]
 
 @[to_additive] lemma disjoint_mul_support_iff {f : α → M} {s : set α} :
@@ -149,7 +163,7 @@ rfl
 
 @[to_additive support_prod_mk] lemma mul_support_prod_mk (f : α → M) (g : α → N) :
   mul_support (λ x, (f x, g x)) = mul_support f ∪ mul_support g :=
-set.ext $ λ x, by simp only [mul_support, not_and_distrib, mem_union_eq, mem_set_of_eq,
+set.ext $ λ x, by simp only [mul_support, not_and_distrib, mem_union, mem_set_of_eq,
   prod.mk_eq_one, ne.def]
 
 @[to_additive support_prod_mk'] lemma mul_support_prod_mk' (f : α → M × N) :
@@ -180,33 +194,32 @@ begin
       using subset_trans (mul_support_mul f _) (union_subset (subset.refl _) hfn) }
 end
 
-@[simp, to_additive] lemma mul_support_inv [group G] (f : α → G) :
-  mul_support (λ x, (f x)⁻¹) = mul_support f :=
-set.ext $ λ x, not_congr inv_eq_one
+section division_monoid
+variables [division_monoid G] (f g : α → G)
 
-@[simp, to_additive] lemma mul_support_inv' [group G] (f : α → G) :
-  mul_support (f⁻¹) = mul_support f :=
-mul_support_inv f
+@[simp, to_additive]
+lemma mul_support_inv : mul_support (λ x, (f x)⁻¹) = mul_support f := ext $ λ _, inv_ne_one
 
-@[simp] lemma mul_support_inv₀ [group_with_zero G₀] (f : α → G₀) :
-  mul_support (λ x, (f x)⁻¹) = mul_support f :=
-set.ext $ λ x, not_congr inv_eq_one₀
+@[simp, to_additive] lemma mul_support_inv' : mul_support f⁻¹ = mul_support f := mul_support_inv f
 
-@[to_additive] lemma mul_support_mul_inv [group G] (f g : α → G) :
+@[to_additive] lemma mul_support_mul_inv :
   mul_support (λ x, f x * (g x)⁻¹) ⊆ mul_support f ∪ mul_support g :=
 mul_support_binop_subset (λ a b, a * b⁻¹) (by simp) f g
 
-@[to_additive support_sub] lemma mul_support_group_div [group G] (f g : α → G) :
+@[to_additive] lemma mul_support_div :
   mul_support (λ x, f x / g x) ⊆ mul_support f ∪ mul_support g :=
-mul_support_binop_subset (/) (by simp only [one_div, one_inv]) f g
+mul_support_binop_subset (/) one_div_one f g
 
-lemma mul_support_div [group_with_zero G₀] (f g : α → G₀) :
-  mul_support (λ x, f x / g x) ⊆ mul_support f ∪ mul_support g :=
-mul_support_binop_subset (/) (by simp only [div_one]) f g
+end division_monoid
+
+lemma support_smul [has_zero R] [has_zero M] [smul_with_zero R M] [no_zero_smul_divisors R M]
+  (f : α → R) (g : α → M) :
+  support (f • g) = support f ∩ support g :=
+ext $ λ x, smul_ne_zero_iff
 
 @[simp] lemma support_mul [mul_zero_class R] [no_zero_divisors R] (f g : α → R) :
   support (λ x, f x * g x) = support f ∩ support g :=
-set.ext $ λ x, by simp only [mem_support, mul_ne_zero_iff, mem_inter_eq, not_or_distrib]
+support_smul f g
 
 @[simp] lemma support_mul_subset_left [mul_zero_class R] (f g : α → R) :
   support (λ x, f x * g x) ⊆ support f :=
@@ -221,15 +234,10 @@ lemma support_smul_subset_right [add_monoid A] [monoid B] [distrib_mul_action B 
   support (b • f) ⊆ support f :=
 λ x hbf hf, hbf $ by rw [pi.smul_apply, hf, smul_zero]
 
-lemma support_smul_subset_left [semiring R] [add_comm_monoid M] [module R M]
-  (f : α → R) (g : α → M) :
+lemma support_smul_subset_left [has_zero M] [has_zero β] [smul_with_zero M β]
+  (f : α → M) (g : α → β) :
   support (f • g) ⊆ support f :=
 λ x hfg hf, hfg $ by rw [pi.smul_apply', hf, zero_smul]
-
-lemma support_smul [semiring R] [add_comm_monoid M] [module R M]
-  [no_zero_smul_divisors R M] (f : α → R) (g : α → M) :
-  support (f • g) = support f ∩ support g :=
-ext $ λ x, smul_ne_zero
 
 lemma support_const_smul_of_ne_zero [semiring R] [add_comm_monoid M] [module R M]
   [no_zero_smul_divisors R M] (c : R) (g : α → M) (hc : c ≠ 0) :

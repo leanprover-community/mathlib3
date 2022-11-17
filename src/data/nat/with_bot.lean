@@ -3,8 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.nat.basic
-import algebra.order.group
+import data.nat.order.basic
+import algebra.order.monoid.with_top
+
 /-!
 # `with_bot ℕ`
 

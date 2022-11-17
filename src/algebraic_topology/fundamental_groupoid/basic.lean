@@ -95,7 +95,7 @@ def refl_trans_symm (p : path x₀ x₁) : homotopy (path.refl x₀) (p.trans p.
     { rw [path.symm, path.extend, set.Icc_extend_of_mem],
       { congr' 1,
         ext,
-        norm_num [sub_sub_assoc_swap] },
+        norm_num [sub_sub_eq_add_sub] },
       { rw unit_interval.two_mul_sub_one_mem_iff,
         exact ⟨(not_le.1 h).le, unit_interval.le_one x⟩ } }
   end,
@@ -323,12 +323,12 @@ def fundamental_groupoid_functor : Top ⥤ category_theory.Groupoid :=
     refl,
   end }
 
-localized "notation `π` := fundamental_groupoid.fundamental_groupoid_functor"
-  in fundamental_groupoid
-localized "notation `πₓ` := fundamental_groupoid.fundamental_groupoid_functor.obj"
-  in fundamental_groupoid
-localized "notation `πₘ` := fundamental_groupoid.fundamental_groupoid_functor.map"
-  in fundamental_groupoid
+localized "notation (name := fundamental_groupoid_functor)
+  `π` := fundamental_groupoid.fundamental_groupoid_functor" in fundamental_groupoid
+localized "notation (name := fundamental_groupoid_functor.obj)
+  `πₓ` := fundamental_groupoid.fundamental_groupoid_functor.obj" in fundamental_groupoid
+localized "notation (name := fundamental_groupoid_functor.map)
+  `πₘ` := fundamental_groupoid.fundamental_groupoid_functor.map" in fundamental_groupoid
 
 lemma map_eq {X Y : Top} {x₀ x₁ : X} (f : C(X, Y)) (p : path.homotopic.quotient x₀ x₁) :
   (πₘ f).map p = p.map_fn f := rfl

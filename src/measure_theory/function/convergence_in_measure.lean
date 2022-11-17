@@ -3,8 +3,9 @@ Copyright (c) 2022 Rémy Degenne, Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Kexing Ying
 -/
-
+import analysis.special_functions.pow
 import measure_theory.function.egorov
+import measure_theory.function.lp_space
 
 /-!
 # Convergence in measure
@@ -49,7 +50,7 @@ def tendsto_in_measure [has_dist E] {m : measurable_space α}
   (μ : measure α) (f : ι → α → E) (l : filter ι) (g : α → E) : Prop :=
 ∀ ε (hε : 0 < ε), tendsto (λ i, μ {x | ε ≤ dist (f i x) (g x)}) l (𝓝 0)
 
-lemma tendsto_in_measure_iff_norm [semi_normed_group E] {l : filter ι}
+lemma tendsto_in_measure_iff_norm [seminormed_add_comm_group E] {l : filter ι}
   {f : ι → α → E} {g : α → E} :
   tendsto_in_measure μ f l g
   ↔ ∀ ε (hε : 0 < ε), tendsto (λ i, μ {x | ε ≤ ∥f i x - g x∥}) l (𝓝 0) :=
@@ -115,7 +116,7 @@ begin
   suffices : {x : α | ε ≤ dist (f n x) (g x)} ⊆ t, from (measure_mono this).trans ht,
   rw ← set.compl_subset_compl,
   intros x hx,
-  rw [set.mem_compl_eq, set.nmem_set_of_eq, dist_comm, not_le],
+  rw [set.mem_compl_iff, set.nmem_set_of_iff, dist_comm, not_le],
   exact hN n hn x hx,
 end
 
@@ -217,7 +218,7 @@ begin
   { refine λ x hx, metric.tendsto_at_top.mpr (λ ε hε, _),
     rw [hs, limsup_eq_infi_supr_of_nat] at hx,
     simp only [set.supr_eq_Union, set.infi_eq_Inter, set.compl_Inter, set.compl_Union,
-      set.mem_Union, set.mem_Inter, set.mem_compl_eq, set.mem_set_of_eq, not_le] at hx,
+      set.mem_Union, set.mem_Inter, set.mem_compl_iff, set.mem_set_of_eq, not_le] at hx,
     obtain ⟨N, hNx⟩ := hx,
     obtain ⟨k, hk_lt_ε⟩ := h_lt_ε_real ε hε,
     refine ⟨max N (k - 1), λ n hn_ge, lt_of_le_of_lt _ hk_lt_ε⟩,
@@ -259,7 +260,7 @@ end exists_seq_tendsto_ae
 
 section ae_measurable_of
 
-variables [measurable_space E] [normed_group E] [borel_space E]
+variables [measurable_space E] [normed_add_comm_group E] [borel_space E]
 
 lemma tendsto_in_measure.ae_measurable
   {u : filter ι} [ne_bot u] [is_countably_generated u]
@@ -268,14 +269,14 @@ lemma tendsto_in_measure.ae_measurable
   ae_measurable g μ :=
 begin
   obtain ⟨ns, hns⟩ := h_tendsto.exists_seq_tendsto_ae',
-  exact ae_measurable_of_tendsto_metric_ae at_top (λ n, hf (ns n)) hns,
+  exact ae_measurable_of_tendsto_metrizable_ae at_top (λ n, hf (ns n)) hns,
 end
 
 end ae_measurable_of
 
 section tendsto_in_measure_of
 
-variables [normed_group E] {p : ℝ≥0∞}
+variables [normed_add_comm_group E] {p : ℝ≥0∞}
 variables {f : ι → α → E} {g : α → E}
 
 /-- This lemma is superceded by `measure_theory.tendsto_in_measure_of_tendsto_snorm` where we
@@ -326,8 +327,8 @@ end
 
 /-- See also `measure_theory.tendsto_in_measure_of_tendsto_snorm` which work for general
 Lp-convergence for all `p ≠ 0`. -/
-lemma tendsto_in_measure_of_tendsto_snorm_top {E} [normed_group E] {f : ι → α → E} {g : α → E}
-  {l : filter ι} (hfg : tendsto (λ n, snorm (f n - g) ∞ μ) l (𝓝 0)) :
+lemma tendsto_in_measure_of_tendsto_snorm_top {E} [normed_add_comm_group E] {f : ι → α → E}
+  {g : α → E} {l : filter ι} (hfg : tendsto (λ n, snorm (f n - g) ∞ μ) l (𝓝 0)) :
   tendsto_in_measure μ f l g :=
 begin
   intros δ hδ,
@@ -345,7 +346,7 @@ begin
   refine ((le_of_eq _).trans (ae_lt_of_ess_sup_lt this).le).trans hε.le,
   congr' with x,
   simp only [ennreal.of_real_le_iff_le_to_real ennreal.coe_lt_top.ne, ennreal.coe_to_real,
-    not_lt, coe_nnnorm, set.mem_set_of_eq, set.mem_compl_eq],
+    not_lt, coe_nnnorm, set.mem_set_of_eq, set.mem_compl_iff],
   rw ← dist_eq_norm (f n x) (g x),
   refl
 end

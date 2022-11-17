@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
 import algebra.pempty_instances
-import algebra.hom.equiv
+import algebra.hom.equiv.basic
 import category_theory.concrete_category.bundled_hom
 import category_theory.functor.reflects_isomorphisms
+import category_theory.elementwise
 
 /-!
 # Category instances for has_mul, has_add, semigroup and add_semigroup
@@ -156,8 +157,8 @@ namespace category_theory.iso
 def Magma_iso_to_mul_equiv {X Y : Magma} (i : X ≅ Y) : X ≃* Y :=
 { to_fun := i.hom,
   inv_fun := i.inv,
-  left_inv := begin rw function.left_inverse, simp end,
-  right_inv := begin rw function.right_inverse, rw function.left_inverse, simp end,
+  left_inv := λ x, by simp,
+  right_inv := λ y, by simp,
   map_mul' := by simp }
 
 /-- Build a `mul_equiv` from an isomorphism in the category `Semigroup`. -/
@@ -166,8 +167,8 @@ def Magma_iso_to_mul_equiv {X Y : Magma} (i : X ≅ Y) : X ≃* Y :=
 def Semigroup_iso_to_mul_equiv {X Y : Semigroup} (i : X ≅ Y) : X ≃* Y :=
 { to_fun := i.hom,
   inv_fun := i.inv,
-  left_inv := begin rw function.left_inverse, simp end,
-  right_inv := begin rw function.right_inverse, rw function.left_inverse, simp end,
+  left_inv := λ x, by simp,
+  right_inv := λ y, by simp,
   map_mul' := by simp }
 
 end category_theory.iso

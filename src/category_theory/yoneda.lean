@@ -125,6 +125,10 @@ nat_iso.of_components
   (λ X, { hom := λ f, f ⟨⟩, inv := λ x _, x })
   (by tidy)
 
+/-- Taking the `unop` of morphisms is a natural isomorphism. -/
+@[simps] def obj_op_op (X : C) : coyoneda.obj (op (op X)) ≅ yoneda.obj X :=
+nat_iso.of_components (λ Y, (op_equiv _ _).to_iso) (λ X Y f, rfl)
+
 end coyoneda
 
 namespace functor
@@ -386,7 +390,7 @@ lemma yoneda_sections_small_inv_app_apply {C : Type u₁} [small_category C] (X 
   ((yoneda_sections_small X F).inv t).app Y f = F.map f.op t :=
 rfl
 
-local attribute[ext] functor.ext
+local attribute [ext] functor.ext
 
 /-- The curried version of yoneda lemma when `C` is small. -/
 def curried_yoneda_lemma {C : Type u₁} [small_category C] :

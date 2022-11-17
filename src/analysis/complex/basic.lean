@@ -30,54 +30,90 @@ We also register the fact that `ℂ` is an `is_R_or_C` field.
 -/
 noncomputable theory
 
-
 namespace complex
 
-open_locale complex_conjugate
+open_locale complex_conjugate topological_space
 
 instance : has_norm ℂ := ⟨abs⟩
 
 @[simp] lemma norm_eq_abs (z : ℂ) : ∥z∥ = abs z := rfl
 
-instance : normed_group ℂ :=
-normed_group.of_core ℂ
-{ norm_eq_zero_iff := λ z, abs_eq_zero,
-  triangle := abs_add,
-  norm_neg := abs_neg }
+instance : normed_add_comm_group ℂ :=
+add_group_norm.to_normed_add_comm_group
+{ map_zero' := map_zero abs,
+  neg' := abs.map_neg,
+  eq_zero_of_map_eq_zero' := λ _, abs.eq_zero.1,
+  ..abs }
 
 instance : normed_field ℂ :=
 { norm := abs,
   dist_eq := λ _ _, rfl,
-  norm_mul' := abs_mul,
-  .. complex.field }
+  norm_mul' := map_mul abs,
+  .. complex.field, .. complex.normed_add_comm_group }
 
-instance : nondiscrete_normed_field ℂ :=
-{ non_trivial := ⟨2, by simp; norm_num⟩ }
+instance : densely_normed_field ℂ :=
+{ lt_norm_lt := λ r₁ r₂ h₀ hr, let ⟨x, h⟩ := normed_field.exists_lt_norm_lt ℝ h₀ hr in
+    have this : ∥(∥x∥ : ℂ)∥ = ∥(∥x∥)∥, by simp only [norm_eq_abs, abs_of_real, real.norm_eq_abs],
+    ⟨∥x∥, by rwa [this, norm_norm]⟩ }
 
 instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R ℂ :=
 { norm_smul_le := λ r x, begin
-    rw [norm_eq_abs, norm_eq_abs, ←algebra_map_smul ℝ r x, algebra.smul_def, abs_mul,
-      ←norm_algebra_map' ℝ r, coe_algebra_map, abs_of_real],
+    rw [norm_eq_abs, norm_eq_abs, ←algebra_map_smul ℝ r x, algebra.smul_def, map_mul,
+        ←norm_algebra_map' ℝ r, coe_algebra_map, abs_of_real],
     refl,
   end,
   to_algebra := complex.algebra }
 
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E]
+
 /-- The module structure from `module.complex_to_real` is a normed space. -/
 @[priority 900] -- see Note [lower instance priority]
-instance _root_.normed_space.complex_to_real {E : Type*} [normed_group E] [normed_space ℂ E] :
-  normed_space ℝ E :=
+instance _root_.normed_space.complex_to_real : normed_space ℝ E :=
 normed_space.restrict_scalars ℝ ℂ E
 
 lemma dist_eq (z w : ℂ) : dist z w = abs (z - w) := rfl
 
-lemma dist_self_conj (z : ℂ) : dist z (conj z) = 2 * |z.im| :=
-by simp only [dist_eq, sub_conj, of_real_mul, of_real_bit0, of_real_one, abs_mul, abs_two,
-  abs_of_real, abs_I, mul_one]
+lemma dist_eq_re_im (z w : ℂ) : dist z w = real.sqrt ((z.re - w.re) ^ 2 + (z.im - w.im) ^ 2) :=
+by { rw [sq, sq], refl }
+
+@[simp] lemma dist_mk (x₁ y₁ x₂ y₂ : ℝ) :
+  dist (mk x₁ y₁) (mk x₂ y₂) = real.sqrt ((x₁ - x₂) ^ 2 + (y₁ - y₂) ^ 2) :=
+dist_eq_re_im _ _
+
+lemma dist_of_re_eq {z w : ℂ} (h : z.re = w.re) : dist z w = dist z.im w.im :=
+by rw [dist_eq_re_im, h, sub_self, zero_pow two_pos, zero_add, real.sqrt_sq_eq_abs, real.dist_eq]
+
+lemma nndist_of_re_eq {z w : ℂ} (h : z.re = w.re) : nndist z w = nndist z.im w.im :=
+nnreal.eq $ dist_of_re_eq h
+
+lemma edist_of_re_eq {z w : ℂ} (h : z.re = w.re) : edist z w = edist z.im w.im :=
+by rw [edist_nndist, edist_nndist, nndist_of_re_eq h]
+
+lemma dist_of_im_eq {z w : ℂ} (h : z.im = w.im) : dist z w = dist z.re w.re :=
+by rw [dist_eq_re_im, h, sub_self, zero_pow two_pos, add_zero, real.sqrt_sq_eq_abs, real.dist_eq]
+
+lemma nndist_of_im_eq {z w : ℂ} (h : z.im = w.im) : nndist z w = nndist z.re w.re :=
+nnreal.eq $ dist_of_im_eq h
+
+lemma edist_of_im_eq {z w : ℂ} (h : z.im = w.im) : edist z w = edist z.re w.re :=
+by rw [edist_nndist, edist_nndist, nndist_of_im_eq h]
 
 lemma dist_conj_self (z : ℂ) : dist (conj z) z = 2 * |z.im| :=
-by rw [dist_comm, dist_self_conj]
+by rw [dist_of_re_eq (conj_re z), conj_im, dist_comm, real.dist_eq, sub_neg_eq_add, ← two_mul,
+  _root_.abs_mul, abs_of_pos (@two_pos ℝ _ _)]
 
-@[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := abs_of_real _
+lemma nndist_conj_self (z : ℂ) : nndist (conj z) z = 2 * real.nnabs z.im :=
+nnreal.eq $ by rw [← dist_nndist, nnreal.coe_mul, nnreal.coe_two, real.coe_nnabs, dist_conj_self]
+
+lemma dist_self_conj (z : ℂ) : dist z (conj z) = 2 * |z.im| :=
+by rw [dist_comm, dist_conj_self]
+
+lemma nndist_self_conj (z : ℂ) : nndist z (conj z) = 2 * real.nnabs z.im :=
+by rw [nndist_comm, nndist_conj_self]
+
+@[simp] lemma comap_abs_nhds_zero : filter.comap abs (𝓝 0) = 𝓝 0 := comap_norm_nhds_zero
+
+lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := abs_of_real _
 
 @[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = |(r : ℝ)| :=
 by { rw ← of_real_rat_cast, exact norm_real _ }
@@ -128,7 +164,7 @@ by simpa [mul_self_abs] using
 open continuous_linear_map
 
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/
-def re_clm : ℂ →L[ℝ] ℝ := re_lm.mk_continuous 1 (λ x, by simp [real.norm_eq_abs, abs_re_le_abs])
+def re_clm : ℂ →L[ℝ] ℝ := re_lm.mk_continuous 1 (λ x, by simp [abs_re_le_abs])
 
 @[continuity] lemma continuous_re : continuous re := re_clm.continuous
 
@@ -144,7 +180,7 @@ calc 1 = ∥re_clm 1∥ : by simp
 @[simp] lemma re_clm_nnnorm : ∥re_clm∥₊ = 1 := subtype.ext re_clm_norm
 
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/
-def im_clm : ℂ →L[ℝ] ℝ := im_lm.mk_continuous 1 (λ x, by simp [real.norm_eq_abs, abs_im_le_abs])
+def im_clm : ℂ →L[ℝ] ℝ := im_lm.mk_continuous 1 (λ x, by simp [abs_im_le_abs])
 
 @[continuity] lemma continuous_im : continuous im := im_clm.continuous
 
@@ -159,7 +195,7 @@ calc 1 = ∥im_clm I∥ : by simp
 
 @[simp] lemma im_clm_nnnorm : ∥im_clm∥₊ = 1 := subtype.ext im_clm_norm
 
-lemma restrict_scalars_one_smul_right' {E : Type*} [normed_group E] [normed_space ℂ E] (x : E) :
+lemma restrict_scalars_one_smul_right' (x : E) :
   continuous_linear_map.restrict_scalars ℝ ((1 : ℂ →L[ℂ] ℂ).smul_right x : ℂ →L[ℂ] E) =
     re_clm.smul_right x + I • im_clm.smul_right x :=
 by { ext ⟨a, b⟩, simp [mk_eq_add_mul_I, add_smul, mul_smul, smul_comm I] }
@@ -201,6 +237,15 @@ instance : has_continuous_star ℂ := ⟨conj_lie.continuous⟩
 
 @[continuity] lemma continuous_conj : continuous (conj : ℂ → ℂ) := continuous_star
 
+/-- The only continuous ring homomorphisms from `ℂ` to `ℂ` are the identity and the complex
+conjugation. -/
+lemma ring_hom_eq_id_or_conj_of_continuous {f : ℂ →+* ℂ} (hf : continuous f) :
+  f = ring_hom.id ℂ ∨ f = conj :=
+begin
+  refine (real_alg_hom_eq_id_or_conj $ alg_hom.mk' f $ map_real_smul f hf).imp (λ h, _) (λ h, _),
+  all_goals { convert congr_arg alg_hom.to_ring_hom h, ext1, refl, },
+end
+
 /-- Continuous linear equiv version of the conj function, from `ℂ` to `ℂ`. -/
 def conj_cle : ℂ ≃L[ℝ] ℂ := conj_lie
 
@@ -219,6 +264,15 @@ def of_real_li : ℝ →ₗᵢ[ℝ] ℂ := ⟨of_real_am.to_linear_map, norm_rea
 lemma isometry_of_real : isometry (coe : ℝ → ℂ) := of_real_li.isometry
 
 @[continuity] lemma continuous_of_real : continuous (coe : ℝ → ℂ) := of_real_li.continuous
+
+/-- The only continuous ring homomorphism from `ℝ` to `ℂ` is the identity. -/
+lemma ring_hom_eq_of_real_of_continuous {f : ℝ →+* ℂ} (h : continuous f) :
+  f = complex.of_real :=
+begin
+  convert congr_arg alg_hom.to_ring_hom
+    (subsingleton.elim (alg_hom.mk' f $ map_real_smul f h) $ algebra.of_id ℝ ℂ),
+  ext1, refl,
+end
 
 /-- Continuous linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
 def of_real_clm : ℝ →L[ℝ] ℂ := of_real_li.to_continuous_linear_map
@@ -257,6 +311,14 @@ noncomputable instance : is_R_or_C ℂ :=
 
 lemma _root_.is_R_or_C.re_eq_complex_re : ⇑(is_R_or_C.re : ℂ →+ ℝ) = complex.re := rfl
 lemma _root_.is_R_or_C.im_eq_complex_im : ⇑(is_R_or_C.im : ℂ →+ ℝ) = complex.im := rfl
+
+section complex_order
+open_locale complex_order
+
+lemma eq_coe_norm_of_nonneg {z : ℂ} (hz : 0 ≤ z) : z = ↑∥z∥ :=
+by rw [eq_re_of_real_le hz, is_R_or_C.norm_of_real, real.norm_of_nonneg (complex.le_def.2 hz).1]
+
+end complex_order
 
 section
 

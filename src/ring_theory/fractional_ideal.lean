@@ -141,6 +141,10 @@ end set_like
 @[simp, norm_cast] lemma coe_mk (I : submodule R P) (hI : is_fractional S I) :
   (subtype.mk I hI : submodule R P) = I := rfl
 
+/-! Transfer instances from `submodule R P` to `fractional_ideal S P`. --/
+instance (I : fractional_ideal S P) : add_comm_group I := submodule.add_comm_group ↑I
+instance (I : fractional_ideal S P) : module R I := submodule.module ↑I
+
 lemma coe_to_submodule_injective :
   function.injective (coe : fractional_ideal S P → submodule R P) :=
 subtype.coe_injective
@@ -382,7 +386,7 @@ lemma _root_.is_fractional.nsmul {I : submodule R P} :
   exact h.sup (_root_.is_fractional.nsmul n h)
 end
 
-instance : has_scalar ℕ (fractional_ideal S P) :=
+instance : has_smul ℕ (fractional_ideal S P) :=
 { smul := λ n I, ⟨n • I, I.is_fractional.nsmul n⟩}
 
 @[norm_cast]
@@ -457,9 +461,14 @@ lemma coe_pow (I : fractional_ideal S P) (n : ℕ) : ↑(I ^ n) = (I ^ n : submo
   (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
 submodule.mul_induction_on hr hm ha
 
+instance : has_nat_cast (fractional_ideal S P) := ⟨nat.unary_cast⟩
+
+lemma coe_nat_cast (n : ℕ) : ((n : fractional_ideal S P) : submodule R P) = n :=
+show ↑n.unary_cast = ↑n, by induction n; simp [*, nat.unary_cast]
+
 instance : comm_semiring (fractional_ideal S P) :=
-function.injective.comm_semiring _ subtype.coe_injective
-  coe_zero coe_one coe_add coe_mul (λ _ _, coe_nsmul _ _) coe_pow
+function.injective.comm_semiring coe subtype.coe_injective
+  coe_zero coe_one coe_add coe_mul (λ _ _, coe_nsmul _ _) coe_pow coe_nat_cast
 
 section order
 
@@ -725,9 +734,40 @@ by { rw [mem_canonical_equiv_apply, canonical_equiv, map_equiv_symm, map_equiv,
          ring_equiv.coe_mk, mem_map],
     exact ⟨λ ⟨y, mem, eq⟩, ⟨y, mem, eq⟩, λ ⟨y, mem, eq⟩, ⟨y, mem, eq⟩⟩ }
 
-@[simp] lemma canonical_equiv_flip (I) :
+lemma canonical_equiv_flip (I) :
   canonical_equiv S P P' (canonical_equiv S P' P I) = I :=
 by rw [←canonical_equiv_symm, ring_equiv.symm_apply_apply]
+
+@[simp]
+lemma canonical_equiv_canonical_equiv (P'' : Type*) [comm_ring P''] [algebra R P'']
+  [is_localization S P''] (I : fractional_ideal S P) :
+  canonical_equiv S P' P'' (canonical_equiv S P P' I) = canonical_equiv S P P'' I :=
+begin
+  ext,
+  simp only [is_localization.map_map, ring_hom_inv_pair.comp_eq₂, mem_canonical_equiv_apply,
+      exists_prop, exists_exists_and_eq_and],
+  refl
+end
+
+lemma canonical_equiv_trans_canonical_equiv (P'' : Type*) [comm_ring P'']
+  [algebra R P''] [is_localization S P''] :
+  (canonical_equiv S P P').trans (canonical_equiv S P' P'') = canonical_equiv S P P'' :=
+ring_equiv.ext (canonical_equiv_canonical_equiv S P P' P'')
+
+@[simp]
+lemma canonical_equiv_coe_ideal (I : ideal R) :
+  canonical_equiv S P P' I = I :=
+by { ext, simp [is_localization.map_eq] }
+
+omit loc'
+
+@[simp]
+lemma canonical_equiv_self : canonical_equiv S P P = ring_equiv.refl _ :=
+begin
+  rw ← canonical_equiv_trans_canonical_equiv S P P,
+  convert (canonical_equiv S P P).symm_trans_self,
+  exact (canonical_equiv_symm S P P).symm
+end
 
 end semiring
 
@@ -812,7 +852,7 @@ instance : nontrivial (fractional_ideal R₁⁰ K) :=
   one_ne_zero ((mem_zero_iff _).mp this)⟩⟩
 
 lemma ne_zero_of_mul_eq_one (I J : fractional_ideal R₁⁰ K) (h : I * J = 1) : I ≠ 0 :=
-λ hI, @zero_ne_one (fractional_ideal R₁⁰ K) _ _ (by { convert h, simp [hI], })
+λ hI, zero_ne_one' (fractional_ideal R₁⁰ K) (by { convert h, simp [hI], })
 
 variables [is_domain R₁]
 
@@ -901,7 +941,7 @@ end
 
 @[simp] lemma div_one {I : fractional_ideal R₁⁰ K} : I / 1 = I :=
 begin
-  rw [div_nonzero (@one_ne_zero (fractional_ideal R₁⁰ K) _ _)],
+  rw [div_nonzero (one_ne_zero' (fractional_ideal R₁⁰ K))],
   ext,
   split; intro h,
   { simpa using mem_div_iff_forall_mul_mem.mp h 1
@@ -913,7 +953,7 @@ begin
     exact (algebra.smul_def _ _).symm }
 end
 
-theorem eq_one_div_of_mul_eq_one (I J : fractional_ideal R₁⁰ K) (h : I * J = 1) :
+theorem eq_one_div_of_mul_eq_one_right (I J : fractional_ideal R₁⁰ K) (h : I * J = 1) :
   J = 1 / I :=
 begin
   have hI : I ≠ 0 := ne_zero_of_mul_eq_one I J h,
@@ -935,7 +975,7 @@ end
 
 theorem mul_div_self_cancel_iff {I : fractional_ideal R₁⁰ K} :
   I * (1 / I) = 1 ↔ ∃ J, I * J = 1 :=
-⟨λ h, ⟨(1 / I), h⟩, λ ⟨J, hJ⟩, by rwa [← eq_one_div_of_mul_eq_one I J hJ]⟩
+⟨λ h, ⟨(1 / I), h⟩, λ ⟨J, hJ⟩, by rwa [← eq_one_div_of_mul_eq_one_right I J hJ]⟩
 
 variables {K' : Type*} [field K'] [algebra R₁ K'] [is_fraction_ring R₁ K']
 
@@ -956,7 +996,7 @@ end quotient
 
 section field
 
-variables {R₁ K L : Type*} [comm_ring R₁] [is_domain R₁] [field K] [field L]
+variables {R₁ K L : Type*} [comm_ring R₁] [field K] [field L]
 variables [algebra R₁ K] [is_fraction_ring R₁ K] [algebra K L] [is_fraction_ring K L]
 
 lemma eq_zero_or_one (I : fractional_ideal K⁰ L) : I = 0 ∨ I = 1 :=
@@ -969,7 +1009,7 @@ begin
   { intro x_mem,
     obtain ⟨n, d, rfl⟩ := is_localization.mk'_surjective K⁰ x,
     refine ⟨n / d, _⟩,
-    rw [ring_hom.map_div, is_fraction_ring.mk'_eq_div] },
+    rw [map_div₀, is_fraction_ring.mk'_eq_div] },
   { rintro ⟨x, rfl⟩,
     obtain ⟨y, y_ne, y_mem⟩ := fractional_ideal.exists_ne_zero_mem_is_integer hI,
     rw [← div_mul_cancel x y_ne, ring_hom.map_mul, ← algebra.smul_def],
@@ -977,11 +1017,7 @@ begin
 end
 
 lemma eq_zero_or_one_of_is_field (hF : is_field R₁) (I : fractional_ideal R₁⁰ K) : I = 0 ∨ I = 1 :=
-begin
-  letI : field R₁ := hF.to_field,
-  -- TODO can this be less ugly?
-  exact @eq_zero_or_one R₁ K _ _ _ (by { unfreezingI {cases _inst_4}, convert _inst_9 }) I
-end
+by letI : field R₁ := hF.to_field; exact eq_zero_or_one I
 
 end field
 
@@ -1188,7 +1224,7 @@ variables [is_domain R₁]
 
 lemma one_div_span_singleton (x : K) :
   1 / span_singleton R₁⁰ x = span_singleton R₁⁰ (x⁻¹) :=
-if h : x = 0 then by simp [h] else (eq_one_div_of_mul_eq_one _ _ (by simp [h])).symm
+if h : x = 0 then by simp [h] else (eq_one_div_of_mul_eq_one_right _ _ (by simp [h])).symm
 
 @[simp] lemma div_span_singleton (J : fractional_ideal R₁⁰ K) (d : K) :
   J / span_singleton R₁⁰ d = span_singleton R₁⁰ (d⁻¹) * J :=

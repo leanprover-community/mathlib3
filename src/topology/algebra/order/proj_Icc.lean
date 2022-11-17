@@ -28,7 +28,7 @@ variables [topological_space α] [order_topology α] [topological_space β]
 
 @[continuity]
 lemma continuous_proj_Icc : continuous (proj_Icc a b h) :=
-continuous_subtype_mk _ $ continuous_const.max $ continuous_const.min continuous_id
+(continuous_const.max $ continuous_const.min continuous_id).subtype_mk _
 
 lemma quotient_map_proj_Icc : quotient_map (proj_Icc a b h) :=
 quotient_map_iff.2 ⟨proj_Icc_surjective h, λ s,

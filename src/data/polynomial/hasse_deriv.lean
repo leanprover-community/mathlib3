@@ -7,7 +7,6 @@ Authors: Johan Commelin
 import algebra.polynomial.big_operators
 import data.nat.choose.cast
 import data.nat.choose.vandermonde
-import data.polynomial.degree.lemmas
 import data.polynomial.derivative
 
 /-!
@@ -159,7 +158,7 @@ begin
     { push_neg at hil, rw [← tsub_lt_iff_right hil] at hikl,
       rw [choose_eq_zero_of_lt hikl , zero_mul], }, },
   push_neg at hikl, apply @cast_injective ℚ,
-  have h1 : l ≤ i     := nat.le_of_add_le_right hikl,
+  have h1 : l ≤ i     := le_of_add_le_right hikl,
   have h2 : k ≤ i - l := le_tsub_of_add_le_right hikl,
   have h3 : k ≤ k + l := le_self_add,
   have H : ∀ (n : ℕ), (n! : ℚ) ≠ 0, { exact_mod_cast factorial_ne_zero },
@@ -220,8 +219,8 @@ begin
   congr' 2, clear f g,
   ext m r n s : 4,
   simp only [finset_sum_apply, coe_mul_left, coe_comp, flip_apply, comp_app,
-    hasse_deriv_monomial, linear_map.to_add_monoid_hom_coe, comp_hom_apply_apply, coe_mul,
-    monomial_mul_monomial],
+    hasse_deriv_monomial, linear_map.to_add_monoid_hom_coe, comp_hom_apply_apply,
+    add_monoid_hom.coe_mul, monomial_mul_monomial],
   have aux : ∀ (x : ℕ × ℕ), x ∈ antidiagonal k →
     monomial (m - x.1 + (n - x.2)) (↑(m.choose x.1) * r * (↑(n.choose x.2) * s)) =
     monomial (m + n - k) (↑(m.choose x.1) * ↑(n.choose x.2) * (r * s)),

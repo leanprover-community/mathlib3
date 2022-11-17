@@ -3,7 +3,6 @@ Copyright (c) 2021 Sara Díaz Real. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sara Díaz Real
 -/
-import data.int.basic
 import algebra.associated
 import tactic.linarith
 import tactic.linear_combination
@@ -31,7 +30,7 @@ begin
   -- the key step is to show that `a*c + b*d` divides the product `(a*b + c*d) * (a*d + b*c)`
   have dvd_mul : a*c + b*d ∣ (a*b + c*d) * (a*d + b*c),
   { use b^2 + b*d + d^2,
-    linear_combination (h, b*d) },
+    linear_combination b*d*h },
   -- since `a*b + c*d` is prime (by assumption), it must divide `a*c + b*d` or `a*d + b*c`
   obtain (h1 : a*b + c*d ∣ a*c + b*d) | (h2 : a*c + b*d ∣ a*d + b*c) :=
     h0.left_dvd_or_dvd_right_of_dvd_mul dvd_mul,

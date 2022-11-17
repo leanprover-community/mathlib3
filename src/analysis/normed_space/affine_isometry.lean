@@ -3,8 +3,9 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import analysis.normed_space.add_torsor
 import analysis.normed_space.linear_isometry
+import analysis.normed.group.add_torsor
+import analysis.normed_space.basic
 
 /-!
 # Affine isometries
@@ -17,7 +18,7 @@ We also prove basic lemmas and provide convenience constructors.  The choice of 
 constructors is closely modelled on those for the `linear_isometry` and `affine_map` theories.
 
 Since many elementary properties don't require `∥x∥ = 0 → x = 0` we initially set up the theory for
-`semi_normed_group` and specialize to `normed_group` only when needed.
+`seminormed_add_comm_group` and specialize to `normed_add_comm_group` only when needed.
 
 ## Notation
 
@@ -31,9 +32,9 @@ algebra-homomorphisms.)
 open function set
 
 variables (𝕜 : Type*) {V V₁ V₂ V₃ V₄ : Type*} {P₁ : Type*} (P P₂ : Type*) {P₃ P₄ : Type*}
-    [normed_field 𝕜]
-  [semi_normed_group V] [semi_normed_group V₁] [semi_normed_group V₂] [semi_normed_group V₃]
-    [semi_normed_group V₄]
+  [normed_field 𝕜] [seminormed_add_comm_group V] [seminormed_add_comm_group V₁]
+  [seminormed_add_comm_group V₂] [seminormed_add_comm_group V₃]
+    [seminormed_add_comm_group V₄]
   [normed_space 𝕜 V] [normed_space 𝕜 V₁] [normed_space 𝕜 V₂] [normed_space 𝕜 V₃]
     [normed_space 𝕜 V₄]
   [pseudo_metric_space P] [metric_space P₁] [pseudo_metric_space P₂] [pseudo_metric_space P₃]
@@ -197,9 +198,31 @@ instance : monoid (P →ᵃⁱ[𝕜] P) :=
 
 end affine_isometry
 
--- remark: by analogy with the `linear_isometry` file from which this is adapted, there should
--- follow here a section defining an "inclusion" affine isometry from `p : affine_subspace 𝕜 P`
--- into `P`; we omit this for now
+namespace affine_subspace
+
+include V
+
+/-- `affine_subspace.subtype` as an `affine_isometry`. -/
+def subtypeₐᵢ (s : affine_subspace 𝕜 P) [nonempty s] : s →ᵃⁱ[𝕜] P :=
+{ norm_map := s.direction.subtypeₗᵢ.norm_map,
+  .. s.subtype }
+
+lemma subtypeₐᵢ_linear (s : affine_subspace 𝕜 P) [nonempty s] :
+  s.subtypeₐᵢ.linear = s.direction.subtype :=
+rfl
+
+@[simp] lemma subtypeₐᵢ_linear_isometry (s : affine_subspace 𝕜 P) [nonempty s] :
+  s.subtypeₐᵢ.linear_isometry = s.direction.subtypeₗᵢ :=
+rfl
+
+@[simp] lemma coe_subtypeₐᵢ (s : affine_subspace 𝕜 P) [nonempty s] : ⇑s.subtypeₐᵢ = s.subtype :=
+rfl
+
+@[simp] lemma subtypeₐᵢ_to_affine_map (s : affine_subspace 𝕜 P) [nonempty s] :
+  s.subtypeₐᵢ.to_affine_map = s.subtype :=
+rfl
+
+end affine_subspace
 
 variables (𝕜 P P₂)
 include V V₂

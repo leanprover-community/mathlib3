@@ -8,6 +8,10 @@ import logic.relator
 /-!
 # Quotient types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/559
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module extends the core library's treatment of quotient types (`init.data.quot`).
 
 ## Tags
@@ -29,7 +33,7 @@ end setoid
 
 namespace quot
 variables {ra : α → α → Prop} {rb : β → β → Prop} {φ : quot ra → quot rb → Sort*}
-local notation `⟦`:max a `⟧` := quot.mk _ a
+local notation (name := mk) `⟦`:max a `⟧` := quot.mk _ a
 
 instance (r : α → α → Prop) [inhabited α] : inhabited (quot r) := ⟨⟦default⟧⟩
 
@@ -173,6 +177,11 @@ instance (s : setoid α) [inhabited α] : inhabited (quotient s) := ⟨⟦defaul
 
 instance (s : setoid α) [subsingleton α] : subsingleton (quotient s) :=
 quot.subsingleton
+
+instance {α : Type*} [setoid α] : is_equiv α (≈) :=
+{ refl := setoid.refl,
+  symm := λ a b, setoid.symm,
+  trans := λ a b c, setoid.trans }
 
 /-- Induction on two `quotient` arguments `a` and `b`, result type depends on `⟦a⟧` and `⟦b⟧`. -/
 protected def hrec_on₂ (qa : quotient sa) (qb : quotient sb) (f : Π a b, φ ⟦a⟧ ⟦b⟧)

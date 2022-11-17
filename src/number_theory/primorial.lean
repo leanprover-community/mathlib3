@@ -33,7 +33,7 @@ lemma primorial_succ {n : ℕ} (n_big : 1 < n) (r : n % 2 = 1) : (n + 1)# = n# :
 begin
   refine prod_congr _ (λ _ _, rfl),
   rw [range_succ, filter_insert, if_neg (λ h, _)],
-  have two_dvd : 2 ∣ n + 1 := (dvd_iff_mod_eq_zero _ _).mpr (by rw [← mod_add_mod, r, mod_self]),
+  have two_dvd : 2 ∣ n + 1 := dvd_iff_mod_eq_zero.mpr (by rw [← mod_add_mod, r, mod_self]),
   linarith [(h.dvd_iff_eq (nat.bit0_ne_one 1)).mp two_dvd],
 end
 

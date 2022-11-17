@@ -5,7 +5,6 @@ Authors: Simon Hudon
 
 General utility functions for buffers.
 -/
-import data.buffer
 import data.array.lemmas
 import control.traversable.instances
 
@@ -189,7 +188,7 @@ lemma nth_le_to_list (b : buffer α) {i : ℕ} (h) :
 nth_le_to_list' _ _ _
 
 lemma read_eq_nth_le_to_list (b : buffer α) (i) :
-  b.read i = b.to_list.nth_le i (by simpa using i.is_lt) :=
+  b.read i = b.to_list.nth_le i (by simp) :=
 by simp [nth_le_to_list]
 
 lemma read_singleton (c : α) : [c].to_buffer.read ⟨0, by simp⟩ = c :=

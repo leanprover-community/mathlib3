@@ -33,10 +33,10 @@ open opposite
 
 section limits
 
-universes w v u
+universes w v u z
 variables {C : Type (max v u)} [category.{v} C] {J : grothendieck_topology C}
 variables {D : Type w} [category.{max v u} D]
-variables {K : Type (max v u)} [small_category K]
+variables {K : Type z} [small_category K]
 
 noncomputable theory
 

@@ -3,9 +3,7 @@ Copyright (c) 2022 Jireh Loreaux. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
-import analysis.normed_space.star.basic
-import algebra.star.module
-import analysis.special_functions.exponential
+import analysis.normed_space.exponential
 
 /-! # The exponential map from selfadjoint to unitary
 In this file, we establish various propreties related to the map `λ a, exp ℂ A (I • a)` between the
@@ -23,12 +21,12 @@ subtypes `self_adjoint A` and `unitary A`.
 section star
 
 variables {A : Type*}
-[normed_ring A] [normed_algebra ℂ A] [star_ring A] [cstar_ring A] [complete_space A]
+[normed_ring A] [normed_algebra ℂ A] [star_ring A] [has_continuous_star A] [complete_space A]
 [star_module ℂ A]
 
 open complex
 
-lemma self_adjoint.exp_i_smul_unitary {a : A} (ha : a ∈ self_adjoint A) :
+lemma is_self_adjoint.exp_i_smul_unitary {a : A} (ha : is_self_adjoint a) :
   exp ℂ (I • a) ∈ unitary A :=
 begin
   rw [unitary.mem_iff, star_exp],
@@ -42,7 +40,7 @@ end
 over ℂ. -/
 @[simps]
 noncomputable def self_adjoint.exp_unitary (a : self_adjoint A) : unitary A :=
-⟨exp ℂ (I • a), self_adjoint.exp_i_smul_unitary (a.property)⟩
+⟨exp ℂ (I • a), a.prop.exp_i_smul_unitary⟩
 
 open self_adjoint
 

@@ -5,7 +5,7 @@ Authors: Zhouhang Zhou
 -/
 import algebra.char_p.invertible
 import order.filter.at_top_bot
-import tactic.linarith
+import tactic.linarith.default
 import tactic.field_simp
 import tactic.linear_combination
 
@@ -50,11 +50,11 @@ begin
   dsimp [discrim] at *,
   split,
   { assume h,
-    linear_combination (h, -4 * a) },
+    linear_combination -4 * a * h },
   { assume h,
     have ha : 2 * 2 * a ≠ 0 := mul_ne_zero (mul_ne_zero h2 h2) ha,
     apply mul_left_cancel₀ ha,
-    linear_combination (h, -1) }
+    linear_combination -h }
 end
 
 /-- A quadratic has no root if its discriminant has no square root. -/
@@ -81,7 +81,7 @@ begin
   have ne : 2 * a ≠ 0 := mul_ne_zero h2 ha,
   field_simp,
   apply or_congr,
-  { split; intro h'; linear_combination (h', -1) },
+  { split; intro h'; linear_combination -h' },
   { split; intro h'; linear_combination h' },
 end
 

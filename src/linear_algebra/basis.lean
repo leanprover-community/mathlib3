@@ -826,13 +826,7 @@ b.mem_submodule_iff.trans $ finsupp.equiv_fun_on_fintype.exists_congr_left.trans
 λ c, by simp [finsupp.sum_fintype]
 
 lemma coord_equiv_fun_symm (i : ι) (f : ι → R) : b.coord i (b.equiv_fun.symm f) = f i :=
-begin
-  classical,
-  rw [b.equiv_fun_symm_apply, linear_map.map_sum],
-  conv_lhs { congr, skip, funext,
-    rw [linear_map.map_smul, b.coord_apply, b.repr_self_apply] },
-  simp
-end
+b.coord_repr_symm i (finsupp.equiv_fun_on_fintype.symm f)
 
 end fintype
 

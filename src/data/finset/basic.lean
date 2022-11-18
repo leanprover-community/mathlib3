@@ -6,7 +6,6 @@ Authors: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 import data.int.order.basic
 import data.multiset.finset_ops
 import algebra.hom.embedding
-import data.int.order.basic
 import tactic.apply
 import tactic.nth_rewrite
 import tactic.monotonicity

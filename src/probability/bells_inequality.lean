@@ -84,7 +84,7 @@ section bells_inequality_1964
 
 variables {Ω : Type*} [measurable_space Ω] {ℙ : measure Ω}
 
-lemma integrable_mul_of_units_int {hℙ : is_probability_measure ℙ} {Za Zb : Ω → ℤˣ}
+lemma integrable_mul_of_units_int (hℙ : is_probability_measure ℙ) {Za Zb : Ω → ℤˣ}
   (sm_a : strongly_measurable (λ ω, (Za ω : ℝ))) (sm_b : strongly_measurable (λ ω, (Zb ω : ℝ))) :
   integrable (λ ω, (Za ω : ℝ) * Zb ω) ℙ :=
 begin
@@ -95,7 +95,7 @@ begin
   simp,
 end
 
-lemma integrable_mul_of_units_int_neg {hℙ : is_probability_measure ℙ} {Za Zb : Ω → ℤˣ}
+lemma integrable_mul_of_units_int_neg (hℙ : is_probability_measure ℙ) {Za Zb : Ω → ℤˣ}
   (sm_a : strongly_measurable (λ ω, (Za ω : ℝ))) (sm_b : strongly_measurable (λ ω, (Zb ω : ℝ))) :
   integrable (λ ω : Ω , -(Za ω :ℝ) * Zb ω) ℙ :=
 begin
@@ -111,7 +111,7 @@ end
   values in `±1`, and assuming perfect anticorrelation on the diagonal (that is,
   `𝔼[(Za i) (Zb i)] = -1` for all `i`), we have that
   `𝔼[(Za 1) (Zb 2)] - 𝔼[(Za 1) (Zb 2)] ≤ 1 + 𝔼[(Za 2) (Zb 3)]`. -/
-theorem bells_inequality_1964 {hℙ : is_probability_measure ℙ} {Za Zb : fin 3 → Ω → ℤˣ}
+theorem bells_inequality_1964 (hℙ : is_probability_measure ℙ) {Za Zb : fin 3 → Ω → ℤˣ}
   (Za_measurable : ∀ i, strongly_measurable (λ ω, (Za i ω : ℝ)))
   (Zb_measurable : ∀ i, strongly_measurable (λ ω, (Zb i ω : ℝ)))
   (anticorrelation : ∀ i, ∫ ω, (Za i ω : ℝ) * (Zb i ω) ∂ℙ = -1) :
@@ -119,9 +119,9 @@ theorem bells_inequality_1964 {hℙ : is_probability_measure ℙ} {Za Zb : fin 3
     ≤ 1 + (∫ ω, (Za 2 ω : ℝ) * (Zb 3 ω) ∂ℙ) :=
 begin
   let integrable_muls :=
-    λ i j, @integrable_mul_of_units_int  _ _ _ hℙ _ _ (Za_measurable i) (Zb_measurable j),
+    λ i j, integrable_mul_of_units_int hℙ (Za_measurable i) (Zb_measurable j),
   let integrable_mul_negs :=
-    λ i j, @integrable_mul_of_units_int_neg  _ _ _ hℙ _ _ (Za_measurable i) (Zb_measurable j),
+    λ i j, integrable_mul_of_units_int_neg hℙ (Za_measurable i) (Zb_measurable j),
   rw sub_eq_add_neg,
   apply sub_nonpos.mp,
   rw [sub_add_eq_sub_sub, sub_eq_add_neg, sub_eq_add_neg],

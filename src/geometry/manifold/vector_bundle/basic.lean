@@ -28,8 +28,8 @@ fields, they can also be C^k vector bundles, etc.
 
 ## Main definitions and constructions
 
-* `fiber_bundle.charted_space`: A fibre bundle `E` over a base `B` with model fibre `F` is naturally a
-  charted space modelled on `B × F`.
+* `fiber_bundle.charted_space`: A fibre bundle `E` over a base `B` with model fibre `F` is naturally
+  a charted space modelled on `B × F`.
 
 * `fiber_bundle.charted_space'`: Let `B` be a charted space modelled on `HB`.  Then a fibre bundle
   `E` over a base `B` with model fibre `F` is naturally a charted space modelled on `HB.prod F`.

@@ -608,7 +608,7 @@ lemma is_trail.count_edges_eq_one [decidable_eq V] {u v : V}
   p.edges.count e = 1 :=
 list.count_eq_one_of_mem h.edges_nodup he
 
-@[simp] lemma is_path.nil {u : V} : (nil : G.walk u u).is_path :=
+lemma is_path.nil {u : V} : (nil : G.walk u u).is_path :=
 by { fsplit; simp }
 
 lemma is_path.of_cons {u v w : V} {h : G.adj u v} {p : G.walk v w} :
@@ -620,7 +620,7 @@ by simp [is_path_def]
 by split; simp [is_path_def] { contextual := tt }
 
 @[simp] lemma is_path_iff_eq_nil {u : V} (p : G.walk u u) : p.is_path ↔ p = nil :=
-by { cases p; simp }
+by { cases p; simp [is_path.nil] }
 
 lemma is_path.reverse {u v : V} {p : G.walk u v} (h : p.is_path) : p.reverse.is_path :=
 by simpa [is_path_def] using h

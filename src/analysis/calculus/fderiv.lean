@@ -567,8 +567,8 @@ lemma differentiable_on.mono (h : differentiable_on 𝕜 f t) (st : s ⊆ t) :
 
 lemma differentiable_on_univ :
   differentiable_on 𝕜 f univ ↔ differentiable 𝕜 f :=
-by { simp only [differentiable_on, differentiable_within_at_univ, mem_univ, forall_true_left],
-  refl }
+by simp only [differentiable_on, differentiable, differentiable_within_at_univ, mem_univ,
+  forall_true_left]
 
 lemma differentiable.differentiable_on (h : differentiable 𝕜 f) : differentiable_on 𝕜 f s :=
 (differentiable_on_univ.2 h).mono (subset_univ _)
@@ -599,7 +599,7 @@ begin
     rw has_fderiv_within_at_univ,
     apply h.has_fderiv_at },
   { have : ¬ differentiable_within_at 𝕜 f univ x,
-      by contrapose! h; rwa ← differentiable_within_at_univ,
+    { rwa differentiable_within_at_univ },
     rw [fderiv_zero_of_not_differentiable_at h,
         fderiv_within_zero_of_not_differentiable_within_at this] }
 end
@@ -611,7 +611,7 @@ begin
   { apply fderiv_within_subset (inter_subset_left _ _) _ ((differentiable_within_at_inter ht).1 h),
     apply hs.inter ht },
   { have : ¬ differentiable_within_at 𝕜 f s x,
-      by contrapose! h; rw differentiable_within_at_inter; assumption,
+    { rwa ←differentiable_within_at_inter ht },
     rw [fderiv_within_zero_of_not_differentiable_within_at h,
         fderiv_within_zero_of_not_differentiable_within_at this] }
 end

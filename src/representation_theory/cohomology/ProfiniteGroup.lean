@@ -8,7 +8,7 @@ import topology.category.Profinite
 import algebra.category.Group.limits
 import topology.algebra.continuous_monoid_hom
 import representation_theory.cohomology.FinGroup
-import
+import category_theory.concrete_category.reflects_isomorphisms
 /-!
 # The category of Profinite Groups
 -/
@@ -37,7 +37,12 @@ def of_Group (X : Group) [topological_space X] [compact_space X] [t2_space X]
   is_group := X.group,
   is_topological_group := by assumption }
 
-instance : inhabited ProfiniteGroup := ⟨@ProfiniteGroup.of_Profinite (Profinite.of unit) sorry sorry⟩
+instance : topological_group punit :=
+{ continuous_mul := continuous_of_discrete_topology,
+  continuous_inv := continuous_of_discrete_topology }
+
+instance : inhabited ProfiniteGroup := ⟨@ProfiniteGroup.of_Profinite (Profinite.of punit)
+(show group punit, by apply_instance) (show topological_group punit, by apply_instance)⟩
 
 instance : category.{v} ProfiniteGroup :=
 { hom := λ M N, continuous_monoid_hom M N,
@@ -51,6 +56,14 @@ def of_Profinite_hom {G H : ProfiniteGroup} (f : G.to_Profinite ⟶ H.to_Profini
   (hf : ∀ g h : G, f (g * h) = f g * f h) :
   G ⟶ H := ⟨monoid_hom.mk' f hf, f.2⟩
 
+def to_Profinite_hom {G H : ProfiniteGroup} (f : G ⟶ H) :
+  G.to_Profinite ⟶ H.to_Profinite :=
+f.to_continuous_map
+
+def to_Group_hom {G H : ProfiniteGroup} (f : G ⟶ H) :
+  G.to_Group ⟶ H.to_Group :=
+f.to_monoid_hom
+
 def of_Profinite_iso {G H : ProfiniteGroup.{u}} (f : G.to_Profinite ≅ H.to_Profinite)
   (hf : ∀ g h : G, f.hom (g * h) = f.hom g * f.hom h) : G ≅ H :=
 { hom := of_Profinite_hom f.hom hf,
@@ -58,13 +71,6 @@ def of_Profinite_iso {G H : ProfiniteGroup.{u}} (f : G.to_Profinite ≅ H.to_Pro
     f.inv.2⟩,
   hom_inv_id' := by ext; exact f.hom_inv_id_apply _,
   inv_hom_id' := by ext; exact f.inv_hom_id_apply _ }
-
-def of_Group_iso {G H : ProfiniteGroup} (f : G.to_Group ≅ H.to_Group)
-  (hf : @continuous G H _ _ f.hom) : G ≅ H :=
-{ hom := ⟨f.hom, hf⟩,
-  inv := ⟨f.inv, sorry⟩,
-  hom_inv_id' := sorry,
-  inv_hom_id' := sorry }
 
 instance concrete_category : concrete_category.{v} ProfiniteGroup :=
 { forget := { obj := λ X, X, map := λ X Y f, f },
@@ -89,6 +95,34 @@ rfl
 
 @[simp] lemma coe_comp {X Y Z : ProfiniteGroup}
   (f : X ⟶ Y) (g : Y ⟶ Z) : (f ≫ g : X → Z) = g ∘ f := rfl
+
+lemma is_iso_of_is_Profinite_iso {G H : ProfiniteGroup.{u}} (f : G ⟶ H)
+  [hf : is_iso (to_Profinite_hom f)] : is_iso f :=
+begin
+  convert is_iso.of_iso (of_Profinite_iso (@as_iso _ _ _ _ _ hf) f.to_monoid_hom.map_mul),
+  ext,
+  refl,
+end
+
+lemma is_iso_of_bijective {G H : ProfiniteGroup} (f : G ⟶ H)
+  (hf : function.bijective f) : is_iso f :=
+begin
+  haveI := Profinite.is_iso_of_bijective (to_Profinite_hom f) hf,
+  exact is_iso_of_is_Profinite_iso f,
+end
+
+def is_iso_of_is_Group_iso {G H : ProfiniteGroup} (f : G ⟶ H)
+  [is_iso (to_Group_hom f)] : is_iso f :=
+begin
+  sorry,
+end
+
+def of_Group_iso {G H : ProfiniteGroup} (f : G.to_Group ≅ H.to_Group)
+  (hf : @continuous G H _ _ f.hom) : G ≅ H :=
+{ hom := ⟨f.hom, hf⟩,
+  inv := ⟨f.inv, sorry⟩,
+  hom_inv_id' := sorry,
+  inv_hom_id' := sorry }
 
 end ProfiniteGroup
 
@@ -145,13 +179,23 @@ def limit_cone_cone {J : Type u} [small_category J] (F : J ⥤ ProfiniteGroup) :
     is_group := by apply_instance,
     is_topological_group := by apply_instance },
   π := { app := λ X, of_Profinite_hom
-    ((Profinite.limit_cone.{u} (F ⋙ ProfiniteGroup_to_Profinite)).π.app X) sorry }}
+    ((Profinite.limit_cone.{u} (F ⋙ ProfiniteGroup_to_Profinite)).π.app X) $
+    λ g h, rfl }}
 
 def limit_cone_is_limit {J : Type u} [small_category J] (F : J ⥤ ProfiniteGroup) :
   limits.is_limit (limit_cone_cone F) :=
 { lift := λ S, of_Profinite_hom ((Profinite.limit_cone_is_limit.{u} (F ⋙ ProfiniteGroup_to_Profinite)).lift
-    (ProfiniteGroup_to_Profinite.map_cone S)) sorry,
-  uniq' := λ S m h, sorry }
+    (ProfiniteGroup_to_Profinite.map_cone S)) $
+    begin
+      intros g h,
+      ext,
+      exact (S.π.app x).to_monoid_hom.map_mul g h,
+    end,
+  fac' := λ S j, by ext; refl,
+  uniq' := λ S m h, begin
+    ext x j,
+    exact congr_hom (h j) x,
+  end }
 
 def limit_cone {J : Type u} [small_category J] (F : J ⥤ ProfiniteGroup) :
   limits.limit_cone F := ⟨limit_cone_cone F, limit_cone_is_limit F⟩
@@ -165,25 +209,20 @@ lemma is_iso_of_bij {G H : ProfiniteGroup.{u}} (f : G ⟶ H) (hf : function.bije
   is_iso f :=
 { out := ⟨(iso_of_bij f hf).inv, sorry⟩ }
 
-lemma is_iso_of_is_Profinite_iso {G H : ProfiniteGroup} (f : G.to_Profinite ⟶ H.to_Profinite)
-  (hf : ∀ g h : G, f (g * h) = f g * f h) (h : is_iso f) :
-  is_iso (of_Profinite_hom f hf) :=
-is_iso_of_bij (of_Profinite_hom f hf) sorry
-
 lemma of_Profinite_hom_of_hom {G H : ProfiniteGroup} (f : G ⟶ H) :
   of_Profinite_hom ((forget₂ ProfiniteGroup Profinite).map f) f.1.3 = f :=
 by ext; refl
 
-lemma is_iso_of_is_Profinite_iso' {G H : ProfiniteGroup} (f : G ⟶ H)
+/-lemma is_iso_of_is_Profinite_iso' {G H : ProfiniteGroup} (f : G ⟶ H)
   (h : is_iso $ (forget₂ _ Profinite).map f) :
   is_iso f :=
-by rw ←of_Profinite_hom_of_hom f at *; exact is_iso_of_is_Profinite_iso _ f.1.3 h
+by rw ←of_Profinite_hom_of_hom f at *; exact @is_iso_of_is_Profinite_iso _ _ f h-/
 
 instance : reflects_isomorphisms (forget ProfiniteGroup.{u}) :=
 ⟨by introsI A B f hf; exact is_iso_of_bij _ ((is_iso_iff_bijective f).mp hf)⟩
 
-instance : reflects_isomorphisms (forget₂ ProfiniteGroup Profinite) :=
-{ reflects := λ A B f hf, is_iso_of_is_Profinite_iso' f hf }
+/-instance : reflects_isomorphisms (forget₂ ProfiniteGroup Profinite) :=
+{ reflects := λ A B f hf, is_iso_of_is_Profinite_iso' f hf }-/
 open category_theory.limits
 
 instance : preserves_limits (forget₂ ProfiniteGroup Profinite) := sorry

@@ -5,7 +5,8 @@ Authors: Joël Riou
 -/
 
 import algebraic_topology.split_simplicial_object
-import category_theory.preadditive
+import category_theory.preadditive.default
+import algebraic_topology.dold_kan.degeneracies
 
 /-!
 
@@ -20,7 +21,7 @@ when `C` is a preadditive category, and get an isomorphism
 noncomputable theory
 
 open category_theory category_theory.limits category_theory.category
-  category_theory.preadditive opposite
+  category_theory.preadditive opposite algebraic_topology.dold_kan
 
 open_locale big_operators simplicial
 
@@ -92,6 +93,20 @@ begin
   have h := simplex_category.len_le_of_epi (infer_instance : epi A.e),
   dsimp at ⊢ h,
   linarith,
+end
+
+/-- If a simplicial object `X` in an additive category is split,
+then `P_infty` vanishes on all the summands of `X _[n]` which do
+not correspond to the identity of `[n]`. -/
+lemma ι_summand_comp_P_infty_eq_zero {X : simplicial_object C}
+  (s : simplicial_object.splitting X)
+  {n : ℕ} (A : simplicial_object.splitting.index_set (op [n]))
+  (hA : ¬ A.eq_id) :
+  s.ι_summand A ≫ P_infty.f n = 0 :=
+begin
+  rw simplicial_object.splitting.index_set.eq_id_iff_mono at hA,
+  rw [simplicial_object.splitting.ι_summand_eq, assoc,
+    degeneracy_comp_P_infty X n A.e hA, comp_zero],
 end
 
 end splitting

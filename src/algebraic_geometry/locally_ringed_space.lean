@@ -254,7 +254,7 @@ begin
     topological_space.opens.mem_coe, opens.coe_bot, iff_false, RingedSpace.basic_open,
     is_unit_zero_iff, set.mem_set_of_eq, map_zero],
   rintro ⟨⟨y, _⟩, h, e⟩,
-  exact @zero_ne_one (X.presheaf.stalk y) _ _ h,
+  exact zero_ne_one' (X.presheaf.stalk y) h,
 end
 
 instance component_nontrivial (X : LocallyRingedSpace) (U : opens X.carrier)

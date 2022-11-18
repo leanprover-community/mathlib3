@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Chris Hughes, Kevin Buzzard
 -/
 import algebra.hom.group
-import algebra.group.commute
+import algebra.group.units
 /-!
 # Monoid homomorphisms and units
 

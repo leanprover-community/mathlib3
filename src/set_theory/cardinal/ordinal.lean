@@ -378,7 +378,7 @@ begin
   { simp },
   { intros o h,
     rw [aleph_succ, beth_succ, succ_le_iff],
-    exact (cantor _).trans_le (power_le_power_left two_ne_zero' h) },
+    exact (cantor _).trans_le (power_le_power_left two_ne_zero h) },
   { intros o ho IH,
     rw [aleph_limit ho, beth_limit ho],
     exact csupr_mono (bdd_above_of_small _) (λ x, IH x.1 x.2) }

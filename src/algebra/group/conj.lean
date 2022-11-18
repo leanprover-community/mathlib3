@@ -8,6 +8,7 @@ import algebra.group_with_zero.basic
 import algebra.hom.aut
 import algebra.hom.group
 import data.finite.basic
+import data.fintype.units
 
 /-!
 # Conjugacy of group elements

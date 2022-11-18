@@ -411,7 +411,8 @@ instance is_modular_lattice.to_is_lower_modular_lattice [lattice α] [is_modular
 ⟨λ a b, by { simp_rw [covby_iff_Ioo_eq, ←is_empty_coe_sort, left_lt_sup, inf_lt_right,
     (set.Ioo_sup_right_order_iso_Ioo_inf_left a b).to_equiv.is_empty_congr], exact id }⟩
 
-instance is_modular_lattice.to_is_upper_modular_lattice [lattice α] [is_modular_lattice α] :
+@[priority 100] -- See note [lower instance priority]
+instance is_modular_lattice.to_is_upper_modular_lattice :
   is_upper_modular_lattice α :=
 ⟨λ a b, by { simp_rw [covby_iff_Ioo_eq, ←is_empty_coe_sort, right_lt_sup, inf_lt_left,
     @inf_comm _ _ a b, @sup_comm _ _ a b,

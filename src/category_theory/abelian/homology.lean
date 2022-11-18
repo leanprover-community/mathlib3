@@ -287,7 +287,7 @@ noncomputable def homology_iso (C : homological_complex A c) (j : ι) :
   end)
 
 /-- If `F` is an exact additive functor, then `F` commutes with `Hᵢ` (up to natural isomorphism). -/
-noncomputable def preserves_homology_of_exact (i : ι) :
+noncomputable def homology_functor_iso (i : ι) :
   homology_functor A c i ⋙ F ≅ F.map_homological_complex c ⋙ homology_functor B c i :=
 nat_iso.of_components (λ X, homology_iso F X i)
 begin

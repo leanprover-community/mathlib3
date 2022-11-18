@@ -206,7 +206,7 @@ lemma category_theory.functor.quasi_iso_of_map_quasi_iso
   (hf : quasi_iso ((F.map_homological_complex _).map f)) : quasi_iso f :=
 ⟨λ i, begin
   haveI : is_iso (F.map ((homology_functor A c i).map f)),
-  { rw [← functor.comp_map, ← nat_iso.naturality_2 (F.preserves_homology_of_exact i) f,
+  { rw [← functor.comp_map, ← nat_iso.naturality_2 (F.homology_functor_iso i) f,
       functor.comp_map],
     apply_instance, },
   exact is_iso_of_reflects_iso _ F,

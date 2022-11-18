@@ -333,7 +333,7 @@ lemma infi_eq_of_forall_le_of_tendsto {x : R} {as : ι → R}
   (⨅ i, as i) = x :=
 begin
   refine infi_eq_of_forall_ge_of_forall_gt_exists_lt (λ i, x_le i) _,
-  apply λ w x_lt_w, ne_bot.nonempty_of_mem ‹filter.ne_bot F› (eventually_lt_of_tendsto_lt x_lt_w as_lim),
+  apply λ w x_lt_w, ‹filter.ne_bot F›.nonempty_of_mem (eventually_lt_of_tendsto_lt x_lt_w as_lim),
 end
 
 lemma supr_eq_of_forall_le_of_tendsto {x : R} {as : ι → R}

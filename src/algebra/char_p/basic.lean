@@ -464,7 +464,7 @@ lemma false_of_nontrivial_of_char_one [nontrivial R] [char_p R 1] : false :=
 false_of_nontrivial_of_subsingleton R
 
 lemma ring_char_ne_one [nontrivial R] : ring_char R ≠ 1 :=
-by { intros h, apply @zero_ne_one R, symmetry, rw [←nat.cast_one, ring_char.spec, h], }
+by { intros h, apply zero_ne_one' R, symmetry, rw [←nat.cast_one, ring_char.spec, h], }
 
 lemma nontrivial_of_char_ne_one {v : ℕ} (hv : v ≠ 1) [hr : char_p R v] :
   nontrivial R :=
@@ -481,8 +481,6 @@ end char_p
 section
 
 /-- We have `2 ≠ 0` in a nontrivial ring whose characteristic is not `2`. -/
--- Note: there is `two_ne_zero` (assuming `[ordered_semiring]`)
--- and `two_ne_zero'`(assuming `[char_zero]`), which both don't fit the needs here.
 @[protected]
 lemma ring.two_ne_zero {R : Type*} [non_assoc_semiring R] [nontrivial R] (hR : ring_char R ≠ 2) :
   (2 : R) ≠ 0 :=

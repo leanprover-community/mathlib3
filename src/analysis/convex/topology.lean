@@ -339,8 +339,8 @@ variables [seminormed_add_comm_group E] [normed_space ℝ E] {s t : set E}
 and `convex_on_univ_norm`. -/
 lemma convex_on_norm (hs : convex ℝ s) : convex_on ℝ s norm :=
 ⟨hs, λ x hx y hy a b ha hb hab,
-  calc ∥a • x + b • y∥ ≤ ∥a • x∥ + ∥b • y∥ : norm_add_le _ _
-    ... = a * ∥x∥ + b * ∥y∥
+  calc ‖a • x + b • y‖ ≤ ‖a • x‖ + ‖b • y‖ : norm_add_le _ _
+    ... = a * ‖x‖ + b * ‖y‖
         : by rw [norm_smul, norm_smul, real.norm_of_nonneg ha, real.norm_of_nonneg hb]⟩
 
 /-- The norm on a real normed space is convex on the whole space. See also `seminorm.convex_on`

@@ -457,12 +457,10 @@ end
 lemma quasi_iso_of_forget₂_ε_to_single₀ :
   quasi_iso (((forget₂ _ (Module.{u} k)).map_homological_complex _).map (ε_to_single₀ k G)) :=
 begin
-  convert quasi_iso_of_comp_right _
-    ((chain_complex.single₀_map_homological_complex _).hom.app _),
-  { apply_instance },
-  { exact quasi_iso_of_iso _ },
-  { erw ε_to_single₀_comp_eq,
-    exact homotopy_equiv.to_quasi_iso _ },
+  have h : quasi_iso (forget₂_to_Module_homotopy_equiv k G).hom := homotopy_equiv.to_quasi_iso _,
+  rw ← ε_to_single₀_comp_eq k G at h,
+  haveI := h,
+  exact quasi_iso_of_comp_right _ (((chain_complex.single₀_map_homological_complex _).hom.app _)),
 end
 
 instance : quasi_iso (ε_to_single₀ k G) :=
@@ -487,8 +485,8 @@ Rep.equivalence_Module_monoid_algebra.enough_projectives_iff.2
 `G`-representation) is isomorphic to the `n`th cohomology group of `Hom(P, V)`, where `P` is the
 standard resolution of `k` called `group_cohomology.resolution k G`. -/
 def group_cohomology.Ext_iso (V : Rep k G) (n : ℕ) :
-((Ext k (Rep k G) n).obj (opposite.op $ Rep.of representation.trivial)).obj V
-≅ (((((linear_yoneda k (Rep k G)).obj V).right_op.map_homological_complex _).obj
-  (group_cohomology.resolution k G)).homology n).unop :=
-by have := (((linear_yoneda k (Rep k G)).obj V).right_op.left_derived_obj_iso
+  ((Ext k (Rep k G) n).obj (opposite.op $ Rep.of representation.trivial)).obj V ≅
+    (((((linear_yoneda k (Rep k G)).obj V).right_op.map_homological_complex _).obj
+      (group_cohomology.resolution k G)).homology n).unop :=
+by let := (((linear_yoneda k (Rep k G)).obj V).right_op.left_derived_obj_iso
   n (group_cohomology.ProjectiveResolution k G)).unop.symm; exact this

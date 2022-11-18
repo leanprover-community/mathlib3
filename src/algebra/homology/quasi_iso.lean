@@ -204,14 +204,10 @@ variables {A : Type*} [category A] [abelian A] {B : Type*} [category B] [abelian
 lemma category_theory.functor.quasi_iso_of_map_quasi_iso
   {C D : homological_complex A c} (f : C ⟶ D)
   (hf : quasi_iso ((F.map_homological_complex _).map f)) : quasi_iso f :=
-{ is_iso := λ i,
-  begin
-    convert is_iso_of_reflects_iso _ F,
-    show is_iso (((homology_functor A c i) ⋙ F).map f),
-    rw (nat_iso.naturality_2 (F.preserves_homology_of_exact i) f).symm,
-    convert is_iso.comp_is_iso,
-    { apply_instance },
-    { convert is_iso.comp_is_iso,
-      { exact hf.is_iso i },
-      { apply_instance }},
-  end }
+⟨λ i, begin
+  haveI : is_iso (F.map ((homology_functor A c i).map f)),
+  { rw [← functor.comp_map, ← nat_iso.naturality_2 (F.preserves_homology_of_exact i) f,
+      functor.comp_map],
+    apply_instance, },
+  exact is_iso_of_reflects_iso _ F,
+end⟩

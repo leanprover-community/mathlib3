@@ -2282,7 +2282,7 @@ end
 /-- Markov's inequality for `finset.card` and `tsum` in `ℝ≥0∞`. -/
 lemma finset_card_const_le_le_of_tsum_le {a : α → ℝ≥0∞}
   {c : ℝ≥0∞} (c_ne_top : c ≠ ∞) (tsum_le_c : ∑' i, a i ≤ c)
-  {ε : ℝ≥0∞} (ε_ne_zero : ε ≠ 0) (ε_ne_top : ε ≠ ∞) :
+  {ε : ℝ≥0∞} (ε_ne_zero : ε ≠ 0) :
   ∃ hf : {i : α | ε ≤ a i}.finite, ↑hf.to_finset.card ≤ c / ε :=
 begin
   by_cases ε = ∞,

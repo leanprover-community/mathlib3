@@ -6,6 +6,7 @@ Authors: Anne Baanen
 import algebra.module.basic
 import group_theory.group_action.units
 import data.int.cast.lemmas
+import data.int.units
 import algebra.order.absolute_value
 
 /-!

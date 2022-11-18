@@ -5,8 +5,8 @@ Authors: Tian Chen, Mantas Bakšys
 -/
 import algebra.geom_sum
 import data.int.parity
-import number_theory.padics.padic_norm
 import data.zmod.basic
+import number_theory.padics.padic_val
 
 /-!
 # Multiplicity in Number Theory

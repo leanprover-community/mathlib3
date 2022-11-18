@@ -7,7 +7,7 @@ import linear_algebra.basic
 import algebra.algebra.basic
 import algebra.big_operators.order
 import algebra.big_operators.ring
-import data.fintype.card
+import data.fintype.big_operators
 import data.fintype.sort
 
 /-!

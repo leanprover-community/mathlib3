@@ -619,6 +619,9 @@ by simp [is_path_def]
   (cons h p).is_path ↔ p.is_path ∧ u ∉ p.support :=
 by split; simp [is_path_def] { contextual := tt }
 
+@[simp] lemma is_path_iff_eq_nil {u : V} (p : G.walk u u) : p.is_path ↔ p = nil :=
+by { cases p; simp }
+
 lemma is_path.reverse {u v : V} {p : G.walk u v} (h : p.is_path) : p.reverse.is_path :=
 by simpa [is_path_def] using h
 

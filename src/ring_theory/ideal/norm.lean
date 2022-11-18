@@ -122,21 +122,6 @@ begin
   exact mem_sup.mpr ⟨a, mem_span_singleton_self a, 0, by simp, by simp⟩
 end
 
-lemma prime_pow_succ_dvd_mul {α : Type*} [cancel_comm_monoid_with_zero α]
-  {p x y : α} (h : prime p) {i : ℕ} (hxy : p ^ (i + 1) ∣ x * y) :
-  p ^ (i + 1) ∣ x ∨ p ∣ y :=
-begin
-  rw or_iff_not_imp_right,
-  intro hy,
-  induction i with i ih generalizing x,
-  { simp only [zero_add, pow_one] at *,
-    exact (h.dvd_or_dvd hxy).resolve_right hy },
-  rw pow_succ at hxy ⊢,
-  obtain ⟨x', rfl⟩ := (h.dvd_or_dvd (dvd_of_mul_right_dvd hxy)).resolve_right hy,
-  rw mul_assoc at hxy,
-  exact mul_dvd_mul_left p (ih ((mul_dvd_mul_iff_left h.ne_zero).mp hxy)),
-end
-
 lemma ideal.mem_prime_of_mul_mem_pow [is_dedekind_domain S]
   {P : ideal S} [P_prime : P.is_prime] (hP : P ≠ ⊥) {i : ℕ}
   {a b : S} (a_not_mem : a ∉ P ^ (i + 1))

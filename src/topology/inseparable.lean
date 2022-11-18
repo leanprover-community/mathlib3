@@ -355,7 +355,7 @@ lemma specializing.stable_under_specialization_range (h : specializing f) :
   stable_under_specialization (range f) :=
 @image_univ _ _ f ▸ is_closed_univ.stable_under_specialization.image h
 
-lemma _root_.generalizing.stable_under_generalization_image (hf : «generalizing» f) {s : set X}
+lemma generalizing.stable_under_generalization_image (hf : «generalizing» f) {s : set X}
   (hs : stable_under_generalization s) : stable_under_generalization (f '' s) :=
 is_upper_set.image_fibration hf hs
 

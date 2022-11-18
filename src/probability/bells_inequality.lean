@@ -108,7 +108,7 @@ lemma integrable_mul_of_units_int_neg {Za Zb : Ω → ℤˣ}
   (sm_b : strongly_measurable (λ ω, (Zb ω : ℝ))) :
   integrable (λ ω : Ω , -(Za ω :ℝ) * Zb ω) ℙ :=
 begin
-  convert @integrable_mul_of_units_int _ _ _ _inst_2 (λ x, -Za x) Zb _ sm_b,
+  convert @integrable_mul_of_units_int _ _ _ hℙ (λ x, -Za x) Zb _ sm_b,
   { ext1 x,
     simp, },
  { convert strongly_measurable.neg sm_a,

@@ -3,10 +3,58 @@ Copyright (c) 2022 Floris van Doorn, Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Heather Macbeth
 -/
+import geometry.manifold.cont_mdiff_map
 import geometry.manifold.vector_bundle.fiberwise_linear
 import topology.vector_bundle.constructions
 
 /-! # Smooth vector bundles
+
+This file defines smooth vector bundles over a smooth manifold.
+
+Let `E` be a topological vector bundle, with model fibre `F` and base space `B`.  We consider `E` as
+carrying a charted space structure given by its trivializations -- these are charts to `B × F`.
+Then, by "composition", if `B` is itself a charted space over `H` (e.g. a smooth manifold), then `E`
+is also a charted space over `H × F`
+
+Now, we define `smooth_vector_bundle` as the `Prop` of having smooth transition functions.
+Recall the structure groupoid `smooth_fiberwise_linear` on `B × F` consisting of smooth, fibrewise
+linear local homeomorphisms.  We show that our definition of "smooth vector bundle" implies
+`has_groupoid` for this groupoid, and show (by a "composition" of `has_groupoid` instances) that
+this means that a smooth vector bundle is a smooth manifold
+
+Since `smooth_vector_bundle` is a mixin, it should be easy to make variants and for many such
+variants to coexist -- vector bundles can be smooth vector bundles over several different base
+fields, they can also be C^k vector bundles, etc.
+
+## Main definitions and constructions
+
+* `fiber_bundle.charted_space`: A fibre bundle `E` over a base `B` with model fibre `F` is naturally a
+  charted space modelled on `B × F`.
+
+* `fiber_bundle.charted_space'`: Let `B` be a charted space modelled on `HB`.  Then a fibre bundle `E`
+  over a base `B` with model fibre `F` is naturally a charted space modelled on `HB.prod F`.
+
+* `smooth_vector_bundle`: Mixin class stating that a (topological) `vector_bundle` is smooth, in the
+  sense of having smooth transition functions.
+
+* `smooth_fiberwise_linear.has_groupoid`: For a smooth vector bundle `E` over `B` with fibre modelled
+  on `F`, the change-of-co-ordinates between two trivializations `e`, `e'` for `E`, considered as
+  charts to `B × F`, is smooth and fibrewise linear, in the sense of belonging to the structure
+  groupoid `smooth_fiberwise_linear`.
+
+* `bundle.total_space.smooth_manifold_with_corners`: A smooth vector bundle is naturally a smooth
+  manifold.
+
+* `vector_bundle_core.smooth_vector_bundle`: If a (topological) `vector_bundle_core` smooth, in the
+  sense of having smooth transition functions, then the vector bundle constructed from it is a
+  smooth vector bundle.
+
+* `bundle.prod.smooth_vector_bundle`: The direct sum of two smooth vector bundles is a smooth vector
+  bundle.
+
+* `smooth_vector_bundle.pullback`: For a smooth vector bundle `E` over a manifold `B` and a smooth
+  map `f : B' → B`, the pullback vector bundle `f *ᵖ E` is a smooth vector bundle.
+
 -/
 
 open bundle set
@@ -173,41 +221,46 @@ variables [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E
   [smooth_vector_bundle F₁ E₁ IB] [smooth_vector_bundle F₂ E₂ IB]
 
 /-- The direct sum of two smooth vector bundles is a smooth vector bundle. -/
-instance _root_.bundle.prod.smooth_vector_bundle :
+instance bundle.prod.smooth_vector_bundle :
   smooth_vector_bundle (F₁ × F₂) (E₁ ×ᵇ E₂) IB :=
 { smooth_on_coord_change := begin
     rintros _ _ ⟨e₁, e₂, i₁, i₂, rfl⟩ ⟨e₁', e₂', i₁', i₂', rfl⟩,
     resetI,
-    -- refine (((smooth_on_coord_change e₁ e₁').mono _).prod_mapL 𝕜
-    --   ((smooth_on_coord_change e₂ e₂').mono _)).congr _,
-    -- dsimp only [base_set_prod] with mfld_simps,
-    -- { mfld_set_tac },
-    -- { mfld_set_tac },
-    -- { rintro b hb,
-    --   rw [continuous_linear_map.ext_iff],
-    --   rintro ⟨v₁, v₂⟩,
-    --   show (e₁.prod e₂).coord_change R (e₁'.prod e₂') b (v₁, v₂) =
-    --     (e₁.coord_change R e₁' b v₁, e₂.coord_change R e₂' b v₂),
-    --   rw [e₁.coord_change_apply R e₁', e₂.coord_change_apply R e₂',
-    --     (e₁.prod e₂).coord_change_apply' R],
-    --   exacts [rfl, hb, ⟨hb.1.2, hb.2.2⟩, ⟨hb.1.1, hb.2.1⟩] }
+    have : smooth_on IB (𝓘(𝕜, F₁ →L[𝕜] F₁).prod 𝓘(𝕜, F₂ →L[𝕜] F₂))
+      (λ b, ((e₁.coord_changeL 𝕜 e₁' b, e₂.coord_changeL 𝕜 e₂' b) : (F₁ →L[𝕜] F₁) × (F₂ →L[𝕜] F₂)))
+      ((e₁.prod e₂).base_set ∩ (e₁'.prod e₂').base_set),
+    { apply smooth_on.prod_mk,
+      { refine (smooth_on_coord_change e₁ e₁').mono _,
+        simp only [trivialization.base_set_prod] with mfld_simps,
+        mfld_set_tac },
+      { refine (smooth_on_coord_change e₂ e₂').mono _,
+        simp only [trivialization.base_set_prod] with mfld_simps,
+        mfld_set_tac } },
+    refine ((continuous_linear_map.prod_mapL 𝕜 F₁ F₁ F₂ F₂).cont_diff.cont_mdiff.comp_cont_mdiff_on
+      this).congr _,
+    { intros b hb,
+      rw [continuous_linear_map.ext_iff],
+      rintro ⟨v₁, v₂⟩,
+      show (e₁.prod e₂).coord_changeL 𝕜 (e₁'.prod e₂') b (v₁, v₂) =
+        (e₁.coord_changeL 𝕜 e₁' b v₁, e₂.coord_changeL 𝕜 e₂' b v₂),
+      rw [e₁.coord_changeL_apply e₁', e₂.coord_changeL_apply e₂',
+        (e₁.prod e₂).coord_changeL_apply'],
+      exacts [rfl, hb, ⟨hb.1.2, hb.2.2⟩, ⟨hb.1.1, hb.2.1⟩] },
   end }
 
 end prod
 
-
 /-! ### Pullbacks of smooth vector bundles -/
 
 section
-variables {𝕜} {B B'} (F E)
+variables {𝕜} {B B'} (F E) (f : smooth_map IB' IB B' B)
 
 /-- For a smooth vector bundle `E` over a manifold `B` and a smooth map `f : B' → B`, the pullback
 vector bundle `f *ᵖ E` is a smooth vector bundle. -/
-instance smooth_vector_bundle.pullback {f : continuous_map B' B} (hf : smooth IB' IB f) :
-  smooth_vector_bundle F (f *ᵖ E) IB' :=
+instance smooth_vector_bundle.pullback : smooth_vector_bundle F (f *ᵖ E) IB' :=
 { smooth_on_coord_change := begin
     rintro _ _ ⟨e, he, rfl⟩ ⟨e', he', rfl⟩, resetI,
-    refine ((smooth_on_coord_change e e').comp hf.smooth_on
+    refine ((smooth_on_coord_change e e').comp f.smooth.smooth_on
       (λ b hb, hb)).congr _,
     rintro b (hb : f b ∈ e.base_set ∩ e'.base_set), ext v,
     show ((e.pullback f).coord_changeL 𝕜 (e'.pullback f) b) v = (e.coord_changeL 𝕜 e' (f b)) v,

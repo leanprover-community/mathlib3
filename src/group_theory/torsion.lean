@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Berman
 -/
 
-import algebra.is_prime_pow
 import group_theory.exponent
 import group_theory.order_of_element
 import group_theory.p_group

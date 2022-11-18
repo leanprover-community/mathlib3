@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Chris Hughes
 -/
 import algebra.gcd_monoid.basic
-import ring_theory.coprime.basic
+import algebra.euclidean_domain.basic
 import ring_theory.ideal.basic
 import ring_theory.principal_ideal_domain
 

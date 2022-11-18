@@ -295,12 +295,12 @@ by simpa using hilbert_basis.has_sum_repr fourier_series f
 /-- **Parseval's identity**: for an `L²` function `f` on `add_circle T`, the sum of the squared
 norms of the Fourier coefficients equals the `L²` norm of `f`. -/
 lemma tsum_sq_fourier_series_repr (f : Lp ℂ 2 $ @haar_add_circle T hT) :
-  ∑' i : ℤ, ∥fourier_series.repr f i∥ ^ 2 = ∫ (t : add_circle T), ∥f t∥ ^ 2 ∂ haar_add_circle :=
+  ∑' i : ℤ, ‖fourier_series.repr f i‖ ^ 2 = ∫ (t : add_circle T), ‖f t‖ ^ 2 ∂ haar_add_circle :=
 begin
-  have H₁ : ∥fourier_series.repr f∥ ^ 2 = ∑' i, ∥fourier_series.repr f i∥ ^ 2,
+  have H₁ : ‖fourier_series.repr f‖ ^ 2 = ∑' i, ‖fourier_series.repr f i‖ ^ 2,
   { exact_mod_cast lp.norm_rpow_eq_tsum _ (fourier_series.repr f),
     norm_num },
-  have H₂ : ∥fourier_series.repr f∥ ^ 2 = ∥f∥ ^ 2 := by simp,
+  have H₂ : ‖fourier_series.repr f‖ ^ 2 = ‖f‖ ^ 2 := by simp,
   have H₃ := congr_arg is_R_or_C.re (@L2.inner_def (add_circle T) ℂ ℂ _ _ _ _ f f),
   rw ← integral_re at H₃,
   { simp only [← norm_sq_eq_inner] at H₃,

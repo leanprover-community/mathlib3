@@ -307,7 +307,7 @@ begin
     { by_cases h : t = 0,
       { use ⟨1/2, ⟨by linarith, by linarith⟩⟩,
         unfold_coes,
-        simp only [h, comp_app, if_true, le_refl, mul_one_div_cancel (@two_ne_zero ℝ _ _)],
+        simp only [h, comp_app, if_true, le_refl, mul_one_div_cancel (two_ne_zero' ℝ)],
         rw γ₁.extend_one,
         rwa [← γ₂.extend_extends, h, γ₂.extend_zero] at hxt },
       { use ⟨(t+1)/2, ⟨by linarith, by linarith⟩⟩,
@@ -399,7 +399,7 @@ begin
     exact h₂'.comp (continuous_id.prod_map $
       (continuous_const.mul continuous_subtype_coe).sub continuous_const) },
   { rintros st hst,
-    simp [hst, mul_inv_cancel (@two_ne_zero ℝ _ _)] }
+    simp [hst, mul_inv_cancel (two_ne_zero' ℝ)] }
 end
 
 @[continuity]

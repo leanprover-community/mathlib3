@@ -32,7 +32,7 @@ We deduce basic properties of any Haar measure on a finite dimensional real vect
 
 This makes it possible to associate a Lebesgue measure to an `n`-alternating map in dimension `n`.
 This measure is called `alternating_map.measure`. Its main property is
-`ω.measure_parallelogram v`, stating that the associated measure of the parallelogram spanned
+`ω.measure_parallelepiped v`, stating that the associated measure of the parallelepiped spanned
 by vectors `v₁, ..., vₙ` is given by `|ω v|`.
 
 We also show that a Lebesgue density point `x` of a set `s` (with respect to closed balls) has
@@ -515,12 +515,12 @@ section
 variables {ι F : Type*} [fintype ι] [decidable_eq ι]
 [normed_add_comm_group F] [normed_space ℝ F] [measurable_space F] [borel_space F]
 
-lemma add_haar_parallelogram (b : basis ι ℝ F) (v : ι → F) :
-  b.add_haar (parallelogram v) = ennreal.of_real (|b.det v|) :=
+lemma add_haar_parallelepiped (b : basis ι ℝ F) (v : ι → F) :
+  b.add_haar (parallelepiped v) = ennreal.of_real (|b.det v|) :=
 begin
   haveI : finite_dimensional ℝ F, from finite_dimensional.of_fintype_basis b,
-  have A : parallelogram v = (b.constr ℕ v) '' (parallelogram b),
-  { rw image_parallelogram,
+  have A : parallelepiped v = (b.constr ℕ v) '' (parallelepiped b),
+  { rw image_parallelepiped,
     congr' 1,
     ext i,
     exact (b.constr_basis ℕ v i).symm },
@@ -533,18 +533,18 @@ variables [finite_dimensional ℝ F] {n : ℕ} [_i : fact (finrank ℝ F = n)]
 include _i
 
 /-- The Lebesgue measure associated to an alternating map. It gives measure `|ω v|` to the
-parallelogram spanned by the vectors `v₁, ..., vₙ`. Note that it is not always a Haar measure,
+parallelepiped spanned by the vectors `v₁, ..., vₙ`. Note that it is not always a Haar measure,
 as it can be zero, but it is always locally finite and translation invariant. -/
 @[irreducible] noncomputable def _root_.alternating_map.measure
   (ω : alternating_map ℝ F ℝ (fin n)) : measure F :=
-∥ω (fin_basis_of_finrank_eq ℝ F _i.out)∥₊ • (fin_basis_of_finrank_eq ℝ F _i.out).add_haar
+‖ω (fin_basis_of_finrank_eq ℝ F _i.out)‖₊ • (fin_basis_of_finrank_eq ℝ F _i.out).add_haar
 
-lemma _root_.alternating_map.measure_parallelogram
+lemma _root_.alternating_map.measure_parallelepiped
   (ω : alternating_map ℝ F ℝ (fin n)) (v : fin n → F) :
-  ω.measure (parallelogram v) = ennreal.of_real (|ω v|) :=
+  ω.measure (parallelepiped v) = ennreal.of_real (|ω v|) :=
 begin
   conv_rhs { rw ω.eq_smul_basis_det (fin_basis_of_finrank_eq ℝ F _i.out) },
-  simp only [add_haar_parallelogram, alternating_map.measure, coe_nnreal_smul_apply,
+  simp only [add_haar_parallelepiped, alternating_map.measure, coe_nnreal_smul_apply,
     alternating_map.smul_apply, algebra.id.smul_eq_mul, abs_mul,
     ennreal.of_real_mul (abs_nonneg _), real.ennnorm_eq_of_real_abs]
 end

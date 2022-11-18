@@ -11,15 +11,15 @@ import analysis.inner_product_space.pi_L2
 # Additive Haar measure constructed from a basis
 
 Given a basis of a finite-dimensional real vector space, we define the corresponding Lebesgue
-measure, which gives measure `1` to the parallelogram spanned by the basis.
+measure, which gives measure `1` to the parallelepiped spanned by the basis.
 
 ## Main definitions
 
-* `parallelogram v` is the parallelogram spanned by a finite family of vectors.
-* `basis.parallelogram` is the parallelogram associated to a basis, seen as a compact set with
+* `parallelepiped v` is the parallelepiped spanned by a finite family of vectors.
+* `basis.parallelepiped` is the parallelepiped associated to a basis, seen as a compact set with
 nonempty interior.
 * `basis.add_haar` is the Lebesgue measure associated to a basis, giving measure `1` to the
-corresponding parallelogram.
+corresponding parallelepiped.
 
 In particular, we declare a `measure_space` instance on any finite-dimensional inner product space,
 by using the Lebesgue measure associated to some orthonormal basis (which is in fact independent
@@ -37,24 +37,28 @@ section add_comm_group
 
 variables [add_comm_group E] [module ℝ E] [add_comm_group F] [module ℝ F]
 
-/-- The parallelogram spanned by a finite family of vectors. -/
-def parallelogram (v : ι → E) : set E :=
+/-- The parallelepiped spanned by a finite family of vectors. -/
+def parallelepiped (v : ι → E) : set E :=
 (λ (t : ι → ℝ), ∑ i, t i • v i) '' (Icc 0 1)
 
-lemma image_parallelogram (f : E →ₗ[ℝ] F) (v : ι → E) :
-  f '' (parallelogram v) = parallelogram (f ∘ v) :=
+lemma mem_parallelepiped_iff (v : ι → E) (x : E) :
+  x ∈ parallelepiped v ↔ ∃ (t : ι → ℝ) (ht : t ∈ Icc (0 : (ι → ℝ)) 1), x = ∑ i, t i • v i :=
+by simp [parallelepiped, eq_comm]
+
+lemma image_parallelepiped (f : E →ₗ[ℝ] F) (v : ι → E) :
+  f '' (parallelepiped v) = parallelepiped (f ∘ v) :=
 begin
-  simp only [parallelogram, ← image_comp],
+  simp only [parallelepiped, ← image_comp],
   congr' 1,
   ext t,
   simp only [function.comp_app, linear_map.map_sum, linear_map.map_smulₛₗ, ring_hom.id_apply],
 end
 
-/-- Reindexing a family of vectors does not change their parallelogram. -/
-@[simp] lemma parallelogram_comp (v : ι → E) (e : ι' ≃ ι) :
-  parallelogram (v ∘ e) = parallelogram v :=
+/-- Reindexing a family of vectors does not change their parallelepiped. -/
+@[simp] lemma parallelepiped_comp_equiv (v : ι → E) (e : ι' ≃ ι) :
+  parallelepiped (v ∘ e) = parallelepiped v :=
 begin
-  simp only [parallelogram],
+  simp only [parallelepiped],
   let K : (ι' → ℝ) ≃ (ι → ℝ) := equiv.Pi_congr_left' (λ (a : ι'), ℝ) e,
   have : Icc (0 : (ι → ℝ)) 1 = K '' (Icc (0 : (ι' → ℝ)) 1),
   { rw ← equiv.preimage_eq_iff_eq_image,
@@ -72,15 +76,15 @@ begin
       using (e.symm.sum_comp (λ (i : ι'), x i • v (e i))).symm,
 end
 
-/- The parallelogram associated to an orthonormal basis of `ℝ` is either `[0, 1]` or `[-1, 0]`. -/
-lemma parallelogram_orthonormal_basis_one_dim (b : orthonormal_basis ι ℝ ℝ) :
-  parallelogram b = Icc 0 1 ∨ parallelogram b = Icc (-1) 0 :=
+/- The parallelepiped associated to an orthonormal basis of `ℝ` is either `[0, 1]` or `[-1, 0]`. -/
+lemma parallelepiped_orthonormal_basis_one_dim (b : orthonormal_basis ι ℝ ℝ) :
+  parallelepiped b = Icc 0 1 ∨ parallelepiped b = Icc (-1) 0 :=
 begin
   have e : ι ≃ fin 1,
   { apply fintype.equiv_fin_of_card_eq,
     simp only [← finrank_eq_card_basis b.to_basis, finrank_self] },
-  have B : parallelogram (b.reindex e) = parallelogram b,
-  { convert parallelogram_comp b e.symm,
+  have B : parallelepiped (b.reindex e) = parallelepiped b,
+  { convert parallelepiped_comp_equiv b e.symm,
     ext i,
     simp only [orthonormal_basis.coe_reindex] },
   rw ← B,
@@ -95,10 +99,10 @@ begin
       exact ⟨λ j, hy.1, λ j, hy.2⟩ } },
   rcases orthonormal_basis_one_dim (b.reindex e) with H|H,
   { left,
-    simp only [H, parallelogram, algebra.id.smul_eq_mul, mul_one, A,
+    simp only [H, parallelepiped, algebra.id.smul_eq_mul, mul_one, A,
       finset.sum_singleton, ←image_comp, image_id', finset.univ_unique], },
   { right,
-    simp only [H, parallelogram, algebra.id.smul_eq_mul, mul_one],
+    simp only [H, parallelepiped, algebra.id.smul_eq_mul, mul_one],
     rw A,
     simp only [←image_comp, mul_neg, mul_one, finset.sum_singleton, image_neg, preimage_neg_Icc,
       neg_zero, finset.univ_unique] },
@@ -110,15 +114,15 @@ section normed_space
 
 variables [normed_add_comm_group E] [normed_space ℝ E]
 
-/-- The parallelogram spanned by a basis, as a compact set with nonempty interior. -/
-def basis.parallelogram (b : basis ι ℝ E) : positive_compacts E :=
-{ carrier := parallelogram b,
+/-- The parallelepiped spanned by a basis, as a compact set with nonempty interior. -/
+def basis.parallelepiped (b : basis ι ℝ E) : positive_compacts E :=
+{ carrier := parallelepiped b,
   is_compact' := is_compact_Icc.image (continuous_finset_sum finset.univ
     (λ (i : ι) (H : i ∈ finset.univ), (continuous_apply i).smul continuous_const)),
   interior_nonempty' :=
     begin
       suffices H : set.nonempty (interior (b.equiv_funL.symm.to_homeomorph '' (Icc 0 1))),
-      { dsimp only [parallelogram],
+      { dsimp only [parallelepiped],
         convert H,
         ext t,
         exact (b.equiv_fun_symm_apply t).symm },
@@ -131,24 +135,24 @@ def basis.parallelogram (b : basis ι ℝ E) : positive_compacts E :=
 
 variables [measurable_space E] [borel_space E]
 
-/-- The Lebesgue measure associated to a basis, giving measure `1` to the parallelogram spanned
+/-- The Lebesgue measure associated to a basis, giving measure `1` to the parallelepiped spanned
 by the basis. -/
 @[irreducible] def basis.add_haar (b : basis ι ℝ E) : measure E :=
-measure.add_haar_measure b.parallelogram
+measure.add_haar_measure b.parallelepiped
 
 instance is_add_haar_measure_basis_add_haar (b : basis ι ℝ E) :
   is_add_haar_measure b.add_haar :=
 by { rw basis.add_haar, exact measure.is_add_haar_measure_add_haar_measure _ }
 
-lemma basis.add_haar_self (b : basis ι ℝ E) : b.add_haar (parallelogram b) = 1 :=
+lemma basis.add_haar_self (b : basis ι ℝ E) : b.add_haar (parallelepiped b) = 1 :=
 by { rw [basis.add_haar], exact add_haar_measure_self }
 
 end normed_space
 
 /-- A finite dimensional inner product space has a canonical measure, the Lebesgue measure giving
-volume `1` to the parallelogram spanned by any orthonormal basis. We define the measure using
+volume `1` to the parallelepiped spanned by any orthonormal basis. We define the measure using
 some arbitrary choice of orthonormal basis. The fact that it works with any orthonormal basis
-is proved in `orthonormal_basis.volume_parallelogram`. -/
+is proved in `orthonormal_basis.volume_parallelepiped`. -/
 @[priority 100] instance measure_space_of_inner_product_space
   [inner_product_space ℝ E] [finite_dimensional ℝ E] [measurable_space E] [borel_space E] :
   measure_space E :=

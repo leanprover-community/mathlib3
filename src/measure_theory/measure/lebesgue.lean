@@ -48,13 +48,13 @@ begin
     by simp only [measure.map_apply (measurable_const_add a) measurable_set_Ioo,
       sub_sub_sub_cancel_right, stieltjes_function.measure_Ioo, stieltjes_function.id_left_lim,
       stieltjes_function.id_apply, id.def, preimage_const_add_Ioo]⟩,
-  have A : stieltjes_function.id.measure (std_orthonormal_basis ℝ ℝ).to_basis.parallelogram = 1,
-  { change stieltjes_function.id.measure (parallelogram (std_orthonormal_basis ℝ ℝ)) = 1,
-    rcases parallelogram_orthonormal_basis_one_dim (std_orthonormal_basis ℝ ℝ) with H|H;
+  have A : stieltjes_function.id.measure (std_orthonormal_basis ℝ ℝ).to_basis.parallelepiped = 1,
+  { change stieltjes_function.id.measure (parallelepiped (std_orthonormal_basis ℝ ℝ)) = 1,
+    rcases parallelepiped_orthonormal_basis_one_dim (std_orthonormal_basis ℝ ℝ) with H|H;
     simp only [H, stieltjes_function.measure_Icc, stieltjes_function.id_apply, id.def, tsub_zero,
       stieltjes_function.id_left_lim, sub_neg_eq_add, zero_add, ennreal.of_real_one] },
   conv_rhs { rw [add_haar_measure_unique stieltjes_function.id.measure
-    (std_orthonormal_basis ℝ ℝ).to_basis.parallelogram, A] },
+    (std_orthonormal_basis ℝ ℝ).to_basis.parallelepiped, A] },
   simp only [volume, basis.add_haar, one_smul],
 end
 

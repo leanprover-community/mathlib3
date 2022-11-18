@@ -76,7 +76,7 @@ open submodule
 This is essentially just a repackaging of the Chinese Remainder Theorem.
 -/
 lemma card_quot_mul_of_coprime [is_dedekind_domain S] [module.free ℤ S] [module.finite ℤ S]
-  (I J : ideal S) (coprime : I ⊔ J = ⊤) : card_quot (I * J) = card_quot I * card_quot J :=
+  {I J : ideal S} (coprime : I ⊔ J = ⊤) : card_quot (I * J) = card_quot I * card_quot J :=
 begin
   let b := module.free.choose_basis ℤ S,
   casesI is_empty_or_nonempty (module.free.choose_basis_index ℤ S),
@@ -101,11 +101,29 @@ begin
       fintype.card_prod]
 end
 
-/-- If `a ∈ P^i \ P^(i+1) c ∈ P^i`, then `a * d + e = c` for `e ∈ P^(i+1)`.
+/-- If the `d` from `ideal.exists_mul_add_mem_pow_succ` is unique, up to `P`,
+then so are the `c`s, up to `P ^ (i + 1)`.
+Inspired by [Neukirch], proposition 6.1 -/
+lemma ideal.mul_add_mem_pow_succ_inj
+  (P : ideal S) {i : ℕ} (a d d' e e' : S) (a_mem : a ∈ P ^ i)
+  (e_mem : e ∈ P ^ (i + 1)) (e'_mem : e' ∈ P ^ (i + 1))
+  (h : d - d' ∈ P) : (a * d + e) - (a * d' + e') ∈ P ^ (i + 1) :=
+begin
+  have : a * d - a * d' ∈ P ^ (i + 1),
+  { convert ideal.mul_mem_mul a_mem h; simp [mul_sub, pow_succ, mul_comm] },
+  convert ideal.add_mem _ this (ideal.sub_mem _ e_mem e'_mem),
+  ring,
+end
+
+section P_prime
+
+variables {P : ideal S} [P_prime : P.is_prime] (hP : P ≠ ⊥)
+include P_prime hP
+
+/-- If `a ∈ P^i \ P^(i+1)` and `c ∈ P^i`, then `a * d + e = c` for `e ∈ P^(i+1)`.
 `ideal.mul_add_mem_pow_succ_unique` shows the choice of `d` is unique, up to `P`.
 Inspired by [Neukirch], proposition 6.1 -/
-lemma ideal.exists_mul_add_mem_pow_succ [is_dedekind_domain S]
-  (P : ideal S) [P_prime : P.is_prime] (hP : P ≠ ⊥) {i : ℕ}
+lemma ideal.exists_mul_add_mem_pow_succ [is_dedekind_domain S] {i : ℕ}
   (a c : S) (a_mem : a ∈ P ^ i) (a_not_mem : a ∉ P ^ (i + 1)) (c_mem : c ∈ P ^ i) :
   ∃ (d : S) (e ∈ P ^ (i + 1)), a * d + e = c :=
 begin
@@ -134,8 +152,7 @@ end
 
 /-- The choice of `d` in `ideal.exists_mul_add_mem_pow_succ` is unique, up to `P`.
 Inspired by [Neukirch], proposition 6.1 -/
-lemma ideal.mul_add_mem_pow_succ_unique [is_dedekind_domain S]
-  (P : ideal S) [P_prime : P.is_prime] (hP : P ≠ ⊥) {i : ℕ}
+lemma ideal.mul_add_mem_pow_succ_unique [is_dedekind_domain S] {i : ℕ}
   (a d d' e e' : S) (a_not_mem : a ∉ P ^ (i + 1))
   (e_mem : e ∈ P ^ (i + 1)) (e'_mem : e' ∈ P ^ (i + 1))
   (h : (a * d + e) - (a * d' + e') ∈ P ^ (i + 1)) : d - d' ∈ P :=
@@ -147,23 +164,8 @@ begin
   exact ideal.mem_prime_of_mul_mem_pow hP a_not_mem h'
 end
 
-/-- If the `d` from `ideal.exists_mul_add_mem_pow_succ` is unique, up to `P`,
-then so are the `c`s, up to `P ^ (i + 1)`.
-Inspired by [Neukirch], proposition 6.1 -/
-lemma ideal.mul_add_mem_pow_succ_inj
-  (P : ideal S) {i : ℕ} (a d d' e e' : S) (a_mem : a ∈ P ^ i)
-  (e_mem : e ∈ P ^ (i + 1)) (e'_mem : e' ∈ P ^ (i + 1))
-  (h : d - d' ∈ P) : (a * d + e) - (a * d' + e') ∈ P ^ (i + 1) :=
-begin
-  have : a * d - a * d' ∈ P ^ (i + 1),
-  { convert ideal.mul_mem_mul a_mem h; simp [mul_sub, pow_succ, mul_comm] },
-  convert ideal.add_mem _ this (ideal.sub_mem _ e_mem e'_mem),
-  ring,
-end
-
 /-- Multiplicity of the ideal norm, for powers of prime ideals. -/
-lemma card_quot_pow_of_prime [is_dedekind_domain S] [module.finite ℤ S] [module.free ℤ S]
-  (P : ideal S) [P_prime : P.is_prime] (hP : P ≠ ⊥) {i : ℕ} :
+lemma card_quot_pow_of_prime [is_dedekind_domain S] [module.finite ℤ S] [module.free ℤ S] {i : ℕ} :
   card_quot (P ^ i) = card_quot P ^ i :=
 begin
   let b := module.free.choose_basis ℤ S,
@@ -183,7 +185,7 @@ begin
     exact ⟨hquot⟩ },
   choose a a_mem a_not_mem using set_like.exists_of_lt this,
   choose f g hg hf using λ c (hc : c ∈ P ^ i),
-    ideal.exists_mul_add_mem_pow_succ P hP a c a_mem a_not_mem hc,
+    ideal.exists_mul_add_mem_pow_succ hP a c a_mem a_not_mem hc,
   choose k hk_mem hk_eq using λ c' (hc' : c' ∈ (map (mkq (P ^ i.succ)) (P ^ i))),
     submodule.mem_map.mp hc',
   refine equiv.of_bijective (λ c', quotient.mk' (f (k c' c'.prop) (hk_mem c' c'.prop))) ⟨_, _⟩,
@@ -199,13 +201,15 @@ begin
     refine ⟨⟨_, hd'⟩, _⟩,
     simp only [submodule.quotient.mk'_eq_mk, ideal.quotient.mk_eq_mk, ideal.quotient.eq,
         subtype.coe_mk],
-    refine ideal.mul_add_mem_pow_succ_unique P hP a _ _ _ _ a_not_mem
+    refine ideal.mul_add_mem_pow_succ_unique hP a _ _ _ _ a_not_mem
       (hg _ (hk_mem _ hd'))
       (zero_mem _)
       _,
     rw [hf, add_zero],
     exact (submodule.quotient.eq _).mp (hk_eq _ hd') }
 end
+
+end P_prime
 
 /-- Multiplicativity of the ideal norm in number rings. -/
 theorem card_quot_mul [is_dedekind_domain S] [module.free ℤ S] [module.finite ℤ S] (I J : ideal S) :
@@ -222,8 +226,8 @@ begin
     (card_quot_bot _ _)
     (λ I J hI, by simp [ideal.is_unit_iff.mp hI, ideal.mul_top])
     (λ I i hI, have ideal.is_prime I := ideal.is_prime_of_prime hI,
-              by exactI card_quot_pow_of_prime _ hI.ne_zero)
-    (λ I J hIJ, card_quot_mul_of_coprime I J (ideal.is_unit_iff.mp (hIJ _
+              by exactI card_quot_pow_of_prime hI.ne_zero)
+    (λ I J hIJ, card_quot_mul_of_coprime (ideal.is_unit_iff.mp (hIJ _
       (ideal.dvd_iff_le.mpr le_sup_left)
       (ideal.dvd_iff_le.mpr le_sup_right))))
 end

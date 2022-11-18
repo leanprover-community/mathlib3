@@ -337,7 +337,7 @@ begin
   rw convolution_eq_right' _ (le_of_eq (W_support E Dpos)) B',
   simp only [continuous_linear_map.map_smul, mul_inv_rev, coe_smul', pi.smul_apply, lsmul_apply,
     algebra.id.smul_eq_mul, integral_mul_left, integral_mul_right, W_def],
-  rw [integral_comp_inv_smul_of_pos μ (u : E → ℝ) Dpos, Bx, mul_one, smul_eq_mul,
+  rw [integral_comp_inv_smul_of_nonneg μ (u : E → ℝ) Dpos.le, Bx, mul_one, smul_eq_mul,
       abs_of_nonneg Dpos.le],
   field_simp [Dpos.ne', (u_int_pos E).ne'],
 end
@@ -382,7 +382,7 @@ begin
   have D : (W D ⋆[lsmul ℝ ℝ, μ] (λ y, (1 : ℝ))) x = 1,
   { simp only [convolution, continuous_linear_map.map_smul, mul_inv_rev, coe_smul', pi.smul_apply,
       lsmul_apply, algebra.id.smul_eq_mul, mul_one, integral_mul_left, W_def],
-    rw [integral_comp_inv_smul_of_pos μ (u : E → ℝ) Dpos, smul_eq_mul, abs_of_nonneg Dpos.le],
+    rw [integral_comp_inv_smul_of_nonneg μ (u : E → ℝ) Dpos.le, smul_eq_mul, abs_of_nonneg Dpos.le],
     field_simp [Dpos.ne', A.ne'], },
   exact C.trans (le_of_eq D)
 end

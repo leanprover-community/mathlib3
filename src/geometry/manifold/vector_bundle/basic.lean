@@ -51,10 +51,9 @@ variables [nontrivially_normed_field 𝕜] [∀ x, add_comm_monoid (E x)] [∀ x
   {EB : Type*} [normed_add_comm_group EB] [normed_space 𝕜 EB]
   {HB : Type*} [topological_space HB] (IB : model_with_corners 𝕜 EB HB)
   [topological_space B] [charted_space HB B] [smooth_manifold_with_corners IB B]
-  [topological_space B'] [charted_space HB B'] [smooth_manifold_with_corners IB B']
-  {EM : Type*} [normed_add_comm_group EM] [normed_space 𝕜 EM]
-  {HM : Type*} [topological_space HM] (IM : model_with_corners 𝕜 EM HM)
-  [topological_space M] [charted_space HM M] [smooth_manifold_with_corners IM M]
+  {EB' : Type*} [normed_add_comm_group EB'] [normed_space 𝕜 EB']
+  {HB' : Type*} [topological_space HB'] (IB' : model_with_corners 𝕜 EB' HB')
+  [topological_space B'] [charted_space HB' B'] [smooth_manifold_with_corners IB' B']
 
 variables (F E) [fiber_bundle F E] [vector_bundle 𝕜 F E]
 
@@ -145,6 +144,18 @@ instance smooth_vector_bundle : smooth_vector_bundle F Z.fiber IB :=
 
 end vector_bundle_core
 
+/-! ### The trivial smooth vector bundle -/
+
+/-- A trivial vector bundle over a smooth manifold is a smooth vector bundle. -/
+instance bundle.trivial.smooth_vector_bundle : smooth_vector_bundle F (bundle.trivial B F) IB :=
+{ smooth_on_coord_change := begin
+    introsI e e' he he',
+    unfreezingI { obtain rfl := bundle.trivial.eq_trivialization B F e },
+    unfreezingI { obtain rfl := bundle.trivial.eq_trivialization B F e' },
+    simp_rw bundle.trivial.trivialization.coord_changeL,
+    exact smooth_const.smooth_on
+  end }
+
 /-! ### Direct sums of smooth vector bundles -/
 
 section prod
@@ -164,23 +175,44 @@ variables [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E
 /-- The direct sum of two smooth vector bundles is a smooth vector bundle. -/
 instance _root_.bundle.prod.smooth_vector_bundle :
   smooth_vector_bundle (F₁ × F₂) (E₁ ×ᵇ E₂) IB :=
-begin
-  constructor,
-  rintros _ _ ⟨e₁, e₂, i₁, i₂, rfl⟩ ⟨e₁', e₂', i₁', i₂', rfl⟩,
-  resetI,
-  -- refine (((smooth_on_coord_change e₁ e₁').mono _).prod_mapL 𝕜
-  --   ((smooth_on_coord_change e₂ e₂').mono _)).congr _,
-  -- dsimp only [base_set_prod] with mfld_simps,
-  -- { mfld_set_tac },
-  -- { mfld_set_tac },
-  -- { rintro b hb,
-  --   rw [continuous_linear_map.ext_iff],
-  --   rintro ⟨v₁, v₂⟩,
-  --   show (e₁.prod e₂).coord_change R (e₁'.prod e₂') b (v₁, v₂) =
-  --     (e₁.coord_change R e₁' b v₁, e₂.coord_change R e₂' b v₂),
-  --   rw [e₁.coord_change_apply R e₁', e₂.coord_change_apply R e₂',
-  --     (e₁.prod e₂).coord_change_apply' R],
-  --   exacts [rfl, hb, ⟨hb.1.2, hb.2.2⟩, ⟨hb.1.1, hb.2.1⟩] }
-end
+{ smooth_on_coord_change := begin
+    rintros _ _ ⟨e₁, e₂, i₁, i₂, rfl⟩ ⟨e₁', e₂', i₁', i₂', rfl⟩,
+    resetI,
+    -- refine (((smooth_on_coord_change e₁ e₁').mono _).prod_mapL 𝕜
+    --   ((smooth_on_coord_change e₂ e₂').mono _)).congr _,
+    -- dsimp only [base_set_prod] with mfld_simps,
+    -- { mfld_set_tac },
+    -- { mfld_set_tac },
+    -- { rintro b hb,
+    --   rw [continuous_linear_map.ext_iff],
+    --   rintro ⟨v₁, v₂⟩,
+    --   show (e₁.prod e₂).coord_change R (e₁'.prod e₂') b (v₁, v₂) =
+    --     (e₁.coord_change R e₁' b v₁, e₂.coord_change R e₂' b v₂),
+    --   rw [e₁.coord_change_apply R e₁', e₂.coord_change_apply R e₂',
+    --     (e₁.prod e₂).coord_change_apply' R],
+    --   exacts [rfl, hb, ⟨hb.1.2, hb.2.2⟩, ⟨hb.1.1, hb.2.1⟩] }
+  end }
 
 end prod
+
+
+/-! ### Pullbacks of smooth vector bundles -/
+
+section
+variables {𝕜} {B B'} (F E)
+
+/-- For a smooth vector bundle `E` over a manifold `B` and a smooth map `f : B' → B`, the pullback
+vector bundle `f *ᵖ E` is a smooth vector bundle. -/
+instance smooth_vector_bundle.pullback {f : continuous_map B' B} (hf : smooth IB' IB f) :
+  smooth_vector_bundle F (f *ᵖ E) IB' :=
+{ smooth_on_coord_change := begin
+    rintro _ _ ⟨e, he, rfl⟩ ⟨e', he', rfl⟩, resetI,
+    refine ((smooth_on_coord_change e e').comp hf.smooth_on
+      (λ b hb, hb)).congr _,
+    rintro b (hb : f b ∈ e.base_set ∩ e'.base_set), ext v,
+    show ((e.pullback f).coord_changeL 𝕜 (e'.pullback f) b) v = (e.coord_changeL 𝕜 e' (f b)) v,
+    rw [e.coord_changeL_apply e' hb, (e.pullback f).coord_changeL_apply' _],
+    exacts [rfl, hb]
+  end }
+
+end

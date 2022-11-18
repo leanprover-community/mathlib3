@@ -7,11 +7,20 @@ Authors: Jeremy Avigad, Leonardo de Moura
 import data.set.basic
 import order.symm_diff
 
+/-!
+# Symmetric difference of sets
+
+This file gathers some results on the symmetric difference of sets.
+
+## Tags
+
+set, sets, symmetric difference
+
+-/
+
 namespace set
 
 variables {α : Type*} {a b : α} {s t u : set α}
-
-/-! ### Symmetric difference -/
 
 lemma mem_symm_diff : a ∈ s ∆ t ↔ a ∈ s ∧ a ∉ t ∨ a ∈ t ∧ a ∉ s := iff.rfl
 

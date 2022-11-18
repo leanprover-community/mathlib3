@@ -2289,7 +2289,7 @@ begin
   { have obs : {i : α | ε ≤ a i} = ∅,
     { rw eq_empty_iff_forall_not_mem,
       intros i hi,
-      have infty_le_ai : ∞ ≤ a i, by simpa only [mem_set_of_eq] using hi,
+      have infty_le_ai : ∞ ≤ a i, by simpa only [h, mem_set_of_eq] using hi,
       refine (lt_of_le_of_lt infty_le_ai (ennreal.lt_top_of_tsum_ne_top _ i)).ne rfl,
       exact (lt_of_le_of_lt tsum_le_c c_ne_top.lt_top).ne, },
     simp only [obs, finite_empty, finite_empty_to_finset, finset.card_empty,
@@ -2298,8 +2298,7 @@ begin
   have hf : {i : α | ε ≤ a i}.finite,
     from finite_const_le_of_tsum_lt_top (lt_of_le_of_lt tsum_le_c c_ne_top.lt_top).ne ε_ne_zero,
   use hf,
-  have obs := @ennreal.count_const_le_le_of_tsum_le α ⊤ _ _ a_mble c
-    tsum_le_c _ ε_ne_zero ε_ne_top,
+  have obs := @ennreal.count_const_le_le_of_tsum_le α ⊤ _ _ a_mble c tsum_le_c _ ε_ne_zero h,
   simpa [← @measure.count_apply_finite _ ⊤ _ _ hf] using obs,
 end
 

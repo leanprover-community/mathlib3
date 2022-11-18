@@ -9,7 +9,7 @@ import measure_theory.measure.probability_measure
 /-!
 # Bell's Inequality
 
-This file proves Bell's Inequality as a probabilitstic statement in several
+This file proves Bell's Inequality as a probabilistic statement in several
 forms. (TODO: Add other forms.)
 
 A star-algebra version of Bell's inequality has already been proved in

@@ -170,4 +170,47 @@ lemma is_lub.bUnion_Iic_eq_Iic (a_lub : is_lub s a) (a_mem : a ∈ s) :
   (⋃ x ∈ s, Iic x) = Iic a :=
 a_lub.dual.bUnion_Ici_eq_Ici a_mem
 
+lemma Union_Ici_eq_Ioi_infi {R : Type*} [complete_linear_order R]
+  {f : ι → R} (no_least_elem : (⨅ i, f i) ∉ range f) :
+  (⋃ (i : ι), Ici (f i)) = Ioi (⨅ i, f i) :=
+by simp only [← is_glb.bUnion_Ici_eq_Ioi (@is_glb_infi _ _ _ f) no_least_elem,
+              mem_range, Union_exists, Union_Union_eq']
+
+lemma Union_Iic_eq_Iio_supr {R : Type*} [complete_linear_order R]
+  {f : ι → R} (no_greatest_elem : (⨆ i, f i) ∉ range f) :
+  (⋃ (i : ι), Iic (f i)) = Iio (⨆ i, f i) :=
+@Union_Ici_eq_Ioi_infi ι (order_dual R) _ f no_greatest_elem
+
+lemma Union_Ici_eq_Ici_infi {R : Type*} [complete_linear_order R]
+  {f : ι → R} (has_least_elem : (⨅ i, f i) ∈ range f) :
+  (⋃ (i : ι), Ici (f i)) = Ici (⨅ i, f i) :=
+by simp only [← is_glb.bUnion_Ici_eq_Ici (@is_glb_infi _ _ _ f) has_least_elem,
+              mem_range, Union_exists, Union_Union_eq']
+
+lemma Union_Iic_eq_Iic_supr {R : Type*} [complete_linear_order R]
+  {f : ι → R} (has_greatest_elem : (⨆ i, f i) ∈ range f) :
+  (⋃ (i : ι), Iic (f i)) = Iic (⨆ i, f i) :=
+@Union_Ici_eq_Ici_infi ι (order_dual R) _ f has_greatest_elem
+
+open_locale topological_space
+
+open filter
+
+lemma infi_eq_of_forall_le_of_tendsto {R : Type*}
+  [complete_linear_order R] [topological_space R] [order_topology R]
+  {x : R} {as : ι → R} (x_le : ∀ i, x ≤ as i) {F : filter ι} [filter.ne_bot F]
+  (as_lim : filter.tendsto as F (𝓝 x)) :
+  (⨅ i, as i) = x :=
+begin
+  refine infi_eq_of_forall_ge_of_forall_gt_exists_lt (λ i, x_le i) _,
+  apply λ w x_lt_w, ne_bot.nonempty_of_mem ‹filter.ne_bot F› (eventually_lt_of_tendsto_lt x_lt_w as_lim),
+end
+
+lemma supr_eq_of_forall_le_of_tendsto {R : Type*}
+  [complete_linear_order R] [topological_space R] [order_topology R]
+  {x : R} {as : ι → R} (le_x : ∀ i, as i ≤ x) {F : filter ι} [filter.ne_bot F]
+  (as_lim : filter.tendsto as F (𝓝 x)) :
+  (⨆ i, as i) = x :=
+@infi_eq_of_forall_le_of_tendsto ι (order_dual R) _ _ _ x as le_x F _ as_lim
+
 end Union_Ixx

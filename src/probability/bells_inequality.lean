@@ -90,7 +90,7 @@ end preliminaries
 
 section bells_inequality_1964
 
-variables {Ω : Type*} [measurable_space Ω] (ℙ : measure Ω) [is_probability_measure ℙ] 
+variables {Ω : Type*} [measurable_space Ω] (ℙ : measure Ω) [hℙ : is_probability_measure ℙ] 
 
 lemma integrable_mul_of_units_int {Za Zb : Ω → ℤˣ} (sm_a : strongly_measurable (λ ω, (Za ω : ℝ)))
   (sm_b : strongly_measurable (λ ω, (Zb ω : ℝ))) :

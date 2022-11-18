@@ -296,7 +296,7 @@ lemma stable_under_generalization.preimage {s : set Y}
 is_upper_set.preimage hs hf.specialization_monotone
 
 /-- A map `f` between topological spaces is specializing if specializations lifts along `f`,
-i.e. for each `y ⬿ f x'` there is some `x ⬿ x'` whose image is `y`. -/
+i.e. for each `f x' ⤳ y` there is some `x` with `x' ⤳ x` whose image is `y`. -/
 def specializing (f : X → Y) : Prop :=
 relation.fibration (flip (⤳)) (flip (⤳)) f
 

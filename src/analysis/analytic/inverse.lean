@@ -289,7 +289,7 @@ $$
 Here, `q_{n-1}` can only appear in the term with `k = 2`, and it only appears twice, so there is
 hope this formula can lead to an at most geometric behavior.
 
-Let `Qₙ = ∥qₙ∥`. Bounding `∥pₖ∥` with `C r^k` gives an inequality
+Let `Qₙ = ‖qₙ‖`. Bounding `‖pₖ‖` with `C r^k` gives an inequality
 $$
 Q_n ≤ C' \sum_{k=2}^n r^k \sum_{i_1 + \dotsc + i_k = n} Q_{i_1} \dotsm Q_{i_k}.
 $$
@@ -407,27 +407,27 @@ in the specific setup we are interesting in, by reducing to the general bound in
 `radius_right_inv_pos_of_radius_pos_aux1`. -/
 lemma radius_right_inv_pos_of_radius_pos_aux2
   {n : ℕ} (hn : 2 ≤ n + 1) (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F)
-  {r a C : ℝ} (hr : 0 ≤ r) (ha : 0 ≤ a) (hC : 0 ≤ C) (hp : ∀ n, ∥p n∥ ≤ C * r ^ n) :
-   (∑ k in Ico 1 (n + 1), a ^ k * ∥p.right_inv i k∥) ≤
-     ∥(i.symm : F →L[𝕜] E)∥ * a + ∥(i.symm : F →L[𝕜] E)∥ * C * ∑ k in Ico 2 (n + 1),
-      (r * ((∑ j in Ico 1 n, a ^ j * ∥p.right_inv i j∥))) ^ k :=
-let I := ∥(i.symm : F →L[𝕜] E)∥ in calc
-∑ k in Ico 1 (n + 1), a ^ k * ∥p.right_inv i k∥
-    = a * I + ∑ k in Ico 2 (n + 1), a ^ k * ∥p.right_inv i k∥ :
+  {r a C : ℝ} (hr : 0 ≤ r) (ha : 0 ≤ a) (hC : 0 ≤ C) (hp : ∀ n, ‖p n‖ ≤ C * r ^ n) :
+   (∑ k in Ico 1 (n + 1), a ^ k * ‖p.right_inv i k‖) ≤
+     ‖(i.symm : F →L[𝕜] E)‖ * a + ‖(i.symm : F →L[𝕜] E)‖ * C * ∑ k in Ico 2 (n + 1),
+      (r * ((∑ j in Ico 1 n, a ^ j * ‖p.right_inv i j‖))) ^ k :=
+let I := ‖(i.symm : F →L[𝕜] E)‖ in calc
+∑ k in Ico 1 (n + 1), a ^ k * ‖p.right_inv i k‖
+    = a * I + ∑ k in Ico 2 (n + 1), a ^ k * ‖p.right_inv i k‖ :
 by simp only [linear_isometry_equiv.norm_map, pow_one, right_inv_coeff_one,
               nat.Ico_succ_singleton, sum_singleton, ← sum_Ico_consecutive _ one_le_two hn]
 ... = a * I + ∑ k in Ico 2 (n + 1), a ^ k *
-        ∥(i.symm : F →L[𝕜] E).comp_continuous_multilinear_map
+        ‖(i.symm : F →L[𝕜] E).comp_continuous_multilinear_map
           (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition k)),
-            p.comp_along_composition (p.right_inv i) c)∥ :
+            p.comp_along_composition (p.right_inv i) c)‖ :
 begin
   congr' 1,
   apply sum_congr rfl (λ j hj, _),
   rw [right_inv_coeff _ _ _ (mem_Ico.1 hj).1, norm_neg],
 end
-... ≤ a * ∥(i.symm : F →L[𝕜] E)∥ + ∑ k in Ico 2 (n + 1), a ^ k * (I *
+... ≤ a * ‖(i.symm : F →L[𝕜] E)‖ + ∑ k in Ico 2 (n + 1), a ^ k * (I *
       (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition k)),
-        C * r ^ c.length * ∏ j, ∥p.right_inv i (c.blocks_fun j)∥)) :
+        C * r ^ c.length * ∏ j, ‖p.right_inv i (c.blocks_fun j)‖)) :
 begin
   apply_rules [add_le_add, le_refl, sum_le_sum (λ j hj, _), mul_le_mul_of_nonneg_left,
     pow_nonneg, ha],
@@ -441,17 +441,17 @@ begin
 end
 ... = I * a + I * C * ∑ k in Ico 2 (n + 1), a ^ k *
   (∑ c in ({c | 1 < composition.length c}.to_finset : finset (composition k)),
-      r ^ c.length * ∏ j, ∥p.right_inv i (c.blocks_fun j)∥) :
+      r ^ c.length * ∏ j, ‖p.right_inv i (c.blocks_fun j)‖) :
 begin
-  simp_rw [mul_assoc C, ← mul_sum, ← mul_assoc, mul_comm _ (∥↑i.symm∥), mul_assoc, ← mul_sum,
+  simp_rw [mul_assoc C, ← mul_sum, ← mul_assoc, mul_comm _ (‖↑i.symm‖), mul_assoc, ← mul_sum,
     ← mul_assoc, mul_comm _ C, mul_assoc, ← mul_sum],
   ring,
 end
-... ≤ I * a + I * C * ∑ k in Ico 2 (n+1), (r * ((∑ j in Ico 1 n, a ^ j * ∥p.right_inv i j∥))) ^ k :
+... ≤ I * a + I * C * ∑ k in Ico 2 (n+1), (r * ((∑ j in Ico 1 n, a ^ j * ‖p.right_inv i j‖))) ^ k :
 begin
   apply_rules [add_le_add, le_refl, mul_le_mul_of_nonneg_left, norm_nonneg, hC, mul_nonneg],
   simp_rw [mul_pow],
-  apply radius_right_inv_pos_of_radius_pos_aux1 n (λ k, ∥p.right_inv i k∥)
+  apply radius_right_inv_pos_of_radius_pos_aux1 n (λ k, ‖p.right_inv i k‖)
     (λ k, norm_nonneg _) hr ha,
 end
 
@@ -460,9 +460,9 @@ also has a positive radius of convergence. -/
 theorem radius_right_inv_pos_of_radius_pos (p : formal_multilinear_series 𝕜 E F) (i : E ≃L[𝕜] F)
   (hp : 0 < p.radius) : 0 < (p.right_inv i).radius :=
 begin
-  obtain ⟨C, r, Cpos, rpos, ple⟩ : ∃ C r (hC : 0 < C) (hr : 0 < r), ∀ (n : ℕ), ∥p n∥ ≤ C * r ^ n :=
+  obtain ⟨C, r, Cpos, rpos, ple⟩ : ∃ C r (hC : 0 < C) (hr : 0 < r), ∀ (n : ℕ), ‖p n‖ ≤ C * r ^ n :=
     le_mul_pow_of_radius_pos p hp,
-  let I := ∥(i.symm : F →L[𝕜] E)∥,
+  let I := ‖(i.symm : F →L[𝕜] E)‖,
   -- choose `a` small enough to make sure that `∑_{k ≤ n} aᵏ Qₖ` will be controllable by
   -- induction
   obtain ⟨a, apos, ha1, ha2⟩ : ∃ a (apos : 0 < a),
@@ -481,7 +481,7 @@ begin
     exact ⟨a, ha.1, ha.2.1.le, ha.2.2.le⟩ },
   -- check by induction that the partial sums are suitably bounded, using the choice of `a` and the
   -- inductive control from Lemma `radius_right_inv_pos_of_radius_pos_aux2`.
-  let S := λ n, ∑ k in Ico 1 n, a ^ k * ∥p.right_inv i k∥,
+  let S := λ n, ∑ k in Ico 1 n, a ^ k * ‖p.right_inv i k‖,
   have IRec : ∀ n, 1 ≤ n → S n ≤ (I + 1) * a,
   { apply nat.le_induction,
     { simp only [S],
@@ -519,14 +519,14 @@ begin
     by { apply lt_of_lt_of_le _ H, exact_mod_cast apos },
   apply le_radius_of_bound _ ((I + 1) * a) (λ n, _),
   by_cases hn : n = 0,
-  { have : ∥p.right_inv i n∥ = ∥p.right_inv i 0∥, by congr; try { rw hn },
+  { have : ‖p.right_inv i n‖ = ‖p.right_inv i 0‖, by congr; try { rw hn },
     simp only [this, norm_zero, zero_mul, right_inv_coeff_zero],
     apply_rules [mul_nonneg, add_nonneg, norm_nonneg, zero_le_one, apos.le] },
   { have one_le_n : 1 ≤ n := bot_lt_iff_ne_bot.2 hn,
-    calc ∥p.right_inv i n∥ * ↑a' ^ n = a ^ n * ∥p.right_inv i n∥ : mul_comm _ _
-    ... ≤ ∑ k in Ico 1 (n + 1), a ^ k * ∥p.right_inv i k∥ :
+    calc ‖p.right_inv i n‖ * ↑a' ^ n = a ^ n * ‖p.right_inv i n‖ : mul_comm _ _
+    ... ≤ ∑ k in Ico 1 (n + 1), a ^ k * ‖p.right_inv i k‖ :
       begin
-        have : ∀ k ∈ Ico 1 (n + 1), 0 ≤ a ^ k * ∥p.right_inv i k∥ :=
+        have : ∀ k ∈ Ico 1 (n + 1), 0 ≤ a ^ k * ‖p.right_inv i k‖ :=
           λ k hk, mul_nonneg (pow_nonneg apos.le _) (norm_nonneg _),
         exact single_le_sum this (by simp [one_le_n]),
       end

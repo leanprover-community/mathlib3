@@ -772,7 +772,7 @@ lemma iterated_fderiv_within_zero_eq_comp :
   iterated_fderiv_within 𝕜 0 f s = (continuous_multilinear_curry_fin0 𝕜 E F).symm ∘ f := rfl
 
 lemma norm_iterated_fderiv_within_zero :
-  ∥iterated_fderiv_within 𝕜 0 f s x∥ = ∥f x∥ :=
+  ‖iterated_fderiv_within 𝕜 0 f s x‖ = ‖f x‖ :=
 by rw [iterated_fderiv_within_zero_eq_comp, linear_isometry_equiv.norm_map]
 
 lemma iterated_fderiv_within_succ_apply_left {n : ℕ} (m : fin (n + 1) → E):
@@ -788,8 +788,8 @@ lemma iterated_fderiv_within_succ_eq_comp_left {n : ℕ} :
     ∘ (fderiv_within 𝕜 (iterated_fderiv_within 𝕜 n f s) s) := rfl
 
 lemma norm_fderiv_within_iterated_fderiv_within {n : ℕ} :
-  ∥fderiv_within 𝕜 (iterated_fderiv_within 𝕜 n f s) s x∥ =
-  ∥iterated_fderiv_within 𝕜 (n + 1) f s x∥ :=
+  ‖fderiv_within 𝕜 (iterated_fderiv_within 𝕜 n f s) s x‖ =
+  ‖iterated_fderiv_within 𝕜 (n + 1) f s x‖ :=
 by rw [iterated_fderiv_within_succ_eq_comp_left, linear_isometry_equiv.norm_map]
 
 theorem iterated_fderiv_within_succ_apply_right {n : ℕ}
@@ -832,8 +832,8 @@ lemma iterated_fderiv_within_succ_eq_comp_right {n : ℕ} (hs : unique_diff_on �
 by { ext m, rw iterated_fderiv_within_succ_apply_right hs hx, refl }
 
 lemma norm_iterated_fderiv_within_fderiv_within {n : ℕ} (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) :
-  ∥iterated_fderiv_within 𝕜 n (fderiv_within 𝕜 f s) s x∥ =
-  ∥iterated_fderiv_within 𝕜 (n + 1) f s x∥ :=
+  ‖iterated_fderiv_within 𝕜 n (fderiv_within 𝕜 f s) s x‖ =
+  ‖iterated_fderiv_within 𝕜 (n + 1) f s x‖ :=
 by rw [iterated_fderiv_within_succ_eq_comp_right hs hx, linear_isometry_equiv.norm_map]
 
 @[simp] lemma iterated_fderiv_within_one_apply
@@ -1463,7 +1463,7 @@ lemma iterated_fderiv_zero_eq_comp :
   iterated_fderiv 𝕜 0 f = (continuous_multilinear_curry_fin0 𝕜 E F).symm ∘ f := rfl
 
 lemma norm_iterated_fderiv_zero :
-  ∥iterated_fderiv 𝕜 0 f x∥ = ∥f x∥ :=
+  ‖iterated_fderiv 𝕜 0 f x‖ = ‖f x‖ :=
 by rw [iterated_fderiv_zero_eq_comp, linear_isometry_equiv.norm_map]
 
 lemma iterated_fderiv_with_zero_eq :
@@ -1505,7 +1505,7 @@ begin
     exact linear_isometry_equiv.map_zero _ }
 end
 lemma norm_fderiv_iterated_fderiv {n : ℕ} :
-  ∥fderiv 𝕜 (iterated_fderiv 𝕜 n f) x∥ = ∥iterated_fderiv 𝕜 (n + 1) f x∥ :=
+  ‖fderiv 𝕜 (iterated_fderiv 𝕜 n f) x‖ = ‖iterated_fderiv 𝕜 (n + 1) f x‖ :=
 by rw [iterated_fderiv_succ_eq_comp_left, linear_isometry_equiv.norm_map]
 
 lemma iterated_fderiv_within_univ {n : ℕ} :
@@ -1562,7 +1562,7 @@ lemma iterated_fderiv_succ_eq_comp_right {n : ℕ} :
 by { ext m, rw iterated_fderiv_succ_apply_right, refl }
 
 lemma norm_iterated_fderiv_fderiv {n : ℕ} :
-  ∥iterated_fderiv 𝕜 n (fderiv 𝕜 f) x∥ = ∥iterated_fderiv 𝕜 (n + 1) f x∥ :=
+  ‖iterated_fderiv 𝕜 n (fderiv 𝕜 f) x‖ = ‖iterated_fderiv 𝕜 (n + 1) f x‖ :=
 by rw [iterated_fderiv_succ_eq_comp_right, linear_isometry_equiv.norm_map]
 
 @[simp] lemma iterated_fderiv_one_apply (m : (fin 1) → E) :
@@ -3253,12 +3253,12 @@ lemma cont_diff.has_strict_deriv_at
 hf.cont_diff_at.has_strict_deriv_at hn
 
 /-- If `f` has a formal Taylor series `p` up to order `1` on `{x} ∪ s`, where `s` is a convex set,
-and `∥p x 1∥₊ < K`, then `f` is `K`-Lipschitz in a neighborhood of `x` within `s`. -/
+and `‖p x 1‖₊ < K`, then `f` is `K`-Lipschitz in a neighborhood of `x` within `s`. -/
 lemma has_ftaylor_series_up_to_on.exists_lipschitz_on_with_of_nnnorm_lt {E F : Type*}
   [normed_add_comm_group E] [normed_space ℝ E] [normed_add_comm_group F] [normed_space ℝ F]
   {f : E → F} {p : E → formal_multilinear_series ℝ E F} {s : set E} {x : E}
   (hf : has_ftaylor_series_up_to_on 1 f p (insert x s)) (hs : convex ℝ s) (K : ℝ≥0)
-  (hK : ∥p x 1∥₊ < K) :
+  (hK : ‖p x 1‖₊ < K) :
   ∃ t ∈ 𝓝[s] x, lipschitz_on_with K f t :=
 begin
   set f' := λ y, continuous_multilinear_curry_fin1 ℝ E F (p y 1),
@@ -3267,7 +3267,7 @@ begin
   have hcont : continuous_within_at f' s x,
     from (continuous_multilinear_curry_fin1 ℝ E F).continuous_at.comp_continuous_within_at
       ((hf.cont _ le_rfl _ (mem_insert _ _)).mono (subset_insert x s)),
-  replace hK : ∥f' x∥₊ < K, by simpa only [linear_isometry_equiv.nnnorm_map],
+  replace hK : ‖f' x‖₊ < K, by simpa only [linear_isometry_equiv.nnnorm_map],
   exact hs.exists_nhds_within_lipschitz_on_with_of_has_fderiv_within_at_of_nnnorm_lt
     (eventually_nhds_within_iff.2 $ eventually_of_forall hder) hcont K hK
 end
@@ -3298,10 +3298,10 @@ begin
   exact ⟨K, t, hst, hft⟩
 end
 
-/-- If `f` is `C^1` at `x` and `K > ∥fderiv 𝕂 f x∥`, then `f` is `K`-Lipschitz in a neighborhood of
+/-- If `f` is `C^1` at `x` and `K > ‖fderiv 𝕂 f x‖`, then `f` is `K`-Lipschitz in a neighborhood of
 `x`. -/
 lemma cont_diff_at.exists_lipschitz_on_with_of_nnnorm_lt {f : E' → F'} {x : E'}
-  (hf : cont_diff_at 𝕂 1 f x) (K : ℝ≥0) (hK : ∥fderiv 𝕂 f x∥₊ < K) :
+  (hf : cont_diff_at 𝕂 1 f x) (K : ℝ≥0) (hK : ‖fderiv 𝕂 f x‖₊ < K) :
   ∃ t ∈ 𝓝 x, lipschitz_on_with K f t :=
 (hf.has_strict_fderiv_at le_rfl).exists_lipschitz_on_with_of_nnnorm_lt K hK
 

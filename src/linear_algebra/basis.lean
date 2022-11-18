@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp
 -/
 import algebra.big_operators.finsupp
 import algebra.big_operators.finprod
-import data.fintype.card
+import data.fintype.big_operators
 import linear_algebra.finsupp
 import linear_algebra.linear_independent
 import linear_algebra.linear_pmap

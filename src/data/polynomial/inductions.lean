@@ -5,6 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Damiano Testa, Jens Wage
 -/
 import data.nat.interval
 import data.polynomial.degree.definitions
+import data.polynomial.induction
 
 /-!
 # Induction on polynomials

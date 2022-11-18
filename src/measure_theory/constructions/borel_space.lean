@@ -714,7 +714,7 @@ variables [second_countable_topology α]
 @[measurability]
 lemma measurable.max {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ a, max (f a) (g a)) :=
-by simpa only [max_def] using hf.piecewise (measurable_set_le hg hf) hg
+by simpa only [max_def'] using hf.piecewise (measurable_set_le hg hf) hg
 
 @[measurability]
 lemma ae_measurable.max {f g : δ → α} {μ : measure δ}
@@ -1863,26 +1863,26 @@ lemma measurable_nnnorm : measurable (nnnorm : α → ℝ≥0) :=
 continuous_nnnorm.measurable
 
 @[measurability]
-lemma measurable.nnnorm {f : β → α} (hf : measurable f) : measurable (λ a, ∥f a∥₊) :=
+lemma measurable.nnnorm {f : β → α} (hf : measurable f) : measurable (λ a, ‖f a‖₊) :=
 measurable_nnnorm.comp hf
 
 @[measurability]
 lemma ae_measurable.nnnorm {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
-  ae_measurable (λ a, ∥f a∥₊) μ :=
+  ae_measurable (λ a, ‖f a‖₊) μ :=
 measurable_nnnorm.comp_ae_measurable hf
 
 @[measurability]
-lemma measurable_ennnorm : measurable (λ x : α, (∥x∥₊ : ℝ≥0∞)) :=
+lemma measurable_ennnorm : measurable (λ x : α, (‖x‖₊ : ℝ≥0∞)) :=
 measurable_nnnorm.coe_nnreal_ennreal
 
 @[measurability]
 lemma measurable.ennnorm {f : β → α} (hf : measurable f) :
-  measurable (λ a, (∥f a∥₊ : ℝ≥0∞)) :=
+  measurable (λ a, (‖f a‖₊ : ℝ≥0∞)) :=
 hf.nnnorm.coe_nnreal_ennreal
 
 @[measurability]
 lemma ae_measurable.ennnorm {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
-  ae_measurable (λ a, (∥f a∥₊ : ℝ≥0∞)) μ :=
+  ae_measurable (λ a, (‖f a‖₊ : ℝ≥0∞)) μ :=
 measurable_ennnorm.comp_ae_measurable hf
 
 end normed_add_comm_group

@@ -3,7 +3,7 @@ Copyright (c) 2022 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp
 -/
-import analysis.inner_product_space.spectrum
+import analysis.inner_product_space.pi_L2
 
 /-! # Hermitian matrices
 

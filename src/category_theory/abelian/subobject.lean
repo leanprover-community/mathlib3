@@ -3,8 +3,8 @@ Copyright (c) 2022 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
-import category_theory.abelian.opposite
 import category_theory.subobject.limits
+import category_theory.abelian.basic
 
 /-!
 # Equivalence between subobjects and quotients in an abelian category

@@ -8,7 +8,7 @@ import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.wide_pullbacks
 import category_theory.limits.shapes.pullbacks
-import data.fintype.basic
+import data.fintype.option
 
 /-!
 # Categories with finite limits.

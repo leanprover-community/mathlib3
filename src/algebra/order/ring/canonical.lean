@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import algebra.order.ring.defs
 import algebra.order.sub.canonical
+import group_theory.group_action.defs
 
 /-!
 # Canoncially ordered rings and semirings.
@@ -31,7 +32,7 @@ variables {α : Type u} {β : Type*}
 /-- A canonically ordered commutative semiring is an ordered, commutative semiring in which `a ≤ b`
 iff there exists `c` with `b = a + c`. This is satisfied by the natural numbers, for example, but
 not the integers or other ordered groups. -/
-@[protect_proj]
+@[protect_proj, ancestor canonically_ordered_add_monoid comm_semiring]
 class canonically_ordered_comm_semiring (α : Type*) extends
   canonically_ordered_add_monoid α, comm_semiring α :=
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)

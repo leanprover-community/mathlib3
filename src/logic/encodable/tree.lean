@@ -23,12 +23,13 @@ TODO: the `encoding`'s used in `src/computability` should be to trees.
    with a partial inverse `decode : unit_tree → option α`.
 
 -/
-open unit_tree
+open tree
+open_locale tree
 
 /-- Encoding of a type into a tree structure -/
 class tencodable (α : Type*) :=
-(encode : α → unit_tree)
-(decode [] : unit_tree → option α)
+(encode : α → tree unit)
+(decode [] : tree unit → option α)
 (encodek : ∀ a, decode (encode a) = some a)
 
 attribute [simp, higher_order] tencodable.encodek
@@ -61,13 +62,13 @@ of_left_injection f (some ∘ finv) (λ b, congr_arg some (linv b))
 def of_equiv {β} (α) [tencodable α] (e : β ≃ α) : tencodable β :=
 of_left_inverse e e.symm e.left_inv
 
-instance _root_.unit_tree.tencodable : tencodable unit_tree :=
+instance _root_.unit_tree.tencodable : tencodable (tree unit) :=
 { encode := id,
   decode := some,
   encodek := λ _, rfl }
 
-@[simp] lemma encode_unit_tree (x : unit_tree) : encode x = x := rfl
-@[simp] lemma decode_unit_tree (x : unit_tree) : decode unit_tree x = some x := rfl
+@[simp] lemma encode_unit_tree (x : tree unit) : encode x = x := rfl
+@[simp] lemma decode_unit_tree (x : tree unit) : decode (tree unit) x = some x := rfl
 
 @[priority 100] instance _root_.is_empty.to_tencodable {α} [is_empty α] : tencodable α :=
 ⟨is_empty_elim, λ n, none, is_empty_elim⟩
@@ -81,15 +82,18 @@ section prod
 
 /-- Encoding of a pair of encodable elements -/
 instance _root_.prod.tencodable : tencodable (α × β) :=
-{ encode := λ x, node (encode x.1) (encode x.2),
+{ encode := λ x, (encode x.1) △ (encode x.2),
   decode := λ y, (decode α y.left).bind $ λ l, (decode β y.right).bind $ λ r, some (l, r),
   encodek := λ x, by simp }
 
-lemma encode_prod (x : α) (y : β) : encode (x, y) = node (encode x) (encode y) := rfl
+lemma encode_prod (x : α) (y : β) : encode (x, y) = (encode x) △ (encode y) := rfl
 
 end prod
 
 section bool
+
+abbreviation non_nil : tree unit := nil △ nil
+@[simp] lemma non_nil_ne_nil : non_nil ≠ nil := by trivial
 
 /-- Encoding of `bool` -/
 instance _root_.bool.tencodable : tencodable bool :=
@@ -106,30 +110,30 @@ section list
 
 /-- Interpret a tree as a list of trees according to the left children
   of the nodes on the rightmost path-/
-def as_list : unit_tree → list unit_tree
+def as_list : tree unit → list (tree unit)
 | nil := []
-| (node a b) := a :: as_list b
+| (a △ b) := a :: as_list b
 
 /-- Interpret a list of trees as a single tree -/
-def of_list : list unit_tree → unit_tree
+def of_list : list (tree unit) → tree unit
 | [] := nil
-| (x :: xs) := node x (of_list xs)
+| (x :: xs) := x △ (of_list xs)
 
 /-- There is an equivalence between `unit_tree` and `list unit_tree`
   corresponding to taking all of the left children on nodes of the rightmost path.
   We use this to encode lists -/
-def equiv_list : unit_tree ≃ list unit_tree :=
+def equiv_list : tree unit ≃ list (tree unit) :=
 { to_fun := as_list,
   inv_fun := of_list,
-  left_inv := λ t, by induction t; simp [as_list, of_list, *],
+  left_inv := λ t, by induction t using tree.unit_rec_on; simp [as_list, of_list, *],
   right_inv := λ l, by induction l; simp [as_list, of_list, *] }
 
 @[simp] lemma equiv_list_nil : equiv_list nil = [] := rfl
-@[simp] lemma equiv_list_node (a b : unit_tree) :
-  equiv_list (node a b) = a :: (equiv_list b) := rfl
+@[simp] lemma equiv_list_node (a b : tree unit) :
+  equiv_list (a △ b) = a :: (equiv_list b) := rfl
 @[simp] lemma equiv_list_symm_nil : equiv_list.symm [] = nil := rfl
-@[simp] lemma equiv_list_symm_cons (a : unit_tree) (b : list unit_tree) :
-  equiv_list.symm (a :: b) = node a (equiv_list.symm b) := rfl
+@[simp] lemma equiv_list_symm_cons (a : tree unit) (b : list (tree unit)) :
+  equiv_list.symm (a :: b) = a △ (equiv_list.symm b) := rfl
 
 instance _root_.list.tencodable : tencodable (list α) :=
 { encode := λ l, equiv_list.symm (l.map encode),
@@ -137,41 +141,41 @@ instance _root_.list.tencodable : tencodable (list α) :=
   encodek := λ l, by simp }
 
 lemma encode_nil : encode (@list.nil α) = nil := rfl
-lemma encode_cons (x : α) (xs : list α) : encode (x :: xs) = node (encode x) (encode xs) := rfl
+lemma encode_cons (x : α) (xs : list α) : encode (x :: xs) = (encode x) △ (encode xs) := rfl
 
-@[simp] lemma encode_list_tree (x : list unit_tree) : encode x = equiv_list.symm x :=
+lemma encode_list_tree (x : list (tree unit)) : encode x = equiv_list.symm x :=
 by simp [encode]
 
-@[simp] lemma decode_list_tree (x : unit_tree) :
-  decode (list unit_tree) x = some (equiv_list x) := by simp [decode]
+lemma decode_list_tree (x : tree unit) : decode _ x = some (equiv_list x) :=
+by simp [decode]
 
 end list
 
 section nat
 
 /-- This is a unary encoding for natural numbers. The canonical
-  way of representing `n` is as n ↦ nil.node (nil.node (... etc.)) -/
+  way of representing `n` is as n ↦ nil △ nil △ ... -/
 instance _root_.nat.unary_tencodable : tencodable ℕ :=
 { encode := λ n, (equiv_list.symm $ list.repeat nil n),
-  decode := λ t, some t.nodes,
+  decode := λ t, some t.num_nodes,
   encodek := λ n, congr_arg some $ by induction n; simp [*] }
 
 lemma encode_zero : encode 0 = nil := rfl
-lemma encode_succ (n : ℕ) : encode (n + 1) = nil.node (encode n) := rfl
+lemma encode_succ (n : ℕ) : encode (n + 1) = nil △ (encode n) := rfl
 
 end nat
 
 section option
 
 /-- Encode an `option α`, using `nil` as `none` -/
-@[simp] def of_option : option α → unit_tree
+@[simp] def of_option : option α → tree unit
 | none := nil
-| (some x) := nil.node (encode x)
+| (some x) := nil △ (encode x)
 
 /-- Decode an `option α` as a tree -/
-@[simp] def to_option : unit_tree → option (option α)
+@[simp] def to_option : tree unit → option (option α)
 | nil := some none
-| (node x y) := (decode α y).map some
+| (x △ y) := (decode α y).map some
 
 /-- Encoding of `option α` when `α` has an encoding -/
 instance : tencodable (option α) :=
@@ -184,12 +188,12 @@ end option
 section sum
 
 /-- Encode a sum by using the left child of the root to signal if the right represents α or β -/
-@[simp] def of_sum : α ⊕ β → unit_tree
-| (sum.inl x) := node nil (encode x)
-| (sum.inr x) := node non_nil (encode x)
+@[simp] def of_sum : α ⊕ β → tree unit
+| (sum.inl x) := nil △ (encode x)
+| (sum.inr x) := non_nil △ (encode x)
 
 /-- Decode a sum by using the left child of the root to signal if the right represents α or β -/
-@[simp] def to_sum (x : unit_tree) : option (α ⊕ β) :=
+@[simp] def to_sum (x : tree unit) : option (α ⊕ β) :=
   if x.left = nil then (decode α x.right).map sum.inl
   else (decode β x.right).map sum.inr
 

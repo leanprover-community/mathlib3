@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Wojciech Nawrocki
 -/
 import data.rbtree.init
 import data.num.basic
+import order.basic
 
 /-!
 # Binary tree
@@ -12,6 +13,10 @@ import data.num.basic
 Provides binary tree storage for values of any type, with O(lg n) retrieval.
 See also `data.rbtree` for red-black trees - this version allows more operations
 to be defined and is better suited for in-kernel computation.
+
+We also specialize for `tree unit`, which is a binary tree without any
+additional data. We provide the notation `a △ b` for making a `tree unit` with children
+`a` and `b`.
 
 ## References
 
@@ -81,76 +86,56 @@ def map {β} (f : α → β) : tree α → tree β
 | nil := nil
 | (node a l r) := node (f a) (map l) (map r)
 
-end tree
-
-/-- A unit tree is a binary tree with no data (only units) attached -/
-@[derive [has_reflect, decidable_eq]]
-inductive unit_tree
-| nil : unit_tree
-| node : unit_tree → unit_tree → unit_tree
-
-namespace unit_tree
-
-instance : inhabited unit_tree := ⟨nil⟩
-
-/-- A unit tree is the same thing as `tree unit` -/
-@[simp] def to_tree : unit_tree → tree punit
-| nil := tree.nil
-| (node a b) := tree.node punit.star a.to_tree b.to_tree
-
-/-- A unit tree is the same thing as `tree unit` -/
-@[simp] def of_tree : tree punit → unit_tree
-| tree.nil := nil
-| (tree.node () a b) := node (of_tree a) (of_tree b)
-
-@[simp] lemma to_tree_of_tree : ∀ (x : tree unit), (of_tree x).to_tree = x
-| tree.nil := rfl
-| (tree.node () a b) := by rw [of_tree, to_tree, to_tree_of_tree a, to_tree_of_tree b]
-
-@[simp] lemma of_tree_to_tree (x : unit_tree) : of_tree x.to_tree = x :=
-by induction x; simp [*]
-
-/-- A non-nil `unit_tree`; useful when we want an arbitrary value other than `nil` -/
-abbreviation non_nil : unit_tree := node nil nil
-
-@[simp] lemma non_nil_ne : non_nil ≠ nil := by trivial
-
 /-- The number of internal nodes (i.e. not including leaves) of a binary tree -/
-@[simp] def nodes : unit_tree → ℕ
+@[simp] def num_nodes : tree α → ℕ
 | nil := 0
-| (node a b) := a.nodes + b.nodes + 1
+| (node _ a b) := a.num_nodes + b.num_nodes + 1
 
 /-- The number of leaves of a binary tree -/
-@[simp] def leaves : unit_tree → ℕ
+@[simp] def num_leaves : tree α → ℕ
 | nil := 1
-| (node a b) := a.leaves + b.leaves
+| (node _ a b) := a.num_leaves + b.num_leaves
 
 /-- The height - length of the longest path from the root - of a binary tree -/
-@[simp] def height : unit_tree → ℕ
+@[simp] def height : tree α → ℕ
 | nil := 0
-| (node a b) := max a.height b.height + 1
+| (node _ a b) := max a.height b.height + 1
 
-lemma leaves_eq_nodes_succ (x : unit_tree) : x.leaves = x.nodes + 1 :=
-by { induction x; simp [*, nat.add_comm, nat.add_assoc, nat.add_right_comm], }
+lemma num_leaves_eq_num_nodes_succ (x : tree α) : x.num_leaves = x.num_nodes + 1 :=
+by { induction x; simp [*, nat.add_comm, nat.add_assoc, nat.add_left_comm], }
 
-lemma leaves_pos (x : unit_tree) : 0 < x.leaves :=
-by { rw leaves_eq_nodes_succ, exact nat.zero_lt_succ _, }
+lemma num_leaves_pos (x : tree α) : 0 < x.num_leaves :=
+by { rw num_leaves_eq_num_nodes_succ, exact x.num_nodes.zero_lt_succ, }
 
-lemma height_le_nodes : ∀ (x : unit_tree), x.height ≤ x.nodes
-| nil := le_refl _
-| (node a b) := nat.succ_le_succ
+lemma height_le_num_nodes : ∀ (x : tree α), x.height ≤ x.num_nodes
+| nil := le_rfl
+| (node _ a b) := nat.succ_le_succ
     (max_le
-      (trans a.height_le_nodes $ nat.le_add_right _ _)
-      (trans b.height_le_nodes $ nat.le_add_left _ _))
+      (trans a.height_le_num_nodes $ a.num_nodes.le_add_right _)
+      (trans b.height_le_num_nodes $ b.num_nodes.le_add_left _))
 
 /-- The left child of the tree, or `nil` if the tree is `nil` -/
-@[simp] def left : unit_tree → unit_tree
+@[simp] def left : tree α → tree α
 | nil := nil
-| (node l r) := l
+| (node _ l r) := l
 
 /-- The right child of the tree, or `nil` if the tree is `nil` -/
-@[simp] def right : unit_tree → unit_tree
+@[simp] def right : tree α → tree α
 | nil := nil
-| (node l r) := r
+| (node _ l r) := r
 
-end unit_tree
+/- Notation for making a node with `unit` data -/
+localized "infixr ` △ `:65 := tree.node ()" in tree
+
+/-- Recursion on `tree unit`; allows for a better `induction` which does not have to worry
+  about the element of type `α = unit` -/
+@[elab_as_eliminator]
+def unit_rec_on {motive : tree unit → Sort*} (t : tree unit) (base : motive nil)
+  (ind : ∀ x y, motive x → motive y → motive (x △ y)) : motive t :=
+t.rec_on base (λ u, u.rec_on (by exact ind))
+
+lemma left_node_right_eq_self : ∀ {x : tree unit} (hx : x ≠ nil), x.left △ x.right = x
+| nil h := by trivial
+| (a △ b) _ := rfl
+
+end tree

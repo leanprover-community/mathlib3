@@ -141,10 +141,10 @@ Characterizations of bridges:
 `is_bridge_iff_no_cycle_contains` -/
 def is_bridge (v w : V) : Prop := ¬ (G.delete_edges {⟦(v, w)⟧}).reachable v w
 
-lemma is_bridge_iff_walks_contain {v w : V} :
+lemma is_bridge_iff_forall_walk_mem_edges {v w : V} :
   G.is_bridge v w ↔ ∀ (p : G.walk v w), ⟦(v, w)⟧ ∈ p.edges :=
 begin
-  refine ⟨λ  hb p, _, _⟩,
+  refine ⟨λ hb p, _, _⟩,
   { by_contra he,
     exact hb ⟨p.to_delete_edge _ he⟩ },
   { rintro hpe ⟨p'⟩,
@@ -195,7 +195,7 @@ begin
   classical,
   split,
   { intros hb u c hc he,
-    rw is_bridge_iff_walks_contain at hb,
+    rw is_bridge_iff_forall_walk_mem_edges at hb,
     have hvc : v ∈ c.support := walk.fst_mem_support_of_mem_edges c he,
     have hwc : w ∈ c.support := walk.snd_mem_support_of_mem_edges c he,
     let puv := c.take_until v hvc,
@@ -210,7 +210,7 @@ begin
         (hc.to_trail.rotate hvc) _ (walk.start_mem_support _),
       rwa [walk.edges_append, list.mem_append, or_comm, ← list.mem_append,
            ← walk.edges_append, walk.take_spec, sym2.eq_swap], } },
-  { rw is_bridge_iff_walks_contain,
+  { rw is_bridge_iff_forall_walk_mem_edges,
     intros hc p,
     by_contra hne,
     apply hc (walk.cons h.symm p.to_path),
@@ -248,7 +248,7 @@ begin
     { simpa [walk.is_path_def] using hq, } },
   { rw is_acyclic_iff_all_bridges at h,
     specialize h ph,
-    rw is_bridge_iff_walks_contain at h,
+    rw is_bridge_iff_forall_walk_mem_edges at h,
     specialize h (q.append p.reverse),
     simp only [walk.edges_append, walk.edges_reverse, list.mem_append, list.mem_reverse] at h,
     cases h,

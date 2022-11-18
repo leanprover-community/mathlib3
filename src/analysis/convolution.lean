@@ -1136,7 +1136,7 @@ begin
     /- We find a small neighborhood of `{q₀.1} × k` on which the function is uniformly bounded.
     This follows from the continuity at all points of the compact set `k`. -/
   obtain ⟨ε, C, εpos, Cnonneg, h₀ε, hε⟩ :
-    ∃ ε C, 0 < ε ∧ 0 ≤ C ∧ ball q₀.1 ε ⊆ s ∧ ∀ p x, ∥p - q₀.1∥ < ε → ∥g p x∥ ≤ C,
+    ∃ ε C, 0 < ε ∧ 0 ≤ C ∧ ball q₀.1 ε ⊆ s ∧ ∀ p x, ‖p - q₀.1‖ < ε → ‖g p x‖ ≤ C,
   { have A : is_compact ({q₀.1} ×ˢ k), from is_compact_singleton.prod hk,
     obtain ⟨t, kt, t_open, ht⟩ : ∃ t, {q₀.1} ×ˢ k ⊆ t ∧ is_open t ∧ bounded (↿g '' t),
     { apply exists_is_open_bounded_image_of_is_compact_of_continuous_on A
@@ -1176,12 +1176,12 @@ begin
       ((A p hp).ae_strongly_measurable) },
   let K' := - k + closed_ball q₀.2 ε,
   have hK' : is_compact K' := hk.neg.add (is_compact_closed_ball _ _),
-  let bound : G → ℝ := indicator K' (λ a, ∥L∥ * ∥f a∥ * C),
-  have I2 : ∀ᶠ (q : P × G) in 𝓝 q₀, ∀ᵐ (a : G) ∂μ, ∥L (f a) (g q.1 (q.2 - a))∥ ≤ bound a,
+  let bound : G → ℝ := indicator K' (λ a, ‖L‖ * ‖f a‖ * C),
+  have I2 : ∀ᶠ (q : P × G) in 𝓝 q₀, ∀ᵐ (a : G) ∂μ, ‖L (f a) (g q.1 (q.2 - a))‖ ≤ bound a,
   { filter_upwards [ball_mem_nhds q₀ εpos],
     rintros ⟨p, x⟩ hpx,
     apply eventually_of_forall (λ a, _),
-    suffices : ∥L∥ * ∥f a∥ * ∥g p (x - a)∥ ≤ bound a,
+    suffices : ‖L‖ * ‖f a‖ * ‖g p (x - a)‖ ≤ bound a,
     { refine le_trans (le_op_norm _ _) _,
       exact (mul_le_mul_of_nonneg_right (le_op_norm _ _) (norm_nonneg _)).trans this },
     by_cases H : x - a ∈ k,
@@ -1283,7 +1283,7 @@ begin
   /- We find a small neighborhood of `{q₀.1} × k` on which the derivative is uniformly bounded. This
   follows from the continuity at all points of the compact set `k`. -/
   obtain ⟨ε, C, εpos, Cnonneg, h₀ε, hε⟩ :
-    ∃ ε C, 0 < ε ∧ 0 ≤ C ∧ ball q₀.1 ε ⊆ s ∧ ∀ p x, ∥p - q₀.1∥ < ε → ∥g' (p, x)∥ ≤ C,
+    ∃ ε C, 0 < ε ∧ 0 ≤ C ∧ ball q₀.1 ε ⊆ s ∧ ∀ p x, ‖p - q₀.1‖ < ε → ‖g' (p, x)‖ ≤ C,
   { have A : is_compact ({q₀.1} ×ˢ k), from is_compact_singleton.prod hk,
     obtain ⟨t, kt, t_open, ht⟩ : ∃ t, {q₀.1} ×ˢ k ⊆ t ∧ is_open t ∧ bounded (g' '' t),
     { have B : continuous_on g' (s ×ˢ univ),
@@ -1340,9 +1340,9 @@ begin
     exact hf.ae_strongly_measurable.convolution_integrand_snd (L.precompR (P × G) : _) M q₀.2 },
   let K' := - k + closed_ball q₀.2 ε,
   have hK' : is_compact K' := hk.neg.add (is_compact_closed_ball _ _),
-  let bound : G → ℝ := indicator K' (λ a, ∥L∥ * ∥f a∥ * C),
+  let bound : G → ℝ := indicator K' (λ a, ‖L‖ * ‖f a‖ * C),
   have I4 : ∀ᵐ (a : G) ∂μ, ∀ (x : P × G), dist x q₀ < ε →
-    ∥(L (f a)).comp (g' (x.fst, x.snd - a))∥ ≤ bound a,
+    ‖(L (f a)).comp (g' (x.fst, x.snd - a))‖ ≤ bound a,
   { apply eventually_of_forall,
     assume a x hx,
     refine (op_norm_comp_le _ _).trans _,

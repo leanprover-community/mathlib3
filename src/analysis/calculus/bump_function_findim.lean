@@ -116,11 +116,11 @@ begin
     ∃ (δ : ℕ → ℝ≥0), (∀ (i : ℕ), 0 < δ i) ∧ ∃ (c : nnreal), has_sum δ c ∧ c < 1,
     from nnreal.exists_pos_sum_of_countable one_ne_zero ℕ,
   have : ∀ (n : ℕ), ∃ (r : ℝ),
-    0 < r ∧ ∀ i ≤ n, ∀ x, ∥iterated_fderiv ℝ i (r • g n) x∥ ≤ δ n,
+    0 < r ∧ ∀ i ≤ n, ∀ x, ‖iterated_fderiv ℝ i (r • g n) x‖ ≤ δ n,
   { assume n,
-    have : ∀ i, ∃ R, ∀ x, ∥iterated_fderiv ℝ i (λ x, g n x) x∥ ≤ R,
+    have : ∀ i, ∃ R, ∀ x, ‖iterated_fderiv ℝ i (λ x, g n x) x‖ ≤ R,
     { assume i,
-      have : bdd_above (range (λ x, ∥iterated_fderiv ℝ i (λ (x : E), g n x) x∥)),
+      have : bdd_above (range (λ x, ‖iterated_fderiv ℝ i (λ (x : E), g n x) x‖)),
       { apply ((g_smooth n).continuous_iterated_fderiv le_top).norm
           .bdd_above_range_of_has_compact_support,
         apply has_compact_support.comp_left _ norm_zero,
@@ -139,10 +139,10 @@ begin
       simp only [finset.mem_range],
       linarith },
     refine ⟨M⁻¹ * δ n, by positivity, λ i hi x, _⟩,
-    calc ∥iterated_fderiv ℝ i ((M⁻¹ * δ n) • g n) x∥
-        = ∥(M⁻¹ * δ n) • iterated_fderiv ℝ i (g n) x∥ :
+    calc ‖iterated_fderiv ℝ i ((M⁻¹ * δ n) • g n) x‖
+        = ‖(M⁻¹ * δ n) • iterated_fderiv ℝ i (g n) x‖ :
       by { rw iterated_fderiv_const_smul_apply, exact (g_smooth n).of_le le_top }
-    ... = M⁻¹ * δ n * ∥iterated_fderiv ℝ i (g n) x∥ :
+    ... = M⁻¹ * δ n * ‖iterated_fderiv ℝ i (g n) x‖ :
       by { rw [norm_smul, real.norm_of_nonneg], positivity }
     ... ≤ M⁻¹ * δ n * M :
       mul_le_mul_of_nonneg_left ((hR i x).trans (IR i hi)) (by positivity)
@@ -402,7 +402,7 @@ begin
       F_comp C B x).integrable },
   { set z := (D / (1 + D)) • x with hz,
     have B : 0 < 1 + D, by linarith,
-    have C : ball z (D * (1 + D- ∥x∥) / (1 + D)) ⊆ support (λ (y : E), W D y * φ (x - y)),
+    have C : ball z (D * (1 + D- ‖x‖) / (1 + D)) ⊆ support (λ (y : E), W D y * φ (x - y)),
     { assume y hy,
       simp only [support_mul, W_support E Dpos],
       simp only [φ, mem_inter_iff, mem_support, ne.def, indicator_apply_eq_zero,
@@ -413,7 +413,7 @@ begin
           real.norm_eq_abs, abs_div],
         simp only [div_le_iff B] with field_simps,
         ring_nf },
-      { have ID : ∥D / (1 + D) - 1∥ = 1 / (1 + D),
+      { have ID : ‖D / (1 + D) - 1‖ = 1 / (1 + D),
         { rw real.norm_of_nonpos,
           { simp only [B.ne', ne.def, not_false_iff, mul_one, neg_sub, add_tsub_cancel_right]
               with field_simps},
@@ -521,7 +521,7 @@ begin
       apply Y_eq_one_of_mem_closed_ball (IR R hR),
       simp only [norm_smul, inv_div, mem_closed_ball_zero_iff, real.norm_eq_abs, abs_div,
                  abs_two, abs_of_nonneg A.le],
-      calc 2 / (R + 1) * ∥x∥ ≤ 2 / (R + 1) * 1 :
+      calc 2 / (R + 1) * ‖x‖ ≤ 2 / (R + 1) * 1 :
         mul_le_mul_of_nonneg_left hx (div_nonneg zero_le_two A.le)
       ... = 1 - (R - 1) / (R + 1) : by { field_simp [A.ne'], ring }
     end,

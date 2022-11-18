@@ -289,7 +289,7 @@ structure cont_diff_bump_base (E : Type*) [normed_add_comm_group E] [normed_spac
 (mem_Icc   : ∀ (R : ℝ) (x : E), to_fun R x ∈ Icc (0 : ℝ) 1)
 (symmetric : ∀ (R : ℝ) (x : E), to_fun R (-x) = to_fun R x)
 (smooth    : cont_diff_on ℝ ⊤ (uncurry to_fun) ((Ioi (1 : ℝ)) ×ˢ (univ : set E)))
-(eq_one    : ∀ (R : ℝ) (hR : 1 < R) (x : E) (hx : ∥x∥ ≤ 1), to_fun R x = 1)
+(eq_one    : ∀ (R : ℝ) (hR : 1 < R) (x : E) (hx : ‖x‖ ≤ 1), to_fun R x = 1)
 (support   : ∀ (R : ℝ) (hR : 1 < R), support (to_fun R) = metric.ball (0 : E) R)
 
 /-- A class registering that a real vector space admits bump functions. This will be instantiated
@@ -308,21 +308,21 @@ nonempty.some hb.out
 @[priority 100] instance has_cont_diff_bump_of_inner_product_space
   (E : Type*) [inner_product_space ℝ E] : has_cont_diff_bump E :=
 let e : cont_diff_bump_base E :=
-{ to_fun := λ R x, real.smooth_transition ((R - ∥x∥) / (R - 1)),
+{ to_fun := λ R x, real.smooth_transition ((R - ‖x‖) / (R - 1)),
   mem_Icc := λ R x, ⟨real.smooth_transition.nonneg _, real.smooth_transition.le_one _⟩,
   symmetric := λ R x, by simp only [norm_neg],
   smooth := begin
     rintros ⟨R, x⟩ ⟨(hR : 1 < R), hx⟩,
     apply cont_diff_at.cont_diff_within_at,
     rcases eq_or_ne x 0 with rfl|hx,
-    { have : (λ (p : ℝ × E), real.smooth_transition ((p.1 - ∥p.2∥) / (p.1 - 1)))
+    { have : (λ (p : ℝ × E), real.smooth_transition ((p.1 - ‖p.2‖) / (p.1 - 1)))
         =ᶠ[𝓝 (R, 0)] (λ p, 1),
-      { have A : tendsto (λ (p : ℝ × E), (p.1 - ∥p.2∥) / (p.1 - 1))
-          (𝓝 (R, 0)) (𝓝 ((R - ∥(0 : E)∥) / (R - 1))),
+      { have A : tendsto (λ (p : ℝ × E), (p.1 - ‖p.2‖) / (p.1 - 1))
+          (𝓝 (R, 0)) (𝓝 ((R - ‖(0 : E)‖) / (R - 1))),
         { rw nhds_prod_eq,
           apply (tendsto_fst.sub tendsto_snd.norm).div (tendsto_fst.sub tendsto_const_nhds),
           exact (sub_pos.2 hR).ne' },
-        have : ∀ᶠ (p : ℝ × E) in 𝓝 (R, 0), 1 < (p.1 - ∥p.2∥) / (p.1 - 1),
+        have : ∀ᶠ (p : ℝ × E) in 𝓝 (R, 0), 1 < (p.1 - ‖p.2‖) / (p.1 - 1),
         { apply (tendsto_order.1 A).1,
           apply (one_lt_div (sub_pos.2 hR)).2,
           simp only [norm_zero, tsub_zero, sub_lt_self_iff, zero_lt_one] },

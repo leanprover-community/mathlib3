@@ -31,12 +31,12 @@ variables {α β E F : Type*}
 /-- An infinite sum of functions with summable sup norm is the uniform limit of its partial sums.
 Version relative to a set, with general index set. -/
 lemma tendsto_uniformly_on_tsum {f : α → β → F} {u : α → ℝ} (hu : summable u) {s : set β}
-  (hfu : ∀ n x, x ∈ s → ∥f n x∥ ≤ u n) :
+  (hfu : ∀ n x, x ∈ s → ‖f n x‖ ≤ u n) :
   tendsto_uniformly_on (λ (t : finset α), (λ x, ∑ n in t, f n x)) (λ x, ∑' n, f n x) at_top s :=
 begin
   refine tendsto_uniformly_on_iff.2 (λ ε εpos, _),
   filter_upwards [(tendsto_order.1 (tendsto_tsum_compl_at_top_zero u)).2 _ εpos] with t ht x hx,
-  have A : summable (λ n, ∥f n x∥),
+  have A : summable (λ n, ‖f n x‖),
     from summable_of_nonneg_of_le (λ n, norm_nonneg _) (λ n, hfu n x hx) hu,
   rw [dist_eq_norm, ← sum_add_tsum_subtype_compl (summable_of_summable_norm A) t, add_sub_cancel'],
   apply lt_of_le_of_lt _ ht,
@@ -47,21 +47,21 @@ end
 /-- An infinite sum of functions with summable sup norm is the uniform limit of its partial sums.
 Version relative to a set, with index set `ℕ`. -/
 lemma tendsto_uniformly_on_tsum_nat {f : ℕ → β → F} {u : ℕ → ℝ} (hu : summable u) {s : set β}
-  (hfu : ∀ n x, x ∈ s → ∥f n x∥ ≤ u n) :
+  (hfu : ∀ n x, x ∈ s → ‖f n x‖ ≤ u n) :
   tendsto_uniformly_on (λ N, (λ x, ∑ n in finset.range N, f n x)) (λ x, ∑' n, f n x) at_top s :=
 λ v hv, tendsto_finset_range.eventually (tendsto_uniformly_on_tsum hu hfu v hv)
 
 /-- An infinite sum of functions with summable sup norm is the uniform limit of its partial sums.
 Version with general index set. -/
 lemma tendsto_uniformly_tsum {f : α → β → F} {u : α → ℝ} (hu : summable u)
-  (hfu : ∀ n x, ∥f n x∥ ≤ u n) :
+  (hfu : ∀ n x, ‖f n x‖ ≤ u n) :
   tendsto_uniformly (λ (t : finset α), (λ x, ∑ n in t, f n x)) (λ x, ∑' n, f n x) at_top :=
 by { rw ← tendsto_uniformly_on_univ, exact tendsto_uniformly_on_tsum hu (λ n x hx, hfu n x) }
 
 /-- An infinite sum of functions with summable sup norm is the uniform limit of its partial sums.
 Version with index set `ℕ`. -/
 lemma tendsto_uniformly_tsum_nat {f : ℕ → β → F} {u : ℕ → ℝ} (hu : summable u)
-  (hfu : ∀ n x, ∥f n x∥ ≤ u n) :
+  (hfu : ∀ n x, ‖f n x‖ ≤ u n) :
   tendsto_uniformly (λ N, (λ x, ∑ n in finset.range N, f n x)) (λ x, ∑' n, f n x) at_top :=
 λ v hv, tendsto_finset_range.eventually (tendsto_uniformly_tsum hu hfu v hv)
 
@@ -69,7 +69,7 @@ lemma tendsto_uniformly_tsum_nat {f : ℕ → β → F} {u : ℕ → ℝ} (hu : 
 function is. -/
 lemma continuous_on_tsum [topological_space β]
   {f : α → β → F} {s : set β} (hf : ∀ i, continuous_on (f i) s) {u : α → ℝ} (hu : summable u)
-  (hfu : ∀ n x, x ∈ s → ∥f n x∥ ≤ u n) :
+  (hfu : ∀ n x, x ∈ s → ‖f n x‖ ≤ u n) :
   continuous_on (λ x, ∑' n, f n x) s :=
 begin
   classical,
@@ -82,7 +82,7 @@ end
 function is. -/
 lemma continuous_tsum [topological_space β]
   {f : α → β → F} (hf : ∀ i, continuous (f i)) {u : α → ℝ} (hu : summable u)
-  (hfu : ∀ n x, ∥f n x∥ ≤ u n) :
+  (hfu : ∀ n x, ‖f n x‖ ≤ u n) :
   continuous (λ x, ∑' n, f n x) :=
 begin
   simp_rw [continuous_iff_continuous_on_univ] at hf ⊢,
@@ -98,7 +98,7 @@ lemma summable_of_summable_of_lipschitz_on_with [pseudo_metric_space β]
   (hf : ∀ n, lipschitz_on_with (C n) (f n) s) (hC : summable C) :
   summable (λ n, f n y) :=
 begin
-  have A : ∀ n, ∥f n y - f n x∥ ≤ C n * dist y x,
+  have A : ∀ n, ‖f n y - f n x‖ ≤ C n * dist y x,
   { assume n,
     rw ← dist_eq_norm,
     exact ((hf n).dist_le_mul _ hy _ hx) },
@@ -118,12 +118,12 @@ lemma summable_of_summable_has_fderiv_within_at
   {f : α → E → F} {f' : α → E → (E →L[ℝ] F)} {u : α → ℝ} (hu : summable u)
   {s : set E} (hs : convex ℝ s)
   (hf : ∀ n x, x ∈ s → has_fderiv_within_at (f n) (f' n x) s x)
-  (hf' : ∀ n x, x ∈ s → ∥f' n x∥ ≤ u n)
+  (hf' : ∀ n x, x ∈ s → ‖f' n x‖ ≤ u n)
   {x₀ : E} (hx₀ : x₀ ∈ s) (hf0 : summable (λ n, f n x₀)) {x : E} (hx : x ∈ s) :
   summable (λ n, f n x) :=
 begin
   have u_nonneg : ∀ n, 0 ≤ u n, from λ n, (norm_nonneg _).trans (hf' n x₀ hx₀),
-  have hf'_nn : ∀ n x, x ∈ s → ∥f' n x∥₊ ≤ (u n).to_nnreal,
+  have hf'_nn : ∀ n x, x ∈ s → ‖f' n x‖₊ ≤ (u n).to_nnreal,
   { assume n x hx,
     rw [← nnreal.coe_le_coe, coe_nnnorm, real.coe_to_nnreal _ (u_nonneg n)],
     exact hf' n x hx },
@@ -139,13 +139,13 @@ lemma has_fderiv_within_at_tsum
   {f : α → E → F} {f' : α → E → (E →L[ℝ] F)} {u : α → ℝ} (hu : summable u)
   {s : set E} (hs : convex ℝ s)
   (hf : ∀ n x, x ∈ s → has_fderiv_within_at (f n) (f' n x) s x)
-  (hf' : ∀ n x, x ∈ s → ∥f' n x∥ ≤ u n)
+  (hf' : ∀ n x, x ∈ s → ‖f' n x‖ ≤ u n)
   {x₀ : E} (hx₀ : x₀ ∈ s) (hf0 : summable (λ n, f n x₀)) {x : E} (hx : x ∈ s) :
   has_fderiv_within_at (λ y, ∑' n, f n y) (∑' n, f' n x) s x :=
 begin
   classical,
   have u_nonneg : ∀ n, 0 ≤ u n, from λ n, (norm_nonneg _).trans (hf' n x₀ hx₀),
-  have hf'_nn : ∀ n x, x ∈ s → ∥f' n x∥₊ ≤ (u n).to_nnreal,
+  have hf'_nn : ∀ n x, x ∈ s → ‖f' n x‖₊ ≤ (u n).to_nnreal,
   { assume n x hx,
     rw [← nnreal.coe_le_coe, coe_nnnorm, real.coe_to_nnreal _ (u_nonneg n)],
     exact hf' n x hx },
@@ -166,16 +166,16 @@ begin
     simp only [has_fderiv_within_at, has_fderiv_at_filter, is_o] at this,
     exact this δpos },
   filter_upwards [is_O_with_iff.1 A, self_mem_nhds_within] with y Hy hy,
-  have YX : ∀ n, ∥f n y - f n x∥ ≤ u n * ∥y - x∥,
+  have YX : ∀ n, ‖f n y - f n x‖ ≤ u n * ‖y - x‖,
   { assume n,
     rw [← dist_eq_norm, ← dist_eq_norm],
     convert (L n).dist_le_mul _ hy _ hx,
     rw real.coe_to_nnreal _ (u_nonneg n) },
   calc
-  ∥∑' (n : α), f n y - ∑' (n : α), f n x - (∑' (n : α), f' n x) (y - x)∥
-  = ∥(∑ n in t, f n y - ∑ n in t, f n x - (∑ n in t, f' n x) (y - x))
+  ‖∑' (n : α), f n y - ∑' (n : α), f n x - (∑' (n : α), f' n x) (y - x)‖
+  = ‖(∑ n in t, f n y - ∑ n in t, f n x - (∑ n in t, f' n x) (y - x))
     + (∑' n : {n // n ∉ t}, f n y - ∑' n : {n // n ∉ t}, f n x
-        - (∑' n : {n // n ∉ t}, f' n x) (y - x))∥ :
+        - (∑' n : {n // n ∉ t}, f' n x) (y - x))‖ :
     begin
       congr' 1,
       have C : summable (λ n, f' n x), from summable_of_norm_bounded _ hu (λ n, hf' n x hx),
@@ -184,28 +184,28 @@ begin
       simp only [continuous_linear_map.add_apply],
       abel,
     end
-  ... ≤ ∥∑ n in t, f n y - ∑ n in t, f n x - (∑ n in t, f' n x) (y - x)∥
-    + ∥(∑' n : {n // n ∉ t}, f n y - ∑' n : {n // n ∉ t}, f n x )
-        - (∑' n : {n // n ∉ t}, f' n x) (y - x)∥ :
+  ... ≤ ‖∑ n in t, f n y - ∑ n in t, f n x - (∑ n in t, f' n x) (y - x)‖
+    + ‖(∑' n : {n // n ∉ t}, f n y - ∑' n : {n // n ∉ t}, f n x )
+        - (∑' n : {n // n ∉ t}, f' n x) (y - x)‖ :
     norm_add_le _ _
-  ... ≤ δ * ∥y - x∥ + ∥∑' n : {n // n ∉ t}, f n y - ∑' n : {n // n ∉ t}, f n x∥
-              + ∥∑' n : {n // n ∉ t}, f' n x∥ * ∥y - x∥ :
+  ... ≤ δ * ‖y - x‖ + ‖∑' n : {n // n ∉ t}, f n y - ∑' n : {n // n ∉ t}, f n x‖
+              + ‖∑' n : {n // n ∉ t}, f' n x‖ * ‖y - x‖ :
     begin
       rw add_assoc,
       apply add_le_add Hy,
       apply (norm_sub_le _ _).trans (add_le_add_left _ _),
       apply continuous_linear_map.le_op_norm,
     end
-  ... ≤ δ * ∥y - x∥ + ∑' n : {n // n ∉ t}, ∥f n y - f n x∥ + (∑' n : {n // n ∉ t}, u n) * ∥y - x∥ :
+  ... ≤ δ * ‖y - x‖ + ∑' n : {n // n ∉ t}, ‖f n y - f n x‖ + (∑' n : {n // n ∉ t}, u n) * ‖y - x‖ :
     begin
       refine add_le_add (add_le_add_left _ _) _,
       { rw ← tsum_sub,
         rotate, { exact (S y hy).subtype _ }, { exact (S x hx).subtype _ },
         apply norm_tsum_le_tsum_norm,
-        have : summable (λ n, ∥f n y - f n x∥),
+        have : summable (λ n, ‖f n y - f n x‖),
           from summable_of_nonneg_of_le (λ n, norm_nonneg _) YX (hu.mul_right _),
         exact this.subtype _ },
-      { have S' : summable (λ n, ∥f' n x∥),
+      { have S' : summable (λ n, ‖f' n x‖),
           from summable_of_nonneg_of_le (λ n, norm_nonneg _) (λ n, hf' n x hx) hu,
         apply mul_le_mul_of_nonneg_right _ (norm_nonneg _),
         refine (norm_tsum_le_tsum_norm (S'.subtype _)).trans _,
@@ -214,24 +214,24 @@ begin
         { exact S'.subtype _ },
         { exact hu.subtype _ } }
     end
-  ... ≤ δ * ∥y - x∥ + ∑' n : {n // n ∉ t}, u n * ∥y - x∥ + (∑' n : {n // n ∉ t}, u n) * ∥y - x∥ :
+  ... ≤ δ * ‖y - x‖ + ∑' n : {n // n ∉ t}, u n * ‖y - x‖ + (∑' n : {n // n ∉ t}, u n) * ‖y - x‖ :
     begin
       refine add_le_add_right (add_le_add_left _ _) _,
       apply tsum_le_tsum,
       { assume n, apply YX },
-      { have : summable (λ n, ∥f n y - f n x∥),
+      { have : summable (λ n, ‖f n y - f n x‖),
           from summable_of_nonneg_of_le (λ n, norm_nonneg _) YX (hu.mul_right _),
         exact this.subtype _ },
       { apply summable.mul_right,
         exact hu.subtype _ }
     end
-  ... ≤ δ * ∥y - x∥ + δ * ∥y - x∥ + δ * ∥y - x∥ :
+  ... ≤ δ * ‖y - x‖ + δ * ‖y - x‖ + δ * ‖y - x‖ :
     begin
       rw [tsum_mul_right],
       refine add_le_add (add_le_add_left _ _) _;
       exact mul_le_mul_of_nonneg_right ht.le (norm_nonneg _),
     end
-  ... = ε * ∥y - x∥ : by { rw [δ_def], ring }
+  ... = ε * ‖y - x‖ : by { rw [δ_def], ring }
 end
 
 /-- Consider a series of functions `∑' n, f n x`. If the series converges at a
@@ -239,7 +239,7 @@ point, and all functions in the series are differentiable with a summable bound 
 then the series converges everywhere. -/
 lemma summable_of_summable_has_fderiv_at
   {f : α → E → F} {f' : α → E → (E →L[ℝ] F)} {u : α → ℝ} (hu : summable u)
-  (hf : ∀ n x, has_fderiv_at (f n) (f' n x) x) (hf' : ∀ n x, ∥f' n x∥ ≤ u n)
+  (hf : ∀ n x, has_fderiv_at (f n) (f' n x) x) (hf' : ∀ n x, ‖f' n x‖ ≤ u n)
   {x₀ : E} (hf0 : summable (λ n, f n x₀)) (x : E) :
   summable (λ n, f n x) :=
 begin
@@ -253,7 +253,7 @@ point, and all functions in the series are differentiable with a summable bound 
 then the series is differentiable and its derivative is the sum of the derivatives. -/
 lemma has_fderiv_at_tsum
   {f : α → E → F} {f' : α → E → (E →L[ℝ] F)} {u : α → ℝ} (hu : summable u)
-  (hf : ∀ n x, has_fderiv_at (f n) (f' n x) x) (hf' : ∀ n x, ∥f' n x∥ ≤ u n)
+  (hf : ∀ n x, has_fderiv_at (f n) (f' n x) x) (hf' : ∀ n x, ‖f' n x‖ ≤ u n)
   {x₀ : E} (hf0 : summable (λ n, f n x₀)) (x : E) :
   has_fderiv_at (λ y, ∑' n, f n y) (∑' n, f' n x) x :=
 begin
@@ -268,7 +268,7 @@ Note that our assumptions do not ensure the pointwise convergence, but if there 
 convergence then the series is zero everywhere so the result still holds. -/
 lemma differentiable_tsum
   {f : α → E → F} {f' : α → E → (E →L[ℝ] F)} {u : α → ℝ} (hu : summable u)
-  (hf : ∀ n x, has_fderiv_at (f n) (f' n x) x) (hf' : ∀ n x, ∥f' n x∥ ≤ u n) :
+  (hf : ∀ n x, has_fderiv_at (f n) (f' n x) x) (hf' : ∀ n x, ‖f' n x‖ ≤ u n) :
   differentiable ℝ (λ y, ∑' n, f n y) :=
 begin
   by_cases h : ∃ x₀, summable (λ n, f n x₀),
@@ -283,13 +283,13 @@ begin
 end
 
 lemma fderiv_tsum_apply {f : α → E → F} {u : α → ℝ} (hu : summable u)
-  (hf : ∀ n, differentiable ℝ (f n)) (hf' : ∀ n x, ∥fderiv ℝ (f n) x∥ ≤ u n)
+  (hf : ∀ n, differentiable ℝ (f n)) (hf' : ∀ n x, ‖fderiv ℝ (f n) x‖ ≤ u n)
   {x₀ : E} (hf0 : summable (λ n, f n x₀)) (x : E) :
   fderiv ℝ (λ y, ∑' n, f n y) x = ∑' n, fderiv ℝ (f n) x :=
 (has_fderiv_at_tsum hu (λ n x, (hf n x).has_fderiv_at) hf' hf0 _).fderiv
 
 lemma fderiv_tsum {f : α → E → F} {u : α → ℝ} (hu : summable u)
-  (hf : ∀ n, differentiable ℝ (f n)) (hf' : ∀ n x, ∥fderiv ℝ (f n) x∥ ≤ u n)
+  (hf : ∀ n, differentiable ℝ (f n)) (hf' : ∀ n x, ‖fderiv ℝ (f n) x‖ ≤ u n)
   {x₀ : E} (hf0 : summable (λ n, f n x₀)) :
   fderiv ℝ (λ y, ∑' n, f n y) = (λ x, ∑' n, fderiv ℝ (f n) x) :=
 by { ext1 x, exact fderiv_tsum_apply hu hf hf' hf0 x}
@@ -302,7 +302,7 @@ derivatives. Then the iterated derivative of the sum is the sum of the iterated 
 lemma iterated_fderiv_tsum
   {f : α → E → F} {N : ℕ∞} (hf : ∀ i, cont_diff ℝ N (f i)) {u : ℕ → α → ℝ}
   (hu : ∀ (k : ℕ), (k : ℕ∞) ≤ N → summable (u k))
-  (h'f : ∀ (k : ℕ) (i : α) (x : E), (k : ℕ∞) ≤ N → ∥iterated_fderiv ℝ k (f i) x∥ ≤ u k i)
+  (h'f : ∀ (k : ℕ) (i : α) (x : E), (k : ℕ∞) ≤ N → ‖iterated_fderiv ℝ k (f i) x‖ ≤ u k i)
   {k : ℕ} (hk : (k : ℕ∞) ≤ N) :
   iterated_fderiv ℝ k (λ y, ∑' n, f n y) = (λ x, ∑' n, iterated_fderiv ℝ k (f n) x) :=
 begin
@@ -329,7 +329,7 @@ derivatives. Then the iterated derivative of the sum is the sum of the iterated 
 lemma iterated_fderiv_tsum_apply
   {f : α → E → F} {N : ℕ∞} (hf : ∀ i, cont_diff ℝ N (f i)) {u : ℕ → α → ℝ}
   (hu : ∀ (k : ℕ), (k : ℕ∞) ≤ N → summable (u k))
-  (h'f : ∀ (k : ℕ) (i : α) (x : E), (k : ℕ∞) ≤ N → ∥iterated_fderiv ℝ k (f i) x∥ ≤ u k i)
+  (h'f : ∀ (k : ℕ) (i : α) (x : E), (k : ℕ∞) ≤ N → ‖iterated_fderiv ℝ k (f i) x‖ ≤ u k i)
   {k : ℕ} (hk : (k : ℕ∞) ≤ N) (x : E) :
   iterated_fderiv ℝ k (λ y, ∑' n, f n y) x = ∑' n, iterated_fderiv ℝ k (f n) x :=
 by rw iterated_fderiv_tsum hf hu h'f hk
@@ -340,7 +340,7 @@ for each `k ≤ N`. Then the series is also `C^N`. -/
 lemma cont_diff_tsum
   {f : α → E → F} {N : ℕ∞} (hf : ∀ i, cont_diff ℝ N (f i)) {u : ℕ → α → ℝ}
   (hu : ∀ (k : ℕ), (k : ℕ∞) ≤ N → summable (u k))
-  (h'f : ∀ (k : ℕ) (i : α) (x : E), (k : ℕ∞) ≤ N → ∥iterated_fderiv ℝ k (f i) x∥ ≤ u k i) :
+  (h'f : ∀ (k : ℕ) (i : α) (x : E), (k : ℕ∞) ≤ N → ‖iterated_fderiv ℝ k (f i) x‖ ≤ u k i) :
   cont_diff ℝ N (λ x, ∑' i, f i x) :=
 begin
   rw cont_diff_iff_continuous_differentiable,
@@ -371,16 +371,16 @@ lemma cont_diff_tsum_of_eventually
   {f : α → E → F} {N : ℕ∞} (hf : ∀ i, cont_diff ℝ N (f i)) {u : ℕ → α → ℝ}
   (hu : ∀ (k : ℕ), (k : ℕ∞) ≤ N → summable (u k))
   (h'f : ∀ (k : ℕ), (k : ℕ∞) ≤ N → ∀ᶠ i in (filter.cofinite : filter α), ∀ (x : E),
-     ∥iterated_fderiv ℝ k (f i) x∥ ≤ u k i) :
+     ‖iterated_fderiv ℝ k (f i) x‖ ≤ u k i) :
   cont_diff ℝ N (λ x, ∑' i, f i x) :=
 begin
   classical,
   apply cont_diff_iff_forall_nat_le.2 (λ m hm, _),
   let t : set α :=
-    {i : α | ¬∀ (k : ℕ), k ∈ finset.range (m + 1) → ∀ x, ∥iterated_fderiv ℝ k (f i) x∥ ≤ u k i},
+    {i : α | ¬∀ (k : ℕ), k ∈ finset.range (m + 1) → ∀ x, ‖iterated_fderiv ℝ k (f i) x‖ ≤ u k i},
   have ht : set.finite t,
   { have A : ∀ᶠ i in (filter.cofinite : filter α), ∀ (k : ℕ), k ∈ finset.range (m+1) →
-      ∀ (x : E), ∥iterated_fderiv ℝ k (f i) x∥ ≤ u k i,
+      ∀ (x : E), ‖iterated_fderiv ℝ k (f i) x‖ ≤ u k i,
     { rw eventually_all_finset,
       assume i hi,
       apply h'f,

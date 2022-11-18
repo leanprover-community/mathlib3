@@ -2318,7 +2318,7 @@ end
 
 /-- If a sum of nonnegative reals is summable, then it can only have finitely many terms
 above any positive threshold. -/
-lemma _root_.finite_const_le_of_summable {α : Type*} {a : α → ℝ≥0} (a_summable : summable a)
+lemma _root_.nnreal.finite_const_le_of_summable {α : Type*} {a : α → ℝ≥0} (a_summable : summable a)
   {ε : ℝ≥0} (ε_ne_zero : ε ≠ 0) :
   {i : α | ε ≤ a i}.finite :=
 begin
@@ -2329,11 +2329,11 @@ begin
 end
 
 /-- Markov's inequality for `finset.card` and `tsum` in `ℝ≥0`. -/
-lemma finset_card_const_le_le_of_tsum_nnreal_le {α : Type*} {a : α → ℝ≥0} (a_summable : summable a)
-  {c : ℝ≥0} (tsum_le_c : ∑' i, a i ≤ c) {ε : ℝ≥0} (ε_ne_zero : ε ≠ 0) :
+lemma _root_.nnreal.finset_card_const_le_le_of_tsum_nnreal_le {α : Type*} {a : α → ℝ≥0}
+  (a_summable : summable a) {c : ℝ≥0} (tsum_le_c : ∑' i, a i ≤ c) {ε : ℝ≥0} (ε_ne_zero : ε ≠ 0) :
   ∃ hf : {i : α | ε ≤ a i}.finite, ↑hf.to_finset.card ≤ c / ε :=
 begin
-  have hf : {i : α | ε ≤ a i}.finite, from finite_const_le_of_summable a_summable ε_ne_zero,
+  have hf : {i : α | ε ≤ a i}.finite, from nnreal.finite_const_le_of_summable a_summable ε_ne_zero,
   use hf,
   have key := @nnreal.count_const_le_le_of_tsum_le α ⊤ _
                 a (measurable_space.top.measurable a) a_summable c tsum_le_c ε ε_ne_zero,

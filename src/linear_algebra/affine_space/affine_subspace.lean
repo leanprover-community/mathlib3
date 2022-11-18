@@ -1548,9 +1548,6 @@ to all points. -/
 def parallel (s₁ s₂ : affine_subspace k P) : Prop :=
 ∃ v : V, s₂ = s₁.map (const_vadd k P v)
 
-/- The notation should logically be U+2225 PARALLEL TO, but that is used globally for norms at
-present, and norms and parallelism are both widely used in geometry, so use U+2016 DOUBLE
-VERTICAL LINE (which is logically more appropriate for norms) instead here to avoid conflict. -/
 localized "infix (name := affine_subspace.parallel) ` ∥ `:50 := affine_subspace.parallel" in affine
 
 @[symm] lemma parallel.symm {s₁ s₂ : affine_subspace k P} (h : s₁ ∥ s₂) : s₂ ∥ s₁ :=

@@ -134,7 +134,7 @@ def of (V) [quiver V] : V ⥤q (free_groupoid V) :=
   map := λ X Y f, quot.mk _ f.to_pos_path }
 
 lemma of_eq : of V =
-  ((quiver.symmetrify.of) ⋙q paths.of).comp (quotient.functor $ @red_step V _).to_prefunctor :=
+  (quiver.symmetrify.of ⋙q paths.of).comp (quotient.functor $ @red_step V _).to_prefunctor :=
 begin
   apply prefunctor.ext, rotate,
   { rintro X, refl, },
@@ -186,7 +186,7 @@ variables {V' : Type u'} [quiver.{v'+1} V'] {V'' : Type u''} [quiver.{v''+1} V''
 
 /-- The functor of free groupoid induced by a prefunctor of quivers -/
 def _root_.category_theory.free_groupoid_functor (φ : V ⥤q V') :
-  free_groupoid V ⥤ free_groupoid V' := lift (φ ⋙q (of V'))
+  free_groupoid V ⥤ free_groupoid V' := lift (φ ⋙q of V')
 
 lemma free_groupoid_functor_id :
   free_groupoid_functor (prefunctor.id V) = functor.id (free_groupoid V) :=
@@ -197,7 +197,7 @@ end
 
 lemma free_groupoid_functor_comp
   (φ : V ⥤q V') (φ' : V' ⥤q V'') :
-  free_groupoid_functor (φ ⋙q φ') = (free_groupoid_functor φ) ⋙ (free_groupoid_functor φ') :=
+  free_groupoid_functor (φ ⋙q φ') = free_groupoid_functor φ ⋙ free_groupoid_functor φ' :=
 begin
   dsimp only [free_groupoid_functor], symmetry,
   apply lift_unique, refl,

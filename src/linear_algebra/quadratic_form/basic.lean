@@ -188,7 +188,8 @@ begin
     add_right_comm (f (x + y)), add_left_inj],
 end
 
-lemma polar_aux_comp {F : Type*} [comm_ring S] [add_monoid_hom_class F R S] (f : M → R) (g : F) (x y : M) :
+lemma polar_aux_comp {F : Type*} [comm_ring S] [add_monoid_hom_class F R S]
+  (f : M → R) (g : F) (x y : M) :
   polar_aux (g ∘ f) x y = g (polar_aux f x y) :=
 by simp only [polar_aux, pi.smul_apply, function.comp_apply, map_sub]
 

@@ -205,6 +205,7 @@ end
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [measurable_space E]
   [borel_space E] [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
+  {F : Type*} [normed_add_comm_group F] [normed_space ℝ F] [complete_space F]
 
 lemma map_linear_map_add_haar_eq_smul_add_haar
   {f : E →ₗ[ℝ] E} (hf : f.det ≠ 0) :
@@ -310,10 +311,6 @@ equal to `μ s` times the absolute value of the determinant of `f`. -/
 /-!
 ### Basic properties of Haar measures on real vector spaces
 -/
-
-variables {E : Type*} [normed_add_comm_group E] [measurable_space E] [normed_space ℝ E]
-  [finite_dimensional ℝ E] [borel_space E] (μ : measure E) [is_add_haar_measure μ]
-  {F : Type*} [normed_add_comm_group F] [normed_space ℝ F] [complete_space F]
 
 lemma map_add_haar_smul {r : ℝ} (hr : r ≠ 0) :
   measure.map ((•) r) μ = ennreal.of_real (abs (r ^ (finrank ℝ E))⁻¹) • μ :=
@@ -561,13 +558,13 @@ section
 ### The Lebesgue measure associated to an alternating map
 -/
 
-variables {ι F : Type*} [fintype ι] [decidable_eq ι]
-[normed_add_comm_group F] [normed_space ℝ F] [measurable_space F] [borel_space F]
+variables {ι G : Type*} [fintype ι] [decidable_eq ι]
+[normed_add_comm_group G] [normed_space ℝ G] [measurable_space G] [borel_space G]
 
-lemma add_haar_parallelepiped (b : basis ι ℝ F) (v : ι → F) :
+lemma add_haar_parallelepiped (b : basis ι ℝ G) (v : ι → G) :
   b.add_haar (parallelepiped v) = ennreal.of_real (|b.det v|) :=
 begin
-  haveI : finite_dimensional ℝ F, from finite_dimensional.of_fintype_basis b,
+  haveI : finite_dimensional ℝ G, from finite_dimensional.of_fintype_basis b,
   have A : parallelepiped v = (b.constr ℕ v) '' (parallelepiped b),
   { rw image_parallelepiped,
     congr' 1,
@@ -578,30 +575,30 @@ begin
   refl,
 end
 
-variables [finite_dimensional ℝ F] {n : ℕ} [_i : fact (finrank ℝ F = n)]
+variables [finite_dimensional ℝ G] {n : ℕ} [_i : fact (finrank ℝ G = n)]
 include _i
 
 /-- The Lebesgue measure associated to an alternating map. It gives measure `|ω v|` to the
 parallelepiped spanned by the vectors `v₁, ..., vₙ`. Note that it is not always a Haar measure,
 as it can be zero, but it is always locally finite and translation invariant. -/
 @[irreducible] noncomputable def _root_.alternating_map.measure
-  (ω : alternating_map ℝ F ℝ (fin n)) : measure F :=
-‖ω (fin_basis_of_finrank_eq ℝ F _i.out)‖₊ • (fin_basis_of_finrank_eq ℝ F _i.out).add_haar
+  (ω : alternating_map ℝ G ℝ (fin n)) : measure G :=
+‖ω (fin_basis_of_finrank_eq ℝ G _i.out)‖₊ • (fin_basis_of_finrank_eq ℝ G _i.out).add_haar
 
 lemma _root_.alternating_map.measure_parallelepiped
-  (ω : alternating_map ℝ F ℝ (fin n)) (v : fin n → F) :
+  (ω : alternating_map ℝ G ℝ (fin n)) (v : fin n → G) :
   ω.measure (parallelepiped v) = ennreal.of_real (|ω v|) :=
 begin
-  conv_rhs { rw ω.eq_smul_basis_det (fin_basis_of_finrank_eq ℝ F _i.out) },
+  conv_rhs { rw ω.eq_smul_basis_det (fin_basis_of_finrank_eq ℝ G _i.out) },
   simp only [add_haar_parallelepiped, alternating_map.measure, coe_nnreal_smul_apply,
     alternating_map.smul_apply, algebra.id.smul_eq_mul, abs_mul,
     ennreal.of_real_mul (abs_nonneg _), real.ennnorm_eq_of_real_abs]
 end
 
-instance (ω : alternating_map ℝ F ℝ (fin n)) : is_add_left_invariant ω.measure :=
+instance (ω : alternating_map ℝ G ℝ (fin n)) : is_add_left_invariant ω.measure :=
 by { rw [alternating_map.measure], apply_instance }
 
-instance (ω : alternating_map ℝ F ℝ (fin n)) : is_locally_finite_measure ω.measure :=
+instance (ω : alternating_map ℝ G ℝ (fin n)) : is_locally_finite_measure ω.measure :=
 by { rw [alternating_map.measure], apply_instance }
 
 end

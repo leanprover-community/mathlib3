@@ -28,7 +28,11 @@ norm topology on `F →L[R] F`.
 If these conditions are satisfied, we register the typeclass `vector_bundle R F E`.
 
 We define constructions on vector bundles like pullbacks and direct sums in other files.
-Only the trivial bundle is defined in this file.
+
+## Implementation notes
+
+The implementation choices in the vector bundle definition are discussed in the "Implementation
+notes" section of `topology.fiber_bundle.basic`.
 
 ## Tags
 Vector bundle
@@ -437,87 +441,6 @@ lemma comp_continuous_linear_equiv_at_eq_coord_change (e e' : trivialization F (
 by { ext v, rw [coord_changeL_apply e e' hb], refl }
 
 end trivialization
-
-namespace bundle.trivial
-variables (R B) (F' : Type*) [topological_space F']
-
-/-- Local trivialization for trivial bundle. -/
-def trivialization : trivialization F' (π (bundle.trivial B F')) :=
-{ to_fun := λ x, (x.fst, x.snd),
-  inv_fun := λ y, ⟨y.fst, y.snd⟩,
-  source := univ,
-  target := univ,
-  map_source' := λ x h, mem_univ (x.fst, x.snd),
-  map_target' := λ y h,  mem_univ ⟨y.fst, y.snd⟩,
-  left_inv' := λ x h, sigma.eq rfl rfl,
-  right_inv' := λ x h, prod.ext rfl rfl,
-  open_source := is_open_univ,
-  open_target := is_open_univ,
-  continuous_to_fun := by { rw [←continuous_iff_continuous_on_univ, continuous_iff_le_induced],
-    simp only [prod.topological_space, induced_inf, induced_compose], exact le_rfl, },
-  continuous_inv_fun := by { rw [←continuous_iff_continuous_on_univ, continuous_iff_le_induced],
-    simp only [bundle.total_space.topological_space, induced_inf, induced_compose],
-    exact le_rfl, },
-  base_set := univ,
-  open_base_set := is_open_univ,
-  source_eq := rfl,
-  target_eq := by simp only [univ_prod_univ],
-  proj_to_fun := λ y hy, rfl }
-
-instance trivialization.is_linear : (trivialization B F).is_linear R :=
-{ linear := λ x hx, ⟨λ y z, rfl, λ c y, rfl⟩ }
-
-variables {R}
-
-lemma trivialization.coord_changeL (b : B) :
-  (trivialization B F).coord_changeL R (trivialization B F) b = continuous_linear_equiv.refl R F :=
-begin
-  ext v,
-  rw [trivialization.coord_changeL_apply'],
-  exacts [rfl, ⟨mem_univ _, mem_univ _⟩]
-end
-
-@[simp]
-lemma trivialization_source : (trivialization B F').source = univ := rfl
-
-@[simp]
-lemma trivialization_target : (trivialization B F').target = univ := rfl
-
-/-- Fiber bundle instance on the trivial bundle. -/
-instance fiber_bundle : fiber_bundle F' (bundle.trivial B F') :=
-{ trivialization_atlas := {bundle.trivial.trivialization B F'},
-  trivialization_at := λ x, bundle.trivial.trivialization B F',
-  mem_base_set_trivialization_at := mem_univ,
-  trivialization_mem_atlas := λ x, mem_singleton _,
-  total_space_mk_inducing := λ b, ⟨begin
-    have : (λ (x : trivial B F' b), x) = @id F', by { ext x, refl },
-    simp only [total_space.topological_space, induced_inf, induced_compose, function.comp,
-      total_space.proj, induced_const, top_inf_eq, trivial.proj_snd, id.def,
-      trivial.topological_space, this, induced_id],
-  end⟩ }
-
-lemma eq_trivialization (e : _root_.trivialization F' (π (bundle.trivial B F')))
-  [i : mem_trivialization_atlas e] :
-  e = trivialization B F' :=
-i.out
-
-variables (R)
-
-instance vector_bundle : vector_bundle R F (bundle.trivial B F) :=
-{ trivialization_linear' := begin
-    introsI e he,
-    rw eq_trivialization B F e,
-    apply_instance
-  end,
-  continuous_on_coord_change' := begin
-    introsI e e' he he',
-    unfreezingI { obtain rfl := eq_trivialization B F e },
-    unfreezingI { obtain rfl := eq_trivialization B F e' },
-    simp_rw trivialization.coord_changeL,
-    exact continuous_const.continuous_on
-  end }
-
-end bundle.trivial
 
 include R F
 

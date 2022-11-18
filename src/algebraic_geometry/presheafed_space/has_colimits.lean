@@ -6,7 +6,6 @@ Authors: Scott Morrison
 import algebraic_geometry.presheafed_space
 import topology.category.Top.limits
 import topology.sheaves.limits
-import category_theory.limits.concrete_category
 
 /-!
 # `PresheafedSpace C` has colimits.

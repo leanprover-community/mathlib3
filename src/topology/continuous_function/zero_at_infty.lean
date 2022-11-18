@@ -396,7 +396,7 @@ normed_add_comm_group.induced C₀(α, β) (α →ᵇ β) (⟨to_bcf, rfl, λ x 
   (to_bcf_injective α β)
 
 @[simp]
-lemma norm_to_bcf_eq_norm {f : C₀(α, β)} : ∥f.to_bcf∥ = ∥f∥ := rfl
+lemma norm_to_bcf_eq_norm {f : C₀(α, β)} : ‖f.to_bcf‖ = ‖f‖ := rfl
 
 instance : normed_space 𝕜 C₀(α, β) :=
 { norm_smul_le := λ k f, (norm_smul k f.to_bcf).le }

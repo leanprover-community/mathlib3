@@ -332,9 +332,9 @@ begin
   -- neighborhood of `0` in `M₁`.
   rcases hf with ⟨K, hK, hKf⟩,
   -- But any compact set is totally bounded, hence Von-Neumann bounded. Thus, `K` absorbs `U`.
-  -- This gives `r > 0` such that `∀ a : 𝕜₂, r ≤ ∥a∥ → K ⊆ a • U`.
+  -- This gives `r > 0` such that `∀ a : 𝕜₂, r ≤ ‖a‖ → K ⊆ a • U`.
   rcases hK.totally_bounded.is_vonN_bounded 𝕜₂ hU with ⟨r, hr, hrU⟩,
-  -- Choose `c : 𝕜₂` with `r < ∥c∥`.
+  -- Choose `c : 𝕜₂` with `r < ‖c‖`.
   rcases normed_field.exists_lt_norm 𝕜₁ r with ⟨c, hc⟩,
   have hcnz : c ≠ 0 := ne_zero_of_norm_ne_zero (hr.trans hc).ne.symm,
   -- We have `f ⁻¹' ((σ₁₂ c⁻¹) • K) = c⁻¹ • f ⁻¹' K ∈ 𝓝 0`. Thus, showing that
@@ -346,8 +346,8 @@ begin
     apply_instance },
   -- Since `σ₁₂ c⁻¹` = `(σ₁₂ c)⁻¹`, we have to prove that `K ⊆ σ₁₂ c • U`.
   rw [map_inv₀, ← subset_set_smul_iff₀ ((map_ne_zero σ₁₂).mpr hcnz)],
-  -- But `σ₁₂` is isometric, so `∥σ₁₂ c∥ = ∥c∥ > r`, which concludes the argument since
-  -- `∀ a : 𝕜₂, r ≤ ∥a∥ → K ⊆ a • U`.
+  -- But `σ₁₂` is isometric, so `‖σ₁₂ c‖ = ‖c‖ > r`, which concludes the argument since
+  -- `∀ a : 𝕜₂, r ≤ ‖a‖ → K ⊆ a • U`.
   refine hrU (σ₁₂ c) _,
   rw ring_hom_isometric.is_iso,
   exact hc.le
@@ -407,9 +407,9 @@ begin
     linarith [dist_triangle (u x) (v x) t] },
   rw mem_closed_ball_zero_iff at hx,
   calc dist (u x) (v x)
-      = ∥u x - v x∥ : dist_eq_norm _ _
-  ... = ∥(u - v) x∥ : by rw continuous_linear_map.sub_apply; refl
-  ... ≤ ∥u - v∥ : (u - v).unit_le_op_norm x hx
+      = ‖u x - v x‖ : dist_eq_norm _ _
+  ... = ‖(u - v) x‖ : by rw continuous_linear_map.sub_apply; refl
+  ... ≤ ‖u - v‖ : (u - v).unit_le_op_norm x hx
   ... = dist u v : (dist_eq_norm _ _).symm
   ... < ε/2 : huv
 end

@@ -130,6 +130,22 @@ def to_finite_measure (μ : probability_measure Ω) : finite_measure Ω := ⟨μ
 by rw [← coe_fn_comp_to_finite_measure_eq_coe_fn,
   finite_measure.ennreal_coe_fn_eq_coe_fn_to_measure, coe_comp_to_finite_measure_eq_coe]
 
+lemma apply_mono (μ : probability_measure Ω) {s₁ s₂ : set Ω} (h : s₁ ⊆ s₂) :
+  μ s₁ ≤ μ s₂ :=
+begin
+  rw ← coe_fn_comp_to_finite_measure_eq_coe_fn,
+  exact measure_theory.finite_measure.apply_mono _ h,
+end
+
+lemma nonempty_of_probability_measure (μ : probability_measure Ω) : nonempty Ω :=
+begin
+  by_contra maybe_empty,
+  have zero : (μ : measure Ω) univ = 0,
+    by rw [univ_eq_empty_iff.mpr (not_nonempty_iff.mp maybe_empty), measure_empty],
+  rw measure_univ at zero,
+  exact zero_ne_one zero.symm,
+end
+
 @[ext] lemma extensionality (μ ν : probability_measure Ω)
   (h : ∀ (s : set Ω), measurable_set s → μ s = ν s) :
   μ = ν :=
@@ -423,5 +439,43 @@ end
 end finite_measure --namespace
 
 end normalize_finite_measure -- section
+
+section conditioned_probability_measure
+
+namespace probability_measure
+
+variables {Ω : Type*} [measurable_space Ω]
+
+/-- Probability measure P conditioned on an event A. -/
+def conditioned (P : probability_measure Ω) (A : set Ω) : probability_measure Ω :=
+@finite_measure.normalize Ω (nonempty_of_probability_measure P) _ (P.to_finite_measure.restrict A)
+
+lemma conditioned_apply (P : probability_measure Ω) {A : set Ω}
+  (proba_nonzero : P A ≠ 0) {E : set Ω} (E_mble : measurable_set E) :
+  (P.conditioned A) E = (P A)⁻¹ * P (E ∩ A) :=
+begin
+  rw [conditioned, finite_measure.normalize_eq_of_nonzero],
+  { rw [measure_theory.finite_measure.restrict_apply _ _ E_mble,
+        measure_theory.finite_measure.restrict_mass, coe_fn_comp_to_finite_measure_eq_coe_fn], },
+  { rwa [measure_theory.finite_measure.restrict_nonzero_iff,
+         coe_fn_comp_to_finite_measure_eq_coe_fn], },
+end
+
+@[simp] lemma conditioned_apply_mul_apply_self
+  (P : probability_measure Ω) (A : set Ω) {E : set Ω} (E_mble : measurable_set E) :
+  ((P.conditioned A) E) * (P A) = P (E ∩ A) :=
+begin
+  by_cases h : P A = 0,
+  { simp only [h, mul_zero],
+    refine le_antisymm zero_le' _,
+    rw ← h,
+    exact apply_mono _ (inter_subset_right E A), },
+  rw [conditioned_apply P h E_mble, mul_comm, ← mul_assoc],
+  simp [mul_inv_cancel h],
+end
+
+end probability_measure --namespace
+
+end conditioned_probability_measure --section
 
 end measure_theory

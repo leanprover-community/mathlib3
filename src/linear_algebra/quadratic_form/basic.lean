@@ -5,6 +5,7 @@ Authors: Anne Baanen, Kexing Ying, Eric Wieser
 -/
 
 import algebra.invertible
+import linear_algebra.bilinear_map
 import linear_algebra.matrix.determinant
 import linear_algebra.matrix.bilinear_form
 import linear_algebra.matrix.symmetric
@@ -120,15 +121,15 @@ end polar
 /-- A quadratic form over a module.
 
 For a more familiar constructor when `R` is a ring, see `quadratic_form.of_polar`. -/
-structure quadratic_form (R : Type u) (M : Type v) [semiring R] [add_comm_monoid M] [module R M] :=
+structure quadratic_form (R : Type u) (M : Type v) [comm_semiring R] [add_comm_monoid M] [module R M] :=
 (to_fun : M → R)
 (to_fun_smul : ∀ (a : R) (x : M), to_fun (a • x) = a * a * to_fun x)
-(exists_companion' : ∃ B : bilin_form R M, ∀ x y, to_fun (x + y) = to_fun x + to_fun y + B x y)
+(exists_companion' : ∃ B : M →ₗ[R] M →ₗ[R] R, ∀ x y, to_fun (x + y) = to_fun x + to_fun y + B x y)
 
 namespace quadratic_form
 
 section fun_like
-variables [semiring R] [add_comm_monoid M] [module R M]
+variables [comm_semiring R] [add_comm_monoid M] [module R M]
 variables {Q Q' : quadratic_form R M}
 
 instance fun_like : fun_like (quadratic_form R M) M (λ _, R) :=
@@ -164,13 +165,13 @@ protected def copy (Q : quadratic_form R M) (Q' : M → R) (h : Q' = ⇑Q) : qua
 
 end fun_like
 
-section semiring
-variables [semiring R] [add_comm_monoid M] [module R M]
+section comm_semiring
+variables [comm_semiring R] [add_comm_monoid M] [module R M]
 variables (Q : quadratic_form R M)
 
 lemma map_smul (a : R) (x : M) : Q (a • x) = a * a * Q x := Q.to_fun_smul a x
 
-lemma exists_companion : ∃ B : bilin_form R M, ∀ x y, Q (x + y) = Q x + Q y + B x y :=
+lemma exists_companion : ∃ B : M →ₗ[R] M →ₗ[R] R, ∀ x y, Q (x + y) = Q x + Q y + B x y :=
 Q.exists_companion'
 
 lemma map_add_add_add_map (x y z : M) :
@@ -178,7 +179,8 @@ lemma map_add_add_add_map (x y z : M) :
 begin
   obtain ⟨B, h⟩ := Q.exists_companion,
   rw [add_comm z x],
-  simp [h],
+  simp only [h, map_add, linear_map.add_apply],
+  rw [add_comm (B x z) (B y z)],
   abel,
 end
 
@@ -197,10 +199,10 @@ lemma map_smul_of_tower [comm_semiring S] [algebra S R] [module S M] [is_scalar_
   Q (a • x) = (a * a) • Q x :=
 by rw [←is_scalar_tower.algebra_map_smul R a x, map_smul, ←ring_hom.map_mul, algebra.smul_def]
 
-end semiring
+end comm_semiring
 
-section ring
-variables [ring R] [comm_ring R₁] [add_comm_group M]
+section comm_ring
+variables [comm_ring R] [comm_ring R₁] [add_comm_group M]
 variables [module R M] (Q : quadratic_form R M)
 
 @[simp] lemma map_neg (x : M) : Q (-x) = Q x :=
@@ -223,7 +225,7 @@ lemma polar_smul_left (a : R) (x y : M) :
   polar Q (a • x) y = a * polar Q x y :=
 begin
   obtain ⟨B, h⟩ := Q.exists_companion,
-  simp_rw [polar, h, Q.map_smul, bilin_form.smul_left, sub_sub, add_sub_cancel'],
+  simp_rw [polar, h, Q.map_smul, B.map_smul₂, smul_eq_mul, sub_sub, add_sub_cancel'],
 end
 
 @[simp]
@@ -309,8 +311,8 @@ lemma some_exists_companion : Q.exists_companion.some = polar_bilin Q :=
 bilin_form.ext $ λ x y,
   by rw [polar_bilin_apply, polar, Q.exists_companion.some_spec, sub_sub, add_sub_cancel']
 
-end ring
-
+end comm_ring
+#exit
 section semiring_operators
 variables [semiring R] [add_comm_monoid M] [module R M]
 

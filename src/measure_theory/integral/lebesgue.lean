@@ -2243,7 +2243,7 @@ end
 -- Q: Is this instance a bad idea? It is certainly always the correct one, but does it
 -- affect performance?
 @[priority 100]
-instance measurable_space.top.measurable_singleton_class {α : Type*} :
+instance _root_.measurable_space.top.measurable_singleton_class {α : Type*} :
   @measurable_singleton_class α (⊤ : measurable_space α) :=
 { measurable_set_singleton := λ i, measurable_space.measurable_set_top, }
 

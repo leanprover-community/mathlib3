@@ -192,25 +192,4 @@ lemma Union_Iic_eq_Iic_supr {R : Type*} [complete_linear_order R]
   (⋃ (i : ι), Iic (f i)) = Iic (⨆ i, f i) :=
 @Union_Ici_eq_Ici_infi ι (order_dual R) _ f has_greatest_elem
 
-open_locale topological_space
-
-open filter
-
-lemma infi_eq_of_forall_le_of_tendsto {R : Type*}
-  [complete_linear_order R] [topological_space R] [order_topology R]
-  {x : R} {as : ι → R} (x_le : ∀ i, x ≤ as i) {F : filter ι} [filter.ne_bot F]
-  (as_lim : filter.tendsto as F (𝓝 x)) :
-  (⨅ i, as i) = x :=
-begin
-  refine infi_eq_of_forall_ge_of_forall_gt_exists_lt (λ i, x_le i) _,
-  apply λ w x_lt_w, ne_bot.nonempty_of_mem ‹filter.ne_bot F› (eventually_lt_of_tendsto_lt x_lt_w as_lim),
-end
-
-lemma supr_eq_of_forall_le_of_tendsto {R : Type*}
-  [complete_linear_order R] [topological_space R] [order_topology R]
-  {x : R} {as : ι → R} (le_x : ∀ i, as i ≤ x) {F : filter ι} [filter.ne_bot F]
-  (as_lim : filter.tendsto as F (𝓝 x)) :
-  (⨆ i, as i) = x :=
-@infi_eq_of_forall_le_of_tendsto ι (order_dual R) _ _ _ x as le_x F _ as_lim
-
 end Union_Ixx

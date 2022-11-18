@@ -3,8 +3,10 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Mario Carneiro, Anne Baanen
 -/
+import algebra.ring.fin
 import linear_algebra.quotient
 import ring_theory.ideal.basic
+import tactic.fin_cases
 /-!
 # Ideal quotients
 
@@ -121,6 +123,8 @@ instance : unique (R ⧸ (⊤ : ideal R)) :=
 lemma mk_surjective : function.surjective (mk I) :=
 λ y, quotient.induction_on' y (λ x, exists.intro x rfl)
 
+instance : ring_hom_surjective (mk I) := ⟨mk_surjective⟩
+
 /-- If `I` is an ideal of a commutative ring `R`, if `q : R → R/I` is the quotient map, and if
 `s ⊆ R` is a subset, then `q⁻¹(q(s)) = ⋃ᵢ(i + s)`, the union running over all `i ∈ I`. -/
 lemma quotient_ring_saturate (I : ideal R) (s : set R) :
@@ -142,8 +146,8 @@ instance is_domain (I : ideal R) [hI : I.is_prime] : is_domain (R ⧸ I) :=
   .. quotient.nontrivial hI.1 }
 
 lemma is_domain_iff_prime (I : ideal R) : is_domain (R ⧸ I) ↔ I.is_prime :=
-⟨ λ ⟨h1, h2⟩, ⟨zero_ne_one_iff.1 $ @zero_ne_one _ _ ⟨h2⟩, λ x y h,
-    by { simp only [←eq_zero_iff_mem, (mk I).map_mul] at ⊢ h, exact h1 h}⟩,
+⟨ λ ⟨h1, h2⟩, by { haveI : nontrivial _ := ⟨h2⟩, exact ⟨zero_ne_one_iff.1 zero_ne_one, λ x y h,
+    by { simp only [←eq_zero_iff_mem, (mk I).map_mul] at ⊢ h, exact h1 h}⟩ },
   λ h, by { resetI, apply_instance }⟩
 
 lemma exists_inv {I : ideal R} [hI : I.is_maximal] :
@@ -207,6 +211,15 @@ def lift (I : ideal R) (f : R →+* S) (H : ∀ (a : R), a ∈ I → f a = 0) :
 
 @[simp] lemma lift_mk (I : ideal R) (f : R →+* S) (H : ∀ (a : R), a ∈ I → f a = 0) :
   lift I f H (mk I a) = f a := rfl
+
+lemma lift_surjective_of_surjective (I : ideal R) {f : R →+* S} (H : ∀ (a : R), a ∈ I → f a = 0)
+  (hf : function.surjective f) : function.surjective (ideal.quotient.lift I f H) :=
+begin
+  intro y,
+  obtain ⟨x, rfl⟩ := hf y,
+  use ideal.quotient.mk I x,
+  simp only [ideal.quotient.lift_mk],
+end
 
 /-- The ring homomorphism from the quotient by a smaller ideal to the quotient by a larger ideal.
 
@@ -398,5 +411,39 @@ noncomputable def quotient_inf_ring_equiv_pi_quotient [finite ι] (f : ι → id
   .. quotient_inf_to_pi_quotient f }
 
 end chinese_remainder
+
+/-- **Chinese remainder theorem**, specialized to two ideals. -/
+noncomputable def quotient_inf_equiv_quotient_prod (I J : ideal R)
+  (coprime : I ⊔ J = ⊤) :
+  (R ⧸ (I ⊓ J)) ≃+* (R ⧸ I) × R ⧸ J :=
+let f : fin 2 → ideal R := ![I, J] in
+have hf : ∀ (i j : fin 2), i ≠ j → f i ⊔ f j = ⊤,
+by { intros i j h,
+  fin_cases i; fin_cases j; try { contradiction }; simpa [f, sup_comm] using coprime },
+(ideal.quot_equiv_of_eq (by simp [infi, inf_comm])).trans $
+(ideal.quotient_inf_ring_equiv_pi_quotient f hf).trans $
+ring_equiv.pi_fin_two (λ i, R ⧸ f i)
+
+@[simp] lemma quotient_inf_equiv_quotient_prod_fst (I J : ideal R) (coprime : I ⊔ J = ⊤)
+  (x : R ⧸ (I ⊓ J)) : (quotient_inf_equiv_quotient_prod I J coprime x).fst =
+  ideal.quotient.factor (I ⊓ J) I inf_le_left x :=
+quot.induction_on x (λ x, rfl)
+
+@[simp] lemma quotient_inf_equiv_quotient_prod_snd (I J : ideal R) (coprime : I ⊔ J = ⊤)
+  (x : R ⧸ (I ⊓ J)) : (quotient_inf_equiv_quotient_prod I J coprime x).snd =
+  ideal.quotient.factor (I ⊓ J) J inf_le_right x :=
+quot.induction_on x (λ x, rfl)
+
+@[simp] lemma fst_comp_quotient_inf_equiv_quotient_prod (I J : ideal R) (coprime : I ⊔ J = ⊤) :
+  (ring_hom.fst _ _).comp
+    (quotient_inf_equiv_quotient_prod I J coprime : R ⧸ I ⊓ J →+* (R ⧸ I) × R ⧸ J) =
+  ideal.quotient.factor (I ⊓ J) I inf_le_left :=
+by ext; refl
+
+@[simp] lemma snd_comp_quotient_inf_equiv_quotient_prod (I J : ideal R) (coprime : I ⊔ J = ⊤) :
+  (ring_hom.snd _ _).comp
+    (quotient_inf_equiv_quotient_prod I J coprime : R ⧸ I ⊓ J →+* (R ⧸ I) × R ⧸ J) =
+  ideal.quotient.factor (I ⊓ J) J inf_le_right :=
+by ext; refl
 
 end ideal

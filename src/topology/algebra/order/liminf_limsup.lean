@@ -3,9 +3,10 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
+import algebra.big_operators.intervals
 import order.liminf_limsup
-import topology.algebra.order.basic
 import order.filter.archimedean
+import topology.algebra.order.basic
 
 /-!
 # Lemmas about liminf and limsup in an order topology.
@@ -151,18 +152,18 @@ theorem Limsup_eq_of_le_nhds : ∀ {f : filter α} {a : α} [ne_bot f], f ≤ �
 
 /-- If a function has a limit, then its limsup coincides with its limit. -/
 theorem filter.tendsto.limsup_eq {f : filter β} {u : β → α} {a : α} [ne_bot f]
-  (h : tendsto u f (𝓝 a)) : limsup f u = a :=
+  (h : tendsto u f (𝓝 a)) : limsup u f = a :=
 Limsup_eq_of_le_nhds h
 
 /-- If a function has a limit, then its liminf coincides with its limit. -/
 theorem filter.tendsto.liminf_eq {f : filter β} {u : β → α} {a : α} [ne_bot f]
-  (h : tendsto u f (𝓝 a)) : liminf f u = a :=
+  (h : tendsto u f (𝓝 a)) : liminf u f = a :=
 Liminf_eq_of_le_nhds h
 
 /-- If the liminf and the limsup of a function coincide, then the limit of the function
 exists and has the same value -/
 theorem tendsto_of_liminf_eq_limsup {f : filter β} {u : β → α} {a : α}
-  (hinf : liminf f u = a) (hsup : limsup f u = a)
+  (hinf : liminf u f = a) (hsup : limsup u f = a)
   (h : f.is_bounded_under (≤) u . is_bounded_default)
   (h' : f.is_bounded_under (≥) u . is_bounded_default) :
   tendsto u f (𝓝 a) :=
@@ -171,7 +172,7 @@ le_nhds_of_Limsup_eq_Liminf h h' hsup hinf
 /-- If a number `a` is less than or equal to the `liminf` of a function `f` at some filter
 and is greater than or equal to the `limsup` of `f`, then `f` tends to `a` along this filter. -/
 theorem tendsto_of_le_liminf_of_limsup_le {f : filter β} {u : β → α} {a : α}
-  (hinf : a ≤ liminf f u) (hsup : limsup f u ≤ a)
+  (hinf : a ≤ liminf u f) (hsup : limsup u f ≤ a)
   (h : f.is_bounded_under (≤) u . is_bounded_default)
   (h' : f.is_bounded_under (≥) u . is_bounded_default) :
   tendsto u f (𝓝 a) :=
@@ -193,7 +194,7 @@ lemma tendsto_of_no_upcrossings [densely_ordered α]
 begin
   by_cases hbot : f = ⊥, { rw hbot, exact ⟨Inf ∅, tendsto_bot⟩ },
   haveI : ne_bot f := ⟨hbot⟩,
-  refine ⟨limsup f u, _⟩,
+  refine ⟨limsup u f, _⟩,
   apply tendsto_of_le_liminf_of_limsup_le _ le_rfl h h',
   by_contra' hlt,
   obtain ⟨a, ⟨⟨la, au⟩, as⟩⟩ : ∃ a, (f.liminf u < a ∧ a < f.limsup u) ∧ a ∈ s :=
@@ -324,7 +325,7 @@ section indicator
 open_locale big_operators
 
 lemma limsup_eq_tendsto_sum_indicator_nat_at_top (s : ℕ → set α) :
-  limsup at_top s =
+  limsup s at_top =
     {ω | tendsto (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : α → ℕ) ω) at_top at_top} :=
 begin
   ext ω,
@@ -382,8 +383,8 @@ begin
 end
 
 lemma limsup_eq_tendsto_sum_indicator_at_top
-  (R : Type*) [ordered_semiring R] [nontrivial R] [archimedean R] (s : ℕ → set α) :
-  limsup at_top s =
+  (R : Type*) [strict_ordered_semiring R] [archimedean R] (s : ℕ → set α) :
+  limsup s at_top =
     {ω | tendsto (λ n, ∑ k in finset.range n, (s (k + 1)).indicator (1 : α → R) ω) at_top at_top} :=
 begin
   rw limsup_eq_tendsto_sum_indicator_nat_at_top s,

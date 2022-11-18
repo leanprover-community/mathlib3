@@ -5,6 +5,7 @@ Authors: David Wärn
 -/
 import combinatorics.quiver.subquiver
 import combinatorics.quiver.path
+import data.sum.basic
 
 /-!
 ## Weakly connected components
@@ -76,15 +77,15 @@ instance : has_involutive_reverse (symmetrify V) :=
 
 /-- The inclusion of a quiver in its symmetrification -/
 def symmetrify.of : prefunctor V (symmetrify V) :=
-{ obj := id
-, map := λ X Y f, sum.inl f }
+{ obj := id,
+  map := λ X Y f, sum.inl f }
 
 /-- Given a quiver `V'` with reversible arrows, a prefunctor to `V'` can be lifted to one from
     `symmetrify V` to `V'` -/
 def symmetrify.lift {V' : Type*} [quiver V'] [has_reverse V'] (φ : prefunctor V V') :
   prefunctor (symmetrify V) V' :=
-{ obj := φ.obj
-, map := λ X Y f, sum.rec (λ fwd, φ.map fwd) (λ bwd, reverse (φ.map bwd)) f }
+{ obj := φ.obj,
+  map := λ X Y f, sum.rec (λ fwd, φ.map fwd) (λ bwd, reverse (φ.map bwd)) f }
 
 lemma symmetrify.lift_spec  (V' : Type*) [quiver V'] [has_reverse V'] (φ : prefunctor V V') :
   symmetrify.of.comp (symmetrify.lift φ) = φ :=
@@ -105,7 +106,7 @@ begin
 end
 
 /-- `lift φ` is the only prefunctor extending `φ` and preserving reverses. -/
-lemma symmetrify.lift_spec_unique (V' : Type*) [quiver V'] [has_reverse V']
+lemma symmetrify.lift_unique (V' : Type*) [quiver V'] [has_reverse V']
   (φ : prefunctor V V')
   (Φ : prefunctor (symmetrify V) V')
   (hΦ : symmetrify.of.comp Φ = φ)

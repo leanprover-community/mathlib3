@@ -3,7 +3,9 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
-import data.nat.basic
+import algebra.order.with_zero
+import data.nat.order.lemmas
+import data.set.function
 
 /-!
 # Basic properties of lists
@@ -13,7 +15,7 @@ open function nat (hiding one_pos)
 
 namespace list
 universes u v w x
-variables {ι : Type*} {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
+variables {ι : Type*} {α : Type u} {β : Type v} {γ : Type w} {δ : Type x} {l₁ l₂ : list α}
 
 attribute [inline] list.head
 
@@ -276,6 +278,8 @@ lemma length_eq_two {l : list α} : l.length = 2 ↔ ∃ a b, l = [a, b] :=
 
 lemma length_eq_three {l : list α} : l.length = 3 ↔ ∃ a b c, l = [a, b, c] :=
 ⟨match l with [a, b, c], _ := ⟨a, b, c, rfl⟩ end, λ ⟨a, b, c, e⟩, e.symm ▸ rfl⟩
+
+alias length_le_of_sublist ← sublist.length_le
 
 /-! ### set-theoretic notation of lists -/
 
@@ -1090,22 +1094,25 @@ eq_nil_of_subset_nil $ s.subset
 ⟨eq_nil_of_sublist_nil, λ H, H ▸ sublist.refl _⟩
 
 @[simp] theorem repeat_sublist_repeat (a : α) {m n} : repeat a m <+ repeat a n ↔ m ≤ n :=
-⟨λ h, by simpa only [length_repeat] using length_le_of_sublist h,
+⟨λ h, by simpa only [length_repeat] using h.length_le,
  λ h, by induction h; [refl, simp only [*, repeat_succ, sublist.cons]] ⟩
 
-theorem eq_of_sublist_of_length_eq : ∀ {l₁ l₂ : list α}, l₁ <+ l₂ → length l₁ = length l₂ → l₁ = l₂
+lemma sublist_repeat_iff {l : list α} {a : α} {n : ℕ} :
+  l <+ repeat a n ↔ ∃ (k ≤ n), l = repeat a k :=
+⟨λ h, ⟨l.length, h.length_le.trans (length_repeat _ _).le, eq_repeat.mpr
+         ⟨rfl, λ b hb, list.eq_of_mem_repeat (h.subset hb)⟩⟩,
+ by { rintro ⟨k, h, rfl⟩, exact (repeat_sublist_repeat _).mpr h }⟩
+
+theorem sublist.eq_of_length : ∀ {l₁ l₂ : list α}, l₁ <+ l₂ → length l₁ = length l₂ → l₁ = l₂
 | ._ ._ sublist.slnil             h := rfl
-| ._ ._ (sublist.cons  l₁ l₂ a s) h :=
-  absurd (length_le_of_sublist s) $ not_le_of_gt $ by rw h; apply lt_succ_self
+| ._ ._ (sublist.cons  l₁ l₂ a s) h := by cases s.length_le.not_lt (by rw h; apply lt_succ_self)
 | ._ ._ (sublist.cons2 l₁ l₂ a s) h :=
-  by rw [length, length] at h; injection h with h; rw eq_of_sublist_of_length_eq s h
+  by rw [length, length] at h; injection h with h; rw s.eq_of_length h
 
-theorem eq_of_sublist_of_length_le {l₁ l₂ : list α} (s : l₁ <+ l₂) (h : length l₂ ≤ length l₁) :
-  l₁ = l₂ :=
-eq_of_sublist_of_length_eq s (le_antisymm (length_le_of_sublist s) h)
+theorem sublist.eq_of_length_le (s : l₁ <+ l₂) (h : length l₂ ≤ length l₁) : l₁ = l₂ :=
+s.eq_of_length $ s.length_le.antisymm h
 
-theorem sublist.antisymm {l₁ l₂ : list α} (s₁ : l₁ <+ l₂) (s₂ : l₂ <+ l₁) : l₁ = l₂ :=
-eq_of_sublist_of_length_le s₁ (length_le_of_sublist s₂)
+lemma sublist.antisymm (s₁ : l₁ <+ l₂) (s₂ : l₂ <+ l₁) : l₁ = l₂ := s₁.eq_of_length_le s₂.length_le
 
 instance decidable_sublist [decidable_eq α] : ∀ (l₁ l₂ : list α), decidable (l₁ <+ l₂)
 | []      l₂      := is_true $ nil_sublist _
@@ -1328,6 +1335,10 @@ lemma last_eq_nth_le : ∀ (l : list α) (h : l ≠ []),
 | (a :: b :: l) h := by { rw [last_cons, last_eq_nth_le (b :: l)],
                           refl, exact cons_ne_nil b l }
 
+lemma nth_le_length_sub_one {l : list α} (h : l.length - 1 < l.length) :
+  l.nth_le (l.length - 1) h = l.last (by { rintro rfl, exact nat.lt_irrefl 0 h }) :=
+(last_eq_nth_le l _).symm
+
 @[simp] lemma nth_concat_length : ∀ (l : list α) (a : α), (l ++ [a]).nth l.length = some a
 | []     a := rfl
 | (b::l) a := by rw [cons_append, length_cons, nth, nth_concat_length]
@@ -1338,6 +1349,17 @@ begin
   rw last_eq_nth_le,
   congr,
   simp [h]
+end
+
+lemma take_one_drop_eq_of_lt_length {l : list α} {n : ℕ} (h : n < l.length) :
+  (l.drop n).take 1 = [l.nth_le n h] :=
+begin
+  induction l with x l ih generalizing n,
+  { cases h },
+  { by_cases h₁ : l = [],
+    { subst h₁, rw nth_le_singleton, simp at h, subst h, simp },
+    have h₂ := h, rw [length_cons, nat.lt_succ_iff, le_iff_eq_or_lt] at h₂,
+    cases n, { simp }, rw [drop, nth_le], apply ih },
 end
 
 @[ext]
@@ -1927,6 +1949,31 @@ end
   l.take k = [] ↔ l = [] ∨ k = 0 :=
 by { cases l; cases k; simp [nat.succ_ne_zero] }
 
+lemma take_eq_take : ∀ {l : list α} {m n : ℕ},
+  l.take m = l.take n ↔ min m l.length = min n l.length
+| [] m n := by simp
+| (x :: xs) 0 0 := by simp
+| (x :: xs) (m + 1) 0 := by simp
+| (x :: xs) 0 (n + 1) := by simp [@eq_comm ℕ 0]
+| (x :: xs) (m + 1) (n + 1) := by simp [nat.min_succ_succ, take_eq_take]
+
+lemma take_add (l : list α) (m n : ℕ) :
+  l.take (m + n) = l.take m ++ (l.drop m).take n :=
+begin
+  convert_to
+    take (m + n) (take m l ++ drop m l) =
+    take m l ++ take n (drop m l),
+  { rw take_append_drop },
+  rw [take_append_eq_append_take, take_all_of_le, append_right_inj], swap,
+  { transitivity m,
+    { apply length_take_le },
+    { simp }},
+  simp only [take_eq_take, length_take, length_drop],
+  generalize : l.length = k, by_cases h : m ≤ k,
+  { simp [min_eq_left_iff.mpr h] },
+  { push_neg at h, simp [nat.sub_eq_zero_of_le (le_of_lt h)] },
+end
+
 lemma init_eq_take (l : list α) : l.init = l.take l.length.pred :=
 begin
   cases l with x l,
@@ -2015,6 +2062,16 @@ theorem drop_eq_nth_le_cons : ∀ {n} {l : list α} h,
 @[simp] lemma drop_length (l : list α) : l.drop l.length = [] :=
 calc l.drop l.length = (l ++ []).drop l.length : by simp
                  ... = [] : drop_left _ _
+
+lemma drop_length_cons {l : list α} (h : l ≠ []) (a : α) :
+  (a :: l).drop l.length = [l.last h] :=
+begin
+  induction l with y l ih generalizing a,
+  { cases h rfl },
+  { simp only [drop, length],
+    by_cases h₁ : l = [], { simp [h₁] },
+    rw last_cons h₁, exact ih h₁ y },
+end
 
 /-- Dropping the elements up to `n` in `l₁ ++ l₂` is the same as dropping the elements up to `n`
 in `l₁`, dropping the elements up to `n - l₁.length` in `l₂`, and appending them. -/
@@ -2216,9 +2273,6 @@ foldl_fixed' (λ _, rfl)
 
 @[simp] theorem foldr_fixed {b : β} : Π l : list α, foldr (λ a b, b) b l = b :=
 foldr_fixed' (λ _, rfl)
-
-@[simp] theorem foldl_combinator_K {a : α} : Π l : list β, foldl combinator.K a l = a :=
-foldl_fixed
 
 @[simp] theorem foldl_join (f : α → β → α) :
   ∀ (a : α) (L : list (list β)), foldl f a (join L) = foldl (foldl f) a L
@@ -2711,8 +2765,16 @@ theorem pmap_eq_map_attach {p : α → Prop} (f : Π a, p a → β)
   (l H) : pmap f l H = l.attach.map (λ x, f x.1 (H _ x.2)) :=
 by rw [attach, map_pmap]; exact pmap_congr l (λ _ _ _ _, rfl)
 
-theorem attach_map_val (l : list α) : l.attach.map subtype.val = l :=
-by rw [attach, map_pmap]; exact (pmap_eq_map _ _ _ _).trans (map_id l)
+@[simp] lemma attach_map_coe' (l : list α) (f : α → β) : l.attach.map (λ i, f i) = l.map f :=
+by rw [attach, map_pmap]; exact (pmap_eq_map _ _ _ _)
+
+lemma attach_map_val' (l : list α) (f : α → β) : l.attach.map (λ i, f i.val) = l.map f :=
+attach_map_coe' _ _
+
+@[simp] lemma attach_map_coe (l : list α) : l.attach.map (coe : _ → α) = l :=
+(attach_map_coe' _ _).trans l.map_id
+
+lemma attach_map_val (l : list α) : l.attach.map subtype.val = l := attach_map_coe _
 
 @[simp] theorem mem_attach (l : list α) : ∀ x, x ∈ l.attach | ⟨a, h⟩ :=
 by have := mem_map.1 (by rw [attach_map_val]; exact h);
@@ -3003,7 +3065,7 @@ by simp only [map_filter_map, H, filter_map_some]
 
 theorem length_filter_le (p : α → Prop) [decidable_pred p] (l : list α) :
   (l.filter p).length ≤ l.length :=
-list.length_le_of_sublist (list.filter_sublist _)
+(list.filter_sublist _).length_le
 
 theorem length_filter_map_le (f : α → option β) (l : list α) :
   (list.filter_map f l).length ≤ l.length :=
@@ -3169,14 +3231,13 @@ begin
   { exact iff_of_true rfl (forall_mem_nil _) },
   rw forall_mem_cons, by_cases p a,
   { rw [filter_cons_of_pos _ h, cons_inj, ih, and_iff_right h] },
-  { rw [filter_cons_of_neg _ h],
-    refine iff_of_false _ (mt and.left h), intro e,
-    have := filter_sublist l, rw e at this,
-    exact not_lt_of_ge (length_le_of_sublist this) (lt_succ_self _) }
+  { refine iff_of_false (λ hl, h $ of_mem_filter (_ : a ∈ filter p (a :: l))) (mt and.left h),
+    rw hl,
+    exact mem_cons_self _ _ }
 end
 
 theorem filter_length_eq_length {l} : (filter p l).length = l.length ↔ ∀ a ∈ l, p a :=
-iff.trans ⟨eq_of_sublist_of_length_eq l.filter_sublist, congr_arg list.length⟩ filter_eq_self
+iff.trans ⟨l.filter_sublist.eq_of_length, congr_arg list.length⟩ filter_eq_self
 
 theorem filter_eq_nil {l} : filter p l = [] ↔ ∀ a ∈ l, ¬p a :=
 by simp only [eq_nil_iff_forall_not_mem, mem_filter, not_and]

@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Kevin Buzzard, Yaël Dillies, Eric Wieser
 -/
 import data.finset.pairwise
-import data.set.finite
+import data.finset.powerset
+import data.fintype.basic
 
 /-!
 # Supremum independence
@@ -302,8 +303,7 @@ lemma independent_pair {i j : ι} (hij : i ≠ j) (huniv : ∀ k, k = i ∨ k = 
   independent t ↔ disjoint (t i) (t j) :=
 begin
   split,
-  { intro h,
-    exact h.pairwise_disjoint _ _ hij, },
+  { exact λ h, h.pairwise_disjoint hij },
   { rintros h k,
     obtain rfl | rfl := huniv k,
     { refine h.mono_right (supr_le $ λ i, supr_le $ λ hi, eq.le _),
@@ -376,7 +376,7 @@ alias set_independent_iff_pairwise_disjoint ↔ _ _root_.set.pairwise_disjoint.s
 
 lemma independent_iff_pairwise_disjoint {f : ι → α} : independent f ↔ pairwise (disjoint on f) :=
 ⟨independent.pairwise_disjoint, λ hs i, disjoint_supr_iff.2 $ λ j, disjoint_supr_iff.2 $ λ hij,
-  hs _ _ hij.symm⟩
+  hs hij.symm⟩
 
 end complete_lattice
 

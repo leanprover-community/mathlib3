@@ -6,7 +6,6 @@ Authors: Andreas Swerdlow, Kexing Ying
 
 import linear_algebra.dual
 import linear_algebra.matrix.to_lin
-import linear_algebra.tensor_product
 
 /-!
 # Bilinear form
@@ -945,8 +944,8 @@ end
   is complement to its orthogonal complement. -/
 lemma is_compl_span_singleton_orthogonal {B : bilin_form K V}
   {x : V} (hx : ¬ B.is_ortho x x) : is_compl (K ∙ x) (B.orthogonal $ K ∙ x) :=
-{ disjoint := eq_bot_iff.1 $ span_singleton_inf_orthogonal_eq_bot hx,
-  codisjoint := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hx }
+{ disjoint := disjoint_iff.2 $ span_singleton_inf_orthogonal_eq_bot hx,
+  codisjoint := codisjoint_iff.2 $ span_singleton_sup_orthogonal_eq_top hx }
 
 end orthogonal
 
@@ -1024,7 +1023,7 @@ lemma nondegenerate_restrict_of_disjoint_orthogonal
 begin
   rintro ⟨x, hx⟩ b₁,
   rw [submodule.mk_eq_zero, ← submodule.mem_bot R₁],
-  refine hW ⟨hx, λ y hy, _⟩,
+  refine hW.le_bot ⟨hx, λ y hy, _⟩,
   specialize b₁ ⟨y, hy⟩,
   rw [restrict_apply, submodule.coe_mk, submodule.coe_mk] at b₁,
   exact is_ortho_def.mpr (b x y b₁),
@@ -1047,7 +1046,7 @@ begin
   convert mul_zero _ using 2,
   obtain rfl | hij := eq_or_ne i j,
   { exact ho },
-  { exact h i j hij },
+  { exact h hij },
 end
 
 /-- Given an orthogonal basis with respect to a bilinear form, the bilinear form is nondegenerate
@@ -1065,7 +1064,7 @@ begin
   simp_rw [basis.repr_symm_apply, finsupp.total_apply, finsupp.sum, sum_left, smul_left] at hB,
   rw finset.sum_eq_single i at hB,
   { exact eq_zero_of_ne_zero_of_mul_right_eq_zero (ho i) hB, },
-  { intros j hj hij, convert mul_zero _ using 2, exact hO j i hij, },
+  { intros j hj hij, convert mul_zero _ using 2, exact hO hij, },
   { intros hi, convert zero_mul _ using 2, exact finsupp.not_mem_support_iff.mp hi }
 end
 
@@ -1097,9 +1096,9 @@ lemma to_lin_restrict_range_dual_annihilator_comap_eq_orthogonal
 begin
   ext x, split; rw [mem_orthogonal_iff]; intro hx,
   { intros y hy,
-    rw submodule.mem_dual_annihilator_comap_iff at hx,
+    rw submodule.mem_dual_annihilator_comap at hx,
     refine hx (B.to_lin.dom_restrict W ⟨y, hy⟩) ⟨⟨y, hy⟩, rfl⟩ },
-  { rw submodule.mem_dual_annihilator_comap_iff,
+  { rw submodule.mem_dual_annihilator_comap,
     rintro _ ⟨⟨w, hw⟩, rfl⟩,
     exact hx w hw }
 end

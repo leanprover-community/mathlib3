@@ -3,10 +3,10 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johan Commelin
 -/
-import algebra.hom.equiv
-import algebra.ring.basic
-import logic.equiv.basic
-import logic.equiv.option
+import order.bounded_order
+import algebra.hom.equiv.basic
+import algebra.group_with_zero.units.basic
+import algebra.ring.defs
 
 /-!
 # Adjoining a zero/one to semigroups and related algebraic structures
@@ -49,6 +49,11 @@ instance [has_mul α] : has_mul (with_one α) := ⟨option.lift_or_get (*)⟩
 
 @[to_additive] instance [has_involutive_inv α] : has_involutive_inv (with_one α) :=
 { inv_inv := λ a, (option.map_map _ _ _).trans $ by simp_rw [inv_comp_inv, option.map_id, id],
+  ..with_one.has_inv }
+
+@[to_additive] instance [has_inv α] : inv_one_class (with_one α) :=
+{ inv_one := rfl,
+  ..with_one.has_one,
   ..with_one.has_inv }
 
 @[to_additive]
@@ -326,6 +331,11 @@ instance [has_involutive_inv α] : has_involutive_inv (with_zero α) :=
 { inv_inv := λ a, (option.map_map _ _ _).trans $ by simp_rw [inv_comp_inv, option.map_id, id],
   ..with_zero.has_inv }
 
+instance [inv_one_class α] : inv_one_class (with_zero α) :=
+{ inv_one := show ((1⁻¹ : α) : with_zero α) = 1, by simp,
+  ..with_zero.has_one,
+  ..with_zero.has_inv }
+
 instance [has_div α] : has_div (with_zero α) :=
 ⟨λ o₁ o₂, o₁.bind (λ a, option.map (λ b, a / b) o₂)⟩
 
@@ -365,6 +375,10 @@ instance [div_inv_monoid α] : div_inv_monoid (with_zero α) :=
   .. with_zero.has_inv,
   .. with_zero.monoid_with_zero, }
 
+instance [div_inv_one_monoid α] : div_inv_one_monoid (with_zero α) :=
+{ ..with_zero.div_inv_monoid,
+  ..with_zero.inv_one_class }
+
 instance [division_monoid α] : division_monoid (with_zero α) :=
 { mul_inv_rev := λ a b, match a, b with
     | none,   none   := rfl
@@ -385,9 +399,6 @@ instance [division_comm_monoid α] : division_comm_monoid (with_zero α) :=
 
 section group
 variables [group α]
-
-@[simp] lemma inv_one : (1 : with_zero α)⁻¹ = 1 :=
-show ((1⁻¹ : α) : with_zero α) = 1, by simp
 
 /-- if `G` is a group then `with_zero G` is a group with zero. -/
 instance : group_with_zero (with_zero α) :=

@@ -145,8 +145,8 @@ end
 
 end semiring
 
-section ordered_semiring
-variables {S : Type*} [ordered_semiring S] [nontrivial S]
+section strict_ordered_semiring
+variables {S : Type*} [strict_ordered_semiring S]
 
 lemma pochhammer_pos (n : ℕ) (s : S) (h : 0 < s) : 0 < (pochhammer S n).eval s :=
 begin
@@ -158,7 +158,7 @@ begin
       (lt_of_lt_of_le h ((le_add_iff_nonneg_right _).mpr (nat.cast_nonneg n))), }
 end
 
-end ordered_semiring
+end strict_ordered_semiring
 
 section factorial
 

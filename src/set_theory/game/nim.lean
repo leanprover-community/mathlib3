@@ -188,7 +188,7 @@ lemma exists_ordinal_move_left_eq {o : ordinal} (i) : ∃ o' < o, (nim o).move_l
 lemma exists_move_left_eq {o o' : ordinal} (h : o' < o) : ∃ i, (nim o).move_left i = nim o' :=
 ⟨to_left_moves_nim ⟨o', h⟩, by simp⟩
 
-lemma nim_fuzzy_zero_of_ne_zero {o : ordinal} (ho : o ≠ 0) : nim o ∥ 0 :=
+lemma nim_fuzzy_zero_of_ne_zero {o : ordinal} (ho : o ≠ 0) : nim o ‖ 0 :=
 begin
   rw [impartial.fuzzy_zero_iff_lf, nim_def, lf_zero_le],
   rw ←ordinal.pos_iff_ne_zero at ho,
@@ -198,22 +198,21 @@ end
 @[simp] lemma nim_add_equiv_zero_iff (o₁ o₂ : ordinal) : nim o₁ + nim o₂ ≈ 0 ↔ o₁ = o₂ :=
 begin
   split,
-  { contrapose,
-    intro h,
-    rw [impartial.not_equiv_zero_iff],
-    wlog h' : o₁ ≤ o₂ using [o₁ o₂, o₂ o₁],
-    { exact le_total o₁ o₂ },
-    { have h : o₁ < o₂ := lt_of_le_of_ne h' h,
-      rw [impartial.fuzzy_zero_iff_gf, zero_lf_le, nim_def o₂],
+  { refine not_imp_not.1 (λ (h : _ ≠ _), (impartial.not_equiv_zero_iff _).2 _),
+    obtain h | h := h.lt_or_lt,
+    { rw [impartial.fuzzy_zero_iff_gf, zero_lf_le, nim_def o₂],
       refine ⟨to_left_moves_add (sum.inr _), _⟩,
       { exact (ordinal.principal_seg_out h).top },
       { simpa using (impartial.add_self (nim o₁)).2 } },
-    { exact (fuzzy_congr_left add_comm_equiv).1 (this (ne.symm h)) } },
+    { rw [impartial.fuzzy_zero_iff_gf, zero_lf_le, nim_def o₁],
+      refine ⟨to_left_moves_add (sum.inl _), _⟩,
+      { exact (ordinal.principal_seg_out h).top },
+      { simpa using (impartial.add_self (nim o₂)).2 } } },
   { rintro rfl,
     exact impartial.add_self (nim o₁) }
 end
 
-@[simp] lemma nim_add_fuzzy_zero_iff {o₁ o₂ : ordinal} : nim o₁ + nim o₂ ∥ 0 ↔ o₁ ≠ o₂ :=
+@[simp] lemma nim_add_fuzzy_zero_iff {o₁ o₂ : ordinal} : nim o₁ + nim o₂ ‖ 0 ↔ o₁ ≠ o₂ :=
 by rw [iff_not_comm, impartial.not_fuzzy_zero_iff, nim_add_equiv_zero_iff]
 
 @[simp] lemma nim_equiv_iff_eq {o₁ o₂ : ordinal} : nim o₁ ≈ nim o₂ ↔ o₁ = o₂ :=

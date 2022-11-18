@@ -200,7 +200,7 @@ end
 by simp only [basis.sum_coords, linear_map.id_coe, linear_equiv.coe_coe, id.def, basis.repr_self,
   function.comp_app, finsupp.coe_lsum, linear_map.coe_comp, finsupp.sum_single_index]
 
-lemma coord_dvd_of_dvd (i : ι) (m : M) (r : R) : r ∣ b.coord i (r • m) :=
+lemma dvd_coord_smul (i : ι) (m : M) (r : R) : r ∣ b.coord i (r • m) :=
 ⟨b.coord i m, by simp⟩
 
 lemma coord_repr_symm (b : basis ι R M) (i : ι) (f : ι →₀  R) :

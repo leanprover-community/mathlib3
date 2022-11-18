@@ -101,7 +101,6 @@ begin
   ring,
 end
 
-end add_circle
 
 section def_measure
 
@@ -319,14 +318,14 @@ lemma fourier_series_repr' (f : Lp ℂ 2 $ @haar_add_circle T hT) (n : ℤ) (a :
 begin
   have ha : ae_strongly_measurable (λ (t : add_circle T), fourier (-n) t * f t) haar_add_circle :=
   (continuous_map_class.map_continuous _).ae_strongly_measurable.mul (Lp.ae_strongly_measurable _),
-  have := add_circle.interval_integral_preimage T a (ha.smul_measure _),
-  rw [fourier_series_repr, this, ←complex.of_real_one, ←complex.of_real_div, ←complex.real_smul,
+  rw [fourier_series_repr, add_circle.interval_integral_preimage T a (ha.smul_measure _),
+    ←complex.of_real_one, ←complex.of_real_div, ←complex.real_smul,
     ←@ennreal.to_real_of_real (1 / T) (one_div_pos.mpr hT.elim).le, ←integral_smul_measure],
-  congr' 1,
   dsimp only [(volume), haar_add_circle],
-  rw [←smul_assoc, smul_eq_mul],
-  suffices : ennreal.of_real (1 / T) * ennreal.of_real T = 1, { rw [this,  one_smul], },
-  { rw [←ennreal.of_real_mul' hT.elim.le, one_div_mul_cancel hT.elim.ne', ennreal.of_real_one] },
+  rw [←smul_assoc, smul_eq_mul, ←ennreal.of_real_mul' hT.elim.le, one_div_mul_cancel hT.elim.ne',
+    ennreal.of_real_one,  one_smul],
 end
 
 end fourier
+
+end add_circle

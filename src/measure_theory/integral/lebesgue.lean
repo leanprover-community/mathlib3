@@ -2263,7 +2263,7 @@ end
 
 /-- A sum of extended nonnegative reals which is finite can have only finitely many terms
 above any positive threshold.-/
-lemma finite_const_le_of_tsum_lt_top {a : α → ℝ≥0∞}
+lemma _root_.ennreal.finite_const_le_of_tsum_lt_top {α : Type*} {a : α → ℝ≥0∞}
   (tsum_ne_top : ∑' i, a i ≠ ∞) {ε : ℝ≥0∞} (ε_ne_zero : ε ≠ 0) :
   {i : α | ε ≤ a i}.finite :=
 begin
@@ -2279,7 +2279,7 @@ begin
 end
 
 /-- Markov's inequality for `finset.card` and `tsum` in `ℝ≥0∞`. -/
-lemma finset_card_const_le_le_of_tsum_le {a : α → ℝ≥0∞}
+lemma _root_.ennreal.finset_card_const_le_le_of_tsum_le {α : Type*} {a : α → ℝ≥0∞}
   {c : ℝ≥0∞} (c_ne_top : c ≠ ∞) (tsum_le_c : ∑' i, a i ≤ c)
   {ε : ℝ≥0∞} (ε_ne_zero : ε ≠ 0) :
   ∃ hf : {i : α | ε ≤ a i}.finite, ↑hf.to_finset.card ≤ c / ε :=
@@ -2294,7 +2294,8 @@ begin
     simp only [obs, finite_empty, finite_empty_to_finset, finset.card_empty,
                algebra_map.coe_zero, zero_le', exists_true_left], },
   have hf : {i : α | ε ≤ a i}.finite,
-    from finite_const_le_of_tsum_lt_top (lt_of_le_of_lt tsum_le_c c_ne_top.lt_top).ne ε_ne_zero,
+    from ennreal.finite_const_le_of_tsum_lt_top
+          (lt_of_le_of_lt tsum_le_c c_ne_top.lt_top).ne ε_ne_zero,
   use hf,
   simpa [← @measure.count_apply_finite _ ⊤ _ _ hf]
     using @ennreal.count_const_le_le_of_tsum_le α ⊤ _
@@ -2317,7 +2318,7 @@ end
 
 /-- If a sum of nonnegative reals is summable, then it can only have finitely many terms
 above any positive threshold. -/
-lemma finite_const_le_of_summable {a : α → ℝ≥0} (a_summable : summable a)
+lemma _root_.finite_const_le_of_summable {α : Type*} {a : α → ℝ≥0} (a_summable : summable a)
   {ε : ℝ≥0} (ε_ne_zero : ε ≠ 0) :
   {i : α | ε ≤ a i}.finite :=
 begin
@@ -2328,7 +2329,7 @@ begin
 end
 
 /-- Markov's inequality for `finset.card` and `tsum` in `ℝ≥0`. -/
-lemma finset_card_const_le_le_of_tsum_nnreal_le {a : α → ℝ≥0} (a_summable : summable a)
+lemma finset_card_const_le_le_of_tsum_nnreal_le {α : Type*} {a : α → ℝ≥0} (a_summable : summable a)
   {c : ℝ≥0} (tsum_le_c : ∑' i, a i ≤ c) {ε : ℝ≥0} (ε_ne_zero : ε ≠ 0) :
   ∃ hf : {i : α | ε ≤ a i}.finite, ↑hf.to_finset.card ≤ c / ε :=
 begin

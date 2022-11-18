@@ -29,7 +29,6 @@ inequality is violated, Bell proved that quantum mechanics is non-local.
 The violation of Bell's inequality has also been verified experimentally in
 many different setups.
 
-
 ## Bell's 1964 inequality
 
 We first prove Bell's original statement of the inequality, which was published
@@ -45,7 +44,6 @@ those done by B. We assume perfect anticorrelation between the outcomes of A
 and B: 𝔼[(Za i) (Zb i)] = -1. Bell's inequality states that
   `𝔼[(Za 1) (Zb 2)] - 𝔼[(Za 1) (Zb 2)] ≤ 1 + 𝔼[(Za 2) (Zb 3)]`.
 
-
 ## Future work
 
 J.S. Bell generalized the inequality in 1975 to include more probabilistic
@@ -53,16 +51,12 @@ theories. In particular, the 1975 statement does not require observables to
 simultaneously have values. Instead, it is solely based on the requirement of
 locality. The 1975 inequality thus gives a more direct proof of Bell's theorem.
 
-
 ## References
 
 * [J.S. Bell, *On the Einstein Podolsky Rosen Paradox*, 1964][MR3790629]
 
 * [J.S. Bell, *The theory of local beables*, 1975,
   reproduced in chapter 7 of *Speakable and unspeakable in quantum mechanics*][MR915338]
-
-
-
 -/
 
 noncomputable theory
@@ -80,20 +74,18 @@ lemma pm_one_space_abs_le (r : ℤˣ) :
 /-- The CHSH inequality in `ℤˣ`. -/
 lemma CHSH_inequality_of_int_units (A₀ A₁ B₀ B₁ : ℤˣ) :
   (A₀ : ℝ) * B₀ + A₀ * B₁ + A₁ * B₀ + (-A₁) * B₁ + -2 ≤ 0 :=
-  by cases pm_one_space_vals A₀ with hA0 hA0;
-    cases pm_one_space_vals A₁ with hA1 hA1;
-    cases pm_one_space_vals B₀ with hB0 hB0;
-    cases pm_one_space_vals B₁ with hB1 hB1;
+  by cases pm_one_space_vals A₀ with hA0 hA0; cases pm_one_space_vals A₁ with hA1 hA1;
+    cases pm_one_space_vals B₀ with hB0 hB0; cases pm_one_space_vals B₁ with hB1 hB1;
     rw [hA0, hA1, hB0, hB1]; ring_nf; simp
 
 end preliminaries
 
 section bells_inequality_1964
 
-variables {Ω : Type*} [measurable_space Ω] (ℙ : measure Ω) [hℙ : is_probability_measure ℙ] 
+variables {Ω : Type*} [measurable_space Ω] {ℙ : measure Ω}
 
-lemma integrable_mul_of_units_int {Za Zb : Ω → ℤˣ} (sm_a : strongly_measurable (λ ω, (Za ω : ℝ)))
-  (sm_b : strongly_measurable (λ ω, (Zb ω : ℝ))) :
+lemma integrable_mul_of_units_int {hℙ : is_probability_measure ℙ} {Za Zb : Ω → ℤˣ}
+  (sm_a : strongly_measurable (λ ω, (Za ω : ℝ))) (sm_b : strongly_measurable (λ ω, (Zb ω : ℝ))) :
   integrable (λ ω, (Za ω : ℝ) * Zb ω) ℙ :=
 begin
   refine ⟨strongly_measurable.ae_strongly_measurable (strongly_measurable.mul sm_a sm_b), _⟩,
@@ -103,9 +95,8 @@ begin
   simp,
 end
 
-lemma integrable_mul_of_units_int_neg {Za Zb : Ω → ℤˣ}
-  (sm_a : strongly_measurable (λ ω, (Za ω : ℝ)))
-  (sm_b : strongly_measurable (λ ω, (Zb ω : ℝ))) :
+lemma integrable_mul_of_units_int_neg {hℙ : is_probability_measure ℙ} {Za Zb : Ω → ℤˣ}
+  (sm_a : strongly_measurable (λ ω, (Za ω : ℝ))) (sm_b : strongly_measurable (λ ω, (Zb ω : ℝ))) :
   integrable (λ ω : Ω , -(Za ω :ℝ) * Zb ω) ℙ :=
 begin
   convert @integrable_mul_of_units_int _ _ _ hℙ (λ x, -Za x) Zb _ sm_b,
@@ -120,7 +111,7 @@ end
   values in `±1`, and assuming perfect anticorrelation on the diagonal (that is,
   `𝔼[(Za i) (Zb i)] = -1` for all `i`), we have that
   `𝔼[(Za 1) (Zb 2)] - 𝔼[(Za 1) (Zb 2)] ≤ 1 + 𝔼[(Za 2) (Zb 3)]`. -/
-theorem bells_inequality_1964 {Za Zb : fin 3 → Ω → ℤˣ}
+theorem bells_inequality_1964 {hℙ : is_probability_measure ℙ} {Za Zb : fin 3 → Ω → ℤˣ}
   (Za_measurable : ∀ i, strongly_measurable (λ ω, (Za i ω : ℝ)))
   (Zb_measurable : ∀ i, strongly_measurable (λ ω, (Zb i ω : ℝ)))
   (anticorrelation : ∀ i, ∫ ω, (Za i ω : ℝ) * (Zb i ω) ∂ℙ = -1) :
@@ -128,9 +119,9 @@ theorem bells_inequality_1964 {Za Zb : fin 3 → Ω → ℤˣ}
     ≤ 1 + (∫ ω, (Za 2 ω : ℝ) * (Zb 3 ω) ∂ℙ) :=
 begin
   let integrable_muls :=
-    λ i j, integrable_mul_of_units_int ℙ (Za_measurable i) (Zb_measurable j),
+    λ i j, @integrable_mul_of_units_int  _ _ _ hℙ _ _ (Za_measurable i) (Zb_measurable j),
   let integrable_mul_negs :=
-    λ i j, integrable_mul_of_units_int_neg ℙ (Za_measurable i) (Zb_measurable j),
+    λ i j, @integrable_mul_of_units_int_neg  _ _ _ hℙ _ _ (Za_measurable i) (Zb_measurable j),
   rw sub_eq_add_neg,
   apply sub_nonpos.mp,
   rw [sub_add_eq_sub_sub, sub_eq_add_neg, sub_eq_add_neg],

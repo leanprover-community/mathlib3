@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import algebra.big_operators.basic
-import algebra.field.basic
-import algebra.hom.equiv
-import algebra.ring.opposite
 
 /-!
 # (Semi)ring equivs
@@ -192,6 +189,9 @@ initialize_simps_projections ring_equiv (to_fun → apply, inv_fun → symm_appl
 
 @[simp] lemma symm_symm (e : R ≃+* S) : e.symm.symm = e := ext $ λ x, rfl
 
+@[simp]
+lemma coe_to_equiv_symm (e : R ≃+* S) : (e.symm : S ≃ R) = (e : R ≃ S).symm := rfl
+
 lemma symm_bijective : function.bijective (ring_equiv.symm : (R ≃+* S) → (S ≃+* R)) :=
 equiv.bijective ⟨ring_equiv.symm, ring_equiv.symm, symm_symm, symm_symm⟩
 
@@ -360,6 +360,14 @@ in higher generality -/
 in higher generality -/
 @[simp] lemma coe_ring_hom_trans [non_assoc_semiring S'] (e₁ : R ≃+* S) (e₂ : S ≃+* S') :
   (e₁.trans e₂ : R →+* S') = (e₂ : S →+* S').comp ↑e₁ := rfl
+
+@[simp] lemma comp_symm (e : R ≃+* S) :
+  (e : R →+* S).comp (e.symm : S →+* R) = ring_hom.id S :=
+ring_hom.ext e.apply_symm_apply
+
+@[simp] lemma symm_comp (e : R ≃+* S) :
+  (e.symm : S →+* R).comp (e : R →+* S) = ring_hom.id R :=
+ring_hom.ext e.symm_apply_apply
 
 end semiring
 

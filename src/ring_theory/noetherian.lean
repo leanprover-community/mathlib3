@@ -4,13 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Buzzard
 -/
 import group_theory.finiteness
-import data.multiset.finset_ops
-import algebra.algebra.tower
 import order.order_iso_nat
 import ring_theory.nilpotent
 import order.compactly_generated
 import linear_algebra.linear_independent
 import algebra.ring.idempotents
+import algebra.algebra.subalgebra.basic
+import algebra.algebra.tower
 
 /-!
 # Noetherian rings and modules
@@ -558,8 +558,7 @@ begin
     exact is_noetherian_of_linear_equiv (linear_equiv.Pi_congr_left R M coe_e), },
   intro s,
   induction s using finset.induction with a s has ih,
-  { split, intro s, convert submodule.fg_bot, apply eq_bot_iff.2,
-    intros x hx, refine (submodule.mem_bot R).2 _, ext i, cases i.2 },
+  { exact ⟨λ s, by convert submodule.fg_bot⟩ },
   refine @is_noetherian_of_linear_equiv _ _ _ _ _ _ _ _
     _ (@is_noetherian_prod _ (M a) _ _ _ _ _ _ _ ih),
   fconstructor,

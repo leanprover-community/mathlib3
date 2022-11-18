@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.order.absolute_value
+import algebra.order.ring.with_top
 import algebra.big_operators.basic
 
 /-!

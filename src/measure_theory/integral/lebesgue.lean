@@ -993,6 +993,7 @@ begin
       { rwa [finset.mem_coe] }},
     convert h_add _ Pg (h_ind x mx),
     { ext1 y, by_cases hy : y ∈ f ⁻¹' {x}; [simpa [hy], simp [hy]] },
+    rw disjoint_iff_inf_le,
     rintro y, by_cases hy : y ∈ f ⁻¹' {x}; simp [hy] }
 end
 
@@ -1866,9 +1867,9 @@ lintegral_infi_ae h_meas (λ n, ae_of_all _ $ h_anti n.le_succ) h_fin
 
 /-- Known as Fatou's lemma, version with `ae_measurable` functions -/
 lemma lintegral_liminf_le' {f : ℕ → α → ℝ≥0∞} (h_meas : ∀n, ae_measurable (f n) μ) :
-  ∫⁻ a, liminf at_top (λ n, f n a) ∂μ ≤ liminf at_top (λ n, ∫⁻ a, f n a ∂μ) :=
+  ∫⁻ a, liminf (λ n, f n a) at_top ∂μ ≤ liminf (λ n, ∫⁻ a, f n a ∂μ) at_top :=
 calc
-  ∫⁻ a, liminf at_top (λ n, f n a) ∂μ = ∫⁻ a, ⨆n:ℕ, ⨅i≥n, f i a ∂μ :
+  ∫⁻ a, liminf (λ n, f n a) at_top ∂μ = ∫⁻ a, ⨆n:ℕ, ⨅i≥n, f i a ∂μ :
      by simp only [liminf_eq_supr_infi_of_nat]
   ... = ⨆n:ℕ, ∫⁻ a, ⨅i≥n, f i a ∂μ :
     lintegral_supr'
@@ -1880,14 +1881,14 @@ calc
 
 /-- Known as Fatou's lemma -/
 lemma lintegral_liminf_le {f : ℕ → α → ℝ≥0∞} (h_meas : ∀n, measurable (f n)) :
-  ∫⁻ a, liminf at_top (λ n, f n a) ∂μ ≤ liminf at_top (λ n, ∫⁻ a, f n a ∂μ) :=
+  ∫⁻ a, liminf (λ n, f n a) at_top ∂μ ≤ liminf (λ n, ∫⁻ a, f n a ∂μ) at_top :=
 lintegral_liminf_le' (λ n, (h_meas n).ae_measurable)
 
 lemma limsup_lintegral_le {f : ℕ → α → ℝ≥0∞} {g : α → ℝ≥0∞}
   (hf_meas : ∀ n, measurable (f n)) (h_bound : ∀n, f n ≤ᵐ[μ] g) (h_fin : ∫⁻ a, g a ∂μ ≠ ∞) :
-  limsup at_top (λn, ∫⁻ a, f n a ∂μ) ≤ ∫⁻ a, limsup at_top (λn, f n a) ∂μ :=
+  limsup (λn, ∫⁻ a, f n a ∂μ) at_top ≤ ∫⁻ a, limsup (λn, f n a) at_top ∂μ :=
 calc
-  limsup at_top (λn, ∫⁻ a, f n a ∂μ) = ⨅n:ℕ, ⨆i≥n, ∫⁻ a, f i a ∂μ :
+  limsup (λn, ∫⁻ a, f n a ∂μ) at_top = ⨅n:ℕ, ⨆i≥n, ∫⁻ a, f i a ∂μ :
     limsup_eq_infi_supr_of_nat
   ... ≤ ⨅n:ℕ, ∫⁻ a, ⨆i≥n, f i a ∂μ :
     infi_mono $ assume n, supr₂_lintegral_le _
@@ -1900,7 +1901,7 @@ calc
         refine (ae_all_iff.2 h_bound).mono (λ n hn, _),
         exact supr_le (λ i, supr_le $ λ hi, hn i) }
     end
-  ... = ∫⁻ a, limsup at_top (λn, f n a) ∂μ :
+  ... = ∫⁻ a, limsup (λn, f n a) at_top ∂μ :
     by simp only [limsup_eq_infi_supr_of_nat]
 
 /-- Dominated convergence theorem for nonnegative functions -/
@@ -1911,10 +1912,10 @@ lemma tendsto_lintegral_of_dominated_convergence
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
   tendsto (λn, ∫⁻ a, F n a ∂μ) at_top (𝓝 (∫⁻ a, f a ∂μ)) :=
 tendsto_of_le_liminf_of_limsup_le
-(calc ∫⁻ a, f a ∂μ = ∫⁻ a, liminf at_top (λ (n : ℕ), F n a) ∂μ :
+(calc ∫⁻ a, f a ∂μ = ∫⁻ a, liminf (λ (n : ℕ), F n a) at_top ∂μ :
       lintegral_congr_ae $ h_lim.mono $ assume a h, h.liminf_eq.symm
- ... ≤ liminf at_top (λ n, ∫⁻ a, F n a ∂μ) : lintegral_liminf_le hF_meas)
-(calc limsup at_top (λ (n : ℕ), ∫⁻ a, F n a ∂μ) ≤ ∫⁻ a, limsup at_top (λn, F n a) ∂μ :
+ ... ≤ liminf (λ n, ∫⁻ a, F n a ∂μ) at_top : lintegral_liminf_le hF_meas)
+(calc limsup (λ (n : ℕ), ∫⁻ a, F n a ∂μ) at_top ≤ ∫⁻ a, limsup (λn, F n a) at_top ∂μ :
       limsup_lintegral_le hF_meas h_bound h_fin
  ... = ∫⁻ a, f a ∂μ : lintegral_congr_ae $ h_lim.mono $ λ a h, h.limsup_eq)
 
@@ -1975,9 +1976,9 @@ section
 open encodable
 
 /-- Monotone convergence for a supremum over a directed family and indexed by a countable type -/
-theorem lintegral_supr_directed [countable β] {f : β → α → ℝ≥0∞}
-  (hf : ∀b, measurable (f b)) (h_directed : directed (≤) f) :
-  ∫⁻ a, ⨆b, f b a ∂μ = ⨆b, ∫⁻ a, f b a ∂μ :=
+theorem lintegral_supr_directed_of_measurable [countable β] {f : β → α → ℝ≥0∞}
+  (hf : ∀ b, measurable (f b)) (h_directed : directed (≤) f) :
+  ∫⁻ a, ⨆ b, f b a ∂μ = ⨆ b, ∫⁻ a, f b a ∂μ :=
 begin
   casesI nonempty_encodable β,
   casesI is_empty_or_nonempty β, { simp [supr_of_empty] },
@@ -1999,20 +2000,52 @@ begin
     end
 end
 
+/-- Monotone convergence for a supremum over a directed family and indexed by a countable type. -/
+theorem lintegral_supr_directed [countable β] {f : β → α → ℝ≥0∞}
+  (hf : ∀ b, ae_measurable (f b) μ) (h_directed : directed (≤) f) :
+  ∫⁻ a, ⨆ b, f b a ∂μ = ⨆ b, ∫⁻ a, f b a ∂μ :=
+begin
+  simp_rw ←supr_apply,
+  let p : α → (β → ennreal) → Prop := λ x f', directed has_le.le f',
+  have hp : ∀ᵐ x ∂μ, p x (λ i, f i x),
+  { filter_upwards with x i j,
+    obtain ⟨z, hz₁, hz₂⟩ := h_directed i j,
+    exact ⟨z, hz₁ x, hz₂ x⟩, },
+  have h_ae_seq_directed : directed has_le.le (ae_seq hf p),
+  { intros b₁ b₂,
+    obtain ⟨z, hz₁, hz₂⟩ := h_directed b₁ b₂,
+    refine ⟨z, _, _⟩;
+    { intros x,
+      by_cases hx : x ∈ ae_seq_set hf p,
+      { repeat { rw ae_seq.ae_seq_eq_fun_of_mem_ae_seq_set hf hx },
+        apply_rules [hz₁, hz₂], },
+      { simp only [ae_seq, hx, if_false],
+        exact le_rfl, }, }, },
+  convert (lintegral_supr_directed_of_measurable (ae_seq.measurable hf p)
+    h_ae_seq_directed) using 1,
+  { simp_rw ←supr_apply,
+    rw lintegral_congr_ae (ae_seq.supr hf hp).symm, },
+  { congr' 1,
+    ext1 b,
+    rw lintegral_congr_ae,
+    symmetry,
+    refine ae_seq.ae_seq_n_eq_fun_n_ae hf hp _, },
 end
 
-lemma lintegral_tsum [countable β] {f : β → α → ℝ≥0∞} (hf : ∀i, measurable (f i)) :
+end
+
+lemma lintegral_tsum [countable β] {f : β → α → ℝ≥0∞} (hf : ∀i, ae_measurable (f i) μ) :
   ∫⁻ a, ∑' i, f i a ∂μ = ∑' i, ∫⁻ a, f i a ∂μ :=
 begin
   simp only [ennreal.tsum_eq_supr_sum],
   rw [lintegral_supr_directed],
-  { simp [lintegral_finset_sum _ (λ i _, hf i)] },
-  { assume b, exact finset.measurable_sum _ (λ i _, hf i) },
+  { simp [lintegral_finset_sum' _ (λ i _, hf i)] },
+  { assume b, exact finset.ae_measurable_sum _ (λ i _, hf i) },
   { assume s t,
     use [s ∪ t],
     split,
-    exact assume a, finset.sum_le_sum_of_subset (finset.subset_union_left _ _),
-    exact assume a, finset.sum_le_sum_of_subset (finset.subset_union_right _ _) }
+    { exact assume a, finset.sum_le_sum_of_subset (finset.subset_union_left _ _), },
+    { exact assume a, finset.sum_le_sum_of_subset (finset.subset_union_right _ _) } }
 end
 
 open measure
@@ -2388,7 +2421,7 @@ begin
   ext1 s hs,
   simp_rw [sum_apply _ hs, with_density_apply _ hs],
   change ∫⁻ x in s, (∑' n, f n) x ∂μ = ∑' (i : ℕ), ∫⁻ x, f i x ∂(μ.restrict s),
-  rw ← lintegral_tsum h,
+  rw ← lintegral_tsum (λ i, (h i).ae_measurable),
   refine lintegral_congr (λ x, tsum_apply (pi.summable.2 (λ _, ennreal.summable))),
 end
 

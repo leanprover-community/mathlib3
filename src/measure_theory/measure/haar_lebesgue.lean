@@ -42,7 +42,7 @@ open_locale ennreal pointwise topological_space nnreal
 /-- The interval `[0,1]` as a compact set with non-empty interior. -/
 def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
 { carrier := Icc 0 1,
-  compact' := is_compact_Icc,
+  is_compact' := is_compact_Icc,
   interior_nonempty' := by simp_rw [interior_Icc, nonempty_Ioo, zero_lt_one] }
 
 universe u
@@ -51,7 +51,7 @@ universe u
 def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
   positive_compacts (ι → ℝ) :=
 { carrier := pi univ (λ i, Icc 0 1),
-  compact' := is_compact_univ_pi (λ i, is_compact_Icc),
+  is_compact' := is_compact_univ_pi (λ i, is_compact_Icc),
   interior_nonempty' := by simp only [interior_pi_set, set.to_finite, interior_Icc,
     univ_pi_nonempty_iff, nonempty_Ioo, implies_true_iff, zero_lt_one] }
 
@@ -227,7 +227,7 @@ begin
   have Cg : continuous g := linear_map.continuous_of_finite_dimensional g,
   have Cesymm : continuous e.symm := (e.symm : (ι → ℝ) →ₗ[ℝ] E).continuous_of_finite_dimensional,
   rw [← map_map Cesymm.measurable (Cg.comp Ce).measurable, ← map_map Cg.measurable Ce.measurable],
-  haveI : is_add_haar_measure (map e μ) := is_add_haar_measure_map μ e.to_add_equiv Ce Cesymm,
+  haveI : is_add_haar_measure (map e μ) := (e : E ≃+ (ι → ℝ)).is_add_haar_measure_map μ Ce Cesymm,
   have ecomp : (e.symm) ∘ e = id,
     by { ext x, simp only [id.def, function.comp_app, linear_equiv.symm_apply_apply] },
   rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), measure.map_smul,
@@ -459,6 +459,15 @@ end
 lemma add_haar_closed_ball (x : E) {r : ℝ} (hr : 0 ≤ r) :
   μ (closed_ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
 by rw [add_haar_closed_ball' μ x hr, add_haar_closed_unit_ball_eq_add_haar_unit_ball]
+
+lemma add_haar_closed_ball_eq_add_haar_ball [nontrivial E] (x : E) (r : ℝ) :
+  μ (closed_ball x r) = μ (ball x r) :=
+begin
+  by_cases h : r < 0,
+  { rw [metric.closed_ball_eq_empty.mpr h, metric.ball_eq_empty.mpr h.le] },
+  push_neg at h,
+  rw [add_haar_closed_ball μ x h, add_haar_ball μ x h],
+end
 
 lemma add_haar_sphere_of_ne_zero (x : E) {r : ℝ} (hr : r ≠ 0) :
   μ (sphere x r) = 0 :=

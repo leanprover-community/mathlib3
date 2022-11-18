@@ -68,21 +68,22 @@ instance finite_dimensional_direction_affine_span_image_of_finite [_root_.finite
 finite_dimensional_direction_affine_span_of_finite k (set.to_finite _)
 
 /-- An affine-independent family of points in a finite-dimensional affine space is finite. -/
-noncomputable def fintype_of_fin_dim_affine_independent [finite_dimensional k V]
-  {p : ι → P} (hi : affine_independent k p) : fintype ι :=
-by classical; exact if hι : is_empty ι then (@fintype.of_is_empty _ hι) else
+lemma finite_of_fin_dim_affine_independent [finite_dimensional k V] {p : ι → P}
+  (hi : affine_independent k p) : _root_.finite ι :=
 begin
-  let q := (not_is_empty_iff.mp hι).some,
-  rw affine_independent_iff_linear_independent_vsub k p q at hi,
+  nontriviality ι, inhabit ι,
+  rw affine_independent_iff_linear_independent_vsub k p default at hi,
   letI : is_noetherian k V := is_noetherian.iff_fg.2 infer_instance,
-  exact fintype_of_fintype_ne _ (@fintype.of_finite _ hi.finite_of_is_noetherian),
+  exact (set.finite_singleton default).finite_of_compl
+    (set.finite_coe_iff.1 hi.finite_of_is_noetherian)
 end
 
 /-- An affine-independent subset of a finite-dimensional affine space is finite. -/
-lemma finite_of_fin_dim_affine_independent [finite_dimensional k V]
-  {s : set P} (hi : affine_independent k (coe : s → P)) : s.finite :=
-⟨fintype_of_fin_dim_affine_independent k hi⟩
+lemma finite_set_of_fin_dim_affine_independent [finite_dimensional k V] {s : set ι} {f : s → P}
+  (hi : affine_independent k f) : s.finite :=
+@set.to_finite _ s (finite_of_fin_dim_affine_independent k hi)
 
+open_locale classical
 variables {k}
 
 /-- The `vector_span` of a finite subset of an affinely independent
@@ -458,7 +459,7 @@ by { rintro rfl, simpa [collinear_pair] using h }
 that set. -/
 lemma collinear.mem_affine_span_of_mem_of_ne {s : set P} (h : collinear k s) {p₁ p₂ p₃ : P}
   (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (hp₃ : p₃ ∈ s) (hp₁p₂ : p₁ ≠ p₂) :
-  p₃ ∈ affine_span k ({p₁, p₂} : set P) :=
+  p₃ ∈ line[k, p₁, p₂] :=
 begin
   rw collinear_iff_of_mem hp₁ at h,
   rcases h with ⟨v, h⟩,
@@ -476,7 +477,7 @@ end
 span of the whole set. -/
 lemma collinear.affine_span_eq_of_ne {s : set P} (h : collinear k s) {p₁ p₂ : P}
   (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (hp₁p₂ : p₁ ≠ p₂) :
-  affine_span k ({p₁, p₂} : set P) = affine_span k s :=
+  line[k, p₁, p₂] = affine_span k s :=
 le_antisymm (affine_span_mono _
   (set.insert_subset.2 ⟨hp₁, set.singleton_subset_iff.2 hp₂⟩))
   (affine_span_le.2 (λ p hp, h.mem_affine_span_of_mem_of_ne hp₁ hp₂ hp hp₁p₂))
@@ -498,6 +499,69 @@ end
 lemma collinear_insert_iff_of_mem_affine_span {s : set P} {p : P} (h : p ∈ affine_span k s) :
   collinear k (insert p s) ↔ collinear k s :=
 by rw [collinear, collinear, vector_span_insert_eq_vector_span h]
+
+variables (k)
+
+/-- A set of points is coplanar if their `vector_span` has dimension at most `2`. -/
+def coplanar (s : set P) : Prop := module.rank k (vector_span k s) ≤ 2
+
+variables {k}
+
+/-- The `vector_span` of coplanar points is finite-dimensional. -/
+lemma coplanar.finite_dimensional_vector_span {s : set P} (h : coplanar k s) :
+  finite_dimensional k (vector_span k s) :=
+begin
+  refine is_noetherian.iff_fg.1 (is_noetherian.iff_dim_lt_aleph_0.2 (lt_of_le_of_lt h _)),
+  simp,
+end
+
+/-- The direction of the affine span of coplanar points is finite-dimensional. -/
+lemma coplanar.finite_dimensional_direction_affine_span {s : set P} (h : coplanar k s) :
+  finite_dimensional k (affine_span k s).direction :=
+(direction_affine_span k s).symm ▸ h.finite_dimensional_vector_span
+
+/-- A set of points, whose `vector_span` is finite-dimensional, is coplanar if and only if their
+`vector_span` has dimension at most `2`. -/
+lemma coplanar_iff_finrank_le_two {s : set P} [finite_dimensional k (vector_span k s)] :
+  coplanar k s ↔ finrank k (vector_span k s) ≤ 2 :=
+begin
+  have h : coplanar k s ↔ module.rank k (vector_span k s) ≤ 2 := iff.rfl,
+  rw ←finrank_eq_dim at h,
+  exact_mod_cast h
+end
+
+alias coplanar_iff_finrank_le_two ↔ coplanar.finrank_le_two _
+
+/-- A subset of a coplanar set is coplanar. -/
+lemma coplanar.subset {s₁ s₂ : set P} (hs : s₁ ⊆ s₂) (h : coplanar k s₂) : coplanar k s₁ :=
+(dim_le_of_submodule (vector_span k s₁) (vector_span k s₂) (vector_span_mono k hs)).trans h
+
+/-- Collinear points are coplanar. -/
+lemma collinear.coplanar {s : set P} (h : collinear k s) : coplanar k s :=
+le_trans h one_le_two
+
+variables (k) (P)
+
+/-- The empty set is coplanar. -/
+lemma coplanar_empty : coplanar k (∅ : set P) :=
+(collinear_empty k P).coplanar
+
+variables {P}
+
+/-- A single point is coplanar. -/
+lemma coplanar_singleton (p : P) : coplanar k ({p} : set P) :=
+(collinear_singleton k p).coplanar
+
+/-- Two points are coplanar. -/
+lemma coplanar_pair (p₁ p₂ : P) : coplanar k ({p₁, p₂} : set P) :=
+(collinear_pair k p₁ p₂).coplanar
+
+variables {k}
+
+/-- Adding a point in the affine span of a set does not change whether that set is coplanar. -/
+lemma coplanar_insert_iff_of_mem_affine_span {s : set P} {p : P} (h : p ∈ affine_span k s) :
+  coplanar k (insert p s) ↔ coplanar k s :=
+by rw [coplanar, coplanar, vector_span_insert_eq_vector_span h]
 
 end affine_space'
 
@@ -555,5 +619,34 @@ begin
   refine (finrank_vector_span_insert_le _ _).trans (add_le_add_right _ _),
   rw direction_affine_span
 end
+
+variables {k}
+
+/-- Adding a point to a collinear set produces a coplanar set. -/
+lemma collinear.coplanar_insert {s : set P} (h : collinear k s) (p : P) :
+  coplanar k (insert p s) :=
+begin
+  haveI := h.finite_dimensional_vector_span,
+  rw [coplanar_iff_finrank_le_two],
+  exact (finrank_vector_span_insert_le_set k s p).trans (add_le_add_right h.finrank_le_one _)
+end
+
+/-- A set of points in a two-dimensional space is coplanar. -/
+lemma coplanar_of_finrank_eq_two (s : set P) (h : finrank k V = 2) : coplanar k s :=
+begin
+  haveI := finite_dimensional_of_finrank_eq_succ h,
+  rw [coplanar_iff_finrank_le_two, ←h],
+  exact submodule.finrank_le _
+end
+
+/-- A set of points in a two-dimensional space is coplanar. -/
+lemma coplanar_of_fact_finrank_eq_two (s : set P) [h : fact (finrank k V = 2)] : coplanar k s :=
+coplanar_of_finrank_eq_two s h.out
+
+variables (k)
+
+/-- Three points are coplanar. -/
+lemma coplanar_triple (p₁ p₂ p₃ : P) : coplanar k ({p₁, p₂, p₃} : set P) :=
+(collinear_pair k p₂ p₃).coplanar_insert p₁
 
 end field

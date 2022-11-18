@@ -71,7 +71,7 @@ begin
   { rintro z hz hδz,
     nth_rewrite 2 ←one_smul ℝ z,
     rwa [←sub_smul, norm_smul_of_nonneg (sub_nonneg_of_le $ one_le_inv (hδ'.trans_le hδz) hz),
-      sub_mul, inv_mul_cancel (hδ'.trans_le hδz).ne', one_mul, sub_le] },
+      sub_mul, inv_mul_cancel (hδ'.trans_le hδz).ne', one_mul, sub_le_comm] },
   set x' := ∥x∥⁻¹ • x,
   set y' := ∥y∥⁻¹ • y,
   have hxy' : ε/3 ≤ ∥x' - y'∥ :=
@@ -122,8 +122,6 @@ variables [normed_add_comm_group E] [normed_space ℝ E] [uniform_convex_space E
 
 @[priority 100] -- See note [lower instance priority]
 instance uniform_convex_space.to_strict_convex_space : strict_convex_space ℝ E :=
-strict_convex_space.of_norm_add_lt one_half_pos one_half_pos (add_halves _) $ λ x y hx hy hxy, begin
-  obtain ⟨δ, hδ, h⟩ := exists_forall_closed_ball_dist_add_le_two_sub E (norm_sub_pos_iff.2 hxy),
-  rw [←smul_add, norm_smul_of_nonneg one_half_pos.le, ←lt_div_iff' one_half_pos, one_div_one_div],
-  exact (h hx hy le_rfl).trans_lt (sub_lt_self _ hδ),
-end
+strict_convex_space.of_norm_add_ne_two $ λ x y hx hy hxy,
+  let ⟨δ, hδ, h⟩ := exists_forall_closed_ball_dist_add_le_two_sub E (norm_sub_pos_iff.2 hxy)
+  in ((h hx.le hy.le le_rfl).trans_lt $ sub_lt_self _ hδ).ne

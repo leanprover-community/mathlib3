@@ -3,7 +3,7 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import order.bounds
+import order.bounds.basic
 import data.set.intervals.basic
 import data.set.finite
 import data.set.lattice
@@ -11,21 +11,21 @@ import data.set.lattice
 /-!
 # Theory of conditionally complete lattices.
 
-A conditionally complete lattice is a lattice in which every non-empty bounded subset s
-has a least upper bound and a greatest lower bound, denoted below by Sup s and Inf s.
-Typical examples are real, nat, int with their usual orders.
+A conditionally complete lattice is a lattice in which every non-empty bounded subset `s`
+has a least upper bound and a greatest lower bound, denoted below by `Sup s` and `Inf s`.
+Typical examples are `ℝ`, `ℕ`, and `ℤ` with their usual orders.
 
 The theory is very comparable to the theory of complete lattices, except that suitable
 boundedness and nonemptiness assumptions have to be added to most statements.
-We introduce two predicates bdd_above and bdd_below to express this boundedness, prove
-their basic properties, and then go on to prove most useful properties of Sup and Inf
+We introduce two predicates `bdd_above` and `bdd_below` to express this boundedness, prove
+their basic properties, and then go on to prove most useful properties of `Sup` and `Inf`
 in conditionally complete lattices.
 
 To differentiate the statements between complete lattices and conditionally complete
-lattices, we prefix Inf and Sup in the statements by c, giving cInf and cSup. For instance,
-Inf_le is a statement in complete lattices ensuring Inf s ≤ x, while cInf_le is the same
-statement in conditionally complete lattices with an additional assumption that s is
-bounded below.
+lattices, we prefix `Inf` and `Sup` in the statements by `c`, giving `cInf` and `cSup`.
+For instance, `Inf_le` is a statement in complete lattices ensuring `Inf s ≤ x`,
+while `cInf_le` is the same statement in conditionally complete lattices
+with an additional assumption that `s` is bounded below.
 -/
 
 set_option old_structure_cmd true
@@ -234,6 +234,126 @@ instance (α : Type*) [conditionally_complete_linear_order α] :
   ..order_dual.linear_order α }
 
 end order_dual
+
+/-- Create a `conditionally_complete_lattice` from a `partial_order` and `Sup` function
+that returns the least upper bound of a nonempty set which is bounded above. Usually this
+constructor provides poor definitional equalities.  If other fields are known explicitly, they
+should be provided; for example, if `inf` is known explicitly, construct the
+`conditionally_complete_lattice` instance as
+```
+instance : conditionally_complete_lattice my_T :=
+{ inf := better_inf,
+  le_inf := ...,
+  inf_le_right := ...,
+  inf_le_left := ...
+  -- don't care to fix sup, Inf
+  ..conditionally_complete_lattice_of_Sup my_T _ }
+```
+-/
+def conditionally_complete_lattice_of_Sup (α : Type*) [H1 : partial_order α]
+  [H2 : has_Sup α]
+  (bdd_above_pair : ∀ a b : α, bdd_above ({a, b} : set α))
+  (bdd_below_pair : ∀ a b : α, bdd_below ({a, b} : set α))
+  (is_lub_Sup : ∀ s : set α, bdd_above s → s.nonempty → is_lub s (Sup s)) :
+  conditionally_complete_lattice α :=
+{ sup := λ a b, Sup {a, b},
+  le_sup_left := λ a b, (is_lub_Sup {a, b} (bdd_above_pair a b)
+    (insert_nonempty _ _)).1 (mem_insert _ _),
+  le_sup_right := λ a b, (is_lub_Sup {a, b} (bdd_above_pair a b)
+    (insert_nonempty _ _)).1 (mem_insert_of_mem _ (mem_singleton _)),
+  sup_le := λ a b c hac hbc, (is_lub_Sup {a, b} (bdd_above_pair a b)
+    (insert_nonempty _ _)).2 (forall_insert_of_forall (forall_eq.mpr hbc) hac),
+  inf := λ a b, Sup (lower_bounds {a, b}),
+  inf_le_left := λ a b, (is_lub_Sup (lower_bounds {a, b})
+    (nonempty.bdd_above_lower_bounds ⟨a, mem_insert _ _⟩) (bdd_below_pair a b)).2
+    (λ c hc, hc $ mem_insert _ _),
+  inf_le_right := λ a b, (is_lub_Sup (lower_bounds {a, b})
+    (nonempty.bdd_above_lower_bounds ⟨a, mem_insert _ _⟩)
+    (bdd_below_pair a b)).2 (λ c hc, hc $ mem_insert_of_mem _ (mem_singleton _)),
+  le_inf := λ c a b hca hcb, (is_lub_Sup (lower_bounds {a, b})
+    (nonempty.bdd_above_lower_bounds ⟨a, mem_insert _ _⟩)
+    ⟨c, forall_insert_of_forall (forall_eq.mpr hcb) hca⟩).1
+    (forall_insert_of_forall (forall_eq.mpr hcb) hca),
+  Inf := λ s, Sup (lower_bounds s),
+  cSup_le := λ s a hs ha, (is_lub_Sup s ⟨a, ha⟩ hs).2 ha,
+  le_cSup := λ s a hs ha, (is_lub_Sup s hs ⟨a, ha⟩).1 ha,
+  cInf_le := λ s a hs ha, (is_lub_Sup (lower_bounds s)
+    (nonempty.bdd_above_lower_bounds ⟨a, ha⟩) hs).2 (λ b hb, hb ha),
+  le_cInf := λ s a hs ha, (is_lub_Sup (lower_bounds s) hs.bdd_above_lower_bounds ⟨a, ha⟩).1 ha,
+  .. H1, .. H2 }
+
+/-- Create a `conditionally_complete_lattice_of_Inf` from a `partial_order` and `Inf` function
+that returns the greatest lower bound of a nonempty set which is bounded below. Usually this
+constructor provides poor definitional equalities.  If other fields are known explicitly, they
+should be provided; for example, if `inf` is known explicitly, construct the
+`conditionally_complete_lattice` instance as
+```
+instance : conditionally_complete_lattice my_T :=
+{ inf := better_inf,
+  le_inf := ...,
+  inf_le_right := ...,
+  inf_le_left := ...
+  -- don't care to fix sup, Sup
+  ..conditionally_complete_lattice_of_Inf my_T _ }
+```
+-/
+def conditionally_complete_lattice_of_Inf (α : Type*) [H1 : partial_order α]
+  [H2 : has_Inf α]
+  (bdd_above_pair : ∀ a b : α, bdd_above ({a, b} : set α))
+  (bdd_below_pair : ∀ a b : α, bdd_below ({a, b} : set α))
+  (is_glb_Inf : ∀ s : set α, bdd_below s → s.nonempty → is_glb s (Inf s)) :
+  conditionally_complete_lattice α :=
+{ inf := λ a b, Inf {a, b},
+  inf_le_left := λ a b, (is_glb_Inf {a, b} (bdd_below_pair a b)
+    (insert_nonempty _ _)).1 (mem_insert _ _),
+  inf_le_right := λ a b, (is_glb_Inf {a, b} (bdd_below_pair a b)
+    (insert_nonempty _ _)).1 (mem_insert_of_mem _ (mem_singleton _)),
+  le_inf := λ c a b hca hcb, (is_glb_Inf {a, b} (bdd_below_pair a b)
+    (insert_nonempty _ _)).2 (forall_insert_of_forall (forall_eq.mpr hcb) hca),
+  sup := λ a b, Inf (upper_bounds {a, b}),
+  le_sup_left := λ a b, (is_glb_Inf (upper_bounds {a, b})
+    (nonempty.bdd_below_upper_bounds ⟨a, mem_insert _ _⟩) (bdd_above_pair a b)).2
+    (λ c hc, hc $ mem_insert _ _),
+  le_sup_right := λ a b, (is_glb_Inf (upper_bounds {a, b})
+    (nonempty.bdd_below_upper_bounds ⟨a, mem_insert _ _⟩)
+    (bdd_above_pair a b)).2 (λ c hc, hc $ mem_insert_of_mem _ (mem_singleton _)),
+  sup_le := λ a b c hac hbc, (is_glb_Inf (upper_bounds {a, b})
+    (nonempty.bdd_below_upper_bounds ⟨a, mem_insert _ _⟩)
+    ⟨c, forall_insert_of_forall (forall_eq.mpr hbc) hac⟩).1
+    (forall_insert_of_forall (forall_eq.mpr hbc) hac),
+  Sup := λ s, Inf (upper_bounds s),
+  le_cInf := λ s a hs ha, (is_glb_Inf s ⟨a, ha⟩ hs).2 ha,
+  cInf_le := λ s a hs ha, (is_glb_Inf s hs ⟨a, ha⟩).1 ha,
+  le_cSup := λ s a hs ha, (is_glb_Inf (upper_bounds s)
+    (nonempty.bdd_below_upper_bounds ⟨a, ha⟩) hs).2 (λ b hb, hb ha),
+  cSup_le := λ s a hs ha, (is_glb_Inf (upper_bounds s) hs.bdd_below_upper_bounds ⟨a, ha⟩).1 ha,
+  .. H1, .. H2 }
+
+/--
+A version of `conditionally_complete_lattice_of_Sup` when we already know that `α` is a lattice.
+
+This should only be used when it is both hard and unnecessary to provide `Inf` explicitly. -/
+def conditionally_complete_lattice_of_lattice_of_Sup (α : Type*) [H1 : lattice α]
+  [H2 : has_Sup α]
+  (is_lub_Sup : ∀ s : set α, bdd_above s → s.nonempty → is_lub s (Sup s)) :
+  conditionally_complete_lattice α :=
+{ ..H1, ..conditionally_complete_lattice_of_Sup α
+  (λ a b, ⟨a ⊔ b, forall_insert_of_forall (forall_eq.mpr le_sup_right) le_sup_left⟩)
+  (λ a b, ⟨a ⊓ b, forall_insert_of_forall (forall_eq.mpr inf_le_right) inf_le_left⟩)
+  is_lub_Sup }
+
+/--
+A version of `conditionally_complete_lattice_of_Inf` when we already know that `α` is a lattice.
+
+This should only be used when it is both hard and unnecessary to provide `Sup` explicitly. -/
+def conditionally_complete_lattice_of_lattice_of_Inf (α : Type*) [H1 : lattice α]
+  [H2 : has_Inf α]
+  (is_glb_Inf : ∀ s : set α, bdd_below s → s.nonempty → is_glb s (Inf s)) :
+  conditionally_complete_lattice α :=
+{ ..H1, ..conditionally_complete_lattice_of_Inf α
+  (λ a b, ⟨a ⊔ b, forall_insert_of_forall (forall_eq.mpr le_sup_right) le_sup_left⟩)
+  (λ a b, ⟨a ⊓ b, forall_insert_of_forall (forall_eq.mpr inf_le_right) inf_le_left⟩)
+  is_glb_Inf }
 
 section conditionally_complete_lattice
 variables [conditionally_complete_lattice α] {s t : set α} {a b : α}

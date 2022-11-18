@@ -6,7 +6,6 @@ Authors: Sébastien Gouëzel
 import measure_theory.covering.besicovitch_vector_space
 import measure_theory.measure.haar_lebesgue
 import analysis.normed_space.pointwise
-import measure_theory.covering.differentiation
 import measure_theory.constructions.polish
 
 /-!
@@ -220,7 +219,7 @@ begin
       { rcases hs with ⟨x, xs⟩,
         rcases s_subset x xs with ⟨n, z, hnz⟩,
         exact false.elim z.2 },
-      { exact nonempty_coe_sort.2 hT } },
+      { exact hT.coe_sort } },
     inhabit (ℕ × T × ℕ),
     exact ⟨_, encodable.surjective_decode_iget _⟩ },
   -- these sets `t q = K n z p` will do
@@ -1043,7 +1042,7 @@ begin
       rw [image_Union, measure_Union], rotate,
       { assume i j hij,
         apply (disjoint.image _ hf (inter_subset_left _ _) (inter_subset_left _ _)),
-        exact disjoint.mono (inter_subset_right _ _) (inter_subset_right _ _) (t_disj i j hij) },
+        exact disjoint.mono (inter_subset_right _ _) (inter_subset_right _ _) (t_disj hij) },
       { assume i,
         exact measurable_image_of_fderiv_within (hs.inter (t_meas i)) (λ x hx,
           (hf' x hx.1).mono (inter_subset_left _ _)) (hf.mono (inter_subset_left _ _)) },
@@ -1113,7 +1112,7 @@ begin
       { assume i j hij,
         apply disjoint.image _ hf (inter_subset_left _ _) (inter_subset_left _ _),
         exact disjoint.mono (inter_subset_right _ _) (inter_subset_right _ _)
-          (disjoint_disjointed _ i j hij) },
+          (disjoint_disjointed _ hij) },
       { assume i,
         exact measurable_image_of_fderiv_within (hs.inter (u_meas i)) (λ x hx,
           (hf' x hx.1).mono (inter_subset_left _ _)) (hf.mono (inter_subset_left _ _)) },

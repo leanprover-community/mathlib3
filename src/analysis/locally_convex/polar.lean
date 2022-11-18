@@ -5,7 +5,6 @@ Authors: Moritz Doll, Kalle Kytölä
 -/
 
 import analysis.normed.field.basic
-import analysis.convex.basic
 import linear_algebra.sesquilinear_form
 import topology.algebra.module.weak_dual
 

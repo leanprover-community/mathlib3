@@ -3,9 +3,7 @@ Copyright (c) 2019 Tim Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baanen, Lu-Ming Zhang
 -/
-import algebra.regular.smul
 import linear_algebra.matrix.adjugate
-import linear_algebra.matrix.polynomial
 
 /-!
 # Nonsingular inverses
@@ -274,6 +272,12 @@ begin
   casesI (A.is_unit_iff_is_unit_det.mpr h).nonempty_invertible,
   rw [←inv_of_eq_nonsing_inv, matrix.inv_of_mul_self],
 end
+
+instance [invertible A] : invertible A⁻¹ :=
+by { rw ← inv_of_eq_nonsing_inv, apply_instance }
+
+@[simp] lemma inv_inv_of_invertible [invertible A] : A⁻¹⁻¹ = A :=
+by simp only [← inv_of_eq_nonsing_inv, inv_of_inv_of]
 
 @[simp] lemma mul_nonsing_inv_cancel_right (B : matrix m n α) (h : is_unit A.det) :
   B ⬝ A ⬝ A⁻¹ = B :=

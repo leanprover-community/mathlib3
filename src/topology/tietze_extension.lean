@@ -220,7 +220,8 @@ begin
     whenever `g y = a`, and `0 ≤ dg y ≤ c - a` for all `y`.  -/
     have hd : disjoint (range e ∪ g ⁻¹' (Ici c)) (g ⁻¹' {a}),
     { refine disjoint_union_left.2 ⟨_, disjoint.preimage _ _⟩,
-      { rintro _ ⟨⟨x, rfl⟩, rfl : g (e x) = a⟩,
+      { rw set.disjoint_left,
+        rintro _ ⟨x, rfl⟩ (rfl : g (e x) = a),
         exact ha' ⟨x, (congr_fun hgf x).symm⟩ },
       { exact set.disjoint_singleton_right.2 hac.not_le } },
     rcases exists_bounded_mem_Icc_of_closed_of_le
@@ -249,7 +250,8 @@ begin
   { exact ⟨g, λ y, ⟨xl y, x, hxl y, hgb y⟩, hgf⟩ },
   have hd : disjoint (range e ∪ g ⁻¹' (Iic c)) (g ⁻¹' {b}),
   { refine disjoint_union_left.2 ⟨_, disjoint.preimage _ _⟩,
-    { rintro _ ⟨⟨x, rfl⟩, rfl : g (e x) = b⟩,
+    { rw set.disjoint_left,
+      rintro _ ⟨x, rfl⟩ (rfl : g (e x) = b),
       exact hb' ⟨x, (congr_fun hgf x).symm⟩ },
     { exact set.disjoint_singleton_right.2 hcb.not_le } },
   rcases exists_bounded_mem_Icc_of_closed_of_le

@@ -37,7 +37,7 @@ section add_comm_group
 
 variables [add_comm_group E] [module ℝ E] [add_comm_group F] [module ℝ F]
 
-/-- The parallelepiped spanned by a finite family of vectors. -/
+/-- The closed parallelepiped spanned by a finite family of vectors. -/
 def parallelepiped (v : ι → E) : set E :=
 (λ (t : ι → ℝ), ∑ i, t i • v i) '' (Icc 0 1)
 

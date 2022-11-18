@@ -324,7 +324,7 @@ section infi_and_supr
 
 open_locale topological_space
 
-open filter
+open filter set
 
 variables {ι : Type*} {R : Type*} [complete_linear_order R] [topological_space R] [order_topology R]
 
@@ -340,6 +340,23 @@ lemma supr_eq_of_forall_le_of_tendsto {x : R} {as : ι → R}
   (le_x : ∀ i, as i ≤ x) {F : filter ι} [filter.ne_bot F] (as_lim : filter.tendsto as F (𝓝 x)) :
   (⨆ i, as i) = x :=
 @infi_eq_of_forall_le_of_tendsto ι (order_dual R) _ _ _ x as le_x F _ as_lim
+
+lemma Union_Ici_eq_Ioi_of_lt_of_tendsto {ι : Type*} (x : R) {as : ι → R} (x_lt : ∀ i, x < as i)
+  {F : filter ι} [filter.ne_bot F] (as_lim : filter.tendsto as F (𝓝 x)) :
+  (⋃ (i : ι), Ici (as i)) = Ioi x :=
+begin
+  have obs : x ∉ range as,
+  { intro maybe_x_is,
+    rcases mem_range.mp maybe_x_is with ⟨i, hi⟩,
+    simpa only [hi, lt_self_iff_false] using x_lt i, } ,
+  rw ← infi_eq_of_forall_le_of_tendsto (λ i, (x_lt i).le) as_lim at *,
+  exact Union_Ici_eq_Ioi_infi obs,
+end
+
+lemma Union_Iic_eq_Iio_of_lt_of_tendsto {ι : Type*} (x : R) {as : ι → R} (lt_x : ∀ i, as i < x)
+  {F : filter ι} [filter.ne_bot F] (as_lim : filter.tendsto as F (𝓝 x)) :
+  (⋃ (i : ι), Iic (as i)) = Iio x :=
+@Union_Ici_eq_Ioi_of_lt_of_tendsto (order_dual R) _ _ _ ι x as lt_x F _ as_lim
 
 end infi_and_supr
 

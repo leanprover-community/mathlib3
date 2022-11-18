@@ -73,6 +73,8 @@ begin
   { intro x, simp_rw mul_add, rw [div_mul_cancel _ hT, periodic_exp_map_circle] }
 end
 
+/-- The canonical map `λ x, exp (2 π i x / T)` from `ℝ / ℤ • T` to the unit circle in `ℂ`.
+If `T = 0` we understand this as the constant function 1. -/
 def to_circle := (@scaled_exp_map_periodic T).lift
 
 lemma to_circle_add (x : add_circle T) (y : add_circle T) :
@@ -111,6 +113,7 @@ In this file we use the Haar measure on `add_circle T` normalised to have total 
 variables [hT : fact (0 < T)]
 include hT
 
+/-- Haar measure on the additive circle, normalised to have total measure 1. -/
 def haar_add_circle : measure (add_circle T) := add_haar_measure ⊤
 
 instance : is_probability_measure (@haar_add_circle T _) :=

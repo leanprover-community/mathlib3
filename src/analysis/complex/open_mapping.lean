@@ -6,7 +6,6 @@ Authors: Vincent Beffara
 import analysis.analytic.isolated_zeros
 import analysis.complex.cauchy_integral
 import analysis.complex.abs_max
-import topology.algebra.field
 
 /-!
 # The open mapping theorem for holomorphic functions

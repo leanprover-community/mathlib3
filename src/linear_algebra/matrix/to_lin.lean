@@ -9,6 +9,7 @@ import linear_algebra.matrix.finite_dimensional
 import linear_algebra.std_basis
 import ring_theory.algebra_tower
 import algebra.module.algebra
+import algebra.algebra.subalgebra.tower
 
 /-!
 # Linear maps and matrices

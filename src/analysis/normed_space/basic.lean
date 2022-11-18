@@ -5,10 +5,7 @@ Authors: Patrick Massot, Johannes Hölzl
 -/
 import algebra.algebra.restrict_scalars
 import analysis.normed.field.basic
-import analysis.normed.group.infinite_sum
 import data.real.sqrt
-import data.matrix.basic
-import topology.sequences
 
 /-!
 # Normed spaces
@@ -121,7 +118,7 @@ begin
     ((continuous_id.smul continuous_const).add continuous_const).continuous_within_at,
   convert this.mem_closure _ _,
   { rw [one_smul, sub_add_cancel] },
-  { simp [closure_Ico (@zero_ne_one ℝ _ _), zero_le_one] },
+  { simp [closure_Ico zero_ne_one, zero_le_one] },
   { rintros c ⟨hc0, hc1⟩,
     rw [mem_ball, dist_eq_norm, add_sub_cancel, norm_smul, real.norm_eq_abs,
       abs_of_nonneg hc0, mul_comm, ← mul_one r],

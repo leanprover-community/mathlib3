@@ -6,7 +6,6 @@ Authors: Moritz Doll
 
 import analysis.calculus.iterated_deriv
 import analysis.calculus.mean_value
-import measure_theory.integral.interval_integral
 import data.polynomial.basic
 import data.polynomial.module
 

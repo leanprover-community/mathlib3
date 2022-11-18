@@ -6,6 +6,7 @@ Authors: Yaël Dillies, Yury Kudryashov
 import analysis.convex.strict
 import analysis.convex.topology
 import analysis.normed.order.basic
+import analysis.normed_space.add_torsor
 import analysis.normed_space.pointwise
 import analysis.normed_space.affine_isometry
 
@@ -125,7 +126,7 @@ begin
   refine strict_convex_space.of_norm_combo_ne_one
     (λ x y hx hy hne, ⟨1/2, 1/2, one_half_pos.le, one_half_pos.le, add_halves _, _⟩),
   rw [← smul_add, norm_smul, real.norm_of_nonneg one_half_pos.le, one_div,
-    ← div_eq_inv_mul, ne.def, div_eq_one_iff_eq (@two_ne_zero ℝ _ _)],
+    ← div_eq_inv_mul, ne.def, div_eq_one_iff_eq (two_ne_zero' ℝ)],
   exact h hx hy hne,
 end
 

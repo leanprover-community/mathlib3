@@ -272,7 +272,7 @@ begin
   convert congr_arg alg_hom.to_ring_hom
     (subsingleton.elim (alg_hom.mk' f $ map_real_smul f h) $ algebra.of_id ℝ ℂ),
   ext1, refl,
-end 
+end
 
 /-- Continuous linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
 def of_real_clm : ℝ →L[ℝ] ℂ := of_real_li.to_continuous_linear_map

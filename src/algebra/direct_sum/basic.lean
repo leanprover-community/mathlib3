@@ -5,7 +5,6 @@ Authors: Kenny Lau
 -/
 import data.dfinsupp.basic
 import group_theory.submonoid.operations
-import group_theory.subgroup.basic
 /-!
 # Direct sum
 

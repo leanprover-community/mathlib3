@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Yury Kudryashov, Sébastien Gouëzel, Rémy Degenne
 -/
 import measure_theory.integral.set_to_l1
-import analysis.normed_space.bounded_linear_maps
-import topology.sequences
 
 /-!
 # Bochner integral

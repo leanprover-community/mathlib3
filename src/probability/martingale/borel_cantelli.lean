@@ -6,7 +6,6 @@ Authors: Kexing Ying
 import probability.martingale.convergence
 import probability.martingale.optional_stopping
 import probability.martingale.centering
-import probability.conditional_expectation
 
 /-!
 

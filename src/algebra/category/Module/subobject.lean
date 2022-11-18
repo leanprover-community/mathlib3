@@ -7,7 +7,6 @@ import algebra.category.Module.epi_mono
 import algebra.category.Module.kernels
 import category_theory.subobject.well_powered
 import category_theory.subobject.limits
-import category_theory.limits.concrete_category
 
 /-!
 # Subobjects in the category of `R`-modules

@@ -3,6 +3,8 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 -/
+import algebra.euclidean_domain.basic
+import data.nat.prime
 import ring_theory.coprime.basic
 import ring_theory.principal_ideal_domain
 
@@ -31,7 +33,7 @@ namespace nat
 instance : wf_dvd_monoid ℕ :=
 ⟨begin
   refine rel_hom_class.well_founded
-    (⟨λ (x : ℕ), if x = 0 then (⊤ : with_top ℕ) else x, _⟩ : dvd_not_unit →r (<))
+    (⟨λ (x : ℕ), if x = 0 then (⊤ : ℕ∞) else x, _⟩ : dvd_not_unit →r (<))
     (with_top.well_founded_lt nat.lt_wf),
   intros a b h,
   cases a,
@@ -176,6 +178,21 @@ end
 lemma coprime_iff_nat_coprime {a b : ℤ} : is_coprime a b ↔ nat.coprime a.nat_abs b.nat_abs :=
 by rw [←gcd_eq_one_iff_coprime, nat.coprime_iff_gcd_eq_one, gcd_eq_nat_abs]
 
+/-- If `gcd a (m * n) ≠ 1`, then `gcd a m ≠ 1` or `gcd a n ≠ 1`. -/
+lemma gcd_ne_one_iff_gcd_mul_right_ne_one {a : ℤ} {m n : ℕ} :
+  a.gcd (m * n) ≠ 1 ↔ a.gcd m ≠ 1 ∨ a.gcd n ≠ 1 :=
+by simp only [gcd_eq_one_iff_coprime, ← not_and_distrib, not_iff_not, is_coprime.mul_right_iff]
+
+/-- If `gcd a (m * n) = 1`, then `gcd a m = 1`. -/
+lemma gcd_eq_one_of_gcd_mul_right_eq_one_left {a : ℤ} {m n : ℕ} (h : a.gcd (m * n) = 1) :
+  a.gcd m = 1 :=
+nat.dvd_one.mp $ trans_rel_left _ (gcd_dvd_gcd_mul_right_right a m n) h
+
+/-- If `gcd a (m * n) = 1`, then `gcd a n = 1`. -/
+lemma gcd_eq_one_of_gcd_mul_right_eq_one_right {a : ℤ} {m n : ℕ} (h : a.gcd (m * n) = 1) :
+  a.gcd n = 1 :=
+nat.dvd_one.mp $ trans_rel_left _ (gcd_dvd_gcd_mul_left_right a n m) h
+
 lemma sq_of_gcd_eq_one {a b c : ℤ} (h : int.gcd a b = 1) (heq : a * b = c ^ 2) :
   ∃ (a0 : ℤ), a = a0 ^ 2 ∨ a = - (a0 ^ 2) :=
 begin
@@ -313,7 +330,7 @@ begin
     rw nat.is_unit_iff.1 h,
     exact h₁, },
   { intros a p _ hp ha,
-    exact h p a (nat.prime_iff.2 hp) ha, },
+    exact h p a hp.nat_prime ha, },
 end
 
 lemma int.associated_nat_abs (k : ℤ) : associated k k.nat_abs :=

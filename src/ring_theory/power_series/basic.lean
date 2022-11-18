@@ -3,7 +3,6 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Kenny Lau
 -/
-import algebra.big_operators.nat_antidiagonal
 import data.finsupp.interval
 import data.mv_polynomial.basic
 import data.polynomial.algebra_map
@@ -560,7 +559,8 @@ begin
       { rintros ⟨i,j⟩ hij, rw finsupp.mem_antidiagonal at hij,
         rw coeff_X_pow, split_ifs with hi,
         { exfalso, apply H, rw [← hij, hi], ext,
-          rw [coe_add, coe_add, pi.add_apply, pi.add_apply, add_tsub_cancel_left, add_comm], },
+          rw [finsupp.coe_add, finsupp.coe_add, pi.add_apply, pi.add_apply, add_tsub_cancel_left,
+              add_comm], },
         { exact zero_mul _ } },
       { classical, contrapose! H, ext t,
         by_cases hst : s = t,
@@ -764,8 +764,10 @@ begin
         mv_power_series.inv_mul_cancel _ h.right] }
 end
 
-@[simp] lemma inv_one : (1 : mv_power_series σ k)⁻¹ = 1 :=
-by { rw [mv_power_series.inv_eq_iff_mul_eq_one, mul_one], simp }
+instance : inv_one_class (mv_power_series σ k) :=
+{ inv_one := by { rw [mv_power_series.inv_eq_iff_mul_eq_one, mul_one], simp },
+  ..mv_power_series.has_one,
+  ..mv_power_series.has_inv }
 
 @[simp] lemma C_inv (r : k) : (C σ k r)⁻¹ = C σ k r⁻¹ :=
 begin
@@ -1603,8 +1605,7 @@ mv_power_series.inv_eq_iff_mul_eq_one h
   (φ * ψ)⁻¹ = ψ⁻¹ * φ⁻¹ :=
 mv_power_series.mul_inv_rev _ _
 
-@[simp] lemma inv_one : (1 : power_series k)⁻¹ = 1 :=
-mv_power_series.inv_one
+instance : inv_one_class (power_series k) := mv_power_series.inv_one_class
 
 @[simp] lemma C_inv (r : k) : (C k r)⁻¹ = C k r⁻¹ :=
 mv_power_series.C_inv _
@@ -1933,19 +1934,19 @@ congr_arg (coeff φ) (finsupp.single_eq_same)
   (monomial n a : power_series R) = power_series.monomial R n a :=
 by { ext, simp [coeff_coe, power_series.coeff_monomial, polynomial.coeff_monomial, eq_comm] }
 
-@[simp, norm_cast] lemma coe_zero : ((0 : R[X]) : power_series R) = 0 := rfl
+@[norm_cast] protected lemma coe_zero : ((0 : R[X]) : power_series R) = 0 := rfl
 
-@[simp, norm_cast] lemma coe_one : ((1 : R[X]) : power_series R) = 1 :=
+@[norm_cast] protected lemma coe_one : ((1 : R[X]) : power_series R) = 1 :=
 begin
   have := coe_monomial 0 (1:R),
   rwa power_series.monomial_zero_eq_C_apply at this,
 end
 
-@[simp, norm_cast] lemma coe_add :
+@[norm_cast] protected lemma coe_add :
   ((φ + ψ : R[X]) : power_series R) = φ + ψ :=
 by { ext, simp }
 
-@[simp, norm_cast] lemma coe_mul :
+@[norm_cast] protected lemma coe_mul :
   ((φ * ψ : R[X]) : power_series R) = φ * ψ :=
 power_series.ext $ λ n,
 by simp only [coeff_coe, power_series.coeff_mul, coeff_mul]
@@ -1957,13 +1958,19 @@ begin
   rwa power_series.monomial_zero_eq_C_apply at this,
 end
 
-@[simp, norm_cast] lemma coe_bit0 :
-  ((bit0 φ : R[X]) : power_series R) = bit0 (φ : power_series R) :=
-coe_add φ φ
+instance _root_.power_series.coe_is_ring_hom : coe_is_ring_hom (R[X]) (power_series R) :=
+{ coe_zero := polynomial.coe_zero,
+  coe_add := polynomial.coe_add,
+  coe_one := polynomial.coe_one,
+  coe_mul := polynomial.coe_mul }
 
-@[simp, norm_cast] lemma coe_bit1 :
+@[norm_cast] protected lemma coe_bit0 :
+  ((bit0 φ : R[X]) : power_series R) = bit0 (φ : power_series R) :=
+coe_bit0 _ _ φ
+
+@[norm_cast] protected lemma coe_bit1 :
   ((bit1 φ : R[X]) : power_series R) = bit1 (φ : power_series R) :=
-by rw [bit1, bit1, coe_add, coe_one, coe_bit0]
+coe_bit1 _ _ φ
 
 @[simp, norm_cast] lemma coe_X :
   ((X : R[X]) : power_series R) = power_series.X :=
@@ -1982,10 +1989,10 @@ variables {R φ ψ}
 (coe_injective R).eq_iff
 
 @[simp] lemma coe_eq_zero_iff : (φ : power_series R) = 0 ↔ φ = 0 :=
-by rw [←coe_zero, coe_inj]
+by rw [←@coe_zero R[X], coe_inj]
 
 @[simp] lemma coe_eq_one_iff : (φ : power_series R) = 1 ↔ φ = 1 :=
-by rw [←coe_one, coe_inj]
+by rw [←@coe_one R[X], coe_inj]
 
 variables (φ ψ)
 
@@ -1994,17 +2001,13 @@ The coercion from polynomials to power series
 as a ring homomorphism.
 -/
 def coe_to_power_series.ring_hom : R[X] →+* power_series R :=
-{ to_fun := (coe : R[X] → power_series R),
-  map_zero' := coe_zero,
-  map_one' := coe_one,
-  map_add' := coe_add,
-  map_mul' := coe_mul }
+ring_hom.coe _ _
 
 @[simp] lemma coe_to_power_series.ring_hom_apply : coe_to_power_series.ring_hom φ = φ := rfl
 
-@[simp, norm_cast] lemma coe_pow (n : ℕ):
+@[norm_cast] protected lemma coe_pow (n : ℕ):
   ((φ ^ n : R[X]) : power_series R) = (φ : power_series R) ^ n :=
-coe_to_power_series.ring_hom.map_pow _ _
+coe_pow _ _
 
 variables (A : Type*) [semiring A] [algebra R A]
 
@@ -2032,9 +2035,9 @@ instance algebra_power_series : algebra (power_series R) (power_series A) :=
 (map (algebra_map R A)).to_algebra
 
 @[priority 100] -- see Note [lower instance priority]
-instance algebra_polynomial' {A : Type*} [comm_semiring A] [algebra R (polynomial A)] :
+instance algebra_polynomial' {A : Type*} [comm_semiring A] [algebra R A[X]] :
   algebra R (power_series A) :=
-ring_hom.to_algebra $ polynomial.coe_to_power_series.ring_hom.comp (algebra_map R (polynomial A))
+ring_hom.to_algebra $ polynomial.coe_to_power_series.ring_hom.comp (algebra_map R A[X])
 
 variables (A)
 

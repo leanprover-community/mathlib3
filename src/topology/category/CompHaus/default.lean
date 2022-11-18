@@ -5,10 +5,10 @@ Authors: Adam Topaz, Bhavik Mehta
 -/
 
 import category_theory.adjunction.reflective
-import topology.category.Top
 import topology.stone_cech
 import category_theory.monad.limits
 import topology.urysohns_lemma
+import topology.category.Top.limits
 
 /-!
 # The category of Compact Hausdorff Spaces
@@ -190,7 +190,7 @@ def limit_cone {J : Type v} [small_category J] (F : J ⥤ CompHaus.{max v u}) :
   π :=
   { app := λ j, (Top.limit_cone (F ⋙ CompHaus_to_Top)).π.app j,
     naturality' := by { intros _ _ _, ext ⟨x, hx⟩,
-      simp only [comp_apply, functor.const.obj_map, id_apply], exact (hx f).symm, } } }
+      simp only [comp_apply, functor.const_obj_map, id_apply], exact (hx f).symm, } } }
 
 /-- The limit cone `CompHaus.limit_cone F` is indeed a limit cone. -/
 def limit_cone_is_limit {J : Type v} [small_category J] (F : J ⥤ CompHaus.{max v u}) :
@@ -216,7 +216,7 @@ begin
     haveI : t2_space (ulift.{u} $ set.Icc (0:ℝ) 1) := homeomorph.ulift.symm.t2_space,
     let Z := of (ulift.{u} $ set.Icc (0:ℝ) 1),
     let g : Y ⟶ Z := ⟨λ y', ⟨⟨φ y', hφ01 y'⟩⟩,
-      continuous_ulift_up.comp (continuous_subtype_mk (λ y', hφ01 y') φ.continuous)⟩,
+      continuous_ulift_up.comp (φ.continuous.subtype_mk (λ y', hφ01 y'))⟩,
     let h : Y ⟶ Z := ⟨λ _, ⟨⟨0, set.left_mem_Icc.mpr zero_le_one⟩⟩, continuous_const⟩,
     have H : h = g,
     { rw ← cancel_epi f,

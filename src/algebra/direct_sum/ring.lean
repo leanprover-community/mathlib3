@@ -3,10 +3,8 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import group_theory.subgroup.basic
 import algebra.graded_monoid
 import algebra.direct_sum.basic
-import algebra.big_operators.pi
 
 /-!
 # Additively-graded multiplicative structures on `⨁ i, A i`
@@ -265,21 +263,21 @@ by rw [list.of_fn_eq_map, of_list_dprod]
 
 open_locale big_operators
 
+lemma mul_eq_dfinsupp_sum [Π (i : ι) (x : A i), decidable (x ≠ 0)] (a a' : ⨁ i, A i) :
+  a * a' = a.sum (λ i ai, a'.sum $ λ j aj, direct_sum.of _ _ $ graded_monoid.ghas_mul.mul ai aj) :=
+begin
+  change mul_hom _ a a' = _,
+  simpa only [mul_hom, to_add_monoid, dfinsupp.lift_add_hom_apply, dfinsupp.sum_add_hom_apply,
+    add_monoid_hom.dfinsupp_sum_apply, flip_apply, add_monoid_hom.dfinsupp_sum_add_hom_apply],
+end
+
 /-- A heavily unfolded version of the definition of multiplication -/
 lemma mul_eq_sum_support_ghas_mul
   [Π (i : ι) (x : A i), decidable (x ≠ 0)] (a a' : ⨁ i, A i) :
   a * a' =
-    ∑ (ij : ι × ι) in (dfinsupp.support a).product (dfinsupp.support a'),
+    ∑ ij in dfinsupp.support a ×ˢ dfinsupp.support a',
       direct_sum.of _ _ (graded_monoid.ghas_mul.mul (a ij.fst) (a' ij.snd)) :=
-begin
-  change direct_sum.mul_hom _ a a' = _,
-  dsimp [direct_sum.mul_hom, direct_sum.to_add_monoid, dfinsupp.lift_add_hom_apply],
-  simp only [dfinsupp.sum_add_hom_apply, dfinsupp.sum, dfinsupp.finset_sum_apply,
-    add_monoid_hom.coe_finset_sum, finset.sum_apply, add_monoid_hom.flip_apply,
-    add_monoid_hom.comp_hom_apply_apply, add_monoid_hom.comp_apply,
-    direct_sum.gmul_hom_apply_apply],
-  rw finset.sum_product,
-end
+by simp only [mul_eq_dfinsupp_sum, dfinsupp.sum, finset.sum_product]
 
 end semiring
 
@@ -566,7 +564,7 @@ def lift_ring_hom :
     f (graded_monoid.ghas_one.one) = 1 ∧
     ∀ {i j} (ai : A i) (aj : A j), f (graded_monoid.ghas_mul.mul ai aj) = f ai * f aj} ≃
     ((⨁ i, A i) →+* R) :=
-{ to_fun := λ f, to_semiring f.1 f.2.1 f.2.2,
+{ to_fun := λ f, to_semiring (λ _, f.1) f.2.1 (λ _ _, f.2.2),
   inv_fun := λ F,
     ⟨λ i, (F : (⨁ i, A i) →+ R).comp (of _ i), begin
       simp only [add_monoid_hom.comp_apply, ring_hom.coe_add_monoid_hom],
@@ -578,7 +576,7 @@ def lift_ring_hom :
     end⟩,
   left_inv := λ f, begin
     ext xi xv,
-    exact to_add_monoid_of f.1 xi xv,
+    exact to_add_monoid_of (λ _, f.1) xi xv,
   end,
   right_inv := λ F, begin
     apply ring_hom.coe_add_monoid_hom_injective,

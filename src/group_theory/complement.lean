@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
-import group_theory.group_action.quotient
-import group_theory.order_of_element
+import data.zmod.quotient
 
 /-!
 # Complements
@@ -20,13 +19,15 @@ In this file we define the complement of a subgroup.
   i.e. the set of all `S : set G` that contain exactly one element of each left coset of `T`.
 - `right_transversals S` where `S` is a subset of `G` is the set of all right-complements of `S`,
   i.e. the set of all `T : set G` that contain exactly one element of each right coset of `S`.
+- `transfer_transversal H g` is a specific `left_transversal` of `H` that is used in the
+  computation of the transfer homomorphism evaluated at an element `g : G`.
 
 ## Main results
 
 - `is_complement_of_coprime` : Subgroups of coprime order are complements.
 -/
 
-open_locale big_operators
+open_locale big_operators pointwise
 
 namespace subgroup
 
@@ -197,6 +198,15 @@ mem_left_transversals_iff_exists_unique_quotient_mk'_eq.trans
 mem_right_transversals_iff_exists_unique_quotient_mk'_eq.trans
   (function.bijective_iff_exists_unique (S.restrict quotient.mk')).symm
 
+@[to_additive] lemma card_left_transversal (h : S ∈ left_transversals (H : set G)) :
+  nat.card S = H.index :=
+nat.card_congr $ equiv.of_bijective _ $ mem_left_transversals_iff_bijective.mp h
+
+@[to_additive] lemma card_right_transversal (h : S ∈ right_transversals (H : set G)) :
+  nat.card S = H.index :=
+nat.card_congr $ (equiv.of_bijective _ $ mem_right_transversals_iff_bijective.mp h).trans $
+  quotient_group.quotient_right_rel_equiv_quotient_left_rel H
+
 @[to_additive] lemma range_mem_left_transversals {f : G ⧸ H → G} (hf : ∀ q, ↑(f q) = q) :
   set.range f ∈ left_transversals (H : set G) :=
 mem_left_transversals_iff_bijective.mpr ⟨by rintros ⟨-, q₁, rfl⟩ ⟨-, q₂, rfl⟩ h;
@@ -347,17 +357,22 @@ end action
 
 lemma is_complement'.is_compl (h : is_complement' H K) : is_compl H K :=
 begin
-  refine ⟨λ g ⟨p, q⟩, let x : H × K := ⟨⟨g, p⟩, 1⟩, y : H × K := ⟨1, g, q⟩ in subtype.ext_iff.mp
-    (prod.ext_iff.mp (show x = y, from h.1 ((mul_one g).trans (one_mul g).symm))).1, λ g _, _⟩,
+  refine ⟨disjoint_iff_inf_le.mpr $
+    λ g ⟨p, q⟩, let x : H × K := ⟨⟨g, p⟩, 1⟩, y : H × K := ⟨1, g, q⟩ in subtype.ext_iff.mp
+    (prod.ext_iff.mp (show x = y, from h.1 ((mul_one g).trans (one_mul g).symm))).1,
+    codisjoint_iff_le_sup.mpr $ λ g _, _⟩,
   obtain ⟨⟨h, k⟩, rfl⟩ := h.2 g,
   exact subgroup.mul_mem_sup h.2 k.2,
 end
 
-lemma is_complement'.sup_eq_top (h : subgroup.is_complement' H K) : H ⊔ K = ⊤ :=
+lemma is_complement'.sup_eq_top (h : is_complement' H K) : H ⊔ K = ⊤ :=
 h.is_compl.sup_eq_top
 
 lemma is_complement'.disjoint (h : is_complement' H K) : disjoint H K :=
 h.is_compl.disjoint
+
+lemma is_complement'.index_eq_card (h : is_complement' H K) : K.index = nat.card H :=
+(card_left_transversal h).symm
 
 lemma is_complement.card_mul [fintype G] [fintype S] [fintype T] (h : is_complement S T) :
   fintype.card S * fintype.card T = fintype.card G :=
@@ -367,18 +382,19 @@ lemma is_complement'.card_mul [fintype G] [fintype H] [fintype K] (h : is_comple
   fintype.card H * fintype.card K = fintype.card G :=
 h.card_mul
 
+lemma is_complement'_of_disjoint_and_mul_eq_univ
+  (h1 : disjoint H K) (h2 : ↑H * ↑K = (set.univ : set G)) : is_complement' H K :=
+begin
+  refine ⟨mul_injective_of_disjoint h1, λ g, _⟩,
+  obtain ⟨h, k, hh, hk, hg⟩ := set.eq_univ_iff_forall.mp h2 g,
+  exact ⟨(⟨h, hh⟩, ⟨k, hk⟩), hg⟩,
+end
+
 lemma is_complement'_of_card_mul_and_disjoint [fintype G] [fintype H] [fintype K]
   (h1 : fintype.card H * fintype.card K = fintype.card G) (h2 : disjoint H K) :
   is_complement' H K :=
-begin
-  refine (fintype.bijective_iff_injective_and_card _).mpr
-    ⟨λ x y h, _, (fintype.card_prod H K).trans h1⟩,
-  rw [←eq_inv_mul_iff_mul_eq, ←mul_assoc, ←mul_inv_eq_iff_eq_mul] at h,
-  change ↑(x.2 * y.2⁻¹) = ↑(x.1⁻¹ * y.1) at h,
-  rw [prod.ext_iff, ←@inv_mul_eq_one H _ x.1 y.1, ←@mul_inv_eq_one K _ x.2 y.2, subtype.ext_iff,
-      subtype.ext_iff, coe_one, coe_one, h, and_self, ←mem_bot, ←h2.eq_bot, mem_inf],
-  exact ⟨subtype.mem ((x.1)⁻¹ * (y.1)), (congr_arg (∈ K) h).mp (subtype.mem (x.2 * (y.2)⁻¹))⟩,
-end
+(fintype.bijective_iff_injective_and_card _).mpr
+  ⟨mul_injective_of_disjoint h2, (fintype.card_prod H K).trans h1⟩
 
 lemma is_complement'_iff_card_mul_and_disjoint [fintype G] [fintype H] [fintype K] :
   is_complement' H K ↔
@@ -403,6 +419,83 @@ begin
   specialize h1 (h * h') (by rwa [mul_smul, smul_def h', ←hg, ←mul_smul, hg]),
   refine prod.ext (eq_inv_of_mul_eq_one_right h1) (subtype.ext _),
   rwa [subtype.ext_iff, coe_one, coe_mul, ←self_eq_mul_left, mul_assoc ↑h ↑h' g] at h1,
+end
+
+end subgroup
+
+namespace subgroup
+
+open equiv function mem_left_transversals mul_action mul_action.quotient zmod
+
+universe u
+
+variables {G : Type u} [group G] (H : subgroup G) (g : G)
+
+/-- Partition `G ⧸ H` into orbits of the action of `g : G`. -/
+noncomputable def quotient_equiv_sigma_zmod : G ⧸ H ≃
+  Σ (q : orbit_rel.quotient (zpowers g) (G ⧸ H)), zmod (minimal_period ((•) g) q.out') :=
+(self_equiv_sigma_orbits (zpowers g) (G ⧸ H)).trans
+  (sigma_congr_right (λ q, orbit_zpowers_equiv g q.out'))
+
+lemma quotient_equiv_sigma_zmod_symm_apply
+  (q : orbit_rel.quotient (zpowers g) (G ⧸ H)) (k : zmod (minimal_period ((•) g) q.out')) :
+  (quotient_equiv_sigma_zmod H g).symm ⟨q, k⟩ = g ^ (k : ℤ) • q.out' :=
+rfl
+
+lemma quotient_equiv_sigma_zmod_apply (q : orbit_rel.quotient (zpowers g) (G ⧸ H)) (k : ℤ) :
+  quotient_equiv_sigma_zmod H g (g ^ k • q.out') = ⟨q, k⟩ :=
+by rw [apply_eq_iff_eq_symm_apply, quotient_equiv_sigma_zmod_symm_apply,
+  zmod.coe_int_cast, zpow_smul_mod_minimal_period]
+
+/-- The transfer transversal as a function. Given a `⟨g⟩`-orbit `q₀, g • q₀, ..., g ^ (m - 1) • q₀`
+  in `G ⧸ H`, an element `g ^ k • q₀` is mapped to `g ^ k • g₀` for a fixed choice of
+  representative `g₀` of `q₀`. -/
+noncomputable def transfer_function : G ⧸ H → G :=
+λ q, g ^ ((quotient_equiv_sigma_zmod H g q).2 : ℤ) * (quotient_equiv_sigma_zmod H g q).1.out'.out'
+
+lemma transfer_function_apply (q : G ⧸ H) : transfer_function H g q =
+  g ^ ((quotient_equiv_sigma_zmod H g q).2 : ℤ) * (quotient_equiv_sigma_zmod H g q).1.out'.out' :=
+rfl
+
+lemma coe_transfer_function (q : G ⧸ H) : ↑(transfer_function H g q) = q :=
+by rw [transfer_function_apply, ←smul_eq_mul, coe_smul_out',
+  ←quotient_equiv_sigma_zmod_symm_apply, sigma.eta, symm_apply_apply]
+
+/-- The transfer transversal as a set. Contains elements of the form `g ^ k • g₀` for fixed choices
+  of representatives `g₀` of fixed choices of representatives `q₀` of `⟨g⟩`-orbits in `G ⧸ H`. -/
+def transfer_set : set G :=
+set.range (transfer_function H g)
+
+lemma mem_transfer_set (q : G ⧸ H) : transfer_function H g q ∈ transfer_set H g :=
+⟨q, rfl⟩
+
+/-- The transfer transversal. Contains elements of the form `g ^ k • g₀` for fixed choices
+  of representatives `g₀` of fixed choices of representatives `q₀` of `⟨g⟩`-orbits in `G ⧸ H`. -/
+def transfer_transversal : left_transversals (H : set G) :=
+⟨transfer_set H g, range_mem_left_transversals (coe_transfer_function H g)⟩
+
+lemma transfer_transversal_apply (q : G ⧸ H) :
+  ↑(to_equiv (transfer_transversal H g).2 q) = transfer_function H g q :=
+to_equiv_apply (coe_transfer_function H g) q
+
+lemma transfer_transversal_apply'
+  (q : orbit_rel.quotient (zpowers g) (G ⧸ H)) (k : zmod (minimal_period ((•) g) q.out')) :
+  ↑(to_equiv (transfer_transversal H g).2 (g ^ (k : ℤ) • q.out')) = g ^ (k : ℤ) * q.out'.out' :=
+by rw [transfer_transversal_apply, transfer_function_apply,
+  ←quotient_equiv_sigma_zmod_symm_apply, apply_symm_apply]
+
+lemma transfer_transversal_apply''
+  (q : orbit_rel.quotient (zpowers g) (G ⧸ H)) (k : zmod (minimal_period ((•) g) q.out')) :
+  ↑(to_equiv (g • transfer_transversal H g).2 (g ^ (k : ℤ) • q.out')) =
+    if k = 0 then g ^ minimal_period ((•) g) q.out' * q.out'.out' else g ^ (k : ℤ) * q.out'.out' :=
+begin
+  rw [smul_apply_eq_smul_apply_inv_smul, transfer_transversal_apply, transfer_function_apply,
+      ←mul_smul, ←zpow_neg_one, ←zpow_add, quotient_equiv_sigma_zmod_apply, smul_eq_mul,
+      ←mul_assoc, ←zpow_one_add, int.cast_add, int.cast_neg, int.cast_one, int_cast_cast,
+      cast_id', id.def, ←sub_eq_neg_add, cast_sub_one, add_sub_cancel'_right],
+  by_cases hk : k = 0,
+  { rw [if_pos hk, if_pos hk, zpow_coe_nat] },
+  { rw [if_neg hk, if_neg hk] },
 end
 
 end subgroup

@@ -109,6 +109,23 @@ function.surjective.mul_action mk (surjective_quot_mk _) P^.quotient.mk_smul
 instance mul_action (P : submodule R M) : mul_action R (M ⧸ P) :=
 quotient.mul_action' P
 
+instance smul_zero_class' [has_smul S R] [smul_zero_class S M]
+  [is_scalar_tower S R M]
+  (P : submodule R M) : smul_zero_class S (M ⧸ P) :=
+zero_hom.smul_zero_class ⟨mk, mk_zero _⟩ P^.quotient.mk_smul
+
+instance smul_zero_class (P : submodule R M) : smul_zero_class R (M ⧸ P) :=
+quotient.smul_zero_class' P
+
+instance distrib_smul' [has_smul S R] [distrib_smul S M]
+  [is_scalar_tower S R M]
+  (P : submodule R M) : distrib_smul S (M ⧸ P) :=
+function.surjective.distrib_smul
+  ⟨mk, rfl, λ _ _, rfl⟩ (surjective_quot_mk _) P^.quotient.mk_smul
+
+instance distrib_smul (P : submodule R M) : distrib_smul R (M ⧸ P) :=
+quotient.distrib_smul' P
+
 instance distrib_mul_action' [monoid S] [has_smul S R] [distrib_mul_action S M]
   [is_scalar_tower S R M]
   (P : submodule R M) : distrib_mul_action S (M ⧸ P) :=
@@ -162,6 +179,45 @@ begin
 end
 
 end quotient
+
+instance quotient_bot.infinite [infinite M] : infinite (M ⧸ (⊥ : submodule R M)) :=
+infinite.of_injective submodule.quotient.mk $ λ x y h, sub_eq_zero.mp $
+  (submodule.quotient.eq ⊥).mp h
+
+instance quotient_top.unique : unique (M ⧸ (⊤ : submodule R M)) :=
+{ default := 0,
+  uniq := λ x, quotient.induction_on' x $ λ x, (submodule.quotient.eq ⊤).mpr submodule.mem_top }
+
+instance quotient_top.fintype : fintype (M ⧸ (⊤ : submodule R M)) :=
+fintype.of_subsingleton 0
+
+variables {p}
+
+lemma subsingleton_quotient_iff_eq_top : subsingleton (M ⧸ p) ↔ p = ⊤ :=
+begin
+  split,
+  { rintro h,
+    refine eq_top_iff.mpr (λ x _, _),
+    have this : x - 0 ∈ p := (submodule.quotient.eq p).mp (by exactI subsingleton.elim _ _),
+    rwa sub_zero at this },
+  { rintro rfl,
+    apply_instance }
+end
+
+lemma unique_quotient_iff_eq_top : nonempty (unique (M ⧸ p)) ↔ p = ⊤ :=
+⟨λ ⟨h⟩, subsingleton_quotient_iff_eq_top.mp (@@unique.subsingleton h),
+ by { rintro rfl, exact ⟨quotient_top.unique⟩ }⟩
+
+variables (p)
+
+noncomputable instance quotient.fintype [fintype M] (S : submodule R M) :
+  fintype (M ⧸ S) :=
+@@quotient.fintype _ _ (λ _ _, classical.dec _)
+
+lemma card_eq_card_quotient_mul_card [fintype M] (S : submodule R M) [decidable_pred (∈ S)]  :
+  fintype.card M = fintype.card S * fintype.card (M ⧸ S) :=
+by { rw [mul_comm, ← fintype.card_prod],
+     exact fintype.card_congr add_subgroup.add_group_equiv_quotient_times_add_subgroup }
 
 section
 
@@ -259,7 +315,7 @@ lemma mapq_comp {R₃ M₃ : Type*} [ring R₃] [add_comm_group M₃] [module R�
   p.mapq p₃ (g.comp f) h = (p₂.mapq p₃ g hg).comp (p.mapq p₂ f hf) :=
 by { ext, simp, }
 
-@[simp] lemma mapq_id (h : p ≤ p.comap linear_map.id := by simp) :
+@[simp] lemma mapq_id (h : p ≤ p.comap linear_map.id := by { rw comap_id, exact le_refl _ }) :
   p.mapq p linear_map.id h = linear_map.id :=
 by { ext, simp, }
 
@@ -329,6 +385,43 @@ begin
   exact inf_le_right,
 end
 
+/-- If `P` is a submodule of `M` and `Q` a submodule of `N`,
+and `f : M ≃ₗ N` maps `P` to `Q`, then `M ⧸ P` is equivalent to `N ⧸ Q`. -/
+@[simps] def quotient.equiv {N : Type*} [add_comm_group N] [module R N]
+  (P : submodule R M) (Q : submodule R N)
+  (f : M ≃ₗ[R] N) (hf : P.map f = Q) : (M ⧸ P) ≃ₗ[R] N ⧸ Q :=
+{ to_fun := P.mapq Q (f : M →ₗ[R] N) (λ x hx, hf ▸ submodule.mem_map_of_mem hx),
+  inv_fun := Q.mapq P (f.symm : N →ₗ[R] M) (λ x hx, begin
+    rw [← hf, submodule.mem_map] at hx,
+    obtain ⟨y, hy, rfl⟩ := hx,
+    simpa
+  end),
+  left_inv := λ x, quotient.induction_on' x (by simp),
+  right_inv := λ x, quotient.induction_on' x (by simp),
+  .. P.mapq Q (f : M →ₗ[R] N) (λ x hx, hf ▸ submodule.mem_map_of_mem hx) }
+
+@[simp] lemma quotient.equiv_symm {R M N : Type*} [comm_ring R]
+  [add_comm_group M] [module R M] [add_comm_group N] [module R N]
+  (P : submodule R M) (Q : submodule R N)
+  (f : M ≃ₗ[R] N) (hf : P.map f = Q) :
+  (quotient.equiv P Q f hf).symm =
+    quotient.equiv Q P f.symm ((submodule.map_symm_eq_iff f).mpr hf) :=
+rfl
+
+@[simp] lemma quotient.equiv_trans {N O : Type*} [add_comm_group N] [module R N]
+  [add_comm_group O] [module R O]
+  (P : submodule R M) (Q : submodule R N) (S : submodule R O)
+  (e : M ≃ₗ[R] N) (f : N ≃ₗ[R] O)
+  (he : P.map e = Q) (hf : Q.map f = S) (hef : P.map (e.trans f) = S) :
+  quotient.equiv P S (e.trans f) hef = (quotient.equiv P Q e he).trans (quotient.equiv Q S f hf) :=
+begin
+  ext,
+  -- `simp` can deal with `hef` depending on `e` and `f`
+  simp only [quotient.equiv_apply, linear_equiv.trans_apply, linear_equiv.coe_trans],
+  -- `rw` can deal with `mapq_comp` needing extra hypotheses coming from the RHS
+  rw [mapq_comp, linear_map.comp_apply]
+end
+
 end submodule
 
 open submodule
@@ -394,6 +487,11 @@ def quot_equiv_of_eq (h : p = p') : (M ⧸ p) ≃ₗ[R] M ⧸ p' :=
 @[simp]
 lemma quot_equiv_of_eq_mk (h : p = p') (x : M) :
   submodule.quot_equiv_of_eq p p' h (submodule.quotient.mk x) = submodule.quotient.mk x :=
+rfl
+
+@[simp] lemma quotient.equiv_refl (P : submodule R M) (Q : submodule R M)
+  (hf : P.map (linear_equiv.refl R M : M →ₗ[R] M) = Q) :
+  quotient.equiv P Q (linear_equiv.refl R M) hf = quot_equiv_of_eq _ _ (by simpa using hf) :=
 rfl
 
 end submodule

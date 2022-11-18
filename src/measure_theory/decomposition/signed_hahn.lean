@@ -224,13 +224,10 @@ end
 private lemma restrict_nonpos_seq_disjoint : pairwise (disjoint on (restrict_nonpos_seq s i)) :=
 begin
   intros n m h,
+  rw [function.on_fun, set.disjoint_iff_inter_eq_empty],
   rcases lt_or_gt_of_ne h with (h | h),
-  { intro x,
-    rw [set.inf_eq_inter, restrict_nonpos_seq_disjoint' h],
-    exact id },
-  { intro x,
-    rw [set.inf_eq_inter, set.inter_comm, restrict_nonpos_seq_disjoint' h],
-    exact id }
+  { rw [restrict_nonpos_seq_disjoint' h] },
+  { rw [set.inter_comm, restrict_nonpos_seq_disjoint' h] }
 end
 
 private lemma exists_subset_restrict_nonpos' (hi₁ : measurable_set i) (hi₂ : s i < 0)
@@ -242,7 +239,7 @@ begin
   set k := nat.find hn with hk₁,
   have hk₂ : s ≤[i \ ⋃ l < k, restrict_nonpos_seq s i l] 0 := nat.find_spec hn,
   have hmeas : measurable_set (⋃ (l : ℕ) (H : l < k), restrict_nonpos_seq s i l) :=
-    (measurable_set.Union $ λ _, measurable_set.Union_Prop
+    (measurable_set.Union $ λ _, measurable_set.Union
       (λ _, restrict_nonpos_seq_measurable_set _)),
   refine ⟨i \ ⋃ l < k, restrict_nonpos_seq s i l, hi₁.diff hmeas, set.diff_subset _ _, hk₂, _⟩,
   rw [of_diff hmeas hi₁, s.of_disjoint_Union_nat],
@@ -250,7 +247,7 @@ begin
     { intros l hl,
       refine le_of_lt (measure_of_restrict_nonpos_seq h _ _),
       refine mt (restrict_le_zero_subset _ (hi₁.diff _) (set.subset.refl _)) (nat.find_min hn hl),
-      exact (measurable_set.Union $ λ _, measurable_set.Union_Prop
+      exact (measurable_set.Union $ λ _, measurable_set.Union
         (λ _, restrict_nonpos_seq_measurable_set _)) },
     suffices : 0 ≤ ∑' (l : ℕ), s (⋃ (H : l < k), restrict_nonpos_seq s i l),
     { rw sub_neg,
@@ -262,12 +259,13 @@ begin
       rw [set.mem_Union, exists_prop, and_iff_right_iff_imp],
       exact λ _, h },
     { convert le_of_eq s.empty.symm,
-      ext, simp only [exists_prop, set.mem_empty_eq, set.mem_Union, not_and, iff_false],
+      ext, simp only [exists_prop, set.mem_empty_iff_false, set.mem_Union, not_and, iff_false],
       exact λ h', false.elim (h h') } },
-  { intro, exact measurable_set.Union_Prop (λ _, restrict_nonpos_seq_measurable_set _) },
-  { intros a b hab x hx,
-    simp only [exists_prop, set.mem_Union, set.mem_inter_eq, set.inf_eq_inter] at hx,
-    exact let ⟨⟨_, hx₁⟩, _, hx₂⟩ := hx in restrict_nonpos_seq_disjoint a b hab ⟨hx₁, hx₂⟩ },
+  { intro, exact measurable_set.Union (λ _, restrict_nonpos_seq_measurable_set _) },
+  { intros a b hab,
+    refine set.disjoint_Union_left.mpr (λ ha, _),
+    refine set.disjoint_Union_right.mpr (λ hb, _),
+    exact restrict_nonpos_seq_disjoint hab },
   { apply set.Union_subset,
     intros a x,
     simp only [and_imp, exists_prop, set.mem_Union],

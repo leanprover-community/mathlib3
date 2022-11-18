@@ -29,13 +29,13 @@ noncomputable theory
 open complex
 open_locale complex_conjugate
 
-local notation `|` x `|` := complex.abs x
+local notation (name := complex.abs) `|` x `|` := complex.abs x
 
 /-- An element of the unit circle defines a `linear_isometry_equiv` from `ℂ` to itself, by
 rotation. -/
 def rotation : circle →* (ℂ ≃ₗᵢ[ℝ] ℂ) :=
 { to_fun := λ a,
-  { norm_map' := λ x, show |a * x| = |x|, by rw [complex.abs_mul, abs_coe_circle, one_mul],
+  { norm_map' := λ x, show |a * x| = |x|, by rw [map_mul, abs_coe_circle, one_mul],
     ..distrib_mul_action.to_linear_equiv ℝ ℂ a },
   map_one' := linear_isometry_equiv.ext $ one_smul _,
   map_mul' := λ _ _, linear_isometry_equiv.ext $ mul_smul _ _ }
@@ -75,14 +75,14 @@ function.left_inverse.injective rotation_of_rotation
 lemma linear_isometry.re_apply_eq_re_of_add_conj_eq (f : ℂ →ₗᵢ[ℝ] ℂ)
   (h₃ : ∀ z, z + conj z = f z + conj (f z)) (z : ℂ) : (f z).re = z.re :=
 by simpa [ext_iff, add_re, add_im, conj_re, conj_im, ←two_mul,
-         (show (2 : ℝ) ≠ 0, by simp [two_ne_zero'])] using (h₃ z).symm
+         (show (2 : ℝ) ≠ 0, by simp [two_ne_zero])] using (h₃ z).symm
 
 lemma linear_isometry.im_apply_eq_im_or_neg_of_re_apply_eq_re {f : ℂ →ₗᵢ[ℝ] ℂ}
   (h₂ : ∀ z, (f z).re = z.re) (z : ℂ) :
   (f z).im = z.im ∨ (f z).im = -z.im :=
 begin
   have h₁ := f.norm_map z,
-  simp only [complex.abs, norm_eq_abs] at h₁,
+  simp only [complex.abs_def, norm_eq_abs] at h₁,
   rwa [real.sqrt_inj (norm_sq_nonneg _) (norm_sq_nonneg _), norm_sq_apply (f z), norm_sq_apply z,
     h₂, add_left_cancel_iff, mul_self_eq_mul_self_iff] at h₁,
 end
@@ -90,7 +90,7 @@ end
 lemma linear_isometry.im_apply_eq_im {f : ℂ →ₗᵢ[ℝ] ℂ} (h : f 1 = 1) (z : ℂ) :
   z + conj z = f z + conj (f z) :=
 begin
-  have : ∥f z - 1∥ = ∥z - 1∥ := by rw [← f.norm_map (z - 1), f.map_sub, h],
+  have : ‖f z - 1‖ = ‖z - 1‖ := by rw [← f.norm_map (z - 1), f.map_sub, h],
   apply_fun λ x, x ^ 2 at this,
   simp only [norm_eq_abs, ←norm_sq_eq_abs] at this,
   rw [←of_real_inj, ←mul_conj, ←mul_conj] at this,

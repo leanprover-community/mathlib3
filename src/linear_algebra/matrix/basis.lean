@@ -3,6 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
+import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.reindex
 import linear_algebra.matrix.to_lin
 
@@ -71,7 +72,7 @@ by { ext M i j, refl, }
 begin
   rw basis.to_matrix,
   ext i j,
-  simp [basis.equiv_fun, matrix.one_apply, finsupp.single, eq_comm]
+  simp [basis.equiv_fun, matrix.one_apply, finsupp.single_apply, eq_comm]
 end
 
 lemma to_matrix_update [decidable_eq ι'] (x : M) :
@@ -214,7 +215,7 @@ lemma basis.to_matrix_reindex' [decidable_eq ι] [decidable_eq ι']
   (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :
   (b.reindex e).to_matrix v = matrix.reindex_alg_equiv _ e (b.to_matrix (v ∘ e)) :=
 by { ext, simp only [basis.to_matrix_apply, basis.reindex_repr, matrix.reindex_alg_equiv_apply,
-        matrix.reindex_apply, matrix.minor_apply, function.comp_app, e.apply_symm_apply] }
+        matrix.reindex_apply, matrix.submatrix_apply, function.comp_app, e.apply_symm_apply] }
 
 end fintype
 
@@ -234,11 +235,16 @@ lemma basis.to_matrix_mul_to_matrix_flip [decidable_eq ι] [fintype ι'] :
   b.to_matrix b' ⬝ b'.to_matrix b = 1 :=
 by rw [basis.to_matrix_mul_to_matrix, basis.to_matrix_self]
 
+/-- A matrix whose columns form a basis `b'`, expressed w.r.t. a basis `b`, is invertible. -/
+def basis.invertible_to_matrix [decidable_eq ι] [fintype ι] (b b' : basis ι R₂ M₂) :
+  invertible (b.to_matrix b') :=
+matrix.invertible_of_left_inverse _ _ (basis.to_matrix_mul_to_matrix_flip _ _)
+
 @[simp]
 lemma basis.to_matrix_reindex
   (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :
-  (b.reindex e).to_matrix v = (b.to_matrix v).minor e.symm id :=
-by { ext, simp only [basis.to_matrix_apply, basis.reindex_repr, matrix.minor_apply, id.def] }
+  (b.reindex e).to_matrix v = (b.to_matrix v).submatrix e.symm id :=
+by { ext, simp only [basis.to_matrix_apply, basis.reindex_repr, matrix.submatrix_apply, id.def] }
 
 @[simp]
 lemma basis.to_matrix_map (b : basis ι R M) (f : M ≃ₗ[R] N) (v : ι → N) :

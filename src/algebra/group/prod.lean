@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Yury Kudryashov
 -/
 import algebra.group.opposite
+import algebra.group_with_zero.units.basic
+import algebra.hom.units
 
 /-!
 # Monoid, group etc structures on `M × N`
@@ -46,6 +48,16 @@ lemma mk_mul_mk [has_mul M] [has_mul N] (a₁ a₂ : M) (b₁ b₂ : N) :
 lemma swap_mul [has_mul M] [has_mul N] (p q : M × N) : (p * q).swap = p.swap * q.swap := rfl
 @[to_additive]
 lemma mul_def [has_mul M] [has_mul N] (p q : M × N) : p * q = (p.1 * q.1, p.2 * q.2) := rfl
+
+@[to_additive]
+lemma one_mk_mul_one_mk [monoid M] [has_mul N] (b₁ b₂ : N) :
+  ((1 : M), b₁) * (1, b₂) = (1, b₁ * b₂) :=
+by rw [mk_mul_mk, mul_one]
+
+@[to_additive]
+lemma mk_one_mul_mk_one [has_mul M] [monoid N] (a₁ a₂ : M) :
+  (a₁, (1 : N)) * (a₂, 1) = (a₁ * a₂, 1) :=
+by rw [mk_mul_mk, mul_one]
 
 @[to_additive]
 instance [has_one M] [has_one N] : has_one (M × N) := ⟨(1, 1)⟩
@@ -136,7 +148,7 @@ instance [div_inv_monoid G] [div_inv_monoid H] : div_inv_monoid (G × H) :=
   zpow_neg' := λ z a, ext (div_inv_monoid.zpow_neg' _ _) (div_inv_monoid.zpow_neg' _ _),
   .. prod.monoid, .. prod.has_inv, .. prod.has_div }
 
-@[to_additive subtraction_monoid]
+@[to_additive]
 instance [division_monoid G] [division_monoid H] : division_monoid (G × H) :=
 { mul_inv_rev := λ a b, ext (mul_inv_rev _ _) (mul_inv_rev _ _),
   inv_eq_of_mul := λ a b h, ext (inv_eq_of_mul_eq_one_right $ congr_arg fst h)
@@ -495,7 +507,7 @@ open mul_opposite
 /-- Canonical homomorphism of monoids from `αˣ` into `α × αᵐᵒᵖ`.
 Used mainly to define the natural topology of `αˣ`. -/
 @[to_additive "Canonical homomorphism of additive monoids from `add_units α` into `α × αᵃᵒᵖ`.
-Used mainly to define the natural topology of `add_units α`."]
+Used mainly to define the natural topology of `add_units α`.", simps]
 def embed_product (α : Type*) [monoid α] : αˣ →* α × αᵐᵒᵖ :=
 { to_fun := λ x, ⟨x, op ↑x⁻¹⟩,
   map_one' := by simp only [inv_one, eq_self_iff_true, units.coe_one, op_one, prod.mk_eq_one,

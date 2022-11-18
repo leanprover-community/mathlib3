@@ -35,7 +35,7 @@ This choice differs from the current irreducible design of `polynomial`, that in
 the implementation via `finsupp`s.  It is closer to the original definition of polynomials.
 
 As a consequence, `laurent_polynomial` plays well with polynomials, but there is a little roughness
-in establishing the API, since the `finsupp` implementation of `polynomial R` is well-shielded.
+in establishing the API, since the `finsupp` implementation of `R[X]` is well-shielded.
 
 Unlike the case of polynomials, I felt that the exponent notation was not too easy to use, as only
 natural exponents would be allowed.  Moreover, in the end, it seems likely that we should aim to
@@ -355,7 +355,7 @@ lemma reduce_to_polynomial_of_mul_T (f : R[T;T⁻¹]) {Q : R[T;T⁻¹] → Prop}
 begin
   induction f using laurent_polynomial.induction_on_mul_T with f n,
   induction n with n hn,
-  { simpa only [int.coe_nat_zero, neg_zero', T_zero, mul_one] using Qf _ },
+  { simpa only [int.coe_nat_zero, neg_zero, T_zero, mul_one] using Qf _ },
   { convert QT _ _,
     simpa using hn }
 end

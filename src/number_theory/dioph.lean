@@ -383,7 +383,7 @@ lemma dioph_fn_compn : ∀ {n} {S : set (α ⊕ fin2 n → ℕ)} (d : dioph S)
   by { dsimp, congr', ext x, obtain (_ | _ | _) := x; refl },
   have dioph {v | v ⊗ f v :: (λ (i : fin2 n), fl i v) ∈ S},
   from @dioph_fn_compn n (λ v, S (v ∘ inl ⊗ f (v ∘ inl) :: v ∘ inr)) this _ dfl,
-  ext this $ λ v, by { dsimp, congr', ext x, obtain (_ | _ | _) := x; refl }
+  ext this $ λ v, by { dsimp, congr', ext x, obtain _ | _ | _ := x; refl }
 
 lemma dioph_comp {S : set (vector3 ℕ n)} (d : dioph S) (f : vector3 ((α → ℕ) → ℕ) n)
   (df : vector_allp dioph_fn f) : dioph {v | (λ i, f i v) ∈ S} :=
@@ -395,19 +395,19 @@ dioph_comp ((dioph_fn_vec _).1 df) ((λ v, v none) :: λ i v, g i (v ∘ some)) 
 by simp; exact ⟨proj_dioph none, (vector_allp_iff_forall _ _).2 $ λ i,
   reindex_dioph_fn _ $ (vector_allp_iff_forall _ _).1 dg _⟩
 
-localized "notation x ` D∧ `:35 y := dioph.inter x y" in dioph
-localized "notation x ` D∨ `:35 y := dioph.union x y" in dioph
+localized "notation (name := dioph.inter) x ` D∧ `:35 y := dioph.inter x y" in dioph
+localized "notation (name := dioph.union) x ` D∨ `:35 y := dioph.union x y" in dioph
 
-localized "notation `D∃`:30 := dioph.vec_ex1_dioph" in dioph
+localized "notation (name := dioph.vec_ex1_dioph) `D∃`:30 := dioph.vec_ex1_dioph" in dioph
 
-localized "prefix `&`:max := fin2.of_nat'" in dioph
+localized "prefix (name := fin2.of_nat') `&`:max := fin2.of_nat'" in dioph
 theorem proj_dioph_of_nat {n : ℕ} (m : ℕ) [is_lt m n] : dioph_fn (λ v : vector3 ℕ n, v &m) :=
 proj_dioph &m
-localized "prefix `D&`:100 := dioph.proj_dioph_of_nat" in dioph
+localized "prefix (name := proj_dioph_of_nat) `D&`:100 := dioph.proj_dioph_of_nat" in dioph
 
 theorem const_dioph (n : ℕ) : dioph_fn (const (α → ℕ) n) :=
 abs_poly_dioph (poly.const n)
-localized "prefix `D.`:100 := dioph.const_dioph" in dioph
+localized "prefix (name := const_dioph) `D.`:100 := dioph.const_dioph" in dioph
 
 variables {f g : (α → ℕ) → ℕ} (df : dioph_fn f) (dg : dioph_fn g)
 include df dg
@@ -424,26 +424,26 @@ lemma eq_dioph : dioph (λ v, f v = g v) :=
 dioph_comp2 df dg $ of_no_dummies _ (poly.proj &0 - poly.proj &1)
   (λ v, (int.coe_nat_eq_coe_nat_iff _ _).symm.trans
   ⟨@sub_eq_zero_of_eq ℤ _ (v &0) (v &1), eq_of_sub_eq_zero⟩)
-localized "infix ` D= `:50 := dioph.eq_dioph" in dioph
+localized "infix (name := eq_dioph) ` D= `:50 := dioph.eq_dioph" in dioph
 
 lemma add_dioph : dioph_fn (λ v, f v + g v) :=
 dioph_fn_comp2 df dg $ abs_poly_dioph (poly.proj &0 + poly.proj &1)
-localized "infix ` D+ `:80 := dioph.add_dioph" in dioph
+localized "infix (name := add_dioph) ` D+ `:80 := dioph.add_dioph" in dioph
 
 lemma mul_dioph : dioph_fn (λ v, f v * g v) :=
 dioph_fn_comp2 df dg $ abs_poly_dioph (poly.proj &0 * poly.proj &1)
-localized "infix ` D* `:90 := dioph.mul_dioph" in dioph
+localized "infix (name := mul_dioph) ` D* `:90 := dioph.mul_dioph" in dioph
 
 lemma le_dioph : dioph {v | f v ≤ g v} :=
 dioph_comp2 df dg $ ext (D∃2 $ D&1 D+ D&0 D= D&2) (λ v, ⟨λ ⟨x, hx⟩, le.intro hx, le.dest⟩)
-localized "infix ` D≤ `:50 := dioph.le_dioph" in dioph
+localized "infix (name := le_dioph) ` D≤ `:50 := dioph.le_dioph" in dioph
 
 lemma lt_dioph : dioph {v | f v < g v} := df D+ (D. 1) D≤ dg
-localized "infix ` D< `:50 := dioph.lt_dioph" in dioph
+localized "infix (name := lt_dioph) ` D< `:50 := dioph.lt_dioph" in dioph
 
 lemma ne_dioph : dioph {v | f v ≠ g v} :=
 ext (df D< dg D∨ dg D< df) $ λ v, by { dsimp, exact lt_or_lt_iff_ne }
-localized "infix ` D≠ `:50 := dioph.ne_dioph" in dioph
+localized "infix (name := ne_dioph) ` D≠ `:50 := dioph.ne_dioph" in dioph
 
 lemma sub_dioph : dioph_fn (λ v, f v - g v) :=
 dioph_fn_comp2 df dg $ (dioph_fn_vec _).2 $
@@ -459,11 +459,11 @@ end, begin
   { exact or.inr ⟨yz, tsub_eq_zero_iff_le.mpr yz⟩ },
   { exact or.inl (tsub_add_cancel_of_le zy).symm },
 end⟩
-localized "infix ` D- `:80 := dioph.sub_dioph" in dioph
+localized "infix (name := sub_dioph) ` D- `:80 := dioph.sub_dioph" in dioph
 
 lemma dvd_dioph : dioph (λ v, f v ∣ g v) :=
 dioph_comp (D∃2 $ D&2 D= D&1 D* D&0) [f, g] (by exact ⟨df, dg⟩)
-localized "infix ` D∣ `:50 := dioph.dvd_dioph" in dioph
+localized "infix (name := dvd_dioph) ` D∣ `:50 := dioph.dvd_dioph" in dioph
 
 lemma mod_dioph : dioph_fn (λ v, f v % g v) :=
 have dioph (λ v : vector3 ℕ 3, (v &2 = 0 ∨ v &0 < v &2) ∧ ∃ (x : ℕ), v &0 + v &2 * x = v &1),
@@ -475,11 +475,11 @@ show ((y = 0 ∨ z < y) ∧ ∃ c, z + y * c = x) ↔ x % y = z, from
 λ e, by rw ← e; exact ⟨or_iff_not_imp_left.2 $ λ h, mod_lt _ (nat.pos_of_ne_zero h), x / y,
   mod_add_div _ _⟩⟩
 
-localized "infix ` D% `:80 := dioph.mod_dioph" in dioph
+localized "infix (name := mod_dioph) ` D% `:80 := dioph.mod_dioph" in dioph
 
 lemma modeq_dioph {h : (α → ℕ) → ℕ} (dh : dioph_fn h) : dioph (λ v, f v ≡ g v [MOD h v]) :=
 df D% dh D= dg D% dh
-localized "notation `D≡` := dioph.modeq_dioph" in dioph
+localized "notation (name := modeq_dioph) ` D≡ ` := dioph.modeq_dioph" in dioph
 
 lemma div_dioph : dioph_fn (λ v, f v / g v) :=
 have dioph (λ v : vector3 ℕ 3, v &2 = 0 ∧ v &0 = 0 ∨ v &0 * v &2 ≤ v &1 ∧ v &1 < (v &0 + 1) * v &2),
@@ -492,7 +492,7 @@ by refine iff.trans _ eq_comm; exact y.eq_zero_or_pos.elim
   (λ ypos, iff.trans ⟨λ o, o.resolve_left $ λ ⟨h1, _⟩, ne_of_gt ypos h1, or.inr⟩
     (le_antisymm_iff.trans $ and_congr (nat.le_div_iff_mul_le ypos) $
       iff.trans ⟨lt_succ_of_le, le_of_lt_succ⟩ (div_lt_iff_lt_mul ypos)).symm)
-localized "infix ` D/ `:80 := dioph.div_dioph" in dioph
+localized "infix (name := div_dioph) ` D/ `:80 := dioph.div_dioph" in dioph
 
 omit df dg
 open pell

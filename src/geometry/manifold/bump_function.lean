@@ -28,7 +28,7 @@ manifold, smooth bump function
 
 universes uE uF uH uM
 variables
-{E : Type uE} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+{E : Type uE} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
 {H : Type uH} [topological_space H] (I : model_with_corners ℝ E H)
 {M : Type uM} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
@@ -104,7 +104,7 @@ by rw [coe_def, support_indicator, (∘), support_comp_eq_preimage, ← ext_char
   ← (ext_chart_at I c).symm_image_target_inter_eq',
   ← (ext_chart_at I c).symm_image_target_inter_eq', f.to_cont_diff_bump.support_eq]
 
-lemma open_support : is_open (support f) :=
+lemma is_open_support : is_open (support f) :=
 by { rw support_eq_inter_preimage, exact ext_chart_preimage_open_of_open I c is_open_ball }
 
 lemma support_eq_symm_image :
@@ -193,7 +193,7 @@ begin
       self_mem_nhds_within }
 end
 
-lemma closed_image_of_closed {s : set M} (hsc : is_closed s) (hs : s ⊆ support f) :
+lemma is_closed_image_of_is_closed {s : set M} (hsc : is_closed s) (hs : s ⊆ support f) :
   is_closed (ext_chart_at I c '' s) :=
 begin
   rw f.image_eq_inter_preimage_of_subset_support hs,
@@ -210,7 +210,7 @@ lemma exists_r_pos_lt_subset_ball {s : set M} (hsc : is_closed s) (hs : s ⊆ su
     (chart_at H c).source ∩ ext_chart_at I c ⁻¹' (ball (ext_chart_at I c c) r) :=
 begin
   set e := ext_chart_at I c,
-  have : is_closed (e '' s) := f.closed_image_of_closed hsc hs,
+  have : is_closed (e '' s) := f.is_closed_image_of_is_closed hsc hs,
   rw [support_eq_inter_preimage, subset_inter_iff, ← image_subset_iff] at hs,
   rcases euclidean.exists_pos_lt_subset_ball f.R_pos this hs.2 with ⟨r, hrR, hr⟩,
   exact ⟨r, hrR, subset_inter hs.1 (image_subset_iff.1 hr)⟩
@@ -233,7 +233,7 @@ classical.inhabited_of_nonempty nhds_within_range_basis.nonempty
 
 variables [t2_space M]
 
-lemma closed_symm_image_closed_ball :
+lemma is_closed_symm_image_closed_ball :
   is_closed ((ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I)) :=
 f.compact_symm_image_closed_ball.is_closed
 
@@ -242,7 +242,7 @@ lemma tsupport_subset_symm_image_closed_ball :
 begin
   rw [tsupport, support_eq_symm_image],
   exact closure_minimal (image_subset _ $ inter_subset_inter_left _ ball_subset_closed_ball)
-    f.closed_symm_image_closed_ball
+    f.is_closed_symm_image_closed_ball
 end
 
 lemma tsupport_subset_ext_chart_at_source :
@@ -260,7 +260,7 @@ lemma tsupport_subset_chart_at_source :
 by simpa only [ext_chart_at_source] using f.tsupport_subset_ext_chart_at_source
 
 protected lemma has_compact_support : has_compact_support f :=
-compact_of_is_closed_subset f.compact_symm_image_closed_ball is_closed_closure
+is_compact_of_is_closed_subset f.compact_symm_image_closed_ball is_closed_closure
  f.tsupport_subset_symm_image_closed_ball
 
 variables (I c)
@@ -309,14 +309,14 @@ protected lemma continuous : continuous f := f.smooth.continuous
 
 /-- If `f : smooth_bump_function I c` is a smooth bump function and `g : M → G` is a function smooth
 on the source of the chart at `c`, then `f • g` is smooth on the whole manifold. -/
-lemma smooth_smul {G} [normed_group G] [normed_space ℝ G]
+lemma smooth_smul {G} [normed_add_comm_group G] [normed_space ℝ G]
   {g : M → G} (hg : smooth_on I 𝓘(ℝ, G) g (chart_at H c).source) :
   smooth I 𝓘(ℝ, G) (λ x, f x • g x) :=
 begin
   apply cont_mdiff_of_support (λ x hx, _),
   have : x ∈ (chart_at H c).source,
   calc x ∈ tsupport (λ x, f x • g x) : hx
-     ... ⊆ tsupport f : closure_mono (support_smul_subset_left _ _)
+     ... ⊆ tsupport f : tsupport_smul_subset_left _ _
      ... ⊆ (chart_at _ c).source : f.tsupport_subset_chart_at_source,
   exact f.smooth_at.smul ((hg _ this).cont_mdiff_at $
     is_open.mem_nhds (chart_at _ _).open_source this)

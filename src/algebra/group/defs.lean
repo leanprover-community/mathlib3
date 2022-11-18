@@ -3,11 +3,15 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Simon Hudon, Mario Carneiro
 -/
-import algebra.group.to_additive
 import tactic.basic
+import logic.function.basic
 
 /-!
 # Typeclasses for (semi)groups and monoids
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/457
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define typeclasses for algebraic structures with one binary operation.
 The classes are named `(add_)?(comm_)?(semigroup|monoid|group)`, where `add_` means that
@@ -348,8 +352,8 @@ meta def try_refl_tac : tactic unit := `[intros; refl]
 An `add_monoid` has a natural `ℕ`-action, defined by `n • a = a + ... + a`, that we want to declare
 as an instance as it makes it possible to use the language of linear algebra. However, there are
 often other natural `ℕ`-actions. For instance, for any semiring `R`, the space of polynomials
-`polynomial R` has a natural `R`-action defined by multiplication on the coefficients. This means
-that `polynomial ℕ` would have two natural `ℕ`-actions, which are equal but not defeq. The same
+`R[X]` has a natural `R`-action defined by multiplication on the coefficients. This means
+that `ℕ[X]` would have two natural `ℕ`-actions, which are equal but not defeq. The same
 goes for linear maps, tensor products, and so on (and even for `ℕ` itself).
 
 To solve this issue, we embed an `ℕ`-action in the definition of an `add_monoid` (which is by
@@ -357,9 +361,9 @@ default equal to the naive action `a + ... + a`, but can be adjusted when needed
 a `has_smul ℕ α` instance using this action. See Note [forgetful inheritance] for more
 explanations on this pattern.
 
-For example, when we define `polynomial R`, then we declare the `ℕ`-action to be by multiplication
+For example, when we define `R[X]`, then we declare the `ℕ`-action to be by multiplication
 on each coefficient (using the `ℕ`-action on `R` that comes from the fact that `R` is
-an `add_monoid`). In this way, the two natural `has_smul ℕ (polynomial ℕ)` instances are defeq.
+an `add_monoid`). In this way, the two natural `has_smul ℕ ℕ[X]` instances are defeq.
 
 The tactic `to_additive` transfers definitions and results from multiplicative monoids to additive
 monoids. To work, it has to map fields to fields. This means that we should also add corresponding
@@ -659,6 +663,38 @@ alias div_eq_mul_inv ← division_def
 
 end div_inv_monoid
 
+section inv_one_class
+
+set_option extends_priority 50
+
+/-- Typeclass for expressing that `-0 = 0`. -/
+class neg_zero_class (G : Type*) extends has_zero G, has_neg G :=
+(neg_zero : -(0 : G) = 0)
+
+/-- A `sub_neg_monoid` where `-0 = 0`. -/
+class sub_neg_zero_monoid (G : Type*) extends sub_neg_monoid G, neg_zero_class G
+
+/-- Typeclass for expressing that `1⁻¹ = 1`. -/
+@[to_additive]
+class inv_one_class (G : Type*) extends has_one G, has_inv G :=
+(inv_one : (1 : G)⁻¹ = 1)
+
+attribute [to_additive neg_zero_class.to_has_neg] inv_one_class.to_has_inv
+attribute [to_additive neg_zero_class.to_has_zero] inv_one_class.to_has_one
+
+/-- A `div_inv_monoid` where `1⁻¹ = 1`. -/
+@[to_additive sub_neg_zero_monoid]
+class div_inv_one_monoid (G : Type*) extends div_inv_monoid G, inv_one_class G
+
+attribute [to_additive sub_neg_zero_monoid.to_sub_neg_monoid] div_inv_one_monoid.to_div_inv_monoid
+attribute [to_additive sub_neg_zero_monoid.to_neg_zero_class] div_inv_one_monoid.to_inv_one_class
+
+variables [inv_one_class G]
+
+@[simp, to_additive] lemma inv_one : (1 : G)⁻¹ = 1 := inv_one_class.inv_one
+
+end inv_one_class
+
 /-- A `subtraction_monoid` is a `sub_neg_monoid` with involutive negation and such that
 `-(a + b) = -b + -a` and `a + b = 0 → -a = b`. -/
 @[protect_proj, ancestor sub_neg_monoid has_involutive_neg]
@@ -672,7 +708,7 @@ involutivity of negation. -/
 `(a * b)⁻¹ = b⁻¹ * a⁻¹` and `a * b = 1 → a⁻¹ = b`.
 
 This is the immediate common ancestor of `group` and `group_with_zero`. -/
-@[protect_proj, ancestor div_inv_monoid has_involutive_inv, to_additive subtraction_monoid]
+@[protect_proj, ancestor div_inv_monoid has_involutive_inv, to_additive]
 class division_monoid (G : Type u) extends div_inv_monoid G, has_involutive_inv G :=
 (mul_inv_rev (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹)
 /- Despite the asymmetry of `inv_eq_of_mul`, the symmetric version is true thanks to the
@@ -764,7 +800,7 @@ by rw [mul_assoc, mul_right_inv, mul_one]
 @[simp, to_additive] lemma inv_mul_cancel_right (a b : G) : a * b⁻¹ * b = a :=
 by rw [mul_assoc, mul_left_inv, mul_one]
 
-@[priority 100, to_additive]
+@[priority 100, to_additive add_group.to_subtraction_monoid]
 instance group.to_division_monoid : division_monoid G :=
 { inv_inv := λ a, inv_eq_of_mul (mul_left_inv a),
   mul_inv_rev := λ a b, inv_eq_of_mul $ by rw [mul_assoc, mul_inv_cancel_left, mul_right_inv],
@@ -782,13 +818,7 @@ end group
 @[to_additive]
 lemma group.to_div_inv_monoid_injective {G : Type*} :
   function.injective (@group.to_div_inv_monoid G) :=
-begin
-  rintros ⟨⟩ ⟨⟩ h,
-  replace h := div_inv_monoid.mk.inj h,
-  dsimp at h,
-  rcases h with ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩,
-  refl
-end
+by { rintros ⟨⟩ ⟨⟩ ⟨⟩, refl }
 
 /-- A commutative group is a group with commutative `(*)`. -/
 @[protect_proj, ancestor group comm_monoid]
@@ -802,13 +832,7 @@ attribute [instance, priority 300] add_comm_group.to_add_comm_monoid
 @[to_additive]
 lemma comm_group.to_group_injective {G : Type u} :
   function.injective (@comm_group.to_group G) :=
-begin
-  rintros ⟨⟩ ⟨⟩ h,
-  replace h := group.mk.inj h,
-  dsimp at h,
-  rcases h with ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩,
-  refl
-end
+by { rintros ⟨⟩ ⟨⟩ ⟨⟩, refl }
 
 section comm_group
 

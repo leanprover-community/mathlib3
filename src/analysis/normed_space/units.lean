@@ -36,32 +36,32 @@ namespace units
 /-- In a complete normed ring, a perturbation of `1` by an element `t` of distance less than `1`
 from `1` is a unit.  Here we construct its `units` structure.  -/
 @[simps coe]
-def one_sub (t : R) (h : ∥t∥ < 1) : Rˣ :=
+def one_sub (t : R) (h : ‖t‖ < 1) : Rˣ :=
 { val := 1 - t,
   inv := ∑' n : ℕ, t ^ n,
   val_inv := mul_neg_geom_series t h,
   inv_val := geom_series_mul_neg t h }
 
 /-- In a complete normed ring, a perturbation of a unit `x` by an element `t` of distance less than
-`∥x⁻¹∥⁻¹` from `x` is a unit.  Here we construct its `units` structure. -/
+`‖x⁻¹‖⁻¹` from `x` is a unit.  Here we construct its `units` structure. -/
 @[simps coe]
-def add (x : Rˣ) (t : R) (h : ∥t∥ < ∥(↑x⁻¹ : R)∥⁻¹) : Rˣ :=
+def add (x : Rˣ) (t : R) (h : ‖t‖ < ‖(↑x⁻¹ : R)‖⁻¹) : Rˣ :=
 units.copy  -- to make `coe_add` true definitionally, for convenience
   (x * (units.one_sub (-(↑x⁻¹ * t)) begin
       nontriviality R using [zero_lt_one],
-      have hpos : 0 < ∥(↑x⁻¹ : R)∥ := units.norm_pos x⁻¹,
-      calc ∥-(↑x⁻¹ * t)∥
-          = ∥↑x⁻¹ * t∥                    : by { rw norm_neg }
-      ... ≤ ∥(↑x⁻¹ : R)∥ * ∥t∥            : norm_mul_le ↑x⁻¹ _
-      ... < ∥(↑x⁻¹ : R)∥ * ∥(↑x⁻¹ : R)∥⁻¹ : by nlinarith only [h, hpos]
+      have hpos : 0 < ‖(↑x⁻¹ : R)‖ := units.norm_pos x⁻¹,
+      calc ‖-(↑x⁻¹ * t)‖
+          = ‖↑x⁻¹ * t‖                    : by { rw norm_neg }
+      ... ≤ ‖(↑x⁻¹ : R)‖ * ‖t‖            : norm_mul_le ↑x⁻¹ _
+      ... < ‖(↑x⁻¹ : R)‖ * ‖(↑x⁻¹ : R)‖⁻¹ : by nlinarith only [h, hpos]
       ... = 1                             : mul_inv_cancel (ne_of_gt hpos)
     end))
   (x + t) (by simp [mul_add]) _ rfl
 
-/-- In a complete normed ring, an element `y` of distance less than `∥x⁻¹∥⁻¹` from `x` is a unit.
+/-- In a complete normed ring, an element `y` of distance less than `‖x⁻¹‖⁻¹` from `x` is a unit.
 Here we construct its `units` structure. -/
 @[simps coe]
-def unit_of_nearby (x : Rˣ) (y : R) (h : ∥y - x∥ < ∥(↑x⁻¹ : R)∥⁻¹) : Rˣ :=
+def unit_of_nearby (x : Rˣ) (y : R) (h : ‖y - x‖ < ‖(↑x⁻¹ : R)‖⁻¹) : Rˣ :=
 units.copy (x.add (y - x : R) h) y (by simp) _ rfl
 
 /-- The group of units of a complete normed ring is an open subset of the ring. -/
@@ -70,7 +70,7 @@ begin
   nontriviality R,
   apply metric.is_open_iff.mpr,
   rintros x' ⟨x, rfl⟩,
-  refine ⟨∥(↑x⁻¹ : R)∥⁻¹, _root_.inv_pos.mpr (units.norm_pos x⁻¹), _⟩,
+  refine ⟨‖(↑x⁻¹ : R)‖⁻¹, _root_.inv_pos.mpr (units.norm_pos x⁻¹), _⟩,
   intros y hy,
   rw [metric.mem_ball, dist_eq_norm] at hy,
   exact (x.unit_of_nearby y hy).is_unit
@@ -81,11 +81,24 @@ is_open.mem_nhds units.is_open x.is_unit
 
 end units
 
+namespace nonunits
+
+/-- The `nonunits` in a complete normed ring are contained in the complement of the ball of radius
+`1` centered at `1 : R`. -/
+lemma subset_compl_ball : nonunits R ⊆ (metric.ball (1 : R) 1)ᶜ :=
+set.subset_compl_comm.mp $ λ x hx, by simpa [sub_sub_self, units.coe_one_sub] using
+  (units.one_sub (1 - x) (by rwa [metric.mem_ball, dist_eq_norm, norm_sub_rev] at hx)).is_unit
+
+/- The `nonunits` in a complete normed ring are a closed set -/
+protected lemma is_closed : is_closed (nonunits R) := units.is_open.is_closed_compl
+
+end nonunits
+
 namespace normed_ring
 open_locale classical big_operators
 open asymptotics filter metric finset ring
 
-lemma inverse_one_sub (t : R) (h : ∥t∥ < 1) : inverse (1 - t) = ↑(units.one_sub t h)⁻¹ :=
+lemma inverse_one_sub (t : R) (h : ‖t‖ < 1) : inverse (1 - t) = ↑(units.one_sub t h)⁻¹ :=
 by rw [← inverse_unit (units.one_sub t h), units.coe_one_sub]
 
 /-- The formula `inverse (x + t) = inverse (1 + x⁻¹ * t) * x⁻¹` holds for `t` sufficiently small. -/
@@ -94,11 +107,11 @@ lemma inverse_add (x : Rˣ) :
 begin
   nontriviality R,
   rw [eventually_iff, metric.mem_nhds_iff],
-  have hinv : 0 < ∥(↑x⁻¹ : R)∥⁻¹, by cancel_denoms,
-  use [∥(↑x⁻¹ : R)∥⁻¹, hinv],
+  have hinv : 0 < ‖(↑x⁻¹ : R)‖⁻¹, by cancel_denoms,
+  use [‖(↑x⁻¹ : R)‖⁻¹, hinv],
   intros t ht,
   simp only [mem_ball, dist_zero_right] at ht,
-  have ht' : ∥-↑x⁻¹ * t∥ < 1,
+  have ht' : ‖-↑x⁻¹ * t‖ < 1,
   { refine lt_of_le_of_lt (norm_mul_le _ _) _,
     rw norm_neg,
     refine lt_of_lt_of_le (mul_lt_mul_of_pos_left ht x⁻¹.norm_pos) _,
@@ -155,16 +168,16 @@ end
 lemma inverse_one_sub_norm : (λ t : R, inverse (1 - t)) =O[𝓝 0] (λ t, 1 : R → ℝ) :=
 begin
   simp only [is_O, is_O_with, eventually_iff, metric.mem_nhds_iff],
-  refine ⟨∥(1:R)∥ + 1, (2:ℝ)⁻¹, by norm_num, _⟩,
+  refine ⟨‖(1:R)‖ + 1, (2:ℝ)⁻¹, by norm_num, _⟩,
   intros t ht,
   simp only [ball, dist_zero_right, set.mem_set_of_eq] at ht,
-  have ht' : ∥t∥ < 1,
+  have ht' : ‖t‖ < 1,
   { have : (2:ℝ)⁻¹ < 1 := by cancel_denoms,
     linarith },
   simp only [inverse_one_sub t ht', norm_one, mul_one, set.mem_set_of_eq],
-  change ∥∑' n : ℕ, t ^ n∥ ≤ _,
+  change ‖∑' n : ℕ, t ^ n‖ ≤ _,
   have := normed_ring.tsum_geometric_of_norm_lt_1 t ht',
-  have : (1 - ∥t∥)⁻¹ ≤ 2,
+  have : (1 - ‖t‖)⁻¹ ≤ 2,
   { rw ← inv_inv (2:ℝ),
     refine inv_le_inv_of_le (by norm_num) _,
     have : (2:ℝ)⁻¹ + (2:ℝ)⁻¹ = 1 := by ring,
@@ -177,7 +190,7 @@ lemma inverse_add_norm (x : Rˣ) : (λ t : R, inverse (↑x + t)) =O[𝓝 0] (λ
 begin
   simp only [is_O_iff, norm_one, mul_one],
   cases is_O_iff.mp (@inverse_one_sub_norm R _ _) with C hC,
-  use C * ∥((x⁻¹:Rˣ):R)∥,
+  use C * ‖((x⁻¹:Rˣ):R)‖,
   have hzero : tendsto (λ t, - (↑x⁻¹ : R) * t) (𝓝 0) (𝓝 0),
   { convert ((mul_left_continuous (-↑x⁻¹ : R)).tendsto 0).comp tendsto_id,
     simp },
@@ -194,14 +207,14 @@ end
 is `O(t ^ n)` as `t → 0`. -/
 lemma inverse_add_norm_diff_nth_order (x : Rˣ) (n : ℕ) :
   (λ t : R, inverse (↑x + t) - (∑ i in range n, (- ↑x⁻¹ * t) ^ i) * ↑x⁻¹) =O[𝓝 (0:R)]
-  (λ t, ∥t∥ ^ n) :=
+  (λ t, ‖t‖ ^ n) :=
 begin
   by_cases h : n = 0,
   { simpa [h] using inverse_add_norm x },
   have hn : 0 < n := nat.pos_of_ne_zero h,
   simp [is_O_iff],
   cases (is_O_iff.mp (inverse_add_norm x)) with C hC,
-  use C * ∥(1:ℝ)∥ * ∥(↑x⁻¹ : R)∥ ^ n,
+  use C * ‖(1:ℝ)‖ * ‖(↑x⁻¹ : R)‖ ^ n,
   have h : eventually_eq (𝓝 (0:R))
     (λ t, inverse (↑x + t) - (∑ i in range n, (- ↑x⁻¹ * t) ^ i) * ↑x⁻¹)
     (λ t, ((- ↑x⁻¹ * t) ^ n) * inverse (x + t)),
@@ -214,13 +227,13 @@ begin
   simp only [neg_mul] at hLHS,
   rw hLHS,
   refine le_trans (norm_mul_le _ _ ) _,
-  have h' : ∥(-(↑x⁻¹ * t)) ^ n∥ ≤ ∥(↑x⁻¹ : R)∥ ^ n * ∥t∥ ^ n,
-  { calc ∥(-(↑x⁻¹ * t)) ^ n∥ ≤ ∥(-(↑x⁻¹ * t))∥ ^ n : norm_pow_le' _ hn
-    ... = ∥↑x⁻¹ * t∥ ^ n : by rw norm_neg
-    ... ≤ (∥(↑x⁻¹ : R)∥ * ∥t∥) ^ n : _
-    ... =  ∥(↑x⁻¹ : R)∥ ^ n * ∥t∥ ^ n : mul_pow _ _ n,
+  have h' : ‖(-(↑x⁻¹ * t)) ^ n‖ ≤ ‖(↑x⁻¹ : R)‖ ^ n * ‖t‖ ^ n,
+  { calc ‖(-(↑x⁻¹ * t)) ^ n‖ ≤ ‖(-(↑x⁻¹ * t))‖ ^ n : norm_pow_le' _ hn
+    ... = ‖↑x⁻¹ * t‖ ^ n : by rw norm_neg
+    ... ≤ (‖(↑x⁻¹ : R)‖ * ‖t‖) ^ n : _
+    ... =  ‖(↑x⁻¹ : R)‖ ^ n * ‖t‖ ^ n : mul_pow _ _ n,
     exact pow_le_pow_of_le_left (norm_nonneg _) (norm_mul_le ↑x⁻¹ t) n },
-  have h'' : 0 ≤ ∥(↑x⁻¹ : R)∥ ^ n * ∥t∥ ^ n,
+  have h'' : 0 ≤ ‖(↑x⁻¹ : R)‖ ^ n * ‖t‖ ^ n,
   { refine mul_nonneg _ _;
     exact pow_nonneg (norm_nonneg _) n },
   nlinarith [norm_nonneg (inverse (↑x + t))],
@@ -228,14 +241,14 @@ end
 
 /-- The function `λ t, inverse (x + t) - x⁻¹` is `O(t)` as `t → 0`. -/
 lemma inverse_add_norm_diff_first_order (x : Rˣ) :
-  (λ t : R, inverse (↑x + t) - ↑x⁻¹) =O[𝓝 0] (λ t, ∥t∥) :=
+  (λ t : R, inverse (↑x + t) - ↑x⁻¹) =O[𝓝 0] (λ t, ‖t‖) :=
 by simpa using inverse_add_norm_diff_nth_order x 1
 
 /-- The function
 `λ t, inverse (x + t) - x⁻¹ + x⁻¹ * t * x⁻¹`
 is `O(t ^ 2)` as `t → 0`. -/
 lemma inverse_add_norm_diff_second_order (x : Rˣ) :
-  (λ t : R, inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹) =O[𝓝 0] (λ t, ∥t∥ ^ 2) :=
+  (λ t : R, inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹) =O[𝓝 0] (λ t, ‖t‖ ^ 2) :=
 begin
   convert inverse_add_norm_diff_nth_order x 2,
   ext t,
@@ -288,3 +301,25 @@ lemma open_embedding_coe : open_embedding (coe : Rˣ → R) :=
 open_embedding_of_continuous_injective_open continuous_coe ext is_open_map_coe
 
 end units
+
+namespace ideal
+
+/-- An ideal which contains an element within `1` of `1 : R` is the unit ideal. -/
+lemma eq_top_of_norm_lt_one (I : ideal R) {x : R} (hxI : x ∈ I) (hx : ‖1 - x‖ < 1) : I = ⊤ :=
+let u := units.one_sub (1 - x) hx in (I.eq_top_iff_one.mpr $
+  by simpa only [show u.inv * x = 1, by simp] using I.mul_mem_left u.inv hxI)
+
+/-- The `ideal.closure` of a proper ideal in a complete normed ring is proper. -/
+lemma closure_ne_top (I : ideal R) (hI : I ≠ ⊤) : I.closure ≠ ⊤ :=
+have h : _ := closure_minimal (coe_subset_nonunits hI) nonunits.is_closed,
+  by simpa only [I.closure.eq_top_iff_one, ne.def] using mt (@h 1) one_not_mem_nonunits
+
+/-- The `ideal.closure` of a maximal ideal in a complete normed ring is the ideal itself. -/
+lemma is_maximal.closure_eq {I : ideal R} (hI : I.is_maximal) : I.closure = I :=
+(hI.eq_of_le (I.closure_ne_top hI.ne_top) subset_closure).symm
+
+/-- Maximal ideals in complete normed rings are closed. -/
+instance is_maximal.is_closed {I : ideal R} [hI : I.is_maximal] : is_closed (I : set R) :=
+is_closed_of_closure_subset $ eq.subset $ congr_arg (coe : ideal R → set R) hI.closure_eq
+
+end ideal

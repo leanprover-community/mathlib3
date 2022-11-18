@@ -3,8 +3,9 @@ Copyright (c) 2022 Eric Rodriguez. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
-
-import data.int.modeq
+import algebra.ne_zero
+import data.nat.modeq
+import data.fintype.lattice
 
 /-!
 # Definition of `zmod n` + basic results.
@@ -81,8 +82,8 @@ instance zmod.has_repr : Π (n : ℕ), has_repr (zmod n)
 
 namespace zmod
 
-instance fintype : Π (n : ℕ) [fact (0 < n)], fintype (zmod n)
-| 0     h := (lt_irrefl _ h.1).elim
+instance fintype : Π (n : ℕ) [ne_zero n], fintype (zmod n)
+| 0    h  := by exactI (ne_zero.ne 0 rfl).elim
 | (n+1) _ := fin.fintype (n+1)
 
 instance infinite : infinite (zmod 0) :=
@@ -91,7 +92,7 @@ int.infinite
 @[simp] lemma card (n : ℕ) [fintype (zmod n)] : fintype.card (zmod n) = n :=
 begin
   casesI n,
-  { exact (not_fintype (zmod 0)).elim },
+  { exact (not_finite (zmod 0)).elim },
   { convert fintype.card_fin (n+1) }
 end
 

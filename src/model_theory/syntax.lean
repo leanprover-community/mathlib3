@@ -3,7 +3,6 @@ Copyright (c) 2021 Aaron Anderson, Jesse Michael Han, Floris van Doorn. All righ
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
-import data.list.prod_sigma
 import data.set.prod
 import logic.equiv.fin
 import model_theory.language_map
@@ -31,6 +30,9 @@ above a particular index.
 variables with given terms.
 * Language maps can act on syntactic objects with functions such as
 `first_order.language.Lhom.on_formula`.
+* `first_order.language.term.constants_vars_equiv` and
+`first_order.language.bounded_formula.constants_vars_equiv` switch terms and formulas between having
+constants in the language and having extra variables indexed by the same type.
 
 ## Implementation Notes
 * Formulas use a modified version of de Bruijn variables. Specifically, a `L.bounded_formula α n`
@@ -112,6 +114,10 @@ end
   (term.relabel g ∘ term.relabel f : L.term α → L.term γ) = term.relabel (g ∘ f) :=
 funext (relabel_relabel f g)
 
+/-- Relabels a term's variables along a bijection. -/
+@[simps] def relabel_equiv (g : α ≃ β) : L.term α ≃ L.term β :=
+⟨relabel g, relabel g.symm, λ t, by simp, λ t, by simp⟩
+
 /-- Restricts a term to use only a set of the given variables. -/
 def restrict_var [decidable_eq α] : Π (t : L.term α) (f : t.var_finset → β), L.term β
 | (var a) f := var (f ⟨a, mem_singleton_self a⟩)
@@ -140,6 +146,54 @@ def functions.apply₂ (f : L.functions 2) (t₁ t₂ : L.term α) : L.term α :
 
 namespace term
 
+/-- Sends a term with constants to a term with extra variables. -/
+@[simp] def constants_to_vars : L[[γ]].term α → L.term (γ ⊕ α)
+| (var a) := var (sum.inr a)
+| (@func _ _ 0 f ts) := sum.cases_on f (λ f, func f (λ i, (ts i).constants_to_vars))
+    (λ c, var (sum.inl c))
+| (@func _ _ (n + 1) f ts) := sum.cases_on f (λ f, func f (λ i, (ts i).constants_to_vars))
+    (λ c, is_empty_elim c)
+
+/-- Sends a term with extra variables to a term with constants. -/
+@[simp] def vars_to_constants : L.term (γ ⊕ α) → L[[γ]].term α
+| (var (sum.inr a)) := var a
+| (var (sum.inl c)) := constants.term (sum.inr c)
+| (func f ts) := func (sum.inl f) (λ i, (ts i).vars_to_constants)
+
+/-- A bijection between terms with constants and terms with extra variables. -/
+@[simps] def constants_vars_equiv : L[[γ]].term α ≃ L.term (γ ⊕ α) :=
+⟨constants_to_vars, vars_to_constants, begin
+  intro t,
+  induction t with _ n f _ ih,
+  { refl },
+  { cases n,
+    { cases f,
+      { simp [constants_to_vars, vars_to_constants, ih] },
+      { simp [constants_to_vars, vars_to_constants, constants.term] } },
+    { cases f,
+      { simp [constants_to_vars, vars_to_constants, ih] },
+      { exact is_empty_elim f } } }
+end, begin
+  intro t,
+  induction t with x n f _ ih,
+  { cases x;
+    refl },
+  { cases n;
+    { simp [vars_to_constants, constants_to_vars, ih] } }
+end⟩
+
+/-- A bijection between terms with constants and terms with extra variables. -/
+def constants_vars_equiv_left : L[[γ]].term (α ⊕ β) ≃ L.term ((γ ⊕ α) ⊕ β) :=
+constants_vars_equiv.trans (relabel_equiv (equiv.sum_assoc _ _ _)).symm
+
+@[simp] lemma constants_vars_equiv_left_apply (t : L[[γ]].term (α ⊕ β)) :
+  constants_vars_equiv_left t = (constants_to_vars t).relabel (equiv.sum_assoc _ _ _).symm :=
+rfl
+
+@[simp] lemma constants_vars_equiv_left_symm_apply (t : L.term ((γ ⊕ α) ⊕ β)) :
+  constants_vars_equiv_left.symm t = vars_to_constants (t.relabel (equiv.sum_assoc _ _ _)) :=
+rfl
+
 instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=
 ⟨var default⟩
 
@@ -157,7 +211,8 @@ relabel (sum.map id (λ i, if ↑i < m then fin.cast_add n' i else fin.add_nat n
 
 end term
 
-localized "prefix `&`:max := first_order.language.term.var ∘ sum.inr" in first_order
+localized "prefix (name := language.term.var) `&`:max :=
+  first_order.language.term.var ∘ sum.inr" in first_order
 
 namespace Lhom
 
@@ -485,6 +540,10 @@ end
 φ.map_term_rel (λ _ t, t.subst (sum.elim (term.relabel sum.inl ∘ f) (var ∘ sum.inr)))
   (λ _, id) (λ _, id)
 
+/-- A bijection sending formulas with constants to formulas with extra variables. -/
+def constants_vars_equiv : L[[γ]].bounded_formula α n ≃ L.bounded_formula (γ ⊕ α) n :=
+map_term_rel_equiv (λ _, term.constants_vars_equiv_left) (λ _, equiv.sum_empty _ _)
+
 /-- Turns the extra variables of a bounded formula into free variables. -/
 @[simp] def to_formula : ∀ {n : ℕ}, L.bounded_formula α n → L.formula (α ⊕ fin n)
 | n falsum := falsum
@@ -786,15 +845,21 @@ rfl
 
 end Lequiv
 
-localized "infix ` =' `:88 := first_order.language.term.bd_equal" in first_order
+localized "infix (name := term.bd_equal)
+  ` =' `:88 := first_order.language.term.bd_equal" in first_order
   -- input \~- or \simeq
-localized "infixr ` ⟹ `:62 := first_order.language.bounded_formula.imp" in first_order
+localized "infixr (name := bounded_formula.imp)
+  ` ⟹ `:62 := first_order.language.bounded_formula.imp" in first_order
   -- input \==>
-localized "prefix `∀'`:110 := first_order.language.bounded_formula.all" in first_order
-localized "prefix `∼`:max := first_order.language.bounded_formula.not" in first_order
+localized "prefix (name := bounded_formula.all)
+  `∀'`:110 := first_order.language.bounded_formula.all" in first_order
+localized "prefix (name := bounded_formula.not)
+  `∼`:max := first_order.language.bounded_formula.not" in first_order
   -- input \~, the ASCII character ~ has too low precedence
-localized "infix ` ⇔ `:61 := first_order.language.bounded_formula.iff" in first_order -- input \<=>
-localized "prefix `∃'`:110 := first_order.language.bounded_formula.ex" in first_order -- input \ex
+localized "infix (name := bounded_formula.iff)
+  ` ⇔ `:61 := first_order.language.bounded_formula.iff" in first_order -- input \<=>
+localized "prefix (name := bounded_formula.ex)
+  `∃'`:110 := first_order.language.bounded_formula.ex" in first_order -- input \ex
 
 namespace formula
 
@@ -864,7 +929,7 @@ def nonempty_theory : L.Theory := {sentence.card_ge L 1}
 
 /-- A theory indicating that each of a set of constants is distinct. -/
 def distinct_constants_theory (s : set α) : L[[α]].Theory :=
-(λ ab : α × α, (((L.con ab.1).term.equal (L.con ab.2).term).not)) '' ((s ×ˢ s) ∩ (set.diagonal α)ᶜ)
+(λ ab : α × α, (((L.con ab.1).term.equal (L.con ab.2).term).not)) '' (s ×ˢ s ∩ (set.diagonal α)ᶜ)
 
 variables {L} {α}
 

@@ -45,10 +45,10 @@ by rw [to_pgame, left_moves]
 @[simp] theorem to_pgame_right_moves (o : ordinal) : o.to_pgame.right_moves = pempty :=
 by rw [to_pgame, right_moves]
 
-instance : is_empty (to_pgame 0).left_moves :=
+instance is_empty_zero_to_pgame_left_moves : is_empty (to_pgame 0).left_moves :=
 by { rw to_pgame_left_moves, apply_instance }
 
-instance (o : ordinal) : is_empty o.to_pgame.right_moves :=
+instance is_empty_to_pgame_right_moves (o : ordinal) : is_empty o.to_pgame.right_moves :=
 by { rw to_pgame_right_moves, apply_instance }
 
 /-- Converts an ordinal less than `o` into a move for the `pgame` corresponding to `o`, and vice
@@ -72,6 +72,29 @@ theorem to_pgame_move_left {o : ordinal} (i) :
   o.to_pgame.move_left (to_left_moves_to_pgame i) = i.val.to_pgame :=
 by simp
 
+/-- `0.to_pgame` has the same moves as `0`. -/
+noncomputable def zero_to_pgame_relabelling : to_pgame 0 ≡r 0 :=
+relabelling.is_empty _
+
+noncomputable instance unique_one_to_pgame_left_moves : unique (to_pgame 1).left_moves :=
+(equiv.cast $ to_pgame_left_moves 1).unique
+
+@[simp] theorem one_to_pgame_left_moves_default_eq :
+  (default : (to_pgame 1).left_moves) = @to_left_moves_to_pgame 1 ⟨0, zero_lt_one⟩ :=
+rfl
+
+@[simp] theorem to_left_moves_one_to_pgame_symm (i) :
+  (@to_left_moves_to_pgame 1).symm i = ⟨0, zero_lt_one⟩ :=
+by simp
+
+theorem one_to_pgame_move_left (x) : (to_pgame 1).move_left x = to_pgame 0 :=
+by simp
+
+/-- `1.to_pgame` has the same moves as `1`. -/
+noncomputable def one_to_pgame_relabelling : to_pgame 1 ≡r 1 :=
+⟨equiv.equiv_of_unique _ _, equiv.equiv_of_is_empty _ _,
+  λ i, by simpa using zero_to_pgame_relabelling, is_empty_elim⟩
+
 theorem to_pgame_lf {a b : ordinal} (h : a < b) : a.to_pgame ⧏ b.to_pgame :=
 by { convert move_left_lf (to_left_moves_to_pgame ⟨a, h⟩), rw to_pgame_move_left }
 
@@ -84,6 +107,9 @@ end
 
 theorem to_pgame_lt {a b : ordinal} (h : a < b) : a.to_pgame < b.to_pgame :=
 ⟨to_pgame_le h.le, to_pgame_lf h⟩
+
+theorem to_pgame_nonneg (a : ordinal) : 0 ≤ a.to_pgame :=
+zero_to_pgame_relabelling.ge.trans $ to_pgame_le $ ordinal.zero_le a
 
 @[simp] theorem to_pgame_lf_iff {a b : ordinal} : a.to_pgame ⧏ b.to_pgame ↔ a < b :=
 ⟨by { contrapose, rw [not_lt, not_lf], exact to_pgame_le }, to_pgame_lf⟩

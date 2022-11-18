@@ -5,7 +5,7 @@ Authors: Johan Commelin
 -/
 import algebra.group.defs
 import logic.function.basic
-import data.int.cast.defs
+import data.int.cast.basic
 
 /-!
 # Lifting algebraic data classes along injective/surjective maps
@@ -223,7 +223,7 @@ protected def div_inv_monoid [div_inv_monoid M₂]
 
 /-- A type endowed with `1`, `*`, `⁻¹`, and `/` is a `division_monoid`
 if it admits an injective map that preserves `1`, `*`, `⁻¹`, and `/` to a `division_monoid`. -/
-@[reducible, to_additive subtraction_monoid
+@[reducible, to_additive
 "A type endowed with `0`, `+`, unary `-`, and binary `-` is a `subtraction_monoid`
 if it admits an injective map that preserves `0`, `+`, unary `-`, and binary `-` to
 a `subtraction_monoid`.

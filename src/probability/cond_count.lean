@@ -40,31 +40,41 @@ open measure_theory measurable_space
 
 namespace probability_theory
 
-variables {α : Type*} [measurable_space α]
+variables {Ω : Type*} [measurable_space Ω]
 
 /-- Given a set `s`, `cond_count s` is the counting measure conditioned on `s`. In particular,
 `cond_count s t` is the proportion of `s` that is contained in `t`.
 
 This is a probability measure when `s` is finite and nonempty and is given by
 `probability_theory.cond_count_is_probability_measure`. -/
-def cond_count (s : set α) : measure α := measure.count[|s]
+def cond_count (s : set Ω) : measure Ω := measure.count[|s]
 
-@[simp] lemma cond_count_empty_meas : (cond_count ∅ : measure α) = 0 :=
+@[simp] lemma cond_count_empty_meas : (cond_count ∅ : measure Ω) = 0 :=
 by simp [cond_count]
 
-lemma cond_count_empty {s : set α} : cond_count s ∅ = 0 :=
+lemma cond_count_empty {s : set Ω} : cond_count s ∅ = 0 :=
 by simp
 
-lemma finite_of_cond_count_ne_zero {s t : set α} (h : cond_count s t ≠ 0) :
+lemma finite_of_cond_count_ne_zero {s t : set Ω} (h : cond_count s t ≠ 0) :
   s.finite :=
 begin
   by_contra hs',
   simpa [cond_count, cond, measure.count_apply_infinite hs'] using h,
 end
 
-variables [measurable_singleton_class α]
+lemma cond_count_univ [fintype Ω] {s : set Ω} :
+  cond_count set.univ s = measure.count s / fintype.card Ω :=
+begin
+  rw [cond_count, cond_apply _ measurable_set.univ, ←ennreal.div_eq_inv_mul, set.univ_inter],
+  congr',
+  rw [←finset.coe_univ, measure.count_apply, finset.univ.tsum_subtype' (λ _, (1 : ennreal))],
+  { simp [finset.card_univ] },
+  { exact (@finset.coe_univ Ω _).symm ▸ measurable_set.univ }
+end
 
-lemma cond_count_is_probability_measure {s : set α} (hs : s.finite) (hs' : s.nonempty) :
+variables [measurable_singleton_class Ω]
+
+lemma cond_count_is_probability_measure {s : set Ω} (hs : s.finite) (hs' : s.nonempty) :
   is_probability_measure (cond_count s) :=
 { measure_univ :=
   begin
@@ -73,17 +83,17 @@ lemma cond_count_is_probability_measure {s : set α} (hs : s.finite) (hs' : s.no
     { exact (measure.count_apply_lt_top.2 hs).ne }
   end }
 
-lemma cond_count_singleton (a : α) (t : set α) [decidable (a ∈ t)] :
-  cond_count {a} t = if a ∈ t then 1 else 0 :=
+lemma cond_count_singleton (ω : Ω) (t : set Ω) [decidable (ω ∈ t)] :
+  cond_count {ω} t = if ω ∈ t then 1 else 0 :=
 begin
-  rw [cond_count, cond_apply _ (measurable_set_singleton a), measure.count_singleton,
-    ennreal.inv_one, one_mul],
+  rw [cond_count, cond_apply _ (measurable_set_singleton ω), measure.count_singleton,
+    inv_one, one_mul],
   split_ifs,
-  { rw [(by simpa : ({a} : set α) ∩ t = {a}), measure.count_singleton] },
-  { rw [(by simpa : ({a} : set α) ∩ t = ∅), measure.count_empty] },
+  { rw [(by simpa : ({ω} : set Ω) ∩ t = {ω}), measure.count_singleton] },
+  { rw [(by simpa : ({ω} : set Ω) ∩ t = ∅), measure.count_empty] },
 end
 
-variables {s t u : set α}
+variables {s t u : set Ω}
 
 lemma cond_count_inter_self (hs : s.finite):
   cond_count s (s ∩ t) = cond_count s t :=
@@ -118,7 +128,7 @@ begin
   { exact this ▸ λ x hx, hx.2 },
   rw ← @set.finite.to_finset_inj _ _ _ (hsf.inter_of_left _) hsf,
   exact finset.eq_of_subset_of_card_le
-    (set.finite.to_finset_mono.2 (s.inter_subset_left t)) h.symm.le
+    (set.finite.to_finset_subset.2 (s.inter_subset_left t)) h.symm.le
 end
 
 lemma cond_count_eq_zero_iff (hs : s.finite) :
@@ -126,7 +136,7 @@ lemma cond_count_eq_zero_iff (hs : s.finite) :
 by simp [cond_count, cond_apply _ hs.measurable_set, measure.count_apply_eq_top,
     set.not_infinite.2 hs, measure.count_apply_finite _ (hs.inter_of_left _)]
 
-lemma cond_count_univ (hs : s.finite) (hs' : s.nonempty) :
+lemma cond_count_of_univ (hs : s.finite) (hs' : s.nonempty) :
   cond_count s set.univ = 1 :=
 cond_count_eq_one_of hs hs' s.subset_univ
 
@@ -159,7 +169,7 @@ begin
   exacts [htu.mono inf_le_right inf_le_right, (hs.inter_of_left _).measurable_set],
 end
 
-lemma cond_count_compl (t : set α) (hs : s.finite) (hs' : s.nonempty) :
+lemma cond_count_compl (t : set Ω) (hs : s.finite) (hs' : s.nonempty) :
   cond_count s t + cond_count s tᶜ = 1 :=
 begin
   rw [← cond_count_union hs disjoint_compl_right, set.union_compl_self,
@@ -190,7 +200,7 @@ begin
 end
 
 /-- A version of the law of total probability for counting probabilites. -/
-lemma cond_count_add_compl_eq (u t : set α) (hs : s.finite) :
+lemma cond_count_add_compl_eq (u t : set Ω) (hs : s.finite) :
   cond_count (s ∩ u) t * cond_count s u + cond_count (s ∩ uᶜ) t * cond_count s uᶜ =
   cond_count s t :=
 begin

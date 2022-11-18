@@ -6,7 +6,6 @@ Authors: Bhavik Mehta
 import category_theory.whiskering
 import category_theory.functor.fully_faithful
 import category_theory.natural_isomorphism
-import data.sigma.basic
 
 /-!
 # Disjoint union of categories
@@ -89,7 +88,7 @@ each subcategory.
 -/
 def nat_trans {F G : (Σ i, C i) ⥤ D} (h : Π (i : I), incl i ⋙ F ⟶ incl i ⋙ G) : F ⟶ G :=
 { app := λ ⟨j, X⟩, (h j).app X,
-  naturality' := by { rintro ⟨j, X⟩ ⟨_, _⟩ ⟨_, _, Y, f⟩, apply (h j).naturality } }
+  naturality' := by { rintro ⟨j, X⟩ ⟨_, _⟩ ⟨f⟩, apply (h j).naturality } }
 
 @[simp]
 lemma nat_trans_app {F G : (Σ i, C i) ⥤ D} (h : Π (i : I), incl i ⋙ F ⟶ incl i ⋙ G)
@@ -115,7 +114,7 @@ def desc : (Σ i, C i) ⥤ D :=
 { obj := λ X, (F X.1).obj X.2,
   map := λ X Y g, desc_map F X Y g,
   map_id' := by { rintro ⟨i, X⟩, apply (F i).map_id },
-  map_comp' := by { rintro ⟨i, X⟩ ⟨_, Y⟩ ⟨_, Z⟩ ⟨i, _, Y, f⟩ ⟨_, _, Z, g⟩, apply (F i).map_comp } }
+  map_comp' := by { rintro ⟨i, X⟩ ⟨_, Y⟩ ⟨_, Z⟩ ⟨f⟩ ⟨g⟩, apply (F i).map_comp } }
 
 @[simp]
 lemma desc_map_mk {i : I} (X Y : C i) (f : X ⟶ Y) :
@@ -146,7 +145,7 @@ If `q` when restricted to each subcategory `C i` agrees with `F i`, then `q` is 
 -/
 def desc_uniq (q : (Σ i, C i) ⥤ D) (h : Π i, incl i ⋙ q ≅ F i) : q ≅ desc F :=
 nat_iso.of_components (λ ⟨i, X⟩, (h i).app X) $
-  by { rintro ⟨i, X⟩ ⟨_, _⟩ ⟨_, _, Y, f⟩, apply (h i).hom.naturality f }
+  by { rintro ⟨i, X⟩ ⟨_, _⟩ ⟨f⟩, apply (h i).hom.naturality f }
 
 @[simp]
 lemma desc_uniq_hom_app (q : (Σ i, C i) ⥤ D) (h : Π i, incl i ⋙ q ≅ F i) (i : I) (X : C i) :
@@ -231,7 +230,7 @@ def sigma (α : Π i, F i ⟶ G i) : functor.sigma F ⟶ functor.sigma G :=
 { app := λ f, sigma_hom.mk ((α f.1).app _),
   naturality' :=
   begin
-    rintro ⟨i, X⟩ ⟨_, _⟩ ⟨_, _, Y, f⟩,
+    rintro ⟨i, X⟩ ⟨_, _⟩ ⟨f⟩,
     change sigma_hom.mk _ = sigma_hom.mk _,
     rw (α i).naturality,
   end }

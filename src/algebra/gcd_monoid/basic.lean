@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Jens Wagemaker
 
 import algebra.associated
 import algebra.group_power.lemmas
+import algebra.ring.regular
 
 /-!
 # Monoids with normalization functions, `gcd`, and `lcm`
@@ -63,9 +64,6 @@ divisibility, gcd, lcm, normalize
 
 variables {α : Type*}
 
-
-
-
 /-- Normalization monoid: multiplying with `norm_unit` gives a normal form for associated
 elements. -/
 @[protect_proj] class normalization_monoid (α : Type*)
@@ -100,6 +98,14 @@ theorem associated_normalize (x : α) : associated x (normalize x) :=
 
 theorem normalize_associated (x : α) : associated (normalize x) x :=
 (associated_normalize _).symm
+
+lemma associated_normalize_iff {x y : α} :
+  associated x (normalize y) ↔ associated x y :=
+⟨λ h, h.trans (normalize_associated y), λ h, h.trans (associated_normalize y)⟩
+
+lemma normalize_associated_iff {x y : α} :
+  associated (normalize x) y ↔ associated x y :=
+⟨λ h, (associated_normalize _).trans h, λ h, (normalize_associated _).trans h⟩
 
 lemma associates.mk_normalize (x : α) : associates.mk (normalize x) = associates.mk x :=
 associates.mk_eq_mk_iff_associated.2 (normalize_associated _)
@@ -406,17 +412,22 @@ by { rw mul_comm at H ⊢, exact dvd_gcd_mul_of_dvd_mul H }
 
 /-- Represent a divisor of `m * n` as a product of a divisor of `m` and a divisor of `n`.
 
- Note: In general, this representation is highly non-unique. -/
+In other words, the nonzero elements of a `gcd_monoid` form a decomposition monoid
+(more widely known as a pre-Schreier domain in the context of rings).
+
+Note: In general, this representation is highly non-unique.
+
+See `nat.prod_dvd_and_dvd_of_dvd_prod` for a constructive version on `ℕ`.  -/
 lemma exists_dvd_and_dvd_of_dvd_mul [gcd_monoid α] {m n k : α} (H : k ∣ m * n) :
-  ∃ d₁ (hd₁ : d₁ ∣ m) d₂ (hd₂ : d₂ ∣ n), k = d₁ * d₂ :=
+  ∃ d₁ d₂, d₁ ∣ m ∧ d₂ ∣ n ∧ k = d₁ * d₂ :=
 begin
   by_cases h0 : gcd k m = 0,
   { rw gcd_eq_zero_iff at h0,
     rcases h0 with ⟨rfl, rfl⟩,
-    refine ⟨0, dvd_refl 0, n, dvd_refl n, _⟩,
+    refine ⟨0, n, dvd_refl 0, dvd_refl n, _⟩,
     simp },
   { obtain ⟨a, ha⟩ := gcd_dvd_left k m,
-    refine ⟨gcd k m, gcd_dvd_right _ _, a, _, ha⟩,
+    refine ⟨gcd k m, a, gcd_dvd_right _ _, _, ha⟩,
     suffices h : gcd k m * a ∣ gcd k m * n,
     { cases h with b hb,
       use b,
@@ -426,9 +437,17 @@ begin
     exact dvd_gcd_mul_of_dvd_mul H }
 end
 
+lemma dvd_mul [gcd_monoid α] {k m n : α} :
+  k ∣ (m * n) ↔ ∃ d₁ d₂, d₁ ∣ m ∧ d₂ ∣ n ∧ k = d₁ * d₂ :=
+begin
+  refine ⟨exists_dvd_and_dvd_of_dvd_mul, _⟩,
+  rintro ⟨d₁, d₂, hy, hz, rfl⟩,
+  exact mul_dvd_mul hy hz,
+end
+
 theorem gcd_mul_dvd_mul_gcd [gcd_monoid α] (k m n : α) : gcd k (m * n) ∣ gcd k m * gcd k n :=
 begin
-  obtain ⟨m', hm', n', hn', h⟩ := (exists_dvd_and_dvd_of_dvd_mul $ gcd_dvd_right k (m * n)),
+  obtain ⟨m', n', hm', hn', h⟩ := exists_dvd_and_dvd_of_dvd_mul (gcd_dvd_right k (m * n)),
   replace h : gcd k (m * n) = m' * n' := h,
   rw h,
   have hm'n' : m' * n' ∣ k := h ▸ gcd_dvd_left _ _,
@@ -504,7 +523,7 @@ begin
   { use 1, rw pow_zero at h ⊢, use units.mk_of_mul_eq_one _ _ h,
     rw [units.coe_mk_of_mul_eq_one, one_mul] },
   have hc : c ∣ a * b, { rw h, exact dvd_pow_self _ hk.ne' },
-  obtain ⟨d₁, hd₁, d₂, hd₂, hc⟩ := exists_dvd_and_dvd_of_dvd_mul hc,
+  obtain ⟨d₁, d₂, hd₁, hd₂, hc⟩ := exists_dvd_and_dvd_of_dvd_mul hc,
   use d₁,
   obtain ⟨h0₁, ⟨a', ha'⟩⟩ := pow_dvd_of_mul_eq_pow ha hab h hc hd₁,
   rw [mul_comm] at h hc,
@@ -551,15 +570,15 @@ begin
 end
 
 lemma extract_gcd {α : Type*} [cancel_comm_monoid_with_zero α] [gcd_monoid α] (x y : α) :
-  ∃ x' y' d : α, x = d * x' ∧ y = d * y' ∧ is_unit (gcd x' y') :=
+  ∃ x' y', x = gcd x y * x' ∧ y = gcd x y * y' ∧ is_unit (gcd x' y') :=
 begin
-  cases eq_or_ne (gcd x y) 0 with h h,
+  by_cases h : gcd x y = 0,
   { obtain ⟨rfl, rfl⟩ := (gcd_eq_zero_iff x y).1 h,
     simp_rw ← associated_one_iff_is_unit,
-    exact ⟨1, 1, 0, (zero_mul 1).symm, (zero_mul 1).symm, gcd_one_left' 1⟩ },
+    exact ⟨1, 1, by rw [h, zero_mul], by rw [h, zero_mul], gcd_one_left' 1⟩ },
   obtain ⟨x', ex⟩ := gcd_dvd_left x y,
   obtain ⟨y', ey⟩ := gcd_dvd_right x y,
-  exact ⟨x', y', gcd x y, ex, ey, is_unit_gcd_of_eq_mul_gcd ex ey h⟩,
+  exact ⟨x', y', ex, ey, is_unit_gcd_of_eq_mul_gcd ex ey h⟩,
 end
 
 end gcd
@@ -748,6 +767,37 @@ instance normalization_monoid_of_unique_units : normalization_monoid α :=
   norm_unit_zero := rfl,
   norm_unit_mul := λ x y hx hy, (mul_one 1).symm,
   norm_unit_coe_units := λ u, subsingleton.elim _ _ }
+
+instance unique_normalization_monoid_of_unique_units : unique (normalization_monoid α) :=
+{ default := normalization_monoid_of_unique_units,
+  uniq := λ ⟨u, _, _, _⟩, by simpa only [(subsingleton.elim _ _ : u = λ _, 1)] }
+
+instance subsingleton_gcd_monoid_of_unique_units : subsingleton (gcd_monoid α) :=
+⟨λ g₁ g₂, begin
+  have hgcd : g₁.gcd = g₂.gcd,
+  { ext a b,
+    refine associated_iff_eq.mp (associated_of_dvd_dvd _ _);
+    apply dvd_gcd (gcd_dvd_left _ _) (gcd_dvd_right _ _) },
+  have hlcm : g₁.lcm = g₂.lcm,
+  { ext a b,
+    refine associated_iff_eq.mp (associated_of_dvd_dvd _ _);
+    apply lcm_dvd_iff.2 ⟨dvd_lcm_left _ _, dvd_lcm_right _ _⟩ },
+  cases g₁, cases g₂,
+  dsimp only at hgcd hlcm,
+  simp only [hgcd, hlcm],
+end⟩
+
+instance subsingleton_normalized_gcd_monoid_of_unique_units :
+  subsingleton (normalized_gcd_monoid α) :=
+⟨begin
+  intros a b,
+  cases a with a_norm a_gcd,
+  cases b with b_norm b_gcd,
+  have := subsingleton.elim a_gcd b_gcd,
+  subst this,
+  have := subsingleton.elim a_norm b_norm,
+  subst this
+end⟩
 
 @[simp] lemma norm_unit_eq_one (x : α) : norm_unit x = 1 := rfl
 

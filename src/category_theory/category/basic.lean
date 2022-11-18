@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 -/
 import combinatorics.quiver.basic
-import tactic.basic
 
 /-!
 # Categories
@@ -14,8 +13,9 @@ Defines a category, as a type class parametrised by the type of objects.
 ## Notations
 
 Introduces notations
-* `X ⟶ Y` for the morphism spaces,
-* `f ≫ g` for composition in the 'arrows' convention.
+* `X ⟶ Y` for the morphism spaces (type as `\hom`),
+* `𝟙 X` for the identity morphism on `X` (type as `\b1`),
+* `f ≫ g` for composition in the 'arrows' convention (type as `\gg`).
 
 Users may like to add `f ⊚ g` for composition in the standard convention, using
 ```lean

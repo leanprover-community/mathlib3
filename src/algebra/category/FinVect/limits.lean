@@ -48,7 +48,7 @@ instance (F : J ⥤ FinVect k) :
   finite_dimensional k (limit (F ⋙ forget₂ (FinVect k) (Module.{v} k)) : Module.{v} k) :=
 begin
   haveI : ∀ j, finite_dimensional k ((F ⋙ forget₂ (FinVect k) (Module.{v} k)).obj j),
-  { intro j, change finite_dimensional k (F.obj j), apply_instance, },
+  { intro j, change finite_dimensional k (F.obj j).obj, apply_instance, },
   exact finite_dimensional.of_injective
     (limit_subobject_product (F ⋙ forget₂ (FinVect k) (Module.{v} k)))
     ((Module.mono_iff_injective _).1 (by apply_instance)),

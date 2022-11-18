@@ -100,3 +100,11 @@ begin
 end
 
 end closer
+
+/-  Zulip discussion:
+https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/tauto!.20fails.20on.20ne
+-/
+example {x y : ℕ} (h : ¬x ≠ y) : x = y :=
+begin
+  tauto!,
+end

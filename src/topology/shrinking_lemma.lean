@@ -45,7 +45,7 @@ namespace shrinking_lemma
 This type is equipped with the folowing partial order: `v ≤ v'` if `v.carrier ⊆ v'.carrier`
 and `v i = v' i` for `i ∈ v.carrier`. We will use Zorn's lemma to prove that this type has
 a maximal element, then show that the maximal element must have `carrier = univ`. -/
-@[nolint has_inhabited_instance] -- the trivial refinement needs `u` to be a covering
+@[nolint has_nonempty_instance] -- the trivial refinement needs `u` to be a covering
 structure partial_refinement (u : ι → set X) (s : set X) :=
 (to_fun : ι → set X)
 (carrier : set ι)
@@ -171,7 +171,7 @@ lemma exists_gt (v : partial_refinement u s) (hs : is_closed s) (i : ι) (hi : i
   ∃ v' : partial_refinement u s, v < v' :=
 begin
   have I : s ∩ (⋂ j ≠ i, (v j)ᶜ) ⊆ v i,
-  { simp only [subset_def, mem_inter_eq, mem_Inter, and_imp],
+  { simp only [subset_def, mem_inter_iff, mem_Inter, and_imp],
     intros x hxs H,
     rcases mem_Union.1 (v.subset_Union hxs) with ⟨j, hj⟩,
     exact (em (j = i)).elim (λ h, h ▸ hj) (λ h, (H j h hj).elim) },

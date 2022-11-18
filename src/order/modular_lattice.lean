@@ -284,7 +284,7 @@ theorem disjoint.disjoint_sup_right_of_disjoint_sup_left
   (h : disjoint a b) (hsup : disjoint (a ⊔ b) c) :
   disjoint a (b ⊔ c) :=
 begin
-  rw [disjoint, ← h.eq_bot, sup_comm],
+  rw [disjoint_iff_inf_le, ← h.eq_bot, sup_comm],
   apply le_inf inf_le_left,
   apply (inf_le_inf_right (c ⊔ b) le_sup_right).trans,
   rw [sup_comm, is_modular_lattice.sup_inf_sup_assoc, hsup.eq_bot, bot_sup_eq]
@@ -310,31 +310,35 @@ instance is_modular_lattice_Iic : is_modular_lattice (set.Iic a) :=
 instance is_modular_lattice_Ici : is_modular_lattice (set.Ici a) :=
 ⟨λ x y z xz, (sup_inf_le_assoc_of_le (y : α) xz : (↑x ⊔ ↑y) ⊓ ↑z ≤ ↑x ⊔ ↑y ⊓ ↑z)⟩
 
-section is_complemented
-variables [bounded_order α] [is_complemented α]
+section complemented_lattice
+variables [bounded_order α] [complemented_lattice α]
 
-instance is_complemented_Iic : is_complemented (set.Iic a) :=
+instance complemented_lattice_Iic : complemented_lattice (set.Iic a) :=
 ⟨λ ⟨x, hx⟩, let ⟨y, hy⟩ := exists_is_compl x in
   ⟨⟨y ⊓ a, set.mem_Iic.2 inf_le_right⟩, begin
     split,
-    { change x ⊓ (y ⊓ a) ≤ ⊥, -- improve lattice subtype API
+    { rw disjoint_iff_inf_le,
+      change x ⊓ (y ⊓ a) ≤ ⊥, -- improve lattice subtype API
       rw ← inf_assoc,
-      exact le_trans inf_le_left hy.1 },
-    { change a ≤ x ⊔ (y ⊓ a), -- improve lattice subtype API
-      rw [← sup_inf_assoc_of_le _ (set.mem_Iic.1 hx), top_le_iff.1 hy.2, top_inf_eq] }
+      exact le_trans inf_le_left hy.1.le_bot },
+    { rw codisjoint_iff_le_sup,
+      change a ≤ x ⊔ (y ⊓ a), -- improve lattice subtype API
+      rw [← sup_inf_assoc_of_le _ (set.mem_Iic.1 hx), hy.2.eq_top, top_inf_eq] }
   end⟩⟩
 
-instance is_complemented_Ici : is_complemented (set.Ici a) :=
+instance complemented_lattice_Ici : complemented_lattice (set.Ici a) :=
 ⟨λ ⟨x, hx⟩, let ⟨y, hy⟩ := exists_is_compl x in
   ⟨⟨y ⊔ a, set.mem_Ici.2 le_sup_right⟩, begin
     split,
-    { change x ⊓ (y ⊔ a) ≤ a, -- improve lattice subtype API
-      rw [← inf_sup_assoc_of_le _ (set.mem_Ici.1 hx),  le_bot_iff.1 hy.1, bot_sup_eq] },
-    { change ⊤ ≤ x ⊔ (y ⊔ a), -- improve lattice subtype API
+    { rw disjoint_iff_inf_le,
+      change x ⊓ (y ⊔ a) ≤ a, -- improve lattice subtype API
+      rw [← inf_sup_assoc_of_le _ (set.mem_Ici.1 hx), hy.1.eq_bot, bot_sup_eq] },
+    { rw codisjoint_iff_le_sup,
+      change ⊤ ≤ x ⊔ (y ⊔ a), -- improve lattice subtype API
       rw ← sup_assoc,
-      exact le_trans hy.2 le_sup_left }
+      exact le_trans hy.2.top_le le_sup_left }
   end⟩⟩
 
-end is_complemented
+end complemented_lattice
 
 end is_modular_lattice

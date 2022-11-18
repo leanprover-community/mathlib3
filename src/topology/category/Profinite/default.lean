@@ -4,13 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Calle Sönne
 -/
 
-import topology.category.CompHaus
+import topology.category.CompHaus.default
 import topology.connected
 import topology.subset_properties
 import topology.locally_constant.basic
 import category_theory.adjunction.reflective
 import category_theory.monad.limits
-import category_theory.limits.constructions.epi_mono
 import category_theory.Fintype
 
 /-!
@@ -274,7 +273,7 @@ begin
       ext x, dsimp [locally_constant.of_clopen],
       rw if_neg, { refl },
       refine mt (λ α, hVU α) _,
-      simp only [set.mem_range_self, not_true, not_false_iff, set.mem_compl_eq], },
+      simp only [set.mem_range_self, not_true, not_false_iff, set.mem_compl_iff], },
     apply_fun (λ e, (e y).down) at H,
     dsimp [locally_constant.of_clopen] at H,
     rw if_pos hyV at H,

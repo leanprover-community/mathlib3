@@ -25,7 +25,7 @@ def wide_subquiver (V) [quiver.{v+1} V] :=
 
 /-- A type synonym for `V`, when thought of as a quiver having only the arrows from
 some `wide_subquiver`. -/
-@[nolint unused_arguments has_inhabited_instance]
+@[nolint unused_arguments has_nonempty_instance]
 def wide_subquiver.to_Type (V) [quiver V] (H : wide_subquiver V) : Type u := V
 
 instance wide_subquiver_has_coe_to_sort {V} [quiver V] :
@@ -44,7 +44,7 @@ instance {V} [quiver V] : inhabited (wide_subquiver V) := ⟨⊤⟩
 
 /-- `total V` is the type of _all_ arrows of `V`. -/
 -- TODO Unify with `category_theory.arrow`? (The fields have been named to match.)
-@[ext, nolint has_inhabited_instance]
+@[ext, nolint has_nonempty_instance]
 structure total (V : Type u) [quiver.{v} V] : Sort (max (u+1) v) :=
 (left : V)
 (right : V)

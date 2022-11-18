@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.reverse
-import algebra.associated
 import algebra.regular.smul
 
 /-!
@@ -25,6 +24,17 @@ variables {R : Type u} {S : Type v} {a b : R} {m n : ℕ} {ι : Type y}
 
 section semiring
 variables [semiring R] {p q r : R[X]}
+
+lemma monic_zero_iff_subsingleton : monic (0 : R[X]) ↔ subsingleton R :=
+subsingleton_iff_zero_eq_one
+
+lemma not_monic_zero_iff : ¬ monic (0 : R[X]) ↔ (0 : R) ≠ 1 :=
+(monic_zero_iff_subsingleton.trans subsingleton_iff_zero_eq_one.symm).not
+
+lemma monic_zero_iff_subsingleton' :
+  monic (0 : R[X]) ↔ (∀ f g : R[X], f = g) ∧ (∀ a b : R, a = b) :=
+polynomial.monic_zero_iff_subsingleton.trans ⟨by { introI, simp },
+  λ h, subsingleton_iff.mpr h.2⟩
 
 lemma monic.as_sum (hp : p.monic) :
   p = X^(p.nat_degree) + (∑ i in range p.nat_degree, C (p.coeff i) * X^i) :=
@@ -279,7 +289,7 @@ section semiring
 variables [semiring R]
 
 @[simp]
-lemma monic.nat_degree_map [semiring S] [nontrivial S] {P : polynomial R} (hmo : P.monic)
+lemma monic.nat_degree_map [semiring S] [nontrivial S] {P : R[X]} (hmo : P.monic)
   (f : R →+* S) : (P.map f).nat_degree = P.nat_degree :=
 begin
   refine le_antisymm (nat_degree_map_le _ _) (le_nat_degree_of_ne_zero _),
@@ -288,7 +298,7 @@ begin
 end
 
 @[simp]
-lemma monic.degree_map [semiring S] [nontrivial S] {P : polynomial R} (hmo : P.monic)
+lemma monic.degree_map [semiring S] [nontrivial S] {P : R[X]} (hmo : P.monic)
   (f : R →+* S) : (P.map f).degree = P.degree :=
 begin
   by_cases hP : P = 0,
@@ -392,7 +402,7 @@ section nonzero_semiring
 variables [semiring R] [nontrivial R] {p q : R[X]}
 
 @[simp] lemma not_monic_zero : ¬monic (0 : R[X]) :=
-by simpa only [monic, leading_coeff_zero] using (zero_ne_one : (0 : R) ≠ 1)
+not_monic_zero_iff.mp zero_ne_one
 
 end nonzero_semiring
 

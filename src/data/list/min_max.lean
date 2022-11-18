@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Minchao Wu, Chris Hughes, Mantas Bakšys
 -/
 import data.list.basic
+
 /-!
 # Minimum and maximum of lists
 
@@ -253,7 +254,7 @@ begin
   simp only [maximum, argmax_concat, id],
   cases h : argmax id l,
   { exact (max_eq_right bot_le).symm },
-  { simp [option.coe_def, max_def, ←not_lt] }
+  { simp [option.coe_def, max_def_lt], }
 end
 
 lemma le_maximum_of_mem : a ∈ l → (maximum l : with_bot α) = m → a ≤ m := le_of_mem_argmax
@@ -304,7 +305,7 @@ begin
   { contradiction },
   { rw [maximum_cons, foldr, with_bot.coe_max],
     by_cases h : tl = [],
-    { simp [h, -with_top.coe_zero] },
+    { simp [h] },
     { simp [IH h] } }
 end
 

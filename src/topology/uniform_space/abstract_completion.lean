@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
 import topology.uniform_space.uniform_embedding
+import topology.uniform_space.equiv
 
 /-!
 # Abstract theory of Hausdorff completions of uniform spaces
@@ -66,6 +67,10 @@ namespace abstract_completion
 variables {α : Type*} [uniform_space α] (pkg : abstract_completion α)
 local notation `hatα` := pkg.space
 local notation `ι` := pkg.coe
+
+/-- If `α` is complete, then it is an abstract completion of itself. -/
+def of_complete [separated_space α] [complete_space α] : abstract_completion α :=
+mk α id infer_instance infer_instance infer_instance uniform_inducing_id dense_range_id
 
 lemma closure_range : closure (range ι) = univ :=
 pkg.dense.closure_range
@@ -222,12 +227,14 @@ begin
   refl
 end
 
-/-- The bijection between two completions of the same uniform space. -/
-def compare_equiv : pkg.space ≃ pkg'.space :=
+/-- The uniform bijection between two completions of the same uniform space. -/
+def compare_equiv : pkg.space ≃ᵤ pkg'.space :=
 { to_fun := pkg.compare pkg',
   inv_fun := pkg'.compare pkg,
   left_inv := congr_fun (pkg'.inverse_compare pkg),
-  right_inv := congr_fun (pkg.inverse_compare pkg') }
+  right_inv := congr_fun (pkg.inverse_compare pkg'),
+  uniform_continuous_to_fun := uniform_continuous_compare _ _,
+  uniform_continuous_inv_fun := uniform_continuous_compare _ _, }
 
 lemma uniform_continuous_compare_equiv : uniform_continuous (pkg.compare_equiv pkg') :=
 pkg.uniform_continuous_compare pkg'
@@ -252,8 +259,6 @@ protected def prod : abstract_completion (α × β) :=
   uniform_inducing := uniform_inducing.prod pkg.uniform_inducing pkg'.uniform_inducing,
   dense := pkg.dense.prod_map pkg'.dense }
 end prod
-
-
 
 section extension₂
 variables (pkg' : abstract_completion β)
@@ -299,7 +304,7 @@ variables {γ : Type*} [uniform_space γ] (pkg'' : abstract_completion γ)
 local notation `hatγ` := pkg''.space
 local notation `ι''` := pkg''.coe
 
-local notation f `∘₂` g := bicompr f g
+local notation f ` ∘₂ ` g := bicompr f g
 
 /-- Lift two variable maps to completions. -/
 protected def map₂ (f : α → β → γ) : hatα → hatβ → hatγ :=

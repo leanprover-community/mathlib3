@@ -5,7 +5,8 @@ Authors: Anne Baanen
 -/
 
 import algebra.group.units
-import algebra.ring.basic
+import algebra.group_with_zero.units.lemmas
+import algebra.ring.defs
 
 /-!
 # Invertible elements
@@ -106,7 +107,8 @@ instance [monoid α] (a : α) : subsingleton (invertible a) :=
 ⟨ λ ⟨b, hba, hab⟩ ⟨c, hca, hac⟩, by { congr, exact left_inv_eq_right_inv hba hac } ⟩
 
 /-- If `r` is invertible and `s = r`, then `s` is invertible. -/
-def invertible.copy [monoid α] {r : α} (hr : invertible r) (s : α) (hs : s = r) : invertible s :=
+def invertible.copy [mul_one_class α] {r : α} (hr : invertible r) (s : α) (hs : s = r) :
+  invertible s :=
 { inv_of := ⅟r,
   inv_of_mul_self := by rw [hs, inv_of_mul_self],
   mul_inv_of_self := by rw [hs, mul_inv_of_self] }
@@ -212,6 +214,9 @@ lemma nonzero_of_invertible [mul_zero_one_class α] (a : α) [nontrivial α] [in
 λ ha, zero_ne_one $ calc   0 = ⅟a * a : by simp [ha]
                          ... = 1 : inv_of_mul_self a
 
+@[priority 100] instance invertible.ne_zero [mul_zero_one_class α] [nontrivial α] (a : α)
+  [invertible a] : ne_zero a := ⟨nonzero_of_invertible a⟩
+
 section monoid_with_zero
 variable [monoid_with_zero α]
 
@@ -268,3 +273,32 @@ def invertible.map {R : Type*} {S : Type*} {F : Type*} [mul_one_class R] [mul_on
 { inv_of := f (⅟r),
   inv_of_mul_self := by rw [←map_mul, inv_of_mul_self, map_one],
   mul_inv_of_self := by rw [←map_mul, mul_inv_of_self, map_one] }
+
+/-- Note that the `invertible (f r)` argument can be satisfied by using `letI := invertible.map f r`
+before applying this lemma. -/
+lemma map_inv_of {R : Type*} {S : Type*} {F : Type*} [mul_one_class R] [monoid S]
+  [monoid_hom_class F R S] (f : F) (r : R) [invertible r] [invertible (f r)] :
+  f (⅟r) = ⅟(f r) :=
+by { letI := invertible.map f r, convert rfl }
+
+/-- If a function `f : R → S` has a left-inverse that is a monoid hom,
+  then `r : R` is invertible if `f r` is.
+
+The inverse is computed as `g (⅟(f r))` -/
+@[simps {attrs := []}]
+def invertible.of_left_inverse {R : Type*} {S : Type*} {G : Type*}
+  [mul_one_class R] [mul_one_class S] [monoid_hom_class G S R]
+  (f : R → S) (g : G) (r : R) (h : function.left_inverse g f) [invertible (f r)] :
+  invertible r :=
+(invertible.map g (f r)).copy _ (h r).symm
+
+/-- Invertibility on either side of a monoid hom with a left-inverse is equivalent. -/
+@[simps]
+def invertible_equiv_of_left_inverse {R : Type*} {S : Type*} {F G : Type*}
+  [monoid R] [monoid S] [monoid_hom_class F R S] [monoid_hom_class G S R]
+  (f : F) (g : G) (r : R) (h : function.left_inverse g f) :
+  invertible (f r) ≃ invertible r :=
+{ to_fun := λ _, by exactI invertible.of_left_inverse f _ _ h,
+  inv_fun := λ _, by exactI invertible.map f _,
+  left_inv := λ x, subsingleton.elim _ _,
+  right_inv := λ x, subsingleton.elim _ _ }

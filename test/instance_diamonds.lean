@@ -11,6 +11,7 @@ import group_theory.group_action.units
 import data.complex.module
 import ring_theory.algebraic
 import data.zmod.basic
+import ring_theory.tensor_product
 
 /-! # Tests that instances do not form diamonds -/
 
@@ -36,6 +37,47 @@ example (α : Type*) (β : α → Type*) [Π a, add_monoid (β a)] :
 
 example (α : Type*) (β : α → Type*) [Π a, sub_neg_monoid (β a)] :
   (pi.has_smul : has_smul ℤ (Π a, β a)) = sub_neg_monoid.has_smul_int := rfl
+
+namespace tensor_product
+
+open_locale tensor_product
+open complex
+
+/-! The `example` below times out. TODO Fix it!
+
+/- `tensor_product.algebra.module` forms a diamond with `has_mul.to_has_smul` and
+`algebra.tensor_product.tensor_product.semiring`. Given a commutative semiring `A` over a
+commutative semiring `R`, we get two mathematically different scalar actions of `A ⊗[R] A` on
+itself. -/
+def f : ℂ ⊗[ℝ] ℂ →ₗ[ℝ] ℝ :=
+tensor_product.lift
+{ to_fun    := λ z, z.re • re_lm,
+  map_add'  := λ z w, by simp [add_smul],
+  map_smul' := λ r z, by simp [mul_smul], }
+
+@[simp] lemma f_apply (z w : ℂ) : f (z ⊗ₜ[ℝ] w) = z.re * w.re := by simp [f]
+
+/- `tensor_product.algebra.module` forms a diamond with `has_mul.to_has_smul` and
+`algebra.tensor_product.tensor_product.semiring`. Given a commutative semiring `A` over a
+commutative semiring `R`, we get two mathematically different scalar actions of `A ⊗[R] A` on
+itself. -/
+example :
+  has_mul.to_has_smul (ℂ ⊗[ℝ] ℂ) ≠
+  (@tensor_product.algebra.module ℝ ℂ ℂ (ℂ ⊗[ℝ] ℂ) _ _ _ _ _ _ _ _ _ _ _ _).to_has_smul :=
+begin
+  have contra : I ⊗ₜ[ℝ] I ≠ (-1) ⊗ₜ[ℝ] 1 := λ c, by simpa using congr_arg f c,
+  contrapose! contra,
+  rw has_smul.ext_iff at contra,
+  replace contra := congr_fun (congr_fun contra (1 ⊗ₜ I)) (I ⊗ₜ 1),
+  rw @tensor_product.algebra.smul_def ℝ ℂ ℂ (ℂ ⊗[ℝ] ℂ) _ _ _ _ _ _ _ _ _ _ _ _
+    (1 : ℂ) I (I ⊗ₜ[ℝ] (1 : ℂ)) at contra,
+  simpa only [algebra.id.smul_eq_mul, algebra.tensor_product.tmul_mul_tmul, one_mul, mul_one,
+    one_smul, tensor_product.smul_tmul', I_mul_I] using contra,
+end
+
+-/
+
+end tensor_product
 
 section units
 
@@ -66,17 +108,17 @@ end has_smul
 /-! ## `with_top` (Type with point at infinity) instances -/
 section with_top
 
-example (R : Type*) [h : ordered_semiring R] :
+example (R : Type*) [h : strict_ordered_semiring R] :
   (@with_top.add_comm_monoid R
     (@non_unital_non_assoc_semiring.to_add_comm_monoid R
       (@non_assoc_semiring.to_non_unital_non_assoc_semiring R
         (@semiring.to_non_assoc_semiring R
-          (@ordered_semiring.to_semiring R h)))))
+          (@strict_ordered_semiring.to_semiring R h)))))
         =
   (@ordered_add_comm_monoid.to_add_comm_monoid (with_top R)
     (@with_top.ordered_add_comm_monoid R
       (@ordered_cancel_add_comm_monoid.to_ordered_add_comm_monoid R
-        (@ordered_semiring.to_ordered_cancel_add_comm_monoid R h)))) :=
+        (@strict_ordered_semiring.to_ordered_cancel_add_comm_monoid R h)))) :=
 rfl
 
 end with_top
@@ -108,9 +150,9 @@ end multiplicative
 section finsupp
 open finsupp
 
-/-- `finsupp.comap_has_smul` can form a non-equal diamond with `finsupp.has_smul` -/
+/-- `finsupp.comap_has_smul` can form a non-equal diamond with `finsupp.smul_zero_class` -/
 example {k : Type*} [semiring k] [nontrivial k] :
-  (finsupp.comap_has_smul : has_smul k (k →₀ k)) ≠ finsupp.has_smul :=
+  (finsupp.comap_has_smul : has_smul k (k →₀ k)) ≠ finsupp.smul_zero_class.to_has_smul :=
 begin
   obtain ⟨u : k, hu⟩ := exists_ne (1 : k),
   intro h,
@@ -122,10 +164,10 @@ begin
   exact one_ne_zero h,
 end
 
-/-- `finsupp.comap_has_smul` can form a non-equal diamond with `finsupp.has_smul` even when
+/-- `finsupp.comap_has_smul` can form a non-equal diamond with `finsupp.smul_zero_class` even when
 the domain is a group. -/
 example {k : Type*} [semiring k] [nontrivial kˣ] :
-  (finsupp.comap_has_smul : has_smul kˣ (kˣ →₀ k)) ≠ finsupp.has_smul :=
+  (finsupp.comap_has_smul : has_smul kˣ (kˣ →₀ k)) ≠ finsupp.smul_zero_class.to_has_smul :=
 begin
   obtain ⟨u : kˣ, hu⟩ := exists_ne (1 : kˣ),
   haveI : nontrivial k := ⟨⟨u, 1, units.ext.ne hu⟩⟩,
@@ -169,6 +211,12 @@ end
 example [comm_semiring R] [nontrivial R] :
   polynomial.has_smul_pi' _ _ _ = (polynomial.has_smul_pi _ _ : has_smul R[X] (R → R[X])) :=
 rfl
+
+/-- `polynomial.algebra_of_algebra` is consistent with `algebra_nat`. -/
+example [semiring R] : (polynomial.algebra_of_algebra : algebra ℕ R[X]) = algebra_nat := rfl
+
+/-- `polynomial.algebra_of_algebra` is consistent with `algebra_int`. -/
+example [ring R] : (polynomial.algebra_of_algebra : algebra ℤ R[X]) = algebra_int _ := rfl
 
 end polynomial
 

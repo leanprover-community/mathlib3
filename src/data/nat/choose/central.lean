@@ -5,7 +5,7 @@ Authors: Patrick Stevens, Thomas Browning
 -/
 
 import data.nat.choose.basic
-import data.nat.choose.sum
+import tactic.linarith
 
 /-!
 # Central binomial coefficients
@@ -79,14 +79,14 @@ begin
   { norm_num [central_binom, choose] },
   obtain ⟨n, rfl⟩ : ∃ m, n = m + 1 := nat.exists_eq_succ_of_ne_zero (zero_lt_four.trans hn).ne',
   calc 4 ^ (n + 1) < 4 * (n * central_binom n) :
-      (mul_lt_mul_left zero_lt_four).mpr (IH n n.lt_succ_self (nat.le_of_lt_succ hn))
+      (mul_lt_mul_left $ zero_lt_four' ℕ).mpr (IH n n.lt_succ_self (nat.le_of_lt_succ hn))
   ... ≤ 2 * (2 * n + 1) * central_binom n : by { rw ← mul_assoc, linarith }
   ... = (n + 1) * central_binom (n + 1) : (succ_mul_central_binom_succ n).symm,
 end
 
 /--
 An exponential lower bound on the central binomial coefficient.
-This bound is weaker than `four_pow_n_lt_n_mul_central_binom`, but it is of historical interest
+This bound is weaker than `nat.four_pow_lt_mul_central_binom`, but it is of historical interest
 because it appears in Erdős's proof of Bertrand's postulate.
 -/
 lemma four_pow_le_two_mul_self_mul_central_binom : ∀ (n : ℕ) (n_pos : 0 < n),

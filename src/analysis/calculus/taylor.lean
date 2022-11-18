@@ -341,8 +341,8 @@ The difference of `f` and its `n`-th Taylor polynomial can be estimated by
 `C * (x - a)^(n+1) / n!` where `C` is a bound for the `n+1`-th iterated derivative of `f`. -/
 lemma taylor_mean_remainder_bound {f : ℝ → E} {a b C x : ℝ} {n : ℕ}
   (hab : a ≤ b) (hf : cont_diff_on ℝ (n+1) f (Icc a b)) (hx : x ∈ Icc a b)
-  (hC : ∀ y ∈ Icc a b, ∥iterated_deriv_within (n + 1) f (Icc a b) y∥ ≤ C) :
-  ∥f x - taylor_within_eval f n (Icc a b) a x∥ ≤ C * (x - a)^(n+1) / n! :=
+  (hC : ∀ y ∈ Icc a b, ‖iterated_deriv_within (n + 1) f (Icc a b) y‖ ≤ C) :
+  ‖f x - taylor_within_eval f n (Icc a b) a x‖ ≤ C * (x - a)^(n+1) / n! :=
 begin
   rcases eq_or_lt_of_le hab with rfl|h,
   { rw [Icc_self, mem_singleton_iff] at hx,
@@ -353,7 +353,7 @@ begin
     (unique_diff_on_Icc h),
   -- We can uniformly bound the derivative of the Taylor polynomial
   have h' : ∀ (y : ℝ) (hy : y ∈ Ico a x),
-    ∥((n! : ℝ)⁻¹ * (x - y) ^ n) • iterated_deriv_within (n + 1) f (Icc a b) y∥
+    ‖((n! : ℝ)⁻¹ * (x - y) ^ n) • iterated_deriv_within (n + 1) f (Icc a b) y‖
     ≤ (n! : ℝ)⁻¹ * |(x - a)|^n * C,
   { rintro y ⟨hay, hyx⟩,
     rw [norm_smul, real.norm_eq_abs],
@@ -386,14 +386,14 @@ There exists a constant `C` such that for all `x ∈ Icc a b` the difference of 
 Taylor polynomial can be estimated by `C * (x - a)^(n+1)`. -/
 lemma exists_taylor_mean_remainder_bound {f : ℝ → E} {a b : ℝ} {n : ℕ}
   (hab : a ≤ b) (hf : cont_diff_on ℝ (n+1) f (Icc a b)) :
-  ∃ C, ∀ x ∈ Icc a b, ∥f x - taylor_within_eval f n (Icc a b) a x∥ ≤ C * (x - a)^(n+1) :=
+  ∃ C, ∀ x ∈ Icc a b, ‖f x - taylor_within_eval f n (Icc a b) a x‖ ≤ C * (x - a)^(n+1) :=
 begin
   rcases eq_or_lt_of_le hab with rfl|h,
   { refine ⟨0, λ x hx, _⟩,
     have : a = x, by simpa [← le_antisymm_iff] using hx,
     simp [← this] },
   -- We estimate by the supremum of the norm of the iterated derivative
-  let g : ℝ → ℝ := λ y, ∥iterated_deriv_within (n + 1) f (Icc a b) y∥,
+  let g : ℝ → ℝ := λ y, ‖iterated_deriv_within (n + 1) f (Icc a b) y‖,
   use [has_Sup.Sup (g '' Icc a b) / n!],
   intros x hx,
   rw div_mul_eq_mul_div₀,

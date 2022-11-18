@@ -199,13 +199,8 @@ if `x ∈ S → y ∈ S` for all `y ⤳ x`. -/
 def stable_under_generalization (s : set X) : Prop :=
 ∀ ⦃x y⦄, y ⤳ x → x ∈ s → y ∈ s
 
-lemma stable_under_specialization_iff_is_lower_set {s : set X} :
-  stable_under_specialization s ↔ is_lower_set s :=
-iff.rfl
-
-lemma stable_under_generalization_iff_is_upper_set {s : set X} :
-  stable_under_generalization s ↔ is_upper_set s :=
-iff.rfl
+example {s : set X} : stable_under_specialization s ↔ is_lower_set s := iff.rfl
+example {s : set X} : stable_under_generalization s ↔ is_upper_set s := iff.rfl
 
 lemma is_closed.stable_under_specialization {s : set X} (hs : is_closed s) :
   stable_under_specialization s :=
@@ -215,10 +210,12 @@ lemma is_open.stable_under_generalization {s : set X} (hs : is_open s) :
   stable_under_generalization s :=
 λ x y e, e.mem_open hs
 
+@[simp]
 lemma stable_under_specialization_compl_iff {s : set X} :
   stable_under_specialization sᶜ ↔ stable_under_generalization s :=
 is_lower_set_compl
 
+@[simp]
 lemma stable_under_generalization_compl_iff {s : set X} :
   stable_under_generalization sᶜ ↔ stable_under_specialization s :=
 is_upper_set_compl

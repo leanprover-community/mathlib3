@@ -3,11 +3,12 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 -/
+import data.int.order.basic
 import data.multiset.finset_ops
 import algebra.hom.embedding
 import tactic.apply
-import tactic.monotonicity
 import tactic.nth_rewrite
+import tactic.monotonicity
 
 /-!
 # Finite sets

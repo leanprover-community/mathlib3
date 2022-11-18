@@ -6,6 +6,7 @@ Authors: Yury G. Kudryashov, Patrick Massot
 import data.set.intervals.unordered_interval
 import data.set.pointwise.basic
 import algebra.order.field.basic
+import algebra.order.group.min_max
 
 /-!
 # (Pre)images of intervals

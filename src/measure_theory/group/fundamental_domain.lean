@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import measure_theory.group.action
-import measure_theory.group.pointwise
 import measure_theory.integral.set_integral
 
 /-!

@@ -5,6 +5,7 @@ Authors: Yaël Dillies, Bhavik Mehta, Huỳnh Trần Khanh, Stuart Presnell
 -/
 import algebra.big_operators.basic
 import data.finset.sym
+import data.fintype.sum
 
 /-!
 # Stars and bars

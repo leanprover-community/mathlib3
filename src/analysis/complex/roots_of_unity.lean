@@ -96,10 +96,10 @@ end
 end complex
 
 lemma is_primitive_root.norm'_eq_one {ζ : ℂ} {n : ℕ} (h : is_primitive_root ζ n) (hn : n ≠ 0) :
-  ∥ζ∥ = 1 := complex.norm_eq_one_of_pow_eq_one h.pow_eq_one hn
+  ‖ζ‖ = 1 := complex.norm_eq_one_of_pow_eq_one h.pow_eq_one hn
 
 lemma is_primitive_root.nnnorm_eq_one {ζ : ℂ} {n : ℕ} (h : is_primitive_root ζ n) (hn : n ≠ 0) :
-  ∥ζ∥₊ = 1 := subtype.ext $ h.norm'_eq_one hn
+  ‖ζ‖₊ = 1 := subtype.ext $ h.norm'_eq_one hn
 
 lemma is_primitive_root.arg_ext {n m : ℕ} {ζ μ : ℂ} (hζ : is_primitive_root ζ n)
   (hμ : is_primitive_root μ m) (hn : n ≠ 0) (hm : m ≠ 0) (h : ζ.arg = μ.arg) : ζ = μ :=

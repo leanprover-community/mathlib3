@@ -5,7 +5,6 @@ Authors: Johannes Hölzl
 -/
 import logic.function.basic
 import tactic.ext
-import tactic.lint
 import tactic.simps
 
 /-!

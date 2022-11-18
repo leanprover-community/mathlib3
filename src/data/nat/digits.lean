@@ -6,9 +6,9 @@ Authors: Scott Morrison, Shing Tak Lam, Mario Carneiro
 import data.int.modeq
 import data.nat.bits
 import data.nat.log
-import data.nat.parity
 import data.list.indexes
 import data.list.palindrome
+import algebra.parity
 import tactic.interval_cases
 import tactic.linarith
 

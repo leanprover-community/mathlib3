@@ -8,7 +8,7 @@ import algebra.geom_sum
 import data.nat.bitwise
 import data.nat.log
 import data.nat.parity
-import ring_theory.int.basic
+import ring_theory.multiplicity
 
 /-!
 # Natural number multiplicity

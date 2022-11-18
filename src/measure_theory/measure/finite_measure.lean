@@ -3,9 +3,9 @@ Copyright (c) 2021 Kalle Kytölä. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä
 -/
-import measure_theory.integral.set_integral
 import topology.continuous_function.bounded
 import topology.algebra.module.weak_dual
+import measure_theory.integral.bochner
 
 /-!
 # Finite measures
@@ -551,7 +551,7 @@ lemma integrable_of_bounded_continuous_to_real
   integrable ⇑f μ :=
 begin
   refine ⟨f.continuous.measurable.ae_strongly_measurable, _⟩,
-  have aux : (coe : ℝ≥0 → ℝ) ∘ ⇑f.nnnorm = (λ x, ∥f x∥),
+  have aux : (coe : ℝ≥0 → ℝ) ∘ ⇑f.nnnorm = (λ x, ‖f x‖),
   { ext ω,
     simp only [function.comp_app, bounded_continuous_function.nnnorm_coe_fun_eq, coe_nnnorm], },
   apply (has_finite_integral_iff_norm ⇑f).mpr,

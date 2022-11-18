@@ -5,7 +5,7 @@ Authors: Kevin Kappelmann
 -/
 import algebra.order.floor
 import algebra.continued_fractions.basic
-import algebra.order.field
+
 /-!
 # Computable Continued Fractions
 

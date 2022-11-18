@@ -3,7 +3,8 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
-import algebra.order.ring
+import algebra.order.ring.abs
+import algebra.order.with_zero
 import algebra.group_power.ring
 import data.set.intervals.basic
 
@@ -294,6 +295,10 @@ lemma pow_lt_pow_iff_of_lt_one (h₀ : 0 < a) (h₁ : a < 1) : a ^ m < a ^ n ↔
 lemma pow_lt_pow_of_lt_one (h : 0 < a) (ha : a < 1) {i j : ℕ} (hij : i < j) : a ^ j < a ^ i :=
 (pow_lt_pow_iff_of_lt_one h ha).2 hij
 
+lemma pow_lt_self_of_lt_one (h₀ : 0 < a) (h₁ : a < 1) (hn : 1 < n) : a ^ n < a :=
+calc a ^ n < a ^ 1 : pow_lt_pow_of_lt_one h₀ h₁ hn
+... = a : pow_one _
+
 lemma sq_pos_of_pos (ha : 0 < a) : 0 < a ^ 2 := by { rw sq, exact mul_pos ha ha }
 
 end strict_ordered_semiring
@@ -354,7 +359,7 @@ one_lt_pow_iff_of_nonneg ha (nat.succ_ne_zero _)
 
 @[simp] theorem pow_left_inj {x y : R} {n : ℕ} (Hxpos : 0 ≤ x) (Hypos : 0 ≤ y) (Hnpos : 0 < n) :
   x ^ n = y ^ n ↔ x = y :=
-(@strict_mono_on_pow R _ _ Hnpos).inj_on.eq_iff Hxpos Hypos
+(@strict_mono_on_pow R _ _ Hnpos).eq_iff_eq Hxpos Hypos
 
 lemma lt_of_pow_lt_pow {a b : R} (n : ℕ) (hb : 0 ≤ b) (h : a ^ n < b ^ n) : a < b :=
 lt_of_not_ge $ λ hn, not_lt_of_ge (pow_le_pow_of_le_left hb hn _) h

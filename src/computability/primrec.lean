@@ -3,7 +3,6 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.list.join
 import logic.equiv.list
 import logic.function.iterate
 
@@ -577,7 +576,7 @@ theorem nat_le : primrec_rel ((≤) : ℕ → ℕ → Prop) :=
 end
 
 theorem nat_min : primrec₂ (@min ℕ _) := ite nat_le fst snd
-theorem nat_max : primrec₂ (@max ℕ _) := ite (nat_le.comp primrec.snd primrec.fst) fst snd
+theorem nat_max : primrec₂ (@max ℕ _) := ite (nat_le.comp primrec.fst primrec.snd) snd fst
 
 theorem dom_bool (f : bool → α) : primrec f :=
 (cond primrec.id (const (f tt)) (const (f ff))).of_eq $

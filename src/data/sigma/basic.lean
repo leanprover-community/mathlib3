@@ -4,10 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import meta.univs
-import tactic.lint
+import tactic.lint.default
 import tactic.ext
+import logic.function.basic
 
 /-!
+THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+https://github.com/leanprover-community/mathlib4/pull/449
+Any changes to this file require a corresponding PR to mathlib4.
+
 # Sigma types
 
 This file proves basic results about sigma types.

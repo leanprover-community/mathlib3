@@ -9,6 +9,10 @@ import algebra.group.defs
 /-!
 # Basic lemmas about semigroups, monoids, and groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/457
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file lists various basic lemmas about semigroups, monoids, and groups. Most proofs are
 one-liners from the corresponding axioms. For the definitions of semigroups, monoids and groups, see
 `algebra/group/defs.lean`.
@@ -285,7 +289,8 @@ variables (a b c)
 @[simp, to_additive] lemma one_div_div : 1 / (a / b) = b / a := by simp
 @[to_additive] lemma one_div_one_div : 1 / (1 / a) = a := by simp
 
-@[priority 100, to_additive] instance division_monoid.to_div_inv_one_monoid :
+@[priority 100, to_additive subtraction_monoid.to_sub_neg_zero_monoid]
+instance division_monoid.to_div_inv_one_monoid :
   div_inv_one_monoid α :=
 { inv_one := by simpa only [one_div, inv_inv] using (inv_div (1 : α) 1).symm,
   ..division_monoid.to_div_inv_monoid α }

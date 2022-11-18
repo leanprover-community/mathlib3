@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp
 -/
 import algebra.big_operators.finsupp
 import algebra.big_operators.finprod
-import data.fintype.card
+import data.fintype.big_operators
 import linear_algebra.finsupp
 import linear_algebra.linear_independent
 import linear_algebra.linear_pmap
@@ -361,12 +361,6 @@ else
   by letI : subsingleton R := not_nontrivial_iff_subsingleton.mp h; exact
     basis.of_repr (module.subsingleton_equiv R M (range b))
 
-lemma finsupp.single_apply_left {α β γ : Type*} [has_zero γ]
-  {f : α → β} (hf : function.injective f)
-  (x z : α) (y : γ) :
-  finsupp.single (f x) y (f z) = finsupp.single x y z :=
-by simp [finsupp.single_apply, hf.eq_iff]
-
 lemma reindex_range_self (i : ι) (h := set.mem_range_self i) :
   b.reindex_range ⟨b i, h⟩ = b i :=
 begin
@@ -468,6 +462,15 @@ begin
   obtain ⟨x, y, ne⟩ : ∃ (x y : M), x ≠ y := nontrivial.exists_pair_ne,
   obtain ⟨i, _⟩ := not_forall.mp (mt b.ext_elem ne),
   exact ⟨i⟩
+end
+
+/-- If the submodule `P` has a basis, `x ∈ P` iff it is a linear combination of basis vectors. -/
+lemma mem_submodule_iff {P : submodule R M} (b : basis ι R P) {x : M} :
+  x ∈ P ↔ ∃ (c : ι →₀ R), x = finsupp.sum c (λ i x, x • b i) :=
+begin
+  conv_lhs { rw [← P.range_subtype, ← submodule.map_top, ← b.span_eq, submodule.map_span,
+    ← set.range_comp, ← finsupp.range_total] },
+  simpa only [@eq_comm _ x],
 end
 
 section constr
@@ -769,6 +772,16 @@ b.sum_equiv_fun u
 lemma basis.equiv_fun_self (i j : ι) : b.equiv_fun (b i) j = if i = j then 1 else 0 :=
 by { rw [b.equiv_fun_apply, b.repr_self_apply] }
 
+lemma basis.repr_sum_self (c : ι → R) : ⇑(b.repr (∑ i, c i • b i)) = c :=
+begin
+  ext j,
+  simp only [map_sum, linear_equiv.map_smul, repr_self, finsupp.smul_single, smul_eq_mul,
+             mul_one, finset.sum_apply'],
+  rw [finset.sum_eq_single j, finsupp.single_eq_same],
+  { rintros i - hi, exact finsupp.single_eq_of_ne hi },
+  { intros, have := finset.mem_univ j, contradiction }
+end
+
 /-- Define a basis by mapping each vector `x : M` to its coordinates `e x : ι → R`,
 as long as `ι` is finite. -/
 def basis.of_equiv_fun (e : M ≃ₗ[R] (ι → R)) : basis ι R M :=
@@ -797,6 +810,13 @@ variables [smul_comm_class R S M']
 @[simp] theorem basis.constr_apply_fintype (f : ι → M') (x : M) :
   (b.constr S f : M → M') x = ∑ i, (b.equiv_fun x i) • f i :=
 by simp [b.constr_apply, b.equiv_fun_apply, finsupp.sum_fintype]
+
+/-- If the submodule `P` has a finite basis,
+`x ∈ P` iff it is a linear combination of basis vectors. -/
+lemma basis.mem_submodule_iff' {P : submodule R M} (b : basis ι R P) {x : M} :
+  x ∈ P ↔ ∃ (c : ι → R), x = ∑ i, c i • b i :=
+b.mem_submodule_iff.trans $ finsupp.equiv_fun_on_fintype.exists_congr_left.trans $ exists_congr $
+λ c, by simp [finsupp.sum_fintype]
 
 end fintype
 

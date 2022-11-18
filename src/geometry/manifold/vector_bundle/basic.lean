@@ -31,16 +31,16 @@ fields, they can also be C^k vector bundles, etc.
 * `fiber_bundle.charted_space`: A fibre bundle `E` over a base `B` with model fibre `F` is naturally a
   charted space modelled on `B × F`.
 
-* `fiber_bundle.charted_space'`: Let `B` be a charted space modelled on `HB`.  Then a fibre bundle `E`
-  over a base `B` with model fibre `F` is naturally a charted space modelled on `HB.prod F`.
+* `fiber_bundle.charted_space'`: Let `B` be a charted space modelled on `HB`.  Then a fibre bundle
+  `E` over a base `B` with model fibre `F` is naturally a charted space modelled on `HB.prod F`.
 
 * `smooth_vector_bundle`: Mixin class stating that a (topological) `vector_bundle` is smooth, in the
   sense of having smooth transition functions.
 
-* `smooth_fiberwise_linear.has_groupoid`: For a smooth vector bundle `E` over `B` with fibre modelled
-  on `F`, the change-of-co-ordinates between two trivializations `e`, `e'` for `E`, considered as
-  charts to `B × F`, is smooth and fibrewise linear, in the sense of belonging to the structure
-  groupoid `smooth_fiberwise_linear`.
+* `smooth_fiberwise_linear.has_groupoid`: For a smooth vector bundle `E` over `B` with fibre
+  modelled on `F`, the change-of-co-ordinates between two trivializations `e`, `e'` for `E`,
+  considered as charts to `B × F`, is smooth and fibrewise linear, in the sense of belonging to the
+  structure groupoid `smooth_fiberwise_linear`.
 
 * `bundle.total_space.smooth_manifold_with_corners`: A smooth vector bundle is naturally a smooth
   manifold.

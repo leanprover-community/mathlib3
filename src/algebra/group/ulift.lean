@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import data.int.cast.defs
 import algebra.hom.equiv.basic
-import algebra.group_with_zero.basic
+import algebra.group_with_zero.inj_surj
 
 /-!
 # `ulift` instances for groups and monoids

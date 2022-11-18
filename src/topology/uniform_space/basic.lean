@@ -717,9 +717,9 @@ begin
   rw (hA.nhds_set_basis_uniformity (filter.basis_sets _)).mem_iff at this,
   rcases this with ⟨U, hU, hUAB⟩,
   rcases comp_symm_mem_uniformity_sets hU with ⟨V, hV, hVsymm, hVU⟩,
-  refine ⟨V, hV, λ x, _⟩,
-  simp only [inf_eq_inter, mem_inter_iff, mem_Union₂],
-  rintro ⟨⟨a, ha, hxa⟩, ⟨b, hb, hxb⟩⟩,
+  refine ⟨V, hV, set.disjoint_left.mpr $ λ x, _⟩,
+  simp only [mem_Union₂],
+  rintro ⟨a, ha, hxa⟩ ⟨b, hb, hxb⟩,
   rw mem_ball_symmetry hVsymm at hxa hxb,
   exact hUAB (mem_Union₂_of_mem ha $ hVU $ mem_comp_of_mem_ball hVsymm hxa hxb) hb
 end

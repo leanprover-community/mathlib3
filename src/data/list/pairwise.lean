@@ -6,7 +6,8 @@ Authors: Mario Carneiro
 import data.list.count
 import data.list.lex
 import data.list.sublists
-import data.set.pairwise
+import logic.pairwise
+import logic.relation
 
 /-!
 # Pairwise relations on a list

@@ -189,6 +189,9 @@ initialize_simps_projections ring_equiv (to_fun → apply, inv_fun → symm_appl
 
 @[simp] lemma symm_symm (e : R ≃+* S) : e.symm.symm = e := ext $ λ x, rfl
 
+@[simp]
+lemma coe_to_equiv_symm (e : R ≃+* S) : (e.symm : S ≃ R) = (e : R ≃ S).symm := rfl
+
 lemma symm_bijective : function.bijective (ring_equiv.symm : (R ≃+* S) → (S ≃+* R)) :=
 equiv.bijective ⟨ring_equiv.symm, ring_equiv.symm, symm_symm, symm_symm⟩
 

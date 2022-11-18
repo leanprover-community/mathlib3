@@ -94,33 +94,8 @@ instance add_contravariant_class_le : contravariant_class ordinal.{u} ordinal.{u
       { rw fr at h, exact ⟨a', sum.inr.inj h⟩ }
     end⟩⟩⟩
 
-theorem add_succ (o₁ o₂ : ordinal) : o₁ + succ o₂ = succ (o₁ + o₂) :=
-(add_assoc _ _ _).symm
-
-@[simp] theorem succ_zero : succ (0 : ordinal) = 1 := zero_add 1
-@[simp] theorem succ_one : succ (1 : ordinal) = 2 := rfl
-
-theorem one_le_iff_pos {o : ordinal} : 1 ≤ o ↔ 0 < o :=
-by rw [← succ_zero, succ_le_iff]
-
-theorem one_le_iff_ne_zero {o : ordinal} : 1 ≤ o ↔ o ≠ 0 :=
-by rw [one_le_iff_pos, ordinal.pos_iff_ne_zero]
-
-theorem succ_pos (o : ordinal) : 0 < succ o :=
-(ordinal.zero_le o).trans_lt (lt_succ o)
-
-theorem succ_ne_zero (o : ordinal) : succ o ≠ 0 :=
-ne_of_gt $ succ_pos o
-
-@[simp] theorem card_succ (o : ordinal) : card (succ o) = card o + 1 :=
-by simp only [←add_one_eq_succ, card_add, card_one]
-
-theorem nat_cast_succ (n : ℕ) : ↑n.succ = succ (n : ordinal) := rfl
-
 theorem add_left_cancel (a) {b c : ordinal} : a + b = a + c ↔ b = c :=
 by simp only [le_antisymm_iff, add_le_add_iff_left]
-
-theorem lt_one_iff_zero {a : ordinal} : a < 1 ↔ a = 0 := by simpa using @lt_succ_bot_iff _ _ _ a _ _
 
 private theorem add_lt_add_iff_left' (a) {b c : ordinal} : a + b < a + c ↔ b < c :=
 by rw [← not_le, ← not_le, add_le_add_iff_left]
@@ -141,50 +116,6 @@ theorem add_le_add_iff_right {a b : ordinal} : ∀ n : ℕ, a + n ≤ b + n ↔ 
 
 theorem add_right_cancel {a b : ordinal} (n : ℕ) : a + n = b + n ↔ a = b :=
 by simp only [le_antisymm_iff, add_le_add_iff_right]
-
-/-! ### The zero ordinal -/
-
-@[simp] theorem card_eq_zero {o} : card o = 0 ↔ o = 0 :=
-⟨induction_on o $ λ α r _ h, begin
-  refine le_antisymm (le_of_not_lt $
-    λ hn, mk_ne_zero_iff.2 _ h) (ordinal.zero_le _),
-  rw [← succ_le_iff, succ_zero] at hn, cases hn with f,
-  exact ⟨f punit.star⟩
-end, λ e, by simp only [e, card_zero]⟩
-
-protected lemma one_ne_zero : (1 : ordinal) ≠ 0 :=
-type_ne_zero_of_nonempty _
-
-instance : nontrivial ordinal.{u} :=
-⟨⟨1, 0, ordinal.one_ne_zero⟩⟩
-
-@[simp] theorem zero_lt_one : (0 : ordinal) < 1 :=
-lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ordinal.one_ne_zero.symm⟩
-
-instance unique_Iio_one : unique (Iio (1 : ordinal)) :=
-{ default := ⟨0, zero_lt_one⟩,
-  uniq := λ a, subtype.ext $ lt_one_iff_zero.1 a.prop }
-
-instance : zero_le_one_class ordinal := ⟨zero_lt_one.le⟩
-
-instance unique_out_one : unique (1 : ordinal).out.α :=
-{ default := enum (<) 0 (by simp),
-  uniq := λ a, begin
-    rw ←enum_typein (<) a,
-    unfold default,
-    congr,
-    rw ←lt_one_iff_zero,
-    apply typein_lt_self
-  end }
-
-theorem one_out_eq (x : (1 : ordinal).out.α) : x = enum (<) 0 (by simp) :=
-unique.eq_default x
-
-@[simp] theorem typein_one_out (x : (1 : ordinal).out.α) : typein (<) x = 0 :=
-by rw [one_out_eq x, typein_enum]
-
-theorem le_one_iff {a : ordinal} : a ≤ 1 ↔ a = 0 ∨ a = 1 :=
-by simpa using @le_succ_bot_iff _ _ _ a _
 
 theorem add_eq_zero_iff {a b : ordinal} : a + b = 0 ↔ (a = 0 ∧ b = 0) :=
 induction_on a $ λ α r _, induction_on b $ λ β s _, begin

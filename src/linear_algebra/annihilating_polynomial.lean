@@ -3,10 +3,8 @@ Copyright (c) 2022 Justin Thomas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Justin Thomas
 -/
-import data.set.basic
 import field_theory.minpoly
 import ring_theory.principal_ideal_domain
-import ring_theory.polynomial_algebra
 
 /-!
 # Annihilating Ideal

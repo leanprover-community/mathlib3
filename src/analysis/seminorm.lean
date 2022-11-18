@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jean Lo, Yaël Dillies, Moritz Doll
 -/
 import data.real.pointwise
-import data.real.sqrt
-import topology.algebra.filter_basis
-import topology.algebra.module.locally_convex
+import analysis.convex.function
+import analysis.locally_convex.basic
 
 /-!
 # Seminorms
@@ -44,7 +43,7 @@ variables {R R' 𝕜 𝕜₂ 𝕜₃ 𝕝 E E₂ E₃ F G ι : Type*}
 semidefinite, positive homogeneous, and subadditive. -/
 structure seminorm (𝕜 : Type*) (E : Type*) [semi_normed_ring 𝕜] [add_group E] [has_smul 𝕜 E]
   extends add_group_seminorm E :=
-(smul' : ∀ (a : 𝕜) (x : E), to_fun (a • x) = ∥a∥ * to_fun x)
+(smul' : ∀ (a : 𝕜) (x : E), to_fun (a • x) = ‖a‖ * to_fun x)
 
 attribute [nolint doc_blame] seminorm.to_add_group_seminorm
 
@@ -53,7 +52,7 @@ attribute [nolint doc_blame] seminorm.to_add_group_seminorm
 You should extend this class when you extend `seminorm`. -/
 class seminorm_class (F : Type*) (𝕜 E : out_param $ Type*) [semi_normed_ring 𝕜] [add_group E]
   [has_smul 𝕜 E] extends add_group_seminorm_class F E :=
-(map_smul_eq_mul (f : F) (a : 𝕜) (x : E) : f (a • x) = ∥a∥ * f x)
+(map_smul_eq_mul (f : F) (a : 𝕜) (x : E) : f (a • x) = ‖a‖ * f x)
 
 export seminorm_class (map_smul_eq_mul)
 
@@ -66,7 +65,7 @@ section of
 `semi_norm_ring 𝕜`. -/
 def seminorm.of [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E] (f : E → ℝ)
   (add_le : ∀ (x y : E), f (x + y) ≤ f x + f y)
-  (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ∥a∥ * f x) : seminorm 𝕜 E :=
+  (smul : ∀ (a : 𝕜) (x : E), f (a • x) = ‖a‖ * f x) : seminorm 𝕜 E :=
 { to_fun    := f,
   map_zero' := by rw [←zero_smul 𝕜 (0 : E), smul, norm_zero, zero_mul],
   add_le'   := add_le,
@@ -77,7 +76,7 @@ def seminorm.of [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E] (f : 
 and an inequality for the scalar multiplication. -/
 def seminorm.of_smul_le [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] (f : E → ℝ)
   (map_zero : f 0 = 0) (add_le : ∀ x y, f (x + y) ≤ f x + f y)
-  (smul_le : ∀ (r : 𝕜) x, f (r • x) ≤ ∥r∥ * f x) : seminorm 𝕜 E :=
+  (smul_le : ∀ (r : 𝕜) x, f (r • x) ≤ ‖r‖ * f x) : seminorm 𝕜 E :=
 seminorm.of f add_le
   (λ r x, begin
     refine le_antisymm (smul_le r x) _,
@@ -356,7 +355,7 @@ begin
   { exact nnreal.coe_pos.mpr ha },
 end
 
-lemma norm_sub_map_le_sub (p : seminorm 𝕜 E) (x y : E) : ∥p x - p y∥ ≤ p (x - y) :=
+lemma norm_sub_map_le_sub (p : seminorm 𝕜 E) (x y : E) : ‖p x - p y‖ ≤ p (x - y) :=
 abs_sub_map_le_sub p x y
 
 end module
@@ -368,12 +367,12 @@ variables {σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂]
 variables [add_comm_group E] [add_comm_group E₂] [module 𝕜 E] [module 𝕜₂ E₂]
 
 lemma comp_smul (p : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) (c : 𝕜₂) :
-  p.comp (c • f) = ∥c∥₊ • p.comp f :=
+  p.comp (c • f) = ‖c‖₊ • p.comp f :=
 ext $ λ _, by rw [comp_apply, smul_apply, linear_map.smul_apply, map_smul_eq_mul, nnreal.smul_def,
   coe_nnnorm, smul_eq_mul, comp_apply]
 
 lemma comp_smul_apply (p : seminorm 𝕜₂ E₂) (f : E →ₛₗ[σ₁₂] E₂) (c : 𝕜₂) (x : E) :
-  p.comp (c • f) x = ∥c∥ * p (f x) := map_smul_eq_mul p _ _
+  p.comp (c • f) x = ‖c‖ * p (f x) := map_smul_eq_mul p _ _
 
 end semi_normed_comm_ring
 
@@ -789,8 +788,8 @@ section normed_field
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] (p : seminorm 𝕜 E) {A B : set E}
   {a : 𝕜} {r : ℝ} {x : E}
 
-lemma smul_ball_zero {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} (hk : 0 < ∥k∥) :
-  k • p.ball 0 r = p.ball 0 (∥k∥ * r) :=
+lemma smul_ball_zero {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} (hk : 0 < ‖k‖) :
+  k • p.ball 0 r = p.ball 0 (‖k‖ * r) :=
 begin
   ext,
   rw [set.mem_smul_set, seminorm.mem_ball_zero],
@@ -831,7 +830,7 @@ begin
   refine ⟨r₂/r, div_pos hr₂ hr, _⟩,
   simp_rw set.subset_def,
   intros a ha x hx,
-  have ha' : 0 < ∥a∥ := lt_of_lt_of_le (div_pos hr₂ hr) ha,
+  have ha' : 0 < ‖a‖ := lt_of_lt_of_le (div_pos hr₂ hr) ha,
   rw [smul_ball_zero ha', p.mem_ball_zero],
   rw p.mem_ball_zero at hx,
   rw div_le_iff hr at ha,
@@ -845,7 +844,7 @@ begin
   rintro x,
   have hxr : 0 ≤ p x / r := by positivity,
   refine ⟨p x/r, hxr, λ a ha, _⟩,
-  have ha₀ : 0 < ∥a∥ := hxr.trans_lt ha,
+  have ha₀ : 0 < ‖a‖ := hxr.trans_lt ha,
   refine ⟨a⁻¹ • x, _, smul_inv_smul₀ (norm_pos_iff.1 ha₀) x⟩,
   rwa [mem_ball_zero, map_smul_eq_mul, norm_inv, inv_mul_lt_iff ha₀, ←div_lt_iff hr],
 end
@@ -880,7 +879,7 @@ by { ext, rw [set.mem_neg, mem_ball, mem_ball, ←neg_add', sub_neg_eq_add, map_
 
 @[simp]
 lemma smul_ball_preimage (p : seminorm 𝕜 E) (y : E) (r : ℝ) (a : 𝕜) (ha : a ≠ 0) :
-  ((•) a) ⁻¹' p.ball y r = p.ball (a⁻¹ • y) (r / ∥a∥) :=
+  ((•) a) ⁻¹' p.ball y r = p.ball (a⁻¹ • y) (r / ‖a‖) :=
 set.ext $ λ _, by rw [mem_preimage, mem_ball, mem_ball,
   lt_div_iff (norm_pos_iff.mpr ha), mul_comm, ←map_smul_eq_mul p, smul_sub, smul_inv_smul₀ ha]
 
@@ -897,7 +896,7 @@ protected lemma convex_on : convex_on ℝ univ p :=
 begin
   refine ⟨convex_univ, λ x _ y _ a b ha hb hab, _⟩,
   calc p (a • x + b • y) ≤ p (a • x) + p (b • y) : map_add_le_add p _ _
-    ... = ∥a • (1 : 𝕜)∥ * p x + ∥b • (1 : 𝕜)∥ * p y
+    ... = ‖a • (1 : 𝕜)‖ * p x + ‖b • (1 : 𝕜)‖ * p y
         : by rw [←map_smul_eq_mul p, ←map_smul_eq_mul p, smul_one_smul, smul_one_smul]
     ... = a * p x + b * p y
         : by rw [norm_smul, norm_smul, norm_one, mul_one, mul_one, real.norm_of_nonneg ha,
@@ -1122,7 +1121,7 @@ lemma absorbent_ball_zero (hr : 0 < r) : absorbent 𝕜 (metric.ball (0 : E) r) 
 by { rw ←ball_norm_seminorm 𝕜, exact (norm_seminorm _ _).absorbent_ball_zero hr }
 
 /-- Balls containing the origin are absorbent. -/
-lemma absorbent_ball (hx : ∥x∥ < r) : absorbent 𝕜 (metric.ball x r) :=
+lemma absorbent_ball (hx : ‖x‖ < r) : absorbent 𝕜 (metric.ball x r) :=
 by { rw ←ball_norm_seminorm 𝕜, exact (norm_seminorm _ _).absorbent_ball hx }
 
 /-- Balls at the origin are balanced. -/
@@ -1146,3 +1145,6 @@ lemma rescale_to_shell [normed_add_comm_group F] [normed_space 𝕜 F] {c : 𝕜
 rescale_to_shell_semi_normed hc εpos (ne_of_lt (norm_pos_iff.2 hx)).symm
 
 end norm_seminorm
+
+-- Guard against import creep.
+assert_not_exists balanced_core

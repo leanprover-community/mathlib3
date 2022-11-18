@@ -6,6 +6,8 @@ Authors: Moritz Doll, Anatole Dedecker
 
 import analysis.seminorm
 import analysis.locally_convex.bounded
+import topology.algebra.filter_basis
+import topology.algebra.module.locally_convex
 
 /-!
 # Topology induced by a family of seminorms
@@ -170,7 +172,7 @@ begin
   rw hU,
   by_cases h : x ≠ 0,
   { rw [(s.sup p).smul_ball_preimage 0 r x h, smul_zero],
-    use (s.sup p).ball 0 (r / ∥x∥),
+    use (s.sup p).ball 0 (r / ‖x‖),
     exact ⟨p.basis_sets_mem s (div_pos hr (norm_pos_iff.mpr h)), subset.rfl⟩ },
   refine ⟨(s.sup p).ball 0 r, p.basis_sets_mem s hr, _⟩,
   simp only [not_ne_iff.mp h, subset_def, mem_ball_zero, hr, mem_univ, map_zero,
@@ -407,7 +409,7 @@ begin
     cases normed_field.exists_lt_norm 𝕜 r with a ha,
     specialize h a (le_of_lt ha),
     rw [seminorm.smul_ball_zero (lt_trans hr ha), mul_one] at h,
-    refine ⟨∥a∥, lt_trans hr ha, _⟩,
+    refine ⟨‖a‖, lt_trans hr ha, _⟩,
     intros x hx,
     specialize h hx,
     exact (finset.sup I p).mem_ball_zero.mp h },

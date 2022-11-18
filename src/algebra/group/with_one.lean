@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Johan Commelin
 -/
 import order.bounded_order
 import algebra.hom.equiv.basic
-import algebra.group_with_zero.units
+import algebra.group_with_zero.units.basic
 import algebra.ring.defs
 
 /-!

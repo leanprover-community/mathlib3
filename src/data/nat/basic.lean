@@ -3,7 +3,9 @@ Copyright (c) 2014 Floris van Doorn (c) 2016 Microsoft Corporation. All rights r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import algebra.ring.basic
+import order.basic
+import algebra.group_with_zero.basic
+import algebra.ring.defs
 
 /-!
 # Basic operations on the natural numbers
@@ -102,25 +104,6 @@ namespace nat
 @[simp] lemma or_exists_succ {p : ℕ → Prop} : (p 0 ∨ ∃ n, p (n + 1)) ↔ ∃ n, p n :=
 ⟨λ h, h.elim (λ h0, ⟨0, h0⟩) (λ ⟨n, hn⟩, ⟨n + 1, hn⟩),
   by { rintro ⟨(_|n), hn⟩, exacts [or.inl hn, or.inr ⟨n, hn⟩]}⟩
-
-/-! ### The units of the natural numbers as a `monoid` and `add_monoid` -/
-
-theorem units_eq_one (u : ℕˣ) : u = 1 :=
-units.ext $ nat.eq_one_of_dvd_one ⟨u.inv, u.val_inv.symm⟩
-
-theorem add_units_eq_zero (u : add_units ℕ) : u = 0 :=
-add_units.ext $ (nat.eq_zero_of_add_eq_zero u.val_neg).1
-
-@[simp] protected theorem is_unit_iff {n : ℕ} : is_unit n ↔ n = 1 :=
-iff.intro
-  (λ ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
-  (λ h, h.symm ▸ ⟨1, rfl⟩)
-
-instance unique_units : unique ℕˣ :=
-{ default := 1, uniq := nat.units_eq_one }
-
-instance unique_add_units : unique (add_units ℕ) :=
-{ default := 0, uniq := nat.add_units_eq_zero }
 
 /-! ### `succ` -/
 

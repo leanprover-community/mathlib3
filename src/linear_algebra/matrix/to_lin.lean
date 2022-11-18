@@ -9,6 +9,7 @@ import linear_algebra.matrix.finite_dimensional
 import linear_algebra.std_basis
 import ring_theory.algebra_tower
 import algebra.module.algebra
+import algebra.algebra.subalgebra.tower
 
 /-!
 # Linear maps and matrices
@@ -444,7 +445,7 @@ end
 lemma linear_map.to_matrix_id : linear_map.to_matrix v₁ v₁ id = 1 :=
 begin
   ext i j,
-  simp [linear_map.to_matrix_apply, matrix.one_apply, finsupp.single, eq_comm]
+  simp [linear_map.to_matrix_apply, matrix.one_apply, finsupp.single_apply, eq_comm]
 end
 
 lemma linear_map.to_matrix_one : linear_map.to_matrix v₁ v₁ 1 = 1 :=

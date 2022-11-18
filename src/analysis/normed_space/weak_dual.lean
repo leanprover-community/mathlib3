@@ -164,7 +164,7 @@ variables (𝕜)
 weak-star topology is `weak_dual.polar 𝕜 s`. -/
 def polar (s : set E) : set (weak_dual 𝕜 E) := to_normed_dual ⁻¹' polar 𝕜 s
 
-lemma polar_def (s : set E) : polar 𝕜 s = {f : weak_dual 𝕜 E | ∀ x ∈ s, ∥f x∥ ≤ 1} := rfl
+lemma polar_def (s : set E) : polar 𝕜 s = {f : weak_dual 𝕜 E | ∀ x ∈ s, ‖f x‖ ≤ 1} := rfl
 
 /-- The polar `polar 𝕜 s` of a set `s : E` is a closed subset when the weak star topology
 is used. -/

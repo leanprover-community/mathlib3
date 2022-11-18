@@ -345,10 +345,10 @@ lemma card_sylow_dvd_index [fact p.prime] [fintype (sylow p G)] (P : sylow p G) 
 ((congr_arg _ (card_sylow_eq_index_normalizer P)).mp dvd_rfl).trans (index_dvd_of_le le_normalizer)
 
 lemma not_dvd_index_sylow' [hp : fact p.prime] (P : sylow p G) [(P : subgroup G).normal]
-  (hP : (P : subgroup G).index ≠ 0) : ¬ p ∣ (P : subgroup G).index :=
+  [finite_index (P : subgroup G)] : ¬ p ∣ (P : subgroup G).index :=
 begin
   intro h,
-  haveI : fintype (G ⧸ (P : subgroup G)) := fintype_of_index_ne_zero hP,
+  haveI := (P : subgroup G).fintype_quotient_of_finite_index,
   rw index_eq_card at h,
   obtain ⟨x, hx⟩ := exists_prime_order_of_dvd_card p h,
   have h := is_p_group.of_card ((order_eq_card_zpowers.symm.trans hx).trans (pow_one p).symm),
@@ -370,7 +370,8 @@ begin
   rw [←relindex_mul_index le_normalizer, ←card_sylow_eq_index_normalizer],
   haveI : (P.subtype le_normalizer : subgroup (P : subgroup G).normalizer).normal :=
   subgroup.normal_in_normalizer,
-  replace hP := not_dvd_index_sylow' (P.subtype le_normalizer) hP,
+  haveI : finite_index ↑(P.subtype le_normalizer) := ⟨hP⟩,
+  replace hP := not_dvd_index_sylow' (P.subtype le_normalizer),
   exact hp.1.not_dvd_mul hP (not_dvd_card_sylow p G),
 end
 

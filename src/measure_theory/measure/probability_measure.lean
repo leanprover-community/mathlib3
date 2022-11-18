@@ -5,6 +5,7 @@ Authors: Kalle Kytölä
 -/
 import measure_theory.measure.finite_measure
 import measure_theory.integral.average
+import probability.conditional_probability
 
 /-!
 # Probability measures
@@ -116,6 +117,9 @@ subtype.coe_injective
 @[simp] lemma coe_fn_univ (ν : probability_measure Ω) : ν univ = 1 :=
 congr_arg ennreal.to_nnreal ν.prop.measure_univ
 
+lemma coe_fn_univ_ne_zero {ν : probability_measure Ω} : ν univ ≠ 0 :=
+by simp only [coe_fn_univ, ne.def, one_ne_zero, not_false_iff]
+
 /-- A probability measure can be interpreted as a finite measure. -/
 def to_finite_measure (μ : probability_measure Ω) : finite_measure Ω := ⟨μ, infer_instance⟩
 
@@ -145,6 +149,11 @@ begin
   rw measure_univ at zero,
   exact zero_ne_one zero.symm,
 end
+
+lemma eq_of_measure_apply_eq (μ ν : probability_measure Ω)
+  (h : ∀ (s : set Ω), measurable_set s → (μ : measure Ω) s = (ν : measure Ω) s) :
+  μ = ν :=
+by { ext1, ext1 s s_mble, exact h s s_mble, }
 
 @[ext] lemma extensionality (μ ν : probability_measure Ω)
   (h : ∀ (s : set Ω), measurable_set s → μ s = ν s) :
@@ -444,35 +453,49 @@ section conditioned_probability_measure
 
 namespace probability_measure
 
+open probability_theory
+open_locale probability_theory
+
 variables {Ω : Type*} [measurable_space Ω]
 
 /-- Probability measure P conditioned on an event A. -/
 def conditioned (P : probability_measure Ω) (A : set Ω) : probability_measure Ω :=
 @finite_measure.normalize Ω (nonempty_of_probability_measure P) _ (P.to_finite_measure.restrict A)
 
+localized "notation (name := probability_measure.conditioned_fn)
+  P `[` B ` | ` A `]` := probability_measure.conditioned P A B" in probability_theory
+
 lemma conditioned_apply (P : probability_measure Ω) {A : set Ω}
-  (proba_nonzero : P A ≠ 0) {E : set Ω} (E_mble : measurable_set E) :
-  (P.conditioned A) E = (P A)⁻¹ * P (E ∩ A) :=
+  (proba_nonzero : P A ≠ 0) {B : set Ω} (B_mble : measurable_set B) :
+  P[B | A] = (P A)⁻¹ * P (B ∩ A) :=
 begin
   rw [conditioned, finite_measure.normalize_eq_of_nonzero],
-  { rw [measure_theory.finite_measure.restrict_apply _ _ E_mble,
+  { rw [measure_theory.finite_measure.restrict_apply _ _ B_mble,
         measure_theory.finite_measure.restrict_mass, coe_fn_comp_to_finite_measure_eq_coe_fn], },
   { rwa [measure_theory.finite_measure.restrict_nonzero_iff,
          coe_fn_comp_to_finite_measure_eq_coe_fn], },
 end
 
 @[simp] lemma conditioned_apply_mul_apply_self
-  (P : probability_measure Ω) (A : set Ω) {E : set Ω} (E_mble : measurable_set E) :
-  ((P.conditioned A) E) * (P A) = P (E ∩ A) :=
+  (P : probability_measure Ω) (A : set Ω) {B : set Ω} (B_mble : measurable_set B) :
+  P[B | A] * P A = P (B ∩ A) :=
 begin
   by_cases h : P A = 0,
   { simp only [h, mul_zero],
     refine le_antisymm zero_le' _,
     rw ← h,
-    exact apply_mono _ (inter_subset_right E A), },
-  rw [conditioned_apply P h E_mble, mul_comm, ← mul_assoc],
+    exact apply_mono _ (inter_subset_right B A), },
+  rw [conditioned_apply P h B_mble, mul_comm, ← mul_assoc],
   simp [mul_inv_cancel h],
 end
+
+@[simp] lemma coe_conditioned_apply_eq_coe_cond_apply (P : probability_measure Ω)
+  {A : set Ω} (A_mble : measurable_set A) (pos_proba : P A ≠ 0)
+  {B : set Ω} (B_mble : measurable_set B) :
+  (P.conditioned A : measure Ω) B = probability_theory.cond (P : measure Ω) A B :=
+by simp only [cond_apply _ A_mble, ← ennreal_coe_fn_eq_coe_fn_to_measure _ B,
+              conditioned_apply _ pos_proba B_mble, inter_comm A B, ennreal.coe_inv pos_proba,
+              coe_mul, ennreal_coe_fn_eq_coe_fn_to_measure]
 
 end probability_measure --namespace
 

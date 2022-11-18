@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Henry Swanson
 -/
 import combinatorics.derangements.basic
-import data.fintype.card
+import data.fintype.big_operators
 import tactic.delta_instance
 import tactic.ring
 

@@ -2340,6 +2340,13 @@ begin
   rwa [comap_map_eq, comap_map_eq, sup_of_le_left hH, sup_of_le_left hK] at hf,
 end
 
+@[to_additive] lemma subgroup_of_eq_bot {H K : subgroup G} : H.subgroup_of K = ⊥ ↔ disjoint H K :=
+by rw [←(map_injective K.subtype_injective).eq_iff, subgroup_of_map_subtype, map_bot, disjoint_iff]
+
+@[to_additive] lemma subgroup_of_eq_top {H K : subgroup G} : H.subgroup_of K = ⊤ ↔ K ≤ H :=
+by rw [←(map_injective K.subtype_injective).eq_iff, subgroup_of_map_subtype,
+  ←K.subtype.range_eq_map, K.subtype_range, inf_eq_right]
+
 @[to_additive] lemma closure_preimage_eq_top (s : set G) :
   closure ((closure s).subtype ⁻¹' s) = ⊤ :=
 begin

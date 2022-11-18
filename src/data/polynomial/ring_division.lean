@@ -176,7 +176,7 @@ variables [char_zero R]
 
 @[simp] lemma degree_bit0_eq (p : R[X]) : degree (bit0 p) = degree p :=
 by rw [bit0_eq_two_mul, degree_mul, (by simp : (2 : R[X]) = C 2),
-  @polynomial.degree_C R _ _ two_ne_zero', zero_add]
+  @polynomial.degree_C R _ _ two_ne_zero, zero_add]
 
 @[simp] lemma nat_degree_bit0_eq (p : R[X]) : nat_degree (bit0 p) = nat_degree p :=
 nat_degree_eq_of_degree_eq $ degree_bit0_eq p

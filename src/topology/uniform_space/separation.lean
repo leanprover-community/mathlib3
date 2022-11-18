@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Patrick Massot
 -/
 
 import tactic.apply_fun
-import data.set.pairwise
 import topology.uniform_space.basic
 import topology.separation
 

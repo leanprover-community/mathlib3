@@ -3,10 +3,13 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import tactic.abel
+import algebra.group.ext
 import category_theory.limits.shapes.biproducts
+import category_theory.limits.preserves.shapes.binary_products
 import category_theory.limits.preserves.shapes.biproducts
-import category_theory.preadditive
+import category_theory.limits.preserves.shapes.products
+import category_theory.preadditive.default
+import tactic.abel
 
 /-!
 # Basic facts about biproducts in preadditive categories.

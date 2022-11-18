@@ -1323,14 +1323,14 @@ by simp [pos_iff_ne_zero, not_or_distrib]
 lemma half_pos {a : ℝ≥0∞} (h : a ≠ 0) : 0 < a / 2 :=
 by simp [h]
 
-lemma one_half_lt_one : (2⁻¹:ℝ≥0∞) < 1 := inv_lt_one.2 $ one_lt_two
+lemma one_half_lt_one : (2⁻¹ : ℝ≥0∞) < 1 := inv_lt_one.2 $ one_lt_two
 
 lemma half_lt_self {a : ℝ≥0∞} (hz : a ≠ 0) (ht : a ≠ ∞) : a / 2 < a :=
 begin
   lift a to ℝ≥0 using ht,
   rw coe_ne_zero at hz,
   rw [← coe_two, ← ennreal.coe_div, coe_lt_coe],
-  exacts [nnreal.half_lt_self hz, two_ne_zero']
+  exacts [nnreal.half_lt_self hz, two_ne_zero' _]
 end
 
 lemma half_le_self : a / 2 ≤ a := le_add_self.trans_eq (add_halves _)

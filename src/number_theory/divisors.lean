@@ -91,6 +91,8 @@ begin
   exact le_of_dvd hm.bot_lt,
 end
 
+lemma one_mem_divisors : 1 ∈ divisors n ↔ n ≠ 0 := by simp
+
 lemma mem_divisors_self (n : ℕ) (h : n ≠ 0) : n ∈ n.divisors := mem_divisors.2 ⟨dvd_rfl, h⟩
 
 lemma dvd_of_mem_divisors {m : ℕ} (h : n ∈ divisors m) : n ∣ m :=

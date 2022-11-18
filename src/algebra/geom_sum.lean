@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Neil Strickland
 -/
 
-import algebra.group_with_zero.power
 import algebra.big_operators.order
 import algebra.big_operators.ring
 import algebra.big_operators.intervals

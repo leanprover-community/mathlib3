@@ -222,16 +222,16 @@ begin
     specialize hρball a ha.le,
     rw [← ball_norm_seminorm 𝕜 E, seminorm.smul_ball_zero (hρ.trans ha),
         ball_norm_seminorm, mul_one] at hρball,
-    exact ⟨∥a∥, hρball.trans metric.ball_subset_closed_ball⟩ },
+    exact ⟨‖a‖, hρball.trans metric.ball_subset_closed_ball⟩ },
   { exact λ ⟨C, hC⟩, (is_vonN_bounded_closed_ball 𝕜 E C).subset hC }
 end
 
 lemma is_vonN_bounded_iff' (s : set E) :
-  bornology.is_vonN_bounded 𝕜 s ↔ ∃ r : ℝ, ∀ (x : E) (hx : x ∈ s), ∥x∥ ≤ r :=
+  bornology.is_vonN_bounded 𝕜 s ↔ ∃ r : ℝ, ∀ (x : E) (hx : x ∈ s), ‖x‖ ≤ r :=
 by rw [normed_space.is_vonN_bounded_iff, ←metric.bounded_iff_is_bounded, bounded_iff_forall_norm_le]
 
 lemma image_is_vonN_bounded_iff (f : E' → E) (s : set E') :
-  bornology.is_vonN_bounded 𝕜 (f '' s) ↔ ∃ r : ℝ, ∀ (x : E') (hx : x ∈ s), ∥f x∥ ≤ r :=
+  bornology.is_vonN_bounded 𝕜 (f '' s) ↔ ∃ r : ℝ, ∀ (x : E') (hx : x ∈ s), ‖f x‖ ≤ r :=
 by simp_rw [is_vonN_bounded_iff', set.ball_image_iff]
 
 /-- In a normed space, the von Neumann bornology (`bornology.vonN_bornology`) is equal to the

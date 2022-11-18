@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import data.int.cast.lemmas
-import data.nat.cast.field
+import algebra.field.defs
+import algebra.group_with_zero.units.lemmas
 
 /-!
 # Cast of integers into fields

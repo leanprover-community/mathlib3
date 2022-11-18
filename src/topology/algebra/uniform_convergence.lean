@@ -194,7 +194,7 @@ begin
     { rw mem_ball_zero_iff at ha,
       rw [smul_hom_class.map_smul, pi.smul_apply],
       have : φ u x ∈ a⁻¹ • V,
-      { have ha0 : 0<∥a∥ := norm_pos_iff.mpr ha0,
+      { have ha0 : 0<‖a‖ := norm_pos_iff.mpr ha0,
         refine (hr a⁻¹ _) (set.mem_image_of_mem (φ u) hx),
         rw [norm_inv, le_inv hrpos ha0],
         exact ha.le },

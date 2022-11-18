@@ -90,11 +90,11 @@ end preliminaries
 
 section bells_inequality_1964
 
-variables {Ω : Type*} [measurable_space Ω] (ℙ : probability_measure Ω)
+variables {Ω : Type*} [measurable_space Ω] (ℙ : measure Ω) [is_probability_measure ℙ] 
 
 lemma integrable_mul_of_units_int {Za Zb : Ω → ℤˣ} (sm_a : strongly_measurable (λ ω, (Za ω : ℝ)))
   (sm_b : strongly_measurable (λ ω, (Zb ω : ℝ))) :
-  integrable (λ ω, (Za ω : ℝ) * Zb ω) (ℙ : measure Ω) :=
+  integrable (λ ω, (Za ω : ℝ) * Zb ω) ℙ :=
 begin
   refine ⟨strongly_measurable.ae_strongly_measurable (strongly_measurable.mul sm_a sm_b), _⟩,
   refine @has_finite_integral_of_bounded _ _ _ _ _ _ _ (1 : ℝ) _,
@@ -106,14 +106,14 @@ end
 lemma integrable_mul_of_units_int_neg {Za Zb : Ω → ℤˣ}
   (sm_a : strongly_measurable (λ ω, (Za ω : ℝ)))
   (sm_b : strongly_measurable (λ ω, (Zb ω : ℝ))) :
-  integrable (λ ω : Ω , -(Za ω :ℝ) * Zb ω) (ℙ : measure Ω) :=
+  integrable (λ ω : Ω , -(Za ω :ℝ) * Zb ω) ℙ :=
 begin
-  convert @integrable_mul_of_units_int _ _ _ (λ x, -Za x) Zb _ sm_b,
+  convert @integrable_mul_of_units_int _ _ _ _inst_2 (λ x, -Za x) Zb _ sm_b,
   { ext1 x,
     simp, },
-  { convert strongly_measurable.neg sm_a,
-    ext1 x,
-    simp, },
+ { convert strongly_measurable.neg sm_a,
+   ext1 x,
+   simp, },
 end
 
 /-- **Bell's inequality (1964 version)** Given six random variables `Za Zb : fin 3 → Ω → ℤˣ` taking
@@ -123,9 +123,9 @@ end
 theorem bells_inequality_1964 {Za Zb : fin 3 → Ω → ℤˣ}
   (Za_measurable : ∀ i, strongly_measurable (λ ω, (Za i ω : ℝ)))
   (Zb_measurable : ∀ i, strongly_measurable (λ ω, (Zb i ω : ℝ)))
-  (anticorrelation : ∀ i, ∫ ω, (Za i ω : ℝ) * (Zb i ω) ∂(ℙ:measure Ω) = -1) :
-  (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂(ℙ : measure Ω)) - (∫ ω, (Za 1 ω : ℝ) * (Zb 3 ω) ∂(ℙ : measure Ω))
-    ≤ 1 + (∫ ω, (Za 2 ω : ℝ) * (Zb 3 ω) ∂(ℙ : measure Ω)) :=
+  (anticorrelation : ∀ i, ∫ ω, (Za i ω : ℝ) * (Zb i ω) ∂ℙ = -1) :
+  (∫ ω, (Za 1 ω : ℝ) * (Zb 2 ω) ∂ℙ) - (∫ ω, (Za 1 ω : ℝ) * (Zb 3 ω) ∂ℙ)
+    ≤ 1 + (∫ ω, (Za 2 ω : ℝ) * (Zb 3 ω) ∂ℙ) :=
 begin
   let integrable_muls :=
     λ i j, integrable_mul_of_units_int ℙ (Za_measurable i) (Zb_measurable j),
@@ -139,16 +139,16 @@ begin
   { intro ω,
     convert CHSH_inequality_of_int_units (-(Za 2 ω)) (Za 1 ω) (Zb 2 ω) (Zb 3 ω);
     simp, },
-  have int_chsh := @integral_nonpos _ _ (ℙ : measure Ω) _ (λ x, this x),
+  have int_chsh := @integral_nonpos _ _ ℙ _ (λ x, this x),
   rw [integral_add, integral_add, integral_add, integral_add] at int_chsh,
-  { have : ∫ ω, -(Za 2 ω : ℝ) * (Zb 2 ω) ∂(ℙ:measure Ω) = 1,
+  { have : ∫ ω, -(Za 2 ω : ℝ) * (Zb 2 ω) ∂ℙ = 1,
     { convert neg_inj.mpr (anticorrelation 2),
       { rw ← measure_theory.integral_neg,
         rw integral_congr_ae,
         filter_upwards with x,
         simp, },
       { simp, }, },
-    rw [this, (by simp : ∫ ω, (-2 : ℝ) ∂(ℙ : measure Ω) = -2)] at int_chsh,
+    rw [this, (by simp : ∫ ω, (-2 : ℝ) ∂ℙ = -2)] at int_chsh,
     convert int_chsh using 1,
     ring_nf,
     congr' 1,

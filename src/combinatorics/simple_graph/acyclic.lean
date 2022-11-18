@@ -44,7 +44,9 @@ variables {V : Type u} (G : simple_graph V)
 def is_acyclic : Prop := ∀ (v : V) (c : G.walk v v), ¬c.is_cycle
 
 /-- A *tree* is a connected acyclic graph. -/
-def is_tree : Prop := G.connected ∧ G.is_acyclic
+@[mk_iff, protect_proj] structure is_tree : Prop :=
+(is_connected : G.connected)
+(is_acyclic : G.is_acyclic)
 
 variables {G}
 
@@ -110,13 +112,14 @@ begin
     simpa [-quotient.eq, sym2.eq_swap, h] using hc },
 end
 
-lemma is_acyclic_iff : G.is_acyclic ↔ ∀ ⦃v w : V⦄ (p q : G.path v w), p = q :=
+lemma is_acyclic_iff_path_unique : G.is_acyclic ↔ ∀ ⦃v w : V⦄ (p q : G.path v w), p = q :=
 ⟨is_acyclic.path_unique, is_acyclic_of_path_unique⟩
 
-lemma is_tree_iff : G.is_tree ↔ nonempty V ∧ ∀ (v w : V), ∃! (p : G.walk v w), p.is_path :=
+lemma is_tree_iff_exists_unique_path :
+  G.is_tree ↔ nonempty V ∧ ∀ (v w : V), ∃! (p : G.walk v w), p.is_path :=
 begin
   classical,
-  simp only [is_tree, is_acyclic_iff],
+  rw [is_tree_iff, is_acyclic_iff_path_unique],
   split,
   { rintro ⟨hc, hu⟩,
     refine ⟨hc.nonempty, _⟩,
@@ -126,12 +129,12 @@ begin
     simp only [true_and, path.is_path],
     intros p hp,
     specialize hu ⟨p, hp⟩ q,
-    simp only [←hu, subtype.coe_mk], },
-  { rintro ⟨hV, h⟩,
-    refine ⟨@connected.mk V _ _ hV, _⟩,
+    exact subtype.ext_iff.mp hu, },
+  { unfreezingI { rintro ⟨hV, h⟩ },
+    refine ⟨connected.mk _, _⟩,
     { intros v w,
       obtain ⟨p, hp⟩ := h v w,
-      use p, },
+      exact p.reachable, },
     { rintros v w ⟨p, hp⟩ ⟨q, hq⟩,
       simp only [unique_of_exists_unique (h v w) hp hq] } },
 end

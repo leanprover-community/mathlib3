@@ -2978,7 +2978,7 @@ begin
     have equ : pickseq.to_fun n = pickseq.to_fun m, by { ext, exact hnm, },
     exact pickseq.injective equ, },
   have disj : pairwise (disjoint on (λ (n : ℕ), As (js n))),
-    from λ n m hnm b hb, As_disj (js n) (js m) (function.injective.ne js_inj hnm) hb,
+    from λ n m hnm b hb, As_disj (function.injective.ne js_inj hnm) hb,
   have huge : μ (⋃ n, As (js n)) = ∑' n, μ (As (js n)), from measure_Union disj (λ n, As_mble _),
   have large_terms : ∀ n, ε ≤ μ (As (js n)), from λ n, (pickseq.to_fun n).property,
   have diverges : ∑' n, μ (As (js n)) = ∞,
@@ -3041,7 +3041,8 @@ begin
   intros n,
   apply countable_meas_pos_of_disjoint_Union',
   { exact λ i, measurable_set.inter (As_mble i) (measurable_spanning_sets μ n), },
-  { exact λ i j i_ne_j b hb, As_disj i j i_ne_j ⟨hb.1.1, hb.2.1⟩, },
+  { exact λ i j i_ne_j b hbi hbj, As_disj i_ne_j
+            (hbi.trans (inter_subset_left _ _)) (hbj.trans (inter_subset_left _ _)), },
   { refine lt_of_le_of_lt (measure_mono _) (measure_spanning_sets_lt_top μ n),
     exact Union_subset (λ i, inter_subset_right _ _), },
 end

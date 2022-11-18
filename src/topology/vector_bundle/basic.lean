@@ -266,6 +266,21 @@ lemma coe_coord_changeL (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_
   = (e.linear_equiv_at R b hb.1).symm.trans (e'.linear_equiv_at R b hb.2) :=
 congr_arg linear_equiv.to_fun (dif_pos hb)
 
+lemma coe_coord_changeL' (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_linear R] {b : B}
+  (hb : b ∈ e.base_set ∩ e'.base_set) :
+  (coord_changeL R e e' b).to_linear_equiv
+  = (e.linear_equiv_at R b hb.1).symm.trans (e'.linear_equiv_at R b hb.2) :=
+linear_equiv.coe_injective (coe_coord_changeL _ _ _)
+
+lemma symm_coord_changeL (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_linear R] {b : B}
+  (hb : b ∈ e'.base_set ∩ e.base_set) :
+  (e.coord_changeL R e' b).symm = e'.coord_changeL R e b :=
+begin
+  apply continuous_linear_equiv.to_linear_equiv_injective,
+  rw [coe_coord_changeL' e' e hb, (coord_changeL R e e' b).symm_to_linear_equiv,
+    coe_coord_changeL' e e' hb.symm, linear_equiv.trans_symm, linear_equiv.symm_symm],
+end
+
 lemma coord_changeL_apply (e e' : trivialization F (π E)) [e.is_linear R] [e'.is_linear R] {b : B}
   (hb : b ∈ e.base_set ∩ e'.base_set) (y : F) :
   coord_changeL R e e' b y = (e' (total_space_mk b (e.symm b y))).2 :=
@@ -280,6 +295,11 @@ begin
     rw [e.proj_symm_apply' hb.1], exact hb.2 },
   { exact e.coord_changeL_apply e' hb y }
 end
+
+lemma apply_symm_apply_eq_coord_changeL (e e' : trivialization F (π E)) [e.is_linear R]
+  [e'.is_linear R] {b : B} (hb : b ∈ e.base_set ∩ e'.base_set) (v : F) :
+  e' (e.to_local_homeomorph.symm (b, v)) = (b, e.coord_changeL R e' b v) :=
+by rw [e.mk_coord_changeL e' hb, e.mk_symm hb.1]
 
 /-- A version of `coord_change_apply` that fully unfolds `coord_change`. The right-hand side is
 ugly, but has good definitional properties for specifically defined trivializations. -/

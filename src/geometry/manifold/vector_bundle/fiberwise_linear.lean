@@ -335,3 +335,11 @@ def smooth_fiberwise_linear : structure_groupoid (B × F) :=
     rintros e e' ⟨φ, U, hU, hφ, h2φ, heφ⟩ hee',
     exact ⟨φ, U, hU, hφ, h2φ, setoid.trans hee' heφ⟩,
   end }
+
+@[simp] lemma mem_smooth_fiberwise_linear_iff (e : local_homeomorph (B × F) (B × F)) :
+  e ∈ smooth_fiberwise_linear B F IB ↔
+  ∃ (φ : B → F ≃L[𝕜] F) (U : set B) (hU : is_open U)
+  (hφ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, φ x : B → F →L[𝕜] F) U)
+  (h2φ : smooth_on IB 𝓘(𝕜, F →L[𝕜] F) (λ x, (φ x).symm : B → F →L[𝕜] F) U),
+  e.eq_on_source (fiberwise_linear.local_homeomorph φ hU hφ.continuous_on h2φ.continuous_on) :=
+show e ∈ set.Union _ ↔ _, by simp only [mem_Union]; refl

@@ -60,6 +60,7 @@ lemma morphism_restrict_stalk_map {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carr
 begin
   fapply arrow.iso_mk',
   { refine Y.restrict_stalk_iso U.open_embedding ((f ∣_ U).1 x) ≪≫ Top.presheaf.stalk_congr _ _,
+    apply inseparable.of_eq,
     exact morphism_restrict_base_coe f U x },
   { exact X.restrict_stalk_iso _ _ },
   { apply Top.presheaf.stalk_hom_ext,

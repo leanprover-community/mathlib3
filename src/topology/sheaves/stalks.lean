@@ -307,7 +307,7 @@ lemma germ_stalk_specializes' (F : X.presheaf C) {U : opens X} {x y : X} (h : x 
   F.germ ⟨y, hy⟩ ≫ F.stalk_specializes h =
     F.germ ⟨x, specializes_iff_forall_open.mp h _ U.2 hy⟩ := colimit.ι_desc _ _
 
-@[simp, elementwise]
+@[simp]
 lemma stalk_specializes_refl {C : Type*} [category C] [limits.has_colimits C]
   {X : Top} (F : X.presheaf C) (x : X) :
   F.stalk_specializes (specializes_refl x) = 𝟙 _ :=

@@ -50,31 +50,6 @@ begin
   intros _ _ _, apply_instance
 end
 
-lemma morphism_restrict_val_base {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) :
-  ⇑(f ∣_ U).1.base = U.1.restrict_preimage f.1.base :=
-funext (λ x, subtype.ext (morphism_restrict_base_coe f U x))
-
-lemma morphism_restrict_stalk_map {X Y : Scheme} (f : X ⟶ Y) (U : opens Y.carrier) (x) :
-  arrow.mk (PresheafedSpace.stalk_map (f ∣_ U).1 x) ≅
-    arrow.mk (PresheafedSpace.stalk_map f.1 x.1) :=
-begin
-  fapply arrow.iso_mk',
-  { refine Y.restrict_stalk_iso U.open_embedding ((f ∣_ U).1 x) ≪≫ Top.presheaf.stalk_congr _ _,
-    exact morphism_restrict_base_coe f U x },
-  { exact X.restrict_stalk_iso _ _ },
-  { apply Top.presheaf.stalk_hom_ext,
-    intros V hxV,
-    simp only [Top.presheaf.stalk_congr_hom, category_theory.category.assoc,
-      category_theory.iso.trans_hom],
-    erw PresheafedSpace.restrict_stalk_iso_hom_eq_germ_assoc,
-    erw PresheafedSpace.stalk_map_germ_assoc _ _ ⟨_, _⟩,
-    rw [Top.presheaf.germ_stalk_specializes'_assoc],
-    erw PresheafedSpace.stalk_map_germ _ _ ⟨_, _⟩,
-    erw PresheafedSpace.restrict_stalk_iso_hom_eq_germ,
-    rw [morphism_restrict_c_app, category.assoc, Top.presheaf.germ_res],
-    refl }
-end
-
 lemma is_open_immersion_is_local_at_target : property_is_local_at_target @is_open_immersion :=
 begin
   constructor,

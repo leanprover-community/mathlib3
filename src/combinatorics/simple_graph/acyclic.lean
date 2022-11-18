@@ -17,12 +17,12 @@ This module introduces *acyclic graphs* (a.k.a. *forests*) and *trees*.
 
 ## Main statements
 
-* `simple_graph.is_acyclic_iff` characterizes acyclicity in terms of uniqueness of paths between
-  pairs of vertices.
+* `simple_graph.is_acyclic_iff_path_unique` characterizes acyclicity in terms of uniqueness of
+  paths between pairs of vertices.
 * `simple_graph.is_acyclic_iff_forall_edge_is_bridge` characterizes acyclicity in terms of every
   edge being a bridge edge.
-* `simple_graph.is_tree_iff` characterizes trees in terms of existence and uniqueness of paths
-  between pairs of vertices from a nonempty vertex type.
+* `simple_graph.is_tree_iff_exists_unique_path` characterizes trees in terms of existence and
+  uniqueness of paths between pairs of vertices from a nonempty vertex type.
 
 ## References
 

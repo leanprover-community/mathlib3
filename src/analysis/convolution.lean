@@ -1092,24 +1092,24 @@ variables [is_R_or_C 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 E'] [normed_
 {μ : measure G} (L : E →L[𝕜] E' →L[𝕜] F)
 
 /-- The convolution `f * g` is continuous if `f` is locally integrable and `g` is continuous and
-compactly supported. Version where `g` depends on an additional parameter in an open subset `s` of
+compactly supported. Version where `g` depends on an additional parameter in a subset `s` of
 a parameter space `P` (and the compact support `k` is independent of the parameter in `s`). -/
 lemma continuous_on_convolution_right_with_param
   {g : P → G → E'}
-  {s : set P} {k : set G} (hs : is_open s) (hk : is_compact k)
+  {s : set P} {k : set G} (hk : is_compact k)
   (hgs : ∀ p, ∀ x, p ∈ s → x ∉ k → g p x = 0)
   (hf : locally_integrable f μ) (hg : continuous_on (↿g) (s ×ˢ univ)) :
   continuous_on (λ (q : P × G), (f ⋆[L, μ] g q.1) q.2) (s ×ˢ univ) :=
 begin
   assume q₀ hq₀,
-  apply continuous_at.continuous_within_at,
+  -- apply continuous_at.continuous_within_at,
   replace hq₀ : q₀.1 ∈ s, by simpa only [mem_prod, mem_univ, and_true] using hq₀,
   have A : ∀ p ∈ s, continuous (g p),
   { assume p hp,
     apply hg.comp_continuous (continuous_const.prod_mk continuous_id') (λ x, _),
     simpa only [prod_mk_mem_set_prod_eq, mem_univ, and_true] using hp },
-  have A' : ∀ (q : P × G), q.1 ∈ s → s ×ˢ univ ∈ 𝓝 q,
-  { assume q hq,
+  have A' : ∀ (q : P × G), q.1 ∈ s → s ×ˢ univ ∈ 𝓝[s ×ˢ univ] q,
+  sorry { assume q hq,
     apply (hs.prod is_open_univ).mem_nhds,
     simpa only [mem_prod, mem_univ, and_true] using hq },
   /- Exclude the trivial case where the space is not finite-dimensional: then `g` has to be zero
@@ -1122,13 +1122,16 @@ begin
       cases this.eq_zero_or_finite_dimensional 𝕜 (A p hp),
       { exact funext_iff.1 h },
       { exact (fin_dim h).elim } },
-    have C : (λ (q : P × G), (f ⋆[L, μ] g q.1) q.2) =ᶠ[𝓝 q₀] (λ y, 0),
+    have C : (λ (q : P × G), (f ⋆[L, μ] g q.1) q.2) =ᶠ[𝓝[s ×ˢ univ] q₀] (λ y, 0),
     { filter_upwards [A' q₀ hq₀],
       rintros ⟨p, x⟩ ⟨hp, hx⟩,
       have : g p = 0,
       { ext1 x, apply B p hp x },
       simp only [this, convolution_zero, pi.zero_apply] },
-    exact continuous_at.congr continuous_at_const C.symm },
+    refine continuous_within_at.congr_of_eventually_eq continuous_within_at_const C _,
+    have : g q₀.1 = 0,
+    { ext1 x, apply B q₀.1 hq₀ x },
+    simp only [this, convolution_zero, pi.zero_apply] },
   resetI,
   haveI : proper_space G, from finite_dimensional.proper_is_R_or_C 𝕜 G,
     /- We find a small neighborhood of `{q₀.1} × k` on which the function is uniformly bounded.
@@ -1217,6 +1220,8 @@ begin
     exact (hg.continuous_at (A' (q₀.fst, q₀.snd - a) hq₀)) },
   exact continuous_at_of_dominated I1 I2 I3 I4,
 end
+
+#exit
 
 variables [normed_space 𝕜 P] [sigma_finite μ] [is_add_left_invariant μ]
 

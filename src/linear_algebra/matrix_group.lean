@@ -11,7 +11,7 @@ import linear_algebra.general_linear_group
 import linear_algebra.unitary_group
 
 /-!
-# Matrix
+# Matrix groups
 
 In this file we define a typeclass `matrix_group` for groups, which elements are matrices and
 the operation is matrix multiplication.
@@ -44,8 +44,7 @@ attribute [priority 100]
 instance coe_is_monoid_hom_trans [LM_lift : has_lift_t L M] [MN_lift : has_lift_t M N]
   [LM_hom : coe_is_monoid_hom L M] [MN_hom : coe_is_monoid_hom M N] :
   @coe_is_monoid_hom L N ⟨MN_lift.lift ∘ LM_lift.lift⟩ _ _ :=
-{
-  coe_one :=
+{ coe_one :=
   begin
     simp [coe, lift_t],
     have h : has_lift_t.lift (1 : L) = (1 : M), from LM_hom.coe_one,
@@ -59,8 +58,7 @@ instance coe_is_monoid_hom_trans [LM_lift : has_lift_t L M] [MN_lift : has_lift_
     have h : (has_lift_t.lift : L → M) (x * y) = has_lift_t.lift x * has_lift_t.lift y,
       from LM_hom.coe_mul _ _,
     rw h, exact MN_hom.coe_mul _ _
-  end
-}
+  end }
 
 end hidden
 open hidden
@@ -88,10 +86,8 @@ section coe_to_GL
 `hom_to_GL` is a natural embedding of a matrix group into `GL`
 -/
 def hom_to_GL {G : Type w} [matrix_group n R G] : G →* (GL n R) :=
-{
-  to_fun := λ x,
-  {
-    val := (x : matrix n n R),
+{ to_fun := λ x,
+  { val := (x : matrix n n R),
     inv := ↑(x⁻¹),
     val_inv :=
     begin
@@ -102,8 +98,7 @@ def hom_to_GL {G : Type w} [matrix_group n R G] : G →* (GL n R) :=
     begin
       rw [←coe_is_monoid_hom.coe_mul x⁻¹ x, inv_mul_self, coe_is_monoid_hom.coe_one],
       apply_instance
-    end
-  },
+    end },
 
   map_one' :=
   begin
@@ -116,8 +111,7 @@ def hom_to_GL {G : Type w} [matrix_group n R G] : G →* (GL n R) :=
     intros x y,
     apply units.ext,
     simp [units.val],
-  end
-}
+  end }
 
 lemma hom_to_GL_injective {G : Type w} [h : matrix_group n R G] :
   function.injective (@hom_to_GL n _ _ R _ G _).to_fun :=
@@ -136,7 +130,6 @@ instance coe_to_GL_is_hom (G : Type w) [matrix_group n R G] : coe_is_monoid_hom 
 
 end coe_to_GL
 
-
 section special
 
 /--
@@ -146,14 +139,12 @@ def special (G : Type w) [matrix_group n R G] : subgroup G :=
 @monoid_hom.ker G _ Rˣ _ (monoid_hom.comp (@matrix.general_linear_group.det n _ _ R _) hom_to_GL)
 
 instance special_to_matrix_group {G : Type w} [h : matrix_group n R G] :
-matrix_group n R ↥(special G) := @matrix_group.mk n _ _ R _ (special G) _ _ -- TODO: make it implicit
-  (hidden.coe_is_monoid_hom_trans _ G _)
+matrix_group n R ↥(special G) := @matrix_group.mk n _ _ R _ (special G) _ _
+  (hidden.coe_is_monoid_hom_trans _ G _) -- TODO: make it implicit
   begin
     apply function.injective.comp,
     exacts [h.coe_injective, subtype.val_injective]
   end
-
-
 
 end special
 
@@ -161,10 +152,8 @@ section examples
 variables (n R)
 
 instance GL_is_matrix_group : matrix_group n R (GL n R) := @matrix_group.mk n _ _ R _ (GL n R) _ _
-  {
-    coe_mul := by {intros x y, refl},
-    coe_one := by refl
-  }
+  { coe_mul := by {intros x y, refl},
+    coe_one := by refl }
   units.ext
 
 instance U_is_matrix_group [star_ring R] : matrix_group n R (matrix.unitary_group n R) :=

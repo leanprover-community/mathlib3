@@ -746,7 +746,7 @@ lemma from_localized_module.bij : function.bijective $ from_localized_module S f
 If `(M', f : M ⟶ M')` satisfies universal property of localized module, then `M'` is isomorphic to
 `localized_module S M` as an `R`-module.
 -/
-@[simps] noncomputable def iso : localized_module S M ≃ₗ[R] M' :=
+@[simps apply] noncomputable def iso : localized_module S M ≃ₗ[R] M' :=
 { ..from_localized_module S f,
   ..equiv.of_bijective (from_localized_module S f) $ from_localized_module.bij _ _}
 
@@ -949,7 +949,7 @@ lemma mk'_eq_zero' {m : M} (s : S) :
   mk' f m s = 0 ↔ ∃ s' : S, s' • m = 0 :=
 by simp_rw [← mk'_zero f (1 : S), mk'_eq_mk'_iff, smul_zero, one_smul, eq_comm]
 
-lemma mk_eq_mk' (s : S) (m : M) :
+lemma _root_.localized_module.mk_eq_mk' (s : S) (m : M) :
   localized_module.mk m s = mk' (localized_module.mk_linear_map S M) m s :=
 by rw [eq_comm, mk'_eq_iff, submonoid.smul_def, localized_module.smul'_mk,
   ← submonoid.smul_def, localized_module.mk_cancel, localized_module.mk_linear_map_apply]
@@ -966,6 +966,18 @@ begin
   obtain ⟨⟨m, s⟩, e : s • x = f m⟩ := is_localized_module.surj S f x,
   exact ⟨⟨m, s⟩, mk'_eq_iff.mpr e.symm⟩
 end
+
+@[simp]
+lemma iso_mk' (m : M) (s : S) :
+  (is_localized_module.iso S f).symm (is_localized_module.mk' f m s) = localized_module.mk m s :=
+(is_localized_module.iso S f).symm_apply_apply (localized_module.mk m s)
+
+@[simp]
+lemma lift_mk' (g : M →ₗ[R] M'')
+  (h : ∀ (x : S), is_unit ((algebra_map R (module.End R M'')) x)) (m : M) (s : S) :
+  (is_localized_module.lift S f g h) (is_localized_module.mk' f m s) = (h s).unit⁻¹ (g m) :=
+by { delta is_localized_module.lift, dsimp,
+  rw [is_localized_module.iso_mk', localized_module.lift_mk], refl }
 
 end is_localized_module
 
@@ -1027,42 +1039,93 @@ begin
   exact submodule.mem_localize_of_mem trivial _
 end
 
-/-- `S⁻¹M →ₗ[R] S⁻¹M'`, the localization of a linear_map `M →ₗ[R] M'`.
-This is an `R`-linear map. See `localized_module.map` for the `S⁻¹R`-linear version. -/
+end submodule
+
+section base_change
+
+variables (R' : Type*) [comm_ring R'] [algebra R R'] [is_localization S R']
+variables [module R' M'] [is_scalar_tower R R' M'] [module R' M''] [is_scalar_tower R R' M'']
+
+
+/-- If `M''` is an `S⁻¹R` module, then any `M →ₗ[R] M''` can be lifted to `S⁻¹M →ₗ[S⁻¹R] M''`. -/
 noncomputable
-def localized_module.map_restrict_scalars : localized_module S M →ₗ[R] localized_module S M' :=
-localized_module.lift _ ((localized_module.mk_linear_map S M').comp f)
-  (λ m, is_localized_module.map_units (localized_module.mk_linear_map S M') m)
+def is_localized_module.base_change [is_localized_module S f] (g : M →ₗ[R] M'') : M' →ₗ[R'] M'' :=
+begin
+  have : ∀ (x : S), is_unit (algebra_map R (module.End R M'') ↑x),
+  { intro x,
+    have := (is_localization.map_units R' x).map (algebra_map R' (module.End R' M'')),
+    rw module.End_is_unit_iff at this ⊢,
+    convert this using 1,
+    ext n,
+    exact (algebra_map_smul _ _ _).symm },
+  refine { map_smul' := _, ..is_localized_module.lift S f g this },
+  { intros r x,
+    obtain ⟨⟨r', s⟩, e⟩ := is_localization.surj S r,
+    obtain ⟨⟨x, t⟩, rfl⟩ := is_localized_module.mk'_surjective S f x,
+    simp_rw module.End_is_unit_iff at this,
+    apply (this s).injective,
+    dsimp at e ⊢,
+    rw [mul_comm, ← algebra.smul_def] at e,
+    rw [← smul_assoc, e, algebra_map_smul, ← linear_map.map_smul, ← linear_map.map_smul,
+      ← smul_assoc, e, algebra_map_smul] }
+end
 
 @[simp]
-lemma localized_module.map_restrict_scalars_mk (x : M) (m : S) :
-  localized_module.map_restrict_scalars S f (localized_module.mk x m) =
-    localized_module.mk (f x) m :=
+lemma is_localized_module.base_change_mk' [is_localized_module S f] (g : M →ₗ[R] M'') (m) (s : S) :
+    is_localized_module.base_change S f R' g (is_localized_module.mk' f m s) =
+      (is_localization.mk' R' 1 s) • (g m) :=
 begin
-  apply (module.End_algebra_map_is_unit_inv_apply_eq_iff _ _ _).mpr,
-  dsimp,
-  rw localized_module.smul'_mk,
-  exact (localized_module.mk_cancel _ _).symm
+  dsimp [is_localized_module.base_change],
+  rw [is_localized_module.lift_mk', module.End_algebra_map_is_unit_inv_apply_eq_iff,
+    ← smul_assoc, is_localization.smul_mk', is_localization.mk'_mul_cancel_left, map_one, one_smul],
 end
+
+variable (M'')
+
+/-- `is_localized_module.base_change` as an `R`-linear map. -/
+@[simps]
+noncomputable
+def is_localized_module.base_change_linear_map [is_localized_module S f] :
+  (M →ₗ[R] M'') →ₗ[R] M' →ₗ[R'] M'' :=
+{ to_fun := is_localized_module.base_change S f R',
+  map_add' := begin
+    intros g₁ g₂,
+    ext x,
+    obtain ⟨⟨x, t⟩, rfl⟩ := is_localized_module.mk'_surjective S f x,
+    dsimp,
+    simp only [is_localized_module.base_change_mk', linear_map.add_apply, smul_add],
+  end,
+  map_smul' := begin
+    intros r g,
+    ext x,
+    obtain ⟨⟨x, t⟩, rfl⟩ := is_localized_module.mk'_surjective S f x,
+    dsimp,
+    simp only [is_localized_module.base_change_mk', linear_map.smul_apply],
+    rw smul_comm,
+  end }
+.
+
+local notation `S⁻¹R` := localization S
+local notation `S⁻¹` := localized_module S
 
 /-- `S⁻¹M →ₗ[S⁻¹R] S⁻¹M'`, the localization of a linear_map `M →ₗ[R] M'`. -/
 noncomputable
-def localized_module.map : localized_module S M →ₗ[localization S] localized_module S M' :=
-{ map_smul' := begin
-    intros r x,
-    induction r using localization.induction_on, cases r,
-    induction x using localized_module.induction_on,
-    dsimp,
-    simp only [← localization.mk_eq_mk', localized_module.mk_smul_mk,
-      localized_module.map_restrict_scalars_mk, f.map_smul]
-  end,
-  ..localized_module.map_restrict_scalars S f }
+def localized_module.map :
+  (M →ₗ[R] M') →ₗ[R] S⁻¹ M →ₗ[S⁻¹R] S⁻¹ M' :=
+  ((is_localized_module.base_change_linear_map S (S⁻¹ M')
+    (localized_module.mk_linear_map S M) S⁻¹R).comp (linear_map.comp_right $
+      localized_module.mk_linear_map S M'))
 
 @[simp]
 lemma localized_module.map_mk (x : M) (m : S) :
   localized_module.map S f (localized_module.mk x m) =
     localized_module.mk (f x) m :=
-localized_module.map_restrict_scalars_mk S f x m
+begin
+  dsimp [localized_module.map],
+  rw [localized_module.mk_eq_mk', is_localized_module.base_change_mk'],
+  dsimp,
+  rw [ ← localization.mk_eq_mk', localized_module.mk_smul_mk, one_smul, mul_one],
+end
 
 @[simp]
 lemma localized_module.map_id :
@@ -1113,6 +1176,6 @@ begin
     exact submodule.mem_map_of_mem (submodule.mem_localize_of_mem hx _) }
 end
 
-end submodule
+end base_change
 
 end is_localized_module

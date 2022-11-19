@@ -930,17 +930,9 @@ end
   ↑(upper_closure s) = s ↔ is_upper_set s :=
 ⟨λ h, h ▸ upper_set.upper _, λ h, h.upper_closure⟩
 
-lemma is_upper_set_iff_eq_Union_Ici :
-  is_upper_set s ↔ s = ⋃ x ∈ s, Ici x :=
-by { rw [← upper_closure_eq, ← upper_set.infi_Ici, upper_set.coe_infi₂, eq_comm], refl }
-
 @[simp] lemma lower_closure_eq :
   ↑(lower_closure s) = s ↔ is_lower_set s :=
 @upper_closure_eq αᵒᵈ _ _
-
-lemma is_lower_set_iff_eq_Inter_Iic :
-  is_lower_set s ↔ s = ⋃ x ∈ s, Iic x :=
-@is_upper_set_iff_eq_Union_Ici αᵒᵈ _ s
 
 end closure
 

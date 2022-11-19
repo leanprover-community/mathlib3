@@ -127,10 +127,8 @@ begin
   { apply_fun C ∘ leading_coeff at h,
     rw [function.comp_apply, leading_coeff_mul, C_mul, eq_C_of_degree_eq_zero hf, leading_coeff_C,
         ← eq_C_of_degree_eq_zero hf, function.comp_apply, weierstrass_polynomial_eq,
-        cubic.leading_coeff_of_a_eq_zero] at h,
-    { exact or.inl ⟨⟨f, C g1, h, by rwa [mul_comm]⟩, rfl⟩ },
-    { refl },
-    { exact one_ne_zero } },
+        cubic.leading_coeff_of_b_ne_zero' $ one_ne_zero' K[X]] at h,
+    exact or.inl ⟨⟨f, C g1, h, by rwa [mul_comm]⟩, rfl⟩ },
   { have to_poly : f * g = cubic.to_poly ⟨0, f1 * g1, f1 * g0 + f0 * g1, f0 * g0⟩ :=
     begin
       conv_lhs { rw [eq_X_add_C_of_degree_eq_one hf, eq_X_add_C_of_degree_eq_one hg] },
@@ -141,48 +139,19 @@ begin
     rcases h with ⟨_, h11, h10, h00⟩,
     apply_fun degree at h11 h10 h00,
     rw [degree_mul, degree_one, nat.with_bot.add_eq_zero_iff] at h11,
-    rw [degree_mul, cubic.degree, nat.with_bot.add_eq_three_iff] at h00,
-    { rcases h00 with (⟨hf0, hg0⟩ | ⟨hf0, hg0⟩ | ⟨hf0, hg0⟩ | ⟨hf0, hg0⟩),
-      { have h01 : 3 = (f1 * g0 + f0 * g1).degree :=
-        begin
-          rw [degree_add_eq_left_of_degree_lt],
-          all_goals { simp only [degree_mul, h11.left, h11.right, hf0, hg0, zero_add] },
-          exact with_bot.coe_lt_coe.mpr zero_lt_three
-        end,
-        linarith only [with_bot.coe_le_coe.mp $ le_of_eq_of_le h01 $ le_of_eq_of_le h10 $
-                        cubic.degree_of_b_eq_zero _ rfl rfl] },
-      { have h01 : 2 = (f1 * g0 + f0 * g1).degree :=
-        begin
-          rw [degree_add_eq_left_of_degree_lt],
-          all_goals { simp only [degree_mul, h11.left, h11.right, hf0, hg0, zero_add, add_zero] },
-          exact with_bot.coe_lt_coe.mpr one_lt_two
-        end,
-        linarith only [with_bot.coe_le_coe.mp $ le_of_eq_of_le h01 $ le_of_eq_of_le h10 $
-                        cubic.degree_of_b_eq_zero _ rfl rfl] },
-      { have h01 : 2 = (f1 * g0 + f0 * g1).degree :=
-        begin
-          rw [degree_add_eq_right_of_degree_lt],
-          all_goals { simp only [degree_mul, h11.left, h11.right, hf0, hg0, zero_add, add_zero] },
-          exact with_bot.coe_lt_coe.mpr one_lt_two
-        end,
-        linarith only [with_bot.coe_le_coe.mp $ le_of_eq_of_le h01 $ le_of_eq_of_le h10 $
-                        cubic.degree_of_b_eq_zero _ rfl rfl] },
-      { have h01 : 3 = (f1 * g0 + f0 * g1).degree :=
-        begin
-          rw [degree_add_eq_right_of_degree_lt],
-          all_goals { simp only [degree_mul, h11.left, h11.right, hf0, hg0, add_zero] },
-          exact with_bot.coe_lt_coe.mpr zero_lt_three
-        end,
-        linarith only [with_bot.coe_le_coe.mp $ le_of_eq_of_le h01 $ le_of_eq_of_le h10 $
-                        cubic.degree_of_b_eq_zero _ rfl rfl] } },
-    { exact neg_ne_zero.mpr one_ne_zero } },
+    replace h10 := le_of_eq_of_le h10 cubic.degree_of_b_eq_zero',
+    contrapose h10,
+    rw [degree_mul, cubic.degree_of_a_ne_zero' $ neg_ne_zero.mpr $ one_ne_zero' K] at h00,
+    rcases nat.with_bot.add_eq_three_iff.mp h00 with (h00 | h00 | h00 | h00),
+    any_goals
+      { rw [degree_add_eq_left_of_degree_lt]; simp only [degree_mul, h11, h00]; dec_trivial },
+    any_goals
+      { rw [degree_add_eq_right_of_degree_lt]; simp only [degree_mul, h11, h00]; dec_trivial } },
   { apply_fun C ∘ leading_coeff at h,
     rw [function.comp_apply, leading_coeff_mul, C_mul, eq_C_of_degree_eq_zero hg, leading_coeff_C,
         ← eq_C_of_degree_eq_zero hg, function.comp_apply, weierstrass_polynomial_eq,
-        cubic.leading_coeff_of_a_eq_zero] at h,
-    { exact or.inr ⟨⟨g, C f1, by rwa [mul_comm], h⟩, rfl⟩ },
-    { refl },
-    { exact one_ne_zero } }
+        cubic.leading_coeff_of_b_ne_zero' $ one_ne_zero' K[X]] at h,
+    exact or.inr ⟨⟨g, C f1, by rwa [mul_comm], h⟩, rfl⟩ }
 end⟩
 
 /-- The Weierstrass ring $R_E = K[X, Y] / \langle w_E(X, Y) \rangle$. -/

@@ -3,8 +3,8 @@ Copyright (c) 2022 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import measure_theory.measure.measure_space
 import analysis.special_functions.log.base
+import measure_theory.measure.measure_space_def
 
 /-!
 # Doubling measures

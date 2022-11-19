@@ -3,9 +3,6 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
-import data.int.succ_pred
-import data.nat.succ_pred
-import order.partial_sups
 import order.succ_pred.relation
 import topology.subset_properties
 import tactic.congrm
@@ -761,7 +758,7 @@ lemma connected_space_iff_connected_component :
   connected_space α ↔ ∃ x : α, connected_component x = univ :=
 begin
   split,
-  { rintros ⟨h, ⟨x⟩⟩,
+  { rintro ⟨⟨x⟩⟩,
     exactI ⟨x, eq_univ_of_univ_subset $
       is_preconnected_univ.subset_connected_component (mem_univ x)⟩ },
   { rintros ⟨x, h⟩,
@@ -1547,3 +1544,41 @@ lemma continuous.connected_components_map_continuous {β : Type*} [topological_s
 continuous.connected_components_lift_continuous (continuous_quotient_mk.comp h)
 
 end connected_component_setoid
+
+/-- A preconnected set `s` has the property that every map to a
+discrete space that is continuous on `s` is constant on `s` -/
+lemma is_preconnected.constant {Y : Type*} [topological_space Y] [discrete_topology Y]
+  {s : set α} (hs : is_preconnected s) {f : α → Y} (hf : continuous_on f s)
+  {x y : α} (hx : x ∈ s) (hy : y ∈ s) : f x = f y :=
+(hs.image f hf).subsingleton (mem_image_of_mem f hx) (mem_image_of_mem f hy)
+
+/-- If every map to `bool` (a discrete two-element space), that is
+continuous on a set `s`, is constant on s, then s is preconnected -/
+lemma is_preconnected_of_forall_constant {s : set α}
+  (hs : ∀ f : α → bool, continuous_on f s → ∀ x ∈ s, ∀ y ∈ s, f x = f y) : is_preconnected s :=
+begin
+  unfold is_preconnected,
+  by_contra',
+  rcases this with ⟨u, v, u_op, v_op, hsuv, ⟨x, x_in_s, x_in_u⟩, ⟨y, y_in_s, y_in_v⟩, H⟩,
+  rw [not_nonempty_iff_eq_empty] at H,
+  have hy : y ∉ u,
+    from λ y_in_u, eq_empty_iff_forall_not_mem.mp H y ⟨y_in_s, ⟨y_in_u, y_in_v⟩⟩,
+  have : continuous_on u.bool_indicator s,
+  { apply (continuous_on_indicator_iff_clopen _ _).mpr ⟨_, _⟩,
+    { exact continuous_subtype_coe.is_open_preimage u u_op },
+    { rw preimage_subtype_coe_eq_compl hsuv H,
+      exact (continuous_subtype_coe.is_open_preimage v v_op).is_closed_compl } },
+  simpa [(u.mem_iff_bool_indicator _).mp x_in_u, (u.not_mem_iff_bool_indicator _).mp hy] using
+    hs _ this x x_in_s y y_in_s
+end
+
+/-- A `preconnected_space` version of `is_preconnected.constant` -/
+lemma preconnected_space.constant {Y : Type*} [topological_space Y] [discrete_topology Y]
+  (hp : preconnected_space α) {f : α → Y} (hf : continuous f) {x y : α} : f x = f y :=
+is_preconnected.constant hp.is_preconnected_univ (continuous.continuous_on hf) trivial trivial
+
+/-- A `preconnected_space` version of `is_preconnected_of_forall_constant` -/
+lemma preconnected_space_of_forall_constant (hs : ∀ f : α → bool, continuous f → ∀ x y, f x = f y) :
+  preconnected_space α :=
+⟨is_preconnected_of_forall_constant
+  (λ f hf x hx y hy, hs f (continuous_iff_continuous_on_univ.mpr hf) x y)⟩

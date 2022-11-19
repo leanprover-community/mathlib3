@@ -3,11 +3,8 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-
-import order.complete_boolean_algebra
-import order.cover
+import data.set.finite
 import order.modular_lattice
-import data.fintype.basic
 
 /-!
 # Atoms, Coatoms, and Simple Lattices
@@ -70,6 +67,10 @@ lemma is_atom.Iic (ha : is_atom a) (hax : a ≤ x) : is_atom (⟨a, hax⟩ : set
 lemma is_atom.of_is_atom_coe_Iic {a : set.Iic x} (ha : is_atom a) : is_atom (a : α) :=
 ⟨λ con, ha.1 (subtype.ext con), λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, hba.le.trans a.prop⟩ hba)⟩
 
+lemma is_atom_iff {a : α} : is_atom a ↔ a ≠ ⊥ ∧ ∀ b ≠ ⊥, b ≤ a → a ≤ b :=
+and_congr iff.rfl $ forall_congr $
+  λ b, by simp only [ne.def, @not_imp_comm (b = ⊥), not_imp, lt_iff_le_not_le]
+
 end preorder
 
 variables [partial_order α] [order_bot α] {a b x : α}
@@ -118,6 +119,8 @@ lemma is_coatom.of_is_coatom_coe_Ici {a : set.Ici x} (ha : is_coatom a) :
   is_coatom (a : α) :=
 @is_atom.of_is_atom_coe_Iic αᵒᵈ _ _ x a ha
 
+lemma is_coatom_iff {a : α} : is_coatom a ↔ a ≠ ⊤ ∧ ∀ b ≠ ⊤, a ≤ b → b ≤ a := @is_atom_iff αᵒᵈ _ _ _
+
 end preorder
 
 variables [partial_order α] [order_top α] {a b x : α}
@@ -156,11 +159,11 @@ section atomic
 variables [partial_order α] (α)
 
 /-- A lattice is atomic iff every element other than `⊥` has an atom below it. -/
-class is_atomic [order_bot α] : Prop :=
+@[mk_iff] class is_atomic [order_bot α] : Prop :=
 (eq_bot_or_exists_atom_le : ∀ (b : α), b = ⊥ ∨ ∃ (a : α), is_atom a ∧ a ≤ b)
 
 /-- A lattice is coatomic iff every element other than `⊤` has a coatom above it. -/
-class is_coatomic [order_top α] : Prop :=
+@[mk_iff] class is_coatomic [order_top α] : Prop :=
 (eq_top_or_exists_le_coatom : ∀ (b : α), b = ⊤ ∨ ∃ (a : α), is_coatom a ∧ b ≤ a)
 
 export is_atomic (eq_bot_or_exists_atom_le) is_coatomic (eq_top_or_exists_le_coatom)
@@ -678,25 +681,14 @@ lemma is_simple_order [bounded_order α] [bounded_order β] [h : is_simple_order
   is_simple_order α :=
 f.is_simple_order_iff.mpr h
 
-lemma is_atomic_iff [order_bot α] [order_bot β] (f : α ≃o β) : is_atomic α ↔ is_atomic β :=
-begin
-  suffices : (∀ b : α, b = ⊥ ∨ ∃ (a : α), is_atom a ∧ a ≤ b) ↔
-    (∀ b : β, b = ⊥ ∨ ∃ (a : β), is_atom a ∧ a ≤ b),
-  from ⟨λ ⟨p⟩, ⟨this.mp p⟩, λ ⟨p⟩, ⟨this.mpr p⟩⟩,
-  apply f.to_equiv.forall_congr,
-  simp_rw [rel_iso.coe_fn_to_equiv],
-  intro b, apply or_congr,
-  { rw [f.apply_eq_iff_eq_symm_apply, map_bot], },
-  { split,
-    { exact λ ⟨a, ha⟩, ⟨f a, ⟨(f.is_atom_iff a).mpr ha.1, f.le_iff_le.mpr ha.2⟩⟩, },
-    { rintros ⟨b, ⟨hb1, hb2⟩⟩,
-      refine ⟨f.symm b, ⟨(f.symm.is_atom_iff b).mpr hb1, _⟩⟩,
-      rwa [←f.le_iff_le, f.apply_symm_apply], }, },
-end
+protected lemma is_atomic_iff [order_bot α] [order_bot β] (f : α ≃o β) :
+  is_atomic α ↔ is_atomic β :=
+by simp only [is_atomic_iff, f.surjective.forall, f.surjective.exists, ← map_bot f, f.eq_iff_eq,
+  f.le_iff_le, f.is_atom_iff]
 
-lemma is_coatomic_iff [order_top α] [order_top β] (f : α ≃o β) : is_coatomic α ↔ is_coatomic β :=
-by { rw [←is_atomic_dual_iff_is_coatomic, ←is_atomic_dual_iff_is_coatomic],
-  exact f.dual.is_atomic_iff }
+protected lemma is_coatomic_iff [order_top α] [order_top β] (f : α ≃o β) :
+  is_coatomic α ↔ is_coatomic β :=
+by simp only [← is_atomic_dual_iff_is_coatomic, f.dual.is_atomic_iff]
 
 end order_iso
 

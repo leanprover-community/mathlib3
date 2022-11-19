@@ -3,8 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.nat.basic
-import algebra.order.group.basic
+import data.nat.order.basic
+import algebra.order.monoid.with_top
+
 /-!
 # `with_bot ℕ`
 
@@ -12,24 +13,39 @@ Lemmas about the type of natural numbers with a bottom element adjoined.
 -/
 namespace nat
 
-lemma with_bot.add_eq_zero_iff : ∀ {n m : with_bot ℕ}, n + m = 0 ↔ n = 0 ∧ m = 0
-| none     m        := iff_of_false dec_trivial (λ h, absurd h.1 dec_trivial)
-| n        none     := iff_of_false (by cases n; exact dec_trivial)
-  (λ h, absurd h.2 dec_trivial)
-| (some n) (some m) := show (n + m : with_bot ℕ) = (0 : ℕ) ↔ (n : with_bot ℕ) = (0 : ℕ) ∧
-    (m : with_bot ℕ) = (0 : ℕ),
-  by rw [← with_bot.coe_add, with_bot.coe_eq_coe, with_bot.coe_eq_coe,
-    with_bot.coe_eq_coe, add_eq_zero_iff' (nat.zero_le _) (nat.zero_le _)]
+lemma with_bot.add_eq_zero_iff {n m : with_bot ℕ} : n + m = 0 ↔ n = 0 ∧ m = 0 :=
+begin
+  rcases ⟨n, m⟩ with ⟨_ | _, _ | _⟩,
+  any_goals { tautology },
+  { repeat { erw [with_bot.coe_eq_coe] },
+    exact add_eq_zero_iff }
+end
 
-lemma with_bot.add_eq_one_iff : ∀ {n m : with_bot ℕ}, n + m = 1 ↔ (n = 0 ∧ m = 1) ∨ (n = 1 ∧ m = 0)
-| none     none     := dec_trivial
-| none     (some m) := dec_trivial
-| (some n) none     := iff_of_false dec_trivial (λ h, h.elim (λ h, absurd h.2 dec_trivial)
-  (λ h, absurd h.2 dec_trivial))
-| (some n) (some 0) := by erw [with_bot.coe_eq_coe, with_bot.coe_eq_coe, with_bot.coe_eq_coe,
-    with_bot.coe_eq_coe]; simp
-| (some n) (some (m + 1)) := by erw [with_bot.coe_eq_coe, with_bot.coe_eq_coe, with_bot.coe_eq_coe,
-    with_bot.coe_eq_coe, with_bot.coe_eq_coe]; simp [nat.add_succ, nat.succ_inj', nat.succ_ne_zero]
+lemma with_bot.add_eq_one_iff {n m : with_bot ℕ} : n + m = 1 ↔ n = 0 ∧ m = 1 ∨ n = 1 ∧ m = 0 :=
+begin
+  rcases ⟨n, m⟩ with ⟨_ | _, _ | _⟩,
+  any_goals { tautology },
+  { repeat { erw [with_bot.coe_eq_coe] },
+    exact add_eq_one_iff }
+end
+
+lemma with_bot.add_eq_two_iff {n m : with_bot ℕ} :
+  n + m = 2 ↔ n = 0 ∧ m = 2 ∨ n = 1 ∧ m = 1 ∨ n = 2 ∧ m = 0 :=
+begin
+  rcases ⟨n, m⟩ with ⟨_ | _, _ | _⟩,
+  any_goals { tautology },
+  { repeat { erw [with_bot.coe_eq_coe] },
+    exact add_eq_two_iff }
+end
+
+lemma with_bot.add_eq_three_iff {n m : with_bot ℕ} :
+  n + m = 3 ↔ n = 0 ∧ m = 3 ∨ n = 1 ∧ m = 2 ∨ n = 2 ∧ m = 1 ∨ n = 3 ∧ m = 0 :=
+begin
+  rcases ⟨n, m⟩ with ⟨_ | _, _ | _⟩,
+  any_goals { tautology },
+  { repeat { erw [with_bot.coe_eq_coe] },
+    exact add_eq_three_iff }
+end
 
 @[simp] lemma with_bot.coe_nonneg {n : ℕ} : 0 ≤ (n : with_bot ℕ) :=
 by rw [← with_bot.coe_zero, with_bot.coe_le_coe]; exact nat.zero_le _

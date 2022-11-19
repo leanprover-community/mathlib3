@@ -67,34 +67,37 @@ but they can be hastened considerably by breaking the computations into multiple
 elliptic curve, rational point, group law
 -/
 
-universes u v
-
 namespace EllipticCurve
-
-section basic
-
-/-!
-### Points in `E⟮K⟯`
-
-Use `0` instead of `EllipticCurve.point.zero`.
--/
 
 open polynomial
 
 open_locale polynomial
 
-variables {F : Type u} [comm_ring F] (E : EllipticCurve F) {K : Type v} [comm_ring K] [algebra F K]
+universes u v
 
-/-- The Weierstrass polynomial $Y^2 + a_1XY + a_3Y - (X^3 + a_2X^2 + a_4X + a_6)$ of `E`. -/
+section basic
+
+/-!
+### The `K`-rational points `E⟮K⟯`
+
+Use `0` instead of `EllipticCurve.point.zero`.
+-/
+
+variables {F : Type u} [comm_ring F] (E : EllipticCurve F) (K : Type v) [comm_ring K] [algebra F K]
+
+section weierstrass
+
+/-- The Weierstrass polynomial $w_E(X, Y) = Y^2 + a_1XY + a_3Y - (X^3 + a_2X^2 + a_4X + a_6)$. -/
 noncomputable def weierstrass_polynomial : K[X][X] :=
 X ^ 2 + C (C ↑E.a₁ * X) * X + C (C ↑E.a₃) * X - C (X ^ 3 + C ↑E.a₂ * X ^ 2 + C ↑E.a₄ * X + C ↑E.a₆)
 
-/-- The proposition that an affine point $(x, y)$ lies in `E`.
-In other words, the Weierstrass polynomial of `E` evaluates to zero at $(x, y)$. -/
-def weierstrass_equation (x y : K) : Prop := eval x (eval (C y) E.weierstrass_polynomial) = 0
+variables {K}
+
+/-- The proposition that an affine point $(x, y)$ lies in `E`, that is $w_E(x, y) = 0$. -/
+def weierstrass_equation (x y : K) : Prop := eval x (eval (C y) $ E.weierstrass_polynomial K) = 0
 
 @[simp] lemma eval_weierstrass_polynomial (x y : K) :
-  eval x (eval (C y) E.weierstrass_polynomial)
+  eval x (eval (C y) $ E.weierstrass_polynomial K)
     = y ^ 2 + ↑E.a₁ * x * y + ↑E.a₃ * y - (x ^ 3 + ↑E.a₂ * x ^ 2 + ↑E.a₄ * x + ↑E.a₆) :=
 by simp only [weierstrass_polynomial, eval_sub, eval_add, eval_mul, eval_pow, eval_C, eval_X]
 
@@ -108,11 +111,13 @@ by rw [weierstrass_equation, eval_weierstrass_polynomial]
     ↔ y ^ 2 + ↑E.a₁ * x * y + ↑E.a₃ * y = x ^ 3 + ↑E.a₂ * x ^ 2 + ↑E.a₄ * x + ↑E.a₆ :=
 by rw [weierstrass_equation_iff', sub_eq_zero]
 
+end weierstrass
+
 variables (K)
 
 /-- The group of `K`-rational points `E⟮K⟯` on an elliptic curve `E` over `F`. This consists of the
 unique point at infinity `EllipticCurve.point.zero`and the affine points `EllipticCurve.point.some`
-satisfying the Weierstrass equation $y^2 + a_1xy + a_3y = x^3 + a_2x^2 + a_4x + a_6$. -/
+satisfying the Weierstrass equation $y^2 + a_1xy + a_3y = x^3 + a_2x^2 + a_4x + a_6$ of `E`. -/
 inductive point
 | zero
 | some (x y : K) (h : E.weierstrass_equation x y)
@@ -173,8 +178,6 @@ end point
 
 end basic
 
-namespace point
-
 open_locale EllipticCurve
 
 variables {F : Type u} [field F] {E : EllipticCurve F} {K : Type v} [field K] [algebra F K]
@@ -182,10 +185,12 @@ variables {F : Type u} [field F] {E : EllipticCurve F} {K : Type v} [field K] [a
 section dbl_add
 
 /-!
-### Addition in `E⟮K⟯`
+### The addition law of `E⟮K⟯`
 
 Given `P Q : E⟮K⟯`, use `P + Q` instead of `add P Q`.
 -/
+
+namespace point
 
 section doubling
 
@@ -305,7 +310,7 @@ lemma weierstrass_equation_add (hx : x₁ ≠ x₂) :
   E.weierstrass_equation (add_x h₁ h₂) (add_y h₁ h₂) :=
 weierstrass_equation_neg $ weierstrass_equation_add' h₁ h₂ hx
 
-private lemma y_eq_of_y_ne (hx : x₁ = x₂) (hy : y₁ ≠ neg_y h₂) : y₁ = y₂ :=
+lemma y_eq_of_y_ne (hx : x₁ = x₂) (hy : y₁ ≠ neg_y h₂) : y₁ = y₂ :=
 begin
   rw [neg_y] at hy,
   rw [weierstrass_equation_iff] at h₂,
@@ -315,7 +320,7 @@ begin
   ring1
 end
 
-private lemma y_ne_of_y_ne (hx : x₁ = x₂) (hy : y₁ ≠ neg_y h₂) : y₁ ≠ neg_y h₁ :=
+lemma y_ne_of_y_ne (hx : x₁ = x₂) (hy : y₁ ≠ neg_y h₂) : y₁ ≠ neg_y h₁ :=
 by { convert hy, exact y_eq_of_y_ne h₁ h₂ hx hy }
 
 omit h₁ h₂
@@ -338,6 +343,8 @@ noncomputable instance : has_add E⟮K⟯ := ⟨add⟩
 @[simp] lemma zero_add (P : E⟮K⟯) : 0 + P = P := by cases P; refl
 
 @[simp] lemma add_zero (P : E⟮K⟯) : P + 0 = P := by cases P; refl
+
+noncomputable instance : add_zero_class E⟮K⟯ := ⟨0, (+), zero_add, add_zero⟩
 
 lemma some_add_some :
   some x₁ y₁ h₁ + some x₂ y₂ h₂
@@ -383,18 +390,41 @@ some_add_some_of_x_ne h₁ h₂ hx
 
 end addition
 
+end point
+
 end dbl_add
 
-section add_comm_group
+section group_law
 
 /-!
 ### Axioms in `E⟮K⟯`
-
 TODO: Associativity of addition.
 -/
 
-@[simp] lemma add_left_neg (P : E⟮K⟯) : -P + P = 0 :=
-by { cases P, { refl }, { simp only [neg_some, some_add_some_of_y_eq] } }
+namespace point
+
+@[simp] lemma add_eq_zero (P Q : E⟮K⟯) : P + Q = 0 ↔ P = -Q :=
+begin
+  rcases ⟨P, Q⟩ with ⟨_ | ⟨x₁, y₁, h₁⟩, _ | ⟨x₂, y₂, h₂⟩⟩,
+  { refl },
+  { rw [zero_def, zero_add, eq_neg_iff_eq_neg, neg_zero] },
+  { refl },
+  { simp only [neg_some],
+    split,
+    { intro h,
+      by_cases hx : x₁ = x₂,
+      { by_cases hy : y₁ = neg_y h₂,
+        { exact ⟨hx, hy⟩ },
+        { rw [some_add_some_of_y_ne h₁ h₂ hx hy] at h,
+          contradiction } },
+      { rw [some_add_some_of_x_ne h₁ h₂ hx] at h,
+        contradiction } },
+    { exact λ ⟨hx, hy⟩, some_add_some_of_y_eq h₁ h₂ hx hy } }
+end
+
+@[simp] lemma add_neg_eq_zero (P Q : E⟮K⟯) : P + -Q = 0 ↔ P = Q := by rw [add_eq_zero, neg_neg]
+
+@[simp] lemma add_left_neg (P : E⟮K⟯) : -P + P = 0 := by rw [add_eq_zero]
 
 lemma add_comm (P Q : E⟮K⟯) : P + Q = Q + P :=
 begin
@@ -410,8 +440,8 @@ begin
     exact ⟨by ring1, by ring1⟩ }
 end
 
-end add_comm_group
-
 end point
+
+end group_law
 
 end EllipticCurve

@@ -394,7 +394,7 @@ variables (G : Type*) [group G] [mul_semiring_action G R]
 instance : mul_semiring_action G (local_ring.residue_field R) :=
 mul_semiring_action.comp_hom _ $ map_aut.comp (mul_semiring_action.to_ring_aut G R)
 
-@[simp] lemma residue_smul (g : G) (r : R) : g • residue R r = residue R (g • r) := rfl
+@[simp] lemma residue_smul (g : G) (r : R) : residue R (g • r) = g • residue R r := rfl
 
 end mul_semiring_action
 

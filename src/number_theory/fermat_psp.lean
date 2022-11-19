@@ -26,14 +26,12 @@ The main definitions for this file are
 - `fermat_psp`: A number n is a pseudoprime to base b if it is a probable prime to base b, is
   composite, and is coprime with b
 
-Note that all composite numbers n ≥ 4 are pseudoprimes to base 1, and that the way probable_prime
-is set up implies that all numbers are probable primes to bases 0 and 1, and 0 and 1 are probable
-prime to any base.
+Note that all composite numbers are pseudoprimes to base 0 and 1, and that the definiton of
+probable_prime in this file implies that all numbers are probable primes to bases 0 and 1, and 0 and
+1 are probable primes to any base.
 
 The main theorems are
-
 - `fermat_psp.exists_infinite_pseudoprimes`: there are infinite pseudoprimes to any base b ≥ 1
-
 -/
 
 /--
@@ -45,9 +43,9 @@ probable primes to any base.
 def fermat_psp.probable_prime (n : ℕ) (b : ℕ) : Prop := n ∣ b^(n - 1) - 1
 
 /--
-`n` is a fermat pseudoprime to base `b` if `n` is coprime with `b`, is a probable prime to base `b`,
-and is composite. All composite natural numbers are pseudoprimes to base 1. This definition also
-permits `n` to be less than `b`, so that 4 is a pseudoprime to base 5, for example.
+`n` is a Fermat pseudoprime to base `b` if `n` is a probable prime to base `b` and is composite. By
+this definition, all composite natural numbers are pseudoprimes to base 0 and 1. This definition
+also permits `n` to be less than `b`, so that 4 is a pseudoprime to base 5, for example.
 -/
 def fermat_psp (n : ℕ) (b : ℕ) : Prop :=
 fermat_psp.probable_prime n b ∧ ¬nat.prime n ∧ 1 < n
@@ -128,8 +126,8 @@ begin
 end
 
 /--
-If `n` passes the Fermat primality test to base `b`, then `n` is coprime with `b`, assuming that
-`n` and `b` are both positive.
+If `n` is a Fermat pseudoprime to base `b`, then `n` is coprime with `b`, assuming that `b` is
+positive.
 
 This lemma is a small wrapper based on `coprime_of_probable_prime`
 -/
@@ -141,7 +139,7 @@ begin
 end
 
 /--
-All composite numbers are fermat pseudoprimes to base 1.
+All composite numbers are Fermat pseudoprimes to base 1.
 -/
 lemma pseudoprime_of_base_one (n : ℕ) (h₁ : 1 < n) (h₂ : ¬nat.prime n) : fermat_psp n 1 :=
 begin
@@ -534,8 +532,8 @@ begin
 end
 
 /--
-For all bases greater than 1, there exist infinite pseudoprimes to that base.
-Given in this form: for all numbers `b ≥ 1` and `m`, there exists a pseudoprime n to base b such
+For all positive bases, there exist Fermat infinite pseudoprimes to that base.
+Given in this form: for all numbers `b ≥ 1` and `m`, there exists a pseudoprime `n` to base `b` such
 that `m ≤ n`. This form is similar to `nat.exists_infinite_primes`.
 -/
 theorem exists_infinite_pseudoprimes (b : ℕ) (h : 1 ≤ b) (m : ℕ) : ∃ n : ℕ, fermat_psp n b ∧ m ≤ n :=

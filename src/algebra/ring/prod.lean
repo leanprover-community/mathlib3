@@ -3,10 +3,10 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Chris Hughes, Mario Carneiro, Yury Kudryashov
 -/
+import data.int.cast.prod
 import algebra.group.prod
-import algebra.order.group.prod
-import algebra.ring.basic
 import algebra.ring.equiv
+import algebra.order.monoid.prod
 
 /-!
 # Semiring, ring etc structures on `R × S`

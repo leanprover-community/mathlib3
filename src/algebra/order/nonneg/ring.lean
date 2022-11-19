@@ -3,7 +3,9 @@ Copyright (c) 2021 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import algebra.order.ring.basic
+import data.nat.cast.basic
+import algebra.order.ring.defs
+import algebra.order.ring.inj_surj
 import order.complete_lattice_intervals
 import order.lattice_intervals
 

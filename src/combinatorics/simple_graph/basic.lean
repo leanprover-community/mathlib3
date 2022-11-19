@@ -317,6 +317,38 @@ instance decidable_mem_edge_set [decidable_rel G.adj] :
 instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
   fintype G.edge_set := subtype.fintype _
 
+section from_edge_set
+
+variable (s : set (sym2 V))
+
+/--
+`from_edge_set` constructs a `simple_graph` from a set of edges, without loops.
+-/
+def from_edge_set : simple_graph V :=
+{ adj := sym2.to_rel s ⊓ ne,
+  symm := λ v w h, ⟨sym2.to_rel_symmetric s h.1, h.2.symm⟩}
+
+@[simp] lemma from_edge_set_adj : (from_edge_set s).adj v w ↔ ⟦(v, w)⟧ ∈ s ∧ v ≠ w := iff.rfl
+
+-- Note: we need to make sure `from_edge_set_adj` and this lemma are confluent.
+-- In particular, both yield `⟦(u, v)⟧ ∈ (from_edge_set s).edge_set` ==> `⟦(v, w)⟧ ∈ s ∧ v ≠ w`.
+@[simp] lemma edge_set_from_edge_set : (from_edge_set s).edge_set = {e ∈ s | ¬ e.is_diag} :=
+by { ext e, exact sym2.ind (by simp) e }
+
+@[simp] lemma from_edge_set_edge_set : from_edge_set G.edge_set = G :=
+by { ext v w, exact ⟨λ h, h.1, λ h, ⟨h, G.ne_of_adj h⟩⟩ }
+
+@[simp] lemma from_edge_set_empty : from_edge_set (∅ : set (sym2 V)) = ⊥ :=
+by { ext v w, simp only [from_edge_set_adj, set.mem_empty_iff_false, false_and, bot_adj] }
+
+@[simp] lemma from_edge_set_univ : from_edge_set (set.univ : set (sym2 V)) = ⊤ :=
+by { ext v w, simp only [from_edge_set_adj, set.mem_univ, true_and, top_adj] }
+
+instance [decidable_eq V] [fintype s] : fintype (from_edge_set s).edge_set :=
+by { rw edge_set_from_edge_set s, apply_instance }
+
+end from_edge_set
+
 /-! ## Darts -/
 
 /-- A `dart` is an oriented edge, implemented as an ordered pair of adjacent vertices.
@@ -620,6 +652,10 @@ lemma sdiff_eq_delete_edges (G G' : simple_graph V) :
   G \ G' = G.delete_edges G'.edge_set :=
 by { ext, simp }
 
+lemma delete_edges_eq_sdiff_from_edge_set (s : set (sym2 V)) :
+  G.delete_edges s = G \ from_edge_set s :=
+by { ext, exact ⟨λ h, ⟨h.1, not_and_of_not_left _ h.2⟩, λ h, ⟨h.1, not_and'.mp h.2 h.ne⟩⟩ }
+
 lemma compl_eq_delete_edges :
   Gᶜ = (⊤ : simple_graph V).delete_edges G.edge_set :=
 by { ext, simp }
@@ -787,6 +823,15 @@ lemma neighbor_finset_def : G.neighbor_finset v = (G.neighbor_set v).to_finset :
 @[simp] lemma mem_neighbor_finset (w : V) :
   w ∈ G.neighbor_finset v ↔ G.adj v w :=
 set.mem_to_finset
+
+@[simp] lemma not_mem_neighbor_finset_self : v ∉ G.neighbor_finset v :=
+(mem_neighbor_finset _ _ _).not.mpr $ G.loopless _
+
+lemma neighbor_finset_disjoint_singleton : disjoint (G.neighbor_finset v) {v} :=
+finset.disjoint_singleton_right.mpr $ not_mem_neighbor_finset_self _ _
+
+lemma singleton_disjoint_neighbor_finset : disjoint {v} (G.neighbor_finset v) :=
+finset.disjoint_singleton_left.mpr $ not_mem_neighbor_finset_self _ _
 
 /--
 `G.degree v` is the number of vertices adjacent to `v`.

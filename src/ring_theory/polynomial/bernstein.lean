@@ -303,17 +303,14 @@ begin
   let x : mv_polynomial bool R := mv_polynomial.X tt,
   let y : mv_polynomial bool R := mv_polynomial.X ff,
 
-  have pderiv_tt_x : pderiv tt x = 1, { simp [x], },
-  have pderiv_tt_y : pderiv tt y = 0, { simp [pderiv_X, y], },
+  have pderiv_tt_x : pderiv tt x = 1, { rw [pderiv_X], refl, },
+  have pderiv_tt_y : pderiv tt y = 0, { rw [pderiv_X], refl, },
 
   let e : bool → R[X] := λ i, cond i X (1-X),
 
   -- Start with `(x+y)^n = (x+y)^n`,
   -- take the `x`-derivative, evaluate at `x=X, y=1-X`, and multiply by `X`:
-  have h : (x+y)^n = (x+y)^n := rfl,
-  apply_fun (pderiv tt) at h,
-  apply_fun (aeval e) at h,
-  apply_fun (λ p, p * X) at h,
+  transitivity aeval e (pderiv tt ((x + y) ^ n)) * X,
 
   -- On the left hand side we'll use the binomial theorem, then simplify.
 
@@ -349,34 +346,28 @@ begin
   let x : mv_polynomial bool R := mv_polynomial.X tt,
   let y : mv_polynomial bool R := mv_polynomial.X ff,
 
-  have pderiv_tt_x : pderiv tt x = 1, { simp [x], },
-  have pderiv_tt_y : pderiv tt y = 0, { simp [pderiv_X, y], },
+  have pderiv_tt_x : pderiv tt x = 1, { rw [pderiv_X], refl, },
+  have pderiv_tt_y : pderiv tt y = 0, { rw [pderiv_X], refl, },
 
   let e : bool → R[X] := λ i, cond i X (1-X),
 
   -- Start with `(x+y)^n = (x+y)^n`,
   -- take the second `x`-derivative, evaluate at `x=X, y=1-X`, and multiply by `X`:
-  have h : (x+y)^n = (x+y)^n := rfl,
-  apply_fun (pderiv tt) at h,
-  apply_fun (pderiv tt) at h,
-  apply_fun (aeval e) at h,
-  apply_fun (λ p, p * X^2) at h,
+  transitivity aeval e (pderiv tt (pderiv tt ((x + y) ^ n))) * X ^ 2,
 
   -- On the left hand side we'll use the binomial theorem, then simplify.
-
-  -- We first prepare a tedious rewrite:
-  have w : ∀ k : ℕ,
-    ↑k * (↑(k-1) * polynomial.X ^ (k - 1 - 1)) *
-      (1 - polynomial.X) ^ (n - k) * ↑(n.choose k) * polynomial.X^2 =
-      (k * (k-1)) • bernstein_polynomial R n k,
-  { rintro (_|k),
-    { simp, },
-    { rcases k with (_|k),
+  { -- We first prepare a tedious rewrite:
+    have w : ∀ k : ℕ,
+      (k * (k-1)) • bernstein_polynomial R n k =
+        ↑(n.choose k) * ((1 - polynomial.X) ^ (n - k) *
+          (↑k * (↑(k-1) * polynomial.X ^ (k - 1 - 1)))) * polynomial.X^2,
+    { rintro (_|_|k),
+      { simp, },
       { simp, },
       { rw [bernstein_polynomial],
         simp only [←nat_cast_mul, nat.succ_eq_add_one, nat.add_succ_sub_one, add_zero, pow_succ],
         push_cast,
-        ring, }, }, },
+        ring, }, },
 
   conv_lhs at h
   { rw [add_pow, (pderiv tt).map_sum, (pderiv tt).map_sum, (mv_polynomial.aeval e).map_sum,

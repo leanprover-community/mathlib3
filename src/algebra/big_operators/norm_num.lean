@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 import algebra.big_operators.basic
-import data.finset.interval
 import data.int.interval
-import data.nat.interval
 import tactic.norm_num
 
 /-! ### `norm_num` plugin for big operators

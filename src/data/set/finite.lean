@@ -485,6 +485,9 @@ alias finite_univ_iff ↔ _root_.finite.of_finite_univ _
 theorem finite.union {s t : set α} (hs : s.finite) (ht : t.finite) : (s ∪ t).finite :=
 by { casesI hs, casesI ht, apply to_finite }
 
+theorem finite.finite_of_compl {s : set α} (hs : s.finite) (hsc : sᶜ.finite) : finite α :=
+by { rw [← finite_univ_iff, ← union_compl_self s], exact hs.union hsc }
+
 lemma finite.sup {s t : set α} : s.finite → t.finite → (s ⊔ t).finite := finite.union
 
 theorem finite.sep {s : set α} (hs : s.finite) (p : α → Prop) : {a ∈ s | p a}.finite :=

@@ -141,7 +141,7 @@ lemma finrank_linear_map' (F : Type u) (K : Type v) (V : Type w)
   [field F] [field K] [algebra F K] [finite_dimensional F K]
   [add_comm_group V] [module F V] [finite_dimensional F V] :
   finrank K (V →ₗ[F] K) = finrank F V :=
-(nat.mul_right_inj $ show 0 < finrank F K, from finrank_pos).1 $
+mul_right_injective₀ finrank_pos.ne' $
 calc  finrank F K * finrank K (V →ₗ[F] K)
     = finrank F (V →ₗ[F] K) : finrank_mul_finrank _ _ _
 ... = finrank F V * finrank F K : finrank_linear_map F V K

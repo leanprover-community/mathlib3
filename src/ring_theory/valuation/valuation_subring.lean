@@ -735,7 +735,7 @@ def sub_mul_action (A : valuation_subring L) :
   smul_mem' := λ g l h, set.mem_of_mem_of_subset (set.smul_mem_smul_set h) g.prop.le }
 
 /-- The multiplicative action of the decomposition subgroup on `A`. -/
-instance mul_action (A : valuation_subring L) :
+instance decomposition_subgroup_mul_semiring_action (A : valuation_subring L) :
   mul_semiring_action (A.decomposition_subgroup K) A :=
 { smul_add :=  λ g k l, subtype.ext $ smul_add g k l,
   smul_zero := λ g, subtype.ext $ smul_zero g,

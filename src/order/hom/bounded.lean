@@ -405,8 +405,12 @@ definitional equalities. -/
 protected def copy (f : bounded_order_hom α β) (f' : α → β) (h : f' = f) : bounded_order_hom α β :=
 { .. f.to_order_hom.copy f' h, .. f.to_top_hom.copy f' h, .. f.to_bot_hom.copy f' h }
 
-@[simp] lemma coe_copy (f : bounded_order_hom α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
-lemma copy_eq (f : bounded_order_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
+@[simp] lemma coe_copy (f : bounded_order_hom α β) (f' : α → β) (h : f' = f) :
+  ⇑(f.copy f' h) = f' :=
+rfl
+
+lemma copy_eq (f : bounded_order_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f :=
+fun_like.ext' h
 
 variables (α)
 

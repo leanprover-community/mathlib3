@@ -5,6 +5,7 @@ Authors: Riccardo Brasca
 -/
 
 import category_theory.abelian.pseudoelements
+import algebra.category.Module.biproducts
 
 /-!
 # Pseudoelements and pullbacks
@@ -95,7 +96,7 @@ begin
   simp only [ha₁, this, biprod.lift_snd, of_hom_apply, id_coe, id.def, preadditive.add_comp,
     category.assoc, biprod.inl_snd, limits.comp_zero, biprod.inr_snd, category.comp_id, zero_add,
     mul_apply, self_eq_add_left] at ha₂,
-  exact @one_ne_zero ℚ _ _ ha₂,
+  exact one_ne_zero' ℚ ha₂,
 end
 
 local attribute [instance] pseudoelement.setoid

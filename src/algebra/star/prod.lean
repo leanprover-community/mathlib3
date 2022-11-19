@@ -5,7 +5,6 @@ Authors: Eric Wieser
 -/
 import algebra.star.basic
 import algebra.ring.prod
-import algebra.module.prod
 
 /-!
 # `star` on product types

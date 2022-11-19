@@ -496,7 +496,7 @@ section group_law
 /-!
 ### The group law on `E⟮K⟯`
 
-This follows from the construction of a monomorphism from `E⟮K⟯` to the class group of $R_E$.
+This follows by constructing an injective `add_monoid_hom` from `E⟮K⟯` to the class group of $R_E$.
 -/
 
 instance : is_domain $ E.weierstrass_ring K := (ideal.quotient.is_domain_iff_prime _).mpr
@@ -542,6 +542,29 @@ noncomputable def some_ideal_units {x y : K} (h : E.weierstrass_equation x y) :
 variables {E}
 
 namespace point
+
+@[simp] lemma add_eq_zero (P Q : E⟮K⟯) : P + Q = 0 ↔ P = -Q :=
+begin
+  rcases ⟨P, Q⟩ with ⟨_ | ⟨x₁, y₁, h₁⟩, _ | ⟨x₂, y₂, h₂⟩⟩,
+  { refl },
+  { rw [zero_def, zero_add, eq_neg_iff_eq_neg, neg_zero] },
+  { refl },
+  { simp only [neg_some],
+    split,
+    { intro h,
+      by_cases hx : x₁ = x₂,
+      { by_cases hy : y₁ = neg_y h₂,
+        { exact ⟨hx, hy⟩ },
+        { rw [some_add_some_of_y_ne h₁ h₂ hx hy] at h,
+          contradiction } },
+      { rw [some_add_some_of_x_ne h₁ h₂ hx] at h,
+        contradiction } },
+    { exact λ ⟨hx, hy⟩, some_add_some_of_y_eq h₁ h₂ hx hy } }
+end
+
+@[simp] lemma add_neg_eq_zero (P Q : E⟮K⟯) : P + -Q = 0 ↔ P = Q := by rw [add_eq_zero, neg_neg]
+
+@[simp] lemma add_left_neg (P : E⟮K⟯) : -P + P = 0 := by rw [add_eq_zero]
 
 @[simp] noncomputable def to_class_fun : E⟮K⟯ → additive (class_group $ E.weierstrass_ring K)
 | 0            := 0
@@ -607,32 +630,8 @@ end
   { sorry }
 end, congr_arg to_class⟩
 
-@[simp] lemma add_eq_zero (P Q : E⟮K⟯) : P + Q = 0 ↔ P = -Q :=
-begin
-  rcases ⟨P, Q⟩ with ⟨_ | ⟨x₁, y₁, h₁⟩, _ | ⟨x₂, y₂, h₂⟩⟩,
-  { refl },
-  { rw [zero_def, zero_add, eq_neg_iff_eq_neg, neg_zero] },
-  { refl },
-  { simp only [neg_some],
-    split,
-    { intro h,
-      by_cases hx : x₁ = x₂,
-      { by_cases hy : y₁ = neg_y h₂,
-        { exact ⟨hx, hy⟩ },
-        { rw [some_add_some_of_y_ne h₁ h₂ hx hy] at h,
-          contradiction } },
-      { rw [some_add_some_of_x_ne h₁ h₂ hx] at h,
-        contradiction } },
-    { exact λ ⟨hx, hy⟩, some_add_some_of_y_eq h₁ h₂ hx hy } }
-end
-
-@[simp] lemma add_neg_eq_zero (P Q : E⟮K⟯) : P + -Q = 0 ↔ P = Q := by rw [add_eq_zero, neg_neg]
-
 lemma to_class_injective : function.injective $ @to_class _ _ E K _ _ :=
 λ _ _ h, by rw [← add_neg_eq_zero, ← to_class_eq_zero, map_add, h, to_class.map_neg, add_right_neg]
-
-@[simp] lemma add_left_neg (P : E⟮K⟯) : -P + P = 0 :=
-by { cases P, { refl }, { simp only [neg_some, some_add_some_of_y_eq] } }
 
 lemma add_comm (P Q : E⟮K⟯) : P + Q = Q + P := to_class_injective $ by simp only [map_add, add_comm]
 

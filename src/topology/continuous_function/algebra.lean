@@ -48,7 +48,7 @@ instance has_mul [has_mul β] [has_continuous_mul β] : has_mul C(α, β) :=
 ⟨λ f g, ⟨f * g, continuous_mul.comp (f.continuous.prod_mk g.continuous : _)⟩⟩
 
 @[simp, norm_cast, to_additive]
-lemma coe_mul [has_mul β] [has_continuous_mul β] (f g : C(α, β)) : ⇑(f * g) = f * g := rfl
+protected lemma coe_mul [has_mul β] [has_continuous_mul β] (f g : C(α, β)) : ⇑(f * g) = f * g := rfl
 
 @[simp, to_additive] lemma mul_comp [has_mul γ] [has_continuous_mul γ]
   (f₁ f₂ : C(β, γ)) (g : C(α, β)) :
@@ -59,7 +59,7 @@ rfl
 instance [has_one β] : has_one C(α, β) := ⟨const α 1⟩
 
 @[simp, norm_cast, to_additive]
-lemma coe_one [has_one β]  : ⇑(1 : C(α, β)) = 1 := rfl
+protected lemma coe_one [has_one β] : ⇑(1 : C(α, β)) = 1 := rfl
 
 @[simp, to_additive] lemma one_comp [has_one γ] (g : C(α, β)) : (1 : C(β, γ)).comp g = 1 := rfl
 
@@ -67,13 +67,13 @@ instance [has_nat_cast β] : has_nat_cast C(α, β) :=
 ⟨λ n, continuous_map.const _ n⟩
 
 @[simp, norm_cast]
-lemma coe_nat_cast [has_nat_cast β] (n : ℕ) : ((n : C(α, β)) : α → β) = n := rfl
+protected lemma coe_nat_cast [has_nat_cast β] (n : ℕ) : ((n : C(α, β)) : α → β) = n := rfl
 
 instance [has_int_cast β] : has_int_cast C(α, β) :=
 ⟨λ n, continuous_map.const _ n⟩
 
 @[simp, norm_cast]
-lemma coe_int_cast [has_int_cast β] (n : ℤ) : ((n : C(α, β)) : α → β) = n := rfl
+protected lemma coe_int_cast [has_int_cast β] (n : ℤ) : ((n : C(α, β)) : α → β) = n := rfl
 
 instance has_nsmul [add_monoid β] [has_continuous_add β] : has_smul ℕ C(α, β) :=
 ⟨λ n f, ⟨n • f, f.continuous.nsmul n⟩⟩
@@ -83,7 +83,7 @@ instance has_pow [monoid β] [has_continuous_mul β] : has_pow C(α, β) ℕ :=
 ⟨λ f n, ⟨f ^ n, f.continuous.pow n⟩⟩
 
 @[norm_cast, to_additive]
-lemma coe_pow [monoid β] [has_continuous_mul β] (f : C(α, β)) (n : ℕ) :
+protected lemma coe_pow [monoid β] [has_continuous_mul β] (f : C(α, β)) (n : ℕ) :
   ⇑(f ^ n) = f ^ n := rfl
 
 -- don't make `coe_nsmul` simp as the linter complains it's redundant WRT `coe_smul`
@@ -102,7 +102,7 @@ instance [group β] [topological_group β] : has_inv C(α, β) :=
 { inv := λ f, ⟨f⁻¹, f.continuous.inv⟩ }
 
 @[simp, norm_cast, to_additive]
-lemma coe_inv [group β] [topological_group β] (f : C(α, β)) :
+protected lemma coe_inv [group β] [topological_group β] (f : C(α, β)) :
   ⇑(f⁻¹) = f⁻¹ :=
 rfl
 
@@ -115,7 +115,7 @@ instance [has_div β] [has_continuous_div β] : has_div C(α, β) :=
 { div := λ f g, ⟨f / g, f.continuous.div' g.continuous⟩ }
 
 @[simp, norm_cast, to_additive]
-lemma coe_div [has_div β] [has_continuous_div β] (f g : C(α, β)) : ⇑(f / g) = f / g :=
+protected lemma coe_div [has_div β] [has_continuous_div β] (f g : C(α, β)) : ⇑(f / g) = f / g :=
 rfl
 
 @[simp, to_additive] lemma div_comp [has_div γ] [has_continuous_div γ]
@@ -132,7 +132,7 @@ instance has_zpow [group β] [topological_group β] :
 { pow := λ f z, ⟨f ^ z, f.continuous.zpow z⟩ }
 
 @[norm_cast, to_additive]
-lemma coe_zpow [group β] [topological_group β] (f : C(α, β)) (z : ℤ) :
+protected lemma coe_zpow [group β] [topological_group β] (f : C(α, β)) (z : ℤ) :
   ⇑(f ^ z) = f ^ z :=
 rfl
 
@@ -182,43 +182,45 @@ namespace continuous_map
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [semigroup β] [has_continuous_mul β] : semigroup C(α, β) :=
-coe_injective.semigroup _ coe_mul
+coe_injective.semigroup _ continuous_map.coe_mul
 
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_semigroup β] [has_continuous_mul β] : comm_semigroup C(α, β) :=
-coe_injective.comm_semigroup _ coe_mul
+coe_injective.comm_semigroup _ continuous_map.coe_mul
 
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [mul_one_class β] [has_continuous_mul β] : mul_one_class C(α, β) :=
-coe_injective.mul_one_class _ coe_one coe_mul
+coe_injective.mul_one_class _ continuous_map.coe_one continuous_map.coe_mul
 
 instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [mul_zero_class β] [has_continuous_mul β] : mul_zero_class C(α, β) :=
-coe_injective.mul_zero_class _ coe_zero coe_mul
+coe_injective.mul_zero_class _ continuous_map.coe_zero continuous_map.coe_mul
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [semigroup_with_zero β] [has_continuous_mul β] : semigroup_with_zero C(α, β) :=
-coe_injective.semigroup_with_zero _ coe_zero coe_mul
+coe_injective.semigroup_with_zero _ continuous_map.coe_zero continuous_map.coe_mul
 
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid β] [has_continuous_mul β] : monoid C(α, β) :=
-coe_injective.monoid _ coe_one coe_mul coe_pow
+coe_injective.monoid _ continuous_map.coe_one continuous_map.coe_mul continuous_map.coe_pow
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid_with_zero β] [has_continuous_mul β] : monoid_with_zero C(α, β) :=
-coe_injective.monoid_with_zero _ coe_zero coe_one coe_mul coe_pow
+coe_injective.monoid_with_zero _ continuous_map.coe_zero continuous_map.coe_one
+  continuous_map.coe_mul continuous_map.coe_pow
 
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_monoid β] [has_continuous_mul β] : comm_monoid C(α, β) :=
-coe_injective.comm_monoid _ coe_one coe_mul coe_pow
+coe_injective.comm_monoid _ continuous_map.coe_one continuous_map.coe_mul continuous_map.coe_pow
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [comm_monoid_with_zero β] [has_continuous_mul β] : comm_monoid_with_zero C(α, β) :=
-coe_injective.comm_monoid_with_zero _ coe_zero coe_one coe_mul coe_pow
+coe_injective.comm_monoid_with_zero _ continuous_map.coe_zero continuous_map.coe_one
+  continuous_map.coe_mul continuous_map.coe_pow
 
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α]
@@ -238,7 +240,7 @@ end⟩
   simps]
 def coe_fn_monoid_hom {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid β] [has_continuous_mul β] : C(α, β) →* (α → β) :=
-{ to_fun := coe_fn, map_one' := coe_one, map_mul' := coe_mul }
+{ to_fun := coe_fn, map_one' := continuous_map.coe_one, map_mul' := continuous_map.coe_mul }
 
 /-- Composition on the left by a (continuous) homomorphism of topological monoids, as a
 `monoid_hom`. Similar to `monoid_hom.comp_left`. -/
@@ -277,12 +279,14 @@ by simp
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [group β] [topological_group β] : group C(α, β) :=
-coe_injective.group _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
+coe_injective.group _ continuous_map.coe_one continuous_map.coe_mul continuous_map.coe_inv
+  continuous_map.coe_div continuous_map.coe_pow continuous_map.coe_zpow
 
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_group β] [topological_group β] : comm_group C(α, β) :=
-coe_injective.comm_group _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
+coe_injective.comm_group _ continuous_map.coe_one continuous_map.coe_mul continuous_map.coe_inv
+  continuous_map.coe_div continuous_map.coe_pow continuous_map.coe_zpow
 
 @[to_additive] instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_group β] [topological_group β] : topological_group C(α, β) :=
@@ -338,62 +342,81 @@ namespace continuous_map
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [non_unital_non_assoc_semiring β] [topological_semiring β] :
   non_unital_non_assoc_semiring C(α, β) :=
-coe_injective.non_unital_non_assoc_semiring _ coe_zero coe_add coe_mul coe_nsmul
+coe_injective.non_unital_non_assoc_semiring _ continuous_map.coe_zero continuous_map.coe_add
+  continuous_map.coe_mul continuous_map.coe_nsmul
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [non_unital_semiring β] [topological_semiring β] :
   non_unital_semiring C(α, β) :=
-coe_injective.non_unital_semiring _ coe_zero coe_add coe_mul coe_nsmul
+coe_injective.non_unital_semiring _ continuous_map.coe_zero continuous_map.coe_add
+  continuous_map.coe_mul continuous_map.coe_nsmul
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [add_monoid_with_one β] [has_continuous_add β] :
   add_monoid_with_one C(α, β) :=
-coe_injective.add_monoid_with_one _ coe_zero coe_one coe_add coe_nsmul coe_nat_cast
+coe_injective.add_monoid_with_one _ continuous_map.coe_zero continuous_map.coe_one
+  continuous_map.coe_add continuous_map.coe_nsmul continuous_map.coe_nat_cast
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [non_assoc_semiring β] [topological_semiring β] :
   non_assoc_semiring C(α, β) :=
-coe_injective.non_assoc_semiring _ coe_zero coe_one coe_add coe_mul coe_nsmul coe_nat_cast
+coe_injective.non_assoc_semiring _ continuous_map.coe_zero continuous_map.coe_one
+  continuous_map.coe_add continuous_map.coe_mul continuous_map.coe_nsmul continuous_map.coe_nat_cast
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [semiring β] [topological_semiring β] : semiring C(α, β) :=
-coe_injective.semiring _ coe_zero coe_one coe_add coe_mul coe_nsmul coe_pow coe_nat_cast
+coe_injective.semiring _ continuous_map.coe_zero continuous_map.coe_one continuous_map.coe_add
+  continuous_map.coe_mul continuous_map.coe_nsmul continuous_map.coe_pow continuous_map.coe_nat_cast
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [non_unital_non_assoc_ring β] [topological_ring β] : non_unital_non_assoc_ring C(α, β) :=
-coe_injective.non_unital_non_assoc_ring _ coe_zero coe_add coe_mul coe_neg coe_sub
-  coe_nsmul coe_zsmul
+coe_injective.non_unital_non_assoc_ring _ continuous_map.coe_zero continuous_map.coe_add
+  continuous_map.coe_mul continuous_map.coe_neg continuous_map.coe_sub continuous_map.coe_nsmul
+  continuous_map.coe_zsmul
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [non_unital_ring β] [topological_ring β] : non_unital_ring C(α, β) :=
-coe_injective.non_unital_ring _ coe_zero coe_add coe_mul coe_neg coe_sub coe_nsmul coe_zsmul
+coe_injective.non_unital_ring _ continuous_map.coe_zero continuous_map.coe_add
+  continuous_map.coe_mul continuous_map.coe_neg continuous_map.coe_sub continuous_map.coe_nsmul
+  continuous_map.coe_zsmul
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [non_assoc_ring β] [topological_ring β] : non_assoc_ring C(α, β) :=
-coe_injective.non_assoc_ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub coe_nsmul coe_zsmul
-  coe_nat_cast coe_int_cast
+coe_injective.non_assoc_ring _ continuous_map.coe_zero continuous_map.coe_one
+  continuous_map.coe_add continuous_map.coe_mul continuous_map.coe_neg continuous_map.coe_sub
+    continuous_map.coe_nsmul continuous_map.coe_zsmul continuous_map.coe_nat_cast
+    continuous_map.coe_int_cast
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [ring β] [topological_ring β] : ring C(α, β) :=
-coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub coe_nsmul coe_zsmul coe_pow
-  coe_nat_cast coe_int_cast
+coe_injective.ring _ continuous_map.coe_zero continuous_map.coe_one continuous_map.coe_add
+  continuous_map.coe_mul continuous_map.coe_neg continuous_map.coe_sub continuous_map.coe_nsmul
+  continuous_map.coe_zsmul continuous_map.coe_pow continuous_map.coe_nat_cast
+  continuous_map.coe_int_cast
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [non_unital_comm_semiring β] [topological_semiring β] : non_unital_comm_semiring C(α, β) :=
-coe_injective.non_unital_comm_semiring _ coe_zero coe_add coe_mul coe_nsmul
+continuous_map.coe_injective.non_unital_comm_semiring _ continuous_map.coe_zero
+continuous_map.coe_add continuous_map.coe_mul continuous_map.coe_nsmul
 
 instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_semiring β] [topological_semiring β] : comm_semiring C(α, β) :=
-coe_injective.comm_semiring _ coe_zero coe_one coe_add coe_mul coe_nsmul coe_pow coe_nat_cast
+coe_injective.comm_semiring _ continuous_map.coe_zero continuous_map.coe_one
+  continuous_map.coe_add continuous_map.coe_mul continuous_map.coe_nsmul continuous_map.coe_pow
+  continuous_map.coe_nat_cast
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [non_unital_comm_ring β] [topological_ring β] : non_unital_comm_ring C(α, β) :=
-coe_injective.non_unital_comm_ring _ coe_zero coe_add coe_mul coe_neg coe_sub coe_nsmul coe_zsmul
+coe_injective.non_unital_comm_ring _ continuous_map.coe_zero continuous_map.coe_add
+  continuous_map.coe_mul continuous_map.coe_neg continuous_map.coe_sub continuous_map.coe_nsmul
+  continuous_map.coe_zsmul
 
 instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_ring β] [topological_ring β] : comm_ring C(α, β) :=
-coe_injective.comm_ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub coe_nsmul coe_zsmul
-  coe_pow coe_nat_cast coe_int_cast
+coe_injective.comm_ring _ continuous_map.coe_zero continuous_map.coe_one continuous_map.coe_add
+  continuous_map.coe_mul continuous_map.coe_neg continuous_map.coe_sub continuous_map.coe_nsmul
+  continuous_map.coe_zsmul continuous_map.coe_pow continuous_map.coe_nat_cast
+  continuous_map.coe_int_cast
 
 /-- Composition on the left by a (continuous) homomorphism of topological semirings, as a
 `ring_hom`.  Similar to `ring_hom.comp_left`. -/
@@ -467,7 +490,7 @@ instance [locally_compact_space α] [topological_space R] [has_smul R M]
   exact (continuous_fst.comp continuous_fst).smul h,
 end⟩
 
-@[simp, to_additive, norm_cast]
+@[simp, norm_cast, to_additive]
 lemma coe_smul [has_smul R M] [has_continuous_const_smul R M]
   (c : R) (f : C(α, M)) : ⇑(c • f) = c • f := rfl
 
@@ -867,3 +890,24 @@ lemma comp_star_alg_hom'_comp (g : C(Y, Z)) (f : C(X, Y)) :
 star_alg_hom.ext $ λ _, continuous_map.ext $ λ _, rfl
 
 end continuous_map
+
+namespace homeomorph
+
+variables {X Y : Type*} [topological_space X] [topological_space Y]
+variables (𝕜 : Type*) [comm_semiring 𝕜]
+variables (A : Type*) [topological_space A] [semiring A] [topological_semiring A] [star_ring A]
+variables [has_continuous_star A] [algebra 𝕜 A]
+
+/-- `continuous_map.comp_star_alg_hom'` as a `star_alg_equiv` when the continuous map `f` is
+actually a homeomorphism. -/
+@[simps] def comp_star_alg_equiv' (f : X ≃ₜ Y) : C(Y, A) ≃⋆ₐ[𝕜] C(X, A) :=
+{ to_fun := (f : C(X, Y)).comp_star_alg_hom' 𝕜 A,
+  inv_fun := (f.symm : C(Y, X)).comp_star_alg_hom' 𝕜 A,
+  left_inv := λ g, by simp only [continuous_map.comp_star_alg_hom'_apply, continuous_map.comp_assoc,
+    to_continuous_map_comp_symm, continuous_map.comp_id],
+  right_inv := λ g, by simp only [continuous_map.comp_star_alg_hom'_apply,
+    continuous_map.comp_assoc, symm_comp_to_continuous_map, continuous_map.comp_id],
+  map_smul' := λ k a, map_smul (f.to_continuous_map.comp_star_alg_hom' 𝕜 A) k a,
+  .. (f.to_continuous_map.comp_star_alg_hom' 𝕜 A) }
+
+end homeomorph

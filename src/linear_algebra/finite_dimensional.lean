@@ -1105,7 +1105,7 @@ lemma finrank_add_eq_of_is_compl
   [finite_dimensional K V] {U W : submodule K V} (h : is_compl U W) :
   finrank K U + finrank K W = finrank K V :=
 begin
-  rw [← dim_sup_add_dim_inf_eq, top_le_iff.1 h.2, le_bot_iff.1 h.1, finrank_bot, add_zero],
+  rw [← dim_sup_add_dim_inf_eq, h.codisjoint.eq_top, h.disjoint.eq_bot, finrank_bot, add_zero],
   exact finrank_top
 end
 

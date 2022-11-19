@@ -460,7 +460,7 @@ section subalgebra_dim
 open module
 variables {F E : Type*} [field F] [ring E] [algebra F E]
 
-lemma subalgebra.dim_bot [nontrivial E] : module.rank F (⊥ : subalgebra F E) = 1 :=
+@[simp] lemma subalgebra.dim_bot [nontrivial E] : module.rank F (⊥ : subalgebra F E) = 1 :=
 ((subalgebra.to_submodule_equiv (⊥ : subalgebra F E)).symm.trans $
   linear_equiv.of_eq _ _ algebra.to_submodule_bot).dim_eq.trans $
   by { rw dim_span_set, exacts [mk_singleton _, linear_independent_singleton one_ne_zero] }

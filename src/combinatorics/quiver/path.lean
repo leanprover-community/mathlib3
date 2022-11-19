@@ -62,7 +62,11 @@ by { cases p, { refl }, { cases nat.succ_ne_zero _ hzero } }
 
 lemma nil_of_length_zero (p : path a b) (hzero : p.length = 0) :
   (eq_of_length_zero p hzero).rec_on p = path.nil :=
-by { induction p, { simp, }, { simp only [length_cons, nat.succ_ne_zero] at hzero, exact hzero.elim, } }
+begin
+  induction p,
+  { simp only, },
+  { simp only [length_cons, nat.succ_ne_zero] at hzero, exact hzero.elim, },
+end
 
 /-- Composition of paths. -/
 def comp {a b : V} : Π {c}, path a b → path b c → path a c
@@ -179,7 +183,6 @@ def map_path {a : V} :
 lemma map_path_to_path {a b : V} (f : a ⟶ b) : F.map_path f.to_path = (F.map f).to_path := rfl
 
 end prefunctor
-
 
 section cast
 /-!

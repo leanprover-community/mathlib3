@@ -910,7 +910,7 @@ lemma continuous_at_of_dominated {F : X → α → E} {x₀ : X} {bound : α →
 continuous_at_set_to_fun_of_dominated (dominated_fin_meas_additive_weighted_smul μ) hF_meas h_bound
   bound_integrable h_cont
 
-lemma continuous_on_of_dominated {F : X → α → E} {x₀ : X} {bound : α → ℝ} {s : set X}
+lemma continuous_on_of_dominated {F : X → α → E} {bound : α → ℝ} {s : set X}
   (hF_meas : ∀ x ∈ s, ae_strongly_measurable (F x) μ)
   (h_bound : ∀ x ∈ s, ∀ᵐ a ∂μ, ‖F x a‖ ≤ bound a)
   (bound_integrable : integrable bound μ)

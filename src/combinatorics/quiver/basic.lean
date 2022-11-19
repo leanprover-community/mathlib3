@@ -133,15 +133,13 @@ section push
 ### Pushing the quiver structure on `V` along a map `V → W`
 -/
 
+variables {V : Type*} [quiver V] {W : Type*} (σ : V → W)
+
 /-- The `quiver` instance obtained by pushing arrows of `V` along the map `σ : V → W` -/
 @[nolint unused_arguments]
-def push {V : Type u} [quiver V] {W : Type u₂} (σ : V → W) := W
+def push (σ : V → W) := W
 
-instance {V : Type u} [quiver V] {W : Type u₂} (σ : V → W) [h : nonempty W] : nonempty (push σ) := h
-
-namespace push
-
-variables {V : Type*} [quiver V] {W : Type*} (σ : V → W)
+instance [h : nonempty W] : nonempty (push σ) := h
 
 /-- The quiver structure obtained by pushing arrows of `V` along the map `σ : V → W` -/
 @[nolint has_nonempty_instance]
@@ -149,7 +147,9 @@ inductive push_quiver {V : Type u} [quiver.{v} V] {W : Type u₂} (σ : V → W)
   W → W → Type (max u u₂ v)
 | arrow {X Y : V} (f : X ⟶ Y) : push_quiver (σ X) (σ Y)
 
-instance : quiver (push σ) := ⟨λ X Y, push_quiver σ X Y⟩
+instance : quiver (push σ) := ⟨push_quiver σ⟩
+
+namespace push
 
 /-- The prefunctor induced by pushing arrows via `σ` -/
 def of : V ⥤q push σ :=
@@ -196,3 +196,4 @@ end push
 end push
 
 end quiver
+

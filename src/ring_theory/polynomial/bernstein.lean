@@ -296,6 +296,7 @@ open mv_polynomial
 lemma sum_smul (n : ℕ) :
   ∑ ν in finset.range (n + 1), ν • bernstein_polynomial R n ν = n • X :=
 begin
+
   -- We calculate the `x`-derivative of `(x+y)^n`, evaluated at `y=(1-x)`,
   -- either directly or by using the binomial theorem.
 
@@ -314,26 +315,30 @@ begin
 
   -- On the left hand side we'll use the binomial theorem, then simplify.
 
-  -- We first prepare a tedious rewrite:
-  have w : ∀ k : ℕ,
-    ↑k * polynomial.X ^ (k - 1) * (1 - polynomial.X) ^ (n - k) * ↑(n.choose k) * polynomial.X =
-      k • bernstein_polynomial R n k,
-  { rintro (_|k),
-    { simp, },
-    { rw [bernstein_polynomial],
-      simp only [←nat_cast_mul, nat.succ_eq_add_one, nat.add_succ_sub_one, add_zero, pow_succ],
-      push_cast,
-      ring, }, },
+  { -- We first prepare a tedious rewrite:
+    have w : ∀ k : ℕ,
+      k • bernstein_polynomial R n k =
+        ↑k * polynomial.X ^ (k - 1) * (1 - polynomial.X) ^ (n - k) * ↑(n.choose k) * polynomial.X,
+    { rintro (_|k),
+      { simp, },
+      { dsimp [bernstein_polynomial],
+        simp only [←nat_cast_mul, nat.succ_eq_add_one, nat.add_succ_sub_one, add_zero, pow_succ],
+        push_cast,
+        ring, }, },
 
-  conv_lhs at h
-  { rw [add_pow, (pderiv tt).map_sum, (mv_polynomial.aeval e).map_sum, finset.sum_mul] },
-  conv_rhs at h
-  { rw [(pderiv tt).leibniz_pow, (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y] },
+    rw [add_pow, (pderiv tt).map_sum, (mv_polynomial.aeval e).map_sum, finset.sum_mul],
+    -- Step inside the sum:
+    refine finset.sum_congr rfl (λ k hk, (w k).trans _),
+    simp only [pderiv_tt_x, pderiv_tt_y, algebra.id.smul_eq_mul, nsmul_eq_mul,
+      e, bool.cond_tt, bool.cond_ff, add_zero, mul_one, mul_zero, smul_zero,
+      mv_polynomial.aeval_X, mv_polynomial.pderiv_mul,
+      derivation.leibniz_pow, derivation.map_coe_nat,
+      map_nat_cast, map_pow, map_mul], },
 
-  simpa only [pderiv_mul, pderiv_tt_x, pderiv_tt_y, e, w, nsmul_eq_mul,
-    derivation.leibniz_pow, algebra.id.smul_eq_mul, mul_one, mul_zero, add_zero,
-    derivation.map_coe_nat, map_mul, map_nat_cast, map_pow, mv_polynomial.aeval_X,
-    bool.cond_tt, bool.cond_ff, map_add, add_sub_cancel'_right, one_pow] using h,
+  { rw [(pderiv tt).leibniz_pow, (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
+    simp only [algebra.id.smul_eq_mul, nsmul_eq_mul,
+      map_nat_cast, map_pow, map_add, map_mul, e, bool.cond_tt, bool.cond_ff,
+      mv_polynomial.aeval_X, add_sub_cancel'_right, one_pow, add_zero, mul_one] },
 end
 
 lemma sum_mul_smul (n : ℕ) :
@@ -364,22 +369,26 @@ begin
     { rintro (_|_|k),
       { simp, },
       { simp, },
-      { rw [bernstein_polynomial],
+      { dsimp [bernstein_polynomial],
         simp only [←nat_cast_mul, nat.succ_eq_add_one, nat.add_succ_sub_one, add_zero, pow_succ],
         push_cast,
         ring, }, },
 
-  conv_lhs at h
-  { rw [add_pow, (pderiv tt).map_sum, (pderiv tt).map_sum, (mv_polynomial.aeval e).map_sum,
-      finset.sum_mul] },
-  conv_rhs at h
-  { simp only [pderiv_one, pderiv_mul, (pderiv _).leibniz_pow, (pderiv _).map_coe_nat,
-      (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y] },
+    rw [add_pow, (pderiv tt).map_sum, (pderiv tt).map_sum, (mv_polynomial.aeval e).map_sum,
+      finset.sum_mul],
+    -- Step inside the sum:
+    refine finset.sum_congr rfl (λ k hk, (w k).trans _),
+    simp only [pderiv_tt_x, pderiv_tt_y, algebra.id.smul_eq_mul, nsmul_eq_mul,
+      e, bool.cond_tt, bool.cond_ff, add_zero, zero_add, mul_zero, smul_zero, mul_one,
+      mv_polynomial.aeval_X, mv_polynomial.pderiv_X_self, mv_polynomial.pderiv_X_of_ne,
+      derivation.leibniz_pow, derivation.leibniz, derivation.map_coe_nat,
+      map_nat_cast, map_pow, map_mul, map_add], },
 
-  simpa only [pderiv_mul, pderiv_tt_x, pderiv_tt_y, e, w, nsmul_eq_mul, nat.cast_mul,
-    derivation.leibniz_pow, algebra.id.smul_eq_mul, mul_one, mul_zero, add_zero,
-    derivation.map_coe_nat, zero_mul, zero_add, map_mul, map_nat_cast, map_pow, map_add,
-    mv_polynomial.aeval_X, bool.cond_tt, bool.cond_ff, add_sub_cancel'_right, one_pow] using h,
+  -- On the right hand side, we'll just simplify.
+  { simp only [pderiv_one, pderiv_mul, (pderiv _).leibniz_pow, (pderiv _).map_coe_nat,
+      (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y, algebra.id.smul_eq_mul, add_zero, mul_one,
+      derivation.map_smul_of_tower, map_nsmul, map_pow, map_add, e, bool.cond_tt, bool.cond_ff,
+      mv_polynomial.aeval_X, add_sub_cancel'_right, one_pow, smul_smul, smul_one_mul] },
 end
 
 /--

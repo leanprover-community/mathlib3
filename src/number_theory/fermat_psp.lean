@@ -149,6 +149,10 @@ begin
   { exact ⟨h₂, h₁⟩ }
 end
 
+-- For lemmas that are needed to prove statements in this file, but aren't directly related to
+-- Fermat pseudoprimes
+section helper_lemmas
+
 private lemma odd_of_prime_gt_two (p : ℕ) (h : nat.prime p) (hp : 2 < p) : odd p :=
 begin
   rw [nat.odd_iff_not_even, even_iff_two_dvd],
@@ -293,7 +297,7 @@ have q₂ : (b + 1) ∣ (b ^ p + 1) := begin
   exact_mod_cast h,
 end,
 have q₃ : 1 ≤ (b^p) := nat.one_le_pow p b (show 0 < b, by linarith),
-calc ((b ^ p - 1) / (b - 1)) * ((b ^ p + 1) / (b + 1)) = ((b ^ p - 1) * (b ^ p + 1)) / ((b - 1) * (b + 1)) : nat.div_mul_div_comm q₁ q₂
+calc (b ^ p - 1) / (b - 1) * ((b ^ p + 1) / (b + 1)) = (b ^ p - 1) * (b ^ p + 1) / ((b - 1) * (b + 1)) : nat.div_mul_div_comm q₁ q₂
   ... = ((b ^ p + 1) * (b ^ p - 1)) / ((b - 1) * (b + 1)) : by rw mul_comm
   ... = ((b ^ p)^2 - 1^2) / ((b - 1) * (b + 1))           : by rw nat.sq_sub_sq
   ... = ((b ^ (p*2)) - 1^2) / ((b - 1) * (b + 1))         : by rw pow_mul
@@ -301,6 +305,8 @@ calc ((b ^ p - 1) / (b - 1)) * ((b ^ p + 1) / (b + 1)) = ((b ^ p - 1) * (b ^ p +
   ... = ((b ^ (2*p)) - 1^2) / ((b + 1) * (b - 1))         : by rw mul_comm (b + 1)
   ... = ((b ^ (2*p)) - 1^2) / (b^2 - 1^2)                 : by rw nat.sq_sub_sq
   ... = ((b ^ (2*p)) - 1) / (b^2 - 1)                     : by rw one_pow
+
+end helper_lemmas
 
 /--
 Given a prime `p` which does not divide `b*(b^2 - 1)`, we can produce a number `n` which is larger
@@ -391,14 +397,12 @@ begin
     -- If `b` is even, then `b^p` is also even, so `2 ∣ b^p + b`
     -- If `b` is odd, then `b^p` is also odd, so `2 ∣ b^p + b`
     have ha₂ : 2 ∣ b^p + b,
-    { apply @decidable.by_cases (even b),
-      { intro h,
-        replace h : 2 ∣ b := even_iff_two_dvd.mp h,
+    { by_cases h : even b,
+      { replace h : 2 ∣ b := even_iff_two_dvd.mp h,
         have : p ≠ 0 := by linarith,
         have : 2 ∣ b^p := dvd_pow h this,
         exact dvd_add this h },
-      { intro h,
-        have h : odd b := nat.odd_iff_not_even.mpr h,
+      { have h : odd b := nat.odd_iff_not_even.mpr h,
         have : prime 2 := nat.prime_iff.mp (by norm_num),
         have : odd (b^p) := odd.pow h,
         have : even ((b^p) + b) := odd.add_odd this h,

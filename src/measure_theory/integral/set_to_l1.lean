@@ -1845,6 +1845,16 @@ end
 
 variables {X : Type*} [topological_space X] [first_countable_topology X]
 
+lemma continuous_within_at_set_to_fun_of_dominated (hT : dominated_fin_meas_additive μ T C)
+  {fs : X → α → E} {x₀ : X} {bound : α → ℝ} {s : set X}
+  (hfs_meas : ∀ᶠ x in 𝓝[s] x₀, ae_strongly_measurable (fs x) μ)
+  (h_bound : ∀ᶠ x in 𝓝[s] x₀, ∀ᵐ a ∂μ, ‖fs x a‖ ≤ bound a)
+  (bound_integrable : integrable bound μ)
+  (h_cont : ∀ᵐ a ∂μ, continuous_within_at (λ x, fs x a) s x₀) :
+  continuous_within_at (λ x, set_to_fun μ T hT (fs x)) s x₀ :=
+tendsto_set_to_fun_filter_of_dominated_convergence hT bound ‹_› ‹_› ‹_› ‹_›
+
+
 lemma continuous_at_set_to_fun_of_dominated (hT : dominated_fin_meas_additive μ T C)
   {fs : X → α → E} {x₀ : X} {bound : α → ℝ}
   (hfs_meas : ∀ᶠ x in 𝓝 x₀, ae_strongly_measurable (fs x) μ)

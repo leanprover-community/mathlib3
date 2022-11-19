@@ -53,6 +53,20 @@ structure prefunctor (V : Type u₁) [quiver.{v₁} V] (W : Type u₂) [quiver.{
 
 namespace prefunctor
 
+@[ext]
+lemma ext {V : Type u} [quiver.{v₁} V] {W : Type u₂} [quiver.{v₂} W]
+  {F G : prefunctor V W}
+  (h_obj : ∀ X, F.obj X = G.obj X)
+  (h_map : ∀ (X Y : V) (f : X ⟶ Y),
+           F.map f = eq.rec_on (h_obj Y).symm (eq.rec_on (h_obj X).symm (G.map f))) : F = G :=
+begin
+  cases F with F_obj _, cases G with G_obj _,
+  obtain rfl : F_obj = G_obj, by { ext X, apply h_obj },
+  congr,
+  funext X Y f,
+  simpa using h_map X Y f,
+end
+
 /--
 The identity morphism between quivers.
 -/
@@ -71,6 +85,18 @@ def comp {U : Type*} [quiver U] {V : Type*} [quiver V] {W : Type*} [quiver W]
   (F : prefunctor U V) (G : prefunctor V W) : prefunctor U W :=
 { obj := λ X, G.obj (F.obj X),
   map := λ X Y f, G.map (F.map f), }
+
+@[simp]
+lemma comp_assoc
+  {U V W Z : Type*} [quiver U] [quiver V] [quiver W] [quiver Z]
+  (F : prefunctor U V) (G : prefunctor V W) (H : prefunctor W Z) :
+  (F.comp G).comp H = F.comp (G.comp H) := rfl
+
+infix ` ⥤q `:50 := prefunctor
+
+infix ` ⋙q `:50 := prefunctor.comp
+
+notation `𝟭q` := id
 
 end prefunctor
 
@@ -92,11 +118,15 @@ def hom.unop {V} [quiver V] {X Y : Vᵒᵖ} (f : X ⟶ Y) : unop Y ⟶ unop X :=
 attribute [irreducible] quiver.opposite
 
 /-- A type synonym for a quiver with no arrows. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def empty (V) : Type u := V
 
 instance empty_quiver (V : Type u) : quiver.{u} (empty V) := ⟨λ a b, pempty⟩
 
 @[simp] lemma empty_arrow {V : Type u} (a b : empty V) : (a ⟶ b) = pempty := rfl
+
+
+/-- A quiver is thin if it has no parallel arrows. -/
+@[reducible] def is_thin (V : Type u) [quiver V] := ∀ (a b : V), subsingleton (a ⟶ b)
 
 end quiver

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.complex.basic
-import topology.fiber_bundle
+import topology.fiber_bundle.is_homeomorphic_trivial_bundle
 
 /-!
 # Closure, interior, and frontier of preimages under `re` and `im`
@@ -16,7 +16,7 @@ topological properties of `complex.re` and `complex.im`.
 
 Each statement about `complex.re` listed below has a counterpart about `complex.im`.
 
-* `complex.is_trivial_topological_fiber_bundle_re`: `complex.re` turns `ℂ` into a trivial
+* `complex.is_homeomorphic_trivial_fiber_bundle_re`: `complex.re` turns `ℂ` into a trivial
   topological fiber bundle over `ℝ`;
 * `complex.is_open_map_re`, `complex.quotient_map_re`: in particular, `complex.re` is an open map
   and is a quotient map;
@@ -31,30 +31,24 @@ Each statement about `complex.re` listed below has a counterpart about `complex.
 complex, real part, imaginary part, closure, interior, frontier
 -/
 
-open topological_fiber_bundle set
+open set
 noncomputable theory
 
 namespace complex
 
 /-- `complex.re` turns `ℂ` into a trivial topological fiber bundle over `ℝ`. -/
-lemma is_trivial_topological_fiber_bundle_re : is_trivial_topological_fiber_bundle ℝ re :=
+lemma is_homeomorphic_trivial_fiber_bundle_re : is_homeomorphic_trivial_fiber_bundle ℝ re :=
 ⟨equiv_real_prodₗ.to_homeomorph, λ z, rfl⟩
 
 /-- `complex.im` turns `ℂ` into a trivial topological fiber bundle over `ℝ`. -/
-lemma is_trivial_topological_fiber_bundle_im : is_trivial_topological_fiber_bundle ℝ im :=
+lemma is_homeomorphic_trivial_fiber_bundle_im : is_homeomorphic_trivial_fiber_bundle ℝ im :=
 ⟨equiv_real_prodₗ.to_homeomorph.trans (homeomorph.prod_comm ℝ ℝ), λ z, rfl⟩
 
-lemma is_topological_fiber_bundle_re : is_topological_fiber_bundle ℝ re :=
-is_trivial_topological_fiber_bundle_re.is_topological_fiber_bundle
+lemma is_open_map_re : is_open_map re := is_homeomorphic_trivial_fiber_bundle_re.is_open_map_proj
+lemma is_open_map_im : is_open_map im := is_homeomorphic_trivial_fiber_bundle_im.is_open_map_proj
 
-lemma is_topological_fiber_bundle_im : is_topological_fiber_bundle ℝ im :=
-is_trivial_topological_fiber_bundle_im.is_topological_fiber_bundle
-
-lemma is_open_map_re : is_open_map re := is_topological_fiber_bundle_re.is_open_map_proj
-lemma is_open_map_im : is_open_map im := is_topological_fiber_bundle_im.is_open_map_proj
-
-lemma quotient_map_re : quotient_map re := is_topological_fiber_bundle_re.quotient_map_proj
-lemma quotient_map_im : quotient_map im := is_topological_fiber_bundle_im.quotient_map_proj
+lemma quotient_map_re : quotient_map re := is_homeomorphic_trivial_fiber_bundle_re.quotient_map_proj
+lemma quotient_map_im : quotient_map im := is_homeomorphic_trivial_fiber_bundle_im.quotient_map_proj
 
 lemma interior_preimage_re (s : set ℝ) : interior (re ⁻¹' s) = re ⁻¹' (interior s) :=
 (is_open_map_re.preimage_interior_eq_interior_preimage continuous_re _).symm

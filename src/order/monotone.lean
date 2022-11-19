@@ -324,16 +324,32 @@ end subsingleton
 
 lemma monotone_id [preorder α] : monotone (id : α → α) := λ a b, id
 
+lemma monotone_on_id [preorder α] {s : set α} : monotone_on id s := λ a ha b hb, id
+
 lemma strict_mono_id [preorder α] : strict_mono (id : α → α) := λ a b, id
 
+lemma strict_mono_on_id [preorder α] {s : set α} : strict_mono_on id s := λ a ha b hb, id
+
 theorem monotone_const [preorder α] [preorder β] {c : β} : monotone (λ (a : α), c) :=
-λ a b _, le_refl c
+λ a b _, le_rfl
+
+theorem monotone_on_const [preorder α] [preorder β] {c : β} {s : set α} :
+  monotone_on (λ (a : α), c) s :=
+λ a _ b _ _, le_rfl
 
 theorem antitone_const [preorder α] [preorder β] {c : β} : antitone (λ (a : α), c) :=
 λ a b _, le_refl c
 
+theorem antitone_on_const [preorder α] [preorder β] {c : β} {s : set α} :
+  antitone_on (λ (a : α), c) s :=
+λ a _ b _ _, le_rfl
+
 lemma strict_mono_of_le_iff_le [preorder α] [preorder β] {f : α → β}
   (h : ∀ x y, x ≤ y ↔ f x ≤ f y) : strict_mono f :=
+λ a b, (lt_iff_lt_of_le_iff_le' (h _ _) (h _ _)).1
+
+lemma strict_anti_of_le_iff_le [preorder α] [preorder β] {f : α → β}
+  (h : ∀ x y, x ≤ y ↔ f y ≤ f x) : strict_anti f :=
 λ a b, (lt_iff_lt_of_le_iff_le' (h _ _) (h _ _)).1
 
 lemma injective_of_lt_imp_ne [linear_order α] {f : α → β} (h : ∀ x y, x < y → f x ≠ f y) :
@@ -532,6 +548,15 @@ lemma strict_mono_on.le_iff_le (hf : strict_mono_on f s) {a b : α} (ha : a ∈ 
 lemma strict_anti_on.le_iff_le (hf : strict_anti_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
   f a ≤ f b ↔ b ≤ a :=
 hf.dual_right.le_iff_le hb ha
+
+lemma strict_mono_on.eq_iff_eq (hf : strict_mono_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  f a = f b ↔ a = b :=
+⟨λ h, le_antisymm ((hf.le_iff_le ha hb).mp h.le) ((hf.le_iff_le hb ha).mp h.ge),
+ by { rintro rfl, refl, }⟩
+
+lemma strict_anti_on.eq_iff_eq (hf : strict_anti_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  f a = f b ↔ b = a :=
+(hf.dual_right.eq_iff_eq ha hb).trans eq_comm
 
 lemma strict_mono_on.lt_iff_lt (hf : strict_mono_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
   f a < f b ↔ a < b :=
@@ -827,3 +852,11 @@ lemma strict_anti.prod_map (hf : strict_anti f) (hg : strict_anti g) : strict_an
   exact or.imp (and.imp hf.imp hg.antitone.imp) (and.imp hf.antitone.imp hg.imp) }
 
 end partial_order
+
+namespace function
+variables [preorder α]
+
+lemma const_mono : monotone (const β : α → β → α) := λ a b h i, h
+lemma const_strict_mono [nonempty β] : strict_mono (const β : α → β → α) := λ a b, const_lt_const.2
+
+end function

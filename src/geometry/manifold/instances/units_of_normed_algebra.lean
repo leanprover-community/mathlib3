@@ -57,7 +57,7 @@ instance : charted_space R Rˣ := open_embedding_coe.singleton_charted_space
 lemma chart_at_apply {a : Rˣ} {b : Rˣ} : chart_at R a b = b := rfl
 lemma chart_at_source {a : Rˣ} : (chart_at R a).source = set.univ := rfl
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_algebra 𝕜 R]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜] [normed_algebra 𝕜 R]
 
 instance : smooth_manifold_with_corners 𝓘(𝕜, R) Rˣ :=
 open_embedding_coe.singleton_smooth_manifold_with_corners 𝓘(𝕜, R)

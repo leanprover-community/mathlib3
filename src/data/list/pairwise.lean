@@ -6,7 +6,8 @@ Authors: Mario Carneiro
 import data.list.count
 import data.list.lex
 import data.list.sublists
-import data.set.pairwise
+import logic.pairwise
+import logic.relation
 
 /-!
 # Pairwise relations on a list
@@ -388,7 +389,7 @@ theorem pw_filter_eq_self {l : list α} : pw_filter R l = l ↔ pairwise R l :=
   rw [pw_filter_cons_of_pos (ball.imp_left (pw_filter_subset l) al), IH p],
 end⟩
 
-alias pw_filter_eq_self ↔ _ list.pairwise.pw_filter
+alias pw_filter_eq_self ↔ _ pairwise.pw_filter
 
 attribute [protected] pairwise.pw_filter
 

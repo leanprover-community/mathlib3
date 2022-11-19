@@ -5,6 +5,7 @@ Authors: Aaron Anderson, Alex J. Best, Johan Commelin, Eric Rodriguez, Ruben Van
 -/
 
 import algebra.char_p.algebra
+import data.zmod.algebra
 import field_theory.finite.basic
 import field_theory.galois
 
@@ -98,7 +99,7 @@ begin
       rwa mem_root_set aux at hx, }, },
   { dsimp only [g_poly],
     rw [← coeff_zero_eq_aeval_zero'],
-    simp only [coeff_X_pow, coeff_X_zero, sub_zero, ring_hom.map_eq_zero, ite_eq_right_iff,
+    simp only [coeff_X_pow, coeff_X_zero, sub_zero, _root_.map_eq_zero, ite_eq_right_iff,
       one_ne_zero, coeff_sub],
     intro hn,
     exact nat.not_lt_zero 1 (pow_eq_zero hn.symm ▸ hp), },
@@ -151,8 +152,9 @@ lemma is_splitting_field_of_card_eq (h : fintype.card K = p ^ n) :
 h ▸ finite_field.has_sub.sub.polynomial.is_splitting_field K (zmod p)
 
 @[priority 100]
-instance {K K' : Type*} [field K] [field K'] [fintype K'] [algebra K K'] : is_galois K K' :=
+instance {K K' : Type*} [field K] [field K'] [finite K'] [algebra K K'] : is_galois K K' :=
 begin
+  casesI nonempty_fintype K',
   obtain ⟨p, hp⟩ := char_p.exists K,
   haveI : char_p K p := hp,
   haveI : char_p K' p := char_p_of_injective_algebra_map' K K' p,

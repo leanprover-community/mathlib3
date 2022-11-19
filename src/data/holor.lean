@@ -117,7 +117,7 @@ tactic.pi_instance_derive_field
 
 /- scalar product -/
 
-instance [has_mul α] : has_scalar α (holor α ds) :=
+instance [has_mul α] : has_smul α (holor α ds) :=
   ⟨λ a x, λ t, a * x t⟩
 
 instance [semiring α] : module α (holor α ds) := pi.module _ _ _
@@ -175,7 +175,7 @@ funext (λ t, mul_zero (x (holor_index.take t)))
 
 lemma mul_scalar_mul [monoid α] (x : holor α []) (y : holor α ds) :
   x ⊗ y = x ⟨[], forall₂.nil⟩ • y :=
-by simp [mul, has_scalar.smul, holor_index.take, holor_index.drop]
+by simp [mul, has_smul.smul, holor_index.take, holor_index.drop]
 
 /- holor slices -/
 

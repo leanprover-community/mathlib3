@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Zhouhang Zhou
 import measure_theory.integral.lebesgue
 import order.filter.germ
 import topology.continuous_function.algebra
-import measure_theory.function.strongly_measurable
+import measure_theory.function.strongly_measurable.basic
 
 /-!
 
@@ -473,13 +473,13 @@ instance [inhabited β] : inhabited (α →ₘ[μ] β) := ⟨const α default⟩
 
 -- Note we set up the scalar actions before the `monoid` structures in case we want to
 -- try to override the `nsmul` or `zsmul` fields in future.
-section has_scalar
+section has_smul
 
 variables {𝕜 𝕜' : Type*}
-variables [has_scalar 𝕜 γ] [has_continuous_const_smul 𝕜 γ]
-variables [has_scalar 𝕜' γ] [has_continuous_const_smul 𝕜' γ]
+variables [has_smul 𝕜 γ] [has_continuous_const_smul 𝕜 γ]
+variables [has_smul 𝕜' γ] [has_continuous_const_smul 𝕜' γ]
 
-instance : has_scalar 𝕜 (α →ₘ[μ] γ) :=
+instance : has_smul 𝕜 (α →ₘ[μ] γ) :=
 ⟨λ c f, comp ((•) c) (continuous_id.const_smul c) f⟩
 
 @[simp] lemma smul_mk (c : 𝕜) (f : α → γ) (hf : ae_strongly_measurable f μ) :
@@ -494,13 +494,13 @@ comp_to_germ _ _ _
 instance [smul_comm_class 𝕜 𝕜' γ] : smul_comm_class 𝕜 𝕜' (α →ₘ[μ] γ) :=
 ⟨λ a b f, induction_on f $ λ f hf, by simp_rw [smul_mk, smul_comm]⟩
 
-instance [has_scalar 𝕜 𝕜'] [is_scalar_tower 𝕜 𝕜' γ] : is_scalar_tower 𝕜 𝕜' (α →ₘ[μ] γ) :=
+instance [has_smul 𝕜 𝕜'] [is_scalar_tower 𝕜 𝕜' γ] : is_scalar_tower 𝕜 𝕜' (α →ₘ[μ] γ) :=
 ⟨λ a b f, induction_on f $ λ f hf, by simp_rw [smul_mk, smul_assoc]⟩
 
-instance [has_scalar 𝕜ᵐᵒᵖ γ] [is_central_scalar 𝕜 γ] : is_central_scalar 𝕜 (α →ₘ[μ] γ) :=
+instance [has_smul 𝕜ᵐᵒᵖ γ] [is_central_scalar 𝕜 γ] : is_central_scalar 𝕜 (α →ₘ[μ] γ) :=
 ⟨λ a f, induction_on f $ λ f hf, by simp_rw [smul_mk, op_smul_eq_smul]⟩
 
-end has_scalar
+end has_smul
 
 section has_mul
 variables [has_mul γ] [has_continuous_mul γ]
@@ -750,3 +750,6 @@ def to_ae_eq_fun_linear_map : C(α, γ) →ₗ[𝕜] α →ₘ[μ] γ :=
   .. to_ae_eq_fun_add_hom μ }
 
 end continuous_map
+
+-- Guard against import creep
+assert_not_exists inner_product_space

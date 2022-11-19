@@ -3,9 +3,9 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker
 -/
-import algebra.divisibility
+import algebra.divisibility.basic
 import algebra.group_power.lemmas
-import algebra.invertible
+import algebra.parity
 import order.atoms
 
 /-!
@@ -133,21 +133,18 @@ end
 We explicitly avoid stating that `p` is non-zero, this would require a semiring. Assuming only a
 monoid allows us to reuse irreducible for associated elements.
 -/
-class irreducible [monoid α] (p : α) : Prop :=
-(not_unit' : ¬ is_unit p)
+structure irreducible [monoid α] (p : α) : Prop :=
+(not_unit : ¬ is_unit p)
 (is_unit_or_is_unit' : ∀a b, p = a * b → is_unit a ∨ is_unit b)
 
 namespace irreducible
-
-lemma not_unit [monoid α] {p : α} (hp : irreducible p) : ¬ is_unit p :=
-hp.1
 
 lemma not_dvd_one [comm_monoid α] {p : α} (hp : irreducible p) : ¬ p ∣ 1 :=
 mt (is_unit_of_dvd_one _) hp.not_unit
 
 lemma is_unit_or_is_unit [monoid α] {p : α} (hp : irreducible p) {a b : α} (h : p = a * b) :
   is_unit a ∨ is_unit b :=
-irreducible.is_unit_or_is_unit' a b h
+hp.is_unit_or_is_unit' a b h
 
 end irreducible
 
@@ -176,11 +173,11 @@ theorem of_irreducible_pow {α} [monoid α] {x : α} {n : ℕ} (hn : n ≠ 1) :
   irreducible (x ^ n) → is_unit x :=
 begin
   obtain hn|hn := hn.lt_or_lt,
-  { simp only [nat.lt_one_iff.mp hn, forall_false_left, not_irreducible_one, pow_zero] },
+  { simp only [nat.lt_one_iff.mp hn, is_empty.forall_iff, not_irreducible_one, pow_zero] },
   intro h,
   obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_lt hn,
   rw [pow_succ, add_comm] at h,
-  exact (or_iff_left_of_imp ((is_unit_pos_pow_iff (nat.succ_pos _)).mp)).mp (of_irreducible_mul h)
+  exact (or_iff_left_of_imp is_unit_pow_succ_iff.mp).mp (of_irreducible_mul h)
 end
 
 theorem irreducible_or_factor {α} [monoid α] (x : α) (h : ¬ is_unit x) :
@@ -193,29 +190,6 @@ begin
   simp [not_or_distrib] at o,
   exact H _ o.1 _ o.2 h.symm
 end
-
-protected lemma prime.irreducible [cancel_comm_monoid_with_zero α] {p : α} (hp : prime p) :
-  irreducible p :=
-⟨hp.not_unit, λ a b hab,
-  (show a * b ∣ a ∨ a * b ∣ b, from hab ▸ hp.dvd_or_dvd (hab ▸ dvd_rfl)).elim
-    (λ ⟨x, hx⟩, or.inr (is_unit_iff_dvd_one.2
-      ⟨x, mul_right_cancel₀ (show a ≠ 0, from λ h, by simp [*, prime] at *)
-        $ by conv {to_lhs, rw hx}; simp [mul_comm, mul_assoc, mul_left_comm]⟩))
-    (λ ⟨x, hx⟩, or.inl (is_unit_iff_dvd_one.2
-      ⟨x, mul_right_cancel₀ (show b ≠ 0, from λ h, by simp [*, prime] at *)
-        $ by conv {to_lhs, rw hx}; simp [mul_comm, mul_assoc, mul_left_comm]⟩))⟩
-
-lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul [cancel_comm_monoid_with_zero α]
-  {p : α} (hp : prime p) {a b : α} {k l : ℕ} :
-  p ^ k ∣ a → p ^ l ∣ b → p ^ ((k + l) + 1) ∣ a * b → p ^ (k + 1) ∣ a ∨ p ^ (l + 1) ∣ b :=
-λ ⟨x, hx⟩ ⟨y, hy⟩ ⟨z, hz⟩,
-have h : p ^ (k + l) * (x * y) = p ^ (k + l) * (p * z),
-  by simpa [mul_comm, pow_add, hx, hy, mul_assoc, mul_left_comm] using hz,
-have hp0: p ^ (k + l) ≠ 0, from pow_ne_zero _ hp.ne_zero,
-have hpd : p ∣ x * y, from ⟨z, by rwa [mul_right_inj' hp0] at h⟩,
-(hp.dvd_or_dvd hpd).elim
-  (λ ⟨d, hd⟩, or.inl ⟨d, by simp [*, pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
-  (λ ⟨d, hd⟩, or.inr ⟨d, by simp [*, pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
 
 /-- If `p` and `q` are irreducible, then `p ∣ q` implies `q ∣ p`. -/
 lemma irreducible.dvd_symm [monoid α] {p q : α}
@@ -276,9 +250,47 @@ end
 
 end
 
-lemma pow_not_prime [cancel_comm_monoid_with_zero α] {x : α} {n : ℕ} (hn : n ≠ 1) :
-  ¬ prime (x ^ n) :=
+section comm_monoid
+variables [comm_monoid α] {a : α}
+
+lemma irreducible.not_square (ha : irreducible a) : ¬ is_square a :=
+by { rintro ⟨b, rfl⟩, simp only [irreducible_mul_iff, or_self] at ha, exact ha.1.not_unit ha.2 }
+
+lemma is_square.not_irreducible (ha : is_square a) : ¬ irreducible a := λ h, h.not_square ha
+
+end comm_monoid
+
+section cancel_comm_monoid_with_zero
+variables [cancel_comm_monoid_with_zero α] {a p : α}
+
+protected lemma prime.irreducible (hp : prime p) : irreducible p :=
+⟨hp.not_unit, λ a b hab,
+  (show a * b ∣ a ∨ a * b ∣ b, from hab ▸ hp.dvd_or_dvd (hab ▸ dvd_rfl)).elim
+    (λ ⟨x, hx⟩, or.inr (is_unit_iff_dvd_one.2
+      ⟨x, mul_right_cancel₀ (show a ≠ 0, from λ h, by simp [*, prime] at *)
+        $ by conv {to_lhs, rw hx}; simp [mul_comm, mul_assoc, mul_left_comm]⟩))
+    (λ ⟨x, hx⟩, or.inl (is_unit_iff_dvd_one.2
+      ⟨x, mul_right_cancel₀ (show b ≠ 0, from λ h, by simp [*, prime] at *)
+        $ by conv {to_lhs, rw hx}; simp [mul_comm, mul_assoc, mul_left_comm]⟩))⟩
+
+lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul (hp : prime p) {a b : α} {k l : ℕ} :
+  p ^ k ∣ a → p ^ l ∣ b → p ^ ((k + l) + 1) ∣ a * b → p ^ (k + 1) ∣ a ∨ p ^ (l + 1) ∣ b :=
+λ ⟨x, hx⟩ ⟨y, hy⟩ ⟨z, hz⟩,
+have h : p ^ (k + l) * (x * y) = p ^ (k + l) * (p * z),
+  by simpa [mul_comm, pow_add, hx, hy, mul_assoc, mul_left_comm] using hz,
+have hp0: p ^ (k + l) ≠ 0, from pow_ne_zero _ hp.ne_zero,
+have hpd : p ∣ x * y, from ⟨z, by rwa [mul_right_inj' hp0] at h⟩,
+(hp.dvd_or_dvd hpd).elim
+  (λ ⟨d, hd⟩, or.inl ⟨d, by simp [*, pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
+  (λ ⟨d, hd⟩, or.inr ⟨d, by simp [*, pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
+
+lemma prime.not_square (hp : prime p) : ¬ is_square p := hp.irreducible.not_square
+lemma is_square.not_prime (ha : is_square a) : ¬ prime a := λ h, h.not_square ha
+
+lemma pow_not_prime {n : ℕ} (hn : n ≠ 1) : ¬ prime (a ^ n) :=
 λ hp, hp.not_unit $ is_unit.pow _ $ of_irreducible_pow hn $ hp.irreducible
+
+end cancel_comm_monoid_with_zero
 
 /-- Two elements of a `monoid` are `associated` if one of them is another one
 multiplied by a unit on the right. -/
@@ -294,6 +306,9 @@ instance [monoid α] : is_refl α associated := ⟨associated.refl⟩
 @[symm] protected theorem symm [monoid α] : ∀{x y : α}, x ~ᵤ y → y ~ᵤ x
 | x _ ⟨u, rfl⟩ := ⟨u⁻¹, by rw [mul_assoc, units.mul_inv, mul_one]⟩
 instance [monoid α] : is_symm α associated := ⟨λ a b, associated.symm⟩
+
+protected theorem comm [monoid α] {x y : α} : x ~ᵤ y ↔ y ~ᵤ x :=
+⟨associated.symm, associated.symm⟩
 
 @[trans] protected theorem trans [monoid α] : ∀{x y z : α}, x ~ᵤ y → y ~ᵤ z → x ~ᵤ z
 | x _ _ ⟨u, rfl⟩ ⟨v, rfl⟩ := ⟨u * v, by rw [units.coe_mul, mul_assoc]⟩
@@ -344,6 +359,45 @@ lemma associated_mul_unit_right {β : Type*} [monoid β] (a u : β) (hu : is_uni
 lemma associated_unit_mul_right {β : Type*} [comm_monoid β] (a u : β) (hu : is_unit u) :
   associated a (u * a) :=
 (associated_unit_mul_left a u hu).symm
+
+lemma associated_mul_is_unit_left_iff {β : Type*} [monoid β] {a u b : β} (hu : is_unit u) :
+  associated (a * u) b ↔ associated a b :=
+⟨trans (associated_mul_unit_right _ _ hu), trans (associated_mul_unit_left _ _ hu)⟩
+
+lemma associated_is_unit_mul_left_iff {β : Type*} [comm_monoid β] {u a b : β} (hu : is_unit u) :
+  associated (u * a) b ↔ associated a b :=
+begin
+  rw mul_comm,
+  exact associated_mul_is_unit_left_iff hu
+end
+
+lemma associated_mul_is_unit_right_iff {β : Type*} [monoid β] {a b u : β} (hu : is_unit u) :
+  associated a (b * u) ↔ associated a b :=
+associated.comm.trans $ (associated_mul_is_unit_left_iff hu).trans associated.comm
+
+lemma associated_is_unit_mul_right_iff {β : Type*} [comm_monoid β] {a u b : β} (hu : is_unit u) :
+  associated a (u * b) ↔ associated a b :=
+associated.comm.trans $ (associated_is_unit_mul_left_iff hu).trans associated.comm
+
+@[simp]
+lemma associated_mul_unit_left_iff {β : Type*} [monoid β] {a b : β} {u : units β} :
+  associated (a * u) b ↔ associated a b :=
+associated_mul_is_unit_left_iff u.is_unit
+
+@[simp]
+lemma associated_unit_mul_left_iff {β : Type*} [comm_monoid β] {a b : β} {u : units β} :
+  associated (↑u * a) b ↔ associated a b :=
+associated_is_unit_mul_left_iff u.is_unit
+
+@[simp]
+lemma associated_mul_unit_right_iff {β : Type*} [monoid β] {a b : β} {u : units β} :
+  associated a (b * u) ↔ associated a b :=
+associated_mul_is_unit_right_iff u.is_unit
+
+@[simp]
+lemma associated_unit_mul_right_iff {β : Type*} [comm_monoid β] {a b : β} {u : units β} :
+  associated a (↑u * b) ↔ associated a b :=
+associated_is_unit_mul_right_iff u.is_unit
 
 lemma associated.mul_mul [comm_monoid α] {a₁ a₂ b₁ b₂ : α} :
   a₁ ~ᵤ b₁ → a₂ ~ᵤ b₂ → (a₁ * a₂) ~ᵤ (b₁ * b₂)
@@ -482,7 +536,6 @@ lemma associated.of_pow_associated_of_prime' [cancel_comm_monoid_with_zero α] {
   p₁ ~ᵤ p₂ :=
 (h.symm.of_pow_associated_of_prime hp₂ hp₁ hk₂).symm
 
-
 section unique_units
 variables [monoid α] [unique αˣ]
 
@@ -504,6 +557,20 @@ lemma prime_dvd_prime_iff_eq
 by rw [pp.dvd_prime_iff_associated qp, ←associated_eq_eq]
 
 end unique_units
+
+section unique_units₀
+
+variables {R : Type*} [cancel_comm_monoid_with_zero R] [unique Rˣ] {p₁ p₂ : R} {k₁ k₂ : ℕ}
+
+lemma eq_of_prime_pow_eq (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : 0 < k₁) (h : p₁ ^ k₁ = p₂ ^ k₂) :
+  p₁ = p₂ :=
+by { rw [←associated_iff_eq] at h ⊢, apply h.of_pow_associated_of_prime hp₁ hp₂ hk₁ }
+
+lemma eq_of_prime_pow_eq' (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : 0 < k₂) (h : p₁ ^ k₁ = p₂ ^ k₂) :
+  p₁ = p₂ :=
+by { rw [←associated_iff_eq] at h ⊢, apply h.of_pow_associated_of_prime' hp₁ hp₂ hk₁ }
+
+end unique_units₀
 
 /-- The quotient of a monoid by the `associated` relation. Two elements `x` and `y`
   are associated iff there is a unit `u` such that `x * u = y`. There is a natural

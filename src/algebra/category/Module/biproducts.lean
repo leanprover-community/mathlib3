@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import algebra.group.pi
 import category_theory.limits.shapes.biproducts
 import algebra.category.Module.limits
+import algebra.category.Module.abelian
 import algebra.homology.short_exact.abelian
 
 /-!
@@ -17,7 +18,7 @@ open category_theory.limits
 
 open_locale big_operators
 
-universes v u
+universes w v u
 
 namespace Module
 
@@ -46,7 +47,9 @@ def binary_product_limit_cone (M N : Module.{v} R) : limits.limit_cone (pair M N
       naturality' := by rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨⟨⟨⟩⟩⟩; refl,  }},
   is_limit :=
   { lift := λ s, linear_map.prod (s.π.app ⟨walking_pair.left⟩) (s.π.app ⟨walking_pair.right⟩),
-    fac' := by { rintros s (⟨⟩|⟨⟩); { ext x, simp, }, },
+    fac' := by { rintros s (⟨⟩|⟨⟩); { ext x, simp only
+      [binary_fan.π_app_right, binary_fan.π_app_left, Module.coe_comp, function.comp_app,
+        linear_map.fst_apply, linear_map.snd_apply, linear_map.prod_apply, pi.prod], }, },
     uniq' := λ s m w,
     begin
       ext; [rw ← w ⟨walking_pair.left⟩, rw ← w ⟨walking_pair.right⟩]; refl,
@@ -76,9 +79,9 @@ is_limit.cone_point_unique_up_to_iso_inv_comp _ _ (discrete.mk walking_pair.left
   (biprod_iso_prod M N).inv ≫ biprod.snd = linear_map.snd R M N :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ (discrete.mk walking_pair.right)
 
-variables {J : Type v} (f : J → Module.{v} R)
-
 namespace has_limit
+
+variables {J : Type w} (f : J → Module.{max w v} R)
 
 /--
 The map from an arbitrary cone over a indexed family of abelian groups
@@ -112,6 +115,8 @@ Construct limit data for a product in `Module R`, using `Module.of R (Π j, F.ob
 end has_limit
 
 open has_limit
+
+variables {J : Type} (f : J → Module.{v} R)
 
 /--
 We verify that the biproduct we've just defined is isomorphic to the `Module R` structure

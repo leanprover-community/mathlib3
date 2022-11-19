@@ -3,8 +3,8 @@ Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.convex.integral
 import measure_theory.integral.interval_integral
+import measure_theory.integral.average
 
 /-!
 # Integral average over an interval
@@ -27,7 +27,7 @@ We also prove that `⨍ x in a..b, f x = ⨍ x in b..a, f x`, see `interval_aver
 open measure_theory set topological_space
 open_locale interval
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] [complete_space E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
 
 notation `⨍` binders ` in ` a `..` b `, `
   r:(scoped:60 f, average (measure.restrict volume (Ι a b)) f) := r

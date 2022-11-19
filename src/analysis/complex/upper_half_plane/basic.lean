@@ -3,7 +3,7 @@ Copyright (c) 2021 Alex Kontorovich and Heather Macbeth and Marc Masdeu. All rig
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
-
+import data.fintype.parity
 import linear_algebra.special_linear_group
 import analysis.complex.basic
 import group_theory.group_action.defs
@@ -42,11 +42,13 @@ local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 @[derive [λ α, has_coe α ℂ]]
 def upper_half_plane := {point : ℂ // 0 < point.im}
 
-localized "notation `ℍ` := upper_half_plane" in upper_half_plane
+localized "notation (name := upper_half_plane) `ℍ` := upper_half_plane" in upper_half_plane
 
 namespace upper_half_plane
 
 instance : inhabited ℍ := ⟨⟨complex.I, by simp⟩⟩
+
+instance can_lift : can_lift ℂ ℍ coe (λ z, 0 < z.im) := subtype.can_lift (λ z, 0 < z.im)
 
 /-- Imaginary part -/
 def im (z : ℍ) := (z : ℂ).im
@@ -132,7 +134,7 @@ begin
   rw [smul_aux', complex.div_im],
   set NsqBot := (denom g z).norm_sq,
   have : NsqBot ≠ 0,
-  { simp only [denom_ne_zero g z, monoid_with_zero_hom.map_eq_zero, ne.def, not_false_iff], },
+  { simp only [denom_ne_zero g z, map_eq_zero, ne.def, not_false_iff], },
   field_simp [smul_aux', -coe_coe],
   rw (matrix.det_fin_two (↑ₘg)),
   ring,
@@ -154,7 +156,7 @@ begin
   change _ = (_ * (_ / _) + _) * _,
   field_simp [denom_ne_zero, -denom, -num],
   simp only [matrix.mul, dot_product, fin.sum_univ_succ, denom, num, coe_coe, subgroup.coe_mul,
-    general_linear_group.coe_mul, fintype.univ_of_subsingleton, fin.mk_eq_subtype_mk, fin.mk_zero,
+    general_linear_group.coe_mul, fintype.univ_of_subsingleton, fin.mk_zero,
     finset.sum_singleton, fin.succ_zero_eq_one, complex.of_real_add, complex.of_real_mul],
   ring
 end
@@ -167,7 +169,7 @@ begin
   rw denom_cocycle,
   field_simp [denom_ne_zero, -denom, -num],
   simp only [matrix.mul, dot_product, fin.sum_univ_succ, num, denom, coe_coe, subgroup.coe_mul,
-    general_linear_group.coe_mul, fintype.univ_of_subsingleton, fin.mk_eq_subtype_mk, fin.mk_zero,
+    general_linear_group.coe_mul, fintype.univ_of_subsingleton, fin.mk_zero,
     finset.sum_singleton, fin.succ_zero_eq_one, complex.of_real_add, complex.of_real_mul],
   ring
 end
@@ -188,7 +190,7 @@ mul_action.comp_hom ℍ $ (special_linear_group.to_GL_pos).comp $ map (algebra_m
 
 instance : has_coe SL(2,ℤ) (GL(2, ℝ)⁺) := ⟨λ g , ((g : SL(2, ℝ)) : (GL(2, ℝ)⁺))⟩
 
-instance SL_on_GL_pos : has_scalar SL(2,ℤ) (GL(2, ℝ)⁺) := ⟨λ s g, s * g⟩
+instance SL_on_GL_pos : has_smul SL(2,ℤ) (GL(2, ℝ)⁺) := ⟨λ s g, s * g⟩
 
 lemma SL_on_GL_pos_smul_apply (s : SL(2,ℤ)) (g : (GL(2, ℝ)⁺)) (z : ℍ) :
   (s • g) • z = ( (s : GL(2, ℝ)⁺) * g) • z := rfl
@@ -196,7 +198,7 @@ lemma SL_on_GL_pos_smul_apply (s : SL(2,ℤ)) (g : (GL(2, ℝ)⁺)) (z : ℍ) :
 instance SL_to_GL_tower : is_scalar_tower SL(2,ℤ) (GL(2, ℝ)⁺) ℍ :=
 { smul_assoc := by {intros s g z, simp only [SL_on_GL_pos_smul_apply, coe_coe], apply mul_smul',},}
 
-instance subgroup_GL_pos : has_scalar Γ (GL(2, ℝ)⁺) := ⟨λ s g, s * g⟩
+instance subgroup_GL_pos : has_smul Γ (GL(2, ℝ)⁺) := ⟨λ s g, s * g⟩
 
 lemma subgroup_on_GL_pos_smul_apply (s : Γ) (g : (GL(2, ℝ)⁺)) (z : ℍ) :
   (s • g) • z = ( (s : GL(2, ℝ)⁺) * g) • z := rfl
@@ -205,7 +207,7 @@ instance subgroup_on_GL_pos : is_scalar_tower Γ (GL(2, ℝ)⁺) ℍ :=
 { smul_assoc :=
   by {intros s g z, simp only [subgroup_on_GL_pos_smul_apply, coe_coe], apply mul_smul',},}
 
-instance subgroup_SL : has_scalar Γ SL(2,ℤ) := ⟨λ s g, s * g⟩
+instance subgroup_SL : has_smul Γ SL(2,ℤ) := ⟨λ s g, s * g⟩
 
 lemma subgroup_on_SL_apply (s : Γ) (g : SL(2,ℤ) ) (z : ℍ) :
   (s • g) • z = ( (s : SL(2, ℤ)) * g) • z := rfl
@@ -266,5 +268,35 @@ lemma denom_apply (g : SL(2, ℤ)) (z : ℍ) : denom g z = (↑g : matrix (fin 2
   (↑g : matrix (fin 2) (fin 2) ℤ) 1 1 := by simp
 
 end SL_modular_action
+
+section pos_real_action
+
+instance pos_real_action : mul_action {x : ℝ // 0 < x} ℍ :=
+{ smul := λ x z, mk ((x : ℝ) • z) $ by simpa using mul_pos x.2 z.2,
+  one_smul := λ z, subtype.ext $ one_smul _ _,
+  mul_smul := λ x y z, subtype.ext $ mul_smul (x : ℝ) y (z : ℂ) }
+
+variables (x : {x : ℝ // 0 < x}) (z : ℍ)
+
+@[simp] lemma coe_pos_real_smul : ↑(x • z) = (x : ℝ) • (z : ℂ) := rfl
+@[simp] lemma pos_real_im : (x • z).im = x * z.im := complex.smul_im _ _
+@[simp] lemma pos_real_re : (x • z).re = x * z.re := complex.smul_re _ _
+
+end pos_real_action
+
+section real_add_action
+
+instance : add_action ℝ ℍ :=
+{ vadd := λ x z, mk (x + z) $ by simpa using z.im_pos,
+  zero_vadd := λ z, subtype.ext $ by simp,
+  add_vadd := λ x y z, subtype.ext $ by simp [add_assoc] }
+
+variables (x : ℝ) (z : ℍ)
+
+@[simp] lemma coe_vadd : ↑(x +ᵥ z) = (x + z : ℂ) := rfl
+@[simp] lemma vadd_re : (x +ᵥ z).re = x + z.re := rfl
+@[simp] lemma vadd_im : (x +ᵥ z).im = z.im := zero_add _
+
+end real_add_action
 
 end upper_half_plane

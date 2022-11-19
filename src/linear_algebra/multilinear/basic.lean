@@ -7,8 +7,7 @@ import linear_algebra.basic
 import algebra.algebra.basic
 import algebra.big_operators.order
 import algebra.big_operators.ring
-import data.fin.tuple
-import data.fintype.card
+import data.fintype.big_operators
 import data.fintype.sort
 
 /-!
@@ -150,11 +149,11 @@ instance : inhabited (multilinear_map R M₁ M₂) := ⟨0⟩
 
 @[simp] lemma zero_apply (m : Πi, M₁ i) : (0 : multilinear_map R M₁ M₂) m = 0 := rfl
 
-section has_scalar
+section has_smul
 variables {R' A : Type*} [monoid R'] [semiring A]
   [Π i, module A (M₁ i)] [distrib_mul_action R' M₂] [module A M₂] [smul_comm_class A R' M₂]
 
-instance : has_scalar R' (multilinear_map A M₁ M₂) := ⟨λ c f,
+instance : has_smul R' (multilinear_map A M₁ M₂) := ⟨λ c f,
   ⟨λ m, c • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x c] ⟩⟩
 
 @[simp] lemma smul_apply (f : multilinear_map A M₁ M₂) (c : R') (m : Πi, M₁ i) :
@@ -163,7 +162,7 @@ instance : has_scalar R' (multilinear_map A M₁ M₂) := ⟨λ c f,
 lemma coe_smul (c : R') (f : multilinear_map A M₁ M₂) : ⇑(c • f) = c • f :=
 rfl
 
-end has_scalar
+end has_smul
 
 instance : add_comm_monoid (multilinear_map R M₁ M₂) :=
 coe_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
@@ -552,7 +551,7 @@ def cod_restrict (f : multilinear_map R M₁ M₂) (p : submodule R M₂) (h : �
 
 section restrict_scalar
 
-variables (R) {A : Type*} [semiring A] [has_scalar R A] [Π (i : ι), module A (M₁ i)]
+variables (R) {A : Type*} [semiring A] [has_smul R A] [Π (i : ι), module A (M₁ i)]
   [module A M₂] [∀ i, is_scalar_tower R A (M₁ i)] [is_scalar_tower R A M₂]
 
 /-- Reinterpret an `A`-multilinear map as an `R`-multilinear map, if `A` is an algebra over `R`
@@ -877,6 +876,23 @@ begin
   conv_rhs { rw [this, f.map_smul_univ] },
   refl
 end
+
+lemma mk_pi_ring_eq_iff [fintype ι] {z₁ z₂ : M₂} :
+  multilinear_map.mk_pi_ring R ι z₁ = multilinear_map.mk_pi_ring R ι z₂ ↔ z₁ = z₂ :=
+begin
+  simp_rw [multilinear_map.ext_iff, mk_pi_ring_apply],
+  split; intro h,
+  { simpa using h (λ _, 1) },
+  { intro x, simp [h] }
+end
+
+lemma mk_pi_ring_zero [fintype ι] :
+  multilinear_map.mk_pi_ring R ι (0 : M₂) = 0 :=
+by ext; rw [mk_pi_ring_apply, smul_zero, multilinear_map.zero_apply]
+
+lemma mk_pi_ring_eq_zero_iff [fintype ι] (z : M₂) :
+  multilinear_map.mk_pi_ring R ι z = 0 ↔ z = 0 :=
+by rw [← mk_pi_ring_zero, mk_pi_ring_eq_iff]
 
 end comm_semiring
 

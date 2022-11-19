@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Antoine Labelle
 -/
 import category_theory.monoidal.braided
-import category_theory.concrete_category.basic
+import category_theory.monoidal.linear
+import category_theory.preadditive.additive_functor
+import category_theory.linear.linear_functor
 import category_theory.closed.monoidal
 
 /-!
@@ -81,6 +83,28 @@ instance full_monoidal_subcategory.full :
   full (full_monoidal_subcategory_inclusion P).to_functor := full_subcategory.full P
 instance full_monoidal_subcategory.faithful :
   faithful (full_monoidal_subcategory_inclusion P).to_functor := full_subcategory.faithful P
+
+section
+
+variables [preadditive C]
+
+instance full_monoidal_subcategory_inclusion_additive :
+  (full_monoidal_subcategory_inclusion P).to_functor.additive :=
+functor.full_subcategory_inclusion_additive _
+
+instance [monoidal_preadditive C] : monoidal_preadditive (full_subcategory P) :=
+monoidal_preadditive_of_faithful (full_monoidal_subcategory_inclusion P)
+
+variables (R : Type*) [ring R] [linear R C]
+
+instance full_monoidal_subcategory_inclusion_linear :
+  (full_monoidal_subcategory_inclusion P).to_functor.linear R :=
+functor.full_subcategory_inclusion_linear R _
+
+instance [monoidal_preadditive C] [monoidal_linear R C] : monoidal_linear R (full_subcategory P) :=
+monoidal_linear_of_faithful R (full_monoidal_subcategory_inclusion P)
+
+end
 
 variables {P} {P' : C → Prop} [monoidal_predicate P']
 

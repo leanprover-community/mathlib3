@@ -3,11 +3,14 @@ import os
 import re
 import yaml
 import networkx as nx
+import subprocess
 from urllib.request import urlopen
 
 from pathlib import Path
 
 import_re = re.compile(r"^import ([^ ]*)")
+synchronized_re = re.compile(r".*SYNCHRONIZED WITH MATHLIB4.*")
+hash_re = re.compile(r"[0-9a-f]*")
 
 def mk_label(path: Path) -> str:
     rel = path.relative_to(Path('src'))
@@ -34,11 +37,15 @@ for path in Path('src').glob('**/*.lean'):
         continue
     graph.add_node(mk_label(path))
 
+synchronized = dict()
+
 for path in Path('src').glob('**/*.lean'):
     if path.parts[1] in ['tactic', 'meta']:
         continue
+    label = mk_label(path)
     for line in path.read_text().split('\n'):
-        if (m := import_re.match(line)):
+        m = import_re.match(line)
+        if m:
             imported = m.group(1)
             if imported.startswith('tactic.') or imported.startswith('meta.'):
                 continue
@@ -47,7 +54,10 @@ for path in Path('src').glob('**/*.lean'):
                     imported = imported + '.default'
                 else:
                     imported = 'lean_core.' + imported
-            graph.add_edge(imported, mk_label(path))
+            graph.add_edge(imported, label)
+        if synchronized_re.match(line):
+            synchronized[label] = True
+
 
 data = yaml_md_load(urlopen('https://raw.githubusercontent.com/wiki/leanprover-community/mathlib/mathlib4-port-status.md').read())
 
@@ -58,7 +68,20 @@ yaml.dump(data, Path('port_status.yaml').open('w'))
 
 allDone = dict()
 parentsDone = dict()
+verified = dict()
+touched = dict()
 for node in graph.nodes:
+    if data[node].startswith('Yes'):
+      chunks = data[node].split(' ')
+      if len(chunks) > 2:
+        if hash_re.match(chunks[2]):
+            verified[node] = chunks[2]
+            result = subprocess.run(['git', 'diff', '--name-only', chunks[2] + "..HEAD", "src" + os.sep + node.replace('.', os.sep) + ".lean"], stdout=subprocess.PIPE)
+            if result.stdout != b'':
+                touched[node] = True
+        else:
+            print("Bad status for " + node)
+            print("Expected 'Yes MATHLIB4-PR MATHLIB-HASH'")
     ancestors = nx.ancestors(graph, node)
     if all(data[imported].startswith('Yes') for imported in ancestors) and data[node].startswith('No'):
         allDone[node] = (len(nx.descendants(graph, node)), stripPrefix(data[node]))
@@ -78,5 +101,26 @@ for k, v in allDone.items():
 print()
 print('# The following files have their immediate dependencies ported already, and may be ready to port:')
 parentsDone = dict(sorted(parentsDone.items(), key=lambda item: -item[1][0]))
-for k in parentsDone:
-  print(k)
+for k, v in parentsDone.items():
+    if v[1] == "":
+        print(k)
+    else:
+        print(k + "    -- " + v[1])
+
+print()
+print('# The following files are marked as ported, but do not have a SYNCHRONIZED WITH MATHLIB4 label.')
+for node in graph.nodes:
+    if data[node].startswith('Yes') and not node in synchronized:
+        print(node + "     -- " + data[node][4:])
+
+print()
+print('# The following files are marked as ported, but have not been verified against a commit hash from mathlib.')
+for node in graph.nodes:
+    if data[node].startswith('Yes') and not node in verified:
+        print(node)
+
+if len(touched) > 0:
+    print()
+    print('# The following files have been modified since the commit at which they were verified.')
+    for n in touched.keys():
+        print(n)

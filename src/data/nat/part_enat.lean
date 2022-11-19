@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import algebra.hom.equiv
+import algebra.hom.equiv.basic
 import data.part
 import data.enat.basic
 import tactic.norm_num
@@ -431,7 +431,8 @@ open_locale classical
 
 @[simp] lemma to_with_top_add {x y : part_enat} :
   to_with_top (x + y) = to_with_top x + to_with_top y :=
-by apply part_enat.cases_on y; apply part_enat.cases_on x; simp [← nat.cast_add, ← enat.coe_add]
+by apply part_enat.cases_on y; apply part_enat.cases_on x;
+  simp [-coe_add, ← nat.cast_add, ← enat.coe_add]
 
 /-- `equiv` between `part_enat` and `ℕ∞` (for the order isomorphism see
 `with_top_order_iso`). -/

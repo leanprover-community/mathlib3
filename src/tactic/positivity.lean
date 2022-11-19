@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Heather Macbeth, Yaël Dillies
 -/
 import tactic.norm_num
+import algebra.order.field.power
 
 /-! # `positivity` tactic
-αᵒᵈ βᵒᵈ
+
 The `positivity` tactic in this file solves goals of the form `0 ≤ x`, `0 < x` and `x ≠ 0`.  The
 tactic works recursively according to the syntax of the expression `x`.  For example, a goal of the
 form `0 ≤ 3 * a ^ 2 + b * c` can be solved either
@@ -345,7 +346,7 @@ add_tactic_doc
 
 end interactive
 
-variables {α R : Type*}
+variables {ι α R : Type*}
 
 /-! ### `positivity` extensions for particular arithmetic operations -/
 
@@ -596,6 +597,19 @@ meta def positivity_pow : expr → tactic strictness
         | nonzero p := nonzero <$> to_expr ``(zpow_ne_zero %%n %%p)
         end)
 | e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `a ^ n`"
+
+/-- Extension for the `positivity` tactic: raising a positive number in a canonically ordered
+semiring gives a positive number. -/
+@[positivity]
+meta def positivity_canon_pow : expr → tactic strictness
+| `(%%r ^ %%n) := do
+    typ_n ← infer_type n,
+    unify typ_n `(ℕ),
+    positive p ← core r,
+    positive <$> mk_app ``canonically_ordered_comm_semiring.pow_pos [p, n]
+    -- The nonzero never happens because of `tactic.positivity_canon`
+| e := pp e >>= fail ∘ format.bracket "The expression `"
+    "` is not of the form `a ^ n` for `a` in a `canonically_ordered_comm_semiring` and `n : ℕ`"
 
 private alias abs_pos ↔ _ abs_pos_of_ne_zero
 

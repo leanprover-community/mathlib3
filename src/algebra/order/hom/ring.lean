@@ -5,7 +5,7 @@ Authors: Alex J. Best, Yaël Dillies
 -/
 import algebra.order.archimedean
 import algebra.order.hom.monoid
-import algebra.order.ring
+import algebra.order.ring.defs
 import algebra.ring.equiv
 
 /-!

@@ -182,11 +182,11 @@ is_limit.of_iso_limit (limit.is_limit _) (fork.ext (iso.refl _) (by tidy))
 /-- Given any morphism `k : W ⟶ X` satisfying `k ≫ f = 0`, `k` factors through `kernel.ι f`
     via `kernel.lift : W ⟶ kernel f`. -/
 abbreviation kernel.lift {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : W ⟶ kernel f :=
-limit.lift (parallel_pair f 0) (kernel_fork.of_ι k h)
+(kernel_is_kernel f).lift (kernel_fork.of_ι k h)
 
 @[simp, reassoc]
 lemma kernel.lift_ι {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : kernel.lift f k h ≫ kernel.ι f = k :=
-limit.lift_π _ _
+(kernel_is_kernel f).fac (kernel_fork.of_ι k h) walking_parallel_pair.zero
 
 @[simp]
 lemma kernel.lift_zero {W : C} {h} : kernel.lift f (0 : W ⟶ X) h = 0 :=
@@ -522,12 +522,12 @@ is_colimit.of_iso_colimit (colimit.is_colimit _) (cofork.ext (iso.refl _) (by ti
 /-- Given any morphism `k : Y ⟶ W` such that `f ≫ k = 0`, `k` factors through `cokernel.π f`
     via `cokernel.desc : cokernel f ⟶ W`. -/
 abbreviation cokernel.desc {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) : cokernel f ⟶ W :=
-colimit.desc (parallel_pair f 0) (cokernel_cofork.of_π k h)
+(cokernel_is_cokernel f).desc (cokernel_cofork.of_π k h)
 
 @[simp, reassoc]
 lemma cokernel.π_desc {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) :
   cokernel.π f ≫ cokernel.desc f k h = k :=
-colimit.ι_desc _ _
+(cokernel_is_cokernel f).fac (cokernel_cofork.of_π k h) walking_parallel_pair.one
 
 @[simp]
 lemma cokernel.desc_zero {W : C} {h} : cokernel.desc f (0 : Y ⟶ W) h = 0 :=

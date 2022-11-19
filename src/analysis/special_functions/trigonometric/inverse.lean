@@ -241,6 +241,17 @@ begin
   rw [this, sin_arcsin hx₁ hx₂],
 end
 
+-- The junk values for `arcsin` and `sqrt` make this true even outside `[-1, 1]`.
+lemma tan_arcsin (x : ℝ) : tan (arcsin x) = x / sqrt (1 - x ^ 2) :=
+begin
+  rw [tan_eq_sin_div_cos, cos_arcsin],
+  by_cases hx₁ : -1 ≤ x, swap,
+  { have h : sqrt (1 - x ^ 2) = 0, { exact sqrt_eq_zero_of_nonpos (by nlinarith) }, rw h, simp },
+  by_cases hx₂ : x ≤ 1, swap,
+  { have h : sqrt (1 - x ^ 2) = 0, { exact sqrt_eq_zero_of_nonpos (by nlinarith) }, rw h, simp },
+  rw sin_arcsin hx₁ hx₂
+end
+
 /-- Inverse of the `cos` function, returns values in the range `0 ≤ arccos x` and `arccos x ≤ π`.
   It defaults to `π` on `(-∞, -1)` and to `0` to `(1, ∞)`. -/
 @[pp_nodot] noncomputable def arccos (x : ℝ) : ℝ :=
@@ -256,6 +267,9 @@ by unfold arccos; linarith [neg_pi_div_two_le_arcsin x]
 
 lemma arccos_nonneg (x : ℝ) : 0 ≤ arccos x :=
 by unfold arccos; linarith [arcsin_le_pi_div_two x]
+
+@[simp] lemma arccos_pos {x : ℝ} : 0 < arccos x ↔ x < 1 :=
+by simp [arccos]
 
 lemma cos_arccos {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : cos (arccos x) = x :=
 by rw [arccos, cos_pi_div_two_sub, sin_arcsin hx₁ hx₂]
@@ -312,10 +326,32 @@ end
 
 @[simp] lemma arccos_le_pi_div_two {x} : arccos x ≤ π / 2 ↔ 0 ≤ x := by simp [arccos]
 
+@[simp] lemma arccos_lt_pi_div_two {x : ℝ} : arccos x < π / 2 ↔ 0 < x := by simp [arccos]
+
 @[simp] lemma arccos_le_pi_div_four {x} : arccos x ≤ π / 4 ↔ sqrt 2 / 2 ≤ x :=
 by { rw [arccos, ← pi_div_four_le_arcsin], split; { intro, linarith } }
 
 @[continuity]
 lemma continuous_arccos : continuous arccos := continuous_const.sub continuous_arcsin
+
+-- The junk values for `arccos` and `sqrt` make this true even outside `[-1, 1]`.
+lemma tan_arccos (x : ℝ) : tan (arccos x) = sqrt (1 - x ^ 2) / x :=
+by rw [arccos, tan_pi_div_two_sub, tan_arcsin, inv_div]
+
+-- The junk values for `arccos` and `sqrt` make this true even for `1 < x`.
+lemma arccos_eq_arcsin {x : ℝ} (h : 0 ≤ x) :
+  arccos x = arcsin (sqrt (1 - x ^ 2)) :=
+(arcsin_eq_of_sin_eq (sin_arccos _)
+  ⟨(left.neg_nonpos_iff.2 (div_nonneg pi_pos.le (by norm_num))).trans (arccos_nonneg _),
+   arccos_le_pi_div_two.2 h⟩).symm
+
+-- The junk values for `arcsin` and `sqrt` make this true even for `1 < x`.
+lemma arcsin_eq_arccos {x : ℝ} (h : 0 ≤ x) :
+  arcsin x = arccos (sqrt (1 - x ^ 2)) :=
+begin
+  rw [eq_comm, ← cos_arcsin],
+  exact arccos_cos (arcsin_nonneg.2 h)
+    ((arcsin_le_pi_div_two _).trans (div_le_self pi_pos.le one_le_two))
+end
 
 end real

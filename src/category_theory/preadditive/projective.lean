@@ -7,6 +7,7 @@ import algebra.homology.exact
 import category_theory.types
 import category_theory.limits.shapes.biproducts
 import category_theory.preadditive.yoneda
+import algebra.category.Group.epi_mono
 import algebra.category.Module.epi_mono
 
 /-!

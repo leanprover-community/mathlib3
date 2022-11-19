@@ -79,9 +79,12 @@ instance [monoid R] [mul_action R ℝ] : mul_action R ℂ :=
 { one_smul := λ x, by ext; simp [smul_re, smul_im, one_smul],
   mul_smul := λ r s x, by ext; simp [smul_re, smul_im, mul_smul] }
 
-instance [semiring R] [distrib_mul_action R ℝ] : distrib_mul_action R ℂ :=
+instance [distrib_smul R ℝ] : distrib_smul R ℂ :=
 { smul_add := λ r x y, by ext; simp [smul_re, smul_im, smul_add],
   smul_zero := λ r, by ext; simp [smul_re, smul_im, smul_zero] }
+
+instance [semiring R] [distrib_mul_action R ℝ] : distrib_mul_action R ℂ :=
+{ ..complex.distrib_smul }
 
 instance [semiring R] [module R ℝ] : module R ℂ :=
 { add_smul := λ r s x, by ext; simp [smul_re, smul_im, add_smul],

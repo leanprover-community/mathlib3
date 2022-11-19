@@ -196,8 +196,7 @@ begin
                          ... = a * a ^ n - a * 1 + a - 1 : by simp
                          ... = a * (a ^ n - 1) + a - 1 : by rw nat.mul_sub_left_distrib
                          ... = a * (a ^ n - 1) + (a - 1) : by rw nat.add_sub_assoc h,
-    exact dvd_add h₁ (dvd_refl _),
-  }
+    exact dvd_add h₁ (dvd_refl _) }
 end
 
 private lemma pow_gt_base (a b : ℕ) (ha : 1 < a) (hb : 1 < b) : a < a^b :=
@@ -297,7 +296,8 @@ have q₂ : (b + 1) ∣ (b ^ p + 1) := begin
   exact_mod_cast h,
 end,
 have q₃ : 1 ≤ (b^p) := nat.one_le_pow p b (show 0 < b, by linarith),
-calc (b ^ p - 1) / (b - 1) * ((b ^ p + 1) / (b + 1)) = (b ^ p - 1) * (b ^ p + 1) / ((b - 1) * (b + 1)) : nat.div_mul_div_comm q₁ q₂
+calc (b ^ p - 1) / (b - 1) * ((b ^ p + 1) / (b + 1)) =
+    (b ^ p - 1) * (b ^ p + 1) / ((b - 1) * (b + 1)) : nat.div_mul_div_comm q₁ q₂
   ... = ((b ^ p + 1) * (b ^ p - 1)) / ((b - 1) * (b + 1)) : by rw mul_comm
   ... = ((b ^ p)^2 - 1^2) / ((b - 1) * (b + 1))           : by rw nat.sq_sub_sq
   ... = ((b ^ (p*2)) - 1^2) / ((b - 1) * (b + 1))         : by rw pow_mul
@@ -371,12 +371,12 @@ begin
   { have : b^2 - 1 ∣ (b ^ 2) ^ p - 1 := sub_one_dvd_pow_sub_one _ _ (show 1 ≤ b ^ 2, by linarith),
     rwa ←pow_mul at this },
 
-  have AB_probable_prime : probable_prime (A * B) b, {
-    unfold probable_prime,
+  have AB_probable_prime : probable_prime (A * B) b,
+  { unfold probable_prime,
 
     -- Rewrite AB_id. Used to prove that `2*p*(b^2 - 1) ∣ (b^2 - 1)*(A*B - 1)`.
-    have ha₁ : (b^2 - 1) * ((A*B) - 1) = b*(b^(p-1) - 1)*(b^p + b), {
-      apply_fun (λx, x*(b^2 - 1)) at AB_id,
+    have ha₁ : (b^2 - 1) * ((A*B) - 1) = b*(b^(p-1) - 1)*(b^p + b),
+    { apply_fun (λx, x*(b^2 - 1)) at AB_id,
       rw nat.div_mul_cancel hd at AB_id,
       apply_fun (λx, x - (b^2 - 1)) at AB_id,
       nth_rewrite 1 ←one_mul (b^2 - 1) at AB_id,
@@ -392,8 +392,7 @@ begin
         ... = (b ^ (p - 1 + 1) - b) * (b ^ p + b)     : by rw nat.sub_add_cancel hi_p
         ... = (b * b ^ (p - 1) - b) * (b ^ p + b)     : by rw pow_succ
         ... = (b * b ^ (p - 1) - b * 1) * (b ^ p + b) : by rw mul_one
-        ... = b * (b ^ (p - 1) - 1) * (b ^ p + b)     : by rw nat.mul_sub_left_distrib
-    },
+        ... = b * (b ^ (p - 1) - 1) * (b ^ p + b)     : by rw nat.mul_sub_left_distrib },
     -- If `b` is even, then `b^p` is also even, so `2 ∣ b^p + b`
     -- If `b` is odd, then `b^p` is also odd, so `2 ∣ b^p + b`
     have ha₂ : 2 ∣ b^p + b,
@@ -410,7 +409,8 @@ begin
     -- Since b isn't divisible by p, we can use Fermat's Little Theorem to prove this
     have ha₃ : p ∣ (b^(p - 1) - 1),
     { have : ¬p ∣ b := mt (assume h : p ∣ b, dvd_mul_of_dvd_left h _) not_dvd,
-      have : (b : zmod p) ≠ 0 := assume h, absurd ((zmod.nat_coe_zmod_eq_zero_iff_dvd b p).mp h) this,
+      have : (b : zmod p) ≠ 0 := assume h,
+        absurd ((zmod.nat_coe_zmod_eq_zero_iff_dvd b p).mp h) this,
       -- by Fermat's Little Theorem, b^(p - 1) ≡ 1 (mod p)
       have q := @zmod.pow_card_sub_one_eq_one _ (fact.mk p_prime) (↑b) this,
       apply_fun (λ x, x - 1) at q,
@@ -429,7 +429,8 @@ begin
         exact dvd.intro k rfl },
       unfold has_dvd.dvd at this,
       cases this with c hc,
-      have : ((b^2) - 1) ∣ ((b^2)^c - 1) := sub_one_dvd_pow_sub_one _ _ (show 1 ≤ b ^ 2, by linarith),
+      have : ((b^2) - 1) ∣ ((b^2)^c - 1) :=
+        sub_one_dvd_pow_sub_one _ _ (show 1 ≤ b ^ 2, by linarith),
       have : ((b^2) - 1) ∣ (b^(2*c) - 1) := by rwa ←pow_mul at this,
       rwa ← hc at this },
     -- Used to prove that `2*p` divides `A*B - 1`
@@ -453,7 +454,8 @@ begin
       exact nat.dvd_of_mul_dvd_mul_left hi_bsquared₁ ha₅ },
     -- Multiply both sides of `AB_id` by `a^2 - 1` then add 1
     have ha₇ : b^(2*p) = 1 + A*B*(b^2 - 1),
-    { have q : A*B * (b^2-1) = (b^(2*p)-1)/(b^2-1)*(b^2-1) := congr_arg (λx : ℕ, x * (b^2 - 1)) AB_id,
+    { have q : A*B * (b^2-1) = (b^(2*p)-1)/(b^2-1)*(b^2-1) :=
+        congr_arg (λx : ℕ, x * (b^2 - 1)) AB_id,
       rw nat.div_mul_cancel hd at q,
       apply_fun (λ x : ℕ, x + 1) at q,
       rw nat.sub_add_cancel hi_bpowtwop at q,
@@ -469,12 +471,12 @@ begin
     -- We already proved that `A*B ∣ b^(2*p) - 1`, implying that `A*B ∣ b^(A*B - 1) - 1`
     generalize ha₉ : (A*B - 1) / (2*p) = q,
     have ha₁₀ : q * (2*p) = (A*B - 1) := by rw [←ha₉, nat.div_mul_cancel ha₆],
-    have ha₁₁ : b^(2*p) - 1 ∣ (b^(2*p))^q - 1 := sub_one_dvd_pow_sub_one _ _ (show 1 ≤ b^(2*p), by linarith),
+    have ha₁₁ : b^(2*p) - 1 ∣ (b^(2*p))^q - 1 :=
+      sub_one_dvd_pow_sub_one _ _ (show 1 ≤ b^(2*p), by linarith),
     rw ← pow_mul at ha₁₁,
     rw mul_comm (2*p) at ha₁₁,
     rw ha₁₀ at ha₁₁,
-    exact dvd_trans ha₈ ha₁₁
-  },
+    exact dvd_trans ha₈ ha₁₁ },
   exact ⟨AB_probable_prime, AB_not_prime, hi_AB⟩
 end
 

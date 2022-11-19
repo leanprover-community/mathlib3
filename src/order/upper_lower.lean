@@ -936,7 +936,7 @@ end
 
 @[simp] lemma upper_closure_eq :
   ↑(upper_closure s) = s ↔ is_upper_set s :=
-⟨λ h, h ▸ upper_set.upper _, λ h, h.upper_closure⟩
+⟨λ h, h ▸ upper_set.upper _, is_upper_set.upper_closure⟩
 
 @[simp] lemma lower_closure_eq :
   ↑(lower_closure s) = s ↔ is_lower_set s :=

@@ -82,7 +82,7 @@ protected def copy {μ : young_diagram} (T : ssyt μ) (entry' : ℕ → ℕ → 
   ⇑(T.copy entry' h) = entry' :=
 rfl
 
-@[simp] lemma copy_eq {μ : young_diagram} (T : ssyt μ) (entry' : ℕ → ℕ → ℕ) (h : entry' = T) :
+lemma copy_eq {μ : young_diagram} (T : ssyt μ) (entry' : ℕ → ℕ → ℕ) (h : entry' = T) :
   T.copy entry' h = T :=
 fun_like.ext' h
 

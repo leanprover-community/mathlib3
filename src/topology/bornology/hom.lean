@@ -81,8 +81,7 @@ protected def copy (f : locally_bounded_map α β) (f' : α → β) (h : f' = f)
   ⇑(f.copy f' h) = f' :=
 rfl
 
-@[simp] lemma copy_eq (f : locally_bounded_map α β) (f' : α → β) (h : f' = f) :
-  f.copy f' h = f :=
+lemma copy_eq (f : locally_bounded_map α β) (f' : α → β) (h : f' = f) : f.copy f' h = f :=
 fun_like.ext' h
 
 /-- Construct a `locally_bounded_map` from the fact that the function maps bounded sets to bounded

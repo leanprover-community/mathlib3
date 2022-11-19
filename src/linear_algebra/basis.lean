@@ -200,6 +200,13 @@ end
 by simp only [basis.sum_coords, linear_map.id_coe, linear_equiv.coe_coe, id.def, basis.repr_self,
   function.comp_app, finsupp.coe_lsum, linear_map.coe_comp, finsupp.sum_single_index]
 
+lemma dvd_coord_smul (i : ι) (m : M) (r : R) : r ∣ b.coord i (r • m) :=
+⟨b.coord i m, by simp⟩
+
+lemma coord_repr_symm (b : basis ι R M) (i : ι) (f : ι →₀  R) :
+  b.coord i (b.repr.symm f) = f i :=
+by simp only [repr_symm_apply, coord_apply, repr_total]
+
 end coord
 
 section ext
@@ -817,6 +824,9 @@ lemma basis.mem_submodule_iff' {P : submodule R M} (b : basis ι R P) {x : M} :
   x ∈ P ↔ ∃ (c : ι → R), x = ∑ i, c i • b i :=
 b.mem_submodule_iff.trans $ finsupp.equiv_fun_on_fintype.exists_congr_left.trans $ exists_congr $
 λ c, by simp [finsupp.sum_fintype]
+
+lemma coord_equiv_fun_symm (i : ι) (f : ι → R) : b.coord i (b.equiv_fun.symm f) = f i :=
+b.coord_repr_symm i (finsupp.equiv_fun_on_fintype.symm f)
 
 end fintype
 

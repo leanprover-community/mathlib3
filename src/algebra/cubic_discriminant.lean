@@ -89,33 +89,33 @@ lemma c_of_eq (h : P.to_poly = Q.to_poly) : P.c = Q.c := by rw [← coeff_eq_c, 
 
 lemma d_of_eq (h : P.to_poly = Q.to_poly) : P.d = Q.d := by rw [← coeff_eq_d, h, coeff_eq_d]
 
-@[simp] lemma to_poly_injective (P Q : cubic R) : P.to_poly = Q.to_poly ↔ P = Q :=
+lemma to_poly_injective (P Q : cubic R) : P.to_poly = Q.to_poly ↔ P = Q :=
 ⟨λ h, ext P Q (a_of_eq h) (b_of_eq h) (c_of_eq h) (d_of_eq h), congr_arg to_poly⟩
 
-@[simp] lemma of_a_eq_zero (ha : P.a = 0) : P.to_poly = C P.b * X ^ 2 + C P.c * X + C P.d :=
+lemma of_a_eq_zero (ha : P.a = 0) : P.to_poly = C P.b * X ^ 2 + C P.c * X + C P.d :=
 by rw [to_poly, ha, C_0, zero_mul, zero_add]
 
-@[simp] lemma of_a_eq_zero' : to_poly ⟨0, b, c, d⟩ = C b * X ^ 2 + C c * X + C d := of_a_eq_zero rfl
+lemma of_a_eq_zero' : to_poly ⟨0, b, c, d⟩ = C b * X ^ 2 + C c * X + C d := of_a_eq_zero rfl
 
-@[simp] lemma of_b_eq_zero (ha : P.a = 0) (hb : P.b = 0) : P.to_poly = C P.c * X + C P.d :=
+lemma of_b_eq_zero (ha : P.a = 0) (hb : P.b = 0) : P.to_poly = C P.c * X + C P.d :=
 by rw [of_a_eq_zero ha, hb, C_0, zero_mul, zero_add]
 
-@[simp] lemma of_b_eq_zero' : to_poly ⟨0, 0, c, d⟩ = C c * X + C d := of_b_eq_zero rfl rfl
+lemma of_b_eq_zero' : to_poly ⟨0, 0, c, d⟩ = C c * X + C d := of_b_eq_zero rfl rfl
 
-@[simp] lemma of_c_eq_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) : P.to_poly = C P.d :=
+lemma of_c_eq_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) : P.to_poly = C P.d :=
 by rw [of_b_eq_zero ha hb, hc, C_0, zero_mul, zero_add]
 
-@[simp] lemma of_c_eq_zero' : to_poly ⟨0, 0, 0, d⟩ = C d := of_c_eq_zero rfl rfl rfl
+lemma of_c_eq_zero' : to_poly ⟨0, 0, 0, d⟩ = C d := of_c_eq_zero rfl rfl rfl
 
-@[simp] lemma of_d_eq_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) (hd : P.d = 0) :
+lemma of_d_eq_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) (hd : P.d = 0) :
   P.to_poly = 0 :=
 by rw [of_c_eq_zero ha hb hc, hd, C_0]
 
-@[simp] lemma of_d_eq_zero' : (⟨0, 0, 0, 0⟩ : cubic R).to_poly = 0 := of_d_eq_zero rfl rfl rfl rfl
+lemma of_d_eq_zero' : (⟨0, 0, 0, 0⟩ : cubic R).to_poly = 0 := of_d_eq_zero rfl rfl rfl rfl
 
-@[simp] lemma zero : (0 : cubic R).to_poly = 0 := of_d_eq_zero'
+lemma zero : (0 : cubic R).to_poly = 0 := of_d_eq_zero'
 
-@[simp] lemma to_poly_eq_zero_iff (P : cubic R) : P.to_poly = 0 ↔ P = 0 :=
+lemma to_poly_eq_zero_iff (P : cubic R) : P.to_poly = 0 ↔ P = 0 :=
 by rw [← zero, to_poly_injective]
 
 private lemma ne_zero (h0 : P.a ≠ 0 ∨ P.b ≠ 0 ∨ P.c ≠ 0 ∨ P.d ≠ 0) : P.to_poly ≠ 0 :=

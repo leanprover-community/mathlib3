@@ -146,7 +146,7 @@ decidable_of_iff' _ prime_def_lt'
 
 theorem prime_two : prime 2 := dec_trivial
 
-lemma five_le_of_ne_two_of_ne_three {p : ℕ} (hp : p.prime) (h_two : p ≠ 2) (h_three : p ≠ 3) :
+lemma prime.five_le_of_ne_two_of_ne_three {p : ℕ} (hp : p.prime) (h_two : p ≠ 2) (h_three : p ≠ 3) :
   5 ≤ p :=
 begin
   by_contra' h,

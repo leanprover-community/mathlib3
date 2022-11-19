@@ -835,6 +835,14 @@ by { ext, simp }
 @[simp] lemma lower_set.supr_Iic (s : set α) : (⨆ a ∈ s, lower_set.Iic a) = lower_closure s :=
 by { ext, simp }
 
+lemma coe_upper_closure_eq_Union_Ici (s : set α) :
+  ↑(upper_closure s) = ⋃ a ∈ s, set.Ici a :=
+by simp_rw [← upper_set.infi_Ici, upper_set.coe_infi₂, upper_set.coe_Ici]
+
+lemma coe_lower_closure_eq_Union_Iic (s : set α) :
+  ↑(lower_closure s) = ⋃ a ∈ s, set.Iic a :=
+by simp_rw [← lower_set.supr_Iic, lower_set.coe_supr₂, lower_set.coe_Iic]
+
 lemma gc_upper_closure_coe :
   galois_connection (to_dual ∘ upper_closure : set α → (upper_set α)ᵒᵈ) (coe ∘ of_dual) :=
 λ s t, ⟨λ h, subset_upper_closure.trans $ upper_set.coe_subset_coe.2 h,

@@ -574,14 +574,13 @@ instance strict_ordered_ring.to_strict_ordered_semiring : strict_ordered_semirin
 @[reducible] -- See note [reducible non-instances]
 def strict_ordered_ring.to_ordered_ring' [@decidable_rel α (≤)] : ordered_ring α :=
 { mul_nonneg := λ a b ha hb, begin
-    cases decidable.eq_or_lt_of_le ha with ha ha,
+    obtain ha | ha := decidable.eq_or_lt_of_le ha,
     { rw [←ha, zero_mul] },
-    cases decidable.eq_or_lt_of_le hb with hb hb,
+    obtain hb | hb := decidable.eq_or_lt_of_le hb,
     { rw [←hb, mul_zero] },
-    { exact (mul_pos ha hb).le }
+    { exact (strict_ordered_ring.mul_pos _ _ ha hb).le }
   end,
   ..‹strict_ordered_ring α›,  ..ring.to_semiring }
-
 
 @[priority 100] -- see Note [lower instance priority]
 instance strict_ordered_ring.to_ordered_ring : ordered_ring α :=

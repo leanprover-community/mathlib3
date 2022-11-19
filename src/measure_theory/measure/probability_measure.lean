@@ -144,10 +144,8 @@ end
 lemma to_finite_measure_nonzero (μ : probability_measure Ω) :
   μ.to_finite_measure ≠ 0 :=
 begin
-  intro maybe_zero,
-  have mass_zero := (finite_measure.mass_zero_iff _).mpr maybe_zero,
-  rw μ.mass_to_finite_measure at mass_zero,
-  exact one_ne_zero mass_zero,
+  rw [←finite_measure.mass_nonzero_iff, μ.mass_to_finite_measure],
+  exact one_ne_zero,
 end
 
 variables [topological_space Ω] [opens_measurable_space Ω]
@@ -259,21 +257,20 @@ if zero : μ.mass = 0 then ⟨measure.dirac ‹nonempty Ω›.some, measure.dira
 
 @[simp] lemma self_eq_mass_mul_normalize (s : set Ω) : μ s = μ.mass * μ.normalize s :=
 begin
-  by_cases μ = 0,
-  { rw h,
-    simp only [zero.mass, coe_fn_zero, pi.zero_apply, zero_mul], },
+  obtain rfl|h := eq_or_ne μ 0,
+  { simp only [zero.mass, coe_fn_zero, pi.zero_apply, zero_mul], },
   have mass_nonzero : μ.mass ≠ 0, by rwa μ.mass_nonzero_iff,
-  simp only [(show μ ≠ 0, from h), mass_nonzero, normalize, not_false_iff, dif_neg],
-  change μ s = μ.mass * ((μ.mass)⁻¹ • μ) s,
-  rw coe_fn_smul_apply,
-  simp only [mass_nonzero, algebra.id.smul_eq_mul, mul_inv_cancel_left₀, ne.def, not_false_iff],
+  simp only [normalize, dif_neg mass_nonzero, ennreal.to_nnreal_mul, subtype.coe_mk,
+    probability_measure.coe_fn_eq_to_nnreal_coe_fn_to_measure, ennreal.to_nnreal_coe,
+    measure_theory.measure.coe_nnreal_smul_apply, mul_inv_cancel_left₀ mass_nonzero,
+    finite_measure.coe_fn_eq_to_nnreal_coe_fn_to_measure],
 end
 
 lemma self_eq_mass_smul_normalize : μ = μ.mass • μ.normalize.to_finite_measure :=
 begin
   ext s s_mble,
-  rw [μ.self_eq_mass_mul_normalize s, coe_fn_smul_apply],
-  refl,
+  rw [μ.self_eq_mass_mul_normalize s, coe_fn_smul_apply, smul_eq_mul,
+    probability_measure.coe_fn_comp_to_finite_measure_eq_coe_fn],
 end
 
 lemma normalize_eq_of_nonzero (nonzero : μ ≠ 0) (s : set Ω) :
@@ -304,8 +301,8 @@ end
 begin
   ext s s_mble,
   rw μ.to_finite_measure.normalize_eq_of_nonzero μ.to_finite_measure_nonzero s,
-  simp only [probability_measure.mass_to_finite_measure, inv_one, one_mul],
-  refl,
+  simp only [probability_measure.mass_to_finite_measure, inv_one, one_mul,
+    probability_measure.coe_fn_comp_to_finite_measure_eq_coe_fn],
 end
 
 /-- Averaging with respect to a finite measure is the same as integraing against
@@ -327,8 +324,7 @@ lemma test_against_nn_eq_mass_mul (f : Ω →ᵇ ℝ≥0) :
   μ.test_against_nn f = μ.mass * μ.normalize.to_finite_measure.test_against_nn f :=
 begin
   nth_rewrite 0 μ.self_eq_mass_smul_normalize,
-  rw μ.normalize.to_finite_measure.smul_test_against_nn_apply μ.mass f,
-  refl,
+  rw [μ.normalize.to_finite_measure.smul_test_against_nn_apply μ.mass f, smul_eq_mul],
 end
 
 lemma normalize_test_against_nn (nonzero : μ ≠ 0) (f : Ω →ᵇ ℝ≥0) :

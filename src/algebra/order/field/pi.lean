@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import algebra.order.field.basic
-import data.fintype.basic
+import data.fintype.lattice
 
 /-!
 # Lemmas about (finite domain) functions into fields.

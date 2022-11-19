@@ -137,12 +137,7 @@ end
 variables (α) {n}
 
 lemma cast_le_neg_one_or_one_le_cast_of_ne_zero (hn : n ≠ 0) : (n : α) ≤ -1 ∨ 1 ≤ (n : α) :=
-begin
-  rcases lt_trichotomy n 0 with h | rfl | h,
-  { exact or.inl (cast_le_neg_one_of_neg h), },
-  { contradiction, },
-  { exact or.inr (cast_one_le_of_pos h), },
-end
+hn.lt_or_lt.imp cast_le_neg_one_of_neg cast_one_le_of_pos
 
 variables {α} (n)
 

@@ -30,7 +30,19 @@ path.nil.cons e
 
 namespace path
 
-variables {V : Type u} [quiver V] {a b c : V}
+variables {V : Type u} [quiver V] {a b c d : V}
+
+lemma nil_ne_cons (p : path a b) (e : b ⟶ a) : path.nil ≠ p.cons e.
+lemma cons_ne_nil (p : path a b) (e : b ⟶ a) : p.cons e ≠ path.nil.
+
+lemma obj_eq_of_cons_eq_cons {p : path a b} {p' : path a c}
+  {e : b ⟶ d} {e' : c ⟶ d} (h : p.cons e = p'.cons e') : b = c := by injection h
+
+lemma heq_of_cons_eq_cons {p : path a b} {p' : path a c}
+  {e : b ⟶ d} {e' : c ⟶ d} (h : p.cons e = p'.cons e') : p == p' := by injection h
+
+lemma hom_heq_of_cons_eq_cons {p : path a b} {p' : path a c}
+  {e : b ⟶ d} {e' : c ⟶ d} (h : p.cons e = p'.cons e') : e == e' := by injection h
 
 /-- The length of a path is the number of arrows it uses. -/
 def length {a : V} : Π {b : V}, path a b → ℕ
@@ -47,6 +59,10 @@ instance {a : V} : inhabited (path a a) := ⟨path.nil⟩
 
 lemma eq_of_length_zero (p : path a b) (hzero : p.length = 0) : a = b :=
 by { cases p, { refl }, { cases nat.succ_ne_zero _ hzero } }
+
+lemma nil_of_length_zero (p : path a b) (hzero : p.length = 0) :
+  (eq_of_length_zero p hzero).rec_on p = path.nil :=
+by { induction p, { simp, }, { simp only [length_cons, nat.succ_ne_zero] at hzero, exact hzero.elim, } }
 
 /-- Composition of paths. -/
 def comp {a b : V} : Π {c}, path a b → path b c → path a c
@@ -163,3 +179,43 @@ def map_path {a : V} :
 lemma map_path_to_path {a b : V} (f : a ⟶ b) : F.map_path f.to_path = (F.map f).to_path := rfl
 
 end prefunctor
+
+namespace quiver
+
+variables {U : Type*} [quiver.{u+1} U]
+
+def path.cast {u v u' v' : U} (hu : u = u') (hv : v = v') (p : path u v) : path u' v' :=
+eq.rec (eq.rec p hv) hu
+
+lemma path.cast_eq_cast {u v u' v' : U} (hu : u = u') (hv : v = v') (p : path u v) :
+  p.cast hu hv = cast (by rw [hu, hv]) p:=
+eq.drec (eq.drec (eq.refl (path.cast (eq.refl u) (eq.refl v) p)) hu) hv
+
+@[simp] lemma path.cast_rfl_rfl {u v : U} (p : path u v) :
+  p.cast rfl rfl = p := rfl
+
+@[simp] lemma path.cast_cast {u v u' v' u'' v'' : U} (p : path u v)
+  (hu : u = u') (hv : v = v') (hu' : u' = u'') (hv' : v' = v'') :
+  (p.cast hu hv).cast hu' hv' = p.cast (hu.trans hu') (hv.trans hv') :=
+by { subst_vars, refl }
+
+@[simp] lemma path.cast_nil {u u' : U} (hu : u = u') : (path.nil : path u u).cast hu hu = path.nil :=
+by { subst_vars, refl }
+
+lemma path.cast_heq {u v u' v' : U} (hu : u = u') (hv : v = v') (p : path u v) :
+  p.cast hu hv == p :=
+by { rw path.cast_eq_cast, exact cast_heq _ _ }
+
+lemma path.cast_eq_iff_heq {u v u' v' : U} (hu : u = u') (hv : v = v')
+  (p : path u v) (p' : path u' v') : p.cast hu hv = p' ↔ p == p' :=
+by { rw path.cast_eq_cast, exact cast_eq_iff_heq }
+
+lemma path.eq_cast_iff_heq {u v u' v' : U} (hu : u = u') (hv : v = v')
+  (p : path u v) (p' : path u' v') : p' = p.cast hu hv ↔ p' == p :=
+⟨λ h, ((p.cast_eq_iff_heq hu hv p').1 h.symm).symm, λ h, ((p.cast_eq_iff_heq hu hv p').2 h.symm).symm⟩
+
+lemma path.cast_cons {u v w u' w' : U} (p : path u v) (e : v ⟶ w) (hu : u = u') (hw : w = w') :
+  (p.cons e).cast hu hw = (p.cast hu rfl).cons (e.cast rfl hw) :=
+by { subst_vars, refl }
+
+end quiver

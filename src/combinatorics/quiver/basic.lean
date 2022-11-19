@@ -158,7 +158,7 @@ inductive push_quiver {V : Type u} [quiver.{v} V] {W : Type u₂} (σ : V → W)
 instance : quiver (push σ) := ⟨λ X Y, push_quiver σ X Y⟩
 
 /-- The prefunctor induced by pushing arrows via `σ` -/
-def of : prefunctor V (push σ) :=
+def of : V ⥤q push σ :=
 { obj := σ,
   map := λ X Y f, push_quiver.arrow f}
 
@@ -168,17 +168,16 @@ variables {W' : Type*} [quiver W'] (φ : prefunctor V W') (τ : W → W') (h : �
 
 include φ h
 /-- Any map `φ : V → W'` factoring through `τ : W → W'` lifts to a prefunctor from `V` to `W`. -/
-def lift : prefunctor (push σ) W' :=
+def lift : push σ ⥤q W' :=
 { obj := τ,
   map := @push_quiver.rec V _ W σ
     (λ X Y f, τ X ⟶ τ Y)
-    (λ X Y f, by {rw [←h X,←h Y], exact φ.map f}) }
+    (λ X Y f, by { rw [←h X, ←h Y], exact φ.map f, }) }
 
 lemma lift_spec_obj : (lift σ φ τ h).obj = τ := rfl
 
 lemma lift_spec_comm : of σ ⋙q lift σ φ τ h = φ :=
 begin
-  dsimp only [of,lift],
   fapply prefunctor.ext,
   { rintros, simp only [prefunctor.comp_obj], symmetry, exact h X, },
   { rintros _ _ f, simp only [prefunctor.comp_map],
@@ -189,7 +188,7 @@ begin
     refl, },
 end
 
-lemma lift_unique (Φ : (push σ) ⥤q W') (Φ₀ : Φ.obj = τ) (Φcomm : of σ ⋙q Φ = φ) :
+lemma lift_unique (Φ : push σ ⥤q W') (Φ₀ : Φ.obj = τ) (Φcomm : of σ ⋙q Φ = φ) :
   Φ = lift σ φ τ h :=
 begin
   dsimp only [of,lift],
@@ -201,42 +200,5 @@ end
 end push
 
 end push
-
-section cast
-/-!
-### Rewriting arrows along equalities of vertices
--/
-
-variables {U : Type*} [quiver.{u+1} U]
-
-/-- Change the endpoints of an arrow using equalities. -/
-def hom.cast {u v u' v' : U} (hu : u = u') (hv : v = v') (e : u ⟶ v) : u' ⟶ v' :=
-eq.rec (eq.rec e hv) hu
-
-lemma hom.cast_eq_cast {u v u' v' : U} (hu : u = u') (hv : v = v') (e : u ⟶ v) :
-  e.cast hu hv = cast (by rw [hu, hv]) e :=
-eq.drec (eq.drec (eq.refl (hom.cast (eq.refl u) (eq.refl v) e)) hu) hv
-
-@[simp] lemma hom.cast_rfl_rfl {u v : U} (e : u ⟶ v) :
-  e.cast rfl rfl = e := rfl
-
-@[simp] lemma hom.cast_cast {u v u' v' u'' v'' : U} (e : u ⟶ v)
-  (hu : u = u') (hv : v = v') (hu' : u' = u'') (hv' : v' = v'') :
-  (e.cast hu hv).cast hu' hv' = e.cast (hu.trans hu') (hv.trans hv') :=
-by { subst_vars, refl }
-
-lemma hom.cast_heq {u v u' v' : U} (hu : u = u') (hv : v = v') (e : u ⟶ v) :
-  e.cast hu hv == e :=
-by { rw hom.cast_eq_cast, exact cast_heq _ _ }
-
-lemma hom.cast_eq_iff_heq {u v u' v' : U} (hu : u = u') (hv : v = v')
-  (e : u ⟶ v) (e' : u' ⟶ v') : e.cast hu hv = e' ↔ e == e' :=
-by { rw hom.cast_eq_cast, exact cast_eq_iff_heq }
-
-lemma hom.eq_cast_iff_heq {u v u' v' : U} (hu : u = u') (hv : v = v')
-  (e : u ⟶ v) (e' : u' ⟶ v') : e' = e.cast hu hv ↔ e' == e :=
-⟨λ h, ((e.cast_eq_iff_heq hu hv e').1 h.symm).symm, λ h, ((e.cast_eq_iff_heq hu hv e').2 h.symm).symm⟩
-
-end cast
 
 end quiver

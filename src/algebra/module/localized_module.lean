@@ -32,7 +32,11 @@ Given a commutative ring `R`, a multiplicative subset `S ⊆ R` and an `R`-modul
   by `S`.
 * `localized_module.is_module` : `localized_module M S` is a `localization S`-module.
 * `submodule.localized`: The localization of a submodule as a submodule of `localized_module M S`.
+* `is_localized_module.base_change`: If `N` is an `S⁻¹R`-module, then a map `M →ₗ[R] N` can be
+  descended into `S⁻¹M →ₗ[S⁻¹R] N`. This is bundled into an `R`-linear map in
+  `is_localized_module.base_change_linear_map`.
 * `localized_module.map`: The map `S⁻¹M →ₗ[S⁻¹R] S⁻¹ N` obtained from a linear map `M →ₗ[R] N`.
+  This is bundled as an `R`-linear map.
 
 ## Future work
 

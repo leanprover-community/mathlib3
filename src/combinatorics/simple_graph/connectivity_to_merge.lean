@@ -4,13 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
 import combinatorics.simple_graph.connectivity
+import combinatorics.simple_graph.acyclic
 /-!
 
 # Graph connectivity
 
 ## Main definitions
 
-* `simple_graph.is_acyclic` and `simple_graph.is_tree`
 
 * `simple_graph.edge_connected` for k-edge-connectivity of a graph
 
@@ -46,13 +46,52 @@ namespace walk
 variables {G} [decidable_eq V]
 
 /-- Whether or not the path `p` is a prefix of the path `q`. -/
-def prefix_of : Π {u v w : V} (p : G.walk u v) (q : G.walk u w), Prop
+def prefix_of {u v w : V} (p : G.walk u v) (q : G.walk u w) := ∃ (r : G.walk v w), p.append r = q
+
+@[simp] lemma prefix_of_nil {u v : V} (q : G.walk u v) : (nil : G.walk u u).prefix_of q := ⟨q, rfl⟩
+
+@[simp] lemma prefix_of_cons_nil {u v w : V} (h : G.adj u v) (p : G.walk v w) :
+  ¬ (cons h p).prefix_of (nil : G.walk u u) :=
+by rintro ⟨r, -, -⟩
+
+@[simp] lemma prefix_of_cons_cons {u v v' w x : V}
+  (h : G.adj u v) (p : G.walk v w) (h' : G.adj u v') (q : G.walk v' x) :
+  (cons h p).prefix_of (cons h' q) ↔ ∃ (hv : v = v'), (p.copy hv rfl).prefix_of q :=
+begin
+  split,
+  { rintro ⟨r, hr⟩,
+    rw [cons_append] at hr,
+    unify_equations hr,
+    use [rfl, r],
+    refl, },
+  { rintro ⟨rfl, r, rfl⟩,
+    use [r],
+    refl, }
+end
+
+def prefix_of' : Π {u v w : V} (p : G.walk u v) (q : G.walk u w), bool
 | u v w nil _ := true
 | u v w (cons _ _) nil := false
 | u v w (cons' _ x _ r p) (@cons _ _ _ y _ s q) :=
   if h : x = y
-  then by { subst y, exact prefix_of p q }
+  then by { subst y, exact prefix_of' p q }
   else false
+
+instance {u v w : V} (p : G.walk u v) (q : G.walk u w) : decidable (p.prefix_of q) :=
+decidable_of_bool (p.prefix_of' q)
+begin
+  induction p generalizing q,
+  { simp [prefix_of'], },
+  { cases q,
+    { simp [prefix_of'], },
+    { simp only [prefix_of', to_bool_false_eq_ff, prefix_of_cons_cons],
+      split_ifs,
+      { cases h,
+        simp [p_ih], },
+      { simp only [coe_sort_ff, false_iff, not_exists],
+        rintro rfl,
+        exact absurd rfl h, }, } }
+end
 
 end walk
 
@@ -109,13 +148,6 @@ let C' := h ∅ (by simp) (by simp [hk]) in
 
 variables (G)
 
-/-- A graph is *acyclic* (or a *forest*) if it has no cycles.
-
-A characterization: `simple_graph.is_acyclic_iff`.-/
-def is_acyclic : Prop := ∀ (v : V) (c : G.walk v v), ¬c.is_cycle
-
-/-- A *tree* is a connected acyclic graph. -/
-def is_tree : Prop := G.connected ∧ G.is_acyclic
 
 namespace subgraph
 variables {G} (H : subgraph G)
@@ -133,184 +165,15 @@ def is_bridge (v w : V) : Prop :=
 
 end subgraph
 
-/-- An edge of a graph is a bridge if, after removing it, its incident vertices
-are no longer reachable.
-
-Characterizations of bridges:
-`simple_graph.is_bridge_iff_walks_contain`
-`is_bridge_iff_no_cycle_contains` -/
-def is_bridge (v w : V) : Prop := ¬ (G.delete_edges {⟦(v, w)⟧}).reachable v w
-
-lemma is_bridge_iff_forall_walk_mem_edges {v w : V} :
-  G.is_bridge v w ↔ ∀ (p : G.walk v w), ⟦(v, w)⟧ ∈ p.edges :=
-begin
-  refine ⟨λ hb p, _, _⟩,
-  { by_contra he,
-    exact hb ⟨p.to_delete_edge _ he⟩ },
-  { rintro hpe ⟨p'⟩,
-    specialize hpe (p'.map (hom.map_spanning_subgraphs (G.delete_edges_le _))),
-    simp only [set_coe.exists, walk.edges_map, list.mem_map] at hpe,
-    obtain ⟨z, he, hd⟩ := hpe,
-    simp only [hom.map_spanning_subgraphs, rel_hom.coe_fn_mk, sym2.map_id', id.def] at hd,
-    simpa [hd] using p'.edges_subset_edge_set he }
-end
-
-
-
-lemma is_bridge_iff_no_cycle_contains.aux1 [decidable_eq V]
-  {u v w : V}
-  (hb : ∀ (p : G.walk v w), ⟦(v, w)⟧ ∈ p.edges)
-  (c : G.walk u u)
-  (hc : c.is_trail)
-  (he : ⟦(v, w)⟧ ∈ c.edges)
-  (hw : w ∈ (c.take_until v (c.fst_mem_support_of_mem_edges he)).support) :
-  false :=
-begin
-  have hv := c.fst_mem_support_of_mem_edges he,
-  -- decompose c into
-  --      puw     pwv     pvu
-  --   u ----> w ----> v ----> u
-  let puw := (c.take_until v hv).take_until w hw,
-  let pwv := (c.take_until v hv).drop_until w hw,
-  let pvu := c.drop_until v hv,
-  have : c = (puw.append pwv).append pvu := by simp,
-  -- We have two walks from v to w
-  --      pvu     puw
-  --   v ----> u ----> w
-  --   |               ^
-  --    `-------------'
-  --      pwv.reverse
-  -- so they both contain the edge ⟦(v, w)⟧, but that's a contradiction since c is a trail.
-  have hbq := hb (pvu.append puw),
-  have hpq' := hb pwv.reverse,
-  rw [walk.edges_reverse, list.mem_reverse] at hpq',
-  rw [walk.is_trail_def, this, walk.edges_append, walk.edges_append,
-      list.nodup_append_comm, ← list.append_assoc, ← walk.edges_append] at hc,
-  exact list.disjoint_of_nodup_append hc hbq hpq',
-end
-
-lemma is_bridge_iff_no_cycle_contains {v w : V} (h : G.adj v w) :
-  G.is_bridge v w ↔ ∀ {u : V} (p : G.walk u u), p.is_cycle → ⟦(v, w)⟧ ∉ p.edges :=
-begin
-  classical,
-  split,
-  { intros hb u c hc he,
-    rw is_bridge_iff_forall_walk_mem_edges at hb,
-    have hvc : v ∈ c.support := walk.fst_mem_support_of_mem_edges c he,
-    have hwc : w ∈ c.support := walk.snd_mem_support_of_mem_edges c he,
-    let puv := c.take_until v hvc,
-    let pvu := c.drop_until v hvc,
-    obtain (hw | hw') : w ∈ puv.support ∨ w ∈ pvu.support,
-    { rwa [← walk.mem_support_append_iff, walk.take_spec] },
-    { exact is_bridge_iff_no_cycle_contains.aux1 G hb c hc.to_trail he hw },
-    { have hb' : ∀ (p : G.walk w v), ⟦(w, v)⟧ ∈ p.edges,
-      { intro p,
-        simpa [sym2.eq_swap] using hb p.reverse, },
-      apply is_bridge_iff_no_cycle_contains.aux1 G hb' (pvu.append puv)
-        (hc.to_trail.rotate hvc) _ (walk.start_mem_support _),
-      rwa [walk.edges_append, list.mem_append, or_comm, ← list.mem_append,
-           ← walk.edges_append, walk.take_spec, sym2.eq_swap], } },
-  { rw is_bridge_iff_forall_walk_mem_edges,
-    intros hc p,
-    by_contra hne,
-    apply hc (walk.cons h.symm p.to_path),
-    { apply path.cons_is_cycle,
-      rw sym2.eq_swap,
-      intro h,
-      exact absurd (walk.edges_to_path_subset p h) hne, },
-    simp only [sym2.eq_swap, walk.edges_cons, list.mem_cons_iff, eq_self_iff_true, true_or], },
-end
-
-lemma is_acyclic_iff_all_bridges : G.is_acyclic ↔ ∀ {v w : V}, G.adj v w → G.is_bridge v w :=
-begin
-  split,
-  { intros ha v w hvw,
-    rw is_bridge_iff_no_cycle_contains _ hvw,
-    intros u p hp,
-    exact absurd hp (ha _ p), },
-  { rintros hb v (_ | @⟨_, _, _, ha, p⟩) hp,
-    { exact hp.not_of_nil },
-    { specialize hb ha,
-      rw is_bridge_iff_no_cycle_contains _ ha at hb,
-      apply hb _ hp,
-      rw [walk.edges_cons],
-      apply list.mem_cons_self } },
-end
-
-lemma unique_path_of_is_acyclic (h : G.is_acyclic) {v w : V} (p q : G.path v w) : p = q :=
-begin
-  obtain ⟨p, hp⟩ := p,
-  obtain ⟨q, hq⟩ := q,
-  simp only,
-  induction p with u pu pv pw ph p ih generalizing q,
-  { cases q,
-    { refl },
-    { simpa [walk.is_path_def] using hq, } },
-  { rw is_acyclic_iff_all_bridges at h,
-    specialize h ph,
-    rw is_bridge_iff_forall_walk_mem_edges at h,
-    specialize h (q.append p.reverse),
-    simp only [walk.edges_append, walk.edges_reverse, list.mem_append, list.mem_reverse] at h,
-    cases h,
-    { cases q,
-      { simpa [walk.is_path_def] using hp },
-      { rw walk.cons_is_path_iff at hp hq,
-        simp only [walk.edges_cons, list.mem_cons_iff, sym2.eq_iff] at h,
-        obtain (⟨h,rfl⟩ | ⟨rfl,rfl⟩) | h := h,
-        { rw [ih hp.1 _ hq.1] },
-        { simpa using hq },
-        { exact absurd (walk.fst_mem_support_of_mem_edges _ h) hq.2 } } },
-    { rw walk.cons_is_path_iff at hp,
-      exact absurd (walk.fst_mem_support_of_mem_edges _ h) hp.2 } }
-end
-
-lemma is_acyclic_of_unique_path (h : ∀ (v w : V) (p q : G.path v w), p = q) : G.is_acyclic :=
-begin
-  intros v c hc,
-  simp only [walk.is_cycle_def, ne.def] at hc,
-  cases c,
-  { exact absurd rfl hc.2.1 },
-  { simp only [walk.cons_is_trail_iff, not_false_iff, walk.support_cons,
-      list.tail_cons, true_and] at hc,
-    specialize h _ _ ⟨c_p, by simp only [walk.is_path_def, hc.2]⟩ (path.singleton (G.symm c_h)),
-    simp only [path.singleton] at h,
-    simpa [-quotient.eq, sym2.eq_swap, h] using hc },
-end
-
-lemma is_acyclic_iff : G.is_acyclic ↔ ∀ (v w : V) (p q : G.path v w), p = q :=
-⟨unique_path_of_is_acyclic _, is_acyclic_of_unique_path _⟩
-
-lemma is_tree_iff : G.is_tree ↔ nonempty V ∧ ∀ (v w : V), ∃!(p : G.walk v w), p.is_path :=
-begin
-  classical,
-  simp only [is_tree, is_acyclic_iff],
-  split,
-  { rintro ⟨hc, hu⟩,
-    refine ⟨hc.nonempty, _⟩,
-    intros v w,
-    let q := (hc.1 v w).some.to_path,
-    use q,
-    simp only [true_and, path.is_path],
-    intros p hp,
-    specialize hu v w ⟨p, hp⟩ q,
-    simp only [←hu, subtype.coe_mk], },
-  { rintro ⟨hV, h⟩,
-    refine ⟨@connected.mk V _ _ hV, _⟩,
-    { intros v w,
-      obtain ⟨p, hp⟩ := h v w,
-      use p, },
-    { rintros v w ⟨p, hp⟩ ⟨q, hq⟩,
-      simp only [unique_of_exists_unique (h v w) hp hq] } },
-end
-
 /-- Get the unique path between two vertices in the tree. -/
 noncomputable abbreviation tree_path (h : G.is_tree) (v w : V) : G.path v w :=
-⟨((G.is_tree_iff.mp h).2 v w).some, ((G.is_tree_iff.mp h).2 v w).some_spec.1⟩
+⟨((is_tree_iff_exists_unique_path.mp h).2 v w).some,
+  ((is_tree_iff_exists_unique_path.mp h).2 v w).some_spec.1⟩
 
 lemma tree_path_spec {h : G.is_tree} {v w : V} (p : G.path v w) : p = G.tree_path h v w :=
 begin
   cases p,
-  have := ((G.is_tree_iff.mp h).2 v w).some_spec,
+  have := ((is_tree_iff_exists_unique_path.mp h).2 v w).some_spec,
   simp only [this.2 p_val p_property],
 end
 
@@ -339,8 +202,8 @@ begin
   rw sym2.eq_swap at hwv,
   have hv := walk.fst_mem_support_of_mem_edges _ hwv,
   have h' := h.2,
-  rw is_acyclic_iff at h',
-  specialize h' _ _
+  rw is_acyclic_iff_path_unique at h',
+  specialize h'
     (G.tree_path h v root)
     ⟨walk.drop_until _ _ hv, walk.is_path.drop_until _ (path.is_path _) _⟩,
   have hs := congr_arg (λ p, multiset.count w ↑(walk.support p)) (walk.take_spec _ hv),
@@ -370,7 +233,7 @@ lemma is_rootward_or_reverse (h : G.is_tree) (root : V) {v w : V} (hvw : G.adj v
 begin
   classical,
   have h' := h.2,
-  rw is_acyclic_iff at h',
+  rw is_acyclic_iff_path_unique at h',
   by_contra hr,
   simp only [is_rootward] at hr,
   push_neg at hr,
@@ -379,7 +242,7 @@ begin
   specialize hrw (G.symm hvw),
   let p := (G.tree_path h v root : G.walk v root).append
            (G.tree_path h w root : G.walk w root).reverse,
-  specialize h' _ _ (path.singleton hvw) p.to_path,
+  specialize h' (path.singleton hvw) p.to_path,
   have hp := walk.edges_to_path_subset p,
   rw [←h', walk.edges_append, walk.edges_reverse] at hp,
   specialize hp (path.singleton_edge_mem hvw),

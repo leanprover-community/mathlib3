@@ -153,6 +153,17 @@ lemma edges_to_delete_edges {u v : V} {p : G.walk u v} (s : set (sym2 V))
   (p.to_delete_edges s hs).edges = p.edges :=
 by induction p; simp [-quotient.eq, *]
 
+local attribute [-simp] walk.to_delete_edges
+
+@[simp] lemma walk.to_delete_edges_nil (s : set (sym2 V))
+  {v : V} (hp) :
+  (walk.nil : G.walk v v).to_delete_edges s hp = walk.nil := rfl
+
+@[simp] lemma walk.to_delete_edges_cons (s : set (sym2 V))
+  {u v w : V} (h : G.adj u v) (p : G.walk v w) (hp) :
+  (walk.cons h p).to_delete_edges s hp =
+    walk.cons ⟨h, hp _ (or.inl rfl)⟩ (p.to_delete_edges s $ λ e he, hp e $ or.inr he) := rfl
+
 @[simp]
 lemma length_to_delete_edges {u v : V} {p : G.walk u v} (s : set (sym2 V))
   (hs : ∀ e, e ∈ p.edges → ¬ e ∈ s) :

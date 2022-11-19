@@ -1088,15 +1088,14 @@ section with_param
 
 variables [is_R_or_C 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 E'] [normed_space 𝕜 E'']
 [normed_space ℝ F] [normed_space 𝕜 F] [complete_space F] [measurable_space G]
-[normed_add_comm_group G] [borel_space G] [normed_space 𝕜 G] [normed_space 𝕜 P]
+[normed_add_comm_group G] [borel_space G] [normed_space 𝕜 G]
 {μ : measure G} (L : E →L[𝕜] E' →L[𝕜] F)
 
 /-- The convolution `f * g` is continuous if `f` is locally integrable and `g` is continuous and
 compactly supported. Version where `g` depends on an additional parameter in a subset `s` of
 a parameter space `P` (and the compact support `k` is independent of the parameter in `s`). -/
 lemma continuous_on_convolution_right_with_param
-  {g : P → G → E'}
-  {s : set P} {k : set G} (hk : is_compact k)
+  {g : P → G → E'} {s : set P} {k : set G} (hk : is_compact k)
   (hgs : ∀ p, ∀ x, p ∈ s → x ∉ k → g p x = 0)
   (hf : locally_integrable f μ) (hg : continuous_on (↿g) (s ×ˢ univ)) :
   continuous_on (λ (q : P × G), (f ⋆[L, μ] g q.1) q.2) (s ×ˢ univ) :=
@@ -1108,14 +1107,10 @@ begin
   { assume p hp,
     apply hg.comp_continuous (continuous_const.prod_mk continuous_id') (λ x, _),
     simpa only [prod_mk_mem_set_prod_eq, mem_univ, and_true] using hp },
-  have A' : ∀ (q : P × G), q.1 ∈ s → s ×ˢ univ ∈ 𝓝[s ×ˢ univ] q,
-  sorry { assume q hq,
-    apply (hs.prod is_open_univ).mem_nhds,
-    simpa only [mem_prod, mem_univ, and_true] using hq },
   /- Exclude the trivial case where the space is not finite-dimensional: then `g` has to be zero
   along `s`, so the conclusion is trivial. -/
   by_cases fin_dim : finite_dimensional 𝕜 G, swap,
-  sorry, /-{ have B : ∀ p ∈ s, ∀ x, g p x = 0,
+  { have B : ∀ p ∈ s, ∀ x, g p x = 0,
     { assume p hp,
       have : has_compact_support (g p),
         from has_compact_support.intro hk (λ x hx, hgs p x hp hx),
@@ -1123,7 +1118,7 @@ begin
       { exact funext_iff.1 h },
       { exact (fin_dim h).elim } },
     have C : (λ (q : P × G), (f ⋆[L, μ] g q.1) q.2) =ᶠ[𝓝[s ×ˢ univ] q₀] (λ y, 0),
-    { filter_upwards [A' q₀ hq₀],
+    { filter_upwards [self_mem_nhds_within],
       rintros ⟨p, x⟩ ⟨hp, hx⟩,
       have : g p = 0,
       { ext1 x, apply B p hp x },
@@ -1131,14 +1126,14 @@ begin
     refine continuous_within_at.congr_of_eventually_eq continuous_within_at_const C _,
     have : g q₀.1 = 0,
     { ext1 x, apply B q₀.1 hq₀ x },
-    simp only [this, convolution_zero, pi.zero_apply] }, -/
+    simp only [this, convolution_zero, pi.zero_apply] },
   resetI,
   haveI : proper_space G, from finite_dimensional.proper_is_R_or_C 𝕜 G,
     /- We find a small neighborhood of `{q₀.1} × k` on which the function is uniformly bounded.
     This follows from the continuity at all points of the compact set `k`. -/
   obtain ⟨ε, C, εpos, Cnonneg, hε⟩ :
     ∃ ε C, 0 < ε ∧ 0 ≤ C ∧ ∀ p x, p ∈ ball q₀.1 ε ∩ s → ‖g p x‖ ≤ C,
-  sorry, /- { have A : is_compact ({q₀.1} ×ˢ k), from is_compact_singleton.prod hk,
+  { have A : is_compact ({q₀.1} ×ˢ k), from is_compact_singleton.prod hk,
     obtain ⟨t, kt, t_open, ht⟩ :
       ∃ t, {q₀.1} ×ˢ k ⊆ t ∧ is_open t ∧ bounded (↿g '' (t ∩ s ×ˢ univ)),
     { apply exists_is_open_bounded_image_inter_of_is_compact_of_continuous_on A _ hg,
@@ -1164,10 +1159,10 @@ begin
       rwa mem_closed_ball_zero_iff at this },
     { have : g p x = 0, from hgs _ _ hps hx,
       rw this,
-      simpa only [norm_zero] using Cpos.le } }, -/
+      simpa only [norm_zero] using Cpos.le } },
   have I1 : ∀ᶠ (q : P × G) in 𝓝[s ×ˢ univ] q₀,
     ae_strongly_measurable (λ (a : G), L (f a) (g q.1 (q.2 - a))) μ,
-  sorry { filter_upwards [A' q₀ hq₀],
+  { filter_upwards [self_mem_nhds_within],
     rintros ⟨p, x⟩ ⟨hp, hx⟩,
     exact hf.ae_strongly_measurable.convolution_integrand_snd' L
       ((A p hp).ae_strongly_measurable) },
@@ -1176,7 +1171,7 @@ begin
   let bound : G → ℝ := indicator K' (λ a, ‖L‖ * ‖f a‖ * C),
   have I2 : ∀ᶠ (q : P × G) in 𝓝[s ×ˢ univ] q₀, ∀ᵐ (a : G) ∂μ,
     ‖L (f a) (g q.1 (q.2 - a))‖ ≤ bound a,
-  sorry, /-{ have : ((ball q₀.1 ε ∩ s) ×ˢ ball q₀.2 ε : set (P × G)) ∈ 𝓝[s ×ˢ univ] q₀,
+  { have : ((ball q₀.1 ε ∩ s) ×ˢ ball q₀.2 ε : set (P × G)) ∈ 𝓝[s ×ˢ univ] q₀,
     { conv_rhs { rw [← @prod.mk.eta _ _ q₀, nhds_within_prod_eq, nhds_within_univ] },
       refine filter.prod_mem_prod _ (ball_mem_nhds _ εpos),
       exact mem_nhds_within.2 ⟨ball q₀.1 ε, is_open_ball, mem_ball_self εpos, subset.rfl⟩ },
@@ -1199,24 +1194,26 @@ begin
       simp only [this, bound, norm_zero, mul_zero],
       apply indicator_nonneg,
       assume a ha,
-      positivity } },-/
+      positivity } },
   have I3 : integrable bound μ,
   { rw [integrable_indicator_iff hK'.measurable_set],
     exact ((hf hK').norm.const_mul _).mul_const _ },
-  have I4 : ∀ᵐ (a : G) ∂μ, continuous_at (λ (q : P × G), L (f a) (g q.1 (q.2 - a))) q₀,
-  sorry { apply eventually_of_forall (λ a, _),
-    suffices H : continuous_at (λ (q : P × G), (f a, g q.1 (q.2 - a))) q₀,
-      from L.continuous₂.continuous_at.comp H,
-    apply continuous_at_const.prod,
-    change continuous_at (λ (q : P × G), ↿g (q.1, q.2 - a)) q₀,
-    have : continuous_at (λ (q : P × G), (q.1, q.2 - a)) q₀,
+  have I4 : ∀ᵐ (a : G) ∂μ, continuous_within_at (λ (q : P × G), L (f a) (g q.1 (q.2 - a)))
+    (s ×ˢ univ) q₀,
+  { apply eventually_of_forall (λ a, _),
+    suffices H : continuous_within_at (λ (q : P × G), (f a, g q.1 (q.2 - a))) (s ×ˢ univ) q₀,
+      from L.continuous₂.continuous_at.comp_continuous_within_at H,
+    apply continuous_within_at_const.prod,
+    change continuous_within_at (λ (q : P × G), ↿g (q.1, q.2 - a)) (s ×ˢ univ) q₀,
+    have : continuous_at (λ (q : P × G), (q.1, q.2 - a)) (q₀.1, q₀.2),
       from (continuous_fst.prod_mk (continuous_snd.sub continuous_const)).continuous_at,
-    apply continuous_at.comp _ this,
-    exact (hg.continuous_at (A' (q₀.fst, q₀.snd - a) hq₀)) },
+    rw ← @prod.mk.eta _ _ q₀,
+    have h'q₀ : (q₀.1, q₀.2 - a) ∈ (s ×ˢ univ : set (P × G)) := ⟨hq₀, mem_univ _⟩,
+    refine continuous_within_at.comp (hg _ h'q₀) this.continuous_within_at _,
+    rintros ⟨q, x⟩ ⟨hq, hx⟩,
+    exact ⟨hq, mem_univ _⟩ },
   exact continuous_within_at_of_dominated I1 I2 I3 I4,
 end
-
-#exit
 
 variables [normed_space 𝕜 P] [sigma_finite μ] [is_add_left_invariant μ]
 
@@ -1410,7 +1407,7 @@ lemma cont_diff_on_convolution_right_with_param_aux
 begin
   unfreezingI { induction n using enat.nat_induction with n ih ih generalizing g E' F },
   { rw [cont_diff_on_zero] at hg ⊢,
-    refine continuous_on_convolution_right_with_param L hs hk hgs hf hg },
+    refine continuous_on_convolution_right_with_param L hk hgs hf hg },
   { let f' : P → G → (P × G →L[𝕜] F) := λ p a,
       (f ⋆[L.precompR (P × G), μ] (λ (x : G), fderiv 𝕜 (uncurry g) (p, x))) a,
     have A : ∀ (q₀ : P × G), q₀.1 ∈ s →

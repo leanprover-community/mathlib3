@@ -91,6 +91,103 @@ section weierstrass
 noncomputable def weierstrass_polynomial : K[X][X] :=
 X ^ 2 + C (C ↑E.a₁ * X) * X + C (C ↑E.a₃) * X - C (X ^ 3 + C ↑E.a₂ * X ^ 2 + C ↑E.a₄ * X + C ↑E.a₆)
 
+lemma weierstrass_polynomial_eq :
+  E.weierstrass_polynomial K
+    = cubic.to_poly
+      ⟨0, 1, cubic.to_poly ⟨0, 0, ↑E.a₁, ↑E.a₃⟩, cubic.to_poly ⟨-1, -↑E.a₂, -↑E.a₄, -↑E.a₆⟩⟩ :=
+by { simp only [weierstrass_polynomial, cubic.to_poly, C_0, C_1, C_neg, C_add, C_mul], ring1 }
+
+lemma weierstrass_polynomial_ne_zero [nontrivial K] : E.weierstrass_polynomial K ≠ 0 :=
+by { rw [weierstrass_polynomial_eq], exact cubic.ne_zero_of_b_ne_zero one_ne_zero }
+
+lemma weierstrass_polynomial_degree [nontrivial K] : (E.weierstrass_polynomial K).degree = 2 :=
+by simpa only [weierstrass_polynomial_eq] using cubic.degree_of_b_ne_zero' one_ne_zero
+
+lemma weierstrass_polynomial_not_is_unit [nontrivial K] [no_zero_divisors K] :
+  ¬is_unit (E.weierstrass_polynomial K) :=
+begin
+  rintro ⟨⟨p, _, h, _⟩, rfl : p = _⟩,
+  apply_fun degree at h,
+  rw [degree_mul, weierstrass_polynomial_degree, degree_one, nat.with_bot.add_eq_zero_iff] at h,
+  exact two_ne_zero (with_bot.coe_eq_zero.mp h.left)
+end
+
+lemma weierstrass_polynomial_irreducible [nontrivial K] [no_zero_divisors K] :
+  irreducible $ E.weierstrass_polynomial K :=
+⟨E.weierstrass_polynomial_not_is_unit K, λ f g h,
+begin
+  set f1 : K[X] := f.leading_coeff,
+  set f0 : K[X] := f.coeff 0,
+  set g1 : K[X] := g.leading_coeff,
+  set g0 : K[X] := g.coeff 0,
+  symmetry' at h,
+  have hdegree := congr_arg degree h,
+  rw [degree_mul, weierstrass_polynomial_degree, nat.with_bot.add_eq_two_iff] at hdegree,
+  rcases hdegree with (⟨hf, hg⟩ | ⟨hf, hg⟩ | ⟨hf, hg⟩),
+  { apply_fun C ∘ leading_coeff at h,
+    rw [function.comp_apply, leading_coeff_mul, C_mul, eq_C_of_degree_eq_zero hf, leading_coeff_C,
+        ← eq_C_of_degree_eq_zero hf, function.comp_apply, weierstrass_polynomial_eq,
+        cubic.leading_coeff_of_a_eq_zero] at h,
+    { exact or.inl ⟨⟨f, C g1, h, by rwa [mul_comm]⟩, rfl⟩ },
+    { refl },
+    { exact one_ne_zero } },
+  { have to_poly : f * g = cubic.to_poly ⟨0, f1 * g1, f1 * g0 + f0 * g1, f0 * g0⟩ :=
+    begin
+      conv_lhs { rw [eq_X_add_C_of_degree_eq_one hf, eq_X_add_C_of_degree_eq_one hg] },
+      simp only [cubic.to_poly, C_0, C_add, C_mul],
+      ring1
+    end,
+    simp only [weierstrass_polynomial_eq, to_poly, cubic.to_poly_injective] at h,
+    rcases h with ⟨_, h11, h10, h00⟩,
+    apply_fun degree at h11 h10 h00,
+    rw [degree_mul, degree_one, nat.with_bot.add_eq_zero_iff] at h11,
+    rw [degree_mul, cubic.degree, nat.with_bot.add_eq_three_iff] at h00,
+    { rcases h00 with (⟨hf0, hg0⟩ | ⟨hf0, hg0⟩ | ⟨hf0, hg0⟩ | ⟨hf0, hg0⟩),
+      { have h01 : 3 = (f1 * g0 + f0 * g1).degree :=
+        begin
+          rw [degree_add_eq_left_of_degree_lt],
+          all_goals { simp only [degree_mul, h11.left, h11.right, hf0, hg0, zero_add] },
+          exact with_bot.coe_lt_coe.mpr zero_lt_three
+        end,
+        linarith only [with_bot.coe_le_coe.mp $ le_of_eq_of_le h01 $ le_of_eq_of_le h10 $
+                        cubic.degree_of_b_eq_zero _ rfl rfl] },
+      { have h01 : 2 = (f1 * g0 + f0 * g1).degree :=
+        begin
+          rw [degree_add_eq_left_of_degree_lt],
+          all_goals { simp only [degree_mul, h11.left, h11.right, hf0, hg0, zero_add, add_zero] },
+          exact with_bot.coe_lt_coe.mpr one_lt_two
+        end,
+        linarith only [with_bot.coe_le_coe.mp $ le_of_eq_of_le h01 $ le_of_eq_of_le h10 $
+                        cubic.degree_of_b_eq_zero _ rfl rfl] },
+      { have h01 : 2 = (f1 * g0 + f0 * g1).degree :=
+        begin
+          rw [degree_add_eq_right_of_degree_lt],
+          all_goals { simp only [degree_mul, h11.left, h11.right, hf0, hg0, zero_add, add_zero] },
+          exact with_bot.coe_lt_coe.mpr one_lt_two
+        end,
+        linarith only [with_bot.coe_le_coe.mp $ le_of_eq_of_le h01 $ le_of_eq_of_le h10 $
+                        cubic.degree_of_b_eq_zero _ rfl rfl] },
+      { have h01 : 3 = (f1 * g0 + f0 * g1).degree :=
+        begin
+          rw [degree_add_eq_right_of_degree_lt],
+          all_goals { simp only [degree_mul, h11.left, h11.right, hf0, hg0, add_zero] },
+          exact with_bot.coe_lt_coe.mpr zero_lt_three
+        end,
+        linarith only [with_bot.coe_le_coe.mp $ le_of_eq_of_le h01 $ le_of_eq_of_le h10 $
+                        cubic.degree_of_b_eq_zero _ rfl rfl] } },
+    { exact neg_ne_zero.mpr one_ne_zero } },
+  { apply_fun C ∘ leading_coeff at h,
+    rw [function.comp_apply, leading_coeff_mul, C_mul, eq_C_of_degree_eq_zero hg, leading_coeff_C,
+        ← eq_C_of_degree_eq_zero hg, function.comp_apply, weierstrass_polynomial_eq,
+        cubic.leading_coeff_of_a_eq_zero] at h,
+    { exact or.inr ⟨⟨g, C f1, by rwa [mul_comm], h⟩, rfl⟩ },
+    { refl },
+    { exact one_ne_zero } }
+end⟩
+
+/-- The Weierstrass ring $R_E = K[X, Y] / \langle w_E(X, Y) \rangle$. -/
+@[reducible] def weierstrass_ring : Type v := adjoin_root $ E.weierstrass_polynomial K
+
 variables {K}
 
 /-- The proposition that an affine point $(x, y)$ lies in `E`, that is $w_E(x, y) = 0$. -/
@@ -397,11 +494,19 @@ end dbl_add
 section group_law
 
 /-!
-### Axioms in `E⟮K⟯`
+### The group law on `E⟮K⟯`
+
 TODO: Associativity of addition.
 -/
 
 namespace point
+
+instance : is_domain $ E.weierstrass_ring K := (ideal.quotient.is_domain_iff_prime _).mpr
+begin
+  classical,
+  simpa only [ideal.span_singleton_prime (E.weierstrass_polynomial_ne_zero K),
+              ← gcd_monoid.irreducible_iff_prime] using E.weierstrass_polynomial_irreducible K
+end
 
 @[simp] lemma add_eq_zero (P Q : E⟮K⟯) : P + Q = 0 ↔ P = -Q :=
 begin

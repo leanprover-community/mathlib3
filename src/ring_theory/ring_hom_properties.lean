@@ -145,6 +145,8 @@ end
 
 omit P
 
+local attribute [instance] algebra.tensor_product.right_algebra
+
 lemma stable_under_base_change.pushout_inl
   (hP : ring_hom.stable_under_base_change @P) (hP' : ring_hom.respects_iso @P) {R S T : CommRing}
   (f : R ⟶ S) (g : R ⟶ T) (H : P g) : P (pushout.inl : S ⟶ pushout f g) :=

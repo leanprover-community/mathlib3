@@ -395,6 +395,18 @@ lemma algebra.is_pushout.comm :
 
 variables {R S R'}
 
+local attribute [instance] algebra.tensor_product.right_algebra
+
+instance tensor_product.is_pushout {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
+  [algebra R S] [algebra R T] :
+  algebra.is_pushout R S T (tensor_product R S T) :=
+⟨tensor_product.is_base_change R T S⟩
+
+instance tensor_product.is_pushout' {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
+  [algebra R S] [algebra R T] :
+  algebra.is_pushout R T S (tensor_product R S T) :=
+algebra.is_pushout.symm infer_instance
+
 /--
 If `S' = S ⊗[R] R'`, then any pair of `R`-algebra homomorphisms `f : S → A` and `g : R' → A`
 such that `f x` and `g y` commutes for all `x, y` descends to a (unique) homomoprhism `S' → A`.

@@ -143,22 +143,7 @@ begin
     rw [h.symm.1.equiv_tmul, algebra.smul_def, alg_hom.to_linear_map_apply, map_one, mul_one] }
 end
 
-/-- `S ⊗[R] T` has a `T`-algebra structure. This is not a global instance or else the action of
-`S` on `S ⊗[R] S` would be ambiguous. -/
-@[reducible] def tensor_product.right_algebra {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T] [algebra R S] [algebra R T] :
-  algebra T (tensor_product R S T) :=
-(tensor_product.include_right R S T).to_algebra
-
-local attribute [instance] tensor_product.right_algebra
-
-instance {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T] [algebra R S] [algebra R T] :
-  is_scalar_tower R T (tensor_product R S T) :=
-is_scalar_tower.of_algebra_map_eq' _
-
-noncomputable
-instance {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T] [algebra R S] [algebra R T] :
-  algebra.is_pushout R S T (tensor_product R S T) :=
-⟨_⟩
+omit P
 
 lemma stable_under_base_change.pushout_inl
   (hP : ring_hom.stable_under_base_change @P) (hP' : ring_hom.respects_iso @P) {R S T : CommRing}
@@ -166,35 +151,11 @@ lemma stable_under_base_change.pushout_inl
 begin
   rw [← (show _ = pushout.inl, from colimit.iso_colimit_cocone_ι_inv
     ⟨_, CommRing.pushout_cocone_is_colimit f g⟩ walking_span.left), hP'.cancel_right_is_iso],
-  apply hP,
+  letI := f.to_algebra,
+  letI := g.to_algebra,
+  dsimp only [CommRing.pushout_cocone_inl, pushout_cocone.ι_app_left],
+  apply hP R T S (tensor_product R S T),
   exact H,
-end
-
-variables {R S R' S' : Type u} [comm_ring R] [comm_ring S] [comm_ring R'] [comm_ring S']
-variables [algebra R R'] [algebra R S'] [algebra S S'] [algebra R S] [is_scalar_tower R S S']
-
-lemma stable_under_base_change.base_change (hP : ring_hom.stable_under_base_change @P)
-    (hP' : ring_hom.respects_iso @P) (f : R' →ₐ[R] S') (hf : is_base_change S f.to_linear_map)
-    (H : P (algebra_map R R')) : P (algebra_map S S') :=
-begin
-  let e := hf.equiv,
-  let f' := algebra.tensor_product.product_map (is_scalar_tower.to_alg_hom R S S') f,
-  have : ∀ x, e x = f' x,
-  { intro x,
-    change e.to_linear_map.restrict_scalars R x = f'.to_linear_map x,
-    congr' 1,
-    apply tensor_product.ext',
-    intros x y,
-    simp [is_base_change.equiv_tmul, algebra.smul_def] },
-  convert hP'.1 _ _ (hP H : P (_ : S →+* _)),
-  swap,
-  { refine { map_mul' := λ x y, _, ..e },
-    change e (x * y) = e x * e y,
-    simp_rw this,
-    exact map_mul f' _ _ },
-  { ext,
-    change _ = hf.equiv (x ⊗ₜ[R] 1),
-    rw [hf.equiv_tmul, algebra.smul_def, alg_hom.to_linear_map_apply, map_one, mul_one] }
 end
 
 end stable_under_base_change

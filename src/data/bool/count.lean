@@ -1,11 +1,27 @@
+/-
+Copyright (c) 2022 Yury Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury Kudryashov
+-/
 import data.nat.parity
+
+/-!
+# List of booleans
+
+In this file we prove lemmas about the number of `ff`s and `tt`s in a list of booleans. First we
+prove that the number of `ff`s plus the number of `tt` equals the length of the list. Then we prove
+that in a list with alternating `tt`s and `ff`s, the number of `tt`s differs from the number of
+`ff`s by at most one. We provide several versions of these statements.
+-/
 
 namespace list
 
-@[simp] theorem count_bnot_add_count (l : list bool) (b : bool) : count (!b) l + count b l = length l :=
+@[simp]
+theorem count_bnot_add_count (l : list bool) (b : bool) : count (!b) l + count b l = length l :=
 by simp only [length_eq_countp_add_countp (eq (!b)), bool.bnot_not_eq, count]
 
-@[simp] theorem count_add_count_bnot (l : list bool) (b : bool) : count b l + count (!b) l = length l :=
+@[simp]
+theorem count_add_count_bnot (l : list bool) (b : bool) : count b l + count (!b) l = length l :=
 by rw [add_comm, count_bnot_add_count]
 
 @[simp] theorem count_ff_add_count_tt (l : list bool) : count ff l + count tt l = length l :=

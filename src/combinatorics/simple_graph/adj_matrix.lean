@@ -5,7 +5,6 @@ Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Lu-Ming Zhang
 -/
 import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.connectivity
-import data.rel
 import linear_algebra.matrix.trace
 import linear_algebra.matrix.symmetric
 
@@ -258,8 +257,10 @@ begin
       simp only [nat.cast_sum, card_map, neighbor_finset_def],
       apply finset.sum_to_finset_eq_subtype, },
     /- Disjointness for card_bUnion -/
-    { rintros ⟨x, hx⟩ - ⟨y, hy⟩ - hxy p hp,
-      simp only [inf_eq_inter, mem_inter, mem_map, function.embedding.coe_fn_mk, exists_prop] at hp,
+    { rintros ⟨x, hx⟩ - ⟨y, hy⟩ - hxy,
+      rw disjoint_iff_inf_le,
+      intros p hp,
+      simp only [inf_eq_inter, mem_inter, mem_map, function.embedding.coe_fn_mk, exists_prop] at hp;
       obtain ⟨⟨px, hpx, rfl⟩, ⟨py, hpy, hp⟩⟩ := hp,
       cases hp,
       simpa using hxy, } },

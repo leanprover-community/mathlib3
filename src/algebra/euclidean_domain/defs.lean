@@ -4,12 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Louis Carlin, Mario Carneiro
 -/
 import logic.nontrivial
-import algebra.opposites
-import algebra.field.defs
-import algebra.hom.group
 import algebra.divisibility.basic
 import algebra.group.basic
-import algebra.order.monoid.lemmas
+import algebra.ring.defs
 
 /-!
 # Euclidean domains

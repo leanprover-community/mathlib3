@@ -275,7 +275,7 @@ lemma filter_ge_eq_Iic [decidable_pred (≤ a)] : univ.filter (≤ a) = Iic a :=
 
 end locally_finite_order_bot
 
-variables [decidable_eq α] [locally_finite_order_top α] [locally_finite_order_bot α]
+variables [locally_finite_order_top α] [locally_finite_order_bot α]
 
 lemma disjoint_Ioi_Iio (a : α) :  disjoint (Ioi a) (Iio a) :=
 disjoint_left.2 $ λ b hab hba, (mem_Ioi.1 hab).not_lt $ mem_Iio.1 hba
@@ -289,6 +289,9 @@ variables [partial_order α] [locally_finite_order α] {a b c : α}
 
 @[simp] lemma Icc_eq_singleton_iff : Icc a b = {c} ↔ a = c ∧ b = c :=
 by rw [←coe_eq_singleton, coe_Icc, set.Icc_eq_singleton_iff]
+
+lemma Ico_disjoint_Ico_consecutive (a b c : α) : disjoint (Ico a b) (Ico b c) :=
+disjoint_left.2 $ λ x hab hbc, (mem_Ico.mp hab).2.not_le (mem_Ico.mp hbc).1
 
 section decidable_eq
 variables [decidable_eq α]
@@ -318,14 +321,7 @@ by rw [←coe_inj, coe_insert, coe_Ioo, coe_Ioc, set.insert_eq, set.union_comm, 
 @[simp] lemma Ioc_diff_Ioo_self (h : a < b) : Ioc a b \ Ioo a b = {b} := by simp [←coe_inj, h]
 
 @[simp] lemma Ico_inter_Ico_consecutive (a b c : α) : Ico a b ∩ Ico b c = ∅ :=
-begin
-  refine eq_empty_of_forall_not_mem (λ x hx, _),
-  rw [mem_inter, mem_Ico, mem_Ico] at hx,
-  exact hx.1.2.not_le hx.2.1,
-end
-
-lemma Ico_disjoint_Ico_consecutive (a b c : α) : disjoint (Ico a b) (Ico b c) :=
-le_of_eq $ Ico_inter_Ico_consecutive a b c
+(Ico_disjoint_Ico_consecutive a b c).eq_bot
 
 end decidable_eq
 
@@ -496,7 +492,7 @@ end locally_finite_order
 variables [fintype α] [locally_finite_order_top α] [locally_finite_order_bot α]
 
 lemma Ioi_disj_union_Iio (a : α) :
-  (Ioi a).disj_union (Iio a) (disjoint_left.1 $ disjoint_Ioi_Iio a) = ({a} : finset α)ᶜ :=
+  (Ioi a).disj_union (Iio a) (disjoint_Ioi_Iio a) = ({a} : finset α)ᶜ :=
 by { ext, simp [eq_comm] }
 
 end linear_order

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Yaël Dillies, Patrick Stevens
 -/
 import algebra.order.field.basic
+import algebra.order.ring.char_zero
+import data.nat.cast.basic
 
 /-!
 # Cast of naturals into fields

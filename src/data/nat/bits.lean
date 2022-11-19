@@ -5,6 +5,7 @@ Authors: Praneeth Kolichala
 -/
 import tactic.generalize_proofs
 import tactic.norm_num
+import algebra.char_zero
 
 /-!
 # Additional properties of binary recursion on `nat`

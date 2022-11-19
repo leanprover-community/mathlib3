@@ -1335,6 +1335,10 @@ lemma last_eq_nth_le : ∀ (l : list α) (h : l ≠ []),
 | (a :: b :: l) h := by { rw [last_cons, last_eq_nth_le (b :: l)],
                           refl, exact cons_ne_nil b l }
 
+lemma nth_le_length_sub_one {l : list α} (h : l.length - 1 < l.length) :
+  l.nth_le (l.length - 1) h = l.last (by { rintro rfl, exact nat.lt_irrefl 0 h }) :=
+(last_eq_nth_le l _).symm
+
 @[simp] lemma nth_concat_length : ∀ (l : list α) (a : α), (l ++ [a]).nth l.length = some a
 | []     a := rfl
 | (b::l) a := by rw [cons_append, length_cons, nth, nth_concat_length]
@@ -1345,6 +1349,17 @@ begin
   rw last_eq_nth_le,
   congr,
   simp [h]
+end
+
+lemma take_one_drop_eq_of_lt_length {l : list α} {n : ℕ} (h : n < l.length) :
+  (l.drop n).take 1 = [l.nth_le n h] :=
+begin
+  induction l with x l ih generalizing n,
+  { cases h },
+  { by_cases h₁ : l = [],
+    { subst h₁, rw nth_le_singleton, simp at h, subst h, simp },
+    have h₂ := h, rw [length_cons, nat.lt_succ_iff, le_iff_eq_or_lt] at h₂,
+    cases n, { simp }, rw [drop, nth_le], apply ih },
 end
 
 @[ext]
@@ -1934,6 +1949,31 @@ end
   l.take k = [] ↔ l = [] ∨ k = 0 :=
 by { cases l; cases k; simp [nat.succ_ne_zero] }
 
+lemma take_eq_take : ∀ {l : list α} {m n : ℕ},
+  l.take m = l.take n ↔ min m l.length = min n l.length
+| [] m n := by simp
+| (x :: xs) 0 0 := by simp
+| (x :: xs) (m + 1) 0 := by simp
+| (x :: xs) 0 (n + 1) := by simp [@eq_comm ℕ 0]
+| (x :: xs) (m + 1) (n + 1) := by simp [nat.min_succ_succ, take_eq_take]
+
+lemma take_add (l : list α) (m n : ℕ) :
+  l.take (m + n) = l.take m ++ (l.drop m).take n :=
+begin
+  convert_to
+    take (m + n) (take m l ++ drop m l) =
+    take m l ++ take n (drop m l),
+  { rw take_append_drop },
+  rw [take_append_eq_append_take, take_all_of_le, append_right_inj], swap,
+  { transitivity m,
+    { apply length_take_le },
+    { simp }},
+  simp only [take_eq_take, length_take, length_drop],
+  generalize : l.length = k, by_cases h : m ≤ k,
+  { simp [min_eq_left_iff.mpr h] },
+  { push_neg at h, simp [nat.sub_eq_zero_of_le (le_of_lt h)] },
+end
+
 lemma init_eq_take (l : list α) : l.init = l.take l.length.pred :=
 begin
   cases l with x l,
@@ -2022,6 +2062,16 @@ theorem drop_eq_nth_le_cons : ∀ {n} {l : list α} h,
 @[simp] lemma drop_length (l : list α) : l.drop l.length = [] :=
 calc l.drop l.length = (l ++ []).drop l.length : by simp
                  ... = [] : drop_left _ _
+
+lemma drop_length_cons {l : list α} (h : l ≠ []) (a : α) :
+  (a :: l).drop l.length = [l.last h] :=
+begin
+  induction l with y l ih generalizing a,
+  { cases h rfl },
+  { simp only [drop, length],
+    by_cases h₁ : l = [], { simp [h₁] },
+    rw last_cons h₁, exact ih h₁ y },
+end
 
 /-- Dropping the elements up to `n` in `l₁ ++ l₂` is the same as dropping the elements up to `n`
 in `l₁`, dropping the elements up to `n - l₁.length` in `l₂`, and appending them. -/
@@ -2223,9 +2273,6 @@ foldl_fixed' (λ _, rfl)
 
 @[simp] theorem foldr_fixed {b : β} : Π l : list α, foldr (λ a b, b) b l = b :=
 foldr_fixed' (λ _, rfl)
-
-@[simp] theorem foldl_combinator_K {a : α} : Π l : list β, foldl combinator.K a l = a :=
-foldl_fixed
 
 @[simp] theorem foldl_join (f : α → β → α) :
   ∀ (a : α) (L : list (list β)), foldl f a (join L) = foldl (foldl f) a L

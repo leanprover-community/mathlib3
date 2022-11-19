@@ -385,7 +385,7 @@ begin
 end
 
 theorem not_is_unit_X_sub_C [nontrivial R] (r : R) : ¬ is_unit (X - C r) :=
-λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $ by erw [← eval_mul_X_sub_C, hgf, eval_one]
+λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, zero_ne_one' R $ by erw [← eval_mul_X_sub_C, hgf, eval_one]
 
 end ring
 

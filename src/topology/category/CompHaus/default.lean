@@ -5,10 +5,10 @@ Authors: Adam Topaz, Bhavik Mehta
 -/
 
 import category_theory.adjunction.reflective
-import topology.category.Top
 import topology.stone_cech
 import category_theory.monad.limits
 import topology.urysohns_lemma
+import topology.category.Top.limits
 
 /-!
 # The category of Compact Hausdorff Spaces

@@ -5,8 +5,8 @@ Authors: Anne Baanen
 -/
 
 import algebra.group.units
-import algebra.group_with_zero.units
-import algebra.ring.basic
+import algebra.group_with_zero.units.lemmas
+import algebra.ring.defs
 
 /-!
 # Invertible elements

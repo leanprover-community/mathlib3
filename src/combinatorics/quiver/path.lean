@@ -209,7 +209,8 @@ eq.drec (eq.drec (eq.refl (path.cast (eq.refl u) (eq.refl v) p)) hu) hv
   (p.cast hu hv).cast hu' hv' = p.cast (hu.trans hu') (hv.trans hv') :=
 by { subst_vars, refl }
 
-@[simp] lemma path.cast_nil {u u' : U} (hu : u = u') : (path.nil : path u u).cast hu hu = path.nil :=
+@[simp] lemma path.cast_nil {u u' : U} (hu : u = u') :
+  (path.nil : path u u).cast hu hu = path.nil :=
 by { subst_vars, refl }
 
 lemma path.cast_heq {u v u' v' : U} (hu : u = u') (hv : v = v') (p : path u v) :

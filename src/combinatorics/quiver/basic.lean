@@ -167,7 +167,8 @@ by { rw hom.cast_eq_cast, exact cast_eq_iff_heq }
 
 lemma hom.eq_cast_iff_heq {u v u' v' : U} (hu : u = u') (hv : v = v')
   (e : u ⟶ v) (e' : u' ⟶ v') : e' = e.cast hu hv ↔ e' == e :=
-⟨λ h, ((e.cast_eq_iff_heq hu hv e').1 h.symm).symm, λ h, ((e.cast_eq_iff_heq hu hv e').2 h.symm).symm⟩
+⟨λ h, ((e.cast_eq_iff_heq hu hv e').1 h.symm).symm,
+ λ h, ((e.cast_eq_iff_heq hu hv e').2 h.symm).symm⟩
 
 end cast
 

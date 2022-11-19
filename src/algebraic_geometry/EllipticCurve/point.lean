@@ -6,7 +6,7 @@ Authors: David Kurniadi Angdinata
 
 import algebraic_geometry.EllipticCurve
 import field_theory.galois -- temporary import to enable point notation
-import tactic.field_simp
+import ring_theory.class_group
 
 /-!
 # The group of rational points on an elliptic curve over a field
@@ -71,7 +71,7 @@ namespace EllipticCurve
 
 open polynomial
 
-open_locale polynomial
+open_locale non_zero_divisors polynomial
 
 universes u v
 
@@ -496,10 +496,8 @@ section group_law
 /-!
 ### The group law on `E⟮K⟯`
 
-TODO: Associativity of addition.
+This follows from the construction of a monomorphism from `E⟮K⟯` to the class group of $R_E$.
 -/
-
-namespace point
 
 instance : is_domain $ E.weierstrass_ring K := (ideal.quotient.is_domain_iff_prime _).mpr
 begin
@@ -507,6 +505,107 @@ begin
   simpa only [ideal.span_singleton_prime (E.weierstrass_polynomial_ne_zero K),
               ← gcd_monoid.irreducible_iff_prime] using E.weierstrass_polynomial_irreducible K
 end
+
+variables (E) {K}
+
+/-- TODO: docstring -/
+def some_ideal_set (x y : K) : set $ E.weierstrass_ring K :=
+{ideal.quotient.mk _ $ C (X - C x), ideal.quotient.mk _ $ X - C (C y)}
+
+/-- TODO: docstring -/
+noncomputable def some_ideal (x y : K) :
+  fractional_ideal (E.weierstrass_ring K)⁰ $ fraction_ring $ E.weierstrass_ring K :=
+ideal.span $ E.some_ideal_set x y
+
+/-- TODO: docstring -/
+def some_ideal_x_set (x : K) : set $ E.weierstrass_ring K := {ideal.quotient.mk _ $ C (X - C x)}
+
+/-- TODO: docstring -/
+noncomputable def some_ideal_x (x : K) :
+  fractional_ideal (E.weierstrass_ring K)⁰ $ fraction_ring $ E.weierstrass_ring K :=
+ideal.span $ E.some_ideal_x_set x
+
+/-- TODO: might be false -/
+@[simp] lemma some_ideal_mul_neg {x y : K} (h : E.weierstrass_equation x y) :
+  E.some_ideal x y * (E.some_ideal x (point.neg_y h) / E.some_ideal_x x) = 1 :=
+sorry
+
+@[simp] lemma some_ideal_neg_mul {x y : K} (h : E.weierstrass_equation x y) :
+  (E.some_ideal x (point.neg_y h) / E.some_ideal_x x) * E.some_ideal x y = 1 :=
+by rw [mul_comm, E.some_ideal_mul_neg h]
+
+/-- TODO: docstring -/
+noncomputable def some_ideal_units {x y : K} (h : E.weierstrass_equation x y) :
+  (fractional_ideal (E.weierstrass_ring K)⁰ $ fraction_ring $ E.weierstrass_ring K)ˣ :=
+⟨_, _, E.some_ideal_mul_neg h, E.some_ideal_neg_mul h⟩
+
+variables {E}
+
+namespace point
+
+@[simp] noncomputable def to_class_fun : E⟮K⟯ → additive (class_group $ E.weierstrass_ring K)
+| 0            := 0
+| (some _ _ h) := class_group.mk $ E.some_ideal_units h
+
+variables {x₁ x₂ y₁ y₂ : K} (h₁ : E.weierstrass_equation x₁ y₁) (h₂ : E.weierstrass_equation x₂ y₂)
+
+@[simp] lemma inv_some_class :
+  class_group.mk (E.some_ideal_units h₁)⁻¹
+    = class_group.mk (E.some_ideal_units $ weierstrass_equation_neg h₁) :=
+sorry
+
+@[simp] lemma some_class_mul_some_class_of_y_eq (hx : x₁ = x₂) (hy : y₁ = neg_y h₂) :
+  class_group.mk (E.some_ideal_units h₁) * class_group.mk (E.some_ideal_units h₂) = 1 :=
+sorry
+
+@[simp] lemma some_class_mul_some_class_of_y_ne (hx : x₁ = x₂) (hy : y₁ ≠ neg_y h₂) :
+  class_group.mk (E.some_ideal_units h₁) * class_group.mk (E.some_ideal_units h₂)
+    = class_group.mk
+      (E.some_ideal_units $ weierstrass_equation_dbl h₁ $ y_ne_of_y_ne h₁ h₂ hx hy) :=
+sorry
+
+@[simp] lemma some_class_mul_some_class_of_x_ne (hx : x₁ ≠ x₂) :
+  class_group.mk (E.some_ideal_units h₁) * class_group.mk (E.some_ideal_units h₂)
+    = class_group.mk (E.some_ideal_units $ weierstrass_equation_add h₁ h₂ hx) :=
+sorry
+
+noncomputable def to_class : E⟮K⟯ →+ additive (class_group $ E.weierstrass_ring K) :=
+{ to_fun    := to_class_fun,
+  map_zero' := rfl,
+  map_add'  :=
+  begin
+    rintro (_ | ⟨x₁, y₁, h₁⟩) (_ | ⟨x₂, y₂, h₂⟩),
+    any_goals { simp only [zero_def, to_class_fun, _root_.zero_add, _root_.add_zero] },
+    by_cases hx : x₁ = x₂,
+    { by_cases hy : y₁ = neg_y h₂,
+      { simpa only [some_add_some_of_y_eq h₁ h₂ hx hy]
+          using (some_class_mul_some_class_of_y_eq h₁ h₂ hx hy).symm },
+      { simpa only [some_add_some_of_y_ne h₁ h₂ hx hy]
+          using (some_class_mul_some_class_of_y_ne h₁ h₂ hx hy).symm } },
+    { simpa only [some_add_some_of_x_ne h₁ h₂ hx]
+        using (some_class_mul_some_class_of_x_ne h₁ h₂ hx).symm }
+  end }
+
+@[simp] lemma to_class_zero : to_class (0 : E⟮K⟯) = 0 := rfl
+
+@[simp] lemma to_class_some {x y : K} (h : E.weierstrass_equation x y) :
+  to_class (some _ _ h) = class_group.mk (E.some_ideal_units h) :=
+rfl
+
+@[simp] lemma to_class.map_neg (P : E⟮K⟯) : to_class (-P) = -to_class P :=
+begin
+  rcases P with (_ | ⟨_, _, h⟩),
+  { refl },
+  { simpa only [neg_some, to_class_some] using (inv_some_class h).symm }
+end
+
+@[simp] lemma to_class_eq_zero (P : E⟮K⟯) : to_class P = 0 ↔ P = 0 :=
+⟨begin
+  intro hP,
+  rcases P with (_ | ⟨x, y, h⟩),
+  { refl },
+  { sorry }
+end, congr_arg to_class⟩
 
 @[simp] lemma add_eq_zero (P Q : E⟮K⟯) : P + Q = 0 ↔ P = -Q :=
 begin
@@ -529,21 +628,26 @@ end
 
 @[simp] lemma add_neg_eq_zero (P Q : E⟮K⟯) : P + -Q = 0 ↔ P = Q := by rw [add_eq_zero, neg_neg]
 
-@[simp] lemma add_left_neg (P : E⟮K⟯) : -P + P = 0 := by rw [add_eq_zero]
+lemma to_class_injective : function.injective $ @to_class _ _ E K _ _ :=
+λ _ _ h, by rw [← add_neg_eq_zero, ← to_class_eq_zero, map_add, h, to_class.map_neg, add_right_neg]
 
-lemma add_comm (P Q : E⟮K⟯) : P + Q = Q + P :=
-begin
-  rcases ⟨P, Q⟩ with ⟨_ | ⟨x₁, y₁, h₁⟩, _ | ⟨x₂, y₂, h₂⟩⟩,
-  any_goals { refl },
-  by_cases hx : x₁ = x₂,
-  { by_cases hy : y₁ = neg_y h₂,
-    { rw [some_add_some_of_y_eq h₁ h₂ hx hy,
-          some_add_some_of_y_eq h₂ h₁ hx.symm $ by { simp only [neg_y_def, hx, hy], ring1 }] },
-    { simp only [hx, y_eq_of_y_ne h₁ h₂ hx hy] } },
-  { rw [some_add_some_of_x_ne' h₁ h₂ hx, some_add_some_of_x_ne' h₂ h₁ $ ne.symm hx, neg_inj],
-    field_simp [sub_ne_zero_of_ne hx, sub_ne_zero_of_ne (ne.symm hx)],
-    exact ⟨by ring1, by ring1⟩ }
-end
+@[simp] lemma add_left_neg (P : E⟮K⟯) : -P + P = 0 :=
+by { cases P, { refl }, { simp only [neg_some, some_add_some_of_y_eq] } }
+
+lemma add_comm (P Q : E⟮K⟯) : P + Q = Q + P := to_class_injective $ by simp only [map_add, add_comm]
+
+lemma add_assoc (P Q R : E⟮K⟯) : P + Q + R = P + (Q + R) :=
+  to_class_injective $ by simp only [map_add, add_assoc]
+
+noncomputable instance : add_comm_group E⟮K⟯ :=
+{ zero         := zero,
+  neg          := neg,
+  add          := add,
+  zero_add     := zero_add,
+  add_zero     := add_zero,
+  add_left_neg := add_left_neg,
+  add_comm     := add_comm,
+  add_assoc    := add_assoc }
 
 end point
 

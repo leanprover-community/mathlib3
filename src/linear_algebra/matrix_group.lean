@@ -11,7 +11,7 @@ import linear_algebra.general_linear_group
 import linear_algebra.unitary_group
 
 /-!
-# Matrix groups
+# Matrix
 
 In this file we define a typeclass `matrix_group` for groups, which elements are matrices and
 the operation is matrix multiplication.
@@ -33,13 +33,14 @@ Maybe it should be added to algebra.hom.group? I'm a newbie and don't want to ch
 so fundamental file. This is only used in `special_to_matrix_group` below (implicitly).
 -/
 
-namespace monoid_hom_trans
+namespace hidden
 
 variables (L M N : Type*) [mul_one_class L] [mul_one_class M] [mul_one_class N]
 
 /--
   transitivity of `coe_is_monoid_hom`
 -/
+attribute [priority 100]
 instance coe_is_monoid_hom_trans [LM_lift : has_lift_t L M] [MN_lift : has_lift_t M N]
   [LM_hom : coe_is_monoid_hom L M] [MN_hom : coe_is_monoid_hom M N] :
   @coe_is_monoid_hom L N ⟨MN_lift.lift ∘ LM_lift.lift⟩ _ _ :=
@@ -61,8 +62,8 @@ instance coe_is_monoid_hom_trans [LM_lift : has_lift_t L M] [MN_lift : has_lift_
   end
 }
 
-end monoid_hom_trans
-open monoid_hom_trans
+end hidden
+open hidden
 -------------------------------------------------
 
 
@@ -127,7 +128,7 @@ begin
   exact h.coe_injective heq
 end
 
-instance has_coe_to_GL (G : Type w) [matrix_group n R G] : has_coe G (GL n R) :=
+instance has_coe_to_GL (G : Type w) [matrix_group n R G] : has_coe_t G (GL n R) :=
 ⟨hom_to_GL.to_fun⟩
 
 instance coe_to_GL_is_hom (G : Type w) [matrix_group n R G] : coe_is_monoid_hom G (GL n R) :=
@@ -135,7 +136,29 @@ instance coe_to_GL_is_hom (G : Type w) [matrix_group n R G] : coe_is_monoid_hom 
 
 end coe_to_GL
 
+
+section special
+
+/--
+`special G` is a subgroup of matrix group `G` of matrices with determinant $1$.
+-/
+def special (G : Type w) [matrix_group n R G] : subgroup G :=
+@monoid_hom.ker G _ Rˣ _ (monoid_hom.comp (@matrix.general_linear_group.det n _ _ R _) hom_to_GL)
+
+instance special_to_matrix_group {G : Type w} [h : matrix_group n R G] :
+matrix_group n R ↥(special G) := @matrix_group.mk n _ _ R _ (special G) _ _ -- TODO: make it implicit
+  (hidden.coe_is_monoid_hom_trans _ G _)
+  begin
+    apply function.injective.comp,
+    exacts [h.coe_injective, subtype.val_injective]
+  end
+
+
+
+end special
+
 section examples
+variables (n R)
 
 instance GL_is_matrix_group : matrix_group n R (GL n R) := @matrix_group.mk n _ _ R _ (GL n R) _ _
   {
@@ -152,35 +175,19 @@ instance U_is_matrix_group [star_ring R] : matrix_group n R (matrix.unitary_grou
     simp [has_coe_t.coe, coe_b, has_coe.coe]
   end
 
-end examples
-
-section special
-
 /--
-`special G` is a subgroup of matrix group `G` of matrices with determinant $1$.
+Special linear group
 -/
-def special (G : Type w) [matrix_group n R G] : subgroup G :=
-@monoid_hom.ker G _ Rˣ _ (monoid_hom.comp (@matrix.general_linear_group.det n _ _ R _)
-  (monoid_hom.coe G (GL n R)))
-
-variables (n R)
-
 def SL : subgroup (GL n R) := special (GL n R)
+/--
+Special unitary group
+-/
 def SU [star_ring R] : subgroup (matrix.unitary_group n R) := special (matrix.unitary_group n R)
+/--
+Special orthogonal group
+-/
 def SO : subgroup (matrix.orthogonal_group n R) := special (matrix.orthogonal_group n R)
 
-variables {n R}
-
-/--
-`special G` inherits `matrix_group` structure from `G`
--/
-instance special_to_matrix_group {G : Type w} [matrix_group n R G] :
-matrix_group n R ↥(special G) := matrix_group.mk
-  begin
-    apply function.injective.comp, apply function.injective.comp,
-    exacts [units.ext, hom_to_GL_injective, subtype.val_injective]
-  end
-
-end special
+end examples
 
 end matrix_group

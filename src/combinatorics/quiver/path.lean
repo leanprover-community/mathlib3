@@ -180,10 +180,17 @@ lemma map_path_to_path {a b : V} (f : a ⟶ b) : F.map_path f.to_path = (F.map f
 
 end prefunctor
 
+
+section cast
+/-!
+### Rewriting equalities along equalities of vertices
+-/
+
 namespace quiver
 
 variables {U : Type*} [quiver.{u+1} U]
 
+/-- Change the endpoints of a path using equalities. -/
 def path.cast {u v u' v' : U} (hu : u = u') (hv : v = v') (p : path u v) : path u' v' :=
 eq.rec (eq.rec p hv) hu
 
@@ -212,10 +219,13 @@ by { rw path.cast_eq_cast, exact cast_eq_iff_heq }
 
 lemma path.eq_cast_iff_heq {u v u' v' : U} (hu : u = u') (hv : v = v')
   (p : path u v) (p' : path u' v') : p' = p.cast hu hv ↔ p' == p :=
-⟨λ h, ((p.cast_eq_iff_heq hu hv p').1 h.symm).symm, λ h, ((p.cast_eq_iff_heq hu hv p').2 h.symm).symm⟩
+⟨λ h, ((p.cast_eq_iff_heq hu hv p').1 h.symm).symm,
+ λ h,((p.cast_eq_iff_heq hu hv p').2 h.symm).symm⟩
 
 lemma path.cast_cons {u v w u' w' : U} (p : path u v) (e : v ⟶ w) (hu : u = u') (hw : w = w') :
   (p.cons e).cast hu hw = (p.cast hu rfl).cons (e.cast rfl hw) :=
 by { subst_vars, refl }
 
 end quiver
+
+end cast

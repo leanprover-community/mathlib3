@@ -785,12 +785,15 @@ def upper_closure (s : set α) : upper_set α :=
 def lower_closure (s : set α) : lower_set α :=
 ⟨{x | ∃ a ∈ s, x ≤ a}, λ x y h, Exists₂.imp $ λ a _, h.trans⟩
 
--- We do not tag those two as `simp` to respect the abstraction.
-@[norm_cast] lemma coe_upper_closure (s : set α) : ↑(upper_closure s) = {x | ∃ a ∈ s, a ≤ x} := rfl
-@[norm_cast] lemma coe_lower_closure (s : set α) : ↑(lower_closure s) = {x | ∃ a ∈ s, x ≤ a} := rfl
-
 @[simp] lemma mem_upper_closure : x ∈ upper_closure s ↔ ∃ a ∈ s, a ≤ x := iff.rfl
 @[simp] lemma mem_lower_closure : x ∈ lower_closure s ↔ ∃ a ∈ s, x ≤ a := iff.rfl
+
+-- We do not tag those two as `simp` to respect the abstraction.
+@[norm_cast] lemma coe_upper_closure (s : set α) : ↑(upper_closure s) = ⋃ a ∈ s, set.Ici a :=
+by { ext, simp }
+
+@[norm_cast] lemma coe_lower_closure (s : set α) : ↑(lower_closure s) = ⋃ a ∈ s, set.Iic a :=
+by { ext, simp }
 
 lemma subset_upper_closure : s ⊆ upper_closure s := λ x hx, ⟨x, hx, le_rfl⟩
 lemma subset_lower_closure : s ⊆ lower_closure s := λ x hx, ⟨x, hx, le_rfl⟩
@@ -834,14 +837,6 @@ by { ext, simp }
 
 @[simp] lemma lower_set.supr_Iic (s : set α) : (⨆ a ∈ s, lower_set.Iic a) = lower_closure s :=
 by { ext, simp }
-
-lemma coe_upper_closure_eq_Union_Ici (s : set α) :
-  ↑(upper_closure s) = ⋃ a ∈ s, set.Ici a :=
-by simp_rw [← upper_set.infi_Ici, upper_set.coe_infi₂, upper_set.coe_Ici]
-
-lemma coe_lower_closure_eq_Union_Iic (s : set α) :
-  ↑(lower_closure s) = ⋃ a ∈ s, set.Iic a :=
-by simp_rw [← lower_set.supr_Iic, lower_set.coe_supr₂, lower_set.coe_Iic]
 
 lemma gc_upper_closure_coe :
   galois_connection (to_dual ∘ upper_closure : set α → (upper_set α)ᵒᵈ) (coe ∘ of_dual) :=

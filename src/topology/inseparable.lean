@@ -257,8 +257,8 @@ is_upper_set_Inter H
 
 lemma Union_closure_singleton_eq_iff {s : set X} :
   (⋃ x ∈ s, closure {x}) = s ↔ stable_under_specialization s :=
-show _ ↔ is_lower_set s, by simp only [closure_singleton_eq_Iic, ← lower_closure_eq,
-  coe_lower_closure_eq_Union_Iic]
+show _ ↔ is_lower_set s,
+  by simp only [closure_singleton_eq_Iic, ← lower_closure_eq, coe_lower_closure]
 
 lemma stable_under_specialization_iff_eq_Union {s : set X} :
   stable_under_specialization s ↔ (⋃ x ∈ s, closure {x}) = s :=

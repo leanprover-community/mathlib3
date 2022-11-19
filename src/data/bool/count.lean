@@ -16,10 +16,12 @@ that in a list with alternating `tt`s and `ff`s, the number of `tt`s differs fro
 
 namespace list
 
-@[simp] theorem count_bnot_add_count (l : list bool) (b : bool) : count (!b) l + count b l = length l :=
+@[simp]
+theorem count_bnot_add_count (l : list bool) (b : bool) : count (!b) l + count b l = length l :=
 by simp only [length_eq_countp_add_countp (eq (!b)), bool.bnot_not_eq, count]
 
-@[simp] theorem count_add_count_bnot (l : list bool) (b : bool) : count b l + count (!b) l = length l :=
+@[simp]
+theorem count_add_count_bnot (l : list bool) (b : bool) : count b l + count (!b) l = length l :=
 by rw [add_comm, count_bnot_add_count]
 
 @[simp] theorem count_ff_add_count_tt (l : list bool) : count ff l + count tt l = length l :=

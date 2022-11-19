@@ -111,6 +111,11 @@ protected def copy (S : L.substructure M) (s : set M) (hs : s = S) : L.substruct
 { carrier := s,
   fun_mem := λ n f, hs.symm ▸ (S.fun_mem f) }
 
+@[simp] lemma coe_copy (S : L.substructure M) (s : set M) (hs : s = S) : ↑(S.copy s hs) = s := rfl
+
+lemma copy_eq (S : L.substructure M) (s : set M) (hs : s = S) : S.copy s hs = S :=
+set_like.coe_injective hs
+
 end substructure
 
 variable {S : L.substructure M}

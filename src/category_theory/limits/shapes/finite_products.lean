@@ -43,11 +43,8 @@ instance has_finite_products_of_has_finite_limits [has_finite_limits C] :
 
 instance has_fintype_products [has_finite_products C] (ι : Type w) [finite ι] :
   has_limits_of_shape (discrete ι) C :=
-by casesI nonempty_fintype ι; exact
-has_limits_of_shape_of_equivalence
-  (discrete.equivalence
-    (equiv.ulift.{0}.trans
-      (fintype.equiv_fin ι).symm))
+let ⟨n, ⟨e⟩⟩ := finite.exists_equiv_fin ι in
+has_limits_of_shape_of_equivalence $ discrete.equivalence e.symm
 
 /-- We can now write this for powers. -/
 noncomputable example [has_finite_products C] (X : C) : C := ∏ (λ (i : fin 5), X)
@@ -78,13 +75,10 @@ instance has_finite_coproducts_of_has_finite_colimits [has_finite_colimits C] :
   has_finite_coproducts C :=
 ⟨λ J 𝒥, by { resetI, apply_instance }⟩
 
-instance has_fintype_coproducts [has_finite_coproducts C] (ι : Type w) [fintype ι] :
+instance has_fintype_coproducts [has_finite_coproducts C] (ι : Type w) [finite ι] :
   has_colimits_of_shape (discrete ι) C :=
-by casesI nonempty_fintype ι; exact
-has_colimits_of_shape_of_equivalence
-  (discrete.equivalence
-    (equiv.ulift.{0}.trans
-      (fintype.equiv_fin ι).symm))
+let ⟨n, ⟨e⟩⟩ := finite.exists_equiv_fin ι in
+has_colimits_of_shape_of_equivalence (discrete.equivalence e.symm)
 
 /--
 If a category has all coproducts then in particular it has finite coproducts.

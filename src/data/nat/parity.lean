@@ -86,7 +86,7 @@ theorem mod_two_add_add_odd_mod_two (m : ℕ) {n : ℕ} (hn : odd n) : m % 2 + (
 @[simp] theorem mod_two_add_succ_mod_two (m : ℕ) : m % 2 + (m + 1) % 2 = 1 :=
 mod_two_add_add_odd_mod_two m odd_one
 
-@[simp] theorem succ_mod_tow_add_mod_two (m : ℕ) : (m + 1) % 2 + m % 2 = 1 :=
+@[simp] theorem succ_mod_two_add_mod_two (m : ℕ) : (m + 1) % 2 + m % 2 = 1 :=
 by rw [add_comm, mod_two_add_succ_mod_two]
 
 mk_simp_attribute parity_simps "Simp attribute for lemmas about `even`"

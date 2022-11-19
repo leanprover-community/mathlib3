@@ -40,29 +40,28 @@ The main theorems are
 This definition implies that all numbers are probable primes to base 0 or 1, and that 0 and 1 are
 probable primes to any base.
 -/
-def fermat_psp.probable_prime (n : ℕ) (b : ℕ) : Prop := n ∣ b^(n - 1) - 1
+def fermat_psp.probable_prime (n b : ℕ) : Prop := n ∣ b^(n - 1) - 1
 
 /--
 `n` is a Fermat pseudoprime to base `b` if `n` is a probable prime to base `b` and is composite. By
 this definition, all composite natural numbers are pseudoprimes to base 0 and 1. This definition
 also permits `n` to be less than `b`, so that 4 is a pseudoprime to base 5, for example.
 -/
-def fermat_psp (n : ℕ) (b : ℕ) : Prop :=
-fermat_psp.probable_prime n b ∧ ¬nat.prime n ∧ 1 < n
+def fermat_psp (n b : ℕ) : Prop := fermat_psp.probable_prime n b ∧ ¬nat.prime n ∧ 1 < n
 
 namespace fermat_psp
 
-instance decidable_probable_prime (n : ℕ) (b : ℕ) : decidable (probable_prime n b) :=
+instance decidable_probable_prime (n b : ℕ) : decidable (probable_prime n b) :=
 nat.decidable_dvd _ _
 
-instance decidable_psp (n : ℕ) (b : ℕ) : decidable (fermat_psp n b) := and.decidable
+instance decidable_psp (n b : ℕ) : decidable (fermat_psp n b) := and.decidable
 
 /--
 If `n` passes the Fermat primality test to base `b`, then `n` is coprime with `b`, assuming that
 `n` and `b` are both positive.
 -/
-lemma coprime_of_probable_prime (n b : ℕ) (h : probable_prime n b) (h₁ : 1 ≤ n) (h₂ : 1 ≤ b)
-  : nat.coprime n b :=
+lemma coprime_of_probable_prime (n b : ℕ) (h : probable_prime n b) (h₁ : 1 ≤ n) (h₂ : 1 ≤ b) :
+  nat.coprime n b :=
 begin
   unfold probable_prime at h,
   by_cases h₃ : 2 ≤ n,
@@ -111,7 +110,8 @@ begin
     norm_num }
 end
 
-lemma probable_prime_iff_modeq (n : ℕ) {b : ℕ} (h : 1 ≤ b) : probable_prime n b ↔ b^(n - 1) ≡ 1 [MOD n] :=
+lemma probable_prime_iff_modeq (n : ℕ) {b : ℕ} (h : 1 ≤ b) :
+  probable_prime n b ↔ b^(n - 1) ≡ 1 [MOD n] :=
 begin
   have : 1 ≤ b ^ (n - 1) := one_le_pow_of_one_le h (n - 1), -- For exact_mod_cast
   split,
@@ -311,11 +311,11 @@ The primary purpose of this definition is to help prove `exists_infinite_pseudop
 that `n` is actually pseudoprime to base `b`, see `psp_from_prime_psp`, and for a proof that `n` is
 greater than `p`, see `psp_from_prime_gt_p`.
 -/
-private def psp_from_prime (b : ℕ) (b_ge_two : 2 ≤ b) (p : ℕ) (p_prime : nat.prime p) (p_gt_two : 2 < p)
-  (not_dvd : ¬p ∣ b*(b^2 - 1)) : ℕ :=
-  have A : ℕ := (b^p - 1)/(b - 1),
-  have B : ℕ := (b^p + 1)/(b + 1),
-  A * B
+private def psp_from_prime (b : ℕ) (b_ge_two : 2 ≤ b) (p : ℕ) (p_prime : nat.prime p)
+  (p_gt_two : 2 < p) (not_dvd : ¬p ∣ b*(b^2 - 1)) : ℕ :=
+have A : ℕ := (b^p - 1)/(b - 1),
+have B : ℕ := (b^p + 1)/(b + 1),
+A * B
 
 /--
 This is a proof that the number produced using `psp_from_prime` is actually pseudoprime to base `b`.
@@ -323,7 +323,8 @@ The primary purpose of this lemma is to help prove `exists_infinite_pseudoprimes
 
 We use <https://primes.utm.edu/notes/proofs/a_pseudoprimes.html> as a rough outline of the proof.
 -/
-private lemma psp_from_prime_psp (b : ℕ) (b_ge_two : 2 ≤ b) (p : ℕ) (p_prime : nat.prime p) (p_gt_two : 2 < p) (not_dvd : ¬p ∣ b*(b^2 - 1)) :
+private lemma psp_from_prime_psp (b : ℕ) (b_ge_two : 2 ≤ b) (p : ℕ) (p_prime : nat.prime p)
+  (p_gt_two : 2 < p) (not_dvd : ¬p ∣ b*(b^2 - 1)) :
   fermat_psp (psp_from_prime b b_ge_two p p_prime p_gt_two not_dvd) b :=
 begin
   unfold psp_from_prime,
@@ -477,58 +478,59 @@ end
 This is a proof that the number produced using `psp_from_prime` is greater than the prime `p` used
 to create it. The primary purpose of this lemma is to help prove `exists_infinite_pseudoprimes`.
 -/
-private lemma psp_from_prime_gt_p (b : ℕ) (b_ge_two : 2 ≤ b) (p : ℕ) (p_prime : nat.prime p) (p_gt_two : 2 < p) (not_dvd : ¬p ∣ b*(b^2 - 1))
-  : p < psp_from_prime b b_ge_two p p_prime p_gt_two not_dvd :=
+private lemma psp_from_prime_gt_p (b : ℕ) (b_ge_two : 2 ≤ b) (p : ℕ) (p_prime : nat.prime p)
+  (p_gt_two : 2 < p) (not_dvd : ¬p ∣ b*(b^2 - 1)) :
+  p < psp_from_prime b b_ge_two p p_prime p_gt_two not_dvd :=
 begin
-    unfold psp_from_prime,
-    generalize A_id : (b^p - 1)/(b - 1) = A,
-    generalize B_id : (b^p + 1)/(b + 1) = B,
-    have AB_id : (A*B) = (b^(2*p) - 1)/(b^2 - 1),
-    { rw ←A_id,
-      rw ←B_id,
-      have p_odd : odd p := odd_of_prime_gt_two p p_prime p_gt_two,
-      exact AB_id_helper _ _ b_ge_two p_odd },
-    have AB_dvd : (b^2 - 1) ∣ (b^(2*p) - 1),
-    { have : b^2 - 1 ∣ (b ^ 2) ^ p - 1 := sub_one_dvd_pow_sub_one _ _ (show 1 ≤ b ^ 2, by nlinarith),
-      rwa ←pow_mul at this },
-    rw AB_id,
-    suffices h : p * (b ^ 2 - 1) < b ^ (2 * p) - 1,
-    { have h₁ : (p * (b ^ 2 - 1)) / (b ^ 2 - 1) < (b ^ (2 * p) - 1) / (b ^ 2 - 1),
-      { exact nat.div_lt_div_of_lt_of_dvd AB_dvd h },
-      have h₂ : 0 < b ^ 2 - 1,
-      { have : 4 ≤ b ^ 2 := by nlinarith,
-        have : 3 ≤ b ^ 2 - 1 := le_tsub_of_add_le_left this,
-        linarith },
-      rwa nat.mul_div_cancel _ h₂ at h₁ },
-    rw [nat.mul_sub_left_distrib, mul_one],
-    rw pow_mul,
-    nth_rewrite_rhs 0 ←nat.sub_add_cancel (show 1 ≤ p, by linarith),
-    rw pow_succ (b ^ 2),
-    suffices h : p * b ^ 2 < b ^ 2 * (b ^ 2) ^ (p - 1),
-    { apply gt_of_ge_of_gt,
-      { exact tsub_le_tsub_left (show 1 ≤ p, by linarith) (b ^ 2 * (b ^ 2) ^ (p - 1)) },
-      { have : p ≤ p * b ^ 2 := nat.le_mul_of_pos_right (show 0 < b ^ 2, by nlinarith),
-        exact tsub_lt_tsub_right_of_le this h } },
+  unfold psp_from_prime,
+  generalize A_id : (b^p - 1)/(b - 1) = A,
+  generalize B_id : (b^p + 1)/(b + 1) = B,
+  have AB_id : (A*B) = (b^(2*p) - 1)/(b^2 - 1),
+  { rw ←A_id,
+    rw ←B_id,
+    have p_odd : odd p := odd_of_prime_gt_two p p_prime p_gt_two,
+    exact AB_id_helper _ _ b_ge_two p_odd },
+  have AB_dvd : (b^2 - 1) ∣ (b^(2*p) - 1),
+  { have : b^2 - 1 ∣ (b ^ 2) ^ p - 1 := sub_one_dvd_pow_sub_one _ _ (show 1 ≤ b ^ 2, by nlinarith),
+    rwa ←pow_mul at this },
+  rw AB_id,
+  suffices h : p * (b ^ 2 - 1) < b ^ (2 * p) - 1,
+  { have h₁ : (p * (b ^ 2 - 1)) / (b ^ 2 - 1) < (b ^ (2 * p) - 1) / (b ^ 2 - 1),
+    { exact nat.div_lt_div_of_lt_of_dvd AB_dvd h },
+    have h₂ : 0 < b ^ 2 - 1,
+    { have : 4 ≤ b ^ 2 := by nlinarith,
+      have : 3 ≤ b ^ 2 - 1 := le_tsub_of_add_le_left this,
+      linarith },
+    rwa nat.mul_div_cancel _ h₂ at h₁ },
+  rw [nat.mul_sub_left_distrib, mul_one],
+  rw pow_mul,
+  nth_rewrite_rhs 0 ←nat.sub_add_cancel (show 1 ≤ p, by linarith),
+  rw pow_succ (b ^ 2),
+  suffices h : p * b ^ 2 < b ^ 2 * (b ^ 2) ^ (p - 1),
+  { apply gt_of_ge_of_gt,
+    { exact tsub_le_tsub_left (show 1 ≤ p, by linarith) (b ^ 2 * (b ^ 2) ^ (p - 1)) },
+    { have : p ≤ p * b ^ 2 := nat.le_mul_of_pos_right (show 0 < b ^ 2, by nlinarith),
+      exact tsub_lt_tsub_right_of_le this h } },
 
-    suffices h : p < (b ^ 2) ^ (p - 1),
-    { rw mul_comm (b ^ 2),
-      have : 4 ≤ b^2 := by nlinarith,
-      have : 0 < b^2 := by linarith,
-      exact mul_lt_mul_of_pos_right h this },
+  suffices h : p < (b ^ 2) ^ (p - 1),
+  { rw mul_comm (b ^ 2),
+    have : 4 ≤ b^2 := by nlinarith,
+    have : 0 < b^2 := by linarith,
+    exact mul_lt_mul_of_pos_right h this },
 
-    rw ←pow_mul,
-    rw nat.mul_sub_left_distrib,
-    rw mul_one,
+  rw ←pow_mul,
+  rw nat.mul_sub_left_distrib,
+  rw mul_one,
 
-    have h₁ : 2 ≤ 2*p - 2,
-    { have q : 4 ≤ 2*p := by linarith,
-      exact le_tsub_of_add_le_left q },
+  have h₁ : 2 ≤ 2*p - 2,
+  { have q : 4 ≤ 2*p := by linarith,
+    exact le_tsub_of_add_le_left q },
 
-    have : 2 + p ≤ 2 * p := by linarith,
-    have : p ≤ 2 * p - 2 := le_tsub_of_add_le_left this,
-    have q : (2*p - 2) < b^(2*p - 2) := pow_gt_exponent _ _ b_ge_two,
+  have : 2 + p ≤ 2 * p := by linarith,
+  have : p ≤ 2 * p - 2 := le_tsub_of_add_le_left this,
+  have q : (2*p - 2) < b^(2*p - 2) := pow_gt_exponent _ _ b_ge_two,
 
-    exact nat.lt_of_le_of_lt this q
+  exact nat.lt_of_le_of_lt this q
 end
 
 /--
@@ -536,7 +538,8 @@ For all positive bases, there exist Fermat infinite pseudoprimes to that base.
 Given in this form: for all numbers `b ≥ 1` and `m`, there exists a pseudoprime `n` to base `b` such
 that `m ≤ n`. This form is similar to `nat.exists_infinite_primes`.
 -/
-theorem exists_infinite_pseudoprimes (b : ℕ) (h : 1 ≤ b) (m : ℕ) : ∃ n : ℕ, fermat_psp n b ∧ m ≤ n :=
+theorem exists_infinite_pseudoprimes (b : ℕ) (h : 1 ≤ b) (m : ℕ) : ∃ n : ℕ, fermat_psp n b ∧ m ≤ n
+:=
 begin
   by_cases b_ge_two : 2 ≤ b,
   -- If `2 ≤ b`, then because there exist infinite prime numbers, there is a prime number p such

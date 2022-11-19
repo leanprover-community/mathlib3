@@ -7,6 +7,7 @@ import data.list.forall2
 import algebra.group.opposite
 import algebra.group_power.basic
 import algebra.group_with_zero.commute
+import algebra.group_with_zero.divisibility
 import algebra.order.with_zero
 import algebra.ring.basic
 import algebra.ring.divisibility

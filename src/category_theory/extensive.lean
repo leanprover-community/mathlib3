@@ -33,7 +33,6 @@ import category_theory.limits.preserves.shapes.pullbacks
 ## TODO
 
 Show that the following are finitary extensive:
-- the categories of sheaves over a site
 - `Scheme`
 - `AffineScheme` (`CommRingᵒᵖ`)
 

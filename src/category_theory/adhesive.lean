@@ -26,12 +26,6 @@ import category_theory.adjunction.evaluation
 - `category_theory.adhesive.to_regular_mono_category`: Monomorphisms in adhesive categories are
   regular (this implies that adhesive categories are balanced).
 
-## TODO
-
-Show that the following are adhesive:
-- functor categories into adhesive categories
-- the categories of sheaves over a site
-
 ## References
 - https://ncatlab.org/nlab/show/adhesive+category
 - [Stephen Lack and Paweł Sobociński, Adhesive Categories][adhesive2004]

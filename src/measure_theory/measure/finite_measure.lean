@@ -153,11 +153,16 @@ begin
   exact finite_measure.mass_zero_iff μ,
 end
 
-@[ext] lemma extensionality (μ ν : finite_measure Ω)
+@[ext] lemma eq_of_forall_measure_apply_eq (μ ν : finite_measure Ω)
+  (h : ∀ (s : set Ω), measurable_set s → (μ : measure Ω) s = (ν : measure Ω) s) :
+  μ = ν :=
+by { ext1, ext1 s s_mble, exact h s s_mble, }
+
+lemma eq_of_forall_apply_eq (μ ν : finite_measure Ω)
   (h : ∀ (s : set Ω), measurable_set s → μ s = ν s) :
   μ = ν :=
 begin
-  ext1, ext1 s s_mble,
+  ext1 s s_mble,
   simpa [ennreal_coe_fn_eq_coe_fn_to_measure] using congr_arg (coe : ℝ≥0 → ℝ≥0∞) (h s s_mble),
 end
 

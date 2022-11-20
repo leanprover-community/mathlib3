@@ -1,17 +1,15 @@
-name: update nolints
+name: Add mathlib4 porting comments
 
 on:
   schedule:
     - cron: "0 0 * * *"
-  workflow_dispatch
+  workflow_dispatch:
+  pull_request:  # todo: remove
 
 jobs:
   build:
-    name: Build, lint and update nolints
+    name: Update comments
     runs-on: ubuntu-latest
-    env:
-      # number of commits to check for olean cache
-      GIT_HISTORY_DEPTH: 20
     steps:
       - uses: actions/checkout@v3
 
@@ -32,3 +30,6 @@ jobs:
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
+        with:
+          commit-message: "chore(*): add mathlibport comments"
+          title: "chore(*): add mathlibport comments"

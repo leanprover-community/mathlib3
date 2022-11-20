@@ -264,6 +264,11 @@ finitary_extensive_of_reflective (sheafification_adjunction _ _)
 instance [adhesive D] [has_pullbacks D] [has_pushouts D] : adhesive (Sheaf J D) :=
 adhesive_of_reflective (sheafification_adjunction _ _)
 
+instance sheaf_of_types.finitary_extensive {C : Type u} [small_category C]
+  (J : grothendieck_topology C) :
+  finitary_extensive (Sheaf J (Type u)) :=
+category_theory.Sheaf.finitary_extensive.{_ u u}
+
 instance sheaf_of_types.adhesive {C : Type u} [small_category C] (J : grothendieck_topology C) :
   adhesive (Sheaf J (Type u)) :=
 category_theory.Sheaf.adhesive.{_ u u}

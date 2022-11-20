@@ -348,7 +348,7 @@ end
 
 lemma mem_root_set [comm_ring k] [is_domain k] [algebra R k] {x : k} (hp : p ≠ 0) :
   x ∈ p.root_set k ↔ aeval x p = 0 :=
-iff.trans multiset.mem_to_finset (mem_roots_map hp)
+mem_root_set_iff.trans $ and_iff_right hp
 
 lemma root_set_C_mul_X_pow [comm_ring S] [is_domain S] [algebra R S]
   {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (C a * X ^ n).root_set S = {0} :=

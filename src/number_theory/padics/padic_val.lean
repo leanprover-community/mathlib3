@@ -73,8 +73,12 @@ begin
   simp [padic_val_nat, neq_one, eq_zero_false]
 end
 
+@[simp] lemma eq_zero_iff {n : ℕ} : padic_val_nat p n = 0 ↔ p = 1 ∨ n = 0 ∨ ¬ p ∣ n :=
+by simp only [padic_val_nat, dite_eq_right_iff, part_enat.get_eq_iff_eq_coe, coe_zero,
+  multiplicity_eq_zero, and_imp, pos_iff_ne_zero, ne.def, ← or_iff_not_imp_left]
+
 lemma eq_zero_of_not_dvd {n : ℕ} (h : ¬ p ∣ n) : padic_val_nat p n = 0 :=
-by { rw padic_val_nat, split_ifs; simp [multiplicity_eq_zero_of_not_dvd h] }
+eq_zero_iff.2 $ or.inr $ or.inr h
 
 end padic_val_nat
 

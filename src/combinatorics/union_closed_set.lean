@@ -138,6 +138,9 @@ begin
   exact p_pos_of_exists.ne' (hs (X x) this),
 end
 
+lemma p_whole_space' : ∑ x in univ.image X, p X x = 1 :=
+p_whole_space (by simp [p_eq_zero_iff])
+
 def ent (b x : ℝ) : ℝ := - x * real.logb b x
 @[simp] lemma ent_zero {b : ℝ} : ent b 0 = 0 := by simp [ent]
 @[simp] lemma ent_one {b : ℝ} : ent b 1 = 0 := by simp [ent]
@@ -309,19 +312,20 @@ begin
   apply strict_concave_on_log_Ioi.concave_on,
 end
 
-lemma gibbs {b : ℝ} (hb : 1 < b) (s : finset α) {X Y : Ω → α}
-  (h : ∀ i, p Y i = 0 → p X i = 0) (hs : ∀ i ∉ s, p X i = 0) :
-  ∑ i in s, ent b (p X i) ≤ ∑ i in s, - p X i * real.logb b (p Y i) :=
+lemma gibbs {b : ℝ} (hb : 1 < b) (s : finset α) {X : Ω → α} (y : α → ℝ) (hy : ∀ i, 0 ≤ y i)
+  (hy' : ∑ i in s, y i ≤ 1)
+  (h : ∀ i, y i = 0 → p X i = 0) (hs : ∀ i ∉ s, p X i = 0) :
+  ∑ i in s, ent b (p X i) ≤ ∑ i in s, - p X i * real.logb b (y i) :=
 begin
   simp only [ent],
   rw [←sub_nonpos, ←sum_sub_distrib],
   simp only [neg_mul, neg_sub_neg, ←mul_sub],
-  have : ∀ x ∈ s, p X x * (real.logb b (p Y x) - real.logb b (p X x)) ≠ 0 → p X x ≠ 0,
+  have : ∀ x ∈ s, p X x * (real.logb b (y x) - real.logb b (p X x)) ≠ 0 → p X x ≠ 0,
   { simp [not_or_distrib] {contextual := tt} },
   rw ←sum_filter_of_ne this,
   dsimp,
-  have : ∑ x in s.filter (λ x, p X x ≠ 0), p X x * (real.logb b (p Y x) - real.logb b (p X x)) =
-    ∑ x in s.filter (λ x, p X x ≠ 0), p X x * (real.logb b (p Y x / p X x)),
+  have : ∑ x in s.filter (λ x, p X x ≠ 0), p X x * (real.logb b (y x) - real.logb b (p X x)) =
+    ∑ x in s.filter (λ x, p X x ≠ 0), p X x * (real.logb b (y x / p X x)),
   { refine sum_congr rfl (λ x hx, _),
     simp only [mem_filter, mem_univ, ne.def, true_and] at hx,
     rw real.logb_div (λ h', hx.2 (h _ h')) hx.2 },
@@ -333,34 +337,62 @@ begin
   { intros i hi,
     simp only [ne.def, mem_filter, mem_univ, true_and] at hi,
     exact div_pos
-      ((p_nonneg _ _).lt_of_ne' (λ h', hi.2 (h _ h')))
+      ((hy _).lt_of_ne' (λ h', hi.2 (h _ h')))
       ((p_nonneg _ _).lt_of_ne' hi.2) },
   refine real.logb_nonpos hb (sum_nonneg _) _,
   { intros i hi,
+    have := hy i,
     positivity },
-  have : ∑ i in s.filter (λ x, p X x ≠ 0), p X i • (p Y i / p X i) =
-    ∑ i in s.filter (λ x, p X x ≠ 0), p Y i,
+  have : ∑ i in s.filter (λ x, p X x ≠ 0), p X i • (y i / p X i) =
+    ∑ i in s.filter (λ x, p X x ≠ 0), y i,
   { refine sum_congr rfl (λ x hx, _),
     simp only [mem_filter, ne.def] at hx,
     rw [smul_eq_mul, mul_div_cancel'],
     exact hx.2 },
   rw [this],
-  have : s.filter (λ x, p X x ≠ 0) ⊆ univ.image Y,
-  { simp only [finset.subset_iff, ne.def, mem_filter, mem_image, mem_univ, exists_true_left,
-      and_imp, ←p_ne_zero_iff],
-    intros x hx hx' hx'',
-    exact hx' (h _ hx'') },
-  refine (sum_le_sum_of_subset_of_nonneg this _).trans_eq _,
+  refine (sum_le_sum_of_subset_of_nonneg (filter_subset _ _) _).trans hy',
   { intros,
-    apply p_nonneg },
-  rw p_whole_space,
-  simp [p_eq_zero_iff],
+    apply hy },
 end
 
 lemma cond_entropy_le : ℍ i, X i | Y i ≤ ℍ i, X i :=
 begin
-  sorry
-  -- rw [cond_entropy_chain_swap, sub_le_iff_le_add],
-  -- simp only [entropy],
-  -- rw [←expect_add],
+  rw [cond_entropy_chain_swap, sub_le_iff_le_add, entropy_eq],
+  rw [entropy, entropy, ←expect_add, expect],
+  have : ∑ ω, w ω • (-real.logb 2 (p X (X ω)) + -real.logb 2 (p Y (Y ω))) =
+    ∑ (i : α × β) in univ.image (λ ω, (X ω, Y ω)),
+      -p (λ ω, (X ω, Y ω)) i * real.logb 2 (p X i.1 * p Y i.2),
+  { rw sum_image',
+    intros c hc,
+    have :
+      ∑ x in univ.filter (λ c', (X c', Y c') = (X c, Y c)),
+        w x • (-real.logb 2 (p X (X x)) + -real.logb 2 (p Y (Y x))) =
+      ∑ x in univ.filter (λ c', (X c', Y c') = (X c, Y c)),
+        w x • (-real.logb 2 (p X (X c)) + -real.logb 2 (p Y (Y c))),
+    { refine sum_congr rfl _,
+      simp {contextual := tt} },
+    rw [this],
+    simp only [smul_eq_mul, ←sum_mul],
+    rw [←neg_add, real.logb_mul p_pos_of_exists.ne' p_pos_of_exists.ne', neg_mul, mul_neg],
+    simp only [p, prob, set.mem_singleton_iff] },
+  rw [this],
+  have : ∀ (i : α × β), 0 ≤ p X i.1 * p Y i.2,
+  { intro i,
+    exact mul_nonneg (p_nonneg _ _) (p_nonneg _ _), },
+  convert gibbs one_lt_two _ _ this _ _ _,
+  { have h' : univ.image (λ ω, (X ω, Y ω)) ⊆ univ.image X ×ˢ univ.image Y,
+    { simp only [finset.subset_iff, mem_image, mem_univ, exists_true_left, mem_product,
+        forall_exists_index, prod.forall, prod.mk.inj_iff, and_imp],
+      rintro _ _ x rfl rfl,
+      simp },
+    convert (sum_le_sum_of_subset_of_nonneg h' _).trans _,
+    { intros,
+      apply this },
+    refine (@sum_product' _ _ _ _ _ _ (λ a b, p X a * p Y b)).trans_le _,
+    simp only [←mul_sum, ←sum_mul],
+    rw [p_whole_space', one_mul, p_whole_space'] },
+  { rintro ⟨i, j⟩,
+    simp only [mul_eq_zero, p_eq_zero_iff, or_imp_distrib],
+    simp {contextual := tt} },
+  { simp [p_eq_zero_iff] },
 end

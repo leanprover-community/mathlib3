@@ -138,7 +138,7 @@ General algebra:
     perfection of a ring: 'ring.perfection'
   Transcendental numbers:
     Liouville's theorem on existence of transcendental numbers: liouville.is_transcendental
-  
+
   Representation theory:
     representation : 'representation'
     category of finite dimensional representations : 'fdRep'
@@ -274,7 +274,7 @@ Analysis:
   Hilbert spaces:
     Inner product space, over $R$ or $C$: 'inner_product_space'
     Cauchy-Schwarz inequality: 'inner_mul_inner_self_le'
-    adjoint operator: 'linear_pmap.adjoint'
+    adjoint operator: 'dense_linear_pmap.adjoint'
     self-adjoint operator: 'is_self_adjoint'
     orthogonal projection: 'orthogonal_projection'
     reflection: 'reflection'

@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Neil Strickland
 -/
 import data.pnat.defs
 import data.nat.order.basic
+import data.set.basic
 import algebra.group_with_zero.divisibility
 import algebra.order.positive.ring
 

@@ -7,7 +7,6 @@ import data.fintype.basic
 import group_theory.order_of_element
 import tactic.zify
 import data.nat.totient
-import data.zmod.basic
 
 /-!
 # The Lucas test for primes.

@@ -495,6 +495,9 @@ lemma singleton_pi' (i : ι) (t : Π i, set (α i)) : pi {i} t = {x | x i ∈ t 
 lemma univ_pi_singleton (f : Π i, α i) : pi univ (λ i, {f i}) = ({f} : set (Π i, α i)) :=
 ext $ λ g, by simp [funext_iff]
 
+lemma preimage_pi (s : set ι) (t : Π i, set (β i)) (f : Π i, α i → β i) :
+  (λ (g : Π i, α i) i, f _ (g i)) ⁻¹' s.pi t = s.pi (λ i, f i ⁻¹' t i) := rfl
+
 lemma pi_if {p : ι → Prop} [h : decidable_pred p] (s : set ι) (t₁ t₂ : Π i, set (α i)) :
   pi s (λ i, if p i then t₁ i else t₂ i) = pi {i ∈ s | p i} t₁ ∩ pi {i ∈ s | ¬ p i} t₂ :=
 begin

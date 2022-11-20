@@ -3,8 +3,17 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Floris van Doorn, Sébastien Gouëzel, Alex J. Best
 -/
-import algebra.group_power
 import data.list.forall2
+import algebra.group.opposite
+import algebra.group_power.basic
+import algebra.group_with_zero.commute
+import algebra.group_with_zero.divisibility
+import algebra.order.with_zero
+import algebra.ring.basic
+import algebra.ring.divisibility
+import algebra.ring.commute
+import data.int.basic
+import data.set.basic
 
 /-!
 # Sums and products from lists

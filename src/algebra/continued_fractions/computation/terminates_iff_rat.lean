@@ -5,7 +5,6 @@ Authors: Kevin Kappelmann
 -/
 import algebra.continued_fractions.computation.approximations
 import algebra.continued_fractions.computation.correctness_terminating
-import algebra.order.archimedean
 import data.rat.floor
 /-!
 # Termination of Continued Fraction Computations (`gcf.of`)

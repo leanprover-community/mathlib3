@@ -5,6 +5,7 @@ Authors: Thomas Browning
 -/
 
 import data.finite.card
+import group_theory.finiteness
 import group_theory.group_action.quotient
 
 /-!
@@ -348,6 +349,12 @@ by simp_rw [←relindex_top_right, relindex_infi_le]
 ⟨λ h, quotient_group.subgroup_eq_top_of_subsingleton H (cardinal.to_nat_eq_one_iff_unique.mp h).1,
   λ h, (congr_arg index h).trans index_top⟩
 
+@[simp, to_additive relindex_eq_one] lemma relindex_eq_one : H.relindex K = 1 ↔ K ≤ H :=
+index_eq_one.trans subgroup_of_eq_top
+
+@[simp, to_additive card_eq_one] lemma card_eq_one : nat.card H = 1 ↔ H = ⊥ :=
+H.relindex_bot_left ▸ (relindex_eq_one.trans le_bot_iff)
+
 @[to_additive] lemma index_ne_zero_of_finite [hH : finite (G ⧸ H)] : H.index ≠ 0 :=
 by { casesI nonempty_fintype (G ⧸ H), rw index_eq_card, exact fintype.card_ne_zero }
 
@@ -410,6 +417,22 @@ instance finite_index_normal_core [H.finite_index] : H.normal_core.finite_index 
 begin
   rw normal_core_eq_ker,
   apply_instance,
+end
+
+variables (G)
+
+instance finite_index_center [finite (commutator_set G)] [group.fg G] : finite_index (center G) :=
+begin
+  obtain ⟨S, -, hS⟩ := group.rank_spec G,
+  exact ⟨mt (finite.card_eq_zero_of_embedding (quotient_center_embedding hS)) finite.card_pos.ne'⟩,
+end
+
+lemma index_center_le_pow [finite (commutator_set G)] [group.fg G] :
+  (center G).index ≤ (nat.card (commutator_set G)) ^ group.rank G :=
+begin
+  obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
+  rw [←hS1, ←fintype.card_coe, ←nat.card_eq_fintype_card, ←finset.coe_sort_coe, ←nat.card_fun],
+  exact finite.card_le_of_embedding (quotient_center_embedding hS2),
 end
 
 end finite_index

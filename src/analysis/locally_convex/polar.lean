@@ -5,7 +5,6 @@ Authors: Moritz Doll, Kalle Kytölä
 -/
 
 import analysis.normed.field.basic
-import analysis.convex.basic
 import linear_algebra.sesquilinear_form
 import topology.algebra.module.weak_dual
 
@@ -47,23 +46,23 @@ variables [normed_comm_ring 𝕜] [add_comm_monoid E] [add_comm_monoid F]
 variables [module 𝕜 E] [module 𝕜 F]
 variables (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜)
 
-/-- The (absolute) polar of `s : set E` is given by the set of all `y : F` such that `∥B x y∥ ≤ 1`
+/-- The (absolute) polar of `s : set E` is given by the set of all `y : F` such that `‖B x y‖ ≤ 1`
 for all `x ∈ s`.-/
 def polar (s : set E) : set F :=
-  {y : F | ∀ x ∈ s, ∥B x y∥ ≤ 1 }
+  {y : F | ∀ x ∈ s, ‖B x y‖ ≤ 1 }
 
 lemma polar_mem_iff (s : set E) (y : F) :
-  y ∈ B.polar s ↔ ∀ x ∈ s, ∥B x y∥ ≤ 1 := iff.rfl
+  y ∈ B.polar s ↔ ∀ x ∈ s, ‖B x y‖ ≤ 1 := iff.rfl
 
 lemma polar_mem (s : set E) (y : F) (hy : y ∈ B.polar s) :
-  ∀ x ∈ s, ∥B x y∥ ≤ 1 := hy
+  ∀ x ∈ s, ‖B x y‖ ≤ 1 := hy
 
 @[simp] lemma zero_mem_polar (s : set E) :
   (0 : F) ∈ B.polar s :=
 λ _ _, by simp only [map_zero, norm_zero, zero_le_one]
 
 lemma polar_eq_Inter {s : set E} :
-  B.polar s = ⋂ x ∈ s, {y : F | ∥B x y∥ ≤ 1} :=
+  B.polar s = ⋂ x ∈ s, {y : F | ‖B x y‖ ≤ 1} :=
 by { ext, simp only [polar_mem_iff, set.mem_Inter, set.mem_set_of_eq] }
 
 /-- The map `B.polar : set E → set F` forms an order-reversing Galois connection with
@@ -124,7 +123,7 @@ begin
   refine ⟨by simp only [zero_mem_polar], λ y hy, h _ (λ x, _)⟩,
   refine norm_le_zero_iff.mp (le_of_forall_le_of_dense $ λ ε hε, _),
   rcases normed_field.exists_norm_lt 𝕜 hε with ⟨c, hc, hcε⟩,
-  calc ∥B x y∥ = ∥c∥ * ∥B (c⁻¹ • x) y∥ :
+  calc ‖B x y‖ = ‖c‖ * ‖B (c⁻¹ • x) y‖ :
     by rw [B.map_smul, linear_map.smul_apply, algebra.id.smul_eq_mul, norm_mul, norm_inv,
       mul_inv_cancel_left₀ hc.ne']
   ... ≤ ε * 1 : mul_le_mul hcε.le (hy _ trivial) (norm_nonneg _) hε.le

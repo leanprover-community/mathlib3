@@ -37,7 +37,7 @@ jobs:
         id: generate-message
         with:
           script: |
-            prs = exec.getExecOutput("bash",
+            prs = await exec.getExecOutput("bash",
               ['-c', "git diff HEAD -U0 | grep -o -e 'https://github.com/leanprover-community/mathlib4/pull/[0-9]+'"]);
             pr_bullets = prs.stdout.split('\n').map(x => "* " + x).join('\n'); 
             console.log(pr_bullets);

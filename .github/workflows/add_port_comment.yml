@@ -37,7 +37,8 @@ jobs:
         id: generate-message
         with:
           script: |
-            prs = exec.getExecOutput("git diff HEAD -U0 | grep -o -e 'https://github.com/leanprover-community/mathlib4/pull'");
+            prs = exec.getExecOutput("bash",
+              ['-c', "git diff HEAD -U0 | grep -o -e 'https://github.com/leanprover-community/mathlib4/pull/\\d+'"]);
             console.log(prs.stdout);
             console.log(prs.stderr);
             core.setOutput("PR_LIST", prs.stdout); 

@@ -1147,7 +1147,7 @@ local attribute [instance] affine_subspace.to_add_torsor
 
 /-- A set, considered as a subset of its spanned affine subspace, spans the whole subspace. -/
 lemma affine_span_affine_span_coe_preimage (A : set P) [nonempty A] :
-affine_span k ((coe : affine_span k A → P) ⁻¹' A) = ⊤ :=
+  affine_span k ((coe : affine_span k A → P) ⁻¹' A) = ⊤ :=
 begin
   rw [eq_top_iff],
   rintro ⟨x, hx⟩ -,

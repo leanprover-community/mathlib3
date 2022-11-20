@@ -138,14 +138,11 @@ variables [fintype G]
   (univ.filter $ λ g, f g = x).card = (univ.filter $ λ g, f g = y).card :=
 begin
   rcases ⟨hx, hy⟩ with ⟨⟨x, rfl⟩, y, rfl⟩,
-  obtain ⟨f, rfl⟩ : ∃ f' : G →* Mˣ, f = (units.coe_hom M).comp f',
-    from ⟨f.to_hom_units, fun_like.ext' rfl⟩,
   rcases mul_left_surjective x y with ⟨y, rfl⟩,
-  simp only [monoid_hom.comp_apply, units.coe_hom_apply, units.eq_iff],
   conv_lhs { rw [← map_univ_equiv (equiv.mul_right y⁻¹), filter_map, card_map] },
   congr' 2 with g,
-  simp only [mul_inv_eq_iff_eq_mul, (∘), equiv.to_embedding_apply, equiv.coe_mul_right, map_inv,
-    map_mul]
+  simp only [(∘), equiv.to_embedding_apply, equiv.coe_mul_right, map_mul],
+  rw [← f.coe_to_hom_units y⁻¹, map_inv, units.mul_inv_eq_iff_eq_mul, f.coe_to_hom_units]
 end
 
 /-- In an integral domain, a sum indexed by a nontrivial homomorphism from a finite group is zero.

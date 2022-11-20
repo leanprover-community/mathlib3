@@ -185,7 +185,9 @@ meta def eval_guessing (n : ℕ) : expr → tactic ℕ
 | `(max %%a %%b) := max <$> eval_guessing a <*> eval_guessing b
 | e              := eval_expr' ℕ e <|> pure n
 
-/--  These are the cases in which an available lemma computes the degree. -/
+/--  These are the cases in which an available lemma computes the degree.
+`single_term_suggestions` returns a pair `(e1, e2)`, where `e1` pretty-prints to something
+suitable for a "Try this:", while `e2` is an expression that unifies with the target. -/
 meta def single_term_suggestions : tactic (expr × (expr ff)) := do
 t ← target,
 [ ``(polynomial.nat_degree_X_pow _),
@@ -376,6 +378,19 @@ match f with
 | e := skip
 end
 
+/--  `poly_and_deg_to_equation f deg` takes an input an expression `f` representing a polynomial
+and an expression `deg` representing an natural number.  It returns a term `h` of type
+`f.coeff deg ` -/
+meta def poly_and_deg_to_equation (f deg : expr) : tactic expr :=
+do
+  `(@polynomial %%R %%_) ← infer_type f,
+  c ← mk_instance_cache R,
+  (c, lc) ← get_lead_coeff c f,
+  nn ← get_unused_name "c_c",
+  cf ← to_expr ``(coeff : polynomial %%R → ℕ → %%R),
+  co_eq_co ← mk_app `eq [cf.mk_app [f, deg], lc],
+  assert nn co_eq_co
+
 namespace interactive
 open compute_degree
 
@@ -397,13 +412,7 @@ do t ← target >>= instantiate_mvars,
   guard (d_nat = m_nat) <|> fail!(
   "`simp_coeff` checks that the expected degree is equal to the degree appearing in `coeff`\n" ++
   "the expected degree is `{d_nat}`, but you are asking about the coefficient of degree `{m_nat}`"),
-  `(@polynomial %%R %%_) ← infer_type f,
-  c ← mk_instance_cache R,
-  (c, lc) ← get_lead_coeff c f,
-  nn ← get_unused_name "c_c",
-  cf ← to_expr ``(coeff : polynomial %%R → ℕ → %%R),
-  co_eq_co ← mk_app `eq [cf.mk_app [f, m], lc],
-  c_c ← assert nn co_eq_co,
+  c_c ← poly_and_deg_to_equation f m,
   interactive.swap,
   if t_is_eq then refine ``(eq.trans %%c_c _) else refine ``(ne_of_eq_of_ne %%c_c _),
   try $ tactic.clear c_c,
@@ -422,13 +431,7 @@ meta def reduce_coeff (fp : parse texpr) : tactic unit :=
 do
   f ← to_expr ``(%%fp) tt ff,
   exp_deg ← guess_degree' f,
-  `(@polynomial %%R %%_) ← infer_type f,
-  c ← mk_instance_cache R,
-  (c, lc) ← get_lead_coeff c f,
-  nn ← get_unused_name "c_c",
-  cf ← to_expr ``(coeff : polynomial %%R → ℕ → %%R),
-  co_eq_co ← mk_app `eq [cf.mk_app [f, `(exp_deg)], lc],
-  assert nn co_eq_co,
+  poly_and_deg_to_equation f `(exp_deg),
   resolve_coeff
 
 /--  `compute_degree` tries to close goals of the form `f.(nat_)degree = d`.  It converts the
@@ -447,9 +450,7 @@ match t with
   wks ← try_core single_term_suggestions,
   match wks with
   | some wor := do
-    if single.is_some then refine wor.2 else (do
-    pwks ← pp wor.1,
-    fail!"Try this: exact {pwks}")
+    if single.is_some then refine wor.2 else (do pwks ← pp wor.1, fail!"Try this: exact {pwks}")
   | none := skip
   end
 | _ := fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`"

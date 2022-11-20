@@ -57,8 +57,8 @@ end polynomial
 
 namespace tactic
 
-namespace compute_degree
 open expr polynomial
+namespace compute_degree
 
 /--  `guess_degree e` assumes that `e` is an expression in a polynomial ring, and makes an attempt
 at guessing the `nat_degree` of `e`.  Heuristics for `guess_degree`:
@@ -269,7 +269,7 @@ meta def get_lead_coeff (c : instance_cache) : expr → tactic (instance_cache �
 end compute_degree
 
 namespace interactive
-open compute_degree polynomial expr
+open compute_degree
 
 /--  `compute_degree_le` tries to solve a goal of the form `f.nat_degree ≤ d` or `f.degree ≤ d`,
 where `f : R[X]` and `d : ℕ` or `d : with_bot ℕ`.
@@ -314,7 +314,8 @@ focus1 $ do t ← target,
 
 end interactive
 
-open interactive polynomial expr compute_degree
+namespace compute_degree
+open interactive
 /--
 `resolve_coeff` assumes that the goal has the form `f.coeff n = x`.  It is important that `x`
 is the result of applying `get_lead_coeff` to `f`!  Indeed, `resolve_coeff` reads through the
@@ -390,6 +391,8 @@ do
   cf ← to_expr ``(coeff : polynomial %%R → ℕ → %%R),
   co_eq_co ← mk_app `eq [cf.mk_app [f, deg], lc],
   assert nn co_eq_co
+
+end compute_degree
 
 namespace interactive
 open compute_degree

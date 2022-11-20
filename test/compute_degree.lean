@@ -119,41 +119,6 @@ example {R} [ring R] [nontrivial R] {a b c d e : R} :
     C a * X ^ 0 + C b * X ^ 5 + C c * X ^ 2 + X ^ 10 + C e * X).monic :=
 by prove_monic
 
-example [nontrivial R] : let p := (X ^ 11 : R[X]).nat_degree = 11 in p ∧ p :=
-begin
-  refine ⟨by compute_degree!, _⟩,
-  success_if_fail_with_msg {compute_degree} "Try this: exact nat_degree_X_pow _",
-  exact nat_degree_X_pow _,
-end
-
-example : let p := (C a).nat_degree = 0 in p ∧ p :=
-begin
-  refine ⟨by compute_degree!, _⟩,
-  success_if_fail_with_msg {compute_degree} "Try this: exact nat_degree_C _",
-  exact nat_degree_C _,
-end
-
-example [nontrivial R] : let p := (X : R[X]).nat_degree = 1 in p ∧ p :=
-begin
-  refine ⟨by compute_degree!, _⟩,
-  success_if_fail_with_msg {compute_degree} "Try this: exact nat_degree_X",
-  exact nat_degree_X,
-end
-
-example (a0 : a ≠ 0) : let p := (C a * X ^ 11).nat_degree = 11 in p ∧ p :=
-begin
-  refine ⟨by compute_degree!, _⟩,
-  success_if_fail_with_msg {compute_degree} "Try this: exact nat_degree_C_mul_X_pow _ a a0",
-  exact nat_degree_C_mul_X_pow _ a a0,
-end
-
-example (a0 : a ≠ 0) : let p := (C a * X).nat_degree = 1 in p ∧ p :=
-begin
-  refine ⟨by compute_degree!, _⟩,
-  success_if_fail_with_msg {compute_degree} "Try this: exact nat_degree_C_mul_X a a0",
-  exact nat_degree_C_mul_X a a0,
-end
-
 /-  The next example shows that `compute_degree!` solves a goal, while `compute_degree` flags
 the same goal as "too simple" and returns a "Try this:". -/
 example [nontrivial R] (a0 : a ≠ 0) : let p :=

@@ -34,4 +34,6 @@ jobs:
           title: "chore(*): add mathlibport comments"
           body: |
             Regenerated from the [port status wiki page](https://github.com/leanprover-community/mathlib/wiki/mathlib4-port-status) 
-          labels: [easy, mathlib4-synchronization]
+          labels: |
+            easy,
+            mathlib4-synchronization

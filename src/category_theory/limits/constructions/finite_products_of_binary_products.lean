@@ -272,28 +272,14 @@ private lemma has_coproduct_fin :
       ⟨_, extend_cofan_is_colimit f (colimit.is_colimit _) (colimit.is_colimit _)⟩,
   end
 
-/--
-If `C` has an initial object and binary coproducts, then it has colimits of shape
-`discrete (fin n)` for any `n : ℕ`.
-This is a helper lemma for `has_cofinite_products_of_has_binary_and_terminal`, which is more general
-than this.
--/
-private lemma has_colimits_of_shape_fin (n : ℕ) :
-  has_colimits_of_shape (discrete (fin n)) C :=
-{ has_colimit := λ K,
+/-- If `C` has an initial object and binary coproducts, then it has finite coproducts. -/
+lemma has_finite_coproducts_of_has_binary_and_initial : has_finite_coproducts C :=
 begin
+  refine ⟨λ n, ⟨λ K, _⟩⟩,
   letI := has_coproduct_fin n (λ n, K.obj ⟨n⟩),
   let : K ≅ discrete.functor (λ n, K.obj ⟨n⟩) := discrete.nat_iso (λ ⟨i⟩, iso.refl _),
   apply has_colimit_of_iso this,
-end }
-
-/-- If `C` has an initial object and binary coproducts, then it has finite coproducts. -/
-lemma has_finite_coproducts_of_has_binary_and_initial : has_finite_coproducts C :=
-⟨λ J 𝒥, begin
-  resetI,
-  apply has_colimits_of_shape_of_equivalence (discrete.equivalence (fintype.equiv_fin J)).symm,
-  refine has_colimits_of_shape_fin (fintype.card J),
-end⟩
+end
 
 end
 

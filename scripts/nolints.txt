@@ -135,7 +135,7 @@ apply_nolint tactic.interactive.with_prefix doc_blame
 -- data/finsupp/pwo.lean
 apply_nolint finsupp.is_pwo fintype_finite
 
--- data/fintype/card.lean
+-- data/fintype/big_operators.lean
 apply_nolint fin.prod_univ_eq_prod_range to_additive_doc
 
 -- data/fintype/card_embedding.lean

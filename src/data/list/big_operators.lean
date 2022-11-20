@@ -6,11 +6,15 @@ Authors: Johannes Hölzl, Floris van Doorn, Sébastien Gouëzel, Alex J. Best
 import algebra.group.opposite
 import algebra.group_power.basic
 import algebra.group_with_zero.commute
+import algebra.group_with_zero.divisibility
+import algebra.order.with_zero
 import algebra.ring.basic
+import algebra.ring.divisibility
 import algebra.ring.commute
 import data.int.basic
 import data.list.count
 import data.list.forall2
+import data.set.basic
 
 /-!
 # Sums and products from lists

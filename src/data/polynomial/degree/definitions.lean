@@ -1097,9 +1097,7 @@ end
 lemma degree_X_pow_add_C {n : ℕ} (hn : 0 < n) (a : R) :
   degree ((X : R[X]) ^ n + C a) = n :=
 have degree (C a) < degree ((X : R[X]) ^ n),
-  from calc degree (C a) ≤ 0 : degree_C_le
-  ... < degree ((X : R[X]) ^ n) : by rwa [degree_X_pow];
-    exact with_bot.coe_lt_coe.2 hn,
+  from degree_C_le.trans_lt $ by rwa [degree_X_pow, with_bot.coe_pos],
 by rw [degree_add_eq_left_of_degree_lt this, degree_X_pow]
 
 lemma X_pow_add_C_ne_zero {n : ℕ} (hn : 0 < n) (a : R) :

@@ -5,6 +5,7 @@ Authors: Andrew Yang
 -/
 import category_theory.extensive
 import category_theory.limits.shapes.kernel_pair
+import category_theory.adjunction.evaluation
 
 /-!
 
@@ -268,5 +269,91 @@ instance adhesive.to_regular_mono_category [adhesive C] : regular_mono_category 
 
 -- This then implies that adhesive categories are balanced
 example [adhesive C] : balanced C := infer_instance
+
+section functor
+
+universes v'' u''
+
+variables {D : Type u''} [category.{v''} D]
+
+instance [adhesive C] [has_pullbacks C] [has_pushouts C] :
+  adhesive (D ⥤ C) :=
+begin
+  apply_with adhesive.mk { instances := ff },
+  { introsI,
+    haveI : ∀ x, has_limit ((cospan f g).flip.obj x) := λ x, @@has_limit_of_iso _ _
+      (show has_limit (cospan (f.app x) (g.app x)), by apply_instance)
+      (diagram_iso_cospan $ (cospan f g).flip.obj x).symm,
+    exact ⟨⟨⟨_, combined_is_limit _ (λ k, get_limit_cone _)⟩⟩⟩ },
+  { introsI,
+    haveI : ∀ x, has_colimit ((span f g).flip.obj x) := λ x, @@has_colimit_of_iso _ _
+        (show has_colimit (span (f.app x) (g.app x)), by apply_instance)
+        (diagram_iso_span $ (span f g).flip.obj x),
+    exact ⟨⟨⟨_, combined_is_colimit _ (λ k, get_colimit_cocone _)⟩⟩⟩ },
+  { introsI,
+    rw is_pushout.is_van_kampen_iff,
+    apply is_van_kampen_colimit_of_evaluation,
+    intro x,
+    refine is_van_kampen_colimit.of_precompose_iso _ (diagram_iso_span _).inv _,
+    refine is_van_kampen_colimit.of_iso _ (pushout_cocone.iso_mk _).symm,
+    refine (is_pushout.is_van_kampen_iff (H.map ((evaluation _ _).obj x))).mp _,
+    apply adhesive.van_kampen }
+end
+
+lemma adhesive_of_preserves_and_reflects (F : C ⥤ D) [adhesive D]
+  [H₁ : ∀ {X Y S : C} (f : X ⟶ S) (g : Y ⟶ S) [mono f], has_pullback f g]
+  [H₂ : ∀ {X Y S : C} (f : S ⟶ X) (g : S ⟶ Y) [mono f], has_pushout f g]
+  [preserves_limits_of_shape walking_cospan F]
+  [reflects_limits_of_shape walking_cospan F]
+  [preserves_colimits_of_shape walking_span F]
+  [reflects_colimits_of_shape walking_span F] :
+  adhesive C :=
+begin
+  apply @@adhesive.mk _ @H₁ @H₂,
+  introsI,
+  rw is_pushout.is_van_kampen_iff,
+  refine is_van_kampen_colimit.of_map F _,
+  refine is_van_kampen_colimit.of_precompose_iso _ (diagram_iso_span _).inv _,
+  refine is_van_kampen_colimit.of_iso _ (pushout_cocone.iso_mk _).symm,
+  refine (is_pushout.is_van_kampen_iff (H.map F)).mp _,
+  apply adhesive.van_kampen,
+end
+
+lemma adhesive_of_preserves_and_reflects_isomorphism (F : C ⥤ D)
+  [adhesive D] [has_pullbacks C] [has_pushouts C]
+  [preserves_limits_of_shape walking_cospan F]
+  [preserves_colimits_of_shape walking_span F]
+  [reflects_isomorphisms F] :
+  adhesive C :=
+begin
+  haveI : reflects_limits_of_shape walking_cospan F :=
+    reflects_limits_of_shape_of_reflects_isomorphisms,
+  haveI : reflects_colimits_of_shape walking_span F :=
+    reflects_colimits_of_shape_of_reflects_isomorphisms,
+  exact adhesive_of_preserves_and_reflects F,
+end
+
+lemma adhesive_of_reflective [has_pullbacks D] [adhesive C] [has_pullbacks C] [has_pushouts C]
+  [H₂ : ∀ {X Y S : D} (f : S ⟶ X) (g : S ⟶ Y) [mono f], has_pushout f g]
+  {Gl : C ⥤ D} {Gr : D ⥤ C} (adj : Gl ⊣ Gr) [full Gr] [faithful Gr]
+  [preserves_limits_of_shape walking_cospan Gl] :
+  adhesive D :=
+begin
+  haveI : preserves_colimits_of_size Gl := adj.left_adjoint_preserves_colimits,
+  haveI := adj.right_adjoint_preserves_limits,
+  apply @@adhesive.mk _ _ @H₂,
+  introsI W X Y Z f g h i _ H,
+  have := adhesive.van_kampen (is_pushout.of_has_pushout (Gr.map f) (Gr.map g)),
+  rw is_pushout.is_van_kampen_iff at this ⊢,
+  refine is_van_kampen_colimit.of_precompose_iso _
+    (iso_whisker_left _ (as_iso adj.counit) ≪≫ functor.right_unitor _).hom _,
+  refine ((this.precompose_iso (span_comp_iso _ _ _).hom).map_reflective adj).of_iso
+    (is_colimit.unique_up_to_iso _ _),
+  { exact is_colimit_of_preserves Gl
+      ((is_colimit.precompose_hom_equiv _ _).symm $ pushout_is_pushout _ _) },
+  { exact (is_colimit.precompose_hom_equiv _ _).symm H.is_colimit },
+end
+
+end functor
 
 end category_theory

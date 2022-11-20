@@ -7,6 +7,7 @@ import category_theory.sites.sheafification
 import category_theory.sites.limits
 import category_theory.limits.functor_category
 import category_theory.limits.filtered_colimit_commutes_finite_limit
+import category_theory.adhesive
 
 /-!
 # Left exactness of sheafification
@@ -17,7 +18,7 @@ open category_theory
 open category_theory.limits
 open opposite
 
-universes w v u
+universes w' w v u
 variables {C : Type (max v u)} [category.{v} C] {J : grothendieck_topology C}
 variables {D : Type w} [category.{max v u} D]
 variables [∀ (P : Cᵒᵖ ⥤ D) (X : C) (S : J.cover X), has_multiequalizer (S.index P)]
@@ -229,14 +230,20 @@ variables [concrete_category.{max v u} D]
 variables [∀ (X : C), preserves_colimits_of_shape (J.cover X)ᵒᵖ (forget D)]
 variables [preserves_limits (forget D)]
 variables [reflects_isomorphisms (forget D)]
-variables (K : Type (max v u))
+variables (K : Type w')
 variables [small_category K] [fin_category K] [has_limits_of_shape K D]
 
 instance : preserves_limits_of_shape K (presheaf_to_Sheaf J D) :=
 begin
+  let e := (fin_category.equiv_as_type K).symm.trans (as_small.equiv.{0 0 (max v u)}),
+  haveI : has_limits_of_shape (as_small.{max v u} (fin_category.as_type K)) D :=
+    has_limits_of_shape_of_equivalence e,
+  haveI : fin_category (as_small.{max v u} (fin_category.as_type K)),
+  { constructor, dsimp [as_small], apply_instance },
+  apply_with (preserves_limits_of_shape_of_equiv e.symm) { instances := ff },
   constructor, intros F, constructor, intros S hS,
   apply is_limit_of_reflects (Sheaf_to_presheaf J D),
-  haveI : reflects_limits_of_shape K (forget D) :=
+  haveI : reflects_limits_of_shape (as_small.{max v u} (fin_category.as_type K)) (forget D) :=
     reflects_limits_of_shape_of_reflects_isomorphisms,
   apply is_limit_of_preserves (J.sheafification D) hS,
 end
@@ -246,5 +253,22 @@ begin
   apply preserves_finite_limits_of_preserves_finite_limits_of_size.{max v u},
   intros, resetI, apply_instance
 end
+
+instance [has_finite_coproducts D] : has_finite_coproducts (Sheaf J D) :=
+⟨λ J _, by { resetI, apply_instance, }⟩
+
+instance [finitary_extensive D] [has_finite_coproducts D] [has_pullbacks D] :
+  finitary_extensive (Sheaf J D) :=
+finitary_extensive_of_reflective (sheafification_adjunction _ _)
+
+instance [adhesive D] [has_pullbacks D] [has_pushouts D] : adhesive (Sheaf J D) :=
+adhesive_of_reflective (sheafification_adjunction _ _)
+
+instance sheaf_of_types.adhesive {C : Type u} [small_category C] (J : grothendieck_topology C) :
+  adhesive (Sheaf J (Type u)) :=
+category_theory.Sheaf.adhesive.{_ u u}
+
+example {C : Type u} [small_category C] (J : grothendieck_topology C) :
+  balanced (Sheaf J (Type u)) := infer_instance
 
 end category_theory

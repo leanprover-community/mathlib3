@@ -165,10 +165,10 @@ end limits
 
 section colimits
 
-universes w v u
+universes v' u' w v u
 variables {C : Type (max v u)} [category.{v} C] {J : grothendieck_topology C}
 variables {D : Type w} [category.{max v u} D]
-variables {K : Type (max v u)} [small_category K]
+variables {K : Type u'} [category.{v'} K]
 -- Now we need a handful of instances to obtain sheafification...
 variables [concrete_category.{max v u} D]
 variables [∀ (P : Cᵒᵖ ⥤ D) (X : C) (S : J.cover X), has_multiequalizer (S.index P)]

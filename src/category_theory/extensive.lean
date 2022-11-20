@@ -8,7 +8,8 @@ import category_theory.limits.shapes.strict_initial
 import category_theory.limits.shapes.types
 import topology.category.Top.limits
 import category_theory.limits.functor_category
-
+import category_theory.limits.preserves.finite
+import category_theory.limits.preserves.shapes.pullbacks
 /-!
 
 # Extensive categories
@@ -46,9 +47,11 @@ open category_theory.limits
 
 namespace category_theory
 
-universes v' u' v u
+universes v' u' v u v'' u''
 
 variables {J : Type v'} [category.{u'} J] {C : Type u} [category.{v} C]
+variables {D : Type u''} [category.{v''} D]
+
 
 /-- A natural transformation is equifibered if every commutative square of the following form is
 a pullback.
@@ -109,6 +112,45 @@ begin
   haveI := h.is_iso_to f,
   refine ⟨by rintro _ ⟨⟨⟩⟩, λ _,
     ⟨is_colimit.of_iso_colimit h (cocones.ext (as_iso f).symm $ by rintro ⟨⟨⟩⟩)⟩⟩
+end
+
+lemma nat_trans.equifibered.whisker_right {F G : J ⥤ C} {α : F ⟶ G} (hα : α.equifibered)
+  (H : C ⥤ D) [preserves_limits_of_shape walking_cospan H] : (whisker_right α H).equifibered :=
+λ i j f, (hα f).map H
+
+lemma is_van_kampen_colimit.of_iso {F : J ⥤ C} {c c' : cocone F} (H : is_van_kampen_colimit c)
+  (e : c ≅ c') : is_van_kampen_colimit c' :=
+begin
+  intros F' c'' α f h hα,
+  have : c'.ι ≫ (functor.const J).map e.inv.hom = c.ι,
+  { ext j, exact e.inv.2 j },
+  rw H c'' α (f ≫ e.inv.1) (by rw [functor.map_comp, ← reassoc_of h, this]) hα,
+  apply forall_congr,
+  intro j,
+  conv_lhs { rw [← category.comp_id (α.app j)] },
+  haveI : is_iso e.inv.hom := functor.map_is_iso (cocones.forget _) e.inv,
+  exact (is_pullback.of_vert_is_iso ⟨by simp⟩).paste_vert_iff (nat_trans.congr_app h j).symm
+end
+
+lemma is_van_kampen_colimit.precompose_iso {F G : C ⥤ D} {c : cocone G}
+  (h : is_van_kampen_colimit c)
+  (η : F ⟶ G) [is_iso η] : is_van_kampen_colimit ((cocones.precompose η).obj c) :=
+begin
+  intros F' c' α f e hα,
+  rw h c' (α ≫ η) f ((category.assoc _ _ _).trans e) (hα.comp $ nat_trans.equifibered_of_is_iso η),
+  apply forall_congr (λ j, _),
+  conv_lhs { rw ← category.comp_id f },
+  refine is_pullback.paste_vert_iff _ _,
+  { exact is_pullback.of_vert_is_iso ⟨category.comp_id _⟩ },
+  { exact nat_trans.congr_app e.symm j }
+end
+
+lemma is_van_kampen_colimit.of_precompose_iso {F G : C ⥤ D} (c : cocone G)
+  (η : F ⟶ G) [is_iso η]  (h : is_van_kampen_colimit ((cocones.precompose η).obj c))
+  : is_van_kampen_colimit c :=
+begin
+  apply is_van_kampen_colimit.of_iso (h.precompose_iso $ inv η),
+  exact cocones.ext (iso.refl c.X) (λ j, by { dsimp, simp })
 end
 
 section extensive
@@ -430,26 +472,128 @@ end Top
 
 section functor
 
-universes v'' u''
-
-variables {D : Type u''} [category.{v''} D]
-
-lemma nat_trans.equifibered.whisker_right {F G : J ⥤ C} {α : F ⟶ G} (hα : α.equifibered)
-  (H : C ⥤ D) [preserves_limits_of_shape walking_cospan H] : (whisker_right α H).equifibered :=
-λ i j f, (hα f).map H
-
-lemma is_van_kampen_colimit.of_iso {F : J ⥤ C} {c c' : cocone F} (H : is_van_kampen_colimit c)
-  (e : c ≅ c') : is_van_kampen_colimit c' :=
+lemma is_universal_colimit.map_reflective [has_colimits_of_shape J C]
+  [has_pullbacks C] [has_pullbacks D]
+  {Gl : C ⥤ D} {Gr : D ⥤ C} (adj : Gl ⊣ Gr) [full Gr] [faithful Gr]
+  [preserves_limits_of_shape walking_cospan Gl] {F : J ⥤ D} {c : cocone (F ⋙ Gr)}
+  (H : is_universal_colimit c) :
+  is_universal_colimit (Gl.map_cocone c) :=
 begin
-  intros F' c'' α f h hα,
-  have : c'.ι ≫ (functor.const J).map e.inv.hom = c.ι,
-  { ext j, exact e.inv.2 j },
-  rw H c'' α (f ≫ e.inv.1) (by rw [functor.map_comp, ← reassoc_of h, this]) hα,
-  apply forall_congr,
-  intro j,
-  conv_lhs { rw [← category.comp_id (α.app j)] },
-  haveI : is_iso e.inv.hom := functor.map_is_iso (cocones.forget _) e.inv,
-  exact (is_pullback.of_vert_is_iso ⟨by simp⟩).paste_vert_iff (nat_trans.congr_app h j).symm
+  haveI := adj.right_adjoint_preserves_limits,
+  haveI : preserves_colimits_of_size.{u' v'} Gl := adj.left_adjoint_preserves_colimits,
+  haveI : reflects_limits_of_shape walking_cospan Gr :=
+    reflects_limits_of_shape_of_reflects_isomorphisms,
+  intros F' c' α f h hα hc',
+  let α' := α ≫ (functor.associator _ _ _).hom ≫ whisker_left F adj.counit ≫ F.right_unitor.hom,
+  have hα' : α'.equifibered := hα.comp (nat_trans.equifibered_of_is_iso _),
+  have hadj : ∀ X, Gl.map (adj.unit.app X) = inv (adj.counit.app _),
+  { intro X, apply is_iso.eq_inv_of_inv_hom_id, exact adj.left_triangle_components },
+  haveI : ∀ X, is_iso (Gl.map (adj.unit.app X)) := by { simp_rw hadj, apply_instance },
+  have hα'' : ∀ j, Gl.map (Gr.map $ α'.app j) = adj.counit.app _ ≫ α.app j,
+  { intro j, rw ← cancel_mono (adj.counit.app $ F.obj j), dsimp,
+    simp only [category.comp_id, adjunction.counit_naturality_assoc, category.id_comp,
+      adjunction.counit_naturality, category.assoc, functor.map_comp] },
+  have hc'' : ∀ j, α.app j ≫ Gl.map (c.ι.app j) = c'.ι.app j ≫ f := nat_trans.congr_app h,
+  let β := iso_whisker_left F' (as_iso adj.counit) ≪≫ F'.right_unitor,
+  let c'' : cocone (F' ⋙ Gr),
+  { refine { X := pullback (Gr.map f) (adj.unit.app _), ι := { app := λ j,
+      pullback.lift (Gr.map $ c'.ι.app j) (Gr.map (α'.app j) ≫ c.ι.app j) _,
+      naturality' := _ } },
+    { rw [← Gr.map_comp, ← hc''], erw ← adj.unit_naturality, rw [Gl.map_comp, hα''], dsimp,
+      simp only [category.assoc, functor.map_comp, adj.right_triangle_components_assoc], },
+    { intros i j g, ext; dsimp; simp only [category.comp_id, category.id_comp, category.assoc,
+        ← functor.map_comp, pullback.lift_fst, pullback.lift_snd, ← functor.map_comp_assoc],
+      { congr' 1, exact c'.w _ },
+      { rw [α.naturality_assoc], dsimp, rw [adj.counit_naturality, ← category.assoc,
+          Gr.map_comp_assoc], congr' 1, exact c.w _ } } },
+  let cf : (cocones.precompose β.hom).obj c' ⟶ Gl.map_cocone c'',
+  { refine { hom := pullback.lift _ f _ ≫ (preserves_pullback.iso _ _ _).inv, w' := _ },
+    exact (inv $ adj.counit.app c'.X),
+    { rw [is_iso.inv_comp_eq, ← adj.counit_naturality_assoc, ← cancel_mono (adj.counit.app $
+        Gl.obj c.X), category.assoc, category.assoc, adj.left_triangle_components],
+      erw category.comp_id, refl },
+    { intro j, rw [← category.assoc, iso.comp_inv_eq], ext; simp only
+        [preserves_pullback.iso_hom_fst, preserves_pullback.iso_hom_snd, pullback.lift_fst,
+          pullback.lift_snd, category.assoc, functor.map_cocone_ι_app, ← Gl.map_comp],
+      { rw [is_iso.comp_inv_eq, adj.counit_naturality], dsimp, rw category.comp_id },
+      { rw [Gl.map_comp, hα'', category.assoc, hc''], dsimp,
+        rw [category.comp_id, category.assoc] } } },
+  have : cf.hom ≫ (preserves_pullback.iso _ _ _).hom ≫ pullback.fst ≫ adj.counit.app _ = 𝟙 _,
+  { simp only [is_iso.inv_hom_id, iso.inv_hom_id_assoc, category.assoc, pullback.lift_fst_assoc] },
+  haveI : is_iso cf,
+  { apply_with cocones.cocone_iso_of_hom_iso { instances := ff },
+    rw ← is_iso.eq_comp_inv at this,
+    rw this,
+    apply_instance },
+  obtain ⟨Hc''⟩ := H c'' (whisker_right α' Gr) pullback.snd _ (hα'.whisker_right Gr) _,
+  rotate,
+  { ext j, dsimp, simp only [category.comp_id, category.id_comp, category.assoc, functor.map_comp,
+      pullback.lift_snd] },
+  { intro j,
+    apply is_pullback.of_right _ _ (is_pullback.of_has_pullback _ _),
+    { dsimp, simp only [category.comp_id, category.id_comp, category.assoc, functor.map_comp,
+        pullback.lift_fst],
+      rw ← category.comp_id (Gr.map f),
+      refine ((hc' j).map Gr).paste_vert (is_pullback.of_vert_is_iso ⟨_⟩),
+      rw [← adj.unit_naturality, category.comp_id, ← category.assoc,
+        ← category.id_comp (Gr.map ((Gl.map_cocone c).ι.app j))],
+      congr' 1,
+      rw ← cancel_mono (Gr.map (adj.counit.app (F.obj j))),
+      dsimp,
+      simp only [category.comp_id, adjunction.right_triangle_components, category.id_comp,
+        category.assoc] },
+    { dsimp, simp only [category.comp_id, category.id_comp, category.assoc, functor.map_comp,
+        pullback.lift_snd] } },
+  exact ⟨is_colimit.precompose_hom_equiv β c' $
+    (is_colimit_of_preserves Gl Hc'').of_iso_colimit (as_iso cf).symm⟩
+end
+
+lemma is_van_kampen_colimit.map_reflective [has_colimits_of_shape J C]
+  [has_pullbacks C] [has_pullbacks D]
+  {Gl : C ⥤ D} {Gr : D ⥤ C} (adj : Gl ⊣ Gr) [full Gr] [faithful Gr]
+  [preserves_limits_of_shape walking_cospan Gl]
+  [is_iso adj.counit] {F : J ⥤ D} {c : cocone (F ⋙ Gr)} (H : is_van_kampen_colimit c) :
+   is_van_kampen_colimit (Gl.map_cocone c) :=
+begin
+  haveI := adj.right_adjoint_preserves_limits,
+  haveI : preserves_colimits_of_size.{u' v'} Gl := adj.left_adjoint_preserves_colimits,
+  haveI : reflects_limits_of_shape walking_cospan Gr :=
+    reflects_limits_of_shape_of_reflects_isomorphisms,
+  intros F' c' α f h hα,
+  refine ⟨_, H.is_universal.map_reflective adj c' α f h hα⟩,
+  rintro ⟨hc'⟩ j,
+  let α' := α ≫ (functor.associator _ _ _).hom ≫ whisker_left F adj.counit ≫ F.right_unitor.hom,
+  have hα' : α'.equifibered := hα.comp (nat_trans.equifibered_of_is_iso _),
+  have hα'' : ∀ j, Gl.map (Gr.map $ α'.app j) = adj.counit.app _ ≫ α.app j,
+  { intro j, rw ← cancel_mono (adj.counit.app $ F.obj j), dsimp,
+    simp only [category.comp_id, adjunction.counit_naturality_assoc, category.id_comp,
+      adjunction.counit_naturality, category.assoc, functor.map_comp] },
+  have hc'' : ∀ j, α.app j ≫ Gl.map (c.ι.app j) = c'.ι.app j ≫ f := nat_trans.congr_app h,
+  let β := iso_whisker_left F' (as_iso adj.counit) ≪≫ F'.right_unitor,
+  let hl := (is_colimit.precompose_hom_equiv β c').symm hc',
+  let hr := is_colimit_of_preserves Gl (colimit.is_colimit $ F' ⋙ Gr),
+  have : α.app j = β.inv.app _ ≫ Gl.map (Gr.map $ α'.app j),
+  { rw hα'', simp },
+  rw this,
+  have : f = (hl.cocone_point_unique_up_to_iso hr).hom ≫
+    Gl.map (colimit.desc _ ⟨_, whisker_right α' Gr ≫ c.2⟩),
+  { symmetry,
+    convert @is_colimit.cocone_point_unique_up_to_iso_hom_desc _ _ _ _ ((F' ⋙ Gr) ⋙ Gl)
+      (Gl.map_cocone ⟨_, (whisker_right α' Gr ≫ c.2 : _)⟩) _ _ hl hr using 3,
+    { apply hr.hom_ext, intro j, rw [hr.fac, functor.map_cocone_ι_app, ← Gl.map_comp,
+        colimit.cocone_ι, colimit.ι_desc], refl },
+    { clear_value α', apply hl.hom_ext, intro j, rw hl.fac, dsimp,
+      simp only [category.comp_id, hα'', category_theory.category.assoc, Gl.map_comp],
+      congr' 1, exact (nat_trans.congr_app h j).symm } },
+  rw this,
+  have := ((H (colimit.cocone $ F' ⋙ Gr) (whisker_right α' Gr)
+    (colimit.desc _ ⟨_, whisker_right α' Gr ≫ c.2⟩) _ (hα'.whisker_right Gr)).mp
+    ⟨(get_colimit_cocone $ F' ⋙ Gr).2⟩ j).map Gl,
+  convert is_pullback.paste_vert _ this,
+  { refine is_pullback.of_vert_is_iso ⟨_⟩,
+    rw [← is_iso.inv_comp_eq, ← category.assoc, nat_iso.inv_inv_app],
+    exact is_colimit.comp_cocone_point_unique_up_to_iso_hom hl hr _ },
+  { clear_value α', ext j, simp }
 end
 
 lemma is_van_kampen_colimit.of_map {D : Type*} [category D] (G : C ⥤ D) {F : J ⥤ C} {c : cocone F}
@@ -513,6 +657,24 @@ begin
   haveI : reflects_colimits_of_shape (discrete walking_pair) F :=
     reflects_colimits_of_shape_of_reflects_isomorphisms,
   exact finitary_extensive_of_preserves_and_reflects F,
+end
+
+lemma finitary_extensive_of_reflective [has_finite_coproducts D] [has_pullbacks D]
+  [finitary_extensive C] [has_pullbacks C]
+  {Gl : C ⥤ D} {Gr : D ⥤ C} (adj : Gl ⊣ Gr) [full Gr] [faithful Gr]
+  [preserves_limits_of_shape walking_cospan Gl] :
+  finitary_extensive D :=
+begin
+  haveI : preserves_colimits_of_size Gl := adj.left_adjoint_preserves_colimits,
+  constructor,
+  intros X Y c hc,
+  apply is_van_kampen_colimit.of_precompose_iso _
+    (iso_whisker_left _ (as_iso adj.counit) ≪≫ functor.right_unitor _).hom,
+  refine ((finitary_extensive.van_kampen _ (colimit.is_colimit $ pair X Y ⋙ _)).map_reflective
+    adj).of_iso (is_colimit.unique_up_to_iso _ _),
+  { exact is_colimit_of_preserves Gl (colimit.is_colimit _) },
+  { exact (is_colimit.precompose_hom_equiv _ _).symm hc },
+  { apply_instance }
 end
 
 end functor

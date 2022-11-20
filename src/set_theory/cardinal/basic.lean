@@ -615,7 +615,7 @@ lemma mk_le_mk_mul_of_mk_preimage_le {c : cardinal} (f : α → β) (hf : ∀ b 
 by simpa only [←mk_congr (@equiv.sigma_fiber_equiv α β f), mk_sigma, ←sum_const']
   using sum_le_sum _ _ hf
 
-lemma lift_mk_le_lift_mk_mul_of_lift_mk_preimage_le {α : Type u} {β : Type v} {c : cardinal.{max u v}}
+lemma lift_mk_le_lift_mk_mul_of_lift_mk_preimage_le {α : Type u} {β : Type v} {c : cardinal}
   (f : α → β) (hf : ∀ b : β, lift.{v} #(f ⁻¹' {b}) ≤ c) :
   lift.{v} #α ≤ lift.{u} #β * c :=
 mk_le_mk_mul_of_mk_preimage_le (λ x : ulift.{v} α, ulift.up.{u} (f x.1)) $ ulift.forall.2 $ λ b,

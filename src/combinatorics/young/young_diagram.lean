@@ -331,7 +331,7 @@ protected lemma mem_cells_of_row_lens {w : list ℕ} {c : ℕ × ℕ} :
 begin
   induction w generalizing c;
   rw young_diagram.cells_of_row_lens,
-  { change false ↔ ∃ (h : _ < 0), _, simp },
+  { simp [young_diagram.cells_of_row_lens] },
   { rcases c with ⟨⟨_, _⟩, _⟩,
     { simp },
     { simpa [w_ih, -finset.singleton_product, nat.succ_lt_succ_iff] } }

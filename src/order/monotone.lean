@@ -10,6 +10,10 @@ import order.rel_classes
 /-!
 # Monotonicity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/591
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines (strictly) monotone/antitone functions. Contrary to standard mathematical usage,
 "monotone"/"mono" here means "increasing", not "increasing or decreasing". We use "antitone"/"anti"
 to mean "decreasing".
@@ -548,6 +552,15 @@ lemma strict_mono_on.le_iff_le (hf : strict_mono_on f s) {a b : α} (ha : a ∈ 
 lemma strict_anti_on.le_iff_le (hf : strict_anti_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
   f a ≤ f b ↔ b ≤ a :=
 hf.dual_right.le_iff_le hb ha
+
+lemma strict_mono_on.eq_iff_eq (hf : strict_mono_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  f a = f b ↔ a = b :=
+⟨λ h, le_antisymm ((hf.le_iff_le ha hb).mp h.le) ((hf.le_iff_le hb ha).mp h.ge),
+ by { rintro rfl, refl, }⟩
+
+lemma strict_anti_on.eq_iff_eq (hf : strict_anti_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  f a = f b ↔ b = a :=
+(hf.dual_right.eq_iff_eq ha hb).trans eq_comm
 
 lemma strict_mono_on.lt_iff_lt (hf : strict_mono_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
   f a < f b ↔ a < b :=

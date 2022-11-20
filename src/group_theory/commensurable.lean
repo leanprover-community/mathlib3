@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
 import group_theory.index
-import group_theory.quotient_group
 import group_theory.subgroup.pointwise
 import group_theory.group_action.conj_act
 /-!

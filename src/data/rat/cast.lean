@@ -6,7 +6,9 @@ Authors: Johannes Hölzl, Mario Carneiro
 import data.rat.order
 import data.rat.lemmas
 import data.int.char_zero
+import algebra.group_with_zero.power
 import algebra.field.opposite
+import algebra.order.field.basic
 import algebra.big_operators.basic
 
 /-!

@@ -459,7 +459,7 @@ by { rintro rfl, simpa [collinear_pair] using h }
 that set. -/
 lemma collinear.mem_affine_span_of_mem_of_ne {s : set P} (h : collinear k s) {p₁ p₂ p₃ : P}
   (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (hp₃ : p₃ ∈ s) (hp₁p₂ : p₁ ≠ p₂) :
-  p₃ ∈ affine_span k ({p₁, p₂} : set P) :=
+  p₃ ∈ line[k, p₁, p₂] :=
 begin
   rw collinear_iff_of_mem hp₁ at h,
   rcases h with ⟨v, h⟩,
@@ -477,7 +477,7 @@ end
 span of the whole set. -/
 lemma collinear.affine_span_eq_of_ne {s : set P} (h : collinear k s) {p₁ p₂ : P}
   (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (hp₁p₂ : p₁ ≠ p₂) :
-  affine_span k ({p₁, p₂} : set P) = affine_span k s :=
+  line[k, p₁, p₂] = affine_span k s :=
 le_antisymm (affine_span_mono _
   (set.insert_subset.2 ⟨hp₁, set.singleton_subset_iff.2 hp₂⟩))
   (affine_span_le.2 (λ p hp, h.mem_affine_span_of_mem_of_ne hp₁ hp₂ hp hp₁p₂))
@@ -565,14 +565,14 @@ by rw [coplanar, coplanar, vector_span_insert_eq_vector_span h]
 
 end affine_space'
 
-section field
+section division_ring
 
 variables {k : Type*} {V : Type*} {P : Type*}
 include V
 
 open affine_subspace finite_dimensional module
 
-variables [field k] [add_comm_group V] [module k V] [affine_space V P]
+variables [division_ring k] [add_comm_group V] [module k V] [affine_space V P]
 
 /-- Adding a point to a finite-dimensional subspace increases the dimension by at most one. -/
 lemma finrank_vector_span_insert_le (s : affine_subspace k P) (p : P) :
@@ -649,4 +649,4 @@ variables (k)
 lemma coplanar_triple (p₁ p₂ p₃ : P) : coplanar k ({p₁, p₂, p₃} : set P) :=
 (collinear_pair k p₂ p₃).coplanar_insert p₁
 
-end field
+end division_ring

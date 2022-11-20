@@ -23,8 +23,8 @@ variables [seminormed_group E] {ε δ : ℝ} {s t : set E} {x y : E}
 
 @[to_additive] lemma metric.bounded.mul (hs : bounded s) (ht : bounded t) : bounded (s * t) :=
 begin
-  obtain ⟨Rs, hRs⟩ : ∃ R, ∀ x ∈ s, ∥x∥ ≤ R := hs.exists_norm_le',
-  obtain ⟨Rt, hRt⟩ : ∃ R, ∀ x ∈ t, ∥x∥ ≤ R := ht.exists_norm_le',
+  obtain ⟨Rs, hRs⟩ : ∃ R, ∀ x ∈ s, ‖x‖ ≤ R := hs.exists_norm_le',
+  obtain ⟨Rt, hRt⟩ : ∃ R, ∀ x ∈ t, ‖x‖ ≤ R := ht.exists_norm_le',
   refine bounded_iff_forall_norm_le'.2 ⟨Rs + Rt, _⟩,
   rintro z ⟨x, y, hx, hy, rfl⟩,
   exact norm_mul_le_of_le (hRs x hx) (hRt y hy),

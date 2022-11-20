@@ -11,7 +11,7 @@ import algebra.module.pi
 import algebra.ring.equiv
 import algebra.star.module
 import algebra.star.pi
-import data.fintype.card
+import data.fintype.big_operators
 
 /-!
 # Matrices

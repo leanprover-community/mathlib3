@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz, Jujian Zhang
 -/
 import category_theory.abelian.functor_category
+import category_theory.preadditive.additive_functor
 import category_theory.preadditive.functor_category
 import category_theory.abelian.transfer
 import category_theory.sites.left_exact

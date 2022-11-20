@@ -26,6 +26,12 @@ jobs:
         run: |
           python ./scripts/add_port_comments.py
 
+      - name: generate message
+        id: message
+        run: |
+          PR_LIST="$(git diff HEAD -U0 | grep -o -e 'https://github.com/leanprover-community/mathlib4/pull/[0-9]\+'  | awk '{print "* " $0}')
+          echo "PR_LIST=$PR_LIST" >> $GITHUB_OUTPUT
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
         with:
@@ -33,7 +39,9 @@ jobs:
           commit-message: "chore(*): add mathlibport comments"
           title: "chore(*): add mathlibport comments"
           body: |
-            Regenerated from the [port status wiki page](https://github.com/leanprover-community/mathlib/wiki/mathlib4-port-status) 
+            Regenerated from the [port status wiki page](https://github.com/leanprover-community/mathlib/wiki/mathlib4-port-status).
+            Relates to the following PRs:
+            ${{ steps.message-generator.outputs.PR_LIST }}
           labels: |
             easy
             awaiting-review

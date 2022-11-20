@@ -31,6 +31,10 @@ namespace homological_complex
 variables {P Q : karoubi (homological_complex C c)} (f : P ⟶ Q) (n : ι)
 
 @[simp, reassoc]
+lemma f_idem : P.p.f n ≫ P.p.f n = P.p.f n :=
+homological_complex.congr_hom P.idem n
+
+@[simp, reassoc]
 lemma p_comp_d : P.p.f n ≫ f.f.f n = f.f.f n :=
 homological_complex.congr_hom (p_comp f) n
 

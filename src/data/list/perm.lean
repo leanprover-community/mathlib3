@@ -465,13 +465,13 @@ end
 section comm_monoid
 
 /-- If elements of a list commute with each other, then their product does not
-depend on the order of elements-/
-@[to_additive]
-lemma perm.prod_eq' [monoid α] {l₁ l₂ : list α} (h : l₁ ~ l₂)
-  (hc : l₁.pairwise (λ x y, x * y = y * x)) :
+depend on the order of elements. -/
+@[to_additive "If elements of a list additively commute with each other, then their sum does not
+depend on the order of elements."]
+lemma perm.prod_eq' [monoid α] {l₁ l₂ : list α} (h : l₁ ~ l₂) (hc : l₁.pairwise commute) :
   l₁.prod = l₂.prod :=
 h.foldl_eq' (pairwise.forall_of_forall (λ x y h z, (h z).symm) (λ x hx z, rfl) $
-  hc.imp $ λ x y h z, by simp only [mul_assoc, h]) _
+  hc.imp $ λ x y h z, by simp only [mul_assoc, h.eq]) _
 
 variable [comm_monoid α]
 

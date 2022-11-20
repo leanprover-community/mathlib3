@@ -163,6 +163,9 @@ protected def copy (f : top_hom α β) (f' : α → β) (h : f' = f) : top_hom �
 { to_fun := f',
   map_top' := h.symm ▸ f.map_top' }
 
+@[simp] lemma coe_copy (f : top_hom α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : top_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
+
 instance : inhabited (top_hom α β) := ⟨⟨λ _, ⊤, rfl⟩⟩
 
 variables (α)
@@ -279,6 +282,9 @@ equalities. -/
 protected def copy (f : bot_hom α β) (f' : α → β) (h : f' = f) : bot_hom α β :=
 { to_fun := f',
   map_bot' := h.symm ▸ f.map_bot' }
+
+@[simp] lemma coe_copy (f : bot_hom α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : bot_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 instance : inhabited (bot_hom α β) := ⟨⟨λ _, ⊥, rfl⟩⟩
 
@@ -398,6 +404,13 @@ instance : has_coe_to_fun (bounded_order_hom α β) (λ _, α → β) := fun_lik
 definitional equalities. -/
 protected def copy (f : bounded_order_hom α β) (f' : α → β) (h : f' = f) : bounded_order_hom α β :=
 { .. f.to_order_hom.copy f' h, .. f.to_top_hom.copy f' h, .. f.to_bot_hom.copy f' h }
+
+@[simp] lemma coe_copy (f : bounded_order_hom α β) (f' : α → β) (h : f' = f) :
+  ⇑(f.copy f' h) = f' :=
+rfl
+
+lemma copy_eq (f : bounded_order_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f :=
+fun_like.ext' h
 
 variables (α)
 

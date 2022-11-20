@@ -189,6 +189,9 @@ instance : can_lift (α → β) (α →o β) coe_fn monotone :=
 equalities. -/
 protected def copy (f : α →o β) (f' : α → β) (h : f' = f) : α →o β := ⟨f', h.symm.subst f.monotone'⟩
 
+@[simp] lemma coe_copy (f : α →o β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : α →o β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
+
 /-- The identity function as bundled monotone function. -/
 @[simps {fully_applied := ff}]
 def id : α →o α := ⟨id, monotone_id⟩

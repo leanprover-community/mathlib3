@@ -3,15 +3,15 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
-import algebra.order.with_zero
-import data.nat.order.lemmas
-import data.set.function
+import data.nat.order.basic
 
 /-!
 # Basic properties of lists
 -/
 
 open function nat (hiding one_pos)
+
+assert_not_exists set.range
 
 namespace list
 universes u v w x
@@ -201,29 +201,6 @@ lemma map_bind (g : β → list γ) (f : α → β) :
   ∀ l : list α, (list.map f l).bind g = l.bind (λ a, g (f a))
 | [] := rfl
 | (a::l) := by simp only [cons_bind, map_cons, map_bind l]
-
-lemma range_map (f : α → β) : set.range (map f) = {l | ∀ x ∈ l, x ∈ set.range f} :=
-begin
-  refine set.subset.antisymm (set.range_subset_iff.2 $
-    λ l, forall_mem_map_iff.2 $ λ y _, set.mem_range_self _) (λ l hl, _),
-  induction l with a l ihl, { exact ⟨[], rfl⟩ },
-  rcases ihl (λ x hx, hl x $ subset_cons _ _ hx) with ⟨l, rfl⟩,
-  rcases hl a (mem_cons_self _ _) with ⟨a, rfl⟩,
-  exact ⟨a :: l, map_cons _ _ _⟩
-end
-
-lemma range_map_coe (s : set α) : set.range (map (coe : s → α)) = {l | ∀ x ∈ l, x ∈ s} :=
-by rw [range_map, subtype.range_coe]
-
-/-- If each element of a list can be lifted to some type, then the whole list can be lifted to this
-type. -/
-instance can_lift (c) (p) [can_lift α β c p] :
-  can_lift (list α) (list β) (list.map c) (λ l, ∀ x ∈ l, p x) :=
-{ prf  := λ l H,
-    begin
-      rw [← set.mem_range, range_map],
-      exact λ a ha, can_lift.prf a (H a ha),
-    end}
 
 /-! ### length -/
 
@@ -928,7 +905,7 @@ begin
   split_ifs,
   { simp [nth_le, h] },
   cases l,
-  { rw [length_singleton, nat.lt_one_iff] at hl, contradiction },
+  { rw [length_singleton, lt_succ_iff, nonpos_iff_eq_zero] at hl, contradiction },
   cases n,
   { contradiction },
   refl
@@ -1276,7 +1253,7 @@ by { congr, exact h}
 
 @[simp] lemma nth_le_singleton (a : α) {n : ℕ} (hn : n < 1) :
   nth_le [a] n hn = a :=
-have hn0 : n = 0 := le_zero_iff.1 (le_of_lt_succ hn),
+have hn0 : n = 0 := nat.eq_zero_of_le_zero (le_of_lt_succ hn),
 by subst hn0; refl
 
 lemma nth_le_zero [inhabited α] {L : list α} (h : 0 < L.length) :
@@ -1357,7 +1334,7 @@ begin
   induction l with x l ih generalizing n,
   { cases h },
   { by_cases h₁ : l = [],
-    { subst h₁, rw nth_le_singleton, simp at h, subst h, simp },
+    { subst h₁, rw nth_le_singleton, simp [lt_succ_iff] at h, subst h, simp },
     have h₂ := h, rw [length_cons, nat.lt_succ_iff, le_iff_eq_or_lt] at h₂,
     cases n, { simp }, rw [drop, nth_le], apply ih },
 end
@@ -1619,29 +1596,6 @@ lemma mem_insert_nth {a b : α} : ∀ {n : ℕ} {l : list α} (hi : n ≤ l.leng
 | (n+1) (a'::as) h := begin
   dsimp [list.insert_nth],
   erw [mem_insert_nth (nat.le_of_succ_le_succ h), ← or.assoc, or_comm (a = a'), or.assoc]
-end
-
-lemma inj_on_insert_nth_index_of_not_mem (l : list α) (x : α) (hx : x ∉ l) :
-  set.inj_on (λ k, insert_nth k x l) {n | n ≤ l.length} :=
-begin
-  induction l with hd tl IH,
-  { intros n hn m hm h,
-    simp only [set.mem_singleton_iff, set.set_of_eq_eq_singleton, length, nonpos_iff_eq_zero]
-      at hn hm,
-    simp [hn, hm] },
-  { intros n hn m hm h,
-    simp only [length, set.mem_set_of_eq] at hn hm,
-    simp only [mem_cons_iff, not_or_distrib] at hx,
-    cases n;
-    cases m,
-    { refl },
-    { simpa [hx.left] using h },
-    { simpa [ne.symm hx.left] using h },
-    { simp only [true_and, eq_self_iff_true, insert_nth_succ_cons] at h,
-      rw nat.succ_inj',
-      refine IH hx.right _ _ h,
-      { simpa [nat.succ_le_succ_iff] using hn },
-      { simpa [nat.succ_le_succ_iff] using hm } } }
 end
 
 lemma insert_nth_of_length_lt (l : list α) (x : α) (n : ℕ) (h : l.length < n) :

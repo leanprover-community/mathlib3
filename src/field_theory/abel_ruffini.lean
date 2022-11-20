@@ -94,7 +94,7 @@ section gal_X_pow_sub_C
 
 lemma gal_X_pow_sub_one_is_solvable (n : ℕ) : is_solvable (X ^ n - 1 : F[X]).gal :=
 begin
-  rcases eq_or_ne n 0 with rfl|hn,
+  rcases n.eq_zero_or_pos with rfl|hn,
   { rw [pow_zero, sub_self],
     exact gal_zero_is_solvable },
   have hn' : (X ^ n - 1 : F[X]) ≠ 0 :=
@@ -105,9 +105,8 @@ begin
   rw [mem_root_set hn', alg_hom.map_sub, aeval_X_pow, aeval_one, sub_eq_zero] at ha,
   have key : ∀ σ : (X ^ n - 1 : F[X]).gal, ∃ m : ℕ, σ a = a ^ m,
   { intro σ,
-    lift n to ℕ+ using hn.bot_lt,
-    exact map_root_of_unity_eq_pow_self σ.to_alg_hom
-      ⟨unit_of_pow_eq_one a n ha hn, by { rw [mem_roots_of_unity, pow_unit_of_pow_eq_one] }⟩ },
+    lift n to ℕ+ using hn,
+    exact map_root_of_unity_eq_pow_self σ.to_alg_hom (roots_of_unity.mk_of_pow_eq a ha) },
   obtain ⟨c, hc⟩ := key σ,
   obtain ⟨d, hd⟩ := key τ,
   rw [σ.mul_apply, τ.mul_apply, hc, τ.map_pow, hd, σ.map_pow, hc, ←pow_mul, pow_mul'],

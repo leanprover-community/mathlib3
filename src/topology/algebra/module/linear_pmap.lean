@@ -186,6 +186,7 @@ end linear_pmap
 
 /-- A densely defined operator is a `linear_pmap R E F` bundled with the proposition that the domain
 is dense in `E`-/
+@[protect_proj]
 structure dense_linear_pmap (R E F : Type*) [comm_ring R] [add_comm_group E] [add_comm_group F]
   [module R E] [module R F] [topological_space E] [topological_space F] extends E →ₗ.[R] F :=
 (dense : dense (domain : set E))
@@ -195,6 +196,10 @@ notation E ` →ₗ'[`:25 R:25 `] `:0 F:0 := dense_linear_pmap R E F
 namespace dense_linear_pmap
 
 instance : has_coe (E →ₗ'[R] F) (E →ₗ.[R] F) := ⟨λ f, f.to_linear_pmap⟩
+
+instance : has_zero (E →ₗ'[R] F) := ⟨⟨0, dense_univ⟩⟩
+
+instance : inhabited (E →ₗ'[R] F) := ⟨0⟩
 
 -- make the coercion the preferred form
 @[simp] lemma to_linear_map_eq_coe (f : E →ₗ'[R] F) : f.to_linear_pmap = f := rfl

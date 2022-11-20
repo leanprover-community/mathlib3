@@ -190,6 +190,10 @@ instance : has_inf (E →ₗ.[R] F) :=
 
 instance : has_bot (E →ₗ.[R] F) := ⟨⟨⊥, 0⟩⟩
 
+instance : has_zero (E →ₗ.[R] F) := ⟨⟨⊤, 0⟩⟩
+
+@[simp] lemma zero_apply (x : (⊤ : submodule R E)) : (0 : E →ₗ.[R] F) x = 0 := rfl
+
 instance : inhabited (E →ₗ.[R] F) := ⟨⊥⟩
 
 instance : semilattice_inf (E →ₗ.[R] F) :=

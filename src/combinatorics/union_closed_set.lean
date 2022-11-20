@@ -129,7 +129,7 @@ by { rw [ne.def, p_eq_zero_iff], simp }
 
 lemma p_pos_of_exists {ω : Ω} : 0 < p X (X ω) := by { rw p_pos_iff, simp }
 
-lemma p_whole_space {s : finset α} (hs : ∀ i ∉ s, p X i = 0) : ∑ x in s, p X x = 1 :=
+lemma p_whole_space (s : finset α) (hs : ∀ i ∉ s, p X i = 0) : ∑ x in s, p X x = 1 :=
 begin
   simp only [p, prob, set.mem_singleton_iff],
   rw [@sum_fiberwise_of_maps_to _ _ _ _ _ _ _ X, whole_space],
@@ -138,8 +138,8 @@ begin
   exact p_pos_of_exists.ne' (hs (X x) this),
 end
 
-lemma p_whole_space' : ∑ x in univ.image X, p X x = 1 :=
-p_whole_space (by simp [p_eq_zero_iff])
+lemma p_whole_space' (X : Ω → α) : ∑ x in univ.image X, p X x = 1 :=
+p_whole_space _ (by simp [p_eq_zero_iff])
 
 def ent (b x : ℝ) : ℝ := - x * real.logb b x
 @[simp] lemma ent_zero {b : ℝ} : ent b 0 = 0 := by simp [ent]
@@ -166,14 +166,19 @@ begin
   simp only [hx],
 end
 
-lemma entropy_eq' [fintype α] : entropy X = ∑ i, ent 2 (p X i) :=
+lemma entropy_eq' {s : finset α} (hs : ∀ i ∉ s, p X i = 0) : entropy X = ∑ i in s, ent 2 (p X i) :=
 begin
   rw entropy_eq,
-  refine sum_subset (subset_univ _) _,
+  refine sum_subset _ _,
+  { simp only [finset.subset_iff, mem_image, mem_univ, exists_true_left, forall_exists_index,
+      forall_apply_eq_imp_iff'],
+    intros ω,
+    by_contra,
+    apply p_pos_of_exists.ne' (hs _ h) },
   simp only [mem_univ, mem_image, not_exists, forall_true_left, p, prob, set.mem_singleton_iff],
-  intros x hx,
+  intros x hx hx',
   rw [filter_false_of_mem, sum_empty, ent_zero],
-  simpa using hx
+  simpa using hx'
 end
 
 lemma entropy_const (h : ∀ i j, X i = X j) : ℍ ω, X ω = 0 :=
@@ -333,7 +338,7 @@ begin
   refine ((concave_on_logb_Ioi b hb.le).le_map_sum _ _ _).trans _,
   { intros i hi,
     apply p_nonneg },
-  { rw [sum_filter_ne_zero, p_whole_space hs] },
+  { rw [sum_filter_ne_zero, p_whole_space _ hs] },
   { intros i hi,
     simp only [ne.def, mem_filter, mem_univ, true_and] at hi,
     exact div_pos
@@ -395,4 +400,94 @@ begin
     simp only [mul_eq_zero, p_eq_zero_iff, or_imp_distrib],
     simp {contextual := tt} },
   { simp [p_eq_zero_iff] },
+end
+
+def uniform_on (X : Ω → α) (s : finset α) : Prop := ∀ i ∈ s, p X i = s.card⁻¹
+
+lemma uniform_on.not_in {s : finset α} (h : uniform_on X s) (hs : s.nonempty) {i : α} (hi : i ∉ s) :
+  p X i = 0 :=
+begin
+  have h1 : ∑ i in s, p X i = 1,
+  { rw sum_congr rfl h,
+    simp only [sum_const, nsmul_eq_mul],
+    rw [mul_inv_cancel],
+    rw [nat.cast_ne_zero, ne.def, card_eq_zero],
+    apply hs.ne_empty },
+  have subs : s ⊆ univ.image X,
+  { simp only [finset.subset_iff, mem_image, mem_univ, exists_true_left, ←p_pos_iff],
+    intros x hx,
+    rw h x hx,
+    simpa [card_pos] },
+  have := p_whole_space' X,
+  have h' : ∑ j in univ.image X \ s, p X j = 0,
+  { rwa [←sum_sdiff subs, h1, add_left_eq_self] at this },
+  rw sum_eq_zero_iff_of_nonneg at h',
+  { by_contra',
+    obtain ⟨ω, rfl⟩ := p_ne_zero_iff.1 this,
+    apply this,
+    apply h',
+    simp [hi] },
+  intros i hi,
+  apply p_nonneg
+end
+
+lemma uniform_on.p_eq_zero_iff {s : finset α} (h : uniform_on X s) (hs : s.nonempty) {i : α} :
+  p X i = 0 ↔ i ∉ s :=
+⟨λ h' h'', by simpa [h _ h'', hs.ne_empty] using h', h.not_in hs⟩
+
+lemma uniform_on.p_ne_zero_iff {s : finset α} (h : uniform_on X s) (hs : s.nonempty) {i : α} :
+  p X i ≠ 0 ↔ i ∈ s :=
+by rw [ne.def, h.p_eq_zero_iff hs, not_not]
+
+lemma uniform_on.p_pos_iff {s : finset α} (h : uniform_on X s) (hs : s.nonempty) {i : α} :
+  0 < p X i ↔ i ∈ s :=
+(has_le.le.lt_iff_ne (p_nonneg _ _)).trans (ne_comm.trans (h.p_ne_zero_iff hs))
+
+lemma uniform_on.image_eq_on {s : finset α} (h : uniform_on X s) (hs : s.nonempty) :
+  univ.image X = s :=
+begin
+  ext i,
+  simp only [mem_image, mem_univ, exists_true_left, ←p_ne_zero_iff],
+  exact h.p_ne_zero_iff hs,
+end
+
+lemma entropy_uniform {s : finset α} (h : uniform_on X s) (hs : s.nonempty) :
+  entropy X = real.logb 2 s.card :=
+begin
+  rw [entropy_eq, h.image_eq_on hs],
+  have : ∀ i ∈ s, ent 2 (p X i) = ent 2 s.card⁻¹,
+  { intros i hi,
+    rw h i hi },
+  rw [sum_congr rfl this, sum_const, ent, nsmul_eq_mul, real.logb_inv, neg_mul_neg, ←mul_assoc,
+    mul_inv_cancel, one_mul],
+  simpa using hs.ne_empty,
+end
+
+lemma entropy_le_support {s : finset α} (hs : ∀ i ∉ s, p X i = 0) :
+  entropy X ≤ real.logb 2 s.card :=
+begin
+  rcases eq_empty_or_nonempty s with rfl | hs',
+  { simp only [not_mem_empty, not_false_iff, forall_true_left] at hs,
+    rw [entropy_eq],
+    simp only [hs, ent_zero, sum_const_zero, card_empty, coe_zero, real.logb_zero] },
+  let y : α → ℝ := λ i, s.card⁻¹,
+  rw [entropy_eq' hs],
+  refine (gibbs one_lt_two s y _ _ _ hs).trans_eq _,
+  { intros i,
+    simp only [y],
+    positivity },
+  { simp only [y, sum_const, nsmul_eq_mul],
+    rw mul_inv_cancel,
+    simp [hs'.ne_empty] },
+  { simp [y, hs'.ne_empty] },
+  simp only [y, ←sum_mul, sum_neg_distrib, p_whole_space _ hs],
+  simp
+end
+
+lemma entropy_le_uniform {Y : Ω → α} {s : finset α} (hs : s.nonempty) (hX : ∀ i ∉ s, p X i = 0)
+  (hY : uniform_on Y s) :
+  entropy X ≤ entropy Y :=
+begin
+  rw [entropy_uniform hY hs],
+  apply entropy_le_support hX,
 end

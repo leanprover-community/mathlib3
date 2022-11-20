@@ -95,9 +95,7 @@ units.ext.comp (λ x y, subtype.ext)
 a positive power equal to one. -/
 @[simps coe_coe] def roots_of_unity.mk_of_pow_eq (ζ : M) {n : ℕ+} (h : ζ ^ (n : ℕ) = 1) :
   roots_of_unity n M :=
-⟨units.mk_of_mul_eq_one ζ (ζ ^ n.nat_pred) $
-  by rwa [←pow_one ζ, ←pow_mul, ←pow_add, one_mul, pnat.one_add_nat_pred],
-units.ext $ by simpa⟩
+⟨units.of_pow_eq_one ζ n h n.ne_zero, units.pow_of_pow_eq_one _ _⟩
 
 @[simp] lemma roots_of_unity.coe_mk_of_pow_eq {ζ : M} {n : ℕ+}
   (h : ζ ^ (n : ℕ) = 1) : (roots_of_unity.mk_of_pow_eq _ h : M) = ζ := rfl
@@ -702,7 +700,7 @@ lemma eq_pow_of_pow_eq_one {k : ℕ} {ζ ξ : R}
   ∃ i < k, ζ ^ i = ξ :=
 begin
   lift ζ to Rˣ using h.is_unit h0,
-  lift ξ to Rˣ using is_unit_of_pow_eq_one ξ k hξ h0.ne',
+  lift ξ to Rˣ using is_unit_of_pow_eq_one hξ h0.ne',
   lift k to ℕ+ using h0,
   simp only [← units.coe_pow, ← units.ext_iff],
   rw coe_units_iff at h,

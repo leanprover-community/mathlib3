@@ -135,7 +135,7 @@ begin
   dsimp [to_karoubi],
   rw [splitting.ι_desc],
   dsimp [splitting.index_set.id],
-  rw karoubi.homological_complex.f_idem_assoc,
+  rw karoubi.homological_complex.p_idem_assoc,
 end
 
 end dold_kan

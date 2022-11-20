@@ -25,21 +25,16 @@ jobs:
       - name: update docstrings
         run: |
           python ./scripts/add_port_comments.py
-
-      - name: generate message
-        id: generate-message-bad
-        run: |
-          PR_LIST="$(git diff HEAD -U0 | grep -o -e 'https://github.com/leanprover-community/mathlib4/pull/[0-9]\+'  | awk '{print "* " $0}')"
-          echo "PR_LIST=$(printf "%q" "$PR_LIST")" >> $GITHUB_OUTPUT
-          echo "$PR_LIST"
           
-      - uses: actions/github-script@v5
+      # multiline outputs are only supported in javascript
+      - name: generate message
+        uses: actions/github-script@v5
         id: generate-message
         with:
           script: |
             prs = await exec.getExecOutput("bash",
               ['-c', "git diff HEAD -U0 | grep -o -e 'https://github.com/leanprover-community/mathlib4/pull/[0-9]\\+'"]);
-            pr_bullets = prs.stdout.split('\n').map(x => "* " + x).join('\n'); 
+            pr_bullets = prs.stdout.trim().split('\n').map(x => "* " + x).join('\n'); 
             console.log(pr_bullets);
             core.setOutput("PR_LIST", pr_bullets); 
 

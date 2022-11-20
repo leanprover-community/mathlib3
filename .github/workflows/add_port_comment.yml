@@ -29,5 +29,6 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
         with:
+          base: master
           commit-message: "chore(*): add mathlibport comments"
           title: "chore(*): add mathlibport comments"

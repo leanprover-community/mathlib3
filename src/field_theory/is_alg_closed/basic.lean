@@ -495,8 +495,8 @@ lemma algebra.is_algebraic.range_eval_eq_root_set_minpoly {F K} (A) [field F] [f
   set.range (λ ψ : K →ₐ[F] A, ψ x) = (minpoly F x).root_set A :=
 begin
   have := algebra.is_algebraic_iff_is_integral.1 hK,
-  ext a, rw mem_root_set_iff (minpoly.ne_zero $ this x) a,
-  refine ⟨_, λ ha, _⟩,
+  ext a, rw mem_root_set_iff,
+  refine ⟨⟨minpoly.ne_zero $ this x, _⟩, λ ha, _⟩,
   { rintro ⟨ψ, rfl⟩, rw [aeval_alg_hom_apply ψ x, minpoly.aeval, map_zero] },
   let Fx := adjoin_root (minpoly F x),
   have hx : aeval x (minpoly F x) = 0 := minpoly.aeval F x,

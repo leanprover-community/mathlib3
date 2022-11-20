@@ -486,6 +486,8 @@ begin
   rw [count_roots, root_multiplicity_X_sub_C, count_singleton],
 end
 
+@[simp] lemma roots_X : roots (X : R[X]) = {0} := by rw [← roots_X_sub_C, C_0, sub_zero]
+
 @[simp] lemma roots_C (x : R) : (C x).roots = 0 :=
 if H : x = 0 then by rw [H, C_0, roots_zero] else multiset.ext.mpr $ λ r,
 by rw [count_roots, count_zero, root_multiplicity_eq_zero (not_is_root_C _ _ H)]
@@ -493,12 +495,12 @@ by rw [count_roots, count_zero, root_multiplicity_eq_zero (not_is_root_C _ _ H)]
 @[simp] lemma roots_one : (1 : R[X]).roots = ∅ :=
 roots_C 1
 
-lemma roots_smul_nonzero (p : R[X]) {r : R} (hr : r ≠ 0) :
-  (r • p).roots = p.roots :=
-begin
-  by_cases hp : p = 0;
-  simp [smul_eq_C_mul, roots_mul, hr, hp]
-end
+@[simp] lemma roots_C_mul (p : R[X]) (ha : a ≠ 0) : (C a * p).roots = p.roots :=
+by by_cases hp : p = 0; simp only [roots_mul, *, ne.def, mul_eq_zero, C_eq_zero, or_self,
+  not_false_iff, roots_C, zero_add, mul_zero]
+
+@[simp] lemma roots_smul_nonzero (p : R[X]) (ha : a ≠ 0) : (a • p).roots = p.roots :=
+by rw [smul_eq_C_mul, roots_C_mul _ ha]
 
 lemma roots_list_prod (L : list R[X]) :
   ((0 : R[X]) ∉ L) → L.prod.roots = (L : multiset R[X]).bind roots :=
@@ -519,6 +521,24 @@ begin
   rcases s with ⟨m, hm⟩,
   simpa [multiset.prod_eq_zero_iff, bind_map] using roots_multiset_prod (m.map f)
 end
+
+@[simp] lemma roots_pow (p : R[X]) (n : ℕ) : (p ^ n).roots = n • p.roots :=
+begin
+  induction n with n ihn,
+  { rw [pow_zero, roots_one, zero_smul, empty_eq_zero] },
+  { rcases eq_or_ne p 0 with rfl | hp,
+    { rw [zero_pow n.succ_pos, roots_zero, smul_zero] },
+    { rw [pow_succ', roots_mul (mul_ne_zero (pow_ne_zero _ hp) hp), ihn, nat.succ_eq_add_one,
+        add_smul, one_smul] } }
+end
+
+lemma roots_X_pow (n : ℕ) : (X ^ n : R[X]).roots = n • {0} := by rw [roots_pow, roots_X]
+
+lemma roots_C_mul_X_pow (ha : a ≠ 0) (n : ℕ) : (C a * X ^ n).roots = n • {0} :=
+by rw [roots_C_mul _ ha, roots_X_pow]
+
+@[simp] lemma roots_monomial (ha : a ≠ 0) (n : ℕ) : (monomial n a).roots = n • {0} :=
+by rw [monomial_eq_C_mul_X, roots_C_mul_X_pow ha]
 
 lemma roots_prod_X_sub_C (s : finset R) :
   (s.prod (λ a, X - C a)).roots = s.val :=
@@ -694,6 +714,10 @@ theorem mem_root_set_iff {p : T[X]} {S : Type*} [comm_ring S] [is_domain S] [alg
   [no_zero_smul_divisors T S] {a : S} : a ∈ p.root_set S ↔ p ≠ 0 ∧ aeval a p = 0 :=
 by rw [mem_root_set_iff', (map_injective _
   (no_zero_smul_divisors.algebra_map_injective T S)).ne_iff' (polynomial.map_zero _)]
+
+theorem mem_root_set_iff_of_ne_zero {p : T[X]} {S : Type*} [comm_ring S] [is_domain S] [algebra T S]
+  [no_zero_smul_divisors T S] {a : S} (hp : p ≠ 0) : a ∈ p.root_set S ↔ aeval a p = 0 :=
+mem_root_set_iff.trans $ and_iff_right hp
 
 lemma root_set_maps_to {p : T[X]} {S S'} [comm_ring S] [is_domain S] [algebra T S]
   [comm_ring S'] [is_domain S'] [algebra T S'] (hp : p.map (algebra_map T S') ≠ 0)

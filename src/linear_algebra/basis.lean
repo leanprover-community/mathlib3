@@ -825,7 +825,7 @@ lemma basis.mem_submodule_iff' {P : submodule R M} (b : basis ι R P) {x : M} :
 b.mem_submodule_iff.trans $ finsupp.equiv_fun_on_fintype.exists_congr_left.trans $ exists_congr $
 λ c, by simp [finsupp.sum_fintype]
 
-lemma coord_equiv_fun_symm (i : ι) (f : ι → R) : b.coord i (b.equiv_fun.symm f) = f i :=
+lemma basis.coord_equiv_fun_symm (i : ι) (f : ι → R) : b.coord i (b.equiv_fun.symm f) = f i :=
 b.coord_repr_symm i (finsupp.equiv_fun_on_fintype.symm f)
 
 end fintype
@@ -1320,12 +1320,7 @@ instance : is_atomistic (submodule K V) :=
 
 end atoms_of_submodule_lattice
 
-end division_ring
-
-section field
-
-variables [field K] [add_comm_group V] [add_comm_group V'] [module K V] [module K V']
-variables {v : ι → V} {s t : set V} {x y z : V}
+variables {K V}
 
 lemma linear_map.exists_left_inverse_of_injective (f : V →ₗ[K] V')
   (hf_inj : f.ker = ⊥) : ∃g:V' →ₗ[K] V, g.comp f = linear_map.id :=
@@ -1342,7 +1337,7 @@ begin
   have BC := this.subset_extend (subset_univ _),
   let hC := basis.extend this,
   haveI : inhabited V := ⟨0⟩,
-  refine ⟨hC.constr K (C.restrict (inv_fun f)), hB.ext (λ b, _)⟩,
+  refine ⟨hC.constr ℕ (C.restrict (inv_fun f)), hB.ext (λ b, _)⟩,
   rw image_subset_iff at BC,
   have fb_eq : f b = hC ⟨f b, BC b.2⟩,
   { change f b = basis.extend this _,
@@ -1365,7 +1360,7 @@ begin
   let C := basis.of_vector_space_index K V',
   let hC := basis.of_vector_space K V',
   haveI : inhabited V := ⟨0⟩,
-  use hC.constr K (C.restrict (inv_fun f)),
+  use hC.constr ℕ (C.restrict (inv_fun f)),
   refine hC.ext (λ c, _),
   rw [linear_map.comp_apply, hC.constr_basis],
   simp [right_inverse_inv_fun (linear_map.range_eq_top.1 hf_surj) c]
@@ -1402,4 +1397,4 @@ let ⟨q, hq⟩ := p.exists_is_compl in nonempty.intro $
 ((quotient_equiv_of_is_compl p q hq).prod (linear_equiv.refl _ _)).trans
   (prod_equiv_of_is_compl q p hq.symm)
 
-end field
+end division_ring

@@ -27,11 +27,22 @@ jobs:
           python ./scripts/add_port_comments.py
 
       - name: generate message
-        id: generate-message
+        id: generate-message-bad
         run: |
           PR_LIST="$(git diff HEAD -U0 | grep -o -e 'https://github.com/leanprover-community/mathlib4/pull/[0-9]\+'  | awk '{print "* " $0}')"
           echo "PR_LIST=$(printf "%q" "$PR_LIST")" >> $GITHUB_OUTPUT
           echo "$PR_LIST"
+          
+      - uses: actions/github-script@v5
+        id: generate-message
+        with:
+          script: |
+            let prs = exec.getExecOutput(
+              "git diff HEAD -U0 | grep -o -e 'https://github.com/leanprover-community/mathlib4/pull/[0-9]\+'");
+            console.log(prs.stdout)
+            console.log(prs.stderr)
+            # Assuming we have a `content` environment variable or output of previous step
+            core.setOutput("PR_LIST", prs.stdout); 
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4

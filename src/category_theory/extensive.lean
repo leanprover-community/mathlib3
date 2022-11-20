@@ -471,7 +471,7 @@ end Top
 
 section functor
 
-lemma is_universal_colimit.map_reflective [has_colimits_of_shape J C]
+lemma is_universal_colimit.map_reflective
   [has_pullbacks C] [has_pullbacks D]
   {Gl : C ⥤ D} {Gr : D ⥤ C} (adj : Gl ⊣ Gr) [full Gr] [faithful Gr]
   [preserves_limits_of_shape walking_cospan Gl] {F : J ⥤ D} {c : cocone (F ⋙ Gr)}

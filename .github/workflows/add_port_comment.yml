@@ -24,7 +24,7 @@ jobs:
 
       - name: update docstrings
         run: |
-          ./scripts/add_port_comments.py
+          python ./scripts/add_port_comments.py
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4

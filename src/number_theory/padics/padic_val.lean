@@ -115,7 +115,7 @@ lemma self (hp : 1 < p) : padic_val_int p p = 1 := by simp [padic_val_nat.self h
 lemma eq_zero_of_not_dvd {z : ℤ} (h : ¬ (p : ℤ) ∣ z) : padic_val_int p z = 0 :=
 begin
   rw [padic_val_int, padic_val_nat],
-  split_ifs; simp [multiplicity.int.nat_abs, multiplicity_eq_zero_of_not_dvd h],
+  split_ifs; simp [multiplicity.int.nat_abs, multiplicity_eq_zero.2 h],
 end
 
 end padic_val_int

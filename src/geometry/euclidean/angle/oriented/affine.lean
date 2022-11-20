@@ -98,11 +98,8 @@ end
 /-- An oriented angle is zero or `π` if and only if the three points are collinear. -/
 lemma oangle_eq_zero_or_eq_pi_iff_collinear {p₁ p₂ p₃ : P} :
   (∡ p₁ p₂ p₃ = 0 ∨ ∡ p₁ p₂ p₃ = π) ↔ collinear ℝ ({p₁, p₂, p₃} : set P) :=
-begin
-  rw [←not_iff_not, not_or_distrib, oangle_ne_zero_and_ne_pi_iff_affine_independent,
-      affine_independent_iff_not_collinear],
-  simp [-set.union_singleton]
-end
+by rw [←not_iff_not, not_or_distrib, oangle_ne_zero_and_ne_pi_iff_affine_independent,
+       affine_independent_iff_not_collinear_set]
 
 /-- Given three points not equal to `p`, the angle between the first and the second at `p` plus
 the angle between the second and the third equals the angle between the first and the third. -/

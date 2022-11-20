@@ -78,7 +78,7 @@ def summand (Δ : simplex_categoryᵒᵖ) (A : splitting.index_set Δ) : C := K.
 
 /-- The functor `Γ₀` sends a chain complex `K` to the simplicial object which
 sends `Δ` to the direct sum of the objects `summand K Δ A` for all `A : splitting.index_set Δ` -/
-def obj₂ (Δ : simplex_categoryᵒᵖ) [has_finite_coproducts C] : C :=
+def obj₂ (K : chain_complex C ℕ) (Δ : simplex_categoryᵒᵖ) [has_finite_coproducts C] : C :=
 ∐ (λ (A : splitting.index_set Δ), summand K Δ A)
 
 namespace termwise
@@ -116,8 +116,8 @@ end
 lemma map_mono_δ₀ {n : ℕ} : map_mono K (δ (0 : fin (n+2))) = K.d (n+1) n :=
 map_mono_δ₀' K _ (by rw is_δ₀.iff)
 
-lemma map_mono_eq_zero (h₁ : ¬Δ = Δ') (h₂ : ¬is_δ₀ i) : map_mono K i = 0 :=
-by { unfold map_mono, split_ifs, refl, }
+lemma map_mono_eq_zero (h₁ : Δ ≠ Δ') (h₂ : ¬is_δ₀ i) : map_mono K i = 0 :=
+by { unfold map_mono, rw ne.def at h₁, split_ifs, refl, }
 
 variables {K K'}
 
@@ -148,9 +148,9 @@ begin
     simp only [simplex_category.eq_id_of_mono i',
       comp_id, id_comp, map_mono_id K, eq_to_hom_refl], },
   /- then the RHS is always zero -/
-  obtain ⟨k, hk⟩ := len_eq_add_succ_of_mono i h₁,
-  obtain ⟨k', hk'⟩ := len_eq_add_succ_of_mono i' h₂,
-  have eq : Δ.len = Δ''.len + (k+k'+2) := by { rw hk' at hk, linarith, },
+  obtain ⟨k, hk⟩ := nat.exists_eq_add_of_lt (len_lt_of_mono i h₁),
+  obtain ⟨k', hk'⟩ := nat.exists_eq_add_of_lt (len_lt_of_mono i' h₂),
+  have eq : Δ.len = Δ''.len + (k+k'+2) := by linarith,
   rw map_mono_eq_zero K (i' ≫ i) _ _, rotate,
   { by_contradiction,
     simpa only [self_eq_add_right, h] using eq, },

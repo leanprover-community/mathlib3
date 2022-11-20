@@ -37,11 +37,9 @@ jobs:
         id: generate-message
         with:
           script: |
-            var prs = exec.getExecOutput(
-              "git diff HEAD -U0 | grep -o -e 'https://github.com/leanprover-community/mathlib4/pull/[0-9]\+'");
+            prs = exec.getExecOutput("git diff HEAD -U0 | grep -o -e 'https://github.com/leanprover-community/mathlib4/pull'");
             console.log(prs.stdout);
             console.log(prs.stderr);
-            # Assuming we have a `content` environment variable or output of previous step
             core.setOutput("PR_LIST", prs.stdout); 
 
       - name: Create Pull Request

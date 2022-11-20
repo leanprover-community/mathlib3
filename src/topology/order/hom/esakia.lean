@@ -117,6 +117,14 @@ protected def copy (f : pseudo_epimorphism α β) (f' : α → β) (h : f' = f) 
   pseudo_epimorphism α β :=
 ⟨f.to_order_hom.copy f' h, by simpa only [h.symm, to_fun_eq_coe] using f.exists_map_eq_of_map_le'⟩
 
+@[simp] lemma coe_copy (f : pseudo_epimorphism α β) (f' : α → β) (h : f' = f) :
+  ⇑(f.copy f' h) = f' :=
+rfl
+
+lemma copy_eq (f : pseudo_epimorphism α β) (f' : α → β) (h : f' = f) :
+  f.copy f' h = f :=
+fun_like.ext' h
+
 variables (α)
 
 /-- `id` as a `pseudo_epimorphism`. -/
@@ -194,6 +202,9 @@ equalities. -/
 protected def copy (f : esakia_hom α β) (f' : α → β) (h : f' = f) : esakia_hom α β :=
 ⟨f.to_continuous_order_hom.copy f' h,
   by simpa only [h.symm, to_fun_eq_coe] using f.exists_map_eq_of_map_le'⟩
+
+@[simp] lemma coe_copy (f : esakia_hom α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : esakia_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 variables (α)
 

@@ -30,7 +30,7 @@ jobs:
         id: message
         run: |
           PR_LIST="$(git diff HEAD -U0 | grep -o -e 'https://github.com/leanprover-community/mathlib4/pull/[0-9]\+'  | awk '{print "* " $0}')"
-          echo "PR_LIST=$PR_LIST" >> $GITHUB_OUTPUT
+          echo "PR_LIST=$(printf "%q" "$PR_LIST")" >> $GITHUB_OUTPUT
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4

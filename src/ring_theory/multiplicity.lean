@@ -274,10 +274,7 @@ variable [decidable_rel ((∣) : α → α → Prop)]
 part.eq_none_iff.2 (λ n ⟨⟨k, hk⟩, _⟩, hk (dvd_zero _))
 
 @[simp] lemma multiplicity_zero_eq_zero_of_ne_zero (a : α) (ha : a ≠ 0) : multiplicity 0 a = 0 :=
-begin
-  apply multiplicity.multiplicity_eq_zero_of_not_dvd,
-  rwa zero_dvd_iff,
-end
+multiplicity.multiplicity_eq_zero.2 $ mt zero_dvd_iff.1 ha
 
 end monoid_with_zero
 

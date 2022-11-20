@@ -188,16 +188,17 @@ meta def eval_guessing (n : ℕ) : expr → tactic ℕ
 /--  These are the cases in which an available lemma computes the degree.
 `single_term_suggestions` returns a pair `(e1, e2)`, where `e1` pretty-prints to something
 suitable for a "Try this:", while `e2` is an expression that unifies with the target. -/
-meta def single_term_suggestions : tactic (expr × (expr ff)) := do
-t ← target,
-[ ``(polynomial.nat_degree_X_pow _),
-  ``(polynomial.nat_degree_C _),
-  ``(polynomial.nat_degree_X),
-  ``(polynomial.nat_degree_C_mul_X_pow _ _ ‹_›),
-  ``(polynomial.nat_degree_C_mul_X _ ‹_›) ].mfirst
-  (λ st, do
-    na ← to_expr st tt ff,
-    infer_type na >>= unify t >> return (replace_mvars na, st))
+meta def single_term_suggestions : tactic (expr × (expr ff)) :=
+do
+  t ← target,
+  [ ``(polynomial.nat_degree_X_pow _),
+    ``(polynomial.nat_degree_C _),
+    ``(polynomial.nat_degree_X),
+    ``(polynomial.nat_degree_C_mul_X_pow _ _ ‹_›),
+    ``(polynomial.nat_degree_C_mul_X _ ‹_›) ].mfirst
+    (λ st, do
+      na ← to_expr st tt ff,
+      infer_type na >>= unify t >> return (replace_mvars na, st))
 
 /--
 `get_lead_coeff c e` assumes that `c` is an `instance_cache` of a `(semi_)ring R` and that `e`
@@ -298,7 +299,8 @@ by compute_degree_le
 ```
 -/
 meta def compute_degree_le : tactic unit :=
-focus1 $ do t ← target,
+focus1 $ do
+  t ← target,
   try $ refine ``(degree_le_nat_degree.trans (with_bot.coe_le_coe.mpr _)),
   `(nat_degree %%tl ≤ %%tr) ← target |
     fail "Goal is not of the form\n`f.nat_degree ≤ d` or `f.degree ≤ d`",
@@ -326,58 +328,59 @@ shape `f'.coeff n' = get_lead_coeff c f'`.
 In some sense, this views `coeff _ <visible_top_degree>` as a "monad" converting between
 `R[X]` and `R`.  `resolve_coeff` performs the operations building `f` across the monad.
 -/
-meta def resolve_coeff : tactic unit := focus1 $ do
-t ← target >>= instantiate_mvars,
-`(coeff %%f %%n = _) ← pure t | fail!"{t} is not of the form\n`f.coeff n = x`",
-match f with
-| `(@has_one.one %%RX %%_)            := refine ``(coeff_one_zero)
-| (app `(⇑C) _)                       := refine ``(coeff_C_zero)
-| (app `(⇑(@monomial %%R %%_ %%n)) x) := refine ``(coeff_monomial_self)
-| `(X)                                := refine ``(coeff_X_one)
-| `(X ^ %%n)                          := refine ``(coeff_X_pow_self %%n)
-| `(bit0 %%a) := do
-  refine ``((coeff_bit0 _ _).trans _),
-  refine ``(congr_arg bit0 _),
-  reflexivity <|> resolve_coeff
-| `(bit1 %%a) := do
-  refine ``((coeff_bit1_zero _).trans _),
-  refine ``(congr_arg bit1 _),
-  reflexivity <|> resolve_coeff
-| `(%%a + %%b) := do
-  [da, db] ← [a,b].mmap guess_degree',
-  (if da ≠ db then do
-    if da < db then refine ``((coeff_add_eq_right_of_lt (nat.lt_succ_iff.mpr _)).trans _)
-    else refine ``((coeff_add_eq_left_of_lt (nat.lt_succ_iff.mpr _)).trans _),
-    compute_degree_le
-  else refine ``((coeff_add _ _ _).trans _);
-  congr' (some 1));
-  resolve_coeff
-| `(%%a - %%b) := do
-  [da, db] ← [a,b].mmap guess_degree',
-  (if da ≠ db then do
-    if da < db then refine ``((coeff_sub_eq_neg_right_of_lt (nat.lt_succ_iff.mpr _)).trans
-      (neg_inj.mpr _))
-    else refine ``((coeff_sub_eq_left_of_lt (nat.lt_succ_iff.mpr _)).trans _),
-    compute_degree_le
-  else refine ``((coeff_sub _ _ _).trans _) >> congr' (some 1));
-  resolve_coeff
-| `(%%a * %%b) := do
-  [da, db] ← [a,b].mmap guess_degree,
-  refine ``((coeff_mul_of_nat_degree_le' (by norm_num : %%da + %%db = %%n) _ _).trans _),
-  iterate_at_most' 2 compute_degree_le,
-  try $ congr' (some 1);
-  resolve_coeff
-| `(%%a ^ %%ex) := do
-  da ← guess_degree a,
-  refine ``((coeff_pow_of_nat_degree_le' (by norm_num : %%da * %%ex = _) _).trans _),
-  compute_degree_le,
-  try $ congr' (some 1);
-  resolve_coeff
-| `(- %%a) := do
-  refine ``((coeff_neg _ _).trans (neg_inj.mpr _)),
-  resolve_coeff
-| e := skip
-end
+meta def resolve_coeff : tactic unit :=
+focus1 $ do
+  t ← target >>= instantiate_mvars,
+  `(coeff %%f %%n = _) ← pure t | fail!"{t} is not of the form\n`f.coeff n = x`",
+  match f with
+  | `(@has_one.one %%RX %%_)            := refine ``(coeff_one_zero)
+  | (app `(⇑C) _)                       := refine ``(coeff_C_zero)
+  | (app `(⇑(@monomial %%R %%_ %%n)) x) := refine ``(coeff_monomial_self)
+  | `(X)                                := refine ``(coeff_X_one)
+  | `(X ^ %%n)                          := refine ``(coeff_X_pow_self %%n)
+  | `(bit0 %%a) := do
+    refine ``((coeff_bit0 _ _).trans _),
+    refine ``(congr_arg bit0 _),
+    reflexivity <|> resolve_coeff
+  | `(bit1 %%a) := do
+    refine ``((coeff_bit1_zero _).trans _),
+    refine ``(congr_arg bit1 _),
+    reflexivity <|> resolve_coeff
+  | `(%%a + %%b) := do
+    [da, db] ← [a,b].mmap guess_degree',
+    (if da ≠ db then do
+      if da < db then refine ``((coeff_add_eq_right_of_lt (nat.lt_succ_iff.mpr _)).trans _)
+      else refine ``((coeff_add_eq_left_of_lt (nat.lt_succ_iff.mpr _)).trans _),
+      compute_degree_le
+    else refine ``((coeff_add _ _ _).trans _);
+    congr' (some 1));
+    resolve_coeff
+  | `(%%a - %%b) := do
+    [da, db] ← [a,b].mmap guess_degree',
+    (if da ≠ db then do
+      if da < db then refine ``((coeff_sub_eq_neg_right_of_lt (nat.lt_succ_iff.mpr _)).trans
+        (neg_inj.mpr _))
+      else refine ``((coeff_sub_eq_left_of_lt (nat.lt_succ_iff.mpr _)).trans _),
+      compute_degree_le
+    else refine ``((coeff_sub _ _ _).trans _) >> congr' (some 1));
+    resolve_coeff
+  | `(%%a * %%b) := do
+    [da, db] ← [a,b].mmap guess_degree,
+    refine ``((coeff_mul_of_nat_degree_le' (by norm_num : %%da + %%db = %%n) _ _).trans _),
+    iterate_at_most' 2 compute_degree_le,
+    try $ congr' (some 1);
+    resolve_coeff
+  | `(%%a ^ %%ex) := do
+    da ← guess_degree a,
+    refine ``((coeff_pow_of_nat_degree_le' (by norm_num : %%da * %%ex = _) _).trans _),
+    compute_degree_le,
+    try $ congr' (some 1);
+    resolve_coeff
+  | `(- %%a) := do
+    refine ``((coeff_neg _ _).trans (neg_inj.mpr _)),
+    resolve_coeff
+  | e := skip
+  end
 
 /--  `poly_and_deg_to_equation f deg` takes an input an expression `f` representing a polynomial
 and an expression `deg` representing an natural number.  It returns a term `h` of type
@@ -444,30 +447,33 @@ goal to showing that
 Unless the polynomial is particularly complicated, `compute_degree` with either succeed of leave
 a simpler goal to prove.
  -/
-meta def compute_degree (single : parse (tk "!" )?) : tactic unit := focus $ do
-t ← target >>= (λ f, whnf f reducible),
-match t with
+meta def compute_degree (single : parse (tk "!" )?) : tactic unit :=
+focus $ do
+  t ← target >>= (λ f, whnf f reducible),
+  match t with
   -- the `degree` match implicitly assumes that the `nat_degree` is strictly positive
-| `(    degree %%_ = %%_) := refine ``((degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >> rotate
-| `(nat_degree %%_ = %%_) := do
-  wks ← try_core single_term_suggestions,
-  match wks with
-  | some wor := do
-    if single.is_some then refine wor.2 else (do pwks ← pp wor.1, fail!"Try this: exact {pwks}")
-  | none := skip
-  end
-| _ := fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`"
-end,
-done <|> (do
-`(nat_degree %%pol = %%degv) ← target |
-  fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
-deg ← guess_degree' pol,
-degvn ← eval_expr' ℕ degv,
-guard (deg = degvn) <|>
-( do ppe ← pp deg, ppg ← pp degvn,
-  fail sformat!("'{ppe}' is the expected degree\n'{ppg}' is the given degree\n") ),
-refine ``(le_antisymm _ (le_nat_degree_of_ne_zero _)),
-focus' [compute_degree_le, simp_coeff])
+  | `(    degree %%_ = %%n) := do
+    refine ``((degree_eq_iff_nat_degree_eq_of_pos (by norm_num : 0 < _)).mpr _),
+    rotate
+  | `(nat_degree %%_ = %%_) := do
+    wks ← try_core single_term_suggestions,
+    match wks with
+    | some wor :=
+      if single.is_some then refine wor.2 else (do pwks ← pp wor.1, fail!"Try this: exact {pwks}")
+    | none := skip
+    end
+  | _ := fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`"
+  end,
+  done <|> (do
+  `(nat_degree %%pol = %%degv) ← target |
+    fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
+  deg ← guess_degree' pol,
+  degvn ← eval_expr' ℕ degv,
+  guard (deg = degvn) <|>
+  ( do ppe ← pp deg, ppg ← pp degvn,
+    fail sformat!("'{ppe}' is the expected degree\n'{ppg}' is the given degree\n") ),
+  refine ``(le_antisymm _ (le_nat_degree_of_ne_zero _)),
+  focus' [compute_degree_le, simp_coeff])
 
 end parsing
 
@@ -478,13 +484,14 @@ goal to showing that
 Unless the polynomial is particularly complicated, `prove_monic` will either succeed or leave
 a simpler goal to prove.
  -/
-meta def prove_monic : tactic unit := focus $ do
-`(monic %%pol) ← target >>= (λ f, whnf f reducible) | fail"Goal is not of the form `monic f`",
-deg ← guess_degree' pol,
-deg ← to_expr deg.to_pexpr tt ff,
-refine ``(monic_of_nat_degree_le_of_coeff_eq_one %%deg _ _),
-focus' [compute_degree_le, simp_coeff],
-try reflexivity
+meta def prove_monic : tactic unit :=
+focus $ do
+  `(monic %%pol) ← target >>= (λ f, whnf f reducible) | fail"Goal is not of the form `monic f`",
+  deg ← guess_degree' pol,
+  deg ← to_expr deg.to_pexpr tt ff,
+  refine ``(monic_of_nat_degree_le_of_coeff_eq_one %%deg _ _),
+  focus' [compute_degree_le, simp_coeff],
+  try reflexivity
 
 add_tactic_doc
 { name := "compute_degree_le",

@@ -271,7 +271,7 @@ lemma has_biproducts_of_shape_of_equiv {K : Type w'} [has_biproducts_of_shape K 
   in has_biproduct.mk $ by simpa only [(∘), e.symm_apply_apply]
     using limit_bicone.mk (c.whisker e) ((c.whisker_is_bilimit_iff _).2 hc)⟩
 
-instance has_biproducts_of_shape_finite [has_finite_biproducts C] [finite J] :
+@[priority 100] instance has_biproducts_of_shape_finite [has_finite_biproducts C] [finite J] :
   has_biproducts_of_shape J C :=
 begin
   rcases finite.exists_equiv_fin J with ⟨n, ⟨e⟩⟩,

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning, Jireh Loreaux
 -/
 import group_theory.subsemigroup.center
+import algebra.group_with_zero.units.lemmas
 
 /-!
 # Centralizers of magmas and semigroups

@@ -485,7 +485,9 @@ dif_neg $ λ ⟨n, hn⟩, hn rfl
 lemma val_aux_one : val_aux K v O hv p 1 = 1 :=
 (val_aux_eq $ show coeff (mod_p K v O hv p) p 0 1 ≠ 0, from one_ne_zero).trans $
 by { rw [pow_zero, pow_one, ring_hom.map_one, ← (ideal.quotient.mk _).map_one, mod_p.pre_val_mk,
-    ring_hom.map_one, v.map_one], exact @one_ne_zero (mod_p K v O hv p) _ _ }
+    ring_hom.map_one, v.map_one],
+  change (1 : mod_p K v O hv p) ≠ 0,
+  exact one_ne_zero }
 
 lemma val_aux_mul (f g : pre_tilt K v O hv p) :
   val_aux K v O hv p (f * g) = val_aux K v O hv p f * val_aux K v O hv p g :=

@@ -36,14 +36,14 @@ variables [nontrivially_normed_field 𝕜] [normed_ring A]
   [normed_algebra 𝕜 A] [complete_space A]
 
 lemma norm_le_norm_one (φ : character_space 𝕜 A) :
-  ∥to_normed_dual (φ : weak_dual 𝕜 A)∥ ≤ ∥(1 : A)∥ :=
+  ‖to_normed_dual (φ : weak_dual 𝕜 A)‖ ≤ ‖(1 : A)‖ :=
 continuous_linear_map.op_norm_le_bound _ (norm_nonneg (1 : A)) $
-  λ a, mul_comm (∥a∥) (∥(1 : A)∥) ▸ spectrum.norm_le_norm_mul_of_mem (apply_mem_spectrum φ a)
+  λ a, mul_comm (‖a‖) (‖(1 : A)‖) ▸ spectrum.norm_le_norm_mul_of_mem (apply_mem_spectrum φ a)
 
 instance [proper_space 𝕜] : compact_space (character_space 𝕜 A) :=
 begin
   rw [←is_compact_iff_compact_space],
-  have h : character_space 𝕜 A ⊆ to_normed_dual ⁻¹' metric.closed_ball 0 (∥(1 : A)∥),
+  have h : character_space 𝕜 A ⊆ to_normed_dual ⁻¹' metric.closed_ball 0 (‖(1 : A)‖),
   { intros φ hφ,
     rw [set.mem_preimage, mem_closed_ball_zero_iff],
     exact (norm_le_norm_one ⟨φ, ⟨hφ.1, hφ.2⟩⟩ : _), },

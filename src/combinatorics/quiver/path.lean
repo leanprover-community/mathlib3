@@ -142,7 +142,7 @@ namespace prefunctor
 
 open quiver
 
-variables {V : Type u₁} [quiver.{v₁} V] {W : Type u₂} [quiver.{v₂} W] (F : prefunctor V W)
+variables {V : Type u₁} [quiver.{v₁} V] {W : Type u₂} [quiver.{v₂} W] (F : V ⥤q W)
 
 /-- The image of a path under a prefunctor. -/
 def map_path {a : V} :

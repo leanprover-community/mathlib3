@@ -140,7 +140,7 @@ end
 lemma circle_transform_deriv_bound {R : ℝ} (hR : 0 < R) {z x : ℂ} {f : ℂ → ℂ}
   (hx : x ∈ ball z R) (hf : continuous_on f (sphere z R)) :
   ∃ (B ε : ℝ), 0 < ε ∧ ball x ε ⊆ ball z R ∧
-  (∀ (t : ℝ) (y ∈ ball x ε), ∥circle_transform_deriv R z y f t∥ ≤ B) :=
+  (∀ (t : ℝ) (y ∈ ball x ε), ‖circle_transform_deriv R z y f t‖ ≤ B) :=
 begin
   obtain ⟨r, hr, hrx⟩ := exists_lt_mem_ball_of_mem_ball hx,
   obtain ⟨ε', hε', H⟩ := exists_ball_subset_ball hrx,

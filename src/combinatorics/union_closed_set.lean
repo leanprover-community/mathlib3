@@ -7,7 +7,7 @@ import analysis.convex.specific_functions
 open_locale big_operators
 open finset
 
-variables {Ω α β : Type*} [fintype Ω] {X : Ω → α} {Y : Ω → β} {f : α → β}
+variables {Ω α β δ : Type*} [fintype Ω] {X : Ω → α} {Y : Ω → β}
 variables {γ : Type*} [add_comm_monoid γ] [module ℝ γ]
 
 noncomputable theory
@@ -19,10 +19,24 @@ class finite_measure_space (Ω : Type*) [fintype Ω] :=
 
 variables [finite_measure_space Ω]
 
+@[reducible] def function.product {Ω α β : Type*} (X : Ω → α) (Y : Ω → β) (ω : Ω) : α × β :=
+(X ω, Y ω)
+
+local infixr ` ×ᶠ `:82 := function.product
+
 local notation `w` := finite_measure_space.w
 
 lemma possible {ω : Ω} : 0 < w ω := finite_measure_space.pos _
 lemma whole_space : ∑ ω : Ω, w ω = 1 := finite_measure_space.has_sum
+instance finite_measure_space.nonempty : nonempty Ω :=
+begin
+  rw ←not_is_empty_iff,
+  introI h,
+  have : ∑ ω : Ω, w ω = 0,
+  { convert @fintype.sum_empty Ω _ _ _ w },
+  rw whole_space at this,
+  simpa using this
+end
 
 @[positivity]
 meta def positivity_nonneg : expr → tactic tactic.positivity.strictness
@@ -46,28 +60,32 @@ by simp only [expect, smul_neg, sum_neg_distrib]
 lemma expect_nonneg {X : Ω → ℝ} (hω : ∀ ω, 0 ≤ X ω) : 0 ≤ 𝔼 ω, X ω :=
 sum_nonneg $ λ i hi, smul_nonneg nonneg (hω _)
 
-def prob (X : Ω → α) (A : set α) : ℝ :=
-by classical; exact ∑ ω in univ.filter (λ ω, X ω ∈ A), w ω
+lemma expect_empty [is_empty Ω] {X : Ω → γ} : 𝔼 i, X i = 0 :=
+by { rw expect, convert fintype.sum_empty (λ i, w i • X i) }
+
+def prob {α : Type*} (X : Ω → α) (A : set α) [∀ ω, decidable (X ω ∈ A)] : ℝ :=
+∑ ω in univ.filter (λ ω, X ω ∈ A), w ω
 
 local notation `ℙ[` X ` in ` A `]` := prob X A
 
-lemma prob_eq_exp (A : set α) : ℙ[X in A] = 𝔼 i, ite (X i ∈ A) 1 0 :=
+lemma prob_eq_exp (A : set α) [∀ ω, decidable (X ω ∈ A)] : ℙ[X in A] = 𝔼 i, ite (X i ∈ A) 1 0 :=
 begin
   rw [prob, expect],
   simp only [smul_eq_mul, mul_boole],
   rw ←sum_filter,
 end
 
-lemma prob_nonneg (A : set α) : 0 ≤ ℙ[X in A] :=
+lemma prob_nonneg (A : set α) [∀ ω, decidable (X ω ∈ A)] : 0 ≤ ℙ[X in A] :=
 sum_nonneg (λ i hi, by positivity)
 
-lemma prob_le_one (A : set α) : ℙ[X in A] ≤ 1 :=
+lemma prob_le_one (A : set α) [∀ ω, decidable (X ω ∈ A)] : ℙ[X in A] ≤ 1 :=
 begin
   refine (sum_le_sum_of_subset_of_nonneg (subset_univ _) (λ _ _ _, _)).trans_eq whole_space,
   apply nonneg
 end
 
-lemma prob_union {A B : set α} (h : disjoint A B) :
+lemma prob_union {A B : set α} [∀ ω, decidable (X ω ∈ A)] [∀ ω, decidable (X ω ∈ B)]
+  (h : disjoint A B) :
   ℙ[X in A ∪ B] = ℙ[X in A] + ℙ[X in B] :=
 begin
   classical,
@@ -80,7 +98,8 @@ begin
   exact h hx hx'
 end
 
-lemma prob_le_prob {A : set α} {B : set β} (h : ∀ ω : Ω, w ω ≠ 0 → X ω ∈ A → Y ω ∈ B) :
+lemma prob_le_prob {A : set α} {B : set β} [∀ ω, decidable (X ω ∈ A)] [∀ ω, decidable (Y ω ∈ B)]
+  (h : ∀ ω : Ω, w ω ≠ 0 → X ω ∈ A → Y ω ∈ B) :
   ℙ[X in A] ≤ ℙ[Y in B] :=
 begin
   change ∑ ω in univ.filter _, _ ≤ ∑ ω in univ.filter _, _,
@@ -91,8 +110,11 @@ begin
   exact h ω h₂ h₁
 end
 
-lemma prob_le_prob_of_subset {A A' : set α} (h : A ⊆ A') : ℙ[X in A] ≤ ℙ[X in A'] :=
+lemma prob_le_prob_of_subset {A A' : set α} [∀ ω, decidable (X ω ∈ A)] [∀ ω, decidable (X ω ∈ A')]
+  (h : A ⊆ A') : ℙ[X in A] ≤ ℙ[X in A'] :=
 prob_le_prob (λ ω hω hx, h hx)
+
+variables [decidable_eq α] [decidable_eq β] [decidable_eq δ]
 
 def p (X : Ω → α) (a : α) : ℝ := ℙ[X in {a}]
 
@@ -104,8 +126,8 @@ meta def positivity_prob : expr → tactic tactic.positivity.strictness
 | `(p %%X %%a) := nonnegative <$> tactic.mk_app ``p_nonneg [X, a]
 | e := tactic.failed
 
-lemma p_embedding (hf : function.injective f) (a : α) :
-  p (λ ω, f (X ω)) (f a) = p X a :=
+lemma p_embedding {f : α → β} (hf : function.injective f) (a : α) :
+  p (f ∘ X) (f a) = p X a :=
 by simp [p, prob, hf.eq_iff]
 
 lemma p_eq_zero_iff {x : α} : p X x = 0 ↔ ∀ ω, X ω ≠ x :=
@@ -127,19 +149,29 @@ end
 lemma p_ne_zero_iff {x : α} : p X x ≠ 0 ↔ ∃ ω, X ω = x :=
 by { rw [ne.def, p_eq_zero_iff], simp }
 
-lemma p_pos_of_exists {ω : Ω} : 0 < p X (X ω) := by { rw p_pos_iff, simp }
+lemma p_pos {ω : Ω} : 0 < p X (X ω) := by { rw p_pos_iff, simp }
 
-lemma p_whole_space (s : finset α) (hs : ∀ i ∉ s, p X i = 0) : ∑ x in s, p X x = 1 :=
+lemma p_whole_space (s : finset α) (hs : ∀ i ∉ s, p X i = 0) :
+  ∑ x in s, p X x = 1 :=
 begin
   simp only [p, prob, set.mem_singleton_iff],
   rw [@sum_fiberwise_of_maps_to _ _ _ _ _ _ _ X, whole_space],
   intros x hx,
   by_contra',
-  exact p_pos_of_exists.ne' (hs (X x) this),
+  exact p_pos.ne' (hs (X x) this),
 end
 
 lemma p_whole_space' (X : Ω → α) : ∑ x in univ.image X, p X x = 1 :=
 p_whole_space _ (by simp [p_eq_zero_iff])
+
+lemma p_cond {y : β} :
+  ∑ x in univ.image X, p (X ×ᶠ Y) (x, y) = p Y y :=
+begin
+  simp only [p, prob, set.mem_singleton_iff, prod.mk.inj_iff],
+  rw [sum_filter, sum_image'],
+  intros c hc,
+  simp only [←sum_filter, filter_filter],
+end
 
 def ent (b x : ℝ) : ℝ := - x * real.logb b x
 @[simp] lemma ent_zero {b : ℝ} : ent b 0 = 0 := by simp [ent]
@@ -166,7 +198,8 @@ begin
   simp only [hx],
 end
 
-lemma entropy_eq' {s : finset α} (hs : ∀ i ∉ s, p X i = 0) : entropy X = ∑ i in s, ent 2 (p X i) :=
+lemma entropy_eq' {s : finset α} (hs : ∀ i ∉ s, p X i = 0) :
+  entropy X = ∑ i in s, ent 2 (p X i) :=
 begin
   rw entropy_eq,
   refine sum_subset _ _,
@@ -174,7 +207,7 @@ begin
       forall_apply_eq_imp_iff'],
     intros ω,
     by_contra,
-    apply p_pos_of_exists.ne' (hs _ h) },
+    apply p_pos.ne' (hs _ h) },
   simp only [mem_univ, mem_image, not_exists, forall_true_left, p, prob, set.mem_singleton_iff],
   intros x hx hx',
   rw [filter_false_of_mem, sum_empty, ent_zero],
@@ -183,9 +216,6 @@ end
 
 lemma entropy_const (h : ∀ i j, X i = X j) : ℍ ω, X ω = 0 :=
 begin
-  casesI is_empty_or_nonempty Ω,
-  { rw [entropy, expect],
-    convert @fintype.sum_empty Ω _ _ _ (λ ω, w ω • -real.logb 2 (p X (X ω))) },
   inhabit Ω,
   rw [entropy_eq],
   have : univ.image X = {X default},
@@ -198,7 +228,7 @@ end
 
 lemma entropy_empty [is_empty α] : ℍ ω, X ω = 0 := entropy_const (by simp)
 
-lemma entropy_injective (hf : function.injective f) :
+lemma entropy_injective {f : α → β} (hf : function.injective f) :
   ℍ ω, f (X ω) = ℍ ω, X ω :=
 begin
   rw [entropy_eq, entropy_eq],
@@ -207,8 +237,29 @@ begin
   simp only [hf.eq_iff, imp_self, implies_true_iff],
 end
 
+def indep (X : Ω → α) (Y : Ω → β) : Prop :=
+∀ x y, p (X ×ᶠ Y) (x, y) = p X x * p Y y
+
+lemma indep.swap (h : indep Y X) : indep X Y :=
+begin
+  intros x y,
+  rw [mul_comm, ←h y x, ←p_embedding prod.swap_injective],
+  refl,
+end
+
+lemma indep.comm : indep Y X ↔ indep X Y := ⟨indep.swap, indep.swap⟩
+
+lemma indep.entropy_prod (h : indep X Y) :
+  ℍ ω, (X ω, Y ω) = ℍ ω, X ω + ℍ ω, Y ω :=
+begin
+  rw [entropy, entropy, entropy, ←expect_add],
+  congr' 1,
+  ext ω,
+  rw [h, real.logb_mul p_pos.ne' p_pos.ne', neg_add],
+end
+
 def cond_entropy (Y : Ω → β) (X : Ω → α) : ℝ :=
-𝔼 ω, - real.logb 2 (p (λ k, (X k, Y k)) (X ω, Y ω) / p X (X ω))
+𝔼 ω, - real.logb 2 (p (X ×ᶠ Y) (X ω, Y ω) / p X (X ω))
 
 local notation `ℍ` binders `, ` r:(scoped:67 f, f) ` | ` s:(scoped:67 g, g) := cond_entropy r s
 
@@ -224,9 +275,6 @@ begin
   simp {contextual := tt}
 end
 
-def indep (X : Ω → α) (Y : Ω → β) : Prop :=
-∀ x y, p (λ ω, (X ω, Y ω)) (x, y) = p X x * p Y y
-
 lemma cond_entropy_chain :
   cond_entropy Y X = ℍ ω, (X ω, Y ω) - entropy X :=
 begin
@@ -239,8 +287,8 @@ begin
   intro h,
   rw real.logb_div,
   { simp },
-  { apply p_pos_of_exists.ne' },
-  { apply p_pos_of_exists.ne' },
+  { apply p_pos.ne' },
+  { apply p_pos.ne' },
 end
 
 lemma cond_entropy_chain' :
@@ -249,16 +297,13 @@ by rw [cond_entropy_chain, sub_add_cancel]
 
 lemma cond_entropy_chain_swap :
   cond_entropy Y X = ℍ ω, (Y ω, X ω) - entropy X :=
-begin
-  rw [cond_entropy_chain, ←entropy_injective prod.swap_injective],
-  simp only [prod.swap_prod_mk],
-end
+by { rw [cond_entropy_chain, ←entropy_injective prod.swap_injective], refl }
 
 lemma cond_entropy_chain_swap' :
   cond_entropy Y X + entropy X = ℍ ω, (Y ω, X ω) :=
 by rw [cond_entropy_chain_swap, sub_add_cancel]
 
-lemma cond_entropy_apply : ℍ ω, f (X ω) | X ω = 0 :=
+lemma cond_entropy_apply {f : α → β} : ℍ ω, f (X ω) | X ω = 0 :=
 begin
   let g : α → α × β := λ x, (x, f x),
   have hg : function.injective g,
@@ -267,7 +312,29 @@ begin
   rw [cond_entropy_chain, entropy_injective hg, sub_self],
 end
 
-lemma entropy_apply : ℍ ω, f (X ω) ≤ ℍ ω, X ω :=
+lemma cond_entropy_injective_right {f : α → δ} (hf : function.injective f) :
+  ℍ ω, Y ω | f (X ω) = ℍ ω, Y ω | X ω :=
+begin
+  rw [cond_entropy_chain, cond_entropy_chain, entropy_injective hf, sub_left_inj],
+  let g : α × β → δ × β := λ i, (f i.1, i.2),
+  have : function.injective g,
+  { rintro ⟨a, b⟩ ⟨a', b'⟩,
+    simp [g, hf.eq_iff] {contextual := tt} },
+  rw [←entropy_injective this],
+end
+
+lemma cond_entropy_injective_left {f : α → δ} (hf : function.injective f) :
+  ℍ ω, f (X ω) | Y ω = ℍ ω, X ω | Y ω :=
+begin
+  rw [cond_entropy_chain, cond_entropy_chain, sub_left_inj],
+  let g : β × α → β × δ := λ i, (i.1, f i.2),
+  have : function.injective g,
+  { rintro ⟨a, b⟩ ⟨a', b'⟩,
+    simp [g, hf.eq_iff] {contextual := tt} },
+  rw [←entropy_injective this],
+end
+
+lemma entropy_apply {f : α → β} : ℍ ω, f (X ω) ≤ ℍ ω, X ω :=
 begin
   have : ℍ ω, (X ω, f (X ω)) = ℍ ω, X ω,
   { rw [←cond_entropy_chain', cond_entropy_apply, zero_add] },
@@ -278,7 +345,16 @@ end
 
 def restrict {δ : ℕ → Type*} (X : Π i, δ i) (n : ℕ) : Π i < n, δ i := λ i _, X i
 
-lemma cond_entropy_long_chain {n : ℕ} {δ : ℕ → Type*}
+instance decidable_eq_ball {δ : ℕ → Type*} {n : ℕ} [∀ i, decidable_eq (δ i)] :
+  decidable_eq (Π i < n, δ i) :=
+begin
+  intros x y,
+  have : x = y ↔ ∀ i < n, x i H = y i H,
+  { simp only [function.funext_iff] },
+  exact decidable_of_iff' _ this,
+end
+
+lemma cond_entropy_long_chain {n : ℕ} {δ : ℕ → Type*} [∀ i, decidable_eq (δ i)]
   (X : Ω → Π i, δ i) :
   ℍ ω, restrict (X ω) n = ∑ i in range n, ℍ ω, X ω i | restrict (X ω) i :=
 begin
@@ -360,46 +436,97 @@ begin
     apply hy },
 end
 
-lemma cond_entropy_le : ℍ i, X i | Y i ≤ ℍ i, X i :=
+lemma cond_entropy_indep (h : indep X Y) : ℍ ω, Y ω | X ω = ℍ ω, Y ω :=
+by { rw [cond_entropy_chain, h.entropy_prod], simp }
+
+lemma cond_entropy_extra {δ : Type*} [decidable_eq δ] {Z : Ω → δ} :
+  ℍ ω, X ω | (Y ω, Z ω) ≤ ℍ ω, X ω | Z ω :=
 begin
-  rw [cond_entropy_chain_swap, sub_le_iff_le_add, entropy_eq],
-  rw [entropy, entropy, ←expect_add, expect],
-  have : ∑ ω, w ω • (-real.logb 2 (p X (X ω)) + -real.logb 2 (p Y (Y ω))) =
-    ∑ (i : α × β) in univ.image (λ ω, (X ω, Y ω)),
-      -p (λ ω, (X ω, Y ω)) i * real.logb 2 (p X i.1 * p Y i.2),
+  rw [cond_entropy_chain_swap, cond_entropy_chain_swap, sub_le_iff_le_add, entropy_eq],
+  rw [entropy, entropy, entropy, sub_eq_add_neg, ←expect_neg, ←expect_add, ←expect_add],
+  have : ∑ (ω : Ω), w ω • (-real.logb 2 (p (X ×ᶠ Z) (X ω, Z ω)) +
+    - -real.logb 2 (p Z (Z ω)) + -real.logb 2 (p (Y ×ᶠ Z) (Y ω, Z ω))) =
+    ∑ i in univ.image (X ×ᶠ Y ×ᶠ Z),
+      -p (X ×ᶠ Y ×ᶠ Z) i *
+        real.logb 2 (p (X ×ᶠ Z) (i.1, i.2.2) * p (Y ×ᶠ Z) (i.2.1, i.2.2) /
+          p Z i.2.2),
   { rw sum_image',
     intros c hc,
-    have :
-      ∑ x in univ.filter (λ c', (X c', Y c') = (X c, Y c)),
-        w x • (-real.logb 2 (p X (X x)) + -real.logb 2 (p Y (Y x))) =
-      ∑ x in univ.filter (λ c', (X c', Y c') = (X c, Y c)),
-        w x • (-real.logb 2 (p X (X c)) + -real.logb 2 (p Y (Y c))),
-    { refine sum_congr rfl _,
-      simp {contextual := tt} },
-    rw [this],
-    simp only [smul_eq_mul, ←sum_mul],
-    rw [←neg_add, real.logb_mul p_pos_of_exists.ne' p_pos_of_exists.ne', neg_mul, mul_neg],
-    simp only [p, prob, set.mem_singleton_iff] },
-  rw [this],
-  have : ∀ (i : α × β), 0 ≤ p X i.1 * p Y i.2,
+    rw @sum_congr _ _ _ _ _
+      (λ x, -w x • real.logb 2
+        (p (X ×ᶠ Z) (X c, Z c) * p (Y ×ᶠ Z) (Y c, Z c) / p Z (Z c))) _ rfl,
+    { simp only [smul_eq_mul, ←sum_mul, p, prob, set.mem_singleton_iff, sum_neg_distrib] },
+    intros x hx,
+    simp only [prod.mk.inj_iff, mem_filter, mem_univ, true_and] at hx,
+    simp only [neg_neg, smul_eq_mul, mul_neg, hx.1, hx.2.1, hx.2.2],
+    rw [real.logb_div (mul_ne_zero p_pos.ne' p_pos.ne') p_pos.ne',
+      real.logb_mul p_pos.ne' p_pos.ne'],
+    ring },
+  rw [expect, this],
+  refine gibbs one_lt_two _ _ _ _ _ _,
   { intro i,
-    exact mul_nonneg (p_nonneg _ _) (p_nonneg _ _), },
-  convert gibbs one_lt_two _ _ this _ _ _,
-  { have h' : univ.image (λ ω, (X ω, Y ω)) ⊆ univ.image X ×ˢ univ.image Y,
+    positivity },
+  { have h' : univ.image (X ×ᶠ Y ×ᶠ Z) ⊆ univ.image X ×ˢ (univ.image (Y ×ᶠ Z)),
     { simp only [finset.subset_iff, mem_image, mem_univ, exists_true_left, mem_product,
         forall_exists_index, prod.forall, prod.mk.inj_iff, and_imp],
       rintro _ _ x rfl rfl,
-      simp },
-    convert (sum_le_sum_of_subset_of_nonneg h' _).trans _,
-    { intros,
-      apply this },
-    refine (@sum_product' _ _ _ _ _ _ (λ a b, p X a * p Y b)).trans_le _,
-    simp only [←mul_sum, ←sum_mul],
-    rw [p_whole_space', one_mul, p_whole_space'] },
-  { rintro ⟨i, j⟩,
-    simp only [mul_eq_zero, p_eq_zero_iff, or_imp_distrib],
+      exact ⟨⟨_, rfl⟩, _, rfl⟩, },
+    refine (sum_le_sum_of_subset_of_nonneg h' _).trans_eq _,
+    { intros i _ _,
+      positivity },
+    rw [sum_product, sum_comm],
+    simp only [mul_div_assoc, ←sum_mul, p_cond],
+    rw ←p_whole_space' (Y ×ᶠ Z),
+    refine sum_congr rfl _,
+    simp only [mem_image, mem_univ, exists_true_left, forall_exists_index, prod.forall,
+      prod.mk.inj_iff, and_imp],
+    rintro _ _ ω rfl rfl,
+    rw mul_div_cancel',
+    apply p_pos.ne' },
+  { rintro ⟨i, j, k⟩,
+    simp only [div_eq_zero_iff, mul_eq_zero, p_eq_zero_iff, or_imp_distrib],
     simp {contextual := tt} },
   { simp [p_eq_zero_iff] },
+end
+
+lemma indep_const (h : ∀ i j, Y i = Y j) : indep X Y :=
+begin
+  inhabit Ω,
+  intros x y,
+  simp only [p, prob, set.mem_singleton_iff, prod.mk.inj_iff],
+  have : ∀ ω, Y ω = Y (arbitrary Ω),
+  { exact λ ω, h ω _ },
+  rcases eq_or_ne (Y (arbitrary Ω)) y with rfl | hy,
+  { simp [this, whole_space] },
+  simp only [this],
+  simp [hy],
+end
+
+lemma cond_entropy_right_const (h : ∀ i j, Y i = Y j) :
+  ℍ ω, X ω | Y ω = ℍ ω, X ω :=
+begin
+  rw cond_entropy_indep,
+  rw indep.comm,
+  apply indep_const h,
+end
+
+lemma cond_entropy_right {δ : Type*} [decidable_eq δ] (f : α → δ) :
+  ℍ ω, Y ω | X ω ≤ ℍ ω, Y ω | f (X ω) :=
+begin
+  have : ℍ ω, Y ω | (X ω, f (X ω)) = ℍ ω, Y ω | X ω,
+  { let g : α → α × δ := λ x, (x, f x),
+    have hg : function.injective g,
+    { simp [function.injective, g] {contextual := tt} },
+    rw ←cond_entropy_injective_right hg },
+  rw ←this,
+  apply cond_entropy_extra
+end
+
+lemma cond_entropy_le : ℍ i, X i | Y i ≤ ℍ i, X i :=
+begin
+  refine (cond_entropy_right (λ i, unit.star)).trans_eq _,
+  rw cond_entropy_right_const,
+  simp
 end
 
 def uniform_on (X : Ω → α) (s : finset α) : Prop := ∀ i ∈ s, p X i = s.card⁻¹

@@ -185,19 +185,17 @@ meta def eval_guessing (n : ℕ) : expr → tactic ℕ
 | `(max %%a %%b) := max <$> eval_guessing a <*> eval_guessing b
 | e              := eval_expr' ℕ e <|> pure n
 
-/--  These are the cases in which an easy lemma computes the degree. -/
-meta def single_term_suggestions : tactic unit := do
-success_if_fail (interactive.exact ``(polynomial.nat_degree_X_pow _)) <|>
-  fail "Try this: exact polynomial.nat_degree_X_pow _",
-success_if_fail (interactive.exact ``(polynomial.nat_degree_C _)) <|>
-  fail "Try this: exact polynomial.nat_degree_C _",
-success_if_fail (interactive.exact ``(polynomial.nat_degree_X)) <|>
-  fail "Try this: exact polynomial.nat_degree_X",
-success_if_fail (interactive.exact ``(polynomial.nat_degree_C_mul_X_pow _ _ ‹_›)) <|>
-  fail "Try this: exact polynomial.nat_degree_C_mul_X_pow _ _ ‹_›",
-success_if_fail (interactive.exact ``(polynomial.nat_degree_C_mul_X _ ‹_›)) <|>
-  fail "Try this: exact polynomial.nat_degree_C_mul_X _ ‹_›",
-skip
+/--  These are the cases in which an available lemma computes the degree. -/
+meta def single_term_suggestions : tactic (expr × (expr ff)) := do
+t ← target,
+[ ``(polynomial.nat_degree_X_pow _),
+  ``(polynomial.nat_degree_C _),
+  ``(polynomial.nat_degree_X),
+  ``(polynomial.nat_degree_C_mul_X_pow _ _ ‹_›),
+  ``(polynomial.nat_degree_C_mul_X _ ‹_›) ].mfirst
+  (λ st, do
+    na ← to_expr st tt ff,
+    infer_type na >>= unify t >> return (replace_mvars na, st))
 
 /--
 `get_lead_coeff c e` assumes that `c` is an `instance_cache` of a `(semi_)ring R` and that `e`
@@ -433,8 +431,6 @@ do
   assert nn co_eq_co,
   resolve_coeff
 
-end parsing
-
 /--  `compute_degree` tries to close goals of the form `f.(nat_)degree = d`.  It converts the
 goal to showing that
 * the degree is at most `d`, calling `compute_degree_le` to solve this case;
@@ -442,14 +438,23 @@ goal to showing that
 Unless the polynomial is particularly complicated, `compute_degree` with either succeed of leave
 a simpler goal to prove.
  -/
-meta def compute_degree : tactic unit := focus $ do
+meta def compute_degree (single : parse (tk "!" )?) : tactic unit := focus $ do
 t ← target >>= (λ f, whnf f reducible),
 match t with
   -- the `degree` match implicitly assumes that the `nat_degree` is strictly positive
 | `(    degree %%_ = %%_) := refine ``((degree_eq_iff_nat_degree_eq_of_pos _).mpr _) >> rotate
-| `(nat_degree %%_ = %%_) := single_term_suggestions
+| `(nat_degree %%_ = %%_) := do
+  wks ← try_core single_term_suggestions,
+  match wks with
+  | some wor := do
+    if single.is_some then refine wor.2 else (do
+    pwks ← pp wor.1,
+    fail!"Try this: exact {pwks}")
+  | none := skip
+  end
 | _ := fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`"
 end,
+done <|> (do
 `(nat_degree %%pol = %%degv) ← target |
   fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
 deg ← guess_degree' pol,
@@ -458,7 +463,9 @@ guard (deg = degvn) <|>
 ( do ppe ← pp deg, ppg ← pp degvn,
   fail sformat!("'{ppe}' is the expected degree\n'{ppg}' is the given degree\n") ),
 refine ``(le_antisymm _ (le_nat_degree_of_ne_zero _)),
-focus' [compute_degree_le, simp_coeff]
+focus' [compute_degree_le, simp_coeff])
+
+end parsing
 
 /--  `prove_monic` tries to close goals of the form `monic f`.  It converts the
 goal to showing that

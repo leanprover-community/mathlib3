@@ -33,7 +33,7 @@ jobs:
         with:
           script: |
             prs = await exec.getExecOutput("bash",
-              ['-c', "git diff HEAD -U0 | grep -o -e 'https://github.com/leanprover-community/mathlib4/pull/[0-9]\\+'"]);
+              ['-c', "git diff HEAD -U0 | grep -o -e 'https://github.com/leanprover-community/mathlib4/pull/[0-9]\\+' | sort -u"]);
             pr_bullets = prs.stdout.trim().split('\n').map(x => "* " + x).join('\n'); 
             console.log(pr_bullets);
             core.setOutput("PR_LIST", pr_bullets); 

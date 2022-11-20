@@ -350,7 +350,7 @@ begin
   cases h' : f h,
   simp only [h', h, true_and, iff_self, exists_prop_of_true, eq_iff_iff],
   apply function.hfunext,
-  { simp only [h,h',exists_prop_of_true] },
+  { simp only [h, h', exists_prop_of_true] },
   { cc }
 end
 

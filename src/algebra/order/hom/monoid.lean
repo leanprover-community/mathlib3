@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import algebra.hom.group
-import algebra.order.with_zero
 import order.hom.basic
+import algebra.order.group.instances
 
 /-!
 # Ordered monoid and group homomorphisms

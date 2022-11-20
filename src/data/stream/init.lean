@@ -5,6 +5,7 @@ Authors: Leonardo de Moura
 -/
 import data.stream.defs
 import tactic.ext
+import logic.function.basic
 
 /-!
 # Streams a.k.a. infinite lists a.k.a. infinite sequences

@@ -2514,7 +2514,9 @@ by rw [← preimage_comp, h.comp_eq_id, preimage_id]
 end function
 open function
 
-lemma option.injective_iff {α β} {f : option α → β} :
+namespace option
+
+lemma injective_iff {α β} {f : option α → β} :
   injective f ↔ injective (f ∘ some) ∧ f none ∉ range (f ∘ some) :=
 begin
   simp only [mem_range, not_exists, (∘)],
@@ -2522,6 +2524,19 @@ begin
   rintro ⟨h_some, h_none⟩ (_|a) (_|b) hab,
   exacts [rfl, (h_none _ hab.symm).elim, (h_none _ hab).elim, congr_arg some (h_some hab)]
 end
+
+lemma range_eq {α β} (f : option α → β) : range f = insert (f none) (range (f ∘ some)) :=
+set.ext $ λ y, option.exists.trans $ eq_comm.or iff.rfl
+
+end option
+
+lemma with_bot.range_eq {α β} (f : with_bot α → β) :
+  range f = insert (f ⊥) (range (f ∘ coe : α → β)) :=
+option.range_eq f
+
+lemma with_top.range_eq {α β} (f : with_top α → β) :
+  range f = insert (f ⊤) (range (f ∘ coe : α → β)) :=
+option.range_eq f
 
 /-! ### Image and preimage on subtypes -/
 

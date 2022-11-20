@@ -1112,10 +1112,10 @@ end actions
 
 
 /-- Submonoid of positive elements of an ordered semiring. -/
-def pos_submonoid (R : Type*) [strict_ordered_semiring R] [nontrivial R] : submonoid R :=
+def pos_submonoid (R : Type*) [strict_ordered_semiring R] : submonoid R :=
 { carrier := {x | 0 < x},
   one_mem' := show (0 : R) < 1, from zero_lt_one,
   mul_mem' := λ x y (hx : 0 < x) (hy : 0 < y), mul_pos hx hy }
 
-@[simp] lemma mem_pos_monoid {R : Type*} [strict_ordered_semiring R] [nontrivial R] (u : Rˣ) :
+@[simp] lemma mem_pos_monoid {R : Type*} [strict_ordered_semiring R] (u : Rˣ) :
   ↑u ∈ pos_submonoid R ↔ (0 : R) < u := iff.rfl

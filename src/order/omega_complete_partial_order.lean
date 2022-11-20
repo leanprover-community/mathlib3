@@ -6,7 +6,7 @@ Authors: Simon Hudon
 import control.monad.basic
 import data.part
 import order.hom.order
-import tactic.monotonicity
+import data.nat.order.basic
 import tactic.wlog
 
 /-!

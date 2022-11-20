@@ -3,7 +3,11 @@ Copyright (c) 2022 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import data.fintype.basic
+import data.fintype.powerset
+import data.fintype.prod
+import data.fintype.sigma
+import data.fintype.sum
+import data.fintype.vector
 
 /-!
 # Finite types

@@ -45,6 +45,12 @@ def bipartite_above : finset β := t.filter (r a)
 lemma bipartite_below_swap : t.bipartite_below (swap r) a = t.bipartite_above r a := rfl
 lemma bipartite_above_swap : s.bipartite_above (swap r) b = s.bipartite_below r b := rfl
 
+@[simp, norm_cast] lemma coe_bipartite_below : (s.bipartite_below r b : set α) = {a ∈ s | r a b} :=
+coe_filter _ _
+
+@[simp, norm_cast] lemma coe_bipartite_above : (t.bipartite_above r a : set β) = {b ∈ t | r a b} :=
+coe_filter _ _
+
 variables {s t a a' b b'}
 
 @[simp] lemma mem_bipartite_below {a : α} : a ∈ s.bipartite_below r b ↔ a ∈ s ∧ r a b := mem_filter
@@ -78,6 +84,18 @@ lemma card_mul_eq_card_mul [Π a b, decidable (r a b)]
   s.card * m = t.card * n :=
 (card_mul_le_card_mul _ (λ a ha, (hm a ha).ge) $ λ b hb, (hn b hb).le).antisymm $
   card_mul_le_card_mul' _ (λ a ha, (hn a ha).ge) $ λ b hb, (hm b hb).le
+
+lemma card_le_card_of_forall_subsingleton [Π a b, decidable (r a b)]
+  (hs : ∀ a ∈ s, ∃ b, b ∈ t ∧ r a b) (ht : ∀ b ∈ t, ({a ∈ s | r a b} : set α).subsingleton) :
+  s.card ≤ t.card :=
+by simpa using card_mul_le_card_mul _ (λ a h, card_pos.2 $
+  (by { rw [←coe_nonempty, coe_bipartite_above], exact hs _ h } : (t.bipartite_above r a).nonempty))
+  (λ b h, card_le_one.2 $ by { simp_rw mem_bipartite_below, exact ht _ h })
+
+lemma card_le_card_of_forall_subsingleton' [Π a b, decidable (r a b)]
+  (ht : ∀ b ∈ t, ∃ a, a ∈ s ∧ r a b) (hs : ∀ a ∈ s, ({b ∈ t | r a b} : set β).subsingleton) :
+  t.card ≤ s.card :=
+card_le_card_of_forall_subsingleton (swap r) ht hs
 
 end bipartite
 end finset

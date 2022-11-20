@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Kexing Ying
 -/
 import probability.notation
-import probability.process.hitting_time
+import probability.process.stopping
 
 /-!
 # Martingales
@@ -517,7 +517,7 @@ begin
 end
 
 /-- A predictable martingale is a.e. equal to its initial state. -/
-lemma martingale.eq_zero_of_predicatable [sigma_finite_filtration μ 𝒢]
+lemma martingale.eq_zero_of_predictable [sigma_finite_filtration μ 𝒢]
   {f : ℕ → Ω → E} (hfmgle : martingale f 𝒢 μ) (hfadp : adapted 𝒢 (λ n, f (n + 1))) (n : ℕ) :
   f n =ᵐ[μ] f 0 :=
 begin

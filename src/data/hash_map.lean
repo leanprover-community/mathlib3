@@ -6,7 +6,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 import data.array.lemmas
 import data.list.join
 import data.list.range
-import data.pnat.basic
+import data.pnat.defs
 
 /-!
 # Hash maps
@@ -262,7 +262,7 @@ section
     { by_cases bidx = i,
       { subst i, rw [bkts', array.read_write, hfl],
         have := @valid.idx _ _ _ v bidx a,
-        simp only [hl, list.mem_append, or_imp_distrib, forall_and_distrib] at this ⊢,
+        simp only [hl, list.mem_append, or_imp_distrib] at this ⊢,
         exact ⟨⟨this.1.1, hal _⟩, this.2⟩ },
       { rw [bkts', array.read_write_of_ne _ _ h], apply v.idx } },
     { by_cases bidx = i,

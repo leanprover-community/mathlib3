@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Neil Strickland
 -/
 
-import algebra.group_with_zero.power
 import algebra.big_operators.order
 import algebra.big_operators.ring
 import algebra.big_operators.intervals
@@ -409,7 +408,7 @@ section order
 
 variables {n : ℕ} {x : α}
 
-lemma geom_sum_pos [strict_ordered_semiring α] [nontrivial α] (hx : 0 ≤ x) (hn : n ≠ 0) :
+lemma geom_sum_pos [strict_ordered_semiring α] (hx : 0 ≤ x) (hn : n ≠ 0) :
   0 < ∑ i in range n, x ^ i :=
 sum_pos' (λ k hk, pow_nonneg hx _) ⟨0, mem_range.2 hn.bot_lt, by simp⟩
 

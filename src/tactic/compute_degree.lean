@@ -330,8 +330,8 @@ In some sense, this views `coeff _ <visible_top_degree>` as a "monad" converting
 -/
 meta def resolve_coeff : tactic unit :=
 focus1 $ do
-  t ← target >>= instantiate_mvars,
-  `(coeff %%f %%n = _) ← pure t | fail!"{t} is not of the form\n`f.coeff n = x`",
+  tg ← target >>= instantiate_mvars,
+  `(coeff %%f %%n = _) ← pure tg | fail!"{tg} is not of the form\n`f.coeff n = x`",
   match f with
   | `(@has_one.one %%RX %%_)            := refine ``(coeff_one_zero)
   | (app `(⇑C) _)                       := refine ``(coeff_C_zero)
@@ -401,8 +401,8 @@ do
   c ← mk_instance_cache R,
   (c, lc) ← get_lead_coeff c f,
   ide ← match na with
-    | []  := pure `c_c
-    | [a] := pure a
+    | []      := pure `c_c
+    | [a]     := pure a
     | (a::as) := do pa ← pp a,
       match de with
       | some pfp := fail format!"Try this: reduce_coeff {pfp} with {pa}"
@@ -446,7 +446,7 @@ do t ← target >>= instantiate_mvars,
   interactive.swap,
   if t_is_eq then refine ``(eq.trans %%c_c _) else refine ``(ne_of_eq_of_ne %%c_c _),
   try $ tactic.clear c_c,
-  interactive.swap,
+  refine ``(one_ne_zero) <|> interactive.swap,
   resolve_coeff
 
 /--
@@ -476,9 +476,8 @@ focus $ do
   t ← target >>= (λ f, whnf f reducible),
   match t with
   -- the `degree` match implicitly assumes that the `nat_degree` is strictly positive
-  | `(    degree %%_ = %%n) := do
-    refine ``((degree_eq_iff_nat_degree_eq_of_pos (by norm_num : 0 < _)).mpr _),
-    rotate
+  | `(    degree %%_ = %%n) :=
+    refine ``((degree_eq_iff_nat_degree_eq_of_pos (by norm_num : 0 < _)).mpr _)
   | `(nat_degree %%_ = %%_) := do
     wks ← try_core single_term_suggestions,
     match wks with
@@ -487,17 +486,16 @@ focus $ do
     | none := skip
     end
   | _ := fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`"
-  end,
-  done <|> (do
-    `(nat_degree %%pol = %%degv) ← target |
+  end;
+  do `(nat_degree %%pol = %%degv) ← target |
       fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
-    deg ← guess_degree' pol,
-    degvn ← eval_expr' ℕ degv,
-    guard (deg = degvn) <|> ( do
-      ppe ← pp deg, ppg ← pp degvn,
+  deg ← guess_degree' pol,
+  degvn ← eval_expr' ℕ degv,
+  guard (deg = degvn) <|>
+    ( do ppe ← pp deg, ppg ← pp degvn,
       fail sformat!("'{ppe}' is the expected degree\n'{ppg}' is the given degree\n") ),
-    refine ``(le_antisymm _ (le_nat_degree_of_ne_zero _)),
-    focus' [compute_degree_le, simp_coeff []])
+  refine ``(le_antisymm _ (le_nat_degree_of_ne_zero _)),
+  focus' [compute_degree_le, simp_coeff []]
 
 end parsing
 

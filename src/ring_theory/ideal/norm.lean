@@ -409,4 +409,22 @@ lemma abs_norm_span_insert (r : S) (s : set S) :
     (abs_norm_dvd_abs_norm_of_le (span_mono (set.singleton_subset_iff.mpr (set.mem_insert _ _))))
     (by rw abs_norm_span_singleton)⟩
 
+lemma irreducible_of_irreducible_abs_norm {I : ideal S} (hI : irreducible I.abs_norm) :
+  irreducible I :=
+irreducible_iff.mpr
+  ⟨λ h, hI.not_unit (by simpa only [ideal.is_unit_iff, nat.is_unit_iff, abs_norm_eq_one_iff]
+      using h),
+   by rintro a b rfl; simpa only [ideal.is_unit_iff, nat.is_unit_iff, abs_norm_eq_one_iff]
+      using hI.is_unit_or_is_unit (_root_.map_mul abs_norm a b)⟩
+
+lemma is_prime_of_irreducible_abs_norm {I : ideal S} (hI : irreducible I.abs_norm) :
+  I.is_prime :=
+is_prime_of_prime (unique_factorization_monoid.irreducible_iff_prime.mp
+  (irreducible_of_irreducible_abs_norm hI))
+
+lemma prime_of_irreducible_abs_norm_span {a : S} (ha : a ≠ 0)
+  (hI : irreducible (ideal.span ({a} : set S)).abs_norm) :
+  prime a :=
+(ideal.span_singleton_prime ha).mp (is_prime_of_irreducible_abs_norm hI)
+
 end ideal

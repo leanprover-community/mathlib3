@@ -396,7 +396,7 @@ variables {𝕜 B F} {ι : Type*} (Z : vector_bundle_core 𝕜 B F ι)
 include Z
 
 /-- Natural identification to a `fiber_bundle_core`. -/
-def to_fiber_bundle_core : fiber_bundle_core ι B F :=
+@[simps (mfld_cfg)] def to_fiber_bundle_core : fiber_bundle_core ι B F :=
 { coord_change := λ i j b, Z.coord_change i j b,
   continuous_on_coord_change := λ i j, is_bounded_bilinear_map_apply.continuous.comp_continuous_on
       ((Z.continuous_on_coord_change i j).prod_map continuous_on_id),

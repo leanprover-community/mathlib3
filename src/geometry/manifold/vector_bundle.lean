@@ -469,11 +469,17 @@ variable (M)
 instance : topological_space TM :=
 (tangent_bundle_core I M).to_fiber_bundle_core.to_topological_space
 
-@[simp, mfld_simps] instance : fiber_bundle E (tangent_space I : M → Type*) :=
+instance : fiber_bundle E (tangent_space I : M → Type*) :=
 (tangent_bundle_core I M).to_fiber_bundle_core.fiber_bundle
 
 instance : vector_bundle 𝕜 E (tangent_space I : M → Type*) :=
 (tangent_bundle_core I M).vector_bundle
+
+lemma tangent_space_chart_at (p : tangent_bundle I M) :
+  (chart_at (model_prod H E) p).to_local_equiv =
+    (tangent_bundle_core I M).to_fiber_bundle_core.local_triv_as_local_equiv (achart H p.1) ≫
+    (chart_at H p.1).to_local_equiv.prod (local_equiv.refl E) :=
+rfl
 
 instance tangent_bundle_core.is_smooth : (tangent_bundle_core I M).is_smooth I :=
 begin
@@ -509,44 +515,29 @@ between a product type and a sigma type, a.k.a. `equiv.sigma_equiv_prod`. -/
 @[simp, mfld_simps] lemma tangent_bundle_model_space_chart_at (p : tangent_bundle I H) :
   (chart_at (model_prod H E) p).to_local_equiv = (equiv.sigma_equiv_prod H E).to_local_equiv :=
 begin
-  have A : ∀ x_fst, fderiv_within 𝕜 (I ∘ I.symm) (range I) (I x_fst) = continuous_linear_map.id 𝕜 E,
-  { assume x_fst,
-    have : fderiv_within 𝕜 (I ∘ I.symm) (range I) (I x_fst)
-         = fderiv_within 𝕜 id (range I) (I x_fst),
-    { refine fderiv_within_congr I.unique_diff_at_image (λ y, I.right_inv)
-        (congr_arg I $ I.left_inv x_fst) },
-    rwa fderiv_within_id I.unique_diff_at_image at this },
   ext x : 1,
-  show (chart_at (H × E) p : tangent_bundle I H → model_prod H E) x =
-    (equiv.sigma_equiv_prod H E) x,
-  { cases x,
-    simp only [model_prod, tangent_bundle_core, A, prod.mk.inj_iff, continuous_linear_map.coe_id']
-      with mfld_simps,
-    have := (tangent_bundle_core I H).coord_change_self (achart _ x_fst) x_fst
-      (mem_achart_source H x_fst) x_snd,
-    -- ext,
-    -- refine (tangent_bundle_core I H).coord_change_self _ _ trivial x_snd,
-    sorry
-      },
-  show ∀ x, ((chart_at (model_prod H E) p).to_local_equiv).symm x =
-    (equiv.sigma_equiv_prod H E).symm x,
-  { rintros ⟨x_fst, x_snd⟩,
-    simp only [tangent_bundle_core, A, continuous_linear_map.coe_id',
-      chart_at, continuous_linear_map.coe_coe, sigma.mk.inj_iff] with mfld_simps,
-    sorry },
-  show ((chart_at (model_prod H E) p).to_local_equiv).source = univ,
-  sorry
-    -- by simp only [chart_at] with mfld_simps,
+  { ext, { refl },
+    exact (tangent_bundle_core I H).coord_change_self (achart _ x.1) x.1
+      (mem_achart_source H x.1) x.2 },
+  { intros x, ext, { refl }, apply heq_of_eq,
+    exact (tangent_bundle_core I H).coord_change_self (achart _ x.1) x.1
+      (mem_achart_source H x.1) x.2 },
+  simp_rw [tangent_space_chart_at],
+  simp only [-fiber_bundle_core.local_triv_as_local_equiv_source] with mfld_simps,
+  simp_rw [fiber_bundle_core.local_triv_as_local_equiv,
+    vector_bundle_core.to_fiber_bundle_core_base_set, tangent_bundle_core_base_set],
+  simp only with mfld_simps,
 end
 
 @[simp, mfld_simps] lemma tangent_bundle_model_space_coe_chart_at (p : tangent_bundle I H) :
   ⇑(chart_at (model_prod H E) p) = equiv.sigma_equiv_prod H E :=
-by { unfold_coes, simp only with mfld_simps }
+by { unfold_coes, simp_rw [tangent_bundle_model_space_chart_at], refl }
 
 @[simp, mfld_simps] lemma tangent_bundle_model_space_coe_chart_at_symm (p : tangent_bundle I H) :
   ((chart_at (model_prod H E) p).symm : model_prod H E → tangent_bundle I H) =
   (equiv.sigma_equiv_prod H E).symm :=
-by { unfold_coes, simp only with mfld_simps }
+by { unfold_coes,
+  simp_rw [local_homeomorph.symm_to_local_equiv, tangent_bundle_model_space_chart_at], refl }
 
 variable (H)
 /-- The canonical identification between the tangent bundle to the model space and the product,
@@ -558,7 +549,7 @@ def tangent_bundle_model_space_homeomorph : tangent_bundle I H ≃ₜ model_prod
     have : continuous (chart_at (model_prod H E) p),
     { rw continuous_iff_continuous_on_univ,
       convert local_homeomorph.continuous_on _,
-      simp only with mfld_simps },
+      simp only [tangent_space.fiber_bundle] with mfld_simps },
     simpa only with mfld_simps using this,
   end,
   continuous_inv_fun :=

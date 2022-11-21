@@ -337,7 +337,7 @@ lemma unique_mdiff_within_at_iff {s : set M} {x : M} :
   ((ext_chart_at I x) x) :=
 begin
   apply unique_diff_within_at_congr,
-  rw [nhds_within_inter, nhds_within_inter, nhds_within_ext_chart_target_eq]
+  rw [nhds_within_inter, nhds_within_inter, nhds_within_ext_chart_at_target_eq]
 end
 
 lemma unique_mdiff_within_at.mono (h : unique_mdiff_within_at I s x) (st : s ⊆ t) :
@@ -408,7 +408,7 @@ lemma mdifferentiable_within_at_iff {f : M → M'} {s : set M} {x : M} :
 begin
   refine and_congr iff.rfl (exists_congr $ λ f', _),
   rw [inter_comm],
-  simp only [has_fderiv_within_at, nhds_within_inter, nhds_within_ext_chart_target_eq]
+  simp only [has_fderiv_within_at, nhds_within_inter, nhds_within_ext_chart_at_target_eq]
 end
 
 include Is I's
@@ -1609,7 +1609,7 @@ begin
   { have : unique_mdiff_within_at I s z := hs _ hx.2,
     have S : e.source ∩ e ⁻¹' ((ext_chart_at I' x).source) ∈ 𝓝 z,
     { apply is_open.mem_nhds,
-      apply e.continuous_on.preimage_open_of_open e.open_source (ext_chart_at_open_source I' x),
+      apply e.continuous_on.preimage_open_of_open e.open_source (is_open_ext_chart_at_source I' x),
       simp only [z_source, zx] with mfld_simps },
     have := this.inter S,
     rw [unique_mdiff_within_at_iff] at this,

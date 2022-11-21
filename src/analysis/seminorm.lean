@@ -771,12 +771,12 @@ begin
     exact (mul_lt_mul_left hk).mpr hy },
   refine ⟨k⁻¹ • x, _, _⟩,
   { rwa [seminorm.mem_ball_zero, map_smul_eq_mul, norm_inv, ←(mul_lt_mul_left hk),
-      ←mul_assoc, ←(div_eq_mul_inv ∥k∥ ∥k∥), div_self (ne_of_gt hk), one_mul] },
+      ←mul_assoc, ←(div_eq_mul_inv ‖k‖ ‖k‖), div_self (ne_of_gt hk), one_mul] },
   rw [←smul_assoc, smul_eq_mul, ←div_eq_mul_inv, div_self (norm_pos_iff.mp hk), one_smul],
 end
 
-lemma smul_closed_ball_zero {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} (hk : 0 < ∥k∥) :
-  k • p.closed_ball 0 r = p.closed_ball 0 (∥k∥ * r) :=
+lemma smul_closed_ball_zero {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} (hk : 0 < ‖k‖) :
+  k • p.closed_ball 0 r = p.closed_ball 0 (‖k‖ * r) :=
 begin
   ext,
   rw [set.mem_smul_set, seminorm.mem_closed_ball_zero],
@@ -787,7 +787,7 @@ begin
     exact (mul_le_mul_left hk).mpr hy },
   refine ⟨k⁻¹ • x, _, _⟩,
   { rwa [seminorm.mem_closed_ball_zero, map_smul_eq_mul, norm_inv, ←(mul_le_mul_left hk),
-      ←mul_assoc, ←(div_eq_mul_inv ∥k∥ ∥k∥), div_self (ne_of_gt hk), one_mul] },
+      ←mul_assoc, ←(div_eq_mul_inv ‖k‖ ‖k‖), div_self (ne_of_gt hk), one_mul] },
   rw [←smul_assoc, smul_eq_mul, ←div_eq_mul_inv, div_self (norm_pos_iff.mp hk), one_smul],
 end
 

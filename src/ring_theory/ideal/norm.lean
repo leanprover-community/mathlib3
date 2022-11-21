@@ -259,8 +259,9 @@ by rw [← ideal.one_eq_top, _root_.map_one]
 @[simp] lemma abs_norm_eq_one_iff {I : ideal S} : abs_norm I = 1 ↔ I = ⊤ :=
 by rw [abs_norm_apply, card_quot_eq_one_iff]
 
-/-- Let `e : S ≃ I` be an additive homomorphism (therefore a `ℤ`-linear equiv).
-Then an alternative way to compute the norm of `I` is given by taking the determinant of `e`. -/
+/-- Let `e : S ≃ I` be an additive isomorphism (therefore a `ℤ`-linear equiv).
+Then an alternative way to compute the norm of `I` is given by taking the determinant of `e`.
+See `nat_abs_det_basis_change` for a more familiar formulation of this result. -/
 theorem nat_abs_det_equiv (I : ideal S) {E : Type*} [add_equiv_class E S I] (e : E) :
   int.nat_abs (linear_map.det
       ((submodule.subtype I).restrict_scalars ℤ ∘ₗ add_monoid_hom.to_int_linear_map (e : S →+ I))) =

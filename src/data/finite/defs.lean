@@ -84,7 +84,7 @@ class infinite (α : Sort*) : Prop :=
 not_finite_iff_infinite.not_right.symm
 
 lemma equiv.infinite_iff (e : α ≃ β) : infinite α ↔ infinite β :=
-not_finite_iff_infinite.symm.trans $ (not_congr e.finite_iff).trans not_finite_iff_infinite
+not_finite_iff_infinite.symm.trans $ e.finite_iff.not.trans not_finite_iff_infinite
 
 instance [infinite α] : infinite (plift α) := equiv.plift.infinite_iff.2 ‹_›
 instance {α : Type v} [infinite α] : infinite (ulift.{u} α) := equiv.ulift.infinite_iff.2 ‹_›

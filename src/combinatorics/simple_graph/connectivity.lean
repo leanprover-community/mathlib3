@@ -1548,7 +1548,8 @@ begin
     split,
     { intros u v,
       cases fintype.card_eq_one_iff.1 h with C hC,
-      have t:=eq.trans (hC (G.connected_component_mk u)) (eq.symm (hC (G.connected_component_mk v))),
+      have t:=eq.trans (hC (G.connected_component_mk u))
+        (eq.symm (hC (G.connected_component_mk v))),
       exact connected_component.exact (eq.trans (hC (G.connected_component_mk u))
         (eq.symm (hC (G.connected_component_mk v))))},
   { have h:G.num_connected_components >0, linarith,

@@ -5,7 +5,9 @@ Authors: Jeremy Avigad, Robert Y. Lewis
 -/
 import algebra.invertible
 import algebra.group_power.ring
-import data.int.cast
+import algebra.order.monoid.with_top
+import data.nat.pow
+import data.int.cast.lemmas
 
 /-!
 # Lemmas about power operations on monoids and groups
@@ -45,41 +47,39 @@ lemma inv_of_pow (m : M) [invertible m] (n : ℕ) [invertible (m ^ n)] :
   ⅟(m ^ n) = ⅟m ^ n :=
 @invertible_unique M _ (m ^ n) (m ^ n) _ (invertible_pow m n) rfl
 
-lemma is_unit.pow {m : M} (n : ℕ) : is_unit m → is_unit (m ^ n) :=
-λ ⟨u, hu⟩, ⟨u ^ n, by simp *⟩
+@[to_additive] lemma is_unit.pow {m : M} (n : ℕ) : is_unit m → is_unit (m ^ n) :=
+λ ⟨u, hu⟩, ⟨u ^ n, hu ▸ u.coe_pow _⟩
 
-@[simp] lemma is_unit_pow_succ_iff {m : M} {n : ℕ} :
-  is_unit (m ^ (n + 1)) ↔ is_unit m :=
-begin
-  refine ⟨_, λ h, h.pow _⟩,
-  rw [pow_succ, ((commute.refl _).pow_right _).is_unit_mul_iff],
-  exact and.left
-end
+/-- If a natural power of `x` is a unit, then `x` is a unit. -/
+@[to_additive "If a natural multiple of `x` is an additive unit, then `x` is an additive unit."]
+def units.of_pow (u : Mˣ) (x : M) {n : ℕ} (hn : n ≠ 0) (hu : x ^ n = u) : Mˣ :=
+u.left_of_mul x (x ^ (n - 1))
+  (by rwa [← pow_succ, nat.sub_add_cancel (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn)])
+  (commute.self_pow _ _)
 
-lemma is_unit_pos_pow_iff {m : M} :
-  ∀ {n : ℕ} (h : 0 < n), is_unit (m ^ n) ↔ is_unit m
-| (n + 1) _ := is_unit_pow_succ_iff
+@[simp, to_additive] lemma is_unit_pow_iff {a : M} {n : ℕ} (hn : n ≠ 0) :
+  is_unit (a ^ n) ↔ is_unit a :=
+⟨λ ⟨u, hu⟩, (u.of_pow a hn hu.symm).is_unit, λ h, h.pow n⟩
 
-/-- If `x ^ n.succ = 1` then `x` has an inverse, `x^n`. -/
-def invertible_of_pow_succ_eq_one (x : M) (n : ℕ) (hx : x ^ n.succ = 1) :
-  invertible x :=
-⟨x ^ n, (pow_succ' x n).symm.trans hx, (pow_succ x n).symm.trans hx⟩
+@[to_additive] lemma is_unit_pow_succ_iff {m : M} {n : ℕ} : is_unit (m ^ (n + 1)) ↔ is_unit m :=
+is_unit_pow_iff n.succ_ne_zero
+
+/-- If `x ^ n = 1`, `n ≠ 0`, then `x` is a unit. -/
+@[to_additive "If `n • x = 0`, `n ≠ 0`, then `x` is an additive unit.", simps]
+def units.of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : n ≠ 0) : Mˣ := units.of_pow 1 x hn hx
+
+@[simp, to_additive] lemma units.pow_of_pow_eq_one {x : M} {n : ℕ} (hx : x ^ n = 1) (hn : n ≠ 0) :
+  units.of_pow_eq_one x n hx hn ^ n = 1 :=
+units.ext $ by rwa [units.coe_pow, units.coe_of_pow_eq_one, units.coe_one]
+
+@[to_additive] lemma is_unit_of_pow_eq_one {x : M} {n : ℕ} (hx : x ^ n = 1) (hn : n ≠ 0) :
+  is_unit x :=
+(units.of_pow_eq_one x n hx hn).is_unit
 
 /-- If `x ^ n = 1` then `x` has an inverse, `x^(n - 1)`. -/
-def invertible_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :
+def invertible_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : n ≠ 0) :
   invertible x :=
-begin
-  apply invertible_of_pow_succ_eq_one x (n - 1),
-  convert hx,
-  exact tsub_add_cancel_of_le (nat.succ_le_of_lt hn),
-end
-
-lemma is_unit_of_pow_eq_one (x : M) (n : ℕ) (hx : x ^ n = 1) (hn : 0 < n) :
-  is_unit x :=
-begin
-  haveI := invertible_of_pow_eq_one x n hx hn,
-  exact is_unit_of_invertible x
-end
+(units.of_pow_eq_one x n hx hn).invertible
 
 lemma smul_pow [mul_action M N] [is_scalar_tower M N N] [smul_comm_class M N N]
   (k : M) (x : N) (p : ℕ) :
@@ -358,14 +358,14 @@ instance non_unital_non_assoc_semiring.nat_is_scalar_tower [non_unital_non_assoc
   | (n + 1) := by simp_rw [succ_nsmul, ←_match n, smul_eq_mul, add_mul]
   end⟩
 
-@[simp, norm_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
+@[norm_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 begin
   induction m with m ih,
   { rw [pow_zero, pow_zero], exact nat.cast_one },
   { rw [pow_succ', pow_succ', nat.cast_mul, ih] }
 end
 
-@[simp, norm_cast] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ) = n ^ m :=
+@[norm_cast] theorem int.coe_nat_pow (n m : ℕ) : ((n ^ m : ℕ) : ℤ) = n ^ m :=
 by induction m with m ih; [exact int.coe_nat_one, rw [pow_succ', pow_succ', int.coe_nat_mul, ih]]
 
 theorem int.nat_abs_pow (n : ℤ) (k : ℕ) : int.nat_abs (n ^ k) = (int.nat_abs n) ^ k :=
@@ -413,7 +413,7 @@ lemma zsmul_int_int (a b : ℤ) : a • b = a * b := by simp
 
 lemma zsmul_int_one (n : ℤ) : n • 1 = n := by simp
 
-@[simp, norm_cast] theorem int.cast_pow [ring R] (n : ℤ) (m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
+@[norm_cast] theorem int.cast_pow [ring R] (n : ℤ) (m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 begin
   induction m with m ih,
   { rw [pow_zero, pow_zero, int.cast_one] },
@@ -520,11 +520,6 @@ by simpa only [add_sub_cancel'_right] using one_add_mul_le_pow this n
 end linear_ordered_ring
 
 namespace int
-
-alias units_sq ← units_pow_two
-
-lemma units_pow_eq_pow_mod_two (u : ℤˣ) (n : ℕ) : u ^ n = u ^ (n % 2) :=
-by conv {to_lhs, rw ← nat.mod_add_div n 2}; rw [pow_add, pow_mul, units_sq, one_pow, mul_one]
 
 @[simp] lemma nat_abs_sq (x : ℤ) : (x.nat_abs ^ 2 : ℤ) = x ^ 2 :=
 by rw [sq, int.nat_abs_mul_self', sq]

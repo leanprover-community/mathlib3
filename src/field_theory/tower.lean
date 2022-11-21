@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
+import data.nat.prime
 import ring_theory.algebra_tower
 import linear_algebra.matrix.finite_dimensional
 import linear_algebra.matrix.to_lin
@@ -38,7 +39,7 @@ section field
 open cardinal
 
 variables (F : Type u) (K : Type v) (A : Type w)
-variables [field F] [field K] [add_comm_group A]
+variables [field F] [division_ring K] [add_comm_group A]
 variables [algebra F K] [module K A] [module F A] [is_scalar_tower F K A]
 
 /-- Tower law: if `A` is a `K`-vector space and `K` is a field extension of `F` then
@@ -73,7 +74,7 @@ of_fintype_basis $ b.smul c
 
 Note this cannot be an instance as Lean cannot infer `L`.
 -/
-theorem left (L : Type*) [ring L] [nontrivial L]
+theorem left (K L : Type*) [field K] [algebra F K] [ring L] [nontrivial L]
   [algebra F L] [algebra K L] [is_scalar_tower F K L]
   [finite_dimensional F L] : finite_dimensional F K :=
 finite_dimensional.of_injective
@@ -99,6 +100,19 @@ begin
   { rw [finrank_of_infinite_dimensional hA, mul_zero, finrank_of_infinite_dimensional],
     exact mt (@right F K A _ _ _ _ _ _ _) hA }
 end
+
+theorem subalgebra.is_simple_order_of_finrank_prime (A) [ring A] [is_domain A] [algebra F A]
+  (hp : (finrank F A).prime) : is_simple_order (subalgebra F A) :=
+{ to_nontrivial :=
+    ⟨⟨⊥, ⊤, λ he, nat.not_prime_one ((subalgebra.bot_eq_top_iff_finrank_eq_one.1 he).subst hp)⟩⟩,
+  eq_bot_or_eq_top := λ K, begin
+    haveI := finite_dimensional_of_finrank hp.pos,
+    letI := division_ring_of_finite_dimensional F K,
+    refine (hp.eq_one_or_self_of_dvd _ ⟨_, (finrank_mul_finrank F K A).symm⟩).imp _ (λ h, _),
+    { exact subalgebra.eq_bot_of_finrank_one },
+    { exact algebra.to_submodule_eq_top.1 (eq_top_of_finrank_eq $ K.finrank_to_submodule.trans h) },
+  end }
+/- TODO: `intermediate_field` version -/
 
 instance linear_map (F : Type u) (V : Type v) (W : Type w)
   [field F] [add_comm_group V] [module F V] [add_comm_group W] [module F W]
@@ -128,7 +142,7 @@ lemma finrank_linear_map' (F : Type u) (K : Type v) (V : Type w)
   [field F] [field K] [algebra F K] [finite_dimensional F K]
   [add_comm_group V] [module F V] [finite_dimensional F V] :
   finrank K (V →ₗ[F] K) = finrank F V :=
-(nat.mul_right_inj $ show 0 < finrank F K, from finrank_pos).1 $
+mul_right_injective₀ finrank_pos.ne' $
 calc  finrank F K * finrank K (V →ₗ[F] K)
     = finrank F (V →ₗ[F] K) : finrank_mul_finrank _ _ _
 ... = finrank F V * finrank F K : finrank_linear_map F V K

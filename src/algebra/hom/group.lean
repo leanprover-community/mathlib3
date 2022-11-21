@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Kevin Buzzard, Scott Morrison, Johan Commelin, Chris Hughes,
   Johannes Hölzl, Yury Kudryashov
 -/
-import algebra.group.commute
+import algebra.ne_zero
+import algebra.group.basic
 import algebra.group_with_zero.defs
 import data.fun_like.basic
 
@@ -26,6 +27,15 @@ building blocks for other homomorphisms:
 * `add_hom`
 * `mul_hom`
 * `monoid_with_zero_hom`
+
+Finally, we define classes that state the coercion operator `↑` (a.k.a. `coe`) is a homomorphism:
+ * `coe_is_one_hom`/`coe_is_zero_hom`
+ * `coe_is_mul_hom`/`coe_is_add_monoid_hom`
+ * `coe_is_monoid_hom`/`coe_is_add_monoid_hom`
+ * `coe_is_monoid_with_zero_hom`
+These come with a selection of `simp` lemmas stating that `↑` preserves the corresponding operation:
+`coe_add`, `coe_mul`, `coe_zero`, `coe_one`, `coe_pow`, `coe_nsmul`, `coe_zpow`, `coe_zsmul`,
+`coe_bit0`, `coe_bit1`, `coe_sub`, `coe_neg`, ..., etc.
 
 ## Notations
 
@@ -89,6 +99,17 @@ class zero_hom_class (F : Type*) (M N : out_param $ Type*)
 -- Instances and lemmas are defined below through `@[to_additive]`.
 
 end zero
+
+namespace ne_zero
+
+lemma of_map {R M} [has_zero R] [has_zero M] [zero_hom_class F R M] (f : F) {r : R}
+  [ne_zero (f r)] : ne_zero r := ⟨λ h, ne (f r) $ by convert zero_hom_class.map_zero f⟩
+
+lemma of_injective {R M} [has_zero R] {r : R} [ne_zero r] [has_zero M] [zero_hom_class F R M]
+  {f : F} (hf : function.injective f) : ne_zero (f r) :=
+⟨by { rw ← zero_hom_class.map_zero f, exact hf.ne (ne r) }⟩
+
+end ne_zero
 
 section add
 
@@ -365,9 +386,6 @@ attribute [to_additive_reorder 8, to_additive] map_zpow
 
 end mul_one
 
-@[to_additive] lemma group.is_unit [group G] (g : G) : is_unit g :=
-⟨⟨g, g⁻¹, mul_inv_self g, inv_mul_self g⟩, rfl⟩
-
 section mul_zero_one
 
 variables [mul_zero_one_class M] [mul_zero_one_class N]
@@ -636,6 +654,14 @@ protected def one_hom.copy {hM : has_one M} {hN : has_one N} (f : one_hom M N) (
 { to_fun := f',
   map_one' := h.symm ▸ f.map_one' }
 
+@[simp, to_additive] lemma one_hom.coe_copy {hM : has_one M} {hN : has_one N} (f : one_hom M N)
+  (f' : M → N) (h : f' = f) : ⇑(f.copy f' h) = f' :=
+rfl
+
+@[to_additive] lemma one_hom.coe_copy_eq {hM : has_one M} {hN : has_one N} (f : one_hom M N)
+  (f' : M → N) (h : f' = f) : f.copy f' h = f :=
+fun_like.ext' h
+
 /-- Copy of a `mul_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
 equalities. -/
 @[to_additive "Copy of an `add_hom` with a new `to_fun` equal to the old one. Useful to fix
@@ -645,6 +671,14 @@ protected def mul_hom.copy {hM : has_mul M} {hN : has_mul N} (f : M →ₙ* N) (
 { to_fun := f',
   map_mul' := h.symm ▸ f.map_mul' }
 
+@[simp, to_additive]
+lemma mul_hom.coe_copy {hM : has_mul M} {hN : has_mul N} (f : M →ₙ* N) (f' : M → N)
+  (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+
+@[to_additive] lemma mul_hom.coe_copy_eq {hM : has_mul M} {hN : has_mul N} (f : M →ₙ* N)
+  (f' : M → N) (h : f' = f) : f.copy f' h = f :=
+fun_like.ext' h
+
 /-- Copy of a `monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
 @[to_additive "Copy of an `add_monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
@@ -653,11 +687,27 @@ protected def monoid_hom.copy {hM : mul_one_class M} {hN : mul_one_class N} (f :
   (f' : M → N) (h : f' = f) : M →* N :=
 { ..f.to_one_hom.copy f' h, ..f.to_mul_hom.copy f' h }
 
+@[simp, to_additive] lemma monoid_hom.coe_copy {hM : mul_one_class M} {hN : mul_one_class N}
+  (f : M →* N) (f' : M → N) (h : f' = f) : ⇑(f.copy f' h) = f' :=
+rfl
+
+@[to_additive] lemma monoid_hom.copy_eq {hM : mul_one_class M} {hN : mul_one_class N}
+  (f : M →* N) (f' : M → N) (h : f' = f) : f.copy f' h = f :=
+fun_like.ext' h
+
 /-- Copy of a `monoid_hom` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
 protected def monoid_with_zero_hom.copy {hM : mul_zero_one_class M} {hN : mul_zero_one_class N}
   (f : M →*₀ N) (f' : M → N) (h : f' = f) : M →* N :=
 { ..f.to_zero_hom.copy f' h, ..f.to_monoid_hom.copy f' h }
+
+@[simp] lemma monoid_with_zero_hom.coe_copy {hM : mul_zero_one_class M} {hN : mul_zero_one_class N}
+  (f : M →*₀ N) (f' : M → N) (h : f' = f) : ⇑(f.copy f' h) = f' :=
+rfl
+
+lemma monoid_with_zero_hom.copy_eq {hM : mul_zero_one_class M} {hN : mul_zero_one_class N}
+  (f : M →*₀ N) (f' : M → N) (h : f' = f) : f.copy f' h = f :=
+fun_like.ext' h
 
 @[to_additive]
 protected lemma one_hom.map_one [has_one M] [has_one N] (f : one_hom M N) : f 1 = 1 := f.map_one'
@@ -1077,22 +1127,6 @@ by { ext, simp only [map_one, coe_comp, function.comp_app, one_apply] }
   g.comp (f₁ * f₂) = g.comp f₁ * g.comp f₂ :=
 by { ext, simp only [mul_apply, function.comp_app, map_mul, coe_comp] }
 
-/-- If two homomorphisms from a division monoid to a monoid are equal at a unit `x`, then they are
-equal at `x⁻¹`. -/
-@[to_additive "If two homomorphisms from a subtraction monoid to an additive monoid are equal at an
-additive unit `x`, then they are equal at `-x`."]
-lemma _root_.is_unit.eq_on_inv {G N} [division_monoid G] [monoid N] [monoid_hom_class F G N] {x : G}
-  (hx : is_unit x) (f g : F) (h : f x = g x) : f x⁻¹ = g x⁻¹ :=
-left_inv_eq_right_inv (map_mul_eq_one f hx.inv_mul_cancel) $
-  h.symm ▸ map_mul_eq_one g $ hx.mul_inv_cancel
-
-/-- If two homomorphism from a group to a monoid are equal at `x`, then they are equal at `x⁻¹`. -/
-@[to_additive "If two homomorphism from an additive group to an additive monoid are equal at `x`,
-then they are equal at `-x`." ]
-lemma _root_.eq_on_inv {G} [group G] [monoid M] [monoid_hom_class F G M] (f g : F) {x : G}
-  (h : f x = g x) : f x⁻¹ = g x⁻¹ :=
-(group.is_unit x).eq_on_inv f g h
-
 /-- Group homomorphisms preserve inverse. -/
 @[to_additive "Additive group homomorphisms preserve negation."]
 protected lemma map_inv [group α] [division_monoid β] (f : α →* β) (a : α) : f a⁻¹ = (f a)⁻¹ :=
@@ -1222,18 +1256,150 @@ instance {M N} {hM : mul_zero_one_class M} [comm_monoid_with_zero N] : has_mul (
     map_zero' := by rw [map_zero, zero_mul],
     ..(f * g : M →* N) }⟩
 
-section commute
+section coe
 
-variables [has_mul M] [has_mul N] {a x y : M}
+/-! ### Coercions as bundled morphisms
 
-@[simp, to_additive]
-protected lemma semiconj_by.map [mul_hom_class F M N] (h : semiconj_by a x y) (f : F) :
-  semiconj_by (f a) (f x) (f y) :=
-by simpa only [semiconj_by, map_mul] using congr_arg f h
+The classes `coe_is_mul_hom`, `coe_is_monoid_hom`, etc. state that the coercion map `↑`
+(a.k.a. `coe`) is a homomorphism.
 
-@[simp, to_additive]
-protected lemma commute.map [mul_hom_class F M N] (h : commute x y) (f : F) :
-  commute (f x) (f y) :=
-h.map f
+These classes are unbundled (they take an instance of `has_lift_t R S` as a parameter, rather than
+extending `has_lift_t` or one of its subclasses) for two reasons:
+ * We wouldn't have to introduce new classes that handle transitivity (and probably cause diamonds)
+ * It doesn't matter whether a coercion is written with `has_coe` or `has_lift`, you can give it
+   a homomorphism structure in exactly the same way.
+-/
 
-end commute
+variables (M N) [has_lift_t M N]
+
+/-- `coe_is_zero_hom M N` is a class stating that the coercion map `↑ : M → N` (a.k.a. `coe`)
+is an zero-preserving homomorphism.
+-/
+class coe_is_zero_hom [has_zero M] [has_zero N] : Prop :=
+(coe_zero : (↑(0 : M) : N) = 0)
+export coe_is_zero_hom (coe_zero)
+
+attribute [simp, norm_cast] coe_zero
+
+/-- `coe_is_one_hom M N` is a class stating that the coercion map `↑ : M → N` (a.k.a. `coe`)
+is a one-preserving homomorphism.
+-/
+@[to_additive]
+class coe_is_one_hom [has_one M] [has_one N] : Prop :=
+(coe_one : (↑(1 : M) : N) = 1)
+export coe_is_one_hom (coe_one)
+
+attribute [simp, norm_cast] coe_one
+
+/-- `one_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
+bundled as a one-preserving homomorphism. -/
+@[to_additive "`zero_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
+bundled as a zero-preserving homomorphism.", simps { fully_applied := ff }]
+protected def one_hom.coe [has_one M] [has_one N] [coe_is_one_hom M N] : one_hom M N :=
+{ to_fun := coe,
+  map_one' := coe_one }
+
+/-- `coe_is_add_hom M N` is a class stating that the coercion map `↑ : M → N` (a.k.a. `coe`)
+is an additive homomorphism.
+-/
+class coe_is_add_hom [has_add M] [has_add N] : Prop :=
+(coe_add : ∀ (x y : M), (↑(x + y) : N) = ↑x + ↑y)
+export coe_is_add_hom (coe_add)
+
+attribute [simp, norm_cast] coe_add
+
+/-- `coe_is_mul_hom M N` is a class stating that the coercion map `↑ : M → N` (a.k.a. `coe`)
+is a multiplicative homomorphism.
+-/
+@[to_additive]
+class coe_is_mul_hom [has_mul M] [has_mul N] : Prop :=
+(coe_mul : ∀ (x y : M), (↑(x * y) : N) = ↑x * ↑y)
+export coe_is_mul_hom (coe_mul)
+
+attribute [simp, norm_cast] coe_mul
+
+/-- `mul_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
+bundled as a multiplicative homomorphism. -/
+@[to_additive "`add_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
+bundled as an additive homomorphism.", simps { fully_applied := ff }]
+protected def mul_hom.coe [has_mul M] [has_mul N] [coe_is_mul_hom M N] : mul_hom M N :=
+{ to_fun := coe,
+  map_mul' := coe_mul }
+
+@[simp, norm_cast]
+lemma coe_bit0 [has_add M] [has_add N] [coe_is_add_hom M N]
+  (x : M) : ↑(bit0 x) = bit0 (↑x : N) :=
+coe_add _ _
+
+@[simp, norm_cast]
+lemma coe_bit1 [has_one M] [has_add M] [has_one N] [has_add N] [coe_is_one_hom M N]
+  [coe_is_add_hom M N] (x : M) :
+  ↑(bit1 x) = bit1 (↑x : N) :=
+by simp [bit1]
+
+/-- `coe_is_add_monoid_hom M N` is a class stating that the coercion map `↑ : M → N` (a.k.a. `coe`)
+is an additive monoid homomorphism.
+-/
+class coe_is_add_monoid_hom [add_zero_class M] [add_zero_class N]
+  extends coe_is_zero_hom M N, coe_is_add_hom M N
+
+/-- `coe_is_monoid_hom M N` is a class stating that the coercion map `↑ : M → N` (a.k.a. `coe`)
+is a monoid homomorphism.
+-/
+@[to_additive]
+class coe_is_monoid_hom [mul_one_class M] [mul_one_class N]
+  extends coe_is_one_hom M N, coe_is_mul_hom M N
+
+-- `to_additive` doesn't seem to map these correctly...
+attribute [to_additive coe_is_add_monoid_hom.to_coe_is_zero_hom] coe_is_monoid_hom.to_coe_is_one_hom
+attribute [to_additive coe_is_add_monoid_hom.to_coe_is_add_hom] coe_is_monoid_hom.to_coe_is_mul_hom
+
+/-- `monoid_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
+bundled as a monoid homomorphism. -/
+@[to_additive "`add_monoid_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
+bundled as an additive monoid homomorphism.", simps { fully_applied := ff }]
+protected def monoid_hom.coe [mul_one_class M] [mul_one_class N] [coe_is_monoid_hom M N] : M →* N :=
+{ to_fun := coe,
+  .. one_hom.coe M N,
+  .. mul_hom.coe M N }
+
+variables {M N}
+
+@[simp, norm_cast, to_additive]
+lemma coe_pow [monoid M] [monoid N] [coe_is_monoid_hom M N]
+  (a : M) (n : ℕ) : ↑(a ^ n) = (↑a : N) ^ n :=
+map_pow (monoid_hom.coe M N) a n
+
+@[simp, norm_cast, to_additive]
+lemma coe_zpow [group M] [group N] [coe_is_monoid_hom M N]
+  (a : M) (n : ℤ) : ↑(a ^ n) = (↑a : N) ^ n :=
+map_zpow (monoid_hom.coe M N) a n
+
+@[simp, norm_cast, to_additive]
+lemma coe_inv [group G] [division_monoid H] [has_lift_t G H] [coe_is_monoid_hom G H]
+  (a : G) : ↑(a⁻¹) = (↑a : H)⁻¹ :=
+map_inv (monoid_hom.coe G H) a
+
+@[simp, norm_cast, to_additive]
+lemma coe_div [group G] [division_monoid H] [has_lift_t G H] [coe_is_monoid_hom G H]
+  (a b : G) : ↑(a / b) = (↑a : H) / ↑b :=
+map_div (monoid_hom.coe G H) a b
+
+variables (M N)
+
+/-- `coe_monoid_with-zero_hom M N` is a class stating that the coercion map `↑ : M → N`
+(a.k.a. `coe`) is a monoid with zero homomorphism.
+-/
+class coe_is_monoid_with_zero_hom [monoid_with_zero M] [monoid_with_zero N]
+  extends coe_is_monoid_hom M N, coe_is_zero_hom M N
+
+/-- `monoid_with_zero_hom.coe M N` is the map `↑ : M → N` (a.k.a. `coe`),
+bundled as a monoid with zero homomorphism. -/
+@[simps { fully_applied := ff }]
+protected def monoid_with_zero_hom.coe [monoid_with_zero M] [monoid_with_zero N]
+  [coe_is_monoid_with_zero_hom M N] : M →*₀ N :=
+{ to_fun := coe,
+  .. monoid_hom.coe M N,
+  .. zero_hom.coe M N }
+
+end coe

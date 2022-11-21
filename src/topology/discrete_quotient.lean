@@ -326,7 +326,7 @@ end
 
 noncomputable instance [compact_space X] : fintype S :=
 begin
-  have cond : is_compact (⊤ : set X) := compact_univ,
+  have cond : is_compact (⊤ : set X) := is_compact_univ,
   rw is_compact_iff_finite_subcover at cond,
   have h := @cond S (λ s, S.proj ⁻¹' {s}) (λ s, fiber_open _ _)
     (λ x hx, ⟨S.proj ⁻¹' {S.proj x}, ⟨S.proj x, rfl⟩, rfl⟩),

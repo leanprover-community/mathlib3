@@ -3,9 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
+import data.fintype.big_operators
 import data.nat.with_bot
-import data.polynomial.induction
 import data.polynomial.monomial
+import data.polynomial.coeff
 
 /-!
 # Theory of univariate polynomials
@@ -913,21 +914,8 @@ with_bot.coe_le_coe.mp ((degree_eq_nat_degree $ ne_zero_of_coe_le_degree hdeg) �
 
 lemma degree_sum_fin_lt {n : ℕ} (f : fin n → R) :
   degree (∑ i : fin n, C (f i) * X ^ (i : ℕ)) < n :=
-begin
-  haveI : is_commutative (with_bot ℕ) max := ⟨max_comm⟩,
-  haveI : is_associative (with_bot ℕ) max := ⟨max_assoc⟩,
-  calc  (∑ i, C (f i) * X ^ (i : ℕ)).degree
-      ≤ finset.univ.fold (⊔) ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) : degree_sum_le _ _
-  ... = finset.univ.fold max ⊥ (λ i, (C (f i) * X ^ (i : ℕ)).degree) : rfl
-  ... < n : (finset.fold_max_lt (n : with_bot ℕ)).mpr ⟨with_bot.bot_lt_coe _, _⟩,
-
-  rintros ⟨i, hi⟩ -,
-  calc (C (f ⟨i, hi⟩) * X ^ i).degree
-      ≤ (C _).degree + (X ^ i).degree : degree_mul_le _ _
-  ... ≤ 0 + i : add_le_add degree_C_le (degree_X_pow_le i)
-  ... = i : zero_add _
-  ... < n : with_bot.some_lt_some.mpr hi,
-end
+(degree_sum_le _ _).trans_lt $ (finset.sup_lt_iff $ with_bot.bot_lt_coe n).2 $
+  λ k hk, (degree_C_mul_X_pow_le _ _).trans_lt $ with_bot.coe_lt_coe.2 k.is_lt
 
 lemma degree_linear_le : degree (C a * X + C b) ≤ 1 :=
 degree_add_le_of_degree_le (degree_C_mul_X_le _) $ le_trans degree_C_le nat.with_bot.coe_nonneg
@@ -1016,7 +1004,7 @@ section nontrivial_semiring
 variables [semiring R] [nontrivial R] {p q : R[X]}
 
 @[simp] lemma degree_X_pow (n : ℕ) : degree ((X : R[X]) ^ n) = n :=
-by rw [X_pow_eq_monomial, degree_monomial _ (@one_ne_zero R _ _)]
+by rw [X_pow_eq_monomial, degree_monomial _ (one_ne_zero' R)]
 
 @[simp] lemma nat_degree_X_pow (n : ℕ) : nat_degree ((X : R[X]) ^ n) = n :=
 nat_degree_eq_of_degree_eq_some (degree_X_pow n)
@@ -1030,7 +1018,7 @@ begin
 end
 
 theorem not_is_unit_X : ¬ is_unit (X : R[X]) :=
-λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $
+λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, zero_ne_one' R $
 by { change g * monomial 1 1 = 1 at hgf, rw [← coeff_one_zero, ← hgf], simp }
 
 @[simp] lemma degree_mul_X : degree (p * X) = degree p + 1 := by simp [monic_X.degree_mul]

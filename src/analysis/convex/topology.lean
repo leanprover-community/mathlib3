@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudryashov
 -/
 import analysis.convex.jensen
+import analysis.convex.strict
 import analysis.normed.group.pointwise
 import topology.algebra.module.finite_dimension
 import analysis.normed_space.ray
@@ -72,8 +73,8 @@ lemma is_closed_std_simplex : is_closed (std_simplex ℝ ι) :=
   (is_closed_eq (continuous_finset_sum _ $ λ x _, continuous_apply x) continuous_const)
 
 /-- `std_simplex ℝ ι` is compact. -/
-lemma compact_std_simplex : is_compact (std_simplex ℝ ι) :=
-metric.compact_iff_closed_bounded.2 ⟨is_closed_std_simplex ι, bounded_std_simplex ι⟩
+lemma is_compact_std_simplex : is_compact (std_simplex ℝ ι) :=
+metric.is_compact_iff_is_closed_bounded.2 ⟨is_closed_std_simplex ι, bounded_std_simplex ι⟩
 
 end std_simplex
 
@@ -204,6 +205,39 @@ have hf : continuous (function.uncurry f),
 show f x y ∈ closure s,
   from map_mem_closure₂ hf hx hy (λ x' hx' y' hy', hs hx' hy' ha hb hab)
 
+open affine_map
+
+/-- A convex set `s` is strictly convex provided that for any two distinct points of
+`s \ interior s`, the line passing through these points has nonempty intersection with
+`interior s`. -/
+protected lemma convex.strict_convex' {s : set E} (hs : convex 𝕜 s)
+  (h : (s \ interior s).pairwise $ λ x y, ∃ c : 𝕜, line_map x y c ∈ interior s) :
+  strict_convex 𝕜 s :=
+begin
+  refine strict_convex_iff_open_segment_subset.2 _,
+  intros x hx y hy hne,
+  by_cases hx' : x ∈ interior s, { exact hs.open_segment_interior_self_subset_interior hx' hy },
+  by_cases hy' : y ∈ interior s, { exact hs.open_segment_self_interior_subset_interior hx hy' },
+  rcases h ⟨hx, hx'⟩ ⟨hy, hy'⟩ hne with ⟨c, hc⟩,
+  refine (open_segment_subset_union x y ⟨c, rfl⟩).trans (insert_subset.2 ⟨hc, union_subset _ _⟩),
+  exacts [hs.open_segment_self_interior_subset_interior hx hc,
+    hs.open_segment_interior_self_subset_interior hc hy]
+end
+
+/-- A convex set `s` is strictly convex provided that for any two distinct points `x`, `y` of
+`s \ interior s`, the segment with endpoints `x`, `y` has nonempty intersection with
+`interior s`. -/
+protected lemma convex.strict_convex {s : set E} (hs : convex 𝕜 s)
+  (h : (s \ interior s).pairwise $ λ x y, ([x -[𝕜] y] \ frontier s).nonempty) :
+  strict_convex 𝕜 s :=
+begin
+  refine (hs.strict_convex' $ h.imp_on $ λ x hx y hy hne, _),
+  simp only [segment_eq_image_line_map, ← self_diff_frontier],
+  rintro ⟨_, ⟨⟨c, hc, rfl⟩, hcs⟩⟩,
+  refine ⟨c, hs.segment_subset hx.1 hy.1 _, hcs⟩,
+  exact (segment_eq_image_line_map 𝕜 x y).symm ▸ mem_image_of_mem _ hc
+end
+
 end has_continuous_const_smul
 
 section has_continuous_smul
@@ -216,7 +250,7 @@ lemma set.finite.compact_convex_hull {s : set E} (hs : s.finite) :
   is_compact (convex_hull ℝ s) :=
 begin
   rw [hs.convex_hull_eq_image],
-  apply (compact_std_simplex _).image,
+  apply (is_compact_std_simplex _).image,
   haveI := hs.fintype,
   apply linear_map.continuous_on_pi
 end
@@ -305,8 +339,8 @@ variables [seminormed_add_comm_group E] [normed_space ℝ E] {s t : set E}
 and `convex_on_univ_norm`. -/
 lemma convex_on_norm (hs : convex ℝ s) : convex_on ℝ s norm :=
 ⟨hs, λ x hx y hy a b ha hb hab,
-  calc ∥a • x + b • y∥ ≤ ∥a • x∥ + ∥b • y∥ : norm_add_le _ _
-    ... = a * ∥x∥ + b * ∥y∥
+  calc ‖a • x + b • y‖ ≤ ‖a • x‖ + ‖b • y‖ : norm_add_le _ _
+    ... = a * ‖x‖ + b * ‖y‖
         : by rw [norm_smul, norm_smul, real.norm_of_nonneg ha, real.norm_of_nonneg hb]⟩
 
 /-- The norm on a real normed space is convex on the whole space. See also `seminorm.convex_on`

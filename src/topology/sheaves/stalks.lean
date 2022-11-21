@@ -10,9 +10,8 @@ import category_theory.adjunction.evaluation
 import category_theory.limits.types
 import category_theory.limits.preserves.filtered
 import category_theory.limits.final
-import topology.sober
 import tactic.elementwise
-import algebra.category.Ring
+import algebra.category.Ring.colimits
 
 /-!
 # Stalks

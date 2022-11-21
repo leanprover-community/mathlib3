@@ -6,9 +6,7 @@ Authors: Andrew Yang
 import algebraic_geometry.AffineScheme
 import ring_theory.nilpotent
 import topology.sheaves.sheaf_condition.sites
-import category_theory.limits.constructions.binary_products
 import algebra.category.Ring.constructions
-import ring_theory.integral_domain
 import ring_theory.local_properties
 
 /-!
@@ -280,7 +278,7 @@ begin
   subst e',
   replace e := congr_arg (X.presheaf.germ x) e,
   rw [ring_hom.map_mul, ring_hom.map_zero] at e,
-  refine @zero_ne_one (X.presheaf.stalk x.1) _ _ (is_unit_zero_iff.1 _),
+  refine zero_ne_one' (X.presheaf.stalk x.1) (is_unit_zero_iff.1 _),
   convert hx₁.mul hx₂,
   exact e.symm
 end

@@ -136,11 +136,11 @@ begin
     have hr : 0 < r, { simp [hR], },
     have hr' : ∀ ⦃y : E⦄, y ∈ metric.ball x r → c y,
     { exact (λ y hy, hR' (lt_of_lt_of_le (metric.mem_ball.mp hy) (min_le_right _ _))), },
-    have hxy : ∀ (y : E), y ∈ metric.ball x r → ∥y - x∥ < 1,
+    have hxy : ∀ (y : E), y ∈ metric.ball x r → ‖y - x‖ < 1,
     { intros y hy,
       rw [metric.mem_ball, dist_eq_norm] at hy,
       exact lt_of_lt_of_le hy (min_le_left _ _), },
-    have hxyε : ∀ (y : E), y ∈ metric.ball x r → ε * ∥y - x∥ < ε,
+    have hxyε : ∀ (y : E), y ∈ metric.ball x r → ε * ‖y - x‖ < ε,
     { intros y hy,
       exact (mul_lt_iff_lt_one_right hε.lt).mpr (hxy y hy), },
 
@@ -211,7 +211,7 @@ begin
       (λ z hz, ((hf n.1 z hz).sub (hf n.2 z hz)).has_fderiv_within_at)
       (λ z hz, (hn z hz).le) (convex_ball x r) (metric.mem_ball_self hr) hy,
     refine lt_of_le_of_lt mvt _,
-    have : q * ∥y - x∥ < q * r,
+    have : q * ‖y - x‖ < q * r,
     { exact mul_lt_mul' rfl.le (by simpa only [dist_eq_norm] using metric.mem_ball.mp hy)
         (norm_nonneg _) hqpos, },
     exact this.trans hq, },
@@ -260,15 +260,15 @@ begin
 end
 
 /-- If `f_n → g` pointwise and the derivatives `(f_n)' → h` _uniformly_ converge, then
-in fact for a fixed `y`, the difference quotients `∥z - y∥⁻¹ • (f_n z - f_n y)` converge
-_uniformly_ to `∥z - y∥⁻¹ • (g z - g y)` -/
+in fact for a fixed `y`, the difference quotients `‖z - y‖⁻¹ • (f_n z - f_n y)` converge
+_uniformly_ to `‖z - y‖⁻¹ • (g z - g y)` -/
 lemma difference_quotients_converge_uniformly
   (hf' : tendsto_uniformly_on_filter f' g' l (𝓝 x))
   (hf : ∀ᶠ (n : ι × E) in (l ×ᶠ 𝓝 x), has_fderiv_at (f n.1) (f' n.1 n.2) n.2)
   (hfg : ∀ᶠ (y : E) in 𝓝 x, tendsto (λ n, f n y) l (𝓝 (g y))) :
   tendsto_uniformly_on_filter
-    (λ n : ι, λ y : E, (∥y - x∥⁻¹ : 𝕜) • (f n y - f n x))
-    (λ y : E, (∥y - x∥⁻¹ : 𝕜) • (g y - g x))
+    (λ n : ι, λ y : E, (‖y - x‖⁻¹ : 𝕜) • (f n y - f n x))
+    (λ y : E, (‖y - x‖⁻¹ : 𝕜) • (g y - g x))
     l (𝓝 x) :=
 begin
   letI : normed_space ℝ E, from normed_space.restrict_scalars ℝ 𝕜 _,
@@ -298,7 +298,7 @@ begin
   rw [← smul_sub, norm_smul, norm_inv, is_R_or_C.norm_coe_norm],
   refine lt_of_le_of_lt _ hqε,
   by_cases hyz' : x = y, { simp [hyz', hqpos.le], },
-  have hyz : 0 < ∥y - x∥,
+  have hyz : 0 < ‖y - x‖,
   {rw norm_pos_iff, intros hy', exact hyz' (eq_of_sub_eq_zero hy').symm, },
   rw [inv_mul_le_iff hyz, mul_comm, sub_sub_sub_comm],
   simp only [pi.zero_apply, dist_zero_left] at e,
@@ -333,7 +333,7 @@ begin
 
   -- Introduce extra quantifier via curried filters
   suffices : tendsto
-    (λ (y : ι × E), ∥y.2 - x∥⁻¹ * ∥g y.2 - g x - (g' x) (y.2 - x)∥) (l.curry (𝓝 x)) (𝓝 0),
+    (λ (y : ι × E), ‖y.2 - x‖⁻¹ * ‖g y.2 - g x - (g' x) (y.2 - x)‖) (l.curry (𝓝 x)) (𝓝 0),
   { rw metric.tendsto_nhds at this ⊢,
     intros ε hε,
     specialize this ε hε,
@@ -352,11 +352,11 @@ begin
     rw [←norm_norm, ←norm_inv,←@is_R_or_C.norm_of_real 𝕜 _ _,
       is_R_or_C.of_real_inv, ←norm_smul], },
   rw ←tendsto_zero_iff_norm_tendsto_zero,
-  have : (λ a : ι × E, (∥a.2 - x∥⁻¹ : 𝕜) • (g a.2 - g x - (g' x) (a.2 - x))) =
-    (λ a : ι × E, (∥a.2 - x∥⁻¹ : 𝕜) • (g a.2 - g x - (f a.1 a.2 - f a.1 x))) +
-    (λ a : ι × E, (∥a.2 - x∥⁻¹ : 𝕜) • ((f a.1 a.2 - f a.1 x) -
+  have : (λ a : ι × E, (‖a.2 - x‖⁻¹ : 𝕜) • (g a.2 - g x - (g' x) (a.2 - x))) =
+    (λ a : ι × E, (‖a.2 - x‖⁻¹ : 𝕜) • (g a.2 - g x - (f a.1 a.2 - f a.1 x))) +
+    (λ a : ι × E, (‖a.2 - x‖⁻¹ : 𝕜) • ((f a.1 a.2 - f a.1 x) -
       ((f' a.1 x) a.2 - (f' a.1 x) x))) +
-    (λ a : ι × E, (∥a.2 - x∥⁻¹ : 𝕜) • ((f' a.1 x - g' x) (a.2 - x))),
+    (λ a : ι × E, (‖a.2 - x‖⁻¹ : 𝕜) • ((f' a.1 x - g' x) (a.2 - x))),
   { ext, simp only [pi.add_apply], rw [←smul_add, ←smul_add], congr,
   simp only [map_sub, sub_add_sub_cancel, continuous_linear_map.coe_sub', pi.sub_apply], },
   simp_rw this,
@@ -398,7 +398,7 @@ begin
     intros n,
     simp_rw [norm_smul, norm_inv, is_R_or_C.norm_coe_norm],
     by_cases hx : x = n.2, { simp [hx], },
-    have hnx : 0 < ∥n.2 - x∥,
+    have hnx : 0 < ‖n.2 - x‖,
     { rw norm_pos_iff, intros hx', exact hx (eq_of_sub_eq_zero hx').symm, },
     rw [inv_mul_le_iff hnx, mul_comm],
     simp only [function.comp_app, prod_map],

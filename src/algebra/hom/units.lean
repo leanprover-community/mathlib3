@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Chris Hughes, Kevin Buzzard
 -/
 import algebra.hom.group
-
+import algebra.group.units
 /-!
 # Monoid homomorphisms and units
 
@@ -26,6 +26,29 @@ used to golf the basic `group` lemmas.
 open function
 
 universes u v w
+
+@[to_additive] lemma group.is_unit {G} [group G] (g : G) : is_unit g :=
+⟨⟨g, g⁻¹, mul_inv_self g, inv_mul_self g⟩, rfl⟩
+
+section monoid_hom_class
+
+/-- If two homomorphisms from a division monoid to a monoid are equal at a unit `x`, then they are
+equal at `x⁻¹`. -/
+@[to_additive "If two homomorphisms from a subtraction monoid to an additive monoid are equal at an
+additive unit `x`, then they are equal at `-x`."]
+lemma is_unit.eq_on_inv {F G N} [division_monoid G] [monoid N] [monoid_hom_class F G N] {x : G}
+  (hx : is_unit x) (f g : F) (h : f x = g x) : f x⁻¹ = g x⁻¹ :=
+left_inv_eq_right_inv (map_mul_eq_one f hx.inv_mul_cancel) $
+  h.symm ▸ map_mul_eq_one g $ hx.mul_inv_cancel
+
+/-- If two homomorphism from a group to a monoid are equal at `x`, then they are equal at `x⁻¹`. -/
+@[to_additive "If two homomorphism from an additive group to an additive monoid are equal at `x`,
+then they are equal at `-x`." ]
+lemma eq_on_inv {F G M} [group G] [monoid M] [monoid_hom_class F G M] (f g : F) {x : G}
+  (h : f x = g x) : f x⁻¹ = g x⁻¹ :=
+(group.is_unit x).eq_on_inv f g h
+
+end monoid_hom_class
 
 namespace units
 variables {α : Type*} {M : Type u} {N : Type v} {P : Type w} [monoid M] [monoid N] [monoid P]

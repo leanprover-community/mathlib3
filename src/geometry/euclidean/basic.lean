@@ -498,18 +498,18 @@ lemma dist_sq_smul_orthogonal_vadd_smul_orthogonal_vadd {s : affine_subspace ℝ
     {p1 p2 : P} (hp1 : p1 ∈ s) (hp2 : p2 ∈ s) (r1 r2 : ℝ) {v : V}
     (hv : v ∈ s.directionᗮ) :
   dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) * dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) =
-    dist p1 p2 * dist p1 p2 + (r1 - r2) * (r1 - r2) * (∥v∥ * ∥v∥) :=
+    dist p1 p2 * dist p1 p2 + (r1 - r2) * (r1 - r2) * (‖v‖ * ‖v‖) :=
 calc dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) * dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2)
-    = ∥(p1 -ᵥ p2) + (r1 - r2) • v∥ * ∥(p1 -ᵥ p2) + (r1 - r2) • v∥
+    = ‖(p1 -ᵥ p2) + (r1 - r2) • v‖ * ‖(p1 -ᵥ p2) + (r1 - r2) • v‖
   : by rw [dist_eq_norm_vsub V (r1 • v +ᵥ p1), vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, sub_smul,
       add_comm, add_sub_assoc]
-... = ∥p1 -ᵥ p2∥ * ∥p1 -ᵥ p2∥ + ∥(r1 - r2) • v∥ * ∥(r1 - r2) • v∥
+... = ‖p1 -ᵥ p2‖ * ‖p1 -ᵥ p2‖ + ‖(r1 - r2) • v‖ * ‖(r1 - r2) • v‖
   : norm_add_sq_eq_norm_sq_add_norm_sq_real
       (submodule.inner_right_of_mem_orthogonal (vsub_mem_direction hp1 hp2)
         (submodule.smul_mem _ _ hv))
-... = ∥(p1 -ᵥ p2 : V)∥ * ∥(p1 -ᵥ p2 : V)∥ + |r1 - r2| * |r1 - r2| * ∥v∥ * ∥v∥
+... = ‖(p1 -ᵥ p2 : V)‖ * ‖(p1 -ᵥ p2 : V)‖ + |r1 - r2| * |r1 - r2| * ‖v‖ * ‖v‖
   : by { rw [norm_smul, real.norm_eq_abs], ring }
-... = dist p1 p2 * dist p1 p2 + (r1 - r2) * (r1 - r2) * (∥v∥ * ∥v∥)
+... = dist p1 p2 * dist p1 p2 + (r1 - r2) * (r1 - r2) * (‖v‖ * ‖v‖)
   : by { rw [dist_eq_norm_vsub V p1, abs_mul_abs_self, mul_assoc] }
 
 /-- Reflection in an affine subspace, which is expected to be nonempty
@@ -728,6 +728,10 @@ lemma sphere.center_ne_iff_ne_of_mem {s₁ s₂ : sphere P} {p : P} (hs₁ : p �
 lemma dist_center_eq_dist_center_of_mem_sphere {p₁ p₂ : P} {s : sphere P} (hp₁ : p₁ ∈ s)
   (hp₂ : p₂ ∈ s) : dist p₁ s.center = dist p₂ s.center :=
 by rw [mem_sphere.1 hp₁, mem_sphere.1 hp₂]
+
+lemma dist_center_eq_dist_center_of_mem_sphere' {p₁ p₂ : P} {s : sphere P} (hp₁ : p₁ ∈ s)
+  (hp₂ : p₂ ∈ s) : dist s.center p₁ = dist s.center p₂ :=
+by rw [mem_sphere'.1 hp₁, mem_sphere'.1 hp₂]
 
 /-- A set of points is cospherical if they are equidistant from some
 point.  In two dimensions, this is the same thing as being

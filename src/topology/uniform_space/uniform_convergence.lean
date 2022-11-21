@@ -741,7 +741,7 @@ lemma tendsto_locally_uniformly_iff_tendsto_uniformly_of_compact_space [compact_
 begin
   refine ⟨λ h V hV, _, tendsto_uniformly.tendsto_locally_uniformly⟩,
   choose U hU using h V hV,
-  obtain ⟨t, ht⟩ := compact_univ.elim_nhds_subcover' (λ k hk, U k) (λ k hk, (hU k).1),
+  obtain ⟨t, ht⟩ := is_compact_univ.elim_nhds_subcover' (λ k hk, U k) (λ k hk, (hU k).1),
   replace hU := λ (x : t), (hU x).2,
   rw ← eventually_all at hU,
   refine hU.mono (λ i hi x, _),

@@ -44,7 +44,8 @@ for path in Path('src').glob('**/*.lean'):
         continue
     label = mk_label(path)
     for line in path.read_text().split('\n'):
-        if (m := import_re.match(line)):
+        m = import_re.match(line)
+        if m:
             imported = m.group(1)
             if imported.startswith('tactic.') or imported.startswith('meta.'):
                 continue
@@ -110,7 +111,7 @@ print()
 print('# The following files are marked as ported, but do not have a SYNCHRONIZED WITH MATHLIB4 label.')
 for node in graph.nodes:
     if data[node].startswith('Yes') and not node in synchronized:
-        print(node)
+        print(node + "     -- " + data[node][4:])
 
 print()
 print('# The following files are marked as ported, but have not been verified against a commit hash from mathlib.')

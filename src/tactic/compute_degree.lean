@@ -383,9 +383,7 @@ focus1 $ do
   end
 
 setup_tactic_parser
-/--  `poly_and_deg_to_equation de f deg (with na)?` takes as input
-* an "option format" to distinguish whether it was called by `simp_coeff` (`none`) or
-  `reduce coeff` (`some fmt`),
+/--  `poly_and_deg_to_equation f deg (with na)?` takes as input
 * an expression `f` representing a polynomial,
 * an expression `deg` representing an natural number and
 * an optional `with h` argument to assign a name to the side-goal that the tactic produces.
@@ -394,7 +392,7 @@ It returns
   `get_lead_coeff`;
 * as a side-goal to show the equality ``f.coeff deg = lc`.
 The input `de` is only used for reporting errors. -/
-meta def poly_and_deg_to_equation (de : option format) (f deg : expr) (na : parse with_ident_list) :
+meta def poly_and_deg_to_equation (f deg : expr) (na : parse with_ident_list) :
   tactic expr :=
 do
   `(@polynomial %%R %%_) ← infer_type f,
@@ -404,10 +402,7 @@ do
     | []      := pure `c_c
     | [a]     := pure a
     | (a::as) := do pa ← pp a,
-      match de with
-      | some pfp := fail format!"Try this: reduce_coeff {pfp} with {pa}"
-      | none     := fail format!"Try this: simp_coeff with {pa}"
-      end
+      fail format!"Try this: simp_coeff with {pa}"
     end,
   nn ← get_unused_name ide,
   cf ← to_expr ``(coeff : polynomial %%R → ℕ → %%R),
@@ -442,26 +437,11 @@ do t ← target >>= instantiate_mvars,
   guard (d_nat = m_nat) <|> fail!(
   "`simp_coeff` checks that the expected degree is equal to the degree appearing in `coeff`\n" ++
   "the expected degree is `{d_nat}`, but you are asking about the coefficient of degree `{m_nat}`"),
-  c_c ← poly_and_deg_to_equation none f m na,
+  c_c ← poly_and_deg_to_equation f m na,
   interactive.swap,
   if t_is_eq then refine ``(eq.trans %%c_c _) else refine ``(ne_of_eq_of_ne %%c_c _),
   try $ tactic.clear c_c,
   refine ``(one_ne_zero) <|> interactive.swap,
-  resolve_coeff
-
-/--
-`reduce_coeff f (with h)?` takes a polynomial `f` as an input and produces a hypothesis of the form
-`c_c : f.coeff n = <simplified expression>`, where the simplified expression is obtained via the
-`get_lead_coeff/resolve_coeff` pair.
-If the optional `with h` argument is given, then `h` is the name that `reduce_coeff` assigns to
-possible side-goals.
--/
-meta def reduce_coeff (fp : parse texpr) (na : parse with_ident_list) : tactic unit :=
-do
-  f ← to_expr ``(%%fp) tt ff,
-  exp_deg ← guess_degree' f,
-  pfp ← to_expr fp >>= pp,
-  poly_and_deg_to_equation pfp f `(exp_deg) na,
   resolve_coeff
 
 /--  `compute_degree` tries to close goals of the form `f.(nat_)degree = d`.  It converts the

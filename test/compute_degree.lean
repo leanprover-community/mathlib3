@@ -10,14 +10,6 @@ begin
   refl,
 end
 
-example {R} [semiring R] {a : R} : a = a :=
-begin
-  success_if_fail_with_msg {reduce_coeff C a * X ^ 11 + 0 * X ^ 12 with da l m}
-  "Try this: reduce_coeff ⇑C a * X ^ 11 + 0 * X ^ 12 with da",
-  reduce_coeff C a * X ^ 11 + 0 * X ^ 12 with da,
-  refl,
-end
-
 example {R} [ring R] [nontrivial R] : (X - X + X + 2 : R[X]).degree = 1 :=
 begin
   compute_degree,

@@ -170,7 +170,7 @@ include φ h
 
 lemma lift_spec_obj : (lift σ φ τ h).obj = τ := rfl
 
-lemma lift_spec_comm : of σ ⋙q lift σ φ τ h = φ :=
+lemma lift_spec_comp : of σ ⋙q lift σ φ τ h = φ :=
 begin
   fapply prefunctor.ext,
   { rintros, simp only [prefunctor.comp_obj], symmetry, exact h X, },

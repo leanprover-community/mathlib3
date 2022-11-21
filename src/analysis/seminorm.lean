@@ -1146,7 +1146,7 @@ begin
   { rw ← mem_smul_set_iff_inv_smul_mem₀ hk0,
     exact hrx k hk.le },
   rcases h (k⁻¹ • x) this with ⟨M, hM⟩,
-  refine ⟨∥k∥ * M, forall_range_iff.mpr $ λ i, _⟩,
+  refine ⟨‖k‖ * M, forall_range_iff.mpr $ λ i, _⟩,
   have := (forall_range_iff.mp hM) i,
   rwa [map_smul_eq_mul, norm_inv, inv_mul_le_iff (hr.trans hk)] at this
 end

@@ -7,6 +7,7 @@ Authors: Moritz Doll, Anatole Dedecker
 import analysis.seminorm
 import analysis.locally_convex.bounded
 import topology.algebra.equicontinuity
+import topology.metric_space.equicontinuity
 import topology.algebra.filter_basis
 import topology.algebra.module.locally_convex
 
@@ -527,9 +528,9 @@ begin
 end
 
 lemma uniform_equicontinuous_iff_exists_continuous_seminorm {κ : Type*}
-  {q : seminorm_family 𝕜 F ι'} [uniform_space E] [uniform_add_group E] [u : uniform_space F]
+  {q : seminorm_family 𝕜₂ F ι'} [uniform_space E] [uniform_add_group E] [u : uniform_space F]
   [hu : uniform_add_group F] (hq : with_seminorms q) [has_continuous_smul 𝕜 E]
-  (f : κ → E →ₗ[𝕜] F) :
+  (f : κ → E →ₛₗ[σ₁₂] F) :
   uniform_equicontinuous (coe_fn ∘ f) ↔
   ∀ i, ∃ p : seminorm 𝕜 E, continuous p ∧ ∀ k, (q i).comp (f k) ≤ p :=
 begin
@@ -555,79 +556,79 @@ begin
     rintros ⟨p, hp, hfp⟩,
     have hp' : filter.tendsto p (𝓝 0) (𝓝 0) := map_zero p ▸ hp.tendsto 0,
     refine uniform_equicontinuous_of_equicontinuous_at_zero f
-      (metric.equicontinuous_at_of_continuity_modulus p hp' _ $ λ x k, _),
+      (metric.equicontinuous_at_of_continuity_modulus p hp' _ $ eventually_of_forall $ λ x k, _),
     change q i (f k 0 - f k x) ≤ p x,
     rw [map_zero, zero_sub, map_neg_eq_map, ← comp_apply],
     exact hfp k x }
 end
 
-lemma with_seminorms.continuous_seminorm_iff {p : seminorm_family 𝕜 E ι}
-  [uniform_space E] [uniform_add_group E] (hp : with_seminorms p) [has_continuous_const_smul 𝕜 E]
-  {q : seminorm 𝕜 E} :
-  continuous q ↔ ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ q ≤ C • s.sup p :=
-begin
-  split,
-  { intro hq,
-    replace hq : tendsto q (𝓝 0) (𝓝 0) := map_zero q ▸ hq.tendsto 0,
-    rw [hp.has_basis.tendsto_iff metric.nhds_basis_ball] at hq,
-    rcases hq 1 one_pos with ⟨V, hV, hVq⟩,
-    rcases p.basis_sets_iff.mp hV with ⟨s, ε, ε_pos, rfl⟩,
-    rcases exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
-    have : 0 < ∥c∥ / ε, from div_pos (zero_lt_one.trans hc) ε_pos,
-    refine ⟨s, ∥c∥₊ / ⟨ε, ε_pos.le⟩, sorry, λ x, _⟩,
-    by_cases hqx : s.sup p x = 0,
-    { sorry },
-    { rcases q.rescale_to_shell hk hr hqx with ⟨d, hd, hqdx₁, hqdx₂, hnorms⟩,
-      have := hq (Iio_mem_nhds one_pos),
-      rw [map_zero, metric.tendsto_nhds] at this }, }, -- hard part
-  { rintros ⟨s, C, hC, hCs⟩,
-    refine continuous_of_le _ hCs,
-    exact continuous.const_smul sorry C } -- finite sup preserves continuity
-end
-
-lemma uniform_equicontinuous_of_continuous_comp_supr {κ : Type*} {q : seminorm_family 𝕜 F ι'}
-  [uniform_space E] [uniform_add_group E]
-  [u : uniform_space F] [hu : uniform_add_group F] (hq : with_seminorms q)
-  (f : κ → E →ₗ[𝕜] F) (hf₁ : ∀ i x, bdd_above (range $ λ k, q i (f k x)))
-  (hf₂ : ∀ i, continuous ⇑(⨆ k, (q i).comp (f k) : seminorm 𝕜 E)) :
-  uniform_equicontinuous (coe_fn ∘ f) :=
-begin
-  rw [q.with_seminorms_iff_uniform_space_eq_infi.mp hq, uniform_equicontinuous_infi_rng],
-  intro i,
-  clear hu hq u,
-  letI : seminormed_add_comm_group F := (q i).to_add_group_seminorm.to_seminormed_add_comm_group,
-  have hf₃ : bdd_above (range $ λ k, (q i).comp (f k)),
-  { rw [seminorm.bdd_above_iff, ← range_comp, bdd_above_range_pi],
-    exact hf₁ i },
-  set φ : seminorm 𝕜 E := ⨆ k, (q i).comp (f k) with hφ,
-  have hφ' : filter.tendsto φ (𝓝 0) (𝓝 0),
-  { rw [← map_zero φ, hφ],
-    exact (hf₂ i).tendsto 0 },
-  refine uniform_equicontinuous_of_equicontinuous_at_zero f
-    (metric.equicontinuous_at_of_continuity_modulus φ hφ' _ $ λ x k, _),
-  change q i (f k 0 - f k x) ≤ φ x,
-  rw [map_zero, zero_sub, map_neg_eq_map, ← comp_apply],
-  revert x,
-  change (q i).comp (f k) ≤ φ,
-  exact le_csupr hf₃ k
-end
-
-lemma uniform_equicontinuous_from_bounded [normed_algebra ℝ 𝕜] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
-  {κ : Type*} {p : seminorm_family 𝕜 E ι} {q : seminorm_family 𝕜 F ι'}
-  [uniform_space E] [uniform_add_group E] (hp : with_seminorms p) [has_continuous_const_smul ℝ E]
-  [uniform_space F] [uniform_add_group F] (hq : with_seminorms q) (f : κ → E →ₗ[𝕜] F)
-  (hf : ∀ i, ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ ∀ k, (q i).comp (f k) ≤ C • s.sup p) :
-  uniform_equicontinuous (coe_fn ∘ f) :=
-begin
-  casesI is_empty_or_nonempty κ,
-  { exact uniform_equicontinuous_empty _ },
-  choose! s C hC using hf,
-  have : ∀ i x, bdd_above (range (λ (k : κ), q i (f k x))) :=
-    λ i x, ⟨(C i) • (s i).sup p x, forall_range_iff.mpr (λ k, (hC i).2 k x)⟩,
-  refine uniform_equicontinuous_of_continuous_comp_supr hq _ this _,
-  refine λ i, continuous_of_le _ (csupr_le (hC i).2),
-  refine continuous.const_smul sorry _, -- finite sup preserves continuity
-end
+--lemma with_seminorms.continuous_seminorm_iff {p : seminorm_family 𝕜 E ι}
+--  [uniform_space E] [uniform_add_group E] (hp : with_seminorms p) [has_continuous_const_smul 𝕜 E]
+--  {q : seminorm 𝕜 E} :
+--  continuous q ↔ ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ q ≤ C • s.sup p :=
+--begin
+--  split,
+--  { intro hq,
+--    replace hq : tendsto q (𝓝 0) (𝓝 0) := map_zero q ▸ hq.tendsto 0,
+--    rw [hp.has_basis.tendsto_iff metric.nhds_basis_ball] at hq,
+--    rcases hq 1 one_pos with ⟨V, hV, hVq⟩,
+--    rcases p.basis_sets_iff.mp hV with ⟨s, ε, ε_pos, rfl⟩,
+--    rcases exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+--    have : 0 < ∥c∥ / ε, from div_pos (zero_lt_one.trans hc) ε_pos,
+--    refine ⟨s, ∥c∥₊ / ⟨ε, ε_pos.le⟩, sorry, λ x, _⟩,
+--    by_cases hqx : s.sup p x = 0,
+--    { sorry },
+--    { rcases q.rescale_to_shell hk hr hqx with ⟨d, hd, hqdx₁, hqdx₂, hnorms⟩,
+--      have := hq (Iio_mem_nhds one_pos),
+--      rw [map_zero, metric.tendsto_nhds] at this }, }, -- hard part
+--  { rintros ⟨s, C, hC, hCs⟩,
+--    refine continuous_of_le _ hCs,
+--    exact continuous.const_smul sorry C } -- finite sup preserves continuity
+--end
+--
+--lemma uniform_equicontinuous_of_continuous_comp_supr {κ : Type*} {q : seminorm_family 𝕜 F ι'}
+--  [uniform_space E] [uniform_add_group E]
+--  [u : uniform_space F] [hu : uniform_add_group F] (hq : with_seminorms q)
+--  (f : κ → E →ₗ[𝕜] F) (hf₁ : ∀ i x, bdd_above (range $ λ k, q i (f k x)))
+--  (hf₂ : ∀ i, continuous ⇑(⨆ k, (q i).comp (f k) : seminorm 𝕜 E)) :
+--  uniform_equicontinuous (coe_fn ∘ f) :=
+--begin
+--  rw [q.with_seminorms_iff_uniform_space_eq_infi.mp hq, uniform_equicontinuous_infi_rng],
+--  intro i,
+--  clear hu hq u,
+--  letI : seminormed_add_comm_group F := (q i).to_add_group_seminorm.to_seminormed_add_comm_group,
+--  have hf₃ : bdd_above (range $ λ k, (q i).comp (f k)),
+--  { rw [seminorm.bdd_above_iff, ← range_comp, bdd_above_range_pi],
+--    exact hf₁ i },
+--  set φ : seminorm 𝕜 E := ⨆ k, (q i).comp (f k) with hφ,
+--  have hφ' : filter.tendsto φ (𝓝 0) (𝓝 0),
+--  { rw [← map_zero φ, hφ],
+--    exact (hf₂ i).tendsto 0 },
+--  refine uniform_equicontinuous_of_equicontinuous_at_zero f
+--    (metric.equicontinuous_at_of_continuity_modulus φ hφ' _ $ λ x k, _),
+--  change q i (f k 0 - f k x) ≤ φ x,
+--  rw [map_zero, zero_sub, map_neg_eq_map, ← comp_apply],
+--  revert x,
+--  change (q i).comp (f k) ≤ φ,
+--  exact le_csupr hf₃ k
+--end
+--
+--lemma uniform_equicontinuous_from_bounded [normed_algebra ℝ 𝕜] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
+--  {κ : Type*} {p : seminorm_family 𝕜 E ι} {q : seminorm_family 𝕜 F ι'}
+--  [uniform_space E] [uniform_add_group E] (hp : with_seminorms p) [has_continuous_const_smul ℝ E]
+--  [uniform_space F] [uniform_add_group F] (hq : with_seminorms q) (f : κ → E →ₗ[𝕜] F)
+--  (hf : ∀ i, ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ ∀ k, (q i).comp (f k) ≤ C • s.sup p) :
+--  uniform_equicontinuous (coe_fn ∘ f) :=
+--begin
+--  casesI is_empty_or_nonempty κ,
+--  { exact uniform_equicontinuous_empty _ },
+--  choose! s C hC using hf,
+--  have : ∀ i x, bdd_above (range (λ (k : κ), q i (f k x))) :=
+--    λ i x, ⟨(C i) • (s i).sup p x, forall_range_iff.mpr (λ k, (hC i).2 k x)⟩,
+--  refine uniform_equicontinuous_of_continuous_comp_supr hq _ this _,
+--  refine λ i, continuous_of_le _ (csupr_le (hC i).2),
+--  refine continuous.const_smul sorry _, -- finite sup preserves continuity
+--end
 
 end seminorm
 

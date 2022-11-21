@@ -38,13 +38,13 @@ lemma cderiv_eq_deriv (hU : is_open U) (hf : differentiable_on ℂ f U) (hr : 0 
   cderiv r f z = deriv f z :=
 two_pi_I_inv_smul_circle_integral_sub_inv_smul_of_differentiable hU hzr hf (mem_ball_self hr)
 
-lemma norm_cderiv_le (hr : 0 < r) (hf : ∀ w ∈ sphere z r, ∥f w∥ ≤ M) :
-  ∥cderiv r f z∥ ≤ M / r :=
+lemma norm_cderiv_le (hr : 0 < r) (hf : ∀ w ∈ sphere z r, ‖f w‖ ≤ M) :
+  ‖cderiv r f z‖ ≤ M / r :=
 begin
   have hM : 0 ≤ M,
   { obtain ⟨w, hw⟩ : (sphere z r).nonempty := normed_space.sphere_nonempty.mpr hr.le,
     exact (norm_nonneg _).trans (hf w hw) },
-  have h1 : ∀ w ∈ sphere z r, ∥((w - z) ^ 2)⁻¹ • f w∥ ≤ M / r ^ 2,
+  have h1 : ∀ w ∈ sphere z r, ‖((w - z) ^ 2)⁻¹ • f w‖ ≤ M / r ^ 2,
   { intros w hw,
     simp only [mem_sphere_iff_norm, norm_eq_abs] at hw,
     simp only [norm_smul, inv_mul_eq_div, hw, norm_eq_abs, map_inv₀, complex.abs_pow],
@@ -74,16 +74,16 @@ begin
 end
 
 lemma norm_cderiv_sub_lt (hr : 0 < r) (hzr : closed_ball z r ⊆ U)
-  (hfg : ∀ w ∈ sphere z r, ∥f w - g w∥ < M) (hf : continuous_on f U) (hg : continuous_on g U) :
-  ∥cderiv r f z - cderiv r g z∥ < M / r :=
+  (hfg : ∀ w ∈ sphere z r, ‖f w - g w‖ < M) (hf : continuous_on f U) (hg : continuous_on g U) :
+  ‖cderiv r f z - cderiv r g z‖ < M / r :=
 begin
-  obtain ⟨L, hL1, hL2⟩ : ∃ L < M, ∀ w ∈ sphere z r, ∥f w - g w∥ ≤ L,
+  obtain ⟨L, hL1, hL2⟩ : ∃ L < M, ∀ w ∈ sphere z r, ‖f w - g w‖ ≤ L,
   { have e1 : sphere z r ⊆ U := sphere_subset_closed_ball.trans hzr,
     have e2 : (sphere z r).nonempty := normed_space.sphere_nonempty.mpr hr.le,
-    have e3 : continuous_on (λ w, ∥f w - g w∥) (sphere z r),
+    have e3 : continuous_on (λ w, ‖f w - g w‖) (sphere z r),
       from continuous_norm.comp_continuous_on ((hf.mono e1).sub (hg.mono e1)),
     obtain ⟨x, hx, hx'⟩ := (is_compact_sphere z r).exists_forall_ge e2 e3,
-    exact ⟨∥f x - g x∥, hfg x hx, hx'⟩ },
+    exact ⟨‖f x - g x‖, hfg x hx, hx'⟩ },
   rw [← cderiv_sub hr hzr hf hg],
   exact (norm_cderiv_le hr hL2).trans_lt ((div_lt_div_right hr).mpr hL1)
 end
@@ -97,7 +97,7 @@ begin
   rintro ε hε,
   filter_upwards [hF (ε * δ) (mul_pos hε hδ)] with n h z hz,
   simp_rw [dist_eq_norm] at h ⊢,
-  have h2 : ∀ w ∈ sphere z δ, ∥f w - F n w∥ < ε * δ,
+  have h2 : ∀ w ∈ sphere z δ, ‖f w - F n w‖ < ε * δ,
     from λ w hw1, h w (closed_ball_subset_cthickening hz δ (sphere_subset_closed_ball hw1)),
   convert ← norm_cderiv_sub_lt hδ ((closed_ball_subset_cthickening hz δ).trans hK) h2 hf (hFn n),
   exact mul_div_cancel _ hδ.ne.symm

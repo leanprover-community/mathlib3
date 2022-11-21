@@ -57,34 +57,42 @@ lemma expect_neg {γ : Type*} [add_comm_group γ] [module ℝ γ] {X : Ω → γ
   𝔼 i, (- X i) = - 𝔼 i, X i :=
 by simp only [expect, smul_neg, sum_neg_distrib]
 
+lemma expect_mul {X : Ω → ℝ} {r : ℝ} : 𝔼 i, (r * X i) = r * 𝔼 i, X i :=
+by simp only [expect, mul_sum, mul_left_comm, smul_eq_mul]
+
 lemma expect_nonneg {X : Ω → ℝ} (hω : ∀ ω, 0 ≤ X ω) : 0 ≤ 𝔼 ω, X ω :=
 sum_nonneg $ λ i hi, smul_nonneg nonneg (hω _)
 
 lemma expect_empty [is_empty Ω] {X : Ω → γ} : 𝔼 i, X i = 0 :=
 by { rw expect, convert fintype.sum_empty (λ i, w i • X i) }
 
-def prob {α : Type*} (X : Ω → α) (A : set α) [∀ ω, decidable (X ω ∈ A)] : ℝ :=
+def prob {α : Type*} (X : Ω → α) (A : set α) [decidable_pred (∈ A)] : ℝ :=
 ∑ ω in univ.filter (λ ω, X ω ∈ A), w ω
 
-local notation `ℙ[` X ` in ` A `]` := prob X A
+-- def cond_prob {α : Type*} (X : Ω → α) (A : set α) (B : set Ω)
+--   [decidable_pred (∈ A)] [decidable_pred (∈ B)] : ℝ :=
+-- prob (X ×ᶠ id) (A ×ˢ B) / prob id B
 
-lemma prob_eq_exp (A : set α) [∀ ω, decidable (X ω ∈ A)] : ℙ[X in A] = 𝔼 i, ite (X i ∈ A) 1 0 :=
+local notation `ℙ[` X ` in ` A `]` := prob X A
+-- local notation `ℙ[` X ` in ` A ` | ` B `]` := cond_prob X A B
+
+lemma prob_eq_exp (A : set α) [decidable_pred (∈ A)] : ℙ[X in A] = 𝔼 i, ite (X i ∈ A) 1 0 :=
 begin
   rw [prob, expect],
   simp only [smul_eq_mul, mul_boole],
   rw ←sum_filter,
 end
 
-lemma prob_nonneg (A : set α) [∀ ω, decidable (X ω ∈ A)] : 0 ≤ ℙ[X in A] :=
+lemma prob_nonneg (A : set α) [decidable_pred (∈ A)] : 0 ≤ ℙ[X in A] :=
 sum_nonneg (λ i hi, by positivity)
 
-lemma prob_le_one (A : set α) [∀ ω, decidable (X ω ∈ A)] : ℙ[X in A] ≤ 1 :=
+lemma prob_le_one (A : set α) [decidable_pred (∈ A)] : ℙ[X in A] ≤ 1 :=
 begin
   refine (sum_le_sum_of_subset_of_nonneg (subset_univ _) (λ _ _ _, _)).trans_eq whole_space,
   apply nonneg
 end
 
-lemma prob_union {A B : set α} [∀ ω, decidable (X ω ∈ A)] [∀ ω, decidable (X ω ∈ B)]
+lemma prob_union {A B : set α} [decidable_pred (∈ A)] [decidable_pred (∈ B)]
   (h : disjoint A B) :
   ℙ[X in A ∪ B] = ℙ[X in A] + ℙ[X in B] :=
 begin
@@ -98,7 +106,7 @@ begin
   exact h hx hx'
 end
 
-lemma prob_le_prob {A : set α} {B : set β} [∀ ω, decidable (X ω ∈ A)] [∀ ω, decidable (Y ω ∈ B)]
+lemma prob_le_prob {A : set α} {B : set β} [decidable_pred (∈ A)] [decidable_pred (∈ B)]
   (h : ∀ ω : Ω, w ω ≠ 0 → X ω ∈ A → Y ω ∈ B) :
   ℙ[X in A] ≤ ℙ[Y in B] :=
 begin
@@ -110,7 +118,7 @@ begin
   exact h ω h₂ h₁
 end
 
-lemma prob_le_prob_of_subset {A A' : set α} [∀ ω, decidable (X ω ∈ A)] [∀ ω, decidable (X ω ∈ A')]
+lemma prob_le_prob_of_subset {A A' : set α} [decidable_pred (∈ A)] [decidable_pred (∈ A')]
   (h : A ⊆ A') : ℙ[X in A] ≤ ℙ[X in A'] :=
 prob_le_prob (λ ω hω hx, h hx)
 
@@ -171,6 +179,13 @@ begin
   rw [sum_filter, sum_image'],
   intros c hc,
   simp only [←sum_filter, filter_filter],
+end
+
+lemma expect_eq [decidable_eq γ] {X : Ω → γ} : 𝔼 i, X i = ∑ x in univ.image X, p X x • x :=
+begin
+  simp only [expect, p, prob, set.mem_singleton_iff, sum_smul],
+  rw sum_image',
+  exact λ c hc, sum_congr rfl (by simp {contextual := tt})
 end
 
 def ent (b x : ℝ) : ℝ := - x * real.logb b x
@@ -618,3 +633,20 @@ begin
   rw [entropy_uniform hY hs],
   apply entropy_le_support hX,
 end
+
+lemma markov {X : Ω → ℝ} (hX : ∀ ω, 0 ≤ X ω) {x : ℝ} (hx : 0 < x) :
+  ℙ[X in set.Ici x] ≤ (𝔼 i, X i) / x :=
+begin
+  rw [prob_eq_exp, le_div_iff hx, mul_comm, ←expect_mul],
+  apply sum_le_sum,
+  intros i hi,
+  refine smul_le_smul_of_nonneg _ nonneg,
+  dsimp,
+  split_ifs,
+  { simpa using h },
+  { simpa using hX i }
+end
+
+lemma markov' {X : Ω → ℝ} (hX : ∀ ω, 0 ≤ X ω) {x : ℝ} (hx : 0 < x) :
+  ℙ[X in set.Ioi x] ≤ (𝔼 i, X i) / x :=
+(prob_le_prob_of_subset set.Ioi_subset_Ici_self).trans (markov hX hx)

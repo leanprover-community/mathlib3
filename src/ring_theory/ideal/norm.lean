@@ -5,12 +5,15 @@ Authors: Anne Baanen, Alex J. Best
 -/
 
 import data.finsupp.fintype
+import data.int.absolute_value
+import data.int.associated
 import data.matrix.notation
 import data.zmod.quotient
-import linear_algebra.free_module.finite.basic
 import linear_algebra.free_module.pid
+import linear_algebra.free_module.determinant
 import linear_algebra.free_module.ideal_quotient
 import linear_algebra.isomorphisms
+import ring_theory.norm
 import ring_theory.dedekind_domain.ideal
 import ring_theory.norm
 
@@ -240,3 +243,169 @@ noncomputable def ideal.abs_norm [infinite S] [is_dedekind_domain S]
   map_mul' := λ I J, by rw card_quot_mul,
   map_one' := by rw [ideal.one_eq_top, card_quot_top],
   map_zero' := by rw [ideal.zero_eq_bot, card_quot_bot] }
+
+namespace ideal
+
+variables [infinite S] [is_dedekind_domain S] [module.free ℤ S] [module.finite ℤ S]
+
+lemma abs_norm_apply (I : ideal S) : abs_norm I = card_quot I := rfl
+
+@[simp] lemma abs_norm_bot : abs_norm (⊥ : ideal S) = 0 :=
+by rw [← ideal.zero_eq_bot, _root_.map_zero]
+
+@[simp] lemma abs_norm_top : abs_norm (⊤ : ideal S) = 1 :=
+by rw [← ideal.one_eq_top, _root_.map_one]
+
+@[simp] lemma abs_norm_eq_one_iff {I : ideal S} : abs_norm I = 1 ↔ I = ⊤ :=
+by rw [abs_norm_apply, card_quot_eq_one_iff]
+
+/-- Let `e : S ≃ I` be an additive homomorphism (therefore a `ℤ`-linear equiv).
+Then an alternative way to compute the norm of `I` is given by taking the determinant of `e`. -/
+theorem nat_abs_det_equiv (I : ideal S) {E : Type*} [add_equiv_class E S I] (e : E) :
+  int.nat_abs (linear_map.det
+      ((submodule.subtype I).restrict_scalars ℤ ∘ₗ add_monoid_hom.to_int_linear_map (e : S →+ I))) =
+  ideal.abs_norm I :=
+begin
+  -- `S ⧸ I` might be infinite if `I = ⊥`, but then `e` can't be an equiv.
+  by_cases hI : I = ⊥,
+  { unfreezingI { subst hI },
+    have : (1 : S) ≠ 0 := one_ne_zero,
+    have : (1 : S) = 0 := equiv_like.injective e (subsingleton.elim _ _),
+    contradiction },
+
+  let ι := module.free.choose_basis_index ℤ S,
+  let b := module.free.choose_basis ℤ S,
+  casesI is_empty_or_nonempty ι,
+  { nontriviality S,
+    exact (not_nontrivial_iff_subsingleton.mpr
+      (function.surjective.subsingleton b.repr.to_equiv.symm.surjective)
+      (by apply_instance)).elim },
+
+  -- Thus `(S ⧸ I)` is isomorphic to a product of `zmod`s, so it is a fintype.
+  letI := ideal.fintype_quotient_of_free_of_ne_bot I hI,
+  -- Use the Smith normal form to choose a nice basis for `I`.
+  letI := classical.dec_eq ι,
+  let a := I.smith_coeffs b hI,
+  let b' := I.ring_basis b hI,
+  let ab := I.self_basis b hI,
+  have ab_eq := I.self_basis_def b hI,
+  let e' : S ≃ₗ[ℤ] I := b'.equiv ab (equiv.refl _),
+  let f : S →ₗ[ℤ] S := (I.subtype.restrict_scalars ℤ).comp (e' : S →ₗ[ℤ] I),
+  let f_apply : ∀ x, f x = b'.equiv ab (equiv.refl _) x := λ x, rfl,
+  suffices : (linear_map.det f).nat_abs = ideal.abs_norm I,
+  { calc  (linear_map.det ((submodule.subtype I).restrict_scalars ℤ ∘ₗ _)).nat_abs
+        = (linear_map.det ((submodule.subtype I).restrict_scalars ℤ ∘ₗ
+            (↑(add_equiv.to_int_linear_equiv ↑e) : S →ₗ[ℤ] I))).nat_abs : rfl
+    ... = (linear_map.det ((submodule.subtype I).restrict_scalars ℤ ∘ₗ _)).nat_abs :
+      int.nat_abs_eq_iff_associated.mpr (linear_map.associated_det_comp_equiv _ _ _)
+    ... = abs_norm I : this },
+
+  have ha : ∀ i, f (b' i) = a i • b' i,
+  { intro i, rw [f_apply, b'.equiv_apply, equiv.refl_apply, ab_eq] },
+  have mem_I_iff : ∀ x, x ∈ I ↔ ∀ i, a i ∣ b'.repr x i,
+  { intro x, simp_rw [ab.mem_ideal_iff', ab_eq],
+    have : ∀ (c : ι → ℤ) i, b'.repr (∑ (j : ι), c j • a j • b' j) i = a i * c i,
+    { intros c i,
+      simp only [← mul_action.mul_smul, b'.repr_sum_self, mul_comm] },
+    split,
+    { rintro ⟨c, rfl⟩ i, exact ⟨c i, this c i⟩ },
+    { rintros ha,
+      choose c hc using ha, exact ⟨c, b'.ext_elem (λ i, trans (hc i) (this c i).symm)⟩ } },
+
+  -- `det f` is equal to `∏ i, a i`,
+  letI := classical.dec_eq ι,
+  calc  int.nat_abs (linear_map.det f)
+      = int.nat_abs (linear_map.to_matrix b' b' f).det : by rw linear_map.det_to_matrix
+  ... = int.nat_abs (matrix.diagonal a).det : _
+  ... = int.nat_abs (∏ i, a i) : by rw matrix.det_diagonal
+  ... = ∏ i, int.nat_abs (a i) : map_prod int.nat_abs_hom a finset.univ
+  ... = fintype.card (S ⧸ I) : _
+  ... = abs_norm I : (submodule.card_quot_apply _).symm,
+  -- since `linear_map.to_matrix b' b' f` is the diagonal matrix with `a` along the diagonal.
+  { congr, ext i j,
+    rw [linear_map.to_matrix_apply, ha, linear_equiv.map_smul, basis.repr_self, finsupp.smul_single,
+        smul_eq_mul, mul_one],
+    by_cases h : i = j,
+    { rw [h, matrix.diagonal_apply_eq, finsupp.single_eq_same] },
+    { rw [matrix.diagonal_apply_ne _ h, finsupp.single_eq_of_ne (ne.symm h)] } },
+
+  -- Now we map everything through the linear equiv `S ≃ₗ (ι → ℤ)`,
+  -- which maps `(S ⧸ I)` to `Π i, zmod (a i).nat_abs`.
+  haveI : ∀ i, ne_zero ((a i).nat_abs) := λ i,
+    ⟨int.nat_abs_ne_zero_of_ne_zero (ideal.smith_coeffs_ne_zero b I hI i)⟩,
+  simp_rw [fintype.card_eq.mpr ⟨(ideal.quotient_equiv_pi_zmod I b hI).to_equiv⟩, fintype.card_pi,
+           zmod.card] ,
+end
+
+/-- Let `b` be a basis for `S` over `ℤ` and `bI` a basis for `I` over `ℤ` of the same dimension.
+Then an alternative way to compute the norm of `I` is given by taking the determinant of `bI`
+over `b`. -/
+theorem nat_abs_det_basis_change {ι : Type*} [fintype ι] [decidable_eq ι]
+  (b : basis ι ℤ S) (I : ideal S) (bI : basis ι ℤ I) :
+  (b.det (coe ∘ bI)).nat_abs = ideal.abs_norm I :=
+begin
+  let e := b.equiv bI (equiv.refl _),
+  calc (b.det ((submodule.subtype I).restrict_scalars ℤ ∘ bI)).nat_abs
+      = (linear_map.det ((submodule.subtype I).restrict_scalars ℤ ∘ₗ (e : S →ₗ[ℤ] I))).nat_abs
+    : by rw basis.det_comp_basis
+  ... = _ : nat_abs_det_equiv I e
+end
+
+/-- A basis on `S` gives a basis on `ideal.span {x}`, by multiplying everything by `x`. -/
+noncomputable def basis_span_singleton {ι R S : Type*} [comm_semiring R] [comm_ring S]
+  [is_domain S] [algebra R S]
+  (b : basis ι R S) {x : S} (hx : x ≠ 0) :
+  basis ι R (span ({x} : set S)) :=
+b.map $ ((linear_equiv.of_injective (algebra.lmul R S x) (linear_map.mul_injective hx)) ≪≫ₗ
+  (linear_equiv.of_eq _ _ (by { ext, simp [mem_span_singleton', mul_comm] })) ≪≫ₗ
+  ((submodule.restrict_scalars_equiv R S S (ideal.span ({x} : set S))).restrict_scalars R))
+
+@[simp] lemma basis_span_singleton_apply {ι R S : Type*} [comm_semiring R] [comm_ring S]
+  [is_domain S] [algebra R S]
+  (b : basis ι R S) {x : S} (hx : x ≠ 0) (i : ι) :
+  (basis_span_singleton b hx i : S) = x * b i :=
+begin
+  simp only [basis_span_singleton, basis.map_apply, linear_equiv.trans_apply,
+    submodule.restrict_scalars_equiv_apply, linear_equiv.of_injective_apply,
+    linear_equiv.coe_of_eq_apply, linear_equiv.restrict_scalars_apply,
+    algebra.coe_lmul_eq_mul, linear_map.mul_apply']
+end
+
+@[simp] lemma constr_basis_span_singleton {ι R S : Type*} [comm_semiring R] [comm_ring S]
+  [is_domain S] [algebra R S]
+  {N : Type*} [semiring N] [module N S] [smul_comm_class R N S]
+  (b : basis ι R S) {x : S} (hx : x ≠ 0) :
+  b.constr N (coe ∘ basis_span_singleton b hx) = algebra.lmul R S x :=
+b.ext (λ i, by erw [basis.constr_basis, function.comp_app, basis_span_singleton_apply,
+                   linear_map.mul_apply'])
+
+@[simp]
+lemma abs_norm_span_singleton (r : S) :
+  abs_norm (span ({r} : set S)) = (algebra.norm ℤ r).nat_abs :=
+begin
+  rw algebra.norm_apply,
+  by_cases hr : r = 0,
+  { simp only [hr, ideal.span_zero, algebra.coe_lmul_eq_mul, eq_self_iff_true, ideal.abs_norm_bot,
+      linear_map.det_zero'', set.singleton_zero, _root_.map_zero, int.nat_abs_zero] },
+  letI := ideal.fintype_quotient_of_free_of_ne_bot (span {r}) (mt span_singleton_eq_bot.mp hr),
+  let b := module.free.choose_basis ℤ S,
+  rw [← nat_abs_det_equiv _ (b.equiv (basis_span_singleton b hr) (equiv.refl _))],
+  swap, apply_instance,
+  congr,
+  refine b.ext (λ i, _),
+  simp
+end
+
+lemma abs_norm_dvd_abs_norm_of_le {I J : ideal S} (h : J ≤ I) : I.abs_norm ∣ J.abs_norm :=
+map_dvd abs_norm (dvd_iff_le.mpr h)
+
+@[simp]
+lemma abs_norm_span_insert (r : S) (s : set S) :
+  abs_norm (span (insert r s)) ∣ gcd (abs_norm (span s)) (algebra.norm ℤ r).nat_abs :=
+(dvd_gcd_iff _ _ _).mpr
+  ⟨abs_norm_dvd_abs_norm_of_le (span_mono (set.subset_insert _ _)),
+  trans
+    (abs_norm_dvd_abs_norm_of_le (span_mono (set.singleton_subset_iff.mpr (set.mem_insert _ _))))
+    (by rw abs_norm_span_singleton)⟩
+
+end ideal

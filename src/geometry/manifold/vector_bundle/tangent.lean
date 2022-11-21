@@ -38,6 +38,7 @@ variables {𝕜 E M H E' M' H' H'' : Type*} [nontrivially_normed_field 𝕜]
   [topological_space H'']
 
 namespace local_homeomorph
+
 lemma extend_left_inv {x : M} (hxf : x ∈ f.source) : (f.extend I).symm (f.extend I x) = x :=
 (f.extend I).left_inv $ by rwa f.extend_source
 
@@ -202,6 +203,12 @@ instance : vector_bundle 𝕜 E (tangent_space I : M → Type*) :=
 (tangent_bundle_core I M).vector_bundle
 
 lemma tangent_space_chart_at (p : tangent_bundle I M) :
+  chart_at (model_prod H E) p =
+    ((tangent_bundle_core I M).to_fiber_bundle_core.local_triv (achart H p.1))
+      .to_local_homeomorph ≫ₕ (chart_at H p.1).prod (local_homeomorph.refl E) :=
+rfl
+
+lemma tangent_space_chart_at_to_local_equiv (p : tangent_bundle I M) :
   (chart_at (model_prod H E) p).to_local_equiv =
     (tangent_bundle_core I M).to_fiber_bundle_core.local_triv_as_local_equiv (achart H p.1) ≫
     (chart_at H p.1).to_local_equiv.prod (local_equiv.refl E) :=

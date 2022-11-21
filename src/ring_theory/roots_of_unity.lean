@@ -570,6 +570,10 @@ begin
   { exact ne_zero.of_not_dvd R hp }
 end
 
+lemma mem_nth_roots_finset (hζ : is_primitive_root ζ k) (hk : 0 < k) :
+  ζ ∈ nth_roots_finset k R :=
+(mem_nth_roots_finset hk).2 hζ.pow_eq_one
+
 end is_domain
 
 section is_domain

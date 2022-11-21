@@ -144,15 +144,20 @@ begin
   refine ⟨_, _⟩,
   { repeat { refine ⟨_, _⟩ <|> compute_degree! } },
   { refine ⟨_, _, _, _, _⟩,
-    { success_if_fail_with_msg {compute_degree} "Try this: exact nat_degree_X_pow _",
+    { success_if_fail_with_msg {compute_degree}
+        "Try this: exact nat_degree_X_pow _\n\nor\n\nTry this: compute_degree!",
       exact nat_degree_X_pow _ },
-    { success_if_fail_with_msg {compute_degree} "Try this: exact nat_degree_C _",
+    { success_if_fail_with_msg {compute_degree}
+        "Try this: exact nat_degree_C _\n\nor\n\nTry this: compute_degree!",
       exact nat_degree_C _ },
-    { success_if_fail_with_msg {compute_degree} "Try this: exact nat_degree_X",
+    { success_if_fail_with_msg {compute_degree}
+        "Try this: exact nat_degree_X\n\nor\n\nTry this: compute_degree!",
       exact nat_degree_X },
-    { success_if_fail_with_msg {compute_degree} "Try this: exact nat_degree_C_mul_X_pow _ a a0",
+    { success_if_fail_with_msg {compute_degree}
+        "Try this: exact nat_degree_C_mul_X_pow _ a a0\n\nor\n\nTry this: compute_degree!",
       exact nat_degree_C_mul_X_pow _ a a0 },
-    { success_if_fail_with_msg {compute_degree} "Try this: exact nat_degree_C_mul_X a a0",
+    { success_if_fail_with_msg {compute_degree}
+        "Try this: exact nat_degree_C_mul_X a a0\n\nor\n\nTry this: compute_degree!",
       exact nat_degree_C_mul_X a a0 } }
 end
 

@@ -475,7 +475,8 @@ focus $ do
     wks ← try_core single_term_suggestions,
     match wks with
     | some wor :=
-      if single.is_some then refine wor.2 else (do pwks ← pp wor.1, fail!"Try this: exact {pwks}")
+      if single.is_some then refine wor.2
+      else (do pwks ← pp wor.1, fail!"Try this: exact {pwks}\n\nor\n\nTry this: compute_degree!")
     | none := skip
     end
   | _ := fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`"

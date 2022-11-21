@@ -114,8 +114,8 @@ def stable_under_base_change : Prop :=
 
 lemma stable_under_base_change.mk
   (h₁ : respects_iso @P)
-  (h₂ : ∀ ⦃R S T⦄ [comm_ring R] [comm_ring S] [comm_ring T], by exactI ∀ [algebra R S] [algebra R T],
-    by exactI (P (algebra_map R T) →
+  (h₂ : ∀ ⦃R S T⦄ [comm_ring R] [comm_ring S] [comm_ring T],
+    by exactI ∀ [algebra R S] [algebra R T], by exactI (P (algebra_map R T) →
       P (algebra.tensor_product.include_left.to_ring_hom : S →+* tensor_product R S T))) :
   stable_under_base_change @P :=
 begin

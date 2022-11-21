@@ -493,12 +493,12 @@ by rw [count_roots, count_zero, root_multiplicity_eq_zero (not_is_root_C _ _ H)]
 @[simp] lemma roots_one : (1 : R[X]).roots = ∅ :=
 roots_C 1
 
-lemma roots_smul_nonzero (p : R[X]) {r : R} (hr : r ≠ 0) :
-  (r • p).roots = p.roots :=
-begin
-  by_cases hp : p = 0;
-  simp [smul_eq_C_mul, roots_mul, hr, hp]
-end
+@[simp] lemma roots_C_mul (p : R[X]) (ha : a ≠ 0) : (C a * p).roots = p.roots :=
+by by_cases hp : p = 0; simp only [roots_mul, *, ne.def, mul_eq_zero, C_eq_zero, or_self,
+  not_false_iff, roots_C, zero_add, mul_zero]
+
+@[simp] lemma roots_smul_nonzero (p : R[X]) (ha : a ≠ 0) : (a • p).roots = p.roots :=
+by rw [smul_eq_C_mul, roots_C_mul _ ha]
 
 lemma roots_list_prod (L : list R[X]) :
   ((0 : R[X]) ∉ L) → L.prod.roots = (L : multiset R[X]).bind roots :=

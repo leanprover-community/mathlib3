@@ -96,6 +96,15 @@ end
 @[simp] lemma mul_coeff_zero (p q : R[X]) : coeff (p * q) 0 = coeff p 0 * coeff q 0 :=
 by simp [coeff_mul]
 
+/-- `constant_coeff p` returns the constant term of the polynomial `p`,
+  defined as `coeff p 0`. This is a ring homomorphism. -/
+def constant_coeff : R[X] →+* R :=
+{ to_fun := λ p, coeff p 0,
+  map_one' := by rw [coeff_one, if_pos rfl],
+  map_mul' := mul_coeff_zero,
+  map_zero' := coeff_zero 0,
+  map_add' :=  λ p q, coeff_add p q 0 }
+
 lemma coeff_mul_X_zero (p : R[X]) : coeff (p * X) 0 = 0 :=
 by simp
 

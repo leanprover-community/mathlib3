@@ -261,8 +261,9 @@ section roots
 
 open multiset
 
-lemma degree_eq_zero_of_is_unit (h : is_unit p) : degree p = 0 :=
-let ⟨q, hq⟩ := is_unit_iff_dvd_one.1 h in
+lemma degree_eq_zero_of_is_unit {R} [semiring R] [no_zero_divisors R] [nontrivial R]
+  {p : R[X]} (h : is_unit p) : degree p = 0 :=
+let ⟨q, hq⟩ := (h.dvd : p ∣ 1) in
 have hp0 : p ≠ 0, from λ hp0, by simpa [hp0] using hq,
 have hq0 : q ≠ 0, from λ hp0, by simpa [hp0] using hq,
 have nat_degree (1 : R[X]) = nat_degree (p * q),
@@ -272,8 +273,8 @@ by rw [nat_degree_one, nat_degree_mul hp0 hq0, eq_comm,
     ← degree_eq_nat_degree hp0] at this;
   exact this.1
 
-@[simp] lemma degree_coe_units (u : R[X]ˣ) :
-  degree (u : R[X]) = 0 :=
+@[simp] lemma degree_coe_units {R} [semiring R] [no_zero_divisors R] [nontrivial R]
+  (u : R[X]ˣ) : degree (u : R[X]) = 0 :=
 degree_eq_zero_of_is_unit ⟨u, rfl⟩
 
 theorem prime_X_sub_C (r : R) : prime (X - C r) :=
@@ -303,10 +304,10 @@ theorem eq_of_monic_of_associated (hp : p.monic) (hq : q.monic) (hpq : associate
 begin
   obtain ⟨u, hu⟩ := hpq,
   unfold monic at hp hq,
-  rw eq_C_of_degree_le_zero (le_of_eq $ degree_coe_units _) at hu,
+  rw eq_C_of_degree_le_zero (degree_coe_units _).le at hu,
   rw [← hu, leading_coeff_mul, hp, one_mul, leading_coeff_C] at hq,
   rwa [hq, C_1, mul_one] at hu,
-  apply_instance,
+  all_goals { apply_instance },
 end
 
 lemma root_multiplicity_mul {p q : R[X]} {x : R} (hpq : p * q ≠ 0) :
@@ -720,7 +721,9 @@ lemma aeval_eq_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [alge
 
 end roots
 
-theorem is_unit_iff {f : R[X]} : is_unit f ↔ ∃ r : R, is_unit r ∧ C r = f :=
+theorem is_unit_iff {R} [semiring R] [no_zero_divisors R] {f : R[X]} :
+  is_unit f ↔ ∃ r : R, is_unit r ∧ C r = f :=
+by nontriviality R; exact
 ⟨λ hf, ⟨f.coeff 0,
   is_unit_C.1 $ eq_C_of_degree_eq_zero (degree_eq_zero_of_is_unit hf) ▸ hf,
   (eq_C_of_degree_eq_zero (degree_eq_zero_of_is_unit hf)).symm⟩,

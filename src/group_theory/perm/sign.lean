@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import group_theory.perm.support
-import data.fintype.basic
 import group_theory.order_of_element
-import tactic.norm_swap
-import data.finset.sort
+import data.finset.fin
+import data.int.order.units
 
 /-!
 # Sign of a permutation
@@ -24,6 +23,10 @@ universes u v
 open equiv function fintype finset
 open_locale big_operators
 variables {α : Type u} {β : Type v}
+
+-- An example on how to determine the order of an element of a finite group.
+example : order_of (-1 : ℤˣ) = 2 :=
+order_of_eq_prime (int.units_sq _) dec_trivial
 
 namespace equiv.perm
 

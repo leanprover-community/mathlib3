@@ -7,6 +7,8 @@ Authors: Moritz Doll, Anatole Dedecker
 import analysis.seminorm
 import analysis.locally_convex.bounded
 import topology.algebra.equicontinuity
+import topology.algebra.filter_basis
+import topology.algebra.module.locally_convex
 
 /-!
 # Topology induced by a family of seminorms
@@ -171,7 +173,7 @@ begin
   rw hU,
   by_cases h : x ≠ 0,
   { rw [(s.sup p).smul_ball_preimage 0 r x h, smul_zero],
-    use (s.sup p).ball 0 (r / ∥x∥),
+    use (s.sup p).ball 0 (r / ‖x‖),
     exact ⟨p.basis_sets_mem s (div_pos hr (norm_pos_iff.mpr h)), subset.rfl⟩ },
   refine ⟨(s.sup p).ball 0 r, p.basis_sets_mem s hr, _⟩,
   simp only [not_ne_iff.mp h, subset_def, mem_ball_zero, hr, mem_univ, map_zero,
@@ -408,7 +410,7 @@ begin
     cases normed_field.exists_lt_norm 𝕜 r with a ha,
     specialize h a (le_of_lt ha),
     rw [seminorm.smul_ball_zero (lt_trans hr ha), mul_one] at h,
-    refine ⟨∥a∥, lt_trans hr ha, _⟩,
+    refine ⟨‖a‖, lt_trans hr ha, _⟩,
     intros x hx,
     specialize h hx,
     exact (finset.sup I p).mem_ball_zero.mp h },
@@ -635,32 +637,32 @@ section bounded_of_countinuous
 
 namespace seminorm
 
-variables [nonempty ι] [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
   [seminormed_add_comm_group F] [normed_space 𝕜 F]
   {p : seminorm_family 𝕜 E ι}
 
 /-- In a semi-`normed_space`, a continuous seminorm is zero on elements of norm `0`. -/
 lemma map_eq_zero_of_norm_zero (q : seminorm 𝕜 F)
-  (hq : continuous q) {x : F} (hx : ∥x∥ = 0) : q x = 0 :=
+  (hq : continuous q) {x : F} (hx : ‖x‖ = 0) : q x = 0 :=
 (map_zero q) ▸
   ((specializes_iff_mem_closure.mpr $ mem_closure_zero_iff_norm.mpr hx).map hq).eq.symm
 
 /-- Let `F` be a semi-`normed_space` over a `nontrivially_normed_field`, and let `q` be a
 seminorm on `F`. If `q` is continuous, then it is uniformly controlled by the norm, that is there
-is some `C > 0` such that `∀ x, q x ≤ C * ∥x∥`.
+is some `C > 0` such that `∀ x, q x ≤ C * ‖x‖`.
 The continuity ensures boundedness on a ball of some radius `ε`. The nontriviality of the
 norm is then used to rescale any element into an element of norm in `[ε/C, ε[`, thus with a
 controlled image by `q`. The control of `q` at the original element follows by rescaling. -/
 lemma bound_of_continuous_normed_space (q : seminorm 𝕜 F)
-  (hq : continuous q) : ∃ C, 0 < C ∧ (∀ x : F, q x ≤ C * ∥x∥) :=
+  (hq : continuous q) : ∃ C, 0 < C ∧ (∀ x : F, q x ≤ C * ‖x‖) :=
 begin
   have hq' : tendsto q (𝓝 0) (𝓝 0) := map_zero q ▸ hq.tendsto 0,
   rcases normed_add_comm_group.nhds_zero_basis_norm_lt.mem_iff.mp (hq' $ Iio_mem_nhds one_pos)
     with ⟨ε, ε_pos, hε⟩,
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
-  have : 0 < ∥c∥ / ε, from div_pos (zero_lt_one.trans hc) ε_pos,
-  refine ⟨∥c∥ / ε, this, λ x, _⟩,
-  by_cases hx : ∥x∥ = 0,
+  have : 0 < ‖c‖ / ε, from div_pos (zero_lt_one.trans hc) ε_pos,
+  refine ⟨‖c‖ / ε, this, λ x, _⟩,
+  by_cases hx : ‖x‖ = 0,
   { rw [hx, mul_zero],
     exact le_of_eq (map_eq_zero_of_norm_zero q hq hx) },
   refine (norm_seminorm 𝕜 F).bound_of_shell q ε_pos hc (λ x hle hlt, _) hx,
@@ -672,7 +674,7 @@ end
 by some family of seminorms `p`, and let `q` be a seminorm on `E`. If `q` is continuous,
 then it is uniformly controlled by *finitely many* seminorms of `p`, that is there
 is some finset `s` of the index set and some `C > 0` such that `q ≤ C • s.sup p`. -/
-lemma bound_of_continuous [t : topological_space E] (hp : with_seminorms p)
+lemma bound_of_continuous [nonempty ι] [t : topological_space E] (hp : with_seminorms p)
   (q : seminorm 𝕜 E) (hq : continuous q) :
   ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ q ≤ C • s.sup p :=
 begin
@@ -700,8 +702,8 @@ end
 
 -- Not useful, should I keep it for explicit computations?
 lemma _root_.seminorm_family.bound_of_shell_sup (p : seminorm_family 𝕜 E ι) (s : finset ι)
-  (q : seminorm 𝕜 E) {ε : ℝ} {C : ℝ≥0} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)
-  (hf : ∀ x, (∀ i ∈ s, p i x < ε) → ∀ j ∈ s, ε / ∥c∥ ≤ p j x → q x ≤ (C • p j) x)
+  (q : seminorm 𝕜 E) {ε : ℝ} {C : ℝ≥0} (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ‖c‖)
+  (hf : ∀ x, (∀ i ∈ s, p i x < ε) → ∀ j ∈ s, ε / ‖c‖ ≤ p j x → q x ≤ (C • p j) x)
   {x : E} (hx : ∃ j, j ∈ s ∧ p j x ≠ 0) :
   q x ≤ (C • s.sup p) x :=
 begin

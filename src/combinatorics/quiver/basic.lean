@@ -162,7 +162,7 @@ variables {W' : Type*} [quiver W'] (φ : prefunctor V W') (τ : W → W') (h : �
 
 include φ h
 /-- Any map `φ : V → W'` factoring through `τ : W → W'` lifts to a prefunctor from `V` to `W`. -/
-def lift : push σ ⥤q W' :=
+@[simps obj] def lift : push σ ⥤q W' :=
 { obj := τ,
   map := @push_quiver.rec V _ W σ
     (λ X Y f, τ X ⟶ τ Y)

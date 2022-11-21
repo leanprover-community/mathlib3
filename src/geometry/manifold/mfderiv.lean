@@ -1685,7 +1685,7 @@ begin
   { assume z hz,
     apply (hs z hz.1).inter',
     apply (hf z hz.1).preimage_mem_nhds_within,
-    exact is_open.mem_nhds (ext_chart_at_open_source I' y) hz.2 },
+    exact (is_open_ext_chart_at_source I' y).mem_nhds hz.2 },
   exact this.unique_diff_on_target_inter _
 end
 

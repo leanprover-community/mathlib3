@@ -251,21 +251,6 @@ lemma image_mem_nhds_within {x : H} {s : set H} (hs : s ∈ 𝓝 x) :
   I '' s ∈ 𝓝[range I] (I x) :=
 I.map_nhds_eq x ▸ image_mem_map hs
 
-lemma symm_map_nhds_within {x : H} {s : set H} : map I.symm (𝓝[I '' s] (I x)) = 𝓝[s] x :=
-begin -- todo: golf
-  ext t, simp_rw [mem_map, mem_nhds_within],
-  split,
-  { rintro ⟨u, hu, hxu, hus⟩,
-    refine ⟨I ⁻¹' u, hu.preimage I.continuous, hxu, _⟩,
-    have :  I ⁻¹' _ ⊆ _ := preimage_mono hus,
-    rwa [preimage_inter, I.preimage_image, I.left_inverse.preimage_preimage] at this },
-  { rintro ⟨u, hu, hxu, hus⟩,
-    refine ⟨I.symm ⁻¹' u, hu.preimage I.continuous_symm, by rwa [mem_preimage, I.left_inv], _⟩,
-    refine (inter_subset_inter_right _ ((I.image_eq s).subset.trans $ inter_subset_left _ _)).trans
-      _,
-    simp_rw [← preimage_inter, preimage_mono hus] },
-end
-
 lemma symm_map_nhds_within_range (x : H) :
   map I.symm (𝓝[range I] (I x)) = 𝓝 x :=
 by rw [← I.map_nhds_eq, map_map, I.symm_comp_self, map_id]

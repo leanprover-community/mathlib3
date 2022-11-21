@@ -72,6 +72,17 @@ by simp [weighted_vsub_of_point, linear_map.sum_apply]
   s.weighted_vsub_of_point (λ _, p) b w = (∑ i in s, w i) • (p -ᵥ b) :=
 by rw [weighted_vsub_of_point_apply, sum_smul]
 
+/-- `weighted_vsub_of_point` gives equal results for two families of weights and two families of
+points that are equal on `s`. -/
+lemma weighted_vsub_of_point_congr {w₁ w₂ : ι → k} (hw : ∀ i ∈ s, w₁ i = w₂ i) {p₁ p₂ : ι → P}
+  (hp : ∀ i ∈ s, p₁ i = p₂ i) (b : P) :
+  s.weighted_vsub_of_point p₁ b w₁ = s.weighted_vsub_of_point p₂ b w₂ :=
+begin
+  simp_rw weighted_vsub_of_point_apply,
+  convert sum_congr rfl (λ i hi, _),
+  rw [hw i hi, hp i hi]
+end
+
 /-- Given a family of points, if we use a member of the family as a base point, the
 `weighted_vsub_of_point` does not depend on the value of the weights at this point. -/
 lemma weighted_vsub_of_point_eq_of_weights_eq
@@ -245,6 +256,12 @@ by rw [weighted_vsub, weighted_vsub_of_point_apply_const, h, zero_smul]
   (∅ : finset ι).weighted_vsub p w = (0:V) :=
 by simp [weighted_vsub_apply]
 
+/-- `weighted_vsub` gives equal results for two families of weights and two families of points
+that are equal on `s`. -/
+lemma weighted_vsub_congr {w₁ w₂ : ι → k} (hw : ∀ i ∈ s, w₁ i = w₂ i) {p₁ p₂ : ι → P}
+  (hp : ∀ i ∈ s, p₁ i = p₂ i) : s.weighted_vsub p₁ w₁ = s.weighted_vsub p₂ w₂ :=
+s.weighted_vsub_of_point_congr hw hp _
+
 /-- The weighted sum is unaffected by changing the weights to the
 corresponding indicator function and adding points to the set. -/
 lemma weighted_vsub_indicator_subset (w : ι → k) (p : ι → P) {s₁ s₂ : finset ι} (h : s₁ ⊆ s₂) :
@@ -335,6 +352,12 @@ rfl
 @[simp] lemma affine_combination_apply_const (w : ι → k) (p : P) (h : ∑ i in s, w i = 1) :
   s.affine_combination (λ _, p) w = p :=
 by rw [affine_combination_apply, s.weighted_vsub_of_point_apply_const, h, one_smul, vsub_vadd]
+
+/-- `affine_combination` gives equal results for two families of weights and two families of
+points that are equal on `s`. -/
+lemma affine_combination_congr {w₁ w₂ : ι → k} (hw : ∀ i ∈ s, w₁ i = w₂ i) {p₁ p₂ : ι → P}
+  (hp : ∀ i ∈ s, p₁ i = p₂ i) : s.affine_combination p₁ w₁ = s.affine_combination p₂ w₂ :=
+by simp_rw [affine_combination_apply, s.weighted_vsub_of_point_congr hw hp]
 
 /-- `affine_combination` gives the sum with any base point, when the
 sum of the weights is 1. -/

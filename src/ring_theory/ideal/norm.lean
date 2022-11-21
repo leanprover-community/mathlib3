@@ -352,34 +352,6 @@ begin
   ... = _ : nat_abs_det_equiv I e
 end
 
-/-- A basis on `S` gives a basis on `ideal.span {x}`, by multiplying everything by `x`. -/
-noncomputable def basis_span_singleton {ι R S : Type*} [comm_semiring R] [comm_ring S]
-  [is_domain S] [algebra R S]
-  (b : basis ι R S) {x : S} (hx : x ≠ 0) :
-  basis ι R (span ({x} : set S)) :=
-b.map $ ((linear_equiv.of_injective (algebra.lmul R S x) (linear_map.mul_injective hx)) ≪≫ₗ
-  (linear_equiv.of_eq _ _ (by { ext, simp [mem_span_singleton', mul_comm] })) ≪≫ₗ
-  ((submodule.restrict_scalars_equiv R S S (ideal.span ({x} : set S))).restrict_scalars R))
-
-@[simp] lemma basis_span_singleton_apply {ι R S : Type*} [comm_semiring R] [comm_ring S]
-  [is_domain S] [algebra R S]
-  (b : basis ι R S) {x : S} (hx : x ≠ 0) (i : ι) :
-  (basis_span_singleton b hx i : S) = x * b i :=
-begin
-  simp only [basis_span_singleton, basis.map_apply, linear_equiv.trans_apply,
-    submodule.restrict_scalars_equiv_apply, linear_equiv.of_injective_apply,
-    linear_equiv.coe_of_eq_apply, linear_equiv.restrict_scalars_apply,
-    algebra.coe_lmul_eq_mul, linear_map.mul_apply']
-end
-
-@[simp] lemma constr_basis_span_singleton {ι R S : Type*} [comm_semiring R] [comm_ring S]
-  [is_domain S] [algebra R S]
-  {N : Type*} [semiring N] [module N S] [smul_comm_class R N S]
-  (b : basis ι R S) {x : S} (hx : x ≠ 0) :
-  b.constr N (coe ∘ basis_span_singleton b hx) = algebra.lmul R S x :=
-b.ext (λ i, by erw [basis.constr_basis, function.comp_app, basis_span_singleton_apply,
-                   linear_map.mul_apply'])
-
 @[simp]
 lemma abs_norm_span_singleton (r : S) :
   abs_norm (span ({r} : set S)) = (algebra.norm ℤ r).nat_abs :=

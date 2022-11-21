@@ -44,6 +44,8 @@ structure injective_presentation (X : C) :=
 (f : X ⟶ J)
 (mono : mono f . tactic.apply_instance)
 
+attribute [instance] injective_presentation.injective injective_presentation.mono
+
 variables (C)
 
 /-- A category "has enough injectives" if every object has an injective presentation,
@@ -307,28 +309,24 @@ variables {D : Type*} [category D] {F : C ⥤ D} {G : D ⥤ C}
 
 lemma map_injective (adj : F ⊣ G) [F.preserves_monomorphisms] (I : D) (hI : injective I) :
   injective (G.obj I) :=
-begin
-  constructor,
-  intros X Y f g hg,
-  haveI : mono (F.map g) := by unfreezingI { apply_instance },
-  rcases @hI.1 (F.map f ≫ adj.counit.app _) (F.map g),
+⟨λ X Y f g, begin
+  introI,
+  rcases hI.factors (F.map f ≫ adj.counit.app _) (F.map g),
   use adj.unit.app Y ≫ G.map w,
   rw [←unit_naturality_assoc, ←G.map_comp, h],
   simp,
-end
+end⟩
 
 lemma injective_of_map_injective (adj : F ⊣ G) [full G] [faithful G] (I : D)
   (hI : injective (G.obj I)) : injective I :=
-begin
-  constructor,
-  intros X Y f g hg,
+⟨λ X Y f g, begin
+  introI,
   haveI := adj.right_adjoint_preserves_limits,
-  haveI : mono (G.map g) := by unfreezingI { apply_instance },
-  rcases @hI.1 (G.map f) (G.map g),
+  rcases hI.factors (G.map f) (G.map g),
   use inv (adj.counit.app _) ≫ F.map w ≫ adj.counit.app _,
   refine faithful.map_injective G _,
   simpa
-end
+end⟩
 
 /-- Given an adjunction `F ⊣ G` such that `F` preserves monos, `G` maps an injective presentation
 of `X` to an injective presentation of `G(X)`. -/
@@ -337,7 +335,7 @@ def map_injective_presentation (adj : F ⊣ G) [F.preserves_monomorphisms] (X : 
 { J := G.obj I.J,
   injective := adj.map_injective _ I.injective,
   f := G.map I.f,
-  mono := by haveI := I.mono; haveI := adj.right_adjoint_preserves_limits; apply_instance }
+  mono := by haveI := adj.right_adjoint_preserves_limits; apply_instance }
 
 end adjunction
 namespace equivalence
@@ -351,7 +349,7 @@ def injective_presentation_of_map_injective_presentation
 { J := F.inverse.obj I.J,
   injective := adjunction.map_injective F.to_adjunction I.J I.injective,
   f := F.unit.app _ ≫ F.inverse.map I.f,
-  mono := by haveI : mono I.f := I.mono; refine mono_comp _ _ }
+  mono := mono_comp _ _ }
 
 lemma enough_injectives_iff (F : C ≌ D) :
   enough_injectives C ↔ enough_injectives D :=

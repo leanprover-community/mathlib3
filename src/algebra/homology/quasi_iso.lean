@@ -3,7 +3,6 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Joël Riou
 -/
-import algebra.homology.homology
 import algebra.homology.homotopy
 import category_theory.abelian.homology
 
@@ -92,16 +91,16 @@ variables {X : chain_complex W ℕ} {Y : W} (f : X ⟶ ((chain_complex.single₀
 
 /-- If a chain map `f : X ⟶ Y[0]` is a quasi-isomorphism, then the cokernel of the differential
 `d : X₁ → X₀` is isomorphic to `Y.` -/
-noncomputable def to_single₀_cokernel_at_zero : cokernel (X.d 1 0) ≅ Y :=
+noncomputable def to_single₀_cokernel_at_zero_iso : cokernel (X.d 1 0) ≅ Y :=
 (X.homology_zero_iso.symm.trans ((@as_iso _ _ _ _ _ (hf.1 0)).trans
   ((chain_complex.homology_functor_0_single₀ W).app Y)))
 
-lemma to_single₀_cokernel_at_zero_hom_eq [hf : quasi_iso f] :
-  f.to_single₀_cokernel_at_zero.hom = cokernel.desc (X.d 1 0) (f.f 0)
+lemma to_single₀_cokernel_at_zero_iso_hom_eq [hf : quasi_iso f] :
+  f.to_single₀_cokernel_at_zero_iso.hom = cokernel.desc (X.d 1 0) (f.f 0)
     (by rw ←f.2 1 0 rfl; exact comp_zero) :=
 begin
   ext,
-  dunfold to_single₀_cokernel_at_zero chain_complex.homology_zero_iso homology_of_zero_right
+  dunfold to_single₀_cokernel_at_zero_iso chain_complex.homology_zero_iso homology_of_zero_right
     homology.map_iso chain_complex.homology_functor_0_single₀ cokernel.map,
   dsimp,
   simp only [cokernel.π_desc, category.assoc, homology.map_desc, cokernel.π_desc_assoc],
@@ -114,7 +113,7 @@ begin
   constructor,
   intros Z g h Hgh,
   rw [←cokernel.π_desc (X.d 1 0) (f.f 0) (by rw ←f.2 1 0 rfl; exact comp_zero),
-    ←to_single₀_cokernel_at_zero_hom_eq] at Hgh,
+    ←to_single₀_cokernel_at_zero_iso_hom_eq] at Hgh,
   rw (@cancel_epi _ _ _ _ _ _ (epi_comp _ _) _ _).1 Hgh,
 end
 
@@ -127,7 +126,7 @@ begin
   refine ⟨h, nonempty.intro (homology_iso_kernel_desc _ _ _ ≪≫ _)⟩,
   { suffices : is_iso (cokernel.desc _ _ h),
     { haveI := this, apply kernel.of_mono, },
-      rw ←to_single₀_cokernel_at_zero_hom_eq,
+      rw ←to_single₀_cokernel_at_zero_iso_hom_eq,
       apply_instance }
 end
 
@@ -144,16 +143,16 @@ variables {X : cochain_complex W ℕ} {Y : W}
 
 /-- If a cochain map `f : Y[0] ⟶ X` is a quasi-isomorphism, then the kernel of the differential
 `d : X₀ → X₁` is isomorphic to `Y.` -/
-noncomputable def from_single₀_kernel_at_zero [hf : quasi_iso f] : kernel (X.d 0 1) ≅ Y :=
+noncomputable def from_single₀_kernel_at_zero_iso [hf : quasi_iso f] : kernel (X.d 0 1) ≅ Y :=
 (X.homology_zero_iso.symm.trans ((@as_iso _ _ _ _ _ (hf.1 0)).symm.trans
   ((cochain_complex.homology_functor_0_single₀ W).app Y)))
 
-lemma from_single₀_kernel_at_zero_inv_eq [hf : quasi_iso f] :
-  f.from_single₀_kernel_at_zero.inv = kernel.lift (X.d 0 1) (f.f 0)
+lemma from_single₀_kernel_at_zero_iso_inv_eq [hf : quasi_iso f] :
+  f.from_single₀_kernel_at_zero_iso.inv = kernel.lift (X.d 0 1) (f.f 0)
     (by rw f.2 0 1 rfl; exact zero_comp) :=
 begin
   ext,
-  dunfold from_single₀_kernel_at_zero cochain_complex.homology_zero_iso homology_of_zero_left
+  dunfold from_single₀_kernel_at_zero_iso cochain_complex.homology_zero_iso homology_of_zero_left
     homology.map_iso cochain_complex.homology_functor_0_single₀ kernel.map,
   simp only [iso.trans_inv, iso.app_inv, iso.symm_inv, category.assoc,
     equalizer_as_kernel, kernel.lift_ι],
@@ -170,7 +169,7 @@ begin
   constructor,
   intros Z g h Hgh,
   rw [←kernel.lift_ι (X.d 0 1) (f.f 0) (by rw f.2 0 1 rfl; exact zero_comp),
-    ←from_single₀_kernel_at_zero_inv_eq] at Hgh,
+    ←from_single₀_kernel_at_zero_iso_inv_eq] at Hgh,
   rw (@cancel_mono _ _ _ _ _ _ (mono_comp _ _) _ _).1 Hgh,
 end
 
@@ -183,7 +182,7 @@ begin
   refine ⟨h, nonempty.intro (homology_iso_cokernel_lift _ _ _ ≪≫ _)⟩,
   { suffices : is_iso (kernel.lift (X.d 0 1) (f.f 0) h),
     { haveI := this, apply cokernel.of_epi },
-    rw ←from_single₀_kernel_at_zero_inv_eq f,
+    rw ←from_single₀_kernel_at_zero_iso_inv_eq f,
     apply_instance },
 end
 

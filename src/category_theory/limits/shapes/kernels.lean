@@ -846,9 +846,9 @@ lemma map_lift_kernel_comparison [has_kernel f] [has_kernel (G.map f)]
       kernel.lift _ (G.map h) (by simp only [←G.map_comp, w, functor.map_zero]) :=
 by { ext, simp [← G.map_comp] }
 
-@[reassoc] lemma kernel_comparison_comp_map {X' Y' : C} [has_kernel f] [has_kernel (G.map f)]
-  (g : X' ⟶ Y') [has_kernel g] [has_kernel (G.map g)] (p : X ⟶ X') (q : Y ⟶ Y')
-  (hpq : f ≫ q = p ≫ g) :
+@[reassoc] lemma kernel_comparison_comp_kernel_map {X' Y' : C} [has_kernel f]
+  [has_kernel (G.map f)] (g : X' ⟶ Y') [has_kernel g] [has_kernel (G.map g)] (p : X ⟶ X')
+  (q : Y ⟶ Y') (hpq : f ≫ q = p ≫ g) :
   kernel_comparison f G ≫ (kernel.map (G.map f) (G.map g) (G.map p) (G.map q)
     (by rw [←G.map_comp, hpq, G.map_comp])) =
   G.map (kernel.map f g p q hpq) ≫ kernel_comparison g G :=
@@ -874,9 +874,9 @@ lemma cokernel_comparison_map_desc [has_cokernel f] [has_cokernel (G.map f)]
     cokernel.desc _ (G.map h) (by simp only [←G.map_comp, w, functor.map_zero]) :=
 by { ext, simp [← G.map_comp] }
 
-@[reassoc] lemma map_comp_cokernel_comparison {X' Y' : C} [has_cokernel f] [has_cokernel (G.map f)]
-  (g : X' ⟶ Y') [has_cokernel g] [has_cokernel (G.map g)] (p : X ⟶ X') (q : Y ⟶ Y')
-  (hpq : f ≫ q = p ≫ g) :
+@[reassoc] lemma cokernel_map_comp_cokernel_comparison {X' Y' : C} [has_cokernel f]
+  [has_cokernel (G.map f)] (g : X' ⟶ Y') [has_cokernel g] [has_cokernel (G.map g)]
+  (p : X ⟶ X') (q : Y ⟶ Y') (hpq : f ≫ q = p ≫ g) :
   cokernel.map (G.map f) (G.map g) (G.map p) (G.map q) (by rw [←G.map_comp, hpq, G.map_comp])
     ≫ cokernel_comparison _ G = cokernel_comparison _ G ≫ G.map (cokernel.map f g p q hpq) :=
 cokernel.map_desc _ _ (by rw [←G.map_comp, cokernel.condition, G.map_zero]) _ _

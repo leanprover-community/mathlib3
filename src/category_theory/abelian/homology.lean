@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz, Amelia Livingston
 -/
 import algebra.homology.additive
-import category_theory.abelian.exact
 import category_theory.abelian.pseudoelements
 import category_theory.limits.preserves.shapes.kernels
 import category_theory.limits.preserves.shapes.images
@@ -299,13 +298,13 @@ begin
   simp only [homology.map, ←category.assoc, cokernel.π_desc],
   simp only [category.assoc, cokernel_comparison_map_desc, cokernel.π_desc,
     π_comp_cokernel_comparison, ←F.map_comp],
-  erw ←kernel_subobject_iso_comp_map_assoc,
+  erw ←kernel_subobject_iso_comp_kernel_map_assoc,
   simp only [homological_complex.hom.sq_from_right,
     homological_complex.hom.sq_from_left, F.map_homological_complex_map_f, F.map_comp],
   dunfold homological_complex.d_from homological_complex.hom.next,
   dsimp,
-  rw [map_comp_preserves_kernel_iso_inv_assoc, ←F.map_comp_assoc,
-    ←map_comp_kernel_subobject_iso_inv],
+  rw [kernel_map_comp_preserves_kernel_iso_inv_assoc, ←F.map_comp_assoc,
+    ←kernel_map_comp_kernel_subobject_iso_inv],
   any_goals { simp },
 end
 

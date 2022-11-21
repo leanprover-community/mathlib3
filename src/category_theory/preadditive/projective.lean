@@ -55,6 +55,8 @@ structure projective_presentation (X : C) :=
 (f : P ⟶ X)
 (epi : epi f . tactic.apply_instance)
 
+attribute [instance] projective_presentation.projective projective_presentation.epi
+
 variables (C)
 
 /-- A category "has enough projectives" if for every object `X` there is a projective object `P` and
@@ -218,28 +220,24 @@ variables {D : Type*} [category D] {F : C ⥤ D} {G : D ⥤ C}
 
 lemma map_projective (adj : F ⊣ G) [G.preserves_epimorphisms] (P : C) (hP : projective P) :
   projective (F.obj P) :=
-begin
-  constructor,
-  intros X Y f g hg,
-  haveI : epi (G.map g) := by unfreezingI { apply_instance },
-  rcases @hP.1 (adj.unit.app P ≫ G.map f) (G.map g),
+⟨λ X Y f g, begin
+  introI,
+  rcases hP.factors (adj.unit.app P ≫ G.map f) (G.map g),
   use F.map w ≫ adj.counit.app X,
   rw [category.assoc, ←adjunction.counit_naturality, ←category.assoc, ←F.map_comp, h],
   simp,
-end
+end⟩
 
 lemma projective_of_map_projective (adj : F ⊣ G) [full F] [faithful F] (P : C)
   (hP : projective (F.obj P)) : projective P :=
-begin
-  constructor,
-  intros X Y f g hg,
+⟨λ X Y f g, begin
+  introI,
   haveI := adj.left_adjoint_preserves_colimits,
-  haveI : epi (F.map g) := by unfreezingI { apply_instance },
   rcases @hP.1 (F.map f) (F.map g),
   use adj.unit.app _ ≫ G.map w ≫ (inv $ adj.unit.app _),
   refine faithful.map_injective F _,
   simpa
-end
+end⟩
 
 /-- Given an adjunction `F ⊣ G` such that `G` preserves epis, `F` maps a projective presentation of
 `X` to a projective presentation of `F(X)`. -/
@@ -248,7 +246,7 @@ def map_projective_presentation (adj : F ⊣ G) [G.preserves_epimorphisms] (X : 
 { P := F.obj Y.P,
   projective := adj.map_projective _ Y.projective,
   f := F.map Y.f,
-  epi := by haveI := Y.epi; haveI := adj.left_adjoint_preserves_colimits; apply_instance }
+  epi := by haveI := adj.left_adjoint_preserves_colimits; apply_instance }
 
 end adjunction
 namespace equivalence
@@ -262,7 +260,7 @@ def projective_presentation_of_map_projective_presentation
 { P := F.inverse.obj Y.P,
   projective := adjunction.map_projective F.symm.to_adjunction Y.P Y.projective,
   f := F.inverse.map Y.f ≫ F.unit_inv.app _,
-  epi := by haveI : epi Y.f := Y.epi; refine epi_comp _ _ }
+  epi := epi_comp _ _ }
 
 lemma enough_projectives_iff (F : C ≌ D) :
   enough_projectives C ↔ enough_projectives D :=

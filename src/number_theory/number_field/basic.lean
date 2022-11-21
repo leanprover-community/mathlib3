@@ -79,7 +79,7 @@ end
 For now, this is not an instance by default as it creates an equal-but-not-defeq diamond with
 `algebra.id` when `K = L`. This is caused by `x = ⟨x, x.prop⟩` not being defeq on subtypes. This
 will likely change in Lean 4. -/
-def ring_of_integers_algebra [algebra K L] : algebra (𝓞 K) (𝓞 L) := ring_hom.to_algebra
+instance ring_of_integers_algebra [algebra K L] : algebra (𝓞 K) (𝓞 L) := ring_hom.to_algebra
 { to_fun := λ k, ⟨algebra_map K L k, is_integral.algebra_map k.2⟩,
   map_zero' := subtype.ext $ by simp only [subtype.coe_mk, subalgebra.coe_zero, map_zero],
   map_one'  := subtype.ext $ by simp only [subtype.coe_mk, subalgebra.coe_one, map_one],

@@ -1017,13 +1017,22 @@ begin
   simp_rw [mul_left_comm, ← mul_assoc, ← C_mul, u.val_inv, C_1, one_mul],
 end
 
-lemma exists_add_mul_eq_coeff_of_not_irreducible {R} [comm_semiring R] [no_zero_divisors R]
-  {p : R[X]} (hm : p.monic) (hnd : p.nat_degree = 2) (hirr : ¬ irreducible p) :
-  ∃ c₁ c₂, p.coeff 0 = c₁ * c₂ ∧ p.coeff 1 = c₁ + c₂ :=
+lemma not_irreducible_iff_exists_add_mul_eq_coeff {R} [comm_semiring R] [no_zero_divisors R]
+  {p : R[X]} (hm : p.monic) (hnd : p.nat_degree = 2) :
+  ¬ irreducible p ↔ ∃ c₁ c₂, p.coeff 0 = c₁ * c₂ ∧ p.coeff 1 = c₁ + c₂ :=
 begin
+  refine ⟨λ hred, _, _⟩, swap,
+  { rw irreducible_iff, push_neg, nontriviality R,
+    rintro ⟨c₁, c₂, hmul, hadd⟩ -,
+    use [X + C c₁, X + C c₂],
+    rw [p.as_sum_range_C_mul_X_pow, hnd], simp_rw [finset.sum_range_succ],
+    rw [finset.sum_range_zero, hmul, hadd, C_mul, C_add], nth_rewrite 0 ← hnd,
+    rw [← leading_coeff, hm.leading_coeff, C_1],
+    refine ⟨by ring, _⟩, split;
+    { refine mt degree_eq_zero_of_is_unit _, rw degree_X_add_C, exact one_ne_zero } },
   nontriviality R,
-  rw hm.irreducible_iff at hirr, push_neg at hirr,
-  obtain ⟨a, b, rfl, hma, hmb, hda, hdb, hd, hua, hub⟩ := hirr _, swap,
+  rw hm.irreducible_iff at hred, push_neg at hred,
+  obtain ⟨a, b, rfl, hma, hmb, hda, hdb, hd, hua, hub⟩ := hred _, swap,
   { apply_fun nat_degree, rw [hnd, nat_degree_one], rintro ⟨⟩ },
   rw hnd at hd, have := (nat.le_add_right _ _).trans_eq hd,
   interval_cases a.nat_degree with hda', swap,

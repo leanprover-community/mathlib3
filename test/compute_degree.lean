@@ -164,7 +164,7 @@ begin
       exact nat_degree_C_mul_X a a0 } }
 end
 
-example {R : Type*} [ring R] [nontrivial R] {a b : R} {h2 : (2 : R) ≠ 0}:
+example {R : Type*} [ring R] [nontrivial R] {a b : R} {h2 : (2 : R) ≠ 0} :
   ∀ p ∈ [X^2, X^2 - C a * X - C b, X^2 + C b, 2 * X ^ 2, -X^2], polynomial.nat_degree p = 2 :=
 begin
   simp only [list.mem_cons_iff, list.mem_singleton, forall_eq_or_imp, forall_eq],

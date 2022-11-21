@@ -467,10 +467,23 @@ do
 /--  `compute_degree` tries to close goals of the form `f.(nat_)degree = d`.  It converts the
 goal to showing that
 * the degree is at most `d`, calling `compute_degree_le` to solve this case;
-* the coefficient of degree `n` is non-zero, calling `simp_coeff` to simplify this goal.
-Unless the polynomial is particularly complicated, `compute_degree` with either succeed of leave
-a simpler goal to prove.
- -/
+* the coefficient of degree `d` is non-zero, calling `simp_coeff` to simplify this goal.
+
+Unless the polynomial is particularly complicated, `compute_degree` either succeeds of leaves
+a simpler goal to prove.  Continue reading for a discussion of what are the current
+limitations to the tactic.
+
+`compute_degree` scans the polynomial `f` and computes the largest degree `n` that it sees.
+It then assumes that this degree `n` equals the expected degree `d`, failing otherwise.
+
+In practice, this means that if the goal is `nat_degree (X - X + 1 : ℤ[X]) = 0`, then
+`compute_degree` gives an error, since there are terms of degree `1` in the expression
+(the cancelling pair `X, -X`) and the tactic expects `1` to be the degree.  Note that this is not
+an issue if the cancellation arises in terms of degrees smaller than the maximum:
+```lean
+example : nat_degree (X ^ 2 + X - X : ℤ[X]) = 2 := by compute_degree
+```
+works. -/
 meta def compute_degree (single : parse (tk "!" )?) : tactic unit :=
 focus $ do
   t ← target >>= (λ f, whnf f reducible),

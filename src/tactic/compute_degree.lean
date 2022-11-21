@@ -489,15 +489,15 @@ focus $ do
   | _ := fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`"
   end,
   done <|> (do
-  `(nat_degree %%pol = %%degv) ← target |
-    fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
-  deg ← guess_degree' pol,
-  degvn ← eval_expr' ℕ degv,
-  guard (deg = degvn) <|>
-  ( do ppe ← pp deg, ppg ← pp degvn,
-    fail sformat!("'{ppe}' is the expected degree\n'{ppg}' is the given degree\n") ),
-  refine ``(le_antisymm _ (le_nat_degree_of_ne_zero _)),
-  focus' [compute_degree_le, simp_coeff []])
+    `(nat_degree %%pol = %%degv) ← target |
+      fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
+    deg ← guess_degree' pol,
+    degvn ← eval_expr' ℕ degv,
+    guard (deg = degvn) <|> ( do
+      ppe ← pp deg, ppg ← pp degvn,
+      fail sformat!("'{ppe}' is the expected degree\n'{ppg}' is the given degree\n") ),
+    refine ``(le_antisymm _ (le_nat_degree_of_ne_zero _)),
+    focus' [compute_degree_le, simp_coeff []])
 
 end parsing
 

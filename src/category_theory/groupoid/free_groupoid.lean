@@ -161,9 +161,9 @@ lemma lift_unique (φ : V ⥤q V') (Φ : free_groupoid V ⥤ V')
 begin
   apply quotient.lift_unique,
   apply paths.lift_unique,
-  apply quiver.symmetrify.lift_unique,
+  fapply @quiver.symmetrify.lift_unique _ _ _ _ _ _ _ _ _,
   { rw ←functor.to_prefunctor_comp, exact hΦ, },
-  { rintros X Y f,
+  { constructor, rintros X Y f,
     simp only [←functor.to_prefunctor_comp,prefunctor.comp_map, paths.of_map, inv_eq_inv],
     change Φ.map (inv ((quotient.functor red_step).to_prefunctor.map f.to_path)) =
            inv (Φ.map ((quotient.functor red_step).to_prefunctor.map f.to_path)),

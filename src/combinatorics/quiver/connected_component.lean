@@ -10,8 +10,8 @@ import combinatorics.quiver.symmetric
 ## Weakly connected components
 
 For a quiver `V`, we define the type `weakly_connected_component V` as the quotient of `V`
-by the relation which identifies `a` with `b` if there is a path from `a` to `b` in `symmetrify V`. (These
-zigzags can be seen as a proof-relevant analogue of `eqv_gen`.)
+by the relation which identifies `a` with `b` if there is a path from `a` to `b` in `symmetrify V`.
+(These zigzags can be seen as a proof-relevant analogue of `eqv_gen`.)
 
 Strongly connected components have not yet been defined.
 -/

@@ -1539,19 +1539,28 @@ variables (G) [fintype G.connected_component]
 
 def num_connected_components := fintype.card G.connected_component
 
-lemma num_connected_components_eq_one_if_connected (hGcc: G.num_connected_components=1) :
-G.connected :=
+lemma num_connected_components_eq_one_iff_connected :
+G.num_connected_components=1 ↔ G.connected :=
 begin
-  rw connected_iff,
   split,
-  { intros u v,
-    cases fintype.card_eq_one_iff.1 hGcc with C hC,
-    have t:=eq.trans (hC (G.connected_component_mk u)) (eq.symm (hC (G.connected_component_mk v))),
-    exact connected_component.exact (eq.trans (hC (G.connected_component_mk u))
-      (eq.symm (hC (G.connected_component_mk v)))),},
+  { intro h,
+    rw connected_iff,
+    split,
+    { intros u v,
+      cases fintype.card_eq_one_iff.1 h with C hC,
+      have t:=eq.trans (hC (G.connected_component_mk u)) (eq.symm (hC (G.connected_component_mk v))),
+      exact connected_component.exact (eq.trans (hC (G.connected_component_mk u))
+        (eq.symm (hC (G.connected_component_mk v))))},
   { have h:G.num_connected_components >0, linarith,
     exact @surjective.nonempty V G.connected_component (fintype.card_pos_iff.1 h)
-      G.connected_component_mk (surjective_connected_component_mk G),}
+      G.connected_component_mk (surjective_connected_component_mk G),}},
+  { intro h,
+    obtain ⟨x⟩ :=h.2,
+    rw [num_connected_components,fintype.card_eq_one_iff],
+    use G.connected_component_mk x,
+    intro C,
+    apply connected_component_out_reachable_eq,
+    apply h.1,}
 end
 
 end number_connected_components

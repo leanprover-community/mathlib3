@@ -492,13 +492,18 @@ focus $ do
 
 end parsing
 
-/--  `prove_monic` tries to close goals of the form `monic f`.  It converts the
-goal to showing that
-* the degree is at most `d`, calling `compute_degree_le` to solve this goal;
-* the coefficient of degree `d` equals `1`, calling `simp_coeff` to simplify this goal.
-Unless the polynomial is particularly complicated, `prove_monic` will either succeed or leave
+/--  `prove_monic` tries to close goals of the form `monic f`.  It first determines a candidate
+degree `d` for the polynomial `f`, using `tactic.compute_degree.guess_degree'`.  Next, it converts
+the goal to showing that
+* the degree of `f` is at most `d`, and using `compute_degree_le` to solve this goal;
+* the coefficient of degree `d` equals `1`, and using `simp_coeff` to simplify this goal.
+If the term of largest degree appearing in `f` has non-zero coefficient (i.e., the terms of
+highest degree do not cancel), then `prove_monic` should either succeed or leave
 a simpler goal to prove.
- -/
+
+An example of a polynomial where the current implementation of `prove_monic` fails is `X - X + 1`.
+In this case, `prove_monic` tries to prove that the coefficient of `X` equals `1`, leaving a goal
+of `1 - 1 = 1`, not realizing that the terms in `X` cancel out. -/
 meta def prove_monic : tactic unit :=
 focus $ do
   `(monic %%pol) ← target >>= (λ f, whnf f reducible) | fail"Goal is not of the form `monic f`",

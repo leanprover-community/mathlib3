@@ -7,6 +7,7 @@ Authors: Moritz Doll, Anatole Dedecker
 import analysis.seminorm
 import analysis.locally_convex.bounded
 import topology.algebra.equicontinuity
+import topology.metric_space.equicontinuity
 import topology.algebra.filter_basis
 import topology.algebra.module.locally_convex
 
@@ -527,9 +528,9 @@ begin
 end
 
 lemma uniform_equicontinuous_iff_exists_continuous_seminorm {κ : Type*}
-  {q : seminorm_family 𝕜 F ι'} [uniform_space E] [uniform_add_group E] [u : uniform_space F]
+  {q : seminorm_family 𝕜₂ F ι'} [uniform_space E] [uniform_add_group E] [u : uniform_space F]
   [hu : uniform_add_group F] (hq : with_seminorms q) [has_continuous_smul 𝕜 E]
-  (f : κ → E →ₗ[𝕜] F) :
+  (f : κ → E →ₛₗ[σ₁₂] F) :
   uniform_equicontinuous (coe_fn ∘ f) ↔
   ∀ i, ∃ p : seminorm 𝕜 E, continuous p ∧ ∀ k, (q i).comp (f k) ≤ p :=
 begin
@@ -555,7 +556,7 @@ begin
     rintros ⟨p, hp, hfp⟩,
     have hp' : filter.tendsto p (𝓝 0) (𝓝 0) := map_zero p ▸ hp.tendsto 0,
     refine uniform_equicontinuous_of_equicontinuous_at_zero f
-      (metric.equicontinuous_at_of_continuity_modulus p hp' _ $ λ x k, _),
+      (metric.equicontinuous_at_of_continuity_modulus p hp' _ $ eventually_of_forall $ λ x k, _),
     change q i (f k 0 - f k x) ≤ p x,
     rw [map_zero, zero_sub, map_neg_eq_map, ← comp_apply],
     exact hfp k x }
@@ -573,8 +574,8 @@ begin
     rcases hq 1 one_pos with ⟨V, hV, hVq⟩,
     rcases p.basis_sets_iff.mp hV with ⟨s, ε, ε_pos, rfl⟩,
     rcases exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
-    have : 0 < ∥c∥ / ε, from div_pos (zero_lt_one.trans hc) ε_pos,
-    refine ⟨s, ∥c∥₊ / ⟨ε, ε_pos.le⟩, sorry, λ x, _⟩,
+    have : 0 < ‖c‖ / ε, from div_pos (zero_lt_one.trans hc) ε_pos,
+    refine ⟨s, ‖c‖₊ / ⟨ε, ε_pos.le⟩, sorry, λ x, _⟩,
     by_cases hqx : s.sup p x = 0,
     { sorry },
     { rcases q.rescale_to_shell hk hr hqx with ⟨d, hd, hqdx₁, hqdx₂, hnorms⟩,

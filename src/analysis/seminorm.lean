@@ -852,23 +852,6 @@ begin
   rw [←smul_assoc, smul_eq_mul, ←div_eq_mul_inv, div_self (norm_pos_iff.mp hk), one_smul],
 end
 
-lemma smul_closed_ball_zero {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} (hk : 0 < ∥k∥) :
-  k • p.closed_ball 0 r = p.closed_ball 0 (∥k∥ * r) :=
-begin
-  ext,
-  rw [set.mem_smul_set, seminorm.mem_closed_ball_zero],
-  split; intro h,
-  { rcases h with ⟨y, hy, h⟩,
-    rw [←h, map_smul_eq_mul],
-    rw seminorm.mem_closed_ball_zero at hy,
-    exact (mul_le_mul_left hk).mpr hy },
-  refine ⟨k⁻¹ • x, _, _⟩,
-  { rw [seminorm.mem_closed_ball_zero, map_smul_eq_mul, norm_inv, ←(mul_le_mul_left hk),
-      ←mul_assoc, ←(div_eq_mul_inv ∥k∥ ∥k∥), div_self (ne_of_gt hk), one_mul],
-    exact h},
-  rw [←smul_assoc, smul_eq_mul, ←div_eq_mul_inv, div_self (norm_pos_iff.mp hk), one_smul],
-end
-
 lemma ball_zero_absorbs_ball_zero (p : seminorm 𝕜 E) {r₁ r₂ : ℝ} (hr₁ : 0 < r₁) :
   absorbs 𝕜 (p.ball 0 r₁) (p.ball 0 r₂) :=
 begin
@@ -1163,7 +1146,7 @@ begin
   { rw ← mem_smul_set_iff_inv_smul_mem₀ hk0,
     exact hrx k hk.le },
   rcases h (k⁻¹ • x) this with ⟨M, hM⟩,
-  refine ⟨∥k∥ * M, forall_range_iff.mpr $ λ i, _⟩,
+  refine ⟨‖k‖ * M, forall_range_iff.mpr $ λ i, _⟩,
   have := (forall_range_iff.mp hM) i,
   rwa [map_smul_eq_mul, norm_inv, inv_mul_le_iff (hr.trans hk)] at this
 end

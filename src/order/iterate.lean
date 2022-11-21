@@ -5,7 +5,6 @@ Authors: Yury G. Kudryashov
 -/
 import logic.function.iterate
 import order.monotone
-import data.nat.basic
 
 /-!
 # Inequalities on iterates

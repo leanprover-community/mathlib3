@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Loeffler
 -/
 import analysis.special_functions.trigonometric.basic
-import analysis.special_functions.trigonometric.deriv
 import analysis.special_functions.trigonometric.arctan_deriv
 /-!
 # Polynomial bounds for trigonometric functions

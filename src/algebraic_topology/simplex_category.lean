@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 
-import category_theory.skeletal
 import tactic.linarith
+import category_theory.skeletal
 import data.fintype.sort
 import order.category.NonemptyFinLinOrd
 import category_theory.functor.reflects_isomorphisms

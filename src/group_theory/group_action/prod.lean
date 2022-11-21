@@ -66,6 +66,7 @@ lemma pow_def (p : α × β) (c : E) : p ^ c = (p.1 ^ c, p.2 ^ c) := rfl
 @[simp, to_additive smul_swap, to_additive_reorder 6]
 lemma pow_swap (p : α × β) (c : E) : (p ^ c).swap = p.swap ^ c := rfl
 
+@[to_additive]
 instance [has_smul M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
   is_scalar_tower M N (α × β) :=
 ⟨λ x y z, mk.inj_iff.mpr ⟨smul_assoc _ _ _, smul_assoc _ _ _⟩⟩
@@ -74,6 +75,7 @@ instance [has_smul M N] [is_scalar_tower M N α] [is_scalar_tower M N β] :
   smul_comm_class M N (α × β) :=
 { smul_comm := λ r s x, mk.inj_iff.mpr ⟨smul_comm _ _ _, smul_comm _ _ _⟩ }
 
+@[to_additive]
 instance [has_smul Mᵐᵒᵖ α] [has_smul Mᵐᵒᵖ β] [is_central_scalar M α] [is_central_scalar M β] :
   is_central_scalar M (α × β) :=
 ⟨λ r m, prod.ext (op_smul_eq_smul _ _) (op_smul_eq_smul _ _)⟩

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Yury Kudryashov
 -/
 import topology.uniform_space.uniform_convergence
+import topology.uniform_space.equicontinuity
 import topology.separation
 
 /-!
@@ -148,13 +149,13 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
     -- So u ∈ V₁, v ∈ V₂, and there exists some w such that (u, w) ∈ W and (w ,v) ∈ W.
     -- Because u is in V₁ which is disjoint from U₂ and U₃, (u, w) ∈ W forces (u, w) ∈ U₁ ×ˢ U₁.
     have uw_in : (u, w) ∈ U₁ ×ˢ U₁ := (huw.resolve_right $ λ h, (h.1 $ or.inl u_in)).resolve_right
-      (λ h, hU₁₂ ⟨VU₁ u_in, h.1⟩),
+      (λ h, hU₁₂.le_bot ⟨VU₁ u_in, h.1⟩),
     -- Similarly, because v ∈ V₂, (w ,v) ∈ W forces (w, v) ∈ U₂ ×ˢ U₂.
     have wv_in : (w, v) ∈ U₂ ×ˢ U₂ := (hwv.resolve_right $ λ h, (h.2 $ or.inr v_in)).resolve_left
-      (λ h, hU₁₂ ⟨h.2, VU₂ v_in⟩),
+      (λ h, hU₁₂.le_bot ⟨h.2, VU₂ v_in⟩),
     -- Hence w ∈ U₁ ∩ U₂ which is empty.
     -- So we have a contradiction
-    exact hU₁₂ ⟨uw_in.2, wv_in.1⟩,
+    exact hU₁₂.le_bot ⟨uw_in.2, wv_in.1⟩,
   end,
   is_open_uniformity := begin
     -- Here we need to prove the topology induced by the constructed uniformity is the
@@ -178,7 +179,7 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
 ### Heine-Cantor theorem
 -/
 
-/-- Heine-Cantor: a continuous function on a compact separated uniform space is uniformly
+/-- Heine-Cantor: a continuous function on a compact uniform space is uniformly
 continuous. -/
 lemma compact_space.uniform_continuous_of_continuous [compact_space α]
   {f : α → β} (h : continuous f) : uniform_continuous f :=
@@ -220,3 +221,18 @@ locally compact and `β` is compact. -/
 lemma continuous.tendsto_uniformly [locally_compact_space α] [compact_space β] [uniform_space γ]
   (f : α → β → γ) (h : continuous ↿f) (x : α) : tendsto_uniformly f (f x) (𝓝 x) :=
 h.continuous_on.tendsto_uniformly univ_mem
+
+section uniform_convergence
+
+/-- An equicontinuous family of functions defined on a compact uniform space is automatically
+uniformly equicontinuous. -/
+lemma compact_space.uniform_equicontinuous_of_equicontinuous {ι : Type*} {F : ι → β → α}
+  [compact_space β] (h : equicontinuous F) :
+  uniform_equicontinuous F :=
+begin
+  rw equicontinuous_iff_continuous at h,
+  rw uniform_equicontinuous_iff_uniform_continuous,
+  exact compact_space.uniform_continuous_of_continuous h
+end
+
+end uniform_convergence

@@ -3,12 +3,10 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import analysis.normed_space.banach
 import analysis.normed_space.finite_dimension
 import analysis.calculus.affine_map
 import analysis.convex.combination
 import linear_algebra.affine_space.basis
-import linear_algebra.affine_space.finite_dimensional
 
 /-!
 # Bases in normed affine spaces.
@@ -27,19 +25,21 @@ This file contains results about bases in normed affine spaces.
 section barycentric
 
 variables {ι 𝕜 E P : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜]
-variables [normed_add_comm_group E] [normed_space 𝕜 E] [finite_dimensional 𝕜 E]
+variables [normed_add_comm_group E] [normed_space 𝕜 E]
 variables [metric_space P] [normed_add_torsor E P]
-variables (b : affine_basis ι 𝕜 P)
+
+include E
+
+lemma is_open_map_barycentric_coord [nontrivial ι] (b : affine_basis ι 𝕜 P) (i : ι) :
+  is_open_map (b.coord i) :=
+affine_map.is_open_map_linear_iff.mp $ (b.coord i).linear.is_open_map_of_finite_dimensional $
+  (b.coord i).surjective_iff_linear_surjective.mpr (b.surjective_coord i)
+
+variables [finite_dimensional 𝕜 E] (b : affine_basis ι 𝕜 P)
 
 @[continuity]
 lemma continuous_barycentric_coord (i : ι) : continuous (b.coord i) :=
 (b.coord i).continuous_of_finite_dimensional
-
-local attribute [instance] finite_dimensional.complete
-
-lemma is_open_map_barycentric_coord [nontrivial ι] (i : ι) :
-  is_open_map (b.coord i) :=
-(b.coord i).is_open_map (continuous_barycentric_coord b i) (b.surjective_coord i)
 
 lemma smooth_barycentric_coord (b : affine_basis ι 𝕜 E) (i : ι) : cont_diff 𝕜 ⊤ (b.coord i) :=
 (⟨b.coord i, continuous_barycentric_coord b i⟩ : E →A[𝕜] 𝕜).cont_diff

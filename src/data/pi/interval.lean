@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.finset.locally_finite
-import data.fintype.card
+import data.fintype.big_operators
 
 /-!
 # Intervals in a pi type

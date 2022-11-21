@@ -26,8 +26,8 @@ We also give analogues of all these notions in the additive world.
 
 noncomputable theory
 
-open_locale ennreal pointwise big_operators
-open has_inv set function measure_theory.measure
+open_locale ennreal pointwise big_operators topological_space
+open has_inv set function measure_theory.measure filter
 
 variables {G : Type*} [measurable_space G]
 
@@ -212,6 +212,15 @@ lemma measure_preimage_mul_right (μ : measure G) [is_mul_right_invariant μ] (g
 calc μ ((λ h, h * g) ⁻¹' A) = map (λ h, h * g) μ A :
   ((measurable_equiv.mul_right g).map_apply A).symm
 ... = μ A : by rw map_mul_right_eq_self μ g
+
+@[simp, to_additive]
+lemma measure_smul (μ : measure G) [is_mul_left_invariant μ] (g : G) (A : set G) :
+  μ (g • A) = μ A :=
+begin
+  convert measure_preimage_mul μ (g⁻¹) A,
+  ext x,
+  simp only [mem_smul_set_iff_inv_smul_mem, smul_eq_mul, mem_preimage]
+end
 
 @[to_additive]
 lemma map_mul_left_ae (μ : measure G) [is_mul_left_invariant μ] (x : G) :
@@ -460,6 +469,59 @@ lemma measure_lt_top_of_is_compact_of_is_mul_left_invariant'
 measure_lt_top_of_is_compact_of_is_mul_left_invariant (interior U) is_open_interior hU
   ((measure_mono (interior_subset)).trans_lt (lt_top_iff_ne_top.2 h)).ne hK
 
+/-- In a noncompact locally compact group, a left-invariant measure which is positive
+on open sets has infinite mass. -/
+@[simp, to_additive "In a noncompact locally compact additive group, a left-invariant measure which
+is positive on open sets has infinite mass."]
+lemma measure_univ_of_is_mul_left_invariant [locally_compact_space G] [noncompact_space G]
+  (μ : measure G) [is_open_pos_measure μ] [μ.is_mul_left_invariant] :
+  μ univ = ∞ :=
+begin
+  /- Consider a closed compact set `K` with nonempty interior. For any compact set `L`, one may
+  find `g = g (L)` such that `L` is disjoint from `g • K`. Iterating this, one finds
+  infinitely many translates of `K` which are disjoint from each other. As they all have the
+  same positive mass, it follows that the space has infinite measure. -/
+  obtain ⟨K, hK, Kclosed, Kint⟩ : ∃ (K : set G), is_compact K ∧ is_closed K ∧ (1 : G) ∈ interior K,
+  { rcases local_is_compact_is_closed_nhds_of_group (is_open_univ.mem_nhds (mem_univ (1 : G)))
+      with ⟨K, hK⟩,
+    exact ⟨K, hK.1, hK.2.1, hK.2.2.2⟩, },
+  have K_pos : 0 < μ K, from measure_pos_of_nonempty_interior _ ⟨_, Kint⟩,
+  have A : ∀ (L : set G), is_compact L → ∃ (g : G), disjoint L (g • K),
+    from λ L hL, exists_disjoint_smul_of_is_compact hL hK,
+  choose! g hg using A,
+  set L : ℕ → set G := λ n, (λ T, T ∪ (g T • K))^[n] K with hL,
+  have Lcompact : ∀ n, is_compact (L n),
+  { assume n,
+    induction n with n IH,
+    { exact hK },
+    { simp_rw [hL, iterate_succ'],
+      apply is_compact.union IH (hK.smul (g (L n))) } },
+  have Lclosed : ∀ n, is_closed (L n),
+  { assume n,
+    induction n with n IH,
+    { exact Kclosed },
+    { simp_rw [hL, iterate_succ'],
+      apply is_closed.union IH (Kclosed.smul (g (L n))) } },
+  have M : ∀ n, μ (L n) = (n + 1 : ℕ) * μ K,
+  { assume n,
+    induction n with n IH,
+    { simp only [L, one_mul, algebra_map.coe_one, iterate_zero, id.def] },
+    { calc μ (L (n + 1)) = μ (L n) + μ (g (L n) • K) :
+        begin
+          simp_rw [hL, iterate_succ'],
+          exact measure_union' (hg _ (Lcompact _)) (Lclosed _).measurable_set
+        end
+      ... = ((n + 1) + 1 : ℕ) * μ K :
+        by simp only [IH, measure_smul, add_mul, nat.cast_add, algebra_map.coe_one, one_mul] } },
+  have N : tendsto (λ n, μ (L n)) at_top (𝓝 (∞ * μ K)),
+  { simp_rw [M],
+    apply ennreal.tendsto.mul_const _ (or.inl ennreal.top_ne_zero),
+    exact ennreal.tendsto_nat_nhds_top.comp (tendsto_add_at_top_nat _) },
+  simp only [ennreal.top_mul, K_pos.ne', if_false] at N,
+  apply top_le_iff.1,
+  exact le_of_tendsto' N (λ n, measure_mono (subset_univ _)),
+end
+
 end topological_group
 
 section comm_group
@@ -543,8 +605,6 @@ lemma is_haar_measure_of_is_compact_nonempty_interior [topological_group G] [bor
     λ L hL, measure_lt_top_of_is_compact_of_is_mul_left_invariant' h'K h' hL,
   to_is_open_pos_measure := is_open_pos_measure_of_mul_left_invariant_of_compact K hK h }
 
-open filter
-
 /-- The image of a Haar measure under a continuous surjective proper group homomorphism is again
 a Haar measure. See also `mul_equiv.is_haar_measure_map`. -/
 @[to_additive "The image of an additive Haar measure under a continuous surjective proper additive
@@ -593,8 +653,6 @@ instance {G : Type*} [group G] [topological_space G] {mG : measurable_space G}
   [sigma_finite μ] [sigma_finite ν]
   [has_measurable_mul G] [has_measurable_mul H] :
   is_haar_measure (μ.prod ν) := {}
-
-open_locale topological_space
 
 /-- If the neutral element of a group is not isolated, then a Haar measure on this group has
 no atoms.

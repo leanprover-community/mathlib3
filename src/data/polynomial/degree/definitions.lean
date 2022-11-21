@@ -3,9 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
+import data.fintype.big_operators
 import data.nat.with_bot
-import data.polynomial.induction
 import data.polynomial.monomial
+import data.polynomial.coeff
 
 /-!
 # Theory of univariate polynomials
@@ -1003,7 +1004,7 @@ section nontrivial_semiring
 variables [semiring R] [nontrivial R] {p q : R[X]}
 
 @[simp] lemma degree_X_pow (n : ℕ) : degree ((X : R[X]) ^ n) = n :=
-by rw [X_pow_eq_monomial, degree_monomial _ (@one_ne_zero R _ _)]
+by rw [X_pow_eq_monomial, degree_monomial _ (one_ne_zero' R)]
 
 @[simp] lemma nat_degree_X_pow (n : ℕ) : nat_degree ((X : R[X]) ^ n) = n :=
 nat_degree_eq_of_degree_eq_some (degree_X_pow n)
@@ -1017,7 +1018,7 @@ begin
 end
 
 theorem not_is_unit_X : ¬ is_unit (X : R[X]) :=
-λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $
+λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, zero_ne_one' R $
 by { change g * monomial 1 1 = 1 at hgf, rw [← coeff_one_zero, ← hgf], simp }
 
 @[simp] lemma degree_mul_X : degree (p * X) = degree p + 1 := by simp [monic_X.degree_mul]

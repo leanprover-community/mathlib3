@@ -363,7 +363,7 @@ lemma edge_set_mono {H₁ H₂ : subgraph G} (h : H₁ ≤ H₂) : H₁.edge_set
 
 lemma _root_.disjoint.edge_set {H₁ H₂ : subgraph G}
   (h : disjoint H₁ H₂) : disjoint H₁.edge_set H₂.edge_set :=
-by simpa using edge_set_mono h
+disjoint_iff_inf_le.mpr $ by simpa using edge_set_mono h.le_bot
 
 /-- Graph homomorphisms induce a covariant function on subgraphs. -/
 @[simps]

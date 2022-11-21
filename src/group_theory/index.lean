@@ -5,7 +5,8 @@ Authors: Thomas Browning
 -/
 
 import data.finite.card
-import group_theory.quotient_group
+import group_theory.finiteness
+import group_theory.group_action.quotient
 
 /-!
 # Index of a Subgroup
@@ -348,6 +349,12 @@ by simp_rw [←relindex_top_right, relindex_infi_le]
 ⟨λ h, quotient_group.subgroup_eq_top_of_subsingleton H (cardinal.to_nat_eq_one_iff_unique.mp h).1,
   λ h, (congr_arg index h).trans index_top⟩
 
+@[simp, to_additive relindex_eq_one] lemma relindex_eq_one : H.relindex K = 1 ↔ K ≤ H :=
+index_eq_one.trans subgroup_of_eq_top
+
+@[simp, to_additive card_eq_one] lemma card_eq_one : nat.card H = 1 ↔ H = ⊥ :=
+H.relindex_bot_left ▸ (relindex_eq_one.trans le_bot_iff)
+
 @[to_additive] lemma index_ne_zero_of_finite [hH : finite (G ⧸ H)] : H.index ≠ 0 :=
 by { casesI nonempty_fintype (G ⧸ H), rw index_eq_card, exact fintype.card_ne_zero }
 
@@ -359,5 +366,75 @@ noncomputable def fintype_of_index_ne_zero (hH : H.index ≠ 0) : fintype (G ⧸
 @[to_additive one_lt_index_of_ne_top]
 lemma one_lt_index_of_ne_top [finite (G ⧸ H)] (hH : H ≠ ⊤) : 1 < H.index :=
 nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨index_ne_zero_of_finite, mt index_eq_one.mp hH⟩
+
+section finite_index
+
+variables (H K)
+
+/-- Typeclass for finite index subgroups. -/
+class finite_index : Prop :=
+(finite_index : H.index ≠ 0)
+
+/-- Typeclass for finite index subgroups. -/
+class _root_.add_subgroup.finite_index {G : Type*} [add_group G] (H : add_subgroup G) : Prop :=
+(finite_index : H.index ≠ 0)
+
+/-- A finite index subgroup has finite quotient. -/
+@[to_additive "A finite index subgroup has finite quotient"]
+noncomputable def fintype_quotient_of_finite_index [finite_index H] :
+  fintype (G ⧸ H) :=
+fintype_of_index_ne_zero finite_index.finite_index
+
+@[to_additive] instance finite_quotient_of_finite_index
+  [finite_index H] : finite (G ⧸ H) :=
+H.fintype_quotient_of_finite_index.finite
+
+@[to_additive] lemma finite_index_of_finite_quotient [finite (G ⧸ H)] : finite_index H :=
+⟨index_ne_zero_of_finite⟩
+
+@[priority 100, to_additive] instance finite_index_of_finite [finite G] : finite_index H :=
+finite_index_of_finite_quotient H
+
+@[to_additive] instance : finite_index (⊤ : subgroup G) :=
+⟨ne_of_eq_of_ne index_top one_ne_zero⟩
+
+@[to_additive] instance [finite_index H] [finite_index K] : finite_index (H ⊓ K) :=
+⟨index_inf_ne_zero finite_index.finite_index finite_index.finite_index⟩
+
+variables {H K}
+
+@[to_additive] lemma finite_index_of_le [finite_index H] (h : H ≤ K) : finite_index K :=
+⟨ne_zero_of_dvd_ne_zero finite_index.finite_index (index_dvd_of_le h)⟩
+
+variables (H K)
+
+@[to_additive] instance finite_index_ker {G' : Type*} [group G'] (f : G →* G') [finite f.range] :
+  f.ker.finite_index :=
+@finite_index_of_finite_quotient G _ f.ker
+  (finite.of_equiv f.range (quotient_group.quotient_ker_equiv_range f).symm)
+
+instance finite_index_normal_core [H.finite_index] : H.normal_core.finite_index :=
+begin
+  rw normal_core_eq_ker,
+  apply_instance,
+end
+
+variables (G)
+
+instance finite_index_center [finite (commutator_set G)] [group.fg G] : finite_index (center G) :=
+begin
+  obtain ⟨S, -, hS⟩ := group.rank_spec G,
+  exact ⟨mt (finite.card_eq_zero_of_embedding (quotient_center_embedding hS)) finite.card_pos.ne'⟩,
+end
+
+lemma index_center_le_pow [finite (commutator_set G)] [group.fg G] :
+  (center G).index ≤ (nat.card (commutator_set G)) ^ group.rank G :=
+begin
+  obtain ⟨S, hS1, hS2⟩ := group.rank_spec G,
+  rw [←hS1, ←fintype.card_coe, ←nat.card_eq_fintype_card, ←finset.coe_sort_coe, ←nat.card_fun],
+  exact finite.card_le_of_embedding (quotient_center_embedding hS2),
+end
+
+end finite_index
 
 end subgroup

@@ -111,12 +111,12 @@ Group Theory:
   Representation theory of finite groups:
     representations of abelian groups: 'https://proofwiki.org/wiki/Irreducible_Representations_of_Abelian_Group'
     dual groups: 'https://kconrad.math.uconn.edu/blurbs/grouptheory/charthy.pdf'
-    Maschke theorem: 'https://en.wikipedia.org/wiki/Maschke%27s_theorem'
-    orthogonality of irreducible characters: 'https://en.wikipedia.org/wiki/Schur_orthogonality_relations'
+    Maschke theorem: 'monoid_algebra.submodule.exists_is_compl'
+    orthogonality of irreducible characters: 'fdRep.char_orthonormal'
     Fourier transform for finite abelian groups: 'https://en.wikipedia.org/wiki/Fourier_transform_on_finite_groups#Fourier_transform_for_finite_abelian_groups'
     convolution: 'https://en.wikipedia.org/wiki/Fourier_transform_on_finite_groups#Transform_of_a_convolution'
     class function over a group: 'https://en.wikipedia.org/wiki/Class_function'
-    characters of a finite dimensional representation: 'https://en.wikipedia.org/wiki/Character_theory'
+    characters of a finite dimensional representation: 'fdRep.character'
     orthonormal basis of irreducible characters: 'https://en.wikipedia.org/wiki/Character_theory#Orthogonality_relations'
     examples of groups with small cardinality: ''
 
@@ -664,3 +664,4 @@ Numerical Analysis:
   Fourier transform:
     discrete Fourier transform on a finite abelian group: ''
     fast Fourier transform: ''
+   

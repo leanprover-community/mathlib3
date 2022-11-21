@@ -928,7 +928,7 @@ x.lift_on' (λ p q, if q = 0 then ⟨0, 1⟩ else let r := gcd p q in
 begin
   rw [num_denom, lift_on'_div, if_neg hq],
   intros p,
-  rw [if_pos rfl, if_neg (@one_ne_zero K[X] _ _)],
+  rw [if_pos rfl, if_neg (one_ne_zero' K[X])],
   simp,
 end
 

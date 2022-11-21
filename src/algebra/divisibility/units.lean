@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston, 
 Neil Strickland, Aaron Anderson
 -/
 import algebra.divisibility.basic
-import algebra.hom.units
+import algebra.group.units
 
 /-!
 # Lemmas about divisibility and units

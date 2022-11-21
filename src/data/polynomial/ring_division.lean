@@ -8,6 +8,7 @@ import data.polynomial.degree.lemmas
 import data.polynomial.div
 import ring_theory.localization.fraction_ring
 import algebra.polynomial.big_operators
+import tactic.interval_cases
 
 /-!
 # Theory of univariate polynomials
@@ -988,6 +989,49 @@ begin
     apply is_unit_of_is_unit_leading_coeff_of_is_unit_map;
     apply is_unit_of_mul_eq_one,
   { exact q }, { rw mul_comm, exact q },
+end
+
+lemma monic.irreducible_iff {R} [comm_semiring R] [no_zero_divisors R] {p : R[X]} (hp : p.monic) :
+  irreducible p ↔ p ≠ 1 ∧ ∀ a b, p = a * b →
+    a.monic → b.monic → 0 < a.nat_degree → 0 < b.nat_degree →
+    a.nat_degree + b.nat_degree = p.nat_degree → is_unit a ∨ is_unit b :=
+begin
+  rw irreducible_iff,
+  refine and_congr (not_congr ⟨_, λ h, h.symm ▸ is_unit_one⟩)
+    ⟨forall₃_imp $ λ _ _ _ h _ _ _ _ _, h, _⟩,
+  { rw is_unit_iff, rintro ⟨k, -, rfl⟩, exact hp.nat_degree_eq_zero_iff_eq_one.1 (nat_degree_C k) },
+  rintro h a b rfl, nontriviality R,
+  rw [monic.def, leading_coeff_mul] at hp,
+  let u := units.mk_of_mul_eq_one _ _ hp,
+  obtain hd|hda := @eq_zero_or_pos _ _ a.nat_degree, left, swap,
+  obtain hd|hdb := @eq_zero_or_pos _ _ b.nat_degree, rw mul_comm at hp, right, swap 3,
+  iterate 2
+  { rw [eq_C_of_nat_degree_eq_zero hd, ← hd], exact (is_unit_of_mul_eq_one _ _ hp).map C },
+  have he := _, have ha := _, have hb := _,
+  refine (h (C u.inv * a) (C u.val * b) he ha hb _ _ $ by rw [he, ha.nat_degree_mul hb]).imp _ _,
+  iterate 2 { exact is_unit_of_mul_is_unit_right },
+  { rw nat_degree_C_mul, exacts [hda, u⁻¹.ne_zero] },
+  { rw nat_degree_C_mul, exacts [hdb, u.ne_zero] },
+  iterate 2
+  { rw [monic.def, leading_coeff_mul, leading_coeff_C], apply_rules [u.inv_val, u.val_inv] },
+  simp_rw [mul_left_comm, ← mul_assoc, ← C_mul, u.val_inv, C_1, one_mul],
+end
+
+lemma exists_add_mul_eq_coeff_of_not_irreducible {R} [comm_semiring R] [no_zero_divisors R]
+  {p : R[X]} (hm : p.monic) (hnd : p.nat_degree = 2) (hirr : ¬ irreducible p) :
+  ∃ c₁ c₂, p.coeff 0 = c₁ * c₂ ∧ p.coeff 1 = c₁ + c₂ :=
+begin
+  nontriviality R,
+  rw hm.irreducible_iff at hirr, push_neg at hirr,
+  obtain ⟨a, b, rfl, hma, hmb, hda, hdb, hd, hua, hub⟩ := hirr _, swap,
+  { apply_fun nat_degree, rw [hnd, nat_degree_one], rintro ⟨⟩ },
+  rw hnd at hd, have := (nat.le_add_right _ _).trans_eq hd,
+  interval_cases a.nat_degree with hda', swap,
+  { rw [hda', add_right_eq_self] at hd, exact (hdb.ne' hd).elim },
+  rw hda' at hd, replace hd := add_left_cancel hd,
+  use [a.coeff 0, b.coeff 0, by rw mul_coeff_zero],
+  convert hma.next_coeff_mul hmb,
+  all_goals { simp only [next_coeff, hnd, hda', hd], rw if_neg, dec_trivial },
 end
 
 end

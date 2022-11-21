@@ -284,6 +284,14 @@ def edge_set : set (sym2 V) := sym2.from_rel G.symm
 lemma edge_set_mono {G G' : simple_graph V} (h : G ≤ G') : G.edge_set ⊆ G'.edge_set :=
 λ e, sym2.ind (λ v w, @h v w) e
 
+def relation_get_vertices (e : sym2 V) : ∃ (a b : V), ⟦(a,b)⟧=e :=
+begin
+  have t:=quotient.out_eq e,
+  obtain ⟨a,b⟩ := quotient.out e,
+  intro h,
+  use ⟨a,b,h⟩,
+end
+
 /--
 Two vertices are adjacent iff there is an edge between them. The
 condition `v ≠ w` ensures they are different endpoints of the edge,
@@ -696,6 +704,8 @@ lemma edge_finset_delete_edges [fintype V] [decidable_eq V] [decidable_rel G.adj
   (s : finset (sym2 V)) [decidable_rel (G.delete_edges s).adj] :
   (G.delete_edges s).edge_finset = G.edge_finset \ s :=
 by { ext e, simp [edge_set_delete_edges] }
+
+lemma delete_non_edge {e: sym2 V} (he: e ∉ G.edge_set) : G.delete_edges {e} = G := by {ext,finish}
 
 section delete_far
 variables (G) [ordered_ring 𝕜] [fintype V] [decidable_eq V] [decidable_rel G.adj]

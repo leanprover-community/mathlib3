@@ -514,5 +514,23 @@ add_tactic_doc
   decl_names := [`tactic.interactive.compute_degree_le],
   tags := ["arithmetic", "finishing"] }
 
+add_tactic_doc
+{ name := "simp_coeff",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.simp_coeff],
+  tags := ["arithmetic", "finishing"] }
+
+add_tactic_doc
+{ name := "compute_degree",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.compute_degree],
+  tags := ["arithmetic", "finishing"] }
+
+add_tactic_doc
+{ name := "prove_monic",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.prove_monic],
+  tags := ["arithmetic", "finishing"] }
+
 end interactive
 end tactic

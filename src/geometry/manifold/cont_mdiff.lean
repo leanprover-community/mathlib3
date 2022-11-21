@@ -306,9 +306,9 @@ begin
     refine ((I'.continuous_at.comp_continuous_within_at h₂).comp' h).mono_of_mem _,
     exact inter_mem self_mem_nhds_within (h.preimage_mem_nhds_within $
       (chart_at _ _).open_source.mem_nhds $ mem_chart_source _ _) },
-  simp_rw [cont, cont_diff_within_at_prop, ext_chart_at, local_equiv.coe_trans,
-    model_with_corners.to_local_equiv_coe, local_homeomorph.coe_coe, model_with_corners_self_coe,
-    chart_at_self_eq, local_homeomorph.refl_apply, comp.left_id]
+  simp_rw [cont, cont_diff_within_at_prop, ext_chart_at, local_homeomorph.extend,
+    local_equiv.coe_trans, model_with_corners.to_local_equiv_coe, local_homeomorph.coe_coe,
+    model_with_corners_self_coe, chart_at_self_eq, local_homeomorph.refl_apply, comp.left_id]
 end
 
 lemma smooth_within_at_iff :
@@ -361,7 +361,7 @@ begin
   refine λ hc, cont_diff_within_at_congr_nhds _,
   rw [← e.image_source_inter_eq', ← ext_chart_at_map_nhds_within_eq_image' I x hx,
       ← ext_chart_at_map_nhds_within' I x hx, inter_comm, nhds_within_inter_of_mem],
-  exact hc ((ext_chart_at_open_source _ _).mem_nhds hy)
+  exact hc (ext_chart_at_source_mem_nhds' _ _ hy)
 end
 
 lemma cont_mdiff_at_iff_of_mem_source {x' : M} {y : M'} (hx : x' ∈ (chart_at H x).source)
@@ -532,8 +532,8 @@ lemma cont_mdiff_on_iff_target :
 begin
   inhabit E',
   simp only [cont_mdiff_on_iff, model_with_corners.source_eq, chart_at_self_eq,
-    local_homeomorph.refl_local_equiv, local_equiv.refl_trans, ext_chart_at.equations._eqn_1,
-    set.preimage_univ, set.inter_univ, and.congr_right_iff],
+    local_homeomorph.refl_local_equiv, local_equiv.refl_trans, ext_chart_at,
+    local_homeomorph.extend, set.preimage_univ, set.inter_univ, and.congr_right_iff],
   intros h,
   split,
   { refine λ h' y, ⟨_, λ x _, h' x y⟩,

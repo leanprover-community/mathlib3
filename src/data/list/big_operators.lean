@@ -13,6 +13,7 @@ import algebra.ring.basic
 import algebra.ring.divisibility
 import algebra.ring.commute
 import data.int.basic
+import data.int.units
 import data.set.basic
 
 /-!

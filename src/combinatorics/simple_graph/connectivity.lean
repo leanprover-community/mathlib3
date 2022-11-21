@@ -2068,7 +2068,8 @@ begin
   { by_contra ht, replace ht:=G.delete_edge_reachable_cases he ht,
     rw [<- connected_component.eq,<- connected_component.eq,connected_component_out_eq] at ht,
     exact hC ht, },
-  {exact G.connected_component_out_reachable ((G.delete_edges {⟦(x, y)⟧}).connected_component_out C)}
+  {exact G.connected_component_out_reachable ((G.delete_edges {⟦(x, y)⟧}).connected_component_out
+    C)}
 end
 
 lemma delete_edge_num_component_le (e : sym2 V) :

@@ -10,32 +10,24 @@ open bundle set smooth_manifold_with_corners
 open_locale manifold topological_space
 
 noncomputable theory
--- open bundle vector_bundle set smooth_manifold_with_corners
--- open_locale manifold topological_space bundle
 
-section
+section -- todo: move
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 variables {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
 
-lemma fderiv_within_comp {g : F → G} {f : E → F} {x : E} {y : F} {s : set E} {t : set F}
-  (hg : differentiable_within_at 𝕜 g t y) (hf : differentiable_within_at 𝕜 f s x)
-  (h : maps_to f s t) (hxs : unique_diff_within_at 𝕜 s x) (hy : f x = y) :
-  fderiv_within 𝕜 (g ∘ f) s x = (fderiv_within 𝕜 g t y).comp (fderiv_within 𝕜 f s x) :=
-by { subst y, exact fderiv_within.comp x hg hf h hxs }
-
 lemma fderiv_within_fderiv_within {g : F → G} {f : E → F} {x : E} {y : F} {s : set E} {t : set F}
   (hg : differentiable_within_at 𝕜 g t y) (hf : differentiable_within_at 𝕜 f s x)
   (h : maps_to f s t) (hxs : unique_diff_within_at 𝕜 s x) (hy : f x = y) (v : E) :
   fderiv_within 𝕜 g t y (fderiv_within 𝕜 f s x v) = fderiv_within 𝕜 (g ∘ f) s x v :=
-by { rw [fderiv_within_comp hg hf h hxs hy], refl }
+by { subst y, rw [fderiv_within.comp x hg hf h hxs], refl }
 
 end
 
 
-section
+section -- todo: move
 
 variables {𝕜 E M H E' M' H' H'' : Type*} [nontrivially_normed_field 𝕜]
   [normed_add_comm_group E] [normed_space 𝕜 E] [topological_space H] [topological_space M]

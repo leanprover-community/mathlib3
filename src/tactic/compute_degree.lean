@@ -380,7 +380,7 @@ It returns
 * a term `h` of type `f.coeff deg = lc`, where `lc` is the leading coefficient of `f`, computed by
   `get_lead_coeff`;
 * as a side-goal to show the equality ``f.coeff deg = lc`.
-The input `de` is only used for reporting errors. -/
+-/
 meta def poly_and_deg_to_equation (f deg : expr) (na : parse with_ident_list) :
   tactic expr :=
 do

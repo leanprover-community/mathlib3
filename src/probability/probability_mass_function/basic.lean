@@ -44,9 +44,9 @@ lemma has_sum_coe_one (p : pmf α) : has_sum p 1 := p.2
 
 @[simp] lemma tsum_coe (p : pmf α) : ∑' a, p a = 1 := p.has_sum_coe_one.tsum_eq
 
-lemma tsum_coe_ne_top (p : pmf α) : ∑' a, p a ≠ ⊤ := p.tsum_coe.symm ▸ ennreal.one_ne_top
+lemma tsum_coe_ne_top (p : pmf α) : ∑' a, p a ≠ ∞ := p.tsum_coe.symm ▸ ennreal.one_ne_top
 
-lemma tsum_coe_indicator_ne_top (p : pmf α) (s : set α) : ∑' a, s.indicator p a ≠ ⊤ :=
+lemma tsum_coe_indicator_ne_top (p : pmf α) (s : set α) : ∑' a, s.indicator p a ≠ ∞ :=
 ne_of_lt (lt_of_le_of_lt (tsum_le_tsum (λ a, set.indicator_apply_le (λ _, le_rfl))
   ennreal.summable ennreal.summable) (lt_of_le_of_ne le_top p.tsum_coe_ne_top))
 
@@ -84,10 +84,10 @@ lemma coe_le_one (p : pmf α) (a : α) : p a ≤ 1 :=
 has_sum_le (by { intro b, split_ifs; simp only [h, zero_le', le_rfl] })
   (has_sum_ite_eq a (p a)) (has_sum_coe_one p)
 
-lemma apply_ne_top (p : pmf α) (a : α) : p a ≠ ⊤ :=
+lemma apply_ne_top (p : pmf α) (a : α) : p a ≠ ∞ :=
 ne_of_lt (lt_of_le_of_lt (p.coe_le_one a) ennreal.one_lt_top)
 
-lemma apply_lt_top (p : pmf α) (a : α) : p a < ⊤ := lt_of_le_of_ne le_top (p.apply_ne_top a)
+lemma apply_lt_top (p : pmf α) (a : α) : p a < ∞ := lt_of_le_of_ne le_top (p.apply_ne_top a)
 
 section outer_measure
 

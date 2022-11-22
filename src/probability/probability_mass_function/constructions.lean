@@ -182,11 +182,11 @@ end of_fintype
 section normalize
 
 /-- Given a `f` with non-zero and non-infinite sum, get a `pmf` by normalizing `f` by its `tsum` -/
-def normalize (f : α → ℝ≥0∞) (hf0 : tsum f ≠ 0) (hf : tsum f ≠ ⊤) : pmf α :=
+def normalize (f : α → ℝ≥0∞) (hf0 : tsum f ≠ 0) (hf : tsum f ≠ ∞) : pmf α :=
 ⟨λ a, f a * (∑' x, f x)⁻¹, ennreal.summable.has_sum_iff.2
   (ennreal.tsum_mul_right.trans (ennreal.mul_inv_cancel hf0 hf))⟩
 
-variables {f : α → ℝ≥0∞} (hf0 : tsum f ≠ 0) (hf : tsum f ≠ ⊤)
+variables {f : α → ℝ≥0∞} (hf0 : tsum f ≠ 0) (hf : tsum f ≠ ∞)
 
 @[simp] lemma normalize_apply (a : α) : (normalize f hf0 hf) a = f a * (∑' x, f x)⁻¹ := rfl
 

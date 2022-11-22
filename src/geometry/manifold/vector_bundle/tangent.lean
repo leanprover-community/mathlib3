@@ -255,10 +255,9 @@ begin
   { intros x, ext, { refl }, apply heq_of_eq,
     exact (tangent_bundle_core I H).coord_change_self (achart _ x.1) x.1
       (mem_achart_source H x.1) x.2 },
-  simp_rw [tangent_space_chart_at],
-  simp only [-fiber_bundle_core.local_triv_as_local_equiv_source] with mfld_simps,
-  simp_rw [fiber_bundle_core.local_triv_as_local_equiv,
-    vector_bundle_core.to_fiber_bundle_core_base_set, tangent_bundle_core_base_set],
+  simp_rw [tangent_space_chart_at, fiber_bundle_core.local_triv,
+    fiber_bundle_core.local_triv_as_local_equiv, vector_bundle_core.to_fiber_bundle_core_base_set,
+    tangent_bundle_core_base_set],
   simp only with mfld_simps,
 end
 

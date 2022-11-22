@@ -94,7 +94,8 @@ lemma fiber_bundle.charted_space_chart_at (x : total_space E) :
   (trivialization_at F E x.proj).to_local_homeomorph ≫ₕ
   (chart_at HB x.proj).prod (local_homeomorph.refl F) :=
 begin
-  dsimp only [fiber_bundle.charted_space', charted_space.comp, fiber_bundle.charted_space, prod_charted_space, charted_space_self],
+  dsimp only [fiber_bundle.charted_space', charted_space.comp, fiber_bundle.charted_space,
+    prod_charted_space, charted_space_self],
   rw [trivialization.coe_coe,
     trivialization.coe_fst' _ (mem_base_set_trivialization_at F E x.proj)]
 end

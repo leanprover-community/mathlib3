@@ -182,7 +182,7 @@ begin
     refl, },
 end
 
-lemma lift_unique (Φ : push σ ⥤q W') (Φ₀ : Φ.obj = τ) (Φcomm : of σ ⋙q Φ = φ) :
+lemma lift_unique (Φ : push σ ⥤q W') (Φ₀ : Φ.obj = τ) (Φcomp : of σ ⋙q Φ = φ) :
   Φ = lift σ φ τ h :=
 begin
   dsimp only [of,lift],

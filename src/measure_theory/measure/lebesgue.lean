@@ -16,7 +16,7 @@ import measure_theory.measure.haar_of_basis
 
 We show that the Lebesgue measure on the real line (constructed as a particular case of additive
 Haar measure on inner product spaces) coincides with the Stieltjes measure associated
-to the function `x ↦ x`. We deduce properties of this measure of `ℝ`, and then of the product
+to the function `x ↦ x`. We deduce properties of this measure on `ℝ`, and then of the product
 Lebesgue measure on `ℝⁿ`. In particular, we prove that they are translation invariant.
 
 We show that, on `ℝⁿ`, a linear map acts on Lebesgue measure by rescaling it through the absolute

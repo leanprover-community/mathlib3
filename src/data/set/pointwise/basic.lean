@@ -1224,14 +1224,7 @@ end
 
 @[simp, to_additive] lemma Union_inv_smul :
   (⋃ (g : α), g⁻¹ • s) = (⋃ (g : α), g • s) :=
-begin
-  ext a,
-  simp only [mem_Union],
-  split;
-  rintros ⟨g, hg⟩,
-  { exact ⟨g⁻¹, hg⟩, },
-  { exact ⟨g⁻¹, by rwa inv_inv⟩, },
-end
+(equiv.inv α).supr_congr $ λ g, rfl
 
 @[to_additive]
 lemma Union_smul_eq_set_of_exists {s : set β} :

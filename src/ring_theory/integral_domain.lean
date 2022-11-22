@@ -116,65 +116,44 @@ To support `ℤˣ` and other infinite monoids with finite groups of units, this 
 instance [finite Rˣ] : is_cyclic Rˣ :=
 is_cyclic_of_subgroup_is_domain (units.coe_hom R) $ units.ext
 
-section
-
-variables (S : subgroup Rˣ) [finite S]
-
 /-- A finite subgroup of the units of an integral domain is cyclic. -/
-instance subgroup_units_cyclic : is_cyclic S :=
-begin
-  refine is_cyclic_of_subgroup_is_domain ⟨(coe : S → R), _, _⟩
-    (units.ext.comp subtype.val_injective),
-  { simp },
-  { intros, simp },
-end
-
-end
+instance subgroup_units_cyclic (S : subgroup Rˣ) [finite S] : is_cyclic S :=
+is_cyclic_of_subgroup_is_domain ((units.coe_hom R).comp S.subtype)
+  (units.ext.comp subtype.coe_injective)
 
 variables [fintype G]
-
-@[to_additive] lemma monoid_hom.card_fiber_eq_of_mem_range {M} [monoid M] [decidable_eq M]
-  (f : G →* M) {x y : M} (hx : x ∈ set.range f) (hy : y ∈ set.range f) :
-  (univ.filter $ λ g, f g = x).card = (univ.filter $ λ g, f g = y).card :=
-begin
-  rcases ⟨hx, hy⟩ with ⟨⟨x, rfl⟩, y, rfl⟩,
-  rcases mul_left_surjective x y with ⟨y, rfl⟩,
-  conv_lhs { rw [← map_univ_equiv (equiv.mul_right y⁻¹), filter_map, card_map] },
-  congr' 2 with g,
-  simp only [(∘), equiv.to_embedding_apply, equiv.coe_mul_right, map_mul],
-  rw [← f.coe_to_hom_units y⁻¹, map_inv, units.mul_inv_eq_iff_eq_mul, f.coe_to_hom_units]
-end
 
 /-- In an integral domain, a sum indexed by a nontrivial homomorphism from a finite group is zero.
 -/
 lemma sum_hom_units_eq_zero (f : G →* R) (hf : f ≠ 1) : ∑ g : G, f g = 0 :=
 begin
   classical,
-  obtain ⟨x, hx⟩ : ∃ x : monoid_hom.range f.to_hom_units,
-    ∀ y : monoid_hom.range f.to_hom_units, y ∈ submonoid.powers x,
+  obtain ⟨f, rfl⟩ : ∃ f' : G →* Rˣ, (units.coe_hom R).comp f' = f,
+    from ⟨f.to_hom_units, fun_like.ext' rfl⟩,
+  obtain ⟨x, hx⟩ : ∃ x : f.range, ∀ y : f.range, y ∈ submonoid.powers x,
     from is_cyclic.exists_monoid_generator,
   have hx1 : x ≠ 1,
   { rintro rfl,
     apply hf,
     ext g,
-    rw [monoid_hom.one_apply],
-    cases hx ⟨f.to_hom_units g, g, rfl⟩ with n hn,
-    rwa [subtype.ext_iff, units.ext_iff, subtype.coe_mk, monoid_hom.coe_to_hom_units,
-      one_pow, eq_comm] at hn, },
-  replace hx1 : (x : R) - 1 ≠ 0,
-    from λ h, hx1 (subtype.eq (units.ext (sub_eq_zero.1 h))),
-  let c := (univ.filter (λ g, f.to_hom_units g = 1)).card,
-  calc ∑ g : G, f g
-      = ∑ g : G, f.to_hom_units g : rfl
-  ... = ∑ u : Rˣ in univ.image f.to_hom_units,
-    (univ.filter (λ g, f.to_hom_units g = u)).card • u : sum_comp (coe : Rˣ → R) f.to_hom_units
-  ... = ∑ u : Rˣ in univ.image f.to_hom_units, c • u :
-    sum_congr rfl (λ u hu, congr_arg2 _ _ rfl) -- remaining goal 1, proven below
-  ... = ∑ b : monoid_hom.range f.to_hom_units, c • ↑b : finset.sum_subtype _
-      (by simp ) _
-  ... = c • ∑ b : monoid_hom.range f.to_hom_units, (b : R) : smul_sum.symm
-  ... = c • 0 : congr_arg2 _ rfl _            -- remaining goal 2, proven below
-  ... = 0 : smul_zero _,
+    specialize hx ⟨f g, g, rfl⟩,
+    rw [submonoid.powers_one, submonoid.mem_bot, ← subtype.coe_inj, subtype.coe_mk] at hx,
+    rw [monoid_hom.comp_apply, monoid_hom.one_apply, hx, coe_one, map_one] },
+  replace hx1 : (x : R) - 1 ≠ 0, from sub_ne_zero.2 (λ h, hx1 $ subtype.ext $ units.ext h),
+  set c := fintype.card f.ker,
+  calc ∑ g : G, (f g : R) = ∑ u : Rˣ in univ.image f, c • u : eq.symm $ sum_image' _ $
+    λ g hg, _ -- remaining goal 1, proven below
+  ... = _ : _,
+    
+  -- calc ∑ g : G, f g = ∑ u : Rˣ in univ.image f,
+  --   (univ.filter (λ g, f.to_hom_units g = u)).card • u : sum_comp (coe : Rˣ → R) f.to_hom_units
+  -- ... = ∑ u : Rˣ in univ.image f, c • u :
+  --   sum_congr rfl (λ u hu, congr_arg2 _ _ rfl) -- remaining goal 1, proven below
+  -- ... = ∑ b : f.range, c • ↑b : finset.sum_subtype _
+  --     (by simp ) _
+  -- ... = c • ∑ b : monoid_hom.range f.to_hom_units, (b : R) : smul_sum.symm
+  -- ... = c • 0 : congr_arg2 _ rfl _            -- remaining goal 2, proven below
+  -- ... = 0 : smul_zero _,
   { -- remaining goal 1
     show (univ.filter (λ (g : G), f.to_hom_units g = u)).card = c,
     apply f.to_hom_units.card_fiber_eq_of_mem_range,

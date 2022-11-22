@@ -2142,6 +2142,41 @@ lemma ker_prod_map {G' : Type*} {N' : Type*} [group G'] [group N'] (f : G →* N
   (prod_map f g).ker = f.ker.prod g.ker :=
 by rw [←comap_bot, ←comap_bot, ←comap_bot, ←prod_map_comap_prod, bot_prod_bot]
 
+variables [monoid N]
+
+@[simp, to_additive] lemma preimage_mul_left_ker (f : G →* N) (x : G) :
+  ((*) x) ⁻¹' f.ker = f ⁻¹' {f x⁻¹} :=
+begin
+  ext y,
+  rcases mul_left_surjective x⁻¹ y with ⟨y, rfl⟩,
+  simp only [set.mem_preimage, set_like.mem_coe, set.mem_singleton_iff, mem_ker,
+    mul_inv_cancel_left, map_mul, ((group.is_unit _).map f).mul_right_eq_self]
+end
+
+@[simp, to_additive] lemma preimage_mul_right_ker (f : G →* N) (x : G) :
+  (λ y, y * x) ⁻¹' f.ker = f ⁻¹' {f x⁻¹} :=
+begin
+  ext y,
+  rcases mul_right_surjective x⁻¹ y with ⟨y, rfl⟩,
+  simp only [set.mem_preimage, set_like.mem_coe, set.mem_singleton_iff, mem_ker,
+    inv_mul_cancel_right, map_mul, ((group.is_unit _).map f).mul_left_eq_self]
+end
+
+@[simp, to_additive] lemma image_mul_left_ker (f : G →* N) (x : G) :
+  ((*) x) '' f.ker = f ⁻¹' {f x} :=
+by rw [← equiv.coe_mul_left, equiv.image_eq_preimage, equiv.mul_left_symm_apply,
+  preimage_mul_left_ker, inv_inv]
+
+@[simp, to_additive] lemma image_mul_right_ker (f : G →* N) (x : G) :
+  (λ y, y * x) '' f.ker = f ⁻¹' {f x} :=
+by rw [← equiv.coe_mul_right, equiv.image_eq_preimage, equiv.mul_right_symm_apply,
+  preimage_mul_right_ker, inv_inv]
+
+@[simp, to_additive] lemma card_preimage_singleton (f : G →* N) (x : G)
+  [fintype f.ker] [fintype (f ⁻¹' {f x})] : fintype.card (f ⁻¹' {f x}) = fintype.card f.ker :=
+fintype.card_congr $ (equiv.set_congr $ f.image_mul_left_ker x).symm.trans $
+  ((equiv.mul_left x).image _).symm
+
 end ker
 
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
@@ -2213,14 +2248,7 @@ namespace subgroup
 variables {N : Type*} [group N] (H : subgroup G)
 
 @[to_additive] lemma map_eq_bot_iff {f : G →* N} : H.map f = ⊥ ↔ H ≤ f.ker :=
-begin
-  rw eq_bot_iff,
-  split,
-  { exact λ h x hx, h ⟨x, hx, rfl⟩ },
-  { intros h x hx,
-    obtain ⟨y, hy, rfl⟩ := hx,
-    exact h hy },
-end
+(gc_map_comap f).l_eq_bot
 
 @[to_additive]
 lemma map_eq_bot_iff_of_injective {f : G →* N} (hf : function.injective f) : H.map f = ⊥ ↔ H = ⊥ :=
@@ -2257,10 +2285,8 @@ lemma le_comap_map (H : subgroup G) : H ≤ comap f (map f H) :=
 @[to_additive]
 lemma map_comap_eq (H : subgroup N) :
   map f (comap f H) = f.range ⊓ H :=
-set_like.ext' begin
-  convert set.image_preimage_eq_inter_range,
-  simp [set.inter_comm],
-end
+set_like.ext' $ by rw [coe_map, coe_comap, set.image_preimage_eq_inter_range, coe_inf, coe_range,
+  set.inter_comm]
 
 @[to_additive]
 lemma comap_map_eq (H : subgroup G) : comap f (map f H) = H ⊔ f.ker :=
@@ -2806,9 +2832,7 @@ instance : is_modular_lattice (subgroup C) :=
   rw [mem_inf, mem_sup] at ha,
   rcases ha with ⟨⟨b, hb, c, hc, rfl⟩, haz⟩,
   rw mem_sup,
-  refine ⟨b, hb, c, mem_inf.2 ⟨hc, _⟩, rfl⟩,
-  rw ← inv_mul_cancel_left b c,
-  apply z.mul_mem (z.inv_mem (xz hb)) haz,
+  exact ⟨b, hb, c, mem_inf.2 ⟨hc, (mul_mem_cancel_left (xz hb)).1 haz⟩, rfl⟩
 end⟩
 
 end subgroup

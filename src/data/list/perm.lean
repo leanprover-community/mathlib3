@@ -904,18 +904,26 @@ hR.perm hl hsymm
 theorem perm.nodup_iff {l₁ l₂ : list α} : l₁ ~ l₂ → (nodup l₁ ↔ nodup l₂) :=
 perm.pairwise_iff $ @ne.symm α
 
+theorem perm.join {l₁ l₂ : list (list α)} (h : l₁ ~ l₂) : l₁.join ~ l₂.join :=
+perm.rec_on h
+  (perm.refl _)
+  (λ x xs₁ xs₂ hxs ih, ih.append_left x)
+  (λ x₁ x₂ xs, by simpa only [join, append_assoc] using perm_append_comm.append_right _)
+  (λ xs₁ xs₂ xs₃ h₁₂ h₂₃, perm.trans)
+
 theorem perm.bind_right {l₁ l₂ : list α} (f : α → list β) (p : l₁ ~ l₂) :
   l₁.bind f ~ l₂.bind f :=
-begin
-  induction p with a l₁ l₂ p IH a b l l₁ l₂ l₃ p₁ p₂ IH₁ IH₂, {simp},
-  { simp, exact IH.append_left _ },
-  { simp, rw [← append_assoc, ← append_assoc], exact perm_append_comm.append_right _ },
-  { exact IH₁.trans IH₂ }
-end
+(p.map _).join
 
-theorem perm.bind_left (l : list α) {f g : α → list β} (h : ∀ a, f a ~ g a) :
+lemma perm.join_congr :
+  ∀ {l₁ l₂ : list (list α)} (h : list.forall₂ (~) l₁ l₂), l₁.join ~ l₂.join
+| _ _                 forall₂.nil          := perm.refl _
+| (a :: as) (b :: bs) (forall₂.cons h₁ h₂) := h₁.append (perm.join_congr h₂)
+
+theorem perm.bind_left (l : list α) {f g : α → list β} (h : ∀ a ∈ l, f a ~ g a) :
   l.bind f ~ l.bind g :=
-by induction l with a l IH; simp; exact (h a).append IH
+perm.join_congr $
+  by rwa [list.forall₂_map_right_iff,list.forall₂_map_left_iff, list.forall₂_same]
 
 theorem bind_append_perm (l : list α) (f g : α → list β) :
   l.bind f ++ l.bind g ~ l.bind (λ x, f x ++ g x) :=
@@ -936,7 +944,7 @@ p.bind_right _
 
 theorem perm.product_left (l : list α) {t₁ t₂ : list β} (p : t₁ ~ t₂) :
   product l t₁ ~ product l t₂ :=
-perm.bind_left _ $ λ a, p.map _
+perm.bind_left _ $ λ a ha, p.map _
 
 @[congr] theorem perm.product {l₁ l₂ : list α} {t₁ t₂ : list β}
   (p₁ : l₁ ~ l₂) (p₂ : t₁ ~ t₂) : product l₁ t₁ ~ product l₂ t₂ :=
@@ -1214,7 +1222,10 @@ begin
   induction p with a s t p IH a b l s t u p₁ p₂ IH₁ IH₂, {simp},
   { simp only [permutations'], exact IH.bind_right _ },
   { simp only [permutations'],
-    rw [bind_assoc, bind_assoc], apply perm.bind_left, apply perm_permutations'_aux_comm },
+    rw [bind_assoc, bind_assoc],
+    apply perm.bind_left,
+    intros l' hl',
+    apply perm_permutations'_aux_comm },
   { exact IH₁.trans IH₂ }
 end
 

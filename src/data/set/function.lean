@@ -1127,6 +1127,12 @@ lemma strict_anti_on.comp_strict_mono_on [preorder α] [preorder β] [preorder �
   strict_anti_on (g ∘ f) s :=
 λ x hx y hy hxy, hg (hs hx) (hs hy) $ hf hx hy hxy
 
+@[simp] lemma strict_mono_restrict [preorder α] [preorder β] {f : α → β} {s : set α} :
+  strict_mono (s.restrict f) ↔ strict_mono_on f s :=
+by simp [set.restrict, strict_mono, strict_mono_on]
+
+alias strict_mono_restrict ↔ _root_.strict_mono.of_restrict _root_.strict_mono_on.restrict
+
 lemma strict_mono.cod_restrict [preorder α] [preorder β] {f : α → β} (hf : strict_mono f)
   {s : set β} (hs : ∀ x, f x ∈ s) :
   strict_mono (set.cod_restrict f s hs) :=

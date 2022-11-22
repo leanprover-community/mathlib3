@@ -5,18 +5,34 @@ Authors: Damiano Testa
 -/
 import data.polynomial.degree.lemmas
 
-/-! # `compute_degree_le` a tactic for computing degrees of polynomials
+/-! # `compute_degree` & Co: tactics for computing degrees of polynomials
 
-This file defines the tactic `compute_degree_le`.
+This file defines the tactics `compute_degree_le, compute_degree, simp_lead_coeff, prove_monic`.
 
-Using `compute_degree_le` when the goal is of the form `f.nat_degree ≤ d`, tries to solve the goal.
+Using `compute_degree_le` when the goal is of the form `f.(nat_)degree ≤ d`,
+tries to solve the goal.  It may leave side-goals, in case it is not entirely successful.
+
+Using `compute_degree` when the goal is of the form `f.(nat_)degree = d`,
+tries to solve the goal.  It may leave side-goals, in case it is not entirely successful.
+
+Using `prove_monic` when the goal is of the form `f.monic`,
+tries to solve the goal.  It may leave side-goals, in case it is not entirely successful.
+
+Using `simp_lead_coeff` when the goal is of the form `f.coeff n = x`,
+tries to solve the goal assuming that `n` is the expected degree of `f`.
 It may leave side-goals, in case it is not entirely successful.
 
-See the doc-string for more details.
+See the respective doc-strings for more details.
 
 ##  Future work
 
-* Deal with goals of the form `f.(nat_)degree = d` (PR #14040 does exactly this).
+* Fix behaviour of `compute_degree` when `p.nat_degree = 0`: for instance
+  ```lean
+  example {R : Type*} [semiring R] : (2 : R[X]).nat_degree = 0 :=
+  begin
+    compute_degree, ⊢ 2 ≠ 0
+  end
+  ```
 * Add better functionality to deal with exponents that are not necessarily closed natural numbers.
 * Add support for proving goals of the from `f.(nat_)degree ≠ 0`.
 * Make sure that `degree` and `nat_degree` are equally supported.
@@ -362,7 +378,7 @@ focus1 $ do
   | `(%%a ^ %%ex) := do
     da ← guess_degree a,
     refine ``((coeff_pow_of_nat_degree_le' (by norm_num : %%da * %%ex = _) _).trans _),
-    compute_degree_le,
+    try compute_degree_le,
     try $ congr' (some 1);
     resolve_coeff
   | `(- %%a) := do

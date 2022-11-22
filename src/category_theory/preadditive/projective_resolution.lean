@@ -37,6 +37,7 @@ we can construct a functor `projective_resolutions C : C ⥤ homotopy_category C
 noncomputable theory
 
 open category_theory
+open category_theory.category
 open category_theory.limits
 
 universes v u
@@ -130,7 +131,7 @@ P.exact₀.exact.g_is_cokernel
 @[simp]
 def homology_data_complex_zero {Z : C} (P : ProjectiveResolution Z) [balanced C] :
   P.complex.homology_data 0 :=
-P.complex.homology_data_mk₁₂_of_cokernel' (zero_add 1) (by simp) _ P.is_colimit_cokernel_cofork
+P.complex.homology_data_of_cokernel' (zero_add 1) (by simp) _ P.is_colimit_cokernel_cofork
 
 instance complex_has_homology_succ' {Z : C} (P : ProjectiveResolution Z) (n : ℕ):
   (homological_complex.sc P.complex (n+2) (n + 1) n).has_homology :=
@@ -148,6 +149,15 @@ begin
   { exact short_complex.has_homology.mk' P.homology_data_complex_zero, },
   { apply_instance, },
 end
+
+@[simps]
+def homology_map_data_zero {X Y : C} (f : X ⟶ Y) (P : ProjectiveResolution X)
+  (Q : ProjectiveResolution Y) (φ : P.complex ⟶ Q.complex) [balanced C]
+  (comm : φ.f 0 ≫ Q.π.f 0 = P.π.f 0 ≫ f) :
+  homological_complex.homology_map_data φ 0 P.homology_data_complex_zero
+    Q.homology_data_complex_zero :=
+short_complex.homology_map_data.of_colimit_cokernel_coforks
+  ((homological_complex.short_complex_functor C _ 0).map φ) _ _ _ _ _ _ f comm
 
 /-- A projective object admits a trivial projective resolution: itself in degree 0. -/
 def self (Z : C) [category_theory.projective Z] : ProjectiveResolution Z :=

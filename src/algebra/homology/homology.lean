@@ -280,6 +280,7 @@ end
 
 variables (V c)
 
+@[simps]
 def short_complex_functor_nat_iso₁₂ {i j : ι} (hij : c.rel i j) (hj : ¬c.rel j (c.next j)) :
   short_complex_functor V c j ≅ short_complex_functor' V c i j j :=
 nat_iso.of_components (λ C, short_complex.mk_iso (C.X_prev_iso hij) (iso.refl _) (C.X_next_iso_self hj)
@@ -295,6 +296,7 @@ nat_iso.of_components (λ C, short_complex.mk_iso (C.X_prev_iso hij) (iso.refl _
     { apply X_next_iso_self_naturality, },
   end)
 
+@[simps]
 def short_complex_functor_nat_iso₂₃ {i j : ι} (hij : c.rel i j) (hi : ¬c.rel (c.prev i) i) :
   short_complex_functor V c i ≅ short_complex_functor' V c i i j :=
 nat_iso.of_components (λ C, short_complex.mk_iso (C.X_prev_iso_self hi) (iso.refl _) (C.X_next_iso hij)
@@ -312,40 +314,58 @@ nat_iso.of_components (λ C, short_complex.mk_iso (C.X_prev_iso_self hi) (iso.re
 
 variables {V c}
 
-@[simp]
+/-@[simp]
 def homology_data_mk₁₂
   (C : homological_complex V c) {i j : ι} (hij : c.rel i j)
   (hj : ¬c.rel j (c.next j)) (h : (C.sc i j j).homology_data) :
   C.homology_data j :=
 short_complex.homology_data.of_iso
-  ((short_complex_functor_nat_iso₁₂ V c hij hj).app C).symm h
+  ((short_complex_functor_nat_iso₁₂ V c hij hj).app C).symm h-/
 
 @[simp]
-def homology_data_mk₁₂_of_cokernel'
+def homology_data_of_cokernel'
   (C : homological_complex V c) {i j : ι} (hij : c.rel i j)
   (hj : ¬c.rel j (c.next j)) (cc : cokernel_cofork (C.d i j)) (hcc : is_colimit cc) :
   C.homology_data j :=
-C.homology_data_mk₁₂ hij hj
-  (short_complex.homology_data.of_colimit_cokernel_cofork _
-    (C.shape _ _ (c.not_rel_of_not_rel_next hj)) cc hcc)
+begin
+  refine short_complex.homology_data.of_colimit_cokernel_cofork _ (C.d_from_eq_zero hj)
+    (cokernel_cofork.of_π cc.π _) _,
+  { dsimp,
+    simp only [C.d_to_eq hij, assoc, cc.condition, comp_zero], },
+  { have h := c.prev_eq' hij,
+    subst h,
+    exact is_colimit.of_iso_colimit hcc (cofork.ext (iso.refl _) (by tidy)), },
+end
+--C.homology_data_mk₁₂ hij hj
+--  (short_complex.homology_data.of_colimit_cokernel_cofork _
+--    (C.shape _ _ (c.not_rel_of_not_rel_next hj)) cc hcc)
 
 @[simp]
-def homology_data_mk₁₂_of_cokernel
+def homology_data_of_cokernel
   (C : homological_complex V c) {i j : ι} (hij : c.rel i j)
   (hj : ¬c.rel j (c.next j)) [has_cokernel (C.d i j)] :
   C.homology_data j :=
-C.homology_data_mk₁₂_of_cokernel' hij hj _ (cokernel_is_cokernel (C.d i j))
+C.homology_data_of_cokernel' hij hj _ (cokernel_is_cokernel (C.d i j))
+
+def homology_map_data_of_cokernel'
+  {C₁ C₂ : homological_complex V c} (φ : C₁ ⟶ C₂) {i j : ι} (hij : c.rel i j)
+  (hj : ¬c.rel j (c.next j)) (cc₁ : cokernel_cofork (C₁.d i j)) (hcc₁ : is_colimit cc₁)
+  (cc₂ : cokernel_cofork (C₂.d i j)) (hcc₂ : is_colimit cc₂) (f : cc₁.X ⟶ cc₂.X)
+  (comm : φ.f j ≫ cc₂.π = cc₁.π ≫ f):
+  homology_map_data φ j (C₁.homology_data_of_cokernel' hij hj cc₁ hcc₁)
+    (C₂.homology_data_of_cokernel' hij hj cc₂ hcc₂) :=
+short_complex.homology_map_data.of_colimit_cokernel_coforks _ _ _ _ _ _ _ _ comm
 
 @[simps]
 def homology_iso_cokernel' (C : homological_complex V c) {i j : ι} (hij : c.rel i j)
   (hj : ¬c.rel j (c.next j)) [C.has_homology j] (cc : cokernel_cofork (C.d i j)) (hcc : is_colimit cc) :
   C.homology j ≅ cc.X :=
-(C.homology_data_mk₁₂_of_cokernel' hij hj cc hcc).homology_iso
+(C.homology_data_of_cokernel' hij hj cc hcc).homology_iso
 
 def homology_iso_cokernel (C : homological_complex V c) {i j : ι} (hij : c.rel i j)
   (hj : ¬c.rel j (c.next j)) [C.has_homology j] [has_cokernel (C.d i j)] :
   C.homology j ≅ cokernel (C.d i j) :=
-(C.homology_data_mk₁₂_of_cokernel hij hj).homology_iso
+(C.homology_data_of_cokernel hij hj).homology_iso
 
 @[simp]
 def homology_data_mk₂₃
@@ -530,10 +550,20 @@ instance preserves_left_homology_zero_of_preserves_finite_limits (F : V ⥤ W)
   F.preserves_left_homology_of (C.sc' 0) :=
 short_complex.preserves_left_homology_of_zero_left F _ (by simp)
 
+instance preserves_left_homology_zero_of_preserves_finite_limits' (F : V ⥤ W)
+  [F.preserves_zero_morphisms] [preserves_finite_limits F] (C : cochain_complex V ℕ) :
+  F.preserves_left_homology_of ((homological_complex.short_complex_functor _ _ 0).obj C) :=
+by { change F.preserves_left_homology_of (C.sc' 0), apply_instance, }
+
 instance preserves_right_homology_zero_of_preserves_finite_limits (F : V ⥤ W)
   [F.preserves_zero_morphisms] [preserves_finite_limits F] (C : cochain_complex V ℕ) :
   F.preserves_right_homology_of (C.sc' 0) :=
 short_complex.preserves_right_homology_of_zero_left F _ (by simp)
+
+instance preserves_right_homology_zero_of_preserves_finite_limits' (F : V ⥤ W)
+  [F.preserves_zero_morphisms] [preserves_finite_limits F] (C : cochain_complex V ℕ) :
+  F.preserves_right_homology_of ((homological_complex.short_complex_functor _ _ 0).obj C) :=
+by { change F.preserves_right_homology_of (C.sc' 0), apply_instance, }
 
 end cochain_complex
 
@@ -544,9 +574,19 @@ instance preserves_left_homology_zero_of_preserves_finite_colimits (F : V ⥤ W)
   F.preserves_left_homology_of (C.sc' 0) :=
 short_complex.preserves_left_homology_of_zero_right F _ (by simp)
 
+instance preserves_left_homology_zero_of_preserves_finite_colimits' (F : V ⥤ W)
+  [F.preserves_zero_morphisms] [preserves_finite_colimits F] (C : chain_complex V ℕ) :
+  F.preserves_left_homology_of ((homological_complex.short_complex_functor _ _ 0).obj C) :=
+by { change F.preserves_left_homology_of (C.sc' 0), apply_instance, }
+
 instance preserves_right_homology_zero_of_preserves_finite_colimits (F : V ⥤ W)
   [F.preserves_zero_morphisms] [preserves_finite_colimits F] (C : chain_complex V ℕ) :
   F.preserves_right_homology_of (C.sc' 0) :=
 short_complex.preserves_right_homology_of_zero_right F _ (by simp)
+
+instance preserves_right_homology_zero_of_preserves_finite_colimits' (F : V ⥤ W)
+  [F.preserves_zero_morphisms] [preserves_finite_colimits F] (C : chain_complex V ℕ) :
+  F.preserves_right_homology_of ((homological_complex.short_complex_functor _ _ 0).obj C) :=
+by { change F.preserves_right_homology_of (C.sc' 0), apply_instance, }
 
 end chain_complex

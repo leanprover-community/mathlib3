@@ -302,10 +302,12 @@ class preserves_left_homology_of :=
 class preserves_right_homology_of :=
 (condition' [] : ∀ (h : S.right_homology_data), h.is_preserved_by F)
 
+@[instance]
 def preserves_left_homology_of.condition (h : S.left_homology_data)
   [F.preserves_left_homology_of S] :
   h.is_preserved_by F := preserves_left_homology_of.condition' F h
 
+@[instance]
 def preserves_right_homology_of.condition (h : S.right_homology_data)
   [F.preserves_right_homology_of S] :
   h.is_preserved_by F := preserves_right_homology_of.condition' F h
@@ -558,7 +560,7 @@ section
 variables (F : C ⥤ D) [functor.preserves_zero_morphisms F] (S : short_complex C)
 
 lemma preserves_left_homology_of_zero_left (hf : S.f = 0)
-  [preserves_limit (parallel_pair S.g 0) F] [F.preserves_zero_morphisms]:
+  [preserves_limit (parallel_pair S.g 0) F] :
   F.preserves_left_homology_of S :=
 ⟨λ h, begin
   split,
@@ -568,7 +570,7 @@ lemma preserves_left_homology_of_zero_left (hf : S.f = 0)
 end⟩
 
 lemma preserves_right_homology_of_zero_left (hf : S.f = 0)
-  [preserves_limit (parallel_pair S.g 0) F] [F.preserves_zero_morphisms]:
+  [preserves_limit (parallel_pair S.g 0) F] :
   F.preserves_right_homology_of S :=
 ⟨λ h, begin
   split,
@@ -580,7 +582,7 @@ lemma preserves_right_homology_of_zero_left (hf : S.f = 0)
 end⟩
 
 lemma preserves_left_homology_of_zero_right (hg : S.g = 0)
-  [preserves_colimit (parallel_pair S.f 0) F] [F.preserves_zero_morphisms]:
+  [preserves_colimit (parallel_pair S.f 0) F] :
   F.preserves_left_homology_of S :=
 ⟨λ h, begin
   split,
@@ -592,7 +594,7 @@ lemma preserves_left_homology_of_zero_right (hg : S.g = 0)
 end⟩
 
 lemma preserves_right_homology_of_zero_right (hg : S.g = 0)
-  [preserves_colimit (parallel_pair S.f 0) F] [F.preserves_zero_morphisms]:
+  [preserves_colimit (parallel_pair S.f 0) F] :
   F.preserves_right_homology_of S :=
 ⟨λ h, begin
   split,
@@ -602,5 +604,38 @@ lemma preserves_right_homology_of_zero_right (hg : S.g = 0)
 end⟩
 
 end
+
+/-namespace homology_data
+
+def map_homology_iso {S : short_complex C}
+  (h : homology_data S) (F : C ⥤ D) [F.preserves_zero_morphisms]
+  [(S.map F).has_homology]
+  [F.preserves_left_homology_of S] [F.preserves_right_homology_of S]
+  [h.left.is_preserved_by F] [h.right.is_preserved_by F] :
+  (S.map F).homology ≅ F.obj h.left.H :=
+begin
+  exact (h.map F).homology_iso,
+
+end
+
+
+end homology_data
+
+namespace homology_map_data
+
+lemma homology_iso_naturality
+  {φ : S₁ ⟶ S₂} {h₁ : homology_data S₁} {h₂ : homology_data S₂}
+  (h : homology_map_data φ h₁ h₂)
+  (F : C ⥤ D) [F.preserves_zero_morphisms]
+  [S₁.has_homology] [F.preserves_left_homology_of S₁] [F.preserves_right_homology_of S₁]
+  [S₂.has_homology] [F.preserves_left_homology_of S₂] [F.preserves_right_homology_of S₂]
+  [(S₁.map F).has_homology]
+  [h₁.left.is_preserved_by F] [h₁.right.is_preserved_by F]
+  [h₂.left.is_preserved_by F] [h₂.right.is_preserved_by F] :
+  homology_map (F.map_short_complex.map φ) ≫ (h₂.map F).homology_iso.hom =
+    (h₁.map F).homology_iso.hom ≫ F.map h.left.φH :=
+(h.map F).map_comm
+
+end homology_map_data-/
 
 end short_complex

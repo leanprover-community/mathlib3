@@ -91,7 +91,6 @@ h.hι.fac (kernel_fork.of_ι k hk) walking_parallel_pair.zero
 
 variable (S)
 
-@[simp]
 def of_colimit_cokernel_cofork (hg : S.g = 0) (c : cokernel_cofork S.f) (hc : is_colimit c) :
   S.right_homology_data :=
 { Q := c.X,
@@ -109,6 +108,14 @@ def of_colimit_cokernel_cofork (hg : S.g = 0) (c : cokernel_cofork S.f) (hc : is
     dsimp,
     simp only [hg, id_comp, cofork.is_colimit.π_desc, cokernel_cofork.π_of_π, comp_zero],
   end }
+
+@[simp] lemma of_colimit_cokernel_cofork_p (hg : S.g = 0) (c : cokernel_cofork S.f)
+  (hc : is_colimit c) : (of_colimit_cokernel_cofork S hg c hc).p = c.π := rfl
+@[simp] lemma of_colimit_cokernel_cofork_ι (hg : S.g = 0) (c : cokernel_cofork S.f)
+  (hc : is_colimit c) : (of_colimit_cokernel_cofork S hg c hc).ι = 𝟙 _ := rfl
+@[simp] lemma of_colimit_cokernel_cofork_g' (hg : S.g = 0) (c : cokernel_cofork S.f)
+  (hc : is_colimit c) : (of_colimit_cokernel_cofork S hg c hc).g' = 0 :=
+by rw [← cancel_epi (of_colimit_cokernel_cofork S hg c hc).p, p_g', hg, comp_zero]
 
 @[simp]
 def of_has_cokernel [has_cokernel S.f] (hg : S.g = 0) : S.right_homology_data :=
@@ -441,12 +448,23 @@ lemma congr_φQ {γ₁ γ₂ : right_homology_map_data φ h₁ h₂} (eq : γ₁
   γ₁.φQ = γ₂.φQ := by rw eq
 
 @[simp]
-def of_zeros {φ : S₁ ⟶ S₂} (hf₁ : S₁.f = 0) (hg₁ : S₁.g = 0) (hf₂ : S₂.f = 0) (hg₂ : S₂.g = 0) :
+def of_zeros (φ : S₁ ⟶ S₂) (hf₁ : S₁.f = 0) (hg₁ : S₁.g = 0) (hf₂ : S₂.f = 0) (hg₂ : S₂.g = 0) :
   right_homology_map_data φ (right_homology_data.of_zeros S₁ hf₁ hg₁)
     (right_homology_data.of_zeros S₂ hf₂ hg₂) :=
 { φQ := φ.τ₂,
   φH := φ.τ₂,
   commg'' := by simp only [φ.comm₂₃, right_homology_data.of_zeros_g'], }
+
+@[simps]
+def of_colimit_cokernel_coforks (φ : S₁ ⟶ S₂)
+  (hg₁ : S₁.g = 0) (c₁ : cokernel_cofork S₁.f) (hc₁ : is_colimit c₁)
+  (hg₂ : S₂.g = 0) (c₂ : cokernel_cofork S₂.f) (hc₂ : is_colimit c₂) (f : c₁.X ⟶ c₂.X)
+  (comm : φ.τ₂ ≫ c₂.π = c₁.π ≫ f) :
+  right_homology_map_data φ (right_homology_data.of_colimit_cokernel_cofork S₁ hg₁ c₁ hc₁)
+    (right_homology_data.of_colimit_cokernel_cofork S₂ hg₂ c₂ hc₂) :=
+{ φQ := f,
+  φH := f,
+  commp' := comm.symm, }
 
 end right_homology_map_data
 

@@ -228,8 +228,18 @@ def unop' {S₁ S₂ : short_complex Cᵒᵖ} {φ : S₁ ⟶ S₂} {h₁ : S₁.
 def of_zeros {S₁ S₂ : short_complex C} (φ : S₁ ⟶ S₂) (hf₁ : S₁.f = 0) (hg₁ : S₁.g = 0)
   (hf₂ : S₂.f = 0) (hg₂ : S₂.g = 0) :
   homology_map_data φ (homology_data.of_zeros S₁ hf₁ hg₁) (homology_data.of_zeros S₂ hf₂ hg₂) :=
-{ left := left_homology_map_data.of_zeros _ _ _ _,
-  right := right_homology_map_data.of_zeros _ _ _ _, }
+{ left := left_homology_map_data.of_zeros _ _ _ _ _,
+  right := right_homology_map_data.of_zeros _ _ _ _ _, }
+
+@[simps]
+def of_colimit_cokernel_coforks (φ : S₁ ⟶ S₂)
+  (hg₁ : S₁.g = 0) (c₁ : cokernel_cofork S₁.f) (hc₁ : is_colimit c₁)
+  (hg₂ : S₂.g = 0) (c₂ : cokernel_cofork S₂.f) (hc₂ : is_colimit c₂) (f : c₁.X ⟶ c₂.X)
+  (comm : φ.τ₂ ≫ c₂.π = c₁.π ≫ f) :
+  homology_map_data φ (homology_data.of_colimit_cokernel_cofork S₁ hg₁ c₁ hc₁)
+    (homology_data.of_colimit_cokernel_cofork S₂ hg₂ c₂ hc₂) :=
+{ left := left_homology_map_data.of_colimit_cokernel_coforks _ _ _ _ _ _ _ _ comm,
+  right := right_homology_map_data.of_colimit_cokernel_coforks _ _ _ _ _ _ _ _ comm, }
 
 end homology_map_data
 

@@ -587,7 +587,7 @@ lemma neg_rotation (θ : real.angle) (x : V) : -o.rotation θ x = o.rotation (π
 by rw [←o.rotation_pi_apply, rotation_rotation]
 
 /-- Negating a rotation by -π / 2 is equivalent to rotation by π / 2. -/
-lemma neg_rotation_neg_pi_div_two (x : V) : -o.rotation (-π / 2 : ℝ) x = o.rotation (π / 2 : ℝ) x :=
+@[simp] lemma neg_rotation_neg_pi_div_two (x : V) : -o.rotation (-π / 2 : ℝ) x = o.rotation (π / 2 : ℝ) x :=
 by rw [neg_rotation, ←real.angle.coe_add, neg_div, ←sub_eq_add_neg, sub_half]
 
 /-- Negating a rotation by π / 2 is equivalent to rotation by -π / 2. -/

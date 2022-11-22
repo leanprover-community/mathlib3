@@ -191,11 +191,11 @@ suitable for a "Try this:", while `e2` is an expression that unifies with the ta
 meta def single_term_suggestions : tactic (expr × (expr ff)) :=
 do
   t ← target,
-  [ ``(polynomial.nat_degree_X_pow _),
-    ``(polynomial.nat_degree_C _),
-    ``(polynomial.nat_degree_X),
-    ``(polynomial.nat_degree_C_mul_X_pow _ _ ‹_›),
-    ``(polynomial.nat_degree_C_mul_X _ ‹_›) ].mfirst
+  [``(polynomial.nat_degree_X_pow _),
+   ``(polynomial.nat_degree_C _),
+   ``(polynomial.nat_degree_X),
+   ``(polynomial.nat_degree_C_mul_X_pow _ _ ‹_›),
+   ``(polynomial.nat_degree_C_mul_X _ ‹_›)].mfirst
     (λ st, do
       na ← to_expr st tt ff,
       infer_type na >>= unify t >> return (replace_mvars na, st))
@@ -418,14 +418,14 @@ section parsing
 setup_tactic_parser
 
 /--
-`simp_coeff (with h)?` assumes that the target is either of the form `f.coeff n = x` or of the form
+`simp_lead_coeff (with h)?` assumes that the target is either of the form `f.coeff n = x` or of the form
 `f.coeff n ≠ x`.  It then proceeds to simplify `f.coeff n` recurring to the pair
 `get_lead_coeff/resolve_coeff` to scan the expression of `f` and producing a hopefully simpler
 expression.  After this, it calls on `simp only [a few lemmas]` and `norm_num` to simplify further.
-If the optional `with h` argument is given, then `h` is the name that `simp_coeff` assigns to
+If the optional `with h` argument is given, then `h` is the name that `simp_lead_coeff` assigns to
 possible side-goals.
 -/
-meta def simp_coeff (na : parse with_ident_list) : tactic unit :=
+meta def simp_lead_coeff (na : parse with_ident_list) : tactic unit :=
 do t ← target >>= instantiate_mvars,
   (t_is_eq, f, m) ← match t with
     | `(coeff %%f %%m = _) := return (tt, f, m)
@@ -448,6 +448,9 @@ do t ← target >>= instantiate_mvars,
 goal to showing that
 * the degree is at most `d`, calling `compute_degree_le` to solve this case;
 * the coefficient of degree `d` is non-zero, calling `simp_coeff` to simplify this goal.
+
+`compute_degree` will suggest a term-mode proof if it's a oneliner. If you want to disable these suggestions,
+for example when you're working on multiple goals at once, use `compute_degree!`.
 
 Unless the polynomial is particularly complicated, `compute_degree` either succeeds of leaves
 a simpler goal to prove.  Continue reading for a discussion of what are the current
@@ -472,12 +475,17 @@ focus $ do
   | `(    degree %%_ = %%n) :=
     refine ``((degree_eq_iff_nat_degree_eq_of_pos (by norm_num : 0 < _)).mpr _)
   | `(nat_degree %%_ = %%_) := do
-    wks ← try_core single_term_suggestions,
-    match wks with
-    | some wor :=
-      if single.is_some then refine wor.2
-      else (do pwks ← pp wor.1, fail!"Try this: exact {pwks}\n\nor\n\nTry this: compute_degree!")
-    | none := skip
+    -- Try to solve the goal with a oneliner.
+    -- If this succeeds, we close the goal in `compute_degree!` mode.
+    -- In the normal `compute_degree` mode, we ask the user to use the oneliner instead.
+    potential_suggestions ← try_core single_term_suggestions,
+    match potential_suggestion with
+    | some suggestion :=
+      if single.is_some then refine suggestion.2 -- Oneliner found: done!
+      else (do -- Oneliner: found: ask the user to try that instead.
+        p_suggestion ← pp suggestion.1,
+        fail!"Try this: exact {p_suggestion}\n\nor\n\nTry this: compute_degree!")
+    | none := skip -- No oneliner found.
     end
   | _ := fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`"
   end;

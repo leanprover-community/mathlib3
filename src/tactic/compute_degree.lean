@@ -152,7 +152,7 @@ meta def resolve_sum_step : expr → tactic unit
   | `(%%tl1 ^ %%n)   := do
       refine ``(nat_degree_pow_le.trans _), -- goal: `⊢ %%n * nat_degree %%tl1 ≤ %%tr`
       -- If `%%n` is 0, we show that the degree is also 0.
-      refine ``(dite (%%n = 0) (λ (n0 : %%n = 0), (by simp only [n0, zero_mul, zero_le])) _),
+      refine ``(dite (%%n = 0) (λ _, (by simp only [*, zero_mul, zero_le])) _),
       -- Otherwise, divide both sides by `%%n` to get a goal of the form `nat_degree _ ≤ _`.
       n0 ← get_unused_name "n0" >>= intro,
       -- goal: `%%n0 : %%n ≠ 0 ⊢ %%n * nat_degree %%tl1 ≤ %%tr`
@@ -298,8 +298,7 @@ focus1 $ do
   deg_bound ← eval_expr' ℕ tr <|> pure expected_deg,
   if deg_bound < expected_deg
   then fail sformat!"the given polynomial has a term of expected degree\nat least '{expected_deg}'"
-  else
-    repeat $ target >>= instantiate_mvars >>= resolve_sum_step,
+  else repeat $ target >>= instantiate_mvars >>= resolve_sum_step,
   (do gs ← get_goals >>= list.mmap infer_type,
     success_if_fail $ gs.mfirst $ unify t) <|> fail "Goal did not change",
   try $ any_goals' norm_assum

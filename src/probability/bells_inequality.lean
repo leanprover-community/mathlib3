@@ -196,28 +196,29 @@ theorem bells_inequality_1975
   (Xb_measurable : strongly_measurable (λ ω, (Xb ω : ℝ)))
 
   -- probability distribution on outcomes of experiments that depends on two parameters α∈Aa and β∈Ab
-  (ℙab : Aa → Ab → (probability_measure Ω))
+  (ℙab : Aa → Ab → (measure Ω))
   -- factorized probabilities
-  (ℙa : Aa → (probability_measure Ω))
-  (ℙb : Ab → (probability_measure Ω))
+  (ℙa : Aa → (measure Ω))
+  (ℙb : Ab → (measure Ω))
 
   -- shared variable
   (lam : Ω → Λ)
   (lam_measurable : strongly_measurable lam)
   -- probability distribution on shared variable
-  (P_lam : probability_measure Ω)
+  (P_lam : measure Ω)
+  (hP_lam : is_probability_measure P_lam)
 
   -- locality assumption
   (locality : ∀ l:Λ, ∀ α:Aa, ∀ β:Ab ,
-    ∫ ω , (Xa ω :ℝ) * (Xb ω) ∂(probability_theory.cond ((ℙab α β):measure Ω) (lam ⁻¹' {l})) =
-      ∫ ω , (Xa ω :ℝ) * (Xb ω) ∂(probability_theory.cond ((ℙa α):measure Ω) (lam ⁻¹' {l})) *
-      ∫ ω , (Xa ω :ℝ) * (Xb ω) ∂(probability_theory.cond ((ℙb β):measure Ω) (lam ⁻¹' {l})) )
+    ∫ ω , (Xa ω :ℝ) * (Xb ω) ∂(probability_theory.cond (ℙab α β) (lam ⁻¹' {l})) =
+      ∫ ω , (Xa ω :ℝ) * (Xb ω) ∂(probability_theory.cond (ℙa α) (lam ⁻¹' {l})) *
+      ∫ ω , (Xa ω :ℝ) * (Xb ω) ∂(probability_theory.cond (ℙb β) (lam ⁻¹' {l})) )
   :
   ∀ α : Aa , ∀ α' : Aa, ∀ β : Ab , ∀ β' : Ab ,
-  | (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙab α β):measure Ω) )
-    - (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙab α β'):measure Ω) ) |
-  + | (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙab α' β):measure Ω) )
-    - (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙab α' β'):measure Ω) ) |
+  | (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂(ℙab α β) )
+    - (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂(ℙab α β') ) |
+  + | (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂(ℙab α' β) )
+    - (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂(ℙab α' β') ) |
     ≤ 2
   :=
 
@@ -228,7 +229,7 @@ begin
   
   have cond_expectation :
   ∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙab α β):measure Ω)
-    = ∫ l:Λ, ∫ ω , (Xa ω : ℝ) * (Xb ω) ∂(ℙab_cond α β l) ,
+    = ∫ l:Λ, ∫ ω , (Xa ω : ℝ) * (Xb ω) ∂(ℙab_cond α β l),
 
 
   sorry,

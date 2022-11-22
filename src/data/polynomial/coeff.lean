@@ -98,7 +98,7 @@ by simp [coeff_mul]
 
 /-- `constant_coeff p` returns the constant term of the polynomial `p`,
   defined as `coeff p 0`. This is a ring homomorphism. -/
-def constant_coeff : R[X] →+* R :=
+@[simps] def constant_coeff : R[X] →+* R :=
 { to_fun := λ p, coeff p 0,
   map_one' := by rw [coeff_one, if_pos rfl],
   map_mul' := mul_coeff_zero,

@@ -87,6 +87,9 @@ values other than `2`. -/
 def scaling_constant_of (K : ℝ) : ℝ≥0 :=
 max (classical.some $ exists_eventually_forall_measure_closed_ball_le_mul μ K) 1
 
+@[simp] lemma one_le_scaling_constant_of (K : ℝ) : 1 ≤ scaling_constant_of μ K :=
+le_max_of_le_right $ le_refl 1
+
 lemma eventually_measure_mul_le_scaling_constant_of_mul (K : ℝ) :
   ∃ (R : ℝ), 0 < R ∧ ∀ x t r (ht : t ∈ Ioc 0 K) (hr : r ≤ R),
     μ (closed_ball x (t * r)) ≤ scaling_constant_of μ K * μ (closed_ball x r) :=
@@ -102,6 +105,26 @@ begin
     apply ennreal.one_le_coe_iff.2 (le_max_right _ _) },
   { apply (hR ⟨rpos, hr⟩ x t ht.2).trans _,
     exact ennreal.mul_le_mul (ennreal.coe_le_coe.2 (le_max_left _ _)) le_rfl }
+end
+
+lemma eventually_measure_le_scaling_constant_mul (K : ℝ) (hK : 0 < K) :
+  ∀ᶠ r in 𝓝[>] 0, ∀ x,
+    μ (closed_ball x (K * r)) ≤ scaling_constant_of μ K * μ (closed_ball x r) :=
+begin
+  obtain ⟨R, hR, hR'⟩ := eventually_measure_mul_le_scaling_constant_of_mul μ K,
+  rw eventually_iff_exists_mem,
+  refine ⟨Iio R, _, λ r hr x, hR' x K r ⟨hK, le_refl K⟩ (mem_Iio.mp hr).le⟩,
+  exact mem_nhds_within.mpr ⟨Iio R, is_open_Iio, hR, by simp⟩,
+end
+
+lemma eventually_measure_le_scaling_constant_mul' (K : ℝ) (hK : 0 < K) :
+  ∀ᶠ r in 𝓝[>] 0, ∀ x,
+    μ (closed_ball x r) ≤ scaling_constant_of μ K⁻¹ * μ (closed_ball x (K * r)) :=
+begin
+  convert eventually_nhds_within_pos_mul_left hK
+    (eventually_measure_le_scaling_constant_mul μ K⁻¹ (inv_pos.mpr hK)),
+  ext,
+  simp [inv_mul_cancel_left₀ hK.ne'],
 end
 
 /-- A scale below which the doubling measure `μ` satisfies good rescaling properties when one

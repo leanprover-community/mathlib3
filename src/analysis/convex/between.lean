@@ -340,6 +340,34 @@ lemma sbtw.not_rotate [no_zero_smul_divisors R V] {x y z : P} (h : sbtw R x y z)
   ¬ wbtw R z x y :=
 λ hs, h.left_ne (h.wbtw.rotate_iff.1 hs)
 
+@[simp] lemma wbtw_line_map_iff [no_zero_smul_divisors R V] {x y : P} {r : R} :
+  wbtw R x (line_map x y r) y ↔ x = y ∨ r ∈ set.Icc (0 : R) 1 :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw [wbtw, affine_segment, set.mem_image] at h,
+    rcases h with ⟨r', hr'01, hr'⟩,
+    rw line_map_eq_line_map_iff at hr',
+    rcases hr' with rfl | rfl,
+    { exact or.inl rfl },
+    { exact or.inr hr'01 } },
+  { rcases h with rfl | h, { simp },
+    rw [wbtw, affine_segment, set.mem_image],
+    exact ⟨r, h, rfl⟩ }
+end
+
+@[simp] lemma sbtw_line_map_iff [no_zero_smul_divisors R V] {x y : P} {r : R} :
+  sbtw R x (line_map x y r) y ↔ x ≠ y ∧ r ∈ set.Ioo (0 : R) 1 :=
+begin
+  rw [sbtw, wbtw_line_map_iff],
+  by_cases hxy : x = y,
+  { simp [hxy] },
+  { rw [or_iff_right hxy, and_iff_right hxy, ne.def, ne.def, line_map_eq_left_iff,
+        line_map_eq_right_iff, not_or_distrib, not_or_distrib, and_iff_right hxy,
+        and_iff_right hxy, set.mem_Icc, set.mem_Ioo],
+    exact ⟨λ h, ⟨h.1.1.lt_of_ne (ne.symm h.2.1), h.1.2.lt_of_ne h.2.2⟩,
+           λ h, ⟨⟨h.1.le, h.2.le⟩, h.1.ne', h.2.ne⟩⟩ }
+end
+
 lemma wbtw.trans_left {w x y z : P} (h₁ : wbtw R w y z) (h₂ : wbtw R w x y) : wbtw R w x z :=
 begin
   rcases h₁ with ⟨t₁, ht₁, rfl⟩,

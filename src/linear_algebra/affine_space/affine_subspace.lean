@@ -1613,3 +1613,27 @@ begin
 end
 
 end affine_subspace
+
+namespace affine_equiv
+
+variables {k V₁ P₁ V₂ P₂ : Type*} [ring k] [add_comm_group V₁] [add_comm_group V₂]
+  [module k V₁] [module k V₂] [affine_space V₁ P₁] [affine_space V₂ P₂]
+include V₁ V₂
+
+lemma comap_span_aux (f : P₁ ≃ᵃ[k] P₂) :
+set.image f.symm = set.preimage f :=
+funext f.symm.to_equiv.image_eq_preimage
+
+lemma comap_span
+  [add_torsor V₁ P₁] [add_torsor V₂ P₂]
+  (f : P₁ ≃ᵃ[k] P₂) (A : set P₂) :
+affine_subspace.comap f.to_affine_map (affine_span k A) = affine_span k (f ⁻¹' A) :=
+begin
+  ext1, skip,
+  simp only [affine_subspace.coe_comap, ←comap_span_aux],
+  simp only [←affine_equiv.coe_to_affine_map],
+  rw [←affine_subspace.map_span, affine_subspace.coe_map],
+  exact (f.to_equiv.symm.image_eq_preimage _).symm,
+end
+
+end affine_equiv

@@ -9,10 +9,10 @@ import data.polynomial.degree.lemmas
 # `compute_degree` & Co: tactics for computing degrees of polynomials
 
 This file defines four tactics:
-* `compute_degree_le` tries to solve goals of the form `f.(nat_)degree ≤ d`;
-* `compute_degree` tries to solve goals of the form `f.(nat_)degree = d`;
-* `prove_monic` tries to solve goals of the form `f.monic`;
-* `simp_lead_coeff` tries to solve goals of the form `f.coeff n = x`,
+* `tactic.interactive.compute_degree_le` tries to solve goals of the form `f.(nat_)degree ≤ d`;
+* `tactic.interactive.compute_degree` tries to solve goals of the form `f.(nat_)degree = d`;
+* `tactic.interactive.prove_monic` tries to solve goals of the form `f.monic`;
+* `tactic.interactive.simp_lead_coeff` tries to solve goals of the form `f.coeff n = x`,
   assuming that `n` is the expected degree of `f`.
 
 All of these tactics may leave side-goals, in case they are not entirely successful.

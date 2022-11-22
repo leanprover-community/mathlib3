@@ -171,7 +171,7 @@ begin
   have hK_nonempty : (⋂ n, K n : set α).nonempty,
     from is_compact.nonempty_Inter_of_sequence_nonempty_compact_closed _
       (λ n, (hK_decreasing n).trans (inter_subset_right _ _))
-      (λ n, (K n).nonempty) (K 0).compact (λ n, (K n).compact.is_closed),
+      (λ n, (K n).nonempty) (K 0).is_compact (λ n, (K n).is_compact.is_closed),
   exact hK_nonempty.mono hK_subset
 end
 

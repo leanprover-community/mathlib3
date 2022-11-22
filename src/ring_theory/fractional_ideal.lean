@@ -134,6 +134,13 @@ Useful to fix definitional equalities. -/
 protected def copy (p : fractional_ideal S P) (s : set P) (hs : s = ↑p) : fractional_ideal S P :=
 ⟨submodule.copy p s hs, by { convert p.is_fractional, ext, simp only [hs], refl }⟩
 
+@[simp] lemma coe_copy (p : fractional_ideal S P) (s : set P) (hs : s = ↑p) :
+  ↑(p.copy s hs) = s :=
+rfl
+
+lemma coe_eq (p : fractional_ideal S P) (s : set P) (hs : s = ↑p) : p.copy s hs = p :=
+set_like.coe_injective hs
+
 end set_like
 
 @[simp] lemma val_eq_coe (I : fractional_ideal S P) : I.val = I := rfl
@@ -852,7 +859,7 @@ instance : nontrivial (fractional_ideal R₁⁰ K) :=
   one_ne_zero ((mem_zero_iff _).mp this)⟩⟩
 
 lemma ne_zero_of_mul_eq_one (I J : fractional_ideal R₁⁰ K) (h : I * J = 1) : I ≠ 0 :=
-λ hI, @zero_ne_one (fractional_ideal R₁⁰ K) _ _ (by { convert h, simp [hI], })
+λ hI, zero_ne_one' (fractional_ideal R₁⁰ K) (by { convert h, simp [hI], })
 
 variables [is_domain R₁]
 
@@ -941,7 +948,7 @@ end
 
 @[simp] lemma div_one {I : fractional_ideal R₁⁰ K} : I / 1 = I :=
 begin
-  rw [div_nonzero (@one_ne_zero (fractional_ideal R₁⁰ K) _ _)],
+  rw [div_nonzero (one_ne_zero' (fractional_ideal R₁⁰ K))],
   ext,
   split; intro h,
   { simpa using mem_div_iff_forall_mul_mem.mp h 1

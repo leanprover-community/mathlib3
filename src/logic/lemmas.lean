@@ -5,9 +5,14 @@ Authors: Yaël Dillies
 -/
 import tactic.protected
 import tactic.split_ifs
+import logic.basic
 
 /-!
 # More basic logic properties
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/537
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A few more logic lemmas. These are in their own file, rather than `logic.basic`, because it is
 convenient to be able to use the `split_ifs` tactic.
@@ -21,6 +26,9 @@ would result in less delta-reduced statements.
 alias heq_iff_eq ↔ heq.eq eq.heq
 
 attribute [protected] heq.eq eq.heq
+
+alias ne_of_eq_of_ne ← eq.trans_ne
+alias ne_of_ne_of_eq ← ne.trans_eq
 
 variables {α : Sort*} {p q r : Prop} [decidable p] [decidable q] {a b c : α}
 

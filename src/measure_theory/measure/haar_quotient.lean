@@ -6,7 +6,6 @@ Authors: Alex Kontorovich, Heather Macbeth
 
 import measure_theory.measure.haar
 import measure_theory.group.fundamental_domain
-import topology.compact_open
 import algebra.group.opposite
 
 /-!
@@ -156,7 +155,7 @@ begin
     h𝓕.is_mul_left_invariant_map,
   rw [measure.haar_measure_unique (measure.map (quotient_group.mk' Γ) (μ.restrict 𝓕)) K,
     measure.map_apply meas_π, measure.restrict_apply₀' 𝓕meas, inter_comm],
-  exact K.compact.measurable_set,
+  exact K.is_compact.measurable_set,
 end
 
 /-- Given a normal subgroup `Γ` of a topological group `G` with Haar measure `μ`, which is also

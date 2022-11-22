@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import group_theory.group_action.conj_act
 import group_theory.group_action.quotient
+import group_theory.quotient_group
 import order.filter.pointwise
 import topology.algebra.monoid
 import topology.compact_open
@@ -923,25 +924,49 @@ with continuous addition/multiplication. See also `submonoid.top_closure_mul_sel
 `topology.algebra.monoid`.
 -/
 
-section has_continuous_mul
-variables [topological_space α] [group α] [has_continuous_mul α] {s t : set α}
+section has_continuous_const_smul
+variables [topological_space β] [group α] [mul_action α β]
+  [has_continuous_const_smul α β] {s : set α} {t : set β}
 
-@[to_additive] lemma is_open.mul_left (ht : is_open t) : is_open (s * t) :=
-by { rw ←Union_mul_left_image, exact is_open_bUnion (λ a ha, is_open_map_mul_left a t ht) }
+@[to_additive] lemma is_open.smul_left (ht : is_open t) : is_open (s • t) :=
+by { rw ←bUnion_smul_set, exact is_open_bUnion (λ a _, ht.smul _) }
+
+@[to_additive] lemma subset_interior_smul_right : s • interior t ⊆ interior (s • t) :=
+interior_maximal (set.smul_subset_smul_left interior_subset) is_open_interior.smul_left
+
+variables [topological_space α]
+
+@[to_additive] lemma subset_interior_smul : interior s • interior t ⊆ interior (s • t) :=
+(set.smul_subset_smul_right interior_subset).trans subset_interior_smul_right
+
+end has_continuous_const_smul
+
+section has_continuous_const_smul
+variables [topological_space α] [group α] [has_continuous_const_smul α α] {s t : set α}
+
+@[to_additive] lemma is_open.mul_left : is_open t → is_open (s * t) := is_open.smul_left
+
+@[to_additive] lemma subset_interior_mul_right : s * interior t ⊆ interior (s * t) :=
+subset_interior_smul_right
+
+@[to_additive] lemma subset_interior_mul : interior s * interior t ⊆ interior (s * t) :=
+subset_interior_smul
+
+end has_continuous_const_smul
+
+section has_continuous_const_smul_op
+variables [topological_space α] [group α] [has_continuous_const_smul αᵐᵒᵖ α] {s t : set α}
 
 @[to_additive] lemma is_open.mul_right (hs : is_open s) : is_open (s * t) :=
-by { rw ←Union_mul_right_image, exact is_open_bUnion (λ a ha, is_open_map_mul_right a s hs) }
+by { rw ←bUnion_op_smul_set, exact is_open_bUnion (λ a _, hs.smul _) }
 
 @[to_additive] lemma subset_interior_mul_left : interior s * t ⊆ interior (s * t) :=
 interior_maximal (set.mul_subset_mul_right interior_subset) is_open_interior.mul_right
 
-@[to_additive] lemma subset_interior_mul_right : s * interior t ⊆ interior (s * t) :=
-interior_maximal (set.mul_subset_mul_left interior_subset) is_open_interior.mul_left
-
-@[to_additive] lemma subset_interior_mul : interior s * interior t ⊆ interior (s * t) :=
+@[to_additive] lemma subset_interior_mul' : interior s * interior t ⊆ interior (s * t) :=
 (set.mul_subset_mul_left interior_subset).trans subset_interior_mul_left
 
-end has_continuous_mul
+end has_continuous_const_smul_op
 
 section topological_group
 variables [topological_space α] [group α] [topological_group α] {s t : set α}
@@ -1156,7 +1181,7 @@ instance separable_locally_compact_group.sigma_compact_space
 begin
   obtain ⟨L, hLc, hL1⟩ := exists_compact_mem_nhds (1 : G),
   refine ⟨⟨λ n, (λ x, x * dense_seq G n) ⁻¹' L, _, _⟩⟩,
-  { intro n, exact (homeomorph.mul_right _).compact_preimage.mpr hLc },
+  { intro n, exact (homeomorph.mul_right _).is_compact_preimage.mpr hLc },
   { refine Union_eq_univ_iff.2 (λ x, _),
     obtain ⟨_, ⟨n, rfl⟩, hn⟩ : (range (dense_seq G) ∩ (λ y, x * y) ⁻¹' L).nonempty,
     { rw [← (homeomorph.mul_left x).apply_symm_apply 1] at hL1,
@@ -1167,19 +1192,64 @@ end
 
 /-- Every separated topological group in which there exists a compact set with nonempty interior
 is locally compact. -/
-@[to_additive] lemma topological_space.positive_compacts.locally_compact_space_of_group
+@[to_additive "Every separated topological group in which there exists a compact set with nonempty
+interior is locally compact."]
+lemma topological_space.positive_compacts.locally_compact_space_of_group
   [t2_space G] (K : positive_compacts G) :
   locally_compact_space G :=
 begin
   refine locally_compact_of_compact_nhds (λ x, _),
   obtain ⟨y, hy⟩ := K.interior_nonempty,
   let F := homeomorph.mul_left (x * y⁻¹),
-  refine ⟨F '' K, _, K.compact.image F.continuous⟩,
+  refine ⟨F '' K, _, K.is_compact.image F.continuous⟩,
   suffices : F.symm ⁻¹' K ∈ 𝓝 x, by { convert this, apply equiv.image_eq_preimage },
   apply continuous_at.preimage_mem_nhds F.symm.continuous.continuous_at,
   have : F.symm x = y, by simp [F, homeomorph.mul_left_symm],
   rw this,
   exact mem_interior_iff_mem_nhds.1 hy
+end
+
+/-- Given two compact sets in a noncompact topological group, there is a translate of the second
+one that is disjoint from the first one. -/
+@[to_additive "Given two compact sets in a noncompact additive topological group, there is a
+translate of the second one that is disjoint from the first one."]
+lemma exists_disjoint_smul_of_is_compact [noncompact_space G] {K L : set G}
+  (hK : is_compact K) (hL : is_compact L) : ∃ (g : G), disjoint K (g • L) :=
+begin
+  have A : ¬ (K * L⁻¹ = univ), from (hK.mul hL.inv).ne_univ,
+  obtain ⟨g, hg⟩ : ∃ g, g ∉ K * L⁻¹,
+  { contrapose! A, exact eq_univ_iff_forall.2 A },
+  refine ⟨g, _⟩,
+  apply disjoint_left.2 (λ a ha h'a, hg _),
+  rcases h'a with ⟨b, bL, rfl⟩,
+  refine ⟨g * b, b⁻¹, ha, by simpa only [set.mem_inv, inv_inv] using bL, _⟩,
+  simp only [smul_eq_mul, mul_inv_cancel_right]
+end
+
+/-- In a locally compact group, any neighborhood of the identity contains a compact closed
+neighborhood of the identity, even without separation assumptions on the space. -/
+@[to_additive "In a locally compact additive group, any neighborhood of the identity contains a
+compact closed neighborhood of the identity, even without separation assumptions on the space."]
+lemma local_is_compact_is_closed_nhds_of_group [locally_compact_space G]
+  {U : set G} (hU : U ∈ 𝓝 (1 : G)) :
+  ∃ (K : set G), is_compact K ∧ is_closed K ∧ K ⊆ U ∧ (1 : G) ∈ interior K :=
+begin
+  obtain ⟨L, Lint, LU, Lcomp⟩ : ∃ (L : set G) (H : L ∈ 𝓝 (1 : G)), L ⊆ U ∧ is_compact L,
+    from local_compact_nhds hU,
+  obtain ⟨V, Vnhds, hV⟩ : ∃ V ∈ 𝓝 (1 : G), ∀ (v ∈ V) (w ∈ V), v * w ∈ L,
+  { have : ((λ p : G × G, p.1 * p.2) ⁻¹' L) ∈ 𝓝 ((1, 1) : G × G),
+    { refine continuous_at_fst.mul continuous_at_snd _,
+      simpa only [mul_one] using Lint },
+    simpa only [div_eq_mul_inv, nhds_prod_eq, mem_prod_self_iff, prod_subset_iff, mem_preimage] },
+  have VL : closure V ⊆ L, from calc
+    closure V = {(1 : G)} * closure V : by simp only [singleton_mul, one_mul, image_id']
+    ... ⊆ interior V * closure V : mul_subset_mul_right
+      (by simpa only [singleton_subset_iff] using mem_interior_iff_mem_nhds.2 Vnhds)
+    ... = interior V * V : is_open_interior.mul_closure _
+    ... ⊆ V * V : mul_subset_mul_right interior_subset
+    ... ⊆ L : by { rintros x ⟨y, z, yv, zv, rfl⟩, exact hV _ yv _ zv },
+  exact ⟨closure V, is_compact_of_is_closed_subset Lcomp is_closed_closure VL, is_closed_closure,
+    VL.trans LU, interior_mono subset_closure (mem_interior_iff_mem_nhds.2 Vnhds)⟩,
 end
 
 end

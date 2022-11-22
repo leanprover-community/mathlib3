@@ -183,8 +183,8 @@ end
 /-- A bound for the size of the commutator subgroup in terms of the number of commutators. -/
 def card_commutator_bound (n : ℕ) := (n ^ (2 * n)) ^ (n ^ (2 * n + 1) + 1)
 
-/-- A theorem of Schur: A theorem of Schur: The size of the commutator subgroup is bounded in terms
-  of the number of commutators. -/
+/-- A theorem of Schur: The size of the commutator subgroup is bounded in terms of the number of
+  commutators. -/
 lemma card_commutator_le_of_finite_commutator_set [finite (commutator_set G)] :
   nat.card (commutator G) ≤ card_commutator_bound (nat.card (commutator_set G)) :=
 begin

@@ -112,7 +112,7 @@ by { ext x, simp [mem_image] }
 
 lemma image_comp (s : rel β γ) (t : set α) : image (r ∘ s) t = image s (image r t) :=
 begin
-  ext z, simp only [mem_image, comp], split,
+  ext z, simp only [mem_image], split,
   { rintros ⟨x, xt, y, rxy, syz⟩, exact ⟨y, ⟨x, xt, rxy⟩, syz⟩ },
   rintros ⟨y, ⟨x, xt, rxy⟩, syz⟩, exact ⟨x, xt, y, rxy, syz⟩
 end

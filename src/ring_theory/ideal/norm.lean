@@ -30,6 +30,15 @@ the quotient `R ⧸ I` (setting it to 0 if the cardinality is infinite).
  * `ideal.abs_norm (I : ideal R)`: the absolute ideal norm, defined as
    the cardinality of the quotient `R ⧸ I`, as a bundled monoid-with-zero homomorphism.
 
+## Main results
+
+ * `map_mul ideal.abs_norm`: multiplicativity of the ideal norm is bundled in
+   the definition of `ideal.abs_norm`
+ * `ideal.nat_abs_det_basis_change`: the ideal norm is given by the determinant
+   of the basis change matrix
+ * `ideal.abs_norm_span_singleton`: the ideal norm of a principal ideal is the
+   norm of its generator
+
 ## TODO
 
 Define the relative norm.

@@ -26,8 +26,8 @@ local notation `SL(` n `, ` R `)` := matrix.special_linear_group (fin n) R
 
 /--A general version of the slash action of the space of modular forms.-/
 class slash_action (β G α γ : Type*) [group G] [has_zero α ]
-[has_one α ] [has_smul γ α ] [has_add α ] :=
-(map : β → G → α → α )
+[has_one α] [has_smul γ α] [has_add α] :=
+(map : β → G → α → α)
 (mul_zero : ∀ (k : β) (g : G), map k g 0 = 0)
 (one_mul : ∀ (k : β) (a : α) , map k 1 a = a)
 (right_action : ∀ (k : β) (g h : G) (a : α), map k h (map k g a) = map k (g * h) a )
@@ -36,14 +36,14 @@ class slash_action (β G α γ : Type*) [group G] [has_zero α ]
 
 /--Slash_action induced by a monoid homomorphism.-/
 def monoid_hom_slash_action {β G H α γ : Type*} [group G] [has_zero α]
-  [has_one α] [has_smul γ α ] [has_add α ] [group H] [slash_action β G α γ]
+  [has_one α] [has_smul γ α] [has_add α] [group H] [slash_action β G α γ]
   (h : H →* G) : slash_action β H α γ :=
-{ map := λ k g , slash_action.map γ k (h g) ,
-  mul_zero := by {intros k g, apply slash_action.mul_zero k (h g), },
-  one_mul := by {intros k a, simp only [map_one], apply slash_action.one_mul,},
-  right_action := by {simp only [map_mul], intros k g gg a, apply slash_action.right_action,},
-  smul_action := by {intros k g a z, apply slash_action.smul_action, },
-  add_action := by {intros k g a b, apply slash_action.add_action}}
+{ map := λ k g , slash_action.map γ k (h g),
+  mul_zero := λ k g, slash_action.mul_zero k (h g),
+  one_mul := by {intros k a, simp only [map_one], apply slash_action.one_mul},
+  right_action := by {simp only [map_mul], intros k g gg a, apply slash_action.right_action},
+  smul_action := λ _ _, slash_action.smul_action _ _,
+  add_action := λ _ g _ _, slash_action.add_action _ (h g) _ _,}
 
 namespace modular_form
 
@@ -108,11 +108,11 @@ end
 
 instance : slash_action ℤ GL(2, ℝ)⁺ (ℍ → ℂ) ℂ :=
 { map := slash,
-  mul_zero := by {intros k g, funext, simp only [slash, pi.zero_apply, zero_mul], },
-  one_mul := by {apply slash_one,},
-  right_action := by {apply slash_right_action},
-  smul_action := by {apply smul_slash},
-  add_action := by {apply slash_add}}
+  mul_zero := by {intros k g, funext, simp only [slash, pi.zero_apply, zero_mul]},
+  one_mul := slash_one,
+  right_action := slash_right_action,
+  smul_action := smul_slash,
+  add_action := slash_add }
 
 instance subgroup_action (Γ : subgroup SL(2, ℤ)) : slash_action ℤ Γ (ℍ → ℂ) ℂ :=
 monoid_hom_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)

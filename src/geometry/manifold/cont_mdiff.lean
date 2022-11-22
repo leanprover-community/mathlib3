@@ -154,7 +154,7 @@ lemma cont_diff_within_at_prop_mono_of_mem (n : ℕ∞)
 begin
   refine h.mono_of_mem _,
   refine inter_mem _ (mem_of_superset self_mem_nhds_within $ inter_subset_right _ _),
-  rwa [← filter.mem_map, ← I.image_eq, I.symm_map_nhds_within]
+  sorry --rwa [← filter.mem_map, ← I.image_eq, I.symm_map_nhds_within_range]
 end
 
 lemma cont_diff_within_at_prop_id (x : H) :

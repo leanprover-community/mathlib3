@@ -6,8 +6,10 @@ Authors: Floris van Doorn, Heather Macbeth
 
 import geometry.manifold.vector_bundle.basic
 
-open bundle set
+open bundle set smooth_manifold_with_corners
 open_locale manifold
+-- open bundle vector_bundle set smooth_manifold_with_corners
+-- open_locale manifold topological_space bundle
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]

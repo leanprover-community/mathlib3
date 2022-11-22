@@ -71,10 +71,10 @@ lemma is_barrel.mem_nhds {𝕜 E} [semi_normed_ring 𝕜] [add_comm_monoid E] [h
   s ∈ 𝓝 (0 : E) :=
 barreled_space.barrel_mem_nhds s hs
 
-lemma seminorm.continuous_of_lower_semicontinuous {𝕜 E} [normed_field 𝕜] [normed_algebra ℝ 𝕜]
-  [add_comm_group E] [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E] [topological_space E]
-  [topological_add_group E] [has_continuous_const_smul ℝ E] [barreled_space 𝕜 E]
-  {p : seminorm 𝕜 E} (h : lower_semicontinuous p) : continuous p :=
+lemma seminorm.continuous_of_lower_semicontinuous {𝕜 E} [nontrivially_normed_field 𝕜]
+  [normed_algebra ℝ 𝕜] [add_comm_group E] [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
+  [topological_space E] [topological_add_group E] [has_continuous_const_smul 𝕜 E]
+  [barreled_space 𝕜 E] {p : seminorm 𝕜 E} (h : lower_semicontinuous p) : continuous p :=
 seminorm.continuous' (h.is_barrel_closed_ball).mem_nhds
 
 lemma is_barrel.eq_closed_ball {E} [add_comm_group E] [module ℝ E] [topological_space E]
@@ -82,10 +82,10 @@ lemma is_barrel.eq_closed_ball {E} [add_comm_group E] [module ℝ E] [topologica
   (hs : is_barrel ℝ s) :
   ∃ p : seminorm ℝ E, lower_semicontinuous p ∧ s = p.closed_ball 0 1 :=
 begin
-  let ι := {u : E →L[ℝ] ℝ // ∀ x ∈ s, ∥u x∥ ≤ 1},
+  let ι := {u : E →L[ℝ] ℝ // ∀ x ∈ s, ‖u x‖ ≤ 1},
   haveI : nonempty ι :=
     ⟨⟨0, λ x hx, by simp only [continuous_linear_map.zero_apply, norm_zero, zero_le_one]⟩⟩,
-  let p : seminorm ℝ E := ⨆ u : ι, (norm_seminorm ℝ ℝ).comp u,
+  let p : seminorm ℝ E := ⨆ u : ι, (norm_seminorm ℝ ℝ).comp (u : E →ₗ[ℝ] ℝ),
   have p_def : (p : E → ℝ) = ⨆ u : ι, norm ∘ u,
   { sorry }, --should be easy
   use p,
@@ -102,7 +102,7 @@ begin
       have : 0 < r,
       { specialize hfs 0 (hs.absorbent.zero_mem),
         rwa map_zero at hfs },
-      have : ∀ y ∈ s, ∥(r⁻¹ • f) y∥ < 1,
+      have : ∀ y ∈ s, ‖(r⁻¹ • f) y‖ < 1,
       { intros y hys,
         rw [continuous_linear_map.smul_apply, norm_smul, norm_inv, real.norm_of_nonneg this.le,
             inv_mul_lt_iff this, mul_one, real.norm_eq_abs, abs_lt', ← map_neg],

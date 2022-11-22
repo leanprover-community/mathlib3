@@ -546,7 +546,7 @@ begin
 end
 
 /-- Rotation by π is negation. -/
-@[simp] lemma rotation_pi_apply (x : V) : o.rotation π x = -x :=
+lemma rotation_pi_apply (x : V) : o.rotation π x = -x :=
 by simp
 
 /-- Rotation by π / 2 is the "right-angle-rotation" map `J`. -/

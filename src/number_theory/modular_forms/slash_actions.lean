@@ -101,10 +101,7 @@ begin
 end
 
 lemma neg_slash (k : ℤ) (A : GL(2, ℝ)⁺) (f : ℍ → ℂ) : (-f) ∣[k] A = - (f ∣[k] A) :=
-begin
-  ext1,
-  simp [slash],
-end
+funext $ by simp [slash]
 
 instance : slash_action ℤ GL(2, ℝ)⁺ (ℍ → ℂ) ℂ :=
 { map := slash,
@@ -133,13 +130,12 @@ local notation f `∣[`:73 k:0, A `]` :72 := slash_action.map ℂ k A f
 /-- The constant function 1 is invariant under any subgroup of `SL(2, ℤ)`. -/
 lemma is_invariant_one (A : SL(2, ℤ)) : (1 : ℍ → ℂ) ∣[(0 : ℤ), A] = (1 : ℍ → ℂ) :=
 begin
-  rw [SL_slash],
   have : (((↑ₘ(A : GL(2,ℝ)⁺)).det) : ℝ) = 1,
   { simp only [coe_coe,
       matrix.special_linear_group.coe_GL_pos_coe_GL_coe_matrix,
       matrix.special_linear_group.det_coe], },
   funext,
-  rw [slash, zero_sub, this],
+  rw [SL_slash, slash, zero_sub, this],
   simp,
 end
 

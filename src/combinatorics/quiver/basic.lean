@@ -161,6 +161,7 @@ def of : V ⥤q push σ :=
 variables {W' : Type*} [quiver W'] (φ : prefunctor V W') (τ : W → W') (h : ∀ x, φ.obj x = τ (σ x) )
 
 include φ h
+
 /-- Any map `φ : V → W'` factoring through `τ : W → W'` lifts to a prefunctor from `V` to `W`. -/
 def lift : push σ ⥤q W' :=
 { obj := τ,

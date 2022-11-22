@@ -418,8 +418,8 @@ section parsing
 setup_tactic_parser
 
 /--
-`simp_lead_coeff (with h)?` assumes that the target is either of the form `f.coeff n = x` or of the form
-`f.coeff n ≠ x`.  It then proceeds to simplify `f.coeff n` recurring to the pair
+`simp_lead_coeff (with h)?` assumes that the target is either of the form `f.coeff n = x` or of
+the form `f.coeff n ≠ x`.  It then proceeds to simplify `f.coeff n` recurring to the pair
 `get_lead_coeff/resolve_coeff` to scan the expression of `f` and producing a hopefully simpler
 expression.  After this, it calls on `simp only [a few lemmas]` and `norm_num` to simplify further.
 If the optional `with h` argument is given, then `h` is the name that `simp_lead_coeff` assigns to
@@ -449,8 +449,8 @@ goal to showing that
 * the degree is at most `d`, calling `compute_degree_le` to solve this case;
 * the coefficient of degree `d` is non-zero, calling `simp_coeff` to simplify this goal.
 
-`compute_degree` will suggest a term-mode proof if it's a oneliner. If you want to disable these suggestions,
-for example when you're working on multiple goals at once, use `compute_degree!`.
+`compute_degree` will suggest a term-mode proof if it's a oneliner. If you want to disable these
+suggestions, for example when you're working on multiple goals at once, use `compute_degree!`.
 
 Unless the polynomial is particularly complicated, `compute_degree` either succeeds of leaves
 a simpler goal to prove.  Continue reading for a discussion of what are the current

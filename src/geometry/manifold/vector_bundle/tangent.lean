@@ -201,7 +201,7 @@ end
 variable (M)
 
 instance : topological_space TM :=
-(tangent_bundle_core I M).to_fiber_bundle_core.to_topological_space _
+(tangent_bundle_core I M).to_fiber_bundle_core.to_topological_space
 
 instance : fiber_bundle E (tangent_space I : M → Type*) :=
 (tangent_bundle_core I M).to_fiber_bundle_core.fiber_bundle

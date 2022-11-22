@@ -478,7 +478,7 @@ structure vector_bundle_core (ι : Type*) :=
 (mem_base_set_at   : ∀ x, x ∈ base_set (index_at x))
 (coord_change      : ι → ι → B → (F →L[R] F))
 (coord_change_self : ∀ i, ∀ x ∈ base_set i, ∀ v, coord_change i i x v = v)
-(coord_change_continuous : ∀ i j, continuous_on (coord_change i j) (base_set i ∩ base_set j))
+(continuous_on_coord_change : ∀ i j, continuous_on (coord_change i j) (base_set i ∩ base_set j))
 (coord_change_comp : ∀ i j k, ∀ x ∈ (base_set i) ∩ (base_set j) ∩ (base_set k), ∀ v,
   (coord_change j k x) (coord_change i j x v) = coord_change i k x v)
 
@@ -493,7 +493,7 @@ def trivial_vector_bundle_core (ι : Type*) [inhabited ι] :
   coord_change := λ i j x, continuous_linear_map.id R F,
   coord_change_self := λ i x hx v, rfl,
   coord_change_comp := λ i j k x hx v, rfl,
-  coord_change_continuous := λ i j, continuous_on_const }
+  continuous_on_coord_change := λ i j, continuous_on_const }
 
 instance (ι : Type*) [inhabited ι] : inhabited (vector_bundle_core R B F ι) :=
 ⟨trivial_vector_bundle_core R B F ι⟩
@@ -503,10 +503,10 @@ namespace vector_bundle_core
 variables {R B F} {ι : Type*} (Z : vector_bundle_core R B F ι)
 
 /-- Natural identification to a `fiber_bundle_core`. -/
-def to_fiber_bundle_core : fiber_bundle_core ι B F :=
+@[simps (mfld_cfg)] def to_fiber_bundle_core : fiber_bundle_core ι B F :=
 { coord_change := λ i j b, Z.coord_change i j b,
-  coord_change_continuous := λ i j, is_bounded_bilinear_map_apply.continuous.comp_continuous_on
-      ((Z.coord_change_continuous i j).prod_map continuous_on_id),
+  continuous_on_coord_change := λ i j, is_bounded_bilinear_map_apply.continuous.comp_continuous_on
+      ((Z.continuous_on_coord_change i j).prod_map continuous_on_id),
   ..Z }
 
 instance to_fiber_bundle_core_coe : has_coe (vector_bundle_core R B F ι)
@@ -643,7 +643,7 @@ instance vector_bundle : vector_bundle R F Z.fiber :=
   end,
   continuous_on_coord_change' := begin
     rintros _ _ ⟨i, rfl⟩ ⟨i', rfl⟩,
-    refine (Z.coord_change_continuous i i').congr (λ b hb, _),
+    refine (Z.continuous_on_coord_change i i').congr (λ b hb, _),
     ext v,
     exact Z.local_triv_coord_change_eq i i' hb v,
   end }

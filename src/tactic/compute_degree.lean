@@ -150,10 +150,15 @@ meta def resolve_sum_step : expr → tactic unit
   | `(bit0 %%a)      := refine ``((nat_degree_bit0 %%a).trans _)
   | `(bit1 %%a)      := refine ``((nat_degree_bit1 %%a).trans _)
   | `(%%tl1 ^ %%n)   := do
-      refine ``(nat_degree_pow_le.trans _),
+      refine ``(nat_degree_pow_le.trans _), -- goal: `⊢ %%n * nat_degree %%tl1 ≤ %%tr`
+      -- If `%%n` is 0, we show that the degree is also 0.
       refine ``(dite (%%n = 0) (λ (n0 : %%n = 0), (by simp only [n0, zero_mul, zero_le])) _),
+      -- Otherwise, divide both sides by `%%n` to get a goal of the form `nat_degree _ ≤ _`.
       n0 ← get_unused_name "n0" >>= intro,
+      -- goal: `%%n0 : %%n ≠ 0 ⊢ %%n * nat_degree %%tl1 ≤ %%tr`
       refine ``((mul_comm _ _).le.trans ((nat.le_div_iff_mul_le' (nat.pos_of_ne_zero %%n0)).mp _)),
+      -- Handle the probable outputs of `guess_degree`.
+      -- goal: `%%n0 : %%n ≠ 0 ⊢ nat_degree %%tl1 ≤ %%tr / %%n`
       focus1 (refine ``((%%n0 rfl).elim) <|>
         to_expr ``(nat.mul_div_cancel _ (nat.pos_of_ne_zero %%n0)) tt ff >>= rewrite_target <|>
         to_expr ``(nat.div_self (nat.pos_of_ne_zero %%n0)) tt ff >>= rewrite_target) <|>

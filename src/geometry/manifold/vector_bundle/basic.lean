@@ -3,7 +3,7 @@ Copyright (c) 2022 Floris van Doorn, Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Heather Macbeth
 -/
-import geometry.manifold.cont_mdiff_map
+import geometry.manifold.cont_mdiff
 import geometry.manifold.vector_bundle.fiberwise_linear
 import topology.vector_bundle.constructions
 
@@ -249,23 +249,3 @@ instance bundle.prod.smooth_vector_bundle :
   end }
 
 end prod
-
-/-! ### Pullbacks of smooth vector bundles -/
-
-section
-variables {𝕜} {B B'} (F E) (f : smooth_map IB' IB B' B)
-
-/-- For a smooth vector bundle `E` over a manifold `B` and a smooth map `f : B' → B`, the pullback
-vector bundle `f *ᵖ E` is a smooth vector bundle. -/
-instance smooth_vector_bundle.pullback : smooth_vector_bundle F (f *ᵖ E) IB' :=
-{ smooth_on_coord_change := begin
-    rintro _ _ ⟨e, he, rfl⟩ ⟨e', he', rfl⟩, resetI,
-    refine ((smooth_on_coord_change e e').comp f.smooth.smooth_on
-      (λ b hb, hb)).congr _,
-    rintro b (hb : f b ∈ e.base_set ∩ e'.base_set), ext v,
-    show ((e.pullback f).coord_changeL 𝕜 (e'.pullback f) b) v = (e.coord_changeL 𝕜 e' (f b)) v,
-    rw [e.coord_changeL_apply e' hb, (e.pullback f).coord_changeL_apply' _],
-    exacts [rfl, hb]
-  end }
-
-end

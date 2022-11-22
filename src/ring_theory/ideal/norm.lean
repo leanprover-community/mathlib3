@@ -9,11 +9,10 @@ import data.int.absolute_value
 import data.int.associated
 import data.matrix.notation
 import data.zmod.quotient
-import linear_algebra.free_module.pid
 import linear_algebra.free_module.determinant
 import linear_algebra.free_module.ideal_quotient
+import linear_algebra.free_module.pid
 import linear_algebra.isomorphisms
-import ring_theory.norm
 import ring_theory.dedekind_domain.ideal
 import ring_theory.norm
 

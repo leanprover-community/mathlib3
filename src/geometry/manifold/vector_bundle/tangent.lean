@@ -7,9 +7,85 @@ Authors: Floris van Doorn, Heather Macbeth
 import geometry.manifold.vector_bundle.basic
 
 open bundle set smooth_manifold_with_corners
-open_locale manifold
+open_locale manifold topological_space
+
+noncomputable theory
 -- open bundle vector_bundle set smooth_manifold_with_corners
 -- open_locale manifold topological_space bundle
+
+section
+
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+variables {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+variables {G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
+
+lemma fderiv_within_comp {g : F → G} {f : E → F} {x : E} {y : F} {s : set E} {t : set F}
+  (hg : differentiable_within_at 𝕜 g t y) (hf : differentiable_within_at 𝕜 f s x)
+  (h : maps_to f s t) (hxs : unique_diff_within_at 𝕜 s x) (hy : f x = y) :
+  fderiv_within 𝕜 (g ∘ f) s x = (fderiv_within 𝕜 g t y).comp (fderiv_within 𝕜 f s x) :=
+by { subst y, exact fderiv_within.comp x hg hf h hxs }
+
+lemma fderiv_within_fderiv_within {g : F → G} {f : E → F} {x : E} {y : F} {s : set E} {t : set F}
+  (hg : differentiable_within_at 𝕜 g t y) (hf : differentiable_within_at 𝕜 f s x)
+  (h : maps_to f s t) (hxs : unique_diff_within_at 𝕜 s x) (hy : f x = y) (v : E) :
+  fderiv_within 𝕜 g t y (fderiv_within 𝕜 f s x v) = fderiv_within 𝕜 (g ∘ f) s x v :=
+by { rw [fderiv_within_comp hg hf h hxs hy], refl }
+
+end
+
+
+section
+
+variables {𝕜 E M H E' M' H' H'' : Type*} [nontrivially_normed_field 𝕜]
+  [normed_add_comm_group E] [normed_space 𝕜 E] [topological_space H] [topological_space M]
+  (f f' : local_homeomorph M H) (I : model_with_corners 𝕜 E H)
+  [normed_add_comm_group E'] [normed_space 𝕜 E'] [topological_space H'] [topological_space M']
+  (I' : model_with_corners 𝕜 E' H')
+  {x : M} {s t : set M}
+  [topological_space H'']
+
+namespace local_homeomorph
+lemma extend_left_inv {x : M} (hxf : x ∈ f.source) : (f.extend I).symm (f.extend I x) = x :=
+(f.extend I).left_inv $ by rwa f.extend_source
+
+lemma extend_coord_change_source_mem_nhds_within {x : E}
+  (hx : x ∈ ((f.extend I).symm ≫ f'.extend I).source) :
+  ((f.extend I).symm ≫ f'.extend I).source ∈ 𝓝[range I] x :=
+begin
+  rw [f.extend_coord_change_source] at hx ⊢,
+  obtain ⟨x, hx, rfl⟩ := hx,
+  refine I.image_mem_nhds_within _,
+  refine (local_homeomorph.open_source _).mem_nhds hx
+end
+
+lemma extend_coord_change_source_mem_nhds_within' {x : M}
+  (hxf : x ∈ f.source) (hxf' : x ∈ f'.source) :
+  ((f.extend I).symm ≫ f'.extend I).source ∈ 𝓝[range I] f.extend I x :=
+begin
+  apply extend_coord_change_source_mem_nhds_within,
+  rw [← extend_image_source_inter],
+  exact mem_image_of_mem _ ⟨hxf, hxf'⟩,
+end
+
+lemma cont_diff_within_at_extend_coord_change'
+  [charted_space H M] [smooth_manifold_with_corners I M]
+  (hf : f ∈ maximal_atlas I M) (hf' : f' ∈ maximal_atlas I M) {x : M}
+  (hxf : x ∈ f.source) (hxf' : x ∈ f'.source) :
+  cont_diff_within_at 𝕜 ⊤ (f.extend I ∘ (f'.extend I).symm) (range I) (f'.extend I x) :=
+begin
+  refine (local_homeomorph.cont_diff_on_extend_coord_change I hf hf' _ _).mono_of_mem _,
+  { rw [← f'.extend_image_source_inter], exact mem_image_of_mem _ ⟨hxf', hxf⟩ },
+  exact f'.extend_coord_change_source_mem_nhds_within' f I hxf' hxf
+end
+
+lemma symm_trans_source' (e : local_homeomorph H' H) (e' : local_homeomorph H' H'') :
+  (e.symm ≫ₕ e').source = e.target ∩ e.symm ⁻¹' (e.source ∩ e'.source) :=
+trans_source' _ _
+
+end local_homeomorph
+end
+open local_homeomorph
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
@@ -125,7 +201,7 @@ end
 variable (M)
 
 instance : topological_space TM :=
-(tangent_bundle_core I M).to_fiber_bundle_core.to_topological_space
+(tangent_bundle_core I M).to_fiber_bundle_core.to_topological_space _
 
 instance : fiber_bundle E (tangent_space I : M → Type*) :=
 (tangent_bundle_core I M).to_fiber_bundle_core.fiber_bundle

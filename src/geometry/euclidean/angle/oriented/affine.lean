@@ -318,6 +318,40 @@ lemma oangle_eq_zero_iff_angle_eq_zero {p p₁ p₂ : P} (hp₁ : p₁ ≠ p) (h
 lemma oangle_eq_pi_iff_angle_eq_pi {p₁ p₂ p₃ : P} : ∡ p₁ p₂ p₃ = π ↔ ∠ p₁ p₂ p₃ = π :=
 (o).oangle_eq_pi_iff_angle_eq_pi
 
+/-- If the oriented angle between three points is `π / 2`, so is the unoriented angle. -/
+lemma angle_eq_pi_div_two_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
+  ∠ p₁ p₂ p₃ = π / 2 :=
+begin
+  rw [angle, ←inner_product_geometry.inner_eq_zero_iff_angle_eq_pi_div_two],
+  exact (o).inner_eq_zero_of_oangle_eq_pi_div_two h
+end
+
+/-- If the oriented angle between three points is `π / 2`, so is the unoriented angle
+(reversed). -/
+lemma angle_rev_eq_pi_div_two_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
+  ∠ p₃ p₂ p₁ = π / 2 :=
+begin
+  rw angle_comm,
+  exact angle_eq_pi_div_two_of_oangle_eq_pi_div_two h,
+end
+
+/-- If the oriented angle between three points is `-π / 2`, the unoriented angle is `π / 2`. -/
+lemma angle_eq_pi_div_two_of_oangle_eq_neg_pi_div_two {p₁ p₂ p₃ : P}
+  (h : ∡ p₁ p₂ p₃ = ↑(-π / 2)) : ∠ p₁ p₂ p₃ = π / 2 :=
+begin
+  rw [angle, ←inner_product_geometry.inner_eq_zero_iff_angle_eq_pi_div_two],
+  exact (o).inner_eq_zero_of_oangle_eq_neg_pi_div_two h
+end
+
+/-- If the oriented angle between three points is `-π / 2`, the unoriented angle (reversed) is
+`π / 2`. -/
+lemma angle_rev_eq_pi_div_two_of_oangle_eq_neg_pi_div_two {p₁ p₂ p₃ : P}
+  (h : ∡ p₁ p₂ p₃ = ↑(-π / 2)) : ∠ p₃ p₂ p₁ = π / 2 :=
+begin
+  rw angle_comm,
+  exact angle_eq_pi_div_two_of_oangle_eq_neg_pi_div_two h
+end
+
 /-- Swapping the first and second points in an oriented angle negates the sign of that angle. -/
 lemma oangle_swap₁₂_sign (p₁ p₂ p₃ : P) : -(∡ p₁ p₂ p₃).sign = (∡ p₂ p₁ p₃).sign :=
 begin

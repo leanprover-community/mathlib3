@@ -5,22 +5,17 @@ Authors: Damiano Testa
 -/
 import data.polynomial.degree.lemmas
 
-/-! # `compute_degree` & Co: tactics for computing degrees of polynomials
+/-!
+# `compute_degree` & Co: tactics for computing degrees of polynomials
 
-This file defines the tactics `compute_degree_le, compute_degree, simp_lead_coeff, prove_monic`.
+This file defines four tactics:
+* `compute_degree_le` tries to solve goals of the form `f.(nat_)degree ≤ d`;
+* `compute_degree` tries to solve goals of the form `f.(nat_)degree = d`;
+* `prove_monic` tries to solve goals of the form `f.monic`;
+* `simp_lead_coeff` tries to solve goals of the form `f.coeff n = x`,
+  assuming that `n` is the expected degree of `f`.
 
-Using `compute_degree_le` when the goal is of the form `f.(nat_)degree ≤ d`,
-tries to solve the goal.  It may leave side-goals, in case it is not entirely successful.
-
-Using `compute_degree` when the goal is of the form `f.(nat_)degree = d`,
-tries to solve the goal.  It may leave side-goals, in case it is not entirely successful.
-
-Using `prove_monic` when the goal is of the form `f.monic`,
-tries to solve the goal.  It may leave side-goals, in case it is not entirely successful.
-
-Using `simp_lead_coeff` when the goal is of the form `f.coeff n = x`,
-tries to solve the goal assuming that `n` is the expected degree of `f`.
-It may leave side-goals, in case it is not entirely successful.
+All of these tactics may leave side-goals, in case they are not entirely successful.
 
 See the respective doc-strings for more details.
 
@@ -33,8 +28,9 @@ See the respective doc-strings for more details.
 
 ##  Implementation details
 
-We start with a goal of the form `f.(nat_)degree ≤ d`.  Recurse into `f` breaking apart sums,
-products and powers.  Take care of numerals, `C a, X (^ n), monomial a n` separately. -/
+The tactics apply when the goal contains a polynomial `f`.  They recurse into `f` breaking apart
+sums, products and powers.  They handle numerals, `C a, X (^ n), monomial a n` separately.
+-/
 
 namespace polynomial
 open_locale polynomial
@@ -70,64 +66,59 @@ namespace tactic
 open expr polynomial
 namespace compute_degree
 
-/--  `guess_degree e` assumes that `e` is an expression in a polynomial ring, and makes an attempt
-at guessing the `nat_degree` of `e`.  Heuristics for `guess_degree`:
+/--  `guess_degree_with fn e` takes as inputs a function `fn : expr → tactic expr` and an `e` that
+is an expression in a polynomial ring.  It makes an attempt at guessing the `nat_degree` of `e`,
+using the function `fn` to inform some choices.  Heuristics for `guess_degree_with`:
 * `0, 1, C a`,      guess `0`,
 * `polynomial.X`,   guess `1`,
-*  `bit0/1 f, -f`,  guess `guess_degree f`,
-* `f + g, f - g`,   guess `max (guess_degree f) (guess_degree g)`,
-* `f * g`,          guess `guess_degree f + guess_degree g`,
-* `f ^ n`,          guess `guess_degree f * n`,
-* `monomial n r`,   guess `n`,
-* `f` not as above, guess `f.nat_degree`.
+*  `bit0/1 f, -f`,  guess `guess_degree_with f`,
+* `f + g, f - g`,   guess `max (guess_degree_with f) (guess_degree_with g)`,
+* `f * g`,          guess `guess_degree_with f + guess_degree_with g`,
+* `f ^ n`,          guess `guess_degree_with f * (fn n)`,
+* `monomial n r`,   guess `fn n`,
+* `f` not as above, guess `fn f.nat_degree`.
 
-The guessed degree should coincide with the behaviour of `resolve_sum_step`:
-`resolve_sum_step` cannot solve a goal `f.nat_degree ≤ d` if `guess_degree f < d`.
- -/
-meta def guess_degree : expr → tactic expr
+In the applications (`tactic.compute_degree.guess_degree, tactic.compute_degree.guess_degree'`),
+the function `fn` is either the identity (`pure : expr → tactic expr` to be precise) or
+the function that returns
+* the expression itself, if it represents a closed natural number, or
+* zero, otherwise.
+-/
+meta def guess_degree_with (fn : expr → tactic expr) : expr → tactic expr
 | `(has_zero.zero)           := pure `(0)
 | `(has_one.one)             := pure `(0)
-| `(- %%f)                   := guess_degree f
+| `(- %%f)                   := guess_degree_with f
 | (app `(⇑C) x)              := pure `(0)
 | `(X)                       := pure `(1)
-| `(bit0 %%a)                := guess_degree a
-| `(bit1 %%a)                := guess_degree a
-| `(%%a + %%b)               := do [da, db] ← [a, b].mmap guess_degree,
+| `(bit0 %%a)                := guess_degree_with a
+| `(bit1 %%a)                := guess_degree_with a
+| `(%%a + %%b)               := do [da, db] ← [a, b].mmap guess_degree_with,
                                 pure $ expr.mk_app `(max : ℕ → ℕ → ℕ) [da, db]
-| `(%%a - %%b)               := do [da, db] ← [a, b].mmap guess_degree,
+| `(%%a - %%b)               := do [da, db] ← [a, b].mmap guess_degree_with,
                                 pure $ expr.mk_app `(max : ℕ → ℕ → ℕ) [da, db]
-| `(%%a * %%b)               := do [da, db] ← [a, b].mmap guess_degree,
+| `(%%a * %%b)               := do [da, db] ← [a, b].mmap guess_degree_with,
                                 pure $ expr.mk_app `((+) : ℕ → ℕ → ℕ) [da, db]
-| `(%%a ^ %%b)               := do da ← guess_degree a,
-                                pure $ expr.mk_app `((*) : ℕ → ℕ → ℕ) [da, b]
-| (app `(⇑(monomial %%n)) x) := pure n
+| `(%%a ^ %%n)               := do da ← guess_degree_with a,
+                                nn ← fn n,
+                                pure $ expr.mk_app `((*) : ℕ → ℕ → ℕ) [da, nn]
+| (app `(⇑(monomial %%n)) x) := fn n
 | e                          := do `(@polynomial %%R %%inst) ← infer_type e,
                                 pe ← to_expr ``(@nat_degree %%R %%inst) tt ff,
-                                pure $ expr.mk_app pe [e]
+                                fn $ expr.mk_app pe [e]
 
-/--  `guess_degree'` is very similar to `guess_degree`, except that it returns a `tactic ℕ`,
-instead of a `tactic expr`.  The main difference between the two is their dealing of non-closed
-natural numbers.  The difference allows `compute_degree_le` to work in *some* situations involving
-non-closed exponents.  -/
-meta def guess_degree' : expr → tactic ℕ
-| `(has_zero.zero)           := pure 0
-| `(has_one.one)             := pure 0
-| `(- %%f)                   := guess_degree' f
-| (app `(⇑C) x)              := pure 0
-| `(X)                       := pure 1
-| `(bit0 %%a)                := guess_degree' a
-| `(bit1 %%a)                := guess_degree' a
-| `(%%a + %%b)               := do [da, db] ← [a, b].mmap guess_degree',
-                                if da ≤ db then return db else return da
-| `(%%a - %%b)               := do [da, db] ← [a, b].mmap guess_degree',
-                                if da ≤ db then return db else return da
-| `(%%a * %%b)               := do [da, db] ← [a, b].mmap guess_degree',
-                                pure $ da + db
-| `(%%a ^ %%b)               := do da ← guess_degree' a,
-                                db ← eval_expr' ℕ b <|> pure 0,
-                                pure $ da * db
-| (app `(⇑(monomial %%n)) x) := eval_expr' ℕ n <|> pure 0
-| e                          := pure 0
+/--  `guess_degree e` returns a guess for the degree of `e`, assuming that `e` represents a
+polynomial.  The resulting output may be an expression representing a non-closed term of type `ℕ`.
+
+The guessed degree should coincide with the behaviour of `tactic.compute_degree.resolve_sum_step`:
+if `guess_degree f < d`, then `resolve_sum_step` cannot solve the goal `f.nat_degree ≤ d`. -/
+meta def guess_degree (e : expr) : tactic expr := guess_degree_with pure e
+
+/--  `guess_degree' e` returns a guess for the degree of `e`, assuming that `e` represents a
+polynomial.  The resulting output is a closed term of type `ℕ`: whenever a non-closed term
+might appear, the tactic replaces it with `0`.  This allows `tactic.interactive.compute_degree_le`
+to succeeds in some situations where the degrees are not closed terms of type `ℕ`. -/
+meta def guess_degree' (e : expr) : tactic ℕ :=
+guess_degree_with (λ f, eval_expr' ℕ f >> pure f <|> pure `(0)) e >>= eval_expr ℕ
 
 /-- `resolve_sum_step e` takes the type of the current goal `e` as input.
 It tries to make progress on the goal `e` by reducing it to subgoals.
@@ -142,8 +133,7 @@ It assumes that `e` is of the form `f.nat_degree ≤ d`, failing otherwise.
 The side-goals produced by `resolve_sum_step` are either again of the same shape `f'.nat_degree ≤ d`
 or of the form `m ≤ n`, where `m n : ℕ`.
 
-If `d` is less than `guess_degree' f`, this tactic will create unsolvable goals.
--/
+If `d` is less than `guess_degree f`, then this tactic will create unsolvable goals. -/
 meta def resolve_sum_step : expr → tactic unit
 | `(nat_degree %%tl ≤ %%tr) := match tl with
   | `(%%tl1 + %%tl2) := refine ``((nat_degree_add_le_iff_left _ _ _).mpr _)

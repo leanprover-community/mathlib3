@@ -3,8 +3,18 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Floris van Doorn, Sébastien Gouëzel, Alex J. Best
 -/
-import algebra.group_power
 import data.list.forall2
+import algebra.group.opposite
+import algebra.group_power.basic
+import algebra.group_with_zero.commute
+import algebra.group_with_zero.divisibility
+import algebra.order.with_zero
+import algebra.ring.basic
+import algebra.ring.divisibility
+import algebra.ring.commute
+import data.int.basic
+import data.int.units
+import data.set.basic
 
 /-!
 # Sums and products from lists
@@ -112,6 +122,17 @@ lemma prod_is_unit : Π {L : list M} (u : ∀ m ∈ L, is_unit m), is_unit L.pro
 begin
   simp only [list.prod_cons],
   exact is_unit.mul (u h (mem_cons_self h t)) (prod_is_unit (λ m mt, u m (mem_cons_of_mem h mt)))
+end
+
+@[to_additive]
+lemma prod_is_unit_iff {α : Type*} [comm_monoid α] {L : list α} :
+  is_unit L.prod ↔ ∀ m ∈ L, is_unit m :=
+begin
+  refine ⟨λ h, _, prod_is_unit⟩,
+  induction L with m L ih,
+  { exact λ m' h', false.elim (not_mem_nil m' h'), },
+  rw [prod_cons, is_unit.mul_iff] at h,
+  exact λ m' h', or.elim (eq_or_mem_of_mem_cons h') (λ H, H.substr h.1) (λ H, ih h.2 _ H),
 end
 
 @[simp, to_additive]
@@ -451,6 +472,19 @@ le_antisymm (hl₂ ▸ single_le_prod hl₁ _ hx) (hl₁ x hx)
 lemma prod_eq_one [monoid M] {l : list M} (hl : ∀ (x ∈ l), x = (1 : M)) : l.prod = 1 :=
 trans (prod_eq_pow_card l 1 hl) (one_pow l.length)
 
+@[to_additive]
+lemma exists_mem_ne_one_of_prod_ne_one [monoid M] {l : list M} (h : l.prod ≠ 1) :
+  ∃ (x ∈ l), x ≠ (1 : M) :=
+by simpa only [not_forall] using mt prod_eq_one h
+
+/-- If a product of integers is `-1`, then at least one factor must be `-1`. -/
+lemma neg_one_mem_of_prod_eq_neg_one {l : list ℤ} (h : l.prod = -1) : (-1 : ℤ) ∈ l :=
+begin
+  obtain ⟨x, h₁, h₂⟩ := exists_mem_ne_one_of_prod_ne_one (ne_of_eq_of_ne h dec_trivial),
+  exact or.resolve_left (int.is_unit_iff.mp (prod_is_unit_iff.mp
+         (h.symm ▸ is_unit.neg is_unit_one : is_unit l.prod) x h₁)) h₂ ▸ h₁,
+end
+
 /-- If all elements in a list are bounded below by `1`, then the length of the list is bounded
 by the sum of the elements. -/
 lemma length_le_sum_of_one_le (L : list ℕ) (h : ∀ i ∈ L, 1 ≤ i) : L.length ≤ L.sum :=
@@ -509,8 +543,7 @@ end
 
 /-- The product of a list of positive natural numbers is positive,
 and likewise for any nontrivial ordered semiring. -/
-lemma prod_pos [strict_ordered_semiring R] [nontrivial R] (l : list R) (h : ∀ a ∈ l, (0 : R) < a) :
-  0 < l.prod :=
+lemma prod_pos [strict_ordered_semiring R] (l : list R) (h : ∀ a ∈ l, (0 : R) < a) : 0 < l.prod :=
 begin
   induction l with a l ih,
   { simp },

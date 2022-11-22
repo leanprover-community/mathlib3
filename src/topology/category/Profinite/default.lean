@@ -4,13 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Calle Sönne
 -/
 
-import topology.category.CompHaus
+import topology.category.CompHaus.default
 import topology.connected
 import topology.subset_properties
 import topology.locally_constant.basic
 import category_theory.adjunction.reflective
 import category_theory.monad.limits
-import category_theory.limits.constructions.epi_mono
 import category_theory.Fintype
 
 /-!

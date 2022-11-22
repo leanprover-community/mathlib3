@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 
-import ring_theory.adjoin.basic
-import data.finsupp.antidiagonal
+import algebra.algebra.tower
 import algebra.monoid_algebra.support
+import data.finsupp.antidiagonal
 import order.symm_diff
+import ring_theory.adjoin.basic
 
 /-!
 # Multivariate polynomials
@@ -201,7 +202,7 @@ instance infinite_of_nonempty (σ : Type*) (R : Type*) [nonempty σ] [comm_semir
   [nontrivial R] :
   infinite (mv_polynomial σ R) :=
 infinite.of_injective ((λ s : σ →₀ ℕ, monomial s 1) ∘ single (classical.arbitrary σ)) $
-  (monomial_left_injective $ @one_ne_zero R _ _).comp (finsupp.single_injective _)
+  (monomial_left_injective one_ne_zero).comp (finsupp.single_injective _)
 
 lemma C_eq_coe_nat (n : ℕ) : (C ↑n : mv_polynomial σ R) = n :=
 by induction n; simp [nat.succ_eq_add_one, *]
@@ -215,7 +216,7 @@ lemma C_eq_smul_one : (C a : mv_polynomial σ R) = a • 1 :=
 by rw [← C_mul', mul_one]
 
 lemma X_injective [nontrivial R] : function.injective (X : σ → mv_polynomial σ R) :=
-(monomial_left_injective $ @one_ne_zero R _ _).comp (finsupp.single_left_injective one_ne_zero)
+(monomial_left_injective one_ne_zero).comp (finsupp.single_left_injective one_ne_zero)
 
 @[simp] lemma X_inj [nontrivial R] (m n : σ) : X m = (X n : mv_polynomial σ R) ↔ m = n :=
 X_injective.eq_iff
@@ -414,7 +415,7 @@ by rw [X, support_monomial, if_neg]; exact one_ne_zero
 
 lemma support_X_pow [nontrivial R] (s : σ) (n : ℕ) :
   (X s ^ n : mv_polynomial σ R).support = {finsupp.single s n} :=
-by rw [X_pow_eq_monomial, support_monomial, if_neg (@one_ne_zero R _ _)]
+by rw [X_pow_eq_monomial, support_monomial, if_neg (one_ne_zero' R)]
 
 @[simp] lemma support_zero : (0 : mv_polynomial σ R).support = ∅ := rfl
 

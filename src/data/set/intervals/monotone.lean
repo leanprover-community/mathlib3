@@ -6,6 +6,7 @@ Authors: Yury Kudryashov
 import data.set.intervals.disjoint
 import order.conditionally_complete_lattice
 import order.succ_pred.basic
+import algebra.order.field.basic
 import tactic.field_simp
 
 /-!

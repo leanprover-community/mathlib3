@@ -3,7 +3,7 @@ Copyright (c) 2022 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-
+import probability.process.hitting_time
 import probability.martingale.basic
 
 /-! # Optional stopping theorem (fair game theorem)
@@ -166,7 +166,8 @@ begin
         ext ω,
         change (ε : ℝ) ≤ _ ∨ _ < (ε : ℝ) ↔ _,
         simp only [le_or_lt, true_iff] },
-      { rintro ω ⟨hω₁ : _ ≤ _, hω₂ : _ < _⟩,
+      { rw disjoint_iff_inf_le,
+        rintro ω ⟨hω₁ : _ ≤ _, hω₂ : _ < _⟩,
         exact (not_le.2 hω₂) hω₁ },
       { exact (measurable_set_lt (finset.measurable_range_sup''
           (λ n _, (hsub.strongly_measurable n).measurable.le (𝒢.le n))) measurable_const) },
@@ -205,7 +206,8 @@ begin
         ext ω,
         change _ ↔ (ε : ℝ) ≤ _ ∨ _ < (ε : ℝ),
         simp only [le_or_lt, iff_true] },
-      { rintro ω ⟨hω₁ : _ ≤ _, hω₂ : _ < _⟩,
+      { rw disjoint_iff_inf_le,
+        rintro ω ⟨hω₁ : _ ≤ _, hω₂ : _ < _⟩,
         exact (not_le.2 hω₂) hω₁ },
       { exact (measurable_set_lt (finset.measurable_range_sup''
           (λ n _, (hsub.strongly_measurable n).measurable.le (𝒢.le n))) measurable_const) },

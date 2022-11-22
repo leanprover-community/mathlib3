@@ -90,6 +90,9 @@ protected def copy (f : C₀(α, β)) (f' : α → β) (h : f' = f) : C₀(α, �
   continuous_to_fun := by { rw h, exact f.continuous_to_fun },
   zero_at_infty' := by { simp_rw h, exact f.zero_at_infty' } }
 
+@[simp] lemma coe_copy (f : C₀(α, β)) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : C₀(α, β)) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
+
 lemma eq_of_empty [is_empty α] (f g : C₀(α, β)) : f = g :=
 ext $ is_empty.elim ‹_›
 
@@ -396,7 +399,7 @@ normed_add_comm_group.induced C₀(α, β) (α →ᵇ β) (⟨to_bcf, rfl, λ x 
   (to_bcf_injective α β)
 
 @[simp]
-lemma norm_to_bcf_eq_norm {f : C₀(α, β)} : ∥f.to_bcf∥ = ∥f∥ := rfl
+lemma norm_to_bcf_eq_norm {f : C₀(α, β)} : ‖f.to_bcf‖ = ‖f‖ := rfl
 
 instance : normed_space 𝕜 C₀(α, β) :=
 { norm_smul_le := λ k f, (norm_smul k f.to_bcf).le }

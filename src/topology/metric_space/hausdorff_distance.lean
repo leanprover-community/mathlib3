@@ -189,7 +189,7 @@ begin
   obtain ⟨x, hx, h⟩ : ∃ x ∈ s, ∀ y ∈ s, inf_edist x t ≤ inf_edist y t :=
     hs.exists_forall_le hne continuous_inf_edist.continuous_on,
   have : 0 < inf_edist x t,
-    from pos_iff_ne_zero.2 (λ H, hst ⟨hx, (mem_iff_inf_edist_zero_of_closed ht).mpr H⟩),
+    from pos_iff_ne_zero.2 (λ H, hst.le_bot ⟨hx, (mem_iff_inf_edist_zero_of_closed ht).mpr H⟩),
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 this with ⟨r, h₀, hr⟩,
   exact ⟨r, ennreal.coe_pos.mp h₀, λ y hy z hz, hr.trans_le $ le_inf_edist.1 (h y hy) z hz⟩
 end
@@ -1057,6 +1057,54 @@ by simp_rw [cthickening, inf_edist_union, inf_eq_min, min_le_iff, set_of_or]
   thickening δ (⋃ i, f i) = ⋃ i, thickening δ (f i) :=
 by simp_rw [thickening, inf_edist_Union, infi_lt_iff, set_of_exists]
 
+lemma ediam_cthickening_le (ε : ℝ≥0) : emetric.diam (cthickening ε s) ≤ emetric.diam s + 2 * ε :=
+begin
+  refine diam_le (λ x hx y hy, ennreal.le_of_forall_pos_le_add $ λ δ hδ _, _),
+  rw [mem_cthickening_iff, ennreal.of_real_coe_nnreal] at hx hy,
+  have hε : (ε : ℝ≥0∞) < ε + ↑(δ / 2) :=
+    ennreal.coe_lt_coe.2 (lt_add_of_pos_right _ $ half_pos hδ),
+  rw [ennreal.coe_div two_ne_zero, ennreal.coe_two] at hε,
+  replace hx := hx.trans_lt hε,
+  replace hy := hy.trans_lt hε,
+  rw inf_edist_lt_iff at hx hy,
+  obtain ⟨x', hx', hxx'⟩ := hx,
+  obtain ⟨y', hy', hyy'⟩ := hy,
+  refine (edist_triangle_right _ _ _).trans ((add_le_add hxx'.le $ (edist_triangle _ _ _).trans $
+    add_le_add hyy'.le $ edist_le_diam_of_mem hy' hx').trans_eq _),
+  -- Now we're done, but `ring` won't do it because we're on `ennreal` :(
+  rw [←add_assoc, ←two_mul, mul_add,
+    ennreal.mul_div_cancel' ennreal.two_ne_zero ennreal.two_ne_top],
+  abel,
+end
+
+lemma ediam_thickening_le (ε : ℝ≥0) : emetric.diam (thickening ε s) ≤ emetric.diam s + 2 * ε :=
+(emetric.diam_mono $ thickening_subset_cthickening _ _).trans $ ediam_cthickening_le _
+
+lemma diam_cthickening_le {α : Type*} [pseudo_metric_space α] (s : set α) (hε : 0 ≤ ε) :
+  diam (cthickening ε s) ≤ diam s + 2 * ε :=
+begin
+  by_cases hs : bounded (cthickening ε s),
+  { replace hs := hs.mono (self_subset_cthickening _),
+    have : (2 : ℝ≥0∞) * @coe ℝ≥0 _ _ ⟨ε, hε⟩ ≠ ⊤ := by simp,
+    refine (ennreal.to_real_mono (ennreal.add_ne_top.2 ⟨hs.ediam_ne_top, this⟩) $
+      ediam_cthickening_le ⟨ε, hε⟩).trans_eq _,
+    simp [ennreal.to_real_add hs.ediam_ne_top this, diam] },
+  { rw diam_eq_zero_of_unbounded hs,
+    positivity }
+end
+
+lemma diam_thickening_le {α : Type*} [pseudo_metric_space α] (s : set α) (hε : 0 ≤ ε) :
+  diam (thickening ε s) ≤ diam s + 2 * ε :=
+begin
+  by_cases hs : bounded s,
+  { exact (diam_mono (thickening_subset_cthickening _ _) hs.cthickening).trans
+      (diam_cthickening_le _ hε) },
+  obtain rfl | hε := hε.eq_or_lt,
+  { simp [thickening_of_nonpos, diam_nonneg] },
+  { rw diam_eq_zero_of_unbounded (mt (bounded.mono $ self_subset_thickening hε _) hs),
+    positivity }
+end
+
 @[simp] lemma thickening_closure : thickening δ (closure s) = thickening δ s :=
 by simp_rw [thickening, inf_edist_closure]
 
@@ -1071,6 +1119,7 @@ lemma _root_.disjoint.exists_thickenings (hst : disjoint s t) (hs : is_compact s
 begin
   obtain ⟨r, hr, h⟩ := exists_pos_forall_lt_edist hs ht hst,
   refine ⟨r / 2, half_pos (nnreal.coe_pos.2 hr), _⟩,
+  rw disjoint_iff_inf_le,
   rintro z ⟨hzs, hzt⟩,
   rw mem_thickening_iff_exists_edist_lt at hzs hzt,
   rw [← nnreal.coe_two, ← nnreal.coe_div, ennreal.of_real_coe_nnreal] at hzs hzt,

@@ -67,12 +67,11 @@ variables {𝕜 B B' F M : Type*} {E : B → Type*}
 section
 variables [topological_space F] [topological_space (total_space E)] [∀ x, topological_space (E x)]
   {HB : Type*} [topological_space HB]
-  [topological_space B] [charted_space HB B]
+  [topological_space B] [charted_space HB B] [fiber_bundle F E]
 
 /-- A fibre bundle `E` over a base `B` with model fibre `F` is naturally a charted space modelled on
 `B × F`. -/
-instance fiber_bundle.charted_space [fiber_bundle F E] :
-  charted_space (B × F) (total_space E) :=
+instance fiber_bundle.charted_space' : charted_space (B × F) (total_space E) :=
 { atlas := (λ e : trivialization F (@total_space.proj _ E), e.to_local_homeomorph) ''
     trivialization_atlas F E,
   chart_at := λ x, (trivialization_at F E x.proj).to_local_homeomorph,
@@ -80,13 +79,25 @@ instance fiber_bundle.charted_space [fiber_bundle F E] :
     (mem_base_set_trivialization_at F E x.proj),
   chart_mem_atlas := λ x, mem_image_of_mem _ (trivialization_mem_atlas F E _) }
 
+section
 local attribute [reducible] model_prod
 
 /-- Let `B` be a charted space modelled on `HB`.  Then a fibre bundle `E` over a base `B` with model
 fibre `F` is naturally a charted space modelled on `HB.prod F`. -/
-instance fiber_bundle.charted_space' [fiber_bundle F E] :
-  charted_space (model_prod HB F) (total_space E) :=
+@[priority 100]
+instance fiber_bundle.charted_space : charted_space (model_prod HB F) (total_space E) :=
 charted_space.comp _ (model_prod B F) _
+end
+
+lemma fiber_bundle.charted_space_chart_at (x : total_space E) :
+  chart_at (model_prod HB F) x =
+  (trivialization_at F E x.proj).to_local_homeomorph ≫ₕ
+  (chart_at HB x.proj).prod (local_homeomorph.refl F) :=
+begin
+  dsimp only [fiber_bundle.charted_space', charted_space.comp, fiber_bundle.charted_space, prod_charted_space, charted_space_self],
+  rw [trivialization.coe_coe,
+    trivialization.coe_fst' _ (mem_base_set_trivialization_at F E x.proj)]
+end
 
 end
 

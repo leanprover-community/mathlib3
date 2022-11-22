@@ -546,7 +546,7 @@ lemma cos_nonneg_iff_abs_to_real_le_pi_div_two {θ : angle} : 0 ≤ cos θ ↔ |
 begin
   nth_rewrite 0 ←coe_to_real θ,
   rw [abs_le, cos_coe],
-  refine ⟨λ h, _, λ h, cos_nonneg_of_mem_Icc h⟩,
+  refine ⟨λ h, _, cos_nonneg_of_mem_Icc⟩,
   by_contra hn,
   rw [not_and_distrib, not_le, not_le] at hn,
   refine (not_lt.2 h) _,

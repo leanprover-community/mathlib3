@@ -879,7 +879,7 @@ by simp_rw [f.extend_coord_change_source, f.extend_coe, image_comp I f, trans_so
 variables {f f'}
 open smooth_manifold_with_corners
 
-lemma cont_diff_on_extend_coord_change [charted_space H M] [smooth_manifold_with_corners I M]
+lemma cont_diff_on_extend_coord_change [charted_space H M]
   (hf : f ∈ maximal_atlas I M) (hf' : f' ∈ maximal_atlas I M) :
   cont_diff_on 𝕜 ⊤ (f.extend I ∘ (f'.extend I).symm)
   ((f'.extend I).symm ≫ f.extend I).source :=
@@ -888,7 +888,7 @@ begin
   exact (structure_groupoid.compatible_of_mem_maximal_atlas hf' hf).1
 end
 
-lemma cont_diff_within_at_extend_coord_change [charted_space H M] [smooth_manifold_with_corners I M]
+lemma cont_diff_within_at_extend_coord_change [charted_space H M]
   (hf : f ∈ maximal_atlas I M) (hf' : f' ∈ maximal_atlas I M) {x : E}
   (hx : x ∈ ((f'.extend I).symm ≫ f.extend I).source) :
   cont_diff_within_at 𝕜 ⊤ (f.extend I ∘ (f'.extend I).symm) (range I) x :=

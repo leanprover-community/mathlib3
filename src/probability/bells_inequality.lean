@@ -87,7 +87,7 @@ end preliminaries_1964
 
 section bell_1964
 
-variables {Ω : Type*} [measurable_space Ω] (ℙ : probability_measure Ω)
+variables {Ω : Type*} [measurable_space Ω] {ℙ : measure Ω}
 
 lemma integrable_mul_of_units_int (hℙ : is_probability_measure ℙ) {Za Zb : Ω → ℤˣ}
   (sm_a : strongly_measurable (λ ω, (Za ω : ℝ))) (sm_b : strongly_measurable (λ ω, (Zb ω : ℝ))) :
@@ -231,6 +231,7 @@ begin
     = ∫ l:Λ, ∫ ω , (Xa ω : ℝ) * (Xb ω) ∂(ℙab_cond α β l) ,
 
 
+  sorry,
   sorry,
 end
 

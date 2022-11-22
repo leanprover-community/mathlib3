@@ -478,11 +478,11 @@ focus $ do
     -- Try to solve the goal with a oneliner.
     -- If this succeeds, we close the goal in `compute_degree!` mode.
     -- In the normal `compute_degree` mode, we ask the user to use the oneliner instead.
-    potential_suggestions ← try_core single_term_suggestions,
+    potential_suggestion ← try_core single_term_suggestions,
     match potential_suggestion with
     | some suggestion :=
       if single.is_some then refine suggestion.2 -- Oneliner found: done!
-      else (do -- Oneliner: found: ask the user to try that instead.
+      else (do -- Oneliner found: ask the user to try that instead.
         p_suggestion ← pp suggestion.1,
         fail!"Try this: exact {p_suggestion}\n\nor\n\nTry this: compute_degree!")
     | none := skip -- No oneliner found.
@@ -497,7 +497,7 @@ focus $ do
     ( do ppe ← pp deg, ppg ← pp degvn,
       fail sformat!("'{ppe}' is the expected degree\n'{ppg}' is the given degree\n") ),
   refine ``(le_antisymm _ (le_nat_degree_of_ne_zero _)),
-  focus' [compute_degree_le, simp_coeff []]
+  focus' [compute_degree_le, simp_lead_coeff []]
 
 end parsing
 
@@ -519,7 +519,7 @@ focus $ do
   deg ← guess_degree' pol,
   deg ← to_expr deg.to_pexpr tt ff,
   refine ``(monic_of_nat_degree_le_of_coeff_eq_one %%deg _ _),
-  focus' [compute_degree_le, simp_coeff []],
+  focus' [compute_degree_le, simp_lead_coeff []],
   try reflexivity
 
 add_tactic_doc
@@ -529,9 +529,9 @@ add_tactic_doc
   tags := ["arithmetic", "finishing"] }
 
 add_tactic_doc
-{ name := "simp_coeff",
+{ name := "simp_lead_coeff",
   category := doc_category.tactic,
-  decl_names := [`tactic.interactive.simp_coeff],
+  decl_names := [`tactic.interactive.simp_lead_coeff],
   tags := ["arithmetic", "finishing"] }
 
 add_tactic_doc

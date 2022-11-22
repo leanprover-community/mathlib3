@@ -14,12 +14,10 @@ begin
   compute_degree_le,
 end
 
-example {p0 : p.nat_degree = 0} :
- (p ^ n).nat_degree ≤ 0 :=
+example (p0 : p.nat_degree = 0) : (p ^ n).nat_degree ≤ 0 :=
 by compute_degree_le
 
-example {p0 : p.nat_degree = 0} :
- (p ^ n).nat_degree ≤ 0 :=
+example (p0 : p.nat_degree = 0) : (p ^ n).nat_degree ≤ 0 :=
 by cases n; compute_degree_le
 
 example {a b c d e f m n : ℕ} {p0 : p.nat_degree = a} {q0 : q.nat_degree = b}
@@ -30,8 +28,7 @@ begin
   rw [p0, q0, r0],
 end
 
-example (p0 : p.nat_degree ≤ 0) :
-  p.nat_degree ≤ 0 :=
+example (p0 : p.nat_degree ≤ 0) : p.nat_degree ≤ 0 :=
 begin
   success_if_fail_with_msg {compute_degree_le} "Goal did not change",
   exact p0,
@@ -149,19 +146,19 @@ begin
   { repeat { refine ⟨_, _⟩ <|> compute_degree! } },
   { refine ⟨_, _, _, _, _⟩,
     { success_if_fail_with_msg {compute_degree}
-        "Try this: exact nat_degree_X_pow _\n\nor\n\nTry this: compute_degree!",
+        "Try this: exact nat_degree_X_pow _\n\nor\n\nTry this: compute_degree!\n",
       exact nat_degree_X_pow _ },
     { success_if_fail_with_msg {compute_degree}
-        "Try this: exact nat_degree_C _\n\nor\n\nTry this: compute_degree!",
+        "Try this: exact nat_degree_C _\n\nor\n\nTry this: compute_degree!\n",
       exact nat_degree_C _ },
     { success_if_fail_with_msg {compute_degree}
-        "Try this: exact nat_degree_X\n\nor\n\nTry this: compute_degree!",
+        "Try this: exact nat_degree_X\n\nor\n\nTry this: compute_degree!\n",
       exact nat_degree_X },
     { success_if_fail_with_msg {compute_degree}
-        "Try this: exact nat_degree_C_mul_X_pow _ a a0\n\nor\n\nTry this: compute_degree!",
+        "Try this: exact nat_degree_C_mul_X_pow _ a a0\n\nor\n\nTry this: compute_degree!\n",
       exact nat_degree_C_mul_X_pow _ a a0 },
     { success_if_fail_with_msg {compute_degree}
-        "Try this: exact nat_degree_C_mul_X a a0\n\nor\n\nTry this: compute_degree!",
+        "Try this: exact nat_degree_C_mul_X a a0\n\nor\n\nTry this: compute_degree!\n",
       exact nat_degree_C_mul_X a a0 } }
 end
 
@@ -174,5 +171,11 @@ begin
     compute_degree!;
     rwa mul_one <|> exact neg_ne_zero.mpr one_ne_zero },
 end
+
+example : (C a + C b : S[X]).nat_degree = 0 :=
+by compute_degree
+
+example : (0 : S[X]).nat_degree = 0 :=
+by compute_degree
 
 end tests_for_compute_degree_and_simp_coeff

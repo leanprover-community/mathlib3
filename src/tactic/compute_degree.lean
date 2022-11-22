@@ -26,16 +26,10 @@ See the respective doc-strings for more details.
 
 ##  Future work
 
-* Fix behaviour of `compute_degree` when `p.nat_degree = 0`: for instance
-  ```lean
-  example {R : Type*} [semiring R] : (2 : R[X]).nat_degree = 0 :=
-  begin
-    compute_degree, ⊢ 2 ≠ 0
-  end
-  ```
 * Add better functionality to deal with exponents that are not necessarily closed natural numbers.
 * Add support for proving goals of the from `f.(nat_)degree ≠ 0`.
-* Make sure that `degree` and `nat_degree` are equally supported.
+* Make sure that `degree` and `nat_degree` are equally supported, especially `f.degree = 0`.
+* Should the tactic handle `f.degree = ⊥`?.
 
 ##  Implementation details
 
@@ -472,7 +466,7 @@ an issue if the cancellation arises in terms of degrees smaller than the maximum
 example : nat_degree (X ^ 2 + X - X : ℤ[X]) = 2 := by compute_degree
 ```
 works. -/
-meta def compute_degree (single : parse (tk "!" )?) : tactic unit :=
+meta def compute_degree (silent : parse (tk "!" )?) : tactic unit :=
 focus $ do
   t ← target >>= (λ f, whnf f reducible),
   match t with
@@ -486,16 +480,18 @@ focus $ do
     potential_suggestion ← try_core single_term_suggestions,
     match potential_suggestion with
     | some suggestion :=
-      if single.is_some then refine suggestion.2 -- Oneliner found: done!
+      if silent.is_some then refine suggestion.2 -- Oneliner found: done!
       else (do -- Oneliner found: ask the user to try that instead.
         p_suggestion ← pp suggestion.1,
-        fail!"Try this: exact {p_suggestion}\n\nor\n\nTry this: compute_degree!")
+        fail!"Try this: exact {p_suggestion}\n\nor\n\nTry this: compute_degree!\n")
     | none := skip -- No oneliner found.
     end
   | _ := fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`"
   end;
   do `(nat_degree %%pol = %%degv) ← target |
       fail "Goal is not of the form\n`f.nat_degree = d` or `f.degree = d`",
+  --  if we are trying to show that the degree is zero, we outsource to `compute_degree_le`
+  unify degv `(0) >> refine ``(nat.eq_zero_of_le_zero _) >> compute_degree_le <|> do -- otherwise...
   deg ← guess_degree' pol,
   degvn ← eval_expr' ℕ degv,
   guard (deg = degvn) <|>

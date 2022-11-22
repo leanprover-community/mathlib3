@@ -171,7 +171,7 @@ def lift : push σ ⥤q W' :=
 
 lemma lift_spec_obj : (lift σ φ τ h).obj = τ := rfl
 
-lemma lift_spec_comm : of σ ⋙q lift σ φ τ h = φ :=
+lemma lift_spec_comp : of σ ⋙q lift σ φ τ h = φ :=
 begin
   fapply prefunctor.ext,
   { rintros, simp only [prefunctor.comp_obj], symmetry, exact h X, },
@@ -183,7 +183,7 @@ begin
     refl, },
 end
 
-lemma lift_unique (Φ : push σ ⥤q W') (Φ₀ : Φ.obj = τ) (Φcomm : of σ ⋙q Φ = φ) :
+lemma lift_unique (Φ : push σ ⥤q W') (Φ₀ : Φ.obj = τ) (Φcomp : of σ ⋙q Φ = φ) :
   Φ = lift σ φ τ h :=
 begin
   dsimp only [of,lift],

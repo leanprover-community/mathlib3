@@ -350,8 +350,8 @@ Single Variable Real Analysis:
     normal convergence: 'https://en.wikipedia.org/wiki/Normal_convergence'
     continuity of the limit of a sequence of functions: 'continuous_of_uniform_approx_of_continuous'
     continuity of the sum of a series of functions: 'continuous_tsum'
-    differentiability of the limit of a sequence of functions: `has_fderiv_at_of_tendsto_uniformly`
-    differentiability of the sum of a series of functions: `differentiable_tsum`
+    differentiability of the limit of a sequence of functions: 'has_fderiv_at_of_tendsto_uniformly'
+    differentiability of the sum of a series of functions: 'differentiable_tsum'
     Weierstrass polynomial approximation theorem: 'polynomial_functions_closure_eq_top'
     Weierstrass trigonometric approximation theorem: 'span_fourier_closure_eq_top'
   Convexity:

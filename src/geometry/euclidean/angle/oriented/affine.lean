@@ -63,6 +63,105 @@ by simp [oangle]
 @[simp] lemma oangle_self_left_right (p₁ p₂ : P) : ∡ p₁ p₂ p₁ = 0 :=
 (o).oangle_self _
 
+/-- If the angle between three points is nonzero, the first two points are not equal. -/
+lemma left_ne_of_oangle_ne_zero {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ ≠ 0) : p₁ ≠ p₂ :=
+by { rw ←@vsub_ne_zero V, exact (o).left_ne_zero_of_oangle_ne_zero h }
+
+/-- If the angle between three points is nonzero, the last two points are not equal. -/
+lemma right_ne_of_oangle_ne_zero {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ ≠ 0) : p₃ ≠ p₂ :=
+by { rw ←@vsub_ne_zero V, exact (o).right_ne_zero_of_oangle_ne_zero h }
+
+/-- If the angle between three points is nonzero, the first and third points are not equal. -/
+lemma left_ne_right_of_oangle_ne_zero {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ ≠ 0) : p₁ ≠ p₃ :=
+by { rw ←(vsub_left_injective p₂).ne_iff, exact (o).ne_of_oangle_ne_zero h }
+
+/-- If the angle between three points is `π`, the first two points are not equal. -/
+lemma left_ne_of_oangle_eq_pi {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = π) : p₁ ≠ p₂ :=
+left_ne_of_oangle_ne_zero (h.symm ▸ real.angle.pi_ne_zero : ∡ p₁ p₂ p₃ ≠ 0)
+
+/-- If the angle between three points is `π`, the last two points are not equal. -/
+lemma right_ne_of_oangle_eq_pi {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = π) : p₃ ≠ p₂ :=
+right_ne_of_oangle_ne_zero (h.symm ▸ real.angle.pi_ne_zero : ∡ p₁ p₂ p₃ ≠ 0)
+
+/-- If the angle between three points is `π`, the first and third points are not equal. -/
+lemma left_ne_right_of_oangle_eq_pi {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = π) : p₁ ≠ p₃ :=
+left_ne_right_of_oangle_ne_zero (h.symm ▸ real.angle.pi_ne_zero : ∡ p₁ p₂ p₃ ≠ 0)
+
+/-- If the angle between three points is `π / 2`, the first two points are not equal. -/
+lemma left_ne_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = (π / 2 : ℝ)) : p₁ ≠ p₂ :=
+left_ne_of_oangle_ne_zero (h.symm ▸ real.angle.pi_div_two_ne_zero : ∡ p₁ p₂ p₃ ≠ 0)
+
+/-- If the angle between three points is `π / 2`, the last two points are not equal. -/
+lemma right_ne_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = (π / 2 : ℝ)) : p₃ ≠ p₂ :=
+right_ne_of_oangle_ne_zero (h.symm ▸ real.angle.pi_div_two_ne_zero : ∡ p₁ p₂ p₃ ≠ 0)
+
+/-- If the angle between three points is `π / 2`, the first and third points are not equal. -/
+lemma left_ne_right_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = (π / 2 : ℝ)) :
+  p₁ ≠ p₃ :=
+left_ne_right_of_oangle_ne_zero (h.symm ▸ real.angle.pi_div_two_ne_zero : ∡ p₁ p₂ p₃ ≠ 0)
+
+/-- If the angle between three points is `-π / 2`, the first two points are not equal. -/
+lemma left_ne_of_oangle_eq_neg_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = (-π / 2 : ℝ)) :
+  p₁ ≠ p₂ :=
+left_ne_of_oangle_ne_zero (h.symm ▸ real.angle.neg_pi_div_two_ne_zero : ∡ p₁ p₂ p₃ ≠ 0)
+
+/-- If the angle between three points is `-π / 2`, the last two points are not equal. -/
+lemma right_ne_of_oangle_eq_neg_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = (-π / 2 : ℝ)) :
+  p₃ ≠ p₂ :=
+right_ne_of_oangle_ne_zero (h.symm ▸ real.angle.neg_pi_div_two_ne_zero : ∡ p₁ p₂ p₃ ≠ 0)
+
+/-- If the angle between three points is `-π / 2`, the first and third points are not equal. -/
+lemma left_ne_right_of_oangle_eq_neg_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = (-π / 2 : ℝ)) :
+  p₁ ≠ p₃ :=
+left_ne_right_of_oangle_ne_zero (h.symm ▸ real.angle.neg_pi_div_two_ne_zero : ∡ p₁ p₂ p₃ ≠ 0)
+
+/-- If the sign of the angle between three points is nonzero, the first two points are not
+equal. -/
+lemma left_ne_of_oangle_sign_ne_zero {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign ≠ 0) : p₁ ≠ p₂ :=
+left_ne_of_oangle_ne_zero (real.angle.sign_ne_zero_iff.1 h).1
+
+/-- If the sign of the angle between three points is nonzero, the last two points are not
+equal. -/
+lemma right_ne_of_oangle_sign_ne_zero {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign ≠ 0) : p₃ ≠ p₂ :=
+right_ne_of_oangle_ne_zero (real.angle.sign_ne_zero_iff.1 h).1
+
+/-- If the sign of the angle between three points is nonzero, the first and third points are not
+equal. -/
+lemma left_ne_right_of_oangle_sign_ne_zero {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign ≠ 0) :
+  p₁ ≠ p₃ :=
+left_ne_right_of_oangle_ne_zero (real.angle.sign_ne_zero_iff.1 h).1
+
+/-- If the sign of the angle between three points is positive, the first two points are not
+equal. -/
+lemma left_ne_of_oangle_sign_eq_one {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign = 1) : p₁ ≠ p₂ :=
+left_ne_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (∡ p₁ p₂ p₃).sign ≠ 0)
+
+/-- If the sign of the angle between three points is positive, the last two points are not
+equal. -/
+lemma right_ne_of_oangle_sign_eq_one {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign = 1) : p₃ ≠ p₂ :=
+right_ne_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (∡ p₁ p₂ p₃).sign ≠ 0)
+
+/-- If the sign of the angle between three points is positive, the first and third points are not
+equal. -/
+lemma left_ne_right_of_oangle_sign_eq_one {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign = 1) : p₁ ≠ p₃ :=
+left_ne_right_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (∡ p₁ p₂ p₃).sign ≠ 0)
+
+/-- If the sign of the angle between three points is negative, the first two points are not
+equal. -/
+lemma left_ne_of_oangle_sign_eq_neg_one {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign = -1) : p₁ ≠ p₂ :=
+left_ne_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (∡ p₁ p₂ p₃).sign ≠ 0)
+
+/-- If the sign of the angle between three points is negative, the last two points are not equal.
+-/
+lemma right_ne_of_oangle_sign_eq_neg_one {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign = -1) : p₃ ≠ p₂ :=
+right_ne_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (∡ p₁ p₂ p₃).sign ≠ 0)
+
+/-- If the sign of the angle between three points is negative, the first and third points are not
+equal. -/
+lemma left_ne_right_of_oangle_sign_eq_neg_one {p₁ p₂ p₃ : P} (h : (∡ p₁ p₂ p₃).sign = -1) :
+  p₁ ≠ p₃ :=
+left_ne_right_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (∡ p₁ p₂ p₃).sign ≠ 0)
+
 /-- Reversing the order of the points passed to `oangle` negates the angle. -/
 lemma oangle_rev (p₁ p₂ p₃ : P) : ∡ p₃ p₂ p₁ = -∡ p₁ p₂ p₃ :=
 (o).oangle_rev _ _

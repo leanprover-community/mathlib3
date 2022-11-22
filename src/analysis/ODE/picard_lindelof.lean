@@ -97,7 +97,7 @@ protected lemma continuous_on :
   continuous_on (uncurry v) (Icc v.t_min v.t_max ×ˢ closed_ball v.x₀ v.R) :=
 have continuous_on (uncurry (flip v)) (closed_ball v.x₀ v.R ×ˢ Icc v.t_min v.t_max),
   from continuous_on_prod_of_continuous_on_lipschitz_on _ v.L v.is_pl.cont v.is_pl.lipschitz,
-this.comp continuous_swap.continuous_on preimage_swap_prod.symm.subset
+this.comp continuous_swap.continuous_on (preimage_swap_prod _ _).symm.subset
 
 lemma norm_le {t : ℝ} (ht : t ∈ Icc v.t_min v.t_max) {x : E} (hx : x ∈ closed_ball v.x₀ v.R) :
   ∥v t x∥ ≤ v.C :=

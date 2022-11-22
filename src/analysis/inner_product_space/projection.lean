@@ -741,7 +741,7 @@ variables {K}
 
 /-- If `K` is complete, `K` and `Kᗮ` are complements of each other. -/
 lemma submodule.is_compl_orthogonal_of_complete_space [complete_space K] : is_compl K Kᗮ :=
-⟨K.orthogonal_disjoint, le_of_eq submodule.sup_orthogonal_of_complete_space.symm⟩
+⟨K.orthogonal_disjoint, codisjoint_iff.2 submodule.sup_orthogonal_of_complete_space⟩
 
 @[simp] lemma submodule.orthogonal_eq_bot_iff [complete_space (K : set E)] :
   Kᗮ = ⊥ ↔ K = ⊤ :=
@@ -855,6 +855,38 @@ begin
   { rw [←submodule.triorthogonal_eq_orthogonal, h, submodule.top_orthogonal_eq_bot] },
   { rw [h, submodule.bot_orthogonal_eq_top] }
 end
+
+namespace dense
+
+open submodule
+
+variables {x y : E} [complete_space E]
+
+/-- If `S` is dense and `x - y ∈ Kᗮ`, then `x = y`. -/
+lemma eq_of_sub_mem_orthogonal (hK : dense (K : set E)) (h : x - y ∈ Kᗮ) : x = y :=
+begin
+  rw [dense_iff_topological_closure_eq_top, topological_closure_eq_top_iff] at hK,
+  rwa [hK, submodule.mem_bot, sub_eq_zero] at h,
+end
+
+lemma eq_zero_of_mem_orthogonal (hK : dense (K : set E)) (h : x ∈ Kᗮ) : x = 0 :=
+hK.eq_of_sub_mem_orthogonal (by rwa [sub_zero])
+
+lemma eq_of_inner_left (hK : dense (K : set E)) (h : ∀ v : K, ⟪x, v⟫ = ⟪y, v⟫) : x = y :=
+hK.eq_of_sub_mem_orthogonal (submodule.sub_mem_orthogonal_of_inner_left h)
+
+lemma eq_zero_of_inner_left (hK : dense (K : set E)) (h : ∀ v : K, ⟪x, v⟫ = 0) : x = 0 :=
+hK.eq_of_inner_left (λ v, by rw [inner_zero_left, h v])
+
+lemma eq_of_inner_right (hK : dense (K : set E))
+  (h : ∀ v : K, ⟪(v : E), x⟫ = ⟪(v : E), y⟫) : x = y :=
+hK.eq_of_sub_mem_orthogonal (submodule.sub_mem_orthogonal_of_inner_right h)
+
+lemma eq_zero_of_inner_right (hK : dense (K : set E))
+  (h : ∀ v : K, ⟪(v : E), x⟫ = 0) : x = 0 :=
+hK.eq_of_inner_right (λ v, by rw [inner_zero_right, h v])
+
+end dense
 
 /-- The reflection in `Kᗮ` of an element of `K` is its negation. -/
 lemma reflection_mem_subspace_orthogonal_precomplement_eq_neg

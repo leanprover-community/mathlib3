@@ -721,7 +721,9 @@ begin
   have p₁ : p ≠ 1 := hp.1.ne_one,
   rw ← @rat.cast_coe_nat ℝ _ p,
   rw ← @rat.cast_coe_nat (ℚ_[p]) _ p,
-  simp [p₀, p₁, norm, padic_norm, padic_val_rat, padic_val_int, zpow_neg, -rat.cast_coe_nat],
+  -- Rewrite `padic_norm_e` before rewriting `(↑(p : ℕ) : ℚ)`
+  simp only [norm, padic_norm_e.eq_padic_norm'],
+  simp [p₀, p₁, padic_val_int, zpow_neg]
 end
 
 lemma norm_p_lt_one : ∥(p : ℚ_[p])∥ < 1 :=
@@ -1025,9 +1027,8 @@ lemma norm_le_one_iff_val_nonneg (x : ℚ_[p]) : ∥ x ∥ ≤ 1 ↔ 0 ≤ x.val
 begin
   by_cases hx : x = 0,
   { simp only [hx, norm_zero, valuation_zero, zero_le_one, le_refl], },
-  { rw [norm_eq_pow_val hx, ← zpow_zero (p : ℝ), zpow_le_iff_le
-      (nat.one_lt_cast.mpr (nat.prime.one_lt' p).1), right.neg_nonpos_iff],
-    apply_instance, }
+  { rw [norm_eq_pow_val hx, ← zpow_zero (p : ℝ), zpow_le_iff_le, right.neg_nonpos_iff],
+    exact nat.one_lt_cast.2 (nat.prime.one_lt' p).1 }
 end
 
 end norm_le_iff

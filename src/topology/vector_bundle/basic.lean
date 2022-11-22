@@ -537,14 +537,12 @@ fiber_bundle_core.triv_change ↑Z i j
   p ∈ (Z.triv_change i j).source ↔ p.1 ∈ Z.base_set i ∩ Z.base_set j :=
 fiber_bundle_core.mem_triv_change_source ↑Z i j p
 
-variable (ι)
-
 /-- Topological structure on the total space of a vector bundle created from core, designed so
 that all the local trivialization are continuous. -/
 instance to_topological_space : topological_space Z.total_space :=
-fiber_bundle_core.to_topological_space ι ↑Z
+Z.to_fiber_bundle_core.to_topological_space
 
-variables {ι} (b : B) (a : F)
+variables (b : B) (a : F)
 
 @[simp, mfld_simps] lemma coe_coord_change (i j : ι) :
   Z.to_fiber_bundle_core.coord_change i j b = Z.coord_change i j b := rfl

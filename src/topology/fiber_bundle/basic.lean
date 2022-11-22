@@ -464,15 +464,13 @@ begin
     simp only [Z.coord_change_comp, hx, mem_inter_iff, and_self, mem_base_set_at], }
 end
 
-variable (ι)
-
 /-- Topological structure on the total space of a fiber bundle created from core, designed so
 that all the local trivialization are continuous. -/
 instance to_topological_space : topological_space (bundle.total_space Z.fiber) :=
 topological_space.generate_from $ ⋃ (i : ι) (s : set (B × F)) (s_open : is_open s),
   {(Z.local_triv_as_local_equiv i).source ∩ (Z.local_triv_as_local_equiv i) ⁻¹' s}
 
-variables {ι} (b : B) (a : F)
+variables (b : B) (a : F)
 
 lemma open_source' (i : ι) : is_open (Z.local_triv_as_local_equiv i).source :=
 begin

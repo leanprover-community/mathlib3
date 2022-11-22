@@ -96,8 +96,8 @@ section tests_for_compute_degree_and_simp_coeff
 
 example : (C a).coeff 0 = a :=
 begin
-  success_if_fail_with_msg {simp_coeff with da l m} "Try this: simp_coeff with da",
-  simp_coeff with da,
+  success_if_fail_with_msg {simp_lead_coeff with da l m} "Try this: simp_lead_coeff with da",
+  simp_lead_coeff with da,
   refl,
 end
 

@@ -175,21 +175,6 @@ with `c` a coefficient of the polynomial `f` in question. -/
 meta def norm_assum : tactic unit :=
 try `[ norm_num ] >> try assumption
 
-/--  `eval_guessing n e` takes a natural number `n` and an expression `e` and gives an
-estimate for the evaluation of `eval_expr' ℕ e`.  It is tailor made for estimating degrees of
-polynomials.
-
-It decomposes `e` recursively as a sequence of additions, multiplications and `max`.
-On the atoms of the process, `eval_guessing` tries to use `eval_expr' ℕ`, resorting to using
-`n` if `eval_expr' ℕ` fails.
-
-For use with degree of polynomials, we mostly use `n = 0`. -/
-meta def eval_guessing (n : ℕ) : expr → tactic ℕ
-| `(%%a + %%b)   := (+) <$> eval_guessing a <*> eval_guessing b
-| `(%%a * %%b)   := (*) <$> eval_guessing a <*> eval_guessing b
-| `(max %%a %%b) := max <$> eval_guessing a <*> eval_guessing b
-| e              := eval_expr' ℕ e <|> pure n
-
 /--  These are the cases in which an available lemma computes the degree.
 `single_term_suggestions` returns a pair `(e1, e2)`, where `e1` pretty-prints to something
 suitable for a "Try this:", while `e2` is an expression that unifies with the target. -/
@@ -407,7 +392,7 @@ do
     | []      := pure `c_c
     | [a]     := pure a
     | (a::as) := do pa ← pp a,
-      fail format!"Try this: simp_coeff with {pa}"
+      fail format!"Try this: simp_lead_coeff with {pa}"
     end,
   nn ← get_unused_name ide,
   cf ← to_expr ``(coeff : polynomial %%R → ℕ → %%R),
@@ -440,7 +425,7 @@ do t ← target >>= instantiate_mvars,
   d_nat ← guess_degree' f,
   m_nat ← eval_expr' ℕ m,
   guard (d_nat = m_nat) <|> fail!(
-  "`simp_coeff` checks that the expected degree is equal to the degree appearing in `coeff`\n" ++
+  "`simp_lead_coeff` checks that the expected degree equals the degree appearing in `coeff`\n" ++
   "the expected degree is `{d_nat}`, but you are asking about the coefficient of degree `{m_nat}`"),
   c_c ← poly_and_deg_to_equation f m na,
   interactive.swap,
@@ -452,7 +437,7 @@ do t ← target >>= instantiate_mvars,
 /--  `compute_degree` tries to close goals of the form `f.(nat_)degree = d`.  It converts the
 goal to showing that
 * the degree is at most `d`, calling `compute_degree_le` to solve this case;
-* the coefficient of degree `d` is non-zero, calling `simp_coeff` to simplify this goal.
+* the coefficient of degree `d` is non-zero, calling `simp_lead_coeff` to simplify this goal.
 
 `compute_degree` will suggest a term-mode proof if it's a oneliner. If you want to disable these
 suggestions, for example when you're working on multiple goals at once, use `compute_degree!`.
@@ -510,7 +495,7 @@ end parsing
 degree `d` for the polynomial `f`, using `tactic.compute_degree.guess_degree'`.  Next, it converts
 the goal to showing that
 * the degree of `f` is at most `d`, and using `compute_degree_le` to solve this goal;
-* the coefficient of degree `d` equals `1`, and using `simp_coeff` to simplify this goal.
+* the coefficient of degree `d` equals `1`, and using `simp_lead_coeff` to simplify this goal.
 If the term of largest degree appearing in `f` has non-zero coefficient (i.e., the terms of
 highest degree do not cancel), then `prove_monic` should either succeed or leave
 a simpler goal to prove.

@@ -996,10 +996,7 @@ hs.induction_on differentiable_on_empty (λ x, differentiable_on_singleton)
 lemma has_fderiv_at_zero_of_eventually_const
   (c : F) (hf : f =ᶠ[𝓝 x] (λ y, c)) :
   has_fderiv_at f (0 : E →L[𝕜] F) x :=
-begin
-  apply has_fderiv_at.congr_of_eventually_eq _ hf,
-  exact has_fderiv_at_const _ _
-end
+(has_fderiv_at_const _ _).congr_of_eventually_eq hf
 
 end const
 

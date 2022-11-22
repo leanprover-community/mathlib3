@@ -743,9 +743,8 @@ begin
   have := integral_image_eq_integral_abs_det_fderiv_smul volume a1 a2 a3 g,
   rw a4 at this, rw this,
   refine set_integral_congr measurable_set_Ioi _,
-  intros x hx, simp only [algebra.id.smul_eq_mul],
-  conv_rhs { rw mul_comm },
-  simp_rw a0, rw abs_of_nonneg,
+  intros x hx, dsimp only,
+  rw [smul_eq_mul, mul_comm, a0, abs_of_nonneg],
   exact mul_nonneg hp.le (rpow_nonneg_of_nonneg (le_of_lt hx) _),
 end
 

@@ -714,26 +714,37 @@ begin
 end
 
 /-- Substitution `y = x ^ p` in integrals over `Ioi 0` -/
-lemma integral_comp_rpow_Ioi {g : ℝ → ℝ} {p : ℝ} (hp : 0 < p) :
-  ∫ x in Ioi 0, g (x ^ p) * (p * x ^ (p - 1)) = ∫ y in Ioi 0, g y :=
+lemma integral_comp_rpow_Ioi (g : ℝ → E) {p : ℝ} (hp : p ≠ 0) :
+  ∫ x in Ioi 0, (|p| * x ^ (p - 1)) • g (x ^ p) = ∫ y in Ioi 0, g y :=
 begin
   let S := Ioi (0 : ℝ),
   have a1 : ∀ x:ℝ, x ∈ S → has_deriv_within_at (λ (t:ℝ), t ^ p) (p * x ^ (p - 1)) S x :=
     λ x hx, (has_deriv_at_rpow_const (or.inl (mem_Ioi.mp hx).ne')).has_deriv_within_at,
-  have a2 : inj_on (λ x:ℝ, x ^ p) S :=
-  strict_mono_on.inj_on (λ x hx y hy hxy, rpow_lt_rpow (mem_Ioi.mp hx).le hxy hp),
+  have a2 : inj_on (λ x:ℝ, x ^ p) S,
+  { rcases lt_or_gt_of_ne hp,
+    { apply strict_anti_on.inj_on,
+      intros x hx y hy hxy,
+      rw [←inv_lt_inv (rpow_pos_of_pos hx p) (rpow_pos_of_pos hy p),
+      ←rpow_neg (le_of_lt hx), ←rpow_neg (le_of_lt hy)],
+      exact rpow_lt_rpow (le_of_lt hx) hxy (neg_pos.mpr h), },
+    exact strict_mono_on.inj_on (λ x hx y hy hxy, rpow_lt_rpow (mem_Ioi.mp hx).le hxy h),},
   have a3 : (λ (t : ℝ), t ^ p) '' S = S,
   { ext1, rw mem_image, split,
     { rintro ⟨y, hy, rfl⟩, exact rpow_pos_of_pos hy p },
-    { intro hx, use x ^ (1 / p), split,
-      { exact rpow_pos_of_pos hx (1 / p) },
-      { rw ←rpow_mul (le_of_lt hx), rw [one_div_mul_cancel hp.ne', rpow_one],}, } },
+    { intro hx, refine ⟨x ^ (1 / p), rpow_pos_of_pos hx _, _⟩,
+      rw [←rpow_mul (le_of_lt hx), one_div_mul_cancel hp, rpow_one], } },
   have := integral_image_eq_integral_abs_deriv_smul measurable_set_Ioi a1 a2 g,
   rw a3 at this, rw this,
   refine set_integral_congr measurable_set_Ioi _,
   intros x hx, dsimp only,
-  rw [smul_eq_mul, mul_comm, abs_of_nonneg],
-  exact mul_nonneg hp.le (rpow_nonneg_of_nonneg (le_of_lt hx) _),
+  rw [abs_mul, abs_of_nonneg (rpow_nonneg_of_nonneg (le_of_lt hx) _)],
+end
+
+lemma integral_comp_rpow_Ioi_of_pos {g : ℝ → E} {p : ℝ} (hp : 0 < p) :
+  ∫ x in Ioi 0, (p * x ^ (p - 1)) • g (x ^ p) = ∫ y in Ioi 0, g y :=
+begin
+  convert integral_comp_rpow_Ioi g hp.ne',
+  funext, congr, rw abs_of_nonneg hp.le,
 end
 
 end Ioi_change_variables

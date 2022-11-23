@@ -1643,6 +1643,16 @@ by simpa only [←injective_iff_ker_eq_bot] using equiv_like.injective f
 
 end ring
 
+section ring_ring
+
+variables {F : Type*} [ring R] [ring S] [rc : ring_hom_class F R S] (f : F)
+include rc
+
+theorem sub_mem_ker_iff {x y} : x - y ∈ ker f ↔ f x = f y :=
+by rw [mem_ker, map_sub, sub_eq_zero]
+
+end ring_ring
+
 section comm_ring
 variables [comm_ring R] [comm_ring S] (f : R →+* S)
 

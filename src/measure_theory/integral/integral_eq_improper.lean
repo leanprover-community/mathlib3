@@ -720,10 +720,8 @@ begin
   have a0 : ∀ (t : ℝ), ((1 : ℝ →L[ℝ] ℝ).smul_right t).det = t,
   -- suggestions how to do this properly greatly appreciated!
   { intro t,
-    rw continuous_linear_map.det,
-    have : (1 : ℝ →L[ℝ] ℝ).smul_right t = t • (1 : ℝ →L[ℝ] ℝ),
-    { ext, simp,  }, rw this,
-    rw continuous_linear_map.coe_smul,
+    rw (by { ext, simp } : (1 : ℝ →L[ℝ] ℝ).smul_right t = t • (1 : ℝ →L[ℝ] ℝ)),
+    rw [continuous_linear_map.det, continuous_linear_map.coe_smul],
     have : ((1 : ℝ →L[ℝ] ℝ) : ℝ →ₗ[ℝ] ℝ) = (1 : ℝ →ₗ[ℝ] ℝ), { refl, },
     rw [this, linear_map.det_smul, finite_dimensional.finrank_self],
     suffices : (1 : ℝ →ₗ[ℝ] ℝ).det = 1, { rw this, simp },

@@ -214,6 +214,10 @@ begin
   exact is_complement'_of_disjoint_and_mul_eq_univ (disjoint_iff.2 hf.1) hf.2,
 end
 
+lemma not_dvd_card_ker_transfer_sylow : ¬ p ∣ nat.card (transfer_sylow P hP).ker :=
+(ker_transfer_sylow_is_complement' P hP).index_eq_card ▸ not_dvd_index_sylow P $
+  mt index_eq_zero_of_relindex_eq_zero index_ne_zero_of_finite
+
 lemma ker_transfer_sylow_disjoint : disjoint (transfer_sylow P hP).ker ↑P :=
 (ker_transfer_sylow_is_complement' P hP).disjoint
 

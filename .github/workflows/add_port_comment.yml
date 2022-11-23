@@ -27,7 +27,7 @@ jobs:
         id: generate-message
         with:
           script: |
-            pr_list = await exec.getExecOutput("python", ['./scripts/add_port_comments.py"]);
+            pr_list = await exec.getExecOutput("python", ["./scripts/add_port_comments.py"]);
             console.log(pr_list);
             core.setOutput("PR_LIST", pr_list); 
 

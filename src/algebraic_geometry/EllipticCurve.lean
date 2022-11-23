@@ -143,7 +143,7 @@ def base_change : EllipticCurve A :=
   a₄   := algebra_map R A E.a₄,
   a₆   := algebra_map R A E.a₆,
   Δ    := units.map ↑(algebra_map R A) E.Δ,
-  Δ_eq := by { simp only [units.coe_map, ← coe_fn_coe_base, Δ_eq, Δ_aux], simp_map } }
+  Δ_eq := by { simp only [units.coe_map, ring_hom.coe_monoid_hom, Δ_eq, Δ_aux], simp_map } }
 
 namespace base_change
 

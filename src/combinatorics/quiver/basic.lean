@@ -156,7 +156,7 @@ def of : V ⥤q push σ :=
 { obj := σ,
   map := λ X Y f, push_quiver.arrow f}
 
-@[simp] lemma of_obj : ((of σ)).obj = σ := rfl
+@[simp] lemma of_obj : (of σ).obj = σ := rfl
 
 variables {W' : Type*} [quiver W'] (φ : prefunctor V W') (τ : W → W') (h : ∀ x, φ.obj x = τ (σ x) )
 

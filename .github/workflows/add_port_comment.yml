@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: install Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v3
         with:
           python-version: 3.8
 
@@ -21,21 +21,15 @@ jobs:
         run: |
           pip install git+https://github.com/leanprover-community/mathlib-tools
 
-      - name: update docstrings
-        run: |
-          python ./scripts/add_port_comments.py
-          
       # multiline outputs are only supported in javascript
-      - name: generate message
+      - name: update docstrings and generate message
         uses: actions/github-script@v5
         id: generate-message
         with:
           script: |
-            prs = await exec.getExecOutput("bash",
-              ['-c', "git diff HEAD -U0 | grep -o -e 'https://github.com/leanprover-community/mathlib4/pull/[0-9]\\+' | sort -u"]);
-            pr_bullets = prs.stdout.trim().split('\n').map(x => "* " + x).join('\n'); 
-            console.log(pr_bullets);
-            core.setOutput("PR_LIST", pr_bullets); 
+            pr_list = await exec.getExecOutput("python", ['./scripts/add_port_comments.py"]);
+            console.log(pr_list);
+            core.setOutput("PR_LIST", pr_list); 
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
@@ -50,6 +44,7 @@ jobs:
 
             ---
             I am a bot; please check that I have not put a comment in a bad place before running `bors merge`!
+            If the PRs above don't match the file they are listed after, that means the port status page is wrong.
           labels: |
             easy
             awaiting-review

@@ -234,11 +234,10 @@ variables [comm_semiring R] [no_zero_divisors R] {p q : R[X]}
 lemma irreducible_of_monic (hp : p.monic) (hp1 : p ≠ 1) :
   irreducible p ↔ ∀ f g : R[X], f.monic → g.monic → f * g = p → f = 1 ∨ g = 1 :=
 begin
-  refine ⟨λ h f g hf hg hp, (h.2 f g hp.symm).elim
-    (or.inl ∘ hf.eq_one_of_is_unit) (or.inr ∘ hg.eq_one_of_is_unit),
-    λ h, ⟨hp1 ∘ hp.eq_one_of_is_unit, λ f g hfg, (h (g * C f.leading_coeff) (f * C g.leading_coeff) _ _ _).elim
-    (or.inr ∘ is_unit_of_mul_eq_one g (C f.leading_coeff))
-    (or.inl ∘ is_unit_of_mul_eq_one f (C g.leading_coeff))⟩⟩,
+  refine ⟨λ h f g hf hg hp, (h.2 f g hp.symm).elim (or.inl ∘ hf.eq_one_of_is_unit)
+    (or.inr ∘ hg.eq_one_of_is_unit), λ h, ⟨hp1 ∘ hp.eq_one_of_is_unit, λ f g hfg,
+      (h (g * C f.leading_coeff) (f * C g.leading_coeff) _ _ _).elim
+        (or.inr ∘ is_unit_of_mul_eq_one g _) (or.inl ∘ is_unit_of_mul_eq_one f _)⟩⟩,
   { rwa [monic, leading_coeff_mul, leading_coeff_C, ←leading_coeff_mul, mul_comm, ←hfg, ←monic] },
   { rwa [monic, leading_coeff_mul, leading_coeff_C, ←leading_coeff_mul, ←hfg, ←monic] },
   { rw [mul_mul_mul_comm, ←C_mul, ←leading_coeff_mul, ←hfg, hp.leading_coeff, C_1, mul_one,

@@ -826,7 +826,7 @@ b.mem_submodule_iff.trans $ finsupp.equiv_fun_on_finite.exists_congr_left.trans 
 λ c, by simp [finsupp.sum_fintype]
 
 lemma basis.coord_equiv_fun_symm (i : ι) (f : ι → R) : b.coord i (b.equiv_fun.symm f) = f i :=
-b.coord_repr_symm i (finsupp.equiv_fun_on_fintype.symm f)
+b.coord_repr_symm i (finsupp.equiv_fun_on_finite.symm f)
 
 end fintype
 

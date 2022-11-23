@@ -79,6 +79,93 @@ begin
   positivity,
 end
 
+/-- If the angle between two vectors is nonzero, the first vector is nonzero. -/
+lemma left_ne_zero_of_oangle_ne_zero {x y : V} (h : o.oangle x y ≠ 0) : x ≠ 0 :=
+by { rintro rfl, simpa using h }
+
+/-- If the angle between two vectors is nonzero, the second vector is nonzero. -/
+lemma right_ne_zero_of_oangle_ne_zero {x y : V} (h : o.oangle x y ≠ 0) : y ≠ 0 :=
+by { rintro rfl, simpa using h }
+
+/-- If the angle between two vectors is nonzero, the vectors are not equal. -/
+lemma ne_of_oangle_ne_zero {x y : V} (h : o.oangle x y ≠ 0) : x ≠ y :=
+by { rintro rfl, simpa using h }
+
+/-- If the angle between two vectors is `π`, the first vector is nonzero. -/
+lemma left_ne_zero_of_oangle_eq_pi {x y : V} (h : o.oangle x y = π) : x ≠ 0 :=
+o.left_ne_zero_of_oangle_ne_zero (h.symm ▸ real.angle.pi_ne_zero : o.oangle x y ≠ 0)
+
+/-- If the angle between two vectors is `π`, the second vector is nonzero. -/
+lemma right_ne_zero_of_oangle_eq_pi {x y : V} (h : o.oangle x y = π) : y ≠ 0 :=
+o.right_ne_zero_of_oangle_ne_zero (h.symm ▸ real.angle.pi_ne_zero : o.oangle x y ≠ 0)
+
+/-- If the angle between two vectors is `π`, the vectors are not equal. -/
+lemma ne_of_oangle_eq_pi {x y : V} (h : o.oangle x y = π) : x ≠ y :=
+o.ne_of_oangle_ne_zero (h.symm ▸ real.angle.pi_ne_zero : o.oangle x y ≠ 0)
+
+/-- If the angle between two vectors is `π / 2`, the first vector is nonzero. -/
+lemma left_ne_zero_of_oangle_eq_pi_div_two {x y : V} (h : o.oangle x y = (π / 2 : ℝ)) : x ≠ 0 :=
+o.left_ne_zero_of_oangle_ne_zero (h.symm ▸ real.angle.pi_div_two_ne_zero : o.oangle x y ≠ 0)
+
+/-- If the angle between two vectors is `π / 2`, the second vector is nonzero. -/
+lemma right_ne_zero_of_oangle_eq_pi_div_two {x y : V} (h : o.oangle x y = (π / 2 : ℝ)) : y ≠ 0 :=
+o.right_ne_zero_of_oangle_ne_zero (h.symm ▸ real.angle.pi_div_two_ne_zero : o.oangle x y ≠ 0)
+
+/-- If the angle between two vectors is `π / 2`, the vectors are not equal. -/
+lemma ne_of_oangle_eq_pi_div_two {x y : V} (h : o.oangle x y = (π / 2 : ℝ)) : x ≠ y :=
+o.ne_of_oangle_ne_zero (h.symm ▸ real.angle.pi_div_two_ne_zero : o.oangle x y ≠ 0)
+
+/-- If the angle between two vectors is `-π / 2`, the first vector is nonzero. -/
+lemma left_ne_zero_of_oangle_eq_neg_pi_div_two {x y : V} (h : o.oangle x y = (-π / 2 : ℝ)) :
+  x ≠ 0 :=
+o.left_ne_zero_of_oangle_ne_zero (h.symm ▸ real.angle.neg_pi_div_two_ne_zero : o.oangle x y ≠ 0)
+
+/-- If the angle between two vectors is `-π / 2`, the second vector is nonzero. -/
+lemma right_ne_zero_of_oangle_eq_neg_pi_div_two {x y : V} (h : o.oangle x y = (-π / 2 : ℝ)) :
+  y ≠ 0 :=
+o.right_ne_zero_of_oangle_ne_zero (h.symm ▸ real.angle.neg_pi_div_two_ne_zero : o.oangle x y ≠ 0)
+
+/-- If the angle between two vectors is `-π / 2`, the vectors are not equal. -/
+lemma ne_of_oangle_eq_neg_pi_div_two {x y : V} (h : o.oangle x y = (-π / 2 : ℝ)) :
+  x ≠ y :=
+o.ne_of_oangle_ne_zero (h.symm ▸ real.angle.neg_pi_div_two_ne_zero : o.oangle x y ≠ 0)
+
+/-- If the sign of the angle between two vectors is nonzero, the first vector is nonzero. -/
+lemma left_ne_zero_of_oangle_sign_ne_zero {x y : V} (h : (o.oangle x y).sign ≠ 0) : x ≠ 0 :=
+o.left_ne_zero_of_oangle_ne_zero (real.angle.sign_ne_zero_iff.1 h).1
+
+/-- If the sign of the angle between two vectors is nonzero, the second vector is nonzero. -/
+lemma right_ne_zero_of_oangle_sign_ne_zero {x y : V} (h : (o.oangle x y).sign ≠ 0) : y ≠ 0 :=
+o.right_ne_zero_of_oangle_ne_zero (real.angle.sign_ne_zero_iff.1 h).1
+
+/-- If the sign of the angle between two vectors is nonzero, the vectors are not equal. -/
+lemma ne_of_oangle_sign_ne_zero {x y : V} (h : (o.oangle x y).sign ≠ 0) : x ≠ y :=
+o.ne_of_oangle_ne_zero (real.angle.sign_ne_zero_iff.1 h).1
+
+/-- If the sign of the angle between two vectors is positive, the first vector is nonzero. -/
+lemma left_ne_zero_of_oangle_sign_eq_one {x y : V} (h : (o.oangle x y).sign = 1) : x ≠ 0 :=
+o.left_ne_zero_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (o.oangle x y).sign ≠ 0)
+
+/-- If the sign of the angle between two vectors is positive, the second vector is nonzero. -/
+lemma right_ne_zero_of_oangle_sign_eq_one {x y : V} (h : (o.oangle x y).sign = 1) : y ≠ 0 :=
+o.right_ne_zero_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (o.oangle x y).sign ≠ 0)
+
+/-- If the sign of the angle between two vectors is positive, the vectors are not equal. -/
+lemma ne_of_oangle_sign_eq_one {x y : V} (h : (o.oangle x y).sign = 1) : x ≠ y :=
+o.ne_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (o.oangle x y).sign ≠ 0)
+
+/-- If the sign of the angle between two vectors is negative, the first vector is nonzero. -/
+lemma left_ne_zero_of_oangle_sign_eq_neg_one {x y : V} (h : (o.oangle x y).sign = -1) : x ≠ 0 :=
+o.left_ne_zero_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (o.oangle x y).sign ≠ 0)
+
+/-- If the sign of the angle between two vectors is negative, the second vector is nonzero. -/
+lemma right_ne_zero_of_oangle_sign_eq_neg_one {x y : V} (h : (o.oangle x y).sign = -1) : y ≠ 0 :=
+o.right_ne_zero_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (o.oangle x y).sign ≠ 0)
+
+/-- If the sign of the angle between two vectors is negative, the vectors are not equal. -/
+lemma ne_of_oangle_sign_eq_neg_one {x y : V} (h : (o.oangle x y).sign = -1) : x ≠ y :=
+o.ne_of_oangle_sign_ne_zero (h.symm ▸ dec_trivial : (o.oangle x y).sign ≠ 0)
+
 /-- Swapping the two vectors passed to `oangle` negates the angle. -/
 lemma oangle_rev (x y : V) : o.oangle y x = -o.oangle x y :=
 by simp only [oangle, o.kahler_swap y x, complex.arg_conj_coe_angle]

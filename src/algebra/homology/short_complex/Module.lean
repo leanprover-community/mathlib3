@@ -51,15 +51,34 @@ begin
   simp only [submodule.quotient.mk_eq_zero, linear_map.mem_range, exists_apply_eq_apply],
 end
 
+namespace Module_left_homology_data
+
+def i : Module.of R (linear_map.ker S.g) ⟶ S.X₂ := Module.as_hom S.g.ker.subtype
+
+def hi₀ : i S ≫ S.g = 0 := by { ext x₂, exact x₂.2, }
+
+def hi : is_limit (kernel_fork.of_ι (i S) (hi₀ S)) := kernel_is_limit S.g
+
+def f'_eq_Module_f' : (hi S).lift (kernel_fork.of_ι S.f S.zero) = S.Module_f' := rfl
+
+def hπ₀ : (hi S).lift (kernel_fork.of_ι S.f S.zero) ≫ S.Module_homology_π' = 0 :=
+by simp only [f'_eq_Module_f', Module_f'_comp_homology_π']
+
+def hπ : is_colimit (cokernel_cofork.of_π _ (hπ₀ S)) :=
+is_colimit.of_iso_colimit (Module.cokernel_is_colimit S.Module_f')
+  (cofork.ext (iso.refl _) (by tidy))
+
+end Module_left_homology_data
+
 def Module_left_homology_data : S.left_homology_data :=
 { K := Module.of R (linear_map.ker S.g),
   H := Module.of R S.Module_homology,
-  i := Module.as_hom S.g.ker.subtype,
+  i := Module_left_homology_data.i S,
   π := S.Module_homology_π',
-  hi₀ := by { ext x₂, exact x₂.2, },
-  hi := kernel_is_limit S.g,
-  hπ₀ := S.Module_f'_comp_homology_π',
-  hπ := Module.cokernel_is_colimit _, }
+  hi₀ := Module_left_homology_data.hi₀ S,
+  hi := Module_left_homology_data.hi S,
+  hπ₀ := Module_left_homology_data.hπ₀ S,
+  hπ := Module_left_homology_data.hπ S, }
 
 --attribute [simp] Module_left_homology_data
 

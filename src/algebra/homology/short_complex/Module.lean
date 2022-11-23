@@ -51,7 +51,6 @@ begin
   simp only [submodule.quotient.mk_eq_zero, linear_map.mem_range, exists_apply_eq_apply],
 end
 
-@[simp]
 def Module_left_homology_data : S.left_homology_data :=
 { K := Module.of R (linear_map.ker S.g),
   H := Module.of R S.Module_homology,
@@ -61,6 +60,8 @@ def Module_left_homology_data : S.left_homology_data :=
   hi := kernel_is_limit S.g,
   hπ₀ := S.Module_f'_comp_homology_π',
   hπ := Module.cokernel_is_colimit _, }
+
+attribute [simp] Module_left_homology_data
 
 @[simp]
 lemma Module_left_homology_data_f' :

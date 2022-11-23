@@ -149,6 +149,9 @@ lemma two_le_iff : ∀ n, 2 ≤ n ↔ n ≠ 0 ∧ n ≠ 1
 | 1 := by simp
 | (n+2) := by simp
 
+@[simp] lemma lt_one_iff {n : ℕ} : n < 1 ↔ n = 0 :=
+lt_succ_iff.trans nonpos_iff_eq_zero
+
 /-! ### `add` -/
 
 theorem add_pos_left {m : ℕ} (h : 0 < m) (n : ℕ) : 0 < m + n :=

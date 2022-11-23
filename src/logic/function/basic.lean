@@ -573,7 +573,7 @@ begin
   exact hf (classical.some_spec (exists_apply_eq_apply f a)),
 end
 
-@[simp] lemma injective.extend_apply (hf : f.injective) (g : α → γ) (e' : β → γ) (a : α) :
+@[simp] lemma injective.extend_apply (g : α → γ) (hf : f.injective) (e' : β → γ) (a : α) :
   extend f g e' (f a) = g a :=
 (hf.factors_through g).extend_apply e' a
 
@@ -613,14 +613,14 @@ begin
   exact H
 end
 
-lemma factors_through.extend_comp (g : α → γ) (e' : β → γ)
+lemma factors_through.extend_comp {g : α → γ} (e' : β → γ)
   (hf : factors_through g f) :
   extend f g e' ∘ f = g :=
 funext $ λ a, by simp only [comp_app, hf.extend_apply e']
 
 @[simp] lemma extend_comp (hf : injective f) (g : α → γ) (e' : β → γ) :
   extend f g e' ∘ f = g :=
-(hf.factors_through g).extend_comp g e'
+(hf.factors_through g).extend_comp e'
 
 lemma injective.surjective_comp_right' (hf : injective f) (g₀ : β → γ) :
   surjective (λ g : β → γ, g ∘ f) :=

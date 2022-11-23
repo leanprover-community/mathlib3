@@ -121,6 +121,9 @@ instance subgroup_units_cyclic (S : subgroup Rˣ) [finite S] : is_cyclic S :=
 is_cyclic_of_subgroup_is_domain ((units.coe_hom R).comp S.subtype)
   (units.ext.comp subtype.coe_injective)
 
+instance is_domain.is_cyclic_quotient_ker [finite G] {f : G →* R} : is_cyclic (G ⧸ f.ker) :=
+is_cyclic_of_subgroup_is_domain (quotient_group.ker_lift f)
+
 variables [fintype G]
 
 /-- In an integral domain, a sum indexed by a nontrivial homomorphism from a finite group is zero.

@@ -21,6 +21,8 @@ quotient
 
 variables {α : Sort*} {β : Sort*}
 
+open function
+
 namespace setoid
 
 lemma ext {α : Sort*} :
@@ -72,12 +74,16 @@ lemma factor_mk_eq {α : Type*} (r s : α → α → Prop) (h : ∀ x y, r x y �
 variables {γ : Sort*} {r : α → α → Prop} {s : β → β → Prop}
 
 /-- **Alias** of `quot.lift_beta`. -/
-lemma lift_mk (f : α → γ) (h : ∀ a₁ a₂, r a₁ a₂ → f a₁ = f a₂) (a : α) :
-  quot.lift f h (quot.mk r a) = f a := quot.lift_beta f h a
+@[simp] lemma lift_mk (f : α → γ) (h : ∀ a₁ a₂, r a₁ a₂ → f a₁ = f a₂) (a : α) :
+  quot.lift f h (quot.mk r a) = f a := rfl
 
 @[simp]
 lemma lift_on_mk (a : α) (f : α → γ) (h : ∀ a₁ a₂, r a₁ a₂ → f a₁ = f a₂) :
   quot.lift_on (quot.mk r a) f h = f a := rfl
+
+@[simp] lemma surjective_lift {f : α → γ} (h : ∀ a₁ a₂, r a₁ a₂ → f a₁ = f a₂) :
+  surjective (lift f h) ↔ surjective f :=
+⟨λ hf, hf.comp quot.exists_rep, λ hf y, let ⟨x, hx⟩ := hf y in ⟨quot.mk _ x, hx⟩⟩
 
 /-- Descends a function `f : α → β → γ` to quotients of `α` and `β`. -/
 attribute [reducible, elab_as_eliminator]
@@ -272,8 +278,7 @@ rfl
   quotient.lift_on₂ (quotient.mk x) (quotient.mk y) f h = f x y := rfl
 
 /-- `quot.mk r` is a surjective function. -/
-lemma surjective_quot_mk (r : α → α → Prop) : function.surjective (quot.mk r) :=
-quot.exists_rep
+lemma surjective_quot_mk (r : α → α → Prop) : surjective (quot.mk r) := quot.exists_rep
 
 /-- `quotient.mk` is a surjective function. -/
 lemma surjective_quotient_mk (α : Sort*) [s : setoid α] :
@@ -481,6 +486,10 @@ protected def lift_on' (q : quotient s₁) (f : α → φ)
 @[simp]
 protected lemma lift_on'_mk' (f : α → φ) (h) (x : α) :
   quotient.lift_on' (@quotient.mk' _ s₁ x) f h = f x := rfl
+
+@[simp] lemma surjective_lift_on' {f : α → φ} (h : ∀ a b, @setoid.r α s₁ a b → f a = f b) :
+  surjective (λ x, quotient.lift_on' x f h) ↔ surjective f :=
+quot.surjective_lift _
 
 /-- A version of `quotient.lift_on₂` taking `{s₁ : setoid α} {s₂ : setoid β}` as implicit arguments
 instead of instance arguments. -/

@@ -2087,9 +2087,17 @@ lemma mem_ker (f : G →* M) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
 @[to_additive]
 lemma coe_ker (f : G →* M) : (f.ker : set G) = (f : G → M) ⁻¹' {1} := rfl
 
+@[simp, to_additive]
+lemma ker_to_hom_units {M} [monoid M] (f : G →* M) : f.to_hom_units.ker = f.ker :=
+by { ext x, simp [mem_ker, units.ext_iff] }
+
 @[to_additive]
-lemma eq_iff (f : G →* N) {x y : G} : f x = f y ↔ y⁻¹ * x ∈ f.ker :=
-by rw [f.mem_ker, f.map_mul, f.map_inv, inv_mul_eq_one, eq_comm]
+lemma eq_iff (f : G →* M) {x y : G} : f x = f y ↔ y⁻¹ * x ∈ f.ker :=
+begin
+  split; intro h,
+  { rw [mem_ker, map_mul, h, ← map_mul, inv_mul_self, map_one] },
+  { rw [← one_mul x, ← mul_inv_self y, mul_assoc, map_mul, f.mem_ker.1 h, mul_one] }
+end
 
 @[to_additive]
 instance decidable_mem_ker [decidable_eq M] (f : G →* M) :
@@ -2105,24 +2113,19 @@ lemma comap_ker (g : N →* P) (f : G →* N) : g.ker.comap f = (g.comp f).ker :
 @[simp, to_additive] lemma restrict_ker (f : G →* N) : (f.restrict K).ker = f.ker.subgroup_of K :=
 rfl
 
-@[to_additive] lemma range_restrict_ker  (f : G →* N) : ker (range_restrict f) = ker f :=
-begin
-  ext,
-  change (⟨f x, _⟩ : range f) = ⟨1, _⟩ ↔ f x = 1,
-  simp only [],
-end
+@[simp, to_additive] lemma ker_cod_restrict {S} [set_like S N] [submonoid_class S N] (f : G →* N)
+  (s : S) (h : ∀ x, f x ∈ s) : (f.cod_restrict s h).ker = f.ker :=
+set_like.ext $ λ x, subtype.ext_iff
 
-@[simp, to_additive]
-lemma ker_one : (1 : G →* M).ker = ⊤ :=
-by { ext, simp [mem_ker] }
+@[simp, to_additive] lemma ker_range_restrict  (f : G →* N) : ker (range_restrict f) = ker f :=
+ker_cod_restrict _ _ _
 
-@[to_additive] lemma ker_eq_bot_iff (f : G →* N) : f.ker = ⊥ ↔ function.injective f :=
-begin
-  split,
-  { intros h x y hxy,
-    rwa [←mul_inv_eq_one, ←map_inv, ←map_mul, ←mem_ker, h, mem_bot, mul_inv_eq_one] at hxy },
-  { exact λ h, le_bot_iff.mp (λ x hx, h (hx.trans f.map_one.symm)) },
-end
+@[simp, to_additive] lemma ker_one : (1 : G →* M).ker = ⊤ := set_like.ext $ λ x, eq_self_iff_true _
+@[simp, to_additive] lemma ker_id : (monoid_hom.id G).ker = ⊥ := rfl
+
+@[to_additive] lemma ker_eq_bot_iff (f : G →* M) : f.ker = ⊥ ↔ function.injective f :=
+⟨λ h x y hxy, by rwa [eq_iff, h, mem_bot, inv_mul_eq_one, eq_comm] at hxy,
+  λ h, bot_unique $ λ x hx, h (hx.trans f.map_one.symm)⟩
 
 @[simp, to_additive] lemma _root_.subgroup.ker_subtype (H : subgroup G) : H.subtype.ker = ⊥ :=
 H.subtype.ker_eq_bot_iff.mpr subtype.coe_injective
@@ -2142,24 +2145,26 @@ lemma ker_prod_map {G' : Type*} {N' : Type*} [group G'] [group N'] (f : G →* N
   (prod_map f g).ker = f.ker.prod g.ker :=
 by rw [←comap_bot, ←comap_bot, ←comap_bot, ←prod_map_comap_prod, bot_prod_bot]
 
+@[priority 100, to_additive]
+instance normal_ker (f : G →* M) : f.ker.normal :=
+⟨λ x hx y, by rw [mem_ker, map_mul, map_mul, f.mem_ker.1 hx, mul_one,
+  map_mul_eq_one f (mul_inv_self y)]⟩
+
 variables [monoid N]
 
-@[simp, to_additive] lemma preimage_mul_left_ker (f : G →* N) (x : G) :
+@[simp, to_additive] lemma preimage_mul_left_ker (f : G →* M) (x : G) :
   ((*) x) ⁻¹' f.ker = f ⁻¹' {f x⁻¹} :=
 begin
   ext y,
-  rcases mul_left_surjective x⁻¹ y with ⟨y, rfl⟩,
-  simp only [set.mem_preimage, set_like.mem_coe, set.mem_singleton_iff, mem_ker,
-    mul_inv_cancel_left, map_mul, ((group.is_unit _).map f).mul_right_eq_self]
+  simp only [eq_iff, set.mem_preimage, set_like.mem_coe, set.mem_singleton_iff, inv_inv]
 end
 
 @[simp, to_additive] lemma preimage_mul_right_ker (f : G →* N) (x : G) :
   (λ y, y * x) ⁻¹' f.ker = f ⁻¹' {f x⁻¹} :=
 begin
   ext y,
-  rcases mul_right_surjective x⁻¹ y with ⟨y, rfl⟩,
-  simp only [set.mem_preimage, set_like.mem_coe, set.mem_singleton_iff, mem_ker,
-    inv_mul_cancel_right, map_mul, ((group.is_unit _).map f).mul_left_eq_self]
+  simpa only [eq_iff, set.mem_preimage, set_like.mem_coe, set.mem_singleton_iff, inv_inv]
+    using f.normal_ker.mem_comm_iff
 end
 
 @[simp, to_additive] lemma image_mul_left_ker (f : G →* N) (x : G) :
@@ -2594,10 +2599,6 @@ lemma subgroup.normal.comap {H : subgroup N} (hH : H.normal) (f : G →* N) :
 @[priority 100, to_additive]
 instance subgroup.normal_comap {H : subgroup N}
   [nH : H.normal] (f : G →* N) :  (H.comap f).normal := nH.comap _
-
-@[priority 100, to_additive]
-instance monoid_hom.normal_ker (f : G →* N) : f.ker.normal :=
-by { rw [←f.comap_bot], apply_instance }
 
 @[priority 100, to_additive]
 instance subgroup.normal_inf (H N : subgroup G) [hN : N.normal] :

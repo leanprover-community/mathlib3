@@ -2284,12 +2284,35 @@ by rw [image_preimage_eq_inter_range, image_preimage_eq_inter_range, ← inter_d
 @[simp] theorem range_quot_mk (r : α → α → Prop) : range (quot.mk r) = univ :=
 (surjective_quot_mk r).range_eq
 
-instance can_lift (c) (p) [can_lift α β c p] :
-  can_lift (set α) (set β) (('') c) (λ s, ∀ x ∈ s, p x) :=
-{ prf := λ s hs, subset_range_iff_exists_image_eq.mp (λ x hx, can_lift.prf _ (hs x hx)) }
+@[simp] theorem range_quot_lift {r : ι → ι → Prop} (hf : ∀ x y, r x y → f x = f y) :
+  range (quot.lift f hf) = range f :=
+ext $ λ y, (surjective_quot_mk _).exists
+
+@[simp] theorem range_quot_lift_on {r : ι → ι → Prop} (hf : ∀ x y, r x y → f x = f y) :
+  range (λ x, quot.lift_on x f hf) = range f :=
+range_quot_lift _
 
 @[simp] theorem range_quotient_mk [setoid α] : range (λx : α, ⟦x⟧) = univ :=
 range_quot_mk _
+
+@[simp] theorem range_quotient_lift [s : setoid ι] (hf) :
+  range (quotient.lift f hf : quotient s → α) = range f :=
+range_quot_lift _
+
+@[simp] theorem range_quotient_mk' {s : setoid α} : range (quotient.mk' : α → quotient s) = univ :=
+range_quot_mk _
+
+@[simp] theorem range_quotient_lift_on' {s : setoid ι} (hf) :
+  range (λ x : quotient s, quotient.lift_on' x f hf) = range f :=
+range_quot_lift _
+
+@[simp] theorem range_quotient_lift_on [s : setoid ι] (hf) :
+  range (λ x : quotient s, quotient.lift_on x f hf) = range f :=
+range_quot_lift _
+
+instance can_lift (c) (p) [can_lift α β c p] :
+  can_lift (set α) (set β) (('') c) (λ s, ∀ x ∈ s, p x) :=
+{ prf := λ s hs, subset_range_iff_exists_image_eq.mp (λ x hx, can_lift.prf _ (hs x hx)) }
 
 lemma range_const_subset {c : α} : range (λ x : ι, c) ⊆ {c} :=
 range_subset_iff.2 $ λ x, rfl

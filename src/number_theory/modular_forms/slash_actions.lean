@@ -25,8 +25,8 @@ local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 local notation `SL(` n `, ` R `)` := matrix.special_linear_group (fin n) R
 
 /--A general version of the slash action of the space of modular forms.-/
-class slash_action (β G α γ : Type*) [group G] [has_zero α ]
-[has_one α] [has_smul γ α] [has_add α] :=
+class slash_action (β G α γ : Type*) [group G] [has_zero α]
+  [has_one α] [has_smul γ α] [has_add α] :=
 (map : β → G → α → α)
 (mul_zero : ∀ (k : β) (g : G), map k g 0 = 0)
 (one_mul : ∀ (k : β) (a : α) , map k 1 a = a)
@@ -40,8 +40,8 @@ def monoid_hom_slash_action {β G H α γ : Type*} [group G] [has_zero α]
   (h : H →* G) : slash_action β H α γ :=
 { map := λ k g , slash_action.map γ k (h g),
   mul_zero := λ k g, slash_action.mul_zero k (h g),
-  one_mul := by {intros k a, simp only [map_one], apply slash_action.one_mul},
-  right_action := by {simp only [map_mul], intros k g gg a, apply slash_action.right_action},
+  one_mul := λ k a, by simp only [map_one, slash_action.one_mul],
+  right_action := λ k g gg a, by simp only [map_mul, slash_action.right_action],
   smul_action := λ _ _, slash_action.smul_action _ _,
   add_action := λ _ g _ _, slash_action.add_action _ (h g) _ _,}
 
@@ -86,10 +86,7 @@ begin
 end
 
 lemma slash_one (k : ℤ) (f : ℍ → ℂ) : (f ∣[k] 1) = f :=
-begin
- ext1,
- simp [slash],
-end
+funext $ by simp [slash]
 
 lemma smul_slash (k : ℤ) (A : GL(2, ℝ)⁺) (f : ℍ → ℂ) (c : ℂ) : (c • f) ∣[k] A = c • (f ∣[k] A) :=
 begin
@@ -105,7 +102,7 @@ funext $ by simp [slash]
 
 instance : slash_action ℤ GL(2, ℝ)⁺ (ℍ → ℂ) ℂ :=
 { map := slash,
-  mul_zero := by {intros k g, funext, simp only [slash, pi.zero_apply, zero_mul]},
+  mul_zero := λ k g, funext $ λ _, by simp only [slash, pi.zero_apply, zero_mul],
   one_mul := slash_one,
   right_action := slash_right_action,
   smul_action := smul_slash,

@@ -142,18 +142,19 @@ by rw [← h.ker_map, ring_hom.mem_ker, h.map_repr]
 /-- `repr` preserves addition, up to multiples of `f` -/
 lemma repr_add_sub_repr_add_repr_mem_span (h : is_adjoin_root S f) (x y : S) :
   h.repr (x + y) - (h.repr x + h.repr y) ∈ ideal.span ({f} : set R[X]) :=
-by rw [← h.ker_map, ring_hom.mem_ker, map_sub, h.map_repr, map_add, h.map_repr, h.map_repr, sub_self]
+by rw [← h.ker_map, ring_hom.mem_ker, map_sub, h.map_repr, map_add, h.map_repr, h.map_repr,
+       sub_self]
 
-/-- Extensionality of the `is_adjoin_root` structure itself. See `is_adjoin_root.ext_elem` for
-extensionality of the ring elements. -/
+/-- Extensionality of the `is_adjoin_root` structure itself. See `is_adjoin_root_monic.ext_elem`
+for extensionality of the ring elements. -/
 lemma ext_map (h h' : is_adjoin_root S f) (eq : ∀ x, h.map x = h'.map x) : h = h' :=
 begin
   cases h, cases h', congr,
   exact ring_hom.ext eq
 end
 
-/-- Extensionality of the `is_adjoin_root` structure itself. See `is_adjoin_root.ext_elem` for
-extensionality of the ring elements. -/
+/-- Extensionality of the `is_adjoin_root` structure itself. See `is_adjoin_root_monic.ext_elem`
+for extensionality of the ring elements. -/
 @[ext]
 lemma ext (h h' : is_adjoin_root S f) (eq : h.root = h'.root) : h = h' :=
 h.ext_map h' (λ x, by rw [← h.aeval_eq, ← h'.aeval_eq, eq])

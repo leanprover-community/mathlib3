@@ -86,6 +86,10 @@ lemma generate_from_is_open_eq_is_open_with_lower_topology [preorder α] (S : se
   (generate_from {s : set α | ∃ (a : α), (Ici a)ᶜ = s}).is_open S =
   is_open (with_lower_topology.of_lower ⁻¹' S) := rfl
 
+lemma generate_from_is_open_to_lower_inv [preorder α] (T : set (with_lower_topology α)) :
+  (generate_from {s : set α | ∃ (a : α), (Ici a)ᶜ = s}).is_open (with_lower_topology.to_lower ⁻¹' T)
+  = is_open T := rfl
+
 namespace lower_topology
 
 variable {α}
@@ -104,6 +108,29 @@ variable {α}
 variables [preorder α] [topological_space α] [t : lower_topology α]
 
 include t
+
+/--
+The with_lower_topology topology is homeomorphic to the lower_topology topology
+-/
+def with_lower_topology_homeomorphism : with_lower_topology α ≃ₜ α :=
+{ continuous_to_fun := begin
+    simp only [equiv.coe_refl],
+    rw continuous_def,
+    intros s hs,
+    rw [equiv.to_fun_as_coe, ← generate_from_is_open_eq_is_open_with_lower_topology],
+    convert hs,
+    rw t.topology_eq_lower_topology,
+  end,
+  continuous_inv_fun := begin
+    simp only [equiv.coe_refl],
+    rw continuous_def,
+    intros s hs,
+    simp,
+    rw ← generate_from_is_open_to_lower_inv at hs,
+    convert hs,
+      rw t.topology_eq_lower_topology,
+  end,
+  ..with_lower_topology.of_lower }
 
 lemma is_open_iff_generate_Ici_comp {s : set α} :
   is_open s ↔ generate_open {s | ∃a, (Ici a)ᶜ = s} s := by rw [t.topology_eq_lower_topology]; refl

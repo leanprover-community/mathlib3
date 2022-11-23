@@ -165,14 +165,12 @@ instance has_csmul : has_smul ℂ (modular_form Γ k) :=
 instance has_nsmul : has_smul ℕ (modular_form Γ k) :=
 ⟨ λ c f, ((c : ℂ) • f).copy (c • f) (nsmul_eq_smul_cast _ _ _) ⟩
 
-@[simp] lemma coe_nsmul (f : modular_form Γ k) (n : ℕ) : ⇑(n • f) = n • f := rfl
 @[simp] lemma nsmul_apply (f : modular_form Γ k) (n : ℕ) (z : ℍ) :
    (n • f) z = n • (f z) := rfl
 
 instance has_zsmul : has_smul ℤ (modular_form Γ k) :=
 ⟨ λ c f, ((c : ℂ) • f).copy (c • f) (zsmul_eq_smul_cast _ _ _) ⟩
 
-@[simp] lemma coe_zsmul (f : modular_form Γ k) (n : ℤ) : ⇑(n • f) = n • f := rfl
 @[simp] lemma zsmul_apply (f : modular_form Γ k) (n : ℤ) (z : ℍ) :
    (n • f) z = n • (f z) := rfl
 
@@ -200,13 +198,16 @@ instance has_sub  : has_sub (modular_form Γ k) :=
 @[simp] lemma sub_apply (f g : modular_form Γ k) (z : ℍ) : (f - g) z = f z - g z := rfl
 
 instance : add_comm_group (modular_form Γ k) :=
-fun_like.coe_injective.add_comm_group _ rfl (coe_add) (coe_neg) (coe_sub) (coe_nsmul) (coe_zsmul)
+fun_like.coe_injective.add_comm_group _ rfl coe_add coe_neg coe_sub
+  (λ f n, nsmul_eq_smul_cast _ n f) (λ f n, zsmul_eq_smul_cast _ n f)
 
 lemma coe_zero : ⇑(0 : modular_form Γ k) = (0 : ℍ → ℂ) := rfl
 
 /--Additive coercion from `modular_form` to `ℍ → ℂ`. -/
 def coe_hom : (modular_form Γ k) →+ (ℍ → ℂ) :=
-{ to_fun := λ f, f, map_zero' := coe_zero, map_add' := λ _ _, rfl }
+{ to_fun := λ f, f,
+  map_zero' := coe_zero,
+  map_add' := λ _ _, rfl }
 
 lemma coe_hom_injective : function.injective (@coe_hom Γ k) :=
 fun_like.coe_injective
@@ -287,15 +288,11 @@ instance has_csmul : has_smul ℂ (cusp_form Γ k) :=
 instance has_nsmul : has_smul ℕ (cusp_form Γ k) :=
 ⟨ λ c f, ((c : ℂ) • f).copy (c • f) (nsmul_eq_smul_cast _ _ _) ⟩
 
-@[simp] lemma coe_nsmul (f : (cusp_form Γ k)) (n : ℕ) : ⇑(n • f) = n • f := rfl
-
 @[simp] lemma nsmul_apply (f : (cusp_form Γ k)) (n : ℕ) (z : ℍ) :
    (n • f) z = n • (f z) := rfl
 
 instance has_zsmul : has_smul ℤ (cusp_form Γ k) :=
 ⟨ λ c f, ((c : ℂ) • f).copy (c • f) (zsmul_eq_smul_cast _ _ _) ⟩
-
-@[simp] lemma coe_zsmul (f : cusp_form Γ k) (n : ℤ) : ⇑(n • f) = n • f := rfl
 
 @[simp] lemma zsmul_apply (f : cusp_form Γ k) (n : ℤ) (z : ℍ) :
    (n • f) z = n • (f z) := rfl
@@ -321,13 +318,16 @@ instance has_sub : has_sub (cusp_form Γ k) :=
 @[simp] lemma sub_apply (f g : cusp_form Γ k) (z : ℍ) : (f - g) z = f z - g z := rfl
 
 instance : add_comm_group (cusp_form Γ k) :=
-fun_like.coe_injective.add_comm_group _ rfl (coe_add) (coe_neg) (coe_sub) (coe_nsmul) (coe_zsmul)
+fun_like.coe_injective.add_comm_group _ rfl coe_add coe_neg coe_sub
+  (λ f n, nsmul_eq_smul_cast _ n f) (λ f n, zsmul_eq_smul_cast _ n f)
 
 lemma coe_zero : ⇑(0 : cusp_form Γ k) = (0 : ℍ → ℂ) := rfl
 
 /--Additive coercion from `cusp_form` to `ℍ → ℂ`. -/
 def coe_hom : (cusp_form Γ k) →+ (ℍ → ℂ) :=
-{ to_fun := λ f, f, map_zero' := cusp_form.coe_zero, map_add' := λ _ _, rfl }
+{ to_fun := λ f, f,
+  map_zero' := cusp_form.coe_zero,
+  map_add' := λ _ _, rfl }
 
 lemma coe_hom_injective : function.injective (@coe_hom Γ k) :=
 fun_like.coe_injective

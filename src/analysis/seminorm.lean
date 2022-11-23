@@ -759,33 +759,47 @@ section normed_field
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] (p : seminorm 𝕜 E) {A B : set E}
   {a : 𝕜} {r : ℝ} {x : E}
 
+lemma ball_norm_mul_subset {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} :
+  p.ball 0 (‖k‖ * r) ⊆ k • p.ball 0 r :=
+begin
+  rcases eq_or_ne k 0 with (rfl | hk),
+  { rw [norm_zero, zero_mul, ball_eq_emptyset  _ le_rfl],
+    exact empty_subset _ },
+  { intro x,
+    rw [set.mem_smul_set, seminorm.mem_ball_zero],
+    refine λ hx, ⟨k⁻¹ • x, _, _⟩,
+    { rwa [seminorm.mem_ball_zero, map_smul_eq_mul, norm_inv,
+      ←(mul_lt_mul_left $ norm_pos_iff.mpr hk), ←mul_assoc, ←(div_eq_mul_inv ‖k‖ ‖k‖),
+      div_self (ne_of_gt $ norm_pos_iff.mpr hk), one_mul] },
+    rw [←smul_assoc, smul_eq_mul, ←div_eq_mul_inv, div_self hk, one_smul] }
+end
+
 lemma smul_ball_zero {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} (hk : 0 < ‖k‖) :
   k • p.ball 0 r = p.ball 0 (‖k‖ * r) :=
 begin
-  ext,
-  rw [set.mem_smul_set, seminorm.mem_ball_zero],
-  split; intro h,
-  { rcases h with ⟨y, hy, h⟩,
-    rw [←h, map_smul_eq_mul],
-    rw seminorm.mem_ball_zero at hy,
-    exact (mul_lt_mul_left hk).mpr hy },
-  refine ⟨k⁻¹ • x, _, _⟩,
-  { rwa [seminorm.mem_ball_zero, map_smul_eq_mul, norm_inv, ←(mul_lt_mul_left hk),
-      ←mul_assoc, ←(div_eq_mul_inv ‖k‖ ‖k‖), div_self (ne_of_gt hk), one_mul] },
-  rw [←smul_assoc, smul_eq_mul, ←div_eq_mul_inv, div_self (norm_pos_iff.mp hk), one_smul],
+  refine subset_antisymm _ ball_norm_mul_subset,
+  rintros x ⟨y, hy, h⟩,
+  rw [seminorm.mem_ball_zero, ←h, map_smul_eq_mul],
+  rw seminorm.mem_ball_zero at hy,
+  exact (mul_lt_mul_left hk).mpr hy
+end
+
+lemma smul_closed_ball_subset {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} :
+  k • p.closed_ball 0 r ⊆ p.closed_ball 0 (‖k‖ * r) :=
+begin
+  rintros x ⟨y, hy, h⟩,
+  rw [seminorm.mem_closed_ball_zero, ←h, map_smul_eq_mul],
+  rw seminorm.mem_closed_ball_zero at hy,
+  exact mul_le_mul_of_nonneg_left hy (norm_nonneg _)
 end
 
 lemma smul_closed_ball_zero {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} (hk : 0 < ‖k‖) :
   k • p.closed_ball 0 r = p.closed_ball 0 (‖k‖ * r) :=
 begin
-  ext,
+  refine subset_antisymm smul_closed_ball_subset _,
+  intro x,
   rw [set.mem_smul_set, seminorm.mem_closed_ball_zero],
-  split; intro h,
-  { rcases h with ⟨y, hy, h⟩,
-    rw [←h, map_smul_eq_mul],
-    rw seminorm.mem_closed_ball_zero at hy,
-    exact (mul_le_mul_left hk).mpr hy },
-  refine ⟨k⁻¹ • x, _, _⟩,
+  refine λ hx, ⟨k⁻¹ • x, _, _⟩,
   { rwa [seminorm.mem_closed_ball_zero, map_smul_eq_mul, norm_inv, ←(mul_le_mul_left hk),
       ←mul_assoc, ←(div_eq_mul_inv ‖k‖ ‖k‖), div_self (ne_of_gt hk), one_mul] },
   rw [←smul_assoc, smul_eq_mul, ←div_eq_mul_inv, div_self (norm_pos_iff.mp hk), one_smul],

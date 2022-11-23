@@ -31,6 +31,9 @@ coe_eq_coe
 @[simp, norm_cast, to_additive coe_pos]
 lemma one_lt_coe [has_lt α] {a : α} : 1 < (a : with_top α) ↔ 1 < a := coe_lt_coe
 
+@[simp, norm_cast, to_additive]
+lemma coe_lt_one [has_lt α] {a : α} : (a : with_top α) < 1 ↔ a < 1 := coe_lt_coe
+
 @[simp, to_additive] protected lemma map_one {β} (f : α → β) :
   (1 : with_top α).map f = (f 1 : with_top β) := rfl
 
@@ -354,8 +357,11 @@ lemma coe_one [has_one α] : ((1 : α) : with_bot α) = 1 := rfl
 lemma coe_eq_one [has_one α] {a : α} : (a : with_bot α) = 1 ↔ a = 1 :=
 with_top.coe_eq_one
 
-@[to_additive coe_pos]
+@[norm_cast, to_additive coe_pos]
 lemma one_lt_coe [has_one α] [has_lt α] {a : α} : 1 < (a : with_bot α) ↔ 1 < a := coe_lt_coe
+
+@[norm_cast, to_additive coe_pos]
+lemma coe_lt_one [has_one α] [has_lt α] {a : α} : (a : with_bot α) < 1 ↔ a < 1 := coe_lt_coe
 
 @[to_additive] protected lemma map_one {β} [has_one α] (f : α → β) :
   (1 : with_bot α).map f = (f 1 : with_bot β) := rfl

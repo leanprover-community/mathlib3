@@ -2087,10 +2087,6 @@ lemma mem_ker (f : G →* M) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
 @[to_additive]
 lemma coe_ker (f : G →* M) : (f.ker : set G) = (f : G → M) ⁻¹' {1} := rfl
 
-@[simp, to_additive]
-lemma ker_to_hom_units {M} [monoid M] (f : G →* M) : f.to_hom_units.ker = f.ker :=
-by { ext x, simp [mem_ker, units.ext_iff] }
-
 @[to_additive]
 lemma eq_iff (f : G →* M) {x y : G} : f x = f y ↔ y⁻¹ * x ∈ f.ker :=
 begin
@@ -2121,7 +2117,6 @@ set_like.ext $ λ x, subtype.ext_iff
 ker_cod_restrict _ _ _
 
 @[simp, to_additive] lemma ker_one : (1 : G →* M).ker = ⊤ := set_like.ext $ λ x, eq_self_iff_true _
-@[simp, to_additive] lemma ker_id : (monoid_hom.id G).ker = ⊥ := rfl
 
 @[to_additive] lemma ker_eq_bot_iff (f : G →* M) : f.ker = ⊥ ↔ function.injective f :=
 ⟨λ h x y hxy, by rwa [eq_iff, h, mem_bot, inv_mul_eq_one, eq_comm] at hxy,

@@ -149,6 +149,7 @@ variable {S}
 lemma has_homology.mk' (h : S.homology_data) : has_homology S :=
 ⟨nonempty.intro h⟩
 
+@[priority 100]
 instance [has_homology S] : has_homology S.op :=
 has_homology.mk' S.some_homology_data.op
 
@@ -559,6 +560,7 @@ all short complexes have homology. -/
 class _root_.category_with_homology :=
 (has_homology : ∀ (S : short_complex C), S.has_homology)
 
+@[priority 100]
 instance category_with_homology.has_homology [category_with_homology C] (S : short_complex C) :
   S.has_homology := category_with_homology.has_homology S
 
@@ -802,8 +804,7 @@ end
 end quasi_iso
 
 lemma left_homology_map_data.quasi_iso_iff' {φ : S₁ ⟶ S₂} {h₁ h₁' : left_homology_data S₁}
-  {h₂ h₂' : left_homology_data S₂} (ψ : left_homology_map_data φ h₁ h₂) (ψ' : left_homology_map_data φ h₁' h₂')
-  [S₁.has_homology] [S₂.has_homology] :
+  {h₂ h₂' : left_homology_data S₂} (ψ : left_homology_map_data φ h₁ h₂) (ψ' : left_homology_map_data φ h₁' h₂') :
   is_iso ψ.φH ↔ is_iso ψ'.φH :=
 begin
   let e := left_homology_map_iso' (iso.refl S₁) h₁ h₁',
@@ -829,9 +830,7 @@ lemma left_homology_map_data.quasi_iso_iff {φ : S₁ ⟶ S₂} {h₁ : left_hom
   quasi_iso φ ↔ is_iso ψ.φH :=
 left_homology_map_data.quasi_iso_iff' _ _
 
-lemma homology_map_data.quasi_iso_iff' {φ : S₁ ⟶ S₂} {h : homology_data S}
-  {h : homology_data S₂} (ψ : homology_map_data φ h₁ h₂)
-  [S₁.has_homology] [S₂.has_homology] :
+lemma homology_map_data.quasi_iso_iff' {φ : S₁ ⟶ S₂} (ψ : homology_map_data φ h₁ h₂) :
   is_iso ψ.left.φH ↔ is_iso ψ.right.φH :=
 begin
   have fac₁ : ψ.right.φH = h₁.iso.inv ≫ ψ.left.φH ≫ h₂.iso.hom,

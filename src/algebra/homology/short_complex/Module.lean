@@ -28,7 +28,7 @@ namespace short_complex
 
 variables (S : short_complex (Module R))
 
-def Module_image_le_kernel : linear_map.range S.f ≤ linear_map.ker S.g :=
+lemma Module_image_le_kernel : linear_map.range S.f ≤ linear_map.ker S.g :=
 begin
   rintros x₂ ⟨x₁, h⟩,
   simp only [linear_map.mem_ker, ← h, ← comp_apply, S.zero, linear_map.zero_apply],
@@ -55,13 +55,13 @@ namespace Module_left_homology_data
 
 def i : Module.of R (linear_map.ker S.g) ⟶ S.X₂ := Module.as_hom S.g.ker.subtype
 
-def hi₀ : i S ≫ S.g = 0 := by { ext x₂, exact x₂.2, }
+lemma hi₀ : i S ≫ S.g = 0 := by { ext x₂, exact x₂.2, }
 
 def hi : is_limit (kernel_fork.of_ι (i S) (hi₀ S)) := kernel_is_limit S.g
 
-def f'_eq_Module_f' : (hi S).lift (kernel_fork.of_ι S.f S.zero) = S.Module_f' := rfl
+lemma f'_eq_Module_f' : (hi S).lift (kernel_fork.of_ι S.f S.zero) = S.Module_f' := rfl
 
-def hπ₀ : (hi S).lift (kernel_fork.of_ι S.f S.zero) ≫ S.Module_homology_π' = 0 :=
+lemma hπ₀ : (hi S).lift (kernel_fork.of_ι S.f S.zero) ≫ S.Module_homology_π' = 0 :=
 by simp only [f'_eq_Module_f', Module_f'_comp_homology_π']
 
 def hπ : is_colimit (cokernel_cofork.of_π _ (hπ₀ S)) :=

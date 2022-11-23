@@ -302,13 +302,13 @@ class preserves_left_homology_of :=
 class preserves_right_homology_of :=
 (condition' [] : ∀ (h : S.right_homology_data), h.is_preserved_by F)
 
-@[instance]
-def preserves_left_homology_of.condition (h : S.left_homology_data)
+@[priority 100]
+instance preserves_left_homology_of.condition (h : S.left_homology_data)
   [F.preserves_left_homology_of S] :
   h.is_preserved_by F := preserves_left_homology_of.condition' F h
 
-@[instance]
-def preserves_right_homology_of.condition (h : S.right_homology_data)
+@[priority 100]
+instance preserves_right_homology_of.condition (h : S.right_homology_data)
   [F.preserves_right_homology_of S] :
   h.is_preserved_by F := preserves_right_homology_of.condition' F h
 
@@ -559,7 +559,7 @@ section
 
 variables (F : C ⥤ D) [functor.preserves_zero_morphisms F] (S : short_complex C)
 
-lemma preserves_left_homology_of_zero_left (hf : S.f = 0)
+def preserves_left_homology_of_zero_left (hf : S.f = 0)
   [preserves_limit (parallel_pair S.g 0) F] :
   F.preserves_left_homology_of S :=
 ⟨λ h, begin
@@ -569,7 +569,7 @@ lemma preserves_left_homology_of_zero_left (hf : S.f = 0)
     apply_instance, },
 end⟩
 
-lemma preserves_right_homology_of_zero_left (hf : S.f = 0)
+def preserves_right_homology_of_zero_left (hf : S.f = 0)
   [preserves_limit (parallel_pair S.g 0) F] :
   F.preserves_right_homology_of S :=
 ⟨λ h, begin
@@ -581,7 +581,7 @@ lemma preserves_right_homology_of_zero_left (hf : S.f = 0)
     exact limits.preserves_limit_of_iso_diagram F e, },
 end⟩
 
-lemma preserves_left_homology_of_zero_right (hg : S.g = 0)
+def preserves_left_homology_of_zero_right (hg : S.g = 0)
   [preserves_colimit (parallel_pair S.f 0) F] :
   F.preserves_left_homology_of S :=
 ⟨λ h, begin
@@ -593,7 +593,7 @@ lemma preserves_left_homology_of_zero_right (hg : S.g = 0)
     exact limits.preserves_colimit_of_iso_diagram F e.symm, },
 end⟩
 
-lemma preserves_right_homology_of_zero_right (hg : S.g = 0)
+def preserves_right_homology_of_zero_right (hg : S.g = 0)
   [preserves_colimit (parallel_pair S.f 0) F] :
   F.preserves_right_homology_of S :=
 ⟨λ h, begin

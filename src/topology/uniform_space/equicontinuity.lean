@@ -222,7 +222,7 @@ continuous at `x₀` *when `ι → α` is equipped with the topology of uniform 
 very useful for developping the equicontinuity API, but it should not be used directly for other
 purposes. -/
 lemma equicontinuous_at_iff_continuous_at {F : ι → X → α} {x₀ : X} :
-  equicontinuous_at F x₀ ↔ continuous_at (of_fun ∘ function.swap F : X → (ι →ᵤ α)) x₀ :=
+  equicontinuous_at F x₀ ↔ continuous_at (of_fun ∘ function.swap F : X → ι →ᵤ α) x₀ :=
 by rw [continuous_at, (uniform_fun.has_basis_nhds ι α _).tendsto_right_iff]; refl
 
 /-- A family `𝓕 : ι → X → α` is equicontinuous iff the function `swap 𝓕 : X → ι → α` is
@@ -230,7 +230,7 @@ continuous *when `ι → α` is equipped with the topology of uniform convergenc
 very useful for developping the equicontinuity API, but it should not be used directly for other
 purposes. -/
 lemma equicontinuous_iff_continuous {F : ι → X → α} :
-  equicontinuous F ↔ continuous (of_fun ∘ function.swap F : X → (ι →ᵤ α)) :=
+  equicontinuous F ↔ continuous (of_fun ∘ function.swap F : X → ι →ᵤ α) :=
 by simp_rw [equicontinuous, continuous_iff_continuous_at, equicontinuous_at_iff_continuous_at]
 
 /-- A family `𝓕 : ι → β → α` is uniformly equicontinuous iff the function `swap 𝓕 : β → ι → α` is
@@ -238,7 +238,7 @@ uniformly continuous *when `ι → α` is equipped with the uniform structure of
 This is very useful for developping the equicontinuity API, but it should not be used directly
 for other purposes. -/
 lemma uniform_equicontinuous_iff_uniform_continuous {F : ι → β → α} :
-  uniform_equicontinuous F ↔ uniform_continuous (of_fun ∘ function.swap F : β → (ι →ᵤ α)) :=
+  uniform_equicontinuous F ↔ uniform_continuous (of_fun ∘ function.swap F : β → ι →ᵤ α) :=
 by rw [uniform_continuous, (uniform_fun.has_basis_uniformity ι α).tendsto_right_iff]; refl
 
 lemma filter.has_basis.equicontinuous_at_iff_left {κ : Type*} {p : κ → Prop} {s : κ → set X}

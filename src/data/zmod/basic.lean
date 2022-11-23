@@ -840,22 +840,31 @@ begin
       have := nat.add_le_add_right this 1,
       rw [nat.two_mul_div_two_add_one_of_odd hpar, ←not_lt] at this,
       exact this (lt_add_one _) } },
-  { rw [neg_sub, nat.cast_sub], apply le_of_lt (a.val_lt) },
-  { rw nat.cast_sub (le_of_lt (a.val_lt)), apply sub_sub_cancel_left },
+  { rw [neg_sub, nat.cast_sub], apply le_of_lt a.val_lt },
+  { rw nat.cast_sub (le_of_lt a.val_lt), apply sub_sub_cancel_left },
   { exfalso, exact h'' (nat.le_half_of_half_lt_sub (not_le.mp h')) }
+end
+
+lemma val_min_abs_neg_of_eq_half {n : ℕ} {a : zmod n} (ha : 2 * a.val = n) :
+  (-a).val_min_abs = a.val_min_abs :=
+begin
+  cases n,
+  { simp only [nat.mul_eq_zero, bit0_eq_zero, nat.one_ne_zero, val_eq_zero, false_or] at ha,
+    subst ha, refl },
+  { by_cases ha0 : a = 0, { rw [ha0, neg_zero] },
+    have : ∀ m, 2 * a.val = m → m - a.val ≤ m / 2 :=
+      λ m h, by rw [←h, nat.mul_div_cancel_left _ two_pos, two_mul, nat.add_sub_cancel],
+    simp only [val_min_abs_def_pos, neg_val, this _ ha, ha0, if_false, if_true,
+      le_of_eq (nat.div_eq_of_eq_mul_right two_pos ha.symm).symm, nat.cast_sub a.val_le],
+    apply sub_eq_of_eq_add,
+    rw [←nat.cast_add, nat.cast_inj, ←two_mul, ha] }
 end
 
 @[simp] lemma nat_abs_val_min_abs_neg {n : ℕ} (a : zmod n) :
   (-a).val_min_abs.nat_abs = a.val_min_abs.nat_abs :=
 begin
-  cases n, { simp only [int.nat_abs_neg, val_min_abs_def_zero] },
-  by_cases ha0 : a = 0, { rw [ha0, neg_zero] },
-  by_cases h2a : 2 * a.val = n.succ,
-  { have : ∀ m, 2 * a.val = m → m - a.val ≤ m / 2 :=
-      λ m h, by rw [←h, nat.mul_div_cancel_left _ two_pos, two_mul, nat.add_sub_cancel],
-    simp only [val_min_abs_def_pos, neg_val, ha0, if_false, this n.succ h2a, if_true,
-      le_of_eq (nat.div_eq_of_eq_mul_right two_pos h2a.symm).symm, if_true, int.nat_abs_of_nat,
-      nat.sub_eq_iff_eq_add (a.val_le), ←two_mul, h2a, int.nat_abs_of_nat] },
+  by_cases h2a : 2 * a.val = n,
+  { rw val_min_abs_neg_of_eq_half h2a },
   { rw [val_min_abs_neg_of_ne_half h2a, int.nat_abs_neg] }
 end
 

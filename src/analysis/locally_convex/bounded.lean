@@ -128,6 +128,49 @@ end
 
 end image
 
+section sequence
+
+-- TODO move
+lemma _root_.filter.eventually.choice {α β : Type*} {r : α → β → Prop} {l : filter α}
+  [l.ne_bot] (h : ∀ᶠ x in l, ∃ y, r x y) : ∃ f : α → β, ∀ᶠ x in l, r x (f x) :=
+begin
+  classical,
+  use (λ x, if hx : ∃ y, r x y then classical.some hx
+            else classical.some (classical.some_spec h.exists)),
+  filter_upwards [h],
+  intros x hx,
+  rw dif_pos hx,
+  exact classical.some_spec hx
+end
+
+variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [topological_space E]
+  [has_continuous_smul 𝕜 E]
+
+lemma is_vonN_bounded_of_forall_seq_tendsto_zero {ε : ℕ → 𝕜}
+  (hε : tendsto ε at_top (𝓝 0)) (hε' : ∀ᶠ n in at_top, ε n ≠ 0) {S : set E}
+  (H : ∀ x : ℕ → E, (∀ n, x n ∈ S) → tendsto (ε • x) at_top (𝓝 0)) :
+  is_vonN_bounded 𝕜 S :=
+begin
+  rw (nhds_basis_balanced 𝕜 E).is_vonN_bounded_basis_iff,
+  by_contra' H',
+  rcases H' with ⟨V, ⟨hV, hVb⟩, hVS⟩,
+  refine filter.frequently_false (at_top : filter ℕ) (filter.eventually.frequently _),
+  have : ∀ᶠ n in at_top, ∃ x : S, (ε n) • (x : E) ∉ V,
+  { filter_upwards [hε'] with n hn,
+    rw absorbs at hVS,
+    push_neg at hVS,
+    rcases hVS _ (norm_pos_iff.mpr $ inv_ne_zero hn) with ⟨a, haε, haS⟩,
+    rcases set.not_subset.mp haS with ⟨x, hxS, hx⟩,
+    refine ⟨⟨x, hxS⟩, λ hnx, _⟩,
+    rw ← set.mem_inv_smul_set_iff₀ hn at hnx,
+    exact hx (hVb.smul_mono haε hnx) },
+  rcases this.choice with ⟨x, hx⟩,
+  filter_upwards [hx, (H (coe ∘ x) (λ n, (x n).2)).eventually (eventually_mem_set.mpr hV)]
+    using λ n, id
+end
+
+end sequence
+
 section normed_field
 
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]

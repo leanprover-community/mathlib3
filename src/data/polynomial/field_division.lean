@@ -344,10 +344,7 @@ by rw [mem_roots (map_ne_zero hp), is_root, polynomial.eval_map]; apply_instance
 
 lemma root_set_monomial [comm_ring S] [is_domain S] [algebra R S]
   {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (monomial n a).root_set S = {0} :=
-begin
-  ext x,
-  simp [mem_root_set_iff (mt (monomial_eq_zero_iff _ _).1 ha), ha, pow_eq_zero_iff hn.bot_lt]
-end
+by { ext x, simp [mem_root_set_iff, ha, pow_eq_zero_iff hn.bot_lt] }
 
 lemma root_set_C_mul_X_pow [comm_ring S] [is_domain S] [algebra R S]
   {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (C a * X ^ n).root_set S = {0} :=

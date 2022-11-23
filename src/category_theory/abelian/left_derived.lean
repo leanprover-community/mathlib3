@@ -73,7 +73,7 @@ begin
     (ProjectiveResolution.lift f P Q)
     (by rw [← homological_complex.comp_f, ProjectiveResolution.lift_commutes,
       homological_complex.comp_f, chain_complex.single₀_map_f_0]),
-  refine eq.trans _ (h.map F).map_comm,
+  refine eq.trans _ (h.map F).homology_map_comm,
   change (homology_functor D _ 0).map ((F.map_homological_complex _).map _) ≫ _ =
     (homology_functor D _ 0).map ((F.map_homological_complex _).map _) ≫ _,
   simp only [homotopy_category.homology_functor_map_factors],

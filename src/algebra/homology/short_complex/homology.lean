@@ -334,7 +334,7 @@ begin
   refl,
 end
 
-lemma map_comm [S₁.has_homology] [S₂.has_homology] :
+lemma homology_map_comm [S₁.has_homology] [S₂.has_homology] :
   homology_map φ ≫ h₂.homology_iso.hom = h₁.homology_iso.hom ≫ γ.left.φH :=
 by simp only [γ.homology_map_eq, assoc, iso.inv_hom_id, comp_id]
 

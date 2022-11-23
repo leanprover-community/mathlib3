@@ -340,29 +340,18 @@ by rw [← euclidean_domain.gcd_is_unit_iff, ← euclidean_domain.gcd_is_unit_if
 
 lemma mem_roots_map [comm_ring k] [is_domain k] {f : R →+* k} {x : k} (hp : p ≠ 0) :
   x ∈ (p.map f).roots ↔ p.eval₂ f x = 0 :=
-begin
-  rw mem_roots (show p.map f ≠ 0, by exact map_ne_zero hp),
-  dsimp only [is_root],
-  rw polynomial.eval_map,
-end
-
-lemma mem_root_set [comm_ring k] [is_domain k] [algebra R k] {x : k} (hp : p ≠ 0) :
-  x ∈ p.root_set k ↔ aeval x p = 0 :=
-iff.trans multiset.mem_to_finset (mem_roots_map hp)
-
-lemma root_set_C_mul_X_pow [comm_ring S] [is_domain S] [algebra R S]
-  {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (C a * X ^ n).root_set S = {0} :=
-begin
-  ext x,
-  rw [set.mem_singleton_iff, mem_root_set, aeval_mul, aeval_C, aeval_X_pow, mul_eq_zero],
-  { simp_rw [_root_.map_eq_zero, pow_eq_zero_iff (nat.pos_of_ne_zero hn), or_iff_right_iff_imp],
-    exact λ ha', (ha ha').elim },
-  { exact mul_ne_zero (mt C_eq_zero.mp ha) (pow_ne_zero n X_ne_zero) },
-end
+by rw [mem_roots (map_ne_zero hp), is_root, polynomial.eval_map]; apply_instance
 
 lemma root_set_monomial [comm_ring S] [is_domain S] [algebra R S]
   {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (monomial n a).root_set S = {0} :=
-by rw [←C_mul_X_pow_eq_monomial, root_set_C_mul_X_pow hn ha]
+begin
+  ext x,
+  simp [mem_root_set_iff (mt (monomial_eq_zero_iff _ _).1 ha), ha, pow_eq_zero_iff hn.bot_lt]
+end
+
+lemma root_set_C_mul_X_pow [comm_ring S] [is_domain S] [algebra R S]
+  {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (C a * X ^ n).root_set S = {0} :=
+by rw [← monomial_eq_C_mul_X, root_set_monomial hn ha]
 
 lemma root_set_X_pow [comm_ring S] [is_domain S] [algebra R S]
   {n : ℕ} (hn : n ≠ 0) : (X ^ n : R[X]).root_set S = {0} :=

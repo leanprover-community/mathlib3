@@ -5,6 +5,7 @@ Authors: Chris Hughes
 -/
 
 import algebra.char_p.basic
+import data.nat.parity
 import tactic.fin_cases
 
 /-!
@@ -818,7 +819,7 @@ begin
     rw [int.cast_coe_nat, int.cast_coe_nat, nat_cast_self, sub_zero, nat_cast_zmod_val], }
 end
 
-lemma val_min_abs_neg_of_ne_half {n : ℕ} {a : zmod n} (ha : a.val ≠ n / 2) :
+lemma val_min_abs_neg_of_ne_half {n : ℕ} {a : zmod n} (ha : 2 * a.val ≠ n) :
   (-a).val_min_abs = -a.val_min_abs :=
 begin
   cases n, { refl },
@@ -828,38 +829,34 @@ begin
   { contradiction },
   { contradiction },
   { simp only [zero_le', not_true] at h', contradiction },
-  { exfalso, exact not_le.mpr (lt_of_le_of_ne h'' ha) (nat.half_le_of_sub_le_half h') },
-  { rw [neg_sub, nat.cast_sub], apply le_of_lt (zmod.val_lt a) },
-  { rw [nat.cast_sub (le_of_lt (zmod.val_lt a))], apply sub_sub_cancel_left },
+  { exfalso,
+    by_cases hpar : even n.succ,
+    { apply ha,
+      rw [←eq_of_ge_of_not_gt h'' (not_lt_of_ge (nat.half_le_of_sub_le_half h')),
+        nat.two_mul_div_two_of_even hpar] },
+    { rw ←nat.odd_iff_not_even at hpar,
+      have := add_le_add h' h'',
+      rw [nat.sub_add_cancel (a.val_le), ←two_mul] at this,
+      have := nat.add_le_add_right this 1,
+      rw [nat.two_mul_div_two_add_one_of_odd hpar, ←not_lt] at this,
+      exact this (lt_add_one _) } },
+  { rw [neg_sub, nat.cast_sub], apply le_of_lt (a.val_lt) },
+  { rw nat.cast_sub (le_of_lt (a.val_lt)), apply sub_sub_cancel_left },
   { exfalso, exact h'' (nat.le_half_of_half_lt_sub (not_le.mp h')) }
 end
 
 @[simp] lemma nat_abs_val_min_abs_neg {n : ℕ} (a : zmod n) :
   (-a).val_min_abs.nat_abs = a.val_min_abs.nat_abs :=
 begin
-  cases n, { simp only [int.nat_abs_neg, val_min_abs_def_zero], },
+  cases n, { simp only [int.nat_abs_neg, val_min_abs_def_zero] },
   by_cases ha0 : a = 0, { rw [ha0, neg_zero] },
-  by_cases haa : -a = a, { rw [haa] },
-  suffices hpa : (n+1 : ℕ) - a.val ≤ (n+1) / 2 ↔ (n+1 : ℕ) / 2 < a.val,
-  { rw [val_min_abs_def_pos, val_min_abs_def_pos],
-    rw ← not_le at hpa,
-    simp only [if_neg ha0, neg_val, hpa, int.coe_nat_sub a.val_le],
-    split_ifs,
-    all_goals { rw [← int.nat_abs_neg], congr' 1, ring } },
-  suffices : (((n+1 : ℕ) % 2) + 2 * ((n + 1) / 2)) - a.val ≤ (n+1) / 2 ↔ (n+1 : ℕ) / 2 < a.val,
-  by rwa [nat.mod_add_div] at this,
-  suffices : (n + 1) % 2 + (n + 1) / 2 ≤ val a ↔ (n + 1) / 2 < val a,
-  by rw [tsub_le_iff_tsub_le, two_mul, ← add_assoc, add_tsub_cancel_right, this],
-  cases (n + 1 : ℕ).mod_two_eq_zero_or_one with hn0 hn1,
-  { split,
-    { assume h,
-      apply lt_of_le_of_ne (le_trans (nat.le_add_left _ _) h),
-      contrapose! haa,
-      rw [← zmod.nat_cast_zmod_val a, ← haa, neg_eq_iff_add_eq_zero, ← nat.cast_add],
-      rw [char_p.cast_eq_zero_iff (zmod (n+1)) (n+1)],
-      rw [← two_mul, ← zero_add (2 * _), ← hn0, nat.mod_add_div] },
-    { rw [hn0, zero_add], exact le_of_lt } },
-  { rw [hn1, add_comm, nat.succ_le_iff] }
+  by_cases h2a : 2 * a.val = n.succ,
+  { have : ∀ m, 2 * a.val = m → m - a.val ≤ m / 2 :=
+      λ m h, by rw [←h, nat.mul_div_cancel_left _ two_pos, two_mul, nat.add_sub_cancel],
+    simp only [val_min_abs_def_pos, neg_val, ha0, if_false, this n.succ h2a, if_true,
+      le_of_eq (nat.div_eq_of_eq_mul_right two_pos h2a.symm).symm, if_true, int.nat_abs_of_nat,
+      nat.sub_eq_iff_eq_add (a.val_le), ←two_mul, h2a, int.nat_abs_of_nat] },
+  { rw [val_min_abs_neg_of_ne_half h2a, int.nat_abs_neg] }
 end
 
 lemma val_eq_ite_val_min_abs {n : ℕ} [ne_zero n] (a : zmod n) :

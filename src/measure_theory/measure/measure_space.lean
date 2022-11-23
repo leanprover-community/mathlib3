@@ -2640,6 +2640,11 @@ lemma ae_iff_measure_eq [is_finite_measure μ] {p : α → Prop}
   (∀ᵐ a ∂μ, p a) ↔ μ {a | p a} = μ univ :=
 by rw [← ae_eq_univ_iff_measure_eq hp, eventually_eq_univ, eventually_iff]
 
+lemma ae_mem_iff_measure_eq [is_finite_measure μ] {s : set α}
+  (hs : null_measurable_set s μ) :
+  (∀ᵐ a ∂μ, a ∈ s) ↔ μ s = μ univ :=
+ae_iff_measure_eq hs
+
 instance [finite α] [measurable_space α] : is_finite_measure (measure.count : measure α) :=
 ⟨by { casesI nonempty_fintype α,
       simpa [measure.count_apply, tsum_fintype] using (ennreal.nat_ne_top _).lt_top }⟩

@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
-import data.fintype.card
+import data.fintype.big_operators
 import data.finsupp.defs
 import data.nat.part_enat
 import data.set.countable
@@ -1150,6 +1150,10 @@ end
 lemma to_nat_right_inverse : function.right_inverse (coe : ℕ → cardinal) to_nat := to_nat_cast
 
 lemma to_nat_surjective : surjective to_nat := to_nat_right_inverse.surjective
+
+lemma exists_nat_eq_of_le_nat {c : cardinal} {n : ℕ} (h : c ≤ n) : ∃ m, m ≤ n ∧ c = m :=
+let he := cast_to_nat_of_lt_aleph_0 (h.trans_lt $ nat_lt_aleph_0 n) in
+⟨c.to_nat, nat_cast_le.1 (he.trans_le h), he.symm⟩
 
 @[simp] lemma mk_to_nat_of_infinite [h : infinite α] : (#α).to_nat = 0 :=
 dif_neg (infinite_iff.1 h).not_lt

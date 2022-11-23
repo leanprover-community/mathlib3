@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import category_theory.sites.subsheaf
-import category_theory.adjunction.evaluation
+import category_theory.sites.compatible_sheafification
 
 /-!
 

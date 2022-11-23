@@ -87,7 +87,7 @@ lemma integrable_exp_neg_mul_sq_iff {b : ℝ} :
 begin
   refine ⟨λ h, _, integrable_exp_neg_mul_sq⟩,
   by_contra' hb,
-  have : ∫⁻ x:ℝ, 1 ≤ ∫⁻ x:ℝ, ∥exp (-b * x^2)∥₊,
+  have : ∫⁻ x:ℝ, 1 ≤ ∫⁻ x:ℝ, ‖exp (-b * x^2)‖₊,
   { apply lintegral_mono (λ x, _),
     simp only [neg_mul, ennreal.one_le_coe_iff, ← to_nnreal_one, to_nnreal_le_iff_le_coe,
       real.norm_of_nonneg (exp_pos _).le, coe_nnnorm, one_le_exp_iff, right.nonneg_neg_iff],

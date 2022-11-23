@@ -108,7 +108,7 @@ We define a conversion to a `continuous_linear_equiv` first, then a conversion t
 over `ℝ` and `f 0 = 0`, then `f` is a linear isometry equivalence. -/
 def to_real_linear_isometry_equiv_of_map_zero (f : E ≃ᵢ F) (h0 : f 0 = 0) :
   E ≃ₗᵢ[ℝ] F :=
-{ norm_map' := λ x, show ∥f x∥ = ∥x∥, by simp only [← dist_zero_right, ← h0, f.dist_eq],
+{ norm_map' := λ x, show ‖f x‖ = ‖x‖, by simp only [← dist_zero_right, ← h0, f.dist_eq],
   .. ((add_monoid_hom.of_map_midpoint ℝ ℝ f h0 f.map_midpoint).to_real_linear_map f.continuous),
   .. f }
 

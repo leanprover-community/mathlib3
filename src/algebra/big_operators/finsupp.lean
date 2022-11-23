@@ -8,6 +8,7 @@ import data.finsupp.defs
 import algebra.big_operators.pi
 import algebra.big_operators.ring
 import algebra.big_operators.order
+import group_theory.submonoid.membership
 
 /-!
 # Big operators for finsupps

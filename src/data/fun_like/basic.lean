@@ -5,7 +5,7 @@ Authors: Anne Baanen
 -/
 
 import logic.function.basic
-import tactic.lint
+import tactic.lint.default
 import tactic.norm_cast
 
 /-!

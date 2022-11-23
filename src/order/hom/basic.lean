@@ -7,6 +7,7 @@ import logic.equiv.option
 import order.rel_iso.basic
 import tactic.monotonicity.basic
 import tactic.assert_exists
+import order.bounded_order
 
 /-!
 # Order homomorphisms
@@ -187,6 +188,9 @@ instance : can_lift (α → β) (α →o β) coe_fn monotone :=
 /-- Copy of an `order_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
 equalities. -/
 protected def copy (f : α →o β) (f' : α → β) (h : f' = f) : α →o β := ⟨f', h.symm.subst f.monotone'⟩
+
+@[simp] lemma coe_copy (f : α →o β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : α →o β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 /-- The identity function as bundled monotone function. -/
 @[simps {fully_applied := ff}]

@@ -3,8 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Scott Morrison
 -/
-import algebra.hom.group_action
 import algebra.indicator_function
+import group_theory.submonoid.basic
 
 /-!
 # Type of functions with finite support

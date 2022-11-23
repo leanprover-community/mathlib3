@@ -136,11 +136,11 @@ begin
     have hr : 0 < r, { simp [hR], },
     have hr' : ∀ ⦃y : E⦄, y ∈ metric.ball x r → c y,
     { exact (λ y hy, hR' (lt_of_lt_of_le (metric.mem_ball.mp hy) (min_le_right _ _))), },
-    have hxy : ∀ (y : E), y ∈ metric.ball x r → ∥y - x∥ < 1,
+    have hxy : ∀ (y : E), y ∈ metric.ball x r → ‖y - x‖ < 1,
     { intros y hy,
       rw [metric.mem_ball, dist_eq_norm] at hy,
       exact lt_of_lt_of_le hy (min_le_left _ _), },
-    have hxyε : ∀ (y : E), y ∈ metric.ball x r → ε * ∥y - x∥ < ε,
+    have hxyε : ∀ (y : E), y ∈ metric.ball x r → ε * ‖y - x‖ < ε,
     { intros y hy,
       exact (mul_lt_iff_lt_one_right hε.lt).mpr (hxy y hy), },
 
@@ -211,7 +211,7 @@ begin
       (λ z hz, ((hf n.1 z hz).sub (hf n.2 z hz)).has_fderiv_within_at)
       (λ z hz, (hn z hz).le) (convex_ball x r) (metric.mem_ball_self hr) hy,
     refine lt_of_le_of_lt mvt _,
-    have : q * ∥y - x∥ < q * r,
+    have : q * ‖y - x‖ < q * r,
     { exact mul_lt_mul' rfl.le (by simpa only [dist_eq_norm] using metric.mem_ball.mp hy)
         (norm_nonneg _) hqpos, },
     exact this.trans hq, },
@@ -260,15 +260,15 @@ begin
 end
 
 /-- If `f_n → g` pointwise and the derivatives `(f_n)' → h` _uniformly_ converge, then
-in fact for a fixed `y`, the difference quotients `∥z - y∥⁻¹ • (f_n z - f_n y)` converge
-_uniformly_ to `∥z - y∥⁻¹ • (g z - g y)` -/
+in fact for a fixed `y`, the difference quotients `‖z - y‖⁻¹ • (f_n z - f_n y)` converge
+_uniformly_ to `‖z - y‖⁻¹ • (g z - g y)` -/
 lemma difference_quotients_converge_uniformly
   (hf' : tendsto_uniformly_on_filter f' g' l (𝓝 x))
   (hf : ∀ᶠ (n : ι × E) in (l ×ᶠ 𝓝 x), has_fderiv_at (f n.1) (f' n.1 n.2) n.2)
   (hfg : ∀ᶠ (y : E) in 𝓝 x, tendsto (λ n, f n y) l (𝓝 (g y))) :
   tendsto_uniformly_on_filter
-    (λ n : ι, λ y : E, (∥y - x∥⁻¹ : 𝕜) • (f n y - f n x))
-    (λ y : E, (∥y - x∥⁻¹ : 𝕜) • (g y - g x))
+    (λ n : ι, λ y : E, (‖y - x‖⁻¹ : 𝕜) • (f n y - f n x))
+    (λ y : E, (‖y - x‖⁻¹ : 𝕜) • (g y - g x))
     l (𝓝 x) :=
 begin
   letI : normed_space ℝ E, from normed_space.restrict_scalars ℝ 𝕜 _,
@@ -298,7 +298,7 @@ begin
   rw [← smul_sub, norm_smul, norm_inv, is_R_or_C.norm_coe_norm],
   refine lt_of_le_of_lt _ hqε,
   by_cases hyz' : x = y, { simp [hyz', hqpos.le], },
-  have hyz : 0 < ∥y - x∥,
+  have hyz : 0 < ‖y - x‖,
   {rw norm_pos_iff, intros hy', exact hyz' (eq_of_sub_eq_zero hy').symm, },
   rw [inv_mul_le_iff hyz, mul_comm, sub_sub_sub_comm],
   simp only [pi.zero_apply, dist_zero_left] at e,
@@ -333,7 +333,7 @@ begin
 
   -- Introduce extra quantifier via curried filters
   suffices : tendsto
-    (λ (y : ι × E), ∥y.2 - x∥⁻¹ * ∥g y.2 - g x - (g' x) (y.2 - x)∥) (l.curry (𝓝 x)) (𝓝 0),
+    (λ (y : ι × E), ‖y.2 - x‖⁻¹ * ‖g y.2 - g x - (g' x) (y.2 - x)‖) (l.curry (𝓝 x)) (𝓝 0),
   { rw metric.tendsto_nhds at this ⊢,
     intros ε hε,
     specialize this ε hε,
@@ -352,11 +352,11 @@ begin
     rw [←norm_norm, ←norm_inv,←@is_R_or_C.norm_of_real 𝕜 _ _,
       is_R_or_C.of_real_inv, ←norm_smul], },
   rw ←tendsto_zero_iff_norm_tendsto_zero,
-  have : (λ a : ι × E, (∥a.2 - x∥⁻¹ : 𝕜) • (g a.2 - g x - (g' x) (a.2 - x))) =
-    (λ a : ι × E, (∥a.2 - x∥⁻¹ : 𝕜) • (g a.2 - g x - (f a.1 a.2 - f a.1 x))) +
-    (λ a : ι × E, (∥a.2 - x∥⁻¹ : 𝕜) • ((f a.1 a.2 - f a.1 x) -
+  have : (λ a : ι × E, (‖a.2 - x‖⁻¹ : 𝕜) • (g a.2 - g x - (g' x) (a.2 - x))) =
+    (λ a : ι × E, (‖a.2 - x‖⁻¹ : 𝕜) • (g a.2 - g x - (f a.1 a.2 - f a.1 x))) +
+    (λ a : ι × E, (‖a.2 - x‖⁻¹ : 𝕜) • ((f a.1 a.2 - f a.1 x) -
       ((f' a.1 x) a.2 - (f' a.1 x) x))) +
-    (λ a : ι × E, (∥a.2 - x∥⁻¹ : 𝕜) • ((f' a.1 x - g' x) (a.2 - x))),
+    (λ a : ι × E, (‖a.2 - x‖⁻¹ : 𝕜) • ((f' a.1 x - g' x) (a.2 - x))),
   { ext, simp only [pi.add_apply], rw [←smul_add, ←smul_add], congr,
   simp only [map_sub, sub_add_sub_cancel, continuous_linear_map.coe_sub', pi.sub_apply], },
   simp_rw this,
@@ -398,12 +398,41 @@ begin
     intros n,
     simp_rw [norm_smul, norm_inv, is_R_or_C.norm_coe_norm],
     by_cases hx : x = n.2, { simp [hx], },
-    have hnx : 0 < ∥n.2 - x∥,
+    have hnx : 0 < ‖n.2 - x‖,
     { rw norm_pos_iff, intros hx', exact hx (eq_of_sub_eq_zero hx').symm, },
     rw [inv_mul_le_iff hnx, mul_comm],
     simp only [function.comp_app, prod_map],
     rw norm_sub_rev,
     exact (f' n.1 x - g' x).le_op_norm (n.2 - x), },
+end
+
+lemma has_fderiv_at_of_tendsto_locally_uniformly_on [ne_bot l] {s : set E} (hs : is_open s)
+  (hf' : tendsto_locally_uniformly_on f' g' l s)
+  (hf : ∀ n, ∀ x ∈ s, has_fderiv_at (f n) (f' n x) x)
+  (hfg : ∀ x ∈ s, tendsto (λ n, f n x) l (𝓝 (g x)))
+  (hx : x ∈ s) :
+  has_fderiv_at g (g' x) x :=
+begin
+  have h1 : s ∈ 𝓝 x := hs.mem_nhds hx,
+  have h3 : set.univ ×ˢ s ∈ l ×ᶠ 𝓝 x := by simp only [h1, prod_mem_prod_iff, univ_mem, and_self],
+  have h4 : ∀ᶠ (n : ι × E) in l ×ᶠ 𝓝 x, has_fderiv_at (f n.1) (f' n.1 n.2) n.2,
+    from eventually_of_mem h3 (λ ⟨n, z⟩ ⟨hn, hz⟩, hf n z hz),
+  refine has_fderiv_at_of_tendsto_uniformly_on_filter _ h4 (eventually_of_mem h1 hfg),
+  simpa [is_open.nhds_within_eq hs hx] using tendsto_locally_uniformly_on_iff_filter.mp hf' x hx,
+end
+
+/-- A slight variant of `has_fderiv_at_of_tendsto_locally_uniformly_on` with the assumption stated
+in terms of `differentiable_on` rather than `has_fderiv_at`. This makes a few proofs nicer in
+complex analysis where holomorphicity is assumed but the derivative is not known a priori. -/
+lemma has_fderiv_at_of_tendsto_locally_uniformly_on' [ne_bot l] {s : set E} (hs : is_open s)
+  (hf' : tendsto_locally_uniformly_on (fderiv 𝕜 ∘ f) g' l s)
+  (hf : ∀ n, differentiable_on 𝕜 (f n) s)
+  (hfg : ∀ x ∈ s, tendsto (λ n, f n x) l (𝓝 (g x)))
+  (hx : x ∈ s) :
+  has_fderiv_at g (g' x) x :=
+begin
+  refine has_fderiv_at_of_tendsto_locally_uniformly_on hs hf' (λ n z hz, _) hfg hx,
+  exact ((hf n z hz).differentiable_at (hs.mem_nhds hz)).has_fderiv_at
 end
 
 /-- `(d/dx) lim_{n → ∞} f n x = lim_{n → ∞} f' n x` when the `f' n` converge
@@ -414,22 +443,7 @@ lemma has_fderiv_at_of_tendsto_uniformly_on [ne_bot l]
   (hf : ∀ (n : ι), ∀ (x : E), x ∈ s → has_fderiv_at (f n) (f' n x) x)
   (hfg : ∀ (x : E), x ∈ s → tendsto (λ n, f n x) l (𝓝 (g x))) :
   ∀ (x : E), x ∈ s → has_fderiv_at g (g' x) x :=
-begin
-  intros x hx,
-  have hf : ∀ᶠ (n : ι × E) in (l ×ᶠ 𝓝 x), has_fderiv_at (f n.1) (f' n.1 n.2) n.2,
-  { exact eventually_prod_iff.mpr ⟨(λ y, true), (by simp), (λ y, y ∈ s),
-      eventually_mem_set.mpr (mem_nhds_iff.mpr ⟨s, rfl.subset, hs, hx⟩),
-      (λ n hn y hy, hf n y hy)⟩, },
-
-  have hfg : ∀ᶠ y in 𝓝 x, tendsto (λ n, f n y) l (𝓝 (g y)),
-  { exact eventually_iff.mpr (mem_nhds_iff.mpr ⟨s, set.subset_def.mpr hfg, hs, hx⟩), },
-
-  have hfg' := hf'.tendsto_uniformly_on_filter.mono_right (calc
-    𝓝 x = 𝓝[s] x : ((hs.nhds_within_eq hx).symm)
-    ... ≤ 𝓟 s : (by simp only [nhds_within, inf_le_right])),
-
-  exact has_fderiv_at_of_tendsto_uniformly_on_filter hfg' hf hfg,
-end
+λ x, has_fderiv_at_of_tendsto_locally_uniformly_on hs hf'.tendsto_locally_uniformly_on hf hfg
 
 /-- `(d/dx) lim_{n → ∞} f n x = lim_{n → ∞} f' n x` when the `f' n` converge
 _uniformly_ to their limit. -/
@@ -546,25 +560,42 @@ begin
   exact has_fderiv_at_of_tendsto_uniformly_on_filter hf' hf hfg,
 end
 
+lemma has_deriv_at_of_tendsto_locally_uniformly_on [ne_bot l] {s : set 𝕜} (hs : is_open s)
+  (hf' : tendsto_locally_uniformly_on f' g' l s)
+  (hf : ∀ n, ∀ x ∈ s, has_deriv_at (f n) (f' n x) x)
+  (hfg : ∀ x ∈ s, tendsto (λ n, f n x) l (𝓝 (g x)))
+  (hx : x ∈ s) :
+  has_deriv_at g (g' x) x :=
+begin
+  have h1 : s ∈ 𝓝 x := hs.mem_nhds hx,
+  have h3 : set.univ ×ˢ s ∈ l ×ᶠ 𝓝 x := by simp only [h1, prod_mem_prod_iff, univ_mem, and_self],
+  have h4 : ∀ᶠ (n : ι × 𝕜) in l ×ᶠ 𝓝 x, has_deriv_at (f n.1) (f' n.1 n.2) n.2,
+    from eventually_of_mem h3 (λ ⟨n, z⟩ ⟨hn, hz⟩, hf n z hz),
+  refine has_deriv_at_of_tendsto_uniformly_on_filter _ h4 (eventually_of_mem h1 hfg),
+  simpa [is_open.nhds_within_eq hs hx] using tendsto_locally_uniformly_on_iff_filter.mp hf' x hx,
+end
+
+/-- A slight variant of `has_deriv_at_of_tendsto_locally_uniformly_on` with the assumption stated in
+terms of `differentiable_on` rather than `has_deriv_at`. This makes a few proofs nicer in complex
+analysis where holomorphicity is assumed but the derivative is not known a priori. -/
+lemma has_deriv_at_of_tendsto_locally_uniformly_on' [ne_bot l] {s : set 𝕜} (hs : is_open s)
+  (hf' : tendsto_locally_uniformly_on (deriv ∘ f) g' l s)
+  (hf : ∀ n, differentiable_on 𝕜 (f n) s)
+  (hfg : ∀ x ∈ s, tendsto (λ n, f n x) l (𝓝 (g x)))
+  (hx : x ∈ s) :
+  has_deriv_at g (g' x) x :=
+begin
+  refine has_deriv_at_of_tendsto_locally_uniformly_on hs hf' (λ n z hz, _) hfg hx,
+  exact ((hf n z hz).differentiable_at (hs.mem_nhds hz)).has_deriv_at
+end
+
 lemma has_deriv_at_of_tendsto_uniformly_on [ne_bot l]
   {s : set 𝕜} (hs : is_open s)
   (hf' : tendsto_uniformly_on f' g' l s)
   (hf : ∀ (n : ι), ∀ (x : 𝕜), x ∈ s → has_deriv_at (f n) (f' n x) x)
   (hfg : ∀ (x : 𝕜), x ∈ s → tendsto (λ n, f n x) l (𝓝 (g x))) :
   ∀ (x : 𝕜), x ∈ s → has_deriv_at g (g' x) x :=
-begin
-  intros x hx,
-  have hsx : s ∈ 𝓝 x, { exact mem_nhds_iff.mpr ⟨s, rfl.subset, hs, hx⟩, },
-  rw tendsto_uniformly_on_iff_tendsto_uniformly_on_filter at hf',
-  have hf' := hf'.mono_right (le_principal_iff.mpr hsx),
-  have hfg : ∀ᶠ y in 𝓝 x, tendsto (λ n, f n y) l (𝓝 (g y)),
-  { exact eventually_iff_exists_mem.mpr ⟨s, hsx, hfg⟩, },
-  have hf : ∀ᶠ (n : ι × 𝕜) in (l ×ᶠ 𝓝 x), has_deriv_at (f n.1) (f' n.1 n.2) n.2,
-  { rw eventually_prod_iff,
-    refine ⟨(λ y, true), by simp, (λ y, y ∈ s), _, (λ n hn y hy, hf n y hy)⟩,
-    exact eventually_mem_set.mpr hsx, },
-  exact has_deriv_at_of_tendsto_uniformly_on_filter hf' hf hfg,
-end
+λ x, has_deriv_at_of_tendsto_locally_uniformly_on hs hf'.tendsto_locally_uniformly_on hf hfg
 
 lemma has_deriv_at_of_tendsto_uniformly [ne_bot l]
   (hf' : tendsto_uniformly f' g' l)

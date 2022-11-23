@@ -7,7 +7,7 @@ import linear_algebra.finite_dimensional
 import linear_algebra.projection
 import linear_algebra.sesquilinear_form
 import ring_theory.finiteness
-import linear_algebra.free_module.finite.rank
+import linear_algebra.free_module.finite.basic
 
 /-!
 # Dual vector spaces

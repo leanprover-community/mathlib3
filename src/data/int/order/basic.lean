@@ -6,7 +6,7 @@ Authors: Jeremy Avigad
 import data.int.basic
 import algebra.ring.divisibility
 import algebra.order.group.abs
-import algebra.order.ring.nontrivial
+import algebra.order.ring.char_zero
 import tactic.assert_exists
 
 /-!

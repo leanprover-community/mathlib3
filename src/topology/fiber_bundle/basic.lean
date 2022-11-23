@@ -47,10 +47,6 @@ fiber bundle from trivializations given as local equivalences with minimum addit
 
 * `fiber_bundle F E` : Structure saying that `E : B → Type*` is a fiber bundle with fiber `F`.
 
-* `is_homeomorphic_trivial_fiber_bundle F p` : Prop saying that the map `p : Z → B` between
-  topological spaces is a trivial fiber bundle, i.e., there exists a homeomorphism
-  `h : Z ≃ₜ B × F` such that `proj x = (h x).1`.
-
 ### Construction of a bundle from trivializations
 
 * `bundle.total_space E` is a type synonym for `Σ (x : B), E x`, that we can endow with a suitable
@@ -173,15 +169,15 @@ variables {ι : Type*} {B : Type*} {F : Type*}
 open topological_space filter set bundle
 open_locale topological_space classical bundle
 
+attribute [mfld_simps] total_space.proj total_space_mk coe_fst coe_snd coe_snd_map_apply
+  coe_snd_map_smul total_space.mk_cast
+
 /-! ### General definition of fiber bundles -/
 
 section fiber_bundle
 
 variables (F) [topological_space B] [topological_space F] (E : B → Type*)
-
-/-! ### Fiber bundles -/
-
-variables [topological_space (total_space E)] [∀ b, topological_space (E b)]
+  [topological_space (total_space E)] [∀ b, topological_space (E b)]
 
 /-- A (topological) fiber bundle with fiber `F` over a base `B` is a space projecting on `B`
 for which the fibers are all homeomorphic to `F`, such that the local situation around each point
@@ -208,21 +204,6 @@ class mem_trivialization_atlas [fiber_bundle F E] (e : trivialization F (π E)) 
 
 instance [fiber_bundle F E] (b : B) : mem_trivialization_atlas (trivialization_at F E b) :=
 { out := trivialization_mem_atlas F E b }
-
-variables (F E)
-
-/-- A trivial fiber bundle with fiber `F` over a base `B` is a space `Z`
-projecting on `B` for which there exists a homeomorphism to `B × F` that sends `proj`
-to `prod.fst`. -/
-def is_homeomorphic_trivial_fiber_bundle {Z : Type*} [topological_space Z] (proj : Z → B) : Prop :=
-∃ e : Z ≃ₜ (B × F), ∀ x, (e x).1 = proj x
-
-variables {F}
-
-lemma is_homeomorphic_trivial_fiber_bundle.proj_eq {Z : Type*} [topological_space Z] {proj : Z → B}
-  (h : is_homeomorphic_trivial_fiber_bundle F proj) :
-  ∃ e : Z ≃ₜ (B × F), proj = prod.fst ∘ e :=
-⟨h.some, (funext h.some_spec).symm⟩
 
 namespace fiber_bundle
 variables (F) {E} [fiber_bundle F E]
@@ -258,52 +239,7 @@ lemma continuous_total_space_mk (x : B) : continuous (@total_space_mk B E x) :=
 
 end fiber_bundle
 
-variables {F}
-
-/-- The projection from a trivial fiber bundle to its base is surjective. -/
-lemma is_homeomorphic_trivial_fiber_bundle.surjective_proj [nonempty F] {Z : Type*}
-  [topological_space Z] {proj : Z → B} (h : is_homeomorphic_trivial_fiber_bundle F proj) :
-  function.surjective proj :=
-begin
-  obtain ⟨e, rfl⟩ := h.proj_eq,
-  exact prod.fst_surjective.comp e.surjective,
-end
-
-/-- The projection from a trivial fiber bundle to its base is continuous. -/
-lemma is_homeomorphic_trivial_fiber_bundle.continuous_proj {Z : Type*} [topological_space Z]
-  {proj : Z → B} (h : is_homeomorphic_trivial_fiber_bundle F proj) :
-  continuous proj :=
-begin
-  obtain ⟨e, rfl⟩ := h.proj_eq,
-  exact continuous_fst.comp e.continuous,
-end
-
-/-- The projection from a trivial fiber bundle to its base is open. -/
-lemma is_homeomorphic_trivial_fiber_bundle.is_open_map_proj {Z : Type*} [topological_space Z]
-  {proj : Z → B} (h : is_homeomorphic_trivial_fiber_bundle F proj) :
-  is_open_map proj :=
-begin
-  obtain ⟨e, rfl⟩ := h.proj_eq,
-  exact is_open_map_fst.comp e.is_open_map,
-end
-
-/-- The projection from a trivial fiber bundle to its base is open. -/
-lemma is_homeomorphic_trivial_fiber_bundle.quotient_map_proj [nonempty F] {Z : Type*}
-  [topological_space Z] {proj : Z → B} (h : is_homeomorphic_trivial_fiber_bundle F proj) :
-  quotient_map proj :=
-h.is_open_map_proj.to_quotient_map h.continuous_proj h.surjective_proj
-
-variables (F)
-
-/-- The first projection in a product is a trivial fiber bundle. -/
-lemma is_homeomorphic_trivial_fiber_bundle_fst :
-  is_homeomorphic_trivial_fiber_bundle F (prod.fst : B × F → B) :=
-⟨homeomorph.refl _, λ x, rfl⟩
-
-/-- The second projection in a product is a trivial fiber bundle. -/
-lemma is_homeomorphic_trivial_fiber_bundle_snd :
-  is_homeomorphic_trivial_fiber_bundle F (prod.snd : F × B → B) :=
-⟨homeomorph.prod_comm _ _, λ x, rfl⟩
+variables (F E)
 
 /-- If `E` is a fiber bundle over a conditionally complete linear order,
 then it is trivial over any closed interval. -/
@@ -373,20 +309,7 @@ end
 
 end fiber_bundle
 
-/-! ### Constructing fiber bundles -/
-
-namespace bundle
-
-attribute [mfld_simps] total_space.proj total_space_mk coe_fst coe_snd coe_snd_map_apply
-  coe_snd_map_smul total_space.mk_cast
-
-instance [I : topological_space F] : ∀ x : B, topological_space (trivial B F x) := λ x, I
-
-instance [t₁ : topological_space B] [t₂ : topological_space F] :
-  topological_space (total_space (trivial B F)) :=
-induced total_space.proj t₁ ⊓ induced (trivial.proj_snd B F) t₂
-
-end bundle
+/-! ### Core construction for constructing fiber bundles -/
 
 /-- Core data defining a locally trivial bundle with fiber `F` over a topological
 space `B`. Note that "bundle" is used in its mathematical sense. This is the (computer science)
@@ -405,7 +328,7 @@ structure fiber_bundle_core (ι : Type*) (B : Type*) [topological_space B]
 (mem_base_set_at   : ∀ x, x ∈ base_set (index_at x))
 (coord_change      : ι → ι → B → F → F)
 (coord_change_self : ∀ i, ∀ x ∈ base_set i, ∀ v, coord_change i i x v = v)
-(coord_change_continuous : ∀ i j, continuous_on (λp : B × F, coord_change i j p.1 p.2)
+(continuous_on_coord_change : ∀ i j, continuous_on (λp : B × F, coord_change i j p.1 p.2)
                                                (((base_set i) ∩ (base_set j)) ×ˢ univ))
 (coord_change_comp : ∀ i j k, ∀ x ∈ (base_set i) ∩ (base_set j) ∩ (base_set k), ∀ v,
   (coord_change j k x) (coord_change i j x v) = coord_change i k x v)
@@ -472,9 +395,9 @@ def triv_change (i j : ι) : local_homeomorph (B × F) (B × F) :=
   open_target :=
     (is_open.inter (Z.is_open_base_set i) (Z.is_open_base_set j)).prod is_open_univ,
   continuous_to_fun  :=
-    continuous_on.prod continuous_fst.continuous_on (Z.coord_change_continuous i j),
+    continuous_on.prod continuous_fst.continuous_on (Z.continuous_on_coord_change i j),
   continuous_inv_fun := by simpa [inter_comm]
-    using continuous_on.prod continuous_fst.continuous_on (Z.coord_change_continuous j i) }
+    using continuous_on.prod continuous_fst.continuous_on (Z.continuous_on_coord_change j i) }
 
 @[simp, mfld_simps] lemma mem_triv_change_source (i j : ι) (p : B × F) :
   p ∈ (Z.triv_change i j).source ↔ p.1 ∈ Z.base_set i ∩ Z.base_set j :=
@@ -541,15 +464,13 @@ begin
     simp only [Z.coord_change_comp, hx, mem_inter_iff, and_self, mem_base_set_at], }
 end
 
-variable (ι)
-
 /-- Topological structure on the total space of a fiber bundle created from core, designed so
 that all the local trivialization are continuous. -/
 instance to_topological_space : topological_space (bundle.total_space Z.fiber) :=
 topological_space.generate_from $ ⋃ (i : ι) (s : set (B × F)) (s_open : is_open s),
   {(Z.local_triv_as_local_equiv i).source ∩ (Z.local_triv_as_local_equiv i) ⁻¹' s}
 
-variables {ι} (b : B) (a : F)
+variables (b : B) (a : F)
 
 lemma open_source' (i : ι) : is_open (Z.local_triv_as_local_equiv i).source :=
 begin
@@ -700,7 +621,7 @@ begin
     rw [preimage_inter, preimage_comp],
     by_cases (b ∈ Z.base_set i),
     { have hc : continuous (λ (x : Z.fiber b), (Z.coord_change (Z.index_at b) i b) x),
-        from (Z.coord_change_continuous (Z.index_at b) i).comp_continuous
+        from (Z.continuous_on_coord_change (Z.index_at b) i).comp_continuous
           (continuous_const.prod_mk continuous_id) (λ x, ⟨⟨Z.mem_base_set_at b, h⟩, mem_univ x⟩),
       exact (((Z.local_triv i).open_target.inter ht).preimage (continuous.prod.mk b)).preimage hc },
     { rw [(Z.local_triv i).target_eq, ←base_set_at, mk_preimage_prod_right_eq_empty h,
@@ -736,6 +657,8 @@ lemma continuous_proj : continuous Z.proj := continuous_proj F Z.fiber
 lemma is_open_map_proj : is_open_map Z.proj := is_open_map_proj F Z.fiber
 
 end fiber_bundle_core
+
+/-! ### Prebundle construction for constructing fiber bundles -/
 
 variables (F) (E : B → Type*) [topological_space B] [topological_space F]
 

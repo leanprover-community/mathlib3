@@ -40,8 +40,6 @@ consider writing automation to create these "lowered" instances.
 finiteness, finite types
 -/
 
-assert_not_exists nat.choose
-
 noncomputable theory
 open_locale classical
 

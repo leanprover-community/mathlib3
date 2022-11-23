@@ -717,32 +717,22 @@ end
 lemma integral_comp_rpow_Ioi {g : ℝ → ℝ} {p : ℝ} (hp : 0 < p) :
   ∫ x in Ioi 0, g (x ^ p) * (p * x ^ (p - 1)) = ∫ y in Ioi 0, g y :=
 begin
-  have a0 : ∀ (t : ℝ), ((1 : ℝ →L[ℝ] ℝ).smul_right t).det = t,
-  -- suggestions how to do this properly greatly appreciated!
-  { intro t,
-    rw (by { ext, simp } : (1 : ℝ →L[ℝ] ℝ).smul_right t = t • (1 : ℝ →L[ℝ] ℝ)),
-    rw [continuous_linear_map.det, continuous_linear_map.coe_smul],
-    have : ((1 : ℝ →L[ℝ] ℝ) : ℝ →ₗ[ℝ] ℝ) = (1 : ℝ →ₗ[ℝ] ℝ), { refl, },
-    rw [this, linear_map.det_smul, finite_dimensional.finrank_self],
-    suffices : (1 : ℝ →ₗ[ℝ] ℝ).det = 1, { rw this, simp },
-    exact linear_map.det_id },
-  have a1 : measurable_set (Ioi (0:ℝ)) := measurable_set_Ioi,
-  have : ∀ x:ℝ, (x ∈ Ioi (0:ℝ)) → has_deriv_at (λ (t:ℝ), t ^ p) (p * x ^ (p - 1)) x,
-  { intros x hx, apply has_deriv_at_rpow_const (or.inl (mem_Ioi.mp hx).ne'), },
-  have a2 := λ x hx, (this x hx).has_deriv_within_at.has_fderiv_within_at,
-  have a3 : inj_on (λ x:ℝ, x ^ p) (Ioi 0) :=
+  let S := Ioi (0 : ℝ),
+  have a1 : ∀ x:ℝ, x ∈ S → has_deriv_within_at (λ (t:ℝ), t ^ p) (p * x ^ (p - 1)) S x :=
+    λ x hx, (has_deriv_at_rpow_const (or.inl (mem_Ioi.mp hx).ne')).has_deriv_within_at,
+  have a2 : inj_on (λ x:ℝ, x ^ p) S :=
   strict_mono_on.inj_on (λ x hx y hy hxy, rpow_lt_rpow (mem_Ioi.mp hx).le hxy hp),
-  have a4 : (λ (t : ℝ), t ^ p) '' Ioi 0 = Ioi 0,
+  have a3 : (λ (t : ℝ), t ^ p) '' S = S,
   { ext1, rw mem_image, split,
     { rintro ⟨y, hy, rfl⟩, exact rpow_pos_of_pos hy p },
     { intro hx, use x ^ (1 / p), split,
-      { exact rpow_pos_of_pos hx (1/p) },
+      { exact rpow_pos_of_pos hx (1 / p) },
       { rw ←rpow_mul (le_of_lt hx), rw [one_div_mul_cancel hp.ne', rpow_one],}, } },
-  have := integral_image_eq_integral_abs_det_fderiv_smul volume a1 a2 a3 g,
-  rw a4 at this, rw this,
+  have := integral_image_eq_integral_abs_deriv_smul measurable_set_Ioi a1 a2 g,
+  rw a3 at this, rw this,
   refine set_integral_congr measurable_set_Ioi _,
   intros x hx, dsimp only,
-  rw [smul_eq_mul, mul_comm, a0, abs_of_nonneg],
+  rw [smul_eq_mul, mul_comm, abs_of_nonneg],
   exact mul_nonneg hp.le (rpow_nonneg_of_nonneg (le_of_lt hx) _),
 end
 

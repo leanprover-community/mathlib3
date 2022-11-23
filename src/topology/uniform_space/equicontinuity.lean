@@ -335,19 +335,28 @@ begin
   refl
 end
 
-/-- If a set of functions is equicontinuous, its closure for the product topology is also
-quicontinuous. -/
-lemma equicontinuous.closure {A : set $ X → α} (hA : A.equicontinuous) :
-  (closure A).equicontinuous :=
+/-- A version of `equicontinuous_at.closure` applicable to subsets of types which embed continuously
+into `X → α` with the product topology. It turns out we don't need any other condition on the
+embedding than continuity, but in practice this will mostly be applied to `fun_like` types where
+the coercion is injective. -/
+lemma continuous.equicontinuous_at_closure {A : set Y} {u : Y → X → α} {x₀ : X}
+  (hA : equicontinuous_at (u ∘ coe : A → X → α) x₀) (hu : continuous u) :
+  equicontinuous_at (u ∘ coe : closure A → X → α) x₀ :=
 begin
-  intros x U hU,
+  intros U hU,
   rcases mem_uniformity_is_closed hU with ⟨V, hV, hVclosed, hVU⟩,
-  filter_upwards [hA x V hV],
-  rintros y hy,
+  filter_upwards [hA V hV] with x hx,
   rw set_coe.forall at *,
-  change A ⊆ (λ f, (f x, f y)) ⁻¹' V at hy,
-  exact (closure_minimal hy $ hVclosed.preimage $ by continuity).trans (preimage_mono hVU)
+  change A ⊆ (λ f, (u f x₀, u f x)) ⁻¹' V at hx,
+  refine (closure_minimal hx $ hVclosed.preimage $ _).trans (preimage_mono hVU),
+  exact continuous.prod_mk ((continuous_apply x₀).comp hu) ((continuous_apply x).comp hu)
 end
+
+/-- If a set of functions is equicontinuous at some `x₀`, its closure for the product topology is
+also equicontinuous at `x₀`. -/
+lemma equicontinuous_at.closure {A : set $ X → α} {x₀ : X} (hA : A.equicontinuous_at x₀) :
+  (closure A).equicontinuous_at x₀ :=
+@continuous.equicontinuous_at_closure _ _ _ _ _ _ _ id _ hA continuous_id
 
 /-- A version of `equicontinuous.closure` applicable to subsets of types which embed continuously
 into `X → α` with the product topology. It turns out we don't need any other condition on the
@@ -356,10 +365,37 @@ the coercion is injective. -/
 lemma continuous.equicontinuous_closure {A : set Y} {u : Y → X → α}
   (hA : equicontinuous (u ∘ coe : A → X → α)) (hu : continuous u) :
   equicontinuous (u ∘ coe : closure A → X → α) :=
+λ x, hu.equicontinuous_at_closure (hA x)
+
+/-- If a set of functions is equicontinuous, its closure for the product topology is also
+equicontinuous. -/
+lemma equicontinuous.closure {A : set $ X → α} (hA : A.equicontinuous) :
+  (closure A).equicontinuous :=
+λ x, (hA x).closure
+
+/-- A version of `uniform_equicontinuous.closure` applicable to subsets of types which embed
+continuously into `β → α` with the product topology. It turns out we don't need any other condition
+on the embedding than continuity, but in practice this will mostly be applied to `fun_like` types
+where the coercion is injective. -/
+lemma continuous.uniform_equicontinuous_closure {A : set Y} {u : Y → β → α}
+  (hA : uniform_equicontinuous (u ∘ coe : A → β → α)) (hu : continuous u) :
+  uniform_equicontinuous (u ∘ coe : closure A → β → α) :=
 begin
-  rw [equicontinuous_iff_range, range_comp, subtype.range_coe] at *,
-  exact set.equicontinuous.mono hA.closure (image_closure_subset_closure_image hu)
+  intros U hU,
+  rcases mem_uniformity_is_closed hU with ⟨V, hV, hVclosed, hVU⟩,
+  filter_upwards [hA V hV],
+  rintros ⟨x, y⟩ hxy,
+  rw set_coe.forall at *,
+  change A ⊆ (λ f, (u f x, u f y)) ⁻¹' V at hxy,
+  refine (closure_minimal hxy $ hVclosed.preimage $ _).trans (preimage_mono hVU),
+  exact continuous.prod_mk ((continuous_apply x).comp hu) ((continuous_apply y).comp hu)
 end
+
+/-- If a set of functions is uniformly equicontinuous, its closure for the product topology is also
+uniformly equicontinuous. -/
+lemma uniform_equicontinuous.closure {A : set $ β → α} (hA : A.uniform_equicontinuous) :
+  (closure A).uniform_equicontinuous :=
+@continuous.uniform_equicontinuous_closure _ _ _ _ _ _ _ id hA continuous_id
 
 end
 

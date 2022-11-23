@@ -450,7 +450,7 @@ rel_embedding.of_map_rel_iff f hf
 @[simp] lemma coe_of_map_le_iff {α β} [partial_order α] [preorder β] {f : α → β} (h) :
   ⇑(of_map_le_iff f h) = f := rfl
 
-/-- A strictly monotone map from a linear order is an order embedding. --/
+/-- A strictly monotone map from a linear order is an order embedding. -/
 def of_strict_mono {α β} [linear_order α] [preorder β] (f : α → β)
   (h : strict_mono f) : α ↪o β :=
 of_map_le_iff f (λ _ _, h.le_iff_le)
@@ -651,7 +651,7 @@ by { ext, simp }
 by { ext, simp }
 
 /-- To show that `f : α → β`, `g : β → α` make up an order isomorphism of linear orders,
-    it suffices to prove `cmp a (g b) = cmp (f a) b`. --/
+    it suffices to prove `cmp a (g b) = cmp (f a) b`. -/
 def of_cmp_eq_cmp {α β} [linear_order α] [linear_order β] (f : α → β) (g : β → α)
   (h : ∀ (a : α) (b : β), cmp a (g b) = cmp (f a) b) : α ≃o β :=
 have gf : ∀ (a : α), a = g (f a) := by { intro, rw [←cmp_eq_eq_iff, h, cmp_self_eq_eq] },

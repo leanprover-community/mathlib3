@@ -151,8 +151,8 @@ begin
     simp only [denom, coe_coe, matrix.special_linear_group.coe_GL_pos_coe_GL_coe_matrix, zpow_neg,
       matrix.special_linear_group.det_coe, of_real_one, one_zpow, mul_one, subgroup_to_sl_moeb,
       sl_moeb],
-  refl,},
-  {convert zpow_ne_zero k (denom_ne_zero γ z)},
+    refl, },
+  { convert zpow_ne_zero k (denom_ne_zero γ z) },
 end
 
 lemma mul_slash (k1 k2 : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :

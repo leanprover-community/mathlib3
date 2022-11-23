@@ -102,12 +102,9 @@ instance [slash_invariant_form_class F Γ k] : has_coe_t F (slash_invariant_form
   ((f : slash_invariant_form Γ k) : ℍ → ℂ) = f := rfl
 
 instance has_add : has_add (slash_invariant_form Γ k) :=
-⟨λ f g, ⟨ f + g, begin
-  intro γ,
-  convert slash_action.add_action k γ (f : ℍ → ℂ) g,
-  exact (f.slash_action_eq' γ).symm,
-  exact (g.slash_action_eq' γ).symm
-  end⟩⟩
+⟨ λ f g,
+  { to_fun := f + g,
+    slash_action_eq' := λ γ, by convert slash_action.add_action k γ (f : ℍ → ℂ) g; simp } ⟩
 
 @[simp] lemma coe_add (f g : slash_invariant_form Γ k) : ⇑(f + g) = f + g := rfl
 @[simp] lemma add_apply (f g : slash_invariant_form Γ k) (z : ℍ) : (f + g) z = f z + g z := rfl
@@ -128,8 +125,6 @@ begin
  simp only [zsmul_eq_mul],
  congr,
 end
-
-
 
 instance has_csmul : has_smul ℂ (slash_invariant_form Γ k) :=
 ⟨ λ c f, {to_fun := c • f,
@@ -155,13 +150,10 @@ instance has_zsmul : has_smul ℤ (slash_invariant_form Γ k) :=
    (n • f) z = n • (f z) := rfl
 
 instance has_neg : has_neg (slash_invariant_form Γ k) :=
-⟨λ f, ⟨ -f, begin
-  intro g,
-  have := ((f.slash_action_eq') g),
-  rw [modular_form.subgroup_slash, modular_form.neg_slash] at *,
-  simp only [neg_inj],
-  convert this
-  end⟩ ⟩
+⟨ λ f,
+  { to_fun := -f,
+    slash_action_eq' := λ γ, by simpa [modular_form.subgroup_slash,
+      modular_form.neg_slash] using f.slash_action_eq' γ } ⟩
 
 @[simp] lemma coe_neg (f : slash_invariant_form Γ k) : ⇑(-f) = -f := rfl
 @[simp] lemma neg_apply (f : slash_invariant_form Γ k) (z : ℍ) : (-f) z = - (f z) := rfl
@@ -187,8 +179,8 @@ instance : module ℂ (slash_invariant_form Γ k) :=
 coe_hom_injective.module ℂ (coe_hom) (λ _ _, rfl)
 
 instance : has_one (slash_invariant_form Γ 0) :=
-{one := { to_fun := 1,
-  slash_action_eq' := by {intro A, convert modular_form.is_invariant_one A}}}
+⟨ { to_fun := 1,
+    slash_action_eq' := λ A, modular_form.is_invariant_one A } ⟩
 
 instance : inhabited (slash_invariant_form Γ k) := ⟨0⟩
 

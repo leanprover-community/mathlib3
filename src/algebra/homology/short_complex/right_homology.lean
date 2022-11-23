@@ -133,6 +133,14 @@ def of_limit_kernel_fork (hf : S.f = 0) (c : kernel_fork S.g) (hc : is_limit c) 
   hι₀ := kernel_fork.condition _,
   hι := is_limit.of_iso_limit hc (fork.ext (iso.refl _) (by tidy)), }
 
+@[simp] lemma of_limit_kernel_fork_p (hf : S.f = 0) (c : kernel_fork S.g)
+  (hc : is_limit c) : (of_limit_kernel_fork S hf c hc).p = 𝟙 _ := rfl
+@[simp] lemma of_limit_kernel_fork_ι (hf : S.f = 0) (c : kernel_fork S.g)
+  (hc : is_limit c) : (of_limit_kernel_fork S hf c hc).ι = c.ι := rfl
+@[simp] lemma of_limit_kernel_fork_f' (hf : S.f = 0) (c : kernel_fork S.g)
+  (hc : is_limit c) : (of_limit_kernel_fork S hf c hc).g' = S.g :=
+by rw [← cancel_epi (of_limit_kernel_fork S hf c hc).p, p_g', of_limit_kernel_fork_p, id_comp]
+
 @[simp]
 def of_has_kernel [has_kernel S.g] (hf : S.f = 0) : S.right_homology_data :=
 of_limit_kernel_fork S hf _ (kernel_is_kernel _)
@@ -465,6 +473,18 @@ def of_colimit_cokernel_coforks (φ : S₁ ⟶ S₂)
 { φQ := f,
   φH := f,
   commp' := comm.symm, }
+
+@[simps]
+def of_limit_kernel_forks (φ : S₁ ⟶ S₂)
+  (hf₁ : S₁.f = 0) (c₁ : kernel_fork S₁.g) (hc₁ : is_limit c₁)
+  (hf₂ : S₂.f = 0) (c₂ : kernel_fork S₂.g) (hc₂ : is_limit c₂) (f : c₁.X ⟶ c₂.X)
+  (comm : c₁.ι ≫ φ.τ₂ = f ≫ c₂.ι) :
+  right_homology_map_data φ (right_homology_data.of_limit_kernel_fork S₁ hf₁ c₁ hc₁)
+    (right_homology_data.of_limit_kernel_fork S₂ hf₂ c₂ hc₂) :=
+{ φQ := φ.τ₂,
+  φH := f,
+  commg'' := by simp [φ.comm₂₃],
+  commι' := comm.symm, }
 
 end right_homology_map_data
 

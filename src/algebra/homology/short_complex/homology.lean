@@ -241,6 +241,16 @@ def of_colimit_cokernel_coforks (φ : S₁ ⟶ S₂)
 { left := left_homology_map_data.of_colimit_cokernel_coforks _ _ _ _ _ _ _ _ comm,
   right := right_homology_map_data.of_colimit_cokernel_coforks _ _ _ _ _ _ _ _ comm, }
 
+@[simps]
+def of_limit_kernel_forks (φ : S₁ ⟶ S₂)
+  (hf₁ : S₁.f = 0) (c₁ : kernel_fork S₁.g) (hc₁ : is_limit c₁)
+  (hf₂ : S₂.f = 0) (c₂ : kernel_fork S₂.g) (hc₂ : is_limit c₂) (f : c₁.X ⟶ c₂.X)
+  (comm : c₁.ι ≫ φ.τ₂ = f ≫ c₂.ι) :
+  homology_map_data φ (homology_data.of_limit_kernel_fork S₁ hf₁ c₁ hc₁)
+    (homology_data.of_limit_kernel_fork S₂ hf₂ c₂ hc₂) :=
+{ left := left_homology_map_data.of_limit_kernel_forks _ _ _ _ _ _ _ _ comm,
+  right := right_homology_map_data.of_limit_kernel_forks _ _ _ _ _ _ _ _ comm, }
+
 end homology_map_data
 
 variable (S)

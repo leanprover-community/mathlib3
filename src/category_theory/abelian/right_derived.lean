@@ -199,13 +199,7 @@ exact_of_iso_of_exact (F.map (P.ι.f 0)) (F.map (P.cocomplex.d 0 1)) _ _
 /-- The isomorphism `(F.right_derived 0).obj X ≅ F.obj X` if `preserves_finite_limits F`. -/
 def right_derived_zero_iso_self_app [enough_injectives C] [preserves_finite_limits F]
   (X : C) : (F.right_derived 0).obj X ≅ F.obj X :=
-begin
-  let P := (has_injective_resolution.out X).some,
-  refine (homotopy_category.homology_factors D (complex_shape.up ℕ) 0).app
-    ((F.map_homological_complex _).obj P.cocomplex) ≪≫
-    F.homology_iso (P.cocomplex.sc' 0) ≪≫
-    F.map_iso P.homology_data_cocomplex_zero.homology_iso,
-end
+((has_injective_resolution.out X).some.homology_data_cocomplex_zero.map F).homology_iso
 
 /-- Given `P : InjectiveResolution X` and `Q : InjectiveResolution Y` and a morphism `f : X ⟶ Y`,
 naturality of the square given by `right_derived_zero_to_self_natural`. -/
@@ -214,29 +208,22 @@ lemma right_derived_zero_iso_self_naturality [enough_injectives C]
   (F.right_derived 0).map f ≫ (right_derived_zero_iso_self_app F Y).hom =
     (right_derived_zero_iso_self_app F X).hom ≫ F.map f :=
 begin
-  dsimp only [right_derived_zero_iso_self_app, iso.trans, iso.app, functor.map_iso],
-  simp only [category.assoc],
-  erw (homotopy_category.homology_factors D (complex_shape.up ℕ) 0).hom.naturality_assoc,
-  congr' 1,
-  sorry,
+  let I := (has_injective_resolution.out X).some,
+  let J := (has_injective_resolution.out Y).some,
+  let h := InjectiveResolution.homology_map_data_zero f I J
+    (InjectiveResolution.desc f J I)
+    (by rw [← homological_complex.comp_f, InjectiveResolution.desc_commutes,
+      homological_complex.comp_f, cochain_complex.single₀_map_f_0]),
+  refine eq.trans _ (h.map F).map_comm,
+  change (homology_functor D _ 0).map ((F.map_homological_complex _).map _) ≫ _ =
+    (homology_functor D _ 0).map ((F.map_homological_complex _).map _) ≫ _,
+  simp only [homotopy_category.homology_functor_map_factors],
+  congr' 2,
+  apply homotopy_category.eq_of_homotopy,
+  apply F.map_homotopy,
+  apply homotopy_category.homotopy_of_eq,
+  apply homotopy_category.quotient_map_out,
 end
-
---begin
---  dsimp [right_derived_zero_to_self_app_inv],
---  simp only [category_theory.functor.map_id, category.id_comp, ← category.assoc],
---  rw [iso.comp_inv_eq, right_derived_map_eq F 0 f (InjectiveResolution.desc f Q P) (by simp),
---    category.assoc, category.assoc, category.assoc, category.assoc, iso.inv_hom_id,
---    category.comp_id, ← category.assoc (F.right_derived_obj_iso 0 P).inv, iso.inv_hom_id,
---    category.id_comp],
---  dsimp only [homology_functor_map],
---  ext,
---  rw [category.assoc, homology.lift_ι, category.assoc, homology.map_ι,
---    ←category.assoc (homology.lift _ _ _ _ _) _ _, homology.lift_ι, category.assoc, cokernel.π_desc,
---    ←category.assoc, ← functor.map_comp, ← category.assoc, homological_complex.hom.sq_from_left,
---    map_homological_complex_map_f, ← functor.map_comp,
---    show f ≫ Q.ι.f 0 = P.ι.f 0 ≫ (InjectiveResolution.desc f Q P).f 0,
---    from homological_complex.congr_hom (InjectiveResolution.desc_commutes f Q P).symm 0],
---end
 
 /-- Given `preserves_finite_limits F`, the natural isomorphism `(F.right_derived 0) ≅ F`. -/
 def right_derived_zero_iso_self [enough_injectives C] [preserves_finite_limits F] :

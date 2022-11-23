@@ -270,6 +270,14 @@ def of_limit_kernel_fork (hf : S.f = 0) (c : kernel_fork S.g) (hc : is_limit c) 
     simp only [hf, comp_id, fork.is_limit.lift_ι, kernel_fork.ι_of_ι, zero_comp],
   end, }
 
+@[simp] lemma of_limit_kernel_fork_i (hf : S.f = 0) (c : kernel_fork S.g)
+  (hc : is_limit c) : (of_limit_kernel_fork S hf c hc).i = c.ι := rfl
+@[simp] lemma of_limit_kernel_fork_π (hf : S.f = 0) (c : kernel_fork S.g)
+  (hc : is_limit c) : (of_limit_kernel_fork S hf c hc).π = 𝟙 _ := rfl
+@[simp] lemma of_limit_kernel_fork_f' (hf : S.f = 0) (c : kernel_fork S.g)
+  (hc : is_limit c) : (of_limit_kernel_fork S hf c hc).f' = 0 :=
+by rw [← cancel_mono (of_limit_kernel_fork S hf c hc).i, f'_i, hf, zero_comp]
+
 @[simp]
 def of_has_kernel [has_kernel S.g] (hf : S.f = 0) : S.left_homology_data :=
 of_limit_kernel_fork S hf _ (kernel_is_kernel _)
@@ -473,6 +481,7 @@ def of_zeros (φ : S₁ ⟶ S₂) (hf₁ : S₁.f = 0) (hg₁ : S₁.g = 0) (hf�
   φH := φ.τ₂,
   commf'' := by simp only [left_homology_data.of_zeros_f', φ.comm₁₂], }
 
+@[simps]
 def of_colimit_cokernel_coforks (φ : S₁ ⟶ S₂)
   (hg₁ : S₁.g = 0) (c₁ : cokernel_cofork S₁.f) (hc₁ : is_colimit c₁)
   (hg₂ : S₂.g = 0) (c₂ : cokernel_cofork S₂.f) (hc₂ : is_colimit c₂) (f : c₁.X ⟶ c₂.X)
@@ -484,6 +493,18 @@ def of_colimit_cokernel_coforks (φ : S₁ ⟶ S₂)
   commi' := by { dsimp, simp only [comp_id, id_comp], },
   commf'' := by { simp only [left_homology_data.of_colimit_cokernel_cofork_f', φ.comm₁₂], },
   commπ' := comm.symm, }
+
+@[simps]
+def of_limit_kernel_forks (φ : S₁ ⟶ S₂)
+  (hf₁ : S₁.f = 0) (c₁ : kernel_fork S₁.g) (hc₁ : is_limit c₁)
+  (hf₂ : S₂.f = 0) (c₂ : kernel_fork S₂.g) (hc₂ : is_limit c₂) (f : c₁.X ⟶ c₂.X)
+  (comm : c₁.ι ≫ φ.τ₂ = f ≫ c₂.ι) :
+  left_homology_map_data φ (left_homology_data.of_limit_kernel_fork S₁ hf₁ c₁ hc₁)
+    (left_homology_data.of_limit_kernel_fork S₂ hf₂ c₂ hc₂) :=
+{ φK := f,
+  φH := f,
+  commi' := comm.symm,
+  commf'' := by simp only [left_homology_data.of_limit_kernel_fork_f', zero_comp, comp_zero], }
 
 end left_homology_map_data
 

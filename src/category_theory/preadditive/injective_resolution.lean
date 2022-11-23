@@ -104,7 +104,7 @@ I.exact₀.exact.f_is_kernel
 @[simp]
 def homology_data_cocomplex_zero {Z : C} (I : InjectiveResolution Z) [balanced C] :
   I.cocomplex.homology_data 0 :=
-I.cocomplex.homology_data_mk₂₃_of_kernel' (zero_add 1) (by simp) _ I.is_limit_kernel_fork
+I.cocomplex.homology_data_of_kernel' (zero_add 1) (by simp) _ I.is_limit_kernel_fork
 
 instance cocomplex_has_homology_succ' {Z : C} (I : InjectiveResolution Z) (n : ℕ):
   (homological_complex.sc I.cocomplex n (n + 1) (n + 2)).has_homology :=
@@ -122,6 +122,15 @@ begin
   { exact short_complex.has_homology.mk' I.homology_data_cocomplex_zero, },
   { apply_instance, },
 end
+
+@[simps]
+def homology_map_data_zero {X Y : C} (f : X ⟶ Y) (I : InjectiveResolution X)
+  (J : InjectiveResolution Y) (φ : I.cocomplex ⟶ J.cocomplex) [balanced C]
+  (comm : I.ι.f 0 ≫ φ.f 0 = f ≫ J.ι.f 0) :
+  homological_complex.homology_map_data φ 0 I.homology_data_cocomplex_zero
+    J.homology_data_cocomplex_zero :=
+short_complex.homology_map_data.of_limit_kernel_forks
+  ((homological_complex.short_complex_functor C _ 0).map φ) _ _ _ _ _ _ f comm
 
 instance {Z : C} (I : InjectiveResolution Z) (n : ℕ) : category_theory.mono (I.ι.f n) :=
 by cases n; apply_instance

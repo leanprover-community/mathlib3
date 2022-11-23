@@ -114,6 +114,7 @@ variables [hT : fact (0 < T)]
 include hT
 
 /-- Haar measure on the additive circle, normalised to have total measure 1. -/
+@[derive is_add_haar_measure]
 def haar_add_circle : measure (add_circle T) := add_haar_measure ⊤
 
 instance : is_probability_measure (@haar_add_circle T _) :=
@@ -258,8 +259,7 @@ begin
   { rw add_comm,
     exact sub_ne_zero.mpr (ne.symm h) },
   convert integral_eq_zero_of_add_right_eq_neg (fourier_add_half_inv_index hij hT.elim),
-  rw haar_add_circle,
-  exact is_mul_left_invariant.is_add_right_invariant
+  exact is_add_left_invariant.is_add_right_invariant
 end
 
 end monomials

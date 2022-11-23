@@ -73,6 +73,6 @@ for iname, f_status in status.file_statuses.items():
         new_fcontent = add_port_status(fcontent, f_status)
         if new_fcontent == fcontent:
             continue
-        print(f'* {iname}: https://github.com/leanprover-community/mathlib4/pull/{f_status.mathlib4_pr}')
+        print(f'* `{iname}`: https://github.com/leanprover-community/mathlib4/pull/{f_status.mathlib4_pr}')
         with open(fname, 'w') as f:
             f.write(new_fcontent)

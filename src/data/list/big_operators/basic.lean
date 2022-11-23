@@ -428,6 +428,16 @@ lemma all_one_of_le_one_le_of_prod_eq_one [ordered_comm_monoid M]
   x = 1 :=
 le_antisymm (hl₂ ▸ single_le_prod hl₁ _ hx) (hl₁ x hx)
 
+/-- Slightly more general version of `list.prod_eq_one_iff` for a non-ordered `monoid` -/
+@[to_additive "Slightly more general version of `list.sum_eq_zero_iff`
+  for a non-ordered `add_monoid`"]
+lemma prod_eq_one [monoid M] {l : list M} (hl : ∀ (x ∈ l), x = (1 : M)) : l.prod = 1 :=
+begin
+  induction l with i l hil,
+  { refl },
+  rw [list.prod_cons, hil (λ x hx, hl _ (mem_cons_of_mem i hx)), hl _ (mem_cons_self i l), one_mul]
+end
+
 -- TODO: develop theory of tropical rings
 lemma sum_le_foldr_max [add_monoid M] [add_monoid N] [linear_order N] (f : M → N)
   (h0 : f 0 ≤ 0) (hadd : ∀ x y, f (x + y) ≤ max (f x) (f y)) (l : list M) :

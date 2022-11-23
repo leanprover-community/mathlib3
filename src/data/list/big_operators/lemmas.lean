@@ -54,12 +54,6 @@ lemma pow_card_le_prod [monoid M] [preorder M]
 ⟨all_one_of_le_one_le_of_prod_eq_one (λ _ _, one_le _),
   λ h, by rw [eq_repeat.2 ⟨rfl, h⟩, prod_repeat, one_pow]⟩
 
-/-- Slightly more general version of `list.prod_eq_one_iff` for a non-ordered `monoid` -/
-@[to_additive "Slightly more general version of `list.sum_eq_zero_iff`
-  for a non-ordered `add_monoid`"]
-lemma prod_eq_one [monoid M] {l : list M} (hl : ∀ (x ∈ l), x = (1 : M)) : l.prod = 1 :=
-trans (prod_eq_pow_card l 1 hl) (one_pow l.length)
-
 @[to_additive]
 lemma exists_mem_ne_one_of_prod_ne_one [monoid M] {l : list M} (h : l.prod ≠ 1) :
   ∃ (x ∈ l), x ≠ (1 : M) :=

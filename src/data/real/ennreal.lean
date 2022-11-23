@@ -1699,7 +1699,7 @@ lemma of_real_pow {p : ℝ} (hp : 0 ≤ p) (n : ℕ) :
   ennreal.of_real (p ^ n) = ennreal.of_real p ^ n :=
 by rw [of_real_eq_coe_nnreal hp, ← coe_pow, ← of_real_coe_nnreal, nnreal.coe_pow, nnreal.coe_mk]
 
-@[simp] lemma of_real_nsmul {x : ℝ} {n : ℕ} :
+lemma of_real_nsmul {x : ℝ} {n : ℕ} :
   ennreal.of_real (n • x) = n • ennreal.of_real x :=
 by simp only [nsmul_eq_mul, ← of_real_coe_nat n, ← of_real_mul n.cast_nonneg]
 

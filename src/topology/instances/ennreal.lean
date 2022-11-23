@@ -1188,6 +1188,14 @@ begin
   exact nnreal.summable_of_le (λ b, nnreal.coe_le_coe.1 (hgf b)) hf
 end
 
+lemma summable.to_nnreal {f : α → ℝ} (hf : summable f) :
+  summable (λ n, (f n).to_nnreal) :=
+begin
+  apply nnreal.summable_coe.1,
+  refine summable_of_nonneg_of_le (λ n, nnreal.coe_nonneg _) (λ n, _) hf.abs,
+  simp only [le_abs_self, real.coe_to_nnreal', max_le_iff, abs_nonneg, and_self]
+end
+
 /-- A series of non-negative real numbers converges to `r` in the sense of `has_sum` if and only if
 the sequence of partial sum converges to `r`. -/
 lemma has_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} (hf : ∀i, 0 ≤ f i) (r : ℝ) :

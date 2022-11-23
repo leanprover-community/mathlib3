@@ -3,11 +3,13 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Yaël Dillies
 -/
-import order.min_max
-import algebra.ring.defs
-import algebra.order.monoid.cancel.defs
+
 import algebra.order.group.defs
+import algebra.order.monoid.cancel.defs
+import algebra.order.monoid.with_zero
 import algebra.order.ring.lemmas
+import algebra.ring.defs
+import order.min_max
 import tactic.nontriviality
 
 /-!

@@ -88,7 +88,7 @@ variables {ι κ X Y Z α β γ 𝓕 : Type*} [topological_space X] [topological
 
 /-- A family `F : ι → X → α` of functions from a topological space to a uniform space is
 *equicontinuous at `x₀ : X`* if, for all entourage `U ∈ 𝓤 α`, there is a neighborhood `V` of `x₀`
-such that, for all `x ∈ V` and for all `i : ι`, `F i x` is `U`-close to `F i x₉`. -/
+such that, for all `x ∈ V` and for all `i : ι`, `F i x` is `U`-close to `F i x₀`. -/
 def equicontinuous_at (F : ι → X → α) (x₀ : X) : Prop :=
 ∀ U ∈ 𝓤 α, ∀ᶠ x in 𝓝 x₀, ∀ i, (F i x₀, F i x) ∈ U
 
@@ -109,7 +109,7 @@ equicontinuous (coe : H → X → α)
 
 /-- A family `F : ι → β → α` of functions between uniform spaces is *uniformly equicontinuous* if,
 for all entourage `U ∈ 𝓤 α`, there is an entourage `V ∈ 𝓤 β` such that, whenever `x` and `y` are
-`V`-close, we have that, *for all `i : ι`*, `F i x` is `U`-close to `F i x₉`. -/
+`V`-close, we have that, *for all `i : ι`*, `F i x` is `U`-close to `F i x₀`. -/
 def uniform_equicontinuous (F : ι → β → α) : Prop :=
 ∀ U ∈ 𝓤 α, ∀ᶠ (xy : β × β) in 𝓤 β, ∀ i, (F i xy.1, F i xy.2) ∈ U
 
@@ -355,7 +355,7 @@ embedding than continuity, but in practice this will mostly be applied to `fun_l
 the coercion is injective. -/
 lemma continuous.equicontinuous_closure {A : set Y} {u : Y → X → α}
   (hA : equicontinuous (u ∘ coe : A → X → α)) (hu : continuous u) :
-  equicontinuous (u ∘ coe : (closure A) → X → α) :=
+  equicontinuous (u ∘ coe : closure A → X → α) :=
 begin
   rw [equicontinuous_iff_range, range_comp, subtype.range_coe] at *,
   exact set.equicontinuous.mono hA.closure (image_closure_subset_closure_image hu)

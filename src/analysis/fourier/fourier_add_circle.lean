@@ -75,7 +75,7 @@ end
 
 /-- The canonical map `λ x, exp (2 π i x / T)` from `ℝ / ℤ • T` to the unit circle in `ℂ`.
 If `T = 0` we understand this as the constant function 1. -/
-def to_circle := (@scaled_exp_map_periodic T).lift
+def to_circle : add_circle T → circle := (@scaled_exp_map_periodic T).lift
 
 lemma to_circle_add (x : add_circle T) (y : add_circle T) :
   to_circle (x + y) = to_circle x * to_circle y :=
@@ -98,9 +98,9 @@ begin
   obtain ⟨m, hm⟩ := exp_map_circle_eq_exp_map_circle.mp h.symm,
   simp_rw [quotient_add_group.eq, add_subgroup.mem_zmultiples_iff, zsmul_eq_mul],
   use m,
-  rw ( by { field_simp, ring } : ↑m * (2 * π) = (2 * π / T) * (m * T) ) at hm,
-  rw [←mul_right_inj' (div_ne_zero real.two_pi_pos.ne' hT), mul_add, hm],
-  ring,
+  field_simp [real.two_pi_pos.ne'] at hm,
+  rw ← mul_right_inj' real.two_pi_pos.ne',
+  linarith
 end
 
 section def_measure

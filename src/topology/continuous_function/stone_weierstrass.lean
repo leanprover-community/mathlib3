@@ -380,7 +380,7 @@ hA ⟨f, hf, rfl⟩
 /-- If a set `S` is conjugation-invariant, then its `𝕜`-span is conjugation-invariant. -/
 lemma subalgebra_conj_invariant {S : set C(X, 𝕜)}
   (hS : ∀ f, f ∈ S → (conj_ae.to_alg_hom.comp_left_continuous ℝ conj_cle.continuous) f ∈ S) :
-conj_invariant_subalgebra ((algebra.adjoin 𝕜 S).restrict_scalars ℝ) :=
+  conj_invariant_subalgebra ((algebra.adjoin 𝕜 S).restrict_scalars ℝ) :=
 begin
   rintros _ ⟨f, hf, rfl⟩,
   change _ ∈ ((algebra.adjoin 𝕜 S).restrict_scalars ℝ),

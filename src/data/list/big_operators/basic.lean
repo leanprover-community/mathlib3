@@ -438,6 +438,11 @@ begin
   rw [list.prod_cons, hil (λ x hx, hl _ (mem_cons_of_mem i hx)), hl _ (mem_cons_self i l), one_mul]
 end
 
+@[to_additive]
+lemma exists_mem_ne_one_of_prod_ne_one [monoid M] {l : list M} (h : l.prod ≠ 1) :
+  ∃ (x ∈ l), x ≠ (1 : M) :=
+by simpa only [not_forall] using mt prod_eq_one h
+
 -- TODO: develop theory of tropical rings
 lemma sum_le_foldr_max [add_monoid M] [add_monoid N] [linear_order N] (f : M → N)
   (h0 : f 0 ≤ 0) (hadd : ∀ x y, f (x + y) ≤ max (f x) (f y)) (l : list M) :

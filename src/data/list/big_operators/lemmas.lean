@@ -54,11 +54,6 @@ lemma pow_card_le_prod [monoid M] [preorder M]
 ⟨all_one_of_le_one_le_of_prod_eq_one (λ _ _, one_le _),
   λ h, by rw [eq_repeat.2 ⟨rfl, h⟩, prod_repeat, one_pow]⟩
 
-@[to_additive]
-lemma exists_mem_ne_one_of_prod_ne_one [monoid M] {l : list M} (h : l.prod ≠ 1) :
-  ∃ (x ∈ l), x ≠ (1 : M) :=
-by simpa only [not_forall] using mt prod_eq_one h
-
 /-- If a product of integers is `-1`, then at least one factor must be `-1`. -/
 lemma neg_one_mem_of_prod_eq_neg_one {l : list ℤ} (h : l.prod = -1) : (-1 : ℤ) ∈ l :=
 begin

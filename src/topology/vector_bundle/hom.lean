@@ -8,16 +8,25 @@ import topology.vector_bundle.basic
 import analysis.normed_space.operator_norm
 
 /-!
-# The topological vector bundle of continuous (semi)linear maps
+# The vector bundle of continuous (semi)linear maps
 
-We define the topological vector bundle of continuous (semi)linear maps between two
-vector bundles over the same base.
-Given bundles `E₁ E₂ : B → Type*`, we define
-`bundle.continuous_linear_map 𝕜 E₁ E₂ := λ x, E₁ x →SL[𝕜] E₂ x`.
-If the `E₁` and `E₂` are topological vector bundles with fibers `F₁` and `F₂`, then this will
-be a topological vector bundle with fiber `F₁ →SL[𝕜] F₂`.
-The topology is inherited from the norm-topology on, without the need to define the strong
-topology on continuous linear maps between general topological vector spaces.
+We define the (topological) vector bundle of continuous (semi)linear maps between two vector bundles
+over the same base.
+
+Given bundles `E₁ E₂ : B → Type*`, normed spaces `F₁` and `F₂`, and a ring-homomorphism `σ` between
+their respective scalar fields, we define `bundle.continuous_linear_map σ F₁ E₁ F₂ E₂ x` to be a
+type synonym for `λ x, E₁ x →SL[σ] E₂ x`. If the `E₁` and `E₂` are vector bundles with model fibers
+`F₁` and `F₂`, then this will be a vector bundle with fiber `F₁ →SL[σ] F₂`.
+
+The topology is constructed from the trivializations for `E₁` and `E₂` and the norm-topology on the
+model fiber `F₁ →SL[𝕜] F₂` using the `vector_prebundle` construction.  This is a bit awkward because
+it introduces a spurious (?) dependence on the normed space structure of the model fibre, rather
+than just its topological vector space structure; this might be fixable now that we have
+`continuous_linear_map.strong_topology`.
+
+Similar constructions should be possible (but are yet to be formalized) for tensor products of
+topological vector bundles, exterior algebras, and so on, where again the topology can be defined
+using a norm on the fiber model if this helps.
 
 ## Main Definitions
 

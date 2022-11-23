@@ -2340,6 +2340,13 @@ begin
   rwa [comap_map_eq, comap_map_eq, sup_of_le_left hH, sup_of_le_left hK] at hf,
 end
 
+@[to_additive] lemma subgroup_of_eq_bot {H K : subgroup G} : H.subgroup_of K = ⊥ ↔ disjoint H K :=
+by rw [←(map_injective K.subtype_injective).eq_iff, subgroup_of_map_subtype, map_bot, disjoint_iff]
+
+@[to_additive] lemma subgroup_of_eq_top {H K : subgroup G} : H.subgroup_of K = ⊤ ↔ K ≤ H :=
+by rw [←(map_injective K.subtype_injective).eq_iff, subgroup_of_map_subtype,
+  ←K.subtype.range_eq_map, K.subtype_range, inf_eq_right]
+
 @[to_additive] lemma closure_preimage_eq_top (s : set G) :
   closure ((closure s).subtype ⁻¹' s) = ⊤ :=
 begin
@@ -2598,6 +2605,9 @@ iff.rfl
 @[simp] lemma zpow_mem_zpowers (g : G) (k : ℤ) : g^k ∈ zpowers g :=
 mem_zpowers_iff.mpr ⟨k, rfl⟩
 
+@[simp] lemma npow_mem_zpowers (g : G) (k : ℕ) : g^k ∈ zpowers g :=
+(zpow_coe_nat g k) ▸ zpow_mem_zpowers g k
+
 @[simp] lemma forall_zpowers {x : G} {p : zpowers x → Prop} :
   (∀ g, p g) ↔ ∀ m : ℤ, p ⟨x ^ m, m, rfl⟩ :=
 set.forall_subtype_range_iff
@@ -2634,6 +2644,7 @@ attribute [to_additive add_subgroup.range_zmultiples_hom] subgroup.range_zpowers
 attribute [to_additive add_subgroup.zmultiples_subset] subgroup.zpowers_subset
 attribute [to_additive add_subgroup.mem_zmultiples_iff] subgroup.mem_zpowers_iff
 attribute [to_additive add_subgroup.zsmul_mem_zmultiples] subgroup.zpow_mem_zpowers
+attribute [to_additive add_subgroup.nsmul_mem_zmultiples] subgroup.npow_mem_zpowers
 attribute [to_additive add_subgroup.forall_zmultiples] subgroup.forall_zpowers
 attribute [to_additive add_subgroup.forall_mem_zmultiples] subgroup.forall_mem_zpowers
 attribute [to_additive add_subgroup.exists_zmultiples] subgroup.exists_zpowers

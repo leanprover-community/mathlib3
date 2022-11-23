@@ -9,6 +9,10 @@ import algebra.ne_zero
 /-!
 # Cast of natural numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/641
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the *canonical* homomorphism from the natural numbers into an
 `add_monoid` with a one.  In additive monoids with one, there exists a unique
 such homomorphism and we store it in the `nat_cast : ℕ → R` field.
@@ -164,7 +168,7 @@ end nat
 
 namespace ne_zero
 
-lemma ne' (n : ℕ) (R) [add_monoid_with_one R] [h : ne_zero (n : R)] :
+lemma nat_cast_ne (n : ℕ) (R) [add_monoid_with_one R] [h : ne_zero (n : R)] :
   (n : R) ≠ 0 := h.out
 
 lemma of_ne_zero_coe (R) [add_monoid_with_one R] {n : ℕ} [h : ne_zero (n : R)] : ne_zero n :=

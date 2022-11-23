@@ -5,6 +5,7 @@ Authors: Aaron Anderson, Alex J. Best, Johan Commelin, Eric Rodriguez, Ruben Van
 -/
 
 import algebra.char_p.algebra
+import data.zmod.algebra
 import field_theory.finite.basic
 import field_theory.galois
 

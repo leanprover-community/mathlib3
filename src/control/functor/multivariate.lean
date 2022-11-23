@@ -5,8 +5,6 @@ Authors: Jeremy Avigad, Mario Carneiro, Simon Hudon
 -/
 import data.fin.fin2
 import data.typevec
-import logic.function.basic
-import tactic.basic
 
 /-!
 

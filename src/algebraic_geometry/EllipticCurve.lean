@@ -70,9 +70,9 @@ instance : inhabited (EllipticCurve ℚ) :=
 
 variables {R : Type u} [comm_ring R] (E : EllipticCurve R)
 
-/-! ### Standard quantities -/
-
 section quantity
+
+/-! ### Standard quantities -/
 
 /-- The `b₂` coefficient of an elliptic curve. -/
 @[simp] def b₂ : R := E.a₁ ^ 2 + 4 * E.a₂
@@ -106,37 +106,87 @@ lemma c_relation : 1728 * ↑E.Δ = E.c₄ ^ 3 - E.c₆ ^ 2 := by { simp, ring1 
 
 end quantity
 
-/-! ### `2`-torsion polynomials -/
-
 section torsion_polynomial
 
-variables (A : Type v) [comm_ring A] [algebra R A]
+/-! ### `2`-torsion polynomials -/
 
 /-- The polynomial whose roots over a splitting field of `R` are the `2`-torsion points of the
   elliptic curve when `R` is a field of characteristic different from `2`, and whose discriminant
   happens to be a multiple of the discriminant of the elliptic curve. -/
-def two_torsion_polynomial : cubic A :=
-⟨4, algebra_map R A E.b₂, 2 * algebra_map R A E.b₄, algebra_map R A E.b₆⟩
+def two_torsion_polynomial : cubic R := ⟨4, E.b₂, 2 * E.b₄, E.b₆⟩
 
-lemma two_torsion_polynomial.disc_eq :
-  (two_torsion_polynomial E A).disc = 16 * algebra_map R A E.Δ :=
-begin
-  simp only [two_torsion_polynomial, cubic.disc, coe_Δ, b₂, b₄, b₆, b₈, map_neg, map_add, map_sub,
-             map_mul, map_pow, map_one, map_bit0, map_bit1],
-  ring1
-end
+lemma two_torsion_polynomial.disc_eq : E.two_torsion_polynomial.disc = 16 * E.Δ :=
+by { simp only [two_torsion_polynomial, cubic.disc, coe_Δ, b₂, b₄, b₆, b₈], ring1 }
 
 lemma two_torsion_polynomial.disc_ne_zero {K : Type u} [field K] [invertible (2 : K)]
-  (E : EllipticCurve K) (A : Type v) [comm_ring A] [nontrivial A] [algebra K A] :
-  (two_torsion_polynomial E A).disc ≠ 0 :=
+  (E : EllipticCurve K) : E.two_torsion_polynomial.disc ≠ 0 :=
 λ hdisc, E.Δ.ne_zero $ mul_left_cancel₀ (pow_ne_zero 4 $ nonzero_of_invertible (2 : K)) $
-  (algebra_map K A).injective
-begin
-  simp only [map_mul, map_pow, map_bit0, map_one, map_zero],
-  linear_combination hdisc - two_torsion_polynomial.disc_eq E A
-end
+by linear_combination hdisc - two_torsion_polynomial.disc_eq E
+    with { normalization_tactic := `[ring1] }
 
 end torsion_polynomial
+
+section base_change
+
+/-! ### Base change -/
+
+variables (A : Type v) [comm_ring A] [algebra R A]
+
+private meta def simp_map : tactic unit :=
+`[simp only [map_one, map_bit0, map_bit1, map_neg, map_add, map_sub, map_mul, map_pow]]
+
+/-- The elliptic curve over `R` base changed to `A`. -/
+def base_change : EllipticCurve A :=
+{ a₁   := algebra_map R A E.a₁,
+  a₂   := algebra_map R A E.a₂,
+  a₃   := algebra_map R A E.a₃,
+  a₄   := algebra_map R A E.a₄,
+  a₆   := algebra_map R A E.a₆,
+  Δ    := units.map ↑(algebra_map R A) E.Δ,
+  Δ_eq := by { simp only [units.coe_map, ← coe_fn_coe_base, Δ_eq, Δ_aux], simp_map } }
+
+namespace base_change
+
+@[simp] lemma a₁_eq : (E.base_change A).a₁ = algebra_map R A E.a₁ := rfl
+
+@[simp] lemma a₂_eq : (E.base_change A).a₂ = algebra_map R A E.a₂ := rfl
+
+@[simp] lemma a₃_eq : (E.base_change A).a₃ = algebra_map R A E.a₃ := rfl
+
+@[simp] lemma a₄_eq : (E.base_change A).a₄ = algebra_map R A E.a₄ := rfl
+
+@[simp] lemma a₆_eq : (E.base_change A).a₆ = algebra_map R A E.a₆ := rfl
+
+@[simp] lemma b₂_eq : (E.base_change A).b₂ = algebra_map R A E.b₂ :=
+by { simp only [b₂, a₁_eq, a₂_eq], simp_map }
+
+@[simp] lemma b₄_eq : (E.base_change A).b₄ = algebra_map R A E.b₄ :=
+by { simp only [b₄, a₁_eq, a₃_eq, a₄_eq], simp_map }
+
+@[simp] lemma b₆_eq : (E.base_change A).b₆ = algebra_map R A E.b₆ :=
+by { simp only [b₆, a₃_eq, a₆_eq], simp_map }
+
+@[simp] lemma b₈_eq : (E.base_change A).b₈ = algebra_map R A E.b₈ :=
+by { simp only [b₈, a₁_eq, a₂_eq, a₃_eq, a₄_eq, a₆_eq], simp_map }
+
+@[simp] lemma c₄_eq : (E.base_change A).c₄ = algebra_map R A E.c₄ :=
+by { simp only [c₄, b₂_eq, b₄_eq], simp_map }
+
+@[simp] lemma c₆_eq : (E.base_change A).c₆ = algebra_map R A E.c₆ :=
+by { simp only [c₆, b₂_eq, b₄_eq, b₆_eq], simp_map }
+
+@[simp] lemma Δ_coe_eq : ↑(E.base_change A).Δ = algebra_map R A E.Δ := rfl
+
+@[simp] lemma Δ_coe_inv_eq : ↑(E.base_change A).Δ⁻¹ = algebra_map R A ↑E.Δ⁻¹ := rfl
+
+@[simp] lemma j_eq : (E.base_change A).j = algebra_map R A E.j :=
+by { simp only [j, c₄_eq, Δ_coe_inv_eq], simp_map }
+
+end base_change
+
+end base_change
+
+section change_of_variable
 
 /-! ### Changes of variables -/
 
@@ -201,11 +251,13 @@ by { simp [change_of_variable], ring1 }
 
 @[simp] lemma j_eq : (E.change_of_variable u r s t).j = E.j :=
 begin
-  simp only [j, c₄, Δ_eq, inv_pow, mul_inv_rev, inv_inv, units.coe_mul, units.coe_pow,
-    c₄_eq, b₂, b₄],
+  simp only [b₂, b₄, c₄, j, c₄_eq, Δ_eq, inv_inv, inv_pow, mul_inv_rev, units.coe_mul, u.coe_pow],
   have hu : (u * ↑u⁻¹ : R) ^ 12 = 1 := by rw [u.mul_inv, one_pow],
   linear_combination ↑E.Δ⁻¹ * ((E.a₁ ^ 2 + 4 * E.a₂) ^ 2 - 24 * (2 * E.a₄ + E.a₁ * E.a₃)) ^ 3 * hu
+    with { normalization_tactic := `[ring1] }
 end
+
+end change_of_variable
 
 end change_of_variable
 

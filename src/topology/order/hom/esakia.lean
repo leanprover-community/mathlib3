@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import order.hom.bounded
-import order.hom.order
 import topology.order.hom.basic
 
 /-!

@@ -5,11 +5,15 @@ Authors: Anne Baanen
 -/
 
 import logic.function.basic
-import tactic.lint
+import tactic.lint.default
 import tactic.norm_cast
 
 /-!
 # Typeclass for a type `F` with an injective map to `A → B`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/541
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This typeclass is primarily for use by homomorphisms like `monoid_hom` and `linear_map`.
 
@@ -183,6 +187,10 @@ ext_iff.not.trans not_forall
 
 lemma exists_ne {f g : F} (h : f ≠ g) : ∃ x, f x ≠ g x :=
 ne_iff.mp h
+
+/-- This is not an instance to avoid slowing down every single `subsingleton` typeclass search.-/
+lemma subsingleton_cod [∀ a, subsingleton (β a)] : subsingleton F :=
+⟨λ f g, coe_injective $ subsingleton.elim _ _⟩
 
 end fun_like
 

@@ -993,6 +993,7 @@ begin
       { rwa [finset.mem_coe] }},
     convert h_add _ Pg (h_ind x mx),
     { ext1 y, by_cases hy : y ∈ f ⁻¹' {x}; [simpa [hy], simp [hy]] },
+    rw disjoint_iff_inf_le,
     rintro y, by_cases hy : y ∈ f ⁻¹' {x}; simp [hy] }
 end
 
@@ -1006,7 +1007,7 @@ variables {m : measurable_space α} {μ ν : measure α}
 @[irreducible] def lintegral {m : measurable_space α} (μ : measure α) (f : α → ℝ≥0∞) : ℝ≥0∞ :=
 ⨆ (g : α →ₛ ℝ≥0∞) (hf : ⇑g ≤ f), g.lintegral μ
 
-/-! In the notation for integrals, an expression like `∫⁻ x, g ∥x∥ ∂μ` will not be parsed correctly,
+/-! In the notation for integrals, an expression like `∫⁻ x, g ‖x‖ ∂μ` will not be parsed correctly,
   and needs parentheses. We do not set the binding power of `r` to `0`, because then
   `∫⁻ x, f x = 0` will be parsed incorrectly. -/
 notation `∫⁻` binders `, ` r:(scoped:60 f, f) ` ∂` μ:70 := lintegral μ r
@@ -1228,7 +1229,7 @@ lemma set_lintegral_congr_fun {f g : α → ℝ≥0∞} {s : set α} (hs : measu
 by { rw lintegral_congr_ae, rw eventually_eq, rwa ae_restrict_iff' hs, }
 
 lemma lintegral_of_real_le_lintegral_nnnorm (f : α → ℝ) :
-  ∫⁻ x, ennreal.of_real (f x) ∂μ ≤ ∫⁻ x, ∥f x∥₊ ∂μ :=
+  ∫⁻ x, ennreal.of_real (f x) ∂μ ≤ ∫⁻ x, ‖f x‖₊ ∂μ :=
 begin
   simp_rw ← of_real_norm_eq_coe_nnnorm,
   refine lintegral_mono (λ x, ennreal.of_real_le_of_real _),
@@ -1237,7 +1238,7 @@ begin
 end
 
 lemma lintegral_nnnorm_eq_of_ae_nonneg {f : α → ℝ} (h_nonneg : 0 ≤ᵐ[μ] f) :
-  ∫⁻ x, ∥f x∥₊ ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
+  ∫⁻ x, ‖f x‖₊ ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
 begin
   apply lintegral_congr_ae,
   filter_upwards [h_nonneg] with x hx,
@@ -1245,7 +1246,7 @@ begin
 end
 
 lemma lintegral_nnnorm_eq_of_nonneg {f : α → ℝ} (h_nonneg : 0 ≤ f) :
-  ∫⁻ x, ∥f x∥₊ ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
+  ∫⁻ x, ‖f x‖₊ ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
 lintegral_nnnorm_eq_of_ae_nonneg (filter.eventually_of_forall h_nonneg)
 
 /-- Monotone convergence theorem -- sometimes called Beppo-Levi convergence.
@@ -1975,9 +1976,9 @@ section
 open encodable
 
 /-- Monotone convergence for a supremum over a directed family and indexed by a countable type -/
-theorem lintegral_supr_directed [countable β] {f : β → α → ℝ≥0∞}
-  (hf : ∀b, measurable (f b)) (h_directed : directed (≤) f) :
-  ∫⁻ a, ⨆b, f b a ∂μ = ⨆b, ∫⁻ a, f b a ∂μ :=
+theorem lintegral_supr_directed_of_measurable [countable β] {f : β → α → ℝ≥0∞}
+  (hf : ∀ b, measurable (f b)) (h_directed : directed (≤) f) :
+  ∫⁻ a, ⨆ b, f b a ∂μ = ⨆ b, ∫⁻ a, f b a ∂μ :=
 begin
   casesI nonempty_encodable β,
   casesI is_empty_or_nonempty β, { simp [supr_of_empty] },
@@ -1999,20 +2000,52 @@ begin
     end
 end
 
+/-- Monotone convergence for a supremum over a directed family and indexed by a countable type. -/
+theorem lintegral_supr_directed [countable β] {f : β → α → ℝ≥0∞}
+  (hf : ∀ b, ae_measurable (f b) μ) (h_directed : directed (≤) f) :
+  ∫⁻ a, ⨆ b, f b a ∂μ = ⨆ b, ∫⁻ a, f b a ∂μ :=
+begin
+  simp_rw ←supr_apply,
+  let p : α → (β → ennreal) → Prop := λ x f', directed has_le.le f',
+  have hp : ∀ᵐ x ∂μ, p x (λ i, f i x),
+  { filter_upwards with x i j,
+    obtain ⟨z, hz₁, hz₂⟩ := h_directed i j,
+    exact ⟨z, hz₁ x, hz₂ x⟩, },
+  have h_ae_seq_directed : directed has_le.le (ae_seq hf p),
+  { intros b₁ b₂,
+    obtain ⟨z, hz₁, hz₂⟩ := h_directed b₁ b₂,
+    refine ⟨z, _, _⟩;
+    { intros x,
+      by_cases hx : x ∈ ae_seq_set hf p,
+      { repeat { rw ae_seq.ae_seq_eq_fun_of_mem_ae_seq_set hf hx },
+        apply_rules [hz₁, hz₂], },
+      { simp only [ae_seq, hx, if_false],
+        exact le_rfl, }, }, },
+  convert (lintegral_supr_directed_of_measurable (ae_seq.measurable hf p)
+    h_ae_seq_directed) using 1,
+  { simp_rw ←supr_apply,
+    rw lintegral_congr_ae (ae_seq.supr hf hp).symm, },
+  { congr' 1,
+    ext1 b,
+    rw lintegral_congr_ae,
+    symmetry,
+    refine ae_seq.ae_seq_n_eq_fun_n_ae hf hp _, },
 end
 
-lemma lintegral_tsum [countable β] {f : β → α → ℝ≥0∞} (hf : ∀i, measurable (f i)) :
+end
+
+lemma lintegral_tsum [countable β] {f : β → α → ℝ≥0∞} (hf : ∀i, ae_measurable (f i) μ) :
   ∫⁻ a, ∑' i, f i a ∂μ = ∑' i, ∫⁻ a, f i a ∂μ :=
 begin
   simp only [ennreal.tsum_eq_supr_sum],
   rw [lintegral_supr_directed],
-  { simp [lintegral_finset_sum _ (λ i _, hf i)] },
-  { assume b, exact finset.measurable_sum _ (λ i _, hf i) },
+  { simp [lintegral_finset_sum' _ (λ i _, hf i)] },
+  { assume b, exact finset.ae_measurable_sum _ (λ i _, hf i) },
   { assume s t,
     use [s ∪ t],
     split,
-    exact assume a, finset.sum_le_sum_of_subset (finset.subset_union_left _ _),
-    exact assume a, finset.sum_le_sum_of_subset (finset.subset_union_right _ _) }
+    { exact assume a, finset.sum_le_sum_of_subset (finset.subset_union_left _ _), },
+    { exact assume a, finset.sum_le_sum_of_subset (finset.subset_union_right _ _) } }
 end
 
 open measure
@@ -2388,7 +2421,7 @@ begin
   ext1 s hs,
   simp_rw [sum_apply _ hs, with_density_apply _ hs],
   change ∫⁻ x in s, (∑' n, f n) x ∂μ = ∑' (i : ℕ), ∫⁻ x, f i x ∂(μ.restrict s),
-  rw ← lintegral_tsum h,
+  rw ← lintegral_tsum (λ i, (h i).ae_measurable),
   refine lintegral_congr (λ x, tsum_apply (pi.summable.2 (λ _, ennreal.summable))),
 end
 

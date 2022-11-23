@@ -3,9 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
-import linear_algebra.multilinear.basis
 import linear_algebra.matrix.reindex
-import ring_theory.algebra_tower
 import tactic.field_simp
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.basis
@@ -257,6 +255,26 @@ the determinant to be `1`. -/
 @[simp] lemma det_zero {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M] [module 𝕜 M] :
   linear_map.det (0 : M →ₗ[𝕜] M) = (0 : 𝕜) ^ (finite_dimensional.finrank 𝕜 M) :=
 by simp only [← zero_smul 𝕜 (1 : M →ₗ[𝕜] M), det_smul, mul_one, monoid_hom.map_one]
+
+lemma det_eq_one_of_subsingleton [subsingleton M] (f : M →ₗ[R] M) : (f : M →ₗ[R] M).det = 1 :=
+begin
+  have b : basis (fin 0) R M := basis.empty M,
+  rw ← f.det_to_matrix b,
+  exact matrix.det_is_empty,
+end
+
+lemma det_eq_one_of_finrank_eq_zero {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M]
+  [module 𝕜 M] (h : finite_dimensional.finrank 𝕜 M = 0) (f : M →ₗ[𝕜] M) :
+  (f : M →ₗ[𝕜] M).det = 1 :=
+begin
+  classical,
+  refine @linear_map.det_cases M  _ 𝕜 _ _ _ (λ t, t = 1) f _ rfl,
+  intros s b,
+  haveI : is_empty s,
+  { rw ← fintype.card_eq_zero_iff,
+    exact (finite_dimensional.finrank_eq_card_basis b).symm.trans h },
+  exact matrix.det_is_empty
+end
 
 /-- Conjugating a linear map by a linear equiv does not change its determinant. -/
 @[simp] lemma det_conj {N : Type*} [add_comm_group N] [module A N]

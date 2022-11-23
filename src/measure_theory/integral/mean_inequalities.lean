@@ -6,7 +6,7 @@ Authors: Rémy Degenne
 import measure_theory.integral.lebesgue
 import analysis.mean_inequalities
 import analysis.mean_inequalities_pow
-import measure_theory.function.special_functions
+import measure_theory.function.special_functions.basic
 
 /-!
 # Mean value inequalities for integrals

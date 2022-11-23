@@ -37,6 +37,7 @@ jobs:
           base: master
           commit-message: "chore(*): add mathlib4 synchronization comments"
           title: "chore(*): add mathlib4 synchronization comments"
+          author: leanprover-community-bot <leanprover.community@gmail.com>
           body: |
             Regenerated from the [port status wiki page](https://github.com/leanprover-community/mathlib/wiki/mathlib4-port-status).
             Relates to the following PRs:

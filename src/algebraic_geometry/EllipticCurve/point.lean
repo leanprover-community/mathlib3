@@ -393,7 +393,7 @@ namespace point
 
 @[simp] lemma add_eq_zero (P Q : E.point) : P + Q = 0 ↔ P = -Q :=
 begin
-  rcases ⟨P, Q⟩ with ⟨_ | ⟨x₁, y₁, h₁⟩, _ | ⟨x₂, y₂, h₂⟩⟩,
+  rcases ⟨P, Q⟩ with ⟨_ | @⟨x₁, y₁, h₁⟩, _ | @⟨x₂, y₂, h₂⟩⟩,
   { refl },
   { rw [zero_def, zero_add, eq_neg_iff_eq_neg, neg_zero] },
   { refl },
@@ -416,7 +416,7 @@ end
 
 lemma add_comm (P Q : E.point) : P + Q = Q + P :=
 begin
-  rcases ⟨P, Q⟩ with ⟨_ | ⟨x₁, y₁, h₁⟩, _ | ⟨x₂, y₂, h₂⟩⟩,
+  rcases ⟨P, Q⟩ with ⟨_ | @⟨x₁, y₁, h₁⟩, _ | @⟨x₂, y₂, h₂⟩⟩,
   any_goals { refl },
   by_cases hx : x₁ = x₂,
   { by_cases hy : y₁ = neg_y h₂,

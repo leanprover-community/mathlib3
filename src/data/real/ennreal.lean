@@ -1700,7 +1700,7 @@ lemma of_real_pow {p : ℝ} (hp : 0 ≤ p) (n : ℕ) :
 by rw [of_real_eq_coe_nnreal hp, ← coe_pow, ← of_real_coe_nnreal, nnreal.coe_pow, nnreal.coe_mk]
 
 @[simp] lemma nsmul_of_real {x : ℝ} {n : ℕ} :
-  n • ennreal.of_real x = ennreal.of_real (n • x) :=
+  ennreal.of_real (n • x) = n • ennreal.of_real x :=
 by simp only [nsmul_eq_mul, ← of_real_coe_nat n, ← of_real_mul n.cast_nonneg]
 
 lemma of_real_inv_of_pos {x : ℝ} (hx : 0 < x) :

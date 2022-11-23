@@ -1224,12 +1224,12 @@ end
 
 @[simp, to_additive] lemma Union_inv_smul :
   (⋃ (g : α), g⁻¹ • s) = (⋃ (g : α), g • s) :=
-(equiv.inv α).supr_congr $ λ g, rfl
+function.surjective.supr_congr _ inv_surjective $ λ g, rfl
 
 @[to_additive]
 lemma Union_smul_eq_set_of_exists {s : set β} :
   (⋃ (g : α), g • s) = {a | ∃ (g : α), g • a ∈ s} :=
-by { ext a, simp_rw [← Union_inv_smul, mem_Union, ← mem_inv_smul_set_iff, mem_set_of_eq], }
+by simp_rw [← Union_set_of, ← Union_inv_smul, ← preimage_smul, preimage]
 
 end group
 

@@ -11,7 +11,6 @@ from pathlib import Path
 import_re = re.compile(r"^import ([^ ]*)")
 synchronized_re = re.compile(r".*SYNCHRONIZED WITH MATHLIB4.*")
 hash_re = re.compile(r"[0-9a-f]*")
-output_git_command = 1 < len(argv)
 
 def mk_label(path: Path) -> str:
     rel = path.relative_to(Path('src'))
@@ -125,5 +124,5 @@ for node in graph.nodes:
 if len(touched) > 0:
     print()
     print('# The following files have been modified since the commit at which they were verified.')
-    for (n, v) in touched.items():
-        print(' '.join(v) if output_git_command else n)
+    for v in touched.values():
+        print(' '.join(v))

@@ -56,12 +56,13 @@ def Module_left_homology_data : S.left_homology_data :=
   H := Module.of R S.Module_homology,
   i := Module.as_hom S.g.ker.subtype,
   π := S.Module_homology_π',
-  hi₀ := by { ext x₂, cases x₂, assumption, },
+  hi₀ := by { ext x₂, exact x₂.2, },
   hi := kernel_is_limit S.g,
   hπ₀ := S.Module_f'_comp_homology_π',
   hπ := Module.cokernel_is_colimit _, }
 
-attribute [simp] Module_left_homology_data
+#exit
+--attribute [simp] Module_left_homology_data
 
 @[simp]
 lemma Module_left_homology_data_f' :

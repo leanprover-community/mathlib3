@@ -61,7 +61,6 @@ def Module_left_homology_data : S.left_homology_data :=
   hπ₀ := S.Module_f'_comp_homology_π',
   hπ := Module.cokernel_is_colimit _, }
 
-#exit
 --attribute [simp] Module_left_homology_data
 
 @[simp]

@@ -41,8 +41,8 @@ jobs:
         uses: peter-evans/create-pull-request@v4
         with:
           base: master
-          commit-message: "chore(*): add mathlibport comments"
-          title: "chore(*): add mathlibport comments"
+          commit-message: "chore(*): add mathlib4 synchronization comments"
+          title: "chore(*): add mathlib4 synchronization comments"
           body: |
             Regenerated from the [port status wiki page](https://github.com/leanprover-community/mathlib/wiki/mathlib4-port-status).
             Relates to the following PRs:

@@ -97,6 +97,8 @@ def map [has_zero_morphisms D] (F : C ⥤ D) [F.preserves_zero_morphisms] : shor
 short_complex.mk (F.map S.f) (F.map S.g)
     (by rw [← F.map_comp, S.zero, F.map_zero])
 
+/-- The functor `short_complex C ⥤ short_complex D` induces by a functor `C ⥤ D` which
+preserves zero morphisms. -/
 @[simps]
 def _root_.category_theory.functor.map_short_complex
   [has_zero_morphisms D] (F : C ⥤ D) [F.preserves_zero_morphisms] : short_complex C ⥤ short_complex D :=
@@ -190,3 +192,4 @@ instance : has_zero (S₁ ⟶ S₂) := ⟨⟨0, 0, 0, by simp, by simp⟩⟩
 instance : has_zero_morphisms (short_complex C) := { }
 
 end short_complex
+

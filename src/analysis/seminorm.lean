@@ -932,7 +932,7 @@ variables [nontrivially_normed_field 𝕜] [semi_normed_ring 𝕝] [add_comm_gro
 variables [module 𝕝 E]
 
 lemma continuous_at_zero' [topological_space E] [has_continuous_const_smul 𝕜 E] {p : seminorm 𝕜 E}
-  (hp : p.closed_ball 0 1 ∈ (𝓝 0 : filter E)) :
+  {r : ℝ} (hr : 0 < r) (hp : p.closed_ball 0 r ∈ (𝓝 0 : filter E)) :
   continuous_at p 0 :=
 begin
   refine metric.nhds_basis_closed_ball.tendsto_right_iff.mpr _,
@@ -940,18 +940,18 @@ begin
   rw map_zero,
   suffices : p.closed_ball 0 ε ∈ (𝓝 0 : filter E),
   { rwa seminorm.closed_ball_zero_eq_preimage_closed_ball at this },
-  rcases exists_norm_lt 𝕜 hε with ⟨k, hk0, hkε⟩,
+  rcases exists_norm_lt 𝕜 (div_pos hε hr) with ⟨k, hk0, hkε⟩,
   have hk0' := norm_pos_iff.mp hk0,
   have := (set_smul_mem_nhds_zero_iff hk0').mpr hp,
   refine filter.mem_of_superset this (smul_set_subset_iff.mpr $ λ x hx, _),
-  rw [mem_closed_ball_zero, map_smul_eq_mul],
-  exact mul_le_of_le_of_le_one' hkε.le (p.mem_closed_ball_zero.mp hx) (map_nonneg _ _) hε.le
+  rw [mem_closed_ball_zero, map_smul_eq_mul, ← div_mul_cancel ε hr.ne.symm],
+  exact mul_le_mul hkε.le (p.mem_closed_ball_zero.mp hx) (map_nonneg _ _) (div_nonneg hε.le hr.le)
 end
 
 lemma continuous_at_zero [topological_space E] [has_continuous_const_smul 𝕜 E] {p : seminorm 𝕜 E}
-  (hp : p.ball 0 1 ∈ (𝓝 0 : filter E)) :
+  {r : ℝ} (hr : 0 < r) (hp : p.ball 0 r ∈ (𝓝 0 : filter E)) :
   continuous_at p 0 :=
-continuous_at_zero' (filter.mem_of_superset hp $ p.ball_subset_closed_ball _ _)
+continuous_at_zero' hr (filter.mem_of_superset hp $ p.ball_subset_closed_ball _ _)
 
 protected lemma uniform_continuous_of_continuous_at_zero [uniform_space E] [uniform_add_group E]
   {p : seminorm 𝕝 E} (hp : continuous_at p 0) :
@@ -974,30 +974,30 @@ begin
 end
 
 protected lemma uniform_continuous [uniform_space E] [uniform_add_group E]
-  [has_continuous_const_smul 𝕜 E] {p : seminorm 𝕜 E} (hp : p.ball 0 1 ∈ (𝓝 0 : filter E)) :
-  uniform_continuous p :=
-seminorm.uniform_continuous_of_continuous_at_zero (continuous_at_zero hp)
+  [has_continuous_const_smul 𝕜 E] {p : seminorm 𝕜 E} {r : ℝ} (hr : 0 < r)
+  (hp : p.ball 0 r ∈ (𝓝 0 : filter E)) : uniform_continuous p :=
+seminorm.uniform_continuous_of_continuous_at_zero (continuous_at_zero hr hp)
 
 protected lemma uniform_continuous' [uniform_space E] [uniform_add_group E]
-  [has_continuous_const_smul 𝕜 E] {p : seminorm 𝕜 E} (hp : p.closed_ball 0 1 ∈ (𝓝 0 : filter E)) :
-  uniform_continuous p :=
-seminorm.uniform_continuous_of_continuous_at_zero (continuous_at_zero' hp)
+  [has_continuous_const_smul 𝕜 E] {p : seminorm 𝕜 E} {r : ℝ} (hr : 0 < r)
+  (hp : p.closed_ball 0 r ∈ (𝓝 0 : filter E)) : uniform_continuous p :=
+seminorm.uniform_continuous_of_continuous_at_zero (continuous_at_zero' hr hp)
 
 protected lemma continuous [topological_space E] [topological_add_group E]
-  [has_continuous_const_smul 𝕜 E] {p : seminorm 𝕜 E} (hp : p.ball 0 1 ∈ (𝓝 0 : filter E)) :
-  continuous p :=
-seminorm.continuous_of_continuous_at_zero (continuous_at_zero hp)
+  [has_continuous_const_smul 𝕜 E] {p : seminorm 𝕜 E} {r : ℝ} (hr : 0 < r)
+  (hp : p.ball 0 r ∈ (𝓝 0 : filter E)) : continuous p :=
+seminorm.continuous_of_continuous_at_zero (continuous_at_zero hr hp)
 
 protected lemma continuous' [topological_space E] [topological_add_group E]
-  [has_continuous_const_smul 𝕜 E] {p : seminorm 𝕜 E} (hp : p.closed_ball 0 1 ∈ (𝓝 0 : filter E)) :
-  continuous p :=
-seminorm.continuous_of_continuous_at_zero (continuous_at_zero' hp)
+  [has_continuous_const_smul 𝕜 E] {p : seminorm 𝕜 E} {r : ℝ} (hr : 0 < r)
+  (hp : p.closed_ball 0 r ∈ (𝓝 0 : filter E)) : continuous p :=
+seminorm.continuous_of_continuous_at_zero (continuous_at_zero' hr hp)
 
 lemma continuous_of_le [topological_space E] [topological_add_group E]
   [has_continuous_const_smul 𝕜 E] {p q : seminorm 𝕜 E} (hq : continuous q) (hpq : p ≤ q) :
   continuous p :=
 begin
-  refine seminorm.continuous (filter.mem_of_superset
+  refine seminorm.continuous one_pos (filter.mem_of_superset
     (is_open.mem_nhds _ $ q.mem_ball_self zero_lt_one) (ball_antitone hpq)),
   rw ball_zero_eq,
   exact is_open_lt hq continuous_const

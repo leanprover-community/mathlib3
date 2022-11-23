@@ -213,6 +213,14 @@ end monic
   ((X + C r) ^ n).nat_degree = n :=
 by rw [(monic_X_add_C r).nat_degree_pow, nat_degree_X_add_C, mul_one]
 
+-- TODO: golf using `constant_coeff`
+lemma is_unit_C {x : R} : is_unit (C x) ↔ is_unit x :=
+⟨by { rintros ⟨⟨q, p, hqp, hpq⟩, rfl : q = C x⟩,
+  have h1 := mul_coeff_zero p (C x),
+  have h2 := mul_coeff_zero (C x) p,
+  simp only [hpq, hqp, coeff_one_zero, coeff_C_zero] at h1 h2,
+  exact ⟨⟨x, p.coeff 0, h2.symm, h1.symm⟩, rfl⟩ }, λ h, h.map C⟩
+
 end semiring
 
 section comm_semiring
@@ -232,18 +240,6 @@ end
 lemma monic_prod_of_monic (s : finset ι) (f : ι → R[X]) (hs : ∀ i ∈ s, monic (f i)) :
   monic (∏ i in s, f i) :=
 monic_multiset_prod_of_monic s.1 f hs
-
-lemma is_unit_C {x : R} : is_unit (C x) ↔ is_unit x :=
-begin
-  rw [is_unit_iff_dvd_one, is_unit_iff_dvd_one],
-  split,
-  { rintros ⟨g, hg⟩,
-    replace hg := congr_arg (eval 0) hg,
-    rw [eval_one, eval_mul, eval_C] at hg,
-    exact ⟨g.eval 0, hg⟩ },
-  { rintros ⟨y, hy⟩,
-    exact ⟨C y, by rw [← C_mul, ← hy, C_1]⟩ }
-end
 
 lemma eq_one_of_is_unit_of_monic (hm : monic p) (hpu : is_unit p) : p = 1 :=
 have degree p ≤ 0,

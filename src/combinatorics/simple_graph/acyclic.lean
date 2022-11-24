@@ -180,8 +180,7 @@ begin
       simp only [set.union_singleton, set.subset_insert], },
     { nth_rewrite 0 ←from_edge_set_edge_set T,
       apply from_edge_set_mono,
-      simp [set.insert_subset, eT, edge_set_mono GT], },
-     },
+      simp [set.insert_subset, eT, edge_set_mono GT], }, },
   { rintro ⟨GT,Gac,Gmax⟩, refine ⟨GT, Gac, _⟩,
     rintro H GH HT Hac,
     by_contra h,
@@ -210,12 +209,23 @@ begin
     rintro ⟨u,v⟩ ⟨eG,neB⟩ Gneco,
     have neB : ¬ B.adj u v, by { simpa using neB, },
     change (⟦⟨u,v⟩⟧ : sym2 V) ∈ G.edge_set at eG,
-    rw [mem_edge_set, ←@not_not (G.adj u v), ←delete_edge_eq_iff u v] at eG,
-    apply eG,
-    apply Gmin (G.delete_edges _),
-    { apply le_delete_edges G B _ BG, simp, exact neB },
-    { apply delete_edges_le, },
-    { exact Gneco}, },
+    --rw [mem_edge_set, ←@not_not (G.adj u v)], -- ←delete_edge_eq_iff u v] at eG,
+    suffices : from_edge_set (G.edge_set \ {⟦(u, v)⟧}) = G, by
+    { rw from_edge_set_eq_iff at this,
+      exfalso,
+      rw [←this] at eG,
+      simp only [set.mem_diff, set.mem_singleton, not_true, and_false, false_and] at eG,
+      exact eG, },
+    apply Gmin _ _ _ Gneco,
+    { nth_rewrite 0 ←from_edge_set_edge_set B,
+      apply from_edge_set_mono,
+      rintro ⟨x,y⟩ xyB,
+      refine ⟨BG xyB, λ h,_⟩,
+      simp only [set.mem_singleton_iff] at h,
+      rw h at xyB, exact neB xyB, },
+    { nth_rewrite 1 ←from_edge_set_edge_set G,
+      apply from_edge_set_mono,
+      simp only [set.diff_singleton_subset_iff, set.subset_insert], }, },
   { rintro ⟨BG,Gco,Gmin⟩, refine ⟨BG, Gco, _⟩,
     rintro H BH HG Hco,
     by_contra h,
@@ -226,27 +236,30 @@ begin
     apply Gmin
       (⟦⟨u,v⟩⟧ : sym2 V)
       (by {simp only [set.mem_diff, mem_edge_set], exact ⟨Ga, λ h, nHa (BH h)⟩}),
-    refine Hco.le (le_delete_edges _ _ _ HG _),
-    simpa only [set.disjoint_singleton_left] using nHa, },
+    refine Hco.le _,
+    rw le_from_edge_set_iff,
+    rintros ⟨x,y⟩ eH,
+    refine ⟨HG eH, λ h,_⟩,
+    simp at h, rw h at eH, exact nHa eH, },
 end
 
 lemma is_tree.is_max_acyclic [decidable_eq V] (hG : G.is_tree) {GT : G ≤ T} : G.is_max_acyclic T :=
 begin
   rw is_max_acyclic_iff,
-  use [GT,hG.right],
+  use [GT,hG.is_acyclic],
   rintro ⟨u,v⟩ ⟨eT,neG⟩,
   have : u ≠ v := ((mem_edge_set T).mp eT).ne,
   rintro Ge_ac,
 
   -- A path from `u` to `v` given by `connected`ness of `G`
-  let p₁ : (G.add_edges {⟦⟨u,v⟩⟧}).path u v :=
+  let p₁ : (from_edge_set $ G.edge_set ∪ {⟦⟨u,v⟩⟧}).path u v :=
     simple_graph.path.map
-      (simple_graph.hom.map_spanning_subgraphs (le_add_edges G _))
+      (simple_graph.hom.map_spanning_subgraphs (by { rw le_from_edge_set_iff, simp, }))
       function.injective_id
-      (hG.left.1 u v).some.to_path,
+      (hG.is_connected.1 u v).some.to_path,
 
   -- The singleton path from `u` to `v` given by the edge `⟦⟨u,v⟩⟧`
-  let p₂ : (G.add_edges {⟦⟨u,v⟩⟧}).path u v := path.singleton (add_edge_adj u v ‹u≠v›),
+  let p₂ : (from_edge_set $ G.edge_set ∪ {⟦⟨u,v⟩⟧}).path u v := path.singleton (⟨or.inr rfl,‹u≠v›⟩),
 
   -- Cannot be equal, since the edge is contained in one but not the other,
   have : p₁ ≠ p₂, by

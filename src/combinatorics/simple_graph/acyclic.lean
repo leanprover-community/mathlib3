@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
 import combinatorics.simple_graph.connectivity
+import combinatorics.simple_graph.from_edge_set
 /-!
 
 # Acyclic graphs and trees
@@ -158,15 +159,24 @@ abbreviation is_max_acyclic := G ≤ T ∧ G.is_acyclic ∧ ∀ H, G ≤ H → H
 abbreviation is_min_connected := B ≤ G ∧ G.connected ∧ ∀ H, B ≤ H → H ≤ G → H.connected → H = G
 
 lemma is_max_acyclic_iff : G.is_max_acyclic T ↔
-  G ≤ T ∧ G.is_acyclic ∧ ∀ e ∈ (T.edge_set \ G.edge_set), ¬ (G.add_edges {e}).is_acyclic :=
+  G ≤ T ∧
+  G.is_acyclic ∧
+  ∀ e ∈ (T.edge_set \ G.edge_set), ¬ (from_edge_set $ G.edge_set ∪ {e}).is_acyclic :=
 begin
   split,
   { rintro ⟨GT,Gac,Gmax⟩, refine ⟨GT, Gac, _⟩,
     rintro ⟨u,v⟩ ⟨eT,neG⟩ Geac,
     apply (by {simpa using neG} : ¬ G.adj u v),
-    rw ←add_edge_eq_iff u v ((mem_edge_set T).mp eT).ne,
-    exact Gmax (G.add_edges _)
-               (le_add_edges _ _) (add_edges_le G T _ GT (by { simpa using eT, })) Geac, },
+    suffices : from_edge_set (G.edge_set ∪ {quot.mk setoid.r (u, v)}) = G, by
+    { sorry, },
+    apply Gmax _ _ _ Geac,
+    { nth_rewrite 0 ←from_edge_set_edge_set G,
+      apply from_edge_set_mono,
+      simp only [set.union_singleton, set.subset_insert], },
+    { nth_rewrite 0 ←from_edge_set_edge_set T,
+      apply from_edge_set_mono,
+      simp [set.insert_subset, eT, edge_set_mono GT], },
+     },
   { rintro ⟨GT,Gac,Gmax⟩, refine ⟨GT, Gac, _⟩,
     rintro H GH HT Hac,
     by_contra h,
@@ -177,12 +187,15 @@ begin
     apply Gmax
       (⟦⟨u,v⟩⟧ : sym2 V)
       (by {simp only [set.mem_diff, mem_edge_set], exact ⟨HT Ha, nGa⟩}),
-    refine Hac.le (add_edges_le G H _ GH _),
+    apply Hac.le,
+    
     simpa only [set.singleton_subset_iff] using Ha, },
 end
 
 lemma is_min_connected_iff : G.is_min_connected B ↔
-  B ≤ G ∧ G.connected ∧ ∀ e ∈ (G.edge_set \ B.edge_set), ¬ (G.delete_edges {e}).connected :=
+  B ≤ G ∧
+  G.connected ∧
+  ∀ e ∈ (G.edge_set \ B.edge_set), ¬ (from_edge_set $ G.edge_set \ {e}).connected :=
 begin
   split,
   { rintro ⟨BG,Gco,Gmin⟩, refine ⟨BG, Gco, _⟩,
@@ -242,7 +255,7 @@ lemma is_tree.is_min_connected [decidable_eq V] (hG : G.is_tree) {BG : B ≤ G} 
   G.is_min_connected B :=
 begin
   rw is_min_connected_iff,
-  use [BG,hG.left],
+  use [BG,hG.is_connected],
   rintro ⟨u,v⟩ ⟨eG,neB⟩ Gne_co,
 
   let p₁ : G.path u v := simple_graph.path.map

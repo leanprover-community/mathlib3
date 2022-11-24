@@ -203,7 +203,7 @@ by simp only [←C_eq_nat_cast, nat_degree_C]
 by rw [degree, support_monomial n ha]; refl
 
 @[simp] lemma degree_C_mul_X_pow (n : ℕ) (ha : a ≠ 0) : degree (C a * X ^ n) = n :=
-by rw [← monomial_eq_C_mul_X_pow, degree_monomial n ha]
+by rw [C_mul_X_pow_eq_monomial, degree_monomial n ha]
 
 lemma degree_C_mul_X (ha : a ≠ 0) : degree (C a * X) = 1 :=
 by simpa only [pow_one] using degree_C_mul_X_pow 1 ha
@@ -212,7 +212,7 @@ lemma degree_monomial_le (n : ℕ) (a : R) : degree (monomial n a) ≤ n :=
 if h : a = 0 then by rw [h, (monomial n).map_zero]; exact bot_le else le_of_eq (degree_monomial n h)
 
 lemma degree_C_mul_X_pow_le (n : ℕ) (a : R) : degree (C a * X ^ n) ≤ n :=
-by { rw ← monomial_eq_C_mul_X_pow, apply degree_monomial_le }
+by { rw C_mul_X_pow_eq_monomial, apply degree_monomial_le }
 
 lemma degree_C_mul_X_le (a : R) : degree (C a * X) ≤ 1 :=
 by simpa only [pow_one] using degree_C_mul_X_pow_le 1 a
@@ -228,7 +228,7 @@ by simpa only [pow_one] using nat_degree_C_mul_X_pow 1 a ha
 begin
   split_ifs with hr,
   { simp [hr] },
-  { rw [monomial_eq_C_mul_X_pow, nat_degree_C_mul_X_pow i r hr] }
+  { rw [← C_mul_X_pow_eq_monomial, nat_degree_C_mul_X_pow i r hr] }
 end
 
 lemma nat_degree_monomial_le (a : R) {m : ℕ} : (monomial m a).nat_degree ≤ m :=
@@ -286,7 +286,7 @@ lemma as_sum_support (p : R[X]) :
 
 lemma as_sum_support_C_mul_X_pow (p : R[X]) :
   p = ∑ i in p.support, C (p.coeff i) * X^i :=
-trans p.as_sum_support $ by simp only [← monomial_eq_C_mul_X_pow]
+trans p.as_sum_support $ by simp only [C_mul_X_pow_eq_monomial]
 
 /--
 We can reexpress a sum over `p.support` as a sum over `range n`,
@@ -330,7 +330,7 @@ p.sum_monomial_eq.symm.trans $ p.sum_over_range $ monomial_zero_right
 
 lemma as_sum_range_C_mul_X_pow (p : R[X]) :
   p = ∑ i in range (p.nat_degree + 1), C (coeff p i) * X ^ i :=
-p.as_sum_range.trans $ by simp only [← monomial_eq_C_mul_X_pow]
+p.as_sum_range.trans $ by simp only [C_mul_X_pow_eq_monomial]
 
 lemma coeff_ne_zero_of_eq_degree (hn : degree p = n) :
   coeff p n ≠ 0 :=
@@ -604,7 +604,7 @@ finset.induction_on s (by simp only [sum_empty, sup_empty, degree_zero, le_refl]
 lemma degree_mul_le (p q : R[X]) : degree (p * q) ≤ degree p + degree q :=
 calc degree (p * q) ≤ (p.support).sup (λi, degree (sum q (λj a, C (coeff p i * a) * X ^ (i + j)))) :
     begin
-      simp only [monomial_eq_C_mul_X_pow.symm],
+      simp only [← C_mul_X_pow_eq_monomial.symm],
       convert degree_sum_le _ _,
       exact mul_eq_sum_sum
     end
@@ -632,7 +632,7 @@ begin
 end
 
 lemma leading_coeff_C_mul_X_pow (a : R) (n : ℕ) : leading_coeff (C a * X ^ n) = a :=
-by rw [← monomial_eq_C_mul_X_pow, leading_coeff_monomial]
+by rw [C_mul_X_pow_eq_monomial, leading_coeff_monomial]
 
 lemma leading_coeff_C_mul_X (a : R) : leading_coeff (C a * X) = a :=
 by simpa only [pow_one] using leading_coeff_C_mul_X_pow a 1
@@ -755,7 +755,7 @@ end
 
 lemma C_mul_X_pow_eq_self (h : p.support.card ≤ 1) :
   C p.leading_coeff * X^p.nat_degree = p :=
-by rw [← monomial_eq_C_mul_X_pow, monomial_nat_degree_leading_coeff_eq_self h]
+by rw [C_mul_X_pow_eq_monomial, monomial_nat_degree_leading_coeff_eq_self h]
 
 lemma leading_coeff_pow' : leading_coeff p ^ n ≠ 0 →
   leading_coeff (p ^ n) = leading_coeff p ^ n :=

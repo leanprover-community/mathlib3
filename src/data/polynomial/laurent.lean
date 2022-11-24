@@ -182,7 +182,7 @@ end
 lemma _root_.polynomial.to_laurent_X : (polynomial.X.to_laurent : R[T;T⁻¹]) = T 1 :=
 begin
   have : (polynomial.X : R[X]) = monomial 1 1,
-  { simp [monomial_eq_C_mul_X_pow] },
+  { simp [← C_mul_X_pow_eq_monomial] },
   simp [this, polynomial.to_laurent_C_mul_T],
 end
 

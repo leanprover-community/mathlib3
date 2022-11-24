@@ -164,7 +164,7 @@ begin
     by_cases a0 : a = 0,
     { exact or.inl (by rw [a0, C_0, zero_mul, nat_degree_zero]) },
     { refine or.inr _,
-      rw ← monomial_eq_C_mul_X_pow,
+      rw C_mul_X_pow_eq_monomial,
       exact h_monomial a0 n.succ_ne_zero } }
 end
 

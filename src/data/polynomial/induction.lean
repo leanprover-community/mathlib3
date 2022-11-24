@@ -57,7 +57,7 @@ and it holds for monomials.
   (h_monomial : ∀(n : ℕ) (a : R), M (monomial n a)) :
   M p :=
 polynomial.induction_on p (h_monomial 0) h_add
-(λ n a h, by { rw ← monomial_eq_C_mul_X_pow at ⊢, exact h_monomial _ _ })
+(λ n a h, by { rw C_mul_X_pow_eq_monomial at ⊢, exact h_monomial _ _ })
 
 open submodule polynomial set
 variables {f : R[X]} {I : ideal R[X]}
@@ -81,7 +81,7 @@ begin
   have : (monomial n (1 : R)) • C (coeff f n) ∈ p := p.smul_mem _ this,
   convert this using 1,
   simp only [monomial_mul_C, one_mul, smul_eq_mul],
-  rw monomial_eq_C_mul_X_pow,
+  rw ← C_mul_X_pow_eq_monomial,
 end
 
 lemma exists_C_coeff_not_mem : f ∉ I → ∃ i : ℕ, C (coeff f i) ∉ I :=

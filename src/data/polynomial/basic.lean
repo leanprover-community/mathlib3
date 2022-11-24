@@ -474,14 +474,14 @@ by { convert coeff_monomial using 2, simp [eq_comm], }
 lemma coeff_C_ne_zero (h : n ≠ 0) : (C a).coeff n = 0 :=
 by rw [coeff_C, if_neg h]
 
-lemma monomial_eq_C_mul_X_pow : ∀ {n : ℕ}, monomial n a = C a * X ^ n
+lemma C_mul_X_pow_eq_monomial : ∀ {n : ℕ}, C a * X ^ n = monomial n a
 | 0     := (mul_one _).symm
 | (n+1) :=
   calc monomial (n + 1) a = monomial n a * X : by rw [X, monomial_mul_monomial, mul_one]
-    ... = (C a * X ^ n) * X : by rw [monomial_eq_C_mul_X_pow]
+    ... = (C a * X ^ n) * X : by rw [← C_mul_X_pow_eq_monomial]
     ... = C a * X ^ (n + 1) : by simp only [pow_add, mul_assoc, pow_one]
 
-lemma monomial_eq_C_mul_X : monomial 1 a = C a * X := by rw [monomial_eq_C_mul_X_pow, pow_one]
+lemma C_mul_X_eq_monomial : monomial 1 a = C a * X := by rw [C_mul_X_pow_eq_monomial, pow_one]
 
 lemma C_injective : injective (C : R → R[X]) := monomial_injective 0
 
@@ -546,16 +546,16 @@ lemma support_monomial' (n) (a : R) : (monomial n a).support ⊆ singleton n :=
 by { rw [←of_finsupp_single, support], exact finsupp.support_single_subset }
 
 lemma support_C_mul_X {c : R} (h : c ≠ 0) : (C c * X).support = singleton 1 :=
-by rw [←monomial_eq_C_mul_X, support_monomial 1 h]
+by rw [C_mul_X_pow_eq_monomial, support_monomial 1 h]
 
 lemma support_C_mul_X' (c : R) : (C c * X).support ⊆ singleton 1 :=
-by simpa only [←monomial_eq_C_mul_X] using support_monomial' 1 c
+by simpa only [C_mul_X_pow_eq_monomial] using support_monomial' 1 c
 
 lemma support_C_mul_X_pow (n : ℕ) {c : R} (h : c ≠ 0) : (C c * X ^ n).support = singleton n :=
-by rw [←monomial_eq_C_mul_X_pow, support_monomial n h]
+by rw [C_mul_X_pow_eq_monomial, support_monomial n h]
 
 lemma support_C_mul_X_pow' (n : ℕ) (c : R) : (C c * X ^ n).support ⊆ singleton n :=
-by simpa only [←monomial_eq_C_mul_X_pow] using support_monomial' n c
+by simpa only [C_mul_X_pow_eq_monomial] using support_monomial' n c
 
 open finset
 
@@ -609,7 +609,7 @@ lemma binomial_eq_binomial {k l m n : ℕ} {u v : R} (hu : u ≠ 0) (hv : v ≠ 
   C u * X ^ k + C v * X ^ l = C u * X ^ m + C v * X ^ n ↔
   (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u + v = 0 ∧ k = l ∧ m = n) :=
 begin
-  simp_rw [←monomial_eq_C_mul_X_pow, ←to_finsupp_inj, to_finsupp_add, to_finsupp_monomial],
+  simp_rw [C_mul_X_pow_eq_monomial, ←to_finsupp_inj, to_finsupp_add, to_finsupp_monomial],
   exact finsupp.single_add_single_eq_single_add_single hu hv,
 end
 
@@ -692,7 +692,7 @@ lemma sum_monomial_eq : ∀ p : R[X], p.sum (λ n a, monomial n a) = p
 | ⟨p⟩ := (of_finsupp_sum _ _).symm.trans (congr_arg _ $ finsupp.sum_single _)
 
 lemma sum_C_mul_X_pow_eq (p : R[X]) : p.sum (λ n a, C a * X ^ n) = p :=
-by simp_rw [←monomial_eq_C_mul_X_pow, sum_monomial_eq]
+by simp_rw [C_mul_X_pow_eq_monomial, sum_monomial_eq]
 
 /-- `erase p n` is the polynomial `p` in which the `X^n` term has been erased. -/
 @[irreducible] definition erase (n : ℕ) : R[X] → R[X]

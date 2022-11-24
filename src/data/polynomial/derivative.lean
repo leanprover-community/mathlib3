@@ -70,10 +70,10 @@ end
 
 @[simp]
 lemma derivative_monomial (a : R) (n : ℕ) : derivative (monomial n a) = monomial (n - 1) (a * n) :=
-by { rw [derivative_apply, sum_monomial_index, ← monomial_eq_C_mul_X_pow], simp }
+by { rw [derivative_apply, sum_monomial_index, C_mul_X_pow_eq_monomial], simp }
 
 lemma derivative_C_mul_X_pow (a : R) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X ^ (n - 1) :=
-by rw [← monomial_eq_C_mul_X_pow, ← monomial_eq_C_mul_X_pow, derivative_monomial]
+by rw [C_mul_X_pow_eq_monomial, C_mul_X_pow_eq_monomial, derivative_monomial]
 
 @[simp] lemma derivative_X_pow (n : ℕ) :
   derivative (X ^ n : R[X]) = (n : R[X]) * X ^ (n - 1) :=
@@ -210,14 +210,14 @@ eq_C_of_nat_degree_eq_zero $ nat_degree_eq_zero_of_derivative_eq_zero h
 
 @[simp] lemma derivative_mul {f g : R[X]} :
   derivative (f * g) = derivative f * g + f * derivative g :=
-calc derivative (f * g) = f.sum (λn a, g.sum (λm b, (n + m) • (C (a * b) * X^((n + m) - 1)))) :
+calc derivative (f * g) = f.sum (λ n a, g.sum (λ m b, (n + m) • (C (a * b) * X ^ ((n + m) - 1)))) :
   begin
     rw mul_eq_sum_sum,
     transitivity, exact derivative_sum,
     transitivity, { apply finset.sum_congr rfl, assume x hx, exact derivative_sum },
     apply finset.sum_congr rfl, assume n hn, apply finset.sum_congr rfl, assume m hm,
     transitivity,
-    { exact congr_arg monomial_eq_C_mul_X_pow },
+    { exact congr_arg _ C_mul_X_pow_eq_monomial.symm },
     dsimp, rw [← smul_mul_assoc, smul_C, nsmul_eq_mul'], exact derivative_C_mul_X_pow _ _
   end
   ... = f.sum (λn a, g.sum (λm b,
@@ -236,7 +236,7 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, (n + m) • (C (a * b) * X
     end
 
 lemma derivative_eval (p : R[X]) (x : R) :
-  p.derivative.eval x = p.sum (λ n a, (a * n)*x^(n-1)) :=
+  p.derivative.eval x = p.sum (λ n a, (a * n) * x ^ (n-1)) :=
 by simp_rw [derivative_apply, eval_sum, eval_mul_X_pow, eval_C]
 
 @[simp]

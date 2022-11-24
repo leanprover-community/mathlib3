@@ -405,7 +405,7 @@ lemma comp_eq_sum_left : p.comp q = p.sum (λ e a, C a * q ^ e) := rfl
 
 @[simp] lemma comp_X : p.comp X = p :=
 begin
-  simp only [comp, eval₂, ← monomial_eq_C_mul_X_pow],
+  simp only [comp, eval₂, C_mul_X_pow_eq_monomial],
   exact sum_monomial_eq _
 end
 
@@ -515,7 +515,7 @@ def map : R[X] → S[X] := eval₂ (C.comp f) X
 @[simp] lemma map_monomial {n a} : (monomial n a).map f = monomial n (f a) :=
 begin
   dsimp only [map],
-  rw [eval₂_monomial, monomial_eq_C_mul_X_pow], refl,
+  rw [eval₂_monomial, ← C_mul_X_pow_eq_monomial], refl,
 end
 
 @[simp] protected lemma map_zero : (0 : R[X]).map f = 0 :=  eval₂_zero _ _

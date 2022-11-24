@@ -186,10 +186,9 @@ le_antisymm (nat_degree_eq_zero_iff_degree_le_zero.mp (nat_degree_eq_zero_of_is_
   (zero_le_degree_iff.mpr h.ne_zero)
 
 theorem is_unit_iff : is_unit p ↔ ∃ r : R, is_unit r ∧ C r = p :=
-by nontriviality R; exact
 ⟨λ hp, ⟨p.coeff 0,
-  is_unit_C.1 $ eq_C_of_degree_eq_zero (degree_eq_zero_of_is_unit hp) ▸ hp,
-  (eq_C_of_degree_eq_zero (degree_eq_zero_of_is_unit hp)).symm⟩,
+  is_unit_C.1 $ eq_C_of_nat_degree_eq_zero (nat_degree_eq_zero_of_is_unit hp) ▸ hp,
+  (eq_C_of_nat_degree_eq_zero (nat_degree_eq_zero_of_is_unit hp)).symm⟩,
 λ ⟨r, hr, hrp⟩, hrp ▸ is_unit_C.2 hr⟩
 
 variables [char_zero R]

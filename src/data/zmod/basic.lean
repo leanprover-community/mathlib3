@@ -837,12 +837,15 @@ begin
     { rw ←nat.odd_iff_not_even at hpar,
       have := add_le_add h' h'',
       rw [nat.sub_add_cancel (a.val_le), ←two_mul] at this,
-      have := nat.add_le_add_right this 1,
+      replace := nat.add_le_add_right this 1,
       rw [nat.two_mul_div_two_add_one_of_odd hpar, ←not_lt] at this,
       exact this (lt_add_one _) } },
-  { rw [neg_sub, nat.cast_sub], apply le_of_lt a.val_lt },
-  { rw nat.cast_sub (le_of_lt a.val_lt), apply sub_sub_cancel_left },
-  { exfalso, exact h'' (nat.le_half_of_half_lt_sub (not_le.mp h')) }
+  { rw [neg_sub, nat.cast_sub],
+    apply le_of_lt a.val_lt },
+  { rw nat.cast_sub (le_of_lt a.val_lt),
+    apply sub_sub_cancel_left },
+  { exfalso,
+    exact h'' (nat.le_half_of_half_lt_sub (not_le.mp h')) }
 end
 
 lemma val_min_abs_neg_of_eq_half {n : ℕ} {a : zmod n} (ha : 2 * a.val = n) :

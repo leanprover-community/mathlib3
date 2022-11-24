@@ -904,10 +904,10 @@ namespace upper_set
 /-- The product of two upper sets as an upper set. -/
 def prod (s : upper_set α) (t : upper_set β) : upper_set (α × β) := ⟨s ×ˢ t, s.2.prod t.2⟩
 
-infixr (name := upper_set.prod) ` ×ˢ `:82 := prod
-
-@[simp] lemma coe_prod (s : upper_set α) (t : upper_set β) : (s ×ˢ t : set (α × β)) = s ×ˢ t :=
+@[simp] lemma coe_prod (s : upper_set α) (t : upper_set β) : (s.prod t : set (α × β)) = s ×ˢ t :=
 rfl
+
+infixr (name := upper_set.prod) ` ×ˢ `:82 := prod
 
 @[simp] lemma mem_prod {s : upper_set α} {t : upper_set β} : x ∈ s ×ˢ t ↔ x.1 ∈ s ∧ x.2 ∈ t :=
 iff.rfl
@@ -919,23 +919,6 @@ lemma Ici_prod (x : α × β) : Ici x = (Ici x.1) ×ˢ (Ici x.2) := rfl
 @[simp] lemma prod_top (s : upper_set α) : s ×ˢ (⊤ : upper_set β) = ⊤ := ext prod_empty
 @[simp] lemma top_prod (t : upper_set β) : (⊤ : upper_set α) ×ˢ t = ⊤ := ext empty_prod
 
-lemma upper_closure_prod_upper_closure (F₁ : set α) (F₂ : set β) :
-  (upper_closure F₁) ×ˢ (upper_closure F₂)  =
-  (⊥ : upper_set α) ×ˢ (upper_closure F₂) ⊔ (upper_closure F₁) ×ˢ (⊥ : upper_set β) :=
-upper_set.ext begin
-  rw subset_antisymm_iff,
-  split,
-  { rintros x h,
-    finish, },
-  { rintros x h,
-    finish, },
-end
-
-lemma prod_Ici (a : α) (b : β) : Ici (a,b) =
-    (⊥ : upper_set α) ×ˢ (Ici b) ⊔ (Ici a) ×ˢ (⊥ : upper_set β) :=
-by rw [← Ici_prod_Ici, ← upper_closure_singleton, ← upper_closure_singleton,
-    upper_closure_prod_upper_closure]
-
 end upper_set
 
 namespace lower_set
@@ -943,10 +926,10 @@ namespace lower_set
 /-- The product of two lower sets as a lower set. -/
 def prod (s : lower_set α) (t : lower_set β) : lower_set (α × β) := ⟨s ×ˢ t, s.2.prod t.2⟩
 
-infixr (name := lower_set.prod) ` ×ˢ `:82 := lower_set.prod
-
-@[simp] lemma coe_prod (s : lower_set α) (t : lower_set β) : (s ×ˢ t : set (α × β)) = s ×ˢ t :=
+@[simp] lemma coe_prod (s : lower_set α) (t : lower_set β) : (s.prod t : set (α × β)) = s ×ˢ t :=
 rfl
+
+infixr (name := lower_set.prod) ` ×ˢ `:82 := lower_set.prod
 
 @[simp] lemma mem_prod {s : lower_set α} {t : lower_set β} : x ∈ s ×ˢ t ↔ x.1 ∈ s ∧ x.2 ∈ t :=
 iff.rfl
@@ -963,6 +946,23 @@ end lower_set
 @[simp] lemma upper_closure_prod (s : set α) (t : set β) :
   upper_closure (s ×ˢ t) = (upper_closure s) ×ˢ (upper_closure t) :=
 by { ext, simp [prod.le_def, and_and_and_comm _ (_ ∈ t)] }
+
+lemma upper_closure_prod_eq_bot_prod_upper_closure_join_upper_closure_prod_bot (F₁ : set α)
+ (F₂ : set β) : upper_closure (F₁ ×ˢ F₂)  =
+  (⊥ : upper_set α) ×ˢ (upper_closure F₂) ⊔ (upper_closure F₁) ×ˢ (⊥ : upper_set β) :=
+upper_set.ext begin
+  rw [upper_closure_prod, subset_antisymm_iff],
+  split,
+  { rintros x h,
+    finish, },
+  { rintros x h,
+    finish, },
+end
+
+lemma prod_Ici (a : α) (b : β) : upper_set.Ici (a,b) =
+    (⊥ : upper_set α) ×ˢ (upper_set.Ici b) ⊔ (upper_set.Ici a) ×ˢ (⊥ : upper_set β) :=
+by rw [← upper_set.Ici_prod_Ici, ← upper_closure_singleton, ← upper_closure_singleton,
+  ←upper_closure_prod, upper_closure_prod_eq_bot_prod_upper_closure_join_upper_closure_prod_bot]
 
 @[simp] lemma lower_closure_prod (s : set α) (t : set β) :
   lower_closure (s ×ˢ t) = (lower_closure s) ×ˢ (lower_closure t) :=

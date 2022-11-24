@@ -268,7 +268,7 @@ instance [order_bot α] [order_bot β] : lower_topology (α × β) :=
     simp only [prod.exists, mem_set_of_eq] at H,
     cases H with a,
     cases H_h with b,
-    rw [← H_h_h, ← upper_set.coe_Ici, is_open_compl_iff, upper_set.prod_Ici],
+    rw [← H_h_h, ← upper_set.coe_Ici, is_open_compl_iff, prod_Ici],
     apply is_closed.inter,
     { apply is_closed.prod is_closed_univ,
       rw upper_set.coe_Ici,

@@ -172,16 +172,18 @@ begin
   rw [← nat_degree_mul hp₁ hq₂, ← nat_degree_mul hp₂ hq₁, h_eq]
 end
 
+lemma nat_degree_eq_zero_of_is_unit (h : is_unit p) : nat_degree p = 0 :=
+begin
+  nontriviality R,
+  obtain ⟨q, hq⟩ := h.exists_right_inv,
+  have := nat_degree_mul (left_ne_zero_of_mul_eq_one hq) (right_ne_zero_of_mul_eq_one hq),
+  rw [hq, nat_degree_one, eq_comm, add_eq_zero_iff] at this,
+  exact this.1,
+end
+
 lemma degree_eq_zero_of_is_unit [nontrivial R] (h : is_unit p) : degree p = 0 :=
-let ⟨q, hq⟩ := (h.dvd : p ∣ 1) in
-have hp0 : p ≠ 0, from λ hp0, by simpa [hp0] using hq,
-have hq0 : q ≠ 0, from λ hp0, by simpa [hp0] using hq,
-have nat_degree (1 : R[X]) = nat_degree (p * q),
-  from congr_arg _ hq,
-by rw [nat_degree_one, nat_degree_mul hp0 hq0, eq_comm,
-    _root_.add_eq_zero_iff, ← with_bot.coe_eq_coe,
-    ← degree_eq_nat_degree hp0] at this;
-  exact this.1
+le_antisymm (nat_degree_eq_zero_iff_degree_le_zero.mp (nat_degree_eq_zero_of_is_unit h))
+  (zero_le_degree_iff.mpr h.ne_zero)
 
 theorem is_unit_iff : is_unit p ↔ ∃ r : R, is_unit r ∧ C r = p :=
 by nontriviality R; exact

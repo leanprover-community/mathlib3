@@ -872,6 +872,15 @@ begin
   exact hc.support_nodup,
 end
 
+noncomputable def disagreeing_adj_pair :
+∀ {u v : V} (p : G.walk u v) (S : set V) (uS : u ∈ S) (vS : v ∉ S),
+  Σ' (x : V), Σ' (y : V), G.adj x y ∧ x ∈ S ∧ y ∉ S
+| _ _ nil p uS vnS := (vnS uS).elim
+| _ _ (cons' u x v a w) S uS vnS := by
+{ by_cases h : S x,
+  { exact w.disagreeing_adj_pair S h vnS, },
+  { exact ⟨u,x,a,uS,h⟩ }, }
+
 end walk_decomp
 
 end walk

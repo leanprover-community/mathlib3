@@ -303,7 +303,7 @@ begin
   rw connected_iff, refine ⟨_,hT.2⟩,
   rintro u v,
   by_contra h,
-  obtain ⟨x,y,e,hx',hy'⟩ := (hT.1 u v).some.split_along_set' ({x | G.reachable u x}) (by {simp,}) h,
+  obtain ⟨x,y,e,hx',hy'⟩ := (hT.1 u v).some.disagreeing_adj_pair ({x | G.reachable u x}) (by {simp,}) h,
   have hy : ¬ G.reachable x y := λ h, hy' (hx'.trans h),
   have xnay : ¬ G.adj x y := λ a, hy ⟨(path.singleton a).val⟩,
   have hG : G = (G.add_edges {⟦⟨x,y⟩⟧}).delete_edges {⟦⟨x,y⟩⟧} := (add_delete_edge x y xnay).symm,

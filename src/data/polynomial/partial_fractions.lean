@@ -271,7 +271,6 @@ begin
       rintro rfl, -- this is a hidden `rw`, so I need to leave term mode
       exact hab hi, }, },
 end
-#print axioms
 
 .
 
@@ -289,7 +288,10 @@ begin
     (div_eq_quo_add_sum_rem_div R K f s hg hcop).some_spec.some_spec,
   change q = q₀ ∧ ∀ i ∈ s, r i = r₀ i, split,
   { rw hf at hf₀,
-    
+    have htriv : g = λ (i : ι), g i ,
+    { refl,
+
+      sorry }
     sorry },
   {
     sorry },

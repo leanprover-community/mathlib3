@@ -8,7 +8,7 @@ import data.finsupp.defs
 import data.nat.part_enat
 import data.set.countable
 import logic.small.basic
-import order.conditionally_complete_lattice
+import order.conditionally_complete_lattice.basic
 import order.succ_pred.basic
 import set_theory.cardinal.schroeder_bernstein
 import tactic.positivity
@@ -886,7 +886,7 @@ lemma mk_finset_of_fintype [fintype α] : #(finset α) = 2 ^ℕ fintype.card α 
 
 @[simp] lemma mk_finsupp_lift_of_fintype (α : Type u) (β : Type v) [fintype α] [has_zero β] :
   #(α →₀ β) = lift.{u} (#β) ^ℕ fintype.card α :=
-by simpa using (@finsupp.equiv_fun_on_fintype α β _ _).cardinal_eq
+by simpa using (@finsupp.equiv_fun_on_finite α β _ _).cardinal_eq
 
 lemma mk_finsupp_of_fintype (α β : Type u) [fintype α] [has_zero β] :
   #(α →₀ β) = (#β) ^ℕ fintype.card α :=

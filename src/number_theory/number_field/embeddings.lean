@@ -133,12 +133,14 @@ end place
 
 section infinite_place
 
+open complex
+
 open_locale complex_conjugate
 
 variables {K : Type*} [field K]
 
 /-- The conjugate of a complex embedding as a complex embedding. -/
-def conjugate (φ : K →+* ℂ) : K →+* ℂ := ring_hom.comp complex.conj_ae.to_ring_equiv.to_ring_hom φ
+def conjugate (φ : K →+* ℂ) : K →+* ℂ := ring_hom.comp conj_ae.to_ring_equiv.to_ring_hom φ
 
 /-- Two complex embeddings define the same place iff they are equal or complex conjugate. -/
 lemma infinite_place_eq_iff {φ ψ : K →+* ℂ} :
@@ -146,18 +148,18 @@ lemma infinite_place_eq_iff {φ ψ : K →+* ℂ} :
 begin
   split,
   { intro h₀,
-    obtain ⟨_, hiφ⟩ := function.injective.has_left_inverse φ.injective,
+    obtain ⟨_, hiφ⟩ := φ.injective.has_left_inverse ,
     let ι := ring_equiv.of_left_inverse hiφ,
     have hlip : lipschitz_with 1 (ring_hom.comp ψ ι.symm.to_ring_hom),
     { change lipschitz_with 1 (ψ ∘ ι.symm),
       apply lipschitz_with.of_dist_le_mul,
       intros x y,
-      rw [nonneg.coe_one, one_mul, complex.normed_field.dist_eq, ← map_sub, ← map_sub],
+      rw [nonneg.coe_one, one_mul, normed_field.dist_eq, ← map_sub, ← map_sub],
       convert (le_of_eq (congr_fun h₀ (ι.symm (x - y))).symm) using 1,
       rw [place, function.comp_app, ← ring_equiv.of_left_inverse_apply hiφ _,
         ring_equiv.apply_symm_apply ι _],
       refl, },
-    cases (subfield.uniform_continuous_ring_hom_eq_id_or_conj φ.field_range hlip.uniform_continuous),
+    cases (φ.field_range.uniform_continuous_ring_hom_eq_id_or_conj hlip.uniform_continuous),
     { left, ext1 x,
       convert (congr_fun h (ι x)).symm,
       exact (ring_equiv.apply_symm_apply ι.symm x).symm, },
@@ -167,9 +169,8 @@ begin
   { rintros (⟨h⟩ | ⟨h⟩),
     { ext x, convert congr_arg complex.abs (ring_hom.congr_fun h x), },
     { ext x,
-      rw [place, place, function.comp_app, function.comp_app, complex.norm_eq_abs,
-        complex.norm_eq_abs, ← complex.abs_conj],
-      convert congr_arg complex.abs (ring_hom.congr_fun h x), }},
+      rw [place, place, function.comp_app, function.comp_app, norm_eq_abs, norm_eq_abs, ← abs_conj],
+      exact congr_arg complex.abs (ring_hom.congr_fun h x), }},
 end
 
 end infinite_place

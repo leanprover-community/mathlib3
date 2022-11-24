@@ -797,6 +797,9 @@ def eval_ring_hom : R → R[X] →+* R := eval₂_ring_hom (ring_hom.id _)
 
 @[simp] lemma coe_eval_ring_hom (r : R) : ((eval_ring_hom r) : R[X] → R) = eval r := rfl
 
+lemma eval_ring_hom_zero : eval_ring_hom 0 = constant_coeff :=
+fun_like.ext _ _ $ λ p, p.coeff_zero_eq_eval_zero.symm
+
 @[simp] lemma eval_pow (n : ℕ) : (p ^ n).eval x = p.eval x ^ n := eval₂_pow _ _ _
 
 @[simp]

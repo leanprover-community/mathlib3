@@ -175,9 +175,9 @@ by { simp only [c₄, b₂_eq, b₄_eq], simp_map }
 @[simp] lemma c₆_eq : (E.base_change A).c₆ = algebra_map R A E.c₆ :=
 by { simp only [c₆, b₂_eq, b₄_eq, b₆_eq], simp_map }
 
-@[simp] lemma Δ_coe_eq : ↑(E.base_change A).Δ = algebra_map R A E.Δ := rfl
+lemma Δ_coe_eq : ↑(E.base_change A).Δ = algebra_map R A E.Δ := rfl
 
-@[simp] lemma Δ_coe_inv_eq : ↑(E.base_change A).Δ⁻¹ = algebra_map R A ↑E.Δ⁻¹ := rfl
+lemma Δ_coe_inv_eq : ↑(E.base_change A).Δ⁻¹ = algebra_map R A ↑E.Δ⁻¹ := rfl
 
 @[simp] lemma j_eq : (E.base_change A).j = algebra_map R A E.j :=
 by { simp only [j, c₄_eq, Δ_coe_inv_eq], simp_map }

@@ -426,7 +426,9 @@ section lcomap_domain
 
 variables {β : Type*} {R M}
 
-/-- Extend the domain of a finitely supported function by returning `0` outside the original domain.
+/-- Given `f : α → β` and a proof `hf` that `f` is injective, `lcomap_domain f hf` is the linear map
+sending  `l : β →₀ M` to the finitely supported function from `α` to `M` given by composing
+`l` with `f`.
 
 This is the linear version of `finsupp.comap_domain`. -/
 def lcomap_domain (f : α → β) (hf : function.injective f) :

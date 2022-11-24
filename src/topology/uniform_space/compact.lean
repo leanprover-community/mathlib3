@@ -148,13 +148,13 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
     -- So u ∈ V₁, v ∈ V₂, and there exists some w such that (u, w) ∈ W and (w ,v) ∈ W.
     -- Because u is in V₁ which is disjoint from U₂ and U₃, (u, w) ∈ W forces (u, w) ∈ U₁ ×ˢ U₁.
     have uw_in : (u, w) ∈ U₁ ×ˢ U₁ := (huw.resolve_right $ λ h, (h.1 $ or.inl u_in)).resolve_right
-      (λ h, hU₁₂ ⟨VU₁ u_in, h.1⟩),
+      (λ h, hU₁₂.le_bot ⟨VU₁ u_in, h.1⟩),
     -- Similarly, because v ∈ V₂, (w ,v) ∈ W forces (w, v) ∈ U₂ ×ˢ U₂.
     have wv_in : (w, v) ∈ U₂ ×ˢ U₂ := (hwv.resolve_right $ λ h, (h.2 $ or.inr v_in)).resolve_left
-      (λ h, hU₁₂ ⟨h.2, VU₂ v_in⟩),
+      (λ h, hU₁₂.le_bot ⟨h.2, VU₂ v_in⟩),
     -- Hence w ∈ U₁ ∩ U₂ which is empty.
     -- So we have a contradiction
-    exact hU₁₂ ⟨uw_in.2, wv_in.1⟩,
+    exact hU₁₂.le_bot ⟨uw_in.2, wv_in.1⟩,
   end,
   is_open_uniformity := begin
     -- Here we need to prove the topology induced by the constructed uniformity is the
@@ -210,7 +210,7 @@ lemma continuous_on.tendsto_uniformly [locally_compact_space α] [compact_space 
 begin
   rcases locally_compact_space.local_compact_nhds _ _ hxU with ⟨K, hxK, hKU, hK⟩,
   have : uniform_continuous_on ↿f (K ×ˢ univ),
-    from is_compact.uniform_continuous_on_of_continuous (hK.prod compact_univ)
+    from is_compact.uniform_continuous_on_of_continuous (hK.prod is_compact_univ)
       (h.mono $ prod_mono hKU subset.rfl),
   exact this.tendsto_uniformly hxK
 end

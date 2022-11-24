@@ -3,7 +3,7 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
-import algebra.group.to_additive
+import tactic.to_additive
 import tactic.lint.frontend
 import tactic.lint.misc
 import tactic.lint.simp
@@ -99,5 +99,6 @@ add_tactic_doc
 /-- The default linters used in mathlib CI. -/
 meta def mathlib_linters : list name := by do
 ls ← get_checks tt [] ff,
-let ls := ls.map (λ ⟨n, _⟩, `linter ++ n),
+let ls := ls.map (λ ⟨n, _⟩, `linter ++ n) ++
+  [`assert_not_exists.linter, `assert_no_instance.linter],
 exact (reflect ls)

@@ -3,7 +3,6 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Scott Morrison
 -/
-import category_theory.functor.currying
 import category_theory.limits.over
 import category_theory.limits.shapes.images
 import category_theory.adjunction.reflective
@@ -83,12 +82,13 @@ instance mono (f : mono_over X) : mono f.arrow := f.property
 
 /-- The category of monomorphisms over X is a thin category,
 which makes defining its skeleton easy. -/
-instance is_thin {X : C} (f g : mono_over X) : subsingleton (f ⟶ g) :=
-⟨begin
-  intros h₁ h₂,
-  ext1,
-  erw [← cancel_mono g.arrow, over.w h₁, over.w h₂],
-end⟩
+instance is_thin {X : C} : quiver.is_thin (mono_over X) :=
+λ f g,
+  ⟨begin
+    intros h₁ h₂,
+    ext1,
+    erw [← cancel_mono g.arrow, over.w h₁, over.w h₂],
+  end⟩
 
 @[reassoc] lemma w {f g : mono_over X} (k : f ⟶ g) : k.left ≫ g.arrow = f.arrow := over.w _
 

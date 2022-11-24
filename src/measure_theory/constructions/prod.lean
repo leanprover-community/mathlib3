@@ -37,7 +37,7 @@ We also prove Tonelli's theorem and Fubini's theorem.
   is measurable.
 * `measure_theory.integrable_prod_iff` states that a binary function is integrable iff both
   * `y ↦ f (x, y)` is integrable for almost every `x`, and
-  * the function `x ↦ ∫ ∥f (x, y)∥ dy` is integrable.
+  * the function `x ↦ ∫ ‖f (x, y)‖ dy` is integrable.
 * `measure_theory.integral_prod`: Fubini's theorem. It states that for a integrable function
   `α × β → E` (where `E` is a second countable Banach space) we have
   `∫ z, f z ∂(μ.prod ν) = ∫ x, ∫ y, f (x, y) ∂ν ∂μ`. This theorem has the same variants as
@@ -159,7 +159,7 @@ begin
     exact h2t.const_sub _ },
   { intros f h1f h2f h3f, simp_rw [preimage_Union],
     have : ∀ b, ν (⋃ i, prod.mk b ⁻¹' f i) = ∑' i, ν (prod.mk b ⁻¹' f i) :=
-      λ b, measure_Union (λ i j hij, disjoint.preimage _ (h1f i j hij))
+      λ b, measure_Union (λ i j hij, disjoint.preimage _ (h1f hij))
         (λ i, measurable_prod_mk_left (h2f i)),
     simp_rw [this], apply measurable.ennreal_tsum h3f },
 end
@@ -280,7 +280,7 @@ begin
         simp_rw [s', simple_func.coe_comp], exact simple_func.norm_approx_on_zero_le _ _ (x, y) n },
       simp only [f', hfx, simple_func.integral_eq_integral _ (this _), indicator_of_mem,
         mem_set_of_eq],
-      refine tendsto_integral_of_dominated_convergence (λ y, ∥f x y∥ + ∥f x y∥)
+      refine tendsto_integral_of_dominated_convergence (λ y, ‖f x y‖ + ‖f x y‖)
         (λ n, (s' n x).ae_strongly_measurable) (hfx.norm.add hfx.norm) _ _,
       { exact λ n, eventually_of_forall (λ y, simple_func.norm_approx_on_zero_le _ _ (x, y) n) },
       { refine eventually_of_forall (λ y, simple_func.tendsto_approx_on _ _ _),
@@ -838,10 +838,10 @@ lemma integrable_swap_iff [sigma_finite μ] ⦃f : α × β → E⦄ :
 
 lemma has_finite_integral_prod_iff ⦃f : α × β → E⦄ (h1f : strongly_measurable f) :
   has_finite_integral f (μ.prod ν) ↔ (∀ᵐ x ∂ μ, has_finite_integral (λ y, f (x, y)) ν) ∧
-    has_finite_integral (λ x, ∫ y, ∥f (x, y)∥ ∂ν) μ :=
+    has_finite_integral (λ x, ∫ y, ‖f (x, y)‖ ∂ν) μ :=
 begin
   simp only [has_finite_integral, lintegral_prod_of_measurable _ h1f.ennnorm],
-  have : ∀ x, ∀ᵐ y ∂ν, 0 ≤ ∥f (x, y)∥ := λ x, eventually_of_forall (λ y, norm_nonneg _),
+  have : ∀ x, ∀ᵐ y ∂ν, 0 ≤ ‖f (x, y)‖ := λ x, eventually_of_forall (λ y, norm_nonneg _),
   simp_rw [integral_eq_lintegral_of_nonneg_ae (this _)
     (h1f.norm.comp_measurable measurable_prod_mk_left).ae_strongly_measurable,
     ennnorm_eq_of_real to_real_nonneg, of_real_norm_eq_coe_nnnorm],
@@ -857,7 +857,7 @@ end
 
 lemma has_finite_integral_prod_iff' ⦃f : α × β → E⦄ (h1f : ae_strongly_measurable f (μ.prod ν)) :
   has_finite_integral f (μ.prod ν) ↔ (∀ᵐ x ∂ μ, has_finite_integral (λ y, f (x, y)) ν) ∧
-    has_finite_integral (λ x, ∫ y, ∥f (x, y)∥ ∂ν) μ :=
+    has_finite_integral (λ x, ∫ y, ‖f (x, y)‖ ∂ν) μ :=
 begin
   rw [has_finite_integral_congr h1f.ae_eq_mk,
     has_finite_integral_prod_iff h1f.strongly_measurable_mk],
@@ -873,19 +873,19 @@ begin
 end
 
 /-- A binary function is integrable if the function `y ↦ f (x, y)` is integrable for almost every
-  `x` and the function `x ↦ ∫ ∥f (x, y)∥ dy` is integrable. -/
+  `x` and the function `x ↦ ∫ ‖f (x, y)‖ dy` is integrable. -/
 lemma integrable_prod_iff ⦃f : α × β → E⦄ (h1f : ae_strongly_measurable f (μ.prod ν)) :
   integrable f (μ.prod ν) ↔
-    (∀ᵐ x ∂ μ, integrable (λ y, f (x, y)) ν) ∧ integrable (λ x, ∫ y, ∥f (x, y)∥ ∂ν) μ :=
+    (∀ᵐ x ∂ μ, integrable (λ y, f (x, y)) ν) ∧ integrable (λ x, ∫ y, ‖f (x, y)‖ ∂ν) μ :=
 by simp [integrable, h1f, has_finite_integral_prod_iff', h1f.norm.integral_prod_right',
          h1f.prod_mk_left]
 
 /-- A binary function is integrable if the function `x ↦ f (x, y)` is integrable for almost every
-  `y` and the function `y ↦ ∫ ∥f (x, y)∥ dx` is integrable. -/
+  `y` and the function `y ↦ ∫ ‖f (x, y)‖ dx` is integrable. -/
 lemma integrable_prod_iff' [sigma_finite μ] ⦃f : α × β → E⦄
   (h1f : ae_strongly_measurable f (μ.prod ν)) :
   integrable f (μ.prod ν) ↔
-    (∀ᵐ y ∂ ν, integrable (λ x, f (x, y)) μ) ∧ integrable (λ y, ∫ x, ∥f (x, y)∥ ∂μ) ν :=
+    (∀ᵐ y ∂ ν, integrable (λ x, f (x, y)) μ) ∧ integrable (λ y, ∫ x, ‖f (x, y)‖ ∂μ) ν :=
 by { convert integrable_prod_iff (h1f.prod_swap) using 1, rw [integrable_swap_iff] }
 
 lemma integrable.prod_left_ae [sigma_finite μ] ⦃f : α × β → E⦄
@@ -897,11 +897,11 @@ lemma integrable.prod_right_ae [sigma_finite μ] ⦃f : α × β → E⦄
 hf.swap.prod_left_ae
 
 lemma integrable.integral_norm_prod_left ⦃f : α × β → E⦄
-  (hf : integrable f (μ.prod ν)) : integrable (λ x, ∫ y, ∥f (x, y)∥ ∂ν) μ :=
+  (hf : integrable f (μ.prod ν)) : integrable (λ x, ∫ y, ‖f (x, y)‖ ∂ν) μ :=
 ((integrable_prod_iff hf.ae_strongly_measurable).mp hf).2
 
 lemma integrable.integral_norm_prod_right [sigma_finite μ] ⦃f : α × β → E⦄
-  (hf : integrable f (μ.prod ν)) : integrable (λ y, ∫ x, ∥f (x, y)∥ ∂μ) ν :=
+  (hf : integrable f (μ.prod ν)) : integrable (λ y, ∫ x, ‖f (x, y)‖ ∂μ) ν :=
 hf.swap.integral_norm_prod_left
 
 lemma integrable_prod_mul {f : α → ℝ} {g : β → ℝ} (hf : integrable f μ) (hg : integrable g ν) :
@@ -1011,14 +1011,14 @@ begin
   rw [continuous_iff_continuous_at], intro g,
   refine tendsto_integral_of_L1 _ (L1.integrable_coe_fn g).integral_prod_left
     (eventually_of_forall $ λ h, (L1.integrable_coe_fn h).integral_prod_left) _,
-  simp_rw [← lintegral_fn_integral_sub (λ x, (∥x∥₊ : ℝ≥0∞)) (L1.integrable_coe_fn _)
+  simp_rw [← lintegral_fn_integral_sub (λ x, (‖x‖₊ : ℝ≥0∞)) (L1.integrable_coe_fn _)
     (L1.integrable_coe_fn g)],
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds _ (λ i, zero_le _) _,
-  { exact λ i, ∫⁻ x, ∫⁻ y, ∥i (x, y) - g (x, y)∥₊ ∂ν ∂μ },
+  { exact λ i, ∫⁻ x, ∫⁻ y, ‖i (x, y) - g (x, y)‖₊ ∂ν ∂μ },
   swap, { exact λ i, lintegral_mono (λ x, ennnorm_integral_le_lintegral_ennnorm _) },
   show tendsto (λ (i : α × β →₁[μ.prod ν] E),
-    ∫⁻ x, ∫⁻ (y : β), ∥i (x, y) - g (x, y)∥₊ ∂ν ∂μ) (𝓝 g) (𝓝 0),
-  have : ∀ (i : α × β →₁[μ.prod ν] E), measurable (λ z, (∥i z - g z∥₊ : ℝ≥0∞)) :=
+    ∫⁻ x, ∫⁻ (y : β), ‖i (x, y) - g (x, y)‖₊ ∂ν ∂μ) (𝓝 g) (𝓝 0),
+  have : ∀ (i : α × β →₁[μ.prod ν] E), measurable (λ z, (‖i z - g z‖₊ : ℝ≥0∞)) :=
   λ i, ((Lp.strongly_measurable i).sub (Lp.strongly_measurable g)).ennnorm,
   simp_rw [← lintegral_prod_of_measurable _ (this _), ← L1.of_real_norm_sub_eq_lintegral,
     ← of_real_zero],

@@ -55,7 +55,7 @@ lemma _root_.has_dvd.dvd.zero_modeq_int (h : n ∣ a) : 0 ≡ a [ZMOD n] := h.mo
 
 theorem modeq_iff_dvd : a ≡ b [ZMOD n] ↔ n ∣ b - a :=
 by rw [modeq, eq_comm];
-   simp [mod_eq_mod_iff_mod_sub_eq_zero, dvd_iff_mod_eq_zero, -euclidean_domain.mod_eq_zero]
+   simp [mod_eq_mod_iff_mod_sub_eq_zero, dvd_iff_mod_eq_zero]
 
 theorem modeq_iff_add_fac {a b n : ℤ} : a ≡ b [ZMOD n] ↔ ∃ t, b = a + n * t :=
 begin

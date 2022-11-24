@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Fréd�
   Heather Macbeth
 -/
 import linear_algebra.basic
+import order.compactly_generated
 import order.omega_complete_partial_order
 
 /-!

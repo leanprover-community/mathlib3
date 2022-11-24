@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.degree.definitions
-import algebra.geom_sum
+import data.polynomial.induction
 
 /-!
 # Theory of univariate polynomials
@@ -91,7 +91,7 @@ polynomial.induction_on' p (λ p q hp hq, by simp [hp, hq])
   (λ n x, by rw [eval₂_monomial, monomial_eq_smul_X, C_mul'])
 
 /-- `eval₂_add_monoid_hom (f : R →+* S) (x : S)` is the `add_monoid_hom` from
-`polynomial R` to `S` obtained by evaluating the pushforward of `p` along `f` at `x`. -/
+`R[X]` to `S` obtained by evaluating the pushforward of `p` along `f` at `x`. -/
 @[simps] def eval₂_add_monoid_hom : R[X] →+ S :=
 { to_fun := eval₂ f x,
   map_zero' := eval₂_zero _ _,
@@ -567,6 +567,10 @@ map_bit0 (map_ring_hom f) p
 @[simp] protected lemma map_bit1 : (bit1 p).map f = bit1 (p.map f) :=
 map_bit1 (map_ring_hom f) p
 
+--TODO rename to `map_dvd_map`
+lemma map_dvd (f : R →+* S) {x y : R[X]} : x ∣ y → x.map f ∣ y.map f :=
+(map_ring_hom f).map_dvd
+
 @[simp]
 lemma coeff_map (n : ℕ) : coeff (p.map f) n = f (coeff p n) :=
 begin
@@ -788,7 +792,7 @@ variables [comm_semiring R] {p q : R[X]} {x : R} [comm_semiring S] (f : R →+* 
 
 @[simp] lemma eval_mul : (p * q).eval x = p.eval x * q.eval x := eval₂_mul _ _
 
-/-- `eval r`, regarded as a ring homomorphism from `polynomial R` to `R`. -/
+/-- `eval r`, regarded as a ring homomorphism from `R[X]` to `R`. -/
 def eval_ring_hom : R → R[X] →+* R := eval₂_ring_hom (ring_hom.id _)
 
 @[simp] lemma coe_eval_ring_hom (r : R) : ((eval_ring_hom r) : R[X] → R) = eval r := rfl
@@ -803,7 +807,7 @@ begin
   { intros n a, simp, }
 end
 
-/-- `comp p`, regarded as a ring homomorphism from `polynomial R` to itself. -/
+/-- `comp p`, regarded as a ring homomorphism from `R[X]` to itself. -/
 def comp_ring_hom : R[X] → R[X] →+* R[X] :=
 eval₂_ring_hom C
 
@@ -881,10 +885,6 @@ end
 end eval
 
 section map
-
---TODO rename to `map_dvd_map`
-lemma map_dvd {R S} [semiring R] [comm_semiring S] (f : R →+* S) {x y : R[X]} :
-  x ∣ y → x.map f ∣ y.map f := eval₂_dvd _ _
 
 lemma support_map_subset [semiring R] [semiring S] (f : R →+* S) (p : R[X]) :
   (map f p).support ⊆ p.support :=

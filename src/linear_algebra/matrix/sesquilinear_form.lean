@@ -318,7 +318,8 @@ by simp only [linear_map.to_matrix₂, linear_equiv.trans_apply, linear_map.to_m
 begin
   rw [matrix.to_linear_map₂, linear_map.to_matrix₂, linear_equiv.symm_trans_apply,
     ←matrix.to_linear_map₂'],
-  simp [matrix.to_linear_map₂'_apply],
+  simp only [matrix.to_linear_map₂'_apply, linear_equiv.arrow_congr_symm_apply,
+    basis.equiv_fun_apply, linear_equiv.refl_symm, linear_equiv.refl_apply],
 end
 
 -- Not a `simp` lemma since `linear_map.to_matrix₂` needs an extra argument

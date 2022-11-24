@@ -189,7 +189,7 @@ lemma add_eq_one_iff : ∀ {a b : ℕ}, a + b = 1 ↔ (a = 0 ∧ b = 1) ∨ (a =
 | (a+2) _     := by rw add_right_comm; exact dec_trivial
 | _     (b+1) := by rw [← add_assoc]; simp only [nat.succ_inj', nat.succ_ne_zero]; simp
 
-theorem le_add_one_iff : m ≤ n + 1 ↔ (m ≤ n ∨ m = n + 1) :=
+theorem le_add_one_iff : m ≤ n + 1 ↔ m ≤ n ∨ m = n + 1 :=
 ⟨λ h,
   match nat.eq_or_lt_of_le h with
   | or.inl h := or.inr h

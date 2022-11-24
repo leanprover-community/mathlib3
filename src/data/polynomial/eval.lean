@@ -404,7 +404,10 @@ def comp (p q : R[X]) : R[X] := p.eval₂ C q
 lemma comp_eq_sum_left : p.comp q = p.sum (λ e a, C a * q ^ e) := rfl
 
 @[simp] lemma comp_X : p.comp X = p :=
-by simpa only [comp, eval₂, ← monomial_eq_C_mul_X_pow] using sum_monomial_eq
+begin
+  simp only [comp, eval₂, ← monomial_eq_C_mul_X_pow],
+  exact sum_monomial_eq _
+end
 
 @[simp] lemma X_comp : X.comp p = p := eval₂_X _ _
 

@@ -635,6 +635,79 @@ vertex and the set of vertices adjacent to the vertex.
 
 end incidence
 
+/-! ## Edge addition -/
+
+/-- Given a set of vertex pairs, add all corresponding edges to the graph's edge set. -/
+@[reducible] def add_edges (s : set (sym2 V)) : simple_graph V := from_edge_set (G.edge_set ∪ s)
+
+@[simp] lemma add_edges_adj (s : set (sym2 V)) (v w : V) :
+  (G.add_edges s).adj v w ↔ (G.adj v w ∨  ⟦(v, w)⟧ ∈ s) ∧ v ≠ w := iff.rfl
+
+@[simp] lemma add_edges_add_edges (s s' : set (sym2 V)) :
+  (G.add_edges s).add_edges s' = G.add_edges (s ∪ s') :=
+by { ext, simp only [add_edges_adj, ne.def, set.mem_union, and.congr_left_iff], intro _, tauto, }
+
+@[simp] lemma add_edges_empty_eq : G.add_edges ∅ = G :=
+by { ext, simpa using adj.ne, }
+
+@[simp] lemma add_edges_univ_eq : G.add_edges set.univ = ⊤ :=
+by { ext, simp, }
+
+lemma le_add_edges (s : set (sym2 V)) : G ≤ G.add_edges s :=
+λ v w a, ⟨or.inl a,a.ne⟩
+
+lemma add_edges_le_of_le {s s' : set (sym2 V)} (h : s ⊆ s') :
+  G.add_edges s ≤ G.add_edges s' :=
+λ v w, begin
+  simp only [add_edges_adj, ne.def, and_imp],
+  rintro (a|mems) ne,
+  exact ⟨or.inl a, ne⟩,
+  exact ⟨or.inr (h mems), ne⟩,
+end
+
+lemma add_edges_eq_inter_edge_set (s : set (sym2 V)) :
+  G.add_edges s = G.add_edges (s ∪ G.edge_set) :=
+begin
+  ext,
+  simp only [add_edges_adj, ne.def, set.mem_union, mem_edge_set, and.congr_left_iff],
+  rintro h, tauto,
+end
+
+lemma add_edges_sdiff_eq_of_le {H : simple_graph V} (h : H ≤ G) :
+  H.add_edges (G.edge_set \ H.edge_set) = G :=
+begin
+  ext v w, split; simp only [add_edges_adj, set.mem_diff, mem_edge_set, ne.def, and_imp],
+  { tauto, },
+  { rintro a, by_cases H.adj v w; let := a.ne; tauto, },
+end
+
+lemma edge_set_add_edges (s : set (sym2 V)) :
+  (G.add_edges s).edge_set = (⊤ : simple_graph V).edge_set ∩ (G.edge_set ∪ s) :=
+begin
+  ext e, refine sym2.ind _ e,
+  simp only [edge_set_from_edge_set, set.sep_union, set.mem_union, set.mem_sep_iff, mem_edge_set,
+             sym2.is_diag_iff_proj_eq, set.mem_inter_iff, top_adj, ne.def],
+  tauto,
+end
+
+lemma add_edges_eq_iff (s : set (sym2 V)) :
+  G.add_edges s = G ↔ (∀ u v, u ≠ v → ((⟦⟨u,v⟩⟧ : sym2 V) ∈ s) → G.adj u v) :=
+begin
+  split,
+  { rintro GseG u v unev uvs, rw ←GseG, exact ⟨or.inr uvs, unev⟩, },
+  { rintro h, ext u v, split,
+    { rintro ⟨(a|uvs),unev⟩, exact a, exact h u v unev uvs, },
+    { rintro a, exact ⟨or.inl a, a.ne⟩, }, },
+end
+
+lemma add_edge_eq_iff (u v) (h : u ≠ v) : G.add_edges {⟦⟨u,v⟩⟧} = G ↔ G.adj u v :=
+begin
+  simp only [add_edges_eq_iff, ne.def, set.mem_singleton_iff, quotient.eq, sym2.rel_iff],
+  split,
+  { rintros h', exact h' u v h (by simp), },
+  { rintro h' u v hn (⟨rfl,rfl⟩|⟨rfl,rfl⟩), exact h', exact h'.symm, },
+end
+
 /-! ## Edge deletion -/
 
 /-- Given a set of vertex pairs, remove all of the corresponding edges from the
@@ -673,6 +746,13 @@ by { ext, simp }
 lemma delete_edges_le (s : set (sym2 V)) : G.delete_edges s ≤ G :=
 by { intro, simp { contextual := tt } }
 
+lemma le_delete_edges (G B : simple_graph V)  (s : set (sym2 V)) :
+  B ≤ G → disjoint s B.edge_set → B ≤ G.delete_edges s :=
+begin
+  rw set.disjoint_iff,
+  exact λ BG sB x y a, ⟨BG a, λ as, sB ⟨as,a⟩⟩,
+end
+
 lemma delete_edges_le_of_le {s s' : set (sym2 V)} (h : s ⊆ s') :
   G.delete_edges s' ≤ G.delete_edges s :=
 λ v w, begin
@@ -696,6 +776,21 @@ lemma edge_finset_delete_edges [fintype V] [decidable_eq V] [decidable_rel G.adj
   (s : finset (sym2 V)) [decidable_rel (G.delete_edges s).adj] :
   (G.delete_edges s).edge_finset = G.edge_finset \ s :=
 by { ext e, simp [edge_set_delete_edges] }
+
+lemma delete_edges_eq_iff (s : set (sym2 V)) :
+  G.delete_edges s = G ↔ disjoint s G.edge_set :=
+begin
+  rw set.disjoint_iff,
+  split,
+  { rintros h ⟨v,w⟩ ⟨es,eG⟩,
+    rw ←h at eG, obtain ⟨eG',es'⟩ := eG,
+    exact es' es, },
+  { rintro h, ext u v,
+    refine ⟨λ x, x.left, λ a, ⟨a, λ es, h ⟨es,a⟩⟩ ⟩, },
+end
+
+lemma delete_edge_eq_iff (u v) : G.delete_edges {⟦⟨u,v⟩⟧} = G ↔ ¬ G.adj u v :=
+by simp only [delete_edges_eq_iff, set.disjoint_singleton_left, mem_edge_set]
 
 section delete_far
 variables (G) [ordered_ring 𝕜] [fintype V] [decidable_eq V] [decidable_rel G.adj]

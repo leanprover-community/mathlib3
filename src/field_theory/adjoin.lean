@@ -500,8 +500,9 @@ lemma exists_finset_of_mem_supr'' {ι : Type*} {f : ι → intermediate_field F 
 begin
   refine exists_finset_of_mem_supr (set_like.le_def.mp (supr_le (λ i x hx, set_like.le_def.mp
     (le_supr_of_le ⟨i, x, hx⟩ le_rfl) (subset_adjoin F _ _))) hx),
-  rw [intermediate_field.minpoly_eq, subtype.coe_mk, polynomial.mem_root_set, minpoly.aeval],
-  exact minpoly.ne_zero (is_integral_iff.mp (is_algebraic_iff_is_integral.mp (h i ⟨x, hx⟩)))
+  rw [intermediate_field.minpoly_eq, subtype.coe_mk, polynomial.mem_root_set_iff],
+  exact ⟨minpoly.ne_zero (is_integral_iff.mp (is_algebraic_iff_is_integral.mp (h i ⟨x, hx⟩))),
+    minpoly.aeval _ _⟩
 end
 
 end adjoin_simple

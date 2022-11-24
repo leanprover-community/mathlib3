@@ -886,7 +886,7 @@ lemma mk_finset_of_fintype [fintype α] : #(finset α) = 2 ^ℕ fintype.card α 
 
 @[simp] lemma mk_finsupp_lift_of_fintype (α : Type u) (β : Type v) [fintype α] [has_zero β] :
   #(α →₀ β) = lift.{u} (#β) ^ℕ fintype.card α :=
-by simpa using (@finsupp.equiv_fun_on_fintype α β _ _).cardinal_eq
+by simpa using (@finsupp.equiv_fun_on_finite α β _ _).cardinal_eq
 
 lemma mk_finsupp_of_fintype (α β : Type u) [fintype α] [has_zero β] :
   #(α →₀ β) = (#β) ^ℕ fintype.card α :=
@@ -1150,6 +1150,10 @@ end
 lemma to_nat_right_inverse : function.right_inverse (coe : ℕ → cardinal) to_nat := to_nat_cast
 
 lemma to_nat_surjective : surjective to_nat := to_nat_right_inverse.surjective
+
+lemma exists_nat_eq_of_le_nat {c : cardinal} {n : ℕ} (h : c ≤ n) : ∃ m, m ≤ n ∧ c = m :=
+let he := cast_to_nat_of_lt_aleph_0 (h.trans_lt $ nat_lt_aleph_0 n) in
+⟨c.to_nat, nat_cast_le.1 (he.trans_le h), he.symm⟩
 
 @[simp] lemma mk_to_nat_of_infinite [h : infinite α] : (#α).to_nat = 0 :=
 dif_neg (infinite_iff.1 h).not_lt

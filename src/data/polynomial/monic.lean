@@ -213,7 +213,7 @@ end monic
   ((X + C r) ^ n).nat_degree = n :=
 by rw [(monic_X_add_C r).nat_degree_pow, nat_degree_X_add_C, mul_one]
 
-lemma monic.eq_one_of_is_unit (hm : monic p) (hpu : is_unit p) : p = 1 :=
+lemma monic.eq_one_of_is_unit (hm : p.monic) (hpu : is_unit p) : p = 1 :=
 begin
   obtain ⟨⟨p, q, h1, h2⟩, rfl⟩ := hpu,
   dsimp only [units.coe_mk] at hm ⊢,
@@ -221,6 +221,9 @@ begin
   rw [(hm.of_mul_monic_left $ h1.substr monic_one).nat_degree_mul hm, nat_degree_one] at h2,
   exact hm.nat_degree_eq_zero_iff_eq_one.1 (add_eq_zero_iff.1 h2).2,
 end
+
+lemma monic.is_unit_iff (hm : p.monic) : is_unit p ↔ p = 1 :=
+⟨hm.eq_one_of_is_unit, λ h, h.symm ▸ is_unit_one⟩
 
 end semiring
 

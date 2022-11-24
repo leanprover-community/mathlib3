@@ -27,10 +27,6 @@ https://en.wikipedia.org/wiki/Partial_fraction_decomposition#General_result
 * General partial fraction decomposition theorem for polynomials over a general field k
 https://en.wikipedia.org/wiki/Partial_fraction_decomposition#Statement
 
-## TODO
-
-Everything
-
 ## Strategy
 
 Here is my proposal.
@@ -57,17 +53,17 @@ I don't see why irreducibility is even needed.
 
 -/
 
--- this section can be deleted when #17087 hits
-section comm_ring_comm_ring
+-- -- this section can be deleted when #17087 hits
+-- section comm_ring_comm_ring
 
-variables {R A : Type*} [comm_ring R] [comm_ring A] [algebra R A]
+-- variables {R A : Type*} [comm_ring R] [comm_ring A] [algebra R A]
 
--- [is_fraction_ring] bumps the imports but I have an application, probably
--- this lemma should be elsewhere
-@[norm_cast, simp] lemma is_fraction_ring.coe_inj [is_fraction_ring R A] {a b : R} : (↑a : A) = ↑b ↔ a = b :=
-⟨λ h, is_fraction_ring.injective R A h, by rintro rfl; refl⟩
+-- -- [is_fraction_ring] bumps the imports but I have an application, probably
+-- -- this lemma should be elsewhere
+-- @[norm_cast, simp] lemma is_fraction_ring.coe_inj [is_fraction_ring R A] {a b : R} : (↑a : A) = ↑b ↔ a = b :=
+-- ⟨λ h, is_fraction_ring.injective R A h, by rintro rfl; refl⟩
 
-end comm_ring_comm_ring
+-- end comm_ring_comm_ring
 
 
 -- Let `R` be an integral domain
@@ -197,6 +193,8 @@ end polynomial
 
 end one_denominator
 
+.
+
 section two_denominators
 
 -- If `g₁` and `g₂` are coprime monics then `f/g₁g₂` can be written as `q+r₁/g₁+r₂/g₂`
@@ -221,6 +219,8 @@ begin
 end
 
 end two_denominators
+
+.
 
 section n_denominators
 
@@ -271,6 +271,9 @@ begin
       rintro rfl, -- this is a hidden `rw`, so I need to leave term mode
       exact hab hi, }, },
 end
+#print axioms
+
+.
 
 lemma div_eq_quo_add_sum_rem_div_unique' {f : R[X]} {ι : Type*} (s : finset ι) {g : ι → R[X]}
   (hg : ∀ i ∈ s, (g i).monic) (hcop : (s : set ι).pairwise (λ i j, is_coprime (g i) (g j)))
@@ -284,31 +287,12 @@ begin
   obtain ⟨hdeg₀, hf₀⟩ : (∀ i ∈ s, (r₀ i).degree < ((λ (i : ι), g i) i).degree) ∧
     ↑f / ∏ i in s, ↑((λ (i : ι), g i) i) = ↑q₀ + ∑ i in s, ↑(r₀ i) / ↑((λ (i : ι), g i) i) :=
     (div_eq_quo_add_sum_rem_div R K f s hg hcop).some_spec.some_spec,
-  change q = q₀ ∧ ∀ i ∈ s, r i = r₀ i,
-  sorry,
-end
-
-
-#exit
-
--- uniqueness
--- this is currently stated over a fintype.
--- unfortunately we should probable do the finset version and also
--- only assume our hypotheses for elements of the finset
-lemma div_eq_quo_add_sum_rem_div_unique {f : R[X]} {ι : Type*} [fintype ι] {g : ι → R[X]}
-  (hg : ∀ i, (g i).monic) (hcop : pairwise (λ i j, is_coprime (g i) (g j)))
-  (q : R[X]) (r : ι → R[X]) (hdeg : ∀ i, (r i).degree < (g i).degree)
-  (hf : (↑f : K) / ∏ i, ↑(g i) = ↑q + ∑ i, ↑(r i) / ↑(g i)) :
-    q = (div_eq_quo_add_sum_rem_div R K f finset.univ (λ i _, hg i) hcop).some ∧
-    r = (div_eq_quo_add_sum_rem_div R K f hg hcop finset.univ).some_spec.some :=
-begin
-  let q₀ := (div_eq_quo_add_sum_rem_div R K f hg hcop finset.univ).some,
-  let r₀ := (div_eq_quo_add_sum_rem_div R K f hg hcop finset.univ).some_spec.some,
-  obtain ⟨hdeg₀, hf₀⟩ : (∀ (i : ι), (r₀ i).degree < ((λ (i : ι), g i) i).degree) ∧
-    ↑f / ∏ (i : ι), ↑((λ (i : ι), g i) i) = ↑q₀ + ∑ (i : ι), ↑(r₀ i) / ↑((λ (i : ι), g i) i) :=
-    (div_eq_quo_add_sum_rem_div R K f hg hcop finset.univ).some_spec.some_spec,
-  change q = q₀ ∧ r = r₀,
-  sorry,
+  change q = q₀ ∧ ∀ i ∈ s, r i = r₀ i, split,
+  { rw hf at hf₀,
+    
+    sorry },
+  {
+    sorry },
 end
 
 end n_denominators

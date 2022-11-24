@@ -7,9 +7,6 @@ apply_nolint free_algebra.semiring check_reducibility
 -- category_theory/limits/filtered_colimit_commutes_finite_limit.lean
 apply_nolint category_theory.limits.colimit_limit_to_limit_colimit_is_iso fails_quickly
 
--- category_theory/limits/shapes/finite_products.lean
-apply_nolint category_theory.limits.has_fintype_coproducts fintype_finite
-
 -- computability/partrec.lean
 apply_nolint computable doc_blame
 apply_nolint computable₂ doc_blame

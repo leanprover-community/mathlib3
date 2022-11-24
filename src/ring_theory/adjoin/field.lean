@@ -47,11 +47,6 @@ alg_equiv.symm $ alg_equiv.of_bijective
 
 open finset
 
-/-- If a `subalgebra` is finite_dimensional as a submodule then it is `finite_dimensional`. -/
-lemma finite_dimensional.of_subalgebra_to_submodule
-  {K V : Type*} [field K] [ring V] [algebra K V] {s : subalgebra K V}
-  (h : finite_dimensional K s.to_submodule) : finite_dimensional K s := h
-
 /-- If `K` and `L` are field extensions of `F` and we have `s : finset K` such that
 the minimal polynomial of each `x ∈ s` splits in `L` then `algebra.adjoin F s` embeds in `L`. -/
 theorem lift_of_splits {F K L : Type*} [field F] [field K] [field L]

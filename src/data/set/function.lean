@@ -453,7 +453,7 @@ begin
   refine ⟨λ H, ⟨H.mono $ subset_union_left _ _, H.mono $ subset_union_right _ _, _⟩, _⟩,
   { intros x hx y hy hxy,
     obtain rfl : x = y, from H (or.inl hx) (or.inr hy) hxy,
-    exact h ⟨hx, hy⟩ },
+    exact h.le_bot ⟨hx, hy⟩ },
   { rintro ⟨h₁, h₂, h₁₂⟩,
     rintro x (hx|hx) y (hy|hy) hxy,
     exacts [h₁ hx hy hxy, (h₁₂ _ hx _ hy hxy).elim, (h₁₂ _ hy _ hx hxy.symm).elim, h₂ hx hy hxy] }
@@ -461,7 +461,7 @@ end
 
 theorem inj_on_insert {f : α → β} {s : set α} {a : α} (has : a ∉ s) :
   set.inj_on f (insert a s) ↔ set.inj_on f s ∧ f a ∉ f '' s :=
-have disjoint s {a}, from λ x ⟨hxs, (hxa : x = a)⟩, has (hxa ▸ hxs),
+have disjoint s {a}, from disjoint_iff_inf_le.mpr $ λ x ⟨hxs, (hxa : x = a)⟩, has (hxa ▸ hxs),
 by { rw [← union_singleton, inj_on_union this], simp }
 
 lemma injective_iff_inj_on_univ : injective f ↔ inj_on f univ :=
@@ -1126,6 +1126,12 @@ lemma strict_anti_on.comp_strict_mono_on [preorder α] [preorder β] [preorder �
   (hf : strict_mono_on f s) (hs : set.maps_to f s t) :
   strict_anti_on (g ∘ f) s :=
 λ x hx y hy hxy, hg (hs hx) (hs hy) $ hf hx hy hxy
+
+@[simp] lemma strict_mono_restrict [preorder α] [preorder β] {f : α → β} {s : set α} :
+  strict_mono (s.restrict f) ↔ strict_mono_on f s :=
+by simp [set.restrict, strict_mono, strict_mono_on]
+
+alias strict_mono_restrict ↔ _root_.strict_mono.of_restrict _root_.strict_mono_on.restrict
 
 lemma strict_mono.cod_restrict [preorder α] [preorder β] {f : α → β} (hf : strict_mono f)
   {s : set β} (hs : ∀ x, f x ∈ s) :

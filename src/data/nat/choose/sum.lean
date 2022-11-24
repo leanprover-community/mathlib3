@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Patrick Stevens
 -/
 import data.nat.choose.basic
-import tactic.linarith
+import tactic.linarith.default
 import algebra.big_operators.ring
 import algebra.big_operators.intervals
 import algebra.big_operators.order

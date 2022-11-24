@@ -1,0 +1,56 @@
+name: Add mathlib4 porting comments
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Update comments
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: install Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: install latest mathlibtools
+        run: |
+          pip install git+https://github.com/leanprover-community/mathlib-tools
+
+      - name: update docstrings
+        run: |
+          python ./scripts/add_port_comments.py
+          
+      # multiline outputs are only supported in javascript
+      - name: generate message
+        uses: actions/github-script@v5
+        id: generate-message
+        with:
+          script: |
+            prs = await exec.getExecOutput("bash",
+              ['-c', "git diff HEAD -U0 | grep -o -e 'https://github.com/leanprover-community/mathlib4/pull/[0-9]\\+' | sort -u"]);
+            pr_bullets = prs.stdout.trim().split('\n').map(x => "* " + x).join('\n'); 
+            console.log(pr_bullets);
+            core.setOutput("PR_LIST", pr_bullets); 
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          base: master
+          commit-message: "chore(*): add mathlibport comments"
+          title: "chore(*): add mathlibport comments"
+          body: |
+            Regenerated from the [port status wiki page](https://github.com/leanprover-community/mathlib/wiki/mathlib4-port-status).
+            Relates to the following PRs:
+            ${{ steps.generate-message.outputs.PR_LIST }}
+
+            ---
+            I am a bot; please check that I have not put a comment in a bad place before running `bors merge`!
+          labels: |
+            easy
+            awaiting-review
+            mathlib4-synchronization

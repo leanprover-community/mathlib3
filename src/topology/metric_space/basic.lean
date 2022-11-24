@@ -4,12 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébastien Gouëzel
 -/
 
-import data.int.interval
 import tactic.positivity
 import topology.algebra.order.compact
 import topology.metric_space.emetric_space
 import topology.bornology.constructions
-import topology.uniform_space.complete_separated
 
 /-!
 # Metric spaces
@@ -498,7 +496,8 @@ theorem sphere_subset_closed_ball : sphere x ε ⊆ closed_ball x ε :=
 λ y, le_of_eq
 
 lemma closed_ball_disjoint_ball (h : δ + ε ≤ dist x y) : disjoint (closed_ball x δ) (ball y ε) :=
-λ a ha, (h.trans $ dist_triangle_left _ _ _).not_lt $ add_lt_add_of_le_of_lt ha.1 ha.2
+set.disjoint_left.mpr $
+  λ a ha1 ha2, (h.trans $ dist_triangle_left _ _ _).not_lt $ add_lt_add_of_le_of_lt ha1 ha2
 
 lemma ball_disjoint_closed_ball (h : δ + ε ≤ dist x y) : disjoint (ball x δ) (closed_ball y ε) :=
 (closed_ball_disjoint_ball $ by rwa [add_comm, dist_comm]).symm
@@ -508,10 +507,11 @@ lemma ball_disjoint_ball (h : δ + ε ≤ dist x y) : disjoint (ball x δ) (ball
 
 lemma closed_ball_disjoint_closed_ball (h : δ + ε < dist x y) :
   disjoint (closed_ball x δ) (closed_ball y ε) :=
-λ a ha, h.not_le $ (dist_triangle_left _ _ _).trans $ add_le_add ha.1 ha.2
+set.disjoint_left.mpr $
+  λ a ha1 ha2, h.not_le $ (dist_triangle_left _ _ _).trans $ add_le_add ha1 ha2
 
 theorem sphere_disjoint_ball : disjoint (sphere x ε) (ball x ε) :=
-λ y ⟨hy₁, hy₂⟩, absurd hy₁ $ ne_of_lt hy₂
+set.disjoint_left.mpr $ λ y hy₁ hy₂, absurd hy₁ $ ne_of_lt hy₂
 
 @[simp] theorem ball_union_sphere : ball x ε ∪ sphere x ε = closed_ball x ε :=
 set.ext $ λ y, (@le_iff_lt_or_eq ℝ _ _ _).symm
@@ -520,10 +520,10 @@ set.ext $ λ y, (@le_iff_lt_or_eq ℝ _ _ _).symm
 by rw [union_comm, ball_union_sphere]
 
 @[simp] theorem closed_ball_diff_sphere : closed_ball x ε \ sphere x ε = ball x ε :=
-by rw [← ball_union_sphere, set.union_diff_cancel_right sphere_disjoint_ball.symm]
+by rw [← ball_union_sphere, set.union_diff_cancel_right sphere_disjoint_ball.symm.le_bot]
 
 @[simp] theorem closed_ball_diff_ball : closed_ball x ε \ ball x ε = sphere x ε :=
-by rw [← ball_union_sphere, set.union_diff_cancel_left sphere_disjoint_ball.symm]
+by rw [← ball_union_sphere, set.union_diff_cancel_left sphere_disjoint_ball.symm.le_bot]
 
 theorem mem_ball_comm : x ∈ ball y ε ↔ y ∈ ball x ε :=
 by rw [mem_ball', mem_ball]

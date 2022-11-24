@@ -114,7 +114,7 @@ begin
   have : (λ (x : ℕ × ℕ), x.snd = m) ∘ prod.swap = (λ (x : ℕ × ℕ), x.fst = m),
   { ext, simp },
   rw ←map_swap_antidiagonal,
-  simp [map_filter, this, filter_fst_eq_antidiagonal, apply_ite (finset.map _)]
+  simp [filter_map, this, filter_fst_eq_antidiagonal, apply_ite (finset.map _)]
 end
 
 section equiv_prod

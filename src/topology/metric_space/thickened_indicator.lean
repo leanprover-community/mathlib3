@@ -5,7 +5,6 @@ Authors: Kalle Kytölä
 -/
 import data.real.ennreal
 import topology.continuous_function.bounded
-import order.filter.indicator_function
 import topology.metric_space.hausdorff_distance
 
 /-!
@@ -134,7 +133,7 @@ begin
     exact tendsto_const_nhds, },
   { rw (show (closure E).indicator (λ _, (1 : ℝ≥0∞)) x = 0,
         by simp only [x_mem_closure, indicator_of_not_mem, not_false_iff]),
-    rcases exists_real_pos_lt_infdist_of_not_mem_closure x_mem_closure with ⟨ε, ⟨ε_pos, ε_lt⟩⟩,
+    rcases exists_real_pos_lt_inf_edist_of_not_mem_closure x_mem_closure with ⟨ε, ⟨ε_pos, ε_lt⟩⟩,
     rw metric.tendsto_nhds at δseq_lim,
     specialize δseq_lim ε ε_pos,
     simp only [dist_zero_right, real.norm_eq_abs, eventually_at_top, ge_iff_le] at δseq_lim,

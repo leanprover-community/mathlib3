@@ -134,22 +134,18 @@ end
 closure of the set. -/
 lemma inf_edist_pos_iff_not_mem_closure {x : α} {E : set α} :
   0 < inf_edist x E ↔ x ∉ closure E :=
-begin
-  rw ← inf_edist_closure,
-  simp only [mem_iff_inf_edist_zero_of_closed is_closed_closure, zero_lt_iff],
-end
+by rw [mem_closure_iff_inf_edist_zero, pos_iff_ne_zero]
 
 lemma inf_edist_closure_pos_iff_not_mem_closure {x : α} {E : set α} :
   0 < inf_edist x (closure E) ↔ x ∉ closure E :=
-by simp only [mem_iff_inf_edist_zero_of_closed is_closed_closure, zero_lt_iff]
+by rw [inf_edist_closure, inf_edist_pos_iff_not_mem_closure]
 
-lemma exists_real_pos_lt_infdist_of_not_mem_closure {x : α} {E : set α} (h : x ∉ closure E) :
+lemma exists_real_pos_lt_inf_edist_of_not_mem_closure {x : α} {E : set α} (h : x ∉ closure E) :
   ∃ (ε : ℝ), 0 < ε ∧ ennreal.of_real ε < inf_edist x E :=
 begin
-  have h' : 0 < inf_edist x E,
-    by simpa [mem_closure_iff_inf_edist_zero, zero_lt_iff] using h,
-  rcases ennreal.lt_iff_exists_real_btwn.mp h' with ⟨ε, ⟨_, ⟨ε_pos, ε_lt⟩⟩⟩,
-  refine ⟨ε, ⟨ennreal.of_real_pos.mp ε_pos, ε_lt⟩⟩,
+  rw [← inf_edist_pos_iff_not_mem_closure, ennreal.lt_iff_exists_real_btwn] at h,
+  rcases h with ⟨ε, ⟨_, ⟨ε_pos, ε_lt⟩⟩⟩,
+  exact ⟨ε, ⟨ennreal.of_real_pos.mp ε_pos, ε_lt⟩⟩,
 end
 
 lemma disjoint_closed_ball_of_lt_inf_edist {r : ℝ≥0∞} (h : r < inf_edist x s) :

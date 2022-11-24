@@ -5,13 +5,14 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.group.pi
+import algebra.group_power.lemmas
 import algebra.hom.equiv.basic
 import algebra.ring.opposite
-import data.set.pairwise
 import data.finset.sum
 import data.fintype.basic
 import data.finset.sigma
-import algebra.group_power.lemmas
+import data.list.big_operators.lemmas
+import data.set.pairwise
 
 /-!
 # Big operators

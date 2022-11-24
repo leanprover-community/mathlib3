@@ -88,7 +88,7 @@ variables {ι κ X Y Z α β γ 𝓕 : Type*} [topological_space X] [topological
 
 /-- A family `F : ι → X → α` of functions from a topological space to a uniform space is
 *equicontinuous at `x₀ : X`* if, for all entourage `U ∈ 𝓤 α`, there is a neighborhood `V` of `x₀`
-such that, for all `x ∈ V` and for all `i : ι`, `F i x` is `U`-close to `F i x₉`. -/
+such that, for all `x ∈ V` and for all `i : ι`, `F i x` is `U`-close to `F i x₀`. -/
 def equicontinuous_at (F : ι → X → α) (x₀ : X) : Prop :=
 ∀ U ∈ 𝓤 α, ∀ᶠ x in 𝓝 x₀, ∀ i, (F i x₀, F i x) ∈ U
 
@@ -109,7 +109,7 @@ equicontinuous (coe : H → X → α)
 
 /-- A family `F : ι → β → α` of functions between uniform spaces is *uniformly equicontinuous* if,
 for all entourage `U ∈ 𝓤 α`, there is an entourage `V ∈ 𝓤 β` such that, whenever `x` and `y` are
-`V`-close, we have that, *for all `i : ι`*, `F i x` is `U`-close to `F i x₉`. -/
+`V`-close, we have that, *for all `i : ι`*, `F i x` is `U`-close to `F i x₀`. -/
 def uniform_equicontinuous (F : ι → β → α) : Prop :=
 ∀ U ∈ 𝓤 α, ∀ᶠ (xy : β × β) in 𝓤 β, ∀ i, (F i xy.1, F i xy.2) ∈ U
 
@@ -234,7 +234,7 @@ continuous at `x₀` *when `ι → α` is equipped with the topology of uniform 
 very useful for developping the equicontinuity API, but it should not be used directly for other
 purposes. -/
 lemma equicontinuous_at_iff_continuous_at {F : ι → X → α} {x₀ : X} :
-  equicontinuous_at F x₀ ↔ continuous_at (of_fun ∘ function.swap F : X → (ι →ᵤ α)) x₀ :=
+  equicontinuous_at F x₀ ↔ continuous_at (of_fun ∘ function.swap F : X → ι →ᵤ α) x₀ :=
 by rw [continuous_at, (uniform_fun.has_basis_nhds ι α _).tendsto_right_iff]; refl
 
 /-- A family `𝓕 : ι → X → α` is equicontinuous iff the function `swap 𝓕 : X → ι → α` is
@@ -242,7 +242,7 @@ continuous *when `ι → α` is equipped with the topology of uniform convergenc
 very useful for developping the equicontinuity API, but it should not be used directly for other
 purposes. -/
 lemma equicontinuous_iff_continuous {F : ι → X → α} :
-  equicontinuous F ↔ continuous (of_fun ∘ function.swap F : X → (ι →ᵤ α)) :=
+  equicontinuous F ↔ continuous (of_fun ∘ function.swap F : X → ι →ᵤ α) :=
 by simp_rw [equicontinuous, continuous_iff_continuous_at, equicontinuous_at_iff_continuous_at]
 
 /-- A family `𝓕 : ι → β → α` is uniformly equicontinuous iff the function `swap 𝓕 : β → ι → α` is
@@ -250,7 +250,7 @@ uniformly continuous *when `ι → α` is equipped with the uniform structure of
 This is very useful for developping the equicontinuity API, but it should not be used directly
 for other purposes. -/
 lemma uniform_equicontinuous_iff_uniform_continuous {F : ι → β → α} :
-  uniform_equicontinuous F ↔ uniform_continuous (of_fun ∘ function.swap F : β → (ι →ᵤ α)) :=
+  uniform_equicontinuous F ↔ uniform_continuous (of_fun ∘ function.swap F : β → ι →ᵤ α) :=
 by rw [uniform_continuous, (uniform_fun.has_basis_uniformity ι α).tendsto_right_iff]; refl
 
 lemma equicontinuous_at_infi_rng {α' : Type*} [u : κ → uniform_space α'] {F : ι → X → α'}
@@ -397,31 +397,90 @@ begin
   refl
 end
 
-/-- If a set of functions is equicontinuous, its closure for the product topology is also
-quicontinuous. -/
-lemma equicontinuous.closure {A : set $ X → α} (hA : A.equicontinuous) :
-  (closure A).equicontinuous :=
+/-- A version of `equicontinuous_at.closure` applicable to subsets of types which embed continuously
+into `X → α` with the product topology. It turns out we don't need any other condition on the
+embedding than continuity, but in practice this will mostly be applied to `fun_like` types where
+the coercion is injective. -/
+lemma equicontinuous_at.closure' {A : set Y} {u : Y → X → α} {x₀ : X}
+  (hA : equicontinuous_at (u ∘ coe : A → X → α) x₀) (hu : continuous u) :
+  equicontinuous_at (u ∘ coe : closure A → X → α) x₀ :=
 begin
-  intros x U hU,
+  intros U hU,
   rcases mem_uniformity_is_closed hU with ⟨V, hV, hVclosed, hVU⟩,
-  filter_upwards [hA x V hV],
-  rintros y hy,
+  filter_upwards [hA V hV] with x hx,
   rw set_coe.forall at *,
-  change A ⊆ (λ f, (f x, f y)) ⁻¹' V at hy,
-  exact (closure_minimal hy $ hVclosed.preimage $ by continuity).trans (preimage_mono hVU)
+  change A ⊆ (λ f, (u f x₀, u f x)) ⁻¹' V at hx,
+  refine (closure_minimal hx $ hVclosed.preimage $ _).trans (preimage_mono hVU),
+  exact continuous.prod_mk ((continuous_apply x₀).comp hu) ((continuous_apply x).comp hu)
 end
+
+/-- If a set of functions is equicontinuous at some `x₀`, its closure for the product topology is
+also equicontinuous at `x₀`. -/
+lemma equicontinuous_at.closure {A : set $ X → α} {x₀ : X} (hA : A.equicontinuous_at x₀) :
+  (closure A).equicontinuous_at x₀ :=
+@equicontinuous_at.closure' _ _ _ _ _ _ _ id _ hA continuous_id
+
+/-- If `𝓕 : ι → X → α` tends to `f : X → α` *pointwise* along some nontrivial filter, and if the
+family `𝓕` is equicontinuous at some `x₀ : X`, then the limit is continuous at `x₀`. -/
+lemma filter.tendsto.continuous_at_of_equicontinuous_at {l : filter ι} [l.ne_bot] {F : ι → X → α}
+  {f : X → α} {x₀ : X} (h₁ : tendsto F l (𝓝 f)) (h₂ : equicontinuous_at F x₀) :
+  continuous_at f x₀ :=
+(equicontinuous_at_iff_range.mp h₂).closure.continuous_at
+  ⟨f, mem_closure_of_tendsto h₁ $ eventually_of_forall mem_range_self⟩
 
 /-- A version of `equicontinuous.closure` applicable to subsets of types which embed continuously
 into `X → α` with the product topology. It turns out we don't need any other condition on the
 embedding than continuity, but in practice this will mostly be applied to `fun_like` types where
 the coercion is injective. -/
-lemma continuous.equicontinuous_closure {A : set Y} {u : Y → X → α}
+lemma equicontinuous.closure' {A : set Y} {u : Y → X → α}
   (hA : equicontinuous (u ∘ coe : A → X → α)) (hu : continuous u) :
-  equicontinuous (u ∘ coe : (closure A) → X → α) :=
+  equicontinuous (u ∘ coe : closure A → X → α) :=
+λ x, (hA x).closure' hu
+
+/-- If a set of functions is equicontinuous, its closure for the product topology is also
+equicontinuous. -/
+lemma equicontinuous.closure {A : set $ X → α} (hA : A.equicontinuous) :
+  (closure A).equicontinuous :=
+λ x, (hA x).closure
+
+/-- If `𝓕 : ι → X → α` tends to `f : X → α` *pointwise* along some nontrivial filter, and if the
+family `𝓕` is equicontinuous, then the limit is continuous. -/
+lemma filter.tendsto.continuous_of_equicontinuous_at {l : filter ι} [l.ne_bot] {F : ι → X → α}
+  {f : X → α} (h₁ : tendsto F l (𝓝 f)) (h₂ : equicontinuous F) :
+  continuous f :=
+continuous_iff_continuous_at.mpr (λ x, h₁.continuous_at_of_equicontinuous_at (h₂ x))
+
+/-- A version of `uniform_equicontinuous.closure` applicable to subsets of types which embed
+continuously into `β → α` with the product topology. It turns out we don't need any other condition
+on the embedding than continuity, but in practice this will mostly be applied to `fun_like` types
+where the coercion is injective. -/
+lemma uniform_equicontinuous.closure' {A : set Y} {u : Y → β → α}
+  (hA : uniform_equicontinuous (u ∘ coe : A → β → α)) (hu : continuous u) :
+  uniform_equicontinuous (u ∘ coe : closure A → β → α) :=
 begin
-  rw [equicontinuous_iff_range, range_comp, subtype.range_coe] at *,
-  exact set.equicontinuous.mono hA.closure (image_closure_subset_closure_image hu)
+  intros U hU,
+  rcases mem_uniformity_is_closed hU with ⟨V, hV, hVclosed, hVU⟩,
+  filter_upwards [hA V hV],
+  rintros ⟨x, y⟩ hxy,
+  rw set_coe.forall at *,
+  change A ⊆ (λ f, (u f x, u f y)) ⁻¹' V at hxy,
+  refine (closure_minimal hxy $ hVclosed.preimage $ _).trans (preimage_mono hVU),
+  exact continuous.prod_mk ((continuous_apply x).comp hu) ((continuous_apply y).comp hu)
 end
+
+/-- If a set of functions is uniformly equicontinuous, its closure for the product topology is also
+uniformly equicontinuous. -/
+lemma uniform_equicontinuous.closure {A : set $ β → α} (hA : A.uniform_equicontinuous) :
+  (closure A).uniform_equicontinuous :=
+@uniform_equicontinuous.closure' _ _ _ _ _ _ _ id hA continuous_id
+
+/-- If `𝓕 : ι → β → α` tends to `f : β → α` *pointwise* along some nontrivial filter, and if the
+family `𝓕` is uniformly equicontinuous, then the limit is uniformly continuous. -/
+lemma filter.tendsto.uniform_continuous_of_uniform_equicontinuous {l : filter ι} [l.ne_bot]
+  {F : ι → β → α} {f : β → α} (h₁ : tendsto F l (𝓝 f)) (h₂ : uniform_equicontinuous F) :
+  uniform_continuous f :=
+(uniform_equicontinuous_at_iff_range.mp h₂).closure.uniform_continuous
+  ⟨f, mem_closure_of_tendsto h₁ $ eventually_of_forall mem_range_self⟩
 
 end
 

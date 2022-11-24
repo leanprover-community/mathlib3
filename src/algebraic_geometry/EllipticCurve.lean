@@ -128,7 +128,7 @@ end torsion_polynomial
 
 section base_change
 
-/-! ### Base change -/
+/-! ### Base changes -/
 
 variables (A : Type v) [comm_ring A] [algebra R A]
 
@@ -136,7 +136,7 @@ private meta def simp_map : tactic unit :=
 `[simp only [map_one, map_bit0, map_bit1, map_neg, map_add, map_sub, map_mul, map_pow]]
 
 /-- The elliptic curve over `R` base changed to `A`. -/
-def base_change : EllipticCurve A :=
+@[simps] def base_change : EllipticCurve A :=
 { a₁   := algebra_map R A E.a₁,
   a₂   := algebra_map R A E.a₂,
   a₃   := algebra_map R A E.a₃,
@@ -145,57 +145,44 @@ def base_change : EllipticCurve A :=
   Δ    := units.map ↑(algebra_map R A) E.Δ,
   Δ_eq := by { simp only [units.coe_map, ring_hom.coe_monoid_hom, Δ_eq, Δ_aux], simp_map } }
 
-namespace base_change
+@[simp] lemma base_change_b₂ : (E.base_change A).b₂ = algebra_map R A E.b₂ :=
+by { simp only [b₂, base_change_a₁, base_change_a₂], simp_map }
 
-@[simp] lemma a₁_eq : (E.base_change A).a₁ = algebra_map R A E.a₁ := rfl
+@[simp] lemma base_change_b₄ : (E.base_change A).b₄ = algebra_map R A E.b₄ :=
+by { simp only [b₄, base_change_a₁, base_change_a₃, base_change_a₄], simp_map }
 
-@[simp] lemma a₂_eq : (E.base_change A).a₂ = algebra_map R A E.a₂ := rfl
+@[simp] lemma base_change_b₆ : (E.base_change A).b₆ = algebra_map R A E.b₆ :=
+by { simp only [b₆, base_change_a₃, base_change_a₆], simp_map }
 
-@[simp] lemma a₃_eq : (E.base_change A).a₃ = algebra_map R A E.a₃ := rfl
+@[simp] lemma base_change_b₈ : (E.base_change A).b₈ = algebra_map R A E.b₈ :=
+by { simp only [b₈, base_change_a₁, base_change_a₂, base_change_a₃, base_change_a₄, base_change_a₆],
+     simp_map }
 
-@[simp] lemma a₄_eq : (E.base_change A).a₄ = algebra_map R A E.a₄ := rfl
+@[simp] lemma base_change_c₄ : (E.base_change A).c₄ = algebra_map R A E.c₄ :=
+by { simp only [c₄, base_change_b₂, base_change_b₄], simp_map }
 
-@[simp] lemma a₆_eq : (E.base_change A).a₆ = algebra_map R A E.a₆ := rfl
+@[simp] lemma base_change_c₆ : (E.base_change A).c₆ = algebra_map R A E.c₆ :=
+by { simp only [c₆, base_change_b₂, base_change_b₄, base_change_b₆], simp_map }
 
-@[simp] lemma b₂_eq : (E.base_change A).b₂ = algebra_map R A E.b₂ :=
-by { simp only [b₂, a₁_eq, a₂_eq], simp_map }
+lemma base_change_Δ_coe : ↑(E.base_change A).Δ = algebra_map R A E.Δ := rfl
 
-@[simp] lemma b₄_eq : (E.base_change A).b₄ = algebra_map R A E.b₄ :=
-by { simp only [b₄, a₁_eq, a₃_eq, a₄_eq], simp_map }
+lemma base_change_Δ_inv_coe : ↑(E.base_change A).Δ⁻¹ = algebra_map R A ↑E.Δ⁻¹ := rfl
 
-@[simp] lemma b₆_eq : (E.base_change A).b₆ = algebra_map R A E.b₆ :=
-by { simp only [b₆, a₃_eq, a₆_eq], simp_map }
-
-@[simp] lemma b₈_eq : (E.base_change A).b₈ = algebra_map R A E.b₈ :=
-by { simp only [b₈, a₁_eq, a₂_eq, a₃_eq, a₄_eq, a₆_eq], simp_map }
-
-@[simp] lemma c₄_eq : (E.base_change A).c₄ = algebra_map R A E.c₄ :=
-by { simp only [c₄, b₂_eq, b₄_eq], simp_map }
-
-@[simp] lemma c₆_eq : (E.base_change A).c₆ = algebra_map R A E.c₆ :=
-by { simp only [c₆, b₂_eq, b₄_eq, b₆_eq], simp_map }
-
-lemma Δ_coe_eq : ↑(E.base_change A).Δ = algebra_map R A E.Δ := rfl
-
-lemma Δ_coe_inv_eq : ↑(E.base_change A).Δ⁻¹ = algebra_map R A ↑E.Δ⁻¹ := rfl
-
-@[simp] lemma j_eq : (E.base_change A).j = algebra_map R A E.j :=
-by { simp only [j, c₄_eq, Δ_coe_inv_eq], simp_map }
+@[simp] lemma base_change_j : (E.base_change A).j = algebra_map R A E.j :=
+by { simp only [j, base_change_c₄, base_change_Δ_inv_coe], simp_map }
 
 end base_change
 
-end base_change
+section variable_change
 
-section change_of_variable
-
-/-! ### Changes of variables -/
+/-! ### Variable changes -/
 
 variables (u : Rˣ) (r s t : R)
 
 /-- The elliptic curve over `R` induced by an admissible linear change of variables
   `(x, y) ↦ (u²x + r, u³y + u²sx + t)` for some `u ∈ Rˣ` and some `r, s, t ∈ R`.
   When `R` is a field, any two isomorphic long Weierstrass equations are related by this. -/
-def change_of_variable : EllipticCurve R :=
+@[simps] def variable_change : EllipticCurve R :=
 { a₁   := ↑u⁻¹ * (E.a₁ + 2 * s),
   a₂   := ↑u⁻¹ ^ 2 * (E.a₂ - s * E.a₁ + 3 * r - s ^ 2),
   a₃   := ↑u⁻¹ ^ 3 * (E.a₃ + r * E.a₁ + 2 * t),
@@ -204,61 +191,44 @@ def change_of_variable : EllipticCurve R :=
   Δ    := u⁻¹ ^ 12 * E.Δ,
   Δ_eq := by { simp [-inv_pow], ring1 } }
 
-namespace change_of_variable
+@[simp] lemma variable_change_b₂ : (E.variable_change u r s t).b₂ = ↑u⁻¹ ^ 2 * (E.b₂ + 12 * r) :=
+by { simp only [b₂, variable_change_a₁, variable_change_a₂], ring1 }
 
-@[simp] lemma a₁_eq : (E.change_of_variable u r s t).a₁ = ↑u⁻¹ * (E.a₁ + 2 * s) := rfl
+@[simp] lemma variable_change_b₄ :
+  (E.variable_change u r s t).b₄ = ↑u⁻¹ ^ 4 * (E.b₄ + r * E.b₂ + 6 * r ^ 2) :=
+by { simp only [b₂, b₄, variable_change_a₁, variable_change_a₃, variable_change_a₄], ring1 }
 
-@[simp] lemma a₂_eq :
-  (E.change_of_variable u r s t).a₂ = ↑u⁻¹ ^ 2 * (E.a₂ - s * E.a₁ + 3 * r - s ^ 2) :=
-rfl
+@[simp] lemma variable_change_b₆ :
+  (E.variable_change u r s t).b₆ = ↑u⁻¹ ^ 6 * (E.b₆ + 2 * r * E.b₄ + r ^ 2 * E.b₂ + 4 * r ^ 3) :=
+by { simp only [b₂, b₄, b₆, variable_change_a₃, variable_change_a₆], ring1 }
 
-@[simp] lemma a₃_eq : (E.change_of_variable u r s t).a₃ = ↑u⁻¹ ^ 3 * (E.a₃ + r * E.a₁ + 2 * t) :=
-rfl
-
-@[simp] lemma a₄_eq :
-  (E.change_of_variable u r s t).a₄
-    = ↑u⁻¹ ^ 4 * (E.a₄ - s * E.a₃ + 2 * r * E.a₂ - (t + r * s) * E.a₁ + 3 * r ^ 2 - 2 * s * t) :=
-rfl
-
-@[simp] lemma a₆_eq :
-  (E.change_of_variable u r s t).a₆
-    = ↑u⁻¹ ^ 6 * (E.a₆ + r * E.a₄ + r ^ 2 * E.a₂ + r ^ 3 - t * E.a₃ - t ^ 2 - r * t * E.a₁) :=
-rfl
-
-@[simp] lemma b₂_eq : (E.change_of_variable u r s t).b₂ = ↑u⁻¹ ^ 2 * (E.b₂ + 12 * r) :=
-by { simp [change_of_variable], ring1 }
-
-@[simp] lemma b₄_eq :
-  (E.change_of_variable u r s t).b₄ = ↑u⁻¹ ^ 4 * (E.b₄ + r * E.b₂ + 6 * r ^ 2) :=
-by { simp [change_of_variable], ring1 }
-
-@[simp] lemma b₆_eq :
-  (E.change_of_variable u r s t).b₆ = ↑u⁻¹ ^ 6 * (E.b₆ + 2 * r * E.b₄ + r ^ 2 * E.b₂ + 4 * r ^ 3) :=
-by { simp [change_of_variable], ring1 }
-
-@[simp] lemma b₈_eq :
-  (E.change_of_variable u r s t).b₈
+@[simp] lemma variable_change_b₈ :
+  (E.variable_change u r s t).b₈
     = ↑u⁻¹ ^ 8 * (E.b₈ + 3 * r * E.b₆ + 3 * r ^ 2 * E.b₄ + r ^ 3 * E.b₂ + 3 * r ^ 4) :=
-by { simp [change_of_variable], ring1 }
+by { simp only [b₂, b₄, b₆, b₈, variable_change_a₁, variable_change_a₂, variable_change_a₃,
+                variable_change_a₄, variable_change_a₆], ring1 }
 
-@[simp] lemma c₄_eq : (E.change_of_variable u r s t).c₄ = ↑u⁻¹ ^ 4 * E.c₄ :=
-by { simp [change_of_variable], ring1 }
+@[simp] lemma variable_change_c₄ : (E.variable_change u r s t).c₄ = ↑u⁻¹ ^ 4 * E.c₄ :=
+by { simp only [c₄, variable_change_b₂, variable_change_b₄], ring1 }
 
-@[simp] lemma c₆_eq : (E.change_of_variable u r s t).c₆ = ↑u⁻¹ ^ 6 * E.c₆ :=
-by { simp [change_of_variable], ring1 }
+@[simp] lemma variable_change_c₆ : (E.variable_change u r s t).c₆ = ↑u⁻¹ ^ 6 * E.c₆ :=
+by { simp only [c₆, variable_change_b₂, variable_change_b₄, variable_change_b₆], ring1 }
 
-@[simp] lemma Δ_eq : (E.change_of_variable u r s t).Δ = u⁻¹ ^ 12 * E.Δ := rfl
+lemma variable_change_Δ_coe : (↑(E.variable_change u r s t).Δ : R) = ↑u⁻¹ ^ 12 * E.Δ :=
+by rw [variable_change_Δ, units.coe_mul, units.coe_pow]
 
-@[simp] lemma j_eq : (E.change_of_variable u r s t).j = E.j :=
+lemma variable_change_Δ_inv_coe : (↑(E.variable_change u r s t).Δ⁻¹ : R) = u ^ 12 * ↑E.Δ⁻¹ :=
+by rw [variable_change_Δ, mul_inv, inv_pow, inv_inv, units.coe_mul, units.coe_pow]
+
+@[simp] lemma variable_change_j : (E.variable_change u r s t).j = E.j :=
 begin
-  simp only [b₂, b₄, c₄, j, c₄_eq, Δ_eq, inv_inv, inv_pow, mul_inv_rev, units.coe_mul, u.coe_pow],
+  simp only [b₂, b₄, c₄, j, variable_change_c₄, variable_change_Δ, mul_inv, inv_pow, inv_inv,
+             units.coe_mul, u.coe_pow],
   have hu : (u * ↑u⁻¹ : R) ^ 12 = 1 := by rw [u.mul_inv, one_pow],
   linear_combination ↑E.Δ⁻¹ * ((E.a₁ ^ 2 + 4 * E.a₂) ^ 2 - 24 * (2 * E.a₄ + E.a₁ * E.a₃)) ^ 3 * hu
     with { normalization_tactic := `[ring1] }
 end
 
-end change_of_variable
-
-end change_of_variable
+end variable_change
 
 end EllipticCurve

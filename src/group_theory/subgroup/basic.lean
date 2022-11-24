@@ -2106,7 +2106,7 @@ lemma comap_ker (g : N →* P) (f : G →* N) : g.ker.comap f = (g.comp f).ker :
 @[simp, to_additive] lemma comap_bot (f : G →* N) :
   (⊥ : subgroup N).comap f = f.ker := rfl
 
-@[simp, to_additive] lemma restrict_ker (f : G →* N) : (f.restrict K).ker = f.ker.subgroup_of K :=
+@[simp, to_additive] lemma ker_restrict (f : G →* N) : (f.restrict K).ker = f.ker.subgroup_of K :=
 rfl
 
 @[simp, to_additive] lemma ker_cod_restrict {S} [set_like S N] [submonoid_class S N] (f : G →* N)
@@ -2144,6 +2144,7 @@ by rw [←comap_bot, ←comap_bot, ←comap_bot, ←prod_map_comap_prod, bot_pro
 instance normal_ker (f : G →* M) : f.ker.normal :=
 ⟨λ x hx y, by rw [mem_ker, map_mul, map_mul, f.mem_ker.1 hx, mul_one,
   map_mul_eq_one f (mul_inv_self y)]⟩
+
 end ker
 
 /-- The subgroup of elements `x : G` such that `f x = g x` -/

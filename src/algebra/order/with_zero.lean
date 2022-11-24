@@ -5,10 +5,11 @@ Authors: Kenny Lau, Johan Commelin, Patrick Massot
 -/
 import algebra.hom.equiv.units.group_with_zero
 import algebra.group_with_zero.inj_surj
-import algebra.order.group.type_tags
 import algebra.order.group.units
 import algebra.order.monoid.basic
 import algebra.order.monoid.with_zero
+import algebra.order.group.instances
+import algebra.order.monoid.type_tags
 
 /-!
 # Linearly ordered commutative groups and monoids with a zero element adjoined
@@ -30,7 +31,7 @@ in another file. However, the lemmas about it are stated here.
 set_option old_structure_cmd true
 
 /-- A linearly ordered commutative group with a zero element. -/
-@[protect_proj]
+@[protect_proj, ancestor linear_ordered_comm_monoid_with_zero comm_group_with_zero]
 class linear_ordered_comm_group_with_zero (α : Type*)
   extends linear_ordered_comm_monoid_with_zero α, comm_group_with_zero α
 

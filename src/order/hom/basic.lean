@@ -7,6 +7,7 @@ import logic.equiv.option
 import order.rel_iso.basic
 import tactic.monotonicity.basic
 import tactic.assert_exists
+import order.bounded_order
 
 /-!
 # Order homomorphisms
@@ -187,6 +188,9 @@ instance : can_lift (α → β) (α →o β) coe_fn monotone :=
 /-- Copy of an `order_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
 equalities. -/
 protected def copy (f : α →o β) (f' : α → β) (h : f' = f) : α →o β := ⟨f', h.symm.subst f.monotone'⟩
+
+@[simp] lemma coe_copy (f : α →o β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : α →o β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 /-- The identity function as bundled monotone function. -/
 @[simps {fully_applied := ff}]
@@ -764,12 +768,12 @@ f.dual.map_inf x y
 /-- Note that this goal could also be stated `(disjoint on f) a b` -/
 lemma disjoint.map_order_iso [semilattice_inf α] [order_bot α] [semilattice_inf β] [order_bot β]
   {a b : α} (f : α ≃o β) (ha : disjoint a b) : disjoint (f a) (f b) :=
-by { rw [disjoint, ←f.map_inf, ←f.map_bot], exact f.monotone ha }
+by { rw [disjoint_iff_inf_le, ←f.map_inf, ←f.map_bot], exact f.monotone ha.le_bot }
 
 /-- Note that this goal could also be stated `(codisjoint on f) a b` -/
 lemma codisjoint.map_order_iso [semilattice_sup α] [order_top α] [semilattice_sup β] [order_top β]
   {a b : α} (f : α ≃o β) (ha : codisjoint a b) : codisjoint (f a) (f b) :=
-by { rw [codisjoint, ←f.map_sup, ←f.map_top], exact f.monotone ha }
+by { rw [codisjoint_iff_le_sup, ←f.map_sup, ←f.map_top], exact f.monotone ha.top_le }
 
 @[simp] lemma disjoint_map_order_iso_iff [semilattice_inf α] [order_bot α] [semilattice_inf β]
   [order_bot β] {a b : α} (f : α ≃o β) : disjoint (f a) (f b) ↔ disjoint a b :=

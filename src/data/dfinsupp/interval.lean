@@ -5,7 +5,7 @@ Authors: Yaël Dillies
 -/
 import data.finset.locally_finite
 import data.finset.pointwise
-import data.fintype.card
+import data.fintype.big_operators
 import data.dfinsupp.order
 
 /-!

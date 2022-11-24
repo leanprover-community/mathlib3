@@ -28,14 +28,9 @@ We have three ways to construct terms of `ℙ K V`:
   and `{ H : submodule K V // finrank H = 1 }`.
 - For `v : ℙ K V`, `v.rep : V` is a representative of `v`.
 
-## Projects
-Everything in this file can be done for `division_ring`s instead of `field`s, but
-this would require a significant refactor of the results from
-`linear_algebra.finite_dimensional` and its imports.
-
 -/
 
-variables (K V : Type*) [field K] [add_comm_group V] [module K V]
+variables (K V : Type*) [division_ring K] [add_comm_group V] [module K V]
 
 /-- The setoid whose quotient is the projectivization of `V`. -/
 def projectivization_setoid : setoid { v : V // v ≠ 0 } :=
@@ -191,7 +186,7 @@ show (equiv_submodule K V).symm (equiv_submodule K V _) = _, by simp
 
 section map
 
-variables {L W : Type*} [field L] [add_comm_group W] [module L W]
+variables {L W : Type*} [division_ring L] [add_comm_group W] [module L W]
 
 /-- An injective semilinear map of vector spaces induces a map on projective spaces. -/
 def map {σ : K →+* L} (f : V →ₛₗ[σ] W) (hf : function.injective f) :

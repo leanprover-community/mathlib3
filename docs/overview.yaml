@@ -138,6 +138,12 @@ General algebra:
     perfection of a ring: 'ring.perfection'
   Transcendental numbers:
     Liouville's theorem on existence of transcendental numbers: liouville.is_transcendental
+  
+  Representation theory:
+    representation : 'representation'
+    category of finite dimensional representations : 'fdRep'
+    character : 'fdRep.character'
+    orthogonality of characters : 'fdRep.char_orthonormal'
 
 Linear algebra:
   Fundamentals:
@@ -205,7 +211,8 @@ Topology:
     connectedness: 'connected_space'
     compact open topology: 'continuous_map.compact_open'
     Stone-Cech compactification: 'stone_cech'
-    topological fiber bundle: 'is_topological_fiber_bundle'
+    topological fiber bundle: 'fiber_bundle'
+    topological vector bundle: 'vector_bundle'
     Urysohn's lemma: 'exists_continuous_zero_one_of_closed'
     Stone-Weierstrass theorem: 'continuous_map.subalgebra_topological_closure_eq_top_of_separates_points'
   Uniform notions:

@@ -762,7 +762,7 @@ begin
   { refine ⟨beth_ne_zero o, λ a ha, _⟩,
     rw beth_limit ⟨h, H⟩ at ha,
     rcases exists_lt_of_lt_csupr' ha with ⟨⟨i, hi⟩, ha⟩,
-    have := power_le_power_left two_ne_zero' ha.le,
+    have := power_le_power_left two_ne_zero ha.le,
     rw ←beth_succ at this,
     exact this.trans_lt (beth_lt.2 (H i hi)) }
 end

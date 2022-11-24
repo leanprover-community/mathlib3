@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Jens Wagemaker
 -/
 import algebra.divisibility.basic
 import algebra.group_power.lemmas
-import algebra.invertible
 import algebra.parity
 import order.atoms
 
@@ -127,6 +126,21 @@ begin
   obtain ⟨z, rfl⟩ := hp.dvd_of_dvd_pow hdvdx,
   rw [pow_two, ← mul_assoc],
   exact dvd_mul_right _ _,
+end
+
+lemma prime_pow_succ_dvd_mul {α : Type*} [cancel_comm_monoid_with_zero α]
+  {p x y : α} (h : prime p) {i : ℕ} (hxy : p ^ (i + 1) ∣ x * y) :
+  p ^ (i + 1) ∣ x ∨ p ∣ y :=
+begin
+  rw or_iff_not_imp_right,
+  intro hy,
+  induction i with i ih generalizing x,
+  { simp only [zero_add, pow_one] at *,
+    exact (h.dvd_or_dvd hxy).resolve_right hy },
+  rw pow_succ at hxy ⊢,
+  obtain ⟨x', rfl⟩ := (h.dvd_or_dvd (dvd_of_mul_right_dvd hxy)).resolve_right hy,
+  rw mul_assoc at hxy,
+  exact mul_dvd_mul_left p (ih ((mul_dvd_mul_iff_left h.ne_zero).mp hxy)),
 end
 
 /-- `irreducible p` states that `p` is non-unit and only factors into units.
@@ -537,7 +551,6 @@ lemma associated.of_pow_associated_of_prime' [cancel_comm_monoid_with_zero α] {
   p₁ ~ᵤ p₂ :=
 (h.symm.of_pow_associated_of_prime hp₂ hp₁ hk₂).symm
 
-
 section unique_units
 variables [monoid α] [unique αˣ]
 
@@ -559,6 +572,20 @@ lemma prime_dvd_prime_iff_eq
 by rw [pp.dvd_prime_iff_associated qp, ←associated_eq_eq]
 
 end unique_units
+
+section unique_units₀
+
+variables {R : Type*} [cancel_comm_monoid_with_zero R] [unique Rˣ] {p₁ p₂ : R} {k₁ k₂ : ℕ}
+
+lemma eq_of_prime_pow_eq (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : 0 < k₁) (h : p₁ ^ k₁ = p₂ ^ k₂) :
+  p₁ = p₂ :=
+by { rw [←associated_iff_eq] at h ⊢, apply h.of_pow_associated_of_prime hp₁ hp₂ hk₁ }
+
+lemma eq_of_prime_pow_eq' (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : 0 < k₂) (h : p₁ ^ k₁ = p₂ ^ k₂) :
+  p₁ = p₂ :=
+by { rw [←associated_iff_eq] at h ⊢, apply h.of_pow_associated_of_prime' hp₁ hp₂ hk₁ }
+
+end unique_units₀
 
 /-- The quotient of a monoid by the `associated` relation. Two elements `x` and `y`
   are associated iff there is a unit `u` such that `x * u = y`. There is a natural

@@ -5,6 +5,7 @@ Authors: Simon Hudon, Scott Morrison
 -/
 import category_theory.natural_isomorphism
 import category_theory.eq_to_hom
+import data.sum.basic
 
 /-!
 # Categories of indexed families of objects.

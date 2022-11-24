@@ -322,7 +322,7 @@ begin
       ((X.presheaf.map (hom_of_le le_sup_right).op f) ^ n₁ * y₂))).mp _,
   swap,
   { simp only [map_pow, ring_hom.algebra_map_to_algebra, map_mul, ← comp_apply,
-      ← functor.map_comp, ← op_comp] at ⊢,
+      ← functor.map_comp, ← op_comp],
     transitivity X.presheaf.map (hom_of_le _).op f ^ n₂ *
       X.presheaf.map (hom_of_le _).op f ^ n₁ * X.presheaf.map (hom_of_le _).op x,
     rw [mul_assoc], congr' 1,
@@ -418,19 +418,16 @@ begin
     -- By the sheaf condition, since `f ^ (n + n₂) * y₁ = f ^ (n + n₁) * y₂`, it can be glued into
     -- the desired section on `S ∪ U`.
     use (X.sheaf.obj_sup_iso_prod_eq_locus S U.1).inv ⟨⟨_ * _, _ * _⟩, this⟩,
-    fapply X.sheaf.eq_of_locally_eq₂,
-    rotate 5,
-    { exact X.basic_open (X.presheaf.map (hom_of_le le_sup_left).op f) },
-    { exact X.basic_open (X.presheaf.map (hom_of_le le_sup_right).op f) },
-    { refine hom_of_le _, rw X.basic_open_res, exact inf_le_right },
-    { refine hom_of_le _, rw X.basic_open_res, exact inf_le_right },
+    refine X.sheaf.eq_of_locally_eq₂
+      (hom_of_le (_ : X.basic_open (X.presheaf.map (hom_of_le le_sup_left).op f) ≤ _))
+      (hom_of_le (_ : X.basic_open (X.presheaf.map (hom_of_le le_sup_right).op f) ≤ _)) _ _ _ _ _,
+    { rw X.basic_open_res, exact inf_le_right },
+    { rw X.basic_open_res, exact inf_le_right }, 
     { rw [X.basic_open_res, X.basic_open_res],
       erw ← inf_sup_right,
       refine le_inf_iff.mpr ⟨X.basic_open_le f, le_of_eq rfl⟩ },
     { convert congr_arg (X.presheaf.map (hom_of_le _).op)
         (X.sheaf.obj_sup_iso_prod_eq_locus_inv_fst S U.1 ⟨⟨_ * _, _ * _⟩, this⟩) using 1,
-      swap 3,
-      { rw X.basic_open_res, exact inf_le_left },
       { delta Scheme.sheaf SheafedSpace.sheaf,
         simp only [← comp_apply (X.presheaf.map _) (X.presheaf.map _),
           ← functor.map_comp, ← op_comp],
@@ -441,8 +438,6 @@ begin
         rw [mul_comm, ← comp_apply, ← functor.map_comp], congr } },
     { convert congr_arg (X.presheaf.map (hom_of_le _).op)
         (X.sheaf.obj_sup_iso_prod_eq_locus_inv_snd S U.1 ⟨⟨_ * _, _ * _⟩, this⟩) using 1,
-      swap 3,
-      { rw X.basic_open_res, exact inf_le_left },
       { delta Scheme.sheaf SheafedSpace.sheaf,
         simp only [← comp_apply (X.presheaf.map _) (X.presheaf.map _),
           ← functor.map_comp, ← op_comp],
@@ -460,8 +455,9 @@ lemma is_localization_basic_open_of_qcqs {X : Scheme} {U : opens X.carrier}
   is_localization.away f (X.presheaf.obj (op $ X.basic_open f)) :=
 begin
   constructor,
-  { rintro ⟨_, n, rfl⟩, simp only [map_pow, subtype.coe_mk, ring_hom.algebra_map_to_algebra],
-    apply is_unit.pow, exact RingedSpace.is_unit_res_basic_open _ f },
+  { rintro ⟨_, n, rfl⟩,
+    simp only [map_pow, subtype.coe_mk, ring_hom.algebra_map_to_algebra],
+    exact is_unit.pow _ (RingedSpace.is_unit_res_basic_open _ f), },
   { intro z,
     obtain ⟨n, y, e⟩ := exists_eq_pow_mul_of_is_compact_of_is_quasi_separated X U hU hU' f z,
     refine ⟨⟨y, _, n, rfl⟩, _⟩,

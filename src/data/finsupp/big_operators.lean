@@ -38,7 +38,7 @@ lemma list.support_sum_subset [add_monoid M] (l : list (ι →₀ M)) :
 begin
   induction l with hd tl IH,
   { simp },
-  { simp only [list.sum_cons, list.foldr_cons, finset.union_comm],
+  { simp only [list.sum_cons, finset.union_comm],
     refine finsupp.support_add.trans (finset.union_subset_union _ IH),
     refl }
 end

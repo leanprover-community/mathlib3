@@ -172,6 +172,23 @@ begin
   rw [← nat_degree_mul hp₁ hq₂, ← nat_degree_mul hp₂ hq₁, h_eq]
 end
 
+lemma nat_degree_eq_zero_of_is_unit (h : is_unit p) : nat_degree p = 0 :=
+begin
+  nontriviality R,
+  obtain ⟨q, hq⟩ := h.exists_right_inv,
+  have := nat_degree_mul (left_ne_zero_of_mul_eq_one hq) (right_ne_zero_of_mul_eq_one hq),
+  rw [hq, nat_degree_one, eq_comm, add_eq_zero_iff] at this,
+  exact this.1,
+end
+
+lemma degree_eq_zero_of_is_unit [nontrivial R] (h : is_unit p) : degree p = 0 :=
+le_antisymm (nat_degree_eq_zero_iff_degree_le_zero.mp (nat_degree_eq_zero_of_is_unit h))
+  (zero_le_degree_iff.mpr h.ne_zero)
+
+theorem is_unit_iff : is_unit p ↔ ∃ r : R, is_unit r ∧ C r = p :=
+⟨λ hp, ⟨p.coeff 0, let h := eq_C_of_nat_degree_eq_zero (nat_degree_eq_zero_of_is_unit hp) in
+  ⟨is_unit_C.1 (h ▸ hp), h.symm⟩⟩, λ ⟨r, hr, hrp⟩, hrp ▸ is_unit_C.2 hr⟩
+
 variables [char_zero R]
 
 @[simp] lemma degree_bit0_eq (p : R[X]) : degree (bit0 p) = degree p :=
@@ -206,6 +223,19 @@ end no_zero_divisors
 
 section no_zero_divisors
 variables [comm_semiring R] [no_zero_divisors R] {p q : R[X]}
+
+lemma irreducible_of_monic (hp : p.monic) (hp1 : p ≠ 1) :
+  irreducible p ↔ ∀ f g : R[X], f.monic → g.monic → f * g = p → f = 1 ∨ g = 1 :=
+begin
+  refine ⟨λ h f g hf hg hp, (h.2 f g hp.symm).elim (or.inl ∘ hf.eq_one_of_is_unit)
+    (or.inr ∘ hg.eq_one_of_is_unit), λ h, ⟨hp1 ∘ hp.eq_one_of_is_unit, λ f g hfg,
+      (h (g * C f.leading_coeff) (f * C g.leading_coeff) _ _ _).elim
+        (or.inr ∘ is_unit_of_mul_eq_one g _) (or.inl ∘ is_unit_of_mul_eq_one f _)⟩⟩,
+  { rwa [monic, leading_coeff_mul, leading_coeff_C, ←leading_coeff_mul, mul_comm, ←hfg, ←monic] },
+  { rwa [monic, leading_coeff_mul, leading_coeff_C, ←leading_coeff_mul, ←hfg, ←monic] },
+  { rw [mul_mul_mul_comm, ←C_mul, ←leading_coeff_mul, ←hfg, hp.leading_coeff, C_1, mul_one,
+        mul_comm, ←hfg] },
+end
 
 lemma root_mul : is_root (p * q) a ↔ is_root p a ∨ is_root q a :=
 by simp_rw [is_root, eval_mul, mul_eq_zero]
@@ -260,17 +290,6 @@ variables [is_domain R] {p q : R[X]}
 section roots
 
 open multiset
-
-lemma degree_eq_zero_of_is_unit (h : is_unit p) : degree p = 0 :=
-let ⟨q, hq⟩ := is_unit_iff_dvd_one.1 h in
-have hp0 : p ≠ 0, from λ hp0, by simpa [hp0] using hq,
-have hq0 : q ≠ 0, from λ hp0, by simpa [hp0] using hq,
-have nat_degree (1 : R[X]) = nat_degree (p * q),
-  from congr_arg _ hq,
-by rw [nat_degree_one, nat_degree_mul hp0 hq0, eq_comm,
-    _root_.add_eq_zero_iff, ← with_bot.coe_eq_coe,
-    ← degree_eq_nat_degree hp0] at this;
-  exact this.1
 
 @[simp] lemma degree_coe_units (u : R[X]ˣ) :
   degree (u : R[X]) = 0 :=
@@ -481,11 +500,10 @@ end
 @[simp] lemma roots_X_sub_C (r : R) : roots (X - C r) = {r} :=
 begin
   ext s,
-  rw [count_roots, root_multiplicity_X_sub_C],
-  split_ifs with h,
-  { rw [h, count_singleton_self] },
-  { rw [←cons_zero, count_cons_of_ne h, count_zero] }
+  rw [count_roots, root_multiplicity_X_sub_C, count_singleton],
 end
+
+@[simp] lemma roots_X : roots (X : R[X]) = {0} := by rw [← roots_X_sub_C, C_0, sub_zero]
 
 @[simp] lemma roots_C (x : R) : (C x).roots = 0 :=
 if H : x = 0 then by rw [H, C_0, roots_zero] else multiset.ext.mpr $ λ r,
@@ -494,12 +512,12 @@ by rw [count_roots, count_zero, root_multiplicity_eq_zero (not_is_root_C _ _ H)]
 @[simp] lemma roots_one : (1 : R[X]).roots = ∅ :=
 roots_C 1
 
-lemma roots_smul_nonzero (p : R[X]) {r : R} (hr : r ≠ 0) :
-  (r • p).roots = p.roots :=
-begin
-  by_cases hp : p = 0;
-  simp [smul_eq_C_mul, roots_mul, hr, hp]
-end
+@[simp] lemma roots_C_mul (p : R[X]) (ha : a ≠ 0) : (C a * p).roots = p.roots :=
+by by_cases hp : p = 0; simp only [roots_mul, *, ne.def, mul_eq_zero, C_eq_zero, or_self,
+  not_false_iff, roots_C, zero_add, mul_zero]
+
+@[simp] lemma roots_smul_nonzero (p : R[X]) (ha : a ≠ 0) : (a • p).roots = p.roots :=
+by rw [smul_eq_C_mul, roots_C_mul _ ha]
 
 lemma roots_list_prod (L : list R[X]) :
   ((0 : R[X]) ∉ L) → L.prod.roots = (L : multiset R[X]).bind roots :=
@@ -520,6 +538,24 @@ begin
   rcases s with ⟨m, hm⟩,
   simpa [multiset.prod_eq_zero_iff, bind_map] using roots_multiset_prod (m.map f)
 end
+
+@[simp] lemma roots_pow (p : R[X]) (n : ℕ) : (p ^ n).roots = n • p.roots :=
+begin
+  induction n with n ihn,
+  { rw [pow_zero, roots_one, zero_smul, empty_eq_zero] },
+  { rcases eq_or_ne p 0 with rfl | hp,
+    { rw [zero_pow n.succ_pos, roots_zero, smul_zero] },
+    { rw [pow_succ', roots_mul (mul_ne_zero (pow_ne_zero _ hp) hp), ihn, nat.succ_eq_add_one,
+        add_smul, one_smul] } }
+end
+
+lemma roots_X_pow (n : ℕ) : (X ^ n : R[X]).roots = n • {0} := by rw [roots_pow, roots_X]
+
+lemma roots_C_mul_X_pow (ha : a ≠ 0) (n : ℕ) : (C a * X ^ n).roots = n • {0} :=
+by rw [roots_C_mul _ ha, roots_X_pow]
+
+@[simp] lemma roots_monomial (ha : a ≠ 0) (n : ℕ) : (monomial n a).roots = n • {0} :=
+by rw [monomial_eq_C_mul_X, roots_C_mul_X_pow ha]
 
 lemma roots_prod_X_sub_C (s : finset R) :
   (s.prod (λ a, X - C a)).roots = s.val :=
@@ -654,13 +690,13 @@ lemma root_set_def (p : T[X]) (S) [comm_ring S] [is_domain S] [algebra T S] :
   p.root_set S = (p.map (algebra_map T S)).roots.to_finset :=
 rfl
 
-@[simp] lemma root_set_zero (S) [comm_ring S] [is_domain S] [algebra T S] :
-  (0 : T[X]).root_set S = ∅ :=
-by rw [root_set_def, polynomial.map_zero, roots_zero, to_finset_zero, finset.coe_empty]
-
 @[simp] lemma root_set_C [comm_ring S] [is_domain S] [algebra T S] (a : T) :
   (C a).root_set S = ∅ :=
 by rw [root_set_def, map_C, roots_C, multiset.to_finset_zero, finset.coe_empty]
+
+@[simp] lemma root_set_zero (S) [comm_ring S] [is_domain S] [algebra T S] :
+  (0 : T[X]).root_set S = ∅ :=
+by rw [← C_0, root_set_C]
 
 instance root_set_fintype (p : T[X])
   (S : Type*) [comm_ring S] [is_domain S] [algebra T S] : fintype (p.root_set S) :=
@@ -719,12 +755,6 @@ lemma aeval_eq_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [alge
 (mem_root_set_iff (ne_zero_of_mem_root_set hx) a).mp hx
 
 end roots
-
-theorem is_unit_iff {f : R[X]} : is_unit f ↔ ∃ r : R, is_unit r ∧ C r = f :=
-⟨λ hf, ⟨f.coeff 0,
-  is_unit_C.1 $ eq_C_of_degree_eq_zero (degree_eq_zero_of_is_unit hf) ▸ hf,
-  (eq_C_of_degree_eq_zero (degree_eq_zero_of_is_unit hf)).symm⟩,
-λ ⟨r, hr, hrf⟩, hrf ▸ is_unit_C.2 hr⟩
 
 lemma coeff_coe_units_zero_ne_zero (u : R[X]ˣ) :
   coeff (u : R[X]) 0 ≠ 0 :=

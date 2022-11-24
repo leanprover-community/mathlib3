@@ -474,10 +474,6 @@ by { convert coeff_monomial using 2, simp [eq_comm], }
 lemma coeff_C_ne_zero (h : n ≠ 0) : (C a).coeff n = 0 :=
 by rw [coeff_C, if_neg h]
 
-theorem nontrivial.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
-nontrivial_of_ne 0 1 $ λ h01, h $
-  by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero]
-
 lemma monomial_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
 | 0     := (mul_one _).symm
 | (n+1) :=
@@ -485,17 +481,18 @@ lemma monomial_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
     ... = (C a * X^n) * X : by rw [monomial_eq_C_mul_X]
     ... = C a * X^(n+1) : by simp only [pow_add, mul_assoc, pow_one]
 
-@[simp] lemma C_inj : C a = C b ↔ a = b :=
-⟨λ h, coeff_C_zero.symm.trans (h.symm ▸ coeff_C_zero), congr_arg C⟩
 
-@[simp] lemma C_eq_zero : C a = 0 ↔ a = 0 :=
-calc C a = 0 ↔ C a = C 0 : by rw C_0
-         ... ↔ a = 0 : C_inj
+lemma C_injective : injective (C : R → R[X]) := monomial_injective 0
+
+@[simp] lemma C_inj : C a = C b ↔ a = b := C_injective.eq_iff
+@[simp] lemma C_eq_zero : C a = 0 ↔ a = 0 := C_injective.eq_iff' (map_zero C)
 
 lemma subsingleton_iff_subsingleton :
   subsingleton R[X] ↔ subsingleton R :=
-⟨λ h, subsingleton_iff.mpr (λ a b, C_inj.mp (subsingleton_iff.mp h _ _)),
-  by { introI, apply_instance } ⟩
+⟨@injective.subsingleton _ _ _ C_injective, by { introI, apply_instance } ⟩
+
+theorem nontrivial.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
+(subsingleton_or_nontrivial R).resolve_left $ λ hI, h $ by exactI subsingleton.elim _ _
 
 lemma forall_eq_iff_forall_eq :
   (∀ f g : R[X], f = g) ↔ (∀ a b : R, a = b) :=

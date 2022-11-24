@@ -339,7 +339,7 @@ end
 into `X → α` with the product topology. It turns out we don't need any other condition on the
 embedding than continuity, but in practice this will mostly be applied to `fun_like` types where
 the coercion is injective. -/
-lemma continuous.equicontinuous_at_closure {A : set Y} {u : Y → X → α} {x₀ : X}
+lemma equicontinuous_at.closure' {A : set Y} {u : Y → X → α} {x₀ : X}
   (hA : equicontinuous_at (u ∘ coe : A → X → α) x₀) (hu : continuous u) :
   equicontinuous_at (u ∘ coe : closure A → X → α) x₀ :=
 begin
@@ -356,16 +356,24 @@ end
 also equicontinuous at `x₀`. -/
 lemma equicontinuous_at.closure {A : set $ X → α} {x₀ : X} (hA : A.equicontinuous_at x₀) :
   (closure A).equicontinuous_at x₀ :=
-@continuous.equicontinuous_at_closure _ _ _ _ _ _ _ id _ hA continuous_id
+@equicontinuous_at.closure' _ _ _ _ _ _ _ id _ hA continuous_id
+
+/-- If `𝓕 : ι → X → α` tends to `f : X → α` *pointwise* along some nontrivial filter, and if the
+family `𝓕` is equicontinuous at some `x₀ : X`, then the limit is continuous at `x₀`. -/
+lemma filter.tendsto.continuous_at_of_equicontinuous_at {l : filter ι} [l.ne_bot] {F : ι → X → α}
+  {f : X → α} {x₀ : X} (h₁ : tendsto F l (𝓝 f)) (h₂ : equicontinuous_at F x₀) :
+  continuous_at f x₀ :=
+(equicontinuous_at_iff_range.mp h₂).closure.continuous_at
+  ⟨f, mem_closure_of_tendsto h₁ $ eventually_of_forall mem_range_self⟩
 
 /-- A version of `equicontinuous.closure` applicable to subsets of types which embed continuously
 into `X → α` with the product topology. It turns out we don't need any other condition on the
 embedding than continuity, but in practice this will mostly be applied to `fun_like` types where
 the coercion is injective. -/
-lemma continuous.equicontinuous_closure {A : set Y} {u : Y → X → α}
+lemma equicontinuous.closure' {A : set Y} {u : Y → X → α}
   (hA : equicontinuous (u ∘ coe : A → X → α)) (hu : continuous u) :
   equicontinuous (u ∘ coe : closure A → X → α) :=
-λ x, hu.equicontinuous_at_closure (hA x)
+λ x, (hA x).closure' hu
 
 /-- If a set of functions is equicontinuous, its closure for the product topology is also
 equicontinuous. -/
@@ -373,11 +381,18 @@ lemma equicontinuous.closure {A : set $ X → α} (hA : A.equicontinuous) :
   (closure A).equicontinuous :=
 λ x, (hA x).closure
 
+/-- If `𝓕 : ι → X → α` tends to `f : X → α` *pointwise* along some nontrivial filter, and if the
+family `𝓕` is equicontinuous, then the limit is continuous. -/
+lemma filter.tendsto.continuous_of_equicontinuous_at {l : filter ι} [l.ne_bot] {F : ι → X → α}
+  {f : X → α} (h₁ : tendsto F l (𝓝 f)) (h₂ : equicontinuous F) :
+  continuous f :=
+continuous_iff_continuous_at.mpr (λ x, h₁.continuous_at_of_equicontinuous_at (h₂ x))
+
 /-- A version of `uniform_equicontinuous.closure` applicable to subsets of types which embed
 continuously into `β → α` with the product topology. It turns out we don't need any other condition
 on the embedding than continuity, but in practice this will mostly be applied to `fun_like` types
 where the coercion is injective. -/
-lemma continuous.uniform_equicontinuous_closure {A : set Y} {u : Y → β → α}
+lemma uniform_equicontinuous.closure' {A : set Y} {u : Y → β → α}
   (hA : uniform_equicontinuous (u ∘ coe : A → β → α)) (hu : continuous u) :
   uniform_equicontinuous (u ∘ coe : closure A → β → α) :=
 begin
@@ -395,7 +410,15 @@ end
 uniformly equicontinuous. -/
 lemma uniform_equicontinuous.closure {A : set $ β → α} (hA : A.uniform_equicontinuous) :
   (closure A).uniform_equicontinuous :=
-@continuous.uniform_equicontinuous_closure _ _ _ _ _ _ _ id hA continuous_id
+@uniform_equicontinuous.closure' _ _ _ _ _ _ _ id hA continuous_id
+
+/-- If `𝓕 : ι → β → α` tends to `f : β → α` *pointwise* along some nontrivial filter, and if the
+family `𝓕` is uniformly equicontinuous, then the limit is uniformly continuous. -/
+lemma filter.tendsto.uniform_continuous_of_uniform_equicontinuous {l : filter ι} [l.ne_bot]
+  {F : ι → β → α} {f : β → α} (h₁ : tendsto F l (𝓝 f)) (h₂ : uniform_equicontinuous F) :
+  uniform_continuous f :=
+(uniform_equicontinuous_at_iff_range.mp h₂).closure.uniform_continuous
+  ⟨f, mem_closure_of_tendsto h₁ $ eventually_of_forall mem_range_self⟩
 
 end
 

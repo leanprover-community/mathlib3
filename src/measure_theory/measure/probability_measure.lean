@@ -117,7 +117,7 @@ subtype.coe_injective
 @[simp] lemma coe_fn_univ (ν : probability_measure Ω) : ν univ = 1 :=
 congr_arg ennreal.to_nnreal ν.prop.measure_univ
 
-lemma coe_fn_univ_ne_zero {ν : probability_measure Ω} : ν univ ≠ 0 :=
+lemma coe_fn_univ_ne_zero (ν : probability_measure Ω) : ν univ ≠ 0 :=
 by simp only [coe_fn_univ, ne.def, one_ne_zero, not_false_iff]
 
 /-- A probability measure can be interpreted as a finite measure. -/

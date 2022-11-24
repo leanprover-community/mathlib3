@@ -2288,10 +2288,6 @@ by rw [image_preimage_eq_inter_range, image_preimage_eq_inter_range, ← inter_d
   range (quot.lift f hf) = range f :=
 ext $ λ y, (surjective_quot_mk _).exists
 
-@[simp] theorem range_quot_lift_on {r : ι → ι → Prop} (hf : ∀ x y, r x y → f x = f y) :
-  range (λ x, quot.lift_on x f hf) = range f :=
-range_quot_lift _
-
 @[simp] theorem range_quotient_mk [setoid α] : range (λx : α, ⟦x⟧) = univ :=
 range_quot_mk _
 
@@ -2304,10 +2300,6 @@ range_quot_mk _
 
 @[simp] theorem range_quotient_lift_on' {s : setoid ι} (hf) :
   range (λ x : quotient s, quotient.lift_on' x f hf) = range f :=
-range_quot_lift _
-
-@[simp] theorem range_quotient_lift_on [s : setoid ι] (hf) :
-  range (λ x : quotient s, quotient.lift_on x f hf) = range f :=
 range_quot_lift _
 
 instance can_lift (c) (p) [can_lift α β c p] :

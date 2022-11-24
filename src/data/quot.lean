@@ -74,7 +74,7 @@ lemma factor_mk_eq {α : Type*} (r s : α → α → Prop) (h : ∀ x y, r x y �
 variables {γ : Sort*} {r : α → α → Prop} {s : β → β → Prop}
 
 /-- **Alias** of `quot.lift_beta`. -/
-@[simp] lemma lift_mk (f : α → γ) (h : ∀ a₁ a₂, r a₁ a₂ → f a₁ = f a₂) (a : α) :
+lemma lift_mk (f : α → γ) (h : ∀ a₁ a₂, r a₁ a₂ → f a₁ = f a₂) (a : α) :
   quot.lift f h (quot.mk r a) = f a := rfl
 
 @[simp]

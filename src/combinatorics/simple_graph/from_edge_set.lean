@@ -61,4 +61,14 @@ begin
   rw this,
 end
 
+lemma from_edge_set_eq_iff  (s : set (sym2 V)) (G : simple_graph V) :
+  from_edge_set s = G ↔ (s \ (set_of sym2.is_diag)) = G.edge_set :=
+begin
+  nth_rewrite 0 ←from_edge_set_edge_set G,
+  rw from_edge_set_eq_from_edge_set_iff,
+  have : G.edge_set \ set_of sym2.is_diag = G.edge_set, by
+  { ext ⟨u,v⟩, simp only [set.mem_diff, set.mem_set_of_eq, and_iff_left_iff_imp], exact adj.ne, },
+  rw this,
+end
+
 end simple_graph

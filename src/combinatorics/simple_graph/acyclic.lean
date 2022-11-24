@@ -167,8 +167,13 @@ begin
   { rintro ⟨GT,Gac,Gmax⟩, refine ⟨GT, Gac, _⟩,
     rintro ⟨u,v⟩ ⟨eT,neG⟩ Geac,
     apply (by {simpa using neG} : ¬ G.adj u v),
-    suffices : from_edge_set (G.edge_set ∪ {quot.mk setoid.r (u, v)}) = G, by
-    { sorry, },
+    suffices : from_edge_set (G.edge_set ∪ {⟦(u, v)⟧}) = G, by
+    { rw from_edge_set_eq_iff at this,
+      exfalso, apply neG,
+      rw ←this,
+      simp only [set.union_singleton, set.mem_diff, set.mem_insert_iff, mem_edge_set,
+                 set.mem_set_of_eq, sym2.is_diag_iff_proj_eq],
+      refine ⟨or.inl rfl, eT.ne⟩, },
     apply Gmax _ _ _ Geac,
     { nth_rewrite 0 ←from_edge_set_edge_set G,
       apply from_edge_set_mono,
@@ -188,8 +193,11 @@ begin
       (⟦⟨u,v⟩⟧ : sym2 V)
       (by {simp only [set.mem_diff, mem_edge_set], exact ⟨HT Ha, nGa⟩}),
     apply Hac.le,
-    
-    simpa only [set.singleton_subset_iff] using Ha, },
+    rw from_edge_set_le_iff,
+    rintro ⟨x,y⟩ ⟨(eG|euv),ne⟩,
+    { change H.adj x y,
+      exact GH eG, },
+    { simp only [set.mem_singleton_iff] at euv, rw euv, exact Ha, }, },
 end
 
 lemma is_min_connected_iff : G.is_min_connected B ↔

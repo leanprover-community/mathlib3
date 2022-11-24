@@ -24,20 +24,6 @@ variables {R : Type u} {S : Type v} {k : Type y} {A : Type z} {a b : R} {n : ℕ
 section is_domain
 variables [comm_ring R] [is_domain R]
 
-lemma roots_C_mul (p : R[X]) {a : R} (hzero : a ≠ 0) : (C a * p).roots = p.roots :=
-begin
-  by_cases hpzero : p = 0,
-  { simp only [hpzero, mul_zero] },
-  rw multiset.ext,
-  intro b,
-  have prodzero : C a * p ≠ 0,
-  { simp only [hpzero, or_false, ne.def, mul_eq_zero, C_eq_zero, hzero, not_false_iff] },
-  rw [count_roots, count_roots, root_multiplicity_mul prodzero],
-  have mulzero : root_multiplicity b (C a) = 0,
-  { simp only [hzero, root_multiplicity_eq_zero, eval_C, is_root.def, not_false_iff] },
-  simp only [mulzero, zero_add]
-end
-
 lemma derivative_root_multiplicity_of_root [char_zero R] {p : R[X]} {t : R} (hpt : p.is_root t) :
   p.derivative.root_multiplicity t = p.root_multiplicity t - 1 :=
 begin
@@ -344,7 +330,8 @@ by rw [mem_roots (map_ne_zero hp), is_root, polynomial.eval_map]; apply_instance
 
 lemma root_set_monomial [comm_ring S] [is_domain S] [algebra R S]
   {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (monomial n a).root_set S = {0} :=
-by { ext x, simp [mem_root_set_iff, ha, pow_eq_zero_iff hn.bot_lt] }
+by rw [root_set, map_monomial, roots_monomial ((_root_.map_ne_zero (algebra_map R S)).2 ha),
+  multiset.to_finset_nsmul _ _ hn, multiset.to_finset_singleton, finset.coe_singleton]
 
 lemma root_set_C_mul_X_pow [comm_ring S] [is_domain S] [algebra R S]
   {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (C a * X ^ n).root_set S = {0} :=

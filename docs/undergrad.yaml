@@ -498,7 +498,7 @@ Measures and integral calculus:
     Lebesgue measure: 'measure_theory.measure_space'
     product measure: 'measurable_space.pi'
     measurable functions: 'measurable'
-    approximation by step functions: 'measure_theory.simple_func_dense'
+    approximation by step functions: 'measure_theory.simple_func.tendsto_approx_on'
   Integration:
     integral of positive measurable functions: 'measure_theory.lintegral'
     monotone convergence theorem: 'measure_theory.lintegral_infi_ae'

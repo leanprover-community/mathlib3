@@ -188,17 +188,15 @@ iff.intro
     apply add_pos_right _ npos
   end
 
-lemma add_eq_one_iff {a b : ℕ} : a + b = 1 ↔ a = 0 ∧ b = 1 ∨ a = 1 ∧ b = 0 :=
-by cases b; simp [nat.succ_eq_add_one, ← add_assoc, nat.succ_inj']
+lemma add_eq_one_iff : m + n = 1 ↔ m = 0 ∧ n = 1 ∨ m = 1 ∧ n = 0 :=
+by cases n; simp [succ_eq_add_one, ← add_assoc, succ_inj']
 
-lemma add_eq_two_iff {a b : ℕ} : a + b = 2 ↔ a = 0 ∧ b = 2 ∨ a = 1 ∧ b = 1 ∨ a = 2 ∧ b = 0 :=
-by cases b;
-  simp [(nat.succ_ne_zero _).symm, nat.succ_eq_add_one, ← add_assoc, nat.succ_inj', add_eq_one_iff]
+lemma add_eq_two_iff : m + n = 2 ↔ m = 0 ∧ n = 2 ∨ m = 1 ∧ n = 1 ∨ m = 2 ∧ n = 0 :=
+by cases n; simp [(succ_ne_zero 1).symm, succ_eq_add_one, ← add_assoc, succ_inj', add_eq_one_iff]
 
-lemma add_eq_three_iff {a b : ℕ} :
-  a + b = 3 ↔ a = 0 ∧ b = 3 ∨ a = 1 ∧ b = 2 ∨ a = 2 ∧ b = 1 ∨ a = 3 ∧ b = 0 :=
-by cases b;
-  simp [(nat.succ_ne_zero _).symm, nat.succ_eq_add_one, ← add_assoc, nat.succ_inj', add_eq_two_iff]
+lemma add_eq_three_iff :
+  m + n = 3 ↔ m = 0 ∧ n = 3 ∨ m = 1 ∧ n = 2 ∨ m = 2 ∧ n = 1 ∨ m = 3 ∧ n = 0 :=
+by cases n; simp [(succ_ne_zero 1).symm, succ_eq_add_one, ← add_assoc, succ_inj', add_eq_two_iff]
 
 theorem le_add_one_iff {i j : ℕ} : i ≤ j + 1 ↔ (i ≤ j ∨ i = j + 1) :=
 ⟨λ h,

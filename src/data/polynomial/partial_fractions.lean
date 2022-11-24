@@ -16,6 +16,7 @@ import logic.function.basic
 These results were formalised by the Xena Project, at the suggestion
 of Patrick Massot.
 
+
 ## The main theorems
 
 * General partial fraction decomposition theorem for polynomials over ℝ
@@ -52,18 +53,6 @@ unique.
 I don't see why irreducibility is even needed.
 
 -/
-
--- -- this section can be deleted when #17087 hits
--- section comm_ring_comm_ring
-
--- variables {R A : Type*} [comm_ring R] [comm_ring A] [algebra R A]
-
--- -- [is_fraction_ring] bumps the imports but I have an application, probably
--- -- this lemma should be elsewhere
--- @[norm_cast, simp] lemma is_fraction_ring.coe_inj [is_fraction_ring R A] {a b : R} : (↑a : A) = ↑b ↔ a = b :=
--- ⟨λ h, is_fraction_ring.injective R A h, by rintro rfl; refl⟩
-
--- end comm_ring_comm_ring
 
 
 -- Let `R` be an integral domain
@@ -288,10 +277,8 @@ begin
     (div_eq_quo_add_sum_rem_div R K f s hg hcop).some_spec.some_spec,
   change q = q₀ ∧ ∀ i ∈ s, r i = r₀ i, split,
   { rw hf at hf₀,
-    have htriv : g = λ (i : ι), g i ,
-    { refl,
-
-      sorry }
+    have htriv : g = λ (i : ι), g i := rfl,
+    rw ← htriv at hf₀,
     sorry },
   {
     sorry },

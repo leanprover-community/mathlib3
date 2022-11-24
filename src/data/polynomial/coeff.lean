@@ -105,6 +105,9 @@ by simp [coeff_mul]
   map_zero' := coeff_zero 0,
   map_add' :=  λ p q, coeff_add p q 0 }
 
+lemma is_unit_C {x : R} : is_unit (C x) ↔ is_unit x :=
+⟨λ h, by { rw ← @coeff_C_zero _ x, exact h.map (@constant_coeff R _) }, λ h, h.map C⟩
+
 lemma coeff_mul_X_zero (p : R[X]) : coeff (p * X) 0 = 0 :=
 by simp
 

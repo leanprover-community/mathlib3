@@ -213,10 +213,7 @@ end monic
   ((X + C r) ^ n).nat_degree = n :=
 by rw [(monic_X_add_C r).nat_degree_pow, nat_degree_X_add_C, mul_one]
 
-lemma is_unit_C {x : R} : is_unit (C x) ↔ is_unit x :=
-⟨λ h, by { rw ← @coeff_C_zero _ x, exact h.map (@constant_coeff R _) }, λ h, h.map C⟩
-
-lemma eq_one_of_is_unit_of_monic (hm : monic p) (hpu : is_unit p) : p = 1 :=
+lemma monic.eq_one_of_is_unit (hm : monic p) (hpu : is_unit p) : p = 1 :=
 begin
   obtain ⟨⟨p, q, h1, h2⟩, rfl⟩ := hpu,
   dsimp only [units.coe_mk] at hm ⊢,
@@ -362,9 +359,7 @@ begin
   rcases eq_or_ne n 0 with rfl | hn,
   { simpa using h },
   apply hn,
-  rwa [← @nat_degree_X_pow_sub_C _ _ _ n (1 : R),
-      eq_one_of_is_unit_of_monic (monic_X_pow_sub_C (1 : R) hn),
-      nat_degree_one]
+  rw [←@nat_degree_one R, ←(monic_X_pow_sub_C _ hn).eq_one_of_is_unit h, nat_degree_X_pow_sub_C],
 end
 
 lemma monic.sub_of_left {p q : R[X]} (hp : monic p) (hpq : degree q < degree p) :

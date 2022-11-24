@@ -386,12 +386,10 @@ begin
   exact (nhds_within_Ioi_self_ne_bot' ⟨b, hxab.2⟩).nonempty_of_mem this
 end
 
-/-- A closed interval in a densely ordered conditionally complete linear order is preconnected. -/
-lemma is_preconnected_Icc : is_preconnected (Icc a b) :=
-is_preconnected_closed_iff.2
+lemma is_preconnected_Icc_aux (x y : α) (s t : set α) (hxy : x ≤ y)
+  (hs : is_closed s) (ht : is_closed t) (hab : Icc a b ⊆ s ∪ t)
+  (hx : x ∈ Icc a b ∩ s) (hy : y ∈ Icc a b ∩ t) : (Icc a b ∩ (s ∩ t)).nonempty :=
 begin
-  rintros s t hs ht hab ⟨x, hx⟩ ⟨y, hy⟩,
-  wlog hxy : x ≤ y := le_total x y using [x y s t, y x t s],
   have xyab : Icc x y ⊆ Icc a b := Icc_subset_Icc hx.1.1 hy.1.2,
   by_contradiction hst,
   suffices : Icc x y ⊆ s,
@@ -405,6 +403,19 @@ begin
   apply mem_of_superset this,
   have : Ioc z y ⊆ s ∪ t, from λ w hw, hab (xyab ⟨le_trans hz.1 (le_of_lt hw.1), hw.2⟩),
   exact λ w ⟨wt, wzy⟩, (this wzy).elim id (λ h, (wt h).elim)
+end
+
+/-- A closed interval in a densely ordered conditionally complete linear order is preconnected. -/
+lemma is_preconnected_Icc : is_preconnected (Icc a b) :=
+is_preconnected_closed_iff.2
+begin
+  rintros s t hs ht hab ⟨x, hx⟩ ⟨y, hy⟩,
+  -- This used to use `wlog`, but it was causing timeouts.
+  cases le_total x y,
+  { exact is_preconnected_Icc_aux x y s t h hs ht hab hx hy, },
+  { rw inter_comm s t,
+    rw union_comm s t at hab,
+    exact is_preconnected_Icc_aux y x t s h ht hs hab hy hx, },
 end
 
 lemma is_preconnected_interval : is_preconnected (interval a b) := is_preconnected_Icc

@@ -5,8 +5,8 @@ Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
 -/
 import order.filter.ultrafilter
 import order.filter.partial
-import order.filter.small_sets
 import algebra.support
+import order.filter.lift
 
 /-!
 # Basic theory of topological spaces.
@@ -449,6 +449,11 @@ theorem mem_closure_iff {s : set α} {a : α} :
   closure_minimal this (is_closed_compl_iff.2 oo) h ao,
 λ H c ⟨h₁, h₂⟩, classical.by_contradiction $ λ nc,
   let ⟨x, hc, hs⟩ := (H _ h₁.is_open_compl nc) in hc (h₂ hs)⟩
+
+lemma closure_inter_open_nonempty_iff {s t : set α} (h : is_open t) :
+  (closure s ∩ t).nonempty ↔ (s ∩ t).nonempty :=
+⟨λ ⟨x, hxcs, hxt⟩, inter_comm t s ▸ mem_closure_iff.1 hxcs t h hxt,
+  λ h, h.mono $ inf_le_inf_right t subset_closure⟩
 
 lemma filter.le_lift'_closure (l : filter α) : l ≤ l.lift' closure :=
 le_lift'.2 $ λ s hs, mem_of_superset hs subset_closure

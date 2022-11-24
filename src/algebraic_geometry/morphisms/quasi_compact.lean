@@ -96,7 +96,7 @@ begin
   intros H U hU hU',
   obtain ⟨S, hS, rfl⟩ := (is_compact_open_iff_eq_finset_affine_union U).mp ⟨hU', hU⟩,
   simp only [set.preimage_Union, subtype.val_eq_coe],
-  exact hS.compact_bUnion (λ i _, H i i.prop)
+  exact hS.is_compact_bUnion (λ i _, H i i.prop)
 end
 
 @[simp] lemma quasi_compact.affine_property_to_property {X Y : Scheme} (f : X ⟶ Y) :
@@ -169,7 +169,8 @@ begin
     rw ← hS,
     dsimp [opens.map],
     simp only [opens.coe_supr, set.preimage_Union, subtype.val_eq_coe],
-    exacts [compact_Union (λ i, is_compact_iff_compact_space.mpr (hS' i)), top_is_affine_open _] }
+    exacts [is_compact_Union (λ i, is_compact_iff_compact_space.mpr (hS' i)),
+      top_is_affine_open _] }
 end
 
 lemma quasi_compact.affine_open_cover_tfae {X Y : Scheme.{u}} (f : X ⟶ Y) :

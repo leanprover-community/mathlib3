@@ -5,6 +5,7 @@ Authors: Yaël Dillies, Bhavik Mehta, Huỳnh Trần Khanh, Stuart Presnell
 -/
 import algebra.big_operators.basic
 import data.finset.sym
+import data.fintype.sum
 
 /-!
 # Stars and bars
@@ -81,7 +82,7 @@ protected def E2 {n k : ℕ} :
     (mt mem_map.1) (not_exists.2 (λ t, (not_and.2 (λ _, (fin.succ_above_ne _ t)))))⟩,
   left_inv  := λ s, by
   { obtain ⟨s, hs⟩ := s,
-    simp only [fin.zero_succ_above, map_map, comp_app],
+    simp only [map_map, comp_app],
     nth_rewrite_rhs 0 ←(map_id' s),
     refine sym.map_congr (λ v hv,  _),
     simp [fin.pred_above_zero (ne_of_mem_of_not_mem hv hs)] },
@@ -102,7 +103,7 @@ begin
   { intros x y h1 h2,
     rw [multichoose_succ_succ, ←h1, ←h2, add_comm],
     cases x,
-    { simp only [card_eq_zero_iff, nat.nat_zero_eq_zero, card_unique, self_eq_add_right],
+    { simp only [card_eq_zero_iff, card_unique, self_eq_add_right],
       apply_instance },
     rw ←card_sum,
     refine fintype.card_congr (equiv.symm _),
@@ -196,9 +197,10 @@ begin
   rw [←image_diag_union_image_off_diag, card_union_eq, sym2.card_image_diag,
     sym2.card_image_off_diag, nat.choose_two_right, add_comm, ←nat.triangle_succ, nat.succ_sub_one,
     mul_comm],
-  rintro m he,
-  rw [inf_eq_inter, mem_inter, mem_image, mem_image] at he,
-  obtain ⟨⟨a, ha, rfl⟩, b, hb, hab⟩ := he,
+  rw disjoint_left,
+  rintro m ha hb,
+  rw [mem_image] at ha hb,
+  obtain ⟨⟨a, ha, rfl⟩, ⟨b, hb, hab⟩⟩ := ⟨ha, hb⟩,
   refine not_is_diag_mk_of_mem_off_diag hb _,
   rw hab,
   exact is_diag_mk_of_mem_diag ha,

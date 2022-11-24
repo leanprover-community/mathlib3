@@ -567,6 +567,9 @@ end
 show (∀ {t}, s ⊆ t → t ∈ f) ↔ s ∈ f,
   from ⟨λ h, h (subset.refl s), λ hs t ht, mem_of_superset hs ht⟩
 
+lemma Iic_principal (s : set α) : Iic (𝓟 s) = {l | s ∈ l} :=
+set.ext $ λ x, le_principal_iff
+
 lemma principal_mono {s t : set α} : 𝓟 s ≤ 𝓟 t ↔ s ⊆ t :=
 by simp only [le_principal_iff, iff_self, mem_principal]
 
@@ -628,7 +631,7 @@ lemma ne_bot.not_disjoint (hf : f.ne_bot) (hs : s ∈ f) (ht : t ∈ f) :
 
 lemma inf_eq_bot_iff {f g : filter α} :
   f ⊓ g = ⊥ ↔ ∃ (U ∈ f) (V ∈ g), U ∩ V = ∅ :=
-by simpa only [disjoint_iff] using filter.disjoint_iff
+by simpa only [←disjoint_iff, set.disjoint_iff_inter_eq_empty] using filter.disjoint_iff
 
 lemma _root_.pairwise.exists_mem_filter_of_disjoint {ι : Type*} [finite ι]
   {l : ι → filter α} (hd : pairwise (disjoint on l)) :
@@ -636,9 +639,9 @@ lemma _root_.pairwise.exists_mem_filter_of_disjoint {ι : Type*} [finite ι]
 begin
   simp only [pairwise, function.on_fun, filter.disjoint_iff, subtype.exists'] at hd,
   choose! s t hst using hd,
-  refine ⟨λ i, ⋂ j, s i j ∩ t j i, λ i, _, λ i j hij, _⟩,
-  exacts [Inter_mem.2 (λ j, inter_mem (s i j).2 (t j i).2),
-    (hst i j hij).mono ((Inter_subset _ j).trans (inter_subset_left _ _))
+  refine ⟨λ i, ⋂ j, @s i j ∩ @t j i, λ i, _, λ i j hij, _⟩,
+  exacts [Inter_mem.2 (λ j, inter_mem (@s i j).2 (@t j i).2),
+    (hst hij).mono ((Inter_subset _ j).trans (inter_subset_left _ _))
       ((Inter_subset _ i).trans (inter_subset_right _ _))]
 end
 
@@ -670,7 +673,7 @@ end
 
 lemma forall_mem_nonempty_iff_ne_bot {f : filter α} :
   (∀ (s : set α), s ∈ f → s.nonempty) ↔ ne_bot f :=
-⟨λ h, ⟨λ hf, empty_not_nonempty (h ∅ $ hf.symm ▸ mem_bot)⟩, @nonempty_of_mem _ _⟩
+⟨λ h, ⟨λ hf, not_nonempty_empty (h ∅ $ hf.symm ▸ mem_bot)⟩, @nonempty_of_mem _ _⟩
 
 instance [nonempty α] : nontrivial (filter α) :=
 ⟨⟨⊤, ⊥, ne_bot.ne $ forall_mem_nonempty_iff_ne_bot.1 $ λ s hs,
@@ -2159,8 +2162,7 @@ instance pure_ne_bot {α : Type u} {a : α} : ne_bot (pure a) :=
 ⟨mt empty_mem_iff_bot.2 $ not_mem_empty a⟩
 
 @[simp] lemma le_pure_iff {f : filter α} {a : α} : f ≤ pure a ↔ {a} ∈ f :=
-⟨λ h, h singleton_mem_pure,
-  λ h s hs, mem_of_superset h $ singleton_subset_iff.2 hs⟩
+by rw [← principal_singleton, le_principal_iff]
 
 lemma mem_seq_def {f : filter (α → β)} {g : filter α} {s : set β} :
   s ∈ f.seq g ↔ (∃ u ∈ f, ∃ t ∈ g, ∀ x ∈ u, ∀ y ∈ t, (x : α → β) y ∈ s) :=

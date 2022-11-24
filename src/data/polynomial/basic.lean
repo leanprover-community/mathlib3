@@ -40,7 +40,7 @@ exceptions that we make semireducible:
 * The scalar action, to permit typeclass search to unfold it to resolve potential instance
   diamonds.
 
-The raw implementation of the equivalence between `polynomial R` and `add_monoid_algebra R ℕ` is
+The raw implementation of the equivalence between `R[X]` and `add_monoid_algebra R ℕ` is
 done through `of_finsupp` and `to_finsupp` (or, equivalently, `rcases p` when `p` is a polynomial
 gives an element `q` of `add_monoid_algebra R ℕ`, and conversely `⟨q⟩` gives back `p`). The
 equivalence is also registered as a ring equiv in `polynomial.to_finsupp_iso`. These should
@@ -78,7 +78,7 @@ lemma exists_iff_exists_finsupp (P : R[X] → Prop) :
 
 /-! ### Conversions to and from `add_monoid_algebra`
 
-Since `polynomial R` is not defeq to `add_monoid_algebra R ℕ`, but instead is a structure wrapping
+Since `R[X]` is not defeq to `add_monoid_algebra R ℕ`, but instead is a structure wrapping
 it, we have to copy across all the arithmetic operators manually, along with the lemmas about how
 they unfold around `polynomial.of_finsupp` and `polynomial.to_finsupp`.
 -/
@@ -474,10 +474,6 @@ by { convert coeff_monomial using 2, simp [eq_comm], }
 lemma coeff_C_ne_zero (h : n ≠ 0) : (C a).coeff n = 0 :=
 by rw [coeff_C, if_neg h]
 
-theorem nontrivial.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
-nontrivial_of_ne 0 1 $ λ h01, h $
-  by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero]
-
 lemma monomial_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
 | 0     := (mul_one _).symm
 | (n+1) :=
@@ -485,17 +481,18 @@ lemma monomial_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
     ... = (C a * X^n) * X : by rw [monomial_eq_C_mul_X]
     ... = C a * X^(n+1) : by simp only [pow_add, mul_assoc, pow_one]
 
-@[simp] lemma C_inj : C a = C b ↔ a = b :=
-⟨λ h, coeff_C_zero.symm.trans (h.symm ▸ coeff_C_zero), congr_arg C⟩
 
-@[simp] lemma C_eq_zero : C a = 0 ↔ a = 0 :=
-calc C a = 0 ↔ C a = C 0 : by rw C_0
-         ... ↔ a = 0 : C_inj
+lemma C_injective : injective (C : R → R[X]) := monomial_injective 0
+
+@[simp] lemma C_inj : C a = C b ↔ a = b := C_injective.eq_iff
+@[simp] lemma C_eq_zero : C a = 0 ↔ a = 0 := C_injective.eq_iff' (map_zero C)
 
 lemma subsingleton_iff_subsingleton :
   subsingleton R[X] ↔ subsingleton R :=
-⟨λ h, subsingleton_iff.mpr (λ a b, C_inj.mp (subsingleton_iff.mp h _ _)),
-  by { introI, apply_instance } ⟩
+⟨@injective.subsingleton _ _ _ C_injective, by { introI, apply_instance } ⟩
+
+theorem nontrivial.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
+(subsingleton_or_nontrivial R).resolve_left $ λ hI, h $ by exactI subsingleton.elim _ _
 
 lemma forall_eq_iff_forall_eq :
   (∀ f g : R[X], f = g) ↔ (∀ a b : R, a = b) :=
@@ -739,7 +736,7 @@ by simp [coeff_erase, h]
 
 section update
 
-/-- Replace the coefficient of a `p : polynomial p` at a given degree `n : ℕ`
+/-- Replace the coefficient of a `p : R[X]` at a given degree `n : ℕ`
 by a given value `a : R`. If `a = 0`, this is equal to `p.erase n`
 If `p.nat_degree < n` and `a ≠ 0`, this increases the degree to `n`.  -/
 def update (p : R[X]) (n : ℕ) (a : R) :

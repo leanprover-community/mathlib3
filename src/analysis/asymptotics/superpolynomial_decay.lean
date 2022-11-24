@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Devon Tuma
 -/
 import analysis.asymptotics.asymptotics
-import analysis.normed_space.ordered
+import analysis.normed.order.basic
 import data.polynomial.eval
 import topology.algebra.order.liminf_limsup
 
@@ -26,7 +26,7 @@ These further equivalences are not proven in mathlib but would be good future pr
 
 The definition of superpolynomial decay for `f : α → β` is relative to a parameter `k : α → β`.
 Super-polynomial decay then means `f x` decays faster than `(k x) ^ c` for all integers `c`.
-Equivalently `f x` decays faster than `p.eval (k x)` for all polynomials `p : polynomial β`.
+Equivalently `f x` decays faster than `p.eval (k x)` for all polynomials `p : β[X]`.
 The definition is also relative to a filter `l : filter α` where the decay rate is compared.
 
 When the map `k` is given by `n ↦ ↑n : ℕ → ℝ` this defines negligible functions:
@@ -46,7 +46,7 @@ https://ncatlab.org/nlab/show/rapidly+decreasing+function
 
 namespace asymptotics
 
-open_locale topological_space
+open_locale topological_space polynomial
 open filter
 
 /-- `f` has superpolynomial decay in parameter `k` along filter `l` if
@@ -112,13 +112,13 @@ lemma superpolynomial_decay.mul_param_pow (hf : superpolynomial_decay l k f)
 (hf.param_pow_mul n).congr (λ _, mul_comm _ _)
 
 lemma superpolynomial_decay.polynomial_mul [has_continuous_add β] [has_continuous_mul β]
-  (hf : superpolynomial_decay l k f) (p : polynomial β) :
+  (hf : superpolynomial_decay l k f) (p : β[X]) :
   superpolynomial_decay l k (λ x, (p.eval $ k x) * f x) :=
 polynomial.induction_on' p (λ p q hp hq, by simpa [add_mul] using hp.add hq)
   (λ n c, by simpa [mul_assoc] using (hf.param_pow_mul n).const_mul c)
 
 lemma superpolynomial_decay.mul_polynomial [has_continuous_add β] [has_continuous_mul β]
-  (hf : superpolynomial_decay l k f) (p : polynomial β) :
+  (hf : superpolynomial_decay l k f) (p : β[X]) :
   superpolynomial_decay l k (λ x, f x * (p.eval $ k x)) :=
 (hf.polynomial_mul p).congr (λ _, mul_comm _ _)
 
@@ -280,12 +280,12 @@ variable [normed_linear_ordered_field β]
 variables (l k f)
 
 lemma superpolynomial_decay_iff_norm_tendsto_zero :
-  superpolynomial_decay l k f ↔ ∀ (n : ℕ), tendsto (λ (a : α), ∥(k a) ^ n * f a∥) l (𝓝 0) :=
+  superpolynomial_decay l k f ↔ ∀ (n : ℕ), tendsto (λ (a : α), ‖(k a) ^ n * f a‖) l (𝓝 0) :=
 ⟨λ h z, tendsto_zero_iff_norm_tendsto_zero.1 (h z),
   λ h z, tendsto_zero_iff_norm_tendsto_zero.2 (h z)⟩
 
 lemma superpolynomial_decay_iff_superpolynomial_decay_norm :
-  superpolynomial_decay l k f ↔ superpolynomial_decay l (λ a, ∥k a∥) (λ a, ∥f a∥) :=
+  superpolynomial_decay l k f ↔ superpolynomial_decay l (λ a, ‖k a‖) (λ a, ‖f a‖) :=
 (superpolynomial_decay_iff_norm_tendsto_zero l k f).trans (by simp [superpolynomial_decay])
 
 variables {l k}

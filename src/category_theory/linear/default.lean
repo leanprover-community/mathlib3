@@ -3,10 +3,9 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.preadditive
+import category_theory.preadditive.default
 import algebra.module.linear_map
 import algebra.invertible
-import linear_algebra.basic
 import algebra.algebra.basic
 
 /-!
@@ -88,12 +87,17 @@ section induced_category
 universes u'
 variables {C} {D : Type u'} (F : D → C)
 
-instance induced_category.category : linear.{w v} R (induced_category C F) :=
+instance induced_category : linear.{w v} R (induced_category C F) :=
 { hom_module := λ X Y, @linear.hom_module R _ C _ _ _ (F X) (F Y),
   smul_comp' := λ P Q R f f' g, smul_comp' _ _ _ _ _ _,
   comp_smul' := λ P Q R f g g', comp_smul' _ _ _ _ _ _, }
 
 end induced_category
+
+instance full_subcategory (Z : C → Prop) : linear.{w v} R (full_subcategory Z) :=
+{ hom_module := λ X Y, @linear.hom_module R _ C _ _ _ X.obj Y.obj,
+  smul_comp' := λ P Q R f f' g, smul_comp' _ _ _ _ _ _,
+  comp_smul' := λ P Q R f g g', comp_smul' _ _ _ _ _ _, }
 
 variables (R)
 

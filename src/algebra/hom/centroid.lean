@@ -3,7 +3,6 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Christopher Hoskin
 -/
-import algebra.group.pi
 import algebra.group_power.lemmas
 import algebra.hom.group_instances
 
@@ -115,6 +114,10 @@ protected def copy (f : centroid_hom α) (f' : α → α) (h : f' = f) :
   map_mul_left' := λ a b, by simp_rw [h, map_mul_left],
   map_mul_right' := λ a b, by simp_rw [h, map_mul_right],
   ..f.to_add_monoid_hom.copy f' $ by exact h }
+
+@[simp] lemma coe_copy (f : centroid_hom α) (f' : α → α) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+
+lemma copy_eq (f : centroid_hom α) (f' : α → α) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 variables (α)
 

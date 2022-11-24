@@ -239,8 +239,7 @@ variables {σ R}
 @[simp] lemma monomial_one_hom_apply :
   monomial_one_hom R σ s = (monomial s 1 : mv_polynomial σ R) := rfl
 
-lemma X_pow_eq_monomial : X n ^ e = monomial (single n e) (1 : R) :=
-by simp [X, monomial_pow]
+lemma X_pow_eq_monomial : X n ^ e = monomial (single n e) (1 : R) := by simp [X, monomial_pow]
 
 lemma monomial_add_single : monomial (s + single n e) a = (monomial s a * X n ^ e) :=
 by rw [X_pow_eq_monomial, monomial_mul, mul_one]
@@ -252,10 +251,9 @@ lemma C_mul_X_pow_eq_monomial {s : σ} {a : R} {n : ℕ} : C a * X s ^ n = monom
 by rw [← zero_add (single s n), monomial_add_single, C_apply]
 
 lemma C_mul_X_eq_monomial {s : σ} {a : R} : C a * X s = monomial (single s 1) a :=
-by rw [C_mul_X_pow_eq_monomial, pow_one]
+by rw [← C_mul_X_pow_eq_monomial, pow_one]
 
-@[simp] lemma monomial_zero {s : σ →₀ ℕ} : monomial s (0 : R) = 0 :=
-single_zero _
+@[simp] lemma monomial_zero {s : σ →₀ ℕ} : monomial s (0 : R) = 0 := single_zero _
 
 @[simp] lemma monomial_zero' : (monomial (0 : σ →₀ ℕ) : R → mv_polynomial σ R) = C := rfl
 

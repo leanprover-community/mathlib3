@@ -42,7 +42,7 @@ lemma denoms_clearable_C_mul_X_pow {N : ℕ} (a : R) (bu : bi * i b = 1) {n : �
   (nN : n ≤ N) : denoms_clearable a b N (C r * X ^ n) i :=
 begin
   refine ⟨r * a ^ n * b ^ (N - n), bi, bu, _⟩,
-  rw [C_mul_X_pow_eq_monomial, map_monomial, ← C_mul_X_pow_eq_monomial, eval_mul, eval_pow, eval_C],
+  rw [← monomial_eq_C_mul_X_pow, map_monomial, monomial_eq_C_mul_X_pow, eval_mul, eval_pow, eval_C],
   rw [ring_hom.map_mul, ring_hom.map_mul, ring_hom.map_pow, ring_hom.map_pow, eval_X, mul_comm],
   rw [← tsub_add_cancel_of_le nN] {occs := occurrences.pos [2]},
   rw [pow_add, mul_assoc, mul_comm (i b ^ n), mul_pow, mul_assoc, mul_assoc (i a ^ n), ← mul_pow],

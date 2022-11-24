@@ -70,10 +70,10 @@ end
 
 @[simp]
 lemma derivative_monomial (a : R) (n : ℕ) : derivative (monomial n a) = monomial (n - 1) (a * n) :=
-by { rw [derivative_apply, sum_monomial_index, C_mul_X_pow_eq_monomial], simp }
+by { rw [derivative_apply, sum_monomial_index, ← monomial_eq_C_mul_X_pow], simp }
 
 lemma derivative_C_mul_X_pow (a : R) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X ^ (n - 1) :=
-by rw [C_mul_X_pow_eq_monomial, C_mul_X_pow_eq_monomial, derivative_monomial]
+by rw [← monomial_eq_C_mul_X_pow, ← monomial_eq_C_mul_X_pow, derivative_monomial]
 
 @[simp] lemma derivative_X_pow (n : ℕ) :
   derivative (X ^ n : R[X]) = (n : R[X]) * X ^ (n - 1) :=

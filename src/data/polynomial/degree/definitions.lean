@@ -212,7 +212,7 @@ lemma degree_monomial_le (n : ℕ) (a : R) : degree (monomial n a) ≤ n :=
 if h : a = 0 then by rw [h, (monomial n).map_zero]; exact bot_le else le_of_eq (degree_monomial n h)
 
 lemma degree_C_mul_X_pow_le (n : ℕ) (a : R) : degree (C a * X ^ n) ≤ n :=
-by { rw C_mul_X_pow_eq_monomial, apply degree_monomial_le }
+by { rw ← monomial_eq_C_mul_X_pow, apply degree_monomial_le }
 
 lemma degree_C_mul_X_le (a : R) : degree (C a * X) ≤ 1 :=
 by simpa only [pow_one] using degree_C_mul_X_pow_le 1 a
@@ -228,7 +228,7 @@ by simpa only [pow_one] using nat_degree_C_mul_X_pow 1 a ha
 begin
   split_ifs with hr,
   { simp [hr] },
-  { rw [← C_mul_X_pow_eq_monomial, nat_degree_C_mul_X_pow i r hr] }
+  { rw [monomial_eq_C_mul_X_pow, nat_degree_C_mul_X_pow i r hr] }
 end
 
 lemma nat_degree_monomial_le (a : R) {m : ℕ} : (monomial m a).nat_degree ≤ m :=

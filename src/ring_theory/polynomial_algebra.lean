@@ -58,8 +58,8 @@ begin
   dsimp [to_fun_bilinear_apply_apply, aeval_def, eval₂_eq_sum, polynomial.sum],
   rw finset.smul_sum,
   congr' with i : 1,
-  rw [←algebra.smul_def, ←C_mul', mul_smul_comm, C_mul_X_pow_eq_monomial, ←algebra.commutes,
-    ←algebra.smul_def, smul_monomial],
+  rw [← algebra.smul_def, ←C_mul', mul_smul_comm, ← monomial_eq_C_mul_X_pow, ←algebra.commutes,
+      ← algebra.smul_def, smul_monomial],
 end
 
 /--

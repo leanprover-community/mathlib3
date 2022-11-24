@@ -237,11 +237,6 @@ end
 lemma mul_X_injective : function.injective (λ P : R[X], X * P) :=
 pow_one (X : R[X]) ▸ mul_X_pow_injective 1
 
-lemma C_mul_X_eq_monomial (c : R) (n : ℕ) : C c * X = monomial 1 c := monomial_eq_C_mul_X.symm
-
-lemma C_mul_X_pow_eq_monomial (c : R) (n : ℕ) : C c * X ^ n = monomial n c :=
-monomial_eq_C_mul_X_pow.symm
-
 lemma coeff_X_add_C_pow (r : R) (n k : ℕ) :
   ((X + C r) ^ n).coeff k = r ^ (n - k) * (n.choose k : R) :=
 begin

@@ -34,10 +34,8 @@ Simplicial objects equipped with a splitting form a category
 
 noncomputable theory
 
-open category_theory
-open category_theory.category
-open category_theory.limits
-open opposite
+open category_theory category_theory.category category_theory.limits
+  opposite simplex_category
 open_locale simplicial
 
 universe u
@@ -82,7 +80,7 @@ end
 instance : fintype (index_set Δ) :=
 fintype.of_injective
   ((λ A, ⟨⟨A.1.unop.len, nat.lt_succ_iff.mpr
-    (simplex_category.len_le_of_epi (infer_instance : epi A.e))⟩, A.e.to_order_hom⟩) :
+    (len_le_of_epi (infer_instance : epi A.e))⟩, A.e.to_order_hom⟩) :
     index_set Δ → (sigma (λ (k : fin (Δ.unop.len+1)), (fin (Δ.unop.len+1) → fin (k+1)))))
 begin
   rintros ⟨Δ₁, α₁⟩ ⟨Δ₂, α₂⟩ h₁,
@@ -125,7 +123,7 @@ begin
     refine ext _ _ rfl _,
     { haveI := hf,
       simp only [eq_to_hom_refl, comp_id],
-      exact simplex_category.eq_id_of_epi f, }, },
+      exact eq_id_of_epi f, }, },
 end
 
 lemma eq_id_iff_len_eq : A.eq_id ↔ A.1.unop.len = Δ.unop.len :=
@@ -138,6 +136,28 @@ begin
     rw ← unop_inj_iff,
     ext,
     exact h, },
+end
+
+lemma eq_id_iff_len_le : A.eq_id ↔ Δ.unop.len ≤ A.1.unop.len :=
+begin
+  rw eq_id_iff_len_eq,
+  split,
+  { intro h,
+    rw h, },
+  { exact le_antisymm (len_le_of_epi (infer_instance : epi A.e)), },
+end
+
+lemma eq_id_iff_mono : A.eq_id ↔ mono A.e :=
+begin
+  split,
+  { intro h,
+    dsimp at h,
+    subst h,
+    dsimp only [id, e],
+    apply_instance, },
+  { intro h,
+    rw eq_id_iff_len_le,
+    exact len_le_of_mono h, }
 end
 
 /-- Given `A : index_set Δ₁`, if `p.unop : unop Δ₂ ⟶ unop Δ₁` is an epi, this

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import measure_theory.group.action
-import measure_theory.group.pointwise
 import measure_theory.integral.set_integral
 
 /-!
@@ -111,7 +110,7 @@ h.pairwise_ae_disjoint.mono $ λ g₁ g₂ H, hν H
     begin
       lift e to G ≃ G using he,
       have : (e.symm g⁻¹)⁻¹ ≠ (e.symm 1)⁻¹, by simp [hg],
-      convert (h.pairwise_ae_disjoint _ _ this).preimage hf using 1,
+      convert (h.pairwise_ae_disjoint this).preimage hf using 1,
       { simp only [← preimage_smul_inv, preimage_preimage, ← hef _ _, e.apply_symm_apply,
           inv_inv] },
       { ext1 x,
@@ -326,7 +325,10 @@ lemma exists_ne_one_smul_eq (hs : is_fundamental_domain G s μ) (htm : null_meas
 begin
   contrapose! ht,
   refine hs.measure_le_of_pairwise_disjoint htm (pairwise.ae_disjoint $ λ g₁ g₂ hne, _),
-  rintro _ ⟨⟨⟨x, hx, rfl⟩, -⟩, ⟨y, hy, hxy⟩, -⟩,
+  dsimp [function.on_fun],
+  refine (disjoint.inf_left _ _).inf_right _,
+  rw set.disjoint_left,
+  rintro _ ⟨x, hx, rfl⟩ ⟨y, hy, hxy⟩,
   refine ht x hx y hy (g₂⁻¹ * g₁) (mt inv_mul_eq_one.1 hne.symm) _,
   rw [mul_smul, ← hxy, inv_smul_smul]
 end

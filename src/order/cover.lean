@@ -77,6 +77,9 @@ instance wcovby.is_refl : is_refl α (⩿) := ⟨wcovby.refl⟩
 lemma wcovby.Ioo_eq (h : a ⩿ b) : Ioo a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x hx, h.2 hx.1 hx.2
 
+lemma wcovby_iff_Ioo_eq : a ⩿ b ↔ a ≤ b ∧ Ioo a b = ∅ :=
+and_congr_right' $ by simp [eq_empty_iff_forall_not_mem]
+
 lemma wcovby.of_image (f : α ↪o β) (h : f a ⩿ f b) : a ⩿ b :=
 ⟨f.le_iff_le.mp h.le, λ c hac hcb, h.2 (f.lt_iff_lt.mpr hac) (f.lt_iff_lt.mpr hcb)⟩
 
@@ -235,6 +238,9 @@ instance covby.is_irrefl : is_irrefl α (⋖) := ⟨λ a ha, ha.ne rfl⟩
 
 lemma covby.Ioo_eq (h : a ⋖ b) : Ioo a b = ∅ :=
 h.wcovby.Ioo_eq
+
+lemma covby_iff_Ioo_eq : a ⋖ b ↔ a < b ∧ Ioo a b = ∅ :=
+and_congr_right' $ by simp [eq_empty_iff_forall_not_mem]
 
 lemma covby.of_image (f : α ↪o β) (h : f a ⋖ f b) : a ⋖ b :=
 ⟨f.lt_iff_lt.mp h.lt, λ c hac hcb, h.2 (f.lt_iff_lt.mpr hac) (f.lt_iff_lt.mpr hcb)⟩

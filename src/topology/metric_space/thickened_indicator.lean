@@ -6,6 +6,7 @@ Authors: Kalle Kytölä
 import data.real.ennreal
 import topology.continuous_function.bounded
 import order.filter.indicator_function
+import topology.metric_space.hausdorff_distance
 
 /-!
 # Thickened indicators

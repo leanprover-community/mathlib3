@@ -6,7 +6,6 @@ Authors: Bolton Bailey
 
 import data.nat.prime
 import data.nat.totient
-import algebra.periodic
 import data.finset.locally_finite
 import data.nat.count
 import data.nat.nth

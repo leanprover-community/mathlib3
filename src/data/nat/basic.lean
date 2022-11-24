@@ -3,7 +3,9 @@ Copyright (c) 2014 Floris van Doorn (c) 2016 Microsoft Corporation. All rights r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
+import order.basic
 import algebra.ring.basic
+import algebra.group_with_zero.basic
 
 /-!
 # Basic operations on the natural numbers
@@ -281,29 +283,15 @@ by rw [add_comm, add_one, pred_succ]
 theorem two_mul_ne_two_mul_add_one {n m} : 2 * n ≠ 2 * m + 1 :=
 mt (congr_arg (%2)) (by { rw [add_comm, add_mul_mod_self_left, mul_mod_right, mod_eq_of_lt]; simp })
 
-
-
-protected theorem mul_left_inj {a b c : ℕ} (ha : 0 < a) : b * a = c * a ↔ b = c :=
-⟨nat.eq_of_mul_eq_mul_right ha, λ e, e ▸ rfl⟩
-
-protected theorem mul_right_inj {a b c : ℕ} (ha : 0 < a) : a * b = a * c ↔ b = c :=
-⟨nat.eq_of_mul_eq_mul_left ha, λ e, e ▸ rfl⟩
-
-lemma mul_left_injective {a : ℕ} (ha : 0 < a) : function.injective (λ x, x * a) :=
-λ _ _, eq_of_mul_eq_mul_right ha
-
-lemma mul_right_injective {a : ℕ} (ha : 0 < a) : function.injective (λ x, a * x) :=
-λ _ _, nat.eq_of_mul_eq_mul_left ha
-
 lemma mul_ne_mul_left {a b c : ℕ} (ha : 0 < a) : b * a ≠ c * a ↔ b ≠ c :=
-(mul_left_injective ha).ne_iff
+(mul_left_injective₀ ha.ne').ne_iff
 
 lemma mul_ne_mul_right {a b c : ℕ} (ha : 0 < a) : a * b ≠ a * c ↔ b ≠ c :=
-(mul_right_injective ha).ne_iff
+(mul_right_injective₀ ha.ne').ne_iff
 
 lemma mul_right_eq_self_iff {a b : ℕ} (ha : 0 < a) : a * b = a ↔ b = 1 :=
 suffices a * b = a * 1 ↔ b = 1, by rwa mul_one at this,
-nat.mul_right_inj ha
+mul_right_inj' ha.ne'
 
 lemma mul_left_eq_self_iff {a b : ℕ} (hb : 0 < b) : a * b = b ↔ a = 1 :=
 by rw [mul_comm, nat.mul_right_eq_self_iff hb]
@@ -637,10 +625,10 @@ protected theorem dvd_add_right {k m n : ℕ} (h : k ∣ m) : k ∣ m + n ↔ k 
 (nat.dvd_add_iff_right h).symm
 
 protected theorem mul_dvd_mul_iff_left {a b c : ℕ} (ha : 0 < a) : a * b ∣ a * c ↔ b ∣ c :=
-exists_congr $ λ d, by rw [mul_assoc, nat.mul_right_inj ha]
+exists_congr $ λ d, by rw [mul_assoc, mul_right_inj' ha.ne']
 
 protected theorem mul_dvd_mul_iff_right {a b c : ℕ} (hc : 0 < c) : a * c ∣ b * c ↔ a ∣ b :=
-exists_congr $ λ d, by rw [mul_right_comm, nat.mul_left_inj hc]
+exists_congr $ λ d, by rw [mul_right_comm, mul_left_inj' hc.ne']
 
 @[simp] theorem mod_mod_of_dvd (n : nat) {m k : nat} (h : m ∣ k) : n % k % m = n % m :=
 begin

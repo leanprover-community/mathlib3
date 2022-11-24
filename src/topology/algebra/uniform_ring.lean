@@ -122,7 +122,7 @@ def extension_hom [complete_space β] [separated_space β] :
 have hf' : continuous (f : α →+ β), from hf, -- helping the elaborator
 have hf : uniform_continuous f, from uniform_continuous_add_monoid_hom_of_continuous hf',
 { to_fun := completion.extension f,
-  map_zero' := by rw [← coe_zero, extension_coe hf, f.map_zero],
+  map_zero' := by rw [← completion.coe_zero, extension_coe hf, f.map_zero],
   map_add' := assume a b, completion.induction_on₂ a b
     (is_closed_eq
       (continuous_extension.comp continuous_add)

@@ -143,7 +143,7 @@ def subfield.topological_closure (K : subfield α) : subfield α :=
   end,
   ..K.to_subring.topological_closure, }
 
-lemma subfield.subfield_topological_closure (s : subfield α) :
+lemma subfield.le_topological_closure (s : subfield α) :
   s ≤ s.topological_closure := subset_closure
 
 lemma subfield.is_closed_topological_closure (s : subfield α) :

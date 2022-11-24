@@ -60,9 +60,9 @@ lemma mul_def (f g : perm α) : f * g = g.trans f := rfl
 
 lemma inv_def (f : perm α) : f⁻¹ = f.symm := rfl
 
-@[simp] lemma coe_mul (f g : perm α) : ⇑(f * g) = f ∘ g := rfl
+@[simp] protected lemma coe_mul (f g : perm α) : ⇑(f * g) = f ∘ g := rfl
 
-@[simp] lemma coe_one : ⇑(1 : perm α) = id := rfl
+@[simp] protected lemma coe_one : ⇑(1 : perm α) = id := rfl
 
 lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y := f.eq_symm_apply
 
@@ -313,30 +313,6 @@ lemma subtype_equiv_subtype_perm_apply_of_not_mem {α : Type*} {p : α → Prop}
   [decidable_pred p] (f : perm (subtype p)) {a : α} (h : ¬ p a) :
   perm.subtype_equiv_subtype_perm p f a = a :=
 f.of_subtype_apply_of_not_mem h
-
-variables (e : perm α) (ι : α ↪ β)
-
-open_locale classical
-
-/-- Noncomputable version of `equiv.perm.via_fintype_embedding` that does not assume `fintype` -/
-noncomputable def via_embedding : perm β :=
-extend_domain e (of_injective ι.1 ι.2)
-
-lemma via_embedding_apply (x : α) : e.via_embedding ι (ι x) = ι (e x) :=
-extend_domain_apply_image e (of_injective ι.1 ι.2) x
-
-lemma via_embedding_apply_of_not_mem (x : β) (hx : x ∉ _root_.set.range ι) :
-  e.via_embedding ι x = x :=
-extend_domain_apply_not_subtype e (of_injective ι.1 ι.2) hx
-
-/-- `via_embedding` as a group homomorphism -/
-noncomputable def via_embedding_hom : perm α →* perm β:=
-extend_domain_hom (of_injective ι.1 ι.2)
-
-lemma via_embedding_hom_apply : via_embedding_hom ι e = via_embedding e ι := rfl
-
-lemma via_embedding_hom_injective : function.injective (via_embedding_hom ι) :=
-extend_domain_hom_injective (of_injective ι.1 ι.2)
 
 end perm
 

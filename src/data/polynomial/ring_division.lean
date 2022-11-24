@@ -713,7 +713,7 @@ theorem mem_root_set_iff {p : T[X]} {S : Type*} [comm_ring S] [is_domain S] [alg
 by rw [mem_root_set_iff', (map_injective _
   (no_zero_smul_divisors.algebra_map_injective T S)).ne_iff' (polynomial.map_zero _)]
 
-theorem mem_root_set_iff_of_ne_zero {p : T[X]} {S : Type*} [comm_ring S] [is_domain S] [algebra T S]
+theorem mem_root_set_iff_of_ne {p : T[X]} {S : Type*} [comm_ring S] [is_domain S] [algebra T S]
   [no_zero_smul_divisors T S] {a : S} (hp : p ≠ 0) : a ∈ p.root_set S ↔ aeval a p = 0 :=
 mem_root_set_iff.trans $ and_iff_right hp
 

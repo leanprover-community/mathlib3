@@ -108,23 +108,23 @@ variables {S₁ S₂ S₃ : short_complex C} {φ φ' : S₁ ⟶ S₂}
   taking the respective negations of morphisms in the preadditive category `C`. -/
 @[simps]
 def hom.neg (φ : S₁ ⟶ S₂) : S₁ ⟶ S₂ :=
-⟨-φ.τ₁, -φ.τ₂, -φ.τ₃,
-    by simp only [neg_comp, comp_neg, neg_inj, hom.comm₁₂],
-    by simp only [neg_comp, comp_neg, neg_inj, hom.comm₂₃]⟩
+hom.mk' (-φ.τ₁) (-φ.τ₂) (-φ.τ₃)
+  (by simp only [neg_comp, comp_neg, neg_inj, hom.comm₁₂])
+  (by simp only [neg_comp, comp_neg, neg_inj, hom.comm₂₃])
 
 /-- The addition of morphisms in `short_complex C` is defined by adding
 morphisms in the preadditive category `C`. -/
 @[simps]
 def hom.add (φ φ' : S₁ ⟶ S₂) : S₁ ⟶ S₂ :=
-⟨φ.τ₁ + φ'.τ₁, φ.τ₂ + φ'.τ₂, φ.τ₃ + φ'.τ₃,
-    by simp only [add_comp, comp_add, hom.comm₁₂],
-    by simp only [add_comp, comp_add, hom.comm₂₃]⟩
+hom.mk' (φ.τ₁ + φ'.τ₁) (φ.τ₂ + φ'.τ₂) (φ.τ₃ + φ'.τ₃)
+  (by simp only [add_comp, comp_add, hom.comm₁₂])
+  (by simp only [add_comp, comp_add, hom.comm₂₃])
 
 @[simps]
 def hom.sub (φ φ' : S₁ ⟶ S₂) : S₁ ⟶ S₂ :=
-⟨φ.τ₁ - φ'.τ₁, φ.τ₂ - φ'.τ₂, φ.τ₃ - φ'.τ₃,
-    by simp only [sub_eq_add_neg, add_comp, comp_add, neg_comp, comp_neg, hom.comm₁₂],
-    by simp only [sub_eq_add_neg, add_comp, comp_add, neg_comp, comp_neg, hom.comm₂₃]⟩
+hom.mk' (φ.τ₁ - φ'.τ₁) (φ.τ₂ - φ'.τ₂) (φ.τ₃ - φ'.τ₃)
+  (by simp only [sub_eq_add_neg, add_comp, comp_add, neg_comp, comp_neg, hom.comm₁₂])
+  (by simp only [sub_eq_add_neg, add_comp, comp_add, neg_comp, comp_neg, hom.comm₂₃])
 
 instance : add_comm_group (S₁ ⟶ S₂) :=
 { add := hom.add,
@@ -407,8 +407,8 @@ def null_homotopic (h₀ : S₁.X₁ ⟶ S₂.X₁) (h₀_f : h₀ ≫ S₂.f = 
 { τ₁ := h₀ + S₁.f ≫ h₁,
   τ₂ := h₁ ≫ S₂.f + S₁.g ≫ h₂,
   τ₃ := h₂ ≫ S₂.g + h₃,
-  comm₁₂ := by simp [h₀_f],
-  comm₂₃ := by simp [g_h₃], }
+  comm₁₂' := by simp [h₀_f],
+  comm₂₃' := by simp [g_h₃], }
 
 namespace homotopy
 
@@ -548,9 +548,9 @@ def of_null_homotopic (h₀ : S₁.X₁ ⟶ S₂.X₁) (h₀_f : h₀ ≫ S₂.f
   h₂ := h₂,
   h₃ := h₃,
   g_h₃ := g_h₃,
-  comm₁ := by { simp only [null_homotopic_τ₁, hom.zero_τ₁, add_zero], abel, },
-  comm₂ := by { simp only [null_homotopic_τ₂, hom.zero_τ₂, add_zero], abel, },
-  comm₃ := by rw [null_homotopic_τ₃, hom.zero_τ₃, add_zero, add_comm], }
+  comm₁ := by { simp only [null_homotopic_τ₁, zero_τ₁, add_zero], abel, },
+  comm₂ := by { simp only [null_homotopic_τ₂, zero_τ₂, add_zero], abel, },
+  comm₃ := by rw [null_homotopic_τ₃, zero_τ₃, add_zero, add_comm], }
 
 end homotopy
 

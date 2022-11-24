@@ -303,30 +303,6 @@ instance [order_bot α] [order_bot β] : lower_topology (α × β) :=
       exact set.finite.prod hV_h.1 (finite_singleton ⊥), }, },
   end }
 
-/--
-The lower topology of the partially ordered space α × β is homeomorphic to the product topology of
-the lower topology of the partially ordered space α with the lower topology of the partially ordered
-space β
--/
-def lower_topology_prod_hom [order_bot α] [order_bot β] :
-  with_lower_topology (α × β) ≃ₜ (α × β) :=
-{ continuous_to_fun :=
-  begin
-    simp only [of_lower_to_lower_prod_to_lower, equiv.to_fun_as_coe, equiv.coe_refl],
-    convert continuous_id,
-    rw (prod.lower_topology α β).topology_eq_lower_topology,
-    exact rfl,
-  end,
-  continuous_inv_fun :=
-  begin
-    simp only [of_lower_to_lower_prod_to_lower, equiv.inv_fun_as_coe, refl_symm, equiv.coe_refl],
-    convert continuous_id,
-    rw (prod.lower_topology α β).topology_eq_lower_topology,
-    exact rfl,
-  end,
-  ..with_lower_topology.of_lower.trans (with_lower_topology.to_lower.prod_congr
-    with_lower_topology.to_lower) }
-
 end partial_order
 
 section complete_lattice

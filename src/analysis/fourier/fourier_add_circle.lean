@@ -103,8 +103,6 @@ begin
   linarith
 end
 
-section def_measure
-
 /-! ### Measure on `add_circle T`
 
 In this file we use the Haar measure on `add_circle T` normalised to have total measure 1 (which is
@@ -120,7 +118,9 @@ def haar_add_circle : measure (add_circle T) := add_haar_measure ⊤
 instance : is_probability_measure (@haar_add_circle T _) :=
   is_probability_measure.mk add_haar_measure_self
 
-end def_measure
+end add_circle
+
+open add_circle
 
 section monomials
 
@@ -130,8 +130,7 @@ def fourier (n : ℤ) : C(add_circle T, ℂ) :=
 { to_fun := λ x, to_circle (n • x),
   continuous_to_fun := continuous_induced_dom.comp $ continuous_to_circle.comp $ continuous_zsmul _}
 
-@[simp] lemma fourier_apply {n : ℤ} {x : add_circle T} :
-  fourier n x = to_circle (n • x) := rfl
+@[simp] lemma fourier_apply {n : ℤ} {x : add_circle T} : fourier n x = to_circle (n • x) := rfl
 
 @[simp] lemma fourier_zero {x : add_circle T} : fourier 0 x = 1 :=
 begin
@@ -318,12 +317,11 @@ begin
   have ha : ae_strongly_measurable (λ (t : add_circle T), fourier (-n) t * f t) haar_add_circle :=
     (map_continuous _).ae_strongly_measurable.mul (Lp.ae_strongly_measurable _),
   rw [fourier_series_repr, add_circle.interval_integral_preimage T a (ha.smul_measure _),
-    volume_eq_smul_haar_add_circle, integral_smul_measure],
-  have : (T : ℂ) ≠ 0 := by exact_mod_cast hT.out.ne',
-  field_simp [ennreal.to_real_of_real hT.out.le, complex.real_smul],
-  ring,
+    ←complex.of_real_one, ←complex.of_real_div, ←complex.real_smul,
+    ←@ennreal.to_real_of_real (1 / T) (one_div_pos.mpr hT.elim).le, ←integral_smul_measure],
+  dsimp only [(volume), haar_add_circle],
+  rw [←smul_assoc, smul_eq_mul, ←ennreal.of_real_mul' hT.elim.le, one_div_mul_cancel hT.elim.ne',
+    ennreal.of_real_one,  one_smul],
 end
 
 end fourier
-
-end add_circle

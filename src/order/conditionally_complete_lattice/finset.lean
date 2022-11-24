@@ -93,6 +93,3 @@ lemma inf'_id_eq_cInf [conditionally_complete_lattice α] (s : finset α) (H) :
 @sup'_id_eq_cSup αᵒᵈ _ _ H
 
 end finset
-
--- Guard against import creep
-assert_not_exists ordered_group

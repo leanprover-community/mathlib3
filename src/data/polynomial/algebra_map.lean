@@ -119,7 +119,7 @@ lemma eval₂_algebra_map_X {R A : Type*} [comm_semiring R] [semiring A] [algebr
   (p : R[X]) (f : R[X] →ₐ[R] A) :
   eval₂ (algebra_map R A) (f X) p = f p :=
 begin
-  conv_rhs { rw [←polynomial.sum_C_mul_X_eq p], },
+  conv_rhs { rw [←polynomial.sum_C_mul_X_pow_eq p], },
   dsimp [eval₂, sum],
   simp only [f.map_sum, f.map_mul, f.map_pow, eq_int_cast, map_int_cast],
   simp [polynomial.C_eq_algebra_map],

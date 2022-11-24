@@ -70,7 +70,7 @@ begin
     refine submodule.sum_mem _ (λ k hk, _),
     show monomial _ _ ∈ _,
     have := with_bot.coe_le_coe.1 (finset.sup_le_iff.1 hp k hk),
-    rw [monomial_eq_C_mul_X, C_mul'],
+    rw [monomial_eq_C_mul_X_pow, C_mul'],
     refine submodule.smul_mem _ _ (submodule.subset_span $ finset.mem_coe.2 $
       finset.mem_image.2 ⟨_, finset.mem_range.2 (nat.lt_succ_of_le this), rfl⟩) },
   rw [submodule.span_le, finset.coe_image, set.image_subset_iff],
@@ -98,7 +98,7 @@ begin
     refine submodule.sum_mem _ (λ k hk, _),
     show monomial _ _ ∈ _,
     have := with_bot.coe_lt_coe.1 ((finset.sup_lt_iff $ with_bot.bot_lt_coe n).1 hp k hk),
-    rw [monomial_eq_C_mul_X, C_mul'],
+    rw [monomial_eq_C_mul_X_pow, C_mul'],
     refine submodule.smul_mem _ _ (submodule.subset_span $ finset.mem_coe.2 $
       finset.mem_image.2 ⟨_, finset.mem_range.2 this, rfl⟩) },
   rw [submodule.span_le, finset.coe_image, set.image_subset_iff],
@@ -436,7 +436,7 @@ variables [comm_semiring R] [semiring S]
 /-- If every coefficient of a polynomial is in an ideal `I`, then so is the polynomial itself -/
 lemma polynomial_mem_ideal_of_coeff_mem_ideal (I : ideal R[X]) (p : R[X])
   (hp : ∀ (n : ℕ), (p.coeff n) ∈ I.comap (C : R →+* R[X])) : p ∈ I :=
-sum_C_mul_X_eq p ▸ submodule.sum_mem I (λ n hn, I.mul_mem_right _ (hp n))
+sum_C_mul_X_pow_eq p ▸ submodule.sum_mem I (λ n hn, I.mul_mem_right _ (hp n))
 
 /-- The push-forward of an ideal `I` of `R` to `R[X]` via inclusion
  is exactly the set of polynomials whose coefficients are in `I` -/
@@ -460,7 +460,7 @@ begin
   { intros hf,
     rw ← sum_monomial_eq f,
     refine (I.map C : ideal R[X]).sum_mem (λ n hn, _),
-    simp [monomial_eq_C_mul_X],
+    simp [monomial_eq_C_mul_X_pow],
     rw mul_comm,
     exact (I.map C : ideal R[X]).mul_mem_left _ (mem_map_of_mem _ (hf n)) }
 end

@@ -209,7 +209,7 @@ theorem expand_char (f : R[X]) : map (frobenius R p) (expand R p f) = f ^ p :=
 begin
   refine f.induction_on' (λ a b ha hb, _) (λ n a, _),
   { rw [alg_hom.map_add, polynomial.map_add, ha, hb, add_pow_char], },
-  { rw [expand_monomial, map_monomial, monomial_eq_C_mul_X, monomial_eq_C_mul_X,
+  { rw [expand_monomial, map_monomial, monomial_eq_C_mul_X_pow, monomial_eq_C_mul_X_pow,
         mul_pow, ← C.map_pow, frobenius_def],
     ring_exp }
 end

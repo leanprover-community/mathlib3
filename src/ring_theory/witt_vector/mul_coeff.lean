@@ -174,7 +174,7 @@ begin
   conv_rhs { rw sum_range_succ },
 
   -- the rest is equal with proper unfolding and `ring`
-  simp only [rename_monomial, monomial_eq_C_mul_X, map_mul, rename_C, pow_one, rename_X, mvpz],
+  simp only [rename_monomial, monomial_eq_C_mul_X_pow, map_mul, rename_C, pow_one, rename_X, mvpz],
   simp only [int.cast_coe_nat, map_pow, eq_int_cast, rename_X, pow_one, tsub_self,
     pow_zero],
   ring,

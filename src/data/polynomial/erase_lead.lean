@@ -248,7 +248,7 @@ lemma mono_map_nat_degree_eq {S F : Type*} [semiring S]
 begin
   refine induction_with_nat_degree_le (λ p, _ = fu _) p.nat_degree (by simp [fu0]) _ _ _ rfl.le,
   { intros n r r0 np,
-    rw [nat_degree_C_mul_X_pow _ _ r0, ← monomial_eq_C_mul_X, φ_mon_nat _ _ r0] },
+    rw [nat_degree_C_mul_X_pow _ _ r0, ← monomial_eq_C_mul_X_pow, φ_mon_nat _ _ r0] },
   { intros f g fg gp fk gk,
     rw [nat_degree_add_eq_right_of_nat_degree_lt fg, _root_.map_add],
     by_cases FG : k ≤ f.nat_degree,

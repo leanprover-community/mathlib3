@@ -159,7 +159,7 @@ begin
     simp_rw [eval₂_monomial, alg_hom.coe_to_ring_hom, algebra.tensor_product.tmul_pow, one_pow,
       algebra.tensor_product.include_left_apply, algebra.tensor_product.tmul_mul_tmul,
       mul_one, one_mul, ←algebra.commutes, ←algebra.smul_def, smul_tmul, sum_def, ←tmul_sum],
-    conv_rhs { rw [←sum_C_mul_X_eq p], },
+    conv_rhs { rw [←sum_C_mul_X_pow_eq p], },
     simp only [algebra.smul_def],
     refl, },
   { intros p q hp hq,

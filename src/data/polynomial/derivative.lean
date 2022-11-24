@@ -72,7 +72,7 @@ end
 lemma derivative_monomial (a : R) (n : ℕ) : derivative (monomial n a) = monomial (n - 1) (a * n) :=
 by { rw [derivative_apply, sum_monomial_index, C_mul_X_pow_eq_monomial], simp }
 
-lemma derivative_C_mul_X_pow (a : R) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X^(n - 1) :=
+lemma derivative_C_mul_X_pow (a : R) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X ^ (n - 1) :=
 by rw [C_mul_X_pow_eq_monomial, C_mul_X_pow_eq_monomial, derivative_monomial]
 
 @[simp] lemma derivative_X_pow (n : ℕ) :
@@ -217,7 +217,7 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, (n + m) • (C (a * b) * X
     transitivity, { apply finset.sum_congr rfl, assume x hx, exact derivative_sum },
     apply finset.sum_congr rfl, assume n hn, apply finset.sum_congr rfl, assume m hm,
     transitivity,
-    { apply congr_arg, exact monomial_eq_C_mul_X },
+    { exact congr_arg monomial_eq_C_mul_X_pow },
     dsimp, rw [← smul_mul_assoc, smul_C, nsmul_eq_mul'], exact derivative_C_mul_X_pow _ _
   end
   ... = f.sum (λn a, g.sum (λm b,
@@ -229,8 +229,8 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, (n + m) • (C (a * b) * X
   ... = derivative f * g + f * derivative g :
     begin
       conv { to_rhs, congr,
-        { rw [← sum_C_mul_X_eq g] },
-        { rw [← sum_C_mul_X_eq f] } },
+        { rw [← sum_C_mul_X_pow_eq g] },
+        { rw [← sum_C_mul_X_pow_eq f] } },
       simp only [sum, sum_add_distrib, finset.mul_sum, finset.sum_mul, derivative_apply],
       simp_rw [← smul_mul_assoc, smul_C, nsmul_eq_mul'],
     end

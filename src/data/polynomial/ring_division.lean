@@ -190,12 +190,6 @@ by nontriviality R; exact
   (eq_C_of_degree_eq_zero (degree_eq_zero_of_is_unit hp)).symm⟩,
 λ ⟨r, hr, hrp⟩, hrp ▸ is_unit_C.2 hr⟩
 
-lemma monic.eq_one_of_is_unit (hp1 : p.monic) (hp2 : is_unit p) : p = 1 :=
-begin
-  obtain ⟨r, hr, rfl⟩ := is_unit_iff.mp hp2,
-  rw [(leading_coeff_C r).symm.trans hp1, C_1],
-end
-
 variables [char_zero R]
 
 @[simp] lemma degree_bit0_eq (p : R[X]) : degree (bit0 p) = degree p :=

@@ -265,7 +265,7 @@ This embedding sends each `f : α → γ` to a function `g : β → γ` such tha
 noncomputable def arrow_congr_left {α : Sort u} {β : Sort v} {γ : Sort w} [inhabited γ]
   (e : α ↪ β) : (α → γ) ↪ (β → γ) :=
 ⟨λ f, extend e f default, λ f₁ f₂ h, funext $ λ x,
-  by simpa only [extend_apply e.injective] using congr_fun h (e x)⟩
+  by simpa only [e.injective.extend_apply] using congr_fun h (e x)⟩
 
 /-- Restrict both domain and codomain of an embedding. -/
 protected def subtype_map {α β} {p : α → Prop} {q : β → Prop} (f : α ↪ β)

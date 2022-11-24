@@ -631,6 +631,10 @@ begin
   simp [rotation]
 end
 
+/-- Rotation by π is negation. -/
+lemma rotation_pi_apply (x : V) : o.rotation π x = -x :=
+by simp
+
 /-- Rotation by π / 2 is the "right-angle-rotation" map `J`. -/
 lemma rotation_pi_div_two : o.rotation (π / 2 : ℝ) = J :=
 begin
@@ -663,6 +667,19 @@ begin
     real.angle.coe_exp_map_circle, is_R_or_C.conj_of_real, conj_I],
   ring,
 end
+
+/-- Negating a rotation is equivalent to rotation by π plus the angle. -/
+lemma neg_rotation (θ : real.angle) (x : V) : -o.rotation θ x = o.rotation (π + θ) x :=
+by rw [←o.rotation_pi_apply, rotation_rotation]
+
+/-- Negating a rotation by -π / 2 is equivalent to rotation by π / 2. -/
+@[simp] lemma neg_rotation_neg_pi_div_two (x : V) :
+  -o.rotation (-π / 2 : ℝ) x = o.rotation (π / 2 : ℝ) x :=
+by rw [neg_rotation, ←real.angle.coe_add, neg_div, ←sub_eq_add_neg, sub_half]
+
+/-- Negating a rotation by π / 2 is equivalent to rotation by -π / 2. -/
+lemma neg_rotation_pi_div_two (x : V) : -o.rotation (π / 2 : ℝ) x = o.rotation (-π / 2 : ℝ) x :=
+neg_eq_iff_neg_eq.1 $ o.neg_rotation_neg_pi_div_two _
 
 /-- Rotating the first of two vectors by `θ` scales their Kahler form by `cos (-θ) + sin (-θ) * I`.
 -/

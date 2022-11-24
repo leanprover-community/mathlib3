@@ -13,9 +13,9 @@ import number_theory.number_field.aux
 This file defines the embeddings of a number field into an algebraic closed field.
 
 ## Main Results
-* `number_field.embeddings.eq_roots`: let `x ∈ K` with `K` number field and let `A` be an algebraic
-  closed field of char. 0, then the images of `x` by the embeddings of `K` in `A` are exactly the
-  roots in `A` of the minimal polynomial of `x` over `ℚ`.
+* `number_field.embeddings.range_eval_eq_root_set_minpoly`: let `x ∈ K` with `K` number field and
+  let `A` be an algebraic closed field of char. 0, then the images of `x` by the embeddings of `K`
+   in `A` are exactly the roots in `A` of the minimal polynomial of `x` over `ℚ`.
 * `number_field.embeddings.pow_eq_one_of_norm_eq_one`: an algebraic integer whose conjugates are
   all of norm one is a root of unity.
 
@@ -70,8 +70,8 @@ open finite_dimensional polynomial set
 variables {K : Type*} [field K] [number_field K]
 variables {A : Type*} [normed_field A] [is_alg_closed A] [normed_algebra ℚ A]
 
-lemma coeff_bdd_of_norm_le {B : ℝ} {x : K} (h : ∀ φ : K →+* A, ∥φ x∥ ≤ B) (i : ℕ) :
-  ∥(minpoly ℚ x).coeff i∥ ≤ (max B 1) ^ (finrank ℚ K) * (finrank ℚ K).choose ((finrank ℚ K) / 2) :=
+lemma coeff_bdd_of_norm_le {B : ℝ} {x : K} (h : ∀ φ : K →+* A, ‖φ x‖ ≤ B) (i : ℕ) :
+  ‖(minpoly ℚ x).coeff i‖ ≤ (max B 1) ^ (finrank ℚ K) * (finrank ℚ K).choose ((finrank ℚ K) / 2) :=
 begin
   have hx := is_separable.is_integral ℚ x,
   rw [← norm_algebra_map' A, ← coeff_map (algebra_map ℚ A)],
@@ -87,7 +87,7 @@ variables (K A)
 /-- Let `B` be a real number. The set of algebraic integers in `K` whose conjugates are all
 smaller in norm than `B` is finite. -/
 lemma finite_of_norm_le (B : ℝ) :
-  {x : K | is_integral ℤ x ∧ ∀ φ : K →+* A, ∥φ x∥ ≤ B}.finite :=
+  {x : K | is_integral ℤ x ∧ ∀ φ : K →+* A, ‖φ x‖ ≤ B}.finite :=
 begin
   let C := nat.ceil ((max B 1) ^ (finrank ℚ K) * (finrank ℚ K).choose ((finrank ℚ K) / 2)),
   have := bUnion_roots_finite (algebra_map ℤ K) (finrank ℚ K) (finite_Icc (-C : ℤ) C),
@@ -103,7 +103,7 @@ end
 
 /-- An algebraic integer whose conjugates are all of norm one is a root of unity. -/
 lemma pow_eq_one_of_norm_eq_one {x : K}
-  (hxi : is_integral ℤ x) (hx : ∀ φ : K →+* A, ∥φ x∥ = 1) :
+  (hxi : is_integral ℤ x) (hx : ∀ φ : K →+* A, ‖φ x‖ = 1) :
   ∃ (n : ℕ) (hn : 0 < n), x ^ n = 1 :=
 begin
   obtain ⟨a, -, b, -, habne, h⟩ := @set.infinite.exists_ne_map_eq_of_maps_to _ _ _ _
@@ -157,7 +157,7 @@ begin
       rw [place, function.comp_app, ← ring_equiv.of_left_inverse_apply hiφ _,
         ring_equiv.apply_symm_apply ι _],
       refl, },
-    cases (subfield.eq_id_or_conj_uniform_continuous φ.field_range hlip.uniform_continuous),
+    cases (subfield.uniform_continuous_ring_hom_eq_id_or_conj φ.field_range hlip.uniform_continuous),
     { left, ext1 x,
       convert (congr_fun h (ι x)).symm,
       exact (ring_equiv.apply_symm_apply ι.symm x).symm, },

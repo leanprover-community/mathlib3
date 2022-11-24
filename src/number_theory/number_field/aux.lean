@@ -31,50 +31,61 @@ begin
   simp only [set.image_univ],
 end
 
-lemma subfield.eq_id_or_conj_uniform_continuous (K : subfield ℂ) {ψ : K →+* ℂ}
+/-- Let `K` a subfield of `ℂ` and let `ψ : K →+* ℂ` a ring homomorphism. Assume that `ψ` is uniform
+continuous, then `ψ` is either the inclusion map or the composition of the inclusion map with the
+complex conjugation. -/
+lemma subfield.uniform_continuous_ring_hom_eq_id_or_conj (K : subfield ℂ) {ψ : K →+* ℂ}
   (hc : uniform_continuous ψ) : ψ.to_fun = K.subtype ∨ ψ.to_fun = conj ∘ K.subtype :=
 begin
-
   letI : topological_division_ring ℂ := topological_division_ring.mk,
   letI : topological_ring K.topological_closure :=
       subring.topological_ring K.topological_closure.to_subring,
-  set ι := subfield.inclusion (subfield.subfield_topological_closure K),
+  set ι : K → K.topological_closure := subfield.inclusion K.le_topological_closure,
   have ui : uniform_inducing ι :=
     ⟨ by { erw [uniformity_subtype, uniformity_subtype, filter.comap_comap], congr, } ⟩,
-  let di := ui.dense_inducing (dense_range_of_subset_closure K),
-  let extψ := dense_inducing.extend_hom ui di.dense hc,
-  have hK : is_closed (K.topological_closure : set ℂ) := subfield.is_closed_topological_closure K,
-  haveI := (uniform_continuous_uniformly_extend ui di.dense hc).continuous,
-  cases complex.subfield_eq_of_closed hK,
-  { left,
-    let j := ring_equiv.subfield_congr h,
-    -- ψ₁ is the continuous ring hom `ℝ →+* ℂ` constructed from `j : clos (K) ≃+* ℝ`
-    -- and `extψ : clos (K) →+* ℂ`
-    let ψ₁ := ring_hom.comp extψ (ring_hom.comp j.symm.to_ring_hom complex.of_real.range_restrict),
-    ext1 x,
-    rsuffices ⟨r, hr⟩ : ∃ r : ℝ, complex.of_real.range_restrict r = j (ι x),
-    { have := ring_hom.congr_fun
-        (complex.ring_hom_eq_of_real_of_continuous (by continuity! : continuous ψ₁)) r,
-      rw [ring_hom.comp_apply, ring_hom.comp_apply, hr, ring_equiv.to_ring_hom_eq_coe] at this,
-      erw ring_equiv.symm_apply_apply at this,
-      convert this using 1,
-      { exact (dense_inducing.extend_eq di hc.continuous _).symm, },
-      { rw [← complex.of_real.coe_range_restrict, hr], refl, }},
-    obtain ⟨r, hr⟩ := set_like.coe_mem (j (ι x)),
-    use r,
-    rw ← ring_hom.coe_range_restrict at hr,
-    exact_mod_cast hr, },
-  { -- ψ₁ is the continuous ring hom `ℂ →+* ℂ` constructed from `clos (K) ≃+* ℂ`
-    -- and `extψ : clos (K) →+* ℂ`
-    let ψ₁ := ring_hom.comp extψ (ring_hom.comp (ring_equiv.subfield_congr h).symm.to_ring_hom
-      (@subfield.top_equiv ℂ _).symm.to_ring_hom),
-    cases complex.ring_hom_eq_id_or_conj_of_continuous (by continuity! : continuous ψ₁) with h h,
-    { left, ext1 z,
-      convert (ring_hom.congr_fun h z) using 1,
-      exact (dense_inducing.extend_eq di hc.continuous z).symm, },
-    { right, ext1 z,
-      convert (ring_hom.congr_fun h z) using 1,
-      exact (dense_inducing.extend_eq di hc.continuous z).symm, }},
+  let di := ui.dense_inducing _,
+  { -- extψ : closure(K) →+* ℂ is the extension of ψ : K →+* ℂ
+    let extψ := dense_inducing.extend_ring_hom ui di.dense hc,
+    haveI := (uniform_continuous_uniformly_extend ui di.dense hc).continuous,
+    cases complex.subfield_eq_of_closed (subfield.is_closed_topological_closure K),
+    { left,
+      let j := ring_equiv.subfield_congr h,
+      -- ψ₁ is the continuous ring hom `ℝ →+* ℂ` constructed from `j : closure (K) ≃+* ℝ`
+      -- and `extψ : closure (K) →+* ℂ`
+      let ψ₁ := ring_hom.comp extψ (ring_hom.comp j.symm.to_ring_hom
+        complex.of_real.range_restrict),
+      ext1 x,
+      rsuffices ⟨r, hr⟩ : ∃ r : ℝ, complex.of_real.range_restrict r = j (ι x),
+      { have := ring_hom.congr_fun
+          (complex.ring_hom_eq_of_real_of_continuous (by continuity! : continuous ψ₁)) r,
+        rw [ring_hom.comp_apply, ring_hom.comp_apply, hr, ring_equiv.to_ring_hom_eq_coe] at this,
+        erw ring_equiv.symm_apply_apply at this,
+        convert this using 1,
+        { exact (dense_inducing.extend_eq di hc.continuous _).symm, },
+        { rw [← complex.of_real.coe_range_restrict, hr], refl, }},
+      obtain ⟨r, hr⟩ := set_like.coe_mem (j (ι x)),
+      use r,
+      rw ← ring_hom.coe_range_restrict at hr,
+      exact_mod_cast hr, },
+    { -- ψ₁ is the continuous ring hom `ℂ →+* ℂ` constructed from `closure (K) ≃+* ℂ`
+      -- and `extψ : closure (K) →+* ℂ`
+      let ψ₁ := ring_hom.comp extψ (ring_hom.comp (ring_equiv.subfield_congr h).symm.to_ring_hom
+        (@subfield.top_equiv ℂ _).symm.to_ring_hom),
+      cases complex.ring_hom_eq_id_or_conj_of_continuous (by continuity! : continuous ψ₁) with h h,
+      { left, ext1 z,
+        convert (ring_hom.congr_fun h z) using 1,
+        exact (dense_inducing.extend_eq di hc.continuous z).symm, },
+      { right, ext1 z,
+        convert (ring_hom.congr_fun h z) using 1,
+        exact (dense_inducing.extend_eq di hc.continuous z).symm, }}},
+  { let j : { x // x ∈ closure (id '' {x | (K : set ℂ) x })} → (K.topological_closure : set ℂ) :=
+      λ x, ⟨x, by { convert x.prop, simpa only [id.def, set.image_id'], }⟩,
+    convert dense_range.comp (function.surjective.dense_range _)
+      (dense_embedding.subtype (dense_embedding_id) (K : set ℂ)).dense
+      (by continuity : continuous j),
+    rintros ⟨y, hy⟩,
+    use ⟨y, by { convert hy, simpa only [id.def, set.image_id'], }⟩,
+    simp only [subtype.mk_eq_mk, subtype.coe_mk], }
 end
 
 end complex_subfield

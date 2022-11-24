@@ -286,7 +286,7 @@ lemma as_sum_support (p : R[X]) :
 
 lemma as_sum_support_C_mul_X_pow (p : R[X]) :
   p = ∑ i in p.support, C (p.coeff i) * X^i :=
-trans p.as_sum_support $ by simp only [C_mul_X_pow_eq_monomial]
+trans p.as_sum_support $ by simp only [← monomial_eq_C_mul_X_pow]
 
 /--
 We can reexpress a sum over `p.support` as a sum over `range n`,
@@ -330,7 +330,7 @@ p.sum_monomial_eq.symm.trans $ p.sum_over_range $ monomial_zero_right
 
 lemma as_sum_range_C_mul_X_pow (p : R[X]) :
   p = ∑ i in range (p.nat_degree + 1), C (coeff p i) * X ^ i :=
-p.as_sum_range.trans $ by simp only [C_mul_X_pow_eq_monomial]
+p.as_sum_range.trans $ by simp only [← monomial_eq_C_mul_X_pow]
 
 lemma coeff_ne_zero_of_eq_degree (hn : degree p = n) :
   coeff p n ≠ 0 :=
@@ -632,7 +632,7 @@ begin
 end
 
 lemma leading_coeff_C_mul_X_pow (a : R) (n : ℕ) : leading_coeff (C a * X ^ n) = a :=
-by rw [C_mul_X_pow_eq_monomial, leading_coeff_monomial]
+by rw [← monomial_eq_C_mul_X_pow, leading_coeff_monomial]
 
 lemma leading_coeff_C_mul_X (a : R) : leading_coeff (C a * X) = a :=
 by simpa only [pow_one] using leading_coeff_C_mul_X_pow a 1
@@ -755,7 +755,7 @@ end
 
 lemma C_mul_X_pow_eq_self (h : p.support.card ≤ 1) :
   C p.leading_coeff * X^p.nat_degree = p :=
-by rw [C_mul_X_pow_eq_monomial, monomial_nat_degree_leading_coeff_eq_self h]
+by rw [← monomial_eq_C_mul_X_pow, monomial_nat_degree_leading_coeff_eq_self h]
 
 lemma leading_coeff_pow' : leading_coeff p ^ n ≠ 0 →
   leading_coeff (p ^ n) = leading_coeff p ^ n :=

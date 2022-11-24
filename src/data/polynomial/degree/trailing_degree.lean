@@ -180,11 +180,11 @@ by simp only [←C_eq_nat_cast, nat_trailing_degree_C]
 
 @[simp] lemma trailing_degree_C_mul_X_pow (n : ℕ) (ha : a ≠ 0) :
   trailing_degree (C a * X ^ n) = n :=
-by rw [C_mul_X_pow_eq_monomial, trailing_degree_monomial ha]
+by rw [← monomial_eq_C_mul_X_pow, trailing_degree_monomial ha]
 
 lemma le_trailing_degree_C_mul_X_pow (n : ℕ) (a : R) :
   (n : ℕ∞) ≤ trailing_degree (C a * X ^ n) :=
-by { rw C_mul_X_pow_eq_monomial, exact le_trailing_degree_monomial }
+by { rw ← monomial_eq_C_mul_X_pow, exact le_trailing_degree_monomial }
 
 lemma coeff_eq_zero_of_trailing_degree_lt (h : (n : ℕ∞) < trailing_degree p) :
   coeff p n = 0 :=

@@ -64,7 +64,7 @@ end
 
 @[simp] lemma erase_lead_add_C_mul_X_pow (f : R[X]) :
   f.erase_lead + (C f.leading_coeff) * X ^ f.nat_degree = f :=
-by rw [C_mul_X_pow_eq_monomial, erase_lead_add_monomial_nat_degree_leading_coeff]
+by rw [← monomial_eq_C_mul_X_pow, erase_lead_add_monomial_nat_degree_leading_coeff]
 
 @[simp] lemma self_sub_monomial_nat_degree_leading_coeff {R : Type*} [ring R] (f : R[X]) :
   f - monomial f.nat_degree f.leading_coeff = f.erase_lead :=
@@ -72,7 +72,7 @@ by rw [C_mul_X_pow_eq_monomial, erase_lead_add_monomial_nat_degree_leading_coeff
 
 @[simp] lemma self_sub_C_mul_X_pow {R : Type*} [ring R] (f : R[X]) :
   f - (C f.leading_coeff) * X ^ f.nat_degree = f.erase_lead :=
-by rw [C_mul_X_pow_eq_monomial, self_sub_monomial_nat_degree_leading_coeff]
+by rw [← monomial_eq_C_mul_X_pow, self_sub_monomial_nat_degree_leading_coeff]
 
 lemma erase_lead_ne_zero (f0 : 2 ≤ f.support.card) : erase_lead f ≠ 0 :=
 begin
@@ -131,7 +131,7 @@ erase_lead_monomial _ _
 by rw [X_pow_eq_monomial, erase_lead_monomial]
 
 @[simp] lemma erase_lead_C_mul_X_pow (r : R) (n : ℕ) : erase_lead (C r * X ^ n) = 0 :=
-by rw [C_mul_X_pow_eq_monomial, erase_lead_monomial]
+by rw [← monomial_eq_C_mul_X_pow, erase_lead_monomial]
 
 lemma erase_lead_add_of_nat_degree_lt_left {p q : R[X]} (pq : q.nat_degree < p.nat_degree) :
   (p + q).erase_lead = p.erase_lead + q :=

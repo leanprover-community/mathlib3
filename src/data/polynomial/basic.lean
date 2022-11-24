@@ -475,13 +475,10 @@ lemma coeff_C_ne_zero (h : n ≠ 0) : (C a).coeff n = 0 :=
 by rw [coeff_C, if_neg h]
 
 lemma C_mul_X_pow_eq_monomial : ∀ {n : ℕ}, C a * X ^ n = monomial n a
-| 0     := (mul_one _).symm
-| (n+1) :=
-  calc monomial (n + 1) a = monomial n a * X : by rw [X, monomial_mul_monomial, mul_one]
-    ... = (C a * X ^ n) * X : by rw [← C_mul_X_pow_eq_monomial]
-    ... = C a * X ^ (n + 1) : by simp only [pow_add, mul_assoc, pow_one]
+| 0     := mul_one _
+| (n+1) := by rw [pow_succ', ←mul_assoc, C_mul_X_pow_eq_monomial, X, monomial_mul_monomial, mul_one]
 
-lemma C_mul_X_eq_monomial : monomial 1 a = C a * X := by rw [C_mul_X_pow_eq_monomial, pow_one]
+lemma C_mul_X_eq_monomial : monomial 1 a = C a * X := by rw [← C_mul_X_pow_eq_monomial, pow_one]
 
 lemma C_injective : injective (C : R → R[X]) := monomial_injective 0
 
@@ -546,10 +543,10 @@ lemma support_monomial' (n) (a : R) : (monomial n a).support ⊆ singleton n :=
 by { rw [←of_finsupp_single, support], exact finsupp.support_single_subset }
 
 lemma support_C_mul_X {c : R} (h : c ≠ 0) : (C c * X).support = singleton 1 :=
-by rw [C_mul_X_pow_eq_monomial, support_monomial 1 h]
+by rw [← C_mul_X_eq_monomial, support_monomial 1 h]
 
 lemma support_C_mul_X' (c : R) : (C c * X).support ⊆ singleton 1 :=
-by simpa only [C_mul_X_pow_eq_monomial] using support_monomial' 1 c
+by simpa only [C_mul_X_eq_monomial] using support_monomial' 1 c
 
 lemma support_C_mul_X_pow (n : ℕ) {c : R} (h : c ≠ 0) : (C c * X ^ n).support = singleton n :=
 by rw [C_mul_X_pow_eq_monomial, support_monomial n h]

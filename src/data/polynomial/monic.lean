@@ -213,14 +213,6 @@ end monic
   ((X + C r) ^ n).nat_degree = n :=
 by rw [(monic_X_add_C r).nat_degree_pow, nat_degree_X_add_C, mul_one]
 
--- TODO: golf using `constant_coeff` once #17664 is merged
-lemma is_unit_C {x : R} : is_unit (C x) ↔ is_unit x :=
-⟨by { rintros ⟨⟨q, p, hqp, hpq⟩, rfl : q = C x⟩,
-  have h1 := mul_coeff_zero p (C x),
-  have h2 := mul_coeff_zero (C x) p,
-  simp only [hpq, hqp, coeff_one_zero, coeff_C_zero] at h1 h2,
-  exact ⟨⟨x, p.coeff 0, h2.symm, h1.symm⟩, rfl⟩ }, λ h, h.map C⟩
-
 lemma monic.eq_one_of_is_unit (hm : monic p) (hpu : is_unit p) : p = 1 :=
 begin
   nontriviality R,

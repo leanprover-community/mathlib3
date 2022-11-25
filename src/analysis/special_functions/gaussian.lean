@@ -206,26 +206,20 @@ begin
   { convert complex.of_real_re (1 / 2 : ℝ) },
   replace hh2 : 0 < (1 / 2 : ℂ).re := by { rw hh2, exact one_half_pos, },
   rw [Gamma_eq_integral _ hh2, hh, Gamma_integral_of_real, of_real_inj, real.Gamma_integral],
+  -- now do change-of-variables
   rw ←integral_comp_rpow_Ioi_of_pos zero_lt_two,
-  simp_rw smul_eq_mul,
-
-  -- setup for change-of-variables
-  let g : ℝ → ℝ := λ x, real.exp (-x) * x ^ ((1/2 : ℝ) - 1),
-  have contg : continuous_on g (Ioi 0) := (real.continuous_exp.comp
-    continuous_id'.neg).continuous_on.mul (continuous_at.continuous_on $ λ x hx,
-    continuous_at_rpow_const _ _ (or.inl (mem_Ioi.mp hx).ne')),
-  -- show the result of the substitution is 2 * Gaussian integrand
-  have eq_funcs : eq_on (λ x, g (x ^ (2:ℝ)) * (2 * x ^ ((2:ℝ) - 1)))
-    (λ (x:ℝ), 2 * real.exp(-1 * x ^ 2)) (Ioi 0),
-  { intros x hx, rw mem_Ioi at hx,
-    dsimp only [g], norm_num,
-    rw [←rpow_two, ←rpow_mul hx.le, mul_neg, rpow_neg hx.le],
-    have := hx.ne', field_simp, ring, },
-  have intg := ((integrable_exp_neg_mul_sq zero_lt_one).const_mul 2).integrable_on.congr_fun
-    eq_funcs.symm measurable_set_Ioi,
-  rw [←integral_comp_rpow_Ioi_of_pos zero_lt_two, set_integral_congr measurable_set_Ioi eq_funcs, integral_mul_left,
+  have : eq_on (λ x:ℝ, (2 * x^((2:ℝ) - 1)) • (real.exp (-x^(2:ℝ)) * (x^(2:ℝ)) ^ (1 / (2:ℝ) - 1)))
+  (λ x:ℝ, 2 * real.exp ((-1) * x ^ (2:ℕ))) (Ioi 0),
+  { intros x hx, dsimp only,
+    have : (x^(2:ℝ)) ^ (1 / (2:ℝ) - 1) = x⁻¹,
+    { rw ←rpow_mul (le_of_lt hx), norm_num,
+      rw [rpow_neg (le_of_lt hx), rpow_one] },
+    rw [smul_eq_mul, this],
+    field_simp [(ne_of_lt hx).symm],
+    norm_num, ring },
+  rw [set_integral_congr measurable_set_Ioi this, integral_mul_left,
     integral_gaussian_Ioi zero_lt_one],
-    field_simp, ring,
+  ring_nf,
 end
 
 end complex

@@ -3,6 +3,7 @@ Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
+import order.conditionally_complete_lattice.group
 import algebra.algebra.basic
 import algebra.order.nonneg.field
 import algebra.order.field.canonical.basic

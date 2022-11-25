@@ -292,7 +292,7 @@ def extend [measurable_space β] (f₁ : α →ₛ γ) (g : α → β)
 
 @[simp] lemma extend_apply [measurable_space β] (f₁ : α →ₛ γ) {g : α → β}
   (hg : measurable_embedding g) (f₂ : β →ₛ γ) (x : α) : (f₁.extend g hg f₂) (g x) = f₁ x :=
-function.extend_apply hg.injective _ _ _
+hg.injective.extend_apply _ _ _
 
 @[simp] lemma extend_apply' [measurable_space β] (f₁ : α →ₛ γ) {g : α → β}
   (hg : measurable_embedding g) (f₂ : β →ₛ γ) {y : β} (h : ¬∃ x, g x = y) :
@@ -1007,7 +1007,7 @@ variables {m : measurable_space α} {μ ν : measure α}
 @[irreducible] def lintegral {m : measurable_space α} (μ : measure α) (f : α → ℝ≥0∞) : ℝ≥0∞ :=
 ⨆ (g : α →ₛ ℝ≥0∞) (hf : ⇑g ≤ f), g.lintegral μ
 
-/-! In the notation for integrals, an expression like `∫⁻ x, g ∥x∥ ∂μ` will not be parsed correctly,
+/-! In the notation for integrals, an expression like `∫⁻ x, g ‖x‖ ∂μ` will not be parsed correctly,
   and needs parentheses. We do not set the binding power of `r` to `0`, because then
   `∫⁻ x, f x = 0` will be parsed incorrectly. -/
 notation `∫⁻` binders `, ` r:(scoped:60 f, f) ` ∂` μ:70 := lintegral μ r
@@ -1229,7 +1229,7 @@ lemma set_lintegral_congr_fun {f g : α → ℝ≥0∞} {s : set α} (hs : measu
 by { rw lintegral_congr_ae, rw eventually_eq, rwa ae_restrict_iff' hs, }
 
 lemma lintegral_of_real_le_lintegral_nnnorm (f : α → ℝ) :
-  ∫⁻ x, ennreal.of_real (f x) ∂μ ≤ ∫⁻ x, ∥f x∥₊ ∂μ :=
+  ∫⁻ x, ennreal.of_real (f x) ∂μ ≤ ∫⁻ x, ‖f x‖₊ ∂μ :=
 begin
   simp_rw ← of_real_norm_eq_coe_nnnorm,
   refine lintegral_mono (λ x, ennreal.of_real_le_of_real _),
@@ -1238,7 +1238,7 @@ begin
 end
 
 lemma lintegral_nnnorm_eq_of_ae_nonneg {f : α → ℝ} (h_nonneg : 0 ≤ᵐ[μ] f) :
-  ∫⁻ x, ∥f x∥₊ ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
+  ∫⁻ x, ‖f x‖₊ ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
 begin
   apply lintegral_congr_ae,
   filter_upwards [h_nonneg] with x hx,
@@ -1246,7 +1246,7 @@ begin
 end
 
 lemma lintegral_nnnorm_eq_of_nonneg {f : α → ℝ} (h_nonneg : 0 ≤ f) :
-  ∫⁻ x, ∥f x∥₊ ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
+  ∫⁻ x, ‖f x‖₊ ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
 lintegral_nnnorm_eq_of_ae_nonneg (filter.eventually_of_forall h_nonneg)
 
 /-- Monotone convergence theorem -- sometimes called Beppo-Levi convergence.
@@ -2021,7 +2021,7 @@ begin
         apply_rules [hz₁, hz₂], },
       { simp only [ae_seq, hx, if_false],
         exact le_rfl, }, }, },
-  convert (lintegral_supr_directed_of_measurable (ae_seq.measurable hf p) 
+  convert (lintegral_supr_directed_of_measurable (ae_seq.measurable hf p)
     h_ae_seq_directed) using 1,
   { simp_rw ←supr_apply,
     rw lintegral_congr_ae (ae_seq.supr hf hp).symm, },

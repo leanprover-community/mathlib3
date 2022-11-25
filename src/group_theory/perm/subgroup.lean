@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import group_theory.perm.basic
-import data.fintype.basic
+import data.fintype.perm
 import group_theory.subgroup.basic
 /-!
 # Lemmas about subgroups within the permutations (self-equivalences) of a type `α`

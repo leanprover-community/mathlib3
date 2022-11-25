@@ -3,8 +3,10 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
-import algebra.order.monoid.with_zero
+import algebra.hom.group
 import algebra.order.monoid.order_dual
+import algebra.order.monoid.with_zero
+import data.nat.cast.defs
 
 /-! # Adjoining top/bottom elements to ordered monoids. -/
 
@@ -53,7 +55,7 @@ instance : has_add (with_top α) := ⟨λ o₁ o₂, o₁.bind $ λ a, o₂.map 
 @[simp] lemma add_top (a : with_top α) : a + ⊤ = ⊤ := by cases a; refl
 
 @[simp] lemma add_eq_top : a + b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
-by cases a; cases b; simp [none_eq_top, some_eq_coe, ←with_top.coe_add, ←with_zero.coe_add]
+by cases a; cases b; simp [none_eq_top, some_eq_coe, ←with_top.coe_add]
 
 lemma add_ne_top : a + b ≠ ⊤ ↔ a ≠ ⊤ ∧ b ≠ ⊤ := add_eq_top.not.trans not_or_distrib
 
@@ -68,10 +70,10 @@ lemma add_eq_coe : ∀ {a b : with_top α} {c : α},
     by simp only [some_eq_coe, ← coe_add, coe_eq_coe, exists_and_distrib_left, exists_eq_left]
 
 @[simp] lemma add_coe_eq_top_iff {x : with_top α} {y : α} : x + y = ⊤ ↔ x = ⊤ :=
-by { induction x using with_top.rec_top_coe; simp [← coe_add, -with_zero.coe_add] }
+by { induction x using with_top.rec_top_coe; simp [← coe_add] }
 
 @[simp] lemma coe_add_eq_top_iff {y : with_top α} : ↑x + y = ⊤ ↔ y = ⊤ :=
-by { induction y using with_top.rec_top_coe; simp [← coe_add, -with_zero.coe_add] }
+by { induction y using with_top.rec_top_coe; simp [← coe_add] }
 
 instance covariant_class_add_le [has_le α] [covariant_class α α (+) (≤)] :
   covariant_class (with_top α) (with_top α) (+) (≤) :=

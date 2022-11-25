@@ -7,6 +7,7 @@ import logic.equiv.option
 import order.rel_iso.basic
 import tactic.monotonicity.basic
 import tactic.assert_exists
+import order.bounded_order
 
 /-!
 # Order homomorphisms
@@ -187,6 +188,9 @@ instance : can_lift (α → β) (α →o β) coe_fn monotone :=
 /-- Copy of an `order_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
 equalities. -/
 protected def copy (f : α →o β) (f' : α → β) (h : f' = f) : α →o β := ⟨f', h.symm.subst f.monotone'⟩
+
+@[simp] lemma coe_copy (f : α →o β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : α →o β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 /-- The identity function as bundled monotone function. -/
 @[simps {fully_applied := ff}]
@@ -449,7 +453,7 @@ rel_embedding.of_map_rel_iff f hf
 @[simp] lemma coe_of_map_le_iff {α β} [partial_order α] [preorder β] {f : α → β} (h) :
   ⇑(of_map_le_iff f h) = f := rfl
 
-/-- A strictly monotone map from a linear order is an order embedding. --/
+/-- A strictly monotone map from a linear order is an order embedding. -/
 def of_strict_mono {α β} [linear_order α] [preorder β] (f : α → β)
   (h : strict_mono f) : α ↪o β :=
 of_map_le_iff f (λ _ _, h.le_iff_le)
@@ -650,7 +654,7 @@ by { ext, simp }
 by { ext, simp }
 
 /-- To show that `f : α → β`, `g : β → α` make up an order isomorphism of linear orders,
-    it suffices to prove `cmp a (g b) = cmp (f a) b`. --/
+    it suffices to prove `cmp a (g b) = cmp (f a) b`. -/
 def of_cmp_eq_cmp {α β} [linear_order α] [linear_order β] (f : α → β) (g : β → α)
   (h : ∀ (a : α) (b : β), cmp a (g b) = cmp (f a) b) : α ≃o β :=
 have gf : ∀ (a : α), a = g (f a) := by { intro, rw [←cmp_eq_eq_iff, h, cmp_self_eq_eq] },

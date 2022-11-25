@@ -6,7 +6,6 @@ Authors: Alex Kontorovich, Heather Macbeth
 
 import measure_theory.measure.haar
 import measure_theory.group.fundamental_domain
-import topology.compact_open
 import algebra.group.opposite
 
 /-!

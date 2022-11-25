@@ -63,68 +63,55 @@ begin
     use x, use y },
 end
 
-/--  N a normal subgroup.
-If there exists a commutative subgroup H, such that H ⊔ N = ⊤,
-then N contains the derived subgroup.
--/
+/-- If N is a normal subgroup, H a commutative subgroup such that H ⊔ N = ⊤,
+then N contains the derived subgroup. -/
 lemma contains_commutators_of (N : subgroup G) (nN : N.normal)
     (H : subgroup G) (hHN : N ⊔ H = ⊤) (hH: subgroup.is_commutative H) :
     commutator G ≤ N :=
 begin
- -- let Q := quotient_group.quotient N,
+  -- Il suffit de prouver que Q = G ⧸ N est commutatif
+  -- let Q := quotient_group.quotient N,
+  rw ← quotient_comm_contains_commutators_iff nN,
 
   -- Q is a quotient of H
-    let φ : H →* G ⧸ N := monoid_hom.comp (quotient_group.mk' N) (subgroup.subtype H),
+  let φ : H →* G ⧸ N := monoid_hom.comp (quotient_group.mk' N) (subgroup.subtype H),
+  -- Il suffit de prouver que φ est surjective
+  refine surj_to_comm φ.to_mul_hom _ hH.is_comm,
+  suffices hφ : function.surjective φ, exact hφ,
 
-    have hφ : function.surjective φ,
-
-    -- On prouve que l'image de φ est égale à ⊤
-    apply monoid_hom.range_top_iff_surjective.mp,
-    let R := monoid_hom.range φ,
-/-  j : H → G, p : G → G/N,  φ = p o j, on veut prouver que φ est surjective.
+  -- On prouve que l'image de φ est égale à ⊤
+  rw ← monoid_hom.range_top_iff_surjective,
+  -- let R := monoid_hom.range φ,
+  /-  j : H → G, p : G → G/N,  φ = p o j, on veut prouver que φ est surjective.
     R = im(φ), S = p⁻¹(R) ⊆ G -/
 
-    /- Il va suffire de prouver que S = ⊤, car p est surjective -/
-    let S := subgroup.comap (quotient_group.mk' N) R,
-    have S_top : S = ⊤,
-    {
-      -- S contient N
-      have lN : N ≤ S,
-      { intros g hg,
-        apply subgroup.mem_comap.2,
-        have : (quotient_group.mk' N) g = 1,
-        by simp only [hg, quotient_group.mk'_apply, quotient_group.eq_one_iff],
-        rw this, exact R.one_mem', },
+  /- Il va suffire de prouver que S = ⊤, car p est surjective -/
+  -- let S := φ.range.comap (quotient_group.mk' N),
+  suffices S_top : φ.range.comap (quotient_group.mk' N) = ⊤,
+  { rw eq_top_iff,
+    intros x _ ,
+    let y := quotient.out' x,
+    have hy : y ∈ φ.range.comap (quotient_group.mk' N),
+    { rw S_top, exact subgroup.mem_top y, },
+    rw ← quotient_group.out_eq' x,
+    exact subgroup.mem_comap.mp hy, },
 
-      -- S contient H = j(H)
-      have lH : H ≤ S,
-      { intros h hh,
-        apply subgroup.mem_comap.2,
-        apply set.mem_range.2, use h, exact hh,
-        simp only [subgroup.coe_subtype, function.comp_app,
-          monoid_hom.coe_comp, subgroup.coe_mk], },
+  rw [eq_top_iff,← hHN, sup_le_iff],
+  split,
 
-      -- donc S = ⊤ puisque hHN : N ⊔ H = ⊤
-      apply eq_top_iff.2,
-      rw ← hHN,
-      exact sup_le_iff.2 ⟨lN, lH⟩, },
+  -- have lN : N ≤ φ.range.comap (quotient_group.mk' N),
+  { intros g hg,
+    rw subgroup.mem_comap,
+    suffices : quotient_group.mk' N g = 1,
+    simp only [this, (monoid_hom.range φ).one_mem],
+    simp only [hg, quotient_group.mk'_apply, quotient_group.eq_one_iff], },
 
-    -- Ceci fait, il reste à prouver que R = ⊤
-    { apply eq_top_iff.2,
-      intros x _ ,
-      let y := quotient.out' x,
-      have hy : y ∈ S,
-      { rw S_top, exact subgroup.mem_top y, },
-      rw ← quotient_group.out_eq' x,
-      exact subgroup.mem_comap.1 hy,
-    },
-
-  -- Q is commutative as a surjective image of H
-  have hc : is_commutative (G ⧸ N) (*) :=
-    surj_to_comm (monoid_hom.to_mul_hom φ) hφ hH.is_comm,
-
-  -- Deduce that commutator G ≤ N
-  exact (quotient_comm_contains_commutators_iff nN).1 hc,
+  -- S contient H = j(H)
+  -- have lH : H ≤ φ.range.comap (quotient_group.mk' N),
+  { intros h hh,
+    simp only [subgroup.mem_comap, monoid_hom.mem_range, monoid_hom.coe_comp, quotient_group.coe_mk', subgroup.coe_subtype, function.comp_app],
+    use h, exact hh,
+    simp only [subgroup.coe_mk], },
 end
 
 

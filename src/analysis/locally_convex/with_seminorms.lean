@@ -328,7 +328,7 @@ lemma with_seminorms.continuous_seminorm [nontrivially_normed_field 𝕝]
   [module 𝕝 E] [has_continuous_const_smul 𝕝 E] {p : seminorm_family 𝕝 E ι} (hp : with_seminorms p)
   (i : ι) : continuous (p i) :=
 begin
-  refine seminorm.continuous _,
+  refine seminorm.continuous one_pos _,
   rw [p.with_seminorms_iff_nhds_eq_infi.mp hp, ball_zero_eq_preimage_ball],
   exact filter.mem_infi_of_mem i (filter.preimage_mem_comap $ metric.ball_mem_nhds _ one_pos)
 end

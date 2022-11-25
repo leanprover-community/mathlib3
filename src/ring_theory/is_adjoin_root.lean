@@ -208,6 +208,22 @@ by rw [← h.map_X, lift_map, eval₂_X]
   h.lift i x hx (algebra_map R S a) = i a :=
 by rw [h.algebra_map_apply, lift_map, eval₂_C]
 
+/-- Auxiliary lemma for `apply_eq_lift` -/
+lemma apply_eq_lift (h : is_adjoin_root S f) (g : S →+* T)
+  (hmap : ∀ a, g (algebra_map R S a) = i a) (hroot : g h.root = x) (a : S):
+  g a = h.lift i x hx a :=
+begin
+  rw [← h.map_repr a, polynomial.as_sum_range_C_mul_X_pow (h.repr a)],
+  simp only [map_sum, map_mul, map_pow, h.map_X, hroot, ← h.algebra_map_apply, hmap, lift_root,
+    lift_algebra_map]
+end
+
+/-- Unicity of `lift`: a map that agrees on `R` and `h.root` agrees with `lift` everywhere. -/
+lemma eq_lift (h : is_adjoin_root S f) (g : S →+* T)
+  (hmap : ∀ a, g (algebra_map R S a) = i a) (hroot : g h.root = x) :
+  g = h.lift i x hx :=
+ring_hom.ext (h.apply_eq_lift hx g hmap hroot)
+
 variables [algebra R T] (hx' : aeval x f = 0)
 
 omit hx
@@ -235,6 +251,11 @@ by rw [← lift_algebra_map_apply, lift_map, aeval_def]
 @[simp] lemma lift_hom_root (h : is_adjoin_root S f) :
   h.lift_hom x hx' h.root = x :=
 by rw [← lift_algebra_map_apply, lift_root]
+
+/-- Unicity of `lift_hom`: a map that agrees on `h.root` agrees with `lift_hom` everywhere. -/
+lemma eq_lift_hom (h : is_adjoin_root S f) (g : S →ₐ[R] T) (hroot : g h.root = x) :
+  g = h.lift_hom x hx' :=
+alg_hom.ext (h.apply_eq_lift hx' g g.commutes hroot)
 
 end lift
 

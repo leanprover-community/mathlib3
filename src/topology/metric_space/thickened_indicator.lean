@@ -246,3 +246,54 @@ begin
 end
 
 end thickened_indicator -- section
+
+section indicator
+
+variables {α : Type*} [pseudo_emetric_space α]
+
+lemma tendsto_indicator_cthickening_indicator_closure (f : α → ℝ≥0∞) (E : set α) :
+  tendsto (λ δ, (metric.cthickening δ E).indicator f) (𝓝[>] 0) (𝓝 (indicator (closure E) f)) :=
+begin
+  rw tendsto_pi_nhds,
+  intro x,
+  by_cases x_mem_closure : x ∈ closure E,
+  { have obs : (λ δ, (metric.cthickening δ E).indicator f x) =ᶠ[(𝓝[>] 0)] (λ δ, f x),
+    { filter_upwards [self_mem_nhds_within],
+      intros δ δ_pos,
+      simp only [closure_subset_cthickening δ E x_mem_closure, indicator_of_mem], },
+    simp only [x_mem_closure, indicator_of_mem],
+    apply (tendsto_congr' obs).mpr,
+    exact tendsto_const_nhds, },
+  { have pos_dist : 0 < inf_edist x (closure E),
+    { rw mem_iff_inf_edist_zero_of_closed is_closed_closure at x_mem_closure,
+      exact zero_lt_iff.mpr x_mem_closure, },
+    rcases exists_real_pos_lt_infdist_of_not_mem_closure x_mem_closure with ⟨ε, ⟨ε_pos, ε_lt⟩⟩,
+    have obs : (λ δ, (metric.cthickening δ E).indicator f x) =ᶠ[(𝓝[>] 0)] (λ δ, 0),
+    { filter_upwards [Ioo_mem_nhds_within_Ioi (left_mem_Ico.mpr ε_pos)],
+      intros δ hδ,
+      have x_not_mem : x ∉ metric.cthickening δ E,
+        by simp [cthickening, ((of_real_lt_of_real_iff ε_pos).mpr hδ.2).trans ε_lt],
+      simp only [x_not_mem, indicator_of_not_mem, not_false_iff], },
+    simp only [x_mem_closure, indicator_of_not_mem, not_false_iff],
+    apply (tendsto_congr' obs).mpr,
+    exact tendsto_const_nhds, },
+end
+
+lemma tendsto_indicator_thickening_indicator_closure (f : α → ℝ≥0∞) (E : set α) :
+  tendsto (λ δ, (metric.thickening δ E).indicator f) (𝓝[>] 0) (𝓝 (indicator (closure E) f)) :=
+begin
+  have aux := tendsto_indicator_cthickening_indicator_closure f E,
+  rw tendsto_pi_nhds at *,
+  intro x,
+  have obs : (λ δ, (metric.thickening δ E).indicator f x)
+              ≤ᶠ[𝓝[>] 0] (λ δ, (metric.cthickening δ E).indicator f x),
+  { apply eventually_of_forall,
+    exact λ δ, indicator_le_indicator_of_subset
+                (thickening_subset_cthickening δ E) (λ _ , zero_le') x, },
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds (aux x) _ obs,
+  filter_upwards [self_mem_nhds_within],
+  exact λ δ δ_pos, indicator_le_indicator_of_subset
+                    (closure_subset_thickening δ_pos E) (λ _ , zero_le') x,
+end
+
+end indicator

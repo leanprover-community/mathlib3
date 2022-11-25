@@ -9,6 +9,10 @@ import algebra.covariant_and_contravariant
 /-!
 # Ordered monoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/608
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file develops the basics of ordered monoids.
 
 ## Implementation details

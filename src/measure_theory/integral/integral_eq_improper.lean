@@ -5,6 +5,7 @@ Authors: Anatole Dedecker, Bhavik Mehta
 -/
 import measure_theory.integral.interval_integral
 import order.filter.at_top_bot
+import measure_theory.function.jacobian
 
 /-!
 # Links between an integral and its "improper" version
@@ -675,7 +676,7 @@ lemma integral_comp_smul_deriv_Ioi {f f' : ℝ → ℝ} {g : ℝ → E} {a : ℝ
   (hff' : ∀ x ∈ Ioi a, has_deriv_within_at f (f' x) (Ioi x) x)
   (hg_cont : continuous_on g $ f '' Ioi a)
   (hg1 : integrable_on g $ f '' Ici a)
-  (hg2 : integrable_on (λ x, f'(x) • (g ∘ f) x) (Ici a)) :
+  (hg2 : integrable_on (λ x, f' x • (g ∘ f) x) (Ici a)) :
   ∫ x in Ioi a, f' x • (g ∘ f) x = ∫ u in Ioi (f a), g u :=
 begin
   have eq : ∀ b : ℝ, a < b → ∫ x in a..b, f' x • (g ∘ f) x = ∫ u in f a .. f b, g u,
@@ -712,28 +713,38 @@ begin
   simpa [mul_comm] using integral_comp_smul_deriv_Ioi hf hft hff' hg_cont hg1 hg2',
 end
 
-/-- Substitution `y = x ^ p` in integrals over `Ioi 0`, with integrability hypotheses -/
-lemma integral_comp_rpow_Ioi {g : ℝ → ℝ} {p : ℝ} (hp : 0 < p)
-  (hg : continuous_on g (Ioi 0))
-  (hg2 : integrable_on g (Ioi 0))
-  (hg3 : integrable_on (λ x, g (x ^ p) * (p * x ^ (p - 1))) (Ioi 0)) :
-  ∫ x in Ioi 0, g (x ^ p) * (p * x ^ (p - 1)) = ∫ y in Ioi 0, g y :=
+/-- Substitution `y = x ^ p` in integrals over `Ioi 0` -/
+lemma integral_comp_rpow_Ioi (g : ℝ → E) {p : ℝ} (hp : p ≠ 0) :
+  ∫ x in Ioi 0, (|p| * x ^ (p - 1)) • g (x ^ p) = ∫ y in Ioi 0, g y :=
 begin
-  conv_rhs { rw ← zero_rpow hp.ne', },
-  have hf := continuous_at.continuous_on (λ x hx, continuous_at_rpow_const _ _ (or.inr hp)),
-  have hff' := λ x hx, (has_deriv_at_rpow_const (or.inl (mem_Ioi.mp hx).ne')).has_deriv_within_at,
-  rw ←integrable_on_Ici_iff_integrable_on_Ioi at hg2 hg3,
-  have dom1 : (λ x:ℝ, x ^ p) '' Ioi 0 = Ioi 0,
-  { ext, simp_rw [mem_image, mem_Ioi], split,
-    { rintro ⟨u, ⟨hu1, rfl⟩⟩, exact rpow_pos_of_pos hu1 _,},
-    { refine λ hu, ⟨x ^ (1 / p), ⟨rpow_pos_of_pos hu _, _⟩⟩,
-      rw [←rpow_mul hu.le, div_mul_cancel _ hp.ne'], simp } },
-  have dom2 : (λ x:ℝ, x ^ p) '' Ici 0 = Ici 0,
-  { rw [← Icc_union_Ioi_eq_Ici (le_refl (0:ℝ)), image_union], congr' 1,
-    simpa using zero_rpow hp.ne',  },
-  rw ←dom1 at hg,
-  rw ←dom2 at hg2,
-  exact integral_comp_mul_deriv_Ioi hf (tendsto_rpow_at_top hp) hff' hg hg2 hg3,
+  let S := Ioi (0 : ℝ),
+  have a1 : ∀ x:ℝ, x ∈ S → has_deriv_within_at (λ (t:ℝ), t ^ p) (p * x ^ (p - 1)) S x :=
+    λ x hx, (has_deriv_at_rpow_const (or.inl (mem_Ioi.mp hx).ne')).has_deriv_within_at,
+  have a2 : inj_on (λ x:ℝ, x ^ p) S,
+  { rcases lt_or_gt_of_ne hp,
+    { apply strict_anti_on.inj_on,
+      intros x hx y hy hxy,
+      rw [←inv_lt_inv (rpow_pos_of_pos hx p) (rpow_pos_of_pos hy p),
+      ←rpow_neg (le_of_lt hx), ←rpow_neg (le_of_lt hy)],
+      exact rpow_lt_rpow (le_of_lt hx) hxy (neg_pos.mpr h), },
+    exact strict_mono_on.inj_on (λ x hx y hy hxy, rpow_lt_rpow (mem_Ioi.mp hx).le hxy h),},
+  have a3 : (λ (t : ℝ), t ^ p) '' S = S,
+  { ext1, rw mem_image, split,
+    { rintro ⟨y, hy, rfl⟩, exact rpow_pos_of_pos hy p },
+    { intro hx, refine ⟨x ^ (1 / p), rpow_pos_of_pos hx _, _⟩,
+      rw [←rpow_mul (le_of_lt hx), one_div_mul_cancel hp, rpow_one], } },
+  have := integral_image_eq_integral_abs_deriv_smul measurable_set_Ioi a1 a2 g,
+  rw a3 at this, rw this,
+  refine set_integral_congr measurable_set_Ioi _,
+  intros x hx, dsimp only,
+  rw [abs_mul, abs_of_nonneg (rpow_nonneg_of_nonneg (le_of_lt hx) _)],
+end
+
+lemma integral_comp_rpow_Ioi_of_pos {g : ℝ → E} {p : ℝ} (hp : 0 < p) :
+  ∫ x in Ioi 0, (p * x ^ (p - 1)) • g (x ^ p) = ∫ y in Ioi 0, g y :=
+begin
+  convert integral_comp_rpow_Ioi g hp.ne',
+  funext, congr, rw abs_of_nonneg hp.le,
 end
 
 end Ioi_change_variables

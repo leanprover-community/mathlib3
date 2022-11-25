@@ -91,8 +91,21 @@ by { ext ⟨x, y⟩, simp [or_and_distrib_right] }
 @[simp] lemma prod_union : s ×ˢ (t₁ ∪ t₂) = s ×ˢ t₁ ∪ s ×ˢ t₂ :=
 by { ext ⟨x, y⟩, simp [and_or_distrib_left] }
 
+lemma inter_prod : (s₁ ∩ s₂) ×ˢ t = s₁ ×ˢ t ∩ s₂ ×ˢ t :=
+by { ext ⟨x, y⟩, simp only [←and_and_distrib_right, mem_inter_iff, mem_prod] }
+
+lemma prod_inter : s ×ˢ (t₁ ∩ t₂) = s ×ˢ t₁ ∩ s ×ˢ t₂ :=
+by { ext ⟨x, y⟩, simp only [←and_and_distrib_left, mem_inter_iff, mem_prod] }
+
 lemma prod_inter_prod : s₁ ×ˢ t₁ ∩ s₂ ×ˢ t₂ = (s₁ ∩ s₂) ×ˢ (t₁ ∩ t₂) :=
 by { ext ⟨x, y⟩, simp [and_assoc, and.left_comm] }
+
+lemma disjoint_prod : disjoint (s₁ ×ˢ t₁) (s₂ ×ˢ t₂) ↔ disjoint s₁ s₂ ∨ disjoint t₁ t₂ :=
+begin
+  simp_rw [disjoint_left, mem_prod, not_and_distrib, prod.forall, and_imp,
+    ←@forall_or_distrib_right α, ←@forall_or_distrib_left β,
+    ←@forall_or_distrib_right (_ ∈ s₁), ←@forall_or_distrib_left (_ ∈ t₁)],
+end
 
 lemma insert_prod : insert a s ×ˢ t = (prod.mk a '' t) ∪ s ×ˢ t :=
 by { ext ⟨x, y⟩, simp [image, iff_def, or_imp_distrib, imp.swap] {contextual := tt} }
@@ -144,10 +157,10 @@ lemma mk_preimage_prod_right_fn_eq_if [decidable_pred (∈ s)] (g : δ → β) :
   (λ b, (a, g b)) ⁻¹' s ×ˢ t = if a ∈ s then g ⁻¹' t else ∅ :=
 by rw [← mk_preimage_prod_right_eq_if, prod_preimage_right, preimage_preimage]
 
-lemma preimage_swap_prod {s : set α} {t : set β} : prod.swap ⁻¹' t ×ˢ s = s ×ˢ t :=
+@[simp] lemma preimage_swap_prod (s : set α) (t : set β) : prod.swap ⁻¹' s ×ˢ t = t ×ˢ s :=
 by { ext ⟨x, y⟩, simp [and_comm] }
 
-lemma image_swap_prod : prod.swap '' t ×ˢ s = s ×ˢ t :=
+@[simp] lemma image_swap_prod (s : set α) (t : set β) : prod.swap '' s ×ˢ t = t ×ˢ s :=
 by rw [image_swap_eq_preimage_swap, preimage_swap_prod]
 
 lemma prod_image_image_eq {m₁ : α → γ} {m₂ : β → δ} :
@@ -481,6 +494,9 @@ lemma singleton_pi' (i : ι) (t : Π i, set (α i)) : pi {i} t = {x | x i ∈ t 
 
 lemma univ_pi_singleton (f : Π i, α i) : pi univ (λ i, {f i}) = ({f} : set (Π i, α i)) :=
 ext $ λ g, by simp [funext_iff]
+
+lemma preimage_pi (s : set ι) (t : Π i, set (β i)) (f : Π i, α i → β i) :
+  (λ (g : Π i, α i) i, f _ (g i)) ⁻¹' s.pi t = s.pi (λ i, f i ⁻¹' t i) := rfl
 
 lemma pi_if {p : ι → Prop} [h : decidable_pred p] (s : set ι) (t₁ t₂ : Π i, set (α i)) :
   pi s (λ i, if p i then t₁ i else t₂ i) = pi {i ∈ s | p i} t₁ ∩ pi {i ∈ s | ¬ p i} t₂ :=

@@ -7,7 +7,7 @@ import linear_algebra.finite_dimensional
 import linear_algebra.projection
 import linear_algebra.sesquilinear_form
 import ring_theory.finiteness
-import linear_algebra.free_module.finite.rank
+import linear_algebra.free_module.finite.basic
 
 /-!
 # Dual vector spaces
@@ -176,7 +176,7 @@ begin
   casesI nonempty_fintype ι,
   refine eq_top_iff'.2 (λ f, _),
   rw linear_map.mem_range,
-  let lin_comb : ι →₀ R := finsupp.equiv_fun_on_fintype.2 (λ i, f.to_fun (b i)),
+  let lin_comb : ι →₀ R := finsupp.equiv_fun_on_finite.symm (λ i, f.to_fun (b i)),
   refine ⟨finsupp.total ι M R b lin_comb, b.ext $ λ i, _⟩,
   rw [b.to_dual_eq_repr _ i, repr_total b],
   refl,

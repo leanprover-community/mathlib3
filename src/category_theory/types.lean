@@ -5,7 +5,7 @@ Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl
 -/
 import category_theory.epi_mono
 import category_theory.functor.fully_faithful
-import logic.equiv.defs
+import logic.equiv.basic
 
 /-!
 # The category `Type`.

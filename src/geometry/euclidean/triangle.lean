@@ -54,15 +54,15 @@ variables {V : Type*} [inner_product_space ℝ V]
 /-- Law of cosines (cosine rule), vector angle form. -/
 lemma norm_sub_sq_eq_norm_sq_add_norm_sq_sub_two_mul_norm_mul_norm_mul_cos_angle
     (x y : V) :
-  ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ - 2 * ∥x∥ * ∥y∥ * real.cos (angle x y) :=
-by rw [(show 2 * ∥x∥ * ∥y∥ * real.cos (angle x y) =
-             2 * (real.cos (angle x y) * (∥x∥ * ∥y∥)), by ring),
+  ‖x - y‖ * ‖x - y‖ = ‖x‖ * ‖x‖ + ‖y‖ * ‖y‖ - 2 * ‖x‖ * ‖y‖ * real.cos (angle x y) :=
+by rw [(show 2 * ‖x‖ * ‖y‖ * real.cos (angle x y) =
+             2 * (real.cos (angle x y) * (‖x‖ * ‖y‖)), by ring),
        cos_angle_mul_norm_mul_norm, ←real_inner_self_eq_norm_mul_norm,
        ←real_inner_self_eq_norm_mul_norm, ←real_inner_self_eq_norm_mul_norm,
        real_inner_sub_sub_self, sub_add_eq_add_sub]
 
 /-- Pons asinorum, vector angle form. -/
-lemma angle_sub_eq_angle_sub_rev_of_norm_eq {x y : V} (h : ∥x∥ = ∥y∥) :
+lemma angle_sub_eq_angle_sub_rev_of_norm_eq {x y : V} (h : ‖x‖ = ‖y‖) :
   angle x (x - y) = angle y (y - x) :=
 begin
   refine real.inj_on_cos ⟨angle_nonneg _ _, angle_le_pi _ _⟩ ⟨angle_nonneg _ _, angle_le_pi _ _⟩ _,
@@ -73,14 +73,14 @@ end
 
 /-- Converse of pons asinorum, vector angle form. -/
 lemma norm_eq_of_angle_sub_eq_angle_sub_rev_of_angle_ne_pi {x y : V}
-    (h : angle x (x - y) = angle y (y - x)) (hpi : angle x y ≠ π) : ∥x∥ = ∥y∥ :=
+    (h : angle x (x - y) = angle y (y - x)) (hpi : angle x y ≠ π) : ‖x‖ = ‖y‖ :=
 begin
   replace h := real.arccos_inj_on
     (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one x (x - y)))
     (abs_le.mp (abs_real_inner_div_norm_mul_norm_le_one y (y - x))) h,
   by_cases hxy : x = y,
   { rw hxy },
-  { rw [←norm_neg (y - x), neg_sub, mul_comm, mul_comm ∥y∥, div_eq_mul_inv, div_eq_mul_inv,
+  { rw [←norm_neg (y - x), neg_sub, mul_comm, mul_comm ‖y‖, div_eq_mul_inv, div_eq_mul_inv,
         mul_inv_rev, mul_inv_rev, ←mul_assoc, ←mul_assoc] at h,
     replace h :=
       mul_right_cancel₀ (inv_ne_zero (λ hz, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 hz)))) h,
@@ -112,17 +112,17 @@ begin
   { rw [hxy, angle_self hy],
     simp },
   { rw [real.cos_add, cos_angle, cos_angle, cos_angle],
-    have hxn : ∥x∥ ≠ 0 := (λ h, hx (norm_eq_zero.1 h)),
-    have hyn : ∥y∥ ≠ 0 := (λ h, hy (norm_eq_zero.1 h)),
-    have hxyn : ∥x - y∥ ≠ 0 := (λ h, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 h))),
+    have hxn : ‖x‖ ≠ 0 := (λ h, hx (norm_eq_zero.1 h)),
+    have hyn : ‖y‖ ≠ 0 := (λ h, hy (norm_eq_zero.1 h)),
+    have hxyn : ‖x - y‖ ≠ 0 := (λ h, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 h))),
     apply mul_right_cancel₀ hxn,
     apply mul_right_cancel₀ hyn,
     apply mul_right_cancel₀ hxyn,
     apply mul_right_cancel₀ hxyn,
     have H1 : real.sin (angle x (x - y)) * real.sin (angle y (y - x)) *
-                ∥x∥ * ∥y∥ * ∥x - y∥ * ∥x - y∥ =
-              (real.sin (angle x (x - y)) * (∥x∥ * ∥x - y∥)) *
-                (real.sin (angle y (y - x)) * (∥y∥ * ∥x - y∥)), { ring },
+                ‖x‖ * ‖y‖ * ‖x - y‖ * ‖x - y‖ =
+              (real.sin (angle x (x - y)) * (‖x‖ * ‖x - y‖)) *
+                (real.sin (angle y (y - x)) * (‖y‖ * ‖x - y‖)), { ring },
     have H2 : ⟪x, x⟫ * (⟪x, x⟫ - ⟪x, y⟫ - (⟪x, y⟫ - ⟪y, y⟫)) -
                 (⟪x, x⟫ - ⟪x, y⟫) * (⟪x, x⟫ - ⟪x, y⟫) =
               ⟪x, x⟫ * ⟪y, y⟫ - ⟪x, y⟫ * ⟪x, y⟫, { ring },
@@ -149,19 +149,19 @@ begin
   { rw [hxy, angle_self hy],
     simp },
   { rw [real.sin_add, cos_angle, cos_angle],
-    have hxn : ∥x∥ ≠ 0 := (λ h, hx (norm_eq_zero.1 h)),
-    have hyn : ∥y∥ ≠ 0 := (λ h, hy (norm_eq_zero.1 h)),
-    have hxyn : ∥x - y∥ ≠ 0 := (λ h, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 h))),
+    have hxn : ‖x‖ ≠ 0 := (λ h, hx (norm_eq_zero.1 h)),
+    have hyn : ‖y‖ ≠ 0 := (λ h, hy (norm_eq_zero.1 h)),
+    have hxyn : ‖x - y‖ ≠ 0 := (λ h, hxy (eq_of_sub_eq_zero (norm_eq_zero.1 h))),
     apply mul_right_cancel₀ hxn,
     apply mul_right_cancel₀ hyn,
     apply mul_right_cancel₀ hxyn,
     apply mul_right_cancel₀ hxyn,
-    have H1 : real.sin (angle x (x - y)) * (⟪y, y - x⟫ / (∥y∥ * ∥y - x∥)) * ∥x∥ * ∥y∥ * ∥x - y∥ =
-                real.sin (angle x (x - y)) * (∥x∥ * ∥x - y∥) *
-                  (⟪y, y - x⟫ / (∥y∥ * ∥y - x∥)) * ∥y∥, { ring },
-    have H2 : ⟪x, x - y⟫ / (∥x∥ * ∥y - x∥) * real.sin (angle y (y - x)) * ∥x∥ * ∥y∥ * ∥y - x∥ =
-                ⟪x, x - y⟫ / (∥x∥ * ∥y - x∥) *
-                  (real.sin (angle y (y - x)) * (∥y∥ * ∥y - x∥)) * ∥x∥, { ring },
+    have H1 : real.sin (angle x (x - y)) * (⟪y, y - x⟫ / (‖y‖ * ‖y - x‖)) * ‖x‖ * ‖y‖ * ‖x - y‖ =
+                real.sin (angle x (x - y)) * (‖x‖ * ‖x - y‖) *
+                  (⟪y, y - x⟫ / (‖y‖ * ‖y - x‖)) * ‖y‖, { ring },
+    have H2 : ⟪x, x - y⟫ / (‖x‖ * ‖y - x‖) * real.sin (angle y (y - x)) * ‖x‖ * ‖y‖ * ‖y - x‖ =
+                ⟪x, x - y⟫ / (‖x‖ * ‖y - x‖) *
+                  (real.sin (angle y (y - x)) * (‖y‖ * ‖y - x‖)) * ‖x‖, { ring },
     have H3 : ⟪x, x⟫ * (⟪x, x⟫ - ⟪x, y⟫ - (⟪x, y⟫ - ⟪y, y⟫)) -
                 (⟪x, x⟫ - ⟪x, y⟫) * (⟪x, x⟫ - ⟪x, y⟫) =
               ⟪x, x⟫ * ⟪y, y⟫ - ⟪x, y⟫ * ⟪x, y⟫, { ring },

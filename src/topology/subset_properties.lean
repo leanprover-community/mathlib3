@@ -7,7 +7,6 @@ import order.filter.pi
 import topology.bases
 import data.finset.order
 import data.set.accumulate
-import tactic.tfae
 import topology.bornology.basic
 import order.minimal
 
@@ -1494,6 +1493,10 @@ lemma is_clopen_bInter_finset {β : Type*} {s : finset β} {f : β → set α}
   (h : ∀ i ∈ s, is_clopen (f i)) :
   is_clopen (⋂ i ∈ s, f i) :=
 is_clopen_bInter s.finite_to_set h
+
+lemma is_clopen.preimage {s : set β} (h : is_clopen s) {f : α → β} (hf : continuous f) :
+  is_clopen (f ⁻¹' s) :=
+⟨h.1.preimage hf, h.2.preimage hf⟩
 
 lemma continuous_on.preimage_clopen_of_clopen
   {f : α → β} {s : set α} {t : set β} (hf : continuous_on f s) (hs : is_clopen s)

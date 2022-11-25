@@ -3,9 +3,7 @@ Copyright (c) 2022 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck
 -/
-import analysis.complex.upper_half_plane.basic
 import number_theory.modular_forms.slash_actions
-
 
 /-!
 # Slash invariant forms
@@ -63,7 +61,7 @@ instance : has_coe_to_fun (slash_invariant_form Γ k) (λ _, ℍ → ℂ) := fun
 @[simp] lemma slash_invariant_form_to_fun_eq_coe {f : slash_invariant_form Γ k} :
   f.to_fun = (f : ℍ → ℂ) := rfl
 
-@[ext] theorem slash_invaraint_form_ext {f g : slash_invariant_form Γ k} (h : ∀ x, f x = g x) :
+@[ext] theorem slash_invariant_form_ext {f g : slash_invariant_form Γ k} (h : ∀ x, f x = g x) :
   f = g := fun_like.ext f g h
 
 /-- Copy of a `slash_invariant_form` with a new `to_fun` equal to the old one.
@@ -113,6 +111,8 @@ instance has_zero : has_zero (slash_invariant_form Γ k) :=
 ⟨ { to_fun := 0,
     slash_action_eq' := slash_action.mul_zero _} ⟩
 
+@[simp] lemma coe_zero : ⇑(0 : slash_invariant_form Γ k) = (0 : ℍ → ℂ) := rfl
+
 lemma nsmul_coe [slash_invariant_form_class F Γ k] (f : F) (c : ℕ) :
   c • (f : ℍ → ℂ) = (c : ℂ) • f :=
 begin
@@ -140,13 +140,13 @@ instance has_nsmul : has_smul ℕ (slash_invariant_form Γ k) :=
 ⟨ λ c f, ((c : ℂ) • f).copy (c • f) (nsmul_eq_smul_cast _ _ _)⟩
 
 @[simp] lemma nsmul_apply (f : slash_invariant_form Γ k) (n : ℕ) (z : ℍ) :
-   (n • f) z = n • (f z) := rfl
+  (n • f) z = n • (f z) := rfl
 
 instance has_zsmul : has_smul ℤ (slash_invariant_form Γ k) :=
 ⟨ λ c f, ((c : ℂ) • f).copy (c • f) (zsmul_eq_smul_cast _ _ _)⟩
 
 @[simp] lemma zsmul_apply (f : slash_invariant_form Γ k) (n : ℤ) (z : ℍ) :
-   (n • f) z = n • (f z) := rfl
+  (n • f) z = n • (f z) := rfl
 
 instance has_neg : has_neg (slash_invariant_form Γ k) :=
 ⟨ λ f,
@@ -165,8 +165,6 @@ instance has_sub : has_sub (slash_invariant_form Γ k) := ⟨ λ f g, f + -g ⟩
 instance : add_comm_group (slash_invariant_form Γ k) :=
 fun_like.coe_injective.add_comm_group _ rfl coe_add coe_neg coe_sub
   (λ f n, nsmul_eq_smul_cast _ n f) (λ f n, zsmul_eq_smul_cast _ n f)
-
-lemma coe_zero : ⇑(0 : slash_invariant_form Γ k) = (0 : ℍ → ℂ) := rfl
 
 /--Additive coercion from `slash_invariant_form` to `ℍ → ℂ`.-/
 def coe_hom : slash_invariant_form Γ k →+ (ℍ → ℂ) :=

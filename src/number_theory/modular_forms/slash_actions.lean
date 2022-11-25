@@ -38,7 +38,7 @@ class slash_action (β G α γ : Type*) [group G] [has_zero α]
 def monoid_hom_slash_action {β G H α γ : Type*} [group G] [has_zero α]
   [has_one α] [has_smul γ α] [has_add α] [group H] [slash_action β G α γ]
   (h : H →* G) : slash_action β H α γ :=
-{ map := λ k g , slash_action.map γ k (h g),
+{ map := λ k g, slash_action.map γ k (h g),
   mul_zero := λ k g, slash_action.mul_zero k (h g),
   one_mul := λ k a, by simp only [map_one, slash_action.one_mul],
   right_action := λ k g gg a, by simp only [map_mul, slash_action.right_action],
@@ -136,9 +136,9 @@ begin
   simp,
 end
 
-/-- A function `f : ℍ → ℂ` is weakly modular, of weight `k ∈ ℤ` and level `Γ`, if for every matrix .
- `γ ∈ Γ` we have `f(γ • z)= (c*z+d)^k f(z)` where `γ= ![![a, b], ![c, d]]`, and it acts on `ℍ`
-  via Möbius transformations. -/
+/-- A function `f : ℍ → ℂ` is `slash_invariant`, of weight `k ∈ ℤ` and level `Γ`,
+  if for every matrix `γ ∈ Γ` we have `f(γ • z)= (c*z+d)^k f(z)` where `γ= ![![a, b], ![c, d]]`,
+  and it acts on `ℍ` via Möbius transformations. -/
 lemma slash_action_eq'_iff (k : ℤ) (Γ : subgroup SL(2, ℤ)) (f : ℍ → ℂ) (γ : Γ)  (z : ℍ) :
   f ∣[k, γ] z = f z ↔ f (γ • z) = ((↑ₘγ 1 0 : ℂ) * z +(↑ₘγ 1 1 : ℂ))^k * f z :=
 begin

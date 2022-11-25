@@ -44,6 +44,7 @@ Using `is_adjoin_root` to map out of `S`:
  * `is_adjoin_root_monic.power_basis`: the `root` generates a power basis on `S` over `R`
  * `is_adjoin_root.aequiv`: algebra isomorphism showing adjoining a root gives a unique ring
    up to isomorphism
+ * `is_adjoin_root.of_equiv`: transfer `is_adjoin_root` across an algebra isomorphism
  * `is_adjoin_root_eq.minpoly_eq`: the minimal polynomial of the adjoined root of `f` is equal to
    `f`, if `f` is irreducible and monic, and `R` is a GCD domain
 -/
@@ -516,7 +517,11 @@ section equiv
 
 variables {T : Type*} [comm_ring T] [algebra R T]
 
-/-- Adjoining a root gives a unique ring up to algebra isomorphism. -/
+/-- Adjoining a root gives a unique ring up to algebra isomorphism.
+
+This is the converse of `is_adjoin_root.of_equiv`: this turns an `is_adjoin_root` into an
+`alg_equiv`, and `is_adjoin_root.of_equiv` turns an `alg_equiv` into an `is_adjoin_root`.
+-/
 def aequiv (h : is_adjoin_root S f) (h' : is_adjoin_root T f) : S ≃ₐ[R] T :=
 { to_fun := h.lift_hom h'.root h'.aeval_root,
   inv_fun := h'.lift_hom h.root h.aeval_root,
@@ -558,6 +563,35 @@ h.lift_hom_aequiv _ _ h''.aeval_root _
   (h : is_adjoin_root S f) (h' : is_adjoin_root T f) (h'' : is_adjoin_root U f) :
   (h.aequiv h').trans (h'.aequiv h'') = h.aequiv h'' :=
 by { ext z, exact h.aequiv_aequiv h' h'' z }
+
+/-- Transfer `is_adjoin_root` across an algebra isomorphism.
+
+This is the converse of `is_adjoin_root.aequiv`: this turns an `alg_equiv` into an `is_adjoin_root`,
+and `is_adjoin_root.aequiv` turns an `is_adjoin_root` into an `alg_equiv`.
+-/
+@[simps map_apply]
+def of_equiv (h : is_adjoin_root S f) (e : S ≃ₐ[R] T) : is_adjoin_root T f :=
+{ map := ((e : S ≃+* T) : S →+* T).comp h.map,
+  map_surjective := e.surjective.comp h.map_surjective,
+  ker_map := by rw [← ring_hom.comap_ker, ring_hom.ker_coe_equiv, ← ring_hom.ker_eq_comap_bot,
+                    h.ker_map],
+  algebra_map_eq := by ext;
+    simp only [alg_equiv.commutes, ring_hom.comp_apply, alg_equiv.coe_ring_equiv,
+               ring_equiv.coe_to_ring_hom, ← h.algebra_map_apply] }
+
+@[simp] lemma of_equiv_root (h : is_adjoin_root S f) (e : S ≃ₐ[R] T) :
+  (h.of_equiv e).root = e h.root := rfl
+
+@[simp] lemma aequiv_of_equiv {U : Type*} [comm_ring U] [algebra R U]
+  (h : is_adjoin_root S f) (h' : is_adjoin_root T f) (e : T ≃ₐ[R] U) :
+  h.aequiv (h'.of_equiv e) = (h.aequiv h').trans e :=
+by ext a; rw [← h.map_repr a, aequiv_map, alg_equiv.trans_apply, aequiv_map, of_equiv_map_apply]
+
+@[simp] lemma of_equiv_aequiv {U : Type*} [comm_ring U] [algebra R U]
+  (h : is_adjoin_root S f) (h' : is_adjoin_root U f) (e : S ≃ₐ[R] T) :
+  (h.of_equiv e).aequiv h' = e.symm.trans (h.aequiv h') :=
+by ext a; rw [← (h.of_equiv e).map_repr a, aequiv_map, alg_equiv.trans_apply, of_equiv_map_apply,
+              e.symm_apply_apply, aequiv_map]
 
 end equiv
 

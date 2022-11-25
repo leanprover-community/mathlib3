@@ -113,6 +113,7 @@ lemma map_eq_zero_iff (h : is_adjoin_root S f) {p} : h.map p = 0 ↔ f ∣ p :=
 by rw [← h.mem_ker_map, ring_hom.mem_ker]
 
 @[simp] lemma map_X (h : is_adjoin_root S f) : h.map X = h.root := rfl
+
 @[simp] lemma map_self (h : is_adjoin_root S f) : h.map f = 0 :=
 h.map_eq_zero_iff.mpr dvd_rfl
 
@@ -253,7 +254,8 @@ protected def is_adjoin_root : is_adjoin_root (adjoin_root f) f :=
   end,
   algebra_map_eq := adjoin_root.algebra_map_eq f }
 
-/-- `adjoin_root f` is indeed given by adjoining a root of `f`. -/
+/-- `adjoin_root f` is indeed given by adjoining a root of `f`. If `f` is monic this is more
+powerful than `adjoin_root.is_adjoin_root`. -/
 protected def is_adjoin_root_monic (hf : monic f) :
   is_adjoin_root_monic (adjoin_root f) f :=
 { monic := hf,
@@ -391,7 +393,7 @@ lemma basis_one (h : is_adjoin_root_monic S f) (hdeg : 1 < nat_degree f) :
   h.basis ⟨1, hdeg⟩ = h.root :=
 by rw [h.basis_apply, fin.coe_mk, pow_one]
 
-/-- `is_adjoin_root_monic.lift_polyₗ` lifts a linear map on polynomials to a linear map on `S` -/
+/-- `is_adjoin_root_monic.lift_polyₗ` lifts a linear map on polynomials to a linear map on `S`. -/
 @[simps]
 def lift_polyₗ {T : Type*} [add_comm_group T] [module R T] (h : is_adjoin_root_monic S f)
   (g : R[X] →ₗ[R] T) : S →ₗ[R] T :=
@@ -500,7 +502,7 @@ namespace is_adjoin_root
 
 section lift
 
-lemma lift_self_apply (h : is_adjoin_root S f) (x : S) :
+@[simp] lemma lift_self_apply (h : is_adjoin_root S f) (x : S) :
   h.lift (algebra_map R S) h.root h.aeval_root x = x :=
 by rw [← h.map_repr x, lift_map, ← aeval_def, h.aeval_eq]
 

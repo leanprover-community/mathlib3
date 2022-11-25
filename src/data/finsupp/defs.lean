@@ -894,7 +894,7 @@ mul_hom_ext $ λ x, monoid_hom.congr_fun (H x)
 lemma map_range_add [add_zero_class N]
   {f : M → N} {hf : f 0 = 0} (hf' : ∀ x y, f (x + y) = f x + f y) (v₁ v₂ : α →₀ M) :
   map_range f hf (v₁ + v₂) = map_range f hf v₁ + map_range f hf v₂ :=
-ext $ λ a, by simp only [hf', add_apply, map_range_apply]
+ext $ λ _, by simp only [hf', add_apply, map_range_apply]
 
 /-- Bundle `emb_domain f` as an additive map from `α →₀ M` to `β →₀ M`. -/
 @[simps] def emb_domain.add_monoid_hom (f : α ↪ β) : (α →₀ M) →+ β →₀ M :=
@@ -937,10 +937,20 @@ instance [add_group G] : has_neg (α →₀ G) := ⟨map_range (has_neg.neg) neg
 @[simp] protected lemma coe_neg [add_group G] (g : α →₀ G) : ⇑(-g) = -g := rfl
 lemma neg_apply [add_group G] (g : α →₀ G) (a : α) : (- g) a = - g a := rfl
 
+lemma map_range_neg [add_group G] [add_group H]
+  {f : G → H} {hf : f 0 = 0} (hf' : ∀ x, f (-x) = -f x) (v : α →₀ G) :
+  map_range f hf (-v) = -map_range f hf v :=
+ext $ λ _, by simp only [hf', neg_apply, map_range_apply]
+
 instance [add_group G] : has_sub (α →₀ G) := ⟨zip_with has_sub.sub (sub_zero _)⟩
 
 @[simp] protected lemma coe_sub [add_group G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
 lemma sub_apply [add_group G] (g₁ g₂ : α →₀ G) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
+
+lemma map_range_sub [add_group G] [add_group H]
+  {f : G → H} {hf : f 0 = 0} (hf' : ∀ x y, f (x - y) = f x - f y) (v₁ v₂ : α →₀ G) :
+  map_range f hf (v₁ - v₂) = map_range f hf v₁ - map_range f hf v₂ :=
+ext $ λ _, by simp only [hf', sub_apply, map_range_apply]
 
 /-- Note the general `finsupp.has_smul` instance doesn't apply as `ℤ` is not distributive
 unless `β i`'s addition is commutative. -/

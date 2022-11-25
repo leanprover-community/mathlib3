@@ -554,7 +554,7 @@ lemma roots_C_mul_X_pow (ha : a ≠ 0) (n : ℕ) : (C a * X ^ n).roots = n • {
 by rw [roots_C_mul _ ha, roots_X_pow]
 
 @[simp] lemma roots_monomial (ha : a ≠ 0) (n : ℕ) : (monomial n a).roots = n • {0} :=
-by rw [monomial_eq_C_mul_X, roots_C_mul_X_pow ha]
+by rw [← C_mul_X_pow_eq_monomial, roots_C_mul_X_pow ha]
 
 lemma roots_prod_X_sub_C (s : finset R) :
   (s.prod (λ a, X - C a)).roots = s.val :=

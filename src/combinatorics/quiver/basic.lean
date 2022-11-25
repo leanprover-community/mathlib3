@@ -169,9 +169,9 @@ def lift : push σ ⥤q W' :=
     (λ X Y f, τ X ⟶ τ Y)
     (λ X Y f, by { rw [←h X, ←h Y], exact φ.map f, }) }
 
-lemma lift_spec_obj : (lift σ φ τ h).obj = τ := rfl
+lemma lift_obj : (lift σ φ τ h).obj = τ := rfl
 
-lemma lift_spec_comp : of σ ⋙q lift σ φ τ h = φ :=
+lemma lift_comp : of σ ⋙q lift σ φ τ h = φ :=
 begin
   fapply prefunctor.ext,
   { rintros, simp only [prefunctor.comp_obj], symmetry, exact h X, },

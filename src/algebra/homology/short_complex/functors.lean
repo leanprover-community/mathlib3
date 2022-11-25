@@ -60,5 +60,4 @@ def functor_equivalence : (short_complex (J ⥤ C)) ≌ (J ⥤ short_complex C) 
   unit_iso := functor_equivalence.unit_iso J C,
   counit_iso := functor_equivalence.counit_iso J C, }
 
-
 end short_complex

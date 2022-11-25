@@ -55,7 +55,7 @@ lemma has_fderiv_at_integral_of_dominated_of_fderiv_le {F : H → ℝ → E} {F'
   (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_strongly_measurable (F x) (μ.restrict (Ι a b)))
   (hF_int : interval_integrable (F x₀) μ a b)
   (hF'_meas : ae_strongly_measurable (F' x₀) (μ.restrict (Ι a b)))
-  (h_bound : ∀ᵐ t ∂μ, t ∈ Ι a b → ∀ x ∈ ball x₀ ε, ∥F' x t∥ ≤ bound t)
+  (h_bound : ∀ᵐ t ∂μ, t ∈ Ι a b → ∀ x ∈ ball x₀ ε, ‖F' x t‖ ≤ bound t)
   (bound_integrable : interval_integrable bound μ a b)
   (h_diff : ∀ᵐ t ∂μ, t ∈ Ι a b → ∀ x ∈ ball x₀ ε, has_fderiv_at (λ x, F x t) (F' x t) x) :
   has_fderiv_at (λ x, ∫ t in a..b, F x t ∂μ) (∫ t in a..b, F' x₀ t ∂μ) x₀ :=
@@ -98,7 +98,7 @@ lemma has_deriv_at_integral_of_dominated_loc_of_deriv_le {F : 𝕜 → ℝ → E
   (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_strongly_measurable (F x) (μ.restrict (Ι a b)))
   (hF_int : interval_integrable (F x₀) μ a b)
   (hF'_meas : ae_strongly_measurable (F' x₀) (μ.restrict (Ι a b)))
-  (h_bound : ∀ᵐ t ∂μ, t ∈ Ι a b → ∀ x ∈ ball x₀ ε, ∥F' x t∥ ≤ bound t)
+  (h_bound : ∀ᵐ t ∂μ, t ∈ Ι a b → ∀ x ∈ ball x₀ ε, ‖F' x t‖ ≤ bound t)
   (bound_integrable : interval_integrable bound μ a b)
   (h_diff : ∀ᵐ t ∂μ, t ∈ Ι a b → ∀ x ∈ ball x₀ ε, has_deriv_at (λ x, F x t) (F' x t) x) :
   (interval_integrable (F' x₀) μ a b) ∧

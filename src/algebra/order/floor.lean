@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Kappelmann
 -/
 import data.int.lemmas
+import data.set.intervals.group
 import tactic.abel
 import tactic.linarith
 import tactic.positivity
@@ -677,6 +678,45 @@ sub_nonneg_of_le $ (le_div_iff hb).1 $ floor_le _
 lemma sub_floor_div_mul_lt (a : k) (hb : 0 < b) : a - ⌊a / b⌋ * b < b :=
 sub_lt_iff_lt_add.2 $ by { rw [←one_add_mul, ←div_lt_iff hb, add_comm], exact lt_floor_add_one _ }
 
+lemma fract_div_nat_cast_eq_div_nat_cast_mod {m n : ℕ} :
+  fract ((m : k) / n) = ↑(m % n) / n :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn, { simp, },
+  have hn' : 0 < (n : k), { norm_cast, assumption, },
+  refine fract_eq_iff.mpr ⟨by positivity, _, m / n, _⟩,
+  { simpa only [div_lt_one hn', nat.cast_lt] using m.mod_lt hn, },
+  { rw [sub_eq_iff_eq_add', ← mul_right_inj' hn'.ne.symm, mul_div_cancel' _ hn'.ne.symm, mul_add,
+      mul_div_cancel' _ hn'.ne.symm],
+    norm_cast,
+    rw [← nat.cast_add, nat.mod_add_div m n], },
+end
+
+-- TODO Generalise this to allow `n : ℤ` using `int.fmod` instead of `int.mod`.
+lemma fract_div_int_cast_eq_div_int_cast_mod {m : ℤ} {n : ℕ} :
+  fract ((m : k) / n) = ↑(m % n) / n :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn, { simp, },
+  replace hn : 0 < (n : k), { norm_cast, assumption, },
+  have : ∀ {l : ℤ} (hl : 0 ≤ l), fract ((l : k) / n) = ↑(l % n) / n,
+  { intros,
+    obtain ⟨l₀, rfl | rfl⟩ := l.eq_coe_or_neg,
+    { rw [cast_coe_nat, ← coe_nat_mod, cast_coe_nat, fract_div_nat_cast_eq_div_nat_cast_mod], },
+    { rw [right.nonneg_neg_iff, coe_nat_nonpos_iff] at hl, simp [hl, zero_mod], }, },
+  obtain ⟨m₀, rfl | rfl⟩ := m.eq_coe_or_neg, { exact this (of_nat_nonneg m₀), },
+  let q := ⌈↑m₀ / (n : k)⌉,
+  let m₁ := (q * ↑n) -(↑m₀ : ℤ),
+  have hm₁ : 0 ≤ m₁, { simpa [←@cast_le k, ←div_le_iff hn] using floor_ring.gc_ceil_coe.le_u_l _, },
+  calc fract (↑-↑m₀ / ↑n) = fract (-(m₀ : k) / n) : by rw [coe_neg, cast_coe_nat]
+                      ... = fract ((m₁ : k) / n) : _
+                      ... = ↑(m₁ % (n : ℤ)) / ↑n : this hm₁
+                      ... = ↑(-(↑m₀ : ℤ) % ↑n) / ↑n : _,
+  { rw [← fract_int_add q, ← mul_div_cancel (q : k) (ne_of_gt hn), ← add_div, ← sub_eq_add_neg,
+      coe_sub, coe_mul, cast_coe_nat, cast_coe_nat], },
+  { congr' 2,
+    change ((q * ↑n) -(↑m₀ : ℤ)) % ↑n = _,
+    rw [sub_eq_add_neg, add_comm (q * ↑n), add_mul_mod_self], },
+end
+
 end linear_ordered_field
 
 /-! #### Ceil -/
@@ -861,7 +901,7 @@ by { rw [add_comm, round_add_nat, add_comm] }
 
 lemma abs_sub_round_eq_min (x : α) : |x - round x| = min (fract x) (1 - fract x) :=
 begin
-  simp_rw [round, min_def', two_mul, ← lt_tsub_iff_left],
+  simp_rw [round, min_def_lt, two_mul, ← lt_tsub_iff_left],
   cases lt_or_ge (fract x) (1 - fract x) with hx hx,
   { rw [if_pos hx, if_pos hx, self_sub_floor, abs_fract], },
   { have : 0 < fract x,
@@ -922,6 +962,16 @@ begin
   have := floor_le (x + 1 / 2),
   have := lt_floor_add_one (x + 1 / 2),
   split; linarith
+end
+
+lemma abs_sub_round_div_nat_cast_eq {m n : ℕ} :
+  |(m : α) / n - round ((m : α) / n)| = ↑(min (m % n) (n - m % n)) / n :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn, { simp, },
+  have hn' : 0 < (n : α), { norm_cast, assumption, },
+  rw [abs_sub_round_eq_min, nat.cast_min, ← min_div_div_right hn'.le,
+    fract_div_nat_cast_eq_div_nat_cast_mod, nat.cast_sub (m.mod_lt hn).le, sub_div,
+    div_self hn'.ne.symm],
 end
 
 end linear_ordered_field

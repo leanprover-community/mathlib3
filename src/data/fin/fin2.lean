@@ -7,6 +7,10 @@ Authors: Mario Carneiro
 /-!
 # Inductive type variant of `fin`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/478
+> Any changes to this file require a corresponding PR to mathlib4.
+
 `fin` is defined as a subtype of `ℕ`. This file defines an equivalent type, `fin2`, which is
 defined inductively. This is useful for its induction principle and different definitional
 equalities.

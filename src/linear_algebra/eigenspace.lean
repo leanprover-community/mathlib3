@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp
 -/
 
-import linear_algebra.charpoly.basic
-import linear_algebra.finsupp
-import linear_algebra.matrix.to_lin
 import algebra.algebra.spectrum
 import order.hom.basic
+import linear_algebra.free_module.finite.basic
 
 /-!
 # Eigenvectors and eigenvalues
@@ -497,8 +495,8 @@ begin
         by { rw ←pow_add, refl }
   ... = f.generalized_eigenspace μ (finrank K V) :
         by { rw generalized_eigenspace_eq_generalized_eigenspace_finrank_of_le, linarith },
-  rw [disjoint, generalized_eigenrange, linear_map.range_eq_map, submodule.map_inf_eq_map_inf_comap,
-    top_inf_eq, h],
+  rw [disjoint_iff_inf_le, generalized_eigenrange, linear_map.range_eq_map,
+    submodule.map_inf_eq_map_inf_comap, top_inf_eq, h],
   apply submodule.map_comap_le
 end
 
@@ -510,7 +508,7 @@ lemma eigenspace_restrict_eq_bot {f : End R M} {p : submodule R M}
 begin
   rw eq_bot_iff,
   intros x hx,
-  simpa using hμp ⟨eigenspace_restrict_le_eigenspace f hfp μ ⟨x, hx, rfl⟩, x.prop⟩,
+  simpa using hμp.le_bot ⟨eigenspace_restrict_le_eigenspace f hfp μ ⟨x, hx, rfl⟩, x.prop⟩,
 end
 
 /-- The generalized eigenspace of an eigenvalue has positive dimension for positive exponents. -/

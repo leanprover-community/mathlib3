@@ -332,7 +332,8 @@ begin
   choose f hfs hfu using this,
   lift f to a → u using hfu,
   have f_inj : injective f,
-  { refine injective_iff_pairwise_ne.mpr ((h.subtype _ _).mono $ λ i j hij hfij, hij ⟨hfs i, _⟩),
+  { refine injective_iff_pairwise_ne.mpr
+      ((h.subtype _ _).mono $ λ i j hij hfij, hij.le_bot ⟨hfs i, _⟩),
     simp only [congr_arg coe hfij, hfs j] },
   exact ⟨@encodable.of_inj _ _ u_encodable f f_inj⟩
 end

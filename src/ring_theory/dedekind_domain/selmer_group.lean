@@ -3,7 +3,7 @@ Copyright (c) 2022 David Kurniadi Angdinata. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Kurniadi Angdinata
 -/
-
+import algebra.hom.equiv.type_tags
 import data.zmod.quotient
 import ring_theory.dedekind_domain.adic_valuation
 

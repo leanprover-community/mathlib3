@@ -9,6 +9,10 @@ import tactic.reserved_notation
 /-!
 # Basic logic properties
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/484
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file is one of the earliest imports in mathlib.
 
 ## Implementation notes
@@ -485,6 +489,9 @@ iff.intro and.left (λ ha, ⟨ha, h ha⟩)
 
 theorem and_iff_right_of_imp {a b : Prop} (h : b → a) : (a ∧ b) ↔ b :=
 iff.intro and.right (λ hb, ⟨h hb, hb⟩)
+
+lemma ne_and_eq_iff_right {α : Sort*} {a b c : α} (h : b ≠ c) : a ≠ b ∧ a = c ↔ a = c :=
+and_iff_right_of_imp (λ h2, h2.symm ▸ h.symm)
 
 @[simp] theorem and_iff_left_iff_imp {a b : Prop} : ((a ∧ b) ↔ a) ↔ (a → b) :=
 ⟨λ h ha, (h.2 ha).2, and_iff_left_of_imp⟩

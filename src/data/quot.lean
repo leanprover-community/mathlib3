@@ -74,7 +74,7 @@ lemma factor_mk_eq {α : Type*} (r s : α → α → Prop) (h : ∀ x y, r x y �
 variables {γ : Sort*} {r : α → α → Prop} {s : β → β → Prop}
 
 /-- **Alias** of `quot.lift_beta`. -/
-@[simp] lemma lift_mk (f : α → γ) (h : ∀ a₁ a₂, r a₁ a₂ → f a₁ = f a₂) (a : α) :
+lemma lift_mk (f : α → γ) (h : ∀ a₁ a₂, r a₁ a₂ → f a₁ = f a₂) (a : α) :
   quot.lift f h (quot.mk r a) = f a := rfl
 
 @[simp]
@@ -282,7 +282,7 @@ lemma surjective_quot_mk (r : α → α → Prop) : surjective (quot.mk r) := qu
 
 /-- `quotient.mk` is a surjective function. -/
 lemma surjective_quotient_mk (α : Sort*) [s : setoid α] :
-  function.surjective (quotient.mk : α → quotient s) :=
+  surjective (quotient.mk : α → quotient s) :=
 quot.exists_rep
 
 /-- Choose an element of the equivalence class using the axiom of choice.
@@ -324,7 +324,7 @@ end
   x.out ≈ y.out ↔ x = y :=
 by rw [← quotient.eq_mk_iff_out, quotient.out_eq]
 
-lemma quotient.out_injective {s : setoid α} : function.injective (@quotient.out α s) :=
+lemma quotient.out_injective {s : setoid α} : injective (@quotient.out α s) :=
 λ a b h, quotient.out_equiv_out.1 $ h ▸ setoid.refl _
 
 @[simp] lemma quotient.out_inj {s : setoid α} {x y : quotient s} :
@@ -474,7 +474,7 @@ instance argument. -/
 protected def mk' (a : α) : quotient s₁ := quot.mk s₁.1 a
 
 /-- `quotient.mk'` is a surjective function. -/
-lemma surjective_quotient_mk' : function.surjective (quotient.mk' : α → quotient s₁) :=
+lemma surjective_quotient_mk' : surjective (quotient.mk' : α → quotient s₁) :=
 quot.exists_rep
 
 /-- A version of `quotient.lift_on` taking `{s : setoid α}` as an implicit argument instead of an

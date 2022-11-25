@@ -932,29 +932,32 @@ end add_monoid
 instance [add_comm_monoid M] : add_comm_monoid (α →₀ M) :=
 fun_like.coe_injective.add_comm_monoid _ finsupp.coe_zero finsupp.coe_add (λ _ _, rfl)
 
-instance [add_group G] : has_neg (α →₀ G) := ⟨map_range (has_neg.neg) neg_zero⟩
+instance [neg_zero_class G] : has_neg (α →₀ G) := ⟨map_range (has_neg.neg) neg_zero⟩
 
-@[simp] protected lemma coe_neg [add_group G] (g : α →₀ G) : ⇑(-g) = -g := rfl
-lemma neg_apply [add_group G] (g : α →₀ G) (a : α) : (- g) a = - g a := rfl
+@[simp] protected lemma coe_neg [neg_zero_class G] (g : α →₀ G) : ⇑(-g) = -g := rfl
 
-lemma map_range_neg [add_group G] [add_group H]
+lemma neg_apply [neg_zero_class G] (g : α →₀ G) (a : α) : (- g) a = - g a := rfl
+
+lemma map_range_neg [neg_zero_class G] [neg_zero_class H]
   {f : G → H} {hf : f 0 = 0} (hf' : ∀ x, f (-x) = -f x) (v : α →₀ G) :
   map_range f hf (-v) = -map_range f hf v :=
 ext $ λ _, by simp only [hf', neg_apply, map_range_apply]
 
-instance [add_group G] : has_sub (α →₀ G) := ⟨zip_with has_sub.sub (sub_zero _)⟩
+instance [sub_neg_zero_monoid G] : has_sub (α →₀ G) := ⟨zip_with has_sub.sub (sub_zero _)⟩
 
-@[simp] protected lemma coe_sub [add_group G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
-lemma sub_apply [add_group G] (g₁ g₂ : α →₀ G) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
+@[simp] protected lemma coe_sub [sub_neg_zero_monoid G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ :=
+rfl
 
-lemma map_range_sub [add_group G] [add_group H]
+lemma sub_apply [sub_neg_zero_monoid G] (g₁ g₂ : α →₀ G) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
+
+lemma map_range_sub [sub_neg_zero_monoid G] [sub_neg_zero_monoid H]
   {f : G → H} {hf : f 0 = 0} (hf' : ∀ x y, f (x - y) = f x - f y) (v₁ v₂ : α →₀ G) :
   map_range f hf (v₁ - v₂) = map_range f hf v₁ - map_range f hf v₂ :=
 ext $ λ _, by simp only [hf', sub_apply, map_range_apply]
 
 /-- Note the general `finsupp.has_smul` instance doesn't apply as `ℤ` is not distributive
 unless `β i`'s addition is commutative. -/
-instance has_int_scalar [add_group G] : has_smul ℤ (α →₀ G) :=
+instance has_int_scalar [has_smul G] : has_smul ℤ (α →₀ G) :=
 ⟨λ n v, v.map_range ((•) n) (zsmul_zero _)⟩
 
 instance [add_group G] : add_group (α →₀ G) :=

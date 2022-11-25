@@ -1050,13 +1050,13 @@ variables {S Q M}
 
 variables (A : Type*) [comm_ring A] [is_domain A]
 
-/-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of
-non-zero elements is an integral domain.
+/-- A `comm_ring` `S` which is the localization of a ring `R` without zero divisors at a subset of
+non-zero elements does nt have zero divisors.
 See note [reducible non-instances]. -/
 @[reducible]
-theorem is_domain_of_le_non_zero_divisors
+theorem no_zero_divisors_of_le_non_zero_divisors
   [algebra A S] {M : submonoid A} [is_localization M S]
-  (hM : M ≤ non_zero_divisors A) : is_domain S :=
+  (hM : M ≤ non_zero_divisors A) : no_zero_divisors S :=
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     begin
       intros z w h,
@@ -1069,9 +1069,21 @@ theorem is_domain_of_le_non_zero_divisors
       cases eq_zero_or_eq_zero_of_mul_eq_zero ((to_map_eq_zero_iff S hM).mp this.symm) with H H,
       { exact or.inl (eq_zero_of_fst_eq_zero hx H) },
       { exact or.inr (eq_zero_of_fst_eq_zero hy H) },
-    end,
-  exists_pair_ne := ⟨(algebra_map A S) 0, (algebra_map A S) 1,
-                     λ h, zero_ne_one (is_localization.injective S hM h)⟩, }
+    end }
+
+/-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of
+non-zero elements is an integral domain.
+See note [reducible non-instances]. -/
+@[reducible]
+theorem is_domain_of_le_non_zero_divisors
+  [algebra A S] {M : submonoid A} [is_localization M S]
+  (hM : M ≤ non_zero_divisors A) : is_domain S :=
+begin
+  apply no_zero_divisors.to_is_domain _,
+  { exact ⟨⟨(algebra_map A S) 0, (algebra_map A S) 1,
+                      λ h, zero_ne_one (is_localization.injective S hM h)⟩⟩ },
+  { exact no_zero_divisors_of_le_non_zero_divisors _ hM }
+end
 
 variables {A}
 

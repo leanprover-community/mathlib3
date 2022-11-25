@@ -264,9 +264,14 @@ begin
   -- Cannot be equal, since the edge is contained in one but not the other,
   have : p₁ ≠ p₂, by
   { rintro e,
-    have : ⟦(u, v)⟧ ∉ p₁.val.edges := add_edge_hom_not_edges u v ‹u≠v› (λ x, neG x) _,
+    have : ⟦(u, v)⟧ ∉ p₁.val.edges := λ h, by
+    { simp only [subtype.val_eq_coe, path.map_coe, walk.edges_map, list.mem_map,
+      hom.map_spanning_subgraphs_apply, sym2.map_id', id.def, exists_eq_right] at h,
+      apply neG (walk.edges_subset_edge_set _ h), },
     rw e at this,
-    exact this (path.mk_mem_edges_singleton (add_edge_adj u v ‹u≠v›)), },
+    apply this,
+    simp only [subtype.val_eq_coe, path.singleton_coe, walk.edges_cons, walk.edges_nil,
+               list.mem_singleton], },
 
   -- By assumption, the extended graph is acyclic, hence unique paths, a contradiction
   exact this (Ge_ac.path_unique p₁ p₂),
@@ -280,7 +285,7 @@ begin
   rintro ⟨u,v⟩ ⟨eG,neB⟩ Gne_co,
 
   let p₁ : G.path u v := simple_graph.path.map
-      (simple_graph.hom.map_spanning_subgraphs (delete_edges_le G _))
+      (simple_graph.hom.map_spanning_subgraphs (by { rw from_edge_set_le_iff, exact λ x hx, hx.1.1, }))
       function.injective_id
       (Gne_co.1 u v).some.to_path,
 
@@ -288,11 +293,18 @@ begin
 
   have : p₁ ≠ p₂, by
   { rintro e,
-    have : ⟦(u, v)⟧ ∉ p₁.val.edges := delete_edge_hom_not_edges u v eG _,
+    have : ⟦(u, v)⟧ ∉ p₁.val.edges := λ h, by
+    { simp only [subtype.val_eq_coe, path.map_coe, walk.edges_map, list.mem_map,
+                 hom.map_spanning_subgraphs_apply, sym2.map_id', id.def, exists_eq_right] at h,
+      replace h := walk.edges_subset_edge_set _ h,
+      simp only [from_edge_set_sdiff, from_edge_set_edge_set, mem_edge_set, sdiff_adj,
+                 from_edge_set_adj, set.mem_singleton_iff, not_and, not_not] at h
+                {contextual := tt},
+      apply h.left.ne (h.right rfl), },
     rw e at this,
     exact this (path.mk_mem_edges_singleton ((mem_edge_set G).mp eG)), },
 
-  exact this (hG.right.path_unique p₁ p₂),
+  exact this (hG.is_acyclic.path_unique p₁ p₂),
 end
 
 lemma is_max_acyclic.is_connected [decidable_eq V] (hT : T.connected) :
@@ -306,7 +318,14 @@ begin
   obtain ⟨x,y,e,hx',hy'⟩ := (hT.1 u v).some.disagreeing_adj_pair ({x | G.reachable u x}) (by {simp,}) h,
   have hy : ¬ G.reachable x y := λ h, hy' (hx'.trans h),
   have xnay : ¬ G.adj x y := λ a, hy ⟨(path.singleton a).val⟩,
-  have hG : G = (G.add_edges {⟦⟨x,y⟩⟧}).delete_edges {⟦⟨x,y⟩⟧} := (add_delete_edge x y xnay).symm,
+  have xney : x ≠ y := e.ne,
+  have hG : G = from_edge_set ((from_edge_set $ G.edge_set ∪ {⟦⟨x,y⟩⟧}).edge_set \ {⟦⟨x,y⟩⟧}), by
+  { rw edge_set_from_edge_set,
+    ext s t,
+    simp,
+    split,
+    { rintro a, refine ⟨⟨or.inr a,a.ne⟩,_⟩, rintro (⟨rfl,rfl⟩|⟨rfl,rfl⟩);sorry },
+    { sorry, }, },
   specialize Gmax ⟦⟨x,y⟩⟧
     ( by { rw [set.mem_diff, mem_edge_set], exact ⟨e, xnay⟩ } ),
   dsimp only [is_acyclic] at Gmax,
@@ -314,9 +333,11 @@ begin
   obtain ⟨v,w,wc⟩ := Gmax,
   by_cases h : (⟦⟨x,y⟩⟧ : sym2 V) ∈ w.edges,
   { apply hy, rw hG,
-    exact (adj_and_reachable_delete_edges_iff_exists_cycle.mpr ⟨v,w,wc,h⟩).right, },
+    convert (adj_and_reachable_delete_edges_iff_exists_cycle.mpr ⟨v,w,wc,h⟩).right,
+    rw delete_edges_eq, },
   { rw hG at Gac,
-    apply Gac,
+    rw ←delete_edges_eq at Gac,
+    apply Gac v,
     let w' := walk.to_delete_edge ⟦⟨x,y⟩⟧ w h,
     exact (walk.is_cycle.to_delete_edges {⟦⟨x,y⟩⟧} wc _ : w'.is_cycle), },
 end
@@ -330,7 +351,7 @@ begin
   rintro c w wc,
   have : ∃ e, e ∈ w.edges ∧ e ∉ B.edge_set, by
   { by_contra h, push_neg at h,
-    exact hB c (w.induce h) (w.is_cycle_induce h wc), },
+    exact hB c (w.transfer B h) (walk.is_cycle.transfer wc h), },
   obtain ⟨⟨u,v⟩,⟨ew,neB⟩⟩ := this,
   apply Gmin ⟦⟨u,v⟩⟧ ⟨walk.edges_subset_edge_set w ew, neB⟩,
   rw connected_iff at Gco ⊢, refine ⟨_,Gco.right⟩,

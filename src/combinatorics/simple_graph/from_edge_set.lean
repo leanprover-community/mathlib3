@@ -8,27 +8,8 @@ namespace simple_graph
 
 variable (V : Type*)
 
-@[simp] lemma from_edge_set_inf (s t : set (sym2 V)) :
-  from_edge_set (s ∩ t) = from_edge_set s ⊓ from_edge_set t :=
-by { ext v w, simp only [from_edge_set_adj, set.mem_inter_iff, ne.def, inf_adj], tauto, }
-
-@[simp] lemma from_edge_set_sup (s t : set (sym2 V)) :
-  from_edge_set (s ∪ t) = from_edge_set s ⊔ from_edge_set t :=
-by { ext v w, simp [set.mem_union, or_and_distrib_right], }
-
-@[simp] lemma from_edge_set_sdiff (s t : set (sym2 V)) :
-  from_edge_set (s \ t) = from_edge_set s \ from_edge_set t :=
-by { ext v w, split; simp { contextual := tt }, }
-
-lemma from_edge_set_mono {s t : set (sym2 V)} (h : s ⊆ t) : from_edge_set s ≤ from_edge_set t :=
-begin
-  rintro v w,
-  simp only [from_edge_set_adj, ne.def, not_false_iff, and_true, and_imp] {contextual := tt},
-  exact λ vws _, h vws,
-end
-
 lemma from_edge_set_le_from_edge_set_iff {s t : set (sym2 V)} :
-  from_edge_set s ≤ from_edge_set t ↔ (s \ (set_of sym2.is_diag)) ⊆ (t \ (set_of sym2.is_diag)) :=
+  from_edge_set s ≤ from_edge_set t ↔ (s \ {e | e.is_diag}) ⊆ (t \ {e | e.is_diag}) :=
 begin
   split,
   { rintros h ⟨u,v⟩,
@@ -61,8 +42,8 @@ begin
   rw this,
 end
 
-lemma from_edge_set_eq_iff  (s : set (sym2 V)) (G : simple_graph V) :
-  from_edge_set s = G ↔ (s \ (set_of sym2.is_diag)) = G.edge_set :=
+lemma from_edge_set_eq_iff (s : set (sym2 V)) (G : simple_graph V) :
+  from_edge_set s = G ↔ (s \ {e | e.is_diag}) = G.edge_set :=
 begin
   nth_rewrite 0 ←from_edge_set_edge_set G,
   rw from_edge_set_eq_from_edge_set_iff,
@@ -70,5 +51,7 @@ begin
   { ext ⟨u,v⟩, simp only [set.mem_diff, set.mem_set_of_eq, and_iff_left_iff_imp], exact adj.ne, },
   rw this,
 end
+
+
 
 end simple_graph

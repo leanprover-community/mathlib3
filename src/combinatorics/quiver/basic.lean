@@ -161,7 +161,9 @@ def of : V ⥤q push σ :=
 variables {W' : Type*} [quiver W'] (φ : V ⥤q W') (τ : W → W') (h : ∀ x, φ.obj x = τ (σ x) )
 
 include φ h
-/-- Any map `φ : V → W'` factoring through `τ : W → W'` lifts to a prefunctor from `V` to `W`. -/
+/-- Given a function `τ : W → W'` and a prefunctor `φ : V ⥤q W'`, one can extend `τ` to be
+a prefunctor `W ⥤q W'` if `τ` and `σ` factorize `φ` at the level of objects, where `W` is given
+the pushforward quiver structure `push σ`. -/
 def lift : push σ ⥤q W' :=
 { obj := τ,
   map := @push_quiver.rec V _ W σ

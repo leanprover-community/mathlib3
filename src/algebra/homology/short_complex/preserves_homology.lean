@@ -130,8 +130,8 @@ begin
       simp only [comp_id, id_comp, F.map_comp], }, },
   let f' : F.obj S.X₁ ⟶ F.obj h.K := hi.lift (kernel_fork.of_ι (S.map F).f (S.map F).zero),
   have hf' : f' = F.map h.f',
-  { apply kernel_fork.is_limit.hom_ext hi,
-    erw kernel_fork.is_limit.lift_ι hi,
+  { apply fork.is_limit.hom_ext hi,
+    erw fork.is_limit.lift_ι hi,
     simp only [kernel_fork.ι_of_ι, map_f, ← F.map_comp, h.f'_i], },
   have hπ₀ : f' ≫ F.map h.π = 0,
   { rw [hf', ← F.map_comp, h.f'_π, F.map_zero], },
@@ -210,8 +210,8 @@ begin
       simp only [comp_id, id_comp, F.map_comp], }, },
   let g' : F.obj h.Q ⟶ F.obj S.X₃ := hp.desc (cokernel_cofork.of_π (S.map F).g (S.map F).zero),
   have hg' : g' = F.map h.g',
-  { apply cokernel_cofork.is_colimit.hom_ext hp,
-    erw cokernel_cofork.is_colimit.π_desc hp,
+  { apply cofork.is_colimit.hom_ext hp,
+    erw cofork.is_colimit.π_desc hp,
     simp only [cokernel_cofork.π_of_π, map_g, ← F.map_comp, h.p_g'], },
   have hι₀ : F.map h.ι ≫ g' = 0,
   { rw [hg', ← F.map_comp, h.ι_g', F.map_zero], },
@@ -604,38 +604,5 @@ def preserves_right_homology_of_zero_right (hg : S.g = 0)
 end⟩
 
 end
-
-/-namespace homology_data
-
-def map_homology_iso {S : short_complex C}
-  (h : homology_data S) (F : C ⥤ D) [F.preserves_zero_morphisms]
-  [(S.map F).has_homology]
-  [F.preserves_left_homology_of S] [F.preserves_right_homology_of S]
-  [h.left.is_preserved_by F] [h.right.is_preserved_by F] :
-  (S.map F).homology ≅ F.obj h.left.H :=
-begin
-  exact (h.map F).homology_iso,
-
-end
-
-
-end homology_data
-
-namespace homology_map_data
-
-lemma homology_iso_naturality
-  {φ : S₁ ⟶ S₂} {h₁ : homology_data S₁} {h₂ : homology_data S₂}
-  (h : homology_map_data φ h₁ h₂)
-  (F : C ⥤ D) [F.preserves_zero_morphisms]
-  [S₁.has_homology] [F.preserves_left_homology_of S₁] [F.preserves_right_homology_of S₁]
-  [S₂.has_homology] [F.preserves_left_homology_of S₂] [F.preserves_right_homology_of S₂]
-  [(S₁.map F).has_homology]
-  [h₁.left.is_preserved_by F] [h₁.right.is_preserved_by F]
-  [h₂.left.is_preserved_by F] [h₂.right.is_preserved_by F] :
-  homology_map (F.map_short_complex.map φ) ≫ (h₂.map F).homology_iso.hom =
-    (h₁.map F).homology_iso.hom ≫ F.map h.left.φH :=
-(h.map F).map_comm
-
-end homology_map_data-/
 
 end short_complex

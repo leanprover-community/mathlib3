@@ -324,7 +324,7 @@ begin
     (λ A x hx b hb, by { dsimp, rw [← hb, assoc, s.f_r, comp_id], }),
   let f' := hi.lift (kernel_fork.of_ι S.f S.zero),
   have hf' : f' = 𝟙 _,
-  { apply kernel_fork.is_limit.hom_ext hi,
+  { apply fork.is_limit.hom_ext hi,
     simp only [fork.is_limit.lift_ι, id_comp], },
   have hπ₀ : f' ≫ (0 : _ ⟶ 0) = 0 := comp_zero,
   have hπ := cokernel_cofork.is_colimit.of_π 0 hπ₀
@@ -348,7 +348,7 @@ begin
   (λ A x hx b hb, by { dsimp, rw [← hb, s.s_g_assoc], }),
   let g' := hp.desc (cokernel_cofork.of_π S.g S.zero),
   have hg' : g' = 𝟙 _,
-  { apply cokernel_cofork.is_colimit.hom_ext hp,
+  { apply cofork.is_colimit.hom_ext hp,
     simp only [cofork.is_colimit.π_desc],
     erw comp_id, },
   have hι₀ : (0 : 0 ⟶ _) ≫ g' = 0 := zero_comp,

@@ -25,23 +25,16 @@ def cokernel_zero {X Y : C} (f : X ⟶ Y) (hf : f = 0) :
 cokernel_cofork.is_colimit.of_π _ _ (λ A x hx, x) (λ A x hx, id_comp _)
   (λ A x hx b hb, by rw [← hb, id_comp])
 
-namespace kernel_fork
-
-lemma is_limit.mono_π {C : Type*} [category C] [has_zero_morphisms C]
-  {X Y : C} {f : X ⟶ Y} {c : kernel_fork f} (hc : is_limit c) : mono c.ι :=
-⟨λ Z g₁ g₂ hg, hc.hom_ext (by { rintro (_|_), tidy, })⟩
-
-lemma is_limit.hom_ext {X Y Z : C} {f : X ⟶ Y} {c : kernel_fork f} (hc : is_limit c)
-  (g₁ g₂ : Z ⟶ c.X) (hg : g₁ ≫ c.ι = g₂ ≫ c.ι) : g₁ = g₂ :=
-begin
-  haveI := is_limit.mono_π hc,
-  simpa only [← cancel_mono c.ι] using hg,
-end
+lemma fork.is_limit.mono_ι {C : Type*} [category C] [has_zero_morphisms C]
+  {X Y : C} {f g : X ⟶ Y} {c : fork f g} (hc : is_limit c) : mono c.ι :=
+⟨λ Z g₁ g₂, fork.is_limit.hom_ext hc⟩
 
 @[simp, reassoc]
-lemma is_limit.lift_ι {X Y : C} {f : X ⟶ Y} {c : kernel_fork f} (hc : is_limit c)
-  (c' : kernel_fork f) : hc.lift c' ≫ c.ι = c'.ι :=
+lemma fork.is_limit.lift_ι' {X Y : C} {f g : X ⟶ Y} {c : fork f g} (hc : is_limit c)
+  (c' : fork f g ) : hc.lift c' ≫ c.ι = c'.ι :=
 by apply fork.is_limit.lift_ι
+
+namespace kernel_fork
 
 @[simps]
 def is_limit.of_ι_op {K X Y : C} (i : K ⟶ X) {f : X ⟶ Y}
@@ -50,9 +43,9 @@ def is_limit.of_ι_op {K X Y : C} (i : K ⟶ X) {f : X ⟶ Y}
     (show f.op ≫ i.op = 0, by simpa only [← op_comp, w])) :=
 cokernel_cofork.is_colimit.of_π _ _
   (λ A x hx, (h.lift (kernel_fork.of_ι x.unop (quiver.hom.op_inj hx))).op)
-  (λ A x hx, quiver.hom.unop_inj (is_limit.lift_ι h _))
+  (λ A x hx, quiver.hom.unop_inj (fork.is_limit.lift_ι h))
   (λ A x hx b hb, quiver.hom.unop_inj (fork.is_limit.hom_ext h begin
-    simp only [quiver.hom.unop_op, is_limit.lift_ι],
+    simp only [quiver.hom.unop_op, fork.is_limit.lift_ι],
     exact quiver.hom.op_inj hb,
   end))
 
@@ -63,9 +56,9 @@ def is_limit.of_ι_unop {K X Y : Cᵒᵖ} (i : K ⟶ X) {f : X ⟶ Y}
     (show f.unop ≫ i.unop = 0, by simpa only [← unop_comp, w])) :=
 cokernel_cofork.is_colimit.of_π _ _
   (λ A x hx, (h.lift (kernel_fork.of_ι x.op (quiver.hom.unop_inj hx))).unop)
-  (λ A x hx, quiver.hom.op_inj (is_limit.lift_ι h _))
+  (λ A x hx, quiver.hom.op_inj (fork.is_limit.lift_ι h))
   (λ A x hx b hb, quiver.hom.op_inj (fork.is_limit.hom_ext h begin
-    simp only [quiver.hom.op_unop, is_limit.lift_ι],
+    simp only [quiver.hom.op_unop, fork.is_limit.lift_ι],
     exact quiver.hom.unop_inj hb,
   end))
 
@@ -74,7 +67,7 @@ lemma is_limit.is_iso_ι_of_zero {X Y : C} {f : X ⟶ Y} (c : kernel_fork f)
 begin
   subst hf,
   let e : c.X ≅ X := is_limit.cone_point_unique_up_to_iso hc (kernel_zero (0 : X ⟶ Y) rfl),
-  have eq : e.inv ≫ fork.ι c  = 𝟙 X := is_limit.lift_ι hc _,
+  have eq : e.inv ≫ fork.ι c  = 𝟙 X := fork.is_limit.lift_ι hc,
   haveI : is_iso (e.inv ≫ fork.ι c),
   { rw eq, dsimp, apply_instance, },
   exact is_iso.of_is_iso_comp_left e.inv (fork.ι c),
@@ -86,43 +79,34 @@ namespace cokernel_cofork
 
 lemma is_colimit.epi_π {C : Type*} [category C] [has_zero_morphisms C]
   {X Y : C} {f : X ⟶ Y} {c : cokernel_cofork f} (hc : is_colimit c) : epi c.π :=
-⟨λ Z g₁ g₂ hg, hc.hom_ext (by { rintro (_|_), tidy, })⟩
+⟨λ Z g₁ g₂, cofork.is_colimit.hom_ext hc⟩
 
-lemma is_colimit.hom_ext {X Y Z : C} {f : X ⟶ Y} {c : cokernel_cofork f} (hc : is_colimit c)
-  (g₁ g₂ : c.X ⟶ Z) (hg : c.π ≫ g₁ = c.π ≫ g₂) : g₁ = g₂ :=
-begin
-  haveI := is_colimit.epi_π hc,
-  simpa only [← cancel_epi c.π] using hg,
-end
+--@[simp, reassoc]
+--lemma is_colimit.π_desc {X Y : C} {f : X ⟶ Y} {c : cokernel_cofork f} (hc : is_colimit c)
+--  (c' : cokernel_cofork f) : c.π ≫ hc.desc c' = c'.π :=
+--by apply cofork.is_colimit.π_desc
 
-@[simp, reassoc]
-lemma is_colimit.π_desc {X Y : C} {f : X ⟶ Y} {c : cokernel_cofork f} (hc : is_colimit c)
-  (c' : cokernel_cofork f) : c.π ≫ hc.desc c' = c'.π :=
-by apply cofork.is_colimit.π_desc
-
-@[simps]
 def is_colimit.of_π_op {X Y Q : C} (p : Y ⟶ Q) {f : X ⟶ Y}
   (w : f ≫ p = 0) (h : is_colimit (cokernel_cofork.of_π p w)) :
   is_limit (kernel_fork.of_ι p.op
     (show p.op ≫ f.op = 0, by simpa only [← op_comp, w])) :=
 kernel_fork.is_limit.of_ι _ _
   (λ A x hx, (h.desc (cokernel_cofork.of_π x.unop (quiver.hom.op_inj hx))).op)
-  (λ A x hx, quiver.hom.unop_inj (is_colimit.π_desc h _))
+  (λ A x hx, quiver.hom.unop_inj (cofork.is_colimit.π_desc h))
   (λ A x hx b hb, quiver.hom.unop_inj (cofork.is_colimit.hom_ext h begin
-    simp only [quiver.hom.unop_op, is_colimit.π_desc],
+    simp only [quiver.hom.unop_op, cofork.is_colimit.π_desc],
     exact quiver.hom.op_inj hb,
   end))
 
-@[simps]
 def is_colimit.of_π_unop {X Y Q : Cᵒᵖ} (p : Y ⟶ Q) {f : X ⟶ Y}
   (w : f ≫ p = 0) (h : is_colimit (cokernel_cofork.of_π p w)) :
   is_limit (kernel_fork.of_ι p.unop
     (show p.unop ≫ f.unop = 0, by simpa only [← unop_comp, w])) :=
 kernel_fork.is_limit.of_ι _ _
   (λ A x hx, (h.desc (cokernel_cofork.of_π x.op (quiver.hom.unop_inj hx))).unop)
-  (λ A x hx, quiver.hom.op_inj (is_colimit.π_desc h _))
+  (λ A x hx, quiver.hom.op_inj (cofork.is_colimit.π_desc h))
   (λ A x hx b hb, quiver.hom.op_inj (cofork.is_colimit.hom_ext h begin
-    simp only [quiver.hom.op_unop, is_colimit.π_desc],
+    simp only [quiver.hom.op_unop, cofork.is_colimit.π_desc],
     exact quiver.hom.unop_inj hb,
   end))
 
@@ -131,7 +115,7 @@ lemma is_colimit.is_iso_π_of_zero {X Y : C} {f : X ⟶ Y} (c : cokernel_cofork 
 begin
   subst hf,
   let e : c.X ≅ Y := is_colimit.cocone_point_unique_up_to_iso hc (cokernel_zero (0 : X ⟶ Y) rfl),
-  have eq : cofork.π c ≫ e.hom = 𝟙 Y := is_colimit.π_desc hc _,
+  have eq : cofork.π c ≫ e.hom = 𝟙 Y := cofork.is_colimit.π_desc hc,
   haveI : is_iso (cofork.π c ≫ e.hom),
   { rw eq, dsimp, apply_instance, },
   exact is_iso.of_is_iso_comp_right (cofork.π c) e.hom,
@@ -315,9 +299,9 @@ def kernel_sequence' {X Y : C} (f : X ⟶ Y) (c : kernel_fork f) (hc : is_limit 
   hπ := begin
     let l := hc.lift (kernel_fork.of_ι (fork.ι c) (kernel_fork.condition c)),
     have hl : l = 𝟙 c.X,
-    { apply kernel_fork.is_limit.hom_ext hc,
+    { apply fork.is_limit.hom_ext hc,
       dsimp,
-      simp only [kernel_fork.is_limit.lift_ι, kernel_fork.ι_of_ι, id_comp], },
+      simp only [fork.is_limit.lift_ι, kernel_fork.ι_of_ι, id_comp], },
     exact cokernel_cofork.is_colimit.of_π _ _ (λ A x hx, 0)
       (λ A x hx, begin
         change (l ≫ 𝟙 _) ≫ x = 0 at hx,
@@ -353,7 +337,7 @@ begin
   have eq : f'' = f',
   { rw [← cancel_mono e.hom, ← cancel_mono h.i, assoc, commi],
     dsimp,
-    erw kernel_fork.is_limit.lift_ι,
+    erw fork.is_limit.lift_ι,
     simp only [kernel_fork.ι_of_ι, assoc, commi, commf'], },
   have hπ₀' : f'' ≫ π = 0 := by rw [eq, hπ₀],
   have hπ' : is_colimit (cokernel_cofork.of_π π hπ₀'),

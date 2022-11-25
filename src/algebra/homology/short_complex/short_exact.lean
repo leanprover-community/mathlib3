@@ -144,7 +144,7 @@ end
 lemma lift_f (hS : S.short_exact) {A : C} [balanced C]
   (k : A ⟶ S.X₂) (hk : k ≫ S.g = 0) :
   hS.lift k hk ≫ S.f = k :=
-kernel_fork.is_limit.lift_ι _ _
+fork.is_limit.lift_ι _
 
 def desc (hS : S.short_exact) {A : C} [balanced C]
   (k : S.X₂ ⟶ A) (hk : S.f ≫ k = 0) : S.X₃ ⟶ A :=
@@ -159,7 +159,7 @@ lemma g_desc (hS : S.short_exact) {A : C} [balanced C]
   S.g ≫ hS.desc k hk = k :=
 begin
   haveI := hS.epi_g,
-  apply cokernel_cofork.is_colimit.π_desc (hS.exact.g_is_cokernel),
+  apply cofork.is_colimit.π_desc (hS.exact.g_is_cokernel),
 end
 
 end short_exact

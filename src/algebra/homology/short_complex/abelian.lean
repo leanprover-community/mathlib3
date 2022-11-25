@@ -18,14 +18,14 @@ def cokernel_cofork.cocone_point_iso_of_epi_of_is_iso {C : Type*} [category C] [
       simp only [assoc, is_iso.hom_inv_id, comp_id, cokernel_cofork.condition, comp_zero], })),
   hom_inv_id' := begin
     haveI := cokernel_cofork.is_colimit.epi_π hc,
-    simp only [← cancel_epi c.π, cokernel_cofork.is_colimit.π_desc_assoc hc, assoc,
-      cokernel_cofork.π_of_π, cokernel_cofork.is_colimit.π_desc, is_iso.hom_inv_id_assoc],
+    simp only [← cancel_epi c.π, cofork.is_colimit.π_desc_assoc hc, assoc,
+      cokernel_cofork.π_of_π, cofork.is_colimit.π_desc, is_iso.hom_inv_id_assoc],
     erw comp_id,
   end,
   inv_hom_id' := begin
     haveI := cokernel_cofork.is_colimit.epi_π hc',
-    simp only [← cancel_epi c'.π, assoc, cokernel_cofork.is_colimit.π_desc_assoc,
-      cokernel_cofork.π_of_π, cokernel_cofork.is_colimit.π_desc, is_iso.inv_hom_id_assoc],
+    simp only [← cancel_epi c'.π, assoc, cofork.is_colimit.π_desc_assoc,
+      cokernel_cofork.π_of_π, cofork.is_colimit.π_desc, is_iso.inv_hom_id_assoc],
     erw comp_id,
   end, }
 
@@ -39,7 +39,7 @@ lemma cokernel_cofork.comp_cocone_point_iso_of_epi_of_is_iso_hom
     q ≫ c'.π :=
 begin
   dsimp [cokernel_cofork.cocone_point_iso_of_epi_of_is_iso],
-  simp only [cokernel_cofork.is_colimit.π_desc, cokernel_cofork.π_of_π],
+  simp only [cofork.is_colimit.π_desc, cokernel_cofork.π_of_π],
 end
 
 @[simp, reassoc]
@@ -52,7 +52,7 @@ lemma cokernel_cofork.comp_cocone_point_iso_of_epi_of_is_iso_inv
     inv q ≫ c.π :=
 begin
   dsimp [cokernel_cofork.cocone_point_iso_of_epi_of_is_iso],
-  simp only [cokernel_cofork.is_colimit.π_desc, cokernel_cofork.π_of_π],
+  simp only [cofork.is_colimit.π_desc, cokernel_cofork.π_of_π],
 end
 
 end category_theory.limits

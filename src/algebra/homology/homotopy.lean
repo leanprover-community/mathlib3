@@ -736,7 +736,7 @@ def homotopy.to_short_complex (ho : homotopy f g) (i : ι) :
 { h₀ := if c.rel (c.prev i) i
         then ho.hom (c.prev i) (c.prev (c.prev i)) ≫ D.d _ (c.prev i)
         else f.f (c.prev i) - g.f (c.prev i) - C.d_to i ≫ ho.hom i (c.prev i),
-  h₀_f := begin
+  h₀_f' := begin
     split_ifs,
     { simp only [short_complex_functor_obj_f, category.assoc, d_comp_d, comp_zero], },
     { dsimp,
@@ -747,13 +747,13 @@ def homotopy.to_short_complex (ho : homotopy f g) (i : ι) :
   h₃ := if c.rel i (c.next i)
         then C.d_from (c.next i) ≫ ho.hom (c.next (c.next i)) (c.next i)
         else f.f (c.next i) - g.f (c.next i) - ho.hom (c.next i) i ≫ D.d_from i,
-  g_h₃ := begin
+  g_h₃' := begin
     split_ifs,
     { simp only [short_complex_functor_obj_g, d_comp_d_assoc, zero_comp], },
     { dsimp,
       rw [C.d_from_eq_zero h, zero_comp], },
   end,
-  comm₁ := begin
+  comm₁' := begin
     dsimp,
     split_ifs,
     { rw ho.comm (c.prev i),
@@ -763,8 +763,8 @@ def homotopy.to_short_complex (ho : homotopy f g) (i : ι) :
       rw c.next_eq' h, },
     { abel, },
   end,
-  comm₂ := ho.comm i,
-  comm₃ := begin
+  comm₂' := ho.comm i,
+  comm₃' := begin
     dsimp,
     split_ifs,
     { rw ho.comm (c.next i),

@@ -611,7 +611,7 @@ S.homology_is_cokernel.desc (cokernel_cofork.of_π k hk)
 @[simp, reassoc]
 lemma homology_π_desc (k : S.cycles ⟶ A) (hk : S.to_cycles ≫ k = 0) :
   S.homology_π ≫ S.homology_desc k hk = k :=
-cokernel_cofork.is_colimit.π_desc S.homology_is_cokernel (cokernel_cofork.of_π k hk)
+cofork.is_colimit.π_desc S.homology_is_cokernel
 
 /- dualise the above -/
 
@@ -646,7 +646,7 @@ S.homology_is_kernel.lift (kernel_fork.of_ι k hk)
 @[simp, reassoc]
 lemma homology_lift_ι (k : A ⟶ S.cycles_co) (hk : k ≫ S.from_cycles_co = 0) :
   S.homology_lift k hk ≫ S.homology_ι = k :=
-kernel_fork.is_limit.lift_ι S.homology_is_kernel _
+fork.is_limit.lift_ι S.homology_is_kernel
 
 @[simp, reassoc]
 lemma homology_π_ι :

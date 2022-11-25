@@ -281,6 +281,30 @@ def edge_set : set (sym2 V) := sym2.from_rel G.symm
 
 @[simp] lemma mem_edge_set : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w := iff.rfl
 
+lemma not_is_diag_of_mem_edge_set {e : sym2 V} (h : e ∈ G.edge_set) : ¬ e.is_diag :=
+sym2.ind (λ v w, adj.ne) e h
+
+@[simp] lemma edge_set_sdiff (G H : simple_graph V) :
+  (G \ H).edge_set = G.edge_set \ H.edge_set :=
+by { ext ⟨x,y⟩, exact ⟨id, id⟩ }
+
+@[simp] lemma edge_set_inf (G H : simple_graph V) :
+  (G ⊓ H).edge_set = G.edge_set ∩ H.edge_set :=
+by { ext ⟨x,y⟩, exact ⟨id, id⟩ }
+
+@[simp] lemma edge_set_sup (G H : simple_graph V) :
+  (G ⊔ H).edge_set = G.edge_set ∪ H.edge_set :=
+by { ext ⟨x,y⟩, exact ⟨id, id⟩ }
+
+@[simp] lemma edge_set_sdiff_sdiff_is_diag (G : simple_graph V)  (s : set (sym2 V)) :
+  G.edge_set \ (s \ {e | e.is_diag}) = G.edge_set \ s :=
+begin
+  ext e,
+  simp only [set.mem_diff, set.mem_set_of_eq, not_and, not_not, and.congr_right_iff],
+  intro h,
+  simp only [G.not_is_diag_of_mem_edge_set h, imp_false],
+end
+
 lemma edge_set_mono {G G' : simple_graph V} (h : G ≤ G') : G.edge_set ⊆ G'.edge_set :=
 λ e, sym2.ind (λ v w, @h v w) e
 
@@ -332,7 +356,7 @@ def from_edge_set : simple_graph V :=
 
 -- Note: we need to make sure `from_edge_set_adj` and this lemma are confluent.
 -- In particular, both yield `⟦(u, v)⟧ ∈ (from_edge_set s).edge_set` ==> `⟦(v, w)⟧ ∈ s ∧ v ≠ w`.
-@[simp] lemma edge_set_from_edge_set : (from_edge_set s).edge_set = {e ∈ s | ¬ e.is_diag} :=
+@[simp] lemma edge_set_from_edge_set : (from_edge_set s).edge_set = s \ {e | e.is_diag} :=
 by { ext e, exact sym2.ind (by simp) e }
 
 @[simp] lemma from_edge_set_edge_set : from_edge_set G.edge_set = G :=
@@ -343,6 +367,25 @@ by { ext v w, simp only [from_edge_set_adj, set.mem_empty_iff_false, false_and, 
 
 @[simp] lemma from_edge_set_univ : from_edge_set (set.univ : set (sym2 V)) = ⊤ :=
 by { ext v w, simp only [from_edge_set_adj, set.mem_univ, true_and, top_adj] }
+
+@[simp] lemma from_edge_set_inf (s t : set (sym2 V)) :
+  from_edge_set (s ∩ t) = from_edge_set s ⊓ from_edge_set t :=
+by { ext v w, simp only [from_edge_set_adj, set.mem_inter_iff, ne.def, inf_adj], tauto, }
+
+@[simp] lemma from_edge_set_sup (s t : set (sym2 V)) :
+  from_edge_set (s ∪ t) = from_edge_set s ⊔ from_edge_set t :=
+by { ext v w, simp [set.mem_union, or_and_distrib_right], }
+
+@[simp] lemma from_edge_set_sdiff (s t : set (sym2 V)) :
+  from_edge_set (s \ t) = from_edge_set s \ from_edge_set t :=
+by { ext v w, split; simp { contextual := tt }, }
+
+lemma from_edge_set_mono {s t : set (sym2 V)} (h : s ⊆ t) : from_edge_set s ≤ from_edge_set t :=
+begin
+  rintro v w,
+  simp only [from_edge_set_adj, ne.def, not_false_iff, and_true, and_imp] {contextual := tt},
+  exact λ vws _, h vws,
+end
 
 instance [decidable_eq V] [fintype s] : fintype (from_edge_set s).edge_set :=
 by { rw edge_set_from_edge_set s, apply_instance }

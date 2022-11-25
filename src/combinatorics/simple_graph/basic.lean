@@ -296,7 +296,11 @@ by { ext ⟨x,y⟩, exact ⟨id, id⟩ }
   (G ⊔ H).edge_set = G.edge_set ∪ H.edge_set :=
 by { ext ⟨x,y⟩, exact ⟨id, id⟩ }
 
-@[simp] lemma edge_set_sdiff_sdiff_is_diag (G : simple_graph V)  (s : set (sym2 V)) :
+/--
+This lemma, combined with `edge_set_sdiff` and `edge_set_from_edge_set`,
+allows proving `(G \ from_edge_set s).edge_set = G.edge_set \ s` by `simp`.
+-/
+@[simp] lemma edge_set_sdiff_sdiff_is_diag (G : simple_graph V) (s : set (sym2 V)) :
   G.edge_set \ (s \ {e | e.is_diag}) = G.edge_set \ s :=
 begin
   ext e,
@@ -387,17 +391,18 @@ by { ext v w, simp only [from_edge_set_adj, set.mem_empty_iff_false, false_and, 
 by { ext v w, simp only [from_edge_set_adj, set.mem_univ, true_and, top_adj] }
 
 @[simp] lemma from_edge_set_inf (s t : set (sym2 V)) :
-  from_edge_set (s ∩ t) = from_edge_set s ⊓ from_edge_set t :=
+  from_edge_set s ⊓ from_edge_set t = from_edge_set (s ∩ t) :=
 by { ext v w, simp only [from_edge_set_adj, set.mem_inter_iff, ne.def, inf_adj], tauto, }
 
 @[simp] lemma from_edge_set_sup (s t : set (sym2 V)) :
-  from_edge_set (s ∪ t) = from_edge_set s ⊔ from_edge_set t :=
+  from_edge_set s ⊔ from_edge_set t = from_edge_set (s ∪ t) :=
 by { ext v w, simp [set.mem_union, or_and_distrib_right], }
 
 @[simp] lemma from_edge_set_sdiff (s t : set (sym2 V)) :
-  from_edge_set (s \ t) = from_edge_set s \ from_edge_set t :=
+  from_edge_set s \ from_edge_set t = from_edge_set (s \ t) :=
 by { ext v w, split; simp { contextual := tt }, }
 
+@[mono]
 lemma from_edge_set_mono {s t : set (sym2 V)} (h : s ⊆ t) : from_edge_set s ≤ from_edge_set t :=
 begin
   rintro v w,

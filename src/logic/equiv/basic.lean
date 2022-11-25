@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import logic.equiv.defs
+import data.option.basic
 import data.prod.basic
 import data.sigma.basic
 import data.subtype
@@ -12,6 +13,10 @@ import logic.function.conjugate
 
 /-!
 # Equivalence between types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/631
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we continue the work on equivalences begun in `logic/equiv/defs.lean`, defining
 
@@ -89,8 +94,11 @@ rfl
 
 /-- Type product is commutative up to an equivalence: `α × β ≃ β × α`. This is `prod.swap` as an
 equivalence.-/
-@[simps apply] def prod_comm (α β : Type*) : α × β ≃ β × α :=
-⟨prod.swap, prod.swap, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
+def prod_comm (α β : Type*) : α × β ≃ β × α :=
+⟨prod.swap, prod.swap, prod.swap_swap, prod.swap_swap⟩
+
+@[simp] lemma coe_prod_comm (α β : Type*) : ⇑(prod_comm α β) = prod.swap := rfl
+@[simp] lemma prod_comm_apply {α β : Type*} (x : α × β) : prod_comm α β x = x.swap := rfl
 
 @[simp] lemma prod_comm_symm (α β) : (prod_comm α β).symm = prod_comm β α := rfl
 

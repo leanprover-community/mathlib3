@@ -7,7 +7,6 @@ import algebra.big_operators.ring
 import combinatorics.double_counting
 import combinatorics.set_family.shadow
 import data.rat.order
-import tactic.linarith
 
 /-!
 # Lubell-Yamamoto-Meshalkin inequality and Sperner's theorem

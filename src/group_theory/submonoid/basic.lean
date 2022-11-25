@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
 Amelia Livingston, Yury Kudryashov
 -/
+import algebra.hom.group  -- Only needed for notation
+import algebra.group.units
 import group_theory.subsemigroup.basic
 
 /-!
@@ -425,7 +427,7 @@ by simp_rw [submonoid.closure_Union, submonoid.closure_eq]
 @[to_additive]
 lemma disjoint_def {p₁ p₂ : submonoid M} :
   disjoint p₁ p₂ ↔ ∀ {x : M}, x ∈ p₁ → x ∈ p₂ → x = 1 :=
-show (∀ x, x ∈ p₁ ∧ x ∈ p₂ → x ∈ ({1} : set M)) ↔ _, by simp
+by simp_rw [disjoint_iff_inf_le, set_like.le_def, mem_inf, and_imp, mem_bot]
 
 @[to_additive]
 lemma disjoint_def' {p₁ p₂ : submonoid M} :

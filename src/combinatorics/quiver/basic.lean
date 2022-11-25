@@ -158,7 +158,7 @@ def of : V ⥤q push σ :=
 
 @[simp] lemma of_obj : (of σ).obj = σ := rfl
 
-variables {W' : Type*} [quiver W'] (φ : prefunctor V W') (τ : W → W') (h : ∀ x, φ.obj x = τ (σ x) )
+variables {W' : Type*} [quiver W'] (φ : V ⥤q W') (τ : W → W') (h : ∀ x, φ.obj x = τ (σ x) )
 
 include φ h
 /-- Any map `φ : V → W'` factoring through `τ : W → W'` lifts to a prefunctor from `V` to `W`. -/

@@ -50,7 +50,7 @@ def is_zero_at_im_infty {α : Type*} [has_zero α] [topological_space α] (f : �
 zero_at_filter at_im_infty f
 
 lemma zero_form_is_bounded_at_im_infty {α : Type*} [normed_field α] :
-  is_bounded_at_im_infty (0 : ℍ → α) := zero_is_bounded_at_filter
+  is_bounded_at_im_infty (0 : ℍ → α) := zero_is_bounded_at_filter _
 
 /-- Module of functions that are zero at infinity. -/
 def zero_at_im_infty_submodule (α : Type*) [normed_field α] : submodule α (ℍ → α) :=

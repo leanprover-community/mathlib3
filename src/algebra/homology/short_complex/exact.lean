@@ -20,14 +20,6 @@ lemma is_zero.unop {X : Cᵒᵖ} (h : is_zero X) : is_zero (opposite.unop X) :=
 ⟨λ Y, ⟨⟨⟨(h.from (opposite.op Y)).unop⟩, λ f, quiver.hom.op_inj (h.eq_of_tgt _ _)⟩⟩,
   λ Y, ⟨⟨⟨(h.to (opposite.op Y)).unop⟩, λ f, quiver.hom.op_inj (h.eq_of_src _ _)⟩⟩⟩
 
-lemma is_zero.iff_of_iso {X Y : C} (e : X ≅ Y) :
-  is_zero X ↔ is_zero Y :=
-begin
-  split,
-  { exact λ h, is_zero.of_iso h e.symm, },
-  { exact λ h, is_zero.of_iso h e, },
-end
-
 instance [has_zero_object C] : has_zero_object Cᵒᵖ :=
 ⟨⟨opposite.op 0, is_zero.op (is_zero_zero C)⟩⟩
 

@@ -118,8 +118,8 @@ variables [preadditive C] (S : short_complex C)
 
 lemma is_zero_left_homology_iff_epi_image_to_kernel [has_zero_object C] :
   is_zero S.left_homology ↔ epi S.image_to_kernel :=
-by simpa only [epi_iff_is_zero_cokernel S.image_to_kernel]
-  using is_zero.iff_of_iso S.left_homology_iso_cokernel_image_to_kernel
+by rw [epi_iff_is_zero_cokernel S.image_to_kernel,
+  S.left_homology_iso_cokernel_image_to_kernel.is_zero_iff]
 
 lemma is_zero_left_homology_iff_is_iso_image_eq_kernel [has_zero_object C] [balanced C] :
   is_zero S.left_homology ↔ is_iso S.image_to_kernel :=

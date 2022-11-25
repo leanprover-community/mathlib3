@@ -1587,7 +1587,7 @@ lemma basis.mem_ideal_iff' {ι R S : Type*} [fintype ι] [comm_ring R] [comm_rin
 
 namespace ring_hom
 
-variables {R : Type u} {S : Type v} {T : Type v}
+variables {R : Type u} {S : Type v} {T : Type w}
 
 section semiring
 variables {F : Type*} {G : Type*} [semiring R] [semiring S] [semiring T]

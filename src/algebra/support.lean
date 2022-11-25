@@ -311,6 +311,7 @@ mul_support_mul_single_subset.antisymm $
 @[to_additive] lemma mul_support_mul_single [decidable_eq B] :
   mul_support (mul_single a b) = if b = 1 then ∅ else {a} := by { split_ifs with h; simp [h] }
 
+@[to_additive]
 lemma mul_support_mul_single_disjoint {b' : B} (hb : b ≠ 1) (hb' : b' ≠ 1) {i j : A} :
   disjoint (mul_support (mul_single i b)) (mul_support (mul_single j b')) ↔ i ≠ j :=
 by rw [mul_support_mul_single_of_ne hb, mul_support_mul_single_of_ne hb', disjoint_singleton]

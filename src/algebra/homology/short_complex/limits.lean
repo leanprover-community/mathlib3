@@ -1,4 +1,5 @@
 import algebra.homology.short_complex.functors
+import category_theory.limits.shapes.finite_limits
 
 noncomputable theory
 
@@ -78,6 +79,9 @@ end
 instance has_limits_of_shape [has_limits_of_shape J C] :
   has_limits_of_shape J (short_complex C) := { }
 
+instance has_finite_limits [has_finite_limits C] :
+  has_finite_limits (short_complex C) :=
+⟨λ J, by { introI, introI, apply_instance, }⟩
 
 def is_colimit_of_is_colimit_π {F : J ⥤ short_complex C} (c : cocone F)
   (h₁ : is_colimit (π₁.map_cocone c)) (h₂ : is_colimit (π₂.map_cocone c))
@@ -151,5 +155,9 @@ end
 
 instance has_colimits_of_shape [has_colimits_of_shape J C] :
   has_colimits_of_shape J (short_complex C) := { }
+
+instance has_finite_colimits [has_finite_colimits C] :
+  has_finite_colimits (short_complex C) :=
+⟨λ J, by { introI, introI, apply_instance, }⟩
 
 end short_complex

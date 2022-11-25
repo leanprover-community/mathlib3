@@ -543,7 +543,7 @@ lemma support_monomial' (n) (a : R) : (monomial n a).support ⊆ singleton n :=
 by { rw [←of_finsupp_single, support], exact finsupp.support_single_subset }
 
 lemma support_C_mul_X {c : R} (h : c ≠ 0) : (C c * X).support = singleton 1 :=
-by rw [← C_mul_X_eq_monomial, support_monomial 1 h]
+by rw [C_mul_X_eq_monomial, support_monomial 1 h]
 
 lemma support_C_mul_X' (c : R) : (C c * X).support ⊆ singleton 1 :=
 by simpa only [C_mul_X_eq_monomial] using support_monomial' 1 c

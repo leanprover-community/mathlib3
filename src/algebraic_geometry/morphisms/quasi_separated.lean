@@ -323,7 +323,8 @@ begin
   swap,
   { simp only [map_pow, ring_hom.algebra_map_to_algebra, map_mul, ← comp_apply,
       ← functor.map_comp, ← op_comp, hom_of_le_comp],
-    have h₃ := obj.algebra._proof_1 (X.presheaf.map (hom_of_le $ h₁.trans le_sup_left).op f),
+    have h₃ : X.basic_open ((X.presheaf.map (hom_of_le (h₁.trans le_sup_left)).op) f) ≤ S.val,
+    { simpa only [X.basic_open_res] using inf_le_left, },
     transitivity
       X.presheaf.map (hom_of_le $ h₃.trans $ h₁.trans le_sup_left).op f ^ (n₂ + n₁) *
       X.presheaf.map (hom_of_le $ (X.basic_open_res f _).trans_le inf_le_right).op x,

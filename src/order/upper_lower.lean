@@ -959,7 +959,7 @@ upper_set.ext begin
     finish, },
 end
 
-lemma prod_Ici (a : α) (b : β) : upper_set.Ici (a,b) =
+lemma Ici_eq_bot_prod_Ici_join_Ici_prod_bot (a : α) (b : β) : upper_set.Ici (a,b) =
     (⊥ : upper_set α) ×ˢ (upper_set.Ici b) ⊔ (upper_set.Ici a) ×ˢ (⊥ : upper_set β) :=
 by rw [← upper_set.Ici_prod_Ici, ← upper_closure_singleton, ← upper_closure_singleton,
   ←upper_closure_prod, upper_closure_prod_eq_bot_prod_upper_closure_join_upper_closure_prod_bot]

@@ -138,7 +138,7 @@ begin
   refine ⟨λ hp i hi, is_coprime.prod_right_iff.mpr (λ j hj, _), λ hp, _⟩,
   { rw [finset.mem_sdiff, finset.mem_singleton] at hj,
     obtain ⟨hj, ji⟩ := hj,
-    exact hp ⟨i, hi⟩ ⟨j, hj⟩ (λ h, ji (congr_arg coe h).symm) },
+    exact @hp ⟨i, hi⟩ ⟨j, hj⟩ (λ h, ji (congr_arg coe h).symm) },
   { rintro ⟨i, hi⟩ ⟨j, hj⟩ h,
     apply is_coprime.prod_right_iff.mp (hp i hi),
     exact finset.mem_sdiff.mpr ⟨hj, λ f, h $ subtype.ext (finset.mem_singleton.mp f).symm⟩ }

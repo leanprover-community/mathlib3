@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam, Frédéric Dupuis
 -/
 import algebra.star.basic
-import group_theory.submonoid.membership
 
 /-!
 # Unitary elements of a star monoid

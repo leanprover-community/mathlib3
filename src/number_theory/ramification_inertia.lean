@@ -4,13 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
-import algebra.is_prime_pow
-import field_theory.separable
 import linear_algebra.free_module.finite.rank
-import linear_algebra.free_module.pid
-import linear_algebra.matrix.nonsingular_inverse
 import ring_theory.dedekind_domain.ideal
-import ring_theory.localization.module
 
 /-!
 # Ramification index and inertia degree

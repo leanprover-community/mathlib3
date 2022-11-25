@@ -82,18 +82,21 @@ begin
   simp,
 end
 
-lemma integrable_exp_neg_mul_sq_iff {b : ℝ} :
-  integrable (λ x:ℝ, exp (-b * x^2)) ↔ 0 < b :=
+lemma integrable_on_Ioi_exp_neg_mul_sq_iff {b : ℝ} :
+  integrable_on (λ x:ℝ, exp (-b * x^2)) (Ioi 0) ↔ 0 < b :=
 begin
-  refine ⟨λ h, _, integrable_exp_neg_mul_sq⟩,
+  refine ⟨(λ h, _), (λ h, (integrable_exp_neg_mul_sq h).integrable_on)⟩,
   by_contra' hb,
-  have : ∫⁻ x:ℝ, 1 ≤ ∫⁻ x:ℝ, ‖exp (-b * x^2)‖₊,
+  have : ∫⁻ x:ℝ in Ioi 0, 1 ≤ ∫⁻ x:ℝ in Ioi 0, ‖exp (-b * x^2)‖₊,
   { apply lintegral_mono (λ x, _),
     simp only [neg_mul, ennreal.one_le_coe_iff, ← to_nnreal_one, to_nnreal_le_iff_le_coe,
       real.norm_of_nonneg (exp_pos _).le, coe_nnnorm, one_le_exp_iff, right.nonneg_neg_iff],
     exact mul_nonpos_of_nonpos_of_nonneg hb (sq_nonneg _) },
   simpa using this.trans_lt h.2,
 end
+
+lemma integrable_exp_neg_mul_sq_iff {b : ℝ} : integrable (λ x:ℝ, exp (-b * x^2)) ↔ 0 < b :=
+⟨(λ h, integrable_on_Ioi_exp_neg_mul_sq_iff.mp h.integrable_on), integrable_exp_neg_mul_sq⟩
 
 lemma integrable_mul_exp_neg_mul_sq {b : ℝ} (hb : 0 < b) :
   integrable (λ x:ℝ, x * exp (-b * x^2)) :=
@@ -173,8 +176,12 @@ end
 open_locale interval
 
 /- The Gaussian integral on the half-line, `∫ x in Ioi 0, exp (-b * x^2)`. -/
-lemma integral_gaussian_Ioi {b : ℝ} (hb : 0 < b): ∫ x in Ioi 0, exp (-b * x^2) = sqrt (π / b) / 2 :=
+lemma integral_gaussian_Ioi (b : ℝ) : ∫ x in Ioi 0, exp (-b * x^2) = sqrt (π / b) / 2 :=
 begin
+  rcases le_or_lt b 0 with hb|hb,
+  { rw [integral_undef, sqrt_eq_zero_of_nonpos, zero_div],
+    exact div_nonpos_of_nonneg_of_nonpos pi_pos.le hb,
+    rwa [←integrable_on, integrable_on_Ioi_exp_neg_mul_sq_iff, not_lt] },
   have full_integral := integral_gaussian b,
   have : measurable_set (Ioi (0:ℝ)) := measurable_set_Ioi,
   rw [←integral_add_compl this (integrable_exp_neg_mul_sq hb), compl_Ioi] at full_integral,
@@ -217,8 +224,7 @@ begin
     rw [smul_eq_mul, this],
     field_simp [(ne_of_lt hx).symm],
     norm_num, ring },
-  rw [set_integral_congr measurable_set_Ioi this, integral_mul_left,
-    integral_gaussian_Ioi zero_lt_one],
+  rw [set_integral_congr measurable_set_Ioi this, integral_mul_left, integral_gaussian_Ioi],
   ring_nf,
 end
 

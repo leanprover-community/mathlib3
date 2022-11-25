@@ -123,6 +123,15 @@ by { change is_iso (π₂.map_iso (as_iso f)).hom, apply_instance, }
 instance (f : S₁ ⟶ S₂) [is_iso f] : is_iso f.τ₃ :=
 by { change is_iso (π₃.map_iso (as_iso f)).hom, apply_instance, }
 
+@[simps]
+def π₁_to_π₂ : (π₁ : _ ⥤ C) ⟶ π₂ := { app := λ S, S.f, }
+@[simps]
+def π₂_to_π₃ : (π₂ : _ ⥤ C) ⟶ π₃ := { app := λ S, S.g, }
+
+@[simp, reassoc]
+lemma π₁_to_π₂_comp_π₂_to_π₃ : (π₁_to_π₂ : (_ : _ ⥤ C) ⟶ _) ≫ π₂_to_π₃ = 0 :=
+by { ext, apply short_complex.zero, }
+
 variables {C D}
 
 /-- The short complex in `D` obtained by applying a functor `F : C ⥤ D` to a
@@ -130,6 +139,13 @@ short complex in `C`, assuming that `F` preserves zero morphisms. -/
 @[simps]
 def map [has_zero_morphisms D] (F : C ⥤ D) [F.preserves_zero_morphisms] : short_complex D :=
 short_complex.mk (F.map S.f) (F.map S.g) (by rw [← F.map_comp, S.zero, F.map_zero])
+
+@[simps]
+def map_nat_trans [has_zero_morphisms D] {F G : C ⥤ D} [F.preserves_zero_morphisms]
+  [G.preserves_zero_morphisms] (τ : F ⟶ G) : S.map F ⟶ S.map G :=
+{ τ₁ := τ.app _,
+  τ₂ := τ.app _,
+  τ₃ := τ.app _, }
 
 /-- The functor `short_complex C ⥤ short_complex D` induces by a functor `C ⥤ D` which
 preserves zero morphisms. -/

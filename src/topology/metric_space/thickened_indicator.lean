@@ -267,7 +267,7 @@ begin
   { have pos_dist : 0 < inf_edist x (closure E),
     { rw mem_iff_inf_edist_zero_of_closed is_closed_closure at x_mem_closure,
       exact zero_lt_iff.mpr x_mem_closure, },
-    rcases exists_real_pos_lt_infdist_of_not_mem_closure x_mem_closure with ⟨ε, ⟨ε_pos, ε_lt⟩⟩,
+    rcases exists_real_pos_lt_inf_edist_of_not_mem_closure x_mem_closure with ⟨ε, ⟨ε_pos, ε_lt⟩⟩,
     have obs : (λ δ, (metric.cthickening δ E).indicator f x) =ᶠ[(𝓝[>] 0)] (λ δ, 0),
     { filter_upwards [Ioo_mem_nhds_within_Ioi (left_mem_Ico.mpr ε_pos)],
       intros δ hδ,

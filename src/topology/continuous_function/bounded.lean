@@ -376,7 +376,7 @@ def extend (f : α ↪ δ) (g : α →ᵇ β) (h : δ →ᵇ β) : δ →ᵇ β 
 
 @[simp] lemma extend_apply (f : α ↪ δ) (g : α →ᵇ β) (h : δ →ᵇ β) (x : α) :
   extend f g h (f x) = g x :=
-extend_apply f.injective _ _ _
+f.injective.extend_apply _ _ _
 
 @[simp] lemma extend_comp (f : α ↪ δ) (g : α →ᵇ β) (h : δ →ᵇ β) : extend f g h ∘ f = g :=
 extend_comp f.injective _ _

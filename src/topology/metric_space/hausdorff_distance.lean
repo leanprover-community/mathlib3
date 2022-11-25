@@ -130,6 +130,24 @@ begin
   exact h.closure_eq
 end
 
+/-- The infimum edistance of a point to a set is positive if and only if the point is not in the
+closure of the set. -/
+lemma inf_edist_pos_iff_not_mem_closure {x : α} {E : set α} :
+  0 < inf_edist x E ↔ x ∉ closure E :=
+by rw [mem_closure_iff_inf_edist_zero, pos_iff_ne_zero]
+
+lemma inf_edist_closure_pos_iff_not_mem_closure {x : α} {E : set α} :
+  0 < inf_edist x (closure E) ↔ x ∉ closure E :=
+by rw [inf_edist_closure, inf_edist_pos_iff_not_mem_closure]
+
+lemma exists_real_pos_lt_inf_edist_of_not_mem_closure {x : α} {E : set α} (h : x ∉ closure E) :
+  ∃ (ε : ℝ), 0 < ε ∧ ennreal.of_real ε < inf_edist x E :=
+begin
+  rw [← inf_edist_pos_iff_not_mem_closure, ennreal.lt_iff_exists_real_btwn] at h,
+  rcases h with ⟨ε, ⟨_, ⟨ε_pos, ε_lt⟩⟩⟩,
+  exact ⟨ε, ⟨ennreal.of_real_pos.mp ε_pos, ε_lt⟩⟩,
+end
+
 lemma disjoint_closed_ball_of_lt_inf_edist {r : ℝ≥0∞} (h : r < inf_edist x s) :
   disjoint (closed_ball x r) s :=
 begin
@@ -904,6 +922,23 @@ begin
   ... ≤ R + δ : add_le_add (hR zE) hz.le
 end
 
+/-- The frontier of the (open) thickening of a set is contained in an `inf_edist` level set. -/
+lemma frontier_thickening_subset (E : set α) {δ : ℝ} :
+  frontier (thickening δ E) ⊆ {x : α | inf_edist x E = ennreal.of_real δ} :=
+frontier_lt_subset_eq continuous_inf_edist continuous_const
+
+lemma frontier_thickening_disjoint (A : set X) :
+  pairwise (disjoint on (λ (r : ℝ), frontier (thickening r A))) :=
+begin
+  refine (pairwise_disjoint_on _).2 (λ r₁ r₂ hr, _),
+  cases le_total r₁ 0 with h₁ h₁,
+  { simp [thickening_of_nonpos h₁] },
+  refine ((disjoint_singleton.2 $ λ h, hr.ne _).preimage _).mono
+    (frontier_thickening_subset _) (frontier_thickening_subset _),
+  apply_fun ennreal.to_real at h,
+  rwa [ennreal.to_real_of_real h₁, ennreal.to_real_of_real (h₁.trans hr.le)] at h
+end
+
 end thickening --section
 
 section cthickening
@@ -1244,29 +1279,10 @@ lemma closure_eq_Inter_thickening (E : set α) :
   closure E = ⋂ (δ : ℝ) (h : 0 < δ), thickening δ E :=
 by { rw ← cthickening_zero, exact cthickening_eq_Inter_thickening rfl.ge E, }
 
-/-- The frontier of the (open) thickening of a set is contained in an `inf_edist` level set. -/
-lemma frontier_thickening_subset (E : set α) {δ : ℝ} (δ_pos : 0 < δ) :
-  frontier (thickening δ E) ⊆ {x : α | inf_edist x E = ennreal.of_real δ} :=
-begin
-  have singleton_preim :
-    {x : α | inf_edist x E = ennreal.of_real δ } = (λ x , inf_edist x E) ⁻¹' {ennreal.of_real δ},
-  { simp only [preimage, mem_singleton_iff] },
-  rw [thickening_eq_preimage_inf_edist, singleton_preim,
-      ← (frontier_Iio' ⟨(0 : ℝ≥0∞), ennreal.of_real_pos.mpr δ_pos⟩)],
-  exact continuous_inf_edist.frontier_preimage_subset (Iio (ennreal.of_real δ)),
-end
-
 /-- The frontier of the closed thickening of a set is contained in an `inf_edist` level set. -/
 lemma frontier_cthickening_subset (E : set α) {δ : ℝ} :
   frontier (cthickening δ E) ⊆ {x : α | inf_edist x E = ennreal.of_real δ} :=
-begin
-  have singleton_preim :
-    {x : α | inf_edist x E = ennreal.of_real δ } = (λ x , inf_edist x E) ⁻¹' {ennreal.of_real δ},
-  { simp only [preimage, mem_singleton_iff] },
-  rw [cthickening_eq_preimage_inf_edist, singleton_preim,
-      ← frontier_Iic' ⟨∞, ennreal.of_real_lt_top⟩],
-  exact continuous_inf_edist.frontier_preimage_subset (Iic (ennreal.of_real δ)),
-end
+frontier_le_subset_eq continuous_inf_edist continuous_const
 
 /-- The closed ball of radius `δ` centered at a point of `E` is included in the closed
 thickening of `E`. -/
@@ -1287,7 +1303,7 @@ begin
   rcases eq_empty_or_nonempty E with rfl|hne,
   { simp only [cthickening_empty, Union_false, Union_empty] },
   refine subset.antisymm (λ x hx, _) (Union₂_subset $ λ x hx, closed_ball_subset_cthickening hx _),
-  obtain ⟨y, yE, hy⟩ : ∃ y ∈ E, emetric.inf_edist x E = edist x y :=
+  obtain ⟨y, yE, hy⟩ : ∃ y ∈ E, inf_edist x E = edist x y :=
     hE.exists_inf_edist_eq_edist hne _,
   have D1 : edist x y ≤ ennreal.of_real δ := (le_of_eq hy.symm).trans hx,
   have D2 : dist x y ≤ δ,
@@ -1360,6 +1376,11 @@ begin
   simp_rw [mem_cthickening_iff, ennreal.of_real_add hε hδ],
   exact λ hx, inf_edist_le_inf_edist_cthickening_add.trans (add_le_add_right hx _),
 end
+
+lemma frontier_cthickening_disjoint (A : set α) :
+  pairwise (disjoint on (λ (r : ℝ≥0), frontier (cthickening r A))) :=
+λ r₁ r₂ hr, ((disjoint_singleton.2 $ by simpa).preimage _).mono (frontier_cthickening_subset _)
+  (frontier_cthickening_subset _)
 
 end cthickening --section
 

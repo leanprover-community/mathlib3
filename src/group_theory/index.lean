@@ -220,6 +220,9 @@ begin
   exact dvd.intro f.range.index f.range.card_mul_index,
 end
 
+@[to_additive] lemma nat_card_dvd_of_le (hHK : H ≤ K) : nat.card H ∣ nat.card K :=
+nat_card_dvd_of_injective (inclusion hHK) (inclusion_injective hHK)
+
 @[to_additive] lemma nat_card_dvd_of_surjective {G H : Type*} [group G] [group H] (f : G →* H)
   (hf : function.surjective f) : nat.card H ∣ nat.card G :=
 begin

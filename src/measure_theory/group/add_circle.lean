@@ -83,7 +83,7 @@ begin
   replace hu : 1 ≤ (add_order_of u : ℝ), { norm_cast, linarith [add_order_of_pos' hu], },
   simp_rw [measure_vadd_set],
   rw [add_circle.measure_univ, tsum_fintype, finset.sum_const, measure_congr hI, volume_closed_ball,
-    ennreal.nsmul_of_real, mul_div, mul_div_mul_comm, div_self (@two_ne_zero ℝ _ _), one_mul,
+    ← ennreal.of_real_nsmul, mul_div, mul_div_mul_comm, div_self (@two_ne_zero ℝ _ _ _ _), one_mul,
     min_eq_right (div_le_self hT.out.le hu), hG_card, nsmul_eq_mul,
     mul_div_cancel' T (lt_of_lt_of_le zero_lt_one hu).ne.symm],
   exact le_refl _,
@@ -96,10 +96,12 @@ lemma volume_of_add_preimage_eq (s I : set $ add_circle T)
 begin
   let G := add_subgroup.zmultiples u,
   haveI : fintype G := @fintype.of_finite _ hu.finite_zmultiples,
-  have hsG : ∀ (g : G), g +ᵥ s = s,
-  { rintros ⟨y, hy⟩, convert vadd_eq_self_of_mem_zmultiples hy hs using 1, },
-  rw [(is_add_fundamental_domain_of_ae_ball I u x hu hI).measure_eq_card_smul_of_vadd_eq_self s hsG,
-    add_order_eq_card_zmultiples' u, nat.card_eq_fintype_card],
+  have hsG : ∀ (g : G), g +ᵥ s =ᵐ[volume] s,
+  { rintros ⟨y, hy⟩,
+    convert ae_eq_refl s,
+    exact vadd_eq_self_of_mem_zmultiples hy hs, },
+  rw [(is_add_fundamental_domain_of_ae_ball I u x hu hI).measure_eq_card_smul_of_vadd_ae_eq_self
+    s hsG, add_order_eq_card_zmultiples' u, nat.card_eq_fintype_card],
 end
 
 end add_circle

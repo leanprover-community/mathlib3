@@ -375,7 +375,49 @@ hf
 
 end continuous
 
+#check continuous_linear_map.topological_space
+
 lemma is_closed_set_of_is_compact_operator {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁]
+  [nontrivially_normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} [ring_hom_isometric σ₁₂] {M₁ M₂ : Type*}
+  [add_comm_group M₁] [add_comm_group M₂] [module 𝕜₁ M₁] [module 𝕜₂ M₂]
+  [topological_space M₁] [uniform_space M₂] [uniform_add_group M₂]
+  [complete_space M₂] :
+  is_closed {f : M₁ →SL[σ₁₂] M₂ | is_compact_operator f} :=
+begin
+  refine is_closed_of_closure_subset _,
+  rintros u hu,
+  rw metric.mem_closure_iff at hu,
+  suffices : totally_bounded (u '' metric.closed_ball 0 1),
+  { change is_compact_operator (u : M₁ →ₛₗ[σ₁₂] M₂),
+    rw is_compact_operator_iff_is_compact_closure_image_closed_ball (u : M₁ →ₛₗ[σ₁₂] M₂)
+      zero_lt_one,
+    exact is_compact_of_totally_bounded_is_closed this.closure is_closed_closure },
+  rw metric.totally_bounded_iff,
+  intros ε hε,
+  rcases hu (ε/2) (by linarith) with ⟨v, hv, huv⟩,
+  rcases (hv.is_compact_closure_image_closed_ball 1).finite_cover_balls
+    (show 0 < ε/2, by linarith) with ⟨T, -, hT, hTv⟩,
+  have hTv : v '' closed_ball 0 1 ⊆ _ := subset_closure.trans hTv,
+  refine ⟨T, hT, _⟩,
+  rw image_subset_iff at ⊢ hTv,
+  intros x hx,
+  specialize hTv hx,
+  rw [mem_preimage, mem_Union₂] at ⊢ hTv,
+  rcases hTv with ⟨t, ht, htx⟩,
+  refine ⟨t, ht, _⟩,
+  suffices : dist (u x) (v x) < ε/2,
+  { rw mem_ball at *,
+    linarith [dist_triangle (u x) (v x) t] },
+  rw mem_closed_ball_zero_iff at hx,
+  calc dist (u x) (v x)
+      = ‖u x - v x‖ : dist_eq_norm _ _
+  ... = ‖(u - v) x‖ : by rw continuous_linear_map.sub_apply; refl
+  ... ≤ ‖u - v‖ : (u - v).unit_le_op_norm x hx
+  ... = dist u v : (dist_eq_norm _ _).symm
+  ... < ε/2 : huv
+end
+
+lemma is_closed_set_of_is_compact_operator' {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁]
   [nontrivially_normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} [ring_hom_isometric σ₁₂] {M₁ M₂ : Type*}
   [seminormed_add_comm_group M₁] [normed_add_comm_group M₂] [normed_space 𝕜₁ M₁]
   [normed_space 𝕜₂ M₂] [complete_space M₂] :

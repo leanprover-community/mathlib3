@@ -305,8 +305,26 @@ begin
   simp only [G.not_is_diag_of_mem_edge_set h, imp_false],
 end
 
+@[mono]
 lemma edge_set_mono {G G' : simple_graph V} (h : G ≤ G') : G.edge_set ⊆ G'.edge_set :=
 λ e, sym2.ind (λ v w, @h v w) e
+
+lemma edge_set_injective :
+  (simple_graph.edge_set : simple_graph V → set (sym2 V)).injective :=
+begin
+  intros G G' h,
+  ext v w,
+  rw [← mem_edge_set, h, mem_edge_set],
+end
+
+lemma edge_set_subset_iff {G G' : simple_graph V} :
+  G.edge_set ⊆ G'.edge_set ↔ G ≤ G' :=
+begin
+  refine ⟨_, λ _, by mono⟩,
+  intros h v w,
+  simp_rw [← mem_edge_set],
+  exact λ h', h h',
+end
 
 /--
 Two vertices are adjacent iff there is an edge between them. The

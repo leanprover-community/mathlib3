@@ -12,7 +12,6 @@ import algebra.ring.opposite
 import data.finset.sum
 import data.fintype.basic
 import data.finset.sigma
-import data.list.big_operators.lemmas
 import data.set.pairwise
 
 /-!

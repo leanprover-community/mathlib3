@@ -1149,6 +1149,15 @@ theorem index_of_lt_length {a} {l : list α} : index_of a l < length l ↔ a ∈
 ⟨λh, decidable.by_contradiction $ λ al, ne_of_lt h $ index_of_eq_length.2 al,
 λal, lt_of_le_of_ne index_of_le_length $ λ h, index_of_eq_length.1 h al⟩
 
+lemma index_of_append {a : α} (h : a ∉ l₁) :
+  index_of a (l₁ ++ l₂) = l₁.length + index_of a l₂ :=
+begin
+  induction l₁,
+  { rw [list.nil_append, list.length, zero_add] },
+  rw [list.cons_append, index_of_cons_ne _ (ne_of_not_mem_cons h),
+    list.length, l₁_ih (not_mem_of_not_mem_cons h), nat.succ_add],
+end
+
 end index_of
 
 /-! ### nth element -/

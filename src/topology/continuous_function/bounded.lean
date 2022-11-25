@@ -1397,4 +1397,82 @@ by { funext x, dsimp, simp only [max_zero_add_max_neg_zero_eq_abs_self], }
 
 end nonnegative_part
 
+section nnreal_subtraction
+
+/-Subtraction of two `β`-valued bounded continuous functions is currently defined for β a
+` seminormed_add_comm_group`. Here, a subtraction for `ℝ≥0`-valued bounded continuous functions
+  is defined. -/
+
+lemma bounded_iff_dist_pt_bounded {α β : Type*} [metric_space β] (f : α → β) (z : β) :
+  (∃ (C : ℝ), ∀ (x y : α), dist (f x) (f y) ≤ C) ↔ (∃ (B : ℝ), ∀ (x : α), dist (f x) z ≤ B) :=
+begin
+  split,
+  { rintros ⟨C, hC⟩,
+    by_cases is_empty α,
+    { use C, exact h.elim, },
+    simp only [not_is_empty_iff] at h,
+    cases h with y,
+    use C + (dist (f y) z),
+    intro x,
+    apply (dist_triangle (f x) (f y) z).trans,
+    simpa only [add_le_add_iff_right] using hC x y, },
+  { rintros ⟨B, hB⟩,
+    use 2*B,
+    intros x y,
+    apply (dist_triangle (f x) z (f y)).trans,
+    rw dist_comm z _,
+    apply (add_le_add (hB x) (hB y)).trans (le_of_eq _),
+    ring, },
+end
+
+/--Subtraction for `ℝ≥0`-valued bounded continuous functions. -/
+def nnreal_sub {α : Type*} [topological_space α] (f g : α →ᵇ ℝ≥0) :
+  α →ᵇ ℝ≥0 :=
+{ to_fun := λ x, f x - g x,
+  continuous_to_fun := f.continuous.sub g.continuous,
+  map_bounded' := begin
+    apply (bounded_iff_dist_pt_bounded (λ x, f x - g x) 0).mpr,
+    rcases (bounded_iff_dist_pt_bounded f 0).mp f.bounded with ⟨A, hf⟩,
+    rcases (bounded_iff_dist_pt_bounded g 0).mp g.bounded with ⟨B, hg⟩,
+    use A,
+    intros x,
+    simp_rw [dist_nndist, nnreal.nndist_zero_eq_val', nnreal.coe_sub_def] at *,
+    refine max_le _ _,
+    { exact le_trans (sub_le_self ↑(f x) (nnreal.coe_nonneg (g x))) (hf x) },
+    { exact le_trans (nnreal.coe_nonneg _) (hf x) },
+  end }
+
+@[simp] lemma nnreal_sub_apply
+{α : Type*} [topological_space α] {f g : α →ᵇ ℝ≥0} (a : α) :
+(f.nnreal_sub g) a = f a - g a := rfl
+
+end nnreal_subtraction
+
+section nnreal_mul
+
+/--Multiplication of two `β`-valued bounded continuous functions is currently defined for β a
+  `non_unital_semi_normed_ring`. The correct generality should be a nonuntial seminormed *semi*ring
+  but this structure does not currently exist in mathlib. Here, a multiplication for `ℝ≥0`-valued
+  bounded continuous functions is defined. -/
+
+def nnreal_mul {α : Type*} [topological_space α] (f g : α →ᵇ ℝ≥0) :
+  α →ᵇ ℝ≥0 :=
+{ to_fun := λ x, f x * g x,
+  continuous_to_fun := f.continuous.mul g.continuous,
+  map_bounded' := begin
+    apply (bounded_iff_dist_pt_bounded (λ x, f x * g x) 0).mpr,
+    rcases (bounded_iff_dist_pt_bounded f 0).mp f.bounded with ⟨A, hf⟩,
+    rcases (bounded_iff_dist_pt_bounded g 0).mp g.bounded with ⟨B, hg⟩,
+    use A*B,
+    intros x,
+    simp_rw [dist_nndist, nnreal.nndist_zero_eq_val', nnreal.coe_mul] at *,
+    exact mul_le_mul (hf x) (hg x) (g x).coe_nonneg ((f x).coe_nonneg.trans (hf x)),
+  end }
+
+@[simp] lemma nnreal_mul_apply
+  {α : Type*} [topological_space α] {f g : α →ᵇ ℝ≥0} (a : α) :
+  (f.nnreal_mul g) a = f a * g a := rfl
+
+end nnreal_mul
+
 end bounded_continuous_function

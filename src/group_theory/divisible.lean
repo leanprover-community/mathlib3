@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import group_theory.subgroup.pointwise
-import group_theory.group_action.pi
 import group_theory.quotient_group
 import algebra.group.pi
 

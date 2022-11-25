@@ -5,8 +5,8 @@ Authors: Jireh Loreaux
 -/
 import analysis.normed_space.star.basic
 import analysis.normed_space.spectrum
-import algebra.star.module
 import analysis.normed_space.star.exponential
+import analysis.special_functions.exponential
 import algebra.star.star_alg_hom
 
 /-! # Spectral properties in C⋆-algebras
@@ -36,7 +36,7 @@ begin
   { rw ←unitary.coe_to_units_apply u at hk,
     have hnk := ne_zero_of_mem_of_unit hk,
     rw [←inv_inv (unitary.to_units u), ←spectrum.map_inv, set.mem_inv] at hk,
-    have : ∥k∥⁻¹ ≤ ∥↑((unitary.to_units u)⁻¹)∥, simpa only [norm_inv] using norm_le_norm_of_mem hk,
+    have : ‖k‖⁻¹ ≤ ‖↑((unitary.to_units u)⁻¹)‖, simpa only [norm_inv] using norm_le_norm_of_mem hk,
     simpa using inv_le_of_inv_le (norm_pos_iff.mpr hnk) this }
 end
 
@@ -57,9 +57,9 @@ local notation `↑ₐ` := algebra_map ℂ A
 
 lemma is_self_adjoint.spectral_radius_eq_nnnorm {a : A}
   (ha : is_self_adjoint a) :
-  spectral_radius ℂ a = ∥a∥₊ :=
+  spectral_radius ℂ a = ‖a‖₊ :=
 begin
-  have hconst : tendsto (λ n : ℕ, (∥a∥₊ : ℝ≥0∞)) at_top _ := tendsto_const_nhds,
+  have hconst : tendsto (λ n : ℕ, (‖a‖₊ : ℝ≥0∞)) at_top _ := tendsto_const_nhds,
   refine tendsto_nhds_unique _ hconst,
   convert (spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius (a : A)).comp
       (nat.tendsto_pow_at_top_at_top_of_one_lt one_lt_two),
@@ -70,11 +70,11 @@ begin
 end
 
 lemma is_star_normal.spectral_radius_eq_nnnorm (a : A) [is_star_normal a] :
-  spectral_radius ℂ a = ∥a∥₊ :=
+  spectral_radius ℂ a = ‖a‖₊ :=
 begin
   refine (ennreal.pow_strict_mono two_ne_zero).injective _,
-  have heq : (λ n : ℕ, ((∥(a⋆ * a) ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞))
-    = (λ x, x ^ 2) ∘ (λ n : ℕ, ((∥a ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞)),
+  have heq : (λ n : ℕ, ((‖(a⋆ * a) ^ n‖₊ ^ (1 / n : ℝ)) : ℝ≥0∞))
+    = (λ x, x ^ 2) ∘ (λ n : ℕ, ((‖a ^ n‖₊ ^ (1 / n : ℝ)) : ℝ≥0∞)),
   { funext,
     rw [function.comp_apply, ←rpow_nat_cast, ←rpow_mul, mul_comm, rpow_mul, rpow_nat_cast,
       ←coe_pow, sq, ←nnnorm_star_mul_self, commute.mul_pow (star_comm_self' a), star_pow], },
@@ -128,9 +128,9 @@ variables {F A B : Type*}
 include hF
 
 /-- A star algebra homomorphism of complex C⋆-algebras is norm contractive. -/
-lemma nnnorm_apply_le (a : A) : ∥(φ a : B)∥₊ ≤ ∥a∥₊ :=
+lemma nnnorm_apply_le (a : A) : ‖(φ a : B)‖₊ ≤ ‖a‖₊ :=
 begin
-  suffices : ∀ s : A, is_self_adjoint s → ∥φ s∥₊ ≤ ∥s∥₊,
+  suffices : ∀ s : A, is_self_adjoint s → ‖φ s‖₊ ≤ ‖s‖₊,
   { exact nonneg_le_nonneg_of_sq_le_sq zero_le'
       (by simpa only [nnnorm_star_mul_self, map_star, map_mul]
       using this _ (is_self_adjoint.star_mul_self a)) },
@@ -141,7 +141,7 @@ begin
 end
 
 /-- A star algebra homomorphism of complex C⋆-algebras is norm contractive. -/
-lemma norm_apply_le (a : A) : ∥(φ a : B)∥ ≤ ∥a∥ := nnnorm_apply_le φ a
+lemma norm_apply_le (a : A) : ‖(φ a : B)‖ ≤ ‖a‖ := nnnorm_apply_le φ a
 
 /-- Star algebra homomorphisms between C⋆-algebras are continuous linear maps.
 See note [lower instance priority] -/
@@ -186,6 +186,18 @@ noncomputable instance : star_hom_class F A ℂ :=
 /-- This is not an instance to avoid type class inference loops. See
 `weak_dual.complex.star_hom_class`. -/
 noncomputable def _root_.alg_hom_class.star_alg_hom_class : star_alg_hom_class F ℂ A ℂ :=
-{ .. hF, .. weak_dual.complex.star_hom_class }
+{ coe := λ f, f,
+  .. weak_dual.complex.star_hom_class,
+  .. hF }
+
+omit hF
+
+namespace character_space
+
+noncomputable instance : star_alg_hom_class (character_space ℂ A) ℂ A ℂ :=
+{ coe := λ f, f,
+  .. alg_hom_class.star_alg_hom_class }
+
+end character_space
 
 end weak_dual

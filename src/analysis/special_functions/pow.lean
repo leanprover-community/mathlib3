@@ -387,7 +387,7 @@ begin
   { rw [rpow_def_of_pos (abs_pos.2 hx), log_abs] }
 end
 
-lemma norm_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : ∥x ^ y∥ = ∥x∥ ^ y :=
+lemma norm_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : ‖x ^ y‖ = ‖x‖ ^ y :=
 by { simp_rw real.norm_eq_abs, exact abs_rpow_of_nonneg hx_nonneg, }
 
 end real
@@ -1606,7 +1606,7 @@ begin
 end
 
 @[simp] lemma one_rpow (x : ℝ) : (1 : ℝ≥0∞) ^ x = 1 :=
-by { rw [← coe_one, coe_rpow_of_ne_zero one_ne_zero], simp }
+by { rw [← @coe_one ℝ≥0, coe_rpow_of_ne_zero one_ne_zero], simp }
 
 @[simp] lemma rpow_eq_zero_iff {x : ℝ≥0∞} {y : ℝ} :
   x ^ y = 0 ↔ (x = 0 ∧ 0 < y) ∨ (x = ⊤ ∧ y < 0) :=
@@ -1666,7 +1666,7 @@ begin
     { rcases lt_trichotomy y 0 with H|H|H;
       simp [h, zero_rpow_of_pos, zero_rpow_of_neg, H, neg_pos.mpr] },
     { have A : x ^ y ≠ 0, by simp [h],
-      simp [coe_rpow_of_ne_zero h, ← coe_inv A, nnreal.rpow_neg] } }
+      simp [coe_rpow_of_ne_zero h, ← ennreal.coe_inv A, nnreal.rpow_neg] } }
 end
 
 lemma rpow_sub {x : ℝ≥0∞} (y z : ℝ) (hx : x ≠ 0) (h'x : x ≠ ⊤) : x ^ (y - z) = x ^ y / x ^ z :=

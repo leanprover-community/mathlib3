@@ -563,8 +563,7 @@ begin
 end
 
 /-- `set α` is a division monoid under pointwise operations if `α` is. -/
-@[to_additive subtraction_monoid "`set α` is a subtraction monoid under pointwise operations if `α`
-is."]
+@[to_additive "`set α` is a subtraction monoid under pointwise operations if `α` is."]
 protected def division_monoid : division_monoid (set α) :=
 { mul_inv_rev := λ s t, by { simp_rw ←image_inv, exact image_image2_antidistrib mul_inv_rev },
   inv_eq_of_mul := λ s t h, begin
@@ -1229,18 +1228,14 @@ begin
     exact ⟨b, mem_inter (mem_smul_set.mpr ⟨a, ha, by simp [← this]⟩) hb⟩, },
 end
 
+@[simp, to_additive] lemma Union_inv_smul :
+  (⋃ (g : α), g⁻¹ • s) = (⋃ (g : α), g • s) :=
+function.surjective.supr_congr _ inv_surjective $ λ g, rfl
+
 @[to_additive]
 lemma Union_smul_eq_set_of_exists {s : set β} :
   (⋃ (g : α), g • s) = {a | ∃ (g : α), g • a ∈ s} :=
-begin
-  ext a,
-  simp only [mem_set_of_eq, mem_Union, mem_smul_set],
-  split,
-  { rintros ⟨g, b, hb, hb'⟩,
-    exact ⟨g⁻¹, ((smul_eq_iff_eq_inv_smul g).mp hb') ▸ hb⟩, },
-  { rintros ⟨g, hg⟩,
-    exact ⟨g⁻¹, g • a, hg, inv_smul_smul g a⟩, },
-end
+by simp_rw [← Union_set_of, ← Union_inv_smul, ← preimage_smul, preimage]
 
 end group
 

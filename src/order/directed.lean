@@ -97,7 +97,7 @@ begin
   { use e i, simp [function.extend_apply' _ _ _ hb] },
   rcases hf i j with ⟨k, hi, hj⟩,
   use (e k),
-  simp only [function.extend_apply he, *, true_and]
+  simp only [he.extend_apply, *, true_and]
 end
 
 /-- An antitone function on an inf-semilattice is directed. -/

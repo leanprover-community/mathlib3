@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import measure_theory.measure.outer_measure
 import order.filter.countable_Inter
-import data.set.accumulate
 
 /-!
 # Measure spaces

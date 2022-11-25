@@ -3,9 +3,11 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
-import data.int.order
+import data.set.function
+import data.int.order.lemmas
 import data.int.bitwise
 import data.nat.cast.basic
+import data.nat.order.lemmas
 
 /-!
 # Miscellaneous lemmas about the integers

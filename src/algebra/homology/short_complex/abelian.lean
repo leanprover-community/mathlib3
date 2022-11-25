@@ -1,5 +1,8 @@
 import algebra.homology.short_complex.preadditive
+import algebra.homology.short_complex.limits
+import algebra.homology.short_complex.preserves_homology
 import category_theory.abelian.basic
+import category_theory.limits.preserves.shapes.kernels
 
 noncomputable theory
 
@@ -218,5 +221,61 @@ def cokernel_image_to_kernel_iso_homology (S : short_complex C) :
   cokernel S.abelian_image_to_kernel ≅ S.homology :=
 (left_homology_data.abelian_H_iso_cokernel_abelian_image_to_kernel S).symm ≪≫
   (left_homology_data.of_abelian S).homology_iso.symm
+
+def is_limit_map_cone_of_kernel_fork_cokernel_of_mono
+  {D : Type*} [category D] [has_zero_morphisms D]
+  {X Y : D} (i : X ⟶ Y) [has_cokernel i] (F : D ⥤ C)
+  [F.preserves_zero_morphisms] [mono (F.map i)]
+  [preserves_colimit (parallel_pair i 0) F] :
+  is_limit (F.map_cone (kernel_fork.of_ι i (cokernel.condition i))) :=
+begin
+  let e : parallel_pair (cokernel.π (F.map i)) 0 ≅
+      parallel_pair (cokernel.π i) 0 ⋙ F,
+  { refine _ ≪≫ (parallel_pair.comp_nat_iso F (cokernel.π i)).symm,
+    exact parallel_pair.ext (iso.refl _) (as_iso (cokernel_comparison i F))
+      (by simp) (by simp), },
+  equiv_rw (is_limit.postcompose_inv_equiv e _).symm,
+  let hi := abelian.mono_is_kernel_of_cokernel _ (cokernel_is_cokernel (F.map i)),
+  refine is_limit.of_iso_limit hi (fork.ext (iso.refl _) _),
+  change 𝟙 _ ≫ F.map i ≫ 𝟙 _ ≫ 𝟙 _ = F.map i,
+  simp only [comp_id, id_comp],
+end
+
+instance : normal_mono_category (short_complex C) :=
+⟨λ S₁ S₂ i, begin
+  introI,
+  refine normal_mono.mk _ (cokernel.π i) (cokernel.condition _)
+    (is_limit_of_is_limit_π _ _ _ _),
+  all_goals { exact is_limit_map_cone_of_kernel_fork_cokernel_of_mono i _, },
+end⟩
+
+def is_colimit_map_cocone_of_cokernel_cofork_kernel_of_epi
+  {D : Type*} [category D] [has_zero_morphisms D]
+  {X Y : D} (p : X ⟶ Y) [has_kernel p] (F : D ⥤ C)
+  [F.preserves_zero_morphisms] [epi (F.map p)]
+  [preserves_limit (parallel_pair p 0) F] :
+  is_colimit (F.map_cocone (cokernel_cofork.of_π p (kernel.condition p))) :=
+begin
+  let e : parallel_pair (kernel.ι (F.map p)) 0 ≅
+      parallel_pair (kernel.ι p) 0 ⋙ F,
+  { refine _ ≪≫ (parallel_pair.comp_nat_iso F (kernel.ι p)).symm,
+    exact parallel_pair.ext (as_iso (kernel_comparison p F)).symm (iso.refl _)
+      (by simp) (by simp), },
+  equiv_rw (is_colimit.precompose_hom_equiv e _).symm,
+  let hp := abelian.epi_is_cokernel_of_kernel _ (kernel_is_kernel (F.map p)),
+  refine is_colimit.of_iso_colimit hp (cofork.ext (iso.refl _) _),
+  change F.map p ≫ 𝟙 _ = (𝟙 _ ≫ 𝟙 _) ≫ F.map p,
+  simp only [comp_id, id_comp],
+end
+
+instance : normal_epi_category (short_complex C) :=
+⟨λ S₁ S₂ p, begin
+  introI,
+  refine normal_epi.mk _ (kernel.ι p) (kernel.condition _)
+    (is_colimit_of_is_colimit_π _ _ _ _),
+  all_goals { exact is_colimit_map_cocone_of_cokernel_cofork_kernel_of_epi p _, },
+end⟩
+
+instance : abelian (short_complex C) := { }
 
 end short_complex

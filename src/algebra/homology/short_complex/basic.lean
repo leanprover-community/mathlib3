@@ -116,6 +116,13 @@ def π₃ : short_complex C ⥤ C :=
 { obj := λ S, S.X₃,
   map := λ S₁ S₂ f, f.τ₃, }
 
+instance π₁_preserves_zero_morphisms :
+  functor.preserves_zero_morphisms (π₁ : _ ⥤ C) := { }
+instance π₂_preserves_zero_morphisms :
+  functor.preserves_zero_morphisms (π₂ : _ ⥤ C) := { }
+instance π₃_preserves_zero_morphisms :
+  functor.preserves_zero_morphisms (π₃ : _ ⥤ C) := { }
+
 instance (f : S₁ ⟶ S₂) [is_iso f] : is_iso f.τ₁ :=
 by { change is_iso (π₁.map_iso (as_iso f)).hom, apply_instance, }
 instance (f : S₁ ⟶ S₂) [is_iso f] : is_iso f.τ₂ :=

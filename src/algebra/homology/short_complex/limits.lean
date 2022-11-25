@@ -1,5 +1,7 @@
 import algebra.homology.short_complex.functors
 import category_theory.limits.shapes.finite_limits
+import category_theory.limits.preserves.finite
+import category_theory.limits.constructions.epi_mono
 
 noncomputable theory
 
@@ -83,6 +85,28 @@ instance has_finite_limits [has_finite_limits C] :
   has_finite_limits (short_complex C) :=
 ⟨λ J, by { introI, introI, apply_instance, }⟩
 
+instance [has_limits_of_shape J C] : preserves_limits_of_shape J (π₁ : _ ⥤ C) := { }
+instance [has_limits_of_shape J C] : preserves_limits_of_shape J (π₂ : _ ⥤ C) := { }
+instance [has_limits_of_shape J C] : preserves_limits_of_shape J (π₃ : _ ⥤ C) := { }
+
+instance [has_finite_limits C] : preserves_finite_limits (π₁ : _ ⥤ C) :=
+⟨λ J, by { introI, introI, apply_instance, }⟩
+instance [has_finite_limits C] : preserves_finite_limits (π₂ : _ ⥤ C) :=
+⟨λ J, by { introI, introI, apply_instance, }⟩
+instance [has_finite_limits C] : preserves_finite_limits (π₃ : _ ⥤ C) :=
+⟨λ J, by { introI, introI, apply_instance, }⟩
+
+
+instance π₁_preserves_monomorphisms [has_limits_of_shape walking_cospan C] :
+  functor.preserves_monomorphisms (π₁ : _ ⥤ C) :=
+category_theory.preserves_monomorphisms_of_preserves_limits_of_shape _
+instance π₂_preserves_monomorphisms [has_limits_of_shape walking_cospan C] :
+  functor.preserves_monomorphisms (π₂ : _ ⥤ C) :=
+category_theory.preserves_monomorphisms_of_preserves_limits_of_shape _
+instance π₃_preserves_monomorphisms [has_limits_of_shape walking_cospan C] :
+  functor.preserves_monomorphisms (π₃ : _ ⥤ C) :=
+category_theory.preserves_monomorphisms_of_preserves_limits_of_shape _
+
 def is_colimit_of_is_colimit_π {F : J ⥤ short_complex C} (c : cocone F)
   (h₁ : is_colimit (π₁.map_cocone c)) (h₂ : is_colimit (π₂.map_cocone c))
   (h₃ : is_colimit (π₃.map_cocone c)) : is_colimit c :=
@@ -159,5 +183,26 @@ instance has_colimits_of_shape [has_colimits_of_shape J C] :
 instance has_finite_colimits [has_finite_colimits C] :
   has_finite_colimits (short_complex C) :=
 ⟨λ J, by { introI, introI, apply_instance, }⟩
+
+instance [has_colimits_of_shape J C] : preserves_colimits_of_shape J (π₁ : _ ⥤ C) := { }
+instance [has_colimits_of_shape J C] : preserves_colimits_of_shape J (π₂ : _ ⥤ C) := { }
+instance [has_colimits_of_shape J C] : preserves_colimits_of_shape J (π₃ : _ ⥤ C) := { }
+
+instance [has_finite_colimits C] : preserves_finite_colimits (π₁ : _ ⥤ C) :=
+⟨λ J, by { introI, introI, apply_instance, }⟩
+instance [has_finite_colimits C] : preserves_finite_colimits (π₂ : _ ⥤ C) :=
+⟨λ J, by { introI, introI, apply_instance, }⟩
+instance [has_finite_colimits C] : preserves_finite_colimits (π₃ : _ ⥤ C) :=
+⟨λ J, by { introI, introI, apply_instance, }⟩
+
+instance π₁_preserves_epimorphisms [has_colimits_of_shape walking_span C] :
+  functor.preserves_epimorphisms (π₁ : _ ⥤ C) :=
+category_theory.preserves_epimorphisms_of_preserves_colimits_of_shape _
+instance π₂_preserves_epimorphisms [has_colimits_of_shape walking_span C] :
+  functor.preserves_epimorphisms (π₂ : _ ⥤ C) :=
+category_theory.preserves_epimorphisms_of_preserves_colimits_of_shape _
+instance π₃_preserves_epimorphisms [has_colimits_of_shape walking_span C] :
+  functor.preserves_epimorphisms (π₃ : _ ⥤ C) :=
+category_theory.preserves_epimorphisms_of_preserves_colimits_of_shape _
 
 end short_complex

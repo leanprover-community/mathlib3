@@ -337,7 +337,7 @@ begin
       convert congr_arg (X.presheaf.map (hom_of_le _).op) e₂.symm,
       { simp only [map_pow, map_mul, ← comp_apply, ← functor.map_comp, ← op_comp], congr },
       { simp only [map_pow, map_mul, ← comp_apply, ← functor.map_comp, ← op_comp], congr },
-      { rw [RingedSpace.basic_open_res, X.basic_open_res],
+      { simp only [X.basic_open_res],
         rintros x ⟨H₁, H₂⟩, exact ⟨h₂ H₁, H₂⟩ } } },
   use n,
   conv_lhs at e { rw mul_comm },
@@ -425,7 +425,7 @@ begin
       (hom_of_le (_ : X.basic_open (X.presheaf.map (hom_of_le le_sup_left).op f) ≤ _))
       (hom_of_le (_ : X.basic_open (X.presheaf.map (hom_of_le le_sup_right).op f) ≤ _)) _ _ _ _ _,
     { rw X.basic_open_res, exact inf_le_right },
-    { rw X.basic_open_res, exact inf_le_right }, 
+    { rw X.basic_open_res, exact inf_le_right },
     { rw [X.basic_open_res, X.basic_open_res],
       erw ← inf_sup_right,
       refine le_inf_iff.mpr ⟨X.basic_open_le f, le_of_eq rfl⟩ },

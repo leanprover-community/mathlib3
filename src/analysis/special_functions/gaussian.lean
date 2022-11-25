@@ -204,7 +204,7 @@ end
 namespace complex
 
 /-- The special-value formula `Γ(1/2) = √π`, which is equivalent to the Gaussian integral. -/
-lemma Gamma_one_half_eq : Gamma (1 / 2) = sqrt real.pi :=
+lemma Gamma_one_half_eq : Gamma (1 / 2) = sqrt π :=
 begin
   -- first reduce to real integrals
   have hh : (1 / 2 : ℂ) = ↑(1 / 2 : ℝ),
@@ -225,7 +225,7 @@ begin
     field_simp [(ne_of_lt hx).symm],
     norm_num, ring },
   rw [set_integral_congr measurable_set_Ioi this, integral_mul_left, integral_gaussian_Ioi],
-  ring_nf,
+  field_simp, ring,
 end
 
 end complex

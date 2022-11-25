@@ -130,7 +130,7 @@ begin
   simpa using h_map X Y f
 end
 
-/-- Two morphisms are conjugate via eq_to_hom if and only if they are heterogeneously equal. --/
+/-- Two morphisms are conjugate via eq_to_hom if and only if they are heterogeneously equal. -/
 lemma conj_eq_to_hom_iff_heq {W X Y Z : C} (f : W ⟶ X) (g : Y ⟶ Z) (h : W = Y) (h' : X = Z) :
   f = eq_to_hom h ≫ g ≫ eq_to_hom h'.symm ↔ f == g :=
 by { cases h, cases h', simp }

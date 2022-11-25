@@ -2076,9 +2076,7 @@ such that `f x = 0`"]
 def ker (f : G →* M) : subgroup G :=
 { inv_mem' := λ x (hx : f x = 1),
     calc f x⁻¹ = f x * f x⁻¹ : by rw [hx, one_mul]
-           ... = f (x * x⁻¹) : by rw [f.map_mul]
-           ... = f 1 :         by rw [mul_right_inv]
-           ... = 1 :           f.map_one,
+           ... = 1           : by rw [← map_mul, mul_inv_self, map_one],
   ..f.mker }
 
 @[to_additive]
@@ -2150,8 +2148,6 @@ instance normal_ker (f : G →* M) : f.ker.normal :=
 ⟨λ x hx y, by rw [mem_ker, map_mul, map_mul, f.mem_ker.1 hx, mul_one,
   map_mul_eq_one f (mul_inv_self y)]⟩
 
-variables [monoid N]
-
 @[simp, to_additive] lemma preimage_mul_left_ker (f : G →* M) (x : G) :
   ((*) x) ⁻¹' f.ker = f ⁻¹' {f x⁻¹} :=
 begin
@@ -2159,7 +2155,7 @@ begin
   simp only [eq_iff, set.mem_preimage, set_like.mem_coe, set.mem_singleton_iff, inv_inv]
 end
 
-@[simp, to_additive] lemma preimage_mul_right_ker (f : G →* N) (x : G) :
+@[simp, to_additive] lemma preimage_mul_right_ker (f : G →* M) (x : G) :
   (λ y, y * x) ⁻¹' f.ker = f ⁻¹' {f x⁻¹} :=
 begin
   ext y,
@@ -2167,47 +2163,53 @@ begin
     using f.normal_ker.mem_comm_iff
 end
 
-@[simp, to_additive] lemma image_mul_left_ker (f : G →* N) (x : G) :
+@[simp, to_additive] lemma image_mul_left_ker (f : G →* M) (x : G) :
   ((*) x) '' f.ker = f ⁻¹' {f x} :=
 by rw [← equiv.coe_mul_left, equiv.image_eq_preimage, equiv.mul_left_symm_apply,
   preimage_mul_left_ker, inv_inv]
 
-@[simp, to_additive] lemma image_mul_right_ker (f : G →* N) (x : G) :
+@[simp, to_additive] lemma image_mul_right_ker (f : G →* M) (x : G) :
   (λ y, y * x) '' f.ker = f ⁻¹' {f x} :=
 by rw [← equiv.coe_mul_right, equiv.image_eq_preimage, equiv.mul_right_symm_apply,
   preimage_mul_right_ker, inv_inv]
 
-@[simp, to_additive] lemma card_preimage_singleton (f : G →* N) (x : G)
+@[simp, to_additive] lemma card_preimage_singleton (f : G →* M) (x : G)
   [fintype f.ker] [fintype (f ⁻¹' {f x})] : fintype.card (f ⁻¹' {f x}) = fintype.card f.ker :=
 fintype.card_congr $ (equiv.set_congr $ f.image_mul_left_ker x).symm.trans $
   ((equiv.mul_left x).image _).symm
 
 end ker
 
+section eq_locus
+
+variables {M : Type*} [monoid M]
+
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
 @[to_additive "The additive subgroup of elements `x : G` such that `f x = g x`"]
-def eq_locus (f g : G →* N) : subgroup G :=
-{ inv_mem' := λ x (hx : f x = g x), show f x⁻¹ = g x⁻¹, by rw [f.map_inv, g.map_inv, hx],
+def eq_locus (f g : G →* M) : subgroup G :=
+{ inv_mem' := λ x, eq_on_inv f g,
   .. eq_mlocus f g}
 
 /-- If two monoid homomorphisms are equal on a set, then they are equal on its subgroup closure. -/
 @[to_additive "If two monoid homomorphisms are equal on a set, then they are equal on its subgroup
 closure."]
-lemma eq_on_closure {f g : G →* N} {s : set G} (h : set.eq_on f g s) : set.eq_on f g (closure s) :=
+lemma eq_on_closure {f g : G →* M} {s : set G} (h : set.eq_on f g s) : set.eq_on f g (closure s) :=
 show closure s ≤ f.eq_locus g, from (closure_le _).2 h
 
 @[to_additive]
-lemma eq_of_eq_on_top {f g : G →* N} (h : set.eq_on f g (⊤ : subgroup G)) :
+lemma eq_of_eq_on_top {f g : G →* M} (h : set.eq_on f g (⊤ : subgroup G)) :
   f = g :=
 ext $ λ x, h trivial
 
 @[to_additive]
-lemma eq_of_eq_on_dense {s : set G} (hs : closure s = ⊤) {f g : G →* N} (h : s.eq_on f g) :
+lemma eq_of_eq_on_dense {s : set G} (hs : closure s = ⊤) {f g : G →* M} (h : s.eq_on f g) :
   f = g :=
 eq_of_eq_on_top $ hs ▸ eq_on_closure h
 
+end eq_locus
+
 @[to_additive]
-lemma gclosure_preimage_le (f : G →* N) (s : set N) :
+lemma closure_preimage_le (f : G →* N) (s : set N) :
   closure (f ⁻¹' s) ≤ (closure s).comap f :=
 (closure_le _).2 $ λ x hx, by rw [set_like.mem_coe, mem_comap]; exact subset_closure hx
 

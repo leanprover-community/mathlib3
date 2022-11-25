@@ -203,7 +203,7 @@ by simp only [←C_eq_nat_cast, nat_degree_C]
 by rw [degree, support_monomial n ha]; refl
 
 @[simp] lemma degree_C_mul_X_pow (n : ℕ) (ha : a ≠ 0) : degree (C a * X ^ n) = n :=
-by rw [← monomial_eq_C_mul_X, degree_monomial n ha]
+by rw [C_mul_X_pow_eq_monomial, degree_monomial n ha]
 
 lemma degree_C_mul_X (ha : a ≠ 0) : degree (C a * X) = 1 :=
 by simpa only [pow_one] using degree_C_mul_X_pow 1 ha
@@ -604,7 +604,7 @@ finset.induction_on s (by simp only [sum_empty, sup_empty, degree_zero, le_refl]
 lemma degree_mul_le (p q : R[X]) : degree (p * q) ≤ degree p + degree q :=
 calc degree (p * q) ≤ (p.support).sup (λi, degree (sum q (λj a, C (coeff p i * a) * X ^ (i + j)))) :
     begin
-      simp only [monomial_eq_C_mul_X.symm],
+      simp only [← C_mul_X_pow_eq_monomial.symm],
       convert degree_sum_le _ _,
       exact mul_eq_sum_sum
     end

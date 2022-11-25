@@ -162,6 +162,9 @@ end
 
 open_locale zero_object
 
+lemma has_zero_object_unop [has_zero_object Cᵒᵖ] : has_zero_object C :=
+⟨⟨opposite.unop 0, is_zero.unop (is_zero_zero Cᵒᵖ)⟩⟩
+
 variables {C}
 
 lemma is_zero.has_zero_object {X : C} (hX : is_zero X) : has_zero_object C := ⟨⟨X, hX⟩⟩

@@ -478,7 +478,7 @@ lemma C_mul_X_pow_eq_monomial : ∀ {n : ℕ}, C a * X ^ n = monomial n a
 | 0     := mul_one _
 | (n+1) := by rw [pow_succ', ←mul_assoc, C_mul_X_pow_eq_monomial, X, monomial_mul_monomial, mul_one]
 
-lemma C_mul_X_eq_monomial : monomial 1 a = C a * X := by rw [← C_mul_X_pow_eq_monomial, pow_one]
+lemma C_mul_X_eq_monomial : C a * X = monomial 1 a := by rw [← C_mul_X_pow_eq_monomial, pow_one]
 
 lemma C_injective : injective (C : R → R[X]) := monomial_injective 0
 
@@ -571,30 +571,28 @@ support_add.trans (union_subset (support_add.trans (union_subset ((support_C_mul
 
 end fewnomials
 
-lemma X_pow_eq_monomial (n) : X ^ n = monomial n (1:R) :=
+lemma X_pow_eq_monomial (n) : X ^ n = monomial n (1 : R) :=
 begin
   induction n with n hn,
   { rw [pow_zero, monomial_zero_one] },
   { rw [pow_succ', hn, X, monomial_mul_monomial, one_mul] },
 end
 
-lemma monomial_eq_smul_X {n} : monomial n (a : R) = a • X^n :=
-calc monomial n a = monomial n (a * 1) : by simp
-  ... = a • monomial n 1 : by rw [smul_monomial, smul_eq_mul]
-  ... = a • X^n  : by rw X_pow_eq_monomial
+lemma smul_X_eq_monomial {n} : a • X ^ n = monomial n (a : R) :=
+by rw [X_pow_eq_monomial, smul_monomial, smul_eq_mul, mul_one]
 
-lemma support_X_pow (H : ¬ (1:R) = 0) (n : ℕ) : (X^n : R[X]).support = singleton n :=
+lemma support_X_pow (H : ¬(1 : R) = 0) (n : ℕ) : (X ^ n : R[X]).support = singleton n :=
 begin
   convert support_monomial n H,
   exact X_pow_eq_monomial n,
 end
 
-lemma support_X_empty (H : (1:R)=0) : (X : R[X]).support = ∅ :=
+lemma support_X_empty (H : (1 : R) = 0) : (X : R[X]).support = ∅ :=
 begin
   rw [X, H, monomial_zero_right, support_zero],
 end
 
-lemma support_X (H : ¬ (1 : R) = 0) : (X : R[X]).support = singleton 1 :=
+lemma support_X (H : ¬(1 : R) = 0) : (X : R[X]).support = singleton 1 :=
 begin
   rw [← pow_one X, support_X_pow H 1],
 end

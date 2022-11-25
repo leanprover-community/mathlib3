@@ -245,7 +245,7 @@ begin
   convert eval₂_monomial _ _,
   simp only [algebra.tensor_product.tmul_mul_tmul, one_pow, one_mul, matrix.mul_one,
     algebra.tensor_product.tmul_pow, algebra.tensor_product.include_left_apply, mul_eq_mul],
-  rw [monomial_eq_smul_X, ← tensor_product.smul_tmul],
+  rw [← smul_X_eq_monomial, ← tensor_product.smul_tmul],
   congr' with i' j'; simp
 end
 

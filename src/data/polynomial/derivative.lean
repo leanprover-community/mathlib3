@@ -72,12 +72,20 @@ end
 lemma derivative_monomial (a : R) (n : ℕ) : derivative (monomial n a) = monomial (n - 1) (a * n) :=
 by { rw [derivative_apply, sum_monomial_index, C_mul_X_pow_eq_monomial], simp }
 
+lemma derivative_C_mul_X (a : R) : derivative (C a * X) = C a :=
+by simpa only [C_mul_X_eq_monomial, derivative_monomial, nat.cast_one, mul_one]
+
 lemma derivative_C_mul_X_pow (a : R) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X ^ (n - 1) :=
 by rw [C_mul_X_pow_eq_monomial, C_mul_X_pow_eq_monomial, derivative_monomial]
 
-@[simp] lemma derivative_X_pow (n : ℕ) :
-  derivative (X ^ n : R[X]) = (n : R[X]) * X ^ (n - 1) :=
+lemma derivative_C_mul_X_sq (a : R) : derivative (C a * X ^ 2) = C (a * 2) * X :=
+by rw [derivative_C_mul_X_pow, nat.cast_two, pow_one]
+
+@[simp] lemma derivative_X_pow (n : ℕ) : derivative (X ^ n : R[X]) = (n : R[X]) * X ^ (n - 1) :=
 by convert derivative_C_mul_X_pow (1 : R) n; simp
+
+@[simp] lemma derivative_X_sq : derivative (X ^ 2 : R[X]) = (2 : R[X]) * X :=
+by rw [derivative_X_pow, nat.cast_two, pow_one]
 
 @[simp] lemma derivative_C {a : R} : derivative (C a) = 0 :=
 by simp [derivative_apply]

@@ -44,7 +44,7 @@ by { dsimp [expand, eval₂], refl, }
 @[simp] lemma expand_C (r : R) : expand R p (C r) = C r := eval₂_C _ _
 @[simp] lemma expand_X : expand R p X = X ^ p := eval₂_X _ _
 @[simp] lemma expand_monomial (r : R) : expand R p (monomial q r) = monomial (q * p) r :=
-by simp_rw [monomial_eq_smul_X, alg_hom.map_smul, alg_hom.map_pow, expand_X, mul_comm, pow_mul]
+by simp_rw [← smul_X_eq_monomial, alg_hom.map_smul, alg_hom.map_pow, expand_X, mul_comm, pow_mul]
 
 theorem expand_expand (f : R[X]) : expand R p (expand R q f) = expand R (p * q) f :=
 polynomial.induction_on f (λ r, by simp_rw expand_C)

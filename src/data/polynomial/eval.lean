@@ -88,7 +88,7 @@ end
 
 @[simp] lemma eval₂_C_X : eval₂ C X p = p :=
 polynomial.induction_on' p (λ p q hp hq, by simp [hp, hq])
-  (λ n x, by rw [eval₂_monomial, monomial_eq_smul_X, C_mul'])
+  (λ n x, by rw [eval₂_monomial, ← smul_X_eq_monomial, C_mul'])
 
 /-- `eval₂_add_monoid_hom (f : R →+* S) (x : S)` is the `add_monoid_hom` from
 `R[X]` to `S` obtained by evaluating the pushforward of `p` along `f` at `x`. -/

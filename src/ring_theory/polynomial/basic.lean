@@ -633,7 +633,7 @@ def polynomial_quotient_equiv_quotient_polynomial (I : ideal R) :
       simp only [coe_eval₂_ring_hom] at hq,
       simp only [coe_eval₂_ring_hom, hp, hq, ring_hom.map_add] },
     { rintros n ⟨x⟩,
-      simp only [monomial_eq_smul_X, C_mul', quotient.lift_mk, submodule.quotient.quot_mk_eq_mk,
+      simp only [← smul_X_eq_monomial, C_mul', quotient.lift_mk, submodule.quotient.quot_mk_eq_mk,
         quotient.mk_eq_mk, eval₂_X_pow, eval₂_smul, coe_eval₂_ring_hom, ring_hom.map_pow,
         eval₂_C, ring_hom.coe_comp, ring_hom.map_mul, eval₂_X] }
   end,
@@ -643,7 +643,7 @@ def polynomial_quotient_equiv_quotient_polynomial (I : ideal R) :
     { simp_intros p q hp hq,
       rw [hp, hq] },
     { intros n a,
-      simp only [monomial_eq_smul_X, ← C_mul' a (X ^ n), quotient.lift_mk,
+      simp only [← smul_X_eq_monomial, ← C_mul' a (X ^ n), quotient.lift_mk,
         submodule.quotient.quot_mk_eq_mk, quotient.mk_eq_mk, eval₂_X_pow,
         eval₂_smul, coe_eval₂_ring_hom, ring_hom.map_pow, eval₂_C, ring_hom.coe_comp,
         ring_hom.map_mul, eval₂_X] },

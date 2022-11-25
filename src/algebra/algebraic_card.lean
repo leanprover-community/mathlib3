@@ -50,7 +50,7 @@ begin
     apply_fun ulift.down at hx,
     rw hf at hx,
     exact (classical.some_spec x.1.2).1 hx },
-  let h : g ⁻¹' {f} → f.down.root_set A := λ x, ⟨x.1.1.1, mem_root_set_iff.2 ⟨hf, begin
+  let h : g ⁻¹' {f} → f.down.root_set A := λ x, ⟨x.1.1.1, mem_root_set.2 ⟨hf, begin
     have key' : g x = f := x.2,
     simp_rw ← key',
     exact (classical.some_spec x.1.1.2).2

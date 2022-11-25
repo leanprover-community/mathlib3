@@ -147,20 +147,6 @@ lemma is_unit_iff_degree_eq_zero : is_unit p ↔ degree p = 0 :=
       rw [← C_mul, _root_.mul_inv_cancel hc, C_1]
     end⟩⟩
 
-theorem irreducible_of_monic {p : R[X]} (hp1 : p.monic) (hp2 : p ≠ 1) :
-  irreducible p ↔ (∀ f g : R[X], f.monic → g.monic → f * g = p → f = 1 ∨ g = 1) :=
-⟨λ hp3 f g hf hg hfg, or.cases_on (hp3.is_unit_or_is_unit hfg.symm)
-  (assume huf : is_unit f, or.inl $ eq_one_of_is_unit_of_monic hf huf)
-  (assume hug : is_unit g, or.inr $ eq_one_of_is_unit_of_monic hg hug),
-λ hp3, ⟨mt (eq_one_of_is_unit_of_monic hp1) hp2, λ f g hp,
-have hf : f ≠ 0, from λ hf, by { rw [hp, hf, zero_mul] at hp1, exact not_monic_zero hp1 },
-have hg : g ≠ 0, from λ hg, by { rw [hp, hg, mul_zero] at hp1, exact not_monic_zero hp1 },
-or.imp (λ hf, is_unit_of_mul_eq_one _ _ hf) (λ hg, is_unit_of_mul_eq_one _ _ hg) $
-hp3 (f * C f.leading_coeff⁻¹) (g * C g.leading_coeff⁻¹)
-  (monic_mul_leading_coeff_inv hf) (monic_mul_leading_coeff_inv hg) $
-by rw [mul_assoc, mul_left_comm _ g, ← mul_assoc, ← C_mul, ← mul_inv, ← leading_coeff_mul,
-    ← hp, monic.def.1 hp1, inv_one, C_1, mul_one]⟩⟩
-
 /-- Division of polynomials. See `polynomial.div_by_monic` for more details.-/
 def div (p q : R[X]) :=
 C (leading_coeff q)⁻¹ * (p /ₘ (q * C (leading_coeff q)⁻¹))

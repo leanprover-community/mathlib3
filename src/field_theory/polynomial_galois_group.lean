@@ -123,12 +123,7 @@ section roots_action
 see `polynomial.gal.map_roots_bijective`. -/
 def map_roots [fact (p.splits (algebra_map F E))] :
   root_set p p.splitting_field → root_set p E :=
-λ x, ⟨is_scalar_tower.to_alg_hom F p.splitting_field E x, begin
-  have key := subtype.mem x,
-  by_cases p = 0,
-  { simp only [h, root_set_zero] at key,
-    exact false.rec _ key },
-  { rw [mem_root_set h, aeval_alg_hom_apply, (mem_root_set h).mp key, alg_hom.map_zero] } end⟩
+set.maps_to.restrict (is_scalar_tower.to_alg_hom F p.splitting_field E) _ _ $ root_set_maps_to _
 
 lemma map_roots_bijective [h : fact (p.splits (algebra_map F E))] :
   function.bijective (map_roots p E) :=

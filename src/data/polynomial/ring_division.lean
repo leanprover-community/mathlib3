@@ -736,13 +736,14 @@ theorem mem_root_set_of_ne {p : T[X]} {S : Type*} [comm_ring S] [is_domain S] [a
   [no_zero_smul_divisors T S] (hp : p ≠ 0) {a : S} : a ∈ p.root_set S ↔ aeval a p = 0 :=
 mem_root_set.trans $ and_iff_right hp
 
-lemma root_set_maps_to {p : T[X]} {S S'} [comm_ring S] [is_domain S] [algebra T S]
-  [comm_ring S'] [is_domain S'] [algebra T S'] (hp : p.map (algebra_map T S') ≠ 0)
+lemma root_set_maps_to' {p : T[X]} {S S'} [comm_ring S] [is_domain S] [algebra T S]
+  [comm_ring S'] [is_domain S'] [algebra T S']
+  (hp : p.map (algebra_map T S') = 0 → p.map (algebra_map T S) = 0)
   (f : S →ₐ[T] S') : (p.root_set S).maps_to f (p.root_set S') :=
 λ x hx, begin
   rw [mem_root_set'] at hx ⊢,
   rw [aeval_alg_hom, alg_hom.comp_apply, hx.2, _root_.map_zero],
-  exact ⟨hp, rfl⟩
+  exact ⟨mt hp hx.1, rfl⟩
 end
 
 lemma ne_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [algebra T S] {a : S}
@@ -752,6 +753,16 @@ lemma ne_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [algebra T 
 lemma aeval_eq_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [algebra T S]
   {a : S} (hx : a ∈ p.root_set S) : aeval a p = 0 :=
 (mem_root_set'.1 hx).2
+
+lemma root_set_maps_to {p : T[X]} {S S'} [comm_ring S] [is_domain S] [algebra T S]
+  [comm_ring S'] [is_domain S'] [algebra T S'] [no_zero_smul_divisors T S'] (f : S →ₐ[T] S') :
+  (p.root_set S).maps_to f (p.root_set S') :=
+begin
+  refine root_set_maps_to' (λ h₀, _) f,
+  obtain rfl : p = 0 := map_injective _
+    (no_zero_smul_divisors.algebra_map_injective T S') (by rwa [polynomial.map_zero]),
+  exact polynomial.map_zero _
+end
 
 end roots
 

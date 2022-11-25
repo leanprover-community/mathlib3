@@ -10,6 +10,10 @@ import data.int.cast.defs
 /-!
 # Semirings and rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/655
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines semirings, rings and domains. This is analogous to `algebra.group.defs` and
 `algebra.group.basic`, the difference being that the former is about `+` and `*` separately, while
 the present file is about their interaction.
@@ -414,5 +418,5 @@ instance comm_ring.to_non_unital_comm_ring [s : comm_ring α] : non_unital_comm_
 
   This is implemented as a mixin for `ring α`.
   To obtain an integral domain use `[comm_ring α] [is_domain α]`. -/
-@[protect_proj] class is_domain (α : Type u) [ring α]
-  extends no_zero_divisors α, nontrivial α : Prop
+@[protect_proj, ancestor no_zero_divisors nontrivial]
+class is_domain (α : Type u) [ring α] extends no_zero_divisors α, nontrivial α : Prop

@@ -134,6 +134,10 @@ equalities. -/
 protected def copy (f : α →ₙ+* β) (f' : α → β) (h : f' = f) : α →ₙ+* β :=
 { ..f.to_mul_hom.copy f' h, ..f.to_add_monoid_hom.copy f' h }
 
+@[simp] lemma coe_copy (f : α →ₙ+* β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+
+lemma copy_eq (f : α →ₙ+* β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
+
 end coe
 
 variables [rα : non_unital_non_assoc_semiring α] [rβ : non_unital_non_assoc_semiring β]
@@ -351,6 +355,10 @@ instance has_coe_monoid_hom : has_coe (α →+* β) (α →* β) := ⟨ring_hom.
 equalities. -/
 def copy (f : α →+* β) (f' : α → β) (h : f' = f) : α →+* β :=
 { ..f.to_monoid_with_zero_hom.copy f' h, ..f.to_add_monoid_hom.copy f' h }
+
+@[simp] lemma coe_copy (f : α →+* β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+
+lemma copy_eq (f : α →+* β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 end coe
 

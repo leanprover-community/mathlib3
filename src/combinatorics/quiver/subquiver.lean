@@ -3,7 +3,7 @@ Copyright (c) 2021 David Wärn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
-import data.set.basic
+import order.bounded_order
 import combinatorics.quiver.basic
 
 /-!
@@ -34,7 +34,7 @@ instance wide_subquiver_has_coe_to_sort {V} [quiver V] :
 
 /-- A wide subquiver viewed as a quiver on its own. -/
 instance wide_subquiver.quiver {V} [quiver V] (H : wide_subquiver V) : quiver H :=
-⟨λ a b, H a b⟩
+⟨λ a b, { f // f ∈ H a b }⟩
 
 namespace quiver
 

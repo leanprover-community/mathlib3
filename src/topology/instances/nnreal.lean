@@ -99,9 +99,17 @@ lemma comap_coe_at_top : comap (coe : ℝ≥0 → ℝ) at_top = at_top :=
   tendsto (λ a, (m a : ℝ)) f at_top ↔ tendsto m f at_top :=
 tendsto_Ici_at_top.symm
 
-lemma tendsto_real_to_nnreal {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (𝓝 x)) :
+lemma _root_.tendsto_real_to_nnreal {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (𝓝 x)) :
   tendsto (λa, real.to_nnreal (m a)) f (𝓝 (real.to_nnreal x)) :=
 (continuous_real_to_nnreal.tendsto _).comp h
+
+lemma _root_.tendsto_real_to_nnreal_at_top : tendsto real.to_nnreal at_top at_top :=
+begin
+  rw ← tendsto_coe_at_top,
+  apply tendsto_id.congr' _,
+  filter_upwards [Ici_mem_at_top (0 : ℝ)] with x hx,
+  simp only [max_eq_left (set.mem_Ici.1 hx), id.def, real.coe_to_nnreal'],
+end
 
 lemma nhds_zero : 𝓝 (0 : ℝ≥0) = ⨅a ≠ 0, 𝓟 (Iio a) :=
 nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot]

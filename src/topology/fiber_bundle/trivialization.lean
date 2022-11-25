@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.bundle
-import topology.algebra.order.basic
+import topology.algebra.order.field
 import topology.local_homeomorph
 
 /-!
@@ -23,12 +23,6 @@ import topology.local_homeomorph
 ### Operations on bundles
 
 We provide the following operations on `trivialization`s.
-
-* `trivialization.comap`: given a local trivialization `e` of a fiber bundle `p : Z → B`, a
-  continuous map `f : B' → B` and a point `b' : B'` such that `f b' ∈ e.base_set`,
-  `e.comap f hf b' hb'` is a trivialization of the pullback bundle. The pullback bundle
-  (a.k.a., the induced bundle) has total space `{(x, y) : B' × Z | f x = p y}`, and is given by
-  `λ ⟨(x, y), h⟩, x`.
 
 * `trivialization.comp_homeomorph`: given a local trivialization `e` of a fiber bundle
   `p : Z → B` and a homeomorphism `h : Z' ≃ₜ Z`, returns a local trivialization of the fiber bundle
@@ -564,54 +558,6 @@ rfl
 
 variables {F} {B' : Type*} [topological_space B']
 
-/-- Given a bundle trivialization of `proj : Z → B` and a continuous map `f : B' → B`,
-construct a bundle trivialization of `φ : {p : B' × Z | f p.1 = proj p.2} → B'`
-given by `φ x = (x : B' × Z).1`. -/
-protected noncomputable def comap
-  (e : trivialization F proj) (f : B' → B) (hf : continuous f)
-  (b' : B') (hb' : f b' ∈ e.base_set) :
-  trivialization F (λ x : {p : B' × Z | f p.1 = proj p.2}, (x : B' × Z).1) :=
-{ to_fun := λ p, ((p : B' × Z).1, (e (p : B' × Z).2).2),
-  inv_fun := λ p, if h : f p.1 ∈ e.base_set
-    then ⟨⟨p.1, e.to_local_homeomorph.symm (f p.1, p.2)⟩, by simp [e.proj_symm_apply' h]⟩
-    else ⟨⟨b', e.to_local_homeomorph.symm (f b', p.2)⟩, by simp [e.proj_symm_apply' hb']⟩,
-  source := {p | f (p : B' × Z).1 ∈ e.base_set},
-  target := {p | f p.1 ∈ e.base_set},
-  map_source' := λ p hp, hp,
-  map_target' := λ p (hp : f p.1 ∈ e.base_set), by simp [hp],
-  left_inv' :=
-    begin
-      rintro ⟨⟨b, x⟩, hbx⟩ hb,
-      dsimp at *,
-      have hx : x ∈ e.source, from e.mem_source.2 (hbx ▸ hb),
-      ext; simp *
-    end,
-  right_inv' := λ p (hp : f p.1 ∈ e.base_set), by simp [*, e.apply_symm_apply'],
-  open_source := e.open_base_set.preimage (hf.comp $ continuous_fst.comp continuous_subtype_coe),
-  open_target := e.open_base_set.preimage (hf.comp continuous_fst),
-  continuous_to_fun := ((continuous_fst.comp continuous_subtype_coe).continuous_on).prod $
-    continuous_snd.comp_continuous_on $ e.continuous_to_fun.comp
-      (continuous_snd.comp continuous_subtype_coe).continuous_on $
-      by { rintro ⟨⟨b, x⟩, (hbx : f b = proj x)⟩ (hb : f b ∈ e.base_set),
-           rw hbx at hb,
-           exact e.mem_source.2 hb },
-  continuous_inv_fun :=
-    begin
-      rw [embedding_subtype_coe.continuous_on_iff],
-      suffices : continuous_on (λ p : B' × F, (p.1, e.to_local_homeomorph.symm (f p.1, p.2)))
-        {p : B' × F | f p.1 ∈ e.base_set},
-      { refine this.congr (λ p (hp : f p.1 ∈ e.base_set), _),
-        simp [hp] },
-      { refine continuous_on_fst.prod (e.to_local_homeomorph.symm.continuous_on.comp _ _),
-        { exact ((hf.comp continuous_fst).prod_mk continuous_snd).continuous_on },
-        { exact λ p hp, e.mem_target.2 hp } }
-    end,
-  base_set := f ⁻¹' e.base_set,
-  source_eq := rfl,
-  target_eq := by { ext, simp },
-  open_base_set := e.open_base_set.preimage hf,
-  proj_to_fun := λ _ _, rfl }
-
 lemma is_image_preimage_prod (e : trivialization F proj) (s : set B) :
   e.to_local_homeomorph.is_image (proj ⁻¹' s) (s ×ˢ univ) :=
 λ x hx, by simp [e.coe_fst', hx]
@@ -689,8 +635,9 @@ noncomputable def disjoint_union (e e' : trivialization F proj)
   (H : disjoint e.base_set e'.base_set) :
   trivialization F proj :=
 { to_local_homeomorph := e.to_local_homeomorph.disjoint_union e'.to_local_homeomorph
-    (λ x hx, by { rw [e.source_eq, e'.source_eq] at hx, exact H hx })
-    (λ x hx, by { rw [e.target_eq, e'.target_eq] at hx, exact H ⟨hx.1.1, hx.2.1⟩ }),
+    (by { rw [e.source_eq, e'.source_eq], exact H.preimage _, })
+    (by { rw [e.target_eq, e'.target_eq, disjoint_iff_inf_le],
+          intros x hx, exact H.le_bot ⟨hx.1.1, hx.2.1⟩ }),
   base_set := e.base_set ∪ e'.base_set,
   open_base_set := is_open.union e.open_base_set e'.open_base_set,
   source_eq := congr_arg2 (∪) e.source_eq e'.source_eq,
@@ -703,7 +650,7 @@ noncomputable def disjoint_union (e e' : trivialization F proj)
       { show (e.source.piecewise e e' p).1 = proj p,
         rw [piecewise_eq_of_not_mem, e'.coe_fst hp'],
         simp only [e.source_eq, e'.source_eq] at hp' ⊢,
-        exact λ h, H ⟨h, hp'⟩ }
+        exact λ h, H.le_bot ⟨h, hp'⟩ }
     end }
 
 end piecewise

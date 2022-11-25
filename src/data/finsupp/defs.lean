@@ -3,8 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Scott Morrison
 -/
-import algebra.hom.group_action
 import algebra.indicator_function
+import group_theory.submonoid.basic
 
 /-!
 # Type of functions with finite support
@@ -174,24 +174,24 @@ lemma support_subset_iff {s : set α} {f : α →₀ M} :
 by simp only [set.subset_def, mem_coe, mem_support_iff];
    exact forall_congr (assume a, not_imp_comm)
 
-/-- Given `fintype α`, `equiv_fun_on_fintype` is the `equiv` between `α →₀ β` and `α → β`.
+/-- Given `finite α`, `equiv_fun_on_finite` is the `equiv` between `α →₀ β` and `α → β`.
   (All functions on a finite type are finitely supported.) -/
-@[simps] def equiv_fun_on_fintype [fintype α] : (α →₀ M) ≃ (α → M) :=
-⟨λf a, f a, λf, mk (finset.univ.filter $ λa, f a ≠ 0) f (by simp only [true_and, finset.mem_univ,
-  iff_self, finset.mem_filter, finset.filter_congr_decidable, forall_true_iff]),
-  begin intro f, ext a, refl end,
-  begin intro f, ext a, refl end⟩
+@[simps] def equiv_fun_on_finite [finite α] : (α →₀ M) ≃ (α → M) :=
+{ to_fun := coe_fn,
+  inv_fun := λ f, mk (function.support f).to_finite.to_finset f (λ a, set.finite.mem_to_finset _),
+  left_inv := λ f, ext $ λ x, rfl,
+  right_inv := λ f, rfl }
 
-@[simp] lemma equiv_fun_on_fintype_symm_coe {α} [fintype α] (f : α →₀ M) :
-  equiv_fun_on_fintype.symm f = f :=
-by { ext, simp [equiv_fun_on_fintype], }
+@[simp] lemma equiv_fun_on_finite_symm_coe {α} [finite α] (f : α →₀ M) :
+  equiv_fun_on_finite.symm f = f :=
+equiv_fun_on_finite.symm_apply_apply f
 
 /--
 If `α` has a unique term, the type of finitely supported functions `α →₀ β` is equivalent to `β`.
 -/
 @[simps] noncomputable
 def _root_.equiv.finsupp_unique {ι : Type*} [unique ι] : (ι →₀ M) ≃ M :=
-finsupp.equiv_fun_on_fintype.trans (equiv.fun_unique ι M)
+finsupp.equiv_fun_on_finite.trans (equiv.fun_unique ι M)
 
 end basic
 
@@ -316,7 +316,7 @@ lemma support_single_ne_bot (i : α) (h : b ≠ 0) :
   (single i b).support ≠ ⊥ :=
 by simpa only [support_single_ne_zero _ h] using singleton_ne_empty _
 
-lemma support_single_disjoint [decidable_eq α] {b' : M} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : α} :
+lemma support_single_disjoint {b' : M} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : α} :
   disjoint (single i b).support (single j b').support ↔ i ≠ j :=
 by rw [support_single_ne_zero _ hb, support_single_ne_zero _ hb', disjoint_singleton]
 
@@ -380,13 +380,13 @@ lemma card_support_le_one' [nonempty α] {f : α →₀ M} :
   card f.support ≤ 1 ↔ ∃ a b, f = single a b :=
 by simp only [card_le_one_iff_subset_singleton, support_subset_singleton']
 
-@[simp] lemma equiv_fun_on_fintype_single [decidable_eq α] [fintype α] (x : α) (m : M) :
-  (@finsupp.equiv_fun_on_fintype α M _ _) (finsupp.single x m) = pi.single x m :=
-by { ext, simp [finsupp.single_eq_pi_single, finsupp.equiv_fun_on_fintype], }
+@[simp] lemma equiv_fun_on_finite_single [decidable_eq α] [finite α] (x : α) (m : M) :
+  finsupp.equiv_fun_on_finite (finsupp.single x m) = pi.single x m :=
+by { ext, simp [finsupp.single_eq_pi_single], }
 
-@[simp] lemma equiv_fun_on_fintype_symm_single [decidable_eq α] [fintype α] (x : α) (m : M) :
-  (@finsupp.equiv_fun_on_fintype α M _ _).symm (pi.single x m) = finsupp.single x m :=
-by { ext, simp [finsupp.single_eq_pi_single, finsupp.equiv_fun_on_fintype], }
+@[simp] lemma equiv_fun_on_finite_symm_single [decidable_eq α] [finite α] (x : α) (m : M) :
+  finsupp.equiv_fun_on_finite.symm (pi.single x m) = finsupp.single x m :=
+by rw [← equiv_fun_on_finite_single, equiv.symm_apply_apply]
 
 end single
 

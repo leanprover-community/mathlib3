@@ -3,10 +3,13 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
-import tactic.lint
 
 /-!
 # Lazy lists
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/686
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The type `lazy_list α` is a lazy list with elements of type `α`.
 In the VM, these are potentially infinite lists

@@ -350,7 +350,7 @@ linear_isometry_equiv.ext $ o.linear_isometry_equiv_comp_right_angle_rotation φ
 /-- For a nonzero vector `x` in an oriented two-dimensional real inner product space `E`,
 `![x, J x]` forms an (orthogonal) basis for `E`. -/
 def basis_right_angle_rotation (x : E) (hx : x ≠ 0) : basis (fin 2) ℝ E :=
-@basis_of_linear_independent_of_card_eq_finrank _ _ _ _ _ _ _ _ ![x, J x]
+@basis_of_linear_independent_of_card_eq_finrank ℝ _ _ _ _ _ _ _ ![x, J x]
 (linear_independent_of_ne_zero_of_inner_eq_zero (λ i, by { fin_cases i; simp [hx] })
   begin
     intros i j hij,

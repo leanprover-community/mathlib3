@@ -71,12 +71,20 @@ fun_like.ext T T' (λ x, by { funext, apply h })
 
 /-- Copy of an `ssyt μ` with a new `entry` equal to the old one. Useful to fix definitional
 equalities. -/
-protected def copy {μ : young_diagram} {T : ssyt μ} (entry' : ℕ → ℕ → ℕ) (h : entry' = T) :
-ssyt μ :=
+protected def copy {μ : young_diagram} (T : ssyt μ) (entry' : ℕ → ℕ → ℕ) (h : entry' = T) :
+  ssyt μ :=
 { entry := entry',
   row_weak' := λ _ _ _, h.symm ▸ T.row_weak',
   col_strict' := λ _ _ _, h.symm ▸ T.col_strict',
   zeros' := λ _ _, h.symm ▸ T.zeros' }
+
+@[simp] lemma coe_copy {μ : young_diagram} (T : ssyt μ) (entry' : ℕ → ℕ → ℕ) (h : entry' = T) :
+  ⇑(T.copy entry' h) = entry' :=
+rfl
+
+lemma copy_eq {μ : young_diagram} (T : ssyt μ) (entry' : ℕ → ℕ → ℕ) (h : entry' = T) :
+  T.copy entry' h = T :=
+fun_like.ext' h
 
 lemma row_weak {μ : young_diagram} (T : ssyt μ) {i j1 j2 : ℕ}
   (hj : j1 < j2) (hcell : (i, j2) ∈ μ) : T i j1 ≤ T i j2 :=

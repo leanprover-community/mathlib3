@@ -3,7 +3,8 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import order.conditionally_complete_lattice
+import order.conditionally_complete_lattice.basic
+import data.set.finite
 import algebra.group.prod
 import algebra.group.pi
 import algebra.module.basic

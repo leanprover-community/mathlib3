@@ -112,7 +112,7 @@ instance : has_one ℤ_[p] := ⟨⟨1, by norm_num⟩⟩
 @[simp, norm_cast] lemma coe_zero : ((0 : ℤ_[p]) : ℚ_[p]) = 0 := rfl
 
 lemma coe_eq_zero (z : ℤ_[p]) : (z : ℚ_[p]) = 0 ↔ z = 0 :=
-⟨λ h, by {rw ← coe_zero at h, exact subtype.coe_inj.mp h}, λ h, by {rw h, exact coe_zero}⟩
+by rw [← coe_zero, subtype.coe_inj]
 
 instance : add_comm_group ℤ_[p] :=
 (by apply_instance : add_comm_group (subring p))
@@ -487,9 +487,8 @@ lemma maximal_ideal_eq_span_p : maximal_ideal ℤ_[p] = ideal.span {p} :=
 begin
   apply le_antisymm,
   { intros x hx,
-    rw ideal.mem_span_singleton,
     simp only [local_ring.mem_maximal_ideal, mem_nonunits] at hx,
-    rwa ← norm_lt_one_iff_dvd },
+    rwa [ideal.mem_span_singleton, ← norm_lt_one_iff_dvd] },
   { rw [ideal.span_le, set.singleton_subset_iff], exact p_nonnunit }
 end
 
@@ -549,23 +548,22 @@ instance is_fraction_ring : is_fraction_ring ℤ_[p] ℚ_[p] :=
   begin
     by_cases hx : ‖ x ‖ ≤ 1,
     { use (⟨x, hx⟩, 1),
-      rw [submonoid.coe_one, map_one, mul_one],
-      refl, },
+      rw [submonoid.coe_one, map_one, mul_one, padic_int.algebra_map_apply, subtype.coe_mk] },
     { set n := int.to_nat(- x.valuation) with hn,
       have hn_coe : (n : ℤ) = -x.valuation,
       { rw [hn, int.to_nat_of_nonneg],
         rw right.nonneg_neg_iff,
-        rw padic.norm_le_one_iff_val_nonneg at hx,
-        exact le_of_lt (not_le.mp hx) },
+        rw [padic.norm_le_one_iff_val_nonneg, not_le] at hx,
+        exact hx.le },
       set a := x * p^n with ha,
       have ha_norm : ‖ a ‖ = 1,
       { have hx : x ≠ 0,
         { intro h0,
           rw [h0, norm_zero] at hx,
           exact hx (zero_le_one) },
-          rw [ha, padic_norm_e.mul, ← zpow_coe_nat, padic_norm_e.norm_p_pow,
-            padic.norm_eq_pow_val hx, ← zpow_add' , hn_coe, neg_neg, add_left_neg, zpow_zero],
-          exact or.inl (nat.cast_ne_zero.mpr (ne_zero.ne p)), },
+        rw [ha, padic_norm_e.mul, ← zpow_coe_nat, padic_norm_e.norm_p_pow,
+          padic.norm_eq_pow_val hx, ← zpow_add' , hn_coe, neg_neg, add_left_neg, zpow_zero],
+        exact or.inl (nat.cast_ne_zero.mpr (ne_zero.ne p)), },
       use (⟨a, le_of_eq ha_norm⟩,
         ⟨(p^n : ℤ_[p]), mem_non_zero_divisors_iff_ne_zero.mpr (ne_zero.ne _)⟩),
       simp only [set_like.coe_mk, map_pow, map_nat_cast, algebra_map_apply,

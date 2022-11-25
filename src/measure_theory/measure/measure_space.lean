@@ -2149,7 +2149,7 @@ open_locale pointwise
 lemma smul_ae_eq_of_ae_eq
   {G α : Type*} [group G] [mul_action G α] [measurable_space α] {s t : set α} {μ : measure α}
   (g : G) (h_qmp : quasi_measure_preserving ((•) g⁻¹ : α → α) μ μ) (h_ae_eq : s =ᵐ[μ] t) :
-  g • s =ᵐ[μ] g • t :=
+  (g • s : set α) =ᵐ[μ] (g • t : set α) :=
 by simpa only [← preimage_smul_inv] using h_qmp.ae_eq h_ae_eq
 
 end quasi_measure_preserving

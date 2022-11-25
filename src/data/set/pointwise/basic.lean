@@ -747,13 +747,6 @@ locale `pointwise`."]
 protected def has_smul_set [has_smul α β] : has_smul α (set β) :=
 ⟨λ a, image (has_smul.smul a)⟩
 
-/-- A variant of `set.has_smul_set`, useful in parts of the library which abuse the defeq
-`set β = (β → Prop)`. -/
-@[to_additive "A variant of `set.has_vadd_set`, useful in parts of the library which abuse the defeq
-`set β = (β → Prop)`. "]
-protected def has_smul_pi_Prop [has_smul α β] : has_smul α (β → Prop) :=
-set.has_smul_set
-
 /-- The pointwise scalar multiplication of sets `s • t` is defined as `{x • y | x ∈ s, y ∈ t}` in
 locale `pointwise`. -/
 @[to_additive "The pointwise scalar addition of sets `s +ᵥ t` is defined as
@@ -761,8 +754,8 @@ locale `pointwise`. -/
 protected def has_smul [has_smul α β] : has_smul (set α) (set β) :=
 ⟨image2 has_smul.smul⟩
 
-localized "attribute [instance] set.has_smul_set set.has_smul_pi_Prop set.has_smul" in pointwise
-localized "attribute [instance] set.has_vadd_set set.has_vadd_pi_Prop set.has_vadd" in pointwise
+localized "attribute [instance] set.has_smul_set set.has_smul" in pointwise
+localized "attribute [instance] set.has_vadd_set set.has_vadd" in pointwise
 
 section has_smul
 variables {ι : Sort*} {κ : ι → Sort*} [has_smul α β] {s s₁ s₂ : set α} {t t₁ t₂ u : set β} {a : α}

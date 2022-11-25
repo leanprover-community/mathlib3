@@ -96,7 +96,7 @@ lemma volume_of_add_preimage_eq (s I : set $ add_circle T)
 begin
   let G := add_subgroup.zmultiples u,
   haveI : fintype G := @fintype.of_finite _ hu.finite_zmultiples,
-  have hsG : ∀ (g : G), g +ᵥ s =ᵐ[volume] s,
+  have hsG : ∀ (g : G), (g +ᵥ s : set $ add_circle T) =ᵐ[volume] s,
   { rintros ⟨y, hy⟩,
     convert ae_eq_refl s,
     exact vadd_eq_self_of_mem_zmultiples hy hs, },

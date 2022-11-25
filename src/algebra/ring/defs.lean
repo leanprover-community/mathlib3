@@ -418,5 +418,5 @@ instance comm_ring.to_non_unital_comm_ring [s : comm_ring α] : non_unital_comm_
 
   This is implemented as a mixin for `ring α`.
   To obtain an integral domain use `[comm_ring α] [is_domain α]`. -/
-@[protect_proj, ancestor no_zero_divisors nontrivial]
-class is_domain (α : Type u) [ring α] extends no_zero_divisors α, nontrivial α : Prop
+@[protect_proj, ancestor is_cancel_mul_zero nontrivial]
+class is_domain (α : Type u) [ring α] extends is_cancel_mul_zero α, nontrivial α : Prop

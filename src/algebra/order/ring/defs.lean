@@ -8,7 +8,7 @@ import algebra.order.group.defs
 import algebra.order.monoid.cancel.defs
 import algebra.order.monoid.with_zero
 import algebra.order.ring.lemmas
-import algebra.ring.defs
+import algebra.ring.basic
 import order.min_max
 import tactic.nontriviality
 
@@ -821,7 +821,7 @@ instance linear_ordered_ring.to_linear_ordered_add_comm_group : linear_ordered_a
 { ..‹linear_ordered_ring α› }
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_ring.is_domain : is_domain α :=
+instance linear_ordered_ring.no_zero_divisors : no_zero_divisors α :=
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     begin
       intros a b hab,
@@ -831,6 +831,10 @@ instance linear_ordered_ring.is_domain : is_domain α :=
         (mul_neg_of_pos_of_neg ha hb).ne, (mul_pos ha hb).ne.symm]
     end,
   .. ‹linear_ordered_ring α› }
+
+@[priority 100] -- see Note [lower instance priority]
+instance linear_ordered_ring.is_domain : is_domain α :=
+no_zero_divisors.to_is_domain _
 
 lemma mul_pos_iff : 0 < a * b ↔ 0 < a ∧ 0 < b ∨ a < 0 ∧ b < 0 :=
 ⟨pos_and_pos_or_neg_and_neg_of_mul_pos,

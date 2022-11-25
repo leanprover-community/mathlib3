@@ -96,6 +96,12 @@ end
 @[simp] lemma mul_coeff_zero (p q : R[X]) : coeff (p * q) 0 = coeff p 0 * coeff q 0 :=
 by simp [coeff_mul]
 
+-- TODO: golf using `constant_coeff` once #17664 is merged
+lemma is_unit_C {x : R} : is_unit (C x) ↔ is_unit x :=
+⟨by { rintros ⟨⟨q, p, hqp, hpq⟩, rfl : q = C x⟩,
+  exact ⟨⟨(C x).coeff 0, p.coeff 0, by rw [←mul_coeff_zero, hqp, coeff_one_zero],
+    by rw [←mul_coeff_zero, hpq, coeff_one_zero]⟩, coeff_C_zero⟩ }, is_unit.map C⟩
+
 lemma coeff_mul_X_zero (p : R[X]) : coeff (p * X) 0 = 0 := by simp
 
 lemma coeff_X_mul_zero (p : R[X]) : coeff (X * p) 0 = 0 := by simp

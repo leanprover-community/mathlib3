@@ -206,6 +206,9 @@ begin
   { convert complex.of_real_re (1 / 2 : ℝ) },
   replace hh2 : 0 < (1 / 2 : ℂ).re := by { rw hh2, exact one_half_pos, },
   rw [Gamma_eq_integral _ hh2, hh, Gamma_integral_of_real, of_real_inj, real.Gamma_integral],
+  rw ←integral_comp_rpow_Ioi_of_pos zero_lt_two,
+  simp_rw smul_eq_mul,
+
   -- setup for change-of-variables
   let g : ℝ → ℝ := λ x, real.exp (-x) * x ^ ((1/2 : ℝ) - 1),
   have contg : continuous_on g (Ioi 0) := (real.continuous_exp.comp
@@ -220,8 +223,7 @@ begin
     have := hx.ne', field_simp, ring, },
   have intg := ((integrable_exp_neg_mul_sq zero_lt_one).const_mul 2).integrable_on.congr_fun
     eq_funcs.symm measurable_set_Ioi,
-  rw [←(integral_comp_rpow_Ioi zero_lt_two contg (real.Gamma_integral_convergent one_half_pos)
-    intg), set_integral_congr measurable_set_Ioi eq_funcs, integral_mul_left,
+  rw [←integral_comp_rpow_Ioi_of_pos zero_lt_two, set_integral_congr measurable_set_Ioi eq_funcs, integral_mul_left,
     integral_gaussian_Ioi zero_lt_one],
     field_simp, ring,
 end

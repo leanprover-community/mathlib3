@@ -957,7 +957,7 @@ ext $ λ _, by simp only [hf', sub_apply, map_range_apply]
 
 /-- Note the general `finsupp.has_smul` instance doesn't apply as `ℤ` is not distributive
 unless `β i`'s addition is commutative. -/
-instance has_int_scalar [has_smul G] : has_smul ℤ (α →₀ G) :=
+instance has_int_scalar [add_group G] : has_smul ℤ (α →₀ G) :=
 ⟨λ n v, v.map_range ((•) n) (zsmul_zero _)⟩
 
 instance [add_group G] : add_group (α →₀ G) :=

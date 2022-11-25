@@ -85,7 +85,7 @@ end
 lemma integrable_on_Ioi_exp_neg_mul_sq_iff {b : ℝ} :
   integrable_on (λ x:ℝ, exp (-b * x^2)) (Ioi 0) ↔ 0 < b :=
 begin
-  refine ⟨(λ h, _), (λ h, (integrable_exp_neg_mul_sq h).integrable_on)⟩,
+  refine ⟨λ h, _, λ h, (integrable_exp_neg_mul_sq h).integrable_on⟩,
   by_contra' hb,
   have : ∫⁻ x:ℝ in Ioi 0, 1 ≤ ∫⁻ x:ℝ in Ioi 0, ‖exp (-b * x^2)‖₊,
   { apply lintegral_mono (λ x, _),
@@ -96,7 +96,7 @@ begin
 end
 
 lemma integrable_exp_neg_mul_sq_iff {b : ℝ} : integrable (λ x:ℝ, exp (-b * x^2)) ↔ 0 < b :=
-⟨(λ h, integrable_on_Ioi_exp_neg_mul_sq_iff.mp h.integrable_on), integrable_exp_neg_mul_sq⟩
+⟨λ h, integrable_on_Ioi_exp_neg_mul_sq_iff.mp h.integrable_on, integrable_exp_neg_mul_sq⟩
 
 lemma integrable_mul_exp_neg_mul_sq {b : ℝ} (hb : 0 < b) :
   integrable (λ x:ℝ, x * exp (-b * x^2)) :=

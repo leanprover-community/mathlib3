@@ -1,6 +1,24 @@
+/-
+Copyright (c) 2017 Johannes Hölzl. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johannes Hölzl
+-/
 import order.bounded_order
 
-/-! ### Disjointness and complements -/
+/-!
+# Disjointness and complements
+
+This file defines `disjoint`, `codisjoint`, and the `is_compl` predicate.
+
+## Main declarations
+
+* `disjoint x y`: two elements of a lattice are disjoint if their `inf` is the bottom element.
+* `codisjoint x y`: two elements of a lattice are codisjoint if their `join` is the top element.
+* `is_compl x y`: In a bounded lattice, predicate for "`x` is a complement of `y`". Note that in a
+  non distributive lattice, an element can have several complements.
+* `complemented_lattice α`: Typeclass stating that any element of a lattice has a complement.
+
+-/
 
 variable {α : Type*}
 

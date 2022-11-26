@@ -1,7 +1,18 @@
+/-
+Copyright (c) 2017 Johannes Hölzl. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johannes Hölzl
+-/
 import order.disjoint
-import order.monotone2
 import order.with_bot
 
+/-!
+
+# The order on `Prop`
+
+Instances on `Prop` such as `distrib_lattice`, `bounded_order`, `linear_order`.
+
+-/
 /-- Propositions form a distributive lattice. -/
 instance Prop.distrib_lattice : distrib_lattice Prop :=
 { sup          := or,

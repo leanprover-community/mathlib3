@@ -18,10 +18,6 @@ instances for `Prop` and `fun`.
 * `has_<top/bot> α`: Typeclasses to declare the `⊤`/`⊥` notation.
 * `order_<top/bot> α`: Order with a top/bottom element.
 * `bounded_order α`: Order with a top and bottom element.
-* `with_<top/bot> α`: Equips `option α` with the order on `α` plus `none` as the top/bottom element.
-* `is_compl x y`: In a bounded lattice, predicate for "`x` is a complement of `y`". Note that in a
-  non distributive lattice, an element can have several complements.
-* `complemented_lattice α`: Typeclass stating that any element of a lattice has a complement.
 
 ## Common lattices
 

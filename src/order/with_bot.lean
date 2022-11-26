@@ -1,5 +1,20 @@
+/-
+Copyright (c) 2017 Johannes Hölzl. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johannes Hölzl
+-/
 import order.bounded_order
-/-! ### `with_bot`, `with_top` -/
+
+/-!
+# `with_bot`, `with_top`
+
+Adding a `bot` or a `top` to an order.
+
+## Main declarations
+
+* `with_<top/bot> α`: Equips `option α` with the order on `α` plus `none` as the top/bottom element.
+
+ -/
 
 variables {α β γ δ : Type*}
 

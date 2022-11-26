@@ -496,6 +496,14 @@ begin
   exact add_le_add (floor_le _) (floor_le _),
 end
 
+lemma le_floor_add_floor (a b : α) : ⌊a + b⌋ - 1 ≤ ⌊a⌋ + ⌊b⌋ :=
+begin
+  rw [←sub_le_iff_le_add, le_floor, int.cast_sub, sub_le_comm, int.cast_sub, int.cast_one],
+  refine le_trans _ (sub_one_lt_floor _).le,
+  rw [sub_le_iff_le_add', ←add_sub_assoc, sub_le_sub_iff_right],
+  exact floor_le _,
+end
+
 @[simp] lemma floor_int_add (z : ℤ) (a : α) : ⌊↑z + a⌋ = z + ⌊a⌋ :=
 by simpa only [add_comm] using floor_add_int a z
 
@@ -567,6 +575,12 @@ lemma fract_add_le (a b : α) : fract (a + b) ≤ fract a + fract b :=
 begin
   rw [fract, fract, fract, sub_add_sub_comm, sub_le_sub_iff_left, ←coe_add, int.cast_le],
   exact le_floor_add _ _,
+end
+
+lemma fract_add_fract_le (a b : α) : fract a + fract b ≤ fract (a + b) + 1 :=
+begin
+  rw [fract, fract, fract, sub_add_sub_comm, sub_add, sub_le_sub_iff_left],
+  exact_mod_cast le_floor_add_floor a b,
 end
 
 @[simp] lemma self_sub_fract (a : α) : a - fract a = ⌊a⌋ := sub_sub_cancel _ _
@@ -795,6 +809,14 @@ by rw [eq_sub_iff_add_eq, ← ceil_add_one, sub_add_cancel]
 
 lemma ceil_lt_add_one (a : α) : (⌈a⌉ : α) < a + 1 :=
 by { rw [← lt_ceil, ← int.cast_one, ceil_add_int], apply lt_add_one }
+
+lemma ceil_add_ceil_le (a b : α) : ⌈a⌉ + ⌈b⌉ ≤ ⌈a + b⌉ + 1 :=
+begin
+  rw [←le_sub_iff_add_le, ceil_le, int.cast_sub, int.cast_add, int.cast_one, le_sub_comm],
+  refine (ceil_lt_add_one _).le.trans _,
+  rw [le_sub_iff_add_le', ←add_assoc, add_le_add_iff_right],
+  exact le_ceil _,
+end
 
 @[simp] lemma ceil_pos : 0 < ⌈a⌉ ↔ 0 < a := by rw [lt_ceil, cast_zero]
 

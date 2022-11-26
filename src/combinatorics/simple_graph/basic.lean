@@ -296,6 +296,10 @@ by { ext ⟨x, y⟩, refl, }
   (G ⊔ H).edge_set = G.edge_set ∪ H.edge_set :=
 by { ext ⟨x, y⟩, refl, }
 
+@[simp] lemma edge_set_bot :
+  (⊥ : simple_graph V).edge_set = ∅ :=
+by { ext ⟨x, y⟩, refl, }
+
 /--
 This lemma, combined with `edge_set_sdiff` and `edge_set_from_edge_set`,
 allows proving `(G \ from_edge_set s).edge_set = G.edge_set \ s` by `simp`.
@@ -397,6 +401,10 @@ by { ext v w, simp only [from_edge_set_adj, set.mem_inter_iff, ne.def, inf_adj],
 @[simp] lemma from_edge_set_sup (s t : set (sym2 V)) :
   from_edge_set s ⊔ from_edge_set t = from_edge_set (s ∪ t) :=
 by { ext v w, simp [set.mem_union, or_and_distrib_right], }
+
+@[simp] lemma from_edge_set_compl (s : set (sym2 V)) :
+  (from_edge_set s)ᶜ = from_edge_set sᶜ :=
+by { ext v w, split; simp { contextual := tt }, }
 
 @[simp] lemma from_edge_set_sdiff (s t : set (sym2 V)) :
   from_edge_set s \ from_edge_set t = from_edge_set (s \ t) :=

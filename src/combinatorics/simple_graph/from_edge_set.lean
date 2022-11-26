@@ -62,3 +62,18 @@ end
 
 
 end simple_graph
+
+@[simp] lemma order.boolean_algebra.le_sdiff {α : Type u} {x y z : α} [generalized_boolean_algebra α] :
+  x ≤ y \ z ↔ x ≤ y ∧ disjoint x z :=
+begin
+  split,
+  { rintro h,
+    exact ⟨h.trans sdiff_le, (@disjoint_sdiff_self_left _ z y _).mono_left h⟩, },
+  { rintro ⟨h,k⟩,
+    transitivity x \ z,
+    { suffices : x ≤ x \ (x ⊓ z), { simpa [sdiff_inf] using this, },
+      rw disjoint_iff at k,
+      simp only [k, sdiff_bot], },
+    { simp only [sdiff_le_iff, sup_sdiff_self],
+      apply h.trans le_sup_right, }, },
+end

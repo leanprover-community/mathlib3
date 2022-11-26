@@ -203,7 +203,11 @@ begin
     suffices h : G \ from_edge_set {⟦(u, v)⟧} = G, by
     { rw ←h at eG, simpa using eG, }, -- Any kind of  `simpx [←h]` doesn't work?
     apply Gmin _ _ _ Gneco,
-    { sorry, },
+    { simp [BG, disjoint_iff],
+      apply edge_set_injective,
+      simp [set.eq_empty_iff_forall_not_mem],
+      rintro e eB rfl,
+      exact (neB eB).elim, },
     { simp only [sdiff_le_iff, le_sup_right], }, },
   { rintro ⟨BG,Gco,Gmin⟩, refine ⟨BG, Gco, _⟩,
     rintro H BH HG Hco,
@@ -216,9 +220,13 @@ begin
       (⟦⟨u,v⟩⟧ : sym2 V)
       (by {simp only [set.mem_diff, mem_edge_set], exact ⟨Ga, λ h, nHa (BH h)⟩}),
     refine Hco.le _,
-    sorry, },
+    simp [HG, disjoint_iff],
+    apply edge_set_injective,
+    simp [set.eq_empty_iff_forall_not_mem],
+    rintro a aH rfl,
+    exact (nHa aH).elim, },
 end
-/-
+
 lemma is_tree.is_max_acyclic [decidable_eq V] (hG : G.is_tree) {GT : G ≤ T} : G.is_max_acyclic T :=
 begin
   rw is_max_acyclic_iff,
@@ -228,14 +236,14 @@ begin
   rintro Ge_ac,
 
   -- A path from `u` to `v` given by `connected`ness of `G`
-  let p₁ : (from_edge_set $ G.edge_set ∪ {⟦⟨u,v⟩⟧}).path u v :=
+  let p₁ : (G ⊔ from_edge_set {⟦⟨u,v⟩⟧}).path u v :=
     simple_graph.path.map
-      (simple_graph.hom.map_spanning_subgraphs (by { rw le_from_edge_set_iff, simp, }))
+      (simple_graph.hom.map_spanning_subgraphs (by simp))
       function.injective_id
       (hG.is_connected.1 u v).some.to_path,
 
   -- The singleton path from `u` to `v` given by the edge `⟦⟨u,v⟩⟧`
-  let p₂ : (from_edge_set $ G.edge_set ∪ {⟦⟨u,v⟩⟧}).path u v := path.singleton (⟨or.inr rfl,‹u≠v›⟩),
+  let p₂ : (G ⊔ from_edge_set {⟦⟨u,v⟩⟧}).path u v := path.singleton (by simp [this]),
 
   -- Cannot be equal, since the edge is contained in one but not the other,
   have : p₁ ≠ p₂, by
@@ -261,7 +269,7 @@ begin
   rintro ⟨u,v⟩ ⟨eG,neB⟩ Gne_co,
 
   let p₁ : G.path u v := simple_graph.path.map
-      (simple_graph.hom.map_spanning_subgraphs (by { rw from_edge_set_le_iff, exact λ x hx, hx.1.1, }))
+      (simple_graph.hom.map_spanning_subgraphs (by simp))
       function.injective_id
       (Gne_co.1 u v).some.to_path,
 
@@ -295,13 +303,8 @@ begin
   have hy : ¬ G.reachable x y := λ h, hy' (hx'.trans h),
   have xnay : ¬ G.adj x y := λ a, hy ⟨(path.singleton a).val⟩,
   have xney : x ≠ y := e.ne,
-  have hG : G = from_edge_set ((from_edge_set $ G.edge_set ∪ {⟦⟨x,y⟩⟧}).edge_set \ {⟦⟨x,y⟩⟧}), by
-  { rw edge_set_from_edge_set,
-    ext s t,
-    simp,
-    split,
-    { rintro a, refine ⟨⟨or.inr a,a.ne⟩,_⟩, rintro (⟨rfl,rfl⟩|⟨rfl,rfl⟩);sorry },
-    { sorry, }, },
+  have hG : G = (G ⊔ from_edge_set {⟦⟨x,y⟩⟧}) \ from_edge_set {⟦⟨x,y⟩⟧}, by
+  { simp, sorry, },
   specialize Gmax ⟦⟨x,y⟩⟧
     ( by { rw [set.mem_diff, mem_edge_set], exact ⟨e, xnay⟩ } ),
   dsimp only [is_acyclic] at Gmax,
@@ -309,16 +312,17 @@ begin
   obtain ⟨v,w,wc⟩ := Gmax,
   by_cases h : (⟦⟨x,y⟩⟧ : sym2 V) ∈ w.edges,
   { apply hy, rw hG,
-    convert (adj_and_reachable_delete_edges_iff_exists_cycle.mpr ⟨v,w,wc,h⟩).right,
-    rw delete_edges_eq, },
+    exact (adj_and_reachable_delete_edges_iff_exists_cycle.mpr ⟨v,w,wc,h⟩).right, },
   { rw hG at Gac,
-    rw ←delete_edges_eq at Gac,
-    apply Gac v,
-    let w' := walk.to_delete_edge ⟦⟨x,y⟩⟧ w h,
-    exact (walk.is_cycle.to_delete_edges {⟦⟨x,y⟩⟧} wc _ : w'.is_cycle), },
+    refine Gac v (w.transfer _ (λ e ew, _)) (wc.transfer _),
+    simp only [edge_set_sdiff, edge_set_from_edge_set, edge_set_sdiff_sdiff_is_diag, set.mem_diff,
+               set.mem_singleton_iff],
+    split,
+    { exact (w.edges_subset_edge_set ew), },
+    { rintro rfl, exact h ew, }, },
 end
 
-
+/-
 lemma is_min_connected.is_acyclic (hB : B.is_acyclic) : G.is_min_connected B → G.is_acyclic :=
 begin
   rintro G_min_co,

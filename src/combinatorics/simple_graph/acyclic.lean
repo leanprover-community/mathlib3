@@ -304,7 +304,11 @@ begin
   have xnay : ¬ G.adj x y := λ a, hy ⟨(path.singleton a).val⟩,
   have xney : x ≠ y := e.ne,
   have hG : G = (G ⊔ from_edge_set {⟦⟨x,y⟩⟧}) \ from_edge_set {⟦⟨x,y⟩⟧}, by
-  { simp, sorry, },
+  { simp only [sup_sdiff_right_self],
+    refine le_antisymm _ (sdiff_le),
+    simp only [order.boolean_algebra.le_sdiff, le_refl, true_and],
+    rw [disjoint.comm, from_edge_set_disjoint_iff],
+    simp only [xnay, set.disjoint_singleton_left, mem_edge_set, not_false_iff], },
   specialize Gmax ⟦⟨x,y⟩⟧
     ( by { rw [set.mem_diff, mem_edge_set], exact ⟨e, xnay⟩ } ),
   dsimp only [is_acyclic] at Gmax,
@@ -322,7 +326,7 @@ begin
     { rintro rfl, exact h ew, }, },
 end
 
-/-
+
 lemma is_min_connected.is_acyclic (hB : B.is_acyclic) : G.is_min_connected B → G.is_acyclic :=
 begin
   rintro G_min_co,
@@ -337,19 +341,23 @@ begin
   rw connected_iff at Gco ⊢, refine ⟨_,Gco.right⟩,
   clear neB Gmin BG hB B,
   obtain ⟨_,⟨p'⟩⟩ := (adj_and_reachable_delete_edges_iff_exists_cycle.mpr ⟨c,w,wc,ew⟩),
-  let p : G.walk u v := p'.induce_le (by {apply delete_edges_le,}),
+  let p : G.walk u v := p'.map (hom.map_spanning_subgraphs (by simp)),
   have hp : (⟦⟨u,v⟩⟧ : sym2 V) ∉ p.edges := λ h, by
-  { rw walk.induce_edges at h,
-    simpa only [mem_edge_set, delete_edges_adj, set.mem_singleton, not_true, and_false]
-      using p'.edges_subset_edge_set h, },
+  { simp only [walk.edges_map, list.mem_map, hom.map_spanning_subgraphs_apply, sym2.map_id',
+               id.def, exists_eq_right] at h,
+    simpa using p'.edges_subset_edge_set h, },
   rintros x y,
   obtain ⟨wG⟩ := Gco.left x y,
   let wG' := wG.substitute p hp,
   let hwG' := wG.substitute_edge_not_mem p hp,
   constructor,
-  exact walk.to_delete_edge ⟦⟨u,v⟩⟧ wG' hwG',
+  apply wG'.transfer _ _,
+  rintro e ewG', simp,
+  refine ⟨wG'.edges_subset_edge_set ewG',λ h, _⟩,
+  rw ←h at hwG',
+  apply hwG' ewG',
 end
--/
+
 end min_max
 
 end simple_graph

@@ -161,26 +161,20 @@ abbreviation is_min_connected := B ≤ G ∧ G.connected ∧ ∀ H, B ≤ H → 
 lemma is_max_acyclic_iff : G.is_max_acyclic T ↔
   G ≤ T ∧
   G.is_acyclic ∧
-  ∀ e ∈ (T.edge_set \ G.edge_set), ¬ (from_edge_set $ G.edge_set ∪ {e}).is_acyclic :=
+  ∀ e ∈ (T.edge_set \ G.edge_set), ¬ (G ⊔ from_edge_set {e}).is_acyclic :=
 begin
   split,
   { rintro ⟨GT,Gac,Gmax⟩, refine ⟨GT, Gac, _⟩,
     rintro ⟨u,v⟩ ⟨eT,neG⟩ Geac,
-    apply (by {simpa using neG} : ¬ G.adj u v),
-    suffices : from_edge_set (G.edge_set ∪ {⟦(u, v)⟧}) = G, by
-    { rw from_edge_set_eq_iff at this,
-      exfalso, apply neG,
-      rw ←this,
-      simp only [set.union_singleton, set.mem_diff, set.mem_insert_iff, mem_edge_set,
-                 set.mem_set_of_eq, sym2.is_diag_iff_proj_eq],
-      refine ⟨or.inl rfl, eT.ne⟩, },
+    apply neG, clear neG,
+    suffices : G ⊔ from_edge_set {⟦(u, v)⟧} = G, by
+    { simp only [sup_eq_left] at this,
+      apply this,
+      simpa only [from_edge_set_adj, set.mem_singleton, true_and] using adj.ne eT, },
     apply Gmax _ _ _ Geac,
-    { nth_rewrite 0 ←from_edge_set_edge_set G,
-      apply from_edge_set_mono,
-      simp only [set.union_singleton, set.subset_insert], },
-    { nth_rewrite 0 ←from_edge_set_edge_set T,
-      apply from_edge_set_mono,
-      simp [set.insert_subset, eT, edge_set_mono GT], }, },
+    { simp only [le_sup_left], },
+    { rw ←set.singleton_subset_iff at eT,
+      simp only [GT, sup_le_iff, true_and, from_edge_set_le, eT], }, },
   { rintro ⟨GT,Gac,Gmax⟩, refine ⟨GT, Gac, _⟩,
     rintro H GH HT Hac,
     by_contra h,
@@ -192,40 +186,25 @@ begin
       (⟦⟨u,v⟩⟧ : sym2 V)
       (by {simp only [set.mem_diff, mem_edge_set], exact ⟨HT Ha, nGa⟩}),
     apply Hac.le,
-    rw from_edge_set_le_iff,
-    rintro ⟨x,y⟩ ⟨(eG|euv),ne⟩,
-    { change H.adj x y,
-      exact GH eG, },
-    { simp only [set.mem_singleton_iff] at euv, rw euv, exact Ha, }, },
+    rw [←mem_edge_set,←set.singleton_subset_iff] at Ha,
+    simp only [GH, Ha, from_edge_set_le, sup_le_iff, and_self], },
 end
 
 lemma is_min_connected_iff : G.is_min_connected B ↔
   B ≤ G ∧
   G.connected ∧
-  ∀ e ∈ (G.edge_set \ B.edge_set), ¬ (from_edge_set $ G.edge_set \ {e}).connected :=
+  ∀ e ∈ (G.edge_set \ B.edge_set), ¬ (G \ from_edge_set{e}).connected :=
 begin
   split,
   { rintro ⟨BG,Gco,Gmin⟩, refine ⟨BG, Gco, _⟩,
     rintro ⟨u,v⟩ ⟨eG,neB⟩ Gneco,
-    have neB : ¬ B.adj u v, by { simpa using neB, },
+    change ¬ B.adj u v at neB,
     change (⟦⟨u,v⟩⟧ : sym2 V) ∈ G.edge_set at eG,
-    --rw [mem_edge_set, ←@not_not (G.adj u v)], -- ←delete_edge_eq_iff u v] at eG,
-    suffices : from_edge_set (G.edge_set \ {⟦(u, v)⟧}) = G, by
-    { rw from_edge_set_eq_iff at this,
-      exfalso,
-      rw [←this] at eG,
-      simp only [set.mem_diff, set.mem_singleton, not_true, and_false, false_and] at eG,
-      exact eG, },
+    suffices h : G \ from_edge_set {⟦(u, v)⟧} = G, by
+    { rw ←h at eG, simpa using eG, }, -- Any kind of  `simpx [←h]` doesn't work?
     apply Gmin _ _ _ Gneco,
-    { nth_rewrite 0 ←from_edge_set_edge_set B,
-      apply from_edge_set_mono,
-      rintro ⟨x,y⟩ xyB,
-      refine ⟨BG xyB, λ h,_⟩,
-      simp only [set.mem_singleton_iff] at h,
-      rw h at xyB, exact neB xyB, },
-    { nth_rewrite 1 ←from_edge_set_edge_set G,
-      apply from_edge_set_mono,
-      simp only [set.diff_singleton_subset_iff, set.subset_insert], }, },
+    { sorry, },
+    { simp only [sdiff_le_iff, le_sup_right], }, },
   { rintro ⟨BG,Gco,Gmin⟩, refine ⟨BG, Gco, _⟩,
     rintro H BH HG Hco,
     by_contra h,
@@ -237,12 +216,9 @@ begin
       (⟦⟨u,v⟩⟧ : sym2 V)
       (by {simp only [set.mem_diff, mem_edge_set], exact ⟨Ga, λ h, nHa (BH h)⟩}),
     refine Hco.le _,
-    rw le_from_edge_set_iff,
-    rintros ⟨x,y⟩ eH,
-    refine ⟨HG eH, λ h,_⟩,
-    simp at h, rw h at eH, exact nHa eH, },
+    sorry, },
 end
-
+/-
 lemma is_tree.is_max_acyclic [decidable_eq V] (hG : G.is_tree) {GT : G ≤ T} : G.is_max_acyclic T :=
 begin
   rw is_max_acyclic_iff,
@@ -369,7 +345,7 @@ begin
   constructor,
   exact walk.to_delete_edge ⟦⟨u,v⟩⟧ wG' hwG',
 end
-
+-/
 end min_max
 
 end simple_graph

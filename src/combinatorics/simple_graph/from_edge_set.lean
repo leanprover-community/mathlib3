@@ -42,6 +42,13 @@ begin
   rw this,
 end
 
+lemma from_edge_set_le {s : set (sym2 V)} {G : simple_graph V} (h : s ⊆ G.edge_set) :
+  from_edge_set s ≤ G :=
+begin
+  rw from_edge_set_le_iff,
+  exact (set.diff_subset _ _).trans h,
+end
+
 lemma from_edge_set_eq_iff (s : set (sym2 V)) (G : simple_graph V) :
   from_edge_set s = G ↔ (s \ {e | e.is_diag}) = G.edge_set :=
 begin

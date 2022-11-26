@@ -337,104 +337,6 @@ begin
   { exact h'.symm }
 end
 
-/-! ### Subtype, order dual, product lattices -/
-
-namespace subtype
-variables {p : α → Prop}
-
-/-- A subtype remains a `⊥`-order if the property holds at `⊥`. -/
-@[reducible] -- See note [reducible non-instances]
-protected def order_bot [has_le α] [order_bot α] (hbot : p ⊥) : order_bot {x : α // p x} :=
-{ bot := ⟨⊥, hbot⟩,
-  bot_le := λ _, bot_le }
-
-/-- A subtype remains a `⊤`-order if the property holds at `⊤`. -/
-@[reducible] -- See note [reducible non-instances]
-protected def order_top [has_le α] [order_top α] (htop : p ⊤) : order_top {x : α // p x} :=
-{ top := ⟨⊤, htop⟩,
-  le_top := λ _, le_top }
-
-/-- A subtype remains a bounded order if the property holds at `⊥` and `⊤`. -/
-@[reducible] -- See note [reducible non-instances]
-protected def bounded_order [has_le α] [bounded_order α] (hbot : p ⊥) (htop : p ⊤) :
-  bounded_order (subtype p) :=
-{ ..subtype.order_top htop, ..subtype.order_bot hbot }
-
-variables [partial_order α]
-
-@[simp] lemma mk_bot [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) : mk ⊥ hbot = ⊥ :=
-le_bot_iff.1 $ coe_le_coe.1 bot_le
-
-@[simp] lemma mk_top [order_top α] [order_top (subtype p)] (htop : p ⊤) : mk ⊤ htop = ⊤ :=
-top_le_iff.1 $ coe_le_coe.1 le_top
-
-lemma coe_bot [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) : ((⊥ : subtype p) : α) = ⊥ :=
-congr_arg coe (mk_bot hbot).symm
-
-lemma coe_top [order_top α] [order_top (subtype p)] (htop : p ⊤) : ((⊤ : subtype p) : α) = ⊤ :=
-congr_arg coe (mk_top htop).symm
-
-@[simp] lemma coe_eq_bot_iff [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) {x : {x // p x}} :
-  (x : α) = ⊥ ↔ x = ⊥ :=
-by rw [←coe_bot hbot, ext_iff]
-
-@[simp] lemma coe_eq_top_iff [order_top α] [order_top (subtype p)] (htop : p ⊤) {x : {x // p x}} :
-  (x : α) = ⊤ ↔ x = ⊤ :=
-by rw [←coe_top htop, ext_iff]
-
-@[simp] lemma mk_eq_bot_iff [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) {x : α} (hx : p x) :
-  (⟨x, hx⟩ : subtype p) = ⊥ ↔ x = ⊥ :=
-(coe_eq_bot_iff hbot).symm
-
-@[simp] lemma mk_eq_top_iff [order_top α] [order_top (subtype p)] (htop : p ⊤) {x : α} (hx : p x) :
-  (⟨x, hx⟩ : subtype p) = ⊤ ↔ x = ⊤ :=
-(coe_eq_top_iff htop).symm
-
-end subtype
-
-namespace prod
-variables (α β)
-
-instance [has_top α] [has_top β] : has_top (α × β) := ⟨⟨⊤, ⊤⟩⟩
-instance [has_bot α] [has_bot β] : has_bot (α × β) := ⟨⟨⊥, ⊥⟩⟩
-
-instance [has_le α] [has_le β] [order_top α] [order_top β] : order_top (α × β) :=
-{ le_top := λ a, ⟨le_top, le_top⟩,
-  .. prod.has_top α β }
-
-instance [has_le α] [has_le β] [order_bot α] [order_bot β] : order_bot (α × β) :=
-{ bot_le := λ a, ⟨bot_le, bot_le⟩,
-  .. prod.has_bot α β }
-
-instance [has_le α] [has_le β] [bounded_order α] [bounded_order β] : bounded_order (α × β) :=
-{ .. prod.order_top α β, .. prod.order_bot α β }
-
-end prod
-
-section linear_order
-variables [linear_order α]
-
--- `simp` can prove these, so they shouldn't be simp-lemmas.
-lemma min_bot_left [order_bot α] (a : α) : min ⊥ a = ⊥ := bot_inf_eq
-lemma max_top_left [order_top α] (a : α) : max ⊤ a = ⊤ := top_sup_eq
-lemma min_top_left [order_top α] (a : α) : min ⊤ a = a := top_inf_eq
-lemma max_bot_left [order_bot α] (a : α) : max ⊥ a = a := bot_sup_eq
-lemma min_top_right [order_top α] (a : α) : min a ⊤ = a := inf_top_eq
-lemma max_bot_right [order_bot α] (a : α) : max a ⊥ = a := sup_bot_eq
-lemma min_bot_right [order_bot α] (a : α) : min a ⊥ = ⊥ := inf_bot_eq
-lemma max_top_right [order_top α] (a : α) : max a ⊤ = ⊤ := sup_top_eq
-
-@[simp] lemma min_eq_bot [order_bot α] {a b : α} : min a b = ⊥ ↔ a = ⊥ ∨ b = ⊥ :=
-by simp only [←inf_eq_min, ←le_bot_iff, inf_le_iff]
-
-@[simp] lemma max_eq_top [order_top α] {a b : α} : max a b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
-@min_eq_bot αᵒᵈ _ _ a b
-
-@[simp] lemma max_eq_bot [order_bot α] {a b : α} : max a b = ⊥ ↔ a = ⊥ ∧ b = ⊥ := sup_eq_bot_iff
-@[simp] lemma min_eq_top [order_top α] {a b : α} : min a b = ⊤ ↔ a = ⊤ ∧ b = ⊤ := inf_eq_top_iff
-
-end linear_order
-
 section logic
 /-!
 #### In this section we prove some properties about monotone and antitone operations on `Prop`
@@ -580,6 +482,106 @@ def bounded_order.lift [has_le α] [has_top α] [has_bot α] [has_le β] [bounde
 { ..order_top.lift f map_le map_top, ..order_bot.lift f map_le map_bot }
 
 end lift
+
+/-! ### Subtype, order dual, product lattices -/
+
+namespace subtype
+variables {p : α → Prop}
+
+/-- A subtype remains a `⊥`-order if the property holds at `⊥`. -/
+@[reducible] -- See note [reducible non-instances]
+protected def order_bot [has_le α] [order_bot α] (hbot : p ⊥) : order_bot {x : α // p x} :=
+{ bot := ⟨⊥, hbot⟩,
+  bot_le := λ _, bot_le }
+
+/-- A subtype remains a `⊤`-order if the property holds at `⊤`. -/
+@[reducible] -- See note [reducible non-instances]
+protected def order_top [has_le α] [order_top α] (htop : p ⊤) : order_top {x : α // p x} :=
+{ top := ⟨⊤, htop⟩,
+  le_top := λ _, le_top }
+
+/-- A subtype remains a bounded order if the property holds at `⊥` and `⊤`. -/
+@[reducible] -- See note [reducible non-instances]
+protected def bounded_order [has_le α] [bounded_order α] (hbot : p ⊥) (htop : p ⊤) :
+  bounded_order (subtype p) :=
+{ ..subtype.order_top htop, ..subtype.order_bot hbot }
+
+variables [partial_order α]
+
+@[simp] lemma mk_bot [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) : mk ⊥ hbot = ⊥ :=
+le_bot_iff.1 $ coe_le_coe.1 bot_le
+
+@[simp] lemma mk_top [order_top α] [order_top (subtype p)] (htop : p ⊤) : mk ⊤ htop = ⊤ :=
+top_le_iff.1 $ coe_le_coe.1 le_top
+
+lemma coe_bot [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) : ((⊥ : subtype p) : α) = ⊥ :=
+congr_arg coe (mk_bot hbot).symm
+
+lemma coe_top [order_top α] [order_top (subtype p)] (htop : p ⊤) : ((⊤ : subtype p) : α) = ⊤ :=
+congr_arg coe (mk_top htop).symm
+
+@[simp] lemma coe_eq_bot_iff [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) {x : {x // p x}} :
+  (x : α) = ⊥ ↔ x = ⊥ :=
+by rw [←coe_bot hbot, ext_iff]
+
+@[simp] lemma coe_eq_top_iff [order_top α] [order_top (subtype p)] (htop : p ⊤) {x : {x // p x}} :
+  (x : α) = ⊤ ↔ x = ⊤ :=
+by rw [←coe_top htop, ext_iff]
+
+@[simp] lemma mk_eq_bot_iff [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) {x : α} (hx : p x) :
+  (⟨x, hx⟩ : subtype p) = ⊥ ↔ x = ⊥ :=
+(coe_eq_bot_iff hbot).symm
+
+@[simp] lemma mk_eq_top_iff [order_top α] [order_top (subtype p)] (htop : p ⊤) {x : α} (hx : p x) :
+  (⟨x, hx⟩ : subtype p) = ⊤ ↔ x = ⊤ :=
+(coe_eq_top_iff htop).symm
+
+end subtype
+
+namespace prod
+variables (α β)
+
+instance [has_top α] [has_top β] : has_top (α × β) := ⟨⟨⊤, ⊤⟩⟩
+instance [has_bot α] [has_bot β] : has_bot (α × β) := ⟨⟨⊥, ⊥⟩⟩
+
+instance [has_le α] [has_le β] [order_top α] [order_top β] : order_top (α × β) :=
+{ le_top := λ a, ⟨le_top, le_top⟩,
+  .. prod.has_top α β }
+
+instance [has_le α] [has_le β] [order_bot α] [order_bot β] : order_bot (α × β) :=
+{ bot_le := λ a, ⟨bot_le, bot_le⟩,
+  .. prod.has_bot α β }
+
+instance [has_le α] [has_le β] [bounded_order α] [bounded_order β] : bounded_order (α × β) :=
+{ .. prod.order_top α β, .. prod.order_bot α β }
+
+end prod
+
+section linear_order
+variables [linear_order α]
+
+-- `simp` can prove these, so they shouldn't be simp-lemmas.
+lemma min_bot_left [order_bot α] (a : α) : min ⊥ a = ⊥ := bot_inf_eq
+lemma max_top_left [order_top α] (a : α) : max ⊤ a = ⊤ := top_sup_eq
+lemma min_top_left [order_top α] (a : α) : min ⊤ a = a := top_inf_eq
+lemma max_bot_left [order_bot α] (a : α) : max ⊥ a = a := bot_sup_eq
+lemma min_top_right [order_top α] (a : α) : min a ⊤ = a := inf_top_eq
+lemma max_bot_right [order_bot α] (a : α) : max a ⊥ = a := sup_bot_eq
+lemma min_bot_right [order_bot α] (a : α) : min a ⊥ = ⊥ := inf_bot_eq
+lemma max_top_right [order_top α] (a : α) : max a ⊤ = ⊤ := sup_top_eq
+
+@[simp] lemma min_eq_bot [order_bot α] {a b : α} : min a b = ⊥ ↔ a = ⊥ ∨ b = ⊥ :=
+by simp only [←inf_eq_min, ←le_bot_iff, inf_le_iff]
+
+@[simp] lemma max_eq_top [order_top α] {a b : α} : max a b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
+@min_eq_bot αᵒᵈ _ _ a b
+
+@[simp] lemma max_eq_bot [order_bot α] {a b : α} : max a b = ⊥ ↔ a = ⊥ ∧ b = ⊥ := sup_eq_bot_iff
+@[simp] lemma min_eq_top [order_top α] {a b : α} : min a b = ⊤ ↔ a = ⊤ ∧ b = ⊤ := inf_eq_top_iff
+
+end linear_order
+
+
 
 section nontrivial
 

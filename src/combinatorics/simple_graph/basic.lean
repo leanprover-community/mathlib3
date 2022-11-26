@@ -484,7 +484,7 @@ begin
   nth_rewrite 0 ←from_edge_set_edge_set G,
   rw from_edge_set_disjoint_from_edge_set_iff,
   nth_rewrite 0 disjoint.comm,
-  rw [_root_.boolean_algebra.sdiff_disjoint_sdiff_iff_sdiff_disjoint],
+  rw [boolean_algebra.sdiff_disjoint_sdiff_iff_sdiff_disjoint],
   simp [boolean_algebra.sdiff_eq_self_of_disjoint (edge_set_disjoint_diag G), disjoint.comm],
 end
 

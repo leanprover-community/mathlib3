@@ -978,7 +978,7 @@ end
 above any positive threshold.-/
 lemma finite_const_le_of_tsum_ne_top {ι : Type*} {a : ι → ℝ≥0∞}
   (tsum_ne_top : ∑' i, a i ≠ ∞) {ε : ℝ≥0∞} (ε_ne_zero : ε ≠ 0) :
-  {i : X | ε ≤ a i}.finite :=
+  {i : ι | ε ≤ a i}.finite :=
 begin
   by_cases ε_infty : ε = ∞,
   { rw ε_infty,
@@ -1011,7 +1011,7 @@ begin
       exact c_ne_top (le_antisymm le_top oops), },
     simp only [obs, finite_empty, finite_empty_to_finset, finset.card_empty,
                algebra_map.coe_zero, zero_le', exists_true_left], },
-  have hf : {i : X | ε ≤ a i}.finite,
+  have hf : {i : ι | ε ≤ a i}.finite,
     from ennreal.finite_const_le_of_tsum_ne_top
           (lt_of_le_of_lt tsum_le_c c_ne_top.lt_top).ne ε_ne_zero,
   use hf,

@@ -286,15 +286,15 @@ sym2.ind (λ v w, adj.ne) e h
 
 @[simp] lemma edge_set_sdiff (G H : simple_graph V) :
   (G \ H).edge_set = G.edge_set \ H.edge_set :=
-by { ext ⟨x,y⟩, exact ⟨id, id⟩ }
+by { ext ⟨x, y⟩, refl, }
 
 @[simp] lemma edge_set_inf (G H : simple_graph V) :
   (G ⊓ H).edge_set = G.edge_set ∩ H.edge_set :=
-by { ext ⟨x,y⟩, exact ⟨id, id⟩ }
+by { ext ⟨x, y⟩, refl, }
 
 @[simp] lemma edge_set_sup (G H : simple_graph V) :
   (G ⊔ H).edge_set = G.edge_set ∪ H.edge_set :=
-by { ext ⟨x,y⟩, exact ⟨id, id⟩ }
+by { ext ⟨x, y⟩, refl, }
 
 /--
 This lemma, combined with `edge_set_sdiff` and `edge_set_from_edge_set`,

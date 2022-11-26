@@ -1466,6 +1466,12 @@ structure connected : Prop :=
 instance : has_coe_to_fun G.connected (λ _, Π (u v : V), G.reachable u v) :=
 ⟨λ h, h.preconnected⟩
 
+lemma connected.mono {G H : simple_graph V} (Hc : H.connected) : H ≤ G → G.connected :=
+begin
+  rintro h, rw connected_iff at Hc ⊢, refine ⟨_,Hc.2⟩,
+  exact λ u v, ⟨(Hc.1 u v).some.map (simple_graph.hom.map_spanning_subgraphs h)⟩,
+end
+
 lemma connected.map {G : simple_graph V} {H : simple_graph V'} (f : G →g H) (hf : surjective f)
   (hG : G.connected) : H.connected :=
 by { haveI := hG.nonempty.map f, exact ⟨hG.preconnected.map f hf⟩ }

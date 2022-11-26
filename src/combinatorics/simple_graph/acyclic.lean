@@ -5,6 +5,7 @@ Authors: Kyle Miller
 -/
 import combinatorics.simple_graph.connectivity
 import combinatorics.simple_graph.from_edge_set
+import order.boolean_algebra
 /-!
 
 # Acyclic graphs and trees
@@ -43,6 +44,11 @@ variables {V : Type u} (G : simple_graph V)
 
 /-- A graph is *acyclic* (or a *forest*) if it has no cycles. -/
 def is_acyclic : Prop := ∀ (v : V) (c : G.walk v v), ¬c.is_cycle
+
+lemma is_acyclic.anti {G H : simple_graph V} (Gac : G.is_acyclic) : H ≤ G → H.is_acyclic :=
+λ h _ w wcycle, Gac _
+  (w.map (simple_graph.hom.map_spanning_subgraphs h))
+  (walk.map_is_cycle_of_injective (function.injective_id) wcycle)
 
 /-- A *tree* is a connected acyclic graph. -/
 @[mk_iff, protect_proj] structure is_tree : Prop :=
@@ -143,54 +149,67 @@ section min_max
 
 variables (G) (T : simple_graph V) (hT : T.connected) (B : simple_graph V) (hB : B.is_acyclic)
 
-lemma is_acyclic.le {G H : simple_graph V} (Gac : G.is_acyclic) : H ≤ G → H.is_acyclic :=
-λ h _ w wcycle, Gac _
-  (w.map (simple_graph.hom.map_spanning_subgraphs h))
-  (walk.map_is_cycle_of_injective (function.injective_id) wcycle)
+/--
+Given a connected graph `T`, `G.is_max_acyclic_le T` means that `G` is maximal among
+acyclic graphs contained in `T`
+-/
+abbreviation is_max_acyclic_le := G ≤ T ∧ G.is_acyclic ∧ ∀ H, G ≤ H → H ≤ T → H.is_acyclic → H = G
 
-lemma connected.le {G H : simple_graph V} (Hc : H.connected) : H ≤ G → G.connected :=
-begin
-  rintro h, rw connected_iff at Hc ⊢, refine ⟨_,Hc.2⟩,
-  exact λ u v, ⟨(Hc.1 u v).some.map (simple_graph.hom.map_spanning_subgraphs h)⟩,
-end
+/--
+Given an acyclic graph `B`, `G.is_min_connected_ge` means that `G` is minimal among
+connected graphs containing `B`
+-/
+abbreviation is_min_connected_ge := B ≤ G ∧ G.connected ∧ ∀ H, B ≤ H → H ≤ G → H.connected → H = G
 
-abbreviation is_max_acyclic := G ≤ T ∧ G.is_acyclic ∧ ∀ H, G ≤ H → H ≤ T → H.is_acyclic → H = G
-
-abbreviation is_min_connected := B ≤ G ∧ G.connected ∧ ∀ H, B ≤ H → H ≤ G → H.connected → H = G
-
-lemma is_max_acyclic_iff : G.is_max_acyclic T ↔
+lemma is_max_acyclic_le_iff : G.is_max_acyclic_le T ↔
   G ≤ T ∧
   G.is_acyclic ∧
   ∀ e ∈ (T.edge_set \ G.edge_set), ¬ (G ⊔ from_edge_set {e}).is_acyclic :=
 begin
   split,
   { rintro ⟨GT,Gac,Gmax⟩, refine ⟨GT, Gac, _⟩,
+    -- Assuming `G` is maximal acyclic:
+    -- Goal: adding any edge of `T` not already present in `G` breaks acyclicity.
+    -- Introduce such an edge with enpoints `⟨u,v⟩` and assume that adding it
+    -- preserves acyclicity: need to prove false.
     rintro ⟨u,v⟩ ⟨eT,neG⟩ Geac,
+    -- Suffices to show that the edge is already present in `G`, by `neG`.
     apply neG, clear neG,
+    -- Showing that the edge is in `G` is the same as saying that adding it to `G` doesn't change
+    -- the graph.
     suffices : G ⊔ from_edge_set {⟦(u, v)⟧} = G, by
     { simp only [sup_eq_left] at this,
       apply this,
       simpa only [from_edge_set_adj, set.mem_singleton, true_and] using adj.ne eT, },
+    -- Suffices now to apply maximality of `G` among acyclic graphs contained in `T`
+    -- plus the hypothesis that adding the edge to `G` doesn't break acyclicity.
     apply Gmax _ _ _ Geac,
     { simp only [le_sup_left], },
     { rw ←set.singleton_subset_iff at eT,
       simp only [GT, sup_le_iff, true_and, from_edge_set_le, eT], }, },
   { rintro ⟨GT,Gac,Gmax⟩, refine ⟨GT, Gac, _⟩,
+    -- Goal, any graph containing containing `G`, contained in `T` and acyclic is equal to `G`.
+    -- Introduce such a graph `H`,
     rintro H GH HT Hac,
+    -- And assume, towards a contradiction, that it is not equal.
+    -- In particular, it cannot be contained in `G` (by antisymmetry).
     by_contra h,
     have h' : ¬ H ≤ G := λ HG, h (le_antisymm HG GH),
     simp only [has_le.le, simple_graph.is_subgraph] at h',
     push_neg at h',
     obtain ⟨u, v, ⟨Ha,nGa⟩⟩ := h',
+    -- This all means that there is an edge of `H` not in `G`.
+    -- Monotonocity of acyclicity means that adding this edge to `G` results in an acyclic graph
+    -- but `Gmax` says this is not possible.
     apply Gmax
       (⟦⟨u,v⟩⟧ : sym2 V)
       (by {simp only [set.mem_diff, mem_edge_set], exact ⟨HT Ha, nGa⟩}),
-    apply Hac.le,
+    apply Hac.anti,
     rw [←mem_edge_set,←set.singleton_subset_iff] at Ha,
     simp only [GH, Ha, from_edge_set_le, sup_le_iff, and_self], },
 end
 
-lemma is_min_connected_iff : G.is_min_connected B ↔
+lemma is_min_connected_ge_iff : G.is_min_connected_ge B ↔
   B ≤ G ∧
   G.connected ∧
   ∀ e ∈ (G.edge_set \ B.edge_set), ¬ (G \ from_edge_set{e}).connected :=
@@ -198,14 +217,15 @@ begin
   split,
   { rintro ⟨BG,Gco,Gmin⟩, refine ⟨BG, Gco, _⟩,
     rintro ⟨u,v⟩ ⟨eG,neB⟩ Gneco,
-    change ¬ B.adj u v at neB,
     change (⟦⟨u,v⟩⟧ : sym2 V) ∈ G.edge_set at eG,
     suffices h : G \ from_edge_set {⟦(u, v)⟧} = G, by
     { rw ←h at eG, simpa using eG, }, -- Any kind of  `simpx [←h]` doesn't work?
     apply Gmin _ _ _ Gneco,
-    { simp [BG, disjoint_iff],
+    { simp only [BG, disjoint_iff, le_sdiff, true_and],
       apply edge_set_injective,
-      simp [set.eq_empty_iff_forall_not_mem],
+      simp only [set.eq_empty_iff_forall_not_mem, edge_set_inf, edge_set_from_edge_set,
+                 edge_set_bot, set.mem_inter_iff, set.mem_diff, set.mem_singleton_iff,
+                 set.mem_set_of_eq, not_and, not_not],
       rintro e eB rfl,
       exact (neB eB).elim, },
     { simp only [sdiff_le_iff, le_sup_right], }, },
@@ -219,17 +239,21 @@ begin
     apply Gmin
       (⟦⟨u,v⟩⟧ : sym2 V)
       (by {simp only [set.mem_diff, mem_edge_set], exact ⟨Ga, λ h, nHa (BH h)⟩}),
-    refine Hco.le _,
-    simp [HG, disjoint_iff],
+    refine Hco.mono _,
+    simp only [HG, disjoint_iff, le_sdiff, true_and],
     apply edge_set_injective,
-    simp [set.eq_empty_iff_forall_not_mem],
+    simp only [set.eq_empty_iff_forall_not_mem, edge_set_inf, edge_set_from_edge_set, edge_set_bot,
+               set.mem_inter_iff, set.mem_diff, set.mem_singleton_iff, set.mem_set_of_eq,
+               not_and, not_not],
     rintro a aH rfl,
     exact (nHa aH).elim, },
 end
 
-lemma is_tree.is_max_acyclic [decidable_eq V] (hG : G.is_tree) {GT : G ≤ T} : G.is_max_acyclic T :=
+lemma is_tree.is_max_acyclic_le (hG : G.is_tree) {GT : G ≤ T} :
+  G.is_max_acyclic_le T :=
 begin
-  rw is_max_acyclic_iff,
+  classical,
+  rw is_max_acyclic_le_iff,
   use [GT,hG.is_acyclic],
   rintro ⟨u,v⟩ ⟨eT,neG⟩,
   have : u ≠ v := ((mem_edge_set T).mp eT).ne,
@@ -261,10 +285,11 @@ begin
   exact this (Ge_ac.path_unique p₁ p₂),
 end
 
-lemma is_tree.is_min_connected [decidable_eq V] (hG : G.is_tree) {BG : B ≤ G} :
-  G.is_min_connected B :=
+lemma is_tree.is_min_connected_ge (hG : G.is_tree) {BG : B ≤ G} :
+  G.is_min_connected_ge B :=
 begin
-  rw is_min_connected_iff,
+  classical,
+  rw is_min_connected_ge_iff,
   use [BG,hG.is_connected],
   rintro ⟨u,v⟩ ⟨eG,neB⟩ Gne_co,
 
@@ -291,28 +316,45 @@ begin
   exact this (hG.is_acyclic.path_unique p₁ p₂),
 end
 
-lemma is_max_acyclic.is_connected [decidable_eq V] (hT : T.connected) :
-  G.is_max_acyclic T → G.connected :=
+lemma is_max_acyclic_le.is_connected (hT : T.connected) :
+  G.is_max_acyclic_le T → G.connected :=
 begin
-  rintros G_max_ac,
-  rw is_max_acyclic_iff at G_max_ac, obtain ⟨GT,Gac,Gmax⟩ := G_max_ac,
+  classical,
+  rw is_max_acyclic_le_iff,
+  rintro ⟨GT,Gac,Gmax⟩,
   rw connected_iff, refine ⟨_,hT.2⟩,
   rintro u v,
+  -- Suppose `G` is maximal acyclic, so that adding any edge of `T` to it breaks acyclicity.
+  -- Need to show that any pair `u v` of vertices of `G` can be joined by a walk.
+  -- Assume this is not the case.
   by_contra h,
-  obtain ⟨x,y,e,hx',hy'⟩ := (hT.1 u v).some.disagreeing_adj_pair ({x | G.reachable u x}) (by {simp,}) h,
+  -- Since `u` can be reached from `u`, but `v` cannot, and there exists a walk from `u` to `v`
+  -- **in `T`**, there exists an edge `e = ⟦(x,y)⟧` in `T` such that `x` can be reached from `u` in
+  -- `G` but `y` cannot.
+  obtain ⟨x,y,e,hx',hy'⟩ :=
+    (hT.1 u v).some.disagreeing_adj_pair ({x | G.reachable u x}) (by { simp, }) h,
+  -- In particular `y` is not reachable from `x` in `G`
   have hy : ¬ G.reachable x y := λ h, hy' (hx'.trans h),
+  -- From now on we only care about `x` and `y`
+  clear_dependent u v,
   have xnay : ¬ G.adj x y := λ a, hy ⟨(path.singleton a).val⟩,
   have hG : G = (G ⊔ from_edge_set {⟦⟨x,y⟩⟧}) \ from_edge_set {⟦⟨x,y⟩⟧}, by
   { simp only [sup_sdiff_right_self],
     refine le_antisymm _ (sdiff_le),
-    simp only [order.boolean_algebra.le_sdiff, le_refl, true_and],
+    simp only [le_sdiff, le_refl, true_and],
     rw [disjoint.comm, from_edge_set_disjoint_iff],
     simp only [xnay, set.disjoint_singleton_left, mem_edge_set, not_false_iff], },
+  -- Applying maximality of `G` to the edge `e = ⟦(x,y)⟧` means that adding `e` to `G`
+  -- breaks acyclicity
   specialize Gmax ⟦⟨x,y⟩⟧
     ( by { rw [set.mem_diff, mem_edge_set], exact ⟨e, xnay⟩ } ),
   dsimp only [is_acyclic] at Gmax,
   push_neg at Gmax,
   obtain ⟨v,w,wc⟩ := Gmax,
+  -- And in particular there exists a cycle `w` from some vertex `v` to itself in this graph.
+  -- If `w` doesn't contain the edge `e`, it must be a cycle of `G` already, a contradiction.
+  -- If `w` contains `e`, then, then removing `e` from `w` yields a path not containing `e`, hence
+  -- contained in `G`, from `x` to `y`, a contradiction.
   by_cases h : (⟦⟨x,y⟩⟧ : sym2 V) ∈ w.edges,
   { apply hy, rw hG,
     exact (adj_and_reachable_delete_edges_iff_exists_cycle.mpr ⟨v,w,wc,h⟩).right, },
@@ -325,12 +367,11 @@ begin
     { rintro rfl, exact h ew, }, },
 end
 
-lemma is_min_connected.is_acyclic (hB : B.is_acyclic) : G.is_min_connected B → G.is_acyclic :=
+lemma is_min_connected_ge.is_acyclic (hB : B.is_acyclic) :
+  G.is_min_connected_ge B → G.is_acyclic :=
 begin
-  rintro G_min_co,
-  rw is_min_connected_iff at G_min_co,
-  obtain ⟨BG,Gco,Gmin⟩ := G_min_co,
-  rintro c w wc,
+  rw is_min_connected_ge_iff,
+  rintro ⟨BG,Gco,Gmin⟩ c w wc,
   have : ∃ e, e ∈ w.edges ∧ e ∉ B.edge_set, by
   { by_contra h, push_neg at h,
     exact hB c (w.transfer B h) (walk.is_cycle.transfer wc h), },
@@ -346,7 +387,7 @@ begin
     simpa using p'.edges_subset_edge_set h, },
   rintros x y,
   obtain ⟨wG⟩ := Gco.left x y,
-  let wG' := wG.substitute p hp,
+  let wG' := wG.substitute_edge p hp,
   let hwG' := wG.substitute_edge_not_mem p hp,
   refine ⟨wG'.transfer _ (λ e ewG', _)⟩,
   simp only [edge_set_sdiff, edge_set_from_edge_set, edge_set_sdiff_sdiff_is_diag, set.mem_diff,

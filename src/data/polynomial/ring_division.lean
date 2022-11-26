@@ -491,7 +491,7 @@ begin
   exact multiset.le_iff_exists_add.mpr ⟨k.roots, roots_mul h⟩
 end
 
-@[simp] lemma mem_roots_sub_C {p : R[X]} {a x : R} (hp0 : 0 < degree p) :
+lemma mem_roots_sub_C {p : R[X]} {a x : R} (hp0 : 0 < degree p) :
   x ∈ (p - C a).roots ↔ p.eval x = a :=
 (mem_roots (show p - C a ≠ 0, from mt sub_eq_zero.1 $ λ h,
     not_le_of_gt hp0 $ h.symm ▸ degree_C_le)).trans

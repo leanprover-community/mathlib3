@@ -974,6 +974,56 @@ begin
   simp only [tsub_add_cancel_of_le hi, coe_not_mem_range_equiv, function.comp_app, subtype.coe_mk],
 end
 
+/-- A sum of extended nonnegative reals which is finite can have only finitely many terms
+above any positive threshold.-/
+lemma finite_const_le_of_tsum_ne_top {ι : Type*} {a : ι → ℝ≥0∞}
+  (tsum_ne_top : ∑' i, a i ≠ ∞) {ε : ℝ≥0∞} (ε_ne_zero : ε ≠ 0) :
+  {i : X | ε ≤ a i}.finite :=
+begin
+  by_cases ε_infty : ε = ∞,
+  { rw ε_infty,
+    by_contra maybe_infinite,
+    obtain ⟨j, hj⟩ := set.infinite.nonempty maybe_infinite,
+    exact tsum_ne_top (le_antisymm le_top (le_trans hj (le_tsum' (@ennreal.summable _ a) j))), },
+  have key := (summable_coe.mpr (summable_to_nnreal_of_tsum_ne_top tsum_ne_top)).tendsto_cofinite_zero
+              (Iio_mem_nhds (to_real_pos ε_ne_zero ε_infty)),
+  simp only [filter.mem_map, filter.mem_cofinite, preimage] at key,
+  have obs : {i : ι | ↑((a i).to_nnreal) ∈ Iio ε.to_real}ᶜ = {i : ι | ε ≤ a i},
+  { ext i,
+    simpa only [mem_Iio, mem_compl_iff, mem_set_of_eq, not_lt]
+      using to_real_le_to_real ε_infty (ennreal.ne_top_of_tsum_ne_top tsum_ne_top _), },
+  rwa obs at key,
+end
+
+/-- Markov's inequality for `finset.card` and `tsum` in `ℝ≥0∞`. -/
+lemma finset_card_const_le_le_of_tsum_le {ι : Type*} {a : ι → ℝ≥0∞}
+  {c : ℝ≥0∞} (c_ne_top : c ≠ ∞) (tsum_le_c : ∑' i, a i ≤ c)
+  {ε : ℝ≥0∞} (ε_ne_zero : ε ≠ 0) :
+  ∃ hf : {i : ι | ε ≤ a i}.finite, ↑hf.to_finset.card ≤ c / ε :=
+begin
+  by_cases ε = ∞,
+  { have obs : {i : ι | ε ≤ a i} = ∅,
+    { rw eq_empty_iff_forall_not_mem,
+      intros i hi,
+      have oops := (le_trans hi (le_tsum' (@ennreal.summable _ a) i)).trans tsum_le_c,
+      rw h at oops,
+      exact c_ne_top (le_antisymm le_top oops), },
+    simp only [obs, finite_empty, finite_empty_to_finset, finset.card_empty,
+               algebra_map.coe_zero, zero_le', exists_true_left], },
+  have hf : {i : X | ε ≤ a i}.finite,
+    from ennreal.finite_const_le_of_tsum_ne_top
+          (lt_of_le_of_lt tsum_le_c c_ne_top.lt_top).ne ε_ne_zero,
+  use hf,
+  have at_least : ∀ i ∈ hf.to_finset, ε ≤ a i,
+  { intros i hi,
+    simpa only [finite.mem_to_finset, mem_set_of_eq] using hi, },
+  have partial_sum := @sum_le_tsum _ _ _ _ _ a hf.to_finset (λ _ _, zero_le') (@ennreal.summable _ a),
+  have lower_bound := finset.sum_le_sum at_least,
+  simp only [finset.sum_const, nsmul_eq_mul] at lower_bound,
+  have key := (ennreal.le_div_iff_mul_le (or.inl ε_ne_zero) (or.inl h)).mpr lower_bound,
+  exact le_trans key (ennreal.div_le_div_right (partial_sum.trans tsum_le_c) _),
+end
+
 end tsum
 
 lemma tendsto_to_real_iff {ι} {fi : filter ι} {f : ι → ℝ≥0∞} (hf : ∀ i, f i ≠ ∞) {x : ℝ≥0∞}

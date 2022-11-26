@@ -130,8 +130,11 @@ by { change is_iso (π₂.map_iso (as_iso f)).hom, apply_instance, }
 instance (f : S₁ ⟶ S₂) [is_iso f] : is_iso f.τ₃ :=
 by { change is_iso (π₃.map_iso (as_iso f)).hom, apply_instance, }
 
+/-- The natural transformation `π₁ ⟶ π₂` induced by `S.f` for all `S : short_complex C`. -/
 @[simps]
 def π₁_to_π₂ : (π₁ : _ ⥤ C) ⟶ π₂ := { app := λ S, S.f, }
+
+/-- The natural transformation `π₂ ⟶ π₃` induced by `S.g` for all `S : short_complex C`. -/
 @[simps]
 def π₂_to_π₃ : (π₂ : _ ⥤ C) ⟶ π₃ := { app := λ S, S.g, }
 
@@ -147,6 +150,8 @@ short complex in `C`, assuming that `F` preserves zero morphisms. -/
 def map [has_zero_morphisms D] (F : C ⥤ D) [F.preserves_zero_morphisms] : short_complex D :=
 short_complex.mk (F.map S.f) (F.map S.g) (by rw [← F.map_comp, S.zero, F.map_zero])
 
+/-- The morphism of short complexes `S.map F ⟶ S.map G` induced by
+a natural transformation `F ⟶ G`. -/
 @[simps]
 def map_nat_trans [has_zero_morphisms D] {F G : C ⥤ D} [F.preserves_zero_morphisms]
   [G.preserves_zero_morphisms] (τ : F ⟶ G) : S.map F ⟶ S.map G :=

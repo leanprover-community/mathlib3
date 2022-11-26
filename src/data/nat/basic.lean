@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import order.basic
-import algebra.ring.basic
 import algebra.group_with_zero.basic
+import algebra.ring.defs
 
 /-!
 # Basic operations on the natural numbers

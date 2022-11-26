@@ -3,7 +3,6 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import data.set.intervals.unordered_interval
 import linear_algebra.affine_space.affine_equiv
 
 /-!
@@ -23,7 +22,7 @@ This file defines affine subspaces (over modules) and the affine span of a set o
   various lemmas relating to the set of vectors in the `direction`,
   and relating the lattice structure on affine subspaces to that on
   their directions.
-* `affine_subspace.parallel`, notation `‖`, gives the property of two affine subspaces being
+* `affine_subspace.parallel`, notation `∥`, gives the property of two affine subspaces being
   parallel (one being a translate of the other).
 * `affine_span` gives the affine subspace spanned by a set of points,
   with `vector_span` giving its direction.  `affine_span` is defined
@@ -1549,12 +1548,9 @@ to all points. -/
 def parallel (s₁ s₂ : affine_subspace k P) : Prop :=
 ∃ v : V, s₂ = s₁.map (const_vadd k P v)
 
-/- The notation should logically be U+2225 PARALLEL TO, but that is used globally for norms at
-present, and norms and parallelism are both widely used in geometry, so use U+2016 DOUBLE
-VERTICAL LINE (which is logically more appropriate for norms) instead here to avoid conflict. -/
-localized "infix (name := affine_subspace.parallel) ` ‖ `:50 := affine_subspace.parallel" in affine
+localized "infix (name := affine_subspace.parallel) ` ∥ `:50 := affine_subspace.parallel" in affine
 
-@[symm] lemma parallel.symm {s₁ s₂ : affine_subspace k P} (h : s₁ ‖ s₂) : s₂ ‖ s₁ :=
+@[symm] lemma parallel.symm {s₁ s₂ : affine_subspace k P} (h : s₁ ∥ s₂) : s₂ ∥ s₁ :=
 begin
   rcases h with ⟨v, rfl⟩,
   refine ⟨-v, _⟩,
@@ -1562,14 +1558,14 @@ begin
       coe_refl_to_affine_map, map_id]
 end
 
-lemma parallel_comm {s₁ s₂ : affine_subspace k P} : s₁ ‖ s₂ ↔ s₂ ‖ s₁ :=
+lemma parallel_comm {s₁ s₂ : affine_subspace k P} : s₁ ∥ s₂ ↔ s₂ ∥ s₁ :=
 ⟨parallel.symm, parallel.symm⟩
 
-@[refl] lemma parallel.refl (s : affine_subspace k P) : s ‖ s :=
+@[refl] lemma parallel.refl (s : affine_subspace k P) : s ∥ s :=
 ⟨0, by simp⟩
 
-@[trans] lemma parallel.trans {s₁ s₂ s₃ : affine_subspace k P} (h₁₂ : s₁ ‖ s₂) (h₂₃ : s₂ ‖ s₃) :
-  s₁ ‖ s₃ :=
+@[trans] lemma parallel.trans {s₁ s₂ s₃ : affine_subspace k P} (h₁₂ : s₁ ∥ s₂) (h₂₃ : s₂ ∥ s₃) :
+  s₁ ∥ s₃ :=
 begin
   rcases h₁₂ with ⟨v₁₂, rfl⟩,
   rcases h₂₃ with ⟨v₂₃, rfl⟩,
@@ -1577,7 +1573,7 @@ begin
   rw [map_map, ←coe_trans_to_affine_map, ←const_vadd_add]
 end
 
-lemma parallel.direction_eq {s₁ s₂ : affine_subspace k P} (h : s₁ ‖ s₂) :
+lemma parallel.direction_eq {s₁ s₂ : affine_subspace k P} (h : s₁ ∥ s₂) :
   s₁.direction = s₂.direction :=
 begin
   rcases h with ⟨v, rfl⟩,
@@ -1585,7 +1581,7 @@ begin
 end
 
 @[simp] lemma parallel_bot_iff_eq_bot {s : affine_subspace k P} :
-  s ‖ ⊥ ↔ s = ⊥ :=
+  s ∥ ⊥ ↔ s = ⊥ :=
 begin
   refine ⟨λ h, _, λ h, h ▸ parallel.refl _⟩,
   rcases h with ⟨v, h⟩,
@@ -1593,11 +1589,11 @@ begin
 end
 
 @[simp] lemma bot_parallel_iff_eq_bot {s : affine_subspace k P} :
-  ⊥ ‖ s ↔ s = ⊥ :=
+  ⊥ ∥ s ↔ s = ⊥ :=
 by rw [parallel_comm, parallel_bot_iff_eq_bot]
 
 lemma parallel_iff_direction_eq_and_eq_bot_iff_eq_bot {s₁ s₂ : affine_subspace k P} :
-  s₁ ‖ s₂ ↔ s₁.direction = s₂.direction ∧ (s₁ = ⊥ ↔ s₂ = ⊥) :=
+  s₁ ∥ s₂ ↔ s₁.direction = s₂.direction ∧ (s₁ = ⊥ ↔ s₂ = ⊥) :=
 begin
   refine ⟨λ h, ⟨h.direction_eq, _, _⟩, λ h, _⟩,
   { rintro rfl, exact bot_parallel_iff_eq_bot.1 h },

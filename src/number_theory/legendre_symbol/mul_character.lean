@@ -3,7 +3,8 @@ Copyright (c) 2022 Michael Stoll. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Stoll
 -/
-import ring_theory.integral_domain
+import algebra.char_p.basic
+import algebra.euclidean_domain.instances
 
 /-!
 # Multiplicative characters of finite rings and fields

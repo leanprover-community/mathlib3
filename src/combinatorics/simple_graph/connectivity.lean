@@ -931,25 +931,21 @@ lemma cons_is_cycle {u v : V} (p : G.path v u) (h : G.adj u v)
   (he : ¬ ⟦(u, v)⟧ ∈ (p : G.walk v u).edges) : (walk.cons h ↑p).is_cycle :=
 by simp [walk.is_cycle_def, walk.cons_is_trail_iff, he]
 
-lemma dart_not_in_path_start {u v x : V} (p: G.walk u v) (h:(p.support).nodup) {d:G.dart}
-(hdf : d.fst=x) (hds : d.snd=u) : d ∉ p.darts  :=
+lemma is_path.dart_not_mem_of_path_snd {v : V} (d : G.dart) {p : G.walk d.snd v} (h : p.is_path) :
+  d ∉ p.darts :=
 begin
-  by_contra hd,
-  rw <- (walk.cons_map_snd_darts p) at h,
-  have h2 :=list.nodup.not_mem h,
-  simp at h2,
-  exact h2 d hd hds,
+  intro hd,
+  rw [is_path_def, ← walk.cons_map_snd_darts] at h,
+  have h2 := list.nodup.not_mem h,
+  simp only [list.mem_map, not_exists, not_and] at h2,
+  exact h2 d hd rfl,
 end
 
-lemma dart_not_in_path_end {u v x : V} (p: G.walk u v) (h:p.support.nodup) {d:G.dart}
-(hdf : d.fst=v) (hds : d.snd=x) : d ∉ p.darts  :=
+lemma is_path.dart_not_mem_of_path_fst {u v : V} (d : G.dart) {p : G.walk u d.fst} (h : p.is_path) :
+  d ∉ p.darts :=
 begin
-  have hr:=list.nodup_reverse.2 h,
-  rw <- (walk.support_reverse p) at hr,
-  have hdf':(d.symm.fst=x), simpa,
-  have hds':(d.symm.snd=v), simpa,
-  have :=dart_not_in_path_start p.reverse hr hdf' hds',
-  finish,
+  rw ← is_path_reverse_iff at h,
+  simpa using h.dart_not_mem_of_path_snd d.symm,
 end
 
 end path

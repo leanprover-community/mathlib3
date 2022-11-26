@@ -26,15 +26,13 @@ lemma my_lemmaB {R : Type*} [comm_semiring R] {G : Type*} [group G]
   (f : subalgebra.center R (monoid_algebra R G)) (a : G) (h : a ∈ f.val.support) :
   (conj_classes.mk a).carrier.finite :=
 begin
-  have : (conj_classes.mk a).carrier ⊆ f.val.support := λ b hb,
-  begin
-    apply finsupp.mem_support_iff.mpr,
+  have : (conj_classes.mk a).carrier ⊆ f.val.support := λ b hb, by
+  { change b ∈ f.val.support,
+    rw finsupp.mem_support_iff,
     change f b ≠ 0,
     rw ←my_lemmaA' f a b hb,
-    apply finsupp.mem_support_iff.mp h,
-  end,
-  refine set.finite.subset _ this,
-  apply finset.finite_to_set,
+    exact finsupp.mem_support_iff.mp h },
+  exact set.finite.subset (by apply finset.finite_to_set) this,
 end
 
 lemma conj_lemma {G : Type*} [group G] (g : G) : is_conj (quot.out (conj_classes.mk g)) g :=
@@ -92,12 +90,9 @@ def fun2 :
       { rw ha, exact c.prop } },
     { rw dite_ne_right_iff at h,
       cases h with h h',
-      use ⟨_,h⟩,
-      rw set.mem_Union,
       rw ←finsupp.mem_support_iff at h',
-      use h',
-      rw conj_classes.mem_carrier_iff_mk_eq,
-      refl }
+      simp_rw set.mem_Union,
+      refine Exists.intro ⟨_,h⟩ ⟨h', by rw [subtype.coe_mk, conj_classes.mem_carrier_iff_mk_eq]⟩ }
   end },
   property := by {rw my_lemmaA, intros a b h, dsimp, rw conj_classes.mk_eq_mk_iff_is_conj.mpr h}}
 
@@ -109,7 +104,7 @@ def my_iso (R : Type*) [comm_semiring R] (G : Type*) [group G]:
   inv_fun := fun2 R G,
   left_inv := λ f, begin
     ext g,
-    change ite (conj_classes.mk g).carrier.finite (f (quot.out (conj_classes.mk g))) 0 = f g,
+    change ite _ (f (quot.out (conj_classes.mk g))) 0 = f g,
     rw ite_eq_iff', refine ⟨λ h, my_lemmaA' _ _ _ (conj_lemma _), λ h, _⟩,
     by_contra h', apply h, apply my_lemmaB f, rw finsupp.mem_support_iff, exact ne.symm h',
   end,
@@ -122,6 +117,36 @@ def my_iso (R : Type*) [comm_semiring R] (G : Type*) [group G]:
     exact c.prop,
   end,}
 
+/-def finsupp.add_comm_monoid_equiv_congr_left {α β: Type*} {M : Type*} [add_comm_monoid M] (f : α ≃ β) :
+  (α →₀ R) ≃+ (β →₀ R) :=
+begin
+
+end-/
+
+namespace finsupp
+
+def linear_equiv_congr_left {α β: Type*} {R : Type*} [semiring R] (f : α ≃ β) :
+  (α →₀ R) ≃ₗ[R] (β →₀ R) :=
+{ to_fun := (equiv_congr_left f).to_fun,
+  map_add' := λ x y, by { ext a, simp },
+  map_smul' := λ r x, by { ext a, simp },
+  inv_fun := (equiv_congr_left f).inv_fun,
+  left_inv := (equiv_congr_left f).left_inv,
+  right_inv := (equiv_congr_left f).right_inv }
+
+end finsupp
+
+def set.univ_equiv (α : Type*) : @set.univ α ≃ α :=
+⟨λ a, a, λ a, ⟨a, trivial⟩, λ a, subtype.coe_eta _ _, λ a, refl _⟩
+
+def my_iso_finite (R : Type*) [comm_semiring R] (G : Type*) [group G] [finite G] :
+  subalgebra.center R (monoid_algebra R G) ≃ₗ[R] conj_classes G →₀ R :=
+begin
+  have : {c : conj_classes G | c.carrier.finite} = set.univ := set.ext (λ c,
+    ⟨λ h, set.mem_univ _, λ h, set.finite.subset (set.to_finite _) (set.subset_univ _)⟩),
+  refine linear_equiv.trans (my_iso R G) (finsupp.linear_equiv_congr_left _),
+  convert set.univ_equiv _,
+end
 
 /-def my_iso (R : Type*) [comm_semiring R] (G : Type*) [group G]:
   subalgebra.center R (monoid_algebra R G) ≃ₗ[R] {c : conj_classes G | c.carrier.finite} →₀ R :=

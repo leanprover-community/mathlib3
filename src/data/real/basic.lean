@@ -8,7 +8,7 @@ import algebra.bounds
 import algebra.order.archimedean
 import algebra.star.basic
 import data.real.cau_seq_completion
-import order.conditionally_complete_lattice
+import order.conditionally_complete_lattice.basic
 
 /-!
 # Real numbers from Cauchy sequences
@@ -239,7 +239,8 @@ begin
 end
 
 instance : strict_ordered_comm_ring ℝ :=
-{ add_le_add_left :=
+{ exists_pair_ne := ⟨0, 1, real.zero_lt_one.ne⟩,
+  add_le_add_left :=
   begin
     simp only [le_iff_eq_or_lt],
     rintros a b ⟨rfl, h⟩,
@@ -258,7 +259,7 @@ instance : ordered_semiring ℝ               := infer_instance
 instance : ordered_add_comm_group ℝ         := infer_instance
 instance : ordered_cancel_add_comm_monoid ℝ := infer_instance
 instance : ordered_add_comm_monoid ℝ        := infer_instance
-instance : nontrivial ℝ                     := ⟨⟨0, 1, ne_of_lt real.zero_lt_one⟩⟩
+instance : nontrivial ℝ                     := infer_instance
 
 @[irreducible]
 private def sup : ℝ → ℝ → ℝ | ⟨x⟩ ⟨y⟩ :=

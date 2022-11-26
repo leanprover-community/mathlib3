@@ -3,13 +3,14 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import algebra.hom.group
-import algebra.order.with_zero
-import order.hom.basic
 import tactic.positivity
 
 /-!
 # Algebraic order homomorphism classes
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/627
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines hom classes for common properties at the intersection of order theory and algebra.
 

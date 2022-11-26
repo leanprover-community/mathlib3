@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import algebra.order.absolute_value
 import algebra.big_operators.order
+import algebra.order.group.min_max
 
 /-!
 # Cauchy sequences

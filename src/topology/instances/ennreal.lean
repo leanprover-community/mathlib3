@@ -804,7 +804,7 @@ protected lemma tsum_eq_top_of_eq_top : (∃ a, f a = ∞) → ∑' a, f a = ∞
 | ⟨a, ha⟩ := top_unique $ ha ▸ ennreal.le_tsum a
 
 protected lemma lt_top_of_tsum_ne_top {a : α → ℝ≥0∞} (tsum_ne_top : ∑' i, a i ≠ ∞) (j : α) :
-  a j < ⊤ :=
+  a j < ∞ :=
 begin
   have key := not_imp_not.mpr ennreal.tsum_eq_top_of_eq_top,
   simp only [not_exists] at key,

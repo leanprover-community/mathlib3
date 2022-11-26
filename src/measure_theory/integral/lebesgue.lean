@@ -2215,7 +2215,7 @@ by rw [← hg.set_lintegral_comp_preimage_emb hge, preimage_image_eq _ hge.injec
 
 section dirac_and_count
 
-@[priority 100]
+@[priority 10]
 instance _root_.measurable_space.top.measurable_singleton_class {α : Type*} :
   @measurable_singleton_class α (⊤ : measurable_space α) :=
 { measurable_set_singleton := λ i, measurable_space.measurable_set_top, }

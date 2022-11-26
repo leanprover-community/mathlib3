@@ -57,14 +57,14 @@ lemma zero_at_filter.bounded_at_filter [normed_field β] {l : filter α} {f : α
   (hf : zero_at_filter l f) : bounded_at_filter l f :=
 asymptotics.is_O_of_div_tendsto_nhds (by simp) _ (by { convert hf, ext1, simp, })
 
-lemma zero_is_bounded_at_filter [normed_field β] {l : filter α} :
+lemma zero_is_bounded_at_filter [normed_field β] (l : filter α) :
   bounded_at_filter l (0 : α → β) :=
 (zero_is_zero_at_filter l).bounded_at_filter
 
 /-- The submodule of functions that are bounded along a filter `l`. -/
 def bounded_filter_submodule [normed_field β] (l : filter α) : submodule β (α → β) :=
 { carrier := bounded_at_filter l,
-  zero_mem' := zero_is_bounded_at_filter,
+  zero_mem' := zero_is_bounded_at_filter l,
   add_mem' := by { intros f g hf hg, simpa using hf.add hg, },
   smul_mem' := by { intros c f hf, simpa using hf.const_mul_left c }, }
 

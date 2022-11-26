@@ -302,7 +302,6 @@ begin
   obtain ⟨x,y,e,hx',hy'⟩ := (hT.1 u v).some.disagreeing_adj_pair ({x | G.reachable u x}) (by {simp,}) h,
   have hy : ¬ G.reachable x y := λ h, hy' (hx'.trans h),
   have xnay : ¬ G.adj x y := λ a, hy ⟨(path.singleton a).val⟩,
-  have xney : x ≠ y := e.ne,
   have hG : G = (G ⊔ from_edge_set {⟦⟨x,y⟩⟧}) \ from_edge_set {⟦⟨x,y⟩⟧}, by
   { simp only [sup_sdiff_right_self],
     refine le_antisymm _ (sdiff_le),
@@ -325,7 +324,6 @@ begin
     { exact (w.edges_subset_edge_set ew), },
     { rintro rfl, exact h ew, }, },
 end
-
 
 lemma is_min_connected.is_acyclic (hB : B.is_acyclic) : G.is_min_connected B → G.is_acyclic :=
 begin
@@ -350,12 +348,12 @@ begin
   obtain ⟨wG⟩ := Gco.left x y,
   let wG' := wG.substitute p hp,
   let hwG' := wG.substitute_edge_not_mem p hp,
-  constructor,
-  apply wG'.transfer _ _,
-  rintro e ewG', simp,
-  refine ⟨wG'.edges_subset_edge_set ewG',λ h, _⟩,
-  rw ←h at hwG',
-  apply hwG' ewG',
+  refine ⟨wG'.transfer _ (λ e ewG', _)⟩,
+  simp only [edge_set_sdiff, edge_set_from_edge_set, edge_set_sdiff_sdiff_is_diag, set.mem_diff,
+             set.mem_singleton_iff],
+  refine ⟨wG'.edges_subset_edge_set ewG', _⟩,
+  rintro rfl,
+  exact hwG' ewG',
 end
 
 end min_max

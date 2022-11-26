@@ -111,25 +111,25 @@ section floor_ring
 
 variables [floor_ring 𝕜]
 
-/-- The natural equivalence between `add_circle p` and the half-open interval `[0, p)`. -/
-def equiv_Ico : add_circle p ≃ Ico 0 p :=
+/-- The natural equivalence between `add_circle p` and the half-open interval `[x₀, x₀ + p)`. -/
+def equiv_Ico (x₀ : 𝕜) : add_circle p ≃ Ico x₀ (x₀ + p) :=
 { inv_fun := quotient_add_group.mk' _ ∘ coe,
-  to_fun := λ x, ⟨(to_Ico_mod_periodic 0 hp.out).lift x,
-    quot.induction_on x $ to_Ico_mod_mem_Ico' hp.out⟩,
+  to_fun := λ x, ⟨(to_Ico_mod_periodic x₀ hp.out).lift x,
+    quot.induction_on x $ to_Ico_mod_mem_Ico _ hp.out⟩,
   right_inv := by { rintros ⟨x, hx⟩, ext, simp [to_Ico_mod_eq_self, hx.1, hx.2], },
   left_inv :=
   begin
     rintros ⟨x⟩,
-    change quotient_add_group.mk (to_Ico_mod 0 hp.out x) = quotient_add_group.mk x,
+    change quotient_add_group.mk (to_Ico_mod x₀ hp.out x) = quotient_add_group.mk x,
     rw [quotient_add_group.eq', neg_add_eq_sub, self_sub_to_Ico_mod, zsmul_eq_mul],
     apply int_cast_mul_mem_zmultiples,
   end }
 
-@[simp] lemma coe_equiv_Ico_mk_apply (x : 𝕜) :
-  (equiv_Ico p $ quotient_add_group.mk x : 𝕜) = int.fract (x / p) * p :=
-to_Ico_mod_eq_fract_mul _ x
+@[simp] lemma coe_equiv_Ico_mk_apply (x₀ x : 𝕜) :
+  (equiv_Ico p x₀ $ quotient_add_group.mk x : 𝕜) = to_Ico_mod x₀ hp.out x := rfl
 
-@[continuity] lemma continuous_equiv_Ico_symm : continuous (equiv_Ico p).symm :=
+@[continuity] lemma continuous_equiv_Ico_symm (x₀ : 𝕜) :
+  continuous (equiv_Ico p x₀).symm :=
 continuous_coinduced_rng.comp continuous_induced_dom
 
 /-- The image of the closed interval `[0, p]` under the quotient map `𝕜 → add_circle p` is the
@@ -138,8 +138,8 @@ entire space. -/
   (coe : 𝕜 → add_circle p) '' (Icc 0 p) = univ :=
 begin
   refine eq_univ_iff_forall.mpr (λ x, _),
-  let y := equiv_Ico p x,
-  exact ⟨y, ⟨y.2.1, y.2.2.le⟩, (equiv_Ico p).symm_apply_apply x⟩,
+  let y : 𝕜 := equiv_Ico p 0 x,
+  exact ⟨y, ⟨y.2.1, y.2.2.le⟩, (equiv_Ico p 0).symm_apply_apply x⟩,
 end
 
 instance : divisible_by (add_circle p) ℤ :=

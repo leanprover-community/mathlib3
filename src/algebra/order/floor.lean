@@ -321,6 +321,12 @@ by { convert ceil_add_nat ha 1, exact cast_one.symm }
 lemma ceil_lt_add_one (ha : 0 ≤ a) : (⌈a⌉₊ : α) < a + 1 :=
 lt_ceil.1 $ (nat.lt_succ_self _).trans_le (ceil_add_one ha).ge
 
+lemma ceil_add_le (a b : α) : ⌈a + b⌉₊ ≤ ⌈a⌉₊ + ⌈b⌉₊ :=
+begin
+  rw [ceil_le, coe_add],
+  exact add_le_add (le_ceil _) (le_ceil _),
+end
+
 end linear_ordered_semiring
 
 section linear_ordered_ring
@@ -484,6 +490,12 @@ eq_of_forall_le_iff $ λ a, by rw [le_floor,
 lemma floor_add_one (a : α) : ⌊a + 1⌋ = ⌊a⌋ + 1 :=
 by { convert floor_add_int a 1, exact cast_one.symm }
 
+lemma le_floor_add (a b : α) : ⌊a⌋ + ⌊b⌋ ≤ ⌊a + b⌋ :=
+begin
+  rw [le_floor, coe_add],
+  exact add_le_add (floor_le _) (floor_le _),
+end
+
 @[simp] lemma floor_int_add (z : ℤ) (a : α) : ⌊↑z + a⌋ = z + ⌊a⌋ :=
 by simpa only [add_comm] using floor_add_int a z
 
@@ -550,6 +562,12 @@ by { rw fract, simp }
 
 @[simp] lemma fract_int_nat (n : ℕ) (a : α) : fract (↑n + a) = fract a :=
 by rw [add_comm, fract_add_nat]
+
+lemma fract_add_le (a b : α) : fract (a + b) ≤ fract a + fract b :=
+begin
+  rw [fract, fract, fract, sub_add_sub_comm, sub_le_sub_iff_left, ←coe_add, int.cast_le],
+  exact le_floor_add _ _,
+end
 
 @[simp] lemma self_sub_fract (a : α) : a - fract a = ⌊a⌋ := sub_sub_cancel _ _
 
@@ -759,6 +777,12 @@ by rw [← int.cast_coe_nat, ceil_add_int]
 
 @[simp] lemma ceil_add_one (a : α) : ⌈a + 1⌉ = ⌈a⌉ + 1 :=
 by { convert ceil_add_int a (1 : ℤ), exact cast_one.symm }
+
+lemma ceil_add_le (a b : α) : ⌈a + b⌉ ≤ ⌈a⌉ + ⌈b⌉ :=
+begin
+  rw [ceil_le, coe_add],
+  exact add_le_add (le_ceil _) (le_ceil _),
+end
 
 @[simp] lemma ceil_sub_int (a : α) (z : ℤ) : ⌈a - z⌉ = ⌈a⌉ - z :=
 eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (ceil_add_int _ _)

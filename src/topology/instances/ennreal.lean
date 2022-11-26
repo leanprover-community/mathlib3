@@ -985,7 +985,7 @@ begin
     by_contra maybe_infinite,
     obtain ⟨j, hj⟩ := set.infinite.nonempty maybe_infinite,
     exact tsum_ne_top (le_antisymm le_top (le_trans hj (le_tsum' (@ennreal.summable _ a) j))), },
-  have key := (summable_coe.mpr
+  have key := (nnreal.summable_coe.mpr
                (summable_to_nnreal_of_tsum_ne_top tsum_ne_top)).tendsto_cofinite_zero
                (Iio_mem_nhds (to_real_pos ε_ne_zero ε_infty)),
   simp only [filter.mem_map, filter.mem_cofinite, preimage] at key,
@@ -1018,7 +1018,8 @@ begin
   have at_least : ∀ i ∈ hf.to_finset, ε ≤ a i,
   { intros i hi,
     simpa only [finite.mem_to_finset, mem_set_of_eq] using hi, },
-  have partial_sum := @sum_le_tsum _ _ _ _ _ a hf.to_finset (λ _ _, zero_le') (@ennreal.summable _ a),
+  have partial_sum := @sum_le_tsum _ _ _ _ _ a
+                        hf.to_finset (λ _ _, zero_le') (@ennreal.summable _ a),
   have lower_bound := finset.sum_le_sum at_least,
   simp only [finset.sum_const, nsmul_eq_mul] at lower_bound,
   have key := (ennreal.le_div_iff_mul_le (or.inl ε_ne_zero) (or.inl h)).mpr lower_bound,

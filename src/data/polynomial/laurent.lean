@@ -172,19 +172,17 @@ show map_domain coe (monomial n r).to_finsupp = (C r * T n : R[T;T⁻¹]),
 by rw [to_finsupp_monomial, map_domain_single, single_eq_C_mul_T]
 
 @[simp]
-lemma _root_.polynomial.to_laurent_C (r : R) :
-  (polynomial.C r).to_laurent = C r :=
+lemma _root_.polynomial.to_laurent_C (r : R) : (polynomial.C r).to_laurent = C r :=
 begin
   convert polynomial.to_laurent_C_mul_T 0 r,
   simp only [int.coe_nat_zero, T_zero, mul_one],
 end
 
 @[simp]
-lemma _root_.polynomial.to_laurent_X :
-  (polynomial.X.to_laurent : R[T;T⁻¹]) = T 1 :=
+lemma _root_.polynomial.to_laurent_X : (polynomial.X.to_laurent : R[T;T⁻¹]) = T 1 :=
 begin
   have : (polynomial.X : R[X]) = monomial 1 1,
-  { simp [monomial_eq_C_mul_X] },
+  { simp [← C_mul_X_pow_eq_monomial] },
   simp [this, polynomial.to_laurent_C_mul_T],
 end
 
@@ -192,13 +190,12 @@ end
 map_one polynomial.to_laurent
 
 @[simp]
-lemma _root_.polynomial.to_laurent_C_mul_eq (r : R) (f : R[X]):
+lemma _root_.polynomial.to_laurent_C_mul_eq (r : R) (f : R[X]) :
   (polynomial.C r * f).to_laurent = C r * f.to_laurent :=
 by simp only [_root_.map_mul, polynomial.to_laurent_C]
 
 @[simp]
-lemma _root_.polynomial.to_laurent_X_pow (n : ℕ) :
-  (X ^ n : R[X]).to_laurent = T n :=
+lemma _root_.polynomial.to_laurent_X_pow (n : ℕ) : (X ^ n : R[X]).to_laurent = T n :=
 by simp only [map_pow, polynomial.to_laurent_X, T_pow, mul_one]
 
 @[simp]

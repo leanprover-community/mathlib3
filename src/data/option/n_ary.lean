@@ -8,6 +8,10 @@ import data.option.basic
 /-!
 # Binary map of options
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/656
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the binary map of `option`. This is mostly useful to define pointwise operations
 on intervals.
 

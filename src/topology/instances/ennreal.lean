@@ -985,8 +985,9 @@ begin
     by_contra maybe_infinite,
     obtain ⟨j, hj⟩ := set.infinite.nonempty maybe_infinite,
     exact tsum_ne_top (le_antisymm le_top (le_trans hj (le_tsum' (@ennreal.summable _ a) j))), },
-  have key := (summable_coe.mpr (summable_to_nnreal_of_tsum_ne_top tsum_ne_top)).tendsto_cofinite_zero
-              (Iio_mem_nhds (to_real_pos ε_ne_zero ε_infty)),
+  have key := (summable_coe.mpr
+               (summable_to_nnreal_of_tsum_ne_top tsum_ne_top)).tendsto_cofinite_zero
+               (Iio_mem_nhds (to_real_pos ε_ne_zero ε_infty)),
   simp only [filter.mem_map, filter.mem_cofinite, preimage] at key,
   have obs : {i : ι | ↑((a i).to_nnreal) ∈ Iio ε.to_real}ᶜ = {i : ι | ε ≤ a i},
   { ext i,

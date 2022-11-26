@@ -6,7 +6,10 @@ Authors: Aaron Anderson
 
 import linear_algebra.span
 import order.atoms
+import order.cover
+import order.jordan_holder
 import linear_algebra.isomorphisms
+import linear_algebra.quotient
 
 /-!
 # Simple Modules
@@ -65,6 +68,17 @@ begin
   rw ← set.is_simple_order_Ici_iff_is_coatom,
   apply order_iso.is_simple_order_iff,
   exact submodule.comap_mkq.rel_iso m,
+end
+
+theorem covby_iff_quot_is_simple {A B : submodule R M} (hAB : A ≤ B) :
+  A ⋖ B ↔ is_simple_module R (B ⧸ submodule.comap B.subtype A) :=
+begin
+  let f : submodule R B ≃o set.Iic B := submodule.map_subtype.rel_iso B,
+  rw [covby_iff_coatom_Iic hAB, is_simple_module_iff_is_coatom, ←order_iso.is_coatom_iff f _],
+  convert iff.refl _,
+  rw [←subtype.coe_inj, subtype.coe_mk],
+  have := (inf_eq_right.mpr hAB).symm,
+  convert submodule.map_comap_subtype _ _,
 end
 
 namespace is_simple_module
@@ -177,3 +191,15 @@ noncomputable instance _root_.module.End.division_ring
 .. (module.End.ring : ring (module.End R M))}
 
 end linear_map
+
+instance jordan_holder_module : jordan_holder_lattice (submodule R M) :=
+{ is_maximal                            := (⋖),
+  lt_of_is_maximal                      := λ x y, covby.lt,
+  sup_eq_of_is_maximal                  := λ x y z hxz hyz, wcovby.sup_eq hxz.wcovby hyz.wcovby,
+  is_maximal_inf_left_of_is_maximal_sup := λ A B, inf_covby_of_covby_sup_of_covby_sup_left,
+  iso                                   := λ X Y,
+    nonempty $ (X.2 ⧸ submodule.comap X.2.subtype X.1) ≃ₗ[R] (Y.2 ⧸ submodule.comap Y.2.subtype Y.1),
+  iso_symm                              := λ A B ⟨f⟩, ⟨f.symm⟩,
+  iso_trans                             := λ A B C ⟨f⟩ ⟨g⟩, ⟨f.trans g⟩,
+  second_iso                            := λ A B h,
+    ⟨by {rw [sup_comm, inf_comm], exact (linear_map.quotient_inf_equiv_sup_quotient B A).symm}⟩}

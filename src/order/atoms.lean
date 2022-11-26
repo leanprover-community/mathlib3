@@ -134,6 +134,16 @@ to_dual_covby_to_dual_iff.symm.trans bot_covby_iff
 
 alias covby_top_iff ↔ covby.is_coatom is_coatom.covby_top
 
+lemma covby_iff_coatom_Iic {α : Type*} [partial_order α] {a b : α} (h : a ≤ b) :
+  a ⋖ b ↔ is_coatom (⟨a, h⟩ : set.Iic b) :=
+begin
+  let f : set.Iic b ↪o α := order_embedding.subtype (λ c, c ≤ b),
+  rw ←covby_top_iff,
+  refine ⟨λ h, covby.of_image f h, λ h, covby.image f h _⟩,
+  convert set.ord_connected_Iic,
+  exact subtype.range_coe,
+end
+
 end is_coatom
 
 section pairwise

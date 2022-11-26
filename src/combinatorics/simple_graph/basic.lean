@@ -450,7 +450,7 @@ lemma from_edge_set_le_iff (s : set (sym2 V)) (G : simple_graph V) :
 begin
   nth_rewrite 0 ←from_edge_set_edge_set G,
   rw from_edge_set_le_from_edge_set_iff,
-  rw boolean_algebra.sdiff_eq_self_of_disjoint (edge_set_disjoint_diag G),
+  rw sdiff_eq_self_of_disjoint (edge_set_disjoint_diag G),
 end
 
 lemma from_edge_set_le {s : set (sym2 V)} {G : simple_graph V} (h : s ⊆ G.edge_set) :
@@ -465,7 +465,7 @@ lemma from_edge_set_eq_iff (s : set (sym2 V)) (G : simple_graph V) :
 begin
   nth_rewrite 0 ←from_edge_set_edge_set G,
   rw from_edge_set_eq_from_edge_set_iff,
-  rw boolean_algebra.sdiff_eq_self_of_disjoint (edge_set_disjoint_diag G),
+  rw sdiff_eq_self_of_disjoint (edge_set_disjoint_diag G),
 end
 
 lemma from_edge_set_disjoint_from_edge_set_iff (s t : set (sym2 V)) :
@@ -484,8 +484,8 @@ begin
   nth_rewrite 0 ←from_edge_set_edge_set G,
   rw from_edge_set_disjoint_from_edge_set_iff,
   nth_rewrite 0 disjoint.comm,
-  rw [boolean_algebra.sdiff_disjoint_sdiff_iff_sdiff_disjoint],
-  simp [boolean_algebra.sdiff_eq_self_of_disjoint (edge_set_disjoint_diag G), disjoint.comm],
+  rw [sdiff_disjoint_sdiff_iff_sdiff_disjoint],
+  simp [sdiff_eq_self_of_disjoint (edge_set_disjoint_diag G), disjoint.comm],
 end
 
 

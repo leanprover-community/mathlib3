@@ -6,6 +6,7 @@ Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov, Hunter Monroe
 import data.rel
 import data.set.finite
 import data.sym.sym2
+import order.boolean_algebra
 
 /-!
 # Simple graphs

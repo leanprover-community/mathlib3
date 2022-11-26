@@ -130,6 +130,12 @@ def equiv_Ico : add_circle p ≃ Ico 0 p :=
   (equiv_Ico p $ (↑x : add_circle p) : 𝕜) = int.fract (x / p) * p :=
 to_Ico_mod_eq_fract_mul _ x
 
+@[simp] lemma equiv_Ico_zero : equiv_Ico p 0 = ⟨0, le_rfl, fact.out _⟩ :=
+begin
+  ext,
+  erw [coe_equiv_Ico_mk_apply, zero_div, int.fract_zero, zero_mul, subtype.coe_mk],
+end
+
 @[continuity] lemma continuous_equiv_Ico_symm : continuous (equiv_Ico p).symm :=
 continuous_coinduced_rng.comp continuous_induced_dom
 
@@ -156,23 +162,27 @@ instance : divisible_by (add_circle p) ℤ :=
   end, }
 
 instance [fact (0 < p)] : circular_order (add_circle p) :=
-{ btw := λ a b c, equiv_Ico p (b - a) ≤ equiv_Ico p (c - a),
+{ btw := λ a b c, (equiv_Ico p (b - a) : 𝕜) ≤ p - equiv_Ico p (a - c),
   -- sbtw := λ a b c,
   --   (⟨0, le_rfl, fact.out _⟩ : Ico 0 p) < equiv_Ico p (b - a) ∧
   --   equiv_Ico p (b - a) < equiv_Ico p (c - a),
-  btw_refl := λ a, show _ ≤ _, by rw [sub_self],
+  btw_refl := λ a, show _ ≤ _, begin
+    rw [sub_self, equiv_Ico_zero, subtype.coe_mk, sub_zero],
+    exact (fact.out (0 < p)).le,
+  end,
   btw_cyclic_left := λ a b c (habc : _ ≤ _), show _ ≤ _, begin
     induction a using quotient_add_group.induction_on',
     induction b using quotient_add_group.induction_on',
     induction c using quotient_add_group.induction_on',
-    simp_rw [←_root_.coe_sub, ←subtype.coe_le_coe,
-      coe_equiv_Ico_mk_apply, mul_le_mul_right (fact.out (0 < p)),
-      sub_div] at habc ⊢,
+    simp_rw [←_root_.coe_sub,
+      coe_equiv_Ico_mk_apply]  at habc ⊢,
+    nth_rewrite 2 [←div_mul_cancel p (fact.out (0 < p)).ne'] at habc ⊢,
+    rw [
+      ←sub_mul,
+      mul_le_mul_right (fact.out (0 < p)),
+      sub_div, sub_div, div_self (fact.out (0 < p)).ne'] at habc ⊢,
     have : c / p - b / p = (c / p - b / p + a / p) - a / p,
     sorry,
-    rw this,
-    rw mul_le_mul_right (fact.out (0 < p)) ,
-    have := coe_equiv_Ico_mk_apply p (c - b),
   end,
   sbtw_iff_btw_not_btw := λ a b c, iff.rfl,
   sbtw_trans_left := λ a b c d (habc : _ ∧ _) (hbcd : _ ∧ _), show _ ∧ _, begin

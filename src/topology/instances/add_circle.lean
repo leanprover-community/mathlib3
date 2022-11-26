@@ -8,6 +8,7 @@ import group_theory.order_of_element
 import ring_theory.int.basic
 import algebra.order.floor
 import algebra.order.to_interval_mod
+import order.circular
 import topology.instances.real
 
 /-!
@@ -126,7 +127,7 @@ def equiv_Ico : add_circle p ≃ Ico 0 p :=
   end }
 
 @[simp] lemma coe_equiv_Ico_mk_apply (x : 𝕜) :
-  (equiv_Ico p $ quotient_add_group.mk x : 𝕜) = int.fract (x / p) * p :=
+  (equiv_Ico p $ (↑x : add_circle p) : 𝕜) = int.fract (x / p) * p :=
 to_Ico_mod_eq_fract_mul _ x
 
 @[continuity] lemma continuous_equiv_Ico_symm : continuous (equiv_Ico p).symm :=
@@ -153,6 +154,36 @@ instance : divisible_by (add_circle p) ℤ :=
     rw [← map_zsmul, ← smul_mul_assoc, zsmul_eq_mul, mul_inv_cancel hn, one_mul],
     exact (equiv_Ico p).symm_apply_apply x,
   end, }
+
+instance [fact (0 < p)] : circular_order (add_circle p) :=
+{ btw := λ a b c, equiv_Ico p (b - a) ≤ equiv_Ico p (c - a),
+  -- sbtw := λ a b c,
+  --   (⟨0, le_rfl, fact.out _⟩ : Ico 0 p) < equiv_Ico p (b - a) ∧
+  --   equiv_Ico p (b - a) < equiv_Ico p (c - a),
+  btw_refl := λ a, show _ ≤ _, by rw [sub_self],
+  btw_cyclic_left := λ a b c (habc : _ ≤ _), show _ ≤ _, begin
+    induction a using quotient_add_group.induction_on',
+    induction b using quotient_add_group.induction_on',
+    induction c using quotient_add_group.induction_on',
+    simp_rw [←_root_.coe_sub, ←subtype.coe_le_coe,
+      coe_equiv_Ico_mk_apply, mul_le_mul_right (fact.out (0 < p)),
+      sub_div] at habc ⊢,
+    have : c / p - b / p = (c / p - b / p + a / p) - a / p,
+    sorry,
+    rw this,
+    rw mul_le_mul_right (fact.out (0 < p)) ,
+    have := coe_equiv_Ico_mk_apply p (c - b),
+  end,
+  sbtw_iff_btw_not_btw := λ a b c, iff.rfl,
+  sbtw_trans_left := λ a b c d (habc : _ ∧ _) (hbcd : _ ∧ _), show _ ∧ _, begin
+    sorry
+  end,
+  btw_antisymm := λ a b c (habc : _ ≤ _) (hcba : _ ≤ _), begin
+    sorry
+  end,
+  btw_total := λ a b c, show _ ≤ _ ∨ _ ≤ _, begin
+    sorry
+  end }
 
 end floor_ring
 
@@ -276,6 +307,7 @@ instance [fact (0 < p)] : normal_space (add_circle p) := normal_of_compact_t2
 
 /-- The "additive circle" `ℝ ⧸ (ℤ ∙ p)` is second-countable. -/
 instance : second_countable_topology (add_circle p) := quotient_add_group.second_countable_topology
+
 
 end add_circle
 

@@ -286,17 +286,21 @@ sym2.ind (λ v w, adj.ne) e h
 
 @[simp] lemma edge_set_sdiff (G H : simple_graph V) :
   (G \ H).edge_set = G.edge_set \ H.edge_set :=
-by { ext ⟨x,y⟩, exact ⟨id, id⟩ }
+by { ext ⟨x, y⟩, refl, }
 
 @[simp] lemma edge_set_inf (G H : simple_graph V) :
   (G ⊓ H).edge_set = G.edge_set ∩ H.edge_set :=
-by { ext ⟨x,y⟩, exact ⟨id, id⟩ }
+by { ext ⟨x, y⟩, refl, }
 
 @[simp] lemma edge_set_sup (G H : simple_graph V) :
   (G ⊔ H).edge_set = G.edge_set ∪ H.edge_set :=
-by { ext ⟨x,y⟩, exact ⟨id, id⟩ }
+by { ext ⟨x, y⟩, refl, }
 
-@[simp] lemma edge_set_sdiff_sdiff_is_diag (G : simple_graph V)  (s : set (sym2 V)) :
+/--
+This lemma, combined with `edge_set_sdiff` and `edge_set_from_edge_set`,
+allows proving `(G \ from_edge_set s).edge_set = G.edge_set \ s` by `simp`.
+-/
+@[simp] lemma edge_set_sdiff_sdiff_is_diag (G : simple_graph V) (s : set (sym2 V)) :
   G.edge_set \ (s \ {e | e.is_diag}) = G.edge_set \ s :=
 begin
   ext e,
@@ -305,8 +309,26 @@ begin
   simp only [G.not_is_diag_of_mem_edge_set h, imp_false],
 end
 
+@[mono]
 lemma edge_set_mono {G G' : simple_graph V} (h : G ≤ G') : G.edge_set ⊆ G'.edge_set :=
 λ e, sym2.ind (λ v w, @h v w) e
+
+lemma edge_set_injective :
+  (simple_graph.edge_set : simple_graph V → set (sym2 V)).injective :=
+begin
+  intros G G' h,
+  ext v w,
+  rw [← mem_edge_set, h, mem_edge_set],
+end
+
+lemma edge_set_subset_iff {G G' : simple_graph V} :
+  G.edge_set ⊆ G'.edge_set ↔ G ≤ G' :=
+begin
+  refine ⟨_, λ _, by mono⟩,
+  intros h v w,
+  simp_rw [← mem_edge_set],
+  exact λ h', h h',
+end
 
 /--
 Two vertices are adjacent iff there is an edge between them. The
@@ -369,17 +391,18 @@ by { ext v w, simp only [from_edge_set_adj, set.mem_empty_iff_false, false_and, 
 by { ext v w, simp only [from_edge_set_adj, set.mem_univ, true_and, top_adj] }
 
 @[simp] lemma from_edge_set_inf (s t : set (sym2 V)) :
-  from_edge_set (s ∩ t) = from_edge_set s ⊓ from_edge_set t :=
+  from_edge_set s ⊓ from_edge_set t = from_edge_set (s ∩ t) :=
 by { ext v w, simp only [from_edge_set_adj, set.mem_inter_iff, ne.def, inf_adj], tauto, }
 
 @[simp] lemma from_edge_set_sup (s t : set (sym2 V)) :
-  from_edge_set (s ∪ t) = from_edge_set s ⊔ from_edge_set t :=
+  from_edge_set s ⊔ from_edge_set t = from_edge_set (s ∪ t) :=
 by { ext v w, simp [set.mem_union, or_and_distrib_right], }
 
 @[simp] lemma from_edge_set_sdiff (s t : set (sym2 V)) :
-  from_edge_set (s \ t) = from_edge_set s \ from_edge_set t :=
+  from_edge_set s \ from_edge_set t = from_edge_set (s \ t) :=
 by { ext v w, split; simp { contextual := tt }, }
 
+@[mono]
 lemma from_edge_set_mono {s t : set (sym2 V)} (h : s ⊆ t) : from_edge_set s ≤ from_edge_set t :=
 begin
   rintro v w,
@@ -470,7 +493,7 @@ the second dart's first vertex. -/
 def dart_adj (d d' : G.dart) : Prop := d.snd = d'.fst
 
 /-- For a given vertex `v`, this is the bijective map from the neighbor set at `v`
-to the darts `d` with `d.fst = v`. --/
+to the darts `d` with `d.fst = v`. -/
 @[simps] def dart_of_neighbor_set (v : V) (w : G.neighbor_set v) : G.dart :=
 ⟨(v, w), w.property⟩
 
@@ -1317,7 +1340,7 @@ abbreviation to_embedding : G ↪g G' := f.to_rel_embedding
 /-- An isomorphism of graphs gives rise to a homomorphism of graphs. -/
 abbreviation to_hom : G →g G' := f.to_embedding.to_hom
 
-/-- The inverse of a graph isomorphism. --/
+/-- The inverse of a graph isomorphism. -/
 abbreviation symm : G' ≃g G := f.symm
 
 lemma map_adj_iff {v w : V} : G'.adj (f v) (f w) ↔ G.adj v w := f.map_rel_iff

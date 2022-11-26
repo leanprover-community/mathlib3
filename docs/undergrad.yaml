@@ -500,7 +500,7 @@ Measures and integral calculus:
     Lebesgue measure: 'measure_theory.measure_space'
     product measure: 'measurable_space.pi'
     measurable functions: 'measurable'
-    approximation by step functions: 'measure_theory/simple_func_dense.html'
+    approximation by step functions: 'measure_theory.simple_func.tendsto_approx_on'
   Integration:
     integral of positive measurable functions: 'measure_theory.lintegral'
     monotone convergence theorem: 'measure_theory.lintegral_infi_ae'
@@ -521,7 +521,7 @@ Measures and integral calculus:
     approximation by convolution: 'cont_diff_bump_of_inner.convolution_tendsto_right'
     regularization by convolution: 'has_compact_support.cont_diff_convolution_left'
   Fourier analysis:
-    Fourier series of locally integrable periodic real-valued functions: ''
+    Fourier series of locally integrable periodic real-valued functions: 'fourier_series'
     Riemann-Lebesgue lemma: ''
     convolution product of periodic functions: ''
     Dirichlet theorem: ''

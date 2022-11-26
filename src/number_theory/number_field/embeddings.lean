@@ -142,6 +142,11 @@ variables {K : Type*} [field K]
 /-- The conjugate of a complex embedding as a complex embedding. -/
 def conjugate (φ : K →+* ℂ) : K →+* ℂ := ring_hom.comp conj_ae.to_ring_equiv.to_ring_hom φ
 
+lemma conjugate.coe_eq (φ : K →+* ℂ) : (conjugate φ : K → ℂ) = conj ∘ φ := rfl
+
+lemma conjugate.place_eq (φ : K →+* ℂ) : place K (conjugate φ) = place K φ :=
+by { ext1, simp only [place, conjugate.coe_eq, function.comp_app, norm_eq_abs, abs_conj], }
+
 /-- Two complex embeddings define the same place iff they are equal or complex conjugate. -/
 lemma infinite_place_eq_iff {φ ψ : K →+* ℂ} :
   place K φ = place K ψ ↔ φ = ψ ∨ conjugate φ = ψ :=
@@ -168,9 +173,7 @@ begin
       exact (ring_equiv.apply_symm_apply ι.symm x).symm, }},
   { rintros (⟨h⟩ | ⟨h⟩),
     { ext x, convert congr_arg complex.abs (ring_hom.congr_fun h x), },
-    { ext x,
-      rw [place, place, function.comp_app, function.comp_app, norm_eq_abs, norm_eq_abs, ← abs_conj],
-      exact congr_arg complex.abs (ring_hom.congr_fun h x), }},
+    { ext x, rw [← h, conjugate.place_eq], }},
 end
 
 end infinite_place

@@ -158,9 +158,10 @@ begin
   nth_rewrite 1 hunion,
   rw [sum_union, sum_const_nat (λ x hx, (mem_filter.1 hx).2),
     sum_const_nat (λ x hx, (mem_filter.1 hx).2), P.card_filter_equitabilise_big],
-  refine λ x hx, succ_ne_self m _,
-  rw [inf_eq_inter, mem_inter, mem_filter, mem_filter] at hx,
-  rw [succ_eq_add_one, ←hx.2.2, hx.1.2],
+  refine disjoint_filter_filter' _ _ _,
+  intros x ha hb i h,
+  apply succ_ne_self m _,
+  exact (hb i h).symm.trans (ha i h),
 end
 
 lemma card_parts_equitabilise (hm : m ≠ 0) : (P.equitabilise h).parts.card = a + b :=

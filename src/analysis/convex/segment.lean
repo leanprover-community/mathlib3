@@ -110,14 +110,12 @@ begin
   simp only [subset_antisymm_iff, insert_subset, left_mem_segment, right_mem_segment,
     open_segment_subset_segment, true_and],
   rintro z ⟨a, b, ha, hb, hab, rfl⟩,
-  refine hb.eq_or_gt.imp _ (λ hb', ha.eq_or_gt.imp _ _),
+  refine hb.eq_or_gt.imp _ (λ hb', ha.eq_or_gt.imp _ $ λ ha', _),
   { rintro rfl,
-    rw add_zero at hab,
-    rw [hab, one_smul, zero_smul, add_zero] },
+    rw [← add_zero a, hab, one_smul, zero_smul, add_zero] },
   { rintro rfl,
-    rw zero_add at hab,
-    rw [hab, one_smul, zero_smul, zero_add] },
-  { exact λ ha', ⟨a, b, ha', hb', hab, rfl⟩ }
+    rw [← zero_add b, hab, one_smul, zero_smul, zero_add] },
+  { exact ⟨a, b, ha', hb', hab, rfl⟩ }
 end
 
 variables {𝕜}
@@ -304,6 +302,32 @@ begin
   rw [←mem_segment_translate _ (-x), neg_add_self],
   refine ⟨b, a, hb, ha, add_comm a b ▸ hab, _⟩,
   rw [←sub_eq_neg_add, ←neg_sub, hxy, ←sub_eq_neg_add, hzx, smul_neg, smul_comm, neg_add_self]
+end
+
+open affine_map
+
+/-- If `z = line_map x y c` is a point on the line passing through `x` and `y`, then the open
+segment `open_segment 𝕜 x y` is included in the union of the open segments `open_segment 𝕜 x z`,
+`open_segment 𝕜 z y`, and the point `z`. Informally, `(x, y) ⊆ {z} ∪ (x, z) ∪ (z, y)`. -/
+lemma open_segment_subset_union (x y : E) {z : E} (hz : z ∈ range (line_map x y : 𝕜 → E)) :
+  open_segment 𝕜 x y ⊆ insert z (open_segment 𝕜 x z ∪ open_segment 𝕜 z y) :=
+begin
+  rcases hz with ⟨c, rfl⟩,
+  simp only [open_segment_eq_image_line_map, ← maps_to'],
+  rintro a ⟨h₀, h₁⟩,
+  rcases lt_trichotomy a c with hac|rfl|hca,
+  { right, left,
+    have hc : 0 < c, from h₀.trans hac,
+    refine ⟨a / c, ⟨div_pos h₀ hc, (div_lt_one hc).2 hac⟩, _⟩,
+    simp only [← homothety_eq_line_map, ← homothety_mul_apply, div_mul_cancel _ hc.ne'] },
+  { left, refl },
+  { right, right,
+    have hc : 0 < 1 - c, from sub_pos.2 (hca.trans h₁),
+    simp only [← line_map_apply_one_sub y],
+    refine ⟨(a - c) / (1 - c), ⟨div_pos (sub_pos.2 hca) hc,
+      (div_lt_one hc).2 $ sub_lt_sub_right h₁ _⟩, _⟩,
+    simp only [← homothety_eq_line_map, ← homothety_mul_apply, sub_mul, one_mul,
+      div_mul_cancel _ hc.ne', sub_sub_sub_cancel_right] }
 end
 
 end linear_ordered_field

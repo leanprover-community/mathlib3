@@ -5,10 +5,11 @@ Authors: Simon Hudon
 -/
 import data.lazy_list.basic
 import data.tree
+import data.pnat.basic
 import control.bifunctor
 import control.ulift
-import tactic.linarith
 import testing.slim_check.gen
+import tactic.linarith
 
 /-!
 # `sampleable` Class

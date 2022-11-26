@@ -252,8 +252,7 @@ by rw [vars, degrees_monomial_eq _ _ h, finsupp.to_finset_to_multiset]
 by rw [vars, degrees_C, multiset.to_finset_zero]
 
 @[simp] lemma vars_X [nontrivial R] : (X n : mv_polynomial σ R).vars = {n} :=
-by rw [X, vars_monomial (@one_ne_zero R _ _),
-  finsupp.support_single_ne_zero _ (one_ne_zero : 1 ≠ 0)]
+by rw [X, vars_monomial (one_ne_zero' R), finsupp.support_single_ne_zero _ (one_ne_zero' ℕ)]
 
 lemma mem_vars (i : σ) :
   i ∈ p.vars ↔ ∃ (d : σ →₀ ℕ) (H : d ∈ p.support), i ∈ d.support :=
@@ -387,7 +386,7 @@ begin
     intros v hv v2 hv2,
     rw finset.mem_bUnion at hv2,
     rcases hv2 with ⟨i, his, hi⟩,
-    refine h a i _ _ hv _ hi,
+    refine h _ _ hv _ hi,
     rintro rfl,
     contradiction }
 end
@@ -486,9 +485,8 @@ begin
   simp only [finset.sup_map],
   congr,
   ext,
-  simp only [ single, nat.one_ne_zero, add_right_eq_self, add_right_embedding_apply, coe_mk,
-              pi.add_apply, comp_app, ite_eq_right_iff, coe_add ],
-  cc,
+  simp only [single, nat.one_ne_zero, add_right_eq_self, add_right_embedding_apply, coe_mk,
+             pi.add_apply, comp_app, ite_eq_right_iff, finsupp.coe_add, pi.single_eq_of_ne h],
 end
 
 /- TODO in the following we have equality iff f ≠ 0 -/

@@ -30,34 +30,61 @@ namespace rel_embedding
 variables {r : α → α → Prop} [is_strict_order α r]
 
 /-- If `f` is a strictly `r`-increasing sequence, then this returns `f` as an order embedding. -/
-def nat_lt (f : ℕ → α) (H : ∀ n : ℕ, r (f n) (f (n + 1))) :
-  ((<) : ℕ → ℕ → Prop) ↪r r :=
+def nat_lt (f : ℕ → α) (H : ∀ n : ℕ, r (f n) (f (n + 1))) : ((<) : ℕ → ℕ → Prop) ↪r r :=
 of_monotone f $ nat.rel_of_forall_rel_succ_of_lt r H
 
-@[simp]
-lemma nat_lt_apply {f : ℕ → α} {H : ∀ n : ℕ, r (f n) (f (n + 1))} {n : ℕ} : nat_lt f H n = f n :=
-rfl
+@[simp] lemma coe_nat_lt {f : ℕ → α} {H : ∀ n : ℕ, r (f n) (f (n + 1))} : ⇑(nat_lt f H) = f := rfl
 
 /-- If `f` is a strictly `r`-decreasing sequence, then this returns `f` as an order embedding. -/
 def nat_gt (f : ℕ → α) (H : ∀ n : ℕ, r (f (n + 1)) (f n)) : ((>) : ℕ → ℕ → Prop) ↪r r :=
-by haveI := is_strict_order.swap r; exact rel_embedding.swap (nat_lt f H)
+by { haveI := is_strict_order.swap r, exact rel_embedding.swap (nat_lt f H) }
 
+@[simp] lemma coe_nat_gt {f : ℕ → α} {H : ∀ n : ℕ, r (f (n + 1)) (f n)} : ⇑(nat_gt f H) = f := rfl
+
+theorem exists_not_acc_lt_of_not_acc {a : α} {r} (h : ¬ acc r a) : ∃ b, ¬ acc r b ∧ r b a :=
+begin
+  contrapose! h,
+  refine ⟨_, λ b hr, _⟩,
+  by_contra hb,
+  exact h b hb hr
+end
+
+/-- A value is accessible iff it isn't contained in any infinite decreasing sequence. -/
+theorem acc_iff_no_decreasing_seq {x} :
+  acc r x ↔ is_empty {f : ((>) : ℕ → ℕ → Prop) ↪r r // x ∈ set.range f} :=
+begin
+  split,
+  { refine λ h, h.rec_on (λ x h IH, _),
+    split,
+    rintro ⟨f, k, hf⟩,
+    exact is_empty.elim' (IH (f (k + 1)) (hf ▸ f.map_rel_iff.2 (lt_add_one k))) ⟨f, _, rfl⟩ },
+  { have : ∀ x : {a // ¬ acc r a}, ∃ y : {a // ¬ acc r a}, r y.1 x.1,
+    { rintro ⟨x, hx⟩,
+      cases exists_not_acc_lt_of_not_acc hx,
+      exact ⟨⟨w, h.1⟩, h.2⟩ },
+    obtain ⟨f, h⟩ := classical.axiom_of_choice this,
+    refine λ E, classical.by_contradiction (λ hx, E.elim'
+      ⟨(nat_gt (λ n, (f^[n] ⟨x, hx⟩).1) (λ n, _)), 0, rfl⟩),
+    rw function.iterate_succ',
+    apply h }
+end
+
+theorem not_acc_of_decreasing_seq (f : ((>) : ℕ → ℕ → Prop) ↪r r) (k : ℕ) : ¬ acc r (f k) :=
+by { rw [acc_iff_no_decreasing_seq, not_is_empty_iff], exact ⟨⟨f, k, rfl⟩⟩ }
+
+/-- A relation is well-founded iff it doesn't have any infinite decreasing sequence. -/
 theorem well_founded_iff_no_descending_seq :
   well_founded r ↔ is_empty (((>) : ℕ → ℕ → Prop) ↪r r) :=
-⟨λ ⟨h⟩, ⟨λ ⟨f, o⟩,
-  suffices ∀ a, acc r a → ∀ n, a ≠ f n, from this (f 0) (h _) 0 rfl,
-  λ a ac, begin
-    induction ac with a _ IH,
-    rintro n rfl,
-    exact IH (f (n+1)) (o.2 (nat.lt_succ_self _)) _ rfl
-  end⟩,
-λ E, ⟨λ a, classical.by_contradiction $ λ na,
-  let ⟨f, h⟩ := classical.axiom_of_choice $
-    show ∀ x : {a // ¬ acc r a}, ∃ y : {a // ¬ acc r a}, r y.1 x.1,
-    from λ ⟨x, h⟩, classical.by_contradiction $ λ hn, h $
-      ⟨_, λ y h, classical.by_contradiction $ λ na, hn ⟨⟨y, na⟩, h⟩⟩ in
-  E.elim' (nat_gt (λ n, (f^[n] ⟨a, na⟩).1) $ λ n,
-    by { rw [function.iterate_succ'], apply h })⟩⟩
+begin
+  split,
+  { rintro ⟨h⟩,
+    exact ⟨λ f, not_acc_of_decreasing_seq f 0 (h _)⟩ },
+  { introI h,
+    exact ⟨λ x, acc_iff_no_decreasing_seq.2 infer_instance⟩ }
+end
+
+theorem not_well_founded_of_decreasing_seq (f : ((>) : ℕ → ℕ → Prop) ↪r r) : ¬ well_founded r :=
+by { rw [well_founded_iff_no_descending_seq, not_is_empty_iff], exact ⟨f⟩ }
 
 end rel_embedding
 

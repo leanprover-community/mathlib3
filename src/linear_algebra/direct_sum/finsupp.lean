@@ -6,7 +6,6 @@ Authors: Johannes Hölzl
 import algebra.direct_sum.finsupp
 import linear_algebra.finsupp
 import linear_algebra.direct_sum.tensor_product
-import data.finsupp.to_dfinsupp
 
 /-!
 # Results on finitely supported functions.
@@ -57,7 +56,7 @@ begin
     { intros g₁ g₂ hg₁ hg₂, simp [tmul_add, hg₁, hg₂], },
     { intros k' n,
       simp only [finsupp_tensor_finsupp_single],
-      simp only [finsupp.single, finsupp.coe_mk],
+      simp only [finsupp.single_apply],
       -- split_ifs; finish can close the goal from here
       by_cases h1 : (i', k') = (i, k),
       { simp only [prod.mk.inj_iff] at h1, simp [h1] },
@@ -89,6 +88,6 @@ by simp [finsupp_tensor_finsupp']
 @[simp] lemma finsupp_tensor_finsupp'_single_tmul_single (a : α) (b : β) (r₁ r₂ : S) :
   finsupp_tensor_finsupp' S α β (finsupp.single a r₁ ⊗ₜ[S] finsupp.single b r₂) =
     finsupp.single (a, b) (r₁ * r₂) :=
-by { ext ⟨a', b'⟩, simp [finsupp.single, ite_and] }
+by { ext ⟨a', b'⟩, simp [finsupp.single_apply, ite_and] }
 
 end tensor_product

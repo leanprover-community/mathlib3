@@ -4,13 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 
-import algebra.indicator_function
 import data.prod.tprod
 import group_theory.coset
 import logic.equiv.fin
 import measure_theory.measurable_space_def
+import order.filter.small_sets
+import order.liminf_limsup
 import measure_theory.tactic
-import order.filter.lift
 
 /-!
 # Measurable spaces and measurable functions
@@ -635,7 +635,7 @@ begin
     simpa only [B', mem_union, mem_Inter, or_false, compl_Union, mem_compl_iff] using B },
   congr,
   by_contra h,
-  exact t_disj n (nat.find (P x)) (ne.symm h) ⟨hx, this⟩
+  exact (t_disj (ne.symm h)).le_bot ⟨hx, this⟩
 end
 
 end prod
@@ -911,7 +911,7 @@ lemma exists_measurable_extend (hf : measurable_embedding f) {g : α → γ} (hg
   ∃ g' : β → γ, measurable g' ∧ g' ∘ f = g :=
 ⟨extend f g (λ x, classical.choice (hne x)),
   hf.measurable_extend hg (measurable_const' $ λ _ _, rfl),
-  funext $ λ x, extend_apply hf.injective _ _ _⟩
+  funext $ λ x, hf.injective.extend_apply _ _ _⟩
 
 lemma measurable_comp_iff (hg : measurable_embedding g) : measurable (g ∘ f) ↔ measurable f :=
 begin

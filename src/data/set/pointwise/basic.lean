@@ -563,8 +563,7 @@ begin
 end
 
 /-- `set α` is a division monoid under pointwise operations if `α` is. -/
-@[to_additive subtraction_monoid "`set α` is a subtraction monoid under pointwise operations if `α`
-is."]
+@[to_additive "`set α` is a subtraction monoid under pointwise operations if `α` is."]
 protected def division_monoid : division_monoid (set α) :=
 { mul_inv_rev := λ s t, by { simp_rw ←image_inv, exact image_image2_antidistrib mul_inv_rev },
   inv_eq_of_mul := λ s t h, begin
@@ -888,6 +887,10 @@ image_Inter₂_subset _ _
 end has_smul_set
 
 variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {a : α} {b : β}
+
+@[simp, to_additive] lemma bUnion_op_smul_set [has_mul α] (s t : set α) :
+  (⋃ a ∈ t, mul_opposite.op a • s) = s * t :=
+Union_image_right _
 
 @[to_additive]
 lemma smul_set_inter [group α] [mul_action α β] {s t : set β} :
@@ -1217,6 +1220,15 @@ begin
     have : mul_opposite.op (a⁻¹ * b) = x := congr_arg mul_opposite.op H,
     exact ⟨b, mem_inter (mem_smul_set.mpr ⟨a, ha, by simp [← this]⟩) hb⟩, },
 end
+
+@[simp, to_additive] lemma Union_inv_smul :
+  (⋃ (g : α), g⁻¹ • s) = (⋃ (g : α), g • s) :=
+function.surjective.supr_congr _ inv_surjective $ λ g, rfl
+
+@[to_additive]
+lemma Union_smul_eq_set_of_exists {s : set β} :
+  (⋃ (g : α), g • s) = {a | ∃ (g : α), g • a ∈ s} :=
+by simp_rw [← Union_set_of, ← Union_inv_smul, ← preimage_smul, preimage]
 
 end group
 

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
 import combinatorics.simple_graph.connectivity
-import combinatorics.simple_graph.from_edge_set
 import order.boolean_algebra
 /-!
 

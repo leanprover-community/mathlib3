@@ -900,6 +900,35 @@ lemma prime_ne_zero (p q : ℕ) [hp : fact p.prime] [hq : fact q.prime] (hpq : p
 by rwa [← nat.cast_zero, ne.def, eq_iff_modeq_nat, nat.modeq_zero_iff_dvd,
   ← hp.1.coprime_iff_not_dvd, nat.coprime_primes hp.1 hq.1]
 
+lemma nat_abs_min_of_le_div_two (n : ℕ) (x y : ℤ)
+  (he : (x : zmod n) = y) (hl : x.nat_abs ≤ n / 2) : x.nat_abs ≤ y.nat_abs :=
+begin
+  rw int_coe_eq_int_coe_iff_dvd_sub at he,
+  obtain ⟨m, he⟩ := he,
+  rw sub_eq_iff_eq_add at he,
+  subst he,
+  obtain rfl|hm := eq_or_ne m 0,
+  { rw [mul_zero, zero_add] },
+  apply hl.trans,
+  rw ← add_le_add_iff_right x.nat_abs,
+  refine trans (trans ((add_le_add_iff_left _).2 hl) _) (int.nat_abs_sub_le _ _),
+  rw [add_sub_cancel, int.nat_abs_mul, int.nat_abs_of_nat],
+  refine trans _ (nat.le_mul_of_pos_right $ int.nat_abs_pos_of_ne_zero hm),
+  rw ← mul_two, apply nat.div_mul_le_self,
+end
+
+example {n : ℕ} (a b : zmod n) :
+  (a + b).val_min_abs.nat_abs ≤ (a.val_min_abs + b.val_min_abs).nat_abs :=
+begin
+  cases n, { refl },
+  apply nat_abs_min_of_le_div_two n.succ,
+  { simp_rw [int.cast_add, zmod.coe_val_min_abs] },
+  { apply nat_abs_val_min_abs_le },
+end
+
+end zmod
+
+
 end zmod
 
 namespace zmod

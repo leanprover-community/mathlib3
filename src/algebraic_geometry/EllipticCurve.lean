@@ -118,9 +118,9 @@ def two_torsion_polynomial : cubic R := ⟨4, E.b₂, 2 * E.b₄, E.b₆⟩
 lemma two_torsion_polynomial.disc_eq : E.two_torsion_polynomial.disc = 16 * E.Δ :=
 by { simp only [two_torsion_polynomial, cubic.disc, coe_Δ, b₂, b₄, b₆, b₈], ring1 }
 
-lemma two_torsion_polynomial.disc_ne_zero {K : Type u} [field K] [invertible (2 : K)]
-  (E : EllipticCurve K) : E.two_torsion_polynomial.disc ≠ 0 :=
-λ hdisc, E.Δ.ne_zero $ mul_left_cancel₀ (pow_ne_zero 4 $ nonzero_of_invertible (2 : K)) $
+lemma two_torsion_polynomial.disc_ne_zero [nontrivial R] [invertible (2 : R)] :
+  E.two_torsion_polynomial.disc ≠ 0 :=
+λ hdisc, E.Δ.ne_zero $ (is_unit_of_invertible $ 2 ^ 4).mul_left_cancel $
 by linear_combination hdisc - two_torsion_polynomial.disc_eq E
     with { normalization_tactic := `[ring1] }
 

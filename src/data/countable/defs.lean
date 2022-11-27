@@ -76,8 +76,7 @@ let ⟨n, ⟨e⟩⟩ := finite.exists_equiv_fin α in countable.of_equiv _ e.sym
 
 instance : countable punit.{u} := subsingleton.to_countable
 
-@[nolint instance_priority]
-instance Prop.countable (p : Prop) : countable p := subsingleton.to_countable
+@[priority 100] instance Prop.countable (p : Prop) : countable p := subsingleton.to_countable
 
 instance bool.countable : countable bool :=
 ⟨⟨λ b, cond b 0 1, bool.injective_iff.2 nat.one_ne_zero⟩⟩

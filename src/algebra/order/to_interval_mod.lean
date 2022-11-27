@@ -45,6 +45,28 @@ lemma eq_to_Ico_div_of_add_zsmul_mem_Ico {a b x : α} (hb : 0 < b) {y : ℤ}
   (hy : x + y • b ∈ set.Ico a (a + b)) : y = to_Ico_div a hb x :=
 (exists_unique_add_zsmul_mem_Ico hb x a).some_spec.2 y hy
 
+lemma to_Ico_div_add_zsmul_period (a : α) {b : α} (hb : 0 < b) (x : α) (z : ℤ) :
+  to_Ico_div a hb (x + z • b) = to_Ico_div a hb x - z :=
+begin
+  rw eq_comm,
+  apply eq_to_Ico_div_of_add_zsmul_mem_Ico,
+  rw [sub_smul, add_add_sub_cancel],
+  apply add_to_Ico_div_zsmul_mem_Ico,
+end
+
+lemma to_Ico_div_add_period (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ico_div a hb (x + b) = to_Ico_div a hb x - 1 :=
+by simpa only [one_smul] using to_Ico_div_add_zsmul_period a hb x 1
+
+lemma to_Ico_div_sub_zsmul_period (a : α) {b : α} (hb : 0 < b) (x : α) (z : ℤ) :
+  to_Ico_div a hb (x - z • b) = to_Ico_div a hb x + z :=
+by simpa only [neg_smul, ←sub_eq_add_neg, sub_neg_eq_add]
+  using to_Ico_div_add_zsmul_period a hb x (-z)
+
+lemma to_Ico_div_sub_period (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ico_div a hb (x - b) = to_Ico_div a hb x + 1 :=
+by simpa only [one_smul] using to_Ico_div_sub_zsmul_period a hb x 1
+
 lemma to_Ico_div_sub (a : α) {b : α} (hb : 0 < b) (x y : α) :
   to_Ico_div a hb (x - y) = to_Ico_div (a + y) hb x :=
 begin
@@ -72,6 +94,28 @@ lemma eq_to_Ioc_div_of_add_zsmul_mem_Ioc {a b x : α} (hb : 0 < b) {y : ℤ}
   (hy : x + y • b ∈ set.Ioc a (a + b)) : y = to_Ioc_div a hb x :=
 (exists_unique_add_zsmul_mem_Ioc hb x a).some_spec.2 y hy
 
+lemma to_Ioc_div_add_zsmul_period (a : α) {b : α} (hb : 0 < b) (x : α) (z : ℤ) :
+  to_Ioc_div a hb (x + z • b) = to_Ioc_div a hb x - z :=
+begin
+  rw eq_comm,
+  apply eq_to_Ioc_div_of_add_zsmul_mem_Ioc,
+  rw [sub_smul, add_add_sub_cancel],
+  apply add_to_Ioc_div_zsmul_mem_Ioc,
+end
+
+lemma to_Ioc_div_add_period (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ioc_div a hb (x + b) = to_Ioc_div a hb x - 1 :=
+by simpa only [one_smul] using to_Ioc_div_add_zsmul_period a hb x 1
+
+lemma to_Ioc_div_sub_zsmul_period (a : α) {b : α} (hb : 0 < b) (x : α) (z : ℤ) :
+  to_Ioc_div a hb (x - z • b) = to_Ioc_div a hb x + z :=
+by simpa only [neg_smul, ←sub_eq_add_neg, sub_neg_eq_add]
+  using to_Ioc_div_add_zsmul_period a hb x (-z)
+
+lemma to_Ioc_div_sub_period (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ioc_div a hb (x - b) = to_Ioc_div a hb x + 1 :=
+by simpa only [one_smul] using to_Ioc_div_sub_zsmul_period a hb x 1
+
 lemma to_Ioc_div_sub (a : α) {b : α} (hb : 0 < b) (x y : α) :
   to_Ioc_div a hb (x - y) = to_Ioc_div (a + y) hb x :=
 begin
@@ -88,8 +132,10 @@ lemma to_Ioc_div_add (a : α) {b : α} (hb : 0 < b) (x y : α) :
 by rw [←sub_neg_eq_add, to_Ioc_div_sub, sub_eq_add_neg]
 
 lemma to_Ico_div_neg (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ico_div a hb (-x) = -(to_Ioc_div (-(a + b)) hb x) :=
+  to_Ico_div a hb (-x) = 1 - to_Ioc_div (-a) hb x :=
 begin
+  suffices : to_Ico_div a hb (-x) = -(to_Ioc_div (-(a + b)) hb x),
+  { rwa [neg_add, ←sub_eq_add_neg, ←to_Ioc_div_add, to_Ioc_div_add_period, neg_sub] at this },
   rw [eq_neg_iff_eq_neg, eq_comm],
   apply eq_to_Ioc_div_of_add_zsmul_mem_Ioc,
   obtain ⟨hc, ho⟩ := add_to_Ico_div_zsmul_mem_Ico a hb (-x),
@@ -100,8 +146,8 @@ begin
 end
 
 lemma to_Ioc_div_neg (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ioc_div a hb (-x) = -(to_Ico_div (-(a + b)) hb x) :=
-by rw [←neg_neg x, to_Ico_div_neg, neg_neg, neg_neg, neg_add, neg_neg, add_neg_cancel_right]
+  to_Ioc_div a hb (-x) = 1 - to_Ico_div (-a) hb x :=
+by rw [←neg_neg x, to_Ico_div_neg, neg_neg, neg_neg, sub_sub_cancel]
 
 /-- Reduce `x` to the interval `Ico a (a + b)`. -/
 def to_Ico_mod (a : α) {b : α} (hb : 0 < b) (x : α) : α := x + to_Ico_div a hb x • b

@@ -1,7 +1,5 @@
 import tactic.linarith
 
-example : covariant_class ℤ ℤ (function.swap (+)) (≤) := by show_term {apply_instance}
-
 example {α : Type} (_inst : Π (a : Prop), decidable a)
   [linear_ordered_field α]
   {a b c : α}

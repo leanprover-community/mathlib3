@@ -258,7 +258,7 @@ by simp only [ennreal.to_real, nnreal.coe_eq, to_nnreal_eq_to_nnreal_iff' hx hy]
 protected lemma zero_lt_one : 0 < (1 : ℝ≥0∞) := zero_lt_one
 
 @[simp] lemma one_lt_two : (1 : ℝ≥0∞) < 2 :=
-coe_one ▸ coe_two ▸ by exact_mod_cast (@one_lt_two ℕ _ _)
+coe_one ▸ coe_two ▸ by exact_mod_cast (@one_lt_two ℕ _)
 @[simp] lemma zero_lt_two : (0:ℝ≥0∞) < 2 := lt_trans zero_lt_one one_lt_two
 lemma two_ne_zero : (2:ℝ≥0∞) ≠ 0 := (ne_of_lt zero_lt_two).symm
 lemma two_ne_top : (2:ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
@@ -1317,13 +1317,8 @@ lemma half_lt_self {a : ℝ≥0∞} (hz : a ≠ 0) (ht : a ≠ ∞) : a / 2 < a 
 begin
   lift a to ℝ≥0 using ht,
   rw coe_ne_zero at hz,
-<<<<<<< HEAD
-  rw [← coe_two, ← ennreal.coe_div, coe_lt_coe],
-  exacts [nnreal.half_lt_self hz, two_ne_zero' _]
-=======
   rw [← coe_two, ← coe_div, coe_lt_coe],
-  exacts [nnreal.half_lt_self hz, two_ne_zero']
->>>>>>> parent of 6965ed89a6 (feat(*): define classes for coercions that are homomorphisms (#17048))
+  exacts [nnreal.half_lt_self hz, two_ne_zero' _]
 end
 
 lemma half_le_self : a / 2 ≤ a := le_add_self.trans_eq (add_halves _)

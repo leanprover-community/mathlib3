@@ -855,7 +855,7 @@ begin
 end
 
 lemma zero_le_degree_iff {p : R[X]} : 0 ≤ degree p ↔ p ≠ 0 :=
-by rw [ne.def, ← degree_eq_bot, ← nat.with_bot.lt_zero_iff, not_lt]
+by rw [← not_lt, nat.with_bot.lt_zero_iff, degree_eq_bot]
 
 lemma degree_nonneg_iff_ne_zero : 0 ≤ degree p ↔ p ≠ 0 :=
 zero_le_degree_iff

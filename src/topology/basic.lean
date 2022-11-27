@@ -771,6 +771,14 @@ eventually_nhds_iff.2 ⟨t, λ x hx, eventually_nhds_iff.2 ⟨t, htp, hto, hx⟩
   (∀ᶠ y in 𝓝 a, ∀ᶠ x in 𝓝 y, p x) ↔ ∀ᶠ x in 𝓝 a, p x :=
 ⟨λ h, h.self_of_nhds, λ h, h.eventually_nhds⟩
 
+@[simp] lemma frequently_frequently_nhds {p : α → Prop} {a : α} :
+  (∃ᶠ y in 𝓝 a, ∃ᶠ x in 𝓝 y, p x) ↔ (∃ᶠ x in 𝓝 a, p x) :=
+begin
+  rw ← not_iff_not,
+  simp_rw not_frequently,
+  exact eventually_eventually_nhds,
+end
+
 @[simp] lemma eventually_mem_nhds {s : set α} {a : α} :
   (∀ᶠ x in 𝓝 a, s ∈ 𝓝 x) ↔ s ∈ 𝓝 a :=
 eventually_eventually_nhds
@@ -937,6 +945,33 @@ begin
     from le_inf H this,
   exact ne_bot_of_le this
 end
+
+/--A point `x` is an accumulation point of a filter `F` if `𝓝[≠] x ⊓ F ≠ ⊥`.-/
+def acc_pt (x : α) (F : filter α) : Prop := ne_bot (𝓝[≠] x ⊓ F)
+
+lemma acc_iff_cluster (x : α) (F : filter α) : acc_pt x F ↔ cluster_pt x (𝓟 {x}ᶜ ⊓ F) :=
+by rw[acc_pt,nhds_within,cluster_pt,inf_assoc]
+
+/-- `x` is an accumulation point of a set `C` iff it is a cluster point of `C ∖ {x}`-/
+lemma acc_principal_iff_cluster (x : α) (C : set α) : 
+  acc_pt x (𝓟 C) ↔ cluster_pt x (𝓟(C \ {x})) := 
+by rw[acc_iff_cluster,inf_principal,inter_comm]; refl
+
+/-- `x` is an accumulation point of a set `C` iff every neighborhood
+of `x` contains a point of `C` other than `x`. -/
+lemma acc_pt_iff_nhds (x : α) (C : set α) : acc_pt x (𝓟 C) ↔ ∀ U ∈ 𝓝 x, ∃ y ∈ U ∩ C, y ≠ x :=
+by simp [acc_principal_iff_cluster, cluster_pt_principal_iff, set.nonempty, exists_prop,
+  and_assoc, and_comm (¬ _ = x)]
+
+/-- `x` is an accumulation point of a set `C` iff
+there are points near `x` in `C` and different from `x`.-/
+lemma acc_pt_iff_frequently (x : α) (C : set α) : acc_pt x (𝓟 C) ↔ ∃ᶠ y in 𝓝 x, y ≠ x ∧ y ∈ C := 
+by simp[acc_principal_iff_cluster,cluster_pt_principal_iff_frequently,and_comm]
+
+/-- If `x` is an accumulation point of `F` and `F ≤ G`, then
+`x` is an accumulation point of `D. -/
+lemma acc_pt.mono {x : α} {F G : filter α} (h : acc_pt x F) (hFG : F ≤ G) : acc_pt x G :=
+  ⟨ne_bot_of_le_ne_bot h.ne (inf_le_inf_left _ hFG)⟩
 
 /-!
 ### Interior, closure and frontier in terms of neighborhoods

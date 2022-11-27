@@ -14,8 +14,6 @@ including a version of the Cantor-Bendixson Theorem.
 
 ## Main Definitions
 
-* `acc_pt x C`: A point `x` is an accumulation point of a set `C`,
-  taken here to mean that every neighborhood of `x` contains points of `C` other than `x`
 * `perfect C`: A set `C` is perfect, meaning it is closed and every point of it
   is an accumulation point of itself.
 
@@ -54,34 +52,10 @@ open topological_space filter set
 
 variables {α : Type*} [topological_space α]
 
-/-- A point `x` is an accumulation point of a set `C` if every neighborhood
-of `x` contains a point of `C` other than `x`. See `acc_pt_iff`. -/
-def acc_pt (x : α) (C : set α) : Prop := ne_bot (𝓝[≠] x ⊓ 𝓟 C)
-
-/-- `x` is an accumulation point of `C` iff it is a cluster point of `C ∖ {x}`-/
-theorem acc_iff_cluster (x : α) (C : set α) : acc_pt x C ↔ cluster_pt x (𝓟({x}ᶜ ∩ C))
-  := by rw[acc_pt, nhds_within, inf_assoc, inf_principal, cluster_pt]
-
-/-- `x` is an accumulation point of `C` iff every neighborhood
-of `x` contains a point of `C` other than `x`. -/
-theorem acc_pt_iff_nhds (x : α) (C : set α) : acc_pt x C ↔ ∀ U ∈ 𝓝 x, ∃ y ∈ U ∩ C, y ≠ x
-  := by simp [acc_iff_cluster, cluster_pt_principal_iff, set.nonempty, exists_prop,
-    and_assoc, and_comm (¬ _ = x)]
-
-/-- `x` is an accumulation point of `C` iff
-there are points near `x` in `C` and different from `x`.-/
-theorem acc_pt_iff_frequently (x : α) (C : set α) : acc_pt x C ↔ ∃ᶠ y in 𝓝 x, y ≠ x ∧ y ∈ C
- := by simp[acc_iff_cluster,cluster_pt_principal_iff_frequently]
-
-/-- If `x` is an accumulation point of `C` and `C ⊆ D`, then
-`x` is an accumulation point of `D. -/
-theorem acc_pt.mono {x : α} {C D : set α} (h : acc_pt x C) (hfg : C ≤ D) : acc_pt x D :=
-  ⟨ne_bot_of_le_ne_bot h.ne (inf_le_inf_left _ (monotone_principal hfg))⟩
-
-/-- If `x` is an accumulation point of `C` and `U` is a neighborhood of `x`,
+/-- If `x` is an accumulation point of a set `C` and `U` is a neighborhood of `x`,
 then `x` is an accumulation point of `U ∩ C`. -/
-theorem acc_pt.nhd_inter {x : α} {C U: set α} (h_acc : acc_pt x C) (hU : U ∈ 𝓝 x) :
-  acc_pt x (U ∩ C) :=
+theorem acc_pt.nhd_inter {x : α} {C U: set α} (h_acc : acc_pt x (𝓟 C)) (hU : U ∈ 𝓝 x) :
+  acc_pt x (𝓟 (U ∩ C)) :=
 begin
   have : 𝓝[≠] x ≤ 𝓟 U,
   { rw le_principal_iff,
@@ -94,7 +68,7 @@ end
 If `C` is nonempty, this is equivalent to the closure of `C` being perfect.
 See `preperfect_iff_closure_perfect`.-/
 --Note : This is my own term, feel free to suggest a better one :P
-def preperfect (C : set α) : Prop := ∀ x ∈ C, acc_pt x C
+def preperfect (C : set α) : Prop := ∀ x ∈ C, acc_pt x (𝓟 C)
 
 /-- A set `C` is called perfect if it is closed and all of its
 points are accumulation points of itself.
@@ -109,7 +83,7 @@ all of its points are accumulation points of itself.-/
 structure perf_nonempty (C : set α) extends perfect C : Prop :=
   (nonempty : C.nonempty)
 
-theorem preperfect_iff_nhds {C : set α} : preperfect C ↔ ∀ x ∈ C, ∀ U ∈ 𝓝 x, ∃ y ∈ U ∩ C, y ≠ x
+lemma preperfect_iff_nhds {C : set α} : preperfect C ↔ ∀ x ∈ C, ∀ U ∈ 𝓝 x, ∃ y ∈ U ∩ C, y ≠ x
   := by simp only[preperfect, acc_pt_iff_nhds]
 
 /-- The intersection of a preperfect set and an open set is preperfect-/
@@ -128,24 +102,12 @@ theorem preperfect.perfect_closure {C : set α} (hC : preperfect C) :
 begin
   split, {apply is_closed_closure},
   intros x hx,
-  by_cases h : x ∈ C; apply acc_pt.mono _ subset_closure,
+  by_cases h : x ∈ C; apply acc_pt.mono _ (principal_mono.mpr subset_closure),
   { exact hC _ h },
   have : {x}ᶜ ∩ C = C := by simp[h],
   rw [acc_pt, nhds_within, inf_assoc, inf_principal, this],
   rw [closure_eq_cluster_pts] at hx,
   exact hx,
-end
-
---perhaps this belongs in a different file?
-theorem frequently_nhds_nhds {x : α} {p : α → α → Prop} :
-  (∃ᶠ y in 𝓝 x, ∃ᶠ z in 𝓝 y, p x z) → (∃ᶠ z in 𝓝 x, p x z) :=
-begin
-  rw [(nhds_basis_opens _).frequently_iff, (nhds_basis_opens _).frequently_iff],
-  rintros h U ⟨xU,Uop⟩,
-  rcases h U ⟨xU,Uop⟩ with ⟨y,yU,hy⟩,
-  rw (nhds_basis_opens _).frequently_iff at hy,
-  rcases hy U ⟨yU,Uop⟩ with ⟨z,zU,hz⟩,
-  use [z,zU,hz],
 end
 
 /-- In a T1 space, being preperfect is equivalent to having perfect closure.-/
@@ -161,7 +123,8 @@ begin
     simp only [← mem_compl_singleton_iff, @and_comm _ (_ ∈ C) , ← frequently_nhds_within_iff,
       hyx.nhds_within_compl_singleton, ← mem_closure_iff_frequently],
     exact yC, },
-  exact frequently_nhds_nhds (H.mono this),
+  rw ← frequently_frequently_nhds,
+  exact H.mono this,
 end
 
 theorem perfect.closure_nhd_inter {C U: set α} (hC : perfect C) (x : α) (xC : x ∈ C) (xU : x ∈ U)
@@ -209,7 +172,7 @@ begin
   rcases this with ⟨b,bct,bnontrivial,bbasis⟩,
   let v := {U ∈ b | (U ∩ C).countable},
   let V := ⋃ U ∈ v, U,
-  let D := C ∩ Vᶜ, --C \ V did not work
+  let D := C \ V,
   have Vct : (V ∩ C).countable,
   { simp[V,Union_inter],
     apply set.countable.bUnion,
@@ -218,9 +181,8 @@ begin
       exact bct, },
     apply set.inter_subset_right, },
   use [V ∩ C,D],
-  split, swap, split, split,
-  { apply is_closed.inter hclosed,
-    rw is_closed_compl_iff,
+  refine ⟨Vct, ⟨_, _⟩, _⟩,
+  { apply hclosed.sdiff,
     apply is_open_bUnion,
     rintros U ⟨Ub,-⟩,
     exact is_topological_basis.is_open bbasis Ub, },
@@ -251,9 +213,8 @@ begin
     have : E ∩ D ⊆ {x}, {exact h},
     apply countable.mono this,
     apply set.countable_singleton, },
-  { dsimp[D],
-    rw[inter_comm,inter_union_compl], },
-  assumption,
+  dsimp[D],
+  rw[inter_comm,inter_union_diff],
 end
 
 /-- Any uncountable closed set in a second countable space contains a nonempty perfect subset.-/

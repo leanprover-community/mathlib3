@@ -103,6 +103,36 @@ def left_mul : G → G → G := λ g : G, λ x : G, g * x
 @[to_additive "`right_add g` denotes right addition by `g`"]
 def right_mul : G → G → G := λ g : G, λ x : G, x * g
 
+/-- A mixin for left cancellative multiplication. -/
+@[protect_proj] class is_left_cancel_mul (G : Type u) [has_mul G] : Prop :=
+  (mul_left_cancel : ∀ a b c : G, a * b = a * c → b = c)
+
+/-- A mixin for right cancellative multiplication. -/
+@[protect_proj] class is_right_cancel_mul (G : Type u) [has_mul G] : Prop :=
+  (mul_right_cancel : ∀ a b c : G, a * b = c * b → a = c)
+
+/-- A mixin for cancellative multiplication. -/
+@[protect_proj] class is_cancel_mul (G : Type u) [has_mul G]
+  extends is_left_cancel_mul G, is_right_cancel_mul G : Prop
+
+/-- A mixin for left cancellative addition. -/
+@[protect_proj] class is_left_cancel_add (G : Type u) [has_add G] : Prop :=
+  (add_left_cancel : ∀ a b c : G, a + b = a + c → b = c)
+
+attribute [to_additive] is_left_cancel_mul
+
+/-- A mixin for right cancellative addition. -/
+@[protect_proj] class is_right_cancel_add (G : Type u) [has_add G] : Prop :=
+  (add_right_cancel : ∀ a b c : G, a + b = c + b → a = c)
+
+attribute [to_additive] is_right_cancel_mul
+
+/-- A mixin for cancellative addition. -/
+class is_cancel_add (G : Type u) [has_add G]
+  extends is_left_cancel_add G, is_right_cancel_add G : Prop
+
+attribute [to_additive] is_cancel_mul
+
 end has_mul
 
 /-- A semigroup is a type with an associative `(*)`. -/
@@ -148,6 +178,58 @@ comm_semigroup.mul_comm
 instance comm_semigroup.to_is_commutative : is_commutative G (*) :=
 ⟨mul_comm⟩
 
+/-- Any `comm_semigroup G` that satisfies `is_right_cancel_mul G` also satisfies
+`is_left_cancel_mul G`. -/
+@[to_additive add_comm_semigroup.is_right_cancel_add.to_is_left_cancel_add "Any
+`add_comm_semigroup G` that satisfies `is_right_cancel_add G` also satisfies
+`is_right_cancel_add G`."]
+lemma comm_semigroup.is_right_cancel_mul.to_is_left_cancel_mul (G : Type u) [comm_semigroup G]
+  [is_right_cancel_mul G] : is_left_cancel_mul G :=
+{ mul_left_cancel := λ a b c h,
+  begin
+    rw [mul_comm a b, mul_comm a c] at h,
+    exact is_right_cancel_mul.mul_right_cancel _ _ _ h
+  end }
+
+/-- Any `comm_semigroup G` that satisfies `is_left_cancel_mul G` also satisfies
+`is_right_cancel_mul G`. -/
+@[to_additive add_comm_semigroup.is_left_cancel_add.to_is_right_cancel_add "Any
+`add_comm_semigroup G` that satisfies `is_left_cancel_add G` also satisfies
+`is_left_cancel_add G`."]
+lemma comm_semigroup.is_left_cancel_mul.to_is_right_cancel_mul (G : Type u) [comm_semigroup G]
+  [is_left_cancel_mul G] : is_right_cancel_mul G :=
+{ mul_right_cancel := λ a b c h,
+  begin
+    rw [mul_comm a b, mul_comm c b] at h,
+    exact is_left_cancel_mul.mul_left_cancel _ _ _ h
+  end }
+
+/-- Any `comm_semigroup G` that satisfies `is_left_cancel_mul G` also satisfies
+`is_cancel_mul G`. -/
+@[to_additive add_comm_semigroup.is_left_cancel_add.to_is_cancel_add "Any `add_comm_semigroup G`
+that satisfies `is_left_cancel_add G` also satisfies `is_cancel_add G`."]
+lemma comm_semigroup.is_left_cancel_mul.to_is_cancel_mul (G : Type u) [comm_semigroup G]
+  [is_left_cancel_mul G] : is_cancel_mul G :=
+{ mul_left_cancel := is_left_cancel_mul.mul_left_cancel,
+  mul_right_cancel := λ a b c h,
+  begin
+    rw [mul_comm a b, mul_comm c b] at h,
+    exact is_left_cancel_mul.mul_left_cancel _ _ _ h
+  end }
+
+/-- Any `comm_semigroup G` that satisfies `is_right_cancel_mul G` also satisfies
+`is_cancel_mul G`. -/
+@[to_additive add_comm_semigroup.is_right_cancel_add.to_is_cancel_add "Any `add_comm_semigroup G`
+that satisfies `is_right_cancel_add G` also satisfies `is_cancel_add G`."]
+lemma comm_semigroup.is_right_cancel_mul.to_is_cancel_mul (G : Type u) [comm_semigroup G]
+  [is_right_cancel_mul G] : is_cancel_mul G :=
+{ mul_left_cancel := λ a b c h,
+  begin
+    rw [mul_comm a b, mul_comm a c] at h,
+    exact is_right_cancel_mul.mul_right_cancel _ _ _ h
+  end,
+  mul_right_cancel := is_right_cancel_mul.mul_right_cancel }
+
 end comm_semigroup
 
 /-- A `left_cancel_semigroup` is a semigroup such that `a * b = a * c` implies `b = c`. -/
@@ -183,6 +265,12 @@ theorem mul_right_inj (a : G) {b c : G} : a * b = a * c ↔ b = c :=
 @[to_additive]
 theorem mul_ne_mul_right (a : G) {b c : G} : a * b ≠ a * c ↔ b ≠ c :=
 (mul_right_injective a).ne_iff
+
+/-- Any `left_cancel_semigroup` satisfies `is_left_cancel_mul`. -/
+@[priority 100, to_additive "Any `add_left_cancel_semigroup` satisfies `is_left_cancel_add`."]
+instance left_cancel_semigroup.to_is_left_cancel_mul (G : Type u) [left_cancel_semigroup G] :
+  is_left_cancel_mul G :=
+{ mul_left_cancel := left_cancel_semigroup.mul_left_cancel }
 
 end left_cancel_semigroup
 
@@ -220,6 +308,12 @@ theorem mul_left_inj (a : G) {b c : G} : b * a = c * a ↔ b = c :=
 @[to_additive]
 theorem mul_ne_mul_left (a : G) {b c : G} : b * a ≠ c * a ↔ b ≠ c :=
 (mul_left_injective a).ne_iff
+
+/-- Any `right_cancel_semigroup` satisfies `is_right_cancel_mul`. -/
+@[priority 100, to_additive "Any `add_right_cancel_semigroup` satisfies `is_right_cancel_add`."]
+instance right_cancel_semigroup.to_is_right_cancel_mul (G : Type u)
+  [right_cancel_semigroup G] : is_right_cancel_mul G :=
+{ mul_right_cancel := right_cancel_semigroup.mul_right_cancel }
 
 end right_cancel_semigroup
 
@@ -488,6 +582,12 @@ instance cancel_comm_monoid.to_cancel_monoid (M : Type u) [cancel_comm_monoid M]
   cancel_monoid M :=
 { mul_right_cancel := λ a b c h, mul_left_cancel $ by rw [mul_comm, h, mul_comm],
   .. ‹cancel_comm_monoid M› }
+
+/-- Any `cancel_monoid M` satisfies `is_cancel_mul M`. -/
+@[priority 100, to_additive "Any `add_cancel_monoid M` satisfies `is_cancel_add M`."]
+instance cancel_monoid.to_is_cancel_mul (M : Type u) [cancel_monoid M] : is_cancel_mul M :=
+{ mul_left_cancel := cancel_monoid.mul_left_cancel,
+  mul_right_cancel := cancel_monoid.mul_right_cancel }
 
 end cancel_monoid
 

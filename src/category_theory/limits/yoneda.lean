@@ -148,6 +148,7 @@ limits.fully_faithful_reflects_limits _
 
 end category_theory
 
--- These act as a guard that the algebraic hierarchy has not been imported
--- low into the category theory hierarchy again.
+-- We don't need to have developed any algebra or set theory to reach (at least) this point
+-- in the category theory hierarchy.
+assert_not_exists set.range
 assert_not_exists add_comm_monoid

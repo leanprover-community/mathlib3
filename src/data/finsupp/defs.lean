@@ -897,9 +897,9 @@ lemma map_range_add [add_zero_class N]
 ext $ λ _, by simp only [hf', add_apply, map_range_apply]
 
 lemma map_range_add' [add_zero_class N] [add_monoid_hom_class β M N]
-  {f : β} {hf : f 0 = 0} (hf' : ∀ x y, f (x + y) = f x + f y) (v₁ v₂ : α →₀ M) :
-  map_range f hf (v₁ + v₂) = map_range f hf v₁ + map_range f hf v₂ :=
-map_range_add hf' v₁ v₂
+  {f : β} (v₁ v₂ : α →₀ M) :
+  map_range f (map_zero f) (v₁ + v₂) = map_range f (map_zero f) v₁ + map_range f (map_zero f) v₂ :=
+map_range_add (map_add f) v₁ v₂
 
 /-- Bundle `emb_domain f` as an additive map from `α →₀ M` to `β →₀ M`. -/
 @[simps] def emb_domain.add_monoid_hom (f : α ↪ β) : (α →₀ M) →+ β →₀ M :=
@@ -949,7 +949,8 @@ lemma map_range_neg [neg_zero_class G] [neg_zero_class H]
 ext $ λ _, by simp only [hf', neg_apply, map_range_apply]
 
 lemma map_range_neg' [add_group G] [subtraction_monoid H] [add_monoid_hom_class β G H]
-  {f : β} {hf : f 0 = 0} (v : α →₀ G) : map_range f hf (-v) = -map_range f hf v :=
+  {f : β} (v : α →₀ G) :
+  map_range f (map_zero f) (-v) = -map_range f (map_zero f) v :=
 map_range_neg (map_neg f) v
 
 instance [sub_neg_zero_monoid G] : has_sub (α →₀ G) := ⟨zip_with has_sub.sub (sub_zero _)⟩
@@ -965,8 +966,8 @@ lemma map_range_sub [sub_neg_zero_monoid G] [sub_neg_zero_monoid H]
 ext $ λ _, by simp only [hf', sub_apply, map_range_apply]
 
 lemma map_range_sub' [add_group G] [subtraction_monoid H] [add_monoid_hom_class β G H]
-  {f : β} {hf : f 0 = 0} (v₁ v₂ : α →₀ G) :
-  map_range f hf (v₁ - v₂) = map_range f hf v₁ - map_range f hf v₂ :=
+  {f : β} (v₁ v₂ : α →₀ G) :
+  map_range f (map_zero f) (v₁ - v₂) = map_range f (map_zero f) v₁ - map_range f (map_zero f) v₂ :=
 map_range_sub (map_sub f) v₁ v₂
 
 /-- Note the general `finsupp.has_smul` instance doesn't apply as `ℤ` is not distributive

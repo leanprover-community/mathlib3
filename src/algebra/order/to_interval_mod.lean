@@ -45,43 +45,6 @@ lemma eq_to_Ico_div_of_add_zsmul_mem_Ico {a b x : α} (hb : 0 < b) {y : ℤ}
   (hy : x + y • b ∈ set.Ico a (a + b)) : y = to_Ico_div a hb x :=
 (exists_unique_add_zsmul_mem_Ico hb x a).some_spec.2 y hy
 
-lemma to_Ico_div_add_zsmul_period (a : α) {b : α} (hb : 0 < b) (x : α) (z : ℤ) :
-  to_Ico_div a hb (x + z • b) = to_Ico_div a hb x - z :=
-begin
-  rw eq_comm,
-  apply eq_to_Ico_div_of_add_zsmul_mem_Ico,
-  rw [sub_smul, add_add_sub_cancel],
-  apply add_to_Ico_div_zsmul_mem_Ico,
-end
-
-lemma to_Ico_div_add_period (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ico_div a hb (x + b) = to_Ico_div a hb x - 1 :=
-by simpa only [one_smul] using to_Ico_div_add_zsmul_period a hb x 1
-
-lemma to_Ico_div_sub_zsmul_period (a : α) {b : α} (hb : 0 < b) (x : α) (z : ℤ) :
-  to_Ico_div a hb (x - z • b) = to_Ico_div a hb x + z :=
-by simpa only [neg_smul, ←sub_eq_add_neg, sub_neg_eq_add]
-  using to_Ico_div_add_zsmul_period a hb x (-z)
-
-lemma to_Ico_div_sub_period (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ico_div a hb (x - b) = to_Ico_div a hb x + 1 :=
-by simpa only [one_smul] using to_Ico_div_sub_zsmul_period a hb x 1
-
-lemma to_Ico_div_sub (a : α) {b : α} (hb : 0 < b) (x y : α) :
-  to_Ico_div a hb (x - y) = to_Ico_div (a + y) hb x :=
-begin
-  rw eq_comm,
-  apply eq_to_Ico_div_of_add_zsmul_mem_Ico,
-  rw sub_add_eq_add_sub,
-  obtain ⟨hc, ho⟩ := add_to_Ico_div_zsmul_mem_Ico (a + y) hb x,
-  rw add_right_comm at ho,
-  exact ⟨le_sub_iff_add_le.mpr hc, sub_lt_iff_lt_add.mpr ho⟩,
-end
-
-lemma to_Ico_div_add (a : α) {b : α} (hb : 0 < b) (x y : α) :
-  to_Ico_div a hb (x + y) = to_Ico_div (a - y) hb x :=
-by rw [←sub_neg_eq_add, to_Ico_div_sub, sub_eq_add_neg]
-
 /-- The unique integer such that this multiple of `b`, added to `x`, is in `Ioc a (a + b)`. -/
 def to_Ioc_div (a : α) {b : α} (hb : 0 < b) (x : α) : ℤ :=
 (exists_unique_add_zsmul_mem_Ioc hb x a).some
@@ -93,61 +56,6 @@ lemma add_to_Ioc_div_zsmul_mem_Ioc (a : α) {b : α} (hb : 0 < b) (x : α) :
 lemma eq_to_Ioc_div_of_add_zsmul_mem_Ioc {a b x : α} (hb : 0 < b) {y : ℤ}
   (hy : x + y • b ∈ set.Ioc a (a + b)) : y = to_Ioc_div a hb x :=
 (exists_unique_add_zsmul_mem_Ioc hb x a).some_spec.2 y hy
-
-lemma to_Ioc_div_add_zsmul_period (a : α) {b : α} (hb : 0 < b) (x : α) (z : ℤ) :
-  to_Ioc_div a hb (x + z • b) = to_Ioc_div a hb x - z :=
-begin
-  rw eq_comm,
-  apply eq_to_Ioc_div_of_add_zsmul_mem_Ioc,
-  rw [sub_smul, add_add_sub_cancel],
-  apply add_to_Ioc_div_zsmul_mem_Ioc,
-end
-
-lemma to_Ioc_div_add_period (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ioc_div a hb (x + b) = to_Ioc_div a hb x - 1 :=
-by simpa only [one_smul] using to_Ioc_div_add_zsmul_period a hb x 1
-
-lemma to_Ioc_div_sub_zsmul_period (a : α) {b : α} (hb : 0 < b) (x : α) (z : ℤ) :
-  to_Ioc_div a hb (x - z • b) = to_Ioc_div a hb x + z :=
-by simpa only [neg_smul, ←sub_eq_add_neg, sub_neg_eq_add]
-  using to_Ioc_div_add_zsmul_period a hb x (-z)
-
-lemma to_Ioc_div_sub_period (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ioc_div a hb (x - b) = to_Ioc_div a hb x + 1 :=
-by simpa only [one_smul] using to_Ioc_div_sub_zsmul_period a hb x 1
-
-lemma to_Ioc_div_sub (a : α) {b : α} (hb : 0 < b) (x y : α) :
-  to_Ioc_div a hb (x - y) = to_Ioc_div (a + y) hb x :=
-begin
-  rw eq_comm,
-  apply eq_to_Ioc_div_of_add_zsmul_mem_Ioc,
-  rw sub_add_eq_add_sub,
-  obtain ⟨ho, hc⟩ := add_to_Ioc_div_zsmul_mem_Ioc (a + y) hb x,
-  rw add_right_comm at hc,
-  exact ⟨lt_sub_iff_add_lt.mpr ho, sub_le_iff_le_add.mpr hc⟩,
-end
-
-lemma to_Ioc_div_add (a : α) {b : α} (hb : 0 < b) (x y : α) :
-  to_Ioc_div a hb (x + y) = to_Ioc_div (a - y) hb x :=
-by rw [←sub_neg_eq_add, to_Ioc_div_sub, sub_eq_add_neg]
-
-lemma to_Ico_div_neg (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ico_div a hb (-x) = 1 - to_Ioc_div (-a) hb x :=
-begin
-  suffices : to_Ico_div a hb (-x) = -(to_Ioc_div (-(a + b)) hb x),
-  { rwa [neg_add, ←sub_eq_add_neg, ←to_Ioc_div_add, to_Ioc_div_add_period, neg_sub] at this },
-  rw [eq_neg_iff_eq_neg, eq_comm],
-  apply eq_to_Ioc_div_of_add_zsmul_mem_Ioc,
-  obtain ⟨hc, ho⟩ := add_to_Ico_div_zsmul_mem_Ico a hb (-x),
-  rw [←neg_lt_neg_iff, neg_add (-x), neg_neg, ←neg_smul] at ho,
-  rw [←neg_le_neg_iff, neg_add (-x), neg_neg, ←neg_smul] at hc,
-  refine ⟨ho, hc.trans_eq _⟩,
-  rw [neg_add, neg_add_cancel_right],
-end
-
-lemma to_Ioc_div_neg (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ioc_div a hb (-x) = 1 - to_Ico_div (-a) hb x :=
-by rw [←neg_neg x, to_Ico_div_neg, neg_neg, neg_neg, sub_sub_cancel]
 
 /-- Reduce `x` to the interval `Ico a (a + b)`. -/
 def to_Ico_mod (a : α) {b : α} (hb : 0 < b) (x : α) : α := x + to_Ico_div a hb x • b
@@ -592,32 +500,13 @@ begin
   exact ⟨-to_Ico_div a₂ hb x, self_sub_to_Ico_mod a₂ hb x⟩
 end
 
-#check Ioc_neg
+lemma to_Ico_mod_zero_sub_comm (a : α) {b : α} (hb : 0 < b) (x y : α) :
+  to_Ico_mod 0 hb (x - y) = b - to_Ioc_mod 0 hb (y - x) :=
+by rw [←neg_sub, to_Ico_mod_neg, neg_zero]
 
-lemma to_Ico_div_neg (a : α) {b : α} (hb : 0 < b) (x) :
-  to_Ico_div a hb (-x) = -(to_Ioc_div (-(a+b)) hb x) :=
-begin
-  rw [eq_comm, neg_eq_iff_neg_eq],
-  apply eq_to_Ioc_div_of_add_zsmul_mem_Ioc,
-  -- simp_rw [to_Ico_div_eq_iff, neg_sub_neg, sub_eq_iff_eq_add, ←sub_eq_iff_eq_add'],
-  -- rw [le_neg, neg_lt],
-  -- have := to_Ioc_mod_mem_Ioc (-(a + b)) hb x,
-  -- rw [←sub_eq_neg_add, ←sub_sub, sub_sub_cancel_left] at this,
-  -- refine ⟨this.2, this.1, _⟩,
-  -- simp_rw [@eq_comm _ (_ - _), to_Ioc_mod_eq_iff],
-
-end
-lemma to_Ico_mod_neg (a : α) {b : α} (hb : 0 < b) (x) :
-  to_Ico_mod a hb (-x) = -(to_Ioc_mod (-(a+b)) hb x) :=
-begin
-  simp_rw [to_Ico_mod_eq_iff, neg_sub_neg, sub_eq_iff_eq_add, ←sub_eq_iff_eq_add'],
-  rw [le_neg, neg_lt],
-  have := to_Ioc_mod_mem_Ioc (-(a + b)) hb x,
-  rw [←sub_eq_neg_add, ←sub_sub, sub_sub_cancel_left] at this,
-  refine ⟨this.2, this.1, _⟩,
-  simp_rw [@eq_comm _ (_ - _), to_Ioc_mod_eq_iff],
-
-end
+lemma to_Ioc_mod_zero_sub_comm (a : α) {b : α} (hb : 0 < b) (x y : α) :
+  to_Ioc_mod 0 hb (x - y) = b - to_Ico_mod 0 hb (y - x) :=
+by rw [←neg_sub, to_Ioc_mod_neg, neg_zero]
 
 lemma to_Ico_mod_periodic (a : α) {b : α} (hb : 0 < b) : function.periodic (to_Ico_mod a hb) b :=
 to_Ico_mod_add_right a hb
@@ -685,30 +574,32 @@ instance {a b : α} [hb : fact (0 < b)] : circular_order (α ⧸ add_subgroup.zm
     induction x₂ using quotient_add_group.induction_on',
     induction x₃ using quotient_add_group.induction_on',
     dsimp [btw, ←quotient_add_group.coe_sub] at h ⊢,
+    rw [←sub_add_sub_cancel _ x₃ _, add_comm, to_Ico_mod_add_right', zero_sub] at h,
+    simp_rw [to_Ico_mod_sub', to_Ioc_mod_sub'] at h ⊢,
     sorry
   end,
   sbtw_iff_btw_not_btw := λ _ _ _, iff.rfl,
   sbtw_trans_left := λ x₁ x₂ x₃ x₄ (h₁₂₃ : _ ∧ _) (h₂₃₄ : _ ∧ _), show _ ∧ _, begin
-    induction x₁ using quotient_add_group.induction_on',
-    induction x₂ using quotient_add_group.induction_on',
-    induction x₃ using quotient_add_group.induction_on',
-    induction x₄ using quotient_add_group.induction_on',
-    dsimp [btw, ←quotient_add_group.coe_sub] at h₁₂₃ h₂₃₄ ⊢,
+    -- induction x₁ using quotient_add_group.induction_on',
+    -- induction x₂ using quotient_add_group.induction_on',
+    -- induction x₃ using quotient_add_group.induction_on',
+    -- induction x₄ using quotient_add_group.induction_on',
+    -- dsimp [btw, ←quotient_add_group.coe_sub] at h₁₂₃ h₂₃₄ ⊢,
     sorry
   end,
   btw_antisymm := λ x₁ x₂ x₃ h₁₂ h₂₃, begin
-    induction x₁ using quotient_add_group.induction_on',
-    induction x₂ using quotient_add_group.induction_on',
-    induction x₃ using quotient_add_group.induction_on',
-    dsimp [btw, ←quotient_add_group.coe_sub] at h₁₂ h₂₃,
-    rw ←neg_sub at h₁₂,
+    -- induction x₁ using quotient_add_group.induction_on',
+    -- induction x₂ using quotient_add_group.induction_on',
+    -- induction x₃ using quotient_add_group.induction_on',
+    -- dsimp [btw, ←quotient_add_group.coe_sub] at h₁₂ h₂₃,
+    -- rw ←neg_sub at h₁₂,
     sorry
   end,
   btw_total := λ x₁ x₂ x₃, begin
-    induction x₁ using quotient_add_group.induction_on',
-    induction x₂ using quotient_add_group.induction_on',
-    induction x₃ using quotient_add_group.induction_on',
-    dsimp [btw, ←quotient_add_group.coe_sub] at ⊢,
+    -- induction x₁ using quotient_add_group.induction_on',
+    -- induction x₂ using quotient_add_group.induction_on',
+    -- induction x₃ using quotient_add_group.induction_on',
+    -- dsimp [btw, ←quotient_add_group.coe_sub] at ⊢,
     sorry
   end }
 

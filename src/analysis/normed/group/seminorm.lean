@@ -21,6 +21,11 @@ is positive-semidefinite and subadditive. A norm further only maps zero to zero.
 * `add_group_norm`: A seminorm `f` such that `f x = 0 → x = 0` for all `x`.
 * `group_norm`: A seminorm `f` such that `f x = 0 → x = 1` for all `x`.
 
+## Notes
+
+The corresponding hom classes are defined in `analysis.order.hom.basic` to be used by absolute
+values.
+
 ## References
 
 * [H. H. Schaefer, *Topological Vector Spaces*][schaefer1966]

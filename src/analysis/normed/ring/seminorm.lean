@@ -22,6 +22,11 @@ For a ring `R`:
   multiplication.
 * `mul_ring_norm`: A multiplicative norm on a ring `R` is a ring norm that preserves multiplication.
 
+## Notes
+
+The corresponding hom classes are defined in `analysis.order.hom.basic` to be used by absolute
+values.
+
 ## References
 
 * [S. Bosch, U. Güntzer, R. Remmert, *Non-Archimedean Analysis*][bosch-guntzer-remmert]

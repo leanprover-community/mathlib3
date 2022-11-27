@@ -12,11 +12,31 @@ This file defines hom classes for common properties at the intersection of order
 
 ## Typeclasses
 
+Basic typeclasses
 * `nonneg_hom_class`: Homs are nonnegative: `∀ f a, 0 ≤ f a`
 * `subadditive_hom_class`: Homs are subadditive: `∀ f a b, f (a + b) ≤ f a + f b`
 * `submultiplicative_hom_class`: Homs are submultiplicative: `∀ f a b, f (a * b) ≤ f a * f b`
 * `mul_le_add_hom_class`: `∀ f a b, f (a * b) ≤ f a + f b`
 * `nonarchimedean_hom_class`: `∀ a b, f (a + b) ≤ max (f a) (f b)`
+
+Group norms
+* `add_group_seminorm_class`: Homs are nonnegative, subadditive, even and preserve zero.
+* `group_seminorm_class`: Homs are nonnegative, respect `f (a * b) ≤ f a + f b`, `f a⁻¹ = f a` and
+  preserve zero.
+* `add_group_norm_class`: Homs are seminorms such that `f x = 0 → x = 0` for all `x`.
+* `group_norm_class`: Homs are seminorms such that `f x = 0 → x = 1` for all `x`.
+
+Ring norms
+* `ring_seminorm_class`: Homs are submultiplicative group norms.
+* `ring_norm_class`: Homs are ring seminorms that are also additive group norms.
+* `mul_ring_seminorm_class`: Homs are ring seminorms that are multiplicative.
+* `mul_ring_norm_class`: Homs are ring norms that are multiplicative.
+
+## Notes
+
+Typeclasses for seminorms are defined here while types of seminorms are defined in
+`analysis.normed.group.seminorm` and `analysis.normed.ring.seminorm` because absolute values are
+multiplicative ring norms but outside of this use we only consider real-valued seminorms.
 
 ## TODO
 

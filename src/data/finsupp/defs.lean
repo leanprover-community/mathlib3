@@ -934,7 +934,7 @@ fun_like.coe_injective.add_comm_monoid _ coe_zero coe_add (λ _ _, rfl)
 
 instance [neg_zero_class G] : has_neg (α →₀ G) := ⟨map_range (has_neg.neg) neg_zero⟩
 
-@[simp] protected lemma coe_neg [neg_zero_class G] (g : α →₀ G) : ⇑(-g) = -g := rfl
+@[simp] lemma coe_neg [neg_zero_class G] (g : α →₀ G) : ⇑(-g) = -g := rfl
 
 lemma neg_apply [neg_zero_class G] (g : α →₀ G) (a : α) : (- g) a = - g a := rfl
 
@@ -945,7 +945,7 @@ ext $ λ _, by simp only [hf', neg_apply, map_range_apply]
 
 instance [sub_neg_zero_monoid G] : has_sub (α →₀ G) := ⟨zip_with has_sub.sub (sub_zero _)⟩
 
-@[simp] protected lemma coe_sub [sub_neg_zero_monoid G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ :=
+@[simp] lemma coe_sub [sub_neg_zero_monoid G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ :=
 rfl
 
 lemma sub_apply [sub_neg_zero_monoid G] (g₁ g₂ : α →₀ G) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
@@ -961,11 +961,11 @@ instance has_int_scalar [add_group G] : has_smul ℤ (α →₀ G) :=
 ⟨λ n v, v.map_range ((•) n) (zsmul_zero _)⟩
 
 instance [add_group G] : add_group (α →₀ G) :=
-fun_like.coe_injective.add_group _ coe_zero coe_add finsupp.coe_neg finsupp.coe_sub
+fun_like.coe_injective.add_group _ coe_zero coe_add coe_neg coe_sub
   (λ _ _, rfl) (λ _ _, rfl)
 
 instance [add_comm_group G] : add_comm_group (α →₀ G) :=
-fun_like.coe_injective.add_comm_group _ coe_zero coe_add finsupp.coe_neg finsupp.coe_sub
+fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
   (λ _ _, rfl) (λ _ _, rfl)
 
 lemma single_add_single_eq_single_add_single [add_comm_monoid M]

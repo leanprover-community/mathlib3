@@ -62,6 +62,8 @@ lemma coe_nsmul {n : ℕ} {x : 𝕜} : (↑(n • x) : add_circle p) = n • (x 
 
 lemma coe_zsmul {n : ℤ} {x : 𝕜} : (↑(n • x) : add_circle p) = n • (x : add_circle p) := rfl
 
+lemma coe_neg {x : 𝕜} : (↑(-x) : add_circle p) = -(x : add_circle p) := rfl
+
 lemma coe_eq_zero_iff {x : 𝕜} : (x : add_circle p) = 0 ↔ ∃ (n : ℤ), n • p = x :=
 by simp [add_subgroup.mem_zmultiples_iff]
 
@@ -190,7 +192,7 @@ begin
   induction m,
   { simp only [int.of_nat_eq_coe, int.cast_coe_nat, int.nat_abs_of_nat] at h ⊢,
     exact add_order_of_div_of_gcd_eq_one hn h, },
-  { simp only [int.cast_neg_succ_of_nat, neg_div, neg_mul, _root_.coe_neg, order_of_neg],
+  { simp only [int.cast_neg_succ_of_nat, neg_div, neg_mul, coe_neg, order_of_neg],
     exact add_order_of_div_of_gcd_eq_one hn h, },
 end
 

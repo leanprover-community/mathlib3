@@ -380,6 +380,54 @@ begin
   exact (one_zsmul _).symm
 end
 
+lemma to_Ico_div_sub' (a : α) {b : α} (hb : 0 < b) (x y : α) :
+  to_Ico_div a hb (x - y) = to_Ico_div (a + y) hb x :=
+begin
+  rw eq_comm,
+  apply eq_to_Ico_div_of_add_zsmul_mem_Ico,
+  rw sub_add_eq_add_sub,
+  obtain ⟨hc, ho⟩ := add_to_Ico_div_zsmul_mem_Ico (a + y) hb x,
+  rw add_right_comm at ho,
+  exact ⟨le_sub_iff_add_le.mpr hc, sub_lt_iff_lt_add.mpr ho⟩,
+end
+
+lemma to_Ioc_div_sub' (a : α) {b : α} (hb : 0 < b) (x y : α) :
+  to_Ioc_div a hb (x - y) = to_Ioc_div (a + y) hb x :=
+begin
+  rw eq_comm,
+  apply eq_to_Ioc_div_of_add_zsmul_mem_Ioc,
+  rw sub_add_eq_add_sub,
+  obtain ⟨ho, hc⟩ := add_to_Ioc_div_zsmul_mem_Ioc (a + y) hb x,
+  rw add_right_comm at hc,
+  exact ⟨lt_sub_iff_add_lt.mpr ho, sub_le_iff_le_add.mpr hc⟩,
+end
+
+lemma to_Ico_div_add_right' (a : α) {b : α} (hb : 0 < b) (x y : α) :
+  to_Ico_div a hb (x + y) = to_Ico_div (a - y) hb x :=
+by rw [←sub_neg_eq_add, to_Ico_div_sub', sub_eq_add_neg]
+
+lemma to_Ioc_div_add_right' (a : α) {b : α} (hb : 0 < b) (x y : α) :
+  to_Ioc_div a hb (x + y) = to_Ioc_div (a - y) hb x :=
+by rw [←sub_neg_eq_add, to_Ioc_div_sub', sub_eq_add_neg]
+
+lemma to_Ico_div_neg (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ico_div a hb (-x) = 1 - to_Ioc_div (-a) hb x :=
+begin
+  suffices : to_Ico_div a hb (-x) = -(to_Ioc_div (-(a + b)) hb x),
+  { rwa [neg_add, ←sub_eq_add_neg, ←to_Ioc_div_add_right', to_Ioc_div_add_right, neg_sub] at this },
+  rw [eq_neg_iff_eq_neg, eq_comm],
+  apply eq_to_Ioc_div_of_add_zsmul_mem_Ioc,
+  obtain ⟨hc, ho⟩ := add_to_Ico_div_zsmul_mem_Ico a hb (-x),
+  rw [←neg_lt_neg_iff, neg_add (-x), neg_neg, ←neg_smul] at ho,
+  rw [←neg_le_neg_iff, neg_add (-x), neg_neg, ←neg_smul] at hc,
+  refine ⟨ho, hc.trans_eq _⟩,
+  rw [neg_add, neg_add_cancel_right],
+end
+
+lemma to_Ioc_div_neg (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ioc_div a hb (-x) = 1 - to_Ico_div (-a) hb x :=
+by rw [←neg_neg x, to_Ico_div_neg, neg_neg, neg_neg, sub_sub_cancel]
+
 @[simp] lemma to_Ico_mod_add_zsmul (a : α) {b : α} (hb : 0 < b) (x : α) (m : ℤ) :
   to_Ico_mod a hb (x + m • b) = to_Ico_mod a hb x :=
 begin
@@ -444,6 +492,36 @@ end
 begin
   convert to_Ioc_mod_sub_zsmul a hb x 1,
   exact (one_zsmul _).symm
+end
+
+lemma to_Ico_mod_sub' (a : α) {b : α} (hb : 0 < b) (x y : α) :
+  to_Ico_mod a hb (x - y) = to_Ico_mod (a + y) hb x - y :=
+by simp_rw [to_Ico_mod, to_Ico_div_sub', sub_add_eq_add_sub]
+
+lemma to_Ioc_mod_sub' (a : α) {b : α} (hb : 0 < b) (x y : α) :
+  to_Ioc_mod a hb (x - y) = to_Ioc_mod (a + y) hb x - y :=
+by simp_rw [to_Ioc_mod, to_Ioc_div_sub', sub_add_eq_add_sub]
+
+lemma to_Ico_mod_add_right' (a : α) {b : α} (hb : 0 < b) (x y : α) :
+  to_Ico_mod a hb (x + y) = to_Ico_mod (a - y) hb x + y :=
+by simp_rw [to_Ico_mod, to_Ico_div_add_right', add_right_comm]
+
+lemma to_Ioc_mod_add_right' (a : α) {b : α} (hb : 0 < b) (x y : α) :
+  to_Ioc_mod a hb (x + y) = to_Ioc_mod (a - y) hb x + y :=
+by simp_rw [to_Ioc_mod, to_Ioc_div_add_right', add_right_comm]
+
+lemma to_Ico_mod_neg (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ico_mod a hb (-x) = b - to_Ioc_mod (-a) hb x :=
+begin
+  simp_rw [to_Ico_mod, to_Ioc_mod, to_Ico_div_neg, sub_smul, one_smul],
+  abel,
+end
+
+lemma to_Ioc_mod_neg (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ioc_mod a hb (-x) = b - to_Ico_mod (-a) hb x :=
+begin
+  simp_rw [to_Ioc_mod, to_Ico_mod, to_Ioc_div_neg, sub_smul, one_smul],
+  abel,
 end
 
 lemma to_Ico_mod_eq_to_Ico_mod (a : α) {b x y : α} (hb : 0 < b) :

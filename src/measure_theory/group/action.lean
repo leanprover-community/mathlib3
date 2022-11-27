@@ -3,8 +3,9 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import dynamics.ergodic.measure_preserving
 import dynamics.minimal
-import measure_theory.group.measure
+import measure_theory.group.measurable_equiv
 import measure_theory.measure.regular
 
 /-!
@@ -58,18 +59,6 @@ variables [has_smul M α] {m : measurable_space α} {μ ν : measure α}
 smul_invariant_measure.smul c
 
 end smul_invariant_measure
-
-@[to_additive]
-instance is_mul_left_invariant.to_smul_invariant_measure [measurable_space G] [has_mul G]
-  [has_measurable_mul G] {μ : measure G} [μ.is_mul_left_invariant] : smul_invariant_measure G G μ :=
-⟨λ g s hs, by simp_rw [smul_eq_mul, ←map_apply (measurable_const_mul g) hs, map_mul_left_eq_self]⟩
-
-@[to_additive]
-instance is_mul_right_invariant.to_smul_invariant_measure_op [measurable_space G] [has_mul G]
-  [has_measurable_mul G] {μ : measure G} [μ.is_mul_right_invariant] :
-  smul_invariant_measure Gᵐᵒᵖ G μ :=
-⟨λ g s hs, by simp_rw [mul_opposite.smul_eq_mul_unop, ←map_apply (measurable_mul_const _) hs,
-  map_mul_right_eq_self]⟩
 
 section has_measurable_smul
 
@@ -149,7 +138,7 @@ variables {G} [smul_invariant_measure G α μ]
 @[simp, to_additive] lemma measure_preimage_smul (s : set α) : μ ((•) c ⁻¹' s) = μ s :=
 ((smul_invariant_measure_tfae G μ).out 0 3).mp ‹_› c s
 
-@[simp, to_additive] lemma measure_smul_set (s : set α) : μ (c • s) = μ s :=
+@[simp, to_additive] lemma measure_smul (s : set α) : μ (c • s) = μ s :=
 ((smul_invariant_measure_tfae G μ).out 0 4).mp ‹_› c s
 
 variable {μ}
@@ -171,7 +160,7 @@ positive on any nonempty open set. In case of a regular measure, one can assume 
   (hμK : μ K ≠ 0) (hU : is_open U) (hne : U.nonempty) : 0 < μ U :=
 let ⟨t, ht⟩ := hK.exists_finite_cover_smul G hU hne
 in pos_iff_ne_zero.2 $ λ hμU, hμK $ measure_mono_null ht $
-  (measure_bUnion_null_iff t.countable_to_set).2 $ λ _ _, by rwa measure_smul_set
+  (measure_bUnion_null_iff t.countable_to_set).2 $ λ _ _, by rwa measure_smul
 
 /-- If measure `μ` is invariant under an additive group action and is nonzero on a compact set `K`,
 then it is positive on any nonempty open set. In case of a regular measure, one can assume `μ ≠ 0`
@@ -203,13 +192,5 @@ by rw [← not_iff_not, ← ne.def, ← pos_iff_ne_zero,
   measure_pos_iff_nonempty_of_smul_invariant G hμ hU, ← ne_empty_iff_nonempty]
 
 end is_minimal
-
-@[to_additive] instance subgroup.smul_invariant_measure [has_measurable_mul G] {μ : measure G}
-  [μ.is_mul_left_invariant] {Γ : subgroup G} : smul_invariant_measure Γ G μ :=
-⟨λ c s hs, measure_preimage_mul μ _ s⟩
-
-@[to_additive] instance subgroup.smul_invariant_measure_op [has_measurable_mul G] {μ : measure G}
-  [μ.is_mul_right_invariant] {Γ : subgroup G} : smul_invariant_measure Γ.opposite G μ :=
-⟨λ c s hs, measure_preimage_mul_right μ _ s⟩
 
 end measure_theory

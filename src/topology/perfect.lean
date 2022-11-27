@@ -83,8 +83,9 @@ all of its points are accumulation points of itself.-/
 structure perf_nonempty (C : set α) extends perfect C : Prop :=
   (nonempty : C.nonempty)
 
-lemma preperfect_iff_nhds {C : set α} : preperfect C ↔ ∀ x ∈ C, ∀ U ∈ 𝓝 x, ∃ y ∈ U ∩ C, y ≠ x
-  := by simp only[preperfect, acc_pt_iff_nhds]
+lemma preperfect_iff_nhds {C : set α} : preperfect C ↔
+  ∀ x ∈ C, ∀ U ∈ 𝓝 x, ∃ y ∈ U ∩ C, y ≠ x :=
+by simp only[preperfect, acc_pt_iff_nhds]
 
 /-- The intersection of a preperfect set and an open set is preperfect-/
 theorem preperfect.open_inter {C U : set α} (hC : preperfect C) (hU : is_open U) :

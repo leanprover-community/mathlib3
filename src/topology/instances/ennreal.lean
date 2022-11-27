@@ -311,7 +311,7 @@ begin
     simp [*, nhds_swap (a : ℝ≥0∞) ⊤, none_eq_top, some_eq_coe, top_mul, tendsto_map'_iff, (∘),
       mul_comm] },
   simp [some_eq_coe, nhds_coe_coe, tendsto_map'_iff, (∘)],
-  simp only [← coe_mul, tendsto_coe, tendsto_mul]
+  simp only [coe_mul.symm, tendsto_coe, tendsto_mul]
 end
 
 protected lemma tendsto.mul {f : filter α} {ma : α → ℝ≥0∞} {mb : α → ℝ≥0∞} {a b : ℝ≥0∞}
@@ -880,7 +880,7 @@ begin
   have f_ne_top : ∀ n, f n ≠ ∞, from ennreal.ne_top_of_tsum_ne_top hf,
   have h_f_coe : f = λ n, ((f n).to_nnreal : ennreal),
     from funext (λ n, (coe_to_nnreal (f_ne_top n)).symm),
-  rw [h_f_coe, ←@coe_zero ℝ≥0, tendsto_coe],
+  rw [h_f_coe, ←@coe_zero, tendsto_coe],
   exact nnreal.tendsto_cofinite_zero_of_summable (summable_to_nnreal_of_tsum_ne_top hf),
 end
 

@@ -935,17 +935,17 @@ lemma is_path.dart_not_mem_of_path_snd {v : V} (d : G.dart) {p : G.walk d.snd v}
   d ∉ p.darts :=
 begin
   intro hd,
-  rw [is_path_def, ← walk.cons_map_snd_darts] at h,
+  rw [walk.is_path_def, ← walk.cons_map_snd_darts] at h,
   have h2 := list.nodup.not_mem h,
   simp only [list.mem_map, not_exists, not_and] at h2,
   exact h2 d hd rfl,
 end
 
-lemma is_path.dart_not_mem_of_path_fst {u v : V} (d : G.dart) {p : G.walk u d.fst} (h : p.is_path) :
+lemma is_path.dart_not_mem_of_path_fst {u : V} (d : G.dart) {p : G.walk u d.fst} (h : p.is_path) :
   d ∉ p.darts :=
 begin
-  rw ← is_path_reverse_iff at h,
-  simpa using h.dart_not_mem_of_path_snd d.symm,
+  rw ← walk.is_path_reverse_iff at h,
+  simpa using is_path.dart_not_mem_of_path_snd d.symm h,
 end
 
 end path
@@ -1316,17 +1316,6 @@ by { rw ← map_to_delete_edges_eq s hp at h, exact h.of_map }
     = (p.to_delete_edges s (by { subst_vars, exact h })).copy hu hv :=
 by { subst_vars, refl }
 
-/-- From the other direction, any walk from (for now, spanning) subgraph can be lifted -/
-
-variables {G2: simple_graph V}
-
-def from_le_graph (f:G2≤G) : Π {u v : V}, G2.walk u v → G.walk u v
-| _ _ nil := nil
-| _ _ (cons h p) := cons (f h) (from_le_graph p)
-
-def from_delete_edges {s : set (sym2 V)} {u v : V} (p : (G.delete_edges s).walk u v) : G.walk u v
-:=from_le_graph (delete_edges_le G s) p
-
 end walk
 
 /-! ## `reachable` and `connected` -/
@@ -1341,12 +1330,6 @@ variables {G}
 lemma reachable_iff_nonempty_univ {u v : V} :
   G.reachable u v ↔ (set.univ : set (G.walk u v)).nonempty :=
 set.nonempty_iff_univ_nonempty
-
-lemma reachable_if_adjacent {u v : V} (h:G.adj u v):G.reachable u v
-  :=by{use walk.cons' u v v h walk.nil}
-
-lemma reachable_if_edge {u v : V} (h:⟦(u,v)⟧∈ G.edge_set) : G.reachable u v
-  :=reachable_if_adjacent (G.mem_edge_set.2 h)
 
 protected lemma reachable.elim {p : Prop} {u v : V}
   (h : G.reachable u v) (hp : G.walk u v → p) : p :=
@@ -1364,6 +1347,9 @@ protected lemma walk.reachable {G : simple_graph V} {u v : V} (p : G.walk u v) :
 
 protected lemma adj.reachable {u v : V} (h : G.adj u v) :
   G.reachable u v := h.to_walk.reachable
+
+protected lemma reachable_of_mem_edge_set {u v : V} (h : ⟦(u,v)⟧ ∈ G.edge_set) : G.reachable u v :=
+adj.reachable h
 
 @[refl] protected lemma reachable.refl (u : V) : G.reachable u u := by { fsplit, refl }
 protected lemma reachable.rfl {u : V} : G.reachable u u := reachable.refl _
@@ -1446,7 +1432,6 @@ def connected_component := quot G.reachable
 
 /-- Gives the connected component containing a particular vertex. -/
 def connected_component_mk (v : V) : G.connected_component := quot.mk G.reachable v
-
 
 @[simps] instance connected_component.inhabited [inhabited V] : inhabited G.connected_component :=
 ⟨G.connected_component_mk default⟩
@@ -1531,32 +1516,35 @@ section number_connected_components
 
 variables (G) [fintype G.connected_component]
 
-def num_connected_components := fintype.card G.connected_component
+lemma preconnected_of_subsingleton_connected_component (h : subsingleton G.connected_component) :
+  G.preconnected :=
+begin
+  intros u v,
+  apply connected_component.exact,
+  exact subsingleton.elim (G.connected_component_mk u) (G.connected_component_mk v),
+end
 
-lemma num_connected_components_eq_one_iff_connected :
-G.num_connected_components=1 ↔ G.connected :=
+lemma preconnected_iff_connected_component_subsingleton :
+  G.preconnected ↔ subsingleton G.connected_component :=
+⟨λ h, h.subsingleton_connected_component,
+  λ h, G.preconnected_of_subsingleton_connected_component h⟩
+
+lemma nonempty_connected_component_iff :
+  nonempty G.connected_component ↔ nonempty V :=
 begin
   split,
-  { intro h,
-    rw connected_iff,
-    split,
-    { intros u v,
-      cases fintype.card_eq_one_iff.1 h with C hC,
-      have t:=eq.trans (hC (G.connected_component_mk u))
-        (eq.symm (hC (G.connected_component_mk v))),
-      exact connected_component.exact (eq.trans (hC (G.connected_component_mk u))
-        (eq.symm (hC (G.connected_component_mk v))))},
-  { have h:G.num_connected_components >0, linarith,
-    exact @surjective.nonempty V G.connected_component (fintype.card_pos_iff.1 h)
-      G.connected_component_mk (surjective_connected_component_mk G),}},
-  { intro h,
-    obtain ⟨x⟩ :=h.2,
-    rw [num_connected_components,fintype.card_eq_one_iff],
-    use G.connected_component_mk x,
-    intro C,
-    apply connected_component_out_reachable_eq,
-    apply h.1,}
+  { rintro ⟨c⟩, exact connected_component.ind (λ v, ⟨v⟩) c },
+  { exact nonempty.map G.connected_component_mk }
 end
+
+lemma connected_iff_nonempty_unique_connected_component :
+  G.connected ↔ nonempty (unique G.connected_component) :=
+by rw [connected_iff, preconnected_iff_connected_component_subsingleton,
+  unique_iff_subsingleton_and_nonempty, nonempty_connected_component_iff, and_comm]
+
+lemma card_connected_components_eq_one_iff_connected [fintype G.connected_component] :
+  fintype.card G.connected_component = 1 ↔ G.connected :=
+by rw [fintype.card_eq_one_iff_nonempty_unique, connected_iff_nonempty_unique_connected_component]
 
 end number_connected_components
 
@@ -1868,7 +1856,7 @@ begin
 end
 
 lemma nearly_surjective_card {α β : Type u} [fintype α] [fintype β] (f:α→β) (h: ∀ (b1 b2 :β),
-(¬∃(a:α), b1=f a)->(¬ ∃(a:α), b2=f a)→ b1=b2):
+(¬∃(a:α), f a=b1)->(¬ ∃(a:α), f a=b2)→ b1=b2):
 fintype.card β ≤ fintype.card α + 1:=
 begin
   classical,
@@ -1880,40 +1868,39 @@ begin
 
   intros a b ha hb,
   specialize h a b,
-  finish,
+  simp at ha hb h,
+  exact h ha hb,
 end
 
 /-- Reachability of vertex in path when removing an edge in the middle of the path -/
 
 variables (G)
 
-lemma delete_edge_reachable_start_path {u v x y : V} (p:G.path u v) (d:G.dart)
-(hdf : d.fst=x) (hds : d.snd=y) (hd:d ∈ p.val.darts): (G.delete_edges {⟦(x, y)⟧}).reachable u x :=
+lemma delete_edge_reachable_start_path {u v : V} (p:G.path u v) (d:G.dart) (hd:d ∈ p.val.darts) :
+(G.delete_edges {⟦(d.fst, d.snd)⟧}).reachable u d.fst :=
 begin
   classical,
   have hxp:=walk.dart_fst_mem_support_of_mem_darts p.val hd,
-  rw hdf at hxp,
-  set pux:=walk.take_until p.1 x hxp with hpux,
-  have r1:=path.dart_not_in_path_end pux ((walk.is_path_def pux).1
-    (walk.is_path.take_until p.2 hxp)) hdf hds,
+  set pux:=walk.take_until p.1 d.fst hxp with hpux,
+  have r1:=path.is_path.dart_not_mem_of_path_fst d (walk.is_path.take_until p.2 hxp),
 
-  have hxyninpux: ⟦(x,y)⟧ ∉ pux.edges,
-  { rw <- by {apply dart_edge_eq_mk_iff'.2,left, use ⟨ hdf,hds⟩},
-    have dartssub:=walk.darts_take_until_subset p.1 hxp,
+  have hxyninpux: ⟦(d.fst,d.snd)⟧ ∉ pux.edges,
+  { have dartssub:=walk.darts_take_until_subset p.1 hxp,
     rw <- hpux at dartssub,
-    exact list_image_nodup_sublist d dartssub r1 hd dart.edge p.2.1.1,},
+    have temp:= list_image_nodup_sublist d dartssub r1 hd dart.edge p.2.1.1,
+    rw (@dart_edge_eq_mk_iff' V G d d.fst d.snd).2 at temp,
+    exact temp,
+    simp },
 
-  use walk.to_delete_edge ⟦(x,y)⟧ pux hxyninpux,
+  use walk.to_delete_edge ⟦(d.fst,d.snd)⟧ pux hxyninpux,
 end
 
-lemma delete_edge_reachable_end_path {u v x y : V} (p:G.path u v) (d:G.dart)
-(hdf : d.fst=x) (hds : d.snd=y) (hd:d ∈ p.val.darts): (G.delete_edges {⟦(x, y)⟧}).reachable v y :=
+lemma delete_edge_reachable_end_path {u v : V} (p:G.path u v) (d:G.dart) (hd:d ∈ p.val.darts) :
+(G.delete_edges {⟦(d.fst, d.snd)⟧}).reachable v d.snd :=
 begin
   rw <- dart.symm_symm d at hd,
-  have t1:d.symm.fst=y, {finish,},
-  have t2:d.symm.snd=x, {finish,},
   rw sym2.eq_swap,
-  exact G.delete_edge_reachable_start_path p.reverse d.symm t1 t2 (walk.mem_darts_reverse.2 hd),
+  exact G.delete_edge_reachable_start_path p.reverse d.symm (walk.mem_darts_reverse.2 hd),
 end
 
 /-- Main results, we assume finite graphs -/
@@ -1924,22 +1911,6 @@ noncomputable instance fin_graph_fin_connected_component : fintype G.connected_c
 begin
   classical,
   exact fintype.of_surjective (quot.mk G.reachable) (surjective_quot_mk G.reachable)
-end
-
-example (e : sym2 V) (p : sym2 V → Prop) (h : p e) : ∃ (a b : V), p ⟦(a, b)⟧ :=
-begin
-  refine sym2.ind (λ a b h', _) e h,
-  use [a, b],
-  exact h',
-end
-
-example (e : sym2 V) (p : sym2 V → Prop) (h : p e) : ∃ (a b : V), p ⟦(a, b)⟧ :=
-begin
-  revert h,
-  refine sym2.ind (λ a b, _) e,
-  intro h,
-  use [a, b],
-  exact h,
 end
 
 lemma delete_edge_in_cycle_reachable {e : sym2 V} (he : e ∈ G.edge_set):
@@ -1963,14 +1934,16 @@ begin
 
     work_on_goal 2 {swap_var [x y],rw (@sym2.eq_swap V y x) at *, replace he:=adj.symm he,
       replace rxy:=reachable.symm rxy},
-    all_goals{exact (reachable.trans (reachable.trans (delete_edge_reachable_start_path G puv2 d
-      hde.1 hde.2 hd) rxy) (reachable.symm (delete_edge_reachable_end_path G puv2 d hde.1 hde.2 hd
-      ))),}},
+    all_goals{
+      have hreachux:=delete_edge_reachable_start_path G puv2 d hd,
+      have hreachyv:=delete_edge_reachable_end_path G puv2 d hd,
+      rw [hde.1,hde.2] at hreachux hreachyv,
+      exact (reachable.trans (reachable.trans hreachux rxy) (reachable.symm hreachyv)) }},
   { use walk.to_delete_edge ⟦(x,y)⟧ puv2.1 hxy,}
 end
 
 lemma spanning_subgraph_graph_reachable (s : set (sym2 V)) :
-(G.delete_edges s).reachable≤G.reachable := by{rintros u v ⟨p⟩,use walk.from_delete_edges p,}
+(G.delete_edges s).reachable≤G.reachable := by{rintros u v ⟨p⟩, use walk.map_le (delete_edges_le G s) p,}
 
 lemma reachable_components_injective {G' : simple_graph V} :
 G'.reachable≤G.reachable → injective(G'.connected_component_mk ∘ G.connected_component_out) :=
@@ -1982,12 +1955,12 @@ begin
 end
 
 lemma delete_edge_num_components_ge (s : set (sym2 V)):
-(G.delete_edges s).num_connected_components≥G.num_connected_components :=
+fintype.card (G.delete_edges s).connected_component≥fintype.card G.connected_component :=
 fintype.card_le_of_injective ((G.delete_edges s).connected_component_mk ∘ G.connected_component_out)
 (G.reachable_components_injective (G.spanning_subgraph_graph_reachable s))
 
 theorem delete_edge_in_cycle_num_components {e : sym2 V} (he : e ∈ G.edge_set)
-(h:G.edge_in_cycle he): (G.delete_edges {e}).num_connected_components=G.num_connected_components
+(h:G.edge_in_cycle he): fintype.card (G.delete_edges {e}).connected_component=fintype.card G.connected_component
 :=ge_antisymm (G.delete_edge_num_components_ge {e})
   (fintype.card_le_of_injective (G.connected_component_mk ∘
   (G.delete_edges {e} ).connected_component_out)
@@ -2012,7 +1985,7 @@ begin
 end
 
 lemma delete_edge_notin_cycle_num_components_geq {e : sym2 V} (he : e ∈ G.edge_set):
-  ¬ G.edge_in_cycle he → (G.delete_edges {e}).num_connected_components≥ G.num_connected_components+1
+  ¬ G.edge_in_cycle he → fintype.card (G.delete_edges {e}).connected_component≥ fintype.card G.connected_component+1
 :=begin
   revert he,
   refine sym2.ind (λ x y, _) e,
@@ -2027,7 +2000,7 @@ lemma delete_edge_notin_cycle_num_components_geq {e : sym2 V} (he : e ∈ G.edge
   split,
   {exact (G.spanning_subgraph_graph_reachable {⟦(x,y)⟧ }),},
   {rintro h', exact (is_bridge_iff.1 (is_bridge_iff_adj_and_forall_cycle_not_mem.2
-    ⟨G.mem_edge_set.1 he,(G.not_edge_in_cycle_iff he).1 h⟩)).2 (h' x y (reachable_if_edge he))},
+    ⟨G.mem_edge_set.1 he,(G.not_edge_in_cycle_iff he).1 h⟩)).2 (h' x y (he.reachable))},
 
   exact fintype.card_lt_of_injective_not_surjective
     ((G.delete_edges {⟦(x, y)⟧}).connected_component_mk ∘ G.connected_component_out)
@@ -2056,8 +2029,19 @@ begin
   { rcases (list.exists_of_mem_map h) with ⟨d,hd,hde⟩,
     rw dart_edge_eq_mk_iff' at hde,
     cases hde,
-    left, exact delete_edge_reachable_start_path G p' d hde.1 hde.2 hd,
-    right, rw (@sym2.eq_swap V x y), exact delete_edge_reachable_start_path G p' d hde.1 hde.2 hd,},
+    {
+      left,
+      have h:=delete_edge_reachable_start_path G p' d hd,
+      rw [hde.1,hde.2] at h,
+      exact h,
+    },
+    {
+      right,
+      rw (@sym2.eq_swap V x y),
+      have h:= delete_edge_reachable_start_path G p' d hd,
+      rw [hde.1,hde.2] at h,
+      exact h,
+    }},
   { left, use (walk.to_delete_edge ⟦(x,y)⟧ p' h),}
 end
 
@@ -2066,19 +2050,29 @@ lemma delete_edge_component_mkout_image {x y : V} (he : ⟦(x,y)⟧ ∈ G.edge_s
   (G.connected_component_mk x) =(G.delete_edges {⟦(x, y)⟧}).connected_component_mk x
 ∨
 ((G.delete_edges {⟦(x, y)⟧}).connected_component_mk ∘ G.connected_component_out)
-  (G.connected_component_mk x) =(G.delete_edges {⟦(x, y)⟧}).connected_component_mk y
-:=by {have h:=G.delete_edge_reachable_cases he (G.connected_component_out_reachable' x),finish,}
+  (G.connected_component_mk x) =(G.delete_edges {⟦(x, y)⟧}).connected_component_mk y :=
+begin
+  have h:=G.delete_edge_reachable_cases he (G.connected_component_out_reachable' x),
+  cases h,
+  { left,
+    rw connected_component.eq,
+    exact h,},
+  { right,
+    rw connected_component.eq,
+    exact h,}
+end
 
 lemma delete_edge_component_mkout_notin_image {x y : V} (he : ⟦(x,y)⟧ ∈ G.edge_set)
 (C:(G.delete_edges {⟦(x, y)⟧}).connected_component) (h: ¬ ∃ (C': G.connected_component),
-  C=((G.delete_edges {⟦(x, y)⟧}).connected_component_mk(G.connected_component_out C'))) :
-(C=(G.delete_edges {⟦(x, y)⟧}).connected_component_mk x)
-  ∨ (C=(G.delete_edges {⟦(x, y)⟧}).connected_component_mk y) :=
+  ((G.delete_edges {⟦(x, y)⟧}).connected_component_mk(G.connected_component_out C'))=C) :
+((G.delete_edges {⟦(x, y)⟧}).connected_component_mk x=C)
+  ∨ ((G.delete_edges {⟦(x, y)⟧}).connected_component_mk y=C) :=
 begin
   by_contra hC,
+  rw [eq_comm,@ eq_comm _ _ C] at hC,
   apply h,
   use G.connected_component_mk ((G.delete_edges {⟦(x, y)⟧}).connected_component_out C),
-  rw [<- ((G.delete_edges {⟦(x, y)⟧}).connected_component_out_eq C),connected_component.eq,
+  rw [eq_comm,<- ((G.delete_edges {⟦(x, y)⟧}).connected_component_out_eq C),connected_component.eq,
     ((G.delete_edges {⟦(x, y)⟧}).connected_component_out_eq C)],
   apply delete_edge_reachable_vertices_in_other_component,
   {exact he,},
@@ -2090,7 +2084,7 @@ begin
 end
 
 lemma delete_edge_num_component_le (e : sym2 V) :
-(G.delete_edges {e}).num_connected_components≤ G.num_connected_components+1 :=
+fintype.card (G.delete_edges {e}).connected_component≤fintype.card G.connected_component+1 :=
 begin
   refine sym2.ind (λ x y, _) e,
 
@@ -2107,8 +2101,8 @@ begin
     cases hC1',
 
     all_goals{cases hC2'},
-    work_on_goal 1 {rw [hC1',hC2'],},
-    work_on_goal 3 {rw [hC1',hC2'],},
+    work_on_goal 1 {rw [<-hC1',<-hC2'],},
+    work_on_goal 3 {rw [<-hC1',<-hC2'],},
     work_on_goal 2 {swap_var [x y],},
 
     { by_contra,
@@ -2116,22 +2110,22 @@ begin
       cases t,
       { apply hC1,
         use G.connected_component_mk x,
-        rw hC1',
+        rw <- hC1',
         rw t, },
       { apply hC2,
         use G.connected_component_mk x,
-        rw hC2',
+        rw <- hC2',
         rw t,}},
     { by_contra,
       have t:=G.delete_edge_component_mkout_image he,
       cases t,
       { apply hC2,
         use G.connected_component_mk y,
-        rw hC2',
+        rw <- hC2',
         rw t,},
       { apply hC1,
         use G.connected_component_mk y,
-        rw hC1',
+        rw <- hC1',
         rw t,}}}
 end
 
@@ -2139,13 +2133,13 @@ lemma union_setminus_singleton {α : Type u} (s : set α) (e : α) (he : e ∈ s
 (s \ {e}) ∪ {e}=s := by {simp, exact he}
 
 lemma delete_edges_num_component_le (s : set (sym2 V)) :
-(G.delete_edges s).num_connected_components≤ G.num_connected_components+(set.to_finset s).card :=
+fintype.card (G.delete_edges s).connected_component ≤ fintype.card G.connected_component+(set.to_finset s).card :=
 begin
   induction hs : (set.to_finset s).card generalizing s,
   { rw [finset.card_eq_zero, set.to_finset_eq_empty_iff] at hs,
     rw [hs,delete_edges_empty_eq],
     refl, },
-  { have hsn0:s.to_finset.card>0, {finish,},
+  { have hsn0:s.to_finset.card>0, {rw hs, apply nat.zero_lt_succ,},
     obtain ⟨e,he⟩ :=finset.card_pos.1 hsn0,
     rw set.mem_to_finset at he,
     rw <- nat.add_one at *,
@@ -2161,11 +2155,11 @@ begin
 end
 
 lemma delete_edge_not_in_cycle_num_components {e : sym2 V} (he : e ∈ G.edge_set)
-(h:¬ G.edge_in_cycle he): (G.delete_edges {e}).num_connected_components=G.num_connected_components+1
+(h:¬ G.edge_in_cycle he): fintype.card (G.delete_edges {e}).connected_component=fintype.card G.connected_component+1
 :=ge_antisymm (G.delete_edge_notin_cycle_num_components_geq he h) (G.delete_edge_num_component_le e)
 
 lemma cut_edge_iff_not_bridge {e : sym2 V} :
-(G.delete_edges {e}).num_connected_components=G.num_connected_components+1 ↔ G.is_bridge e :=
+fintype.card (G.delete_edges {e}).connected_component=fintype.card G.connected_component+1 ↔ G.is_bridge e :=
 begin
   rw is_bridge_iff_mem_and_forall_cycle_not_mem,
   split,

@@ -491,7 +491,7 @@ begin
   exact multiset.le_iff_exists_add.mpr ⟨k.roots, roots_mul h⟩
 end
 
-@[simp] lemma mem_roots_sub_C' {p : R[X]} {a x : R} :
+lemma mem_roots_sub_C' {p : R[X]} {a x : R} :
   x ∈ (p - C a).roots ↔ p ≠ C a ∧ p.eval x = a :=
 by rw [mem_roots', is_root.def, sub_ne_zero, eval_sub, sub_eq_zero, eval_C]
 
@@ -724,27 +724,28 @@ set.finite.bUnion begin
     exact id congr_fun hxy ⟨i, nat.lt_succ_of_le hi⟩ },
 end $ λ i hi, finset.finite_to_set _
 
-theorem mem_root_set_iff' {p : T[X]} {S : Type*} [comm_ring S] [is_domain S] [algebra T S] {a : S} :
+theorem mem_root_set' {p : T[X]} {S : Type*} [comm_ring S] [is_domain S] [algebra T S] {a : S} :
   a ∈ p.root_set S ↔ p.map (algebra_map T S) ≠ 0 ∧ aeval a p = 0 :=
 by rw [root_set, finset.mem_coe, mem_to_finset, mem_roots', is_root.def, ← eval₂_eq_eval_map,
   aeval_def]
 
-theorem mem_root_set_iff {p : T[X]} {S : Type*} [comm_ring S] [is_domain S] [algebra T S]
+theorem mem_root_set {p : T[X]} {S : Type*} [comm_ring S] [is_domain S] [algebra T S]
   [no_zero_smul_divisors T S] {a : S} : a ∈ p.root_set S ↔ p ≠ 0 ∧ aeval a p = 0 :=
-by rw [mem_root_set_iff', (map_injective _
+by rw [mem_root_set', (map_injective _
   (no_zero_smul_divisors.algebra_map_injective T S)).ne_iff' (polynomial.map_zero _)]
 
-theorem mem_root_set_iff_of_ne_zero {p : T[X]} {S : Type*} [comm_ring S] [is_domain S] [algebra T S]
-  [no_zero_smul_divisors T S] {a : S} (hp : p ≠ 0) : a ∈ p.root_set S ↔ aeval a p = 0 :=
-mem_root_set_iff.trans $ and_iff_right hp
+theorem mem_root_set_of_ne {p : T[X]} {S : Type*} [comm_ring S] [is_domain S] [algebra T S]
+  [no_zero_smul_divisors T S] (hp : p ≠ 0) {a : S} : a ∈ p.root_set S ↔ aeval a p = 0 :=
+mem_root_set.trans $ and_iff_right hp
 
-lemma root_set_maps_to {p : T[X]} {S S'} [comm_ring S] [is_domain S] [algebra T S]
-  [comm_ring S'] [is_domain S'] [algebra T S'] (hp : p.map (algebra_map T S') ≠ 0)
+lemma root_set_maps_to' {p : T[X]} {S S'} [comm_ring S] [is_domain S] [algebra T S]
+  [comm_ring S'] [is_domain S'] [algebra T S']
+  (hp : p.map (algebra_map T S') = 0 → p.map (algebra_map T S) = 0)
   (f : S →ₐ[T] S') : (p.root_set S).maps_to f (p.root_set S') :=
 λ x hx, begin
-  rw [mem_root_set_iff'] at hx ⊢,
+  rw [mem_root_set'] at hx ⊢,
   rw [aeval_alg_hom, alg_hom.comp_apply, hx.2, _root_.map_zero],
-  exact ⟨hp, rfl⟩
+  exact ⟨mt hp hx.1, rfl⟩
 end
 
 lemma ne_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [algebra T S] {a : S}
@@ -753,7 +754,17 @@ lemma ne_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [algebra T 
 
 lemma aeval_eq_zero_of_mem_root_set {p : T[X]} [comm_ring S] [is_domain S] [algebra T S]
   {a : S} (hx : a ∈ p.root_set S) : aeval a p = 0 :=
-((mem_root_set_iff').1 hx).2
+(mem_root_set'.1 hx).2
+
+lemma root_set_maps_to {p : T[X]} {S S'} [comm_ring S] [is_domain S] [algebra T S]
+  [comm_ring S'] [is_domain S'] [algebra T S'] [no_zero_smul_divisors T S'] (f : S →ₐ[T] S') :
+  (p.root_set S).maps_to f (p.root_set S') :=
+begin
+  refine root_set_maps_to' (λ h₀, _) f,
+  obtain rfl : p = 0 := map_injective _
+    (no_zero_smul_divisors.algebra_map_injective T S') (by rwa [polynomial.map_zero]),
+  exact polynomial.map_zero _
+end
 
 end roots
 

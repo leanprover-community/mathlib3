@@ -1192,30 +1192,26 @@ by {rw eq_top_iff, intros x hx, obtain ⟨y, hy⟩ := (h x), exact ⟨y, trivial
 @[simp, to_additive] lemma comap_top (f : G →* N) : (⊤ : subgroup N).comap f = ⊤ :=
 (gc_map_comap f).u_top
 
-@[simp, to_additive] lemma comap_subtype_self_eq_top {G : Type*} [group G] {H : subgroup G} :
-  comap H.subtype H = ⊤ := by { ext, simp }
-
-@[simp, to_additive]
-lemma comap_subtype_inf_left {H K : subgroup G} : comap H.subtype (H ⊓ K) = comap H.subtype K :=
-ext $ λ x, and_iff_right_of_imp (λ _, x.prop)
-
-@[simp, to_additive]
-lemma comap_subtype_inf_right {H K : subgroup G} : comap K.subtype (H ⊓ K) = comap K.subtype H :=
-ext $ λ x, and_iff_left_of_imp (λ _, x.prop)
+/-- For any subgroups `H` and `K`, view `H ⊓ K` as a subgroup of `K`. -/
+@[to_additive "For any subgroups `H` and `K`, view `H ⊓ K` as a subgroup of `K`."]
+def subgroup_of (H K : subgroup G) : subgroup K := H.comap K.subtype
 
 /-- If `H ≤ K`, then `H` as a subgroup of `K` is isomorphic to `H`. -/
 @[to_additive "If `H ≤ K`, then `H` as a subgroup of `K` is isomorphic to `H`.", simps]
-def comap_subtype_equiv_of_le {G : Type*} [group G] {H K : subgroup G} (h : H ≤ K) :
-  H.comap K.subtype ≃* H :=
+def subgroup_of_equiv_of_le {G : Type*} [group G] {H K : subgroup G} (h : H ≤ K) :
+  H.subgroup_of K ≃* H :=
 { to_fun := λ g, ⟨g.1, g.2⟩,
   inv_fun := λ g, ⟨⟨g.1, h g.2⟩, g.2⟩,
   left_inv := λ g, subtype.ext (subtype.ext rfl),
   right_inv := λ g, subtype.ext rfl,
   map_mul' := λ g h, rfl }
 
-/-- For any subgroups `H` and `K`, view `H ⊓ K` as a subgroup of `K`. -/
-@[to_additive "For any subgroups `H` and `K`, view `H ⊓ K` as a subgroup of `K`."]
-def subgroup_of (H K : subgroup G) : subgroup K := H.comap K.subtype
+@[simp, to_additive] lemma comap_subtype (H K : subgroup G) : H.comap K.subtype = H.subgroup_of K := rfl
+
+@[simp, to_additive]
+lemma comap_inclusion_subgroup_of {K₁ K₂ : subgroup G} (h : K₁ ≤ K₂) (H : subgroup G) :
+  (H.subgroup_of K₂).comap (inclusion h) = H.subgroup_of K₁ :=
+rfl
 
 @[to_additive] lemma coe_subgroup_of (H K : subgroup G) :
   (H.subgroup_of K : set K) = K.subtype ⁻¹' H := rfl
@@ -1674,9 +1670,9 @@ eq_top_iff.trans ⟨λ h, ⟨λ a ha b, (h (mem_top b) a).mp ha⟩, λ h a ha b,
 open_locale classical
 
 @[to_additive]
-lemma le_normalizer_of_normal [hK : (H.comap K.subtype).normal] (HK : H ≤ K) : K ≤ H.normalizer :=
+lemma le_normalizer_of_normal [hK : (H.subgroup_of K).normal] (HK : H ≤ K) : K ≤ H.normalizer :=
 λ x hx y, ⟨λ yH, hK.conj_mem ⟨y, HK yH⟩ yH ⟨x, hx⟩,
-  λ yH, by simpa [mem_comap, mul_assoc] using
+  λ yH, by simpa [mem_subgroup_of, mul_assoc] using
              hK.conj_mem ⟨x * y * x⁻¹, HK yH⟩ yH ⟨x⁻¹, K.inv_mem hx⟩⟩
 
 variables {N : Type*} [group N]
@@ -2419,8 +2415,8 @@ begin
 end
 
 @[to_additive]
-lemma comap_subtype_normalizer_eq {H N : subgroup G} (h : H.normalizer ≤ N) :
-  comap N.subtype H.normalizer = (comap N.subtype H).normalizer :=
+lemma normalizer_subgroup_of_eq {H N : subgroup G} (h : H.normalizer ≤ N) :
+  H.normalizer.subgroup_of N = (H.subgroup_of N).normalizer :=
 begin
   apply comap_normalizer_eq_of_injective_of_le_range,
   exact subtype.coe_injective,

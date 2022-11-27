@@ -108,15 +108,12 @@ by simp [coeff_mul]
 lemma is_unit_C {x : R} : is_unit (C x) ↔ is_unit x :=
 ⟨λ h, by { rw ← @coeff_C_zero _ x, exact h.map (@constant_coeff R _) }, λ h, h.map C⟩
 
-lemma coeff_mul_X_zero (p : R[X]) : coeff (p * X) 0 = 0 :=
-by simp
+lemma coeff_mul_X_zero (p : R[X]) : coeff (p * X) 0 = 0 := by simp
 
-lemma coeff_X_mul_zero (p : R[X]) : coeff (X * p) 0 = 0 :=
-by simp
+lemma coeff_X_mul_zero (p : R[X]) : coeff (X * p) 0 = 0 := by simp
 
-lemma coeff_C_mul_X_pow (x : R) (k n : ℕ) :
-  coeff (C x * X^k : R[X]) n = if n = k then x else 0 :=
-by { rw [← monomial_eq_C_mul_X, coeff_monomial], congr' 1, simp [eq_comm] }
+lemma coeff_C_mul_X_pow (x : R) (k n : ℕ) : coeff (C x * X ^ k : R[X]) n = if n = k then x else 0 :=
+by { rw [C_mul_X_pow_eq_monomial, coeff_monomial], congr' 1, simp [eq_comm] }
 
 lemma coeff_C_mul_X (x : R) (n : ℕ) : coeff (C x * X : R[X]) n = if n = 1 then x else 0 :=
 by rw [← pow_one X, coeff_C_mul_X_pow]
@@ -221,11 +218,11 @@ by simpa only [pow_one] using coeff_mul_X_pow p 1 n
 
 theorem coeff_mul_monomial (p : R[X]) (n d : ℕ) (r : R) :
   coeff (p * monomial n r) (d + n) = coeff p d * r :=
-by rw [monomial_eq_C_mul_X, ←X_pow_mul, ←mul_assoc, coeff_mul_C, coeff_mul_X_pow]
+by rw [← C_mul_X_pow_eq_monomial, ←X_pow_mul, ←mul_assoc, coeff_mul_C, coeff_mul_X_pow]
 
 theorem coeff_monomial_mul (p : R[X]) (n d : ℕ) (r : R) :
   coeff (monomial n r * p) (d + n) = r * coeff p d :=
-by rw [monomial_eq_C_mul_X, mul_assoc, coeff_C_mul, X_pow_mul, coeff_mul_X_pow]
+by rw [← C_mul_X_pow_eq_monomial, mul_assoc, coeff_C_mul, X_pow_mul, coeff_mul_X_pow]
 
 -- This can already be proved by `simp`.
 theorem coeff_mul_monomial_zero (p : R[X]) (d : ℕ) (r : R) :
@@ -251,9 +248,6 @@ end
 
 lemma mul_X_injective : function.injective (λ P : R[X], X * P) :=
 pow_one (X : R[X]) ▸ mul_X_pow_injective 1
-
-lemma C_mul_X_pow_eq_monomial (c : R) (n : ℕ) : C c * X^n = monomial n c :=
-monomial_eq_C_mul_X.symm
 
 lemma coeff_X_add_C_pow (r : R) (n k : ℕ) :
   ((X + C r) ^ n).coeff k = r ^ (n - k) * (n.choose k : R) :=

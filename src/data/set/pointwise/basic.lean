@@ -1221,6 +1221,15 @@ begin
     exact ⟨b, mem_inter (mem_smul_set.mpr ⟨a, ha, by simp [← this]⟩) hb⟩, },
 end
 
+@[simp, to_additive] lemma Union_inv_smul :
+  (⋃ (g : α), g⁻¹ • s) = (⋃ (g : α), g • s) :=
+function.surjective.supr_congr _ inv_surjective $ λ g, rfl
+
+@[to_additive]
+lemma Union_smul_eq_set_of_exists {s : set β} :
+  (⋃ (g : α), g • s) = {a | ∃ (g : α), g • a ∈ s} :=
+by simp_rw [← Union_set_of, ← Union_inv_smul, ← preimage_smul, preimage]
+
 end group
 
 section group_with_zero

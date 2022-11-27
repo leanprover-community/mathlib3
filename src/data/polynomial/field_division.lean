@@ -325,7 +325,7 @@ by rw [root_set, map_monomial, roots_monomial ((_root_.map_ne_zero (algebra_map 
 
 lemma root_set_C_mul_X_pow [comm_ring S] [is_domain S] [algebra R S]
   {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (C a * X ^ n).root_set S = {0} :=
-by rw [← monomial_eq_C_mul_X, root_set_monomial hn ha]
+by rw [C_mul_X_pow_eq_monomial, root_set_monomial hn ha]
 
 lemma root_set_X_pow [comm_ring S] [is_domain S] [algebra R S]
   {n : ℕ} (hn : n ≠ 0) : (X ^ n : R[X]).root_set S = {0} :=

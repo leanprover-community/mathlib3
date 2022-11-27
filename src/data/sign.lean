@@ -338,6 +338,8 @@ open_locale big_operators
 
 variables [linear_ordered_add_comm_group α]
 
+/- I'm not sure why this is necessary, see
+https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Decidable.20vs.20decidable_rel -/
 local attribute [instance] linear_ordered_add_comm_group.decidable_lt
 
 lemma sign_sum {ι : Type*} {s : finset ι} {f : ι → α} (hs : s.nonempty) (t : sign_type)

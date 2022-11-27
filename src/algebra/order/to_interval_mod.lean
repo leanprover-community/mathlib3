@@ -586,6 +586,20 @@ private lemma to_Ixx_mod_cyclic_left (x₁ x₂ x₃ : α)
   (h : to_Ico_mod x₁ hb.out x₂ ≤ to_Ioc_mod x₁ hb.out x₃) :
   to_Ico_mod x₂ hb.out x₃ ≤ to_Ioc_mod x₂ hb.out x₁ :=
 begin
+  have h' := to_Ioc_mod_le_right x₁ hb.out x₃,
+  have h' := left_le_to_Ico_mod x₁ hb.out x₃,
+  --| 1  2   3 | 1
+  rw [←zero_add x₂, ←sub_le_sub_iff_right x₂],
+  rw [←to_Ico_mod_sub', ←to_Ioc_mod_sub', ←neg_sub x₂ x₁, to_Ioc_mod_neg,
+   ←neg_sub x₂ x₃, to_Ico_mod_neg, sub_le_sub_iff_left,
+    neg_zero, to_Ico_mod_sub' _ _ _ x₁, zero_add],
+  rw sub_le_iff_le_add,
+  rw [←sub_add_sub_cancel x₂ x₁ x₃, add_comm (_ - _), add_sub_assoc', to_Ioc_mod_sub', zero_add,
+    sub_add_cancel],
+  refine  h.trans _,
+  -- rw ← to_Ico_mod_to_Ioc_mod _ _  (_ + _),
+  -- rw [to_Ioc_mod, to_Ioc_mod],
+  -- rw to_Ioc_mod_le_right,
   sorry
 end
 

@@ -3,12 +3,12 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
-import data.fintype.card
+import data.fintype.big_operators
 import data.finsupp.defs
 import data.nat.part_enat
 import data.set.countable
 import logic.small.basic
-import order.conditionally_complete_lattice
+import order.conditionally_complete_lattice.basic
 import order.succ_pred.basic
 import set_theory.cardinal.schroeder_bernstein
 import tactic.positivity
@@ -886,18 +886,14 @@ lemma mk_finset_of_fintype [fintype α] : #(finset α) = 2 ^ℕ fintype.card α 
 
 @[simp] lemma mk_finsupp_lift_of_fintype (α : Type u) (β : Type v) [fintype α] [has_zero β] :
   #(α →₀ β) = lift.{u} (#β) ^ℕ fintype.card α :=
-by simpa using (@finsupp.equiv_fun_on_fintype α β _ _).cardinal_eq
+by simpa using (@finsupp.equiv_fun_on_finite α β _ _).cardinal_eq
 
 lemma mk_finsupp_of_fintype (α β : Type u) [fintype α] [has_zero β] :
   #(α →₀ β) = (#β) ^ℕ fintype.card α :=
 by simp
 
 theorem card_le_of_finset {α} (s : finset α) : (s.card : cardinal) ≤ #α :=
-begin
-  rw (_ : (s.card : cardinal) = #s),
-  { exact ⟨function.embedding.subtype _⟩ },
-  rw [cardinal.mk_fintype, fintype.card_coe]
-end
+@mk_coe_finset _ s ▸ mk_set_le _
 
 @[norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
 by simp only [cardinal.pow_cast_right, coe_pow]
@@ -1275,7 +1271,7 @@ lemma mk_union_le {α : Type u} (S T : set α) : #(S ∪ T : set α) ≤ #S + #T
 
 theorem mk_union_of_disjoint {α : Type u} {S T : set α} (H : disjoint S T) :
   #(S ∪ T : set α) = #S + #T :=
-quot.sound ⟨equiv.set.union H⟩
+quot.sound ⟨equiv.set.union H.le_bot⟩
 
 theorem mk_insert {α : Type u} {s : set α} {a : α} (h : a ∉ s) :
   #(insert a s : set α) = #s + 1 :=

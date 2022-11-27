@@ -260,7 +260,7 @@ by rw [← mk_pi_field_coeff_eq p, continuous_multilinear_map.mk_pi_field_eq_zer
 @[simp] lemma apply_eq_pow_smul_coeff : p n (λ _, z) = z ^ n • p.coeff n :=
 by simp
 
-@[simp] lemma norm_apply_eq_norm_coef : ∥p n∥ = ∥coeff p n∥ :=
+@[simp] lemma norm_apply_eq_norm_coef : ‖p n‖ = ‖coeff p n‖ :=
 by rw [← mk_pi_field_coeff_eq p, continuous_multilinear_map.norm_mk_pi_field]
 
 end coef

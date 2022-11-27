@@ -905,14 +905,15 @@ ssubset_singleton_iff.1 hs
 
 /-! ### Disjointness -/
 
-protected theorem disjoint_iff : disjoint s t ↔ s ∩ t ⊆ ∅ := iff.rfl
+protected theorem disjoint_iff : disjoint s t ↔ s ∩ t ⊆ ∅ := disjoint_iff_inf_le
 
 theorem disjoint_iff_inter_eq_empty : disjoint s t ↔ s ∩ t = ∅ :=
 disjoint_iff
 
 lemma _root_.disjoint.inter_eq : disjoint s t → s ∩ t = ∅ := disjoint.eq_bot
 
-lemma disjoint_left : disjoint s t ↔ ∀ ⦃a⦄, a ∈ s → a ∉ t := forall_congr $ λ _, not_and
+lemma disjoint_left : disjoint s t ↔ ∀ ⦃a⦄, a ∈ s → a ∉ t :=
+disjoint_iff_inf_le.trans $ forall_congr $ λ _, not_and
 lemma disjoint_right : disjoint s t ↔ ∀ ⦃a⦄, a ∈ t → a ∉ s := by rw [disjoint.comm, disjoint_left]
 
 /-! ### Lemmas about complement -/
@@ -1032,10 +1033,10 @@ theorem union_diff_cancel {s t : set α} (h : s ⊆ t) : s ∪ (t \ s) = t :=
 sup_sdiff_cancel_right h
 
 theorem union_diff_cancel_left {s t : set α} (h : s ∩ t ⊆ ∅) : (s ∪ t) \ s = t :=
-disjoint.sup_sdiff_cancel_left h
+disjoint.sup_sdiff_cancel_left $ disjoint_iff_inf_le.2 h
 
 theorem union_diff_cancel_right {s t : set α} (h : s ∩ t ⊆ ∅) : (s ∪ t) \ t = s :=
-disjoint.sup_sdiff_cancel_right h
+disjoint.sup_sdiff_cancel_right $ disjoint_iff_inf_le.2 h
 
 @[simp] theorem union_diff_left {s t : set α} : (s ∪ t) \ s = t \ s :=
 sup_sdiff_left_self
@@ -1177,7 +1178,7 @@ sdiff_inf_self_right _ _
 @[simp] theorem diff_self_inter {s t : set α} : s \ (s ∩ t) = s \ t := sdiff_inf_self_left _ _
 
 @[simp] theorem diff_eq_self {s t : set α} : s \ t = s ↔ t ∩ s ⊆ ∅ :=
-show s \ t = s ↔ t ⊓ s ≤ ⊥, from sdiff_eq_self_iff_disjoint
+show s \ t = s ↔ t ⊓ s ≤ ⊥, from sdiff_eq_self_iff_disjoint.trans disjoint_iff_inf_le
 
 @[simp] theorem diff_singleton_eq_self {a : α} {s : set α} (h : a ∉ s) : s \ {a} = s :=
 diff_eq_self.2 $ by simp [singleton_inter_eq_empty.2 h]
@@ -1620,7 +1621,7 @@ theorem mem_image_iff_of_inverse {f : α → β} {g : β → α} {b : β} {s : s
 by rw image_eq_preimage_of_inverse h₁ h₂; refl
 
 theorem image_compl_subset {f : α → β} {s : set α} (H : injective f) : f '' sᶜ ⊆ (f '' s)ᶜ :=
-disjoint.subset_compl_left $ by simp [disjoint, image_inter H]
+disjoint.subset_compl_left $ by simp [disjoint_iff_inf_le, image_inter H]
 
 theorem subset_image_compl {f : α → β} {s : set α} (H : surjective f) : (f '' s)ᶜ ⊆ f '' sᶜ :=
 compl_subset_iff_union.2 $
@@ -2241,8 +2242,9 @@ prod.snd_surjective.range_eq
 (surjective_eval i).range_eq
 
 theorem is_compl_range_inl_range_inr : is_compl (range $ @sum.inl α β) (range sum.inr) :=
-⟨by { rintro y ⟨⟨x₁, rfl⟩, ⟨x₂, _⟩⟩, cc },
-  by { rintro (x|y) -; [left, right]; exact mem_range_self _ }⟩
+is_compl.of_le
+  (by { rintro y ⟨⟨x₁, rfl⟩, ⟨x₂, _⟩⟩, cc })
+  (by { rintro (x|y) -; [left, right]; exact mem_range_self _ })
 
 @[simp] theorem range_inl_union_range_inr : range (sum.inl : α → α ⊕ β) ∪ range sum.inr = univ :=
 is_compl_range_inl_range_inr.sup_eq_top
@@ -2282,12 +2284,27 @@ by rw [image_preimage_eq_inter_range, image_preimage_eq_inter_range, ← inter_d
 @[simp] theorem range_quot_mk (r : α → α → Prop) : range (quot.mk r) = univ :=
 (surjective_quot_mk r).range_eq
 
-instance can_lift (c) (p) [can_lift α β c p] :
-  can_lift (set α) (set β) (('') c) (λ s, ∀ x ∈ s, p x) :=
-{ prf := λ s hs, subset_range_iff_exists_image_eq.mp (λ x hx, can_lift.prf _ (hs x hx)) }
+@[simp] theorem range_quot_lift {r : ι → ι → Prop} (hf : ∀ x y, r x y → f x = f y) :
+  range (quot.lift f hf) = range f :=
+ext $ λ y, (surjective_quot_mk _).exists
 
 @[simp] theorem range_quotient_mk [setoid α] : range (λx : α, ⟦x⟧) = univ :=
 range_quot_mk _
+
+@[simp] theorem range_quotient_lift [s : setoid ι] (hf) :
+  range (quotient.lift f hf : quotient s → α) = range f :=
+range_quot_lift _
+
+@[simp] theorem range_quotient_mk' {s : setoid α} : range (quotient.mk' : α → quotient s) = univ :=
+range_quot_mk _
+
+@[simp] theorem range_quotient_lift_on' {s : setoid ι} (hf) :
+  range (λ x : quotient s, quotient.lift_on' x f hf) = range f :=
+range_quot_lift _
+
+instance can_lift (c) (p) [can_lift α β c p] :
+  can_lift (set α) (set β) (('') c) (λ s, ∀ x ∈ s, p x) :=
+{ prf := λ s hs, subset_range_iff_exists_image_eq.mp (λ x hx, can_lift.prf _ (hs x hx)) }
 
 lemma range_const_subset {c : α} : range (λ x : ι, c) ⊆ {c} :=
 range_subset_iff.2 $ λ x, rfl
@@ -2418,8 +2435,9 @@ lemma preimage_range_splitting {f : α → β} (hf : injective f) :
 
 lemma is_compl_range_some_none (α : Type*) :
   is_compl (range (some : α → option α)) {none} :=
-⟨λ x ⟨⟨a, ha⟩, (hn : x = none)⟩, option.some_ne_none _ (ha.trans hn),
-  λ x hx, option.cases_on x (or.inr rfl) (λ x, or.inl $ mem_range_self _)⟩
+is_compl.of_le
+  (λ x ⟨⟨a, ha⟩, (hn : x = none)⟩, option.some_ne_none _ (ha.trans hn))
+  (λ x hx, option.cases_on x (or.inr rfl) (λ x, or.inl $ mem_range_self _))
 
 @[simp] lemma compl_range_some (α : Type*) :
   (range (some : α → option α))ᶜ = {none} :=

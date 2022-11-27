@@ -51,7 +51,7 @@ by rw [aeval_def, aeval_def, hom_eval₂, ←is_scalar_tower.algebra_map_eq]
   (x : A) (p : R[X]) :
   aeval (algebra_map A B x) p = 0 ↔ aeval x p = 0 :=
 by rw [aeval_algebra_map_apply, algebra.algebra_map_eq_smul_one, smul_eq_zero,
-  iff_false_intro (@one_ne_zero B _ _), or_false]
+  iff_false_intro (one_ne_zero' B), or_false]
 
 variables {B}
 

@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import data.set.intervals.disjoint
-import order.conditionally_complete_lattice
+import order.conditionally_complete_lattice.basic
 import order.succ_pred.basic
+import algebra.order.field.basic
 import tactic.field_simp
 
 /-!

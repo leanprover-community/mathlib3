@@ -418,6 +418,14 @@ by rw [←@line_map_eq_line_map_iff k V1, line_map_apply_zero]
   line_map p₀ p₁ c = p₁ ↔ p₀ = p₁ ∨ c = 1 :=
 by rw [←@line_map_eq_line_map_iff k V1, line_map_apply_one]
 
+variables (k)
+
+lemma line_map_injective [no_zero_smul_divisors k V1] {p₀ p₁ : P1} (h : p₀ ≠ p₁) :
+  function.injective (line_map p₀ p₁ : k → P1) :=
+by simp [function.injective, h]
+
+variables {k}
+
 include V2
 
 @[simp] lemma apply_line_map (f : P1 →ᵃ[k] P2) (p₀ p₁ : P1) (c : k) :

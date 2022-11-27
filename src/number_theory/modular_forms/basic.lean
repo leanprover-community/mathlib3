@@ -132,10 +132,8 @@ variables {F : Type*} {Γ : subgroup SL(2, ℤ)} {k : ℤ}
 instance has_add : has_add (modular_form Γ k) :=
 { add := λ f g,
   { hol' := f.hol'.add g.hol',
-    bdd_at_infty' := λ A, begin
-      convert (bounded_at_im_infty_subalgebra ℂ).add_mem (f.bdd_at_infty' A) (g.bdd_at_infty' A),
-      simp [slash_add],
-    end,
+    bdd_at_infty' := λ A, (congr_arg is_bounded_at_im_infty (slash_add k A f g)).mpr
+      ((f.bdd_at_infty' A).add (g.bdd_at_infty' A)),
     .. (f : slash_invariant_form Γ k) + g } }
 
 @[simp] lemma coe_add (f g : modular_form Γ k) : ⇑(f + g) = f + g := rfl
@@ -151,11 +149,9 @@ instance has_zero : has_zero (modular_form Γ k) :=
 instance has_csmul : has_smul ℂ (modular_form Γ k) :=
 ⟨ λ c f,
   { to_fun := c • f,
-    hol' :=  f.hol'.const_smul _,
-    bdd_at_infty' := λ A, begin
-      rw slash_action.smul_action,
-      apply (bounded_at_im_infty_subalgebra ℂ).smul_mem (f.bdd_at_infty' A)
-    end,
+    hol' :=  f.hol'.const_smul c,
+    bdd_at_infty' := λ A, (congr_arg is_bounded_at_im_infty (slash_action.smul_action k A f c)).mpr
+      ((f.bdd_at_infty' A).const_smul_left c),
      .. c • (f : slash_invariant_form Γ k) }⟩
 
 @[simp] lemma coe_csmul (f : (modular_form Γ k)) (n : ℂ) : ⇑(n • f) = n • f := rfl
@@ -180,11 +176,8 @@ instance has_neg : has_neg (modular_form Γ k) :=
 ⟨λ f,
   { to_fun := -f,
     hol' := f.hol'.neg,
-    bdd_at_infty':= λ A, begin
-      convert (bounded_at_im_infty_subalgebra ℂ).smul_mem (f.bdd_at_infty' A) (-1),
-      simp only [_root_.neg_smul, one_smul],
-      apply  modular_form.neg_slash,
-    end,
+    bdd_at_infty':= λ A,  (congr_arg is_bounded_at_im_infty (neg_slash k A f)).mpr
+      ((f.bdd_at_infty' A).neg_left),
     .. -(f : slash_invariant_form Γ k) }⟩
 
 @[simp] lemma coe_neg (f : modular_form Γ k) : ⇑(-f) = -f := rfl
@@ -219,11 +212,10 @@ instance : inhabited (modular_form Γ k) := ⟨0⟩
 
 /--The modular form of weight `k_1 + k_2` given by the product of two modular forms of weights
 `k_1` and `k_2`. -/
-def mul (k_1 k_2 : ℤ) (Γ : subgroup SL(2, ℤ)) (f : (modular_form Γ k_1))
+def mul {k_1 k_2 : ℤ} {Γ : subgroup SL(2, ℤ)} (f : (modular_form Γ k_1))
   (g : (modular_form Γ k_2)) : (modular_form Γ (k_1 + k_2)) :=
 { to_fun := f * g,
-  slash_action_eq' := by {intro A, rw mul_slash_subgroup, congr,
-  apply f.slash_action_eq' A, apply g.slash_action_eq' A,},
+  slash_action_eq' := λ A, by simp_rw [mul_slash_subgroup, modular_form_class.slash_action_eq],
   hol' := f.hol'.mul g.hol',
   bdd_at_infty' := λ A, begin
     rw [mul_slash_SL2],
@@ -236,12 +228,10 @@ lemma is_bounded_at_im_infty_one : is_bounded_at_im_infty (1 : ℍ → ℂ):=
 
 instance : has_one (modular_form Γ 0) :=
 { one :=
-  { to_fun := (1 : slash_invariant_form Γ 0),
-    slash_action_eq' := (1 : slash_invariant_form Γ 0).2,
-    hol' := (λ (x : ℍ), mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
-    bdd_at_infty' := by {intro A,
-      convert is_bounded_at_im_infty_one,
-      apply is_invariant_one A}}}
+    { hol' := λ x, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ),
+    bdd_at_infty' := λ A, (congr_arg is_bounded_at_im_infty (is_invariant_one A)).mpr
+      is_bounded_at_im_infty_one,
+    .. (1 : slash_invariant_form Γ 0) } }
 
 end modular_form
 

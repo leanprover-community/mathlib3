@@ -2416,7 +2416,7 @@ begin
 end
 
 @[to_additive]
-lemma normalizer_subgroup_of_eq {H N : subgroup G} (h : H.normalizer ≤ N) :
+lemma subgroup_of_normalizer_eq {H N : subgroup G} (h : H.normalizer ≤ N) :
   H.normalizer.subgroup_of N = (H.subgroup_of N).normalizer :=
 begin
   apply comap_normalizer_eq_of_injective_of_le_range,

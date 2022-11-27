@@ -34,6 +34,10 @@ lemma fork.is_limit.lift_ι' {X Y : C} {f g : X ⟶ Y} {c : fork f g} (hc : is_l
   (c' : fork f g ) : hc.lift c' ≫ c.ι = c'.ι :=
 by apply fork.is_limit.lift_ι
 
+lemma cofork.is_colimit.epi_π {C : Type*} [category C] [has_zero_morphisms C]
+  {X Y : C} {f : X ⟶ Y} {c : cokernel_cofork f} (hc : is_colimit c) : epi c.π :=
+⟨λ Z g₁ g₂, cofork.is_colimit.hom_ext hc⟩
+
 namespace kernel_fork
 
 @[simps]
@@ -76,10 +80,6 @@ end
 end kernel_fork
 
 namespace cokernel_cofork
-
-lemma is_colimit.epi_π {C : Type*} [category C] [has_zero_morphisms C]
-  {X Y : C} {f : X ⟶ Y} {c : cokernel_cofork f} (hc : is_colimit c) : epi c.π :=
-⟨λ Z g₁ g₂, cofork.is_colimit.hom_ext hc⟩
 
 --@[simp, reassoc]
 --lemma is_colimit.π_desc {X Y : C} {f : X ⟶ Y} {c : cokernel_cofork f} (hc : is_colimit c)

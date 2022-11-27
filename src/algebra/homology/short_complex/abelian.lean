@@ -20,13 +20,13 @@ def cokernel_cofork.cocone_point_iso_of_epi_of_is_iso {C : Type*} [category C] [
     (by { simp only [← cancel_epi p, ← assoc, ← comm],
       simp only [assoc, is_iso.hom_inv_id, comp_id, cokernel_cofork.condition, comp_zero], })),
   hom_inv_id' := begin
-    haveI := cokernel_cofork.is_colimit.epi_π hc,
+    haveI := cofork.is_colimit.epi_π hc,
     simp only [← cancel_epi c.π, cofork.is_colimit.π_desc_assoc hc, assoc,
       cokernel_cofork.π_of_π, cofork.is_colimit.π_desc, is_iso.hom_inv_id_assoc],
     erw comp_id,
   end,
   inv_hom_id' := begin
-    haveI := cokernel_cofork.is_colimit.epi_π hc',
+    haveI := cofork.is_colimit.epi_π hc',
     simp only [← cancel_epi c'.π, assoc, cofork.is_colimit.π_desc_assoc,
       cokernel_cofork.π_of_π, cofork.is_colimit.π_desc, is_iso.inv_hom_id_assoc],
     erw comp_id,

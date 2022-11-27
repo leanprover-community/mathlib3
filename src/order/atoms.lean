@@ -134,17 +134,29 @@ to_dual_covby_to_dual_iff.symm.trans bot_covby_iff
 
 alias covby_top_iff ↔ covby.is_coatom is_coatom.covby_top
 
-lemma covby_iff_coatom_Iic {α : Type*} [partial_order α] {a b : α} (h : a ≤ b) :
-  a ⋖ b ↔ is_coatom (⟨a, h⟩ : set.Iic b) :=
+end is_coatom
+
+section partial_order
+variables [partial_order α] {a b : α}
+
+@[simp] lemma set.Ici.is_atom_iff {b : set.Ici a} : is_atom b ↔ a ⋖ b :=
 begin
-  let f : set.Iic b ↪o α := order_embedding.subtype (λ c, c ≤ b),
-  rw ←covby_top_iff,
-  refine ⟨λ h, covby.of_image f h, λ h, covby.image f h _⟩,
-  convert set.ord_connected_Iic,
-  exact subtype.range_coe,
+  rw ←bot_covby_iff,
+  refine (set.ord_connected.apply_covby_apply_iff (order_embedding.subtype $ λ c, a ≤ c) _).symm,
+  simpa only [order_embedding.subtype_apply, subtype.range_coe_subtype] using set.ord_connected_Ici,
 end
 
-end is_coatom
+@[simp] lemma set.Iic.is_coatom_iff {a : set.Iic b} : is_coatom a ↔ ↑a ⋖ b :=
+begin
+  rw ←covby_top_iff,
+  refine (set.ord_connected.apply_covby_apply_iff (order_embedding.subtype $ λ c, c ≤ b) _).symm,
+  simpa only [order_embedding.subtype_apply, subtype.range_coe_subtype] using set.ord_connected_Iic,
+end
+
+lemma covby_iff_atom_Ici (h : a ≤ b) : a ⋖ b ↔ is_atom (⟨b, h⟩ : set.Ici a) := by simp
+lemma covby_iff_coatom_Iic (h : a ≤ b) : a ⋖ b ↔ is_coatom (⟨a, h⟩ : set.Iic b) := by simp
+
+end partial_order
 
 section pairwise
 

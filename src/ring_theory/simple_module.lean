@@ -3,13 +3,8 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-
-import linear_algebra.span
-import order.atoms
-import order.cover
-import order.jordan_holder
 import linear_algebra.isomorphisms
-import linear_algebra.quotient
+import order.jordan_holder
 
 /-!
 # Simple Modules
@@ -73,12 +68,10 @@ end
 theorem covby_iff_quot_is_simple {A B : submodule R M} (hAB : A ≤ B) :
   A ⋖ B ↔ is_simple_module R (B ⧸ submodule.comap B.subtype A) :=
 begin
-  let f : submodule R B ≃o set.Iic B := submodule.map_subtype.rel_iso B,
-  rw [covby_iff_coatom_Iic hAB, is_simple_module_iff_is_coatom, ←order_iso.is_coatom_iff f _],
-  convert iff.refl _,
-  rw [←subtype.coe_inj, subtype.coe_mk],
-  have := (inf_eq_right.mpr hAB).symm,
-  convert submodule.map_comap_subtype _ _,
+  set f : submodule R B ≃o set.Iic B := submodule.map_subtype.rel_iso B with hf,
+  rw [covby_iff_coatom_Iic hAB, is_simple_module_iff_is_coatom, ←order_iso.is_coatom_iff f, hf],
+  simp [-order_iso.is_coatom_iff, submodule.map_subtype.rel_iso, submodule.map_comap_subtype,
+    inf_eq_right.2 hAB],
 end
 
 namespace is_simple_module
@@ -198,8 +191,8 @@ instance jordan_holder_module : jordan_holder_lattice (submodule R M) :=
   sup_eq_of_is_maximal                  := λ x y z hxz hyz, wcovby.sup_eq hxz.wcovby hyz.wcovby,
   is_maximal_inf_left_of_is_maximal_sup := λ A B, inf_covby_of_covby_sup_of_covby_sup_left,
   iso                                   := λ X Y,
-    nonempty $ (X.2 ⧸ submodule.comap X.2.subtype X.1) ≃ₗ[R] (Y.2 ⧸ submodule.comap Y.2.subtype Y.1),
+    nonempty $ (X.2 ⧸ X.1.comap X.2.subtype) ≃ₗ[R] Y.2 ⧸ Y.1.comap Y.2.subtype,
   iso_symm                              := λ A B ⟨f⟩, ⟨f.symm⟩,
   iso_trans                             := λ A B C ⟨f⟩ ⟨g⟩, ⟨f.trans g⟩,
   second_iso                            := λ A B h,
-    ⟨by {rw [sup_comm, inf_comm], exact (linear_map.quotient_inf_equiv_sup_quotient B A).symm}⟩}
+    ⟨by { rw [sup_comm, inf_comm], exact (linear_map.quotient_inf_equiv_sup_quotient B A).symm }⟩}

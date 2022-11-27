@@ -105,10 +105,7 @@ begin
 end
 
 @[to_additive] lemma inf_relindex_right : (H ⊓ K).relindex K = H.relindex K :=
-begin
-  rw [←subgroup_of_map_subtype, relindex, relindex, subgroup_of, comap_map_eq_self_of_injective],
-  exact subtype.coe_injective,
-end
+by rw [relindex, relindex, subgroup_of_inf_left]
 
 @[to_additive] lemma inf_relindex_left : (H ⊓ K).relindex H = K.relindex H :=
 by rw [inf_comm, inf_relindex_right]
@@ -119,11 +116,8 @@ by rw [←inf_relindex_right H (K ⊓ L), ←inf_relindex_right K L, ←inf_reli
   inf_assoc, relindex_mul_relindex (H ⊓ (K ⊓ L)) (K ⊓ L) L inf_le_right inf_le_right]
 
 @[to_additive]
-lemma inf_relindex_eq_relindex_sup [K.normal] : (H ⊓ K).relindex H = K.relindex (H ⊔ K) :=
-cardinal.to_nat_congr (quotient_group.quotient_inf_equiv_prod_normal_quotient H K).to_equiv
-
-@[to_additive] lemma relindex_eq_relindex_sup [K.normal] : K.relindex H = K.relindex (H ⊔ K) :=
-by rw [←inf_relindex_left, inf_relindex_eq_relindex_sup]
+lemma relindex_eq_relindex_sup [K.normal] : K.relindex H = K.relindex (H ⊔ K) :=
+nat.card_congr (quotient_group.quotient_inf_equiv_prod_normal_quotient H K).to_equiv
 
 @[to_additive] lemma relindex_dvd_index_of_normal [H.normal] : H.relindex K ∣ H.index :=
 (relindex_eq_relindex_sup K H).symm ▸ relindex_dvd_index_of_le le_sup_right

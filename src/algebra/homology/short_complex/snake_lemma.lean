@@ -5,6 +5,7 @@ import category_theory.limits.preserves.shapes.kernels
 noncomputable theory
 
 open category_theory category_theory.limits category_theory.category
+  category_theory.preadditive
 
 variables (C : Type*) [category C] [abelian C]
 
@@ -53,6 +54,16 @@ instance mono_v₀₁_τ₁ : mono S.v₀₁.τ₁ := fork.is_limit.mono_ι S.h�
 instance mono_v₀₁_τ₂ : mono S.v₀₁.τ₂ := fork.is_limit.mono_ι S.h₀_τ₂
 instance mono_v₀₁_τ₃ : mono S.v₀₁.τ₃ := fork.is_limit.mono_ι S.h₀_τ₃
 
+lemma C₁_up_exact : (short_complex.mk S.v₀₁.τ₁ S.v₁₂.τ₁
+  (by rw [← comp_τ₁, S.w₀₂, zero_τ₁])).exact :=
+exact.of_f_is_kernel S.h₀_τ₁
+lemma C₂_up_exact : (short_complex.mk S.v₀₁.τ₂ S.v₁₂.τ₂
+  (by rw [← comp_τ₂, S.w₀₂, zero_τ₂])).exact :=
+exact.of_f_is_kernel S.h₀_τ₂
+lemma C₃_up_exact : (short_complex.mk S.v₀₁.τ₃ S.v₁₂.τ₃
+  (by rw [← comp_τ₃, S.w₀₂, zero_τ₃])).exact :=
+exact.of_f_is_kernel S.h₀_τ₃
+
 instance mono_L₀_f [mono S.L₁.f] : mono S.L₀.f :=
 begin
   haveI : mono (S.L₀.f ≫ S.v₀₁.τ₂),
@@ -89,6 +100,16 @@ is_colimit_cofork_map_of_is_colimit' π₃ S.w₁₃ S.h₃
 instance epi_v₂₃_τ₁ : epi S.v₂₃.τ₁ := cofork.is_colimit.epi_π S.h₃_τ₁
 instance epi_v₂₃_τ₂ : epi S.v₂₃.τ₂ := cofork.is_colimit.epi_π S.h₃_τ₂
 instance epi_v₂₃_τ₃ : epi S.v₂₃.τ₃ := cofork.is_colimit.epi_π S.h₃_τ₃
+
+lemma C₁_down_exact : (short_complex.mk S.v₁₂.τ₁ S.v₂₃.τ₁
+  (by rw [← comp_τ₁, S.w₁₃, zero_τ₁])).exact :=
+exact.of_g_is_cokernel S.h₃_τ₁
+lemma C₂_down_exact : (short_complex.mk S.v₁₂.τ₂ S.v₂₃.τ₂
+  (by rw [← comp_τ₂, S.w₁₃, zero_τ₂])).exact :=
+exact.of_g_is_cokernel S.h₃_τ₂
+lemma C₃_down_exact : (short_complex.mk S.v₁₂.τ₃ S.v₂₃.τ₃
+  (by rw [← comp_τ₃, S.w₁₃, zero_τ₃])).exact :=
+exact.of_g_is_cokernel S.h₃_τ₃
 
 instance epi_L₃_g [epi S.L₂.g] : epi S.L₃.g :=
 begin
@@ -220,11 +241,40 @@ def L₁' : short_complex C := short_complex.mk _ _ S.L₀_g_δ
 @[simps]
 def L₂' : short_complex C := short_complex.mk _ _ S.δ_L₃_f
 
+
 lemma L₁'_exact : S.L₁'.exact :=
 begin
-  rw S.L₁'.exact_iff_pseudo_exact,
-  intros x hx,
-  sorry,
+/-  rw S.L₁'.exact_iff_pseudo_exact,
+  intros k₃ hk₃,
+  obtain ⟨x₂, rfl⟩ := abelian.pseudoelement.pseudo_surjective_of_epi S.L₀'.g k₃,
+  dsimp only [L₀', L₁'] at x₂ hk₃ ⊢,
+  rw [← abelian.pseudoelement.comp_apply, snd_δ,
+    abelian.pseudoelement.comp_apply] at hk₃,
+  obtain ⟨x₁, hx₁⟩ := S.C₁_down_exact.pseudo_exact (S.φ₁ x₂) hk₃,
+  dsimp at hx₁,
+  let x₂' := S.L₁.f x₁,-/
+  have A : C := sorry,
+  have p : A ⟶ S.P := sorry,
+  have hp : p ≫ S.φ₁ ≫ S.v₂₃.τ₁ = 0 := sorry,
+  have x₁ : A ⟶ S.L₁.X₁ := sorry,
+  have hx₁ : p ≫ S.φ₁ = x₁ ≫ S.v₁₂.τ₁ := sorry,
+  let x₂ := p ≫ pullback.fst,
+  have hx₁' : x₁ ≫ S.L₁.f ≫ S.v₁₂.τ₂ = p ≫ pullback.fst ≫ S.v₁₂.τ₂,
+  { simp only [← S.v₁₂.comm₁₂, ← reassoc_of hx₁, φ₂, φ₁_L₂_f], },
+  let k₂ := S.C₂_up_exact.lift (x₂ - x₁ ≫ S.L₁.f)
+    (by { dsimp, simp only [sub_comp, assoc, hx₁', sub_self], }),
+  have hk₂ : k₂ ≫ S.v₀₁.τ₂ = (x₂ - x₁ ≫ S.L₁.f) :=
+    S.C₂_up_exact.lift_f _ _,
+  suffices : k₂ ≫ S.L₀.g = p ≫ pullback.snd,
+  { sorry, },
+  simp only [← cancel_mono S.v₀₁.τ₃, assoc, ← pullback.condition],
+  dsimp [x₂] at hk₂,
+  have hk₂' : p ≫ pullback.fst = k₂ ≫ S.v₀₁.τ₂ + x₁ ≫ S.L₁.f,
+  { rw hk₂, abel, },
+  simp only [reassoc_of hk₂', add_comp, assoc, S.L₁.zero, comp_zero, add_zero,
+    S.v₀₁.comm₂₃],
+  /- idea: redo the computation above by replacing `A` by some
+  some object `A'` with `A' ⟶ A` epi when it is needed. -/
 end
 
 @[simps]

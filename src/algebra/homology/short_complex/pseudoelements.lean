@@ -29,4 +29,13 @@ begin
     { exact h}, }
 end
 
+variable {S}
+
+lemma exact.pseudo_exact (h : S.exact) (b) (hb : S.g b = 0) :
+  ∃ a, S.f a = b :=
+begin
+  rw exact_iff_pseudo_exact at h,
+  exact h b hb,
+end
+
 end short_complex

@@ -47,7 +47,7 @@ begin
   suffices : maps_to coe (g ⁻¹' {f}) (f.root_set A),
     from this.countable_of_inj_on (subtype.coe_injective.inj_on _) (f.root_set_finite A).countable,
   rintro x (rfl : g x = f),
-  exact mem_root_set_iff.2 ⟨hg₁ x, hg₂ x⟩
+  exact mem_root_set.2 ⟨hg₁ x, hg₂ x⟩
 end
 
 theorem cardinal_mk_lift_le_max :

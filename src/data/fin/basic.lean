@@ -1004,7 +1004,25 @@ by rw [←succ_lt_succ_iff, succ_pred, succ_pred]
 | ⟨i+1, _⟩  ⟨0,   _⟩  ha hb := by contradiction
 | ⟨i+1, hi⟩ ⟨j+1, hj⟩ ha hb := by simp [fin.eq_iff_veq]
 
-@[simp] lemma pred_one {n : ℕ} : fin.pred (1 : fin (n + 2)) (ne.symm (ne_of_lt one_pos)) = 0 := rfl
+/-- There exists an embedding `fin n ↪ fin m` if and only if `n ≤ m`. There is a shorter proof bsed
+on `fintype.card` but we want to have this fact earlier in the import chain. -/
+lemma nonempty_embedding_iff : nonempty (fin n ↪ fin m) ↔ n ≤ m :=
+begin
+  refine ⟨λ h, _, λ h, ⟨(cast_le h).to_embedding⟩⟩,
+  induction n with n ihn generalizing m, { exact m.zero_le },
+  cases h with e,
+  rcases exists_eq_succ_of_ne_zero (pos_iff_nonempty.2 (nonempty.map e infer_instance)).ne'
+    with ⟨m, rfl⟩,
+  refine nat.succ_le_succ (ihn ⟨_⟩),
+  refine ⟨λ i, (e.set_value 0 0 i.succ).pred (e.set_value_ne i.succ_ne_zero _), λ i j h, _⟩,
+  simpa only [pred_inj, embedding_like.apply_eq_iff_eq, succ_inj] using h,
+end
+
+lemma equiv_iff_eq : nonempty (fin n ≃ fin m) ↔ n = m :=
+⟨λ ⟨e⟩, le_antisymm (nonempty_embedding_iff.1 ⟨e⟩) (nonempty_embedding_iff.1 ⟨e.symm⟩),
+  λ h, h ▸ ⟨equiv.refl _⟩⟩
+
+@[simp] lemma pred_one {n : ℕ} : fin.pred (1 : fin (n + 2)) zero_ne_one.symm = 0 := rfl
 
 lemma pred_add_one (i : fin (n + 2)) (h : (i : ℕ) < n + 1) :
   pred (i + 1) (ne_of_gt (add_one_pos _ (lt_iff_coe_lt_coe.mpr h))) = cast_lt i h :=

@@ -267,10 +267,6 @@ theorem fin.cast_eq_cast' {n m : ℕ} (h : fin n = fin m) :
 lemma card_finset_fin_le {n : ℕ} (s : finset (fin n)) : s.card ≤ n :=
 by simpa only [fintype.card_fin] using s.card_le_univ
 
-lemma fin.equiv_iff_eq {m n : ℕ} : nonempty (fin m ≃ fin n) ↔ m = n :=
-⟨λ ⟨h⟩, by simpa using fintype.card_congr h, λ h, ⟨equiv.cast $ h ▸ rfl ⟩ ⟩
-
-
 @[simp] lemma fintype.card_subtype_eq (y : α) [fintype {x // x = y}] :
   fintype.card {x // x = y} = 1 :=
 fintype.card_unique

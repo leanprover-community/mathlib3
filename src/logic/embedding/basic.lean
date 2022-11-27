@@ -154,6 +154,10 @@ theorem set_value_eq {α β} (f : α ↪ β) (a : α) (b : β) [∀ a', decidabl
   [∀ a', decidable (f a' = b)] : set_value f a b a = b :=
 by simp [set_value]
 
+theorem set_value_ne {α β} (f : α ↪ β) {a a' : α} (h : a' ≠ a) (b : β) [∀ a', decidable (a' = a)]
+  [∀ a', decidable (f a' = b)] : set_value f a b a' ≠ b :=
+((set_value f a b).injective.ne_iff' $ set_value_eq f a b).2 h
+
 /-- Embedding into `option α` using `some`. -/
 @[simps { fully_applied := ff }] protected def some {α} : α ↪ option α :=
 ⟨some, option.some_injective α⟩

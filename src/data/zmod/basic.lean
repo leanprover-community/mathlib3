@@ -792,7 +792,7 @@ begin
       sub_zero] }
 end
 
-lemma injective_coe_val_min_abs {n : ℕ} : (val_min_abs : zmod n → ℤ).injective :=
+lemma injective_val_min_abs {n : ℕ} : (val_min_abs : zmod n → ℤ).injective :=
 function.injective_iff_has_left_inverse.2 ⟨_, coe_val_min_abs⟩
 
 lemma _root_.nat.le_div_two_iff_mul_two_le {n m : ℕ} : m ≤ n / 2 ↔ (m : ℤ) * 2 ≤ n :=
@@ -857,7 +857,7 @@ end
 begin
   cases n, { simp },
   rw ← val_min_abs_zero n.succ,
-  apply injective_coe_val_min_abs.eq_iff,
+  apply injective_val_min_abs.eq_iff,
 end
 
 lemma nat_cast_nat_abs_val_min_abs {n : ℕ} [ne_zero n] (a : zmod n) :

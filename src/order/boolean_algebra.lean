@@ -270,7 +270,7 @@ end
 @[simp] lemma le_sdiff_iff : x ≤ y \ x ↔ x = ⊥ :=
 ⟨λ h, disjoint_self.1 (disjoint_sdiff_self_right.mono_right h), λ h, h.le.trans bot_le⟩
 
-@[simp] lemma le_sdiff :
+lemma le_sdiff :
   x ≤ y \ z ↔ x ≤ y ∧ disjoint x z :=
 begin
   split,

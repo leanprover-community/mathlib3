@@ -488,7 +488,6 @@ begin
   simp [sdiff_eq_self_of_disjoint (edge_set_disjoint_diag G), disjoint.comm],
 end
 
-
 instance [decidable_eq V] [fintype s] : fintype (from_edge_set s).edge_set :=
 by { rw edge_set_from_edge_set s, apply_instance }
 

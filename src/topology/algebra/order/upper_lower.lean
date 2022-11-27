@@ -12,6 +12,12 @@ import topology.algebra.group
 The topological closure and interior of an upper/lower/order-connected set is an
 upper/lower/order-connected set (with the notable exception of the closure of an order-connected
 set).
+
+## Notes
+
+The lemmas don't mention additive/multiplicative operations. As a result, we decide to prime the
+multiplicative lemma names to indicate that there is probably a commong generalisation to each pair
+of additive/multiplicative lemma.
 -/
 
 open function set

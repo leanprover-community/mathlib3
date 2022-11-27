@@ -1206,7 +1206,8 @@ def subgroup_of_equiv_of_le {G : Type*} [group G] {H K : subgroup G} (h : H ≤ 
   right_inv := λ g, subtype.ext rfl,
   map_mul' := λ g h, rfl }
 
-@[simp, to_additive] lemma comap_subtype (H K : subgroup G) : H.comap K.subtype = H.subgroup_of K := rfl
+@[simp, to_additive]
+lemma comap_subtype (H K : subgroup G) : H.comap K.subtype = H.subgroup_of K := rfl
 
 @[simp, to_additive]
 lemma comap_inclusion_subgroup_of {K₁ K₂ : subgroup G} (h : K₁ ≤ K₂) (H : subgroup G) :

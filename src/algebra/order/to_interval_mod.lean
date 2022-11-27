@@ -565,42 +565,89 @@ lemma quotient_add_group.equiv_Ioc_mod_zero (a : α) {b : α} (hb : 0 < b) :
 rfl
 
 namespace quotient_add_group
-instance {a b : α} [hb : fact (0 < b)] : circular_order (α ⧸ add_subgroup.zmultiples b) :=
-{ btw := λ x₁ x₂ x₃, (equiv_Ico_mod 0 hb.out (x₂ - x₁) : α) ≤ equiv_Ioc_mod 0 hb.out (x₃ - x₁),
-  sbtw := _,
+variables {b : α} [hb : fact (0 < b)]
+include hb
+
+instance : has_btw (α ⧸ add_subgroup.zmultiples b) :=
+{ btw := λ x₁ x₂ x₃, (equiv_Ico_mod 0 hb.out (x₂ - x₁) : α) ≤ equiv_Ioc_mod 0 hb.out (x₃ - x₁) }
+
+lemma btw_coe_iff' (x₁ x₂ x₃ : α) :
+  has_btw.btw (x₁ : α ⧸ add_subgroup.zmultiples b) x₂ x₃ ↔
+    to_Ico_mod 0 hb.out (x₂ - x₁) ≤ to_Ioc_mod 0 hb.out (x₃ - x₁) :=
+iff.rfl
+
+-- maybe harder to prove with than the primed one?
+lemma btw_coe_iff (x₁ x₂ x₃ : α) :
+  has_btw.btw (x₁ : α ⧸ add_subgroup.zmultiples b) x₂ x₃ ↔
+    to_Ico_mod x₁ hb.out x₂ ≤ to_Ioc_mod x₁ hb.out x₃ :=
+by rw [btw_coe_iff', to_Ioc_mod_sub', to_Ico_mod_sub', zero_add, sub_le_sub_iff_right]
+
+private lemma to_Ixx_mod_cyclic_left (x₁ x₂ x₃ : α)
+  (h : to_Ico_mod x₁ hb.out x₂ ≤ to_Ioc_mod x₁ hb.out x₃) :
+  to_Ico_mod x₂ hb.out x₃ ≤ to_Ioc_mod x₂ hb.out x₁ :=
+begin
+  sorry
+end
+
+private lemma to_Ixx_mod_antisymm {x₁ x₂ x₃ : α}
+  (h₁₂₃ : to_Ico_mod x₁ hb.out x₂ ≤ to_Ioc_mod x₁ hb.out x₃)
+  (h₃₂₁ : to_Ico_mod x₃ hb.out x₂ ≤ to_Ioc_mod x₃ hb.out x₁) :
+  (∃ (k : ℤ), x₂ + k • b = x₁) ∨
+    (∃ (k : ℤ), x₃ + k • b = x₂) ∨
+      ∃ (k : ℤ), x₁ + k • b = x₃ :=
+begin
+  sorry
+end
+
+private lemma to_Ixx_mod_total (x₁ x₂ x₃ : α) :
+  to_Ico_mod x₁ hb.out x₂ ≤ to_Ioc_mod x₁ hb.out x₃ ∨
+  to_Ico_mod x₃ hb.out x₂ ≤ to_Ioc_mod x₃ hb.out x₁ :=
+begin
+  sorry
+end
+
+private lemma to_Ixx_mod_trans {x₁ x₂ x₃ x₄ : α}
+  (h₁₂₃ : to_Ico_mod x₁ hb.out x₂ ≤ to_Ioc_mod x₁ hb.out x₃ ∧ ¬to_Ico_mod x₃ hb.out x₂ ≤ to_Ioc_mod x₃ hb.out x₁)
+  (h₂₃₄ : to_Ico_mod x₂ hb.out x₄ ≤ to_Ioc_mod x₂ hb.out x₃ ∧ ¬to_Ico_mod x₃ hb.out x₄ ≤ to_Ioc_mod x₃ hb.out x₂) :
+  to_Ico_mod x₁ hb.out x₄ ≤ to_Ioc_mod x₁ hb.out x₃ ∧ ¬to_Ico_mod x₃ hb.out x₄ ≤ to_Ioc_mod x₃ hb.out x₁ :=
+begin
+  sorry
+end
+
+instance : circular_order (α ⧸ add_subgroup.zmultiples b) :=
+{ sbtw := _,
   btw_refl := λ x, show _ ≤ _, by simp [sub_self, hb.out.le],
   btw_cyclic_left := λ x₁ x₂ x₃ h, begin
     induction x₁ using quotient_add_group.induction_on',
     induction x₂ using quotient_add_group.induction_on',
     induction x₃ using quotient_add_group.induction_on',
-    dsimp [btw, ←quotient_add_group.coe_sub] at h ⊢,
-    rw [←sub_add_sub_cancel _ x₃ _, add_comm, to_Ico_mod_add_right', zero_sub] at h,
-    simp_rw [to_Ico_mod_sub', to_Ioc_mod_sub'] at h ⊢,
-    sorry
+    simp_rw [btw_coe_iff] at h ⊢,
+    apply to_Ixx_mod_cyclic_left _ _ _ h,
   end,
   sbtw_iff_btw_not_btw := λ _ _ _, iff.rfl,
   sbtw_trans_left := λ x₁ x₂ x₃ x₄ (h₁₂₃ : _ ∧ _) (h₂₃₄ : _ ∧ _), show _ ∧ _, begin
-    -- induction x₁ using quotient_add_group.induction_on',
-    -- induction x₂ using quotient_add_group.induction_on',
-    -- induction x₃ using quotient_add_group.induction_on',
-    -- induction x₄ using quotient_add_group.induction_on',
-    -- dsimp [btw, ←quotient_add_group.coe_sub] at h₁₂₃ h₂₃₄ ⊢,
-    sorry
+    induction x₁ using quotient_add_group.induction_on',
+    induction x₂ using quotient_add_group.induction_on',
+    induction x₃ using quotient_add_group.induction_on',
+    induction x₄ using quotient_add_group.induction_on',
+    simp_rw [btw_coe_iff] at h₁₂₃ h₂₃₄ ⊢,
+    apply to_Ixx_mod_trans h₁₂₃ h₂₃₄,
   end,
-  btw_antisymm := λ x₁ x₂ x₃ h₁₂ h₂₃, begin
-    -- induction x₁ using quotient_add_group.induction_on',
-    -- induction x₂ using quotient_add_group.induction_on',
-    -- induction x₃ using quotient_add_group.induction_on',
-    -- dsimp [btw, ←quotient_add_group.coe_sub] at h₁₂ h₂₃,
-    -- rw ←neg_sub at h₁₂,
-    sorry
+  btw_antisymm := λ x₁ x₂ x₃ h₁₂₃ h₃₂₁, begin
+    induction x₁ using quotient_add_group.induction_on',
+    induction x₂ using quotient_add_group.induction_on',
+    induction x₃ using quotient_add_group.induction_on',
+    simp_rw [btw_coe_iff] at h₁₂₃ h₃₂₁,
+    simp_rw [quotient_add_group.eq_iff_sub_mem, add_subgroup.mem_zmultiples_iff,
+      eq_sub_iff_add_eq'],
+    apply to_Ixx_mod_antisymm h₁₂₃ h₃₂₁,
   end,
   btw_total := λ x₁ x₂ x₃, begin
-    -- induction x₁ using quotient_add_group.induction_on',
-    -- induction x₂ using quotient_add_group.induction_on',
-    -- induction x₃ using quotient_add_group.induction_on',
-    -- dsimp [btw, ←quotient_add_group.coe_sub] at ⊢,
-    sorry
+    induction x₁ using quotient_add_group.induction_on',
+    induction x₂ using quotient_add_group.induction_on',
+    induction x₃ using quotient_add_group.induction_on',
+    simp_rw [btw_coe_iff] at ⊢,
+    apply to_Ixx_mod_total,
   end }
 
 end quotient_add_group

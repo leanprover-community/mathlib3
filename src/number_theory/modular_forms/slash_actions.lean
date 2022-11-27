@@ -29,10 +29,10 @@ class slash_action (β G α γ : Type*) [group G] [has_zero α]
   [has_one α] [has_smul γ α] [has_add α] :=
 (map : β → G → α → α)
 (mul_zero : ∀ (k : β) (g : G), map k g 0 = 0)
-(one_mul : ∀ (k : β) (a : α ) , map k 1 a = a)
-(right_action : ∀ (k : β) (g h : G) (a : α ), map k h (map k g a) = map k (g * h) a )
-(smul_action : ∀ (k : β) (g : G) (a : α ) (z : γ), map k g (z • a) = z • (map k g a))
-(add_action : ∀ (k : β) (g : G) (a b : α ), map k g (a + b) = map k g a + map k g b)
+(one_mul : ∀ (k : β) (a : α) , map k 1 a = a)
+(right_action : ∀ (k : β) (g h : G) (a : α), map k h (map k g a) = map k (g * h) a )
+(smul_action : ∀ (k : β) (g : G) (a : α) (z : γ), map k g (z • a) = z • (map k g a))
+(add_action : ∀ (k : β) (g : G) (a b : α), map k g (a + b) = map k g a + map k g b)
 
 /--Slash_action induced by a monoid homomorphism.-/
 def monoid_hom_slash_action {β G H α γ : Type*} [group G] [has_zero α]

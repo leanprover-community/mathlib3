@@ -855,11 +855,10 @@ begin
 end
 
 lemma zero_le_degree_iff {p : R[X]} : 0 ≤ degree p ↔ p ≠ 0 :=
-by rw [ne.def, ← degree_eq_bot];
-  cases degree p; exact dec_trivial
+by rw [ne.def, ← degree_eq_bot, ← nat.with_bot.lt_zero_iff, not_lt]
 
 lemma degree_nonneg_iff_ne_zero : 0 ≤ degree p ↔ p ≠ 0 :=
-by simp [degree_eq_bot, ← not_lt]
+zero_le_degree_iff
 
 lemma nat_degree_eq_zero_iff_degree_le_zero : p.nat_degree = 0 ↔ p.degree ≤ 0 :=
 by rw [← nonpos_iff_eq_zero, nat_degree_le_iff_degree_le, with_bot.coe_zero]

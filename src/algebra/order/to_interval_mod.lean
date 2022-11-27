@@ -614,7 +614,7 @@ begin
   sorry
 end
 
-instance : circular_order (α ⧸ add_subgroup.zmultiples b) :=
+instance circular_order : circular_order (α ⧸ add_subgroup.zmultiples b) :=
 { sbtw := _,
   btw_refl := λ x, show _ ≤ _, by simp [sub_self, hb.out.le],
   btw_cyclic_left := λ x₁ x₂ x₃ h, begin

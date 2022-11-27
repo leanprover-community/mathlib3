@@ -86,6 +86,9 @@ include hp
 
 variables [archimedean 𝕜]
 
+instance : circular_order (add_circle p) :=
+quotient_add_group.circular_order
+
 /-- The natural equivalence between `add_circle p` and the half-open interval `[0, p)`. -/
 def equiv_Ico : add_circle p ≃ Ico 0 p :=
 (quotient_add_group.equiv_Ico_mod 0 hp.out).trans $ equiv.set.of_eq $ by rw zero_add

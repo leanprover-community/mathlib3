@@ -246,7 +246,7 @@ by rw [← mul_indicator_union_mul_inter_apply f s t, mul_indicator_of_not_mem h
 
 @[to_additive] lemma mul_indicator_union_of_disjoint (h : disjoint s t) (f : α → M) :
   mul_indicator (s ∪ t) f = λa, mul_indicator s f a * mul_indicator t f a :=
-funext $ λa, mul_indicator_union_of_not_mem_inter (λ ha, h ha) _
+funext $ λa, mul_indicator_union_of_not_mem_inter (λ ha, h.le_bot ha) _
 
 @[to_additive] lemma mul_indicator_mul (s : set α) (f g : α → M) :
   mul_indicator s (λa, f a * g a) = λa, mul_indicator s f a * mul_indicator s g a :=

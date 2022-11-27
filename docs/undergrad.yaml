@@ -111,12 +111,12 @@ Group Theory:
   Representation theory of finite groups:
     representations of abelian groups: 'https://proofwiki.org/wiki/Irreducible_Representations_of_Abelian_Group'
     dual groups: 'https://kconrad.math.uconn.edu/blurbs/grouptheory/charthy.pdf'
-    Maschke theorem: 'https://en.wikipedia.org/wiki/Maschke%27s_theorem'
-    orthogonality of irreducible characters: 'https://en.wikipedia.org/wiki/Schur_orthogonality_relations'
+    Maschke theorem: 'monoid_algebra.submodule.exists_is_compl'
+    orthogonality of irreducible characters: 'fdRep.char_orthonormal'
     Fourier transform for finite abelian groups: 'https://en.wikipedia.org/wiki/Fourier_transform_on_finite_groups#Fourier_transform_for_finite_abelian_groups'
     convolution: 'https://en.wikipedia.org/wiki/Fourier_transform_on_finite_groups#Transform_of_a_convolution'
     class function over a group: 'https://en.wikipedia.org/wiki/Class_function'
-    characters of a finite dimensional representation: 'https://en.wikipedia.org/wiki/Character_theory'
+    characters of a finite dimensional representation: 'fdRep.character'
     orthonormal basis of irreducible characters: 'https://en.wikipedia.org/wiki/Character_theory#Orthogonality_relations'
     examples of groups with small cardinality: ''
 
@@ -348,8 +348,10 @@ Single Variable Real Analysis:
     pointwise convergence: 'tendsto_pi_nhds'
     uniform convergence: 'tendsto_uniformly'
     normal convergence: 'https://en.wikipedia.org/wiki/Normal_convergence'
-    continuity of the limit: 'continuous_of_uniform_approx_of_continuous'
-    differentiability of the limit: 'https://en.wikipedia.org/wiki/Uniform_convergence#To_differentiability'
+    continuity of the limit of a sequence of functions: 'continuous_of_uniform_approx_of_continuous'
+    continuity of the sum of a series of functions: 'continuous_tsum'
+    differentiability of the limit of a sequence of functions: 'has_fderiv_at_of_tendsto_uniformly'
+    differentiability of the sum of a series of functions: 'differentiable_tsum'
     Weierstrass polynomial approximation theorem: 'polynomial_functions_closure_eq_top'
     Weierstrass trigonometric approximation theorem: 'span_fourier_closure_eq_top'
   Convexity:
@@ -498,7 +500,7 @@ Measures and integral calculus:
     Lebesgue measure: 'measure_theory.measure_space'
     product measure: 'measurable_space.pi'
     measurable functions: 'measurable'
-    approximation by step functions: 'measure_theory/simple_func_dense.html'
+    approximation by step functions: 'measure_theory.simple_func.tendsto_approx_on'
   Integration:
     integral of positive measurable functions: 'measure_theory.lintegral'
     monotone convergence theorem: 'measure_theory.lintegral_infi_ae'
@@ -519,7 +521,7 @@ Measures and integral calculus:
     approximation by convolution: 'cont_diff_bump_of_inner.convolution_tendsto_right'
     regularization by convolution: 'has_compact_support.cont_diff_convolution_left'
   Fourier analysis:
-    Fourier series of locally integrable periodic real-valued functions: ''
+    Fourier series of locally integrable periodic real-valued functions: 'fourier_series'
     Riemann-Lebesgue lemma: ''
     convolution product of periodic functions: ''
     Dirichlet theorem: ''
@@ -664,12 +666,3 @@ Numerical Analysis:
   Fourier transform:
     discrete Fourier transform on a finite abelian group: ''
     fast Fourier transform: ''
-    
-
-# 14.
-Representation theory:
-  Group representations: 
-    representation : 'representation'
-    category of finite dimensional representations : 'fdRep'
-    character : 'fdRep.character'
-    orthogonality of characters : 'fdRep.char_orthonormal'

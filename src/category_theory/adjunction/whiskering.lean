@@ -3,8 +3,8 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
-import category_theory.adjunction
 import category_theory.whiskering
+import category_theory.adjunction.basic
 
 /-!
 

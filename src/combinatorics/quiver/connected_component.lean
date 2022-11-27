@@ -5,6 +5,7 @@ Authors: David Wärn
 -/
 import combinatorics.quiver.subquiver
 import combinatorics.quiver.path
+import data.sum.basic
 
 /-!
 ## Weakly connected components

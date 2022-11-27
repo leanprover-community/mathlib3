@@ -56,6 +56,28 @@ begin
     exact ⟨K, nhds_within_le_nhds hK, h2K⟩ }
 end
 
+lemma locally_integrable_const [is_locally_finite_measure μ] (c : E) :
+  locally_integrable (λ x, c) μ :=
+λ K hK, by simp only [integrable_on_const, hK.measure_lt_top, or_true]
+
+lemma locally_integrable.indicator (hf : locally_integrable f μ)
+  {s : set X} (hs : measurable_set s) : locally_integrable (s.indicator f) μ :=
+λ K hK, (hf hK).indicator hs
+
+theorem locally_integrable_map_homeomorph [borel_space X] [borel_space Y]
+  (e : X ≃ₜ Y) {f : Y → E} {μ : measure X} :
+  locally_integrable f (measure.map e μ) ↔ locally_integrable (f ∘ e) μ :=
+begin
+  refine ⟨λ h k hk, _, λ h k hk, _⟩,
+  { have : is_compact (e.symm ⁻¹' k), from (homeomorph.is_compact_preimage _).2 hk,
+    convert (integrable_on_map_equiv e.to_measurable_equiv).1 (h this) using 1,
+    simp only [←preimage_comp, homeomorph.to_measurable_equiv_coe, homeomorph.symm_comp_self,
+      preimage_id_eq, id.def] },
+  { apply (integrable_on_map_equiv e.to_measurable_equiv).2,
+    have : is_compact (e ⁻¹' k), from (homeomorph.is_compact_preimage _).2 hk,
+    exact h this }
+end
+
 section real
 variables [opens_measurable_space X] {A K : set X} {g g' : X → ℝ}
 
@@ -66,7 +88,7 @@ lemma integrable_on.mul_continuous_on_of_subset
 begin
   rcases is_compact.exists_bound_of_continuous_on hK hg' with ⟨C, hC⟩,
   rw [integrable_on, ← mem_ℒp_one_iff_integrable] at hg ⊢,
-  have : ∀ᵐ x ∂(μ.restrict A), ∥g x * g' x∥ ≤ C * ∥g x∥,
+  have : ∀ᵐ x ∂(μ.restrict A), ‖g x * g' x‖ ≤ C * ‖g x‖,
   { filter_upwards [ae_restrict_mem hA] with x hx,
     rw [real.norm_eq_abs, abs_mul, mul_comm, real.norm_eq_abs],
     apply mul_le_mul_of_nonneg_right (hC x (hAK hx)) (abs_nonneg _), },

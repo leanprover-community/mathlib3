@@ -527,7 +527,7 @@ begin
   have h' := mem_iff.mp h,
   dsimp [mem.other', quot.rec, pair_other],
   cases h'; subst a,
-  { simp only [if_true, eq_self_iff_true], refl, },
+  { simp only [eq_self_iff_true], refl, },
   { split_ifs, subst h_1, refl, rw eq_swap, refl, },
   refl,
 end
@@ -547,7 +547,7 @@ begin
   split_ifs at hb; dsimp [mem.other', quot.rec, pair_other],
   simp only [h, if_true, eq_self_iff_true],
   split_ifs, assumption, refl,
-  simp only [h, if_false, if_true, eq_self_iff_true],
+  simp only [h, if_false, eq_self_iff_true],
   exact ((mem_iff.mp ha).resolve_left h).symm,
   refl,
 end
@@ -583,7 +583,7 @@ begin
   ext z,
   induction z using quotient.induction_on,
   rcases z with ⟨x, y⟩,
-  simp only [mem_image, mem_off_diag, exists_prop, mem_filter, prod.exists, mem_product],
+  simp only [mem_image, mem_off_diag, mem_filter, prod.exists, mem_product],
   split,
   { rintro ⟨⟨a, b, ⟨ha, hb⟩, h⟩, hab⟩,
     rw [←h, sym2.mk_is_diag_iff] at hab,

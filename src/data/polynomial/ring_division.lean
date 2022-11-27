@@ -8,7 +8,6 @@ import data.polynomial.degree.lemmas
 import data.polynomial.div
 import ring_theory.localization.fraction_ring
 import algebra.polynomial.big_operators
-import tactic.interval_cases
 
 /-!
 # Theory of univariate polynomials

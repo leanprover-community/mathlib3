@@ -948,10 +948,9 @@ lemma map_range_neg [neg_zero_class G] [neg_zero_class H]
   map_range f hf (-v) = -map_range f hf v :=
 ext $ λ _, by simp only [hf', neg_apply, map_range_apply]
 
-lemma map_range_neg' [sub_neg_zero_monoid G] [sub_neg_zero_monoid H] [add_monoid_hom_class β G H]
-  {f : β} {hf : f 0 = 0} (hf' : ∀ x, f (-x) = -f x) (v : α →₀ G) :
-  map_range f hf (-v) = -map_range f hf v :=
-map_range_neg hf' v
+lemma map_range_neg' [add_group G] [subtraction_monoid H] [add_monoid_hom_class β G H]
+  {f : β} {hf : f 0 = 0} (v : α →₀ G) : map_range f hf (-v) = -map_range f hf v :=
+map_range_neg (map_neg f) v
 
 instance [sub_neg_zero_monoid G] : has_sub (α →₀ G) := ⟨zip_with has_sub.sub (sub_zero _)⟩
 
@@ -965,10 +964,10 @@ lemma map_range_sub [sub_neg_zero_monoid G] [sub_neg_zero_monoid H]
   map_range f hf (v₁ - v₂) = map_range f hf v₁ - map_range f hf v₂ :=
 ext $ λ _, by simp only [hf', sub_apply, map_range_apply]
 
-lemma map_range_sub' [sub_neg_zero_monoid G] [sub_neg_zero_monoid H] [add_monoid_hom_class β G H]
-  {f : β} {hf : f 0 = 0} (hf' : ∀ x y, f (x - y) = f x - f y) (v₁ v₂ : α →₀ G) :
+lemma map_range_sub' [add_group G] [subtraction_monoid H] [add_monoid_hom_class β G H]
+  {f : β} {hf : f 0 = 0} (v₁ v₂ : α →₀ G) :
   map_range f hf (v₁ - v₂) = map_range f hf v₁ - map_range f hf v₂ :=
-map_range_sub hf' v₁ v₂
+map_range_sub (map_sub f) v₁ v₂
 
 /-- Note the general `finsupp.has_smul` instance doesn't apply as `ℤ` is not distributive
 unless `β i`'s addition is commutative. -/

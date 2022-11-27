@@ -1460,7 +1460,7 @@ end pi
 structure normal : Prop :=
 (conj_mem : ∀ n, n ∈ H → ∀ g : G, g * n * g⁻¹ ∈ H)
 
-attribute [class, mk_iff] normal
+attribute [class] normal
 
 end subgroup
 
@@ -1470,7 +1470,7 @@ namespace add_subgroup
 structure normal (H : add_subgroup A) : Prop :=
 (conj_mem [] : ∀ n, n ∈ H → ∀ g : A, g + n + -g ∈ H)
 
-attribute [to_additive] subgroup.normal subgroup.normal_iff
+attribute [to_additive add_subgroup.normal] subgroup.normal
 attribute [class] normal
 
 end add_subgroup

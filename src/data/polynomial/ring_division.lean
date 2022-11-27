@@ -491,11 +491,13 @@ begin
   exact multiset.le_iff_exists_add.mpr ⟨k.roots, roots_mul h⟩
 end
 
+lemma mem_roots_sub_C' {p : R[X]} {a x : R} :
+  x ∈ (p - C a).roots ↔ p ≠ C a ∧ p.eval x = a :=
+by rw [mem_roots', is_root.def, sub_ne_zero, eval_sub, sub_eq_zero, eval_C]
+
 lemma mem_roots_sub_C {p : R[X]} {a x : R} (hp0 : 0 < degree p) :
   x ∈ (p - C a).roots ↔ p.eval x = a :=
-(mem_roots (show p - C a ≠ 0, from mt sub_eq_zero.1 $ λ h,
-    not_le_of_gt hp0 $ h.symm ▸ degree_C_le)).trans
-  (by rw [is_root.def, eval_sub, eval_C, sub_eq_zero])
+mem_roots_sub_C'.trans $ and_iff_right $ λ hp, hp0.not_le $ hp.symm ▸ degree_C_le
 
 @[simp] lemma roots_X_sub_C (r : R) : roots (X - C r) = {r} :=
 begin

@@ -7,7 +7,16 @@ noncomputable theory
 open category_theory category_theory.limits category_theory.category
   category_theory.preadditive
 
-variables (C : Type*) [category C] [abelian C]
+variables {C : Type*} [category C] [abelian C]
+
+lemma category_theory.abelian.pseudo_surjective_of_epi'
+  {A X Y : C} (f : X ⟶ Y) [epi f] (y : A ⟶ Y) :
+  ∃ (A' : C) (π : A' ⟶ A) (hπ : epi π) (x : A' ⟶ X), π ≫ y = x ≫ f :=
+sorry
+
+variable (C)
+
+open category_theory
 
 namespace short_complex
 
@@ -241,40 +250,33 @@ def L₁' : short_complex C := short_complex.mk _ _ S.L₀_g_δ
 @[simps]
 def L₂' : short_complex C := short_complex.mk _ _ S.δ_L₃_f
 
-
 lemma L₁'_exact : S.L₁'.exact :=
 begin
-/-  rw S.L₁'.exact_iff_pseudo_exact,
-  intros k₃ hk₃,
-  obtain ⟨x₂, rfl⟩ := abelian.pseudoelement.pseudo_surjective_of_epi S.L₀'.g k₃,
-  dsimp only [L₀', L₁'] at x₂ hk₃ ⊢,
-  rw [← abelian.pseudoelement.comp_apply, snd_δ,
-    abelian.pseudoelement.comp_apply] at hk₃,
-  obtain ⟨x₁, hx₁⟩ := S.C₁_down_exact.pseudo_exact (S.φ₁ x₂) hk₃,
-  dsimp at hx₁,
-  let x₂' := S.L₁.f x₁,-/
-  have A : C := sorry,
-  have p : A ⟶ S.P := sorry,
-  have hp : p ≫ S.φ₁ ≫ S.v₂₃.τ₁ = 0 := sorry,
-  have x₁ : A ⟶ S.L₁.X₁ := sorry,
-  have hx₁ : p ≫ S.φ₁ = x₁ ≫ S.v₁₂.τ₁ := sorry,
-  let x₂ := p ≫ pullback.fst,
-  have hx₁' : x₁ ≫ S.L₁.f ≫ S.v₁₂.τ₂ = p ≫ pullback.fst ≫ S.v₁₂.τ₂,
-  { simp only [← S.v₁₂.comm₁₂, ← reassoc_of hx₁, φ₂, φ₁_L₂_f], },
-  let k₂ := S.C₂_up_exact.lift (x₂ - x₁ ≫ S.L₁.f)
-    (by { dsimp, simp only [sub_comp, assoc, hx₁', sub_self], }),
-  have hk₂ : k₂ ≫ S.v₀₁.τ₂ = (x₂ - x₁ ≫ S.L₁.f) :=
-    S.C₂_up_exact.lift_f _ _,
-  suffices : k₂ ≫ S.L₀.g = p ≫ pullback.snd,
-  { sorry, },
-  simp only [← cancel_mono S.v₀₁.τ₃, assoc, ← pullback.condition],
-  dsimp [x₂] at hk₂,
-  have hk₂' : p ≫ pullback.fst = k₂ ≫ S.v₀₁.τ₂ + x₁ ≫ S.L₁.f,
-  { rw hk₂, abel, },
-  simp only [reassoc_of hk₂', add_comp, assoc, S.L₁.zero, comp_zero, add_zero,
-    S.v₀₁.comm₂₃],
-  /- idea: redo the computation above by replacing `A` by some
-  some object `A'` with `A' ⟶ A` epi when it is needed. -/
+  apply short_complex.exact.of_pseudo_exact',
+  intros A₀ k₃ hk₃,
+  dsimp at k₃ hk₃,
+  obtain ⟨A₁, π₁, hπ₁, p, hp⟩ := abelian.pseudo_surjective_of_epi' S.L₀'.g k₃,
+  dsimp [L₀'] at p hp,
+  have hp' : (p ≫ S.φ₁) ≫ S.v₂₃.τ₁ = 0,
+  { rw [assoc, ← S.snd_δ, ← reassoc_of hp, hk₃, comp_zero], },
+  obtain ⟨A₂, π₂, hπ₂, x₁, hx₁⟩ := S.C₁_down_exact.pseudo_exact' (p ≫ S.φ₁) hp',
+  dsimp at x₁ hx₁,
+  let x₂' := x₁ ≫ S.L₁.f,
+  let x₂ := π₂ ≫ p ≫ pullback.fst,
+  have hx₂' : (x₂ - x₂') ≫ S.v₁₂.τ₂ = 0,
+  { dsimp [x₂, x₂'],
+    simp only [sub_comp, assoc, ← S.v₁₂.comm₁₂, ← reassoc_of hx₁, φ₂, φ₁_L₂_f, sub_self], },
+  let k₂ := S.C₂_up_exact.lift _ hx₂',
+  dsimp at k₂,
+  have hk₂ : k₂ ≫ S.v₀₁.τ₂ = x₂ - x₂' := S.C₂_up_exact.lift_f _ _,
+  have hk₂' : k₂ ≫ S.L₀.g = π₂ ≫ p ≫ pullback.snd,
+  { dsimp [x₂, x₂'] at hk₂,
+    simp only [← cancel_mono S.v₀₁.τ₃, assoc, ← S.v₀₁.comm₂₃, reassoc_of hk₂, sub_comp, S.L₁.zero,
+      comp_zero, sub_zero, pullback.condition], },
+  haveI := hπ₁,
+  haveI := hπ₂,
+  refine ⟨_, π₂ ≫ π₁, epi_comp _ _, k₂, _⟩,
+  simp only [assoc, L₁'_f, ← hk₂', hp],
 end
 
 @[simps]

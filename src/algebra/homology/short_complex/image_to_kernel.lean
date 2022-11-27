@@ -164,6 +164,20 @@ lemma exact_iff_image_eq_kernel [has_zero_object C] [balanced C] [S.has_homology
   S.exact ↔ image_subobject S.f = kernel_subobject S.g :=
 by rw [S.exact_iff_is_zero_left_homology, is_zero_left_homology_iff_image_eq_kernel]
 
+lemma exact.of_pseudo_exact' [has_zero_object C] [S.has_homology]
+  (h : ∀ ⦃A : C⦄ (x₂ : A ⟶ S.X₂) (hx₂ : x₂ ≫ S.g = 0),
+    ∃ (A' : C) (π : A' ⟶ A) (hπ : epi π) (x₁ : A' ⟶ S.X₁), π ≫ x₂ = x₁ ≫ S.f) : S.exact :=
+begin
+  rw exact_iff_epi_to_cycles,
+  obtain ⟨A', π, hπ, x₁, hx₁⟩ := h S.cycles_i (by simp),
+  have eq : π = x₁ ≫ S.to_cycles,
+  { rw [← cancel_mono S.cycles_i, hx₁],
+    simp only [assoc, to_cycles_i], },
+  subst eq,
+  haveI := hπ,
+  exact epi_of_epi x₁ _,
+end
+
 end preadditive
 
 end short_complex

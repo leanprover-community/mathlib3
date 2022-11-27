@@ -38,4 +38,8 @@ begin
   exact h b hb,
 end
 
+
+lemma exact.pseudo_exact' (h : S.exact) {A : C} (x₂ : A ⟶ S.X₂) (hx₂ : x₂ ≫ S.g = 0) :
+  ∃ (A' : C) (π : A' ⟶ A) (hπ : epi π) (x₁ : A' ⟶ S.X₁), π ≫ x₂ = x₁ ≫ S.f := sorry
+
 end short_complex

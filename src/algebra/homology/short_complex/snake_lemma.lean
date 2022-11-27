@@ -7,14 +7,7 @@ noncomputable theory
 open category_theory category_theory.limits category_theory.category
   category_theory.preadditive
 
-variables {C : Type*} [category C] [abelian C]
-
-lemma category_theory.abelian.pseudo_surjective_of_epi'
-  {A X Y : C} (f : X ⟶ Y) [epi f] (y : A ⟶ Y) :
-  ∃ (A' : C) (π : A' ⟶ A) (hπ : epi π) (x : A' ⟶ X), π ≫ y = x ≫ f :=
-sorry
-
-variable (C)
+variables (C : Type*) [category C] [abelian C]
 
 open category_theory
 

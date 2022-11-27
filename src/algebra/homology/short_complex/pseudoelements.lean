@@ -1,13 +1,45 @@
 import algebra.homology.short_complex.short_exact
 import category_theory.abelian.pseudoelements
 
+open category_theory category_theory.limits
+
+variables {C : Type*} [category C] [abelian C] {S : short_complex C}
+
+
+lemma category_theory.abelian.pseudo_surjective_of_epi'
+  {A X Y : C} (f : X ⟶ Y) [epi f] (y : A ⟶ Y) :
+  ∃ (A' : C) (π : A' ⟶ A) (hπ : epi π) (x : A' ⟶ X), π ≫ y = x ≫ f :=
+⟨pullback f y, pullback.snd, infer_instance, pullback.fst, pullback.condition.symm⟩
+
 open category_theory
 
-variables {C : Type*} [category C] [abelian C] (S : short_complex C)
+namespace short_complex
+
+open category_theory
+
+lemma exact.pseudo_exact' (h : S.exact) {A : C} (x₂ : A ⟶ S.X₂) (hx₂ : x₂ ≫ S.g = 0) :
+  ∃ (A' : C) (π : A' ⟶ A) (hπ : epi π) (x₁ : A' ⟶ S.X₁), π ≫ x₂ = x₁ ≫ S.f :=
+begin
+  haveI := h,
+  refine ⟨pullback (S.lift_cycles _ hx₂) S.to_cycles, pullback.fst, _, pullback.snd, _⟩,
+  { rw short_complex.exact_iff_epi_to_cycles at h,
+    haveI := h,
+    apply_instance, },
+  { simp only [← S.to_cycles_i, ← pullback.condition_assoc, lift_cycles_i], },
+end
+
+variable (S)
+
+lemma exact_iff_pseudo_exact' : S.exact ↔
+  ∀ ⦃A : C⦄ (x₂ : A ⟶ S.X₂) (hx₂ : x₂ ≫ S.g = 0),
+  ∃ (A' : C) (π : A' ⟶ A) (hπ : epi π) (x₁ : A' ⟶ S.X₁), π ≫ x₂ = x₁ ≫ S.f :=
+begin
+  split,
+  { exact λ h A, h.pseudo_exact', },
+  { exact exact.of_pseudo_exact' _, },
+end
 
 open_locale pseudoelement
-
-namespace short_complex
 
 lemma exact_iff_pseudo_exact : S.exact ↔
   (∀ b, S.g b = 0 → ∃ a, S.f a = b) :=
@@ -37,9 +69,5 @@ begin
   rw exact_iff_pseudo_exact at h,
   exact h b hb,
 end
-
-
-lemma exact.pseudo_exact' (h : S.exact) {A : C} (x₂ : A ⟶ S.X₂) (hx₂ : x₂ ≫ S.g = 0) :
-  ∃ (A' : C) (π : A' ⟶ A) (hπ : epi π) (x₁ : A' ⟶ S.X₁), π ≫ x₂ = x₁ ≫ S.f := sorry
 
 end short_complex

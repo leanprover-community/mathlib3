@@ -228,60 +228,65 @@ end no_zero_divisors
 section no_zero_divisors
 variables [comm_semiring R] [no_zero_divisors R] {p q : R[X]}
 
-lemma monic.irreducible_iff (hp : p.monic) :
-  irreducible p ↔ p ≠ 1 ∧ ∀ a b, p = a * b →
-    a.monic → b.monic → 0 < a.nat_degree → 0 < b.nat_degree →
-    a.nat_degree + b.nat_degree = p.nat_degree → is_unit a ∨ is_unit b :=
+lemma irreducible_of_monic (hp : p.monic) (hp1 : p ≠ 1) :
+  irreducible p ↔ ∀ f g : R[X], f.monic → g.monic → f * g = p → f = 1 ∨ g = 1 :=
 begin
-  rw irreducible_iff,
-  refine and_congr (not_congr ⟨hp.eq_one_of_is_unit, λ h, h.symm ▸ is_unit_one⟩)
-    ⟨forall₃_imp $ λ _ _ _ h _ _ _ _ _, h, _⟩,
-  rintro h a b rfl, nontriviality R,
-  rw [monic.def, leading_coeff_mul] at hp,
-  let u := units.mk_of_mul_eq_one _ _ hp,
-  obtain hd|hda := @eq_zero_or_pos _ _ a.nat_degree, left, swap,
-  obtain hd|hdb := @eq_zero_or_pos _ _ b.nat_degree, rw mul_comm at hp, right, swap 3,
-  iterate 2
-  { rw [eq_C_of_nat_degree_eq_zero hd, ← hd], exact (is_unit_of_mul_eq_one _ _ hp).map C },
-  have he := _, have ha := _, have hb := _,
-  refine (h (C u.inv * a) (C u.val * b) he ha hb _ _ $ by rw [he, ha.nat_degree_mul hb]).imp _ _,
-  iterate 2 { exact is_unit_of_mul_is_unit_right },
-  { rw nat_degree_C_mul, exacts [hda, u⁻¹.ne_zero] },
-  { rw nat_degree_C_mul, exacts [hdb, u.ne_zero] },
-  iterate 2
-  { rw [monic.def, leading_coeff_mul, leading_coeff_C], apply_rules [u.inv_val, u.val_inv] },
-  simp_rw [mul_left_comm, ← mul_assoc, ← C_mul, u.val_inv, C_1, one_mul],
+  refine ⟨λ h f g hf hg hp, (h.2 f g hp.symm).imp hf.eq_one_of_is_unit hg.eq_one_of_is_unit,
+    λ h, ⟨hp1 ∘ hp.eq_one_of_is_unit, λ f g hfg, (h (g * C f.leading_coeff) (f * C g.leading_coeff)
+      _ _ _).symm.imp (is_unit_of_mul_eq_one f _) (is_unit_of_mul_eq_one g _)⟩⟩,
+  { rwa [monic, leading_coeff_mul, leading_coeff_C, ←leading_coeff_mul, mul_comm, ←hfg, ←monic] },
+  { rwa [monic, leading_coeff_mul, leading_coeff_C, ←leading_coeff_mul, ←hfg, ←monic] },
+  { rw [mul_mul_mul_comm, ←C_mul, ←leading_coeff_mul, ←hfg, hp.leading_coeff, C_1, mul_one,
+        mul_comm, ←hfg] },
+end
+
+lemma monic.irreducible_iff_nat_degree (hp : p.monic) : irreducible p ↔
+  p ≠ 1 ∧ ∀ f g : R[X], f.monic → g.monic → f * g = p → f.nat_degree = 0 ∨ g.nat_degree = 0 :=
+begin
+  by_cases hp1 : p = 1, { simp [hp1] },
+  rw [irreducible_of_monic hp hp1, and_iff_right hp1],
+  refine forall₄_congr (λ a b ha hb, _),
+  rw [ha.nat_degree_eq_zero_iff_eq_one, hb.nat_degree_eq_zero_iff_eq_one],
+end
+
+lemma monic.irreducible_iff_nat_degree' (hp : p.monic) : irreducible p ↔ p ≠ 1 ∧
+  ∀ f g : R[X], f.monic → g.monic → f * g = p → g.nat_degree ∉ finset.Ioc 0 (p.nat_degree / 2) :=
+begin
+  simp_rw [hp.irreducible_iff_nat_degree,
+    finset.mem_Ioc, nat.le_div_iff_mul_le zero_lt_two, mul_two],
+  apply and_congr iff.rfl,
+  split; intros h f g hf hg he; subst he,
+  { refine λ ha, (h g f hg hf $ mul_comm g f).elim ha.1.ne' _,
+    rw hf.nat_degree_mul hg at ha,
+    exact (ha.1.trans_le $ (add_le_add_iff_right _).1 ha.2).ne' },
+  { simp_rw hf.nat_degree_mul hg at h,
+    by_contra hdp, simp_rw [not_or_distrib, ← ne.def, ← pos_iff_ne_zero] at hdp,
+    obtain hl|hl := le_total f.nat_degree g.nat_degree,
+    { exact h g f hg hf (mul_comm g f) ⟨hdp.1, add_le_add_left hl _⟩ },
+    { exact h f g hf hg rfl ⟨hdp.2, add_le_add_right hl _⟩ } },
 end
 
 lemma monic.not_irreducible_iff_exists_add_mul_eq_coeff (hm : p.monic) (hnd : p.nat_degree = 2) :
   ¬ irreducible p ↔ ∃ c₁ c₂, p.coeff 0 = c₁ * c₂ ∧ p.coeff 1 = c₁ + c₂ :=
 begin
-  refine ⟨λ hred, _, _⟩, swap,
-  { rw irreducible_iff, push_neg, nontriviality R,
-    rintro ⟨c₁, c₂, hmul, hadd⟩ -,
-    refine ⟨X + C c₁, X + C c₂, _, _⟩,
-    { rw [p.as_sum_range_C_mul_X_pow, hnd], simp_rw [finset.sum_range_succ],
-      rw [finset.sum_range_zero, hmul, hadd, C_mul, C_add], nth_rewrite 0 ← hnd,
-      rw [← leading_coeff, hm.leading_coeff, C_1], ring },
-    split; { refine mt degree_eq_zero_of_is_unit _, rw degree_X_add_C, exact one_ne_zero } },
-  nontriviality R,
-  rw hm.irreducible_iff at hred, push_neg at hred,
-  obtain ⟨a, b, rfl, hma, hmb, hda, hdb, hd, hua, hub⟩ := hred _, swap,
-  { apply_fun nat_degree, rw [hnd, nat_degree_one], rintro ⟨⟩ },
-  rw hnd at hd, have := (nat.le_add_right _ _).trans_eq hd,
-  interval_cases a.nat_degree with hda', swap,
-  { rw [hda', add_right_eq_self] at hd, exact (hdb.ne' hd).elim },
-  rw hda' at hd, replace hd := add_left_cancel hd,
-  use [a.coeff 0, b.coeff 0, by rw mul_coeff_zero],
-  convert hma.next_coeff_mul hmb,
-  all_goals { simp only [next_coeff, hnd, hda', hd], rw if_neg, dec_trivial },
+  casesI subsingleton_or_nontrivial R,
+  { simpa only [nat_degree_of_subsingleton] using hnd },
+  rw [hm.irreducible_iff_nat_degree', hnd],
+  push_neg,
+  rw imp_iff_right,
+  split,
+  { rintros ⟨a, b, ha, hb, rfl, hdb|⟨⟨⟩⟩⟩,
+    have hda := hnd, rw [ha.nat_degree_mul hb, hdb] at hda,
+    use [a.coeff 0, b.coeff 0, by rw mul_coeff_zero],
+    convert ha.next_coeff_mul hb; simp only
+      [next_coeff, hnd, add_right_cancel hda, hdb, if_neg two_ne_zero, if_neg one_ne_zero] },
+  { rintros ⟨c₁, c₂, hmul, hadd⟩,
+    refine ⟨X + C c₁, X + C c₂, monic_X_add_C _, monic_X_add_C _, _, or.inl $ nat_degree_X_add_C _⟩,
+    rw [p.as_sum_range_C_mul_X_pow, hnd, finset.sum_range_succ, finset.sum_range_succ,
+      finset.sum_range_one, ← hnd, hm.coeff_nat_degree, hnd, hmul, hadd, C_mul, C_add, C_1],
+    ring },
+  { rintro rfl, simpa only [nat_degree_one] using hnd },
 end
-
-lemma irreducible_of_monic (hp : p.monic) (hp1 : p ≠ 1) :
-  irreducible p ↔ ∀ f g : R[X], f.monic → g.monic → f * g = p → f = 1 ∨ g = 1 :=
-by refine ⟨λ h f g hf hg hp, (h.2 f g hp.symm).imp hf.eq_one_of_is_unit hg.eq_one_of_is_unit,
-  λ h, hp.irreducible_iff.2 ⟨hp1, λ f g he hf hg _ _ _, (h f g hf hg he.symm).imp _ _⟩⟩;
-  exact λ h, h.symm ▸ is_unit_one
 
 lemma root_mul : is_root (p * q) a ↔ is_root p a ∨ is_root q a :=
 by simp_rw [is_root, eval_mul, mul_eq_zero]

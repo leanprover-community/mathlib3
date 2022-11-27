@@ -422,7 +422,7 @@ variables (k)
 
 lemma line_map_injective [no_zero_smul_divisors k V1] {p₀ p₁ : P1} (h : p₀ ≠ p₁) :
   function.injective (line_map p₀ p₁ : k → P1) :=
-by simp [function.injective, h]
+λ c₁ c₂ hc, (line_map_eq_line_map_iff.mp hc).resolve_left h
 
 variables {k}
 

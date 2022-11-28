@@ -8,6 +8,7 @@ import algebra.order.archimedean
 import algebra.periodic
 import group_theory.quotient_group
 import order.circular
+import data.int.succ_pred
 
 /-!
 # Reducing to an interval modulo its length
@@ -310,6 +311,14 @@ begin
   exact ⟨lt_sub_iff_add_lt.mpr ho, sub_le_iff_le_add.mpr hc⟩,
 end
 
+lemma to_Ico_div_eq_to_Ico_div_zero (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ico_div a hb x = to_Ico_div 0 hb (x - a) :=
+by rw [to_Ico_div_sub', zero_add]
+
+lemma to_Ioc_div_eq_to_Ioc_div_zero (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ioc_div a hb x = to_Ioc_div 0 hb (x - a) :=
+by rw [to_Ioc_div_sub', zero_add]
+
 lemma to_Ico_div_add_right' (a : α) {b : α} (hb : 0 < b) (x y : α) :
   to_Ico_div a hb (x + y) = to_Ico_div (a - y) hb x :=
 by rw [←sub_neg_eq_add, to_Ico_div_sub', sub_eq_add_neg]
@@ -335,6 +344,58 @@ end
 lemma to_Ioc_div_neg (a : α) {b : α} (hb : 0 < b) (x : α) :
   to_Ioc_div a hb (-x) = 1 - to_Ico_div (-a) hb x :=
 by rw [←neg_neg x, to_Ico_div_neg, neg_neg, neg_neg, sub_sub_cancel]
+
+/-- `to_Ico_div` agrees with `to_Ioc_div` if `x` does not lie on a boundary. -/
+lemma to_Ico_div_eq_to_Ioc_div (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ico_div a hb x = to_Ioc_div a hb x ↔ ∀ z : ℤ, x ≠ a + z • b :=
+begin
+  split,
+  { rintros h z rfl,
+    rw [to_Ico_div_add_zsmul, to_Ioc_div_add_zsmul, to_Ioc_div_apply_left,
+      to_Ico_div_apply_left, sub_left_inj] at h,
+    exact zero_ne_one h },
+  { intro h,
+    specialize h (-to_Ico_div a hb x),
+    rw [neg_smul, ←sub_eq_add_neg, ne.def, eq_sub_iff_add_eq] at h,
+    apply eq_to_Ioc_div_of_add_zsmul_mem_Ioc,
+    have := add_to_Ico_div_zsmul_mem_Ico a hb x,
+    refine ⟨lt_of_le_of_ne' this.1 h, this.2.le⟩ },
+end
+
+/-- `to_Ico_div` disagrees with `to_Ioc_div` if `x` lies on a boundary. -/
+lemma to_Ico_div_eq_to_Ioc_div_sub_one (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ico_div a hb x = to_Ioc_div a hb x - 1 ↔ ∃ z : ℤ, x = a + z • b :=
+begin
+  split,
+  { intro h,
+    refine ⟨1 - to_Ioc_div a hb x, _⟩,
+    rw [sub_smul, one_smul, ←add_sub_assoc, eq_sub_iff_add_eq],
+    have hco := (add_to_Ico_div_zsmul_mem_Ico a hb x).1,
+    have hoc := (add_to_Ioc_div_zsmul_mem_Ioc a hb x).2,
+    rw [h, sub_smul, one_smul, ←add_sub_assoc, le_sub_iff_add_le] at hco,
+    exact le_antisymm hoc hco },
+  { rintros ⟨z, rfl⟩,
+    rw [to_Ico_div_add_zsmul, to_Ioc_div_add_zsmul, to_Ioc_div_apply_left,
+      to_Ico_div_apply_left, sub_sub_cancel_left, zero_sub] }
+end
+
+/-- `to_Ico_div` disagrees with `to_Ioc_div` if `x` lies on a boundary. -/
+lemma to_Ico_div_add_one_eq_to_Ioc_div (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ico_div a hb x + 1 = to_Ioc_div a hb x ↔ ∃ z : ℤ, x = a + z • b :=
+by rw [←to_Ico_div_eq_to_Ioc_div_sub_one, eq_sub_iff_add_eq]
+
+lemma to_Ico_div_wcovby_to_Ioc_div (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ico_div a hb x ⩿ to_Ioc_div a hb x :=
+begin
+  suffices : to_Ico_div a hb x = to_Ioc_div a hb x ∨ to_Ico_div a hb x + 1 = to_Ioc_div a hb x,
+  { obtain h | h := this,
+    { rw h,
+      exact wcovby.refl _ },
+    { rw ←h,
+      exact (int.covby_add_one _).wcovby } },
+  rw [to_Ico_div_add_one_eq_to_Ioc_div, to_Ico_div_eq_to_Ioc_div, ←not_exists],
+  exact (em _).symm
+end
 
 @[simp] lemma to_Ico_mod_add_zsmul (a : α) {b : α} (hb : 0 < b) (x : α) (m : ℤ) :
   to_Ico_mod a hb (x + m • b) = to_Ico_mod a hb x :=

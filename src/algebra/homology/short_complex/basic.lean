@@ -20,7 +20,7 @@ open_locale zero_object
 
 variables (C D : Type*) [category C] [category D]
 
-/-- A short complex in a category `C` with zero composition is the datum
+/-- A short complex in a category `C` with zero morphisms is the datum
 of two composable morphisms `f : X₁ ⟶ X₂` and `g : X₂ ⟶ X₃` such that
 `f ≫ g = 0`. -/
 structure short_complex [has_zero_morphisms C] :=

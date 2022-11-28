@@ -164,10 +164,10 @@ lemma gt_iff_ne (h : a ≤ b) : a < b ↔ b ≠ a := ⟨λ h, h.ne.symm, h.lt_of
 lemma not_lt_iff_eq (h : a ≤ b) : ¬ a < b ↔ a = b := h.lt_iff_ne.not_left
 lemma not_gt_iff_eq (h : a ≤ b) : ¬ a < b ↔ b = a := h.gt_iff_ne.not_left
 
-end partial_order
+lemma le_iff_eq (h : a ≤ b) : b ≤ a ↔ b = a := ⟨λ h', h'.antisymm h, eq.le⟩
+lemma ge_iff_eq (h : a ≤ b) : b ≤ a ↔ a = b := ⟨h.antisymm, eq.ge⟩
 
-lemma le_iff_eq [partial_order α] {x y : α} (h : x ≤ y) : y ≤ x ↔ y = x :=
-⟨λ h', h'.antisymm h, eq.le⟩
+end partial_order
 
 lemma lt_or_le [linear_order α] {a b : α} (h : a ≤ b) (c : α) : a < c ∨ c ≤ b :=
 (lt_or_ge a c).imp id $ λ hc, le_trans hc h

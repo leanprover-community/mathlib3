@@ -893,12 +893,28 @@ end
 
 lemma val_eq_ite_val_min_abs {n : ℕ} [ne_zero n] (a : zmod n) :
   (a.val : ℤ) = a.val_min_abs + if a.val ≤ n / 2 then 0 else n :=
-by { rw [zmod.val_min_abs_def_pos], split_ifs; simp only [add_zero, sub_add_cancel] }
+by { rw val_min_abs_def_pos, split_ifs; simp only [add_zero, sub_add_cancel] }
 
 lemma prime_ne_zero (p q : ℕ) [hp : fact p.prime] [hq : fact q.prime] (hpq : p ≠ q) :
   (q : zmod p) ≠ 0 :=
 by rwa [← nat.cast_zero, ne.def, eq_iff_modeq_nat, nat.modeq_zero_iff_dvd,
   ← hp.1.coprime_iff_not_dvd, nat.coprime_primes hp.1 hq.1]
+
+lemma zmod.val_min_abs_nat_abs_eq_min {n : ℕ} [hpos : ne_zero n] (a : zmod n) :
+  a.val_min_abs.nat_abs = min a.val (n - a.val) :=
+begin
+  rw val_min_abs_def_pos,
+  split_ifs with h h,
+  { rw int.nat_abs_of_nat, symmetry,
+    apply min_eq_left (le_trans h (le_trans
+      (nat.half_le_of_sub_le_half _) (nat.sub_le_sub_left n h))),
+    rw nat.sub_sub_self (nat.div_le_self _ _) },
+  { rw [←int.nat_abs_neg, neg_sub, ←nat.cast_sub a.val_le], symmetry,
+    apply min_eq_right (le_trans (le_trans (nat.sub_le_sub_left n (lt_of_not_ge h))
+      (nat.le_half_of_half_lt_sub _)) (le_of_not_ge h)),
+    rw nat.sub_sub_self (nat.div_lt_self (lt_of_le_of_ne' (nat.zero_le _) hpos.1) one_lt_two),
+    apply nat.lt_succ_self }
+end
 
 lemma nat_abs_min_of_le_div_two (n : ℕ) (x y : ℤ)
   (he : (x : zmod n) = y) (hl : x.nat_abs ≤ n / 2) : x.nat_abs ≤ y.nat_abs :=
@@ -917,7 +933,7 @@ begin
   rw ← mul_two, apply nat.div_mul_le_self,
 end
 
-example {n : ℕ} (a b : zmod n) :
+lemma nat_abs_val_min_abs_add_le {n : ℕ} (a b : zmod n) :
   (a + b).val_min_abs.nat_abs ≤ (a.val_min_abs + b.val_min_abs).nat_abs :=
 begin
   cases n, { refl },

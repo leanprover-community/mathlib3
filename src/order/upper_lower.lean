@@ -915,9 +915,9 @@ iff.rfl
 lemma Ici_prod (x : α × β) : Ici x = Ici x.1 ×ˢ Ici x.2 := rfl
 @[simp] lemma Ici_prod_Ici (a : α) (b : β) : Ici a ×ˢ Ici b = Ici (a, b) := rfl
 
-@[simp] lemma bot_prod_bot : (⊥ : upper_set α) ×ˢ (⊥ : upper_set β) = ⊥ := ext univ_prod_univ
 @[simp] lemma prod_top (s : upper_set α) : s ×ˢ (⊤ : upper_set β) = ⊤ := ext prod_empty
 @[simp] lemma top_prod (t : upper_set β) : (⊤ : upper_set α) ×ˢ t = ⊤ := ext empty_prod
+@[simp] lemma bot_prod_bot : (⊥ : upper_set α) ×ˢ (⊥ : upper_set β) = ⊥ := ext univ_prod_univ
 
 end upper_set
 
@@ -937,9 +937,9 @@ iff.rfl
 lemma Iic_prod (x : α × β) : Iic x = Iic x.1 ×ˢ Iic x.2 := rfl
 @[simp] lemma Ici_prod_Ici (a : α) (b : β) : Iic a ×ˢ Iic b = Iic (a, b) := rfl
 
-@[simp] lemma top_prod_top : (⊤ : lower_set α) ×ˢ (⊤ : lower_set β) = ⊤ := ext univ_prod_univ
 @[simp] lemma prod_bot (s : lower_set α) : s ×ˢ (⊥ : lower_set β) = ⊥ := ext prod_empty
 @[simp] lemma bot_prod (t : lower_set β) : (⊥ : lower_set α) ×ˢ t = ⊥ := ext empty_prod
+@[simp] lemma top_prod_top : (⊤ : lower_set α) ×ˢ (⊤ : lower_set β) = ⊤ := ext univ_prod_univ
 
 end lower_set
 

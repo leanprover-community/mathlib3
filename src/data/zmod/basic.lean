@@ -926,13 +926,6 @@ begin
   { apply nat_abs_val_min_abs_le },
 end
 
-end zmod
-
-
-end zmod
-
-namespace zmod
-
 variables (p : ℕ) [fact p.prime]
 
 private lemma mul_inv_cancel_aux (a : zmod p) (h : a ≠ 0) : a * a⁻¹ = 1 :=

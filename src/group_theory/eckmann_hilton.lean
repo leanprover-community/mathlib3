@@ -8,6 +8,10 @@ import algebra.group.defs
 /-!
 # Eckmann-Hilton argument
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/626
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The Eckmann-Hilton argument says that if a type carries two monoid structures that distribute
 over one another, then they are equal, and in addition commutative.
 The main application lies in proving that higher homotopy groups (`πₙ` for `n ≥ 2`) are commutative.

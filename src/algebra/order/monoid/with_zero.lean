@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.group.with_one
-import algebra.group_with_zero
+import algebra.group_with_zero.basic
 import algebra.order.monoid.canonical.defs
 
 /-!

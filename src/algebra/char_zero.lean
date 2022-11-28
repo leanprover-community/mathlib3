@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 -/
 
 import data.nat.cast.field
-import data.fintype.lattice
+import data.fintype.card
 import algebra.group_power.lemmas
 
 /-!

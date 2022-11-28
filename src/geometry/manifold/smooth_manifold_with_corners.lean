@@ -1065,7 +1065,8 @@ lemma ext_chart_at_preimage_mem_nhds_within (ht : t ∈ 𝓝[s] x) :
     𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x) :=
 ext_chart_at_preimage_mem_nhds_within' I x (mem_ext_chart_source I x) ht
 
-lemma ext_chart_at_preimage_mem_nhds' {x' : M} (h : x' ∈ (ext_chart_at I x).source) (ht : t ∈ 𝓝 x') :
+lemma ext_chart_at_preimage_mem_nhds' {x' : M}
+  (h : x' ∈ (ext_chart_at I x).source) (ht : t ∈ 𝓝 x') :
   (ext_chart_at I x).symm ⁻¹' t ∈ 𝓝 (ext_chart_at I x x') :=
 extend_preimage_mem_nhds _ _ (by rwa ← ext_chart_at_source I) ht
 

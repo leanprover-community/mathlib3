@@ -706,12 +706,12 @@ begin
   let q := ⌈↑m₀ / (n : k)⌉,
   let m₁ := (q * ↑n) -(↑m₀ : ℤ),
   have hm₁ : 0 ≤ m₁, { simpa [←@cast_le k, ←div_le_iff hn] using floor_ring.gc_ceil_coe.le_u_l _, },
-  calc fract (↑-↑m₀ / ↑n) = fract (-(m₀ : k) / n) : by rw [coe_neg, cast_coe_nat]
+  calc fract (↑-↑m₀ / ↑n) = fract (-(m₀ : k) / n) : by push_cast
                       ... = fract ((m₁ : k) / n) : _
                       ... = ↑(m₁ % (n : ℤ)) / ↑n : this hm₁
                       ... = ↑(-(↑m₀ : ℤ) % ↑n) / ↑n : _,
-  { rw [← fract_int_add q, ← mul_div_cancel (q : k) (ne_of_gt hn), ← add_div, ← sub_eq_add_neg,
-      coe_sub, coe_mul, cast_coe_nat, cast_coe_nat], },
+  { rw [← fract_int_add q, ← mul_div_cancel (q : k) (ne_of_gt hn), ← add_div, ← sub_eq_add_neg],
+    push_cast, },
   { congr' 2,
     change ((q * ↑n) -(↑m₀ : ℤ)) % ↑n = _,
     rw [sub_eq_add_neg, add_comm (q * ↑n), add_mul_mod_self], },

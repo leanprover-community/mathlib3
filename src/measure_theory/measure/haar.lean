@@ -6,6 +6,7 @@ Authors: Floris van Doorn
 import measure_theory.measure.content
 import measure_theory.group.prod
 import group_theory.divisible
+import topology.algebra.group.compact
 
 /-!
 # Haar measure

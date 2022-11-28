@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 import data.set.intervals.pi
 import data.set.pointwise.interval
 import order.filter.interval
-import topology.algebra.group
+import topology.algebra.group.basic
 import topology.algebra.order.left_right
 
 /-!
@@ -1624,7 +1624,7 @@ instance linear_ordered_add_comm_group.topological_add_group : topological_add_g
         calc |x - a + (y - b)| ≤ |x - a| + |y - b| : abs_add _ _
         ... < δ + (ε - δ) : add_lt_add hx hy
         ... = ε : add_sub_cancel'_right _ _ },
-      { -- Otherewise `ε`-nhd of each point `a` is `{a}`
+      { -- Otherwise `ε`-nhd of each point `a` is `{a}`
         have hε : ∀ {x y}, |x - y| < ε → x = y,
         { intros x y h,
           simpa [sub_eq_zero] using h₂ _ h },

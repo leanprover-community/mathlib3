@@ -191,6 +191,9 @@ protected def copy (f : M →ₛₗ[σ] M₃) (f' : M → M₃) (h : f' = ⇑f) 
   map_add' := h.symm ▸ f.map_add',
   map_smul' := h.symm ▸ f.map_smul' }
 
+@[simp] lemma coe_copy (f : M →ₛₗ[σ] M₃) (f' : M → M₃) (h : f' = ⇑f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : M →ₛₗ[σ] M₃) (f' : M → M₃) (h : f' = ⇑f) : f.copy f' h = f := fun_like.ext' h
+
 /-- See Note [custom simps projection]. -/
 protected def simps.apply {R S : Type*} [semiring R] [semiring S] (σ : R →+* S)
   (M M₃ : Type*) [add_comm_monoid M] [add_comm_monoid M₃] [module R M] [module S M₃]

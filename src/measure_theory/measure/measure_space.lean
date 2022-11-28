@@ -135,7 +135,7 @@ by rw [union_comm, inter_comm, measure_union_add_inter t hs, add_comm]
 
 lemma measure_add_measure_compl (h : measurable_set s) :
   μ s + μ sᶜ = μ univ :=
-by { rw [← measure_union' _ h, union_compl_self], exact disjoint_compl_right }
+measure_add_measure_compl₀ h.null_measurable_set
 
 lemma measure_bUnion₀ {s : set β} {f : β → set α} (hs : s.countable)
   (hd : s.pairwise (ae_disjoint μ on f)) (h : ∀ b ∈ s, null_measurable_set (f b) μ) :
@@ -388,7 +388,7 @@ begin
   generalize ht : function.extend encodable.encode s ⊥ = t,
   replace hd : directed (⊆) t := ht ▸ hd.extend_bot encodable.encode_injective,
   suffices : μ (⋃ n, t n) = ⨆ n, μ (t n),
-  { simp only [← ht, apply_extend encodable.encode_injective μ, ← supr_eq_Union,
+  { simp only [← ht, encodable.encode_injective.apply_extend μ, ← supr_eq_Union,
       supr_extend_bot encodable.encode_injective, (∘), pi.bot_apply, bot_eq_empty,
       measure_empty] at this,
     exact this.trans (supr_extend_bot encodable.encode_injective _) },
@@ -2145,6 +2145,29 @@ lemma exists_preimage_eq_of_preimage_ae {f : α → α} (h : quasi_measure_prese
 
 end quasi_measure_preserving
 
+section pointwise
+
+open_locale pointwise
+
+@[to_additive]
+lemma pairwise_ae_disjoint_of_ae_disjoint_forall_ne_one
+  {G α : Type*} [group G] [mul_action G α] [measurable_space α] {μ : measure α} {s : set α}
+  (h_ae_disjoint : ∀ g ≠ (1 : G), ae_disjoint μ (g • s) s)
+  (h_qmp : ∀ (g : G), quasi_measure_preserving ((•) g : α → α) μ μ) :
+  pairwise (ae_disjoint μ on (λ (g : G), g • s)) :=
+begin
+  intros g₁ g₂ hg,
+  let g := g₂⁻¹ * g₁,
+  replace hg : g ≠ 1, { rw [ne.def, inv_mul_eq_one], exact hg.symm, },
+  have : ((•) g₂⁻¹)⁻¹' (g • s ∩ s) = (g₁ • s) ∩ (g₂ • s),
+  { rw [preimage_eq_iff_eq_image (mul_action.bijective g₂⁻¹), image_smul, smul_set_inter,
+      smul_smul, smul_smul, inv_mul_self, one_smul], },
+  change μ ((g₁ • s) ∩ (g₂ • s)) = 0,
+  exact this ▸ (h_qmp g₂⁻¹).preimage_null (h_ae_disjoint g hg),
+end
+
+end pointwise
+
 /-! ### The `cofinite` filter -/
 
 /-- The filter of sets `s` such that `sᶜ` has finite measure. -/
@@ -2612,6 +2635,25 @@ begin
   rw ← measure_theory.measure_Union hf₂ hf₁,
   exact ne_of_lt (measure_lt_top _ _)
 end
+
+lemma ae_eq_univ_iff_measure_eq [is_finite_measure μ] (hs : null_measurable_set s μ) :
+  s =ᵐ[μ] univ ↔ μ s = μ univ :=
+begin
+  refine ⟨measure_congr, λ h, _⟩,
+  obtain ⟨t, -, ht₁, ht₂⟩ := hs.exists_measurable_subset_ae_eq,
+  exact ht₂.symm.trans (ae_eq_of_subset_of_measure_ge (subset_univ t)
+    (eq.le ((measure_congr ht₂).trans h).symm) ht₁ (measure_ne_top μ univ)),
+end
+
+lemma ae_iff_measure_eq [is_finite_measure μ] {p : α → Prop}
+  (hp : null_measurable_set {a | p a} μ) :
+  (∀ᵐ a ∂μ, p a) ↔ μ {a | p a} = μ univ :=
+by rw [← ae_eq_univ_iff_measure_eq hp, eventually_eq_univ, eventually_iff]
+
+lemma ae_mem_iff_measure_eq [is_finite_measure μ] {s : set α}
+  (hs : null_measurable_set s μ) :
+  (∀ᵐ a ∂μ, a ∈ s) ↔ μ s = μ univ :=
+ae_iff_measure_eq hs
 
 instance [finite α] [measurable_space α] : is_finite_measure (measure.count : measure α) :=
 ⟨by { casesI nonempty_fintype α,

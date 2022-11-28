@@ -12,7 +12,7 @@ import analysis.inner_product_space.pi_L2
 
 Given a family `(G : ι → Type*) [Π i, inner_product_space 𝕜 (G i)]` of inner product spaces, this
 file equips `lp G 2` with an inner product space structure, where `lp G 2` consists of those
-dependent functions `f : Π i, G i` for which `∑' i, ∥f i∥ ^ 2`, the sum of the norms-squared, is
+dependent functions `f : Π i, G i` for which `∑' i, ‖f i‖ ^ 2`, the sum of the norms-squared, is
 summable.  This construction is sometimes called the *Hilbert sum* of the family `G`.  By choosing
 `G` to be `ι → 𝕜`, the Hilbert space `ℓ²(ι, 𝕜)` may be seen as a special case of this construction.
 
@@ -97,8 +97,8 @@ namespace lp
 
 lemma summable_inner (f g : lp G 2) : summable (λ i, ⟪f i, g i⟫) :=
 begin
-  -- Apply the Direct Comparison Test, comparing with ∑' i, ∥f i∥ * ∥g i∥ (summable by Hölder)
-  refine summable_of_norm_bounded (λ i, ∥f i∥ * ∥g i∥) (lp.summable_mul _ f g) _,
+  -- Apply the Direct Comparison Test, comparing with ∑' i, ‖f i‖ * ‖g i‖ (summable by Hölder)
+  refine summable_of_norm_bounded (λ i, ‖f i‖ * ‖g i‖) (lp.summable_mul _ f g) _,
   { rw real.is_conjugate_exponent_iff; norm_num },
   intros i,
   -- Then apply Cauchy-Schwarz pointwise
@@ -108,9 +108,9 @@ end
 instance : inner_product_space 𝕜 (lp G 2) :=
 { inner := λ f g, ∑' i, ⟪f i, g i⟫,
   norm_sq_eq_inner := λ f, begin
-    calc ∥f∥ ^ 2 = ∥f∥ ^ (2:ℝ≥0∞).to_real : by norm_cast
-    ... = ∑' i, ∥f i∥ ^ (2:ℝ≥0∞).to_real : lp.norm_rpow_eq_tsum _ f
-    ... = ∑' i, ∥f i∥ ^ 2 : by norm_cast
+    calc ‖f‖ ^ 2 = ‖f‖ ^ (2:ℝ≥0∞).to_real : by norm_cast
+    ... = ∑' i, ‖f i‖ ^ (2:ℝ≥0∞).to_real : lp.norm_rpow_eq_tsum _ f
+    ... = ∑' i, ‖f i‖ ^ 2 : by norm_cast
     ... = ∑' i, re ⟪f i, f i⟫ : by simp only [norm_sq_eq_inner]
     ... = re (∑' i, ⟪f i, f i⟫) : (is_R_or_C.re_clm.map_tsum _).symm
     ... = _ : by congr,
@@ -190,7 +190,7 @@ protected def linear_isometry : lp G 2 →ₗᵢ[𝕜] E :=
   norm_map' := λ f, begin
     classical, -- needed for lattice instance on `finset ι`, for `filter.at_top_ne_bot`
     have H : 0 < (2:ℝ≥0∞).to_real := by norm_num,
-    suffices : ∥∑' (i : ι), V i (f i)∥ ^ ((2:ℝ≥0∞).to_real) = ∥f∥ ^ ((2:ℝ≥0∞).to_real),
+    suffices : ‖∑' (i : ι), V i (f i)‖ ^ ((2:ℝ≥0∞).to_real) = ‖f‖ ^ ((2:ℝ≥0∞).to_real),
     { exact real.rpow_left_inj_on H.ne' (norm_nonneg _) (norm_nonneg _) this },
     refine tendsto_nhds_unique  _ (lp.has_sum_norm H f),
     convert (hV.summable_of_lp f).has_sum.norm.rpow_const (or.inr H.le),
@@ -366,8 +366,9 @@ begin
     exact orthogonal.complete_space K <|> assumption },
   refine is_hilbert_sum.mk_internal _ K.orthogonal_family_self _,
   refine le_trans _ (submodule.submodule_topological_closure _),
-  rw supr_bool_eq,
-  exact submodule.is_compl_orthogonal_of_complete_space.2
+  rw [supr_bool_eq, cond, cond],
+  refine codisjoint.top_le _,
+  exact submodule.is_compl_orthogonal_of_complete_space.codisjoint
 end
 
 end is_hilbert_sum

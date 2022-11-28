@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 
-import ring_theory.finiteness
+import ring_theory.finite_type
 
 /-!
 # Polynomial module
@@ -177,7 +177,7 @@ def equiv_polynomial_self : polynomial_module R R ≃ₗ[R[X]] R[X] :=
     { simp only [add_smul, map_add, ring_equiv.to_fun_eq_coe, *] at * },
     { ext i,
       dsimp,
-      rw [monomial_smul_apply, polynomial.monomial_eq_C_mul_X, mul_assoc,
+      rw [monomial_smul_apply, ← polynomial.C_mul_X_pow_eq_monomial, mul_assoc,
         polynomial.coeff_C_mul, polynomial.coeff_X_pow_mul', mul_ite, mul_zero],
       simp }
   end,

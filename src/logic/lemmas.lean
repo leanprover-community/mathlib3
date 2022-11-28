@@ -5,6 +5,7 @@ Authors: Yaël Dillies
 -/
 import tactic.protected
 import tactic.split_ifs
+import logic.basic
 
 /-!
 # More basic logic properties

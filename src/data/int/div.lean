@@ -3,11 +3,12 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
-import data.int.dvd
+import data.int.dvd.basic
+import data.nat.order.lemmas
 import algebra.ring.regular
 
 /-!
-# Lemmas relations `/` in `ℤ` with the ordering.
+# Lemmas relating `/` in `ℤ` with the ordering.
 -/
 
 open nat

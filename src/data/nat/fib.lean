@@ -9,6 +9,7 @@ import data.finset.nat_antidiagonal
 import algebra.big_operators.basic
 import tactic.ring
 import tactic.zify
+import tactic.wlog
 
 /-!
 # The Fibonacci Sequence

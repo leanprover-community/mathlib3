@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
 import group_theory.submonoid.inverses
-import ring_theory.finiteness
+import ring_theory.finite_type
 import ring_theory.localization.basic
 import tactic.ring_exp
 

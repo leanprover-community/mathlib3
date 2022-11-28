@@ -5,7 +5,8 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.rat.init
 import data.int.cast.defs
-import data.int.div
+import data.int.dvd.basic
+import algebra.ring.regular
 import data.nat.gcd.basic
 import data.pnat.defs
 
@@ -532,7 +533,7 @@ by { rw [add_def h h, mk_eq h (mul_ne_zero h h)], simp [add_mul, mul_assoc] }
 
 theorem mk_eq_div (n d : ℤ) : n /. d = ((n : ℚ) / d) :=
 begin
-  by_cases d0 : d = 0, {simp [d0, div_zero]},
+  by_cases d0 : d = 0, { simp [d0, div_zero, int.cast_zero] },
   simp [division_def, coe_int_eq_mk, mul_def one_ne_zero d0]
 end
 
@@ -585,3 +586,6 @@ lemma coe_int_inj (m n : ℤ) : (m : ℚ) = n ↔ m = n := ⟨congr_arg num, con
 end casts
 
 end rat
+
+-- Guard against import creep.
+assert_not_exists field

@@ -127,7 +127,7 @@ exists.elim (zorn_nonempty_partial_order₀ {Q : subgroup G | is_p_group p Q} (�
       (λ T, ⟨S, ⟨S, rfl⟩, S.1.mul_mem (T hg) hh⟩) (λ T, ⟨R, ⟨R, rfl⟩, R.1.mul_mem hg (T hh)⟩) },
   λ ⟨g, _, ⟨S, rfl⟩, hg⟩, by
   { refine exists_imp_exists (λ k hk, _) (hc1 S.2 ⟨g, hg⟩),
-    rwa [subtype.ext_iff, coe_pow] at hk ⊢ },
+    rwa [subtype.ext_iff, subgroup.coe_pow] at hk ⊢ },
   λ M hM g hg, ⟨M, ⟨⟨M, hM⟩, rfl⟩, hg⟩⟩) P hP) (λ Q ⟨hQ1, hQ2, hQ3⟩, ⟨⟨Q, hQ1, hQ3⟩, hQ2⟩)
 
 instance sylow.nonempty : nonempty (sylow p G) :=
@@ -345,10 +345,10 @@ lemma card_sylow_dvd_index [fact p.prime] [fintype (sylow p G)] (P : sylow p G) 
 ((congr_arg _ (card_sylow_eq_index_normalizer P)).mp dvd_rfl).trans (index_dvd_of_le le_normalizer)
 
 lemma not_dvd_index_sylow' [hp : fact p.prime] (P : sylow p G) [(P : subgroup G).normal]
-  (hP : (P : subgroup G).index ≠ 0) : ¬ p ∣ (P : subgroup G).index :=
+  [finite_index (P : subgroup G)] : ¬ p ∣ (P : subgroup G).index :=
 begin
   intro h,
-  haveI : fintype (G ⧸ (P : subgroup G)) := fintype_of_index_ne_zero hP,
+  haveI := (P : subgroup G).fintype_quotient_of_finite_index,
   rw index_eq_card at h,
   obtain ⟨x, hx⟩ := exists_prime_order_of_dvd_card p h,
   have h := is_p_group.of_card ((order_eq_card_zpowers.symm.trans hx).trans (pow_one p).symm),
@@ -370,7 +370,8 @@ begin
   rw [←relindex_mul_index le_normalizer, ←card_sylow_eq_index_normalizer],
   haveI : (P.subtype le_normalizer : subgroup (P : subgroup G).normalizer).normal :=
   subgroup.normal_in_normalizer,
-  replace hP := not_dvd_index_sylow' (P.subtype le_normalizer) hP,
+  haveI : finite_index ↑(P.subtype le_normalizer) := ⟨hP⟩,
+  replace hP := not_dvd_index_sylow' (P.subtype le_normalizer),
   exact hp.1.not_dvd_mul hP (not_dvd_card_sylow p G),
 end
 

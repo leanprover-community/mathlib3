@@ -7,7 +7,7 @@ import order.lattice
 import data.list.sort
 import logic.equiv.fin
 import logic.equiv.functor
-import data.fintype.basic
+import data.fintype.card
 /-!
 # Jordan-Hölder Theorem
 

@@ -1221,7 +1221,7 @@ rfl
   h ∈ H.subgroup_of K ↔ (h : G) ∈ H :=
 iff.rfl
 
-@[to_additive] lemma subgroup_of_map_subtype (H K : subgroup G) :
+@[simp, to_additive] lemma subgroup_of_map_subtype (H K : subgroup G) :
   (H.subgroup_of K).map K.subtype = H ⊓ K :=
 set_like.ext' $ subtype.image_preimage_coe _ _
 

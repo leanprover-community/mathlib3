@@ -18,6 +18,13 @@ polynomials, and you want to vary which polynomial you're considering.
 The results in this file are intended to mirror those in `ring_theory.adjoin_root`,
 in order to provide an easier way to translate results from one to the other.
 
+## Motivation
+
+`adjoin_root` presents one construction of a ring `R[α]`. However, it is possible to obtain
+rings of this form in many ways, such as `number_field.ring_of_integers ℚ(√-5)`,
+or `algebra.adjoin R {α, α^2}`, or `intermediate_field.adjoin R {α, 2 - α}`,
+or even if we want to view `ℂ` as adjoining a root of `X^2 + 1` to `ℝ`.
+
 ## Main definitions
 
 The two main predicates in this file are:

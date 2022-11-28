@@ -854,11 +854,8 @@ begin
       exact coeff_mul_degree_add_degree _ _ } }
 end
 
-lemma zero_le_degree_iff {p : R[X]} : 0 ≤ degree p ↔ p ≠ 0 :=
+lemma zero_le_degree_iff : 0 ≤ degree p ↔ p ≠ 0 :=
 by rw [← not_lt, nat.with_bot.lt_zero_iff, degree_eq_bot]
-
-lemma degree_nonneg_iff_ne_zero : 0 ≤ degree p ↔ p ≠ 0 :=
-zero_le_degree_iff
 
 lemma nat_degree_eq_zero_iff_degree_le_zero : p.nat_degree = 0 ↔ p.degree ≤ 0 :=
 by rw [← nonpos_iff_eq_zero, nat_degree_le_iff_degree_le, with_bot.coe_zero]
@@ -905,7 +902,7 @@ lemma eq_C_of_nat_degree_eq_zero (h : nat_degree p = 0) : p = C (coeff p 0) :=
 eq_C_of_nat_degree_le_zero h.le
 
 lemma ne_zero_of_coe_le_degree (hdeg : ↑n ≤ p.degree) : p ≠ 0 :=
-degree_nonneg_iff_ne_zero.mp $ (with_bot.coe_le_coe.mpr n.zero_le).trans hdeg
+zero_le_degree_iff.mp $ (with_bot.coe_le_coe.mpr n.zero_le).trans hdeg
 
 lemma le_nat_degree_of_coe_le_degree (hdeg : ↑n ≤ p.degree) :
   n ≤ p.nat_degree :=

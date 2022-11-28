@@ -6,6 +6,7 @@ import networkx as nx
 import subprocess
 from urllib.request import urlopen
 from mathlibtools.lib import PortStatus, LeanProject, FileStatus
+from sys import argv
 from pathlib import Path
 
 import_re = re.compile(r"^import ([^ ]*)")
@@ -60,9 +61,11 @@ touched = dict()
 for node in graph.nodes:
     if data[node].mathlib3_hash:
         verified[node] = data[node].mathlib3_hash
-        result = subprocess.run(['git', 'diff', '--name-only', data[node].mathlib3_hash + "..HEAD", "src" + os.sep + node.replace('.', os.sep) + ".lean"], stdout=subprocess.PIPE)
+        git_command = ['git', 'diff', '--name-only', data[node].mathlib3_hash + "..HEAD", "src" + os.sep + node.replace('.', os.sep) + ".lean"]
+        result = subprocess.run(git_command, stdout=subprocess.PIPE)
         if result.stdout != b'':
-            touched[node] = True
+            del(git_command[2])
+            touched[node] = git_command
     elif data[node].ported:
         print("Bad status for " + node)
         print("Expected 'Yes MATHLIB4-PR MATHLIB-HASH'")
@@ -106,5 +109,5 @@ for node in graph.nodes:
 if len(touched) > 0:
     print()
     print('# The following files have been modified since the commit at which they were verified.')
-    for n in touched.keys():
-        print(n)
+    for v in touched.values():
+        print(' '.join(v))

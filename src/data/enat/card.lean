@@ -1,4 +1,4 @@
-import data.finite.basic
+import data.finite.defs
 import data.enat.basic
 import logic.equiv.fin
 
@@ -43,7 +43,6 @@ lemma _root_.finite.nonempty_equiv_fin [finite α] : nonempty (α ≃ fin (#ₙ 
 enat.card_eq_nat_iff.1 $ enat.card_finite _
 
 lemma card_lt_top [finite α] : #ₑα < ⊤ := (card_finite α).symm ▸ with_top.coe_lt_top _
-
 lemma card_ne_top [finite α] : #ₑα ≠ ⊤ := (card_lt_top α).ne
 
 lemma card_eq_top_iff : #ₑα = ⊤ ↔ infinite α :=

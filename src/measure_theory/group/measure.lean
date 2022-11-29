@@ -7,6 +7,7 @@ import dynamics.ergodic.measure_preserving
 import measure_theory.measure.regular
 import measure_theory.group.measurable_equiv
 import measure_theory.measure.open_pos
+import measure_theory.group.action
 import measure_theory.constructions.prod
 import topology.continuous_function.cocompact_map
 
@@ -76,6 +77,17 @@ instance [is_mul_left_invariant μ] (c : ℝ≥0∞) : is_mul_left_invariant (c 
 @[to_additive]
 instance [is_mul_right_invariant μ] (c : ℝ≥0∞) : is_mul_right_invariant (c • μ) :=
 ⟨λ g, by rw [measure.map_smul, map_mul_right_eq_self]⟩
+
+@[to_additive]
+instance is_mul_left_invariant.to_smul_invariant_measure [has_measurable_mul G]
+  [μ.is_mul_left_invariant] : smul_invariant_measure G G μ :=
+⟨λ g s hs, by simp_rw [smul_eq_mul, ←map_apply (measurable_const_mul g) hs, map_mul_left_eq_self]⟩
+
+@[to_additive]
+instance is_mul_right_invariant.to_smul_invariant_measure_op [has_measurable_mul G]
+  [μ.is_mul_right_invariant] : smul_invariant_measure Gᵐᵒᵖ G μ :=
+⟨λ g s hs, by simp_rw [mul_opposite.smul_eq_mul_unop, ←map_apply (measurable_mul_const _) hs,
+  map_mul_right_eq_self]⟩
 
 section has_measurable_mul
 
@@ -213,14 +225,13 @@ calc μ ((λ h, h * g) ⁻¹' A) = map (λ h, h * g) μ A :
   ((measurable_equiv.mul_right g).map_apply A).symm
 ... = μ A : by rw map_mul_right_eq_self μ g
 
-@[simp, to_additive]
-lemma measure_smul (μ : measure G) [is_mul_left_invariant μ] (g : G) (A : set G) :
-  μ (g • A) = μ A :=
-begin
-  convert measure_preimage_mul μ (g⁻¹) A,
-  ext x,
-  simp only [mem_smul_set_iff_inv_smul_mem, smul_eq_mul, mem_preimage]
-end
+@[to_additive] instance subgroup.smul_invariant_measure {μ : measure G} [μ.is_mul_left_invariant]
+  {s : subgroup G} : smul_invariant_measure s G μ :=
+⟨λ c t ht, measure_preimage_mul _ _ _⟩
+
+@[to_additive] instance subgroup.smul_invariant_measure_op {μ : measure G}
+  [μ.is_mul_right_invariant] {s : subgroup G} : smul_invariant_measure s.opposite G μ :=
+⟨λ c t ht, measure_preimage_mul_right _ _ _⟩
 
 @[to_additive]
 lemma map_mul_left_ae (μ : measure G) [is_mul_left_invariant μ] (x : G) :

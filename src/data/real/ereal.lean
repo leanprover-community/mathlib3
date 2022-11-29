@@ -154,31 +154,18 @@ by { apply with_top.coe_lt_coe.2, exact with_bot.bot_lt_coe _ }
 
 @[simp] lemma top_ne_zero : (⊤ : ereal) ≠ 0 := (coe_ne_top 0).symm
 
--- The following lemmas follow from the `simp` lemmas for `coe_is_monoid_with_zero_hom` and
--- `coe_is_add_monoid_hom` but we keep them because they're eligible for `dsimp`.
-@[simp, norm_cast] protected lemma coe_zero : ((0 : ℝ) : ereal) = 0 := rfl
-@[simp, norm_cast] protected lemma coe_one : ((1 : ℝ) : ereal) = 1 := rfl
-@[simp, norm_cast] protected lemma coe_add (x y : ℝ) : (↑(x + y) : ereal) = x + y := rfl
-
-@[norm_cast] protected lemma coe_mul (x y : ℝ) : (↑(x * y) : ereal) = x * y :=
+@[simp, norm_cast] lemma coe_zero : ((0 : ℝ) : ereal) = 0 := rfl
+@[simp, norm_cast] lemma coe_one : ((1 : ℝ) : ereal) = 1 := rfl
+@[simp, norm_cast] lemma coe_add (x y : ℝ) : (↑(x + y) : ereal) = x + y := rfl
+@[simp, norm_cast] lemma coe_mul (x y : ℝ) : (↑(x * y) : ereal) = x * y :=
 (with_top.coe_eq_coe.2 with_bot.coe_mul).trans with_top.coe_mul
+@[norm_cast] lemma coe_nsmul (n : ℕ) (x : ℝ) : (↑(n • x) : ereal) = n • x :=
+map_nsmul (⟨coe, coe_zero, coe_add⟩ : ℝ →+ ereal) _ _
+@[simp, norm_cast] lemma coe_pow (x : ℝ) (n : ℕ) : (↑(x ^ n) : ereal) = x ^ n :=
+map_pow (⟨coe, coe_one, coe_mul⟩ : ℝ →* ereal) _ _
 
-instance : coe_is_monoid_with_zero_hom ℝ ereal :=
-{ coe_one := ereal.coe_one,
-  coe_mul := ereal.coe_mul,
-  coe_zero := ereal.coe_zero }
-
-instance : coe_is_add_monoid_hom ℝ ereal :=
-{ coe_zero := ereal.coe_zero,
-  coe_add := ereal.coe_add }
-
-@[norm_cast] protected lemma coe_nsmul (n : ℕ) (x : ℝ) : (↑(n • x) : ereal) = n • x :=
-coe_nsmul _ _
-@[norm_cast] protected lemma coe_pow (x : ℝ) (n : ℕ) : (↑(x ^ n) : ereal) = x ^ n :=
-coe_pow _ _
-
-@[norm_cast] protected lemma coe_bit0 (x : ℝ) : (↑(bit0 x) : ereal) = bit0 x := rfl
-@[norm_cast] protected lemma coe_bit1 (x : ℝ) : (↑(bit1 x) : ereal) = bit1 x := rfl
+@[simp, norm_cast] lemma coe_bit0 (x : ℝ) : (↑(bit0 x) : ereal) = bit0 x := rfl
+@[simp, norm_cast] lemma coe_bit1 (x : ℝ) : (↑(bit1 x) : ereal) = bit1 x := rfl
 
 @[simp, norm_cast] lemma coe_eq_zero {x : ℝ} : (x : ereal) = 0 ↔ x = 0 := ereal.coe_eq_coe_iff
 @[simp, norm_cast] lemma coe_eq_one {x : ℝ} : (x : ereal) = 1 ↔ x = 1 := ereal.coe_eq_coe_iff
@@ -320,7 +307,7 @@ by rw [←coe_ennreal_zero, coe_ennreal_lt_coe_ennreal_iff]
 @[simp, norm_cast] lemma coe_ennreal_mul : ∀ (x y : ℝ≥0∞), ((x * y : ℝ≥0∞) : ereal) = x * y
 | ⊤ y := by { rw ennreal.top_mul, split_ifs; simp [h] }
 | x ⊤ := by { rw ennreal.mul_top, split_ifs; simp [h] }
-| (some x) (some y) := by simp [←ennreal.coe_mul, ereal.coe_mul, -coe_mul, coe_nnreal_eq_coe_real]
+| (some x) (some y) := by simp [←ennreal.coe_mul, coe_nnreal_eq_coe_real]
 
 @[norm_cast] lemma coe_ennreal_nsmul (n : ℕ) (x : ℝ≥0∞) : (↑(n • x) : ereal) = n • x :=
 map_nsmul (⟨coe, coe_ennreal_zero, coe_ennreal_add⟩ : ℝ≥0∞ →+ ereal) _ _
@@ -380,7 +367,7 @@ lemma to_real_add : ∀ {x y : ereal} (hx : x ≠ ⊤) (h'x : x ≠ ⊥) (hy : y
 | ⊤ y hx h'x hy h'y := (hx rfl).elim
 | x ⊤ hx h'x hy h'y := (hy rfl).elim
 | x ⊥ hx h'x hy h'y := (h'y rfl).elim
-| (x : ℝ) (y : ℝ) hx h'x hy h'y := by simp [← ereal.coe_add, -coe_add]
+| (x : ℝ) (y : ℝ) hx h'x hy h'y := by simp [← ereal.coe_add]
 
 lemma add_lt_add_right_coe {x y : ereal} (h : x < y) (z : ℝ) : x + z < y + z :=
 begin
@@ -421,7 +408,7 @@ end
 @[simp] lemma add_eq_top_iff {x y : ereal} : x + y = ⊤ ↔ x = ⊤ ∨ y = ⊤ :=
 begin
   induction x using ereal.rec; induction y using ereal.rec;
-  simp [← ereal.coe_add, -coe_add],
+  simp [← ereal.coe_add],
 end
 
 @[simp] lemma add_lt_top_iff {x y : ereal} : x + y < ⊤ ↔ x < ⊤ ∧ y < ⊤ :=
@@ -576,7 +563,7 @@ with_top.coe_mul.symm.trans $
 lemma to_real_mul : ∀ {x y : ereal}, to_real (x * y) = to_real x * to_real y
 | ⊤ y := by by_cases hy : y = 0; simp [hy]
 | x ⊤ := by by_cases hx : x = 0; simp [hx]
-| (x : ℝ) (y : ℝ) := by simp [← ereal.coe_mul, -coe_mul]
+| (x : ℝ) (y : ℝ) := by simp [← ereal.coe_mul]
 | ⊥ (y : ℝ) := by by_cases hy : y = 0; simp [hy]
 | (x : ℝ) ⊥ := by by_cases hx : x = 0; simp [hx]
 | ⊥ ⊥ := by simp

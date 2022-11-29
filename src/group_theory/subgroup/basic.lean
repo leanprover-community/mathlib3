@@ -2147,30 +2147,36 @@ instance normal_ker (f : G →* M) : f.ker.normal :=
 
 end ker
 
+section eq_locus
+
+variables {M : Type*} [monoid M]
+
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
 @[to_additive "The additive subgroup of elements `x : G` such that `f x = g x`"]
-def eq_locus (f g : G →* N) : subgroup G :=
-{ inv_mem' := λ x (hx : f x = g x), show f x⁻¹ = g x⁻¹, by rw [f.map_inv, g.map_inv, hx],
+def eq_locus (f g : G →* M) : subgroup G :=
+{ inv_mem' := λ x, eq_on_inv f g,
   .. eq_mlocus f g}
 
 /-- If two monoid homomorphisms are equal on a set, then they are equal on its subgroup closure. -/
 @[to_additive "If two monoid homomorphisms are equal on a set, then they are equal on its subgroup
 closure."]
-lemma eq_on_closure {f g : G →* N} {s : set G} (h : set.eq_on f g s) : set.eq_on f g (closure s) :=
+lemma eq_on_closure {f g : G →* M} {s : set G} (h : set.eq_on f g s) : set.eq_on f g (closure s) :=
 show closure s ≤ f.eq_locus g, from (closure_le _).2 h
 
 @[to_additive]
-lemma eq_of_eq_on_top {f g : G →* N} (h : set.eq_on f g (⊤ : subgroup G)) :
+lemma eq_of_eq_on_top {f g : G →* M} (h : set.eq_on f g (⊤ : subgroup G)) :
   f = g :=
 ext $ λ x, h trivial
 
 @[to_additive]
-lemma eq_of_eq_on_dense {s : set G} (hs : closure s = ⊤) {f g : G →* N} (h : s.eq_on f g) :
+lemma eq_of_eq_on_dense {s : set G} (hs : closure s = ⊤) {f g : G →* M} (h : s.eq_on f g) :
   f = g :=
 eq_of_eq_on_top $ hs ▸ eq_on_closure h
 
+end eq_locus
+
 @[to_additive]
-lemma gclosure_preimage_le (f : G →* N) (s : set N) :
+lemma closure_preimage_le (f : G →* N) (s : set N) :
   closure (f ⁻¹' s) ≤ (closure s).comap f :=
 (closure_le _).2 $ λ x hx, by rw [set_like.mem_coe, mem_comap]; exact subset_closure hx
 

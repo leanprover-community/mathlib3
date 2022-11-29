@@ -291,9 +291,17 @@ ring_hom.prod (pi.ring_hom (λ ⟨_, hφ⟩, real_embedding hφ))
   (pi.ring_hom (λ ⟨φ, _⟩, φ))
 
 def log_embedding :
-  Kˣ → (infinite_places K → ℝ) :=
-begin
-  exact λ x ⟨w, _⟩, w x,
-end
+  Kˣ →* (multiplicative (infinite_places K → ℝ)) :=
+{ to_fun :=
+  begin
+    rintros x ⟨w, _⟩,
+    exact real.log (w x),
+  end,
+  map_one' :=
+  begin
+    sorry,
+  end,
+}
+
 
 end classical_embeddings

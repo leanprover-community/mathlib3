@@ -85,7 +85,7 @@ begin
     haveI : fintype G := @fintype.of_finite _ hu.finite_zmultiples,
     have hG_card : (finset.univ : finset G).card = n,
     { show _ = add_order_of u, rw [add_order_eq_card_zmultiples', nat.card_eq_fintype_card], refl },
-    simp_rw [measure_vadd_set],
+    simp_rw [measure_vadd],
     rw [add_circle.measure_univ, tsum_fintype, finset.sum_const, measure_congr hI,
       volume_closed_ball, ← ennreal.of_real_nsmul, mul_div, mul_div_mul_comm,
       div_self (@two_ne_zero ℝ _ _ _ _), one_mul, min_eq_right (div_le_self hT.out.le hn), hG_card,

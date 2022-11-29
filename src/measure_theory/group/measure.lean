@@ -79,17 +79,6 @@ instance [is_mul_left_invariant μ] (c : ℝ≥0∞) : is_mul_left_invariant (c 
 instance [is_mul_right_invariant μ] (c : ℝ≥0∞) : is_mul_right_invariant (c • μ) :=
 ⟨λ g, by rw [measure.map_smul, map_mul_right_eq_self]⟩
 
-@[to_additive]
-instance is_mul_left_invariant.to_smul_invariant_measure [has_measurable_mul G]
-  [μ.is_mul_left_invariant] : smul_invariant_measure G G μ :=
-⟨λ g s hs, by simp_rw [smul_eq_mul, ←map_apply (measurable_const_mul g) hs, map_mul_left_eq_self]⟩
-
-@[to_additive]
-instance is_mul_right_invariant.to_smul_invariant_measure_op [has_measurable_mul G]
-  [μ.is_mul_right_invariant] : smul_invariant_measure Gᵐᵒᵖ G μ :=
-⟨λ g s hs, by simp_rw [mul_opposite.smul_eq_mul_unop, ←map_apply (measurable_mul_const _) hs,
-  map_mul_right_eq_self]⟩
-
 section has_measurable_mul
 
 variables [has_measurable_mul G]
@@ -122,7 +111,12 @@ instance is_mul_left_invariant.smul_invariant_measure [is_mul_left_invariant μ]
 ⟨λ x s hs, (measure_preserving_mul_left μ x).measure_preimage hs⟩
 
 @[to_additive]
-instance subgroup.smul_invariant_measure'
+instance is_mul_right_invariant.to_smul_invariant_measure_op [μ.is_mul_right_invariant] :
+  smul_invariant_measure Gᵐᵒᵖ G μ :=
+⟨λ x s hs, (measure_preserving_mul_right μ (mul_opposite.unop x)).measure_preimage hs⟩
+
+@[to_additive]
+instance subgroup.smul_invariant_measure
   {G α : Type*} [group G] [mul_action G α] [measurable_space α]
   {μ : measure α} [smul_invariant_measure G α μ] (H : subgroup G) :
   smul_invariant_measure H α μ :=
@@ -237,14 +231,6 @@ lemma measure_preimage_mul_right (μ : measure G) [is_mul_right_invariant μ] (g
 calc μ ((λ h, h * g) ⁻¹' A) = map (λ h, h * g) μ A :
   ((measurable_equiv.mul_right g).map_apply A).symm
 ... = μ A : by rw map_mul_right_eq_self μ g
-
-@[to_additive] instance subgroup.smul_invariant_measure {μ : measure G} [μ.is_mul_left_invariant]
-  {s : subgroup G} : smul_invariant_measure s G μ :=
-⟨λ c t ht, measure_preimage_mul _ _ _⟩
-
-@[to_additive] instance subgroup.smul_invariant_measure_op {μ : measure G}
-  [μ.is_mul_right_invariant] {s : subgroup G} : smul_invariant_measure s.opposite G μ :=
-⟨λ c t ht, measure_preimage_mul_right _ _ _⟩
 
 @[to_additive]
 lemma map_mul_left_ae (μ : measure G) [is_mul_left_invariant μ] (x : G) :

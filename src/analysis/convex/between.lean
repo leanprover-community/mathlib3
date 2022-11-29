@@ -358,14 +358,10 @@ end
 @[simp] lemma sbtw_line_map_iff [no_zero_smul_divisors R V] {x y : P} {r : R} :
   sbtw R x (line_map x y r) y ↔ x ≠ y ∧ r ∈ set.Ioo (0 : R) 1 :=
 begin
-  rw [sbtw, wbtw_line_map_iff],
-  by_cases hxy : x = y,
-  { simp [hxy] },
-  { rw [or_iff_right hxy, and_iff_right hxy, ne.def, ne.def, line_map_eq_left_iff,
-        line_map_eq_right_iff, not_or_distrib, not_or_distrib, and_iff_right hxy,
-        and_iff_right hxy, set.mem_Icc, set.mem_Ioo],
-    exact ⟨λ h, ⟨h.1.1.lt_of_ne (ne.symm h.2.1), h.1.2.lt_of_ne h.2.2⟩,
-           λ h, ⟨⟨h.1.le, h.2.le⟩, h.1.ne', h.2.ne⟩⟩ }
+  rw [sbtw_iff_mem_image_Ioo_and_ne, and_comm, and_congr_right],
+  intro hxy,
+  rw function.injective.mem_set_image,
+  sorry,
 end
 
 lemma wbtw.trans_left {w x y z : P} (h₁ : wbtw R w y z) (h₂ : wbtw R w x y) : wbtw R w x z :=

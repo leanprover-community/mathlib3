@@ -9,7 +9,6 @@ import measure_theory.group.measurable_equiv
 import measure_theory.measure.open_pos
 import measure_theory.group.action
 import measure_theory.constructions.prod
-import measure_theory.group.action
 import topology.continuous_function.cocompact_map
 
 /-!

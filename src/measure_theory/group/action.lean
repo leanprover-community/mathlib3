@@ -3,10 +3,10 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import dynamics.ergodic.measure_preserving
-import dynamics.minimal
 import measure_theory.group.measurable_equiv
 import measure_theory.measure.regular
+import dynamics.ergodic.measure_preserving
+import dynamics.minimal
 
 /-!
 # Measures invariant under group actions

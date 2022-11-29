@@ -5,7 +5,7 @@ Authors: Moritz Firsching, Fabian Kruse, Nikolas Kuhn
 -/
 import analysis.p_series
 import analysis.special_functions.log.deriv
-import tactic.positivity_extensions
+import tactic.positivity
 import data.real.pi.wallis
 
 /-!

@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import algebra.big_operators.basic
 import algebra.big_operators.pi
 import category_theory.limits.shapes.biproducts
-import category_theory.preadditive.default
+import category_theory.preadditive.basic
 import category_theory.preadditive.additive_functor
 import data.matrix.dmatrix
 import data.matrix.basic

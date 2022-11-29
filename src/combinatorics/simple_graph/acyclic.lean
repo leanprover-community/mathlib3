@@ -181,14 +181,13 @@ begin
     simp only [sdiff_adj, from_edge_set_adj, set.mem_singleton, true_and, not_not] at a,
     exact huv a.right, },
   { rintro na,
-    rw ←from_edge_set_edge_set G,
-    rw from_edge_set_sdiff,
+    rw [←from_edge_set_edge_set G, from_edge_set_sdiff],
     congr,
     rw set.diff_eq_self,
     rintro e ⟨euv,eG⟩,
     simp only [set.mem_singleton_iff] at euv,
     rw euv at eG,
-      exact na eG, }
+    exact na eG, },
 end
 
 private lemma add_delete_edge_eq (G : simple_graph V) (u v : V) (huv : u ≠ v) (h : ¬G.adj u v) :

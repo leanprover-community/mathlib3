@@ -242,7 +242,7 @@ lemma value_at (a : ℤ) {R : Type*} [comm_semiring R] (χ : R →* ℤ)
   (hp : ∀ (p : ℕ) (pp : p.prime) (h2 : p ≠ 2), @legendre_sym p ⟨pp⟩ a = χ p) {b : ℕ} (hb : odd b) :
   J(a | b) = χ b :=
 begin
-  conv_rhs { rw [← prod_factors hb.pos.ne', nat.cast_list_prod, χ.map_list_prod] },
+  conv_rhs { rw [← prod_factors hb.pos.ne', cast_list_prod, χ.map_list_prod] },
   rw [jacobi_sym, list.map_map, ← list.pmap_eq_map nat.prime _ _ (λ _, prime_of_mem_factors)],
   congr' 1, apply list.pmap_congr,
   exact λ p h pp _, hp p pp (hb.factors_ne_two h),

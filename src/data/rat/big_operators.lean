@@ -11,7 +11,9 @@ import algebra.big_operators.basic
 
 open_locale big_operators
 
-variables {F ι α β : Type*}
+variables {ι α : Type*}
+
+namespace rat
 
 section with_div_ring
 variables [division_ring α] [char_zero α]
@@ -42,3 +44,5 @@ map_multiset_prod (rat.cast_hom α) _
 map_prod (rat.cast_hom α) _ _
 
 end field
+
+end rat

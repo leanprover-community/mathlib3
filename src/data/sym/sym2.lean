@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
 import data.finset.prod
-import data.fintype.basic
 import data.sym.basic
 import tactic.linarith
 
@@ -43,7 +42,7 @@ term of the symmetric square.
 symmetric square, unordered pairs, symmetric powers
 -/
 
-open finset fintype function sym
+open finset function sym
 
 universe u
 variables {α β γ : Type*}

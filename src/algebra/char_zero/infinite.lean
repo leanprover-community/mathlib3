@@ -1,5 +1,12 @@
+/-
+Copyright (c) 2020 Johan Commelin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin
+-/
 import algebra.char_zero.defs
 import data.fintype.lattice
+
+/-! # A characteristic-zero semiring is infinite -/
 
 open set
 variables (M : Type*) [add_monoid_with_one M] [char_zero M]

@@ -177,27 +177,24 @@ begin
     { ext x, rw [← h, conjugate.place_eq], }},
 end
 
-/-- A embedding into `ℂ` is real if its fixed by complex conjugation. -/
+/-- A embedding into `ℂ` is real if it is fixed by complex conjugation. -/
 def is_real (φ : K →+* ℂ): Prop := conjugate φ = φ
 
-/-- A embedding into `ℂ` is complex if its not fixed by complex conjugation. -/
+/-- A embedding into `ℂ` is complex if it is not fixed by complex conjugation. -/
 def is_complex (φ : K →+* ℂ): Prop := conjugate φ ≠ φ
 
 /-- A real embedding as a ring hom `K →+* ℝ` . -/
 def real_embedding {φ : K →+* ℂ} (hφ : is_real φ) : K →+* ℝ :=
-{ to_fun :=
+{ to_fun := λ x, (φ x).re,
+  map_one' := by simp only [map_one, one_re],
+  map_mul' :=
   begin
-    intro x,
-    let y := φ x,
-    have : conj y = y := by sorry,
-    rw complex.eq_conj_iff_real at this,
-    exact Exists.some this,
+    intros x y,
+    have := λ z, eq_conj_iff_im.mp (ring_hom.congr_fun hφ z),
+    simp only [this, mul_zero, map_mul, mul_re, tsub_zero],
   end,
-  map_one' := by sorry,
-  map_mul' := by sorry,
-  map_zero' := by sorry,
-  map_add' := by sorry,
-}
+  map_zero' := by simp only [map_zero, zero_re],
+  map_add' := by simp only [map_add, add_re, eq_self_iff_true, forall_const], }
 
 lemma conjugate_conjugate (φ : K →+* ℂ) :
   conjugate (conjugate φ) = φ :=
@@ -278,22 +275,25 @@ end infinite_places
 
 section classical_embeddings
 
+open number_field.embeddings
+
 variables {K : Type*} [field K] (K)
 
-def additive_embedding : K →+ ({w : infinite_places K // place_is_real w} → ℝ) ×
-  ({w : infinite_places K // place_is_complex w} → ℝ × ℝ) :=
-{ to_fun :=
-  begin
-    intro x,
-    refine ⟨_, _⟩,
-    { rintros ⟨⟨w, hw⟩, _⟩,
-      let φ := Exists.some hw,
-      sorry, },
-    { sorry, },
-  end,
-  map_zero' := by sorry,
-  map_add' := by sorry,
-}
+example : K →+* ({φ : K →+* ℂ // is_real φ} → ℝ) :=
+pi.ring_hom (λ ⟨_, hφ⟩, real_embedding hφ)
 
+example : K →+* ({φ : K →+* ℂ // is_complex φ} → ℂ) :=
+pi.ring_hom (λ ⟨φ, _⟩, φ)
+
+def ring_embedding :
+  K →+* ({φ : K →+* ℂ // is_real φ} → ℝ) × ({φ : K →+* ℂ // is_complex φ} → ℂ) :=
+ring_hom.prod (pi.ring_hom (λ ⟨_, hφ⟩, real_embedding hφ))
+  (pi.ring_hom (λ ⟨φ, _⟩, φ))
+
+def log_embedding :
+  Kˣ → (infinite_places K → ℝ) :=
+begin
+  exact λ x ⟨w, _⟩, w x,
+end
 
 end classical_embeddings

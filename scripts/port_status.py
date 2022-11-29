@@ -71,6 +71,8 @@ parentsDone = dict()
 verified = dict()
 touched = dict()
 for node in graph.nodes:
+    if node.endswith('default'):
+        continue
     if data[node].startswith('Yes'):
       chunks = data[node].split(' ')
       if len(chunks) > 2:

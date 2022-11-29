@@ -361,7 +361,7 @@ begin
   rw [sbtw_iff_mem_image_Ioo_and_ne, and_comm, and_congr_right],
   intro hxy,
   rw function.injective.mem_set_image,
-  sorry,
+  exact line_map_injective _ hxy
 end
 
 lemma wbtw.trans_left {w x y z : P} (h₁ : wbtw R w y z) (h₂ : wbtw R w x y) : wbtw R w x z :=

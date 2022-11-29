@@ -488,6 +488,56 @@ begin
   simp [sdiff_eq_self_of_disjoint (edge_set_disjoint_diag G), disjoint.comm],
 end
 
+lemma add_edge_eq_iff (G : simple_graph V) (u v : V) (huv : u ≠ v) :
+  G ⊔ from_edge_set {⟦(u, v)⟧} = G ↔ G.adj u v :=
+begin
+  simp only [sup_eq_left],
+  split,
+  { exact λ h, h (⟨rfl,huv⟩ : (from_edge_set {⟦(u, v)⟧}).adj u v), },
+  { rintro h,
+    apply from_edge_set_le,
+    simp only [set.singleton_subset_iff, mem_edge_set],
+    exact h, },
+end
+
+lemma delete_edge_eq_iff (G : simple_graph V) (u v : V) (huv : u ≠ v) :
+  G \ from_edge_set {⟦(u, v)⟧} = G ↔ ¬ G.adj u v :=
+begin
+  split,
+  { rintro h a,
+    rw ←h at a,
+    simp only [sdiff_adj, from_edge_set_adj, set.mem_singleton, true_and, not_not] at a,
+    exact huv a.right, },
+  { rintro na,
+    rw [←from_edge_set_edge_set G, from_edge_set_sdiff],
+    congr,
+    rw set.diff_eq_self,
+    rintro e ⟨euv,eG⟩,
+    simp only [set.mem_singleton_iff] at euv,
+    rw euv at eG,
+    exact na eG, },
+end
+
+lemma add_delete_edge_eq (G : simple_graph V) (u v : V) (huv : u ≠ v) (h : ¬G.adj u v) :
+  (G ⊔ (from_edge_set{⟦(u, v)⟧})) \ (from_edge_set{⟦(u, v)⟧}) = G :=
+begin
+  rw [←from_edge_set_edge_set G, from_edge_set_sup, from_edge_set_sdiff],
+  congr,
+  simp only [set.union_singleton, set.insert_diff_of_mem, set.mem_singleton, set.diff_eq_self],
+  rintro a ⟨auv,aG⟩,
+  simp only [set.mem_singleton_iff] at auv,
+  rw auv at aG,
+  exact h aG,
+end
+
+lemma inf_from_edge_set_singleton_non_adj (G : simple_graph V) (u v : V) (h : ¬G.adj u v) :
+  G ⊓ from_edge_set {⟦(u, v)⟧} = ⊥ :=
+begin
+  rw [←from_edge_set_edge_set G, from_edge_set_inf, ←from_edge_set_empty],
+  congr,
+  simp only [h, set.inter_singleton_eq_empty, mem_edge_set, not_false_iff],
+end
+
 instance [decidable_eq V] [fintype s] : fintype (from_edge_set s).edge_set :=
 by { rw edge_set_from_edge_set s, apply_instance }
 

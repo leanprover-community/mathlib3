@@ -160,56 +160,6 @@ connected graphs containing `B`
 -/
 abbreviation is_min_connected_ge := B ≤ G ∧ G.connected ∧ ∀ H, B ≤ H → H ≤ G → H.connected → H = G
 
-private lemma add_edge_eq_iff (G : simple_graph V) (u v : V) (huv : u ≠ v) :
-  G ⊔ from_edge_set {⟦(u, v)⟧} = G ↔ G.adj u v :=
-begin
-  simp only [sup_eq_left],
-  split,
-  { exact λ h, h (⟨rfl,huv⟩ : (from_edge_set {⟦(u, v)⟧}).adj u v), },
-  { rintro h,
-    apply from_edge_set_le,
-    simp only [set.singleton_subset_iff, mem_edge_set],
-    exact h, },
-end
-
-private lemma delete_edge_eq_iff (G : simple_graph V) (u v : V) (huv : u ≠ v) :
-  G \ from_edge_set {⟦(u, v)⟧} = G ↔ ¬ G.adj u v :=
-begin
-  split,
-  { rintro h a,
-    rw ←h at a,
-    simp only [sdiff_adj, from_edge_set_adj, set.mem_singleton, true_and, not_not] at a,
-    exact huv a.right, },
-  { rintro na,
-    rw [←from_edge_set_edge_set G, from_edge_set_sdiff],
-    congr,
-    rw set.diff_eq_self,
-    rintro e ⟨euv,eG⟩,
-    simp only [set.mem_singleton_iff] at euv,
-    rw euv at eG,
-    exact na eG, },
-end
-
-private lemma add_delete_edge_eq (G : simple_graph V) (u v : V) (huv : u ≠ v) (h : ¬G.adj u v) :
-  (G ⊔ (from_edge_set{⟦(u, v)⟧})) \ (from_edge_set{⟦(u, v)⟧}) = G :=
-begin
-  rw [←from_edge_set_edge_set G, from_edge_set_sup, from_edge_set_sdiff],
-  congr,
-  simp only [set.union_singleton, set.insert_diff_of_mem, set.mem_singleton, set.diff_eq_self],
-  rintro a ⟨auv,aG⟩,
-  simp only [set.mem_singleton_iff] at auv,
-  rw auv at aG,
-  exact h aG,
-end
-
-private lemma inf_edge_non_adj (G : simple_graph V) (u v : V) (h : ¬G.adj u v) :
-  G ⊓ from_edge_set {⟦(u, v)⟧} = ⊥ :=
-begin
-  rw [←from_edge_set_edge_set G, from_edge_set_inf, ←from_edge_set_empty],
-  congr,
-  simp only [h, set.inter_singleton_eq_empty, mem_edge_set, not_false_iff],
-end
-
 lemma is_max_acyclic_le_iff : G.is_max_acyclic_le T ↔
   G ≤ T ∧
   G.is_acyclic ∧
@@ -265,7 +215,8 @@ begin
     rintro ⟨u,v⟩ ⟨eG,neB⟩ Gneco,
     apply (delete_edge_eq_iff G u v eG.ne).mp _ eG,
     apply Gmin _ _ _ Gneco,
-    { simpa only [BG, disjoint_iff, le_sdiff, true_and] using inf_edge_non_adj _ _ _ neB, },
+    { simpa only [BG, disjoint_iff, le_sdiff, true_and] using
+        inf_from_edge_set_singleton_non_adj _ _ _ neB, },
     { simp only [sdiff_le_iff, le_sup_right], }, },
   { rintro ⟨BG,Gco,Gmin⟩, refine ⟨BG, Gco, _⟩,
     rintro H BH HG Hco,
@@ -278,7 +229,8 @@ begin
       (⟦⟨u,v⟩⟧ : sym2 V)
       (by {simp only [set.mem_diff, mem_edge_set], exact ⟨Ga, λ h, nHa (BH h)⟩}),
     refine Hco.mono _,
-    simp only [HG, disjoint_iff, le_sdiff, true_and, inf_edge_non_adj _ _ _ nHa], },
+    simp only [HG, disjoint_iff, le_sdiff, true_and,
+               inf_from_edge_set_singleton_non_adj _ _ _ nHa], },
 end
 
 lemma is_tree.is_max_acyclic_le (hG : G.is_tree) {GT : G ≤ T} :
@@ -384,7 +336,8 @@ begin
   obtain ⟨v,w,wc⟩ := Gmax,
   -- And in particular there exists a cycle `w` from some vertex `v` to itself in this graph.
   -- If `w` doesn't contain the edge `e`, it must be a cycle of `G` already, a contradiction.
-  -- If `w` contains `e`, then, then removing `e` from `w` yields a path not containing `e`, hence
+  -- If `w` contains `e`, then, removing `e` from `w` yields a path not containing `e` (since
+  -- `w` was a cycle (a fortiori a path, a fortiori a trail), to begin with) hence
   -- contained in `G`, from `x` to `y`, a contradiction.
   by_cases h : (⟦⟨x,y⟩⟧ : sym2 V) ∈ w.edges,
   { apply hy, rw hG,
@@ -403,29 +356,44 @@ lemma is_min_connected_ge.is_acyclic (hB : B.is_acyclic) :
 begin
   rw is_min_connected_ge_iff,
   rintro ⟨BG,Gco,Gmin⟩ c w wc,
+  -- Assume `G` is minimal connected: need to show acyclic.
+  -- This means, if `w` is a cycle at `c` in `G`, need to prove `false`.
+  -- We have that at least one edge of `w` doesn't lie in `B`, since otherwise `B` wouldn't
+  -- be acyclic.
   have : ∃ e, e ∈ w.edges ∧ e ∉ B.edge_set, by
   { by_contra h, push_neg at h,
     exact hB c (w.transfer B h) (walk.is_cycle.transfer wc h), },
+  -- Take this edge.
   obtain ⟨⟨u,v⟩,⟨ew,neB⟩⟩ := this,
+  -- Now, we claim that removing this edge preserves connectivity, which will contradict
+  -- the assumption that `G` is minimal connected.
   apply Gmin ⟦⟨u,v⟩⟧ ⟨walk.edges_subset_edge_set w ew, neB⟩,
+  -- Have to show that `G` with `⟦⟨u,v⟩⟧` removed is still connected
   rw connected_iff at Gco ⊢, refine ⟨_,Gco.right⟩,
   clear neB Gmin BG hB B,
+  -- Removing the edge from `w` yields a path `p` between its endpoints in `G` with the edge
+  -- removed.
   obtain ⟨_,⟨p'⟩⟩ := (adj_and_reachable_delete_edges_iff_exists_cycle.mpr ⟨c,w,wc,ew⟩),
+  -- This path can be transfered to a path of `G` …
   let p : G.walk u v := p'.map (hom.map_spanning_subgraphs (by simp)),
+  -- …ot having the edge in its edges
   have hp : (⟦⟨u,v⟩⟧ : sym2 V) ∉ p.edges := λ h, by
   { simp only [walk.edges_map, list.mem_map, hom.map_spanning_subgraphs_apply, sym2.map_id',
                id.def, exists_eq_right] at h,
     simpa using p'.edges_subset_edge_set h, },
+  -- And we now show that any pair of vertices of `G` with the edge removed can be connected
+  -- by some walk.
+  -- Choose the vertices, and some walk connecting them in `G`.
   rintros x y,
   obtain ⟨wG⟩ := Gco.left x y,
+  -- Substitute all occurences of the edge by the walk `p`.
+  -- It suffices now to check that this new walk transfers back to `G` with the edge removed.
   let wG' := wG.substitute_edge p hp,
   let hwG' := wG.substitute_edge_not_mem p hp,
   refine ⟨wG'.transfer _ (λ e ewG', _)⟩,
   simp only [edge_set_sdiff, edge_set_from_edge_set, edge_set_sdiff_sdiff_is_diag, set.mem_diff,
              set.mem_singleton_iff],
-  refine ⟨wG'.edges_subset_edge_set ewG', _⟩,
-  rintro rfl,
-  exact hwG' ewG',
+  exact ⟨wG'.edges_subset_edge_set ewG', λ he, hwG' (he ▸ ewG')⟩,
 end
 
 end min_max

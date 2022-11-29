@@ -160,6 +160,49 @@ connected graphs containing `B`
 -/
 abbreviation is_min_connected_ge := B ≤ G ∧ G.connected ∧ ∀ H, B ≤ H → H ≤ G → H.connected → H = G
 
+private lemma add_edge_eq_iff (G : simple_graph V) (u v : V) (huv : u ≠ v) :
+  G ⊔ from_edge_set {⟦(u, v)⟧} = G ↔ G.adj u v :=
+begin
+  simp only [sup_eq_left],
+  split,
+  { exact λ h, h (⟨rfl,huv⟩ : (from_edge_set {⟦(u, v)⟧}).adj u v), },
+  { rintro h,
+    apply from_edge_set_le,
+    simp only [set.singleton_subset_iff, mem_edge_set],
+    exact h, },
+end
+
+private lemma delete_edge_eq_iff (G : simple_graph V) (u v : V) (huv : u ≠ v) :
+  G \ from_edge_set {⟦(u, v)⟧} = G ↔ ¬ G.adj u v :=
+begin
+  split,
+  { rintro h a,
+    rw ←h at a,
+    simp only [sdiff_adj, from_edge_set_adj, set.mem_singleton, true_and, not_not] at a,
+    exact huv a.right, },
+  { rintro na,
+    rw ←from_edge_set_edge_set G,
+    rw from_edge_set_sdiff,
+    congr,
+    rw set.diff_eq_self,
+    rintro e ⟨euv,eG⟩,
+    simp only [set.mem_singleton_iff] at euv,
+    rw euv at eG,
+      exact na eG, }
+end
+
+private lemma add_delete_edge_eq (G : simple_graph V) (u v : V) (huv : u ≠ v) (h : ¬G.adj u v) :
+  (G ⊔ (from_edge_set{⟦(u, v)⟧})) \ (from_edge_set{⟦(u, v)⟧}) = G :=
+begin
+  rw [←from_edge_set_edge_set G, from_edge_set_sup, from_edge_set_sdiff],
+  congr,
+  simp only [set.union_singleton, set.insert_diff_of_mem, set.mem_singleton, set.diff_eq_self],
+  rintro a ⟨auv,aG⟩,
+  simp only [set.mem_singleton_iff] at auv,
+  rw auv at aG,
+  exact h aG,
+end
+
 lemma is_max_acyclic_le_iff : G.is_max_acyclic_le T ↔
   G ≤ T ∧
   G.is_acyclic ∧
@@ -176,10 +219,7 @@ begin
     apply neG, clear neG,
     -- Showing that the edge is in `G` is the same as saying that adding it to `G` doesn't change
     -- the graph.
-    suffices : G ⊔ from_edge_set {⟦(u, v)⟧} = G, by
-    { simp only [sup_eq_left] at this,
-      apply this,
-      simpa only [from_edge_set_adj, set.mem_singleton, true_and] using adj.ne eT, },
+    apply (add_edge_eq_iff G u v eT.ne).mp,
     -- Suffices now to apply maximality of `G` among acyclic graphs contained in `T`
     -- plus the hypothesis that adding the edge to `G` doesn't break acyclicity.
     apply Gmax _ _ _ Geac,
@@ -216,9 +256,7 @@ begin
   split,
   { rintro ⟨BG,Gco,Gmin⟩, refine ⟨BG, Gco, _⟩,
     rintro ⟨u,v⟩ ⟨eG,neB⟩ Gneco,
-    change (⟦⟨u,v⟩⟧ : sym2 V) ∈ G.edge_set at eG,
-    suffices h : G \ from_edge_set {⟦(u, v)⟧} = G, by
-    { rw ←h at eG, simpa using eG, }, -- Any kind of  `simpx [←h]` doesn't work?
+    apply (delete_edge_eq_iff G u v eG.ne).mp _ eG,
     apply Gmin _ _ _ Gneco,
     { simp only [BG, disjoint_iff, le_sdiff, true_and],
       apply edge_set_injective,
@@ -252,8 +290,11 @@ lemma is_tree.is_max_acyclic_le (hG : G.is_tree) {GT : G ≤ T} :
   G.is_max_acyclic_le T :=
 begin
   classical,
+  -- Show that no edge of `T` can be added to `G` while preserving acyclicity.
+  -- Assume given two vertices `u,v` and that `⟦⟨u,v⟩⟧` form an edge of `T` but not of `G`.
+  -- Assume (towards `false`) that the `G` extended with `⟦⟨u,v⟩⟧` is acyclic.
   rw is_max_acyclic_le_iff,
-  use [GT,hG.is_acyclic],
+  refine ⟨GT,hG.is_acyclic,_⟩,
   rintro ⟨u,v⟩ ⟨eT,neG⟩,
   have : u ≠ v := ((mem_edge_set T).mp eT).ne,
   rintro Ge_ac,
@@ -289,7 +330,7 @@ lemma is_tree.is_min_connected_ge (hG : G.is_tree) {BG : B ≤ G} :
 begin
   classical,
   rw is_min_connected_ge_iff,
-  use [BG,hG.is_connected],
+  refine ⟨BG,hG.is_connected,_⟩,
   rintro ⟨u,v⟩ ⟨eG,neB⟩ Gne_co,
 
   let p₁ : G.path u v := simple_graph.path.map
@@ -337,12 +378,8 @@ begin
   -- From now on we only care about `x` and `y`
   clear_dependent u v,
   have xnay : ¬ G.adj x y := λ a, hy ⟨(path.singleton a).val⟩,
-  have hG : G = (G ⊔ from_edge_set {⟦⟨x,y⟩⟧}) \ from_edge_set {⟦⟨x,y⟩⟧}, by
-  { simp only [sup_sdiff_right_self],
-    refine le_antisymm _ (sdiff_le),
-    simp only [le_sdiff, le_refl, true_and],
-    rw [disjoint.comm, from_edge_set_disjoint_iff],
-    simp only [xnay, set.disjoint_singleton_left, mem_edge_set, not_false_iff], },
+  have hG : G = (G ⊔ from_edge_set {⟦⟨x,y⟩⟧}) \ from_edge_set {⟦⟨x,y⟩⟧} :=
+    (add_delete_edge_eq G x y e.ne xnay).symm,
   -- Applying maximality of `G` to the edge `e = ⟦(x,y)⟧` means that adding `e` to `G`
   -- breaks acyclicity
   specialize Gmax ⟦⟨x,y⟩⟧

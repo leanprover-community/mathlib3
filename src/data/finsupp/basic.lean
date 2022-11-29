@@ -8,6 +8,7 @@ import algebra.hom.group_action
 import algebra.regular.smul
 import data.finset.preimage
 import data.list.alist
+import data.rat.big_operators
 
 /-!
 # Miscellaneous definitions, lemmas, and constructions using finsupp

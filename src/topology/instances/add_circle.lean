@@ -90,30 +90,20 @@ variables [archimedean 𝕜]
 
 /-- The natural equivalence between `add_circle p` and the half-open interval `[0, p)`. -/
 def equiv_Ico : add_circle p ≃ Ico 0 p :=
-{ inv_fun := quotient_add_group.mk' _ ∘ coe,
-  to_fun := λ x, ⟨(to_Ico_mod_periodic 0 hp.out).lift x,
-    quot.induction_on x $ to_Ico_mod_mem_Ico' hp.out⟩,
-  right_inv := by { rintros ⟨x, hx⟩, ext, simp [to_Ico_mod_eq_self, hx.1, hx.2], },
-  left_inv :=
-  begin
-    rintros ⟨x⟩,
-    change quotient_add_group.mk (to_Ico_mod 0 hp.out x) = quotient_add_group.mk x,
-    rw [quotient_add_group.eq', neg_add_eq_sub, self_sub_to_Ico_mod],
-    apply zsmul_mem_zmultiples,
-  end }
+(quotient_add_group.equiv_Ico_mod 0 hp.out).trans $ equiv.set.of_eq $ by rw zero_add
 
 @[continuity] lemma continuous_equiv_Ico_symm : continuous (equiv_Ico p).symm :=
-continuous_coinduced_rng.comp continuous_induced_dom
+continuous_quotient_mk.comp continuous_subtype_coe
+
+/-- The image of the closed-open interval `[0, p)` under the quotient map `𝕜 → add_circle p` is the
+entire space. -/
+@[simp] lemma coe_image_Ico_eq : (coe : 𝕜 → add_circle p) '' Ico 0 p = univ :=
+by { rw image_eq_range, exact (equiv_Ico p).symm.range_eq_univ }
 
 /-- The image of the closed interval `[0, p]` under the quotient map `𝕜 → add_circle p` is the
 entire space. -/
-@[simp] lemma coe_image_Icc_eq :
-  (coe : 𝕜 → add_circle p) '' (Icc 0 p) = univ :=
-begin
-  refine eq_univ_iff_forall.mpr (λ x, _),
-  let y := equiv_Ico p x,
-  exact ⟨y, ⟨y.2.1, y.2.2.le⟩, (equiv_Ico p).symm_apply_apply x⟩,
-end
+@[simp] lemma coe_image_Icc_eq : (coe : 𝕜 → add_circle p) '' Icc 0 p = univ :=
+eq_top_mono (image_subset _ Ico_subset_Icc_self) $ coe_image_Ico_eq _
 
 end linear_ordered_add_comm_group
 

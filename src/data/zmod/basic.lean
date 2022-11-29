@@ -900,7 +900,7 @@ lemma prime_ne_zero (p q : ℕ) [hp : fact p.prime] [hq : fact q.prime] (hpq : p
 by rwa [← nat.cast_zero, ne.def, eq_iff_modeq_nat, nat.modeq_zero_iff_dvd,
   ← hp.1.coprime_iff_not_dvd, nat.coprime_primes hp.1 hq.1]
 
-lemma zmod.val_min_abs_nat_abs_eq_min {n : ℕ} [hpos : ne_zero n] (a : zmod n) :
+lemma val_min_abs_nat_abs_eq_min {n : ℕ} [hpos : ne_zero n] (a : zmod n) :
   a.val_min_abs.nat_abs = min a.val (n - a.val) :=
 begin
   rw val_min_abs_def_pos,
@@ -938,7 +938,7 @@ lemma nat_abs_val_min_abs_add_le {n : ℕ} (a b : zmod n) :
 begin
   cases n, { refl },
   apply nat_abs_min_of_le_div_two n.succ,
-  { simp_rw [int.cast_add, zmod.coe_val_min_abs] },
+  { simp_rw [int.cast_add, coe_val_min_abs] },
   { apply nat_abs_val_min_abs_le },
 end
 

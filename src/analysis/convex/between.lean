@@ -343,16 +343,8 @@ lemma sbtw.not_rotate [no_zero_smul_divisors R V] {x y z : P} (h : sbtw R x y z)
 @[simp] lemma wbtw_line_map_iff [no_zero_smul_divisors R V] {x y : P} {r : R} :
   wbtw R x (line_map x y r) y ↔ x = y ∨ r ∈ set.Icc (0 : R) 1 :=
 begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { rw [wbtw, affine_segment, set.mem_image] at h,
-    rcases h with ⟨r', hr'01, hr'⟩,
-    rw line_map_eq_line_map_iff at hr',
-    rcases hr' with rfl | rfl,
-    { exact or.inl rfl },
-    { exact or.inr hr'01 } },
-  { rcases h with rfl | h, { simp },
-    rw [wbtw, affine_segment, set.mem_image],
-    exact ⟨r, h, rfl⟩ }
+  by_cases hxy : x = y, { simp [hxy] },
+  rw [or_iff_right hxy, wbtw, affine_segment, (line_map_injective R hxy).mem_set_image]
 end
 
 @[simp] lemma sbtw_line_map_iff [no_zero_smul_divisors R V] {x y : P} {r : R} :
@@ -360,8 +352,7 @@ end
 begin
   rw [sbtw_iff_mem_image_Ioo_and_ne, and_comm, and_congr_right],
   intro hxy,
-  rw function.injective.mem_set_image,
-  exact line_map_injective _ hxy
+  rw (line_map_injective R hxy).mem_set_image
 end
 
 lemma wbtw.trans_left {w x y z : P} (h₁ : wbtw R w y z) (h₂ : wbtw R w x y) : wbtw R w x z :=

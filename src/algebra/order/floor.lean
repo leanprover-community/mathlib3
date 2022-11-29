@@ -323,7 +323,7 @@ lt_ceil.1 $ (nat.lt_succ_self _).trans_le (ceil_add_one ha).ge
 
 lemma ceil_add_le (a b : α) : ⌈a + b⌉₊ ≤ ⌈a⌉₊ + ⌈b⌉₊ :=
 begin
-  rw [ceil_le, int.cast_add],
+  rw [ceil_le, nat.cast_add],
   exact add_le_add (le_ceil _) (le_ceil _),
 end
 
@@ -492,7 +492,7 @@ by { convert floor_add_int a 1, exact cast_one.symm }
 
 lemma le_floor_add (a b : α) : ⌊a⌋ + ⌊b⌋ ≤ ⌊a + b⌋ :=
 begin
-  rw [le_floor, coe_add],
+  rw [le_floor, int.cast_add],
   exact add_le_add (floor_le _) (floor_le _),
 end
 
@@ -573,7 +573,7 @@ by rw [add_comm, fract_add_nat]
 
 lemma fract_add_le (a b : α) : fract (a + b) ≤ fract a + fract b :=
 begin
-  rw [fract, fract, fract, sub_add_sub_comm, sub_le_sub_iff_left, ←coe_add, int.cast_le],
+  rw [fract, fract, fract, sub_add_sub_comm, sub_le_sub_iff_left, ←int.cast_add, int.cast_le],
   exact le_floor_add _ _,
 end
 
@@ -806,7 +806,7 @@ by { rw [← lt_ceil, ← int.cast_one, ceil_add_int], apply lt_add_one }
 
 lemma ceil_add_le (a b : α) : ⌈a + b⌉ ≤ ⌈a⌉ + ⌈b⌉ :=
 begin
-  rw [ceil_le, coe_add],
+  rw [ceil_le, int.cast_add],
   exact add_le_add (le_ceil _) (le_ceil _),
 end
 

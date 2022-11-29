@@ -177,11 +177,27 @@ begin
     { ext x, rw [← h, conjugate.place_eq], }},
 end
 
-/-- A complex embedding is real if its fixed by complex conjugation. -/
+/-- A embedding into `ℂ` is real if its fixed by complex conjugation. -/
 def is_real (φ : K →+* ℂ): Prop := conjugate φ = φ
 
-/-- A complex embedding is real if its not fixed by complex conjugation. -/
+/-- A embedding into `ℂ` is complex if its not fixed by complex conjugation. -/
 def is_complex (φ : K →+* ℂ): Prop := conjugate φ ≠ φ
+
+/-- A real embedding as a ring hom `K →+* ℝ` . -/
+def real_embedding {φ : K →+* ℂ} (hφ : is_real φ) : K →+* ℝ :=
+{ to_fun :=
+  begin
+    intro x,
+    let y := φ x,
+    have : conj y = y := by sorry,
+    rw complex.eq_conj_iff_real at this,
+    exact Exists.some this,
+  end,
+  map_one' := by sorry,
+  map_mul' := by sorry,
+  map_zero' := by sorry,
+  map_add' := by sorry,
+}
 
 lemma conjugate_conjugate (φ : K →+* ℂ) :
   conjugate (conjugate φ) = φ :=
@@ -259,3 +275,25 @@ begin
 end
 
 end infinite_places
+
+section classical_embeddings
+
+variables {K : Type*} [field K] (K)
+
+def additive_embedding : K →+ ({w : infinite_places K // place_is_real w} → ℝ) ×
+  ({w : infinite_places K // place_is_complex w} → ℝ × ℝ) :=
+{ to_fun :=
+  begin
+    intro x,
+    refine ⟨_, _⟩,
+    { rintros ⟨⟨w, hw⟩, _⟩,
+      let φ := Exists.some hw,
+      sorry, },
+    { sorry, },
+  end,
+  map_zero' := by sorry,
+  map_add' := by sorry,
+}
+
+
+end classical_embeddings

@@ -5,7 +5,9 @@ import category_theory.limits.constructions.epi_mono
 
 noncomputable theory
 
-open category_theory category_theory.limits category_theory.category
+namespace category_theory
+
+open limits category
 
 variables {J C : Type*} [category J] [category C] [has_zero_morphisms C]
   {F : J ⥤ short_complex C}
@@ -206,3 +208,5 @@ instance π₃_preserves_epimorphisms [has_colimits_of_shape walking_span C] :
 category_theory.preserves_epimorphisms_of_preserves_colimits_of_shape _
 
 end short_complex
+
+end category_theory

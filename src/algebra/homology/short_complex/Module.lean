@@ -24,6 +24,8 @@ begin
     exact h x, },
 end
 
+namespace category_theory
+
 namespace short_complex
 
 variables (S : short_complex (Module R))
@@ -80,7 +82,7 @@ def Module_left_homology_data : S.left_homology_data :=
   hπ₀ := Module_left_homology_data.hπ₀ S,
   hπ := Module_left_homology_data.hπ S, }
 
---attribute [simp] Module_left_homology_data
+--attribute [simp] Module_left_homology_data -- may trigger timeout
 
 @[simp]
 lemma Module_left_homology_data_f' :
@@ -293,3 +295,5 @@ begin
 end
 
 end short_complex
+
+end category_theory

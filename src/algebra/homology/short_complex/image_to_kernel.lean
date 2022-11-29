@@ -1,13 +1,14 @@
 import algebra.homology.short_complex.exact
 import category_theory.subobject.limits
 
+namespace category_theory
 noncomputable theory
 
-open category_theory category_theory.category category_theory.limits
+open category limits
 
 variables {C : Type*} [category C]
 
-lemma category_theory.subobject.is_iso_of_le_iff {X : C} {K₁ K₂ : subobject X} (le : K₁ ≤ K₂) :
+lemma subobject.is_iso_of_le_iff {X : C} {K₁ K₂ : subobject X} (le : K₁ ≤ K₂) :
   is_iso (subobject.of_le _ _ le) ↔ K₁ = K₂ :=
 begin
   split,
@@ -19,8 +20,6 @@ begin
     rw subobject.of_le_refl,
     apply_instance, },
 end
-
-open category_theory
 
 section
 
@@ -181,3 +180,5 @@ end
 end preadditive
 
 end short_complex
+
+end category_theory

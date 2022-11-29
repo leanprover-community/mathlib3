@@ -13,9 +13,10 @@ TODO: refactor exact sequences and homology in mathlib using this category.
 
 -/
 
-noncomputable theory
+namespace category_theory
 
-open category_theory category_theory.limits category_theory.category
+open limits category
+
 open_locale zero_object
 
 variables (C D : Type*) [category C] [category D]
@@ -29,11 +30,11 @@ structure short_complex [has_zero_morphisms C] :=
 (g : X₂ ⟶ X₃)
 (zero : f ≫ g = 0)
 
-variables {C} [has_zero_morphisms C]
+variables {C} [has_zero_morphisms C] [has_zero_morphisms D]
 
 namespace short_complex
 
-instance [has_zero_object C] : inhabited (short_complex C) :=
+noncomputable instance [has_zero_object C] : inhabited (short_complex C) :=
 ⟨short_complex.mk (0 : 0 ⟶ 0) (0 : 0 ⟶ 0) comp_zero⟩
 
 attribute [simp, reassoc] zero
@@ -147,34 +148,35 @@ variables {C D}
 /-- The short complex in `D` obtained by applying a functor `F : C ⥤ D` to a
 short complex in `C`, assuming that `F` preserves zero morphisms. -/
 @[simps]
-def map [has_zero_morphisms D] (F : C ⥤ D) [F.preserves_zero_morphisms] : short_complex D :=
+def map (F : C ⥤ D) [F.preserves_zero_morphisms] : short_complex D :=
 short_complex.mk (F.map S.f) (F.map S.g) (by rw [← F.map_comp, S.zero, F.map_zero])
 
 /-- The morphism of short complexes `S.map F ⟶ S.map G` induced by
 a natural transformation `F ⟶ G`. -/
 @[simps]
-def map_nat_trans [has_zero_morphisms D] {F G : C ⥤ D} [F.preserves_zero_morphisms]
+def map_nat_trans {F G : C ⥤ D} [F.preserves_zero_morphisms]
   [G.preserves_zero_morphisms] (τ : F ⟶ G) : S.map F ⟶ S.map G :=
 { τ₁ := τ.app _,
   τ₂ := τ.app _,
   τ₃ := τ.app _, }
 
-/-- The functor `short_complex C ⥤ short_complex D` induces by a functor `C ⥤ D` which
+/-- The functor `short_complex C ⥤ short_complex D` induced by a functor `C ⥤ D` which
 preserves zero morphisms. -/
 @[simps]
 def _root_.category_theory.functor.map_short_complex
-  [has_zero_morphisms D] (F : C ⥤ D) [F.preserves_zero_morphisms] : short_complex C ⥤ short_complex D :=
+  (F : C ⥤ D) [F.preserves_zero_morphisms] :
+  short_complex C ⥤ short_complex D :=
 { obj := λ S, S.map F,
-  map := λ S₁ S₂ φ, hom.mk' (F.map φ.τ₁) (F.map φ.τ₂) (F.map φ.τ₃)
-    (by { dsimp, simp only [← F.map_comp, φ.comm₁₂], })
-    (by { dsimp, simp only [← F.map_comp, φ.comm₂₃], }), }
+  map := λ S₁ S₂ φ, ⟨F.map φ.τ₁, F.map φ.τ₂, F.map φ.τ₃,
+    by { dsimp, simp only [← F.map_comp, φ.comm₁₂], },
+    by { dsimp, simp only [← F.map_comp, φ.comm₂₃], }⟩ }
 
 /-- A constructor for isomorphisms in the category `short_complex C`-/
 @[simps]
 def mk_iso (e₁ : S₁.X₁ ≅ S₂.X₁) (e₂ : S₁.X₂ ≅ S₂.X₂) (e₃ : S₁.X₃ ≅ S₂.X₃)
   (comm₁₂ : e₁.hom ≫ S₂.f = S₁.f ≫ e₂.hom) (comm₂₃ : e₂.hom ≫ S₂.g = S₁.g ≫ e₃.hom) :
   S₁ ≅ S₂ :=
-{ hom := hom.mk' e₁.hom e₂.hom e₃.hom comm₁₂ comm₂₃,
+{ hom := ⟨e₁.hom, e₂.hom, e₃.hom, comm₁₂, comm₂₃⟩,
   inv := hom.mk' e₁.inv e₂.inv e₃.inv
     (by simp only [← cancel_mono e₂.hom, assoc, e₂.inv_hom_id, comp_id,
       ← comm₁₂, e₁.inv_hom_id_assoc])
@@ -190,8 +192,8 @@ mk S.g.op S.f.op (by simpa only [← op_comp, S.zero])
 @[simps]
 def op_map (φ : S₁ ⟶ S₂) : S₂.op ⟶ S₁.op :=
 ⟨φ.τ₃.op, φ.τ₂.op, φ.τ₁.op,
-  (by { dsimp, simp only [← op_comp, φ.comm₂₃], }),
-  (by { dsimp, simp only [← op_comp, φ.comm₁₂], })⟩
+  by { dsimp, simp only [← op_comp, φ.comm₂₃], },
+  by { dsimp, simp only [← op_comp, φ.comm₁₂], }⟩
 
 /-- The short_complex in `C` associated to a short complex in `Cᵒᵖ`. -/
 @[simps]
@@ -202,8 +204,8 @@ mk S.g.unop S.f.unop (by simpa only [← unop_comp, S.zero])
 @[simps]
 def unop'_map {S₁ S₂ : short_complex Cᵒᵖ} (φ : S₁ ⟶ S₂) : S₂.unop ⟶ S₁.unop :=
 ⟨φ.τ₃.unop, φ.τ₂.unop, φ.τ₁.unop,
-  (by { dsimp, simp only [← unop_comp, φ.comm₂₃], }),
-  (by { dsimp, simp only [← unop_comp, φ.comm₁₂], })⟩
+  by { dsimp, simp only [← unop_comp, φ.comm₂₃], },
+  by { dsimp, simp only [← unop_comp, φ.comm₁₂], }⟩
 
 /-- The morphism in `short_complex C` associated to a morphism in `short_complex Cᵒᵖ` -/
 @[simps]
@@ -245,3 +247,5 @@ def op_equiv : (short_complex C)ᵒᵖ ≌ short_complex Cᵒᵖ :=
   counit_iso := nat_iso.of_components (unop_op) (by tidy), }
 
 end short_complex
+
+end category_theory

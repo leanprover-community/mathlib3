@@ -2,12 +2,12 @@ import algebra.homology.short_complex.basic
 
 noncomputable theory
 
-open category_theory category_theory.limits category_theory.category
+namespace category_theory
 
+open limits category
 variables (J C : Type*) [category J] [category C] [has_zero_morphisms C]
 
-
-instance category_theory.evaluation_preserves_zero_morphisms (j : J) :
+instance evaluation_preserves_zero_morphisms (j : J) :
   ((evaluation J C).obj j).preserves_zero_morphisms := { }
 
 namespace short_complex
@@ -49,8 +49,6 @@ nat_iso.of_components
     (λ j, mk_iso (iso.refl _) (iso.refl _) (iso.refl _) (by tidy) (by tidy)) (by tidy))
   (by tidy)
 
-example : ℕ := 42
-
 end functor_equivalence
 
 @[simps]
@@ -61,3 +59,5 @@ def functor_equivalence : (short_complex (J ⥤ C)) ≌ (J ⥤ short_complex C) 
   counit_iso := functor_equivalence.counit_iso J C, }
 
 end short_complex
+
+end category_theory

@@ -4,7 +4,9 @@ import algebra.homology.short_complex.preserves_homology
 
 noncomputable theory
 
-open category_theory category_theory.category category_theory.limits
+namespace category_theory
+
+open category limits
 open_locale zero_object
 
 namespace short_complex
@@ -247,3 +249,5 @@ end exact
 end preadditive
 
 end short_complex
+
+end category_theory

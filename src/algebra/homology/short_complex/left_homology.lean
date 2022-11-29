@@ -127,6 +127,8 @@ end category_theory.limits
 
 open category_theory.limits
 
+namespace category_theory
+
 namespace short_complex
 
 variables {C D : Type*} [category C] [category D]
@@ -1048,3 +1050,5 @@ lemma is_iso_i_of_zero_g (h : left_homology_data S) (hg : S.g = 0) : is_iso h.i 
 end left_homology_data
 
 end short_complex
+
+end category_theory

@@ -218,7 +218,7 @@ open projective
 section
 variables [preadditive C]
 
-def _root_.short_complex.projective_lift {P : C} [projective P] (S : short_complex C)
+def short_complex.projective_lift {P : C} [projective P] (S : short_complex C)
   (hS : S.exact) (h : P ⟶ S.X₂) (w : h ≫ S.g = 0) : P ⟶ S.X₁ :=
 begin
   haveI := hS.has_homology,

@@ -6,9 +6,11 @@ import category_theory.limits.preserves.shapes.kernels
 
 noncomputable theory
 
-open category_theory category_theory.limits category_theory.category
+namespace category_theory
 
-namespace category_theory.limits
+open limits category
+
+namespace limits
 
 def cokernel_cofork.cocone_point_iso_of_epi_of_is_iso {C : Type*} [category C] [has_zero_morphisms C]
   {X Y X' Y' : C} (f : X ⟶ Y) (f' : X' ⟶ Y') (p : X ⟶ X') (q : Y ⟶ Y') [epi p] [is_iso q]
@@ -58,9 +60,9 @@ begin
   simp only [cofork.is_colimit.π_desc, cokernel_cofork.π_of_π],
 end
 
-end category_theory.limits
+end limits
 
-open category_theory.limits
+open limits
 
 variables {C : Type*} [category C] [abelian C]
 
@@ -279,3 +281,5 @@ end⟩
 instance : abelian (short_complex C) := { }
 
 end short_complex
+
+end category_theory

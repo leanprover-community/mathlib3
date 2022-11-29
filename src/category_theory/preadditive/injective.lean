@@ -278,7 +278,7 @@ open injective
 section
 variables [preadditive C]
 
-def _root_.short_complex.injective_desc {J : C} [injective J] (S : short_complex C)
+def _root_.category_theory.short_complex.injective_desc {J : C} [injective J] (S : short_complex C)
   (hS : S.exact) (h : S.X₂ ⟶ J) (w : S.f ≫ h = 0) : S.X₃ ⟶ J :=
 begin
   haveI := hS.has_homology,
@@ -286,7 +286,7 @@ begin
   exact factor_thru (S.desc_cycles_co h w) S.from_cycles_co,
 end
 
-@[simp] lemma _root_.short_complex.injective_desc_comp {J : C} [injective J] (S : short_complex C)
+@[simp] lemma _root_.category_theory.short_complex.injective_desc_comp {J : C} [injective J] (S : short_complex C)
   (hS : S.exact) (h : S.X₂ ⟶ J) (w : S.f ≫ h = 0) :
     S.g ≫ S.injective_desc hS h w = h :=
 begin

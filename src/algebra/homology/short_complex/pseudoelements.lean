@@ -1,21 +1,18 @@
 import algebra.homology.short_complex.short_exact
 import category_theory.abelian.pseudoelements
 
-open category_theory category_theory.limits
+namespace category_theory
+
+open limits
 
 variables {C : Type*} [category C] [abelian C] {S : short_complex C}
 
-
-lemma category_theory.abelian.pseudo_surjective_of_epi'
+lemma abelian.pseudo_surjective_of_epi'
   {A X Y : C} (f : X ⟶ Y) [epi f] (y : A ⟶ Y) :
   ∃ (A' : C) (π : A' ⟶ A) (hπ : epi π) (x : A' ⟶ X), π ≫ y = x ≫ f :=
 ⟨pullback f y, pullback.snd, infer_instance, pullback.fst, pullback.condition.symm⟩
 
-open category_theory
-
 namespace short_complex
-
-open category_theory
 
 lemma exact.pseudo_exact' (h : S.exact) {A : C} (x₂ : A ⟶ S.X₂) (hx₂ : x₂ ≫ S.g = 0) :
   ∃ (A' : C) (π : A' ⟶ A) (hπ : epi π) (x₁ : A' ⟶ S.X₁), π ≫ x₂ = x₁ ≫ S.f :=
@@ -71,3 +68,5 @@ begin
 end
 
 end short_complex
+
+end category_theory

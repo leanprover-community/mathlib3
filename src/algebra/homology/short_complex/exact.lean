@@ -5,12 +5,14 @@ import category_theory.preadditive.opposite
 
 noncomputable theory
 
-open category_theory category_theory.preadditive
+namespace category_theory
+
+open preadditive
 open_locale zero_object
 
 variables {C D : Type*} [category C] [category D]
 
-namespace category_theory.limits
+namespace limits
 
 lemma is_zero.op {X : C} (h : is_zero X) : is_zero (opposite.op X) :=
 ⟨λ Y, ⟨⟨⟨(h.from (opposite.unop Y)).op⟩, λ f, quiver.hom.unop_inj (h.eq_of_tgt _ _)⟩⟩,
@@ -23,9 +25,9 @@ lemma is_zero.unop {X : Cᵒᵖ} (h : is_zero X) : is_zero (opposite.unop X) :=
 instance [has_zero_object C] : has_zero_object Cᵒᵖ :=
 ⟨⟨opposite.op 0, is_zero.op (is_zero_zero C)⟩⟩
 
-end category_theory.limits
+end limits
 
-open category_theory category_theory.category category_theory.limits
+open limits category
 
 namespace short_complex
 
@@ -461,3 +463,5 @@ end
 end preadditive
 
 end short_complex
+
+end category_theory

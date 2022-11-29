@@ -2,7 +2,9 @@ import algebra.homology.short_complex.right_homology
 
 noncomputable theory
 
-open category_theory category_theory.limits category_theory.category
+namespace category_theory
+
+open limits category
 
 variables {C : Type*} [category C] [has_zero_morphisms C]
 
@@ -882,3 +884,5 @@ instance {D : Type*} [category D] [has_zero_morphisms D] [category_with_homology
 ⟨λ S, has_homology.mk' (homology_data.of_iso S.unop_op S.unop.some_homology_data.op)⟩
 
 end short_complex
+
+end category_theory

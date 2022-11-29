@@ -3,12 +3,13 @@ import category_theory.preadditive.additive_functor
 
 noncomputable theory
 
-open category_theory category_theory.preadditive category_theory.category category_theory.limits
+
+namespace category_theory
+
+open preadditive category limits
 open_locale zero_object
 
 variables {C : Type*} [category C]
-
-namespace category_theory
 
 section
 
@@ -95,8 +96,6 @@ begin
     exact is_zero_cokernel_of_epi f, },
   { exact epi_of_is_zero_cokernel, },
 end
-
-end category_theory
 
 variable [preadditive C]
 
@@ -756,3 +755,5 @@ end homotopy_equiv
 end homotopy
 
 end short_complex
+
+end category_theory

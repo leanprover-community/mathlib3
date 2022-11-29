@@ -2,10 +2,10 @@ import algebra.homology.short_complex.left_homology
 
 noncomputable theory
 
-open category_theory category_theory.category
+namespace category_theory
 
+open category_theory.category limits
 
-open category_theory.limits
 variables {C : Type*} [category C] [has_zero_morphisms C]
   (S : short_complex C)
 
@@ -1100,3 +1100,5 @@ lemma is_iso_p_of_zero_f (h : right_homology_data S) (hf : S.f = 0) : is_iso h.p
 end right_homology_data
 
 end short_complex
+
+end category_theory

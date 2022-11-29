@@ -2,10 +2,11 @@ import algebra.homology.short_complex.limits
 import algebra.homology.short_complex.pseudoelements
 import category_theory.limits.preserves.shapes.kernels
 
+namespace category_theory
+
 noncomputable theory
 
-open category_theory category_theory.limits category_theory.category
-  category_theory.preadditive
+open limits category preadditive
 
 variables (C : Type*) [category C] [abelian C]
 
@@ -326,3 +327,5 @@ end
 end snake_input
 
 end short_complex
+
+end category_theory

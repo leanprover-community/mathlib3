@@ -2,12 +2,13 @@ import algebra.homology.short_complex.homology
 
 noncomputable theory
 
-open category_theory category_theory.category
+
+namespace category_theory
+
+open category
 open_locale zero_object
 
 variables {C D : Type*} [category C] [category D]
-
-namespace category_theory
 
 namespace limits
 
@@ -70,9 +71,9 @@ end⟩
 
 end limits
 
-namespace functor
-
 open limits
+
+namespace functor
 
 variable (F : C ⥤ D)
 
@@ -89,10 +90,6 @@ instance preserves_homology_of_exact [has_zero_morphisms C] [has_zero_morphisms 
   preserves_cokernels := infer_instance, }
 
 end functor
-
-end category_theory
-
-open category_theory.limits
 
 namespace short_complex
 
@@ -287,11 +284,9 @@ def homology_map_data.map {φ : S₁ ⟶ S₂} {h₁ : S₁.homology_data}
 
 end short_complex
 
-namespace category_theory
+open limits short_complex
 
 namespace functor
-
-open short_complex
 
 variables (F : C ⥤ D) [has_zero_morphisms C] [has_zero_morphisms D]
   [preserves_zero_morphisms F] (S : short_complex C) {S₁ S₂ : short_complex C}
@@ -485,10 +480,6 @@ nat_iso.of_components (λ S, homology_iso F S)
 
 end functor
 
-end category_theory
-
-open category_theory
-
 namespace short_complex
 
 variables [has_zero_morphisms C] [has_zero_morphisms D] {S₁ S₂ : short_complex C}
@@ -606,3 +597,5 @@ end⟩
 end
 
 end short_complex
+
+end category_theory

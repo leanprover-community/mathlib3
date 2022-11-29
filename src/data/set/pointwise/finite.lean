@@ -1,5 +1,29 @@
+/-
+Copyright (c) 2019 Johan Commelin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin, Floris van Doorn
+-/
+import data.set.finite
+import data.set.pointwise.smul
+
+/-! # Finiteness lemmas for pointwise operations on sets -/
+
+open_locale pointwise
+
+variables {F α β γ : Type*}
+
+namespace set
+
+section has_involutive_inv
+variables [has_involutive_inv α] {s : set α}
+
 @[to_additive] lemma finite.inv (hs : s.finite) : s⁻¹.finite :=
 hs.preimage $ inv_injective.inj_on _
+
+end has_involutive_inv
+
+section has_mul
+variables [has_mul α] {s t : set α}
 
 @[to_additive] lemma finite.mul : s.finite → t.finite → (s * t).finite := finite.image2 _
 
@@ -8,6 +32,10 @@ hs.preimage $ inv_injective.inj_on _
 def fintype_mul [decidable_eq α] (s t : set α) [fintype s] [fintype t] : fintype (s * t : set α) :=
 set.fintype_image2 _ _ _
 
+end has_mul
+
+section monoid
+variables [monoid α] {s t : set α}
 
 @[to_additive]
 instance decidable_mem_mul [fintype α] [decidable_eq α] [decidable_pred (∈ s)]
@@ -24,7 +52,35 @@ begin
   { letI := ih, rw pow_succ, apply_instance }
 end
 
+end monoid
 
+section has_smul
+variables [has_smul α β] {s : set α} {t : set β}
+
+@[to_additive] lemma finite.smul : s.finite → t.finite → (s • t).finite := finite.image2 _
+
+end has_smul
+
+section has_smul_set
+variables [has_smul α β] {s : set β} {a : α}
+
+@[to_additive] lemma finite.smul_set : s.finite → (a • s).finite := finite.image _
+
+end has_smul_set
+
+section vsub
+variables [has_vsub α β] {s t : set β}
+include α
+
+lemma finite.vsub (hs : s.finite) (ht : t.finite) : set.finite (s -ᵥ t) := hs.image2 _ ht
+
+end vsub
+
+end set
+
+open set
+
+namespace group
 
 variables {G : Type*} [group G] [fintype G] (S : set G)
 
@@ -56,8 +112,4 @@ begin
   rwa [set.mem_singleton_iff.mp hb, inv_mul_cancel_left],
 end
 
-@[to_additive] lemma finite.smul : s.finite → t.finite → (s • t).finite := finite.image2 _
-
-@[to_additive] lemma finite.smul_set : s.finite → (a • s).finite := finite.image _
-
-lemma finite.vsub (hs : s.finite) (ht : t.finite) : set.finite (s -ᵥ t) := hs.image2 _ ht
+end group

@@ -3,12 +3,9 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
-import algebra.module.basic
 import algebra.bounds
 import algebra.order.archimedean
-import algebra.star.basic
 import data.real.cau_seq_completion
-import order.conditionally_complete_lattice.basic
 
 /-!
 # Real numbers from Cauchy sequences
@@ -47,10 +44,6 @@ lemma ext_cauchy_iff : ∀ {x y : real}, x = y ↔ x.cauchy = y.cauchy
 lemma ext_cauchy {x y : real} : x.cauchy = y.cauchy → x = y :=
 ext_cauchy_iff.2
 
-/-- The real numbers are isomorphic to the quotient of Cauchy sequences on the rationals. -/
-def equiv_Cauchy : ℝ ≃ cau_seq.completion.Cauchy :=
-⟨real.cauchy, real.of_cauchy, λ ⟨_⟩, rfl, λ _, rfl⟩
-
 -- irreducible doesn't work for instances: https://github.com/leanprover-community/lean/issues/511
 @[irreducible] private def zero : ℝ := ⟨0⟩
 @[irreducible] private def one : ℝ := ⟨1⟩
@@ -83,15 +76,6 @@ lemma cauchy_mul : ∀ a b, (a * b : ℝ).cauchy = a.cauchy * b.cauchy
 | ⟨a⟩ ⟨b⟩ := show (mul _ _).cauchy = _, by rw mul
 lemma cauchy_inv : ∀ f, (f⁻¹ : ℝ).cauchy = f.cauchy⁻¹
 | ⟨f⟩ := show (inv' _).cauchy = _, by rw inv'
-
-/-- `real.equiv_Cauchy` as a ring equivalence. -/
-@[simps]
-def ring_equiv_Cauchy : ℝ ≃+* cau_seq.completion.Cauchy :=
-{ to_fun := cauchy,
-  inv_fun := of_cauchy,
-  map_add' := cauchy_add,
-  map_mul' := cauchy_mul,
-  ..equiv_Cauchy }
 
 instance : comm_ring ℝ :=
 begin
@@ -150,10 +134,6 @@ instance : semigroup ℝ          := by apply_instance
 instance : has_sub ℝ            := by apply_instance
 instance : module ℝ ℝ           := by apply_instance
 instance : inhabited ℝ          := ⟨0⟩
-
-/-- The real numbers are a `*`-ring, with the trivial `*`-structure. -/
-instance : star_ring ℝ          := star_ring_of_comm
-instance : has_trivial_star ℝ   := ⟨λ _, rfl⟩
 
 /-- Make a real number from a Cauchy sequence of rationals (by taking the equivalence class). -/
 def mk (x : cau_seq ℚ abs) : ℝ := ⟨cau_seq.completion.mk x⟩

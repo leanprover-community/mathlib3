@@ -6,7 +6,7 @@ Authors: Stuart Presnell
 
 import data.nat.basic
 
-/-! A recursion principle based on even and odd numbers. -/
+/-! # A recursion principle based on even and odd numbers. -/
 
 namespace nat
 

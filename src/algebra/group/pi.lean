@@ -147,6 +147,16 @@ end mul_hom
 
 section mul_hom
 
+/-- A family of monoid homomorphisms `f a : γ →ₙ* β a` defines a monoid homomorphism
+`pi.monoid_mul_hom f : γ →ₙ* Π a, β a` given by `pi.monoid_mul_hom f x b = f b x`. -/
+@[to_additive "A family of additive monoid homomorphisms `f a : γ →ₙ+ β a` defines a monoid
+homomorphism `pi.monoid_add_hom f : γ →ₙ+ Π a, β a` given by `pi.monoid_add_hom f x b
+= f b x`.", simps]
+def pi.monoid_mul_hom {γ : Type w} [Π i, has_mul (f i)] [has_mul γ]
+  (g : Π i, γ →ₙ* f i) : γ →ₙ* Π i, f i :=
+{ to_fun := λ x b, g b x,
+  map_mul' := λ x y, funext $ λ z, (g z).map_mul x y, }
+
 variables (f) [Π i, has_mul (f i)]
 
 /-- Evaluation of functions into an indexed collection of semigroups at a point is a semigroup

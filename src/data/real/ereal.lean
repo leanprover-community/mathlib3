@@ -19,9 +19,9 @@ negation has a natural definition and satisfies the usual properties.
 An ad hoc addition is defined, for which `ereal` is an `add_comm_monoid`, and even an ordered one
 (if `a ≤ a'` and `b ≤ b'` then `a + b ≤ a' + b'`).
 Note however that addition is badly behaved at `(⊥, ⊤)` and `(⊤, ⊥)` so this can not be upgraded
-to a group structure. Our choice is that `⊥ + ⊤ = ⊤ + ⊥ = ⊥`, to make sure that exponential and
-logarithm between `ereal` and `ℝ≥0∞` respect the operations (where the convention `0 * ∞ = 0`
-on `ℝ≥0∞` is enforced by measure theory).
+to a group structure. Our choice is that `⊥ + ⊤ = ⊤ + ⊥ = ⊥`, to make sure that the exponential
+and the logarithm between `ereal` and `ℝ≥0∞` respect the operations (notice that the
+convention `0 * ∞ = 0` on `ℝ≥0∞` is enforced by measure theory).
 
 An ad hoc subtraction is then defined by `x - y = x + (-y)`. It does not have nice properties,
 but it is sometimes convenient to have.
@@ -106,8 +106,8 @@ protected def rec {C : ereal → Sort*} (h_bot : C ⊥) (h_real : Π a : ℝ, C 
 | (a : ℝ) := h_real a
 | ⊤ := h_top
 
-/-- The multiplication on `ereal`. Our definition satisfies `0 * x = x * 0 = 0` for any `x`, and is
-non-ambiguous elsewhere. -/
+/-- The multiplication on `ereal`. Our definition satisfies `0 * x = x * 0 = 0` for any `x`, and
+picks the only sensible value elsewhere. -/
 protected def mul : ereal → ereal → ereal
 | ⊥ ⊥ := ⊤
 | ⊥ ⊤ := ⊥

@@ -202,6 +202,14 @@ begin
   exact h aG,
 end
 
+private lemma inf_edge_non_adj (G : simple_graph V) (u v : V) (h : ¬G.adj u v) :
+  G ⊓ from_edge_set {⟦(u, v)⟧} = ⊥ :=
+begin
+  rw [←from_edge_set_edge_set G, from_edge_set_inf, ←from_edge_set_empty],
+  congr,
+  simp only [h, set.inter_singleton_eq_empty, mem_edge_set, not_false_iff],
+end
+
 lemma is_max_acyclic_le_iff : G.is_max_acyclic_le T ↔
   G ≤ T ∧
   G.is_acyclic ∧
@@ -258,12 +266,9 @@ begin
     apply (delete_edge_eq_iff G u v eG.ne).mp _ eG,
     apply Gmin _ _ _ Gneco,
     { simp only [BG, disjoint_iff, le_sdiff, true_and],
-      apply edge_set_injective,
-      simp only [set.eq_empty_iff_forall_not_mem, edge_set_inf, edge_set_from_edge_set,
-                 edge_set_bot, set.mem_inter_iff, set.mem_diff, set.mem_singleton_iff,
-                 set.mem_set_of_eq, not_and, not_not],
-      rintro e eB rfl,
-      exact (neB eB).elim, },
+      rw [←from_edge_set_edge_set B, from_edge_set_inf, ←from_edge_set_empty],
+      congr,
+      simp only [neB, set.inter_singleton_eq_empty, not_false_iff], },
     { simp only [sdiff_le_iff, le_sup_right], }, },
   { rintro ⟨BG,Gco,Gmin⟩, refine ⟨BG, Gco, _⟩,
     rintro H BH HG Hco,
@@ -276,13 +281,7 @@ begin
       (⟦⟨u,v⟩⟧ : sym2 V)
       (by {simp only [set.mem_diff, mem_edge_set], exact ⟨Ga, λ h, nHa (BH h)⟩}),
     refine Hco.mono _,
-    simp only [HG, disjoint_iff, le_sdiff, true_and],
-    apply edge_set_injective,
-    simp only [set.eq_empty_iff_forall_not_mem, edge_set_inf, edge_set_from_edge_set, edge_set_bot,
-               set.mem_inter_iff, set.mem_diff, set.mem_singleton_iff, set.mem_set_of_eq,
-               not_and, not_not],
-    rintro a aH rfl,
-    exact (nHa aH).elim, },
+    simp only [HG, disjoint_iff, le_sdiff, true_and, inf_edge_non_adj _ _ _ nHa], },
 end
 
 lemma is_tree.is_max_acyclic_le (hG : G.is_tree) {GT : G ≤ T} :

@@ -177,10 +177,10 @@ begin
     { ext x, rw [← h, conjugate.place_eq], }},
 end
 
-/-- A complex embedding is real if its fixed by complex conjugation. -/
+/-- A embedding into `ℂ` is real if it is fixed by complex conjugation. -/
 def is_real (φ : K →+* ℂ): Prop := conjugate φ = φ
 
-/-- A complex embedding is real if its not fixed by complex conjugation. -/
+/-- A embedding into `ℂ` is complex if it is not fixed by complex conjugation. -/
 def is_complex (φ : K →+* ℂ): Prop := conjugate φ ≠ φ
 
 lemma conjugate_conjugate (φ : K →+* ℂ) :

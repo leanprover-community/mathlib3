@@ -465,6 +465,9 @@ end
 @[simp] lemma bot_lt_add_iff {x y : ereal} : ⊥ < x + y ↔ ⊥ < x ∧ ⊥ < y :=
 by simp [bot_lt_iff_ne_bot, not_or_distrib]
 
+lemma add_lt_top {x y : ereal} (hx : x ≠ ⊤) (hy : y ≠ ⊤) : x + y < ⊤ :=
+by { rw ← ereal.top_add_top, exact ereal.add_lt_add hx.lt_top hy.lt_top }
+
 /-! ### Negation -/
 
 /-- negation on `ereal` -/

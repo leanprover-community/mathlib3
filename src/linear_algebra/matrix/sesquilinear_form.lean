@@ -315,11 +315,7 @@ by simp only [linear_map.to_matrix₂, linear_equiv.trans_apply, linear_map.to_m
 
 @[simp] lemma matrix.to_linear_map₂_apply (M : matrix n m R) (x : M₁) (y : M₂) :
   matrix.to_linear_map₂ b₁ b₂ M x y = ∑ i j, b₁.repr x i * M i j * b₂.repr y j :=
-begin
-  rw [matrix.to_linear_map₂, linear_map.to_matrix₂, linear_equiv.symm_trans_apply,
-    ←matrix.to_linear_map₂'],
-  simp [matrix.to_linear_map₂'_apply],
-end
+rfl
 
 -- Not a `simp` lemma since `linear_map.to_matrix₂` needs an extra argument
 lemma linear_map.to_matrix₂_aux_eq (B : M₁ →ₗ[R] M₂ →ₗ[R] R) :

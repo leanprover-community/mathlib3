@@ -311,7 +311,7 @@ begin
     simp [*, nhds_swap (a : ℝ≥0∞) ⊤, none_eq_top, some_eq_coe, top_mul, tendsto_map'_iff, (∘),
       mul_comm] },
   simp [some_eq_coe, nhds_coe_coe, tendsto_map'_iff, (∘)],
-  simp only [← coe_mul, tendsto_coe, tendsto_mul]
+  simp only [coe_mul.symm, tendsto_coe, tendsto_mul]
 end
 
 protected lemma tendsto.mul {f : filter α} {ma : α → ℝ≥0∞} {mb : α → ℝ≥0∞} {a b : ℝ≥0∞}
@@ -806,6 +806,14 @@ le_tsum' ennreal.summable a
 protected lemma tsum_eq_top_of_eq_top : (∃ a, f a = ∞) → ∑' a, f a = ∞
 | ⟨a, ha⟩ := top_unique $ ha ▸ ennreal.le_tsum a
 
+protected lemma lt_top_of_tsum_ne_top {a : α → ℝ≥0∞} (tsum_ne_top : ∑' i, a i ≠ ∞) (j : α) :
+  a j < ∞ :=
+begin
+  have key := not_imp_not.mpr ennreal.tsum_eq_top_of_eq_top,
+  simp only [not_exists] at key,
+  exact lt_top_iff_ne_top.mpr (key tsum_ne_top j),
+end
+
 @[simp] protected lemma tsum_top [nonempty α] : ∑' a : α, ∞ = ∞ :=
 let ⟨a⟩ := ‹nonempty α› in ennreal.tsum_eq_top_of_eq_top ⟨a, rfl⟩
 
@@ -880,7 +888,7 @@ begin
   have f_ne_top : ∀ n, f n ≠ ∞, from ennreal.ne_top_of_tsum_ne_top hf,
   have h_f_coe : f = λ n, ((f n).to_nnreal : ennreal),
     from funext (λ n, (coe_to_nnreal (f_ne_top n)).symm),
-  rw [h_f_coe, ←@coe_zero ℝ≥0, tendsto_coe],
+  rw [h_f_coe, ←@coe_zero, tendsto_coe],
   exact nnreal.tendsto_cofinite_zero_of_summable (summable_to_nnreal_of_tsum_ne_top hf),
 end
 
@@ -967,6 +975,58 @@ begin
   rintro ⟨i, hi⟩,
   simp only [multiset.mem_range, not_lt] at hi,
   simp only [tsub_add_cancel_of_le hi, coe_not_mem_range_equiv, function.comp_app, subtype.coe_mk],
+end
+
+/-- A sum of extended nonnegative reals which is finite can have only finitely many terms
+above any positive threshold.-/
+lemma finite_const_le_of_tsum_ne_top {ι : Type*} {a : ι → ℝ≥0∞}
+  (tsum_ne_top : ∑' i, a i ≠ ∞) {ε : ℝ≥0∞} (ε_ne_zero : ε ≠ 0) :
+  {i : ι | ε ≤ a i}.finite :=
+begin
+  by_cases ε_infty : ε = ∞,
+  { rw ε_infty,
+    by_contra maybe_infinite,
+    obtain ⟨j, hj⟩ := set.infinite.nonempty maybe_infinite,
+    exact tsum_ne_top (le_antisymm le_top (le_trans hj (le_tsum' (@ennreal.summable _ a) j))), },
+  have key := (nnreal.summable_coe.mpr
+               (summable_to_nnreal_of_tsum_ne_top tsum_ne_top)).tendsto_cofinite_zero
+               (Iio_mem_nhds (to_real_pos ε_ne_zero ε_infty)),
+  simp only [filter.mem_map, filter.mem_cofinite, preimage] at key,
+  have obs : {i : ι | ↑((a i).to_nnreal) ∈ Iio ε.to_real}ᶜ = {i : ι | ε ≤ a i},
+  { ext i,
+    simpa only [mem_Iio, mem_compl_iff, mem_set_of_eq, not_lt]
+      using to_real_le_to_real ε_infty (ennreal.ne_top_of_tsum_ne_top tsum_ne_top _), },
+  rwa obs at key,
+end
+
+/-- Markov's inequality for `finset.card` and `tsum` in `ℝ≥0∞`. -/
+lemma finset_card_const_le_le_of_tsum_le {ι : Type*} {a : ι → ℝ≥0∞}
+  {c : ℝ≥0∞} (c_ne_top : c ≠ ∞) (tsum_le_c : ∑' i, a i ≤ c)
+  {ε : ℝ≥0∞} (ε_ne_zero : ε ≠ 0) :
+  ∃ hf : {i : ι | ε ≤ a i}.finite, ↑hf.to_finset.card ≤ c / ε :=
+begin
+  by_cases ε = ∞,
+  { have obs : {i : ι | ε ≤ a i} = ∅,
+    { rw eq_empty_iff_forall_not_mem,
+      intros i hi,
+      have oops := (le_trans hi (le_tsum' (@ennreal.summable _ a) i)).trans tsum_le_c,
+      rw h at oops,
+      exact c_ne_top (le_antisymm le_top oops), },
+    simp only [obs, finite_empty, finite_empty_to_finset, finset.card_empty,
+               algebra_map.coe_zero, zero_le', exists_true_left], },
+  have hf : {i : ι | ε ≤ a i}.finite,
+    from ennreal.finite_const_le_of_tsum_ne_top
+          (lt_of_le_of_lt tsum_le_c c_ne_top.lt_top).ne ε_ne_zero,
+  use hf,
+  have at_least : ∀ i ∈ hf.to_finset, ε ≤ a i,
+  { intros i hi,
+    simpa only [finite.mem_to_finset, mem_set_of_eq] using hi, },
+  have partial_sum := @sum_le_tsum _ _ _ _ _ a
+                        hf.to_finset (λ _ _, zero_le') (@ennreal.summable _ a),
+  have lower_bound := finset.sum_le_sum at_least,
+  simp only [finset.sum_const, nsmul_eq_mul] at lower_bound,
+  have key := (ennreal.le_div_iff_mul_le (or.inl ε_ne_zero) (or.inl h)).mpr lower_bound,
+  exact le_trans key (ennreal.div_le_div_right (partial_sum.trans tsum_le_c) _),
 end
 
 end tsum
@@ -1167,6 +1227,24 @@ end
 lemma tsum_le_of_sum_range_le {f : ℕ → ℝ≥0∞} {c : ℝ≥0∞}
   (h : ∀ n, ∑ i in finset.range n, f i ≤ c) : ∑' n, f n ≤ c :=
 tsum_le_of_sum_range_le ennreal.summable h
+
+lemma has_sum_lt {f g : α → ℝ≥0∞} {sf sg : ℝ≥0∞} {i : α} (h : ∀ (a : α), f a ≤ g a)
+  (hi : f i < g i) (hsf : sf ≠ ⊤) (hf : has_sum f sf) (hg : has_sum g sg) : sf < sg :=
+begin
+  by_cases hsg : sg = ⊤,
+  { exact hsg.symm ▸ lt_of_le_of_ne le_top hsf },
+  { have hg' : ∀ x, g x ≠ ⊤:= ennreal.ne_top_of_tsum_ne_top (hg.tsum_eq.symm ▸ hsg),
+    lift f to α → ℝ≥0 using λ x, ne_of_lt (lt_of_le_of_lt (h x) $ lt_of_le_of_ne le_top (hg' x)),
+    lift g to α → ℝ≥0 using hg',
+    lift sf to ℝ≥0 using hsf,
+    lift sg to ℝ≥0 using hsg,
+    simp only [coe_le_coe, coe_lt_coe] at h hi ⊢,
+    exact nnreal.has_sum_lt h hi (ennreal.has_sum_coe.1 hf) (ennreal.has_sum_coe.1 hg) }
+end
+
+lemma tsum_lt_tsum {f g : α → ℝ≥0∞} {i : α} (hfi : tsum f ≠ ⊤) (h : ∀ (a : α), f a ≤ g a)
+  (hi : f i < g i) : ∑' x, f x < ∑' x, g x :=
+has_sum_lt h hi hfi ennreal.summable.has_sum ennreal.summable.has_sum
 
 end ennreal
 

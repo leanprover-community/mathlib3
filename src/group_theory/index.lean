@@ -105,7 +105,7 @@ begin
 end
 
 @[to_additive] lemma inf_relindex_right : (H ⊓ K).relindex K = H.relindex K :=
-by rw [relindex, relindex, subgroup_of_inf_left]
+by rw [relindex, relindex, inf_subgroup_of_right]
 
 @[to_additive] lemma inf_relindex_left : (H ⊓ K).relindex H = K.relindex H :=
 by rw [inf_comm, inf_relindex_right]

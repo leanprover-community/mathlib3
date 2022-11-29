@@ -1243,15 +1243,13 @@ subsingleton.elim _ _
   H₁.subgroup_of K = H₂.subgroup_of K ↔ H₁ ⊓ K = H₂ ⊓ K :=
 by simpa only [set_like.ext_iff, mem_inf, mem_subgroup_of, and.congr_left_iff] using subtype.forall
 
--- TODO: left/right
-@[simp, to_additive] lemma subgroup_of_inf_left (H K : subgroup G) :
+@[simp, to_additive] lemma inf_subgroup_of_right (H K : subgroup G) :
   (H ⊓ K).subgroup_of K = H.subgroup_of K :=
 subgroup_of_inj.2 inf_right_idem
 
--- TODO: left/right
-@[simp, to_additive] lemma subgroup_of_inf_right (H K : subgroup G) :
+@[simp, to_additive] lemma inf_subgroup_of_left (H K : subgroup G) :
   (K ⊓ H).subgroup_of K = H.subgroup_of K :=
-by rw [inf_comm, subgroup_of_inf_left]
+by rw [inf_comm, inf_subgroup_of_right]
 
 @[simp, to_additive] lemma subgroup_of_eq_bot {H K : subgroup G} :
   H.subgroup_of K = ⊥ ↔ disjoint H K :=

@@ -44,6 +44,10 @@ lemma ext_cauchy_iff : ∀ {x y : real}, x = y ↔ x.cauchy = y.cauchy
 lemma ext_cauchy {x y : real} : x.cauchy = y.cauchy → x = y :=
 ext_cauchy_iff.2
 
+/-- The real numbers are isomorphic to the quotient of Cauchy sequences on the rationals. -/
+def equiv_Cauchy : ℝ ≃ cau_seq.completion.Cauchy :=
+⟨real.cauchy, real.of_cauchy, λ ⟨_⟩, rfl, λ _, rfl⟩
+
 -- irreducible doesn't work for instances: https://github.com/leanprover-community/lean/issues/511
 @[irreducible] private def zero : ℝ := ⟨0⟩
 @[irreducible] private def one : ℝ := ⟨1⟩

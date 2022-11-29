@@ -323,7 +323,7 @@ lt_ceil.1 $ (nat.lt_succ_self _).trans_le (ceil_add_one ha).ge
 
 lemma ceil_add_le (a b : α) : ⌈a + b⌉₊ ≤ ⌈a⌉₊ + ⌈b⌉₊ :=
 begin
-  rw [ceil_le, coe_add],
+  rw [ceil_le, int.cast_add],
   exact add_le_add (le_ceil _) (le_ceil _),
 end
 

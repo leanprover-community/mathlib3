@@ -3,17 +3,18 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import topology.metric_space.basic
+import algebra.order.group.bounds
+import algebra.periodic
+import data.real.star
+import group_theory.archimedean
+import ring_theory.subring.basic
 import topology.algebra.uniform_group
 import topology.algebra.uniform_mul_action
 import topology.algebra.ring
 import topology.algebra.star
 import topology.algebra.order.field
-import ring_theory.subring.basic
-import group_theory.archimedean
-import algebra.order.group.bounds
-import algebra.periodic
 import topology.instances.int
+import topology.metric_space.basic
 
 /-!
 # Topological properties of ℝ

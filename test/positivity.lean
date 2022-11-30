@@ -1,3 +1,4 @@
+import algebra.order.interval
 import algebra.order.smul
 import analysis.normed.group.basic
 import analysis.special_functions.pow
@@ -220,6 +221,9 @@ example {α : Type*} (s : finset α) (hs : s.nonempty) : 0 < s.card := by positi
 example {α : Type*} [fintype α] [nonempty α] : 0 < fintype.card α := by positivity
 
 example {r : ℝ} : 0 < real.exp r := by positivity
+
+example [ordered_add_comm_group α] (s : nonempty_interval α) : 0 ≤ s.length := by positivity
+example [ordered_add_comm_group α] (s : interval α) : 0 ≤ s.length := by positivity
 
 example {V : Type*} [normed_add_comm_group V] (x : V) : 0 ≤ ‖x‖ := by positivity
 

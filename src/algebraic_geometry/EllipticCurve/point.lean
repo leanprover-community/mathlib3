@@ -92,19 +92,19 @@ noncomputable def weierstrass_polynomial : F[X][X] :=
 X ^ 2 + C (C E.a₁ * X) * X + C (C E.a₃) * X - C (X ^ 3 + C E.a₂ * X ^ 2 + C E.a₄ * X + C E.a₆)
 
 lemma weierstrass_polynomial_eq :
-  E.weierstrass_polynomial K
+  E.weierstrass_polynomial
     = cubic.to_poly
-      ⟨0, 1, cubic.to_poly ⟨0, 0, ↑E.a₁, ↑E.a₃⟩, cubic.to_poly ⟨-1, -↑E.a₂, -↑E.a₄, -↑E.a₆⟩⟩ :=
+      ⟨0, 1, cubic.to_poly ⟨0, 0, E.a₁, E.a₃⟩, cubic.to_poly ⟨-1, -E.a₂, -E.a₄, -E.a₆⟩⟩ :=
 by { simp only [weierstrass_polynomial, cubic.to_poly, C_0, C_1, C_neg, C_add, C_mul], ring1 }
 
-lemma weierstrass_polynomial_ne_zero [nontrivial K] : E.weierstrass_polynomial K ≠ 0 :=
+lemma weierstrass_polynomial_ne_zero [nontrivial F] : E.weierstrass_polynomial ≠ 0 :=
 by { rw [weierstrass_polynomial_eq], exact cubic.ne_zero_of_b_ne_zero one_ne_zero }
 
-lemma weierstrass_polynomial_degree [nontrivial K] : (E.weierstrass_polynomial K).degree = 2 :=
+lemma weierstrass_polynomial_degree [nontrivial F] : E.weierstrass_polynomial.degree = 2 :=
 by simpa only [weierstrass_polynomial_eq] using cubic.degree_of_b_ne_zero' one_ne_zero
 
-lemma weierstrass_polynomial_not_is_unit [nontrivial K] [no_zero_divisors K] :
-  ¬is_unit (E.weierstrass_polynomial K) :=
+lemma weierstrass_polynomial_not_is_unit [nontrivial F] [no_zero_divisors F] :
+  ¬is_unit E.weierstrass_polynomial :=
 begin
   rintro ⟨⟨p, _, h, _⟩, rfl : p = _⟩,
   apply_fun degree at h,
@@ -112,14 +112,14 @@ begin
   exact two_ne_zero (with_bot.coe_eq_zero.mp h.left)
 end
 
-lemma weierstrass_polynomial_irreducible [nontrivial K] [no_zero_divisors K] :
-  irreducible $ E.weierstrass_polynomial K :=
-⟨E.weierstrass_polynomial_not_is_unit K, λ f g h,
+lemma weierstrass_polynomial_irreducible [nontrivial F] [no_zero_divisors F] :
+  irreducible E.weierstrass_polynomial :=
+⟨E.weierstrass_polynomial_not_is_unit, λ f g h,
 begin
-  set f1 : K[X] := f.leading_coeff,
-  set f0 : K[X] := f.coeff 0,
-  set g1 : K[X] := g.leading_coeff,
-  set g0 : K[X] := g.coeff 0,
+  set f1 : F[X] := f.leading_coeff,
+  set f0 : F[X] := f.coeff 0,
+  set g1 : F[X] := g.leading_coeff,
+  set g0 : F[X] := g.coeff 0,
   symmetry' at h,
   have hdegree := congr_arg degree h,
   rw [degree_mul, weierstrass_polynomial_degree, nat.with_bot.add_eq_two_iff] at hdegree,
@@ -127,7 +127,7 @@ begin
   { apply_fun C ∘ leading_coeff at h,
     rw [function.comp_apply, leading_coeff_mul, C_mul, eq_C_of_degree_eq_zero hf, leading_coeff_C,
         ← eq_C_of_degree_eq_zero hf, function.comp_apply, weierstrass_polynomial_eq,
-        cubic.leading_coeff_of_b_ne_zero' $ one_ne_zero' K[X]] at h,
+        cubic.leading_coeff_of_b_ne_zero' $ one_ne_zero' F[X]] at h,
     exact or.inl ⟨⟨f, C g1, h, by rwa [mul_comm]⟩, rfl⟩ },
   { have to_poly : f * g = cubic.to_poly ⟨0, f1 * g1, f1 * g0 + f0 * g1, f0 * g0⟩ :=
     begin
@@ -141,7 +141,7 @@ begin
     rw [degree_mul, degree_one, nat.with_bot.add_eq_zero_iff] at h11,
     replace h10 := le_of_eq_of_le h10 cubic.degree_of_b_eq_zero',
     contrapose h10,
-    rw [degree_mul, cubic.degree_of_a_ne_zero' $ neg_ne_zero.mpr $ one_ne_zero' K] at h00,
+    rw [degree_mul, cubic.degree_of_a_ne_zero' $ neg_ne_zero.mpr $ one_ne_zero' F] at h00,
     rcases nat.with_bot.add_eq_three_iff.mp h00 with (h00 | h00 | h00 | h00),
     any_goals
       { rw [degree_add_eq_left_of_degree_lt]; simp only [degree_mul, h11, h00]; dec_trivial },
@@ -150,12 +150,12 @@ begin
   { apply_fun C ∘ leading_coeff at h,
     rw [function.comp_apply, leading_coeff_mul, C_mul, eq_C_of_degree_eq_zero hg, leading_coeff_C,
         ← eq_C_of_degree_eq_zero hg, function.comp_apply, weierstrass_polynomial_eq,
-        cubic.leading_coeff_of_b_ne_zero' $ one_ne_zero' K[X]] at h,
+        cubic.leading_coeff_of_b_ne_zero' $ one_ne_zero' F[X]] at h,
     exact or.inr ⟨⟨g, C f1, by rwa [mul_comm], h⟩, rfl⟩ }
 end⟩
 
-/-- The Weierstrass ring $R_E = K[X, Y] / \langle w_E(X, Y) \rangle$. -/
-@[reducible] def weierstrass_ring : Type v := adjoin_root $ E.weierstrass_polynomial K
+/-- The coordinate ring $R_E = F[X, Y] / \langle w_E(X, Y) \rangle$ of `E`. -/
+@[reducible] def coordinate_ring : Type v := adjoin_root $ E.weierstrass_polynomial
 
 variables {K}
 
@@ -459,11 +459,11 @@ TODO: Associativity of addition.
 
 namespace point
 
-instance : is_domain $ E.coordinate_ring K := (ideal.quotient.is_domain_iff_prime _).mpr
+instance : is_domain $ E.coordinate_ring := (ideal.quotient.is_domain_iff_prime _).mpr
 begin
   classical,
-  simpa only [ideal.span_singleton_prime (E.weierstrass_polynomial_ne_zero K),
-              ← gcd_monoid.irreducible_iff_prime] using E.weierstrass_polynomial_irreducible K
+  simpa only [ideal.span_singleton_prime E.weierstrass_polynomial_ne_zero,
+              ← gcd_monoid.irreducible_iff_prime] using E.weierstrass_polynomial_irreducible
 end
 
 @[simp] lemma add_eq_zero (P Q : E.point) : P + Q = 0 ↔ P = -Q :=

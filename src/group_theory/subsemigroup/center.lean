@@ -133,9 +133,9 @@ variables {M}
 @[to_additive] lemma mem_center_iff {z : M} : z ∈ center M ↔ ∀ g, g * z = z * g := iff.rfl
 
 @[to_additive]
-instance decidable_mem_center [∀ a : M, decidable $ ∀ b : M, b * a = a * b] :
-  decidable_pred (∈ center M) :=
-λ _, decidable_of_iff' _ mem_center_iff
+instance decidable_mem_center (a) [decidable $ ∀ b : M, b * a = a * b] :
+  decidable (a ∈ center M) :=
+decidable_of_iff' _ mem_center_iff
 
 /-- The center of a semigroup is commutative. -/
 @[to_additive "The center of an additive semigroup is commutative."]

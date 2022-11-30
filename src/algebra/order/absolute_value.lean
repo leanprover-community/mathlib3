@@ -3,8 +3,12 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Anne Baanen
 -/
-import algebra.order.field
+import algebra.group_with_zero.units.lemmas
+import algebra.order.field.defs
 import algebra.order.hom.basic
+import algebra.order.ring.abs
+import algebra.ring.commute
+import algebra.ring.regular
 
 /-!
 # Absolute values

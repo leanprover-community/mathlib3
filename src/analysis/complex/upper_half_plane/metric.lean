@@ -69,7 +69,7 @@ by rw [← sinh_add_cosh, sinh_half_dist, cosh_half_dist, add_div]
 lemma cosh_dist (z w : ℍ) : cosh (dist z w) = 1 + dist (z : ℂ) w ^ 2 / (2 * z.im * w.im) :=
 by rw [dist_eq, cosh_two_mul, cosh_sq', add_assoc, ← two_mul, sinh_arsinh, div_pow, mul_pow,
   sq_sqrt (mul_pos z.im_pos w.im_pos).le, sq (2 : ℝ), mul_assoc, ← mul_div_assoc,
-  mul_assoc, mul_div_mul_left _ _ (@two_ne_zero ℝ _ _)]
+  mul_assoc, mul_div_mul_left _ _ (two_ne_zero' ℝ)]
 
 lemma sinh_half_dist_add_dist (a b c : ℍ) :
   sinh ((dist a b + dist b c) / 2) =
@@ -93,7 +93,7 @@ by rw [← div_le_div_right (@two_pos ℝ _ _), ← sinh_le_sinh, sinh_half_dist
 
 lemma dist_eq_iff_eq_sinh :
   dist z w = r ↔ dist (z : ℂ) w / (2 * sqrt (z.im * w.im)) = sinh (r / 2) :=
-by rw [← div_left_inj' (@two_ne_zero ℝ _ _), ← sinh_inj, sinh_half_dist]
+by rw [← div_left_inj' (two_ne_zero' ℝ), ← sinh_inj, sinh_half_dist]
 
 lemma dist_eq_iff_eq_sq_sinh (hr : 0 ≤ r) :
   dist z w = r ↔ dist (z : ℂ) w ^ 2 / (4 * z.im * w.im) = sinh (r / 2) ^ 2 :=
@@ -288,7 +288,7 @@ lemma im_pos_of_dist_center_le {z : ℍ} {r : ℝ} {w : ℂ} (h : dist w (center
 calc 0 < z.im * (cosh r - sinh r) : mul_pos z.im_pos (sub_pos.2 $ sinh_lt_cosh _)
 ... = (z.center r).im - z.im * sinh r : mul_sub _ _ _
 ... ≤ (z.center r).im - dist (z.center r : ℂ) w : sub_le_sub_left (by rwa [dist_comm]) _
-... ≤ w.im : sub_le.1 $ (le_abs_self _).trans (abs_im_le_abs $ z.center r - w)
+... ≤ w.im : sub_le_comm.1 $ (le_abs_self _).trans (abs_im_le_abs $ z.center r - w)
 
 lemma image_coe_closed_ball (z : ℍ) (r : ℝ) :
   (coe : ℍ → ℂ) '' closed_ball z r = closed_ball (z.center r) (z.im * sinh r) :=

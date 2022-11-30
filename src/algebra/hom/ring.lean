@@ -3,10 +3,12 @@ Copyright (c) 2019 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston, Jireh Loreaux
 -/
+import algebra.group_with_zero.inj_surj
 import algebra.ring.basic
-import algebra.divisibility
+import algebra.divisibility.basic
 import data.pi.algebra
 import algebra.hom.units
+import data.set.basic
 
 /-!
 # Homomorphisms of semirings and rings
@@ -131,6 +133,10 @@ rfl
 equalities. -/
 protected def copy (f : α →ₙ+* β) (f' : α → β) (h : f' = f) : α →ₙ+* β :=
 { ..f.to_mul_hom.copy f' h, ..f.to_add_monoid_hom.copy f' h }
+
+@[simp] lemma coe_copy (f : α →ₙ+* β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+
+lemma copy_eq (f : α →ₙ+* β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 end coe
 
@@ -349,6 +355,10 @@ instance has_coe_monoid_hom : has_coe (α →+* β) (α →* β) := ⟨ring_hom.
 equalities. -/
 def copy (f : α →+* β) (f' : α → β) (h : f' = f) : α →+* β :=
 { ..f.to_monoid_with_zero_hom.copy f' h, ..f.to_add_monoid_hom.copy f' h }
+
+@[simp] lemma coe_copy (f : α →+* β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+
+lemma copy_eq (f : α →+* β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 end coe
 

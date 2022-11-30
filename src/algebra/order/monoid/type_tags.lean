@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.group.type_tags
-import algebra.order.monoid.cancel
-import algebra.order.monoid.canonical
+import algebra.order.monoid.cancel.defs
+import algebra.order.monoid.canonical.defs
 
 /-! # Ordered monoid structures on `multiplicative α` and `additive α`. -/
 

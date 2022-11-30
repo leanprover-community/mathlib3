@@ -3,7 +3,7 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
-import analysis.normed_space.lattice_ordered_group
+import analysis.normed.order.lattice
 import analysis.normed_space.operator_norm
 import analysis.normed_space.star.basic
 import data.real.sqrt
@@ -152,7 +152,7 @@ lemma dist_lt_of_nonempty_compact [nonempty α] [compact_space α]
 begin
   have c : continuous (λ x, dist (f x) (g x)), { continuity, },
   obtain ⟨x, -, le⟩ :=
-    is_compact.exists_forall_ge compact_univ set.univ_nonempty (continuous.continuous_on c),
+    is_compact.exists_forall_ge is_compact_univ set.univ_nonempty (continuous.continuous_on c),
   exact lt_of_le_of_lt (dist_le_iff_of_nonempty.mpr (λ y, le y trivial)) (w x),
 end
 
@@ -361,7 +361,7 @@ def extend (f : α ↪ δ) (g : α →ᵇ β) (h : δ →ᵇ β) : δ →ᵇ β 
 
 @[simp] lemma extend_apply (f : α ↪ δ) (g : α →ᵇ β) (h : δ →ᵇ β) (x : α) :
   extend f g h (f x) = g x :=
-extend_apply f.injective _ _ _
+f.injective.extend_apply _ _ _
 
 @[simp] lemma extend_comp (f : α ↪ δ) (g : α →ᵇ β) (h : δ →ᵇ β) : extend f g h ∘ f = g :=
 extend_comp f.injective _ _
@@ -421,7 +421,7 @@ theorem arzela_ascoli₁ [compact_space β]
     f ∈ A → dist (f y) (f z) < ε) :
   is_compact A :=
 begin
-  refine compact_of_totally_bounded_is_closed _ closed,
+  refine is_compact_of_totally_bounded_is_closed _ closed,
   refine totally_bounded_of_finite_discretization (λ ε ε0, _),
   rcases exists_between ε0 with ⟨ε₁, ε₁0, εε₁⟩,
   let ε₂ := ε₁/2/2,
@@ -442,11 +442,11 @@ begin
   /- For all x, the set hU x is an open set containing x on which the elements of A
   fluctuate by at most ε₂.
   We extract finitely many of these sets that cover the whole space, by compactness -/
-  rcases compact_univ.elim_finite_subcover_image
+  rcases is_compact_univ.elim_finite_subcover_image
     (λx _, (hU x).2.1) (λx hx, mem_bUnion (mem_univ _) (hU x).1)
     with ⟨tα, _, ⟨_⟩, htα⟩,
   /- tα : set α, htα : univ ⊆ ⋃x ∈ tα, U x -/
-  rcases @finite_cover_balls_of_compact β _ _ compact_univ _ ε₂0
+  rcases @finite_cover_balls_of_compact β _ _ is_compact_univ _ ε₂0
     with ⟨tβ, _, ⟨_⟩, htβ⟩, resetI,
   /- tβ : set β, htβ : univ ⊆ ⋃y ∈ tβ, ball y ε₂ -/
   /- Associate to every point `y` in the space a nearby point `F y` in tβ -/
@@ -489,7 +489,7 @@ using compactness there and then lifting everything to the original space. -/
 begin
   have M : lipschitz_with 1 coe := lipschitz_with.subtype_coe s,
   let F : (α →ᵇ s) → α →ᵇ β := comp coe M,
-  refine compact_of_is_closed_subset
+  refine is_compact_of_is_closed_subset
     ((_ : is_compact (F ⁻¹' A)).image (continuous_comp M)) closed (λ f hf, _),
   { haveI : compact_space s := is_compact_iff_compact_space.1 hs,
     refine arzela_ascoli₁ _ (continuous_iff_is_closed.1 (continuous_comp M) _ closed)
@@ -687,17 +687,17 @@ variables (f g : α →ᵇ β) {x : α} {C : ℝ}
 
 instance : has_norm (α →ᵇ β) := ⟨λu, dist u 0⟩
 
-lemma norm_def : ∥f∥ = dist f 0 := rfl
+lemma norm_def : ‖f‖ = dist f 0 := rfl
 
-/-- The norm of a bounded continuous function is the supremum of `∥f x∥`.
+/-- The norm of a bounded continuous function is the supremum of `‖f x‖`.
 We use `Inf` to ensure that the definition works if `α` has no elements. -/
 lemma norm_eq (f : α →ᵇ β) :
-  ∥f∥ = Inf {C : ℝ | 0 ≤ C ∧ ∀ (x : α), ∥f x∥ ≤ C} :=
+  ‖f‖ = Inf {C : ℝ | 0 ≤ C ∧ ∀ (x : α), ‖f x‖ ≤ C} :=
 by simp [norm_def, bounded_continuous_function.dist_eq]
 
-/-- When the domain is non-empty, we do not need the `0 ≤ C` condition in the formula for ∥f∥ as an
+/-- When the domain is non-empty, we do not need the `0 ≤ C` condition in the formula for ‖f‖ as an
 `Inf`. -/
-lemma norm_eq_of_nonempty [h : nonempty α] : ∥f∥ = Inf {C : ℝ | ∀ (x : α), ∥f x∥ ≤ C} :=
+lemma norm_eq_of_nonempty [h : nonempty α] : ‖f‖ = Inf {C : ℝ | ∀ (x : α), ‖f x‖ ≤ C} :=
 begin
   unfreezingI { obtain ⟨a⟩ := h, },
   rw norm_eq,
@@ -707,45 +707,45 @@ begin
   exact λ h', le_trans (norm_nonneg (f a)) (h' a),
 end
 
-@[simp] lemma norm_eq_zero_of_empty [h : is_empty α] : ∥f∥ = 0 :=
+@[simp] lemma norm_eq_zero_of_empty [h : is_empty α] : ‖f‖ = 0 :=
 dist_zero_of_empty
 
-lemma norm_coe_le_norm (x : α) : ∥f x∥ ≤ ∥f∥ := calc
-  ∥f x∥ = dist (f x) ((0 : α →ᵇ β) x) : by simp [dist_zero_right]
-  ... ≤ ∥f∥ : dist_coe_le_dist _
+lemma norm_coe_le_norm (x : α) : ‖f x‖ ≤ ‖f‖ := calc
+  ‖f x‖ = dist (f x) ((0 : α →ᵇ β) x) : by simp [dist_zero_right]
+  ... ≤ ‖f‖ : dist_coe_le_dist _
 
-lemma dist_le_two_norm' {f : γ → β} {C : ℝ} (hC : ∀ x, ∥f x∥ ≤ C) (x y : γ) :
+lemma dist_le_two_norm' {f : γ → β} {C : ℝ} (hC : ∀ x, ‖f x‖ ≤ C) (x y : γ) :
   dist (f x) (f y) ≤ 2 * C :=
-calc dist (f x) (f y) ≤ ∥f x∥ + ∥f y∥ : dist_le_norm_add_norm _ _
+calc dist (f x) (f y) ≤ ‖f x‖ + ‖f y‖ : dist_le_norm_add_norm _ _
                   ... ≤ C + C         : add_le_add (hC x) (hC y)
                   ... = 2 * C         : (two_mul _).symm
 
 /-- Distance between the images of any two points is at most twice the norm of the function. -/
-lemma dist_le_two_norm (x y : α) : dist (f x) (f y) ≤ 2 * ∥f∥ :=
+lemma dist_le_two_norm (x y : α) : dist (f x) (f y) ≤ 2 * ‖f‖ :=
 dist_le_two_norm' f.norm_coe_le_norm x y
 
 variable {f}
 
 /-- The norm of a function is controlled by the supremum of the pointwise norms -/
-lemma norm_le (C0 : (0 : ℝ) ≤ C) : ∥f∥ ≤ C ↔ ∀x:α, ∥f x∥ ≤ C :=
+lemma norm_le (C0 : (0 : ℝ) ≤ C) : ‖f‖ ≤ C ↔ ∀x:α, ‖f x‖ ≤ C :=
 by simpa using @dist_le _ _ _ _ f 0 _ C0
 
 lemma norm_le_of_nonempty [nonempty α]
-  {f : α →ᵇ β} {M : ℝ} : ∥f∥ ≤ M ↔ ∀ x, ∥f x∥ ≤ M :=
+  {f : α →ᵇ β} {M : ℝ} : ‖f‖ ≤ M ↔ ∀ x, ‖f x‖ ≤ M :=
 begin
   simp_rw [norm_def, ←dist_zero_right],
   exact dist_le_iff_of_nonempty,
 end
 
 lemma norm_lt_iff_of_compact [compact_space α]
-  {f : α →ᵇ β} {M : ℝ} (M0 : 0 < M) : ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
+  {f : α →ᵇ β} {M : ℝ} (M0 : 0 < M) : ‖f‖ < M ↔ ∀ x, ‖f x‖ < M :=
 begin
   simp_rw [norm_def, ←dist_zero_right],
   exact dist_lt_iff_of_compact M0,
 end
 
 lemma norm_lt_iff_of_nonempty_compact [nonempty α] [compact_space α]
-  {f : α →ᵇ β} {M : ℝ} : ∥f∥ < M ↔ ∀ x, ∥f x∥ < M :=
+  {f : α →ᵇ β} {M : ℝ} : ‖f‖ < M ↔ ∀ x, ‖f x‖ < M :=
 begin
   simp_rw [norm_def, ←dist_zero_right],
   exact dist_lt_iff_of_nonempty_compact,
@@ -753,28 +753,28 @@ end
 
 variable (f)
 
-/-- Norm of `const α b` is less than or equal to `∥b∥`. If `α` is nonempty,
-then it is equal to `∥b∥`. -/
-lemma norm_const_le (b : β) : ∥const α b∥ ≤ ∥b∥ :=
+/-- Norm of `const α b` is less than or equal to `‖b‖`. If `α` is nonempty,
+then it is equal to `‖b‖`. -/
+lemma norm_const_le (b : β) : ‖const α b‖ ≤ ‖b‖ :=
 (norm_le (norm_nonneg b)).2 $ λ x, le_rfl
 
-@[simp] lemma norm_const_eq [h : nonempty α] (b : β) : ∥const α b∥ = ∥b∥ :=
+@[simp] lemma norm_const_eq [h : nonempty α] (b : β) : ‖const α b‖ = ‖b‖ :=
 le_antisymm (norm_const_le b) $ h.elim $ λ x, (const α b).norm_coe_le_norm x
 
 /-- Constructing a bounded continuous function from a uniformly bounded continuous
 function taking values in a normed group. -/
 def of_normed_add_comm_group {α : Type u} {β : Type v} [topological_space α]
-  [seminormed_add_comm_group β] (f : α → β) (Hf : continuous f) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) :
+  [seminormed_add_comm_group β] (f : α → β) (Hf : continuous f) (C : ℝ) (H : ∀x, ‖f x‖ ≤ C) :
   α →ᵇ β :=
 ⟨⟨λn, f n, Hf⟩, ⟨_, dist_le_two_norm' H⟩⟩
 
 @[simp] lemma coe_of_normed_add_comm_group
   {α : Type u} {β : Type v} [topological_space α] [seminormed_add_comm_group β]
-  (f : α → β) (Hf : continuous f) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) :
+  (f : α → β) (Hf : continuous f) (C : ℝ) (H : ∀x, ‖f x‖ ≤ C) :
   (of_normed_add_comm_group f Hf C H : α → β) = f := rfl
 
 lemma norm_of_normed_add_comm_group_le {f : α → β} (hfc : continuous f) {C : ℝ} (hC : 0 ≤ C)
-  (hfC : ∀ x, ∥f x∥ ≤ C) : ∥of_normed_add_comm_group f hfc C hfC∥ ≤ C :=
+  (hfC : ∀ x, ‖f x‖ ≤ C) : ‖of_normed_add_comm_group f hfc C hfC‖ ≤ C :=
 (norm_le hC).2 hfC
 
 /-- Constructing a bounded continuous function from a uniformly bounded
@@ -785,7 +785,7 @@ def of_normed_add_comm_group_discrete {α : Type u} {β : Type v}
 of_normed_add_comm_group f continuous_of_discrete_topology C H
 
 @[simp] lemma coe_of_normed_add_comm_group_discrete {α : Type u} {β : Type v} [topological_space α]
-  [discrete_topology α] [seminormed_add_comm_group β] (f : α → β) (C : ℝ) (H : ∀x, ∥f x∥ ≤ C) :
+  [discrete_topology α] [seminormed_add_comm_group β] (f : α → β) (C : ℝ) (H : ∀x, ‖f x‖ ≤ C) :
   (of_normed_add_comm_group_discrete f C H : α → β) = f := rfl
 
 /-- Taking the pointwise norm of a bounded continuous function with values in a
@@ -795,27 +795,27 @@ f.comp norm lipschitz_with_one_norm
 
 @[simp] lemma coe_norm_comp : (f.norm_comp : α → ℝ) = norm ∘ f := rfl
 
-@[simp] lemma norm_norm_comp : ∥f.norm_comp∥ = ∥f∥ :=
+@[simp] lemma norm_norm_comp : ‖f.norm_comp‖ = ‖f‖ :=
 by simp only [norm_eq, coe_norm_comp, norm_norm]
 
 lemma bdd_above_range_norm_comp : bdd_above $ set.range $ norm ∘ f :=
 (real.bounded_iff_bdd_below_bdd_above.mp $ @bounded_range _ _ _ _ f.norm_comp).2
 
-lemma norm_eq_supr_norm : ∥f∥ = ⨆ x : α, ∥f x∥ :=
+lemma norm_eq_supr_norm : ‖f‖ = ⨆ x : α, ‖f x‖ :=
 by simp_rw [norm_def, dist_eq_supr, coe_zero, pi.zero_apply, dist_zero_right]
 
-/-- If `∥(1 : β)∥ = 1`, then `∥(1 : α →ᵇ β)∥ = 1` if `α` is nonempty. -/
+/-- If `‖(1 : β)‖ = 1`, then `‖(1 : α →ᵇ β)‖ = 1` if `α` is nonempty. -/
 instance [nonempty α] [has_one β] [norm_one_class β] : norm_one_class (α →ᵇ β) :=
 { norm_one := by simp only [norm_eq_supr_norm, coe_one, pi.one_apply, norm_one, csupr_const] }
 
 /-- The pointwise opposite of a bounded continuous function is again bounded continuous. -/
 instance : has_neg (α →ᵇ β) :=
-⟨λf, of_normed_add_comm_group (-f) f.continuous.neg ∥f∥ $ λ x,
+⟨λf, of_normed_add_comm_group (-f) f.continuous.neg ‖f‖ $ λ x,
   trans_rel_right _ (norm_neg _) (f.norm_coe_le_norm x)⟩
 
 /-- The pointwise difference of two bounded continuous functions is again bounded continuous. -/
 instance : has_sub (α →ᵇ β) :=
-⟨λf g, of_normed_add_comm_group (f - g) (f.continuous.sub g.continuous) (∥f∥ + ∥g∥) $ λ x,
+⟨λf g, of_normed_add_comm_group (f - g) (f.continuous.sub g.continuous) (‖f‖ + ‖g‖) $ λ x,
   by { simp only [sub_eq_add_neg],
        exact le_trans (norm_add_le _ _) (add_le_add (f.norm_coe_le_norm x) $
          trans_rel_right _ (norm_neg _) (g.norm_coe_le_norm x)) }⟩
@@ -854,33 +854,33 @@ instance : seminormed_add_comm_group (α →ᵇ β) :=
 instance {α β} [topological_space α] [normed_add_comm_group β] : normed_add_comm_group (α →ᵇ β) :=
 { ..bounded_continuous_function.seminormed_add_comm_group }
 
-lemma nnnorm_def : ∥f∥₊ = nndist f 0 := rfl
+lemma nnnorm_def : ‖f‖₊ = nndist f 0 := rfl
 
-lemma nnnorm_coe_le_nnnorm (x : α) : ∥f x∥₊ ≤ ∥f∥₊ := norm_coe_le_norm _ _
+lemma nnnorm_coe_le_nnnorm (x : α) : ‖f x‖₊ ≤ ‖f‖₊ := norm_coe_le_norm _ _
 
-lemma nndist_le_two_nnnorm (x y : α) : nndist (f x) (f y) ≤ 2 * ∥f∥₊ := dist_le_two_norm _ _ _
+lemma nndist_le_two_nnnorm (x y : α) : nndist (f x) (f y) ≤ 2 * ‖f‖₊ := dist_le_two_norm _ _ _
 
 /-- The nnnorm of a function is controlled by the supremum of the pointwise nnnorms -/
-lemma nnnorm_le (C : ℝ≥0) : ∥f∥₊ ≤ C ↔ ∀x:α, ∥f x∥₊ ≤ C :=
+lemma nnnorm_le (C : ℝ≥0) : ‖f‖₊ ≤ C ↔ ∀x:α, ‖f x‖₊ ≤ C :=
 norm_le C.prop
 
-lemma nnnorm_const_le (b : β) : ∥const α b∥₊ ≤ ∥b∥₊ :=
+lemma nnnorm_const_le (b : β) : ‖const α b‖₊ ≤ ‖b‖₊ :=
 norm_const_le _
 
-@[simp] lemma nnnorm_const_eq [h : nonempty α] (b : β) : ∥const α b∥₊ = ∥b∥₊ :=
+@[simp] lemma nnnorm_const_eq [h : nonempty α] (b : β) : ‖const α b‖₊ = ‖b‖₊ :=
 subtype.ext $ norm_const_eq _
 
-lemma nnnorm_eq_supr_nnnorm : ∥f∥₊ = ⨆ x : α, ∥f x∥₊ :=
+lemma nnnorm_eq_supr_nnnorm : ‖f‖₊ = ⨆ x : α, ‖f x‖₊ :=
 subtype.ext $ (norm_eq_supr_norm f).trans $ by simp_rw [nnreal.coe_supr, coe_nnnorm]
 
-lemma abs_diff_coe_le_dist : ∥f x - g x∥ ≤ dist f g :=
+lemma abs_diff_coe_le_dist : ‖f x - g x‖ ≤ dist f g :=
 by { rw dist_eq_norm, exact (f - g).norm_coe_le_norm x }
 
 lemma coe_le_coe_add_dist {f g : α →ᵇ ℝ} : f x ≤ g x + dist f g :=
 sub_le_iff_le_add'.1 $ (abs_le.1 $ @dist_coe_le_dist _ _ _ _ f g x).2
 
 lemma norm_comp_continuous_le [topological_space γ] (f : α →ᵇ β) (g : C(γ, α)) :
-  ∥f.comp_continuous g∥ ≤ ∥f∥ :=
+  ‖f.comp_continuous g‖ ≤ ‖f‖ :=
 ((lipschitz_comp_continuous g).dist_le_mul f 0).trans $
   by rw [nnreal.coe_one, one_mul, dist_zero_right]
 
@@ -1014,11 +1014,11 @@ linear_map.mk_continuous
   { to_fun := λ f, of_normed_add_comm_group
       (g ∘ f)
       (g.continuous.comp f.continuous)
-      (∥g∥ * ∥f∥)
+      (‖g‖ * ‖f‖)
       (λ x, (g.le_op_norm_of_le (f.norm_coe_le_norm x))),
     map_add' := λ f g, by ext; simp,
     map_smul' := λ c f, by ext; simp }
-  ∥g∥
+  ‖g‖
   (λ f, norm_of_normed_add_comm_group_le _ (mul_nonneg (norm_nonneg g) (norm_nonneg f)) _)
 
 @[simp] lemma _root_.continuous_linear_map.comp_left_continuous_bounded_apply (g : β →L[𝕜] γ)
@@ -1044,7 +1044,7 @@ section semi_normed
 variables [non_unital_semi_normed_ring R]
 
 instance : has_mul (α →ᵇ R) :=
-{ mul := λ f g, of_normed_add_comm_group (f * g) (f.continuous.mul g.continuous) (∥f∥ * ∥g∥) $ λ x,
+{ mul := λ f g, of_normed_add_comm_group (f * g) (f.continuous.mul g.continuous) (‖f‖ * ‖g‖) $ λ x,
     le_trans (norm_mul_le (f x) (g x)) $
       mul_le_mul (f.norm_coe_le_norm x) (g.norm_coe_le_norm x) (norm_nonneg _) (norm_nonneg _) }
 
@@ -1178,9 +1178,9 @@ functions from `α` to `𝕜`. -/
 
 instance has_smul' : has_smul (α →ᵇ 𝕜) (α →ᵇ β) :=
 ⟨λ (f : α →ᵇ 𝕜) (g : α →ᵇ β), of_normed_add_comm_group (λ x, (f x) • (g x))
-(f.continuous.smul g.continuous) (∥f∥ * ∥g∥) (λ x, calc
-  ∥f x • g x∥ ≤ ∥f x∥ * ∥g x∥ : normed_space.norm_smul_le _ _
-  ... ≤ ∥f∥ * ∥g∥ : mul_le_mul (f.norm_coe_le_norm _) (g.norm_coe_le_norm _) (norm_nonneg _)
+(f.continuous.smul g.continuous) (‖f‖ * ‖g‖) (λ x, calc
+  ‖f x • g x‖ ≤ ‖f x‖ * ‖g x‖ : normed_space.norm_smul_le _ _
+  ... ≤ ‖f‖ * ‖g‖ : mul_le_mul (f.norm_coe_le_norm _) (g.norm_coe_le_norm _) (norm_nonneg _)
     (norm_nonneg _)) ⟩
 
 instance module' : module (α →ᵇ 𝕜) (α →ᵇ β) :=
@@ -1191,7 +1191,7 @@ module.of_core $
   mul_smul := λ c₁ c₂ f, ext $ λ x, mul_smul _ _ _,
   one_smul := λ f, ext $ λ x, one_smul 𝕜 (f x) }
 
-lemma norm_smul_le (f : α →ᵇ 𝕜) (g : α →ᵇ β) : ∥f • g∥ ≤ ∥f∥ * ∥g∥ :=
+lemma norm_smul_le (f : α →ᵇ 𝕜) (g : α →ᵇ β) : ‖f • g‖ ≤ ‖f‖ * ‖g‖ :=
 norm_of_normed_add_comm_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _
 
 /- TODO: When `normed_module` has been added to `normed_space.basic`, the above facts
@@ -1342,7 +1342,7 @@ instance : normed_lattice_add_comm_group (α →ᵇ β) :=
   solid :=
   begin
     intros f g h,
-    have i1: ∀ t, ∥f t∥ ≤ ∥g t∥ := λ t, solid (h t),
+    have i1: ∀ t, ‖f t‖ ≤ ‖g t‖ := λ t, solid (h t),
     rw norm_le (norm_nonneg _),
     exact λ t, (i1 t).trans (norm_coe_le_norm g t),
   end,
@@ -1366,7 +1366,7 @@ bounded_continuous_function.comp _
 continuous `ℝ≥0`-valued function. -/
 def nnnorm (f : α →ᵇ ℝ) : α →ᵇ ℝ≥0 :=
 bounded_continuous_function.comp _
-  (show lipschitz_with 1 (λ (x : ℝ), ∥x∥₊), from lipschitz_with_one_norm) f
+  (show lipschitz_with 1 (λ (x : ℝ), ‖x‖₊), from lipschitz_with_one_norm) f
 
 @[simp] lemma nnnorm_coe_fun_eq (f : α →ᵇ ℝ) : ⇑(f.nnnorm) = has_nnnorm.nnnorm ∘ ⇑f := rfl
 

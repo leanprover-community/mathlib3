@@ -50,7 +50,7 @@ begin
     from emetric.mem_closure_iff.1 xu (r / 2) (ennreal.half_pos hp.r_pos.ne'),
   let q := p.change_origin (y - x),
   have has_series : has_fpower_series_on_ball f q y (r / 2),
-  { have A : (∥y - x∥₊ : ℝ≥0∞) < r / 2, by rwa [edist_comm, edist_eq_coe_nnnorm_sub] at hxy,
+  { have A : (‖y - x‖₊ : ℝ≥0∞) < r / 2, by rwa [edist_comm, edist_eq_coe_nnnorm_sub] at hxy,
     have := hp.change_origin (A.trans_le ennreal.half_le_self),
     simp only [add_sub_cancel'_right] at this,
     apply this.mono (ennreal.half_pos hp.r_pos.ne'),

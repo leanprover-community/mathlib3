@@ -95,9 +95,7 @@ units.ext.comp (λ x y, subtype.ext)
 a positive power equal to one. -/
 @[simps coe_coe] def roots_of_unity.mk_of_pow_eq (ζ : M) {n : ℕ+} (h : ζ ^ (n : ℕ) = 1) :
   roots_of_unity n M :=
-⟨units.mk_of_mul_eq_one ζ (ζ ^ n.nat_pred) $
-  by rwa [←pow_one ζ, ←pow_mul, ←pow_add, one_mul, pnat.one_add_nat_pred],
-units.ext $ by simpa⟩
+⟨units.of_pow_eq_one ζ n h n.ne_zero, units.pow_of_pow_eq_one _ _⟩
 
 @[simp] lemma roots_of_unity.coe_mk_of_pow_eq {ζ : M} {n : ℕ+}
   (h : ζ ^ (n : ℕ) = 1) : (roots_of_unity.mk_of_pow_eq _ h : M) = ζ := rfl
@@ -134,7 +132,7 @@ let h : ∀ ξ : roots_of_unity n R, (σ ξ) ^ (n : ℕ) = 1 := λ ξ, by
 { change (σ (ξ : Rˣ)) ^ (n : ℕ) = 1,
   rw [←map_pow, ←units.coe_pow, show ((ξ : Rˣ) ^ (n : ℕ) = 1), from ξ.2,
       units.coe_one, map_one σ] } in
-{ to_fun := λ ξ, ⟨@unit_of_invertible _ _ _ (invertible_of_pow_eq_one _ _ (h ξ) n.2),
+{ to_fun := λ ξ, ⟨@unit_of_invertible _ _ _ (invertible_of_pow_eq_one _ _ (h ξ) n.ne_zero),
     by { ext, rw units.coe_pow, exact h ξ }⟩,
   map_one' := by { ext, exact map_one σ },
   map_mul' := λ ξ₁ ξ₂, by { ext, rw [subgroup.coe_mul, units.coe_mul], exact map_mul σ _ _ } }
@@ -276,6 +274,14 @@ begin
   exact is_primitive_root.pow_eq_one
 end
 
+@[simp] lemma primitive_roots_zero : primitive_roots 0 R = ∅ :=
+by rw [primitive_roots, nth_roots_zero, multiset.to_finset_zero, finset.filter_empty]
+
+lemma is_primitive_root_of_mem_primitive_roots {ζ : R} (h : ζ ∈ primitive_roots k R) :
+  is_primitive_root ζ k :=
+k.eq_zero_or_pos.elim (λ hk, false.elim $ by simpa [hk] using h)
+  (λ hk, (mem_primitive_roots hk).1 h)
+
 end primitive_roots
 
 namespace is_primitive_root
@@ -289,10 +295,8 @@ lemma iff_def (ζ : M) (k : ℕ) :
 lemma mk_of_lt (ζ : M) (hk : 0 < k) (h1 : ζ ^ k = 1) (h : ∀ l : ℕ, 0 < l →  l < k → ζ ^ l ≠ 1) :
   is_primitive_root ζ k :=
 begin
-  refine ⟨h1, _⟩,
-  intros l hl,
-  apply dvd_trans _ (k.gcd_dvd_right l),
-  suffices : k.gcd l = k, { rw this },
+  refine ⟨h1, λ l hl, _⟩,
+  suffices : k.gcd l = k, { exact this ▸ k.gcd_dvd_right l },
   rw eq_iff_le_not_lt,
   refine ⟨nat.le_of_dvd hk (k.gcd_dvd_left l), _⟩,
   intro h', apply h _ (nat.gcd_pos_of_pos_left _ hk) h',
@@ -383,7 +387,7 @@ begin
   obtain ⟨a, ha⟩ := i.gcd_dvd_left k,
   obtain ⟨b, hb⟩ := i.gcd_dvd_right k,
   suffices : b = k,
-  { rwa [this, ← one_mul k, nat.mul_left_inj h0, eq_comm] at hb { occs := occurrences.pos [1] } },
+  { rwa [this, ← one_mul k, mul_left_inj' h0.ne', eq_comm] at hb { occs := occurrences.pos [1] } },
   rw [ha] at hi,
   rw [mul_comm] at hb,
   apply nat.dvd_antisymm ⟨i.gcd k, hb⟩ (hi.dvd_of_pow_eq_one b _),
@@ -394,14 +398,7 @@ protected lemma order_of (ζ : M) : is_primitive_root ζ (order_of ζ) :=
 ⟨pow_order_of_eq_one ζ, λ l, order_of_dvd_of_pow_eq_one⟩
 
 lemma unique {ζ : M} (hk : is_primitive_root ζ k) (hl : is_primitive_root ζ l) : k = l :=
-begin
-  wlog hkl : k ≤ l,
-  rcases hkl.eq_or_lt with rfl | hkl,
-  { refl },
-  rcases k.eq_zero_or_pos with rfl | hk',
-  { exact (zero_dvd_iff.mp $ hk.dvd_of_pow_eq_one l hl.pow_eq_one).symm },
-  exact absurd hk.pow_eq_one (hl.pow_ne_one_of_pos_of_lt hk' hkl)
-end
+nat.dvd_antisymm (hk.2 _ hl.1) (hl.2 _ hk.1)
 
 lemma eq_order_of : k = order_of ζ := h.unique (is_primitive_root.order_of ζ)
 
@@ -539,14 +536,6 @@ section is_domain
 
 variables {ζ : R}
 variables [comm_ring R] [is_domain R]
-
-@[simp] lemma primitive_roots_zero : primitive_roots 0 R = ∅ :=
-begin
-  rw [← finset.val_eq_zero, ← multiset.subset_zero, ← nth_roots_zero (1 : R), primitive_roots],
-    simp only [finset.not_mem_empty, forall_const, forall_prop_of_false, multiset.to_finset_zero,
-    finset.filter_true_of_mem, finset.empty_val, not_false_iff,
-    multiset.zero_subset, nth_roots_zero]
-end
 
 @[simp] lemma primitive_roots_one : primitive_roots 1 R = {(1 : R)} :=
 begin
@@ -710,9 +699,9 @@ lemma eq_pow_of_pow_eq_one {k : ℕ} {ζ ξ : R}
   (h : is_primitive_root ζ k) (hξ : ξ ^ k = 1) (h0 : 0 < k) :
   ∃ i < k, ζ ^ i = ξ :=
 begin
-  obtain ⟨ζ, rfl⟩ := h.is_unit h0,
-  obtain ⟨ξ, rfl⟩ := is_unit_of_pow_eq_one ξ k hξ h0,
-  obtain ⟨k, rfl⟩ : ∃ k' : ℕ+, k = k' := ⟨⟨k, h0⟩, rfl⟩,
+  lift ζ to Rˣ using h.is_unit h0,
+  lift ξ to Rˣ using is_unit_of_pow_eq_one hξ h0.ne',
+  lift k to ℕ+ using h0,
   simp only [← units.coe_pow, ← units.ext_iff],
   rw coe_units_iff at h,
   apply h.eq_pow_of_mem_roots_of_unity,
@@ -837,15 +826,8 @@ end
 /-- The sets `primitive_roots k R` are pairwise disjoint. -/
 lemma disjoint {k l : ℕ} (h : k ≠ l) :
   disjoint (primitive_roots k R) (primitive_roots l R) :=
-begin
-  by_cases hk : k = 0, { simp [hk], },
-  by_cases hl : l = 0, { simp [hl], },
-  intro z,
-  simp only [finset.inf_eq_inter, finset.mem_inter, mem_primitive_roots,
-    nat.pos_of_ne_zero hk, nat.pos_of_ne_zero hl, iff_def],
-  rintro ⟨⟨hzk, Hzk⟩, ⟨hzl, Hzl⟩⟩,
-  apply_rules [h, nat.dvd_antisymm, Hzk, Hzl, hzk, hzl]
-end
+finset.disjoint_left.2 $ λ z hk hl, h $ (is_primitive_root_of_mem_primitive_roots hk).unique $
+  is_primitive_root_of_mem_primitive_roots hl
 
 /-- `nth_roots n` as a `finset` is equal to the union of `primitive_roots i R` for `i ∣ n`
 if there is a primitive root of unity in `R`.
@@ -1054,7 +1036,7 @@ begin
     simp [nat.is_unit_iff.mp hunit] },
   { intros a p ha hprime hind n hcop h,
     rw hind (nat.coprime.coprime_mul_left hcop) h, clear hind,
-    replace hprime := nat.prime_iff.2 hprime,
+    replace hprime := hprime.nat_prime,
     have hdiv := (nat.prime.coprime_iff_not_dvd hprime).1 (nat.coprime.coprime_mul_right hcop),
     haveI := fact.mk hprime,
     rw [minpoly_eq_pow (h.pow_of_coprime a (nat.coprime.coprime_mul_left hcop)) hdiv],

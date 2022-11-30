@@ -343,16 +343,16 @@ lemma has_coproducts_of_opposite [has_products.{v₂} Cᵒᵖ] : has_coproducts.
 λ X, has_coproducts_of_shape_of_opposite X
 
 instance has_finite_coproducts_opposite [has_finite_products C] : has_finite_coproducts Cᵒᵖ :=
-{ out := λ J _, by exactI infer_instance }
+{ out := λ n, limits.has_coproducts_of_shape_opposite _ }
 
 lemma has_finite_coproducts_of_opposite [has_finite_products Cᵒᵖ] : has_finite_coproducts C :=
-{ out := λ J _, by exactI has_coproducts_of_shape_of_opposite J }
+{ out := λ n, has_coproducts_of_shape_of_opposite _ }
 
 instance has_finite_products_opposite [has_finite_coproducts C] : has_finite_products Cᵒᵖ :=
-{ out := λ J _, by exactI infer_instance }
+{ out := λ n, infer_instance }
 
 lemma has_finite_products_of_opposite [has_finite_coproducts Cᵒᵖ] : has_finite_products C :=
-{ out := λ J _, by exactI has_products_of_shape_of_opposite J }
+{ out := λ n, has_products_of_shape_of_opposite _ }
 
 instance has_equalizers_opposite [has_coequalizers C] : has_equalizers Cᵒᵖ :=
 begin

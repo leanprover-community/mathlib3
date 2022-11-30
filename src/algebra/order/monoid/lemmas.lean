@@ -5,10 +5,13 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl, Dami
 Yuyang Zhao
 -/
 import algebra.covariant_and_contravariant
-import order.monotone
 
 /-!
 # Ordered monoids
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/608
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file develops the basics of ordered monoids.
 
@@ -271,6 +274,24 @@ lemma mul_le_of_le_one_left' [covariant_class α α (swap (*)) (≤)]
 calc  b * a ≤ 1 * a : mul_le_mul_right' h a
         ... = a     : one_mul a
 
+@[to_additive]
+lemma one_le_of_le_mul_right [contravariant_class α α (*) (≤)] {a b : α} (h : a ≤ a * b) : 1 ≤ b :=
+le_of_mul_le_mul_left' $ by simpa only [mul_one]
+
+@[to_additive]
+lemma le_one_of_mul_le_right [contravariant_class α α (*) (≤)] {a b : α} (h : a * b ≤ a) : b ≤ 1 :=
+le_of_mul_le_mul_left' $ by simpa only [mul_one]
+
+@[to_additive]
+lemma one_le_of_le_mul_left [contravariant_class α α (swap (*)) (≤)] {a b : α} (h : b ≤ a * b) :
+  1 ≤ a :=
+le_of_mul_le_mul_right' $ by simpa only [one_mul]
+
+@[to_additive]
+lemma le_one_of_mul_le_left [contravariant_class α α (swap (*)) (≤)] {a b : α} (h : a * b ≤ b) :
+  a ≤ 1 :=
+le_of_mul_le_mul_right' $ by simpa only [one_mul]
+
 @[simp, to_additive le_add_iff_nonneg_right]
 lemma le_mul_iff_one_le_right'
   [covariant_class α α (*) (≤)] [contravariant_class α α (*) (≤)]
@@ -331,6 +352,24 @@ lemma mul_lt_of_lt_one_left' [covariant_class α α (swap (*)) (<)]
   b * a < a :=
 calc  b * a < 1 * a : mul_lt_mul_right' h a
         ... = a     : one_mul a
+
+@[to_additive]
+lemma one_lt_of_lt_mul_right [contravariant_class α α (*) (<)] {a b : α} (h : a < a * b) : 1 < b :=
+lt_of_mul_lt_mul_left' $ by simpa only [mul_one]
+
+@[to_additive]
+lemma lt_one_of_mul_lt_right [contravariant_class α α (*) (<)] {a b : α} (h : a * b < a) : b < 1 :=
+lt_of_mul_lt_mul_left' $ by simpa only [mul_one]
+
+@[to_additive]
+lemma one_lt_of_lt_mul_left [contravariant_class α α (swap (*)) (<)] {a b : α} (h : b < a * b) :
+  1 < a :=
+lt_of_mul_lt_mul_right' $ by simpa only [one_mul]
+
+@[to_additive]
+lemma lt_one_of_mul_lt_left [contravariant_class α α (swap (*)) (<)] {a b : α} (h : a * b < b) :
+  a < 1 :=
+lt_of_mul_lt_mul_right' $ by simpa only [one_mul]
 
 @[simp, to_additive lt_add_iff_pos_right]
 lemma lt_mul_iff_one_lt_right'

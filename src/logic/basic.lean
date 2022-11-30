@@ -9,6 +9,10 @@ import tactic.reserved_notation
 /-!
 # Basic logic properties
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/484
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file is one of the earliest imports in mathlib.
 
 ## Implementation notes
@@ -238,6 +242,10 @@ open function
 theorem false_ne_true : false ≠ true
 | h := h.symm ▸ trivial
 
+theorem eq_true_iff {a : Prop} : (a = true) = a :=
+have (a ↔ true) = a, from propext (iff_true a),
+eq.subst (@iff_eq_eq a true) this
+
 section propositional
 variables {a b c d e f : Prop}
 
@@ -422,11 +430,15 @@ lemma iff.not_right (h : ¬ a ↔ b) : a ↔ ¬ b := not_not.symm.trans h.not
 
 @[simp] theorem xor_false : xor false = id := funext $ λ a, by simp [xor]
 
-theorem xor_comm (a b) : xor a b = xor b a := by simp [xor, and_comm, or_comm]
+theorem xor_comm (a b) : xor a b ↔ xor b a := or_comm _ _
 
-instance : is_commutative Prop xor := ⟨xor_comm⟩
+instance : is_commutative Prop xor := ⟨λ a b, propext $ xor_comm a b⟩
 
 @[simp] theorem xor_self (a : Prop) : xor a a = false := by simp [xor]
+@[simp] theorem xor_not_left : xor (¬a) b ↔ (a ↔ b) := by by_cases a; simp *
+@[simp] theorem xor_not_right : xor a (¬b) ↔ (a ↔ b) := by by_cases a; simp *
+theorem xor_not_not : xor (¬a) (¬b) ↔ xor a b := by simp [xor, or_comm, and_comm]
+protected theorem xor.or (h : xor a b) : a ∨ b := h.imp and.left and.left
 
 /-! ### Declarations about `and` -/
 
@@ -477,6 +489,9 @@ iff.intro and.left (λ ha, ⟨ha, h ha⟩)
 
 theorem and_iff_right_of_imp {a b : Prop} (h : b → a) : (a ∧ b) ↔ b :=
 iff.intro and.right (λ hb, ⟨h hb, hb⟩)
+
+lemma ne_and_eq_iff_right {α : Sort*} {a b c : α} (h : b ≠ c) : a ≠ b ∧ a = c ↔ a = c :=
+and_iff_right_of_imp (λ h2, h2.symm ▸ h.symm)
 
 @[simp] theorem and_iff_left_iff_imp {a b : Prop} : ((a ∧ b) ↔ a) ↔ (a → b) :=
 ⟨λ h ha, (h.2 ha).2, and_iff_left_of_imp⟩
@@ -806,9 +821,9 @@ theorem and_iff_not_or_not : a ∧ b ↔ ¬ (¬ a ∨ ¬ b) := decidable.and_iff
 @[simp] theorem not_xor (P Q : Prop) : ¬ xor P Q ↔ (P ↔ Q) :=
 by simp only [not_and, xor, not_or_distrib, not_not, ← iff_iff_implies_and_implies]
 
-theorem xor_iff_not_iff (P Q : Prop) : xor P Q ↔ ¬ (P ↔ Q) :=
-by rw [iff_not_comm, not_xor]
-
+theorem xor_iff_not_iff (P Q : Prop) : xor P Q ↔ ¬ (P ↔ Q) := (not_xor P Q).not_right
+theorem xor_iff_iff_not : xor a b ↔ (a ↔ ¬b) := by simp only [← @xor_not_right a, not_not]
+theorem xor_iff_not_iff' : xor a b ↔ (¬a ↔ b) := by simp only [← @xor_not_left _ b, not_not]
 
 end propositional
 

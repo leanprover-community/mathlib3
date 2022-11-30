@@ -2052,6 +2052,11 @@ structure quasi_measure_preserving {m0 : measurable_space α} (f : α → β)
 (measurable : measurable f)
 (absolutely_continuous : μa.map f ≪ μb)
 
+lemma quasi_measure_preserving_map {m0 : measurable_space α} (μ : measure α) (e : α ≃ᵐ β) :
+  quasi_measure_preserving e.symm (map e μ) μ :=
+{ measurable := e.symm.measurable,
+  absolutely_continuous := by rw [map_map, e.symm_comp_self, map_id]; measurability }
+
 namespace quasi_measure_preserving
 
 protected lemma id {m0 : measurable_space α} (μ : measure α) : quasi_measure_preserving id μ μ :=

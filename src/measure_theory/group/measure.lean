@@ -30,7 +30,7 @@ noncomputable theory
 open_locale ennreal pointwise big_operators topological_space
 open has_inv set function measure_theory.measure filter
 
-variables {G : Type*} [measurable_space G]
+variables {𝕜 G H : Type*} [measurable_space G] [measurable_space H]
 
 namespace measure_theory
 namespace measure
@@ -715,6 +715,16 @@ example {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [nontrivial E
   has_no_atoms μ := by apply_instance
 
 end
+
+variables [nontrivially_normed_field 𝕜] [complete_space 𝕜] [topological_space G] [add_comm_group G]
+  [module 𝕜 G] [finite_dimensional 𝕜 G] [has_continuous_smul 𝕜 G] (μ : measure G)
+  [is_add_haar_measure μ] [borel_space G] [t2_space G] [topological_add_group G]
+  [topological_space H] [add_comm_group H] [module 𝕜 H] [finite_dimensional 𝕜 H]
+  [has_continuous_smul 𝕜 H] [borel_space H] [t2_space H] [topological_add_group H]
+
+instance (e : G ≃ₗ[𝕜] H) : is_add_haar_measure (μ.map e) :=
+e.to_add_equiv.is_add_haar_measure_map _ (e : G →ₗ[𝕜] H).continuous_of_finite_dimensional
+  (e.symm : H →ₗ[𝕜] G).continuous_of_finite_dimensional
 
 end measure
 end haar

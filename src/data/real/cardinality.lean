@@ -5,7 +5,6 @@ Authors: Floris van Doorn
 -/
 import analysis.specific_limits.basic
 import data.rat.denumerable
-import data.real.equiv_Cauchy
 import data.set.pointwise.interval
 import set_theory.cardinal.continuum
 

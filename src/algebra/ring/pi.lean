@@ -109,11 +109,9 @@ lemma non_unital_ring_hom_injective {γ : Type w} [nonempty I]
 @[simps]
 protected def ring_hom {γ : Type w} [Π i, non_assoc_semiring (f i)] [non_assoc_semiring γ]
   (g : Π i, γ →+* f i) : γ →+* Π i, f i :=
-{ to_fun := λ x b, g b x,
-  map_add' := λ x y, funext $ λ z, (g z).map_add x y,
-  map_mul' := λ x y, funext $ λ z, (g z).map_mul x y,
+{ map_mul' := λ x y, funext $ λ z, (g z).map_mul x y,
   map_one' := funext $ λ z, (g z).map_one,
-  map_zero' := funext $ λ z, (g z).map_zero }
+  .. pi.add_monoid_hom (λ i, (g i).to_add_monoid_hom) }
 
 lemma ring_hom_injective {γ : Type w} [nonempty I] [Π i, non_assoc_semiring (f i)]
   [non_assoc_semiring γ] (g : Π i, γ →+* f i) (hg : ∀ i, function.injective (g i)) :

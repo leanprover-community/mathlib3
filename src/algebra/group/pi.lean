@@ -147,25 +147,24 @@ end mul_hom
 
 section mul_hom
 
-/-- A family of monoid homomorphisms `f a : γ →* β a` defines a monoid homomorphism
-`pi.monoid_mul_hom f : γ →* Π a, β a` given by `pi.monoid_mul_hom f x b = f b x`. -/
-@[to_additive "A family of additive monoid homomorphisms `f a : γ →+ β a` defines a monoid
-homomorphism `pi.monoid_add_hom f : γ →+ Π a, β a` given by `pi.monoid_add_hom f x b
-= f b x`.", simps]
-def pi.monoid_mul_hom {γ : Type w} [Π i, monoid (f i)] [monoid γ]
-  (g : Π i, γ →* f i) : γ →* Π i, f i :=
-{ to_fun := λ x b, g b x,
-  map_one' := funext $ λ z, (g z).map_one,
-  map_mul' := λ x y, funext $ λ z, (g z).map_mul x y, }
-
 /-- A family of mul_hom `f a : γ →ₙ* β a` defines a mul_hom `pi.mul_hom f : γ →ₙ* Π a, β a`
 given by `pi.mul_hom f x b = f b x`. -/
 @[to_additive "A family of add_hom `f a : γ → β a` defines a add_hom `pi.add_hom
 f : γ → Π a, β a` given by `pi.add_hom f x b = f b x`.", simps]
 def pi.mul_hom {γ : Type w} [Π i, has_mul (f i)] [has_mul γ]
   (g : Π i, γ →ₙ* f i) : γ →ₙ* Π i, f i :=
-{ to_fun := λ x b, g b x,
-  map_mul' := λ x y, funext $ λ z, (g z).map_mul x y, }
+{ to_fun := λ x i, g i x,
+  map_mul' := λ x y, funext $ λ i, (g i).map_mul x y, }
+
+/-- A family of monoid homomorphisms `f a : γ →* β a` defines a monoid homomorphism
+`pi.monoid_mul_hom f : γ →* Π a, β a` given by `pi.monoid_mul_hom f x b = f b x`. -/
+@[to_additive "A family of additive monoid homomorphisms `f a : γ →+ β a` defines a monoid
+homomorphism `pi.monoid_add_hom f : γ →+ Π a, β a` given by `pi.monoid_add_hom f x b
+= f b x`.", simps]
+def pi.monoid_hom {γ : Type w} [Π i, monoid (f i)] [monoid γ]
+  (g : Π i, γ →* f i) : γ →* Π i, f i :=
+{ map_one' := funext $ λ i, (g i).map_one,
+  .. pi.mul_hom (λ i, (g i).to_mul_hom) }
 
 variables (f) [Π i, has_mul (f i)]
 

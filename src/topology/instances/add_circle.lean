@@ -79,26 +79,6 @@ begin
   { exact ⟨(n : ℤ), by simp⟩, },
 end
 
-lemma coe_nsmul {n : ℕ} {x : 𝕜} : (↑(n • x) : add_circle p) = n • (x : add_circle p) := rfl
-
-lemma coe_zsmul {n : ℤ} {x : 𝕜} : (↑(n • x) : add_circle p) = n • (x : add_circle p) := rfl
-
-lemma coe_eq_zero_iff {x : 𝕜} : (x : add_circle p) = 0 ↔ ∃ (n : ℤ), n • p = x :=
-by simp [add_subgroup.mem_zmultiples_iff]
-
-lemma coe_eq_zero_of_pos_iff (hp : 0 < p) {x : 𝕜} (hx : 0 < x) :
-  (x : add_circle p) = 0 ↔ ∃ (n : ℕ), n • p = x :=
-begin
-  rw coe_eq_zero_iff,
-  split;
-  rintros ⟨n, rfl⟩,
-  { replace hx : 0 < n,
-    { contrapose! hx,
-      simpa only [←neg_nonneg, ←zsmul_neg, zsmul_neg'] using zsmul_nonneg hp.le (neg_nonneg.2 hx) },
-    exact ⟨n.to_nat, by rw [← coe_nat_zsmul, int.to_nat_of_nonneg hx.le]⟩, },
-  { exact ⟨(n : ℤ), by simp⟩, },
-end
-
 @[continuity, nolint unused_arguments] protected lemma continuous_mk' :
   continuous (quotient_add_group.mk' (zmultiples p) : 𝕜 → add_circle p) :=
 continuous_coinduced_rng

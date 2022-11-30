@@ -89,12 +89,12 @@ lemma mk_of_measure_univ_le [is_finite_measure μ] [countable G]
   ae_disjoint := h_ae_disjoint,
   ae_covers :=
   begin
-<<<<<<< HEAD
-    replace ae_disjoint : pairwise (ae_disjoint μ on (λ (g : G), g • s)),
-    { intros g₁ g₂ hg,
-      let g := g₂⁻¹ * g₁,
+    replace ae_disjoint : pairwise (ae_disjoint μ on (λ (g : G), g • s)) :=
+      pairwise_ae_disjoint_of_ae_disjoint_forall_ne_one h_ae_disjoint h_qmp,
+    replace h_meas : ∀ (g : G), null_measurable_set (g • s) μ :=
       λ g, by { rw [← inv_inv g, ← preimage_smul], exact h_meas.preimage (h_qmp g⁻¹), },
     have h_meas' : null_measurable_set {a | ∃ (g : G), g • a ∈ s} μ,
+    { rw ← Union_smul_eq_set_of_exists, exact null_measurable_set.Union h_meas, },
     rw [ae_iff_measure_eq h_meas', ← Union_smul_eq_set_of_exists],
     refine le_antisymm (measure_mono $ subset_univ _) _,
     rw measure_Union₀ ae_disjoint h_meas,
@@ -229,11 +229,6 @@ by simpa only [set_lintegral_one] using h.set_lintegral_eq_tsum (λ _, 1) t
   μ t = 0 :=
 by simp [measure_eq_tsum h, ht, hts]
 
-<<<<<<< HEAD
-@[to_additive measure_eq_card_smul_of_vadd_eq_self]
-lemma measure_eq_card_smul_of_smul_eq_self [finite G]
-  (h : is_fundamental_domain G s μ) (t : set α) (ht : ∀ g : G, g • t = t) :
-=======
 /-- Given a measure space with an action of a finite group `G`, the measure of any `G`-invariant set
 is determined by the measure of its intersection with a fundamental domain for the action of `G`. -/
 @[to_additive measure_eq_card_smul_of_vadd_ae_eq_self "Given a measure space with an action of a
@@ -241,19 +236,14 @@ finite additive group `G`, the measure of any `G`-invariant set is determined by
 intersection with a fundamental domain for the action of `G`."]
 lemma measure_eq_card_smul_of_smul_ae_eq_self [finite G]
   (h : is_fundamental_domain G s μ) (t : set α) (ht : ∀ g : G, (g • t : set α) =ᵐ[μ] t) :
->>>>>>> master
   μ t = nat.card G • μ (t ∩ s) :=
 begin
   haveI : fintype G := fintype.of_finite G,
   rw h.measure_eq_tsum,
-<<<<<<< HEAD
-  simp_rw [ht, tsum_fintype, finset.sum_const, nat.card_eq_fintype_card, finset.card_univ],
-=======
   replace ht : ∀ g : G, ((g • t) ∩ s : set α) =ᵐ[μ] (t ∩ s : set α) :=
     λ g, ae_eq_set_inter (ht g) (ae_eq_refl s),
   simp_rw [measure_congr (ht _), tsum_fintype, finset.sum_const, nat.card_eq_fintype_card,
     finset.card_univ],
->>>>>>> master
 end
 
 @[to_additive] protected lemma set_lintegral_eq (hs : is_fundamental_domain G s μ)

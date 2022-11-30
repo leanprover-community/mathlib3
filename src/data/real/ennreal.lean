@@ -1626,6 +1626,10 @@ lemma of_real_le_of_le_to_real {a : ℝ} {b : ℝ≥0∞} (h : a ≤ ennreal.to_
   ennreal.of_real p ≤ ennreal.of_real q ↔ p ≤ q :=
 by rw [ennreal.of_real, ennreal.of_real, coe_le_coe, real.to_nnreal_le_to_nnreal_iff h]
 
+@[simp] lemma of_real_eq_of_real_iff {p q : ℝ} (hp : 0 ≤ p) (hq : 0 ≤ q) :
+  ennreal.of_real p = ennreal.of_real q ↔ p = q :=
+by rw [ennreal.of_real, ennreal.of_real, coe_eq_coe, real.to_nnreal_eq_to_nnreal_iff hp hq]
+
 @[simp] lemma of_real_lt_of_real_iff {p q : ℝ} (h : 0 < q) :
   ennreal.of_real p < ennreal.of_real q ↔ p < q :=
 by rw [ennreal.of_real, ennreal.of_real, coe_lt_coe, real.to_nnreal_lt_to_nnreal_iff h]

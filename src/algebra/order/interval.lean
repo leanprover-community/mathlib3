@@ -7,6 +7,7 @@ import algebra.big_operators.order
 import data.option.n_ary
 import data.set.pointwise.basic
 import order.interval
+import tactic.positivity
 
 /-!
 # Interval arithmetic

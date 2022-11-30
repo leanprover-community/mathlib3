@@ -326,7 +326,7 @@ begin
   clear_dependent u v,
   have xnay : ¬ G.adj x y := λ a, hy ⟨(path.singleton a).val⟩,
   have hG : G = (G ⊔ from_edge_set {⟦⟨x,y⟩⟧}) \ from_edge_set {⟦⟨x,y⟩⟧} :=
-    (add_delete_edge_eq G x y e.ne xnay).symm,
+    (add_delete_edge_eq G x y xnay).symm,
   -- Applying maximality of `G` to the edge `e = ⟦(x,y)⟧` means that adding `e` to `G`
   -- breaks acyclicity
   specialize Gmax ⟦⟨x,y⟩⟧

@@ -518,7 +518,7 @@ begin
     exact na eG, },
 end
 
-lemma add_delete_edge_eq (G : simple_graph V) (u v : V) (huv : u ≠ v) (h : ¬G.adj u v) :
+lemma add_delete_edge_eq (G : simple_graph V) (u v : V) (h : ¬G.adj u v) :
   (G ⊔ (from_edge_set{⟦(u, v)⟧})) \ (from_edge_set{⟦(u, v)⟧}) = G :=
 begin
   rw [←from_edge_set_edge_set G, from_edge_set_sup, from_edge_set_sdiff],

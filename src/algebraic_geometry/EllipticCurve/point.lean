@@ -73,7 +73,7 @@ open polynomial
 
 open_locale polynomial
 
-universes u v
+universe u
 
 section basic
 
@@ -155,9 +155,7 @@ begin
 end⟩
 
 /-- The coordinate ring $R_E = F[X, Y] / \langle w_E(X, Y) \rangle$ of `E`. -/
-@[reducible] def coordinate_ring : Type v := adjoin_root $ E.weierstrass_polynomial
-
-variables {K}
+@[reducible] def coordinate_ring : Type u := adjoin_root E.weierstrass_polynomial
 
 /-- The proposition that an affine point $(x, y)$ lies in `E`, that is $w_E(x, y) = 0$. -/
 def weierstrass_equation (x y : F) : Prop := eval x (eval (C y) E.weierstrass_polynomial) = 0

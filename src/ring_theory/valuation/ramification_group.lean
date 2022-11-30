@@ -18,7 +18,7 @@ namespace valuation_subring
 
 open_locale pointwise
 
-variables {K L : Type*} [field K] [field L] [algebra K L] (K)
+variables (K : Type*) {L : Type*} [field K] [field L] [algebra K L]
 
 /-- The decomposition subgroup defined as the stabilizer of the action
 on the type of all valuation subrings of the field. -/

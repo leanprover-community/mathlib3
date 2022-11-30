@@ -324,6 +324,150 @@ begin
   exact S.op.L₁'_exact,
 end
 
+variables (S₁ S₂ S₃ : snake_input C)
+
+@[ext]
+structure hom :=
+(f₀ : S₁.L₀ ⟶ S₂.L₀)
+(f₁ : S₁.L₁ ⟶ S₂.L₁)
+(f₂ : S₁.L₂ ⟶ S₂.L₂)
+(f₃ : S₁.L₃ ⟶ S₂.L₃)
+(comm₀₁' : f₀ ≫ S₂.v₀₁ = S₁.v₀₁ ≫ f₁ . obviously)
+(comm₁₂' : f₁ ≫ S₂.v₁₂ = S₁.v₁₂ ≫ f₂ . obviously)
+(comm₂₃' : f₂ ≫ S₂.v₂₃ = S₁.v₂₃ ≫ f₃ . obviously)
+
+namespace hom
+
+restate_axiom comm₀₁'
+restate_axiom comm₁₂'
+restate_axiom comm₂₃'
+attribute [reassoc] comm₀₁ comm₁₂ comm₂₃
+
+@[simps]
+def id : hom S S :=
+{ f₀ := 𝟙 _,
+  f₁ := 𝟙 _,
+  f₂ := 𝟙 _,
+  f₃ := 𝟙 _, }
+
+variables {S₁ S₂ S₃}
+
+@[simps]
+def comp (f : hom S₁ S₂) (g : hom S₂ S₃) : hom S₁ S₃ :=
+{ f₀ := f.f₀ ≫ g.f₀,
+  f₁ := f.f₁ ≫ g.f₁,
+  f₂ := f.f₂ ≫ g.f₂,
+  f₃ := f.f₃ ≫ g.f₃,
+  comm₀₁' := by simp only [assoc, comm₀₁, comm₀₁_assoc],
+  comm₁₂' := by simp only [assoc, comm₁₂, comm₁₂_assoc],
+  comm₂₃' := by simp only [assoc, comm₂₃, comm₂₃_assoc], }
+
+end hom
+
+instance : category (snake_input C) :=
+{ hom := hom,
+  id := hom.id,
+  comp := λ S₁ S₂ S₃, hom.comp, }
+
+variables (S) {S₁ S₂ S₃}
+
+@[simp] lemma id_f₀ : hom.f₀ (𝟙 S) = 𝟙 _ := rfl
+@[simp] lemma id_f₁ : hom.f₁ (𝟙 S) = 𝟙 _ := rfl
+@[simp] lemma id_f₂ : hom.f₂ (𝟙 S) = 𝟙 _ := rfl
+@[simp] lemma id_f₃ : hom.f₃ (𝟙 S) = 𝟙 _ := rfl
+
+section
+variables (f : S₁ ⟶ S₂) (g : S₂ ⟶ S₃)
+@[simp] lemma comp_f₀ : (f ≫ g).f₀ = f.f₀ ≫ g.f₀ := rfl
+@[simp] lemma comp_f₁ : (f ≫ g).f₁ = f.f₁ ≫ g.f₁ := rfl
+@[simp] lemma comp_f₂ : (f ≫ g).f₂ = f.f₂ ≫ g.f₂ := rfl
+@[simp] lemma comp_f₃ : (f ≫ g).f₃ = f.f₃ ≫ g.f₃ := rfl
+end
+
+@[simps]
+def L₉_functor : snake_input C ⥤ short_complex C :=
+{ obj := λ S, S.L₀,
+  map := λ S₁ S₂ f, f.f₀, }
+
+@[simps]
+def L₁_functor : snake_input C ⥤ short_complex C :=
+{ obj := λ S, S.L₁,
+  map := λ S₁ S₂ f, f.f₁, }
+
+@[simps]
+def L₂_functor : snake_input C ⥤ short_complex C :=
+{ obj := λ S, S.L₂,
+  map := λ S₁ S₂ f, f.f₂, }
+
+@[simps]
+def L₃_functor : snake_input C ⥤ short_complex C :=
+{ obj := λ S, S.L₃,
+  map := λ S₁ S₂ f, f.f₃, }
+
+@[simps]
+def P_functor : snake_input C ⥤ C :=
+{ obj := λ S, S.P,
+  map := λ S₁ S₂ f, pullback.map _ _ _ _ f.f₁.τ₂ f.f₀.τ₃ f.f₁.τ₃ f.f₁.comm₂₃.symm
+      (congr_arg short_complex.hom.τ₃ f.comm₀₁.symm),
+  map_id' := λ S, by { dsimp [P], tidy, },
+  map_comp' := λ S₁ S₂ S₃ f g, by { dsimp [P], tidy, }, }
+
+def L₀'_functor : snake_input C ⥤ short_complex C :=
+{ obj := λ S, S.L₀',
+  map := λ S₁ S₂ f,
+  { τ₁ := f.f₁.τ₁,
+    τ₂ := P_functor.map f,
+    τ₃ := f.f₀.τ₃,
+    comm₁₂' := begin
+      dsimp [L₀'],
+      ext,
+      { simp only [assoc, pullback.lift_fst, pullback.lift_fst_assoc, f.f₁.comm₁₂], },
+      { simp only [assoc, pullback.lift_snd, comp_zero, pullback.lift_snd_assoc, zero_comp], },
+    end,
+    comm₂₃' := pullback.lift_snd _ _ _, },
+  map_id' := λ S, by { ext, tidy, },
+  map_comp' := λ S₁ S₂ S₃ f g, by { ext, tidy, }, }
+
+variable {C}
+
+@[reassoc]
+lemma naturality_φ₂ (f : S₁ ⟶ S₂) : S₁.φ₂ ≫ f.f₂.τ₂ = P_functor.map f ≫ S₂.φ₂ :=
+begin
+  dsimp,
+  simp only [assoc, pullback.lift_fst_assoc, ← comp_τ₂, f.comm₁₂],
+end
+
+@[reassoc]
+lemma naturality_φ₁ (f : S₁ ⟶ S₂) : S₁.φ₁ ≫ f.f₂.τ₁ = P_functor.map f ≫ S₂.φ₁ :=
+by simp only [← cancel_mono S₂.L₂.f, assoc, φ₁_L₂_f, ← naturality_φ₂, f.f₂.comm₁₂, φ₁_L₂_f_assoc]
+
+@[reassoc]
+lemma naturality_δ (f : S₁ ⟶ S₂) : f.f₀.τ₃ ≫ S₂.δ = S₁.δ ≫ f.f₃.τ₁ :=
+by rw [← cancel_epi (pullback.snd : S₁.P ⟶ _), S₁.snd_δ_assoc, ← comp_τ₁, ← f.comm₂₃,
+  comp_τ₁, naturality_φ₁_assoc, ← S₂.snd_δ, P_functor_map, pullback.lift_snd_assoc, assoc]
+
+variable (C)
+
+@[simps]
+def L₁'_functor : snake_input C ⥤ short_complex C :=
+{ obj := λ S, S.L₁',
+  map := λ S₁ S₂ f,
+  { τ₁ := f.f₀.τ₂,
+    τ₂ := f.f₀.τ₃,
+    τ₃ := f.f₃.τ₁,
+    comm₁₂' := f.f₀.comm₂₃,
+    comm₂₃' := naturality_δ f, }, }
+
+@[simps]
+def L₂'_functor : snake_input C ⥤ short_complex C :=
+{ obj := λ S, S.L₂',
+  map := λ S₁ S₂ f,
+  { τ₁ := f.f₀.τ₃,
+    τ₂ := f.f₃.τ₁,
+    τ₃ := f.f₃.τ₂,
+    comm₁₂' := naturality_δ f,
+    comm₂₃' := f.f₃.comm₁₂, }, }
+
 end snake_input
 
 end short_complex

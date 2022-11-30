@@ -9,7 +9,6 @@ import data.int.char_zero
 import algebra.group_with_zero.power
 import algebra.field.opposite
 import algebra.order.field.basic
-import algebra.big_operators.basic
 
 /-!
 # Casts for Rational Numbers
@@ -27,8 +26,6 @@ casting lemmas showing the well-behavedness of this injection.
 
 rat, rationals, field, ℚ, numerator, denominator, num, denom, cast, coercion, casting
 -/
-
-open_locale big_operators
 
 variables {F ι α β : Type*}
 
@@ -211,32 +208,7 @@ by simp only [mk_eq_div, cast_div, cast_coe_int]
 @[simp, norm_cast] theorem cast_pow (q) (k : ℕ) : ((q ^ k : ℚ) : α) = q ^ k :=
 (cast_hom α).map_pow q k
 
-@[simp, norm_cast] lemma cast_list_sum (s : list ℚ) : (↑(s.sum) : α) = (s.map coe).sum :=
-map_list_sum (rat.cast_hom α) _
-
-@[simp, norm_cast] lemma cast_multiset_sum (s : multiset ℚ) : (↑(s.sum) : α) = (s.map coe).sum :=
-map_multiset_sum (rat.cast_hom α) _
-
-@[simp, norm_cast] lemma cast_sum (s : finset ι) (f : ι → ℚ) :
-  (↑(∑ i in s, f i) : α) = ∑ i in s, f i :=
-map_sum (rat.cast_hom α) _ _
-
-@[simp, norm_cast] lemma cast_list_prod (s : list ℚ) : (↑(s.prod) : α) = (s.map coe).prod :=
-map_list_prod (rat.cast_hom α) _
-
 end with_div_ring
-
-section field
-variables [field α] [char_zero α]
-
-@[simp, norm_cast] lemma cast_multiset_prod (s : multiset ℚ) : (↑(s.prod) : α) = (s.map coe).prod :=
-map_multiset_prod (rat.cast_hom α) _
-
-@[simp, norm_cast] lemma cast_prod (s : finset ι) (f : ι → ℚ) :
-  (↑(∏ i in s, f i) : α) = ∏ i in s, f i :=
-map_prod (rat.cast_hom α) _ _
-
-end field
 
 section linear_ordered_field
 

@@ -716,15 +716,20 @@ example {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [nontrivial E
 
 end
 
-variables [nontrivially_normed_field 𝕜] [complete_space 𝕜] [topological_space G] [add_comm_group G]
-  [module 𝕜 G] [finite_dimensional 𝕜 G] [has_continuous_smul 𝕜 G] (μ : measure G)
-  [is_add_haar_measure μ] [borel_space G] [t2_space G] [topological_add_group G]
-  [topological_space H] [add_comm_group H] [module 𝕜 H] [finite_dimensional 𝕜 H]
-  [has_continuous_smul 𝕜 H] [borel_space H] [t2_space H] [topological_add_group H]
+variables [nontrivially_normed_field 𝕜] [topological_space G] [topological_space H]
+  [add_comm_group G] [add_comm_group H] [topological_add_group G] [topological_add_group H]
+  [module 𝕜 G] [module 𝕜 H] (μ : measure G) [is_add_haar_measure μ] [borel_space G] [borel_space H]
+  [t2_space H]
 
-instance (e : G ≃ₗ[𝕜] H) : is_add_haar_measure (μ.map e) :=
-e.to_add_equiv.is_add_haar_measure_map _ (e : G →ₗ[𝕜] H).continuous_of_finite_dimensional
-  (e.symm : H →ₗ[𝕜] G).continuous_of_finite_dimensional
+instance map_continuous_linear_equiv.is_add_haar_measure (e : G ≃L[𝕜] H) :
+  is_add_haar_measure (μ.map e) :=
+e.to_add_equiv.is_add_haar_measure_map _ e.continuous e.symm.continuous
+
+variables [complete_space 𝕜] [t2_space G] [finite_dimensional 𝕜 G] [has_continuous_smul 𝕜 G]
+  [has_continuous_smul 𝕜 H]
+
+instance map_linear_equiv.is_add_haar_measure (e : G ≃ₗ[𝕜] H) : is_add_haar_measure (μ.map e) :=
+map_continuous_linear_equiv.is_add_haar_measure _ e.to_continuous_linear_equiv
 
 end measure
 end haar

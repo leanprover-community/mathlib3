@@ -94,12 +94,11 @@ end
   (λ n, bit_cases_on n H₁) = (λ n, bit_cases_on n H₂) ↔ H₁ = H₂ :=
 bit_cases_on_injective.eq_iff
 
-@[simp]
-lemma bit0_eq_zero_iff {n : ℕ} : bit0 n = 0 ↔ n = 0 :=
+protected lemma bit0_eq_zero {n : ℕ} : bit0 n = 0 ↔ n = 0 :=
 ⟨nat.eq_zero_of_add_eq_zero_left, λ h, by simp [h]⟩
 
 lemma bit_eq_zero_iff {n : ℕ} {b : bool} : bit b n = 0 ↔ n = 0 ∧ b = ff :=
-by { split, { cases b; simp [nat.bit], }, rintro ⟨rfl, rfl⟩, refl, }
+by { split, { cases b; simp [nat.bit, nat.bit0_eq_zero], }, rintro ⟨rfl, rfl⟩, refl, }
 
 /-- The same as binary_rec_eq, but that one unfortunately requires `f` to be the identity when
   appending `ff` to `0`. Here, we allow you to explicitly say that that case is not happening, i.e.

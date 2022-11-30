@@ -293,7 +293,7 @@ variables [uniform_space β] [uniform_space γ] [has_zero γ]
 lemma zero_at_infty_continuous_map.uniform_continuous (f : F) : uniform_continuous (f : β → γ) :=
 uniform_continuous_def.2 $ λ r hr, begin
   obtain ⟨t, ht, htsymm, htr⟩ := comp_symm_mem_uniformity_sets hr,
-  obtain ⟨s, hs, hst⟩ := filter.mem_cocompact.1 (zero_at_infty f $ mem_nhds_left 0 ht),
+  obtain ⟨s, hs, hst⟩ := mem_cocompact.1 (zero_at_infty f $ mem_nhds_left 0 ht),
   apply mem_of_superset (symmetrize_mem_uniformity $ hs.uniform_continuous_at_of_continuous_at
     f (λ _ _, (map_continuous f).continuous_at) $ symmetrize_mem_uniformity hr),
   rintro ⟨b₁, b₂⟩ h,

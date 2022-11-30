@@ -48,7 +48,7 @@ variables {S}
 iff.rfl
 
 @[to_additive] instance decidable_mem_centralizer (a) [decidable $ ∀ b ∈ S, b * a = a * b] :
-   decidable (a ∈ centralizer S) :=
+  decidable (a ∈ centralizer S) :=
 decidable_of_iff' _ mem_centralizer_iff
 
 @[to_additive]

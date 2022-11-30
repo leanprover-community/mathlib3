@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import algebra.group_ring_action
-import group_theory.submonoid.pointwise
 import ring_theory.subsemiring.basic
+import group_theory.submonoid.pointwise
+import data.set.pointwise.basic
 
 /-! # Pointwise instances on `subsemiring`s
 

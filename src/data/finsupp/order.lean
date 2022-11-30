@@ -107,7 +107,7 @@ variables [canonically_ordered_add_monoid α]
 
 instance : order_bot (ι →₀ α) :=
 { bot := 0,
-  bot_le := by simp only [le_def, finsupp.coe_zero, pi.zero_apply, implies_true_iff, zero_le]}
+  bot_le := by simp only [le_def, coe_zero, pi.zero_apply, implies_true_iff, zero_le]}
 
 protected lemma bot_eq_zero : (⊥ : ι →₀ α) = 0 := rfl
 

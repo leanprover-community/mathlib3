@@ -260,7 +260,7 @@ end
 /-- Let `v` be an indexed family of `n` vectors in an oriented `n`-dimensional real inner
 product space `E`. The output of the volume form of `E` when evaluated on `v` is bounded in absolute
 value by the product of the norms of the vectors `v i`. -/
-lemma abs_volume_form_apply_le (v : fin n → E) : |o.volume_form v| ≤ ∏ i : fin n, ∥v i∥ :=
+lemma abs_volume_form_apply_le (v : fin n → E) : |o.volume_form v| ≤ ∏ i : fin n, ‖v i‖ :=
 begin
   unfreezingI { cases n },
   { refine o.eq_or_eq_neg_of_is_empty.by_cases _ _; rintros rfl; simp },
@@ -277,7 +277,7 @@ begin
   simp [b.orthonormal.1 i],
 end
 
-lemma volume_form_apply_le (v : fin n → E) : o.volume_form v ≤ ∏ i : fin n, ∥v i∥ :=
+lemma volume_form_apply_le (v : fin n → E) : o.volume_form v ≤ ∏ i : fin n, ‖v i‖ :=
 (le_abs_self _).trans (o.abs_volume_form_apply_le v)
 
 /-- Let `v` be an indexed family of `n` orthogonal vectors in an oriented `n`-dimensional
@@ -285,7 +285,7 @@ real inner product space `E`. The output of the volume form of `E` when evaluate
 sign, the product of the norms of the vectors `v i`. -/
 lemma abs_volume_form_apply_of_pairwise_orthogonal
   {v : fin n → E} (hv : pairwise (λ i j, ⟪v i, v j⟫ = 0)) :
-  |o.volume_form v| = ∏ i : fin n, ∥v i∥ :=
+  |o.volume_form v| = ∏ i : fin n, ‖v i‖ :=
 begin
   unfreezingI { cases n },
   { refine o.eq_or_eq_neg_of_is_empty.by_cases _ _; rintros rfl; simp },
@@ -301,10 +301,10 @@ begin
   push_neg at h,
   congr,
   ext i,
-  have hb : b i = ∥v i∥⁻¹ • v i := gram_schmidt_orthonormal_basis_apply_of_orthogonal hdim hv (h i),
+  have hb : b i = ‖v i‖⁻¹ • v i := gram_schmidt_orthonormal_basis_apply_of_orthogonal hdim hv (h i),
   simp only [hb, inner_smul_left, real_inner_self_eq_norm_mul_norm, is_R_or_C.conj_to_real],
   rw abs_of_nonneg,
-  { have : ∥v i∥ ≠ 0 := by simpa using h i,
+  { have : ‖v i‖ ≠ 0 := by simpa using h i,
     field_simp },
   { positivity },
 end

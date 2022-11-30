@@ -201,7 +201,7 @@ instance : has_one (self_adjoint R) := ⟨⟨1, is_self_adjoint_one R⟩⟩
 instance [nontrivial R] : nontrivial (self_adjoint R) := ⟨⟨0, 1, subtype.ne_of_val_ne zero_ne_one⟩⟩
 
 instance : has_nat_cast (self_adjoint R) :=
-⟨λ n, ⟨n, nat.rec_on n (by simpa using zero_mem (self_adjoint R))
+⟨λ n, ⟨n, nat.rec_on n (by simp [zero_mem])
   (λ k hk, (@nat.cast_succ R _ k).symm ▸ add_mem hk (is_self_adjoint_one R))⟩⟩
 
 instance : has_int_cast (self_adjoint R) :=

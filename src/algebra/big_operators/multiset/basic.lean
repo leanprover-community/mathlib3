@@ -3,8 +3,7 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.group_with_zero.power
-import data.list.big_operators
+import data.list.big_operators.basic
 import data.multiset.basic
 
 /-!
@@ -18,6 +17,12 @@ and sums indexed by finite sets.
 * `multiset.prod`: `s.prod f` is the product of `f i` over all `i ∈ s`. Not to be mistaken with
   the cartesian product `multiset.product`.
 * `multiset.sum`: `s.sum f` is the sum of `f i` over all `i ∈ s`.
+
+## Implementation notes
+
+Nov 2022: To speed the Lean 4 port, lemmas requiring extra algebra imports
+(`data.list.big_operators.lemmas` rather than `.basic`) have been moved to a separate file,
+`algebra.big_operators.multiset.lemmas`.  This split does not need to be permanent.
 -/
 
 variables {ι α β γ : Type*}
@@ -176,9 +181,6 @@ begin
   exact p_mul a s.prod (hpsa a (mem_cons_self a s)) (hs hs_empty hps),
 end
 
-lemma dvd_prod : a ∈ s → a ∣ s.prod :=
-quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a
-
 lemma prod_dvd_prod_of_le (h : s ≤ t) : s.prod ∣ t.prod :=
 by { obtain ⟨z, rfl⟩ := exists_add_of_le h, simp only [prod_add, dvd_mul_right] }
 
@@ -247,18 +249,6 @@ end division_comm_monoid
 
 section non_unital_non_assoc_semiring
 variables [non_unital_non_assoc_semiring α] {a : α} {s : multiset ι} {f : ι → α}
-
-lemma _root_.commute.multiset_sum_right (s : multiset α) (a : α) (h : ∀ b ∈ s, commute a b) :
-  commute a s.sum :=
-begin
-  induction s using quotient.induction_on,
-  rw [quot_mk_to_coe, coe_sum],
-  exact commute.list_sum_right _ _ h,
-end
-
-lemma _root_.commute.multiset_sum_left (s : multiset α) (b : α) (h : ∀ a ∈ s, commute a b) :
-  commute s.sum b :=
-(commute.multiset_sum_right _ _ $ λ a ha, (h _ ha).symm).symm
 
 lemma sum_map_mul_left : sum (s.map (λ i, a * f i)) = a * sum (s.map f) :=
 multiset.induction_on s (by simp) (λ i s ih, by simp [ih, mul_add])
@@ -345,11 +335,6 @@ begin
   rw prod_cons,
   exact mul_nonneg (ih _ $ mem_cons_self _ _) (hs $ λ a ha, ih _ $ mem_cons_of_mem ha),
 end
-
-@[to_additive]
-lemma prod_eq_one_iff [canonically_ordered_monoid α] {m : multiset α} :
-  m.prod = 1 ↔ ∀ x ∈ m, x = (1 : α) :=
-quotient.induction_on m $ λ l, by simpa using list.prod_eq_one_iff l
 
 /-- Slightly more general version of `multiset.prod_eq_one_iff` for a non-ordered `monoid` -/
 @[to_additive "Slightly more general version of `multiset.sum_eq_zero_iff`

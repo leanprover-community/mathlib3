@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Heather Macbeth, Yaël Dillies
 -/
 import tactic.norm_num
 import algebra.order.field.power
+import algebra.order.hom.basic
 
 /-! # `positivity` tactic
 
@@ -598,6 +599,19 @@ meta def positivity_pow : expr → tactic strictness
         end)
 | e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `a ^ n`"
 
+/-- Extension for the `positivity` tactic: raising a positive number in a canonically ordered
+semiring gives a positive number. -/
+@[positivity]
+meta def positivity_canon_pow : expr → tactic strictness
+| `(%%r ^ %%n) := do
+    typ_n ← infer_type n,
+    unify typ_n `(ℕ),
+    positive p ← core r,
+    positive <$> mk_app ``canonically_ordered_comm_semiring.pow_pos [p, n]
+    -- The nonzero never happens because of `tactic.positivity_canon`
+| e := pp e >>= fail ∘ format.bracket "The expression `"
+    "` is not of the form `a ^ n` for `a` in a `canonically_ordered_comm_semiring` and `n : ℕ`"
+
 private alias abs_pos ↔ _ abs_pos_of_ne_zero
 
 /-- Extension for the `positivity` tactic: an absolute value is nonnegative, and is strictly
@@ -718,5 +732,11 @@ meta def positivity_finset_card : expr → tactic strictness
 | `(@fintype.card %%α %%i) := positive <$> mk_mapp ``fintype.card_pos [α, i, none]
 | e := pp e >>= fail ∘ format.bracket "The expression `"
     "` isn't of the form `finset.card s` or `fintype.card α`"
+
+/-- Extension for the `positivity` tactic: nonnegative maps take nonnegative values. -/
+@[positivity]
+meta def positivity_map : expr → tactic strictness
+| (expr.app `(⇑%%f) `(%%a)) := nonnegative <$> mk_app ``map_nonneg [f, a]
+| _ := failed
 
 end tactic

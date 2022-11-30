@@ -280,6 +280,10 @@ lemma measure_union₀' (hs : null_measurable_set s μ) (hd : ae_disjoint μ s t
   μ (s ∪ t) = μ s + μ t :=
 by rw [union_comm, measure_union₀ hs hd.symm, add_comm]
 
+lemma measure_add_measure_compl₀ {s : set α} (hs : null_measurable_set s μ) :
+  μ s + μ sᶜ = μ univ :=
+by rw [← measure_union₀' hs ae_disjoint_compl_right, union_compl_self]
+
 section measurable_singleton_class
 
 variable [measurable_singleton_class (null_measurable_space α μ)]

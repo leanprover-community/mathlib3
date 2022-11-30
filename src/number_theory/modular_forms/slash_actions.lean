@@ -25,15 +25,9 @@ local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 local notation `SL(` n `, ` R `)` := matrix.special_linear_group (fin n) R
 
 /--A general version of the slash action of the space of modular forms.-/
-<<<<<<< HEAD
-class slash_action (β G α γ : Type*) [group G] [has_zero α ]
-[has_one α ] [has_smul γ α ] [has_add α ] :=
-(map : β → G → α → α )
-=======
 class slash_action (β G α γ : Type*) [group G] [has_zero α]
   [has_one α] [has_smul γ α] [has_add α] :=
 (map : β → G → α → α)
->>>>>>> origin/master
 (mul_zero : ∀ (k : β) (g : G), map k g 0 = 0)
 (one_mul : ∀ (k : β) (a : α) , map k 1 a = a)
 (right_action : ∀ (k : β) (g h : G) (a : α), map k h (map k g a) = map k (g * h) a )
@@ -42,16 +36,6 @@ class slash_action (β G α γ : Type*) [group G] [has_zero α]
 
 /--Slash_action induced by a monoid homomorphism.-/
 def monoid_hom_slash_action {β G H α γ : Type*} [group G] [has_zero α]
-<<<<<<< HEAD
-  [has_one α] [has_smul γ α ] [has_add α ] [group H] [slash_action β G α γ]
-  (h : H →* G) : slash_action β H α γ :=
-{ map := λ k g , slash_action.map γ k (h g) ,
-  mul_zero := by {intros k g, apply slash_action.mul_zero k (h g), },
-  one_mul := by {intros k a, simp only [map_one], apply slash_action.one_mul,},
-  right_action := by {simp only [map_mul], intros k g gg a, apply slash_action.right_action,},
-  smul_action := by {intros k g a z, apply slash_action.smul_action, },
-  add_action := by {intros k g a b, apply slash_action.add_action}}
-=======
   [has_one α] [has_smul γ α] [has_add α] [group H] [slash_action β G α γ]
   (h : H →* G) : slash_action β H α γ :=
 { map := λ k g, slash_action.map γ k (h g),
@@ -60,7 +44,6 @@ def monoid_hom_slash_action {β G H α γ : Type*} [group G] [has_zero α]
   right_action := λ k g gg a, by simp only [map_mul, slash_action.right_action],
   smul_action := λ _ _, slash_action.smul_action _ _,
   add_action := λ _ g _ _, slash_action.add_action _ (h g) _ _,}
->>>>>>> origin/master
 
 namespace modular_form
 
@@ -103,14 +86,7 @@ begin
 end
 
 lemma slash_one (k : ℤ) (f : ℍ → ℂ) : (f ∣[k] 1) = f :=
-<<<<<<< HEAD
-begin
- ext1,
- simp [slash],
-end
-=======
 funext $ by simp [slash]
->>>>>>> origin/master
 
 lemma smul_slash (k : ℤ) (A : GL(2, ℝ)⁺) (f : ℍ → ℂ) (c : ℂ) : (c • f) ∣[k] A = c • (f ∣[k] A) :=
 begin
@@ -122,20 +98,6 @@ begin
 end
 
 lemma neg_slash (k : ℤ) (A : GL(2, ℝ)⁺) (f : ℍ → ℂ) : (-f) ∣[k] A = - (f ∣[k] A) :=
-<<<<<<< HEAD
-begin
-  ext1,
-  simp [slash],
-end
-
-instance : slash_action ℤ GL(2, ℝ)⁺ (ℍ → ℂ) ℂ :=
-{ map := slash,
-  mul_zero := by {intros k g, funext, simp only [slash, pi.zero_apply, zero_mul], },
-  one_mul := by {apply slash_one,},
-  right_action := by {apply slash_right_action},
-  smul_action := by {apply smul_slash},
-  add_action := by {apply slash_add}}
-=======
 funext $ by simp [slash]
 
 instance : slash_action ℤ GL(2, ℝ)⁺ (ℍ → ℂ) ℂ :=
@@ -145,7 +107,6 @@ instance : slash_action ℤ GL(2, ℝ)⁺ (ℍ → ℂ) ℂ :=
   right_action := slash_right_action,
   smul_action := smul_slash,
   add_action := slash_add }
->>>>>>> origin/master
 
 instance subgroup_action (Γ : subgroup SL(2, ℤ)) : slash_action ℤ Γ (ℍ → ℂ) ℂ :=
 monoid_hom_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
@@ -166,24 +127,11 @@ local notation f `∣[`:73 k:0, A `]` :72 := slash_action.map ℂ k A f
 /-- The constant function 1 is invariant under any subgroup of `SL(2, ℤ)`. -/
 lemma is_invariant_one (A : SL(2, ℤ)) : (1 : ℍ → ℂ) ∣[(0 : ℤ), A] = (1 : ℍ → ℂ) :=
 begin
-<<<<<<< HEAD
-  rw [SL_slash],
-=======
->>>>>>> origin/master
   have : (((↑ₘ(A : GL(2,ℝ)⁺)).det) : ℝ) = 1,
   { simp only [coe_coe,
       matrix.special_linear_group.coe_GL_pos_coe_GL_coe_matrix,
       matrix.special_linear_group.det_coe], },
   funext,
-<<<<<<< HEAD
-  rw [slash, zero_sub, this],
-  simp,
-end
-
-/-- A function `f : ℍ → ℂ` is weakly modular, of weight `k ∈ ℤ` and level `Γ`, if for every matrix .
- `γ ∈ Γ` we have `f(γ • z)= (c*z+d)^k f(z)` where `γ= ![![a, b], ![c, d]]`, and it acts on `ℍ`
-  via Möbius transformations. -/
-=======
   rw [SL_slash, slash, zero_sub, this],
   simp,
 end
@@ -191,7 +139,6 @@ end
 /-- A function `f : ℍ → ℂ` is `slash_invariant`, of weight `k ∈ ℤ` and level `Γ`,
   if for every matrix `γ ∈ Γ` we have `f(γ • z)= (c*z+d)^k f(z)` where `γ= ![![a, b], ![c, d]]`,
   and it acts on `ℍ` via Möbius transformations. -/
->>>>>>> origin/master
 lemma slash_action_eq'_iff (k : ℤ) (Γ : subgroup SL(2, ℤ)) (f : ℍ → ℂ) (γ : Γ)  (z : ℍ) :
   f ∣[k, γ] z = f z ↔ f (γ • z) = ((↑ₘγ 1 0 : ℂ) * z +(↑ₘγ 1 1 : ℂ))^k * f z :=
 begin
@@ -201,13 +148,8 @@ begin
     simp only [denom, coe_coe, matrix.special_linear_group.coe_GL_pos_coe_GL_coe_matrix, zpow_neg,
       matrix.special_linear_group.det_coe, of_real_one, one_zpow, mul_one, subgroup_to_sl_moeb,
       sl_moeb],
-<<<<<<< HEAD
-  refl,},
-  {convert zpow_ne_zero k (denom_ne_zero γ z)},
-=======
     refl, },
   { convert zpow_ne_zero k (denom_ne_zero γ z) },
->>>>>>> origin/master
 end
 
 lemma mul_slash (k1 k2 : ℤ) (A : GL(2, ℝ)⁺) (f g : ℍ → ℂ) :

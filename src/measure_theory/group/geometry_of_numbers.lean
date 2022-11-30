@@ -32,18 +32,37 @@ See https://arxiv.org/pdf/1405.2119.pdf for some more ideas.
 -/
 
 section
-variables {G H : Type*} [group G] [group H]
+variables {E G H : Type*} [group G] [group H] [mul_equiv_class E G H]
 
 @[simp, to_additive]
 lemma mul_equiv.coe_to_equiv_symm (e : G ≃* H) : (e.symm : H ≃ G) = (e : G ≃ H).symm := rfl
 
-@[simp, to_additive]
-lemma subgroup.equiv_map_of_injective_symm_apply (e : G ≃* H)
-  {L : subgroup G} {g : L.map (e : G →* H)} :
-  (L.equiv_map_of_injective _ $ by exact e.injective).symm g =
-    ⟨e.symm g, set_like.mem_coe.1 $ set.mem_image_equiv.1 g.2⟩ :=
-by { simp_rw [mul_equiv.symm_apply_eq, subtype.ext_iff], simp }
+namespace subgroup
 
+/-- A subgroup is isomorphic to its image under an isomorphism. If you only have an injective map,
+use `subgroup.equiv_map_of_injective`. -/
+@[to_additive  "An additive subgroup is isomorphic to its image under an an isomorphism. If you only
+have an injective map, use `add_subgroup.equiv_map_of_injective`. "]
+def equiv_map (L : subgroup G) (e : E) : L ≃* L.map (e : G →* H) :=
+{ map_mul' := λ _ _, subtype.ext (map_mul e _ _), ..(e : G ≃ H).image L }
+
+@[simp, to_additive]
+lemma coe_equiv_map_apply (L : subgroup G) (e : E) (g : L) :
+  ((L.equiv_map e g : L.map (e : G →* H)) : H) = e g := rfl
+
+@[simp, to_additive]
+lemma equiv_map_symm_apply (L : subgroup G) (e : G ≃* H) (g : L.map (e : G →* H)) :
+  (L.equiv_map e).symm g = ⟨e.symm g, set_like.mem_coe.1 $ set.mem_image_equiv.1 g.2⟩ := rfl
+
+@[simp, to_additive]
+lemma equiv_map_of_injective_equiv (L : subgroup G) (e : E) :
+  L.equiv_map_of_injective (e : G →* H) (by exact equiv_like.injective e) = L.equiv_map e :=
+by { ext, refl }
+
+@[to_additive] instance (L : subgroup G) [countable L] (e : E) : countable (L.map (e : G →* H)) :=
+(L.equiv_map e).symm.injective.countable
+
+end subgroup
 end
 
 section
@@ -51,11 +70,10 @@ variables {𝕜 α β : Type*} [semiring 𝕜] [add_comm_group α] [add_comm_gro
   [module 𝕜 β]
 
 @[simp]
-lemma add_subgroup.linear_equiv_map_of_injective_symm_apply (e : α ≃ₗ[𝕜] β)
-  {L : add_subgroup α} {g : L.map (e : α →+ β)} :
-  (L.equiv_map_of_injective _ $ by exact e.injective).symm g =
-    ⟨e.symm g, set_like.mem_coe.1 $ (@set.mem_image_equiv α β _ e _).1 g.2⟩ :=
-by convert add_subgroup.equiv_map_of_injective_symm_apply (e : α ≃+ β)
+lemma add_subgroup.linear_equiv_map_symm_apply (e : α ≃ₗ[𝕜] β) {L : add_subgroup α}
+  {g : L.map (e : α →+ β)} :
+  (L.equiv_map e).symm g = ⟨e.symm g, set_like.mem_coe.1 $ (@set.mem_image_equiv α β _ e _).1 g.2⟩ :=
+L.equiv_map_symm_apply (e : α ≃+ β) _
 
 end
 
@@ -81,6 +99,16 @@ lemma add_haar_smul_of_nonneg {r : ℝ} (hr : 0 ≤ r) (s : set E) :
 by rw [add_haar_smul, abs_pow, abs_of_nonneg hr]
 
 end measure
+
+section
+variables {α β : Type*} [measurable_space α] [measurable_space β]
+
+lemma quasi_measure_preserving_map (μ : measure α) (e : α ≃ᵐ β) :
+  quasi_measure_preserving e.symm (map e μ) μ :=
+{ measurable := e.symm.measurable,
+  absolutely_continuous := by rw [map_map, e.symm_comp_self, map_id]; measurability }
+
+end
 
 section
 variables {𝕜 G H : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜] [measurable_space G]
@@ -173,25 +201,15 @@ end is_fundamental_domain
 namespace is_add_fundamental_domain
 variables {E G : Type*} [normed_add_comm_group E] [normed_add_comm_group G] [normed_space ℝ E]
   [normed_space ℝ G] [measurable_space E] [measurable_space G] [borel_space E] [borel_space G]
-  [finite_dimensional ℝ E] [finite_dimensional ℝ G] {L : add_subgroup E} {F : set E}
+  [finite_dimensional ℝ E] {L : add_subgroup E} {F : set E}
 
 lemma map_linear_equiv (μ : measure E) [is_add_haar_measure μ]
   (fund : is_add_fundamental_domain L F μ) (e : E ≃ₗ[ℝ] G) :
   is_add_fundamental_domain (L.map (e : E →+ G)) (e '' F) (map e μ) :=
 begin
-  refine fund.image_of_equiv'  e.to_equiv _ _ (λ g x, _),
-  { refine ⟨_, _⟩, -- TODO lemma
-    convert e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv.symm.measurable,
-    ext,
-    refl,
-    simp only [linear_equiv.coe_to_equiv_symm],
-    rw [map_map, e.symm_comp_self, map_id],
-    convert e.symm.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv.measurable,
-    convert e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv.measurable,
-    ext,
-    refl },
-  { refine ((L.equiv_map_of_injective _ _).symm.to_equiv : L.map (e : E →+ G) ≃ L),
-    exact e.injective },
+  refine fund.image_of_equiv'  e.to_equiv _ (L.equiv_map e).symm.to_equiv (λ g x, _),
+  { convert quasi_measure_preserving_map _
+      e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv; ext; refl },
   { simp [←add_equiv.coe_to_equiv_symm, _root_.map_add, add_subgroup.vadd_def, vadd_eq_add] }
 end
 
@@ -206,10 +224,10 @@ namespace measure_theory
 variables {ι E : Type*} [fintype ι]
 
 -- TODO: The proof shows that there is a point in the interior of T, perhaps we should expose this
-lemma exists_ne_zero_mem_subgroup_of_volume_mul_two_pow_card_lt_measure {L : add_subgroup (ι → ℝ)}
-  [countable L] {F T : set (ι → ℝ)} (μ : measure (ι → ℝ)) [is_add_haar_measure μ]
-  (fund : is_add_fundamental_domain L F μ) (h : μ F * 2 ^ card ι < μ T) (h_symm : ∀ x ∈ T, -x ∈ T)
-  (h_conv : convex ℝ T) :
+private lemma exists_ne_zero_mem_subgroup_of_volume_mul_two_pow_card_lt_measure
+  {L : add_subgroup (ι → ℝ)} [countable L] {F T : set (ι → ℝ)} (μ : measure (ι → ℝ))
+  [is_add_haar_measure μ] (fund : is_add_fundamental_domain L F μ) (h : μ F * 2 ^ card ι < μ T)
+  (h_symm : ∀ x ∈ T, -x ∈ T) (h_conv : convex ℝ T) :
   ∃ x : L, x ≠ 0 ∧ (x : ι → ℝ) ∈ T :=
 begin
   rw [add_haar_measure_unique μ (pi_Icc01 ι), add_haar_measure_eq_volume_pi] at fund,
@@ -244,29 +262,21 @@ lemma exists_ne_zero_mem_lattice_of_measure_mul_two_pow_finrank_lt_measure
   [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ] {L : add_subgroup E}
   [countable L] {F T : set E} (fund : is_add_fundamental_domain L F μ)
   (h : μ F * 2 ^ finrank ℝ E < μ T) (h_symm : ∀ x ∈ T, -x ∈ T) (h_conv : convex ℝ T) :
-  ∃ (x : L) (h : x ≠ 0), (x : E) ∈ T :=
+  ∃ x ≠ 0, ((x : L) : E) ∈ T :=
 begin
   let ι := fin (finrank ℝ E),
   have : finrank ℝ E = finrank ℝ (ι → ℝ), by simp,
   have e : E ≃ₗ[ℝ] ι → ℝ := linear_equiv.of_finrank_eq E (ι → ℝ) this,
-  have hfund : is_add_fundamental_domain (L.map (e : E →+ ι → ℝ)) (e '' F) (map e μ),
-  { convert fund.map_linear_equiv μ e },
-  haveI : countable (L.map (e : E →+ ι → ℝ)),
-  { refine (L.equiv_map_of_injective _ _).symm.injective.countable,
-    exact equiv_like.injective e },
-  obtain ⟨x, hx, hxT⟩ :=
-    exists_ne_zero_mem_subgroup_of_volume_mul_two_pow_card_lt_measure (map e μ) hfund
-      (_ : map e μ (e '' F) * _ < map e μ (e '' T)) _ (h_conv.linear_image e.to_linear_map),
-  { refine ⟨(L.equiv_map_of_injective _ _).symm x, _, _⟩,
-    { exact equiv_like.injective e },
-    { simp only [hx, ne.def, add_equiv_class.map_eq_zero_iff, not_false_iff, exists_true_left] },
-    simp only [add_subgroup.linear_equiv_map_of_injective_symm_apply, add_subgroup.coe_mk],
+  obtain ⟨x, hx, hxT⟩ := exists_ne_zero_mem_subgroup_of_volume_mul_two_pow_card_lt_measure (map e μ)
+      (fund.map_linear_equiv μ e) (_ : map e μ (e '' F) * _ < map e μ (e '' T)) _
+      (h_conv.linear_image e.to_linear_map),
+  { refine ⟨(L.equiv_map e).symm x, (add_equiv_class.map_ne_zero_iff _).2 hx, _⟩,
+    simp only [add_subgroup.linear_equiv_map_symm_apply, add_subgroup.coe_mk],
     exact (@set.mem_image_equiv E (ι → ℝ) _ e _).1 hxT },
-  { erw [measurable_equiv.map_apply e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv,
-      measurable_equiv.map_apply e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv,
-      preimage_image_eq _ e.injective, preimage_image_eq _ e.injective],
-    convert h,
-    simp [ι] },
+  { erw [e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv.map_apply,
+      e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv.map_apply,
+      preimage_image_eq _ e.injective, preimage_image_eq _ e.injective, card_fin],
+    exact h },
   { rintro _ ⟨x, hx, rfl⟩,
     exact ⟨-x, h_symm _ hx, map_neg _ _⟩ }
 end

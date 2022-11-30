@@ -142,28 +142,4 @@ begin
       exact hab hi, }, },
 end
 
-.
-
-lemma div_eq_quo_add_sum_rem_div_unique' {f : R[X]} {ι : Type*} (s : finset ι) {g : ι → R[X]}
-  (hg : ∀ i ∈ s, (g i).monic) (hcop : (s : set ι).pairwise (λ i j, is_coprime (g i) (g j)))
-  (q : R[X]) (r : ι → R[X]) (hdeg : ∀ i ∈ s, (r i).degree < (g i).degree)
-  (hf : (↑f : K) / ∏ i in s, ↑(g i) = ↑q + ∑ i in s, ↑(r i) / ↑(g i)) :
-    q = (div_eq_quo_add_sum_rem_div R K f s hg hcop).some ∧
-    ∀ i ∈ s, r i = (div_eq_quo_add_sum_rem_div R K f s hg hcop).some_spec.some i :=
-begin
-  let q₀ := (div_eq_quo_add_sum_rem_div R K f s hg hcop).some,
-  let r₀ := (div_eq_quo_add_sum_rem_div R K f s hg hcop).some_spec.some,
-  obtain ⟨hdeg₀, hf₀⟩ : (∀ i ∈ s, (r₀ i).degree < ((λ (i : ι), g i) i).degree) ∧
-    ↑f / ∏ i in s, ↑((λ (i : ι), g i) i) = ↑q₀ + ∑ i in s, ↑(r₀ i) / ↑((λ (i : ι), g i) i) :=
-    (div_eq_quo_add_sum_rem_div R K f s hg hcop).some_spec.some_spec,
-  change q = q₀ ∧ ∀ i ∈ s, r i = r₀ i, split,
-  { rw hf at hf₀,
-    have htriv : g = λ (i : ι), g i := rfl,
-    rw ← htriv at hf₀,
-    
-    sorry },
-  {
-    sorry },
-end
-
 end n_denominators

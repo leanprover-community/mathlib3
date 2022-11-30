@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.int.order
+import data.int.order.basic
 import data.nat.cast.basic
 
 /-!
@@ -124,12 +124,7 @@ end
 variables (α) {n}
 
 lemma cast_le_neg_one_or_one_le_cast_of_ne_zero (hn : n ≠ 0) : (n : α) ≤ -1 ∨ 1 ≤ (n : α) :=
-begin
-  rcases lt_trichotomy n 0 with h | rfl | h,
-  { exact or.inl (cast_le_neg_one_of_neg h), },
-  { contradiction, },
-  { exact or.inr (cast_one_le_of_pos h), },
-end
+hn.lt_or_lt.imp cast_le_neg_one_of_neg cast_one_le_of_pos
 
 variables {α} (n)
 
@@ -165,22 +160,6 @@ ring_hom.map_dvd (int.cast_ring_hom α) h
 end cast
 
 end int
-
-namespace prod
-
-variables [add_group_with_one α] [add_group_with_one β]
-
-instance : add_group_with_one (α × β) :=
-{ int_cast := λ n, (n, n),
-  int_cast_of_nat := λ _, by simp; refl,
-  int_cast_neg_succ_of_nat := λ _, by simp; refl,
-  .. prod.add_monoid_with_one, .. prod.add_group }
-
-@[simp] lemma fst_int_cast (n : ℤ) : (n : α × β).fst = n := rfl
-
-@[simp] lemma snd_int_cast (n : ℤ) : (n : α × β).snd = n := rfl
-
-end prod
 
 open int
 

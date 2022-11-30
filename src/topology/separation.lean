@@ -315,6 +315,11 @@ is_closed_singleton.is_open_compl
 lemma is_open_ne [t1_space α] {x : α} : is_open {y | y ≠ x} :=
 is_open_compl_singleton
 
+@[to_additive]
+lemma continuous.is_open_mul_support [t1_space α] [has_one α] [topological_space β]
+  {f : β → α} (hf : continuous f) : is_open (mul_support f) :=
+is_open_ne.preimage hf
+
 lemma ne.nhds_within_compl_singleton [t1_space α] {x y : α} (h : x ≠ y) :
   𝓝[{y}ᶜ] x = 𝓝 x :=
 is_open_ne.nhds_within_eq h
@@ -375,7 +380,7 @@ begin
   split,
   { rintros ⟨t, ht₁, ht₂, hst⟩,
     rw compl_subset_compl at hst,
-    exact compact_of_is_closed_subset ht₂ is_closed_closure (closure_minimal hst ht₁) },
+    exact is_compact_of_is_closed_subset ht₂ is_closed_closure (closure_minimal hst ht₁) },
   { intros h,
     exact ⟨closure s, is_closed_closure, h, compl_subset_compl.mpr subset_closure⟩ }
 end
@@ -1070,7 +1075,8 @@ begin
   rcases em (i = j) with (rfl|h),
   { replace neq : x ≠ y := λ c, (c.subst neq) rfl,
     exact separated_by_open_embedding open_embedding_sigma_mk neq },
-  { exact ⟨_, _, is_open_range_sigma_mk, is_open_range_sigma_mk, ⟨x, rfl⟩, ⟨y, rfl⟩, by tidy⟩ }
+  { exact ⟨_, _, is_open_range_sigma_mk, is_open_range_sigma_mk, ⟨x, rfl⟩, ⟨y, rfl⟩,
+      set.disjoint_left.mpr $ by tidy⟩ }
 end
 
 variables {γ : Type*} [topological_space β] [topological_space γ]
@@ -1138,7 +1144,7 @@ lemma function.left_inverse.closed_embedding [t2_space α] {f : α → β} {g : 
   closed_embedding g :=
 ⟨h.embedding hf hg, h.closed_range hf hg⟩
 
-lemma compact_compact_separated [t2_space α] {s t : set α}
+lemma is_compact_is_compact_separated [t2_space α] {s t : set α}
   (hs : is_compact s) (ht : is_compact t) (hst : disjoint s t) :
   separated_nhds s t :=
 by simp only [separated_nhds, prod_subset_compl_diagonal_iff_disjoint.symm] at ⊢ hst;
@@ -1148,7 +1154,7 @@ by simp only [separated_nhds, prod_subset_compl_diagonal_iff_disjoint.symm] at �
 lemma is_compact.is_closed [t2_space α] {s : set α} (hs : is_compact s) : is_closed s :=
 is_open_compl_iff.1 $ is_open_iff_forall_mem_open.mpr $ assume x hx,
   let ⟨u, v, uo, vo, su, xv, uv⟩ :=
-    compact_compact_separated hs is_compact_singleton (disjoint_singleton_right.2 hx) in
+    is_compact_is_compact_separated hs is_compact_singleton (disjoint_singleton_right.2 hx) in
 ⟨v, (uv.mono_left $ show s ≤ u, from su).subset_compl_left, vo, by simpa using xv⟩
 
 @[simp] lemma filter.coclosed_compact_eq_cocompact [t2_space α] :
@@ -1163,10 +1169,10 @@ by rw bornology.ext_iff; exact filter.coclosed_compact_eq_cocompact
 `⋂ i, V i` contains some `V i`. This is a version of `exists_subset_nhd_of_compact'` where we
 don't need to assume each `V i` closed because it follows from compactness since `α` is
 assumed to be Hausdorff. -/
-lemma exists_subset_nhd_of_compact [t2_space α] {ι : Type*} [nonempty ι] {V : ι → set α}
+lemma exists_subset_nhds_of_is_compact [t2_space α] {ι : Type*} [nonempty ι] {V : ι → set α}
   (hV : directed (⊇) V) (hV_cpct : ∀ i, is_compact (V i)) {U : set α}
   (hU : ∀ x ∈ ⋂ i, V i, U ∈ 𝓝 x) : ∃ i, V i ⊆ U :=
-exists_subset_nhd_of_compact' hV hV_cpct (λ i, (hV_cpct i).is_closed) hU
+exists_subset_nhds_of_is_compact' hV hV_cpct (λ i, (hV_cpct i).is_closed) hU
 
 lemma compact_exhaustion.is_closed [t2_space α] (K : compact_exhaustion α) (n : ℕ) :
   is_closed (K n) :=
@@ -1176,16 +1182,16 @@ lemma is_compact.inter [t2_space α] {s t : set α} (hs : is_compact s) (ht : is
   is_compact (s ∩ t) :=
 hs.inter_right $ ht.is_closed
 
-lemma compact_closure_of_subset_compact [t2_space α] {s t : set α} (ht : is_compact t) (h : s ⊆ t) :
-  is_compact (closure s) :=
-compact_of_is_closed_subset ht is_closed_closure (closure_minimal h ht.is_closed)
+lemma is_compact_closure_of_subset_compact [t2_space α] {s t : set α}
+  (ht : is_compact t) (h : s ⊆ t) : is_compact (closure s) :=
+is_compact_of_is_closed_subset ht is_closed_closure (closure_minimal h ht.is_closed)
 
 @[simp]
 lemma exists_compact_superset_iff [t2_space α] {s : set α} :
   (∃ K, is_compact K ∧ s ⊆ K) ↔ is_compact (closure s) :=
-⟨λ ⟨K, hK, hsK⟩, compact_closure_of_subset_compact hK hsK, λ h, ⟨closure s, h, subset_closure⟩⟩
+⟨λ ⟨K, hK, hsK⟩, is_compact_closure_of_subset_compact hK hsK, λ h, ⟨closure s, h, subset_closure⟩⟩
 
-lemma image_closure_of_compact [t2_space β]
+lemma image_closure_of_is_compact [t2_space β]
   {s : set α} (hs : is_compact (closure s)) {f : α → β} (hf : continuous_on f (closure s)) :
   f '' closure s = closure (f '' s) :=
 subset.antisymm hf.image_closure $ closure_minimal (image_subset f subset_closure)
@@ -1196,7 +1202,8 @@ lemma is_compact.binary_compact_cover [t2_space α] {K U V : set α} (hK : is_co
   (hU : is_open U) (hV : is_open V) (h2K : K ⊆ U ∪ V) :
   ∃ K₁ K₂ : set α, is_compact K₁ ∧ is_compact K₂ ∧ K₁ ⊆ U ∧ K₂ ⊆ V ∧ K = K₁ ∪ K₂ :=
 begin
-  obtain ⟨O₁, O₂, h1O₁, h1O₂, h2O₁, h2O₂, hO⟩ := compact_compact_separated (hK.diff hU) (hK.diff hV)
+  obtain ⟨O₁, O₂, h1O₁, h1O₂, h2O₁, h2O₂, hO⟩ :=
+    is_compact_is_compact_separated (hK.diff hU) (hK.diff hV)
     (by rwa [disjoint_iff_inter_eq_empty, diff_inter_diff, diff_eq_empty]),
   exact ⟨_, _, hK.diff h1O₁, hK.diff h1O₂, by rwa [diff_subset_comm], by rwa [diff_subset_comm],
     by rw [← diff_inter, hO.inter_eq, diff_empty]⟩
@@ -1247,7 +1254,8 @@ lemma locally_compact_of_compact_nhds [t2_space α] (h : ∀ x : α, ∃ s, s �
   -- K \ U is again compact and doesn't contain x, so
   -- we may find open sets V, W separating x from K \ U.
   -- Then K \ W is a compact neighborhood of x contained in U.
-  let ⟨v, w, vo, wo, xv, kuw, vw⟩ := compact_compact_separated is_compact_singleton (kc.diff uo)
+  let ⟨v, w, vo, wo, xv, kuw, vw⟩ :=
+    is_compact_is_compact_separated is_compact_singleton (kc.diff uo)
       (disjoint_singleton_left.2 $ λ h, h.2 xu) in
   have wn : wᶜ ∈ 𝓝 x, from
    mem_nhds_iff.mpr ⟨v, vw.subset_compl_right, vo, singleton_subset_iff.mp xv⟩,
@@ -1258,7 +1266,7 @@ lemma locally_compact_of_compact_nhds [t2_space α] (h : ∀ x : α, ∃ s, s �
 
 @[priority 100] -- see Note [lower instance priority]
 instance locally_compact_of_compact [t2_space α] [compact_space α] : locally_compact_space α :=
-locally_compact_of_compact_nhds (assume x, ⟨univ, is_open_univ.mem_nhds trivial, compact_univ⟩)
+locally_compact_of_compact_nhds (assume x, ⟨univ, is_open_univ.mem_nhds trivial, is_compact_univ⟩)
 
 /-- In a locally compact T₂ space, every point has an open neighborhood with compact closure -/
 lemma exists_open_with_compact_closure [locally_compact_space α] [t2_space α] (x : α) :
@@ -1266,7 +1274,7 @@ lemma exists_open_with_compact_closure [locally_compact_space α] [t2_space α] 
 begin
   rcases exists_compact_mem_nhds x with ⟨K, hKc, hxK⟩,
   rcases mem_nhds_iff.1 hxK with ⟨t, h1t, h2t, h3t⟩,
-  exact ⟨t, h2t, h3t, compact_closure_of_subset_compact hKc h1t⟩
+  exact ⟨t, h2t, h3t, is_compact_closure_of_subset_compact hKc h1t⟩
 end
 
 /--
@@ -1277,7 +1285,7 @@ lemma exists_open_superset_and_is_compact_closure [locally_compact_space α] [t2
 begin
   rcases exists_compact_superset hK with ⟨K', hK', hKK'⟩,
   refine ⟨interior K', is_open_interior, hKK',
-    compact_closure_of_subset_compact hK' interior_subset⟩,
+    is_compact_closure_of_subset_compact hK' interior_subset⟩,
 end
 
 /--
@@ -1291,7 +1299,7 @@ begin
   rcases exists_compact_between hK hU hKU with ⟨V, hV, hKV, hVU⟩,
   exact ⟨interior V, is_open_interior, hKV,
     (closure_minimal interior_subset hV.is_closed).trans hVU,
-    compact_closure_of_subset_compact hV interior_subset⟩,
+    is_compact_closure_of_subset_compact hV interior_subset⟩,
 end
 
 lemma is_preirreducible_iff_subsingleton [t2_space α] {S : set α} :
@@ -1543,12 +1551,12 @@ theorem normal_exists_closure_subset [normal_space α] {s t : set α} (hs : is_c
   (ht : is_open t) (hst : s ⊆ t) :
   ∃ u, is_open u ∧ s ⊆ u ∧ closure u ⊆ t :=
 begin
-  have : disjoint s tᶜ, from λ x ⟨hxs, hxt⟩, hxt (hst hxs),
+  have : disjoint s tᶜ, from set.disjoint_left.mpr (λ x hxs hxt, hxt (hst hxs)),
   rcases normal_separation hs (is_closed_compl_iff.2 ht) this
     with ⟨s', t', hs', ht', hss', htt', hs't'⟩,
   refine ⟨s', hs', hss',
     subset.trans (closure_minimal _ (is_closed_compl_iff.2 ht')) (compl_subset_comm.1 htt')⟩,
-  exact λ x hxs hxt, hs't' ⟨hxs, hxt⟩
+  exact λ x hxs hxt, hs't'.le_bot ⟨hxs, hxt⟩
 end
 
 @[priority 100] -- see Note [lower instance priority]
@@ -1559,7 +1567,7 @@ instance normal_space.t3_space [normal_space α] : t3_space α :=
 
 -- We can't make this an instance because it could cause an instance loop.
 lemma normal_of_compact_t2 [compact_space α] [t2_space α] : normal_space α :=
-⟨λ s t hs ht, compact_compact_separated hs.is_compact ht.is_compact⟩
+⟨λ s t hs ht, is_compact_is_compact_separated hs.is_compact ht.is_compact⟩
 
 protected lemma closed_embedding.normal_space [topological_space β] [normal_space β] {f : α → β}
   (hf : closed_embedding f) : normal_space α :=
@@ -1629,12 +1637,12 @@ begin
     refine mem_bUnion huU ⟨hxu, _⟩,
     simp only [mem_Union],
     rintro ⟨v, hvV, -, hxv⟩,
-    exact hVd v hvV ⟨hxv, hx⟩ },
+    exact (hVd v hvV).le_bot ⟨hxv, hx⟩ },
   { rcases mem_Union₂.1 (htV hx) with ⟨v, hvV, hxv⟩,
     refine mem_bUnion hvV ⟨hxv, _⟩,
     simp only [mem_Union],
     rintro ⟨u, huU, -, hxu⟩,
-    exact hUd u huU ⟨hxu, hx⟩ },
+    exact (hUd u huU).le_bot ⟨hxu, hx⟩ },
   { simp only [disjoint_left, mem_Union, mem_diff, not_exists, not_and, not_forall, not_not],
     rintro a ⟨u, huU, hau, haV⟩ v hvV hav,
     cases le_total (encodable.encode u) (encodable.encode v) with hle hle,
@@ -1790,7 +1798,7 @@ begin
     rw [connected_component_eq_Inter_clopen, mem_Inter],
     rintro ⟨w : set α, hw : is_clopen w, hy : y ∈ w⟩,
     by_contra hx,
-    exact hyp wᶜ w hw.2.is_open_compl hw.1 hx hy (@is_compl_compl _ w _).symm.2
+    exact hyp wᶜ w hw.2.is_open_compl hw.1 hx hy (@is_compl_compl _ w _).symm.codisjoint.top_le
       disjoint_compl_left },
   apply totally_separated_space.totally_disconnected_space,
 end
@@ -1816,7 +1824,7 @@ lemma nhds_basis_clopen (x : α) : (𝓝 x).has_basis (λ s : set α, x ∈ s �
     { intros y y_in,
       erw [this, mem_singleton_iff] at y_in,
       rwa y_in },
-    exact exists_subset_nhd_of_compact_space hdir hNcl h_nhd },
+    exact exists_subset_nhds_of_compact_space hdir hNcl h_nhd },
   { rintro ⟨V, ⟨hxV, V_op, -⟩, hUV : V ⊆ U⟩,
     rw mem_nhds_iff,
     exact ⟨V, hUV, V_op, hxV⟩ }
@@ -1836,8 +1844,8 @@ end
 /-- Every member of an open set in a compact Hausdorff totally disconnected space
   is contained in a clopen set contained in the open set.  -/
 lemma compact_exists_clopen_in_open {x : α} {U : set α} (is_open : is_open U) (memU : x ∈ U) :
-    ∃ (V : set α) (hV : is_clopen V), x ∈ V ∧ V ⊆ U :=
-  (is_topological_basis.mem_nhds_iff is_topological_basis_clopen).1 (is_open.mem_nhds memU)
+  ∃ (V : set α) (hV : is_clopen V), x ∈ V ∧ V ⊆ U :=
+(is_topological_basis.mem_nhds_iff is_topological_basis_clopen).1 (is_open.mem_nhds memU)
 
 end profinite
 

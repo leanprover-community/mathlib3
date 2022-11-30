@@ -6,8 +6,6 @@ Authors: Bhavik Mehta
 import category_theory.arrow
 import category_theory.limits.constructions.epi_mono
 import category_theory.limits.creates
-import category_theory.limits.preserves.finite
-import category_theory.limits.shapes.finite_limits
 import category_theory.limits.unit
 import category_theory.structured_arrow
 

@@ -5,7 +5,8 @@ Authors: Mario Carneiro
 -/
 
 import data.nat.cast.field
-import data.fintype.basic
+import data.fintype.lattice
+import algebra.group_power.lemmas
 
 /-!
 # Characteristic zero (additional theorems)
@@ -50,26 +51,27 @@ variables (M : Type*) [add_monoid_with_one M] [char_zero M]
 instance char_zero.infinite : infinite M :=
 infinite.of_injective coe nat.cast_injective
 
-variable {M}
-
-@[field_simps] lemma two_ne_zero' : (2:M) ≠ 0 :=
-have ((2:ℕ):M) ≠ 0, from nat.cast_ne_zero.2 dec_trivial,
-by rwa [nat.cast_two] at this
+instance char_zero.ne_zero.two : ne_zero (2 : M) :=
+⟨have ((2:ℕ):M) ≠ 0, from nat.cast_ne_zero.2 dec_trivial, by rwa [nat.cast_two] at this⟩
 
 end
 
 section
-variables {R : Type*} [non_assoc_semiring R] [no_zero_divisors R] [char_zero R]
+variables {R : Type*} [non_assoc_semiring R] [no_zero_divisors R] [char_zero R] {a : R}
 
 @[simp]
 lemma add_self_eq_zero {a : R} : a + a = 0 ↔ a = 0 :=
-by simp only [(two_mul a).symm, mul_eq_zero, two_ne_zero', false_or]
+by simp only [(two_mul a).symm, mul_eq_zero, two_ne_zero, false_or]
 
 @[simp]
 lemma bit0_eq_zero {a : R} : bit0 a = 0 ↔ a = 0 := add_self_eq_zero
 @[simp]
 lemma zero_eq_bit0 {a : R} : 0 = bit0 a ↔ a = 0 :=
 by { rw [eq_comm], exact bit0_eq_zero }
+
+lemma bit0_ne_zero : bit0 a ≠ 0 ↔ a ≠ 0 := bit0_eq_zero.not
+lemma zero_ne_bit0 : 0 ≠ bit0 a ↔ a ≠ 0 := zero_eq_bit0.not
+
 end
 
 section
@@ -124,7 +126,7 @@ section
 variables {R : Type*} [division_ring R] [char_zero R]
 
 @[simp] lemma half_add_self (a : R) : (a + a) / 2 = a :=
-by rw [← mul_two, mul_div_cancel a two_ne_zero']
+by rw [← mul_two, mul_div_cancel a two_ne_zero]
 
 @[simp] lemma add_halves' (a : R) : a / 2 + a / 2 = a :=
 by rw [← add_div, half_add_self]

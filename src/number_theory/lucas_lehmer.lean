@@ -94,7 +94,7 @@ end
 lemma s_mod_nonneg (p : ℕ) (w : 0 < p) (i : ℕ) : 0 ≤ s_mod p i :=
 begin
   cases i; dsimp [s_mod],
-  { exact sup_eq_left.mp rfl },
+  { exact sup_eq_right.mp rfl },
   { apply int.mod_nonneg, exact mersenne_int_ne_zero p w },
 end
 

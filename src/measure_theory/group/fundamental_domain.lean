@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import measure_theory.group.action
-import measure_theory.group.pointwise
 import measure_theory.integral.set_integral
 
 /-!
@@ -71,7 +70,15 @@ lemma mk' (h_meas : null_measurable_set s μ) (h_exists : ∀ x : α, ∃! g : G
       exact hne ((h_exists x).unique hgx hx)
     end }
 
-@[to_additive measure_theory.is_add_fundamental_domain.mk_of_measure_univ_le]
+/-- If a measurable space has a finite measure `μ` and a countable group `G` acts
+quasi-measure-preservingly, then to show that a set `s` is a fundamental domain, it is sufficient
+to check that its translates `g • s` are (almost) disjoint and that the sum `∑' g, μ (g • s)` is
+sufficiently large. -/
+@[to_additive measure_theory.is_add_fundamental_domain.mk_of_measure_univ_le "
+If a measurable space has a finite measure `μ` and a countable additive group `G` acts
+quasi-measure-preservingly, then to show that a set `s` is a fundamental domain, it is sufficient
+to check that its translates `g +ᵥ s` are (almost) disjoint and that the sum `∑' g, μ (g +ᵥ s)` is
+sufficiently large."]
 lemma mk_of_measure_univ_le [is_finite_measure μ] [countable G]
   (h_meas : null_measurable_set s μ)
   (h_ae_disjoint : ∀ g ≠ (1 : G), ae_disjoint μ (g • s) s)
@@ -82,19 +89,12 @@ lemma mk_of_measure_univ_le [is_finite_measure μ] [countable G]
   ae_disjoint := h_ae_disjoint,
   ae_covers :=
   begin
+<<<<<<< HEAD
     replace ae_disjoint : pairwise (ae_disjoint μ on (λ (g : G), g • s)),
     { intros g₁ g₂ hg,
       let g := g₂⁻¹ * g₁,
-      replace hg : g ≠ 1, { rw [ne.def, inv_mul_eq_one], exact hg.symm, },
-      have : ((•) g₂⁻¹)⁻¹' (g • s ∩ s) = (g₁ • s) ∩ (g₂ • s),
-      { rw [preimage_eq_iff_eq_image (mul_action.bijective g₂⁻¹), image_smul, smul_set_inter,
-          smul_smul, smul_smul, inv_mul_self, one_smul], },
-      change μ ((g₁ • s) ∩ (g₂ • s)) = 0,
-      exact this ▸ (h_qmp g₂⁻¹).preimage_null (h_ae_disjoint g hg), },
-    replace h_meas : ∀ (g : G), null_measurable_set (g • s) μ :=
       λ g, by { rw [← inv_inv g, ← preimage_smul], exact h_meas.preimage (h_qmp g⁻¹), },
     have h_meas' : null_measurable_set {a | ∃ (g : G), g • a ∈ s} μ,
-    { rw ← Union_smul_eq_set_of_exists, exact null_measurable_set.Union h_meas, },
     rw [ae_iff_measure_eq h_meas', ← Union_smul_eq_set_of_exists],
     refine le_antisymm (measure_mono $ subset_univ _) _,
     rw measure_Union₀ ae_disjoint h_meas,
@@ -121,11 +121,8 @@ restrict_restrict₀ ((h.null_measurable_set_smul g).mono restrict_le_self)
 
 @[to_additive] lemma pairwise_ae_disjoint (h : is_fundamental_domain G s μ) :
   pairwise (λ g₁ g₂ : G, ae_disjoint μ (g₁ • s) (g₂ • s)) :=
-λ g₁ g₂ hne,
-calc μ (g₁ • s ∩ g₂ • s) = μ (g₂ • ((g₂⁻¹ * g₁) • s ∩ s)) :
-  by rw [smul_set_inter, smul_smul, mul_inv_cancel_left]
-... = μ ((g₂⁻¹ * g₁) • s ∩ s) : measure_smul_set _ _ _
-... = 0 : h.ae_disjoint _ $ mt inv_mul_eq_one.1 hne.symm
+pairwise_ae_disjoint_of_ae_disjoint_forall_ne_one h.ae_disjoint
+  (λ g, measure_preserving.quasi_measure_preserving $ by simp)
 
 @[to_additive] lemma pairwise_ae_disjoint_of_ac {ν} (h : is_fundamental_domain G s μ) (hν : ν ≪ μ) :
   pairwise (λ g₁ g₂ : G, ae_disjoint ν (g₁ • s) (g₂ • s)) :=
@@ -232,14 +229,31 @@ by simpa only [set_lintegral_one] using h.set_lintegral_eq_tsum (λ _, 1) t
   μ t = 0 :=
 by simp [measure_eq_tsum h, ht, hts]
 
+<<<<<<< HEAD
 @[to_additive measure_eq_card_smul_of_vadd_eq_self]
 lemma measure_eq_card_smul_of_smul_eq_self [finite G]
   (h : is_fundamental_domain G s μ) (t : set α) (ht : ∀ g : G, g • t = t) :
+=======
+/-- Given a measure space with an action of a finite group `G`, the measure of any `G`-invariant set
+is determined by the measure of its intersection with a fundamental domain for the action of `G`. -/
+@[to_additive measure_eq_card_smul_of_vadd_ae_eq_self "Given a measure space with an action of a
+finite additive group `G`, the measure of any `G`-invariant set is determined by the measure of its
+intersection with a fundamental domain for the action of `G`."]
+lemma measure_eq_card_smul_of_smul_ae_eq_self [finite G]
+  (h : is_fundamental_domain G s μ) (t : set α) (ht : ∀ g : G, (g • t : set α) =ᵐ[μ] t) :
+>>>>>>> master
   μ t = nat.card G • μ (t ∩ s) :=
 begin
   haveI : fintype G := fintype.of_finite G,
   rw h.measure_eq_tsum,
+<<<<<<< HEAD
   simp_rw [ht, tsum_fintype, finset.sum_const, nat.card_eq_fintype_card, finset.card_univ],
+=======
+  replace ht : ∀ g : G, ((g • t) ∩ s : set α) =ᵐ[μ] (t ∩ s : set α) :=
+    λ g, ae_eq_set_inter (ht g) (ae_eq_refl s),
+  simp_rw [measure_congr (ht _), tsum_fintype, finset.sum_const, nat.card_eq_fintype_card,
+    finset.card_univ],
+>>>>>>> master
 end
 
 @[to_additive] protected lemma set_lintegral_eq (hs : is_fundamental_domain G s μ)
@@ -366,7 +380,10 @@ lemma exists_ne_one_smul_eq (hs : is_fundamental_domain G s μ) (htm : null_meas
 begin
   contrapose! ht,
   refine hs.measure_le_of_pairwise_disjoint htm (pairwise.ae_disjoint $ λ g₁ g₂ hne, _),
-  rintro _ ⟨⟨⟨x, hx, rfl⟩, -⟩, ⟨y, hy, hxy⟩, -⟩,
+  dsimp [function.on_fun],
+  refine (disjoint.inf_left _ _).inf_right _,
+  rw set.disjoint_left,
+  rintro _ ⟨x, hx, rfl⟩ ⟨y, hy, hxy⟩,
   refine ht x hx y hy (g₂⁻¹ * g₁) (mt inv_mul_eq_one.1 hne.symm) _,
   rw [mul_smul, ← hxy, inv_smul_smul]
 end

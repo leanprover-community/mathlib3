@@ -74,4 +74,3 @@ begin
 end⟩
 
 end category_theory
-

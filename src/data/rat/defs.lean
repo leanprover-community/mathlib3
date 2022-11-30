@@ -5,7 +5,8 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.rat.init
 import data.int.cast.defs
-import data.int.div
+import data.int.dvd.basic
+import algebra.ring.regular
 import data.nat.gcd.basic
 import data.pnat.defs
 
@@ -30,12 +31,18 @@ The definition of the field structure on `ℚ` will be done in `data.rat.basic` 
 
 namespace rat
 
-/-- Embed an integer as a rational number -/
+/-- Embed an integer as a rational number. You should use the coercion `coe : ℤ → ℚ` instead. -/
 def of_int (n : ℤ) : ℚ :=
 ⟨n, 1, nat.one_pos, nat.coprime_one_right _⟩
 
-instance : has_zero ℚ := ⟨of_int 0⟩
-instance : has_one ℚ := ⟨of_int 1⟩
+instance : has_int_cast ℚ := ⟨of_int⟩
+
+@[simp] lemma of_int_eq_cast (n : ℤ) : of_int n = n := rfl
+@[simp, norm_cast] lemma coe_int_num (n : ℤ) : (n : ℚ).num = n := rfl
+@[simp, norm_cast] lemma coe_int_denom (n : ℤ) : (n : ℚ).denom = 1 := rfl
+
+instance : has_zero ℚ := ⟨(0 : ℤ)⟩
+instance : has_one ℚ := ⟨(1 : ℤ)⟩
 instance : inhabited ℚ := ⟨0⟩
 
 /-- Form the quotient `n / d` where `n:ℤ` and `d:ℕ+` (not necessarily coprime) -/
@@ -192,7 +199,7 @@ end
 
 theorem num_denom' {n d h c} : (⟨n, d, h, c⟩ : ℚ) = n /. d := num_denom.symm
 
-theorem of_int_eq_mk (z : ℤ) : of_int z = z /. 1 := num_denom'
+lemma coe_int_eq_mk (z : ℤ) : (z : ℚ) = z /. 1 := num_denom'
 
 /-- Define a (dependent) function or prove `∀ r : ℚ, p r` by dealing with rational
 numbers of the form `n /. d` with `0 < d` and coprime `n`, `d`. -/
@@ -407,10 +414,13 @@ instance : comm_ring ℚ :=
   mul_assoc        := rat.mul_assoc,
   left_distrib     := rat.mul_add,
   right_distrib    := rat.add_mul,
-  nat_cast         := λ n, rat.of_int n,
+  int_cast         := coe,
+  /- Important: We do not set `nat_cast := λ n, ((n : ℤ) : ℚ)` (even though it's defeq) as that
+  makes `int.cast_coe_nat` and `coe_coe` loop in `simp`. -/
+  nat_cast         := λ n, of_int n,
   nat_cast_zero    := rfl,
-  nat_cast_succ    := λ n, show of_int _ = of_int _ + 1,
-    by simp only [of_int_eq_mk, add_def one_ne_zero one_ne_zero, ← mk_one_one]; simp }
+  nat_cast_succ    := λ n, by simp only [of_int_eq_cast, coe_int_eq_mk,
+    add_def one_ne_zero one_ne_zero, ← mk_one_one, nat.cast_add, nat.cast_one, mul_one] }
 
 instance : comm_group_with_zero ℚ :=
 { zero := 0,
@@ -521,10 +531,6 @@ protected lemma add_mk (a b c : ℤ) : (a + b) /. c = a /. c + b /. c :=
 if h : c = 0 then by simp [h] else
 by { rw [add_def h h, mk_eq h (mul_ne_zero h h)], simp [add_mul, mul_assoc] }
 
-theorem coe_int_eq_mk : ∀ z : ℤ, ↑z = z /. 1
-| (n : ℕ) := of_int_eq_mk _
-| -[1+ n] := show -(of_int _) = _, by simp [of_int_eq_mk, neg_def, int.neg_succ_of_nat_coe]
-
 theorem mk_eq_div (n d : ℤ) : n /. d = ((n : ℚ) / d) :=
 begin
   by_cases d0 : d = 0, {simp [d0, div_zero]},
@@ -555,15 +561,6 @@ end
 theorem num_div_denom (r : ℚ) : (r.num / r.denom : ℚ) = r :=
 by rw [← int.cast_coe_nat, ← mk_eq_div, num_denom]
 
-theorem coe_int_eq_of_int (z : ℤ) : ↑z = of_int z :=
-(coe_int_eq_mk z).trans (of_int_eq_mk z).symm
-
-@[simp, norm_cast] theorem coe_int_num (n : ℤ) : (n : ℚ).num = n :=
-by rw coe_int_eq_of_int; refl
-
-@[simp, norm_cast] theorem coe_int_denom (n : ℤ) : (n : ℚ).denom = 1 :=
-by rw coe_int_eq_of_int; refl
-
 lemma coe_int_num_of_denom_eq_one {q : ℚ} (hq : q.denom = 1) : ↑(q.num) = q :=
 by { conv_rhs { rw [←(@num_denom q), hq] }, rw [coe_int_eq_mk], refl }
 
@@ -584,9 +581,11 @@ by rw [← int.cast_coe_nat, coe_int_denom]
 
 -- Will be subsumed by `int.coe_inj` after we have defined
 -- `linear_ordered_field ℚ` (which implies characteristic zero).
-lemma coe_int_inj (m n : ℤ) : (m : ℚ) = n ↔ m = n :=
-⟨λ h, by simpa using congr_arg num h, congr_arg _⟩
+lemma coe_int_inj (m n : ℤ) : (m : ℚ) = n ↔ m = n := ⟨congr_arg num, congr_arg _⟩
 
 end casts
 
 end rat
+
+-- Guard against import creep.
+assert_not_exists field

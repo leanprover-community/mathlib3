@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import algebra.monoid_algebra.basic
 import algebra.char_p.invertible
-import algebra.regular.basic
 import linear_algebra.basis
 
 /-!

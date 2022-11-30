@@ -135,7 +135,7 @@ by rw [union_comm, inter_comm, measure_union_add_inter t hs, add_comm]
 
 lemma measure_add_measure_compl (h : measurable_set s) :
   μ s + μ sᶜ = μ univ :=
-by { rw [← measure_union' _ h, union_compl_self], exact disjoint_compl_right }
+measure_add_measure_compl₀ h.null_measurable_set
 
 lemma measure_bUnion₀ {s : set β} {f : β → set α} (hs : s.countable)
   (hd : s.pairwise (ae_disjoint μ on f)) (h : ∀ b ∈ s, null_measurable_set (f b) μ) :
@@ -332,7 +332,9 @@ lemma exists_nonempty_inter_of_measure_univ_lt_tsum_measure {m : measurable_spac
 begin
   contrapose! H,
   apply tsum_measure_le_measure_univ hs,
-  exact λ i j hij x hx, H i j hij ⟨x, hx⟩
+  intros i j hij,
+  rw [function.on_fun, disjoint_iff_inf_le],
+  exact λ x hx, H i j hij ⟨x, hx⟩
 end
 
 /-- Pigeonhole principle for measure spaces: if `s` is a `finset` and
@@ -344,7 +346,9 @@ lemma exists_nonempty_inter_of_measure_univ_lt_sum_measure {m : measurable_space
 begin
   contrapose! H,
   apply sum_measure_le_measure_univ h,
-  exact λ i hi j hj hij x hx, H i hi j hj hij ⟨x, hx⟩
+  intros i hi j hj hij,
+  rw [function.on_fun, disjoint_iff_inf_le],
+  exact λ x hx, H i hi j hj hij ⟨x, hx⟩
 end
 
 /-- If two sets `s` and `t` are included in a set `u`, and `μ s + μ t > μ u`,
@@ -355,9 +359,9 @@ lemma nonempty_inter_of_measure_lt_add
   (h : μ u < μ s + μ t) :
   (s ∩ t).nonempty :=
 begin
+  rw ←set.not_disjoint_iff_nonempty_inter,
   contrapose! h,
-  calc μ s + μ t = μ (s ∪ t) :
-    by { rw measure_union _ ht, exact λ x hx, h ⟨x, hx⟩ }
+  calc μ s + μ t = μ (s ∪ t) : (measure_union h ht).symm
   ... ≤ μ u : measure_mono (union_subset h's h't)
 end
 
@@ -384,7 +388,7 @@ begin
   generalize ht : function.extend encodable.encode s ⊥ = t,
   replace hd : directed (⊆) t := ht ▸ hd.extend_bot encodable.encode_injective,
   suffices : μ (⋃ n, t n) = ⨆ n, μ (t n),
-  { simp only [← ht, apply_extend encodable.encode_injective μ, ← supr_eq_Union,
+  { simp only [← ht, encodable.encode_injective.apply_extend μ, ← supr_eq_Union,
       supr_extend_bot encodable.encode_injective, (∘), pi.bot_apply, bot_eq_empty,
       measure_empty] at this,
     exact this.trans (supr_extend_bot encodable.encode_injective _) },
@@ -1155,6 +1159,12 @@ begin
     from @null_measurable_set.to_measurable_ae_eq _ _ (μ.comap f : measure α) s hs,
   exact ae_eq_image_of_ae_eq_comap f μ hfi hf h.symm,
 end
+
+lemma comap_preimage {β} [measurable_space α] {mβ : measurable_space β} (f : α → β) (μ : measure β)
+  {s : set β} (hf : injective f) (hf' : measurable f)
+  (h : ∀ t, measurable_set t → null_measurable_set (f '' t) μ) (hs : measurable_set s) :
+  μ.comap f (f ⁻¹' s) = μ (s ∩ range f) :=
+by rw [comap_apply₀ _ _ hf h (hf' hs).null_measurable_set, image_preimage_eq_inter_range]
 
 section subtype
 
@@ -2139,10 +2149,33 @@ open_locale pointwise
 lemma smul_ae_eq_of_ae_eq
   {G α : Type*} [group G] [mul_action G α] [measurable_space α] {s t : set α} {μ : measure α}
   (g : G) (h_qmp : quasi_measure_preserving ((•) g⁻¹ : α → α) μ μ) (h_ae_eq : s =ᵐ[μ] t) :
-  g • s =ᵐ[μ] g • t :=
+  (g • s : set α) =ᵐ[μ] (g • t : set α) :=
 by simpa only [← preimage_smul_inv] using h_qmp.ae_eq h_ae_eq
 
 end quasi_measure_preserving
+
+section pointwise
+
+open_locale pointwise
+
+@[to_additive]
+lemma pairwise_ae_disjoint_of_ae_disjoint_forall_ne_one
+  {G α : Type*} [group G] [mul_action G α] [measurable_space α] {μ : measure α} {s : set α}
+  (h_ae_disjoint : ∀ g ≠ (1 : G), ae_disjoint μ (g • s) s)
+  (h_qmp : ∀ (g : G), quasi_measure_preserving ((•) g : α → α) μ μ) :
+  pairwise (ae_disjoint μ on (λ (g : G), g • s)) :=
+begin
+  intros g₁ g₂ hg,
+  let g := g₂⁻¹ * g₁,
+  replace hg : g ≠ 1, { rw [ne.def, inv_mul_eq_one], exact hg.symm, },
+  have : ((•) g₂⁻¹)⁻¹' (g • s ∩ s) = (g₁ • s) ∩ (g₂ • s),
+  { rw [preimage_eq_iff_eq_image (mul_action.bijective g₂⁻¹), image_smul, smul_set_inter,
+      smul_smul, smul_smul, inv_mul_self, one_smul], },
+  change μ ((g₁ • s) ∩ (g₂ • s)) = 0,
+  exact this ▸ (h_qmp g₂⁻¹).preimage_null (h_ae_disjoint g hg),
+end
+
+end pointwise
 
 /-! ### The `cofinite` filter -/
 
@@ -2616,17 +2649,20 @@ lemma ae_eq_univ_iff_measure_eq [is_finite_measure μ] (hs : null_measurable_set
   s =ᵐ[μ] univ ↔ μ s = μ univ :=
 begin
   refine ⟨measure_congr, λ h, _⟩,
-  have : μ s + μ sᶜ = μ univ := measure_add_measure_compl₀ hs,
-  replace this : (μ sᶜ).to_nnreal = 0,
-  { rwa [h, ← coe_measure_univ_nnreal μ, ← ennreal.coe_to_nnreal (measure_ne_top μ sᶜ),
-      ← ennreal.coe_add, ennreal.coe_eq_coe, add_right_eq_self] at this, },
-  rwa [ae_eq_univ, ← ennreal.coe_to_nnreal (measure_ne_top μ sᶜ), ennreal.coe_eq_zero],
+  obtain ⟨t, -, ht₁, ht₂⟩ := hs.exists_measurable_subset_ae_eq,
+  exact ht₂.symm.trans (ae_eq_of_subset_of_measure_ge (subset_univ t)
+    (eq.le ((measure_congr ht₂).trans h).symm) ht₁ (measure_ne_top μ univ)),
 end
 
 lemma ae_iff_measure_eq [is_finite_measure μ] {p : α → Prop}
   (hp : null_measurable_set {a | p a} μ) :
   (∀ᵐ a ∂μ, p a) ↔ μ {a | p a} = μ univ :=
-by rw [ae_iff', ae_eq_univ_iff_measure_eq hp]
+by rw [← ae_eq_univ_iff_measure_eq hp, eventually_eq_univ, eventually_iff]
+
+lemma ae_mem_iff_measure_eq [is_finite_measure μ] {s : set α}
+  (hs : null_measurable_set s μ) :
+  (∀ᵐ a ∂μ, a ∈ s) ↔ μ s = μ univ :=
+ae_iff_measure_eq hs
 
 instance [finite α] [measurable_space α] : is_finite_measure (measure.count : measure α) :=
 ⟨by { casesI nonempty_fintype α,
@@ -3242,7 +3278,7 @@ protected lemma is_finite_measure_on_compacts.smul [topological_space α] (μ : 
 lemma compact_space.is_finite_measure
   [topological_space α] [compact_space α] [is_finite_measure_on_compacts μ] :
   is_finite_measure μ :=
-⟨is_finite_measure_on_compacts.lt_top_of_is_compact compact_univ⟩
+⟨is_finite_measure_on_compacts.lt_top_of_is_compact is_compact_univ⟩
 
 omit m0
 
@@ -3481,6 +3517,11 @@ lemma restrict_map (μ : measure α) (s : set β) :
   (μ.map f).restrict s = (μ.restrict $ f ⁻¹' s).map f :=
 measure.ext $ λ t ht, by simp [hf.map_apply, ht, hf.measurable ht]
 
+protected lemma comap_preimage (μ : measure β) {s : set β} (hs : measurable_set s) :
+  μ.comap f (f ⁻¹' s) = μ (s ∩ range f) :=
+comap_preimage _ _ hf.injective hf.measurable
+  (λ t ht, (hf.measurable_set_image' ht).null_measurable_set) hs
+
 end measurable_embedding
 
 section subtype
@@ -3499,7 +3540,7 @@ lemma ae_restrict_iff_subtype {m0 : measurable_space α} {μ : measure α} {s : 
   (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂(comap (coe : s → α) μ), p ↑x :=
 by rw [← map_comap_subtype_coe hs, (measurable_embedding.subtype_coe hs).ae_map_iff]
 
-variables [measure_space α]
+variables [measure_space α] {s t : set α}
 
 /-!
 ### Volume on `s : set α`
@@ -3511,13 +3552,19 @@ instance _root_.set_coe.measure_space (s : set α) : measure_space s :=
 lemma volume_set_coe_def (s : set α) : (volume : measure s) = comap (coe : s → α) volume := rfl
 
 lemma measurable_set.map_coe_volume {s : set α} (hs : measurable_set s) :
-  volume.map (coe : s → α)= restrict volume s :=
+  volume.map (coe : s → α) = restrict volume s :=
 by rw [volume_set_coe_def, (measurable_embedding.subtype_coe hs).map_comap volume,
   subtype.range_coe]
 
 lemma volume_image_subtype_coe {s : set α} (hs : measurable_set s) (t : set s) :
   volume (coe '' t : set α) = volume t :=
 (comap_subtype_coe_apply hs volume t).symm
+
+@[simp] lemma volume_preimage_coe (hs : null_measurable_set s) (ht : measurable_set t) :
+  volume ((coe : s → α) ⁻¹' t) = volume (t ∩ s) :=
+by rw [volume_set_coe_def, comap_apply₀ _ _ subtype.coe_injective
+  (λ h, measurable_set.null_measurable_set_subtype_coe hs)
+  (measurable_subtype_coe ht).null_measurable_set, image_preimage_eq_inter_range, subtype.range_coe]
 
 end subtype
 

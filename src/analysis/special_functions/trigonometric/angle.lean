@@ -71,14 +71,14 @@ begin
   simp [two_mul, sub_eq_add_neg]
 end
 
-@[simp] lemma two_nsmul_pi_div_two : (2 : ℕ) • (↑(π / 2) : angle) = π :=
+@[simp] lemma two_nsmul_coe_div_two (θ : ℝ) : (2 : ℕ) • (↑(θ / 2) : angle) = θ :=
 by rw [←coe_nsmul, two_nsmul, add_halves]
 
-@[simp] lemma two_zsmul_pi_div_two : (2 : ℤ) • (↑(π / 2) : angle) = π :=
+@[simp] lemma two_zsmul_coe_div_two (θ : ℝ) : (2 : ℤ) • (↑(θ / 2) : angle) = θ :=
 by rw [←coe_zsmul, two_zsmul, add_halves]
 
 @[simp] lemma two_nsmul_neg_pi_div_two : (2 : ℕ) • (↑(-π / 2) : angle) = π :=
-by rw [←coe_nsmul, two_nsmul, add_halves, coe_neg, neg_coe_pi]
+by rw [two_nsmul_coe_div_two, coe_neg, neg_coe_pi]
 
 @[simp] lemma two_zsmul_neg_pi_div_two : (2 : ℤ) • (↑(-π / 2) : angle) = π :=
 by rw [two_zsmul, ←two_nsmul, two_nsmul_neg_pi_div_two]

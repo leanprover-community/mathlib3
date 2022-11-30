@@ -227,17 +227,17 @@ include hSG
 
 /-- The natural group hom from a subgroup of group `G` to `G`. -/
 @[to_additive "The natural group hom from an additive subgroup of `add_group` `G` to `G`."]
-def subtype : H →* G := monoid_hom.coe H G
+def subtype : H →* G := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : (subtype H : H → G) = coe := rfl
 
 variables {H}
 
-@[norm_cast, to_additive coe_smul]
+@[simp, norm_cast, to_additive coe_smul]
 lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n :=
 (subtype H : H →* G).map_pow _ _
 
-@[norm_cast, to_additive] lemma coe_zpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n :=
+@[simp, norm_cast, to_additive] lemma coe_zpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n :=
 (subtype H : H →* G).map_zpow _ _
 
 /-- The inclusion homomorphism from a subgroup `H` contained in `K` to `K`. -/
@@ -549,8 +549,8 @@ instance has_zpow : has_pow H ℤ := ⟨λ a n, ⟨a ^ n, H.zpow_mem a.2 n⟩⟩
 @[simp, norm_cast, to_additive] lemma coe_inv (x : H) : ↑(x⁻¹ : H) = (x⁻¹ : G) := rfl
 @[simp, norm_cast, to_additive] lemma coe_div (x y : H) : (↑(x / y) : G) = ↑x / ↑y := rfl
 @[simp, norm_cast, to_additive] lemma coe_mk (x : G) (hx : x ∈ H) : ((⟨x, hx⟩ : H) : G) = x := rfl
-@[norm_cast, to_additive] lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n := rfl
-@[norm_cast, to_additive] lemma coe_zpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n := rfl
+@[simp, norm_cast, to_additive] lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n := rfl
+@[simp, norm_cast, to_additive] lemma coe_zpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n := rfl
 
 @[simp, to_additive] lemma mk_eq_one_iff {g : G} {h} : (⟨g, h⟩ : H) = 1 ↔ g = 1 :=
 show (⟨g, h⟩ : H) = (⟨1, H.one_mem⟩ : H) ↔ g = 1, by simp
@@ -2088,8 +2088,12 @@ lemma mem_ker (f : G →* M) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
 lemma coe_ker (f : G →* M) : (f.ker : set G) = (f : G → M) ⁻¹' {1} := rfl
 
 @[to_additive]
-lemma eq_iff (f : G →* N) {x y : G} : f x = f y ↔ y⁻¹ * x ∈ f.ker :=
-by rw [f.mem_ker, f.map_mul, f.map_inv, inv_mul_eq_one, eq_comm]
+lemma eq_iff (f : G →* M) {x y : G} : f x = f y ↔ y⁻¹ * x ∈ f.ker :=
+begin
+  split; intro h,
+  { rw [mem_ker, map_mul, h, ← map_mul, inv_mul_self, map_one] },
+  { rw [← one_mul x, ← mul_inv_self y, mul_assoc, map_mul, f.mem_ker.1 h, mul_one] }
+end
 
 @[to_additive]
 instance decidable_mem_ker [decidable_eq M] (f : G →* M) :
@@ -2102,27 +2106,21 @@ lemma comap_ker (g : N →* P) (f : G →* N) : g.ker.comap f = (g.comp f).ker :
 @[simp, to_additive] lemma comap_bot (f : G →* N) :
   (⊥ : subgroup N).comap f = f.ker := rfl
 
-@[simp, to_additive] lemma restrict_ker (f : G →* N) : (f.restrict K).ker = f.ker.subgroup_of K :=
+@[simp, to_additive] lemma ker_restrict (f : G →* N) : (f.restrict K).ker = f.ker.subgroup_of K :=
 rfl
 
-@[to_additive] lemma range_restrict_ker  (f : G →* N) : ker (range_restrict f) = ker f :=
-begin
-  ext,
-  change (⟨f x, _⟩ : range f) = ⟨1, _⟩ ↔ f x = 1,
-  simp only [],
-end
+@[simp, to_additive] lemma ker_cod_restrict {S} [set_like S N] [submonoid_class S N] (f : G →* N)
+  (s : S) (h : ∀ x, f x ∈ s) : (f.cod_restrict s h).ker = f.ker :=
+set_like.ext $ λ x, subtype.ext_iff
 
-@[simp, to_additive]
-lemma ker_one : (1 : G →* M).ker = ⊤ :=
-by { ext, simp [mem_ker] }
+@[simp, to_additive] lemma ker_range_restrict  (f : G →* N) : ker (range_restrict f) = ker f :=
+ker_cod_restrict _ _ _
 
-@[to_additive] lemma ker_eq_bot_iff (f : G →* N) : f.ker = ⊥ ↔ function.injective f :=
-begin
-  split,
-  { intros h x y hxy,
-    rwa [←mul_inv_eq_one, ←map_inv, ←map_mul, ←mem_ker, h, mem_bot, mul_inv_eq_one] at hxy },
-  { exact λ h, le_bot_iff.mp (λ x hx, h (hx.trans f.map_one.symm)) },
-end
+@[simp, to_additive] lemma ker_one : (1 : G →* M).ker = ⊤ := set_like.ext $ λ x, eq_self_iff_true _
+
+@[to_additive] lemma ker_eq_bot_iff (f : G →* M) : f.ker = ⊥ ↔ function.injective f :=
+⟨λ h x y hxy, by rwa [eq_iff, h, mem_bot, inv_mul_eq_one, eq_comm] at hxy,
+  λ h, bot_unique $ λ x hx, h (hx.trans f.map_one.symm)⟩
 
 @[simp, to_additive] lemma _root_.subgroup.ker_subtype (H : subgroup G) : H.subtype.ker = ⊥ :=
 H.subtype.ker_eq_bot_iff.mpr subtype.coe_injective
@@ -2142,32 +2140,43 @@ lemma ker_prod_map {G' : Type*} {N' : Type*} [group G'] [group N'] (f : G →* N
   (prod_map f g).ker = f.ker.prod g.ker :=
 by rw [←comap_bot, ←comap_bot, ←comap_bot, ←prod_map_comap_prod, bot_prod_bot]
 
+@[priority 100, to_additive]
+instance normal_ker (f : G →* M) : f.ker.normal :=
+⟨λ x hx y, by rw [mem_ker, map_mul, map_mul, f.mem_ker.1 hx, mul_one,
+  map_mul_eq_one f (mul_inv_self y)]⟩
+
 end ker
+
+section eq_locus
+
+variables {M : Type*} [monoid M]
 
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
 @[to_additive "The additive subgroup of elements `x : G` such that `f x = g x`"]
-def eq_locus (f g : G →* N) : subgroup G :=
-{ inv_mem' := λ x (hx : f x = g x), show f x⁻¹ = g x⁻¹, by rw [f.map_inv, g.map_inv, hx],
+def eq_locus (f g : G →* M) : subgroup G :=
+{ inv_mem' := λ x, eq_on_inv f g,
   .. eq_mlocus f g}
 
 /-- If two monoid homomorphisms are equal on a set, then they are equal on its subgroup closure. -/
 @[to_additive "If two monoid homomorphisms are equal on a set, then they are equal on its subgroup
 closure."]
-lemma eq_on_closure {f g : G →* N} {s : set G} (h : set.eq_on f g s) : set.eq_on f g (closure s) :=
+lemma eq_on_closure {f g : G →* M} {s : set G} (h : set.eq_on f g s) : set.eq_on f g (closure s) :=
 show closure s ≤ f.eq_locus g, from (closure_le _).2 h
 
 @[to_additive]
-lemma eq_of_eq_on_top {f g : G →* N} (h : set.eq_on f g (⊤ : subgroup G)) :
+lemma eq_of_eq_on_top {f g : G →* M} (h : set.eq_on f g (⊤ : subgroup G)) :
   f = g :=
 ext $ λ x, h trivial
 
 @[to_additive]
-lemma eq_of_eq_on_dense {s : set G} (hs : closure s = ⊤) {f g : G →* N} (h : s.eq_on f g) :
+lemma eq_of_eq_on_dense {s : set G} (hs : closure s = ⊤) {f g : G →* M} (h : s.eq_on f g) :
   f = g :=
 eq_of_eq_on_top $ hs ▸ eq_on_closure h
 
+end eq_locus
+
 @[to_additive]
-lemma gclosure_preimage_le (f : G →* N) (s : set N) :
+lemma closure_preimage_le (f : G →* N) (s : set N) :
   closure (f ⁻¹' s) ≤ (closure s).comap f :=
 (closure_le _).2 $ λ x hx, by rw [set_like.mem_coe, mem_comap]; exact subset_closure hx
 
@@ -2213,14 +2222,7 @@ namespace subgroup
 variables {N : Type*} [group N] (H : subgroup G)
 
 @[to_additive] lemma map_eq_bot_iff {f : G →* N} : H.map f = ⊥ ↔ H ≤ f.ker :=
-begin
-  rw eq_bot_iff,
-  split,
-  { exact λ h x hx, h ⟨x, hx, rfl⟩ },
-  { intros h x hx,
-    obtain ⟨y, hy, rfl⟩ := hx,
-    exact h hy },
-end
+(gc_map_comap f).l_eq_bot
 
 @[to_additive]
 lemma map_eq_bot_iff_of_injective {f : G →* N} (hf : function.injective f) : H.map f = ⊥ ↔ H = ⊥ :=
@@ -2257,10 +2259,8 @@ lemma le_comap_map (H : subgroup G) : H ≤ comap f (map f H) :=
 @[to_additive]
 lemma map_comap_eq (H : subgroup N) :
   map f (comap f H) = f.range ⊓ H :=
-set_like.ext' begin
-  convert set.image_preimage_eq_inter_range,
-  simp [set.inter_comm],
-end
+set_like.ext' $ by rw [coe_map, coe_comap, set.image_preimage_eq_inter_range, coe_inf, coe_range,
+  set.inter_comm]
 
 @[to_additive]
 lemma comap_map_eq (H : subgroup G) : comap f (map f H) = H ⊔ f.ker :=
@@ -2339,6 +2339,13 @@ begin
   apply_fun comap f at hf,
   rwa [comap_map_eq, comap_map_eq, sup_of_le_left hH, sup_of_le_left hK] at hf,
 end
+
+@[to_additive] lemma subgroup_of_eq_bot {H K : subgroup G} : H.subgroup_of K = ⊥ ↔ disjoint H K :=
+by rw [←(map_injective K.subtype_injective).eq_iff, subgroup_of_map_subtype, map_bot, disjoint_iff]
+
+@[to_additive] lemma subgroup_of_eq_top {H K : subgroup G} : H.subgroup_of K = ⊤ ↔ K ≤ H :=
+by rw [←(map_injective K.subtype_injective).eq_iff, subgroup_of_map_subtype,
+  ←K.subtype.range_eq_map, K.subtype_range, inf_eq_right]
 
 @[to_additive] lemma closure_preimage_eq_top (s : set G) :
   closure ((closure s).subtype ⁻¹' s) = ⊤ :=
@@ -2563,10 +2570,6 @@ instance subgroup.normal_comap {H : subgroup N}
   [nH : H.normal] (f : G →* N) :  (H.comap f).normal := nH.comap _
 
 @[priority 100, to_additive]
-instance monoid_hom.normal_ker (f : G →* N) : f.ker.normal :=
-by { rw [←f.comap_bot], apply_instance }
-
-@[priority 100, to_additive]
 instance subgroup.normal_inf (H N : subgroup G) [hN : N.normal] :
   ((H ⊓ N).comap H.subtype).normal :=
 ⟨λ x hx g, begin
@@ -2597,6 +2600,9 @@ iff.rfl
 
 @[simp] lemma zpow_mem_zpowers (g : G) (k : ℤ) : g^k ∈ zpowers g :=
 mem_zpowers_iff.mpr ⟨k, rfl⟩
+
+@[simp] lemma npow_mem_zpowers (g : G) (k : ℕ) : g^k ∈ zpowers g :=
+(zpow_coe_nat g k) ▸ zpow_mem_zpowers g k
 
 @[simp] lemma forall_zpowers {x : G} {p : zpowers x → Prop} :
   (∀ g, p g) ↔ ∀ m : ℤ, p ⟨x ^ m, m, rfl⟩ :=
@@ -2634,6 +2640,7 @@ attribute [to_additive add_subgroup.range_zmultiples_hom] subgroup.range_zpowers
 attribute [to_additive add_subgroup.zmultiples_subset] subgroup.zpowers_subset
 attribute [to_additive add_subgroup.mem_zmultiples_iff] subgroup.mem_zpowers_iff
 attribute [to_additive add_subgroup.zsmul_mem_zmultiples] subgroup.zpow_mem_zpowers
+attribute [to_additive add_subgroup.nsmul_mem_zmultiples] subgroup.npow_mem_zpowers
 attribute [to_additive add_subgroup.forall_zmultiples] subgroup.forall_zpowers
 attribute [to_additive add_subgroup.forall_mem_zmultiples] subgroup.forall_mem_zpowers
 attribute [to_additive add_subgroup.exists_zmultiples] subgroup.exists_zpowers
@@ -2799,9 +2806,7 @@ instance : is_modular_lattice (subgroup C) :=
   rw [mem_inf, mem_sup] at ha,
   rcases ha with ⟨⟨b, hb, c, hc, rfl⟩, haz⟩,
   rw mem_sup,
-  refine ⟨b, hb, c, mem_inf.2 ⟨hc, _⟩, rfl⟩,
-  rw ← inv_mul_cancel_left b c,
-  apply z.mul_mem (z.inv_mem (xz hb)) haz,
+  exact ⟨b, hb, c, mem_inf.2 ⟨hc, (mul_mem_cancel_left (xz hb)).1 haz⟩, rfl⟩
 end⟩
 
 end subgroup

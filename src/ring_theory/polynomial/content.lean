@@ -136,7 +136,7 @@ begin
 end
 
 @[simp] lemma content_monomial {r : R} {k : ℕ} : content (monomial k r) = normalize r :=
-by { rw [monomial_eq_C_mul_X, content_C_mul, content_X_pow, mul_one] }
+by rw [← C_mul_X_pow_eq_monomial, content_C_mul, content_X_pow, mul_one]
 
 lemma content_eq_zero_iff {p : R[X]} : content p = 0 ↔ p = 0 :=
 begin

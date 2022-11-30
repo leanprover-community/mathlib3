@@ -290,7 +290,7 @@ section uniform
 variables [uniform_space β] [uniform_space γ] [has_zero γ]
   [zero_at_infty_continuous_map_class F β γ]
 
-lemma zero_at_infty_continuous_map.uniform_continuous (f : F) : uniform_continuous (f : β → γ) :=
+lemma uniform_continuous (f : F) : uniform_continuous (f : β → γ) :=
 uniform_continuous_def.2 $ λ r hr, begin
   obtain ⟨t, ht, htsymm, htr⟩ := comp_symm_mem_uniformity_sets hr,
   obtain ⟨s, hs, hst⟩ := mem_cocompact.1 (zero_at_infty f $ mem_nhds_left 0 ht),

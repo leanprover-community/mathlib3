@@ -9,7 +9,8 @@ import tactic.field_simp
 import tactic.linear_combination
 import data.zmod.basic
 import logic.function.basic
-/-
+
+/-!
 
 # Partial fractions
 

@@ -28,6 +28,10 @@ This file defines upper and lower sets in an order.
 * `lower_set.Iic`: Principal lower set. `set.Iic` as an lower set.
 * `lower_set.Iio`: Strict principal lower set. `set.Iio` as an lower set.
 
+## Notation
+
+`×ˢ` is notation for `upper_set.prod`/`lower_set.prod`.
+
 ## Notes
 
 Upper sets are ordered by **reverse** inclusion. This convention is motivated by the fact that this

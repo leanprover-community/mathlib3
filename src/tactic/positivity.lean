@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Heather Macbeth, Yaël Dillies
 -/
 import tactic.norm_num
 import algebra.order.field.power
+import algebra.order.hom.basic
 
 /-! # `positivity` tactic
 
@@ -731,5 +732,11 @@ meta def positivity_finset_card : expr → tactic strictness
 | `(@fintype.card %%α %%i) := positive <$> mk_mapp ``fintype.card_pos [α, i, none]
 | e := pp e >>= fail ∘ format.bracket "The expression `"
     "` isn't of the form `finset.card s` or `fintype.card α`"
+
+/-- Extension for the `positivity` tactic: nonnegative maps take nonnegative values. -/
+@[positivity]
+meta def positivity_map : expr → tactic strictness
+| (expr.app `(⇑%%f) `(%%a)) := nonnegative <$> mk_app ``map_nonneg [f, a]
+| _ := failed
 
 end tactic

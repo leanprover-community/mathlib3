@@ -6,6 +6,7 @@ Authors: Joseph Myers
 import algebra.module.basic
 import algebra.order.archimedean
 import algebra.periodic
+import group_theory.quotient_group
 
 /-!
 # Reducing to an interval modulo its length
@@ -425,6 +426,46 @@ to_Ico_mod_add_right a hb
 
 lemma to_Ioc_mod_periodic (a : α) {b : α} (hb : 0 < b) : function.periodic (to_Ioc_mod a hb) b :=
 to_Ioc_mod_add_right a hb
+
+/-- `to_Ico_mod` as an equiv from the quotient. -/
+@[simps symm_apply]
+def quotient_add_group.equiv_Ico_mod (a : α) {b : α} (hb : 0 < b) :
+  (α ⧸ add_subgroup.zmultiples b) ≃ set.Ico a (a + b) :=
+{ to_fun := λ x, ⟨(to_Ico_mod_periodic a hb).lift x,
+    quotient_add_group.induction_on' x $ to_Ico_mod_mem_Ico a hb⟩,
+  inv_fun := coe,
+  right_inv := λ x, subtype.ext $ (to_Ico_mod_eq_self hb).mpr x.prop,
+  left_inv := λ x, begin
+    induction x using quotient_add_group.induction_on',
+    dsimp,
+    rw [quotient_add_group.eq_iff_sub_mem, to_Ico_mod_sub_self],
+    apply add_subgroup.zsmul_mem_zmultiples,
+  end }
+
+@[simp]
+lemma quotient_add_group.equiv_Ico_mod_coe (a : α) {b : α} (hb : 0 < b) (x : α) :
+  quotient_add_group.equiv_Ico_mod a hb ↑x = ⟨to_Ico_mod a hb x, to_Ico_mod_mem_Ico a hb _⟩ :=
+rfl
+
+/-- `to_Ioc_mod` as an equiv  from the quotient. -/
+@[simps symm_apply]
+def quotient_add_group.equiv_Ioc_mod (a : α) {b : α} (hb : 0 < b) :
+  (α ⧸ add_subgroup.zmultiples b) ≃ set.Ioc a (a + b) :=
+{ to_fun := λ x, ⟨(to_Ioc_mod_periodic a hb).lift x,
+    quotient_add_group.induction_on' x $ to_Ioc_mod_mem_Ioc a hb⟩,
+  inv_fun := coe,
+  right_inv := λ x, subtype.ext $ (to_Ioc_mod_eq_self hb).mpr x.prop,
+  left_inv := λ x, begin
+    induction x using quotient_add_group.induction_on',
+    dsimp,
+    rw [quotient_add_group.eq_iff_sub_mem, to_Ioc_mod_sub_self],
+    apply add_subgroup.zsmul_mem_zmultiples,
+  end }
+
+@[simp]
+lemma quotient_add_group.equiv_Ioc_mod_coe (a : α) {b : α} (hb : 0 < b) (x : α) :
+  quotient_add_group.equiv_Ioc_mod a hb ↑x = ⟨to_Ioc_mod a hb x, to_Ioc_mod_mem_Ioc a hb _⟩ :=
+rfl
 
 end linear_ordered_add_comm_group
 

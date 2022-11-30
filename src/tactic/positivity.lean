@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Heather Macbeth, Yaël Dillies
 -/
 import tactic.norm_num
 import algebra.order.field.power
+import algebra.order.hom.basic
 import data.nat.factorial.basic
 
 /-! # `positivity` tactic
@@ -718,5 +719,11 @@ meta def positivity_asc_factorial : expr → tactic strictness
 | `(nat.asc_factorial %%a %%b) := positive <$> mk_app ``nat.asc_factorial_pos [a, b]
 | e := pp e >>= fail ∘ format.bracket "The expression `"
          "` isn't of the form `nat.asc_factorial n k`"
+
+/-- Extension for the `positivity` tactic: nonnegative maps take nonnegative values. -/
+@[positivity]
+meta def positivity_map : expr → tactic strictness
+| (expr.app `(⇑%%f) `(%%a)) := nonnegative <$> mk_app ``map_nonneg [f, a]
+| _ := failed
 
 end tactic

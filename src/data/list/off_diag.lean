@@ -1,6 +1,16 @@
+/-
+Copyright (c) 2022 Eric Wieser. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Eric Wieser
+-/
 import data.list.perm
 import data.list.join
 
+/-
+# The off-diagonal list
+
+This file defines `list.off_diag`, the list of pair of elements taken from non-equal indices.
+-/
 
 variables {α : Type*}
 
@@ -21,8 +31,6 @@ def off_diag_aux : list α → list (list (α × α))
 def off_diag (l : list α) : list (α × α) := (off_diag_aux l).join
 
 #eval [1, 2, 3].off_diag
-
-#check list.zip_with_comm
 
 @[simp] lemma off_diag_nil : off_diag ([] : list α) = [] := rfl
 

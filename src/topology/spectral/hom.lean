@@ -110,6 +110,9 @@ equalities. -/
 protected def copy (f : spectral_map α β) (f' : α → β) (h : f' = f) : spectral_map α β :=
 ⟨f', h.symm.subst f.spectral'⟩
 
+@[simp] lemma coe_copy (f : spectral_map α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : spectral_map α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
+
 variables (α)
 
 /-- `id` as a `spectral_map`. -/

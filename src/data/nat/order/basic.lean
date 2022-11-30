@@ -5,7 +5,6 @@ Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import algebra.order.ring.canonical
 import data.nat.basic
-import data.set.basic
 
 /-!
 # The natural numbers as a linearly ordered commutative semiring
@@ -22,19 +21,6 @@ universes u v
 
 instance nat.order_bot : order_bot ℕ :=
 { bot := 0, bot_le := nat.zero_le }
-
-instance nat.subtype.order_bot (s : set ℕ) [decidable_pred (∈ s)] [h : nonempty s] :
-  order_bot s :=
-{ bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,
-  bot_le := λ x, nat.find_min' _ x.2 }
-
-instance nat.subtype.semilattice_sup (s : set ℕ) :
-  semilattice_sup s :=
-{ ..subtype.linear_order s,
-  ..linear_order.to_lattice }
-
-lemma nat.subtype.coe_bot {s : set ℕ} [decidable_pred (∈ s)]
-  [h : nonempty s] : ((⊥ : s) : ℕ) = nat.find (nonempty_subtype.1 h) := rfl
 
 instance : linear_ordered_comm_semiring ℕ :=
 { lt                         := nat.lt,
@@ -163,6 +149,9 @@ lemma two_le_iff : ∀ n, 2 ≤ n ↔ n ≠ 0 ∧ n ≠ 1
 | 1 := by simp
 | (n+2) := by simp
 
+@[simp] lemma lt_one_iff {n : ℕ} : n < 1 ↔ n = 0 :=
+lt_succ_iff.trans nonpos_iff_eq_zero
+
 /-! ### `add` -/
 
 theorem add_pos_left {m : ℕ} (h : 0 < m) (n : ℕ) : 0 < m + n :=
@@ -188,17 +177,15 @@ iff.intro
     apply add_pos_right _ npos
   end
 
-lemma add_eq_one_iff {a b : ℕ} : a + b = 1 ↔ a = 0 ∧ b = 1 ∨ a = 1 ∧ b = 0 :=
-by cases b; simp [nat.succ_eq_add_one, ← add_assoc, nat.succ_inj']
+lemma add_eq_one_iff : m + n = 1 ↔ m = 0 ∧ n = 1 ∨ m = 1 ∧ n = 0 :=
+by cases n; simp [succ_eq_add_one, ← add_assoc, succ_inj']
 
-lemma add_eq_two_iff {a b : ℕ} : a + b = 2 ↔ a = 0 ∧ b = 2 ∨ a = 1 ∧ b = 1 ∨ a = 2 ∧ b = 0 :=
-by cases b;
-  simp [(nat.succ_ne_zero _).symm, nat.succ_eq_add_one, ← add_assoc, nat.succ_inj', add_eq_one_iff]
+lemma add_eq_two_iff : m + n = 2 ↔ m = 0 ∧ n = 2 ∨ m = 1 ∧ n = 1 ∨ m = 2 ∧ n = 0 :=
+by cases n; simp [(succ_ne_zero 1).symm, succ_eq_add_one, ← add_assoc, succ_inj', add_eq_one_iff]
 
-lemma add_eq_three_iff {a b : ℕ} :
-  a + b = 3 ↔ a = 0 ∧ b = 3 ∨ a = 1 ∧ b = 2 ∨ a = 2 ∧ b = 1 ∨ a = 3 ∧ b = 0 :=
-by cases b;
-  simp [(nat.succ_ne_zero _).symm, nat.succ_eq_add_one, ← add_assoc, nat.succ_inj', add_eq_two_iff]
+lemma add_eq_three_iff :
+  m + n = 3 ↔ m = 0 ∧ n = 3 ∨ m = 1 ∧ n = 2 ∨ m = 2 ∧ n = 1 ∨ m = 3 ∧ n = 0 :=
+by cases n; simp [(succ_ne_zero 1).symm, succ_eq_add_one, ← add_assoc, succ_inj', add_eq_two_iff]
 
 theorem le_add_one_iff {i j : ℕ} : i ≤ j + 1 ↔ (i ≤ j ∨ i = j + 1) :=
 ⟨λ h,
@@ -351,11 +338,7 @@ lemma set_induction_bounded {b : ℕ} {S : set ℕ} (hb : b ∈ S) (h_ind: ∀ k
 lemma set_induction {S : set ℕ} (hb : 0 ∈ S) (h_ind: ∀ k : ℕ, k ∈ S → k + 1 ∈ S) (n : ℕ) : n ∈ S :=
 set_induction_bounded hb h_ind (zero_le n)
 
-lemma set_eq_univ {S : set ℕ} : S = set.univ ↔ 0 ∈ S ∧ ∀ k : ℕ, k ∈ S → k + 1 ∈ S :=
-⟨by rintro rfl; simp, λ ⟨h0, hs⟩, set.eq_univ_of_forall (set_induction h0 hs)⟩
-
 /-! ### `div` -/
-
 
 protected lemma div_le_of_le_mul' {m n : ℕ} {k} (h : m ≤ k * n) : m / k ≤ n :=
 (nat.eq_zero_or_pos k).elim

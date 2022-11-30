@@ -5,7 +5,7 @@ Authors: Joël Riou
 -/
 
 import algebraic_topology.split_simplicial_object
-import category_theory.preadditive.default
+import category_theory.preadditive.basic
 import algebraic_topology.dold_kan.degeneracies
 
 /-!

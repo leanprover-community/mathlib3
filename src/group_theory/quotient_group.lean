@@ -5,8 +5,9 @@ Authors: Kevin Buzzard, Patrick Massot
 
 This file is to a certain extent based on `quotient_module.lean` by Johannes Hölzl.
 -/
-import group_theory.coset
 import group_theory.congruence
+import group_theory.coset
+import group_theory.subgroup.pointwise
 
 /-!
 # Quotients of groups by normal subgroups
@@ -293,13 +294,13 @@ assume a b, quotient.induction_on₂' a b $
 @[to_additive quotient_add_group.range_ker_lift "The induced map from the quotient by the kernel to
 the range."]
 def range_ker_lift : G ⧸ ker φ →* φ.range :=
-lift _ φ.range_restrict $ λ g hg, (mem_ker _).mp $ by rwa range_restrict_ker
+lift _ φ.range_restrict $ λ g hg, (mem_ker _).mp $ by rwa ker_range_restrict
 
 @[to_additive quotient_add_group.range_ker_lift_injective]
 lemma range_ker_lift_injective : injective (range_ker_lift φ) :=
 assume a b, quotient.induction_on₂' a b $
   assume a b (h : φ.range_restrict a = φ.range_restrict b), quotient.sound' $
-  by rw [left_rel_apply, ←range_restrict_ker, mem_ker,
+  by rw [left_rel_apply, ←ker_range_restrict, mem_ker,
   φ.range_restrict.map_mul, ← h, φ.range_restrict.map_inv, inv_mul_self]
 
 @[to_additive quotient_add_group.range_ker_lift_surjective]

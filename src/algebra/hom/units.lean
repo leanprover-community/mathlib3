@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Chris Hughes, Kevin Buzzard
 -/
 import algebra.hom.group
-import algebra.group.commute
+import algebra.group.units
 /-!
 # Monoid homomorphisms and units
 
@@ -142,8 +142,10 @@ units.lift_right f
   (λ g, ⟨f g, f g⁻¹, map_mul_eq_one f (mul_inv_self _), map_mul_eq_one f (inv_mul_self _)⟩)
   (λ g, rfl)
 
-@[simp] lemma coe_to_hom_units {G M : Type*} [group G] [monoid M] (f : G →* M) (g : G):
-  (f.to_hom_units g : M) = f g := rfl
+@[simp, to_additive]
+lemma coe_to_hom_units {G M : Type*} [group G] [monoid M] (f : G →* M) (g : G) :
+  (f.to_hom_units g : M) = f g :=
+rfl
 
 end monoid_hom
 

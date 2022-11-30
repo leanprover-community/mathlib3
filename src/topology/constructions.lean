@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 import topology.maps
 import topology.locally_finite
 import order.filter.pi
-import data.fin.tuple
 
 /-!
 # Constructions of new topological spaces from old ones

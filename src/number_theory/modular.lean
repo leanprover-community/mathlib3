@@ -6,7 +6,6 @@ Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 
 import analysis.complex.upper_half_plane.basic
 import linear_algebra.general_linear_group
-import analysis.matrix
 
 /-!
 # The action of the modular group SL(2, ℤ) on the upper half-plane
@@ -108,7 +107,6 @@ end bottom_row
 section tendsto_lemmas
 
 open filter continuous_linear_map
-local attribute [instance] matrix.normed_add_comm_group matrix.normed_space
 local attribute [simp] coe_smul
 
 /-- The function `(c,d) → |cz+d|^2` is proper, that is, preimages of bounded-above sets are finite.
@@ -330,10 +328,10 @@ lemma coe_T_zpow (n : ℤ) : ↑ₘ(T ^ n) = !![1, n; 0, 1] :=
 begin
   induction n using int.induction_on with n h n h,
   { rw [zpow_zero, coe_one, matrix.one_fin_two] },
-  { simp_rw [zpow_add, zpow_one, special_linear_group.coe_mul, h, coe_T, matrix.mul_fin_two],
+  { simp_rw [zpow_add, zpow_one, coe_mul, h, coe_T, matrix.mul_fin_two],
     congrm !![_, _; _, _],
     rw [mul_one, mul_one, add_comm] },
-  { simp_rw [zpow_sub, zpow_one, special_linear_group.coe_mul, h, coe_T_inv, matrix.mul_fin_two],
+  { simp_rw [zpow_sub, zpow_one, coe_mul, h, coe_T_inv, matrix.mul_fin_two],
     congrm !![_, _; _, _]; ring },
 end
 
@@ -388,7 +386,7 @@ begin
   refine subtype.ext _,
   conv_lhs { rw matrix.eta_fin_two ↑ₘg },
   rw [hc, hg],
-  simp only [special_linear_group.coe_mul, coe_T_zpow, coe_S, mul_fin_two],
+  simp only [coe_mul, coe_T_zpow, coe_S, mul_fin_two],
   congrm !![_, _; _, _]; ring
 end
 

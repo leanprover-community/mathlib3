@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Alena Gusakov, Yaël Dillies
 -/
 import algebra.big_operators.ring
+import algebra.order.field.basic
 import combinatorics.double_counting
 import combinatorics.set_family.shadow
 import data.rat.order
-import tactic.linarith
 
 /-!
 # Lubell-Yamamoto-Meshalkin inequality and Sperner's theorem

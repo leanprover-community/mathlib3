@@ -68,7 +68,7 @@ begin
   let s := basis.of_vector_space F K,
   refine ⟨∏ x, minpoly F (s x),
     splits_prod _ $ λ x hx, h.splits (s x),
-    subalgebra.to_submodule_injective _⟩,
+    subalgebra.to_submodule.injective _⟩,
   rw [algebra.top_to_submodule, eq_top_iff, ← s.span_eq, submodule.span_le, set.range_subset_iff],
   refine λ x, algebra.subset_adjoin (multiset.mem_to_finset.mpr $
     (mem_roots $ mt (polynomial.map_eq_zero $ algebra_map F K).1 $

@@ -658,7 +658,7 @@ begin
   exact ⟨λ i, s i, λ i, (s i).2, pairwise.set_of_subtype _ _ hd⟩
 end
 
-/-- There is exactly one filter on an empty type. --/
+/-- There is exactly one filter on an empty type. -/
 instance unique [is_empty α] : unique (filter α) :=
 { default := ⊥, uniq := filter_eq_bot_of_is_empty }
 

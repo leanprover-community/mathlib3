@@ -3,7 +3,6 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Floris van Doorn, Sébastien Gouëzel, Alex J. Best
 -/
-import algebra.group_power
 import data.list.forall2
 
 /-!
@@ -114,10 +113,21 @@ begin
   exact is_unit.mul (u h (mem_cons_self h t)) (prod_is_unit (λ m mt, u m (mem_cons_of_mem h mt)))
 end
 
+@[to_additive]
+lemma prod_is_unit_iff {α : Type*} [comm_monoid α] {L : list α} :
+  is_unit L.prod ↔ ∀ m ∈ L, is_unit m :=
+begin
+  refine ⟨λ h, _, prod_is_unit⟩,
+  induction L with m L ih,
+  { exact λ m' h', false.elim (not_mem_nil m' h'), },
+  rw [prod_cons, is_unit.mul_iff] at h,
+  exact λ m' h', or.elim (eq_or_mem_of_mem_cons h') (λ H, H.substr h.1) (λ H, ih h.2 _ H),
+end
+
 @[simp, to_additive]
 lemma prod_take_mul_prod_drop :
   ∀ (L : list M) (i : ℕ), (L.take i).prod * (L.drop i).prod = L.prod
-| [] i := by simp [@zero_le' ℕ]
+| [] i := by simp [nat.zero_le]
 | L 0 := by simp
 | (h :: t) (n+1) := by { dsimp, rw [prod_cons, prod_cons, mul_assoc, prod_take_mul_prod_drop] }
 
@@ -151,7 +161,7 @@ lemma prod_update_nth : ∀ (L : list M) (n : ℕ) (a : M),
     (L.take n).prod * (if n < L.length then a else 1) * (L.drop (n + 1)).prod
 | (x :: xs) 0     a := by simp [update_nth]
 | (x :: xs) (i+1) a := by simp [update_nth, prod_update_nth xs i a, mul_assoc]
-| []      _     _ := by simp [update_nth, (nat.zero_le _).not_lt, @zero_le' ℕ]
+| []      _     _ := by simp [update_nth, (nat.zero_le _).not_lt, nat.zero_le]
 
 open mul_opposite
 
@@ -188,21 +198,6 @@ end
 lemma _root_.commute.list_prod_left (l : list M) (y : M) (h : ∀ (x ∈ l), commute x y) :
   commute l.prod y  :=
 (commute.list_prod_right _ _ $ λ x hx, (h _ hx).symm).symm
-
-lemma _root_.commute.list_sum_right [non_unital_non_assoc_semiring R] (a : R) (l : list R)
-  (h : ∀ b ∈ l, commute a b) :
-  commute a l.sum :=
-begin
-  induction l with x xs ih,
-  { exact commute.zero_right _, },
-  { rw sum_cons,
-    exact (h _ $ mem_cons_self _ _).add_right (ih $ λ j hj, h _ $ mem_cons_of_mem _ hj) }
-end
-
-lemma _root_.commute.list_sum_left [non_unital_non_assoc_semiring R] (b : R) (l : list R)
-  (h : ∀ a ∈ l, commute a b) :
-  commute l.sum b :=
-(commute.list_sum_right _ _ $ λ x hx, (h _ hx).symm).symm
 
 @[to_additive sum_le_sum] lemma forall₂.prod_le_prod' [preorder M]
   [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
@@ -271,13 +266,6 @@ lemma prod_le_pow_card [preorder M]
   (l : list M) (n : M) (h : ∀ (x ∈ l), x ≤ n) :
   l.prod ≤ n ^ l.length :=
 by simpa only [map_id'', map_const, prod_repeat] using prod_le_prod' h
-
-@[to_additive card_nsmul_le_sum]
-lemma pow_card_le_prod [preorder M]
-  [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
-  (l : list M) (n : M) (h : ∀ (x ∈ l), n ≤ x) :
-  n ^ l.length ≤ l.prod :=
-@prod_le_pow_card Mᵒᵈ _ _ _ _ l n h
 
 @[to_additive exists_lt_of_sum_lt] lemma exists_lt_of_prod_lt' [linear_order M]
   [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)] {l : list ι}
@@ -440,25 +428,20 @@ lemma all_one_of_le_one_le_of_prod_eq_one [ordered_comm_monoid M]
   x = 1 :=
 le_antisymm (hl₂ ▸ single_le_prod hl₁ _ hx) (hl₁ x hx)
 
-@[to_additive] lemma prod_eq_one_iff [canonically_ordered_monoid M] (l : list M) :
-  l.prod = 1 ↔ ∀ x ∈ l, x = (1 : M) :=
-⟨all_one_of_le_one_le_of_prod_eq_one (λ _ _, one_le _),
-  λ h, by rw [eq_repeat.2 ⟨rfl, h⟩, prod_repeat, one_pow]⟩
-
 /-- Slightly more general version of `list.prod_eq_one_iff` for a non-ordered `monoid` -/
 @[to_additive "Slightly more general version of `list.sum_eq_zero_iff`
   for a non-ordered `add_monoid`"]
 lemma prod_eq_one [monoid M] {l : list M} (hl : ∀ (x ∈ l), x = (1 : M)) : l.prod = 1 :=
-trans (prod_eq_pow_card l 1 hl) (one_pow l.length)
-
-/-- If all elements in a list are bounded below by `1`, then the length of the list is bounded
-by the sum of the elements. -/
-lemma length_le_sum_of_one_le (L : list ℕ) (h : ∀ i ∈ L, 1 ≤ i) : L.length ≤ L.sum :=
 begin
-  induction L with j L IH h, { simp },
-  rw [sum_cons, length, add_comm],
-  exact add_le_add (h _ (set.mem_insert _ _)) (IH (λ i hi, h i (set.mem_union_right _ hi)))
+  induction l with i l hil,
+  { refl },
+  rw [list.prod_cons, hil (λ x hx, hl _ (mem_cons_of_mem i hx)), hl _ (mem_cons_self i l), one_mul]
 end
+
+@[to_additive]
+lemma exists_mem_ne_one_of_prod_ne_one [monoid M] {l : list M} (h : l.prod ≠ 1) :
+  ∃ (x ∈ l), x ≠ (1 : M) :=
+by simpa only [not_forall] using mt prod_eq_one h
 
 -- TODO: develop theory of tropical rings
 lemma sum_le_foldr_max [add_monoid M] [add_monoid N] [linear_order N] (f : M → N)
@@ -492,20 +475,8 @@ lemma prod_map_erase [decidable_eq ι] [comm_monoid M] (f : ι → M) {a} :
         mul_left_comm (f a) (f b)], }
   end
 
-lemma dvd_prod [comm_monoid M] {a} {l : list M} (ha : a ∈ l) : a ∣ l.prod :=
-let ⟨s, t, h⟩ := mem_split ha in
-by { rw [h, prod_append, prod_cons, mul_left_comm], exact dvd_mul_right _ _ }
-
 @[simp] lemma sum_const_nat (m n : ℕ) : sum (list.repeat m n) = m * n :=
 by induction n; [refl, simp only [*, repeat_succ, sum_cons, nat.mul_succ, add_comm]]
-
-lemma dvd_sum [semiring R] {a} {l : list R} (h : ∀ x ∈ l, a ∣ x) : a ∣ l.sum :=
-begin
-  induction l with x l ih,
-  { exact dvd_zero _ },
-  { rw [list.sum_cons],
-    exact dvd_add (h _ (mem_cons_self _ _)) (ih (λ x hx, h x (mem_cons_of_mem _ hx))) }
-end
 
 /-- The product of a list of positive natural numbers is positive,
 and likewise for any nontrivial ordered semiring. -/
@@ -562,53 +533,9 @@ by rw [alternating_prod_cons_cons', alternating_prod_cons' b l, mul_inv, inv_inv
   alternating_prod (a :: l) = a / alternating_prod l :=
 by rw [div_eq_mul_inv, alternating_prod_cons']
 
-@[to_additive]
-lemma alternating_prod_append : ∀ l₁ l₂ : list α,
-  alternating_prod (l₁ ++ l₂) = alternating_prod l₁ * alternating_prod l₂ ^ (-1 : ℤ) ^ length l₁
-| [] l₂ := by simp
-| (a :: l₁) l₂ := by simp_rw [cons_append, alternating_prod_cons, alternating_prod_append,
-  length_cons, pow_succ, neg_mul, one_mul, zpow_neg, ←div_eq_mul_inv, div_div]
-
-@[to_additive]
-lemma alternating_prod_reverse :
-  ∀ l : list α, alternating_prod (reverse l) = alternating_prod l ^ (-1 : ℤ) ^ (length l + 1)
-| [] := by simp only [alternating_prod_nil, one_zpow, reverse_nil]
-| (a :: l) :=
-begin
-  simp_rw [reverse_cons, alternating_prod_append, alternating_prod_reverse,
-    alternating_prod_singleton, alternating_prod_cons, length_reverse, length, pow_succ, neg_mul,
-    one_mul, zpow_neg, inv_inv],
-  rw [mul_comm, ←div_eq_mul_inv, div_zpow],
-end
-
 end alternating
 
-lemma sum_map_mul_left [non_unital_non_assoc_semiring R] (L : list ι) (f : ι → R) (r : R) :
-  (L.map (λ b, r * f b)).sum = r * (L.map f).sum :=
-sum_map_hom L f $ add_monoid_hom.mul_left r
-
-lemma sum_map_mul_right [non_unital_non_assoc_semiring R] (L : list ι) (f : ι → R) (r : R) :
-  (L.map (λ b, f b * r)).sum = (L.map f).sum * r :=
-sum_map_hom L f $ add_monoid_hom.mul_right r
-
 end list
-
-namespace mul_opposite
-
-open list
-variables [monoid M]
-
-lemma op_list_prod : ∀ (l : list M), op (l.prod) = (l.map op).reverse.prod
-| [] := rfl
-| (x :: xs) := by rw [list.prod_cons, list.map_cons, list.reverse_cons', list.prod_concat, op_mul,
-                      op_list_prod]
-
-lemma _root_.mul_opposite.unop_list_prod (l : list Mᵐᵒᵖ) :
-  (l.prod).unop = (l.map unop).reverse.prod :=
-by rw [← op_inj, op_unop, mul_opposite.op_list_prod, map_reverse, map_map, reverse_reverse,
-  op_comp_unop, map_id]
-
-end mul_opposite
 
 section monoid_hom
 
@@ -619,11 +546,6 @@ lemma map_list_prod {F : Type*} [monoid_hom_class F M N] (f : F)
   (l : list M) : f l.prod = (l.map f).prod :=
 (l.prod_hom f).symm
 
-/-- A morphism into the opposite monoid acts on the product by acting on the reversed elements. -/
-lemma unop_map_list_prod {F : Type*} [monoid_hom_class F M Nᵐᵒᵖ] (f : F) (l : list M) :
-  (f l.prod).unop = (l.map (mul_opposite.unop ∘ f)).reverse.prod :=
-by rw [map_list_prod f l, mul_opposite.unop_list_prod, list.map_map]
-
 namespace monoid_hom
 
 /-- Deprecated, use `_root_.map_list_prod` instead. -/
@@ -631,13 +553,6 @@ namespace monoid_hom
 protected lemma map_list_prod (f : M →* N) (l : list M) :
   f l.prod = (l.map f).prod :=
 map_list_prod f l
-
-/-- A morphism into the opposite monoid acts on the product by acting on the reversed elements.
-
-Deprecated, use `_root_.unop_map_list_prod` instead. -/
-protected lemma unop_map_list_prod (f : M →* Nᵐᵒᵖ) (l : list M) :
-  (f l.prod).unop = (l.map (mul_opposite.unop ∘ f)).reverse.prod :=
-unop_map_list_prod f l
 
 end monoid_hom
 

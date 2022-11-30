@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
+import algebra.big_operators.multiset.lemmas
 import algebra.group.pi
+import algebra.group_power.lemmas
 import algebra.hom.equiv.basic
 import algebra.ring.opposite
-import data.finset.fold
+import data.finset.sum
 import data.fintype.basic
+import data.finset.sigma
 import data.set.pairwise
 
 /-!
@@ -1414,7 +1417,13 @@ end
 @[simp]
 lemma sum_boole {s : finset α} {p : α → Prop} [non_assoc_semiring β] {hp : decidable_pred p} :
   (∑ x in s, if p x then (1 : β) else (0 : β)) = (s.filter p).card :=
-by simp [sum_ite]
+by simp only [add_zero,
+ mul_one,
+ finset.sum_const,
+ nsmul_eq_mul,
+ eq_self_iff_true,
+ finset.sum_const_zero,
+ finset.sum_ite]
 
 lemma _root_.commute.sum_right [non_unital_non_assoc_semiring β] (s : finset α)
   (f : α → β) (b : β) (h : ∀ i ∈ s, commute b (f i)) :

@@ -10,6 +10,10 @@ import order.rel_classes
 /-!
 # Monotonicity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/591
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines (strictly) monotone/antitone functions. Contrary to standard mathematical usage,
 "monotone"/"mono" here means "increasing", not "increasing or decreasing". We use "antitone"/"anti"
 to mean "decreasing".

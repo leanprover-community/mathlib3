@@ -3,10 +3,9 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.preadditive
+import category_theory.preadditive.basic
 import algebra.module.linear_map
 import algebra.invertible
-import linear_algebra.basic
 import algebra.algebra.basic
 
 /-!

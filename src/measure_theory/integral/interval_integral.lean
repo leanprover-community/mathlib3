@@ -383,7 +383,7 @@ lemma sum (s : finset ι) {f : ι → ℝ → E} (h : ∀ i ∈ s, interval_inte
   interval_integrable (∑ i in s, f i) μ a b :=
 ⟨integrable_finset_sum' s (λ i hi, (h i hi).1), integrable_finset_sum' s (λ i hi, (h i hi).2)⟩
 
-lemma mul_continuous_on {f g : ℝ → ℝ}
+lemma mul_continuous_on {A : Type*} [normed_ring A] [second_countable_topology A] {f g : ℝ → A}
   (hf : interval_integrable f μ a b) (hg : continuous_on g [a, b]) :
   interval_integrable (λ x, f x * g x) μ a b :=
 begin
@@ -391,17 +391,20 @@ begin
   exact hf.mul_continuous_on_of_subset hg measurable_set_Ioc is_compact_interval Ioc_subset_Icc_self
 end
 
-lemma continuous_on_mul {f g : ℝ → ℝ} (hf : interval_integrable f μ a b)
-  (hg : continuous_on g [a, b]) :
+lemma continuous_on_mul {A : Type*} [normed_ring A] [second_countable_topology A] {f g : ℝ → A}
+  (hf : interval_integrable f μ a b) (hg : continuous_on g [a, b]) :
   interval_integrable (λ x, g x * f x) μ a b :=
-by simpa [mul_comm] using hf.mul_continuous_on hg
+begin
+  rw interval_integrable_iff at hf ⊢,
+  exact hf.continuous_on_mul_of_subset hg measurable_set_Ioc is_compact_interval Ioc_subset_Icc_self
+end
 
-lemma const_mul {f : ℝ → ℝ} {a b : ℝ} {μ : measure ℝ}
-  (hf : interval_integrable f μ a b) (c : ℝ) : interval_integrable (λ x, c * f x) μ a b :=
+lemma const_mul {A : Type*} [normed_ring A] [second_countable_topology A] {f : ℝ → A}
+  (hf : interval_integrable f μ a b) (c : A) : interval_integrable (λ x, c * f x) μ a b :=
 hf.continuous_on_mul continuous_on_const
 
-lemma mul_const {f : ℝ → ℝ} {a b : ℝ} {μ : measure ℝ}
-  (hf : interval_integrable f μ a b) (c : ℝ) : interval_integrable (λ x, f x * c) μ a b :=
+lemma mul_const {A : Type*} [normed_ring A] [second_countable_topology A] {f : ℝ → A}
+  (hf : interval_integrable f μ a b) (c : A) : interval_integrable (λ x, f x * c) μ a b :=
 hf.mul_continuous_on continuous_on_const
 
 lemma comp_mul_left (hf : interval_integrable f volume a b) (c : ℝ) :
@@ -2480,8 +2483,12 @@ end
 /-!
 ### Integration by parts
 -/
+section parts
 
-theorem integral_deriv_mul_eq_sub {u v u' v' : ℝ → ℝ}
+variables {A : Type*} [normed_ring A] [second_countable_topology A] [normed_algebra ℝ A]
+[complete_space A]
+
+theorem integral_deriv_mul_eq_sub {u v u' v' : ℝ → A}
   (hu : ∀ x ∈ interval a b, has_deriv_at u (u' x) x)
   (hv : ∀ x ∈ interval a b, has_deriv_at v (v' x) x)
   (hu' : interval_integrable u' volume a b) (hv' : interval_integrable v' volume a b) :
@@ -2490,19 +2497,20 @@ integral_eq_sub_of_has_deriv_at (λ x hx, (hu x hx).mul (hv x hx)) $
   (hu'.mul_continuous_on (has_deriv_at.continuous_on hv)).add
     (hv'.continuous_on_mul ((has_deriv_at.continuous_on hu)))
 
-theorem integral_mul_deriv_eq_deriv_mul {u v u' v' : ℝ → ℝ}
+theorem integral_mul_deriv_eq_deriv_mul {u v u' v' : ℝ → A}
   (hu : ∀ x ∈ interval a b, has_deriv_at u (u' x) x)
   (hv : ∀ x ∈ interval a b, has_deriv_at v (v' x) x)
   (hu' : interval_integrable u' volume a b) (hv' : interval_integrable v' volume a b) :
-  ∫ x in a..b, u x * v' x = u b * v b - u a * v a - ∫ x in a..b, v x * u' x :=
+  ∫ x in a..b, u x * v' x = u b * v b - u a * v a - ∫ x in a..b, u' x * v x :=
 begin
   rw [← integral_deriv_mul_eq_sub hu hv hu' hv', ← integral_sub],
-  { exact integral_congr (λ x hx, by simp only [mul_comm, add_sub_cancel']) },
+  { exact integral_congr (λ x hx, by simp only [add_sub_cancel']) },
   { exact ((hu'.mul_continuous_on (has_deriv_at.continuous_on hv)).add
       (hv'.continuous_on_mul (has_deriv_at.continuous_on hu))) },
-  { exact hu'.continuous_on_mul (has_deriv_at.continuous_on hv) },
+  { exact hu'.mul_continuous_on (has_deriv_at.continuous_on hv) },
 end
 
+end parts
 /-!
 ### Integration by substitution / Change of variables
 -/

@@ -105,7 +105,7 @@ hg.mul_continuous_on_of_subset hg' hK.measurable_set hK (subset.refl _)
 
 lemma integrable_on.continuous_on_mul_of_subset
   (hg : continuous_on g K) (hg' : integrable_on g' A μ)
-  (hK : is_compact K) (hA : measurable_set A) (hAK : A ⊆ K) :
+  (hA : measurable_set A) (hK : is_compact K) (hAK : A ⊆ K) :
   integrable_on (λ x, g x * g' x) A μ :=
 begin
   rcases is_compact.exists_bound_of_continuous_on hK hg with ⟨C, hC⟩,
@@ -120,7 +120,7 @@ end
 lemma integrable_on.continuous_on_mul [t2_space X]
   (hg : continuous_on g K) (hg' : integrable_on g' K μ) (hK : is_compact K) :
   integrable_on (λ x, g x * g' x) K μ :=
-integrable_on.continuous_on_mul_of_subset hg hg' hK hK.measurable_set subset.rfl
+integrable_on.continuous_on_mul_of_subset hg hg' hK.measurable_set hK subset.rfl
 
 end mul
 

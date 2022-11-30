@@ -127,8 +127,8 @@ def filter.tendsto.units [topological_space N] [monoid N] [has_continuous_mul N]
   (h₁ : tendsto (λ x, ↑(f x)) l (𝓝 r₁)) (h₂ : tendsto (λ x, ↑(f x)⁻¹) l (𝓝 r₂)) : Nˣ :=
 { val := r₁,
   inv := r₂,
-  val_inv := tendsto_nhds_unique (by simpa using h₁.mul h₂) tendsto_const_nhds,
-  inv_val := tendsto_nhds_unique (by simpa using h₂.mul h₁) tendsto_const_nhds }
+  val_inv := by { symmetry, simpa using h₁.mul h₂ },
+  inv_val := by { symmetry, simpa using h₂.mul h₁ } }
 
 @[to_additive]
 lemma continuous_at.mul {f g : X → M} {x : X} (hf : continuous_at f x) (hg : continuous_at g x) :

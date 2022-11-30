@@ -8,6 +8,7 @@ import data.nat.bits
 import data.nat.log
 import data.list.indexes
 import data.list.palindrome
+import algebra.parity
 import tactic.interval_cases
 import tactic.linarith
 

@@ -5,6 +5,7 @@ Authors: Eric Rodriguez
 -/
 import algebra.ne_zero
 import data.nat.modeq
+import data.fintype.lattice
 
 /-!
 # Definition of `zmod n` + basic results.

@@ -136,6 +136,28 @@ alias covby_top_iff ↔ covby.is_coatom is_coatom.covby_top
 
 end is_coatom
 
+section partial_order
+variables [partial_order α] {a b : α}
+
+@[simp] lemma set.Ici.is_atom_iff {b : set.Ici a} : is_atom b ↔ a ⋖ b :=
+begin
+  rw ←bot_covby_iff,
+  refine (set.ord_connected.apply_covby_apply_iff (order_embedding.subtype $ λ c, a ≤ c) _).symm,
+  simpa only [order_embedding.subtype_apply, subtype.range_coe_subtype] using set.ord_connected_Ici,
+end
+
+@[simp] lemma set.Iic.is_coatom_iff {a : set.Iic b} : is_coatom a ↔ ↑a ⋖ b :=
+begin
+  rw ←covby_top_iff,
+  refine (set.ord_connected.apply_covby_apply_iff (order_embedding.subtype $ λ c, c ≤ b) _).symm,
+  simpa only [order_embedding.subtype_apply, subtype.range_coe_subtype] using set.ord_connected_Iic,
+end
+
+lemma covby_iff_atom_Ici (h : a ≤ b) : a ⋖ b ↔ is_atom (⟨b, h⟩ : set.Ici a) := by simp
+lemma covby_iff_coatom_Iic (h : a ≤ b) : a ⋖ b ↔ is_coatom (⟨a, h⟩ : set.Iic b) := by simp
+
+end partial_order
+
 section pairwise
 
 lemma is_atom.inf_eq_bot_of_ne [semilattice_inf α] [order_bot α] {a b : α}

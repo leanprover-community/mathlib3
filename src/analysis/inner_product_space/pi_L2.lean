@@ -287,7 +287,7 @@ begin
     euclidean_space.inner_single_left, euclidean_space.single_apply, map_one, one_mul],
 end
 
-/-- The `basis ι 𝕜 E` underlying the `orthonormal_basis` --/
+/-- The `basis ι 𝕜 E` underlying the `orthonormal_basis` -/
 protected def to_basis (b : orthonormal_basis ι 𝕜 E) : basis ι 𝕜 E :=
 basis.of_equiv_fun b.repr.to_linear_equiv
 

@@ -427,7 +427,7 @@ the second dart's first vertex. -/
 def dart_adj (d d' : G.dart) : Prop := d.snd = d'.fst
 
 /-- For a given vertex `v`, this is the bijective map from the neighbor set at `v`
-to the darts `d` with `d.fst = v`. --/
+to the darts `d` with `d.fst = v`. -/
 @[simps] def dart_of_neighbor_set (v : V) (w : G.neighbor_set v) : G.dart :=
 ⟨(v, w), w.property⟩
 
@@ -1292,7 +1292,7 @@ abbreviation to_embedding : G ↪g G' := f.to_rel_embedding
 /-- An isomorphism of graphs gives rise to a homomorphism of graphs. -/
 abbreviation to_hom : G →g G' := f.to_embedding.to_hom
 
-/-- The inverse of a graph isomorphism. --/
+/-- The inverse of a graph isomorphism. -/
 abbreviation symm : G' ≃g G := f.symm
 
 lemma map_adj_iff {v w : V} : G'.adj (f v) (f w) ↔ G.adj v w := f.map_rel_iff

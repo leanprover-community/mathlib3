@@ -100,13 +100,13 @@ by simp [coeff_mul]
   defined as `coeff p 0`. This is a ring homomorphism. -/
 @[simps] def constant_coeff : R[X] →+* R :=
 { to_fun := λ p, coeff p 0,
-  map_one' := by rw [coeff_one, if_pos rfl],
+  map_one' := coeff_one_zero,
   map_mul' := mul_coeff_zero,
   map_zero' := coeff_zero 0,
   map_add' :=  λ p q, coeff_add p q 0 }
 
 lemma is_unit_C {x : R} : is_unit (C x) ↔ is_unit x :=
-⟨λ h, by { rw ← @coeff_C_zero _ x, exact h.map (@constant_coeff R _) }, λ h, h.map C⟩
+⟨λ h, (congr_arg is_unit coeff_C_zero).mp (h.map $ @constant_coeff R _), λ h, h.map C⟩
 
 lemma coeff_mul_X_zero (p : R[X]) : coeff (p * X) 0 = 0 := by simp
 

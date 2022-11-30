@@ -31,17 +31,32 @@ Hermann Minkowski.
 See https://arxiv.org/pdf/1405.2119.pdf for some more ideas.
 -/
 
+section
+variables {G H : Type*} [group G] [group H]
+
 @[simp, to_additive]
-lemma subgroup.coe_equiv_map_of_injective_symm_apply {G H : Type*} [group G] [group H] (e : G ≃* H)
-  {L : subgroup G} {g : L.map (e : G →* H)} {hh} :
-  (((L.equiv_map_of_injective _ hh).symm g) : G) = e.symm g :=
-begin
-  rcases g with ⟨-, h, h_prop, rfl⟩,
-  rw [subtype.coe_mk, subtype.coe_eq_iff],
-  refine ⟨_, _⟩,
-  { simpa only [monoid_hom.coe_coe, mul_equiv.symm_apply_apply] },
-  erw [mul_equiv.symm_apply_eq, subtype.ext_iff, subgroup.coe_equiv_map_of_injective_apply,
-    subtype.coe_mk, mul_equiv.apply_symm_apply],
+lemma mul_equiv.coe_to_equiv_symm (e : G ≃* H) : (e.symm : H ≃ G) = (e : G ≃ H).symm := rfl
+
+@[simp, to_additive]
+lemma subgroup.equiv_map_of_injective_symm_apply (e : G ≃* H)
+  {L : subgroup G} {g : L.map (e : G →* H)} :
+  (L.equiv_map_of_injective _ $ by exact e.injective).symm g =
+    ⟨e.symm g, set_like.mem_coe.1 $ set.mem_image_equiv.1 g.2⟩ :=
+by { simp_rw [mul_equiv.symm_apply_eq, subtype.ext_iff], simp }
+
+end
+
+section
+variables {𝕜 α β : Type*} [semiring 𝕜] [add_comm_group α] [add_comm_group β] [module 𝕜 α]
+  [module 𝕜 β]
+
+@[simp]
+lemma add_subgroup.linear_equiv_map_of_injective_symm_apply (e : α ≃ₗ[𝕜] β)
+  {L : add_subgroup α} {g : L.map (e : α →+ β)} :
+  (L.equiv_map_of_injective _ $ by exact e.injective).symm g =
+    ⟨e.symm g, set_like.mem_coe.1 $ (@set.mem_image_equiv α β _ e _).1 g.2⟩ :=
+by convert add_subgroup.equiv_map_of_injective_symm_apply (e : α ≃+ β)
+
 end
 
 namespace linear_equiv
@@ -78,27 +93,6 @@ variables {𝕜 G H : Type*} [nontrivially_normed_field 𝕜] [complete_space �
 instance (e : G ≃ₗ[𝕜] H) : is_add_haar_measure (μ.map e) :=
 e.to_add_equiv.is_add_haar_measure_map _ (e : G →ₗ[𝕜] H).continuous_of_finite_dimensional
   (e.symm : H →ₗ[𝕜] G).continuous_of_finite_dimensional
-
-end
-
-section
-variables {α G V : Type*} [measurable_space G] [measurable_space α] {μ : measure G}
-
-@[to_additive]
-instance is_mul_left_invariant.to_smul_invariant_measure [has_mul G] [has_measurable_mul G]
-  [μ.is_mul_left_invariant] : smul_invariant_measure G G μ :=
-⟨λ g s hs, by simp_rw [smul_eq_mul, ←map_apply (measurable_const_mul g) hs, map_mul_left_eq_self]⟩
-open smul_invariant_measure
-
-variables [group G]
-
-@[to_additive] instance subgroup.smul_invariant_measure [has_measurable_mul G]
-  [μ.is_mul_left_invariant] {Γ : subgroup G} : smul_invariant_measure Γ G μ :=
-⟨λ c s hs, measure_preimage_mul μ _ s⟩
-
-@[to_additive] instance subgroup.smul_invariant_measure_op [has_measurable_mul G]
-  [μ.is_mul_right_invariant] {Γ : subgroup G} : smul_invariant_measure Γ.opposite G μ :=
-⟨λ c s hs, measure_preimage_mul_right μ _ s⟩
 
 end
 
@@ -198,12 +192,7 @@ begin
     refl },
   { refine ((L.equiv_map_of_injective _ _).symm.to_equiv : L.map (e : E →+ G) ≃ L),
     exact e.injective },
-  { simp only [add_subgroup.vadd_def, add_equiv.to_equiv_symm, add_equiv.to_equiv_eq_coe,
-      vadd_eq_add, linear_equiv.coe_to_equiv, _root_.map_add, _root_.add_left_inj],
-    refine e.symm.injective _,
-    simp only [add_equiv.coe_to_equiv, linear_equiv.symm_apply_apply],
-    convert add_subgroup.coe_equiv_map_of_injective_symm_apply e.to_add_equiv,
-    exact e.injective }
+  { simp [←add_equiv.coe_to_equiv_symm, _root_.map_add, add_subgroup.vadd_def, vadd_eq_add] }
 end
 
 end is_add_fundamental_domain
@@ -271,8 +260,8 @@ begin
   { refine ⟨(L.equiv_map_of_injective _ _).symm x, _, _⟩,
     { exact equiv_like.injective e },
     { simp only [hx, ne.def, add_equiv_class.map_eq_zero_iff, not_false_iff, exists_true_left] },
-    erw add_subgroup.coe_equiv_map_of_injective_symm_apply e.to_add_equiv,
-    exact mem_image_equiv.mp hxT },
+    simp only [add_subgroup.linear_equiv_map_of_injective_symm_apply, add_subgroup.coe_mk],
+    exact (@set.mem_image_equiv E (ι → ℝ) _ e _).1 hxT },
   { erw [measurable_equiv.map_apply e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv,
       measurable_equiv.map_apply e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv,
       preimage_image_eq _ e.injective, preimage_image_eq _ e.injective],

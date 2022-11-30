@@ -6,7 +6,7 @@ Authors: Kevin Buzzard, Sidharth Hariharan
 import ring_theory.localization.fraction_ring -- field of fractions
 import data.polynomial.div -- theory of division and remainder for monic polynomials
 import tactic.field_simp
-import tactic
+import tactic.linear_combination
 import data.zmod.basic
 import logic.function.basic
 /-

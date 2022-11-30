@@ -2379,8 +2379,10 @@ comap_sup_eq_of_le_range L.subtype (hH.trans L.subtype_range.ge) (hK.trans L.sub
   codisjoint (H.subgroup_of (H ⊔ K)) (K.subgroup_of (H ⊔ K)) :=
 by { rw [codisjoint_iff, sup_subgroup_of_eq, subgroup_of_self], exacts [le_sup_left, le_sup_right] }
 
-/-- A subgroup is isomorphic to its image under an injective function -/
-@[to_additive  "An additive subgroup is isomorphic to its image under an injective function"]
+/-- A subgroup is isomorphic to its image under an injective function. If you have an isomorphism,
+use `subgroup.equiv_map` for better definitional equalities. -/
+@[to_additive  "An additive subgroup is isomorphic to its image under an injective function. If you
+have an isomorphism, use `add_subgroup.equiv_map` for better definitional equalities."]
 noncomputable def equiv_map_of_injective (H : subgroup G)
   (f : G →* N) (hf : function.injective f) : H ≃* H.map f :=
 { map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f H hf }

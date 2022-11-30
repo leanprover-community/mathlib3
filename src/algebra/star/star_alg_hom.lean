@@ -71,6 +71,20 @@ class non_unital_star_alg_hom_class (F : Type*) (R : out_param Type*) (A : out_p
 -- `R` becomes a metavariable but that's fine because it's an `out_param`
 attribute [nolint dangerous_instance] non_unital_star_alg_hom_class.to_star_hom_class
 
+namespace non_unital_star_alg_hom_class
+
+variables {F R A B : Type*} [monoid R]
+variables [non_unital_non_assoc_semiring A] [distrib_mul_action R A] [has_star A]
+variables [non_unital_non_assoc_semiring B] [distrib_mul_action R B] [has_star B]
+
+instance [non_unital_star_alg_hom_class F R A B] : has_coe_t F (A →⋆ₙₐ[R] B) :=
+{ coe := λ f,
+  { to_fun := f,
+    map_star' := map_star f,
+    .. (f : A →ₙₐ[R] B) }}
+
+end non_unital_star_alg_hom_class
+
 namespace non_unital_star_alg_hom
 
 section basic
@@ -96,6 +110,9 @@ instance : has_coe_to_fun (A →⋆ₙₐ[R] B) (λ _, A → B) := fun_like.has_
 
 initialize_simps_projections non_unital_star_alg_hom (to_fun → apply)
 
+@[simp, protected] lemma coe_coe {F : Type*} [non_unital_star_alg_hom_class F R A B] (f : F) :
+  ⇑(f : A →⋆ₙₐ[R] B) = f := rfl
+
 @[simp] lemma coe_to_non_unital_alg_hom {f : A →⋆ₙₐ[R] B} :
   (f.to_non_unital_alg_hom : A → B) = f := rfl
 
@@ -110,6 +127,9 @@ protected def copy (f : A →⋆ₙₐ[R] B) (f' : A → B) (h : f' = f) : A →
   map_add' := h.symm ▸ map_add f,
   map_mul' := h.symm ▸ map_mul f,
   map_star' := h.symm ▸ map_star f }
+
+@[simp] lemma coe_copy (f : A →⋆ₙₐ[R] B) (f' : A → B) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : A →⋆ₙₐ[R] B) (f' : A → B) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 @[simp] lemma coe_mk (f : A → B) (h₁ h₂ h₃ h₄ h₅) :
   ((⟨f, h₁, h₂, h₃, h₄, h₅⟩ : A →⋆ₙₐ[R] B) : A → B) = f :=
@@ -211,14 +231,25 @@ class star_alg_hom_class (F : Type*) (R : out_param Type*) (A : out_param Type*)
 -- `R` becomes a metavariable but that's fine because it's an `out_param`
 attribute [nolint dangerous_instance] star_alg_hom_class.to_star_hom_class
 
+namespace star_alg_hom_class
+
+variables (F R A B : Type*) [comm_semiring R] [semiring A] [algebra R A] [has_star A]
+variables [semiring B] [algebra R B] [has_star B] [hF : star_alg_hom_class F R A B]
+include hF
+
 @[priority 100] /- See note [lower instance priority] -/
-instance star_alg_hom_class.to_non_unital_star_alg_hom_class
-  (F R A B : Type*) [comm_semiring R] [semiring A] [algebra R A] [has_star A]
-  [semiring B] [algebra R B] [has_star B] [star_alg_hom_class F R A B] :
-  non_unital_star_alg_hom_class F R A B :=
+instance to_non_unital_star_alg_hom_class : non_unital_star_alg_hom_class F R A B :=
 { map_smul := map_smul,
   .. star_alg_hom_class.to_alg_hom_class F R A B,
   .. star_alg_hom_class.to_star_hom_class F R A B, }
+
+instance : has_coe_t F (A →⋆ₐ[R] B) :=
+{ coe := λ f,
+  { to_fun := f,
+    map_star' := map_star f,
+    ..(f : A →ₐ[R] B) } }
+
+end star_alg_hom_class
 
 namespace star_alg_hom
 
@@ -247,6 +278,9 @@ instance : star_alg_hom_class (A →⋆ₐ[R] B) R A B :=
 directly. -/
 instance : has_coe_to_fun (A →⋆ₐ[R] B) (λ _, A → B) := fun_like.has_coe_to_fun
 
+@[simp, protected] lemma coe_coe {F : Type} [star_alg_hom_class F R A B] (f : F) :
+  ⇑(f : A →⋆ₐ[R] B) = f := rfl
+
 initialize_simps_projections star_alg_hom (to_fun → apply)
 
 @[simp] lemma coe_to_alg_hom {f : A →⋆ₐ[R] B} :
@@ -264,6 +298,9 @@ protected def copy (f : A →⋆ₐ[R] B) (f' : A → B) (h : f' = f) : A →⋆
   map_add' := h.symm ▸ map_add f,
   commutes' := h.symm ▸ alg_hom_class.commutes f,
   map_star' := h.symm ▸ map_star f }
+
+@[simp] lemma coe_copy (f : A →⋆ₐ[R] B) (f' : A → B) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : A →⋆ₐ[R] B) (f' : A → B) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 @[simp] lemma coe_mk (f : A → B) (h₁ h₂ h₃ h₄ h₅ h₆) :
   ((⟨f, h₁, h₂, h₃, h₄, h₅, h₆⟩ : A →⋆ₐ[R] B) : A → B) = f :=

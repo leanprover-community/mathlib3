@@ -28,7 +28,7 @@ results in type class problems). -/
 class normed_add_torsor (V : out_param $ Type*) (P : Type*)
   [out_param $ seminormed_add_comm_group V] [pseudo_metric_space P]
   extends add_torsor V P :=
-(dist_eq_norm' : ∀ (x y : P), dist x y = ∥(x -ᵥ y : V)∥)
+(dist_eq_norm' : ∀ (x y : P), dist x y = ‖(x -ᵥ y : V)‖)
 
 /-- Shortcut instance to help typeclass inference out. -/
 @[priority 100]
@@ -59,12 +59,12 @@ variables (V W)
 /-- The distance equals the norm of subtracting two points. In this
 lemma, it is necessary to have `V` as an explicit argument; otherwise
 `rw dist_eq_norm_vsub` sometimes doesn't work. -/
-lemma dist_eq_norm_vsub (x y : P) : dist x y = ∥x -ᵥ y∥ := normed_add_torsor.dist_eq_norm' x y
+lemma dist_eq_norm_vsub (x y : P) : dist x y = ‖x -ᵥ y‖ := normed_add_torsor.dist_eq_norm' x y
 
 /-- The distance equals the norm of subtracting two points. In this
 lemma, it is necessary to have `V` as an explicit argument; otherwise
 `rw dist_eq_norm_vsub'` sometimes doesn't work. -/
-lemma dist_eq_norm_vsub' (x y : P) : dist x y = ∥y -ᵥ x∥ :=
+lemma dist_eq_norm_vsub' (x y : P) : dist x y = ‖y -ᵥ x‖ :=
 (dist_comm _ _).trans (dist_eq_norm_vsub _ _ _)
 
 end
@@ -77,10 +77,10 @@ by rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, vadd_vsub_vadd_cancel_left]
   dist (v₁ +ᵥ x) (v₂ +ᵥ x) = dist v₁ v₂ :=
 by rw [dist_eq_norm_vsub V, dist_eq_norm, vadd_vsub_vadd_cancel_right]
 
-@[simp] lemma dist_vadd_left (v : V) (x : P) : dist (v +ᵥ x) x = ∥v∥ :=
+@[simp] lemma dist_vadd_left (v : V) (x : P) : dist (v +ᵥ x) x = ‖v‖ :=
 by simp [dist_eq_norm_vsub V _ x]
 
-@[simp] lemma dist_vadd_right (v : V) (x : P) : dist x (v +ᵥ x) = ∥v∥ :=
+@[simp] lemma dist_vadd_right (v : V) (x : P) : dist x (v +ᵥ x) = ‖v‖ :=
 by rw [dist_comm, dist_vadd_left]
 
 /-- Isometry between the tangent space `V` of a (semi)normed add torsor `P` and `P` given by
@@ -162,12 +162,12 @@ is not an instance because it depends on `V` to define a `metric_space
 P`. -/
 def pseudo_metric_space_of_normed_add_comm_group_of_add_torsor (V P : Type*)
   [seminormed_add_comm_group V] [add_torsor V P] : pseudo_metric_space P :=
-{ dist := λ x y, ∥(x -ᵥ y : V)∥,
+{ dist := λ x y, ‖(x -ᵥ y : V)‖,
   dist_self := λ x, by simp,
   dist_comm := λ x y, by simp only [←neg_vsub_eq_vsub_rev y x, norm_neg],
   dist_triangle := begin
     intros x y z,
-    change ∥x -ᵥ z∥ ≤ ∥x -ᵥ y∥ + ∥y -ᵥ z∥,
+    change ‖x -ᵥ z‖ ≤ ‖x -ᵥ y‖ + ‖y -ᵥ z‖,
     rw ←vsub_add_vsub_cancel,
     apply norm_add_le
   end }
@@ -178,13 +178,13 @@ P`. -/
 def metric_space_of_normed_add_comm_group_of_add_torsor (V P : Type*)
   [normed_add_comm_group V] [add_torsor V P] :
   metric_space P :=
-{ dist := λ x y, ∥(x -ᵥ y : V)∥,
+{ dist := λ x y, ‖(x -ᵥ y : V)‖,
   dist_self := λ x, by simp,
   eq_of_dist_eq_zero := λ x y h, by simpa using h,
   dist_comm := λ x y, by simp only [←neg_vsub_eq_vsub_rev y x, norm_neg],
   dist_triangle := begin
     intros x y z,
-    change ∥x -ᵥ z∥ ≤ ∥x -ᵥ y∥ + ∥y -ᵥ z∥,
+    change ‖x -ᵥ z‖ ≤ ‖x -ᵥ y‖ + ‖y -ᵥ z‖,
     rw ←vsub_add_vsub_cancel,
     apply norm_add_le
   end }

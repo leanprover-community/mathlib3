@@ -3,6 +3,7 @@ Copyright (c) 2022 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
+import data.set.intervals.group
 import analysis.convex.segment
 import linear_algebra.affine_space.finite_dimensional
 import tactic.field_simp
@@ -339,6 +340,21 @@ lemma sbtw.not_rotate [no_zero_smul_divisors R V] {x y z : P} (h : sbtw R x y z)
   ¬ wbtw R z x y :=
 λ hs, h.left_ne (h.wbtw.rotate_iff.1 hs)
 
+@[simp] lemma wbtw_line_map_iff [no_zero_smul_divisors R V] {x y : P} {r : R} :
+  wbtw R x (line_map x y r) y ↔ x = y ∨ r ∈ set.Icc (0 : R) 1 :=
+begin
+  by_cases hxy : x = y, { simp [hxy] },
+  rw [or_iff_right hxy, wbtw, affine_segment, (line_map_injective R hxy).mem_set_image]
+end
+
+@[simp] lemma sbtw_line_map_iff [no_zero_smul_divisors R V] {x y : P} {r : R} :
+  sbtw R x (line_map x y r) y ↔ x ≠ y ∧ r ∈ set.Ioo (0 : R) 1 :=
+begin
+  rw [sbtw_iff_mem_image_Ioo_and_ne, and_comm, and_congr_right],
+  intro hxy,
+  rw (line_map_injective R hxy).mem_set_image
+end
+
 lemma wbtw.trans_left {w x y z : P} (h₁ : wbtw R w y z) (h₂ : wbtw R w x y) : wbtw R w x z :=
 begin
   rcases h₁ with ⟨t₁, ht₁, rfl⟩,
@@ -573,6 +589,16 @@ begin
   refine ⟨wbtw_point_reflection _ _ _, h, _⟩,
   nth_rewrite 0 [←point_reflection_self R x],
   exact (point_reflection_involutive R x).injective.ne h
+end
+
+lemma wbtw_midpoint (x y : P) : wbtw R x (midpoint R x y) y :=
+by { convert wbtw_point_reflection R (midpoint R x y) x, simp }
+
+lemma sbtw_midpoint_of_ne {x y : P} (h : x ≠ y) : sbtw R x (midpoint R x y) y :=
+begin
+  have h : midpoint R x y ≠ x, { simp [h] },
+  convert sbtw_point_reflection_of_ne R h,
+  simp
 end
 
 end linear_ordered_field

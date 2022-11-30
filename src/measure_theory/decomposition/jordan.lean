@@ -221,8 +221,7 @@ begin
   rw [← of_union _ (measurable_set.inter hi₁ hk) (measurable_set.inter hi₁.compl hk),
       set.inter_comm i, set.inter_comm iᶜ, set.inter_union_compl _ _],
   { apply_instance },
-  { rintro x ⟨⟨hx₁, _⟩, hx₂, _⟩,
-    exact false.elim (hx₂ hx₁) }
+  { exact (disjoint_compl_right.inf_left _).inf_right _ }
 end
 
 section

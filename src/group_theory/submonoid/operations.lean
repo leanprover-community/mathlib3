@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
 Amelia Livingston, Yury Kudryashov
 -/
+import algebra.order.monoid.cancel.basic
 import group_theory.group_action.defs
 import group_theory.submonoid.basic
 import group_theory.subsemigroup.operations
@@ -784,7 +785,7 @@ rfl
 iff.rfl
 
 @[to_additive] lemma mrange_eq_map (f : F) : mrange f = (⊤ : submonoid M).map f :=
-copy_eq _
+submonoid.copy_eq _
 omit mc
 
 @[to_additive]

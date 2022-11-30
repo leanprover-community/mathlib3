@@ -1064,6 +1064,22 @@ lemma coe_max' {s : finset α} (hs : s.nonempty) : ↑(s.max' hs) = s.max := coe
 
 lemma coe_min' {s : finset α} (hs : s.nonempty) : ↑(s.min' hs) = s.min := coe_inf' hs id
 
+lemma max_mem_image_coe {s : finset α} (hs : s.nonempty) :
+  s.max ∈ (s.image coe : finset (with_bot α)) :=
+mem_image.2 ⟨max' s hs, max'_mem _ _, coe_max' hs⟩
+
+lemma min_mem_image_coe {s : finset α} (hs : s.nonempty) :
+  s.min ∈ (s.image coe : finset (with_top α)) :=
+mem_image.2 ⟨min' s hs, min'_mem _ _, coe_min' hs⟩
+
+lemma max_mem_insert_bot_image_coe (s : finset α) :
+  s.max ∈ (insert ⊥ (s.image coe) : finset (with_bot α)) :=
+mem_insert.2 $ s.eq_empty_or_nonempty.imp max_eq_bot.2 max_mem_image_coe
+
+lemma min_mem_insert_top_image_coe (s : finset α) :
+  s.min ∈ (insert ⊤ (s.image coe) : finset (with_top α)) :=
+mem_insert.2 $ s.eq_empty_or_nonempty.imp min_eq_top.2 min_mem_image_coe
+
 lemma max'_erase_ne_self {s : finset α} (s0 : (s.erase x).nonempty) :
   (s.erase x).max' s0 ≠ x :=
 ne_of_mem_erase (max'_mem _ s0)
@@ -1083,6 +1099,47 @@ end
 
 lemma min_erase_ne_self {s : finset α} : (s.erase x).min ≠ x :=
 by convert @max_erase_ne_self αᵒᵈ _ _ _
+
+lemma exists_next_right {x : α} {s : finset α} (h : ∃ y ∈ s, x < y) :
+  ∃ y ∈ s, x < y ∧ ∀ z ∈ s, x < z → y ≤ z :=
+have Hne : (s.filter ((<) x)).nonempty := h.imp $ λ y hy, mem_filter.2 ⟨hy.fst, hy.snd⟩,
+⟨min' _ Hne, (mem_filter.1 (min'_mem _ Hne)).1, (mem_filter.1 (min'_mem _ Hne)).2,
+  λ z hzs hz, min'_le _ _ $ mem_filter.2 ⟨hzs, hz⟩⟩
+
+lemma exists_next_left {x : α} {s : finset α} (h : ∃ y ∈ s, y < x) :
+  ∃ y ∈ s, y < x ∧ ∀ z ∈ s, z < x → z ≤ y :=
+@exists_next_right αᵒᵈ _ x s h
+
+/-- If finsets `s` and `t` are interleaved, then `finset.card s ≤ finset.card t + 1`. -/
+lemma card_le_of_interleaved {s t : finset α}
+  (h : ∀ x y ∈ s, x < y → (∀ z ∈ s, z ∉ set.Ioo x y) → ∃ z ∈ t, x < z ∧ z < y) :
+  s.card ≤ t.card + 1 :=
+begin
+  replace h : ∀ x y ∈ s, x < y → ∃ z ∈ t, x < z ∧ z < y,
+  { intros x hx y hy hxy,
+    rcases exists_next_right ⟨y, hy, hxy⟩ with ⟨a, has, hxa, ha⟩,
+    rcases h x hx a has hxa (λ z hzs hz, hz.2.not_le $ ha _ hzs hz.1) with ⟨b, hbt, hxb, hba⟩,
+    exact ⟨b, hbt, hxb, hba.trans_le $ ha _ hy hxy⟩ },
+  set f : α → with_top α := λ x, (t.filter (λ y, x < y)).min,
+  have f_mono : strict_mono_on f s,
+  { intros x hx y hy hxy,
+    rcases h x hx y hy hxy with ⟨a, hat, hxa, hay⟩,
+    calc f x ≤ a : min_le (mem_filter.2 ⟨hat, hxa⟩)
+         ... < f y : (finset.lt_inf_iff $ with_top.coe_lt_top a).2 $
+      λ b hb, with_top.coe_lt_coe.2 $ hay.trans (mem_filter.1 hb).2 },
+  calc s.card = (s.image f).card : (card_image_of_inj_on f_mono.inj_on).symm
+  ... ≤ (insert ⊤ (t.image coe) : finset (with_top α)).card : card_mono $ image_subset_iff.2 $
+    λ x hx, insert_subset_insert _ (image_subset_image $ filter_subset _ _)
+      (min_mem_insert_top_image_coe _)
+  ... ≤ t.card + 1 : (card_insert_le _ _).trans (add_le_add_right card_image_le _)
+end
+
+/-- If finsets `s` and `t` are interleaved, then `finset.card s ≤ finset.card (t \ s) + 1`. -/
+lemma card_le_diff_of_interleaved {s t : finset α}
+  (h : ∀ x y ∈ s, x < y → (∀ z ∈ s, z ∉ set.Ioo x y) → ∃ z ∈ t, x < z ∧ z < y) :
+  s.card ≤ (t \ s).card + 1 :=
+card_le_of_interleaved $ λ x hx y hy hxy hs, let ⟨z, hzt, hxz, hzy⟩ := h x hx y hy hxy hs
+in ⟨z, mem_sdiff.2 ⟨hzt, λ hzs, hs z hzs ⟨hxz, hzy⟩⟩, hxz, hzy⟩
 
 /-- Induction principle for `finset`s in a linearly ordered type: a predicate is true on all
 `s : finset α` provided that:
@@ -1173,6 +1230,29 @@ lemma exists_min_image (s : finset β) (f : β → α) (h : s.nonempty) :
 @exists_max_image αᵒᵈ β _ s f h
 
 end exists_max_min
+
+lemma is_glb_iff_is_least [linear_order α] (i : α) (s : finset α) (hs : s.nonempty) :
+  is_glb (s : set α) i ↔ is_least ↑s i :=
+begin
+  refine ⟨λ his, _, is_least.is_glb⟩,
+  suffices : i = min' s hs,
+  { rw this, exact is_least_min' s hs, },
+  rw [is_glb, is_greatest, mem_lower_bounds, mem_upper_bounds] at his,
+  exact le_antisymm (his.1 (finset.min' s hs) (finset.min'_mem s hs)) (his.2 _ (finset.min'_le s)),
+end
+
+lemma is_lub_iff_is_greatest [linear_order α] (i : α) (s : finset α) (hs : s.nonempty) :
+  is_lub (s : set α) i ↔ is_greatest ↑s i :=
+@is_glb_iff_is_least αᵒᵈ _ i s hs
+
+lemma is_glb_mem [linear_order α] {i : α} (s : finset α)
+  (his : is_glb (s : set α) i) (hs : s.nonempty) : i ∈ s :=
+by { rw ← mem_coe, exact ((is_glb_iff_is_least i s hs).mp his).1, }
+
+lemma is_lub_mem [linear_order α] {i : α} (s : finset α)
+  (his : is_lub (s : set α) i) (hs : s.nonempty) : i ∈ s :=
+@is_glb_mem αᵒᵈ _ i s his hs
+
 end finset
 
 namespace multiset

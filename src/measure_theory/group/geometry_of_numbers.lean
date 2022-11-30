@@ -142,46 +142,6 @@ begin
 end
 
 namespace is_fundamental_domain
-variables {G H α β E : Type*} [group G] [group H]
-  [mul_action G α] [measurable_space α]
-  [mul_action H β] [measurable_space β]
-  [normed_add_comm_group E] {s t : set α} {μ : measure α} {ν : measure β}
-
-@[to_additive measure_theory.is_add_fundamental_domain.preimage_of_equiv']
-lemma preimage_of_equiv' [measurable_space H]
-  [has_measurable_smul H β] [smul_invariant_measure H β ν]
-  {s : set β} (h : is_fundamental_domain H s ν) {f : α → β}
-  (hf : quasi_measure_preserving f μ ν) {e : H → G} (he : bijective e)
-  (hef : ∀ g, semiconj f ((•) (e g)) ((•) g)) :
-  is_fundamental_domain G (f ⁻¹' s) μ :=
-{ null_measurable_set := h.null_measurable_set.preimage hf,
-  ae_covers := (hf.ae h.ae_covers).mono $ λ x ⟨g, hg⟩, ⟨e g, by rwa [mem_preimage, hef g x]⟩,
-  ae_disjoint := λ g hg,
-    begin
-      lift e to H ≃ G using he,
-      have : (e.symm g⁻¹)⁻¹ ≠ (e.symm 1)⁻¹, by simp [hg],
-      convert (h.pairwise_ae_disjoint this).preimage hf using 1,
-      { simp only [←preimage_smul_inv, preimage_preimage, ←hef _ _, e.apply_symm_apply, inv_inv] },
-      { ext1 x,
-        simp only [mem_preimage, ←preimage_smul, ←hef _ _, e.apply_symm_apply, one_smul] }
-    end }
-
-@[to_additive measure_theory.is_add_fundamental_domain.image_of_equiv']
-lemma image_of_equiv' [measurable_space G] [has_measurable_smul G α] [smul_invariant_measure G α μ]
-  (h : is_fundamental_domain G s μ)
-  (f : α ≃ β) (hf : quasi_measure_preserving f.symm ν μ)
-  (e : H ≃ G) (hef : ∀ g, semiconj f ((•) (e g)) ((•) g)) :
-  is_fundamental_domain H (f '' s) ν :=
-begin
-  rw f.image_eq_preimage,
-  refine h.preimage_of_equiv' hf e.symm.bijective (λ g x, _),
-  rcases f.surjective x with ⟨x, rfl⟩,
-  rw [←hef, f.symm_apply_apply, f.symm_apply_apply, e.apply_symm_apply]
-end
-
-end is_fundamental_domain
-
-namespace is_fundamental_domain
 variables {G α : Type*} [group G] [mul_action G α] [measurable_space G] [measurable_space α]
   [has_measurable_mul G] {L : subgroup G}
 
@@ -207,7 +167,7 @@ lemma map_linear_equiv (μ : measure E) [is_add_haar_measure μ]
   (fund : is_add_fundamental_domain L F μ) (e : E ≃ₗ[ℝ] G) :
   is_add_fundamental_domain (L.map (e : E →+ G)) (e '' F) (map e μ) :=
 begin
-  refine fund.image_of_equiv'  e.to_equiv _ (L.equiv_map e).symm.to_equiv (λ g x, _),
+  refine fund.image_of_equiv e.to_equiv _ (L.equiv_map e).symm.to_equiv (λ g x, _),
   { convert quasi_measure_preserving_map _
       e.to_continuous_linear_equiv.to_homeomorph.to_measurable_equiv; ext; refl },
   { simp [←add_equiv.coe_to_equiv_symm, _root_.map_add, add_subgroup.vadd_def, vadd_eq_add] }

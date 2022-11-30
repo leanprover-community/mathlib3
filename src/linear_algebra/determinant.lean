@@ -533,6 +533,16 @@ by { rw [basis.det_apply, basis.det_apply, ← f.det_to_matrix e, ← matrix.det
          e.to_matrix_eq_to_matrix_constr (f ∘ v), e.to_matrix_eq_to_matrix_constr v,
          ← to_matrix_comp, e.constr_comp] }
 
+@[simp] lemma basis.det_comp_basis [module A M']
+  (b : basis ι A M) (b' : basis ι A M') (f : M →ₗ[A] M') :
+  b'.det (f ∘ b) = linear_map.det (f ∘ₗ (b'.equiv b (equiv.refl ι) : M' →ₗ[A] M)) :=
+begin
+  rw [basis.det_apply, ← linear_map.det_to_matrix b', linear_map.to_matrix_comp _ b,
+      matrix.det_mul, linear_map.to_matrix_basis_equiv, matrix.det_one, mul_one],
+  congr' 1, ext i j,
+  rw [basis.to_matrix_apply, linear_map.to_matrix_apply]
+end
+
 lemma basis.det_reindex {ι' : Type*} [fintype ι'] [decidable_eq ι']
   (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :
   (b.reindex e).det v = b.det (v ∘ e) :=

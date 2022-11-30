@@ -61,9 +61,9 @@ lemma mul_def (f g : perm α) : f * g = g.trans f := rfl
 
 lemma inv_def (f : perm α) : f⁻¹ = f.symm := rfl
 
-@[simp] protected lemma coe_mul (f g : perm α) : ⇑(f * g) = f ∘ g := rfl
+@[simp] lemma coe_mul (f g : perm α) : ⇑(f * g) = f ∘ g := rfl
 
-@[simp] protected lemma coe_one : ⇑(1 : perm α) = id := rfl
+@[simp] lemma coe_one : ⇑(1 : perm α) = id := rfl
 
 lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y := f.eq_symm_apply
 

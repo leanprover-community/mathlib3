@@ -11,6 +11,8 @@ import algebra.big_operators.basic
 # Finite sums over modules over a ring
 -/
 
+open_locale big_operators
+
 universes u v
 variables {α R k S M M₂ M₃ ι : Type*}
 section add_comm_monoid

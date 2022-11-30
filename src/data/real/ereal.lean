@@ -28,7 +28,7 @@ but it is sometimes convenient to have.
 
 An ad hoc multiplication is defined, for which `ereal` is a `comm_monoid_with_zero`. We make the
 choice that `0 * x = x * 0 = 0` for any `x` (while the other cases are defined non-ambiguously).
-This does not distribute with addition, as `⊤ = ⊤ - ⊥ = 1*⊤ - 1*⊤ ≠ (1 - 1) * ⊤ = 0 * ⊤ = 0`.
+This does not distribute with addition, as `⊥ = ⊥ + ⊤ = 1*⊥ + (-1)*⊥ ≠ (1 - 1) * ⊥ = 0 * ⊥ = 0`.
 
 `ereal` is a `complete_linear_order`; this is deduced by type class inference from
 the fact that `with_bot (with_top L)` is a complete linear order if `L` is

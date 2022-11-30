@@ -23,9 +23,13 @@ def replace_range(src, pos, end_pos, new):
     return src[:pos] + new + src[end_pos:]
 
 
+class NoModuleDocstringError(ValueError): pass
+
 def add_port_status(fcontent, fstatus):
     module_comment = re.search('/-!\s*(.*?)-/', fcontent, re.MULTILINE | re.DOTALL)
-    assert module_comment
+    if not module_comment:
+        raise NoModuleDocstringError()
+
     module_comment_start = module_comment.start(1)
     module_comment_end = module_comment.end(1)
 
@@ -65,14 +69,25 @@ def fname_for(import_path):
     return src_path / Path(*import_path.split('.')).with_suffix('.lean')
 
 
+missing_docstrings = []
 for iname, f_status in status.file_statuses.items():
     if f_status.ported:
         fname = fname_for(iname)
         with open(fname) as f:
             fcontent = f.read()
-        new_fcontent = add_port_status(fcontent, f_status)
+        try:
+            new_fcontent = add_port_status(fcontent, f_status)
+        except NoModuleDocstringError:
+            missing_docstrings.append(fname)
+            continue
         if new_fcontent == fcontent:
             continue
         print(f'* `{iname}`: https://github.com/leanprover-community/mathlib4/pull/{f_status.mathlib4_pr}')
         with open(fname, 'w') as f:
             f.write(new_fcontent)
+if missing_docstrings:
+    print('\n---')
+    print('The following files have no module docstring, so I have not added a message in this PR')
+    for fname in missing_docstrings:
+        print(f'* [`{fname}`](https://github.com/leanprover-community/mathlib/blob/master/{fname})')
+    print('\nPlease make a PR to add a module docstring (for Lean3 and Lean4!), then I will add the freeze comment next time.')

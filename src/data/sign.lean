@@ -3,7 +3,7 @@ Copyright (c) 2022 Eric Rodriguez. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
-import algebra.big_operators.basic
+import algebra.big_operators.order
 import data.fintype.big_operators
 import data.int.lemmas
 import tactic.derive_fintype
@@ -331,6 +331,30 @@ begin
 end
 
 end add_group
+
+section linear_ordered_add_comm_group
+
+open_locale big_operators
+
+variables [linear_ordered_add_comm_group α]
+
+/- I'm not sure why this is necessary, see
+https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Decidable.20vs.20decidable_rel -/
+local attribute [instance] linear_ordered_add_comm_group.decidable_lt
+
+lemma sign_sum {ι : Type*} {s : finset ι} {f : ι → α} (hs : s.nonempty) (t : sign_type)
+  (h : ∀ i ∈ s, sign (f i) = t) : sign (∑ i in s, f i) = t :=
+begin
+  cases t,
+  { simp_rw [zero_eq_zero, sign_eq_zero_iff] at ⊢ h,
+    exact finset.sum_eq_zero h },
+  { simp_rw [neg_eq_neg_one, sign_eq_neg_one_iff] at ⊢ h,
+    exact finset.sum_neg h hs },
+  { simp_rw [pos_eq_one, sign_eq_one_iff] at ⊢ h,
+    exact finset.sum_pos h hs }
+end
+
+end linear_ordered_add_comm_group
 
 namespace int
 

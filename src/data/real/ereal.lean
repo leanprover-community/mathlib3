@@ -717,6 +717,8 @@ end
 
 /-! ### Absolute value -/
 
+/-- The absolute value from `ereal` to `ℝ≥0∞`, mapping `⊥` and `⊤` to `⊤` and
+a real `x` to `|x|`. -/
 protected def abs : ereal → ℝ≥0∞
 | ⊥ := ⊤
 | ⊤ := ⊤
@@ -844,11 +846,7 @@ instance : comm_monoid_with_zero ereal :=
     rw [← sign_eq_and_abs_eq_iff_eq],
     simp only [mul_assoc, abs_mul, eq_self_iff_true, sign_mul, and_self],
   end,
-  mul_comm := λ x y, begin
-    induction x using ereal.rec; induction y using ereal.rec; try { refl },
-    dsimp only [(*)],
-    simp only [ereal.mul, mul_comm],
-  end,
+  mul_comm := ereal.mul_comm,
   ..ereal.has_mul, ..ereal.has_one, ..ereal.has_zero, ..ereal.mul_zero_one_class }
 
 @[simp, norm_cast] lemma coe_pow (x : ℝ) (n : ℕ) : (↑(x ^ n) : ereal) = x ^ n :=

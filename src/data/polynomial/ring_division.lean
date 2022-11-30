@@ -276,9 +276,8 @@ begin
   split,
   { rintros ⟨a, b, ha, hb, rfl, hdb|⟨⟨⟩⟩⟩,
     have hda := hnd, rw [ha.nat_degree_mul hb, hdb] at hda,
-    use [a.coeff 0, b.coeff 0, by rw mul_coeff_zero],
-    convert ha.next_coeff_mul hb; simp only
-      [next_coeff, hnd, add_right_cancel hda, hdb, if_neg two_ne_zero, if_neg one_ne_zero] },
+    use [a.coeff 0, b.coeff 0, mul_coeff_zero a b],
+    simpa only [next_coeff, hnd, add_right_cancel hda, hdb] using ha.next_coeff_mul hb },
   { rintros ⟨c₁, c₂, hmul, hadd⟩,
     refine ⟨X + C c₁, X + C c₂, monic_X_add_C _, monic_X_add_C _, _, or.inl $ nat_degree_X_add_C _⟩,
     rw [p.as_sum_range_C_mul_X_pow, hnd, finset.sum_range_succ, finset.sum_range_succ,

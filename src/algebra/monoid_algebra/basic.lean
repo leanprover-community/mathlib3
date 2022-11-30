@@ -464,8 +464,8 @@ begin
   ext m,
   classical,
   simp only [mul_apply, finsupp.smul_sum, smul_ite, smul_mul_assoc, sum_smul_index', zero_mul,
-     if_t_t, implies_true_iff, eq_self_iff_true, sum_zero, finsupp.coe_smul, smul_eq_mul,
-     pi.smul_apply, smul_zero],
+     if_t_t, implies_true_iff, eq_self_iff_true, sum_zero, coe_smul, smul_eq_mul, pi.smul_apply,
+     smul_zero],
 end⟩
 
 /-- Note that if `k` is a `comm_semiring` then we have `smul_comm_class k k k` and so we can take
@@ -477,8 +477,8 @@ instance smul_comm_class_self [smul_comm_class R k k] :
 begin
   ext m,
   simp only [mul_apply, finsupp.sum, finset.smul_sum, smul_ite, mul_smul_comm, sum_smul_index',
-    implies_true_iff, eq_self_iff_true, finsupp.coe_smul, ite_eq_right_iff, smul_eq_mul,
-    pi.smul_apply, mul_zero, smul_zero],
+    implies_true_iff, eq_self_iff_true, coe_smul, ite_eq_right_iff, smul_eq_mul, pi.smul_apply,
+    mul_zero, smul_zero],
 end⟩
 
 instance smul_comm_class_symm_self [smul_comm_class k R k] :

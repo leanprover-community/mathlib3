@@ -76,6 +76,8 @@ lemma exists_iff_exists_finsupp (P : R[X] → Prop) :
   (∃ p, P p) ↔ ∃ (q : add_monoid_algebra R ℕ), P ⟨q⟩ :=
 ⟨λ ⟨⟨p⟩, hp⟩, ⟨p, hp⟩, λ ⟨q, hq⟩, ⟨⟨q⟩, hq⟩ ⟩
 
+@[simp] lemma eta (f : R[X]) : polynomial.of_finsupp f.to_finsupp = f := by cases f; refl
+
 /-! ### Conversions to and from `add_monoid_algebra`
 
 Since `R[X]` is not defeq to `add_monoid_algebra R ℕ`, but instead is a structure wrapping
@@ -439,6 +441,8 @@ lemma coeff_injective : injective (coeff : R[X] → ℕ → R) :=
 by { rintro ⟨p⟩ ⟨q⟩, simp only [coeff, fun_like.coe_fn_eq, imp_self] }
 
 @[simp] lemma coeff_inj : p.coeff = q.coeff ↔ p = q := coeff_injective.eq_iff
+
+lemma to_finsupp_apply (f : R[X]) (i) : f.to_finsupp i = f.coeff i := by cases f; refl
 
 lemma coeff_monomial : coeff (monomial n a) m = if n = m then a else 0 :=
 by { simp only [←of_finsupp_single, coeff, linear_map.coe_mk], rw finsupp.single_apply }

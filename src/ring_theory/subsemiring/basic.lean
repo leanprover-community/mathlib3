@@ -87,12 +87,9 @@ instance no_zero_divisors [no_zero_divisors R] : no_zero_divisors s :=
   or.cases_on (eq_zero_or_eq_zero_of_mul_eq_zero $ subtype.ext_iff.mp h)
     (λ h, or.inl $ subtype.eq h) (λ h, or.inr $ subtype.eq h) }
 
-instance : coe_is_ring_hom s R :=
-{ .. submonoid_class.coe_is_monoid_hom s,
-  .. add_submonoid_class.coe_is_add_monoid_hom s }
-
 /-- The natural ring hom from a subsemiring of semiring `R` to `R`. -/
-def subtype : s →+* R := ring_hom.coe s R
+def subtype : s →+* R :=
+{ to_fun := coe, .. submonoid_class.subtype s, .. add_submonoid_class.subtype s }
 
 @[simp] theorem coe_subtype : (subtype s : s → R) = coe := rfl
 
@@ -104,9 +101,14 @@ instance to_semiring {R} [semiring R] [set_like S R] [subsemiring_class S R] : s
 subtype.coe_injective.semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
   (λ _, rfl)
 
-@[norm_cast] lemma coe_pow {R} [semiring R] [set_like S R] [subsemiring_class S R]
-  (x : s) (n : ℕ) : ((x^n : s) : R) = (x^n : R) :=
-coe_pow _ _
+@[simp, norm_cast] lemma coe_pow {R} [semiring R] [set_like S R] [subsemiring_class S R]
+  (x : s) (n : ℕ) :
+  ((x^n : s) : R) = (x^n : R) :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [pow_succ, ih], },
+end
 
 /-- A subsemiring of a `comm_semiring` is a `comm_semiring`. -/
 instance to_comm_semiring {R} [comm_semiring R] [set_like S R] [subsemiring_class S R] :
@@ -333,9 +335,13 @@ instance no_zero_divisors [no_zero_divisors R] : no_zero_divisors s :=
 instance to_semiring {R} [semiring R] (s : subsemiring R) : semiring s :=
 { ..s.to_non_assoc_semiring, ..s.to_submonoid.to_monoid }
 
-@[norm_cast] lemma coe_pow {R} [semiring R] (s : subsemiring R) (x : s) (n : ℕ) :
+@[simp, norm_cast] lemma coe_pow {R} [semiring R] (s : subsemiring R) (x : s) (n : ℕ) :
   ((x^n : s) : R) = (x^n : R) :=
-coe_pow x n
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [pow_succ, ih], },
+end
 
 /-- A subsemiring of a `comm_semiring` is a `comm_semiring`. -/
 instance to_comm_semiring {R} [comm_semiring R] (s : subsemiring R) : comm_semiring s :=

@@ -149,20 +149,6 @@ theorem mem_zip {a b} : ∀ {l₁ : list α} {l₂ : list β},
 | (_::l₁) (_::l₂) (or.inl rfl) := ⟨or.inl rfl, or.inl rfl⟩
 | (a'::l₁) (b'::l₂) (or.inr h) := by split; simp only [mem_cons_iff, or_true, mem_zip h]
 
-theorem map_fst_zip : ∀ (l₁ : list α) (l₂ : list β),
-  l₁.length ≤ l₂.length →
-  map prod.fst (zip l₁ l₂) = l₁
-| [] bs _ := rfl
-| (a :: as) (b :: bs) h := by { simp at h, simp! * }
-| (a :: as) [] h := by { simp at h, contradiction }
-
-theorem map_snd_zip : ∀ (l₁ : list α) (l₂ : list β),
-  l₂.length ≤ l₁.length →
-  map prod.snd (zip l₁ l₂) = l₂
-| _ [] _ := by { rw zip_nil_right, refl }
-| [] (b :: bs) h := by { simp at h, contradiction }
-| (a :: as) (b :: bs) h := by { simp at h, simp! * }
-
 @[simp] theorem unzip_nil : unzip (@nil (α × β)) = ([], []) := rfl
 
 @[simp] theorem unzip_cons (a : α) (b : β) (l : list (α × β)) :
@@ -237,6 +223,24 @@ by { rw zip_with_comm, simp only [comm] }
 lemma zip_with_same (f : α → α → δ) : ∀ (l : list α), zip_with f l l = l.map (λ a, f a a)
 | [] := rfl
 | (x :: xs) := congr_arg _ (zip_with_same xs)
+
+@[simp] lemma zip_with_left (f : α → γ) :
+  ∀ (l₁ : list α) (l₂ : list β), l₁.zip_with (λ a b, f a) l₂ = (l₁.take l₂.length).map f
+| [] _ := by rw [zip_with_nil_left, take_nil, map_nil]
+| (x :: xs) [] := by rw [zip_with_nil_right, length, take_zero, map_nil]
+| (x :: xs) (b :: bs) := by rw [zip_with_cons_cons, length, take_cons, map_cons, zip_with_left]
+
+@[simp] lemma zip_with_right (f : β → γ) (l₁ : list α) (l₂ : list β) :
+  l₁.zip_with (λ a b, f b) l₂ = (l₂.take l₁.length).map f :=
+by rw [zip_with_comm, zip_with_left]
+
+@[simp] lemma map_fst_zip (l₁ : list α) (l₂ : list β) :
+  (l₁.zip l₂).map prod.fst = l₁.take l₂.length :=
+by simp_rw [zip, map_zip_with, zip_with_left, map_id'']
+
+@[simp] lemma map_snd_zip (l₁ : list α) (l₂ : list β) :
+  (l₁.zip l₂).map prod.snd = l₂.take l₁.length :=
+by simp_rw [zip, map_zip_with, zip_with_right, map_id'']
 
 lemma zip_with_zip_with_left (f : δ → γ → ε) (g : α → β → δ) :
   ∀ (la : list α) (lb : list β) (lc : list γ),
